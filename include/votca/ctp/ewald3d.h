@@ -22,13 +22,13 @@ namespace votca { namespace ctp {
     // NOTE: The k-shell grouping algorithm can fail for strongly skewed boxes.
     //        
     
-    class Ewald3D
+    class Ewald3D3D
     {
         
     public:
         
-        Ewald3D(Topology *top, PolarTop *ptop, Property *opt, Logger *log);
-       ~Ewald3D();
+        Ewald3D3D(Topology *top, PolarTop *ptop, Property *opt, Logger *log);
+       ~Ewald3D3D();
        
         void SetupMidground(double R_co);
         void WriteDensitiesPDB(string pdbfile);
@@ -43,19 +43,31 @@ namespace votca { namespace ctp {
         string GenerateOutputString();
         string GenerateErrorString();
         
-        // To sort K-vectors via std::sort - Euclidean norm
-        struct EuclideanSort
+        // To sort K-vectors via std::sort using a norm functor
+        template<class Norm>
+        struct VectorSort
         {
-            inline bool operator() (const vec &v1, const vec &v2, double t=1e-40);            
-            inline bool MatchDouble(double a, double b, double t=1e-40);
+            VectorSort() : _p(1e-40) { ; }
+            VectorSort(double precision) : _p(precision) { ; }
+            inline bool operator() (const vec &v1, const vec &v2);
+            inline bool MatchDouble(double a, double b) { return ((a-b)*(a-b) < _p) ? true : false; }
+            double _p;
+            Norm _norm;
         };
         
-        // To sort K-vectors via std::sort - Tschebyschow norm
-        struct TschebyschowSort
+        struct MaxNorm 
         {
-            inline bool operator() (const vec &v1, const vec &v2, double t=1e-40);
-            inline bool MatchDouble(double a, double b, double t=1e-40);
+            // Tschebyschow norm
+            inline double operator() (const vec &v) { return votca::tools::maxnorm(v); }
         };
+        
+        struct EucNorm 
+        {
+            // Euclidean norm
+            inline double operator() (const vec &v) { return votca::tools::abs(v); }
+        };
+        
+
         
         
     private:
@@ -94,8 +106,8 @@ namespace votca { namespace ctp {
         double _LxLyLz;                 // a*|b^c|
         string _shape;                  // Summation shape (for 3D corr. term)
         
-        TschebyschowSort _maxsort;
-        EuclideanSort _eucsort;
+        VectorSort<MaxNorm> _maxsort;
+        VectorSort<EucNorm> _eucsort;
         
         // ENERGIES
         double _ER;                     // R-space sum
@@ -111,25 +123,26 @@ namespace votca { namespace ctp {
     };
 
 
-inline bool Ewald3D::EuclideanSort::operator() (const vec& v1, 
-    const vec& v2, double t) {
+template<class Norm>
+inline bool Ewald3D3D::VectorSort<Norm>::operator() (const vec &v1,
+    const vec &v2) {
     bool smaller = false;
     // LEVEL 1: MAGNITUDE
-    double V1 = abs(v1);
-    double V2 = abs(v2);                
-    if (MatchDouble(V1,V2,t)) {
+    double V1 = _norm(v1);
+    double V2 = _norm(v2);
+    if (MatchDouble(V1,V2)) {
         // LEVEL 2: X
         double X1 = v1.getX();
         double X2 = v2.getX();
-        if (MatchDouble(X1,X2,t)) {
+        if (MatchDouble(X1,X2)) {
             // LEVEL 3: Y
             double Y1 = v1.getY();
             double Y2 = v2.getY();
-            if (MatchDouble(Y1,Y2,t)) {
+            if (MatchDouble(Y1,Y2)) {
                 // LEVEL 4: Z
                 double Z1 = v1.getZ();
                 double Z2 = v2.getZ();
-                if (MatchDouble(Z1,Z2,t)) smaller = true;
+                if (MatchDouble(Z1,Z2)) smaller = true;
                 else smaller = (Z1 < Z2) ? true : false;
             }
             else smaller = (Y1 < Y2) ? true : false;
@@ -140,46 +153,6 @@ inline bool Ewald3D::EuclideanSort::operator() (const vec& v1,
     return smaller;
 }
 
-
-inline bool Ewald3D::EuclideanSort::MatchDouble(double a, double b, 
-    double t) {
-    return ((a-b)*(a-b) < t) ? true : false;
-}
-
-
-inline bool Ewald3D::TschebyschowSort::operator() (const vec& v1, 
-    const vec& v2, double t) {
-    bool smaller = false;
-    // LEVEL 1: MAGNITUDE
-    double V1 = maxnorm(v1);
-    double V2 = maxnorm(v2);
-    if (MatchDouble(V1,V2,t)) {
-        // LEVEL 2: X
-        double X1 = v1.getX();
-        double X2 = v2.getX();
-        if (MatchDouble(X1,X2,t)) {
-            // LEVEL 3: Y
-            double Y1 = v1.getY();
-            double Y2 = v2.getY();
-            if (MatchDouble(Y1,Y2,t)) {
-                // LEVEL 4: Z
-                double Z1 = v1.getZ();
-                double Z2 = v2.getZ();
-                if (MatchDouble(Z1,Z2,t)) smaller = true;
-                else smaller = (Z1 < Z2) ? true : false;
-            }
-            else smaller = (Y1 < Y2) ? true : false;
-        }
-        else smaller = (X1 < X2) ? true : false;
-    }
-    else smaller = (V1 < V2) ? true : false;          
-    return smaller;
-}
-
-inline bool Ewald3D::TschebyschowSort::MatchDouble(double a, double b, 
-    double t) {
-    return ((a-b)*(a-b) < t) ? true : false;
-}
 
 }}
 

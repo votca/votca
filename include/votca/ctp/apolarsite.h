@@ -31,7 +31,7 @@ class APolarSite
     friend class QMultipole;
     friend class XInteractor;
     friend class QMMIter;
-    friend class Ewald3D;
+    friend class Ewald3D3D;
 
 
 public:

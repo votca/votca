@@ -57,33 +57,33 @@ namespace votca { namespace ctp {
 
 void Calculatorfactory::RegisterAll(void)
 {	
-        Calculators().Register<Sandbox>           ("sandbox");
-        Calculators().Register<Neighborlist>      ("neighborlist");
-        Calculators().Register<StateServer>       ("stateserver");
-        Calculators().Register<TDump>             ("tdump");
-        Calculators().Register<IZindo>            ("izindo");
-        Calculators().Register<EDFT>              ("edft");
-        Calculators().Register<IDFT>              ("idft");
-        Calculators().Register<Rates>             ("rates");
-        Calculators().Register<EInternal>         ("einternal");
-        Calculators().Register<EOutersphere>      ("eoutersphere");
-        Calculators().Register<EMultipole>        ("emultipole");
-        Calculators().Register<EAnalyze>          ("eanalyze");
-        Calculators().Register<EImport>           ("eimport");
-        Calculators().Register<PairDump>          ("pairdump");        
-        Calculators().Register<IImport>           ("iimport");
-        Calculators().Register<IAnalyze>          ("ianalyze");
-        Calculators().Register<Profile>           ("profile");
-        Calculators().Register<XMP>               ("xmultipole");
-        Calculators().Register<Velocity>          ("velocity");
-        Calculators().Register<MolPol>            ("molpol");
-        Calculators().Register<ZMultipole>        ("zmultipole");
-        Calculators().Register<QMultipole>        ("qmultipole");
-        Calculators().Register<XQMP>              ("xqmultipole");
-        Calculators().Register<QMMM>              ("qmmm");
-        Calculators().Register<JobWriter>         ("jobwriter");
-        Calculators().Register< Ewald<Ewald2D> >  ("ewald2d");
-        Calculators().Register< Ewald<Ewald3D> >  ("ewald3d");
+        Calculators().Register<Sandbox>             ("sandbox");
+        Calculators().Register<Neighborlist>        ("neighborlist");
+        Calculators().Register<StateServer>         ("stateserver");
+        Calculators().Register<TDump>               ("tdump");
+        Calculators().Register<IZindo>              ("izindo");
+        Calculators().Register<EDFT>                ("edft");
+        Calculators().Register<IDFT>                ("idft");
+        Calculators().Register<Rates>               ("rates");
+        Calculators().Register<EInternal>           ("einternal");
+        Calculators().Register<EOutersphere>        ("eoutersphere");
+        Calculators().Register<EMultipole>          ("emultipole");
+        Calculators().Register<EAnalyze>            ("eanalyze");
+        Calculators().Register<EImport>             ("eimport");
+        Calculators().Register<PairDump>            ("pairdump");        
+        Calculators().Register<IImport>             ("iimport");
+        Calculators().Register<IAnalyze>            ("ianalyze");
+        Calculators().Register<Profile>             ("profile");
+        Calculators().Register<XMP>                 ("xmultipole");
+        Calculators().Register<Velocity>            ("velocity");
+        Calculators().Register<MolPol>              ("molpol");
+        Calculators().Register<ZMultipole>          ("zmultipole");
+        Calculators().Register<QMultipole>          ("qmultipole");
+        Calculators().Register<XQMP>                ("xqmultipole");
+        Calculators().Register<QMMM>                ("qmmm");
+        Calculators().Register<JobWriter>           ("jobwriter");
+        Calculators().Register< Ewald<Ewald3D2D> >  ("ewald2d");
+        Calculators().Register< Ewald<Ewald3D3D> >  ("ewald3d");
 }
 
 }}

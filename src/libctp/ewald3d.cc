@@ -9,7 +9,7 @@ using boost::format;
 namespace votca { namespace ctp {
 
 
-Ewald3D::~Ewald3D() {
+Ewald3D3D::~Ewald3D3D() {
     vector< PolarSeg* >::iterator sit;
     for (sit = _mg_N.begin(); sit < _mg_N.end(); ++sit)
         delete (*sit);
@@ -21,7 +21,7 @@ Ewald3D::~Ewald3D() {
 }
     
     
-Ewald3D::Ewald3D(Topology *top, PolarTop *ptop, Property *opt, Logger *log) 
+Ewald3D3D::Ewald3D3D(Topology *top, PolarTop *ptop, Property *opt, Logger *log) 
     : _top(top), _ptop(ptop), _log(log) {
     
     // EVALUATE OPTIONS
@@ -116,7 +116,7 @@ Ewald3D::Ewald3D(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
         cout << endl;
         cout << endl << format("***************************** ERROR ******************************");
         cout << endl << format("       Background charge |Q(BGP)| is larger than 0.01e.");
-        cout << endl << format("       Ignore: e.g. rounding error?");
+        cout << endl << format("       Be more precise: e.g. rounding error?");
         cout << endl << format("       Or think again: e.g. erroneous parametrization?");
         cout << endl << format("******************************************************************");
         cout << endl;
@@ -187,7 +187,7 @@ Ewald3D::Ewald3D(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
 }
 
 
-void Ewald3D::SetupMidground(double R_co) {
+void Ewald3D3D::SetupMidground(double R_co) {
     // SET-UP MIDGROUND
     // TODO Extend this to several molecules in the foreground
     assert(_fg_C.size() == 1);
@@ -249,7 +249,7 @@ void Ewald3D::SetupMidground(double R_co) {
 }
 
 
-void Ewald3D::WriteDensitiesPDB(string pdbfile) {
+void Ewald3D3D::WriteDensitiesPDB(string pdbfile) {
     // COORDINATE OUTPUT FOR VISUAL CHECK
     vector<PolarSeg*>::iterator sit; 
     vector<APolarSite*> ::iterator pit;    
@@ -290,7 +290,7 @@ void Ewald3D::WriteDensitiesPDB(string pdbfile) {
 }
 
 
-double Ewald3D::ConvergeRealSpaceSum() {
+double Ewald3D3D::ConvergeRealSpaceSum() {
     
     LOG(logDEBUG,*_log) << flush;
 
@@ -336,7 +336,7 @@ double Ewald3D::ConvergeRealSpaceSum() {
 }
 
 
-double Ewald3D::ConvergeReciprocalSpaceSum() {
+double Ewald3D3D::ConvergeReciprocalSpaceSum() {
     
     vector<PolarSeg*>::iterator sit;
     vector<APolarSite*> ::iterator pit;    
@@ -364,7 +364,7 @@ double Ewald3D::ConvergeReciprocalSpaceSum() {
         }
     }
     // Sort according to magnitude
-    std::sort(ks.begin(), ks.end(), _maxsort);
+    std::sort(ks.begin(), ks.end(), _eucsort);
     // Group into shells
     int shell_idx = 0;
     kit = ks.begin();
@@ -454,7 +454,7 @@ double Ewald3D::ConvergeReciprocalSpaceSum() {
             im_E += im_dE;
 
             LOG(logDEBUG,*_log)
-                << (format("    Re(dE) = %1$+1.7f") 
+                << (format("    Re(dE) = %1$+1.7f")
                 % (re_dE/_LxLyLz*_actor.int2eV));
 
             LOG(logDEBUG,*_log)
@@ -496,7 +496,7 @@ double Ewald3D::ConvergeReciprocalSpaceSum() {
 }
 
 
-double Ewald3D::CalculateShapeCorrection(string shape) {
+double Ewald3D3D::CalculateShapeCorrection(string shape) {
     
     vector<PolarSeg*>::iterator sit1; 
     vector<APolarSite*> ::iterator pit1;
@@ -554,7 +554,7 @@ double Ewald3D::CalculateShapeCorrection(string shape) {
 }
 
 
-double Ewald3D::CalculateSq2(vec &k) {
+double Ewald3D3D::CalculateSq2(vec &k) {
     vector<PolarSeg*>::iterator sit; 
     vector<APolarSite*> ::iterator pit;    
     double cs = 0.0;
@@ -569,7 +569,7 @@ double Ewald3D::CalculateSq2(vec &k) {
 }
 
 
-void Ewald3D::Evaluate() {
+void Ewald3D3D::Evaluate() {
     
     LOG(logDEBUG,*_log) << flush;
     LOG(logDEBUG,*_log) << "System & Ewald parameters (3D x 3D)" << flush;
@@ -627,8 +627,8 @@ void Ewald3D::Evaluate() {
     _EK = EKK_fgC_bgP*_actor.int2eV;
     _EJ = EJ_fgC_bgP*_actor.int2eV;
     _E0 = 0.0; // Contained in shape-correction _EJ
-    _ET = _ER + _EK + _E0 - _EC;
     _EDQ = EDQ_fgC_mgN*_actor.int2eV;
+    _ET = _ER + _EK + _E0 + _EJ + _EDQ - _EC;
     
     LOG(logDEBUG,*_log) << flush;
     LOG(logINFO,*_log)
@@ -638,19 +638,19 @@ void Ewald3D::Evaluate() {
         << flush << (format("  + EKK(FGC->BGP)  = %1$+1.7f eV") % _EK).str()
         << flush << (format("  - EPP(FGC->FGN)  = %1$+1.7f eV") % _EC).str()
         << flush << (format("    ------------------------------")).str()
-        << flush << (format("    SUM(E)         = %1$+1.7f eV") % _ET).str()
+        << flush << (format("    SUM(E)         = %1$+1.7f eV") % (_ET-_EJ-_EDQ)).str()
         << flush << (format("    ------------------------------")).str()
         << flush << (format("  + EDQ(FGC->MGN)  = %1$+1.7f eV") % _EDQ).str()
         << flush << (format("  + EJ (%2$s)    = %1$+1.7f eV") % _EJ % _shape).str()
         << flush << (format("    ------------------------------")).str()
-        << flush << (format("  + SUM(E) (+DQ,J) = %1$+1.7f eV") % (_ET+_EJ+_EDQ)).str()
+        << flush << (format("  + SUM(E) (+DQ,J) = %1$+1.7f eV") % (_ET)).str()
         << flush;
     LOG(logDEBUG,*_log) << flush;    
     return;
 }
 
 
-string Ewald3D::GenerateErrorString() {
+string Ewald3D3D::GenerateErrorString() {
     string rstr;
     rstr += (format("Converged R-sum = %1$s, converged K-sum = %2$s")
         % ((_converged_R) ? "true" : "false")
@@ -659,12 +659,12 @@ string Ewald3D::GenerateErrorString() {
 }
 
 
-string Ewald3D::GenerateOutputString() {
+string Ewald3D3D::GenerateOutputString() {
     string rstr;
     rstr += (format("XYZ %1$+1.7f %2$+1.7f %3$+1.7f ") 
         % _center.getX() % _center.getY() % _center.getZ()).str();
-    rstr += (format("ET %1$+1.7f ER %2$+1.7f EK %3$+1.7f E0 %4$+1.7f EC %5$+1.7f EDQ %6$+1.7f ") 
-        % _ET % _ER % _EK % _E0 % _EC %_EDQ).str();
+    rstr += (format("ET %1$+1.7f ER %2$+1.7f EK %3$+1.7f E0 %4$+1.7f EC %5$+1.7f EJ %6$+1.7f EDQ %7$+1.7f ") 
+        % _ET % _ER % _EK % _E0 % _EC % _EJ %_EDQ).str();
     rstr += (format("FGC %1$1d FGN %2$1d MGN %3$3d BGN %4$4d BGP %5$4d") 
         % _fg_C.size() % _fg_N.size() % _mg_N.size() % _bg_N.size() 
         % _bg_P.size()).str();

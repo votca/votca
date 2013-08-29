@@ -9,7 +9,7 @@ using boost::format;
 namespace votca { namespace ctp {
 
 
-Ewald2D::~Ewald2D() {
+Ewald3D2D::~Ewald3D2D() {
     vector< PolarSeg* >::iterator sit;
     for (sit = _mg_N.begin(); sit < _mg_N.end(); ++sit)
         delete (*sit);
@@ -21,7 +21,7 @@ Ewald2D::~Ewald2D() {
 }
     
     
-Ewald2D::Ewald2D(Topology *top, PolarTop *ptop, Property *opt, Logger *log) 
+Ewald3D2D::Ewald3D2D(Topology *top, PolarTop *ptop, Property *opt, Logger *log) 
     : _top(top), _ptop(ptop), _log(log) {
     
     _crit_dE = opt->get("options.ewald.convergence.energy").as<double>();
@@ -169,7 +169,7 @@ Ewald2D::Ewald2D(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
 }
 
 
-void Ewald2D::SetupMidground(double R_co) {    
+void Ewald3D2D::SetupMidground(double R_co) {    
     // SET-UP MIDGROUND
     // TODO Extend this to several molecules in the foreground
     assert(_fg_C.size() == 1);
@@ -225,7 +225,7 @@ void Ewald2D::SetupMidground(double R_co) {
 }
 
 
-void Ewald2D::WriteDensitiesPDB(string pdbfile) {
+void Ewald3D2D::WriteDensitiesPDB(string pdbfile) {
     // COORDINATE OUTPUT FOR VISUAL CHECK
     vector<PolarSeg*>::iterator sit; 
     vector<APolarSite*> ::iterator pit;    
@@ -266,7 +266,7 @@ void Ewald2D::WriteDensitiesPDB(string pdbfile) {
 }
 
 
-double Ewald2D::ConvergeRealSpaceSum() {
+double Ewald3D2D::ConvergeRealSpaceSum() {
     
     LOG(logDEBUG,*_log) << flush;
 
@@ -314,7 +314,7 @@ double Ewald2D::ConvergeRealSpaceSum() {
 }
 
 
-double Ewald2D::ConvergeReciprocalSpaceSum() {
+double Ewald3D2D::ConvergeReciprocalSpaceSum() {
     
     vector<PolarSeg*>::iterator sit1; 
     vector<APolarSite*> ::iterator pit1;
@@ -421,7 +421,7 @@ double Ewald2D::ConvergeReciprocalSpaceSum() {
 }
 
 
-void Ewald2D::Evaluate() {
+void Ewald3D2D::Evaluate() {
     
     LOG(logDEBUG,*_log) << flush;
     LOG(logDEBUG,*_log) << "System & Ewald parameters (3D x 2D)" << flush;
@@ -508,7 +508,7 @@ void Ewald2D::Evaluate() {
 }
 
 
-string Ewald2D::GenerateErrorString() {
+string Ewald3D2D::GenerateErrorString() {
     string rstr;
     rstr += (format("Converged R-sum = %1$s, converged K-sum = %2$s")
         % ((_converged_R) ? "true" : "false")
@@ -517,7 +517,7 @@ string Ewald2D::GenerateErrorString() {
 }
 
 
-string Ewald2D::GenerateOutputString() {
+string Ewald3D2D::GenerateOutputString() {
     string rstr;
     rstr += (format("XYZ %1$+1.7f %2$+1.7f %3$+1.7f ") 
         % _center.getX() % _center.getY() % _center.getZ()).str();

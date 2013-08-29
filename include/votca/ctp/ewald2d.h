@@ -19,13 +19,13 @@ namespace votca { namespace ctp {
     //       All polar segments should be positioned as nearest images of the
     //       foreground charge density (FGC, FGN).
     
-    class Ewald2D
+    class Ewald3D2D
     {
         
     public:
         
-        Ewald2D(Topology *top, PolarTop *ptop, Property *opt, Logger *log);
-       ~Ewald2D();
+        Ewald3D2D(Topology *top, PolarTop *ptop, Property *opt, Logger *log);
+       ~Ewald3D2D();
        
         void WriteDensitiesPDB(string pdbfile);
         bool Converged() { return _converged_R && _converged_K; }
@@ -91,7 +91,7 @@ namespace votca { namespace ctp {
     };
 
     
-inline bool Ewald2D::VecSmallerThan::operator() (const vec& v1, 
+inline bool Ewald3D2D::VecSmallerThan::operator() (const vec& v1, 
     const vec& v2, double t) {
     bool smaller = false;
     // LEVEL 1: MAGNITUDE
@@ -121,7 +121,7 @@ inline bool Ewald2D::VecSmallerThan::operator() (const vec& v1,
 }
 
 
-inline bool Ewald2D::VecSmallerThan::MatchDouble(double a, double b, 
+inline bool Ewald3D2D::VecSmallerThan::MatchDouble(double a, double b, 
     double t) {
     return ((a-b)*(a-b) < t) ? true : false;
 }
