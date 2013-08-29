@@ -443,6 +443,17 @@ string Ewald3DnD::GenerateErrorString() {
 
 
 string Ewald3DnD::GenerateOutputString() {
+    
+//    stringstream output;
+//    Property prop;
+//    Property *prop1 = &prop.add("pair","");
+//    prop1->setAttribute("id", 1234);
+//    prop1->setAttribute("tag", "5678");
+//    Property *prop2 = &prop1->add("total","9012");
+//    
+//        output <<  setlevel(1) << prop;
+//        cout << endl << output.str() << flush;
+    
     string rstr;
     rstr += (format("XYZ %1$+1.7f %2$+1.7f %3$+1.7f ") 
         % _center.getX() % _center.getY() % _center.getZ()).str();

@@ -189,22 +189,22 @@ Job::JobResult Ewald<EwaldMethod>::EvalJob(Topology *top, Job *job, QMThread *th
     _mps_mapper.Gen_FGC_FGN_BGN(top, &xjob, thread);
     
     // CALL EWALD MAGIC
-    EwaldMethod ewaldNd = EwaldMethod(top, xjob.getPolarTop(), _options, thread->getLogger());
+    EwaldMethod ewaldnd = EwaldMethod(top, xjob.getPolarTop(), _options, thread->getLogger());
     if (tools::globals::verbose || _pdb_check)
-        ewaldNd.WriteDensitiesPDB(xjob.getTag()+"_ew_densities.pdb");
-    ewaldNd.Evaluate();
+        ewaldnd.WriteDensitiesPDB(xjob.getTag()+"_ew_densities.pdb");
+    ewaldnd.Evaluate();
     
     // GENERATE OUTPUT AND FORWARD TO PROGRESS OBSERVER (RETURN)
     string output = (format("%1$4d %2$-15s %3$s") 
-        % xjob.getId() % xjob.getTag() % ewaldNd.GenerateOutputString()).str();
+        % xjob.getId() % xjob.getTag() % ewaldnd.GenerateOutputString()).str();
     Job::JobResult jres = Job::JobResult();
     jres.setOutput(output);
     jres.setStatus(Job::COMPLETE);
     
-    if (!ewaldNd.Converged()) {
+    if (!ewaldnd.Converged()) {
         jres.setStatus(Job::FAILED);
-        jres.setError(ewaldNd.GenerateErrorString());
-        LOG(logERROR,*log) << ewaldNd.GenerateErrorString() << flush;
+        jres.setError(ewaldnd.GenerateErrorString());
+        LOG(logERROR,*log) << ewaldnd.GenerateErrorString() << flush;
     }    
     
     return jres;
