@@ -243,6 +243,14 @@ inline double abs(const vec &v)
     return sqrt(v*v);
 }
 
+inline double maxnorm(const vec &v) {
+    return ( std::abs(v.getX()) > std::abs(v.getY()) ) ?
+         ( ( std::abs(v.getX()) > std::abs(v.getZ()) ) ? 
+             std::abs(v.getX()) : std::abs(v.getZ()) )
+      :  ( ( std::abs(v.getY()) > std::abs(v.getZ()) ) ? 
+             std::abs(v.getY()) : std::abs(v.getZ()) );
+}
+
 inline vec &vec::normalize()
 { 
     return ((*this)*=1./abs(*this));
