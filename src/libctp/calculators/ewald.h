@@ -195,8 +195,7 @@ Job::JobResult Ewald<EwaldMethod>::EvalJob(Topology *top, Job *job, QMThread *th
     ewaldnd.Evaluate();
     
     // GENERATE OUTPUT AND FORWARD TO PROGRESS OBSERVER (RETURN)
-    string output = (format("%1$4d %2$-15s %3$s") 
-        % xjob.getId() % xjob.getTag() % ewaldnd.GenerateOutputString()).str();
+    Property output = ewaldnd.GenerateOutputString();
     Job::JobResult jres = Job::JobResult();
     jres.setOutput(output);
     jres.setStatus(Job::COMPLETE);

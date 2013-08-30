@@ -442,27 +442,36 @@ string Ewald3DnD::GenerateErrorString() {
 }
 
 
-string Ewald3DnD::GenerateOutputString() {
+Property Ewald3DnD::GenerateOutputString() {
     
-//    stringstream output;
-//    Property prop;
-//    Property *prop1 = &prop.add("pair","");
-//    prop1->setAttribute("id", 1234);
-//    prop1->setAttribute("tag", "5678");
-//    Property *prop2 = &prop1->add("total","9012");
-//    
-//        output <<  setlevel(1) << prop;
-//        cout << endl << output.str() << flush;
+    Property prop;
+    Property &out = prop.add("output","");
+    Property *next = NULL;    
     
-    string rstr;
-    rstr += (format("XYZ %1$+1.7f %2$+1.7f %3$+1.7f ") 
-        % _center.getX() % _center.getY() % _center.getZ()).str();
-    rstr += (format("ET %1$+1.7f ER %2$+1.7f EK %3$+1.7f E0 %4$+1.7f EC %5$+1.7f EJ %6$+1.7f EDQ %7$+1.7f ") 
-        % _ET % _ER % _EK % _E0 % _EC % _EJ %_EDQ).str();
-    rstr += (format("FGC %1$1d FGN %2$1d MGN %3$3d BGN %4$4d BGP %5$4d") 
-        % _fg_C.size() % _fg_N.size() % _mg_N.size() % _bg_N.size() 
-        % _bg_P.size()).str();
-    return rstr;
+    next = &out.add("summary", "");
+    next->add("xyz", (format("%1$+1.7f %2$+1.7f %3$+1.7f") 
+        % _center.getX() % _center.getY() % _center.getZ()).str())
+        .setAttribute("unit","nm");
+    next->add("total", (format("%1$+1.7f") 
+        % _ET).str())
+        .setAttribute("unit","eV");
+    
+    next = &out.add("splitting", "");
+    next->add("R-term", (format("%1$+1.7f") % _ER).str());
+    next->add("K-term", (format("%1$+1.7f") % _EK).str());
+    next->add("O-term", (format("%1$+1.7f") % _E0).str());
+    next->add("J-term", (format("%1$+1.7f") % _EJ).str());
+    next->add("C-term", (format("%1$+1.7f") % _EC).str());
+    next->add("Q-term", (format("%1$+1.7f") % _EDQ).str());
+    
+    next = &out.add("shells", "");
+    next->add("FGC", (format("%1$d") % _fg_C.size()).str());
+    next->add("FGN", (format("%1$d") % _fg_N.size()).str());
+    next->add("MGN", (format("%1$d") % _mg_N.size()).str());
+    next->add("BGN", (format("%1$d") % _bg_N.size()).str());
+    next->add("BGP", (format("%1$d") % _bg_P.size()).str());
+    
+    return prop;
 }
     
     

@@ -43,11 +43,14 @@ public:
         
         void setStatus(JobStatus stat) { _status = stat; }
         void setStatus(string stat) { assert(false); }
-        void setOutput(string output) { _has_output = true; _output = output; }
+        void setOutput(string output) 
+            { _has_output = true; _output = Property().add("output", output); }
+        void setOutput(Property &output)
+            { _has_output = true; _output = output.get("output"); }
         void setError(string error) { _has_error = true; _error = error; }
         
         JobStatus _status;
-        string _output;
+        Property _output;
         bool _has_output;
         string _error;
         bool _has_error;
@@ -79,11 +82,11 @@ public:
     void setStatus(string stat) { _status = ConvertStatus(stat); }
     void setTime(string time) { _time = time; _has_time = true; }
     void setHost(string host) { _host = host; _has_host = true; }
-    void setOutput(string output) { _output = output; _has_output = true; }
+    void setOutput(string output) { _output = Property().add("output", output); _has_output = true; }
    
     const string &getHost() const { assert(_has_host); return _host; }
     const string &getTime() const { assert(_has_time); return _time; }
-    const string &getOutput() const { assert(_has_output); return _output; }
+    const Property &getOutput() const { assert(_has_output); return _output; }
     const string &getError() const { assert(_has_error); return _error; }
 
 protected:
@@ -103,7 +106,7 @@ protected:
      bool   _has_host;
      string _time;
      bool   _has_time;
-     string _output;
+     Property _output;
      bool   _has_output;
      string _error;
      bool   _has_error;

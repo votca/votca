@@ -35,7 +35,7 @@ namespace votca { namespace ctp {
         void WriteDensitiesPDB(string pdbfile);
         void Evaluate();
         bool Converged() { return _converged_R && _converged_K; }
-        string GenerateOutputString();
+        Property GenerateOutputString();
         string GenerateErrorString();
         
         virtual string IdentifyMethod() = 0;
