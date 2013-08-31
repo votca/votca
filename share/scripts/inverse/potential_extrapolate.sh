@@ -36,7 +36,7 @@ EOF
 clean="no"
 pot_type="$2"
 pot_types="non-bonded bond thermforce angle dihedral"
-avg_points=5
+avg_points=3
 
 ### begin parsing options
 shopt -s extglob
