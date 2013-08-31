@@ -43,7 +43,7 @@ extra="$(critical mktemp ${name}.dist.tgt_extrapolated.XXXXX)"
 if [[ $tabtype = "non-bonded" ]]; then
   extra2="$(critical mktemp ${name}.dist.tgt_extrapolated_left.XXXXX)"
   do_external table extrapolate --function linear --avgpoints 1 --region left "${smooth}" "${extra2}"
-  do_external table extrapolate --function constant --avgpoints 1 --region leftright "${extra2}" "${extra}"
+  do_external table extrapolate --function constant --avgpoints 1 --region right "${extra2}" "${extra}"
 elif [[ $tabtype = bond || $tabtype = angle || $tabtype = dihedral ]]; then
   do_external table extrapolate --function linear --avgpoints 1 --region leftright "${smooth}" "${extra}"
 else
