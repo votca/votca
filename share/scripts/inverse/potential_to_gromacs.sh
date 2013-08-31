@@ -29,12 +29,14 @@ Allowed options:
                  for angle and dihedral
                  Note: VOTCA calcs in rad, but gromacs in degree
     --no-shift   do not shift the potential
+    --step XXX   use XXX as step for the interaction
 EOF
 }
 
 clean=
 do_shift="yes"
 r2d="57.2957795"
+step=
 
 ### begin parsing options
 shopt -s extglob
@@ -59,6 +61,9 @@ while [[ ${1#-} != $1 ]]; do
    --no-shift)
     do_shift="no"
     shift ;;
+   --step)
+    step="$2"
+    shift 2;;
    -h | --help)
     show_help
     exit 0;;
@@ -109,7 +114,7 @@ else
   die "${0##*/}: Unknown interaction type $tabtype"
 fi
 
-step=$(csg_get_interaction_property step)
+[[ $step ]] || step=$(csg_get_interaction_property step)
 gromacs_bins="$(csg_get_property cg.inverse.gromacs.table_bins)"
 comment="$(get_table_comment $input)"
 
