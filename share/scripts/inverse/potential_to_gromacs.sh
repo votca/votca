@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2013 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ Allowed options:
 EOF
 }
 
-clean="no"
+clean=
 do_shift="yes"
 r2d="57.2957795"
 
@@ -109,37 +109,37 @@ else
   die "${0##*/}: Unknown interaction type $tabtype"
 fi
 
+step=$(csg_get_interaction_property step)
 gromacs_bins="$(csg_get_property cg.inverse.gromacs.table_bins)"
 comment="$(get_table_comment $input)"
 
 if [[ $tabtype = "angle" || $tabtype = "dihedral" ]] && [[ $r2d != 1 ]]; then
   scale="$(critical mktemp ${trunc}.pot.scale.XXXXX)"
   do_external table linearop --on-x "${input}" "${scale}" "$r2d" "0"
+  step=$(csg_calc $r2d "*" $step)
 else
   scale="${input}"
 fi
 
+#keep the grid for now, so that extrapolate can calculate the right mean
 smooth="$(critical mktemp ${trunc}.pot.smooth.XXXXX)"
-critical csg_resample --in ${scale} --out "$smooth" --grid "${zero}:${gromacs_bins}:${tablend}" --comment "$comment"
+critical csg_resample --in ${scale} --out "$smooth" --grid "${zero}:${step}:${tablend}"
 
 extrapol="$(critical mktemp ${trunc}.pot.extrapol.XXXXX)"
-if [[ $clean = "yes" ]]; then
-  do_external potential extrapolate --clean --type "$tabtype" "${smooth}" "${extrapol}"
-else
-  do_external potential extrapolate --type "$tabtype" "${smooth}" "${extrapol}"
-fi
+do_external potential extrapolate ${clean:+--clean} --type "$tabtype" "${smooth}" "${extrapol}"
+
+interpol="$(critical mktemp ${trunc}.pot.interpol.XXXXX)"
+critical csg_resample --in "${extrapol}" --out "$interpol" --grid "${zero}:${gromacs_bins}:${tablend}" --comment "$comment"
 
 if [[ $do_shift = "yes" ]]; then
   tshift="$(critical mktemp ${trunc}.pot.shift.XXXXX)"
-  do_external potential shift --type "$tabtype" "${extrapol}" "${tshift}"
+  do_external potential shift --type "$tabtype" "${interpol}" "${tshift}"
 else
-  tshift="$extrapol"
+  tshift="$interpol"
 fi
 
 potmax="$(csg_get_property --allow-empty cg.inverse.gromacs.pot_max)"
-[[ -n ${potmax} ]] && potmax="--max ${potmax}"
-
-do_external convert_potential xvg ${potmax} --type "${xvgtype}" "${tshift}" "${output}"
-if [[ $clean = "yes" ]]; then
-  rm -f "${smooth}" "${extrapol}" "${tshift}" "${extrapol1}"
+do_external convert_potential xvg ${potmax:+--max} ${potmax} --type "${xvgtype}" "${tshift}" "${output}"
+if [[ $clean ]]; then
+  rm -f "${smooth}" "${interpol}" "${extrapol}" "${tshift}" "${scale}"
 fi

@@ -272,7 +272,7 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
 
   [[ -n $CSGXMLFILE ]] || die "${FUNCNAME[0]}: CSGXMLFILE is undefined (when calling from csg_call set it by --options option)"
   [[ -n $bondtype ]] || die "${FUNCNAME[0]}: bondtype is undefined (when calling from csg_call set it by --ia-type option)"
-  [[ -n $bondname ]] || die "${FUNCNAME[0]}: bondname is undefined (when calling from csg_call set it by --ia-name option)"i
+  [[ -n $bondname ]] || die "${FUNCNAME[0]}: bondname is undefined (when calling from csg_call set it by --ia-name option)"
 
   #map bondtype back to tags in xml file (for csg_call)
   case "$bondtype" in
