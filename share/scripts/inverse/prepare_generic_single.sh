@@ -41,7 +41,9 @@ if [[ -f ${main_dir}/${name}.pot.in ]]; then
   critical csg_resample --in "${main_dir}/${name}.pot.in" --out ${smooth} --grid ${min}:${step}:${max} --comment "$comment"
   extrapolate="$(critical mktemp ${name}.pot.in.extrapolate.XXX)"
   do_external potential extrapolate --type "$bondtype" "${smooth}" "${extrapolate}"
-  do_external table change_flag "${extrapolate}" "${output}"
+  shifted="$(critical mktemp ${name}.pot.in.shifted.XXX)"
+  do_external potential shift --type "${bondtype}" ${extrapolate} ${shifted}
+  do_external table change_flag "${shifted}" "${output}"
 else
   target=$(csg_get_interaction_property inverse.target)
   msg "Using initial guess from dist ${target} for ${name}"
@@ -63,8 +65,10 @@ else
     smooth="$(critical mktemp ${name}.pot.new.smooth.XXX)"
     critical csg_resample --in ${raw} --out ${smooth} --grid ${min}:${step}:${max} --comment "${comment}"
     extrapolate="$(critical mktemp ${name}.pot.new.extrapolate.XXX)"
-    do_external potential shift --type "${bondtype}" ${smooth} ${extrapolate}
-    do_external table change_flag "${extrapolate}" "${output}"
+    do_external potential extrapolate --type "$bondtype" "${smooth}" "${extrapolate}"
+    shifted="$(critical mktemp ${name}.pot.new.shifted.XXX)"
+    do_external potential shift --type "${bondtype}" ${extrapolate} ${shifted}
+    do_external table change_flag "${shifted}" "${output}"
   fi
 fi
 
