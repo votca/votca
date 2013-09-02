@@ -1,5 +1,5 @@
-#ifndef _MOLPOL_H
-#define _MOLPOL_H
+#ifndef MOLPOLTOOL_H
+#define MOLPOLTOOL_H
 
 
 #include <votca/ctp/qmtool.h>
@@ -9,20 +9,20 @@
 namespace votca { namespace ctp {
 
 
-class MolPol : public QMTool
+class MolPolTool : public QMTool
 {
 public:
 
-    MolPol() { };
-   ~MolPol() { };
+    MolPolTool() { };
+   ~MolPolTool() { };
 
     string Identify() { return "Molecular Polarizability Calculator"; }
 
     void   Initialize(Property *options);
     bool   Evaluate();
 
-    //matrix CalculateMolPol(vector<APolarSite*> &poles, bool verb = true);
-    //int    SCF_Induce(vector<APolarSite*> &poles);
+    matrix CalculateMolPol(vector<APolarSite*> &poles, bool verb = true);
+    int    SCF_Induce(vector<APolarSite*> &poles);
 
 
 private:
@@ -36,7 +36,7 @@ private:
     int             _maxIter;
     double          _epsTol;
 
-    //BasicInteractor _actor;
+    BasicInteractor _actor;
 
 };
 

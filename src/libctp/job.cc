@@ -39,19 +39,7 @@ Job::Job(Property *prop)
         _has_time = true;
     }
     if (prop->exists("output")) {
-        //_output = prop->get("output").as<string>();
-
-        Property poutput =  prop->get( "output" );
-        stringstream soutput;
-        soutput << poutput;
-
-        //cout << endl << *prop << endl;
-        
-        _output = soutput.str();
-        boost::replace_all(_output, "<output>", "");
-        boost::replace_all(_output, "</output>", "");
-        boost::replace_all(_output, "\n", "");
-        boost::replace_all(_output, "\t", "");
+        _output = prop->get("output");
         _has_output = true;
     }
     if (prop->exists("error")) {
@@ -99,7 +87,7 @@ Job::JobStatus Job::ConvertStatus(string status) const {
     
 
 void Job::Reset() {    
-    _output = "";
+    _output = Property();
     _has_output = false;
     _error = "";
     _has_error = false;
@@ -129,8 +117,7 @@ void Job::ToStream(ofstream &ofs, string fileformat) {
             ofs << tab << tab << (format("<time>%1$s</time>\n") 
                 % _time).str();
         if (_has_output)
-            ofs << tab << tab << (format("<output>%1$s</output>\n") 
-                % _output).str();
+            PrintNodeXML(ofs, _output, 0, 0, "",  "\t\t");
         if (_has_error)
             ofs << tab << tab << (format("<error>%1$s</error>\n")
                 % _error).str();

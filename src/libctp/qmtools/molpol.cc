@@ -2,7 +2,7 @@
 
 namespace votca { namespace ctp {
     
-void MolPol::Initialize(Property *options) {
+void MolPolTool::Initialize(Property *options) {
 
     // ===================== //
     // LOAD OPTIONS FROM XML //
@@ -10,8 +10,7 @@ void MolPol::Initialize(Property *options) {
 
     string key = "options.molpol";
 
-    // MPS INPUT / OUTPUT
-
+    // MPS INPUT / OUTPUT    
     if (options->exists(key+".mps_input")) {
         _mps_input = options->get(key+".mps_input").as<string>();
     }
@@ -32,7 +31,6 @@ void MolPol::Initialize(Property *options) {
     }
 
     // THOLE PARAMETERS
-
     if ( options->exists(key+".expdamp") ) {
         _aDamp = options->get(key+".expdamp").as< double >();
     }
@@ -41,7 +39,6 @@ void MolPol::Initialize(Property *options) {
     }
 
     // CONVERGENCE PARAMETERS
-
     if ( options->exists(key+".wSOR") ) {
         _wSOR = options->get(key+".wSOR").as< float >();
     }
@@ -55,16 +52,14 @@ void MolPol::Initialize(Property *options) {
     if ( options->exists(key+".tolerance") ) {
         _epsTol = options->get(key+".tolerance").as< double >();
     }
-    else { _epsTol = 0.001; }
-
-    
+    else { _epsTol = 0.001; }    
 }
 
 
-bool MolPol::Evaluate() {
+bool MolPolTool::Evaluate() {
 
     cout << endl << "... ... Started molpol" << flush;
-    /*
+    
     // Load polar sites
     vector<APolarSite*> poles = APS_FROM_MPS(_mps_input, 0);
 
@@ -76,12 +71,12 @@ bool MolPol::Evaluate() {
     printf("\nPxx Pxy Pxz %+4.7f %+4.7f %+4.7f ", pmol.get(0,0), pmol.get(0,1), pmol.get(0,2));
     printf("\nPyx Pyy Pyz %+4.7f %+4.7f %+4.7f ", pmol.get(1,0), pmol.get(1,1), pmol.get(1,2));
     printf("\nPzx Pzy Pzz %+4.7f %+4.7f %+4.7f ", pmol.get(2,0), pmol.get(2,1), pmol.get(2,2));
-    */
+    
     return true;
 }
 
-/*
-matrix MolPol::CalculateMolPol(vector<APolarSite*> &poles, bool verbose) {
+
+matrix MolPolTool::CalculateMolPol(vector<APolarSite*> &poles, bool verbose) {
 
     vector<APolarSite*> ::iterator pit;
     //for (pit = poles.begin(); pit < poles.end(); ++pit) {
@@ -313,7 +308,7 @@ matrix MolPol::CalculateMolPol(vector<APolarSite*> &poles, bool verbose) {
 }
 
 
-int MolPol::SCF_Induce(vector<APolarSite*> &poles) {
+int MolPolTool::SCF_Induce(vector<APolarSite*> &poles) {
 
     int    maxIter  = this->_maxIter;
     double wSOR     = this->_wSOR;
@@ -379,5 +374,5 @@ int MolPol::SCF_Induce(vector<APolarSite*> &poles) {
 
     return iter;
 }
-*/
+
 }}

@@ -1,6 +1,9 @@
 #include <stdlib.h>
 #include <string>
 #include <iostream>
+#include <votca/csg/trajectoryreader.h>
+#include <votca/csg/trajectorywriter.h>
+#include <votca/tools/property.h>
 #include <votca/tools/application.h>
 #include <votca/ctp/toolfactory.h>
 
@@ -14,7 +17,7 @@ class CtpApp : public Application
 {
 public:
     
-    CtpApp() {  }
+    CtpApp() { QMToolFactory::RegisterAll(); }
 
     string  ProgramName() { return "ctp_app"; }    
 
@@ -46,13 +49,16 @@ private:
 
 };
 
-namespace propt = boost::program_options;
+
 
 void CtpApp::Initialize() {
 
-    Application::Initialize();
+    votca::csg::TrajectoryWriter::RegisterPlugins();
+    votca::csg::TrajectoryReader::RegisterPlugins();
+    
     QMToolFactory::RegisterAll();    
 
+    namespace propt = boost::program_options;    
     // Tools-related
     AddProgramOptions("Tools") ("execute,e", propt::value<string>(),
                       "List of tools separated by ',' or ' '");
@@ -110,6 +116,7 @@ bool CtpApp::EvaluateOptions() {
     Tokenizer tools(OptionsMap()["execute"].as<string>(), " ,\n\t");
     Tokenizer::iterator it;
     for (it = tools.begin(); it != tools.end(); it++) {
+        cout << "Registered " << (*it).c_str() << endl;
         this->AddTool(QMTools().Create((*it).c_str()));
     }
     return 1;
@@ -159,8 +166,9 @@ void CtpApp::PrintDescription(const char *name, const bool length) {
 
 void CtpApp::Run() {
 
-    load_property_from_xml(_options, _op_vm["options"].as<string>());
-
+    string optionsFile = _op_vm["options"].as<string>();    
+    load_property_from_xml(_options, optionsFile);   
+    
     int nThreads = OptionsMap()["nthreads"].as<int>();
     
     cout << "Initializing tools " << endl;
@@ -176,7 +184,7 @@ void CtpApp::Run() {
 void CtpApp::BeginEvaluate(int nThreads = 1) {
     list< QMTool* > ::iterator it;
     for (it = _tools.begin(); it != _tools.end(); it++) {
-        cout << "... " << (*it)->Identify() << " ";
+        cout << "... " << (*it)->Identify() << " " << flush;
         (*it)->setnThreads(nThreads);
         (*it)->Initialize(&_options);        
         cout << endl;
