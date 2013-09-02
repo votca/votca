@@ -89,18 +89,6 @@ void IDFT::ParseOptionsXML( tools::Property *opt ) {
      key = "package";
     _package = _package_options.get(key+".name").as<string> ();
 
-    
-    /* --- ORBITALS.XML Structure ---
-     * <options>
-     *   <idft>
-     *     <orbitals_A>fort.7</orbitals_A>
-     *     <orbitals_B>fort.7</orbitals_B>
-     *     <orbitals_AB>fort.7</orbitals_AB>
-     *     <overlap_AB>dimer.log</overlap_AB>
-     *   </idft>
-     * </options>
-     */
-
 }
 
 
@@ -501,7 +489,7 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
             _run_status = _qmpackage->Run( );
             if ( !_run_status ) {
                     output += "run failed; " ;
-                    LOG(logERROR,*pLog) << "GAUSSAIN run failed" << flush;
+                    LOG(logERROR,*pLog) << _qmpackage->getPackageName() << " run failed" << flush;
                     cout << *pLog;
                     jres.setOutput( output ); 
                     jres.setStatus(Job::FAILED);

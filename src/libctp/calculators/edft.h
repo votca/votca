@@ -128,7 +128,7 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     Job::JobResult jres = Job::JobResult();
 
     vector < Segment* > segments;    
-    Segment *seg = top->getSegment(job->getId());
+    Segment *seg = top->getSegment( boost::lexical_cast<int>( job->getTag() ));
     segments.push_back( seg );
 
     Logger* pLog = opThread->getLogger();
@@ -184,7 +184,7 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         _parse_log_status = _qmpackage->ParseLogFile( &_orbitals );
         if ( !_parse_log_status ) {
             output += "log incomplete; ";
-            LOG(logERROR,*pLog) << "GAUSSIAN log incomplete" << flush;
+            LOG(logERROR,*pLog) << "QM log incomplete" << flush;
             jres.setOutput( output ); 
             jres.setStatus(Job::FAILED);
             delete _qmpackage;
@@ -197,7 +197,7 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
        _parse_orbitals_status = _qmpackage->ParseOrbitalsFile( &_orbitals );
         if ( !_parse_orbitals_status ) {
             output += "fort7 failed; " ;
-            LOG(logERROR,*pLog) << "GAUSSIAN orbitals (fort.7) not parsed" << flush;
+            LOG(logERROR,*pLog) << "QM orbitals not parsed" << flush;
             jres.setOutput( output ); 
             jres.setStatus(Job::FAILED);
             delete _qmpackage;

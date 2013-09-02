@@ -74,6 +74,7 @@ bool Turbomole::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_g
     vector< Atom* > _atoms;
     vector< Atom* > ::iterator ait;
     vector< Segment* >::iterator sit;
+    string temp_suffix = "";
     
     double nm2Bohr = 18.897259886;
     
@@ -93,6 +94,8 @@ bool Turbomole::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_g
     for (sit = segments.begin() ; sit != segments.end(); ++sit) {
         _atoms = (*sit)-> Atoms();
 
+        temp_suffix += "_" + (*sit)->getId();
+        
         for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
 
             if ((*ait)->HasQMPart() == false) { continue; }
@@ -107,7 +110,7 @@ bool Turbomole::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_g
                       << setw(3) << name.c_str()   
                       << endl;
         }
-    } 
+    }
     
     _coord_file << "$end" << endl;
     _coord_file.close();
@@ -131,6 +134,36 @@ bool Turbomole::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_g
     _command  = "cd " + _run_dir + "; " + _input_exe + " <  ./" + _input_file_name + " >& " + _input_file_name + ".log" ;
     //cerr << _command << flush;
     int i = system ( _command.c_str() );
+    
+    // postprocess the output of define - scratch dir
+    cout << _scratch_dir << endl;
+    if ( _scratch_dir != "" ) {
+
+        ifstream _input_file;
+        ofstream _temp_input_file;
+ 
+        string _control_file_name_full = _run_dir + "/control";
+        string _temp_control_file_name_full = _run_dir + "/control.temp";
+        
+        _input_file.open ( _control_file_name_full.c_str() );
+        _temp_input_file.open ( _temp_control_file_name_full.c_str() );
+        
+        string _line;
+        std::string::size_type _pos;
+        while ( _input_file ) {
+                getline(_input_file, _line);
+                
+                _pos = _line.find("$scfdamp");
+                if ( _pos != std::string::npos ) continue;
+                
+                _pos = _line.find("$end");
+                string _temp("$TMPDIR " + _scratch_dir + temp_suffix + "\n" );
+                if ( _pos != std::string::npos ) _temp_input_file << _temp;
+                
+                _temp_input_file << _line << endl;;
+        }
+    }
+    
     
     // prepare guess for the orbitals by merging monomer orbitals
     if ( _write_guess ) {
@@ -157,7 +190,7 @@ bool Turbomole::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_g
                 
                 ub::matrix_row< ub::matrix<double> > mr (orbitals_guess->_mo_coefficients, *soi);
 
-                _orb_file  << setw(6) << level  << "  a      eigenvalue=  " << FortranFormat( _energy ) << "   nsaos=" << mr.size() << endl;
+                _orb_file  << setw(6) << level  << "  a      eigenvalue=" << FortranFormat( _energy ) << "   nsaos=" << mr.size() << endl;
                  
                 int column = 1;
                 for (unsigned j = 0; j < mr.size (); ++j) {
