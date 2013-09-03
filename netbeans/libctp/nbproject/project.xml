@@ -9,6 +9,9 @@
             <cpp-extensions>cc</cpp-extensions>
             <header-extensions>h</header-extensions>
             <sourceEncoding>UTF-8</sourceEncoding>
+            <formatting>
+                <project-formatting-style>false</project-formatting-style>
+            </formatting>
             <make-dep-projects/>
             <sourceRootList>
                 <sourceRootElem>../../../../include</sourceRootElem>
@@ -23,9 +26,6 @@
                     <type>3</type>
                 </confElem>
             </confList>
-            <formatting>
-                <project-formatting-style>false</project-formatting-style>
-            </formatting>
         </data>
     </configuration>
 </project>
