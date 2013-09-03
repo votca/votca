@@ -24,6 +24,7 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/io.hpp>
+#include <boost/filesystem.hpp>
 #include <stdio.h>
 #include <iomanip>
 #include <sys/stat.h>
@@ -74,7 +75,7 @@ bool Turbomole::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_g
     vector< Atom* > _atoms;
     vector< Atom* > ::iterator ait;
     vector< Segment* >::iterator sit;
-    string temp_suffix = "";
+    string temp_suffix = "/id";
     
     double nm2Bohr = 18.897259886;
     
@@ -94,7 +95,7 @@ bool Turbomole::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_g
     for (sit = segments.begin() ; sit != segments.end(); ++sit) {
         _atoms = (*sit)-> Atoms();
 
-        temp_suffix += "_" + (*sit)->getId();
+        temp_suffix = temp_suffix + "_" + boost::lexical_cast<string>( (*sit)->getId() );
         
         for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
 
@@ -136,9 +137,14 @@ bool Turbomole::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_g
     int i = system ( _command.c_str() );
     
     // postprocess the output of define - scratch dir
-    cout << _scratch_dir << endl;
+    //cout <<  "TEMP DIR: " << _scratch_dir + temp_suffix << endl;
+    
     if ( _scratch_dir != "" ) {
+        
+        LOG(logDEBUG,*_pLog) << "Setting the scratch dir to " << _scratch_dir + temp_suffix << flush;
 
+        boost::filesystem::create_directories( _scratch_dir + temp_suffix );
+    
         ifstream _input_file;
         ofstream _temp_input_file;
  
@@ -153,15 +159,19 @@ bool Turbomole::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_g
         while ( _input_file ) {
                 getline(_input_file, _line);
                 
-                _pos = _line.find("$scfdamp");
+                _pos = _line.find("$scfdump");
                 if ( _pos != std::string::npos ) continue;
                 
                 _pos = _line.find("$end");
                 string _temp("$TMPDIR " + _scratch_dir + temp_suffix + "\n" );
                 if ( _pos != std::string::npos ) _temp_input_file << _temp;
                 
-                _temp_input_file << _line << endl;;
+                _temp_input_file << _line << endl;
         }
+        
+        remove( _control_file_name_full.c_str() );
+        rename( _temp_control_file_name_full.c_str(), _control_file_name_full.c_str() );
+        
     }
     
     
