@@ -51,7 +51,6 @@
       <itemPath>../../src/libtools/histogram.cc</itemPath>
       <itemPath>../../src/libtools/histogramnew.cc</itemPath>
       <itemPath>../../src/libtools/linalg.cc</itemPath>
-      <itemPath>../../src/libtools/linktest.cc</itemPath>
       <itemPath>../../src/libtools/linspline.cc</itemPath>
       <itemPath>../../src/libtools/matrix.cc</itemPath>
       <itemPath>../../src/libtools/mutex.cc</itemPath>
@@ -244,8 +243,6 @@
       <item path="../../src/libtools/histogramnew.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/linalg.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libtools/linktest.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/linspline.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -444,8 +441,6 @@
       </item>
       <item path="../../src/libtools/linalg.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libtools/linktest.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libtools/linspline.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/matrix.cc" ex="false" tool="1" flavor2="0">
@@ -642,8 +637,6 @@
       <item path="../../src/libtools/histogramnew.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/linalg.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libtools/linktest.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/linspline.cc" ex="false" tool="1" flavor2="0">
       </item>
