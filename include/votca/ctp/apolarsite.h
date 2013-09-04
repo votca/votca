@@ -1,5 +1,24 @@
-#ifndef APOLARSITE_H
-#define APOLARSITE_H
+/* 
+ *            Copyright 2009-2012 The VOTCA Development Team
+ *                       (http://www.votca.org)
+ *
+ *      Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *              http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+#ifndef __VOTCA_CTP_APOLARSITE_H
+#define __VOTCA_CTP_APOLARSITE_H
 
 #include <cstdlib>
 #include <fstream>
@@ -26,9 +45,12 @@ class APolarSite
 
     friend class BasicInteractor;
     friend class MolPol;
+    friend class MolPolTool;
     friend class ZMultipole;
     friend class QMultipole;
     friend class XInteractor;
+    friend class QMMIter;
+    friend class Ewald3D3D;
 
 
 public:
@@ -42,6 +64,8 @@ public:
             : _id(-1),  _isVirtual(false), _locX(vec(1,0,0)),
               _locY(vec(0,1,0)), _locZ(vec(0,0,1))
             { _Qs.resize(3); _Ps.resize(3); };
+            
+    APolarSite(APolarSite *templ);
 
    ~APolarSite() {};
 
@@ -62,6 +86,7 @@ public:
     void            setFragment(Fragment *frag) { _frag = frag; }
     
     bool            getIsVirtual() { return _isVirtual; }
+    bool            getIsActive(bool estatics_only);
     vector<double> &getQs(int state) { return _Qs[state+1]; }
     void            setQs(vector<double> Qs, int state) { _Qs[state+1] = Qs; }
     void            setPs(matrix polar, int state) { _Ps[state+1] = polar; }
@@ -199,7 +224,8 @@ public:
 //                        + fabs(e12 * pol2.paz) * pol2.eigenpzz;
 
         //u3   = 1 / (R3 * sqrt(pol1.getIsoP() * pol2.getIsoP()));
-        u3   = 1 / (R3 * sqrt(pol1.getProjP(e12) * pol2.getProjP(e12)));
+        u3   = 1 / (R3 * sqrt( 
+        1./3.*(pol1.Pxx*pol2.Pxx + pol1.Pyy*pol2.Pyy + pol1.Pzz*pol2.Pzz) ));
 
     //        rax =   pol1._locX * e12;
     //        ray =   pol1._locY * e12;

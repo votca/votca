@@ -36,7 +36,7 @@ public:
     StateServer() { };
    ~StateServer() { };
 
-    string Identify() { return "State Server"; }
+    string Identify() { return "StateServer"; }
 
     void Initialize(Topology *top, Property *options);
     bool EvaluateFrame(Topology *top);

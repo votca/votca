@@ -151,6 +151,7 @@ public:
         _has_integrals = _store_integrals;
     } 
         
+    void WritePDB( FILE *out );
 
 private:
     
@@ -206,6 +207,8 @@ private:
     
     //Allow Gaussian object to access non-public data members
     friend class Gaussian;
+    friend class Turbomole;
+    friend class NWChem;
     
     // serialization itself (template implementation stays in the header)
     template<typename Archive> 

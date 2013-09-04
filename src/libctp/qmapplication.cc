@@ -20,7 +20,7 @@
 
 #include <votca/ctp/qmapplication.h>
 #include <votca/ctp/version.h>
-
+#include <boost/format.hpp>
 
 namespace votca { namespace ctp {
 
@@ -154,6 +154,32 @@ void QMApplication::ShowHelpText(std::ostream &out) {
     out << "\n\n" << OptionsDesc() << endl;
 }
 
+void QMApplication::PrintDescription(std::ostream &out, string name,  HelpOutputType _help_output_type) {
+    
+    // loading documentation from the xml file in VOTCASHARE
+    char *votca_share = getenv("VOTCASHARE");
+    if (votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
+    string xmlFile = string(getenv("VOTCASHARE")) + string("/ctp/xml/") + name + string(".xml");
 
+    boost::format _format("%|3t|%1% %|20t|%2% \n");
+    try {
+        Property options;
+        load_property_from_xml(options, xmlFile);
+
+        switch (_help_output_type) {
+
+            case _helpShort:
+                _format % name % options.get("options." + name).getAttribute<string>("help");
+                out << _format;
+                break;
+                
+            case _helpLong:
+                out << HLP << setlevel(2) << options;
+        }
+
+    } catch (std::exception &error) {
+        out << _format % name % "Undocumented";
+    }    
+}
 
 }}

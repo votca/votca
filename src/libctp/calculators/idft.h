@@ -23,7 +23,6 @@
 
 #include <votca/ctp/parallelxjobcalc.h>
 #include <votca/ctp/orbitals.h>
-#include <votca/ctp/gaussian.h>
 #include <votca/tools/property.h>
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/numeric/ublas/banded.hpp>

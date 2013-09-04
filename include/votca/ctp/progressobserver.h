@@ -69,6 +69,8 @@ private:
     map<string,bool> _restart_stats;
     bool _restartMode;
     int _jobsReported;
+
+	bool _moreJobsAvailable;
     
 };
 

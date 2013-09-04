@@ -6,6 +6,28 @@
 namespace votca { namespace ctp {
 
 
+APolarSite::APolarSite(APolarSite *templ) 
+    : _id(templ->_id), _name(templ->_name), _isVirtual(templ->_isVirtual),        
+      _pos(templ->_pos),
+        
+      _locX(templ->_locX), _locY(templ->_locY), _locZ(templ->_locZ),
+        
+      _top(templ->_top), _seg(templ->_seg), _frag(templ->_frag),
+        
+      _Qs(templ->_Qs), _rank(templ->_rank), _Ps(templ->_Ps),
+      Pxx(templ->Pxx), Pxy(templ->Pxy), Pxz(templ->Pxz), Pyy(templ->Pyy),
+      Pyz(templ->Pyz), Pzz(templ->Pzz), pax(templ->pax), pay(templ->pay),
+      paz(templ->paz), eigenpxx(templ->eigenpxx), eigenpyy(templ->eigenpyy),
+      eigenpzz(templ->eigenpzz), eigendamp(templ->eigendamp),
+        
+      Q00(templ->Q00), Q1x(templ->Q1x), Q1y(templ->Q1y), Q1z(templ->Q1z),
+      Q20(templ->Q20), Q21c(templ->Q21c), Q21s(templ->Q21s), Q22c(templ->Q22c),
+      Q22s(templ->Q22s) {
+        
+    this->Depolarize();
+}
+    
+    
 void APolarSite::ImportFrom(APolarSite *templ, string tag) {
 
     _pos = templ->getPos();
@@ -119,6 +141,28 @@ void APolarSite::Rotate(const matrix &rot, const vec &refPos) {
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
+}
+
+bool APolarSite::getIsActive(bool estatics_only) {
+    // Returns false if charge and polarizability are both zero, true otherwise
+    bool isActive = false;
+    
+    // Tolerances
+    double q_tol = 1e-9; // [e]
+    double d_tol = 1e-9; // [enm]
+    double Q_tol = 1e-9; // [enm^2]
+    double p_tol = 1e-9; // [nm^3]   
+    // Magnitudes
+    double q_mag = sqrt(Q00*Q00);
+    double d_mag = sqrt(Q1x*Q1x + Q1y*Q1y + Q1z*Q1z);
+    double Q_mag = sqrt(Q20*Q20 + Q22c*Q22c + Q22s*Q22s + Q21c*Q21c + Q21s*Q21s);
+    // Compare
+    if (q_mag>q_tol) isActive = true;
+    if (_rank > 0 && d_mag>d_tol) isActive = true;
+    if (_rank > 1 && Q_mag>Q_tol) isActive = true;    
+    if (getIsoP() > p_tol && !estatics_only) isActive = true;
+    
+    return isActive;
 }
 
 void APolarSite::Translate(const vec &shift) {
@@ -432,7 +476,6 @@ void APolarSite::WriteChkLine(FILE *out, vec &shift, bool split_dpl,
         matrix::eigensystem_t EIGEN;
 
         if (_rank == 2) {
-            tot_dpl += vec(Q1x,Q1y,Q1z);
             //cout << endl
             //     << "WARNING: Quadrupoles are not split onto point charges."
             //     << endl;
@@ -450,11 +493,8 @@ void APolarSite::WriteChkLine(FILE *out, vec &shift, bool split_dpl,
             matrix Q = matrix(vec(Qxx,Qxy,Qxz),
                               vec(Qxy,Qyy,Qyz),
                               vec(Qxz,Qyz,Qzz));
-
             
             Q.SolveEigensystem(EIGEN);
-
-
         }
 
         double a        = spacing;
@@ -466,9 +506,9 @@ void APolarSite::WriteChkLine(FILE *out, vec &shift, bool split_dpl,
         double qA       = mag_d / a;
         double qB       = - qA;
         
-        if (this->eigendamp == 0) {
-            A = pos;
-            B = pos;
+        if (this->eigendamp == 0 || mag_d < 1e-9) {
+            A = pos + 0.1*a*vec(1,0,0); // != pos since self-energy may diverge
+            B = pos - 0.1*a*vec(1,0,0);
             qA = 0;
             qB = 0;
         }

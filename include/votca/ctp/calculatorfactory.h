@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef _Calculatorfactory_H
-#define	_Calculatorfactory_H
+#ifndef __VOTCA_CTP_CALCULATORFACTORY_H
+#define	__VOTCA_CTP_CALCULATORFACTORY_H
 
 #include <map>
 #include <votca/tools/objectfactory.h>

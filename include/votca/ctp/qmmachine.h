@@ -4,11 +4,8 @@
 
 #include <votca/ctp/xjob.h>
 #include <votca/ctp/xinductor.h>
-#include <votca/ctp/gaussian.h>
+#include <votca/ctp/qmpackagefactory.h>
 #include <votca/ctp/orbitals.h>
-
-
-// TODO Derive Gaussian from abstract QMPackage class and include in a factory
 
 
 namespace votca { namespace ctp {
@@ -28,7 +25,8 @@ public:
 
    void ConvertPSitesToQMAtoms(vector< PolarSeg* > &, vector< QMAtom* > &);
    void ConvertQMAtomsToPSites(vector< QMAtom* > &, vector< PolarSeg* > &);
-   void UpdatePosChrgFromQMAtoms(vector< QMAtom* > &, vector< PolarSeg* > &);       
+   void UpdatePosChrgFromQMAtoms(vector< QMAtom* > &, vector< PolarSeg* > &);   
+   void GenerateQMAtomsFromPolarSegs(PolarTop *ptop, Orbitals &orb, bool split_dpl, double dpl_spacing);   
 
    void setdRdQ(double dR_RMS, double dQ_RMS, double dQ_SUM);
    void setQMSF(double energy_QM, double energy_SF);
@@ -92,7 +90,7 @@ public:
    ~QMMachine();
     
     void Evaluate(XJob *job);
-    void WriteQMPackInputFile(string inputFile, QMPackage *qmpack, XJob *job);
+    //void WriteQMPackInputFile(string inputFile, QMPackage *qmpack, XJob *job);
     
     bool Iterate(string jobFolder, int iterCnt);    
     QMMIter *CreateNewIter();
@@ -122,6 +120,9 @@ private:
     bool _convg_dQ;
     bool _convg_dE_QM;
     bool _convg_dE_MM;
+    
+    bool _split_dpl;
+    double _dpl_spacing;
 
 };
 

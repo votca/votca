@@ -81,6 +81,8 @@ bool ParallelXJobCalc<JobContainer,pJob,rJob>::EvaluateFrame(Topology *top) {
 
     jobOps.clear();
 
+	// SYNC REMAINING COMPLETE JOBS
+	_progObs->SyncWithProgFile(master);
     
     // POST-PROCESS (OVERWRITTEN IN CHILD OBJECT)
     this->PostProcess(top);

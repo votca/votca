@@ -15,7 +15,7 @@ public:
     MolPol() { };
    ~MolPol() { };
 
-    string Identify() { return "Molecular Polarizability Calculator"; }
+    string Identify() { return "molpol"; }
 
     void                Initialize(Topology *top, Property *options);
     bool                EvaluateFrame(Topology *top);

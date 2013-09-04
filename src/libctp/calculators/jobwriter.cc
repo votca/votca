@@ -240,21 +240,56 @@ void JobWriter::xqmultipole_ct(Topology *top) {
 void JobWriter::edft(Topology *top) {
 
     string jobFile = "edft.jobs";   
-    vector<Segment*>::iterator sit;
     
     ofstream ofs;
     ofs.open(jobFile.c_str(), ofstream::out);
     if (!ofs.is_open()) throw runtime_error("Bad file handle: " + jobFile);
  
-    ofs << "<jobs>" << endl;    
-    for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
+    ofs << "<jobs>" << endl;   
+
+    /* this is only good when ALL molecules shall be written out 
+    for (vector<Segment*>::iterator sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
         int id = (*sit)->getId();
-        string tag = "";
+        string tag = (*sit)->getId();
         string input = "";
         string stat = "AVAILABLE";
         Job job(id, tag, input, stat);
         job.ToStream(ofs,"xml");
     }
+    */
+
+    QMNBList::iterator pit;
+    QMNBList &nblist = top->NBList();    
+
+    int jobCount = 0;
+    if (nblist.size() == 0) {
+        cout << endl << "... ... No pairs in neighbor list, skip." << flush;
+        return;
+    } 
+
+    map< int,Segment* > segments;
+    map< int,Segment* >::iterator sit;
+
+    for (pit = nblist.begin(); pit != nblist.end(); ++pit) {
+        
+        int id1 = (*pit)->Seg1()->getId();
+        int id2 = (*pit)->Seg2()->getId();
+	segments[id1] = (*pit)->Seg1();
+        segments[id2] = (*pit)->Seg2();
+
+    }
+
+    for (sit = segments.begin(); sit != segments.end(); ++sit) {
+    
+        int id = ++jobCount;
+        
+        string tag = (format("%1$s") % sit->first).str();
+        string input = sit->second->getName();
+        string stat = "AVAILABLE";
+        Job job(id, tag, input, stat);
+        job.ToStream(ofs,"xml");
+    }
+     
 
     // CLOSE STREAM
     ofs << "</jobs>" << endl;    

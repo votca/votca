@@ -3,17 +3,17 @@
 <!-- ctp_run -e idft -f state.db -o options.xml -->
 <idft help="Projection method for electronic couplings. Requires edft otput" label="calc:idft">
 
-	<job_file help="Job control file">/data/pckr114/andrienk/projects/dft_test/dcv2t/idft.jobs</job_file>
+	<job_file help="Job control file (full path)"></job_file>
 
 	<tasks help="What to run" default="input,run,parse,project">input,run,parse,project</tasks> 
 
 	<store help="What to store" default="orbitals,overlap,integrals">orbitals,overlap,integrals</store>
 
-	<levels help="Output overlap between HOMO, HOMO-1, ..., HOMO-levels; LUMO, LUMO+1, ..., LUMO+levels" default="3">3</levels>
-
-	<package help="XML file describing the input of the first-principles package">gaussian_pair.xml</package>
+	<package help="XML file with the options for the first-principles package"></package>
 
 	<degeneracy help="Criterium for the degeneracy of two levels" unit="eV" default="0">0</degeneracy>
+
+	<levels help="Output overlap between HOMO, HOMO-1, ..., HOMO-levels; LUMO, LUMO+1, ..., LUMO+levels" default="3">3</levels>
 
 </idft>
 

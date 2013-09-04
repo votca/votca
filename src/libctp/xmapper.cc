@@ -847,8 +847,11 @@ vector<APolarSite*> XMpsMap::MapPolSitesToSeg(const vector<APolarSite*> &pols_n,
             }
 
             newSite->Charge(0);
-            
-            return_pols.push_back(newSite);
+            // Do not forget to deallocate if site is inactive
+            if (newSite->getIsActive(_estatics_only))           
+                return_pols.push_back(newSite);
+            else 
+                delete newSite;
 
         }
     } // End loop over fragments
@@ -875,6 +878,88 @@ vector<APolarSite*> XMpsMap::GetOrCreateRawSites(const string &mpsfile, QMThread
     }
     _lockThread.Unlock();
     return _mpsFile_pSites_job[mpsfile];
+}
+
+
+void XMpsMap::Gen_FGC_FGN_BGN(Topology *top, XJob *job, QMThread *thread) {
+    // Generates foreground/background charge distribution for Ewald summations
+    // 'NEW' instances of polar sites are not registered in the topology.
+    // Stores the resulting 'polar topology' with the XJob class.
+    
+    // DECLARE TARGET CONTAINERS
+    PolarTop *new_ptop = new PolarTop(top);    
+    vector<PolarSeg*> fgC;
+    vector<PolarSeg*> fgN;
+    vector<PolarSeg*> bgN;
+    vector<PolarSeg*>::iterator psit;    
+    vector<Segment*> segs_fgC;
+    vector<Segment*> segs_fgN;
+    vector<Segment*> segs_bgN;
+    vector<Segment*>::iterator sit;
+    
+    // PARTITION SEGMENTS ONTO BACKGROUND + FOREGROUND
+    segs_fgC.reserve(job->getSegments().size());
+    segs_fgN.reserve(job->getSegments().size());
+    segs_bgN.reserve(top->Segments().size()-job->getSegments().size());
+    for (sit = top->Segments().begin();
+         sit < top->Segments().end();
+         ++sit) {        
+        Segment *seg = *sit;        
+        // Foreground
+        if (job->isInCenter(seg->getId())) {
+            segs_fgN.push_back(seg);
+            segs_fgC.push_back(seg);
+        }
+        // Background
+        else {
+            segs_bgN.push_back(seg);
+        }        
+    }
+    
+    // CREATE POLAR SITES FOR FOREGROUND + BACKGROUND
+    // Foreground
+    fgC.reserve(segs_fgC.size());
+    fgN.reserve(segs_fgN.size());
+    for (int i = 0; i < job->getSegments().size(); ++i) {        
+        Segment *seg = job->getSegments()[i];
+        // Charged => mps-file from job
+        string mps_C = job->getSegMps()[i];
+        vector<APolarSite*> psites_raw_C 
+            = this->GetOrCreateRawSites(mps_C,thread);
+        vector<APolarSite*> psites_mapped_C
+            = this->MapPolSitesToSeg(psites_raw_C, seg);        
+        fgC.push_back(new PolarSeg(seg->getId(), psites_mapped_C));
+        // Neutral => look up mps file
+        string mps_N = _segId_mpsFile_n[seg->getId()];
+        vector<APolarSite*> psites_raw_N  = _mpsFile_pSites[mps_N];
+        vector<APolarSite*> psites_mapped_N
+            = this->MapPolSitesToSeg(psites_raw_N, seg);
+        fgN.push_back(new PolarSeg(seg->getId(), psites_mapped_N));
+    }
+    // Background
+    bgN.reserve(segs_bgN.size());
+    for (sit = segs_bgN.begin(); sit < segs_bgN.end(); ++sit) {
+        Segment *seg = *sit;
+        // Look up appropriate set of polar sites
+        string mps = _segId_mpsFile_n[seg->getId()];
+        vector<APolarSite*> psites_raw  = _mpsFile_pSites[mps];
+        vector<APolarSite*> psites_mapped
+                = this->MapPolSitesToSeg(psites_raw, seg);
+        bgN.push_back(new PolarSeg(seg->getId(), psites_mapped));        
+    }
+    
+    // PROPAGATE SHELLS TO POLAR TOPOLOGY
+    new_ptop->setFGC(fgC);
+    new_ptop->setFGN(fgN);
+    new_ptop->setBGN(bgN);    
+    new_ptop->setSegsFGC(segs_fgC);
+    new_ptop->setSegsFGN(segs_fgN);
+    new_ptop->setSegsBGN(segs_bgN);    
+    // Center polar topology
+    vec center = job->Center();
+    new_ptop->CenterAround(center);
+    job->setPolarTop(new_ptop);
+    
 }
 
 
@@ -959,6 +1044,10 @@ void XMpsMap::Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2, Q
     new_ptop->setQM0(qm0);
     new_ptop->setMM1(mm1);
     new_ptop->setMM2(mm2);
+    
+    new_ptop->setSegsQM0(segs_qm0);
+    new_ptop->setSegsMM1(segs_mm1);
+    new_ptop->setSegsMM2(segs_mm2);
     
     // CENTER AROUND QM REGION
     new_ptop->CenterAround(job->Center());
