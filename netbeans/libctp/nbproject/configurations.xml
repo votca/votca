@@ -141,6 +141,7 @@
           </incDir>
         </ccTool>
         <archiverTool>
+          <output>../../src/libctp/libctp.a</output>
         </archiverTool>
       </compileType>
       <item path="../../include/votca/ctp/apolarsite.h"
