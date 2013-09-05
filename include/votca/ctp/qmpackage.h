@@ -84,7 +84,8 @@ protected:
     
     bool                                _write_guess;
     bool                                _write_charges;
-
+    bool                                _is_optimization;
+    
     Logger*                             _pLog;
        
 };

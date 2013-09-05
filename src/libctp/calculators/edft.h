@@ -109,7 +109,7 @@ void EDFT::Initialize(Topology *top, Property *options) {
     key = "package";
     _package = _package_options.get(key+".name").as<string> ();
     
-    // register all QM packages (Gaussian, turbomole, etc))
+    // register all QM packages (Gaussian, turbomole, nwchem))
     QMPackageFactory::RegisterAll(); 
 
 }
@@ -196,7 +196,7 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
        // Parse orbitals file
        _parse_orbitals_status = _qmpackage->ParseOrbitalsFile( &_orbitals );
         if ( !_parse_orbitals_status ) {
-            output += "fort7 failed; " ;
+            output += "orbitals failed; " ;
             LOG(logERROR,*pLog) << "QM orbitals not parsed" << flush;
             jres.setOutput( output ); 
             jres.setStatus(Job::FAILED);
