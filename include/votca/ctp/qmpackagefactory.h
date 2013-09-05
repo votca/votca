@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __QMTOOLFACTORY__H
-#define	__QMTOOLFACTORY__H
+#ifndef __QMPACKAGEFACTORY__H
+#define	__QMPACKAGEFACTORY__H
 
 #include <votca/tools/objectfactory.h>
 #include "qmpackage.h"
@@ -48,5 +48,5 @@ inline QMPackageFactory &QMPackages()
 
 }}
 
-#endif	/* __QMTOOLFACTORY__H */
+#endif	/* __QMPACKAGEFACTORY__H */
 
