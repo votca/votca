@@ -70,6 +70,17 @@
       <itemPath>../../include/votca/ctp/xjob.h</itemPath>
       <itemPath>../../include/votca/ctp/xmapper.h</itemPath>
     </logicalFolder>
+    <logicalFolder name="f2"
+                   displayName="QMPackages"
+                   projectFiles="true"
+                   kind="ROOT">
+      <itemPath>../../src/libctp/qmpackages/gaussian.cc</itemPath>
+      <itemPath>../../src/libctp/qmpackages/gaussian.h</itemPath>
+      <itemPath>../../src/libctp/qmpackages/nwchem.cc</itemPath>
+      <itemPath>../../src/libctp/qmpackages/nwchem.h</itemPath>
+      <itemPath>../../src/libctp/qmpackages/turbomole.cc</itemPath>
+      <itemPath>../../src/libctp/qmpackages/turbomole.h</itemPath>
+    </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
                    projectFiles="true">
@@ -462,6 +473,36 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libctp/qmpackages/gaussian.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/gaussian.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/nwchem.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/nwchem.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/turbomole.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/turbomole.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/qmpair.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/qmtool.cc" ex="false" tool="1" flavor2="0">
@@ -834,6 +875,36 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libctp/qmpackages/gaussian.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/gaussian.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/nwchem.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/nwchem.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/turbomole.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/turbomole.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/qmpair.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/qmtool.cc" ex="false" tool="1" flavor2="0">
@@ -1204,6 +1275,36 @@
       <item path="../../src/libctp/qmpackagefactory.cc"
             ex="false"
             tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/gaussian.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/gaussian.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/nwchem.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/nwchem.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/turbomole.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/turbomole.h"
+            ex="false"
+            tool="3"
             flavor2="0">
       </item>
       <item path="../../src/libctp/qmpair.cc" ex="false" tool="1" flavor2="0">
