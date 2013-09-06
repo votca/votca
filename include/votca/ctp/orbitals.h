@@ -20,9 +20,12 @@
 #ifndef __VOTCA_CTP_ORBITALS_H
 #define	__VOTCA_CTP_ORBITALS_H
 
+#include <votca/ctp/basisset.h>
+
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <boost/numeric/ublas/io.hpp>
+
 #include <votca/tools/globals.h>
 #include <votca/tools/property.h>
 #include <votca/tools/vec.h>
@@ -57,7 +60,7 @@ namespace votca { namespace ctp {
     
 /**
     \brief container for basic atoms 
-     Stores atom type, coordinates, charge
+     Stores atom type, coordinates, charge, basis set
  */    
 class QMAtom
 {
@@ -70,10 +73,6 @@ public:
     QMAtom ()
             : type( "" ), x(0), y(0), z(0), charge(0), from_environment( false )
             {};     
-            
-            
-   
-            
             
    std::string type;
    double x;
@@ -193,6 +192,9 @@ private:
     
     bool                                _has_integrals;
     ub::matrix<double>*                 _integrals;
+    
+    bool                                _has_basis_set;
+    BasisSet                            _basis_set;
 
 private:
 

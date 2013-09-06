@@ -84,6 +84,7 @@ protected:
     
     bool                                _write_guess;
     bool                                _write_charges;
+    bool                                _write_basis_set;
 
     Logger*                             _pLog;
        

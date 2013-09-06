@@ -93,7 +93,16 @@ void Gaussian::Initialize( Property *options ) {
         _write_charges = false;
     }
 
-
+    // check if the basis set is available ("/gen")
+    iop_pos = _options.find("gen");
+    cout << "INPUT" << endl;
+    if (iop_pos != std::string::npos) {
+        _write_basis_set = true;
+        cout << " WITH GEN" << endl;
+    } else
+    {
+        _write_basis_set = false;
+    }   
 }    
 
 /**
@@ -205,6 +214,10 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
         _com_file << endl;
     }
 
+    if ( _write_basis_set ) {
+        orbitals_guess->_basis_set.Load( "ubecppol" ) ;
+    }
+    
     
     _com_file << endl;
     _com_file.close();

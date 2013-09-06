@@ -1,0 +1,31 @@
+<basis name="ubecppol">
+	<element name="C">
+		<shell type="S" fadge="1.00">
+			<constant decay="2.263101" contraction="1.0"></constant> 
+		</shell>
+		<shell type="S" fadge="1.00">
+			<constant decay="1.773186" contraction="1.0"></constant>
+		</shell>
+                <shell type="S" fadge="1.00">
+                        <constant decay="0.408619" contraction="1.0"></constant>
+                </shell>
+                <shell type="S" fadge="1.00">
+                        <constant decay="0.139175" contraction="1.0"></constant>
+                </shell>
+                <shell type="P" fadge="1.00">
+                        <constant decay="8.383025" contraction="1.0"></constant>
+                </shell>
+                <shell type="P" fadge="1.00">
+                        <constant decay="1.993132" contraction="1.0"></constant>
+                </shell>
+                <shell type="P" fadge="1.00">
+                        <constant decay="0.559543" contraction="1.0"></constant>
+                </shell>
+                <shell type="P" fadge="1.00">
+                        <constant decay="0.156126" contraction="1.0"></constant>
+                </shell>
+                <shell type="D" fadge="1.00">
+                        <constant decay="0.6260000" contraction="1.0"></constant>
+                </shell>
+	</element>
+</basis>
