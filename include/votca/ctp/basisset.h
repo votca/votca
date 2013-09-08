@@ -24,8 +24,6 @@
 #include <string>
 #include <map>
 #include <vector>
-#include <utility>
-
 #include <votca/tools/property.h>
 
 using namespace std;
@@ -34,66 +32,91 @@ using namespace votca::tools;
 namespace votca { namespace ctp {
 
 /*
- * Container for AO types and coefficients in a
- * sum ( _contraction_coefficients*exp( -_decay_constants*r ) )
+ * S, P, or D functions in a Gaussian-basis expansion
  */
-class Shell {
-
+class Shell 
+{
 public:
 
-    enum Type{S,P,D};
+    // Gaussian described by two constants
+    typedef pair<double, double> Gaussian;
 
-    Shell( Type type, double fadge_factor = 1 ) : _type(type), _fadge_factor(fadge_factor) { ; }
+    // iterator over pairs (decay constant; contraction coefficient)
+    typedef vector< Gaussian* >::iterator GaussianIterator;
 
-    void addConstant( double decay_constant, double contraction_coefficient ) 
-               { 
-                 _decay_constants.push_back( decay_constant );
-                 _contraction_coefficients.push_back( contraction_coefficient );
-               }
-    Type getType(){ return _type; }
+    GaussianIterator begin() { return _gaussians.begin(); }
+    
+    GaussianIterator end(){ return _gaussians.end(); }
+    
+    // default constructor    
+    Shell( string type ) : _type(type) { ; }
+    
+    // clean up all Gaussians
+   ~Shell() { 
+       for (GaussianIterator it = _gaussians.begin(); it != _gaussians.end() ; it++ ) {
+           delete (*it);
+       } 
+   }
+   
+    // returns a constant of a Gaussian
+    double getConstant( GaussianIterator it ) { return (*it)->first; }
+    
+    // returns a contraction coefficient of a Gaussian
+    double getContraction( GaussianIterator it ) { return (*it)->second; }
+    
+    // adds a Gaussian 
+    void addGaussian( double decay, double contraction ) {
+        Gaussian* _gaussian = new Gaussian(decay, contraction);
+        _gaussians.push_back( _gaussian );
+    }
 
-private:
+private:   
+    
+    // shell type (S, P, D))
+    string _type;
 
-    Type _type;
-    double _fadge_factor;
-    vector<double> _decay_constants;
-    vector<double> _contraction_coefficients;
+    // vector of pairs of decay constants and contraction coefficients
+    vector< Gaussian* > _gaussians;
+
 };
 
 /*
- * Container for shells for a specific atom type 
+ * A collection of shells associated with a specific element  
  */
-class Element {
-
+class Element 
+{   
 public:
+    Element( string type ) : _type(type) { ; }
+    
+    typedef vector< Shell* >::iterator ShellIterator;
+    ShellIterator begin() { return _shells.begin(); }
+    ShellIterator end(){ return _shells.end(); }
 
-    enum Type{H,B,C,N,O,F,Al,Si,P,S,Cl};
-
+    string getType() { return _type; }
+    
+    Shell* getShell( ShellIterator it ) { return (*it); }
     void addShell( Shell* shell ) { _shells.push_back(shell); }
-
-    vector<Shell*> getShells () { return _shells; }
-
-private:
-
-    Type _type;     
+    
+    vector<Shell*> getShells() { return _shells; }
+    
+private:    
+    string _type;     
     vector<Shell*> _shells;
-
 };
 
-
 /*
- * Container for all atom types 
+ * A collection of elements and shells forms the basis set 
  */
-class BasisSet {
-
+class BasisSet 
+{
 public:
     
-    void Load ( string filename );
+    void Load ( string name );
     
-    void AddShell(Element::Type element_type, Shell* shell) { ; }
+    void AddShell(string element_type, Shell* shell );
  
-     vector<Shell*> getShells( Element::Type element_type ) {
-         map<Element::Type,Element*>::iterator itm = _elements.find( element_type );
+     vector<Shell*> getShells( string element_type ) {
+         map<string,Element*>::iterator itm = _elements.find( element_type );
          Element* element = (*itm).second;
          vector<Shell*> shells = element->getShells();
          return shells; 
@@ -102,19 +125,19 @@ public:
     ~BasisSet();
     
 private:    
-     
-    map<Element::Type, Element*> _elements;
+    
+    map<string,Element*> _elements;
 };
 
 
-inline void BasisSet::Load ( string basis_set_name ) {
+inline void BasisSet::Load ( string name ) {
     
     Property basis_property;
  
     // get the path to the shared folders with xml files
     char *votca_share = getenv("VOTCASHARE");
     if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
-    string xmlFile = string(getenv("VOTCASHARE")) + string("/ctp/basis_sets/") + basis_set_name + string(".xml");
+    string xmlFile = string(getenv("VOTCASHARE")) + string("/ctp/basis_sets/") + name + string(".xml");
     
     bool success = load_property_from_xml(basis_property, xmlFile);
     
@@ -123,17 +146,26 @@ inline void BasisSet::Load ( string basis_set_name ) {
     list<Property*> elementProps = basis_property.Select("basis.element");
         
     for (list<Property*> ::iterator  ite = elementProps.begin(); ite != elementProps.end(); ++ite) {
+        
+        string elementName = (*ite)->getAttribute<string>("name");
         list<Property*> shellProps = (*ite)->Select("shell");
         
         for (list<Property*> ::iterator  its = shellProps.begin(); its != shellProps.end(); ++its) {
+            
+            string shellType = (*ite)->getAttribute<string>("type");
+            Shell *shell = new Shell( shellType );
+            
             list<Property*> constProps = (*its)->Select("constant");
             
             for (list<Property*> ::iterator  itc = constProps.begin(); itc != constProps.end(); ++itc) {
                 double decay = (*itc)->getAttribute<double>("decay");
                 double contraction = (*itc)->getAttribute<double>("contraction");
-                cout << decay << " " << contraction;
+                
+                shell->addGaussian(decay, contraction);
+                
+                cout << decay << " " << contraction << endl;
             }
-            
+            AddShell(elementName, shell);
         }
        
     }
@@ -141,42 +173,26 @@ inline void BasisSet::Load ( string basis_set_name ) {
 }
 
 // adding a shell to a basis set
-/*
-inline void BasisSet::AddShell(Element::ElementType element_type, Shell* shell) {
+inline void BasisSet::AddShell(string element_type, Shell* shell ) {
 
-    //check if the number of constants and coefficients is the same
-    assert( decay_constants.size() == contraction_coefficients.size() );
-
-    // create a new shell and fill it up
-    Shell* shell = new Shell( shell_type );
-     
-    for ( vector<double>::iterator it = decay_constants.begin(); it !=  decay_constants.end(); it++ ) {
-       shell->_decay_constants.push_back(*it);
-    }
-
-    for ( vector<double>::iterator it = contraction_coefficients.begin(); it !=  contraction_coefficients.end(); it++ ) {
-       shell->_contraction_coefficients.push_back(*it);
-    }
-    
-    Element* element ;    
+   Element* element ;    
     map<string,Element*>::iterator it = _elements.find( element_type ) ;
     
     if ( it == _elements.end() ) {
-        element = new Element();
+        element = new Element( element_type );
     } else {
         element = (*it).second;
     }
 
-    element->_type = element_type;
-    element->_shells.push_back(shell);
+    element->addShell( shell );
      
     _elements[element_type] =  element;
 };
-*/
 
 // cleanup the basis set
 inline BasisSet::~BasisSet() {
-    for ( map<Element::Type,Element*>::iterator it = _elements.begin(); it !=  _elements.end(); it++ ) {
+    
+    for ( map<string,Element*>::iterator it = _elements.begin(); it !=  _elements.end(); it++ ) {
 
          vector<Shell*> shells = (*it).second->getShells();
 
