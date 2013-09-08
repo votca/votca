@@ -20,7 +20,6 @@
 #ifndef __CTP_BASISSET__H
 #define	__CTP_BASISSET__H
 
-#include <assert.h> 
 #include <string>
 #include <map>
 #include <vector>
@@ -44,9 +43,9 @@ public:
     // iterator over pairs (decay constant; contraction coefficient)
     typedef vector< Gaussian* >::iterator GaussianIterator;
 
-    GaussianIterator begin() { return _gaussians.begin(); }
+    GaussianIterator firstGaussian() { return _gaussians.begin(); }
     
-    GaussianIterator end(){ return _gaussians.end(); }
+    GaussianIterator lastGaussian(){ return _gaussians.end(); }
     
     // default constructor    
     Shell( string type ) : _type(type) { ; }
@@ -89,8 +88,8 @@ public:
     Element( string type ) : _type(type) { ; }
     
     typedef vector< Shell* >::iterator ShellIterator;
-    ShellIterator begin() { return _shells.begin(); }
-    ShellIterator end(){ return _shells.end(); }
+    ShellIterator firstShell() { return _shells.begin(); }
+    ShellIterator lastShell(){ return _shells.end(); }
 
     string getType() { return _type; }
     
