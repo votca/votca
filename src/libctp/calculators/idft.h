@@ -66,7 +66,8 @@ private:
     static const double _conv_Hrt_eV = 27.21138386;
 
     int                 _max_occupied_levels;
-    int                 _max_unoccupied_levels;  
+    int                 _max_unoccupied_levels;     
+    int                 _trim_factor;
     
     string              _package;
     Property            _package_options; 

@@ -82,6 +82,8 @@ void IDFT::ParseOptionsXML( tools::Property *opt ) {
     
     _max_occupied_levels = opt->get(key+".levels").as<int> ();
     _max_unoccupied_levels = _max_occupied_levels;
+
+    _trim_factor = opt->get(key+".trim").as<int> ();
     
     string _package_xml = opt->get(key+".package").as<string> ();
     //cout << endl << "... ... Parsing " << _package_xml << endl ;
@@ -534,17 +536,22 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     string _pair_file = ( format("%1%%2%%3%%4%%5%") % "pair_" % ID_A % "_" % ID_B % ".orb" ).str();
    ub::matrix<double> _JAB;
    
+   // trim virtual orbitals if too many are given
    if ( _do_trim ) {
+
        if ( !_do_parse ) { // orbitals must be loaded from a file
            LOG(logDEBUG,*pLog) << "Loading orbitals from " << _pair_file << flush;    
            std::ifstream ifs( (_orbitals_storage_dir + "/" + _pair_file).c_str() );
            boost::archive::binary_iarchive ia( ifs );
            ia >> _orbitalsAB;
            ifs.close();
-       }
+       }     
        
-       _orbitalsAB.Trim(2);
-       exit(0);
+       LOG(logDEBUG,*pLog) << "Trimming dimer virtual orbitals from " 
+               << _orbitalsAB.getNumberOfLevels() - _orbitalsAB.getNumberOfElectrons() << " to " 
+               << _orbitalsAB.getNumberOfElectrons()*_trim_factor << flush;   
+       
+       _orbitalsAB.Trim(_trim_factor);
    }
    
    if ( _do_project ) {
@@ -576,6 +583,19 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         boost::archive::binary_iarchive ia_B( ifs_B );
         ia_B >> _orbitalsB;
         ifs_B.close();
+     
+        if ( _do_trim ) {
+             LOG(logDEBUG,*pLog) << "Trimming molecule A virtual orbitals from " 
+                    << _orbitalsA.getNumberOfLevels() - _orbitalsA.getNumberOfElectrons() << " to " 
+                    << _orbitalsA.getNumberOfElectrons()*_trim_factor << flush;  
+            
+            _orbitalsA.Trim(_trim_factor);
+            
+            LOG(logDEBUG,*pLog) << "Trimming molecule B virtual orbitals from " 
+                    << _orbitalsB.getNumberOfLevels() - _orbitalsB.getNumberOfElectrons() << " to " 
+                    << _orbitalsB.getNumberOfElectrons()*_trim_factor << flush;              
+            _orbitalsB.Trim(_trim_factor);
+        }
      
        _calculate_integrals = CalculateIntegrals( &_orbitalsA, &_orbitalsB, &_orbitalsAB, &_JAB, opThread );
 

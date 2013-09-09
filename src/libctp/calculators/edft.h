@@ -67,6 +67,7 @@ private:
     bool                _do_input;
     bool                _do_run;
     bool                _do_parse;
+    bool                _do_trim;
 
     // what to write in the storage
     bool                _store_orbitals;
@@ -89,6 +90,7 @@ void EDFT::Initialize(Topology *top, Property *options) {
     _do_input = false;
     _do_run = false;
     _do_parse = false;
+    _do_trim = false;
 
     _maverick = (_nThreads == 1) ? true : false;
     
@@ -100,6 +102,7 @@ void EDFT::Initialize(Topology *top, Property *options) {
     string _tasks_string = options->get(key+".tasks").as<string> ();
     if (_tasks_string.find("input") != std::string::npos) _do_input = true;
     if (_tasks_string.find("run") != std::string::npos) _do_run = true;
+    if (_tasks_string.find("trim") != std::string::npos) _do_trim = true;
     if (_tasks_string.find("parse") != std::string::npos) _do_parse = true;    
 
     string _store_string = options->get(key+".store").as<string> ();
@@ -206,6 +209,26 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
             output += "orbitals parsed; " ;
         }
     }
+ 
+   // Trim virtual orbitals
+    if ( _do_trim ) {
+        
+       int factor = 2;
+       if ( !_do_parse ) { // orbitals must be loaded from a file
+           string ORB_FILE = "molecule_" + ID + ".orb";
+           LOG(logDEBUG,*pLog) << "Loading orbitals from " << ORB_FILE << flush;    
+           std::ifstream ifs( (ORB_DIR + "/" + ORB_FILE).c_str() );
+           boost::archive::binary_iarchive ia( ifs );
+           ia >> _orbitals;
+           ifs.close();
+       }        
+       
+       _orbitals.Trim(factor);   
+        LOG(logDEBUG,*pLog) << "Trimming virtual orbitals from " 
+         << _orbitals.getNumberOfLevels() - _orbitals.getNumberOfElectrons() << " to " 
+         << _orbitals.getNumberOfElectrons()*factor << flush;   
+       output += "orbitals trimmed; " ;
+    }   
    
    // Clean run
    _qmpackage->CleanUp();

@@ -37,7 +37,7 @@ class BasisSet;
 // Gaussian function: contraction*exp(-decay*r^2)
 class GaussianPrimitive 
 {
-    friend Shell;
+    friend class Shell;
 public:
     double decay;
     double contraction;
@@ -53,7 +53,7 @@ private:
  */
 class Shell 
 {
-    friend Element;   
+    friend class Element;   
 public:
 
     string getType() { return _type; }
@@ -100,7 +100,7 @@ private:
  */
 class Element 
 {   
-    friend BasisSet;
+    friend class BasisSet;
 public:
     
     typedef vector< Shell* >::iterator ShellIterator;
