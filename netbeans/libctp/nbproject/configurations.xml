@@ -38,6 +38,7 @@
                    projectFiles="true">
       <itemPath>../../include/votca/ctp/apolarsite.h</itemPath>
       <itemPath>../../include/votca/ctp/atom.h</itemPath>
+      <itemPath>../../include/votca/ctp/basisset.h</itemPath>
       <itemPath>../../include/votca/ctp/calculatorfactory.h</itemPath>
       <itemPath>../../include/votca/ctp/eigenvalues.h</itemPath>
       <itemPath>../../include/votca/ctp/fragment.h</itemPath>
@@ -70,10 +71,7 @@
       <itemPath>../../include/votca/ctp/xjob.h</itemPath>
       <itemPath>../../include/votca/ctp/xmapper.h</itemPath>
     </logicalFolder>
-    <logicalFolder name="f2"
-                   displayName="QMPackages"
-                   projectFiles="true"
-                   kind="ROOT">
+    <logicalFolder name="f2" displayName="QMPackages" projectFiles="true">
       <itemPath>../../src/libctp/qmpackages/gaussian.cc</itemPath>
       <itemPath>../../src/libctp/qmpackages/gaussian.h</itemPath>
       <itemPath>../../src/libctp/qmpackages/nwchem.cc</itemPath>
@@ -161,6 +159,8 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/atom.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/basisset.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/calculatorfactory.h"
             ex="false"
@@ -336,7 +336,7 @@
       </item>
       <item path="../../src/libctp/calculators/idft.cc"
             ex="false"
-            tool="3"
+            tool="1"
             flavor2="0">
       </item>
       <item path="../../src/libctp/calculators/idft.h"
@@ -563,6 +563,8 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/atom.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/basisset.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/calculatorfactory.h"
             ex="false"
@@ -965,6 +967,8 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/atom.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/basisset.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/calculatorfactory.h"
             ex="false"

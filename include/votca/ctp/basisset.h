@@ -31,14 +31,22 @@ using namespace votca::tools;
 namespace votca { namespace ctp {
 
 /*
+ * Gaussian function: contraction*exp(-decay*r^2)
+ */
+class Gaussian 
+{
+public:
+    Gaussian( double _decay, double _contraction ) : decay(_decay), contraction(_contraction) { ; }
+    double decay;
+    double contraction;
+};    
+    
+/*
  * S, P, or D functions in a Gaussian-basis expansion
  */
 class Shell 
 {
 public:
-
-    // Gaussian described by two constants
-    typedef pair<double, double> Gaussian;
 
     // iterator over pairs (decay constant; contraction coefficient)
     typedef vector< Gaussian* >::iterator GaussianIterator;
@@ -58,10 +66,10 @@ public:
    }
    
     // returns a constant of a Gaussian
-    double getConstant( GaussianIterator it ) { return (*it)->first; }
+    double getConstant( GaussianIterator it ) { return (*it)->decay; }
     
     // returns a contraction coefficient of a Gaussian
-    double getContraction( GaussianIterator it ) { return (*it)->second; }
+    double getContraction( GaussianIterator it ) { return (*it)->contraction; }
     
     // adds a Gaussian 
     void addGaussian( double decay, double contraction ) {
