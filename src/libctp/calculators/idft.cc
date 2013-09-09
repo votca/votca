@@ -243,7 +243,9 @@ bool IDFT::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     
     // AxB = | A 0 |  //
     //       | 0 B |  //  
-    LOG(logDEBUG,*_pLog) << "Constructing direct product AxB" << flush;    
+    LOG(logDEBUG,*_pLog) << "Constructing direct product AxB [" 
+            << _psi_AxB.size1() << "x" 
+            << _psi_AxB.size2() << "]"<< flush;    
     ub::project( _psi_AxB, ub::range (0, _levelsA ), ub::range ( _basisA, _basisA +_basisB ) ) = zeroB;
     ub::project( _psi_AxB, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( 0, _basisA ) ) = zeroA;    
     ub::project( _psi_AxB, ub::range (0, _levelsA ), ub::range ( 0, _basisA ) ) = *_orbitalsA->getOrbitals();
@@ -251,7 +253,9 @@ bool IDFT::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     //cout << "_psi_AxB: " << _psi_AxB << endl;
     
     // Fock matrix of a dimer   
-    LOG(logDEBUG,*_pLog) << "Constructing the dimer Fock matrix" << flush;    
+    LOG(logDEBUG,*_pLog) << "Constructing the dimer Fock matrix [" 
+            << _orbitalsAB->getNumberOfLevels() << "x" 
+            << _orbitalsAB->getNumberOfLevels() << "]" << flush;    
     ub::diagonal_matrix<double> _fock_AB( _orbitalsAB->getNumberOfLevels(), (*_orbitalsAB->getEnergies()).data() ); 
 
     // psi_AxB * S_AB * psi_AB
@@ -313,15 +317,19 @@ bool IDFT::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     exit(0);
     */
      ub::trans( _S_AxB );
-     LOG(logDEBUG,*_pLog) << "Calculating square root of the overlap matrix" << flush;    
+     LOG(logDEBUG,*_pLog) << "Calculating square root of the overlap matrix [" 
+             << _S_AxB.size1() << "x" 
+             << _S_AxB.size2() << "]" << flush;    
      SQRTOverlap( _S_AxB , _S_AxB_2 );        
      _S_AxB.clear(); 
      
-    ///if ( tools::globals::verbose ) *opThread << "... ... Calculating the effective overlap\n" ;
+     LOG(logDEBUG,*_pLog) << "Calculating the effective overlap JAB [" 
+             << JAB_dimer.size1() << "x" 
+             << JAB_dimer.size2() << "]" << flush;    
     //stringstream test ;
     //test << "BLA" << "BA";
     
-    ub::matrix<double> JAB_temp = prod( JAB_dimer, _S_AxB_2 );
+    ub::matrix<double> JAB_temp = ub::prod( JAB_dimer, _S_AxB_2 );
         
     (*_JAB) = ub::prod( _S_AxB_2, JAB_temp );
     
@@ -536,6 +544,7 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     string _pair_file = ( format("%1%%2%%3%%4%%5%") % "pair_" % ID_A % "_" % ID_B % ".orb" ).str();
    ub::matrix<double> _JAB;
    
+   /* trimming DIMER orbitals is not giving accurate results
    // trim virtual orbitals if too many are given
    if ( _do_trim ) {
 
@@ -551,8 +560,8 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
                << _orbitalsAB.getNumberOfLevels() - _orbitalsAB.getNumberOfElectrons() << " to " 
                << _orbitalsAB.getNumberOfElectrons()*(_trim_factor-1) << flush;   
        
-       _orbitalsAB.Trim(_trim_factor);
-   }
+       //_orbitalsAB.Trim(_trim_factor);
+   } */
    
    if ( _do_project ) {
        
@@ -635,9 +644,15 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 
        if ( !( _store_orbitals && _do_parse && _parse_orbitals_status) )   _store_orbitals = false;
        if ( !( _store_overlap && _do_parse && _parse_log_status) )    _store_overlap = false;
-       if ( !( _store_integrals && _do_project && _calculate_integrals) )  { _store_integrals = false; _orbitalsAB.setIntegrals( &_JAB ) ; }
+       if ( !( _store_integrals && _do_project && _calculate_integrals) )  {
+           _store_integrals = false; 
+       } else {
+           _orbitalsAB.setIntegrals( &_JAB );
+       }
 
        _orbitalsAB.setStorage( _store_orbitals, _store_overlap, _store_integrals );
+
+       
        oa << _orbitalsAB;
        ofs.close();
    
