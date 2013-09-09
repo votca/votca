@@ -151,6 +151,9 @@ public:
     } 
         
     void WritePDB( FILE *out );
+    
+    // reduces number of virtual orbitals to factor*number_of_occupied_orbitals
+    void Trim( int factor );
 
 private:
     

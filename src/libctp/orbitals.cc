@@ -272,4 +272,17 @@ void Orbitals::WritePDB( FILE *out ) {
     }  
 }
 
+    // reduces number of virtual orbitals to factor*number_of_occupied_orbitals
+void Orbitals::Trim( int factor ) {
+    if ( _has_mo_coefficients ) {
+        ;
+    }
+
+    if ( _has_mo_energies ) {
+        cout << "\nBefore: " << _mo_energies.size();
+        _mo_energies.resize( _occupied_levels * (1  + factor ), true );
+        cout << " and After: " << _mo_energies.size() << endl;   
+    }
+}
+
 }}

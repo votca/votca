@@ -133,7 +133,7 @@ private:
    }    
    
     string _type;     
-    vector<Shell*> _shells;
+    vector<Shell*> _shells;    
 };
 
 /*

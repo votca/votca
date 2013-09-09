@@ -45,6 +45,7 @@ void IDFT::Initialize(ctp::Topology *top, tools::Property* options ) {
     _do_run = false;
     _do_parse = false;
     _do_project = false;
+    _do_trim = false;
     
     _store_orbitals = false;
     _store_overlap = false;
@@ -72,6 +73,7 @@ void IDFT::ParseOptionsXML( tools::Property *opt ) {
     if (_tasks_string.find("run") != std::string::npos) _do_run = true;
     if (_tasks_string.find("parse") != std::string::npos) _do_parse = true;
     if (_tasks_string.find("project") != std::string::npos) _do_project = true;
+    if (_tasks_string.find("trim") != std::string::npos) _do_trim = true;
 
     string _store_string = opt->get(key+".store").as<string> ();
     if (_store_string.find("orbitals") != std::string::npos) _store_orbitals = true;
@@ -531,7 +533,20 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
    // orbital file used to archive parsed data
     string _pair_file = ( format("%1%%2%%3%%4%%5%") % "pair_" % ID_A % "_" % ID_B % ".orb" ).str();
    ub::matrix<double> _JAB;
-        
+   
+   if ( _do_trim ) {
+       if ( !_do_parse ) { // orbitals must be loaded from a file
+           LOG(logDEBUG,*pLog) << "Loading orbitals from " << _pair_file << flush;    
+           std::ifstream ifs( (_orbitals_storage_dir + "/" + _pair_file).c_str() );
+           boost::archive::binary_iarchive ia( ifs );
+           ia >> _orbitalsAB;
+           ifs.close();
+       }
+       
+       _orbitalsAB.Trim(2);
+       exit(0);
+   }
+   
    if ( _do_project ) {
        
        if ( !_do_parse ) { // orbitals must be loaded from a file

@@ -76,6 +76,7 @@ private:
     bool                _do_run;
     bool                _do_parse;
     bool                _do_project;
+    bool                _do_trim;
     
     // what to write in the storage
     bool                _store_orbitals;
