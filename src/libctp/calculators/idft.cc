@@ -657,8 +657,8 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         _pair_summary->setAttribute("homoB", HOMO_B);
         _pair_summary->setAttribute("typeA", nameA);
         _pair_summary->setAttribute("typeB", nameB);
-        for (int levelA = HOMO_A - _max_occupied_levels +1; levelA <= LUMO_A + _max_unoccupied_levels; ++levelA ) {
-                for (int levelB = HOMO_B - _max_occupied_levels + 1; levelB <= HOMO_B + _max_unoccupied_levels ; ++levelB ) {        
+        for (int levelA = HOMO_A - _max_occupied_levels +1; levelA <= LUMO_A + _max_unoccupied_levels - 1; ++levelA ) {
+                for (int levelB = HOMO_B - _max_occupied_levels + 1; levelB <= LUMO_B + _max_unoccupied_levels -1 ; ++levelB ) {        
                         Property *_overlap_summary = &_pair_summary->add("overlap",""); 
                         double JAB = getCouplingElement( levelA , levelB, &_orbitalsA, &_orbitalsB, &_JAB );
                         double energyA = _orbitalsA.getEnergy( levelA );
