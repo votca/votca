@@ -95,10 +95,8 @@ void Gaussian::Initialize( Property *options ) {
 
     // check if the basis set is available ("/gen")
     iop_pos = _options.find("gen");
-    cout << "INPUT" << endl;
     if (iop_pos != std::string::npos) {
         _write_basis_set = true;
-        cout << " WITH GEN" << endl;
     } else
     {
         _write_basis_set = false;
@@ -190,6 +188,49 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
             } 
         }
     }
+
+    if (_write_basis_set) {
+
+        _com_file << endl;
+        list<string> elements;
+        BasisSet bs;
+        string basis_name("ubecppol"); 
+        bs.Load( basis_name );
+        LOG(logDEBUG,*_pLog) << "Loaded Basis Set " << basis_name << flush;
+
+        for (sit = segments.begin(); sit != segments.end(); ++sit) {
+            
+            vector< Atom* > atoms = (*sit)-> Atoms();
+            vector< Atom* >::iterator it;
+            
+            for (it = atoms.begin(); it < atoms.end(); it++) {
+
+                string element_name = (*it)->getElement();
+                
+                list<string>::iterator ite;
+                ite = find(elements.begin(), elements.end(), element_name);
+                
+                if (ite == elements.end()) {
+                    elements.push_back(element_name);
+                  
+                    Element* element = bs.getElement(element_name);
+                    _com_file << element_name << endl;
+
+                    for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+                        Shell* shell = (*its);
+                        _com_file << shell->getType() << " " << shell->getSize() << endl;
+                        for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
+                            GaussianPrimitive* gaussian = *itg;
+                            _com_file << gaussian->decay << " " << gaussian->contraction << endl;
+                        }
+                    }
+                    
+                    _com_file << "****\n";
+
+                }
+            }
+        }
+    }
     
     if ( _write_charges ) {
         vector< QMAtom* > *qmatoms = orbitals_guess->getAtoms();
@@ -213,11 +254,6 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
         
         _com_file << endl;
     }
-
-    if ( _write_basis_set ) {
-        orbitals_guess->_basis_set.Load( "ubecppol" ) ;
-    }
-    
     
     _com_file << endl;
     _com_file.close();

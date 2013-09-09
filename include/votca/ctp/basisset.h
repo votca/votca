@@ -30,60 +30,68 @@ using namespace votca::tools;
 
 namespace votca { namespace ctp {
 
-/*
- * Gaussian function: contraction*exp(-decay*r^2)
- */
-class Gaussian 
+class Shell;  
+class Element;
+class BasisSet;
+
+// Gaussian function: contraction*exp(-decay*r^2)
+class GaussianPrimitive 
 {
+    friend Shell;
 public:
-    Gaussian( double _decay, double _contraction ) : decay(_decay), contraction(_contraction) { ; }
     double decay;
     double contraction;
-};    
+    Shell* shell;
+private:
+    // private constructor, only a shell can create a primitive
+    GaussianPrimitive( double _decay, double _contraction, Shell *_shell = NULL ) 
+    : decay(_decay), contraction(_contraction), shell(_shell) { ; }
+};      
     
 /*
  * S, P, or D functions in a Gaussian-basis expansion
  */
 class Shell 
 {
+    friend Element;   
 public:
 
+    string getType() { return _type; }
+    
+    int getSize() { return _gaussians.size(); }
+    
     // iterator over pairs (decay constant; contraction coefficient)
-    typedef vector< Gaussian* >::iterator GaussianIterator;
-
+    typedef vector< GaussianPrimitive* >::iterator GaussianIterator;
     GaussianIterator firstGaussian() { return _gaussians.begin(); }
-    
     GaussianIterator lastGaussian(){ return _gaussians.end(); }
-    
-    // default constructor    
-    Shell( string type ) : _type(type) { ; }
-    
-    // clean up all Gaussians
-   ~Shell() { 
-       for (GaussianIterator it = _gaussians.begin(); it != _gaussians.end() ; it++ ) {
-           delete (*it);
-       } 
-   }
    
-    // returns a constant of a Gaussian
-    double getConstant( GaussianIterator it ) { return (*it)->decay; }
-    
-    // returns a contraction coefficient of a Gaussian
-    double getContraction( GaussianIterator it ) { return (*it)->contraction; }
-    
     // adds a Gaussian 
-    void addGaussian( double decay, double contraction ) {
-        Gaussian* _gaussian = new Gaussian(decay, contraction);
-        _gaussians.push_back( _gaussian );
+    GaussianPrimitive*  addGaussian( double decay, double contraction ) 
+    {
+        GaussianPrimitive* gaussian = new GaussianPrimitive(decay, contraction, this);
+        _gaussians.push_back( gaussian );
+        return gaussian;
     }
 
 private:   
+
+    // only class Element can construct shells    
+    Shell( string type, Element* element = NULL ) : _type(type) { ; }
+    
+    // only class Element can destruct shells
+   ~Shell() 
+   { 
+       for (vector< GaussianPrimitive* >::iterator it = _gaussians.begin(); it != _gaussians.end() ; it++ ) delete (*it); 
+       _gaussians.clear();
+   }
     
     // shell type (S, P, D))
     string _type;
+    
+    Element* _element;
 
     // vector of pairs of decay constants and contraction coefficients
-    vector< Gaussian* > _gaussians;
+    vector< GaussianPrimitive* > _gaussians;
 
 };
 
@@ -92,8 +100,8 @@ private:
  */
 class Element 
 {   
+    friend BasisSet;
 public:
-    Element( string type ) : _type(type) { ; }
     
     typedef vector< Shell* >::iterator ShellIterator;
     ShellIterator firstShell() { return _shells.begin(); }
@@ -102,11 +110,28 @@ public:
     string getType() { return _type; }
     
     Shell* getShell( ShellIterator it ) { return (*it); }
-    void addShell( Shell* shell ) { _shells.push_back(shell); }
+    
+    Shell* addShell( string shellType ) 
+    { 
+        Shell* shell = new Shell( shellType, this );
+        _shells.push_back(shell); 
+        return shell;
+    }
     
     vector<Shell*> getShells() { return _shells; }
     
-private:    
+private:  
+    
+    // only class BasisSet can create Elements
+    Element( string type ) : _type(type) { ; }
+
+    // only class BasisSet can destruct Elements
+   ~Element() 
+   { 
+       for (vector< Shell* >::iterator it = _shells.begin(); it != _shells.end() ; it++ ) delete (*it); 
+       _shells.clear();
+   }    
+   
     string _type;     
     vector<Shell*> _shells;
 };
@@ -120,13 +145,16 @@ public:
     
     void Load ( string name );
     
-    void AddShell(string element_type, Shell* shell );
+    Element* addElement(string elementType );
  
-     vector<Shell*> getShells( string element_type ) {
+    Element* getElement( string element_type ) {
+        
          map<string,Element*>::iterator itm = _elements.find( element_type );
+         
+         if ( itm == _elements.end() ) throw std::runtime_error( "Basis set does not have element of type " + element_type );
+         
          Element* element = (*itm).second;
-         vector<Shell*> shells = element->getShells();
-         return shells; 
+         return element; 
      }
     
     ~BasisSet();
@@ -137,8 +165,8 @@ private:
 };
 
 
-inline void BasisSet::Load ( string name ) {
-    
+inline void BasisSet::Load ( string name ) 
+{    
     Property basis_property;
  
     // get the path to the shared folders with xml files
@@ -152,63 +180,49 @@ inline void BasisSet::Load ( string name ) {
     
     list<Property*> elementProps = basis_property.Select("basis.element");
         
-    for (list<Property*> ::iterator  ite = elementProps.begin(); ite != elementProps.end(); ++ite) {
-        
+    for (list<Property*> ::iterator  ite = elementProps.begin(); ite != elementProps.end(); ++ite) 
+    {       
         string elementName = (*ite)->getAttribute<string>("name");
-        list<Property*> shellProps = (*ite)->Select("shell");
+        Element *element = addElement( elementName );
+        //cout << "\nElement " << elementName;
         
-        for (list<Property*> ::iterator  its = shellProps.begin(); its != shellProps.end(); ++its) {
-            
-            string shellType = (*ite)->getAttribute<string>("type");
-            Shell *shell = new Shell( shellType );
+        list<Property*> shellProps = (*ite)->Select("shell");
+        for (list<Property*> ::iterator  its = shellProps.begin(); its != shellProps.end(); ++its) 
+        {            
+            string shellType = (*its)->getAttribute<string>("type");
+            Shell* shell = element->addShell( shellType );
+            //cout << "\n\tShell " << shellType;
             
             list<Property*> constProps = (*its)->Select("constant");
-            
-            for (list<Property*> ::iterator  itc = constProps.begin(); itc != constProps.end(); ++itc) {
+            for (list<Property*> ::iterator  itc = constProps.begin(); itc != constProps.end(); ++itc) 
+            {
                 double decay = (*itc)->getAttribute<double>("decay");
                 double contraction = (*itc)->getAttribute<double>("contraction");
-                
                 shell->addGaussian(decay, contraction);
-                
-                cout << decay << " " << contraction << endl;
+                //cout << "\n\t\t" << decay << " " << contraction << endl;
             }
-            AddShell(elementName, shell);
+            
         }
        
     }
 
 }
 
-// adding a shell to a basis set
-inline void BasisSet::AddShell(string element_type, Shell* shell ) {
-
-   Element* element ;    
-    map<string,Element*>::iterator it = _elements.find( element_type ) ;
-    
-    if ( it == _elements.end() ) {
-        element = new Element( element_type );
-    } else {
-        element = (*it).second;
-    }
-
-    element->addShell( shell );
-     
-    _elements[element_type] =  element;
+// adding an Element to a Basis Set
+inline Element* BasisSet::addElement( string elementType ) {
+    Element *element = new Element( elementType );
+    _elements[elementType] = element;
+    return element;
 };
 
 // cleanup the basis set
 inline BasisSet::~BasisSet() {
     
-    for ( map<string,Element*>::iterator it = _elements.begin(); it !=  _elements.end(); it++ ) {
-
-         vector<Shell*> shells = (*it).second->getShells();
-
-         for ( vector<Shell*>::iterator its = shells.begin(); its !=  shells.end(); its++ ) {
-             delete *its;
-         }
-
+    for ( map< string,Element* >::iterator it = _elements.begin(); it !=  _elements.end(); it++ ) {
          delete (*it).second;
      }
+    
+    _elements.clear();
 };
 
 

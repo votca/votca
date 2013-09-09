@@ -21,6 +21,7 @@
       <itemPath>../../src/libctp/calculators/neighborlist.h</itemPath>
       <itemPath>../../src/libctp/calculators/pairdump.h</itemPath>
       <itemPath>../../src/libctp/calculators/qmmm.h</itemPath>
+      <itemPath>../../include/votca/ctp/qmpackage.h</itemPath>
       <itemPath>../../include/votca/ctp/qmpackagefactory.h</itemPath>
       <itemPath>../../src/libctp/calculators/qmultipole.h</itemPath>
       <itemPath>../../src/libctp/calculators/rates.h</itemPath>
@@ -102,6 +103,7 @@
       <itemPath>../../src/libctp/qmapplication.cc</itemPath>
       <itemPath>../../src/libctp/qmcalculator.cc</itemPath>
       <itemPath>../../src/libctp/qmdatabase.cc</itemPath>
+      <itemPath>../../src/libctp/qmmachine.cc</itemPath>
       <itemPath>../../src/libctp/qmnblist.cc</itemPath>
       <itemPath>../../src/libctp/qmpackagefactory.cc</itemPath>
       <itemPath>../../src/libctp/qmpair.cc</itemPath>
@@ -231,6 +233,11 @@
       </item>
       <item path="../../include/votca/ctp/qmnblist.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/ctp/qmpackage.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/qmpackagefactory.h"
             ex="false"
             tool="3"
@@ -336,7 +343,7 @@
       </item>
       <item path="../../src/libctp/calculators/idft.cc"
             ex="false"
-            tool="1"
+            tool="3"
             flavor2="0">
       </item>
       <item path="../../src/libctp/calculators/idft.h"
@@ -465,6 +472,8 @@
       <item path="../../src/libctp/qmcalculator.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/qmdatabase.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmmachine.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/qmnblist.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -634,6 +643,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/qmnblist.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/qmpackage.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/ctp/qmpackagefactory.h"
             ex="false"
@@ -869,6 +883,8 @@
       <item path="../../src/libctp/qmcalculator.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/qmdatabase.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmmachine.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/qmnblist.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1039,6 +1055,11 @@
       </item>
       <item path="../../include/votca/ctp/qmnblist.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/ctp/qmpackage.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/qmpackagefactory.h"
             ex="false"
             tool="3"
@@ -1273,6 +1294,8 @@
       <item path="../../src/libctp/qmcalculator.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/qmdatabase.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmmachine.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/qmnblist.cc" ex="false" tool="1" flavor2="0">
       </item>
