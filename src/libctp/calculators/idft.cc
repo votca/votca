@@ -549,7 +549,7 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
        
        LOG(logDEBUG,*pLog) << "Trimming dimer virtual orbitals from " 
                << _orbitalsAB.getNumberOfLevels() - _orbitalsAB.getNumberOfElectrons() << " to " 
-               << _orbitalsAB.getNumberOfElectrons()*_trim_factor << flush;   
+               << _orbitalsAB.getNumberOfElectrons()*(_trim_factor-1) << flush;   
        
        _orbitalsAB.Trim(_trim_factor);
    }
@@ -587,13 +587,13 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         if ( _do_trim ) {
              LOG(logDEBUG,*pLog) << "Trimming molecule A virtual orbitals from " 
                     << _orbitalsA.getNumberOfLevels() - _orbitalsA.getNumberOfElectrons() << " to " 
-                    << _orbitalsA.getNumberOfElectrons()*_trim_factor << flush;  
+                    << _orbitalsA.getNumberOfElectrons()*(_trim_factor-1) << flush;  
             
             _orbitalsA.Trim(_trim_factor);
             
             LOG(logDEBUG,*pLog) << "Trimming molecule B virtual orbitals from " 
                     << _orbitalsB.getNumberOfLevels() - _orbitalsB.getNumberOfElectrons() << " to " 
-                    << _orbitalsB.getNumberOfElectrons()*_trim_factor << flush;              
+                    << _orbitalsB.getNumberOfElectrons()*(_trim_factor-1) << flush;              
             _orbitalsB.Trim(_trim_factor);
         }
      
