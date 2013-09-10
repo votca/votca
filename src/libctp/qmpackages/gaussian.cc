@@ -306,6 +306,9 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
         vector< QMAtom* > *qmatoms = orbitals_guess->getAtoms();
         vector< QMAtom* >::iterator it;
         
+        // This is needed for the QM/MM scheme, since only orbitals have 
+        // updated positions of the QM region, hence vector<Segments*> is 
+        // NULL in the QMMachine and the QM region is also printed here
         for (it = qmatoms->begin(); it < qmatoms->end(); it++ ) {
             if ( !(*it)->from_environment ) {
             _com_file << (*it)->type << " " <<  (*it)->x << " " << (*it)->y << " " << (*it)->z << endl;
