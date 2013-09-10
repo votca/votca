@@ -41,11 +41,15 @@ class GaussianPrimitive
 public:
     double decay;
     double contraction;
+    int power; // used in pseudopotenials only
     Shell* shell;
 private:
     // private constructor, only a shell can create a primitive
     GaussianPrimitive( double _decay, double _contraction, Shell *_shell = NULL ) 
     : decay(_decay), contraction(_contraction), shell(_shell) { ; }
+
+    GaussianPrimitive( int _power, double _decay, double _contraction, Shell *_shell = NULL ) 
+    : power(_power), decay(_decay), contraction(_contraction), shell(_shell) { ; }
 };      
     
 /*
@@ -57,6 +61,8 @@ class Shell
 public:
 
     string getType() { return _type; }
+    
+    double getScale() { return _scale; }
     
     int getSize() { return _gaussians.size(); }
     
@@ -73,10 +79,18 @@ public:
         return gaussian;
     }
 
+    // adds a Gaussian of a pseudopotential
+    GaussianPrimitive*  addGaussian( int power, double decay, double contraction ) 
+    {
+        GaussianPrimitive* gaussian = new GaussianPrimitive(power, decay, contraction, this);
+        _gaussians.push_back( gaussian );
+        return gaussian;
+    }    
+    
 private:   
 
     // only class Element can construct shells    
-    Shell( string type, Element* element = NULL ) : _type(type) { ; }
+    Shell( string type, double scale, Element* element = NULL ) : _type(type), _scale(scale) { ; }
     
     // only class Element can destruct shells
    ~Shell() 
@@ -87,7 +101,9 @@ private:
     
     // shell type (S, P, D))
     string _type;
-    
+    // scaling factor
+    double _scale;
+     
     Element* _element;
 
     // vector of pairs of decay constants and contraction coefficients
@@ -109,11 +125,15 @@ public:
 
     string getType() { return _type; }
     
+    int getLmax() { return _lmax; }
+    
+    int getNcore() { return _ncore; }
+    
     Shell* getShell( ShellIterator it ) { return (*it); }
     
-    Shell* addShell( string shellType ) 
+    Shell* addShell( string shellType, double shellScale ) 
     { 
-        Shell* shell = new Shell( shellType, this );
+        Shell* shell = new Shell( shellType, shellScale, this );
         _shells.push_back(shell); 
         return shell;
     }
@@ -125,6 +145,9 @@ private:
     // only class BasisSet can create Elements
     Element( string type ) : _type(type) { ; }
 
+    // used for the pseudopotential
+    Element( string type, int lmax, int ncore ) : _type(type), _lmax(lmax), _ncore(ncore)  { ; }
+    
     // only class BasisSet can destruct Elements
    ~Element() 
    { 
@@ -132,7 +155,12 @@ private:
        _shells.clear();
    }    
    
-    string _type;     
+    string _type;    
+    // lmax is used in the pseudopotentials only (applies to the highest angular momentum lmax)
+    int _lmax;
+    // ncore is used in the pseudopotentials only (replaces ncore electrons))
+    int _ncore;
+    
     vector<Shell*> _shells;    
 };
 
@@ -143,9 +171,14 @@ class BasisSet
 {
 public:
     
-    void Load ( string name );
+    void LoadBasisSet ( string name );
+
+    void LoadPseudopotentialSet ( string name );
     
     Element* addElement(string elementType );
+    
+    // used for pseudopotentials only
+    Element* addElement(string elementType, int lmax, int ncore );
  
     Element* getElement( string element_type ) {
         
@@ -165,7 +198,7 @@ private:
 };
 
 
-inline void BasisSet::Load ( string name ) 
+inline void BasisSet::LoadBasisSet ( string name ) 
 {    
     Property basis_property;
  
@@ -190,7 +223,9 @@ inline void BasisSet::Load ( string name )
         for (list<Property*> ::iterator  its = shellProps.begin(); its != shellProps.end(); ++its) 
         {            
             string shellType = (*its)->getAttribute<string>("type");
-            Shell* shell = element->addShell( shellType );
+            double shellScale = (*its)->getAttribute<double>("scale");
+            
+            Shell* shell = element->addShell( shellType, shellScale );
             //cout << "\n\tShell " << shellType;
             
             list<Property*> constProps = (*its)->Select("constant");
@@ -208,9 +243,67 @@ inline void BasisSet::Load ( string name )
 
 }
 
+
+inline void BasisSet::LoadPseudopotentialSet ( string name ) 
+{    
+    Property basis_property;
+ 
+    // get the path to the shared folders with xml files
+    char *votca_share = getenv("VOTCASHARE");
+    if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
+    string xmlFile = string(getenv("VOTCASHARE")) + string("/ctp/basis_sets/") + name + string(".xml");
+    
+    bool success = load_property_from_xml(basis_property, xmlFile);
+    
+    if ( !success ) {; }
+    
+    list<Property*> elementProps = basis_property.Select("pseudopotential.element");
+        
+    for (list<Property*> ::iterator  ite = elementProps.begin(); ite != elementProps.end(); ++ite) 
+    {       
+        string elementName = (*ite)->getAttribute<string>("name");
+        int lmax = (*ite)->getAttribute<int>("lmax");
+        int ncore = (*ite)->getAttribute<int>("ncore");
+        
+        Element *element = addElement( elementName, lmax, ncore );
+        //cout << "\nElement " << elementName;
+        
+        list<Property*> shellProps = (*ite)->Select("shell");
+        for (list<Property*> ::iterator  its = shellProps.begin(); its != shellProps.end(); ++its) 
+        {            
+            string shellType = (*its)->getAttribute<string>("type");
+            double shellScale = 1.0;
+            
+            Shell* shell = element->addShell( shellType, shellScale );
+            //cout << "\n\tShell " << shellType;
+            
+            list<Property*> constProps = (*its)->Select("constant");
+            for (list<Property*> ::iterator  itc = constProps.begin(); itc != constProps.end(); ++itc) 
+            {
+                int power = (*itc)->getAttribute<int>("power");
+                double decay = (*itc)->getAttribute<double>("decay");
+                double contraction = (*itc)->getAttribute<double>("contraction");
+                shell->addGaussian(power, decay, contraction);
+                //cout << "\n\t\t" << decay << " " << contraction << endl;
+            }
+            
+        }
+       
+    }
+
+}
+
+
 // adding an Element to a Basis Set
 inline Element* BasisSet::addElement( string elementType ) {
     Element *element = new Element( elementType );
+    _elements[elementType] = element;
+    return element;
+};
+
+// adding an Element to a Pseudopotential Library
+inline Element* BasisSet::addElement( string elementType, int lmax, int ncore ) {
+    Element *element = new Element( elementType, lmax, ncore );
     _elements[elementType] = element;
     return element;
 };

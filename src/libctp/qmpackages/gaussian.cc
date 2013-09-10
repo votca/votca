@@ -100,7 +100,17 @@ void Gaussian::Initialize( Property *options ) {
     } else
     {
         _write_basis_set = false;
-    }   
+    }
+
+    // check if psudopotentials are required ("pseudo")
+    iop_pos = _options.find("pseudo");
+    if (iop_pos != std::string::npos) {
+        _write_pseudopotentials = true;
+    } else
+    {
+        _write_pseudopotentials = false;
+    }    
+    
 }    
 
 /**
@@ -194,8 +204,9 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
         _com_file << endl;
         list<string> elements;
         BasisSet bs;
-        string basis_name("ubecppol"); 
-        bs.Load( basis_name );
+        string basis_name("ubecppol");
+        
+        bs.LoadBasisSet( basis_name );
         LOG(logDEBUG,*_pLog) << "Loaded Basis Set " << basis_name << flush;
 
         for (sit = segments.begin(); sit != segments.end(); ++sit) {
@@ -214,11 +225,16 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
                     elements.push_back(element_name);
                   
                     Element* element = bs.getElement(element_name);
-                    _com_file << element_name << endl;
+                    
+                    // element name, [possibly indeces of centers], zero to indicate the end
+                    _com_file << element_name << " 0" << endl;
 
                     for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+                        
                         Shell* shell = (*its);
-                        _com_file << shell->getType() << " " << shell->getSize() << endl;
+                        // shell type, number primitives, scale factor
+                        _com_file << shell->getType() << " " << shell->getSize() << " " << shell->getScale() << endl;
+                        
                         for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                             GaussianPrimitive* gaussian = *itg;
                             _com_file << gaussian->decay << " " << gaussian->contraction << endl;
@@ -227,6 +243,60 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
                     
                     _com_file << "****\n";
 
+                }
+            }
+        }
+    }
+
+
+    if (_write_pseudopotentials) {
+        string pseudopotential_name("ecp");
+        
+         _com_file << endl;
+        list<string> elements;
+        
+        elements.push_back("H");
+        elements.push_back("He");
+        
+        BasisSet ecp;
+        ecp.LoadPseudopotentialSet( pseudopotential_name );
+        
+        LOG(logDEBUG,*_pLog) << "Loaded Pseudopotentials " << pseudopotential_name << flush;
+
+        for (sit = segments.begin(); sit != segments.end(); ++sit) {
+            
+            vector< Atom* > atoms = (*sit)-> Atoms();
+            vector< Atom* >::iterator it;
+            
+            for (it = atoms.begin(); it < atoms.end(); it++) {
+
+                string element_name = (*it)->getElement();
+                
+                list<string>::iterator ite;
+                ite = find(elements.begin(), elements.end(), element_name);
+                
+                if (ite == elements.end()) {
+                    elements.push_back(element_name);
+                  
+                    Element* element = ecp.getElement(element_name);
+                    
+                    // element name, [possibly indeces of centers], zero to indicate the end
+                    _com_file << element_name << " 0\n" 
+                              << pseudopotential_name << " " 
+                              << element->getLmax() << " " << element->getNcore() << endl;
+
+                    for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+                        
+                        Shell* shell = (*its);
+                        // shell type, number primitives, scale factor
+                        _com_file << shell->getType() << endl;
+                        _com_file << shell->getSize() << endl;
+                        
+                        for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
+                            GaussianPrimitive* gaussian = *itg;
+                            _com_file << gaussian->power << " " << gaussian->decay << " " << gaussian->contraction << endl;
+                        }
+                    }
                 }
             }
         }
