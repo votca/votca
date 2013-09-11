@@ -22,6 +22,7 @@
 
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/numeric/ublas/operation.hpp>
 
 #include <votca/ctp/eigenvalues.h>
 #include <votca/ctp/logger.h>
@@ -221,11 +222,12 @@ bool IDFT::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
         LOG(logERROR,*_pLog) << "No basis set size information is stored in monomers" << flush;
         return false;
     }
-    
-    LOG(logDEBUG,*_pLog) << "Basis [molA:molB] " << _basisA << ":" << _basisB << flush;
-    
+        
     int _levelsA = _orbitalsA->getNumberOfLevels();
     int _levelsB = _orbitalsB->getNumberOfLevels();
+ 
+    LOG(logDEBUG,*_pLog) << "Levels:Basis A[" << _levelsA << ":" << _basisA << "]"
+                                     << " B[" << _levelsB << ":" << _basisB << "]" << flush;
     
     if ( ( _levelsA == 0 ) || (_levelsB == 0) ) {
         LOG(logERROR,*_pLog) << "No information about number of occupied/unoccupied levels is stored" << flush;
@@ -233,6 +235,9 @@ bool IDFT::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     } 
      
     
+    /* OLD COMPREHENCIVE BUT SLOW WAY OF PROJECTING 
+    // AxB = | A 0 |  //
+    //       | 0 B |  //  
     ub::zero_matrix<double> zeroB( _levelsA, _basisB ) ;
     ub::zero_matrix<double> zeroA( _levelsB, _basisA ) ;
         
@@ -241,57 +246,90 @@ bool IDFT::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     
     ub::matrix<double> _psi_AxB ( _levelsA + _levelsB, _basisA + _basisB  );
     
-    // AxB = | A 0 |  //
-    //       | 0 B |  //  
-    LOG(logDEBUG,*_pLog) << "Constructing direct product AxB [" 
+
+     LOG(logDEBUG,*_pLog) << "Constructing direct product AxB [" 
             << _psi_AxB.size1() << "x" 
             << _psi_AxB.size2() << "]"<< flush;    
+    
     ub::project( _psi_AxB, ub::range (0, _levelsA ), ub::range ( _basisA, _basisA +_basisB ) ) = zeroB;
     ub::project( _psi_AxB, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( 0, _basisA ) ) = zeroA;    
     ub::project( _psi_AxB, ub::range (0, _levelsA ), ub::range ( 0, _basisA ) ) = *_orbitalsA->getOrbitals();
     ub::project( _psi_AxB, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( _basisA, _basisA + _basisB ) ) = *_orbitalsB->getOrbitals();    
     //cout << "_psi_AxB: " << _psi_AxB << endl;
     
+    // psi_AxB * S_AB * psi_AB
+    LOG(logDEBUG,*_pLog) << TimeStamp() << " Projecting the dimer onto monomer orbitals" << flush;    
+    ub::matrix<double> _psi_AB = ub::prod( *_orbitalsAB->getOverlap(), ub::trans( *_orbitalsAB->getOrbitals() ) );          
+    ub::matrix<double> _psi_AxB_dimer_basis = ub::prod( _psi_AxB, _psi_AB );
+    LOG(logDEBUG,*_pLog) << TimeStamp() << " Done" << flush;    
+
+    LOG(logDEBUG,*_pLog) << TimeStamp() << " Projecting the dimer onto monomer orbitals" << flush;   
+    ub::matrix<double> _psi_AB = ub::prod( _psi_AxB, *_orbitalsAB->getOverlap() );          
+    LOG(logDEBUG,*_pLog) << TimeStamp() << " Done" << flush;    
+
+    // J = psi_AxB_dimer_basis * FAB * psi_AxB_dimer_basis^T
+    LOG(logDEBUG,*_pLog) << TimeStamp() << " Projecting the Fock matrix onto the dimer basis" << flush;    
+    ub::matrix<double> _temp = ub::prod( _fock_AB, ub::trans( _psi_AxB_dimer_basis ) ) ;
+    ub::matrix<double> JAB_dimer = ub::prod( _psi_AxB_dimer_basis, _temp);
+    LOG(logDEBUG,*_pLog) << TimeStamp() << " DOne" << flush;    
+
     // Fock matrix of a dimer   
-    LOG(logDEBUG,*_pLog) << "Constructing the dimer Fock matrix [" 
+    LOG(logDEBUG,*_pLog) << "Dimer Fock matrix [" 
             << _orbitalsAB->getNumberOfLevels() << "x" 
             << _orbitalsAB->getNumberOfLevels() << "]" << flush;    
     ub::diagonal_matrix<double> _fock_AB( _orbitalsAB->getNumberOfLevels(), (*_orbitalsAB->getEnergies()).data() ); 
 
-    // psi_AxB * S_AB * psi_AB
-    LOG(logDEBUG,*_pLog) << "Projecting the dimer onto monomer orbitals" << flush;    
-    ub::matrix<double> _psi_AB = ub::prod( *_orbitalsAB->getOverlap(), ub::trans( *_orbitalsAB->getOrbitals() ) );          
-    ub::matrix<double> _psi_AxB_dimer_basis = ub::prod( _psi_AxB, _psi_AB );
-    _psi_AB.clear();
-   
-    /*
-    for (int i = 0; i < _psi_AxB_dimer_basis.size1(); i++ ) {
-        for (int j = 0; j < _psi_AxB_dimer_basis.size2(); j++ ) {
-            cout << i << " " << j << " " << _psi_AxB_dimer_basis.at_element(i, j) << endl;
-            
-        }
-    }
-    exit(0);
-     */
-    
-    // J = psi_AxB_dimer_basis * FAB * psi_AxB_dimer_basis^T
-    LOG(logDEBUG,*_pLog) << "Projecting the Fock matrix onto the dimer basis" << flush;    
-    ub::matrix<double> _temp = ub::prod( _fock_AB, ub::trans( _psi_AxB_dimer_basis ) ) ;
-    ub::matrix<double> JAB_dimer = ub::prod( _psi_AxB_dimer_basis, _temp);
-    
-    /* DEBUG 
-    int levelA = _orbitalsA->getNumberOfElectrons() ;
-    int levelB = _orbitalsB->getNumberOfElectrons() ;
-
-    cout << "... ... Coupling before processing " 
-            << JAB_dimer.at_element( levelA - 1  , levelB -1 + _levelsA ) * _conv_Hrt_eV << " "
-            << JAB_dimer.at_element( levelA , levelB + _levelsA ) * _conv_Hrt_eV << "\n";
-    */
+    LOG(logDEBUG,*_pLog) << TimeStamp() << " Projecting the Fock matrix onto the dimer basis" << flush;    
+    ub::matrix<double> _temp = ub::prod( _psi_AxB_dimer_basis, _fock_AB ) ;
+    ub::matrix<double> JAB_dimer = ub::prod( _temp, ub::trans( _psi_AxB_dimer_basis ));
+    LOG(logDEBUG,*_pLog) << TimeStamp() << " Done" << flush;    
     
     _temp.clear(); _fock_AB.clear();
+     */
+
     
+    //       | Orbitals_A          0 |      | Overlap_A |     
+    //       | 0          Orbitals_B |  X   | Overlap_B |  X  Transpose( Orbitals_AB )
+    //constructing a slice of the Overlap matrix
+    ub::matrix_range< ub::symmetric_matrix<double> > Overlap_A = ub::project( *_orbitalsAB->getOverlap(), ub::range ( 0, _basisA), ub::range (0, _basisA +_basisB) );
+    ub::matrix_range< ub::symmetric_matrix<double> > Overlap_B = ub::project( *_orbitalsAB->getOverlap(), ub::range ( _basisA, _basisA +_basisB ), ub::range (0, _basisA +_basisB) );
+    
+    LOG(logDEBUG,*_pLog) << "Projecting the monomer onto dimer orbitals [" << _levelsA + _levelsB << "x" << _basisA + _basisB << "]" << flush;   
+    ub::matrix<double> _psi_AB ( _levelsA + _levelsB, _basisA + _basisB  );
+    
+    // TODO Use axpy_prod or opb_prod
+    LOG(logDEBUG,*_pLog) << "1 " << TimeStamp() << flush;
+    ub::matrix_range< ub::matrix<double> > _psi_AB_A = ub::project( _psi_AB, ub::range (0, _levelsA ), ub::range ( 0, _basisA +_basisB ) ) ;
+    LOG(logDEBUG,*_pLog) << "2 " << TimeStamp() << flush;
+    ub::axpy_prod(*_orbitalsA->getOrbitals(), Overlap_A, _psi_AB_A );
+    LOG(logDEBUG,*_pLog) << "3 " << TimeStamp() << flush;
+    ub::matrix_range< ub::matrix<double> > _psi_AB_B = ub::project( _psi_AB, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( 0, _basisA +_basisB ) ) ;
+    LOG(logDEBUG,*_pLog) << "4 " << TimeStamp() << flush;
+    ub::axpy_prod(*_orbitalsB->getOrbitals(), Overlap_B, _psi_AB_B );
+
+    //ub::project( _psi_AB, ub::range (0, _levelsA ), ub::range ( 0, _basisA +_basisB ) ) = ub::prod( *_orbitalsA->getOrbitals(), Overlap_A )  ;
+    //ub::project( _psi_AB, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( 0, _basisA +_basisB ) ) = ub::prod( *_orbitalsB->getOrbitals(), Overlap_B )  ;
+    LOG(logDEBUG,*_pLog) << "5 " << TimeStamp() << flush;
+    ub::matrix<double> _psi_AxB_dimer_basis = ub::prod( _psi_AB,  ub::trans( *_orbitalsAB->getOrbitals() ) );
+    _psi_AB.clear();  
+        
+    LOG(logDEBUG,*_pLog) << "Projecting the Fock matrix onto the dimer basis" << flush;    
+    ub::zero_matrix<double> _zero ( _levelsA + _levelsB, _levelsA + _levelsB );
+    ub::matrix<double> JAB_dimer( _zero ) ;
+    ub::vector<double> energies = (*_orbitalsAB->getEnergies());
+    LOG(logDEBUG,*_pLog) << "6 " << TimeStamp() << flush;
+    for ( int i1 = 0; i1 < _levelsA + _levelsB ; i1++ ) {
+    for ( int i2 = i1; i2 < _levelsA + _levelsB; i2++ ) {
+        for ( int k = 0; k < _basisA + _basisB; k++  ) {
+                JAB_dimer(i1,i2) += _psi_AxB_dimer_basis.at_element(i1, k) * _psi_AxB_dimer_basis.at_element(i2, k) * energies(k);
+        }
+        JAB_dimer(i2,i1) = JAB_dimer(i1,i2);
+    }}   
+    energies.clear();
+    LOG(logDEBUG,*_pLog) << "7 " << TimeStamp() << flush;
     // S = psi_AxB_dimer_basis * psi_AxB_dimer_basis^T
     ub::symmetric_matrix<double> _S_AxB = ub::prod( _psi_AxB_dimer_basis, ub::trans( _psi_AxB_dimer_basis ));
+    _psi_AxB_dimer_basis.clear();
     //cout << "SAxB: " << _S_AxB << endl;
 
     /* test of an assignment 
@@ -326,8 +364,6 @@ bool IDFT::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
      LOG(logDEBUG,*_pLog) << "Calculating the effective overlap JAB [" 
              << JAB_dimer.size1() << "x" 
              << JAB_dimer.size2() << "]" << flush;    
-    //stringstream test ;
-    //test << "BLA" << "BA";
     
     ub::matrix<double> JAB_temp = ub::prod( JAB_dimer, _S_AxB_2 );
         
@@ -472,13 +508,13 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
             string orb_file_A = (format("%1%_%2%%3%") % "molecule" % ID_A % ".orb").str();
             string DIR_A  = edft_work_dir + "/" + "molecules/" + frame_dir;
             std::ifstream ifs_A( (DIR_A +"/" + orb_file_A).c_str() );
-            LOG(logDEBUG,*pLog) << "Loading orbitals from " << orb_file_A << flush;   
+            LOG(logDEBUG,*pLog) << "Loading " << orb_file_A << flush;   
             boost::archive::binary_iarchive ia_A( ifs_A );
             ia_A >> _orbitalsA;
             ifs_A.close();
 
             string orb_file_B = (format("%1%_%2%%3%") % "molecule" % ID_B % ".orb").str();
-            LOG(logDEBUG,*pLog) << "Loading orbitals from " << orb_file_B << flush;    
+            LOG(logDEBUG,*pLog) << "Loading " << orb_file_B << flush;    
             string DIR_B  = edft_work_dir + "/" + "molecules/" + frame_dir;
             std::ifstream ifs_B( (DIR_B +"/" + orb_file_B).c_str() );
             boost::archive::binary_iarchive ia_B( ifs_B );
@@ -544,7 +580,7 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     string _pair_file = ( format("%1%%2%%3%%4%%5%") % "pair_" % ID_A % "_" % ID_B % ".orb" ).str();
    ub::matrix<double> _JAB;
    
-   /* trimming DIMER orbitals is not giving accurate results
+   /* trimming DIMER orbitals is not giving accurate results 
    // trim virtual orbitals if too many are given
    if ( _do_trim ) {
 

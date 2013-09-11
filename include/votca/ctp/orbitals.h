@@ -55,8 +55,9 @@
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/vector.hpp>
 
+namespace ub = boost::numeric::ublas;
+    
 namespace votca { namespace ctp {
-    namespace ub = boost::numeric::ublas;
     
 /**
     \brief container for basic atoms 

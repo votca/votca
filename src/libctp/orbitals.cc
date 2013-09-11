@@ -276,14 +276,14 @@ void Orbitals::WritePDB( FILE *out ) {
 void Orbitals::Trim( int factor ) {
     
     if ( _has_mo_coefficients ) {
-        _mo_coefficients.resize ( (1  + factor ) * _occupied_levels, _basis_set_size, true);
-        _unoccupied_levels = factor * _occupied_levels;        
+        _mo_coefficients.resize ( factor * _occupied_levels, _basis_set_size, true);
+        _unoccupied_levels = ( factor -1 ) * _occupied_levels;        
     }
 
     if ( _has_mo_energies ) {
         //cout << "\nBefore: " << _mo_energies.size();
-        _mo_energies.resize(  (1  + factor ) * _occupied_levels, true );
-        _unoccupied_levels = factor * _occupied_levels;
+        _mo_energies.resize(  factor * _occupied_levels, true );
+        _unoccupied_levels = ( factor - 1) * _occupied_levels;
         //cout << " and After: " << _mo_energies.size() << endl;   
     }
 }
