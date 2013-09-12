@@ -24,7 +24,7 @@
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/format.hpp>
-
+#include <boost/filesystem.hpp>
 #include <stdio.h>
 #include <iomanip>
 #include <sys/stat.h>
@@ -57,7 +57,7 @@ void NWChem::Initialize( Property *options ) {
     _charge =           options->get(key + ".charge").as<int> ();
     _spin =             options->get(key + ".spin").as<int> ();
     _options =          options->get(key + ".options").as<string> ();
-    //_memory =           options->get(key + ".memory").as<string> ();
+    _memory =           options->get(key + ".memory").as<string> ();
     _threads =          options->get(key + ".threads").as<int> ();
     //_chk_file_name  =   options->get(key + ".checkpoint").as<string> ();
     _scratch_dir =      options->get(key + ".scratch").as<string> ();
@@ -82,7 +82,7 @@ void NWChem::Initialize( Property *options ) {
     }
 
     // check if the charge keyword is present, if yes, get the self energy and save it
-    iop_pos = _options.find("charge");
+    iop_pos = _options.find("set bq background");
     if (iop_pos != std::string::npos) {
         _get_self_energy = true;
         _write_charges = true;
@@ -109,7 +109,7 @@ bool NWChem::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gues
     vector< Segment* >::iterator sit;
     vector<string> results;
     int qmatoms = 0;
-
+    string temp_suffix = "/id";
     ofstream _com_file;
     
     string _com_file_name_full = _run_dir + "/" + _input_file_name;
@@ -121,7 +121,7 @@ bool NWChem::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gues
     for (sit = segments.begin() ; sit != segments.end(); ++sit) {
         
         _atoms = (*sit)-> Atoms();
-
+        temp_suffix = temp_suffix + "_" + boost::lexical_cast<string>( (*sit)->getId() );
         for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
 
             if ((*ait)->HasQMPart() == false) { continue; }
@@ -138,8 +138,51 @@ bool NWChem::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gues
         }
     } 
 
-    _com_file << "end\n" << _options;
-   
+    _com_file << "end\n";
+    
+    if ( _write_charges ) {
+        vector< QMAtom* > *qmatoms = orbitals_guess->getAtoms();
+        vector< QMAtom* >::iterator it;
+        
+        /*for (it = qmatoms->begin(); it < qmatoms->end(); it++ ) {
+            if ( !(*it)->from_environment ) {
+            _com_file << (*it)->type << " " <<  (*it)->x << " " << (*it)->y << " " << (*it)->z << endl;
+            }
+        }
+         */ 
+        
+        _com_file << " I wanna write charges" << endl;
+        
+        for (it = qmatoms->begin(); it < qmatoms->end(); it++ ) {
+            if ( (*it)->from_environment ) {
+                boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
+                //fmt % (*it)->x % (*it)->y % (*it)->z % (*it)->charge;
+                _com_file << fmt << endl;
+            }
+        }
+        
+        _com_file << endl;
+         
+    }
+
+
+    
+    // write charge of the molecule
+    _com_file <<  "\ncharge " << _charge << "\n" ;
+     
+    // writing scratch_dir info
+    if ( _scratch_dir != "" ) {
+        
+        LOG(logDEBUG,*_pLog) << "Setting the scratch dir to " << _scratch_dir + temp_suffix << flush;
+
+        boost::filesystem::create_directories( _scratch_dir + temp_suffix );
+        string _temp( "scratch_dir " + _scratch_dir + temp_suffix + "\n" );
+        _com_file << _temp ;
+    }
+
+    _com_file << _options << "\n";
+
+    
     if ( _write_guess ) { 
         if ( orbitals_guess == NULL ) {
             throw std::runtime_error( "A guess for dimer orbitals has not been prepared.");
@@ -225,8 +268,9 @@ bool NWChem::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gues
     
     
     }   
-    if ( _write_charges ) { ; }
 
+
+   
     
     _com_file << endl;
     _com_file.close();
@@ -518,36 +562,50 @@ bool NWChem::CheckLogFile() {
         return false;
     };
 
-    _input_file.seekg(0,ios_base::end);   // go to the EOF
     
-    // get empty lines and end of lines out of the way
+    /* Checking the log file is a pain in the *** since NWChem throws an error
+     * for our 'iterations 1'  runs (even though it outputs the required data
+     * correctly. The only way that works for both scf and noscf runs is to
+     * check for "Total DFT energy" near the end of the log file. 
+     */
+    
+    _input_file.seekg(0,ios_base::end);   // go to the EOF
+
+    std::string::size_type total_energy_pos = std::string::npos;
+    std::string::size_type diis_pos = std::string::npos;
     do {
-        _input_file.seekg(-2,ios_base::cur);
-        _input_file.get(ch);   
-        //cout << "\nChar: " << ch << endl;
-    } while ( ch == '\n' || ch == ' ' || (int)_input_file.tellg() == -1 );
- 
-    // get the beginning of the line or the file
-    do {
-       _input_file.seekg(-2,ios_base::cur);
-       _input_file.get(ch);   
-       //cout << "\nNext Char: " << ch << " TELL G " <<  (int)_input_file.tellg() << endl;
-    } while ( ch != '\n' || (int)_input_file.tellg() == -1 );
+       // get the beginning of the line 
+       do {
+          _input_file.seekg(-2,ios_base::cur);
+          _input_file.get(ch);   
+          //cout << "\nNext Char: " << ch << " TELL G " <<  (int)_input_file.tellg() << endl;
+       } while ( ch != '\n' || (int)_input_file.tellg() == -1 );
             
-    string _line;            
-    getline(_input_file,_line);                      // Read the current line
-    //cout << "\nResult: " << _line << '\n';     // Display it
+       string _line;            
+       getline(_input_file,_line);                      // Read the current line
+       // cout << "\nResult: " << _line << '\n';     // Display it
+       total_energy_pos = _line.find("Total DFT energy");
+       diis_pos = _line.find("diis");
+       // whatever is found first, determines the completeness of the file
+       if (total_energy_pos != std::string::npos) {
+          return true;
+       } else if (diis_pos != std::string::npos) {
+           LOG(logERROR,*_pLog) << "NWChem LOG is incomplete" << flush;
+           return false;
+       } else {
+           // go to previous line
+           //_input_file.get(ch); 
+           do {
+           _input_file.seekg(-2,ios_base::cur);
+           _input_file.get(ch);   
+           //cout << "\nChar: " << ch << endl;
+         } while ( ch != '\n' || (int)_input_file.tellg() == -1);
+       }
+    } while ( total_energy_pos == std::string::npos && diis_pos == std::string::npos );
+    
+    
     _input_file.close();
-        
-    std::string::size_type self_energy_pos = _line.find("Total DFT energy");
-    if (self_energy_pos == std::string::npos) {
-            LOG(logERROR,*_pLog) << "NWChem LOG is incomplete" << flush;
-            //return false;      
-            return true;
-    } else {
-            //LOG(logDEBUG,*_pLog) << "Gaussian LOG is complete" << flush;
-            return true;
-    }
+    
 }
 
 /**

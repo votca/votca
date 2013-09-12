@@ -14,16 +14,11 @@
             </formatting>
             <make-dep-projects/>
             <sourceRootList>
-                <sourceRootElem>../../include</sourceRootElem>
                 <sourceRootElem>../../../../include</sourceRootElem>
             </sourceRootList>
             <confList>
                 <confElem>
                     <name>Debug</name>
-                    <type>3</type>
-                </confElem>
-                <confElem>
-                    <name>Release</name>
                     <type>3</type>
                 </confElem>
                 <confElem>
