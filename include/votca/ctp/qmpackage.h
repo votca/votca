@@ -86,7 +86,7 @@ protected:
     bool                                _write_charges;
     bool                                _write_basis_set;
     bool                                _write_pseudopotentials;
-
+    
     Logger*                             _pLog;
        
 };
