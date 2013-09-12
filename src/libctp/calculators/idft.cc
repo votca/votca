@@ -25,6 +25,10 @@
 #include <boost/numeric/ublas/operation.hpp>
 #include <boost/progress.hpp>
 
+#ifdef MKLROOT
+#include <mkl_boost_ublas_matrix_prod.hpp>
+#endif
+         
 #include <votca/ctp/eigenvalues.h>
 #include <votca/ctp/logger.h>
 #include <votca/ctp/qmpackagefactory.h>
@@ -33,14 +37,15 @@ using boost::format;
 using namespace boost::filesystem;
 using namespace votca::tools;
 
+namespace ub = boost::numeric::ublas;
+    
 namespace votca { namespace ctp {
-    namespace ub = boost::numeric::ublas;
     
 // +++++++++++++++++++++++++++++ //
 // IDFT MEMBER FUNCTIONS         //
 // +++++++++++++++++++++++++++++ //
 
-void IDFT::Initialize(ctp::Topology *top, tools::Property* options ) {
+void IDFT::Initialize(ctp::Topology *top, votca::tools::Property* options ) {
     
     _energy_difference = 0.0;
     
@@ -61,8 +66,18 @@ void IDFT::Initialize(ctp::Topology *top, tools::Property* options ) {
 
 }
 
-    
-void IDFT::ParseOptionsXML( tools::Property *opt ) {
+/*
+find_package(MKL REQUIRED)
+include_directories(${MKL_INCLUDE_DIRS})
+link_directories(${MKL_LIBRARIES})
+target_link_libraries(<module>
+mkl_intel_lp64
+mkl_sequential
+mkl_core
+)
+*/
+
+void IDFT::ParseOptionsXML( votca::tools::Property *opt ) {
    
     // Orbitals are in fort.7 file; number of electrons in .log file
     
@@ -589,14 +604,14 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         ifs_B.close();
      
         if ( _do_trim ) {
-             LOG(logDEBUG,*pLog) << "Trimming molecule A virtual orbitals from " 
-                    << _orbitalsA.getNumberOfLevels() - _orbitalsA.getNumberOfElectrons() << " to " 
-                    << _orbitalsA.getNumberOfElectrons()*(_trim_factor-1) << flush;  
+             LOG(logDEBUG,*pLog) << "Trimming virtual orbitals A:" 
+                    << _orbitalsA.getNumberOfLevels() - _orbitalsA.getNumberOfElectrons() << "->" 
+                    << _orbitalsA.getNumberOfElectrons()*(_trim_factor-1);  
             
             _orbitalsA.Trim(_trim_factor);
             
-            LOG(logDEBUG,*pLog) << "Trimming molecule B virtual orbitals from " 
-                    << _orbitalsB.getNumberOfLevels() - _orbitalsB.getNumberOfElectrons() << " to " 
+            LOG(logDEBUG,*pLog) << " B:" 
+                    << _orbitalsB.getNumberOfLevels() - _orbitalsB.getNumberOfElectrons() << "->" 
                     << _orbitalsB.getNumberOfElectrons()*(_trim_factor-1) << flush;              
             _orbitalsB.Trim(_trim_factor);
         }
