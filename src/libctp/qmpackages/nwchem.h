@@ -69,6 +69,7 @@ private:
     string                              _shell_file_name;
     string                              _chk_file_name;
     string                              _scratch_dir;
+    bool                                _is_optimization;
         
     string                              _cleanup;
 

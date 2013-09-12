@@ -1,0 +1,2 @@
+file(GLOB_RECURSE VOTCA_CTP_XML *.xml)
+install(FILES ${VOTCA_CTP_XML} DESTINATION ${DATA}/ctp/basis_sets)

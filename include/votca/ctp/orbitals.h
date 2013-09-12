@@ -20,9 +20,12 @@
 #ifndef __VOTCA_CTP_ORBITALS_H
 #define	__VOTCA_CTP_ORBITALS_H
 
+#include <votca/ctp/basisset.h>
+
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <boost/numeric/ublas/io.hpp>
+
 #include <votca/tools/globals.h>
 #include <votca/tools/property.h>
 #include <votca/tools/vec.h>
@@ -52,12 +55,13 @@
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/vector.hpp>
 
+namespace ub = boost::numeric::ublas;
+    
 namespace votca { namespace ctp {
-    namespace ub = boost::numeric::ublas;
     
 /**
     \brief container for basic atoms 
-     Stores atom type, coordinates, charge
+     Stores atom type, coordinates, charge, basis set
  */    
 class QMAtom
 {
@@ -70,10 +74,6 @@ public:
     QMAtom ()
             : type( "" ), x(0), y(0), z(0), charge(0), from_environment( false )
             {};     
-            
-            
-   
-            
             
    std::string type;
    double x;
@@ -152,6 +152,9 @@ public:
     } 
         
     void WritePDB( FILE *out );
+    
+    // reduces number of virtual orbitals to factor*number_of_occupied_orbitals
+    void Trim( int factor );
 
 private:
     
@@ -193,6 +196,9 @@ private:
     
     bool                                _has_integrals;
     ub::matrix<double>*                 _integrals;
+    
+    bool                                _has_basis_set;
+    BasisSet                            _basis_set;
 
 private:
 

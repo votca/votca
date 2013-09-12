@@ -1,0 +1,26 @@
+<pseudopotential name="ECP_STUTTGART">
+
+	<element name="C" lmax="3" ncore="2">
+		<shell type="F-Komponente"><constant power="2" decay="1.0" contraction="0.0"></constant></shell>
+		<shell type="S-F"><constant power="2" decay="6.40105200" contraction="33.12163800"></constant></shell>
+		<shell type="P-F"><constant power="2" decay="7.30774700" contraction="-1.98625700"></constant></shell>
+		<shell type="D-F"><constant power="2" decay="5.96179600" contraction="-9.45431800"></constant></shell>
+	</element>
+
+
+	<element name="N" lmax="3" ncore="2">
+		<shell type="F-Komponente"><constant power="2" decay="1.0" contraction="0.0"></constant></shell>
+		<shell type="S-F"><constant power="2" decay="7.97723200" contraction="38.53383100"></constant></shell>
+		<shell type="P-F"><constant power="2" decay="10.18385400" contraction="-2.55081000"></constant></shell>
+		<shell type="D-F"><constant power="2" decay="11.55994700" contraction="-2.99554500"></constant></shell>
+	</element>
+
+	<element name="S" lmax="3" ncore="10">
+		<shell type="F-Componento"><constant power="2" decay="1.0" contraction="0.0"></constant></shell>
+		<shell type="S-F"><constant power="2" decay="3.74389164" contraction="37.97481900"></constant></shell>
+		<shell type="P-F"><constant power="2" decay="3.08608744" contraction="18.79052931"></constant></shell>
+		<shell type="D-F"><constant power="2" decay="4.86241400" contraction="-7.83796400"></constant></shell>
+	</element>
+
+</pseudopotential>
+
