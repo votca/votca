@@ -45,7 +45,9 @@ void Gaussian::Initialize( Property *options ) {
     _log_file_name = fileName + ".log"; 
     _shell_file_name = fileName + ".sh";
     _orb_file_name = "fort.7" ;               
-
+    _input_vxc_file_name = fileName + "-2.com";
+    
+    
     string key = "package";
     string _name = options->get(key+".name").as<string> ();
     
@@ -102,7 +104,7 @@ void Gaussian::Initialize( Property *options ) {
         _write_basis_set = false;
     }
 
-    // check if psudopotentials are required ("pseudo")
+    // check if pseudopotentials are required ("pseudo")
     iop_pos = _options.find("pseudo");
     if (iop_pos != std::string::npos) {
         _write_pseudopotentials = true;
@@ -131,9 +133,9 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
     
     _com_file.open ( _com_file_name_full.c_str() );
     // header 
-    if ( _chk_file_name.size() ) _com_file << "%chk = " << _chk_file_name << endl;
-    if ( _memory.size() ) _com_file << "%mem = " << _memory << endl ;
-    if ( _threads > 0 ) _com_file << "%nprocshared = "  << _threads << endl;
+    if ( _chk_file_name.size() ) _com_file << "%chk=" << _chk_file_name << endl;
+    if ( _memory.size() ) _com_file << "%mem=" << _memory << endl ;
+    if ( _threads > 0 ) _com_file << "%nprocshared="  << _threads << endl;
     if ( _options.size() ) _com_file <<  _options << endl ;
 
     _com_file << endl;
@@ -187,7 +189,7 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
                 ub::matrix_row< ub::matrix<double> > mr (orbitals_guess->_mo_coefficients, *soi);
                 
                 int column = 1;
-                for (unsigned j = 0; j < mr.size (); ++j) {
+                for (unsigned j = 0; j < mr.size(); ++j) {
                         _com_file <<  FortranFormat( mr[j] );
                         if (column == ncolumns) { _com_file << std::endl; column = 0; }
                         column++;
@@ -300,6 +302,42 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
                 }
             }
         }
+        
+        /* This is not very nice. We assume that pseudopotentials are only 
+         * needed for GW-BSE runs. Therefore, when we ask for writing the 
+         * ECP info to the Gaussian com-file, it automatically means 
+         * writing the input file for the <a|Vxc|b> matrix output run as well. 
+         */
+        
+        ofstream _com_file2;
+    
+        string _com_file_name_full2 = _run_dir + "/" + _input_vxc_file_name;
+    
+        _com_file2.open ( _com_file_name_full2.c_str() );
+        // header 
+        if ( _chk_file_name.size() ) _com_file2 << "%chk=" << _chk_file_name << endl;
+        if ( _memory.size() ) _com_file2 << "%mem=" << _memory << endl ;
+        _com_file2 << "%nprocshared=1" << endl;
+        
+        // adjusting the options line to Vxc output only
+        boost::algorithm::replace_all(_options, "pseudo=read", "Geom=AllCheck");
+        boost::algorithm::replace_all(_options, "/gen", " chkbasis");  
+        boost::algorithm::replace_all(_options, "punch=mo", "Guess=read");  
+        if ( _options.size() ) _com_file2 <<  _options << endl ;
+
+        // # pop=minimal pbepbe/gen pseudo=read scf=tight punch=mo
+        // # pop=minimal pbepbe chkbasis nosymm Geom=AllCheck Guess=Read
+
+        
+        _com_file2 << endl;
+        _com_file2 << "VXC output run \n";
+        _com_file2 << endl;
+        _com_file2.close();
+
+        // and now generate a shell script to run both jobs
+        WriteShellScript();
+    
+        
     }
     
     if ( _write_charges ) {
@@ -342,7 +380,13 @@ bool Gaussian::WriteShellScript() {
     _shell_file << "#!/bin/tcsh" << endl ;
     _shell_file << "mkdir -p " << _scratch_dir << endl;
     _shell_file << "setenv GAUSS_SCRDIR " << _scratch_dir << endl;
-    _shell_file << _executable << " " << _input_file_name << endl;    
+    _shell_file << _executable << " " << _input_file_name << endl; 
+    if ( _write_pseudopotentials ) {
+        _shell_file << "rm fort.22" << endl;
+        _shell_file << "setenv DoPrtXC YES" << endl;
+        _shell_file << _executable << " " << _input_vxc_file_name << endl; 
+        _shell_file << "setenv DoPrtXC NO" << endl;       
+    }
     _shell_file.close();
 }
 
@@ -358,13 +402,14 @@ bool Gaussian::Run()
         // if scratch is provided, run the shell script; 
         // otherwise run gaussian directly and rely on global variables 
         string _command;
-        if ( _scratch_dir.size() != 0 ) {
+        if ( _scratch_dir.size() != 0 || _write_pseudopotentials ) {
             _command  = "cd " + _run_dir + "; tcsh " + _shell_file_name;
+//            _command  = "cd " + _run_dir + "; mkdir -p " + _scratch_dir +"; " + _executable + " " + _input_file_name;
         }
         else {
-            _command  = "cd " + _run_dir + "; " + _executable + " " + _input_file_name;
+            _command  = "cd " + _run_dir + "; mkdir -p $GAUSS_SCRDIR; " + _executable + " " + _input_file_name;
         }
-        
+
         int i = system ( _command.c_str() );
         
         if ( CheckLogFile() ) {
@@ -605,6 +650,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
     bool _has_number_of_electrons = false;
     bool _has_basis_set_size = false;
     bool _has_overlap_matrix = false;
+    bool _has_vxc_matrix = false;
     bool _has_charges = false;
     bool _has_coordinates = false;
     bool _has_qm_energy = false;
@@ -614,6 +660,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
     int _unoccupied_levels = 0;
     int _number_of_electrons = 0;
     int _basis_set_size = 0;
+    int _cart_basis_set_size = 0;
     
     LOG(logDEBUG,*_pLog) << "Parsing " << _log_file_name << flush;
     string _log_file_name_full =  _run_dir + "/" + _log_file_name;
@@ -652,7 +699,11 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
             _basis_set_size = boost::lexical_cast<int>(results.front());
             _orbitals->_basis_set_size = _basis_set_size ;
             _orbitals->_has_basis_set_size = true;
+            _cart_basis_set_size = boost::lexical_cast<int>(results[6] );
             LOG(logDEBUG,*_pLog) << "Basis functions: " << _basis_set_size << flush;
+            if ( _write_pseudopotentials ) {
+                LOG(logDEBUG,*_pLog) << "Cartesian functions: " << _cart_basis_set_size << flush;
+            }
         }
 
         /*
@@ -920,10 +971,57 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
            ) break;
         
     } // end of reading the file line-by-line
-   
+
     LOG(logDEBUG,*_pLog) << "Done parsing" << flush;
+    _input_file.close();
+    
+    /* Now, again the somewhat ugly construction:
+     * if we request writing of pseudopotential data to the input file, this
+     * implies a GW-BSE run. For this, we have to 
+     * - set environment variable DoPrtXC to YES
+     * - run g03 on the second input file
+     * - parse atomic orbitals Vxc matrix */
+   if ( _write_pseudopotentials ) {
+        LOG(logDEBUG,*_pLog) << "Parsing fort.24 for Vxc"  << flush;
+        string _log_file_name_full =  _run_dir + "/fort.24";
+
+       // prepare the container
+       _orbitals->_has_vxc = true;
+       (_orbitals->_vxc).resize( _cart_basis_set_size );
+            
+       _has_vxc_matrix = true;
+       //cout << "Found the overlap matrix!" << endl;   
+       vector<int> _j_indeces;
+        
+        
+        // Start parsing the file line by line
+        ifstream _input_file(_log_file_name_full.c_str());
+        while (_input_file) {
+           getline (_input_file, _line); 
+           if( _input_file.eof() ) break;
+                    
+           vector<string> _row;
+           boost::trim( _line );
+           boost::algorithm::split( _row , _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on); 
+                
+           int _i_index = boost::lexical_cast<int>(  _row[0]  ); 
+           int _j_index = boost::lexical_cast<int>(  _row[1]  );
+           //cout << "Vxc element [" << _i_index << ":" << _j_index << "] " << boost::lexical_cast<double>( _row[2] ) << endl;
+           _orbitals->_vxc( _i_index-1 , _j_index-1 ) = boost::lexical_cast<double>( _row[2] );
+        }
+        
+        LOG(logDEBUG,*_pLog) << "Done parsing" << flush;
+        _input_file.close();
+   }
+    
+    
+    
+
     return true;
 }
+
+
+
 
 string Gaussian::FortranFormat( const double &number ) {
     stringstream _ssnumber;

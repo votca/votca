@@ -69,7 +69,7 @@ private:
     string                              _shell_file_name;
     string                              _chk_file_name;
     string                              _scratch_dir;
-        
+    string                              _input_vxc_file_name;    
     string                              _cleanup;
 
     int NumberOfElectrons( string _line ); 
@@ -77,6 +77,7 @@ private:
     int EnergiesFromLog( string _line, ifstream inputfile ); 
     string FortranFormat( const double &number );
 
+    
     
 };
 

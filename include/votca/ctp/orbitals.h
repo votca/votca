@@ -118,6 +118,7 @@ public:
     void           setNumberOfElectrons( const int &electrons );
     
     ub::symmetric_matrix<double>* getOverlap() { return &_overlap; }
+    ub::symmetric_matrix<double>* getVxc() { return &_vxc; }
     ub::matrix<double>* getOrbitals() { return &_mo_coefficients; }
     ub::vector<double>* getEnergies() { return &_mo_energies; }
 
@@ -184,6 +185,9 @@ private:
     bool                                _has_overlap;
     ub::symmetric_matrix<double>            _overlap;
     
+    bool                                _has_vxc;
+    ub::symmetric_matrix<double>            _vxc;
+    
     bool                                _has_charges;
     bool                                _has_atoms;
     std::vector< QMAtom* >                  _atoms;   
@@ -228,6 +232,7 @@ private:
        ar & _has_mo_energies;
        ar & _has_mo_coefficients;
        ar & _has_overlap;
+       ar & _has_vxc;
        ar & _has_atoms;
        ar & _has_qm_energy;
        ar & _has_self_energy;
@@ -257,6 +262,25 @@ private:
            for (unsigned i = 0; i < _overlap.size1(); ++i)
                 for (unsigned j = 0; j <= i; ++j)
                     ar & _overlap(i, j); 
+       }
+
+       if ( _has_vxc ) { 
+           // symmetric matrix does not serialize by default
+            if (Archive::is_saving::value) {
+                unsigned size = _vxc.size1();
+                ar & size;
+             }
+
+            // copy the values back if loading
+            if (Archive::is_loading::value) {
+                unsigned size;
+                ar & size;
+                _vxc.resize(size);
+             }
+            
+           for (unsigned i = 0; i < _vxc.size1(); ++i)
+                for (unsigned j = 0; j <= i; ++j)
+                    ar & _vxc(i, j); 
        }
        
        if ( _has_atoms ) { ar & _atoms; }
