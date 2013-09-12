@@ -17,6 +17,8 @@
  *
  */
 
+// UBLAS stops checking types and array bounds if this flag is defined
+#define NDEBUG
 
 #ifndef _CALC_INTEGRALS_DFT_H
 #define	_CALC_INTEGRALS_DFT_H

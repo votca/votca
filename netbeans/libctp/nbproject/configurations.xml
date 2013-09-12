@@ -21,8 +21,6 @@
       <itemPath>../../src/libctp/calculators/neighborlist.h</itemPath>
       <itemPath>../../src/libctp/calculators/pairdump.h</itemPath>
       <itemPath>../../src/libctp/calculators/qmmm.h</itemPath>
-      <itemPath>../../include/votca/ctp/qmpackage.h</itemPath>
-      <itemPath>../../include/votca/ctp/qmpackagefactory.h</itemPath>
       <itemPath>../../src/libctp/calculators/qmultipole.h</itemPath>
       <itemPath>../../src/libctp/calculators/rates.h</itemPath>
       <itemPath>../../src/libctp/calculators/sandbox.h</itemPath>
@@ -58,6 +56,8 @@
       <itemPath>../../include/votca/ctp/qmcalculator.h</itemPath>
       <itemPath>../../include/votca/ctp/qmdatabase.h</itemPath>
       <itemPath>../../include/votca/ctp/qmnblist.h</itemPath>
+      <itemPath>../../include/votca/ctp/qmpackage.h</itemPath>
+      <itemPath>../../include/votca/ctp/qmpackagefactory.h</itemPath>
       <itemPath>../../include/votca/ctp/qmpair.h</itemPath>
       <itemPath>../../include/votca/ctp/qmthread.h</itemPath>
       <itemPath>../../include/votca/ctp/qmtool.h</itemPath>
