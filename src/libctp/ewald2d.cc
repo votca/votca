@@ -14,7 +14,7 @@ Ewald3D2D::~Ewald3D2D() { ; }
     
 Ewald3D2D::Ewald3D2D(Topology *top, PolarTop *ptop, Property *opt, Logger *log) 
   : Ewald3DnD(top, ptop, opt, log) {
-    ;
+    _nc_max = 0;
 }
 
 

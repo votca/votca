@@ -84,6 +84,7 @@ void Calculatorfactory::RegisterAll(void)
         Calculators().Register<JobWriter>           ("jobwriter");
         Calculators().Register< Ewald<Ewald3D2D> >  ("ewald2d");
         Calculators().Register< Ewald<Ewald3D3D> >  ("ewald3d");
+        Calculators().Register< Ewald<PEwald3D3D> > ("pewald3d");
 }
 
 }}
