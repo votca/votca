@@ -22,7 +22,8 @@ APolarSite::APolarSite(APolarSite *templ)
         
       Q00(templ->Q00), Q1x(templ->Q1x), Q1y(templ->Q1y), Q1z(templ->Q1z),
       Q20(templ->Q20), Q21c(templ->Q21c), Q21s(templ->Q21s), Q22c(templ->Q22c),
-      Q22s(templ->Q22s) {
+      Q22s(templ->Q22s), Qxx(templ->Qxx), Qxy(templ->Qxy), Qxz(templ->Qxz),
+      Qyy(templ->Qyy), Qyz(templ->Qyz), Qzz(templ->Qzz) {
         
     this->Depolarize();
 }
@@ -221,11 +222,20 @@ void APolarSite::Charge(int state) {
         Q1y = _Qs[idx][3];   // |
     }
     if (_rank > 1) {
+        // Spherical tensor
         Q20  = _Qs[idx][4];
         Q21c = _Qs[idx][5];
         Q21s = _Qs[idx][6];
         Q22c = _Qs[idx][7];
         Q22s = _Qs[idx][8];
+        
+        // Cartesian tensor
+        Qzz =      Q20;
+        Qxx = -0.5*Q20 + 0.5*sqrt(3)*Q22c;
+        Qyy = -0.5*Q20 - 0.5*sqrt(3)*Q22c;        
+        Qxy =          + 0.5*sqrt(3)*Q22s;
+        Qxz =          + 0.5*sqrt(3)*Q21c;
+        Qyz =          + 0.5*sqrt(3)*Q21s;        
     }
 }
 

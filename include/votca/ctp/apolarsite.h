@@ -32,6 +32,8 @@ class APolarSite
     friend class XInteractor;
     friend class QMMIter;
     friend class Ewald3D3D;
+    friend class PEwald3D3D;
+    friend class EwdInteractor;
 
 
 public:
@@ -136,6 +138,7 @@ private:
     double Q00;
     double Q1x, Q1y, Q1z;
     double Q20, Q21c, Q21s, Q22c, Q22s;
+    double Qxx, Qxy, Qxz, Qyy, Qyz, Qzz;
 
     double U1x, U1y, U1z;                   // Induced dipole
     double FPx, FPy, FPz;                   // Electric field (due to permanent)

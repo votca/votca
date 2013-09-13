@@ -9,6 +9,7 @@
 #include <votca/ctp/xinteractor.h>
 #include <votca/ctp/ewald2d.h>
 #include <votca/ctp/ewald3d.h>
+#include <votca/ctp/pewald3d.h>
 #include <votca/ctp/logger.h>
 #include <boost/format.hpp>
 
