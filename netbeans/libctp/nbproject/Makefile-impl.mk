@@ -27,11 +27,11 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 PROJECTNAME=libctp
 
 # Active Configuration
-DEFAULTCONF=
+DEFAULTCONF=Debug
 CONF=${DEFAULTCONF}
 
 # All Configurations
-ALLCONFS=
+ALLCONFS=Debug Release Release 
 
 
 # build

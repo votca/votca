@@ -68,7 +68,8 @@ private:
     bool                _do_run;
     bool                _do_parse;
     bool                _do_trim;
-
+    // conversion to GW (might go away from edft again)
+    bool                _do_convert;
     // what to write in the storage
     bool                _store_orbitals;
 
@@ -91,7 +92,9 @@ void EDFT::Initialize(Topology *top, Property *options) {
     _do_run = false;
     _do_parse = false;
     _do_trim = false;
-
+    // conversion to GW (might go away from edft again)
+    _do_convert = false;
+    
     _maverick = (_nThreads == 1) ? true : false;
     
     string key = "options." + Identify();
@@ -104,7 +107,9 @@ void EDFT::Initialize(Topology *top, Property *options) {
     if (_tasks_string.find("run") != std::string::npos) _do_run = true;
     if (_tasks_string.find("trim") != std::string::npos) _do_trim = true;
     if (_tasks_string.find("parse") != std::string::npos) _do_parse = true;    
-
+    // conversion to GW (might go away from edft again)
+    if (_tasks_string.find("convert") != std::string::npos) _do_convert = true;   
+    
     string _store_string = options->get(key+".store").as<string> ();
     if (_store_string.find("orbitals") != std::string::npos) _store_orbitals = true;
     
@@ -125,6 +130,9 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     bool _run_status;
     bool _parse_log_status;
     bool _parse_orbitals_status;
+    // Conversion to GW
+    bool _convert_status;
+
 
     FILE *out;
     Orbitals _orbitals;
@@ -229,6 +237,32 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
          << _orbitals.getNumberOfElectrons()*factor << flush;   
        output += "orbitals trimmed; " ;
     }   
+
+   // Convert to GW
+    if ( _do_convert ) {
+
+        if ( !_do_parse ) { // orbitals must be loaded from a file
+           string ORB_FILE = "molecule_" + ID + ".orb";
+           LOG(logDEBUG,*pLog) << "Loading orbitals from " << ORB_FILE << flush;    
+           std::ifstream ifs( (ORB_DIR + "/" + ORB_FILE).c_str() );
+           boost::archive::binary_iarchive ia( ifs );
+           ia >> _orbitals;
+           ifs.close();
+       } 
+        
+       _convert_status = _qmpackage->ConvertToGW( &_orbitals );
+       if ( !_convert_status ) {
+            output += "conversion failed; " ;
+            LOG(logERROR,*pLog) << _package << " conversion failed" << flush;
+            jres.setOutput( output ); 
+            jres.setStatus(Job::FAILED);
+            delete _qmpackage;
+            return jres;
+        } else {
+            output += "conversion completed; " ;
+        }
+        
+    }
    
    // Clean run
    _qmpackage->CleanUp();

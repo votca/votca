@@ -61,6 +61,8 @@ public:
    bool ParseLogFile( Orbitals* _orbitals );
 
    bool ParseOrbitalsFile( Orbitals* _orbitals );
+   
+   bool ConvertToGW( Orbitals* _orbitals );
       
    string getScratchDir( ) { return _scratch_dir; }
    
@@ -76,6 +78,9 @@ private:
     int BasisSetSize( string _line ); 
     int EnergiesFromLog( string _line, ifstream inputfile ); 
     string FortranFormat( const double &number );
+    int NumbfQC( string _shell_type);
+    int NumbfGW( string _shell_type);
+    int NumbfQC_cart( string _shell_type);
 
     
     

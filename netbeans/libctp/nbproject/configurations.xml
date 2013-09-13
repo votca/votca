@@ -21,8 +21,6 @@
       <itemPath>../../src/libctp/calculators/neighborlist.h</itemPath>
       <itemPath>../../src/libctp/calculators/pairdump.h</itemPath>
       <itemPath>../../src/libctp/calculators/qmmm.h</itemPath>
-      <itemPath>../../include/votca/ctp/qmpackage.h</itemPath>
-      <itemPath>../../include/votca/ctp/qmpackagefactory.h</itemPath>
       <itemPath>../../src/libctp/calculators/qmultipole.h</itemPath>
       <itemPath>../../src/libctp/calculators/rates.h</itemPath>
       <itemPath>../../src/libctp/calculators/sandbox.h</itemPath>
@@ -58,6 +56,8 @@
       <itemPath>../../include/votca/ctp/qmcalculator.h</itemPath>
       <itemPath>../../include/votca/ctp/qmdatabase.h</itemPath>
       <itemPath>../../include/votca/ctp/qmnblist.h</itemPath>
+      <itemPath>../../include/votca/ctp/qmpackage.h</itemPath>
+      <itemPath>../../include/votca/ctp/qmpackagefactory.h</itemPath>
       <itemPath>../../include/votca/ctp/qmpair.h</itemPath>
       <itemPath>../../include/votca/ctp/qmthread.h</itemPath>
       <itemPath>../../include/votca/ctp/qmtool.h</itemPath>
@@ -75,6 +75,8 @@
     <logicalFolder name="f2" displayName="QMPackages" projectFiles="true">
       <itemPath>../../src/libctp/qmpackages/gaussian.cc</itemPath>
       <itemPath>../../src/libctp/qmpackages/gaussian.h</itemPath>
+      <itemPath>../../src/libctp/qmpackages/gw.cc</itemPath>
+      <itemPath>../../src/libctp/qmpackages/gw.h</itemPath>
       <itemPath>../../src/libctp/qmpackages/nwchem.cc</itemPath>
       <itemPath>../../src/libctp/qmpackages/nwchem.h</itemPath>
       <itemPath>../../src/libctp/qmpackages/turbomole.cc</itemPath>
@@ -492,6 +494,10 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libctp/qmpackages/gw.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/gw.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../src/libctp/qmpackages/nwchem.cc"
             ex="false"
             tool="1"
@@ -903,6 +909,10 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libctp/qmpackages/gw.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/gw.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../src/libctp/qmpackages/nwchem.cc"
             ex="false"
             tool="1"
@@ -1313,6 +1323,10 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/gw.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/gw.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/qmpackages/nwchem.cc"
             ex="false"
