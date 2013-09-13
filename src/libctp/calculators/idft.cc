@@ -23,11 +23,12 @@
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/numeric/ublas/operation.hpp>
+#include <boost/numeric/ublas/operation_blocked.hpp>
 #include <boost/progress.hpp>
 
-#ifdef MKLROOT
-#include <mkl_boost_ublas_matrix_prod.hpp>
-#endif
+//#ifdef MKLROOT
+//#include <mkl_boost_ublas_matrix_prod.hpp>
+//#endif
          
 #include <votca/ctp/eigenvalues.h>
 #include <votca/ctp/logger.h>
@@ -268,16 +269,26 @@ bool IDFT::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     ub::matrix<double> _psi_AB ( _levelsA + _levelsB, _basisA + _basisB  );
 
     ub::matrix_range< ub::matrix<double> > _psi_AB_A = ub::project( _psi_AB, ub::range (0, _levelsA ), ub::range ( 0, _basisA +_basisB ) ) ;
-    ub::noalias(_psi_AB_A) = ub::prod(*_orbitalsA->getOrbitals(), Overlap_A);
+    ub::noalias(_psi_AB_A) = ub::block_prod<ub::matrix<double>,1024>(*_orbitalsA->getOrbitals(), Overlap_A);
 
     ub::matrix_range< ub::matrix<double> > _psi_AB_B = ub::project( _psi_AB, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( 0, _basisA +_basisB ) ) ;
-    ub::noalias(_psi_AB_B) = ub::prod(*_orbitalsB->getOrbitals(), Overlap_B );
-    //LOG(logDEBUG,*_pLog)  << " time: " << t.elapsed() - _st << flush; _st = t.elapsed();
-    
+    ub::noalias(_psi_AB_B) = ub::block_prod<ub::matrix<double>,1024>(*_orbitalsB->getOrbitals(), Overlap_B );
+    LOG(logDEBUG,*_pLog)  << " (" << t.elapsed() - _st << "s) " << flush; _st = t.elapsed();
+ 
     ub::matrix<double> _psi_AxB_dimer_basis (_levelsA + _levelsB, _basisA + _basisB );
     ub::matrix<double> OrbAB_Transp = ub::trans( *_orbitalsAB->getOrbitals() );
-    ub::noalias(_psi_AxB_dimer_basis) = ub::prod( _psi_AB,  OrbAB_Transp );
-    LOG(logDEBUG,*_pLog)  << " (" << t.elapsed() - _st << "s)" << flush; _st = t.elapsed();
+    LOG(logDEBUG,*_pLog)  << "Transposing OrbitalsAB (" << t.elapsed() - _st << "s)" << flush; _st = t.elapsed();
+    ub::noalias(_psi_AxB_dimer_basis) = ub::block_prod<ub::matrix<double>,1024>( _psi_AB,  OrbAB_Transp );
+    //ub::noalias(_psi_AxB_dimer_basis) = ub::prod( _psi_AB,  OrbAB_Transp );
+    /* 
+    for ( int i1 = 0; i1 < _levelsA + _levelsB; i1++ ) {
+    for ( int i2 = 0; i2 < _basisA + _basisB; i2++ ) {     
+        for ( int k = 0; k < _basisA + _basisB; k++  ) {
+                _psi_AxB_dimer_basis(i1,i2) += _psi_AB.at_element(i1, k) * OrbAB_Transp.at_element(i2, k);
+        }
+    }}
+    */
+    LOG(logDEBUG,*_pLog)  << "Multiplying PsiAB x OrbitalsAB (" << t.elapsed() - _st << "s)" << flush; _st = t.elapsed();
     
     _psi_AB.resize(0,0,false); OrbAB_Transp.resize(0,0,false);
     
