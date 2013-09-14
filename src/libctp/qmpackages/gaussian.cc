@@ -394,7 +394,7 @@ bool Gaussian::WriteShellScript() {
     if ( _write_pseudopotentials ) {
         _shell_file << "rm fort.22" << endl;
         _shell_file << "setenv DoPrtXC YES" << endl;
-        _shell_file << _executable << " " << _input_vxc_file_name << endl; 
+        _shell_file << _executable << " " << _input_vxc_file_name << " >& /dev/null " << endl; 
         _shell_file << "setenv DoPrtXC NO" << endl;       
     }
     _shell_file.close();
