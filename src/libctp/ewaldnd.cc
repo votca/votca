@@ -1,6 +1,7 @@
 #include <votca/ctp/ewaldnd.h>
 #include <boost/format.hpp>
 #include <algorithm>
+#include <boost/math/special_functions/round.hpp>
 
 
 using boost::format;
@@ -75,13 +76,16 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
     vector<PolarSeg*>::iterator sit; 
     vector<APolarSite*> ::iterator pit;
     double Q_fg_C = 0.0;
+    double Q_fg_C_2nd = 0.0;
     double Q_fg_N = 0.0;
     double Q_mg_N = 0.0;
     double Q_bg_N = 0.0;
     double Q_bg_P = 0.0;  
     for (sit = _fg_C.begin(); sit < _fg_C.end(); ++sit) {
         (*sit)->CalcPos();
-        Q_fg_C += (*sit)->CalcTotQ();
+        double Qseg = (*sit)->CalcTotQ();
+        Q_fg_C += Qseg;
+        Q_fg_C_2nd += Qseg*Qseg / _fg_C.size();
         _inForeground[(*sit)->getId()] = true;
     }
     for (sit = _fg_N.begin(); sit < _fg_N.end(); ++sit) {
@@ -103,13 +107,24 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
         Q_bg_P += (*sit)->CalcTotQ();
     }
     
+    // DETERMINE JOB TYPE
+    int iQ1 = boost::math::iround(Q_fg_C);
+    int iQ2 = boost::math::iround(Q_fg_C_2nd);
+    if (iQ1 == +1)         _jobType = "hole-like";
+    else if (iQ1 == -1)    _jobType = "electron-like";
+    else if (iQ1 == 0 && iQ2 == 0) _jobType = "neutral";
+    else if (iQ1 == 0 && iQ2 > 0) _jobType = "charge-transfer-like";
+    else _jobType = "bipolaron-like";
+
+    
     LOG(logINFO,*_log)
-        << (format("Net ground charge and size")).str()
+        << (format("Net ground charge and size:")).str()
         << flush << (format("  o Q(FGC) = %1$+1.3fe |FGC| = %2$+5d") % Q_fg_C % _fg_C.size()).str()
         << flush << (format("  o Q(FGN) = %1$+1.3fe |FGN| = %2$+5d") % Q_fg_N % _fg_N.size()).str()
         << flush << (format("  o Q(MGN) = %1$+1.3fe |MGN| ~ %2$+5d") % Q_mg_N % _mg_N.size()).str()
         << flush << (format("  o Q(BGN) = %1$+1.3fe |BGN| = %2$+5d") % Q_bg_N % _bg_N.size()).str()
         << flush << (format("  o Q(BGP) = %1$+1.3fe |BGP| = %2$+5d") % Q_bg_P % _bg_P.size()).str()
+        << flush << (format("  o Job type '%3$s' (iQ1=%1$d, iQ2=%2$d)") % iQ1 % iQ2 % _jobType).str()
         << flush;
     
     if (std::abs(Q_bg_P) > 1e-2) {
@@ -127,35 +142,30 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
         PolarSeg* pseg = *sit;        
         for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
             (*pit)->Depolarize();
-            (*pit)->Charge(0);
         }
     }
     for (sit = _fg_N.begin(); sit < _fg_N.end(); ++sit) {        
         PolarSeg* pseg = *sit;        
         for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
             (*pit)->Depolarize();
-            (*pit)->Charge(0);
         }
     }
     for (sit = _mg_N.begin(); sit < _mg_N.end(); ++sit) {        
         PolarSeg* pseg = *sit;        
         for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
             (*pit)->Depolarize();
-            (*pit)->Charge(0);
         }
     }
     for (sit = _bg_N.begin(); sit < _bg_N.end(); ++sit) {        
         PolarSeg* pseg = *sit;        
         for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
             (*pit)->Depolarize();
-            (*pit)->Charge(0);
         }
     }
     for (sit = _bg_P.begin(); sit < _bg_P.end(); ++sit) {        
         PolarSeg* pseg = *sit;        
         for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
             (*pit)->Depolarize();
-            (*pit)->Charge(0);
         }
     }
     
@@ -455,6 +465,7 @@ Property Ewald3DnD::GenerateOutputString() {
     Property *next = NULL;    
     
     next = &out.add("summary", "");
+    next->add("type", _jobType);
     next->add("xyz", (format("%1$+1.7f %2$+1.7f %3$+1.7f") 
         % _center.getX() % _center.getY() % _center.getZ()).str())
         .setAttribute("unit","nm");

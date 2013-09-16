@@ -86,6 +86,7 @@ namespace votca { namespace ctp {
         vector< PolarSeg* > _fg_N;      // Neutral foreground
         vector< PolarSeg* > _fg_C;      // Charged foreground
         vector< bool > _inForeground;
+        string _jobType;                // Calculated from _fg_C charge distr.
         
         // CONVERGENCE
         double _alpha;                  // _a = 1/(sqrt(2)*sigma)

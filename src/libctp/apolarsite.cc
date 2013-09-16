@@ -1,4 +1,5 @@
 #include <votca/ctp/apolarsite.h>
+#include <boost/math/special_functions/round.hpp>
 #include <fstream>
 #include <string>
 
@@ -800,6 +801,27 @@ vector<APolarSite*> APS_FROM_MPS(string filename, int state, QMThread *thread) {
     if (thread == NULL)
     printf("\n... ... ... Reading %-25s -> N = %2d Q0(Sum) = %+1.7f ",
                           filename.c_str(), poles.size(),  Q0_total);
+    
+    
+    // Apply charge correction: Sum to closest integer
+    int Q_integer = boost::math::iround(Q0_total);
+    double dQ = (double(Q_integer) - Q0_total)/poles.size();
+    
+    double Q0_total_corr = 0.0;
+    vector<APolarSite*>::iterator pit;
+    for (pit = poles.begin(); pit < poles.end(); ++pit) {
+        double Q_uncorr = (*pit)->getQs(state)[0];
+        double Q_corr = Q_uncorr + dQ;
+        (*pit)->setQ00(Q_corr, state);
+        Q0_total_corr += (*pit)->getQs(state)[0];
+    }
+    
+    if (thread == NULL)
+    printf("=> dQ0 = %+1.1e, Q0(corr.) = %+1.0f",
+            dQ, Q0_total_corr);
+    
+    
+    
 
     if (useDefaultPs) {
         if (thread == NULL)
