@@ -59,7 +59,6 @@ void NWChem::Initialize( Property *options ) {
     _options =          options->get(key + ".options").as<string> ();
     _memory =           options->get(key + ".memory").as<string> ();
     _threads =          options->get(key + ".threads").as<int> ();
-    //_chk_file_name  =   options->get(key + ".checkpoint").as<string> ();
     _scratch_dir =      options->get(key + ".scratch").as<string> ();
     _cleanup =          options->get(key + ".cleanup").as<string> ();
     
@@ -143,13 +142,6 @@ bool NWChem::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gues
     if ( _write_charges ) {
         vector< QMAtom* > *qmatoms = orbitals_guess->getAtoms();
         vector< QMAtom* >::iterator it;
-        
-        /*for (it = qmatoms->begin(); it < qmatoms->end(); it++ ) {
-            if ( !(*it)->from_environment ) {
-            _com_file << (*it)->type << " " <<  (*it)->x << " " << (*it)->y << " " << (*it)->z << endl;
-            }
-        }
-         */ 
         
         _com_file << " I wanna write charges" << endl;
         
@@ -345,7 +337,7 @@ void NWChem::CleanUp() {
     
     // cleaning up the generated files
     if ( _cleanup.size() != 0 ) {
-        Tokenizer tok_cleanup(_cleanup, " \t\n");
+        Tokenizer tok_cleanup(_cleanup, ",");
         vector <string> _cleanup_info;
         tok_cleanup.ToVector(_cleanup_info);
         
@@ -368,7 +360,7 @@ void NWChem::CleanUp() {
             }
 
            if ( *it == "movecs" ) {
-                string file_name = _run_dir + "/system.movecs";
+                string file_name = _run_dir + "/" + _orb_file_name;
                 remove ( file_name.c_str() );
             }
             

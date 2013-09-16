@@ -391,13 +391,16 @@ void Gaussian::CleanUp() {
     
     // cleaning up the generated files
     if ( _cleanup.size() != 0 ) {
-        Tokenizer tok_cleanup(_cleanup, " \t\n");
+        
+        LOG(logDEBUG,*_pLog) << "Removing " << _cleanup << " files" << flush;        
+        Tokenizer tok_cleanup(_cleanup, ",");
         vector <string> _cleanup_info;
         tok_cleanup.ToVector(_cleanup_info);
         
         vector<string> ::iterator it;
                
         for (it = _cleanup_info.begin(); it != _cleanup_info.end(); ++it) {
+            
             if ( *it == "com" ) {
                 string file_name = _run_dir + "/" + _input_file_name;
                 remove ( file_name.c_str() );

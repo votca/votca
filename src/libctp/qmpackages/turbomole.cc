@@ -270,7 +270,7 @@ void Turbomole::CleanUp() {
     
     // cleaning up the generated files
     if ( _cleanup.size() != 0 ) {
-        Tokenizer tok_cleanup(_cleanup, " \t\n");
+        Tokenizer tok_cleanup(_cleanup, ",");
         vector <string> _cleanup_info;
         tok_cleanup.ToVector(_cleanup_info);
         
