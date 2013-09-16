@@ -31,6 +31,7 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
     // EWALD INTERACTION PARAMETERS (GUESS ONLY)
     _K_co = 100/_R_co;
     _alpha = 3.5/_R_co;
+    _ewdactor = EwdInteractor(_alpha);
     
     // SET-UP REAL & RECIPROCAL SPACE
     _a = _top->getBox().getCol(0);
@@ -126,30 +127,35 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
         PolarSeg* pseg = *sit;        
         for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
             (*pit)->Depolarize();
+            (*pit)->Charge(0);
         }
     }
     for (sit = _fg_N.begin(); sit < _fg_N.end(); ++sit) {        
         PolarSeg* pseg = *sit;        
         for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
             (*pit)->Depolarize();
+            (*pit)->Charge(0);
         }
     }
     for (sit = _mg_N.begin(); sit < _mg_N.end(); ++sit) {        
         PolarSeg* pseg = *sit;        
         for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
             (*pit)->Depolarize();
+            (*pit)->Charge(0);
         }
     }
     for (sit = _bg_N.begin(); sit < _bg_N.end(); ++sit) {        
         PolarSeg* pseg = *sit;        
         for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
             (*pit)->Depolarize();
+            (*pit)->Charge(0);
         }
     }
     for (sit = _bg_P.begin(); sit < _bg_P.end(); ++sit) {        
         PolarSeg* pseg = *sit;        
         for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
             (*pit)->Depolarize();
+            (*pit)->Charge(0);
         }
     }
     

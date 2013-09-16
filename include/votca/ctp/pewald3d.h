@@ -6,7 +6,6 @@
 #include <votca/ctp/xjob.h>
 #include <votca/ctp/qmthread.h>
 #include <votca/ctp/ewaldnd.h>
-#include <votca/ctp/ewaldactor.h>
 
 namespace CSG = votca::csg;
 
@@ -43,7 +42,6 @@ namespace votca { namespace ctp {
     private:
         
         string _shape; // Summation shape (for 3D corr. term)
-        EwdInteractor _ewdactor;
         
     };
 

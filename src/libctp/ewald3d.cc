@@ -19,7 +19,7 @@ Ewald3D3D::Ewald3D3D(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
 
 
 double Ewald3D3D::ConvergeReciprocalSpaceSum() {
-    
+
     vector<PolarSeg*>::iterator sit;
     vector<APolarSite*> ::iterator pit;    
     

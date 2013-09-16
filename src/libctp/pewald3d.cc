@@ -1,6 +1,7 @@
 #include <votca/ctp/pewald3d.h>
 #include <boost/format.hpp>
 #include <algorithm>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 
 using boost::format;
@@ -36,22 +37,32 @@ double PEwald3D3D::ConvergeRealSpaceSum() {
         double Rc = _R_co + (i-1)*dR;
         // Set-up midground
         this->SetupMidground(Rc);
+        
+        
+        
+        //boost::posix_time::ptime now = boost::posix_time::second_clock::local_time();
+        //string pdbfile = (format("%1$s") % now.time_of_day()).str();        
+        //this->WriteDensitiesPDB(pdbfile);
+        
         // Calculate interaction energy
         this_ER = 0.;        
-        
-        // ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ...
-        // ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ...
 
-        // ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ...
-        // ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ...
-
-        // ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ...
-        // ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ...
+        for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
+            for (sit2 = _mg_N.begin(); sit2 < _mg_N.end(); ++sit2) {
+                for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+                    for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
+                        this_ER += _ewdactor.U12_ERFC(*(*pit1), *(*pit2));
+                    }
+                }
+                //cout << endl << "I " << (*sit1)->getId() << " --- " << (*sit2)->getId() << " " << showpos << scientific << this_ER*_ewdactor.int2eV << flush;
+                //break;
+            }
+        }
         
-        double dER_rms = sqrt((this_ER-prev_ER)*(this_ER-prev_ER))*_actor.int2eV;
+        double dER_rms = sqrt((this_ER-prev_ER)*(this_ER-prev_ER))*_ewdactor.int2eV;
         LOG(logDEBUG,*_log)
             << (format("Rc = %1$+1.7f   |MGN| = %3$5d nm   ER = %2$+1.7f eV   dER(rms) = %4$+1.7f") 
-            % Rc % (this_ER*_actor.int2eV) % _mg_N.size() % dER_rms).str() << flush;
+            % Rc % (this_ER*_ewdactor.int2eV) % _mg_N.size() % dER_rms).str() << flush;
         if (i > 0 && dER_rms < _crit_dE) {
             _converged_R = true;
             LOG(logDEBUG,*_log)  
@@ -150,28 +161,25 @@ double PEwald3D3D::ConvergeReciprocalSpaceSum() {
                 << (format("k[%5$d] = %1$+1.3f %2$+1.3f %3$+1.3f   |K| = %4$+1.3f 1/nm") 
                 % (k.getX()) % (k.getY()) % (k.getZ()) % K % (N_shells_proc+1));
             
-            // ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ...
-            // ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ...
+            EwdInteractor::cmplx as1s2 = _ewdactor.AS1S2(k, _fg_C, _bg_P);
             
-            // ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ...
-            // ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ...
+
             
-            // ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ...
-            // ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ...
+            
 
             // REAL & IMAGINARY ENERGY
-            double re_dE = 0.0;
-            double im_dE = 0.0;
+            double re_dE = as1s2._re;
+            double im_dE = as1s2._im;
             re_E += re_dE;
             im_E += im_dE;
 
             LOG(logDEBUG,*_log)
                 << (format("    Re(dE) = %1$+1.7f")
-                % (re_dE/_LxLyLz*_actor.int2eV));
+                % (re_dE/_LxLyLz*_ewdactor.int2eV));
 
             LOG(logDEBUG,*_log)
                 << (format("    Re(E) = %1$+1.7f Im(E) = %2$+1.7f")
-                % (re_E/_LxLyLz*_actor.int2eV) % (im_E/_LxLyLz*_actor.int2eV));        
+                % (re_E/_LxLyLz*_ewdactor.int2eV) % (im_E/_LxLyLz*_ewdactor.int2eV));        
 
             // CONVERGED?
             double dEKK = sqrt(re_dE*re_dE + im_dE*im_dE);
@@ -190,9 +198,9 @@ double PEwald3D3D::ConvergeReciprocalSpaceSum() {
 
             LOG(logDEBUG,*_log)
                 << (format("   RMS(%2$d) = %1$+1.7f") 
-                % (dEKK_rms/_LxLyLz*_actor.int2eV) % N_EKK_memory) << flush;
+                % (dEKK_rms/_LxLyLz*_ewdactor.int2eV) % N_EKK_memory) << flush;
 
-            if (dEKK_rms/_LxLyLz*_actor.int2eV <= _crit_dE && N_K_proc > 2 && N_shells_proc > 0) {
+            if (dEKK_rms/_LxLyLz*_ewdactor.int2eV <= _crit_dE && N_K_proc > 2 && N_shells_proc > 0) {
                 _converged_K = true;
                 LOG(logDEBUG,*_log)
                     << (format(":::: Converged to precision as of |K| = %1$+1.3f 1/nm") 
@@ -218,7 +226,16 @@ double PEwald3D3D::CalculateShapeCorrection() {
     double EJ = 0.0;
     
     if (_shape == "xyslab") {
-        ;
+        for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
+           for (sit2 = _bg_P.begin(); sit2 < _bg_P.end(); ++sit2) {
+              for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+                 for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
+                    EJ += _ewdactor.U12_XYSlab(*(*pit1), *(*pit2));
+                 }
+              }
+           }
+        }
+        EJ *= - 2*M_PI/_LxLyLz;
     }
     else {
         LOG(logERROR,*_log)
@@ -238,14 +255,15 @@ double PEwald3D3D::CalculateForegroundCorrection() {
     vector<APolarSite*> ::iterator pit2;
     double EPP_fgC_fgN = 0.0;
     
-    // ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ...
-    // ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ...
-
-    // ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ...
-    // ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ...
-
-    // ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ...
-    // ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ...
+    for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
+        for (sit2 = _fg_N.begin(); sit2 < _fg_N.end(); ++sit2) {
+            for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+                for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
+                    EPP_fgC_fgN += _ewdactor.U12_ERF(*(*pit1), *(*pit2));
+                }
+            }
+        }
+    }
     
     return EPP_fgC_fgN;
 }

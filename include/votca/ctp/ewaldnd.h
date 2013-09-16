@@ -6,6 +6,7 @@
 #include <votca/ctp/xjob.h>
 #include <votca/ctp/qmthread.h>
 #include <votca/ctp/xinteractor.h>
+#include <votca/ctp/ewaldactor.h>
 
 namespace CSG = votca::csg;
 
@@ -68,6 +69,7 @@ namespace votca { namespace ctp {
         
     protected:
         
+        EwdInteractor _ewdactor;
         XInteractor _actor;
         Logger *_log;
         

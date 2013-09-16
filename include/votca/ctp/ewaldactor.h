@@ -125,6 +125,7 @@ private:
     double H0, H1, H2, H3, H4;
     
     // {Bl}, {Cl} function values
+    double rSqrtPiExp;
     double B0, B1, B2, B3, B4;
     double C0, C1, C2, C3, C4;
     
@@ -167,7 +168,7 @@ inline void EwdInteractor::ApplyBiasK(const vec &k) {
     kzz = kz*kz;
     
     K = votca::tools::abs(k12);
-    AK = exp(-K*K/(4*a2))/(K*K);
+    AK = 4*M_PI*exp(-K*K/(4*a2))/(K*K);
     
     return;
 }
@@ -175,11 +176,20 @@ inline void EwdInteractor::ApplyBiasK(const vec &k) {
 
 inline void EwdInteractor::ApplyBiasK(APolarSite &p) {
     
-    dk = p.Q1x*kx + p.Q1y*ky + p.Q1z*kz;
-    
-    Qk = p.Qxx*kxx + 2*p.Qxy*kxy + 2*p.Qxz*kxz
-                   +   p.Qyy*kyy + 2*p.Qyz*kyz
-                                 +   p.Qzz*kzz;
+    if (p._rank > 0) {
+        dk = p.Q1x*kx + p.Q1y*ky + p.Q1z*kz;
+        if (p._rank > 1) {
+            Qk = p.Qxx*kxx + 2*p.Qxy*kxy + 2*p.Qxz*kxz
+                           +   p.Qyy*kyy + 2*p.Qyz*kyz
+                                         +   p.Qzz*kzz;
+        }
+        else Qk = 0.0;
+    }        
+    else {
+        dk = 0.0;
+        Qk = 0.0;
+    }
+        
     
     kr = kx*p.getPos().getX()
        + ky*p.getPos().getY()
@@ -195,7 +205,7 @@ inline void EwdInteractor::ApplyBiasK(APolarSite &p) {
 
 inline EwdInteractor::cmplx EwdInteractor::AS1S2(const vec &k,
     vector<PolarSeg*> &s1, vector<PolarSeg*> &s2) {
-    // NOTE : w/o 4PI/V
+    // NOTE : w/o 1/V
     ApplyBiasK(k);    
     
     vector<PolarSeg*>::iterator sit;
@@ -239,6 +249,10 @@ inline double EwdInteractor::U12_ERFC(APolarSite &p1, APolarSite &p2) {
     UpdateAllBls();
     UpdateAllGls(p1, p2);
     
+    if (R1 < 1e-1) {
+        cout << endl << "small small " << p1.getPos() << " == " << p2.getPos() << flush;
+    }       
+    
     return G0*B0 + G1*B1 + G2*B2 + G3*B3 + G4*B4;    
 }
 
@@ -250,12 +264,22 @@ inline double EwdInteractor::U12_ERF(APolarSite &p1, APolarSite &p2) {
     double u12 = 0.0;
     
     if (R1 < 1e-2) {
-        cout << endl << "small small " << p1.getPos() << " == " << p2.getPos() << flush;
-        u12 =  2.   *a1*rSqrtPi * (p1.Q00*p2.Q00)
-            +  4./3.*a3*rSqrtPi * (p1.Q1x*p2.Q1x + p1.Q1y*p2.Q1y + p1.Q1z*p2.Q1z)
-            + 16./5.*a5*rSqrtPi * (p1.Qxx*p2.Qxx + 2*p1.Qxy*p2.Qxy + 2*p1.Qxz*p2.Qxz
-                                                 +   p1.Qyy*p2.Qyy + 2*p1.Qyz*p2.Qyz
-                                                                   +   p1.Qzz*p2.Qzz);
+        //cout << endl << "small small " << p1.getPos() << " == " << p2.getPos() << flush;
+        u12 += 2.   *a1*rSqrtPi * (p1.Q00*p2.Q00);
+        if (p1._rank > 0 && p2._rank > 0) {
+            u12 += 4./3.*a3*rSqrtPi * (p1.Q1x*p2.Q1x + p1.Q1y*p2.Q1y + p1.Q1z*p2.Q1z);
+            if (p1._rank > 1 && p2._rank > 1) {
+                u12 += 16./5.*a5*rSqrtPi * (p1.Qxx*p2.Qxx + 2*p1.Qxy*p2.Qxy + 2*p1.Qxz*p2.Qxz
+                                                          +   p1.Qyy*p2.Qyy + 2*p1.Qyz*p2.Qyz
+                                                                            +   p1.Qzz*p2.Qzz);
+            }
+        }
+        
+//        u12 =  2.   *a1*rSqrtPi * (p1.Q00*p2.Q00)
+//            +  4./3.*a3*rSqrtPi * (p1.Q1x*p2.Q1x + p1.Q1y*p2.Q1y + p1.Q1z*p2.Q1z)
+//            + 16./5.*a5*rSqrtPi * (p1.Qxx*p2.Qxx + 2*p1.Qxy*p2.Qxy + 2*p1.Qxz*p2.Qxz
+//                                                 +   p1.Qyy*p2.Qyy + 2*p1.Qyz*p2.Qyz
+//                                                                   +   p1.Qzz*p2.Qzz);
     }
     
     else {
@@ -333,13 +357,19 @@ inline void EwdInteractor::ApplyBias(APolarSite& p1, APolarSite& p2) {
 
 inline void EwdInteractor::UpdateAllBls() {
     
-    double rSqrtPiExp = rSqrtPi * exp(-a2*R2);
+    rSqrtPiExp = rSqrtPi * exp(-a2*R2);
     
     B0 = erfc(a1*R1)*rR1;    
     B1 = rR2*(   B0  +  2*a1*rSqrtPiExp);
     B2 = rR2*( 3*B1  +  4*a3*rSqrtPiExp);
     B3 = rR2*( 5*B2  +  8*a5*rSqrtPiExp);
     B4 = rR2*( 7*B3  + 16*a7*rSqrtPiExp);
+    
+//    B0 = gB0();
+//    B1 = gB1();
+//    B2 = gB2();
+//    B3 = gB3();
+//    B4 = gB4();
     
     return;
 }
@@ -349,11 +379,17 @@ inline void EwdInteractor::UpdateAllCls() {
     
     double rSqrtPiExp = rSqrtPi * exp(-a2*R2);
     
-    C0 = erf(a1*R1)*rR1;    
-    C1 = rR2*(   C0  -  2*a1*rSqrtPiExp);
-    C2 = rR2*( 3*C1  -  4*a3*rSqrtPiExp);
-    C3 = rR2*( 5*C2  -  8*a5*rSqrtPiExp);
-    C4 = rR2*( 7*C3  - 16*a7*rSqrtPiExp);
+//    C0 = erf(a1*R1)*rR1;    
+//    C1 = rR2*(   C0  -  2*a1*rSqrtPiExp);
+//    C2 = rR2*( 3*C1  -  4*a3*rSqrtPiExp);
+//    C3 = rR2*( 5*C2  -  8*a5*rSqrtPiExp);
+//    C4 = rR2*( 7*C3  - 16*a7*rSqrtPiExp);
+
+    C0 = gC0();
+    C1 = gC1();
+    C2 = gC2();
+    C3 = gC3();
+    C4 = gC4();
     
     return;
 }
@@ -424,7 +460,7 @@ inline void EwdInteractor::UpdateAllGls(APolarSite& p1, APolarSite& p2) {
                 G3 += mu2_r * Q1__R;
                 
                 // 1 - quadrupole, 2 - quadrupole
-                if (p2._rank > 0) {
+                if (p2._rank > 1) {
                     G2 += 2 * (p1.Qxx*p2.Qxx + 2*p1.Qxy*p2.Qxy + 2*p1.Qxz*p2.Qxz
                                              +   p1.Qyy*p2.Qyy + 2*p1.Qyz*p2.Qyz
                                                                +   p1.Qzz*p2.Qzz);
