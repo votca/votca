@@ -153,13 +153,18 @@ double PEwald3D3D::ConvergeReciprocalSpaceSum() {
     
     for (shellit = shell_ks.begin(); shellit < shell_ks.end(); ++shellit, ++N_shells_proc) {
         
+        double this_shell_dE = 0.0;
+        double this_shell_maxK = 0.0;
+        
         for (kit = (*shellit).begin(); kit < (*shellit).end(); ++kit, ++N_K_proc) {
             vec k = *kit;
             double K = abs(k);
+            double Kxy = sqrt(k.getX()*k.getX()+k.getY()*k.getY());
+            double Kz = sqrt(k.getZ()*k.getZ());
             
             LOG(logDEBUG,*_log)
-                << (format("k[%5$d] = %1$+1.3f %2$+1.3f %3$+1.3f   |K| = %4$+1.3f 1/nm") 
-                % (k.getX()) % (k.getY()) % (k.getZ()) % K % (N_shells_proc+1));
+                << (format("k[%5$d] = %1$+1.3f %2$+1.3f %3$+1.3f   |Kxy| = %4$+1.3f 1/nm") 
+                % (k.getX()) % (k.getY()) % (k.getZ()) % (Kxy/K) % (N_shells_proc+1));
             
             EwdInteractor::cmplx as1s2 = _ewdactor.AS1S2(k, _fg_C, _bg_P);
             
@@ -171,7 +176,9 @@ double PEwald3D3D::ConvergeReciprocalSpaceSum() {
             double re_dE = as1s2._re;
             double im_dE = as1s2._im;
             re_E += re_dE;
-            im_E += im_dE;
+            im_E += im_dE;            
+            this_shell_dE += re_dE;
+            this_shell_maxK = K;
 
             LOG(logDEBUG,*_log)
                 << (format("    Re(dE) = %1$+1.7f")
@@ -200,7 +207,7 @@ double PEwald3D3D::ConvergeReciprocalSpaceSum() {
                 << (format("   RMS(%2$d) = %1$+1.7f") 
                 % (dEKK_rms/_LxLyLz*_ewdactor.int2eV) % N_EKK_memory) << flush;
 
-            if (dEKK_rms/_LxLyLz*_ewdactor.int2eV <= _crit_dE && N_K_proc > 2 && N_shells_proc > 0) {
+            if (false && dEKK_rms/_LxLyLz*_ewdactor.int2eV <= _crit_dE && N_K_proc > 2 && N_shells_proc > 0) {
                 _converged_K = true;
                 LOG(logDEBUG,*_log)
                     << (format(":::: Converged to precision as of |K| = %1$+1.3f 1/nm") 
@@ -209,6 +216,19 @@ double PEwald3D3D::ConvergeReciprocalSpaceSum() {
             }
         } // Sum over k's in k-shell
         if (_converged_K) break;
+        
+        double abs_dE = sqrt(this_shell_dE*this_shell_dE);
+        LOG(logDEBUG,*_log)
+            << (format("===> SHELL    maxK = %1$+1.7f   |dE| = %2$+1.7f") 
+                % this_shell_maxK % (this_shell_dE/_LxLyLz*_ewdactor.int2eV)) << flush;
+        if (abs_dE/_LxLyLz*_ewdactor.int2eV <= _crit_dE) {
+            _converged_K = true;
+            LOG(logDEBUG,*_log)
+                << (format(":::: SHELL Converged to precision as of |K| = %1$+1.3f 1/nm") 
+                % this_shell_maxK ) << flush;
+            break;
+        }
+        
     } // Sum over k-shells
     
     EKK_fgC_bgP = re_E/_LxLyLz;

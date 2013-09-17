@@ -25,7 +25,7 @@ class Ewald : public ParallelXJobCalc< vector<Job*>, Job*, Job::JobResult >
 {
 
 public:
-
+    
     Ewald() {};
    ~Ewald() {};
    
@@ -47,23 +47,13 @@ private:
     // MULTIPOLE ALLOCATION, XJOBS, ADD. OUTPUT //
     // ======================================== //
 
-    // Polar-site mapping
     string                         _mps_table;
     string                         _xml_file;
     XMpsMap                        _mps_mapper;
     bool                           _pdb_check;
-
-    // Multipole Interaction parameters
-    string                          _method;
-    double                          _cutoff;
-
-
+    bool                           _estatics_only;
 
 };
-
-// ========================================================================== //
-//                           EWALD MEMBER FUNCTIONS                           //
-// ========================================================================== //
 
 
 template<class EwaldMethod>
@@ -104,27 +94,17 @@ void Ewald<EwaldMethod>::Initialize(Topology *top, Property *opt) {
             _pdb_check = opt->get(key+".pdb_check").as<bool>();
         }
         else { _pdb_check = false; }
-
-
-    key = "options.ewald.coulombmethod";
     
-        if ( opt->exists(key+".method") ) {
-            _method = opt->get(key+".method").as< string >();
-            if (_method != "ewald" && _method != "Ewald") {
-                throw runtime_error("Method " + _method + " not recognised.");
-            }
+    key = "options.ewald.polarmethod";
+        
+        if (opt->exists(key+".induce")) {
+            _estatics_only = ! (opt->get(key+".induce").as<bool>());
         }
         else {
-            _method = "ewald";
-        }
-        if ( opt->exists(key+".cutoff") ) {
-            _cutoff = opt->get(key+".cutoff").as< double >();
-        }
-        else {
-            throw runtime_error("No real-space cut-off provided.");
+            _estatics_only = true;
         }
     
-    _mps_mapper.setEstaticsOnly(true);
+    _mps_mapper.setEstaticsOnly(_estatics_only);
     return;
 }
 
@@ -140,7 +120,8 @@ void Ewald<EwaldMethod>::PreProcess(Topology *top) {
 
 
 template<class EwaldMethod>
-XJob Ewald<EwaldMethod>::ProcessInputString(const Job *job, Topology *top, QMThread *thread) {
+XJob Ewald<EwaldMethod>::ProcessInputString(const Job *job, Topology *top, 
+    QMThread *thread) {
     
     string input = job->getInput();
     vector<Segment*> qmSegs;
@@ -177,7 +158,8 @@ XJob Ewald<EwaldMethod>::ProcessInputString(const Job *job, Topology *top, QMThr
 
 
 template<class EwaldMethod>
-Job::JobResult Ewald<EwaldMethod>::EvalJob(Topology *top, Job *job, QMThread *thread) {
+Job::JobResult Ewald<EwaldMethod>::EvalJob(Topology *top, Job *job,
+    QMThread *thread) {
     
     Logger *log = thread->getLogger();    
     LOG(logINFO,*log)
@@ -190,7 +172,8 @@ Job::JobResult Ewald<EwaldMethod>::EvalJob(Topology *top, Job *job, QMThread *th
     _mps_mapper.Gen_FGC_FGN_BGN(top, &xjob, thread);
     
     // CALL EWALD MAGIC
-    EwaldMethod ewaldnd = EwaldMethod(top, xjob.getPolarTop(), _options, thread->getLogger());
+    EwaldMethod ewaldnd = EwaldMethod(top, xjob.getPolarTop(), _options, 
+        thread->getLogger());
     if (tools::globals::verbose || _pdb_check)
         ewaldnd.WriteDensitiesPDB(xjob.getTag()+"_ew_densities.pdb");
     ewaldnd.Evaluate();

@@ -86,6 +86,7 @@ public:
     void            InduceDirect();
     void            ResetFieldU() { FUx = FUy = FUz = 0.0; }
     void            ResetFieldP() { FPx = FPy = FPz = 0.0; }
+    void            ResetU1()     { U1x = U1y = U1z = 0.0; }
     void            ResetU1Hist() { U1_Hist.clear(); }
     void            Depolarize();
     double          HistdU();

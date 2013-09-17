@@ -7,6 +7,7 @@
 #include <votca/ctp/qmthread.h>
 #include <votca/ctp/xinteractor.h>
 #include <votca/ctp/ewaldactor.h>
+#include <votca/ctp/xinductor.h>
 
 namespace CSG = votca::csg;
 
@@ -32,9 +33,14 @@ namespace votca { namespace ctp {
         Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log);
         virtual ~Ewald3DnD();
        
+        void ExpandForegroundReduceBackground(double polar_R_co);
         void SetupMidground(double R_co);
         void WriteDensitiesPDB(string pdbfile);
         void Evaluate();
+        void EvaluateFields();
+        void EvaluateInduction();
+        void EvaluateEnergy();
+        
         bool Converged() { return _converged_R && _converged_K; }
         Property GenerateOutputString();
         string GenerateErrorString();
@@ -79,6 +85,7 @@ namespace votca { namespace ctp {
         vec _center;
         
         // POLAR SEGMENTS
+        // Part I - Ewald
         PolarTop *_ptop;
         vector< PolarSeg* > _bg_P;      // Period. density = _bg_N v _fg_N
         vector< PolarSeg* > _bg_N;      // Neutral background
@@ -87,14 +94,30 @@ namespace votca { namespace ctp {
         vector< PolarSeg* > _fg_C;      // Charged foreground
         vector< bool > _inForeground;
         string _jobType;                // Calculated from _fg_C charge distr.
+        // Part II - Thole
+        vector< PolarSeg* > _polar_qm0;
+        vector< PolarSeg* > _polar_mm1;
+        vector< PolarSeg* > _polar_mm2; // Should not be used
+        
         
         // CONVERGENCE
+        // Part I - Ewald
         double _alpha;                  // _a = 1/(sqrt(2)*sigma)
+        double _kfactor;
+        double _rfactor;
         double _K_co;                   // k-space c/o
         double _R_co;                   // r-space c/o
         double _crit_dE;                // Energy convergence criterion [eV]
         bool   _converged_R;            // Did R-space sum converge?
         bool   _converged_K;            // Did K-space sum converge?
+        // Part II - Thole
+        bool _polar_do_induce;
+        double _polar_aDamp;
+        double _polar_wSOR_N;
+        double _polar_wSOR_C;
+        double _polar_cutoff;
+
+        
         
         // LATTICE (REAL, RECIPROCAL)
         vec _a; vec _b; vec _c;         // Real-space lattice vectors
@@ -108,6 +131,7 @@ namespace votca { namespace ctp {
         VectorSort<EucNorm> _eucsort;
         
         // ENERGIES
+        // Part I - Ewald
         double _ER;                     // R-space sum
         double _EC;                     // R-space correction
         double _EK;                     // K-space sum
@@ -115,7 +139,12 @@ namespace votca { namespace ctp {
         double _ET;                     // ER - EC + EK + E0
         double _EDQ;                    // Higher-Rank FGC->MGN correction
         double _EJ;                     // Geometry-dependent correction
-        
+        // Part II - Thole
+        double _polar_ETT;
+        double _polar_EPP;
+        double _polar_EPU;
+        double _polar_EUU;
+        // -> stored with XInductor, XJob
         
         
     };

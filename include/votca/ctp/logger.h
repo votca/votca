@@ -169,6 +169,7 @@ public:
             _maverick = maverick;
             dynamic_cast<LogBuffer *>( rdbuf() )->setMultithreading( _maverick );
         }
+        bool isMaverick() { return _maverick; }
         
         TLogLevel getReportLevel( ) { return _ReportLevel; }
         

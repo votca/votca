@@ -14,11 +14,16 @@ Ewald3DnD::~Ewald3DnD() {
     vector< PolarSeg* >::iterator sit;
     for (sit = _mg_N.begin(); sit < _mg_N.end(); ++sit)
         delete (*sit);
+    
     _fg_C.clear();
     _fg_N.clear();
     _mg_N.clear();
     _bg_N.clear();
     _bg_P.clear();
+    
+    _polar_qm0.clear();
+    _polar_mm1.clear();
+    _polar_mm2.clear();
 }
     
     
@@ -26,12 +31,43 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
     : _top(top), _ptop(ptop), _log(log) {
     
     // EVALUATE OPTIONS
-    _R_co = opt->get("options.ewald.coulombmethod.cutoff").as<double>();
-    _crit_dE = opt->get("options.ewald.convergence.energy").as<double>();
+    string pfx = "options.ewald";
+    // Ewald parameters
+    _R_co = opt->get(pfx+".coulombmethod.cutoff").as<double>();
+    _crit_dE = opt->get(pfx+".convergence.energy").as<double>();
+    if (opt->exists(pfx+".convergence.kfactor"))
+        _kfactor = opt->get(pfx+".convergence.kfactor").as<double>();
+    else
+        _kfactor = 100.;
+    if (opt->exists(pfx+".convergence.rfactor"))
+        _rfactor = opt->get(pfx+".convergence.rfactor").as<double>();
+    else
+        _rfactor = 3.5;    
+    // Polar parameters    
+    if (opt->exists(pfx+".polarmethod.induce"))
+        _polar_do_induce = opt->get(pfx+".polarmethod.induce").as<bool>();
+    else
+        _polar_do_induce = false;
+    if (opt->exists(pfx+".polarmethod.cutoff")) 
+        _polar_cutoff = opt->get(pfx+".polarmethod.cutoff").as<double>();
+    else
+        _polar_cutoff = 0.0;
+    if (opt->exists(pfx+".polarmethod.wSOR_N"))
+        _polar_wSOR_N = opt->get(pfx+".polarmethod.wSOR_N").as<double>();
+    else
+        _polar_wSOR_N = 0.35;
+    if (opt->exists(pfx+".polarmethod.wSOR_C"))
+        _polar_wSOR_C = opt->get(pfx+".polarmethod.wSOR_C").as<double>();
+    else
+        _polar_wSOR_C = 0.30;
+    if (opt->exists(pfx+".polarmethod.aDamp"))
+        _polar_aDamp = opt->get(pfx+".polarmethod.aDamp").as<double>();
+    else
+        _polar_aDamp = 0.390;
     
     // EWALD INTERACTION PARAMETERS (GUESS ONLY)
-    _K_co = 100/_R_co;
-    _alpha = 3.5/_R_co;
+    _K_co = _kfactor/_R_co;
+    _alpha = _rfactor/_R_co;
     _ewdactor = EwdInteractor(_alpha);
     
     // SET-UP REAL & RECIPROCAL SPACE
@@ -54,15 +90,19 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
     _NC_max = ceil(_K_co/maxnorm(_C));
     
     // SET-UP POLAR GROUNDS (FORE-, MID-, BACK-)
+    _center = ptop->getCenter();
     _fg_C.clear();
     _fg_N.clear();
     _mg_N.clear();
     _bg_N.clear();
     _bg_P.clear();
-
+    
     _fg_C = ptop->FGC();
     _fg_N = ptop->FGN();
-    _bg_N = ptop->BGN();        
+    _bg_N = ptop->BGN();
+    
+    // Grow fg vs. bg according to induction cut-off
+    this->ExpandForegroundReduceBackground(_polar_cutoff);    
     _bg_P.insert(_bg_P.end(), _fg_N.begin(), _fg_N.end());
     _bg_P.insert(_bg_P.end(), _bg_N.begin(), _bg_N.end());    
     _inForeground.resize(_bg_P.size()+1,false);
@@ -202,11 +242,75 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
 }
 
 
+void Ewald3DnD::ExpandForegroundReduceBackground(double polar_R_co) {
+    
+    vector<PolarSeg*>::iterator sit1;
+    vector<PolarSeg*>::iterator sit2;
+    
+    for (sit1 = _polar_mm1.begin(); sit1 < _polar_mm1.end(); ++sit1)
+        delete *sit1;
+    _polar_qm0.clear();
+    _polar_mm1.clear();
+    _polar_mm2.clear();
+    
+    // Target containers
+    vector<PolarSeg*> new_exp_fg_C;
+    vector<PolarSeg*> exp_fg_N;
+    vector<PolarSeg*> red_bg_N;    
+    
+    // Foreground remains in foreground + contributes to QM0
+    for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
+        new_exp_fg_C.push_back(*sit1);
+        _polar_qm0.push_back(*sit1);
+    }
+    for (sit1 = _fg_N.begin(); sit1 < _fg_N.end(); ++sit1) {
+        exp_fg_N.push_back(*sit1);
+    }
+    
+    // Shift segments from back- to foreground based on distance vs. c/o
+    // 'new' foreground copies contribute to MM1
+    for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
+        for (sit2 = _bg_N.begin(); sit2 < _bg_N.end(); ++sit2) {
+            PolarSeg *seg1 = *sit1;
+            PolarSeg *seg2 = *sit2;            
+            double dR = votca::tools::abs(seg1->getPos() - seg2->getPos());
+            if (dR < polar_R_co) {
+                // 'new' copy required for induction that affects fgC,
+                // ... but NOT fgN
+                PolarSeg *fgCopy = new PolarSeg(seg2);
+                new_exp_fg_C.push_back(fgCopy);
+                exp_fg_N.push_back(seg2);
+                _polar_mm1.push_back(fgCopy);
+            }
+            else {
+                red_bg_N.push_back(seg2);
+            }
+        }
+    }
+    
+    // Exchange new for old containers
+    _fg_C.clear();
+    _fg_N.clear();
+    _bg_N.clear();
+    _fg_C = new_exp_fg_C;
+    _fg_N = exp_fg_N;
+    _bg_N = red_bg_N;
+    
+    bool clean = false; // Already deleted via fgC
+    _ptop->setQM0(_polar_qm0, clean);
+    _ptop->setMM1(_polar_mm1, clean);
+    _ptop->setMM2(_polar_mm2, clean);
+    
+    assert(_polar_qm0.size()+_polar_mm1.size() == _fg_C.size());
+    assert(_fg_C.size() == _fg_N.size());
+    
+    return;
+}
+
+
 void Ewald3DnD::SetupMidground(double R_co) {
     // SET-UP MIDGROUND
-    // TODO Extend this to several molecules in the foreground
-    assert(_fg_C.size() == 1);
-    _center = _fg_C[0]->getPos();
+    // TODO Extend this to several molecules in the foreground - DONE?
     // NOTE No periodic-boundary correction here: We require that all
     //      polar-segment CoM coords. be folded with respect to the central
     //      segment
@@ -282,6 +386,18 @@ void Ewald3DnD::WriteDensitiesPDB(string pdbfile) {
             (*pit)->WritePdbLine(out, "FGN");
         }
     }
+    for (sit = _polar_qm0.begin(); sit < _polar_qm0.end(); ++sit) {        
+        PolarSeg* pseg = *sit;        
+        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
+            (*pit)->WritePdbLine(out, "QM0");
+        }
+    }
+    for (sit = _polar_mm1.begin(); sit < _polar_mm1.end(); ++sit) {        
+        PolarSeg* pseg = *sit;        
+        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
+            (*pit)->WritePdbLine(out, "MM1");
+        }
+    }
     for (sit = _mg_N.begin(); sit < _mg_N.end(); ++sit) {        
         PolarSeg* pseg = *sit;        
         for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
@@ -318,6 +434,89 @@ void Ewald3DnD::Evaluate() {
     LOG(logDEBUG,*_log) << "  o LxLy (for 3D2D EW):        " << _LxLy << " nm**2" << flush;
     LOG(logDEBUG,*_log) << "  o kx(max), ky(max), kz(max): " << _NA_max << ", " << _NB_max << ", " << _NC_max << flush;
     
+    EvaluateFields();
+    EvaluateInduction();
+    EvaluateEnergy();
+    
+    LOG(logDEBUG,*_log) << flush;
+    LOG(logINFO,*_log)
+        << (format("Interaction FGC -> ***")).str()
+        << flush << (format("  + EPP(FGC->MGN)  = %1$+1.7f eV") % _ER).str()
+        << flush << (format("  + EKK(FGC->BGP)  = %1$+1.7f eV") % _EK).str()       
+        << flush << (format("  - EPP(FGC->FGN)  = %1$+1.7f eV") % _EC).str()
+        << flush << (format("    ------------------------------")).str()
+        << flush << (format("    SUM(E)         = %1$+1.7f eV") % (_ET-_EJ-_EDQ-_E0)).str()
+        << flush << (format("    ------------------------------")).str()
+        << flush << (format("  + EK0(FGC->BGP)  = %1$+1.7f eV") % _E0).str() 
+        << flush << (format("  + EDQ(FGC->MGN)  = %1$+1.7f eV") % _EDQ).str()
+        << flush << (format("  + EJ(shape-dep.) = %1$+1.7f eV") % _EJ).str()
+        << flush << (format("    ------------------------------")).str()
+        << flush << (format("  + SUM(E) (0,Q,J) = %1$+1.7f eV") % (_ET)).str()
+        << flush;    
+    LOG(logINFO,*_log)
+        << (format("Interaction FGC <> FGC")).str()
+        << flush << (format("  + EPP(FGC<>FGC)  = %1$+1.7f eV") % _polar_EPP).str()
+        << flush << (format("  + EPU(FGC<>FGC)  = %1$+1.7f eV") % _polar_EPU).str()       
+        << flush << (format("  + EUU(FGC<>FGC)  = %1$+1.7f eV") % _polar_EUU).str()
+        << flush << (format("    ------------------------------")).str()
+        << flush << (format("    SUM(E)         = %1$+1.7f eV") % _polar_ETT).str()
+        << flush << (format("    ------------------------------")).str()
+        << flush << (format("    SUM(E) (1,2)   = %1$+1.7f eV") % (_ET+_polar_ETT)).str()
+        << flush;
+    LOG(logDEBUG,*_log) << flush;
+    return;
+}
+
+
+void Ewald3DnD::EvaluateFields() {
+    
+    return;
+}
+
+
+void Ewald3DnD::EvaluateInduction() {
+    
+    LOG(logDEBUG,*_log) << flush;
+    LOG(logDEBUG,*_log) << format("Call inductor on FGC = QM0 u MM1") << flush;
+    LOG(logDEBUG,*_log) << (format("  o %1$s") % _ptop->ShellInfoStr()).str() << flush;
+    LOG(logDEBUG,*_log) << (format("  o Polar c/o:        ")).str() << _polar_cutoff << " nm " << flush;
+    LOG(logDEBUG,*_log) << (format("  o Sharpness:        ")).str() << _polar_aDamp << flush;
+            
+    // Forge XJob object to comply with XInductor interface
+    bool polar_has_permanent_fields = true;
+    XJob polar_xjob = XJob(_ptop, polar_has_permanent_fields);
+    
+    // INITIALIZE XINDUCTOR
+    bool    polar_induce_intra_pair = true;
+    int     polar_subthreads = 1;
+    double  polar_epstol = 0.001;
+    int     polar_maxIter = 512;
+    bool    polar_maverick = _log->isMaverick(); // TODO Extract from _log
+    
+    XInductor polar_xind = XInductor(_polar_do_induce, 
+                                     polar_induce_intra_pair, 
+                                     polar_subthreads,
+                                     _polar_wSOR_N,
+                                     _polar_wSOR_C,
+                                     polar_epstol,
+                                     polar_maxIter,
+                                     _polar_aDamp,
+                                     polar_maverick,
+                                     _top);
+    polar_xind.setLog(_log);
+    polar_xind.Evaluate(&polar_xjob);
+    
+    // SAVE RESULTS
+    _polar_ETT = polar_xjob.getETOT();
+    _polar_EPP = polar_xjob.getEPP();
+    _polar_EPU = polar_xjob.getEPU();
+    _polar_EUU = polar_xjob.getEUU();
+    return;
+}
+        
+        
+void Ewald3DnD::EvaluateEnergy() {
+    
     // REAL-SPACE CONTRIBUTION (3D2D && 3D3D)
     double EPP_fgC_mgN = ConvergeRealSpaceSum();    
     
@@ -344,22 +543,6 @@ void Ewald3DnD::Evaluate() {
     _EC  = EPP_fgC_fgN * _actor.int2eV;    
     _ET  = _ER + _EK + _E0 + _EJ + _EDQ - _EC;
     
-    LOG(logDEBUG,*_log) << flush;
-    LOG(logINFO,*_log)
-        << (format("Interaction FGC -> ***")).str()
-        << flush << (format("  + EPP(FGC->MGN)  = %1$+1.7f eV") % _ER).str()
-        << flush << (format("  + EKK(FGC->BGP)  = %1$+1.7f eV") % _EK).str()       
-        << flush << (format("  - EPP(FGC->FGN)  = %1$+1.7f eV") % _EC).str()
-        << flush << (format("    ------------------------------")).str()
-        << flush << (format("    SUM(E)         = %1$+1.7f eV") % (_ET-_EJ-_EDQ-_E0)).str()
-        << flush << (format("    ------------------------------")).str()
-        << flush << (format("  + EK0(FGC->BGP)  = %1$+1.7f eV") % _E0).str() 
-        << flush << (format("  + EDQ(FGC->MGN)  = %1$+1.7f eV") % _EDQ).str()
-        << flush << (format("  + EJ(shape-dep.) = %1$+1.7f eV") % _EJ).str()
-        << flush << (format("    ------------------------------")).str()
-        << flush << (format("  + SUM(E) (0,Q,J) = %1$+1.7f eV") % (_ET)).str()
-        << flush;
-    LOG(logDEBUG,*_log) << flush;
     return;
 }
 

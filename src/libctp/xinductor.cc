@@ -28,17 +28,31 @@ void XInductor::Evaluate(XJob *job) {
     // ++++++++++++++++++++++++++ //
 
     if (job->StartFromCPT()) {
+        // Permanent fields already computed, do not zero these out ...
+        LOG(logDEBUG,*_log) << "Carry out partial depolarization." << flush;
+        vector< PolarSeg* >   ::iterator sit;
+        vector< APolarSite* > ::iterator pit;
 
-        if (this->_maverick) {
-            cout << endl
-                 << "... ... ... Loading induced dipoles from .cpt file. "
-                 << flush;
-        }
-        assert(false); // Load induced dipole moments from file
+        // Partially depolarize inner sphere
+        for (sit = _qmm.begin(); sit < _qmm.end(); ++sit) {
+        for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {
+            (*pit)->ResetFieldU();
+            (*pit)->ResetU1Hist();
+            (*pit)->ResetU1();
+            (*pit)->Charge(0); // <- Not necessarily neutral state
+        }}
+
+        // Partially depolarize outer shell
+        for (sit = _mm2.begin(); sit < _mm2.end(); ++sit) {
+        for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {
+            (*pit)->ResetFieldU();
+            (*pit)->ResetU1Hist();
+            (*pit)->ResetU1();
+            (*pit)->Charge(0); // <- Not necessarily neutral state
+        }}
     }
-
-    else {
-
+    else {        
+        LOG(logDEBUG,*_log) << "Carry out full depolarization." << flush;        
         vector< PolarSeg* >   ::iterator sit;
         vector< APolarSite* > ::iterator pit;
 
@@ -161,17 +175,13 @@ int XInductor::Induce(XJob *job) {
     // 1st-order induction //
     // +++++++++++++++++++ //
 
-    if (!job->StartFromCPT()) { // OVERRIDE
-        for (sit1 = _qmm.begin(); sit1 < _qmm.end(); ++sit1) {
-             for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
-                 (*pit1)->InduceDirect();
-             }
-        }
+    // Direct induction. Could also be restored from file (in the case of
+    // iterative QM/MM being performed)
+    for (sit1 = _qmm.begin(); sit1 < _qmm.end(); ++sit1) {
+         for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+             (*pit1)->InduceDirect();
+         }
     }
-    else {
-        assert(false); // Load induced dipole moments from file
-    }
-
 
 
     // ++++++++++++++++++++++ //
@@ -711,7 +721,7 @@ XInductor::XInductor(Topology *top, Property *opt,
         }
         else { _epsTol = 0.001; }
     
-    _actor = XInteractor(top, _aDamp);
+    _actor = XInteractor(NULL, _aDamp);
     
 }
 
