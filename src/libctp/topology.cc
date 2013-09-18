@@ -1,11 +1,13 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ *            Copyright 2009-2012 The VOTCA Development Team
+ *                       (http://www.votca.org)
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ *      Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * You may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *              http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,6 +16,7 @@
  * limitations under the License.
  *
  */
+
 
 #include <votca/ctp/topology.h>
 #include <votca/tools/globals.h>
@@ -112,6 +115,14 @@ PolarSite *Topology::AddPolarSite(string siteName) {
     int poleId = _polarSites.size() + 1;
     PolarSite *pole = new PolarSite(poleId, siteName);
     _polarSites.push_back(pole);
+    pole->setTopology(this);
+    return pole;
+}
+
+APolarSite *Topology::AddAPolarSite(string siteName) {
+    int poleId = _apolarSites.size() + 1;
+    APolarSite *pole = new APolarSite(poleId, siteName);
+    _apolarSites.push_back(pole);
     pole->setTopology(this);
     return pole;
 }
@@ -215,7 +226,6 @@ bool Topology::Rigidify() {
         return 0;
     }
     else {
-        cout << endl;
 
         // Rigidify segments
         vector<Segment*> ::iterator sit;
@@ -223,11 +233,12 @@ bool Topology::Rigidify() {
              sit < _segments.end();
              sit++) {
 
-             cout << "\r... ... Rigidified " << (*sit)->getId() << " segments. "
-             << flush;
-
              (*sit)->Rigidify();
         }
+
+        cout << endl
+             << "... ... Rigidified " << _segments.size() << " segments. "
+             << flush;
 
         if (this->NBList().size() > 0) {
 
@@ -247,24 +258,25 @@ bool Topology::Rigidify() {
         //   would be to rigidify the topology within StateSaver::ReadFrame,
         //   after atoms have been created, but before pairs are created. ]
 
-            cout << endl;
+            QMNBList &nblist = this->NBList();
 
-            QMNBList2 &nblist = this->NBList();
-
-            QMNBList2::iterator pit;
+            QMNBList::iterator pit;
             int count = 0;
             for (pit = nblist.begin(); pit != nblist.end(); pit++) {
 
-                QMPair2 *qmpair = *pit;
+                QMPair *qmpair = *pit;
                 if (qmpair->HasGhost()) {
                     count++;
 
-                    cout << "\r... ... Rigidified " << count << " ghosts. "
-                         << flush;
+
 
                     qmpair->Seg2PbCopy()->Rigidify();
                 }
             }
+
+          cout << endl
+               << "... ... Rigidified " << count << " ghosts. "
+               << flush;
         }
 
         _isRigid = true;
@@ -325,8 +337,8 @@ void Topology::PrintInfo(FILE *out) {
             this->getBox().get(2,1),
             this->getBox().get(2,2) );
 
-    fprintf(out, "\tStep number %2.4f \n", this->getStep());
-    fprintf(out, "\tTime        %7d \n", this->getTime());
+    fprintf(out, "\tStep number %7d \n", this->getStep());
+    fprintf(out, "\tTime        %2.4f \n", this->getTime());
     fprintf(out, "\t# Molecules %7d \n", this->Molecules().size());
     fprintf(out, "\t# Segments  %7d \n", this->Segments().size());
     fprintf(out, "\t# Atoms     %7d \n", this->Atoms().size());

@@ -1,144 +1,98 @@
-/*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
+#ifndef PAIRDUMP_H
+#define PAIRDUMP_H
 
-#ifndef _PAIR_DUMP_H
-#define	_PAIR_DUMP_H
-
-#include <votca/ctp/qmpair.h>
-#include <votca/ctp/paircalculator.h>
+#include <votca/ctp/qmcalculator.h>
 #include <sys/stat.h>
-#include <votca/csg/trajectorywriter.h>
+
 
 namespace votca { namespace ctp {
-/**
-    \brief Pairs of molecules from the neigbor list
 
-Callname: pairdump    
-
-Dumps the coordinates of pairs of atoms from the neighbor list. Used as an input in DFT-based calculations of electronic couplings. Understands xyz and pdb file formats. 
-*/
-class PairDump : public PairCalculator
+class PairDump : public QMCalculator
 {
 public:
+
     PairDump() {};
-    ~PairDump() {};
+   ~PairDump() {};
 
-    const char *Description() { return "Write pairs for DFT integral input"; }
+    string  Identify() { return "PairDump"; }
 
-    void EvaluateSite(QMTopology *top, QMCrgUnit *crg);
-    void EvaluatePair(QMTopology *top, QMPair *pair);
-    bool EvaluateFrame(QMTopology *top);
-    void EndEvaluate(QMTopology *top);
+    void    Initialize(Topology *top, Property *options);
+    bool    EvaluateFrame(Topology *top);
 
-   void Initialize(QMTopology *top, Property *options);
+private:
 
-protected:
-    TrajectoryWriter *_writer;
-    string _format; // extension for writing files
-    string _framedir;
-    bool _subfolders;
-    bool _mols;
-    bool _pairs;
+    string _outParent;
+    string _outMonDir;
+    string _outDimDir;
+
+    string _outFormat;
+    bool   _subFolder;
+    bool   _useQMPos;
 };
 
-inline void PairDump::Initialize(QMTopology *top, Property *options)
-{
-    _format = "pdb";
-    if(options->exists("options.pairdump.format"))
-            _format = options->get("options.pairdump.format").as<string>();
-    _subfolders=false;
-    if(options->exists("options.pairdump.subfolders"))
-            _subfolders= options->get("options.pairdump.subfolders").as<bool>();
-    _mols=false;
-    _pairs=true;
-    if(options->exists("options.pairdump.molecules"))
-            _mols = options->get("options.pairdump.molecules").as<bool>();
-    if(options->exists("options.pairdump.pairs"))
-            _pairs = options->get("options.pairdump.pairs").as<bool>();
-        
-}
 
-inline bool PairDump::EvaluateFrame(QMTopology *top) {
-    _writer = TrjWriterFactory().Create("." + _format);
-    if(_writer == NULL)
-        throw runtime_error(string("output format not supported: ") + _format);
-    _framedir=string("frame")+boost::lexical_cast<string>(top->getStep()+1) +string("/") ;
-    mkdir(_framedir.c_str(),0755);
+void PairDump::Initialize(Topology *top, Property *options) {
+
+    string key = "options.pairdump";   
     
-    if(_pairs)
-        PairCalculator::EvaluateFrame(top);
-
-    if(!_mols) return true;
-    vector<QMCrgUnit*>& crglist = top->CrgUnits();
-    for(vector<QMCrgUnit*>::iterator iter = crglist.begin();iter!=crglist.end();++iter)
-        EvaluateSite(top, *iter);
-    return true;
+    int useQMPos = options->get(key+".useQMcoords").as< int >();
+    _useQMPos = (useQMPos == 1) ? true : false;
 }
 
-inline void PairDump::EndEvaluate(QMTopology *top)
-{
-    delete _writer;
-}
 
-inline void PairDump::EvaluateSite(QMTopology *top, QMCrgUnit *crg)
-{
-    Topology atop;
+bool PairDump::EvaluateFrame(Topology *top) {
 
-    top->AddAtomisticBeads(crg,&atop);
-    string subdir = _framedir;
-    if(_subfolders) {
-        subdir=subdir + "mol_" + boost::lexical_cast<string>(crg->getId()) + "/";
-        mkdir(subdir.c_str(),0755);
+    // Rigidify if (a) not rigid yet (b) rigidification at all possible
+    if (!top->isRigid()) {
+        bool isRigid = top->Rigidify();
+        if (!isRigid) { return 0; }
+    }
+    else { cout << endl << "... ... System is already rigidified."; }
+
+    FILE *out;
+
+    _outParent = "frame" + boost::lexical_cast<string>(top->getDatabaseId());
+    mkdir(_outParent.c_str(), 0755);
+
+    vector<Segment*> ::iterator sit;
+    for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
+
+        string ID   = boost::lexical_cast<string>((*sit)->getId());
+        string DIR  = _outParent + "/mol_" + ID;
+        string FILE = _outParent + "/mol_" + ID + "/mol_" + ID + ".xyz";
+
+        mkdir(DIR.c_str(), 0755);        
+        out = fopen(FILE.c_str(),"w");
+        (*sit)->WriteXYZ(out, _useQMPos);
+        fclose(out);
     }
 
-    string file = subdir
-            + "mol_" + boost::lexical_cast<string>(crg->getId()) + "."  + _format;
-    _writer->Open(file);
-    _writer->Write(&atop);
-    _writer->Close();
-}
+    QMNBList ::iterator pit;
+    QMNBList &nblist = top->NBList();
+    for (pit = nblist.begin(); pit != nblist.end(); ++pit) {
 
-inline void PairDump::EvaluatePair(QMTopology *top, QMPair *pair){
-    Topology atop;
+        string ID1  = boost::lexical_cast<string>((*pit)->Seg1()->getId());
+        string ID2  = boost::lexical_cast<string>((*pit)->Seg2()->getId());
+        string DIR1 = _outParent + "/pair_" + ID1 + "_" + ID2;
+        string DIR2 = DIR1 + "/dim";
+        string FILE = DIR2 + "/pair_" + ID1 + "_" + ID2 + ".xyz";
 
-    CrgUnit *crg1 = pair->Crg1PBCCopy();
-    CrgUnit *crg2 = pair->Crg2PBCCopy();
-
-    top->AddAtomisticBeads(crg1,&atop);
-    top->AddAtomisticBeads(crg2,&atop);
-
-    string subdir = _framedir;
-    if(_subfolders) {
-        subdir=subdir+
-            + "pair_" + boost::lexical_cast<string>(crg1->getId()) + string("_")
-            + boost::lexical_cast<string>(crg2->getId()) + "/";
-        mkdir(subdir.c_str(),0755);
-        subdir=subdir+"dim/";
-        mkdir(subdir.c_str(),0755);
+        mkdir(DIR1.c_str(), 0755);
+        mkdir(DIR2.c_str(), 0755);
+        out = fopen(FILE.c_str(),"w");
+        (*pit)->WriteXYZ(out, _useQMPos);
+        fclose(out);
     }
-
-    string file = subdir
-            + "pair_" + boost::lexical_cast<string>(crg1->getId()) + string("_")
-            + boost::lexical_cast<string>(crg2->getId()) + "."  + _format;
-    _writer->Open(file);
-    _writer->Write(&atop);
-    _writer->Close();
 }
+
+
+
+
+
+
+
+
 
 }}
 
-#endif	
+#endif

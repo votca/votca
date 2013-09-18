@@ -42,6 +42,7 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
     list<Property *> molecules = typology.Select(key);
     list<Property *>::iterator it_molecule;
     int molecule_id = 1;
+    int qmunit_id  = 1; // Counts segment types
 
     for ( it_molecule = molecules.begin();
           it_molecule != molecules.end();
@@ -57,8 +58,7 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
        key = "segments.segment";
        list<Property *> segments = (*it_molecule)->Select(key);
        list<Property *>::iterator it_segment;
-       int segment_id = 1;
-       int qmunit_id  = 1;
+       int segment_id = 1;       
        int md_atom_id = 1; // <- atom id count with respect to molecule
 
        for ( it_segment = segments.begin();
@@ -68,6 +68,8 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
          // Create new segment + associated type (QM Unit)
          CTP::Segment *segment = AddSegmentType(segment_id++, *it_segment );
          CTP::SegmentType *qmUnit = AddQMUnit(qmunit_id, *it_segment );
+         ++qmunit_id;
+
          segment->setType(qmUnit);
          molecule->AddSegment(segment);
 
@@ -133,9 +135,13 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
                   (md_atoms_info.size() != atom_weights.size() ) ) {
                  cout << "ERROR: "
                       << "Could not allocate MD atoms to QM atoms or weights"
+                      << " in fragment " << fragment->getName()
                       << " in segment " << segment->getName()
                       << " in molecule " << molMdName
-                      << " due to inconsistent number of columns."
+                      << " due to inconsistent number of columns"
+                      << " (MD: " << md_atoms_info.size() << ","
+                      << " QM: " << qm_atoms_info.size() << ")"
+                      << " Weights: " << atom_weights.size() << ")."
                       << endl;
                  cout << "NOTE: "
                       << "To define an MD atom without QM counterpart, insert "
@@ -193,9 +199,9 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
                        qmPos = intCoords.at(qm_atom_id).second;
                        element = intCoords.at(qm_atom_id).first;
                        // Check whether elements of md and qm match
-                       if (intCoords.at(qm_atom_id).first
+                       if (intCoords.at(qm_atom_id).first.substr(0,1)
                            != md_atom_name.substr(0,1) ) {
-                           cout << "WARNING: Atom " <<md_atom_name << "in mol. "
+                           cout << "WARNING: Atom " <<md_atom_name << " in mol. "
                                 << molMdName << " appears to have element type "
                                 << md_atom_name.substr(0,1)
                                 << ", but QM partner (ID " << qm_atom_id
@@ -290,11 +296,9 @@ void Md2QmEngine::Md2Qm(CSG::Topology *mdtop, CTP::Topology *qmtop) {
         string basis = (*typeit)->getBasisName();
         string orbitals = (*typeit)->getOrbitalsFile();
         string qmcoords = (*typeit)->getQMCoordsFile();
-        vector<int> torbNrs = (*typeit)->getTOrbNrs();
         bool canRigidify = (*typeit)->canRigidify();
         CTP::SegmentType *segType = qmtop->AddSegmentType(name);
         segType->setBasisName(basis);
-        segType->setTOrbNrs(torbNrs);
         segType->setOrbitalsFile(orbitals);
         segType->setQMCoordsFile(qmcoords);
         segType->setCanRigidify(canRigidify);
@@ -490,14 +494,10 @@ CTP::SegmentType *Md2QmEngine::AddQMUnit(int qmunit_id, Property *property) {
     if (property->exists("basisset")) {
         basisSetName = property->get("basisset").as<string>();
     }
-    if (property->exists("torbital")) {
-        torbNrs = property->get("torbital").as< vector<int> >();
-    }
 
-    CTP::SegmentType* qmUnit = new CTP::SegmentType(qmunit_id, qmunit_name,
+    CTP::SegmentType* qmUnit = new CTP::SegmentType(qmunit_id,    qmunit_name,
                                                     basisSetName, orbitalsFile,
-                                                    qmCoordsFile, torbNrs,
-                                                    canRigidify);
+                                                    qmCoordsFile, canRigidify);
     _qmUnits.push_back(qmUnit);
     return qmUnit;
 }
@@ -546,10 +546,11 @@ void Md2QmEngine::getIntCoords(string &file,
             std::getline(intt, line);
 
             vector< string > split;
-            Tokenizer toker(line, " ");
+            Tokenizer toker(line, " \t");
             toker.ToVector(split);
-            if ( !split.size()    ||
-                  split[0] == "#" ||
+            if ( !split.size()      ||
+                  split.size() != 4 ||
+                  split[0] == "#"   ||
                   split[0].substr(0,1) == "#" ) { continue; }
 
             // Interesting information written here: e.g. 'C 0.000 0.000 0.000'
@@ -560,9 +561,12 @@ void Md2QmEngine::getIntCoords(string &file,
             double z = boost::lexical_cast<double>( split[3] ) / 10.;
             vec qmPos = vec(x,y,z);
 
-            pair<string, vec> qmTypePos(element.substr(0,1), qmPos);
+            pair<string, vec> qmTypePos(element, qmPos);
             intCoords[atomCount] = qmTypePos;
         }
+    }
+    else {
+        throw std::runtime_error("No such file: '"+file+"'.");
     }
 }
 

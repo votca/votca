@@ -1,11 +1,13 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ *            Copyright 2009-2012 The VOTCA Development Team
+ *                       (http://www.votca.org)
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ *      Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * You may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *              http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,46 +17,130 @@
  *
  */
 
+
 #include <votca/ctp/qmnblist.h>
-#include <votca/ctp/qmbead.h>
-#include <votca/csg/nblist.h>
-#include <votca/csg/nblistgrid.h>
-#include <votca/ctp/qmtopology.h>
+#include <votca/tools/globals.h>
+#include <votca/ctp/topology.h>
 
 namespace votca { namespace ctp {
 
-void QMNBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions)
-{
-    //Cleanup();
-    
-    _father = dynamic_cast<QMTopology*> (list1.getTopology());
-    
-    NBListGrid nb;
-    nb.setCutoff(_cutoff);
-    nb.SetMatchFunction(this, &QMNBList::Match);
-    nb.Generate(list1, list2, do_exclusions);
+QMPair *QMNBList::Add(Segment* seg1, Segment* seg2) {
 
+    if (this->FindPair(seg1, seg2) != NULL) {
+        throw std::runtime_error("Critical bug: pair already exists");
+    }
+
+    // POTENTIAL BUGS : +1 added to start from 1;
+    int id = this->size()+1;
+
+    QMPair *pair = new QMPair(id, seg1, seg2);
+
+    this->AddPair(pair);
+
+    return pair;
+    
 }
 
-bool QMNBList::Match(Bead *ab1, Bead *ab2, const vec &r, const double notused)
-{
-    QMBead *b1=dynamic_cast<QMBead*>(ab1);
-    QMBead *b2=dynamic_cast<QMBead*>(ab2);
 
-    if(b1->getMolecule() == b2->getMolecule()) return false;
-    if(b1->GetCrgUnit() == NULL || b2->GetCrgUnit() == NULL) return false;
 
-    QMCrgUnit *crg1, *crg2;
-    crg1 = b1->GetCrgUnit();
-    crg2 = b2->GetCrgUnit();
 
-    if(crg1->getId() > crg2->getId())
-        swap(crg1, crg2);
+void QMNBList::PrintInfo(FILE *out) {
+
+    QMNBList::iterator nit;
+
+    for (nit = this->begin();
+         nit != this->end();
+         nit++) {
+
+        QMPair *pair = *nit;
+
+        int ghost;
+        if (pair->HasGhost()) { ghost = 1; }
+        else { ghost = 0; }
+
+        fprintf(out, "PairID %5d  | Seg1 %4d Seg2 %4d dR %2.4f Ghost? %1d | lOuter %1.4f J %2.4f r12 %2.4f r21 %2.4f \n",
+                pair->getId(),
+                pair->first->getId(),
+                pair->second->getId(),
+                pair->Dist(),
+                ghost,
+                0.0, // pair->getLambdaO(),
+                0.0, // pair->calcJeff2(),
+                0.0, // pair->getRate12(),
+                0.0 ); // pair->getRate21() );
+    }
+}
+
+
+void QMNBList::GenerateSuperExchange() {
+
+    //QMNBList bridged_nblist;
+
+    // loop over all donor/acceptor pair types
+    for (std::list<SuperExchangeType*>::iterator itDA = _superexchange.begin(); itDA != _superexchange.end(); itDA++) {
+
+        cout << endl << " ... ... Processing superexchange pairs of type " << (*itDA)->asString() << flush;
+        int _bridged_pairs = 0;
+        int _bridged_and_direct_pairs = 0;
+        int bridged_molecules = 0;
+
+        // vector of neighboring segments of the donor/acceptor type
+        map< int, Segment*> _ns;
+
+        // loop over all segments in the topology
+        for (vector< Segment* >::iterator segit = _top->Segments().begin(); segit != _top->Segments().end(); segit++) {
+
+            // check if this is a bridge
+            Segment* segment = *segit;
+            string name = segment->getName();
+
+            if ((*itDA)->isOfBridge(name)) {
+                QMNBList::partners *_partners = FindPartners(segment);
+
+                // loop over all partners of a segment
+                QMNBList::partners::iterator itp;
+                if (_partners != NULL) {
+                    map< int, Segment*> _neighbors;
+                    for (itp = _partners->begin(); itp != _partners->end(); itp++) {
+                        Segment *nb = itp->first;
+                        QMPair *pair = itp->second;
+                        // check if the neighbor is of a donor or acceptor type
+                        if ((*itDA)->isOfDonorAcceptor(nb->getName())) _neighbors[ nb->getId() ] = nb;
+                    } // end of the loop of all partners of a segment
+
+                     // create new pairs
+                    if (_neighbors.size() > 1) {
+                        for (map<int, Segment*>::iterator it1 = _neighbors.begin(); it1 != _neighbors.end(); it1++) {
+                            map<int, Segment*>::iterator it_diag = it1;
+                            for (map<int, Segment*>::iterator it2 = ++it_diag; it2 != _neighbors.end(); it2++) {
+                                
+                                QMPair *pair = FindPair(it1->second, it2->second);
+                                
+                                if (pair == NULL ) { 
+                                    QMPair* _pair = Add(it1->second, it2->second);
+                                    _pair->setType( QMPair::SuperExchange );
+                                    _pair->AddBridgingSegment( segment );                                   
+                                    _bridged_pairs++;
+                                } else { // pair type is already there 
+                                    if ( pair->getType() == QMPair::Hopping ) {
+                                        _bridged_and_direct_pairs++;
+                                        pair->setType( QMPair::SuperExchangeAndHopping );
+                                    }
+                                    pair->AddBridgingSegment( segment );
+                                }
+                            }
+                        }
+                    } // 
+                } // end of the check of zero partners
+            } // end of if this is a bridged pair
+        } // end of the loop of all segments
         
-    if(!FindPair(crg1, crg2))
-        AddPair(new QMPair(crg1, crg2, _father));
+        cout << " : added " << _bridged_pairs + _bridged_and_direct_pairs << " bridged with " << _bridged_and_direct_pairs << " mixed pairs" << endl;     
+       
+    } // end of the loop over donor/acceptor types
 
-    return false;
+
+    return;
 }
 
 }}

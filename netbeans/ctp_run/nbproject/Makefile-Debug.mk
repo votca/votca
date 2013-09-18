@@ -22,19 +22,20 @@ AS=as
 
 # Macros
 CND_PLATFORM=GNU-Linux-x86
+CND_DLIB_EXT=so
 CND_CONF=Debug
 CND_DISTDIR=dist
+CND_BUILDDIR=build
 
 # Include project Makefile
 include Makefile
 
 # Object Directory
-OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
+OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/715944016/ctp_run.o \
-	${OBJECTDIR}/_ext/715944016/ctp_run2.o
+	${OBJECTDIR}/_ext/715944016/ctp_run.o
 
 
 # C Compiler Flags
@@ -55,7 +56,7 @@ LDLIBSOPTIONS=../libctp/dist/Debug/GNU-Linux-x86/liblibctp.a ../../../csg/netbea
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-Debug.mk ../../src/tools/ctp_run
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ../../src/tools/ctp_run
 
 ../../src/tools/ctp_run: ../libctp/dist/Debug/GNU-Linux-x86/liblibctp.a
 
@@ -67,17 +68,12 @@ LDLIBSOPTIONS=../libctp/dist/Debug/GNU-Linux-x86/liblibctp.a ../../../csg/netbea
 
 ../../src/tools/ctp_run: ${OBJECTFILES}
 	${MKDIR} -p ../../src/tools
-	${LINK.cc} -o ../../src/tools/ctp_run ${OBJECTFILES} ${LDLIBSOPTIONS} 
+	${LINK.cc} -o ../../src/tools/ctp_run ${OBJECTFILES} ${LDLIBSOPTIONS}
 
 ${OBJECTDIR}/_ext/715944016/ctp_run.o: ../../src/tools/ctp_run.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../moo/include -I../../../csg/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/ctp_run.o ../../src/tools/ctp_run.cc
-
-${OBJECTDIR}/_ext/715944016/ctp_run2.o: ../../src/tools/ctp_run2.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
-	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../moo/include -I../../../csg/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/ctp_run2.o ../../src/tools/ctp_run2.cc
 
 # Subprojects
 .build-subprojects:
@@ -88,7 +84,7 @@ ${OBJECTDIR}/_ext/715944016/ctp_run2.o: ../../src/tools/ctp_run2.cc
 
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
-	${RM} -r build/Debug
+	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
 	${RM} ../../src/tools/ctp_run
 
 # Subprojects

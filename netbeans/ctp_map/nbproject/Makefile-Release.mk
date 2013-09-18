@@ -22,6 +22,7 @@ AS=as
 
 # Macros
 CND_PLATFORM=GNU-Linux-x86
+CND_DLIB_EXT=so
 CND_CONF=Release
 CND_DISTDIR=dist
 CND_BUILDDIR=build
@@ -34,9 +35,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/715944016/md2qm_observer.o \
 	${OBJECTDIR}/_ext/715944016/Md2QmEngine.o \
-	${OBJECTDIR}/_ext/715944016/ctp_map_exp.o \
 	${OBJECTDIR}/_ext/715944016/ctp_map.o
 
 
@@ -64,20 +63,10 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ctp_map: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ctp_map ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
-${OBJECTDIR}/_ext/715944016/md2qm_observer.o: ../../src/tools/md2qm_observer.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
-	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/md2qm_observer.o ../../src/tools/md2qm_observer.cc
-
 ${OBJECTDIR}/_ext/715944016/Md2QmEngine.o: ../../src/tools/Md2QmEngine.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/Md2QmEngine.o ../../src/tools/Md2QmEngine.cc
-
-${OBJECTDIR}/_ext/715944016/ctp_map_exp.o: ../../src/tools/ctp_map_exp.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
-	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/ctp_map_exp.o ../../src/tools/ctp_map_exp.cc
 
 ${OBJECTDIR}/_ext/715944016/ctp_map.o: ../../src/tools/ctp_map.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/715944016

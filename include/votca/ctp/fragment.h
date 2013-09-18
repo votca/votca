@@ -1,11 +1,13 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ *            Copyright 2009-2012 The VOTCA Development Team
+ *                       (http://www.votca.org)
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ *      Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * You may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *              http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,6 +22,7 @@
 
 #include <votca/ctp/atom.h>
 #include <votca/ctp/polarsite.h>
+#include <votca/ctp/apolarsite.h>
 #include <fstream>
 
 
@@ -54,12 +57,14 @@ public:
     inline void setSegment(Segment *container)   { _seg = container; }
     void        AddAtom( Atom* atom );
     void        AddPolarSite(PolarSite *pole);
+    void        AddAPolarSite(APolarSite *pole);
 
     Topology            *getTopology() { return _top; }
     Molecule            *getMolecule() { return _mol; }
     Segment             *getSegment()  { return _seg; }
     vector< Atom* >     &Atoms() { return _atoms; }
     vector<PolarSite*>  &PolarSites() { return _polarSites; }
+    vector<APolarSite*> &APolarSites() { return _apolarSites; }
 
     const int    &getId() const { return _id; }
     const string &getName() const { return _name; }
@@ -91,6 +96,7 @@ private:
 
     vector < Atom* > _atoms;
     vector <PolarSite*> _polarSites;
+    vector <APolarSite*> _apolarSites;
     vector< double > _weights;
     int              _symmetry;
     vector< int >    _trihedron;

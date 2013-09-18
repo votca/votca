@@ -1,11 +1,13 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ *            Copyright 2009-2012 The VOTCA Development Team
+ *                       (http://www.votca.org)
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ *      Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * You may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *              http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,111 +17,99 @@
  *
  */
 
-#ifndef _TDUMP_H
-#define	_TDUMP_H
 
-#include <stdlib.h>
-#include <math.h>
-#include <list>
-#include <boost/lexical_cast.hpp>
-#include <iostream>
-#include <fstream>
+#ifndef _TDUMP2_H
+#define _TDUMP2_H
 
-#include <votca/ctp/qmpair.h>
+#include <cstdlib>
 #include <votca/ctp/qmcalculator.h>
 
-#include <votca/csg/trajectorywriter.h>
 
 namespace votca { namespace ctp {
 
-/**
-    \brief Outputs the coarse-grained and back-mapped (using rigid fragments) trajectories
 
 
-Callname: tdump
 
-Useful for checking whether the mapping of the atomistic trajectory on conjugated segments and rigid fragments is correct. One can use VisualMolecularDnamics (vmd) to view the initial, coarse-grained, and back-mapped trajectories together.
-
-*/
-class Tdump : public QMCalculator
+class TDump : public QMCalculator
 {
+
 public:
-    Tdump() {};
-    ~Tdump() {};
 
-    const char *Description() { return "Outputs the coarse-grained and back-mapped (using rigid fragments) trajectories"; }
+    TDump() : _outPDBmd("MD.pdb"), _outPDBqm("QM.pdb"), 
+              _framesToWrite(1),   _framesWritten(0)     { };
+   ~TDump() { };
 
-    void Initialize(QMTopology *top, Property *options);
-    bool EvaluateFrame(QMTopology *top);
-    void EndEvaluate(QMTopology *top);
-   
+    string Identify() { return "tdump"; }
+
+    void Initialize(Topology *top, Property *options);
+    bool EvaluateFrame(Topology *top);
+
 private:
-    Property * _options;
-    string _nameCG, _nameQM;
-    TrajectoryWriter *_writerCG, *_writerQM; 
+
+    string _outPDBmd;
+    string _outPDBqm;
+
+    int    _framesWritten;
+    int    _framesToWrite;
+
+    
 };
 
-inline void Tdump::Initialize(QMTopology *top, Property *options) {
-    _options = options;
-    if ( options->exists("options.tdump.cg") && 
-          options->exists("options.tdump.qm") ) {
-        _nameCG = options->get("options.tdump.cg").as<string>();
-        _nameQM = options->get("options.tdump.qm").as<string>();
-        cout << "Writing the  conjugated  segments trajectory to " << _nameCG <<endl;
-        cout << "Writing the backmapped atomistic trajectory to " << _nameQM <<endl;
-    } else {
-        _nameCG="traj_cg.pdb";
-        _nameQM="traj_qm.pdb";
-        cout << "Warning: at least one of the trajectory names was not given" << endl
-                << "Using default names traj_cg.pdb and traj_qm.pdb" << endl;
-    }
-    
-    string extCG  = _nameCG.substr(_nameCG.length()-4,4);
-    string extQM  = _nameCG.substr(_nameQM.length()-4,4);
 
-    _writerCG = TrjWriterFactory().Create(_nameCG);
-    if(_writerCG == NULL) throw runtime_error(string("output format not supported: ")+ extCG);
+void TDump::Initialize(Topology *top, Property *options) {
 
-    _writerQM = TrjWriterFactory().Create(_nameQM);
-    if(_writerQM == NULL) throw runtime_error(string("output format not supported: ")+ extQM);
+    // _options already has default values, update them with the supplied options
+    _options.CopyValues("", *options );
 
-    _writerCG->Open(_nameCG);
-    _writerQM->Open(_nameQM);
+    string key      = "options." + Identify();
+    _outPDBmd = _options.get(key+".md").as<string>();
+    _outPDBqm = _options.get(key+".qm").as<string>();
+    _framesToWrite = _options.get(key+".frames").as<int>();
 
 }
 
-inline bool Tdump::EvaluateFrame(QMTopology *top) {
-    
-     // dumping the coarse-grained trajectory
-    _writerCG->Write( top );
-    
-    // creating the back-mapped atomistic trajectory
-    vector<QMCrgUnit *> lcharges = top->CrgUnits();
-    Topology qmAtomisticTop;
-    qmAtomisticTop.setBox(top->getBox());
-    qmAtomisticTop.setStep(top->getStep());
-    qmAtomisticTop.setTime(top->getTime());
+bool TDump::EvaluateFrame(Topology *top) {
 
+    if (_framesWritten > _framesToWrite) { return 1; }
 
-    for (vector<QMCrgUnit *>::iterator itl = lcharges.begin(); itl != lcharges.end(); itl++){
-        top->AddAtomisticBeads(*itl,&qmAtomisticTop);
+    // Rigidify system (if possible)
+    bool isRigid = top->Rigidify();
+    if (!isRigid) {
+        return 0;
     }
-    
-    // dumping the back-mapped trajectory and cleaning
-    _writerQM->Write(&qmAtomisticTop);
-    
-    qmAtomisticTop.Cleanup();
 
-    return true;
-}
+    // Print coordinates
+    FILE *outPDBmd = NULL;
+    FILE *outPDBqm = NULL;
 
-inline void Tdump::EndEvaluate(QMTopology *top)
-{
-    _writerCG->Close();
-    _writerQM->Close();
+    outPDBmd = fopen(_outPDBmd.c_str(), "a");
+    outPDBqm = fopen(_outPDBqm.c_str(), "a");
+
+    fprintf(outPDBmd, "TITLE     VOT CAtastrophic title \n");
+    fprintf(outPDBmd, "Model %8d \n" , _framesWritten);
+
+    fprintf(outPDBqm, "TITLE     VOT CAtastrophic title \n");
+    fprintf(outPDBqm, "Model %8d \n", _framesWritten);    
+
+    vector< Segment* > ::iterator sit;
+    for (sit = top->Segments().begin();
+         sit < top->Segments().end();
+         sit++) {
+
+        (*sit)->WritePDB(outPDBmd, "Atoms", "MD");
+        (*sit)->WritePDB(outPDBqm, "Atoms", "QM");
+    }
+
+    fprintf(outPDBmd, "TER\nENDMDL\n");
+    fprintf(outPDBqm, "TER\nENDMDL\n");
+
+    fclose(outPDBmd);
+    fclose(outPDBqm);
+
+    _framesWritten++;
 }
 
 }}
 
-#endif	/* _TDUMP_H */
 
+#endif

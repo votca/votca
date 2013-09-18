@@ -1,0 +1,7 @@
+<options>
+
+<eimport help="Imports site energies from the output file of emultipole and writes them to the state file" label="calc:eimport">
+	<energies help="Read in site energies from file (formatted as output in emultipole.control.output)"></energies>
+</eimport>
+
+</options>

@@ -1,11 +1,13 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ *            Copyright 2009-2012 The VOTCA Development Team
+ *                       (http://www.votca.org)
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ *      Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * You may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *              http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,9 +17,10 @@
  *
  */
 
-#ifndef _CALCULATORFACTORY_H
-#define	_CALCULATORFACTORY_H
+#ifndef __VOTCA_CTP_CALCULATORFACTORY_H
+#define	__VOTCA_CTP_CALCULATORFACTORY_H
 
+#include <map>
 #include <votca/tools/objectfactory.h>
 #include "qmcalculator.h"
 
@@ -25,25 +28,43 @@ namespace votca { namespace ctp {
 
 using namespace std;
 
-class CalculatorFactory
+class Calculatorfactory
 : public ObjectFactory<std::string, QMCalculator>
 {
 private:
-    CalculatorFactory() {}
+    Calculatorfactory() {}
 public:
     
     static void RegisterAll(void);
+    
+    /**
+       Create an instance of the object identified by key.
+    *  Overwritten to load calculator defaults
+    */
+    QMCalculator *Create(const string &key);
 
-    friend CalculatorFactory &Calculators();
+    friend Calculatorfactory &Calculators();
+    
 };
 
-inline CalculatorFactory &Calculators()
+inline Calculatorfactory &Calculators()
 {
-    static CalculatorFactory _instance;
+    static Calculatorfactory _instance;
     return _instance;
+}
+
+inline QMCalculator* Calculatorfactory::Create(const string &key)
+{
+    typename assoc_map::const_iterator it(getObjects().find(key));
+    if (it != getObjects().end()) {
+        QMCalculator* calc = (it->second)();
+        calc->LoadDefaults();
+        return calc;
+    } else
+        throw std::runtime_error("factory key " + key + " not found.");
 }
 
 }}
 
-#endif	/* _CALCULATORFACTORY_H */
+#endif	/* _Calculatorfactory_H */
 

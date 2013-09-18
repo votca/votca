@@ -1,3 +1,23 @@
+/*
+ *            Copyright 2009-2012 The VOTCA Development Team
+ *                       (http://www.votca.org)
+ *
+ *      Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *              http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+
 #include <votca/ctp/fragment.h>
 
 using namespace std;
@@ -49,6 +69,11 @@ void Fragment::AddAtom(Atom* atom) {
 
 void Fragment::AddPolarSite(PolarSite *pole) {
     _polarSites.push_back(pole);
+    pole->setFragment(this);
+}
+
+void Fragment::AddAPolarSite(APolarSite *pole) {
+    _apolarSites.push_back(pole);
     pole->setFragment(this);
 }
 
@@ -111,7 +136,6 @@ void Fragment::calcPos(string tag) {
 
 void Fragment::Rigidify(bool Auto) {
 
-
     // +++++++++++++++++++++++++++++++++++++++++ //
     // Establish reference atoms for local frame //
     // +++++++++++++++++++++++++++++++++++++++++ //
@@ -157,7 +181,7 @@ void Fragment::Rigidify(bool Auto) {
         }
     }
 
-    int _symmetry = trihedron.size();
+    _symmetry = trihedron.size();
 
     // +++++++++++++++++++++++ //
     // Construct trihedra axes //
@@ -167,7 +191,7 @@ void Fragment::Rigidify(bool Auto) {
     vec xQM, yQM, zQM;
 
     if (_symmetry == 3) {
-
+        
         vec r1MD = trihedron[0]->getPos();
         vec r2MD = trihedron[1]->getPos();
         vec r3MD = trihedron[2]->getPos();
@@ -195,7 +219,7 @@ void Fragment::Rigidify(bool Auto) {
 
     }
 
-    else if (_symmetry = 2) {
+    else if (_symmetry == 2) {
 
         vec r1MD = trihedron[0]->getPos();
         vec r2MD = trihedron[1]->getPos();
@@ -253,7 +277,7 @@ void Fragment::Rigidify(bool Auto) {
 
     }
 
-    else if (_symmetry = 1) {
+    else if (_symmetry == 1) {
 
         xMD = vec(1,0,0);
         yMD = vec(0,1,0);
@@ -262,6 +286,22 @@ void Fragment::Rigidify(bool Auto) {
         yQM = vec(0,1,0);
         zQM = vec(0,0,1);
 
+    }
+
+    else {
+        cout << endl
+             << "NOTE: Invalid definition of local frame in fragment "
+             << this->getName();
+        cout << ". Assuming point particle for mapping. "
+             << endl;
+
+        xMD = vec(1,0,0);
+        yMD = vec(0,1,0);
+        zMD = vec(0,0,1);
+        xQM = vec(1,0,0);
+        yQM = vec(0,1,0);
+        zQM = vec(0,0,1);
+        
     }
     
     // +++++++++++++++++ //

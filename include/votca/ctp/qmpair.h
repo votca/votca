@@ -1,11 +1,13 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ *            Copyright 2009-2012 The VOTCA Development Team
+ *                       (http://www.votca.org)
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ *      Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * You may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *              http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,133 +17,116 @@
  *
  */
 
-#ifndef _QMPAIR_H
-#define	_QMPAIR_H
 
-#include "qmcrgunit.h"
-#include "customfields.h"
+#ifndef _QMPair_H
+#define _QMPair_H
+
+#include "segment.h"
 #include <utility>
+
 
 namespace votca { namespace ctp {
 
-class QMTopology;
+class Topology;
 
-class QMPair :
-    public std::pair<QMCrgUnit *, QMCrgUnit *>, public CustomFields
+
+
+class QMPair : public std::pair< Segment*, Segment* >
 {
 public:
-    QMPair(): _r(0.,0.,0.), _rate_12(0.),_rate_21(0.),_ghost(NULL),_crg2(NULL), _in_database(false) {}
-
-    QMPair(QMCrgUnit *crg1, QMCrgUnit *crg2, QMTopology * top);
-
-    ~QMPair(){
-        if(_ghost != NULL)
-            delete _ghost;
-    }
-    /**
-     * \brief the vector connecting two beads
-     * @return pbc correct distance vector
-     */
-    vec &r() { return _r; }
-
-    /**
-     * \brief the distance of the beads
-     * @return pbc correct distance
-     */
-    double dist() { return abs(_r); }
-
-    /**
-     * \brief vector of transfer integrals (vector because of degenerate orbitals)
-     * @return vector of transfer integrals
-     */
-    vector <double> &Js() { return _Js; }
-
-    /**
-     * \brief transfer rate from first to second
-     * @return transfer rate from first to second
-     */
-
-    double &rate12(){return _rate_12;}
-
-    /**
-     * \brief transfer rate from second to first
-     * @return transfer rate from second to first
-     */     
-    double &rate21(){return _rate_21;}
-
-    /**
-     * \brief set the transfer integral
-     * @param js vector with transfer integrals
-     */
-    void setJs(const vector <double> &js){_Js=js;}
-
-    /** \brief calculate the effective transfer integral as the rms of the transfer integrals
-     * @return effective tranfer integral squared
-     */
-    double calcJeff2();
-
-    /**
-     *  \brief set transfer rate from first to second
-     * @param rate  forward rate
-     */
-    void setRate12(double rate) {_rate_12=rate;}
     
-    /**
-     * \brief set transfer rate from second to first
-     * @param r backward rate
-     */
-    void setRate21(double rate) {_rate_21=rate;}
+    enum PairType 
+    { 
+        Hopping,
+        SuperExchange,
+        SuperExchangeAndHopping
+    };
 
-    /**
-     * \brief first crg unit (might be ghost copy for pbc image)
-     *
-     * first and second are original crg units, crg1 and crg2 take into account
-     * pbc and might be ghost copies. If you don't need the PBC corrected
-     * positions, never (!!) use this function, especially if properties of
-     * a charge unit are changed. Use pair.first instead!
+    QMPair() : _R(0,0,0), _ghost(NULL), _top(NULL),
+                _id(-1),    _hasGhost(0),
+                _rate12_e(0), _rate21_e(0),
+                _rate12_h(0), _rate21_h(0),
+                _has_e(false), _has_h(false),
+                _lambdaO_e(0), _lambdaO_h(0),
+                _Jeff2_e(0),   _Jeff2_h(0),
+                _pair_type(Hopping) { };
+    QMPair(int id, Segment *seg1, Segment *seg2);
+   ~QMPair();
 
-     * @return crg unit 1
-     */
-    QMCrgUnit *Crg1PBCCopy() {return first;}
 
-    /**
-     * \brief second crg unit (might be ghost copy for pbc image)
-     *
-     * first and second are original crg units, crg1 and crg2 take into account
-     * pbc and might be ghost copies. If you don't need the PBC corrected
-     * positions, never (!!) use this function, especially if properties of
-     * a charge unit are changed. Use pair.second instead!
-     *
-     * @return crg unit 2
-     */
-    QMCrgUnit *Crg2PBCCopy() {return _crg2;}
+   int       getId() { return _id; }
+   Topology *getTopology() { return _top; }
+   void      setTopology(Topology *top) { _top = top; }
+   vec      &R() { return _R; }
+   double    Dist() { return abs(_R); }
+   vec       getPos() { return 0.5*(first->getPos() + second->getPos()); }
 
-    void setInDatabase(bool indb) { _in_database = indb; }
-    bool getInDatabase() { return _in_database; }
+   void     setIsPathCarrier(bool yesno, int carrier);
+   bool     isPathCarrier(int carrier);
 
-    int getId() { return _id; }
-    void setId(int id) { _id = id; }
+   void     setLambdaO(double lO, int carrier);
+   double   getLambdaO(int carrier);
+
+   void     setRate12(double rate, int state);
+   void     setRate21(double rate, int state);
+   double   getRate12(int state);
+   double   getRate21(int state);
+
+   void     setJs(const vector <double> Js, int state);
+   double   calcJeff2(int state);
+   double   getJeff2(int state) { return (state == -1) ? _Jeff2_e : _Jeff2_h; }
+   void     setJeff2(double Jeff2, int state);
+   vector<double> &Js(int state) { return (state==-1) ? _Js_e : _Js_h; }
+
+   double   getdE12(int state) { return second->getSiteEnergy(state)
+                                       -first->getSiteEnergy(state); }
+
+   Segment* Seg1PbCopy() { return first; }
+   Segment* Seg2PbCopy();
+   Segment* Seg1() { return first; }
+   Segment* Seg2() { return second; }
+
+   bool     HasGhost() { return _hasGhost; }
+   void     WritePDB(string fileName);
+   void     WriteXYZ(FILE *out, bool useQMPos = true);
+
+   // superexchange pairs have a list of bridging segments
+   void     setType( PairType pair_type ) { _pair_type = pair_type; }
+   void     setType( int pair_type ) { _pair_type = (PairType) pair_type; }
+   void     AddBridgingSegment( Segment* _segment ){ _bridging_segments.push_back(_segment); }
+   vector<Segment*> &getBridgingSegments() { return _bridging_segments; }
+   PairType &getType(){return _pair_type;}
 
 protected:
-    /// vector connecting the two beads
-    vec _r;
-    /// transfer integrals, multiple entries in case of degeneracy
-    vector <double> _Js;
-    /// transfer rate from first to second
-    double _rate_12;
-    /// transfer rate from second to first
-    double _rate_21;
+
+    int         _id;
+    vec         _R;
+    Topology   *_top;
+
+    Segment    *_ghost;
+    bool        _hasGhost;
     
-    /// ghost atom in case the molecules are neighbors across a boundary
-    QMCrgUnit * _ghost;
+    double _lambdaO_e;   // from ::EOutersphere output    DEFAULT 0
+    double _lambdaO_h;
+    double _rate12_e;    // from ::Rates        output    DEFAULT 0
+    double _rate12_h;
+    double _rate21_e;    // from ::Rates        output    DEFAULT 0
+    double _rate21_h;
+    double _has_e;       // from ::Rates        input     DEFAULT 0
+    double _has_h;
+    
+    vector <double> _Js_e;
+    vector <double> _Js_h;
+    double          _Jeff2_e;
+    double          _Jeff2_h;
 
-    QMCrgUnit *_crg2;
+    PairType _pair_type;
+    vector<Segment*> _bridging_segments;
 
-    bool _in_database;
-    int _id;
+
 };
 
 }}
 
-#endif	/* _QMBEADPAIR_H */
 
+#endif

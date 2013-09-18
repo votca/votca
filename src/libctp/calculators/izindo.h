@@ -1,11 +1,33 @@
+/*
+ *            Copyright 2009-2012 The VOTCA Development Team
+ *                       (http://www.votca.org)
+ *
+ *      Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *              http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+
 #ifndef _CALC_INTEGRALS_H
 #define	_CALC_INTEGRALS_H
 
-#include <votca/ctp/qmpair2.h>
-#include <votca/ctp/paircalculator2.h>
+#include <votca/ctp/qmpair.h>
+#include <votca/ctp/paircalculator.h>
 #include <votca/moo/mol_and_orb.h>
 
 namespace votca { namespace ctp {
+
+namespace MOO = votca::moo;
 
 /**
 * \brief Semi-empirical electronic coupling elements for QM pairs
@@ -26,22 +48,23 @@ public:
 
     string  Identify() { return "IZindo"; }
     void    Initialize(Topology *top, Property *options);
-    void    EvalPair(Topology *top, QMPair2 *pair, int slot);
+    void    ParseOrbitalsXML(Topology *top, Property *options);
+    void    EvalPair(Topology *top, QMPair *pair, PairOperator *opThread);
 
-    void    CTP2MOO2CTP(QMPair2 *pair, int slot);
-    void    CalculateJ(QMPair2 *pair);
+    void    CTP2MOO2CTP(QMPair *pair, PairOperator *opThread, int state);
+    void    CalculateJ(QMPair *pair);
     void    CleanUp();
 
 
 private:
 
-    mol_and_orb *_morb1;
-    mol_and_orb *_morb2;
-    basis_set   *_basis1;
-    basis_set   *_basis2;
-    orb         *_orb1;
-    orb         *_orb2;
-    fock        *_fock;
+    MOO::mol_and_orb *_morb1;
+    MOO::mol_and_orb *_morb2;
+    MOO::basis_set   *_basis1;
+    MOO::basis_set   *_basis2;
+    MOO::orb         *_orb1;
+    MOO::orb         *_orb2;
+    MOO::fock        *_fock;
 
     vector<int> _torbNrs1;
     vector<int> _torbNrs2;
@@ -49,7 +72,17 @@ private:
     // Fock::CalcJ(...) apparently uses
     // thread-unsafe containers and / or
     // (hidden) malloc()s. Restrict...
-    Mutex _FockPath;
+    Mutex       _FockPath;
+    bool        _maverick;
+
+
+    // Information on orbitals for segments
+    map<string,string>          _seg_basisName;
+    map<string,string>          _seg_orbFile;
+    map<string,bool>            _seg_has_e;
+    map<string,bool>            _seg_has_h;
+    map< string, vector<int> >  _seg_torbs_e;
+    map< string, vector<int> >  _seg_torbs_h;
 
 };
 
@@ -71,23 +104,135 @@ void IZindo::CleanUp() {
 void IZindo::Initialize(Topology *top, Property *options) {
 
     cout << endl << "... ... Initialize with " << _nThreads << " threads.";
+    _maverick = (_nThreads == 1) ? true : false;
+
+    /* ---- OPTIONS.XML Structure -----
+     *
+     * <izindo>
+     *
+     *      <orbitalsXML>ORBITALS.XML</orbitalsXML>
+     *
+     * </izindo>
+     *
+     */
+
+    this->ParseOrbitalsXML(top, options);
+
 }
 
 
-void IZindo::EvalPair(Topology *top, QMPair2 *qmpair, int slot) {
+void IZindo::ParseOrbitalsXML(Topology *top, Property *opt) {
+
+    string key = "options.izindo";
+    string orbitalsXML = opt->get(key+".orbitalsXML").as<string> ();
+    cout << endl << "... ... Orbital data from " << orbitalsXML << ". ";
+
+    Property alloc;
+    load_property_from_xml(alloc, orbitalsXML.c_str());    
+
+    /* --- ORBITALS.XML Structure ---
+     *
+     * <topology>
+     *
+     *     <molecules>
+     *          <molecule>
+     *          <name></name>
+     *
+     *          <segments>
+     *
+     *              <segment>
+     *              <name></name>
+     *
+     *              <basisset></basisset>
+     *              <orbitals></orbitals>
+     *
+     *              <torbital_e></torbital_e>
+     *              <torbital_h></torbital_h>
+     *              </segment>
+     *
+     *              <segment>
+     *                  ...
+     *
+     */
+
+    key = "topology.molecules.molecule";
+    list<Property*> mols = alloc.Select(key);
+    list<Property*> ::iterator molit;
+    for (molit = mols.begin(); molit != mols.end(); ++molit) {
+
+        key = "segments.segment";
+        list<Property*> segs = (*molit)->Select(key);
+        list<Property*> ::iterator segit;
+
+        for (segit = segs.begin(); segit != segs.end(); ++segit) {
+
+            string segName = (*segit)->get("name").as<string> ();
+            string basisName = (*segit)->get("basisset").as<string> ();
+            string orbFile = (*segit)->get("orbitals").as<string> ();
+
+            bool has_e = false;
+            bool has_h = false;
+            vector<int> torbs_e;
+            vector<int> torbs_h;
+
+            if ( (*segit)->exists("torbital_e") ) {
+                torbs_e = (*segit)->get("torbital_e").as< vector<int> > ();
+                has_e = (torbs_e.size()) ? true : false;
+            }
+            if ( (*segit)->exists("torbital_h") ) {
+                torbs_h = (*segit)->get("torbital_h").as< vector<int> > ();
+                has_h = (torbs_h.size()) ? true : false;
+            }
+
+            _seg_basisName[segName] = basisName;
+            _seg_orbFile[segName] = orbFile;
+            _seg_has_e[segName] = has_e;
+            _seg_has_h[segName] = has_h;
+            _seg_torbs_e[segName] = torbs_e;
+            _seg_torbs_h[segName] = torbs_h;
+
+        }
+    }
+}
+
+
+void IZindo::EvalPair(Topology *top, QMPair *qmpair, PairOperator *opThread) {
 
     this->LockCout();
     cout << "\r... ... Evaluating pair " << qmpair->getId()+1 << flush;
     this->UnlockCout();
 
+    string segName1 = qmpair->Seg1()->getName();
+    string segName2 = qmpair->Seg2()->getName();
 
-    this->CTP2MOO2CTP(qmpair, slot);
+    bool pair_has_e = false;
+    bool pair_has_h = false;
 
+    try {
+        pair_has_e = _seg_has_e.at(segName1) && _seg_has_e.at(segName2);
+        pair_has_h = _seg_has_h.at(segName1) && _seg_has_h.at(segName2);
+    }
+    catch (out_of_range) {
+        this->LockCout();
+        cout << endl << "... ... WARNING: No orbital information for pair ["
+                     << segName1 << ", " << segName2 << "]. "
+                     << "Skipping... " << endl;
+        this->UnlockCout();
+
+        return;
+    }
+
+    if (pair_has_e) {
+        this->CTP2MOO2CTP(qmpair, opThread, -1);
+    }
+    if (pair_has_h) {
+        this->CTP2MOO2CTP(qmpair, opThread, +1);
+    }
 }
 
 
 
-void IZindo::CTP2MOO2CTP(QMPair2 *pair, int slot) {
+void IZindo::CTP2MOO2CTP(QMPair *pair, PairOperator *opThread, int state) {
 
     // ++++++++++++++++++++++ //
     // Initialize MOO Objects //
@@ -101,21 +246,39 @@ void IZindo::CTP2MOO2CTP(QMPair2 *pair, int slot) {
 
     string coordsFile1 = type1->getQMCoordsFile();
     string coordsFile2 = type2->getQMCoordsFile();
-    string basisName1 = type1->getBasisName();
-    string basisName2 = type2->getBasisName();
-    string orbFile1 = type1->getOrbitalsFile();
-    string orbFile2 = type2->getOrbitalsFile();
-    vector<int> torbs1 = type1->getTOrbNrs();
-    vector<int> torbs2 = type2->getTOrbNrs();
 
+    string basisName1;
+    string basisName2;
+    string orbFile1;
+    string orbFile2;
+    vector<int> torbs1;
+    vector<int> torbs2;
+        
+    basisName1 = _seg_basisName.at(type1->getName());
+    basisName2 = _seg_basisName.at(type2->getName());
+
+    orbFile1 = _seg_orbFile.at(type1->getName());
+    orbFile2 = _seg_orbFile.at(type2->getName());
+
+    torbs1 = (state == -1) ? _seg_torbs_e.at(type1->getName()) :
+                             _seg_torbs_h.at(type1->getName());
+    torbs2 = (state == -1) ? _seg_torbs_e.at(type2->getName()) :
+                             _seg_torbs_h.at(type2->getName());
     
-    mol_and_orb *morb1 = new mol_and_orb();
-    mol_and_orb *morb2 = new mol_and_orb();
-    basis_set *basis1 = new basis_set();
-    basis_set *basis2 = new basis_set();
-    orb *orb1   = new orb();
-    orb *orb2   = new orb();
-    fock *fock12   = new fock();
+    //string basisName1 = type1->getBasisName();
+    //string basisName2 = type2->getBasisName();
+    //string orbFile1 = type1->getOrbitalsFile();
+    //string orbFile2 = type2->getOrbitalsFile();
+    //vector<int> torbs1 = type1->getTOrbNrs();
+    //vector<int> torbs2 = type2->getTOrbNrs();
+    
+    MOO::mol_and_orb *morb1 = new MOO::mol_and_orb();
+    MOO::mol_and_orb *morb2 = new MOO::mol_and_orb();
+    MOO::basis_set *basis1 = new MOO::basis_set();
+    MOO::basis_set *basis2 = new MOO::basis_set();
+    MOO::orb *orb1   = new MOO::orb();
+    MOO::orb *orb2   = new MOO::orb();
+    MOO::fock *fock12   = new MOO::fock();
 
     vector<int> torbNrs1;
     vector<int> torbNrs2;
@@ -179,7 +342,7 @@ void IZindo::CTP2MOO2CTP(QMPair2 *pair, int slot) {
 
         // Perform translation + rotation
         const double NM2Bohr= 10/0.529189379;
-        morb1->rotate_someatoms(atmIdcs, rotQM2MD,
+        morb1->rotate_someatoms_ctp(atmIdcs, rotQM2MD,
                                  CoMD*NM2Bohr, CoQM*NM2Bohr,
                                  morb1);
 
@@ -192,11 +355,9 @@ void IZindo::CTP2MOO2CTP(QMPair2 *pair, int slot) {
     
     morb1->write_pdb("morbs.pdb", "MOL", 0);
 
-    
     // ++++++++++++++++++++++++++++++++++++++++ //
     // Rotate + Translate to MD Frame: Mol&Orb2 //
     // ++++++++++++++++++++++++++++++++++++++++ //
-
     for (fit = seg2->Fragments().begin();
             fit < seg2->Fragments().end();
             fit++) {
@@ -206,7 +367,6 @@ void IZindo::CTP2MOO2CTP(QMPair2 *pair, int slot) {
         vec CoMD = frag->getCoMD();
         vec CoQM = frag->getCoQM();
         matrix rotQM2MD = frag->getRotQM2MD();
-
         // Fill container with atom QM indices
         vector<int> atmIdcs;
         vector< Atom* > ::iterator ait;
@@ -218,22 +378,19 @@ void IZindo::CTP2MOO2CTP(QMPair2 *pair, int slot) {
              }
         }
 
-
         // Perform translation + rotation
         const double NM2Bohr= 10/0.529189379;
-        morb2->rotate_someatoms(atmIdcs, rotQM2MD,
+        morb2->rotate_someatoms_ctp(atmIdcs, rotQM2MD,
                                  CoMD*NM2Bohr, CoQM*NM2Bohr,
                                  morb2);
-
         // Rotate orbitals
         for (int i = 0; i < torbNrs2.size(); i++) {
             orb2->rotate_someatoms(atmIdcs, &rotQM2MD,
                                     morb2->getorb(i), i);
         }
     }
-    
-    morb2->write_pdb("morbs.pdb", "MOL", 1);
 
+    morb2->write_pdb("morbs.pdb", "MOL", 1);
     // ++++++++++++++++++++++++++++ //
     // Calculate transfer integrals //
     // ++++++++++++++++++++++++++++ //
@@ -253,9 +410,13 @@ void IZindo::CTP2MOO2CTP(QMPair2 *pair, int slot) {
         _FockPath.Unlock();
 
         Js.push_back(J);
+        
     }}
 
-    pair->setJs(Js);
+    pair->setJs(Js, state);
+    pair->setIsPathCarrier(true, state);
+    //cout << endl << "Jeff2 " << pair->getJeff2(state) << " ___ state " << state << endl;
+    //cout << "path  " << pair->isPathCarrier(state) << endl;
 
     delete morb1;
     delete morb2;
@@ -271,7 +432,7 @@ void IZindo::CTP2MOO2CTP(QMPair2 *pair, int slot) {
 }
 
 
-void IZindo::CalculateJ(QMPair2 *pair) {
+void IZindo::CalculateJ(QMPair *pair) {
 
     Segment *seg1 = pair->Seg1PbCopy();
     Segment *seg2 = pair->Seg2PbCopy();
@@ -306,7 +467,7 @@ void IZindo::CalculateJ(QMPair2 *pair) {
 
         // Perform translation + rotation
         const double NM2Bohr= 10/0.529189379;
-        _morb1->rotate_someatoms(atmIdcs, rotQM2MD,
+        _morb1->rotate_someatoms_ctp(atmIdcs, rotQM2MD,
                                  CoMD*NM2Bohr, CoQM*NM2Bohr,
                                  _morb1);
 
@@ -348,7 +509,7 @@ void IZindo::CalculateJ(QMPair2 *pair) {
 
         // Perform translation + rotation
         const double NM2Bohr= 10/0.529189379;
-        _morb2->rotate_someatoms(atmIdcs, rotQM2MD,
+        _morb2->rotate_someatoms_ctp(atmIdcs, rotQM2MD,
                                  CoMD*NM2Bohr, CoQM*NM2Bohr,
                                  _morb2);
 
@@ -377,7 +538,7 @@ void IZindo::CalculateJ(QMPair2 *pair) {
         Js.push_back(J);
     }}
 
-    pair->setJs(Js);
+    assert(false); // pair->setJs(Js);
 }
 
 }}

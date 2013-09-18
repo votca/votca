@@ -1,11 +1,13 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ *            Copyright 2009-2012 The VOTCA Development Team
+ *                       (http://www.votca.org)
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ *      Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * You may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *              http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,133 +17,169 @@
  *
  */
 
-#include <votca/csg/trajectoryreader.h>
-#include <votca/csg/trajectorywriter.h>
-#include <votca/csg/topologyreader.h>
-#include <votca/ctp/calculatorfactory.h>
+
 #include <votca/ctp/qmapplication.h>
 #include <votca/ctp/version.h>
+#include <boost/format.hpp>
 
 namespace votca { namespace ctp {
 
-QMApplication::QMApplication()
-{
-    CalculatorFactory::RegisterAll();
+QMApplication::QMApplication() {
+    Calculatorfactory::RegisterAll();
 }
 
-QMApplication::~QMApplication()
-{}
 
-void QMApplication::Initialize(void)
-{
-    // register all io plugins
-    TrajectoryWriter::RegisterPlugins();
-    TrajectoryReader::RegisterPlugins();
-    TopologyReader::RegisterPlugins();
-    CalculatorFactory::RegisterAll();
+void QMApplication::Initialize(void) {
+    votca::csg::TrajectoryWriter::RegisterPlugins();
+    votca::csg::TrajectoryReader::RegisterPlugins();
 
-    AddProgramOptions()
-        ("segments,s", boost::program_options::value<string>(), "  description of conjugated segments")
-        ("options,o", boost::program_options::value<string>(), "  program and calculator options")
-        ("file,f", boost::program_options::value<string>(), "  sqlite state file")
-        ("first-frame,i", boost::program_options::value<int>()->default_value(1), "  start frame (first frame is 1)")
-        ("nframes,n", boost::program_options::value<int>()->default_value(-1), "  process so many frames")
-        //  this is shit, move it out!
-        //("nnnames", boost::program_options::value<string>()->default_value("*"), "  List of strings that the concatenation of the two molnames must match to be analyzed")
-        ;
+    Calculatorfactory::RegisterAll();
+
+    namespace propt = boost::program_options;
+
+    AddProgramOptions() ("options,o", propt::value<string>(),
+        "  calculator options");
+    AddProgramOptions() ("file,f", propt::value<string>(),
+        "  sqlight state file, *.sql");
+    AddProgramOptions() ("first-frame,i", propt::value<int>()->default_value(1),
+        "  start from this frame");
+    AddProgramOptions() ("nframes,n", propt::value<int>()->default_value(1),
+        "  number of frames to process");
+    AddProgramOptions() ("nthreads,t", propt::value<int>()->default_value(1),
+        "  number of threads to create");
+    AddProgramOptions() ("save,s", propt::value<int>()->default_value(1),
+        "  whether or not to save changes to state file");
+    AddProgramOptions() ("restart,r", propt::value<string>()->default_value(""),
+        "  parallelized job execution: job restart pattern; "
+            "e.g. '-r host(mach1:1234,mach2:5678) stat(FAILED)'");
+    AddProgramOptions() ("cache,c", propt::value<int>()->default_value(8),
+        "  parallelized job execution: job cache size");
 }
 
-bool QMApplication::EvaluateOptions(void)
-{
-    CheckRequired("segments", "please provide an xml file with the description of segments.");
-    CheckRequired("options", "please provide an xml file with the program options");
-    CheckRequired("file", "no database file specified");
+
+bool QMApplication::EvaluateOptions(void) {
+    CheckRequired("options", "Please provide an xml file with calculator options");
+    CheckRequired("file", "Please provide the state file");
     return true;
 }
 
-void QMApplication::Run()
-{
-    _qmtop.LoadListCharges(_op_vm["segments"].as<string>());
-    // read in program options from options.xml
+
+void QMApplication::Run() {
+
     load_property_from_xml(_options, _op_vm["options"].as<string>());
 
-    int first_frame = OptionsMap()["first-frame"].as<int>(); /// starting frame
-    if(first_frame == 0) throw std::runtime_error("error, first frame is 0 but we start counting with 1");
-    first_frame--;
+    // EVALUATE OPTIONS
+    int nThreads = OptionsMap()["nthreads"].as<int>();
+    int nframes = OptionsMap()["nframes"].as<int>();
+    int fframe = OptionsMap()["first-frame"].as<int>();
+    if (fframe-- == 0) throw runtime_error("ERROR: First frame is 0, counting "
+                                           "in VOTCA::CTP starts from 1.");
+    int  save = OptionsMap()["save"].as<int>();
 
-    int nframes = OptionsMap()["nframes"].as<int>(); /// number of frames to be processed
-
-    BeginEvaluate();
-
-    /// load qmtop from state saver
-    cout << "Loading qmtopology via state saver." << endl;
+    // STATESAVER & PROGRESS OBSERVER
     string statefile = OptionsMap()["file"].as<string>();
-    StateSaverSQLite loader;
-    loader.Open(_qmtop, statefile);
-    if(loader.FramesInDatabase() != 1)
-        throw std::runtime_error("database contains none or more than one frame which is not supported yet.");
+    StateSaverSQLite statsav;
+    statsav.Open(_top, statefile);    
 
-    while(loader.NextFrame()) {
+    ProgObserver< vector<Job*>, Job*, Job::JobResult > progObs
+        = ProgObserver< vector<Job*>, Job*, Job::JobResult >();
+    progObs.InitCmdLineOpts(OptionsMap());
+    
+    // INITIALIZE & RUN CALCULATORS
+    cout << "Initializing calculators " << endl;
+    BeginEvaluate(nThreads, &progObs);
+
+    int frameId = -1;
+    int framesDone = 0;
+    while (statsav.NextFrame() && framesDone < nframes) {
+        frameId += 1;
+        if (frameId < fframe) continue;
+        cout << "Evaluating frame " << _top.getDatabaseId() << endl;
         EvaluateFrame();
-        loader.WriteFrame();
+        if (save == 1) { statsav.WriteFrame(); }
+        else { cout << "Changes have not been written to state file." << endl; }
+        framesDone += 1;
     }
-    loader.Close();
+    
+    if (framesDone == 0)
+        cout << "Input requires first frame = " << fframe+1 << ", # frames = " 
+             << nframes << " => No frames processed.";
+    
+    statsav.Close();
     EndEvaluate();
+
 }
 
-void QMApplication::ShowHelpText(std::ostream &out)
-{
-    string name =  ProgramName();
-    if(VersionString() != "")
-         name = name + ", version " + VersionString();
 
+
+
+void QMApplication::AddCalculator(QMCalculator* calculator) {
+    _calculators.push_back(calculator);
+}
+
+
+void QMApplication::BeginEvaluate(int nThreads = 1, 
+        ProgObserver< vector<Job*>, Job*, Job::JobResult > *obs = NULL) {
+    list< QMCalculator* > ::iterator it;
+    for (it = _calculators.begin(); it != _calculators.end(); it++) {
+        cout << "... " << (*it)->Identify() << " ";
+        (*it)->setnThreads(nThreads);
+        (*it)->setProgObserver(obs);
+        (*it)->Initialize(&_top, &_options);        
+        cout << endl;
+    }
+}
+
+bool QMApplication::EvaluateFrame() {
+    list< QMCalculator* > ::iterator it;
+    for (it = _calculators.begin(); it != _calculators.end(); it++) {
+        cout << "... " << (*it)->Identify() << " " << flush;
+        (*it)->EvaluateFrame(&_top);
+        cout << endl;
+    }
+}
+
+void QMApplication::EndEvaluate() {
+    list< QMCalculator* > ::iterator it;
+    for (it = _calculators.begin(); it != _calculators.end(); it++) {
+        (*it)->EndEvaluate(&_top);
+    }
+}
+
+void QMApplication::ShowHelpText(std::ostream &out) {
+    string name = ProgramName();
+    if (VersionString() != "") name = name + ", version " + VersionString();
     votca::ctp::HelpTextHeader(name);
     HelpText(out);
     out << "\n\n" << OptionsDesc() << endl;
 }
 
-/*void QMApplication::PrintNbs(string filename){
-    ofstream out_nbl;
-    out_nbl.open(filename.c_str());
-    QMNBList &nblist = _qmtop.nblist();
-    if(out_nbl!=0){
-        out_nbl << "Neighbours, J(0), J_eff, rate, r_ij, abs(r_ij) [nm]" << endl;
-        QMNBList::iterator iter;
-        for ( iter  = nblist.begin(); iter != nblist.end() ; ++iter){
-            ///Hack!
-            if ((*iter)->Js().size() > 0 ){
-                out_nbl << "(" << (*iter)->first->getId() << "," << (*iter)->second->getId() << "): ";
-                out_nbl << (*iter)->Js()[0] << " " << sqrt((*iter)->calcJeff2()) << " " << (*iter)->rate12() << " ";
-                out_nbl << (*iter)->r().getX() << " " << (*iter)->r().getY() << " " << (*iter)->r().getZ() << " ";
-                out_nbl << " " << (*iter)->dist() << endl;
-            }
+void QMApplication::PrintDescription(std::ostream &out, string name,  HelpOutputType _help_output_type) {
+    
+    // loading documentation from the xml file in VOTCASHARE
+    char *votca_share = getenv("VOTCASHARE");
+    if (votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
+    string xmlFile = string(getenv("VOTCASHARE")) + string("/ctp/xml/") + name + string(".xml");
+
+    boost::format _format("%|3t|%1% %|20t|%2% \n");
+    try {
+        Property options;
+        load_property_from_xml(options, xmlFile);
+
+        switch (_help_output_type) {
+
+            case _helpShort:
+                _format % name % options.get("options." + name).getAttribute<string>("help");
+                out << _format;
+                break;
+                
+            case _helpLong:
+                out << HLP << setlevel(2) << options;
         }
-    }
-    out_nbl.close();
-}*/
 
-void QMApplication::AddCalculator(QMCalculator* calculator){
-    _calculators.push_back(calculator);
+    } catch (std::exception &error) {
+        out << _format % name % "Undocumented";
+    }    
 }
 
-void QMApplication::BeginEvaluate(){
-    list<QMCalculator *>::iterator iter;
-    for (iter = _calculators.begin(); iter != _calculators.end(); ++iter){
-        (*iter)->Initialize(&_qmtop, &_options);
-    }
-}
-
-bool QMApplication::EvaluateFrame(){
-    list<QMCalculator *>::iterator iter;
-    for (iter = _calculators.begin(); iter != _calculators.end(); ++iter){
-        (*iter)->EvaluateFrame(&_qmtop);
-    }
-}
-
-void QMApplication::EndEvaluate(){
-    list<QMCalculator *>::iterator iter;
-    for (iter = _calculators.begin(); iter != _calculators.end(); ++iter){
-        (*iter)->EndEvaluate(&_qmtop);
-    }
-}
 }}

@@ -1,32 +1,14 @@
-<eoutersphere>
+<options>
 
-	<description>Outersphere reorganization energy</description>
-	
-	<sectionlabel>eoutersphere</sectionlabel>
+<eoutersphere help="Evaluates outersphere reorganization energy" label="calc:eoutersphere">
 
-	<item>
-		<name>method</name>
-		<description>Type of the method: **constant** - all pairs have the same value **lambdaconst** set in options file. **spheres**  - molecules are treated as spheres with radii **radius** given in the segments file and Pekar factor **pekar** set in options file. **dielectric** - with Pekar factor **pekar** set in options file and partial charges and resulting dielectric fields. </description>
-	</item>
+	<method help="Type of the method: **constant** - all pairs have value **lambda**. **spheres**  - molecules are treated as spheres with radii **radius** and Pekar factor **pekar**. **dielectric** - with Pekar factor **pekar** and partial charges from resulting dielectric fields">constant</method>
 
-	<item>
-		<name>lambda</name>
-		<description>Constant value for all pairs used in method **constant**</description>
-	</item>
-
-	<item>
-		<name>pekar</name>
-		<description>Pekar factor used for methods **spheres** and **dielectric**</description>
-	</item>
-
-	<item>
-		<name>radius</name>
-		<description>Radius of spherical molecule as used in  method **spheres**</description>
-	</item>
-
-	<item>
-		<name>cutoff</name>
-		<description>Cutoff radius in nm between pair and the exteroir molecule. Can be used in **spheres** and **dielectric**</description>
-	</item>
+	<lambda help="The value for all pairs in the **constant** method" unit="nm"></lambda>
+	<pekar help="Pekar factor used for methods **spheres** and **dielectric**"></pekar>
+	<radius help="Radius of spherical molecule as used in  method **spheres**" unit="nm"></radius>
+	<cutoff help="Cutoff radius in between pair and the exteroir molecule. Can be used in **spheres** and **dielectric**" unit="nm"></cutoff>
 
 </eoutersphere>
+
+</options>

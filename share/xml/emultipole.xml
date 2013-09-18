@@ -1,118 +1,44 @@
-<emultipole>
-	
-	<description>Polarization contribution based on the Thole model</description>	
-	
-	<item>
-		<name>multipoles</name>
-		<description>Polar Site Definitions in GDMA punch-file format</description>
-	</item>
-	
-	<item>
-		<name>control</name>
-		<description>Control options for induction computation</description>
-	</item>
-	<item>
-		<name>control.induce</name>
-		<description>Enter '1' / '0' to toggle induction on / off</description>
-	</item>
-	<item>
-		<name>control.first</name>
-		<description>First segment for which to compute site energies</description>
-	</item>
-	<item>
-		<name>control.last</name>
-		<description>Last segment for which to compute site energies</description>
-	</item>	
-	<item>
-		<name>control.output</name>
-		<description>File to write site energies to (note that site energies are also stored in the state file by default).</description>
-	</item>
-	
-	<item>
-		<name>esp</name>
-		<description>Control options for potential calculation</description>
-	</item>
-	<item>
-		<name>esp.calcESP</name>
-		<description>Enter '1' / '0' to toggle on / off. If '1', site energies will not be evaluated.</description>
-	</item>
-	<item>
-		<name>esp.grid</name>
-		<description>XYZ file specifying grid points for potential evaluation.</description>
-	</item>
+<options>
 
-	<item>
-		<name>esp.output</name>
-		<description>File to write grid-point potential to.</description>
-	</item>
-	
-	
-	
-	<item>
-		<name>esf</name>
-		<description>Control options for field calculation</description>
-	</item>
-	<item>
-		<name>esf.calcESF</name>
-		<description>Enter '1' / '0' to toggle on / off. If '1', site energies will not be evaluated.</description>
-	</item>
-	<item>
-		<name>esf.grid</name>
-		<description>XYZ file specifying grid points for field evaluation.</description>
-	</item>
-	<item>
-		<name>esf.output</name>
-		<description>File to write grid-point potential to.</description>
-	</item>
-		
-	
-	
-	<item>
-		<name>alphamol</name>
-		<description>Control options for molecular-polarizability calculation.</description>
-	</item>
+<emultipole help="Evaluates polarization contribution based on the Thole model" label="calc:emultipole" section="sec:thole">
 
-	<item>
-		<name>alpha.calcAlpha</name>
-		<description>Enter '1' / '0' to toggle on / off. If '1', site energies will not be evaluated.</description>
-	</item>
-	<item>
-		<name>alpha.output</name>
-		<description>File to write polarizability tensor in global frame and in diagonal form to.</description>
-	</item>
+	<multipoles help="Polar Site Definitions in GDMA punch-file format"></multipoles>
+
+	<control help="Control options for induction computation">
+		<induce help="Enter '1' / '0' to toggle induction on / off" default="1">1</induce>
+		<first help="First segment for which to compute site energies"></first>
+		<last help="Last segment for which to compute site energies"></last>
+		<output help="File to write site energies to. Site energies are also stored in the state file"></output>
+	</control>
+
+	<esp help="Control options for potential calculation">
+		<calcESP help="Enter '1' / '0' to toggle on / off. If '1', site energies will not be evaluated">0</calcESP>
+		<grid help="XYZ file specifying grid points for potential evaluation">grid.xyz</grid>
+		<output help="File to write grid-point potential to">potential.dat</output>
+	</esp>
 	
+	<esf help="Control options for field calculation">
+		<calcESF help="Enter '1' / '0' to toggle on / off. If '1', site energies will not be evaluated"></calcESF>
+		<grid help="XYZ file specifying grid points for field evaluation">grid.xyz</grid>
+		<output help="File to write grid-point field to">field.dat</output>
+	</esf>
+
+	<alpha help="Control options for molecular-polarizability calculation" >
+		<calcAlpha help="Enter '1' / '0' to toggle on / off. If '1', site energies will not be evaluated">1</calcAlpha>
+		<output help="File to write polarizability tensor in global frame and in diagonal form to">alpha.dat</output>
+	</alpha>
 	
+	<thole help="Thole parameters required for charge-smearing">
+		<cutoff help="Cut-off beyond which all interactions are neglected" default="" unit="nm">1</cutoff>
+		<expdamp help="Damping exponent used in exponential damping function"></expdamp>
+		<scaling help="1-n interaction scaling, currently not in use"></scaling>
+	</thole>
 	
-	<item>
-		<name>tholeparam</name>
-		<description>Thole parameters required for charge-smearing</description>
-	</item>
-	<item>
-		<name>thole.cutoff</name>
-		<description>Cut-off [nm] beyond which all interactions are neglected.</description>
-	</item>
-	<item>
-		<name>thole.expdamp</name>
-		<description>Damping exponent used in exponential damping function</description>
-	</item>
-	<item>
-		<name>thole.scaling</name>
-		<description>1-n interaction scaling, currently not in use.</description>
-	</item>
-	
-	
-	
-	<item>
-		<name>convparam</name>
-		<description>Convergence parameters for self-consistent field calculation</description>
-	</item>
-	<item>
-		<name>conv.omegSOR</name>
-		<description>Mixing parameter e[0,1] used in SOR algorithm</description>
-	</item>
-	<item>
-		<name>conv.tolerance</name>
-		<description>Convergence criterion, fulfilled if relative change smaller than tolerance.</description>
-	</item>
+	<conv help="Convergence parameters for self-consistent field calculation">
+		<omegSOR help="Mixing parameter e[0,1] used in SOR algorithm"></omegSOR>
+		<tolerance help="Convergence criterion, fulfilled if relative change smaller than tolerance"></tolerance>
+	</conv>
 
 </emultipole>
+
+</options>

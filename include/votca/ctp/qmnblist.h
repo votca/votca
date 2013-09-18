@@ -1,11 +1,13 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ *            Copyright 2009-2012 The VOTCA Development Team
+ *                       (http://www.votca.org)
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ *      Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * You may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *              http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,55 +17,125 @@
  *
  */
 
+
 #ifndef _QMNBList_H
 #define	_QMNBList_H
 
-#include "qmpair.h"
+
+#include <stdlib.h>
 #include <votca/csg/pairlist.h>
-#include <votca/csg/beadlist.h>
-#include <votca/moo/crgunit.h>
+#include <votca/ctp/qmpair.h>
+
+namespace CSG = votca::csg;
+
 
 namespace votca { namespace ctp {
 
+class Topology;
 
-using namespace votca::csg;
 
-class QMTopology;
-using namespace votca::tools;
-using namespace votca::csg;
-
-/**
- * \brief Neighbour search for crg units
- *
- * This class wraps the NBList from csg to work on CrgUnits,
- * this all looks a bit cumbersome now, but will make things
- * nice if one want's to switch in between nbsearch algorithms
- *
- * */
-
-class QMNBList
-    : public PairList<QMCrgUnit *, QMPair>
+class QMNBList : public CSG::PairList< Segment*, QMPair >
 {
 public:
-     QMNBList(): _cutoff(0.) {};
-     ~QMNBList(){
-         PairList<QMCrgUnit *, QMPair>::Cleanup();
-     }
-    void Generate(BeadList &list1, BeadList &list2, bool do_exclusions = true);
-    void Generate(BeadList &list, bool do_exclusions = true) { Generate(list, list, do_exclusions); }
+    
+    // container for records of type Donor-Bridge1-Bridge2-...-Acceptor
+    class SuperExchangeType {
+      public:
+        
+        // Initializes the object from a [Donor Bridge1 Bridge2 ... Acceptor] string
+        SuperExchangeType(string initString) { 
 
-    void setCutoff(double cutoff) { _cutoff = cutoff; }
-    double getCutoff() {return _cutoff; }
+	    Tokenizer tok(initString, " ");
+            vector< string > names;
+            tok.ToVector(names);
+
+            if (names.size() < 3) {
+                cout << "ERROR: Faulty superexchange definition: "
+                        << "Need at least three segment names (DONOR BRIDGES ACCEPTOR separated by a space" << endl;
+                throw std::runtime_error("Error in options file.");
+            }
+
+            // fill up the donor-bride-acceptor structure
+
+            donor = names.front();
+            acceptor = names.back();
+            
+            for ( vector<string>::iterator it = ++names.begin() ; it != --names.end(); it++  ) {
+                bridges.push_back(*it);
+            }
+	}
+        
+
+
+        bool isOfBridge(string segment_type ) {
+            std::list<string>::iterator findIter = std::find(bridges.begin(), bridges.end(), segment_type);
+            return findIter != bridges.end();
+        };
+
+        bool isOfDonorAcceptor ( string segment_type ) {
+            return segment_type == donor || segment_type == acceptor ;
+        }
+
+	string asString() {
+	    string ts;
+            ts += donor;
+            for( list<string>::iterator si = bridges.begin(); si != bridges.end(); si++ ) ts = ts + " " + *si;
+            ts += " " + acceptor; 
+            return ts;
+	}
+
+      private:
+
+        string donor;
+        string acceptor;
+        list<string> bridges;         
+    };
+
+    QMNBList() : _top(NULL), _cutoff(0) { };
+    QMNBList(Topology* top) : _top(top), _cutoff(0) { };
+   ~QMNBList() { 
+       CSG::PairList<Segment*, QMPair>::Cleanup();       
+       // cleanup the list of superexchange pairs
+       for ( std::list<SuperExchangeType*>::iterator it = _superexchange.begin() ; it != _superexchange.end(); it++  ) {
+           delete *it;
+       }
+   }
+    
+    void GenerateSuperExchange();
+    
+    void AddSuperExchangeType(string type) { _superexchange.push_back(new SuperExchangeType(type)); }
+    
+    void setSuperExchangeTypes(list<SuperExchangeType*> types) { _superexchange = types; }
+    
+    list<SuperExchangeType*> &getSuperExchangeTypes() { return _superexchange; }
+
+    void    setCutoff(double cutoff) { _cutoff = cutoff; }
+    double  getCutoff() { return _cutoff; }
+
+    QMPair *Add(Segment* seg1, Segment* seg2);
+
+    void PrintInfo(FILE *out);
 
 protected:
-
-    bool Match(Bead *b1, Bead *b2, const vec &r, const double notused);
-    double _cutoff;
-    QMTopology *_father;
-
+    
+    double      _cutoff;
+    Topology   *_top;
+    list<SuperExchangeType*> _superexchange;
 };
 
+
+
+
+
+
+
+
+
+
+
+
 }}
+
 
 #endif	/* _QMNBList_H */
 

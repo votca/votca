@@ -1,11 +1,13 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ *            Copyright 2009-2012 The VOTCA Development Team
+ *                       (http://www.votca.org)
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ *      Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * You may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *              http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,6 +16,7 @@
  * limitations under the License.
  *
  */
+
 
 #ifndef __VOTCA_CTP_TOPOLOGY_H
 #define	__VOTCA_CTP_TOPOLOGY_H
@@ -26,14 +29,18 @@
 #include <votca/csg/triclinicbox.h>
 
 #include <votca/ctp/polarsite.h>
+#include <votca/ctp/apolarsite.h>
 #include <votca/ctp/atom.h>
 #include <votca/ctp/fragment.h>
 #include <votca/ctp/segmenttype.h>
 #include <votca/ctp/segment.h>
 #include <votca/ctp/molecule.h>
 
-#include <votca/ctp/qmpair2.h>
-#include <votca/ctp/qmnblist2.h>
+#include <votca/ctp/qmpair.h>
+#include <votca/ctp/qmnblist.h>
+
+#include <votca/moo/jcalc.h>
+#include <votca/moo/mol_and_orb.h>
 
 namespace CSG = votca::csg;
 
@@ -59,6 +66,7 @@ public:
     Atom        *AddAtom     (string atom_name);
     Fragment    *AddFragment (string fragment_name);
     PolarSite   *AddPolarSite(string siteName);
+    APolarSite  *AddAPolarSite(string siteName);
     SegmentType *AddSegmentType (string typeName);
 
     Molecule    *getMolecule(int id) { return _molecules[id-1]; }
@@ -66,6 +74,7 @@ public:
     Fragment    *getFragment(int id) { return _fragments[id-1]; }
     Atom        *getAtom(int id)     { return _atoms[id-1]; }
     PolarSite   *getPolarSite(int id) { return _polarSites[id-1]; }
+    APolarSite  *getAPolarSite(int id) { return _apolarSites[id-1]; }
     SegmentType *getSegmentType(int id) { return _segmentTypes[id-1]; }
 
     vector< Atom* >         &Atoms() { return _atoms; }
@@ -73,6 +82,7 @@ public:
     vector< Segment* >      &Segments() { return _segments; }
     vector< Molecule* >     &Molecules() { return _molecules; }
     vector< PolarSite* >    &PolarSites() { return _polarSites; }
+    vector< APolarSite* >   &APolarSites() { return _apolarSites; }
     vector< SegmentType* >  &SegmentTypes() { return _segmentTypes; }
 
     bool        Rigidify();
@@ -93,7 +103,7 @@ public:
                             CSG::BoundaryCondition::eBoxtype boxtype =
                             CSG::BoundaryCondition::typeAuto);
 
-    QMNBList2       &NBList() { return _nblist; }
+    QMNBList       &NBList() { return _nblist; }
 
     // Trajectory meta data: step number, time, frame (= Db ID)
 
@@ -118,9 +128,10 @@ protected:
     vector < Fragment* >    _fragments;
     vector < Atom* >        _atoms;
     vector < PolarSite* >   _polarSites;
+    vector < APolarSite* >   _apolarSites;
     vector < SegmentType* > _segmentTypes;
 
-    QMNBList2               _nblist;
+    QMNBList               _nblist;
 
     CSG::BoundaryCondition *_bc;
     bool                    _hasPb;
