@@ -42,7 +42,7 @@ public:
 
    void Initialize( Property *options );
 
-   bool WriteInputFile( vector< Segment* > segments, Orbitals* orbitals_guess = NULL);
+   bool WriteInputFile( vector< Segment* > segments, Orbitals* _orbitals );
 
    bool Run();
 
@@ -60,6 +60,19 @@ private:
 
     string                              _scratch_dir;
     string                              _cleanup;
+    string                              _ranges;
+    string                              _gwbasis;
+    
+    double                              _rpamaxfactor;
+    double                              _qpminfactor;
+    double                              _qpmaxfactor;
+    double                              _bseminfactor;
+    double                              _bsemaxfactor;
+    unsigned int                        _rpamax;
+    unsigned int                        _qpmin;
+    unsigned int                        _qpmax;
+    unsigned int                        _bsemin;
+    unsigned int                        _bsemax;
 
 };
 

@@ -37,11 +37,11 @@ namespace votca { namespace ctp {
     
 void GW::Initialize( Property *options ) {
 
-     // NWChem file names
+     // ISOGWA file names
     string fileName = "system";
 
     _xyz_file_name = fileName + ".xyz";
-    _input_file_name = fileName + ".nw";
+    _input_file_name = "input"; // hard coded
     _log_file_name = fileName + ".log"; 
     _orb_file_name = fileName + ".movecs" ;               
 
@@ -52,10 +52,43 @@ void GW::Initialize( Property *options ) {
         cerr << "Tried to use " << _name << " package. ";
         throw std::runtime_error( "Wrong options file");
     }
+
+    // set a default executable
+    if ( options->exists(key + ".executable") ) {
+        _executable =       options->get(key + ".executable").as<string> ();
+    } else {
+        _executable = "isogwa.x";
+    } 
     
-    _executable =       options->get(key + ".executable").as<string> ();
-    _charge =           options->get(key + ".charge").as<int> ();
-    _spin =             options->get(key + ".spin").as<int> ();
+    // getting level ranges 
+    _ranges = options->get(key + ".ranges").as<string> ();
+    // now check validity, and get rpa, qp, and bse level ranges accordingly
+    if ( _ranges == "default" ) {
+        ;
+    }else if ( _ranges == "factor" ) {
+        // get factors
+        _rpamaxfactor = options->get(key + ".rpamax").as<double> ();
+        _qpminfactor  = options->get(key + ".qpmin").as<double> ();
+        _qpmaxfactor  = options->get(key + ".qpmax").as<double> ();
+        _bseminfactor = options->get(key + ".bsemin").as<double> ();
+        _bsemaxfactor = options->get(key + ".bsemax").as<double> ();
+    } else if ( _ranges == "explicit" ) {
+        //get explicit numbers
+        _rpamax = options->get(key + ".rpamax").as<unsigned int> ();
+        _qpmin  = options->get(key + ".qpmin").as<unsigned int> ();
+        _qpmax  = options->get(key + ".qpmax").as<unsigned int> ();
+        _bsemin = options->get(key + ".bsemin").as<unsigned int> ();
+        _bsemax = options->get(key + ".bsemax").as<unsigned int> ();
+    } else {
+        cerr << "\nSpecified range option " << _ranges << " invalid. ";
+        throw std::runtime_error( "\nValid options are: default,factor,explicit");
+    }
+        
+    _gwbasis =           options->get(key + ".gwbasis").as<string> ();
+
+    
+    //_charge =           options->get(key + ".charge").as<int> ();
+    //_spin =             options->get(key + ".spin").as<int> ();
     _options =          options->get(key + ".options").as<string> ();
     _memory =           options->get(key + ".memory").as<string> ();
     _threads =          options->get(key + ".threads").as<int> ();
@@ -65,12 +98,114 @@ void GW::Initialize( Property *options ) {
 }    
 
 /**
- * Prepares the *.nw file from a vector of segments
+ * Prepares the input file from a vector of segments
  * Appends a guess constructed from monomer orbitals if supplied
  */
 bool GW::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_guess )
 {
-         
+    cout << "\nI am supposed to write an input file for GW" << endl ;
+    vector< Atom* > _atoms;
+    vector< Atom* > ::iterator ait;
+    vector< Segment* >::iterator sit;
+    
+    int qmatoms = 0;
+
+    // preparing file stream
+    ofstream _gw_file;
+    string _gw_file_name_full = _run_dir + "/" + _input_file_name;
+    _gw_file.open ( _gw_file_name_full.c_str() );
+
+    // load GW auxiliary basis set
+    BasisSet gwbs;
+    string basis_name( _gwbasis );
+    gwbs.LoadBasisSet( basis_name );
+    LOG(logDEBUG,*_pLog) << "Loaded Basis Set " << basis_name << flush;
+    // header 
+    /* if ( _options.size() ) _com_file <<  _options << endl ; */
+
+    _gw_file << "start_dft votca " << endl;
+    _gw_file << "lattice_structure sc " << endl;
+    _gw_file << "lattice_constant_angstrom  1500.00 " << endl;
+    _gw_file << "units angstrom " << endl;
+
+    for (sit = segments.begin() ; sit != segments.end(); ++sit) {
+        
+        _atoms = (*sit)-> Atoms();
+
+        for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
+
+            if ((*ait)->HasQMPart() == false) { continue; }
+
+            vec     pos = (*ait)->getQMPos();
+            string  name = (*ait)->getElement();
+
+            //fprintf(out, "%2s %4.7f %4.7f %4.7f \n"
+            _gw_file << "atom " << setw(3) << name.c_str() 
+                      << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getX()*10
+                      << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getY()*10
+                      << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getZ()*10 
+                      << endl;
+            
+            // Now get the GW basis info for this element
+            _gw_file << "basis_gwa ";
+            Element* element = gwbs.getElement(name); 
+            for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+                        
+                        Shell* shell = (*its);
+                        // shell type, number primitives, scale factor
+                        //_com_file << shell->getType() << " " << shell->getSize() << " " << shell->getScale() << endl;
+                        // _el_file << shell->getType() << " " << shell->getSize() << " " << FortranFormat( shell->getScale() ) << endl;
+                        for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
+                            GaussianPrimitive* gaussian = *itg;
+                            //_com_file << gaussian->decay << " " << gaussian->contraction << endl;
+                            _gw_file <<  gaussian->decay << " " << shell->getLmax() << " ";
+                        }
+                    }
+            _gw_file << endl;
+            
+        }
+    } 
+    
+    // some more defaults
+    _gw_file << "dft_truncation_radius 500.0 " << endl;
+    _gw_file << "screening   rpa_nosumrule_eps0  (0.d0, 1.d0)   1.001 " << endl;
+    _gw_file << "tolerance_threecenter 1.d-9 " << endl;
+    _gw_file << "scissors_operator_rigid_ryd  .3" << endl;
+
+    // convert _rpamax if needed and write
+    int _vbm = orbitals_guess->getNumberOfElectrons();
+    if ( _ranges == "default" ){
+        _rpamax = orbitals_guess->getNumberOfLevels();
+    } else if ( _ranges == "factor" ) {
+        _rpamax = _rpamaxfactor * _vbm;
+    }
+    _gw_file << "rpa_band_summation 1 " << _rpamax << endl;
+
+    // VBM
+    _gw_file << "mbpt_vbm " << _vbm << endl;
+    
+    // convert _qpmin and _qpmax if needed, and write
+    if ( _ranges == "default" ){
+        _qpmin = 1;
+        _qpmax = 2 * _vbm;
+    } else if ( _ranges == "factor" ) {
+        _qpmin = _vbm - int( _qpminfactor * _vbm );
+        _qpmax = _vbm + int( _qpmaxfactor * _vbm );
+    }
+    _gw_file << "gwa_bands_to_be_corrected " << _qpmin << " " << _qpmax << endl;
+
+    // convert _bsemin and _bsemax if needed, and write
+    if ( _ranges == "default" ){
+        _bsemin = 1;
+        _bsemax = 2 * _vbm;
+    } else if ( _ranges == "factor" ) {
+        _bsemin = _vbm - int( _bseminfactor * _vbm );
+        _bsemax = _vbm + int( _bsemaxfactor * _vbm );
+    }
+    _gw_file << "bse_bands " << _bsemin << " " << _bsemax << endl;
+    _gw_file << "bse_momentum_operator " << endl;
+    if ( _options.size() ) _gw_file <<  _options << endl ; 
+    _gw_file.close();
 }
 
 /**
@@ -79,7 +214,7 @@ bool GW::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_guess )
 bool GW::Run()
 {
 
-    LOG(logDEBUG,*_pLog) << "Running NWChem job" << flush;
+    LOG(logDEBUG,*_pLog) << "Running GWBSE job" << flush;
     
     if (system(NULL)) {
         

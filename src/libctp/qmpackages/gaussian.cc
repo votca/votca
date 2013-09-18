@@ -247,7 +247,7 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
                         for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                             GaussianPrimitive* gaussian = *itg;
                             //_com_file << gaussian->decay << " " << gaussian->contraction << endl;
-                            _el_file << gaussian->decay << " " << FortranFormat( gaussian->contraction ) << endl;
+                            _el_file << FortranFormat( gaussian->decay )<< " " << FortranFormat( gaussian->contraction ) << endl;
                         }
                     }
                     
@@ -1053,11 +1053,12 @@ bool Gaussian::ConvertToGW( Orbitals* _orbitals ) {
     // rewriting the molecular orbitals
     ofstream _orb_file;
     _orb_file.open ( _orb_file_name_full.c_str() );
-    
+    _orb_file.precision(8);
     // getting the basis set sizes
-    int _basis_size      = _orbitals->getBasisSetSize();
-    int _cart_basis_size = _orbitals->_vxc.size1();
-    
+    //int _basis_size      = _orbitals->getBasisSetSize();
+    std::vector<double>::size_type _basis_size = _orbitals->getBasisSetSize();
+    //int _cart_basis_size = _orbitals->_vxc.size1();
+    ub::matrix<double>::size_type _cart_basis_size = _orbitals->_vxc.size1();
     //cout << "\nSpherical basis size is " << _basis_size << endl;
     //cout << "\nCartesian basis size is " << _cart_basis_size << endl;
     
@@ -1102,28 +1103,31 @@ bool Gaussian::ConvertToGW( Orbitals* _orbitals ) {
                 // write out coefficients as needed
                 if ( shell_type == "S" ){
                     // write the s function coefficient
-                    _orb_file << _i_orbital+1 << " " << _i_coef_gw+1 << " " << FortranFormat( mo_coefficients( _i_orbital, _i_coef_qc ) ) << endl;
+                    _orb_file << _i_orbital+1 << " " << _i_coef_gw+1 << " " << mo_coefficients( _i_orbital, _i_coef_qc )  << endl;
                 } else if ( shell_type == "P" ) {
                     // add one zero for unused s function
-                    _orb_file << _i_orbital+1 << " " << _i_coef_gw+1 << " " << FortranFormat( 0.0 ) << endl;
+                    _orb_file << _i_orbital+1 << " " << _i_coef_gw+1 << " " <<  0.0  << endl;
                     // write the px, py, pz function coefficients
                     for (int j=0; j<3; j++){
-                        _orb_file << _i_orbital+1 << " " << _i_coef_gw+j+2 << " " << FortranFormat( mo_coefficients( _i_orbital, _i_coef_qc+j ) ) << endl;
+                        _orb_file << _i_orbital+1 << " " << _i_coef_gw+j+2 << " " <<  mo_coefficients( _i_orbital, _i_coef_qc+j )  << endl;
                     }
                 } else if ( shell_type == "D" ) {
                     // add four zeros for unused s, px, py, pz functions
                     for (int j=1; j<5; j++){
-                        _orb_file << _i_orbital+1 << " " << _i_coef_gw+j << " " << FortranFormat( 0.0 )<< endl; 
+                        _orb_file << _i_orbital+1 << " " << _i_coef_gw+j << " " <<  0.0 << endl; 
                     }
                     /* write the d function coefficients
                      * Gaussian has 5 spherical d functions (3z2-r2,xz,yz,x2-y2,xy)
                      * isogwa   has 5 spherical d functions (xz,yz,xy,3zz-rr,xx-yy)
                      */ 
-                    _orb_file << _i_orbital+1 << " " << _i_coef_gw+5 << " " << FortranFormat( mo_coefficients( _i_orbital, _i_coef_qc+2 ) ) << endl;
-                    _orb_file << _i_orbital+1 << " " << _i_coef_gw+6 << " " << FortranFormat( mo_coefficients( _i_orbital, _i_coef_qc+3 ) ) << endl;
-                    _orb_file << _i_orbital+1 << " " << _i_coef_gw+7 << " " << FortranFormat( mo_coefficients( _i_orbital, _i_coef_qc+5 ) ) << endl;
-                    _orb_file << _i_orbital+1 << " " << _i_coef_gw+8 << " " << FortranFormat( mo_coefficients( _i_orbital, _i_coef_qc+1 ) ) << endl;
-                    _orb_file << _i_orbital+1 << " " << _i_coef_gw+9 << " " << FortranFormat( mo_coefficients( _i_orbital, _i_coef_qc+4 ) ) << endl;
+                    _orb_file << _i_orbital+1 << " " << _i_coef_gw+5 << " " << mo_coefficients( _i_orbital, _i_coef_qc+1 )  << endl;
+                    _orb_file << _i_orbital+1 << " " << _i_coef_gw+6 << " " << mo_coefficients( _i_orbital, _i_coef_qc+2 )  << endl;
+                    _orb_file << _i_orbital+1 << " " << _i_coef_gw+7 << " " << mo_coefficients( _i_orbital, _i_coef_qc+4 )  << endl;
+                    _orb_file << _i_orbital+1 << " " << _i_coef_gw+8 << " " << mo_coefficients( _i_orbital, _i_coef_qc )  << endl;
+                    _orb_file << _i_orbital+1 << " " << _i_coef_gw+9 << " " << mo_coefficients( _i_orbital, _i_coef_qc+3 )  << endl;
+
+                    // add one zeros for unused s* function
+                    _orb_file << _i_orbital+1 << " " << _i_coef_gw+10 << " " <<  0.0 << endl; 
                  } else {
                     cerr << "Conversion of shell type " << shell_type << " is not implemented!";
                     throw std::runtime_error( "Conversion failed!");
@@ -1396,6 +1400,7 @@ string Gaussian::FortranFormat( const double &number ) {
     boost::replace_first(_snumber, "e", "D");
     return _snumber;
 }
+
         
 int Gaussian::NumbfGW( string shell_type ) {
     int _nbf;
@@ -1404,11 +1409,11 @@ int Gaussian::NumbfGW( string shell_type ) {
     } else if ( shell_type == "P" ){
         _nbf = 4;
     } else if ( shell_type == "D" ){
-        _nbf = 9;
+        _nbf = 10;
     } else if ( shell_type == "SP" ) {
         _nbf = 4;
     } else if ( shell_type == "SPD" ) {
-        _nbf = 9;
+        _nbf = 10;
     }
     return _nbf;
 }

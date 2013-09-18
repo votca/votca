@@ -70,6 +70,7 @@ private:
     bool                _do_trim;
     // conversion to GW (might go away from edft again)
     bool                _do_convert;
+    bool                _do_gwbse;
     // what to write in the storage
     bool                _store_orbitals;
 
@@ -79,6 +80,9 @@ private:
     
     string _package;
     Property _package_options;   
+    
+    string _gwpackage;
+    Property _gwpackage_options;   
 
 };
 
@@ -94,7 +98,8 @@ void EDFT::Initialize(Topology *top, Property *options) {
     _do_trim = false;
     // conversion to GW (might go away from edft again)
     _do_convert = false;
-    
+    _do_gwbse = false;
+
     _maverick = (_nThreads == 1) ? true : false;
     
     string key = "options." + Identify();
@@ -102,6 +107,7 @@ void EDFT::Initialize(Topology *top, Property *options) {
 
     string _package_xml = options->get(key+".package").as<string> ();
 
+    
     string _tasks_string = options->get(key+".tasks").as<string> ();
     if (_tasks_string.find("input") != std::string::npos) _do_input = true;
     if (_tasks_string.find("run") != std::string::npos) _do_run = true;
@@ -110,12 +116,24 @@ void EDFT::Initialize(Topology *top, Property *options) {
     // conversion to GW (might go away from edft again)
     if (_tasks_string.find("convert") != std::string::npos) _do_convert = true;   
     
+    
     string _store_string = options->get(key+".store").as<string> ();
     if (_store_string.find("orbitals") != std::string::npos) _store_orbitals = true;
     
     load_property_from_xml( _package_options, _package_xml.c_str() );    
     key = "package";
     _package = _package_options.get(key+".name").as<string> ();
+
+    // only required, if GWBSE is to be run
+    if (_tasks_string.find("gwbse") != std::string::npos) {
+        _do_gwbse = true;
+        key = "options." + Identify();
+        string _gwpackage_xml = options->get(key+".gwpackage").as<string> ();
+        load_property_from_xml( _gwpackage_options, _gwpackage_xml.c_str() );  
+        key = "package";
+        _gwpackage = _gwpackage_options.get(key+".name").as<string> ();
+    }
+    
     
     // register all QM packages (Gaussian, turbomole, nwchem))
     QMPackageFactory::RegisterAll(); 
@@ -168,8 +186,8 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
    _qmpackage->Initialize( &_package_options );
 
    _qmpackage->setRunDir( qmpackage_work_dir );
-  
 
+   
     // if asked, prepare the input files
     if ( _do_input ) {
         _qmpackage->WriteInputFile( segments );
@@ -238,6 +256,17 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
        output += "orbitals trimmed; " ;
     }   
 
+   
+   if ( _do_parse ){
+    // save orbitals
+    string ORB_FILE = "molecule_" + ID + ".orb";
+    LOG(logDEBUG,*pLog) << "Serializing to " <<  ORB_FILE << flush;
+    std::ofstream ofs( (ORB_DIR + "/" + ORB_FILE).c_str() );
+    boost::archive::binary_oarchive oa( ofs );
+    oa << _orbitals;
+    ofs.close();
+   }
+   
    // Convert to GW
     if ( _do_convert ) {
 
@@ -264,6 +293,29 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         
     }
    
+   
+   // Run GW
+   if ( _do_gwbse ){
+       
+       if ( !_do_parse ) { // orbitals must be loaded from a file
+           string ORB_FILE = "molecule_" + ID + ".orb";
+           LOG(logDEBUG,*pLog) << "Loading orbitals from " << ORB_FILE << flush;    
+           std::ifstream ifs( (ORB_DIR + "/" + ORB_FILE).c_str() );
+           boost::archive::binary_iarchive ia( ifs );
+           ia >> _orbitals;
+           ifs.close();
+       } 
+       
+       
+      // can I ask for another QMPackage?
+      QMPackage *_gwpackage = QMPackages().Create( "gw" );
+      _gwpackage->Initialize( &_gwpackage_options );
+      _gwpackage->setLog( pLog );  
+      _gwpackage->setRunDir( qmpackage_work_dir );
+      _gwpackage->WriteInputFile( segments , &_orbitals );
+    
+   }
+   
    // Clean run
    _qmpackage->CleanUp();
    delete _qmpackage;
@@ -272,13 +324,6 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     jres.setStatus(Job::COMPLETE);
 
 
-    // save orbitals
-    string ORB_FILE = "molecule_" + ID + ".orb";
-    LOG(logDEBUG,*pLog) << "Serializing to " <<  ORB_FILE << flush;
-    std::ofstream ofs( (ORB_DIR + "/" + ORB_FILE).c_str() );
-    boost::archive::binary_oarchive oa( ofs );
-    oa << _orbitals;
-    ofs.close();
                                 
     LOG(logINFO,*pLog) << TimeStamp() << " Finished evaluating site " << seg->getId() << flush; 
     
