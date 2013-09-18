@@ -54,12 +54,12 @@ namespace votca { namespace ctp {
         virtual double CalculateK0Correction() { return 0.0; }
         
         // To sort K-vectors via std::sort using a norm functor
-        template<class Norm>
+        template<class Norm, class V>
         struct VectorSort
         {
             VectorSort() : _p(1e-40) { ; }
             VectorSort(double precision) : _p(precision) { ; }
-            inline bool operator() (const vec &v1, const vec &v2);
+            inline bool operator() (const V &v1, const V &v2);
             inline bool MatchDouble(double a, double b) 
                 { return ((a-b)*(a-b) < _p) ? true : false; }
             double _p;
@@ -72,6 +72,26 @@ namespace votca { namespace ctp {
         // Euclidean norm functor
         struct EucNorm { inline double operator() (const vec &v) 
             { return votca::tools::abs(v); } };
+            
+        // K-vector class (for grading purposes)
+        struct KVector
+        {
+            KVector(vec &k, double grade)
+                : _k(k), _grade(grade) { ; }
+
+            vec _k;
+            double _grade;
+            
+            const vec &getK() const { return _k; }
+            const double &getGrade() const { return _grade; }
+            const double &getX() const { return _k.getX(); }
+            const double &getY() const { return _k.getY(); }
+            const double &getZ() const { return _k.getZ(); }            
+        };
+        
+        // Specialized K-vector norm
+        struct KNorm { inline double operator() (const KVector &v)
+            { return -v.getGrade(); } };
         
     protected:
         
@@ -127,8 +147,9 @@ namespace votca { namespace ctp {
         double _LxLy;                   // |a^b|
         double _LxLyLz;                 // a*|b^c|
         
-        VectorSort<MaxNorm> _maxsort;
-        VectorSort<EucNorm> _eucsort;
+        VectorSort<MaxNorm,vec> _maxsort;
+        VectorSort<EucNorm,vec> _eucsort;
+        VectorSort<KNorm,KVector> _kvecsort;
         
         // ENERGIES
         // Part I - Ewald
@@ -150,9 +171,9 @@ namespace votca { namespace ctp {
     };
 
 
-template<class Norm>
-inline bool Ewald3DnD::VectorSort<Norm>::operator() (const vec &v1,
-    const vec &v2) {
+template<class Norm, class V>
+inline bool Ewald3DnD::VectorSort<Norm,V>::operator() (const V &v1,
+    const V &v2) {
     bool smaller = false;
     // LEVEL 1: MAGNITUDE
     double V1 = _norm(v1);

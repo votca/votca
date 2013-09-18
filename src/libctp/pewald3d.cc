@@ -78,6 +78,219 @@ double PEwald3D3D::ConvergeRealSpaceSum() {
 
 double PEwald3D3D::ConvergeReciprocalSpaceSum() {
     
+    double sum_re = 0.0;
+    double sum_im = 0.0;
+    _converged_K = false;
+    
+    
+    // CONTAINERS FOR GRADING K-VECTORS
+    vector< double > kx_s1s2;
+    kx_s1s2.push_back(1);
+    vector< double > ky_s1s2;
+    ky_s1s2.push_back(1);
+    vector< double > kz_s1s2;
+    kz_s1s2.push_back(1);
+    
+    // TWO COMPONENTS ZERO, ONE NON-ZERO
+    LOG(logINFO,*_log) << flush 
+        << "K-lines through origin: Checking K resonances" << flush;
+    for (int i = 1; i < _NA_max+1; ++i) {
+        EwdInteractor::cmplx as1s2_posk = _ewdactor.AS1S2(+i*_A, _fg_C, _bg_P);
+        EwdInteractor::cmplx as1s2_negk = _ewdactor.AS1S2(-i*_A, _fg_C, _bg_P);
+        sum_re += as1s2_posk._re;
+        sum_re += as1s2_negk._re;
+        sum_im += as1s2_posk._im;
+        sum_im += as1s2_negk._im;
+        kx_s1s2.push_back(0.5*std::abs(as1s2_posk._re));
+    }
+    for (int i = 1; i < _NB_max+1; ++i) {
+        EwdInteractor::cmplx as1s2_posk = _ewdactor.AS1S2(+i*_B, _fg_C, _bg_P);
+        EwdInteractor::cmplx as1s2_negk = _ewdactor.AS1S2(-i*_B, _fg_C, _bg_P);
+        sum_re += as1s2_posk._re;
+        sum_re += as1s2_negk._re;
+        sum_im += as1s2_posk._im;
+        sum_im += as1s2_negk._im;
+        ky_s1s2.push_back(0.5*std::abs(as1s2_posk._re));
+    }
+    for (int i = 1; i < _NC_max+1; ++i) {
+        EwdInteractor::cmplx as1s2_posk = _ewdactor.AS1S2(+i*_C, _fg_C, _bg_P);
+        EwdInteractor::cmplx as1s2_negk = _ewdactor.AS1S2(-i*_C, _fg_C, _bg_P);
+        sum_re += as1s2_posk._re;
+        sum_re += as1s2_negk._re;
+        sum_im += as1s2_posk._im;
+        sum_im += as1s2_negk._im;
+        kz_s1s2.push_back(0.5*std::abs(as1s2_posk._re));
+    }
+    LOG(logINFO,*_log)
+        << (format("  :: RE %1$+1.7e IM %2$+1.7e") 
+            % (sum_re/_LxLyLz*_ewdactor.int2eV)
+            % (sum_im/_LxLyLz*_ewdactor.int2eV)).str() << flush;
+    
+    // ONE COMPONENT ZERO, TWO NON-ZERO
+    LOG(logINFO,*_log)
+        << "K-planes through origin: Applying K resonances" << flush;
+    vector< KVector > kvecs_1_0;
+    vector< KVector >::iterator kvit;
+    int kx, ky, kz;    
+    kx = 0;
+    for (ky = -_NB_max; ky < _NB_max+1; ++ky) {
+        if (ky == 0) continue;
+        for (kz = -_NC_max; kz < _NC_max+1; ++kz) {
+            if (kz == 0) continue;
+            vec k = kx*_A + ky*_B + kz*_C;
+            double grade = _ewdactor.Ark2Expk2(k) * kx_s1s2[std::abs(kx)] * ky_s1s2[std::abs(ky)] * kz_s1s2[std::abs(kz)];
+            KVector kvec = KVector(k,grade);
+            kvecs_1_0.push_back(kvec);
+        }
+    }
+    ky = 0;
+    for (kx = -_NA_max; kx < _NA_max+1; ++kx) {
+        if (kx == 0) continue;
+        for (kz = -_NC_max; kz < _NC_max+1; ++kz) {
+            if (kz == 0) continue;
+            vec k = kx*_A + ky*_B + kz*_C;
+            double grade = _ewdactor.Ark2Expk2(k) * kx_s1s2[std::abs(kx)] * ky_s1s2[std::abs(ky)] * kz_s1s2[std::abs(kz)];
+            KVector kvec = KVector(k,grade);
+            kvecs_1_0.push_back(kvec);
+        }
+    }
+    kz = 0;
+    for (kx = -_NA_max; kx < _NA_max+1; ++kx) {
+        if (kx == 0) continue;
+        for (ky = -_NB_max; ky < _NB_max+1; ++ky) {
+            if (ky == 0) continue;
+            vec k = kx*_A + ky*_B + kz*_C;
+            double grade = _ewdactor.Ark2Expk2(k) * kx_s1s2[std::abs(kx)] * ky_s1s2[std::abs(ky)] * kz_s1s2[std::abs(kz)];
+            KVector kvec = KVector(k,grade);
+            kvecs_1_0.push_back(kvec);
+        }
+    }
+    _kvecsort._p = 1e-300;
+    std::sort(kvecs_1_0.begin(), kvecs_1_0.end(), _kvecsort);
+    //for (kvit = kvecs_1_0.begin(); kvit < kvecs_1_0.end(); ++kvit) {
+    //    KVector kvec = *kvit;
+    //    cout << endl << std::scientific << kvec.getX() << " " << kvec.getY() << " " << kvec.getZ() << " grade " << kvec.getGrade() << flush;
+    //}
+    
+    
+    double crit_grade = 1.;
+    bool converged12 = false;
+    kvit = kvecs_1_0.begin();
+    while (!converged12 && kvit < kvecs_1_0.end()) {
+        
+        double de_this_shell = 0.0;
+        int shell_count = 0;
+        
+        while (kvit < kvecs_1_0.end()) {
+            KVector kvec = *kvit;
+            if (kvec.getGrade() < crit_grade) break;
+            EwdInteractor::cmplx as1s2 = _ewdactor.AS1S2(kvec.getK(), _fg_C, _bg_P);
+            sum_re += as1s2._re;
+            sum_im += as1s2._im;
+            //de_this_shell += sqrt(as1s2._re*as1s2._re + as1s2._im*as1s2._im);
+            de_this_shell += as1s2._re;        
+            //cout << endl << std::showpos << std::scientific 
+            //   << kvec.getX() << " " << kvec.getY() << " " << kvec.getZ() 
+            //   << " grade " << kvec.getGrade() << " re " << as1s2._re << flush;            
+            ++kvit;
+            ++shell_count;
+        }
+        de_this_shell = (de_this_shell < 0.) ? -de_this_shell : de_this_shell;
+        
+        LOG(logDEBUG,*_log)
+             << (format("M = %1$04d   G = %2$+1.3e   dE(rms) = %3$+1.3e")
+             % shell_count
+             % crit_grade
+             % (de_this_shell/_LxLyLz*_ewdactor.int2eV)).str() << flush;
+        
+        if (shell_count > 10 && de_this_shell/_LxLyLz*_ewdactor.int2eV < _crit_dE) {
+            LOG(logINFO,*_log)
+                << (format("  :: RE %1$+1.7e IM %2$+1.7e") 
+                % (sum_re/_LxLyLz*_ewdactor.int2eV)
+                % (sum_im/_LxLyLz*_ewdactor.int2eV)).str() << flush;
+            converged12 = true;
+        }
+        
+        crit_grade /= 10.0;
+    }
+    
+    
+    // ZERO COMPONENTS ZERO, THREE NON-ZERO
+    LOG(logINFO,*_log)
+        << "K-space (off-axis): Applying K resonances" << flush;
+    vector< KVector > kvecs_0_0;
+    for (kx = -_NA_max; kx < _NA_max+1; ++kx) {
+        if (kx == 0) continue;
+        for (ky = -_NB_max; ky < _NB_max+1; ++ky) {
+            if (ky == 0) continue;
+            for (kz = -_NC_max; kz < _NC_max+1; ++kz) {
+                if (kz == 0) continue;
+                vec k = kx*_A + ky*_B + kz*_C;
+                double grade = _ewdactor.Ark2Expk2(k) * kx_s1s2[std::abs(kx)] * ky_s1s2[std::abs(ky)] * kz_s1s2[std::abs(kz)];
+                KVector kvec = KVector(k,grade);
+                kvecs_0_0.push_back(kvec);
+            }
+        }    
+    }
+    
+    _kvecsort._p = 1e-300;
+    std::sort(kvecs_0_0.begin(), kvecs_0_0.end(), _kvecsort);
+    //for (kvit = kvecs_0_0.begin(); kvit < kvecs_0_0.end(); ++kvit) {
+    //    KVector kvec = *kvit;
+    //    cout << endl << std::scientific << kvec.getX() << " " << kvec.getY() << " " << kvec.getZ() << " grade " << kvec.getGrade() << flush;
+    //}
+    
+    
+    crit_grade = 1.;
+    double converged03 = false;
+    kvit = kvecs_0_0.begin();
+    while (!converged03 && kvit < kvecs_0_0.end()) {
+        
+        double de_this_shell = 0.0;
+        int shell_count = 0;
+        
+        while (kvit < kvecs_0_0.end()) {
+            KVector kvec = *kvit;
+            if (kvec.getGrade() < crit_grade) break;
+            EwdInteractor::cmplx as1s2 = _ewdactor.AS1S2(kvec.getK(), _fg_C, _bg_P);
+            sum_re += as1s2._re;
+            sum_im += as1s2._im;
+            //de_this_shell += sqrt(as1s2._re*as1s2._re + as1s2._im*as1s2._im);
+            de_this_shell += as1s2._re;
+            //cout << endl << std::showpos << std::scientific 
+            //   << kvec.getX() << " " << kvec.getY() << " " << kvec.getZ() 
+            //   << " grade " << kvec.getGrade() << " re " << as1s2._re << flush;            
+            ++kvit;
+            ++shell_count;
+        }
+        de_this_shell = (de_this_shell < 0.) ? -de_this_shell : de_this_shell;
+        
+        LOG(logDEBUG,*_log)
+             << (format("M = %1$04d   G = %2$+1.3e   dE(rms) = %3$+1.3e")
+             % shell_count
+             % crit_grade
+             % (de_this_shell/_LxLyLz*_ewdactor.int2eV)).str() << flush;
+        
+        if (shell_count > 10 && de_this_shell/_LxLyLz*_ewdactor.int2eV < _crit_dE) {
+            LOG(logINFO,*_log)
+                << (format("  :: RE %1$+1.7e IM %2$+1.7e") 
+                % (sum_re/_LxLyLz*_ewdactor.int2eV)
+                % (sum_im/_LxLyLz*_ewdactor.int2eV)).str() << flush;
+            converged03 = true;
+        }
+        
+        crit_grade /= 10.0;
+    }
+    
+    _converged_K = converged12 && converged03;
+    
+    if (_converged_K)
+        LOG(logINFO,*_log)
+            << (format(":::: Converged to precision, {0-2}, {1-2}, {0-3}."))
+            << flush;
+    else ;
+
+    /*
     vector<PolarSeg*>::iterator sit;
     vector<APolarSite*> ::iterator pit;    
     
@@ -159,12 +372,12 @@ double PEwald3D3D::ConvergeReciprocalSpaceSum() {
         for (kit = (*shellit).begin(); kit < (*shellit).end(); ++kit, ++N_K_proc) {
             vec k = *kit;
             double K = abs(k);
-            double Kxy = sqrt(k.getX()*k.getX()+k.getY()*k.getY());
-            double Kz = sqrt(k.getZ()*k.getZ());
+            //double Kxy = sqrt(k.getX()*k.getX()+k.getY()*k.getY());
+            //double Kz = sqrt(k.getZ()*k.getZ());
             
             LOG(logDEBUG,*_log)
-                << (format("k[%5$d] = %1$+1.3f %2$+1.3f %3$+1.3f   |Kxy| = %4$+1.3f 1/nm") 
-                % (k.getX()) % (k.getY()) % (k.getZ()) % (Kxy/K) % (N_shells_proc+1));
+                << (format("k[%5$d] = %1$+1.3f %2$+1.3f %3$+1.3f   |K| = %4$+1.3f 1/nm") 
+                % (k.getX()) % (k.getY()) % (k.getZ()) % K % (N_shells_proc+1));
             
             EwdInteractor::cmplx as1s2 = _ewdactor.AS1S2(k, _fg_C, _bg_P);
             
@@ -181,11 +394,11 @@ double PEwald3D3D::ConvergeReciprocalSpaceSum() {
             this_shell_maxK = K;
 
             LOG(logDEBUG,*_log)
-                << (format("    Re(dE) = %1$+1.7f")
+                << (format("    Re(dE) = %1$+1.3e")
                 % (re_dE/_LxLyLz*_ewdactor.int2eV));
 
             LOG(logDEBUG,*_log)
-                << (format("    Re(E) = %1$+1.7f Im(E) = %2$+1.7f")
+                << (format("    Re(E) = %1$+1.3e Im(E) = %2$+1.3e")
                 % (re_E/_LxLyLz*_ewdactor.int2eV) % (im_E/_LxLyLz*_ewdactor.int2eV));        
 
             // CONVERGED?
@@ -206,7 +419,8 @@ double PEwald3D3D::ConvergeReciprocalSpaceSum() {
             LOG(logDEBUG,*_log)
                 << (format("   RMS(%2$d) = %1$+1.7f") 
                 % (dEKK_rms/_LxLyLz*_ewdactor.int2eV) % N_EKK_memory) << flush;
-
+            
+            // OVERRIDE IN PLACE
             if (false && dEKK_rms/_LxLyLz*_ewdactor.int2eV <= _crit_dE && N_K_proc > 2 && N_shells_proc > 0) {
                 _converged_K = true;
                 LOG(logDEBUG,*_log)
@@ -230,9 +444,9 @@ double PEwald3D3D::ConvergeReciprocalSpaceSum() {
         }
         
     } // Sum over k-shells
-    
-    EKK_fgC_bgP = re_E/_LxLyLz;
-    return EKK_fgC_bgP;
+    */
+
+    return sum_re/_LxLyLz;
 }
 
 

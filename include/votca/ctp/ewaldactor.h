@@ -95,7 +95,9 @@ public:
     
     inline void ApplyBiasK(const vec &k);
     inline void ApplyBiasK(APolarSite &p);
-    inline cmplx AS1S2(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2);    
+    inline cmplx AS1S2(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2);
+    inline cmplx S1S2(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2);
+    inline double Ark2Expk2(const vec &k);
     
     
 private:
@@ -239,6 +241,48 @@ inline EwdInteractor::cmplx EwdInteractor::AS1S2(const vec &k,
     return cmplx(re_AS1S2, im_AS1S2);
 }
 
+
+inline double EwdInteractor::Ark2Expk2(const vec &k) {
+    ApplyBiasK(k);
+    return AK;
+}
+
+
+inline EwdInteractor::cmplx EwdInteractor::S1S2(const vec &k,
+    vector<PolarSeg*> &s1, vector<PolarSeg*> &s2) {
+    // NOTE : w/o 1/V
+    ApplyBiasK(k);    
+    
+    vector<PolarSeg*>::iterator sit;
+    vector<APolarSite*> ::iterator pit;
+    
+    // Structure amplitude S1
+    double re_S1 = 0.0;
+    double im_S1 = 0.0;    
+    for (sit = s1.begin(); sit < s1.end(); ++sit) {
+        for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {            
+            ApplyBiasK(*(*pit));            
+            re_S1 += re_s;
+            im_S1 += im_s; // NOTE THE (+)
+        }
+    }    
+    
+    // Structure amplitude S2
+    double re_S2 = 0.0;
+    double im_S2 = 0.0;    
+    for (sit = s2.begin(); sit < s2.end(); ++sit) {
+        for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {            
+            ApplyBiasK(*(*pit));
+            re_S2 += re_s;
+            im_S2 -= im_s; // NOTE THE (-)            
+        }
+    }
+    
+    double re_S1S2 = (re_S1*re_S2 - im_S1*im_S2);
+    double im_S1S2 = (re_S1*im_S2 + im_S1*re_S2);
+    
+    return cmplx(re_S1S2, im_S1S2);
+}
 
 
 // =============================== REAL SPACE =============================== //
