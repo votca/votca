@@ -54,6 +54,8 @@ public:
    void setLog( Logger* pLog ) { _pLog = pLog; }
       
    bool GuessRequested( ) { return _write_guess; }
+   
+   bool ECPRequested( ) { return _write_pseudopotentials; }
 
    void setCharge(const int charge) { _charge = charge; }
    

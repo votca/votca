@@ -73,6 +73,10 @@ private:
     bool                _do_gwbse;
     // what to write in the storage
     bool                _store_orbitals;
+    bool                _store_qp;
+    bool                _store_qpdiag;
+    bool                _store_singlets;
+    bool                _store_triplets;
 
     //bool   _maverick;
     string _outParent;
@@ -96,7 +100,8 @@ void EDFT::Initialize(Topology *top, Property *options) {
     _do_run = false;
     _do_parse = false;
     _do_trim = false;
-    // conversion to GW (might go away from edft again)
+    
+    // conversion to GW 
     _do_convert = false;
     _do_gwbse = false;
 
@@ -119,6 +124,10 @@ void EDFT::Initialize(Topology *top, Property *options) {
     
     string _store_string = options->get(key+".store").as<string> ();
     if (_store_string.find("orbitals") != std::string::npos) _store_orbitals = true;
+    if (_store_string.find("qppert") != std::string::npos) _store_qp = true;
+    if (_store_string.find("qpdiag") != std::string::npos) _store_qpdiag = true;
+    if (_store_string.find("singlets") != std::string::npos) _store_singlets = true;
+    if (_store_string.find("triplets") != std::string::npos) _store_triplets = true;
     
     load_property_from_xml( _package_options, _package_xml.c_str() );    
     key = "package";
@@ -148,7 +157,6 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     bool _run_status;
     bool _parse_log_status;
     bool _parse_orbitals_status;
-    // Conversion to GW
     bool _convert_status;
 
 
@@ -167,24 +175,32 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     // extracted information will be stored in  ORB_FILES/molecules/frame_x/molecule_ID.orb
     
     string edft_work_dir = "OR_FILES";
-
-    string orbitals_storage_dir = "molecules";
     string frame_dir =  "frame_" + boost::lexical_cast<string>(top->getDatabaseId());      
-    
     string ID   = boost::lexical_cast<string>( seg->getId() );
-    string qmpackage_work_dir  = edft_work_dir + "/" + _package + "/" + frame_dir + "/mol_" + ID;
-    string ORB_DIR = edft_work_dir + "/" + orbitals_storage_dir + "/" + frame_dir;
 
     // get the corresponding object from the QMPackageFactory
     QMPackage *_qmpackage =  QMPackages().Create( _package );
-     
-    boost::filesystem::create_directories( qmpackage_work_dir );     
-    boost::filesystem::create_directories(ORB_DIR);        
     
    _qmpackage->setLog( pLog );  
-   
    _qmpackage->Initialize( &_package_options );
 
+   string orbitals_storage_dir;
+   string qmpackage_work_dir;
+   
+   /* To avoid possible mixup between standard DFT runs, e.g., for coupling
+    * elements and GWBSE DFT basis runs, modify storage files/directories */
+   if ( _qmpackage->ECPRequested() ){
+       orbitals_storage_dir = "molecules_gwbse";
+       qmpackage_work_dir  = edft_work_dir + "/" + _package + "_gwbse/" + frame_dir + "/mol_" + ID;
+   } else {
+       orbitals_storage_dir = "molecules";
+       qmpackage_work_dir  = edft_work_dir + "/" + _package + "/" + frame_dir + "/mol_" + ID;
+   }
+
+    string ORB_DIR = edft_work_dir + "/" + orbitals_storage_dir + "/" + frame_dir;
+    boost::filesystem::create_directories( qmpackage_work_dir );     
+    boost::filesystem::create_directories(ORB_DIR); 
+    
    _qmpackage->setRunDir( qmpackage_work_dir );
 
    
@@ -307,13 +323,51 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
        } 
        
        
-      // can I ask for another QMPackage?
+      // initialize GW as another QMPackage
       QMPackage *_gwpackage = QMPackages().Create( "gw" );
       _gwpackage->Initialize( &_gwpackage_options );
       _gwpackage->setLog( pLog );  
       _gwpackage->setRunDir( qmpackage_work_dir );
       _gwpackage->WriteInputFile( segments , &_orbitals );
-    
+
+      // run the GWBSE executable
+      _run_status = _gwpackage->Run( );
+      if ( !_run_status ) {
+            output += "run failed; " ;
+            LOG(logERROR,*pLog) << " GWBSE run failed" << flush;
+            jres.setOutput( output ); 
+            jres.setStatus(Job::FAILED);
+            delete _gwpackage;
+            return jres;
+        } else {
+            output += "run completed; " ;
+        }
+      
+      // parse and store output from GWBSE
+      _parse_log_status = _gwpackage->ParseLogFile( &_orbitals );
+        if ( !_parse_log_status ) {
+            output += "log incomplete; ";
+            LOG(logERROR,*pLog) << "GWBSE log incomplete" << flush;
+            jres.setOutput( output ); 
+            jres.setStatus(Job::FAILED);
+            delete _gwpackage;
+            return jres;
+        } else {
+            output += "log parsed; " ;
+        }
+
+       /* Parse orbitals file
+       _parse_orbitals_status = _qmpackage->ParseOrbitalsFile( &_orbitals );
+        if ( !_parse_orbitals_status ) {
+            output += "orbitals failed; " ;
+            LOG(logERROR,*pLog) << "QM orbitals not parsed" << flush;
+            jres.setOutput( output ); 
+            jres.setStatus(Job::FAILED);
+            delete _qmpackage;
+            return jres;
+        } else {
+            output += "orbitals parsed; " ;
+        } */
    }
    
    // Clean run

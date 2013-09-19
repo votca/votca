@@ -42,7 +42,7 @@ void GW::Initialize( Property *options ) {
 
     _xyz_file_name = fileName + ".xyz";
     _input_file_name = "input"; // hard coded
-    _log_file_name = fileName + ".log"; 
+    _log_file_name = fileName + ".gwbse"; 
     _orb_file_name = fileName + ".movecs" ;               
 
     string key = "package";
@@ -103,7 +103,6 @@ void GW::Initialize( Property *options ) {
  */
 bool GW::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_guess )
 {
-    cout << "\nI am supposed to write an input file for GW" << endl ;
     vector< Atom* > _atoms;
     vector< Atom* > ::iterator ait;
     vector< Segment* >::iterator sit;
@@ -215,38 +214,32 @@ bool GW::Run()
 {
 
     LOG(logDEBUG,*_pLog) << "Running GWBSE job" << flush;
+    // get the path to the shared folders with xml files
+    char *gwbse_dir = getenv("GWBSEDIR");
+    if( gwbse_dir == NULL) throw std::runtime_error("GWBSEDIR not set, cannot run isogwa.x.");
     
     if (system(NULL)) {
-        
-        // NWChem overrides input information, if *.db and *.movecs files are present
-        // better trash the old version
-        string file_name = _run_dir + "/system.db";
-        remove ( file_name.c_str() );
-        file_name = _run_dir + "/" + _log_file_name;
-        remove ( file_name.c_str() );
-        file_name = _run_dir + "/" + _orb_file_name;
-        //remove ( file_name.c_str() );
-        
                 
-        // if threads is provided and > 1, run mpi; 
+        // if threads is provided and > 1
         string _command;
         if ( _threads == 1 ) {
-            _command  = "cd " + _run_dir + "; " + _executable + " " + _input_file_name + "> " +  _log_file_name ;
+            _command  = "cd " + _run_dir + "; $GWBSEDIR/bin/" + _executable + " > " +  _log_file_name ;
         } else {
-            _command  = "cd " + _run_dir + "; mpirun -np " +  boost::lexical_cast<string>(_threads) + " " + _executable + " " + _input_file_name + "> "+  _log_file_name ;
+            _command  = "cd " + _run_dir + "; $GWBSEDIR/bin/" + _executable + " > " +  _log_file_name ;
+            //_command  = "cd " + _run_dir + "; mpirun -np " +  boost::lexical_cast<string>(_threads) + " " + _executable + " " + _input_file_name + "> "+  _log_file_name ;
         }
         
         int i = system ( _command.c_str() );
         
         if ( CheckLogFile() ) {
-            LOG(logDEBUG,*_pLog) << "Finished NWChem job" << flush;
+            LOG(logDEBUG,*_pLog) << "Finished GWBSE job" << flush;
             return true;
         } else {
-            LOG(logDEBUG,*_pLog) << "NWChem job failed" << flush;
+            LOG(logDEBUG,*_pLog) << "GWBSE failed" << flush;
         }
     }
     else {
-        LOG(logERROR,*_pLog) << _input_file_name << " failed to start" << flush; 
+        LOG(logERROR,*_pLog) << "GWBSE failed to start" << flush; 
         return false;
     }
     
@@ -315,51 +308,40 @@ bool GW::CheckLogFile() {
     ifstream _input_file((_run_dir + "/" + _log_file_name).c_str());
     
     if (_input_file.fail()) {
-        LOG(logERROR,*_pLog) << "NWChem LOG is not found" << flush;
+        LOG(logERROR,*_pLog) << "ISOGWA LOG is not found" << flush;
         return false;
     };
-
-    
-    /* Checking the log file is a pain in the *** since NWChem throws an error
-     * for our 'iterations 1'  runs (even though it outputs the required data
-     * correctly. The only way that works for both scf and noscf runs is to
-     * check for "Total DFT energy" near the end of the log file. 
-     */
     
     _input_file.seekg(0,ios_base::end);   // go to the EOF
-
-    std::string::size_type total_energy_pos = std::string::npos;
-    std::string::size_type diis_pos = std::string::npos;
-    do {
-       // get the beginning of the line 
-       do {
-          _input_file.seekg(-2,ios_base::cur);
-          _input_file.get(ch);   
-          //cout << "\nNext Char: " << ch << " TELL G " <<  (int)_input_file.tellg() << endl;
-       } while ( ch != '\n' || (int)_input_file.tellg() == -1 );
-            
-       string _line;            
-       getline(_input_file,_line);                      // Read the current line
-       // cout << "\nResult: " << _line << '\n';     // Display it
-       total_energy_pos = _line.find("Total DFT energy");
-       diis_pos = _line.find("diis");
-       // whatever is found first, determines the completeness of the file
-       if (total_energy_pos != std::string::npos) {
-          return true;
-       } else if (diis_pos != std::string::npos) {
-           LOG(logERROR,*_pLog) << "NWChem LOG is incomplete" << flush;
-           return false;
-       } else {
-           // go to previous line
-           //_input_file.get(ch); 
-           do {
-           _input_file.seekg(-2,ios_base::cur);
-           _input_file.get(ch);   
-           //cout << "\nChar: " << ch << endl;
-         } while ( ch != '\n' || (int)_input_file.tellg() == -1);
-       }
-    } while ( total_energy_pos == std::string::npos && diis_pos == std::string::npos );
+   
     
+    // get empty lines and end of lines out of the way
+    do {
+        _input_file.seekg(-2,ios_base::cur);
+        _input_file.get(ch);   
+        //cout << "\nChar: " << ch << endl;
+    } while ( ch == '\n' || ch == ' ' || (int)_input_file.tellg() == -1 );
+ 
+    // get the beginning of the line or the file
+    do {
+       _input_file.seekg(-2,ios_base::cur);
+       _input_file.get(ch);   
+       //cout << "\nNext Char: " << ch << " TELL G " <<  (int)_input_file.tellg() << endl;
+    } while ( ch != '\n' || (int)_input_file.tellg() == -1 );
+            
+    string _line;            
+    getline(_input_file,_line);                      // Read the current line
+    //cout << "\nResult: " << _line << '\n';     // Display it
+    _input_file.close();
+        
+    std::string::size_type self_energy_pos = _line.find("INF total program runtime");
+    if (self_energy_pos == std::string::npos) {
+            LOG(logERROR,*_pLog) << "ISOGWA is incomplete" << flush;
+            return false;      
+    } else {
+            //LOG(logDEBUG,*_pLog) << "Gaussian LOG is complete" << flush;
+            return true;
+    }
     
     _input_file.close();
     
@@ -370,6 +352,11 @@ bool GW::CheckLogFile() {
  */
 bool GW::ParseLogFile( Orbitals* _orbitals ) {
 
+    
+    // _store_qppert -> read from *.gwbse file
+    // _store_qpdiag -> read from diag_QP.dat
+    // _store_singlets -> read from *.gwbse file (free interband, eh-interaction contrib.) and singlets.99 (coefficients)
+    // _store_triplets -> read from triplets.99 (energies and coefficients), contributions?
     return true;
 }
      
