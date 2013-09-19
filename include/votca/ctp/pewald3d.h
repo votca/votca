@@ -38,6 +38,11 @@ namespace votca { namespace ctp {
         double CalculateShapeCorrection();
         double CalculateHigherRankCorrection() { return 0.0; }        
         double CalculateK0Correction() { return 0.0; }
+        
+        double Field_ConvergeRealSpaceSum();
+        double Field_ConvergeReciprocalSpaceSum();
+        double Field_CalculateForegroundCorrection();
+        double Field_CalculateShapeCorrection();
     
     private:
         

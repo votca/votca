@@ -53,6 +53,11 @@ namespace votca { namespace ctp {
         virtual double CalculateShapeCorrection() { return 0.0; }
         virtual double CalculateK0Correction() { return 0.0; }
         
+        virtual double Field_ConvergeRealSpaceSum() { ; }
+        virtual double Field_ConvergeReciprocalSpaceSum() { ; }
+        virtual double Field_CalculateForegroundCorrection() { ; }
+        virtual double Field_CalculateShapeCorrection() { ; }
+        
         // To sort K-vectors via std::sort using a norm functor
         template<class Norm, class V>
         struct VectorSort

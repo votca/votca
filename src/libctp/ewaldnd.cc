@@ -470,6 +470,28 @@ void Ewald3DnD::Evaluate() {
 
 void Ewald3DnD::EvaluateFields() {
     
+    // RESET PERMANENT FIELDS
+    vector<PolarSeg*>::iterator sit; 
+    vector<APolarSite*> ::iterator pit;
+    for (sit = _fg_C.begin(); sit < _fg_C.end(); ++sit) {        
+        PolarSeg* pseg = *sit;
+        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
+            (*pit)->Depolarize();
+        }
+    }
+    
+    // REAL-SPACE CONTRIBUTION (3D2D && 3D3D)
+    Field_ConvergeRealSpaceSum();    
+    
+    // RECIPROCAL-SPACE CONTRIBUTION (3D2D && 3D3D)
+    Field_ConvergeReciprocalSpaceSum();
+    
+    // SHAPE-CORRECTION (3D3D)/ K0-CORRECTION (3D2D)
+    Field_CalculateShapeCorrection();
+    
+    // FOREGROUND CORRECTION (3D2D && 3D3D)
+    Field_CalculateForegroundCorrection();
+    
     return;
 }
 
@@ -478,10 +500,17 @@ void Ewald3DnD::EvaluateInduction() {
     
     LOG(logDEBUG,*_log) << flush;
     LOG(logDEBUG,*_log) << format("Call inductor on FGC = QM0 u MM1") << flush;
-    LOG(logDEBUG,*_log) << (format("  o %1$s") % _ptop->ShellInfoStr()).str() << flush;
-    LOG(logDEBUG,*_log) << (format("  o Polar c/o:        ")).str() << _polar_cutoff << " nm " << flush;
-    LOG(logDEBUG,*_log) << (format("  o Sharpness:        ")).str() << _polar_aDamp << flush;
-            
+    LOG(logDEBUG,*_log) << (format("  o |QM0|, |MM1|, |MM2|        %1$d %2$d %3$d") 
+            % _ptop->QM0().size() % _ptop->MM1().size() % _ptop->MM2().size()).str() << flush;
+    LOG(logDEBUG,*_log) << (format("  o Polarization cut-off:      ")).str() << _polar_cutoff << " nm " << flush;
+    LOG(logDEBUG,*_log) << (format("  o With induction:            %1$s") % ((_polar_do_induce) ? "yes" : "no")) << flush;
+    LOG(logDEBUG,*_log) << (format("  o Thole sharpness parameter: ")).str() << _polar_aDamp << flush;
+    LOG(logDEBUG,*_log) << (format("  o SOR mixing factor:         ")).str() << _polar_wSOR_N << " (N) " << _polar_wSOR_C << " (C) "  << flush;
+    LOG(logDEBUG,*_log) << (format("  o Iterations (max):          512")).str() << flush;
+    LOG(logDEBUG,*_log) << (format("  o Tolerance (rms, e*nm):     0.001")).str() << flush;
+    LOG(logDEBUG,*_log) << (format("  o Induce within QM0:         yes")).str() << flush;
+    LOG(logDEBUG,*_log) << (format("  o Subthreads:                single")).str() << flush;
+    
     // Forge XJob object to comply with XInductor interface
     bool polar_has_permanent_fields = true;
     XJob polar_xjob = XJob(_ptop, polar_has_permanent_fields);

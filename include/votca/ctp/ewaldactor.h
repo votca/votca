@@ -81,13 +81,19 @@ public:
     inline double gG4(APolarSite &p1, APolarSite &p2);
         
     // Real-space term contribution P1 <> P2
-    inline double U12_ERFC(APolarSite &p1, APolarSite &p2);
-    
+    inline double U12_ERFC(APolarSite &p1, APolarSite &p2);    
     // Reciprocal-space double-counting correction term P1 <> P2
-    inline double U12_ERF(APolarSite &p1, APolarSite &p2);
-    
+    inline double U12_ERF(APolarSite &p1, APolarSite &p2);    
     // Reciprocal-space K=0 shape correction term P1 <> P2
     inline double U12_XYSlab(APolarSite &p1, APolarSite &p2);
+    
+    // Real-space term contribution P1 <> P2
+    inline double F12_ERFC_At_By(APolarSite &p1, APolarSite &p2);
+    // Reciprocal-space double-counting correction term P1 <> P2
+    inline double F12_ERF_At_By(APolarSite &p1, APolarSite &p2);    
+    // Reciprocal-space K=0 shape correction term P1 <> P2
+    inline double F12_XYSlab_At_By(APolarSite &p1, APolarSite &p2, double &TwoPi_V);
+    
     
     
     
@@ -286,6 +292,129 @@ inline EwdInteractor::cmplx EwdInteractor::S1S2(const vec &k,
 
 
 // =============================== REAL SPACE =============================== //
+
+
+inline double EwdInteractor::F12_ERFC_At_By(APolarSite &p1, APolarSite &p2) {
+    // NOTE Field points from (-) to (+) => XInductor, XInteractor compatible
+    ApplyBias(p1, p2);
+    UpdateAllBls();
+    
+    double fx = 0.0;
+    double fy = 0.0;
+    double fz = 0.0;
+    
+    // Charge
+    fx += - p2.Q00*rx*B1;
+    fy += - p2.Q00*ry*B1;
+    fz += - p2.Q00*rz*B1;    
+    
+    if (p2._rank > 0) {
+        // Dipole
+        fx += p2.Q1x*B1;
+        fy += p2.Q1y*B1;
+        fz += p2.Q1z*B1;
+        
+        double mu2_r = (p2.Q1x*rx + p2.Q1y*ry + p2.Q1z*rz);
+        fx += - rx*mu2_r*B2;
+        fy += - ry*mu2_r*B2;
+        fz += - rz*mu2_r*B2;
+        
+        if (p2._rank > 1) {
+            // Quadrupole
+            fx += 2 * (p2.Qxx*rx + p2.Qxy*ry + p2.Qxz*rz) * B2;
+            fy += 2 * (p2.Qxy*rx + p2.Qyy*ry + p2.Qyz*rz) * B2;
+            fz += 2 * (p2.Qxz*rx + p2.Qyz*ry + p2.Qzz*rz) * B2;
+            
+            double Q2__R = (p2.Qxx*rxx + 2*p2.Qxy*rxy + 2*p2.Qxz*rxz
+                                       +   p2.Qyy*ryy + 2*p2.Qyz*ryz
+                                                      +   p2.Qzz*rzz);            
+            fx += - Q2__R*rx*B3;
+            fy += - Q2__R*ry*B3;
+            fz += - Q2__R*rz*B3;
+        }
+    }
+    // Increment fields
+    p1.FPx += fx;
+    p1.FPy += fy;
+    p1.FPz += fz;    
+    return sqrt(fx*fx + fy*fy + fz*fz);
+}
+
+
+inline double EwdInteractor::F12_ERF_At_By(APolarSite &p1, APolarSite &p2) {
+    // NOTE Field points from (-) to (+) => XInductor, XInteractor compatible
+    ApplyBias(p1, p2);
+    UpdateAllCls();
+    
+    double fx = 0.0;
+    double fy = 0.0;
+    double fz = 0.0;
+    
+    if (R1 < 1e-2) {
+        if (p2._rank > 0) {
+            fx += 4./3.*a3*rSqrtPi * p2.Q1x;
+            fy += 4./3.*a3*rSqrtPi * p2.Q1y;
+            fz += 4./3.*a3*rSqrtPi * p2.Q1z;
+        }
+    }
+    else {
+        // Charge
+        fx += - p2.Q00*rx*C1;
+        fy += - p2.Q00*ry*C1;
+        fz += - p2.Q00*rz*C1;    
+
+        if (p2._rank > 0) {
+            // Dipole
+            fx += p2.Q1x*C1;
+            fy += p2.Q1y*C1;
+            fz += p2.Q1z*C1;
+
+            double mu2_r = (p2.Q1x*rx + p2.Q1y*ry + p2.Q1z*rz);
+            fx += - rx*mu2_r*C2;
+            fy += - ry*mu2_r*C2;
+            fz += - rz*mu2_r*C2;
+
+            if (p2._rank > 1) {
+                // Quadrupole
+                fx += 2 * (p2.Qxx*rx + p2.Qxy*ry + p2.Qxz*rz) * C2;
+                fy += 2 * (p2.Qxy*rx + p2.Qyy*ry + p2.Qyz*rz) * C2;
+                fz += 2 * (p2.Qxz*rx + p2.Qyz*ry + p2.Qzz*rz) * C2;
+
+                double Q2__R = (p2.Qxx*rxx + 2*p2.Qxy*rxy + 2*p2.Qxz*rxz
+                                           +   p2.Qyy*ryy + 2*p2.Qyz*ryz
+                                                          +   p2.Qzz*rzz);            
+                fx += - Q2__R*rx*C3;
+                fy += - Q2__R*ry*C3;
+                fz += - Q2__R*rz*C3;
+            }
+        }
+    }
+    // Increment fields. Note the (-): This is a compensation term.
+    p1.FPx += - fx;
+    p1.FPy += - fy;
+    p1.FPz += - fz;    
+    return sqrt(fx*fx + fy*fy + fz*fz);
+}
+
+
+inline double EwdInteractor::F12_XYSlab_At_By(APolarSite &p1, APolarSite &p2, 
+    double &TwoPi_V) {
+    // NOTE Field points from (-) to (+) => XInductor, XInteractor compatible
+    ApplyBias(p1, p2);
+
+    double fz = 0.0;
+    
+    // Charge
+    fz += - 2*p2.Q00*rz;
+    if (p2._rank > 0) {
+        // Dipole
+        fz += 2*p2.Q1z;
+    }
+    // Increment field, use prefactor 2*PI/V
+    p1.FPz += TwoPi_V*fz;    
+    return sqrt(fz*fz);
+}
+
 
 inline double EwdInteractor::U12_ERFC(APolarSite &p1, APolarSite &p2) {
     

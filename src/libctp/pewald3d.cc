@@ -22,33 +22,31 @@ PEwald3D3D::PEwald3D3D(Topology *top, PolarTop *ptop, Property *opt, Logger *log
 
 double PEwald3D3D::ConvergeRealSpaceSum() {
     
+    double sum = 0.0;
+    _converged_R = false;
+    
     LOG(logDEBUG,*_log) << flush;
 
     vector<PolarSeg*>::iterator sit1; 
     vector<APolarSite*> ::iterator pit1;
     vector<PolarSeg*>::iterator sit2; 
     vector<APolarSite*> ::iterator pit2;
-    vector< vector<PolarSeg*> > ::iterator vsit;    
+    vector< vector<PolarSeg*> > ::iterator vsit;
+    
+    // GENERATE MIDGROUND & ASSEMBLE IT INTO SHELLS
+    double dR_shell = 0.5;
     double R_overhead = 1.1;
     this->SetupMidground(R_overhead*_R_co+_polar_cutoff);
     
-    
-    double sum = 0.0;
-    
-    // ASSEMBLE MIDGROUND INTO SHELLS
     vector< vector<PolarSeg*> > shelled_mg_N;
-    double dR_shell = 0.5;
-    
     int N_shells = int((R_overhead*_R_co+_polar_cutoff)/dR_shell)+1;
-    shelled_mg_N.resize(N_shells);    
+    shelled_mg_N.resize(N_shells);
     
     for (sit1 = _mg_N.begin(); sit1 != _mg_N.end(); ++sit1) {
         double R = votca::tools::abs((*sit1)->getPos()-_center);
         int shell_idx = int(R/dR_shell);
         shelled_mg_N[shell_idx].push_back(*sit1);
     }
-    
-    
 
     //boost::timer::auto_cpu_timer t0(*_log);
     //t0.start();
@@ -62,6 +60,7 @@ double PEwald3D3D::ConvergeRealSpaceSum() {
         double shell_term = 0.0;
         double shell_rms = 0.0;
         double shell_R = (sidx+1)*dR_shell;
+        int shell_count = 0;
         
         if (shell_mg.size() < 1) continue;
         
@@ -72,12 +71,13 @@ double PEwald3D3D::ConvergeRealSpaceSum() {
                         shell_term = _ewdactor.U12_ERFC(*(*pit1), *(*pit2));
                         shell_sum += shell_term;
                         shell_rms += shell_term*shell_term;
+                        shell_count += 1;
                     }
                 }
             }
         }
         
-        shell_rms = sqrt(shell_rms/shell_mg.size())*_ewdactor.int2eV;
+        shell_rms = sqrt(shell_rms/shell_count)*_ewdactor.int2eV;
         sum += shell_sum;
         LOG(logDEBUG,*_log)
             << (format("Rc = %1$+02.7f   |MGN| = %3$5d   ER = %2$+1.7f eV   dER(rms) = %4$+1.3e") 
@@ -408,6 +408,97 @@ double PEwald3D3D::CalculateForegroundCorrection() {
     }
     
     return EPP_fgC_fgN;
+}
+
+
+double PEwald3D3D::Field_ConvergeRealSpaceSum() {
+    
+    double sum = 0.0;
+    _converged_R = false;
+    
+    LOG(logDEBUG,*_log) << flush;
+
+    vector<PolarSeg*>::iterator sit1; 
+    vector<APolarSite*> ::iterator pit1;
+    vector<PolarSeg*>::iterator sit2; 
+    vector<APolarSite*> ::iterator pit2;
+    
+    // GENERATE MIDGROUND & ASSEMBLE IT INTO SHELLS
+    double dR_shell = 0.5;
+    double R_overhead = 1.1;
+    this->SetupMidground(R_overhead*_R_co+_polar_cutoff);
+    
+    vector< vector<PolarSeg*> > shelled_mg_N;
+    int N_shells = int((R_overhead*_R_co+_polar_cutoff)/dR_shell)+1;
+    shelled_mg_N.resize(N_shells);
+    
+    for (sit1 = _mg_N.begin(); sit1 != _mg_N.end(); ++sit1) {
+        double R = votca::tools::abs((*sit1)->getPos()-_center);
+        int shell_idx = int(R/dR_shell);
+        shelled_mg_N[shell_idx].push_back(*sit1);
+    }
+    
+    // SUM OVER CONSECUTIVE SHELLS
+    bool converged = false;
+    for (int sidx = 0; sidx < N_shells; ++sidx) {
+        
+        vector<PolarSeg*> &shell_mg = shelled_mg_N[sidx];
+        double shell_sum = 0.0;
+        double shell_term = 0.0;
+        double shell_rms = 0.0;
+        double shell_R = (sidx+1)*dR_shell;
+        int shell_count = 0;
+        
+        if (shell_mg.size() < 1) continue;
+        
+        for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
+            for (sit2 = shell_mg.begin(); sit2 < shell_mg.end(); ++sit2) {
+                for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+                    for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
+                        shell_term = _ewdactor.F12_ERFC_At_By(*(*pit1), *(*pit2));
+                        shell_sum += shell_term;
+                        shell_rms += shell_term*shell_term;
+                        shell_count += 1;
+                    }
+                }
+            }
+        }
+        
+        shell_rms = sqrt(shell_rms/shell_mg.size())*_ewdactor.int2eV;
+        sum += shell_sum;
+        LOG(logDEBUG,*_log)
+            << (format("Rc = %1$+02.7f   |MGN| = %3$5d   SUM|F| = %2$+1.7f eV   dF(rms) = %4$+1.3e") 
+            % shell_R % (sum*_ewdactor.int2eV) % shell_mg.size() % shell_rms).str() << flush;
+        
+        if (shell_rms <= _crit_dE) {
+            _converged_R = true;
+            converged = true;
+            LOG(logDEBUG,*_log)  
+                << (format(":::: Converged to precision as of Rc = %1$+1.3f nm") 
+                % shell_R ) << flush;
+            break;
+        }
+    }
+    if (!converged) {
+        _converged_R = false;
+    }
+    
+    return sum;
+}
+double PEwald3D3D::Field_ConvergeReciprocalSpaceSum() {
+    double sum = 0.0;
+    
+    return sum;
+}
+double PEwald3D3D::Field_CalculateForegroundCorrection() {
+    double sum = 0.0;
+    
+    return sum;
+}
+double PEwald3D3D::Field_CalculateShapeCorrection() {
+    double sum = 0.0;
+    
+    return sum;
 }
     
     
