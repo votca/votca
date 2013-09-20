@@ -76,14 +76,13 @@ double PEwald3D3D::ConvergeRealSpaceSum() {
                 }
             }
         }
-        
         shell_rms = sqrt(shell_rms/shell_count)*_ewdactor.int2eV;
         sum += shell_sum;
         LOG(logDEBUG,*_log)
-            << (format("Rc = %1$+02.7f   |MGN| = %3$5d   ER = %2$+1.7f eV   dER(rms) = %4$+1.3e") 
-            % shell_R % (sum*_ewdactor.int2eV) % shell_mg.size() % shell_rms).str() << flush;
+            << (format("Rc = %1$+02.7f   |MGN| = %3$5d   ER = %2$+1.7f eV   dER2(sum) = %4$+1.3e eV") 
+            % shell_R % (sum*_ewdactor.int2eV) % shell_mg.size() % (shell_rms*shell_count)).str() << flush;
         
-        if (shell_rms <= _crit_dE) {
+        if (shell_rms*shell_count <= _crit_dE) {
             _converged_R = true;
             converged = true;
             LOG(logDEBUG,*_log)  
@@ -186,7 +185,7 @@ double PEwald3D3D::ConvergeReciprocalSpaceSum() {
     //    << format("  o NRM [%1$+1.3e %2$+1.3e %3$+1.3e] = %4$+1.3e ") 
     //        % avg_kx_s1s2 % avg_ky_s1s2 % avg_kz_s1s2 % kxyz_s1s2_norm << flush;
     LOG(logINFO,*_log)
-        << (format("  :: RE %1$+1.7e IM %2$+1.7e") 
+        << (format("  :: RE %1$+1.7e IM %2$+1.7e")
             % (sum_re/_LxLyLz*_ewdactor.int2eV)
             % (sum_im/_LxLyLz*_ewdactor.int2eV)).str() << flush;
     
@@ -262,7 +261,7 @@ double PEwald3D3D::ConvergeReciprocalSpaceSum() {
         de_this_shell = (de_this_shell < 0.) ? -de_this_shell : de_this_shell;
         
         LOG(logDEBUG,*_log)
-             << (format("M = %1$04d   G = %2$+1.3e   dE(rms) = %3$+1.3e")
+             << (format("M = %1$04d   G = %2$+1.3e   dE(rms) = %3$+1.3e eV")
              % shell_count
              % crit_grade
              % (de_this_shell/_LxLyLz*_ewdactor.int2eV)).str() << flush;
@@ -330,7 +329,7 @@ double PEwald3D3D::ConvergeReciprocalSpaceSum() {
         de_this_shell = (de_this_shell < 0.) ? -de_this_shell : de_this_shell;
         
         LOG(logDEBUG,*_log)
-             << (format("M = %1$04d   G = %2$+1.3e   dE(rms) = %3$+1.3e")
+             << (format("M = %1$04d   G = %2$+1.3e   dE(rms) = %3$+1.3e eV")
              % shell_count
              % crit_grade
              % (de_this_shell/_LxLyLz*_ewdactor.int2eV)).str() << flush;
@@ -411,10 +410,10 @@ double PEwald3D3D::CalculateForegroundCorrection() {
 }
 
 
-double PEwald3D3D::Field_ConvergeRealSpaceSum() {
+void PEwald3D3D::Field_ConvergeRealSpaceSum() {
     
     double sum = 0.0;
-    _converged_R = false;
+    _field_converged_R = false;
     
     LOG(logDEBUG,*_log) << flush;
 
@@ -443,8 +442,6 @@ double PEwald3D3D::Field_ConvergeRealSpaceSum() {
     for (int sidx = 0; sidx < N_shells; ++sidx) {
         
         vector<PolarSeg*> &shell_mg = shelled_mg_N[sidx];
-        double shell_sum = 0.0;
-        double shell_term = 0.0;
         double shell_rms = 0.0;
         double shell_R = (sidx+1)*dR_shell;
         int shell_count = 0;
@@ -455,50 +452,96 @@ double PEwald3D3D::Field_ConvergeRealSpaceSum() {
             for (sit2 = shell_mg.begin(); sit2 < shell_mg.end(); ++sit2) {
                 for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
                     for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
-                        shell_term = _ewdactor.F12_ERFC_At_By(*(*pit1), *(*pit2));
-                        shell_sum += shell_term;
-                        shell_rms += shell_term*shell_term;
+                        shell_rms += _ewdactor.F12_ERFC_At_By(*(*pit1), *(*pit2));
                         shell_count += 1;
                     }
                 }
             }
         }
         
-        shell_rms = sqrt(shell_rms/shell_mg.size())*_ewdactor.int2eV;
-        sum += shell_sum;
+        shell_rms = sqrt(shell_rms/shell_count)*_ewdactor.int2V_m;
         LOG(logDEBUG,*_log)
-            << (format("Rc = %1$+02.7f   |MGN| = %3$5d   SUM|F| = %2$+1.7f eV   dF(rms) = %4$+1.3e") 
-            % shell_R % (sum*_ewdactor.int2eV) % shell_mg.size() % shell_rms).str() << flush;
+            << (format("Rc = %1$+02.7f   |MGN| = %2$5d   dF(rms) = %3$+1.3e V/m   [1eA => %4$+1.3e eV]") 
+            % shell_R % shell_mg.size() % shell_rms  % (shell_rms*1e-10*shell_count)).str() << flush;
         
-        if (shell_rms <= _crit_dE) {
-            _converged_R = true;
+        if (shell_rms*1e-10*shell_count <= _crit_dE) { // Energy of dipole of size 0.1*e*nm summed over shell
+            _field_converged_R = true;
             converged = true;
-            LOG(logDEBUG,*_log)  
+            LOG(logDEBUG,*_log)
                 << (format(":::: Converged to precision as of Rc = %1$+1.3f nm") 
-                % shell_R ) << flush;
+                % shell_R) << flush;
             break;
         }
     }
     if (!converged) {
-        _converged_R = false;
+        _field_converged_R = false;
+    }    
+    return;
+}
+
+
+void PEwald3D3D::Field_ConvergeReciprocalSpaceSum() {
+    double sum = 0.0;
+    
+    return;
+}
+
+
+void PEwald3D3D::Field_CalculateForegroundCorrection() {
+    
+    vector<PolarSeg*>::iterator sit1; 
+    vector<APolarSite*> ::iterator pit1;
+    vector<PolarSeg*>::iterator sit2; 
+    vector<APolarSite*> ::iterator pit2;
+    
+    double rms = 0.0;
+    int rms_count = 0;
+    for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
+        for (sit2 = _fg_N.begin(); sit2 < _fg_N.end(); ++sit2) {
+            for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+                for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
+                    rms += _ewdactor.F12_ERF_At_By(*(*pit1), *(*pit2));
+                    rms_count += 1;
+                }
+            }
+        }
     }
+    rms = sqrt(rms/rms_count)*_ewdactor.int2V_m;
     
-    return sum;
+    return;
 }
-double PEwald3D3D::Field_ConvergeReciprocalSpaceSum() {
-    double sum = 0.0;
+
+
+void PEwald3D3D::Field_CalculateShapeCorrection() {
+
+    vector<PolarSeg*>::iterator sit1; 
+    vector<APolarSite*> ::iterator pit1;
+    vector<PolarSeg*>::iterator sit2; 
+    vector<APolarSite*> ::iterator pit2;
     
-    return sum;
-}
-double PEwald3D3D::Field_CalculateForegroundCorrection() {
-    double sum = 0.0;
+    double rms = 0.0;
+    int rms_count = 0;    
+    if (_shape == "xyslab") {
+        double TwoPi_V = 2*M_PI/_LxLyLz;
+        for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
+           for (sit2 = _bg_P.begin(); sit2 < _bg_P.end(); ++sit2) {
+              for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+                 for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
+                    rms += _ewdactor.F12_XYSlab_At_By(*(*pit1), *(*pit2), TwoPi_V);
+                    rms_count += 1;
+                 }
+              }
+           }
+        }
+    }
+    else {
+        LOG(logERROR,*_log)
+            << (format("Shape %1$s not implemented. Setting EJ = 0.0 ...") 
+            % _shape) << flush;
+    }
+    rms = sqrt(rms/rms_count)*_ewdactor.int2V_m;
     
-    return sum;
-}
-double PEwald3D3D::Field_CalculateShapeCorrection() {
-    double sum = 0.0;
-    
-    return sum;
+    return;
 }
     
     

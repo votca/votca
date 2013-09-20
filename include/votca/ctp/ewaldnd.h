@@ -53,10 +53,10 @@ namespace votca { namespace ctp {
         virtual double CalculateShapeCorrection() { return 0.0; }
         virtual double CalculateK0Correction() { return 0.0; }
         
-        virtual double Field_ConvergeRealSpaceSum() { ; }
-        virtual double Field_ConvergeReciprocalSpaceSum() { ; }
-        virtual double Field_CalculateForegroundCorrection() { ; }
-        virtual double Field_CalculateShapeCorrection() { ; }
+        virtual void Field_ConvergeRealSpaceSum() { ; }
+        virtual void Field_ConvergeReciprocalSpaceSum() { ; }
+        virtual void Field_CalculateForegroundCorrection() { ; }
+        virtual void Field_CalculateShapeCorrection() { ; }
         
         // To sort K-vectors via std::sort using a norm functor
         template<class Norm, class V>
@@ -135,6 +135,8 @@ namespace votca { namespace ctp {
         double _crit_dE;                // Energy convergence criterion [eV]
         bool   _converged_R;            // Did R-space sum converge?
         bool   _converged_K;            // Did K-space sum converge?
+        bool   _field_converged_R;
+        bool   _field_converged_K;
         // Part II - Thole
         bool _polar_do_induce;
         double _polar_aDamp;

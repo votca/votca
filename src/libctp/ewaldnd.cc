@@ -511,6 +511,8 @@ void Ewald3DnD::EvaluateInduction() {
     LOG(logDEBUG,*_log) << (format("  o Induce within QM0:         yes")).str() << flush;
     LOG(logDEBUG,*_log) << (format("  o Subthreads:                single")).str() << flush;
     
+    return; // OVERRIDE
+    
     // Forge XJob object to comply with XInductor interface
     bool polar_has_permanent_fields = true;
     XJob polar_xjob = XJob(_ptop, polar_has_permanent_fields);

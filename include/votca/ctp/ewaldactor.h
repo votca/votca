@@ -43,6 +43,7 @@ public:
    ~EwdInteractor() {};
    
     static const double int2eV  = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
+    static const double int2V_m = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-18;
     static const double rSqrtPi = 0.564189583547756279280349644977832;
     
     struct cmplx
@@ -105,6 +106,8 @@ public:
     inline cmplx S1S2(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2);
     inline double Ark2Expk2(const vec &k);
     
+    inline cmplx F12_AS1S2_At_By(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV);
+    
     
 private:
     
@@ -162,6 +165,73 @@ private:
 
 
 // ============================ RECIPROCAL SPACE ============================ //
+//                                   FIELD                                    //
+
+inline EwdInteractor::cmplx EwdInteractor::F12_AS1S2_At_By(const vec &k, 
+    vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV) {
+    
+    ApplyBiasK(k);    
+    
+    vector<PolarSeg*>::iterator sit;
+    vector<APolarSite*> ::iterator pit;
+    
+    // NOTE sum_re_f_rms => convergence check (to be performed by caller)
+    // NOTE sum_im_f_xyz => sanity check      (to be performed by caller)
+    double sum_re_f_rms = 0.0;
+    double sum_im_f_xyz = 0.0;
+    int rms_count = 0;
+        
+    // Structure amplitude S2* from s2 = B*
+    double re_S2 = 0.0;
+    double im_S2 = 0.0;    
+    for (sit = s2.begin(); sit < s2.end(); ++sit) {
+        for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {            
+            ApplyBiasK(*(*pit));
+            re_S2 += re_s;
+            im_S2 -= im_s; // NOTE THE (-)            
+        }
+    }    
+    
+    // Compute k-component of fields acting on s1 = A(c)
+    for (sit = s1.begin(); sit < s1.end(); ++sit) {
+        for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {
+            kr = kx * (*pit)->getPos().getX()
+               + ky * (*pit)->getPos().getY()
+               + kz * (*pit)->getPos().getZ();
+            coskr = cos(kr);
+            sinkr = sin(kr);
+            
+            // Real component
+            double fx = -rV*AK * kx * (sinkr*re_S2 + coskr*im_S2);
+            double fy = -rV*AK * ky * (sinkr*re_S2 + coskr*im_S2);
+            double fz = -rV*AK * kz * (sinkr*re_S2 + coskr*im_S2);
+            
+            (*pit)->FPx += fx;
+            (*pit)->FPy += fy;
+            (*pit)->FPz += fz;
+            
+            // Imaginary component (error check)
+            double ifx = -rV*AK * kx * (sinkr*im_S2 - coskr*re_S2);
+            double ify = -rV*AK * ky * (sinkr*im_S2 - coskr*re_S2);
+            double ifz = -rV*AK * kz * (sinkr*im_S2 - coskr*re_S2);
+            
+            rms_count += 1;
+            sum_re_f_rms += fx*fx + fy*fy + fz*fz;
+            sum_im_f_xyz += ifx + ify + ifz;            
+        }
+    }
+    
+    sum_re_f_rms /= rms_count;
+    
+    // NOTE sum_re_f_rms => convergence check (to be performed by caller)
+    // NOTE sum_im_f_xyz => sanity check      (to be performed by caller)
+    return cmplx(sum_re_f_rms, sum_im_f_xyz);    
+}
+
+
+
+// ============================ RECIPROCAL SPACE ============================ //
+//                                  ENERGIES                                  //
 
 inline void EwdInteractor::ApplyBiasK(const vec &k) {
     
@@ -292,7 +362,7 @@ inline EwdInteractor::cmplx EwdInteractor::S1S2(const vec &k,
 
 
 // =============================== REAL SPACE =============================== //
-
+//                               ELECTRIC FIELD                               //
 
 inline double EwdInteractor::F12_ERFC_At_By(APolarSite &p1, APolarSite &p2) {
     // NOTE Field points from (-) to (+) => XInductor, XInteractor compatible
@@ -337,7 +407,7 @@ inline double EwdInteractor::F12_ERFC_At_By(APolarSite &p1, APolarSite &p2) {
     p1.FPx += fx;
     p1.FPy += fy;
     p1.FPz += fz;    
-    return sqrt(fx*fx + fy*fy + fz*fz);
+    return fx*fx + fy*fy + fz*fz;
 }
 
 
@@ -393,7 +463,7 @@ inline double EwdInteractor::F12_ERF_At_By(APolarSite &p1, APolarSite &p2) {
     p1.FPx += - fx;
     p1.FPy += - fy;
     p1.FPz += - fz;    
-    return sqrt(fx*fx + fy*fy + fz*fz);
+    return fx*fx + fy*fy + fz*fz;
 }
 
 
@@ -412,9 +482,12 @@ inline double EwdInteractor::F12_XYSlab_At_By(APolarSite &p1, APolarSite &p2,
     }
     // Increment field, use prefactor 2*PI/V
     p1.FPz += TwoPi_V*fz;    
-    return sqrt(fz*fz);
+    return fz*fz;
 }
 
+
+// =============================== REAL SPACE =============================== //
+//                                  ENERGIES                                  //
 
 inline double EwdInteractor::U12_ERFC(APolarSite &p1, APolarSite &p2) {
     
