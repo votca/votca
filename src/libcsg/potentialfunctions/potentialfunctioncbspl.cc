@@ -23,25 +23,15 @@ PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string& name_,const int nla
   _core = core_;
 
   int nknots;
-  double rstart;
 
-
-  if( _core == "c12" ){
-
+  if( _core == "c12" )
     nknots = _lam.size() - 1;
-    rstart = _min;
-    _nexcl = 0;
-
-  } else {
-
+  else
     nknots = _lam.size();
-    rstart = 0.0;
-
-  }
 
   _nbreak = nknots - 2;
 
-  _dr = ( _cut_off - rstart )/( double (_nbreak - 1) );
+  _dr = ( _cut_off )/( double (_nbreak - 1) );
 
   // break point locations
   // since ncoeff = nbreak +2 , r values for last two coefficients are also
@@ -50,21 +40,17 @@ PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string& name_,const int nla
   _rbreak.clear();
 
   for( int i = 0; i < nknots; i++)
-    _rbreak(i) = rstart + i*_dr;
+    _rbreak(i) =  i*_dr;
 
-  if( _core == "extrapolate" ) {
+  // exclude knots corresponding to r <= _min
+  _nexcl = min( int( ( _min )/_dr ), _nbreak - 2 ) + 1;
 
-    // exclude knots corresponding to r <= _min
-    _nexcl = min( int( ( _min )/_dr ), _nbreak - 2 ) + 1;
-
-    // account for finite numerical division of _min/_dr
-    // e.g. 0.24/0.02 may result in 11.99999999999999
-    if( _rbreak(_nexcl) == _min ) _nexcl++;
-
-  }
+  // account for finite numerical division of _min/_dr
+  // e.g. 0.24/0.02 may result in 11.99999999999999
+  if( _rbreak(_nexcl) == _min ) _nexcl++;
 
   // fixing last 4 knots to zeros is reasonable
-  _ncutcoeff = 4;
+  _ncutcoeff = 0;
 
   _M.resize(4,4,false);
   _M.clear();
@@ -106,8 +92,7 @@ void PotentialFunctionCBSPL::setParam(string filename) {
 
 void PotentialFunctionCBSPL::SaveParam(const string& filename){
 
-  if( _core == "extrapolate" )
-    extrapolExclParam();
+  extrapolExclParam();
 
   Table param;
   param.SetHasYErr(false);
@@ -117,8 +102,8 @@ void PotentialFunctionCBSPL::SaveParam(const string& filename){
   for (int i = 0; i < _nexcl; i++)
     param.set(i, _rbreak(i), _lam(i), 'o');
 
-  for (int i = _nexcl; i < _lam.size(); i++)
-    param.set(i, _rbreak(i), _lam(i), 'i');
+  for (int i = _nexcl; i < _lam.size() ; i++)
+    param.set(i, i, _lam(i), 'i');
 
   param.Save(filename);
 
@@ -126,8 +111,7 @@ void PotentialFunctionCBSPL::SaveParam(const string& filename){
 
 void PotentialFunctionCBSPL::SavePotTab(const string& filename,
                                         const double step, const double rmin, const double rcut) {
-  if( _core == "extrapolate" )
-    extrapolExclParam();
+  extrapolExclParam();
 
   PotentialFunction::SavePotTab(filename,step,rmin,rcut);
 
@@ -136,8 +120,7 @@ void PotentialFunctionCBSPL::SavePotTab(const string& filename,
 void PotentialFunctionCBSPL::SavePotTab(const string& filename,
                                         const double step) {
 
-  if( _core == "extrapolate" )
-    extrapolExclParam();
+  extrapolExclParam();
 
   PotentialFunction::SavePotTab(filename,step);
 
@@ -150,42 +133,16 @@ void PotentialFunctionCBSPL::extrapolExclParam(){
     (_rbreak(_nexcl + 1) - _rbreak(_nexcl));
   double r0 = _rbreak(_nexcl);
 
-  // preferred extrapolation function is exponential
-  // exponential extrapolation is useful only if u0 is positive
-  if( u0 > 0.0 ){
+  // using linear extrapolation
+  // u(r) = ar + b
+  // a = m
+  // b = - m*r0 + u0
+  // m = (u1-u0)/(r1-r0)
 
-    cout << "Using exponential function to extrapolate "
-      "spline knots in the repulsive core"<< endl;
-
-    // u(r) = a * exp( b * r)
-    // a = u0 * exp ( - m * r0/u0 )
-    // b = m/u0
-    // m = (u1-u0)/(r1-r0)
-    double a = u0 * exp(-m * r0 / u0);
-    double b = m / u0;
-    for (int i = 0; i < _nexcl; i++)
-      _lam(i)  = a * exp(b * _rbreak(i));
-
-  } else if( m < 0.0 ) // try linear extrapolation (physical, i.e. repulsive, only when slope is negative)
-    {
-
-      // u(r) = ar + b
-      // a = m
-      // b = - m*r0 + u0
-      // m = (u1-u0)/(r1-r0)
-
-      double a = m;
-      double b = -1.0*m*r0 + u0;
-      for (int i = 0; i < _nexcl; i++)
-        _lam(i) = a*_rbreak(i) + b;
-
-    } else // extrapolation results in unphysical, i.e., non-repulsive, core
-    {
-
-      throw std::runtime_error("In potential "+_name+": extrapolation results in unphysical potential core!\n"
-                               "Check if rmin value for cbspl is too large.\n");
-
-    }
+  double a = m;
+  double b = -1.0*m*r0 + u0;
+  for (int i = 0; i < _nexcl; i++)
+    _lam(i) = a*_rbreak(i) + b;
 
 }
 
@@ -207,46 +164,24 @@ double PotentialFunctionCBSPL::CalculateF (const double r) const {
 
     double u = 0.0;
 
+    if( _core == "c12" )
+      u += _lam(_lam.size()-1)/pow(r,12);
+
     ub::vector<double> R;
     ub::vector<double> B;
     R.resize(4,false); R.clear();
     B.resize(4,false); B.clear();
 
-    int indx;
-    double rk;
+    int indx = min( int( r /_dr ) , _nbreak-2 );;
+    double rk = indx*_dr;;
+    double t = (r - rk)/_dr;
 
-    if( _core == "c12" ){
+    R(0) = 1.0; R(1) = t; R(2) = t*t; R(3) = t*t*t;
+    ub::vector<double> RM = ub::prod(R,_M);
+    B(0) = _lam(indx); B(1) = _lam(indx+1); B(2) = _lam(indx+2);
+    B(3) = _lam(indx+3);
 
-      u += _lam(0)/pow(r,12);
-
-      indx = min( int( (r - _min)/_dr ), _nbreak-2);
-
-      if( indx >= 0){ // r >= _min
-
-        indx += 1;
-        rk = _min + (indx-1)*_dr;
-
-      }
-
-    }else{
-
-      indx = min( int( r /_dr ) , _nbreak-2 );
-      rk = indx*_dr;
-
-    }
-
-    if( indx >= 0 ){
-
-      double t = ( r - rk)/_dr;
-
-      R(0) = 1.0; R(1) = t; R(2) = t*t; R(3) = t*t*t;
-      ub::vector<double> RM = ub::prod(R,_M);
-      B(0) = _lam(indx); B(1) = _lam(indx+1); B(2) = _lam(indx+2);
-      B(3) = _lam(indx+3);
-
-      u += ub::inner_prod(B,RM);
-
-    }
+    u += ub::inner_prod(B,RM);
 
     return u;
 
@@ -259,59 +194,39 @@ double PotentialFunctionCBSPL::CalculateF (const double r) const {
 double PotentialFunctionCBSPL::CalculateDF(const int i, const double r) const{
 
   // since first _nexcl parameters are not optimized for stability reasons
-  //i = i + _nexcl;
+
 
   if ( r <= _cut_off ) {
 
-    int indx, i_indx;
+    int i_opt = i + _nexcl;
+    int indx;
     double rk;
 
-    if( _core == "c12" ){
-
-      if( i == 0 )
+    if( _core == "c12" )
+      if( i_opt == _lam.size()-1 )
         return 1.0/pow(r,12.0);
 
-      indx = min( int( (r - _min)/_dr ), _nbreak-2);
+    indx = min( int( ( r )/_dr ), _nbreak-2 );
+    rk = indx*_dr;
 
-      if( indx >= 0){ // r >= _min
+    if ( i_opt >= indx && i_opt <= indx+3 ){
 
-        indx += 1;
-        rk = _min + (indx-1)*_dr;
+      ub::vector<double> R;
+      R.resize(4,false); R.clear();
 
-      }
+      double t = ( r - rk)/_dr;
 
-    }else{
+      R(0) = 1.0; R(1) = t; R(2) = t*t; R(3) = t*t*t;
 
-      indx = min( int( ( r )/_dr ), _nbreak-2 );
-      rk = indx*_dr;
+      ub::vector<double> RM = ub::prod(R,_M);
 
-    }
+      return RM(i_opt-indx);
 
-    if( indx >= 0 ){
-
-      i_indx = i + _nexcl;
-
-      if ( i_indx >= indx && i_indx <= indx+3 ){
-
-        ub::vector<double> R;
-        R.resize(4,false); R.clear();
-
-        double t = ( r - rk)/_dr;
-
-        R(0) = 1.0; R(1) = t; R(2) = t*t; R(3) = t*t*t;
-
-        ub::vector<double> RM = ub::prod(R,_M);
-
-        return RM(i_indx-indx);
-
-      }else
-        return 0.0;
-
-    } else
+    }else
       return 0.0;
 
   } else
-    return 0;
+    return 0.0;
 
 }
 
