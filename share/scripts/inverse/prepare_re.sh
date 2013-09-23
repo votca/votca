@@ -30,9 +30,7 @@ fi
 for_all non-bonded 'cp_from_main_dir --rename $(csg_get_interaction_property name).param.init $(csg_get_interaction_property name).param.new'
 
 sim_prog="$(csg_get_property cg.inverse.program)"
-#cp confout.gro and so on
-do_external prepare_generic $sim_prog
 
 # run csg_reupdate to generate intital potential tables
 msg --color green "Generating potential tables from the initial parameters"
-critical csg_reupdate --gentable true --param-in-ext param.new --options $CSGXMLFILE 
+critical csg_reupdate --gentable true --param-in-ext param.new --options $CSGXMLFILE
