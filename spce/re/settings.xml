@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <!-- options to perform relative entropy iterations -->
 <cg>
   <!-- non-bonded interaction entry -->
@@ -18,9 +17,7 @@
       <cbspl>
 	<!-- no. of knots for cbspl function -->
 	<nknots>48</nknots>
-	<!-- no. of knots near cut off to be set to zero for smoothness -->
-	<nknots_cutoff>4</nknots_cutoff>
-        <extrapolate>exponential</extrapolate>
+        <core>extrapolate</core>
       </cbspl>
       <!-- distance range for the potential -->
       <min>0.22</min>
@@ -28,13 +25,13 @@
     </re>
     <inverse>
       <!-- target distribution (rdf), just give gromas rdf.xvg -->
-      <target>CG-CG.aa.rdf</target>
+      <target>CG-CG.dist.tgt</target>
       <gromacs>
 	<!-- name of the table for gromacs run -->
         <table>table_CG_CG.xvg</table>
       </gromacs>
       <!-- do convergence -->
-      <post_add>acc_convergence average</post_add>
+      <post_add>acc_convergence</post_add>
       <post_add_options>
 	<!-- convergence check options -->
 	<convergence>
@@ -65,12 +62,11 @@
       <pot_max>1000000</pot_max>
       <!-- extend the tables to this value -->
       <table_end>2.5</table_end>
-      <traj_type>xtc</traj_type>
     </gromacs>
     <!-- these files are copied for each new run -->
     <filelist>grompp.mdp topol.top table.xvg index.ndx</filelist>
     <!-- do so many iterations -->
-    <iterations_max>300</iterations_max>
+    <iterations_max>0</iterations_max>
     <!-- ibi: inverse biltzmann imc: inverse monte carlo re: relative entropy-->
     <method>re</method>
     <!-- relative entropy specific options -->
