@@ -452,7 +452,7 @@ void Ewald3DnD::Evaluate() {
         << flush << (format("  + EJ(shape-dep.) = %1$+1.7f eV") % _EJ).str()
         << flush << (format("    ------------------------------")).str()
         << flush << (format("  + SUM(E) (0,Q,J) = %1$+1.7f eV") % (_ET)).str()
-        << flush;    
+        << flush;
     LOG(logINFO,*_log)
         << (format("Interaction FGC <> FGC")).str()
         << flush << (format("  + EPP(FGC<>FGC)  = %1$+1.7f eV") % _polar_EPP).str()
@@ -479,18 +479,41 @@ void Ewald3DnD::EvaluateFields() {
             (*pit)->Depolarize();
         }
     }
-    
+
     // REAL-SPACE CONTRIBUTION (3D2D && 3D3D)
     Field_ConvergeRealSpaceSum();    
-    
+
     // RECIPROCAL-SPACE CONTRIBUTION (3D2D && 3D3D)
     Field_ConvergeReciprocalSpaceSum();
-    
+
     // SHAPE-CORRECTION (3D3D)/ K0-CORRECTION (3D2D)
     Field_CalculateShapeCorrection();
-    
+
     // FOREGROUND CORRECTION (3D2D && 3D3D)
     Field_CalculateForegroundCorrection();
+    
+    vector<PolarSeg*>::iterator sit1; 
+    vector<APolarSite*> ::iterator pit1;
+    LOG(logDEBUG,*_log) << flush << "Foreground fields:" << flush;
+    int fieldCount = 0;
+    for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {        
+        PolarSeg* pseg = *sit1;        
+        for (pit1 = pseg->begin(); pit1 < pseg->end(); ++pit1) {
+            vec fp = (*pit1)->getFieldP();
+            LOG(logDEBUG,*_log)
+               << (format("F = (%1$+1.7e %2$+1.7e %3$+1.7e) V/m") 
+                    % (fp.getX()*_ewdactor.int2V_m) 
+                    % (fp.getY()*_ewdactor.int2V_m) 
+                    % (fp.getZ()*_ewdactor.int2V_m)).str() << flush;
+            fieldCount += 1;
+            if (fieldCount > 10) {
+                LOG(logDEBUG,*_log)
+                    << "F = ... ... ..." << flush;
+                break;
+            }
+        }
+        if (fieldCount > 10) break;
+    }
     
     return;
 }
@@ -511,7 +534,7 @@ void Ewald3DnD::EvaluateInduction() {
     LOG(logDEBUG,*_log) << (format("  o Induce within QM0:         yes")).str() << flush;
     LOG(logDEBUG,*_log) << (format("  o Subthreads:                single")).str() << flush;
     
-    return; // OVERRIDE
+    // return; // OVERRIDE
     
     // Forge XJob object to comply with XInductor interface
     bool polar_has_permanent_fields = true;
