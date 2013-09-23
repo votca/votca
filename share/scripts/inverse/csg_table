@@ -56,10 +56,6 @@ add_pot re dummy.sh
 
 # END: these scripts have to be defined for each method
 
-<<<<<<< local
-# initial guesses
-rdf pot RDF_to_POT.pl
-
 # pre update
 pre_update ibi dummy.sh
 pre_update imc dummy.sh
@@ -67,8 +63,6 @@ pre_update tf dummy.sh
 pre_update optimizer dummy.sh
 pre_update re pre_update_re.sh
 
-=======
->>>>>>> other
 # post update
 post_update ibi post_update_generic.sh
 post_update imc post_update_generic.sh

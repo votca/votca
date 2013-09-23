@@ -50,7 +50,7 @@ PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string& name_,const int nla
   if( _rbreak(_nexcl) == _min ) _nexcl++;
 
   // fixing last 4 knots to zeros is reasonable
-  _ncutcoeff = 0;
+  _ncutcoeff = 4;
 
   _M.resize(4,4,false);
   _M.clear();
