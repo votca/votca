@@ -30,17 +30,14 @@ step_nr=$(get_current_step_nr)
 scheme=( $(csg_get_interaction_property inverse.do_potential) )
 scheme_nr=$(( ($step_nr - 1 ) % ${#scheme[@]} ))
 name=$(csg_get_interaction_property name)
+bondtype="$(csg_get_interaction_property bondtype)"
 
 if [ "${scheme[$scheme_nr]}" = 1 ]; then
    echo "Update potential ${name} : yes"
    #update ibi
    do_external resample target "$(csg_get_interaction_property inverse.target)" "${name}.dist.tgt"
    do_external update ibi_pot ${name}.dist.tgt ${name}.dist.new ${name}.pot.cur ${name}.dpot.pure_ibi
-   if [[ $(csg_get_interaction_property bondtype) = "non-bonded" ]]; then
-     do_external dpot shift_nonbonded ${name}.dpot.pure_ibi ${name}.dpot.new
-   else
-     do_external dpot shift_bonded ${name}.dpot.pure_ibi ${name}.dpot.new
-   fi
+   do_external potential shift --type "${bondtype}" ${name}.dpot.pure_ibi ${name}.dpot.new
 else
    echo "Update potential ${name} : no"
    min=$(csg_get_interaction_property min)

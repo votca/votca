@@ -169,7 +169,7 @@ do_external() { #takes two tags, find the according script and excute it
     CSG_CALLSTACK="$(show_callstack --extra "${script/ *}")" $script "${@:3}"
   else
     CSG_CALLSTACK="$(show_callstack)" $script "${@:3}"
-  fi || die "${FUNCNAME[0]}: subscript $script ${@:3} (from tags $tags) failed"
+  fi || die "${FUNCNAME[0]}: subscript" "$script ${*:3}" "(from tags $tags) failed"
 }
 export -f do_external
 
@@ -262,7 +262,7 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
       ret="$(echo "$ret" | critical sed -n 's/.*cg_bonded\.\([^[:space:]]*\) .*/\1/p')"
       [[ -z $ret ]] && die "${FUNCNAME[0]}: Could not find a bonded definition with name '$bondname' in the mapping file '$mapping'. Make sure to use the same name in the settings file (or --ia-name when calling from csg_call) and the mapping file."
       echo "$ret"
-    elif [[ $(csg_get_property --allow-empty cg.inverse.method) = "tf" ]]; then
+    elif [[ -n $CSGXMLFILE && $(csg_get_property --allow-empty cg.inverse.method) = "tf" ]]; then
       echo "thermforce"
     else
       echo "$bondtype"
@@ -272,11 +272,11 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
 
   [[ -n $CSGXMLFILE ]] || die "${FUNCNAME[0]}: CSGXMLFILE is undefined (when calling from csg_call set it by --options option)"
   [[ -n $bondtype ]] || die "${FUNCNAME[0]}: bondtype is undefined (when calling from csg_call set it by --ia-type option)"
-  [[ -n $bondname ]] || die "${FUNCNAME[0]}: bondname is undefined (when calling from csg_call set it by --ia-name option)"i
+  [[ -n $bondname ]] || die "${FUNCNAME[0]}: bondname is undefined (when calling from csg_call set it by --ia-name option)"
 
   #map bondtype back to tags in xml file (for csg_call)
   case "$bondtype" in
-    "non-bonded"|"thermoforce")
+    "non-bonded"|"thermforce")
       xmltype="non-bonded";;
     "bonded"|"bond"|"angle"|"dihedral")
       xmltype="bonded";;

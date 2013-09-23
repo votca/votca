@@ -66,9 +66,6 @@
       <conf_out>confout.gro
 	<DESC>Name of the original outcome coordinate written by mdrun</DESC>
       </conf_out>
-      <cutoff_check>yes
-	<DESC>check non-bonded interaction cutoffs against rvdw in mdp file: yes/no</DESC>
-      </cutoff_check>
       <density>
 	<block_length>
 	  <DESC>Length of the block for the error analysis</DESC>
@@ -318,7 +315,7 @@
       </steps>
     </average>
     <initial_configuration>maindir
-      <DESC>what initial configuration to use in every step: maindir/laststep. laststep is only supported by gromacs.</DESC>
+      <DESC>what initial configuration to use in every step: maindir/laststep/nowhere.</DESC>
     </initial_configuration>
     <iterations_max>
       <DESC>do the given number of iterations (0=inf)</DESC>
@@ -352,9 +349,9 @@
     <restart_file>restart_points.log
       <DESC>Name of the restart file in case a step has to be resumed</DESC>
     </restart_file>
-    <rdf_min>1e-10
+    <dist_min>1e-10
       <DESC> minimal value for the rdf to consider for initial guess of the potential)</DESC>
-    </rdf_min>
+    </dist_min>
     <scriptpath>
       <DESC> list of directories for user scripts (e.g. $PWD) separated by a colon (like PATH)</DESC>
     </scriptpath>

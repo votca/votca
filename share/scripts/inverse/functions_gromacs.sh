@@ -59,17 +59,6 @@ get_simulation_setting() { #gets a parameter (1st argument) from gromacs mdp fil
 }
 export -f get_simulation_setting
 
-check_cutoff() { #compared current interactions cutoff vs rvdw, 
-  local max rvdw
-  [[ "$(csg_get_property cg.inverse.gromacs.cutoff_check)" = "no" ]] && return 0
-  max="$(csg_get_interaction_property max)"
-  rvdw="$(get_simulation_setting rvdw)"
-  csg_calc "$max" ">" "$rvdw" && die "${FUNCNAME[0]}: rvdw ($rvdw) is smaller than max ($max)\n\
-To ignore this check set cg.inverse.gromacs.cutoff_check to 'no'"
-  return 0
-}
-export -f check_cutoff
-
 check_temp() { #compares k_B T in xml with temp in mpd file
   local kbt kbt2 temp t
   [[ "$(csg_get_property cg.inverse.gromacs.temp_check)" = "no" ]] && return 0

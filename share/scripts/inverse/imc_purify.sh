@@ -30,8 +30,9 @@ min=$(csg_get_interaction_property min)
 max=$(csg_get_interaction_property max)
 step=$(csg_get_interaction_property step)
 kBT=$(csg_get_property cg.inverse.kBT)
-echo "purifying dpot for $name"
+bondtype="$(csg_get_interaction_property bondtype)"
 
+echo "purifying dpot for $name"
 
 comment="$(get_table_comment)"
 critical csg_resample --in ${name}.dpot.imc --out ${name}.dpot.impure --grid ${min}:${step}:${max} --comment "$comment"
@@ -44,7 +45,7 @@ if [ "${scheme[$scheme_nr]}" = 1 ]; then
   do_external table linearop --withflag i ${name}.dpot.impure ${name}.dpot.impure $kBT 0
 
   do_external dpot crop ${name}.dpot.impure  ${name}.dpot.after_crop
-  do_external dpot shift_nonbonded ${name}.dpot.after_crop ${name}.dpot.new
+  do_external potential --type "${bondtype}" ${name}.dpot.after_crop ${name}.dpot.new
 else
   echo "Update potential ${name} : no"
   do_external table linearop ${name}.dpot.impure ${name}.dpot.new 0 0

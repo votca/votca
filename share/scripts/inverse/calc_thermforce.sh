@@ -18,7 +18,7 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script calcs the thermoforce out of gromacs density for the AdResS therm force
+This script calcs the thermforce out of gromacs density for the AdResS therm force
 
 Usage: ${0##*/} infile outfile
 EOF

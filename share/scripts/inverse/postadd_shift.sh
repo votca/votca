@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2013 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,14 +18,16 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script does the prepare step for gromacs
+postadd shift script, shift pot and dpot
 
-Usage: ${0##*/}
+Usage: ${0##*/} infile outfile
 EOF
    exit 0
 fi
 
-conf="$(csg_get_property cg.inverse.gromacs.conf)"
-confout="$(csg_get_property cg.inverse.gromacs.conf_out)"
-cp_from_main_dir $conf
-critical cp $conf $confout
+[[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
+
+[[ -f $2 ]] && die "${0##*/}: $2 is already there"
+
+bondtype="$(csg_get_interaction_property bondtype)"
+do_external potential shift --type "${bondtype}" "$1" "$2"
