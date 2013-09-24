@@ -64,11 +64,13 @@ double PEwald3D3D::ConvergeRealSpaceSum() {
         
         if (shell_mg.size() < 1) continue;
         
+        EwdInteractor::triple<double> ppuu(0,0,0);
         for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
             for (sit2 = shell_mg.begin(); sit2 < shell_mg.end(); ++sit2) {
                 for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
                     for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
-                        shell_term = _ewdactor.U12_ERFC(*(*pit1), *(*pit2));
+                        ppuu = _ewdactor.U12_ERFC(*(*pit1), *(*pit2));
+                        shell_term = ppuu._pp;
                         shell_sum += shell_term;
                         shell_rms += shell_term*shell_term;
                         shell_count += 1;
@@ -125,8 +127,10 @@ double PEwald3D3D::ConvergeReciprocalSpaceSum() {
         << "K-lines through origin: Checking K resonances" << flush;
     for (int i = 1; i < _NA_max+1; ++i) {
         double Ak = _ewdactor.Ark2Expk2(+i*_A);
-        EwdInteractor::cmplx s1s2_posk = _ewdactor.S1S2(+i*_A, _fg_C, _bg_P);
-        EwdInteractor::cmplx s1s2_negk = _ewdactor.S1S2(-i*_A, _fg_C, _bg_P);
+        EwdInteractor::triple<EwdInteractor::cmplx> ppuu_posk = _ewdactor.S1S2(+i*_A, _fg_C, _bg_P);
+        EwdInteractor::triple<EwdInteractor::cmplx> ppuu_negk = _ewdactor.S1S2(-i*_A, _fg_C, _bg_P);
+        EwdInteractor::cmplx s1s2_posk = ppuu_posk._pp;
+        EwdInteractor::cmplx s1s2_negk = ppuu_negk._pp;
         sum_re += Ak*s1s2_posk._re;
         sum_re += Ak*s1s2_negk._re;
         sum_im += Ak*s1s2_posk._im;
@@ -138,8 +142,10 @@ double PEwald3D3D::ConvergeReciprocalSpaceSum() {
     
     for (int i = 1; i < _NB_max+1; ++i) {
         double Ak = _ewdactor.Ark2Expk2(+i*_B);
-        EwdInteractor::cmplx s1s2_posk = _ewdactor.S1S2(+i*_B, _fg_C, _bg_P);
-        EwdInteractor::cmplx s1s2_negk = _ewdactor.S1S2(-i*_B, _fg_C, _bg_P);
+        EwdInteractor::triple<EwdInteractor::cmplx> ppuu_posk = _ewdactor.S1S2(+i*_B, _fg_C, _bg_P);
+        EwdInteractor::triple<EwdInteractor::cmplx> ppuu_negk = _ewdactor.S1S2(-i*_B, _fg_C, _bg_P);
+        EwdInteractor::cmplx s1s2_posk = ppuu_posk._pp;
+        EwdInteractor::cmplx s1s2_negk = ppuu_negk._pp;
         sum_re += Ak*s1s2_posk._re;
         sum_re += Ak*s1s2_negk._re;
         sum_im += Ak*s1s2_posk._im;
@@ -151,8 +157,10 @@ double PEwald3D3D::ConvergeReciprocalSpaceSum() {
     
     for (int i = 1; i < _NC_max+1; ++i) {
         double Ak = _ewdactor.Ark2Expk2(+i*_C);
-        EwdInteractor::cmplx s1s2_posk = _ewdactor.S1S2(+i*_C, _fg_C, _bg_P);
-        EwdInteractor::cmplx s1s2_negk = _ewdactor.S1S2(-i*_C, _fg_C, _bg_P);
+        EwdInteractor::triple<EwdInteractor::cmplx> ppuu_posk = _ewdactor.S1S2(+i*_C, _fg_C, _bg_P);
+        EwdInteractor::triple<EwdInteractor::cmplx> ppuu_negk = _ewdactor.S1S2(-i*_C, _fg_C, _bg_P);
+        EwdInteractor::cmplx s1s2_posk = ppuu_posk._pp;
+        EwdInteractor::cmplx s1s2_negk = ppuu_negk._pp;
         sum_re += Ak*s1s2_posk._re;
         sum_re += Ak*s1s2_negk._re;
         sum_im += Ak*s1s2_posk._im;
@@ -247,7 +255,8 @@ double PEwald3D3D::ConvergeReciprocalSpaceSum() {
         while (kvit < kvecs_1_0.end()) {
             KVector kvec = *kvit;
             if (kvec.getGrade() < crit_grade) break;
-            EwdInteractor::cmplx as1s2 = _ewdactor.AS1S2(kvec.getK(), _fg_C, _bg_P);
+            EwdInteractor::triple<EwdInteractor::cmplx> ppuu = _ewdactor.AS1S2(kvec.getK(), _fg_C, _bg_P);
+            EwdInteractor::cmplx as1s2 = ppuu._pp;
             sum_re += as1s2._re;
             sum_im += as1s2._im;
             //de_this_shell += sqrt(as1s2._re*as1s2._re + as1s2._im*as1s2._im);
@@ -315,7 +324,8 @@ double PEwald3D3D::ConvergeReciprocalSpaceSum() {
         while (kvit < kvecs_0_0.end()) {
             KVector kvec = *kvit;
             if (kvec.getGrade() < crit_grade) break;
-            EwdInteractor::cmplx as1s2 = _ewdactor.AS1S2(kvec.getK(), _fg_C, _bg_P);
+            EwdInteractor::triple<EwdInteractor::cmplx> ppuu = _ewdactor.AS1S2(kvec.getK(), _fg_C, _bg_P);
+            EwdInteractor::cmplx as1s2 = ppuu._pp;
             sum_re += as1s2._re;
             sum_im += as1s2._im;
             //de_this_shell += sqrt(as1s2._re*as1s2._re + as1s2._im*as1s2._im);
@@ -367,11 +377,13 @@ double PEwald3D3D::CalculateShapeCorrection() {
     double EJ = 0.0;
     
     if (_shape == "xyslab") {
+        EwdInteractor::triple<double> ppuu(0,0,0);
         for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
            for (sit2 = _bg_P.begin(); sit2 < _bg_P.end(); ++sit2) {
               for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
                  for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
-                    EJ += _ewdactor.U12_XYSlab(*(*pit1), *(*pit2));
+                    ppuu = _ewdactor.U12_XYSlab(*(*pit1), *(*pit2));
+                    EJ += ppuu._pp;
                  }
               }
            }
@@ -396,11 +408,13 @@ double PEwald3D3D::CalculateForegroundCorrection() {
     vector<APolarSite*> ::iterator pit2;
     double EPP_fgC_fgN = 0.0;
     
+    EwdInteractor::triple<double> ppuu(0,0,0);
     for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
         for (sit2 = _fg_N.begin(); sit2 < _fg_N.end(); ++sit2) {
             for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
                 for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
-                    EPP_fgC_fgN += _ewdactor.U12_ERF(*(*pit1), *(*pit2));
+                    ppuu = _ewdactor.U12_ERF(*(*pit1), *(*pit2));
+                    EPP_fgC_fgN += ppuu._pp;
                 }
             }
         }

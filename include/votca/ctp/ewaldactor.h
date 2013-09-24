@@ -57,6 +57,15 @@ public:
         double _im;
     };
     
+    template<typename NrTyp=double>
+    struct triple
+    {
+        triple(NrTyp pp, NrTyp pu, NrTyp uu) : _pp(pp), _pu(pu), _uu(uu) { ; }
+        NrTyp _pp;
+        NrTyp _pu;
+        NrTyp _uu;
+    };
+    
     
     // Thole damping functions
     inline double L3() { return 1 - exp( -ta1*tu3); }
@@ -95,11 +104,11 @@ public:
     inline double gG4(APolarSite &p1, APolarSite &p2);
         
     // Real-space term contribution P1 <> P2
-    inline double U12_ERFC(APolarSite &p1, APolarSite &p2);    
+    inline triple<double> U12_ERFC(APolarSite &p1, APolarSite &p2);    
     // Reciprocal-space double-counting correction term P1 <> P2
-    inline double U12_ERF(APolarSite &p1, APolarSite &p2);    
+    inline triple<double> U12_ERF(APolarSite &p1, APolarSite &p2);    
     // Reciprocal-space K=0 shape correction term P1 <> P2
-    inline double U12_XYSlab(APolarSite &p1, APolarSite &p2);
+    inline triple<double> U12_XYSlab(APolarSite &p1, APolarSite &p2);
     
     // Real-space term contribution P1 <> P2
     inline double F12_ERFC_At_By(APolarSite &p1, APolarSite &p2);
@@ -115,8 +124,8 @@ public:
     
     inline void ApplyBiasK(const vec &k);
     inline void ApplyBiasK(APolarSite &p);
-    inline cmplx AS1S2(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2);
-    inline cmplx S1S2(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2);
+    inline triple<cmplx> AS1S2(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2);
+    inline triple<cmplx> S1S2(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2);
     inline double Ark2Expk2(const vec &k);
     
     inline cmplx F12_AS1S2_At_By(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV);
@@ -148,9 +157,10 @@ private:
     // Real-space inverse distance powers
     double rR1, rR2, rR3, rR4, rR5;
     
-    // {G}, {H} function values
-    double G0, G1, G2, G3, G4;
-    double H0, H1, H2, H3, H4;
+    // {G} function values
+    double ppG0, ppG1, ppG2, ppG3, ppG4;
+    double puG1, puG2, puG3;
+    double uuG1, uuG2;
     
     // {Bl}, {Cl} function values
     double rSqrtPiExp;
@@ -163,7 +173,7 @@ private:
     // k-space vector
     vec k12;
     double K;
-    double AK;    
+    double AK;
     
     // Vector components kx, ...
     double kx, ky, kz;
@@ -172,12 +182,14 @@ private:
     double kxx, kxy, kxz, kyy, kyz, kzz;
     
     // cos(k*r), sin(k*r), µ * k, Q : K
-    double dk;
+    double dk;             // <- µ(perm.) * k
+    double u_dk;           // <- µ(indu.) * k
     double Qk;
     double kr;
     double coskr;
     double sinkr;    
-    double re_s, im_s;
+    double re_s, im_s;     // <- perm. moments
+    double u_re_s, u_im_s; // <- indu. moments
 };
 
 
@@ -205,9 +217,11 @@ inline EwdInteractor::cmplx EwdInteractor::F12_AS1S2_At_By(const vec &k,
         for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {            
             ApplyBiasK(*(*pit));
             re_S2 += re_s;
-            im_S2 -= im_s; // NOTE THE (-)            
+            re_S2 += u_re_s;
+            im_S2 -= im_s;   // NOTE THE (-)
+            im_S2 -= u_im_s; // NOTE THE (-)
         }
-    }    
+    }
     
     // Compute k-component of fields acting on s1 = A(c)
     for (sit = s1.begin(); sit < s1.end(); ++sit) {
@@ -271,6 +285,8 @@ inline void EwdInteractor::ApplyBiasK(const vec &k) {
 
 inline void EwdInteractor::ApplyBiasK(APolarSite &p) {
     
+    u_dk = p.U1x*kx + p.U1y*ky + p.U1z*kz;
+    
     if (p._rank > 0) {
         dk = p.Q1x*kx + p.Q1y*ky + p.Q1z*kz;
         if (p._rank > 1) {
@@ -292,13 +308,15 @@ inline void EwdInteractor::ApplyBiasK(APolarSite &p) {
     coskr = cos(kr);
     sinkr = sin(kr);
     
-    re_s = (p.Q00 - Qk) * coskr   -   dk * sinkr;
-    im_s = (p.Q00 - Qk) * sinkr   +   dk * coskr;
+    re_s   = (p.Q00 - Qk) * coskr   -   dk * sinkr;
+    u_re_s =                        - u_dk * sinkr;
+    im_s   = (p.Q00 - Qk) * sinkr   +   dk * coskr;
+    u_im_s =                        + u_dk * coskr;
     return;
 }
 
 
-inline EwdInteractor::cmplx EwdInteractor::AS1S2(const vec &k,
+inline EwdInteractor::triple<EwdInteractor::cmplx> EwdInteractor::AS1S2(const vec &k,
     vector<PolarSeg*> &s1, vector<PolarSeg*> &s2) {
     // NOTE : w/o 1/V
     ApplyBiasK(k);    
@@ -308,30 +326,47 @@ inline EwdInteractor::cmplx EwdInteractor::AS1S2(const vec &k,
     
     // Structure amplitude S1
     double re_S1 = 0.0;
-    double im_S1 = 0.0;    
+    double im_S1 = 0.0;
+    double u_re_S1 = 0.0;
+    double u_im_S1 = 0.0;
     for (sit = s1.begin(); sit < s1.end(); ++sit) {
         for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {            
             ApplyBiasK(*(*pit));            
             re_S1 += re_s;
-            im_S1 += im_s; // NOTE THE (+)
+            im_S1 += im_s;     // NOTE THE (+)
+            u_re_S1 += u_re_s;
+            u_im_S1 += u_im_s; // NOTE THE (+)
         }
     }    
     
     // Structure amplitude S2
     double re_S2 = 0.0;
-    double im_S2 = 0.0;    
+    double im_S2 = 0.0;
+    double u_re_S2 = 0.0;
+    double u_im_S2 = 0.0;
     for (sit = s2.begin(); sit < s2.end(); ++sit) {
         for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {            
             ApplyBiasK(*(*pit));
             re_S2 += re_s;
-            im_S2 -= im_s; // NOTE THE (-)            
+            im_S2 -= im_s;     // NOTE THE (-)
+            u_re_S2 += u_re_s;
+            u_im_S2 -= u_im_s; // NOTE THE (-)
         }
     }
     
-    double re_AS1S2 = AK * (re_S1*re_S2 - im_S1*im_S2);
-    double im_AS1S2 = AK * (re_S1*im_S2 + im_S1*re_S2);
+    double pp_re_AS1S2 = AK * (re_S1*re_S2 - im_S1*im_S2);
+    double pp_im_AS1S2 = AK * (re_S1*im_S2 + im_S1*re_S2);
     
-    return cmplx(re_AS1S2, im_AS1S2);
+    double uu_re_AS1S2 = AK * (u_re_S1*u_re_S2 - u_im_S1*u_im_S2);
+    double uu_im_AS1S2 = AK * (u_re_S1*u_im_S2 + u_im_S1*u_re_S2);
+    
+    double pu_re_AS1S2 = AK * (u_re_S1*re_S2 + re_S1*u_re_S2 - u_im_S1*im_S2 - im_S1*u_im_S2);
+    double pu_im_AS1S2 = AK * (u_re_S1*im_S2 + re_S1*u_im_S2 + u_im_S1*re_S2 + im_S1*u_re_S2);
+    
+    
+    return triple<cmplx>(cmplx(pp_re_AS1S2, pp_im_AS1S2),
+                         cmplx(pu_re_AS1S2, pu_im_AS1S2),
+                         cmplx(uu_re_AS1S2, uu_im_AS1S2));
 }
 
 
@@ -341,7 +376,7 @@ inline double EwdInteractor::Ark2Expk2(const vec &k) {
 }
 
 
-inline EwdInteractor::cmplx EwdInteractor::S1S2(const vec &k,
+inline EwdInteractor::triple<EwdInteractor::cmplx> EwdInteractor::S1S2(const vec &k,
     vector<PolarSeg*> &s1, vector<PolarSeg*> &s2) {
     // NOTE : w/o 1/V
     ApplyBiasK(k);    
@@ -351,30 +386,46 @@ inline EwdInteractor::cmplx EwdInteractor::S1S2(const vec &k,
     
     // Structure amplitude S1
     double re_S1 = 0.0;
-    double im_S1 = 0.0;    
+    double im_S1 = 0.0;   
+    double u_re_S1 = 0.0;
+    double u_im_S1 = 0.0;
     for (sit = s1.begin(); sit < s1.end(); ++sit) {
         for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {            
             ApplyBiasK(*(*pit));            
             re_S1 += re_s;
-            im_S1 += im_s; // NOTE THE (+)
+            im_S1 += im_s;     // NOTE THE (+)
+            u_re_S1 += u_re_s;
+            u_im_S1 += u_im_s; // NOTE THE (+)
         }
     }    
     
     // Structure amplitude S2
     double re_S2 = 0.0;
-    double im_S2 = 0.0;    
+    double im_S2 = 0.0;
+    double u_re_S2 = 0.0;
+    double u_im_S2 = 0.0;
     for (sit = s2.begin(); sit < s2.end(); ++sit) {
         for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {            
             ApplyBiasK(*(*pit));
             re_S2 += re_s;
-            im_S2 -= im_s; // NOTE THE (-)            
+            im_S2 -= im_s;     // NOTE THE (-)
+            u_re_S2 += u_re_s;
+            u_im_S2 -= u_im_s; // NOTE THE (-)
         }
     }
     
-    double re_S1S2 = (re_S1*re_S2 - im_S1*im_S2);
-    double im_S1S2 = (re_S1*im_S2 + im_S1*re_S2);
+    double pp_re_S1S2 = (re_S1*re_S2 - im_S1*im_S2);
+    double pp_im_S1S2 = (re_S1*im_S2 + im_S1*re_S2);
     
-    return cmplx(re_S1S2, im_S1S2);
+    double uu_re_S1S2 = (u_re_S1*u_re_S2 - u_im_S1*u_im_S2);
+    double uu_im_S1S2 = (u_re_S1*u_im_S2 + u_im_S1*u_re_S2);
+    
+    double pu_re_S1S2 = (u_re_S1*re_S2 + re_S1*u_re_S2 - u_im_S1*im_S2 - im_S1*u_im_S2);
+    double pu_im_S1S2 = (u_re_S1*im_S2 + re_S1*u_im_S2 + u_im_S1*re_S2 + im_S1*u_re_S2);
+    
+    return triple<cmplx>(cmplx(pp_re_S1S2, pp_im_S1S2),
+                         cmplx(pu_re_S1S2, pu_im_S1S2),
+                         cmplx(uu_re_S1S2, uu_im_S1S2));
 }
 
 
@@ -383,7 +434,7 @@ inline EwdInteractor::cmplx EwdInteractor::S1S2(const vec &k,
 
 inline double EwdInteractor::F12_ERFC_At_By(APolarSite &p1, APolarSite &p2) {
     // NOTE Field points from (-) to (+) => XInductor, XInteractor compatible
-    ApplyBias(p1, p2);
+    ApplyBiasPolar(p1, p2);
     UpdateAllBls();
     
     double fx = 0.0;
@@ -393,7 +444,7 @@ inline double EwdInteractor::F12_ERFC_At_By(APolarSite &p1, APolarSite &p2) {
     // Charge
     fx += - p2.Q00*rx*B1;
     fy += - p2.Q00*ry*B1;
-    fz += - p2.Q00*rz*B1;    
+    fz += - p2.Q00*rz*B1;
     
     if (p2._rank > 0) {
         // Dipole
@@ -420,6 +471,31 @@ inline double EwdInteractor::F12_ERFC_At_By(APolarSite &p1, APolarSite &p2) {
             fz += - Q2__R*rz*B3;
         }
     }
+    
+    // Field generated by induced moments
+    double u_mu2_r = (p2.U1x*rx + p2.U1y*ry + p2.U1z*rz);
+    if (ta1*tu3 < 40) {
+        double l3 = L3();
+        double l5 = L5();
+        
+        fx += p2.U1x*l3*B1;
+        fy += p2.U1y*l3*B1;
+        fz += p2.U1z*l3*B1;        
+        
+        fx += - rx*u_mu2_r*l5*B2;
+        fy += - ry*u_mu2_r*l5*B2;
+        fz += - rz*u_mu2_r*l5*B2;
+    }
+    else {
+        fx += p2.U1x*B1;
+        fy += p2.U1y*B1;
+        fz += p2.U1z*B1;        
+        
+        fx += - rx*u_mu2_r*B2;
+        fy += - ry*u_mu2_r*B2;
+        fz += - rz*u_mu2_r*B2;
+    }
+    
     // Increment fields
     p1.FPx += fx;
     p1.FPy += fy;
@@ -443,6 +519,9 @@ inline double EwdInteractor::F12_ERF_At_By(APolarSite &p1, APolarSite &p2) {
             fy += 4./3.*a3*rSqrtPi * p2.Q1y;
             fz += 4./3.*a3*rSqrtPi * p2.Q1z;
         }
+        fx += 4./3.*a3*rSqrtPi * p2.U1x;
+        fy += 4./3.*a3*rSqrtPi * p2.U1y;
+        fz += 4./3.*a3*rSqrtPi * p2.U1z;
     }
     else {
         // Charge
@@ -475,6 +554,16 @@ inline double EwdInteractor::F12_ERF_At_By(APolarSite &p1, APolarSite &p2) {
                 fz += - Q2__R*rz*C3;
             }
         }
+        // Field generated by induced moments
+        double u_mu2_r = (p2.U1x*rx + p2.U1y*ry + p2.U1z*rz);
+        
+        fx += p2.U1x*C1;
+        fy += p2.U1y*C1;
+        fz += p2.U1z*C1;
+        
+        fx += - rx*u_mu2_r*C2;
+        fy += - ry*u_mu2_r*C2;
+        fz += - rz*u_mu2_r*C2;
     }
     // Increment fields. Note the (-): This is a compensation term.
     p1.FPx += - fx;
@@ -497,6 +586,10 @@ inline double EwdInteractor::F12_XYSlab_At_By(APolarSite &p1, APolarSite &p2,
         // Dipole
         fz += 2*p2.Q1z;
     }
+    
+    // Field generated by induced moments
+    fz += 2*p2.U1z;
+    
     // Increment field, use prefactor 2*PI/V
     p1.FPz += TwoPi_V*fz;    
     return fz*fz;
@@ -506,9 +599,10 @@ inline double EwdInteractor::F12_XYSlab_At_By(APolarSite &p1, APolarSite &p2,
 // =============================== REAL SPACE =============================== //
 //                                  ENERGIES                                  //
 
-inline double EwdInteractor::U12_ERFC(APolarSite &p1, APolarSite &p2) {
+inline EwdInteractor::triple<double> EwdInteractor::U12_ERFC(APolarSite &p1, 
+    APolarSite &p2) {
     
-    ApplyBias(p1, p2);
+    ApplyBiasPolar(p1, p2);
     UpdateAllBls();
     UpdateAllGls(p1, p2);
     
@@ -516,26 +610,45 @@ inline double EwdInteractor::U12_ERFC(APolarSite &p1, APolarSite &p2) {
         cout << endl << "small small " << p1.getPos() << " == " << p2.getPos() << flush;
     }       
     
-    return G0*B0 + G1*B1 + G2*B2 + G3*B3 + G4*B4;    
+    double pp = 
+        ppG0*B0 + ppG1*B1 + ppG2*B2 + ppG3*B3 + ppG4*B4;
+    double pu = (ta1*tu3 < 40) ? 
+        puG1*L3()*B1 + puG2*L5()*B2 + puG3*L7()*B3
+      : puG1*B1 + puG2*B2 + puG3*B3;
+    double uu = (ta1*tu3 < 40) ?
+        uuG1*L3()*B1 + uuG2*L5()*B2
+      : uuG1*B1 + uuG2*B2;
+    
+    return triple<double>(pp,pu,uu);
 }
 
 
-inline double EwdInteractor::U12_ERF(APolarSite &p1, APolarSite &p2) {
+inline EwdInteractor::triple<double> EwdInteractor::U12_ERF(APolarSite &p1, 
+    APolarSite &p2) {
     
     ApplyBias(p1, p2);
     
-    double u12 = 0.0;
+    double pp = 0.0;
+    double pu = 0.0;
+    double uu = 0.0;
     
     if (R1 < 1e-2) {
         //cout << endl << "small small " << p1.getPos() << " == " << p2.getPos() << flush;
-        u12 += 2.   *a1*rSqrtPi * (p1.Q00*p2.Q00);
+        pp += 2.   *a1*rSqrtPi * (p1.Q00*p2.Q00);
+        uu += 4./3.*a3*rSqrtPi * (p1.U1x*p2.U1x + p1.U1y*p2.U1y + p1.U1z*p2.U1z);
         if (p1._rank > 0 && p2._rank > 0) {
-            u12 += 4./3.*a3*rSqrtPi * (p1.Q1x*p2.Q1x + p1.Q1y*p2.Q1y + p1.Q1z*p2.Q1z);
+            pp += 4./3.*a3*rSqrtPi * (p1.Q1x*p2.Q1x + p1.Q1y*p2.Q1y + p1.Q1z*p2.Q1z);
             if (p1._rank > 1 && p2._rank > 1) {
-                u12 += 16./5.*a5*rSqrtPi * (p1.Qxx*p2.Qxx + 2*p1.Qxy*p2.Qxy + 2*p1.Qxz*p2.Qxz
-                                                          +   p1.Qyy*p2.Qyy + 2*p1.Qyz*p2.Qyz
-                                                                            +   p1.Qzz*p2.Qzz);
+                pp += 16./5.*a5*rSqrtPi * (p1.Qxx*p2.Qxx + 2*p1.Qxy*p2.Qxy + 2*p1.Qxz*p2.Qxz
+                                                         +   p1.Qyy*p2.Qyy + 2*p1.Qyz*p2.Qyz
+                                                                           +   p1.Qzz*p2.Qzz);
             }
+        }
+        if (p1._rank > 0) {
+            pu += 4./3.*a3*rSqrtPi * (p1.Q1x*p2.U1x + p1.Q1y*p2.U1y + p1.Q1z*p2.U1z);
+        }
+        if (p2._rank > 0) {
+            pu += 4./3.*a3*rSqrtPi * (p1.U1x*p2.Q1x + p1.U1y*p2.Q1y + p1.U1z*p2.Q1z);
         }
         
 //        u12 =  2.   *a1*rSqrtPi * (p1.Q00*p2.Q00)
@@ -548,45 +661,56 @@ inline double EwdInteractor::U12_ERF(APolarSite &p1, APolarSite &p2) {
     else {
         UpdateAllCls();
         UpdateAllGls(p1, p2);
-        u12 = G0*C0 + G1*C1 + G2*C2 + G3*C3 + G4*C4;
+        pp = ppG0*C0 + ppG1*C1 + ppG2*C2 + ppG3*C3 + ppG4*C4;
+        // Damping functions needed here? No.
+        pu = puG1*C1 + puG2*C2 + puG3*C3;
+        uu = uuG1*C1 + uuG2*C2;
     }
     
-    return u12;
+    return triple<double>(pp,pu,uu);
 }
 
 
-inline double EwdInteractor::U12_XYSlab(APolarSite& p1, APolarSite& p2) {
+inline EwdInteractor::triple<double> EwdInteractor::U12_XYSlab(APolarSite& p1, 
+    APolarSite& p2) {
     // NOTE : w/o prefactor -2PI/V
     
     ApplyBias(p1, p2);    
-    double u12 = 0.0;
+    double pp = 0.0;
+    double pu = 0.0;
+    double uu = 0.0;
     
     // 1 q <> 2 q
-    u12 += p1.Q00*p2.Q00*rz*rz;    
+    pp += p1.Q00*p2.Q00*rz*rz;
+    pu +=  2 * p2.Q00 * p1.U1z * rz;
+    pu += -2 * p1.Q00 * p2.U1z * rz;
+    uu += -2 * p1.U1z * p2.U1z;
     // 1 d <> 2 q
     if (p1._rank > 0) {
-        u12 += 2 * p2.Q00 * p1.Q1z * rz;        
+        pp += 2 * p2.Q00 * p1.Q1z * rz;
+        pu += -2 * p1.Q1z * p2.U1z;
         // 1 d <> 2 d
         if (p2._rank > 0) {
-            u12 += -2 * p1.Q1z * p2.Q1z;
+            pp += -2 * p1.Q1z * p2.Q1z;
         }
         // 1 Q <> 2 q
         if (p1._rank > 1) {
-            u12 += 2 * p2.Q00 * p1.Qzz;
+            pp += 2 * p2.Q00 * p1.Qzz;
         }
     }    
     // 2 d <> 1 q
     if (p2._rank > 0) {
-        u12 += -2 * p1.Q00 * p2.Q1z * rz;        
+        pp += -2 * p1.Q00 * p2.Q1z * rz;
+        pu += -2 * p1.U1z * p2.Q1z;
         // 2 d <> 1 d
         // ... covered above.        
         // 2 Q <> 1 q
         if (p2._rank > 1) {
-            u12 += 2 * p1.Q00 * p2.Qzz;
+            pp += 2 * p1.Q00 * p2.Qzz;
         }
     }
     
-    return u12;
+    return triple<double>(pp,pu,uu);
 }
 
 
@@ -676,17 +800,17 @@ inline void EwdInteractor::UpdateAllCls() {
     
     double rSqrtPiExp = rSqrtPi * exp(-a2*R2);
     
-//    C0 = erf(a1*R1)*rR1;    
-//    C1 = rR2*(   C0  -  2*a1*rSqrtPiExp);
-//    C2 = rR2*( 3*C1  -  4*a3*rSqrtPiExp);
-//    C3 = rR2*( 5*C2  -  8*a5*rSqrtPiExp);
-//    C4 = rR2*( 7*C3  - 16*a7*rSqrtPiExp);
+    C0 = erf(a1*R1)*rR1;    
+    C1 = rR2*(   C0  -  2*a1*rSqrtPiExp);
+    C2 = rR2*( 3*C1  -  4*a3*rSqrtPiExp);
+    C3 = rR2*( 5*C2  -  8*a5*rSqrtPiExp);
+    C4 = rR2*( 7*C3  - 16*a7*rSqrtPiExp);
 
-    C0 = gC0();
-    C1 = gC1();
-    C2 = gC2();
-    C3 = gC3();
-    C4 = gC4();
+//    C0 = gC0();
+//    C1 = gC1();
+//    C2 = gC2();
+//    C3 = gC3();
+//    C4 = gC4();
     
     return;
 }
@@ -694,11 +818,17 @@ inline void EwdInteractor::UpdateAllCls() {
 
 inline void EwdInteractor::UpdateAllGls(APolarSite& p1, APolarSite& p2) {
     
-    G0 = G1 = G2 = G3 = G4 = 0.0;
+    ppG0 = ppG1 = ppG2 = ppG3 = ppG4 = 0.0;
+    puG1 = puG2 = puG3 = 0.0;
+    uuG1 = uuG2 = 0.0;
     
     // Dot product µ * r
     double mu1_r = 0.0;
     double mu2_r = 0.0;
+    
+    // Dot product µ(ind) * r
+    double u_mu1_r = 0.0;
+    double u_mu2_r = 0.0;
     
     // Dot product Q * r
     double Q1_rx, Q1_ry, Q1_rz = 0.0;
@@ -708,6 +838,7 @@ inline void EwdInteractor::UpdateAllGls(APolarSite& p1, APolarSite& p2) {
     double Q1__R = 0.0;
     double Q2__R = 0.0;
     
+    u_mu1_r = (p1.U1x*rx + p1.U1y*ry + p1.U1z*rz);
     if (p1._rank > 0) {        
         mu1_r = (p1.Q1x*rx + p1.Q1y*ry + p1.Q1z*rz);        
         if (p1._rank > 1) {
@@ -720,6 +851,7 @@ inline void EwdInteractor::UpdateAllGls(APolarSite& p1, APolarSite& p2) {
         }
     }
     
+    u_mu2_r = (p2.U1x*rx + p2.U1y*ry + p2.U1z*rz);
     if (p2._rank > 0) {
         mu2_r = (p2.Q1x*rx + p2.Q1y*ry + p2.Q1z*rz);
         if (p2._rank > 1) {
@@ -730,61 +862,82 @@ inline void EwdInteractor::UpdateAllGls(APolarSite& p1, APolarSite& p2) {
             Q2_ry = p2.Qxy*rx + p2.Qyy*ry + p2.Qyz*rz;
             Q2_rz = p2.Qxz*rx + p2.Qyz*ry + p2.Qzz*rz;
         }
-    }
+    }    
     
+    // RANK(1) >= RANK(2)
     // 1 - charge, 2 -charge
-    G0 = p1.Q00 * p2.Q00;
+    ppG0 += p1.Q00 * p2.Q00;
+    
+    puG1 += -p2.Q00 * u_mu1_r;    
+    uuG1 += p1.U1x*p2.U1x + p1.U1y*p2.U1y + p1.U1z*p2.U1z;
+    uuG2 += - u_mu1_r * u_mu2_r;
     
     // 1 - dipole, 2 - charge
     if (p1._rank > 0) {
-        G1 += - p2.Q00 * mu1_r;
+        ppG1 += - p2.Q00 * mu1_r;
+        puG1 += p1.Q1x*p2.U1x + p1.Q1y*p2.U1y + p1.Q1z*p2.U1z;
+        puG2 += - mu1_r * u_mu2_r;
         
         // 1 - dipole, 2 - dipole
         if (p2._rank > 0) {
-            G1 += p1.Q1x*p2.Q1x + p1.Q1y*p2.Q1y + p1.Q1z*p2.Q1z;
-            G2 += - mu1_r * mu2_r;
+            ppG1 += p1.Q1x*p2.Q1x + p1.Q1y*p2.Q1y + p1.Q1z*p2.Q1z;
+            ppG2 += - mu1_r * mu2_r;
         }
         
         // 1 - quadrupole, 2 -charge
         if (p1._rank > 1) {
-            G2 += p2.Q00 * Q1__R;
+            ppG2 += p2.Q00 * Q1__R;
             
             // 1 - quadrupole, 2 - dipole
             if (p2._rank > 0) {
-                G2 += - 2 * (p1.Qxx*p2.Q1x*rx + p1.Qxy*p2.Q1x*ry + p1.Qxz*p2.Q1x*rz
-                           + p1.Qxy*p2.Q1y*rx + p1.Qyy*p2.Q1y*ry + p1.Qyz*p2.Q1y*rz
-                           + p1.Qxz*p2.Q1z*rx + p1.Qyz*p2.Q1z*ry + p1.Qzz*p2.Q1z*rz);
-                G3 += mu2_r * Q1__R;
+                ppG2 += - 2 * (p1.Qxx*p2.Q1x*rx + p1.Qxy*p2.Q1x*ry + p1.Qxz*p2.Q1x*rz
+                             + p1.Qxy*p2.Q1y*rx + p1.Qyy*p2.Q1y*ry + p1.Qyz*p2.Q1y*rz
+                             + p1.Qxz*p2.Q1z*rx + p1.Qyz*p2.Q1z*ry + p1.Qzz*p2.Q1z*rz);
+                puG2 += - 2 * (p1.Qxx*p2.U1x*rx + p1.Qxy*p2.U1x*ry + p1.Qxz*p2.U1x*rz
+                             + p1.Qxy*p2.U1y*rx + p1.Qyy*p2.U1y*ry + p1.Qyz*p2.U1y*rz
+                             + p1.Qxz*p2.U1z*rx + p1.Qyz*p2.U1z*ry + p1.Qzz*p2.U1z*rz);
+                ppG3 += mu2_r * Q1__R;
+                puG3 += u_mu2_r * Q1__R;
                 
                 // 1 - quadrupole, 2 - quadrupole
                 if (p2._rank > 1) {
-                    G2 += 2 * (p1.Qxx*p2.Qxx + 2*p1.Qxy*p2.Qxy + 2*p1.Qxz*p2.Qxz
-                                             +   p1.Qyy*p2.Qyy + 2*p1.Qyz*p2.Qyz
-                                                               +   p1.Qzz*p2.Qzz);
-                    G3 += -4 * (Q1_rx*Q2_rx + Q1_ry*Q2_ry + Q1_rz*Q2_rz);
-                    G4 += Q1__R * Q2__R;
+                    ppG2 += 2 * (p1.Qxx*p2.Qxx + 2*p1.Qxy*p2.Qxy + 2*p1.Qxz*p2.Qxz
+                                               +   p1.Qyy*p2.Qyy + 2*p1.Qyz*p2.Qyz
+                                                                 +   p1.Qzz*p2.Qzz);
+                    ppG3 += -4 * (Q1_rx*Q2_rx + Q1_ry*Q2_ry + Q1_rz*Q2_rz);
+                    ppG4 += Q1__R * Q2__R;
                 }
             }            
         }        
     }
     
+    
+    // RANK(1) < RANK(2)    
+    puG1 += + p1.Q00 * u_mu2_r;
+    
     // 2 - dipole, 1 - charge
     if (p2._rank > 0) {
-        G1 += + p1.Q00 * mu2_r;        
+        ppG1 += + p1.Q00 * mu2_r;   
+        puG1 += p1.U1x*p2.Q1x + p1.U1y*p2.Q1y + p1.U1z*p2.Q1z;
+        puG2 += - u_mu1_r * mu2_r;
         
         // 2 - dipole, 1 - dipole
         // ... covered above.
         
         // 2 - quadrupole, 1 - charge
         if (p2._rank > 1) {
-            G2 += p1.Q00 * Q2__R;
+            ppG2 += p1.Q00 * Q2__R;
             
             // 2 - quadrupole, 1 - dipole
             if (p1._rank > 0) {
-                G2 +=   2 * (p2.Qxx*p1.Q1x*rx + p2.Qxy*p1.Q1x*ry + p2.Qxz*p1.Q1x*rz
-                           + p2.Qxy*p1.Q1y*rx + p2.Qyy*p1.Q1y*ry + p2.Qyz*p1.Q1y*rz
-                           + p2.Qxz*p1.Q1z*rx + p2.Qyz*p1.Q1z*ry + p2.Qzz*p1.Q1z*rz);
-                G3 += - mu1_r * Q2__R;
+                ppG2 +=   2 * (p2.Qxx*p1.Q1x*rx + p2.Qxy*p1.Q1x*ry + p2.Qxz*p1.Q1x*rz
+                             + p2.Qxy*p1.Q1y*rx + p2.Qyy*p1.Q1y*ry + p2.Qyz*p1.Q1y*rz
+                             + p2.Qxz*p1.Q1z*rx + p2.Qyz*p1.Q1z*ry + p2.Qzz*p1.Q1z*rz);
+                puG2 +=   2 * (p2.Qxx*p1.U1x*rx + p2.Qxy*p1.U1x*ry + p2.Qxz*p1.U1x*rz
+                             + p2.Qxy*p1.U1y*rx + p2.Qyy*p1.U1y*ry + p2.Qyz*p1.U1y*rz
+                             + p2.Qxz*p1.U1z*rx + p2.Qyz*p1.U1z*ry + p2.Qzz*p1.U1z*rz);
+                ppG3 += - mu1_r * Q2__R;
+                puG3 += - u_mu1_r * Q2__R;
                 
                 // 2 - quadrupole, 2 - quadrupole
                 // ... covered above.
