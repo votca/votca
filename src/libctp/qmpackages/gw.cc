@@ -358,6 +358,12 @@ bool GW::ParseLogFile( Orbitals* _orbitals ) {
     unsigned _levels = 0;
     unsigned _level;
     unsigned _basis_size = 0;
+    unsigned _homoindex;
+    unsigned _bse_lower;
+    unsigned _bse_upper;
+    unsigned _bse_states; 
+    unsigned _bse_written_states; 
+    vector<string> results; 
     
     // _store_qppert -> read from *.gwbse file
     string _log_file_name_full = _run_dir + "/" + _log_file_name;
@@ -390,8 +396,10 @@ bool GW::ParseLogFile( Orbitals* _orbitals ) {
 
         if (QPpert_pos != std::string::npos) {
             _orbitals->_has_QPpert = true;
+            _orbitals->_QP_levels_index.clear(); //make sure vector is empty
             // next line is header -> skip
             getline(_input_file, _line);
+            _levels = 0;
             // now, data follows until "GWA setting up full QP Hamiltonian"
             bool _is_QPdata = true;
             while ( _is_QPdata ){
@@ -400,7 +408,6 @@ bool GW::ParseLogFile( Orbitals* _orbitals ) {
                 if ( _line.find("GWA setting up full QP") != std::string::npos ){
                     _is_QPdata = false;
                 } else {
-                    vector<string> results;
                     int level;
                     boost::trim( _line );
                     _levels++;
@@ -422,11 +429,81 @@ bool GW::ParseLogFile( Orbitals* _orbitals ) {
                    _orbitals->_QPpert_energies(itl,ite) = _energies[itl+1][ite];
                }
             }
-        } 
+        }
+        
+        // find info about considered occupied and empty levels in BSE
+
+        std::string::size_type homoindex_pos = _line.find("DFT HOMO index");
+        //
+        if (homoindex_pos != std::string::npos) {
+            boost::trim( _line );
+            boost::algorithm::split(results, _line, boost::is_any_of("\t ="),
+            boost::algorithm::token_compress_on); 
+            // get HOMO index
+            _homoindex = boost::lexical_cast<int>(results.back());
+            LOG( logDEBUG, *_pLog ) << "DFT HOMO index: " << _homoindex << flush;
+        }
+        
+        std::string::size_type bse_lower_pos = _line.find("BSE lower");
+        //
+        if (bse_lower_pos != std::string::npos) {
+            boost::trim( _line );
+            boost::algorithm::split(results, _line, boost::is_any_of("\t ="),
+            boost::algorithm::token_compress_on); 
+            // get HOMO index
+            _bse_lower = boost::lexical_cast<int>(results.back());
+            LOG( logDEBUG, *_pLog ) << "BSE lowest level: " << _bse_lower << flush;
+        }
+        
+        std::string::size_type bse_upper_pos = _line.find("BSE upper");
+        //
+        if (bse_upper_pos != std::string::npos) {
+            boost::trim( _line );
+            boost::algorithm::split(results, _line, boost::is_any_of("\t ="),
+            boost::algorithm::token_compress_on); 
+            // get HOMO index
+            _bse_upper = boost::lexical_cast<int>(results.back());
+            LOG( logDEBUG, *_pLog ) << "BSE upper level: " << _bse_upper << flush;
+        }
+        
+        std::string::size_type bse_nstates_pos = _line.find("BSE number of states");
+        //
+        if (bse_nstates_pos != std::string::npos) {
+            boost::trim( _line );
+            boost::algorithm::split(results, _line, boost::is_any_of("\t ="),
+            boost::algorithm::token_compress_on); 
+            // get number os states
+            _bse_states = boost::lexical_cast<int>(results.back());
+            LOG( logDEBUG, *_pLog ) << "BSE number of states: " << _bse_states << flush;
+        }
+        
+        std::string::size_type bse_wstates_pos = _line.find("BSE number of written states");
+        //
+        if (bse_wstates_pos != std::string::npos) {
+            boost::trim( _line );
+            boost::algorithm::split(results, _line, boost::is_any_of("\t ="),
+            boost::algorithm::token_compress_on); 
+            // get number of states written
+            _bse_written_states = boost::lexical_cast<int>(results.back());
+            LOG( logDEBUG, *_pLog ) << "BSE number of written states: " << _bse_written_states << flush;
+        }
+    }
+
+    unsigned _bse_matrix_dim = (_homoindex - _bse_lower +1 ) * (_bse_upper - _homoindex );
+    LOG( logDEBUG, *_pLog ) << "BSE matrix dimension: " << _bse_matrix_dim << flush;
+    // build index array
+    unsigned _i_bse = 0;
+    _orbitals->_BSE_levels_indices.resize( _bse_matrix_dim, 2 );
+    for ( unsigned _i_occupied = _bse_lower; _i_occupied <= _homoindex; _i_occupied++){
+        for (unsigned _i_empty = _homoindex+1; _i_empty <= _bse_upper; _i_empty++ ){
+            _orbitals->_BSE_levels_indices( _i_bse, 0 ) = _i_occupied;
+            _orbitals->_BSE_levels_indices( _i_bse, 1 ) = _i_empty;
+            _i_bse++;
+         }
     }
 
     // some sanity checks
-    LOG( logDEBUG, *_pLog ) << "QP Energy levels: " << _levels << flush;
+    LOG( logDEBUG, *_pLog ) << "QP perturbative levels: " << _levels << flush;
     _input_file.close();
     
     // now read from diag_QP.dat, if present
@@ -434,79 +511,116 @@ bool GW::ParseLogFile( Orbitals* _orbitals ) {
     string _diag_file_name_full = _run_dir + "/" + _diag_file_name;
     std::ifstream _diag_file( _diag_file_name_full.c_str() );
     
-    if (_input_file.fail()) {
+    if (_diag_file.fail()) {
         LOG( logDEBUG, *_pLog ) << "File " << _diag_file_name << " not found, skipping " << flush;
     } else {
-        LOG(logDEBUG, *_pLog) << "Reading diagonalized QP data from " << _diag_file_name << flush;
-        vector<string> results;
+        //LOG(logDEBUG, *_pLog) << "Reading diagonalized QP data from " << _diag_file_name << flush;
+        //vector<string> results;
+        _orbitals->_has_QPdiag = true;
         getline(_diag_file, _line); // first line is number of levels
         boost::trim( _line );
             
         boost::algorithm::split(results, _line, boost::is_any_of("\t ="),
         boost::algorithm::token_compress_on); 
-        int _levels_total = boost::lexical_cast<int>(results.front());
+        _levels = boost::lexical_cast<int>(results.front());
         // sanity check
-        if ( _levels_total != _levels ){
-           LOG( logERROR, *_pLog ) << "Unmatching number of QP levels in " << _log_file_name << "\n from *.gwbse: " << _levels << "; from diag_QP.dat: " << _level << flush;
+        if ( _levels != _orbitals->_QP_levels_index.size() ){
+           LOG( logERROR, *_pLog ) << "Unmatching number of QP levels in " << _log_file_name << "\n from *.gwbse: " << _orbitals->_QP_levels_index.size() << "; from diag_QP.dat: " << _levels << flush;
            return false;
         }
         // now loop over all levels
-        for (int _i_level=0; _i_level < _levels; _i_level++ ){
-            getline(_diag_file, _line); // first line is number of levels
+        _orbitals->_QPdiag_coefficients.resize(_levels, _levels);
+        for (size_t _i_level=0; _i_level < _levels; _i_level++ ){
+            getline(_diag_file, _line); // first line has QP level index and energy
             boost::trim( _line );
             boost::algorithm::split(results, _line, boost::is_any_of("\t ="),
             boost::algorithm::token_compress_on); 
             _level = boost::lexical_cast<int>(results.front());
-            // orbitals->_QPdiag_energies[ _level ] = boost::lexical_cast<double>(results.back())
+            _orbitals->_QPdiag_energies.push_back(boost::lexical_cast<double>(results.back()));
+            // next _levels lines contain expansion coefficients
+            for (size_t _i_coef = 0; _i_coef < _levels; _i_coef++ ){
+                boost::trim( _line );
+                boost::algorithm::split(results, _line, boost::is_any_of("\t ="),
+                boost::algorithm::token_compress_on); 
+                _orbitals->_QPdiag_coefficients(_i_level,_i_coef) = boost::lexical_cast<double>(results.back());
+            }
         }
-
-
+        _diag_file.close();
+        LOG(logDEBUG, *_pLog) << "Diagonalized QPs: " << _levels << flush;
     }
 
-    /*std::map< int, vector<double> >::iterator iter = _coefficients.begin();
-    _basis_size = iter->second.size();
-
-    for (iter = _coefficients.begin()++; iter != _coefficients.end(); iter++) {
-        if (iter->second.size() != _basis_size) {
-            LOG( logERROR, *_pLog ) << "Error reading " << _orb_file_name << ". Basis set size change from level to level." << flush;
-            return false;
+    
+    
+    // now read from singlets.99, if present
+    string _singlet_file_name = "singlets.99";
+    string _singlet_file_name_full = _run_dir + "/" + _singlet_file_name;
+    std::ifstream _singlet_file( _singlet_file_name_full.c_str() );
+    
+    if (_singlet_file.fail()) {
+        LOG( logDEBUG, *_pLog ) << "File " << _singlet_file_name << " not found, skipping " << flush;
+    } else {
+        //LOG(logDEBUG, *_pLog) << "Reading singlet exciton data from " << _singlet_file_name << flush;
+        _orbitals->_has_BSE_singlets = true;
+        _orbitals->_BSE_singlet_energies.resize( _bse_written_states );
+        _orbitals->_BSE_singlet_coefficients.resize( _bse_written_states, _bse_matrix_dim );
+        for ( size_t _i_state = 0; _i_state < _bse_written_states; _i_state++ ) {
+            getline(_singlet_file, _line); // first line is energy
+            boost::trim( _line );
+            
+            boost::algorithm::split(results, _line, boost::is_any_of("\t ="),
+            boost::algorithm::token_compress_on); 
+            _orbitals->_BSE_singlet_energies[_i_state] =  boost::lexical_cast<double>(results.back());
+            for (size_t _i_coef = 0; _i_coef < _bse_matrix_dim; _i_coef++ ){
+                getline(_singlet_file, _line); // next lines are coefficients
+                boost::trim( _line );
+                boost::algorithm::split(results, _line, boost::is_any_of("\t ="),
+                boost::algorithm::token_compress_on);
+                // cout << _i_state << ":" << _i_coef << ":" << boost::lexical_cast<double>(results.back()) << endl;
+                _orbitals->_BSE_singlet_coefficients(_i_state,_i_coef) = boost::lexical_cast<double>(results.back());
+            }
         }
+        LOG(logDEBUG, *_pLog) << "Singlet excitons: " << _bse_written_states << flush;
     }
-    
-    LOG( logDEBUG, *_pLog ) << "Basis set size: " << _basis_size << flush;
-
-    // copying information to the orbitals object
-    _orbitals->_basis_set_size = _basis_size;
-    _orbitals->_has_basis_set_size = true;
-    _orbitals->_has_mo_coefficients = true;
-    _orbitals->_has_mo_energies = true;
-    
-   // copying energies to a matrix  
-   _orbitals->_mo_energies.resize( _levels );
-   _level = 1;
-   for(size_t i=0; i < _orbitals->_mo_energies.size(); i++) {
-         _orbitals->_mo_energies[i] = _energies[ _level++ ];
-   }
-   
-   // copying orbitals to the matrix
-   (_orbitals->_mo_coefficients).resize( _levels, _basis_size );     
-   for(size_t i = 0; i < _orbitals->_mo_coefficients.size1(); i++) {
-      for(size_t j = 0 ; j < _orbitals->_mo_coefficients.size2(); j++) {
-         _orbitals->_mo_coefficients(i,j) = _coefficients[i+1][j];
-         //cout << i << " " << j << endl;
-      }
-   }
+    _singlet_file.close();
 
     
-   //cout << _mo_energies << endl;   
-   //cout << _mo_coefficients << endl; 
-   
-   // cleanup
+    // now read from triplets.99, if present
+    string _triplet_file_name = "triplets.99";
+    string _triplet_file_name_full = _run_dir + "/" + _triplet_file_name;
+    std::ifstream _triplet_file( _triplet_file_name_full.c_str() );
+    
+    if (_triplet_file.fail()) {
+        LOG( logDEBUG, *_pLog ) << "File " << _triplet_file_name << " not found, skipping " << flush;
+    } else {
+        //LOG(logDEBUG, *_pLog) << "Reading triplet exciton data from " << _triplet_file_name << flush;
+        _orbitals->_has_BSE_triplets = true;
+        _orbitals->_BSE_triplet_energies.resize( _bse_written_states );
+        _orbitals->_BSE_triplet_coefficients.resize( _bse_written_states, _bse_matrix_dim );
+        for ( size_t _i_state = 0; _i_state < _bse_written_states; _i_state++ ) {
+            getline(_triplet_file, _line); // first line is energy
+            boost::trim( _line );
+            
+            boost::algorithm::split(results, _line, boost::is_any_of("\t ="),
+            boost::algorithm::token_compress_on); 
+            _orbitals->_BSE_triplet_energies[_i_state] =  boost::lexical_cast<double>(results.back());
+            for (size_t _i_coef = 0; _i_coef < _bse_matrix_dim; _i_coef++ ){
+                getline(_triplet_file, _line); // next lines are coefficients
+                boost::trim( _line );
+                boost::algorithm::split(results, _line, boost::is_any_of("\t ="),
+                boost::algorithm::token_compress_on);
+                // cout << _i_state << ":" << _i_coef << ":" << boost::lexical_cast<double>(results.back()) << endl;
+                _orbitals->_BSE_triplet_coefficients(_i_state,_i_coef) = boost::lexical_cast<double>(results.back());
+            }
+        }
+        LOG(logDEBUG, *_pLog) << "Triplet excitons: " << _bse_written_states << flush;
+    }
+    _triplet_file.close();
+        
    _coefficients.clear();
    _energies.clear();
-   */
+  
      
-   LOG(logDEBUG, *_pLog) << "Done reading MOs" << flush;
+   LOG(logDEBUG, *_pLog) << "Done reading GW-BSE data" << flush;
 
    return true;
     

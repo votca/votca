@@ -316,76 +316,72 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         
     }
    
-   
-   // to run any of the GW-BSE steps, initialize QMPackage
-   if ( _do_gwbse_input || _do_gwbse_run || _do_gwbse_parse ){
-       
-      // initialize GW as another QMPackage
-      QMPackage *_gwpackage = QMPackages().Create( "gw" );
-      _gwpackage->Initialize( &_gwpackage_options );
-      _gwpackage->setLog( pLog );  
-      _gwpackage->setRunDir( qmpackage_work_dir );     
-       
-      
-   if ( _do_gwbse_input ){
 
-       // DFT data must be read from storage or have been parsed
-       if ( !_do_parse ) { // orbitals must be loaded from a file
-           string ORB_FILE = "molecule_" + ID + ".orb";
-           LOG(logDEBUG,*pLog) << "Loading orbitals from " << ORB_FILE << flush;    
-           std::ifstream ifs( (ORB_DIR + "/" + ORB_FILE).c_str() );
-           boost::archive::binary_iarchive ia( ifs );
-           ia >> _orbitals;
-           ifs.close();
-       } 
-     
-      _gwpackage->WriteInputFile( segments , &_orbitals );
+            // to run any of the GW-BSE steps, initialize QMPackage
+            if (_do_gwbse_input || _do_gwbse_run || _do_gwbse_parse) {
 
-   }
-   
-   if ( _do_gwbse_run ){
-      // run the GWBSE executable
-      _run_status = _gwpackage->Run( );
-      if ( !_run_status ) {
-            output += "run failed; " ;
-            LOG(logERROR,*pLog) << " GWBSE run failed" << flush;
-            jres.setOutput( output ); 
-            jres.setStatus(Job::FAILED);
-            delete _gwpackage;
-            return jres;
-        } else {
-            output += "run completed; " ;
-        }
-   }
-   
-   if ( _do_gwbse_parse ){
-      // parse and store output from GWBSE
-      _parse_log_status = _gwpackage->ParseLogFile( &_orbitals );
-        if ( !_parse_log_status ) {
-            output += "log incomplete; ";
-            LOG(logERROR,*pLog) << "GWBSE log incomplete" << flush;
-            jres.setOutput( output ); 
-            jres.setStatus(Job::FAILED);
-            delete _gwpackage;
-            return jres;
-        } else {
-            output += "log parsed; " ;
-        }
+                // initialize GW as another QMPackage
+                QMPackage *_gwpackage = QMPackages().Create("gw");
+                _gwpackage->Initialize(&_gwpackage_options);
+                _gwpackage->setLog(pLog);
+                _gwpackage->setRunDir(qmpackage_work_dir);
 
-       /* Parse orbitals file
-       _parse_orbitals_status = _qmpackage->ParseOrbitalsFile( &_orbitals );
-        if ( !_parse_orbitals_status ) {
-            output += "orbitals failed; " ;
-            LOG(logERROR,*pLog) << "QM orbitals not parsed" << flush;
-            jres.setOutput( output ); 
-            jres.setStatus(Job::FAILED);
-            delete _qmpackage;
-            return jres;
-        } else {
-            output += "orbitals parsed; " ;
-        } */
-   }
-   }
+
+                if (_do_gwbse_input || _do_gwbse_parse ) {
+
+                    // DFT data must be read from storage or have been parsed
+                    if (!_do_parse) { // orbitals must be loaded from a file
+                        string ORB_FILE = "molecule_" + ID + ".orb";
+                        LOG(logDEBUG, *pLog) << "Loading orbitals from " << ORB_FILE << flush;
+                        std::ifstream ifs((ORB_DIR + "/" + ORB_FILE).c_str());
+                        boost::archive::binary_iarchive ia(ifs);
+                        ia >> _orbitals;
+                        ifs.close();
+                    }
+
+                    _gwpackage->WriteInputFile(segments, &_orbitals);
+
+                }
+
+                if (_do_gwbse_run) {
+                    // run the GWBSE executable
+                    _run_status = _gwpackage->Run();
+                    if (!_run_status) {
+                        output += "run failed; ";
+                        LOG(logERROR, *pLog) << " GWBSE run failed" << flush;
+                        jres.setOutput(output);
+                        jres.setStatus(Job::FAILED);
+                        delete _gwpackage;
+                        return jres;
+                    } else {
+                        output += "run completed; ";
+                    }
+                }
+
+                if (_do_gwbse_parse) {
+                    // parse and store output from GWBSE
+                    _parse_log_status = _gwpackage->ParseLogFile(&_orbitals);
+                    if (!_parse_log_status) {
+                        output += "log incomplete; ";
+                        LOG(logERROR, *pLog) << "GWBSE log incomplete" << flush;
+                        jres.setOutput(output);
+                        jres.setStatus(Job::FAILED);
+                        delete _gwpackage;
+                        return jres;
+                    } else {
+                        output += "log parsed; ";
+                        // save orbitals
+                        string ORB_FILE = "molecule_" + ID + ".orb";
+                        LOG(logDEBUG,*pLog) << "Serializing to " <<  ORB_FILE << flush;
+                        std::ofstream ofs( (ORB_DIR + "/" + ORB_FILE).c_str() );
+                        boost::archive::binary_oarchive oa( ofs );
+                        oa << _orbitals;
+                        ofs.close();
+                    }
+
+             
+                }
+            }
    
    // Clean run
    _qmpackage->CleanUp();

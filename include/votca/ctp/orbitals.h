@@ -138,7 +138,20 @@ public:
     
     // for GW-BSE
     bool hasQPpert() { return _has_QPpert; }
-    ub::matrix<double>* getQPpert() {return  &_QPpert_energies ;}
+    ub::matrix<double>* getQPpertEnergies() {return  &_QPpert_energies ;}
+    bool hasQPdiag() { return _has_QPdiag; }
+    std::vector<double>* getQPdiagEnergies() {return  &_QPdiag_energies ;} 
+    ub::matrix<double>* getQPdiagCoefficients() {return  &_QPdiag_coefficients ;}
+    std::vector<int>* getQPLevelsIndexList() {return &_QP_levels_index;}
+    ub::matrix<int>* getBSELevelsIndexList() { return &_BSE_levels_indices; }
+    bool hasBSESinglets() {return _has_BSE_singlets;}
+    std::vector<double>* getBSESingletEnergies() {return &_BSE_singlet_energies;}
+    ub::matrix<double>* getBSESingletCoefficients() {return &_BSE_singlet_coefficients;}
+    bool hasBSETriplets() {return _has_BSE_triplets;}
+    std::vector<double>* getBSETripletEnergies() {return &_BSE_triplet_energies;}
+    ub::matrix<double>* getBSETripletCoefficients() {return &_BSE_triplet_coefficients; }   
+    
+
     
     // returns indeces of a re-sorted in a descending order vector of energies
     void SortEnergies( std::vector<int>* index );
@@ -209,9 +222,23 @@ private:
     BasisSet                            _basis_set;
     
     // new variables for GW-BSE storage
+    // perturbative quasiparticle energies
     bool                                _has_QPpert;
     std::vector<int>                    _QP_levels_index;
     ub::matrix<double>                  _QPpert_energies;
+    // quasiparticle energies and coefficients after diagonalization
+    bool                                _has_QPdiag;
+    std::vector<double>                 _QPdiag_energies;
+    ub::matrix<double>                  _QPdiag_coefficients;
+    // excitons
+    ub::matrix<int>                     _BSE_levels_indices;
+    bool                                _has_BSE_singlets;
+    std::vector<double>                 _BSE_singlet_energies;
+    ub::matrix<double>                  _BSE_singlet_coefficients;
+    bool                                _has_BSE_triplets;
+    std::vector<double>                 _BSE_triplet_energies;
+    ub::matrix<double>                  _BSE_triplet_coefficients;    
+    
 
 private:
 
@@ -247,6 +274,18 @@ private:
        ar & _has_qm_energy;
        ar & _has_self_energy;
        ar & _has_integrals;
+       
+       // GW-BSE storage
+       ar & _has_QPpert;
+       ar & _has_QPdiag;
+       ar & _has_BSE_singlets;
+       ar & _has_BSE_triplets;
+       if ( _has_QPpert ) { ar & _QP_levels_index; ar & _QPpert_energies; }
+       if ( _has_QPdiag ) { ar & _QPdiag_energies; ar & _QPdiag_coefficients; }
+       if ( _has_BSE_singlets || _has_BSE_triplets ) { ar & _BSE_levels_indices; }
+       if ( _has_BSE_singlets ) { ar & _BSE_singlet_energies; ar & _BSE_singlet_coefficients; }
+       if ( _has_BSE_triplets ) { ar & _BSE_triplet_energies; ar & _BSE_triplet_coefficients; }
+
        
        if ( _has_basis_set_size ) { ar & _basis_set_size; }
        if ( _has_occupied_levels ) { ar & _occupied_levels; }
@@ -297,6 +336,9 @@ private:
        if ( _has_qm_energy ) { ar & _qm_energy; }
        if ( _has_self_energy ) { ar & _self_energy; }     
        if ( _has_integrals ) { ar & _integrals; } 
+       
+       
+       //GW-BSE storage
     }
     
 };
