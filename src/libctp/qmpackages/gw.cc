@@ -351,13 +351,170 @@ bool GW::CheckLogFile() {
  * Parses the Gaussian Log file and stores data in the Orbitals object 
  */
 bool GW::ParseLogFile( Orbitals* _orbitals ) {
-
+    std::map <int, std::vector<double> > _coefficients;
+    std::map <int, std::vector<double> > _energies;
+    
+    std::string _line;
+    unsigned _levels = 0;
+    unsigned _level;
+    unsigned _basis_size = 0;
     
     // _store_qppert -> read from *.gwbse file
+    string _log_file_name_full = _run_dir + "/" + _log_file_name;
+    std::ifstream _input_file( _log_file_name_full.c_str() );
+    
+    if (_input_file.fail()) {
+        LOG( logERROR, *_pLog ) << "File " << _log_file_name << " with GWBSE output not found " << flush;
+        return false;
+    } else {
+        LOG(logDEBUG, *_pLog) << "Reading from " << _log_file_name << flush;
+    }
+
+    // go through file until 
+//    getline(_input_file, _line);
+  //  std::vector<string> strs;
+   // boost::algorithm::split(strs, _line, boost::is_any_of("(D)"));
+    //clog << strs.at(1) << endl;
+   // int nrecords_in_line = boost::lexical_cast<int>(strs.at(1));
+   // string format = strs.at(2);
+
+    //clog << endl << "Orbital file " << filename << " has " 
+    //        << nrecords_in_line << " records per line, in D"
+    //        << format << " format." << endl;
+
+    while (_input_file) {
+
+        getline(_input_file, _line);
+        // if a line has "GWA calculating correlation energies DONE!", relevant data follows
+        std::string::size_type QPpert_pos = _line.find("GWA calculating correlation energies DONE!");
+
+        if (QPpert_pos != std::string::npos) {
+            _orbitals->_has_QPpert = true;
+            // next line is header -> skip
+            getline(_input_file, _line);
+            // now, data follows until "GWA setting up full QP Hamiltonian"
+            bool _is_QPdata = true;
+            while ( _is_QPdata ){
+                getline(_input_file, _line);
+//                std::string::size_type end_QPpert =
+                if ( _line.find("GWA setting up full QP") != std::string::npos ){
+                    _is_QPdata = false;
+                } else {
+                    vector<string> results;
+                    int level;
+                    boost::trim( _line );
+                    _levels++;
+                    boost::algorithm::split(results, _line, boost::is_any_of("\t ="),
+                    boost::algorithm::token_compress_on); 
+                    // get QP level index and save in orbitals
+                    level = boost::lexical_cast<int>(results[2]);
+                    _orbitals->_QP_levels_index.push_back(boost::lexical_cast<int>(results[2]));
+                    // get the five (DFT, S_x,S_c, V_xc, E_qp) energies in temporary map
+                    for (size_t ite=0; ite<5; ite++) {
+                        _energies[ _levels ].push_back(boost::lexical_cast<double>(results[ite+3])); // DFT energy
+                    }
+                }
+            }
+            // now copy energies in map into orbitals object matrix
+            (_orbitals->_QPpert_energies).resize( _levels, 5 );
+            for (size_t itl=0; itl < _levels; itl++){
+               for (size_t ite=0; ite<5; ite++) {
+                   _orbitals->_QPpert_energies(itl,ite) = _energies[itl+1][ite];
+               }
+            }
+        } 
+    }
+
+    // some sanity checks
+    LOG( logDEBUG, *_pLog ) << "QP Energy levels: " << _levels << flush;
+    _input_file.close();
+    
+    // now read from diag_QP.dat, if present
+    string _diag_file_name = "diag_QP.dat";
+    string _diag_file_name_full = _run_dir + "/" + _diag_file_name;
+    std::ifstream _diag_file( _diag_file_name_full.c_str() );
+    
+    if (_input_file.fail()) {
+        LOG( logDEBUG, *_pLog ) << "File " << _diag_file_name << " not found, skipping " << flush;
+    } else {
+        LOG(logDEBUG, *_pLog) << "Reading diagonalized QP data from " << _diag_file_name << flush;
+        vector<string> results;
+        getline(_diag_file, _line); // first line is number of levels
+        boost::trim( _line );
+            
+        boost::algorithm::split(results, _line, boost::is_any_of("\t ="),
+        boost::algorithm::token_compress_on); 
+        int _levels_total = boost::lexical_cast<int>(results.front());
+        // sanity check
+        if ( _levels_total != _levels ){
+           LOG( logERROR, *_pLog ) << "Unmatching number of QP levels in " << _log_file_name << "\n from *.gwbse: " << _levels << "; from diag_QP.dat: " << _level << flush;
+           return false;
+        }
+        // now loop over all levels
+        for (int _i_level=0; _i_level < _levels; _i_level++ ){
+            getline(_diag_file, _line); // first line is number of levels
+            boost::trim( _line );
+            boost::algorithm::split(results, _line, boost::is_any_of("\t ="),
+            boost::algorithm::token_compress_on); 
+            _level = boost::lexical_cast<int>(results.front());
+            // orbitals->_QPdiag_energies[ _level ] = boost::lexical_cast<double>(results.back())
+        }
+
+
+    }
+
+    /*std::map< int, vector<double> >::iterator iter = _coefficients.begin();
+    _basis_size = iter->second.size();
+
+    for (iter = _coefficients.begin()++; iter != _coefficients.end(); iter++) {
+        if (iter->second.size() != _basis_size) {
+            LOG( logERROR, *_pLog ) << "Error reading " << _orb_file_name << ". Basis set size change from level to level." << flush;
+            return false;
+        }
+    }
+    
+    LOG( logDEBUG, *_pLog ) << "Basis set size: " << _basis_size << flush;
+
+    // copying information to the orbitals object
+    _orbitals->_basis_set_size = _basis_size;
+    _orbitals->_has_basis_set_size = true;
+    _orbitals->_has_mo_coefficients = true;
+    _orbitals->_has_mo_energies = true;
+    
+   // copying energies to a matrix  
+   _orbitals->_mo_energies.resize( _levels );
+   _level = 1;
+   for(size_t i=0; i < _orbitals->_mo_energies.size(); i++) {
+         _orbitals->_mo_energies[i] = _energies[ _level++ ];
+   }
+   
+   // copying orbitals to the matrix
+   (_orbitals->_mo_coefficients).resize( _levels, _basis_size );     
+   for(size_t i = 0; i < _orbitals->_mo_coefficients.size1(); i++) {
+      for(size_t j = 0 ; j < _orbitals->_mo_coefficients.size2(); j++) {
+         _orbitals->_mo_coefficients(i,j) = _coefficients[i+1][j];
+         //cout << i << " " << j << endl;
+      }
+   }
+
+    
+   //cout << _mo_energies << endl;   
+   //cout << _mo_coefficients << endl; 
+   
+   // cleanup
+   _coefficients.clear();
+   _energies.clear();
+   */
+     
+   LOG(logDEBUG, *_pLog) << "Done reading MOs" << flush;
+
+   return true;
+    
+
     // _store_qpdiag -> read from diag_QP.dat
     // _store_singlets -> read from *.gwbse file (free interband, eh-interaction contrib.) and singlets.99 (coefficients)
     // _store_triplets -> read from triplets.99 (energies and coefficients), contributions?
-    return true;
+    // return true;
 }
      
 /**

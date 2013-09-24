@@ -136,6 +136,10 @@ public:
     bool hasQMEnergy() { return _has_qm_energy; }
     double getQMEnergy() { return (_has_qm_energy) ? _qm_energy : 0; }
     
+    // for GW-BSE
+    bool hasQPpert() { return _has_QPpert; }
+    ub::matrix<double>* getQPpert() {return  &_QPpert_energies ;}
+    
     // returns indeces of a re-sorted in a descending order vector of energies
     void SortEnergies( std::vector<int>* index );
     
@@ -203,6 +207,11 @@ private:
     
     bool                                _has_basis_set;
     BasisSet                            _basis_set;
+    
+    // new variables for GW-BSE storage
+    bool                                _has_QPpert;
+    std::vector<int>                    _QP_levels_index;
+    ub::matrix<double>                  _QPpert_energies;
 
 private:
 
@@ -219,6 +228,7 @@ private:
     friend class Gaussian;
     friend class Turbomole;
     friend class NWChem;
+    friend class GW;
     
     // serialization itself (template implementation stays in the header)
     template<typename Archive> 

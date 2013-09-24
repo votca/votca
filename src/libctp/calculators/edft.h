@@ -70,10 +70,12 @@ private:
     bool                _do_trim;
     // conversion to GW (might go away from edft again)
     bool                _do_convert;
-    bool                _do_gwbse;
+    bool                _do_gwbse_input;
+    bool                _do_gwbse_run;
+    bool                _do_gwbse_parse;
     // what to write in the storage
     bool                _store_orbitals;
-    bool                _store_qp;
+    bool                _store_qppert;
     bool                _store_qpdiag;
     bool                _store_singlets;
     bool                _store_triplets;
@@ -103,8 +105,10 @@ void EDFT::Initialize(Topology *top, Property *options) {
     
     // conversion to GW 
     _do_convert = false;
-    _do_gwbse = false;
-
+    _do_gwbse_input = false;
+    _do_gwbse_run = false;
+    _do_gwbse_parse = false;
+        
     _maverick = (_nThreads == 1) ? true : false;
     
     string key = "options." + Identify();
@@ -118,13 +122,15 @@ void EDFT::Initialize(Topology *top, Property *options) {
     if (_tasks_string.find("run") != std::string::npos) _do_run = true;
     if (_tasks_string.find("trim") != std::string::npos) _do_trim = true;
     if (_tasks_string.find("parse") != std::string::npos) _do_parse = true;    
-    // conversion to GW (might go away from edft again)
+    // GW-BSE tasks
     if (_tasks_string.find("convert") != std::string::npos) _do_convert = true;   
-    
+    if (_tasks_string.find("gwbse_setup") != std::string::npos) _do_gwbse_input = true;
+    if (_tasks_string.find("gwbse_exec") != std::string::npos) _do_gwbse_run = true;    
+    if (_tasks_string.find("gwbse_read") != std::string::npos) _do_gwbse_parse = true;
     
     string _store_string = options->get(key+".store").as<string> ();
     if (_store_string.find("orbitals") != std::string::npos) _store_orbitals = true;
-    if (_store_string.find("qppert") != std::string::npos) _store_qp = true;
+    if (_store_string.find("qppert") != std::string::npos) _store_qppert = true;
     if (_store_string.find("qpdiag") != std::string::npos) _store_qpdiag = true;
     if (_store_string.find("singlets") != std::string::npos) _store_singlets = true;
     if (_store_string.find("triplets") != std::string::npos) _store_triplets = true;
@@ -133,9 +139,10 @@ void EDFT::Initialize(Topology *top, Property *options) {
     key = "package";
     _package = _package_options.get(key+".name").as<string> ();
 
+
+   
     // only required, if GWBSE is to be run
-    if (_tasks_string.find("gwbse") != std::string::npos) {
-        _do_gwbse = true;
+    if ( _do_gwbse_input || _do_gwbse_run || _do_gwbse_parse ){
         key = "options." + Identify();
         string _gwpackage_xml = options->get(key+".gwpackage").as<string> ();
         load_property_from_xml( _gwpackage_options, _gwpackage_xml.c_str() );  
@@ -310,9 +317,19 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     }
    
    
-   // Run GW
-   if ( _do_gwbse ){
+   // to run any of the GW-BSE steps, initialize QMPackage
+   if ( _do_gwbse_input || _do_gwbse_run || _do_gwbse_parse ){
        
+      // initialize GW as another QMPackage
+      QMPackage *_gwpackage = QMPackages().Create( "gw" );
+      _gwpackage->Initialize( &_gwpackage_options );
+      _gwpackage->setLog( pLog );  
+      _gwpackage->setRunDir( qmpackage_work_dir );     
+       
+      
+   if ( _do_gwbse_input ){
+
+       // DFT data must be read from storage or have been parsed
        if ( !_do_parse ) { // orbitals must be loaded from a file
            string ORB_FILE = "molecule_" + ID + ".orb";
            LOG(logDEBUG,*pLog) << "Loading orbitals from " << ORB_FILE << flush;    
@@ -321,15 +338,12 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
            ia >> _orbitals;
            ifs.close();
        } 
-       
-       
-      // initialize GW as another QMPackage
-      QMPackage *_gwpackage = QMPackages().Create( "gw" );
-      _gwpackage->Initialize( &_gwpackage_options );
-      _gwpackage->setLog( pLog );  
-      _gwpackage->setRunDir( qmpackage_work_dir );
+     
       _gwpackage->WriteInputFile( segments , &_orbitals );
 
+   }
+   
+   if ( _do_gwbse_run ){
       // run the GWBSE executable
       _run_status = _gwpackage->Run( );
       if ( !_run_status ) {
@@ -342,7 +356,9 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         } else {
             output += "run completed; " ;
         }
-      
+   }
+   
+   if ( _do_gwbse_parse ){
       // parse and store output from GWBSE
       _parse_log_status = _gwpackage->ParseLogFile( &_orbitals );
         if ( !_parse_log_status ) {
@@ -368,6 +384,7 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         } else {
             output += "orbitals parsed; " ;
         } */
+   }
    }
    
    // Clean run
