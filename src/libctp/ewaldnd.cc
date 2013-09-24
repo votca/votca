@@ -68,7 +68,7 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
     // EWALD INTERACTION PARAMETERS (GUESS ONLY)
     _K_co = _kfactor/_R_co;
     _alpha = _rfactor/_R_co;
-    _ewdactor = EwdInteractor(_alpha);
+    _ewdactor = EwdInteractor(_alpha, _polar_aDamp);
     
     // SET-UP REAL & RECIPROCAL SPACE
     _a = _top->getBox().getCol(0);
@@ -444,13 +444,13 @@ void Ewald3DnD::Evaluate() {
         << flush << (format("  + EPP(FGC->MGN)  = %1$+1.7f eV") % _ER).str()
         << flush << (format("  + EKK(FGC->BGP)  = %1$+1.7f eV") % _EK).str()       
         << flush << (format("  - EPP(FGC->FGN)  = %1$+1.7f eV") % _EC).str()
-        << flush << (format("    ------------------------------")).str()
-        << flush << (format("    SUM(E)         = %1$+1.7f eV") % (_ET-_EJ-_EDQ-_E0)).str()
+        << flush << (format("  = ------------------------------")).str()
+        << flush << (format("  + SUM(E)         = %1$+1.7f eV") % (_ET-_EJ-_EDQ-_E0)).str()
         << flush << (format("    ------------------------------")).str()
         << flush << (format("  + EK0(FGC->BGP)  = %1$+1.7f eV") % _E0).str() 
         << flush << (format("  + EDQ(FGC->MGN)  = %1$+1.7f eV") % _EDQ).str()
         << flush << (format("  + EJ(shape-dep.) = %1$+1.7f eV") % _EJ).str()
-        << flush << (format("    ------------------------------")).str()
+        << flush << (format("  = ------------------------------")).str()
         << flush << (format("  + SUM(E) (0,Q,J) = %1$+1.7f eV") % (_ET)).str()
         << flush;
     LOG(logINFO,*_log)
@@ -458,9 +458,9 @@ void Ewald3DnD::Evaluate() {
         << flush << (format("  + EPP(FGC<>FGC)  = %1$+1.7f eV") % _polar_EPP).str()
         << flush << (format("  + EPU(FGC<>FGC)  = %1$+1.7f eV") % _polar_EPU).str()       
         << flush << (format("  + EUU(FGC<>FGC)  = %1$+1.7f eV") % _polar_EUU).str()
-        << flush << (format("    ------------------------------")).str()
-        << flush << (format("    SUM(E)         = %1$+1.7f eV") % _polar_ETT).str()
-        << flush << (format("    ------------------------------")).str()
+        << flush << (format("  = ------------------------------")).str()
+        << flush << (format("  + SUM(E)         = %1$+1.7f eV") % _polar_ETT).str()
+        << flush << (format("    ==============================")).str()
         << flush << (format("    SUM(E) (1,2)   = %1$+1.7f eV") % (_ET+_polar_ETT)).str()
         << flush;
     LOG(logDEBUG,*_log) << flush;

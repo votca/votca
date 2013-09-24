@@ -832,7 +832,7 @@ void PEwald3D3D::Field_ConvergeReciprocalSpaceSum() {
         shell_rms = (rms_count > 0) ? sqrt(shell_rms/rms_count)*_ewdactor.int2V_m : 0.0;
         double e_measure = shell_rms*1e-10*rms_count;
         
-        LOG(logDEBUG,*_log)
+        if (rms_count > 0) LOG(logDEBUG,*_log)
              << (format("M = %1$04d   G = %2$+1.3e   dF(rms) = %3$+1.3e V/m   [1eA => %4$+1.3e eV]")
              % rms_count
              % crit_grade
@@ -901,7 +901,7 @@ void PEwald3D3D::Field_ConvergeReciprocalSpaceSum() {
         shell_rms = (rms_count > 0) ? sqrt(shell_rms/rms_count)*_ewdactor.int2V_m : 0.0;
         double e_measure = shell_rms*1e-10*rms_count;
         
-        LOG(logDEBUG,*_log)
+        if (rms_count > 0) LOG(logDEBUG,*_log)
              << (format("M = %1$04d   G = %2$+1.3e   dF(rms) = %3$+1.3e V/m   [1eA => %4$+1.3e eV]")
              % rms_count
              % crit_grade

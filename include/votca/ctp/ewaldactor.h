@@ -29,7 +29,7 @@ class EwdInteractor
 {
 public:
 
-    EwdInteractor(double alpha) {
+    EwdInteractor(double alpha, double tsharp) {
         a1 = alpha;
         a2 = a1*a1;
         a3 = a1*a2;
@@ -37,6 +37,10 @@ public:
         a5 = a1*a4;
         a6 = a1*a5;
         a7 = a1*a6;
+        
+        ta1 = tsharp;
+        ta2 = ta1*ta1;
+        ta3 = ta1*ta2;
     };
     
     EwdInteractor() {};
@@ -53,9 +57,18 @@ public:
         double _im;
     };
     
+    
+    // Thole damping functions
+    inline double L3() { return 1 - exp( -ta1*tu3); }
+    inline double L5() { return 1 - (1 + ta1*tu3) * exp( -ta1*tu3); }
+    inline double L7() { return 1 - (1 + ta1*tu3 + 0.6*ta2*tu3*tu3) * exp( -ta1*tu3); }
+    inline double L9() { return 1 - (1 + ta1*tu3 + (18*ta2*tu3*tu3 + 9*ta3*tu3*tu3*tu3)/35) * exp( -ta1*tu3); }
+    
+    
     // ============================= REAL SPACE ============================= //
     
     inline void ApplyBias(APolarSite &p1, APolarSite &p2);
+    inline void ApplyBiasPolar(APolarSite &p1, APolarSite &p2);
     
     // Make sure to set R1, R2, ... and rR1, rR2, ... before using {gB0, ...}
     inline void UpdateAllBls();
@@ -110,6 +123,10 @@ public:
     
     
 private:
+    
+    // Thole sharpness parameter & reduced interaction distance
+    double ta1, ta2, ta3;
+    double tu3;
     
     // Ewald sharpness parameter powers
     double a1, a2, a3, a4, a5, a6, a7;
@@ -596,6 +613,40 @@ inline void EwdInteractor::ApplyBias(APolarSite& p1, APolarSite& p2) {
     //rR3 = 1./R3;
     //rR4 = 1./R4;
     //rR5 = 1./R5;
+    
+    return;
+}
+
+
+inline void EwdInteractor::ApplyBiasPolar(APolarSite& p1, APolarSite& p2) {
+    
+    r12 = p1.getPos() - p2.getPos();
+    
+    rx = r12.getX();
+    ry = r12.getY();
+    rz = r12.getZ();
+    
+    rxx = rx*rx;     rxy = rx*ry;     rxz = rx*rz;
+    ryy = ry*ry;     ryz = ry*rz;
+    rzz = rz*rz;
+                                      
+    R1 = votca::tools::abs(r12);
+    R2 = R1*R1;
+    R3 = R1*R2;
+    //R4 = R1*R3;
+    //R5 = R1*R4;
+    
+    rR1 = 1./R1;
+    rR2 = 1./R2;
+    //rR3 = 1./R3;
+    //rR4 = 1./R4;
+    //rR5 = 1./R5;
+    
+    // Thole damping init.
+    tu3   = R3 / sqrt(
+        1./3.*(p1.Pxx*p2.Pxx + p1.Pxy*p2.Pxy + p1.Pxz*p2.Pxz
+             + p1.Pxy*p2.Pxy + p1.Pyy*p2.Pyy + p1.Pyz*p2.Pyz
+             + p1.Pxz*p2.Pxz + p1.Pyz*p2.Pyz + p1.Pzz*p2.Pzz) );
     
     return;
 }
