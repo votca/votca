@@ -18,7 +18,7 @@
 if [ "$1" = "--help" ]; then
     cat <<EOF
 ${0##*/}, version %version%
-This script runs a generic simulation program
+This script runs a dlpoly simulation
 
 Usage: ${0##*/}
 EOF
@@ -26,15 +26,8 @@ EOF
 fi
 
 sim_prog="$(csg_get_property cg.inverse.program)"
-script="$(csg_get_property --allow-empty cg.inverse.$sim_prog.script)"
-[[ -n $script && ! -f $script ]] && die "${0##*/}: $sim_prog script '$script' not found (make sure it is in cg.inverse.filelist)"
 
 cmd="$(csg_get_property cg.inverse.$sim_prog.command)"
-#no check for cmd, because cmd could maybe exist only computenodes
-
-opts=$(csg_get_property --allow-empty cg.inverse.$sim_prog.opts)
-#expand ${script} in there
-opts="$(eval echo $opts)"
 
 # trajectory file
 traj="$(csg_get_property cg.inverse.$sim_prog.traj)"
@@ -47,6 +40,7 @@ method="$(csg_get_property cg.inverse.method)"
 shopt -s extglob
 [[ $method = @(ibi|imc|optimizer|re) ]] || die "${0##*/}: ${sim_prog} does not support method $method yet!"
 
-critical $cmd ${opts}
+critical $cmd
+critical ./his2xyz.py HISTORY $traj
 
 simulation_finish

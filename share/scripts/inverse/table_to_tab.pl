@@ -115,16 +115,12 @@ if ($sim_prog eq "espresso") {
     printf(OUTFILE "%i %15.10e %15.10e %15.10e\n",$i+1,$r[$i], $pot[$i], -$minus_force[$i]);
   }
 } elsif ($sim_prog eq "dlpoly") {
-  printf(OUTFILE "Table in dlpoly format");
-  printf(OUTFILE "%15.7e%15.7e%10d\n", $r[1]-$r[0], $r[$#r], $#r);
-  for(my $i=0;$i<=$#r;$i++){
-    printf(OUTFILE "%15.7e",$pot[$i]);
-    printf(OUTFILE "\n") if (($i%4==2)&&($i!=$#r));
+  for(my $i=0;$i<=($#r+3)/4;$i++){
+    printf(OUTFILE "%15.7e",($i>$#r)?0:$pot[$i]);
   }
   printf(OUTFILE "\n");
-  for(my $i=0;$i<=$#r;$i++){
-    printf(OUTFILE "%15.7e",-$minus_force[$i]);
-    printf(OUTFILE "\n") if (($i%4==2)&&($i!=$#r));
+  for(my $i=0;$i<=($#r+3)/4;$i++){
+    printf(OUTFILE "%15.7e",($i>$#r)?0:-$minus_force[$i]*$r[$i]);
   }
   printf(OUTFILE "\n");
 } elsif ($sim_prog eq "gromacs") {

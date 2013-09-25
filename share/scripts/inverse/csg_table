@@ -251,8 +251,12 @@ density espressopp calc_density_generic.sh
 # function for espressopp
 functions espressopp functions_genericsim.sh
 
-# interface to dlpoly (not fully functional)
-run dlpoly run_genericsim.sh
+# interface to dlpoly
+initstep dlpoly initialize_step_genericsim.sh
+run dlpoly run_dlpoly.sh
+rdf dlpoly calc_rdf_generic.sh
+imc_stat dlpoly imc_stat_generic.sh
+density dlpoly calc_density_generic.sh
 
 # function for lammps
 functions dlpoly functions_genericsim.sh
