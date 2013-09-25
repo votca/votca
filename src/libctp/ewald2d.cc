@@ -18,7 +18,7 @@ Ewald3D2D::Ewald3D2D(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
 }
 
 
-double Ewald3D2D::ConvergeReciprocalSpaceSum() {
+EWD::triple<> Ewald3D2D::ConvergeReciprocalSpaceSum() {
     
     vector<PolarSeg*>::iterator sit1; 
     vector<APolarSite*> ::iterator pit1;
@@ -121,11 +121,11 @@ double Ewald3D2D::ConvergeReciprocalSpaceSum() {
         
     }
     EKK_fgC_bgP *= 2*M_PI/_LxLy;
-    return EKK_fgC_bgP;    
+    return EWD::triple<>(EKK_fgC_bgP,0,0);    
 }
 
 
-double Ewald3D2D::CalculateK0Correction() {
+EWD::triple<> Ewald3D2D::CalculateK0Correction() {
     vector<PolarSeg*>::iterator sit1; 
     vector<APolarSite*> ::iterator pit1;
     vector<PolarSeg*>::iterator sit2; 
@@ -141,7 +141,7 @@ double Ewald3D2D::CalculateK0Correction() {
         }
     }
     EK0_fgC_bgP *= 2*M_PI/_LxLy;
-    return EK0_fgC_bgP;
+    return EWD::triple<>(EK0_fgC_bgP,0,0);
 }
     
     

@@ -32,12 +32,12 @@ namespace votca { namespace ctp {
         
         string IdentifyMethod() { return "Polar 3D x 3D"; }
         
-        double ConvergeRealSpaceSum();
-        double ConvergeReciprocalSpaceSum();
-        double CalculateForegroundCorrection();
-        double CalculateShapeCorrection();
-        double CalculateHigherRankCorrection() { return 0.0; }        
-        double CalculateK0Correction() { return 0.0; }
+        EWD::triple<> ConvergeRealSpaceSum();
+        EWD::triple<> ConvergeReciprocalSpaceSum();
+        EWD::triple<> CalculateForegroundCorrection();
+        EWD::triple<> CalculateShapeCorrection();
+        EWD::triple<> CalculateHigherRankCorrection() { return EWD::triple<>(0,0,0); }        
+        EWD::triple<> CalculateK0Correction() { return EWD::triple<>(0,0,0); }
         
         void Field_ConvergeRealSpaceSum();
         void Field_ConvergeReciprocalSpaceSum();

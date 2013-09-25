@@ -438,31 +438,65 @@ void Ewald3DnD::Evaluate() {
     EvaluateInduction();
     EvaluateEnergy();
     
+    double outer_epp = _ET._pp;
+    double outer_eppu = _ET._pu + _ET._uu;
+    double outer = outer_epp + outer_eppu;
+    
     LOG(logDEBUG,*_log) << flush;
     LOG(logINFO,*_log)
         << (format("Interaction FGC -> ***")).str()
-        << flush << (format("  + EPP(FGC->MGN)  = %1$+1.7f eV") % _ER).str()
-        << flush << (format("  + EKK(FGC->BGP)  = %1$+1.7f eV") % _EK).str()       
-        << flush << (format("  - EPP(FGC->FGN)  = %1$+1.7f eV") % _EC).str()
-        << flush << (format("  = ------------------------------")).str()
-        << flush << (format("  + SUM(E)         = %1$+1.7f eV") % (_ET-_EJ-_EDQ-_E0)).str()
-        << flush << (format("    ------------------------------")).str()
-        << flush << (format("  + EK0(FGC->BGP)  = %1$+1.7f eV") % _E0).str() 
-        << flush << (format("  + EDQ(FGC->MGN)  = %1$+1.7f eV") % _EDQ).str()
-        << flush << (format("  + EJ(shape-dep.) = %1$+1.7f eV") % _EJ).str()
-        << flush << (format("  = ------------------------------")).str()
-        << flush << (format("  + SUM(E) (0,Q,J) = %1$+1.7f eV") % (_ET)).str()
+        << flush << (format("  + EPP(FGC->MGN)  = %1$+1.7e = %2$+1.7e  %3$+1.7e  %4$+1.7e eV") 
+            % _ER.Sum() % _ER._pp % _ER._pu % _ER._uu).str()
+        << flush << (format("  + EKK(FGC->BGP)  = %1$+1.7e = %2$+1.7e  %3$+1.7e  %4$+1.7e eV") 
+            % _EK.Sum() % _EK._pp % _EK._pu % _EK._uu).str()       
+        << flush << (format("  - EPP(FGC->FGN)  = %1$+1.7e = %2$+1.7e  %3$+1.7e  %4$+1.7e eV") 
+            % _EC.Sum() % _EC._pp % _EC._pu % _EC._uu).str()
+        << flush << (format("  + EK0(FGC->BGP)  = %1$+1.7e = %2$+1.7e  %3$+1.7e  %4$+1.7e eV") 
+            % _E0.Sum() % _E0._pp % _E0._pu % _E0._uu).str() 
+        << flush << (format("  + EDQ(FGC->MGN)  = %1$+1.7e = %2$+1.7e  %3$+1.7e  %4$+1.7e eV") 
+            % _EDQ.Sum() % _EDQ._pp % _EDQ._pu % _EDQ._uu).str()
+        << flush << (format("  + EJ(shape-dep.) = %1$+1.7e = %2$+1.7e  %3$+1.7e  %4$+1.7e eV") 
+            % _EJ.Sum() % _EJ._pp % _EJ._pu % _EJ._uu).str()
+        << flush << (format("  = -----------------------------------------------------------------------------------")).str()
+        << flush << (format("  + SUM(E) (0,Q,J) = %1$+1.7e = %2$+1.7e  %3$+1.7e  %4$+1.7e eV") 
+            % _ET.Sum() % _ET._pp % _ET._pu % _ET._uu).str()
         << flush;
+    
+    double inner_epp = _polar_EPP;
+    double inner_eppu = _polar_EF00+_polar_EF01+_polar_EF02+_polar_EF11+_polar_EF12 - _polar_EPP;
+    double inner_ework = _polar_EM0+_polar_EM1;
+    double inner = inner_epp+inner_eppu+inner_ework;
+    
     LOG(logINFO,*_log)
         << (format("Interaction FGC <> FGC")).str()
-        << flush << (format("  + EPP(FGC<>FGC)  = %1$+1.7f eV") % _polar_EPP).str()
-        << flush << (format("  + EPU(FGC<>FGC)  = %1$+1.7f eV") % _polar_EPU).str()       
-        << flush << (format("  + EUU(FGC<>FGC)  = %1$+1.7f eV") % _polar_EUU).str()
-        << flush << (format("  = ------------------------------")).str()
-        << flush << (format("  + SUM(E)         = %1$+1.7f eV") % _polar_ETT).str()
-        << flush << (format("    ==============================")).str()
-        << flush << (format("    SUM(E) (1,2)   = %1$+1.7f eV") % (_ET+_polar_ETT)).str()
+        << flush << (format("  + EF [00 01 11]  = %1$+1.7e = %2$+1.7e  %3$+1.7e  %4$+1.7e eV") 
+            % (_polar_EF00+_polar_EF01+_polar_EF11) % _polar_EF00 % _polar_EF01 % _polar_EF11).str()
+        << flush << (format("  + EF [02 12 22]  = %1$+1.7e = *****ZERO*****  *****ZERO*****  *****ZERO***** eV") 
+            % 0.0).str()
+        << flush << (format("  + EM [0  1  2 ]  = %1$+1.7e = %2$+1.7e  %3$+1.7e  *****ZERO***** eV") 
+            % (_polar_EM0+_polar_EM1) % _polar_EM0 % _polar_EM1).str()
+        << flush << (format("  o E  [PP PU UU]  = %1$+1.7e = %2$+1.7e  %3$+1.7e  %4$+1.7e eV") 
+            % (_polar_EPP+_polar_EPU+_polar_EUU) % _polar_EPP % _polar_EPU % _polar_EUU).str()
+        << flush << (format("  = -----------------------------------------------------------------------------------")).str()
+        << flush << (format("  + SUM(E)         = %1$+1.7e = %2$+1.7e  %3$+1.7e  %4$+1.7e eV")
+            % inner % inner_epp % inner_eppu % inner_ework).str()
         << flush;
+    
+    _Estat = outer_epp + inner_epp;
+    _Eindu = outer_eppu + inner_eppu + inner_ework;
+    _Eppuu = _Estat + _Eindu;
+    LOG(logINFO,*_log)
+            
+        << (format("Interaction FGC <> FGC(i) u ***(o)")).str()
+        << flush << (format("  + Ei [pp+pu+iw]  = %1$+1.7e = %2$+1.7e  %3$+1.7e  %4$+1.7e eV")
+            % inner % inner_epp % inner_eppu % inner_ework).str()
+        << flush << (format("  + Eo [pp+pu+iw]  = %1$+1.7e = %2$+1.7e  %3$+1.7e  ************** eV")
+            % outer % outer_epp % outer_eppu).str()
+        << flush << (format("  = ===================================================================================")).str()
+        << flush << (format("  + E  [stat+ind]  = %1$+1.7e = %2$+1.7e  %3$+1.7e eV")
+            % _Eppuu % _Estat % _Eindu).str()
+        << flush;
+
     LOG(logDEBUG,*_log) << flush;
     return;
 }
@@ -565,6 +599,15 @@ void Ewald3DnD::EvaluateInduction() {
     _polar_EPP = polar_xjob.getEPP();
     _polar_EPU = polar_xjob.getEPU();
     _polar_EUU = polar_xjob.getEUU();
+    
+    _polar_EF00 = polar_xjob.getEF00();
+    _polar_EF01 = polar_xjob.getEF01();
+    _polar_EF02 = polar_xjob.getEF02();
+    _polar_EF11 = polar_xjob.getEF11();
+    _polar_EF12 = polar_xjob.getEF12();
+    _polar_EM0 = polar_xjob.getEM0();
+    _polar_EM1 = polar_xjob.getEM1();
+    _polar_EM2 = polar_xjob.getEM2();
     return;
 }
         
@@ -572,36 +615,37 @@ void Ewald3DnD::EvaluateInduction() {
 void Ewald3DnD::EvaluateEnergy() {
     
     // REAL-SPACE CONTRIBUTION (3D2D && 3D3D)
-    double EPP_fgC_mgN = ConvergeRealSpaceSum();    
+    EWD::triple<> EPP_fgC_mgN = ConvergeRealSpaceSum();    
     
     // RECIPROCAL-SPACE CONTRIBUTION (3D2D && 3D3D)
-    double EKK_fgC_bgP = ConvergeReciprocalSpaceSum();       
+    EWD::triple<> EKK_fgC_bgP = ConvergeReciprocalSpaceSum();       
     
     // K=0 TERM (FOR 3D2D)
-    double EK0_fgC_bgP = CalculateK0Correction();
+    EWD::triple<> EK0_fgC_bgP = CalculateK0Correction();
     
     // SHAPE-CORRECTION (FOR 3D3D)
-    double EJ_fgC_bgP = CalculateShapeCorrection();    
+    EWD::triple<> EJ_fgC_bgP = CalculateShapeCorrection();    
     
     // REAL-SPACE HIGHER-RANK CORRECTION (3D2D && 3D3D)
-    double EDQ_fgC_mgN = CalculateHigherRankCorrection();
+    EWD::triple<> EDQ_fgC_mgN = CalculateHigherRankCorrection();
     
     // FOREGROUND CORRECTION (3D2D && 3D3D)
-    double EPP_fgC_fgN = CalculateForegroundCorrection();    
+    EWD::triple<> EPP_fgC_fgN = CalculateForegroundCorrection();    
     
-    _ER  = EPP_fgC_mgN * _actor.int2eV;
-    _EK  = EKK_fgC_bgP * _actor.int2eV;
-    _E0  = EK0_fgC_bgP * _actor.int2eV;
-    _EJ  = EJ_fgC_bgP  * _actor.int2eV;
-    _EDQ = EDQ_fgC_mgN * _actor.int2eV;
-    _EC  = EPP_fgC_fgN * _actor.int2eV;    
+    double int2eV = _actor.int2eV;
+    _ER  = EPP_fgC_mgN * int2eV;
+    _EK  = EKK_fgC_bgP * int2eV;
+    _E0  = EK0_fgC_bgP * int2eV;
+    _EJ  = EJ_fgC_bgP  * int2eV;
+    _EDQ = EDQ_fgC_mgN * int2eV;
+    _EC  = EPP_fgC_fgN * int2eV;
     _ET  = _ER + _EK + _E0 + _EJ + _EDQ - _EC;
     
     return;
 }
 
 
-double Ewald3DnD::ConvergeRealSpaceSum() {
+EWD::triple<> Ewald3DnD::ConvergeRealSpaceSum() {
     
     LOG(logDEBUG,*_log) << flush;
 
@@ -643,11 +687,11 @@ double Ewald3DnD::ConvergeRealSpaceSum() {
         }
         prev_ER = this_ER;
     }
-    return this_ER;
+    return EWD::triple<>(this_ER,0,0);
 }
 
 
-double Ewald3DnD::CalculateForegroundCorrection() {
+EWD::triple<> Ewald3DnD::CalculateForegroundCorrection() {
     vector<PolarSeg*>::iterator sit1; 
     vector<APolarSite*> ::iterator pit1;
     vector<PolarSeg*>::iterator sit2; 
@@ -662,11 +706,11 @@ double Ewald3DnD::CalculateForegroundCorrection() {
             }
         }
     }
-    return EPP_fgC_fgN;
+    return EWD::triple<>(EPP_fgC_fgN,0,0);
 }
 
 
-double Ewald3DnD::CalculateHigherRankCorrection() {
+EWD::triple<> Ewald3DnD::CalculateHigherRankCorrection() {
     vector<PolarSeg*>::iterator sit1; 
     vector<APolarSite*> ::iterator pit1;
     vector<PolarSeg*>::iterator sit2; 
@@ -682,7 +726,7 @@ double Ewald3DnD::CalculateHigherRankCorrection() {
             }
         }
     }
-    return EDQ_fgC_mgN;
+    return EWD::triple<>(EDQ_fgC_mgN,0,0);
 }
 
 
@@ -707,16 +751,35 @@ Property Ewald3DnD::GenerateOutputString() {
         % _center.getX() % _center.getY() % _center.getZ()).str())
         .setAttribute("unit","nm");
     next->add("total", (format("%1$+1.7f") 
-        % _ET).str())
+        % _Eppuu).str())
+        .setAttribute("unit","eV");
+    next->add("estat", (format("%1$+1.7f") 
+        % _Estat).str())
+        .setAttribute("unit","eV");
+    next->add("eindu", (format("%1$+1.7f") 
+        % _Eindu).str())
         .setAttribute("unit","eV");
     
-    next = &out.add("splitting", "");
-    next->add("R-term", (format("%1$+1.7f") % _ER).str());
-    next->add("K-term", (format("%1$+1.7f") % _EK).str());
-    next->add("O-term", (format("%1$+1.7f") % _E0).str());
-    next->add("J-term", (format("%1$+1.7f") % _EJ).str());
-    next->add("C-term", (format("%1$+1.7f") % _EC).str());
-    next->add("Q-term", (format("%1$+1.7f") % _EDQ).str());
+//    next = &out.add("splitting", "");
+//    next->add("R-term", (format("%1$+1.7f") % _ER.Sum()).str());
+//    next->add("K-term", (format("%1$+1.7f") % _EK.Sum()).str());
+//    next->add("O-term", (format("%1$+1.7f") % _E0.Sum()).str());
+//    next->add("J-term", (format("%1$+1.7f") % _EJ.Sum()).str());
+//    next->add("C-term", (format("%1$+1.7f") % _EC.Sum()).str());
+//    next->add("Q-term", (format("%1$+1.7f") % _EDQ.Sum()).str());
+    
+    next = &out.add("terms_i", "");
+    next->add("F-00-01-11", (format("%1$+1.5e %2$+1.5e %3$+1.5e") % _polar_EF00 % _polar_EF01 % _polar_EF11).str());
+    next->add("M-00-11-**", (format("%1$+1.5e %2$+1.5e") % _polar_EM0 % _polar_EM1).str());
+    next->add("E-PP-PU-UU", (format("%1$+1.5e %2$+1.5e %3$+1.5e") % _polar_EPP % _polar_EPU % _polar_EUU).str());
+    
+    next = &out.add("terms_o", "");
+    next->add("R-pp-pu-uu", (format("%1$+1.5e = %2$+1.5e %3$+1.5e %4$+1.5e") % _ER.Sum() % _ER._pp % _ER._pu % _ER._uu).str());
+    next->add("K-pp-pu-uu", (format("%1$+1.5e = %2$+1.5e %3$+1.5e %4$+1.5e") % _EK.Sum() % _EK._pp % _EK._pu % _EK._uu).str());
+    next->add("O-pp-pu-uu", (format("%1$+1.5e = %2$+1.5e %3$+1.5e %4$+1.5e") % _E0.Sum() % _E0._pp % _E0._pu % _E0._uu).str());
+    next->add("J-pp-pu-uu", (format("%1$+1.5e = %2$+1.5e %3$+1.5e %4$+1.5e") % _EJ.Sum() % _EJ._pp % _EJ._pu % _EJ._uu).str());
+    next->add("C-pp-pu-uu", (format("%1$+1.5e = %2$+1.5e %3$+1.5e %4$+1.5e") % _EC.Sum() % _EC._pp % _EC._pu % _EC._uu).str());
+    next->add("Q-pp-pu-uu", (format("%1$+1.5e = %2$+1.5e %3$+1.5e %4$+1.5e") % _EDQ.Sum() % _EDQ._pp % _EDQ._pu % _EDQ._uu).str());
     
     next = &out.add("shells", "");
     next->add("FGC", (format("%1$d") % _fg_C.size()).str());
@@ -724,6 +787,9 @@ Property Ewald3DnD::GenerateOutputString() {
     next->add("MGN", (format("%1$d") % _mg_N.size()).str());
     next->add("BGN", (format("%1$d") % _bg_N.size()).str());
     next->add("BGP", (format("%1$d") % _bg_P.size()).str());
+    next->add("QM0", (format("%1$d") % _polar_qm0.size()).str());
+    next->add("MM1", (format("%1$d") % _polar_mm1.size()).str());
+    next->add("MM2", (format("%1$d") % _polar_mm2.size()).str());
     
     return prop;
 }

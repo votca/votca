@@ -46,12 +46,13 @@ namespace votca { namespace ctp {
         string GenerateErrorString();
         
         virtual string IdentifyMethod() = 0;
-        virtual double ConvergeRealSpaceSum();
-        virtual double ConvergeReciprocalSpaceSum() = 0;
-        virtual double CalculateForegroundCorrection();
-        virtual double CalculateHigherRankCorrection();
-        virtual double CalculateShapeCorrection() { return 0.0; }
-        virtual double CalculateK0Correction() { return 0.0; }
+        
+        virtual EWD::triple<> ConvergeRealSpaceSum();
+        virtual EWD::triple<> ConvergeReciprocalSpaceSum() = 0;
+        virtual EWD::triple<> CalculateForegroundCorrection();
+        virtual EWD::triple<> CalculateHigherRankCorrection();
+        virtual EWD::triple<> CalculateShapeCorrection() { return EWD::triple<>(0.0,0.0,0.0); }
+        virtual EWD::triple<> CalculateK0Correction() { return EWD::triple<>(0.0,0.0,0.0); }
         
         virtual void Field_ConvergeRealSpaceSum() { ; }
         virtual void Field_ConvergeReciprocalSpaceSum() { ; }
@@ -160,19 +161,30 @@ namespace votca { namespace ctp {
         
         // ENERGIES
         // Part I - Ewald
-        double _ER;                     // R-space sum
-        double _EC;                     // R-space correction
-        double _EK;                     // K-space sum
-        double _E0;                     // K-space K=0 contribution
-        double _ET;                     // ER - EC + EK + E0
-        double _EDQ;                    // Higher-Rank FGC->MGN correction
-        double _EJ;                     // Geometry-dependent correction
+        EWD::triple<> _ER;                     // R-space sum
+        EWD::triple<> _EC;                     // R-space correction
+        EWD::triple<> _EK;                     // K-space sum
+        EWD::triple<> _E0;                     // K-space K=0 contribution
+        EWD::triple<> _ET;                     // ER - EC + EK + E0
+        EWD::triple<> _EDQ;                    // Higher-Rank FGC->MGN correction
+        EWD::triple<> _EJ;                     // Geometry-dependent correction
         // Part II - Thole
         double _polar_ETT;
         double _polar_EPP;
         double _polar_EPU;
         double _polar_EUU;
-        // -> stored with XInductor, XJob
+        double _polar_EF00;
+        double _polar_EF01;
+        double _polar_EF02;
+        double _polar_EF11;
+        double _polar_EF12;
+        double _polar_EM0;
+        double _polar_EM1;
+        double _polar_EM2;
+        // I + II
+        double _Estat;
+        double _Eindu;
+        double _Eppuu;
         
         
     };

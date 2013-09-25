@@ -556,10 +556,10 @@ double XInductor::Energy(XJob *job) {
         << flush;
     LOG(logINFO,*_log)
         << (format("QM0-MM1-MM2 Splitting")).str()
-        << flush << (format("  + Field-term [0-0]  = %1$+1.7f eV") % (e_f_c_c          * int2eV)).str()
+        << flush << (format("  + Field-term [0-0]  = %1$+1.7f eV (%2$+1.7f)") % (e_f_c_c          * int2eV) % (e_f_intra_0*int2eV)).str()
         << flush << (format("  + Field-term [0-1]  = %1$+1.7f eV") % (e_f_c_non_c      * int2eV)).str()       
         << flush << (format("  + Field-term [0-2]  = %1$+1.7f eV") % (e_f_c_out        * int2eV)).str()
-        << flush << (format("  + Field-term [1-1]  = %1$+1.7f eV") % (e_f_non_c_non_c  * int2eV)).str()
+        << flush << (format("  + Field-term [1-1]  = %1$+1.7f eV (%2$+1.7f)") % (e_f_non_c_non_c  * int2eV) % (e_f_intra_1*int2eV)).str()
         << flush << (format("  + Field-term [1-2]  = %1$+1.7f eV") % (e_f_non_c_out    * int2eV)).str()
         << flush << (format("    ------------------------------")).str()
         << flush << (format("  + Work-term  [-0-]  = %1$+1.7f eV") % (e_m_c            * int2eV)).str()

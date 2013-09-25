@@ -25,6 +25,117 @@ namespace votca { namespace ctp {
 // ... ... Potential(V)         = Pot. (int)   * 1/4PiEps0(SI) * e * 1e+09
     
 
+namespace EWD {
+
+struct cmplx
+{
+    cmplx() { ; }
+    cmplx(double re, double im) : _re(re), _im(im) { ; }
+    cmplx(const cmplx &c) : _re(c._re), _im(c._im) { ; }
+    cmplx &operator*=(const double &d);
+    cmplx &operator+=(const cmplx &c);
+    cmplx &operator-=(const cmplx &c);
+    double _re;
+    double _im;
+};
+
+inline cmplx &cmplx::operator*=(const double &d) { 
+    _re*=d;
+    _im*=d;
+    return *this;
+}
+
+inline cmplx &cmplx::operator+=(const cmplx &c) {
+    _re+=c._re;
+    _im+=c._im;
+    return *this;
+}
+
+inline cmplx &cmplx::operator-=(const cmplx &c) {
+    _re-=c._re;
+    _im-=c._im;
+    return *this;
+}
+
+inline cmplx operator+(const cmplx &cl, const cmplx &cr) {
+    return (cmplx(cl)+=cr);
+}
+
+inline cmplx operator-(const cmplx &cl, const cmplx &cr) {
+    return (cmplx(cl)-=cr);
+}
+
+inline cmplx operator*(const cmplx &cl, const double &d) {
+    return (cmplx(cl)*=d);
+}
+
+inline cmplx operator*(const double &d, const cmplx &cr) {
+    return (cmplx(cr)*=d);
+}
+
+    
+template<typename NrTyp=double>
+struct triple
+{
+    triple() { ; }
+    triple(NrTyp pp, NrTyp pu, NrTyp uu) : _pp(pp), _pu(pu), _uu(uu) { ; }
+    triple(const triple<NrTyp> &t) : _pp(t._pp), _pu(t._pu), _uu(t._uu) { ; }
+    triple &operator*=(const double &d);
+    triple &operator+=(const triple &t);
+    triple &operator-=(const triple &t);
+    NrTyp Sum() { return _pp + _pu + _uu; }
+    NrTyp _pp;
+    NrTyp _pu;
+    NrTyp _uu;
+};
+
+template<typename NrTyp>
+inline triple<NrTyp> &triple<NrTyp>::operator*=(const double &d) {
+    _pp*=d;
+    _pu*=d;
+    _uu*=d;
+    return *this;
+}
+
+template<typename NrTyp>
+inline triple<NrTyp> &triple<NrTyp>::operator+=(const triple<NrTyp> &t) {
+    _pp+=t._pp;
+    _pu+=t._pu;
+    _uu+=t._uu;
+    return *this;
+}
+
+template<typename NrTyp>
+inline triple<NrTyp> &triple<NrTyp>::operator-=(const triple<NrTyp> &t) {
+    _pp-=t._pp;
+    _pu-=t._pu;
+    _uu-=t._uu;
+    return *this;
+}
+
+template<typename NrTyp>
+inline triple<NrTyp> operator+(const triple<NrTyp> &tl, const triple<NrTyp> &tr) {
+    return (triple<NrTyp>(tl)+=tr);
+}
+
+template<typename NrTyp>
+inline triple<NrTyp> operator-(const triple<NrTyp> &tl, const triple<NrTyp> &tr) {
+    return (triple<NrTyp>(tl)-=tr);
+}
+
+template<typename NrTyp>
+inline triple<NrTyp> operator*(const triple<NrTyp> &tl, const double &d) {
+    return (triple<NrTyp>(tl)*=d);
+}
+
+template<typename NrTyp>
+inline triple<NrTyp> operator*(const double &d, const triple<NrTyp> &tr) {
+    return (triple<NrTyp>(tr)*=d);
+}
+
+}
+    
+    
 class EwdInteractor
 {
 public:
@@ -48,24 +159,7 @@ public:
    
     static const double int2eV  = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
     static const double int2V_m = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-18;
-    static const double rSqrtPi = 0.564189583547756279280349644977832;
-    
-    struct cmplx
-    {
-        cmplx(double re, double im) : _re(re), _im(im) { ; }
-        double _re;
-        double _im;
-    };
-    
-    template<typename NrTyp=double>
-    struct triple
-    {
-        triple(NrTyp pp, NrTyp pu, NrTyp uu) : _pp(pp), _pu(pu), _uu(uu) { ; }
-        NrTyp _pp;
-        NrTyp _pu;
-        NrTyp _uu;
-    };
-    
+    static const double rSqrtPi = 0.564189583547756279280349644977832;    
     
     // Thole damping functions
     inline double L3() { return 1 - exp( -ta1*tu3); }
@@ -104,11 +198,11 @@ public:
     inline double gG4(APolarSite &p1, APolarSite &p2);
         
     // Real-space term contribution P1 <> P2
-    inline triple<double> U12_ERFC(APolarSite &p1, APolarSite &p2);    
+    inline EWD::triple<double> U12_ERFC(APolarSite &p1, APolarSite &p2);    
     // Reciprocal-space double-counting correction term P1 <> P2
-    inline triple<double> U12_ERF(APolarSite &p1, APolarSite &p2);    
+    inline EWD::triple<double> U12_ERF(APolarSite &p1, APolarSite &p2);    
     // Reciprocal-space K=0 shape correction term P1 <> P2
-    inline triple<double> U12_XYSlab(APolarSite &p1, APolarSite &p2);
+    inline EWD::triple<double> U12_XYSlab(APolarSite &p1, APolarSite &p2);
     
     // Real-space term contribution P1 <> P2
     inline double F12_ERFC_At_By(APolarSite &p1, APolarSite &p2);
@@ -124,11 +218,11 @@ public:
     
     inline void ApplyBiasK(const vec &k);
     inline void ApplyBiasK(APolarSite &p);
-    inline triple<cmplx> AS1S2(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2);
-    inline triple<cmplx> S1S2(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2);
+    inline EWD::triple<EWD::cmplx> AS1S2(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2);
+    inline EWD::triple<EWD::cmplx> S1S2(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2);
     inline double Ark2Expk2(const vec &k);
     
-    inline cmplx F12_AS1S2_At_By(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV);
+    inline EWD::cmplx F12_AS1S2_At_By(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV);
     
     
 private:
@@ -196,7 +290,7 @@ private:
 // ============================ RECIPROCAL SPACE ============================ //
 //                                   FIELD                                    //
 
-inline EwdInteractor::cmplx EwdInteractor::F12_AS1S2_At_By(const vec &k, 
+inline EWD::cmplx EwdInteractor::F12_AS1S2_At_By(const vec &k, 
     vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV) {
     
     ApplyBiasK(k);    
@@ -256,7 +350,7 @@ inline EwdInteractor::cmplx EwdInteractor::F12_AS1S2_At_By(const vec &k,
     
     // NOTE sum_re_f_rms => convergence check (to be performed by caller)
     // NOTE sum_im_f_xyz => sanity check      (to be performed by caller)
-    return cmplx(sum_re_f_rms, sum_im_f_xyz);    
+    return EWD::cmplx(sum_re_f_rms, sum_im_f_xyz);    
 }
 
 
@@ -316,7 +410,7 @@ inline void EwdInteractor::ApplyBiasK(APolarSite &p) {
 }
 
 
-inline EwdInteractor::triple<EwdInteractor::cmplx> EwdInteractor::AS1S2(const vec &k,
+inline EWD::triple<EWD::cmplx> EwdInteractor::AS1S2(const vec &k,
     vector<PolarSeg*> &s1, vector<PolarSeg*> &s2) {
     // NOTE : w/o 1/V
     ApplyBiasK(k);    
@@ -364,9 +458,9 @@ inline EwdInteractor::triple<EwdInteractor::cmplx> EwdInteractor::AS1S2(const ve
     double pu_im_AS1S2 = AK * (u_re_S1*im_S2 + re_S1*u_im_S2 + u_im_S1*re_S2 + im_S1*u_re_S2);
     
     
-    return triple<cmplx>(cmplx(pp_re_AS1S2, pp_im_AS1S2),
-                         cmplx(pu_re_AS1S2, pu_im_AS1S2),
-                         cmplx(uu_re_AS1S2, uu_im_AS1S2));
+    return EWD::triple<EWD::cmplx>(EWD::cmplx(pp_re_AS1S2, pp_im_AS1S2),
+                                   EWD::cmplx(pu_re_AS1S2, pu_im_AS1S2),
+                                   EWD::cmplx(uu_re_AS1S2, uu_im_AS1S2));
 }
 
 
@@ -376,7 +470,7 @@ inline double EwdInteractor::Ark2Expk2(const vec &k) {
 }
 
 
-inline EwdInteractor::triple<EwdInteractor::cmplx> EwdInteractor::S1S2(const vec &k,
+inline EWD::triple<EWD::cmplx> EwdInteractor::S1S2(const vec &k,
     vector<PolarSeg*> &s1, vector<PolarSeg*> &s2) {
     // NOTE : w/o 1/V
     ApplyBiasK(k);    
@@ -423,9 +517,9 @@ inline EwdInteractor::triple<EwdInteractor::cmplx> EwdInteractor::S1S2(const vec
     double pu_re_S1S2 = (u_re_S1*re_S2 + re_S1*u_re_S2 - u_im_S1*im_S2 - im_S1*u_im_S2);
     double pu_im_S1S2 = (u_re_S1*im_S2 + re_S1*u_im_S2 + u_im_S1*re_S2 + im_S1*u_re_S2);
     
-    return triple<cmplx>(cmplx(pp_re_S1S2, pp_im_S1S2),
-                         cmplx(pu_re_S1S2, pu_im_S1S2),
-                         cmplx(uu_re_S1S2, uu_im_S1S2));
+    return EWD::triple<EWD::cmplx>(EWD::cmplx(pp_re_S1S2, pp_im_S1S2),
+                                   EWD::cmplx(pu_re_S1S2, pu_im_S1S2),
+                                   EWD::cmplx(uu_re_S1S2, uu_im_S1S2));
 }
 
 
@@ -599,7 +693,7 @@ inline double EwdInteractor::F12_XYSlab_At_By(APolarSite &p1, APolarSite &p2,
 // =============================== REAL SPACE =============================== //
 //                                  ENERGIES                                  //
 
-inline EwdInteractor::triple<double> EwdInteractor::U12_ERFC(APolarSite &p1, 
+inline EWD::triple<double> EwdInteractor::U12_ERFC(APolarSite &p1, 
     APolarSite &p2) {
     
     ApplyBiasPolar(p1, p2);
@@ -619,11 +713,11 @@ inline EwdInteractor::triple<double> EwdInteractor::U12_ERFC(APolarSite &p1,
         uuG1*L3()*B1 + uuG2*L5()*B2
       : uuG1*B1 + uuG2*B2;
     
-    return triple<double>(pp,pu,uu);
+    return EWD::triple<double>(pp,pu,uu);
 }
 
 
-inline EwdInteractor::triple<double> EwdInteractor::U12_ERF(APolarSite &p1, 
+inline EWD::triple<double> EwdInteractor::U12_ERF(APolarSite &p1, 
     APolarSite &p2) {
     
     ApplyBias(p1, p2);
@@ -667,11 +761,11 @@ inline EwdInteractor::triple<double> EwdInteractor::U12_ERF(APolarSite &p1,
         uu = uuG1*C1 + uuG2*C2;
     }
     
-    return triple<double>(pp,pu,uu);
+    return EWD::triple<double>(pp,pu,uu);
 }
 
 
-inline EwdInteractor::triple<double> EwdInteractor::U12_XYSlab(APolarSite& p1, 
+inline EWD::triple<double> EwdInteractor::U12_XYSlab(APolarSite& p1, 
     APolarSite& p2) {
     // NOTE : w/o prefactor -2PI/V
     
@@ -710,7 +804,7 @@ inline EwdInteractor::triple<double> EwdInteractor::U12_XYSlab(APolarSite& p1,
         }
     }
     
-    return triple<double>(pp,pu,uu);
+    return EWD::triple<double>(pp,pu,uu);
 }
 
 
