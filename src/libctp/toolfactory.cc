@@ -29,7 +29,7 @@ namespace votca { namespace ctp {
 
 void QMToolFactory::RegisterAll(void)
 {
-//         QMTools().Register<MolPol>         ("molpol");
+        QMTools().Register<MolPolTool>      ("molpol");
         QMTools().Register<PDB2Map>         ("pdb2map");
         
 }
