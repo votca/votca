@@ -100,14 +100,11 @@ resample target resample_target.sh
 dpot crop dpot_crop.pl
 
 # ibi specific stuff
-# TODO: rename to ibi single
 update ibi update_ibi.sh
 update ibi_single update_ibi_single.sh
-# TODO: rename to ibi pot
 update ibi_pot update_ibi_pot.pl
 
 # imc specific stuff
-# TODO: rename to imc single
 update imc update_imc.sh
 imcsolver matlab solve_matlab.sh
 solve matlab linsolve.m
@@ -207,6 +204,7 @@ density gromacs calc_density_generic.sh
 
 # gromacs scripts specific stuff
 convert_potential gromacs potential_to_gromacs.sh
+convert_potentials gromacs potentials_to_generic.sh
 convert_potential xvg table_to_xvg.pl
 
 #function for gromacs
@@ -221,12 +219,14 @@ density espresso calc_density_generic.sh
 
 # ESPResSo scripts
 convert_potential espresso potential_to_generic.sh
+convert_potentials espresso potentials_to_generic.sh
 
 # function for ESPResSo
 functions espresso functions_genericsim.sh
 
 # lammps scripts
 convert_potential lammps potential_to_generic.sh
+convert_potentials lammps potentials_to_generic.sh
 
 # interface to lammps
 initstep lammps initialize_step_genericsim.sh
@@ -240,6 +240,7 @@ functions lammps functions_genericsim.sh
 
 # espressopp scripts
 convert_potential espressopp potential_to_generic.sh
+convert_potentials espressopp potentials_to_generic.sh
 
 # interface to espressopp
 initstep espressopp initialize_step_genericsim.sh
@@ -262,6 +263,7 @@ density dlpoly calc_density_generic.sh
 functions dlpoly functions_genericsim.sh
 
 # lammps scripts
-convert_potential dlpoly potential_to_generic.sh
+convert_potential dlpoly potential_to_dlpoly.sh
+convert_potentials dlpoly potentials_to_dlpoly.sh
 
 # END: these scripts have to be defined for each simulation program

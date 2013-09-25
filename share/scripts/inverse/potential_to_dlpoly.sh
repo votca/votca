@@ -18,8 +18,7 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script is a high class wrapper to convert a potential to the generic
-3 column tab format used by espresso and lammps
+This script is a high class wrapper to convert a potential to the dlpoly format
 
 Usage: ${0##*/}
 EOF
@@ -36,27 +35,24 @@ echo "Convert $input to $output"
 bondtype="$(csg_get_interaction_property bondtype)"
 [[ $bondtype != non-bonded ]] && die "${0##*/}: conversion of bonded interaction to generic tables is not implemented yet!"
 
-sim_prog="$(csg_get_property cg.inverse.program)"
-r_cut=$(csg_get_interaction_property max)
 step=$(csg_get_interaction_property step)
-r_min=$(csg_get_interaction_property min)
-bin_size="$(csg_get_interaction_property --allow-empty inverse.$sim_prog.table_bins)"
-[[ -z ${bin_size} ]] && bin_size="${step}"
+bin_size="$(csg_get_property cg.inverse.dlpoly.table_bins)"
+table_end="$(csg_get_property cg.inverse.dlpoly.table_end)"
 
+#keep the grid for now, so that extrapolate can calculate the right mean
 comment="$(get_table_comment)"
-table_begin="$(csg_get_interaction_property --allow-empty inverse.$sim_prog.table_begin)"
-if [[ -z ${table_begin} ]]; then 
-  table_begin="$r_min"
-else
-  #keep the grid for now, so that extrapolate can calculate the right mean
-  smooth2="$(critical mktemp ${trunc}.pot.extended.XXXXX)"
-  critical csg_resample --in ${input} --out "${smooth2}" --grid "${table_begin}:${step}:${r_cut}" --comment "$comment"
-  extrapolate="$(critical mktemp ${trunc}.pot.extrapolated.XXXXX)"
-  do_external potential extrapolate --type "$bondtype" "${smooth2}" "${extrapolate}"
-  input="${extrapolate}"
-fi
+smooth2="$(critical mktemp ${trunc}.pot.extended.XXXXX)"
+critical csg_resample --in ${input} --out "${smooth2}" --grid "0:${step}:${table_end}" --comment "$comment"
+extrapolate="$(critical mktemp ${trunc}.pot.extrapolated.XXXXX)"
+do_external potential extrapolate --type "$bondtype" "${smooth2}" "${extrapolate}"
 
 smooth="$(critical mktemp ${trunc}.pot.smooth.XXXXX)"
 deriv="$(critical mktemp ${trunc}.pot.deriv.XXXXX)"
-critical csg_resample --in ${input} --out "${smooth}" --der "${deriv}" --grid "${table_begin}:${bin_size}:${r_cut}" --comment "$comment"
-do_external convert_potential tab --header "${sim_prog}" --type "${bondtype}" "${smooth}" "${deriv}" "${output}"
+critical csg_resample --in ${extrapolate} --out "${smooth}" --der "${deriv}" --grid "0:${bin_size}:${table_end}" --comment "$comment"
+do_external convert_potential tab --header dlpoly --type "${bondtype}" "${smooth}" "${deriv}" "${output}"
+
+if [[ -f TABLE ]]; then
+  echo "Appending $output to TABLE"
+  echo "$(csg_get_interaction_property type1) $(csg_get_interaction_property type2)" >> TABLE
+  cat "${output}" >> TABLE
+fi

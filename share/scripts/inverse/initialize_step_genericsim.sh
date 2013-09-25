@@ -49,5 +49,5 @@ else
   die "${0##*/}: initial_configuration '$from' not implemented"
 fi
 
-#convert potential in format for sim_prog
-for_all "non-bonded bonded" do_external convert_potential ${sim_prog} '$(csg_get_interaction_property name).pot.cur' '$'"(csg_get_interaction_property inverse.$sim_prog.table)"
+#convert potentials in format for sim_prog
+do_external convert_potentials ${sim_prog}
