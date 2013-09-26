@@ -29,8 +29,9 @@ fi
 echo "Table for dlpoly from VOTCA with love" > TABLE #max 100 chars
 bin_size="$(csg_get_property cg.inverse.dlpoly.table_bins)"
 table_end="$(csg_get_property cg.inverse.dlpoly.table_end)"
+# see dlpoly manual ngrid = int(cut/delta) + 4
 ngrid="$(csg_calc $table_end / $bin_size)"
 ngrid="$(to_int $ngrid)"
-ngrid="$(($ngrid+1))"
+ngrid="$(($ngrid+4))"
 echo "$bin_size $table_end $ngrid" >> TABLE
 for_all "non-bonded" do_external convert_potential dlpoly '$(csg_get_interaction_property name).pot.cur' '$(csg_get_interaction_property name).pot dlpoly'

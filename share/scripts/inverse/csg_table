@@ -254,7 +254,7 @@ functions espressopp functions_genericsim.sh
 
 # interface to dlpoly
 initstep dlpoly initialize_step_genericsim.sh
-run dlpoly run_dlpoly.sh
+run dlpoly run_genericsim.sh
 rdf dlpoly calc_rdf_generic.sh
 imc_stat dlpoly imc_stat_generic.sh
 density dlpoly calc_density_generic.sh
