@@ -1,0 +1,12 @@
+# coarse-grained spce water
+UNITS eV 
+MOLECULES 1
+CG 
+NUMMOLS 2180
+ATOMS 1 
+CG 18.01540 0.0 1 0 
+FINISH 
+
+vdw 1 
+CG CG tab 
+close 
