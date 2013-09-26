@@ -4,11 +4,12 @@
 #include <boost/math/special_functions/round.hpp>
 
 
-using boost::format;
-
 
 namespace votca { namespace ctp {
 
+using boost::format;
+
+    
 
 Ewald3DnD::~Ewald3DnD() {
     vector< PolarSeg* >::iterator sit;
@@ -69,6 +70,9 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
     _K_co = _kfactor/_R_co;
     _alpha = _rfactor/_R_co;
     _ewdactor = EwdInteractor(_alpha, _polar_aDamp);
+    
+    _did_field_pin_R_shell_idx = false;
+    _did_generate_kvectors = false;
     
     // SET-UP REAL & RECIPROCAL SPACE
     _a = _top->getBox().getCol(0);
@@ -770,7 +774,7 @@ Property Ewald3DnD::GenerateOutputString() {
     
     next = &out.add("terms_i", "");
     next->add("F-00-01-11", (format("%1$+1.5e %2$+1.5e %3$+1.5e") % _polar_EF00 % _polar_EF01 % _polar_EF11).str());
-    next->add("M-00-11-**", (format("%1$+1.5e %2$+1.5e") % _polar_EM0 % _polar_EM1).str());
+    next->add("M-00-11---", (format("%1$+1.5e %2$+1.5e") % _polar_EM0 % _polar_EM1).str());
     next->add("E-PP-PU-UU", (format("%1$+1.5e %2$+1.5e %3$+1.5e") % _polar_EPP % _polar_EPU % _polar_EUU).str());
     
     next = &out.add("terms_o", "");

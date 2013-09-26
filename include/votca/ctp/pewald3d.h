@@ -31,6 +31,7 @@ namespace votca { namespace ctp {
        ~PEwald3D3D();
         
         string IdentifyMethod() { return "Polar 3D x 3D"; }
+        void GenerateKVectors();
         
         EWD::triple<> ConvergeRealSpaceSum();
         EWD::triple<> ConvergeReciprocalSpaceSum();

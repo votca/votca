@@ -29,7 +29,6 @@ namespace votca { namespace ctp {
         
     public:
         
-        Ewald3DnD() { ; }
         Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log);
         virtual ~Ewald3DnD();
        
@@ -46,6 +45,7 @@ namespace votca { namespace ctp {
         string GenerateErrorString();
         
         virtual string IdentifyMethod() = 0;
+        virtual void GenerateKVectors() { ; }
         
         virtual EWD::triple<> ConvergeRealSpaceSum();
         virtual EWD::triple<> ConvergeReciprocalSpaceSum() = 0;
@@ -58,46 +58,6 @@ namespace votca { namespace ctp {
         virtual void Field_ConvergeReciprocalSpaceSum() { ; }
         virtual void Field_CalculateForegroundCorrection() { ; }
         virtual void Field_CalculateShapeCorrection() { ; }
-        
-        // To sort K-vectors via std::sort using a norm functor
-        template<class Norm, class V>
-        struct VectorSort
-        {
-            VectorSort() : _p(1e-40) { ; }
-            VectorSort(double precision) : _p(precision) { ; }
-            inline bool operator() (const V &v1, const V &v2);
-            inline bool MatchDouble(double a, double b) 
-                { return ((a-b)*(a-b) < _p) ? true : false; }
-            double _p;
-            Norm _norm;
-        };
-        
-        // Tschebyschow norm functor
-        struct MaxNorm { inline double operator() (const vec &v) 
-            { return votca::tools::maxnorm(v); } };
-        // Euclidean norm functor
-        struct EucNorm { inline double operator() (const vec &v) 
-            { return votca::tools::abs(v); } };
-            
-        // K-vector class (for grading purposes)
-        struct KVector
-        {
-            KVector(vec &k, double grade)
-                : _k(k), _grade(grade) { ; }
-
-            vec _k;
-            double _grade;
-            
-            const vec &getK() const { return _k; }
-            const double &getGrade() const { return _grade; }
-            const double &getX() const { return _k.getX(); }
-            const double &getY() const { return _k.getY(); }
-            const double &getZ() const { return _k.getZ(); }            
-        };
-        
-        // Specialized K-vector norm
-        struct KNorm { inline double operator() (const KVector &v)
-            { return -v.getGrade(); } };
         
     protected:
         
@@ -138,6 +98,8 @@ namespace votca { namespace ctp {
         bool   _converged_K;            // Did K-space sum converge?
         bool   _field_converged_R;
         bool   _field_converged_K;
+        bool   _did_field_pin_R_shell_idx;
+        int    _field_R_shell_idx;
         // Part II - Thole
         bool _polar_do_induce;
         double _polar_aDamp;
@@ -155,9 +117,15 @@ namespace votca { namespace ctp {
         double _LxLy;                   // |a^b|
         double _LxLyLz;                 // a*|b^c|
         
-        VectorSort<MaxNorm,vec> _maxsort;
-        VectorSort<EucNorm,vec> _eucsort;
-        VectorSort<KNorm,KVector> _kvecsort;
+        EWD::VectorSort<EWD::MaxNorm,vec> _maxsort;
+        EWD::VectorSort<EWD::EucNorm,vec> _eucsort;
+        EWD::VectorSort<EWD::KNorm,EWD::KVector> _kvecsort;
+        
+        vector<EWD::KVector> _kvecs_2_0;     // K-vectors with two components = zero
+        vector<EWD::KVector> _kvecs_1_0;     // K-vectors with one component  = zero
+        vector<EWD::KVector> _kvecs_0_0;     // K-vectors with no  components = zero
+        double _kxyz_s1s2_norm;
+        bool _did_generate_kvectors;
         
         // ENERGIES
         // Part I - Ewald
@@ -188,37 +156,6 @@ namespace votca { namespace ctp {
         
         
     };
-
-
-template<class Norm, class V>
-inline bool Ewald3DnD::VectorSort<Norm,V>::operator() (const V &v1,
-    const V &v2) {
-    bool smaller = false;
-    // LEVEL 1: MAGNITUDE
-    double V1 = _norm(v1);
-    double V2 = _norm(v2);
-    if (MatchDouble(V1,V2)) {
-        // LEVEL 2: X
-        double X1 = v1.getX();
-        double X2 = v2.getX();
-        if (MatchDouble(X1,X2)) {
-            // LEVEL 3: Y
-            double Y1 = v1.getY();
-            double Y2 = v2.getY();
-            if (MatchDouble(Y1,Y2)) {
-                // LEVEL 4: Z
-                double Z1 = v1.getZ();
-                double Z2 = v2.getZ();
-                if (MatchDouble(Z1,Z2)) smaller = true;
-                else smaller = (Z1 < Z2) ? true : false;
-            }
-            else smaller = (Y1 < Y2) ? true : false;
-        }
-        else smaller = (X1 < X2) ? true : false;
-    }
-    else smaller = (V1 < V2) ? true : false;          
-    return smaller;
-}
 
 
 }}
