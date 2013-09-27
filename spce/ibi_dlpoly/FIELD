@@ -1,5 +1,5 @@
 # coarse-grained spce water
-UNITS eV 
+UNITS kJ 
 MOLECULES 1
 CG 
 NUMMOLS 2180
