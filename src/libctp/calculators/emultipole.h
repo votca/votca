@@ -36,7 +36,7 @@ public:
     EMultipole() {};
    ~EMultipole() {};
 
-    string   Identify() { return "EMultipole (Parallel)"; }
+    string   Identify() { return "emultipole"; }
 
     // ++++++++++++++++++++++ //
     // Multipole Distribution //

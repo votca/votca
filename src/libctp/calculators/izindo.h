@@ -46,7 +46,7 @@ public:
     IZindo() {};
    ~IZindo() {};
 
-    string  Identify() { return "IZindo"; }
+    string  Identify() { return "izindo"; }
     void    Initialize(Topology *top, Property *options);
     void    ParseOrbitalsXML(Topology *top, Property *options);
     void    EvalPair(Topology *top, QMPair *pair, PairOperator *opThread);
