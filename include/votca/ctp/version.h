@@ -17,32 +17,11 @@
 
 /**
 
-\mainpage VOTCA-CTP
+\page ctp ctp
+Classes used for charge transport. The main container is votca::ctp::Topology. 
 
-This is the code documentation of the VOTCA-CTP package (http://www.votca.org). 
 
-\section installation_sec Installation 
-
-Ideally the following bash script should do the job for you: 
-
-\code
-    prefix=~/votca
-    mkdir -p ${prefix}/src
-    cd ${prefix}/src
-    wget http://votca.googlecode.com/hg/build.sh
-    chmod +x build.sh
-    ./build.sh --prefix ${prefix} --dev tools csg kmc moo ctp
-\endcode
-
-\section started_sec Getting started
-
-To run the program, source the VOTCARC file, i.e. in bash
-
-\code
-    source ~/votca/bin/VOTCARC.bash
-\endcode
-
- */
+*/
 
 #ifndef __VOTCA_MD2QM_VERSION_H
 #define	__VOTCA_MD2QM_VERSION_H
