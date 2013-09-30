@@ -22,7 +22,6 @@
       <itemPath>../../src/libctp/calculators/pairdump.h</itemPath>
       <itemPath>../../src/libctp/qmtools/pdb2map.h</itemPath>
       <itemPath>../../src/libctp/calculators/qmmm.h</itemPath>
-      <itemPath>../../include/votca/ctp/qmpackagefactory.h</itemPath>
       <itemPath>../../src/libctp/calculators/qmultipole.h</itemPath>
       <itemPath>../../src/libctp/calculators/rates.h</itemPath>
       <itemPath>../../src/libctp/calculators/sandbox.h</itemPath>
@@ -39,6 +38,7 @@
                    projectFiles="true">
       <itemPath>../../include/votca/ctp/apolarsite.h</itemPath>
       <itemPath>../../include/votca/ctp/atom.h</itemPath>
+      <itemPath>../../include/votca/ctp/basisset.h</itemPath>
       <itemPath>../../include/votca/ctp/calculatorfactory.h</itemPath>
       <itemPath>../../include/votca/ctp/eigenvalues.h</itemPath>
       <itemPath>../../include/votca/ctp/fragment.h</itemPath>
@@ -57,6 +57,8 @@
       <itemPath>../../include/votca/ctp/qmcalculator.h</itemPath>
       <itemPath>../../include/votca/ctp/qmdatabase.h</itemPath>
       <itemPath>../../include/votca/ctp/qmnblist.h</itemPath>
+      <itemPath>../../include/votca/ctp/qmpackage.h</itemPath>
+      <itemPath>../../include/votca/ctp/qmpackagefactory.h</itemPath>
       <itemPath>../../include/votca/ctp/qmpair.h</itemPath>
       <itemPath>../../include/votca/ctp/qmthread.h</itemPath>
       <itemPath>../../include/votca/ctp/qmtool.h</itemPath>
@@ -70,6 +72,14 @@
       <itemPath>../../include/votca/ctp/xinteractor.h</itemPath>
       <itemPath>../../include/votca/ctp/xjob.h</itemPath>
       <itemPath>../../include/votca/ctp/xmapper.h</itemPath>
+    </logicalFolder>
+    <logicalFolder name="f2" displayName="QMPackages" projectFiles="true">
+      <itemPath>../../src/libctp/qmpackages/gaussian.cc</itemPath>
+      <itemPath>../../src/libctp/qmpackages/gaussian.h</itemPath>
+      <itemPath>../../src/libctp/qmpackages/nwchem.cc</itemPath>
+      <itemPath>../../src/libctp/qmpackages/nwchem.h</itemPath>
+      <itemPath>../../src/libctp/qmpackages/turbomole.cc</itemPath>
+      <itemPath>../../src/libctp/qmpackages/turbomole.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -94,6 +104,7 @@
       <itemPath>../../src/libctp/qmapplication.cc</itemPath>
       <itemPath>../../src/libctp/qmcalculator.cc</itemPath>
       <itemPath>../../src/libctp/qmdatabase.cc</itemPath>
+      <itemPath>../../src/libctp/qmmachine.cc</itemPath>
       <itemPath>../../src/libctp/qmnblist.cc</itemPath>
       <itemPath>../../src/libctp/qmpackagefactory.cc</itemPath>
       <itemPath>../../src/libctp/qmpair.cc</itemPath>
@@ -139,6 +150,7 @@
             <pElem>../../../csg/include</pElem>
             <pElem>../../../moo/include</pElem>
             <pElem>/usr/include/libxml2</pElem>
+            <pElem>/sw/linux/intel/XE13u2/mkl/include</pElem>
           </incDir>
         </ccTool>
         <archiverTool>
@@ -151,6 +163,8 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/atom.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/basisset.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/calculatorfactory.h"
             ex="false"
@@ -220,6 +234,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/qmnblist.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/qmpackage.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/ctp/qmpackagefactory.h"
             ex="false"
@@ -456,11 +475,43 @@
       </item>
       <item path="../../src/libctp/qmdatabase.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libctp/qmmachine.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libctp/qmnblist.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/qmpackagefactory.cc"
             ex="false"
             tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/gaussian.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/gaussian.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/nwchem.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/nwchem.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/turbomole.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/turbomole.h"
+            ex="false"
+            tool="3"
             flavor2="0">
       </item>
       <item path="../../src/libctp/qmpair.cc" ex="false" tool="1" flavor2="0">
@@ -523,6 +574,8 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/atom.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/basisset.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/calculatorfactory.h"
             ex="false"
@@ -592,6 +645,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/qmnblist.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/qmpackage.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/ctp/qmpackagefactory.h"
             ex="false"
@@ -828,11 +886,43 @@
       </item>
       <item path="../../src/libctp/qmdatabase.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libctp/qmmachine.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libctp/qmnblist.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/qmpackagefactory.cc"
             ex="false"
             tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/gaussian.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/gaussian.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/nwchem.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/nwchem.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/turbomole.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/turbomole.h"
+            ex="false"
+            tool="3"
             flavor2="0">
       </item>
       <item path="../../src/libctp/qmpair.cc" ex="false" tool="1" flavor2="0">
@@ -896,6 +986,8 @@
       </item>
       <item path="../../include/votca/ctp/atom.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/ctp/basisset.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/calculatorfactory.h"
             ex="false"
             tool="3"
@@ -964,6 +1056,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/qmnblist.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/qmpackage.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/ctp/qmpackagefactory.h"
             ex="false"
@@ -1200,11 +1297,43 @@
       </item>
       <item path="../../src/libctp/qmdatabase.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libctp/qmmachine.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libctp/qmnblist.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/qmpackagefactory.cc"
             ex="false"
             tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/gaussian.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/gaussian.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/nwchem.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/nwchem.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/turbomole.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/turbomole.h"
+            ex="false"
+            tool="3"
             flavor2="0">
       </item>
       <item path="../../src/libctp/qmpair.cc" ex="false" tool="1" flavor2="0">

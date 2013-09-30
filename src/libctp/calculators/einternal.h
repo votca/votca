@@ -33,7 +33,7 @@ public:
     EInternal() { };
    ~EInternal() { };
 
-    string Identify() { return "EInternal"; }
+    string Identify() { return "einternal"; }
     void Initialize(Topology *top, Property *options);
     void ParseEnergiesXML(Topology *top, Property *options);
     bool EvaluateFrame(Topology *top);

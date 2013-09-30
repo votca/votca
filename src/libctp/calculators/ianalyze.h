@@ -11,7 +11,7 @@ class IAnalyze : public QMCalculator
 {
 public:
 
-    string  Identify() { return "IAnalyze"; }
+    string  Identify() { return "ianalyze"; }
 
     void    Initialize(Topology *top, Property *options);
     bool    EvaluateFrame(Topology *top);

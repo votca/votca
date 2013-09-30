@@ -5,8 +5,8 @@
         <data xmlns="http://www.netbeans.org/ns/make-project/1">
             <name>libctp</name>
             <make-project-type>0</make-project-type>
-            <c-extensions/>
-            <cpp-extensions>cc</cpp-extensions>
+            <c-extensions>cc</c-extensions>
+            <cpp-extensions/>
             <header-extensions>h</header-extensions>
             <sourceEncoding>UTF-8</sourceEncoding>
             <formatting>

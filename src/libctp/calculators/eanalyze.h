@@ -14,7 +14,7 @@ public:
     EAnalyze() { };
    ~EAnalyze() { };
 
-    string Identify() { return "EAnalyze"; }
+    string Identify() { return "eanalyze"; }
 
     void Initialize(Topology *top, Property *opt);
     bool EvaluateFrame(Topology *top);
