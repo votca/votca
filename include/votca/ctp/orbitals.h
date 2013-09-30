@@ -118,6 +118,7 @@ public:
     void           setNumberOfElectrons( const int &electrons );
     
     ub::symmetric_matrix<double>* getOverlap() { return &_overlap; }
+    ub::symmetric_matrix<double>* getVxc() { return &_vxc; }
     ub::matrix<double>* getOrbitals() { return &_mo_coefficients; }
     ub::vector<double>* getEnergies() { return &_mo_energies; }
 
@@ -134,6 +135,23 @@ public:
 
     bool hasQMEnergy() { return _has_qm_energy; }
     double getQMEnergy() { return (_has_qm_energy) ? _qm_energy : 0; }
+    
+    // for GW-BSE
+    bool hasQPpert() { return _has_QPpert; }
+    ub::matrix<double>* getQPpertEnergies() {return  &_QPpert_energies ;}
+    bool hasQPdiag() { return _has_QPdiag; }
+    std::vector<double>* getQPdiagEnergies() {return  &_QPdiag_energies ;} 
+    ub::matrix<double>* getQPdiagCoefficients() {return  &_QPdiag_coefficients ;}
+    std::vector<int>* getQPLevelsIndexList() {return &_QP_levels_index;}
+    ub::matrix<int>* getBSELevelsIndexList() { return &_BSE_levels_indices; }
+    bool hasBSESinglets() {return _has_BSE_singlets;}
+    std::vector<double>* getBSESingletEnergies() {return &_BSE_singlet_energies;}
+    ub::matrix<double>* getBSESingletCoefficients() {return &_BSE_singlet_coefficients;}
+    bool hasBSETriplets() {return _has_BSE_triplets;}
+    std::vector<double>* getBSETripletEnergies() {return &_BSE_triplet_energies;}
+    ub::matrix<double>* getBSETripletCoefficients() {return &_BSE_triplet_coefficients; }   
+    
+
     
     // returns indeces of a re-sorted in a descending order vector of energies
     void SortEnergies( std::vector<int>* index );
@@ -184,6 +202,9 @@ private:
     bool                                _has_overlap;
     ub::symmetric_matrix<double>            _overlap;
     
+    bool                                _has_vxc;
+    ub::symmetric_matrix<double>            _vxc;
+    
     bool                                _has_charges;
     bool                                _has_atoms;
     std::vector< QMAtom* >                  _atoms;   
@@ -199,6 +220,25 @@ private:
     
     bool                                _has_basis_set;
     BasisSet                            _basis_set;
+    
+    // new variables for GW-BSE storage
+    // perturbative quasiparticle energies
+    bool                                _has_QPpert;
+    std::vector<int>                    _QP_levels_index;
+    ub::matrix<double>                  _QPpert_energies;
+    // quasiparticle energies and coefficients after diagonalization
+    bool                                _has_QPdiag;
+    std::vector<double>                 _QPdiag_energies;
+    ub::matrix<double>                  _QPdiag_coefficients;
+    // excitons
+    ub::matrix<int>                     _BSE_levels_indices;
+    bool                                _has_BSE_singlets;
+    std::vector<double>                 _BSE_singlet_energies;
+    ub::matrix<double>                  _BSE_singlet_coefficients;
+    bool                                _has_BSE_triplets;
+    std::vector<double>                 _BSE_triplet_energies;
+    ub::matrix<double>                  _BSE_triplet_coefficients;    
+    
 
 private:
 
@@ -215,6 +255,7 @@ private:
     friend class Gaussian;
     friend class Turbomole;
     friend class NWChem;
+    friend class GW;
     
     // serialization itself (template implementation stays in the header)
     template<typename Archive> 
@@ -228,10 +269,23 @@ private:
        ar & _has_mo_energies;
        ar & _has_mo_coefficients;
        ar & _has_overlap;
+       ar & _has_vxc;
        ar & _has_atoms;
        ar & _has_qm_energy;
        ar & _has_self_energy;
        ar & _has_integrals;
+       
+       // GW-BSE storage
+       ar & _has_QPpert;
+       ar & _has_QPdiag;
+       ar & _has_BSE_singlets;
+       ar & _has_BSE_triplets;
+       if ( _has_QPpert ) { ar & _QP_levels_index; ar & _QPpert_energies; }
+       if ( _has_QPdiag ) { ar & _QPdiag_energies; ar & _QPdiag_coefficients; }
+       if ( _has_BSE_singlets || _has_BSE_triplets ) { ar & _BSE_levels_indices; }
+       if ( _has_BSE_singlets ) { ar & _BSE_singlet_energies; ar & _BSE_singlet_coefficients; }
+       if ( _has_BSE_triplets ) { ar & _BSE_triplet_energies; ar & _BSE_triplet_coefficients; }
+
        
        if ( _has_basis_set_size ) { ar & _basis_set_size; }
        if ( _has_occupied_levels ) { ar & _occupied_levels; }
@@ -258,11 +312,33 @@ private:
                 for (unsigned j = 0; j <= i; ++j)
                     ar & _overlap(i, j); 
        }
+
+       if ( _has_vxc ) { 
+           // symmetric matrix does not serialize by default
+            if (Archive::is_saving::value) {
+                unsigned size = _vxc.size1();
+                ar & size;
+             }
+
+            // copy the values back if loading
+            if (Archive::is_loading::value) {
+                unsigned size;
+                ar & size;
+                _vxc.resize(size);
+             }
+            
+           for (unsigned i = 0; i < _vxc.size1(); ++i)
+                for (unsigned j = 0; j <= i; ++j)
+                    ar & _vxc(i, j); 
+       }
        
        if ( _has_atoms ) { ar & _atoms; }
        if ( _has_qm_energy ) { ar & _qm_energy; }
        if ( _has_self_energy ) { ar & _self_energy; }     
        if ( _has_integrals ) { ar & _integrals; } 
+       
+       
+       //GW-BSE storage
     }
     
 };

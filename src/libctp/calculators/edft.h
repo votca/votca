@@ -68,9 +68,17 @@ private:
     bool                _do_run;
     bool                _do_parse;
     bool                _do_trim;
-
+    // conversion to GW (might go away from edft again)
+    bool                _do_convert;
+    bool                _do_gwbse_input;
+    bool                _do_gwbse_run;
+    bool                _do_gwbse_parse;
     // what to write in the storage
     bool                _store_orbitals;
+    bool                _store_qppert;
+    bool                _store_qpdiag;
+    bool                _store_singlets;
+    bool                _store_triplets;
 
     //bool   _maverick;
     string _outParent;
@@ -78,6 +86,9 @@ private:
     
     string _package;
     Property _package_options;   
+    
+    string _gwpackage;
+    Property _gwpackage_options;   
 
 };
 
@@ -91,7 +102,13 @@ void EDFT::Initialize(Topology *top, Property *options) {
     _do_run = false;
     _do_parse = false;
     _do_trim = false;
-
+    
+    // conversion to GW 
+    _do_convert = false;
+    _do_gwbse_input = false;
+    _do_gwbse_run = false;
+    _do_gwbse_parse = false;
+        
     _maverick = (_nThreads == 1) ? true : false;
     
     string key = "options." + Identify();
@@ -99,18 +116,40 @@ void EDFT::Initialize(Topology *top, Property *options) {
 
     string _package_xml = options->get(key+".package").as<string> ();
 
+    
     string _tasks_string = options->get(key+".tasks").as<string> ();
     if (_tasks_string.find("input") != std::string::npos) _do_input = true;
     if (_tasks_string.find("run") != std::string::npos) _do_run = true;
     if (_tasks_string.find("trim") != std::string::npos) _do_trim = true;
     if (_tasks_string.find("parse") != std::string::npos) _do_parse = true;    
-
+    // GW-BSE tasks
+    if (_tasks_string.find("convert") != std::string::npos) _do_convert = true;   
+    if (_tasks_string.find("gwbse_setup") != std::string::npos) _do_gwbse_input = true;
+    if (_tasks_string.find("gwbse_exec") != std::string::npos) _do_gwbse_run = true;    
+    if (_tasks_string.find("gwbse_read") != std::string::npos) _do_gwbse_parse = true;
+    
     string _store_string = options->get(key+".store").as<string> ();
     if (_store_string.find("orbitals") != std::string::npos) _store_orbitals = true;
+    if (_store_string.find("qppert") != std::string::npos) _store_qppert = true;
+    if (_store_string.find("qpdiag") != std::string::npos) _store_qpdiag = true;
+    if (_store_string.find("singlets") != std::string::npos) _store_singlets = true;
+    if (_store_string.find("triplets") != std::string::npos) _store_triplets = true;
     
     load_property_from_xml( _package_options, _package_xml.c_str() );    
     key = "package";
     _package = _package_options.get(key+".name").as<string> ();
+
+
+   
+    // only required, if GWBSE is to be run
+    if ( _do_gwbse_input || _do_gwbse_run || _do_gwbse_parse ){
+        key = "options." + Identify();
+        string _gwpackage_xml = options->get(key+".gwpackage").as<string> ();
+        load_property_from_xml( _gwpackage_options, _gwpackage_xml.c_str() );  
+        key = "package";
+        _gwpackage = _gwpackage_options.get(key+".name").as<string> ();
+    }
+    
     
     // register all QM packages (Gaussian, turbomole, nwchem))
     QMPackageFactory::RegisterAll(); 
@@ -125,6 +164,8 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     bool _run_status;
     bool _parse_log_status;
     bool _parse_orbitals_status;
+    bool _convert_status;
+
 
     FILE *out;
     Orbitals _orbitals;
@@ -141,27 +182,35 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     // extracted information will be stored in  ORB_FILES/molecules/frame_x/molecule_ID.orb
     
     string edft_work_dir = "OR_FILES";
-
-    string orbitals_storage_dir = "molecules";
     string frame_dir =  "frame_" + boost::lexical_cast<string>(top->getDatabaseId());      
-    
     string ID   = boost::lexical_cast<string>( seg->getId() );
-    string qmpackage_work_dir  = edft_work_dir + "/" + _package + "/" + frame_dir + "/mol_" + ID;
-    string ORB_DIR = edft_work_dir + "/" + orbitals_storage_dir + "/" + frame_dir;
 
     // get the corresponding object from the QMPackageFactory
     QMPackage *_qmpackage =  QMPackages().Create( _package );
-     
-    boost::filesystem::create_directories( qmpackage_work_dir );     
-    boost::filesystem::create_directories(ORB_DIR);        
     
    _qmpackage->setLog( pLog );  
-   
    _qmpackage->Initialize( &_package_options );
 
-   _qmpackage->setRunDir( qmpackage_work_dir );
-  
+   string orbitals_storage_dir;
+   string qmpackage_work_dir;
+   
+   /* To avoid possible mixup between standard DFT runs, e.g., for coupling
+    * elements and GWBSE DFT basis runs, modify storage files/directories */
+   if ( _qmpackage->ECPRequested() ){
+       orbitals_storage_dir = "molecules_gwbse";
+       qmpackage_work_dir  = edft_work_dir + "/" + _package + "_gwbse/" + frame_dir + "/mol_" + ID;
+   } else {
+       orbitals_storage_dir = "molecules";
+       qmpackage_work_dir  = edft_work_dir + "/" + _package + "/" + frame_dir + "/mol_" + ID;
+   }
 
+    string ORB_DIR = edft_work_dir + "/" + orbitals_storage_dir + "/" + frame_dir;
+    boost::filesystem::create_directories( qmpackage_work_dir );     
+    boost::filesystem::create_directories(ORB_DIR); 
+    
+   _qmpackage->setRunDir( qmpackage_work_dir );
+
+   
     // if asked, prepare the input files
     if ( _do_input ) {
         _qmpackage->WriteInputFile( segments );
@@ -229,6 +278,110 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
          << _orbitals.getNumberOfElectrons()*factor << flush;   
        output += "orbitals trimmed; " ;
     }   
+
+   
+   if ( _do_parse ){
+    // save orbitals
+    string ORB_FILE = "molecule_" + ID + ".orb";
+    LOG(logDEBUG,*pLog) << "Serializing to " <<  ORB_FILE << flush;
+    std::ofstream ofs( (ORB_DIR + "/" + ORB_FILE).c_str() );
+    boost::archive::binary_oarchive oa( ofs );
+    oa << _orbitals;
+    ofs.close();
+   }
+   
+   // Convert to GW
+    if ( _do_convert ) {
+
+        if ( !_do_parse ) { // orbitals must be loaded from a file
+           string ORB_FILE = "molecule_" + ID + ".orb";
+           LOG(logDEBUG,*pLog) << "Loading orbitals from " << ORB_FILE << flush;    
+           std::ifstream ifs( (ORB_DIR + "/" + ORB_FILE).c_str() );
+           boost::archive::binary_iarchive ia( ifs );
+           ia >> _orbitals;
+           ifs.close();
+       } 
+        
+       _convert_status = _qmpackage->ConvertToGW( &_orbitals );
+       if ( !_convert_status ) {
+            output += "conversion failed; " ;
+            LOG(logERROR,*pLog) << _package << " conversion failed" << flush;
+            jres.setOutput( output ); 
+            jres.setStatus(Job::FAILED);
+            delete _qmpackage;
+            return jres;
+        } else {
+            output += "conversion completed; " ;
+        }
+        
+    }
+   
+
+            // to run any of the GW-BSE steps, initialize QMPackage
+            if (_do_gwbse_input || _do_gwbse_run || _do_gwbse_parse) {
+
+                // initialize GW as another QMPackage
+                QMPackage *_gwpackage = QMPackages().Create("gw");
+                _gwpackage->Initialize(&_gwpackage_options);
+                _gwpackage->setLog(pLog);
+                _gwpackage->setRunDir(qmpackage_work_dir);
+
+
+                if (_do_gwbse_input || _do_gwbse_parse ) {
+
+                    // DFT data must be read from storage or have been parsed
+                    if (!_do_parse) { // orbitals must be loaded from a file
+                        string ORB_FILE = "molecule_" + ID + ".orb";
+                        LOG(logDEBUG, *pLog) << "Loading orbitals from " << ORB_FILE << flush;
+                        std::ifstream ifs((ORB_DIR + "/" + ORB_FILE).c_str());
+                        boost::archive::binary_iarchive ia(ifs);
+                        ia >> _orbitals;
+                        ifs.close();
+                    }
+
+                    _gwpackage->WriteInputFile(segments, &_orbitals);
+
+                }
+
+                if (_do_gwbse_run) {
+                    // run the GWBSE executable
+                    _run_status = _gwpackage->Run();
+                    if (!_run_status) {
+                        output += "run failed; ";
+                        LOG(logERROR, *pLog) << " GWBSE run failed" << flush;
+                        jres.setOutput(output);
+                        jres.setStatus(Job::FAILED);
+                        delete _gwpackage;
+                        return jres;
+                    } else {
+                        output += "run completed; ";
+                    }
+                }
+
+                if (_do_gwbse_parse) {
+                    // parse and store output from GWBSE
+                    _parse_log_status = _gwpackage->ParseLogFile(&_orbitals);
+                    if (!_parse_log_status) {
+                        output += "log incomplete; ";
+                        LOG(logERROR, *pLog) << "GWBSE log incomplete" << flush;
+                        jres.setOutput(output);
+                        jres.setStatus(Job::FAILED);
+                        delete _gwpackage;
+                        return jres;
+                    } else {
+                        output += "log parsed; ";
+                        // save orbitals
+                        string ORB_FILE = "molecule_" + ID + ".orb";
+                        LOG(logDEBUG,*pLog) << "Serializing to " <<  ORB_FILE << flush;
+                        std::ofstream ofs( (ORB_DIR + "/" + ORB_FILE).c_str() );
+                        boost::archive::binary_oarchive oa( ofs );
+                        oa << _orbitals;
+                        ofs.close();
+                    }
+
+             
+                }
+            }
    
    // Clean run
    _qmpackage->CleanUp();
@@ -238,13 +391,6 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     jres.setStatus(Job::COMPLETE);
 
 
-    // save orbitals
-    string ORB_FILE = "molecule_" + ID + ".orb";
-    LOG(logDEBUG,*pLog) << "Serializing to " <<  ORB_FILE << flush;
-    std::ofstream ofs( (ORB_DIR + "/" + ORB_FILE).c_str() );
-    boost::archive::binary_oarchive oa( ofs );
-    oa << _orbitals;
-    ofs.close();
                                 
     LOG(logINFO,*pLog) << TimeStamp() << " Finished evaluating site " << seg->getId() << flush; 
     

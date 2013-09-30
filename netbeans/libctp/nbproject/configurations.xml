@@ -82,6 +82,8 @@
     <logicalFolder name="f2" displayName="QMPackages" projectFiles="true">
       <itemPath>../../src/libctp/qmpackages/gaussian.cc</itemPath>
       <itemPath>../../src/libctp/qmpackages/gaussian.h</itemPath>
+      <itemPath>../../src/libctp/qmpackages/gw.cc</itemPath>
+      <itemPath>../../src/libctp/qmpackages/gw.h</itemPath>
       <itemPath>../../src/libctp/qmpackages/nwchem.cc</itemPath>
       <itemPath>../../src/libctp/qmpackages/nwchem.h</itemPath>
       <itemPath>../../src/libctp/qmpackages/turbomole.cc</itemPath>
@@ -504,6 +506,10 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libctp/qmpackages/gw.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/gw.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../src/libctp/qmpackages/nwchem.cc"
             ex="false"
             tool="1"
@@ -915,6 +921,10 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libctp/qmpackages/gw.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/gw.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../src/libctp/qmpackages/nwchem.cc"
             ex="false"
             tool="1"
@@ -1325,6 +1335,10 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/gw.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/gw.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/qmpackages/nwchem.cc"
             ex="false"
