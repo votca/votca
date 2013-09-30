@@ -1,16 +1,3 @@
-option(WITH_VOTCA_KMCOLD "Enable the calculator which uses the old kmc code!" OFF)
-#also used in votca_config.h
-if (WITH_VOTCA_KMCOLD)
-  find_package(VOTCA_KMCOLD)
-  if(NOT VOTCA_KMCOLD_FOUND)
-    message(FATAL_ERROR "libvotca_kmcold not found (obsolate package). Please install or better use the new kmc code.")
-  endif(NOT VOTCA_KMCOLD_FOUND)
-  include_directories(${VOTCA_KMCOLD_INCLUDE_DIRS})
-  set(VOTCA_KMCOLD_PKG "libvotca_kmcold")
-else(WITH_VOTCA_KMCOLD)
-  set(VOTCA_KMCOLD_PKG)
-endif(WITH_VOTCA_KMCOLD)
-
 option(WITH_GSL "Use GSL, disabling leads to reduced functionality!" ON)
 if (WITH_GSL)
   find_package(GSL)
