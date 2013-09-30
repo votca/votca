@@ -325,7 +325,7 @@ void IImport::FromIDFTWithSuperExchange(Topology *top, string &_idft_jobs_file) 
 
     vector<Property*> records;
             
-    QMNBList &nblist = top->NBList();   
+    QMNBList &nblist = top->NBList();
     int _number_of_pairs = nblist.size();
     int _current_pairs = 0;
     int _incomplete_jobs = 0;

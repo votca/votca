@@ -21,12 +21,9 @@
 #ifndef _QMApplication_H
 #define	_QMApplication_H
 
-#include <votca/csg/trajectoryreader.h>
-#include <votca/csg/trajectorywriter.h>
-
-#include <votca/tools/application.h>
 #include <votca/tools/property.h>
 
+#include <votca/ctp/ctpapplication.h>
 #include <votca/ctp/calculatorfactory.h>
 #include <votca/ctp/progressobserver.h>
 #include <votca/ctp/topology.h>
@@ -39,7 +36,7 @@ namespace votca { namespace ctp {
 
 using namespace std;
 
-class QMApplication : public Application
+class QMApplication : public CtpApplication
 {
 public:
     QMApplication();
@@ -48,12 +45,6 @@ public:
    void Initialize();
    bool EvaluateOptions();
    void Run(void);
-
-   void ShowHelpText(std::ostream &out);
-
-
-
-
 
    virtual void BeginEvaluate(int nThreads, ProgObserver< vector<Job*>, Job*, Job::JobResult> *obs);
    virtual bool EvaluateFrame();
@@ -64,16 +55,7 @@ public:
 protected:
 
     CTP::Topology           _top;
-    Property                _options;
     list< QMCalculator* >   _calculators;
-
-    enum HelpOutputType { _helpShort, _helpLong };
-    
-    void ReadData() {};
-    void WriteData() {};
-    void LoadOptions() {};
-    
-    void PrintDescription(std::ostream &out, string name,  HelpOutputType _help_output_type);
 
 };
 

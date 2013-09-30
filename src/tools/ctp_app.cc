@@ -1,10 +1,8 @@
 #include <stdlib.h>
 #include <string>
 #include <iostream>
-#include <votca/csg/trajectoryreader.h>
-#include <votca/csg/trajectorywriter.h>
 #include <votca/tools/property.h>
-#include <votca/tools/application.h>
+#include <votca/ctp/ctpapplication.h>
 #include <votca/ctp/toolfactory.h>
 
 
@@ -13,7 +11,7 @@ using namespace std;
 using namespace votca::ctp;
 
 
-class CtpApp : public Application
+class CtpApp : public CtpApplication
 {
 public:
     
@@ -22,8 +20,6 @@ public:
     string  ProgramName() { return "ctp_app"; }    
 
     void    HelpText(ostream &out) { out <<"Runs charge transport tools"<< endl; }
-    void    HelpText() { };
-    void    PrintDescription(const char *name, const bool length);
 
     void    AddTool(QMTool *tool) { _tools.push_back(tool); }
     void    Initialize();
@@ -52,9 +48,6 @@ private:
 
 
 void CtpApp::Initialize() {
-
-    votca::csg::TrajectoryWriter::RegisterPlugins();
-    votca::csg::TrajectoryReader::RegisterPlugins();
     
     QMToolFactory::RegisterAll();    
 
@@ -67,8 +60,6 @@ void CtpApp::Initialize() {
     AddProgramOptions("Tools") ("description,d", propt::value<string>(),
                       "Short description of a tool");
     // Options-related
-    AddProgramOptions() ("options,o", propt::value<string>(),
-                         "  tool options");
     AddProgramOptions() ("nthreads,t", propt::value<int>()->default_value(1),
                          "  number of threads to create");
 }
@@ -80,7 +71,7 @@ bool CtpApp::EvaluateOptions() {
         for(QMToolFactory::assoc_map::const_iterator iter=
             QMTools().getObjects().begin();
             iter != QMTools().getObjects().end(); ++iter) {
-            PrintDescription( (iter->first).c_str(), _short );
+            PrintDescription( std::cout, (iter->first), _helpShort );
         }
         StopExecution();
         return true;
@@ -98,7 +89,7 @@ bool CtpApp::EvaluateOptions() {
                 iter != QMTools().getObjects().end(); ++iter) {
 
                 if ( (*n).compare( (iter->first).c_str() ) == 0 ) {
-                    PrintDescription( (iter->first).c_str(), _long );
+                    PrintDescription( std::cout, (iter->first), _helpLong );
                     printerror = false;
                     break;
                 }
@@ -120,47 +111,6 @@ bool CtpApp::EvaluateOptions() {
         this->AddTool(QMTools().Create((*it).c_str()));
     }
     return 1;
-}
-
-
-void CtpApp::PrintDescription(const char *name, const bool length) {
-    // loading the documentation xml file from VOTCASHARE
-    char *votca_share = getenv("VOTCASHARE");
-    if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
-    string xmlFile = string(getenv("VOTCASHARE")) + string("/ctp/xml/")+name+string(".xml");
-    try {
-        Property options;
-        load_property_from_xml(options, xmlFile);
-
-       if ( length ) { // short description of the tool
-            cout << string("  ") << _fwstring(string(name),14);
-            cout << options.get(name+string(".description")).as<string>();
-       } 
-       else { // long description of the tool
-            cout << " " << _fwstring(string(name),18);
-            cout << options.get(name+string(".description")).as<string>() << endl;
-
-            list<Property *> items = options.Select(name+string(".item"));
-
-            for(list<Property*>::iterator iter = items.begin(); iter!=items.end(); ++iter) {
-                //cout << "Long description" << endl;
-                Property *pname=&( (*iter)->get( string("name") ) );
-                Property *pdesc=&( (*iter)->get( string("description") ) );
-                //Property *pdflt=&( (*iter)->get( string("default") ) );
-                if ( ! (pname->value()).empty() ) {
-                    string out_name = "  <" + pname->value() + ">";
-                    cout << _fwstring(out_name, 20);
-                    //cout << string("  <") << _fwstring(pname->value(), 20) << string(">");
-                    cout << pdesc->value() << endl;
-                }
-             }
-        }
-        cout << endl;
-    } catch(std::exception &error) {
-        // cout << string("XML file or description tag missing: ") << xmlFile;
-        cout << string("  ") << _fwstring(string(name),14);
-        cout << "Undocumented" << endl;            
-    }
 }
 
 
