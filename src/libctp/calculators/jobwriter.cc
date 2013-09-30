@@ -87,7 +87,7 @@ void JobWriter::xqmultipole_chrg(Topology *top) {
         for (vit = states.begin(); vit != states.end(); ++vit) {
             int id = ++jobCount;
             string s1 = *vit;
-            string tag = (format("%1$d%2$s") % id1 % s1).str();                
+            string tag = (format("%1$d:%3$s:%2$s") % id1 % s1 % name1).str();                
             string input = (format("%1$d:%2$s:MP_FILES/%2$s_%3$s.mps")
                 % id1 % name1 % s1).str();
             string stat = "AVAILABLE";

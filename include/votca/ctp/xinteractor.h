@@ -73,7 +73,9 @@ public:
     inline double   PotentialPerm(vec r, APolarSite &pol);
 
     inline double   E_f(APolarSite &pol1, APolarSite &pol2);
+    inline double   E_f_intra(APolarSite &pol1, APolarSite &pol2);
     inline double   E_m(APolarSite &pol1, APolarSite &pol2);
+    inline double   E_m_intra(APolarSite &pol1, APolarSite &pol2);
     
     inline double   E_QQ_ERFC(APolarSite &pol1, APolarSite &pol2, double &ew_alpha);
     inline double   E_QQ_ERF(APolarSite &pol1, APolarSite &pol2, double &ew_alpha);
@@ -2011,6 +2013,45 @@ inline double XInteractor::E_f(APolarSite &pol1, APolarSite &pol2) {
 }
 
 
+inline double XInteractor::E_f_intra(APolarSite &pol1, APolarSite &pol2) {
+    double euu = 0.0; // <- Interaction induced <> induced>    
+    
+    // Thole model: intramolecular feedback between induced dipoles via
+    // their dipolar fields => Count interaction.
+    // This contribution is balanced by the part of the induction work
+    // that is due to the intramolecular field induction.
+    
+    // Induced <> induced interaction
+    // ... Note that this contribution is canceled by the induction work.        
+    if (a*u3 < 40) {
+        euu += pol1.U1x * TU1x_1x() * pol2.U1x;
+        euu += pol1.U1x * TU1x_1y() * pol2.U1y;
+        euu += pol1.U1x * TU1x_1z() * pol2.U1z;
+        euu += pol1.U1y * TU1y_1x() * pol2.U1x;
+        euu += pol1.U1y * TU1y_1y() * pol2.U1y;
+        euu += pol1.U1y * TU1y_1z() * pol2.U1z;
+        euu += pol1.U1z * TU1z_1x() * pol2.U1x;
+        euu += pol1.U1z * TU1z_1y() * pol2.U1y;
+        euu += pol1.U1z * TU1z_1z() * pol2.U1z;
+    }
+    else {
+        euu += pol1.U1x * T1x_1x() * pol2.U1x;
+        euu += pol1.U1x * T1x_1y() * pol2.U1y;
+        euu += pol1.U1x * T1x_1z() * pol2.U1z;
+        euu += pol1.U1y * T1y_1x() * pol2.U1x;
+        euu += pol1.U1y * T1y_1y() * pol2.U1y;
+        euu += pol1.U1y * T1y_1z() * pol2.U1z;
+        euu += pol1.U1z * T1z_1x() * pol2.U1x;
+        euu += pol1.U1z * T1z_1y() * pol2.U1y;
+        euu += pol1.U1z * T1z_1z() * pol2.U1z;
+    }
+    
+    EUU += euu;
+    
+    return euu;
+}
+
+
 inline double XInteractor::E_m(APolarSite &pol1, APolarSite &pol2) {
     
 //    // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
@@ -2176,6 +2217,42 @@ inline double XInteractor::E_m(APolarSite &pol1, APolarSite &pol2) {
     EUU += euu;
     
     return epu + euu;
+}
+
+
+inline double XInteractor::E_m_intra(APolarSite &pol1, APolarSite &pol2) {
+    double euu = 0.0; // <- Interaction induced <> induced>
+    
+    // Thole model: This contribution is balanced by E_f_intra
+               
+    if (a*u3 < 40) {
+        euu += pol1.U1x * TU1x_1x() * pol2.U1x;
+        euu += pol1.U1x * TU1x_1y() * pol2.U1y;
+        euu += pol1.U1x * TU1x_1z() * pol2.U1z;
+        euu += pol1.U1y * TU1y_1x() * pol2.U1x;
+        euu += pol1.U1y * TU1y_1y() * pol2.U1y;
+        euu += pol1.U1y * TU1y_1z() * pol2.U1z;
+        euu += pol1.U1z * TU1z_1x() * pol2.U1x;
+        euu += pol1.U1z * TU1z_1y() * pol2.U1y;
+        euu += pol1.U1z * TU1z_1z() * pol2.U1z;
+    }
+    else {
+        euu += pol1.U1x * T1x_1x() * pol2.U1x;
+        euu += pol1.U1x * T1x_1y() * pol2.U1y;
+        euu += pol1.U1x * T1x_1z() * pol2.U1z;
+        euu += pol1.U1y * T1y_1x() * pol2.U1x;
+        euu += pol1.U1y * T1y_1y() * pol2.U1y;
+        euu += pol1.U1y * T1y_1z() * pol2.U1z;
+        euu += pol1.U1z * T1z_1x() * pol2.U1x;
+        euu += pol1.U1z * T1z_1y() * pol2.U1y;
+        euu += pol1.U1z * T1z_1z() * pol2.U1z;
+    }
+    
+    euu *= -0.5;
+
+    EUU += euu;
+    
+    return euu;
 }
 
 

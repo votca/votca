@@ -1,4 +1,5 @@
 #include <votca/ctp/apolarsite.h>
+#include <boost/math/special_functions/round.hpp>
 #include <fstream>
 #include <string>
 
@@ -22,7 +23,8 @@ APolarSite::APolarSite(APolarSite *templ)
         
       Q00(templ->Q00), Q1x(templ->Q1x), Q1y(templ->Q1y), Q1z(templ->Q1z),
       Q20(templ->Q20), Q21c(templ->Q21c), Q21s(templ->Q21s), Q22c(templ->Q22c),
-      Q22s(templ->Q22s) {
+      Q22s(templ->Q22s), Qxx(templ->Qxx), Qxy(templ->Qxy), Qxz(templ->Qxz),
+      Qyy(templ->Qyy), Qyz(templ->Qyz), Qzz(templ->Qzz) {
         
     this->Depolarize();
 }
@@ -221,11 +223,27 @@ void APolarSite::Charge(int state) {
         Q1y = _Qs[idx][3];   // |
     }
     if (_rank > 1) {
+        // Spherical tensor
         Q20  = _Qs[idx][4];
         Q21c = _Qs[idx][5];
         Q21s = _Qs[idx][6];
         Q22c = _Qs[idx][7];
         Q22s = _Qs[idx][8];
+        
+        // Cartesian tensor
+        Qzz =      Q20;
+        Qxx = -0.5*Q20 + 0.5*sqrt(3)*Q22c;
+        Qyy = -0.5*Q20 - 0.5*sqrt(3)*Q22c;        
+        Qxy =          + 0.5*sqrt(3)*Q22s;
+        Qxz =          + 0.5*sqrt(3)*Q21c;
+        Qyz =          + 0.5*sqrt(3)*Q21s;
+        
+        Qzz *= 1./3.;
+        Qxx *= 1./3.;
+        Qyy *= 1./3.;
+        Qxy *= 1./3.;
+        Qxz *= 1./3.;
+        Qyz *= 1./3.;
     }
 }
 
@@ -385,7 +403,7 @@ void APolarSite::PrintTensorPDB(FILE *out, int state) {
 
 
 void APolarSite::WritePdbLine(FILE *out, const string &tag) {
-    
+        
     fprintf(out, "ATOM  %5d %4s%1s%3s %1s%4d%1s   "
               "%8.3f%8.3f%8.3f%6.2f%6.2f      %4s%2s%2s%4.7f\n",
          _id % 100000,          // Atom serial number           %5d
@@ -404,7 +422,7 @@ void APolarSite::WritePdbLine(FILE *out, const string &tag) {
          _name.c_str(),          // Element symbol               %2s
          " ",                   // Charge on the atom.          %2s
          Q00
-         );    
+         );
 }
 
 
@@ -735,8 +753,29 @@ vector<APolarSite*> APS_FROM_MPS(string filename, int state, QMThread *thread) {
            throw runtime_error("Please supply input file.");           }
 
     if (thread == NULL)
-    printf("\n... ... ... Reading %-25s -> N = %2d Q0(Sum) = %+1.3f ",
+    printf("\n... ... ... Reading %-25s -> N = %2d Q0(Sum) = %+1.7f ",
                           filename.c_str(), poles.size(),  Q0_total);
+    
+    
+    // Apply charge correction: Sum to closest integer
+    int Q_integer = boost::math::iround(Q0_total);
+    double dQ = (double(Q_integer) - Q0_total)/poles.size();
+    
+    double Q0_total_corr = 0.0;
+    vector<APolarSite*>::iterator pit;
+    for (pit = poles.begin(); pit < poles.end(); ++pit) {
+        double Q_uncorr = (*pit)->getQs(state)[0];
+        double Q_corr = Q_uncorr + dQ;
+        (*pit)->setQ00(Q_corr, state);
+        Q0_total_corr += (*pit)->getQs(state)[0];
+    }
+    
+    if (thread == NULL)
+    printf("=> dQ0 = %+1.1e, Q0(corr.) = %+1.0f",
+            dQ, Q0_total_corr);
+    
+    
+    
 
     if (useDefaultPs) {
         if (thread == NULL)

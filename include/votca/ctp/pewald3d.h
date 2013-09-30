@@ -1,5 +1,5 @@
-#ifndef VOTCA_CTP_EWALD3D_H
-#define VOTCA_CTP_EWALD3D_H
+#ifndef VOTCA_CTP_PEWALD3D_H
+#define VOTCA_CTP_PEWALD3D_H
 
 #include <votca/csg/boundarycondition.h>
 #include <votca/ctp/polartop.h>
@@ -22,18 +22,28 @@ namespace votca { namespace ctp {
     // NOTE: The k-shell grouping algorithm can fail for strongly skewed boxes.
     //        
     
-    class Ewald3D3D : public Ewald3DnD
+    class PEwald3D3D : public Ewald3DnD
     {
         
     public:
         
-        Ewald3D3D(Topology *top, PolarTop *ptop, Property *opt, Logger *log);
-       ~Ewald3D3D();
+        PEwald3D3D(Topology *top, PolarTop *ptop, Property *opt, Logger *log);
+       ~PEwald3D3D();
         
-        string IdentifyMethod() { return "3D x 3D"; }
+        string IdentifyMethod() { return "Polar 3D x 3D"; }
+        void GenerateKVectors();
+        
+        EWD::triple<> ConvergeRealSpaceSum();
         EWD::triple<> ConvergeReciprocalSpaceSum();
+        EWD::triple<> CalculateForegroundCorrection();
         EWD::triple<> CalculateShapeCorrection();
-        double CalculateSq2(vec &k);
+        EWD::triple<> CalculateHigherRankCorrection() { return EWD::triple<>(0,0,0); }        
+        EWD::triple<> CalculateK0Correction() { return EWD::triple<>(0,0,0); }
+        
+        void Field_ConvergeRealSpaceSum();
+        void Field_ConvergeReciprocalSpaceSum();
+        void Field_CalculateForegroundCorrection();
+        void Field_CalculateShapeCorrection();
     
     private:
         
