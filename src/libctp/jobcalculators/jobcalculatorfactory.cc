@@ -18,17 +18,30 @@
  */
 
 
-#include <votca/ctp/toolfactory.h>
+#include "jobcalculators/jobcalculatorfactory.h"
 #include "votca_config.h"
-#include "tools/molpol.h"
-#include "tools/pdb2map.h"
+
+
+#include "jobcalculators/idft.h"
+#include "jobcalculators/edft.h"
+#include "jobcalculators/xqmultipole.h"
+#include "jobcalculators/qmmm.h"
+#include "jobcalculators/ewald.h"
+
+
+
 
 namespace votca { namespace ctp {
 
-void QMToolFactory::RegisterAll(void)
-{
-        QMTools().Register<MolPolTool>         ("molpol");
-        QMTools().Register<PDB2Map>            ("pdb2map");
+void JobCalculatorfactory::RegisterAll(void)
+{	
+        JobCalculators().Register<EDFT>                ("edft");
+        JobCalculators().Register<IDFT>                ("idft");
+        JobCalculators().Register<XQMP>                ("xqmultipole");
+        JobCalculators().Register<QMMM>                ("qmmm");
+        JobCalculators().Register< Ewald<Ewald3D2D> >  ("ewald2d");
+        JobCalculators().Register< Ewald<Ewald3D3D> >  ("ewald3d");
+        JobCalculators().Register< Ewald<PEwald3D3D> > ("pewald3d");
 }
 
 }}

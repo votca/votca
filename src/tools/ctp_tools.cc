@@ -8,19 +8,20 @@
 
 using namespace std;
 using namespace votca::ctp;
+using namespace votca::tools;
 
 
-class CtpTools : public CtpApplication
+class CtpTools : public votca::ctp::CtpApplication
 {
 public:
     
-    CtpTools() { QMToolFactory::RegisterAll(); }
+    CtpTools() { votca::ctp::QMToolFactory::RegisterAll(); }
 
     string  ProgramName() { return "ctp_tools"; }    
 
     void    HelpText(ostream &out) { out <<"Runs charge transport tools"<< endl; }
 
-    void    AddTool(QMTool *tool) { _tools.push_back(tool); }
+    void    AddTool(votca::ctp::QMTool *tool) { _tools.push_back(tool); }
     void    Initialize();
     bool    EvaluateOptions();
     void    Run(void);
@@ -31,8 +32,8 @@ public:
     
 private:
     
-    Property          _options;
-    list< QMTool* >   _tools;
+    votca::tools::Property _options;
+    list< votca::ctp::QMTool* >   _tools;
 
     string _fwstring(string original, size_t charCount ) {
         original.resize( charCount, ' ' );

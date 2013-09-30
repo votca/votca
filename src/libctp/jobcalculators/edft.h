@@ -54,7 +54,7 @@ public:
    ~EDFT() {};
 
     string  Identify() { return "edft"; }
-    void    Initialize(Topology *top, Property *options);
+    void    Initialize(Property *options);
     void    ParseOrbitalsXML(Topology *top, Property *options);
     Job::JobResult EvalJob(Topology *top, Job *job, QMThread *thread);
 
@@ -96,7 +96,7 @@ void EDFT::CleanUp() {
 
 }
 
-void EDFT::Initialize(Topology *top, Property *options) {
+void EDFT::Initialize(Property *options) {
 
     _do_input = false;
     _do_run = false;

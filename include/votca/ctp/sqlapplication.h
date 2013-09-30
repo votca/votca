@@ -18,34 +18,66 @@
  */
 
 
-#ifndef _QMCALCULATOR_H
-#define _QMCALCULATOR_H
+#ifndef VOTCA_CTP_SQLAPPLICATION_H
+#define	VOTCA_CTP_SQLAPPLICATION_H
 
+#include <votca/ctp/ctpapplication.h>
 
-#include <votca/ctp/calculator.h>
 #include <votca/ctp/topology.h>
 
-namespace CTP = votca::ctp;
+#include "statesaversqlite.h"
+#include "qmcalculator.h"
+
 
 namespace votca { namespace ctp {
 
-class QMCalculator : public Calculator
+using namespace std;
+
+class SqlApplication : public CtpApplication
 {
 public:
+    SqlApplication();
+   ~SqlApplication() { };
 
-                    QMCalculator() {}
-    virtual        ~QMCalculator() {}
+   void Initialize();
+   bool EvaluateOptions();
+   void Run(void);
 
-    virtual string  Identify() = 0;
+   virtual void BeginEvaluate(int nThreads);
+   virtual bool EvaluateFrame();
+   virtual void EndEvaluate();
 
-    virtual void    Initialize(Property *options) = 0;
-    virtual bool    EvaluateFrame(CTP::Topology *top) { return true; }
-    virtual void    EndEvaluate(CTP::Topology *top) { }
+   void AddCalculator(QMCalculator *calculator);
 
 protected:
+
+    CTP::Topology           _top;
+    list< QMCalculator* >   _calculators;
 
 };
 
 }}
 
-#endif /* _QMCALCULATOR_H */
+
+
+
+
+
+
+
+
+#endif /* _QMApplication_H */
+
+
+
+
+
+
+
+
+
+
+
+
+
+

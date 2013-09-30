@@ -18,31 +18,33 @@
  */
 
 
-#ifndef _QMCALCULATOR_H
-#define _QMCALCULATOR_H
+#ifndef VOTCA_CTP_JOBCALCULATOR_H
+#define VOTCA_CTP_JOBCALCULATOR_H
 
 
-#include <votca/ctp/calculator.h>
+#include <votca/ctp/qmcalculator.h>
 #include <votca/ctp/topology.h>
-
-namespace CTP = votca::ctp;
+#include <votca/ctp/progressobserver.h>
 
 namespace votca { namespace ctp {
 
-class QMCalculator : public Calculator
+class JobCalculator : public QMCalculator
 {
 public:
 
-                    QMCalculator() {}
-    virtual        ~QMCalculator() {}
+                    JobCalculator() {}
+    virtual        ~JobCalculator() {}
 
-    virtual string  Identify() = 0;
-
-    virtual void    Initialize(Property *options) = 0;
+    virtual string  Identify() { return "Generic Job calculator"; }
+    virtual void    GenerateInput(CTP::Topology *top)  { ; }
     virtual bool    EvaluateFrame(CTP::Topology *top) { return true; }
     virtual void    EndEvaluate(CTP::Topology *top) { }
+    virtual void    Import(CTP::Topology *top) { ; }
+    void            setProgObserver(ProgObserver< vector<Job*>, Job*, Job::JobResult > *obs) { _progObs = obs; }
 
 protected:
+    
+    ProgObserver< vector<Job*>, Job*, Job::JobResult > *_progObs;
 
 };
 

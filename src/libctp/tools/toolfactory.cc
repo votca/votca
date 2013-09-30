@@ -18,34 +18,17 @@
  */
 
 
-#ifndef _QMCALCULATOR_H
-#define _QMCALCULATOR_H
-
-
-#include <votca/ctp/calculator.h>
-#include <votca/ctp/topology.h>
-
-namespace CTP = votca::ctp;
+#include "tools/toolfactory.h"
+#include "votca_config.h"
+#include "tools/molpol.h"
+#include "tools/pdb2map.h"
 
 namespace votca { namespace ctp {
 
-class QMCalculator : public Calculator
+void QMToolFactory::RegisterAll(void)
 {
-public:
-
-                    QMCalculator() {}
-    virtual        ~QMCalculator() {}
-
-    virtual string  Identify() = 0;
-
-    virtual void    Initialize(Property *options) = 0;
-    virtual bool    EvaluateFrame(CTP::Topology *top) { return true; }
-    virtual void    EndEvaluate(CTP::Topology *top) { }
-
-protected:
-
-};
+        QMTools().Register<MolPolTool>         ("molpol");
+        QMTools().Register<PDB2Map>            ("pdb2map");
+}
 
 }}
-
-#endif /* _QMCALCULATOR_H */

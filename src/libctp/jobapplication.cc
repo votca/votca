@@ -18,18 +18,19 @@
  */
 
 
-#include <votca/ctp/qmapplication.h>
+#include <votca/ctp/jobapplication.h>
+#include "jobcalculators/jobcalculatorfactory.h"
 #include <votca/ctp/version.h>
 #include <boost/format.hpp>
 
 namespace votca { namespace ctp {
 
-QMApplication::QMApplication() {
+JobApplication::JobApplication() {
     JobCalculatorfactory::RegisterAll();
 }
 
 
-void QMApplication::Initialize(void) {
+void JobApplication::Initialize(void) {
     CtpApplication::Initialize();
 
     JobCalculatorfactory::RegisterAll();
@@ -47,21 +48,28 @@ void QMApplication::Initialize(void) {
     AddProgramOptions() ("save,s", propt::value<int>()->default_value(1),
         "  whether or not to save changes to state file");
     AddProgramOptions() ("restart,r", propt::value<string>()->default_value(""),
-        "  parallelized job execution: job restart pattern; "
-            "e.g. '-r host(mach1:1234,mach2:5678) stat(FAILED)'");
+        "  restart pattern: 'host(pc1:234) stat(FAILED)'");
     AddProgramOptions() ("cache,c", propt::value<int>()->default_value(8),
-        "  parallelized job execution: job cache size");
+        "  assigns jobs in blocks of this size");
+    AddProgramOptions() ("jobs,j", propt::value<string>()->default_value("run"),
+        "  task(s) to perform: input, run, import");
 }
 
 
-bool QMApplication::EvaluateOptions(void) {
+bool JobApplication::EvaluateOptions(void) {
     CheckRequired("options", "Please provide an xml file with calculator options");
     CheckRequired("file", "Please provide the state file");
+    
+    string jobstr = _op_vm["jobs"].as<string>();
+    _generate_input = jobstr.find("input") != std::string::npos;
+    _run = jobstr.find("run") != std::string::npos;
+    _import = jobstr.find("import") != std::string::npos;
+    
     return true;
 }
 
 
-void QMApplication::Run() {
+void JobApplication::Run() {
 
     load_property_from_xml(_options, _op_vm["options"].as<string>());
 
@@ -110,12 +118,12 @@ void QMApplication::Run() {
 
 
 
-void QMApplication::AddCalculator(JobCalculator* calculator) {
+void JobApplication::AddCalculator(JobCalculator* calculator) {
     _calculators.push_back(calculator);
 }
 
 
-void QMApplication::BeginEvaluate(int nThreads = 1, 
+void JobApplication::BeginEvaluate(int nThreads = 1, 
         ProgObserver< vector<Job*>, Job*, Job::JobResult > *obs = NULL) {
     list< JobCalculator* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
@@ -127,16 +135,18 @@ void QMApplication::BeginEvaluate(int nThreads = 1,
     }
 }
 
-bool QMApplication::EvaluateFrame() {
+bool JobApplication::EvaluateFrame() {
     list< JobCalculator* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
         cout << "... " << (*it)->Identify() << " " << flush;
-        (*it)->EvaluateFrame(&_top);
+        if (_generate_input) (*it)->GenerateInput(&_top);
+        if (_run) (*it)->EvaluateFrame(&_top);
+        if (_import) (*it)->Import(&_top);
         cout << endl;
     }
 }
 
-void QMApplication::EndEvaluate() {
+void JobApplication::EndEvaluate() {
     list< JobCalculator* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
         (*it)->EndEvaluate(&_top);

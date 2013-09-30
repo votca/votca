@@ -46,7 +46,7 @@ namespace votca { namespace ctp {
 // IDFT MEMBER FUNCTIONS         //
 // +++++++++++++++++++++++++++++ //
 
-void IDFT::Initialize(ctp::Topology *top, votca::tools::Property* options ) {
+void IDFT::Initialize(votca::tools::Property* options ) {
     
     _energy_difference = 0.0;
     

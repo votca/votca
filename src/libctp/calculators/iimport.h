@@ -13,7 +13,7 @@ public:
 
     string      Identify() { return "iimport"; }
 
-    void        Initialize(Topology *top, Property *options);
+    void        Initialize(Property *options);
     bool        EvaluateFrame(Topology *top);
     void        XML2PairTI(QMPair *qmpair, string &xmlDirFile);
     void        List2PairsTI(Topology *top, string &ti_file);
@@ -32,7 +32,7 @@ private:
 };
 
 
-void IImport::Initialize(Topology *top, Property *options) {
+void IImport::Initialize(Property *options) {
     
     _importFromDirs = false;
     _importFromList = false;

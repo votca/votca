@@ -16,7 +16,7 @@ public:
 
     string  Identify() { return "PairDump"; }
 
-    void    Initialize(Topology *top, Property *options);
+    void    Initialize(Property *options);
     bool    EvaluateFrame(Topology *top);
 
 private:
@@ -31,7 +31,7 @@ private:
 };
 
 
-void PairDump::Initialize(Topology *top, Property *options) {
+void PairDump::Initialize(Property *options) {
 
     string key = "options.pairdump";   
     

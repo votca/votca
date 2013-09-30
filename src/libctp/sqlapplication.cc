@@ -18,21 +18,22 @@
  */
 
 
-#include <votca/ctp/qmapplication.h>
+#include <votca/ctp/sqlapplication.h>
+#include "calculators/calculatorfactory.h"
 #include <votca/ctp/version.h>
 #include <boost/format.hpp>
 
 namespace votca { namespace ctp {
 
-QMApplication::QMApplication() {
-    JobCalculatorfactory::RegisterAll();
+SqlApplication::SqlApplication() {
+    Calculatorfactory::RegisterAll();
 }
 
 
-void QMApplication::Initialize(void) {
+void SqlApplication::Initialize(void) {
     CtpApplication::Initialize();
 
-    JobCalculatorfactory::RegisterAll();
+    Calculatorfactory::RegisterAll();
 
     namespace propt = boost::program_options;
 
@@ -46,22 +47,17 @@ void QMApplication::Initialize(void) {
         "  number of threads to create");
     AddProgramOptions() ("save,s", propt::value<int>()->default_value(1),
         "  whether or not to save changes to state file");
-    AddProgramOptions() ("restart,r", propt::value<string>()->default_value(""),
-        "  parallelized job execution: job restart pattern; "
-            "e.g. '-r host(mach1:1234,mach2:5678) stat(FAILED)'");
-    AddProgramOptions() ("cache,c", propt::value<int>()->default_value(8),
-        "  parallelized job execution: job cache size");
 }
 
 
-bool QMApplication::EvaluateOptions(void) {
+bool SqlApplication::EvaluateOptions(void) {
     CheckRequired("options", "Please provide an xml file with calculator options");
     CheckRequired("file", "Please provide the state file");
     return true;
 }
 
 
-void QMApplication::Run() {
+void SqlApplication::Run() {
 
     load_property_from_xml(_options, _op_vm["options"].as<string>());
 
@@ -76,15 +72,11 @@ void QMApplication::Run() {
     // STATESAVER & PROGRESS OBSERVER
     string statefile = OptionsMap()["file"].as<string>();
     StateSaverSQLite statsav;
-    statsav.Open(_top, statefile);    
-
-    ProgObserver< vector<Job*>, Job*, Job::JobResult > progObs
-        = ProgObserver< vector<Job*>, Job*, Job::JobResult >();
-    progObs.InitCmdLineOpts(OptionsMap());
+    statsav.Open(_top, statefile);
     
     // INITIALIZE & RUN CALCULATORS
     cout << "Initializing calculators " << endl;
-    BeginEvaluate(nThreads, &progObs);
+    BeginEvaluate(nThreads);
 
     int frameId = -1;
     int framesDone = 0;
@@ -110,25 +102,23 @@ void QMApplication::Run() {
 
 
 
-void QMApplication::AddCalculator(JobCalculator* calculator) {
+void SqlApplication::AddCalculator(QMCalculator* calculator) {
     _calculators.push_back(calculator);
 }
 
 
-void QMApplication::BeginEvaluate(int nThreads = 1, 
-        ProgObserver< vector<Job*>, Job*, Job::JobResult > *obs = NULL) {
-    list< JobCalculator* > ::iterator it;
+void SqlApplication::BeginEvaluate(int nThreads = 1) {
+    list< QMCalculator* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
         cout << "... " << (*it)->Identify() << " ";
         (*it)->setnThreads(nThreads);
-        (*it)->setProgObserver(obs);
         (*it)->Initialize(&_options);        
         cout << endl;
     }
 }
 
-bool QMApplication::EvaluateFrame() {
-    list< JobCalculator* > ::iterator it;
+bool SqlApplication::EvaluateFrame() {
+    list< QMCalculator* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
         cout << "... " << (*it)->Identify() << " " << flush;
         (*it)->EvaluateFrame(&_top);
@@ -136,8 +126,8 @@ bool QMApplication::EvaluateFrame() {
     }
 }
 
-void QMApplication::EndEvaluate() {
-    list< JobCalculator* > ::iterator it;
+void SqlApplication::EndEvaluate() {
+    list< QMCalculator* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
         (*it)->EndEvaluate(&_top);
     }

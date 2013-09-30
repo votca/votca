@@ -18,34 +18,67 @@
  */
 
 
-#ifndef _QMCALCULATOR_H
-#define _QMCALCULATOR_H
+#ifndef VOTCA_CTP_JOBAPPLICATION
+#define	VOTCA_CTP_JOBAPPLICATION
 
+#include <votca/ctp/ctpapplication.h>
 
-#include <votca/ctp/calculator.h>
+#include <votca/ctp/progressobserver.h>
 #include <votca/ctp/topology.h>
 
-namespace CTP = votca::ctp;
+#include "statesaversqlite.h"
+#include "jobcalculator.h"
+
 
 namespace votca { namespace ctp {
 
-class QMCalculator : public Calculator
+using namespace std;
+
+class JobApplication : public CtpApplication
 {
 public:
+    JobApplication();
+   ~JobApplication() { };
 
-                    QMCalculator() {}
-    virtual        ~QMCalculator() {}
+   void Initialize();
+   bool EvaluateOptions();
+   void Run(void);
 
-    virtual string  Identify() = 0;
-
-    virtual void    Initialize(Property *options) = 0;
-    virtual bool    EvaluateFrame(CTP::Topology *top) { return true; }
-    virtual void    EndEvaluate(CTP::Topology *top) { }
+   virtual void BeginEvaluate(int nThreads, ProgObserver< vector<Job*>, Job*, Job::JobResult> *obs);
+   virtual bool EvaluateFrame();
+   virtual void EndEvaluate();
+   void AddCalculator(JobCalculator *calculator);
 
 protected:
+    
+    bool _generate_input, _run, _import;
+    CTP::Topology           _top;
+    list< JobCalculator* >   _calculators;
 
 };
 
 }}
 
-#endif /* _QMCALCULATOR_H */
+
+
+
+
+
+
+
+
+#endif /* _QMApplication_H */
+
+
+
+
+
+
+
+
+
+
+
+
+
+

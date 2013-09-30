@@ -24,12 +24,12 @@
 #include <votca/tools/property.h>
 
 #include <votca/ctp/ctpapplication.h>
-#include <votca/ctp/calculatorfactory.h>
+#include <votca/ctp/jobcalculatorfactory.h>
 #include <votca/ctp/progressobserver.h>
 #include <votca/ctp/topology.h>
 
 #include "statesaversqlite.h"
-#include "qmcalculator.h"
+#include "jobcalculator.h"
 
 
 namespace votca { namespace ctp {
@@ -50,12 +50,12 @@ public:
    virtual bool EvaluateFrame();
    virtual void EndEvaluate();
 
-   void AddCalculator(QMCalculator *calculator);
+   void AddCalculator(JobCalculator *calculator);
 
 protected:
 
     CTP::Topology           _top;
-    list< QMCalculator* >   _calculators;
+    list< JobCalculator* >   _calculators;
 
 };
 

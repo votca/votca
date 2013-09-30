@@ -24,7 +24,7 @@ public:
    ~QMMM() {};
    
     string          Identify() { return "qmmm"; }
-    void            Initialize(Topology *, Property *);
+    void            Initialize(Property *);
 
     void            CustomizeLogger(QMThread *thread);
     void            PreProcess(Topology *top);
@@ -83,7 +83,7 @@ private:
 // ========================================================================== //
 
 
-void QMMM::Initialize(Topology *top, Property *opt) {
+void QMMM::Initialize(Property *opt) {
 
     // _options already has default values, update them with the supplied options
     _options.CopyValues("", *opt);

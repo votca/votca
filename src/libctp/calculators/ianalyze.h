@@ -13,7 +13,7 @@ public:
 
     string  Identify() { return "IAnalyze"; }
 
-    void    Initialize(Topology *top, Property *options);
+    void    Initialize(Property *options);
     bool    EvaluateFrame(Topology *top);
     void    IHist(Topology *top, int state);
 
@@ -25,7 +25,7 @@ private:
 };
 
 
-void IAnalyze::Initialize(Topology *top, Property *opt) {
+void IAnalyze::Initialize(Property *opt) {
 
     string key = "options.ianalyze";
 

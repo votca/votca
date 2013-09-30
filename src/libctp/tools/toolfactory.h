@@ -17,35 +17,34 @@
  *
  */
 
+#ifndef __QMTOOLFACTORY__H
+#define	__QMTOOLFACTORY__H
 
-#ifndef _QMCALCULATOR_H
-#define _QMCALCULATOR_H
-
-
-#include <votca/ctp/calculator.h>
-#include <votca/ctp/topology.h>
-
-namespace CTP = votca::ctp;
+#include <votca/tools/objectfactory.h>
+#include <votca/ctp/qmtool.h>
 
 namespace votca { namespace ctp {
 
-class QMCalculator : public Calculator
+class QMToolFactory : public votca::tools::ObjectFactory<std::string, QMTool>
 {
+    
+private:
+    QMToolFactory() {}
+    
 public:
+    
+    static void RegisterAll(void);
 
-                    QMCalculator() {}
-    virtual        ~QMCalculator() {}
-
-    virtual string  Identify() = 0;
-
-    virtual void    Initialize(Property *options) = 0;
-    virtual bool    EvaluateFrame(CTP::Topology *top) { return true; }
-    virtual void    EndEvaluate(CTP::Topology *top) { }
-
-protected:
-
+    friend QMToolFactory &QMTools();
 };
+
+inline QMToolFactory &QMTools()
+{
+    static QMToolFactory _instance;
+    return _instance;
+}
 
 }}
 
-#endif /* _QMCALCULATOR_H */
+#endif	/* __QMTOOLFACTORY__H */
+

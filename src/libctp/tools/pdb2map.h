@@ -33,6 +33,7 @@ private:
     string      _input_file;
     string      _output_file;
     Topology    _top;
+    Logger      _log;
 
    // element:mass map
     map <string,int> el2mass;

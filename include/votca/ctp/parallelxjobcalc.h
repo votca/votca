@@ -2,7 +2,7 @@
 #define __PARALLELXJOBCALC__H
 
 
-#include <votca/ctp/qmcalculator.h>
+#include <votca/ctp/jobcalculator.h>
 #include <votca/ctp/qmthread.h>
 #include <votca/tools/mutex.h>
 #include <votca/ctp/job.h>
@@ -22,7 +22,7 @@
 namespace votca { namespace ctp {
 
 template<typename JobContainer, typename pJob, typename rJob> 
-class ParallelXJobCalc : public QMCalculator
+class ParallelXJobCalc : public JobCalculator
 {
 
 public:
