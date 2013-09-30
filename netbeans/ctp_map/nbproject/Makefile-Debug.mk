@@ -69,17 +69,17 @@ LDLIBSOPTIONS=../libctp/dist/Debug/GNU-Linux-x86/liblibctp.a ../../../csg/netbea
 
 ../../src/tools/ctp_map: ${OBJECTFILES}
 	${MKDIR} -p ../../src/tools
-	${LINK.cc} -o ../../src/tools/ctp_map ${OBJECTFILES} ${LDLIBSOPTIONS} 
+	${LINK.c} -o ../../src/tools/ctp_map ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
 ${OBJECTDIR}/_ext/715944016/Md2QmEngine.o: ../../src/tools/Md2QmEngine.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../../csg/include -I../../include -I../../../tools/include -I../../../moo/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/Md2QmEngine.o ../../src/tools/Md2QmEngine.cc
+	$(COMPILE.c) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/Md2QmEngine.o ../../src/tools/Md2QmEngine.cc
 
 ${OBJECTDIR}/_ext/715944016/ctp_map.o: ../../src/tools/ctp_map.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../../csg/include -I../../include -I../../../tools/include -I../../../moo/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/ctp_map.o ../../src/tools/ctp_map.cc
+	$(COMPILE.c) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/ctp_map.o ../../src/tools/ctp_map.cc
 
 # Subprojects
 .build-subprojects:

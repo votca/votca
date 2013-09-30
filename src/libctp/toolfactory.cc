@@ -20,15 +20,15 @@
 
 #include <votca/ctp/toolfactory.h>
 #include "votca_config.h"
-#include "qmtools/molpol.h"
-
+#include "tools/molpol.h"
+#include "tools/pdb2map.h"
 
 namespace votca { namespace ctp {
 
 void QMToolFactory::RegisterAll(void)
 {
         QMTools().Register<MolPolTool>         ("molpol");
-        
+        QMTools().Register<PDB2Map>            ("pdb2map");
 }
 
 }}

@@ -24,22 +24,34 @@
 
 #include <votca/tools/property.h>
 #include <votca/ctp/topology.h>
-
+#include <votca/ctp/logger.h>
+#include <boost/format.hpp>
 
 namespace CTP = votca::ctp;
 
 namespace votca { namespace ctp {
 
+    using namespace boost;
+    
 class QMTool
 {
 public:
 
-                    QMTool() { };
+    QMTool() {
+        _log.setReportLevel(logDEBUG);
+        _log.setPreface(logINFO,    "\n... INF ..." );
+        _log.setPreface(logERROR,   "\n... ERR ..." );
+        _log.setPreface(logWARNING, "\n... WAR ..." );
+        _log.setPreface(logDEBUG,   "\n... DBG ..." );  
+
+    };
     virtual        ~QMTool() { };
 
     virtual string  Identify() { return "Generic tool"; }
 
-    virtual void    Initialize(Property *options) { }
+    virtual void    Initialize(Property *options) {
+    }
+    
     virtual bool    Evaluate() { return true; }
     virtual bool    EndEvaluate() { return true; }
 
@@ -48,6 +60,7 @@ public:
 protected:
 
     int _nThreads;
+    Logger _log;
 
 };
 

@@ -23,7 +23,7 @@ AS=as
 # Macros
 CND_PLATFORM=GNU-Linux-x86
 CND_DLIB_EXT=so
-CND_CONF=Release
+CND_CONF=Debug
 CND_DISTDIR=dist
 CND_BUILDDIR=build
 
@@ -35,8 +35,8 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/715944016/Md2QmEngine.o \
-	${OBJECTDIR}/_ext/715944016/ctp_map.o
+	${OBJECTDIR}/_ext/715944016/ctp_app.o \
+	${OBJECTDIR}/_ext/484457893/toolfactory.o
 
 
 # C Compiler Flags
@@ -57,21 +57,21 @@ LDLIBSOPTIONS=
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ctp_map
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ctp_app
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ctp_map: ${OBJECTFILES}
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ctp_app: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ctp_map ${OBJECTFILES} ${LDLIBSOPTIONS} 
+	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ctp_app ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
-${OBJECTDIR}/_ext/715944016/Md2QmEngine.o: ../../src/tools/Md2QmEngine.cc 
+${OBJECTDIR}/_ext/715944016/ctp_app.o: ../../src/tools/ctp_app.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
 	${RM} $@.d
-	$(COMPILE.c) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/Md2QmEngine.o ../../src/tools/Md2QmEngine.cc
+	$(COMPILE.c) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/ctp_app.o ../../src/tools/ctp_app.cc
 
-${OBJECTDIR}/_ext/715944016/ctp_map.o: ../../src/tools/ctp_map.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
+${OBJECTDIR}/_ext/484457893/toolfactory.o: ../../src/libctp/toolfactory.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
 	${RM} $@.d
-	$(COMPILE.c) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/ctp_map.o ../../src/tools/ctp_map.cc
+	$(COMPILE.c) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/toolfactory.o ../../src/libctp/toolfactory.cc
 
 # Subprojects
 .build-subprojects:
@@ -79,7 +79,7 @@ ${OBJECTDIR}/_ext/715944016/ctp_map.o: ../../src/tools/ctp_map.cc
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
-	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ctp_map
+	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ctp_app
 
 # Subprojects
 .clean-subprojects:
