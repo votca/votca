@@ -26,7 +26,7 @@ public:
    ~XQMP() {};
    
     string          Identify() { return "XQMultipole"; }
-    void            Initialize(Topology *, Property *);
+    void            Initialize(Property *);
 
     void            CustomizeLogger(QMThread *thread);
     void            PreProcess(Topology *top);
@@ -81,7 +81,7 @@ private:
 // ========================================================================== //
 
 
-void XQMP::Initialize(Topology *top, Property *opt) {
+void XQMP::Initialize(Property *opt) {
 
     _options = opt;
     

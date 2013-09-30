@@ -53,7 +53,7 @@ public:
     IDFT() {};
    ~IDFT() {};
    
-    void    Initialize(ctp::Topology *top, tools::Property *options );
+    void    Initialize(tools::Property *options );
     
     string  Identify() { return "idft"; }
     

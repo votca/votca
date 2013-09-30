@@ -30,7 +30,7 @@ public:
    ~Ewald() {};
    
     string          Identify() { return "ewald"; }
-    void            Initialize(Topology *, Property *);
+    void            Initialize(Property *);
 
     void            PreProcess(Topology *top);
     Job::JobResult  EvalJob(Topology *top, Job *job, QMThread *thread);
@@ -57,7 +57,7 @@ private:
 
 
 template<class EwaldMethod>
-void Ewald<EwaldMethod>::Initialize(Topology *top, Property *opt) {
+void Ewald<EwaldMethod>::Initialize(Property *opt) {
 
     _options = opt;
     

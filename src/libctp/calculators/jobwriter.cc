@@ -7,7 +7,7 @@ using boost::format;
 namespace votca { namespace ctp {
     
     
-void JobWriter::Initialize(Topology *top, Property *options) {   
+void JobWriter::Initialize(Property *options) {   
     
     // REGISTER FUNCTIONS
     _key_funct["xqmultipole:ct"] = &JobWriter::xqmultipole_ct;

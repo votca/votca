@@ -664,4 +664,15 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
     return true;
 }
 
+/**
+ * Converts the Turbomole data stored in the Orbitals object to GW input format
+ */
+bool Turbomole::ConvertToGW( Orbitals* _orbitals ) {
+    cerr << "Tried to convert to GW from Turbomole package. ";
+    throw std::runtime_error( "Conversion not implemented yet!");
+}
+
+
+
+
 }}

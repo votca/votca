@@ -16,7 +16,7 @@ public:
 
     string Identify() { return "eanalyze"; }
 
-    void Initialize(Topology *top, Property *opt);
+    void Initialize(Property *opt);
     bool EvaluateFrame(Topology *top);
     void SiteHist(Topology *top, int state);
     void PairHist(Topology *top, int state);
@@ -44,7 +44,7 @@ private:
 
 
 
-void EAnalyze::Initialize(Topology *top, Property *opt) {
+void EAnalyze::Initialize(Property *opt) {
 
     string key = "options.eanalyze";
 

@@ -14,7 +14,7 @@ class Velocity : public QMCalculator
 public:
 
     string Identify() { return "Velocity"; }
-    void Initialize(Topology *top, Property *opt);
+    void Initialize(Property *opt);
     bool EvaluateFrame(Topology *top);
 
 private:
@@ -30,7 +30,7 @@ private:
 
 
 
-void Velocity::Initialize(Topology *top, Property *opt) {
+void Velocity::Initialize(Property *opt) {
     
     string key = "options.velocity";
 

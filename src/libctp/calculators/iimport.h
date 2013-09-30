@@ -13,7 +13,7 @@ public:
 
     string      Identify() { return "iimport"; }
 
-    void        Initialize(Topology *top, Property *options);
+    void        Initialize(Property *options);
     bool        EvaluateFrame(Topology *top);
     void        XML2PairTI(QMPair *qmpair, string &xmlDirFile);
     void        List2PairsTI(Topology *top, string &ti_file);
@@ -32,7 +32,7 @@ private:
 };
 
 
-void IImport::Initialize(Topology *top, Property *options) {
+void IImport::Initialize(Property *options) {
     
     _importFromDirs = false;
     _importFromList = false;
@@ -325,7 +325,7 @@ void IImport::FromIDFTWithSuperExchange(Topology *top, string &_idft_jobs_file) 
 
     vector<Property*> records;
             
-    QMNBList &nblist = top->NBList();   
+    QMNBList &nblist = top->NBList();
     int _number_of_pairs = nblist.size();
     int _current_pairs = 0;
     int _incomplete_jobs = 0;

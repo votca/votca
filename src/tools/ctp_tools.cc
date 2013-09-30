@@ -1,31 +1,27 @@
 #include <stdlib.h>
 #include <string>
 #include <iostream>
-#include <votca/csg/trajectoryreader.h>
-#include <votca/csg/trajectorywriter.h>
 #include <votca/tools/property.h>
-#include <votca/tools/application.h>
+#include <votca/ctp/ctpapplication.h>
 #include <votca/ctp/toolfactory.h>
-
 
 
 using namespace std;
 using namespace votca::ctp;
+using namespace votca::tools;
 
 
-class CtpApp : public Application
+class CtpTools : public votca::ctp::CtpApplication
 {
 public:
     
-    CtpApp() { QMToolFactory::RegisterAll(); }
+    CtpTools() { votca::ctp::QMToolFactory::RegisterAll(); }
 
-    string  ProgramName() { return "ctp_app"; }    
+    string  ProgramName() { return "ctp_tools"; }    
 
     void    HelpText(ostream &out) { out <<"Runs charge transport tools"<< endl; }
-    void    HelpText() { };
-    void    PrintDescription(const char *name, const bool length);
 
-    void    AddTool(QMTool *tool) { _tools.push_back(tool); }
+    void    AddTool(votca::ctp::QMTool *tool) { _tools.push_back(tool); }
     void    Initialize();
     bool    EvaluateOptions();
     void    Run(void);
@@ -35,11 +31,9 @@ public:
     void EndEvaluate();
     
 private:
-    static const bool _short = true;
-    static const bool _long = false;
     
-    Property          _options;
-    list< QMTool* >   _tools;
+    votca::tools::Property _options;
+    list< votca::ctp::QMTool* >   _tools;
 
     string _fwstring(string original, size_t charCount ) {
         original.resize( charCount, ' ' );
@@ -51,10 +45,7 @@ private:
 
 
 
-void CtpApp::Initialize() {
-
-    votca::csg::TrajectoryWriter::RegisterPlugins();
-    votca::csg::TrajectoryReader::RegisterPlugins();
+void CtpTools::Initialize() {
     
     QMToolFactory::RegisterAll();    
 
@@ -67,20 +58,18 @@ void CtpApp::Initialize() {
     AddProgramOptions("Tools") ("description,d", propt::value<string>(),
                       "Short description of a tool");
     // Options-related
-    AddProgramOptions() ("options,o", propt::value<string>(),
-                         "  tool options");
     AddProgramOptions() ("nthreads,t", propt::value<int>()->default_value(1),
                          "  number of threads to create");
 }
 
-bool CtpApp::EvaluateOptions() {
+bool CtpTools::EvaluateOptions() {
 
     if (OptionsMap().count("list")) {
         cout << "Available tools: \n";
         for(QMToolFactory::assoc_map::const_iterator iter=
             QMTools().getObjects().begin();
             iter != QMTools().getObjects().end(); ++iter) {
-            PrintDescription( (iter->first).c_str(), _short );
+            PrintDescription( std::cout, (iter->first), _helpShort );
         }
         StopExecution();
         return true;
@@ -98,7 +87,7 @@ bool CtpApp::EvaluateOptions() {
                 iter != QMTools().getObjects().end(); ++iter) {
 
                 if ( (*n).compare( (iter->first).c_str() ) == 0 ) {
-                    PrintDescription( (iter->first).c_str(), _long );
+                    PrintDescription( std::cout, (iter->first), _helpLong );
                     printerror = false;
                     break;
                 }
@@ -123,48 +112,7 @@ bool CtpApp::EvaluateOptions() {
 }
 
 
-void CtpApp::PrintDescription(const char *name, const bool length) {
-    // loading the documentation xml file from VOTCASHARE
-    char *votca_share = getenv("VOTCASHARE");
-    if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
-    string xmlFile = string(getenv("VOTCASHARE")) + string("/ctp/xml/")+name+string(".xml");
-    try {
-        Property options;
-        load_property_from_xml(options, xmlFile);
-
-       if ( length ) { // short description of the tool
-            cout << string("  ") << _fwstring(string(name),14);
-            cout << options.get(name+string(".description")).as<string>();
-       } 
-       else { // long description of the tool
-            cout << " " << _fwstring(string(name),18);
-            cout << options.get(name+string(".description")).as<string>() << endl;
-
-            list<Property *> items = options.Select(name+string(".item"));
-
-            for(list<Property*>::iterator iter = items.begin(); iter!=items.end(); ++iter) {
-                //cout << "Long description" << endl;
-                Property *pname=&( (*iter)->get( string("name") ) );
-                Property *pdesc=&( (*iter)->get( string("description") ) );
-                //Property *pdflt=&( (*iter)->get( string("default") ) );
-                if ( ! (pname->value()).empty() ) {
-                    string out_name = "  <" + pname->value() + ">";
-                    cout << _fwstring(out_name, 20);
-                    //cout << string("  <") << _fwstring(pname->value(), 20) << string(">");
-                    cout << pdesc->value() << endl;
-                }
-             }
-        }
-        cout << endl;
-    } catch(std::exception &error) {
-        // cout << string("XML file or description tag missing: ") << xmlFile;
-        cout << string("  ") << _fwstring(string(name),14);
-        cout << "Undocumented" << endl;            
-    }
-}
-
-
-void CtpApp::Run() {
+void CtpTools::Run() {
 
     string optionsFile = _op_vm["options"].as<string>();    
     load_property_from_xml(_options, optionsFile);   
@@ -181,7 +129,7 @@ void CtpApp::Run() {
 }
 
 
-void CtpApp::BeginEvaluate(int nThreads = 1) {
+void CtpTools::BeginEvaluate(int nThreads = 1) {
     list< QMTool* > ::iterator it;
     for (it = _tools.begin(); it != _tools.end(); it++) {
         cout << "... " << (*it)->Identify() << " " << flush;
@@ -191,7 +139,7 @@ void CtpApp::BeginEvaluate(int nThreads = 1) {
     }
 }
 
-bool CtpApp::Evaluate() {
+bool CtpTools::Evaluate() {
     list< QMTool* > ::iterator it;
     for (it = _tools.begin(); it != _tools.end(); it++) {
         cout << "... " << (*it)->Identify() << " " << flush;
@@ -200,7 +148,7 @@ bool CtpApp::Evaluate() {
     }
 }
 
-void CtpApp::EndEvaluate() {
+void CtpTools::EndEvaluate() {
     list< QMTool* > ::iterator it;
     for (it = _tools.begin(); it != _tools.end(); it++) {
         (*it)->EndEvaluate();
@@ -210,7 +158,7 @@ void CtpApp::EndEvaluate() {
 
 int main(int argc, char** argv) {
     
-    CtpApp ctpapp;
+    CtpTools ctpapp;
     return ctpapp.Exec(argc, argv);
 
 }

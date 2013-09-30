@@ -35,7 +35,7 @@ public:
 
     string Identify() { return "rates"; }
 
-    void Initialize(Topology *top, Property *options);
+    void Initialize(Property *options);
     void ParseEnergiesXML(Topology *top, Property *opt);
     void EvaluatePair(Topology *top, QMPair *pair);
     void CalculateRate(Topology *top, QMPair *pair, int state);
@@ -68,7 +68,7 @@ private:
 
 
 
-void Rates::Initialize(Topology *top, Property *options) {
+void Rates::Initialize(Property *options) {
 
     string key = "options.rates";
 

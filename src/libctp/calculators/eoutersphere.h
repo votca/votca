@@ -40,7 +40,7 @@ public:
 
     string              Identify() { return "eoutersphere"; }
 
-    void                Initialize(Topology *top, Property *options);
+    void                Initialize(Property *options);
     void                EStatify(Topology *, Property *);
     void                DistributeMpoles(Topology *);
     vector<PolarSite*>  ParseGdmaFile(string filename, int state);

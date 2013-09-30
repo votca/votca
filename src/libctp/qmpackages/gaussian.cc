@@ -45,7 +45,9 @@ void Gaussian::Initialize( Property *options ) {
     _log_file_name = fileName + ".log"; 
     _shell_file_name = fileName + ".sh";
     _orb_file_name = "fort.7" ;               
-
+    _input_vxc_file_name = fileName + "-2.com";
+    
+    
     string key = "package";
     string _name = options->get(key+".name").as<string> ();
     
@@ -102,7 +104,7 @@ void Gaussian::Initialize( Property *options ) {
         _write_basis_set = false;
     }
 
-    // check if psudopotentials are required ("pseudo")
+    // check if pseudopotentials are required ("pseudo")
     iop_pos = _options.find("pseudo");
     if (iop_pos != std::string::npos) {
         _write_pseudopotentials = true;
@@ -131,9 +133,9 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
     
     _com_file.open ( _com_file_name_full.c_str() );
     // header 
-    if ( _chk_file_name.size() ) _com_file << "%chk = " << _chk_file_name << endl;
-    if ( _memory.size() ) _com_file << "%mem = " << _memory << endl ;
-    if ( _threads > 0 ) _com_file << "%nprocshared = "  << _threads << endl;
+    if ( _chk_file_name.size() ) _com_file << "%chk=" << _chk_file_name << endl;
+    if ( _memory.size() ) _com_file << "%mem=" << _memory << endl ;
+    if ( _threads > 0 ) _com_file << "%nprocshared="  << _threads << endl;
     if ( _options.size() ) _com_file <<  _options << endl ;
 
     _com_file << endl;
@@ -187,7 +189,7 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
                 ub::matrix_row< ub::matrix<double> > mr (orbitals_guess->_mo_coefficients, *soi);
                 
                 int column = 1;
-                for (unsigned j = 0; j < mr.size (); ++j) {
+                for (unsigned j = 0; j < mr.size(); ++j) {
                         _com_file <<  FortranFormat( mr[j] );
                         if (column == ncolumns) { _com_file << std::endl; column = 0; }
                         column++;
@@ -225,23 +227,33 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
                     elements.push_back(element_name);
                   
                     Element* element = bs.getElement(element_name);
-                    
+                    /* Alternative is to write each basis set to a element_name.gbs file
+                     * and include the gbs file in the com-file via Gaussian's @ function
+                     * Advantage: *gbs files can be reused by isogwa later
+                     */
+                    ofstream _el_file;
+                    string _el_file_name = _run_dir + "/" + element_name + ".gbs";
+                    _el_file.open ( _el_file_name.c_str() );
                     // element name, [possibly indeces of centers], zero to indicate the end
-                    _com_file << element_name << " 0" << endl;
-
+                    //_com_file << element_name << " 0" << endl;
+                    _com_file << "@" << element_name << ".gbs" << endl;
+                    _el_file << element_name << " 0" << endl;
                     for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
                         
                         Shell* shell = (*its);
                         // shell type, number primitives, scale factor
-                        _com_file << shell->getType() << " " << shell->getSize() << " " << shell->getScale() << endl;
-                        
+                        //_com_file << shell->getType() << " " << shell->getSize() << " " << shell->getScale() << endl;
+                        _el_file << shell->getType() << " " << shell->getSize() << " " << FortranFormat( shell->getScale() ) << endl;
                         for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                             GaussianPrimitive* gaussian = *itg;
-                            _com_file << gaussian->decay << " " << gaussian->contraction << endl;
+                            //_com_file << gaussian->decay << " " << gaussian->contraction << endl;
+                            _el_file << FortranFormat( gaussian->decay )<< " " << FortranFormat( gaussian->contraction ) << endl;
                         }
                     }
                     
-                    _com_file << "****\n";
+                    //_com_file << "****\n";
+                    _el_file << "****\n";
+                    _el_file.close();
 
                 }
             }
@@ -300,6 +312,42 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
                 }
             }
         }
+        
+        /* This is not very nice. We assume that pseudopotentials are only 
+         * needed for GW-BSE runs. Therefore, when we ask for writing the 
+         * ECP info to the Gaussian com-file, it automatically means 
+         * writing the input file for the <a|Vxc|b> matrix output run as well. 
+         */
+        
+        ofstream _com_file2;
+    
+        string _com_file_name_full2 = _run_dir + "/" + _input_vxc_file_name;
+    
+        _com_file2.open ( _com_file_name_full2.c_str() );
+        // header 
+        if ( _chk_file_name.size() ) _com_file2 << "%chk=" << _chk_file_name << endl;
+        if ( _memory.size() ) _com_file2 << "%mem=" << _memory << endl ;
+        _com_file2 << "%nprocshared=1" << endl;
+        
+        // adjusting the options line to Vxc output only
+        boost::algorithm::replace_all(_options, "pseudo=read", "Geom=AllCheck");
+        boost::algorithm::replace_all(_options, "/gen", " chkbasis");  
+        boost::algorithm::replace_all(_options, "punch=mo", "Guess=read");  
+        if ( _options.size() ) _com_file2 <<  _options << endl ;
+
+        // # pop=minimal pbepbe/gen pseudo=read scf=tight punch=mo
+        // # pop=minimal pbepbe chkbasis nosymm Geom=AllCheck Guess=Read
+
+        
+        _com_file2 << endl;
+        _com_file2 << "VXC output run \n";
+        _com_file2 << endl;
+        _com_file2.close();
+
+        // and now generate a shell script to run both jobs
+        WriteShellScript();
+    
+        
     }
     
     if ( _write_charges ) {
@@ -342,7 +390,13 @@ bool Gaussian::WriteShellScript() {
     _shell_file << "#!/bin/tcsh" << endl ;
     _shell_file << "mkdir -p " << _scratch_dir << endl;
     _shell_file << "setenv GAUSS_SCRDIR " << _scratch_dir << endl;
-    _shell_file << _executable << " " << _input_file_name << endl;    
+    _shell_file << _executable << " " << _input_file_name << endl; 
+    if ( _write_pseudopotentials ) {
+        _shell_file << "rm fort.22" << endl;
+        _shell_file << "setenv DoPrtXC YES" << endl;
+        _shell_file << _executable << " " << _input_vxc_file_name << " >& /dev/null " << endl; 
+        _shell_file << "setenv DoPrtXC NO" << endl;       
+    }
     _shell_file.close();
 }
 
@@ -358,13 +412,14 @@ bool Gaussian::Run()
         // if scratch is provided, run the shell script; 
         // otherwise run gaussian directly and rely on global variables 
         string _command;
-        if ( _scratch_dir.size() != 0 ) {
+        if ( _scratch_dir.size() != 0 || _write_pseudopotentials ) {
             _command  = "cd " + _run_dir + "; tcsh " + _shell_file_name;
+//            _command  = "cd " + _run_dir + "; mkdir -p " + _scratch_dir +"; " + _executable + " " + _input_file_name;
         }
         else {
-            _command  = "cd " + _run_dir + "; " + _executable + " " + _input_file_name;
+            _command  = "cd " + _run_dir + "; mkdir -p $GAUSS_SCRDIR; " + _executable + " " + _input_file_name;
         }
-        
+
         int i = system ( _command.c_str() );
         
         if ( CheckLogFile() ) {
@@ -608,6 +663,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
     bool _has_number_of_electrons = false;
     bool _has_basis_set_size = false;
     bool _has_overlap_matrix = false;
+    bool _has_vxc_matrix = false;
     bool _has_charges = false;
     bool _has_coordinates = false;
     bool _has_qm_energy = false;
@@ -617,6 +673,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
     int _unoccupied_levels = 0;
     int _number_of_electrons = 0;
     int _basis_set_size = 0;
+    int _cart_basis_set_size = 0;
     
     LOG(logDEBUG,*_pLog) << "Parsing " << _log_file_name << flush;
     string _log_file_name_full =  _run_dir + "/" + _log_file_name;
@@ -655,7 +712,11 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
             _basis_set_size = boost::lexical_cast<int>(results.front());
             _orbitals->_basis_set_size = _basis_set_size ;
             _orbitals->_has_basis_set_size = true;
+            _cart_basis_set_size = boost::lexical_cast<int>(results[6] );
             LOG(logDEBUG,*_pLog) << "Basis functions: " << _basis_set_size << flush;
+            if ( _write_pseudopotentials ) {
+                LOG(logDEBUG,*_pLog) << "Cartesian functions: " << _cart_basis_set_size << flush;
+            }
         }
 
         /*
@@ -923,9 +984,415 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
            ) break;
         
     } // end of reading the file line-by-line
-   
+
     LOG(logDEBUG,*_pLog) << "Done parsing" << flush;
+    _input_file.close();
+    
+    /* Now, again the somewhat ugly construction:
+     * if we request writing of pseudopotential data to the input file, this
+     * implies a GW-BSE run. For this, we have to 
+     * - parse atomic orbitals Vxc matrix */
+   if ( _write_pseudopotentials ) {
+        LOG(logDEBUG,*_pLog) << "Parsing fort.24 for Vxc"  << flush;
+        string _log_file_name_full =  _run_dir + "/fort.24";
+
+       // prepare the container
+       _orbitals->_has_vxc = true;
+       (_orbitals->_vxc).resize( _cart_basis_set_size );
+            
+       _has_vxc_matrix = true;
+       //cout << "Found the overlap matrix!" << endl;   
+       vector<int> _j_indeces;
+        
+        
+        // Start parsing the file line by line
+        ifstream _input_file(_log_file_name_full.c_str());
+        while (_input_file) {
+           getline (_input_file, _line); 
+           if( _input_file.eof() ) break;
+                    
+           vector<string> _row;
+           boost::trim( _line );
+           boost::algorithm::split( _row , _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on); 
+                
+           int _i_index = boost::lexical_cast<int>(  _row[0]  ); 
+           int _j_index = boost::lexical_cast<int>(  _row[1]  );
+           //cout << "Vxc element [" << _i_index << ":" << _j_index << "] " << boost::lexical_cast<double>( _row[2] ) << endl;
+           _orbitals->_vxc( _i_index-1 , _j_index-1 ) = boost::lexical_cast<double>( _row[2] );
+        }
+        
+        LOG(logDEBUG,*_pLog) << "Done parsing" << flush;
+        _input_file.close();
+   }
+    
+    
+    
+
     return true;
+}
+
+/**
+ * Converts the Gaussian data stored in the Orbitals object to GW input format
+ * This includes - writing out the orbitals with additional zeros and permutations
+ *               - rewriting the Vxc matrix from cartesian to spherical AOs
+ *               - forming the expectation value of the MOs with Vxc
+ *               - writing out basis set information
+ */
+bool Gaussian::ConvertToGW( Orbitals* _orbitals ) {
+        
+    LOG(logDEBUG,*_pLog) << "Converting Gaussian to GW " << flush;
+    // prepare file names
+    string _orb_file_name_full =  _run_dir + "/orbitals.votca" ;
+    string _vxc_file_name_full =  _run_dir + "/vxc.votca" ;
+
+    // reload the basis set
+    list<string> elements;
+    BasisSet bs;
+    string basis_name("ubecppol");
+        
+    bs.LoadBasisSet( basis_name );
+    LOG(logDEBUG,*_pLog) << "Loaded Basis Set " << basis_name << flush;
+    
+    // rewriting the molecular orbitals
+    ofstream _orb_file;
+    _orb_file.open ( _orb_file_name_full.c_str() );
+    _orb_file.precision(8);
+    // getting the basis set sizes
+    //int _basis_size      = _orbitals->getBasisSetSize();
+    std::vector<double>::size_type _basis_size = _orbitals->getBasisSetSize();
+    //int _cart_basis_size = _orbitals->_vxc.size1();
+    ub::matrix<double>::size_type _cart_basis_size = _orbitals->_vxc.size1();
+    //cout << "\nSpherical basis size is " << _basis_size << endl;
+    //cout << "\nCartesian basis size is " << _cart_basis_size << endl;
+    
+    ub::matrix<double> mo_coefficients = (*_orbitals->getOrbitals());
+    ub::vector<double> energies = (*_orbitals->getEnergies());
+    
+    // Sanity checks
+    if ( mo_coefficients.size1() != _basis_size ){
+        cerr << "Incompatible basis size in molecular orbitals " << mo_coefficients.size1() << " vs basis set " << _basis_size ;
+        throw std::runtime_error( "Conversion failed!");
+        return false;
+    }
+    if ( energies.size() != _basis_size ){
+        cerr << "Incompatible basis size in energies " << energies.size() << " vs basis set " << _basis_size ;
+        throw std::runtime_error( "Conversion failed!");
+        return false;
+    }
+    
+    // orbital energies in GW are in Rydberg
+    energies = 2.0*energies;
+    
+    // get atoms from orbitals and define iterator
+    std::vector< QMAtom* > atoms = (*_orbitals->getAtoms());
+    vector< QMAtom* >::iterator ita;
+    LOG(logDEBUG,*_pLog) << "Rewriting molecular orbitals " << flush;
+    // Loop over all molecular orbitals
+    for ( int _i_orbital = 0; _i_orbital < _basis_size ; _i_orbital++ ) {
+        _orb_file << _i_orbital+1 << " " << FortranFormat(energies(_i_orbital)) << endl;
+        int _i_coef_qc = 0;
+        int _i_coef_gw = 0;
+                
+        // Loop over all atoms
+        for (ita = atoms.begin(); ita < atoms.end(); ita++) {
+
+            string element_name = (*ita)->type;
+            Element* element = bs.getElement(element_name);
+            //cout << "Atom " << element_name << endl;
+            // go through all shell types of this element
+            for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+                string shell_type = (*its)->getType();
+
+                // write out coefficients as needed
+                if ( shell_type == "S" ){
+                    // write the s function coefficient
+                    _orb_file << _i_orbital+1 << " " << _i_coef_gw+1 << " " << mo_coefficients( _i_orbital, _i_coef_qc )  << endl;
+                } else if ( shell_type == "P" ) {
+                    // add one zero for unused s function
+                    _orb_file << _i_orbital+1 << " " << _i_coef_gw+1 << " " <<  0.0  << endl;
+                    // write the px, py, pz function coefficients
+                    for (int j=0; j<3; j++){
+                        _orb_file << _i_orbital+1 << " " << _i_coef_gw+j+2 << " " <<  mo_coefficients( _i_orbital, _i_coef_qc+j )  << endl;
+                    }
+                } else if ( shell_type == "D" ) {
+                    // add four zeros for unused s, px, py, pz functions
+                    for (int j=1; j<5; j++){
+                        _orb_file << _i_orbital+1 << " " << _i_coef_gw+j << " " <<  0.0 << endl; 
+                    }
+                    /* write the d function coefficients
+                     * Gaussian has 5 spherical d functions (3z2-r2,xz,yz,x2-y2,xy)
+                     * isogwa   has 5 spherical d functions (xz,yz,xy,3zz-rr,xx-yy)
+                     */ 
+                    _orb_file << _i_orbital+1 << " " << _i_coef_gw+5 << " " << mo_coefficients( _i_orbital, _i_coef_qc+1 )  << endl;
+                    _orb_file << _i_orbital+1 << " " << _i_coef_gw+6 << " " << mo_coefficients( _i_orbital, _i_coef_qc+2 )  << endl;
+                    _orb_file << _i_orbital+1 << " " << _i_coef_gw+7 << " " << mo_coefficients( _i_orbital, _i_coef_qc+4 )  << endl;
+                    _orb_file << _i_orbital+1 << " " << _i_coef_gw+8 << " " << mo_coefficients( _i_orbital, _i_coef_qc )  << endl;
+                    _orb_file << _i_orbital+1 << " " << _i_coef_gw+9 << " " << mo_coefficients( _i_orbital, _i_coef_qc+3 )  << endl;
+
+                    // add one zeros for unused s* function
+                    _orb_file << _i_orbital+1 << " " << _i_coef_gw+10 << " " <<  0.0 << endl; 
+                 } else {
+                    cerr << "Conversion of shell type " << shell_type << " is not implemented!";
+                    throw std::runtime_error( "Conversion failed!");
+                    return false;
+                }
+                _i_coef_gw += NumbfGW( shell_type );
+                _i_coef_qc += NumbfQC( shell_type );
+            }
+        }
+    }  
+    _orb_file.close();
+    
+    
+    /* The AO Vxc matrix is expressed in cartesian Gaussians, while the MO are 
+     * in spherical Gaussians. The AO matrix has first to be transformed to
+     * sphericals.
+     */
+    
+    ub::matrix<double> vxc  = ub::zero_matrix<double> (_basis_size, _basis_size);
+    ub::matrix<double> vxc_cart = (*_orbitals->getVxc()); 
+    vector< QMAtom* >::iterator jta;
+
+    int _isp = 0;
+    int _jsp = 0;
+    int _ica = 0;
+    int _jca = 0;
+    LOG(logDEBUG,*_pLog) << "Rewriting Vxc from cartesian to spherical functions " << flush;
+    // loop over all i_atoms
+    for ( ita = atoms.begin(); ita < atoms.end(); ita++) {
+
+            string i_element_name = (*ita)->type;
+            Element* i_element = bs.getElement(i_element_name);
+            // go through all shell types of this element
+            for (Element::ShellIterator its = i_element->firstShell(); its != i_element->lastShell(); its++) {
+                string i_shell_type = (*its)->getType();
+                _jsp = 0;
+                _jca = 0;
+                // loop over all j_atoms
+                for ( jta = atoms.begin(); jta < atoms.end(); jta++) {
+
+                    string j_element_name = (*jta)->type;
+                    Element* j_element = bs.getElement(j_element_name);
+                    // go through all shell types of this element
+                    for (Element::ShellIterator jts = j_element->firstShell(); jts != j_element->lastShell(); jts++) {
+                        string j_shell_type = (*jts)->getType();
+
+                        //cout << i_shell_type << "   "  << j_shell_type << endl;
+                        if (( i_shell_type == "S" || i_shell_type == "P" ) && ( j_shell_type == "S" || j_shell_type == "P" ) ) {
+                            // <s,p|vxc|s,p> elements are just copy and paste jobs
+                            for ( int i = 0; i < NumbfQC( i_shell_type); i++ ){
+                                for ( int j = 0; j < NumbfQC_cart( j_shell_type ); j++ ){
+                                    vxc( _isp + i, _jsp + j ) = vxc_cart( _ica +i, _jca + j );
+                                }
+                            }
+                        } else if (( i_shell_type == "S" || i_shell_type == "P" ) && j_shell_type == "D" ) {
+                            // <s,p|V_xc|d> must be rewritten
+                            for (int i = 0; i < NumbfQC( i_shell_type); i++ ){
+                                // <s,p|Vxc|d3z2-r2>
+                                vxc( _isp +i, _jsp )    = -0.5*vxc_cart( _ica +i , _jca    )
+                                                          -0.5*vxc_cart( _ica +i , _jca +1 )
+                                                          +    vxc_cart( _ica +i , _jca +2 );
+                                // <s,p|Vxc|dxz>
+                                vxc( _isp +i, _jsp +1 ) = vxc_cart( _ica +i , _jca +4 );
+                                
+                                // <s,p|Vxc|dyz>
+                                vxc( _isp +i, _jsp +2 ) = vxc_cart( _ica +i , _jca +5 );
+                                
+                                // <s,p|Vxc|dx2-y2>
+                                vxc( _isp +i, _jsp +3 ) =  0.5*sqrt(3.0) 
+                                                          *( vxc_cart( _ica+i , _jca    )
+                                                            -vxc_cart( _ica+i , _jca +1 ));                                          
+                                // <s,p|Vxc|dxy>
+                                vxc( _isp +i, _jsp +4 ) = vxc_cart( _ica +i , _jca +3 );
+                            }
+                        } else if ( i_shell_type == "D" && ( j_shell_type == "S" || j_shell_type == "P" ) ) {
+                            // <d|V_xc|s,p> must be rewritten
+                            for (int j = 0; j < NumbfQC( j_shell_type); j++ ){
+                                // <d3z2-r2|v_xc|s,p>
+                                vxc( _isp    , _jsp +j ) = -0.5*vxc_cart( _ica    , _jca +j )
+                                                           -0.5*vxc_cart( _ica +1 , _jca +j )
+                                                           +    vxc_cart( _ica +2 , _jca +j );
+                                // <dxz|v_xc|s,p> 
+                                vxc( _isp +1 , _jsp +j ) = vxc_cart( _ica +4 , _jca +j );
+                                
+                                // <dyz|v_xc|s,p>
+                                vxc( _isp +2 , _jsp +j ) = vxc_cart( _ica +5 , _jca +j );
+                                
+                                // <dx2-y2|v_xc|s,p>
+                                vxc( _isp +3 , _jsp +j ) =  0.5*sqrt(3.0) 
+                                                           *( vxc_cart( _ica   , _jca +j )
+                                                             -vxc_cart( _ica+1 , _jca +j ));         
+                                // <dxy|v_xc|s,p>
+                                vxc( _isp +4 , _jsp +j ) = vxc_cart( _ica +3 , _jca +j );
+                                
+                            }
+                            
+                        } else if ( i_shell_type == "D" && j_shell_type == "D" ){
+                            // <d|Vxc|d> has to be rewritten
+                            
+                            // <d3z2-r2|Vxc|d3z2-r2>
+                            vxc( _isp    , _jsp   ) = 0.25 *(  vxc_cart( _ica    , _jca    )
+                                                              +vxc_cart( _ica    , _jca +1 )
+                                                              +vxc_cart( _ica +1 , _jca    )                                    
+                                                              +vxc_cart( _ica +1 , _jca +1 ) )
+                                                     -0.5  *(  vxc_cart( _ica    , _jca +2 )
+                                                              +vxc_cart( _ica +1 , _jca +2 ) 
+                                                              +vxc_cart( _ica +2 , _jca    )         
+                                                              +vxc_cart( _ica +2 , _jca +1 ) )
+                                                     +         vxc_cart( _ica +2 , _jca +2 );
+                            
+                            // <d3z2-r2|Vxc|dxz>
+                            vxc( _isp   , _jsp +1 ) = -0.5 * (  vxc_cart ( _ica     , _jca +4 ) 
+                                                               +vxc_cart ( _ica +1  , _jca +4 ) )
+                                                            +   vxc_cart ( _ica +2  , _jca +4 );
+                            
+                            // <d3z2-r2|Vxc|dyz>
+                            vxc( _isp   , _jsp +2 ) = -0.5 * (  vxc_cart ( _ica     , _jca +5 ) 
+                                                               +vxc_cart ( _ica +1  , _jca +5 ) )
+                                                            +   vxc_cart ( _ica +2  , _jca +5 );                            
+                        
+                            // <d3z2-r2|Vxc|dx2-y2>
+                            vxc( _isp   , _jsp +3 ) = 0.25 * sqrt(3.0)             
+                                                       *( -vxc_cart( _ica    , _jca    )   
+                                                          +vxc_cart( _ica    , _jca +1 )  
+                                                          -vxc_cart( _ica +1 , _jca    )  
+                                                          +vxc_cart( _ica +1 , _jca +1 )  
+                                                    +2.0 * vxc_cart( _ica +2 , _jca    )  
+                                                    -2.0 * vxc_cart( _ica +2 , _jca +1 ) );
+                                    
+                            //  <d3z2-r2|Vxc|dxy>  
+                            vxc( _isp    , _jsp +4) = -0.5* ( vxc_cart( _ica    , _jca +3 )   
+                                                             +vxc_cart( _ica +1 , _jca +3 ) ) 
+                                                      +       vxc_cart( _ica +2 , _jca +3 );          
+                                    
+                            // <dxz|V|d3z2-r2>
+                            vxc( _isp +1 , _jsp  ) = -0.5 * ( vxc_cart( _ica +4 , _jca    )   
+                                                             +vxc_cart( _ica +4 , _jca +1 ) ) 
+                                                     +        vxc_cart( _ica +4 , _jca +2 );        
+
+                            // <dxz|V|dxz>
+                            vxc( _isp +1 , _jsp +1 ) = vxc_cart( _ica +4 , _jca +4 );
+
+                            // <dxz|V|dyz>
+                            vxc( _isp +1 , _jsp +2 ) = vxc_cart( _ica +4 , _jca + 5 );
+
+                            // <dxz|V|dx2-y2>
+                            vxc( _isp +1 , _jsp +3 ) = 0.5 * sqrt(3.0)
+                                                        *( vxc_cart( _ica +4 , _jca    ) 
+                                                          -vxc_cart( _ica +4 , _jca + 1) );
+
+                            // <dxz|V|dxy>
+                            vxc( _isp +1 , _jsp +4 ) = vxc_cart( _ica +4 , _jca +3 );
+
+                            // <dyz|V|d3z2-r2>
+                            vxc( _isp +2 , _jsp     ) = -0.5* ( vxc_cart( _ica +5 , _jca    )   
+                                                               +vxc_cart( _ica +5 , _jca +1 ) ) 
+                                                        +      vxc_cart( _ica +5 , _jca +2 );                           
+
+                            // <dyz|V|dxz>
+                            vxc( _isp +2 , _jsp +1 ) = vxc_cart( _ica +5 , _jca + 4 );
+                            
+                            // <dyz|V|dyz>
+                            vxc( _isp +2 , _jsp +2 ) = vxc_cart( _ica +5 , _jca + 5 );
+
+                            // <dyz|V|dx2-y2>
+                            vxc( _isp +2 , _jsp +3 ) = 0.5 * sqrt(3.0) 
+                                                       * ( vxc_cart( _ica +5 , _jca    ) 
+                                                          -vxc_cart( _ica +5 , _jca +1 ));
+
+                            // <dyz|V|dxy>
+                            vxc( _isp +2 , _jsp +4 ) = vxc_cart( _ica +5 , _jca +3 );
+
+                            // <dx2-y2|V|d3z2-r2>
+                            vxc( _isp +3 , _jsp   ) = 0.25*sqrt(3.0)             
+                                                      *( -vxc_cart( _ica    , _jca    )   
+                                                         -vxc_cart( _ica    , _jca +1 ) 
+                                                         +vxc_cart( _ica +1 , _jca    )
+                                                         +vxc_cart( _ica +1 , _jca +1 )
+                                                         +2.0*vxc_cart( _ica    , _jca +2)    
+                                                         -2.0*vxc_cart( _ica +1 , _jca +2) );
+
+                           // <dx2-y2|V|dxz>
+                           vxc( _isp +3 , _jsp +1 ) = 0.5 * sqrt(3.0) 
+                                                       *( vxc_cart( _ica    , _jca +4 ) 
+                                                         -vxc_cart( _ica +1 , _jca +4 ));
+                           // <dx2-y2|V|dyz>
+                           vxc( _isp +3 , _jsp +2 ) = 0.5 * sqrt(3.0) 
+                                                      *( vxc_cart( _ica    , _jca +5) 
+                                                        -vxc_cart( _ica +1 , _jca +5) );
+
+                           // <dx2-y2|V|dx2-y2>
+                           vxc( _isp +3 , _jsp +3 ) = 0.75*( vxc_cart( _ica    , _jca    ) 
+                                                            -vxc_cart( _ica    , _jca +1 )
+                                                            -vxc_cart( _ica +1 , _jca    )
+                                                            +vxc_cart( _ica +1 , _jca +1 ) );
+
+                          // <dx2-y2|V|dxy>
+                          vxc( _isp +3 , _jsp +4 ) = 0.5*sqrt(3.0) 
+                                                     *( vxc_cart( _ica    , _jca +3 ) 
+                                                       -vxc_cart( _ica +1 , _jca +3 ) );
+
+                          // <dxy|V|d3z2-r2>
+                          vxc( _isp +4 , _jsp    ) = -0.5* ( vxc_cart( _ica +3 , _jca    )   
+                                                            +vxc_cart( _ica +3 , _jca +1 ) ) 
+                                                    +       vxc_cart( _ica +3 , _jca +2 );
+                         // <dxy|V|dxz>
+                         vxc( _isp +4 , _jsp +1 ) = vxc_cart( _ica +3 , _jca +4 );
+                         
+                         // <dxy|V|dyz>
+                         vxc( _isp +4 , _jsp +2 ) = vxc_cart( _ica +3 , _jca + 5 );
+   
+   
+                         // <dxy|V|dx2-y2>
+                         vxc( _isp +4 , _jsp +3 ) = 0.5*sqrt(3.0)
+                                                   *( vxc_cart( _ica +3 , _jca     ) 
+                                                     -vxc_cart( _ica +3 , _jca + 1 ));
+                         // <dxy|V|dxy>
+                         vxc( _isp +4 , _jsp +4 ) = vxc_cart( _ica +3 , _jca +3 );                          
+                            
+                        }
+                        // update matrix indices
+                        _jsp += NumbfQC( j_shell_type );
+                        _jca += NumbfQC_cart( j_shell_type );
+                    } // j_shells
+                } // j_atoms
+                _isp += NumbfQC( i_shell_type );
+                _ica += NumbfQC_cart( i_shell_type );
+            } // i_shells
+    } // i_atoms
+
+    /* Finally, with the rewritten AO Vxc matrix, we have to determine the
+     * expectation values of the MOs with Vxc and write them to file
+     */
+    
+    /* calculating the expectation values for all orbitals is overkill,
+     * this should be limited to the range of orbitals included in the 
+     * GW and BSE steps, according to options (LATER!)
+     */
+    LOG(logDEBUG,*_pLog) << "Calculating MO Vxc matrix " << flush;
+    ub::matrix<double> vxc_expect  = ub::zero_matrix<double> ( _basis_size , _basis_size );
+    ub::matrix<double> _temp       = ub::zero_matrix<double> ( _basis_size , _basis_size );
+    _temp =  ub::prod( vxc, ub::trans( mo_coefficients ) ) ;
+    vxc_expect = ub::prod( mo_coefficients  , _temp );
+ 
+    // write to file vxc.votca
+    LOG(logDEBUG,*_pLog) << "Writing MO Vxc matrix " << flush;
+    // output to file
+    ofstream _vxc_file;
+    _vxc_file.open ( _vxc_file_name_full.c_str() );
+    for (int _i_orbital = 0; _i_orbital < _basis_size ; _i_orbital++ ){
+        for (int _j_orbital = 0; _j_orbital < _basis_size ; _j_orbital++ ){
+            _vxc_file << _i_orbital+1 << "  " << _j_orbital+1 << "  " << FortranFormat( 2.0*vxc_expect( _i_orbital , _j_orbital ) ) << endl; 
+        }
+    }
+    _vxc_file.close();
+    
+    // 
+    
+    
+    
+    LOG(logDEBUG,*_pLog) << "Done converting to GW" << flush;
+    return true; 
 }
 
 string Gaussian::FortranFormat( const double &number ) {
@@ -936,7 +1403,57 @@ string Gaussian::FortranFormat( const double &number ) {
     boost::replace_first(_snumber, "e", "D");
     return _snumber;
 }
+
         
+int Gaussian::NumbfGW( string shell_type ) {
+    int _nbf;
+    if ( shell_type == "S" ){
+        _nbf = 1;
+    } else if ( shell_type == "P" ){
+        _nbf = 4;
+    } else if ( shell_type == "D" ){
+        _nbf = 10;
+    } else if ( shell_type == "SP" ) {
+        _nbf = 4;
+    } else if ( shell_type == "SPD" ) {
+        _nbf = 10;
+    }
+    return _nbf;
+}
+
+
+int Gaussian::NumbfQC( string shell_type ) {
+    int _nbf;
+    if ( shell_type == "S" ){
+        _nbf = 1;
+    } else if ( shell_type == "P" ){
+        _nbf = 3;
+    } else if ( shell_type == "D" ){
+        _nbf = 5;
+    } else if ( shell_type == "SP" ) {
+        _nbf = 4;
+    } else if ( shell_type == "SPD" ) {
+        _nbf = 9;
+    }
+    return _nbf;
+}
+
+
+int Gaussian::NumbfQC_cart( string shell_type ) {
+    int _nbf;
+    if ( shell_type == "S" ){
+        _nbf = 1;
+    } else if ( shell_type == "P" ){
+        _nbf = 3;
+    } else if ( shell_type == "D" ){
+        _nbf = 6;
+    } else if ( shell_type == "SP" ) {
+        _nbf = 4;
+    } else if ( shell_type == "SPD" ) {
+        _nbf = 10;
+    }
+    return _nbf;
+}
 
 
 

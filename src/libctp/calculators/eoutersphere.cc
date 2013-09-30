@@ -28,7 +28,7 @@ namespace votca { namespace ctp {
 // EOUTERSPHERE MEMBER FUNCTIONS //
 // +++++++++++++++++++++++++++++ //
 
-void EOutersphere::Initialize(Topology *top, Property *opt) {
+void EOutersphere::Initialize(Property *opt) {
 
     string key = "options.eoutersphere";
 
@@ -63,7 +63,7 @@ void EOutersphere::Initialize(Topology *top, Property *opt) {
         throw std::runtime_error("Possible typo in options file.");
     }
 
-    this->EStatify(top, opt);
+    //this->EStatify(top, opt);
 }
 
 

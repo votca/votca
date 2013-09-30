@@ -25,20 +25,17 @@
 namespace votca { namespace ctp {
 
 QMApplication::QMApplication() {
-    Calculatorfactory::RegisterAll();
+    JobCalculatorfactory::RegisterAll();
 }
 
 
 void QMApplication::Initialize(void) {
-    votca::csg::TrajectoryWriter::RegisterPlugins();
-    votca::csg::TrajectoryReader::RegisterPlugins();
+    CtpApplication::Initialize();
 
-    Calculatorfactory::RegisterAll();
+    JobCalculatorfactory::RegisterAll();
 
     namespace propt = boost::program_options;
 
-    AddProgramOptions() ("options,o", propt::value<string>(),
-        "  calculator options");
     AddProgramOptions() ("file,f", propt::value<string>(),
         "  sqlight state file, *.sql");
     AddProgramOptions() ("first-frame,i", propt::value<int>()->default_value(1),
@@ -113,25 +110,25 @@ void QMApplication::Run() {
 
 
 
-void QMApplication::AddCalculator(QMCalculator* calculator) {
+void QMApplication::AddCalculator(JobCalculator* calculator) {
     _calculators.push_back(calculator);
 }
 
 
 void QMApplication::BeginEvaluate(int nThreads = 1, 
         ProgObserver< vector<Job*>, Job*, Job::JobResult > *obs = NULL) {
-    list< QMCalculator* > ::iterator it;
+    list< JobCalculator* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
         cout << "... " << (*it)->Identify() << " ";
         (*it)->setnThreads(nThreads);
         (*it)->setProgObserver(obs);
-        (*it)->Initialize(&_top, &_options);        
+        (*it)->Initialize(&_options);        
         cout << endl;
     }
 }
 
 bool QMApplication::EvaluateFrame() {
-    list< QMCalculator* > ::iterator it;
+    list< JobCalculator* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
         cout << "... " << (*it)->Identify() << " " << flush;
         (*it)->EvaluateFrame(&_top);
@@ -140,46 +137,10 @@ bool QMApplication::EvaluateFrame() {
 }
 
 void QMApplication::EndEvaluate() {
-    list< QMCalculator* > ::iterator it;
+    list< JobCalculator* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
         (*it)->EndEvaluate(&_top);
     }
-}
-
-void QMApplication::ShowHelpText(std::ostream &out) {
-    string name = ProgramName();
-    if (VersionString() != "") name = name + ", version " + VersionString();
-    votca::ctp::HelpTextHeader(name);
-    HelpText(out);
-    out << "\n\n" << OptionsDesc() << endl;
-}
-
-void QMApplication::PrintDescription(std::ostream &out, string name,  HelpOutputType _help_output_type) {
-    
-    // loading documentation from the xml file in VOTCASHARE
-    char *votca_share = getenv("VOTCASHARE");
-    if (votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
-    string xmlFile = string(getenv("VOTCASHARE")) + string("/ctp/xml/") + name + string(".xml");
-
-    boost::format _format("%|3t|%1% %|20t|%2% \n");
-    try {
-        Property options;
-        load_property_from_xml(options, xmlFile);
-
-        switch (_help_output_type) {
-
-            case _helpShort:
-                _format % name % options.get("options." + name).getAttribute<string>("help");
-                out << _format;
-                break;
-                
-            case _helpLong:
-                out << HLP << setlevel(2) << options;
-        }
-
-    } catch (std::exception &error) {
-        out << _format % name % "Undocumented";
-    }    
 }
 
 }}

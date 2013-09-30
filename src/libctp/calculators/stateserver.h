@@ -38,7 +38,7 @@ public:
 
     string Identify() { return "StateServer"; }
 
-    void Initialize(Topology *top, Property *options);
+    void Initialize(Property *options);
     bool EvaluateFrame(Topology *top);
 
     void DownloadTopology(FILE *out, Topology *top);
@@ -67,7 +67,7 @@ private:
 };
 
 
-void StateServer::Initialize(Topology *top, Property *opt) {
+void StateServer::Initialize(Property *opt) {
     
     string tag = "options.stateserver";
 

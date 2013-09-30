@@ -16,7 +16,7 @@ public:
     typedef void (JobWriter::*WriteFunct)(Topology*);
     
     string Identify() { return "jobwriter"; }
-    void Initialize(Topology *top, Property *options);
+    void Initialize(Property *options);
     bool EvaluateFrame(Topology *top);    
     
     // NEED TO REGISTER ALL WRITE MEMBERS IN ::Initialize
