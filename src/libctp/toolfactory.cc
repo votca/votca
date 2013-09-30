@@ -23,8 +23,6 @@
 #include "qmtools/molpol.h"
 
 
-
-
 namespace votca { namespace ctp {
 
 void QMToolFactory::RegisterAll(void)

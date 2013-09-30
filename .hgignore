@@ -7,6 +7,8 @@ libvotca*.pc
 libvotca*.a
 libvotca*.so
 
+share/doc/html
+
 src/libctp/votca_config.h
 src/libctp/hgversion.h
 

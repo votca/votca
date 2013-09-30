@@ -6,18 +6,17 @@
 #include <votca/ctp/toolfactory.h>
 
 
-
 using namespace std;
 using namespace votca::ctp;
 
 
-class CtpApp : public CtpApplication
+class CtpTools : public CtpApplication
 {
 public:
     
-    CtpApp() { QMToolFactory::RegisterAll(); }
+    CtpTools() { QMToolFactory::RegisterAll(); }
 
-    string  ProgramName() { return "ctp_app"; }    
+    string  ProgramName() { return "ctp_tools"; }    
 
     void    HelpText(ostream &out) { out <<"Runs charge transport tools"<< endl; }
 
@@ -31,8 +30,6 @@ public:
     void EndEvaluate();
     
 private:
-    static const bool _short = true;
-    static const bool _long = false;
     
     Property          _options;
     list< QMTool* >   _tools;
@@ -47,7 +44,7 @@ private:
 
 
 
-void CtpApp::Initialize() {
+void CtpTools::Initialize() {
     
     QMToolFactory::RegisterAll();    
 
@@ -64,7 +61,7 @@ void CtpApp::Initialize() {
                          "  number of threads to create");
 }
 
-bool CtpApp::EvaluateOptions() {
+bool CtpTools::EvaluateOptions() {
 
     if (OptionsMap().count("list")) {
         cout << "Available tools: \n";
@@ -114,7 +111,7 @@ bool CtpApp::EvaluateOptions() {
 }
 
 
-void CtpApp::Run() {
+void CtpTools::Run() {
 
     string optionsFile = _op_vm["options"].as<string>();    
     load_property_from_xml(_options, optionsFile);   
@@ -131,7 +128,7 @@ void CtpApp::Run() {
 }
 
 
-void CtpApp::BeginEvaluate(int nThreads = 1) {
+void CtpTools::BeginEvaluate(int nThreads = 1) {
     list< QMTool* > ::iterator it;
     for (it = _tools.begin(); it != _tools.end(); it++) {
         cout << "... " << (*it)->Identify() << " " << flush;
@@ -141,7 +138,7 @@ void CtpApp::BeginEvaluate(int nThreads = 1) {
     }
 }
 
-bool CtpApp::Evaluate() {
+bool CtpTools::Evaluate() {
     list< QMTool* > ::iterator it;
     for (it = _tools.begin(); it != _tools.end(); it++) {
         cout << "... " << (*it)->Identify() << " " << flush;
@@ -150,7 +147,7 @@ bool CtpApp::Evaluate() {
     }
 }
 
-void CtpApp::EndEvaluate() {
+void CtpTools::EndEvaluate() {
     list< QMTool* > ::iterator it;
     for (it = _tools.begin(); it != _tools.end(); it++) {
         (*it)->EndEvaluate();
@@ -160,7 +157,7 @@ void CtpApp::EndEvaluate() {
 
 int main(int argc, char** argv) {
     
-    CtpApp ctpapp;
+    CtpTools ctpapp;
     return ctpapp.Exec(argc, argv);
 
 }
