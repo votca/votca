@@ -93,7 +93,24 @@ void Gaussian::Initialize( Property *options ) {
         _write_charges = false;
     }
 
+    // check if the basis set is available ("/gen")
+    iop_pos = _options.find("gen");
+    if (iop_pos != std::string::npos) {
+        _write_basis_set = true;
+    } else
+    {
+        _write_basis_set = false;
+    }
 
+    // check if psudopotentials are required ("pseudo")
+    iop_pos = _options.find("pseudo");
+    if (iop_pos != std::string::npos) {
+        _write_pseudopotentials = true;
+    } else
+    {
+        _write_pseudopotentials = false;
+    }    
+    
 }    
 
 /**
@@ -116,7 +133,7 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
     // header 
     if ( _chk_file_name.size() ) _com_file << "%chk = " << _chk_file_name << endl;
     if ( _memory.size() ) _com_file << "%mem = " << _memory << endl ;
-    if ( _threads > 1 ) _com_file << "%nprocshared = "  << _threads << endl;
+    if ( _threads > 0 ) _com_file << "%nprocshared = "  << _threads << endl;
     if ( _options.size() ) _com_file <<  _options << endl ;
 
     _com_file << endl;
@@ -177,8 +194,111 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
                 }
                 
                 level++;
-                _com_file << endl;
+                if ( column != 1 ) _com_file << endl;
             } 
+        }
+    }
+
+    if (_write_basis_set) {
+
+        _com_file << endl;
+        list<string> elements;
+        BasisSet bs;
+        string basis_name("ubecppol");
+        
+        bs.LoadBasisSet( basis_name );
+        LOG(logDEBUG,*_pLog) << "Loaded Basis Set " << basis_name << flush;
+
+        for (sit = segments.begin(); sit != segments.end(); ++sit) {
+            
+            vector< Atom* > atoms = (*sit)-> Atoms();
+            vector< Atom* >::iterator it;
+            
+            for (it = atoms.begin(); it < atoms.end(); it++) {
+
+                string element_name = (*it)->getElement();
+                
+                list<string>::iterator ite;
+                ite = find(elements.begin(), elements.end(), element_name);
+                
+                if (ite == elements.end()) {
+                    elements.push_back(element_name);
+                  
+                    Element* element = bs.getElement(element_name);
+                    
+                    // element name, [possibly indeces of centers], zero to indicate the end
+                    _com_file << element_name << " 0" << endl;
+
+                    for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+                        
+                        Shell* shell = (*its);
+                        // shell type, number primitives, scale factor
+                        _com_file << shell->getType() << " " << shell->getSize() << " " << shell->getScale() << endl;
+                        
+                        for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
+                            GaussianPrimitive* gaussian = *itg;
+                            _com_file << gaussian->decay << " " << gaussian->contraction << endl;
+                        }
+                    }
+                    
+                    _com_file << "****\n";
+
+                }
+            }
+        }
+    }
+
+
+    if (_write_pseudopotentials) {
+        string pseudopotential_name("ecp");
+        
+         _com_file << endl;
+        list<string> elements;
+        
+        elements.push_back("H");
+        elements.push_back("He");
+        
+        BasisSet ecp;
+        ecp.LoadPseudopotentialSet( pseudopotential_name );
+        
+        LOG(logDEBUG,*_pLog) << "Loaded Pseudopotentials " << pseudopotential_name << flush;
+
+        for (sit = segments.begin(); sit != segments.end(); ++sit) {
+            
+            vector< Atom* > atoms = (*sit)-> Atoms();
+            vector< Atom* >::iterator it;
+            
+            for (it = atoms.begin(); it < atoms.end(); it++) {
+
+                string element_name = (*it)->getElement();
+                
+                list<string>::iterator ite;
+                ite = find(elements.begin(), elements.end(), element_name);
+                
+                if (ite == elements.end()) {
+                    elements.push_back(element_name);
+                  
+                    Element* element = ecp.getElement(element_name);
+                    
+                    // element name, [possibly indeces of centers], zero to indicate the end
+                    _com_file << element_name << " 0\n" 
+                              << pseudopotential_name << " " 
+                              << element->getLmax() << " " << element->getNcore() << endl;
+
+                    for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+                        
+                        Shell* shell = (*its);
+                        // shell type, number primitives, scale factor
+                        _com_file << shell->getType() << endl;
+                        _com_file << shell->getSize() << endl;
+                        
+                        for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
+                            GaussianPrimitive* gaussian = *itg;
+                            _com_file << gaussian->power << " " << gaussian->decay << " " << gaussian->contraction << endl;
+                        }
+                    }
+                }
+            }
         }
     }
     
@@ -186,6 +306,9 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
         vector< QMAtom* > *qmatoms = orbitals_guess->getAtoms();
         vector< QMAtom* >::iterator it;
         
+        // This is needed for the QM/MM scheme, since only orbitals have 
+        // updated positions of the QM region, hence vector<Segments*> is 
+        // NULL in the QMMachine and the QM region is also printed here
         for (it = qmatoms->begin(); it < qmatoms->end(); it++ ) {
             if ( !(*it)->from_environment ) {
             _com_file << (*it)->type << " " <<  (*it)->x << " " << (*it)->y << " " << (*it)->z << endl;
@@ -204,7 +327,6 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
         
         _com_file << endl;
     }
-
     
     _com_file << endl;
     _com_file.close();
@@ -269,13 +391,16 @@ void Gaussian::CleanUp() {
     
     // cleaning up the generated files
     if ( _cleanup.size() != 0 ) {
-        Tokenizer tok_cleanup(_cleanup, " \t\n");
+        
+        LOG(logDEBUG,*_pLog) << "Removing " << _cleanup << " files" << flush;        
+        Tokenizer tok_cleanup(_cleanup, ",");
         vector <string> _cleanup_info;
         tok_cleanup.ToVector(_cleanup_info);
         
         vector<string> ::iterator it;
                
         for (it = _cleanup_info.begin(); it != _cleanup_info.end(); ++it) {
+            
             if ( *it == "com" ) {
                 string file_name = _run_dir + "/" + _input_file_name;
                 remove ( file_name.c_str() );

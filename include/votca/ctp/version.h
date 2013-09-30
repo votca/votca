@@ -15,6 +15,14 @@
  *
  */
 
+/**
+
+\page ctp ctp
+Classes used for charge transport. The main container is votca::ctp::Topology. 
+
+
+*/
+
 #ifndef __VOTCA_MD2QM_VERSION_H
 #define	__VOTCA_MD2QM_VERSION_H
 

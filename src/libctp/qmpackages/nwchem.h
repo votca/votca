@@ -17,14 +17,11 @@
  *
  */
 
-#ifndef __VOTCA_CTP_TURBOMOLE_H
-#define	__VOTCA_CTP_TURBOMOLE_H
+#ifndef __VOTCA_CTP_NWCHEM_H
+#define	__VOTCA_CTP_NWCHEM_H
 
-#include <votca/tools/property.h>
-#include <votca/ctp/segment.h>
-#include <votca/ctp/orbitals.h>
+
 #include <votca/ctp/apolarsite.h>
-#include <votca/ctp/logger.h>
 #include <votca/ctp/qmpackage.h>
 
 #include <string> 
@@ -39,19 +36,21 @@ namespace votca { namespace ctp {
     and extracts information from its log and io files
     
 */
-class Turbomole : public QMPackage
+class NWChem : public QMPackage
 {
 public:   
 
-   string getPackageName() { return "turbomole"; }
+   string getPackageName() { return "nwchem"; }
 
    void Initialize( Property *options );
 
-   /* Writes Turbomole input file with coordinates taken from all segments
-    * and guess for the dimer orbitals (if given) constructed from the
-    * orbitals of monomers 
+   /* Writes Gaussian input file with coordinates of segments
+    * and a guess for the dimer (if requested) constructed from the
+    * monomer orbitals
     */
    bool WriteInputFile( vector< Segment* > segments, Orbitals* orbitals_guess = NULL);
+
+   bool WriteShellScript();
 
    bool Run();
 
@@ -62,27 +61,28 @@ public:
    bool ParseLogFile( Orbitals* _orbitals );
 
    bool ParseOrbitalsFile( Orbitals* _orbitals );
-
+      
+   string getScratchDir( ) { return _scratch_dir; }
+   
 private:  
 
-    //static const double _conv_Hrt_eV = 27.21138386;
-    
-    int                                 _charge;
-    int                                 _spin; // 2S+1
-    string                              _options;
-    
-    string                              _memory;
-    int                                 _threads;
-    
+    string                              _shell_file_name;
+    string                              _chk_file_name;
     string                              _scratch_dir;
+    bool                                _is_optimization;
         
     string                              _cleanup;
 
-    string FortranFormat( const double &number );    
+    int NumberOfElectrons( string _line ); 
+    int BasisSetSize( string _line ); 
+    int EnergiesFromLog( string _line, ifstream inputfile ); 
+    string FortranFormat( const double &number );
+
+    
 };
 
 
 }}
 
-#endif	/* __VOTCA_CTP_GAUSSAIN_H */
+#endif	/* __VOTCA_CTP_NWCHEM_H */
 

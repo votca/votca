@@ -17,6 +17,7 @@
  *
  */
 
+
 #ifndef __VOTCA_CTP_LOG_H
 #define	__VOTCA_CTP_LOG_H
 
@@ -134,10 +135,22 @@ protected:
 };
 
 
-/**
-*   \brief Logger for thread-safe output of messages
-*  Logger writes messages into LogBuffer
-*  Inheritance from ostream allows to use << and >> for writing    
+/** \class Logger
+*   \brief Logger is used for thread-safe output of messages
+*
+*  Logger writes messages into LogBuffer. 
+*  Inheritance from ostream allows to use overloaded << and >> for writing.
+*  Example:  
+*
+*  \code
+*  #include <votca/ctp/logger.h>
+*  Logger* log = new Logger(); // create a logger object
+*  log->setReportLevel(logDEBUG); // output only log messages starting from a DEBUG level
+*  LOG(logERROR,*log) << "Error detected" << flush; // write to the logger at an ERROR level
+*  cout << log; // output logger content to standard output
+*  \endcode
+*
+*  Logger has four predefined log levels: logERROR, logWARNING, logINFO, logDEBUG.
 */
 class Logger : public std::ostream {
 

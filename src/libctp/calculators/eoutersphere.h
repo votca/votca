@@ -38,7 +38,7 @@ public:
     EOutersphere() { };
    ~EOutersphere() { };
 
-    string              Identify() { return "EOutersphere"; }
+    string              Identify() { return "eoutersphere"; }
 
     void                Initialize(Topology *top, Property *options);
     void                EStatify(Topology *, Property *);

@@ -1,13 +1,13 @@
 <options>
 
 <eoutersphere help="Evaluates outersphere reorganization energy" label="calc:eoutersphere">
+        <multipoles help="XML allocation polar sites">system.xml</multipoles> 
+	<method help="Type of the method: **constant** - all pairs have value **lambda**. **spheres**  - molecules are treated as spheres with radii **radius** and Pekar factor **pekar**. **dielectric** - with Pekar factor **pekar** and partial charges from resulting dielectric fields">dielectric</method>
 
-	<method help="Type of the method: **constant** - all pairs have value **lambda**. **spheres**  - molecules are treated as spheres with radii **radius** and Pekar factor **pekar**. **dielectric** - with Pekar factor **pekar** and partial charges from resulting dielectric fields">constant</method>
-
-	<lambda help="The value for all pairs in the **constant** method" unit="nm"></lambda>
-	<pekar help="Pekar factor used for methods **spheres** and **dielectric**"></pekar>
+	<lambdaconst help="The value for all pairs in the **constant** method" unit="nm">1</lambdaconst>
+	<pekar help="Pekar factor used for methods **spheres** and **dielectric**">0.1</pekar>
 	<radius help="Radius of spherical molecule as used in  method **spheres**" unit="nm"></radius>
-	<cutoff help="Cutoff radius in between pair and the exteroir molecule. Can be used in **spheres** and **dielectric**" unit="nm"></cutoff>
+	<cutoff help="Cutoff radius in between pair and the exteroir molecule. Can be used in **spheres** and **dielectric**" unit="nm">10.0</cutoff>
 
 </eoutersphere>
 

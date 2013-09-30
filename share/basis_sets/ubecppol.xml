@@ -1,0 +1,117 @@
+<basis name="ubecppol">
+	<element name="C">
+		<shell type="S" scale="1.00">
+			<constant decay="2.263101" contraction="1.0"></constant> 
+		</shell>
+		<shell type="S" scale="1.00">
+			<constant decay="1.773186" contraction="1.0"></constant>
+		</shell>
+                <shell type="S" scale="1.00">
+                        <constant decay="0.408619" contraction="1.0"></constant>
+                </shell>
+                <shell type="S" scale="1.00">
+                        <constant decay="0.139175" contraction="1.0"></constant>
+                </shell>
+                <shell type="P" scale="1.00">
+                        <constant decay="8.383025" contraction="1.0"></constant>
+                </shell>
+                <shell type="P" scale="1.00">
+                        <constant decay="1.993132" contraction="1.0"></constant>
+                </shell>
+                <shell type="P" scale="1.00">
+                        <constant decay="0.559543" contraction="1.0"></constant>
+                </shell>
+                <shell type="P" scale="1.00">
+                        <constant decay="0.156126" contraction="1.0"></constant>
+                </shell>
+                <shell type="D" scale="1.00">
+                        <constant decay="0.6260000" contraction="1.0"></constant>
+                </shell>
+	</element>
+
+
+	<element name="S">
+		<shell type="S" scale="1.00">
+			<constant decay="6.833518" contraction="1.0"></constant> 
+		</shell>
+		<shell type="S" scale="1.00">
+			<constant decay="2.077738" contraction="1.0"></constant>
+		</shell>
+                <shell type="S" scale="1.00">
+                        <constant decay="0.419121" contraction="1.0"></constant>
+                </shell>
+                <shell type="S" scale="1.00">
+                        <constant decay="0.153237" contraction="1.0"></constant>
+                </shell>
+                <shell type="P" scale="1.00">
+                        <constant decay="1.817139" contraction="1.0"></constant>
+                </shell>
+                <shell type="P" scale="1.00">
+                        <constant decay="0.855070" contraction="1.0"></constant>
+                </shell>
+                <shell type="P" scale="1.00">
+                        <constant decay="0.312053" contraction="1.0"></constant>
+                </shell>
+                <shell type="P" scale="1.00">
+                        <constant decay="0.101687" contraction="1.0"></constant>
+                </shell>
+                <shell type="P" scale="1.00">
+                        <constant decay="0.029810" contraction="1.0"></constant>
+                </shell>
+                <shell type="D" scale="1.00">
+                        <constant decay="0.6500000" contraction="1.0"></constant>
+                </shell>
+	</element>
+
+	<element name="H">
+		<shell type="S" scale="1.00">
+			<constant decay="33.86500000" contraction="1.0"></constant> 
+		</shell>
+		<shell type="S" scale="1.00">
+			<constant decay="5.094790000" contraction="1.0"></constant> 
+		</shell>
+		<shell type="S" scale="1.00">
+			<constant decay="1.158790000" contraction="1.0"></constant> 
+		</shell>
+		<shell type="S" scale="1.00">
+			<constant decay="0.3258400000" contraction="1.0"></constant> 
+		</shell>
+		<shell type="S" scale="1.00">
+			<constant decay="0.1027410000" contraction="1.0"></constant> 
+		</shell>
+		<shell type="P" scale="1.00">
+			<constant decay="0.75" contraction="1.0"></constant> 
+		</shell>
+	</element>
+
+	<element name="N">
+		<shell type="S" scale="1.00">
+			<constant decay="32.656839" contraction="1.0"></constant> 
+		</shell>
+		<shell type="S" scale="1.00">
+			<constant decay="4.589189" contraction="1.0"></constant>
+		</shell>
+                <shell type="S" scale="1.00">
+                        <constant decay="0.706251" contraction="1.0"></constant>
+                </shell>
+                <shell type="S" scale="1.00">
+                        <constant decay="0.216399" contraction="1.0"></constant>
+                </shell>
+                <shell type="P" scale="1.00">
+                        <constant decay="12.146974" contraction="1.0"></constant>
+                </shell>
+                <shell type="P" scale="1.00">
+                        <constant decay="2.884265" contraction="1.0"></constant>
+                </shell>
+                <shell type="P" scale="1.00">
+                        <constant decay="0.808564" contraction="1.0"></constant>
+                </shell>
+                <shell type="P" scale="1.00">
+                        <constant decay="0.222163" contraction="1.0"></constant>
+                </shell>
+                <shell type="D" scale="1.00">
+                        <constant decay="0.9130000" contraction="1.0"></constant>
+                </shell>
+	</element>
+
+</basis>

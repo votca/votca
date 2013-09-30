@@ -80,6 +80,7 @@ void StateSaverSQLite::WriteFrame() {
     this->WriteFragments(hasAlready);
     this->WriteAtoms(hasAlready);
     this->WritePairs(hasAlready);
+    this->WriteSuperExchange(hasAlready);
 
     _db.EndTransaction();
 
@@ -442,11 +443,12 @@ void StateSaverSQLite::WritePairs(bool update) {
         stmt = _db.Prepare("INSERT INTO pairs ("
                            "frame, top, id, "
                            "seg1, seg2, drX, "
-                           "drY, drZ,   "
+                           "drY, drZ, "
                            "has_e, has_h, "
                            "lOe, lOh, rate12e, "
                            "rate21e, rate12h, rate21h, "
-                           "Jeff2e,  Jeff2h "
+                           "Jeff2e,  Jeff2h, "
+                           "type "
                            ") VALUES ("
                            "?, ?, ?, "
                            "?, ?, ?, "
@@ -454,7 +456,8 @@ void StateSaverSQLite::WritePairs(bool update) {
                            "?, ?, "
                            "?, ?, ?, "
                            "?, ?, ?, "
-                           "?, ? "
+                           "?, ?, "
+                           "? "
                            ")");
     }
     else {
@@ -463,7 +466,8 @@ void StateSaverSQLite::WritePairs(bool update) {
                            "has_e = ?, has_h = ?, "
                            "lOe = ?, lOh = ?, rate12e = ?, "
                            "rate21e = ?, rate12h = ?, rate21h = ?, "
-                           "Jeff2e = ?,  Jeff2h = ? "
+                           "Jeff2e = ?,  Jeff2h = ?, "
+                           "type = ? "
                            "WHERE top = ? AND id = ?");
     }
 
@@ -498,6 +502,7 @@ void StateSaverSQLite::WritePairs(bool update) {
             stmt->Bind(16, pair->getRate21(+1));
             stmt->Bind(17, pair->getJeff2(-1));
             stmt->Bind(18, pair->getJeff2(+1));
+            stmt->Bind(19, (int)(pair->getType()) );
         }
         
         else {
@@ -517,8 +522,9 @@ void StateSaverSQLite::WritePairs(bool update) {
                 stmt->Bind(8, pair->getRate21(+1));
                 stmt->Bind(9, pair->getJeff2(-1));
                 stmt->Bind(10, pair->getJeff2(+1));
-                stmt->Bind(11, pair->getTopology()->getDatabaseId());
-                stmt->Bind(12, pair->getId());
+                stmt->Bind(11, (int)pair->getType());
+                stmt->Bind(12, pair->getTopology()->getDatabaseId());
+                stmt->Bind(13, pair->getId());          
         }
 
         stmt->InsertStep();
@@ -527,6 +533,58 @@ void StateSaverSQLite::WritePairs(bool update) {
 
     delete stmt;
     stmt = NULL;
+}
+
+void StateSaverSQLite::WriteSuperExchange(bool update) {
+    if ( ! _qmtop->NBList().getSuperExchangeTypes().size() ) { return; }
+    
+    cout << ", super-exchange" << flush;
+
+    Statement *stmt;
+    
+    // Find out whether pairs for this topology have already been created
+    stmt = _db.Prepare("SELECT frame FROM superExchange WHERE top = ?;");
+    stmt->Bind(1, _qmtop->getDatabaseId());
+    if (stmt->Step() == SQLITE_DONE) {        
+        cout << " (create)" << flush;
+        delete stmt;
+    }
+    else { 
+        cout << " (recreate)" << flush;        
+        stmt = _db.Prepare("DELETE FROM superExchange;");
+        stmt->Step();
+        delete stmt;
+    }
+    
+    stmt = NULL;
+
+
+    stmt = _db.Prepare("INSERT INTO superExchange ("
+                           "frame, top, type"
+                           ") VALUES ("
+                           "?, ?, ?"
+                           ")");
+
+    list< QMNBList::SuperExchangeType* > ::iterator seit;
+
+    for (seit = _qmtop->NBList().getSuperExchangeTypes().begin();
+         seit != _qmtop->NBList().getSuperExchangeTypes().end();
+         seit++) {
+
+        QMNBList::SuperExchangeType *seType = *seit;
+
+        stmt->Bind(1, _qmtop->getDatabaseId());
+        stmt->Bind(2, _qmtop->getDatabaseId());
+        stmt->Bind(3, seType->asString());
+
+        stmt->InsertStep();
+        stmt->Reset();
+    }
+
+    delete stmt;
+    stmt = NULL;    
+    
+    return;
 }
 
 
@@ -567,6 +625,7 @@ void StateSaverSQLite::ReadFrame() {
     this->ReadFragments(topId);
     this->ReadAtoms(topId);    
     this->ReadPairs(topId);
+    this->ReadSuperExchange(topId);
     
     cout << ". " << endl;
 }
@@ -800,7 +859,7 @@ void StateSaverSQLite::ReadAtoms(int topId) {
         double  posY = stmt->Column<double>(7);
         double  posZ = stmt->Column<double>(8);
         double  weight = stmt->Column<double>(9);
-        int     qmid = stmt->Column<double>(10);
+        int     qmid = stmt->Column<int>(10);
         double  qmPosX = stmt->Column<double>(11);
         double  qmPosY = stmt->Column<double>(12);
         double  qmPosZ = stmt->Column<double>(13);
@@ -833,11 +892,10 @@ void StateSaverSQLite::ReadPairs(int topId) {
     cout << ", pairs" << flush;
 
     Statement *stmt = _db.Prepare("SELECT "
-                                  "seg1, seg2, has_e,"
-                                  "has_h, lOe, "
-                                  "lOh, rate12e, rate21e, "
-                                  "rate12h, rate21h, "
-                                  "Jeff2e, Jeff2h "
+                                  "seg1, seg2, has_e, has_h, "
+                                  "lOe, lOh, rate12e, rate21e, "
+                                  "rate12h, rate21h, Jeff2e, Jeff2h, "
+                                  "type "
                                   "FROM pairs "
                                   "WHERE top = ?;");
 
@@ -856,6 +914,7 @@ void StateSaverSQLite::ReadPairs(int topId) {
         double  r4  = stmt->Column<double>(9);
         double  je  = stmt->Column<double>(10);
         double  jh  = stmt->Column<double>(11);
+        int     tp  = stmt->Column<int>(12);
         
         QMPair *newPair = _qmtop->NBList().Add(_qmtop->getSegment(s1),
                                                 _qmtop->getSegment(s2));
@@ -873,12 +932,34 @@ void StateSaverSQLite::ReadPairs(int topId) {
         newPair->setRate21(r4, +1);
         newPair->setJeff2(je, -1);
         newPair->setJeff2(jh, +1);
+        newPair->setType(tp);
 
     }
     delete stmt;
     stmt = NULL;
 }
 
+
+void StateSaverSQLite::ReadSuperExchange(int topId) {
+    
+    cout << ", super-exchange" << flush;
+
+    Statement *stmt = _db.Prepare("SELECT "
+                                  "type "
+                                  "FROM superExchange "
+                                  "WHERE top = ?;");
+
+    stmt->Bind(1, topId);
+    
+    while (stmt->Step() != SQLITE_DONE) {
+        string type = stmt->Column<string>(0);        
+        _qmtop->NBList().AddSuperExchangeType(type);
+    }
+    delete stmt;
+    stmt = NULL;    
+    
+    return;
+}
 
 
 bool StateSaverSQLite::HasTopology(Topology *top) {
