@@ -31,12 +31,14 @@ public:
    
     string          Identify() { return "ewald"; }
     void            Initialize(Property *);
-
+    void            WriteJobFile(Topology *top);
+    void            ReadJobFile(Topology *top);
+    
     void            PreProcess(Topology *top);
     Job::JobResult  EvalJob(Topology *top, Job *job, QMThread *thread);
     void            PostProcess(Topology *top) { ; }
     
-    XJob            ProcessInputString(const Job *, Topology *, QMThread *);
+    XJob            ProcessInputString(Job *, Topology *, QMThread *);
     
 
 private:
@@ -120,10 +122,71 @@ void Ewald<EwaldMethod>::PreProcess(Topology *top) {
 
 
 template<class EwaldMethod>
-XJob Ewald<EwaldMethod>::ProcessInputString(const Job *job, Topology *top, 
+void Ewald<EwaldMethod>::ReadJobFile(Topology *top) {
+    
+    assert(false);
+    
+}
+
+
+template<class EwaldMethod>
+void Ewald<EwaldMethod>::WriteJobFile(Topology *top) {
+    
+    
+    // SET UP FILE STREAM
+    ofstream ofs;
+    string jobFile = "ewald_jobs.xml";
+    ofs.open(jobFile.c_str(), ofstream::out);
+    if (!ofs.is_open()) throw runtime_error("Bad file handle: " + jobFile);
+    
+    ofs << "<jobs>" << endl;
+    
+    int jobCount = 0;    
+    vector<Segment*>::iterator sit1;
+    
+    // DEFINE PAIR CHARGE STATES
+    vector<string > states;
+    vector<string> ::iterator vit;
+    states.push_back("n");
+    states.push_back("e");
+    states.push_back("h");
+    
+    // CREATE JOBS FOR ALL SEGMENTS AND STATES
+    for (sit1 = top->Segments().begin(); sit1 < top->Segments().end(); ++sit1) {
+        Segment *seg1 = *sit1;
+
+        int id1 = seg1->getId();
+        string name1 = seg1->getName();
+        
+        for (vit = states.begin(); vit != states.end(); ++vit) {
+            int id = ++jobCount;
+            string s1 = *vit;
+            string tag = (format("%1$d:%3$s:%2$s") % id1 % s1 % name1).str();
+            
+            Property input;
+            Property &out = input.add("input","");
+            Property *next = NULL;
+            next = &out.add("segment", "");
+            next->add("id", (format("%1$d") % id1).str());
+            next->add("type", (format("%1$s") % name1).str());
+            next->add("mps", (format("MP_FILES/%1$s_%2$s.mps") % name1 % s1).str());
+            
+            Job job(id, tag, input, Job::AVAILABLE);
+            job.ToStream(ofs,"xml");
+        }
+    }
+    
+    // CLOSE STREAM
+    ofs << "</jobs>" << endl;    
+    ofs.close();
+}
+
+
+template<class EwaldMethod>
+XJob Ewald<EwaldMethod>::ProcessInputString(Job *job, Topology *top, 
     QMThread *thread) {
     
-    string input = job->getInput();
+    string input = job->getInput().as<string>();
     vector<Segment*> qmSegs;
     vector<string>   qmSegMps;
     vector<string> split;
@@ -163,7 +226,7 @@ Job::JobResult Ewald<EwaldMethod>::EvalJob(Topology *top, Job *job,
     
     Logger *log = thread->getLogger();    
     LOG(logINFO,*log)
-        << "Job input = " << job->getInput() << flush;
+        << "Job input = " << job->getInput().as<string>() << flush;
     
     // CREATE XJOB FROM JOB INPUT STRING
     XJob xjob = this->ProcessInputString(job, top, thread);    

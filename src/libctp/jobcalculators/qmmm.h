@@ -29,7 +29,7 @@ public:
     void            CustomizeLogger(QMThread *thread);
     void            PreProcess(Topology *top);
     Job::JobResult  EvalJob(Topology *top, Job *job, QMThread *thread);
-    XJob            ProcessInputString(const Job *job, Topology *top, QMThread *thread);
+    XJob            ProcessInputString(Job *job, Topology *top, QMThread *thread);
     
 
 private:
@@ -227,9 +227,9 @@ void QMMM::CustomizeLogger(QMThread *thread) {
 // ========================================================================== //
 
 
-XJob QMMM::ProcessInputString(const Job *job, Topology *top, QMThread *thread) {
+XJob QMMM::ProcessInputString(Job *job, Topology *top, QMThread *thread) {
     
-    string input = job->getInput();
+    string input = job->getInput().as<string>();
     vector<Segment*> qmSegs;
     vector<string>   qmSegMps;
     vector<string> split;
@@ -277,7 +277,7 @@ Job::JobResult QMMM::EvalJob(Topology *top, Job *job, QMThread *thread) {
     
     // CREATE XJOB FROM JOB INPUT STRING
     LOG(logINFO,*log)
-        << "Job input = " << job->getInput() << flush;
+        << "Job input = " << job->getInput().as<string>() << flush;
     XJob xjob = this->ProcessInputString(job, top, thread);  
     
     // GENERATE POLAR TOPOLOGY FOR JOB

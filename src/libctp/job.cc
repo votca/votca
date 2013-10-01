@@ -16,7 +16,7 @@ Job::Job(Property *prop)
      // DEFINED BY USER
     _id = prop->get("id").as<int>();
     _tag = prop->get("tag").as<string>();
-    _input = prop->get("input").as<string>();
+    _input = prop->get("input");
     _attemptsCount = 0;
     
     if (prop->exists("status"))
@@ -49,14 +49,28 @@ Job::Job(Property *prop)
 }
 
 
-Job::Job(int id, string &tag, string &input, string &status)
+Job::Job(int id, string &tag, string &inputstr, string status)
   : _has_host(false), _has_time(false), _has_error(false),
     _has_output(false), _has_sqlcmd(false) {
     
     _id = id;
     _tag = tag;
+    Property input;
+    Property &out = input.add("input", inputstr);
     _input = input;
     _status = ConvertStatus(status);
+    _attemptsCount = 0;    
+}
+
+
+Job::Job(int id, string &tag, Property &input, JobStatus status)
+  : _has_host(false), _has_time(false), _has_error(false),
+    _has_output(false), _has_sqlcmd(false) {
+    
+    _id = id;
+    _tag = tag;
+    _input = input.get("input");
+    _status = status;
     _attemptsCount = 0;    
 }
 
@@ -104,7 +118,8 @@ void Job::ToStream(ofstream &ofs, string fileformat) {
         ofs << tab << "<job>\n";
         ofs << tab << tab << (format("<id>%1$d</id>\n") % _id).str();
         ofs << tab << tab << (format("<tag>%1$s</tag>\n") % _tag).str();
-        ofs << tab << tab << (format("<input>%1$s</input>\n") % _input).str();
+        PrintNodeXML(ofs, _input, 0, 0, "", "\t\t");
+        //ofs << tab << tab << (format("<input>%1$s</input>\n") % _input).str();
         ofs << tab << tab << (format("<status>%1$s</status>\n") % ConvertStatus(_status)).str();
 
         if (_has_sqlcmd)
