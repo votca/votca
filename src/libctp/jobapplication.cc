@@ -61,9 +61,9 @@ bool JobApplication::EvaluateOptions(void) {
     CheckRequired("file", "Please provide the state file");
     
     string jobstr = _op_vm["jobs"].as<string>();
-    _generate_input = jobstr.find("input") != std::string::npos;
+    _generate_input = jobstr.find("write") != std::string::npos;
     _run = jobstr.find("run") != std::string::npos;
-    _import = jobstr.find("import") != std::string::npos;
+    _import = jobstr.find("read") != std::string::npos;
     
     return true;
 }
@@ -139,9 +139,9 @@ bool JobApplication::EvaluateFrame() {
     list< JobCalculator* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
         cout << "... " << (*it)->Identify() << " " << flush;
-        if (_generate_input) (*it)->GenerateInput(&_top);
+        if (_generate_input) (*it)->WriteJobFile(&_top);
         if (_run) (*it)->EvaluateFrame(&_top);
-        if (_import) (*it)->Import(&_top);
+        if (_import) (*it)->ReadJobFile(&_top);
         cout << endl;
     }
 }
