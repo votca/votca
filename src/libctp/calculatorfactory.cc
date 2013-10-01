@@ -39,7 +39,6 @@
 #include "calculators/profile.h"
 #include "calculators/xmultipole2.h"
 #include "calculators/velocity.h"
-#include "calculators/molpol.h"
 #include "calculators/zmultipole.h"
 #include "calculators/qmultipole.h"
 #include "calculators/jobwriter.h"
@@ -68,7 +67,6 @@ void Calculatorfactory::RegisterAll(void)
         Calculators().Register<Profile>             ("profile");
         Calculators().Register<XMP>                 ("xmultipole");
         Calculators().Register<Velocity>            ("velocity");
-        Calculators().Register<MolPol>              ("molpol");
         Calculators().Register<ZMultipole>          ("zmultipole");
         Calculators().Register<QMultipole>          ("qmultipole");
         Calculators().Register<JobWriter>           ("jobwriter");
