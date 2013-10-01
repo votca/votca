@@ -43,8 +43,8 @@ namespace votca { namespace ctp {
 /**
 * \brief Site energies and orbitals for QM molecules
 *
-* QM orbitals and energies for all molecules
-* Requires a first-principles package, i.e. GAUSSIAN installation
+* Evaluates orbitals and energies for all molecules
+* Requires a first-principles package, i.e. GAUSSIAN, TURBOMOLE, NWChem
 *
 * Callname: edft
 */
@@ -57,9 +57,10 @@ public:
    ~EDFT() {};
 
     string   Identify() { return "edft"; }
-    void    Initialize(Property *options);
-    void    ParseOrbitalsXML(Topology *top, Property *options);
-    void    WriteJobFile(Topology *top);
+    void     Initialize(Property *options);
+    void     ParseOrbitalsXML(Topology *top, Property *options);
+    void     WriteJobFile(Topology *top);
+    
     Job::JobResult EvalJob(Topology *top, Job *job, QMThread *thread);
 
     void    CleanUp();
@@ -84,7 +85,6 @@ private:
     bool                _store_singlets;
     bool                _store_triplets;
 
-    //bool   _maverick;
     string _outParent;
     string _outMonDir;
     
@@ -155,7 +155,7 @@ void EDFT::Initialize(Property *options) {
     }
     
     
-    // register all QM packages (Gaussian, turbomole, nwchem))
+    // register all QM packages (Gaussian, Turbomole, NWChem))
     QMPackageFactory::RegisterAll(); 
 
 }
