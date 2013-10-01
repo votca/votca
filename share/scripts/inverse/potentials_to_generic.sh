@@ -18,7 +18,7 @@
 if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script initizalizes potentials for optimizer methods
+This script converts all potentials to the format needed by the simulation program
 
 Usage: ${0##*/}
 EOF
@@ -26,12 +26,5 @@ EOF
 fi
 
 sim_prog="$(csg_get_property cg.inverse.program)"
-#list of all parameters
-parameters=( $(csg_get_interaction_property --all inverse.optimizer.parameters) )
-what=$(has_duplicate "${parameters[@]}") && die "${0##*/}: the parameter $what appears twice"
-otype="$(csg_get_property cg.inverse.optimizer.type)"
-
-for_all "non-bonded bonded" do_external prepare_single optimizer "${#parameters[@]}"
-
-do_external optimizer prepare_state "${otype}.state.cur"
-do_external optimizer state_to_potentials "${otype}.state.cur" "${otype}.state.new"
+#convert potential in format for sim_prog
+for_all "non-bonded bonded" do_external convert_potential ${sim_prog} '$(csg_get_interaction_property name).pot.cur' '$'"(csg_get_interaction_property inverse.$sim_prog.table)"

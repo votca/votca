@@ -22,6 +22,15 @@
 	<DESC>type of convergence check to do</DESC>
       </type>
     </convergence_check>
+    <dlpoly>
+      <DESC> general dlpoly specific options </DESC>
+      <command>dl_poly
+	<DESC> command to run dlpoly  (name or absolute path or mpirun dlpoly..) </DESC>
+      </command>
+      <traj>HISTORY
+	<DESC> Name of the output dlpoly trajectory file</DESC>
+      </traj>
+    </dlpoly>
     <espresso>
       <command>Espresso
 	<DESC>Command to run espresso (name or absolute path or mpirun espresso..)</DESC>

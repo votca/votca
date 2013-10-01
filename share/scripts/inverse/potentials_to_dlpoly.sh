@@ -18,20 +18,20 @@
 if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script initizalizes potentials for optimizer methods
+This script converts all potentials to the format needed by dlpoly
 
 Usage: ${0##*/}
 EOF
    exit 0
 fi
 
-sim_prog="$(csg_get_property cg.inverse.program)"
-#list of all parameters
-parameters=( $(csg_get_interaction_property --all inverse.optimizer.parameters) )
-what=$(has_duplicate "${parameters[@]}") && die "${0##*/}: the parameter $what appears twice"
-otype="$(csg_get_property cg.inverse.optimizer.type)"
-
-for_all "non-bonded bonded" do_external prepare_single optimizer "${#parameters[@]}"
-
-do_external optimizer prepare_state "${otype}.state.cur"
-do_external optimizer state_to_potentials "${otype}.state.cur" "${otype}.state.new"
+[[ -f TABLE ]] && echo "We will now overwrite TABLE"
+echo "Table for dlpoly from VOTCA with love" > TABLE #max 100 chars
+bin_size="$(csg_get_property cg.inverse.dlpoly.table_bins)"
+table_end="$(csg_get_property cg.inverse.dlpoly.table_end)"
+# see dlpoly manual ngrid = int(cut/delta) + 4
+ngrid="$(csg_calc $table_end / $bin_size)"
+ngrid="$(to_int $ngrid)"
+ngrid="$(($ngrid+4))"
+echo "$bin_size $table_end $ngrid" >> TABLE
+for_all "non-bonded" do_external convert_potential dlpoly '$(csg_get_interaction_property name).pot.cur' '$(csg_get_interaction_property name).pot dlpoly'

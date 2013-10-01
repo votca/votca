@@ -99,7 +99,8 @@ for f in "$@"; do
   ((c++))
 done
 t=$(critical mktemp "table_all.XXXX")
-paste "${tables[@]}" > "${t}"
+critical paste "${tables[@]}" > "${t}"
+#no critical here to avoid huge error message
 awk -v c1="$colx" -v c2="$coly" -v s="$cols" '
 function isnum(x){return(x==x+0)}
 {
@@ -111,7 +112,7 @@ function isnum(x){return(x==x+0)}
     sum2+=$(i+c2)*$(i+c2);
     c++;
     if ($(c1) != $(c1+i)) {
-      print "x-value missmatch",$(c1),"vs. ", $(c1+i), " in line",NR > /dev/stderr;
+      print "x-value mismatch",$(c1),"vs. ", $(c1+i), " in line",NR > "/dev/stderr";
       exit 1;
     }
   }

@@ -26,11 +26,11 @@ EOF
 fi
 
 sim_prog="$(csg_get_property cg.inverse.program)"
-script="$(csg_get_property cg.inverse.$sim_prog.script)"
-[[ -f $script ]] || die "${0##*/}: $sim_prog script '$script' not found (make sure it is in cg.inverse.filelist)"
+script="$(csg_get_property --allow-empty cg.inverse.$sim_prog.script)"
+[[ -n $script && ! -f $script ]] && die "${0##*/}: $sim_prog script '$script' not found (make sure it is in cg.inverse.filelist)"
 
 cmd="$(csg_get_property cg.inverse.$sim_prog.command)"
-#no check for Espresso, because Espresso could maybe exist only computenodes
+#no check for cmd, because cmd could maybe exist only computenodes
 
 opts=$(csg_get_property --allow-empty cg.inverse.$sim_prog.opts)
 #expand ${script} in there
