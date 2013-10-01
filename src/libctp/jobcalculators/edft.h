@@ -63,9 +63,6 @@ public:
     
     Job::JobResult EvalJob(Topology *top, Job *job, QMThread *thread);
 
-    void    CleanUp();
-
-
 private:
 
     // what to do
@@ -86,8 +83,8 @@ private:
     bool                _store_triplets;
 
     string _outParent;
-    string _outMonDir;
-    
+    string _jobFile;
+            
     string _package;
     Property _package_options;   
     
@@ -95,10 +92,6 @@ private:
     Property _gwpackage_options;   
 
 };
-
-void EDFT::CleanUp() {
-
-}
 
 void EDFT::Initialize(Property *options) {
 
@@ -116,10 +109,7 @@ void EDFT::Initialize(Property *options) {
     _maverick = (_nThreads == 1) ? true : false;
     
     string key = "options." + Identify();
-    _jobfile = options->get(key + ".job_file").as<string>();
-
     string _package_xml = options->get(key+".package").as<string> ();
-
     
     string _tasks_string = options->get(key+".tasks").as<string> ();
     if (_tasks_string.find("input") != std::string::npos) _do_input = true;
@@ -138,6 +128,10 @@ void EDFT::Initialize(Property *options) {
     if (_store_string.find("qpdiag") != std::string::npos) _store_qpdiag = true;
     if (_store_string.find("singlets") != std::string::npos) _store_singlets = true;
     if (_store_string.find("triplets") != std::string::npos) _store_triplets = true;
+    
+    key = "options." + Identify() +".job";
+    _jobfile = options->get(key + ".file").as<string>();
+
     
     load_property_from_xml( _package_options, _package_xml.c_str() );    
     key = "package";
@@ -162,11 +156,10 @@ void EDFT::Initialize(Property *options) {
 
 void EDFT::WriteJobFile(Topology *top) {
 
-    string jobFile = "edft.jobs";   
-    
+    cout << endl << "... ... Writing jobs file " << flush;
     ofstream ofs;
-    ofs.open(jobFile.c_str(), ofstream::out);
-    if (!ofs.is_open()) throw runtime_error("Bad file handle: " + jobFile);
+    ofs.open(_jobfile.c_str(), ofstream::out);
+    if (!ofs.is_open()) throw runtime_error("\nERROR: bad file handle: " + _jobfile);
  
     ofs << "<jobs>" << endl;   
 
@@ -201,15 +194,20 @@ void EDFT::WriteJobFile(Topology *top) {
         segments[id2] = (*pit)->Seg2();
 
     }
+    
 
+    
     for (sit = segments.begin(); sit != segments.end(); ++sit) {
     
         int id = ++jobCount;
-        
-        string tag = (format("%1$s") % sit->first).str();
-        string input = sit->second->getName();
-        string stat = "AVAILABLE";
-        Job job(id, tag, input, stat);
+        string tag = "";
+
+        Property Input;
+        Property *pInput = &Input.add("input","");
+        Property *pSegment =  &pInput->add("segment" , (format("%1$s") % sit->first).str() );
+        pSegment->setAttribute<string>("type", sit->second->getName() );
+        pSegment->setAttribute<int>("id", sit->second->getId() );
+        Job job(id, tag, Input, Job::AVAILABLE );
         job.ToStream(ofs,"xml");
     }
      
@@ -231,7 +229,6 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     bool _convert_status;
 
 
-    FILE *out;
     Orbitals _orbitals;
     Job::JobResult jres = Job::JobResult();
 
