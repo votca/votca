@@ -3,8 +3,6 @@
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <logicalFolder name="f2" displayName="Calculators" projectFiles="true">
-        <itemPath>../../src/libctp/calculators/calculatorfactory.cc</itemPath>
-        <itemPath>../../src/libctp/calculators/calculatorfactory.h</itemPath>
         <itemPath>../../src/libctp/calculators/eanalyze.h</itemPath>
         <itemPath>../../src/libctp/calculators/eimport.h</itemPath>
         <itemPath>../../src/libctp/calculators/einternal.h</itemPath>
@@ -30,8 +28,6 @@
         <itemPath>../../src/libctp/jobcalculators/ewald.h</itemPath>
         <itemPath>../../src/libctp/jobcalculators/idft.cc</itemPath>
         <itemPath>../../src/libctp/jobcalculators/idft.h</itemPath>
-        <itemPath>../../src/libctp/jobcalculators/jobcalculatorfactory.cc</itemPath>
-        <itemPath>../../src/libctp/jobcalculators/jobcalculatorfactory.h</itemPath>
         <itemPath>../../src/libctp/jobcalculators/qmmm.h</itemPath>
         <itemPath>../../src/libctp/jobcalculators/xqmultipole.h</itemPath>
       </logicalFolder>
@@ -48,8 +44,6 @@
         <itemPath>../../src/libctp/tools/molpol.cc</itemPath>
         <itemPath>../../src/libctp/tools/molpol.h</itemPath>
         <itemPath>../../src/libctp/tools/pdb2map.h</itemPath>
-        <itemPath>../../src/libctp/tools/toolfactory.cc</itemPath>
-        <itemPath>../../src/libctp/tools/toolfactory.h</itemPath>
       </logicalFolder>
     </logicalFolder>
     <logicalFolder name="HeaderFiles"
@@ -80,7 +74,6 @@
       <itemPath>../../include/votca/ctp/polarsite.h</itemPath>
       <itemPath>../../include/votca/ctp/polartop.h</itemPath>
       <itemPath>../../include/votca/ctp/progressobserver.h</itemPath>
-      <itemPath>../../include/votca/ctp/qmapplication.h</itemPath>
       <itemPath>../../include/votca/ctp/qmcalculator.h</itemPath>
       <itemPath>../../include/votca/ctp/qmdatabase.h</itemPath>
       <itemPath>../../include/votca/ctp/qmmachine.h</itemPath>
@@ -116,17 +109,32 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
+      <logicalFolder name="f2" displayName="Applications" projectFiles="true">
+        <itemPath>../../src/libctp/ctpapplication.cc</itemPath>
+        <itemPath>../../src/libctp/jobapplication.cc</itemPath>
+        <itemPath>../../src/libctp/sqlapplication.cc</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f1" displayName="Factories" projectFiles="true">
+        <itemPath>../../src/libctp/calculatorfactory.cc</itemPath>
+        <itemPath>../../src/libctp/jobcalculatorfactory.cc</itemPath>
+        <itemPath>../../src/libctp/qmpackagefactory.cc</itemPath>
+        <itemPath>../../src/libctp/toolfactory.cc</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f3" displayName="Topology" projectFiles="true">
+        <itemPath>../../src/libctp/fragment.cc</itemPath>
+        <itemPath>../../src/libctp/molecule.cc</itemPath>
+        <itemPath>../../src/libctp/qmnblist.cc</itemPath>
+        <itemPath>../../src/libctp/qmpair.cc</itemPath>
+        <itemPath>../../src/libctp/segment.cc</itemPath>
+        <itemPath>../../src/libctp/segmenttype.cc</itemPath>
+        <itemPath>../../src/libctp/topology.cc</itemPath>
+      </logicalFolder>
       <itemPath>../../src/libctp/apolarsite.cc</itemPath>
-      <itemPath>../../src/libctp/calculatorfactory.cc</itemPath>
-      <itemPath>../../src/libctp/ctpapplication.cc</itemPath>
       <itemPath>../../src/libctp/ewald2d.cc</itemPath>
       <itemPath>../../src/libctp/ewald3d.cc</itemPath>
       <itemPath>../../src/libctp/ewaldnd.cc</itemPath>
-      <itemPath>../../src/libctp/fragment.cc</itemPath>
       <itemPath>../../src/libctp/hgversion.h</itemPath>
       <itemPath>../../src/libctp/job.cc</itemPath>
-      <itemPath>../../src/libctp/jobapplication.cc</itemPath>
-      <itemPath>../../src/libctp/molecule.cc</itemPath>
       <itemPath>../../src/libctp/orbitals.cc</itemPath>
       <itemPath>../../src/libctp/parallelpaircalc.cc</itemPath>
       <itemPath>../../src/libctp/parallelxjobcalc.cc</itemPath>
@@ -135,20 +143,11 @@
       <itemPath>../../src/libctp/polarsite.cc</itemPath>
       <itemPath>../../src/libctp/polartop.cc</itemPath>
       <itemPath>../../src/libctp/progressobserver.cc</itemPath>
-      <itemPath>../../src/libctp/qmapplication.cc</itemPath>
       <itemPath>../../src/libctp/qmcalculator.cc</itemPath>
       <itemPath>../../src/libctp/qmdatabase.cc</itemPath>
       <itemPath>../../src/libctp/qmmachine.cc</itemPath>
-      <itemPath>../../src/libctp/qmnblist.cc</itemPath>
-      <itemPath>../../src/libctp/qmpackagefactory.cc</itemPath>
-      <itemPath>../../src/libctp/qmpair.cc</itemPath>
       <itemPath>../../src/libctp/qmtool.cc</itemPath>
-      <itemPath>../../src/libctp/segment.cc</itemPath>
-      <itemPath>../../src/libctp/segmenttype.cc</itemPath>
-      <itemPath>../../src/libctp/sqlapplication.cc</itemPath>
       <itemPath>../../src/libctp/statesaversqlite.cc</itemPath>
-      <itemPath>../../src/libctp/toolfactory.cc</itemPath>
-      <itemPath>../../src/libctp/topology.cc</itemPath>
       <itemPath>../../src/libctp/version.cc</itemPath>
       <itemPath>../../src/libctp/version_nb.cc</itemPath>
       <itemPath>../../src/libctp/votca_config.h</itemPath>
@@ -268,11 +267,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/ctp/qmapplication.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/ctp/qmcalculator.h"
             ex="false"
             tool="3"
@@ -341,16 +335,6 @@
       <item path="../../src/libctp/calculatorfactory.cc"
             ex="false"
             tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/calculatorfactory.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/calculatorfactory.h"
-            ex="false"
-            tool="3"
             flavor2="0">
       </item>
       <item path="../../src/libctp/calculators/eanalyze.h"
@@ -493,6 +477,11 @@
       </item>
       <item path="../../src/libctp/jobapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libctp/jobcalculatorfactory.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/jobcalculators/edft.h"
             ex="false"
             tool="3"
@@ -509,16 +498,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/jobcalculators/idft.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/jobcalculators/jobcalculatorfactory.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/jobcalculators/jobcalculatorfactory.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -557,8 +536,6 @@
             ex="false"
             tool="1"
             flavor2="0">
-      </item>
-      <item path="../../src/libctp/qmapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/qmcalculator.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -625,16 +602,6 @@
       <item path="../../src/libctp/tools/molpol.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/pdb2map.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../src/libctp/tools/toolfactory.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/tools/toolfactory.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../src/libctp/topology.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -751,11 +718,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/ctp/qmapplication.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/ctp/qmcalculator.h"
             ex="false"
             tool="3"
@@ -824,16 +786,6 @@
       <item path="../../src/libctp/calculatorfactory.cc"
             ex="false"
             tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/calculatorfactory.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/calculatorfactory.h"
-            ex="false"
-            tool="3"
             flavor2="0">
       </item>
       <item path="../../src/libctp/calculators/eanalyze.h"
@@ -976,6 +928,11 @@
       </item>
       <item path="../../src/libctp/jobapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libctp/jobcalculatorfactory.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/jobcalculators/edft.h"
             ex="false"
             tool="3"
@@ -992,16 +949,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/jobcalculators/idft.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/jobcalculators/jobcalculatorfactory.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/jobcalculators/jobcalculatorfactory.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1040,8 +987,6 @@
             ex="false"
             tool="1"
             flavor2="0">
-      </item>
-      <item path="../../src/libctp/qmapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/qmcalculator.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1108,16 +1053,6 @@
       <item path="../../src/libctp/tools/molpol.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/pdb2map.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../src/libctp/tools/toolfactory.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/tools/toolfactory.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../src/libctp/topology.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1234,11 +1169,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/ctp/qmapplication.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/ctp/qmcalculator.h"
             ex="false"
             tool="3"
@@ -1307,16 +1237,6 @@
       <item path="../../src/libctp/calculatorfactory.cc"
             ex="false"
             tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/calculatorfactory.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/calculatorfactory.h"
-            ex="false"
-            tool="3"
             flavor2="0">
       </item>
       <item path="../../src/libctp/calculators/eanalyze.h"
@@ -1459,6 +1379,11 @@
       </item>
       <item path="../../src/libctp/jobapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libctp/jobcalculatorfactory.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/jobcalculators/edft.h"
             ex="false"
             tool="3"
@@ -1475,16 +1400,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/jobcalculators/idft.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/jobcalculators/jobcalculatorfactory.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/jobcalculators/jobcalculatorfactory.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1523,8 +1438,6 @@
             ex="false"
             tool="1"
             flavor2="0">
-      </item>
-      <item path="../../src/libctp/qmapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/qmcalculator.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1591,16 +1504,6 @@
       <item path="../../src/libctp/tools/molpol.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/pdb2map.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../src/libctp/tools/toolfactory.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/tools/toolfactory.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../src/libctp/topology.cc" ex="false" tool="1" flavor2="0">
       </item>
