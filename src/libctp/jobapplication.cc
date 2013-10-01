@@ -19,7 +19,7 @@
 
 
 #include <votca/ctp/jobapplication.h>
-#include "jobcalculators/jobcalculatorfactory.h"
+#include <votca/ctp/jobcalculatorfactory.h>
 #include <votca/ctp/version.h>
 #include <boost/format.hpp>
 

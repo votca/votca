@@ -18,7 +18,7 @@
  */
 
 
-#include "jobcalculators/jobcalculatorfactory.h"
+#include <votca/ctp/jobcalculatorfactory.h>
 #include "votca_config.h"
 
 
