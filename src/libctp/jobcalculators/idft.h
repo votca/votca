@@ -59,7 +59,7 @@ public:
     
     Job::JobResult EvalJob(Topology *top, Job *job, QMThread *Thread);
 
-    void GenerateInput(Topology *top);
+    void WriteJobFile(Topology *top);
 
     void Import( Topology *top );
     

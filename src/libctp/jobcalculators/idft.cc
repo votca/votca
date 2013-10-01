@@ -85,8 +85,6 @@ void IDFT::ParseOptionsXML( votca::tools::Property *opt ) {
     string key = "options." + Identify();
     _energy_difference = opt->get( key + ".degeneracy" ).as< double > ();
     
-    _jobfile = opt->get(key + ".job_file").as<string>();
-
     string _tasks_string = opt->get(key+".tasks").as<string> ();
     if (_tasks_string.find("input") != std::string::npos) _do_input = true;
     if (_tasks_string.find("run") != std::string::npos) _do_run = true;
@@ -111,6 +109,9 @@ void IDFT::ParseOptionsXML( votca::tools::Property *opt ) {
     
      key = "package";
     _package = _package_options.get(key+".name").as<string> ();
+    
+    key = "options." + Identify() +".job";
+    _jobfile = opt->get(key + ".file").as<string>();    
 
 }
 
@@ -769,13 +770,13 @@ void IDFT::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB,
 
 }   
 
-void IDFT::GenerateInput(Topology *top) {
+void IDFT::WriteJobFile(Topology *top) {
 
-    string jobFile = "idft.jobs";   
+    cout << endl << "... ... Writing job file " << flush;
     ofstream ofs;
+    ofs.open(_jobfile.c_str(), ofstream::out);
+    if (!ofs.is_open()) throw runtime_error("\nERROR: bad file handle: " + _jobfile);
 
-    ofs.open(jobFile.c_str(), ofstream::out);
-    if (!ofs.is_open()) throw runtime_error("Bad file handle: " + jobFile);
  
     QMNBList::iterator pit;
     QMNBList &nblist = top->NBList();    
@@ -787,20 +788,36 @@ void IDFT::GenerateInput(Topology *top) {
     }    
 
     ofs << "<jobs>" << endl;    
+    string tag = "";
     
     for (pit = nblist.begin(); pit != nblist.end(); ++pit) {
-        
+
         int id1 = (*pit)->Seg1()->getId();
         string name1 = (*pit)->Seg1()->getName();
         int id2 = (*pit)->Seg2()->getId();
         string name2 = (*pit)->Seg2()->getName();   
 
         int id = ++jobCount;
-        string tag = (format("%1$s:%2$s") % id1 % id2 ).str(); 
-        string input = (format("%1$s:%2$s") % name1 % name2 ).str();
-        string stat = "AVAILABLE";
-        Job job(id, tag, input, stat);
+
+        Property Input;
+        Property *pInput = &Input.add("input","");
+        Property *pSegment =  &pInput->add("segment" , (format("%1$s") % id1).str() );
+        pSegment->setAttribute<string>("type", name1 );
+        pSegment->setAttribute<int>("id", id1 );
+
+        pSegment =  &pInput->add("segment" , (format("%1$s") % id2).str() );
+        pSegment->setAttribute<string>("type", name2 );
+        pSegment->setAttribute<int>("id", id2 );
+        
+        
+        Job job(id, tag, Input, Job::AVAILABLE );
         job.ToStream(ofs,"xml");
+        
+        //string tag = (format("%1$s:%2$s") % id1 % id2 ).str(); 
+        //string input = (format("%1$s:%2$s") % name1 % name2 ).str();
+        //string stat = "AVAILABLE";
+        //Job job(id, tag, input, stat);
+        //job.ToStream(ofs,"xml");
     }
 
     // CLOSE STREAM
