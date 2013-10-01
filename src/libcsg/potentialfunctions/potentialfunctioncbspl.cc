@@ -82,7 +82,7 @@ void PotentialFunctionCBSPL::setParam(string filename) {
                              + boost::lexical_cast<string>( _lam.size() ) + " parameters");
   } else {
 
-    // force last _ncutcoeff to be zero
+    // force last _ncutcoeff to zero
     for( int i = 0; i < _lam.size() - _ncutcoeff; i++)
       _lam(i) = param.y(i);
 
@@ -103,7 +103,7 @@ void PotentialFunctionCBSPL::SaveParam(const string& filename){
     param.set(i, _rbreak(i), _lam(i), 'o');
 
   for (int i = _nexcl; i < _lam.size() ; i++)
-    param.set(i, i, _lam(i), 'i');
+    param.set(i, _rbreak(i), _lam(i), 'i');
 
   param.Save(filename);
 
