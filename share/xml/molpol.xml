@@ -1,5 +1,5 @@
 <options>
-	<molpol>
+	<molpol help="Molecular Polarization" >
 		<mps_input>input.mps</mps_input>
 		<mps_output>output.mps</mps_output>
 		<pol_output>molpol.dat</pol_output>

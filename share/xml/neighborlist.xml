@@ -9,14 +9,6 @@
 		<cutoff help="Cutoff radius for centers of mass of rigid fragments" unit="nm">1.0</cutoff>
 	</segments>
 
-	<!-- suggestion -->
-	<load help="">
-		<file help="Text file with ID1 ID2 NAME1 NAME2"></file>
-		<id help="Indeces of columns with segment IDs"></id>
-		<type help="Indeces of columns with segment types">7 8</type>
-		<unsafe help=""></unsafe> <!-- what is this? -->
-	</load>
-
 </neighborlist>
 
 </options>
