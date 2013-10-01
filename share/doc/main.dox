@@ -1,0 +1,17 @@
+/**
+
+\page ctp Charge and exciton transport
+
+\ref ctp "ctp"
+
+Objects related to charge transport are encapsulated in the votca::ctp namespace. 
+
+The main container is votca::ctp::Topology. 
+
+
+This is the code documentation of the VOTCA-CTP package (http://www.votca.org). 
+
+
+
+ */
+

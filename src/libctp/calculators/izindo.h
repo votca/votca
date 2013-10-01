@@ -46,9 +46,9 @@ public:
     IZindo() {};
    ~IZindo() {};
 
-    string  Identify() { return "IZindo"; }
-    void    Initialize(Topology *top, Property *options);
-    void    ParseOrbitalsXML(Topology *top, Property *options);
+    string  Identify() { return "izindo"; }
+    void    Initialize(Property *options);
+    void    ParseOrbitalsXML(Property *options);
     void    EvalPair(Topology *top, QMPair *pair, PairOperator *opThread);
 
     void    CTP2MOO2CTP(QMPair *pair, PairOperator *opThread, int state);
@@ -101,7 +101,7 @@ void IZindo::CleanUp() {
 
 }
 
-void IZindo::Initialize(Topology *top, Property *options) {
+void IZindo::Initialize(Property *options) {
 
     cout << endl << "... ... Initialize with " << _nThreads << " threads.";
     _maverick = (_nThreads == 1) ? true : false;
@@ -116,12 +116,12 @@ void IZindo::Initialize(Topology *top, Property *options) {
      *
      */
 
-    this->ParseOrbitalsXML(top, options);
+    this->ParseOrbitalsXML(options);
 
 }
 
 
-void IZindo::ParseOrbitalsXML(Topology *top, Property *opt) {
+void IZindo::ParseOrbitalsXML(Property *opt) {
 
     string key = "options.izindo";
     string orbitalsXML = opt->get(key+".orbitalsXML").as<string> ();

@@ -17,36 +17,60 @@
  *
  */
 
-#ifndef __QMTOOLFACTORY__H
-#define	__QMTOOLFACTORY__H
 
-#include <votca/tools/objectfactory.h>
-#include "qmtool.h"
+#ifndef VOTCA_CTP_CTPAPPLICATION_H
+#define	VOTCA_CTP_CTPAPPLICATION_H
+
+#include <votca/tools/application.h>
+#include <votca/tools/property.h>
 
 namespace votca { namespace ctp {
 
 using namespace std;
 
-class QMToolFactory : public ObjectFactory<std::string, QMTool>
+class CtpApplication : public votca::tools::Application
 {
-    
-private:
-    QMToolFactory() {}
-    
 public:
+    CtpApplication();
+   ~CtpApplication() { };
+
+   void Initialize();
+   bool EvaluateOptions();
+   virtual void Run(void) = 0;
+   void ShowHelpText(std::ostream &out);
+
+protected:
+
+    votca::tools::Property _options;
+
+    enum HelpOutputType { _helpShort, _helpLong };
     
-    static void RegisterAll(void);
+    void PrintDescription(std::ostream &out, string name,  HelpOutputType _help_output_type);
 
-    friend QMToolFactory &QMTools();
 };
-
-inline QMToolFactory &QMTools()
-{
-    static QMToolFactory _instance;
-    return _instance;
-}
 
 }}
 
-#endif	/* __QMTOOLFACTORY__H */
+
+
+
+
+
+
+
+
+#endif /* _QMApplication_H */
+
+
+
+
+
+
+
+
+
+
+
+
+
 

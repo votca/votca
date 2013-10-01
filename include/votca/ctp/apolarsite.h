@@ -51,6 +51,8 @@ class APolarSite
     friend class XInteractor;
     friend class QMMIter;
     friend class Ewald3D3D;
+    friend class PEwald3D3D;
+    friend class EwdInteractor;
 
 
 public:
@@ -93,6 +95,8 @@ public:
     matrix         &getPs(int state) { return _Ps[state+1]; }
     double          getIsoP() { return 1./3. * (Pxx+Pyy+Pzz); }
     double          getProjP(vec &dir);
+    vec             getFieldP() { return vec(FPx,FPy,FPz); } // Only IOP
+    vec             getFieldU() { return vec(FUx,FUy,FUz); } // Only IOP
     
     double          setQ00(double q, int s) { Q00 = q; _Qs[s+1][0] = q; }
     double         &getQ00() { return Q00; }
@@ -101,8 +105,10 @@ public:
 
     void            Induce(double wSOR = 0.25);
     void            InduceDirect();
+    double          InductionWork() { return -0.5*(U1x*(FPx+FUx) + U1y*(FPy+FUy) + U1z*(FPz+FUz)); }
     void            ResetFieldU() { FUx = FUy = FUz = 0.0; }
     void            ResetFieldP() { FPx = FPy = FPz = 0.0; }
+    void            ResetU1()     { U1x = U1y = U1z = 0.0; }
     void            ResetU1Hist() { U1_Hist.clear(); }
     void            Depolarize();
     double          HistdU();
@@ -155,6 +161,7 @@ private:
     double Q00;
     double Q1x, Q1y, Q1z;
     double Q20, Q21c, Q21s, Q22c, Q22s;
+    double Qxx, Qxy, Qxz, Qyy, Qyz, Qzz;
 
     double U1x, U1y, U1z;                   // Induced dipole
     double FPx, FPy, FPz;                   // Electric field (due to permanent)

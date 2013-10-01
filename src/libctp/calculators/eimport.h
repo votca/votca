@@ -15,7 +15,7 @@ public:
 
    string Identify() { return "EImport"; }
 
-   void Initialize(Topology *top, Property *options);
+   void Initialize(Property *options);
    bool EvaluateFrame(Topology *top);
 
 private:
@@ -26,7 +26,7 @@ private:
 };
 
 
-void EImport::Initialize(Topology *top, Property *options) {
+void EImport::Initialize(Property *options) {
 
     string key = "options.eimport";
 

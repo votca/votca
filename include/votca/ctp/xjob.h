@@ -31,6 +31,8 @@ public:
 
     XJob(int id, string tag, vector<Segment*> &qmSegs, 
          vector<string> &qmSegMps, Topology *top);
+    
+    XJob(PolarTop *ptop, bool start_from_cpt);
 
    ~XJob();
 
@@ -69,6 +71,10 @@ public:
    
    double getEQM()  { return _E_QM; }
    double getESF()  { return _E_SF; }
+   
+   double getEPP()  { return _EPP; }
+   double getEPU()  { return _EPU; }
+   double getEUU()  { return _EUU; }
    
    void setInduIter(int iter) { 
        _iter = iter;
@@ -150,6 +156,7 @@ private:
    vec                  _center;
    map<int,bool>        _isSegInCenter;
    bool                 _start_from_cpt;
+   bool                 _clean_ptop;
    PolarTop            *_ptop;
 
    // Inductor facts

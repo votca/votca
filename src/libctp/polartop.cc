@@ -6,29 +6,42 @@ namespace votca { namespace ctp {
 
     
 PolarTop::PolarTop(Topology *top) : _top(top) {
-    ;
+    _clean_qm0 = _clean_mm1 = _clean_mm2 = true;
+    _clean_bgN = _clean_fgN = _clean_fgC = true;
 };
     
     
 PolarTop::~PolarTop() {
     vector<PolarSeg*> ::iterator psit;
-    for (psit = _qm0.begin(); psit < _qm0.end(); ++psit) {          
-      delete *psit;          
+    if (_clean_qm0) {
+        for (psit = _qm0.begin(); psit < _qm0.end(); ++psit) {          
+          delete *psit;          
+        }
     }
-    for (psit = _mm1.begin(); psit < _mm1.end(); ++psit) {
-      delete *psit;
+    if (_clean_mm1) {
+        for (psit = _mm1.begin(); psit < _mm1.end(); ++psit) {
+          delete *psit;
+        }
     }
-    for (psit = _mm2.begin(); psit < _mm2.end(); ++psit) {
-      delete *psit;
+    if (_clean_mm2) {
+        for (psit = _mm2.begin(); psit < _mm2.end(); ++psit) {
+          delete *psit;
+        }
     }
-    for (psit = _bgN.begin(); psit < _bgN.end(); ++psit) {          
-      delete *psit;          
+    if (_clean_bgN) {
+        for (psit = _bgN.begin(); psit < _bgN.end(); ++psit) {          
+          delete *psit;          
+        }
     }
-    for (psit = _fgN.begin(); psit < _fgN.end(); ++psit) {
-      delete *psit;
+    if (_clean_fgN) {
+        for (psit = _fgN.begin(); psit < _fgN.end(); ++psit) {
+          delete *psit;
+        }
     }
-    for (psit = _fgC.begin(); psit < _fgC.end(); ++psit) {
-      delete *psit;
+    if (_clean_fgC) {
+        for (psit = _fgC.begin(); psit < _fgC.end(); ++psit) {
+          delete *psit;
+        }
     }
 
     _qm0.clear(); _mm1.clear(); _mm2.clear();
@@ -132,6 +145,8 @@ void PolarTop::CenterAround(const vec &center) {
                          -(pseg->getPos() - center);        
         pseg->Translate(shift);
     }
+    
+    _center = center;
 }
 
 

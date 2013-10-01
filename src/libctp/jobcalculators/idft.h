@@ -39,9 +39,9 @@ namespace votca { namespace ctp {
 /**
 * \brief Density-functional-based electronic coupling elements
 *
-* DFT-based electronic coupling elements for all conjugated
-* segments from the neighbor list. Requires molecular orbitals in GAUSSIAN
-* or TURBOMOLE format.
+* Ealuates DFT-based electronic coupling elements for all conjugated
+* segments from the neighbor list. Requires molecular orbitals of two monomers
+* and a dimer in GAUSSIAN, NWCHem, or TURBOMOLE format.
 *
 * Callname: idft
 */
@@ -53,11 +53,15 @@ public:
     IDFT() {};
    ~IDFT() {};
    
-    void    Initialize(ctp::Topology *top, tools::Property *options );
+    void    Initialize(tools::Property *options );
     
     string  Identify() { return "idft"; }
     
     Job::JobResult EvalJob(Topology *top, Job *job, QMThread *Thread);
+
+    void GenerateInput(Topology *top);
+
+    void Import( Topology *top );
     
 /*  
     void    EvalPair(Topology *top, QMPair *pair, int slot);

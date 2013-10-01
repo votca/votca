@@ -43,7 +43,7 @@ public:
     void EquipWithPolSites(Topology *top);
     
     // Adapt to XJob
-    vector<APolarSite*> MapPolSitesToSeg(const vector<APolarSite*> &pols_n, Segment *seg);
+    vector<APolarSite*> MapPolSitesToSeg(const vector<APolarSite*> &pols_n, Segment *seg, bool only_active_sites = true);
     vector<APolarSite*> GetOrCreateRawSites(const string &mpsfile, QMThread *thread = NULL);
     void Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2, QMThread *thread = NULL);
     void Gen_FGC_FGN_BGN(Topology *top, XJob *job, QMThread *thread = NULL);

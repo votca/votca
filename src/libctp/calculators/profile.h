@@ -28,7 +28,7 @@ class Profile : public QMCalculator
 public:
 
     string      Identify() { return "profile"; }
-    void        Initialize(Topology *top, Property *options);
+    void        Initialize(Property *options);
     bool        EvaluateFrame(Topology *top);
 
 private:
@@ -46,7 +46,7 @@ private:
     int         _lastSegId;
 };
 
-void Profile::Initialize(Topology *top, Property *options) {
+void Profile::Initialize(Property *options) {
     
     // _options already has default values, update them with the supplied options
     _options.CopyValues("", *options );

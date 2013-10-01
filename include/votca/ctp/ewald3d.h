@@ -31,8 +31,8 @@ namespace votca { namespace ctp {
        ~Ewald3D3D();
         
         string IdentifyMethod() { return "3D x 3D"; }
-        double ConvergeReciprocalSpaceSum();
-        double CalculateShapeCorrection();
+        EWD::triple<> ConvergeReciprocalSpaceSum();
+        EWD::triple<> CalculateShapeCorrection();
         double CalculateSq2(vec &k);
     
     private:

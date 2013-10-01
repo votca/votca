@@ -34,8 +34,8 @@ public:
    ~EInternal() { };
 
     string Identify() { return "EInternal"; }
-    void Initialize(Topology *top, Property *options);
-    void ParseEnergiesXML(Topology *top, Property *options);
+    void Initialize(Property *options);
+    void ParseEnergiesXML(Property *options);
     bool EvaluateFrame(Topology *top);
 
 private:
@@ -55,7 +55,7 @@ private:
 
 };
 
-void EInternal::Initialize(Topology *top, Property *options) {
+void EInternal::Initialize(Property *options) {
 
     string key = "options.einternal";
 
@@ -69,10 +69,10 @@ void EInternal::Initialize(Topology *top, Property *options) {
      *
      */
 
-    this->ParseEnergiesXML(top, options);
+    this->ParseEnergiesXML(options);
 }
 
-void EInternal::ParseEnergiesXML(Topology *top, Property *opt) {
+void EInternal::ParseEnergiesXML(Property *opt) {
 
     string key = "options.einternal";
     string energiesXML = opt->get(key+".energiesXML").as<string> ();

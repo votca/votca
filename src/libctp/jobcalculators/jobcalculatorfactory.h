@@ -17,22 +17,22 @@
  *
  */
 
-#ifndef __VOTCA_CTP_CALCULATORFACTORY_H
-#define	__VOTCA_CTP_CALCULATORFACTORY_H
+#ifndef VOTCA_CTP_JOBCALCULATORFACTORY_H
+#define	VOTCA_CTP_JOBCALCULATORFACTORY_H
 
 #include <map>
 #include <votca/tools/objectfactory.h>
-#include "qmcalculator.h"
+#include <votca/ctp/jobcalculator.h>
 
 namespace votca { namespace ctp {
 
 using namespace std;
 
-class Calculatorfactory
-: public ObjectFactory<std::string, QMCalculator>
+class JobCalculatorfactory
+: public ObjectFactory<std::string, JobCalculator>
 {
 private:
-    Calculatorfactory() {}
+    JobCalculatorfactory() {}
 public:
     
     static void RegisterAll(void);
@@ -41,23 +41,23 @@ public:
        Create an instance of the object identified by key.
     *  Overwritten to load calculator defaults
     */
-    QMCalculator *Create(const string &key);
+    JobCalculator *Create(const string &key);
 
-    friend Calculatorfactory &Calculators();
+    friend JobCalculatorfactory &JobCalculators();
     
 };
 
-inline Calculatorfactory &Calculators()
+inline JobCalculatorfactory &JobCalculators()
 {
-    static Calculatorfactory _instance;
+    static JobCalculatorfactory _instance;
     return _instance;
 }
 
-inline QMCalculator* Calculatorfactory::Create(const string &key)
+inline JobCalculator* JobCalculatorfactory::Create(const string &key)
 {
     typename assoc_map::const_iterator it(getObjects().find(key));
     if (it != getObjects().end()) {
-        QMCalculator* calc = (it->second)();
+        JobCalculator* calc = (it->second)();
         calc->LoadDefaults();
         return calc;
     } else

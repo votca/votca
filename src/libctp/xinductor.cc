@@ -2,6 +2,8 @@
 #include <boost/format.hpp>
 #include <vector>
 
+using boost::format;
+
 namespace votca { namespace ctp {
 
 
@@ -28,17 +30,31 @@ void XInductor::Evaluate(XJob *job) {
     // ++++++++++++++++++++++++++ //
 
     if (job->StartFromCPT()) {
+        // Permanent fields already computed, do not zero these out ...
+        LOG(logDEBUG,*_log) << "Carry out partial depolarization." << flush;
+        vector< PolarSeg* >   ::iterator sit;
+        vector< APolarSite* > ::iterator pit;
 
-        if (this->_maverick) {
-            cout << endl
-                 << "... ... ... Loading induced dipoles from .cpt file. "
-                 << flush;
-        }
-        assert(false); // Load induced dipole moments from file
+        // Partially depolarize inner sphere
+        for (sit = _qmm.begin(); sit < _qmm.end(); ++sit) {
+        for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {
+            (*pit)->ResetFieldU();
+            (*pit)->ResetU1Hist();
+            (*pit)->ResetU1();
+            (*pit)->Charge(0); // <- Not necessarily neutral state
+        }}
+
+        // Partially depolarize outer shell
+        for (sit = _mm2.begin(); sit < _mm2.end(); ++sit) {
+        for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {
+            (*pit)->ResetFieldU();
+            (*pit)->ResetU1Hist();
+            (*pit)->ResetU1();
+            (*pit)->Charge(0); // <- Not necessarily neutral state
+        }}
     }
-
-    else {
-
+    else {        
+        LOG(logDEBUG,*_log) << "Carry out full depolarization." << flush;        
         vector< PolarSeg* >   ::iterator sit;
         vector< APolarSite* > ::iterator pit;
 
@@ -161,17 +177,13 @@ int XInductor::Induce(XJob *job) {
     // 1st-order induction //
     // +++++++++++++++++++ //
 
-    if (!job->StartFromCPT()) { // OVERRIDE
-        for (sit1 = _qmm.begin(); sit1 < _qmm.end(); ++sit1) {
-             for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
-                 (*pit1)->InduceDirect();
-             }
-        }
+    // Direct induction. Could also be restored from file (in the case of
+    // iterative QM/MM being performed)
+    for (sit1 = _qmm.begin(); sit1 < _qmm.end(); ++sit1) {
+         for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+             (*pit1)->InduceDirect();
+         }
     }
-    else {
-        assert(false); // Load induced dipole moments from file
-    }
-
 
 
     // ++++++++++++++++++++++ //
@@ -248,7 +260,10 @@ int XInductor::Induce(XJob *job) {
 //             << " | SOR " << wSOR << flush;
 
         // Break if converged
-        if      (converged) { _isConverged = true; break; }
+        if      (converged) { 
+            _isConverged = true;
+            break; 
+        }
         else if (iter == maxI - 1) {
             _isConverged = false;
             //this->setError("Did not converge to precision (" 
@@ -397,8 +412,97 @@ double XInductor::Energy(XJob *job) {
 
 
     E_Tot = E_Pair_Pair + E_Pair_Sph1 + E_Sph1_Sph1 + E_Pair_Sph2;
-        
-
+    
+    
+    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
+    // Intramolecular field interaction                                //
+    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
+    double e_f_intra_0 = 0.0;
+    double e_m_intra_0 = 0.0;
+    for (sit1 = _qm0.begin(); sit1 < _qm0.end(); ++sit1) {
+        for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+        for (pit2 = pit1+1; pit2 < (*sit1)->end(); ++pit2) {
+            _actor.BiasIndu(*(*pit1), *(*pit2));
+            e_f_intra_0 += _actor.E_f_intra(*(*pit1), *(*pit2));
+            e_m_intra_0 += _actor.E_m_intra(*(*pit1), *(*pit2));
+            _actor.RevBias();
+            e_m_intra_0 += _actor.E_m_intra(*(*pit2), *(*pit1));
+        }}
+    }
+    double e_f_intra_1 = 0.0;
+    double e_m_intra_1 = 0.0;
+    for (sit1 = _mm1.begin(); sit1 < _mm1.end(); ++sit1) {
+        for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+        for (pit2 = pit1+1; pit2 < (*sit1)->end(); ++pit2) {
+            _actor.BiasIndu(*(*pit1), *(*pit2));
+            e_f_intra_1 += _actor.E_f_intra(*(*pit1), *(*pit2));
+            e_m_intra_1 += _actor.E_m_intra(*(*pit1), *(*pit2));
+            _actor.RevBias();
+            e_m_intra_1 += _actor.E_m_intra(*(*pit2), *(*pit1));
+        }}
+    }
+    double e_f_intra_2 = 0.0;
+    double e_m_intra_2 = 0.0;
+    for (sit1 = _mm2.begin(); sit1 < _mm2.end(); ++sit1) {
+        for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+        for (pit2 = pit1+1; pit2 < (*sit1)->end(); ++pit2) {
+            _actor.BiasIndu(*(*pit1), *(*pit2));
+            e_f_intra_2 += _actor.E_f_intra(*(*pit1), *(*pit2));
+            e_m_intra_2 += _actor.E_m_intra(*(*pit1), *(*pit2));
+            _actor.RevBias();
+            e_m_intra_2 += _actor.E_m_intra(*(*pit2), *(*pit1));
+        }}
+    }
+    
+    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
+    // Total ind. work (to be used with pre-generated perm. fields)    //
+    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
+    double e_m_0 = 0.0;
+    double e_m_1 = 0.0;
+    double e_m_2 = 0.0;
+    for (sit1 = _qm0.begin(); sit1 < _qm0.end(); ++sit1) {
+        for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+            e_m_0 += (*pit1)->InductionWork();
+        }
+    }
+    for (sit1 = _mm1.begin(); sit1 < _mm1.end(); ++sit1) {
+        for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+            e_m_1 += (*pit1)->InductionWork();
+        }
+    }
+    for (sit1 = _mm2.begin(); sit1 < _mm2.end(); ++sit1) {
+        for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+            e_m_2 += (*pit1)->InductionWork();
+        }
+    }
+    
+//    cout << endl << "E_f_intra_0 " << e_f_intra_0*int2eV << flush;
+//    cout << endl << "E_m_intra_0 " << e_m_intra_0*int2eV << flush;
+//    cout << endl << "E_f_intra_1 " << e_f_intra_1*int2eV << flush;
+//    cout << endl << "E_m_intra_1 " << e_m_intra_1*int2eV << flush;
+//    cout << endl << "E_f_intra_2 " << e_f_intra_2*int2eV << flush;
+//    cout << endl << "E_m_intra_2 " << e_m_intra_2*int2eV << flush;
+//    cout << endl << "E_m_0 " << e_m_0*int2eV << flush;
+//    cout << endl << "E_m_1 " << e_m_1*int2eV << flush;
+//    cout << endl << "E_m_2 " << e_m_2*int2eV << flush;
+    
+    // This is important if permanent/induction fields have been applied
+    // that do not originate in QM0, MM1, MM2
+    
+    e_m_c     = e_m_0 + e_f_intra_0;
+    e_m_non_c = e_m_1 + e_f_intra_1;
+    e_m_out   = e_m_2 + e_f_intra_2;
+    
+    //e_f_c_c += e_f_intra_0;
+    //e_f_non_c_non_c += e_f_intra_1;
+    
+    
+    
+    
+    
+    
+    
+    
 
     // =============================================================== //
     // Energy Output                                                   //
@@ -411,26 +515,26 @@ double XInductor::Energy(XJob *job) {
           + E_Pair_Sph2
           + E_Sph1_Sph2;
 
-    LOG(logINFO,*_log) 
-             << "... E(X) = " << E_Tot * int2eV << " eV "
-             << flush << "...      = (Site, Site) " << E_Pair_Pair * int2eV
-             << flush << "...      + (Site, Sph1) " << E_Pair_Sph1 * int2eV
-             << flush << "...      + (Sph1, Sph1) " << E_Sph1_Sph1 * int2eV
-             << flush << "...      + (Site, Sph2) " << E_Pair_Sph2 * int2eV
-             << flush << "...      + (Sph1, Sph2) " << E_Sph1_Sph2 * int2eV
-             << flush;
+//    LOG(logINFO,*_log) 
+//             << "... E(X) = " << E_Tot * int2eV << " eV "
+//             << flush << "...      = (Site, Site) " << E_Pair_Pair * int2eV
+//             << flush << "...      + (Site, Sph1) " << E_Pair_Sph1 * int2eV
+//             << flush << "...      + (Sph1, Sph1) " << E_Sph1_Sph1 * int2eV
+//             << flush << "...      + (Site, Sph2) " << E_Pair_Sph2 * int2eV
+//             << flush << "...      + (Sph1, Sph2) " << E_Sph1_Sph2 * int2eV
+//             << flush;
 
     // ... 1st kind
     double E_PPUU = epp 
                   + epu 
                   + euu;
 
-    LOG(logINFO,*_log)
-             << "... E(X) = " << E_PPUU * int2eV << " eV " 
-             << flush << "...      = (PP) "    << epp  * int2eV
-             << flush << "...      + (PU) "    << epu  * int2eV
-             << flush << "...      + (UU) "    << euu  * int2eV
-             << flush;
+//    LOG(logINFO,*_log)
+//             << "... E(X) = " << E_PPUU * int2eV << " eV " 
+//             << flush << "...      = (PP) "    << epp  * int2eV
+//             << flush << "...      + (PU) "    << epu  * int2eV
+//             << flush << "...      + (UU) "    << euu  * int2eV
+//             << flush;
 
     // ... 2nd kind
     double E_f_m = e_f_c_c 
@@ -443,16 +547,40 @@ double XInductor::Energy(XJob *job) {
                  + e_m_out;
 
     LOG(logINFO,*_log)
-             << "... E(X) = " << E_f_m * int2eV << " eV " 
-             << flush << "...      = (f,0-0) " << e_f_c_c          * int2eV
-             << flush << "...      + (f,0-1) " << e_f_c_non_c      * int2eV
-             << flush << "...      + (f,0-2) " << e_f_c_out        * int2eV
-             << flush << "...      + (f,1-1) " << e_f_non_c_non_c  * int2eV
-             << flush << "...      + (f,1-2) " << e_f_non_c_out    * int2eV
-             << flush << "...      + (m,-0-) " << e_m_c            * int2eV
-             << flush << "...      + (m,-1-) " << e_m_non_c        * int2eV
-             << flush << "...      + (m,-2-) " << e_m_out          * int2eV
-             << flush;
+        << (format("PP-PU-UU Splitting")).str()
+        << flush << (format("  + U [Q  -  Q]       = %1$+1.7f eV") % (epp      * int2eV)).str()
+        << flush << (format("  + U [Q  - dQ]       = %1$+1.7f eV") % (epu      * int2eV)).str()       
+        << flush << (format("  + U [dQ - dQ]       = %1$+1.7f eV") % (euu      * int2eV)).str()
+        << flush << (format("  = ------------------------------")).str()
+        << flush << (format("  + SUM(E)            = %1$+1.7f eV") % (E_PPUU   * int2eV)).str()
+        << flush;
+    LOG(logINFO,*_log)
+        << (format("QM0-MM1-MM2 Splitting")).str()
+        << flush << (format("  + Field-term [0-0]  = %1$+1.7f eV (%2$+1.7f)") % (e_f_c_c          * int2eV) % (e_f_intra_0*int2eV)).str()
+        << flush << (format("  + Field-term [0-1]  = %1$+1.7f eV") % (e_f_c_non_c      * int2eV)).str()       
+        << flush << (format("  + Field-term [0-2]  = %1$+1.7f eV") % (e_f_c_out        * int2eV)).str()
+        << flush << (format("  + Field-term [1-1]  = %1$+1.7f eV (%2$+1.7f)") % (e_f_non_c_non_c  * int2eV) % (e_f_intra_1*int2eV)).str()
+        << flush << (format("  + Field-term [1-2]  = %1$+1.7f eV") % (e_f_non_c_out    * int2eV)).str()
+        << flush << (format("    ------------------------------")).str()
+        << flush << (format("  + Work-term  [-0-]  = %1$+1.7f eV") % (e_m_c            * int2eV)).str()
+        << flush << (format("  + Work-term  [-1-]  = %1$+1.7f eV") % (e_m_non_c        * int2eV)).str()
+        << flush << (format("  + Work-term  [-2-]  = %1$+1.7f eV") % (e_m_out          * int2eV)).str()
+        << flush << (format("  = ------------------------------")).str()
+        << flush << (format("    SUM(E)            = %1$+1.7f eV") % (E_f_m               *int2eV)).str()
+        << flush;
+    
+    
+//    LOG(logINFO,*_log)
+//             << "... E(X) = " << E_f_m * int2eV << " eV " 
+//             << flush << "...      = (f,0-0) " << e_f_c_c          * int2eV
+//             << flush << "...      + (f,0-1) " << e_f_c_non_c      * int2eV
+//             << flush << "...      + (f,0-2) " << e_f_c_out        * int2eV
+//             << flush << "...      + (f,1-1) " << e_f_non_c_non_c  * int2eV
+//             << flush << "...      + (f,1-2) " << e_f_non_c_out    * int2eV
+//             << flush << "...      + (m,-0-) " << e_m_c            * int2eV
+//             << flush << "...      + (m,-1-) " << e_m_non_c        * int2eV
+//             << flush << "...      + (m,-2-) " << e_m_out          * int2eV
+//             << flush;
 
     // Forward results to job
     job->setEnergy(E_Tot            *int2eV,           
@@ -593,26 +721,26 @@ double XInductor::EnergyStatic(XJob *job) {
           + E_Pair_Sph2
           + E_Sph1_Sph2;
     
-    LOG(logINFO,*_log) 
-             << "... E(X) = " << E_Tot * int2eV << " eV "
-             << flush << "...      = (Site, Site) " << E_Pair_Pair * int2eV
-             << flush << "...      + (Site, Sph1) " << E_Pair_Sph1 * int2eV
-             << flush << "...      + (Sph1, Sph1) " << E_Sph1_Sph1 * int2eV
-             << flush << "...      + (Site, Sph2) " << E_Pair_Sph2 * int2eV
-             << flush << "...      + (Sph1, Sph2) " << E_Sph1_Sph2 * int2eV
-             << flush;
+//    LOG(logINFO,*_log) 
+//             << "... E(X) = " << E_Tot * int2eV << " eV "
+//             << flush << "...      = (Site, Site) " << E_Pair_Pair * int2eV
+//             << flush << "...      + (Site, Sph1) " << E_Pair_Sph1 * int2eV
+//             << flush << "...      + (Sph1, Sph1) " << E_Sph1_Sph1 * int2eV
+//             << flush << "...      + (Site, Sph2) " << E_Pair_Sph2 * int2eV
+//             << flush << "...      + (Sph1, Sph2) " << E_Sph1_Sph2 * int2eV
+//             << flush;
 
     // ... 1st kind
     double E_PPUU = epp 
                   + epu 
                   + euu;
 
-    LOG(logINFO,*_log)
-             << "... E(X) = " << E_PPUU * int2eV << " eV " 
-             << flush << "...      = (PP) "    << epp  * int2eV
-             << flush << "...      + (PU) "    << epu  * int2eV
-             << flush << "...      + (UU) "    << euu  * int2eV
-             << flush;
+//    LOG(logINFO,*_log)
+//             << "... E(X) = " << E_PPUU * int2eV << " eV " 
+//             << flush << "...      = (PP) "    << epp  * int2eV
+//             << flush << "...      + (PU) "    << epu  * int2eV
+//             << flush << "...      + (UU) "    << euu  * int2eV
+//             << flush;
 
     // ... 2nd kind
     double E_f_m = e_f_c_c 
@@ -624,18 +752,43 @@ double XInductor::EnergyStatic(XJob *job) {
                  + e_m_non_c
                  + e_m_out;
 
-    LOG(logINFO,*_log)
-             << "... E(X) = " << E_f_m * int2eV << " eV " 
-             << flush << "...      = (f,0-0) " << e_f_c_c          * int2eV
-             << flush << "...      + (f,0-1) " << e_f_c_non_c      * int2eV
-             << flush << "...      + (f,0-2) " << e_f_c_out        * int2eV
-             << flush << "...      + (f,1-1) " << e_f_non_c_non_c  * int2eV
-             << flush << "...      + (f,1-2) " << e_f_non_c_out    * int2eV
-             << flush << "...      + (m,-0-) " << e_m_c            * int2eV
-             << flush << "...      + (m,-1-) " << e_m_non_c        * int2eV
-             << flush << "...      + (m,-2-) " << e_m_out          * int2eV
-             << flush;
+//    LOG(logINFO,*_log)
+//             << "... E(X) = " << E_f_m * int2eV << " eV " 
+//             << flush << "...      = (f,0-0) " << e_f_c_c          * int2eV
+//             << flush << "...      + (f,0-1) " << e_f_c_non_c      * int2eV
+//             << flush << "...      + (f,0-2) " << e_f_c_out        * int2eV
+//             << flush << "...      + (f,1-1) " << e_f_non_c_non_c  * int2eV
+//             << flush << "...      + (f,1-2) " << e_f_non_c_out    * int2eV
+//             << flush << "...      + (m,-0-) " << e_m_c            * int2eV
+//             << flush << "...      + (m,-1-) " << e_m_non_c        * int2eV
+//             << flush << "...      + (m,-2-) " << e_m_out          * int2eV
+//             << flush;
 
+    
+    LOG(logINFO,*_log)
+        << (format("PP-PU-UU Splitting")).str()
+        << flush << (format("  + U [Q  -  Q]       = %1$+1.7f eV") % (epp      * int2eV)).str()
+        << flush << (format("  + U [Q  - dQ]       = %1$+1.7f eV") % (epu      * int2eV)).str()       
+        << flush << (format("  + U [dQ - dQ]       = %1$+1.7f eV") % (euu      * int2eV)).str()
+        << flush << (format("    ------------------------------")).str()
+        << flush << (format("    SUM(E)            = %1$+1.7f eV") % (E_PPUU   * int2eV)).str()
+        << flush;
+    LOG(logINFO,*_log)
+        << (format("QM0-MM1-MM2 Splitting")).str()
+        << flush << (format("  + Field-term [0-0]  = %1$+1.7f eV") % (e_f_c_c          * int2eV)).str()
+        << flush << (format("  + Field-term [0-1]  = %1$+1.7f eV") % (e_f_c_non_c      * int2eV)).str()       
+        << flush << (format("  + Field-term [0-2]  = %1$+1.7f eV") % (e_f_c_out        * int2eV)).str()
+        << flush << (format("  + Field-term [1-1]  = %1$+1.7f eV") % (e_f_non_c_non_c  * int2eV)).str()
+        << flush << (format("  + Field-term [1-2]  = %1$+1.7f eV") % (e_f_non_c_out    * int2eV)).str()
+        << flush << (format("    ------------------------------")).str()
+        << flush << (format("  + Work-term  [-0-]  = %1$+1.7f eV") % (e_m_c            * int2eV)).str()
+        << flush << (format("  + Work-term  [-1-]  = %1$+1.7f eV") % (e_m_non_c        * int2eV)).str()
+        << flush << (format("  + Work-term  [-2-]  = %1$+1.7f eV") % (e_m_out          * int2eV)).str()
+        << flush << (format("    ------------------------------")).str()
+        << flush << (format("    SUM(E)            = %1$+1.7f eV") % (E_f_m               *int2eV)).str()
+        << flush;
+    
+    
     // Forward results to job
     job->setEnergy(E_Tot            *int2eV,           
                    E_Pair_Pair      *int2eV,
@@ -711,7 +864,7 @@ XInductor::XInductor(Topology *top, Property *opt,
         }
         else { _epsTol = 0.001; }
     
-    _actor = XInteractor(top, _aDamp);
+    _actor = XInteractor(NULL, _aDamp);
     
 }
 

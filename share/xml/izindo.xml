@@ -2,6 +2,8 @@
 
 <izindo help="Semiempirical electronic coupling elements for all neighbor list pairs" label="calc:izindo">
 	<basisset help="Basis set used to generate monomer orbitals. Default is **INDO**"></basisset>
+        <orbitalsXML help="File with paths to .orb files">system.xml</orbitalsXML>
+
 </izindo>
 
 </options>

@@ -6,6 +6,8 @@
 #include <votca/ctp/xjob.h>
 #include <votca/ctp/qmthread.h>
 #include <votca/ctp/xinteractor.h>
+#include <votca/ctp/ewaldactor.h>
+#include <votca/ctp/xinductor.h>
 
 namespace CSG = votca::csg;
 
@@ -27,47 +29,39 @@ namespace votca { namespace ctp {
         
     public:
         
-        Ewald3DnD() { ; }
         Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log);
         virtual ~Ewald3DnD();
        
+        void ExpandForegroundReduceBackground(double polar_R_co);
         void SetupMidground(double R_co);
         void WriteDensitiesPDB(string pdbfile);
         void Evaluate();
+        void EvaluateFields();
+        void EvaluateInduction();
+        void EvaluateEnergy();
+        
         bool Converged() { return _converged_R && _converged_K; }
         Property GenerateOutputString();
         string GenerateErrorString();
         
         virtual string IdentifyMethod() = 0;
-        virtual double ConvergeRealSpaceSum();
-        virtual double ConvergeReciprocalSpaceSum() = 0;
-        virtual double CalculateForegroundCorrection();
-        virtual double CalculateHigherRankCorrection();
-        virtual double CalculateShapeCorrection() { return 0.0; }
-        virtual double CalculateK0Correction() { return 0.0; }
+        virtual void GenerateKVectors() { ; }
         
-        // To sort K-vectors via std::sort using a norm functor
-        template<class Norm>
-        struct VectorSort
-        {
-            VectorSort() : _p(1e-40) { ; }
-            VectorSort(double precision) : _p(precision) { ; }
-            inline bool operator() (const vec &v1, const vec &v2);
-            inline bool MatchDouble(double a, double b) 
-                { return ((a-b)*(a-b) < _p) ? true : false; }
-            double _p;
-            Norm _norm;
-        };
+        virtual EWD::triple<> ConvergeRealSpaceSum();
+        virtual EWD::triple<> ConvergeReciprocalSpaceSum() = 0;
+        virtual EWD::triple<> CalculateForegroundCorrection();
+        virtual EWD::triple<> CalculateHigherRankCorrection();
+        virtual EWD::triple<> CalculateShapeCorrection() { return EWD::triple<>(0.0,0.0,0.0); }
+        virtual EWD::triple<> CalculateK0Correction() { return EWD::triple<>(0.0,0.0,0.0); }
         
-        // Tschebyschow norm functor
-        struct MaxNorm { inline double operator() (const vec &v) 
-            { return votca::tools::maxnorm(v); } };
-        // Euclidean norm functor
-        struct EucNorm { inline double operator() (const vec &v) 
-            { return votca::tools::abs(v); } };
+        virtual void Field_ConvergeRealSpaceSum() { ; }
+        virtual void Field_ConvergeReciprocalSpaceSum() { ; }
+        virtual void Field_CalculateForegroundCorrection() { ; }
+        virtual void Field_CalculateShapeCorrection() { ; }
         
     protected:
         
+        EwdInteractor _ewdactor;
         XInteractor _actor;
         Logger *_log;
         
@@ -77,6 +71,7 @@ namespace votca { namespace ctp {
         vec _center;
         
         // POLAR SEGMENTS
+        // Part I - Ewald
         PolarTop *_ptop;
         vector< PolarSeg* > _bg_P;      // Period. density = _bg_N v _fg_N
         vector< PolarSeg* > _bg_N;      // Neutral background
@@ -84,14 +79,35 @@ namespace votca { namespace ctp {
         vector< PolarSeg* > _fg_N;      // Neutral foreground
         vector< PolarSeg* > _fg_C;      // Charged foreground
         vector< bool > _inForeground;
+        string _jobType;                // Calculated from _fg_C charge distr.
+        // Part II - Thole
+        vector< PolarSeg* > _polar_qm0;
+        vector< PolarSeg* > _polar_mm1;
+        vector< PolarSeg* > _polar_mm2; // Should not be used
+        
         
         // CONVERGENCE
+        // Part I - Ewald
         double _alpha;                  // _a = 1/(sqrt(2)*sigma)
+        double _kfactor;
+        double _rfactor;
         double _K_co;                   // k-space c/o
         double _R_co;                   // r-space c/o
         double _crit_dE;                // Energy convergence criterion [eV]
         bool   _converged_R;            // Did R-space sum converge?
         bool   _converged_K;            // Did K-space sum converge?
+        bool   _field_converged_R;
+        bool   _field_converged_K;
+        bool   _did_field_pin_R_shell_idx;
+        int    _field_R_shell_idx;
+        // Part II - Thole
+        bool _polar_do_induce;
+        double _polar_aDamp;
+        double _polar_wSOR_N;
+        double _polar_wSOR_C;
+        double _polar_cutoff;
+
+        
         
         // LATTICE (REAL, RECIPROCAL)
         vec _a; vec _b; vec _c;         // Real-space lattice vectors
@@ -101,52 +117,45 @@ namespace votca { namespace ctp {
         double _LxLy;                   // |a^b|
         double _LxLyLz;                 // a*|b^c|
         
-        VectorSort<MaxNorm> _maxsort;
-        VectorSort<EucNorm> _eucsort;
+        EWD::VectorSort<EWD::MaxNorm,vec> _maxsort;
+        EWD::VectorSort<EWD::EucNorm,vec> _eucsort;
+        EWD::VectorSort<EWD::KNorm,EWD::KVector> _kvecsort;
+        
+        vector<EWD::KVector> _kvecs_2_0;     // K-vectors with two components = zero
+        vector<EWD::KVector> _kvecs_1_0;     // K-vectors with one component  = zero
+        vector<EWD::KVector> _kvecs_0_0;     // K-vectors with no  components = zero
+        double _kxyz_s1s2_norm;
+        bool _did_generate_kvectors;
         
         // ENERGIES
-        double _ER;                     // R-space sum
-        double _EC;                     // R-space correction
-        double _EK;                     // K-space sum
-        double _E0;                     // K-space K=0 contribution
-        double _ET;                     // ER - EC + EK + E0
-        double _EDQ;                    // Higher-Rank FGC->MGN correction
-        double _EJ;                     // Geometry-dependent correction
-        
+        // Part I - Ewald
+        EWD::triple<> _ER;                     // R-space sum
+        EWD::triple<> _EC;                     // R-space correction
+        EWD::triple<> _EK;                     // K-space sum
+        EWD::triple<> _E0;                     // K-space K=0 contribution
+        EWD::triple<> _ET;                     // ER - EC + EK + E0
+        EWD::triple<> _EDQ;                    // Higher-Rank FGC->MGN correction
+        EWD::triple<> _EJ;                     // Geometry-dependent correction
+        // Part II - Thole
+        double _polar_ETT;
+        double _polar_EPP;
+        double _polar_EPU;
+        double _polar_EUU;
+        double _polar_EF00;
+        double _polar_EF01;
+        double _polar_EF02;
+        double _polar_EF11;
+        double _polar_EF12;
+        double _polar_EM0;
+        double _polar_EM1;
+        double _polar_EM2;
+        // I + II
+        double _Estat;
+        double _Eindu;
+        double _Eppuu;
         
         
     };
-
-
-template<class Norm>
-inline bool Ewald3DnD::VectorSort<Norm>::operator() (const vec &v1,
-    const vec &v2) {
-    bool smaller = false;
-    // LEVEL 1: MAGNITUDE
-    double V1 = _norm(v1);
-    double V2 = _norm(v2);
-    if (MatchDouble(V1,V2)) {
-        // LEVEL 2: X
-        double X1 = v1.getX();
-        double X2 = v2.getX();
-        if (MatchDouble(X1,X2)) {
-            // LEVEL 3: Y
-            double Y1 = v1.getY();
-            double Y2 = v2.getY();
-            if (MatchDouble(Y1,Y2)) {
-                // LEVEL 4: Z
-                double Z1 = v1.getZ();
-                double Z2 = v2.getZ();
-                if (MatchDouble(Z1,Z2)) smaller = true;
-                else smaller = (Z1 < Z2) ? true : false;
-            }
-            else smaller = (Y1 < Y2) ? true : false;
-        }
-        else smaller = (X1 < X2) ? true : false;
-    }
-    else smaller = (V1 < V2) ? true : false;          
-    return smaller;
-}
 
 
 }}

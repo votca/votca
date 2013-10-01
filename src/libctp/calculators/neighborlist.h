@@ -45,7 +45,7 @@ public:
 
     string Identify() { return "neighborlist"; }
     
-    void Initialize(Topology *top, Property *options);
+    void Initialize(Property *options);
     bool EvaluateFrame(Topology *top);
     void GenerateFromFile(Topology *top, string filename);
 
@@ -63,7 +63,7 @@ private:
 };
     
 
-void Neighborlist::Initialize(Topology* top, Property *options) {
+void Neighborlist::Initialize(Property *options) {
 
     std::string key = "options.neighborlist";
 

@@ -1,15 +1,15 @@
 #include <stdlib.h>
 #include <string>
 #include <iostream>
-#include <votca/ctp/qmapplication.h>
-#include <votca/ctp/calculatorfactory.h>
+#include <votca/ctp/jobapplication.h>
+#include <votca/ctp/jobcalculatorfactory.h>
 
 
 using namespace std;
 using namespace votca::ctp;
 
 
-class CtpRun : public QMApplication
+class CtpRun : public JobApplication
 {
 public:
 
@@ -31,7 +31,7 @@ namespace propt = boost::program_options;
 
 void CtpRun::Initialize() {
 
-    QMApplication::Initialize();
+    JobApplication::Initialize();
 
     AddProgramOptions("Calculators") ("execute,e", propt::value<string>(),
                       "List of calculators separated by ',' or ' '");
@@ -45,9 +45,9 @@ bool CtpRun::EvaluateOptions() {
 
     if (OptionsMap().count("list")) {
             cout << "Available calculators: \n";
-            for(Calculatorfactory::assoc_map::const_iterator iter=
-                    Calculators().getObjects().begin();
-                    iter != Calculators().getObjects().end(); ++iter) {
+            for(JobCalculatorfactory::assoc_map::const_iterator iter=
+                    JobCalculators().getObjects().begin();
+                    iter != JobCalculators().getObjects().end(); ++iter) {
                 PrintDescription( std::cout, (iter->first), _helpShort );
             }
             StopExecution();
@@ -62,8 +62,8 @@ bool CtpRun::EvaluateOptions() {
             for (Tokenizer::iterator n = tok.begin(); n != tok.end(); ++n) {
                 // loop over calculators
                 bool printerror = true;
-                for(Calculatorfactory::assoc_map::const_iterator iter=Calculators().getObjects().begin(); 
-                        iter != Calculators().getObjects().end(); ++iter) {
+                for(JobCalculatorfactory::assoc_map::const_iterator iter=JobCalculators().getObjects().begin(); 
+                        iter != JobCalculators().getObjects().end(); ++iter) {
 
                     if ( (*n).compare( (iter->first).c_str() ) == 0 ) {
                         PrintDescription( std::cout, (iter->first), _helpLong );
@@ -77,13 +77,13 @@ bool CtpRun::EvaluateOptions() {
             return true;     
     }
 
-    QMApplication::EvaluateOptions();
+    JobApplication::EvaluateOptions();
     CheckRequired("execute", "Nothing to do here: Abort.");
 
     Tokenizer calcs(OptionsMap()["execute"].as<string>(), " ,\n\t");
     Tokenizer::iterator it;
     for (it = calcs.begin(); it != calcs.end(); it++) {
-        QMApplication::AddCalculator(Calculators().Create((*it).c_str()));
+        JobApplication::AddCalculator(JobCalculators().Create((*it).c_str()));
     }
     return true;
 }

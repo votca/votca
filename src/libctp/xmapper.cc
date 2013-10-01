@@ -602,7 +602,7 @@ void XMpsMap::EquipWithPolSites(Topology *top) {
 }
 
 
-vector<APolarSite*> XMpsMap::MapPolSitesToSeg(const vector<APolarSite*> &pols_n, Segment *seg) {
+vector<APolarSite*> XMpsMap::MapPolSitesToSeg(const vector<APolarSite*> &pols_n, Segment *seg, bool only_active_sites) {
 
     bool print_huge_map2md_warning = false;
 
@@ -848,7 +848,7 @@ vector<APolarSite*> XMpsMap::MapPolSitesToSeg(const vector<APolarSite*> &pols_n,
 
             newSite->Charge(0);
             // Do not forget to deallocate if site is inactive
-            if (newSite->getIsActive(_estatics_only))           
+            if (!only_active_sites || newSite->getIsActive(_estatics_only))           
                 return_pols.push_back(newSite);
             else 
                 delete newSite;
@@ -918,6 +918,7 @@ void XMpsMap::Gen_FGC_FGN_BGN(Topology *top, XJob *job, QMThread *thread) {
     
     // CREATE POLAR SITES FOR FOREGROUND + BACKGROUND
     // Foreground
+    bool only_active_sites = false;
     fgC.reserve(segs_fgC.size());
     fgN.reserve(segs_fgN.size());
     for (int i = 0; i < job->getSegments().size(); ++i) {        
@@ -927,16 +928,17 @@ void XMpsMap::Gen_FGC_FGN_BGN(Topology *top, XJob *job, QMThread *thread) {
         vector<APolarSite*> psites_raw_C 
             = this->GetOrCreateRawSites(mps_C,thread);
         vector<APolarSite*> psites_mapped_C
-            = this->MapPolSitesToSeg(psites_raw_C, seg);        
+            = this->MapPolSitesToSeg(psites_raw_C, seg, only_active_sites);        
         fgC.push_back(new PolarSeg(seg->getId(), psites_mapped_C));
         // Neutral => look up mps file
         string mps_N = _segId_mpsFile_n[seg->getId()];
         vector<APolarSite*> psites_raw_N  = _mpsFile_pSites[mps_N];
         vector<APolarSite*> psites_mapped_N
-            = this->MapPolSitesToSeg(psites_raw_N, seg);
+            = this->MapPolSitesToSeg(psites_raw_N, seg, only_active_sites);
         fgN.push_back(new PolarSeg(seg->getId(), psites_mapped_N));
     }
     // Background
+    only_active_sites = true;
     bgN.reserve(segs_bgN.size());
     for (sit = segs_bgN.begin(); sit < segs_bgN.end(); ++sit) {
         Segment *seg = *sit;
@@ -1008,16 +1010,18 @@ void XMpsMap::Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2, Q
     
     // CREATE POLAR SEGMENTS FROM SHELLS    
     // ... QM0 SHELL
+    bool only_active_sites = false;
     qm0.reserve(segs_qm0.size());
     for (int i = 0; i < job->getSegments().size(); ++i) {        
         Segment *seg = job->getSegments()[i];
         vector<APolarSite*> psites_raw 
                 = this->GetOrCreateRawSites(job->getSegMps()[i],thread);
         vector<APolarSite*> psites_mapped
-                = this->MapPolSitesToSeg(psites_raw, seg);        
+                = this->MapPolSitesToSeg(psites_raw, seg, only_active_sites);        
         qm0.push_back(new PolarSeg(seg->getId(), psites_mapped));        
     }
     // ... MM1 SHELL
+    only_active_sites = true;
     mm1.reserve(segs_mm1.size());
     for (sit = segs_mm1.begin(); sit < segs_mm1.end(); ++sit) {
         Segment *seg = *sit;
@@ -1025,10 +1029,11 @@ void XMpsMap::Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2, Q
         string mps = _segId_mpsFile_n[seg->getId()];
         vector<APolarSite*> psites_raw  = _mpsFile_pSites[mps];
         vector<APolarSite*> psites_mapped
-                = this->MapPolSitesToSeg(psites_raw, seg);
+                = this->MapPolSitesToSeg(psites_raw, seg, only_active_sites);
         mm1.push_back(new PolarSeg(seg->getId(), psites_mapped));        
     }
     // ... MM2 SHELL
+    only_active_sites = true;
     mm2.reserve(segs_mm2.size());
     for (sit = segs_mm2.begin(); sit < segs_mm2.end(); ++sit) {
         Segment *seg = *sit;
@@ -1036,7 +1041,7 @@ void XMpsMap::Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2, Q
         string mps = _segId_mpsFile_n[seg->getId()];
         vector<APolarSite*> psites_raw  = _mpsFile_pSites[mps];
         vector<APolarSite*> psites_mapped
-                = this->MapPolSitesToSeg(psites_raw, seg);
+                = this->MapPolSitesToSeg(psites_raw, seg, only_active_sites);
         mm2.push_back(new PolarSeg(seg->getId(), psites_mapped));
     }
     
