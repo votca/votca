@@ -1,5 +1,5 @@
-#ifndef EANALYZE_H
-#define EANALYZE_H
+#ifndef _VOTCA_CTP_EANALYZE_H
+#define _VOTCA_CTP_EANALYZE_H
 
 #include <votca/ctp/qmcalculator.h>
 #include <math.h>
@@ -44,13 +44,15 @@ private:
 
 
 
-void EAnalyze::Initialize(Property *opt) {
+void EAnalyze::Initialize( Property *opt ) {
 
-    string key = "options.eanalyze";
+    // _options already has default values, update them with the supplied options
+    _options.CopyValues("", *opt );
+    string key = "options." + Identify();
 
-    _resolution_pairs = opt->get(key+".resolution_pairs").as< double >();
-    _resolution_sites = opt->get(key+".resolution_sites").as< double >();
-    _resolution_space = opt->get(key+".resolution_space").as< double >();
+    _resolution_pairs = _options.get(key+".resolution_pairs").as< double >();
+    _resolution_sites = _options.get(key+".resolution_sites").as< double >();
+    _resolution_space = _options.get(key+".resolution_space").as< double >();
 
     if (opt->exists(key+".states")) {
         _states = opt->get(key+".states").as< vector<int> >();
@@ -126,6 +128,8 @@ bool EAnalyze::EvaluateFrame(Topology *top) {
             }
         }
     }
+    
+    return true;
 }
 
 void EAnalyze::SiteHist(Topology *top, int state) {
@@ -436,12 +440,6 @@ void EAnalyze::SiteCorr(Topology *top, int state) {
     fclose(out);
 }
 
-
-
-
-
-
-
 }}
 
-#endif
+#endif // _VOTCA_CTP_EANALYZE_H

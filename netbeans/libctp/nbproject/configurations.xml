@@ -58,6 +58,7 @@
       <itemPath>../../include/votca/ctp/eigenvalues.h</itemPath>
       <itemPath>../../include/votca/ctp/ewald2d.h</itemPath>
       <itemPath>../../include/votca/ctp/ewald3d.h</itemPath>
+      <itemPath>../../include/votca/ctp/ewaldactor.h</itemPath>
       <itemPath>../../include/votca/ctp/ewaldnd.h</itemPath>
       <itemPath>../../include/votca/ctp/fragment.h</itemPath>
       <itemPath>../../include/votca/ctp/job.h</itemPath>
@@ -109,7 +110,7 @@
     </logicalFolder>
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
-                   projectFiles="true">                   
+                   projectFiles="true">
       <logicalFolder name="f2" displayName="Applications" projectFiles="true">
         <itemPath>../../src/libctp/ctpapplication.cc</itemPath>
         <itemPath>../../src/libctp/jobapplication.cc</itemPath>
@@ -135,7 +136,7 @@
       <itemPath>../../src/libctp/ewald3d.cc</itemPath>
       <itemPath>../../src/libctp/ewaldnd.cc</itemPath>
       <itemPath>../../src/libctp/hgversion.h</itemPath>
-      <itemPath>../../src/libctp/job.cc</itemPath>                                                                                     
+      <itemPath>../../src/libctp/job.cc</itemPath>
       <itemPath>../../src/libctp/orbitals.cc</itemPath>
       <itemPath>../../src/libctp/parallelpaircalc.cc</itemPath>
       <itemPath>../../src/libctp/parallelxjobcalc.cc</itemPath>
@@ -641,8 +642,6 @@
           <developmentMode>5</developmentMode>
         </fortranCompilerTool>
         <archiverTool>
-        </archiverTool>
-      </compileType>
       <item path="../../include/votca/ctp/apolarsite.h"
             ex="false"
             tool="3"
@@ -1073,25 +1072,8 @@
       </item>
       <item path="../../src/libctp/xmapper.cc" ex="false" tool="1" flavor2="0">
       </item>
-    </conf>
-    <conf name="Release" type="3">
-      <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
-        <compilerSet>GNU|GNU</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>true</rebuildPropChanged>
-      </toolsSet>
-      <compileType>
-        <cTool>
-          <developmentMode>5</developmentMode>
-        </cTool>
-        <ccTool>
-          <developmentMode>5</developmentMode>
-        </ccTool>
-        <fortranCompilerTool>
-          <developmentMode>5</developmentMode>
-        </fortranCompilerTool>
-        <archiverTool>
         </archiverTool>
       </compileType>
       <item path="../../include/votca/ctp/apolarsite.h"

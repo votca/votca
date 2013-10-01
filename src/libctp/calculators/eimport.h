@@ -1,5 +1,5 @@
-#ifndef EIMPORT_H
-#define EIMPORT_H
+#ifndef _VOTCA_CTP_EIMPORT_H
+#define _VOTCA_CTP_EIMPORT_H
 
 #include <votca/ctp/qmcalculator.h>
 
@@ -13,7 +13,7 @@ public:
     EImport() {};
    ~EImport() {};
 
-   string Identify() { return "EImport"; }
+   string Identify() { return "eimport"; }
 
    void Initialize(Property *options);
    bool EvaluateFrame(Topology *top);
@@ -26,14 +26,16 @@ private:
 };
 
 
-void EImport::Initialize(Property *options) {
+void EImport::Initialize(Property *opt) {
 
-    string key = "options.eimport";
+   // _options already has default values, update them with the supplied options
+    _options.CopyValues("", *opt );
+    string key = "options." + Identify();
 
-    _energiesFile = options->get(key + ".energies").as< string >();    
+    _energiesFile = _options.get(key + ".energies").as< string >();    
 
-    if (options->exists(key+".reset")) {
-        int reset = options->get(key+".reset").as<int>();
+    if (_options.exists(key+".reset")) {
+        int reset = _options.get(key+".reset").as<int>();
         _reset = (reset == 1) ? true : false;
         if (_reset) {
             cout << endl

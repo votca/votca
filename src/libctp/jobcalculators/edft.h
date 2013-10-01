@@ -59,7 +59,7 @@ public:
     string   Identify() { return "edft"; }
     void    Initialize(Property *options);
     void    ParseOrbitalsXML(Topology *top, Property *options);
-    void    WriteJobList(Topology *top);
+    void    WriteJobFile(Topology *top);
     Job::JobResult EvalJob(Topology *top, Job *job, QMThread *thread);
 
     void    CleanUp();
@@ -160,7 +160,7 @@ void EDFT::Initialize(Property *options) {
 
 }
 
-void EDFT::WriteJobList(Topology *top) {
+void EDFT::WriteJobFile(Topology *top) {
 
     string jobFile = "edft.jobs";   
     

@@ -33,7 +33,7 @@ public:
     EInternal() { };
    ~EInternal() { };
 
-    string Identify() { return "EInternal"; }
+    string Identify() { return "einternal"; }
     void Initialize(Property *options);
     void ParseEnergiesXML(Property *options);
     bool EvaluateFrame(Topology *top);
@@ -57,8 +57,6 @@ private:
 
 void EInternal::Initialize(Property *options) {
 
-    string key = "options.einternal";
-
     /* ---- OPTIONS.XML Structure -----
      *
      * <einternal>
@@ -74,7 +72,10 @@ void EInternal::Initialize(Property *options) {
 
 void EInternal::ParseEnergiesXML(Property *opt) {
 
-    string key = "options.einternal";
+  // _options already has default values, update them with the supplied options
+    _options.CopyValues("", *opt );
+    string key = "options." + Identify();
+
     string energiesXML = opt->get(key+".energiesXML").as<string> ();
 
     cout << endl
