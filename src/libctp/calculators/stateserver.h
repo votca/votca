@@ -243,7 +243,8 @@ bool StateServer::EvaluateFrame(Topology *top) {
         fclose(out);
 
     }
-
+    
+    return true;
 }
 
 void StateServer::DownloadTopology(FILE *out, Topology *top) {

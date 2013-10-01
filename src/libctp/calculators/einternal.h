@@ -18,8 +18,8 @@
  */
 
 
-#ifndef __EINTERNAL_H
-#define __EINTERNAL_H
+#ifndef _VOTCA_CTP_EINTERNAL_H
+#define _VOTCA_CTP_EINTERNAL_H
 
 #include <votca/ctp/qmcalculator.h>
 
@@ -233,4 +233,4 @@ bool EInternal::EvaluateFrame(Topology *top) {
 
 }}
 
-#endif
+#endif //_VOTCA_CTP_EINTERNAL_H

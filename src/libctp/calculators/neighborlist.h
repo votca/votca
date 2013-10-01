@@ -65,8 +65,10 @@ private:
 
 void Neighborlist::Initialize(Property *options) {
 
-    std::string key = "options.neighborlist";
-
+    // _options already has default values, update them with the supplied options
+    _options.CopyValues("", *options );
+    std::string key = "options." + Identify();
+    
     list< Property* > segs = options->Select(key+".segments");
     list< Property* > ::iterator segsIt;
 

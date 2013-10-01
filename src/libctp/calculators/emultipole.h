@@ -18,8 +18,8 @@
  */
 
 
-#ifndef EMULTIPOLE_H
-#define EMULTIPOLE_H
+#ifndef VOTCA_CTP_EMULTIPOLE_H
+#define VOTCA_CTP_EMULTIPOLE_H
 
 
 #include <votca/ctp/qmcalculator.h>
@@ -430,7 +430,7 @@ void EMultipole::Initialize(Property *opt) {
     cout << endl << "... ... Initialize with " << _nThreads << " threads.";
     _maverick = (_nThreads == 1) ? true : false;
 
-    cout << endl <<  "... ... Parametrizing Thole model";
+    cout << endl <<  "... ... Parameterizing Thole model";
 
     string key;
     string xmlfile;
@@ -4576,10 +4576,4 @@ inline double EMultipole::Interactor::EnergyInterESP(PolarSite &pol1,
 
 }}
 
-
-
-
-
-
-
-#endif
+#endif // VOTCA_CTP_EMULTIPOLE_H

@@ -30,7 +30,10 @@ namespace votca { namespace ctp {
 
 void EOutersphere::Initialize(Property *opt) {
 
-    string key = "options.eoutersphere";
+     // _options already has default values, update them with the supplied options
+    _options.CopyValues("", *opt );
+
+    string key = "options." + Identify();
 
     /* ---- OPTIONS.XML Structure -----
      *
@@ -46,17 +49,17 @@ void EOutersphere::Initialize(Property *opt) {
      *
      */
 
-    _method = opt->get(key+".method").as<string> ();
+    _method = _options.get(key+".method").as<string> ();
 
     if (_method == "constant") {
-        _lambdaConstant = opt->get(key+".lambdaconst").as<double> ();
+        _lambdaConstant = _options.get(key+".lambdaconst").as<double> ();
     }
     else if (_method == "spheres") {
-        _pekarFactor = opt->get(key+".pekar").as<double> ();
+        _pekarFactor = _options.get(key+".pekar").as<double> ();
     }
     else if (_method == "dielectric") {
-        _pekarFactor = opt->get(key+".pekar").as<double> ();
-        _lambdaCutoff = opt->get(key+".cutoff").as<double> ();
+        _pekarFactor = _options.get(key+".pekar").as<double> ();
+        _lambdaCutoff = _options.get(key+".cutoff").as<double> ();
     }
     else {
         cout << "ERROR: Typo? Method for reorg. energy calc.: " << _method;
@@ -616,9 +619,7 @@ bool EOutersphere::EvaluateFrame(Topology *top) {
 
     pairOps.clear();
 
-
-
-
+    return true;
 
     //if      (_method == "constant")   { this->ConstLambda(top); }
     //else if (_method == "spheres")    { this->SpheresLambda(top);}

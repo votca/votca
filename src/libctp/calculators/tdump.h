@@ -107,6 +107,8 @@ bool TDump::EvaluateFrame(Topology *top) {
     fclose(outPDBqm);
 
     _framesWritten++;
+    
+    return true;
 }
 
 }}

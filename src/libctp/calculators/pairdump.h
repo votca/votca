@@ -33,9 +33,11 @@ private:
 
 void PairDump::Initialize(Property *options) {
 
-    string key = "options.pairdump";   
+    // _options already has default values, update them with the supplied options
+    _options.CopyValues("", *options );
+    string key = "options." + Identify();
     
-    int useQMPos = options->get(key+".useQMcoords").as< int >();
+    int useQMPos = _options.get(key+".useQMcoords").as< int >();
     _useQMPos = (useQMPos == 1) ? true : false;
 }
 
@@ -83,6 +85,8 @@ bool PairDump::EvaluateFrame(Topology *top) {
         (*pit)->WriteXYZ(out, _useQMPos);
         fclose(out);
     }
+    
+    return true;
 }
 
 

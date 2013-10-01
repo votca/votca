@@ -1,5 +1,24 @@
-#ifndef IANALYZE_H
-#define IANALYZE_H
+/*
+ *            Copyright 2009-2012 The VOTCA Development Team
+ *                       (http://www.votca.org)
+ *
+ *      Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *              http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+#ifndef VOTCA_CTP_IANALYZE_H
+#define VOTCA_CTP_IANALYZE_H
 
 #include <votca/ctp/qmcalculator.h>
 #include <math.h>
@@ -11,7 +30,7 @@ class IAnalyze : public QMCalculator
 {
 public:
 
-    string  Identify() { return "IAnalyze"; }
+    string  Identify() { return "ianalyze"; }
 
     void    Initialize(Property *options);
     bool    EvaluateFrame(Topology *top);
@@ -27,10 +46,12 @@ private:
 
 void IAnalyze::Initialize(Property *opt) {
 
-    string key = "options.ianalyze";
-
-    _resolution_logJ2 = opt->get(key+".resolution_logJ2").as< double >();
-    _states = opt->get(key+".states").as< vector<int> >();
+    // _options already has default values, update them with the supplied options
+    _options.CopyValues("", *opt );
+    string key = "options." + Identify();
+ 
+    _resolution_logJ2 = _options.get(key+".resolution_logJ2").as< double >();
+    _states = _options.get(key+".states").as< vector<int> >();
 }
 
 
@@ -46,6 +67,8 @@ bool IAnalyze::EvaluateFrame(Topology *top) {
     for (int i = 0; i < _states.size(); ++i) {
         this->IHist(top, _states[i]);
     }
+    
+    return true;
 }
 
 
