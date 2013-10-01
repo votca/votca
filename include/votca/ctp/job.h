@@ -29,7 +29,8 @@ public:
     
 
     Job(Property *prop);
-    Job(int id, string &tag, string &input, string &stat);
+    Job(int id, string &tag, string &input, string stat);
+    Job(int id, string &tag, Property &input, JobStatus stat);
    ~Job() {;}
     
     string    ConvertStatus(JobStatus) const;
@@ -63,7 +64,7 @@ public:
    
     int getId() const { return _id; }
     string getTag() const { return _tag; }
-    string getInput() const { return _input; }    
+    Property &getInput() { return _input; }    
     const JobStatus &getStatus() const { return _status; }
     string getStatusStr() const { return ConvertStatus(_status); }
     
@@ -97,7 +98,7 @@ protected:
      string _tag;    
      JobStatus _status;
      int _attemptsCount;
-     string _input;
+     Property _input;
      string _sqlcmd;
      bool   _has_sqlcmd;
     

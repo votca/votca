@@ -9,6 +9,7 @@
         <itemPath>../../src/libctp/calculators/emultipole.h</itemPath>
         <itemPath>../../src/libctp/calculators/eoutersphere.cc</itemPath>
         <itemPath>../../src/libctp/calculators/eoutersphere.h</itemPath>
+      <itemPath>../../src/libctp/calculators/ewald.h</itemPath>
         <itemPath>../../src/libctp/calculators/ianalyze.h</itemPath>
         <itemPath>../../src/libctp/calculators/iimport.h</itemPath>
         <itemPath>../../src/libctp/calculators/izindo.h</itemPath>
@@ -57,6 +58,7 @@
       <itemPath>../../include/votca/ctp/eigenvalues.h</itemPath>
       <itemPath>../../include/votca/ctp/ewald2d.h</itemPath>
       <itemPath>../../include/votca/ctp/ewald3d.h</itemPath>
+      <itemPath>../../include/votca/ctp/ewaldactor.h</itemPath>
       <itemPath>../../include/votca/ctp/ewaldnd.h</itemPath>
       <itemPath>../../include/votca/ctp/fragment.h</itemPath>
       <itemPath>../../include/votca/ctp/job.h</itemPath>
@@ -640,8 +642,6 @@
           <developmentMode>5</developmentMode>
         </fortranCompilerTool>
         <archiverTool>
-        </archiverTool>
-      </compileType>
       <item path="../../include/votca/ctp/apolarsite.h"
             ex="false"
             tool="3"
@@ -1072,25 +1072,8 @@
       </item>
       <item path="../../src/libctp/xmapper.cc" ex="false" tool="1" flavor2="0">
       </item>
-    </conf>
-    <conf name="Release" type="3">
-      <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
-        <compilerSet>GNU|GNU</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>true</rebuildPropChanged>
-      </toolsSet>
-      <compileType>
-        <cTool>
-          <developmentMode>5</developmentMode>
-        </cTool>
-        <ccTool>
-          <developmentMode>5</developmentMode>
-        </ccTool>
-        <fortranCompilerTool>
-          <developmentMode>5</developmentMode>
-        </fortranCompilerTool>
-        <archiverTool>
         </archiverTool>
       </compileType>
       <item path="../../include/votca/ctp/apolarsite.h"
