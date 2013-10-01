@@ -1,6 +1,8 @@
 /**
 
-\page ctp Charge Transport
+\page ctp Charge and exciton transport
+
+\ref ctp "ctp"
 
 Objects related to charge transport are encapsulated in the votca::ctp namespace. 
 

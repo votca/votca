@@ -37,15 +37,14 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/484457893/apolarsite.o \
 	${OBJECTDIR}/_ext/484457893/calculatorfactory.o \
-	${OBJECTDIR}/_ext/238600121/calculatorfactory.o \
 	${OBJECTDIR}/_ext/238600121/eoutersphere.o \
 	${OBJECTDIR}/_ext/238600121/jobwriter.o \
 	${OBJECTDIR}/_ext/484457893/ctpapplication.o \
 	${OBJECTDIR}/_ext/484457893/fragment.o \
 	${OBJECTDIR}/_ext/484457893/job.o \
 	${OBJECTDIR}/_ext/484457893/jobapplication.o \
+	${OBJECTDIR}/_ext/484457893/jobcalculatorfactory.o \
 	${OBJECTDIR}/_ext/700762242/idft.o \
-	${OBJECTDIR}/_ext/700762242/jobcalculatorfactory.o \
 	${OBJECTDIR}/_ext/484457893/molecule.o \
 	${OBJECTDIR}/_ext/484457893/orbitals.o \
 	${OBJECTDIR}/_ext/484457893/parallelpaircalc.o \
@@ -54,7 +53,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484457893/polarsite.o \
 	${OBJECTDIR}/_ext/484457893/polartop.o \
 	${OBJECTDIR}/_ext/484457893/progressobserver.o \
-	${OBJECTDIR}/_ext/484457893/qmapplication.o \
 	${OBJECTDIR}/_ext/484457893/qmcalculator.o \
 	${OBJECTDIR}/_ext/484457893/qmdatabase.o \
 	${OBJECTDIR}/_ext/484457893/qmmachine.o \
@@ -71,7 +69,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484457893/statesaversqlite.o \
 	${OBJECTDIR}/_ext/484457893/toolfactory.o \
 	${OBJECTDIR}/_ext/1076706545/molpol.o \
-	${OBJECTDIR}/_ext/1076706545/toolfactory.o \
 	${OBJECTDIR}/_ext/484457893/topology.o \
 	${OBJECTDIR}/_ext/484457893/version.o \
 	${OBJECTDIR}/_ext/484457893/version_nb.o \
@@ -117,11 +114,6 @@ ${OBJECTDIR}/_ext/484457893/calculatorfactory.o: ../../src/libctp/calculatorfact
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/calculatorfactory.o ../../src/libctp/calculatorfactory.cc
 
-${OBJECTDIR}/_ext/238600121/calculatorfactory.o: ../../src/libctp/calculators/calculatorfactory.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/238600121
-	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/238600121/calculatorfactory.o ../../src/libctp/calculators/calculatorfactory.cc
-
 ${OBJECTDIR}/_ext/238600121/eoutersphere.o: ../../src/libctp/calculators/eoutersphere.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/238600121
 	${RM} $@.d
@@ -152,15 +144,15 @@ ${OBJECTDIR}/_ext/484457893/jobapplication.o: ../../src/libctp/jobapplication.cc
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/jobapplication.o ../../src/libctp/jobapplication.cc
 
+${OBJECTDIR}/_ext/484457893/jobcalculatorfactory.o: ../../src/libctp/jobcalculatorfactory.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
+	${RM} $@.d
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/jobcalculatorfactory.o ../../src/libctp/jobcalculatorfactory.cc
+
 ${OBJECTDIR}/_ext/700762242/idft.o: ../../src/libctp/jobcalculators/idft.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/700762242
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/700762242/idft.o ../../src/libctp/jobcalculators/idft.cc
-
-${OBJECTDIR}/_ext/700762242/jobcalculatorfactory.o: ../../src/libctp/jobcalculators/jobcalculatorfactory.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/700762242
-	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/700762242/jobcalculatorfactory.o ../../src/libctp/jobcalculators/jobcalculatorfactory.cc
 
 ${OBJECTDIR}/_ext/484457893/molecule.o: ../../src/libctp/molecule.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
@@ -201,11 +193,6 @@ ${OBJECTDIR}/_ext/484457893/progressobserver.o: ../../src/libctp/progressobserve
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/progressobserver.o ../../src/libctp/progressobserver.cc
-
-${OBJECTDIR}/_ext/484457893/qmapplication.o: ../../src/libctp/qmapplication.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
-	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/qmapplication.o ../../src/libctp/qmapplication.cc
 
 ${OBJECTDIR}/_ext/484457893/qmcalculator.o: ../../src/libctp/qmcalculator.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
@@ -286,11 +273,6 @@ ${OBJECTDIR}/_ext/1076706545/molpol.o: ../../src/libctp/tools/molpol.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/1076706545
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1076706545/molpol.o ../../src/libctp/tools/molpol.cc
-
-${OBJECTDIR}/_ext/1076706545/toolfactory.o: ../../src/libctp/tools/toolfactory.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/1076706545
-	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1076706545/toolfactory.o ../../src/libctp/tools/toolfactory.cc
 
 ${OBJECTDIR}/_ext/484457893/topology.o: ../../src/libctp/topology.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893

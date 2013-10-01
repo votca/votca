@@ -19,7 +19,7 @@
 
 
 #include <votca/ctp/sqlapplication.h>
-#include "calculators/calculatorfactory.h"
+#include <votca/ctp/calculatorfactory.h>
 #include <votca/ctp/version.h>
 #include <boost/format.hpp>
 

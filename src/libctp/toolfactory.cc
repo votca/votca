@@ -18,7 +18,7 @@
  */
 
 
-#include "tools/toolfactory.h"
+#include <votca/ctp/toolfactory.h>
 #include "votca_config.h"
 #include "tools/molpol.h"
 #include "tools/pdb2map.h"

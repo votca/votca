@@ -18,8 +18,8 @@
  */
 
 
-#ifndef _CALC_DFT_ENERGIES_H
-#define	_CALC_DFT_ENERGIES_H
+#ifndef _VOTCA_CTP_EDFT_H
+#define	_VOTCA_CTP_EDFT_H
 
 #include <votca/ctp/segment.h>
 #include <votca/ctp/orbitals.h>
@@ -34,6 +34,9 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/format.hpp>
+
+using boost::format;
 
 namespace votca { namespace ctp {
 
@@ -53,9 +56,10 @@ public:
     EDFT() {};
    ~EDFT() {};
 
-    string  Identify() { return "edft"; }
+    string   Identify() { return "edft"; }
     void    Initialize(Property *options);
     void    ParseOrbitalsXML(Topology *top, Property *options);
+    void    WriteJobList(Topology *top);
     Job::JobResult EvalJob(Topology *top, Job *job, QMThread *thread);
 
     void    CleanUp();
@@ -154,6 +158,66 @@ void EDFT::Initialize(Property *options) {
     // register all QM packages (Gaussian, turbomole, nwchem))
     QMPackageFactory::RegisterAll(); 
 
+}
+
+void EDFT::WriteJobList(Topology *top) {
+
+    string jobFile = "edft.jobs";   
+    
+    ofstream ofs;
+    ofs.open(jobFile.c_str(), ofstream::out);
+    if (!ofs.is_open()) throw runtime_error("Bad file handle: " + jobFile);
+ 
+    ofs << "<jobs>" << endl;   
+
+    /* this is only good when ALL molecules shall be written out 
+    for (vector<Segment*>::iterator sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
+        int id = (*sit)->getId();
+        string tag = (*sit)->getId();
+        string input = "";
+        string stat = "AVAILABLE";
+        Job job(id, tag, input, stat);
+        job.ToStream(ofs,"xml");
+    }
+    */
+
+    QMNBList::iterator pit;
+    QMNBList &nblist = top->NBList();    
+
+    int jobCount = 0;
+    if (nblist.size() == 0) {
+        cout << endl << "... ... No pairs in neighbor list, skip." << flush;
+        return;
+    } 
+
+    map< int,Segment* > segments;
+    map< int,Segment* >::iterator sit;
+
+    for (pit = nblist.begin(); pit != nblist.end(); ++pit) {
+        
+        int id1 = (*pit)->Seg1()->getId();
+        int id2 = (*pit)->Seg2()->getId();
+	segments[id1] = (*pit)->Seg1();
+        segments[id2] = (*pit)->Seg2();
+
+    }
+
+    for (sit = segments.begin(); sit != segments.end(); ++sit) {
+    
+        int id = ++jobCount;
+        
+        string tag = (format("%1$s") % sit->first).str();
+        string input = sit->second->getName();
+        string stat = "AVAILABLE";
+        Job job(id, tag, input, stat);
+        job.ToStream(ofs,"xml");
+    }
+     
+
+    // CLOSE STREAM
+    ofs << "</jobs>" << endl;    
+    ofs.close();
+    
 }
 
 
@@ -407,4 +471,4 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 
 }}
 
-#endif	/* _CALC_DFT_ENERGIES_H */
+#endif	/* _VOTCA_CTP_EDFT_H */
