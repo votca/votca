@@ -417,21 +417,24 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     // get the information about the job executed by the thread
     int _job_ID = job->getId();
     string _job_tag = job->getTag();
+    Property _job_input = job->getInput();  
+    list<Property*> lSegments = _job_input.Select( "segment" );    
+    int ID_A   = lSegments.front()->getAttribute<int>( "id" );
+    string type_A = lSegments.front()->getAttribute<string>( "type" );
+    int ID_B   = lSegments.back()->getAttribute<int>( "id" );
+    string type_B = lSegments.back()->getAttribute<string>( "type" );
     
-    // job tag is ID_A:ID_B
-    Tokenizer _tok ( _job_tag, ":" ); 
-    vector<string> _mol_ids;
-    _tok.ToVector( _mol_ids );
+    Segment *seg_A = top->getSegment( ID_A );   
+    assert( seg_A->getName() == type_A );
     
-    int ID_A   = boost::lexical_cast<int>( _mol_ids.front() );
-    int ID_B   = boost::lexical_cast<int>( _mol_ids.back() );
-    
-    Segment *seg_A = top->getSegment( ID_A );
     Segment *seg_B = top->getSegment( ID_B );
-
+    assert( seg_B->getName() == type_B );
+    
     vector < Segment* > segments;
     segments.push_back( seg_A );
     segments.push_back( seg_B );
+    
+    
     
     string frame_dir =  "frame_" + boost::lexical_cast<string>(top->getDatabaseId());     
 
@@ -809,20 +812,16 @@ void IDFT::WriteJobFile(Topology *top) {
         pSegment->setAttribute<string>("type", name2 );
         pSegment->setAttribute<int>("id", id2 );
         
-        
         Job job(id, tag, Input, Job::AVAILABLE );
         job.ToStream(ofs,"xml");
         
-        //string tag = (format("%1$s:%2$s") % id1 % id2 ).str(); 
-        //string input = (format("%1$s:%2$s") % name1 % name2 ).str();
-        //string stat = "AVAILABLE";
-        //Job job(id, tag, input, stat);
-        //job.ToStream(ofs,"xml");
     }
 
     // CLOSE STREAM
     ofs << "</jobs>" << endl;    
     ofs.close();
+    
+    cout << endl << "... ... In total " << jobCount << " jobs" << flush;
     
 }
 

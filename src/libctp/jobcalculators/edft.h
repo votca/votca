@@ -231,9 +231,15 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 
     Orbitals _orbitals;
     Job::JobResult jres = Job::JobResult();
-
+    Property _job_input = job->getInput();  
+    list<Property*> lSegments = _job_input.Select( "segment" );  
+    
     vector < Segment* > segments;    
-    Segment *seg = top->getSegment( boost::lexical_cast<int>( job->getTag() ));
+    int segId = lSegments.front()->getAttribute<int>( "id" );
+    string segType = lSegments.front()->getAttribute<string>( "type" );
+    
+    Segment *seg = top->getSegment( segId );
+    assert( seg->Name() == segType );
     segments.push_back( seg );
 
     Logger* pLog = opThread->getLogger();
