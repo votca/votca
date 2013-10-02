@@ -434,8 +434,6 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     segments.push_back( seg_A );
     segments.push_back( seg_B );
     
-    
-    
     string frame_dir =  "frame_" + boost::lexical_cast<string>(top->getDatabaseId());     
 
     /* if we really want that this pair exists in the neighbor list
@@ -588,6 +586,7 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
        //_orbitalsAB.Trim(_trim_factor);
    } */
    
+   Property _job_summary;
    if ( _do_project ) {
        
        if ( !_do_parse ) { // orbitals must be loaded from a file
@@ -687,8 +686,9 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
      * </pair>
      * 
      */
-    Property _job_summary;
-        Property *_pair_summary = &_job_summary.add("pair","");
+
+        Property *_job_output = &_job_summary.add("output","");
+        Property *_pair_summary = &_job_output->add("pair","");
          string nameA = seg_A->getName();
          string nameB = seg_B->getName();
         _pair_summary->setAttribute("idA", ID_A);
@@ -718,7 +718,7 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
    _qmpackage->CleanUp();
    delete _qmpackage;
    
-    jres.setOutput( sout.str() );   
+    jres.setOutput( _job_summary );   
     jres.setStatus(Job::COMPLETE);
     
     return jres;

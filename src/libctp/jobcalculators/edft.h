@@ -455,11 +455,6 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
    _qmpackage->CleanUp();
    delete _qmpackage;
         
-    // GENERATE OUTPUT AND FORWARD TO PROGRESS OBSERVER (RETURN)
-    jres.setStatus(Job::COMPLETE);
-
-
-                                
     LOG(logINFO,*pLog) << TimeStamp() << " Finished evaluating site " << seg->getId() << flush; 
  
     Property _job_summary;
@@ -474,13 +469,13 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     
     // output of the JOB 
     jres.setOutput( _job_summary );
+    jres.setStatus(Job::COMPLETE);
 
     // dump the LOG
     cout << *pLog;
     
     return jres;
-    
-   
+
 }
 
 }}
