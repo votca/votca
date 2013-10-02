@@ -58,7 +58,6 @@ public:
 
     string   Identify() { return "edft"; }
     void     Initialize(Property *options);
-    void     ParseOrbitalsXML(Topology *top, Property *options);
     void     WriteJobFile(Topology *top);
     
     Job::JobResult EvalJob(Topology *top, Job *job, QMThread *thread);
@@ -156,7 +155,7 @@ void EDFT::Initialize(Property *options) {
 
 void EDFT::WriteJobFile(Topology *top) {
 
-    cout << endl << "... ... Writing job file " << flush;
+    cout << endl << "... ... Writing job file: " << flush;
     ofstream ofs;
     ofs.open(_jobfile.c_str(), ofstream::out);
     if (!ofs.is_open()) throw runtime_error("\nERROR: bad file handle: " + _jobfile);
@@ -215,6 +214,8 @@ void EDFT::WriteJobFile(Topology *top) {
     // CLOSE STREAM
     ofs << "</jobs>" << endl;    
     ofs.close();
+    
+    cout << jobCount << " jobs" << flush;
     
 }
 
@@ -460,9 +461,19 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 
                                 
     LOG(logINFO,*pLog) << TimeStamp() << " Finished evaluating site " << seg->getId() << flush; 
+ 
+    Property _job_summary;
+        Property *_output_summary = &_job_summary.add("output","");
+        Property *_segment_summary = &_output_summary->add("segment","");
+         string segName = seg->getName();
+         segId = seg->getId();
+        _segment_summary->setAttribute("id", segId);
+        _segment_summary->setAttribute("type", segName);
+        _segment_summary->setAttribute("homo", _orbitals.getEnergy( _orbitals.getNumberOfElectrons() ));
+        _segment_summary->setAttribute("lumo", _orbitals.getEnergy( _orbitals.getNumberOfElectrons() + 1 ));
     
     // output of the JOB 
-    jres.setOutput( output );
+    jres.setOutput( _job_summary );
 
     // dump the LOG
     cout << *pLog;
