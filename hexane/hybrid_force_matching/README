@@ -1,0 +1,24 @@
+This tutorial show how to run hybrid force matching, i.e. how to use force
+matching to only parametrize the non-bonded interactions. For more details
+see the paper
+
+"Hybrid Approaches to Coarse-Graining using the VOTCA Package: Liquid Hexane"
+Victor Rühle and Christoph Junghans, Macromol.  Theory Simul. 20 (7), 472-477 (2011)
+DOI: 10.1002/mats.201100011
+
+In order to run the tutorial, you must first run the reference simulation in the subfolder
+md. The atomistic reference run is very short, just to get a guess on the trends. For any
+production run you should drastically increase the simulation time and make sure successive
+frames are decorrelated. The run script in the md directory  also performas a full 
+force-matching run for bonded and non-bonded interactions. 
+
+Then you can run fmatch_intramolecular, which recalculates the forces using gromacs and
+then performs a fmatching run for solely the non-bonded contributions.
+
+Things you can do:
+- look at the obtained potential *.pot, e.g. A-A.pot from both runs
+- analyze the distributions of the atomistic reference run using 
+  csg_stat --top topol.tpr --trj fixed_mols.trr --cg hexane.xml --options fmatch.xml 
+- setup a coarse-grained run using these obtained potential and compare the 
+  distributions with the atomistic reference
+
