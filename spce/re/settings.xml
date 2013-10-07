@@ -15,8 +15,8 @@
       <!-- function form for the potential (lj126 or ljg or cbspl)-->
       <function>cbspl</function>
       <cbspl>
-	<!-- no. of knots for cbspl function -->
-	<nknots>48</nknots>
+        <!-- no. of knots for cbspl function -->
+        <nknots>48</nknots>
         <core>extrapolate</core>
       </cbspl>
       <!-- distance range for the potential -->
@@ -27,20 +27,20 @@
       <!-- target distribution (rdf), just give gromas rdf.xvg -->
       <target>CG-CG.dist.tgt</target>
       <gromacs>
-	<!-- name of the table for gromacs run -->
+        <!-- name of the table for gromacs run -->
         <table>table_CG_CG.xvg</table>
       </gromacs>
       <!-- do convergence -->
-      <post_add>acc_convergence</post_add>
+      <post_add>acc_convergence average</post_add>
       <post_add_options>
-	<!-- convergence check options -->
-	<convergence>
+        <!-- convergence check options -->
+        <convergence>
           <!-- for RE we check change in potentials/parameters (new-cur) -->
           <what>pot</what>
           <weight>1.0</weight>
           <base>cur</base>
           <norm>2</norm>
-	</convergence>
+        </convergence>
         <average>
           <what>param pot</what>
         </average>
@@ -66,7 +66,7 @@
     <!-- these files are copied for each new run -->
     <filelist>grompp.mdp topol.top table.xvg index.ndx</filelist>
     <!-- do so many iterations -->
-    <iterations_max>0</iterations_max>
+    <iterations_max>300</iterations_max>
     <!-- ibi: inverse biltzmann imc: inverse monte carlo re: relative entropy-->
     <method>re</method>
     <!-- relative entropy specific options -->
