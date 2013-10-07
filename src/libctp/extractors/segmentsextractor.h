@@ -84,7 +84,7 @@ bool SegmentsExtractor::EvaluateFrame(Topology *top) {
                     atomprop.add("id", (format("%1$d") % atm->getId()).str());
                     atomprop.add("element", atm->getElement());
                     atomprop.add("name", atm->getName());
-                    atomprop.add("pos", )
+                    //atomprop.add("pos", )
                 }
             }
         }
