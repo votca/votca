@@ -1,4 +1,4 @@
-/* 
+/*
  * Author: sikandar
  *
  * Created on November 8, 2011, 11:52 PM
@@ -28,7 +28,7 @@ public:
     double CalculateDF(const int i, const double r) const;
     // calculate second derivative w.r.t. ith parameter
     double CalculateD2F(const int i, const int j, const double r) const;
-    
+
 };
 
 #endif
