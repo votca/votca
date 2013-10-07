@@ -51,7 +51,6 @@ void SqlApplication::Initialize(void) {
 
 
 bool SqlApplication::EvaluateOptions(void) {
-    CheckRequired("options", "Please provide an xml file with calculator options");
     CheckRequired("file", "Please provide the state file");
     return true;
 }
@@ -59,7 +58,7 @@ bool SqlApplication::EvaluateOptions(void) {
 
 void SqlApplication::Run() {
 
-    load_property_from_xml(_options, _op_vm["options"].as<string>());
+    // load_property_from_xml(_options, _op_vm["options"].as<string>());
 
     // EVALUATE OPTIONS
     int nThreads = OptionsMap()["nthreads"].as<int>();

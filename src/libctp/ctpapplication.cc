@@ -39,7 +39,6 @@ void CtpApplication::Initialize(void) {
 
 
 bool CtpApplication::EvaluateOptions(void) {
-    CheckRequired("options", "Please provide an xml file with calculator options");
     return true;
 }
 

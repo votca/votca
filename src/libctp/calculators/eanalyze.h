@@ -183,8 +183,7 @@ void EAnalyze::SiteHist(Topology *top, int state) {
     STD = sqrt(VAR);
 
     FILE *out;
-    string tag = boost::lexical_cast<string>(top->getDatabaseId())
-               + "_SITES_" + ( (state == -1) ? "A" : "C" ) + ".dat";
+    string tag = boost::lexical_cast<string>("eanalyze.sitehist_") + ( (state == -1) ? "e" : "h" ) + ".out";
     out = fopen(tag.c_str(), "w");
 
     fprintf(out, "# EANALYZE: SITE-ENERGY HISTOGRAM \n");
@@ -199,7 +198,7 @@ void EAnalyze::SiteHist(Topology *top, int state) {
     
     // Write "seg x y z energy" with atomic {x,y,z}
     if (_do_atomic_xyze) {
-        tag = (state == -1) ? "e_atomic_xyze" : "h_atomic_xyze";
+        tag = (state == -1) ? "eanalyze.landscape_e.out" : "eanalyze.landscape_h.out";
         out = fopen(tag.c_str(), "w");
 
         for (sit = top->Segments().begin(); 
@@ -244,8 +243,7 @@ void EAnalyze::PairHist(Topology *top, int state) {
     double STD = 0.0;
 
     FILE *out_dEs;
-    string tag_dEs = boost::lexical_cast<string>(top->getDatabaseId())
-               + "_PAIRSLIST_" + ( (state == -1) ? "A" : "C" ) + ".dat";
+    string tag_dEs = boost::lexical_cast<string>("eanalyze.pairlist_") + ( (state == -1) ? "e" : "h" ) + ".out";
     out_dEs = fopen(tag_dEs.c_str(), "w");
 
     // Collect site-energy differences from neighbourlist
@@ -294,8 +292,7 @@ void EAnalyze::PairHist(Topology *top, int state) {
     STD = sqrt(VAR);
 
     FILE *out;
-    string tag = boost::lexical_cast<string>(top->getDatabaseId())
-               + "_PAIRS_" + ( (state == -1) ? "A" : "C" ) + ".dat";
+    string tag = boost::lexical_cast<string>("eanalyze.pairhist_") + ( (state == -1) ? "e" : "h" ) + ".out";
     out = fopen(tag.c_str(), "w");
 
     fprintf(out, "# EANALYZE: PAIR-ENERGY HISTOGRAM \n");
