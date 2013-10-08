@@ -18,8 +18,8 @@
  */
 
 
-#ifndef _EOUTERSPHERE2_H
-#define	_EOUTERSPHERE2_H
+#ifndef VOTCA_CTP_EOUTERSPHERE_H
+#define	VOTCA_CTP_EOUTERSPHERE_H
 
 #include <votca/ctp/topology.h>
 #include <votca/ctp/qmcalculator.h>
@@ -253,6 +253,7 @@ private:
     double                               _pekarFactor;
     double                               _lambdaConstant;
     double                               _lambdaCutoff;
+    map<string,double>                   _radius;
 
 };
 

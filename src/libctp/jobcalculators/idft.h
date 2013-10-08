@@ -59,7 +59,7 @@ public:
     
     Job::JobResult EvalJob(Topology *top, Job *job, QMThread *Thread);
 
-    void GenerateInput(Topology *top);
+    void WriteJobFile(Topology *top);
 
     void Import( Topology *top );
     
@@ -99,10 +99,17 @@ private:
     
     void ParseOptionsXML( tools::Property *opt);    
     
+    bool CalculateIntegralsOptimized(   Orbitals* _orbitalsA, 
+                               Orbitals* _orbitalsB, 
+                               Orbitals* _orbitalsAB, 
+                               ub::matrix<double>* _JAB, 
+                               QMThread *opThread );  
+
     bool CalculateIntegrals(   Orbitals* _orbitalsA, 
                                Orbitals* _orbitalsB, 
-                               Orbitals* _orbitalsAB, ub::matrix<double>* _JAB, 
-                               QMThread *opThread );  
+                               Orbitals* _orbitalsAB, 
+                               ub::matrix<double>* _JAB, 
+                               QMThread *opThread);
     
     double getCouplingElement( int levelA, int levelB,  
                                Orbitals* _orbitalsA,  

@@ -15,11 +15,11 @@ public:
     PolarSeg(PolarSeg *templ);
    ~PolarSeg();
 
-    const int getId() { return _id; }
+    const int &getId() { return _id; }
     const vec &getPos() { return _pos; }
-    void CalcPos();
-    double CalcTotQ();
-    void Translate(const vec &shift);
+    void       CalcPos();
+    double     CalcTotQ();
+    void       Translate(const vec &shift);
 
 private:
 

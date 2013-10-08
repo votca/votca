@@ -205,10 +205,12 @@ bool GW::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_guess )
     _gw_file << "bse_momentum_operator " << endl;
     if ( _options.size() ) _gw_file <<  _options << endl ; 
     _gw_file.close();
+    
+    return true;
 }
 
 /**
- * Runs the NWChem job. 
+ * Runs the GW job. 
  */
 bool GW::Run()
 {
@@ -243,8 +245,7 @@ bool GW::Run()
         return false;
     }
     
-
-
+    return true;
 
 }
 

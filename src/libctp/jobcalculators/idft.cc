@@ -85,8 +85,6 @@ void IDFT::ParseOptionsXML( votca::tools::Property *opt ) {
     string key = "options." + Identify();
     _energy_difference = opt->get( key + ".degeneracy" ).as< double > ();
     
-    _jobfile = opt->get(key + ".job_file").as<string>();
-
     string _tasks_string = opt->get(key+".tasks").as<string> ();
     if (_tasks_string.find("input") != std::string::npos) _do_input = true;
     if (_tasks_string.find("run") != std::string::npos) _do_run = true;
@@ -111,6 +109,9 @@ void IDFT::ParseOptionsXML( votca::tools::Property *opt ) {
     
      key = "package";
     _package = _package_options.get(key+".name").as<string> ();
+    
+    key = "options." + Identify() +".job";
+    _jobfile = opt->get(key + ".file").as<string>();    
 
 }
 
@@ -204,7 +205,7 @@ void IDFT::SQRTOverlap(ub::symmetric_matrix<double> &S, ub::matrix<double> &S2 )
     
  }
 
-bool IDFT::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB, 
+bool IDFT::CalculateIntegralsOptimized(Orbitals* _orbitalsA, Orbitals* _orbitalsB, 
     Orbitals* _orbitalsAB, ub::matrix<double>* _JAB, QMThread *opThread) {
           
     /* test case
@@ -415,19 +416,19 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     
     // get the information about the job executed by the thread
     int _job_ID = job->getId();
-    string _job_tag = job->getTag();
+    Property _job_input = job->getInput();  
+    list<Property*> lSegments = _job_input.Select( "segment" );    
+    int ID_A   = lSegments.front()->getAttribute<int>( "id" );
+    string type_A = lSegments.front()->getAttribute<string>( "type" );
+    int ID_B   = lSegments.back()->getAttribute<int>( "id" );
+    string type_B = lSegments.back()->getAttribute<string>( "type" );
     
-    // job tag is ID_A:ID_B
-    Tokenizer _tok ( _job_tag, ":" ); 
-    vector<string> _mol_ids;
-    _tok.ToVector( _mol_ids );
+    Segment *seg_A = top->getSegment( ID_A );   
+    assert( seg_A->getName() == type_A );
     
-    int ID_A   = boost::lexical_cast<int>( _mol_ids.front() );
-    int ID_B   = boost::lexical_cast<int>( _mol_ids.back() );
-    
-    Segment *seg_A = top->getSegment( ID_A );
     Segment *seg_B = top->getSegment( ID_B );
-
+    assert( seg_B->getName() == type_B );
+    
     vector < Segment* > segments;
     segments.push_back( seg_A );
     segments.push_back( seg_B );
@@ -530,8 +531,11 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
                     return jres;
             } 
     } // end of the run
- 
-    Orbitals _orbitalsAB; // This will be later used to write orbitals of the dimer to a file
+    
+    
+    // This will be later used to write orbitals of the dimer to a file 
+    // SOMETHING TO CLEANUP
+    Orbitals _orbitalsAB; 
    // parse the log/orbitals files
     if ( _do_parse ) {
              _parse_log_status = _qmpackage->ParseLogFile( &_orbitalsAB );
@@ -584,6 +588,7 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
        //_orbitalsAB.Trim(_trim_factor);
    } */
    
+   Property _job_summary;
    if ( _do_project ) {
        
        if ( !_do_parse ) { // orbitals must be loaded from a file
@@ -683,8 +688,9 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
      * </pair>
      * 
      */
-    Property _job_summary;
-        Property *_pair_summary = &_job_summary.add("pair","");
+
+        Property *_job_output = &_job_summary.add("output","");
+        Property *_pair_summary = &_job_output->add("pair","");
          string nameA = seg_A->getName();
          string nameB = seg_B->getName();
         _pair_summary->setAttribute("idA", ID_A);
@@ -714,7 +720,7 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
    _qmpackage->CleanUp();
    delete _qmpackage;
    
-    jres.setOutput( sout.str() );   
+    jres.setOutput( _job_summary );   
     jres.setStatus(Job::COMPLETE);
     
     return jres;
@@ -769,13 +775,13 @@ void IDFT::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB,
 
 }   
 
-void IDFT::GenerateInput(Topology *top) {
+void IDFT::WriteJobFile(Topology *top) {
 
-    string jobFile = "idft.jobs";   
+    cout << endl << "... ... Writing job file " << flush;
     ofstream ofs;
+    ofs.open(_jobfile.c_str(), ofstream::out);
+    if (!ofs.is_open()) throw runtime_error("\nERROR: bad file handle: " + _jobfile);
 
-    ofs.open(jobFile.c_str(), ofstream::out);
-    if (!ofs.is_open()) throw runtime_error("Bad file handle: " + jobFile);
  
     QMNBList::iterator pit;
     QMNBList &nblist = top->NBList();    
@@ -787,25 +793,37 @@ void IDFT::GenerateInput(Topology *top) {
     }    
 
     ofs << "<jobs>" << endl;    
+    string tag = "";
     
     for (pit = nblist.begin(); pit != nblist.end(); ++pit) {
-        
+
         int id1 = (*pit)->Seg1()->getId();
         string name1 = (*pit)->Seg1()->getName();
         int id2 = (*pit)->Seg2()->getId();
         string name2 = (*pit)->Seg2()->getName();   
 
         int id = ++jobCount;
-        string tag = (format("%1$s:%2$s") % id1 % id2 ).str(); 
-        string input = (format("%1$s:%2$s") % name1 % name2 ).str();
-        string stat = "AVAILABLE";
-        Job job(id, tag, input, stat);
+
+        Property Input;
+        Property *pInput = &Input.add("input","");
+        Property *pSegment =  &pInput->add("segment" , (format("%1$s") % id1).str() );
+        pSegment->setAttribute<string>("type", name1 );
+        pSegment->setAttribute<int>("id", id1 );
+
+        pSegment =  &pInput->add("segment" , (format("%1$s") % id2).str() );
+        pSegment->setAttribute<string>("type", name2 );
+        pSegment->setAttribute<int>("id", id2 );
+        
+        Job job(id, tag, Input, Job::AVAILABLE );
         job.ToStream(ofs,"xml");
+        
     }
 
     // CLOSE STREAM
     ofs << "</jobs>" << endl;    
     ofs.close();
+    
+    cout << endl << "... ... In total " << jobCount << " jobs" << flush;
     
 }
 
@@ -1111,6 +1129,102 @@ void IImport::FromIDFTWithSuperExchange(Topology *top, string &_idft_jobs_file) 
 
 
 */
+
+bool IDFT::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB, 
+    Orbitals* _orbitalsAB, ub::matrix<double>* _JAB, QMThread *opThread) {
+
+     Logger* _pLog = opThread->getLogger();
+    LOG(logDEBUG,*_pLog) << "Calculating electronic couplings" << flush;
+        
+    // constructing the direct product orbA x orbB
+    int _basisA = _orbitalsA->getBasisSetSize();
+    int _basisB = _orbitalsB->getBasisSetSize();
+    
+    if ( ( _basisA == 0 ) || ( _basisB == 0 ) ) {
+        LOG(logERROR,*_pLog) << "Basis set size is not stored in monomers" << flush;
+        return false;
+    }
+        
+    int _levelsA = _orbitalsA->getNumberOfLevels();
+    int _levelsB = _orbitalsB->getNumberOfLevels();
+    
+    boost::timer t; // start timing
+    double _st = t.elapsed();
+    
+    LOG(logDEBUG,*_pLog) << "Levels:Basis A[" << _levelsA << ":" << _basisA << "]"
+                                     << " B[" << _levelsB << ":" << _basisB << "]" << flush;
+    
+    if ( ( _levelsA == 0 ) || (_levelsB == 0) ) {
+        LOG(logERROR,*_pLog) << "No information about number of occupied/unoccupied levels is stored" << flush;
+        return false;
+    } 
+    
+    //       | Orbitals_A          0 |      | Overlap_A |     
+    //       | 0          Orbitals_B |  X   | Overlap_B |  X  Transpose( Orbitals_AB )
+    ub::zero_matrix<double> zeroB( _levelsA, _basisB ) ;
+    ub::zero_matrix<double> zeroA( _levelsB, _basisA ) ;
+    ub::matrix<double> _psi_AxB ( _levelsA + _levelsB, _basisA + _basisB  );
+    
+
+     LOG(logDEBUG,*_pLog) << "Constructing direct product AxB [" 
+            << _psi_AxB.size1() << "x" 
+            << _psi_AxB.size2() << "]";    
+    
+    ub::project( _psi_AxB, ub::range (0, _levelsA ), ub::range ( _basisA, _basisA +_basisB ) ) = zeroB;
+    ub::project( _psi_AxB, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( 0, _basisA ) ) = zeroA;    
+    ub::project( _psi_AxB, ub::range (0, _levelsA ), ub::range ( 0, _basisA ) ) = *_orbitalsA->getOrbitals();
+    ub::project( _psi_AxB, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( _basisA, _basisA + _basisB ) ) = *_orbitalsB->getOrbitals(); 
+    LOG(logDEBUG,*_pLog)  << " (" << t.elapsed() - _st << "s) " << flush; _st = t.elapsed();
+    
+    // Fock matrix of a dimer   
+    LOG(logDEBUG,*_pLog) << "Constructing the dimer Fock matrix [" 
+              << _orbitalsAB->getNumberOfLevels() << "x" 
+             << _orbitalsAB->getNumberOfLevels() << "]" << flush;    
+ 
+    ub::diagonal_matrix<double> _fock_AB( _orbitalsAB->getNumberOfLevels(), (*_orbitalsAB->getEnergies()).data() ); 
+   
+    // psi_AxB * S_AB * psi_AB
+    LOG(logDEBUG,*_pLog) << TimeStamp() << " Projecting the dimer onto monomer orbitals" ;    
+    ub::matrix<double> _psi_AB = ub::prod( *_orbitalsAB->getOverlap(), ub::trans( *_orbitalsAB->getOrbitals() ) );          
+    ub::matrix<double> _psi_AxB_dimer_basis = ub::prod( _psi_AxB, _psi_AB );
+     _psi_AB.clear();
+     LOG(logDEBUG,*_pLog)  << " (" << t.elapsed() - _st << "s) " << flush; _st = t.elapsed();    
+
+    // J = psi_AxB_dimer_basis * FAB * psi_AxB_dimer_basis^T
+    LOG(logDEBUG,*_pLog) << TimeStamp() << " Projecting the Fock matrix onto the dimer basis";    
+    ub::matrix<double> _temp = ub::prod( _fock_AB, ub::trans( _psi_AxB_dimer_basis ) ) ;
+    ub::matrix<double> JAB_dimer = ub::prod( _psi_AxB_dimer_basis, _temp);
+    _temp.clear(); _fock_AB.clear();
+     LOG(logDEBUG,*_pLog)  << " (" << t.elapsed() - _st << "s) " << flush; _st = t.elapsed();    
+ 
+      // S = psi_AxB_dimer_basis * psi_AxB_dimer_basis^T
+     ub::symmetric_matrix<double> _S_AxB = ub::prod( _psi_AxB_dimer_basis, ub::trans( _psi_AxB_dimer_basis ));
+     
+     ub::matrix<double> _S_AxB_2(_S_AxB.size1(), _S_AxB.size1() );
+     ub::trans( _S_AxB );
+     LOG(logDEBUG,*_pLog) << "Calculating square root of the overlap matrix";    
+     SQRTOverlap( _S_AxB , _S_AxB_2 );        
+     _S_AxB.clear();          
+
+     LOG(logDEBUG,*_pLog)  << " (" << t.elapsed() - _st << "s) " << flush; _st = t.elapsed();    
+
+     
+     LOG(logDEBUG,*_pLog) << "Calculating the effective overlap JAB [" 
+              << JAB_dimer.size1() << "x" 
+              << JAB_dimer.size2() << "]";  
+       
+     ub::matrix<double> JAB_temp = ub::prod( JAB_dimer, _S_AxB_2 );
+        
+     (*_JAB) = ub::prod( _S_AxB_2, JAB_temp );
+    
+     // cleanup
+     JAB_dimer.clear(); JAB_temp.clear(); _S_AxB_2.clear();
+    LOG(logDEBUG,*_pLog)  << " (" << t.elapsed() - _st << "s) " << flush; _st = t.elapsed();    
+    
+     LOG(logDEBUG,*_pLog) << "Done with electronic couplings" << flush;
+     return true;   
+
+}
 
 
 }};

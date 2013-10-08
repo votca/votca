@@ -25,7 +25,7 @@ public:
     XQMP() {};
    ~XQMP() {};
    
-    string          Identify() { return "XQMultipole"; }
+    string          Identify() { return "xqmultipole"; }
     void            Initialize(Property *);
 
     void            CustomizeLogger(QMThread *thread);

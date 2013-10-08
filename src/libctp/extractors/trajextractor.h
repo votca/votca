@@ -38,7 +38,7 @@ public:
     TrajExtractor() { };
    ~TrajExtractor() { };
 
-    string Identify() { return "extract.traj"; }
+    string Identify() { return "extract.trajectory"; }
 
     void Initialize(Property *options);
     bool EvaluateFrame(Topology *top);

@@ -22,8 +22,12 @@
 #include "votca_config.h"
 
 #include "extractors/energyextractor.h"
+#include "extractors/integralsextractor.h"
+#include "extractors/ratesextractor.h"
 #include "extractors/trajextractor.h"
 #include "extractors/segmentsextractor.h"
+#include "extractors/pairsextractor.h"
+#include "extractors/occupationsextractor.h"
 
 
 
@@ -32,8 +36,12 @@ namespace votca { namespace ctp {
 void ExtractorFactory::RegisterAll(void)
 {	
         Extractors().Register<EnergyExtractor>             ("energy");
+        Extractors().Register<IntegralsExtractor>          ("integrals");
+        Extractors().Register<RatesExtractor>              ("rates");
+        Extractors().Register<OccupationsExtractor>        ("occupations");
         Extractors().Register<TrajExtractor>               ("trajectory");
         Extractors().Register<SegmentsExtractor>           ("segments");
+        Extractors().Register<PairsExtractor>              ("pairs");
 }
 
 }}

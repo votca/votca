@@ -206,7 +206,7 @@ void EAnalyze::SiteHist(Topology *top, int state) {
              ++sit) {
 
             if ((*sit)->getId() < _atomic_first) { continue; }
-            if ((*sit)->getId() > _atomic_last) { continue; }
+            if ((*sit)->getId() == _atomic_last) { break; }
             double E = (*sit)->getSiteEnergy(state);
 
             vector< Atom* > ::iterator ait;
@@ -422,8 +422,7 @@ void EAnalyze::SiteCorr(Topology *top, int state) {
     }
 
     FILE *out;
-    string tag = boost::lexical_cast<string>(top->getDatabaseId())
-               + "_CORR_" + ( (state == -1) ? "A" : "C" ) + ".dat";
+    string tag = boost::lexical_cast<string>("eanalyze.sitecorr_") + ( (state == -1) ? "e" : "h" ) + ".out";
     out = fopen(tag.c_str(), "w");
 
     fprintf(out, "# EANALYZE: SPATIAL SITE-ENERGY CORRELATION \n");

@@ -96,6 +96,8 @@ bool SingularValueDecomposition( ub::matrix<double> &A, ub::matrix<double> &V, u
         
 	return (status != 0);
          */
+    throw std::runtime_error("Singular Value Decomposition is not implemented");
+    return false;
 };
 
 

@@ -277,7 +277,7 @@ void StateSaverSQLite::WriteSegments(bool update) {
 
             int has_e = (seg->hasState(-1)) ? 1 : 0;
             int has_h = (seg->hasState(+1)) ? 1 : 0;
-
+            
             stmt->Bind(1, seg->getU_nC_nN(-1));
             stmt->Bind(2, seg->getU_nC_nN(+1));
             stmt->Bind(3, seg->getU_cN_cC(-1));
@@ -776,7 +776,7 @@ void StateSaverSQLite::ReadSegments(int topId) {
         seg->setOcc(o2, +1);
         seg->setHasState(has_e, -1);
         seg->setHasState(has_h, +1);
-
+        
 
         seg->getMolecule()->AddSegment(seg);
     }

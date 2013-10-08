@@ -53,16 +53,20 @@ bool SegmentsExtractor::EvaluateFrame(Topology *top) {
         segprop.add("xyz", (format("%1$+1.4f %2$+1.4f %3$+1.4f")
             % seg->getPos().getX() % seg->getPos().getY() % seg->getPos().getZ()).str());
         if (seg->hasChrgState(+1)) {
-            segprop.add("energy_hn", (format("%1$+1.7f") % seg->getSiteEnergy(+1)).str());
-            segprop.add("lambda_hn", (format("%1$+1.7f") % seg->getU_nC_nN(+1)).str());
-            segprop.add("lambda_nh", (format("%1$+1.7f") % seg->getU_cN_cC(+1)).str());
-            segprop.add("occupation_h", (format("%1$+1.7e") % seg->getOcc(+1)).str());
+            Property &channel = segprop.add("channel","");
+            channel.setAttribute("type", "hole");
+            channel.add("energy_hn", (format("%1$+1.7f") % seg->getSiteEnergy(+1)).str());
+            channel.add("lambda_hn", (format("%1$+1.7f") % seg->getU_nC_nN(+1)).str());
+            channel.add("lambda_nh", (format("%1$+1.7f") % seg->getU_cN_cC(+1)).str());
+            channel.add("occupation_h", (format("%1$+1.7e") % seg->getOcc(+1)).str());
         }
         if (seg->hasChrgState(-1)) {
-            segprop.add("energy_en", (format("%1$+1.7f") % seg->getSiteEnergy(-1)).str());
-            segprop.add("lambda_en", (format("%1$+1.7f") % seg->getU_nC_nN(-1)).str());
-            segprop.add("lambda_ne", (format("%1$+1.7f") % seg->getU_cN_cC(-1)).str());
-            segprop.add("occupation_e", (format("%1$+1.7e") % seg->getOcc(-1)).str());
+            Property &channel = segprop.add("channel","");
+            channel.setAttribute("type", "electron");
+            channel.add("energy_en", (format("%1$+1.7f") % seg->getSiteEnergy(-1)).str());
+            channel.add("lambda_en", (format("%1$+1.7f") % seg->getU_nC_nN(-1)).str());
+            channel.add("lambda_ne", (format("%1$+1.7f") % seg->getU_cN_cC(-1)).str());
+            channel.add("occupation_e", (format("%1$+1.7e") % seg->getOcc(-1)).str());
         }
         
         if (tools::globals::verbose) {
@@ -77,6 +81,7 @@ bool SegmentsExtractor::EvaluateFrame(Topology *top) {
                 fragprop.add("xyz", (format("%1$+1.4f %2$+1.4f %3$+1.4f")
                         % frag->getPos().getX() % frag->getPos().getY() % frag->getPos().getZ()).str());                
                 
+                // ATOMS
                 vector<Atom*>::iterator ait;
                 for (ait = frag->Atoms().begin(); ait < frag->Atoms().end(); ++ait) {
                     Property &atomprop = fragprop.add("atom", "");
@@ -84,7 +89,14 @@ bool SegmentsExtractor::EvaluateFrame(Topology *top) {
                     atomprop.add("id", (format("%1$d") % atm->getId()).str());
                     atomprop.add("element", atm->getElement());
                     atomprop.add("name", atm->getName());
-                    //atomprop.add("pos", )
+                    atomprop.add("weight", (format("%1$1.2f") % atm->getWeight()).str());
+                    atomprop.add("pos", (format("%1$+1.4f %2$+1.4f %3$+1.4f")
+                        % atm->getPos().getX() % atm->getPos().getY() % atm->getPos().getZ()).str());
+                    if (atm->HasQMPart()) {
+                        atomprop.add("qmid", (format("%1$d") % atm->getQMId()).str());
+                        atomprop.add("qmpos", (format("%1$+1.4f %2$+1.4f %3$+1.4f")
+                            % atm->getQMPos().getX() % atm->getQMPos().getY() % atm->getQMPos().getZ()).str());
+                    }
                 }
             }
         }

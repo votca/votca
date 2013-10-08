@@ -54,6 +54,7 @@
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/vector.hpp>
+#include <boost/serialization/version.hpp>
 
 namespace ub = boost::numeric::ublas;
     
@@ -269,23 +270,10 @@ private:
        ar & _has_mo_energies;
        ar & _has_mo_coefficients;
        ar & _has_overlap;
-       ar & _has_vxc;
        ar & _has_atoms;
        ar & _has_qm_energy;
        ar & _has_self_energy;
        ar & _has_integrals;
-       
-       // GW-BSE storage
-       ar & _has_QPpert;
-       ar & _has_QPdiag;
-       ar & _has_BSE_singlets;
-       ar & _has_BSE_triplets;
-       if ( _has_QPpert ) { ar & _QP_levels_index; ar & _QPpert_energies; }
-       if ( _has_QPdiag ) { ar & _QPdiag_energies; ar & _QPdiag_coefficients; }
-       if ( _has_BSE_singlets || _has_BSE_triplets ) { ar & _BSE_levels_indices; }
-       if ( _has_BSE_singlets ) { ar & _BSE_singlet_energies; ar & _BSE_singlet_coefficients; }
-       if ( _has_BSE_triplets ) { ar & _BSE_triplet_energies; ar & _BSE_triplet_coefficients; }
-
        
        if ( _has_basis_set_size ) { ar & _basis_set_size; }
        if ( _has_occupied_levels ) { ar & _occupied_levels; }
@@ -313,39 +301,50 @@ private:
                     ar & _overlap(i, j); 
        }
 
-       if ( _has_vxc ) { 
-           // symmetric matrix does not serialize by default
-            if (Archive::is_saving::value) {
-                unsigned size = _vxc.size1();
-                ar & size;
-             }
-
-            // copy the values back if loading
-            if (Archive::is_loading::value) {
-                unsigned size;
-                ar & size;
-                _vxc.resize(size);
-             }
-            
-           for (unsigned i = 0; i < _vxc.size1(); ++i)
-                for (unsigned j = 0; j <= i; ++j)
-                    ar & _vxc(i, j); 
-       }
-       
        if ( _has_atoms ) { ar & _atoms; }
        if ( _has_qm_energy ) { ar & _qm_energy; }
        if ( _has_self_energy ) { ar & _self_energy; }     
        if ( _has_integrals ) { ar & _integrals; } 
-       
-       
-       //GW-BSE storage
-    }
-    
+
+       // GW-BSE storage
+       if(version > 0)  {
+            ar & _has_vxc;           
+            ar & _has_QPpert;
+            ar & _has_QPdiag;
+            ar & _has_BSE_singlets;
+            ar & _has_BSE_triplets;
+            if ( _has_QPpert ) { ar & _QP_levels_index; ar & _QPpert_energies; }
+            if ( _has_QPdiag ) { ar & _QPdiag_energies; ar & _QPdiag_coefficients; }
+            if ( _has_BSE_singlets || _has_BSE_triplets ) { ar & _BSE_levels_indices; }
+            if ( _has_BSE_singlets ) { ar & _BSE_singlet_energies; ar & _BSE_singlet_coefficients; }
+            if ( _has_BSE_triplets ) { ar & _BSE_triplet_energies; ar & _BSE_triplet_coefficients; }
+
+            if ( _has_vxc ) { 
+               // symmetric matrix does not serialize by default
+                if (Archive::is_saving::value) {
+                    unsigned size = _vxc.size1();
+                    ar & size;
+                 }
+
+                // copy the values back if loading
+                if (Archive::is_loading::value) {
+                    unsigned size;
+                    ar & size;
+                    _vxc.resize(size);
+                 }
+
+               for (unsigned i = 0; i < _vxc.size1(); ++i)
+                    for (unsigned j = 0; j <= i; ++j)
+                        ar & _vxc(i, j); 
+            }
+            
+       } // end version 1: GW-BSE storage
+    }// end of serialization
 };
 
-//BOOST_CLASS_VERSION(Orbitals, 1)
-        
 }}
 
+BOOST_CLASS_VERSION(votca::ctp::Orbitals, 1)
+        
 #endif	/* __VOTCA_CTP_ORBITALS_H */
 

@@ -2679,7 +2679,7 @@ void EMultipole::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
 //    FILE *out;
 //    string shellFile = "OuterShell.pdb";
 //    out = fopen(shellFile.c_str(), "w");
-//    for (sit = _segsOutSphere.begin(); sit < _segsOutSphere.end(); ++sit) {
+//    for (sit = _segsPolSphere.begin(); sit < _segsPolSphere.end(); ++sit) {
 //        (*sit)->WritePDB(out, "Multipoles", "");
 //    }
 //    fclose(out);
