@@ -52,7 +52,7 @@ else(WITH_SQLITE3)
   set(VOTCA_SQL_SOURCES)
 endif(WITH_SQLITE3)
 
-configure_file(votca_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/votca_config.h)
+#configure_file(votca_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/votca_config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_custom_target(hgversion COMMAND ${CMAKE_COMMAND} -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}" -P ${CMAKE_MODULE_PATH}/hgversion.cmake)

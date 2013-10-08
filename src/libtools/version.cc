@@ -16,7 +16,7 @@
  */
 
 #include <votca/tools/version.h>
-#include "votca_config.h"
+#include <votca/tools/votca_config.h>
 
 extern "C" {
    void VotcaToolsFromC(){

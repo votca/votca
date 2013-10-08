@@ -17,7 +17,7 @@
 
 #include <votca/tools/linalg.h>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
-#include "votca_config.h"
+#include <votca/tools/votca_config.h>
 
 #ifndef NOGSL
 #include <gsl/gsl_linalg.h>

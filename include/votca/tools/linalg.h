@@ -10,7 +10,7 @@
 
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
-
+#include "votca_config.h"
 
 namespace votca { namespace tools {
     namespace ub = boost::numeric::ublas;

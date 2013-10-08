@@ -2,7 +2,7 @@ syntax:glob
 
 *~
 Makefile
-src/libtools/votca_config.h
+include/votca/tools/votca_config.h
 src/libtools/hgversion.h
 .project
 .cproject
