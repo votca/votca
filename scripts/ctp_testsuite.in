@@ -10,6 +10,7 @@ import xml.dom.minidom as xmld
 import time
 import argparse
 import re
+import math
 
 PROGTITLE = 'THE VOTCA::CTP TESTSUITE'
 VOTCAHEADER = '''\
@@ -58,7 +59,7 @@ progargs.add_argument('-x', '--xml',
     type=str,
     metavar='',
     default= '{share}/ctp/xml/testsuite.xml'.format(share=VOTCASHARE),
-    help='Test-suite control file (def="testsuite.xml")')
+    help='Test-suite file (def="$VOTCASHARE/ctp/xml/testsuite.xml")')
 # Directories: test, source, reference, targets
 progargs.add_argument('-d', '--directory',
     dest='testdirectory',
@@ -147,6 +148,13 @@ def okprint(msg):
 
 def xxprint(msg):
 	print "{0:100s} {1}".format(msg, cprint.XX)
+
+def isfloat(item):
+	try: float(item); return True
+	except: return False
+
+def xmlsplit(string, regex='<|>|/| '):
+	return re.split(regex, string)
 
 class CPrint(object):
 	def __init__(self):
@@ -319,11 +327,12 @@ class Suite(object):
 		reference_folder = '{base}/{ref}'.format(base=BASEDIR, ref=self.options.reference_dir)
 		if self.options.generate:
 			if os.path.exists(reference_folder):
-				raw = raw_input("Overwrite reference folder (yes/no) ? ")
+				raw = raw_input("Overwrite reference folder (yes/no)? ")
 				if raw != "yes":
 					print "Reference folder remains as it is. Stop here."
 					sys.exit(1)
-			sysexe('rm -r {ref}'.format(ref=reference_folder))
+				else:
+					sysexe('rm -r {ref}'.format(ref=reference_folder))
 			cdx = sysexe('mv {target} {ref}'.format(target=target_folder, ref=reference_folder))
 			if not cdx:
 				cprint.Head("Successfully generated reference data, now quit.")
@@ -356,6 +365,7 @@ class Suite(object):
 
 class Comparator(object):
 	def __init__(self, target_dir, reference_dir):
+		self.tolerance = 1e-5
 		# Completeness of target_dir already verified
 		cprint.Head("Verify that all targets are WHAT we expect them to be:")
 		if not os.path.exists(target_dir):
@@ -375,17 +385,61 @@ class Comparator(object):
 			if not os.path.isfile(abs_tar_item):
 				xxprint("Target exists, but reference is missing '{0}'".format(item))				
 				continue
-			out = cmds.getoutput('diff {0} {1}'.format(abs_ref_item, abs_tar_item))
-			if out != '':
-				xxprint("  o Target changed : '{0}'".format(item))
-				if VERBOSE:	print out
+			# Binary + Numeric match
+			binary_match, binary_what = self.DoFilesMatch_Binary(abs_ref_item, abs_tar_item)
+			if not binary_match:
+				numeric_match, numeric_what = self.DoFilesMatch_Numeric(abs_ref_item, abs_tar_item)
+			else:
+				numeric_match, numeric_what = True, 'numeric match'
+			if not binary_match or not numeric_match:
+				xxprint("  o {0:40s} -> {1:15s} & {2:30s}".format(item[0:40], binary_what, numeric_what))
 				none_different = False
 			else:
-				#okprint("  o Confirm target : '{0}'".format(item))
-				pass
+				okprint("  o {0:40s} -> {1:15s} & {2:30s}".format(item[0:40], binary_what, numeric_what))	
 		if none_different:
 			okprint("  o All {0} targets what they should be.".format(len(target_items)))
 		return
+	def DoFilesMatch_Binary(self, file1, file2):
+		out = cmds.getoutput('diff {0} {1}'.format(file1, file2))
+		if out != '':
+			return False, 'binary mismatch'
+		else:
+			return True, 'binary match'
+	def DoFilesMatch_Numeric(self, file1, file2):
+		def reldiff(v1, v2, eps):
+			v1 = float(v1)
+			v2 = float(v2)
+			if math.isnan(v1): v1 = 0
+			if math.isnan(v2): v2 = 0
+			if v1 == v2: return 0
+			if abs(v1-v2) < eps: return abs(v1-v2)
+			if abs(v1) > abs(v2): return abs(v1-v2)/abs(v1)
+			return abs(v1-v2)/abs(v2)
+		data1 = open(file1).readlines()
+		data2 = open(file2).readlines()
+		num_mismatch_count = 0
+		# Same number of lines
+		if len(data1) != len(data2):
+			return False, 'number of data lines does not match'
+		for d1,d2 in zip(data1,data2):
+			s1 = xmlsplit(d1)
+			s2 = xmlsplit(d2)
+			if len(s1) != len(s2):
+				return False, 'number of columns does not match'
+			for a,b in zip(s1,s2):
+				isfloat_a = isfloat(a)
+				isfloat_b = isfloat(b)
+				if isfloat_a != isfloat_b:
+					num_mismatch_count += 1
+					continue
+				if isfloat_a == isfloat_b == True:
+					rd = reldiff(a, b, self.tolerance)
+					if rd > self.tolerance:
+						num_mismatch_count += 1
+		if num_mismatch_count > 0:
+			return False, 'numeric mismatch on {0} counts'.format(num_mismatch_count)
+		return True, 'numeric match'
+
 
 class Test(object):
 	def __init__(self, node):
@@ -554,7 +608,7 @@ sysexe('cp -r {base}/{source}/* .'.format(base=BASEDIR, source=TESTSOURCE))
 sysexe('cp {xmlshare}/*.xml .'.format(xmlshare=xmlshare_ctp))
 sysexe('cp {xmlshare}/*.xml .'.format(xmlshare=xmlshare_kmc))
 
-# Copy input_*** folders
+# Register input_*** folders
 for test in suite.tests:
 	rel_input_folder = 'input_{test}'.format(test=test.name)
 	abs_input_folder = '{base}/{testdir}/{rel}'.format(base=BASEDIR, testdir=TESTDIR, rel=rel_input_folder)
