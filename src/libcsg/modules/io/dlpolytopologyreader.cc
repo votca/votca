@@ -48,9 +48,6 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
     MolecBase = new MolecSpecsT[nmolt];
     FieldSite = new FieldSiteT[natms];
 
-    MolecBase = new MolecSpecsT[nmolt];
-    FieldSite = new FieldSiteT[natms];
-
     FieldBase.nmols = nmolt;
     FieldBase.natms = natms;
 
