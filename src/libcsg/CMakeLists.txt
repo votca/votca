@@ -2,13 +2,17 @@ option(WITH_GMX "Build gromacs reader/writer, disabling leads to reduced functio
 option(WITH_GMX_DEVEL "Build against gromacs devel version, very experimental!" OFF)
 option(GMX_DOUBLE "Use double precision version of gromacs" OFF)
 
+option(WITH_DLPOLY "Build DLPOLY reader/writer, requires Fortran compiler" OFF)
+
 file(GLOB GMX_SOURCES modules/io/gmx*.cc modules/io/pdbtopology*.cc)
 file(GLOB NOT_GMX_SOURCES modules/io/gmx_print_version.cc modules/io/gmx_version_nb.cc)
 list(REMOVE_ITEM GMX_SOURCES ${NOT_GMX_SOURCES})
 
+file(GLOB DLPOLY_SOURCES modules/io/dlpoly*.cc modules/io/dlpoly/*.f)
+
 file(GLOB IO_SOURCES modules/io/*.cc)
 file(GLOB NOT_IO_SOURCES modules/io/mdp*.cc)
-list(REMOVE_ITEM IO_SOURCES ${GMX_SOURCES} ${NOT_GMX_SOURCES} ${NOT_IO_SOURCES})
+list(REMOVE_ITEM IO_SOURCES ${GMX_SOURCES} ${DLPOLY_SOURCES} ${NOT_GMX_SOURCES} ${NOT_IO_SOURCES})
 
 if (WITH_GMX)
   if (GMX_DOUBLE)
@@ -37,6 +41,13 @@ else(WITH_GMX)
   set(GMX_SOURCES)
 endif(WITH_GMX)
 
+if (WITH_DLPOLY)
+  enable_language(Fortran)
+  set(DLPOLY "true")
+else (WITH_DLPOLY)
+  set(DLPOLY_SOURCES)
+endif (WITH_DLPOLY)
+
 configure_file(votca_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/votca_config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
@@ -46,7 +57,7 @@ set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES hgversion.h)
 file(GLOB VOTCA_SOURCES *.cc potentialfunctions/*.cc)
 file(GLOB NOT_VOTCA_SOURCES version_nb.cc test.cc)
 list(REMOVE_ITEM VOTCA_SOURCES ${NOT_VOTCA_SOURCES})
-add_library(votca_csg ${VOTCA_SOURCES} ${GMX_SOURCES} ${IO_SOURCES})
+add_library(votca_csg ${VOTCA_SOURCES} ${GMX_SOURCES} ${DLPOLY_SOURCES} ${IO_SOURCES})
 add_dependencies(votca_csg hgversion)
 set_target_properties(votca_csg PROPERTIES SOVERSION ${SOVERSION})
 target_link_libraries(votca_csg ${VOTCA_TOOLS_LIBRARIES} ${GROMACS_LIBRARIES} ${BOOST_LIBRARIES} ${THREAD_LIBRARIES})
