@@ -7,6 +7,9 @@
 /* Compile without gsl and disable linalg functions and CubicSpline class */
 #cmakedefine NOGSL
 
+/* Compile with MKL if intell libraries are installed */
+#cmakedefine MKL
+
 /* Version number of package */
 #define VERSION "@PROJECT_VERSION@"
 
