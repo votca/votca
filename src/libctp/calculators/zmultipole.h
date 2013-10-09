@@ -36,7 +36,7 @@ public:
     ZMultipole() {};
    ~ZMultipole() {};
 
-    string   Identify() { return "ZMultipole - Anisotropic Polarizabilities"; }
+    string   Identify() { return "zmultipole"; }
 
     // ++++++++++++++++++++++ //
     // Multipole Distribution //
@@ -625,7 +625,7 @@ void ZMultipole::Initialize(Property *opt) {
         }
         else { _epsTol = 0.001; }
 
-    //if (!top->isEStatified()) { this->EStatify(top, opt); }
+    this->EStatify(NULL, opt);
 
     if (_calcESP && (!_ESPdoSystem))      { this->CalculateESPInput(NULL); }
     if (this->_calcESF)                   { this->CalculateESF(NULL); }

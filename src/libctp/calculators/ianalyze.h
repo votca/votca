@@ -112,8 +112,7 @@ void IAnalyze::IHist(Topology *top, int state) {
         histN[bin] = histJ2[bin].size();
     }
     FILE *out;
-    string tag = boost::lexical_cast<string>(top->getDatabaseId())
-               + "_INTEGRALS_" + ( (state == -1) ? "e" : "h" ) + ".dat";
+    string tag = boost::lexical_cast<string>("ianalyze.ihist_") + ( (state == -1) ? "e" : "h" ) + ".out";
     out = fopen(tag.c_str(), "w");
 
     fprintf(out, "# IANALYZE: PAIR-INTEGRAL J2 HISTOGRAM\n");

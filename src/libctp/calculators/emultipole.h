@@ -653,7 +653,7 @@ void EMultipole::Initialize(Property *opt) {
         }
         else { _epsTol = 0.001; }
 
-    //if (!top->isEStatified()) { this->EStatify(top, opt); }
+    this->EStatify(NULL, opt);
 
     if (_calcESP && (!_ESPdoSystem))      { this->CalculateESPInput(NULL); }
     if (this->_calcESF)                   { this->CalculateESF(NULL); }
@@ -2679,7 +2679,7 @@ void EMultipole::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
 //    FILE *out;
 //    string shellFile = "OuterShell.pdb";
 //    out = fopen(shellFile.c_str(), "w");
-//    for (sit = _segsOutSphere.begin(); sit < _segsOutSphere.end(); ++sit) {
+//    for (sit = _segsPolSphere.begin(); sit < _segsPolSphere.end(); ++sit) {
 //        (*sit)->WritePDB(out, "Multipoles", "");
 //    }
 //    fclose(out);

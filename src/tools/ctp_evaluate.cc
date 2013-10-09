@@ -78,6 +78,7 @@ bool CtpEvaluate::EvaluateOptions() {
     }
 
     SqlApplication::EvaluateOptions();
+    CheckRequired("options", "Please provide an xml file with calculator options");
     CheckRequired("execute", "Nothing to do here: Abort.");
 
     Tokenizer calcs(OptionsMap()["execute"].as<string>(), " ,\n\t");
@@ -85,6 +86,8 @@ bool CtpEvaluate::EvaluateOptions() {
     for (it = calcs.begin(); it != calcs.end(); it++) {
         SqlApplication::AddCalculator(Calculators().Create((*it).c_str()));
     }
+    
+    load_property_from_xml(_options, _op_vm["options"].as<string>());
     return true;
 }
 

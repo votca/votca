@@ -184,7 +184,7 @@ const double &Segment::getU_cN_cC(int state) {
 }
 
 
-const double &Segment::getSiteEnergy(int state) {
+double Segment::getSiteEnergy(int state) {
 
     return (state == -1) ? this->getEMpoles(state) + _U_cC_nN_e :
                            this->getEMpoles(state) + _U_cC_nN_h;
@@ -199,7 +199,7 @@ void Segment::setEMpoles(int state, double energy) {
 }
 
 
-const double &Segment::getEMpoles(int state) {
+double Segment::getEMpoles(int state) {
 
     return _eMpoles[state+1] - _eMpoles[1];
 }
