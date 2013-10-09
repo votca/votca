@@ -55,8 +55,7 @@ Job::Job(int id, string &tag, string &inputstr, string status)
     
     _id = id;
     _tag = tag;
-    Property input;
-    Property &out = input.add("input", inputstr);
+    Property input("input",inputstr,"");
     _input = input;
     _status = ConvertStatus(status);
     _attemptsCount = 0;    

@@ -21,45 +21,66 @@
 #ifndef VOTCA_CTP_CALCULATOR_H
 #define VOTCA_CTP_CALCULATOR_H
 
-
-
 #include <votca/tools/property.h>
 
 namespace votca { namespace ctp {
 
+/**
+ * \brief Base class for all calculators
+ * 
+ * Calculators are grouped in CalculatorFactories and are run by Threads
+ * or Applications. Every calculator has a description (an XML file) installed 
+ * in VOTCASHARE which is used to compile HELP and run TESTSUITE. 
+ * This XML file also contains default values. 
+ * 
+ */
 class Calculator
 {
 public:
-
-                    Calculator() {}
-    virtual        ~Calculator() {}
-
-    // reads-in default options from the shared folder
-    void LoadDefaults() {
-
-        // get the path to the shared folders with xml files
-        char *votca_share = getenv("VOTCASHARE");
-        if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
-        
-        std::string name = Identify();
-        std::string xmlFile = std::string(getenv("VOTCASHARE")) + std::string("/ctp/xml/") + name + std::string(".xml");
-        
-        //cout << "Calculator " << name  << " reading from " << xmlFile << endl;
-        
-        // load the xml description of the calculator (with the default and test values)
-        votca::tools::load_property_from_xml(_options, xmlFile);
-
-        // override test values with the default values
-        _options.ResetFromDefaults();
-        
-        //cout << XML << _options;
-
-    };
-
-    virtual std::string  Identify() = 0;
-    virtual void    Initialize(votca::tools::Property *options) = 0;
-    void            setnThreads(int nThreads) { _nThreads = nThreads; _maverick = (_nThreads == 1) ? true : false; }
-
+    Calculator() {}
+    virtual ~Calculator() {}
+    /**
+     * \brief Calculator name
+     * 
+     * This name is used to register a calculator in a Factory
+     * It the name of the XML file with the default calculator options
+     * stored in VOTCASHARE 
+     * 
+     * @return calculator name
+     */
+    virtual std::string  Identify() = 0;   
+    /**
+     * \brief reads default options from an XML file in VOTCASHARE
+     * 
+     * Help files for calculators are installed in the VOTCASHARE folder
+     * These files also contain default values (default attribute)
+     *  
+     */
+    void LoadDefaults();
+    /**
+     * \brief Initializes a calculator from an XML file with options
+     * 
+     * Options are passed to a calculator by the Application
+     * These option overwrite defaults
+     *  
+     * @param options Property object passed by the application to a calculator 
+     */
+    virtual void Initialize(votca::tools::Property *options) = 0;  
+    /**
+     * \brief Sets number of threads to use 
+     * 
+     * If only one thread is used, this calculator behaves as a master
+     * 
+     * @param nThreads number of threads running this calculator
+     *
+     */
+    void setnThreads(int nThreads) { _nThreads = nThreads; _maverick = (_nThreads == 1) ? true : false; }    
+    /**
+     * \brief Outputs all options of a calculator
+     *  
+     * @param output stream
+     */
+    void DisplayOptions( std::ostream out ){ out << votca::tools::TXT << _options; }
 protected:
 
     int _nThreads;
@@ -68,6 +89,21 @@ protected:
 
 };
 
+inline void Calculator::LoadDefaults() {
+    // get the path to the shared folders with xml files
+    char *votca_share = getenv("VOTCASHARE");
+    if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");       
+    // load the xml description of the calculator (with defaults and test values)
+    std::string xmlFile = std::string(getenv("VOTCASHARE")) 
+            + std::string("/ctp/xml/") 
+            + Identify() 
+            + std::string(".xml");
+
+    votca::tools::load_property_from_xml(_options, xmlFile);
+    // override test values with the default values
+    _options.ResetFromDefaults();
+}
+
 }}
 
-#endif /* _QMCALCULATOR_H */
+#endif /* VOTCA_CTP_CALCULATOR_H */

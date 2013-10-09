@@ -10,9 +10,11 @@ namespace votca { namespace ctp {
 void JobWriter::Initialize(Property *options) {   
     
     // REGISTER FUNCTIONS
-    _key_funct["xqmultipole:ct"] = &JobWriter::xqmultipole_ct;
-    _key_funct["xqmultipole:chrg"] = &JobWriter::xqmultipole_chrg;
-    _key_funct["xqmultipole:kmc"] = &JobWriter::xqmultipole_kmc;    
+    _key_funct["mps.single"] = &JobWriter::mps_single;
+    _key_funct["mps.ct"] = &JobWriter::mps_ct;
+    _key_funct["mps.chrg"] = &JobWriter::mps_chrg;
+    _key_funct["mps.kmc"] = &JobWriter::mps_kmc;
+    _key_funct["mps.background"] = &JobWriter::mps_background;
     _key_funct["edft"] = &JobWriter::edft;
     _key_funct["idft"] = &JobWriter::idft;
     
@@ -55,11 +57,11 @@ bool JobWriter::EvaluateFrame(Topology *top) {
 }
 
 
-void JobWriter::xqmultipole_chrg(Topology *top) {
+void JobWriter::mps_chrg(Topology *top) {
     
     // SET UP FILE STREAM
     ofstream ofs;
-    string jobFile = "jobs_chrg.xml";    
+    string jobFile = "jobwriter.mps.chrg.xml";
     ofs.open(jobFile.c_str(), ofstream::out);
     if (!ofs.is_open()) throw runtime_error("Bad file handle: " + jobFile);
     
@@ -105,13 +107,13 @@ void JobWriter::xqmultipole_chrg(Topology *top) {
 }
 
     
-void JobWriter::xqmultipole_kmc(Topology *top) {
+void JobWriter::mps_kmc(Topology *top) {
 
-    double cutoff = _options->get("options.jobwriter.cutoff").as<double>();
+    double cutoff = _options->get("options.jobwriter.kmc_cutoff").as<double>();
     
     // SET UP FILE STREAM
     ofstream ofs;
-    string jobFile = "jobs_kmc.xml";    
+    string jobFile = "jobwriter.mps.kmc.xml";    
     ofs.open(jobFile.c_str(), ofstream::out);
     if (!ofs.is_open()) throw runtime_error("Bad file handle: " + jobFile);
     
@@ -175,11 +177,11 @@ void JobWriter::xqmultipole_kmc(Topology *top) {
 }
 
 
-void JobWriter::xqmultipole_ct(Topology *top) {
+void JobWriter::mps_ct(Topology *top) {
 
     // SET UP FILE STREAM
     ofstream ofs;
-    string jobFile = "jobs_ct.xml";    
+    string jobFile = "jobwriter.mps.ct.xml";
     ofs.open(jobFile.c_str(), ofstream::out);
     if (!ofs.is_open()) throw runtime_error("Bad file handle: " + jobFile);
     
@@ -234,6 +236,86 @@ void JobWriter::xqmultipole_ct(Topology *top) {
     // CLOSE STREAM
     ofs << "</jobs>" << endl;    
     ofs.close();
+}
+
+
+void JobWriter::mps_background(Topology *top) {
+    
+    ofstream ofs;
+    string tabFile = "jobwriter.mps.background.tab";
+    ofs.open(tabFile.c_str(), ofstream::out);
+    if (!ofs.is_open()) throw runtime_error("Bad file handle: " + tabFile);
+    
+    ofs << "# ID   TYPE    _n.mps    _e.mps    _h.mps \n";
+    vector< Segment* > ::iterator sit;
+    for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
+        ofs << (format("%1$4d %2$15s %3$-30s %4$-30s %5$-30s\n")
+                % (*sit)->getId() 
+                % (*sit)->getName()
+                % ("MP_FILES/"+(*sit)->getName()+"_n.mps")
+                % ("MP_FILES/"+(*sit)->getName()+"_e.mps")
+                % ("MP_FILES/"+(*sit)->getName()+"_h.mps"));
+    }
+    ofs.close();
+    return;
+}
+
+
+void JobWriter::mps_single(Topology *top) {
+    
+    // SET UP FILE STREAM
+    ofstream ofs;
+    string jobFile = "jobwriter.mps.single.xml";
+    ofs.open(jobFile.c_str(), ofstream::out);
+    if (!ofs.is_open()) throw runtime_error("Bad file handle: " + jobFile);
+    
+    ofs << "<jobs>" << endl;
+    
+    int jobCount = 0;    
+    vector<Segment*>::iterator sit1;
+    
+    // DEFINE PAIR CHARGE STATES
+    vector<string > states;
+    vector<string> ::iterator vit;
+    states.push_back("n");
+    states.push_back("e");
+    states.push_back("h");
+    
+    // CREATE JOBS FOR ALL SEGMENTS AND STATES
+    int single_id = _options->get("options.jobwriter.single_id").as<int>();
+    bool proceed = true;
+    if (single_id < 1 || single_id > top->Segments().size()) {
+        cout << endl 
+             << "... ... ERROR Corrupt value in options.jobwriter.singel_id: "
+             << "No such segment ID = " << single_id << ". Return." 
+             << flush;
+        ofs << "ERROR Corrupt value in options.jobwriter.single_id" << endl;
+        proceed = false;
+    }
+    
+    if (proceed) {
+        Segment *seg1 = top->getSegment(single_id);
+
+        int id1 = seg1->getId();
+        string name1 = seg1->getName();
+
+        for (vit = states.begin(); vit != states.end(); ++vit) {
+            int id = ++jobCount;
+            string s1 = *vit;
+            string tag = (format("%1$d:%3$s:%2$s") % id1 % s1 % name1).str();                
+            string input = (format("%1$d:%2$s:MP_FILES/%2$s_%3$s.mps")
+                % id1 % name1 % s1).str();
+            string stat = "AVAILABLE";
+
+            Job job(id, tag, input, stat);
+            job.ToStream(ofs,"xml");
+        }
+    }
+
+    // CLOSE STREAM
+    ofs << "</jobs>" << endl;    
+    ofs.close();
+    return;
 }
     
     

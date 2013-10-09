@@ -28,12 +28,16 @@ CtpApplication::CtpApplication() {
     ;
 }
 
-
+/**
+ * \brief Adds program options to the executable
+ * 
+ * Every executable requires option file for calculators it is running
+ * It is thus a part of the base CtpApplication class 
+ * 
+ */
 void CtpApplication::Initialize(void) {
 
-    namespace propt = boost::program_options;
-
-    AddProgramOptions() ("options,o", propt::value<string>(),
+     AddProgramOptions() ("options,o", boost::program_options::value<string>(),
         "  calculator options");
 }
 

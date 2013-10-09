@@ -58,6 +58,8 @@ void IDFT::Initialize(votca::tools::Property* options ) {
     _store_overlap = false;
     _store_integrals = false;
     
+    cout << _options;
+    
     ParseOptionsXML( options  );
     
     // register all QM packages (Gaussian, turbomole, etc))

@@ -39,9 +39,11 @@ public:
     bool EvaluateFrame(Topology *top);    
     
     // NEED TO REGISTER ALL WRITE MEMBERS IN ::Initialize
-    void xqmultipole_ct(Topology *top);
-    void xqmultipole_chrg(Topology *top);
-    void xqmultipole_kmc(Topology *top);
+    void mps_ct(Topology *top);
+    void mps_chrg(Topology *top);
+    void mps_kmc(Topology *top);
+    void mps_background(Topology *top);
+    void mps_single(Topology *top);
     
     void edft(Topology *top);
     void idft(Topology *top);

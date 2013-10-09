@@ -187,7 +187,7 @@ bool StateServer::EvaluateFrame(Topology *top) {
 
         else if (*key == "mps") {
 
-                cout << "MPS input, ";
+                cout << "MPS background, ";
 
                 FILE *out_emp;
                 string emp_file = "mps.tab";
