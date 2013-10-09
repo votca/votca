@@ -16,6 +16,7 @@ src/tools/ctp_run
 src/tools/ctp_map
 src/tools/ctp_tools
 src/tools/ctp_evaluate
+src/tools/ctp_dump
 src/dipro/*.mod
 src/dipro/*.x
 

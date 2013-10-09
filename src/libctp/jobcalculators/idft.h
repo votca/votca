@@ -24,13 +24,13 @@
 #ifndef _CALC_INTEGRALS_DFT_H
 #define	_CALC_INTEGRALS_DFT_H
 
+#include <votca/tools/property.h>
+
 #include <votca/ctp/parallelxjobcalc.h>
 #include <votca/ctp/orbitals.h>
-#include <votca/tools/property.h>
+#include <votca/ctp/overlap.h>
+
 #include <boost/numeric/ublas/io.hpp>
-#include <boost/numeric/ublas/banded.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/numeric/ublas/vector_proxy.hpp>
 #include <sys/stat.h>
 #include <boost/filesystem.hpp>
 
@@ -42,7 +42,10 @@ namespace votca { namespace ctp {
 * Ealuates DFT-based electronic coupling elements for all conjugated
 * segments from the neighbor list. Requires molecular orbitals of two monomers
 * and a dimer in GAUSSIAN, NWCHem, or TURBOMOLE format.
-*
+* 
+*  B. Baumeier, J. Kirkpatrick, D. Andrienko, 
+*  Phys. Chem. Chem. Phys., 12, 11103-11113, 2010
+* 
 * Callname: idft
 */
 
@@ -70,8 +73,6 @@ public:
 
 private:
 
-    static const double _conv_Hrt_eV = 27.21138386;
-
     int                 _max_occupied_levels;
     int                 _max_unoccupied_levels;     
     int                 _trim_factor;
@@ -94,31 +95,16 @@ private:
     double              _energy_difference;    
         
     string              _outParent;
-    
-    void SQRTOverlap(ub::symmetric_matrix<double> &S, ub::matrix<double> &Sm2);
-    
+        
     void ParseOptionsXML( tools::Property *opt);    
     
-    bool CalculateIntegralsOptimized(   Orbitals* _orbitalsA, 
-                               Orbitals* _orbitalsB, 
-                               Orbitals* _orbitalsAB, 
-                               ub::matrix<double>* _JAB, 
-                               QMThread *opThread );  
-
-    bool CalculateIntegrals(   Orbitals* _orbitalsA, 
-                               Orbitals* _orbitalsB, 
-                               Orbitals* _orbitalsAB, 
-                               ub::matrix<double>* _JAB, 
-                               QMThread *opThread);
     
-    double getCouplingElement( int levelA, int levelB,  
-                               Orbitals* _orbitalsA,  
-                               Orbitals* _orbitalsB, 
-                               ub::matrix<double>* _JAB );
-    
-    /* Given two monomer orbitals (A and B) constructs a guess for dimer
-     *  orbitals: | A 0 | and energies: [EA, EB]
-     *            | 0 B |
+    /** 
+     * \brief Guess for a dimer based on monomer orbitals
+     * 
+     * Given two monomer orbitals (A and B) constructs a guess for dimer
+     * orbitals: | A 0 | and energies: [EA, EB]
+     *           | 0 B |
      */
     void PrepareGuess(         Orbitals* _orbitalsA, 
                                Orbitals* _orbitalsB, 
