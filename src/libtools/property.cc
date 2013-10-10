@@ -107,34 +107,6 @@ std::list<Property *> Property::Select(const string &filter)
     return selection;
 }
 
-void copy_node(string prefix_from, string prefix_to, Property &p_from, Property &p_to) {
-    
-    list<Property>::iterator iter;
-    
-    for(iter = p_to.begin(); iter!=p_to.end(); ++iter) {
-           copy_node(prefix_from, prefix_to, p_from, *iter);
-           string full_name =  prefix_from + "." + (*iter).path() + "." + (*iter).name();
-           if (p_from.exists( full_name ) ) (*iter).value() = p_from.get(full_name).value();
-    }
-
-}
-
-void Property::CopyValues(string prefix, Property &p) {
-    copy_node(prefix, "", p, *this);
-}
-
-void reset_property( Property &p ) {
-    //cout << " BEFORE " << p.name() << " " << p.value() << " " << p.getAttribute<string>("default") << endl;
-    if ( p.hasAttribute("default") ) {
-        p.value() = p.getAttribute<string>("default");
-    }
-    //cout << " AFTER " << p.name() << " " << p.value() << " " << p.getAttribute<string>("default") << endl;
-    for(list<Property>::iterator iter = p.begin(); iter!=p.end(); ++iter) reset_property( (*iter) );    
-}
-
-void Property::ResetFromDefaults() {
-    reset_property( *this );
-}
 
 void PrintNodeTXT(std::ostream &out, Property &p, const int start_level, int level, string prefix, string offset)
 {

@@ -128,7 +128,6 @@ public:
      * e.g. cg.inverse.value
      */
     string path() { return _path; }
-
     /**
      * \brief return value as type
      *
@@ -137,16 +136,14 @@ public:
      */
     template<typename T>
     T as() const;
-
     /**
      * \brief does the property has childs?
      * \return true or false
      */
     bool HasChilds() { return !_map.empty(); }
-
-    /// iterator to iterate over properties
-    typedef list<Property>::iterator iterator;
     
+    /// iterator to iterate over properties
+    typedef list<Property>::iterator iterator;  
     /// \brief iterator to first child property
     iterator begin() { return _properties.begin(); }
     /// \brief end iterator for child properties
@@ -156,7 +153,6 @@ public:
 
     // throw error and comment (with filename+code line)
     void throwRuntimeError(string message);
-
     /**
      * \brief return attribute as type
      *
@@ -165,8 +161,7 @@ public:
      */
     template<typename T>
     T getAttribute(const string &attribute);
-
-        /**
+    /**
      * \brief return attribute as type
      *
      * returns an attribute after type conversion, e.g.
@@ -174,13 +169,11 @@ public:
      */
     template<typename T>
     T getAttribute( std::map<string,string>::iterator it);
-    
     /**
      * \brief set an attribute
      */
     template<typename T>
     void setAttribute(const string &attribute, const T &value);
-
     /**
      * \brief return true if a node has attributes
      */
@@ -193,33 +186,19 @@ public:
      * \brief returns and iterator to an attribute
      */    
     std::map<string,string>::iterator findAttribute(const string &attribute){ return _attributes.find(attribute); }
-
     /**
      * \brief returns and iterator to an attribute
      */    
-    std::map<string,string>::iterator lastAttribute(){ return _attributes.end(); }
-    
+    std::map<string,string>::iterator lastAttribute(){ return _attributes.end(); }   
     /**
      * \brief stores output format
      */    
     static int GetFormat(){return _format;}; 
-
     /**
      * \brief stores output level
      */    
     static int GetOutputLevel(){return _output_level;}; 
-
-    /**
-     * \brief copies values of a property
-     * @param prefix starting path (name0.name1.name2 ...) 
-     */
-     void CopyValues(string prefix, Property &p);
      
-    /**
-     * \brief resets the content using default attributes
-     */
-     void ResetFromDefaults();
-    
 private:        
     map<string,Property*> _map;
     map<string,string> _attributes;
@@ -231,15 +210,7 @@ private:
 
     static const int _format; 
     static const int _output_level;    
-   
-    struct PropertyStackEntry_t {
-        Property *prop;
-        string comment;
-    };
-/*
-stack<Property *> -> stack< Propertz_stack_entry_t>
-*/
-    
+
 };
   
 
@@ -373,14 +344,17 @@ inline void throwRuntimeError(string message) {
 class PropertyFormat {
     
 public:
-    explicit PropertyFormat(formats fmt) : _fmt(fmt){}    
+    explicit PropertyFormat(formats fmt, int level = 0 ) : _fmt(fmt){}    
     friend std::ostream& operator << (std::ostream& os, const PropertyFormat& pf)
     {
         os.iword(Property::GetFormat()) = pf._fmt;
-        return os;
+        os.iword(Property::GetOutputLevel()) = pf._level;
+       return os;
     }
 private:
-    int _fmt;     
+    int _fmt; 
+    int _level;
+    int _indent;
 };
 
 extern PropertyFormat XML;
