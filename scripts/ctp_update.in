@@ -50,13 +50,13 @@ OPTIONS = progargs.parse_args()
 # SQLITE3 EXECUTION
 # =============================================================================
 
-conn = sqlite3.connect(ARGS.sqlfile)
+conn = sqlite3.connect(OPTIONS.sqlfile)
 port = conn.cursor()
 
 try:
 	port.execute('ALTER TABLE pairs ADD COLUMN type INT;')
 except:
-	print "'pair' table already updated."
+	print "'pair' table already up-to-date"
 	
 try:
 	port.execute('''CREATE TABLE superExchange 
@@ -65,7 +65,7 @@ try:
             top        INT NOT NULL,
             type      TEXT NOT NULL)''')
 except:
-	print "'superExchange' table already updated."
+	print "'superExchange' table already up-to-date"
 
 conn.commit()
 conn.close()
