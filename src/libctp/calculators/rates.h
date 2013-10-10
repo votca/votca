@@ -70,8 +70,8 @@ private:
 
 void Rates::Initialize(Property *options) {
 
-    // _options already has default values, update them with the supplied options
-    _options.CopyValues("", *options );
+    // update options with the VOTCASHARE defaults   
+    UpdateWithDefaults( options );
     std::string key = "options." + Identify();
 
     /* ---- OPTIONS.XML Structure -----
@@ -90,16 +90,16 @@ void Rates::Initialize(Property *options) {
      */
 
     // Control parameters
-    double T = _options.get(key+".temperature").as<double> ();
+    double T = options->get(key+".temperature").as<double> ();
     _kT = 8.6173324e-5 * T;
 
-    vec F = _options.get(key+".field").as<vec>();
+    vec F = options->get(key+".field").as<vec>();
     _F = F;
 
 
     // Method
     if (options->exists(key+".method")) {
-        _rateType = _options.get(key+".method").as<string> ();
+        _rateType = options->get(key+".method").as<string> ();
     }
     else {
         cout << endl 

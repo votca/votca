@@ -316,6 +316,8 @@ bool PDB2Map::Evaluate() {
     outfile.close();
     
     cout << _log;
+    
+    return true;
 }
 
 

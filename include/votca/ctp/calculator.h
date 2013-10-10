@@ -80,28 +80,66 @@ public:
      *  
      * @param output stream
      */
-    void DisplayOptions( std::ostream out ){ out << votca::tools::TXT << _options; }
+    void DisplayOptions( std::ostream &out );
+    /**
+     * \brief Updates options with default options stored in VOTCASHARE
+     *  
+     * If a value is not given or tag is not present and at the same time
+     * a default value exists in the corresponding XML file in VOTCASHARE
+     * a tag is created and/or a default value is assigned to it
+     */    
+    void UpdateWithDefaults( votca::tools::Property *options );
+    
 protected:
 
     int _nThreads;
     bool _maverick;
-    votca::tools::Property _options;
+    
+    void AddDefaults( votca::tools::Property &p, votca::tools::Property &defaults );
 
 };
 
 inline void Calculator::LoadDefaults() {
-    // get the path to the shared folders with xml files
+}
+
+inline void Calculator::UpdateWithDefaults( votca::tools::Property *options ) {
+    
+    // copy options from the object supplied by the Application
+    std::string id = Identify();
+    votca::tools::Property _options = options->get( "options." + id );
+    
+    // add default values if specified in VOTCASHARE
     char *votca_share = getenv("VOTCASHARE");
     if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");       
     // load the xml description of the calculator (with defaults and test values)
     std::string xmlFile = std::string(getenv("VOTCASHARE")) 
-            + std::string("/ctp/xml/") 
-            + Identify() 
-            + std::string(".xml");
+            + std::string("/ctp/xml/") + id + std::string(".xml");
+    
+    votca::tools::Property defaults, _defaults;
+    votca::tools::load_property_from_xml(_defaults, xmlFile);
+    defaults = _defaults.get( "options." + id );
+      
+    // if a value not given or a tag not present, provide default values
+    AddDefaults( _options, defaults );   
+   
+    std::cout << "COMBINED \n" << _options;
+}
 
-    votca::tools::load_property_from_xml(_options, xmlFile);
-    // override test values with the default values
-    _options.ResetFromDefaults();
+
+inline void Calculator::AddDefaults( votca::tools::Property &p, votca::tools::Property &defaults ) {
+     
+    for(std::list<votca::tools::Property>::iterator iter = defaults.begin(); iter!=defaults.end(); ++iter) {
+        std::string name =  (*iter).path() + "." + (*iter).name();
+
+        if  ( (*iter).hasAttribute("default") ) {
+            if ( p.exists( name ) ) {
+                if ( p.value() == "" ) p.value() = (*iter).value();
+            } else {
+                p.add((*iter).name(), (*iter).value());
+            }
+        }
+        AddDefaults( p, (*iter) );
+    }    
 }
 
 }}

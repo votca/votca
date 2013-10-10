@@ -72,8 +72,8 @@ void EInternal::Initialize(Property *options) {
 
 void EInternal::ParseEnergiesXML(Property *opt) {
 
-  // _options already has default values, update them with the supplied options
-    _options.CopyValues("", *opt );
+    // update options with the VOTCASHARE defaults   
+    UpdateWithDefaults( opt );
     string key = "options." + Identify();
 
     string energiesXML = opt->get(key+".energiesXML").as<string> ();

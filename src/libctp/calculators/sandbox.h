@@ -42,6 +42,9 @@ public:
 
 void Sandbox::Initialize(Property *options) {
 
+    // update options with the VOTCASHARE defaults   
+    UpdateWithDefaults( options );
+
     _nThreads = 1;
 
     cout << endl << "... ... Initialize with " << _nThreads << " threads ";    

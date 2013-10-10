@@ -98,7 +98,7 @@ public:
     vec             getFieldP() { return vec(FPx,FPy,FPz); } // Only IOP
     vec             getFieldU() { return vec(FUx,FUy,FUz); } // Only IOP
     
-    double          setQ00(double q, int s) { Q00 = q; _Qs[s+1][0] = q; }
+    void            setQ00(double q, int s) { Q00 = q; _Qs[s+1][0] = q; }
     double         &getQ00() { return Q00; }
     void            Charge(int state);
     void            ChargeDelta(int state1, int state2);
@@ -124,7 +124,9 @@ public:
     void            WriteXyzLine(FILE *, vec &, string);
     void            WritePdbLine(FILE *out, const string &tag = "");
 
-    vector<APolarSite*> CreateFrom_MPS(string filename, int state) { ; }
+    vector<APolarSite*> CreateFrom_MPS(string filename, int state) { 
+        vector<APolarSite*> a; return a; 
+    }
 
 
 

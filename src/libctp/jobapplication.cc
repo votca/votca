@@ -130,7 +130,7 @@ void JobApplication::BeginEvaluate(int nThreads = 1,
         cout << "... " << (*it)->Identify() << " ";
         (*it)->setnThreads(nThreads);
         (*it)->setProgObserver(obs);
-        (*it)->Initialize(&_options);        
+        (*it)->Initialize(&_options);  
         cout << endl;
     }
 }
@@ -144,6 +144,7 @@ bool JobApplication::EvaluateFrame() {
         if (_import) (*it)->ReadJobFile(&_top);
         cout << endl;
     }
+    return true;
 }
 
 void JobApplication::EndEvaluate() {

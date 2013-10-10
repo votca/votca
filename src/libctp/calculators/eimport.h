@@ -28,14 +28,14 @@ private:
 
 void EImport::Initialize(Property *opt) {
 
-   // _options already has default values, update them with the supplied options
-    _options.CopyValues("", *opt );
+    // update options with the VOTCASHARE defaults   
+    UpdateWithDefaults( opt );
     string key = "options." + Identify();
 
-    _energiesFile = _options.get(key + ".energies").as< string >();    
+    _energiesFile = opt->get(key + ".energies").as< string >();    
 
-    if (_options.exists(key+".reset")) {
-        int reset = _options.get(key+".reset").as<int>();
+    if (opt->exists(key+".reset")) {
+        int reset = opt->get(key+".reset").as<int>();
         _reset = (reset == 1) ? true : false;
         if (_reset) {
             cout << endl

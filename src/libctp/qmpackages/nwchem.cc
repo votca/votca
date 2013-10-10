@@ -261,11 +261,10 @@ bool NWChem::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gues
     
     }   
 
-
-   
-    
     _com_file << endl;
     _com_file.close();
+    
+    return true;
     
 }
 

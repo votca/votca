@@ -45,7 +45,7 @@ namespace votca { namespace ctp {
 // +++++++++++++++++++++++++++++ //
 
 void IDFT::Initialize(votca::tools::Property* options ) {
-    
+
     _energy_difference = 0.0;
     
     _do_input = false;
@@ -58,8 +58,8 @@ void IDFT::Initialize(votca::tools::Property* options ) {
     _store_overlap = false;
     _store_integrals = false;
     
-    cout << _options;
-    
+    // update options with the VOTCASHARE defaults   
+    UpdateWithDefaults( options );
     ParseOptionsXML( options  );
     
     // register all QM packages (Gaussian, turbomole, etc))
