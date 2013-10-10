@@ -29,6 +29,9 @@ except KeyError:
 	print "(You need to source the VOTCARC located in '/your/votca/path/bin/')"
 	sys.exit(1)
 
+# =============================================================================
+# PROGRAM OPTIONS
+# =============================================================================
 
 class CtpHelpFormatter(argparse.HelpFormatter):
 	def _format_usage(self, usage, action, group, prefix):
@@ -61,14 +64,6 @@ progargs.add_argument('-x', '--xml',
     default= '{share}/ctp/xml/testsuite.xml'.format(share=VOTCASHARE),
     help='Test-suite file (def="$VOTCASHARE/ctp/xml/testsuite.xml")')
 # Directories: test, source, reference, targets
-progargs.add_argument('-d', '--directory',
-    dest='testdirectory',
-    action='store',
-    required=False,
-    type=str,
-    metavar='',
-    default='suite',
-    help='Test run directory (def="suite")')
 progargs.add_argument('-s', '--source',
 	dest='sourcedirectory',
 	action='store',
@@ -77,6 +72,14 @@ progargs.add_argument('-s', '--source',
 	metavar='',
 	default='source',
 	help='Test source input directory (def="source")')
+progargs.add_argument('-td', '--testdirectory',
+    dest='testdirectory',
+    action='store',
+    required=False,
+    type=str,
+    metavar='',
+    default='suite',
+    help='Test run directory (def="suite")')
 progargs.add_argument('-t', '--target',
 	dest='target_dir',
 	action='store',
@@ -99,6 +102,12 @@ progargs.add_argument('-g', '--generate',
 	const=True,
 	default=False,
 	help='Generate reference from targets (def=False)')
+progargs.add_argument('-cmp', '--compareonly',
+	dest='compareonly',
+	action='store_const',
+	const=True,
+	default=False,
+	help='Only compare existing targets to reference (def=False)')
 # Verbose, show output, clean-up
 progargs.add_argument('-v', '--verbose',
 	dest='verbose',
@@ -131,8 +140,17 @@ USER			 = getpass.getuser()
 HOST			 = socket.gethostname()
 BASEDIR			 = os.getcwd()
 
-
+# =============================================================================
 # CONVENIENCE FUNCTIONS & CLASSES
+# =============================================================================
+
+def okquit(what=''):
+	if what != '': print what
+	sys.exit(0)
+def xxquit(what=''):
+	if what != '':
+		cprint.Error("ERROR: {what}".format(what=what))
+	sys.exit(1)
 def sysexe(cmd, silent=False, devfile='/dev/null'):
 	if VERBOSE: print "{0}@{1}$ {2}".format(USER, HOST, cmd)
 	if silent: cmd += ' >> {0} 2>> {0}'.format(devfile)
@@ -142,38 +160,38 @@ def sysexe(cmd, silent=False, devfile='/dev/null'):
 
 def nnprint(msg):
 	print "{0:100s} {1}".format(msg, cprint.NN)
-
 def okprint(msg):
 	print "{0:100s} {1}".format(msg[0:97], cprint.OK)
-
 def xxprint(msg):
 	print "{0:100s} {1}".format(msg, cprint.XX)
 
 def isfloat(item):
 	try: float(item); return True
 	except: return False
-
 def xmlsplit(string, regex='<|>|/| '):
 	return re.split(regex, string)
 
 class CPrint(object):
 	def __init__(self):
 		self.HEADER = '\033[95m'
-		self.OKBLUE = '\033[94m'
-		self.LBLUE = '\033[1;33m'
-		self.OKGREEN = '\033[92m'
+		self.OKBLUE = '\033[34m'
+		self.LBLUE = '\033[1;34m'
+		self.YELLOW = '\033[1;33m'
+		self.GREEN = '\033[92m'
 		self.WARNING = '\033[93m'
-		self.ERROR = '\033[91m'
+		self.ERROR = '\033[95m'
+		self.MAGENTA = '\033[95m'
+		self.RED = '\033[91m'
 		self.ENDC = '\033[0;1m'
-		self.OK = self.OKGREEN + 'OK' + self.ENDC
-		self.XX = self.ERROR + 'XX' + self.ENDC
+		self.OK = self.GREEN + 'OK' + self.ENDC
+		self.XX = self.RED + 'XX' + self.ENDC
 		self.NN = self.WARNING + ':/' + self.ENDC
 	def Head(self, msg):
-		print self.LBLUE+msg+self.ENDC
+		print self.YELLOW+msg+self.ENDC
 	def Error(self, msg):
 		print self.ERROR+msg+self.ENDC
 	def Green(self, msg):
-		return self.OKGREEN+msg+self.ENDC
+		return self.GREEN+msg+self.ENDC
 	def Red(self, msg):
 		return self.ERROR+msg+self.ENDC
 	def Headerlike(self, msg):
@@ -183,16 +201,17 @@ def TestDependency_t1_smaller_t2(t1, t2):
 	print "Compare", t1.name, t2.name
 	if t1.name in t2.requires:
 		if t2.name in t1.requires:
-			print "Circular dependencies:", t1.name, "<>", t2.name, " => Abort."
-			sys.exit(1)
+			xxquit("Circular dependencies: "+ t1.name+ " <> "+ t2.name+ " => Abort.")
 		return -1
 	if t2.name in t1.requires:
 		return +1
 	else:
 		return 0
 
-	
-# TEST-SUITE OBJECTS: Suite & Test
+# =============================================================================
+# TEST-SUITE OBJECTS: Suite & Test & Comparator
+# =============================================================================
+
 class Suite(object):
 	def __init__(self, xmlfile, options):
 		self.options = options
@@ -221,8 +240,7 @@ class Suite(object):
 			assert key not in self.placeholders.keys()
 			self.placeholders[key] = value
 		if 'name' in self.placeholders.keys():
-			print "'name' is not accepted as a placeholder for a file or an executable. Abort."
-			sys.exit(1)		
+			xxquit("'name' is not accepted as a placeholder for a file or an executable. Abort.")
 		# ASSEMBLE EXECUTION COMMANDS FOR INDIVIDUAL TESTS
 		for test in self.tests:
 			test.AssembleCommands(self.placeholders)	
@@ -230,8 +248,7 @@ class Suite(object):
 		self.testdict = {}
 		for test in self.tests:
 			if test.name in self.testdict.keys():
-				print "Test of name '{name}' already exists. Abort.".format(name=test.name)
-				sys.exit(1)
+				xxquit("Test of name '{name}' already exists. Abort.".format(name=test.name))
 			self.testdict[test.name] = test
 		return
 	def ListTests(self):
@@ -270,8 +287,7 @@ class Suite(object):
 			try:
 				requ_this = self.GetDependencies(self.testdict[testkey])
 			except KeyError:
-				xxprint("No such test: '{0}'. Abort.".format(testkey))
-				sys.exit(1)
+				xxquit("No such test: '{0}'. Abort.".format(testkey))
 			for req in requ_this:
 				if not req in required: required.append(req)
 		rm_tests = []
@@ -329,16 +345,13 @@ class Suite(object):
 			if os.path.exists(reference_folder):
 				raw = raw_input("Overwrite reference folder (yes/no)? ")
 				if raw != "yes":
-					print "Reference folder remains as it is. Stop here."
-					sys.exit(1)
+					okquit("Reference folder remains as it is. Stop here.")
 				else:
 					sysexe('rm -r {ref}'.format(ref=reference_folder))
 			cdx = sysexe('mv {target} {ref}'.format(target=target_folder, ref=reference_folder))
 			if not cdx:
-				cprint.Head("Successfully generated reference data, now quit.")
-				sys.exit(0)
-			cprint.Head("Failed generating reference data, abort.")
-			sys.exit(1)
+				okquit("Successfully generated reference data, now quit.")
+			xxquit("Failed generating reference data, abort.")
 		# Ascertain that all expected targets are present, then carry out comparison
 		cprint.Head("Verify that all targets are WHERE we expect them to be")
 		none_missing = True
@@ -369,11 +382,9 @@ class Comparator(object):
 		# Completeness of target_dir already verified
 		cprint.Head("Verify that all targets are WHAT we expect them to be:")
 		if not os.path.exists(target_dir):
-			xxprint("No such target directory: '{0}'".format(target_dir))
-			sys.exit(1)
+			xxquit("No such target directory: '{0}'".format(target_dir))
 		if not os.path.exists(reference_dir):
-			xxprint("No such reference directory: '{0}'".format(reference_dir))
-			sys.exit(1)		
+			xxquit("No such reference directory: '{0}'".format(reference_dir))
 		target_items = os.listdir(target_dir)
 		reference_items = os.listdir(reference_dir)
 		none_different = True
@@ -509,8 +520,10 @@ class Test(object):
 	def IdentifyCmd(self):
 		return "{cmd}".format(name=self.name, cmd=self.execute_cmd)
 		
-		
-# XML.DOM.MINIDOM WRAPPERS		
+# =============================================================================
+# XML.DOM.MINIDOM WRAPPERS
+# =============================================================================
+
 class XmlNodeValue(object):
 	def __init__(self, path, value, attributes):
 		self.path = path
@@ -558,17 +571,28 @@ def GenerateNodeDict(node, path='', abbreviate=False):
 			path_value[key] = add_dict[key]	
 	return path_value
 
+# =============================================================================
+# TESTSUITE EXECUTION
+# =============================================================================
 
-# START-UP SUITE & PRINTER
+# Start-up suite & printer
 cprint = CPrint()
 suite = Suite(TESTSUITEXML, OPTIONS)
 if OPTIONS.listonly:
 	print '{0}{1}\n'.format(VOTCAHEADER, PROGTITLE)
 	suite.ListTests()
-	sys.exit(0)
+	okquit()
+if OPTIONS.compareonly:
+	cprint.Head('{0}: Compare only, then quit.'.format(PROGTITLE))
+	abs_tar_folder = '{0}/{1}'.format(BASEDIR, OPTIONS.target_dir)
+	abs_ref_folder = '{0}/{1}'.format(BASEDIR, OPTIONS.reference_dir)
+	print "  o Target directory    =", abs_tar_folder
+	print "  o Reference directory =", abs_ref_folder
+	Comparator(abs_tar_folder, abs_ref_folder)
+	okquit()
 suite.SelectTests(OPTIONS.execute)
 
-# ENVIRONMENT TESTS
+# Environment tests
 cprint.Head("{0}@{1}: Testing your VOTCA environment".format(USER, HOST))
 try:
 	share = os.environ['VOTCASHARE']
@@ -580,9 +604,7 @@ try:
 		xxprint("  o $VOTCASHARE/ctp/xml is empty. Abort.")
 	okprint("  o Loading XML options files from $VOTCASHARE/ctp/xml")
 except KeyError:
-	cprint.Head("  o VOTCASHARE not set: You need to source the VOTCARC located in /your/votca/path/bin/")
-	print "Abort"
-	sys.exit(1)
+	xxquit("VOTCASHARE not set: You need to source the VOTCARC located in /your/votca/path/bin/")
 cprint.Head("{0}@{1}: Testing your VOTCA executables".format(USER, HOST))
 ctp_exe = [ exe['value'].As(str) for exe in suite.exes ]
 for exe in ctp_exe:
@@ -597,13 +619,13 @@ for exe in ctp_exe:
 	out = cmds.getoutput('%s --help | grep %s' % (exe,exe))
 	if out != '': okprint('  o '+out)
 
-# SET-UP TEST DIRECTORY
+# Set-up test directory
 if TESTDIR in os.listdir('./'):
 	sysexe('rm -r {testdir}'.format(testdir=TESTDIR))
 os.mkdir(TESTDIR)
 os.chdir(TESTDIR)
 
-# Copy resource files
+# Copy test source (input) files
 sysexe('cp -r {base}/{source}/* .'.format(base=BASEDIR, source=TESTSOURCE))
 sysexe('cp {xmlshare}/*.xml .'.format(xmlshare=xmlshare_ctp))
 sysexe('cp {xmlshare}/*.xml .'.format(xmlshare=xmlshare_kmc))
@@ -615,13 +637,13 @@ for test in suite.tests:
 	if rel_input_folder in os.listdir('./'):
 		suite.RegisterTestInputFolder(test.name, abs_input_folder)
 
-# RUN TESTS
+# Run tests
 suite.Run()
 
 os.chdir('../')
 if TESTDIR in os.listdir('./') and CLEANTESTFOLDER:
 	sysexe('rm -r {testdir}'.format(testdir=TESTDIR))
-sys.exit(0)
+okquit()
 
 
 
