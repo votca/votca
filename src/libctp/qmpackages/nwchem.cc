@@ -280,6 +280,8 @@ bool NWChem::WriteShellScript() {
     _shell_file << "setenv GAUSS_SCRDIR " << _scratch_dir << endl;
     _shell_file << _executable << " " << _input_file_name << endl;    
     _shell_file.close();
+    
+    return true;   
 }
 
 /**
@@ -324,9 +326,7 @@ bool NWChem::Run()
         return false;
     }
     
-
-
-
+    return true;
 }
 
 /**
@@ -596,7 +596,7 @@ bool NWChem::CheckLogFile() {
     
     
     _input_file.close();
-    
+    return true;    
 }
 
 /**
