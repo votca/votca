@@ -70,7 +70,7 @@ progargs.add_argument('-s', '--source',
 	required=False,
 	type=str,
 	metavar='',
-	default='source',
+	default='',
 	help='Test source input directory (def="source")')
 progargs.add_argument('-td', '--testdirectory',
     dest='testdirectory',
@@ -139,6 +139,11 @@ CLEANTESTFOLDER	 = OPTIONS.clean
 USER			 = getpass.getuser()
 HOST			 = socket.gethostname()
 BASEDIR			 = os.getcwd()
+
+if OPTIONS.sourcedirectory == '':
+	progargs.print_help()
+	sys.exit(0)
+
 
 # =============================================================================
 # CONVENIENCE FUNCTIONS & CLASSES

@@ -35,8 +35,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/715944016/Md2QmEngine.o \
-	${OBJECTDIR}/_ext/715944016/ctp_map.o
+	${OBJECTDIR}/_ext/715944016/ctp_parallel.o
 
 
 # C Compiler Flags
@@ -53,33 +52,28 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=../libctp/dist/Debug/GNU-Linux-x86/liblibctp.a ../../../csg/netbeans/libcsg/../../src/libcsg/libcsg.a ../../../moo/netbeans/libmoo/../../src/libmoo/libmoo.a ../../../tools/netbeans/libtools/../../src/libtools/libtools.a -lgmx -lexpat -lxml2 -lboost_program_options -lsqlite3 -lpthread -lm
+LDLIBSOPTIONS=../libctp/dist/Debug/GNU-Linux-x86/liblibctp.a ../../../csg/netbeans/libcsg/../../src/libcsg/libcsg.a ../../../moo/netbeans/libmoo/../../src/libmoo/libmoo.a ../../../tools/netbeans/libtools/../../src/libtools/libtools.a -lgmx -lexpat -lsqlite3 -lboost_program_options -lpthread -lm
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ../../src/tools/ctp_map
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ../../src/tools/ctp_parallel
 
-../../src/tools/ctp_map: ../libctp/dist/Debug/GNU-Linux-x86/liblibctp.a
+../../src/tools/ctp_parallel: ../libctp/dist/Debug/GNU-Linux-x86/liblibctp.a
 
-../../src/tools/ctp_map: ../../../csg/netbeans/libcsg/../../src/libcsg/libcsg.a
+../../src/tools/ctp_parallel: ../../../csg/netbeans/libcsg/../../src/libcsg/libcsg.a
 
-../../src/tools/ctp_map: ../../../moo/netbeans/libmoo/../../src/libmoo/libmoo.a
+../../src/tools/ctp_parallel: ../../../moo/netbeans/libmoo/../../src/libmoo/libmoo.a
 
-../../src/tools/ctp_map: ../../../tools/netbeans/libtools/../../src/libtools/libtools.a
+../../src/tools/ctp_parallel: ../../../tools/netbeans/libtools/../../src/libtools/libtools.a
 
-../../src/tools/ctp_map: ${OBJECTFILES}
+../../src/tools/ctp_parallel: ${OBJECTFILES}
 	${MKDIR} -p ../../src/tools
-	${LINK.cc} -o ../../src/tools/ctp_map ${OBJECTFILES} ${LDLIBSOPTIONS}
+	${LINK.cc} -o ../../src/tools/ctp_parallel ${OBJECTFILES} ${LDLIBSOPTIONS}
 
-${OBJECTDIR}/_ext/715944016/Md2QmEngine.o: nbproject/Makefile-${CND_CONF}.mk ../../src/tools/Md2QmEngine.cc 
+${OBJECTDIR}/_ext/715944016/ctp_parallel.o: ../../src/tools/ctp_parallel.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../../csg/include -I../../include -I../../../tools/include -I../../../moo/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/Md2QmEngine.o ../../src/tools/Md2QmEngine.cc
-
-${OBJECTDIR}/_ext/715944016/ctp_map.o: nbproject/Makefile-${CND_CONF}.mk ../../src/tools/ctp_map.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
-	${RM} $@.d
-	$(COMPILE.cc) -g -I../../../csg/include -I../../include -I../../../tools/include -I../../../moo/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/ctp_map.o ../../src/tools/ctp_map.cc
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../moo/include -I../../../csg/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/ctp_parallel.o ../../src/tools/ctp_parallel.cc
 
 # Subprojects
 .build-subprojects:
@@ -91,7 +85,7 @@ ${OBJECTDIR}/_ext/715944016/ctp_map.o: nbproject/Makefile-${CND_CONF}.mk ../../s
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
-	${RM} ../../src/tools/ctp_map
+	${RM} ../../src/tools/ctp_parallel
 
 # Subprojects
 .clean-subprojects:

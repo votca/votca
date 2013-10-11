@@ -47,6 +47,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/700762242/idft.o \
 	${OBJECTDIR}/_ext/484457893/molecule.o \
 	${OBJECTDIR}/_ext/484457893/orbitals.o \
+	${OBJECTDIR}/_ext/484457893/overlap.o \
 	${OBJECTDIR}/_ext/484457893/parallelpaircalc.o \
 	${OBJECTDIR}/_ext/484457893/parallelxjobcalc.o \
 	${OBJECTDIR}/_ext/484457893/polarseg.o \
@@ -59,6 +60,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484457893/qmnblist.o \
 	${OBJECTDIR}/_ext/484457893/qmpackagefactory.o \
 	${OBJECTDIR}/_ext/648834637/gaussian.o \
+	${OBJECTDIR}/_ext/648834637/gw.o \
 	${OBJECTDIR}/_ext/648834637/nwchem.o \
 	${OBJECTDIR}/_ext/648834637/turbomole.o \
 	${OBJECTDIR}/_ext/484457893/qmpair.o \
@@ -164,6 +166,11 @@ ${OBJECTDIR}/_ext/484457893/orbitals.o: ../../src/libctp/orbitals.cc
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/orbitals.o ../../src/libctp/orbitals.cc
 
+${OBJECTDIR}/_ext/484457893/overlap.o: ../../src/libctp/overlap.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
+	${RM} $@.d
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/overlap.o ../../src/libctp/overlap.cc
+
 ${OBJECTDIR}/_ext/484457893/parallelpaircalc.o: ../../src/libctp/parallelpaircalc.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
 	${RM} $@.d
@@ -223,6 +230,11 @@ ${OBJECTDIR}/_ext/648834637/gaussian.o: ../../src/libctp/qmpackages/gaussian.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/648834637
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/648834637/gaussian.o ../../src/libctp/qmpackages/gaussian.cc
+
+${OBJECTDIR}/_ext/648834637/gw.o: ../../src/libctp/qmpackages/gw.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/648834637
+	${RM} $@.d
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/648834637/gw.o ../../src/libctp/qmpackages/gw.cc
 
 ${OBJECTDIR}/_ext/648834637/nwchem.o: ../../src/libctp/qmpackages/nwchem.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/648834637
