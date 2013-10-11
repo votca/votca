@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef VOTCA_CTP_JOBWRITER_H
-#define VOTCA_CTP_JOBWRITER_H
+#ifndef _VOTCA_CTP_JOBWRITER_H
+#define _VOTCA_CTP_JOBWRITER_H
 
 #include<votca/ctp/topology.h>
 #include<votca/ctp/qmcalculator.h>

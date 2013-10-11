@@ -46,13 +46,13 @@ private:
 
 void EAnalyze::Initialize( Property *opt ) {
 
-    // _options already has default values, update them with the supplied options
-    _options.CopyValues("", *opt );
+    // update options with the VOTCASHARE defaults   
+    UpdateWithDefaults( opt );
     string key = "options." + Identify();
 
-    _resolution_pairs = _options.get(key+".resolution_pairs").as< double >();
-    _resolution_sites = _options.get(key+".resolution_sites").as< double >();
-    _resolution_space = _options.get(key+".resolution_space").as< double >();
+    _resolution_pairs = opt->get(key+".resolution_pairs").as< double >();
+    _resolution_sites = opt->get(key+".resolution_sites").as< double >();
+    _resolution_space = opt->get(key+".resolution_space").as< double >();
 
     if (opt->exists(key+".states")) {
         _states = opt->get(key+".states").as< vector<int> >();

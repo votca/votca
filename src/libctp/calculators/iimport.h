@@ -57,13 +57,13 @@ void IImport::Initialize(Property *options) {
     _importFromList = false;
     _importFromIDFT = false;
 
-    // _options already has default values, update them with the supplied options
-    _options.CopyValues("", *options );
+     // update options with the VOTCASHARE defaults   
+    UpdateWithDefaults( options );
     
     string key = "options." + Identify();
 
     //if (options->exists(key+".TI_tag")) {
-    _TI_tag = _options.get(key+".TI_tag").as< string >();
+    _TI_tag = options->get(key+".TI_tag").as< string >();
     if (_TI_tag != "") {
         _importFromDirs = true;
         cout << endl << "... ... Using TI XML tag '" << _TI_tag << "'" << flush;
@@ -71,13 +71,13 @@ void IImport::Initialize(Property *options) {
 
     //else if (options->exists(key+".TI_file")) {
     
-    _TI_file = _options.get(key+".TI_file").as< string >();
+    _TI_file = options->get(key+".TI_file").as< string >();
     if (_TI_file != "") {
         _importFromList = true;
         cout << endl << "... ... Using TI table '" << _TI_file << "'" << flush;
     }
     
-    _idft_jobs_file = _options.get(key+".idft_jobs_file").as< string >();
+    _idft_jobs_file = options->get(key+".idft_jobs_file").as< string >();
     if ( _idft_jobs_file != "" ) {
         _importFromIDFT = true;
         cout << endl << "... ... Using IDFT jobs file '" << _TI_file << "'" << flush;

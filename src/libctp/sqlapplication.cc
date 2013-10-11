@@ -111,7 +111,7 @@ void SqlApplication::BeginEvaluate(int nThreads = 1) {
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
         cout << "... " << (*it)->Identify() << " ";
         (*it)->setnThreads(nThreads);
-        (*it)->Initialize(&_options);        
+        (*it)->Initialize(&_options); 
         cout << endl;
     }
 }
@@ -123,6 +123,7 @@ bool SqlApplication::EvaluateFrame() {
         (*it)->EvaluateFrame(&_top);
         cout << endl;
     }
+    return true;
 }
 
 void SqlApplication::EndEvaluate() {

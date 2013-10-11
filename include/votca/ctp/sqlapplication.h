@@ -22,7 +22,6 @@
 #define	VOTCA_CTP_SQLAPPLICATION_H
 
 #include <votca/ctp/ctpapplication.h>
-
 #include <votca/ctp/topology.h>
 
 #include "statesaversqlite.h"

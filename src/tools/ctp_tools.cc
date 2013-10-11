@@ -34,13 +34,7 @@ private:
     
     votca::tools::Property _options;
     list< votca::ctp::QMTool* >   _tools;
-
-    string _fwstring(string original, size_t charCount ) {
-        original.resize( charCount, ' ' );
-        return original;
-    }
-
-
+    
 };
 
 
@@ -149,6 +143,8 @@ bool CtpTools::Evaluate() {
         (*it)->Evaluate();
         cout << endl;
     }
+    
+    return true;
 }
 
 void CtpTools::EndEvaluate() {

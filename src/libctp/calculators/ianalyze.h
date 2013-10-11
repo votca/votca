@@ -46,12 +46,12 @@ private:
 
 void IAnalyze::Initialize(Property *opt) {
 
-    // _options already has default values, update them with the supplied options
-    _options.CopyValues("", *opt );
+    // update options with the VOTCASHARE defaults   
+    UpdateWithDefaults( opt );
     string key = "options." + Identify();
  
-    _resolution_logJ2 = _options.get(key+".resolution_logJ2").as< double >();
-    _states = _options.get(key+".states").as< vector<int> >();
+    _resolution_logJ2 = opt->get(key+".resolution_logJ2").as< double >();
+    _states = opt->get(key+".states").as< vector<int> >();
 }
 
 

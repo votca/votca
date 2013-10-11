@@ -87,6 +87,7 @@ bool ParallelXJobCalc<JobContainer,pJob,rJob>::EvaluateFrame(Topology *top) {
     // POST-PROCESS (OVERWRITTEN IN CHILD OBJECT)
     this->PostProcess(top);
     
+    return true;
 }
 
 

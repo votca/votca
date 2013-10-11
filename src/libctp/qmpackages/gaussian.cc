@@ -378,6 +378,8 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
     
     _com_file << endl;
     _com_file.close();
+    
+    return true;
 }
 
 bool Gaussian::WriteShellScript() {
@@ -398,6 +400,8 @@ bool Gaussian::WriteShellScript() {
         _shell_file << "setenv DoPrtXC NO" << endl;       
     }
     _shell_file.close();
+    
+    return true;
 }
 
 /**
@@ -434,8 +438,7 @@ bool Gaussian::Run()
         return false;
     }
     
-
-
+    return true;
 
 }
 

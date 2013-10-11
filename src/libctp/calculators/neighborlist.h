@@ -65,8 +65,8 @@ private:
 
 void Neighborlist::Initialize(Property *options) {
 
-    // _options already has default values, update them with the supplied options
-    _options.CopyValues("", *options );
+    // update options with the VOTCASHARE defaults   
+    UpdateWithDefaults( options );
     std::string key = "options." + Identify();
     
     list< Property* > segs = options->Select(key+".segments");

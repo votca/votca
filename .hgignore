@@ -12,10 +12,11 @@ share/doc/html
 src/libctp/votca_config.h
 src/libctp/hgversion.h
 
-src/tools/ctp_run
-src/tools/ctp_map
-src/tools/ctp_tools
+src/tools/ctp_dump
 src/tools/ctp_evaluate
+src/tools/ctp_map
+src/tools/ctp_run
+src/tools/ctp_tools
 src/dipro/*.mod
 src/dipro/*.x
 

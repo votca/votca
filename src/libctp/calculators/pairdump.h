@@ -33,11 +33,11 @@ private:
 
 void PairDump::Initialize(Property *options) {
 
-    // _options already has default values, update them with the supplied options
-    _options.CopyValues("", *options );
+    // update options with the VOTCASHARE defaults   
+    UpdateWithDefaults( options );
     string key = "options." + Identify();
     
-    int useQMPos = _options.get(key+".useQMcoords").as< int >();
+    int useQMPos = options->get(key+".useQMcoords").as< int >();
     _useQMPos = (useQMPos == 1) ? true : false;
 }
 
