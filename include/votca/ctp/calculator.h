@@ -122,7 +122,8 @@ inline void Calculator::UpdateWithDefaults( votca::tools::Property *options ) {
     // if a value not given or a tag not present, provide default values
     AddDefaults( _options, defaults );   
    
-    std::cout << "COMBINED \n" << _options;
+    if (votca::tools::globals::verbose)
+        std::cout << "COMBINED \n" << _options;
 }
 
 

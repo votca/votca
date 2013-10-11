@@ -5,8 +5,9 @@
         <data xmlns="http://www.netbeans.org/ns/make-project/1">
             <name>ctp_dump</name>
             <c-extensions/>
-            <cpp-extensions/>
+            <cpp-extensions>cc</cpp-extensions>
             <header-extensions/>
+            <sourceEncoding>UTF-8</sourceEncoding>
             <make-dep-projects/>
             <sourceRootList/>
             <confList>
@@ -19,7 +20,6 @@
                     <type>1</type>
                 </confElem>
             </confList>
-            <sourceEncoding>UTF-8</sourceEncoding>
         </data>
     </configuration>
 </project>

@@ -24,7 +24,7 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 
 
 # Project Name
-PROJECTNAME=ctp_run
+PROJECTNAME=ctp_evaluate
 
 # Active Configuration
 DEFAULTCONF=Debug

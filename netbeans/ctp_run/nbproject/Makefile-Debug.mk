@@ -35,7 +35,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/715944016/ctp_run.o
+	${OBJECTDIR}/_ext/715944016/ctp_evaluate.o
 
 
 # C Compiler Flags
@@ -52,47 +52,31 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=../libctp/dist/Debug/GNU-Linux-x86/liblibctp.a ../../../csg/netbeans/libcsg/../../src/libcsg/libcsg.a ../../../moo/netbeans/libmoo/../../src/libmoo/libmoo.a ../../../tools/netbeans/libtools/../../src/libtools/libtools.a -lgmx -lexpat -lsqlite3 -lboost_program_options -lpthread -lm
+LDLIBSOPTIONS=
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ../../src/tools/ctp_run
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ctp_evaluate
 
-../../src/tools/ctp_run: ../libctp/dist/Debug/GNU-Linux-x86/liblibctp.a
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ctp_evaluate: ${OBJECTFILES}
+	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
+	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ctp_evaluate ${OBJECTFILES} ${LDLIBSOPTIONS}
 
-../../src/tools/ctp_run: ../../../csg/netbeans/libcsg/../../src/libcsg/libcsg.a
-
-../../src/tools/ctp_run: ../../../moo/netbeans/libmoo/../../src/libmoo/libmoo.a
-
-../../src/tools/ctp_run: ../../../tools/netbeans/libtools/../../src/libtools/libtools.a
-
-../../src/tools/ctp_run: ${OBJECTFILES}
-	${MKDIR} -p ../../src/tools
-	${LINK.cc} -o ../../src/tools/ctp_run ${OBJECTFILES} ${LDLIBSOPTIONS}
-
-${OBJECTDIR}/_ext/715944016/ctp_run.o: ../../src/tools/ctp_run.cc 
+${OBJECTDIR}/_ext/715944016/ctp_evaluate.o: nbproject/Makefile-${CND_CONF}.mk ../../src/tools/ctp_evaluate.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../moo/include -I../../../csg/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/ctp_run.o ../../src/tools/ctp_run.cc
+	$(COMPILE.cc) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/ctp_evaluate.o ../../src/tools/ctp_evaluate.cc
 
 # Subprojects
 .build-subprojects:
-	cd ../libctp && ${MAKE}  -f Makefile CONF=Debug
-	cd ../../../csg/netbeans/libcsg && ${MAKE}  -f Makefile_nb CONF=Debug
-	cd ../../../moo/netbeans/libmoo && ${MAKE}  -f Makefile_nb CONF=Debug
-	cd ../../../tools/netbeans/libtools && ${MAKE}  -f Makefile_nb CONF=Debug
 
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
-	${RM} ../../src/tools/ctp_run
+	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ctp_evaluate
 
 # Subprojects
 .clean-subprojects:
-	cd ../libctp && ${MAKE}  -f Makefile CONF=Debug clean
-	cd ../../../csg/netbeans/libcsg && ${MAKE}  -f Makefile_nb CONF=Debug clean
-	cd ../../../moo/netbeans/libmoo && ${MAKE}  -f Makefile_nb CONF=Debug clean
-	cd ../../../tools/netbeans/libtools && ${MAKE}  -f Makefile_nb CONF=Debug clean
 
 # Enable dependency checking
 .dep.inc: .depcheck-impl
