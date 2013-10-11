@@ -167,6 +167,7 @@ if [ ! -s "$preamblefile" ] ; then
     echo "\usepackage{amsfonts}" >> $preamblefile
     echo "\usepackage{amsmath}" >> $preamblefile
     echo "\usepackage{amssymb}" >> $preamblefile
+    echo "\usepackage{braket}" >> $preamblefile
     echo "" >> $preamblefile
     echo "\usepackage{ae}       % This is in case you also want to make pdf afterwards" \
 	>> $preamblefile
@@ -179,6 +180,10 @@ if [ ! -s "$preamblefile" ] ; then
     echo "" >> $preamblefile
     echo "\usepackage[dvips]{color}" >> $preamblefile
     echo "\usepackage{epsfig}" >> $preamblefile
+    echo "" >> $preamblefile
+    echo "\newcommand{\vctr}[1]{\mathbf{ \bar{#1} }}" >> $preamblefile
+    echo "\newcommand{\oper}[1]{\hat{ #1 }}" >> $preamblefile
+    echo "\newcommand{\matr}[1]{\mathbf{ #1 }}" >> $preamblefile
 fi
 
 if [ ! -z "$out" ] ; then

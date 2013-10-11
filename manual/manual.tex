@@ -51,6 +51,9 @@ pdfpagemode=UseNone]{hyperref}
 %\usepackage{showidx}
 \usepackage[draft,color,notref,notcite]{showkeys}
 
+\usepackage{braket}
+\usepackage{amssymb}
+
 \makeindex
 
 \input{newcommands}
@@ -81,7 +84,7 @@ pdfpagemode=UseNone]{hyperref}
 \cleardoublepage
 
 \tableofcontents
-%\cleardoublepage
+\cleardoublepage
 \mainmatter
 
 \printindex
@@ -93,6 +96,7 @@ pdfpagemode=UseNone]{hyperref}
 
 \chapter{Theoretical background}
 \label{sec:theory}
+
 \input{theory/workflow}
 \input{theory/morphology}
 \input{theory/fragments}
@@ -104,10 +108,10 @@ pdfpagemode=UseNone]{hyperref}
 \input{theory/electronic_couplings}
 \input{theory/rate}
 \input{theory/kmc}
-
 \input{theory/nondispersive}
 \input{theory/analysis}
 \input{theory/correlations}
+\input{theory/idft}
 
 \chapter{Input and output files}
 \label{sec:io}
@@ -128,6 +132,5 @@ pdfpagemode=UseNone]{hyperref}
 
 \bibliographystyle{short}
 {\footnotesize \bibliography{literature_short} }
-
 
 \end{document} 

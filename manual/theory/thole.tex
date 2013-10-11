@@ -1,5 +1,68 @@
 \subsection{Thole model}
+\label{sec:thole_model}
 \index{Thole model}
 \index{site energy!polarization}
 
-See the following reference for details~\cite{thole_molecular_1981}.
+\textbf{Warning:}
+This chapter includes two pictures and references to prevous
+formulas (from prevous chapters of theses) which are not
+included.
+
+
+% \begin{figure*}
+%     \includegraphics[width=\linewidth]{3_free_energy/fig/smearing_pictures/dipole}
+%     \caption{ (a) Thole's modified dipole-dipole interaction model~\cite{thole_molecular_1981}: A fractional charge density $\rho_f(\vec{R})$ removes the divergent head-to-tail interaction that can arise from point-dipole interactions on a molecular scale. (b) The charge densities on the carbon and oxygen atom in the CO molecule are intimately and quantum-mechanically linked, giving rise to a positive site-site polarizability $\alpha_{xx}^\textrm{CO}$, where the x-axis is oriented perpendicular to the CO bond vector. (c) In point-dipole interaction models, the induced dipoles interact with each other only via their fields, leading to an effectively anticorrelated and unphysical site-site response in the CO molecule, $\alpha_{xx}^\textrm{CO} < 0$. }
+%     \label{fig:ch4_damping}
+% \end{figure*}
+
+With eqs.~\ref{equ:self_consistent_dQ} and~\ref{equ:uppuu} we have developed expressions that allow us to compute the electrostatic and induction energy contribution to site energies in a self-consistent manner based on a set of molecular distributed multipoles $\{Q_t^a\}$ and polarizabilities $\{\alpha_{tt'}^{aa'}\}$. We have shown how to obtain the former from a wavefunction decomposition or fitting scheme (GDMA, CHELPG) in sec.~\ref{sec:distributed_multipoles}. The $\{\alpha_{tt'}^{aa'}\}$ are formally given by eq.~\ref{equ:pol_multi_point}; this expression is somewhat impractical (though possible, see~\cite{stone_distributed_1985}) to evaluate. In this work we make use of the Thole model~\cite{thole_molecular_1981, van_duijnen_molecular_1998} as a semi-empirical approach to obtain the sought-after point polarizabilities in the local dipole approximation, that is, $[\alpha_{tt'}^{aa'}] = \alpha_{tt'}^{aa'} \delta_{t \beta} \delta_{t'\beta} \delta_{aa'}$, where $\beta \epsilon \{x,y,z\}$ references the 
+dipole-moment component.
+
+The Thole model is based on a modified dipole-dipole interaction, which can be reformulated in terms of the interaction of smeared charge densities. This has been shown to be necessary due to the divergent head-to-tail dipole-dipole interaction that otherwise results at small interseparations on the \AA~scale~\cite{applequist_atom_1972, thole_molecular_1981, van_duijnen_molecular_1998}. Smearing out the charge distribution mimics the nature of the QM wavefunction, which effectively guards against this unphysical polarization catastrophe. 
+
+The smearing of the nuclei-centered multipole moments is obtained via a fractional charge density $\rho_f(\vec{u})$ which should be normalized to unity and fall off rapidly as of a certain radius $\vec{u} = \vec{u}(\vec{R})$. The latter is related to the physical distance vector $\vec{R}$ connecting two interacting sites via a linear scaling factor that takes into account the magnitude of the isotropic site polarizabilities $\alpha^a$. This isotropic fractional charge density gives rise to a modified potential
+\begin{align}
+ \phi(u) = -\frac{1}{4\pi\varepsilon_0} \int \limits_{0}^{u} \! 4\pi u' \rho(u') d\!u' 
+ \label{equ:mod_potential}
+\end{align}
+We can relate the multipole interaction tensor $T_{ij \dots}$ (this time in Cartesian coordinates) to the fractional charge density in two steps: First, we rewrite the tensor in terms of the scaled distance vector $\vec{u}$,
+\begin{align}
+ T_{ij \dots }(\vec{R}) = f(\alpha^a \alpha^b) \ t_{ij \dots}(\vec{u}(\vec{R},\alpha^a \alpha^b)),
+\end{align}
+where the specific form of $f(\alpha^a \alpha^b)$ results from the choice of $u(\vec{R},\alpha^a \alpha^b)$. Second, we demand that the smeared interaction tensor $t_{ij \dots}$ is given as usual by the appropriate derivative of the potential in eq.~\ref{equ:mod_potential},
+\begin{align}
+ t_{ij \dots}(\vec{u}) = - \partial_{u_i} \partial_{u_j} \dots \phi(\vec{u}).
+\end{align}
+It turns out that for a suitable choice of $\rho_f(\vec{u})$, the modified interaction tensors can be rewritten in such a way that powers $n$ of the distance $R = |\vec{R}|$ are damped with a damping function $\lambda_n(\vec{u}(\vec{R}))$~\cite{ren_polarizable_2003}. 
+
+There is a large number of fractional charge densities $\rho_f(\vec{u})$ that have been tested for the purpose of giving best results for the molecular polarizability as well as interaction energies. Note how a great advantage of the Thole model is the exceptional transferability of the atomic polarizabilities to compounds not used for the fitting procedure~\cite{van_duijnen_molecular_1998}. In fact, for most organic molecules, a fixed set of atomic polarizabilities ($\alpha_C = 1.334$, $\alpha_H = 0.496$, $\alpha_N = 1.073$, $\alpha_O = 0.873$, $\alpha_S = 2.926$ \AA$^3$) based on atomic elements yields satisfactory results.
+
+In this work, we will use the Thole model with an exponentially-decaying fractional charge density
+\begin{align}
+ \rho(u) = \frac{3a}{4\pi} \exp(-au^3),
+\end{align}
+where $\vec{u}(\vec{R},\alpha^a \alpha^b) = \vec{R} / (\alpha^a \alpha^b)^{1/6}$ and the smearing exponent $a=0.39$, as used in the AMOEBA force field~\cite{ren_polarizable_2003}. The distance at which the charge-dipole interaction is reduced by a factor $\gamma$ is then given by
+\begin{align}
+ R_\gamma & = \left[ \frac{1}{a} \ln\left(\frac{1}{1-\gamma}\right) \right]^{1/3} (\alpha_i\alpha_j)^{1/6}.
+ \label{equ:screening_radius}
+\end{align}
+The interaction damping radius associated with $\gamma=1/2$ ranges around an interaction distance of \unit[2]{\AA} as shown in fig.~\ref{fig:ch4_damping_function}a as a function of the homonuclear polarizability $\alpha_{ij} = \alpha_i = \alpha_j$ and different smearing exponents $a$. A half-interaction distance on this range indicates how damping is primarily important for the intramolecular field interaction of induced dipoles. 
+
+% \begin{figure*}
+%     \includegraphics[width=\linewidth]{3_free_energy/fig/damping_functions_summary/summary}
+%     \caption{ (a) Dependence of the half-interaction radius $R_{1/2}$ evaluated from eq.~\ref{equ:screening_radius} for different smearing parameters $a$. Typical atomic point polarizabilties are of the order of \unit[1]{\AA} to \unit[2]{\AA}. The half-interaction radius indicates how damping is important primarily for the intramolecular field interaction between induced dipoles. (b) Molecular isotropic polarizability of a C60 molecule for the neutral ($\alpha_N$) and cationic ($\alpha_C$) state. The minimum develops in dependence on $a$ due to the cross-over from point polarizabilities responding to the external field as isolated quantities to cooperatively coupled polar sites. (c) Induction stabilization of a neutral C60 molecule due to the presence of a point charge compared to DFT-B3LYP/6-311g (horizontal lines). }
+%     \label{fig:ch4_damping_function}
+% \end{figure*}
+
+The influence of the smearing parameter on the molecular polarizability $\alpha_N, \alpha_C$ is shown in fig.~\ref{fig:ch4_damping_function}b for the neutral (N) and cation (C) state of a C60 molecule. It can be seen how in particular a very strong smearing (obtained for small $a$) leads to overestimated molecular polarizabilities, since the point polarizabilities cease to interact via their fields, and instead respond to the external field as isolated entities. The same trend is observed for the case of weak smearing ($a\sim 1$), where the interaction between point dipoles is unscreened, leading to strong cooperative effects.
+
+The dependence on $a$ propagates to the response to inhomogeneous fields, fig.~\ref{fig:ch4_damping_function}c, where we have monitored the induction stabilization of a C60 molecule in the inhomogeneous external field generated by a point charge $q=-0.3\textrm{e}$ at a distance of \unit[4.5]{\AA} and \unit[8.5]{\AA} from the C60 center-of-mass, corresponding to distances of \unit[1]{\AA} and \unit[5]{\AA} from the C60 surface, respectively. We compare the resulting energies to energies obtained from DFT. It can be seen, how for intermolecular distances typical for van-der-Waals materials the dependence of the induction energy on the smearing parameter $a$ is small due to the plateau that develops around $a=0.39$, leading to good agreement between DFT and the Thole model.
+
+Finally, we touch on a well-known shortcoming of point-dipole interaction models when applied to molecular scales: Since the response of the charge density on neighboring atoms cannot usually be divided on the atoms due to the quantum-mechanical nature of the underlying wavefunction, the distortion of the local charge cloud shared by two interaction sites can be correlated to an extent that it is no longer appropriate to have the point dipoles only interact with each other via their electric fields. This is for instance observed for the CO molecule, fig.~\ref{fig:ch4_damping}b, where the distributed polarizability-scheme according to eq.~\ref{equ:pol_multi_point} predicts a positive site-site polarizability in the direction perpendicular to the molecular axis, whereas point-dipole models such as the Thole model necessarily produce an effective negative correlation between the induced dipoles due to the interaction via the dipole fields, see fig.~\ref{fig:ch4_damping}c.
+
+% Clausius-Mossotti
+%\begin{align}
+%\frac{\varepsilon_r -1}{\varepsilon_r +2} = \frac{4\pi n \alpha}{3} 
+%\end{align}
+
+% See the following reference for details~\cite{thole_molecular_1981}.

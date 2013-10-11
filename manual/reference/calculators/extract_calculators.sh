@@ -18,7 +18,7 @@ for package in ctp kmc; do
 			continue
 		fi
 
-		votca_property --file $xmlfile --format TEX >> $texfile
+# 		votca_property --file $xmlfile --format TEX >> $texfile
 
 	done
 done

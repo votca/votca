@@ -1,0 +1,378 @@
+\section{
+Projection of monomer orbitals on dimer orbitals (DIPRO)
+}\label{sec:idft}
+
+
+\subsubsection{Notation}
+$a$ - number (usual)\\
+$\vctr{a}$ - vector  (bold,bar)\\
+$\matr{A}$ - matrix (bold)\\
+$\oper{A}$ - operator (usual, hat)
+
+\subsubsection{Equations}
+
+A nice Hamiltonian to keep in mind:
+
+\begin{equation}
+  \oper{H} = 
+  \sum_m \epsilon_m \oper{a}_m^\dagger \oper{a}_m +
+  \sum_{m \neq n} t_{nm} \oper{a}_m^\dagger \oper{a}_n + c.c.
+  \label{eq:dipro_eq1}
+\end{equation}
+
+where $\oper{a}_m^\dagger$ and $\oper{a}_m$ are the creation and annihilation operators
+for a charge carrier located at the molecular site $m$.
+The electron site energy is given by $\epsilon_m$ , while $t_{nm}$ 
+is the transfer integral between two sites $m$ and $n$. 
+
+\textit{
+The distribution in $\epsilon_m$
+describes the density of states whereas $t_{nm}$ sets a timescale for
+charge tunneling. (unnecessary)
+}
+
+
+We label the two individual molecules A
+and B and their frontier orbitals $\phi_A$ and $\phi_B$, respectively.
+We consider the  case
+of hole transport, where the frontier orbital of interest is
+the HOMO. (All arguments can be applied to electron transfer
+by changing references to HOMOs to LUMOs.) 
+
+We assume that the frontier orbitals of a dimer (adiabatic
+energy surfaces) result exclusively from the interaction of the
+frontier orbitals of monomers, and
+can be expanded in terms of $\phi_A$ and $\phi_B$. The expansion
+coefficients, $\vctr{C}$, can be determined by solving the
+secular equation
+
+\begin{equation}
+  (\matr{H} - E \matr{S})\vctr{C} = 0
+  \label{eq:dipro_eq2}
+\end{equation}
+
+where $\matr{H}$ and $\matr{S}$ are the Hamiltonian and overlap
+matrices of the system, respectively. 
+
+Since it is easier to work in matrix form, the following
+equation also holds (equation (\ref{eq:dipro_eq2}) in matrix form):
+
+\begin{equation}
+ \matr{H}\matr{U} = \matr{S}\matr{U}\matr{E}
+  \label{eq:dipro_eq3}
+\end{equation}
+
+These matrices can be written explicitly as
+
+\begin{equation}
+ \begin{aligned}
+  \matr{H} = 
+  \begin{pmatrix}
+    e_A    &  J_{AB} \\
+    J_{AB} &  e_B  
+  \end{pmatrix} \\
+  \matr{S} = 
+  \begin{pmatrix}
+    1    &  S_{AB} \\
+    S_{AB} &  1  
+  \end{pmatrix}
+  \end{aligned}
+  \label{eq:dipro_eq4}
+\end{equation}
+
+with (here we introduce even shorter notation)
+
+\begin{equation}
+ \begin{aligned}
+  e_A = \Bra{\phi_A}\oper{H} \Ket{\phi_A} &= A\\
+  e_B = \Bra{\phi_B}\oper{H} \Ket{\phi_B} &= B\\
+  J_{AB} = \Bra{\phi_A}\oper{H} \Ket{\phi_B} &= J \\
+  S_{AB} &= S 
+ \end{aligned}
+  \label{eq:dipro_eq5}
+\end{equation}
+
+In this new (shorter) notation :
+
+\begin{equation}
+ \begin{aligned}
+  \matr{H} = 
+  \begin{pmatrix}
+    A    &  J \\
+    J    &  B  
+  \end{pmatrix} \\
+  \matr{S} = 
+  \begin{pmatrix}
+    1    &  S \\
+    S    &  1  
+  \end{pmatrix}
+  \end{aligned}
+  \label{eq:dipro_eq6}
+\end{equation}
+
+\textbf{Note:} Even though it looks like matrices (and orbitals) are real,
+it is just a bad language (for simplicity). 
+All equations hold for complex wave functions, 
+resulting in Hermitian matrices. 
+Corresponding changes are obvious.
+
+Here two
+monomer HOMOs that form the basis of this expansion
+are not orthogonal in general (but normalized), 
+so that $\matr{S} \neq \matr{1}$.
+It is therefore necessary to
+transform equation (~\ref{eq:dipro_eq1}) into a standard eigenvalue problem
+of the form
+
+\begin{equation}
+  \matr{H}^{\mathrm{eff}} \vctr{C}^{\mathrm{eff}} =
+  E \vctr{C}^{\mathrm{eff}}
+  \label{eq:dipro_eq7}
+\end{equation}
+
+or in matrix form
+
+\begin{equation}
+  \matr{H}^\mathrm{eff} \matr{U}^\mathrm{eff} =
+  \matr{U}^\mathrm{eff} \matr{E}
+  \label{eq:dipro_eq8}
+\end{equation}
+
+here $\matr{U}^\mathrm{eff}$ made of vectors $\vctr{C}^{\mathrm{eff}}$ 
+and $\matr{E}$ is a diagonal matrix which contains eigenvalues (energies).
+According to L\"owdin such a transformation can be
+achieved by
+
+\begin{equation}
+  \matr{H^\mathrm{eff}} = \matr{S}^{\left. {-1} \middle/ {2} \right.}
+  \matr{H}\matr{S}^{\left. {-1} \middle/ {2} \right.}
+  \label{eq:dipro_eq9}
+\end{equation}
+
+with $\matr{S}^{\left. {-1} \middle/ {2} \right.}$, 
+which can be calculated in standard (and efficient) way as
+
+\begin{equation}
+  f(\matr{S}) = \matr{U} f(\matr{S}_D) \matr{U^\dagger}
+  \label{eq:dipro_eq10}
+\end{equation}
+
+where $\matr{S}_D$ is diagonalized version of $\matr{S}$, $\matr{U}$
+is the corresponding unitary transformation and \\
+$f(x)=x^{-\frac{1}{2}}$.
+
+Applying this procedure to the $2\times2$ case in
+eqn (~\ref{eq:dipro_eq1}) then yields an effective Hamiltonian matrix in
+an orthogonal basis, and its entries can directly be
+identified with the site energies $\epsilon_m$ 
+and transfer integrals $t_{mn}$ (again we introduce
+shortened notation, the backward restoration is straightforward):
+
+\begin{equation}
+ \begin{aligned}
+  \matr{H}^{\mathrm{eff}} &= 
+    \begin{pmatrix}
+      A^{\mathrm{eff}}    &  J^\mathrm{eff} \\
+      J\mathrm{eff}       &  B^\mathrm{eff}  
+    \end{pmatrix} =
+    \begin{pmatrix}
+      \epsilon_a    &  t_{ab} \\
+      t_{ab}       &  \epsilon_b  
+    \end{pmatrix} =
+    \begin{pmatrix}
+      a    &  t \\
+      t    &  b  
+    \end{pmatrix}
+ \end{aligned}
+  \label{eq:dipro_eq11}
+\end{equation}
+
+The corresponding matrix elements are (in terms of A,B,S,J)
+
+\begin{equation}
+ \begin{aligned}
+  a(b) &= \frac{1}{2}
+    \frac{1}{1 - S^2} 
+    ( (A + B) - 2 J S + 
+    (A - B) \sqrt{1 - S^2} ) \\
+  t &= \frac{J - \frac{1}{2}(A+B)S}{1-S^2}
+ \end{aligned}
+ \label{eq:dipro_eq12}
+\end{equation}
+ 
+energy $b$ can be obtained by interchanging $a$ and $b$ in eq 
+(\ref{eq:dipro_eq12}).
+
+It is apparent from eqn (\ref{eq:dipro_eq12}) that for orthogonal monomer
+HOMOs, i.e. when $S$ = 0, the modifications to $A(B)$ and
+$J$ vanish. In particular, this is the case for the commonly
+used ZINDO approach. In the approximation that the orbitals
+of the dimer $\psi^D$ are determined only by the HOMOs of
+the monomers, the difference of the eigenvalues of the
+effective Hamiltonian in eqn (\ref{eq:dipro_eq12}), 
+$\Delta E$, is the value of the
+splitting between the HOMO and HOMO-1 levels of
+the dimer:
+
+\begin{equation}
+  \Delta E = 
+  \sqrt{ (a - b)^2 + (2t)^2 }
+   \label{eq:dipro_eq13}
+\end{equation}
+
+This indicates that the resulting energy split between HOMO
+and HOMO-1 in the dimer can in general not be attributed
+exclusively to the electronic coupling of the monomers
+represented by $t$ but can also affected by the difference
+in site energies, $a-b$. If one intends to determine the
+transfer integral $t$ from the dimer energy splitting, one must
+evaluate
+
+\begin{equation}
+  t = \frac{1}{2}
+  \sqrt{ (\Delta E)^2 - (a - b)^2 }
+   \label{eq:dipro_eq14}
+\end{equation}
+
+The difference of the site energies associated to the individual
+monomers in the dimer configuration is only zero when 
+the monomers are identical and their mutual geometric
+orientation can be generated by symmetry transformations
+that are compatible with the point group of the monomer,
+i.e. when the dimer is symmetric. In a non-symmetric dimer,
+monomer sites A and B polarize each other asymmetrically
+and consequently contribute differently to the energetics of the
+dimer. This also means that in general quantum-chemical
+information is needed from both monomers and the dimer
+to accurately determine the transfer integral.
+
+
+Up to this point we have not mentioned in detail how to
+suitably calculate the matrix elements $J_{AB}$. Direct numerical
+integration in real space
+
+\begin{equation}
+  J = 
+  \Bra{A} \oper{H} \Ket{B} = \int d \vctr{r} \:
+  \phi^A (\vctr{r}) \oper{H} \phi^B (\vctr{r})
+   \label{eq:dipro_eq15}
+\end{equation}
+
+is potentially inaccurate, this can be calculated (alternatively) 
+via projections.
+
+\begin{equation}
+ \begin{aligned}
+  \Ket{i} &= \Ket{\psi_i} \\
+ \oper{1} &= \sum_i \Ket{i}\Bra{i} \\
+ J &= 
+ \Bra{A} \oper{H} \Ket{B} = 
+ \Bra{A} \oper{1} \oper{H} \oper{1} \Ket{B} = 
+ \sum_{ij} \Braket{A|i}\Bra{i}\oper{H}\Ket{j}\Braket{j|B} \\
+ \Bra{i}\oper{H}\Ket{j} &= E_i \delta_{ij}
+ \end{aligned}
+  \label{eq:dipro_eq16}
+\end{equation}
+
+Introducing vectors of coefficients for states $\Ket{A}$ and $\Ket{B}$
+as $\vctr{V}_A$ and $\vctr{V}_B$ respectively, we get
+
+\begin{equation}
+ \begin{aligned}
+  V_{A}^{(i)} &= \Braket{A|i} \\
+  V_{B}^{(i)} &= \Braket{B|i} \\
+  J = 
+  \vctr{V}_A^\dagger \matr{H}_D \vctr{V}_B &= 
+  \vctr{V}_A^\dagger \matr{E}   \vctr{V}_B
+ \end{aligned}
+  \label{eq:dipro_eq17}
+\end{equation}
+
+we introduced here diagonalized Hamiltonian matrix 
+$\matr{E} = \matr{H}_D$. 
+
+What is left to do is determine these projections $\vctr{V}_{A(B)}$. 
+Again it
+is inconvenient to perform a real-space integration. In all
+practical calculations the molecular orbitals are expanded in
+basis sets of either plane waves or of localized atomic orbitals
+$\Ket{i} = \Ket{\psi_i}$. We will first consider the case that 
+the calculations for
+the monomers are performed using a counterpoise (CP) basis
+set that is commonly used to deal with the basis set super-
+position error (BSSE) The basis set of atom-centered
+orbitals of a monomer is extended to the one of the dimer
+by adding the respective atomic orbitals at virtual coordinates
+of the second monomer. We can then write the respective
+expansions as
+
+\begin{equation}
+ \begin{aligned}
+  \Ket{A} &= \sum_{\alpha} A_{\alpha} \Ket{\alpha} 
+  \Longrightarrow 
+  \vctr{A} = \{ A_{\alpha} \}
+  \\
+  \Ket{B} &= \sum_{\alpha} B_{\alpha} \Ket{\alpha}
+  \Longrightarrow 
+  \vctr{B} = \{ B_{\alpha} \}
+  \\
+  \Ket{i} &= \sum_{\alpha} D^{(i)}_{\alpha} \Ket{\alpha}
+  \Longrightarrow 
+  \vctr{D}^{(i)} = \{ D^{(i)}_{\alpha} \}
+ \end{aligned}
+  \label{eq:dipro_eq18}
+\end{equation}
+
+The projections can then be determined within the common
+basis set:
+
+\begin{equation}
+ \begin{aligned}
+    \Braket{A|i} = \sum_{\alpha} A_{\alpha} \Bra{\alpha}
+    \sum_{\beta} D^{(i)}_{\beta} \Ket{\beta} = 
+    \vctr{A}^\dagger \matr{S} \vctr{D}^{(i)} \\
+    \Braket{B|i} = \sum_{\alpha} B_{\alpha} \Bra{\alpha}
+    \sum_{\beta} D^{(i)}_{\beta} \Ket{\beta} = 
+    \vctr{B}^\dagger \matr{S} \vctr{D}^{(i)} \\
+ \end{aligned}
+  \label{eq:dipro_eq19}
+\end{equation}
+
+leading to a final expression
+
+\begin{equation}
+ \begin{aligned}
+    J = 
+    \vctr{A}^\dagger \matr{S} \matr{D} \matr{E}
+    \matr{D}^\dagger \matr{S}^\dagger \vctr{B}  \\
+ \end{aligned}
+  \label{eq:dipro_eq20}
+\end{equation}
+
+
+where the S is the overlap matrix of the atomic orbitals.
+We summarize this methodology, which we will from now
+on refer to as DIPRO, as the projection of monomer orbitals
+on dimer orbitals, by the schematics in Fig. (\ref{fig:scheme}). 
+After completion 
+of the quantum-chemical calculations for both monomers
+and dimers, the elements $J_{AB}$ can be calculated using eqn  
+(\ref{eq:dipro_eq17})
+by simple matrix-vector (or matrix-matrix) 
+multiplications. From a quantum-chemical calculation the overlap
+matrix of atomic orbitals $\matr{S}$, the expansion coefficients for
+monomesrs $\vctr{A} = \{ A_{\alpha} \}$,$\vctr{B} = \{ B_{\alpha} \}$ 
+ and dimer orbitals $\vctr{D}^{(i)} = \{ D^{(i)}_{\alpha} \}$, 
+ as well as the orbital
+energies $E_{i}$ of the dimer are required as input.
+
+\begin{figure}[h]
+    \center
+    \includegraphics[width=0.8\textwidth]{fig/idft_flow/scheme_t}
+    \caption{DIPRO scheme}
+    \label{fig:scheme}
+\end{figure}
+
+Comparative study can be found here
+~\cite{baumeier_density-functional_2010}.
+

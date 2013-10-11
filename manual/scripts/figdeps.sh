@@ -19,7 +19,7 @@ then
    usage "Error: .fig file must be supplied"
 fi
 
-DEPS=$(sed -n '/.*eps\|png/ s/[[:blank:]]*[0-9][[:blank:]]*//p' $FILENAME | \
+DEPS=$(sed -n '/.*\.eps\|\.png/ s/[[:blank:]]*[0-9][[:blank:]]*//p' $FILENAME | \
    awk -v ORS=' ' '{print $0}')
 
 echo ${BASENAME}.eps : $DEPS 

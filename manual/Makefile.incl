@@ -1,4 +1,4 @@
-all:  $(AGRPICS) $(GPPICS) $(FIGPICS) $(PNGPICS) $(JPGPICS) $(SVGPICS) $(SUBDIRS)
+all:  $(SUBDIRS) $(AGRPICS) $(GPPICS) $(FIGPICS) $(PNGPICS) $(JPGPICS) $(SVGPICS) 
 
 SHELL=/bin/bash
 ROOTDIR=$(shell hg root)
