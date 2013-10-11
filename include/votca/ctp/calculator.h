@@ -88,7 +88,7 @@ public:
      * a default value exists in the corresponding XML file in VOTCASHARE
      * a tag is created and/or a default value is assigned to it
      */    
-    void UpdateWithDefaults( votca::tools::Property *options );
+    void UpdateWithDefaults(votca::tools::Property *options, bool verbose);
     
 protected:
 
@@ -102,7 +102,7 @@ protected:
 inline void Calculator::LoadDefaults() {
 }
 
-inline void Calculator::UpdateWithDefaults( votca::tools::Property *options ) {
+inline void Calculator::UpdateWithDefaults(votca::tools::Property *options , bool display=true) {
     
     // copy options from the object supplied by the Application
     std::string id = Identify();
@@ -122,7 +122,7 @@ inline void Calculator::UpdateWithDefaults( votca::tools::Property *options ) {
     // if a value not given or a tag not present, provide default values
     AddDefaults( _options, defaults );   
    
-    if (votca::tools::globals::verbose)
+    if (display)
         std::cout << "COMBINED \n" << _options;
 }
 
