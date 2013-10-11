@@ -12,16 +12,19 @@ import argparse
 import re
 import math
 
-PROGTITLE = 'THE VOTCA::CTP TESTSUITE\n'
+PROGTITLE = 'THE VOTCA::CTP TESTSUITE'
+PROGDESCR = 'Performs tests en suite +'
 VOTCAHEADER = '''\
 ==================================================
 ========   VOTCA (http://www.votca.org)   ========
 ==================================================
 
+{progtitle}
+
 please submit bugs to bugs@votca.org 
 ctp_testsuite, version {version}
 
-'''.format(version=VERSION)
+'''.format(version=VERSION, progtitle=PROGTITLE)
 try:
 	VOTCASHARE = os.environ['VOTCASHARE']
 except KeyError:
@@ -39,7 +42,7 @@ class CtpHelpFormatter(argparse.HelpFormatter):
 
 progargs = argparse.ArgumentParser(prog='ctp_testsuite',
     formatter_class=lambda prog: CtpHelpFormatter(prog,max_help_position=70),
-	description=PROGTITLE)
+	description=PROGDESCR)
 # Tests to execute, available tests, XML testsuite file
 progargs.add_argument('-e', '--execute',
     dest='execute',   

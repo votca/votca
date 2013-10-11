@@ -14,15 +14,18 @@ import math
 import sqlite3
 
 PROGTITLE = 'THE VOTCA::CTP STATE-FILE UPDATER'
+PROGDESCR = 'Updates the state file +'
 VOTCAHEADER = '''\
 ==================================================
 ========   VOTCA (http://www.votca.org)   ========
 ==================================================
 
+{progtitle}
+
 please submit bugs to bugs@votca.org 
 ctp_update, version {version}
 
-'''.format(version=VERSION)
+'''.format(version=VERSION, progtitle=PROGTITLE)
 
 def okquit(what=''):
 	if what != '': print what
@@ -48,7 +51,7 @@ class CtpHelpFormatter(argparse.HelpFormatter):
 		
 progargs = argparse.ArgumentParser(prog='ctp_testsuite',
     formatter_class=lambda prog: CtpHelpFormatter(prog,max_help_position=70),
-	description=PROGTITLE)
+	description=PROGDESCR)
 	
 progargs.add_argument('-f', '--file',
     dest='sqlfile',   
