@@ -60,6 +60,18 @@ else (BUILD_MANPAGES)
   set(TXT2TAGS_FOUND)
 endif (BUILD_MANPAGES)
 
+option(WITH_MKL "Checking if MKL is installed in order to improve UBLAS performance" OFF)
+if (WITH_MKL)
+  find_package(MKL)
+  if (NOT MKL_FOUND) #REQUIRED is broken in find_package(MKL)
+    message(FATAL_ERROR "MKL not found, please install it!")
+  endif(NOT MKL_FOUND)
+  include_directories(${MKL_INCLUDE_DIRS})
+  #used in votca_config.h
+  set(MKL TRUE)
+else(WITH_MKL)
+  set(MKL_INCLUDE_DIRS)
+endif(WITH_MKL)
 
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
