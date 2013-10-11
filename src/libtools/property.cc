@@ -198,9 +198,13 @@ void PrintNodeTEX(std::ostream &out, Property &p, const int start_level, int lev
 
     list<Property>::iterator iter;       
     string head_name;
-    string label; // reference of the xml file in the manual
-    string section; // reference of the description section in the manual
-    string help;
+    string _label(""); // reference of the xml file in the manual
+    string _section(""); // reference of the description section in the manual
+    string _help("");
+    string _default(""); // default value if supplied
+    string _unit(""); //unit, if supplied
+ 
+
     string header_format("\\subsection{%1%}\n"
                          "\\label{%2%}\n%3%\n"
                          "\\rowcolors{1}{invisiblegray}{white}\n"
@@ -216,10 +220,10 @@ void PrintNodeTEX(std::ostream &out, Property &p, const int start_level, int lev
     // if this is the head node, print the header
     if ( level == start_level )  {
             head_name = p._name;
-            label = p.getAttribute<string>("label");
-            section = p.getAttribute<string>("section");
-            help = p.getAttribute<string>("help");
-            out << boost::format(header_format) % head_name % label % help;     
+            if ( p.hasAttribute("label") ) _label = p.getAttribute<string>("label");
+            if ( p.hasAttribute("section") ) _section = p.getAttribute<string>("section");
+            if ( p.hasAttribute("help") ) _help = p.getAttribute<string>("help");
+            out << boost::format(header_format) % head_name % _label % _help;     
             prefix = p._name;
      } 
     
@@ -230,12 +234,16 @@ void PrintNodeTEX(std::ostream &out, Property &p, const int start_level, int lev
         if( ( p.value() != "" || p.HasChilds() ) && level > -1) {
             string _tex_name = boost::replace_all_copy( p.name(), "_", "\\_" );
             
+            if ( p.hasAttribute("default") ) _default = p.getAttribute<string>("default");
+            if ( p.hasAttribute("unit") ) _unit = p.getAttribute<string>("unit");
+            if ( p.hasAttribute("help") ) _help = p.getAttribute<string>("help");
+            
             out << boost::format(body_format) % int((level-start_level-1)*10) 
                     % prefix 
                     % _tex_name 
-                    % p.getAttribute<string>("default")
-                    % p.getAttribute<string>("unit")
-                    % p.getAttribute<string>("help");
+                    % _default
+                    % _unit
+                    % _help;
             /*out << " \\hspace{" << (level-1)*10 << "pt} "
                 << "\\hypertarget{" << prefix << "}"
                 <<  "{" << _tex_name << "}" 
@@ -258,7 +266,7 @@ void PrintNodeTEX(std::ostream &out, Property &p, const int start_level, int lev
     }        
 
     // if this is the head node, print the footer
-    if ( level == start_level )  out << boost::format(footer_format) % section % head_name;
+    if ( level == start_level )  out << boost::format(footer_format) % _section % head_name;
 
 }
 
