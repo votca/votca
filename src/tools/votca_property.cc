@@ -18,6 +18,7 @@
 #include <iostream>
 #include <boost/program_options.hpp>
 #include <votca/tools/property.h>
+#include <votca/tools/propertyformat.h>
 #include <list>
 
 using namespace std;

@@ -107,11 +107,15 @@ void PrintNodeTXT(std::ostream &out, Property &p, const int start_level, int lev
     
     list<Property>::iterator iter;
     
+    /* int indent = 10;
+    string fmt = "%|" + boost::lexical_cast<string>(indent) +"t|%1%%|15t|%2%\n";
+    out << boost::format(fmt) % "A" % "B"; */
+    
     if((p.value() != "") || p.HasChilds() ) {
         
         if ( level >= start_level ) {
                 if((p.value()).find_first_not_of("\t\n ") != std::string::npos)   
-                        out << prefix << " = " << p.value() << endl;
+                        out << offset << prefix << " = " << p.value() << endl;
         } else {
             prefix="";
         }
@@ -120,11 +124,11 @@ void PrintNodeTXT(std::ostream &out, Property &p, const int start_level, int lev
     for(iter = p.begin(); iter!=p.end(); ++iter) {
         if(prefix=="") {
             level++;
-            PrintNodeTXT(out, (*iter), start_level, level, prefix + (*iter).name() );
+            PrintNodeTXT(out, (*iter), start_level, level, prefix + (*iter).name(), offset );
             level--;
         } else {
             level++;
-            PrintNodeTXT(out, (*iter), start_level, level, prefix + "." + (*iter).name() );
+            PrintNodeTXT(out, (*iter), start_level, level, prefix + "." + (*iter).name(), offset );
             level--;
         }
     }
@@ -171,8 +175,6 @@ void PrintNodeXML(std::ostream &out, Property &p, const int start_level, int lev
                 out << "</" << p._name << ">"  << endl;
             }
         } 
-        
-    //}
 }
 
 void PrintNodeT2T(std::ostream &out, const string &prefix, Property &p) {
@@ -233,14 +235,9 @@ void PrintNodeTEX(std::ostream &out, Property &p, const int start_level, int lev
                     % _default
                     % _unit
                     % _help;
-            /*out << " \\hspace{" << (level-1)*10 << "pt} "
-                << "\\hypertarget{" << prefix << "}"
-                <<  "{" << _tex_name << "}" 
-                << " & " <<  p.getAttribute<string>("help") << "\\\\" << endl; */
         }
     } 
-    
-
+   
     // continue iteratively through the rest of the nodes
     for(iter = p.begin(); iter != p.end(); ++iter) {
         if(prefix=="") {
@@ -278,8 +275,6 @@ void PrintNodeHLP(std::ostream &out, Property &p, const int start_level, int lev
     } 
     
     if ( level > start_level ) {
-        // if this node has children or a value or is not the first, start recursive printing
-        //if( ( p.value() != "" || p.HasChilds() ) ) {
             
             string ofmt;
             ofmt = "%|" + boost::lexical_cast<string>(offset) + fmt;
@@ -297,7 +292,6 @@ void PrintNodeHLP(std::ostream &out, Property &p, const int start_level, int lev
                     % _default
                     % _unit
                     % p.getAttribute<string>("help");
-        //}
     }
     
     for(iter = p.begin(); iter != p.end(); ++iter) {
@@ -329,7 +323,10 @@ std::ostream &operator<<(std::ostream &out, Property& p)
     {
         // level from which to start node output
         int _level = out.iword(p.outputLevel());
-        
+        int _indent = out.iword(p.outputIndent());
+        string sindent;
+        for (int i = 0; i < _indent; i++ ) sindent +=  " ";
+            
         switch(out.iword(p.outputFormat()))
         {
         default:
@@ -338,7 +335,7 @@ std::ostream &operator<<(std::ostream &out, Property& p)
             PrintNodeXML(out, p, _level);
             break;
         case PropertyFormat::TXT:
-            PrintNodeTXT(out, p, _level);
+            PrintNodeTXT(out, p, _level, 0, "", sindent);
             break;
         case PropertyFormat::T2T:
             PrintNodeT2T(out, "", p);
@@ -353,7 +350,7 @@ std::ostream &operator<<(std::ostream &out, Property& p)
             PrintNodeHLP(out, p, _level);
             break;
         }
-        out << endl;
+        //out << endl;
     }
 
     return out;

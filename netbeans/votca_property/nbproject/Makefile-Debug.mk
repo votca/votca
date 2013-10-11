@@ -22,7 +22,6 @@ AS=as
 
 # Macros
 CND_PLATFORM=GNU-Linux-x86
-CND_DLIB_EXT=so
 CND_CONF=Debug
 CND_DISTDIR=dist
 CND_BUILDDIR=build
@@ -62,12 +61,12 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/votca_property: ../libtools/../../src
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/votca_property: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/votca_property ${OBJECTFILES} ${LDLIBSOPTIONS}
+	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/votca_property ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
 ${OBJECTDIR}/_ext/715944016/votca_property.o: ../../src/tools/votca_property.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
 	${RM} $@.d
-	$(COMPILE.c) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/votca_property.o ../../src/tools/votca_property.cc
+	$(COMPILE.cc) -g -I../include -I../../include -I../../src/libboost -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/votca_property.o ../../src/tools/votca_property.cc
 
 # Subprojects
 .build-subprojects:
