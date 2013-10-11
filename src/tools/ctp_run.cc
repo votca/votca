@@ -13,7 +13,7 @@ class CtpRun : public SqlApplication
 {
 public:
 
-    string  ProgramName() { return "ctp_evaluate"; }    
+    string  ProgramName() { return "ctp_run"; }    
 
     void    HelpText(ostream &out) { out <<"Runs charge transport calculators"<< endl; }
     void    HelpText() { };

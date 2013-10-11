@@ -35,7 +35,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/715944016/ctp_run.o
+	${OBJECTDIR}/_ext/715944016/ctp_parallel.o
 
 
 # C Compiler Flags
@@ -56,24 +56,24 @@ LDLIBSOPTIONS=../libctp/dist/Debug/GNU-Linux-x86/liblibctp.a ../../../csg/netbea
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ../../src/tools/ctp_run
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ../../src/tools/ctp_parallel
 
-../../src/tools/ctp_run: ../libctp/dist/Debug/GNU-Linux-x86/liblibctp.a
+../../src/tools/ctp_parallel: ../libctp/dist/Debug/GNU-Linux-x86/liblibctp.a
 
-../../src/tools/ctp_run: ../../../csg/netbeans/libcsg/../../src/libcsg/libcsg.a
+../../src/tools/ctp_parallel: ../../../csg/netbeans/libcsg/../../src/libcsg/libcsg.a
 
-../../src/tools/ctp_run: ../../../moo/netbeans/libmoo/../../src/libmoo/libmoo.a
+../../src/tools/ctp_parallel: ../../../moo/netbeans/libmoo/../../src/libmoo/libmoo.a
 
-../../src/tools/ctp_run: ../../../tools/netbeans/libtools/../../src/libtools/libtools.a
+../../src/tools/ctp_parallel: ../../../tools/netbeans/libtools/../../src/libtools/libtools.a
 
-../../src/tools/ctp_run: ${OBJECTFILES}
+../../src/tools/ctp_parallel: ${OBJECTFILES}
 	${MKDIR} -p ../../src/tools
-	${LINK.cc} -o ../../src/tools/ctp_run ${OBJECTFILES} ${LDLIBSOPTIONS}
+	${LINK.cc} -o ../../src/tools/ctp_parallel ${OBJECTFILES} ${LDLIBSOPTIONS}
 
-${OBJECTDIR}/_ext/715944016/ctp_run.o: ../../src/tools/ctp_run.cc 
+${OBJECTDIR}/_ext/715944016/ctp_parallel.o: ../../src/tools/ctp_parallel.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../moo/include -I../../../csg/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/ctp_run.o ../../src/tools/ctp_run.cc
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../moo/include -I../../../csg/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/ctp_parallel.o ../../src/tools/ctp_parallel.cc
 
 # Subprojects
 .build-subprojects:
@@ -85,7 +85,7 @@ ${OBJECTDIR}/_ext/715944016/ctp_run.o: ../../src/tools/ctp_run.cc
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
-	${RM} ../../src/tools/ctp_run
+	${RM} ../../src/tools/ctp_parallel
 
 # Subprojects
 .clean-subprojects:

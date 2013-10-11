@@ -13,9 +13,9 @@ class CtpParallel : public JobApplication
 {
 public:
 
-    string  ProgramName() { return "ctp_run"; }    
+    string  ProgramName() { return "ctp_parallel"; }    
 
-    void    HelpText(ostream &out) { out <<"Runs charge transport calculators"<< endl; }
+    void    HelpText(ostream &out) { out <<"Runs job-based heavy-duty calculators"<< endl; }
     void    HelpText() { };
 
     void    Initialize();

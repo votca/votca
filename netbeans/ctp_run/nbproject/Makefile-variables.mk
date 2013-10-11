@@ -9,19 +9,19 @@ CND_DISTDIR=dist
 # Debug configuration
 CND_PLATFORM_Debug=GNU-Linux-x86
 CND_ARTIFACT_DIR_Debug=dist/Debug/GNU-Linux-x86
-CND_ARTIFACT_NAME_Debug=ctp_evaluate
-CND_ARTIFACT_PATH_Debug=dist/Debug/GNU-Linux-x86/ctp_evaluate
+CND_ARTIFACT_NAME_Debug=ctp_run
+CND_ARTIFACT_PATH_Debug=dist/Debug/GNU-Linux-x86/ctp_run
 CND_PACKAGE_DIR_Debug=dist/Debug/GNU-Linux-x86/package
-CND_PACKAGE_NAME_Debug=ctpevaluate.tar
-CND_PACKAGE_PATH_Debug=dist/Debug/GNU-Linux-x86/package/ctpevaluate.tar
+CND_PACKAGE_NAME_Debug=ctprun.tar
+CND_PACKAGE_PATH_Debug=dist/Debug/GNU-Linux-x86/package/ctprun.tar
 # Release configuration
 CND_PLATFORM_Release=GNU-Linux-x86
 CND_ARTIFACT_DIR_Release=dist/Release/GNU-Linux-x86
-CND_ARTIFACT_NAME_Release=ctp_evaluate
-CND_ARTIFACT_PATH_Release=dist/Release/GNU-Linux-x86/ctp_evaluate
+CND_ARTIFACT_NAME_Release=ctp_run
+CND_ARTIFACT_PATH_Release=dist/Release/GNU-Linux-x86/ctp_run
 CND_PACKAGE_DIR_Release=dist/Release/GNU-Linux-x86/package
-CND_PACKAGE_NAME_Release=ctpevaluate.tar
-CND_PACKAGE_PATH_Release=dist/Release/GNU-Linux-x86/package/ctpevaluate.tar
+CND_PACKAGE_NAME_Release=ctprun.tar
+CND_PACKAGE_PATH_Release=dist/Release/GNU-Linux-x86/package/ctprun.tar
 #
 # include compiler specific variables
 #

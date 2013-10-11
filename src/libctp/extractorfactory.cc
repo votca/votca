@@ -35,13 +35,13 @@ namespace votca { namespace ctp {
 
 void ExtractorFactory::RegisterAll(void)
 {	
-        Extractors().Register<EnergyExtractor>             ("energy");
-        Extractors().Register<IntegralsExtractor>          ("integrals");
-        Extractors().Register<RatesExtractor>              ("rates");
-        Extractors().Register<OccupationsExtractor>        ("occupations");
-        Extractors().Register<TrajExtractor>               ("trajectory");
-        Extractors().Register<SegmentsExtractor>           ("segments");
-        Extractors().Register<PairsExtractor>              ("pairs");
+        Extractors().Register<EnergyExtractor>             ("energy2xml");
+        Extractors().Register<IntegralsExtractor>          ("integrals2xml");
+        Extractors().Register<RatesExtractor>              ("rates2xml");
+        Extractors().Register<OccupationsExtractor>        ("occupations2xml");
+        Extractors().Register<TrajExtractor>               ("trajectory2pdb");
+        Extractors().Register<SegmentsExtractor>           ("segments2xml");
+        Extractors().Register<PairsExtractor>              ("pairs2xml");
 }
 
 }}

@@ -1,5 +1,5 @@
 <options>
-	<xqmultipole>
+	<xqmultipole help="Evaluates polarization contribution based on the Thole model">
 		<multipoles>system.xml</multipoles>
 		<control>
 			<job_file>jobwriter.mps.single.xml</job_file>   

@@ -1,8 +1,8 @@
 <suite>
 	<executables>
 		<executable> <key>ctp_map</key>   <value>ctp_map</value>        </executable>
-		<executable> <key>ctp_run</key>   <value>ctp_evaluate</value>   </executable>
-		<executable> <key>ctp_job</key>   <value>ctp_run</value>	    </executable>
+		<executable> <key>ctp_run</key>   <value>ctp_run</value>   		</executable>
+		<executable> <key>ctp_job</key>   <value>ctp_parallel</value>	</executable>
 		<executable> <key>ctp_app</key>   <value>ctp_tools</value>      </executable>
 		<executable> <key>ctp_state</key> <value>ctp_dump</value>       </executable>
 		<executable> <key>kmc_run</key>   <value>kmc_run</value>        </executable>
@@ -19,7 +19,7 @@
 		<description>Maps an MD topology onto a combined MD/QM topology</description>
 		<execute>{ctp_map} -c {gro} -t {tpr} -s {xml} -f {sql}</execute> 
 		<requires></requires>
-		<verify>{ctp_state} -f {sql} -e trajectory</verify>
+		<verify>{ctp_state} -f {sql} -e trajectory2pdb</verify>
 		<output>
 			extract.trajectory_md.pdb
 			extract.trajectory_qm.pdb
@@ -38,7 +38,7 @@
 		<description>Loads vacuum IPs/EAs and reorganization energies</description>
 		<execute>{ctp_run} -e {name} -o {name}.xml -f {sql}</execute> 
 		<requires>map</requires>
-		<verify>{ctp_state} -f {sql} -e energy</verify>
+		<verify>{ctp_state} -f {sql} -e energy2xml</verify>
 		<output>extract.energy.xml</output>
 	</test>
 	<test>
@@ -46,7 +46,7 @@
 		<description>Computes electrostatic and induction contributions</description>
 		<execute>{ctp_run} -e {name} -o {name}.xml -f {sql} -t {nthreads}</execute> 
 		<requires>map</requires>
-		<verify>{ctp_state} -f {sql} -e energy</verify>
+		<verify>{ctp_state} -f {sql} -e energy2xml</verify>
 		<output>extract.energy.xml</output>
 	</test>
 	<test>
@@ -54,7 +54,7 @@
 		<description>Generates the neighbor-list for state hopping</description>
 		<execute>{ctp_run} -e {name} -o {name}.xml -f {sql}</execute> 
 		<requires>map</requires>
-		<verify>{ctp_state} -f {sql} -e pairs</verify>
+		<verify>{ctp_state} -f {sql} -e pairs2xml</verify>
 		<output>extract.pairs.xml</output>
 	</test>
 	<test>
@@ -62,7 +62,7 @@
 		<description>Calculates outer-sphere reorganization energies</description>
 		<execute>{ctp_run} -e {name} -o {name}.xml -f {sql} -t {nthreads}</execute> 
 		<requires>neighborlist</requires>
-		<verify>{ctp_state} -f {sql} -e pairs</verify>
+		<verify>{ctp_state} -f {sql} -e pairs2xml</verify>
 		<output>extract.pairs.xml</output>
 	</test>
 	<test>
@@ -70,7 +70,7 @@
 		<description>Calculates semi-empirical transfer integrals for charge hopping</description>
 		<execute>{ctp_run} -e {name} -o {name}.xml -f {sql} -t {nthreads}</execute> 
 		<requires>neighborlist</requires>
-		<verify>{ctp_state} -f {sql} -e integrals</verify>
+		<verify>{ctp_state} -f {sql} -e integrals2xml</verify>
 		<output>extract.integrals.xml</output>
 	</test>
 	<test>
@@ -110,7 +110,7 @@
 		<description>Evaluates charge transfer rates for molecular pairs</description>
 		<execute>{ctp_run} -e {name} -o {name}.xml -f {sql}</execute> 
 		<requires>einternal emultipole izindo</requires>
-		<verify>{ctp_state} -f {sql} -e rates</verify>
+		<verify>{ctp_state} -f {sql} -e rates2xml</verify>
 		<output>extract.rates.xml</output>
 	</test>
 	<test>
@@ -118,7 +118,7 @@
 		<description>Simulates the drift-diffusion of a single carrier</description>
 		<execute>{kmc_run} -e {name} -o {name}.xml -f {sql}</execute>
 		<requires>rates</requires>
-		<verify>{ctp_state} -f {sql} -e occupations</verify>
+		<verify>{ctp_state} -f {sql} -e occupations2xml</verify>
 		<output>extract.occupations.xml</output>
 	</test>
 	<test>
