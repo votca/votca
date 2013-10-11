@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _PROPERTY_H
-#define	_PROPERTY_H
+#ifndef _VOTCA_TOOLS_PROPERTY_H
+#define	_VOTCA_TOOLS_PROPERTY_H
 
 #include <map>
 #include <string>
@@ -31,10 +31,6 @@
 #include "tokenizer.h"
 
 namespace votca { namespace tools {
-
-using namespace std;
-
-enum formats{ formatXML, formatTXT, formatLOG, formatTEX, formatT2T, formatHLP };
     
 /**
  * \brief class to manage program options with xml serialization functionality
@@ -193,11 +189,15 @@ public:
     /**
      * \brief stores output format
      */    
-    static int GetFormat(){return _format;}; 
+    static int outputFormat(){return _format;}; 
     /**
      * \brief stores output level
      */    
-    static int GetOutputLevel(){return _output_level;}; 
+    static int outputLevel(){return _output_level;}; 
+    /**
+     * \brief stores output indentation
+     */        
+    static int outputIndent(){return _output_indent;}; 
      
 private:        
     map<string,Property*> _map;
@@ -210,6 +210,7 @@ private:
 
     static const int _format; 
     static const int _output_level;    
+    static const int _output_indent;    
 
 };
   
@@ -335,53 +336,6 @@ inline void throwRuntimeError(string message) {
     
 }
 
-/**
-  * \brief Manipulates the format state of the output stream 
-  *
-  * Changes the state of the output stream. Property class formats 
-  * its output according to this state (XML, TXT, T2T, etc)
-  */
-class PropertyFormat {
-    
-public:
-    explicit PropertyFormat(formats fmt, int level = 0 ) : _fmt(fmt){}    
-    friend std::ostream& operator << (std::ostream& os, const PropertyFormat& pf)
-    {
-        os.iword(Property::GetFormat()) = pf._fmt;
-        os.iword(Property::GetOutputLevel()) = pf._level;
-       return os;
-    }
-private:
-    int _fmt; 
-    int _level;
-    int _indent;
-};
-
-extern PropertyFormat XML;
-extern PropertyFormat TXT;
-extern PropertyFormat T2T;
-extern PropertyFormat LOG;
-extern PropertyFormat TEX;
-extern PropertyFormat HLP;
-
-/**
-  * \brief Manipulates the XML-level state of the output stream 
-  *
-  * forces property object to output nodes starting from a certain level 
-  */
-class setlevel {
-    
-public:
-    explicit setlevel(int level) : _level(level){}    
-    friend std::ostream& operator << (std::ostream& os, const setlevel& pl)
-    {
-        os.iword(Property::GetOutputLevel()) = pl._level;
-        return os;
-    }
-private:
-    int _level;     
-};
-
 }}
 
-#endif	/* _PROPERTY_H */
+#endif	/* _VOTCA_TOOLS_PROPERTY_H */

@@ -27,23 +27,17 @@
 
 #include <votca/tools/property.h>
 #include <votca/tools/tokenizer.h>
+#include <votca/tools/propertyformat.h>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
 
 namespace votca { namespace tools {
 
-PropertyFormat XML(formatXML);
-PropertyFormat TXT(formatTXT);
-PropertyFormat T2T(formatT2T);
-PropertyFormat LOG(formatLOG);
-PropertyFormat TEX(formatTEX);
-PropertyFormat HLP(formatHLP);
-
-// ostream modifier defines the output format
+// ostream modifier defines the output format, level, indentation
 const int Property::_format = std::ios_base::xalloc();  
-// ostream modifier defines the output level
 const int Property::_output_level = std::ios_base::xalloc();  
+const int Property::_output_indent = std::ios_base::xalloc();  
    
 Property &Property::get(const string &key)
 {
@@ -113,7 +107,6 @@ void PrintNodeTXT(std::ostream &out, Property &p, const int start_level, int lev
     
     list<Property>::iterator iter;
     
-    //cout << "LEVEL: " << level << " " << start_level << endl;
     if((p.value() != "") || p.HasChilds() ) {
         
         if ( level >= start_level ) {
@@ -144,10 +137,6 @@ void PrintNodeXML(std::ostream &out, Property &p, const int start_level, int lev
     map<string,string>::iterator ia;
     bool _endl = true;
     
-    //cout << p._name << " Attributes: " << p._attributes.size() << endl;
-    
-    //if( p.HasChilds() || p.value() != "" ) {
-        
         // print starting only from the start_level (the first node (level 0) can be <> </>)
         if ( level >= start_level )  {
             // print the node name
@@ -274,14 +263,14 @@ void PrintNodeHLP(std::ostream &out, Property &p, const int start_level, int lev
 
     list<Property>::iterator iter;       
     string head_name;
-    string help;
+    string help("");
     string fmt("t|%1%%|15t|%2%%|40t|%3%%|55t|%4%\n");
     
     // if this is the head node, print the header
     if ( level == start_level ) {
             head_name = p.name();
             if ( p.hasAttribute("help") ) {
-                help = p.getAttribute<string>("help");            
+                if  ( p.hasAttribute("help") ) help = p.getAttribute<string>("help");           
                 out << boost::format(" %1%: %|18t| %2%\n") % head_name % help;
             }
             offset=0;
@@ -339,28 +328,28 @@ std::ostream &operator<<(std::ostream &out, Property& p)
     if(sentry)
     {
         // level from which to start node output
-        int _level = out.iword(p.GetOutputLevel());
+        int _level = out.iword(p.outputLevel());
         
-        switch(out.iword(p.GetFormat()))
+        switch(out.iword(p.outputFormat()))
         {
         default:
             PrintNodeTXT(out, p, _level);
-        case formatXML:
+            case PropertyFormat::XML:
             PrintNodeXML(out, p, _level);
             break;
-        case formatTXT:
+        case PropertyFormat::TXT:
             PrintNodeTXT(out, p, _level);
             break;
-        case formatT2T:
+        case PropertyFormat::T2T:
             PrintNodeT2T(out, "", p);
             break;
-        case formatLOG:
+        case PropertyFormat::LOG:
             PrintNodeLOG(out, "", p);
             break;
-        case formatTEX:            
+        case PropertyFormat::TEX:            
             PrintNodeTEX(out, p, _level);
             break;
-        case formatHLP:            
+        case PropertyFormat::HLP:            
             PrintNodeHLP(out, p, _level);
             break;
         }
@@ -369,12 +358,6 @@ std::ostream &operator<<(std::ostream &out, Property& p)
 
     return out;
 };
-
-//{
-//      Property::PrintNode(out, "", p);
-      //Property::PrintNodeXML(out, "", p, "");
-//      return out;
-//}
 
 static void start_hndl(void *data, const char *el, const char **attr)
 {
