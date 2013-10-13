@@ -50,13 +50,6 @@ class Property {
     
     /// \brief outputs the property to the ostream
     friend std::ostream &operator<<(std::ostream &out, Property& p);
-    /// \brief output the content in the xml format
-    friend void PrintNodeXML(std::ostream &out, Property &p, const int start_level=1, int level=0, string prefix="", string offset="");
-    /// \brief output the content in the text format
-    friend void PrintNodeTXT(std::ostream &out, Property &p, const int start_level=1, int level=0, string prefix="", string offset="");
-    /// \brief output the content in the tex format
-    friend void PrintNodeTEX(std::ostream &out, Property &p, const int start_level=1, int level=0, string prefix="", string offset="");
-
    
 public:
     Property() : _path("") {}
@@ -158,14 +151,6 @@ public:
     template<typename T>
     T getAttribute(const string &attribute);
     /**
-     * \brief return attribute as type
-     *
-     * returns an attribute after type conversion, e.g.
-     * p.getAttribute<int>() returns an integer
-     */
-    template<typename T>
-    T getAttribute( std::map<string,string>::iterator it);
-    /**
      * \brief set an attribute
      */
     template<typename T>
@@ -178,14 +163,28 @@ public:
      * \brief return true if an attribute exists
      */
     bool hasAttribute(const string &attribute);
+    /** for iterator-based access of Attributes */
+    typedef std::map<string,string>::iterator AttributeIterator;
     /**
-     * \brief returns and iterator to an attribute
+     * \brief returns an iterator to an attribute
      */    
-    std::map<string,string>::iterator findAttribute(const string &attribute){ return _attributes.find(attribute); }
+    AttributeIterator findAttribute(const string &attribute){ return _attributes.find(attribute); }
     /**
-     * \brief returns and iterator to an attribute
+     * \brief returns an iterator to the first attribute
      */    
-    std::map<string,string>::iterator lastAttribute(){ return _attributes.end(); }   
+    AttributeIterator firstAttribute(){ return _attributes.end(); }   
+    /**
+     * \brief returns an iterator to the last attribute
+     */    
+    AttributeIterator lastAttribute(){ return _attributes.end(); }   
+    /**
+     * \brief return attribute as type
+     *
+     * returns an attribute after type conversion, e.g.
+     * p.getAttribute<int>() returns an integer
+     */
+    template<typename T>
+    T getAttribute( AttributeIterator it);    
     /**
      * \brief stores output format
      */    
