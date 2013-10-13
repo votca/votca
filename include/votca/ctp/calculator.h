@@ -120,12 +120,16 @@ inline void Calculator::UpdateWithDefaults(votca::tools::Property *options) {
     votca::tools::Property defaults, _defaults;
     votca::tools::load_property_from_xml(_defaults, xmlFile);
     defaults = _defaults.get( "options." + id );
+    
+    //std::cout << _options;
+    //std::cout << defaults;
       
     // if a value not given or a tag not present, provide default values
     AddDefaults( _options, defaults );   
    
+     
     // output calculator options
-    std::string indent("        o  "); int level = 0;
+    std::string indent("          "); int level = 1;
     votca::tools::PropertyIOManipulator IndentedText(votca::tools::PropertyIOManipulator::TXT,level,indent);
     if ( tools::globals::verbose ) { 
         std::cout << "\n... ... options\n" << IndentedText << _options << "... ... options\n" << std::flush;
@@ -138,11 +142,14 @@ inline void Calculator::AddDefaults( votca::tools::Property &p, votca::tools::Pr
     for(std::list<votca::tools::Property>::iterator iter = defaults.begin(); iter!=defaults.end(); ++iter) {
         std::string name =  (*iter).path() + "." + (*iter).name();
 
+        votca::tools::Property rootp = *p.begin();
         if  ( (*iter).hasAttribute("default") ) {
-            if ( p.exists( name ) ) {
-                if ( p.value() == "" ) p.value() = (*iter).value();
+            if ( rootp.exists( name ) ) {
+                //std::cout << "E " << rootp.value() << std::endl;
+                if ( rootp.HasChilds()) rootp.value() = (*iter).value();
             } else {
-                p.add((*iter).name(), (*iter).value());
+                //std::cout << "N " << (*iter).name() << std::endl;
+                rootp.add((*iter).name(), (*iter).value());
             }
         }
         AddDefaults( p, (*iter) );

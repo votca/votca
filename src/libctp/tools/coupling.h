@@ -44,7 +44,7 @@ private:
     string      _orbA, _orbB, _orbAB;
     string      _logA, _logB, _logAB;
     int         _levA, _levB;
-    int         _trim;
+    int         _trimA, _trimB;
     string      _qmpackageXML;
     double      _degeneracy;
     
@@ -57,26 +57,31 @@ void Coupling::Initialize(Property* options)
     
    // update options with the VOTCASHARE defaults   
     UpdateWithDefaults( options );
-    std::string key = "options." + Identify();
+    std::string key = "options." + Identify();    
 
+    
+    _degeneracy = options->get(key + ".degeneracy").as<double> ();
+    _qmpackageXML = options->get(key + ".package").as<string> ();
+            
     _orbA  = options->get(key + ".moleculeA.orbitals").as<string> ();
     _orbB  = options->get(key + ".moleculeB.orbitals").as<string> ();
-    _orbAB = options->get(key + ".moleculeAB.orbitals").as<string> ();
+    _orbAB = options->get(key + ".dimerAB.orbitals").as<string> ();
 
     _logA  = options->get(key + ".moleculeA.log").as<string> ();
     _logB  = options->get(key + ".moleculeB.log").as<string> ();
-    _logAB = options->get(key + ".moleculeAB.log").as<string> ();
+    _logAB = options->get(key + ".dimerAB.log").as<string> ();
 
-    _levA  = options->get(key + ".moleculeA.lev").as<int> ();
-    _levB  = options->get(key + ".moleculeB.lev").as<int> ();
-    
-    
+    _levA  = options->get(key + ".moleculeA.levels").as<int> ();
+    _levB  = options->get(key + ".moleculeB.levels").as<int> ();
+ 
+    _trimA  = options->get(key + ".moleculeA.trim").as<int> ();
+    _trimB  = options->get(key + ".moleculeB.trim").as<int> ();
 }
 
 
 
 bool Coupling::Evaluate() {
-    
+
     LOG( logINFO, _log ) << "Loading orbitals " << _orbA << flush;
     LOG( logINFO, _log ) << "Loading orbitals " << _orbB << flush;
     LOG( logINFO, _log ) << "Loading orbitals " << _orbAB << flush;

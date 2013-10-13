@@ -13,18 +13,19 @@
 		<log help="Log file of molecule A" default="A.log">A.log</log>
 		<orbitals help="Orbitals file" default="A.orb">A.orb</orbitals>
 		<levels help="Output HOMO, ..., HOMO-levels; LUMO, ..., LUMO+levels" default="3">3</levels>
+		<trim help="" default="2" >2</trim>
 	</moleculeA>
 
-	<moleculeA>
+	<moleculeB>
 		<log help="Log file of molecule B" default="B.log">3</log>
 		<orbitals help="Orbitals file" default="B.orb">3</orbitals>
 		<levels help="Output HOMO, ..., HOMO-levels; LUMO, ..., LUMO+levels" default="3">3</levels>
-	</moleculeA>
+		<trim help="" default="2" >2</trim>
+	</moleculeB>
 
 	<dimerAB>
 		<log help="Log file of dimer AB" default="AB.log">3</log>
 		<orbitals help="Orbitals file" default="A.orb">3</orbitals>
-		<trim help="" default="2" >2</trim>
 	</dimerAB>
 
 </coupling>
