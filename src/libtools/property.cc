@@ -27,10 +27,6 @@
 
 #include <votca/tools/property.h>
 #include <votca/tools/tokenizer.h>
-#include <votca/tools/propertyformat.h>
-
-#include <boost/algorithm/string.hpp>
-#include <boost/format.hpp>
 
 namespace votca { namespace tools {
 
