@@ -22,7 +22,7 @@
 #define VOTCA_CTP_CALCULATOR_H
 
 #include <votca/tools/property.h>
-#include <votca/tools/propertyformat.h>
+#include <votca/tools/propertyiomanipulator.h>
 #include <votca/tools/globals.h>
 
 namespace votca { namespace ctp {
@@ -125,8 +125,8 @@ inline void Calculator::UpdateWithDefaults(votca::tools::Property *options) {
     AddDefaults( _options, defaults );   
    
     // output calculator options
-    int indent = 10; int level = 0;
-    votca::tools::PropertyFormat IndentedText(votca::tools::PropertyFormat::TXT,level,indent);
+    std::string indent("        o  "); int level = 0;
+    votca::tools::PropertyIOManipulator IndentedText(votca::tools::PropertyIOManipulator::TXT,level,indent);
     if ( tools::globals::verbose ) { 
         std::cout << "\n... ... options\n" << IndentedText << _options << "... ... options\n" << std::flush;
     }

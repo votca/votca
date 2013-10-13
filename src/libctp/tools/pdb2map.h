@@ -283,8 +283,10 @@ bool PDB2Map::Evaluate() {
             pfragment->add("mpoles", mapQmAtoms.str());
             pfragment->add("weights", mapWeight.str());
             pfragment->add("localframe", mapFrame.str());
-                    
-            cout << setlevel(1) << XML << record;
+
+            votca::tools::PropertyIOManipulator iomXML(votca::tools::PropertyIOManipulator::XML, 1, "");
+
+            cout << iomXML << record;
             
             map2pdbFile 
                  << "\t\t\t\t<fragment>\n"

@@ -20,7 +20,7 @@
 
 #include <votca/ctp/ctpapplication.h>
 #include <votca/ctp/version.h>
-#include <votca/tools/propertyformat.h>
+#include <votca/tools/propertyiomanipulator.h>
 #include <boost/format.hpp>
 
 namespace votca { namespace ctp {
@@ -77,7 +77,8 @@ void CtpApplication::PrintDescription(std::ostream &out, string name,  HelpOutpu
                 break;
                 
             case _helpLong:
-                out << votca::tools::HLP << votca::tools::setlevel(2) << options;
+                votca::tools::PropertyIOManipulator iom(votca::tools::PropertyIOManipulator::HLP, 2, "");
+                out << iom << options;
         }
 
     } catch (std::exception &error) {

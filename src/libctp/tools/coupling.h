@@ -40,8 +40,14 @@ public:
  
 
 private:
-    string      _input_file;
-    string      _output_file;
+    
+    string      _orbA, _orbB, _orbAB;
+    string      _logA, _logB, _logAB;
+    int         _levA, _levB;
+    int         _trim;
+    string      _qmpackageXML;
+    double      _degeneracy;
+    
     Logger      _log;
 
 };
@@ -49,9 +55,20 @@ private:
 void Coupling::Initialize(Property* options) 
 {
     
-    // options reading
-    _input_file  = options->get("options.pdb2map.file").as<string> ();
-    _output_file = options->get("options.pdb2map.outfile").as<string> ();
+   // update options with the VOTCASHARE defaults   
+    UpdateWithDefaults( options );
+    std::string key = "options." + Identify();
+
+    _orbA  = options->get(key + ".moleculeA.orbitals").as<string> ();
+    _orbB  = options->get(key + ".moleculeB.orbitals").as<string> ();
+    _orbAB = options->get(key + ".moleculeAB.orbitals").as<string> ();
+
+    _logA  = options->get(key + ".moleculeA.log").as<string> ();
+    _logB  = options->get(key + ".moleculeB.log").as<string> ();
+    _logAB = options->get(key + ".moleculeAB.log").as<string> ();
+
+    _levA  = options->get(key + ".moleculeA.lev").as<int> ();
+    _levB  = options->get(key + ".moleculeB.lev").as<int> ();
     
     
 }
@@ -60,9 +77,11 @@ void Coupling::Initialize(Property* options)
 
 bool Coupling::Evaluate() {
     
-    LOG( logINFO, _log ) << "Loading" << _input_file << flush;
+    LOG( logINFO, _log ) << "Loading orbitals " << _orbA << flush;
+    LOG( logINFO, _log ) << "Loading orbitals " << _orbB << flush;
+    LOG( logINFO, _log ) << "Loading orbitals " << _orbAB << flush;
     
-    cout << _log;
+    std::cout << _log;
     
     return true;
 }

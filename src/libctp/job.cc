@@ -1,3 +1,4 @@
+#include <votca/tools/propertyiomanipulator.h>
 #include <votca/ctp/job.h>
 #include <boost/format.hpp>
 #include <boost/algorithm/string.hpp> 
@@ -110,6 +111,7 @@ void Job::Reset() {
     
 void Job::ToStream(ofstream &ofs, string fileformat) {
     
+    votca::tools::PropertyIOManipulator iomXML(votca::tools::PropertyIOManipulator::XML, 0, "\t\t");
     
     if (fileformat == "xml") {
         string tab = "\t";
@@ -117,7 +119,8 @@ void Job::ToStream(ofstream &ofs, string fileformat) {
         ofs << tab << "<job>\n";
         ofs << tab << tab << (format("<id>%1$d</id>\n") % _id).str();
         ofs << tab << tab << (format("<tag>%1$s</tag>\n") % _tag).str();
-        PrintNodeXML(ofs, _input, 0, 0, "", "\t\t");
+        //PropertyFormat::PrintNodeXML(ofs, _input, 0, 0, "", "\t\t");
+        ofs << iomXML << _input;
         //ofs << tab << tab << (format("<input>%1$s</input>\n") % _input).str();
         ofs << tab << tab << (format("<status>%1$s</status>\n") % ConvertStatus(_status)).str();
 
@@ -131,7 +134,8 @@ void Job::ToStream(ofstream &ofs, string fileformat) {
             ofs << tab << tab << (format("<time>%1$s</time>\n") 
                 % _time).str();
         if (_has_output)
-            PrintNodeXML(ofs, _output, 0, 0, "",  "\t\t");
+            //PropertyFormat::PrintNodeXML(ofs, _output, 0, 0, "",  "\t\t");
+            ofs << iomXML << _output;
         if (_has_error)
             ofs << tab << tab << (format("<error>%1$s</error>\n")
                 % _error).str();
