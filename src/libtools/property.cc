@@ -382,7 +382,6 @@ std::ostream &operator<<(std::ostream &out, Property& p)
         default:
             PrintNodeTXT(out, p, _level);
             case PropertyIOManipulator::XML:
-                cout << "PRINTING XML" << endl;
             PrintNodeXML(out, p, _level, 0, "", _indentation);
             break;
         case PropertyIOManipulator::TXT:
