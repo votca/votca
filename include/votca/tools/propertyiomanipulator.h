@@ -1,0 +1,70 @@
+/* 
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+#ifndef _VOTCA_TOOLS_PROPERTY_IO_MANIPULATOR_H
+#define	_VOTCA_TOOLS_PROPERTY_IO_MANIPULATOR_H
+
+#include <iostream>
+
+#include "property.h"
+
+namespace votca { namespace tools {
+    
+/**
+  * \brief Manipulates the format state of the output stream 
+  *
+  * Changes the state of the output stream. Property class reads this state  
+  * and formats its output according to this state (XML, TXT, T2T, etc)
+  */
+class PropertyIOManipulator {
+    
+public:
+    
+    enum Type{ XML, HLP, TEX, TXT };    
+    
+    explicit PropertyIOManipulator( Type type = XML, int level = 0, std::string indentation = "" ) :
+             _type(type), _level(level), _indentation(indentation)  { ; } 
+
+    friend std::ostream& operator << (std::ostream& os, PropertyIOManipulator& piom )
+    { 
+        os.pword( Property::getIOindex() ) = &piom;
+        return os;
+    }
+
+    const Type        &getType(){return _type;}
+          void         setType( Type type ){ _type = type; }
+    const int         &getLevel (){return _level; }
+          void         setLevel (int level){ _level = level; }
+    const std::string &getIndentation(){return _indentation;}
+          std::string  setIndentation(std::string indentation){_indentation = indentation;}
+
+private:
+    Type _type;
+    int _level;
+    std::string _indentation;        
+};
+
+extern PropertyIOManipulator XML;
+extern PropertyIOManipulator TXT;
+extern PropertyIOManipulator TEX;
+extern PropertyIOManipulator HLP;
+
+
+}}
+
+
+#endif	/* _VOTCA_TOOLS_PROPERTY_FORMAT_H */

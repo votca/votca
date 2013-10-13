@@ -185,19 +185,9 @@ public:
      */
     template<typename T>
     T getAttribute( AttributeIterator it);    
-    /**
-     * \brief stores output format
-     */    
-    static int outputFormat(){return _format;}; 
-    /**
-     * \brief stores output level
-     */    
-    static int outputLevel(){return _output_level;}; 
-    /**
-     * \brief stores output indentation
-     */        
-    static int outputIndent(){return _output_indent;}; 
-     
+ 
+    static int getIOindex(){return IOindex;};
+    
 private:        
     map<string,Property*> _map;
     map<string,string> _attributes;
@@ -207,10 +197,8 @@ private:
     string _value;
     string _path;
 
-    static const int _format; 
-    static const int _output_level;    
-    static const int _output_indent;    
-
+    static const int IOindex; 
+ 
 };
   
 
@@ -334,6 +322,12 @@ inline void Property::setAttribute(const string &attribute, const T &value)
 inline void throwRuntimeError(string message) {
     
 }
+
+    static void PrintNodeTXT(std::ostream &out, Property &p, const int start_level, int level=0, string prefix="", string offset="");
+    static void PrintNodeXML(std::ostream &out, Property &p, const int start_level, int level=0, string prefix="", string offset="");
+    static void PrintNodeTEX(std::ostream &out, Property &p, const int start_level, int level=0, string prefix="", string offset="");
+    static void PrintNodeHLP(std::ostream &out, Property &p, const int start_level, int level=0, string prefix="",  string offset="");    
+
 
 }}
 

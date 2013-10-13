@@ -18,7 +18,7 @@
 #include <iostream>
 #include <boost/program_options.hpp>
 #include <votca/tools/property.h>
-#include <votca/tools/propertyformat.h>
+#include <votca/tools/propertyiomanipulator.h>
 #include <list>
 
 using namespace std;
@@ -82,13 +82,11 @@ int main(int argc, char** argv)
 
     Property p;
     
-    map<string, PropertyFormat* > _mformat;
-    map<string, PropertyFormat* >::iterator it;
-     
+    map<string, PropertyIOManipulator* > _mformat;
+    map<string, PropertyIOManipulator* >::iterator it;
+
     _mformat["XML"] = &XML;
     _mformat["TXT"] = &TXT;
-    _mformat["LOG"] = &LOG;
-    _mformat["T2T"] = &T2T;
     _mformat["TEX"] = &TEX;
     _mformat["HLP"] = &HLP;
     
@@ -96,13 +94,17 @@ int main(int argc, char** argv)
     
     it = _mformat.find( format );
     if ( it != _mformat.end() ) {
-        cout << *(_mformat.find( format )->second) << setlevel(level) << p ;
+        PropertyIOManipulator *piom = _mformat.find( format )->second;
+        piom->setLevel(level);
+        piom->setIndentation("");
+        cout << *piom  << p ;
     } else {
         cout << "format " << format << " not supported \n";
         cout << desc << endl;
         return -1;
     }
-    
+
+    //PropertyIOManipulator XML(PropertyIOManipulator::XML,0,"---"); 
     //cout << XML << p;
     //cout << TXT << p;
     //cout << T2T << p;
