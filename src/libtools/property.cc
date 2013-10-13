@@ -260,15 +260,17 @@ void PrintNodeHLP(std::ostream &out, Property &p, const int start_level, int lev
 
     list<Property>::iterator iter;       
     string head_name;
-    string help("");
+    string _help("");
+    string _unit("");
+    string _default("");
     string fmt("t|%1%%|15t|%2%%|40t|%3%%|55t|%4%\n");
     
     // if this is the head node, print the header
     if ( level == start_level ) {
             head_name = p.name();
             if ( p.hasAttribute("help") ) {
-                if  ( p.hasAttribute("help") ) help = p.getAttribute<string>("help");           
-                out << boost::format(" %1%: %|18t| %2%\n") % head_name % help;
+                if  ( p.hasAttribute("help") ) _help = p.getAttribute<string>("help");           
+                out << boost::format(" %1%: %|18t| %2%\n") % head_name % _help;
             }
             offset=0;
             //out << boost::format(fmt) % "option" % "def" % "[un]" % "description";
@@ -279,11 +281,10 @@ void PrintNodeHLP(std::ostream &out, Property &p, const int start_level, int lev
             string ofmt;
             ofmt = "%|" + boost::lexical_cast<string>(offset) + fmt;
             //cout << ofmt << " " << fmt << endl;
-            string _unit("");
-            string _default("");
             
             if  ( p.hasAttribute("unit") ) _unit = p.getAttribute<string>("unit");
             if  ( p.hasAttribute("default") ) _default = p.getAttribute<string>("default") ;
+            if  ( p.hasAttribute("help") ) _help = p.getAttribute<string>("help") ;
             if ( !_unit.empty() ) _unit = "[" + _unit + "]";
             if ( !_default.empty() ) _default = "(" + _default + ")";
             
@@ -291,7 +292,7 @@ void PrintNodeHLP(std::ostream &out, Property &p, const int start_level, int lev
                     % p.name() 
                     % _default
                     % _unit
-                    % p.getAttribute<string>("help");
+                    % _help;
     }
     
     for(iter = p.begin(); iter != p.end(); ++iter) {
