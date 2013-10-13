@@ -22,6 +22,8 @@
 #define VOTCA_CTP_CALCULATOR_H
 
 #include <votca/tools/property.h>
+#include <votca/tools/propertyformat.h>
+#include <votca/tools/globals.h>
 
 namespace votca { namespace ctp {
 
@@ -88,7 +90,7 @@ public:
      * a default value exists in the corresponding XML file in VOTCASHARE
      * a tag is created and/or a default value is assigned to it
      */    
-    void UpdateWithDefaults(votca::tools::Property *options, bool verbose);
+    void UpdateWithDefaults(votca::tools::Property *options);
     
 protected:
 
@@ -102,7 +104,7 @@ protected:
 inline void Calculator::LoadDefaults() {
 }
 
-inline void Calculator::UpdateWithDefaults(votca::tools::Property *options , bool display=true) {
+inline void Calculator::UpdateWithDefaults(votca::tools::Property *options) {
     
     // copy options from the object supplied by the Application
     std::string id = Identify();
@@ -122,8 +124,12 @@ inline void Calculator::UpdateWithDefaults(votca::tools::Property *options , boo
     // if a value not given or a tag not present, provide default values
     AddDefaults( _options, defaults );   
    
-    if (display)
-        std::cout << "COMBINED \n" << _options;
+    // output calculator options
+    int indent = 10; int level = 0;
+    votca::tools::PropertyFormat IndentedText(votca::tools::PropertyFormat::TXT,level,indent);
+    if ( tools::globals::verbose ) { 
+        std::cout << "\n... ... options\n" << IndentedText << _options << "... ... options\n" << std::flush;
+    }
 }
 
 

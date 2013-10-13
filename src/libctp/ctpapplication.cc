@@ -20,6 +20,7 @@
 
 #include <votca/ctp/ctpapplication.h>
 #include <votca/ctp/version.h>
+#include <votca/tools/propertyformat.h>
 #include <boost/format.hpp>
 
 namespace votca { namespace ctp {
