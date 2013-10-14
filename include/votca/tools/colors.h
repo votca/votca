@@ -24,24 +24,31 @@ namespace votca { namespace tools {
 /**
     \brief class to store color codes     
 
-    Use: std::cout << tools::colors::red;  
+    How to use: std::cout << tools::colors::red << "Hello world";  
 */
 
-struct colors 
+namespace Colors 
 {
-        /// colors USE: std::cout << tools::colors::red
-        struct colors {
-             char normal[]      = { 0x1b, '[', '0', ';', '3', '9', 'm', 0 };
-             char black[]       = { 0x1b, '[', '0', ';', '3', '0', 'm', 0 };
-             char black_bold[]  = { 0x1b, '[', '1', ';', '3', '0', 'm', 0 };
-             char blue[]        = { 0x1b, '[', '0', ';', '3', '4', 'm', 0 };
-             char blue_bold[]   = { 0x1b, '[', '1', ';', '3', '4', 'm', 0 };
-             char blue_dark[]   = { 0x1b, '[', '2', ';', '3', '4', 'm', 0 };
+    static const char Reset[]       = { 0x1b, '[', '0', ';', '3', '9', 'm', 0 };
 
-             char red[]         = { 0x1b, '[', '0', ';', '3', '1', 'm', 0 };
-             char green[]       = { 0x1b, '[', '0', ';', '3', '1', 'm', 0 };
-             char red[]         = { 0x1b, '[', '0', ';', '3', '1', 'm', 0 };
-             char red[]         = { 0x1b, '[', '0', ';', '3', '1', 'm', 0 };
+    static const char Black[]       = { 0x1b, '[', '0', ';', '3', '0', 'm', 0 };
+    static const char Red[]         = { 0x1b, '[', '0', ';', '3', '1', 'm', 0 };
+    static const char Green[]       = { 0x1b, '[', '0', ';', '3', '2', 'm', 0 };
+    static const char Yellow[]      = { 0x1b, '[', '0', ';', '3', '3', 'm', 0 };
+    static const char Blue[]        = { 0x1b, '[', '0', ';', '3', '4', 'm', 0 };
+    static const char Magenta[]     = { 0x1b, '[', '0', ';', '3', '4', 'm', 0 };
+    static const char Cyan[]        = { 0x1b, '[', '0', ';', '3', '4', 'm', 0 };
+    static const char White[]       = { 0x1b, '[', '0', ';', '3', '4', 'm', 0 };
+
+    static const char BoldBlack[]   = { 0x1b, '[', '1', ';', '3', '0', 'm', 0 };
+    static const char BoldRed[]     = { 0x1b, '[', '1', ';', '3', '1', 'm', 0 };
+    static const char BoldGreen[]   = { 0x1b, '[', '1', ';', '3', '2', 'm', 0 };
+    static const char BoldYellow[]  = { 0x1b, '[', '1', ';', '3', '3', 'm', 0 };
+    static const char BoldBlue[]    = { 0x1b, '[', '1', ';', '3', '4', 'm', 0 };
+    static const char BoldMagenta[] = { 0x1b, '[', '1', ';', '3', '4', 'm', 0 };
+    static const char BoldCyan[]    = { 0x1b, '[', '1', ';', '3', '4', 'm', 0 };
+    static const char BoldWhite[]   = { 0x1b, '[', '1', ';', '3', '4', 'm', 0 };
+        
 };
 
 }}
