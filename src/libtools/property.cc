@@ -305,13 +305,14 @@ void PrintNodeTEX(std::ostream &out, Property &p, const int start_level, int lev
 
 void PrintNodeHLP(std::ostream &out, Property &p, const int start_level, int level, string prefix,  string offset) {
 
+     
     list<Property>::iterator iter;       
     string head_name;
     string _help("");
     string _unit("");
     string _default("");
     string fmt("t|%1%%|15t|%2%%|40t|%3%%|55t|%4%\n");
-    int _offset;
+    int _offset = level;
     
     // if this is the head node, print the header
     if ( level == start_level ) {
@@ -321,7 +322,7 @@ void PrintNodeHLP(std::ostream &out, Property &p, const int start_level, int lev
                 out << boost::format(" %1%: %|18t| %2%\n") % head_name % _help;
             }
             _offset=0;
-            //out << boost::format(fmt) % "option" % "def" % "[un]" % "description";
+            out << boost::format("%|3" + fmt) % "OPTION" % "DEFAULT" % "UNIT" % "DESCRIPTION";
     } 
     
     if ( level > start_level ) {
@@ -346,18 +347,14 @@ void PrintNodeHLP(std::ostream &out, Property &p, const int start_level, int lev
     for(iter = p.begin(); iter != p.end(); ++iter) {
         if(prefix=="") {
             _offset = level + 2; level++;
-            PrintNodeHLP(out, (*iter), start_level, level, prefix + (*iter).name(), offset);
+            PrintNodeHLP(out, (*iter), start_level, level, (*iter).name(), offset);
             _offset = level - 2; level--;
         } else {
             _offset = level + 2; level++;
             PrintNodeHLP(out, (*iter), start_level, level, prefix + "." + (*iter).name(), offset);
             _offset = level - 2; level--;
         }
-    }        
-
-    // if this is the head node, print the footer
-    if ( level == start_level ) {
-     }
+    }
 }
 
 std::ostream &operator<<(std::ostream &out, Property& p)
@@ -373,9 +370,14 @@ std::ostream &operator<<(std::ostream &out, Property& p)
         PropertyIOManipulator *pm = 
                 (PropertyIOManipulator*)out.pword(Property::getIOindex());
         
-        string _indentation = pm->getIndentation();
-        int    _level = pm->getLevel();
-        PropertyIOManipulator::Type _type = pm->getType();
+        string _indentation("");
+        int _level = 0;
+        PropertyIOManipulator::Type _type = PropertyIOManipulator::XML;
+        if (pm) {
+            _indentation = pm->getIndentation();
+            _level = pm->getLevel();
+            _type = pm->getType();
+        }         
             
          switch( _type )
         {
