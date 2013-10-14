@@ -67,6 +67,10 @@ int Application::Exec(int argc, char **argv)
 
         ParseCommandLine(argc, argv); // initialize general parameters & read input file
 
+        if (_op_vm.count("verbose")) {
+	  globals::verbose = true;
+        }
+
         if (_op_vm.count("help")) {
             ShowHelpText(cout);
             return 0;
@@ -75,10 +79,6 @@ int Application::Exec(int argc, char **argv)
         if(!EvaluateOptions()) {
             ShowHelpText(cout);
             return -1;
-        }
-
-        if (_op_vm.count("verbose")) {
-	  globals::verbose = true;
         }
 
         if(_continue_execution)
