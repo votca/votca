@@ -16,6 +16,7 @@
  */
 
 #include <stdlib.h>
+#include <votca/tools/propertyiomanipulator.h>
 #include <votca/kmc/kmccalculatorfactory.h>
 #include <votca/kmc/kmcapplication.h>
 #include <string>
@@ -76,7 +77,8 @@ void KMCApplication::PrintDescription(const char *name, const bool length)
                  cout << options.get("options."+string(name)).getAttribute<string>("help");
 
             } else { // long description of the calculator
-                cout << HLP << setlevel(2) << options;
+                votca::tools::PropertyIOManipulator iom(votca::tools::PropertyIOManipulator::HLP, 2, "");
+                cout << iom << options;
              }
             cout << endl;
         } catch(std::exception &error) {
