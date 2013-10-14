@@ -1,11 +1,11 @@
 <options>
 
-<diffusion help="Diffusion tensor calculation [OUTDATED]" label="sec:kmc">
+<diffusion help="Diffusion tensor calculation [DEPRECIATED]" label="sec:kmc">
 
-	<runtime help="Total time of the KMC run"></runtime>
-	<seed help="Seed to use"></seed>
-        <outputtime help="Output frequency"></outputtime>
-        <injection help="Name pattern for conjugated segments"></injection>
+	<runtime help="Total time of the KMC run" unit="?">0.1</runtime>
+	<seed help="Seed to use">123</seed>
+        <outputtime help="Output frequency" unit="?">0.001</outputtime>
+        <injection help="Name pattern for conjugated segments">DCV</injection>
 
 </diffusion>
 
