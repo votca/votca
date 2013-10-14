@@ -633,6 +633,8 @@ os.mkdir(TESTDIR)
 os.chdir(TESTDIR)
 
 # Copy test source (input) files
+if not os.path.exists('{base}/{source}'.format(base=BASEDIR, source=TESTSOURCE)):
+	xxquit("Source directory does not exist")
 sysexe('cp -r {base}/{source}/* .'.format(base=BASEDIR, source=TESTSOURCE))
 sysexe('cp {xmlshare}/*.xml .'.format(xmlshare=xmlshare_ctp))
 sysexe('cp {xmlshare}/*.xml .'.format(xmlshare=xmlshare_kmc))
