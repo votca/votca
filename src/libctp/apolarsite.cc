@@ -754,7 +754,7 @@ vector<APolarSite*> APS_FROM_MPS(string filename, int state, QMThread *thread) {
 
     if (thread == NULL)
     printf("\n... ... ... Reading %-25s -> N = %2d Q0(Sum) = %+1.7f ",
-                          filename.c_str(), poles.size(),  Q0_total);
+                          filename.c_str(), (int)poles.size(),  Q0_total);
     
     
     // Apply charge correction: Sum to closest integer

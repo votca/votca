@@ -17,10 +17,11 @@
  *
  */
 
+#include <votca/tools/globals.h>
+#include <votca/tools/propertyiomanipulator.h>
 
 #include <votca/ctp/ctpapplication.h>
 #include <votca/ctp/version.h>
-#include <votca/tools/propertyiomanipulator.h>
 #include <boost/format.hpp>
 
 namespace votca { namespace ctp {
@@ -82,7 +83,7 @@ void CtpApplication::PrintDescription(std::ostream &out, string name,  HelpOutpu
         }
 
     } catch (std::exception &error) {
-        out << _format % name % "Undocumented";
+        if ( tools::globals::verbose ) out << _format % name % "Undocumented";
     }    
 }
 
