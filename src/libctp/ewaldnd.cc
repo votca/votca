@@ -794,7 +794,7 @@ Property Ewald3DnD::GenerateOutputString() {
     next->add("QM0", (format("%1$d") % _polar_qm0.size()).str());
     next->add("MM1", (format("%1$d") % _polar_mm1.size()).str());
     next->add("MM2", (format("%1$d") % _polar_mm2.size()).str());
-    
+        
     return prop;
 }
     

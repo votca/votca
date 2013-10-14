@@ -597,6 +597,12 @@ if OPTIONS.compareonly:
 if OPTIONS.sourcedirectory == '':
 	progargs.print_help()
 	okquit("\nQuit here, because: No source directory set (option -s/--source)")
+if OPTIONS.sourcedirectory != '':
+	abs_sourcedir = os.path.join(BASEDIR, TESTSOURCE)
+	rel_sourcedir = TESTSOURCE
+	if not os.path.exists(abs_sourcedir):
+		xxquit("Source directory '{src}' does not exist".format(src=abs_sourcedir))
+	
 suite.SelectTests(OPTIONS.execute)
 
 # Environment tests
@@ -633,9 +639,7 @@ os.mkdir(TESTDIR)
 os.chdir(TESTDIR)
 
 # Copy test source (input) files
-if not os.path.exists('{base}/{source}'.format(base=BASEDIR, source=TESTSOURCE)):
-	xxquit("Source directory does not exist")
-sysexe('cp -r {base}/{source}/* .'.format(base=BASEDIR, source=TESTSOURCE))
+sysexe('cp -r {src}/* .'.format(src=abs_sourcedir))
 sysexe('cp {xmlshare}/*.xml .'.format(xmlshare=xmlshare_ctp))
 sysexe('cp {xmlshare}/*.xml .'.format(xmlshare=xmlshare_kmc))
 
