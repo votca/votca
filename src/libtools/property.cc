@@ -319,8 +319,18 @@ void PrintNodeHLP(std::ostream &out, Property &p, const int start_level, int lev
     string _unit("");
     string _default("");
     string _name("");
-    string fmt( "t|%1%%|15t|%2%%|40t|%3%%|55t|%4%\n");
-    
+    string fmt( "t|%1%%|15t|\033[34m%2%\033[34m%|40t|\033[32m%3%%|55t|\033[0m%4%\n");
+/*
+#define RESET   "\033[0m"
+#define BLACK   "\033[30m"
+#define RED     "\033[31m"
+#define GREEN   "\033[32m"
+#define YELLOW  "\033[33m"
+#define BLUE    "\033[34m"
+#define MAGENTA "\033[35m"
+#define CYAN    "\033[36m"
+#define WHITE   "\033[37m"
+*/    
     int _offset = level;
     
     // if this is the head node, print the header
@@ -328,12 +338,10 @@ void PrintNodeHLP(std::ostream &out, Property &p, const int start_level, int lev
             head_name = tools::Colors::Red + p.name();
             if ( p.hasAttribute("help") ) {
                 if  ( p.hasAttribute("help") ) _help = tools::Colors::Red + p.getAttribute<string>("help");           
-                out << boost::format(" %1%: %|18t| %2%\n") % head_name % _help;
+                out << boost::format(" %1%: %|18t| %2%\033[0m\n") % head_name % _help;
             }
             _offset=0;
-            out << tools::Colors::Blue 
-                << boost::format("%|3" + fmt) % "OPTION" % "DEFAULT" % "UNIT" % "DESCRIPTION"
-                << tools::Colors::Reset;
+            out << boost::format("%|3" + fmt) % "OPTION" % "DEFAULT" % "UNIT" % "DESCRIPTION";
     } 
     
     if ( level > start_level ) {
