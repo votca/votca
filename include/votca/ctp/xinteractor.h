@@ -18,6 +18,7 @@
 #ifndef __XINTERACTOR__H
 #define	__XINTERACTOR__H
 
+#include <math.h>
 #include <votca/tools/vec.h>
 #include <votca/ctp/topology.h>
 #include <votca/ctp/apolarsite.h>
@@ -58,7 +59,8 @@ public:
     // ... Energy (eV) = Energy (int) * 1/4PiEps0(SI) * e * 1e+09
     //
     // ... Potential (V) = Potential(int) * 1/4PiEps0(SI) * e * 1e+0.9
-
+   
+    static const double int2eV = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
 
     inline double   EnergyInter(APolarSite &pol1, APolarSite &pol2);
     inline double   EnergyInterESP(APolarSite &pol1, APolarSite &pol2);
@@ -71,7 +73,15 @@ public:
     inline double   PotentialPerm(vec r, APolarSite &pol);
 
     inline double   E_f(APolarSite &pol1, APolarSite &pol2);
+    inline double   E_f_intra(APolarSite &pol1, APolarSite &pol2);
     inline double   E_m(APolarSite &pol1, APolarSite &pol2);
+    inline double   E_m_intra(APolarSite &pol1, APolarSite &pol2);
+    
+    inline double   E_QQ_ERFC(APolarSite &pol1, APolarSite &pol2, double &ew_alpha);
+    inline double   E_QQ_ERF(APolarSite &pol1, APolarSite &pol2, double &ew_alpha);
+    inline double   E_QQ_K0(APolarSite &pol1, APolarSite &pol2, double &ew_alpha);
+    inline double   E_QQ_KK(APolarSite &pol1, APolarSite &pol2, double &ew_alpha, vec &k);
+    inline double   E_Q0_DQ(APolarSite &pol1, APolarSite &pol2);
 
     void            ResetEnergy() { EP = EU_INTER = EU_INTRA = 0.0;
                                     EPP = EPU = EUU = 0.0; }
@@ -2003,6 +2013,45 @@ inline double XInteractor::E_f(APolarSite &pol1, APolarSite &pol2) {
 }
 
 
+inline double XInteractor::E_f_intra(APolarSite &pol1, APolarSite &pol2) {
+    double euu = 0.0; // <- Interaction induced <> induced>    
+    
+    // Thole model: intramolecular feedback between induced dipoles via
+    // their dipolar fields => Count interaction.
+    // This contribution is balanced by the part of the induction work
+    // that is due to the intramolecular field induction.
+    
+    // Induced <> induced interaction
+    // ... Note that this contribution is canceled by the induction work.        
+    if (a*u3 < 40) {
+        euu += pol1.U1x * TU1x_1x() * pol2.U1x;
+        euu += pol1.U1x * TU1x_1y() * pol2.U1y;
+        euu += pol1.U1x * TU1x_1z() * pol2.U1z;
+        euu += pol1.U1y * TU1y_1x() * pol2.U1x;
+        euu += pol1.U1y * TU1y_1y() * pol2.U1y;
+        euu += pol1.U1y * TU1y_1z() * pol2.U1z;
+        euu += pol1.U1z * TU1z_1x() * pol2.U1x;
+        euu += pol1.U1z * TU1z_1y() * pol2.U1y;
+        euu += pol1.U1z * TU1z_1z() * pol2.U1z;
+    }
+    else {
+        euu += pol1.U1x * T1x_1x() * pol2.U1x;
+        euu += pol1.U1x * T1x_1y() * pol2.U1y;
+        euu += pol1.U1x * T1x_1z() * pol2.U1z;
+        euu += pol1.U1y * T1y_1x() * pol2.U1x;
+        euu += pol1.U1y * T1y_1y() * pol2.U1y;
+        euu += pol1.U1y * T1y_1z() * pol2.U1z;
+        euu += pol1.U1z * T1z_1x() * pol2.U1x;
+        euu += pol1.U1z * T1z_1y() * pol2.U1y;
+        euu += pol1.U1z * T1z_1z() * pol2.U1z;
+    }
+    
+    EUU += euu;
+    
+    return euu;
+}
+
+
 inline double XInteractor::E_m(APolarSite &pol1, APolarSite &pol2) {
     
 //    // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
@@ -2171,6 +2220,215 @@ inline double XInteractor::E_m(APolarSite &pol1, APolarSite &pol2) {
 }
 
 
+inline double XInteractor::E_m_intra(APolarSite &pol1, APolarSite &pol2) {
+    double euu = 0.0; // <- Interaction induced <> induced>
+    
+    // Thole model: This contribution is balanced by E_f_intra
+               
+    if (a*u3 < 40) {
+        euu += pol1.U1x * TU1x_1x() * pol2.U1x;
+        euu += pol1.U1x * TU1x_1y() * pol2.U1y;
+        euu += pol1.U1x * TU1x_1z() * pol2.U1z;
+        euu += pol1.U1y * TU1y_1x() * pol2.U1x;
+        euu += pol1.U1y * TU1y_1y() * pol2.U1y;
+        euu += pol1.U1y * TU1y_1z() * pol2.U1z;
+        euu += pol1.U1z * TU1z_1x() * pol2.U1x;
+        euu += pol1.U1z * TU1z_1y() * pol2.U1y;
+        euu += pol1.U1z * TU1z_1z() * pol2.U1z;
+    }
+    else {
+        euu += pol1.U1x * T1x_1x() * pol2.U1x;
+        euu += pol1.U1x * T1x_1y() * pol2.U1y;
+        euu += pol1.U1x * T1x_1z() * pol2.U1z;
+        euu += pol1.U1y * T1y_1x() * pol2.U1x;
+        euu += pol1.U1y * T1y_1y() * pol2.U1y;
+        euu += pol1.U1y * T1y_1z() * pol2.U1z;
+        euu += pol1.U1z * T1z_1x() * pol2.U1x;
+        euu += pol1.U1z * T1z_1y() * pol2.U1y;
+        euu += pol1.U1z * T1z_1z() * pol2.U1z;
+    }
+    
+    euu *= -0.5;
+
+    EUU += euu;
+    
+    return euu;
+}
+
+
+inline double XInteractor::E_QQ_ERFC(APolarSite &pol1, APolarSite &pol2, double &ew_alpha) {
+    e12  = pol2.getPos() - pol1.getPos();    
+    R    = 1/abs(e12);
+    return pol1.Q00 * pol2.Q00 * R * erfc(ew_alpha/R);
+    //return pol1.Q00 * T00_00() * pol2.Q00;
+}
+
+
+inline double XInteractor::E_QQ_ERF(APolarSite &pol1, APolarSite &pol2, double &ew_alpha) {
+    e12  = pol2.getPos() - pol1.getPos();
+    R = (abs(e12) < 1e-50) ? 1e+50 : 1/abs(e12);    
+    return pol1.Q00 * pol2.Q00 * R * erf(ew_alpha/R);
+}
+
+
+inline double XInteractor::E_QQ_K0(APolarSite &pol1, APolarSite &pol2, double &ew_alpha) {
+    // NOTE Without prefactor 2*PI/(Lx*Ly)
+    e12  = pol2.getPos() - pol1.getPos();
+    double z12  = e12.getZ();
+    return - pol1.Q00 * pol2.Q00 * (   exp(-ew_alpha*ew_alpha*z12*z12) / (sqrt(M_PI)*ew_alpha)   +    z12*erf(ew_alpha*z12)    );  
+}
+
+
+inline double XInteractor::E_QQ_KK(APolarSite &pol1, APolarSite &pol2, double &ew_alpha, vec &k) {
+    // NOTE Without prefactor 2*PI/(Lx*Ly)
+    e12  = pol2.getPos() - pol1.getPos();
+    double z12  = e12.getZ();
+    double K = abs(k);
+    return pol1.Q00 * pol2.Q00 * cos(k*e12) / K * (    exp(K*z12)*erfc(K/(2*ew_alpha)+ew_alpha*z12)   +    exp(-K*z12)*erfc(K/(2*ew_alpha)-ew_alpha*z12)   ); 
+}
+
+
+inline double XInteractor::E_Q0_DQ(APolarSite &pol1, APolarSite &pol2) {
+    
+    // Counts these interactions:
+    // pol1(q)       <> pol2(d,Q,...)
+    // pol1(d,Q,...) <> pol2(q)
+    
+    double epp = 0.0;
+    
+    // d <> q
+    if (pol1._rank > 0) {
+        epp += pol1.Q1x * T1x_00() * pol2.Q00;
+        epp += pol1.Q1y * T1y_00() * pol2.Q00;
+        epp += pol1.Q1z * T1z_00() * pol2.Q00;
+    }
+
+    // q <> d
+    if (pol2._rank > 0) {
+        epp += pol1.Q00 * T00_1x() * pol2.Q1x;
+        epp += pol1.Q00 * T00_1y() * pol2.Q1y;
+        epp += pol1.Q00 * T00_1z() * pol2.Q1z;
+    }
+
+    // Q <> q
+    if (pol1._rank > 1) {
+        epp += pol1.Q20  * T20_00()  * pol2.Q00;
+        epp += pol1.Q21c * T21c_00() * pol2.Q00;
+        epp += pol1.Q21s * T21s_00() * pol2.Q00;
+        epp += pol1.Q22c * T22c_00() * pol2.Q00;
+        epp += pol1.Q22s * T22s_00() * pol2.Q00;
+    }
+
+    // q <> Q
+    if (pol2._rank > 1) {
+        epp += pol1.Q00 * T00_20()  * pol2.Q20;
+        epp += pol1.Q00 * T00_21c() * pol2.Q21c;
+        epp += pol1.Q00 * T00_21s() * pol2.Q21s;
+        epp += pol1.Q00 * T00_22c() * pol2.Q22c;
+        epp += pol1.Q00 * T00_22s() * pol2.Q22s;
+    }
+
+    // d <> d
+    if (pol1._rank > 0 && pol2._rank > 0) {
+        epp += pol1.Q1x * T1x_1x() * pol2.Q1x;
+        epp += pol1.Q1x * T1x_1y() * pol2.Q1y;
+        epp += pol1.Q1x * T1x_1z() * pol2.Q1z;
+
+        epp += pol1.Q1y * T1y_1x() * pol2.Q1x;
+        epp += pol1.Q1y * T1y_1y() * pol2.Q1y;
+        epp += pol1.Q1y * T1y_1z() * pol2.Q1z;
+
+        epp += pol1.Q1z * T1z_1x() * pol2.Q1x;
+        epp += pol1.Q1z * T1z_1y() * pol2.Q1y;
+        epp += pol1.Q1z * T1z_1z() * pol2.Q1z;
+    }
+
+    // Q <> d
+    if (pol1._rank > 1 && pol2._rank > 0) {
+        epp += pol1.Q20 * T20_1x() * pol2.Q1x;
+        epp += pol1.Q20 * T20_1y() * pol2.Q1y;
+        epp += pol1.Q20 * T20_1z() * pol2.Q1z;
+
+        epp += pol1.Q21c * T21c_1x() * pol2.Q1x;
+        epp += pol1.Q21c * T21c_1y() * pol2.Q1y;
+        epp += pol1.Q21c * T21c_1z() * pol2.Q1z;
+
+        epp += pol1.Q21s * T21s_1x() * pol2.Q1x;
+        epp += pol1.Q21s * T21s_1y() * pol2.Q1y;
+        epp += pol1.Q21s * T21s_1z() * pol2.Q1z;
+
+        epp += pol1.Q22c * T22c_1x() * pol2.Q1x;
+        epp += pol1.Q22c * T22c_1y() * pol2.Q1y;
+        epp += pol1.Q22c * T22c_1z() * pol2.Q1z;
+
+        epp += pol1.Q22s * T22s_1x() * pol2.Q1x;
+        epp += pol1.Q22s * T22s_1y() * pol2.Q1y;
+        epp += pol1.Q22s * T22s_1z() * pol2.Q1z;
+    }
+
+    // d <> Q
+    if (pol1._rank > 0 && pol2._rank > 1) {
+        epp += pol1.Q1x * T1x_20() * pol2.Q20;
+        epp += pol1.Q1y * T1y_20() * pol2.Q20;
+        epp += pol1.Q1z * T1z_20() * pol2.Q20;
+
+        epp += pol1.Q1x * T1x_21c() * pol2.Q21c;
+        epp += pol1.Q1y * T1y_21c() * pol2.Q21c;
+        epp += pol1.Q1z * T1z_21c() * pol2.Q21c;
+
+        epp += pol1.Q1x * T1x_21s() * pol2.Q21s;
+        epp += pol1.Q1y * T1y_21s() * pol2.Q21s;
+        epp += pol1.Q1z * T1z_21s() * pol2.Q21s;
+
+        epp += pol1.Q1x * T1x_22c() * pol2.Q22c;
+        epp += pol1.Q1y * T1y_22c() * pol2.Q22c;
+        epp += pol1.Q1z * T1z_22c() * pol2.Q22c;
+
+        epp += pol1.Q1x * T1x_22s() * pol2.Q22s;
+        epp += pol1.Q1y * T1y_22s() * pol2.Q22s;
+        epp += pol1.Q1z * T1z_22s() * pol2.Q22s;
+    }
+
+    // Q <> Q
+    if (pol1._rank > 1 && pol2._rank > 1) {
+        epp += pol1.Q20  * T20_20()   * pol2.Q20;
+        epp += pol1.Q21c * T21c_21c() * pol2.Q21c;
+        epp += pol1.Q21s * T21s_21s() * pol2.Q21s;
+        epp += pol1.Q22c * T22c_22c() * pol2.Q22c;
+        epp += pol1.Q22s * T22s_22s() * pol2.Q22s;
+
+
+        epp += pol1.Q20  * T20_21c() * pol2.Q21c;
+        epp += pol1.Q20  * T20_21s() * pol2.Q21s;
+        epp += pol1.Q20  * T20_22c() * pol2.Q22c;
+        epp += pol1.Q20  * T20_22s() * pol2.Q22s;
+        epp += pol1.Q21c * T21c_20() * pol2.Q20;
+        epp += pol1.Q21s * T21s_20() * pol2.Q20;
+        epp += pol1.Q22c * T22c_20() * pol2.Q20;
+        epp += pol1.Q22s * T22s_20() * pol2.Q20;
+
+
+        epp += pol1.Q21c * T21c_21s() * pol2.Q21s;
+        epp += pol1.Q21c * T21c_22c() * pol2.Q22c;
+        epp += pol1.Q21c * T21c_22s() * pol2.Q22s;
+        epp += pol1.Q21s * T21s_21c() * pol2.Q21c;
+        epp += pol1.Q22c * T22c_21c() * pol2.Q21c;
+        epp += pol1.Q22s * T22s_21c() * pol2.Q21c;
+
+
+        epp += pol1.Q21s * T21s_22c() * pol2.Q22c;
+        epp += pol1.Q21s * T21s_22s() * pol2.Q22s;
+        epp += pol1.Q22c * T22c_21s() * pol2.Q21s;
+        epp += pol1.Q22s * T22s_21s() * pol2.Q21s;
+
+        epp += pol1.Q22s * T22s_22c() * pol2.Q22c;
+        epp += pol1.Q22c * T22c_22s() * pol2.Q22s;
+    }
+    
+    return epp;    
+}
+
+
 inline void XInteractor::BiasStat(APolarSite &pol1, APolarSite &pol2) {
     
     // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
@@ -2226,7 +2484,10 @@ inline void XInteractor::BiasIndu(APolarSite &pol1, APolarSite &pol2) {
     e12 *= R;
 
     // Thole damping init.
-    u3   = 1 / (R3 * sqrt(pol1.eigendamp * pol2.eigendamp));
+    u3   = 1 / (R3 * sqrt( 
+        1./3.*(pol1.Pxx*pol2.Pxx + pol1.Pxy*pol2.Pxy + pol1.Pxz*pol2.Pxz
+             + pol1.Pxy*pol2.Pxy + pol1.Pyy*pol2.Pyy + pol1.Pyz*pol2.Pyz
+             + pol1.Pxz*pol2.Pxz + pol1.Pyz*pol2.Pyz + pol1.Pzz*pol2.Pzz) ));
 
 //        rax =   pol1._locX * e12;
 //        ray =   pol1._locY * e12;

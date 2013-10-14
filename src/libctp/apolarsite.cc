@@ -1,4 +1,5 @@
 #include <votca/ctp/apolarsite.h>
+#include <boost/math/special_functions/round.hpp>
 #include <fstream>
 #include <string>
 
@@ -6,6 +7,29 @@
 namespace votca { namespace ctp {
 
 
+APolarSite::APolarSite(APolarSite *templ) 
+    : _id(templ->_id), _name(templ->_name), _isVirtual(templ->_isVirtual),        
+      _pos(templ->_pos),
+        
+      _locX(templ->_locX), _locY(templ->_locY), _locZ(templ->_locZ),
+        
+      _top(templ->_top), _seg(templ->_seg), _frag(templ->_frag),
+        
+      _Qs(templ->_Qs), _rank(templ->_rank), _Ps(templ->_Ps),
+      Pxx(templ->Pxx), Pxy(templ->Pxy), Pxz(templ->Pxz), Pyy(templ->Pyy),
+      Pyz(templ->Pyz), Pzz(templ->Pzz), pax(templ->pax), pay(templ->pay),
+      paz(templ->paz), eigenpxx(templ->eigenpxx), eigenpyy(templ->eigenpyy),
+      eigenpzz(templ->eigenpzz), eigendamp(templ->eigendamp),
+        
+      Q00(templ->Q00), Q1x(templ->Q1x), Q1y(templ->Q1y), Q1z(templ->Q1z),
+      Q20(templ->Q20), Q21c(templ->Q21c), Q21s(templ->Q21s), Q22c(templ->Q22c),
+      Q22s(templ->Q22s), Qxx(templ->Qxx), Qxy(templ->Qxy), Qxz(templ->Qxz),
+      Qyy(templ->Qyy), Qyz(templ->Qyz), Qzz(templ->Qzz) {
+        
+    this->Depolarize();
+}
+    
+    
 void APolarSite::ImportFrom(APolarSite *templ, string tag) {
 
     _pos = templ->getPos();
@@ -121,6 +145,28 @@ void APolarSite::Rotate(const matrix &rot, const vec &refPos) {
 
 }
 
+bool APolarSite::getIsActive(bool estatics_only) {
+    // Returns false if charge and polarizability are both zero, true otherwise
+    bool isActive = false;
+    
+    // Tolerances
+    double q_tol = 1e-9; // [e]
+    double d_tol = 1e-9; // [enm]
+    double Q_tol = 1e-9; // [enm^2]
+    double p_tol = 1e-9; // [nm^3]   
+    // Magnitudes
+    double q_mag = sqrt(Q00*Q00);
+    double d_mag = sqrt(Q1x*Q1x + Q1y*Q1y + Q1z*Q1z);
+    double Q_mag = sqrt(Q20*Q20 + Q22c*Q22c + Q22s*Q22s + Q21c*Q21c + Q21s*Q21s);
+    // Compare
+    if (q_mag>q_tol) isActive = true;
+    if (_rank > 0 && d_mag>d_tol) isActive = true;
+    if (_rank > 1 && Q_mag>Q_tol) isActive = true;    
+    if (getIsoP() > p_tol && !estatics_only) isActive = true;
+    
+    return isActive;
+}
+
 void APolarSite::Translate(const vec &shift) {
 
     _pos += shift;
@@ -177,11 +223,27 @@ void APolarSite::Charge(int state) {
         Q1y = _Qs[idx][3];   // |
     }
     if (_rank > 1) {
+        // Spherical tensor
         Q20  = _Qs[idx][4];
         Q21c = _Qs[idx][5];
         Q21s = _Qs[idx][6];
         Q22c = _Qs[idx][7];
         Q22s = _Qs[idx][8];
+        
+        // Cartesian tensor
+        Qzz =      Q20;
+        Qxx = -0.5*Q20 + 0.5*sqrt(3)*Q22c;
+        Qyy = -0.5*Q20 - 0.5*sqrt(3)*Q22c;        
+        Qxy =          + 0.5*sqrt(3)*Q22s;
+        Qxz =          + 0.5*sqrt(3)*Q21c;
+        Qyz =          + 0.5*sqrt(3)*Q21s;
+        
+        Qzz *= 1./3.;
+        Qxx *= 1./3.;
+        Qyy *= 1./3.;
+        Qxy *= 1./3.;
+        Qxz *= 1./3.;
+        Qyz *= 1./3.;
     }
 }
 
@@ -341,7 +403,7 @@ void APolarSite::PrintTensorPDB(FILE *out, int state) {
 
 
 void APolarSite::WritePdbLine(FILE *out, const string &tag) {
-    
+        
     fprintf(out, "ATOM  %5d %4s%1s%3s %1s%4d%1s   "
               "%8.3f%8.3f%8.3f%6.2f%6.2f      %4s%2s%2s%4.7f\n",
          _id % 100000,          // Atom serial number           %5d
@@ -360,7 +422,7 @@ void APolarSite::WritePdbLine(FILE *out, const string &tag) {
          _name.c_str(),          // Element symbol               %2s
          " ",                   // Charge on the atom.          %2s
          Q00
-         );    
+         );
 }
 
 
@@ -432,7 +494,6 @@ void APolarSite::WriteChkLine(FILE *out, vec &shift, bool split_dpl,
         matrix::eigensystem_t EIGEN;
 
         if (_rank == 2) {
-            tot_dpl += vec(Q1x,Q1y,Q1z);
             //cout << endl
             //     << "WARNING: Quadrupoles are not split onto point charges."
             //     << endl;
@@ -450,11 +511,8 @@ void APolarSite::WriteChkLine(FILE *out, vec &shift, bool split_dpl,
             matrix Q = matrix(vec(Qxx,Qxy,Qxz),
                               vec(Qxy,Qyy,Qyz),
                               vec(Qxz,Qyz,Qzz));
-
             
             Q.SolveEigensystem(EIGEN);
-
-
         }
 
         double a        = spacing;
@@ -466,9 +524,9 @@ void APolarSite::WriteChkLine(FILE *out, vec &shift, bool split_dpl,
         double qA       = mag_d / a;
         double qB       = - qA;
         
-        if (this->eigendamp == 0) {
-            A = pos;
-            B = pos;
+        if (this->eigendamp == 0 || mag_d < 1e-9) {
+            A = pos + 0.1*a*vec(1,0,0); // != pos since self-energy may diverge
+            B = pos - 0.1*a*vec(1,0,0);
             qA = 0;
             qB = 0;
         }
@@ -531,7 +589,7 @@ void APolarSite::WriteChkLine(FILE *out, vec &shift, bool split_dpl,
 }
 
 
-vector<APolarSite*> APS_FROM_MPS(string filename, int state) {
+vector<APolarSite*> APS_FROM_MPS(string filename, int state, QMThread *thread) {
 
     int poleCount = 1;
     double Q0_total = 0.0;
@@ -694,12 +752,33 @@ vector<APolarSite*> APS_FROM_MPS(string filename, int state) {
     else { cout << endl << "ERROR: No such file " << filename << endl;
            throw runtime_error("Please supply input file.");           }
 
-
-    printf("\n... ... ... Reading %-25s -> N = %2d Q0(Sum) = %+1.3f ",
-                          filename.c_str(), poles.size(),  Q0_total);
+    if (thread == NULL)
+    printf("\n... ... ... Reading %-25s -> N = %2d Q0(Sum) = %+1.7f ",
+                          filename.c_str(), (int)poles.size(),  Q0_total);
+    
+    
+    // Apply charge correction: Sum to closest integer
+    int Q_integer = boost::math::iround(Q0_total);
+    double dQ = (double(Q_integer) - Q0_total)/poles.size();
+    
+    double Q0_total_corr = 0.0;
+    vector<APolarSite*>::iterator pit;
+    for (pit = poles.begin(); pit < poles.end(); ++pit) {
+        double Q_uncorr = (*pit)->getQs(state)[0];
+        double Q_corr = Q_uncorr + dQ;
+        (*pit)->setQ00(Q_corr, state);
+        Q0_total_corr += (*pit)->getQs(state)[0];
+    }
+    
+    if (thread == NULL)
+    printf("=> dQ0 = %+1.1e, Q0(corr.) = %+1.0f",
+            dQ, Q0_total_corr);
+    
+    
+    
 
     if (useDefaultPs) {
-
+        if (thread == NULL)
         cout << endl << "... ... ... NOTE Using default Thole polarizabilities "
              << "for charge state " << state << ". ";
 

@@ -18,28 +18,34 @@
  */
 
 
-#ifndef __NEIGHBORLIST2_H
-#define __NEIGHBORLIST2_H
+#ifndef __VOTCA_CTP_NEIGHBORLIST_H
+#define __VOTCA_CTP_NEIGHBORLIST_H
 
 #include <votca/tools/globals.h>
 #include <votca/ctp/qmcalculator.h>
 #include <votca/ctp/qmpair.h>
 
-namespace TOOLS = votca::tools;
 
 namespace votca { namespace ctp {
 
-
+namespace TOOLS = votca::tools;
+    
 class Neighborlist : public QMCalculator
 {
+
 public:
 
     Neighborlist() { };
-   ~Neighborlist() { };
+   ~Neighborlist() {
+       // cleanup the list of superexchange pair types
+       for ( std::list<QMNBList::SuperExchangeType*>::iterator it = _superexchange.begin() ; it != _superexchange.end(); it++  ) {
+           delete *it;
+       }
+    };
 
-    string Identify() { return "Neighborlist"; }
+    string Identify() { return "neighborlist"; }
     
-    void Initialize(Topology *top, Property *options);
+    void Initialize(Property *options);
     bool EvaluateFrame(Topology *top);
     void GenerateFromFile(Topology *top, string filename);
 
@@ -51,14 +57,18 @@ private:
     string                            _generate_from;
     bool                              _generate_from_file;
     bool                              _generate_unsafe;
+    
+    std::list<QMNBList::SuperExchangeType*>        _superexchange;
 
 };
     
 
-void Neighborlist::Initialize(Topology* top, Property *options) {
+void Neighborlist::Initialize(Property *options) {
 
-    string key = "options.neighborlist";
-
+    // update options with the VOTCASHARE defaults   
+    UpdateWithDefaults( options );
+    std::string key = "options." + Identify();
+    
     list< Property* > segs = options->Select(key+".segments");
     list< Property* > ::iterator segsIt;
 
@@ -75,7 +85,7 @@ void Neighborlist::Initialize(Topology* top, Property *options) {
 
         if (names.size() != 2) {
             cout << "ERROR: Faulty pair definition for cut-off's: "
-                 << "Need two segment names separated by a ' '" << endl;
+                 << "Need two segment names separated by a space" << endl;
             throw std::runtime_error("Error in options file.");
         }
 
@@ -106,6 +116,18 @@ void Neighborlist::Initialize(Topology* top, Property *options) {
         _generate_unsafe = false;
     }
     
+    // if superexchange is given
+    if (options->exists(key + ".superexchange")) {
+        list< Property* > _se = options->Select(key + ".superexchange");
+        list< Property* > ::iterator seIt;
+
+        for (seIt = _se.begin(); seIt != _se.end(); seIt++) {
+            string types = (*seIt)->get("type").as<string>();
+            QMNBList::SuperExchangeType* _su = new QMNBList::SuperExchangeType(types);
+            _superexchange.push_back(_su); 
+        }
+    }
+            
 }
 
 bool Neighborlist::EvaluateFrame(Topology *top) {
@@ -189,23 +211,59 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
                     } /* exit loop frag2 */
                 } /* exit loop frag1 */
             } /* exit loop seg2 */
+                
+               // break;
         } /* exit loop seg1 */       
 
     }
-    
-    cout << endl << "... ... Created " << top->NBList().size() << " pairs.";
 
-    if (TOOLS::globals::verbose) {
-        cout << "[idA:idB] com distance" << endl;
-        QMNBList& nblist = top->NBList();
-        for (QMNBList::iterator ipair = nblist.begin(); ipair != nblist.end(); ++ipair) {
+    cout << endl << " ... ... Created " << top->NBList().size() << " direct pairs.";
+
+    // add superexchange pairs
+    top->NBList().setSuperExchangeTypes(_superexchange);
+    top->NBList().GenerateSuperExchange();
+  
+    // DEBUG output
+    if (votca::tools::globals::verbose) {
+
+	Property bridges_summary;
+        Property *_bridges = &bridges_summary.add("bridges","");
+
+        cout << "Bridged Pairs \n [idA:idB] com distance" << endl;
+        for (QMNBList::iterator ipair = top->NBList().begin(); ipair != top->NBList().end(); ++ipair) {
                 QMPair *pair = *ipair;
                 Segment* segment1 = pair->Seg1PbCopy();
                 Segment* segment2 = pair->Seg2PbCopy();
-                cout << " [" << segment1->getId() << ":" << segment2->getId()<< "] " << pair->Dist()<< endl;
+                
+                cout << " [" << segment1->getId() << ":" << segment2->getId()<< "] " 
+                             << pair->Dist()<< " bridges: " 
+                             << (pair->getBridgingSegments()).size() 
+                             << " type: " 
+                             << pair->getType() 
+                             << " | " << flush;
+                
+                vector<Segment*> bsegments = pair->getBridgingSegments();
+ 
+                Property *_pair_property = &_bridges->add("pair","");
+                                   
+                _pair_property->setAttribute("id1", segment1->getId());
+                _pair_property->setAttribute("id2", segment2->getId());
+                _pair_property->setAttribute("name1", segment1->getName());
+                _pair_property->setAttribute("name2", segment2->getName());
+                _pair_property->setAttribute("r12", pair->Dist());
+                                    
+                Property *_bridge_property = &_pair_property->add("bridge","");
+
+                for ( vector<Segment*>::iterator itb = bsegments.begin(); itb != bsegments.end(); itb++ ) {
+                    cout << (*itb)->getId() << " " ;
+                    _bridge_property->setAttribute("id", (*itb)->getId());
+                }        
+                
+                cout << endl;
         }
+        //cout << bridges_summary;
     }
-    
+
     return true;        
 }
 
@@ -268,6 +326,7 @@ void Neighborlist::GenerateFromFile(Topology *top, string filename) {
            throw std::runtime_error("Supply input file."); }
     
 }
+
 
 
 }}

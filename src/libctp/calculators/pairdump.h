@@ -16,7 +16,7 @@ public:
 
     string  Identify() { return "PairDump"; }
 
-    void    Initialize(Topology *top, Property *options);
+    void    Initialize(Property *options);
     bool    EvaluateFrame(Topology *top);
 
 private:
@@ -27,12 +27,18 @@ private:
 
     string _outFormat;
     bool   _subFolder;
+    bool   _useQMPos;
 };
 
 
-void PairDump::Initialize(Topology *top, Property *options) {
+void PairDump::Initialize(Property *options) {
 
-    string key = "options.pairdump";   
+    // update options with the VOTCASHARE defaults   
+    UpdateWithDefaults( options );
+    string key = "options." + Identify();
+    
+    int useQMPos = options->get(key+".useQMcoords").as< int >();
+    _useQMPos = (useQMPos == 1) ? true : false;
 }
 
 
@@ -59,7 +65,7 @@ bool PairDump::EvaluateFrame(Topology *top) {
 
         mkdir(DIR.c_str(), 0755);        
         out = fopen(FILE.c_str(),"w");
-        (*sit)->WriteXYZ(out);
+        (*sit)->WriteXYZ(out, _useQMPos);
         fclose(out);
     }
 
@@ -76,9 +82,11 @@ bool PairDump::EvaluateFrame(Topology *top) {
         mkdir(DIR1.c_str(), 0755);
         mkdir(DIR2.c_str(), 0755);
         out = fopen(FILE.c_str(),"w");
-        (*pit)->WriteXYZ(out);
+        (*pit)->WriteXYZ(out, _useQMPos);
         fclose(out);
     }
+    
+    return true;
 }
 
 

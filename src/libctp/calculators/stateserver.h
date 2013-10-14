@@ -23,7 +23,7 @@
 
 
 #include <votca/ctp/qmcalculator.h>
-
+#include <boost/format.hpp>
 
 
 
@@ -36,9 +36,9 @@ public:
     StateServer() { };
    ~StateServer() { };
 
-    string Identify() { return "State Server"; }
+    string Identify() { return "stateserver"; }
 
-    void Initialize(Topology *top, Property *options);
+    void Initialize(Property *options);
     bool EvaluateFrame(Topology *top);
 
     void DownloadTopology(FILE *out, Topology *top);
@@ -49,7 +49,7 @@ public:
     void DownloadCoords(FILE *out, Topology *top) { };
 
 
-    void WriteXMP(FILE *out, Topology *top);
+    void WriteXQM(FILE *out, Topology *top);
     void WriteEMP(FILE *out, Topology *top);
     void WriteULM(Topology *top);
 
@@ -67,8 +67,11 @@ private:
 };
 
 
-void StateServer::Initialize(Topology *top, Property *opt) {
+void StateServer::Initialize(Property *opt) {
     
+    // update options with the VOTCASHARE defaults   
+    UpdateWithDefaults( opt );
+
     string tag = "options.stateserver";
 
     // Tabular output
@@ -172,25 +175,25 @@ bool StateServer::EvaluateFrame(Topology *top) {
 
         }
 
-        else if (*key == "xjob") {
+        else if (*key == "xqm") {
 
-                cout << "XJob Site List, ";
+                cout << "XQMultipole Site Jobs, ";
 
                 FILE *out_xqm;
-                string xjob_file = "xjob_list";
-                out_xqm = fopen(xjob_file.c_str(), "w");
+                string job_file = "jobs.xml";
+                out_xqm = fopen(job_file.c_str(), "w");
 
-                WriteXMP(out_xqm, top);
+                WriteXQM(out_xqm, top);
 
                 fclose(out_xqm);
         }
 
-        else if (*key == "emp") {
+        else if (*key == "mps") {
 
-                cout << "EMP input, ";
+                cout << "MPS background, ";
 
                 FILE *out_emp;
-                string emp_file = "emp.table";
+                string emp_file = "mps.tab";
                 out_emp = fopen(emp_file.c_str(), "w");
 
                 WriteEMP(out_emp, top);
@@ -243,7 +246,8 @@ bool StateServer::EvaluateFrame(Topology *top) {
         fclose(out);
 
     }
-
+    
+    return true;
 }
 
 void StateServer::DownloadTopology(FILE *out, Topology *top) {
@@ -372,18 +376,18 @@ void StateServer::WriteEMP(FILE *out, Topology *top) {
     vector< Segment* > ::iterator sit;
     for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {        
 
-        fprintf(out, "%4d %5s %-30s %-30s %-30s \n",
+        fprintf(out, "%4d %15s %-30s %-30s %-30s \n",
                      (*sit)->getId(),
                      (*sit)->getName().c_str(),
-                     ((*sit)->getName()+"_n.mps").c_str(),
-                     ((*sit)->getName()+"_e.mps").c_str(),
-                     ((*sit)->getName()+"_h.mps").c_str());
+                     ("MP_FILES/"+(*sit)->getName()+"_n.mps").c_str(),
+                     ("MP_FILES/"+(*sit)->getName()+"_e.mps").c_str(),
+                     ("MP_FILES/"+(*sit)->getName()+"_h.mps").c_str());
     }
 }
 
-void StateServer::WriteXMP(FILE *out, Topology *top) {
+void StateServer::WriteXQM(FILE *out, Topology *top) {
 
-    fprintf(out, "# JOB_ID JOB_TAG   ID1:SEG1:MPS1   ID2:SEG2:MPS2 \n");
+    fprintf(out, "<jobs>\n");
 
 //    QMNBList::iterator nit;
 //    for (nit = top->NBList().begin();
@@ -418,27 +422,46 @@ void StateServer::WriteXMP(FILE *out, Topology *top) {
         string segName = seg->getName();
         
         string stateStr = "n";
-        string jobTag = boost::lexical_cast<string>(segId) 
-            + ":" +segName.substr(0,3) + ":" + stateStr;
-        string mpsFile = "MP_FILES/" + segName + "_" + stateStr + ".mps";        
+        string jobTag = boost::lexical_cast<string>(segId) + "_" + stateStr;
+        string mpsFile = "MP_FILES/" + segName + "_" + stateStr + ".mps";
         ++jobId;
-        fprintf(out, "%5d %10s %d:%s:%s\n",
-                jobId, jobTag.c_str(), segId, segName.c_str(), mpsFile.c_str());
+        string jobStr = 
+            (boost::format("<job>\n"
+                "\t<id>%1$d</id>\n"
+                "\t<tag>%2$s</tag>\n"
+                "\t<input>%3$d:%4$s:%5$s</input>\n"
+                "\t<status>AVAILABLE</status>\n"
+                "</job>\n") % jobId % jobTag % segId % segName % mpsFile).str();
+        fprintf(out, jobStr.c_str());
         
         stateStr = "e";
         jobTag = boost::lexical_cast<string>(segId) + "_" + stateStr;
         mpsFile = "MP_FILES/" + segName + "_" + stateStr + ".mps";        
         ++jobId;
-        fprintf(out, "%5d %10s %d:%s:%s\n",
-                jobId, jobTag.c_str(), segId, segName.c_str(), mpsFile.c_str());
+        jobStr = 
+            (boost::format("<job>\n"
+                "\t<id>%1$d</id>\n"
+                "\t<tag>%2$s</tag>\n"
+                "\t<input>%3$d:%4$s:%5$s</input>\n"
+                "\t<status>AVAILABLE</status>\n"
+                "</job>\n") % jobId % jobTag % segId % segName % mpsFile).str();
+        fprintf(out, jobStr.c_str());
         
         stateStr = "h";
         jobTag = boost::lexical_cast<string>(segId) + "_" + stateStr;
         mpsFile = "MP_FILES/" + segName + "_" + stateStr + ".mps";        
         ++jobId;
-        fprintf(out, "%5d %10s %d:%s:%s\n",
-                jobId, jobTag.c_str(), segId, segName.c_str(), mpsFile.c_str());      
+        jobStr = 
+            (boost::format("<job>\n"
+                "\t<id>%1$d</id>\n"
+                "\t<tag>%2$s</tag>\n"
+                "\t<input>%3$d:%4$s:%5$s</input>\n"
+                "\t<status>AVAILABLE</status>\n"
+                "</job>\n") % jobId % jobTag % segId % segName % mpsFile).str();
+        fprintf(out, jobStr.c_str());    
     }
+    
+    fprintf(out, "</jobs>\n");
 }
 
 void StateServer::WriteULM(Topology *top) {

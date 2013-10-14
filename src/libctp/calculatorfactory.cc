@@ -27,8 +27,6 @@
 #include "calculators/tdump.h"
 #include "calculators/rates.h"
 #include "calculators/izindo.h"
-#include "calculators/idft.h"
-#include "calculators/edft.h"
 #include "calculators/einternal.h"
 #include "calculators/eoutersphere.h"
 #include "calculators/emultipole.h"
@@ -36,17 +34,14 @@
 #include "calculators/eanalyze.h"
 #include "calculators/eimport.h"
 #include "calculators/pairdump.h"
-#include "calculators/ecoulomb.h"
 #include "calculators/iimport.h"
 #include "calculators/ianalyze.h"
-#include "calculators/density.h"
+#include "calculators/profile.h"
 #include "calculators/xmultipole2.h"
 #include "calculators/velocity.h"
-#include "calculators/molpol.h"
 #include "calculators/zmultipole.h"
 #include "calculators/qmultipole.h"
-#include "calculators/xqmultipole.h"
-#include "calculators/qmmm.h"
+#include "calculators/jobwriter.h"
 
 
 
@@ -55,34 +50,26 @@ namespace votca { namespace ctp {
 
 void Calculatorfactory::RegisterAll(void)
 {	
-        Calculators().Register<Sandbox>         ("sandbox");
-        Calculators().Register<Neighborlist>    ("neighborlist");
-        Calculators().Register<StateServer>     ("stateserver");
-        Calculators().Register<TDump>           ("tdump");
-        Calculators().Register<IZindo>          ("izindo");
-        Calculators().Register<EDFT>            ("edft");
-        Calculators().Register<IDFT>            ("idft");
-        Calculators().Register<Rates>           ("rates");
-        Calculators().Register<EInternal>       ("einternal");
-        Calculators().Register<EOutersphere>    ("eoutersphere");
-        Calculators().Register<EMultipole>      ("emultipole");
-        // TO DO MOVE THIS TO CTP_APP
-        //Calculators().Register<EMultipole_StdAl>("emultipole2");
-        Calculators().Register<EAnalyze>        ("eanalyze");
-        Calculators().Register<EImport>         ("eimport");
-        Calculators().Register<PairDump>        ("pairdump");
-        Calculators().Register<ECoulomb>        ("ecoulomb");
-        Calculators().Register<IImport>         ("iimport");
-        Calculators().Register<IAnalyze>        ("ianalyze");
-        Calculators().Register<Density>         ("density");
-        Calculators().Register<XMP>             ("xmultipole");
-        Calculators().Register<Velocity>        ("velocity");
-        // HAS BEEN MOVED TO ctp_app?
-        //Calculators().Register<MolPol>          ("molpol");
-        Calculators().Register<ZMultipole>      ("zmultipole");
-        Calculators().Register<QMultipole>      ("qmultipole");
-        Calculators().Register<XQMP>            ("xqmultipole");
-        Calculators().Register<QMMM>            ("qmmm");
+        Calculators().Register<Sandbox>             ("sandbox");
+        Calculators().Register<Neighborlist>        ("neighborlist");
+        Calculators().Register<StateServer>         ("stateserver");
+        Calculators().Register<TDump>               ("tdump");
+        Calculators().Register<IZindo>              ("izindo");
+        Calculators().Register<Rates>               ("rates");
+        Calculators().Register<EInternal>           ("einternal");
+        Calculators().Register<EOutersphere>        ("eoutersphere");
+        Calculators().Register<EMultipole>          ("emultipole");
+        Calculators().Register<EAnalyze>            ("eanalyze");
+        Calculators().Register<EImport>             ("eimport");
+        Calculators().Register<PairDump>            ("pairdump");        
+        Calculators().Register<IImport>             ("iimport");
+        Calculators().Register<IAnalyze>            ("ianalyze");
+        Calculators().Register<Profile>             ("profile");
+        Calculators().Register<XMP>                 ("xmultipole");
+        Calculators().Register<Velocity>            ("velocity");
+        Calculators().Register<ZMultipole>          ("zmultipole");
+        Calculators().Register<QMultipole>          ("qmultipole");
+        Calculators().Register<JobWriter>           ("jobwriter");
 }
 
 }}

@@ -1,5 +1,24 @@
-#ifndef ECOULOMB_H
-#define ECOULOMB_H
+/*
+ *            Copyright 2009-2012 The VOTCA Development Team
+ *                       (http://www.votca.org)
+ *
+ *      Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *              http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+#ifndef __VOTCA_CTP_ECOULOMB_H
+#define __VOTCA_CTP_ECOULOMB_H
 
 #include <votca/ctp/qmcalculator.h>
 
@@ -11,9 +30,9 @@ class ECoulomb : public QMCalculator
 {
 public:
 
-    string  Identify() { return "ECoulomb"; }
+    string  Identify() { return "ecoulomb"; }
 
-    void    Initialize(Topology *top, Property *options);
+    void    Initialize(Property *options);
     bool    EvaluateFrame(Topology *top);
     void    EvaluateSegment(Topology *top, Segment *seg, int state);
     void    Output2File(Topology *top);
@@ -30,26 +49,16 @@ private:
 };
 
 
-void ECoulomb::Initialize(Topology *top, Property *options) {
+void ECoulomb::Initialize(Property *options) {
 
-    string key = "options.ecoulomb";
-
-    cout << endl << "... ... Init" << flush;    
-    
-    _cutoff = options->get(key+".cutoff").as< double >();
-    _outFile = options->get(key+".output").as< string >();
-    if (options->exists(key+".first")) {
-        _first = options->get(key+".first").as< int >();
-    }
-    else {
-        _first = 1;
-    }
-    if (options->exists(key+".last")) {
-        _last = options->get(key+".last").as< int >();
-    }
-    else {
-        _last = -1;
-    }
+    // _options already has default values, update them with the supplied options
+    _options.CopyValues("", *options );
+    string key      = "options." + Identify();
+   
+    _cutoff = _options.get(key+".cutoff").as< double >();
+    _outFile = _options.get(key+".output").as< string >();
+    _first = _options.get(key+".first").as< int >();
+    _last = _options.get(key+".last").as< int >();
 }
 
 
@@ -57,7 +66,7 @@ bool ECoulomb::EvaluateFrame(Topology *top) {
 
     // Polar sites generated?
     if (top->isEStatified() == false) {
-        cout << endl << "... ... ERROR: Estatify first. Return. " << flush;
+        cout << endl << "... ... ERROR: Estatify first by running emultipole. " << flush;
         return 0;
     }
     else { 

@@ -34,13 +34,16 @@ public:
    ~Sandbox() { };
 
     string  Identify() { return "Sandbox"; }
-    void    Initialize(Topology *top, Property *options);
+    void    Initialize(Property *options);
     void    EvalPair(Topology *top, QMPair *qmpair, int slot);
 
 };
 
 
-void Sandbox::Initialize(Topology *top, Property *options) {
+void Sandbox::Initialize(Property *options) {
+
+    // update options with the VOTCASHARE defaults   
+    UpdateWithDefaults( options );
 
     _nThreads = 1;
 

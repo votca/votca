@@ -18,8 +18,8 @@
  */
 
 
-#ifndef _EOUTERSPHERE2_H
-#define	_EOUTERSPHERE2_H
+#ifndef VOTCA_CTP_EOUTERSPHERE_H
+#define	VOTCA_CTP_EOUTERSPHERE_H
 
 #include <votca/ctp/topology.h>
 #include <votca/ctp/qmcalculator.h>
@@ -38,9 +38,9 @@ public:
     EOutersphere() { };
    ~EOutersphere() { };
 
-    string              Identify() { return "EOutersphere"; }
+    string              Identify() { return "eoutersphere"; }
 
-    void                Initialize(Topology *top, Property *options);
+    void                Initialize(Property *options);
     void                EStatify(Topology *, Property *);
     void                DistributeMpoles(Topology *);
     vector<PolarSite*>  ParseGdmaFile(string filename, int state);
@@ -253,6 +253,7 @@ private:
     double                               _pekarFactor;
     double                               _lambdaConstant;
     double                               _lambdaCutoff;
+    map<string,double>                   _radius;
 
 };
 

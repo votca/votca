@@ -66,13 +66,13 @@ Orbitals::Orbitals() {
     _has_mo_coefficients = false;
     _has_mo_energies = false;
     _has_overlap = false;
+    _has_integrals = false;
     _has_atoms = false;
-    
-    _save_mo_coefficients = true;
-    _save_overlap = true;
-        
+    _has_qm_energy = false;
+    _has_self_energy = false;
+            
 };   
-    
+
 Orbitals::~Orbitals() { 
     _mo_energies.clear();
     _mo_coefficients.clear();
@@ -82,6 +82,7 @@ Orbitals::~Orbitals() {
     for ( it = _atoms.begin(); it != _atoms.end(); ++it ) delete *it;
 };   
 
+/*
 const int    &Orbitals::getBasisSetSize() const { 
     if ( _has_basis_set_size ) {
         return _basis_set_size; 
@@ -89,13 +90,14 @@ const int    &Orbitals::getBasisSetSize() const {
         throw std::runtime_error(" Basis set size is unknown. Parse a log file first. " );
     }
 }
+*/
 
 void          Orbitals::setBasisSetSize( const int &basis_set_size ){
     _has_basis_set_size = true; 
     _basis_set_size = basis_set_size; 
 }
 
-
+/*
 int     Orbitals::getNumberOfLevels() {
     if ( _has_occupied_levels && _has_unoccupied_levels ) {
         return  _occupied_levels + _unoccupied_levels; 
@@ -103,6 +105,7 @@ int     Orbitals::getNumberOfLevels() {
         throw std::runtime_error(" Number of levels is unknown. Parse a log file first. " );
     }
 }
+*/
 
 void   Orbitals::setNumberOfLevels( const int &occupied_levels,const int &unoccupied_levels  ){
     _has_occupied_levels = true; 
@@ -110,7 +113,7 @@ void   Orbitals::setNumberOfLevels( const int &occupied_levels,const int &unoccu
     _occupied_levels = occupied_levels; 
     _unoccupied_levels = unoccupied_levels; 
 }
-
+/*
 const int     &Orbitals::getNumberOfElectrons() const {
     if ( _has_number_of_electrons ) {
         return  _number_of_electrons; 
@@ -118,7 +121,7 @@ const int     &Orbitals::getNumberOfElectrons() const {
         throw std::runtime_error(" Number of electrons is unknown. Parse a log file first. " );
     }
 }
-
+*/
 void          Orbitals::setNumberOfElectrons( const int &electrons ){
     _has_number_of_electrons = true; 
     _number_of_electrons = electrons; 
@@ -210,7 +213,7 @@ std::vector<int>* Orbitals::getDegeneracy( int level, double _energy_difference 
         */
         
     }        
-    
+    //cout << "Getting degeneracy for level " << level << endl;
     return &_level_degeneracy.at(level);
 }
 
@@ -233,5 +236,56 @@ void Orbitals::SortEnergies(  std::vector<int>* index ) {
 
 }
 
+/// Writes a PDB file
+void Orbitals::WritePDB( FILE *out ) {
+    // out.setf(ios::fixed);
+    
+    vector < QMAtom* > :: iterator atom;
+    int id = 0;
+    
+    //cout << "Natoms " << _atoms.size() << endl;
+    
+    for (atom = _atoms.begin(); atom < _atoms.end(); ++atom){
+         id++;      
+         string resname = ( (*atom)->from_environment ) ? "MM" : "QM";
+         int resnr = 1;
+         
+         //cout << id << " " << (*atom)->type << " " << endl;
+         
+         fprintf(out, "ATOM  %5d %4s%1s%3s %1s%4d%1s   %8.3f%8.3f%8.3f%6.2f%6.2f      %4s%2s  %8.3f\n",
+                 id,                    // Atom serial number           %5d 
+                 (*atom)->type.c_str(), // Atom name                    %4s
+                 " ",                   // alternate location indicator.%1s
+                 resname.c_str(),       // Residue name.                %3s
+                 "A",                   // Chain identifier             %1s
+                 resnr,                 // Residue sequence number      %4d
+                 " ",                   // Insertion of residues.       %1s
+                 (*atom)->x,            // X in Angstroms               %8.3f
+                 (*atom)->y,            // Y in Angstroms               %8.3f
+                 (*atom)->z,            // Z in Angstroms               %8.3f
+                 1.0,                   // Occupancy                    %6.2f
+                 0.0,                   // Temperature factor           %6.2f
+                 " ",                   // Segment identifier           %4s
+                 (*atom)->type.c_str(), // Element symbol               %2s
+                 (*atom)->charge        // Charge on the atom.          %2s
+                 );
+    }  
+}
+
+// reduces the number of virtual orbitals to factor*number_of_occupied_orbitals
+void Orbitals::Trim( int factor ) {
+    
+    if ( _has_mo_coefficients ) {
+        _mo_coefficients.resize ( factor * _occupied_levels, _basis_set_size, true);
+        _unoccupied_levels = ( factor -1 ) * _occupied_levels;        
+    }
+
+    if ( _has_mo_energies ) {
+        //cout << "\nBefore: " << _mo_energies.size();
+        _mo_energies.resize(  factor * _occupied_levels, true );
+        _unoccupied_levels = ( factor - 1) * _occupied_levels;
+        //cout << " and After: " << _mo_energies.size() << endl;   
+    }
+}
 
 }}

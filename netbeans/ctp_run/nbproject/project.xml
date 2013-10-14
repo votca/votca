@@ -4,20 +4,12 @@
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/make-project/1">
             <name>ctp_run</name>
-            <make-project-type>0</make-project-type>
-            <c-extensions>cc</c-extensions>
-            <cpp-extensions/>
+            <c-extensions/>
+            <cpp-extensions>cc</cpp-extensions>
             <header-extensions/>
             <sourceEncoding>UTF-8</sourceEncoding>
-            <make-dep-projects>
-                <make-dep-project>../../../csg/netbeans/libcsg</make-dep-project>
-                <make-dep-project>../../../moo/netbeans/libmoo</make-dep-project>
-                <make-dep-project>../../../tools/netbeans/libtools</make-dep-project>
-                <make-dep-project>../libctp</make-dep-project>
-            </make-dep-projects>
-            <sourceRootList>
-                <sourceRootElem>../../src/tools</sourceRootElem>
-            </sourceRootList>
+            <make-dep-projects/>
+            <sourceRootList/>
             <confList>
                 <confElem>
                     <name>Debug</name>

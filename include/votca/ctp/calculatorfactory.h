@@ -17,11 +17,12 @@
  *
  */
 
-#ifndef _Calculatorfactory_H
-#define	_Calculatorfactory_H
+#ifndef __VOTCA_CTP_CALCULATORFACTORY_H
+#define	__VOTCA_CTP_CALCULATORFACTORY_H
 
+#include <map>
 #include <votca/tools/objectfactory.h>
-#include "qmcalculator.h"
+#include <votca/ctp/qmcalculator.h>
 
 namespace votca { namespace ctp {
 
@@ -35,14 +36,32 @@ private:
 public:
     
     static void RegisterAll(void);
+    
+    /**
+       Create an instance of the object identified by key.
+    *  Overwritten to load calculator defaults
+    */
+    QMCalculator *Create(const string &key);
 
     friend Calculatorfactory &Calculators();
+    
 };
 
 inline Calculatorfactory &Calculators()
 {
     static Calculatorfactory _instance;
     return _instance;
+}
+
+inline QMCalculator* Calculatorfactory::Create(const string &key)
+{
+    typename assoc_map::const_iterator it(getObjects().find(key));
+    if (it != getObjects().end()) {
+        QMCalculator* calc = (it->second)();
+        calc->LoadDefaults();
+        return calc;
+    } else
+        throw std::runtime_error("factory key " + key + " not found.");
 }
 
 }}

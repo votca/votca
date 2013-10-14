@@ -25,6 +25,7 @@
 #include <map>
 #include "qmdatabase.h"
 #include "topology.h"
+#include <boost/interprocess/sync/file_lock.hpp>
 
 namespace votca { namespace ctp {
 
@@ -36,7 +37,7 @@ public:
     StateSaverSQLite() { };
    ~StateSaverSQLite() { _db.Close(); }
 
-    void Open(Topology &qmtop, const string &file);
+    void Open(Topology &qmtop, const string &file, bool lock = true);
     void Close() { _db.Close(); }
     bool NextFrame();
 
@@ -48,6 +49,7 @@ public:
     void WriteFragments(bool update);
     void WriteAtoms(bool update);
     void WritePairs(bool update);
+    void WriteSuperExchange(bool update);
 
     void ReadFrame();
     void ReadMeta(int topId);
@@ -57,10 +59,14 @@ public:
     void ReadFragments(int topId);
     void ReadAtoms(int topId);
     void ReadPairs(int topId);
+    void ReadSuperExchange(int topId);
 
     int  FramesInDatabase();
     Topology *getTopology() { return _qmtop; }
     bool HasTopology(Topology *top);
+    
+    void LockStateFile();
+    void UnlockStateFile();
     
 private:
     Topology       *_qmtop;
@@ -73,6 +79,8 @@ private:
 
     string          _sqlfile;
     bool            _was_read;
+    
+    boost::interprocess::file_lock *_flock;
 };
 
 }}

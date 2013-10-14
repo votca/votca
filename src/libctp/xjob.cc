@@ -12,7 +12,7 @@ XJob::XJob(int id, string tag, vector<Segment*> &qmSegs,
      vector<string> &qmSegMps, Topology *top) :
 
      _id(id), _tag(tag), _top(top), _start_from_cpt(false),
-     _qmSegs(qmSegs), _qmSegMps(qmSegMps), _ptop(NULL) {
+     _qmSegs(qmSegs), _qmSegMps(qmSegMps), _ptop(NULL), _clean_ptop(true) {
 
      // Sanity checks
      assert(qmSegs.size() == qmSegMps.size());
@@ -22,9 +22,21 @@ XJob::XJob(int id, string tag, vector<Segment*> &qmSegs,
 }
 
 
+XJob::XJob(PolarTop *ptop, bool start_from_cpt)
+        : _id(-1), _tag("__notag__"), _top(NULL),
+          _ptop(ptop), _start_from_cpt(start_from_cpt), _clean_ptop(false) {
+    
+    _center = _ptop->getCenter();
+    _isSegInCenter.clear();    
+    vector<PolarSeg*>::iterator sit;
+    for (sit = _ptop->QM0().begin(); sit < _ptop->QM0().end(); ++sit) {
+        _isSegInCenter[(*sit)->getId()] = true;
+    }
+}
 
-XJob::~XJob() {    
-    delete _ptop;    
+
+XJob::~XJob() {
+    if (_clean_ptop) delete _ptop;
 }
 
 
@@ -115,7 +127,7 @@ void XJob::setInfoLine(bool printMM, bool printQM) {
 
     // Job ID & tag
     string str0 = ( format("%1$5d %2$-10s ") 
-        % _userId % _tag ).str();
+        % _id % _tag ).str();
     
     // Shell sizes & iterations
     string str1 = ( format("|QM0| %1$3d |MM1| %2$3d |MM2| %3$3d IT %4$2d ") 
@@ -199,6 +211,7 @@ vector<XJob*> XJOBS_FROM_TABLE< vector<XJob*>, XJob* >(const string &job_file, T
 // Sample line
 // # JOB_ID TAG    SEG1_ID SEG1_NAME SEG1_MPS SEG2_ID SEG2_NAME SEG2_MPS
 //   1      E_CT   182:C60:MP_FILES/c60.mps   392:DCV:MP_FILES/dcv.mps
+//   1  AVAILABLE E_CT 182:C60:MP_FILES/c60.mps 392:DCV:MP_FILES/dcv.mps
 
             int jobUserId   = boost::lexical_cast<int>(split[0]);
             string tag      = split[1];

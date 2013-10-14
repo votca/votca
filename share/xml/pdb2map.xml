@@ -1,0 +1,8 @@
+<options>
+
+<pdb2map help="Converts PDB or GRO files to VOTCA mapping" label="calc:pdb2map" section="sec:pdb2map">
+	<file help="Input pdb file" default="conf.pdb">conf.pdb</file>
+	<outfile help="Output file" default="map.xml">map.xml</outfile>
+</pdb2map>
+
+</options>

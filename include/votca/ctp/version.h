@@ -19,7 +19,12 @@
 #define	__VOTCA_MD2QM_VERSION_H
 
 #include <string>
-
+/**
+ * \namespace votca::ctp
+ * \brief Charge transport classes
+ * 
+ * Classes used for charge and exciton transport simulations
+ */
 namespace votca { namespace ctp {
     const std::string & CtpVersionStr();
     void HelpTextHeader(const std::string &tool_name);

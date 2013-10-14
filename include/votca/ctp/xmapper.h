@@ -18,9 +18,11 @@
 #ifndef __XMAPPER__H
 #define	__XMAPPER__H
 
+#include <votca/tools/mutex.h>
 #include <votca/ctp/topology.h>
 #include <votca/ctp/xjob.h>
 #include <votca/ctp/apolarsite.h>
+#include <votca/ctp/qmthread.h>
 
 // TODO Change maps to _alloc_xmlfile_fragsegmol_***
 // TODO Confirm thread safety
@@ -33,27 +35,32 @@ class XMpsMap
 
 public:        
 
-    XMpsMap() : _alloc_table("no_alloc") {};
+    XMpsMap() : _alloc_table("no_alloc"), _estatics_only(false) {};
    ~XMpsMap() {};
 
     // User interface:
-    void GenerateMap(string xml_file, string alloc_table, Topology *top, vector<XJob*> &xjobs);
+    void GenerateMap(string xml_file, string alloc_table, Topology *top);
     void EquipWithPolSites(Topology *top);
     
     // Adapt to XJob
-    vector<APolarSite*> MapPolSitesToSeg(const vector<APolarSite*> &pols_n, Segment *seg);    
-    vector<APolarSite*> GetRawPolSitesJob(const string &mpsfile) { return _mpsFile_pSites_job[mpsfile]; }
-    void Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2);
+    vector<APolarSite*> MapPolSitesToSeg(const vector<APolarSite*> &pols_n, Segment *seg, bool only_active_sites = true);
+    vector<APolarSite*> GetOrCreateRawSites(const string &mpsfile, QMThread *thread = NULL);
+    void Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2, QMThread *thread = NULL);
+    void Gen_FGC_FGN_BGN(Topology *top, XJob *job, QMThread *thread = NULL);
+    
+    void setEstaticsOnly(bool estatics_only) { _estatics_only = estatics_only; }
     
     // Called by GenerateMap(...)
     void CollectMapFromXML(string xml_file);
     void CollectSegMpsAlloc(string alloc_table, Topology *top);
-    void CollectSitesFromMps(vector<XJob*> &xjobs);
+    void CollectSitesFromMps();
     
     
 private:
 
     string _alloc_table;
+    votca::tools::Mutex  _lockThread;
+    bool _estatics_only;
     
     // Maps retrieved from XML mapping files
     map<string, bool>                   _map2md;
@@ -74,7 +81,7 @@ private:
 };
     
     
-    
+
     
 }}
 

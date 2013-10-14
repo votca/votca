@@ -17,6 +17,7 @@
  *
  */
 
+
 #ifndef __VOTCA_CTP_LOG_H
 #define	__VOTCA_CTP_LOG_H
 
@@ -28,7 +29,7 @@ namespace votca { namespace ctp {
 enum TLogLevel {logERROR, logWARNING, logINFO, logDEBUG};
  
 /*
- * Macros to use the Logger (level,logger) << message
+ * Macros to use the Logger: LOG(level,logger) << message
  */
 #define LOG(level, log) \
 if ( &log != NULL && level > (log).getReportLevel() ) ; \
@@ -75,7 +76,7 @@ public:
         
         // returns the pointer to the collected messages
         std::string Messages() { 
-            string _messages = _stringStream.str(); 
+            std::string _messages = _stringStream.str(); 
             _stringStream.str("");
             return _messages; 
         }
@@ -123,7 +124,7 @@ protected:
                 // collect all messages of one thread
                 _stringStream << _message.str()  << " " << str();
             } else {
-                // if only one thread outputs, flash immediately
+                // if only one thread outputs, flush immediately
                 std::cout << _message.str() << " " << str() << std::flush;
             }
             _message.str("");
@@ -134,10 +135,22 @@ protected:
 };
 
 
-/**
-*   \brief Logger for thread-safe output of messages
-*  Logger writes messages into LogBuffer
-*  Inheritance from ostream allows to use << and >> for writing    
+/** \class Logger
+*   \brief Logger is used for thread-safe output of messages
+*
+*  Logger writes messages into LogBuffer. 
+*  Inheritance from ostream allows to use overloaded << and >> for writing.
+*  Example:  
+*
+*  \code
+*  #include <votca/ctp/logger.h>
+*  Logger* log = new Logger(); // create a logger object
+*  log->setReportLevel(logDEBUG); // output only log messages starting from a DEBUG level
+*  LOG(logERROR,*log) << "Error detected" << flush; // write to the logger at an ERROR level
+*  cout << log; // output logger content to standard output
+*  \endcode
+*
+*  Logger has four predefined log levels: logERROR, logWARNING, logINFO, logDEBUG.
 */
 class Logger : public std::ostream {
 
@@ -169,6 +182,7 @@ public:
             _maverick = maverick;
             dynamic_cast<LogBuffer *>( rdbuf() )->setMultithreading( _maverick );
         }
+        bool isMaverick() { return _maverick; }
         
         TLogLevel getReportLevel( ) { return _ReportLevel; }
         

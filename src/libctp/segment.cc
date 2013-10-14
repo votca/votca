@@ -118,7 +118,7 @@ void Segment::setOcc(double occ, int e_h) {
 }
 
 
-const double Segment::getOcc(int e_h) {
+const double &Segment::getOcc(int e_h) {
     
     return (e_h == -1) ? _occ_e : _occ_h;
 }
@@ -166,25 +166,25 @@ void Segment::setU_cN_cC(double dU, int state) {
 }
 
 
-const double Segment::getU_cC_nN(int state) {
+const double &Segment::getU_cC_nN(int state) {
 
     return (state == -1) ? _U_cC_nN_e : _U_cC_nN_h;
 }
 
 
-const double Segment::getU_nC_nN(int state) {
+const double &Segment::getU_nC_nN(int state) {
 
     return (state == -1) ? _U_nC_nN_e : _U_nC_nN_h;
 }
 
 
-const double Segment::getU_cN_cC(int state) {
+const double &Segment::getU_cN_cC(int state) {
 
     return (state == -1) ? _U_cN_cC_e : _U_cN_cC_h;
 }
 
 
-const double Segment::getSiteEnergy(int state) {
+double Segment::getSiteEnergy(int state) {
 
     return (state == -1) ? this->getEMpoles(state) + _U_cC_nN_e :
                            this->getEMpoles(state) + _U_cC_nN_h;
@@ -199,7 +199,7 @@ void Segment::setEMpoles(int state, double energy) {
 }
 
 
-const double Segment::getEMpoles(int state) {
+double Segment::getEMpoles(int state) {
 
     return _eMpoles[state+1] - _eMpoles[1];
 }
@@ -405,7 +405,7 @@ void Segment::WriteXYZ(FILE *out, bool useQMPos) {
 
     for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
 
-        if ((*ait)->HasQMPart() == false) { continue; }
+        if ((*ait)->HasQMPart() == false && useQMPos) { continue; }
 
         vec     pos = (*ait)->getQMPos();
         if (!useQMPos) pos = (*ait)->getPos();

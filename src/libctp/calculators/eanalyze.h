@@ -1,5 +1,5 @@
-#ifndef EANALYZE_H
-#define EANALYZE_H
+#ifndef _VOTCA_CTP_EANALYZE_H
+#define _VOTCA_CTP_EANALYZE_H
 
 #include <votca/ctp/qmcalculator.h>
 #include <math.h>
@@ -14,9 +14,9 @@ public:
     EAnalyze() { };
    ~EAnalyze() { };
 
-    string Identify() { return "EAnalyze"; }
+    string Identify() { return "eanalyze"; }
 
-    void Initialize(Topology *top, Property *opt);
+    void Initialize(Property *opt);
     bool EvaluateFrame(Topology *top);
     void SiteHist(Topology *top, int state);
     void PairHist(Topology *top, int state);
@@ -44,9 +44,11 @@ private:
 
 
 
-void EAnalyze::Initialize(Topology *top, Property *opt) {
+void EAnalyze::Initialize( Property *opt ) {
 
-    string key = "options.eanalyze";
+    // update options with the VOTCASHARE defaults   
+    UpdateWithDefaults( opt );
+    string key = "options." + Identify();
 
     _resolution_pairs = opt->get(key+".resolution_pairs").as< double >();
     _resolution_sites = opt->get(key+".resolution_sites").as< double >();
@@ -126,6 +128,8 @@ bool EAnalyze::EvaluateFrame(Topology *top) {
             }
         }
     }
+    
+    return true;
 }
 
 void EAnalyze::SiteHist(Topology *top, int state) {
@@ -179,8 +183,7 @@ void EAnalyze::SiteHist(Topology *top, int state) {
     STD = sqrt(VAR);
 
     FILE *out;
-    string tag = boost::lexical_cast<string>(top->getDatabaseId())
-               + "_SITES_" + ( (state == -1) ? "A" : "C" ) + ".dat";
+    string tag = boost::lexical_cast<string>("eanalyze.sitehist_") + ( (state == -1) ? "e" : "h" ) + ".out";
     out = fopen(tag.c_str(), "w");
 
     fprintf(out, "# EANALYZE: SITE-ENERGY HISTOGRAM \n");
@@ -195,7 +198,7 @@ void EAnalyze::SiteHist(Topology *top, int state) {
     
     // Write "seg x y z energy" with atomic {x,y,z}
     if (_do_atomic_xyze) {
-        tag = (state == -1) ? "e_atomic_xyze" : "h_atomic_xyze";
+        tag = (state == -1) ? "eanalyze.landscape_e.out" : "eanalyze.landscape_h.out";
         out = fopen(tag.c_str(), "w");
 
         for (sit = top->Segments().begin(); 
@@ -203,7 +206,7 @@ void EAnalyze::SiteHist(Topology *top, int state) {
              ++sit) {
 
             if ((*sit)->getId() < _atomic_first) { continue; }
-            if ((*sit)->getId() > _atomic_last) { continue; }
+            if ((*sit)->getId() == _atomic_last) { break; }
             double E = (*sit)->getSiteEnergy(state);
 
             vector< Atom* > ::iterator ait;
@@ -240,8 +243,7 @@ void EAnalyze::PairHist(Topology *top, int state) {
     double STD = 0.0;
 
     FILE *out_dEs;
-    string tag_dEs = boost::lexical_cast<string>(top->getDatabaseId())
-               + "_PAIRSLIST_" + ( (state == -1) ? "A" : "C" ) + ".dat";
+    string tag_dEs = boost::lexical_cast<string>("eanalyze.pairlist_") + ( (state == -1) ? "e" : "h" ) + ".out";
     out_dEs = fopen(tag_dEs.c_str(), "w");
 
     // Collect site-energy differences from neighbourlist
@@ -290,8 +292,7 @@ void EAnalyze::PairHist(Topology *top, int state) {
     STD = sqrt(VAR);
 
     FILE *out;
-    string tag = boost::lexical_cast<string>(top->getDatabaseId())
-               + "_PAIRS_" + ( (state == -1) ? "A" : "C" ) + ".dat";
+    string tag = boost::lexical_cast<string>("eanalyze.pairhist_") + ( (state == -1) ? "e" : "h" ) + ".out";
     out = fopen(tag.c_str(), "w");
 
     fprintf(out, "# EANALYZE: PAIR-ENERGY HISTOGRAM \n");
@@ -421,8 +422,7 @@ void EAnalyze::SiteCorr(Topology *top, int state) {
     }
 
     FILE *out;
-    string tag = boost::lexical_cast<string>(top->getDatabaseId())
-               + "_CORR_" + ( (state == -1) ? "A" : "C" ) + ".dat";
+    string tag = boost::lexical_cast<string>("eanalyze.sitecorr_") + ( (state == -1) ? "e" : "h" ) + ".out";
     out = fopen(tag.c_str(), "w");
 
     fprintf(out, "# EANALYZE: SPATIAL SITE-ENERGY CORRELATION \n");
@@ -436,12 +436,6 @@ void EAnalyze::SiteCorr(Topology *top, int state) {
     fclose(out);
 }
 
-
-
-
-
-
-
 }}
 
-#endif
+#endif // _VOTCA_CTP_EANALYZE_H

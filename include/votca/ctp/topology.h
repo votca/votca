@@ -85,12 +85,12 @@ public:
     vector< APolarSite* >   &APolarSites() { return _apolarSites; }
     vector< SegmentType* >  &SegmentTypes() { return _segmentTypes; }
 
-    bool        Rigidify();
-    void        setCanRigidify(bool yesno) { _canRigidify = yesno; }
-    const bool  canRigidify() { return _canRigidify; }
-    const bool  isRigid() { return _isRigid; }
-    void        setIsEStatified(bool yesno) { _isEStatified = yesno; }
-    const bool  isEStatified() { return _isEStatified; }
+    bool                Rigidify();
+    void                setCanRigidify(bool yesno) { _canRigidify = yesno; }
+    const bool         &canRigidify() { return _canRigidify; }
+    const bool         &isRigid() { return _isRigid; }
+    void                setIsEStatified(bool yesno) { _isEStatified = yesno; }
+    const bool         &isEStatified() { return _isEStatified; }
 
 
 
@@ -98,7 +98,7 @@ public:
 
     vec              PbShortestConnect(const vec &r1, const vec &r2) const;
     const matrix    &getBox() { return _bc->getBox(); }
-    double           BoxVolume() { _bc->BoxVolume(); }
+    double           BoxVolume() { return _bc->BoxVolume(); }
     void             setBox(const matrix &box,
                             CSG::BoundaryCondition::eBoxtype boxtype =
                             CSG::BoundaryCondition::typeAuto);
@@ -107,9 +107,9 @@ public:
 
     // Trajectory meta data: step number, time, frame (= Db ID)
 
-    const int        getStep() { return _step; }
+    const int       &getStep() { return _step; }
     void             setStep(int step) { _step = step; }
-    const double     getTime() { return _time; }
+    const double    &getTime() { return _time; }
     void             setTime(double time) { _time = time; }
 
     int              getDatabaseId() { return _db_id; };
