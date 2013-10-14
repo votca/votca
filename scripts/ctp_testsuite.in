@@ -13,15 +13,18 @@ import re
 import math
 
 PROGTITLE = 'THE VOTCA::CTP TESTSUITE'
+PROGDESCR = 'Performs tests en suite +'
 VOTCAHEADER = '''\
 ==================================================
 ========   VOTCA (http://www.votca.org)   ========
 ==================================================
 
-  o You can submit bugs to bugs@votca.org
-  o ctp_testsuite, version {version}
-                                                   
-'''.format(version=VERSION)
+{progtitle}
+
+please submit bugs to bugs@votca.org 
+ctp_testsuite, version {version}
+
+'''.format(version=VERSION, progtitle=PROGTITLE)
 try:
 	VOTCASHARE = os.environ['VOTCASHARE']
 except KeyError:
@@ -39,7 +42,7 @@ class CtpHelpFormatter(argparse.HelpFormatter):
 
 progargs = argparse.ArgumentParser(prog='ctp_testsuite',
     formatter_class=lambda prog: CtpHelpFormatter(prog,max_help_position=70),
-	description=PROGTITLE)
+	description=PROGDESCR)
 # Tests to execute, available tests, XML testsuite file
 progargs.add_argument('-e', '--execute',
     dest='execute',   
@@ -139,10 +142,6 @@ CLEANTESTFOLDER	 = OPTIONS.clean
 USER			 = getpass.getuser()
 HOST			 = socket.gethostname()
 BASEDIR			 = os.getcwd()
-
-if OPTIONS.sourcedirectory == '':
-	progargs.print_help()
-	sys.exit(0)
 
 
 # =============================================================================
@@ -595,6 +594,9 @@ if OPTIONS.compareonly:
 	print "  o Reference directory =", abs_ref_folder
 	Comparator(abs_tar_folder, abs_ref_folder)
 	okquit()
+if OPTIONS.sourcedirectory == '':
+	progargs.print_help()
+	okquit("\nQuit here, because: No source directory set (option -s/--source)")
 suite.SelectTests(OPTIONS.execute)
 
 # Environment tests

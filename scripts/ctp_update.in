@@ -14,15 +14,32 @@ import math
 import sqlite3
 
 PROGTITLE = 'THE VOTCA::CTP STATE-FILE UPDATER'
+PROGDESCR = 'Updates the state file +'
 VOTCAHEADER = '''\
 ==================================================
 ========   VOTCA (http://www.votca.org)   ========
 ==================================================
 
-  o You can submit bugs to bugs@votca.org
-  o ctp_testsuite, version {version}
-                                                   
-'''.format(version=VERSION)
+{progtitle}
+
+please submit bugs to bugs@votca.org 
+ctp_update, version {version}
+
+'''.format(version=VERSION, progtitle=PROGTITLE)
+
+def okquit(what=''):
+	if what != '': print what
+	sys.exit(0)
+def xxquit(what=''):
+	if what != '':
+		cprint.Error("ERROR: {what}".format(what=what))
+	sys.exit(1)
+def sysexe(cmd, silent=False, devfile='/dev/null'):
+	if VERBOSE: print "{0}@{1}$ {2}".format(USER, HOST, cmd)
+	if silent: cmd += ' >> {0} 2>> {0}'.format(devfile)
+	cdx = os.system(cmd)
+	#SYSCMDS.write('{cmd} = {cdx}\n'.format(cmd=cmd, cdx=cdx))
+	return cdx
 
 # =============================================================================
 # PROGRAM OPTIONS
@@ -34,17 +51,20 @@ class CtpHelpFormatter(argparse.HelpFormatter):
 		
 progargs = argparse.ArgumentParser(prog='ctp_testsuite',
     formatter_class=lambda prog: CtpHelpFormatter(prog,max_help_position=70),
-	description=PROGTITLE)
+	description=PROGDESCR)
 	
 progargs.add_argument('-f', '--file',
     dest='sqlfile',   
     action='store',
-    required=True,
+    required=False,
     type=str,
+	default='',
     help='State file to update.')
     
 OPTIONS = progargs.parse_args()
-
+if OPTIONS.sqlfile == '':
+	progargs.print_help()
+	okquit("\nQuit here, because: State file not set (option -f/--file)")
 
 # =============================================================================
 # SQLITE3 EXECUTION
