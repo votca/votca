@@ -22,6 +22,8 @@
 #define VOTCA_CTP_CALCULATOR_H
 
 #include <votca/tools/property.h>
+#include <votca/tools/propertyiomanipulator.h>
+#include <votca/tools/globals.h>
 
 namespace votca { namespace ctp {
 
@@ -88,7 +90,7 @@ public:
      * a default value exists in the corresponding XML file in VOTCASHARE
      * a tag is created and/or a default value is assigned to it
      */    
-    void UpdateWithDefaults(votca::tools::Property *options, bool verbose);
+    void UpdateWithDefaults(votca::tools::Property *options);
     
 protected:
 
@@ -102,7 +104,7 @@ protected:
 inline void Calculator::LoadDefaults() {
 }
 
-inline void Calculator::UpdateWithDefaults(votca::tools::Property *options , bool display=true) {
+inline void Calculator::UpdateWithDefaults(votca::tools::Property *options) {
     
     // copy options from the object supplied by the Application
     std::string id = Identify();
@@ -118,12 +120,20 @@ inline void Calculator::UpdateWithDefaults(votca::tools::Property *options , boo
     votca::tools::Property defaults, _defaults;
     votca::tools::load_property_from_xml(_defaults, xmlFile);
     defaults = _defaults.get( "options." + id );
+    
+    //std::cout << _options;
+    //std::cout << defaults;
       
     // if a value not given or a tag not present, provide default values
     AddDefaults( _options, defaults );   
    
-    if (display)
-        std::cout << "COMBINED \n" << _options;
+     
+    // output calculator options
+    std::string indent("          "); int level = 1;
+    votca::tools::PropertyIOManipulator IndentedText(votca::tools::PropertyIOManipulator::TXT,level,indent);
+    if ( tools::globals::verbose ) { 
+        std::cout << "\n... ... options\n" << IndentedText << _options << "... ... options\n" << std::flush;
+    }
 }
 
 
@@ -132,11 +142,14 @@ inline void Calculator::AddDefaults( votca::tools::Property &p, votca::tools::Pr
     for(std::list<votca::tools::Property>::iterator iter = defaults.begin(); iter!=defaults.end(); ++iter) {
         std::string name =  (*iter).path() + "." + (*iter).name();
 
+        votca::tools::Property rootp = *p.begin();
         if  ( (*iter).hasAttribute("default") ) {
-            if ( p.exists( name ) ) {
-                if ( p.value() == "" ) p.value() = (*iter).value();
+            if ( rootp.exists( name ) ) {
+                //std::cout << "E " << rootp.value() << std::endl;
+                if ( rootp.HasChilds()) rootp.value() = (*iter).value();
             } else {
-                p.add((*iter).name(), (*iter).value());
+                //std::cout << "N " << (*iter).name() << std::endl;
+                rootp.add((*iter).name(), (*iter).value());
             }
         }
         AddDefaults( p, (*iter) );

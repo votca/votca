@@ -1,6 +1,7 @@
 #ifndef VOTCA_CTP_SEGMENTSEXTRACTOR_H
 #define VOTCA_CTP_SEGMENTSEXTRACTOR_H
 
+#include <votca/tools/propertyiomanipulator.h>
 #include <votca/ctp/qmcalculator.h>
 #include <boost/format.hpp>
 
@@ -107,7 +108,7 @@ bool SegmentsExtractor::EvaluateFrame(Topology *top) {
     if (!ofs.is_open()) {
         throw runtime_error("Bad file handle: " + xmlfile);
     }
-    PrintNodeXML(ofs, state, 0, 0, "", "");
+    ofs << tools::XML << state;
     ofs.close();
     
     return true;

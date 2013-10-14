@@ -403,8 +403,9 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
                         _overlap_summary->setAttribute("eB", energyB);
                 }
         }
-    
-        sout <<  setlevel(1) << _job_summary;
+        
+        votca::tools::PropertyIOManipulator iomXML(votca::tools::PropertyIOManipulator::XML, 1, "");
+        sout <<  iomXML << _job_summary;
    } // end of the projection loop
 
    // cleanup whatever is not needed

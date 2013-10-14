@@ -18,7 +18,7 @@
  */
 
 #include "votca/ctp/overlap.h"
-#include <votca/ctp/eigenvalues.h>
+#include <votca/tools/linalg.h>
 
 #include <boost/numeric/ublas/operation.hpp>
 #include <boost/numeric/ublas/operation_blocked.hpp>
@@ -44,7 +44,7 @@ void Overlap::SQRTOverlap(ub::symmetric_matrix<double> &S, ub::matrix<double> &S
     _eigenvalues.resize( _size );
     _eigenvectors.resize( _size, _size ); 
     
-    EigenvaluesSymmetric(S, _eigenvalues, _eigenvectors);
+    votca::tools::linalg_eigenvalues_symmetric(S, _eigenvalues, _eigenvectors);
     
     // compute inverse sqrt of all eigenvalues
     std::transform(_eigenvalues.begin(), _eigenvalues.end(), _eigenvalues.begin(),  _inv_sqrt );
