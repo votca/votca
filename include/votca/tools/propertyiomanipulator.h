@@ -50,7 +50,7 @@ public:
     const int         &getLevel (){return _level; }
           void         setLevel (int level){ _level = level; }
     const std::string &getIndentation(){return _indentation;}
-          std::string  setIndentation(std::string indentation){_indentation = indentation;}
+          void         setIndentation(std::string indentation){_indentation = indentation;}
 
 private:
     Type _type;
