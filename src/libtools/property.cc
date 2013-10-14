@@ -200,20 +200,25 @@ void PrintNodeXML(std::ostream &out, Property &p, const int start_level, int lev
         // print starting only from the start_level (the first node (level 0) can be <> </>)
         if ( level >= start_level )  {
             // print the node name
-            out << offset << "<" << tools::Colors::Red << p.name() << tools::Colors::Reset;
+            out << offset << "<" << p.name();
+            //out << offset << "<" << tools::Colors::Red << p.name() << tools::Colors::Reset;
             // print the node attributes 
             for(ia = p.firstAttribute(); ia!=p.lastAttribute(); ++ia) 
                 out << " " 
-                    << tools::Colors::Blue << ia->first << tools::Colors::Reset
+                    //<< tools::Colors::Blue << ia->first << tools::Colors::Reset
+                    << ia->first 
                     << "=\""
-                    << tools::Colors::Reset << ia->second << tools::Colors::Reset << "\"" ;
+                    //<< tools::Colors::Reset << ia->second << tools::Colors::Reset << "\"" ;
+                    << ia->second << "\"" ;
             out << ">";
             
             // print node value if it is not empty
             bool has_value = ( (p.value()).find_first_not_of("\t\n ") != std::string::npos );
             if( has_value ) { 
-                out <<  tools::Colors::Green << 
-                        p.value() << tools::Colors::Reset; 
+                //out <<  tools::Colors::Green << 
+                out <<  p.value() 
+                        //<< tools::Colors::Reset
+                        ; 
                 _endl = false; 
             }
             
@@ -233,9 +238,11 @@ void PrintNodeXML(std::ostream &out, Property &p, const int start_level, int lev
         
         if ( level >= start_level ) {
             if ( _endl ) {
-                out << offset << "</" << tools::Colors::Red << p.name() << tools::Colors::Reset << ">" << endl;
+                //out << offset << "</" << tools::Colors::Red << p.name() << tools::Colors::Reset << ">" << endl;
+                out << offset << "</" << p.name() << ">" << endl;
             } else {
-                out << "</" << tools::Colors::Red << p.name() << tools::Colors::Reset << ">" << endl;
+                //out << "</" << tools::Colors::Red << p.name() << tools::Colors::Reset << ">" << endl;
+                out << "</" << p.name() << ">" << endl;
             }
         } 
 }
