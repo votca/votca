@@ -168,6 +168,10 @@ void KMCSingle::RunKMC(void)
         // cout << " seed:size:site " << _seed << ":" << _injection.size() << ":" << Random::rand_uniform_int(_injection.size()) << endl;
 	current=_injection[Random::rand_uniform_int(_injection.size())];
         cout <<" Starting simulation at node: "<<current->_id-1<<endl;
+        if (current->Rate() == 0) {
+            int id = current->_id;
+            throw std::runtime_error("Injected on an unconnected site, id = "+boost::lexical_cast<string>(id));            
+        }
 	double next_output = _dt;
     int i=0;
     while(t<_runtime) {

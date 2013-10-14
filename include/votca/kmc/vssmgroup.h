@@ -136,7 +136,7 @@ event_t *VSSMGroup<event_t>::SelectEvent_BinarySearch()
 		else
 			imin=imid;
 	}
-   // std::cout << imin << " " << Rate() <<" " << u << std::endl;
+        //std::cout << imin << " " << Rate() << " " << u << std::endl;
 	return _events[imin];
 }
 

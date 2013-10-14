@@ -5,7 +5,7 @@
 	<runtime help="Total time of the KMC run" unit="s" default="">10e-4</runtime>
 	<seed help="Seed to use" unit="int" default="">123</seed>
 	<outputtime help="Output frequency" unit="s" default="">10e-6</outputtime>
-	<injection help="Name pattern for conjugated segments" default="*">*</injection>
+	<injection help="Name pattern for conjugated segments" default="*">dcv4t</injection>
 
 </kmcsingle>
 
