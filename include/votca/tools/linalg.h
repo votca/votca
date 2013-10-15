@@ -27,6 +27,25 @@
 namespace votca { namespace tools {
     namespace ub = boost::numeric::ublas;
 
+    
+    /**
+     * \brief inverts A
+     * @param A symmetric positive definite matrix
+     * @param V inverse matrix
+     *
+     * This function wraps the inversion of a matrix
+     */
+    void linalg_invert( ub::matrix<double> &A, ub::matrix<double> &V );
+    
+    /**
+     * \brief determines Cholesky decomposition of matrix A
+     * @param A symmetric positive definite matrix
+     *
+     * This function wraps the Cholesky decomposition
+     */
+    void linalg_cholesky_decompose( ub::matrix<double> &A );
+    
+    
     /**
      * \brief solves A*x=b
      * @param x storage for x
@@ -71,7 +90,21 @@ namespace votca { namespace tools {
      */
     bool linalg_eigenvalues_symmetric( ub::symmetric_matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V );
     
+
+   /**
+     * \brief eigenvalues of a symmetric matrix A*x=E*x
+     * @param A symmetric matrix 
+     * @param E vector of eiganvalues
+     * @param V matrix of eigenvalues
+     * 
+     * This function wrapps gsl_eigen_symmv
+     * note that the eigenvalues/eigenvectors are UNSORTED 
+     * 
+     */
+    bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V );
+    
 }}
+
 
 
 #endif	/* __VOTCA_TOOLS_LINALG_H */
