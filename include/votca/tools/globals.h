@@ -31,7 +31,7 @@ class globals
 {
     public:  
 	/// be loud and noisy
-        static bool verbose;
+        static bool verbose;        
 };
 
 }}

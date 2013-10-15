@@ -172,7 +172,7 @@ public:
     /**
      * \brief returns an iterator to the first attribute
      */    
-    AttributeIterator firstAttribute(){ return _attributes.end(); }   
+    AttributeIterator firstAttribute(){ return _attributes.begin(); }   
     /**
      * \brief returns an iterator to the last attribute
      */    
