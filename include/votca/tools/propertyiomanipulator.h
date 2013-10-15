@@ -21,6 +21,7 @@
 #include <iostream>
 
 #include "property.h"
+#include "colors.h"
 
 namespace votca { namespace tools {
     
@@ -34,11 +35,14 @@ class PropertyIOManipulator {
     
 public:
     
-    enum Type{ XML, HLP, TEX, TXT };    
+    enum Type{ XML, HLP, TEX, TXT };
     
     explicit PropertyIOManipulator( Type type = XML, int level = 0, std::string indentation = "" ) :
-             _type(type), _level(level), _indentation(indentation)  { ; } 
+             _type(type), _level(level), _indentation(indentation), _color_scheme(NULL)  { ; } 
 
+    ~PropertyIOManipulator() {
+        delete _color_scheme;
+    }
     friend std::ostream& operator << (std::ostream& os, PropertyIOManipulator& piom )
     { 
         os.pword( Property::getIOindex() ) = &piom;
@@ -51,18 +55,30 @@ public:
           void         setLevel (int level){ _level = level; }
     const std::string &getIndentation(){return _indentation;}
           void         setIndentation(std::string indentation){_indentation = indentation;}
+    const ColorSchemeBase *getColorScheme()
+    {
+        if ( !_color_scheme ) return &DEFAULT_COLORS;
+        return _color_scheme;
+    }
+
+    template<typename T=csDefault>
+    ColorSchemeBase *generateColorScheme() { 
+        if (_color_scheme) delete _color_scheme;        
+        _color_scheme = new Color<T>(); 
+        return _color_scheme;
+    }
 
 private:
     Type _type;
     int _level;
-    std::string _indentation;        
+    std::string _indentation;
+    ColorSchemeBase* _color_scheme;
 };
 
 extern PropertyIOManipulator XML;
 extern PropertyIOManipulator TXT;
 extern PropertyIOManipulator TEX;
 extern PropertyIOManipulator HLP;
-
 
 }}
 

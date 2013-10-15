@@ -97,7 +97,8 @@ int main(int argc, char** argv)
         PropertyIOManipulator *piom = _mformat.find( format )->second;
         piom->setLevel(level);
         piom->setIndentation("");
-        cout << *piom  << p ;
+        piom->generateColorScheme<csRGB>();
+        cout   << p ;
     } else {
         cout << "format " << format << " not supported \n";
         cout << desc << endl;
