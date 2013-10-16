@@ -103,6 +103,9 @@ public:
      */
     vec &normalize();
     
+    template<class Archive>
+    void serialize(Archive &arch, const unsigned int version) { arch & _x; arch & _y; arch & _z; }
+    
     private:
         double _x, _y, _z;
 };
