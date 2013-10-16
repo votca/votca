@@ -881,6 +881,47 @@ vector<APolarSite*> XMpsMap::GetOrCreateRawSites(const string &mpsfile, QMThread
 }
 
 
+void XMpsMap::Gen_BGN(Topology *top, PolarTop *new_ptop, QMThread *thread) {
+    // Generates (periodic) background charge distribution for Ewald summations
+    // 'NEW' instances of polar sites are not registered in the topology.
+    // Modifies the polar topology (*PolarTop*) passed during function call
+    
+    // DECLARE TARGET CONTAINERS
+    vector<PolarSeg*> bgN;
+    vector<PolarSeg*>::iterator psit;
+    vector<Segment*> segs_bgN;
+    vector<Segment*>::iterator sit;
+    
+    // PARTITION SEGMENTS ONTO BACKGROUND + FOREGROUND
+    segs_bgN.reserve(top->Segments().size());
+    for (sit = top->Segments().begin();
+         sit < top->Segments().end();
+         ++sit) {        
+        Segment *seg = *sit;        
+        segs_bgN.push_back(seg);      
+    }
+    
+    // CREATE POLAR SITES FOR FOREGROUND + BACKGROUND
+    // Background
+    bool only_active_sites = true;
+    bgN.reserve(segs_bgN.size());
+    for (sit = segs_bgN.begin(); sit < segs_bgN.end(); ++sit) {
+        Segment *seg = *sit;
+        // Look up appropriate set of polar sites
+        string mps = _segId_mpsFile_n[seg->getId()];
+        vector<APolarSite*> psites_raw  = _mpsFile_pSites[mps];
+        vector<APolarSite*> psites_mapped
+                = this->MapPolSitesToSeg(psites_raw, seg);
+        bgN.push_back(new PolarSeg(seg->getId(), psites_mapped));        
+    }
+    
+    // PROPAGATE SHELLS TO POLAR TOPOLOGY
+    new_ptop->setBGN(bgN);    
+    new_ptop->setSegsBGN(segs_bgN);
+    return;
+}
+
+
 void XMpsMap::Gen_FGC_FGN_BGN(Topology *top, XJob *job, QMThread *thread) {
     // Generates foreground/background charge distribution for Ewald summations
     // 'NEW' instances of polar sites are not registered in the topology.

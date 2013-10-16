@@ -76,9 +76,11 @@ void ProgObserver<JobContainer,pJob,rJob>::ReportJobDone(pJob job, rJob *res, QM
     // RESULTS, TIME, HOST
     job->SaveResults(res);    
     job->setTime(GenerateTime());
-    job->setHost(GenerateHost(thread));    
+    job->setHost(GenerateHost(thread));
     // PRINT PROGRESS BAR
     _jobsReported += 1;
+    if (!thread->isMaverick())
+        cout << endl << *thread->getLogger() << flush;
     _lockThread.Unlock();
     return;
 }

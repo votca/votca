@@ -16,7 +16,7 @@ namespace EWD {
 //    - *EucNorm*
 //    - *KNorm*
 // o KVector (with 'grade' attribute)
-// o Conversion constants to harmonize with EwdInteractor
+// o Conversion constants to blend well with EwdInteractor
     
     
 // "static" not really required here

@@ -62,43 +62,38 @@ template<class EwaldMethod>
 void Ewald<EwaldMethod>::Initialize(Property *opt) {
 
     _options = opt;
+    _maverick = (_nThreads == 1) ? true : false;
     
     cout << endl
          << "... ... Initialized with " << _nThreads << " threads. "
          << flush;
 
-    _maverick = (_nThreads == 1) ? true : false;
-    
-
     string key = "options.ewald.multipoles";
-
         if ( opt->exists(key) ) {
             _xml_file = opt->get(key).as< string >();
         }
-
+        else {
+            cout << endl;
+            throw std::runtime_error("No multipole mapping file provided");
+        }
     key = "options.ewald.control";
-
         if ( opt->exists(key+".job_file")) {
             _jobfile = opt->get(key+".job_file").as<string>();
         }
         else {
             throw std::runtime_error("Job-file not set. Abort.");
         }
-
         if ( opt->exists(key+".mps_table")) {
             _mps_table = opt->get(key+".mps_table").as<string>();
         }
         else {
             _mps_table = opt->get(key+".emp_file").as<string>();
         }
-
         if (opt->exists(key+".pdb_check")) {
             _pdb_check = opt->get(key+".pdb_check").as<bool>();
         }
-        else { _pdb_check = false; }
-    
-    key = "options.ewald.polarmethod";
-        
+        else { _pdb_check = false; }    
+    key = "options.ewald.polarmethod";        
         if (opt->exists(key+".induce")) {
             _estatics_only = ! (opt->get(key+".induce").as<bool>());
         }

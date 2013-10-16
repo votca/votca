@@ -43,7 +43,7 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
     if (opt->exists(pfx+".convergence.rfactor"))
         _rfactor = opt->get(pfx+".convergence.rfactor").as<double>();
     else
-        _rfactor = 3.5;    
+        _rfactor = 6.;    
     // Polar parameters    
     if (opt->exists(pfx+".polarmethod.induce"))
         _polar_do_induce = opt->get(pfx+".polarmethod.induce").as<bool>();
@@ -247,7 +247,7 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
             qzz_bgP += (*pit)->getQ00() * ((*pit)->getPos().getZ() * (*pit)->getPos().getZ());
         }
     }
-    for (sit = _fg_C.begin(); sit < _fg_C.end(); ++sit) {        
+    for (sit = _fg_C.begin(); sit < _fg_C.end(); ++sit) {
         PolarSeg* pseg = *sit;        
         for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
             netdpl_fgC += (*pit)->getPos() * (*pit)->getQ00();
