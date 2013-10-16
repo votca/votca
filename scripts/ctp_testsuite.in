@@ -26,7 +26,7 @@ ctp_testsuite, version {version}
 
 '''.format(version=VERSION, progtitle=PROGTITLE)
 try:
-	VOTCASHARE = os.environ['VOTCASHARE']
+	VOTCASHARE = os.environ['VOTCASHARE']    
 except KeyError:
 	print "ERROR: VOTCASHARE not set. Abort."
 	print "(You need to source the VOTCARC located in '/your/votca/path/bin/')"
@@ -130,20 +130,29 @@ progargs.add_argument('-c', '--clean',
 	const=True,
 	default=False,
 	help='To clean or not to clean test dir. (def=False)')
+progargs.add_argument('-m', '--mailto',
+	dest='mailto',
+	action='store',
+	required=False,
+	type=str,
+        metavar="",
+	default="",
+	help='Mail the result. (def=False)')
 
 # OPTIONS & GLOBAL EXECUTION VARIABLES
 OPTIONS			 = progargs.parse_args()
-TESTSUITEXML	 = OPTIONS.testsuite
+TESTSUITEXML		 = OPTIONS.testsuite
 TESTDIR			 = OPTIONS.testdirectory
 TESTSOURCE		 = OPTIONS.sourcedirectory
 VERBOSE			 = OPTIONS.verbose
 SILENTEXE		 = not OPTIONS.showoutput
-CLEANTESTFOLDER	 = OPTIONS.clean
+CLEANTESTFOLDER		 = OPTIONS.clean
+MAILTO                   = OPTIONS.mailto
 USER			 = getpass.getuser()
 HOST			 = socket.gethostname()
 BASEDIR			 = os.getcwd()
 
-
+print OPTIONS.mailto
 # =============================================================================
 # CONVENIENCE FUNCTIONS & CLASSES
 # =============================================================================
@@ -174,6 +183,10 @@ def isfloat(item):
 	except: return False
 def xmlsplit(string, regex='<|>|/| '):
 	return re.split(regex, string)
+def sendmail(to, subject):
+	print "Send mail to", to, "re:", subject
+	sysexe("/usr/bin/echo . | /usr/bin/mail -s '{subject}' -a 'mail.txt' {to}".format(subject=subject, to=to))
+	return
 
 class CPrint(object):
 	def __init__(self):
@@ -200,6 +213,21 @@ class CPrint(object):
 		return self.ERROR+msg+self.ENDC
 	def Headerlike(self, msg):
 		return self.LBLUE+msg+self.ENDC
+	def Disable(self):
+		self.HEADER = ''
+		self.OKBLUE = ''
+		self.LBLUE = ''
+		self.YELLOW = ''
+		self.GREEN = ''
+		self.WARNING = ''
+		self.ERROR = ''
+		self.MAGENTA = ''
+		self.RED = ''
+		self.ENDC = ''
+		self.OK = 'OK'
+		self.XX = 'XX'
+		self.NN = ':/'
+		return
 		
 def TestDependency_t1_smaller_t2(t1, t2):
 	print "Compare", t1.name, t2.name
@@ -597,6 +625,9 @@ if OPTIONS.compareonly:
 if OPTIONS.sourcedirectory == '':
 	progargs.print_help()
 	okquit("\nQuit here, because: No source directory set (option -s/--source)")
+if OPTIONS.mailto != "":
+	sys.stdout = open("mail.txt","w")
+	cprint.Disable()
 suite.SelectTests(OPTIONS.execute)
 
 # Environment tests
@@ -652,6 +683,10 @@ suite.Run()
 os.chdir('../')
 if TESTDIR in os.listdir('./') and CLEANTESTFOLDER:
 	sysexe('rm -r {testdir}'.format(testdir=TESTDIR))
+
+if OPTIONS.mailto != "":
+	sys.stdout = sys.__stdout__
+	sendmail(OPTIONS.mailto, "Complete")	
 okquit()
 
 
