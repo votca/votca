@@ -61,12 +61,19 @@ public:
         return _color_scheme;
     }
 
-    template<typename T=csDefault>
+    /*template<typename T=csDefault>
     ColorSchemeBase *generateColorScheme() { 
         if (_color_scheme) delete _color_scheme;        
         _color_scheme = new Color<T>(); 
         return _color_scheme;
-    }
+    }*/
+    
+    template<typename T>
+    ColorSchemeBase *generateColorScheme() {
+	if (_color_scheme) delete _color_scheme; 
+	_color_scheme = new Color<T>(); 
+	return _color_scheme;
+   }
 
 private:
     Type _type;
