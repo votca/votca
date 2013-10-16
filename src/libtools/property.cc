@@ -26,6 +26,7 @@
 #include <iomanip>
 
 #include <votca/tools/property.h>
+#include <votca/tools/colors.h>
 #include <votca/tools/tokenizer.h>
 #include <votca/tools/propertyiomanipulator.h>
 
@@ -199,15 +200,27 @@ void PrintNodeXML(std::ostream &out, Property &p, const int start_level, int lev
         // print starting only from the start_level (the first node (level 0) can be <> </>)
         if ( level >= start_level )  {
             // print the node name
-            out << offset << "<" << p.name() ;
+            out << offset << "<" << p.name();
+            //out << offset << "<" << tools::Colors::Red << p.name() << tools::Colors::Reset;
             // print the node attributes 
             for(ia = p.firstAttribute(); ia!=p.lastAttribute(); ++ia) 
-                out << " " << ia->first << "=\"" << ia->second << "\"" ;
+                out << " " 
+                    //<< tools::Colors::Blue << ia->first << tools::Colors::Reset
+                    << ia->first 
+                    << "=\""
+                    //<< tools::Colors::Reset << ia->second << tools::Colors::Reset << "\"" ;
+                    << ia->second << "\"" ;
             out << ">";
             
             // print node value if it is not empty
             bool has_value = ( (p.value()).find_first_not_of("\t\n ") != std::string::npos );
-            if( has_value ) { out << p.value(); _endl = false; }
+            if( has_value ) { 
+                //out <<  tools::Colors::Green << 
+                out <<  p.value() 
+                        //<< tools::Colors::Reset
+                        ; 
+                _endl = false; 
+            }
             
             // check if we need the end of the line or not
             if( !has_value &&  p.HasChilds() ) out << endl;
@@ -225,9 +238,11 @@ void PrintNodeXML(std::ostream &out, Property &p, const int start_level, int lev
         
         if ( level >= start_level ) {
             if ( _endl ) {
-                out << offset << "</" << p.name() << ">"  << endl;
+                //out << offset << "</" << tools::Colors::Red << p.name() << tools::Colors::Reset << ">" << endl;
+                out << offset << "</" << p.name() << ">" << endl;
             } else {
-                out << "</" << p.name() << ">"  << endl;
+                //out << "</" << tools::Colors::Red << p.name() << tools::Colors::Reset << ">" << endl;
+                out << "</" << p.name() << ">" << endl;
             }
         } 
 }
@@ -304,22 +319,33 @@ void PrintNodeTEX(std::ostream &out, Property &p, const int start_level, int lev
 }
 
 void PrintNodeHLP(std::ostream &out, Property &p, const int start_level, int level, string prefix,  string offset) {
-
      
     list<Property>::iterator iter;       
     string head_name;
     string _help("");
     string _unit("");
     string _default("");
-    string fmt("t|%1%%|15t|%2%%|40t|%3%%|55t|%4%\n");
+    string _name("");
+    string fmt( "t|%1%%|15t|\033[34m%2%\033[34m%|40t|\033[32m%3%%|55t|\033[0m%4%\n");
+/*
+#define RESET   "\033[0m"
+#define BLACK   "\033[30m"
+#define RED     "\033[31m"
+#define GREEN   "\033[32m"
+#define YELLOW  "\033[33m"
+#define BLUE    "\033[34m"
+#define MAGENTA "\033[35m"
+#define CYAN    "\033[36m"
+#define WHITE   "\033[37m"
+*/    
     int _offset = level;
     
     // if this is the head node, print the header
     if ( level == start_level ) {
-            head_name = p.name();
+            head_name = tools::Colors::Red + p.name();
             if ( p.hasAttribute("help") ) {
-                if  ( p.hasAttribute("help") ) _help = p.getAttribute<string>("help");           
-                out << boost::format(" %1%: %|18t| %2%\n") % head_name % _help;
+                if  ( p.hasAttribute("help") ) _help = tools::Colors::Red + p.getAttribute<string>("help");           
+                out << boost::format(" %1%: %|18t| %2%\033[0m\n") % head_name % _help;
             }
             _offset=0;
             out << boost::format("%|3" + fmt) % "OPTION" % "DEFAULT" % "UNIT" % "DESCRIPTION";
@@ -330,15 +356,18 @@ void PrintNodeHLP(std::ostream &out, Property &p, const int start_level, int lev
             string ofmt;
             ofmt = "%|" + boost::lexical_cast<string>(_offset) + fmt;
             //cout << ofmt << " " << fmt << endl;
-            
-            if  ( p.hasAttribute("unit") ) _unit = p.getAttribute<string>("unit");
-            if  ( p.hasAttribute("default") ) _default = p.getAttribute<string>("default") ;
+             if  ( p.hasAttribute("unit") ) 
+                _unit = p.getAttribute<string>("unit");
+            if  ( p.hasAttribute("default") ) 
+                _default = p.getAttribute<string>("default");
             if  ( p.hasAttribute("help") ) _help = p.getAttribute<string>("help") ;
             if ( !_unit.empty() ) _unit = "[" + _unit + "]";
             if ( !_default.empty() ) _default = "(" + _default + ")";
             
+             _name = p.name(); 
+            
             out << boost::format(ofmt)
-                    % p.name() 
+                    % _name
                     % _default
                     % _unit
                     % _help;
