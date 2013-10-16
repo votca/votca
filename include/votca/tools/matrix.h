@@ -199,7 +199,11 @@ public:
 
     friend matrix operator*(const double &, const matrix &);
     friend vec operator*(const vec &, const matrix &);
-	  private:
+    
+    template<class Archive>
+    void serialize(Archive &arch, const unsigned int version) { arch & _m; }
+    
+private:
     double _m[9];
 };
 
