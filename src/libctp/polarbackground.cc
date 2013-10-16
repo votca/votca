@@ -123,6 +123,6 @@ PolarBackground::PolarBackground(Topology *top, PolarTop *ptop, Property *opt,
 void PolarBackground::Polarize() {    
 
     return;
-}    
+}
     
 }}}
