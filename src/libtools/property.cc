@@ -285,7 +285,7 @@ void PrintNodeTEX(std::ostream &out, Property &p, PropertyIOManipulator *piom, i
     // if this is the head node, print the header
     if ( level == start_level )  {
             head_name = p.name();
-            if ( p.hasAttribute("label") ) _label = p.getAttribute<string>("label");
+            _label = "calc:" + head_name;
             if ( p.hasAttribute("section") ) _section = p.getAttribute<string>("section");
             if ( p.hasAttribute("help") ) _help = p.getAttribute<string>("help");
             out << boost::format(header_format) % head_name % _label % _help;     
