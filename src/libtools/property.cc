@@ -202,8 +202,8 @@ void PrintNodeXML(std::ostream &out, Property &p, PropertyIOManipulator *piom, i
     int start_level(0);
     
     if ( piom ) {
-        int start_level = piom->getLevel();
-        string indent   = piom->getIndentation();
+        start_level = piom->getLevel();
+        indent   = piom->getIndentation();
         color = piom->getColorScheme();
     }
     // print starting only from the start_level (the first node (level 0) can be <> </>)
@@ -251,7 +251,7 @@ void PrintNodeXML(std::ostream &out, Property &p, PropertyIOManipulator *piom, i
         } 
 }
     
-void PrintNodeTEX(std::ostream &out, Property &p, const int start_level=0, int level=0, string prefix="",  string offset="") {
+void PrintNodeTEX(std::ostream &out, Property &p, PropertyIOManipulator *piom, int level=0, string prefix="") {
 
     
     list<Property>::iterator iter;       
@@ -262,6 +262,13 @@ void PrintNodeTEX(std::ostream &out, Property &p, const int start_level=0, int l
     string _default(""); // default value if supplied
     string _unit(""); //unit, if supplied
  
+   const ColorSchemeBase *color = &DEFAULT_COLORS;
+   int start_level(0);
+    
+    if ( piom ) {
+        start_level = piom->getLevel();
+        color = piom->getColorScheme();
+    }
 
     string header_format("\\subsection{%1%}\n"
                          "\\label{%2%}\n%3%\n"
@@ -309,11 +316,11 @@ void PrintNodeTEX(std::ostream &out, Property &p, const int start_level=0, int l
     for(iter = p.begin(); iter != p.end(); ++iter) {
         if(prefix=="") {
             level++;
-            PrintNodeTEX(out, (*iter), start_level, level, (*iter).name(), offset);
+            PrintNodeTEX(out, (*iter), piom, level, prefix);
             level--;
         } else {
             level++;
-            PrintNodeTEX(out, (*iter), start_level, level, prefix + "." + (*iter).name(), offset);
+            PrintNodeTEX(out, (*iter), piom, level, prefix);
             level--;
         }
     }        
@@ -418,7 +425,7 @@ std::ostream &operator<<(std::ostream &out, Property& p)
             PrintNodeTXT(out, p, _level, 0, "", _indentation);
             break;
          case PropertyIOManipulator::TEX:            
-            PrintNodeTEX(out, p, _level);
+            PrintNodeTEX(out, p, pm);
             break;
         case PropertyIOManipulator::HLP:            
             PrintNodeHLP(out, p, _level, 0, "", _indentation);

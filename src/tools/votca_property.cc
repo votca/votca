@@ -98,7 +98,7 @@ int main(int argc, char** argv)
         piom->setLevel(level);
         piom->setIndentation("");
         piom->generateColorScheme<csRGB>();
-        cout   << p ;
+        cout << *piom  << p ;
     } else {
         cout << "format " << format << " not supported \n";
         cout << desc << endl;
