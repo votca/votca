@@ -31,11 +31,11 @@ pJob ProgObserver<JobContainer,pJob,rJob>::RequestNextJob(QMThread *thread) {
     if (_nextjit == _jobsToProc.end() && _moreJobsAvailable) {
         SyncWithProgFile(thread);
         _nextjit = _jobsToProc.begin();
-		if (_nextjit == _jobsToProc.end()) {
-			 _moreJobsAvailable = false;
-			LOG(logDEBUG,*(thread->getLogger()))
-				<< "Sync did not yield any new jobs." << flush;
-		}
+        if (_nextjit == _jobsToProc.end()) {
+                 _moreJobsAvailable = false;
+                LOG(logDEBUG,*(thread->getLogger()))
+                        << "Sync did not yield any new jobs." << flush;
+        }
     }
     
     // JOBS EATEN ALL UP?

@@ -127,7 +127,48 @@ public:
     vector<APolarSite*> CreateFrom_MPS(string filename, int state) { 
         vector<APolarSite*> a; return a; 
     }
+    
+    template<class Archive>
+    void serialize(Archive &arch, const unsigned int version) {
+        arch & _id;
+        arch & _name;
+        arch & _isVirtual;
+        arch & _pos;
+        arch & _locX;
+        arch & _locY;
+        arch & _locZ;
 
+        arch & _Qs;
+        arch & _rank;
+
+        arch & _Ps;
+
+        arch & Pxx; arch & Pxy; arch & Pxz;
+        arch & Pyy; arch & Pyz;
+        arch & Pzz;
+
+        arch & pax; arch & eigenpxx;
+        arch & pay; arch & eigenpyy;
+        arch & paz; arch & eigenpzz;
+
+        arch & eigendamp;
+
+        arch & Q00;
+        arch & Q1x; arch & Q1y;  arch & Q1z;
+        arch & Q20; arch & Q21c; arch & Q21s; arch & Q22c; arch & Q22s;
+        arch & Qxx; arch & Qxy;  arch & Qxz;  arch & Qyy;  arch & Qyz; arch & Qzz;
+
+        arch & U1x; arch & U1y; arch & U1z;
+        arch & FPx; arch & FPy; arch & FPz;
+        arch & FUx; arch & FUy; arch & FUz;
+
+        // NOT ARCHIVED
+        // Topology *_top;
+        // Segment  *_seg;
+        // Fragment *_frag;
+        // vector< vec > U1_Hist;                  // Ind. u history
+        return;
+    }
 
 
 

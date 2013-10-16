@@ -7,6 +7,9 @@
 #include <votca/ctp/ewaldactor.h>
 #include <votca/ctp/logger.h>
 
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
+
 namespace votca { namespace ctp {    
 namespace EWD {
 
@@ -14,8 +17,11 @@ class PolarBackground
 {
 public:
 
+    PolarBackground() : _top(NULL), _ptop(NULL), _log(NULL) {};
     PolarBackground(Topology *top, PolarTop *ptop, Property *opt, Logger *log);
    ~PolarBackground() {};
+   
+    void Polarize();
     
 private:
 

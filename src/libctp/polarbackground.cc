@@ -118,11 +118,11 @@ PolarBackground::PolarBackground(Topology *top, PolarTop *ptop, Property *opt,
     
     return;
 }
-    
-    
-    
-    
-    
-    
+
+
+void PolarBackground::Polarize() {    
+
+    return;
+}    
     
 }}}
