@@ -266,6 +266,13 @@ void PolarTop::PrintInduState(FILE *out, string format,
 }
 
 
+void PolarTop::RemoveAllOwnership() {
+    _clean_qm0 = _clean_mm1 = _clean_mm2 = false;
+    _clean_bgN = _clean_fgN = _clean_fgC = false;
+    return;
+}
+
+
 void PolarTop::SaveToDrive(string archfile) {
     // Carve into archive
     std::ofstream ofs(archfile.c_str());

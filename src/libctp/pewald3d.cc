@@ -805,7 +805,7 @@ void PEwald3D3D::PolarizeBackground() {
     vector<PolarSeg*>::iterator sit1; 
     vector<APolarSite*> ::iterator pit1;
     vector<PolarSeg*>::iterator sit2; 
-    vector<APolarSite*> ::iterator pit2;    
+    vector<APolarSite*> ::iterator pit2;
     
     // VERIFY NEUTRALITY & DEPOLARIZE
     // In principle, this was already checked in the Ewald3DnD constructor

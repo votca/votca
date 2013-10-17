@@ -66,6 +66,7 @@ public:
        return;
    }
    
+    void RemoveAllOwnership();
     void LoadFromDrive(string archfile);
     void SaveToDrive(string archfile);
     

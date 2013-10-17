@@ -51,6 +51,7 @@ private:
 
     string                         _mps_table;
     string                         _xml_file;
+    string                         _polar_bg_arch;
     XMpsMap                        _mps_mapper;
     bool                           _pdb_check;
     bool                           _estatics_only;
@@ -87,7 +88,13 @@ void Ewald<EwaldMethod>::Initialize(Property *opt) {
             _mps_table = opt->get(key+".mps_table").as<string>();
         }
         else {
-            _mps_table = opt->get(key+".emp_file").as<string>();
+            throw std::runtime_error("Background mps table not set.");
+        }
+        if ( opt->exists(key+".polar_bg")) {
+            _polar_bg_arch = opt->get(key+".polar_bg").as<string>();
+        }
+        else {
+            _polar_bg_arch = "";
         }
         if (opt->exists(key+".pdb_check")) {
             _pdb_check = opt->get(key+".pdb_check").as<bool>();
@@ -226,10 +233,18 @@ Job::JobResult Ewald<EwaldMethod>::EvalJob(Topology *top, Job *job,
     // CREATE XJOB FROM JOB INPUT STRING
     XJob xjob = this->ProcessInputString(job, top, thread);    
     
-    // GENERATE POLAR TOPOLOGY
-    _mps_mapper.Gen_FGC_FGN_BGN(top, &xjob, thread);
+    // GENERATE POLAR TOPOLOGY (GENERATE VS LOAD IF PREPOLARIZED)
+    if (_polar_bg_arch == "") {
+        LOG(logINFO,*log) << "Mps-Mapper: Generate FGC FGN BGN" << flush;
+        _mps_mapper.Gen_FGC_FGN_BGN(top, &xjob, thread);
+    }
+    else {
+        LOG(logINFO,*log) << "Mps-Mapper: Generate FGC, load FGN BGN from '" 
+                << _polar_bg_arch << "'." << flush;
+        _mps_mapper.Gen_FGC_Load_FGN_BGN(top, &xjob, _polar_bg_arch, thread);
+    }
     
-    // CALL EWALD MAGIC
+    // CALL THOLEWALD MAGIC
     EwaldMethod ewaldnd = EwaldMethod(top, xjob.getPolarTop(), _options, 
         thread->getLogger());
     if (tools::globals::verbose || _pdb_check)
