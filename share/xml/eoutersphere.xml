@@ -1,6 +1,6 @@
 <options>
 
-<eoutersphere help="Evaluates outersphere reorganization energy" label="calc:eoutersphere">
+<eoutersphere help="Evaluates outersphere reorganization energy" section="sec:eoutersphere">
         <multipoles help="XML allocation polar sites">system.xml</multipoles> 
 	<method help="Type of the method: **constant** - all pairs have value **lambda**. **spheres**  - molecules are treated as spheres with radii **radius** and Pekar factor **pekar**. **dielectric** - with Pekar factor **pekar** and partial charges from resulting dielectric fields">spheres</method>
 	<lambdaconst help="The value for all pairs in the **constant** method" unit="eV">0.01</lambdaconst>
