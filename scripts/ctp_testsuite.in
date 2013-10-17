@@ -11,6 +11,7 @@ import time
 import argparse
 import re
 import math
+import datetime
 
 PROGTITLE = 'THE VOTCA::CTP TESTSUITE'
 PROGDESCR = 'Performs tests en suite +'
@@ -185,7 +186,7 @@ def xmlsplit(string, regex='<|>|/| '):
 	return re.split(regex, string)
 def sendmail(to, subject):
 	print "Send mail to", to, "re:", subject
-	sysexe("/usr/bin/echo . | /usr/bin/mail -s '{subject}' -a 'mail.txt' {to}".format(subject=subject, to=to))
+	sysexe("/usr/bin/echo . | /usr/bin/mail -s '{subject}' -a 'testsuite.txt' {to}".format(subject=subject, to=to))
 	return
 
 class CPrint(object):
@@ -626,7 +627,7 @@ if OPTIONS.sourcedirectory == '':
 	progargs.print_help()
 	okquit("\nQuit here, because: No source directory set (option -s/--source)")
 if OPTIONS.mailto != "":
-	sys.stdout = open("mail.txt","w")
+	sys.stdout = open("testsuite.txt","w")
 	cprint.Disable()
 suite.SelectTests(OPTIONS.execute)
 
@@ -685,8 +686,9 @@ if TESTDIR in os.listdir('./') and CLEANTESTFOLDER:
 	sysexe('rm -r {testdir}'.format(testdir=TESTDIR))
 
 if OPTIONS.mailto != "":
+        now = datetime.datetime.now()
 	sys.stdout = sys.__stdout__
-	sendmail(OPTIONS.mailto, "Complete")	
+	sendmail( OPTIONS.mailto, now.strftime("%Y-%m-%d %H:%M") )	
 okquit()
 
 
