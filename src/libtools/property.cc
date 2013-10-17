@@ -32,6 +32,7 @@
 
 #include <boost/format.hpp>
 #include <boost/algorithm/string.hpp>
+#include <unistd.h>
 
 namespace votca { namespace tools {
 
@@ -196,35 +197,38 @@ void PrintNodeXML(std::ostream &out, Property &p, PropertyIOManipulator *piom, i
     list<Property>::iterator iter;       
     Property::AttributeIterator ia;
     bool _endl = true;
-
+    
     const ColorSchemeBase *color = &DEFAULT_COLORS;
     string indent("");
     int start_level(0);
-    
+
     if ( piom ) {
         start_level = piom->getLevel();
         indent   = piom->getIndentation();
         color = piom->getColorScheme();
     }
+
+    string cKey = color->Magenta();
+    string cAttribute = color->Blue();
+    string cAttributeValue = color->Green();
+    string cReset = color->Reset();
+
     // print starting only from the start_level (the first node (level 0) can be <> </>)
         if ( level >= start_level )  {
             // print the node name
-            out << indent << offset << "<" << color->Red() << p.name() << color->Reset();
+            out << indent << offset << "<" << cKey << p.name() << cReset;
             // print the node attributes 
             for(ia = p.firstAttribute(); ia!=p.lastAttribute(); ++ia) 
                 out << indent << " " 
-                    << color->Blue() << ia->first << color->Reset()
+                    << cAttribute << ia->first << cReset
                     << "=\""
-                    << color->Reset() << ia->second << color->Reset() << "\"" ;
+                    << cReset << ia->second << cReset << "\"" ;
             out << ">";
             
             // print node value if it is not empty
             bool has_value = ( (p.value()).find_first_not_of("\t\n ") != std::string::npos );
             if( has_value ) { 
-                //out <<  tools::Colors::Green << 
-                out <<  p.value() 
-                        //<< tools::Colors::Reset
-                        ; 
+                out <<  cAttributeValue <<  p.value() << cReset;
                 _endl = false; 
             }
             
@@ -244,9 +248,9 @@ void PrintNodeXML(std::ostream &out, Property &p, PropertyIOManipulator *piom, i
         
         if ( level >= start_level ) {
             if ( _endl ) {
-                out << indent << offset << "</" << color->Red() << p.name() << color->Reset() << ">" << endl;
+                out << indent << offset << "</" << cKey << p.name() << cReset << ">" << endl;
             } else {
-                out << indent << "</" << color->Red() << p.name() << color->Reset() << ">" << endl;
+                out << indent << "</" << cKey << p.name() << cReset << ">" << endl;
             }
         } 
 }
@@ -348,7 +352,7 @@ void PrintNodeHLP(std::ostream &out, Property &p, const int start_level=0, int l
     
     // if this is the head node, print the header
     if ( level == start_level ) {
-            head_name = string(RGB.Red()) + p.name();
+            head_name = string(RGB.Magenta()) + p.name();
             if ( p.hasAttribute("help") ) {
                 if  ( p.hasAttribute("help") ) _help = string(RGB.Red()) + p.getAttribute<string>("help");           
                 out << boost::format(" %1%: %|18t| %2%" + string(RGB.Reset()) + "\n") % head_name % _help;
@@ -407,11 +411,17 @@ std::ostream &operator<<(std::ostream &out, Property& p)
         
         string _indentation("");
         int _level = 0;
+                        
         PropertyIOManipulator::Type _type = PropertyIOManipulator::XML;
         if (pm) {
             _indentation = pm->getIndentation();
             _level = pm->getLevel();
             _type = pm->getType();
+            // check if we > or >> to a file and remove color codes
+            if ( out.tellp() != -1 ) {
+                pm->generateColorScheme<csDefault>();
+            }
+
         }
             
          switch( _type )

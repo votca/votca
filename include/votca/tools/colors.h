@@ -22,10 +22,19 @@
 namespace votca { namespace tools {
 
 /**
-    \brief class to store color codes     
-
-    How to use: std::cout << tools::colors::red << "Hello world";  
-*/
+    \brief stores color codes for colorful help output    
+ * 
+ * "\x1b[%dm"
+ * 
+ * 0: reset colors/style
+ * 1: bold
+ * 4: underline
+ * 30 - 37: black, red, green, yellow, blue, magenta, cyan, and white text
+ * 40 - 47: black, red, green, yellow, blue, magenta, cyan, and white background
+ * A, B, C, D - moves cursor one line above, under, right, left
+ * 
+ * example: "\x1b[1;35;42m"
+ */
 
 namespace Colors 
 {
@@ -38,18 +47,20 @@ namespace Colors
     static const char Green[]       = { 0x1b, '[', '0', ';', '3', '2', 'm', 0 };
     static const char Yellow[]      = { 0x1b, '[', '0', ';', '3', '3', 'm', 0 };
     static const char Blue[]        = { 0x1b, '[', '0', ';', '3', '4', 'm', 0 };
-    static const char Magenta[]     = { 0x1b, '[', '0', ';', '3', '4', 'm', 0 };
-    static const char Cyan[]        = { 0x1b, '[', '0', ';', '3', '4', 'm', 0 };
-    static const char White[]       = { 0x1b, '[', '0', ';', '3', '4', 'm', 0 };
+    static const char Magenta[]     = { 0x1b, '[', '0', ';', '3', '5', 'm', 0 };
+    static const char Cyan[]        = { 0x1b, '[', '0', ';', '3', '6', 'm', 0 };
+    static const char White[]       = { 0x1b, '[', '0', ';', '3', '7', 'm', 0 };
 
     static const char BoldBlack[]   = { 0x1b, '[', '1', ';', '3', '0', 'm', 0 };
     static const char BoldRed[]     = { 0x1b, '[', '1', ';', '3', '1', 'm', 0 };
     static const char BoldGreen[]   = { 0x1b, '[', '1', ';', '3', '2', 'm', 0 };
     static const char BoldYellow[]  = { 0x1b, '[', '1', ';', '3', '3', 'm', 0 };
     static const char BoldBlue[]    = { 0x1b, '[', '1', ';', '3', '4', 'm', 0 };
-    static const char BoldMagenta[] = { 0x1b, '[', '1', ';', '3', '4', 'm', 0 };
-    static const char BoldCyan[]    = { 0x1b, '[', '1', ';', '3', '4', 'm', 0 };
-    static const char BoldWhite[]   = { 0x1b, '[', '1', ';', '3', '4', 'm', 0 };
+    static const char BoldMagenta[] = { 0x1b, '[', '1', ';', '3', '5', 'm', 0 };
+    static const char BoldCyan[]    = { 0x1b, '[', '1', ';', '3', '6', 'm', 0 };
+    static const char BoldWhite[]   = { 0x1b, '[', '1', ';', '3', '7', 'm', 0 };
+
+ 
 
 };
 

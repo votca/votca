@@ -60,20 +60,13 @@ public:
         if ( !_color_scheme ) return &DEFAULT_COLORS;
         return _color_scheme;
     }
-
-    /*template<typename T=csDefault>
-    ColorSchemeBase *generateColorScheme() { 
-        if (_color_scheme) delete _color_scheme;        
-        _color_scheme = new Color<T>(); 
-        return _color_scheme;
-    }*/
     
     template<typename T>
-    ColorSchemeBase *generateColorScheme() {
+    const ColorSchemeBase *generateColorScheme() {
 	if (_color_scheme) delete _color_scheme; 
 	_color_scheme = new Color<T>(); 
 	return _color_scheme;
-   }
+    }
 
 private:
     Type _type;
