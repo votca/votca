@@ -106,10 +106,13 @@ private:
      * orbitals: | A 0 | and energies: [EA, EB]
      *           | 0 B |
      */
-    void PrepareGuess(         Orbitals* _orbitalsA, 
-                               Orbitals* _orbitalsB, 
-                               Orbitals* _orbitalsAB, 
-                               QMThread *opThread );
+    void PrepareGuess(         Orbitals *_orbitalsA, 
+                               Orbitals *_orbitalsB, 
+                               Orbitals *_orbitalsAB, 
+                               Logger *log = NULL );
+    
+    void LoadOrbitals(string file_name, Orbitals* orbitals, Logger *log = NULL );
+        
 };
 
 }}

@@ -20,10 +20,12 @@
 // boost::ublas checks are switched off
 #define NDEBUG
 
-#include "votca/ctp/overlap.h"
+#include <votca/ctp/overlap.h>
 #include <votca/tools/linalg.h>
 
 #include <boost/numeric/ublas/operation.hpp>
+// FOR TEST PURPOSES - MOVE TO TOOLS
+#include <votca/ctp/gsl_boost_ublas_matrix_prod.h>
 #include <boost/numeric/ublas/operation_blocked.hpp>
 #include <boost/progress.hpp>
 
@@ -284,13 +286,10 @@ bool Overlap::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
               << JAB_dimer.size1() << "x" 
               << JAB_dimer.size2() << "]";  
        
-     ub::matrix<double> JAB_temp = ub::prod( JAB_dimer, _S_AxB_2 );
-        
+     ub::matrix<double> JAB_temp( _levelsA + _levelsB, _levelsA + _levelsB );  
+     ub::noalias(JAB_temp) = ub::prod( JAB_dimer, _S_AxB_2 );
      (*_JAB) = ub::prod( _S_AxB_2, JAB_temp );
-    
-     // cleanup
-     JAB_dimer.clear(); JAB_temp.clear(); _S_AxB_2.clear();
-    LOG(logDEBUG,*_pLog)  << " (" << t.elapsed() - _st << "s) " << flush; _st = t.elapsed();    
+     LOG(logDEBUG,*_pLog)  << " (" << t.elapsed() - _st << "s) " << flush; _st = t.elapsed();    
     
      LOG(logDEBUG,*_pLog) << "Done with electronic couplings" << flush;
      return true;   

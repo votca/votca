@@ -16,6 +16,7 @@
  * limitations under the License.
  *
  */
+
 #include <boost/numeric/ublas/banded.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
