@@ -76,7 +76,7 @@ Carrier* State::Get_item(int itemnr){
 }
 
 int State::Get_itemnr_by_index(int index){
-    _carriers.Get_itemnr_by_index(int index);
+    _carriers.Get_itemnr_by_index(index);
 }
     
 

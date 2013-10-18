@@ -18,9 +18,9 @@
 #ifndef __VOTCA_KMC_DIODE_H
 #define	__VOTCA_KMC_DIODE_H
 
-#include <votca/kmc/lattice.h>
+//#include <votca/kmc/lattice.h>
 #include <votca/tools/vec.h>
-#include <votca/kmc/store.h>
+//#include <votca/kmc/store.h>
 
 using namespace std;
 
@@ -57,9 +57,9 @@ public:
   int _collected_electrons_left;
   int _collected_electrons_right;
   
-  votca::tools::Random2 *RandomVariable  
+  votca::tools::Random2 *RandomVariable;  
 
-  Lattice _lattice;
+  //Lattice _lattice;
 
 protected:
  void RunKMC(void); 
@@ -75,6 +75,8 @@ private:
 
 
 void Diode::Initialize(Property *options) {
+
+/*
     if(options->exists("options.lattice.NX")) {
         _lattice->_NX = options->get("options.lattice.NX").as<double>();
     }
@@ -489,6 +491,7 @@ void Diode::Initialize(Property *options) {
     _lattice->_longrange->Reset();
     
     _sim_time = 0.0;
+ */
 }
 
 bool Diode::EvaluateFrame()
@@ -501,6 +504,7 @@ bool Diode::EvaluateFrame()
 
 void Diode::RunKMC() {
 
+    /*
     // Loop over timesteps:
     for (long itstep=0; itstep<2*NEQUIL+NTIMESTEPS; itstep++) {
       if (div(itstep,_longrange_update).rem==0 && itstep>0) {
@@ -669,7 +673,7 @@ void Diode::RunKMC() {
 
 
     
-
+*/
 
 }
 
