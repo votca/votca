@@ -503,7 +503,8 @@ bool Gaussian::ParseOrbitalsFile( Orbitals* _orbitals )
     unsigned _level;
     unsigned _basis_size = 0;
 
-    string _orb_file_name_full = _run_dir + "/" + _orb_file_name;
+    string _orb_file_name_full = _orb_file_name ;
+    if ( _run_dir != "" )  _orb_file_name_full  = _run_dir + "/" + _orb_file_name;
     std::ifstream _input_file( _orb_file_name_full.c_str() );
     
     if (_input_file.fail()) {
@@ -614,7 +615,9 @@ bool Gaussian::CheckLogFile() {
     
     // check if the log file exists
     char ch;
-    ifstream _input_file((_run_dir + "/" + _log_file_name).c_str());
+    string _full_name = _log_file_name;
+    if ( _run_dir != "" ) _full_name = _run_dir + "/" + _log_file_name;
+    ifstream _input_file( _full_name.c_str() );
     
     if (_input_file.fail()) {
         LOG(logERROR,*_pLog) << "Gaussian LOG is not found" << flush;
@@ -679,7 +682,10 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
     int _cart_basis_set_size = 0;
     
     LOG(logDEBUG,*_pLog) << "Parsing " << _log_file_name << flush;
-    string _log_file_name_full =  _run_dir + "/" + _log_file_name;
+    
+    string _log_file_name_full =  _log_file_name;
+    if ( _run_dir != "" ) _log_file_name_full =  _run_dir + "/" + _log_file_name;
+
     // check if LOG file is complete
     if ( !CheckLogFile() ) return false;
     

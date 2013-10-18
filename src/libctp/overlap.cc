@@ -17,6 +17,9 @@
  *
  */
 
+// boost::ublas checks are switched off
+#define NDEBUG
+
 #include "votca/ctp/overlap.h"
 #include <votca/tools/linalg.h>
 
@@ -246,19 +249,20 @@ bool Overlap::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     // Fock matrix of a dimer   
     LOG(logDEBUG,*_pLog) << "Constructing the dimer Fock matrix [" 
               << _orbitalsAB->getNumberOfLevels() << "x" 
-             << _orbitalsAB->getNumberOfLevels() << "]" << flush;    
+             << _orbitalsAB->getNumberOfLevels() << "] ";    
+    LOG(logDEBUG,*_pLog)  << " (" << t.elapsed() - _st << "s) " << flush; _st = t.elapsed();
  
     ub::diagonal_matrix<double> _fock_AB( _orbitalsAB->getNumberOfLevels(), (*_orbitalsAB->getEnergies()).data() ); 
    
     // psi_AxB * S_AB * psi_AB
-    LOG(logDEBUG,*_pLog) << TimeStamp() << " Projecting the dimer onto monomer orbitals" ;    
+    LOG(logDEBUG,*_pLog) << " Projecting the dimer onto monomer orbitals" ;    
     ub::matrix<double> _psi_AB = ub::prod( *_orbitalsAB->getOverlap(), ub::trans( *_orbitalsAB->getOrbitals() ) );          
     ub::matrix<double> _psi_AxB_dimer_basis = ub::prod( _psi_AxB, _psi_AB );
      _psi_AB.clear();
      LOG(logDEBUG,*_pLog)  << " (" << t.elapsed() - _st << "s) " << flush; _st = t.elapsed();    
 
     // J = psi_AxB_dimer_basis * FAB * psi_AxB_dimer_basis^T
-    LOG(logDEBUG,*_pLog) << TimeStamp() << " Projecting the Fock matrix onto the dimer basis";    
+    LOG(logDEBUG,*_pLog) << " Projecting the Fock matrix onto the dimer basis";    
     ub::matrix<double> _temp = ub::prod( _fock_AB, ub::trans( _psi_AxB_dimer_basis ) ) ;
     ub::matrix<double> JAB_dimer = ub::prod( _psi_AxB_dimer_basis, _temp);
     _temp.clear(); _fock_AB.clear();

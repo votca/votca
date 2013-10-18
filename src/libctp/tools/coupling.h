@@ -20,7 +20,10 @@
 #ifndef _VOTCA_CTP_COUPLINGH_H
 #define _VOTCA_CTP_COUPLINGH_H
 
+#include <stdio.h>
+
 #include <votca/ctp/logger.h>
+#include <votca/ctp/overlap.h>
 #include <votca/ctp/qmpackagefactory.h>
 
 namespace votca { namespace ctp {
@@ -46,11 +49,12 @@ private:
     string      _logA, _logB, _logAB;
     int         _levA, _levB;
     int         _trimA, _trimB;
-    string      _qmpackageXML;
     double      _degeneracy;
 
-    string              _package;
-    Property            _package_options; 
+    string      _package;
+    Property    _package_options; 
+    
+    string      _output_file;
     
     Logger      _log;
 
@@ -58,13 +62,13 @@ private:
 
 void Coupling::Initialize(Property* options) 
 {
-    
+
    // update options with the VOTCASHARE defaults   
     UpdateWithDefaults( options );
     std::string key = "options." + Identify();    
-
+    
     _degeneracy = options->get(key + ".degeneracy").as<double> ();
-    _qmpackageXML = options->get(key + ".package").as<string> ();
+    _package = options->get(key + ".package").as<string> ();
             
     _orbA  = options->get(key + ".moleculeA.orbitals").as<string> ();
     _orbB  = options->get(key + ".moleculeB.orbitals").as<string> ();
@@ -80,42 +84,101 @@ void Coupling::Initialize(Property* options)
     _trimA  = options->get(key + ".moleculeA.trim").as<int> ();
     _trimB  = options->get(key + ".moleculeB.trim").as<int> ();
    
-     //key = "package";
-    //_package = _package_options.get(key+".name").as<string> ();
+    _output_file = options->get(key + ".output").as<string> ();
 
-    _package = "gaussian";
-    
     // get the path to the shared folders with xml files
     char *votca_share = getenv("VOTCASHARE");    
     if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
-    string xmlFile = string(getenv("VOTCASHARE")) + string("/ctp/qmpackages/") + _package + string("/idft.pair.xml ");
-    //load_property_from_xml( _package_options, xmlFile );    
+    string xmlFile = string(getenv("VOTCASHARE")) + string("/ctp/qmpackages/") + _package + string("_idft_pair.xml");
+    load_property_from_xml( _package_options, xmlFile );    
+
+    // register all QM packages (Gaussian, TURBOMOLE, etc)
+    QMPackageFactory::RegisterAll();
     
 }
 
 bool Coupling::Evaluate() {
 
-    LOG( logINFO, _log ) << "Loading orbitals " << _orbA << flush;
-    LOG( logINFO, _log ) << "Loading orbitals " << _orbB << flush;
-    LOG( logINFO, _log ) << "Loading orbitals " << _orbAB << flush;
-   
+    _log.setReportLevel( logDEBUG );
+    _log.setMultithreading( true );
+    
+    _log.setPreface(logINFO,    "\n... ...");
+    _log.setPreface(logERROR,   "\n... ...");
+    _log.setPreface(logWARNING, "\n... ...");
+    _log.setPreface(logDEBUG,   "\n... ..."); 
+
     // get the corresponding object from the QMPackageFactory
     QMPackage *_qmpackage =  QMPackages().Create( _package );
    _qmpackage->setLog( &_log );       
-   //_qmpackage->Initialize( &_package_options );
-   
-    Orbitals _orbitalsA, _orbitalsB, _orbitalsAB;
+   _qmpackage->Initialize( &_package_options );
+
+     Orbitals _orbitalsA, _orbitalsB, _orbitalsAB;
+  
+    _qmpackage->setOrbitalsFileName( _orbA );
+    int _parse_orbitalsA_status = _qmpackage->ParseOrbitalsFile( &_orbitalsA );
+
+    _qmpackage->setOrbitalsFileName( _orbB );   
+    int _parse_orbitalsB_status = _qmpackage->ParseOrbitalsFile( &_orbitalsB );
     
+    _qmpackage->setOrbitalsFileName( _orbAB );   
+    int _parse_orbitalsAB_status = _qmpackage->ParseOrbitalsFile( &_orbitalsAB );
+    
+    _qmpackage->setLogFileName( _logA );
     int _parse_logA_status = _qmpackage->ParseLogFile( &_orbitalsA );
+    
+    _qmpackage->setLogFileName( _logB );
     int _parse_logB_status = _qmpackage->ParseLogFile( &_orbitalsB );
+    
+    _qmpackage->setLogFileName( _logAB );
     int _parse_logAB_status = _qmpackage->ParseLogFile( &_orbitalsAB );
 
-    int _parse_orbitalsA_status = _qmpackage->ParseOrbitalsFile( &_orbitalsA );
-    int _parse_orbitalsB_status = _qmpackage->ParseOrbitalsFile( &_orbitalsB );
-    int _parse_orbitalsAB_status = _qmpackage->ParseOrbitalsFile( &_orbitalsAB );
+    LOG(logDEBUG,_log) << "Trimming virtual orbitals A:" 
+                    << _orbitalsA.getNumberOfLevels() - _orbitalsA.getNumberOfElectrons() << "->" 
+                    << _orbitalsA.getNumberOfElectrons()*(_trimA-1) << std::flush;  
+    _orbitalsA.Trim(_trimA);
 
+    LOG(logDEBUG,_log) << "Trimming virtual orbitals B:" 
+                    << _orbitalsB.getNumberOfLevels() - _orbitalsB.getNumberOfElectrons() << "->" 
+                    << _orbitalsB.getNumberOfElectrons()*(_trimB-1) << std::flush;      
+    _orbitalsB.Trim(_trimB);
     
-    std::cout << _log;
+     Overlap _overlap; 
+    _overlap.setLogger(&_log);
+          
+    ub::matrix<double> _JAB;
+     bool _calculate_integrals = _overlap.CalculateIntegrals( &_orbitalsA, &_orbitalsB, &_orbitalsAB, &_JAB );   
+     std::cout << _log;
+ 
+     
+     // output the results
+    Property _summary; 
+    Property *_job_output = &_summary.add("output","");
+    Property *_pair_summary = &_job_output->add("pair","");
+    int HOMO_A = _orbitalsA.getNumberOfElectrons();
+    int HOMO_B = _orbitalsB.getNumberOfElectrons();
+    int LUMO_A = HOMO_A + 1;
+    int LUMO_B = HOMO_B + 1;
+    _pair_summary->setAttribute("homoA", HOMO_A);
+    _pair_summary->setAttribute("homoB", HOMO_B);
+    for (int levelA = HOMO_A - _levA +1; levelA <= LUMO_A + _levA - 1; ++levelA ) {
+        for (int levelB = HOMO_B - _levB + 1; levelB <= LUMO_B + _levB -1 ; ++levelB ) {        
+                double JAB = _overlap.getCouplingElement( levelA , levelB, &_orbitalsA, &_orbitalsB, &_JAB, _degeneracy );
+                Property *_overlap_summary = &_pair_summary->add("overlap", boost::lexical_cast<string>(JAB)); 
+                double energyA = _orbitalsA.getEnergy( levelA );
+                double energyB = _orbitalsB.getEnergy( levelB );
+                _overlap_summary->setAttribute("orbA", levelA);
+                _overlap_summary->setAttribute("orbB", levelB);
+                //_overlap_summary->setAttribute("jAB", JAB);
+                _overlap_summary->setAttribute("eA", energyA);
+                _overlap_summary->setAttribute("eB", energyB);
+        }
+    }
+
+    votca::tools::PropertyIOManipulator iomXML(votca::tools::PropertyIOManipulator::XML, 1, "");
+     
+    std::ofstream ofs (_output_file.c_str(), std::ofstream::out);
+    ofs << *_job_output;    
+    ofs.close();
     
     return true;
 }
