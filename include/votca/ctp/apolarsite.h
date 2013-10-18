@@ -89,6 +89,9 @@ public:
     
     bool            getIsVirtual() { return _isVirtual; }
     bool            getIsActive(bool estatics_only);
+    bool            IsCharged();
+    bool            IsPolarizable();
+    
     vector<double> &getQs(int state) { return _Qs[state+1]; }
     void            setQs(vector<double> Qs, int state) { _Qs[state+1] = Qs; }
     void            setPs(matrix polar, int state) { _Ps[state+1] = polar; }

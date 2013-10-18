@@ -86,7 +86,6 @@ bool EwaldBgPolarizer::EvaluateFrame(Topology *top) {
     if (_pdb_check) ptop.PrintPDB("ewdbgpol.background.pdb");
     
     // POLARIZE SYSTEM
-    LOG(logINFO,log) << "Generate polarization state" << flush;
     EWD::PolarBackground pbg(top, &ptop, _options, &log, _nThreads);
     pbg.Polarize();
     
