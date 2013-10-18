@@ -22,6 +22,24 @@
 \usepackage{lineno}
 \usepackage{makeidx}
 \usepackage{palatino}
+\usepackage{sidecap}
+
+
+
+
+\usepackage[tikz]{bclogo}
+% \usepackage[framemethod=tikz]{mdframed}
+\usepackage{lipsum}
+
+\definecolor{bgblue}{RGB}{245,243,253}
+\definecolor{ttblue}{RGB}{91,194,224}
+% \renewcommand\bcStyleTitre[1]{\large\textcolor{ttblue}{#1}}
+
+%\mdfdefinestyle{mystyle}{%
+%rightline=true,innerleftmargin=10,innerrightmargin=10,
+%outerlinewidth=3pt,topline=false,rightline=true,bottomline=false,
+%skipabove=\topsep,skipbelow=\topsep
+%}
 
 \definecolor{webgreen}{rgb}{0,.5,0}
 \definecolor{webbrown}{rgb}{.6,0,0}
@@ -74,7 +92,7 @@ pdfpagemode=UseNone]{hyperref}
   identifierstyle=\color{red},
   keywordstyle=\color{blue},
   commentstyle=\color{gray}\rmfamily\itshape,
-  mathescape=true
+  mathescape=false
 }
 
 
@@ -120,6 +138,8 @@ pdfpagemode=UseNone]{hyperref}
 
 %\input{input/topology_conjseg}
 \input{input/orbitals_zindo}
+\input{input/header_edft}
+\input{input/header_idft}
 \input{input/output_dft}
 \input{input/statefile}
 

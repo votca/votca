@@ -61,14 +61,14 @@ The matrix elements $e_{i(j)}$, $H_{ij}$, and $S_{ij}$ entering \equ{dipro_eq3} 
   \label{eq:dipro_eq16}
 \end{equation}
 %
-The Hamiltonian is diagonal in its eigenfunctions, $\Bra{\phi^\text{D}_n}\oper{H}\Ket{\phi^\text{D}_m} = E_n \delta_{nm}$. Collecting the projections of the frontier orbitals  $\Ket{\phi_{i(j)}}$ on the $n$-th dimer state $\left(\vctr{V}_i\right)_n= \Braket{\phi_i|\phi^\text{D}_n}$ and $\left(\vctr{V}_j\right)_n=\Braket{\phi_j|\phi^\text{D}_n}$ respectively, into vectors we obtain
+The Hamiltonian is diagonal in its eigenfunctions, $\Bra{\phi^\text{D}_n}\oper{H}\Ket{\phi^\text{D}_m} = E_n \delta_{nm}$. Collecting the projections of the frontier orbitals  $\Ket{\phi_{i(j)}}$ on the $n$-th dimer state $\left(\vctr{V}_{(i)}\right)_n= \Braket{\phi_i|\phi^\text{D}_n}$ and $\left(\vctr{V}_{(j)}\right)_n=\Braket{\phi_j|\phi^\text{D}_n}$ respectively, into vectors we obtain
 
 \begin{equation}
-   H_{ij} = \vctr{V}_i \matr{E}   \vctr{V}_j^\dagger .
+   H_{ij} = \vctr{V}_{(i)} \matr{E}   \vctr{V}_{(j)}^\dagger .
   \label{eq:dipro_eq17}
 \end{equation}
 %
-What is left to do is determine these projections $\vctr{V}_{i(j)}$. In all practical calculations the molecular orbitals are expanded in basis sets of either plane waves or of localized atomic orbitals $\Ket{\varphi_\alpha}$. We will first consider the case that the calculations for
+What is left to do is determine these projections $\vctr{V}_{(k)}$. In all practical calculations the molecular orbitals are expanded in basis sets of either plane waves or of localized atomic orbitals $\Ket{\varphi_\alpha}$. We will first consider the case that the calculations for
 the monomers are performed using a counterpoise basis set that is commonly used to deal with the basis set superposition error (BSSE). The basis set of atom-centered orbitals of a monomer is extended to the one of the dimer by adding the respective atomic orbitals at virtual coordinates of the second monomer. We can then write the respective expansions as
 
 \begin{equation}
@@ -133,10 +133,10 @@ This then yields an effective Hamiltonian matrix in an orthogonal basis, and its
   \label{eq:dipro_eq11}
 \end{equation}
 
-% \begin{figure}[h]
-%     \center
-%     \includegraphics[width=0.8\textwidth]{fig/idft_flow/scheme_t}
-%     \caption{DIPRO scheme}
-%     \label{fig:scheme}
-% \end{figure}
+ \begin{figure}[htb]
+     \center
+     \includegraphics[width=\linewidth]{fig/idft_flow/schemes_all}
+     \caption{Schematics of the DIPRO method. (a) General workflow of the projection technique. (b) Strategy of the efficient noCP+noSCF implementation, in which the monomer calculations are performed independently form the dimer configurations (noCP), using the \calc{edft} \calculator. The dimer Hamiltonian is subsequently constructed based on an initial guess formed from monomer orbitals and only diagonalized once (noSCF) before the transfer integral is calculated by projection. This second step is performed by the \calc{idft} \calculator. }
+     \label{fig:dipro_scheme}
+ \end{figure}
 

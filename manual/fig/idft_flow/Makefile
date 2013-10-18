@@ -2,7 +2,7 @@ ROOTDIR := ../../scripts
 
 JPGPICS :=
 PNGPICS := 
-FIGPICS := scheme_t.eps
+FIGPICS := scheme_t.eps scheme.eps scheme_noCP_noSCF.eps schemes_all.eps
 AGRPICS :=
 GPPICS  := 
 SVGPICS :=
