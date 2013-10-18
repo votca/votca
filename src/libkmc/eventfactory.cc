@@ -27,7 +27,6 @@
 #include "events/electron_collection.h"
 #include "events/hole_collection.h"
 #include "events/recombination.h"
-#include "events/dissociation.h"
 
 namespace votca { namespace kmc {
 
@@ -40,7 +39,6 @@ void EventFactory::RegisterAll(void)
         Events().Register< ElectronCollection >         ( _ElectronCollection );
         Events().Register< HoleCollection >         ( _HoleCollection );
         Events().Register< Recombination >         ( _Recombination );
-        Events().Register< Dissociation >         ( _Dissociation );        
 }
 
 }}

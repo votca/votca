@@ -1,5 +1,5 @@
-/*
- * Copyright 2009-2013 The VOTCA Development Team (http://www.votca.org)
+/* 
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,33 +15,9 @@
  *
  */
 
-#ifndef __VOTCA_KMC_CARRIER_H_
-#define __VOTCA_KMC_CARRIER_H_
+#ifndef __VOTCA_KMC_RATECALCULATOR_H_
+#define	__VOTCA_KMC_RATECALCULATOR_H_
 
-#include <votca/tools/vec.h>
 
-typedef votca::tools::vec myvec;
-
-namespace votca { namespace kmc {
-  
-using namespace std;
-
-enum CarrierType{ Electron, Hole, Exciton};
-
-class Carrier {
-public:
-
-    CarrierType _carriertype;
-    int _node_index;
-    
-    vector<double> _shortrange_coulomb; // 0 being the node itself
-    
-    
-
-    myvec _distance;
-};
-
-}} 
-
-#endif
+#endif	/* RATECALCULATOR_H */
 

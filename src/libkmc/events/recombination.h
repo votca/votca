@@ -15,33 +15,23 @@
  *
  */
 
-#ifndef __VOTCA_KMC_CARRIER_H_
-#define __VOTCA_KMC_CARRIER_H_
+#ifndef __VOTCA_KMC_Recombination_H_
+#define __VOTCA_KMC_Recombination_H_
 
-#include <votca/tools/vec.h>
-
-typedef votca::tools::vec myvec;
+#include <votca/kmc/event.h>
 
 namespace votca { namespace kmc {
-  
-using namespace std;
-
-enum CarrierType{ Electron, Hole, Exciton};
-
-class Carrier {
+    
+class Recombination : public Event {
 public:
-
-    CarrierType _carriertype;
-    int _node_index;
     
-    vector<double> _shortrange_coulomb; // 0 being the node itself
-    
-    
-
-    myvec _distance;
+    void onExecute() { 
+        cout << "Recombination executed" << endl; 
+    }
+    // TODO updating the state
+   
 };
 
-}} 
+}}
 
 #endif
-

@@ -15,30 +15,22 @@
  *
  */
 
-#ifndef __VOTCA_KMC_CARRIER_H_
-#define __VOTCA_KMC_CARRIER_H_
-
-#include <votca/tools/vec.h>
-
-typedef votca::tools::vec myvec;
+#ifndef __VOTCA_KMC_ELECTRODE_H_
+#define	__VOTCA_KMC_ELECTRODE_H_
 
 namespace votca { namespace kmc {
   
 using namespace std;
 
-enum CarrierType{ Electron, Hole, Exciton};
+enum Electrodetype{ _Left, _Right};
 
-class Carrier {
-public:
-
-    CarrierType _carriertype;
-    int _node_index;
+class Electrode {
     
-    vector<double> _shortrange_coulomb; // 0 being the node itself
-    
-    
-
-    myvec _distance;
+    public:
+        
+        Electrodetype _electrodetype;
+        double _static_energy;
+        
 };
 
 }} 

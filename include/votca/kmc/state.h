@@ -18,9 +18,7 @@
 #ifndef __VOTCA_KMC_STATE_H_
 #define __VOTCA_KMC_STATE_H_
 
-#include <votca/kmc/event.h>
 #include <votca/kmc/carrier.h>
-#include <votca/kmc/node.h>
 //#include <votca/kmc/graph.h>
 #include <votca/kmc/store.h>
 
@@ -45,6 +43,7 @@ public:
     int Buy();
     void Sell(int itemnr); //check whether this can work with direct pointer
     Carrier* Get_item(int itemnr);
+    int Get_itemnr_by_index(int index);
     
 //    void Clear(int totalnumberofnodes);
     void Save(){};
@@ -56,7 +55,7 @@ public:
 //       ;
 //   }     
     
-    Store<Carrier> _carriers;  
+    Store<Carrier*> _carriers;  
     
 };
 
@@ -75,17 +74,11 @@ void State::Sell(int itemnr){
 Carrier* State::Get_item(int itemnr){
     _carriers.Get_item(itemnr);
 }
-    
-/*void State::Clear(int totalnumberofnodes) {
-    
-    for (int node_index=0;node_index<totalnumberofnodes;node_index++) {
-        nodes[node_index]->setOccupation(Electron,0.0);
-        nodes[node_index]->setOccupation(Hole,0.0);
-        nodes[node_index]->setOccupation(Exciton,0.0);
-        nodes[node_index]->setCarrierID(-1);
 
-    }
-}*/
+int State::Get_itemnr_by_index(int index){
+    _carriers.Get_itemnr_by_index(int index);
+}
+    
 
 }} 
 
