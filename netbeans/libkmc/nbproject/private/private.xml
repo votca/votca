@@ -6,10 +6,11 @@
     </data>
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/1"/>
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/1">
+        <file>file:/people/thnfs/homes/andrienk/votca/src/kmc/include/votca/kmc/kmcapplication.h</file>
+        <file>file:/people/thnfs/homes/andrienk/votca/src/kmc/src/libkmc/kmcapplication.cc</file>
+    </open-files>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group>
-            <file>file:/people/thnfs/homes/andrienk/votca/src/kmc/src/libkmc/calculators/diode.h</file>
-            <file>file:/people/thnfs/homes/andrienk/votca/src/kmc/include/votca/kmc/state.h</file>
-        </group>
+        <group/>
     </open-files>
 </project-private>
