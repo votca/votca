@@ -34,6 +34,14 @@
 		<output>molpol.polar.out</output>
 	</test>
 	<test>
+		<name>coupling</name>
+		<description>Calculates electronic couplings using projection</description>
+		<execute>{ctp_app} -e {name} -o {name}.xml</execute>
+		<requires></requires>
+		<verify></verify>
+		<output>coupling.out</output>
+	</test>
+	<test>
 		<name>einternal</name>
 		<description>Loads vacuum IPs/EAs and reorganization energies</description>
 		<execute>{ctp_run} -e {name} -o {name}.xml -f {sql}</execute> 
