@@ -31,11 +31,11 @@ pJob ProgObserver<JobContainer,pJob,rJob>::RequestNextJob(QMThread *thread) {
     if (_nextjit == _jobsToProc.end() && _moreJobsAvailable) {
         SyncWithProgFile(thread);
         _nextjit = _jobsToProc.begin();
-		if (_nextjit == _jobsToProc.end()) {
-			 _moreJobsAvailable = false;
-			LOG(logDEBUG,*(thread->getLogger()))
-				<< "Sync did not yield any new jobs." << flush;
-		}
+        if (_nextjit == _jobsToProc.end()) {
+                 _moreJobsAvailable = false;
+                LOG(logDEBUG,*(thread->getLogger()))
+                        << "Sync did not yield any new jobs." << flush;
+        }
     }
     
     // JOBS EATEN ALL UP?
@@ -76,9 +76,11 @@ void ProgObserver<JobContainer,pJob,rJob>::ReportJobDone(pJob job, rJob *res, QM
     // RESULTS, TIME, HOST
     job->SaveResults(res);    
     job->setTime(GenerateTime());
-    job->setHost(GenerateHost(thread));    
+    job->setHost(GenerateHost(thread));
     // PRINT PROGRESS BAR
     _jobsReported += 1;
+    if (!thread->isMaverick())
+        cout << endl << *thread->getLogger() << flush;
     _lockThread.Unlock();
     return;
 }

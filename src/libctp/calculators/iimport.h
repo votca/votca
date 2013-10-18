@@ -1,5 +1,24 @@
-#ifndef IIMPORT_H
-#define IIMPORT_H
+/*
+ *            Copyright 2009-2012 The VOTCA Development Team
+ *                       (http://www.votca.org)
+ *
+ *      Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *              http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+#ifndef _VOTCA_CTP_IIMPORT_H
+#define _VOTCA_CTP_IIMPORT_H
 
 #include <votca/ctp/qmcalculator.h>
 #include <sys/stat.h>
@@ -38,13 +57,13 @@ void IImport::Initialize(Property *options) {
     _importFromList = false;
     _importFromIDFT = false;
 
-    // _options already has default values, update them with the supplied options
-    _options.CopyValues("", *options );
+     // update options with the VOTCASHARE defaults   
+    UpdateWithDefaults( options );
     
     string key = "options." + Identify();
 
     //if (options->exists(key+".TI_tag")) {
-    _TI_tag = _options.get(key+".TI_tag").as< string >();
+    _TI_tag = options->get(key+".TI_tag").as< string >();
     if (_TI_tag != "") {
         _importFromDirs = true;
         cout << endl << "... ... Using TI XML tag '" << _TI_tag << "'" << flush;
@@ -52,13 +71,13 @@ void IImport::Initialize(Property *options) {
 
     //else if (options->exists(key+".TI_file")) {
     
-    _TI_file = _options.get(key+".TI_file").as< string >();
+    _TI_file = options->get(key+".TI_file").as< string >();
     if (_TI_file != "") {
         _importFromList = true;
         cout << endl << "... ... Using TI table '" << _TI_file << "'" << flush;
     }
     
-    _idft_jobs_file = _options.get(key+".idft_jobs_file").as< string >();
+    _idft_jobs_file = options->get(key+".idft_jobs_file").as< string >();
     if ( _idft_jobs_file != "" ) {
         _importFromIDFT = true;
         cout << endl << "... ... Using IDFT jobs file '" << _TI_file << "'" << flush;
@@ -96,6 +115,7 @@ bool IImport::EvaluateFrame(Topology *top) {
   
   if ( _importFromIDFT && nblist.getSuperExchangeTypes().size() != 0 ) FromIDFTWithSuperExchange(top, _idft_jobs_file);
   
+  return true;
 }
 
 

@@ -65,8 +65,10 @@ private:
 
 void Neighborlist::Initialize(Property *options) {
 
-    std::string key = "options.neighborlist";
-
+    // update options with the VOTCASHARE defaults   
+    UpdateWithDefaults( options );
+    std::string key = "options." + Identify();
+    
     list< Property* > segs = options->Select(key+".segments");
     list< Property* > ::iterator segsIt;
 

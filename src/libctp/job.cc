@@ -1,3 +1,4 @@
+#include <votca/tools/propertyiomanipulator.h>
 #include <votca/ctp/job.h>
 #include <boost/format.hpp>
 #include <boost/algorithm/string.hpp> 
@@ -16,7 +17,7 @@ Job::Job(Property *prop)
      // DEFINED BY USER
     _id = prop->get("id").as<int>();
     _tag = prop->get("tag").as<string>();
-    _input = prop->get("input").as<string>();
+    _input = prop->get("input");
     _attemptsCount = 0;
     
     if (prop->exists("status"))
@@ -49,14 +50,27 @@ Job::Job(Property *prop)
 }
 
 
-Job::Job(int id, string &tag, string &input, string &status)
+Job::Job(int id, string &tag, string &inputstr, string status)
   : _has_host(false), _has_time(false), _has_error(false),
     _has_output(false), _has_sqlcmd(false) {
     
     _id = id;
     _tag = tag;
+    Property input("input",inputstr,"");
     _input = input;
     _status = ConvertStatus(status);
+    _attemptsCount = 0;    
+}
+
+
+Job::Job(int id, string &tag, Property &input, JobStatus status)
+  : _has_host(false), _has_time(false), _has_error(false),
+    _has_output(false), _has_sqlcmd(false) {
+    
+    _id = id;
+    _tag = tag;
+    _input = input.get("input");
+    _status = status;
     _attemptsCount = 0;    
 }
 
@@ -96,7 +110,8 @@ void Job::Reset() {
 
     
 void Job::ToStream(ofstream &ofs, string fileformat) {
-    
+
+    votca::tools::PropertyIOManipulator iomXML(votca::tools::PropertyIOManipulator::XML, 0, "\t\t");
     
     if (fileformat == "xml") {
         string tab = "\t";
@@ -104,7 +119,9 @@ void Job::ToStream(ofstream &ofs, string fileformat) {
         ofs << tab << "<job>\n";
         ofs << tab << tab << (format("<id>%1$d</id>\n") % _id).str();
         ofs << tab << tab << (format("<tag>%1$s</tag>\n") % _tag).str();
-        ofs << tab << tab << (format("<input>%1$s</input>\n") % _input).str();
+        //PropertyFormat::PrintNodeXML(ofs, _input, 0, 0, "", "\t\t");
+        ofs << iomXML << _input;
+        //ofs << tab << tab << (format("<input>%1$s</input>\n") % _input).str();
         ofs << tab << tab << (format("<status>%1$s</status>\n") % ConvertStatus(_status)).str();
 
         if (_has_sqlcmd)
@@ -117,7 +134,8 @@ void Job::ToStream(ofstream &ofs, string fileformat) {
             ofs << tab << tab << (format("<time>%1$s</time>\n") 
                 % _time).str();
         if (_has_output)
-            PrintNodeXML(ofs, _output, 0, 0, "",  "\t\t");
+            //PropertyFormat::PrintNodeXML(ofs, _output, 0, 0, "",  "\t\t");
+            ofs << iomXML << _output;
         if (_has_error)
             ofs << tab << tab << (format("<error>%1$s</error>\n")
                 % _error).str();
@@ -129,7 +147,6 @@ void Job::ToStream(ofstream &ofs, string fileformat) {
         string host = _host;
         if (!_has_host) host = "__:__";
         string status = ConvertStatus(_status);
-        
         ofs << (format("%4$10s %5$20s %6$10s %1$5d %2$10s %3$30s %7$s %8$s\n")
             % _id % _tag % _input % status % host
             % time % _error % _output).str();
@@ -137,7 +154,7 @@ void Job::ToStream(ofstream &ofs, string fileformat) {
     else {
         assert(false);
     }
-    
+
     return;
 }
 

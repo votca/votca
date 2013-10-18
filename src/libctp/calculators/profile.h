@@ -48,40 +48,40 @@ private:
 
 void Profile::Initialize(Property *options) {
     
-    // _options already has default values, update them with the supplied options
-    _options.CopyValues("", *options );
+    // update options with the VOTCASHARE defaults   
+    UpdateWithDefaults( options );
 
     string key      = "options." + Identify();
     
     // GEOMETRICAL OPTIONS
     // axis along which to calculate profiles
-    _axis           = _options.get(key+".axis.direction").as< vec >();   
+    _axis           = options->get(key+".axis.direction").as< vec >();   
     // spatial resolution of the profile
-    _resolution     = _options.get(key+".axis.bin").as< double >();
+    _resolution     = options->get(key+".axis.bin").as< double >();
     // do binning automatically
-    int autobin     = _options.get(key+".axis.auto").as< int >();
+    int autobin     = options->get(key+".axis.auto").as< int >();
     _auto_bin       = (autobin == 1) ? true : false;
    // min and max for manual binning 
     if (!_auto_bin) {
-        _min            = _options.get(key+".min").as< double >();
-        _max            = _options.get(key+".max").as< double >();
+        _min            = options->get(key+".min").as< double >();
+        _max            = options->get(key+".max").as< double >();
     }
     // Normalize axis
     _axis           = _axis / sqrt(_axis*_axis);
     
     // OUTPUT OPTIONS
     // output file for the density profile
-    _outfile        = _options.get(key+".output.density").as< string >();
+    _outfile        = options->get(key+".output.density").as< string >();
     // output file for the site energy profile
-    _outfile_EA_IP  = _options.get(key+".output.energy").as< string >();
+    _outfile_EA_IP  = options->get(key+".output.energy").as< string >();
     
  
     // PROPERTY OPTIONS
     // to use segments or atoms centers of mass
-    _density_type   = _options.get(key+".particles.type").as< string >();
+    _density_type   = options->get(key+".particles.type").as< string >();
     // limit statistics to the first:last range
-    _firstSegId = _options.get(key+".particles.first").as<int>();
-    _lastSegId = _options.get(key+".particles.last").as<int>();
+    _firstSegId = options->get(key+".particles.first").as<int>();
+    _lastSegId = options->get(key+".particles.last").as<int>();
     
 }
 

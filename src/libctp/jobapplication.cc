@@ -19,7 +19,7 @@
 
 
 #include <votca/ctp/jobapplication.h>
-#include "jobcalculators/jobcalculatorfactory.h"
+#include <votca/ctp/jobcalculatorfactory.h>
 #include <votca/ctp/version.h>
 #include <boost/format.hpp>
 
@@ -61,9 +61,9 @@ bool JobApplication::EvaluateOptions(void) {
     CheckRequired("file", "Please provide the state file");
     
     string jobstr = _op_vm["jobs"].as<string>();
-    _generate_input = jobstr.find("input") != std::string::npos;
+    _generate_input = jobstr.find("write") != std::string::npos;
     _run = jobstr.find("run") != std::string::npos;
-    _import = jobstr.find("import") != std::string::npos;
+    _import = jobstr.find("read") != std::string::npos;
     
     return true;
 }
@@ -130,7 +130,7 @@ void JobApplication::BeginEvaluate(int nThreads = 1,
         cout << "... " << (*it)->Identify() << " ";
         (*it)->setnThreads(nThreads);
         (*it)->setProgObserver(obs);
-        (*it)->Initialize(&_options);        
+        (*it)->Initialize(&_options);  
         cout << endl;
     }
 }
@@ -139,11 +139,12 @@ bool JobApplication::EvaluateFrame() {
     list< JobCalculator* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
         cout << "... " << (*it)->Identify() << " " << flush;
-        if (_generate_input) (*it)->GenerateInput(&_top);
+        if (_generate_input) (*it)->WriteJobFile(&_top);
         if (_run) (*it)->EvaluateFrame(&_top);
-        if (_import) (*it)->Import(&_top);
+        if (_import) (*it)->ReadJobFile(&_top);
         cout << endl;
     }
+    return true;
 }
 
 void JobApplication::EndEvaluate() {

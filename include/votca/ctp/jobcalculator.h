@@ -36,10 +36,13 @@ public:
     virtual        ~JobCalculator() {}
 
     virtual string  Identify() { return "Generic Job calculator"; }
-    virtual void    GenerateInput(CTP::Topology *top)  { ; }
+
     virtual bool    EvaluateFrame(CTP::Topology *top) { return true; }
     virtual void    EndEvaluate(CTP::Topology *top) { }
-    virtual void    Import(CTP::Topology *top) { ; }
+
+    virtual void    WriteJobFile(CTP::Topology *top)  { ; }
+    virtual void    ReadJobFile(CTP::Topology *top) { ; }
+
     void            setProgObserver(ProgObserver< vector<Job*>, Job*, Job::JobResult > *obs) { _progObs = obs; }
 
 protected:

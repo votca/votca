@@ -3,14 +3,13 @@
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <logicalFolder name="f2" displayName="Calculators" projectFiles="true">
-        <itemPath>../../src/libctp/calculators/calculatorfactory.cc</itemPath>
-        <itemPath>../../src/libctp/calculators/calculatorfactory.h</itemPath>
         <itemPath>../../src/libctp/calculators/eanalyze.h</itemPath>
         <itemPath>../../src/libctp/calculators/eimport.h</itemPath>
         <itemPath>../../src/libctp/calculators/einternal.h</itemPath>
         <itemPath>../../src/libctp/calculators/emultipole.h</itemPath>
         <itemPath>../../src/libctp/calculators/eoutersphere.cc</itemPath>
         <itemPath>../../src/libctp/calculators/eoutersphere.h</itemPath>
+        <itemPath>../../src/libctp/calculators/ewdbgpol.h</itemPath>
         <itemPath>../../src/libctp/calculators/ianalyze.h</itemPath>
         <itemPath>../../src/libctp/calculators/iimport.h</itemPath>
         <itemPath>../../src/libctp/calculators/izindo.h</itemPath>
@@ -25,13 +24,20 @@
         <itemPath>../../src/libctp/calculators/tdump.h</itemPath>
         <itemPath>../../src/libctp/calculators/zmultipole.h</itemPath>
       </logicalFolder>
+      <logicalFolder name="f5" displayName="Extractors" projectFiles="true">
+        <itemPath>../../src/libctp/extractors/energyextractor.h</itemPath>
+        <itemPath>../../src/libctp/extractors/integralsextractor.h</itemPath>
+        <itemPath>../../src/libctp/extractors/occupationsextractor.h</itemPath>
+        <itemPath>../../src/libctp/extractors/pairsextractor.h</itemPath>
+        <itemPath>../../src/libctp/extractors/ratesextractor.h</itemPath>
+        <itemPath>../../src/libctp/extractors/segmentsextractor.h</itemPath>
+        <itemPath>../../src/libctp/extractors/trajextractor.h</itemPath>
+      </logicalFolder>
       <logicalFolder name="f1" displayName="JobCalculators" projectFiles="true">
         <itemPath>../../src/libctp/jobcalculators/edft.h</itemPath>
         <itemPath>../../src/libctp/jobcalculators/ewald.h</itemPath>
         <itemPath>../../src/libctp/jobcalculators/idft.cc</itemPath>
         <itemPath>../../src/libctp/jobcalculators/idft.h</itemPath>
-        <itemPath>../../src/libctp/jobcalculators/jobcalculatorfactory.cc</itemPath>
-        <itemPath>../../src/libctp/jobcalculators/jobcalculatorfactory.h</itemPath>
         <itemPath>../../src/libctp/jobcalculators/qmmm.h</itemPath>
         <itemPath>../../src/libctp/jobcalculators/xqmultipole.h</itemPath>
       </logicalFolder>
@@ -48,8 +54,6 @@
         <itemPath>../../src/libctp/tools/molpol.cc</itemPath>
         <itemPath>../../src/libctp/tools/molpol.h</itemPath>
         <itemPath>../../src/libctp/tools/pdb2map.h</itemPath>
-        <itemPath>../../src/libctp/tools/toolfactory.cc</itemPath>
-        <itemPath>../../src/libctp/tools/toolfactory.h</itemPath>
       </logicalFolder>
     </logicalFolder>
     <logicalFolder name="HeaderFiles"
@@ -59,11 +63,16 @@
       <itemPath>../../include/votca/ctp/atom.h</itemPath>
       <itemPath>../../include/votca/ctp/basisset.h</itemPath>
       <itemPath>../../include/votca/ctp/calculator.h</itemPath>
+      <itemPath>../../include/votca/ctp/calculatorfactory.h</itemPath>
       <itemPath>../../include/votca/ctp/ctpapplication.h</itemPath>
       <itemPath>../../include/votca/ctp/eigenvalues.h</itemPath>
       <itemPath>../../include/votca/ctp/ewald2d.h</itemPath>
       <itemPath>../../include/votca/ctp/ewald3d.h</itemPath>
+      <itemPath>../../include/votca/ctp/ewaldactor.h</itemPath>
       <itemPath>../../include/votca/ctp/ewaldnd.h</itemPath>
+      <itemPath>../../include/votca/ctp/ewdspace.h</itemPath>
+      <itemPath>../../include/votca/ctp/extractorfactory.h</itemPath>
+      <itemPath>../../include/votca/ctp/factoryapplication.h</itemPath>
       <itemPath>../../include/votca/ctp/fragment.h</itemPath>
       <itemPath>../../include/votca/ctp/job.h</itemPath>
       <itemPath>../../include/votca/ctp/jobapplication.h</itemPath>
@@ -76,11 +85,11 @@
       <itemPath>../../include/votca/ctp/parallelsitecalc.h</itemPath>
       <itemPath>../../include/votca/ctp/parallelxjobcalc.h</itemPath>
       <itemPath>../../include/votca/ctp/pewald3d.h</itemPath>
+      <itemPath>../../include/votca/ctp/polarbackground.h</itemPath>
       <itemPath>../../include/votca/ctp/polarseg.h</itemPath>
       <itemPath>../../include/votca/ctp/polarsite.h</itemPath>
       <itemPath>../../include/votca/ctp/polartop.h</itemPath>
       <itemPath>../../include/votca/ctp/progressobserver.h</itemPath>
-      <itemPath>../../include/votca/ctp/qmapplication.h</itemPath>
       <itemPath>../../include/votca/ctp/qmcalculator.h</itemPath>
       <itemPath>../../include/votca/ctp/qmdatabase.h</itemPath>
       <itemPath>../../include/votca/ctp/qmmachine.h</itemPath>
@@ -116,39 +125,48 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
+      <logicalFolder name="f2" displayName="Applications" projectFiles="true">
+        <itemPath>../../src/libctp/ctpapplication.cc</itemPath>
+        <itemPath>../../src/libctp/jobapplication.cc</itemPath>
+        <itemPath>../../src/libctp/sqlapplication.cc</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f1" displayName="Factories" projectFiles="true">
+        <itemPath>../../src/libctp/calculatorfactory.cc</itemPath>
+        <itemPath>../../src/libctp/extractorfactory.cc</itemPath>
+        <itemPath>../../src/libctp/jobcalculatorfactory.cc</itemPath>
+        <itemPath>../../src/libctp/qmpackagefactory.cc</itemPath>
+        <itemPath>../../src/libctp/toolfactory.cc</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f3" displayName="Topology" projectFiles="true">
+        <itemPath>../../src/libctp/fragment.cc</itemPath>
+        <itemPath>../../src/libctp/molecule.cc</itemPath>
+        <itemPath>../../src/libctp/qmnblist.cc</itemPath>
+        <itemPath>../../src/libctp/qmpair.cc</itemPath>
+        <itemPath>../../src/libctp/segment.cc</itemPath>
+        <itemPath>../../src/libctp/segmenttype.cc</itemPath>
+        <itemPath>../../src/libctp/topology.cc</itemPath>
+      </logicalFolder>
       <itemPath>../../src/libctp/apolarsite.cc</itemPath>
-      <itemPath>../../src/libctp/calculatorfactory.cc</itemPath>
-      <itemPath>../../src/libctp/ctpapplication.cc</itemPath>
       <itemPath>../../src/libctp/ewald2d.cc</itemPath>
       <itemPath>../../src/libctp/ewald3d.cc</itemPath>
+      <itemPath>../../src/libctp/ewaldactor.cc</itemPath>
       <itemPath>../../src/libctp/ewaldnd.cc</itemPath>
-      <itemPath>../../src/libctp/fragment.cc</itemPath>
       <itemPath>../../src/libctp/hgversion.h</itemPath>
       <itemPath>../../src/libctp/job.cc</itemPath>
-      <itemPath>../../src/libctp/jobapplication.cc</itemPath>
-      <itemPath>../../src/libctp/molecule.cc</itemPath>
       <itemPath>../../src/libctp/orbitals.cc</itemPath>
       <itemPath>../../src/libctp/parallelpaircalc.cc</itemPath>
       <itemPath>../../src/libctp/parallelxjobcalc.cc</itemPath>
       <itemPath>../../src/libctp/pewald3d.cc</itemPath>
+      <itemPath>../../src/libctp/polarbackground.cc</itemPath>
       <itemPath>../../src/libctp/polarseg.cc</itemPath>
       <itemPath>../../src/libctp/polarsite.cc</itemPath>
       <itemPath>../../src/libctp/polartop.cc</itemPath>
       <itemPath>../../src/libctp/progressobserver.cc</itemPath>
-      <itemPath>../../src/libctp/qmapplication.cc</itemPath>
       <itemPath>../../src/libctp/qmcalculator.cc</itemPath>
       <itemPath>../../src/libctp/qmdatabase.cc</itemPath>
       <itemPath>../../src/libctp/qmmachine.cc</itemPath>
-      <itemPath>../../src/libctp/qmnblist.cc</itemPath>
-      <itemPath>../../src/libctp/qmpackagefactory.cc</itemPath>
-      <itemPath>../../src/libctp/qmpair.cc</itemPath>
       <itemPath>../../src/libctp/qmtool.cc</itemPath>
-      <itemPath>../../src/libctp/segment.cc</itemPath>
-      <itemPath>../../src/libctp/segmenttype.cc</itemPath>
-      <itemPath>../../src/libctp/sqlapplication.cc</itemPath>
       <itemPath>../../src/libctp/statesaversqlite.cc</itemPath>
-      <itemPath>../../src/libctp/toolfactory.cc</itemPath>
-      <itemPath>../../src/libctp/topology.cc</itemPath>
       <itemPath>../../src/libctp/version.cc</itemPath>
       <itemPath>../../src/libctp/version_nb.cc</itemPath>
       <itemPath>../../src/libctp/votca_config.h</itemPath>
@@ -206,12 +224,29 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/ctp/calculatorfactory.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/ctpapplication.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/eigenvalues.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/ewdspace.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/extractorfactory.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/factoryapplication.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -256,6 +291,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/ctp/polarbackground.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/polarseg.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/polarsite.h"
@@ -264,11 +304,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/progressobserver.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/qmapplication.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -343,16 +378,6 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libctp/calculators/calculatorfactory.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/calculatorfactory.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/libctp/calculators/eanalyze.h"
             ex="false"
             tool="3"
@@ -389,6 +414,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/calculators/eoutersphere.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/calculators/ewdbgpol.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -485,6 +515,48 @@
       </item>
       <item path="../../src/libctp/ctpapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libctp/ewaldactor.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/extractorfactory.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/extractors/energyextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/extractors/integralsextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/extractors/occupationsextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/extractors/pairsextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/extractors/ratesextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/extractors/segmentsextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/extractors/trajextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/fragment.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/hgversion.h" ex="false" tool="3" flavor2="0">
@@ -492,6 +564,11 @@
       <item path="../../src/libctp/job.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/jobapplication.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/jobcalculatorfactory.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libctp/jobcalculators/edft.h"
             ex="false"
@@ -509,16 +586,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/jobcalculators/idft.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/jobcalculators/jobcalculatorfactory.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/jobcalculators/jobcalculatorfactory.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -547,6 +614,11 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libctp/polarbackground.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/polarseg.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/polarsite.cc" ex="false" tool="1" flavor2="0">
@@ -557,8 +629,6 @@
             ex="false"
             tool="1"
             flavor2="0">
-      </item>
-      <item path="../../src/libctp/qmapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/qmcalculator.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -625,499 +695,6 @@
       <item path="../../src/libctp/tools/molpol.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/pdb2map.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../src/libctp/tools/toolfactory.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/tools/toolfactory.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/topology.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/version.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/version_nb.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/votca_config.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../src/libctp/votca_config.h.in" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../src/libctp/xinductor.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/xinteractor.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/xjob.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/xmapper.cc" ex="false" tool="1" flavor2="0">
-      </item>
-    </conf>
-    <conf name="Release" type="3">
-      <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
-        <compilerSet>GNU|GNU</compilerSet>
-        <dependencyChecking>true</dependencyChecking>
-        <rebuildPropChanged>false</rebuildPropChanged>
-      </toolsSet>
-      <compileType>
-        <cTool>
-          <developmentMode>5</developmentMode>
-        </cTool>
-        <ccTool>
-          <developmentMode>5</developmentMode>
-        </ccTool>
-        <fortranCompilerTool>
-          <developmentMode>5</developmentMode>
-        </fortranCompilerTool>
-        <archiverTool>
-        </archiverTool>
-      </compileType>
-      <item path="../../include/votca/ctp/apolarsite.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/atom.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/basisset.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/calculator.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/ctpapplication.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/eigenvalues.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/fragment.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/job.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/jobapplication.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/jobcalculator.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/logger.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/molecule.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/orbitals.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/paircalculator.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/parallelpaircalc.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/parallelsitecalc.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/parallelxjobcalc.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/polarseg.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/polarsite.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/progressobserver.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/qmapplication.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/qmcalculator.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/qmdatabase.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/qmnblist.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/qmpackage.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/qmpackagefactory.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/qmpair.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/qmthread.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/qmtool.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/segment.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/segmenttype.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/sqlapplication.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/statesaversqlite.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/topology.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/version.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/xinductor.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/xinteractor.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/xjob.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/xmapper.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../src/libctp/apolarsite.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculatorfactory.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/calculatorfactory.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/calculatorfactory.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/eanalyze.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/ecoulomb.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/eimport.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/einternal.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/emultipole.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/emultipole_stdal.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/eoutersphere.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/eoutersphere.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/ianalyze.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/iimport.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/izindo.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/jobwriter.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/jobwriter.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/molpol.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/neighborlist.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/pairdump.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/profile.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/qmultipole.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/rates.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/sandbox.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/stateserver.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/tdump.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/velocity.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/xmultipole.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/xmultipole2.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/zmultipole.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/ctpapplication.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/fragment.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/hgversion.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../src/libctp/job.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/jobapplication.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/jobcalculators/edft.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/jobcalculators/ewald.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/jobcalculators/idft.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/jobcalculators/idft.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/jobcalculators/jobcalculatorfactory.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/jobcalculators/jobcalculatorfactory.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/jobcalculators/qmmm.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/jobcalculators/xqmultipole.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/molecule.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/orbitals.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/parallelpaircalc.cc"
-            ex="false"
-            tool="0"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/parallelxjobcalc.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/polarseg.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/polarsite.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/polartop.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/progressobserver.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/qmapplication.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/qmcalculator.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/qmdatabase.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/qmmachine.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/qmnblist.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/qmpackagefactory.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/qmpackages/gaussian.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/qmpackages/gaussian.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/qmpackages/nwchem.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/qmpackages/nwchem.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/qmpackages/turbomole.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/qmpackages/turbomole.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/qmpair.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/qmtool.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/segment.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/segmenttype.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/sqlapplication.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/statesaversqlite.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/toolfactory.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/tools/molpol.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/tools/molpol.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../src/libctp/tools/pdb2map.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../src/libctp/tools/toolfactory.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/tools/toolfactory.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../src/libctp/topology.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1172,12 +749,29 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/ctp/calculatorfactory.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/ctpapplication.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/eigenvalues.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/ewdspace.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/extractorfactory.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/factoryapplication.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1222,6 +816,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/ctp/polarbackground.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/polarseg.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/polarsite.h"
@@ -1230,11 +829,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/progressobserver.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/qmapplication.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1309,16 +903,6 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libctp/calculators/calculatorfactory.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/calculatorfactory.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/libctp/calculators/eanalyze.h"
             ex="false"
             tool="3"
@@ -1355,6 +939,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/calculators/eoutersphere.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/calculators/ewdbgpol.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1451,6 +1040,48 @@
       </item>
       <item path="../../src/libctp/ctpapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libctp/ewaldactor.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/extractorfactory.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/extractors/energyextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/extractors/integralsextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/extractors/occupationsextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/extractors/pairsextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/extractors/ratesextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/extractors/segmentsextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/extractors/trajextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/fragment.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/hgversion.h" ex="false" tool="3" flavor2="0">
@@ -1458,6 +1089,11 @@
       <item path="../../src/libctp/job.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/jobapplication.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/jobcalculatorfactory.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libctp/jobcalculators/edft.h"
             ex="false"
@@ -1475,16 +1111,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/jobcalculators/idft.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/jobcalculators/jobcalculatorfactory.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/jobcalculators/jobcalculatorfactory.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1513,6 +1139,11 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libctp/polarbackground.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/polarseg.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/polarsite.cc" ex="false" tool="1" flavor2="0">
@@ -1523,8 +1154,6 @@
             ex="false"
             tool="1"
             flavor2="0">
-      </item>
-      <item path="../../src/libctp/qmapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/qmcalculator.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1591,16 +1220,6 @@
       <item path="../../src/libctp/tools/molpol.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/pdb2map.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../src/libctp/tools/toolfactory.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/tools/toolfactory.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../src/libctp/topology.cc" ex="false" tool="1" flavor2="0">
       </item>

@@ -17,6 +17,8 @@
  *
  */
 
+#include <votca/tools/globals.h>
+#include <votca/tools/propertyiomanipulator.h>
 
 #include <votca/ctp/ctpapplication.h>
 #include <votca/ctp/version.h>
@@ -28,18 +30,21 @@ CtpApplication::CtpApplication() {
     ;
 }
 
-
+/**
+ * \brief Adds program options to the executable
+ * 
+ * Every executable requires option file for calculators it is running
+ * It is thus a part of the base CtpApplication class 
+ * 
+ */
 void CtpApplication::Initialize(void) {
 
-    namespace propt = boost::program_options;
-
-    AddProgramOptions() ("options,o", propt::value<string>(),
+     AddProgramOptions() ("options,o", boost::program_options::value<string>(),
         "  calculator options");
 }
 
 
 bool CtpApplication::EvaluateOptions(void) {
-    CheckRequired("options", "Please provide an xml file with calculator options");
     return true;
 }
 
@@ -73,11 +78,12 @@ void CtpApplication::PrintDescription(std::ostream &out, string name,  HelpOutpu
                 break;
                 
             case _helpLong:
-                out << votca::tools::HLP << votca::tools::setlevel(2) << options;
+                votca::tools::PropertyIOManipulator iom(votca::tools::PropertyIOManipulator::HLP, 2, "");
+                out << iom << options;
         }
 
     } catch (std::exception &error) {
-        out << _format % name % "Undocumented";
+        if ( tools::globals::verbose ) out << _format % name % "Undocumented";
     }    
 }
 

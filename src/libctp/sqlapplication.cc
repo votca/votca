@@ -19,7 +19,7 @@
 
 
 #include <votca/ctp/sqlapplication.h>
-#include "calculators/calculatorfactory.h"
+#include <votca/ctp/calculatorfactory.h>
 #include <votca/ctp/version.h>
 #include <boost/format.hpp>
 
@@ -51,7 +51,6 @@ void SqlApplication::Initialize(void) {
 
 
 bool SqlApplication::EvaluateOptions(void) {
-    CheckRequired("options", "Please provide an xml file with calculator options");
     CheckRequired("file", "Please provide the state file");
     return true;
 }
@@ -59,7 +58,7 @@ bool SqlApplication::EvaluateOptions(void) {
 
 void SqlApplication::Run() {
 
-    load_property_from_xml(_options, _op_vm["options"].as<string>());
+    // load_property_from_xml(_options, _op_vm["options"].as<string>());
 
     // EVALUATE OPTIONS
     int nThreads = OptionsMap()["nthreads"].as<int>();
@@ -112,7 +111,7 @@ void SqlApplication::BeginEvaluate(int nThreads = 1) {
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
         cout << "... " << (*it)->Identify() << " ";
         (*it)->setnThreads(nThreads);
-        (*it)->Initialize(&_options);        
+        (*it)->Initialize(&_options); 
         cout << endl;
     }
 }
@@ -124,6 +123,7 @@ bool SqlApplication::EvaluateFrame() {
         (*it)->EvaluateFrame(&_top);
         cout << endl;
     }
+    return true;
 }
 
 void SqlApplication::EndEvaluate() {

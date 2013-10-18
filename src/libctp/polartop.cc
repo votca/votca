@@ -1,10 +1,17 @@
 #include <votca/ctp/polartop.h>
 #include <fstream>
-
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
 
 namespace votca { namespace ctp {
 
-    
+
+PolarTop::PolarTop() : _top(NULL) {
+    _clean_qm0 = _clean_mm1 = _clean_mm2 = true;
+    _clean_bgN = _clean_fgN = _clean_fgC = true;
+};
+
+
 PolarTop::PolarTop(Topology *top) : _top(top) {
     _clean_qm0 = _clean_mm1 = _clean_mm2 = true;
     _clean_bgN = _clean_fgN = _clean_fgC = true;
@@ -257,5 +264,31 @@ void PolarTop::PrintInduState(FILE *out, string format,
     }
     
 }
+
+
+void PolarTop::RemoveAllOwnership() {
+    _clean_qm0 = _clean_mm1 = _clean_mm2 = false;
+    _clean_bgN = _clean_fgN = _clean_fgC = false;
+    return;
+}
+
+
+void PolarTop::SaveToDrive(string archfile) {
+    // Carve into archive
+    std::ofstream ofs(archfile.c_str());
+    boost::archive::binary_oarchive arch(ofs);
+    arch << (*this);
+    return;    
+}
+
+
+void PolarTop::LoadFromDrive(string archfile) {
+    // Resurrect from archive
+    std::ifstream ifs(archfile.c_str(), std::ios::binary);
+    boost::archive::binary_iarchive arch(ifs);
+    arch >> (*this);  
+    return;
+}
+
 
 }}

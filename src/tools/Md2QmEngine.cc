@@ -425,6 +425,7 @@ CTP::Molecule *Md2QmEngine::ExportMolecule(CTP::Molecule *refMol,
         newMol->AddSegment(newSeg);
     } /* exit loop over template molecules */
 
+    return newMol;
 }
 
 

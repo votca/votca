@@ -98,7 +98,7 @@ public:
     vec             getFieldP() { return vec(FPx,FPy,FPz); } // Only IOP
     vec             getFieldU() { return vec(FUx,FUy,FUz); } // Only IOP
     
-    double          setQ00(double q, int s) { Q00 = q; _Qs[s+1][0] = q; }
+    void            setQ00(double q, int s) { Q00 = q; _Qs[s+1][0] = q; }
     double         &getQ00() { return Q00; }
     void            Charge(int state);
     void            ChargeDelta(int state1, int state2);
@@ -124,8 +124,51 @@ public:
     void            WriteXyzLine(FILE *, vec &, string);
     void            WritePdbLine(FILE *out, const string &tag = "");
 
-    vector<APolarSite*> CreateFrom_MPS(string filename, int state) { ; }
+    vector<APolarSite*> CreateFrom_MPS(string filename, int state) { 
+        vector<APolarSite*> a; return a; 
+    }
+    
+    template<class Archive>
+    void serialize(Archive &arch, const unsigned int version) {
+        arch & _id;
+        arch & _name;
+        arch & _isVirtual;
+        arch & _pos;
+        arch & _locX;
+        arch & _locY;
+        arch & _locZ;
 
+        arch & _Qs;
+        arch & _rank;
+
+        arch & _Ps;
+
+        arch & Pxx; arch & Pxy; arch & Pxz;
+        arch & Pyy; arch & Pyz;
+        arch & Pzz;
+
+        arch & pax; arch & eigenpxx;
+        arch & pay; arch & eigenpyy;
+        arch & paz; arch & eigenpzz;
+
+        arch & eigendamp;
+
+        arch & Q00;
+        arch & Q1x; arch & Q1y;  arch & Q1z;
+        arch & Q20; arch & Q21c; arch & Q21s; arch & Q22c; arch & Q22s;
+        arch & Qxx; arch & Qxy;  arch & Qxz;  arch & Qyy;  arch & Qyz; arch & Qzz;
+
+        arch & U1x; arch & U1y; arch & U1z;
+        arch & FPx; arch & FPy; arch & FPz;
+        arch & FUx; arch & FUy; arch & FUz;
+
+        // NOT ARCHIVED
+        // Topology *_top;
+        // Segment  *_seg;
+        // Fragment *_frag;
+        // vector< vec > U1_Hist;                  // Ind. u history
+        return;
+    }
 
 
 

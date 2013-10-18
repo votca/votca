@@ -28,8 +28,6 @@
 namespace votca { namespace ctp {
 
 
-
-
 class TDump : public QMCalculator
 {
 
@@ -58,13 +56,13 @@ private:
 
 void TDump::Initialize(Property *options) {
 
-    // _options already has default values, update them with the supplied options
-    _options.CopyValues("", *options );
-
+    // update options with the VOTCASHARE defaults   
+    UpdateWithDefaults( options );
+ 
     string key      = "options." + Identify();
-    _outPDBmd = _options.get(key+".md").as<string>();
-    _outPDBqm = _options.get(key+".qm").as<string>();
-    _framesToWrite = _options.get(key+".frames").as<int>();
+    _outPDBmd = options->get(key+".md").as<string>();
+    _outPDBqm = options->get(key+".qm").as<string>();
+    _framesToWrite = options->get(key+".frames").as<int>();
 
 }
 
@@ -107,6 +105,8 @@ bool TDump::EvaluateFrame(Topology *top) {
     fclose(outPDBqm);
 
     _framesWritten++;
+    
+    return true;
 }
 
 }}

@@ -18,8 +18,8 @@
  */
 
 
-#ifndef __EINTERNAL_H
-#define __EINTERNAL_H
+#ifndef _VOTCA_CTP_EINTERNAL_H
+#define _VOTCA_CTP_EINTERNAL_H
 
 #include <votca/ctp/qmcalculator.h>
 
@@ -33,7 +33,7 @@ public:
     EInternal() { };
    ~EInternal() { };
 
-    string Identify() { return "EInternal"; }
+    string Identify() { return "einternal"; }
     void Initialize(Property *options);
     void ParseEnergiesXML(Property *options);
     bool EvaluateFrame(Topology *top);
@@ -57,8 +57,6 @@ private:
 
 void EInternal::Initialize(Property *options) {
 
-    string key = "options.einternal";
-
     /* ---- OPTIONS.XML Structure -----
      *
      * <einternal>
@@ -74,7 +72,10 @@ void EInternal::Initialize(Property *options) {
 
 void EInternal::ParseEnergiesXML(Property *opt) {
 
-    string key = "options.einternal";
+    // update options with the VOTCASHARE defaults   
+    UpdateWithDefaults( opt );
+    string key = "options." + Identify();
+
     string energiesXML = opt->get(key+".energiesXML").as<string> ();
 
     cout << endl
@@ -232,4 +233,4 @@ bool EInternal::EvaluateFrame(Topology *top) {
 
 }}
 
-#endif
+#endif //_VOTCA_CTP_EINTERNAL_H

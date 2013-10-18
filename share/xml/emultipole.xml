@@ -7,7 +7,7 @@
 	<control help="Control options for induction computation">
 		<induce help="Enter '1' / '0' to toggle induction on / off" default="1">0</induce>
 		<first help="First segment for which to compute site energies">1</first>
-		<last help="Last segment for which to compute site energies">10</last>
+		<last help="Last segment for which to compute site energies">-1</last>
 		<output help="File to write site energies to. Site energies are also stored in the state file">emultipole.dat</output>
 		<check help="Check mapping of polar sites to fragment">emultipole.pdb</check> 
 	</control>
@@ -27,7 +27,7 @@
 	</esp>
 	
 	<esf help="Control options for field calculation">
-		<calcESF help="Enter '1' / '0' to toggle on / off. If '1', site energies will not be evaluated">1</calcESF>
+		<calcESF help="Enter '1' / '0' to toggle on / off. If '1', site energies will not be evaluated">0</calcESF>
 		<grid help="XYZ file specifying grid points for field evaluation">grid.xyz</grid>
 		<output help="File to write grid-point field to">field.dat</output>
 	</esf>

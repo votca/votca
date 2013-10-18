@@ -34,13 +34,7 @@ private:
     
     votca::tools::Property _options;
     list< votca::ctp::QMTool* >   _tools;
-
-    string _fwstring(string original, size_t charCount ) {
-        original.resize( charCount, ' ' );
-        return original;
-    }
-
-
+    
 };
 
 
@@ -60,7 +54,10 @@ void CtpTools::Initialize() {
     // Options-related
     AddProgramOptions() ("nthreads,t", propt::value<int>()->default_value(1),
                          "  number of threads to create");
+    AddProgramOptions() ("options,o", propt::value<string>(),
+                         "  calculator options");
 }
+
 
 bool CtpTools::EvaluateOptions() {
 
@@ -146,6 +143,8 @@ bool CtpTools::Evaluate() {
         (*it)->Evaluate();
         cout << endl;
     }
+    
+    return true;
 }
 
 void CtpTools::EndEvaluate() {

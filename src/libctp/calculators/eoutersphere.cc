@@ -30,7 +30,10 @@ namespace votca { namespace ctp {
 
 void EOutersphere::Initialize(Property *opt) {
 
-    string key = "options.eoutersphere";
+    // update options with the VOTCASHARE defaults   
+    UpdateWithDefaults( opt );
+
+    string key = "options." + Identify();
 
     /* ---- OPTIONS.XML Structure -----
      *
@@ -53,6 +56,13 @@ void EOutersphere::Initialize(Property *opt) {
     }
     else if (_method == "spheres") {
         _pekarFactor = opt->get(key+".pekar").as<double> ();
+        list< Property* > typeinfo = opt->Select(key+".segment");
+        list< Property* > ::iterator rit;
+        for (rit = typeinfo.begin(); rit != typeinfo.end(); ++rit) {
+            string type = (*rit)->get("type").as<string>();
+            double radius = (*rit)->get("radius").as<double>();
+            _radius[type] = radius;
+        }
     }
     else if (_method == "dielectric") {
         _pekarFactor = opt->get(key+".pekar").as<double> ();
@@ -60,10 +70,11 @@ void EOutersphere::Initialize(Property *opt) {
     }
     else {
         cout << "ERROR: Typo? Method for reorg. energy calc.: " << _method;
-        throw std::runtime_error("Possible typo in options file.");
+        throw std::runtime_error("Unrecognized <method> in options file.");
     }
+    
 
-    //this->EStatify(top, opt);
+    this->EStatify(NULL, opt);
 }
 
 
@@ -616,9 +627,7 @@ bool EOutersphere::EvaluateFrame(Topology *top) {
 
     pairOps.clear();
 
-
-
-
+    return true;
 
     //if      (_method == "constant")   { this->ConstLambda(top); }
     //else if (_method == "spheres")    { this->SpheresLambda(top);}
@@ -632,7 +641,7 @@ bool EOutersphere::EvaluateFrame(Topology *top) {
 
 void EOutersphere::PairOpOutersphere::EvalSite(Topology *top, QMPair *qmpair) {
 
-    if (_master->_method != "constant") {
+    if (_master->_method == "dielectric") {
         this->_segsSphere.clear();
         this->_polsSphere.clear();
         this->_polsPair.clear();
@@ -696,6 +705,24 @@ void EOutersphere::PairOpOutersphere::EvalSite(Topology *top, QMPair *qmpair) {
             double lOut = _master->_lambdaConstant;
             qmpair->setLambdaO(lOut, state);
         }  
+    }
+    else if (_master->_method == "spheres") {
+        double e = 1.602176487e-19;
+        double EPS0 = 8.85418782e-12;
+        double NM = 1e-09;
+        // TODO extract radii from input
+        _master->_radius.at("c60");
+        double R1 = _master->_radius.at(qmpair->Seg1()->getName());
+        double R2 = _master->_radius.at(qmpair->Seg2()->getName());
+        double lambda = _master->_pekarFactor * e / (4.*M_PI*EPS0) *
+                                     (  1. / ( 2.*R1*NM )
+                                      + 1. / ( 2.*R2*NM )
+                                      - 1. / ( qmpair->Dist()*NM ));
+        qmpair->setLambdaO(lambda, -1);
+        qmpair->setLambdaO(lambda, +1);
+    }
+    else {
+        assert(false); // No such method
     }
 }
 
@@ -834,8 +861,9 @@ void EOutersphere::ConstLambda(Topology *top) {
 
     QMNBList ::iterator pit;
     for (pit = top->NBList().begin(); pit != top->NBList().end(); pit++) {
-        QMPair *pair = *pit;
-        assert (false); // TODO e, h calc. // pair->setLambdaO(_lambdaConstant);
+        QMPair *qpair = *pit;
+        qpair->setLambdaO(_lambdaConstant, -1);
+        qpair->setLambdaO(_lambdaConstant, +1);
     }
 }
 

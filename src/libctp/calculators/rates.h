@@ -70,7 +70,9 @@ private:
 
 void Rates::Initialize(Property *options) {
 
-    string key = "options.rates";
+    // update options with the VOTCASHARE defaults   
+    UpdateWithDefaults( options );
+    std::string key = "options." + Identify();
 
     /* ---- OPTIONS.XML Structure -----
      *

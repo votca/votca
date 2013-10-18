@@ -18,8 +18,8 @@
  */
 
 
-#ifndef EMULTIPOLE_H
-#define EMULTIPOLE_H
+#ifndef VOTCA_CTP_EMULTIPOLE_H
+#define VOTCA_CTP_EMULTIPOLE_H
 
 
 #include <votca/ctp/qmcalculator.h>
@@ -427,10 +427,13 @@ private:
  */
 void EMultipole::Initialize(Property *opt) {
 
+    // update options with the VOTCASHARE defaults   
+    UpdateWithDefaults( opt );
+
     cout << endl << "... ... Initialize with " << _nThreads << " threads.";
     _maverick = (_nThreads == 1) ? true : false;
 
-    cout << endl <<  "... ... Parametrizing Thole model";
+    cout << endl <<  "... ... Parameterizing Thole model";
 
     string key;
     string xmlfile;
@@ -653,7 +656,7 @@ void EMultipole::Initialize(Property *opt) {
         }
         else { _epsTol = 0.001; }
 
-    //if (!top->isEStatified()) { this->EStatify(top, opt); }
+    this->EStatify(NULL, opt);
 
     if (_calcESP && (!_ESPdoSystem))      { this->CalculateESPInput(NULL); }
     if (this->_calcESF)                   { this->CalculateESF(NULL); }
@@ -2679,7 +2682,7 @@ void EMultipole::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
 //    FILE *out;
 //    string shellFile = "OuterShell.pdb";
 //    out = fopen(shellFile.c_str(), "w");
-//    for (sit = _segsOutSphere.begin(); sit < _segsOutSphere.end(); ++sit) {
+//    for (sit = _segsPolSphere.begin(); sit < _segsPolSphere.end(); ++sit) {
 //        (*sit)->WritePDB(out, "Multipoles", "");
 //    }
 //    fclose(out);
@@ -4576,10 +4579,4 @@ inline double EMultipole::Interactor::EnergyInterESP(PolarSite &pol1,
 
 }}
 
-
-
-
-
-
-
-#endif
+#endif // VOTCA_CTP_EMULTIPOLE_H

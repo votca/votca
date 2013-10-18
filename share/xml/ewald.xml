@@ -1,19 +1,19 @@
 <options>
-	<ewald>
-		<multipoles>system.xml</multipoles> <!-- XML allocation polar sites -> fragment -->
-		<control>
-			<job_file>job.xml</job_file>    <!-- Listing of jobs, to create template, run 'stateserver' with key = 'xmp' -->
-			<mps_table>mps.tab</mps_table>	<!-- Allocation of .mps files to segs; for template, run 'stateserver' with key = 'emp' -->
-			<pdb_check>1</pdb_check>        <!-- Output - Check mapping of polar sites -->
+	<ewald help="">
+		<multipoles help="">system.xml</multipoles> <!-- XML allocation polar sites -> fragment -->
+		<control help="">
+			<job_file help="">job.xml</job_file>    <!-- Listing of jobs, to create template, run 'stateserver' with key = 'xmp' -->
+			<mps_table help="">mps.tab</mps_table>	<!-- Allocation of .mps files to segs; for template, run 'stateserver' with key = 'emp' -->
+			<pdb_check help="">1</pdb_check>        <!-- Output - Check mapping of polar sites -->
 		</control>
-		<coulombmethod>
-			<method>ewald</method>
-			<cutoff>12.0</cutoff>
+		<coulombmethod help="">
+			<method help="">ewald</method>
+			<cutoff help="">12.0</cutoff>
 		</coulombmethod>
-		<convergence>
-			<energy>1e-4</energy>
-			<max_k>10</max_k>
-			<max_r>15</max_r>
+		<convergence help="">
+			<energy help="">1e-4</energy>
+			<max_k help="">10</max_k>
+			<max_r help="">15</max_r>
 		</convergence>
 	</ewald>
 </options>	

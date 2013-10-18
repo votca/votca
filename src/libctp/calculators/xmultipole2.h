@@ -2172,6 +2172,8 @@ bool XMP::EvaluateFrame(Topology *top) {
     }
     fclose(out);
 
+    return true;
+    
 }
 
 

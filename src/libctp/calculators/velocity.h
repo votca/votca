@@ -140,6 +140,8 @@ bool Velocity::EvaluateFrame(Topology *top) {
     }
 
     _sites.clear();
+    
+    return true;
 }
 
 

@@ -43,8 +43,8 @@ namespace votca { namespace ctp {
 /**
 * \brief Site energies and orbitals for QM molecules
 *
-* QM orbitals and energies for all molecules
-* Requires a first-principles package, i.e. GAUSSIAN installation
+* Evaluates orbitals and energies for all molecules
+* Requires a first-principles package, i.e. GAUSSIAN, TURBOMOLE, NWChem
 *
 * Callname: edft
 */
@@ -57,13 +57,10 @@ public:
    ~EDFT() {};
 
     string   Identify() { return "edft"; }
-    void    Initialize(Property *options);
-    void    ParseOrbitalsXML(Topology *top, Property *options);
-    void    GenerateInput(Topology *top);
+    void     Initialize(Property *options);
+    void     WriteJobFile(Topology *top);
+    
     Job::JobResult EvalJob(Topology *top, Job *job, QMThread *thread);
-
-    void    CleanUp();
-
 
 private:
 
@@ -84,10 +81,9 @@ private:
     bool                _store_singlets;
     bool                _store_triplets;
 
-    //bool   _maverick;
     string _outParent;
-    string _outMonDir;
-    
+    string _jobFile;
+            
     string _package;
     Property _package_options;   
     
@@ -95,10 +91,6 @@ private:
     Property _gwpackage_options;   
 
 };
-
-void EDFT::CleanUp() {
-
-}
 
 void EDFT::Initialize(Property *options) {
 
@@ -116,10 +108,7 @@ void EDFT::Initialize(Property *options) {
     _maverick = (_nThreads == 1) ? true : false;
     
     string key = "options." + Identify();
-    _jobfile = options->get(key + ".job_file").as<string>();
-
     string _package_xml = options->get(key+".package").as<string> ();
-
     
     string _tasks_string = options->get(key+".tasks").as<string> ();
     if (_tasks_string.find("input") != std::string::npos) _do_input = true;
@@ -139,6 +128,10 @@ void EDFT::Initialize(Property *options) {
     if (_store_string.find("singlets") != std::string::npos) _store_singlets = true;
     if (_store_string.find("triplets") != std::string::npos) _store_triplets = true;
     
+    key = "options." + Identify() +".job";
+    _jobfile = options->get(key + ".file").as<string>();
+
+    
     load_property_from_xml( _package_options, _package_xml.c_str() );    
     key = "package";
     _package = _package_options.get(key+".name").as<string> ();
@@ -155,18 +148,17 @@ void EDFT::Initialize(Property *options) {
     }
     
     
-    // register all QM packages (Gaussian, turbomole, nwchem))
+    // register all QM packages (Gaussian, Turbomole, NWChem))
     QMPackageFactory::RegisterAll(); 
 
 }
 
-void EDFT::GenerateInput(Topology *top) {
+void EDFT::WriteJobFile(Topology *top) {
 
-    string jobFile = "edft.jobs";   
-    
+    cout << endl << "... ... Writing job file: " << flush;
     ofstream ofs;
-    ofs.open(jobFile.c_str(), ofstream::out);
-    if (!ofs.is_open()) throw runtime_error("Bad file handle: " + jobFile);
+    ofs.open(_jobfile.c_str(), ofstream::out);
+    if (!ofs.is_open()) throw runtime_error("\nERROR: bad file handle: " + _jobfile);
  
     ofs << "<jobs>" << endl;   
 
@@ -201,15 +193,20 @@ void EDFT::GenerateInput(Topology *top) {
         segments[id2] = (*pit)->Seg2();
 
     }
+    
 
+    
     for (sit = segments.begin(); sit != segments.end(); ++sit) {
     
         int id = ++jobCount;
-        
-        string tag = (format("%1$s") % sit->first).str();
-        string input = sit->second->getName();
-        string stat = "AVAILABLE";
-        Job job(id, tag, input, stat);
+        string tag = "";
+
+        Property Input;
+        Property *pInput = &Input.add("input","");
+        Property *pSegment =  &pInput->add("segment" , (format("%1$s") % sit->first).str() );
+        pSegment->setAttribute<string>("type", sit->second->getName() );
+        pSegment->setAttribute<int>("id", sit->second->getId() );
+        Job job(id, tag, Input, Job::AVAILABLE );
         job.ToStream(ofs,"xml");
     }
      
@@ -217,6 +214,8 @@ void EDFT::GenerateInput(Topology *top) {
     // CLOSE STREAM
     ofs << "</jobs>" << endl;    
     ofs.close();
+    
+    cout << jobCount << " jobs" << flush;
     
 }
 
@@ -231,12 +230,17 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     bool _convert_status;
 
 
-    FILE *out;
     Orbitals _orbitals;
     Job::JobResult jres = Job::JobResult();
-
+    Property _job_input = job->getInput();  
+    list<Property*> lSegments = _job_input.Select( "segment" );  
+    
     vector < Segment* > segments;    
-    Segment *seg = top->getSegment( boost::lexical_cast<int>( job->getTag() ));
+    int segId = lSegments.front()->getAttribute<int>( "id" );
+    string segType = lSegments.front()->getAttribute<string>( "type" );
+    
+    Segment *seg = top->getSegment( segId );
+    assert( seg->Name() == segType );
     segments.push_back( seg );
 
     Logger* pLog = opThread->getLogger();
@@ -451,22 +455,27 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
    _qmpackage->CleanUp();
    delete _qmpackage;
         
-    // GENERATE OUTPUT AND FORWARD TO PROGRESS OBSERVER (RETURN)
-    jres.setStatus(Job::COMPLETE);
-
-
-                                
     LOG(logINFO,*pLog) << TimeStamp() << " Finished evaluating site " << seg->getId() << flush; 
+ 
+    Property _job_summary;
+        Property *_output_summary = &_job_summary.add("output","");
+        Property *_segment_summary = &_output_summary->add("segment","");
+         string segName = seg->getName();
+         segId = seg->getId();
+        _segment_summary->setAttribute("id", segId);
+        _segment_summary->setAttribute("type", segName);
+        _segment_summary->setAttribute("homo", _orbitals.getEnergy( _orbitals.getNumberOfElectrons() ));
+        _segment_summary->setAttribute("lumo", _orbitals.getEnergy( _orbitals.getNumberOfElectrons() + 1 ));
     
     // output of the JOB 
-    jres.setOutput( output );
+    jres.setOutput( _job_summary );
+    jres.setStatus(Job::COMPLETE);
 
     // dump the LOG
     cout << *pLog;
     
     return jres;
-    
-   
+
 }
 
 }}

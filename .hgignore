@@ -12,15 +12,20 @@ share/doc/html
 src/libctp/votca_config.h
 src/libctp/hgversion.h
 
-src/tools/ctp_run
+src/tools/ctp_dump
+src/tools/ctp_parallel
 src/tools/ctp_map
+src/tools/ctp_run
 src/tools/ctp_tools
-src/tools/ctp_evaluate
 src/dipro/*.mod
 src/dipro/*.x
 
 scripts/ctp_dipro.out
 scripts/ctp_dipro
+scripts/ctp_update
+scripts/ctp_update.out
+scripts/ctp_testsuite
+scripts/ctp_testsuite.out
 
 netbeans/*/build
 .dep.inc

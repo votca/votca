@@ -1,5 +1,24 @@
-#ifndef VOTCA_CTP_JOBWRITER_H
-#define VOTCA_CTP_JOBWRITER_H
+/*
+ *            Copyright 2009-2012 The VOTCA Development Team
+ *                       (http://www.votca.org)
+ *
+ *      Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *              http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+#ifndef _VOTCA_CTP_JOBWRITER_H
+#define _VOTCA_CTP_JOBWRITER_H
 
 #include<votca/ctp/topology.h>
 #include<votca/ctp/qmcalculator.h>
@@ -20,9 +39,11 @@ public:
     bool EvaluateFrame(Topology *top);    
     
     // NEED TO REGISTER ALL WRITE MEMBERS IN ::Initialize
-    void xqmultipole_ct(Topology *top);
-    void xqmultipole_chrg(Topology *top);
-    void xqmultipole_kmc(Topology *top);
+    void mps_ct(Topology *top);
+    void mps_chrg(Topology *top);
+    void mps_kmc(Topology *top);
+    void mps_background(Topology *top);
+    void mps_single(Topology *top);
     
     void edft(Topology *top);
     void idft(Topology *top);

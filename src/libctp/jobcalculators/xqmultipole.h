@@ -25,7 +25,7 @@ public:
     XQMP() {};
    ~XQMP() {};
    
-    string          Identify() { return "XQMultipole"; }
+    string          Identify() { return "xqmultipole"; }
     void            Initialize(Property *);
 
     void            CustomizeLogger(QMThread *thread);
@@ -33,7 +33,7 @@ public:
     Job::JobResult  EvalJob(Topology *top, Job *job, QMThread *thread);
     void            PostProcess(Topology *top) { ; }
     
-    XJob            ProcessInputString(const Job *, Topology *, QMThread *);
+    XJob            ProcessInputString(Job *, Topology *, QMThread *);
     
 
 private:
@@ -202,9 +202,9 @@ void XQMP::CustomizeLogger(QMThread *thread) {
 // ========================================================================== //
 
 
-XJob XQMP::ProcessInputString(const Job *job, Topology *top, QMThread *thread) {
+XJob XQMP::ProcessInputString(Job *job, Topology *top, QMThread *thread) {
     
-    string input = job->getInput();
+    string input = job->getInput().as<string>();
     vector<Segment*> qmSegs;
     vector<string>   qmSegMps;
     vector<string> split;
@@ -243,7 +243,7 @@ Job::JobResult XQMP::EvalJob(Topology *top, Job *job, QMThread *thread) {
     Logger *log = thread->getLogger();
     
     LOG(logINFO,*log)
-        << "Job input = " << job->getInput() << flush;
+        << "Job input = " << job->getInput().as<string>() << flush;
     
     // CREATE XJOB FROM JOB INPUT STRING
     XJob xjob = this->ProcessInputString(job, top, thread);
