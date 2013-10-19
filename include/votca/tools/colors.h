@@ -38,7 +38,7 @@ namespace votca { namespace tools {
 
 namespace Colors 
 {
-    static const char Empty[]       = { };
+    static const char Empty[]       = {0};
     
     static const char Reset[]       = { 0x1b, '[', '0', ';', '3', '9', 'm', 0 };
 

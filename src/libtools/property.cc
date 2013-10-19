@@ -199,6 +199,7 @@ void PrintNodeXML(std::ostream &out, Property &p, PropertyIOManipulator *piom, i
     bool _endl = true;
     
     const ColorSchemeBase *color = &DEFAULT_COLORS;
+     
     string indent("");
     int start_level(0);
 
@@ -212,17 +213,17 @@ void PrintNodeXML(std::ostream &out, Property &p, PropertyIOManipulator *piom, i
     string cAttribute = color->Blue();
     string cAttributeValue = color->Green();
     string cReset = color->Reset();
-
+        
     // print starting only from the start_level (the first node (level 0) can be <> </>)
         if ( level >= start_level )  {
             // print the node name
             out << indent << offset << "<" << cKey << p.name() << cReset;
             // print the node attributes 
             for(ia = p.firstAttribute(); ia!=p.lastAttribute(); ++ia) 
-                out << indent << " " 
+                out << " " 
                     << cAttribute << ia->first << cReset
                     << "=\""
-                    << cReset << ia->second << cReset << "\"" ;
+                    << cAttributeValue << ia->second << cReset << "\"" ;
             out << ">";
             
             // print node value if it is not empty
@@ -419,7 +420,7 @@ std::ostream &operator<<(std::ostream &out, Property& p)
             _type = pm->getType();
             // check if we > or >> to a file and remove color codes
             if( !isatty(STDOUT_FILENO) || !isatty(STDERR_FILENO) ) {
-                pm->generateColorScheme<csDefault>();
+                pm->setColorScheme<csDefault>();
             }
 
         }

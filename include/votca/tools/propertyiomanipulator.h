@@ -37,8 +37,8 @@ public:
     
     enum Type{ XML, HLP, TEX, TXT };
     
-    explicit PropertyIOManipulator( Type type = XML, int level = 0, std::string indentation = "" ) :
-             _type(type), _level(level), _indentation(indentation), _color_scheme(NULL)  { ; } 
+    explicit PropertyIOManipulator( Type type = XML, int level = 0, std::string indentation = "", ColorSchemeBase *color_scheme = NULL ) :
+             _type(type), _level(level), _indentation(indentation), _color_scheme(color_scheme)  { ; } 
 
     ~PropertyIOManipulator() {
         delete _color_scheme;
@@ -62,7 +62,7 @@ public:
     }
     
     template<typename T>
-    const ColorSchemeBase *generateColorScheme() {
+    const ColorSchemeBase *setColorScheme() {
 	if (_color_scheme) delete _color_scheme; 
 	_color_scheme = new Color<T>(); 
 	return _color_scheme;
