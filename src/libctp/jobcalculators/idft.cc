@@ -32,6 +32,10 @@
 #include <votca/ctp/qmpackagefactory.h>
 #include <votca/ctp/overlap.h>
 
+#include <boost/numeric/ublas/operation.hpp>
+#include <boost/numeric/ublas/matrix_proxy.hpp>
+#include <boost/numeric/ublas/vector_proxy.hpp>
+
 using boost::format;
 using namespace boost::filesystem;
 using namespace votca::tools;
@@ -444,11 +448,11 @@ void IDFT::WriteJobFile(Topology *top) {
 
         Property Input;
         Property *pInput = &Input.add("input","");
-        Property *pSegment =  &pInput->add("segment" , (format("%1$s") % id1).str() );
+        Property *pSegment =  &pInput->add("segment" , boost::lexical_cast<string>(id1) );
         pSegment->setAttribute<string>("type", name1 );
         pSegment->setAttribute<int>("id", id1 );
 
-        pSegment =  &pInput->add("segment" , (format("%1$s") % id2).str() );
+        pSegment =  &pInput->add("segment" , boost::lexical_cast<string>(id2) );
         pSegment->setAttribute<string>("type", name2 );
         pSegment->setAttribute<int>("id", id2 );
         

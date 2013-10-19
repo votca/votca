@@ -17,6 +17,10 @@
  *
  */
 
+// boost::ublas checks are switched off
+#define NDEBUG
+#define BOOST_UBLAS_NDEBUG
+
 #include <boost/numeric/ublas/banded.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
@@ -29,7 +33,6 @@
 
 namespace votca { namespace ctp {
 
-namespace ub = boost::numeric::ublas;
 
 /**
 * \brief Evaluates electronic coupling elements
@@ -50,17 +53,17 @@ public:
     bool CalculateIntegralsOptimized(   Orbitals* _orbitalsA, 
                                Orbitals* _orbitalsB, 
                                Orbitals* _orbitalsAB, 
-                               ub::matrix<double>* _JAB);  
+                               boost::numeric::ublas::matrix<double>* _JAB);  
 
     bool CalculateIntegrals(   Orbitals* _orbitalsA, 
                                Orbitals* _orbitalsB, 
                                Orbitals* _orbitalsAB, 
-                               ub::matrix<double>* _JAB);
+                               boost::numeric::ublas::matrix<double>* _JAB);
     
     double getCouplingElement( int levelA, int levelB,  
                                Orbitals* _orbitalsA,  
                                Orbitals* _orbitalsB, 
-                               ub::matrix<double>* _JAB,
+                               boost::numeric::ublas::matrix<double>* _JAB,
                                double _energy_difference = 0
                                 );
     
@@ -70,7 +73,8 @@ private:
     
     Logger *_pLog;
     
-    void SQRTOverlap(ub::symmetric_matrix<double> &S, ub::matrix<double> &Sm2);
+    void SQRTOverlap(boost::numeric::ublas::symmetric_matrix<double> &S, 
+                     boost::numeric::ublas::matrix<double> &Sm2);
 
 
 };
