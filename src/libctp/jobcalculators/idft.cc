@@ -276,8 +276,11 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
      
         Overlap _overlap; 
         _overlap.setLogger(pLog);
-                
-       _calculate_integrals = _overlap.CalculateIntegralsOptimized( &_orbitalsA, &_orbitalsB, &_orbitalsAB, &_JAB );
+         
+        // 10 seconds for a small system
+        //_calculate_integrals = _overlap.CalculateIntegralsOptimized( &_orbitalsA, &_orbitalsB, &_orbitalsAB, &_JAB );
+        // 7 seconds with GSL overloading
+        _calculate_integrals = _overlap.CalculateIntegrals( &_orbitalsA, &_orbitalsB, &_orbitalsAB, &_JAB );
 
         if ( !_calculate_integrals ) {
                 output += "integrals failed; " ;
