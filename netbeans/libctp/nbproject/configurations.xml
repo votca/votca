@@ -9,6 +9,7 @@
         <itemPath>../../src/libctp/calculators/emultipole.h</itemPath>
         <itemPath>../../src/libctp/calculators/eoutersphere.cc</itemPath>
         <itemPath>../../src/libctp/calculators/eoutersphere.h</itemPath>
+        <itemPath>../../src/libctp/calculators/ewdbgpol.h</itemPath>
         <itemPath>../../src/libctp/calculators/ianalyze.h</itemPath>
         <itemPath>../../src/libctp/calculators/iimport.h</itemPath>
         <itemPath>../../src/libctp/calculators/izindo.h</itemPath>
@@ -69,6 +70,7 @@
       <itemPath>../../include/votca/ctp/ewald3d.h</itemPath>
       <itemPath>../../include/votca/ctp/ewaldactor.h</itemPath>
       <itemPath>../../include/votca/ctp/ewaldnd.h</itemPath>
+      <itemPath>../../include/votca/ctp/ewdspace.h</itemPath>
       <itemPath>../../include/votca/ctp/extractorfactory.h</itemPath>
       <itemPath>../../include/votca/ctp/factoryapplication.h</itemPath>
       <itemPath>../../include/votca/ctp/fragment.h</itemPath>
@@ -83,6 +85,7 @@
       <itemPath>../../include/votca/ctp/parallelsitecalc.h</itemPath>
       <itemPath>../../include/votca/ctp/parallelxjobcalc.h</itemPath>
       <itemPath>../../include/votca/ctp/pewald3d.h</itemPath>
+      <itemPath>../../include/votca/ctp/polarbackground.h</itemPath>
       <itemPath>../../include/votca/ctp/polarseg.h</itemPath>
       <itemPath>../../include/votca/ctp/polarsite.h</itemPath>
       <itemPath>../../include/votca/ctp/polartop.h</itemPath>
@@ -146,6 +149,7 @@
       <itemPath>../../src/libctp/apolarsite.cc</itemPath>
       <itemPath>../../src/libctp/ewald2d.cc</itemPath>
       <itemPath>../../src/libctp/ewald3d.cc</itemPath>
+      <itemPath>../../src/libctp/ewaldactor.cc</itemPath>
       <itemPath>../../src/libctp/ewaldnd.cc</itemPath>
       <itemPath>../../src/libctp/hgversion.h</itemPath>
       <itemPath>../../src/libctp/job.cc</itemPath>
@@ -153,6 +157,7 @@
       <itemPath>../../src/libctp/parallelpaircalc.cc</itemPath>
       <itemPath>../../src/libctp/parallelxjobcalc.cc</itemPath>
       <itemPath>../../src/libctp/pewald3d.cc</itemPath>
+      <itemPath>../../src/libctp/polarbackground.cc</itemPath>
       <itemPath>../../src/libctp/polarseg.cc</itemPath>
       <itemPath>../../src/libctp/polarsite.cc</itemPath>
       <itemPath>../../src/libctp/polartop.cc</itemPath>
@@ -234,6 +239,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/ctp/ewdspace.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/extractorfactory.h"
             ex="false"
             tool="3"
@@ -280,6 +287,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/parallelxjobcalc.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/polarbackground.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -406,6 +418,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libctp/calculators/ewdbgpol.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/calculators/ianalyze.h"
             ex="false"
             tool="3"
@@ -497,6 +514,8 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/ctpapplication.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/ewaldactor.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/extractorfactory.cc"
             ex="false"
@@ -591,6 +610,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/parallelxjobcalc.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/polarbackground.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -740,6 +764,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/ctp/ewdspace.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/extractorfactory.h"
             ex="false"
             tool="3"
@@ -786,6 +812,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/parallelxjobcalc.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/polarbackground.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -912,6 +943,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libctp/calculators/ewdbgpol.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/calculators/ianalyze.h"
             ex="false"
             tool="3"
@@ -1003,6 +1039,8 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/ctpapplication.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/ewaldactor.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/extractorfactory.cc"
             ex="false"
@@ -1097,6 +1135,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/parallelxjobcalc.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/polarbackground.cc"
             ex="false"
             tool="1"
             flavor2="0">

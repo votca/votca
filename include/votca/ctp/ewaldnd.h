@@ -45,7 +45,7 @@ namespace votca { namespace ctp {
         string GenerateErrorString();
         
         virtual string IdentifyMethod() = 0;
-        virtual void GenerateKVectors() { ; }
+        virtual void GenerateKVectors(vector<PolarSeg*> &ps1, vector<PolarSeg*> &ps2) { ; }
         
         virtual EWD::triple<> ConvergeRealSpaceSum();
         virtual EWD::triple<> ConvergeReciprocalSpaceSum() = 0;
@@ -58,6 +58,8 @@ namespace votca { namespace ctp {
         virtual void Field_ConvergeReciprocalSpaceSum() { ; }
         virtual void Field_CalculateForegroundCorrection() { ; }
         virtual void Field_CalculateShapeCorrection() { ; }
+        
+        virtual void PolarizeBackground() { ; }
         
     protected:
         
@@ -84,6 +86,13 @@ namespace votca { namespace ctp {
         vector< PolarSeg* > _polar_qm0;
         vector< PolarSeg* > _polar_mm1;
         vector< PolarSeg* > _polar_mm2; // Should not be used
+        
+        
+        // TASKS
+        bool _task_polarize_bg;
+        bool _task_calculate_fields;
+        bool _task_polarize_fg;
+        bool _task_evaluate_energy;
         
         
         // CONVERGENCE

@@ -3,6 +3,7 @@
 
 #include <votca/ctp/polarseg.h>
 #include <votca/ctp/topology.h>
+#include <boost/serialization/vector.hpp>
 
 namespace votca { namespace ctp {
 
@@ -11,7 +12,8 @@ class PolarTop
 {
 
 public:
-    
+   
+   PolarTop();
    PolarTop(Topology *top);
   ~PolarTop();
    
@@ -52,7 +54,21 @@ public:
    void   PrintInduState(string out, string format, bool split, double space);
    void   PrintInduState(FILE *out,  string format, bool split, double space);
    
-    
+   template<class Archive>
+   void serialize(Archive &arch, const unsigned int version) {
+       arch & _center;       
+       arch & _qm0;
+       arch & _mm1;
+       arch & _mm2;        
+       arch & _bgN;
+       arch & _fgN;
+       arch & _fgC;
+       return;
+   }
+   
+    void RemoveAllOwnership();
+    void LoadFromDrive(string archfile);
+    void SaveToDrive(string archfile);
     
 private:
     

@@ -51,6 +51,7 @@ private:
 
     string                         _mps_table;
     string                         _xml_file;
+    string                         _polar_bg_arch;
     XMpsMap                        _mps_mapper;
     bool                           _pdb_check;
     bool                           _estatics_only;
@@ -62,43 +63,44 @@ template<class EwaldMethod>
 void Ewald<EwaldMethod>::Initialize(Property *opt) {
 
     _options = opt;
+    _maverick = (_nThreads == 1) ? true : false;
     
     cout << endl
          << "... ... Initialized with " << _nThreads << " threads. "
          << flush;
 
-    _maverick = (_nThreads == 1) ? true : false;
-    
-
     string key = "options.ewald.multipoles";
-
         if ( opt->exists(key) ) {
             _xml_file = opt->get(key).as< string >();
         }
-
+        else {
+            cout << endl;
+            throw std::runtime_error("No multipole mapping file provided");
+        }
     key = "options.ewald.control";
-
         if ( opt->exists(key+".job_file")) {
             _jobfile = opt->get(key+".job_file").as<string>();
         }
         else {
             throw std::runtime_error("Job-file not set. Abort.");
         }
-
         if ( opt->exists(key+".mps_table")) {
             _mps_table = opt->get(key+".mps_table").as<string>();
         }
         else {
-            _mps_table = opt->get(key+".emp_file").as<string>();
+            throw std::runtime_error("Background mps table not set.");
         }
-
+        if ( opt->exists(key+".polar_bg")) {
+            _polar_bg_arch = opt->get(key+".polar_bg").as<string>();
+        }
+        else {
+            _polar_bg_arch = "";
+        }
         if (opt->exists(key+".pdb_check")) {
             _pdb_check = opt->get(key+".pdb_check").as<bool>();
         }
-        else { _pdb_check = false; }
-    
-    key = "options.ewald.polarmethod";
-        
+        else { _pdb_check = false; }    
+    key = "options.ewald.polarmethod";        
         if (opt->exists(key+".induce")) {
             _estatics_only = ! (opt->get(key+".induce").as<bool>());
         }
@@ -231,10 +233,18 @@ Job::JobResult Ewald<EwaldMethod>::EvalJob(Topology *top, Job *job,
     // CREATE XJOB FROM JOB INPUT STRING
     XJob xjob = this->ProcessInputString(job, top, thread);    
     
-    // GENERATE POLAR TOPOLOGY
-    _mps_mapper.Gen_FGC_FGN_BGN(top, &xjob, thread);
+    // GENERATE POLAR TOPOLOGY (GENERATE VS LOAD IF PREPOLARIZED)
+    if (_polar_bg_arch == "") {
+        LOG(logINFO,*log) << "Mps-Mapper: Generate FGC FGN BGN" << flush;
+        _mps_mapper.Gen_FGC_FGN_BGN(top, &xjob, thread);
+    }
+    else {
+        LOG(logINFO,*log) << "Mps-Mapper: Generate FGC, load FGN BGN from '" 
+                << _polar_bg_arch << "'." << flush;
+        _mps_mapper.Gen_FGC_Load_FGN_BGN(top, &xjob, _polar_bg_arch, thread);
+    }
     
-    // CALL EWALD MAGIC
+    // CALL THOLEWALD MAGIC
     EwaldMethod ewaldnd = EwaldMethod(top, xjob.getPolarTop(), _options, 
         thread->getLogger());
     if (tools::globals::verbose || _pdb_check)

@@ -881,6 +881,47 @@ vector<APolarSite*> XMpsMap::GetOrCreateRawSites(const string &mpsfile, QMThread
 }
 
 
+void XMpsMap::Gen_BGN(Topology *top, PolarTop *new_ptop, QMThread *thread) {
+    // Generates (periodic) background charge distribution for Ewald summations
+    // 'NEW' instances of polar sites are not registered in the topology.
+    // Modifies the polar topology (*PolarTop*) passed during function call
+    
+    // DECLARE TARGET CONTAINERS
+    vector<PolarSeg*> bgN;
+    vector<PolarSeg*>::iterator psit;
+    vector<Segment*> segs_bgN;
+    vector<Segment*>::iterator sit;
+    
+    // PARTITION SEGMENTS ONTO BACKGROUND + FOREGROUND
+    segs_bgN.reserve(top->Segments().size());
+    for (sit = top->Segments().begin();
+         sit < top->Segments().end();
+         ++sit) {        
+        Segment *seg = *sit;        
+        segs_bgN.push_back(seg);      
+    }
+    
+    // CREATE POLAR SITES FOR FOREGROUND + BACKGROUND
+    // Background
+    bool only_active_sites = true;
+    bgN.reserve(segs_bgN.size());
+    for (sit = segs_bgN.begin(); sit < segs_bgN.end(); ++sit) {
+        Segment *seg = *sit;
+        // Look up appropriate set of polar sites
+        string mps = _segId_mpsFile_n[seg->getId()];
+        vector<APolarSite*> psites_raw  = _mpsFile_pSites[mps];
+        vector<APolarSite*> psites_mapped
+                = this->MapPolSitesToSeg(psites_raw, seg);
+        bgN.push_back(new PolarSeg(seg->getId(), psites_mapped));        
+    }
+    
+    // PROPAGATE SHELLS TO POLAR TOPOLOGY
+    new_ptop->setBGN(bgN);    
+    new_ptop->setSegsBGN(segs_bgN);
+    return;
+}
+
+
 void XMpsMap::Gen_FGC_FGN_BGN(Topology *top, XJob *job, QMThread *thread) {
     // Generates foreground/background charge distribution for Ewald summations
     // 'NEW' instances of polar sites are not registered in the topology.
@@ -962,6 +1003,109 @@ void XMpsMap::Gen_FGC_FGN_BGN(Topology *top, XJob *job, QMThread *thread) {
     new_ptop->CenterAround(center);
     job->setPolarTop(new_ptop);
     
+}
+
+
+void XMpsMap::Gen_FGC_Load_FGN_BGN(Topology *top, XJob *job, string archfile, 
+    QMThread *thread) {
+    
+    // LOAD BACKGROUND POLARIZATION STATE
+    PolarTop bgp_ptop = PolarTop(top);
+    bgp_ptop.LoadFromDrive(archfile);
+    
+    // SANITY CHECKS I
+    if (bgp_ptop.QM0().size() || bgp_ptop.MM1().size() || bgp_ptop.MM2().size()
+        || bgp_ptop.FGC().size() || bgp_ptop.FGN().size()) {
+        cout << endl;
+        cout << "ERROR The polar topology from '" << archfile 
+            << "' contains more than just background. ";
+        cout << endl;
+        throw std::runtime_error
+            ("Sanity checks I in XMpsMap::Gen_FGC_Load_FGN_BGN failed.");
+    }
+    
+    // DECLARE TARGET CONTAINERS
+    PolarTop *new_ptop = new PolarTop(top);    
+    vector<PolarSeg*> fgC;
+    vector<PolarSeg*> fgN;
+    vector<PolarSeg*> bgN;
+    vector<PolarSeg*>::iterator psit;    
+    vector<Segment*> segs_fgC;
+    vector<Segment*> segs_fgN;
+    vector<Segment*> segs_bgN;
+    vector<Segment*>::iterator sit;
+    
+    // PARTITION SEGMENTS ONTO BACKGROUND + FOREGROUND
+    segs_fgC.reserve(job->getSegments().size());
+    segs_fgN.reserve(job->getSegments().size());
+    segs_bgN.reserve(top->Segments().size()-job->getSegments().size());
+    for (sit = top->Segments().begin();
+         sit < top->Segments().end();
+         ++sit) {        
+        Segment *seg = *sit;        
+        // Foreground
+        if (job->isInCenter(seg->getId())) {
+            segs_fgN.push_back(seg);
+            segs_fgC.push_back(seg);
+        }
+        // Background
+        else {
+            segs_bgN.push_back(seg);
+        }        
+    }
+    
+    // CREATE POLAR SITES FOR FGC
+    bool only_active_sites = false;
+    fgC.reserve(segs_fgC.size());
+    for (int i = 0; i < job->getSegments().size(); ++i) {        
+        Segment *seg = job->getSegments()[i];
+        // Charged => mps-file from job
+        string mps_C = job->getSegMps()[i];
+        vector<APolarSite*> psites_raw_C 
+            = this->GetOrCreateRawSites(mps_C,thread);
+        vector<APolarSite*> psites_mapped_C
+            = this->MapPolSitesToSeg(psites_raw_C, seg, only_active_sites);        
+        fgC.push_back(new PolarSeg(seg->getId(), psites_mapped_C));
+    }
+    
+    // DIVIDE POLAR SEGMENTS FROM RESURRECTED BACKGROUND ONTO FGN, BGN
+    for (psit = bgp_ptop.BGN().begin(); psit < bgp_ptop.BGN().end(); ++psit) {
+        // Move to (neutral) foreground?
+        if (job->isInCenter((*psit)->getId())) {
+            fgN.push_back(*psit);
+        }
+        // Move to (neutral) background?
+        else {
+            bgN.push_back(*psit);
+        }
+    }
+    
+    // SANITY CHECKS II
+    if ((fgN.size() != fgC.size())
+        || (fgN.size() + bgN.size() != top->Segments().size())
+        || (bgp_ptop.BGN().size() != top->Segments().size())) {
+        cout << endl;
+        cout << "ERROR Is the background binary compatible with this system? ";
+        cout << "(archive = '" << archfile << "')";
+        cout << endl;
+        throw std::runtime_error
+            ("Sanity checks II in XMpsMap::Gen_FGC_Load_FGN_BGN failed.");
+    }
+    
+    // PROPAGATE SHELLS TO POLAR TOPOLOGY
+    new_ptop->setFGC(fgC);
+    new_ptop->setFGN(fgN);
+    new_ptop->setBGN(bgN);    
+    new_ptop->setSegsFGC(segs_fgC);
+    new_ptop->setSegsFGN(segs_fgN);
+    new_ptop->setSegsBGN(segs_bgN);
+    // Remember to remove ownership from temporary bgp_ptop
+    bgp_ptop.RemoveAllOwnership();
+    // Center polar topology
+    vec center = job->Center();
+    new_ptop->CenterAround(center);
+    job->setPolarTop(new_ptop);
+    return;
 }
 
 
