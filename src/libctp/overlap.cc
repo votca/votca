@@ -24,17 +24,27 @@
 #include <votca/tools/linalg.h>
 
 #include <boost/numeric/ublas/operation.hpp>
+#include <boost/numeric/ublas/banded.hpp>
+#include <boost/numeric/ublas/matrix_proxy.hpp>
+#include <boost/numeric/ublas/vector_proxy.hpp>
 #include <boost/numeric/ublas/operation_blocked.hpp>
+
 #include <boost/progress.hpp>
 
+// FOR TEST PURPOSES - MOVE TO TOOLS
+//#include <votca/ctp/gsl_boost_ublas_matrix_prod.h>
+
 namespace votca { namespace ctp {
+
+namespace ub = boost::numeric::ublas;
 
 double inv_sqrt(double x) { return 1./sqrt(x); }
 
 /*
  * Calculates S^{-1/2}
  */
-void Overlap::SQRTOverlap(ub::symmetric_matrix<double> &S, ub::matrix<double> &S2 ) {
+void Overlap::SQRTOverlap(boost::numeric::ublas::symmetric_matrix<double> &S, 
+                          boost::numeric::ublas::matrix<double> &S2 ) {
        
     double (*_inv_sqrt)(double);
     _inv_sqrt = &inv_sqrt;
@@ -64,7 +74,7 @@ void Overlap::SQRTOverlap(ub::symmetric_matrix<double> &S, ub::matrix<double> &S
  }
 
 bool Overlap::CalculateIntegralsOptimized(Orbitals* _orbitalsA, Orbitals* _orbitalsB, 
-    Orbitals* _orbitalsAB, ub::matrix<double>* _JAB) {
+    Orbitals* _orbitalsAB, boost::numeric::ublas::matrix<double>* _JAB) {
           
     LOG(logDEBUG,*_pLog) << "Calculating electronic couplings" << flush;
         
@@ -170,7 +180,7 @@ bool Overlap::CalculateIntegralsOptimized(Orbitals* _orbitalsA, Orbitals* _orbit
 }
 
 double Overlap::getCouplingElement( int levelA, int levelB,  Orbitals* _orbitalsA,
-    Orbitals* _orbitalsB, ub::matrix<double>* _JAB, double  _energy_difference ) {
+    Orbitals* _orbitalsB, boost::numeric::ublas::matrix<double>* _JAB, double  _energy_difference ) {
 
     const double _conv_Hrt_eV = 27.21138386;   
 
@@ -202,7 +212,7 @@ double Overlap::getCouplingElement( int levelA, int levelB,  Orbitals* _orbitals
 
 
 bool Overlap::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB, 
-    Orbitals* _orbitalsAB, ub::matrix<double>* _JAB) {
+    Orbitals* _orbitalsAB, boost::numeric::ublas::matrix<double>* _JAB) {
 
     LOG(logDEBUG,*_pLog) << "Calculating electronic couplings" << flush;
         
