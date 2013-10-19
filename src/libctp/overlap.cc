@@ -17,20 +17,18 @@
  *
  */
 
-// boost::ublas checks are switched off
-#define NDEBUG
-
-#include <votca/ctp/overlap.h>
-#include <votca/tools/linalg.h>
-
 
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/ctp/votca_ctp_config.h>
+
+#include <votca/ctp/overlap.h>
+#include <votca/tools/linalg.h>
 
 #include <boost/numeric/ublas/operation.hpp>
 #include <boost/numeric/ublas/banded.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
+#include <boost/numeric/ublas/symmetric.hpp>
 
 #include <boost/progress.hpp>
 

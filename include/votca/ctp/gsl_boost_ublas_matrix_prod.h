@@ -7,8 +7,10 @@
 #if defined (BOOST_VERSION) && (BOOST_VERSION >= 103401)
 
 #include <boost/numeric/ublas/matrix.hpp>
-#include <gsl/gsl_blas.h>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
+#include <boost/numeric/ublas/symmetric.hpp>
+
+#include <gsl/gsl_blas.h>
 
 namespace boost { namespace numeric { namespace ublas {
 

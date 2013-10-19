@@ -22,19 +22,12 @@
 
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
-
-
-//#ifdef MKLROOT
-//#include <mkl_boost_ublas_matrix_prod.hpp>
-//#endif
+#include <boost/numeric/ublas/matrix_proxy.hpp>
+#include <boost/numeric/ublas/vector_proxy.hpp>
 
 #include <votca/ctp/logger.h>
 #include <votca/ctp/qmpackagefactory.h>
 #include <votca/ctp/overlap.h>
-
-#include <boost/numeric/ublas/operation.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/numeric/ublas/vector_proxy.hpp>
 
 using boost::format;
 using namespace boost::filesystem;
