@@ -57,6 +57,7 @@ namespace votca { namespace ctp {
         bool isMaverick() { return _maverick; }
        
         Logger* getLogger() { return &_logger; }
+        virtual void Run(void) { ; }
        
     protected:
         

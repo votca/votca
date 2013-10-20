@@ -149,4 +149,25 @@
 		    jobwriter.mps.single.xml
 		</output>
 	</test>
+	<test>
+		<name>edft</name>
+		<description>Runs first-principles packages and parces the output</description>
+		<execute>{ctp_job} -e {name} -o {name}.xml -f {sql}</execute> 
+		<requires>neighborlist</requires>
+		<verify></verify>
+		<output>
+		    edft.jobs.xml
+		</output>
+	</test>
+
+	<test>
+		<name>idft</name>
+		<description>Evaluates electronic coupling elements</description>
+		<execute>{ctp_job} -e {name} -o {name}.xml -f {sql}</execute> 
+		<requires>edft</requires>
+		<verify></verify>
+		<output>
+		    idft.jobs.xml
+		</output>
+	</test>
 </suite>

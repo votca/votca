@@ -43,7 +43,7 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
     if (opt->exists(pfx+".convergence.rfactor"))
         _rfactor = opt->get(pfx+".convergence.rfactor").as<double>();
     else
-        _rfactor = 3.5;    
+        _rfactor = 6.;    
     // Polar parameters    
     if (opt->exists(pfx+".polarmethod.induce"))
         _polar_do_induce = opt->get(pfx+".polarmethod.induce").as<bool>();
@@ -65,6 +65,29 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
         _polar_aDamp = opt->get(pfx+".polarmethod.aDamp").as<double>();
     else
         _polar_aDamp = 0.390;
+    // Tasks to perform
+    if (opt->exists(pfx+".tasks.polarize_bg")) {
+        _task_polarize_bg = opt->get(pfx+".tasks.polarize_bg").as<bool>();
+    }
+    else
+        _task_polarize_bg = false;
+    if (opt->exists(pfx+".tasks.calculate_fields")) {
+        _task_calculate_fields 
+            = opt->get(pfx+".tasks.calculate_fields").as<bool>();
+    }
+    else
+        _task_calculate_fields = false;
+    if (opt->exists(pfx+".tasks.polarize_fg")) {
+        _task_polarize_fg = opt->get(pfx+".tasks.polarize_fg").as<bool>();
+    }
+    else
+        _task_polarize_fg = false;
+    if (opt->exists(pfx+".tasks.evaluate_energy")) {
+        _task_evaluate_energy
+            = opt->get(pfx+".tasks.evaluate_energy").as<bool>();
+    }
+    else
+        _task_evaluate_energy = false;
     
     // EWALD INTERACTION PARAMETERS (GUESS ONLY)
     _K_co = _kfactor/_R_co;
@@ -224,7 +247,7 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
             qzz_bgP += (*pit)->getQ00() * ((*pit)->getPos().getZ() * (*pit)->getPos().getZ());
         }
     }
-    for (sit = _fg_C.begin(); sit < _fg_C.end(); ++sit) {        
+    for (sit = _fg_C.begin(); sit < _fg_C.end(); ++sit) {
         PolarSeg* pseg = *sit;        
         for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
             netdpl_fgC += (*pit)->getPos() * (*pit)->getQ00();
@@ -426,6 +449,14 @@ void Ewald3DnD::WriteDensitiesPDB(string pdbfile) {
 
 
 void Ewald3DnD::Evaluate() {
+    
+    LOG(logDEBUG,*_log) << flush;
+    LOG(logDEBUG,*_log) << "Tasks to perform (" << IdentifyMethod() << ")" << flush;
+    LOG(logDEBUG,*_log) << "  o Polarize background:       " << ((_task_polarize_bg) ? "yes" : "no") << flush;
+    LOG(logDEBUG,*_log) << "  o Calculate fg fields:       " << ((_task_calculate_fields) ? "yes" : "no") << flush;
+    LOG(logDEBUG,*_log) << "  o Polarize foreground:       " << ((_task_polarize_fg) ? "yes" : "no") << flush;
+    LOG(logDEBUG,*_log) << "  o Evaluate energy:           " << ((_task_evaluate_energy) ? "yes" : "no") << flush;
+    
     LOG(logDEBUG,*_log) << flush;
     LOG(logDEBUG,*_log) << "System & Ewald parameters (" << IdentifyMethod() << ")" << flush;
     LOG(logDEBUG,*_log) << "  o Real-space unit cell:      " << _a << " x " << _b << " x " << _c << flush;
@@ -438,9 +469,10 @@ void Ewald3DnD::Evaluate() {
     LOG(logDEBUG,*_log) << "  o LxLy (for 3D2D EW):        " << _LxLy << " nm**2" << flush;
     LOG(logDEBUG,*_log) << "  o kx(max), ky(max), kz(max): " << _NA_max << ", " << _NB_max << ", " << _NC_max << flush;
     
-    EvaluateFields();
-    EvaluateInduction();
-    EvaluateEnergy();
+    if (_task_polarize_bg) PolarizeBackground();
+    if (_task_calculate_fields) EvaluateFields();
+    if (_task_polarize_fg) EvaluateInduction();
+    if (_task_evaluate_energy) EvaluateEnergy();
     
     double outer_epp = _ET._pp;
     double outer_eppu = _ET._pu + _ET._uu;
@@ -540,9 +572,9 @@ void Ewald3DnD::EvaluateFields() {
             vec fp = (*pit1)->getFieldP();
             LOG(logDEBUG,*_log)
                << (format("F = (%1$+1.7e %2$+1.7e %3$+1.7e) V/m") 
-                    % (fp.getX()*_ewdactor.int2V_m) 
-                    % (fp.getY()*_ewdactor.int2V_m) 
-                    % (fp.getZ()*_ewdactor.int2V_m)).str() << flush;
+                    % (fp.getX()*EWD::int2V_m) 
+                    % (fp.getY()*EWD::int2V_m) 
+                    % (fp.getZ()*EWD::int2V_m)).str() << flush;
             fieldCount += 1;
             if (fieldCount > 10) {
                 LOG(logDEBUG,*_log)
@@ -636,7 +668,7 @@ void Ewald3DnD::EvaluateEnergy() {
     // FOREGROUND CORRECTION (3D2D && 3D3D)
     EWD::triple<> EPP_fgC_fgN = CalculateForegroundCorrection();    
     
-    double int2eV = _actor.int2eV;
+    double int2eV = EWD::int2eV;
     _ER  = EPP_fgC_mgN * int2eV;
     _EK  = EKK_fgC_bgP * int2eV;
     _E0  = EK0_fgC_bgP * int2eV;
@@ -678,10 +710,10 @@ EWD::triple<> Ewald3DnD::ConvergeRealSpaceSum() {
                 }
             }
         }
-        double dER_rms = sqrt((this_ER-prev_ER)*(this_ER-prev_ER))*_actor.int2eV;
+        double dER_rms = sqrt((this_ER-prev_ER)*(this_ER-prev_ER))*EWD::int2eV;
         LOG(logDEBUG,*_log)
             << (format("Rc = %1$+1.7f   |MGN| = %3$5d nm   ER = %2$+1.7f eV   dER(rms) = %4$+1.7f") 
-            % Rc % (this_ER*_actor.int2eV) % _mg_N.size() % dER_rms).str() << flush;
+            % Rc % (this_ER*EWD::int2eV) % _mg_N.size() % dER_rms).str() << flush;
         if (i > 0 && dER_rms < _crit_dE) {
             _converged_R = true;
             LOG(logDEBUG,*_log)  
@@ -794,7 +826,7 @@ Property Ewald3DnD::GenerateOutputString() {
     next->add("QM0", (format("%1$d") % _polar_qm0.size()).str());
     next->add("MM1", (format("%1$d") % _polar_mm1.size()).str());
     next->add("MM2", (format("%1$d") % _polar_mm2.size()).str());
-    
+        
     return prop;
 }
     

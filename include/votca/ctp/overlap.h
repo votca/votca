@@ -17,13 +17,6 @@
  *
  */
 
-// boost::ublas checks are switched off
-#define NDEBUG
-#define BOOST_UBLAS_NDEBUG
-
-#include <boost/numeric/ublas/banded.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/numeric/ublas/vector_proxy.hpp>
 
 #include <votca/ctp/orbitals.h>
 #include <votca/ctp/logger.h>
