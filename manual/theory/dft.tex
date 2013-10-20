@@ -3,8 +3,8 @@
 \index{electronic coupling!DFT}
 % While the use of the semiempirical ZINDO method provides an efficient on-the-fly technique to determine electronic coupling elements, it is not generally applicable to all systems. For instance, its predictive capacity with regards to atomic composition and localization behavior of orbitals within more complex structures is reduced. Moreover, transition- or semi-metals are often not even parametrized. In this case, {\it ab-initio} based approaches, e.g., density-functional theory can remedy the situation~\cite{huang_intermolecular_2004,huang_validation_2005,valeev_effect_2006,yin_balanced_2006,yang_theoretical_2007,baumeier_density-functional_2010}. 
 
-The calculation of one electronic coupling element based on DFT using the \dipro method requires the overlap matrix of atomic orbitals $\matr{\mathcal{S}}$, the expansion coefficients for monomer $\vctr{\boldsymbol{\lambda}}_{(k)} = \{ \lambda_\alpha^{(k)}\}$ and dimer orbitals $\vctr{D}_{(n)} = \{ D^{(n)}_{\alpha} \}$, as well as the orbital energies $E_{n}$ of the dimer are required as input. In practical situations, performing self-consistent quantum-chemical calculations for each individual monomer and one for the dimer to obtain this input data is extremely demanding. Several simplifications can be made to reduce the computational effort, such as using non-Counterpoise basis sets for the monomers (thereby decoupling the monomer calculations from the dimer run) and performing only a single SCF step in a dimer calculation starting from an initial guess formed from a superposition of monomer orbitals. This ''noCP+noSCF'' variant of \dipro is shown in \fig{noscf_scheme} and recommended for production runs. A detailed comparative study of the different variants can be found in~\cite{baumeier_density-functional_2010}.
-
+The calculation of one electronic coupling element based on DFT using the \dipro method requires the overlap matrix of atomic orbitals $\matr{\mathcal{S}}$, the expansion coefficients for monomer $\vctr{\boldsymbol{\lambda}}_{(k)} = \{ \lambda_\alpha^{(k)}\}$ and dimer orbitals $\vctr{D}_{(n)} = \{ D^{(n)}_{\alpha} \}$, as well as the orbital energies $E_{n}$ of the dimer are required as input. In practical situations, performing self-consistent quantum-chemical calculations for each individual monomer and one for the dimer to obtain this input data is extremely demanding. Several simplifications can be made to reduce the computational effort, such as using non-Counterpoise basis sets for the monomers (thereby decoupling the monomer calculations from the dimer run) and performing only a single SCF step in a dimer calculation starting from an initial guess formed from a superposition of monomer orbitals. This ''noCP+noSCF'' variant of \dipro is shown in \fig{noscf_scheme} and recommended for production runs. 
+A detailed comparative study of the different variants can be found in~\cite{baumeier_density-functional_2010}.
 
 The code currently contains supports evaluation of transfer integrals from quantum-chemical calculations performed with the \gaussian, \turbomole, and \nwchem packages. The interfacing procedure consists of three main steps: generation of input files for monomers and dimers, performing the actual quantum-chemical calculations, and calculating the transfer integrals. 
 
@@ -14,11 +14,11 @@ First, \slink{segments}{hopping sites} and a \slink{neighborlist}{neighbor list}
 %
 \begin{enumerate}
 \item Creation of a job file containing the list of molecules to be caclculated with DFT 
-\begin{bclogo}[couleur=bgblue, arrondi =0 , logo=\bcinfo, barre=line,noborder=true]{\small Writing job file for \calc{edft}}
+\begin{bclogo}[couleur=bgblue, arrondi =0 , logo=\votcalogo, barre=line,noborder=true]{\small Writing job file for \calc{edft}}
 \itshape {\small \ctpparallel \opt \xmloptions \sql \sqlstate \exe \calc{edft} \job \wrt }
 \end{bclogo}
 \item Running of all jobs in job file 
-\begin{bclogo}[couleur=bgblue, arrondi =0 , logo=\bcinfo, barre=line,noborder=true]{\small Running all \calc{edft} jobs}
+\begin{bclogo}[couleur=bgblue, arrondi =0 , logo=\votcalogo, barre=line,noborder=true]{\small Running all \calc{edft} jobs}
 \itshape {\small \ctpparallel \opt \xmloptions \sql \sqlstate \exe \calc{edft} \job \run }
 \end{bclogo}
 which includes
@@ -42,11 +42,11 @@ where {\tt F} is the index of the frame in the trajectory, {\tt M} is the index 
 After the momomer calculations have been completed successfully, the respective runs for dimers from the neighborlist can be performed using the parallel \calc{idft} \calculator, which manages the DFT runs for the hopping pairs and determines the coupling element using \dipro. Again, several steps are required:
 \begin{enumerate}
 \item Creation of a job file containing the list of pairs to be caclculated with DFT 
-\begin{bclogo}[couleur=bgblue, arrondi =0 , logo=\bcinfo, barre=line,noborder=true]{\small Writing job file for \calc{idft}}
+\begin{bclogo}[couleur=bgblue, arrondi =0 , logo=\votcalogo, barre=line,noborder=true]{\small Writing job file for \calc{idft}}
 \itshape {\small \ctpparallel \opt \xmloptions \sql \sqlstate \exe \calc{idft} \job \wrt }
 \end{bclogo}
 \item Running of all jobs in job file 
-\begin{bclogo}[couleur=bgblue, arrondi =0 , logo=\bcinfo, barre=line,noborder=true]{\small Running all \calc{idft} jobs}
+\begin{bclogo}[couleur=bgblue, arrondi =0 , logo=\votcalogo, barre=line,noborder=true]{\small Running all \calc{idft} jobs}
 \itshape {\small \ctpparallel \opt \xmloptions \sql \sqlstate \exe \calc{edft} \job \run }
 \end{bclogo}
 which includes
@@ -65,7 +65,7 @@ where {\tt M} and {\tt N} are the indices of the molecules in this pair,
 \item calculating the coupling elements and write them to the job file
 \end{itemize}
 \item Reading the coupling elements from the job file and saving them to the \sqlstate file
-\begin{bclogo}[couleur=bgblue, arrondi =0 , logo=\bcinfo, barre=line,noborder=true]{\small Saving \calc{idft} results from job file to \sqlstate}
+\begin{bclogo}[couleur=bgblue, arrondi =0 , logo=\votcalogo, barre=line,noborder=true]{\small Saving \calc{idft} results from job file to \sqlstate}
 \itshape {\small \ctpparallel \opt \xmloptions \sql \sqlstate \exe \calc{idft} \job \rd }
 \end{bclogo}
 \end{enumerate}
