@@ -153,7 +153,7 @@
 		<name>edft</name>
 		<description>Runs first-principles packages and parces the output</description>
 		<execute>{ctp_job} -e {name} -o {name}.xml -f {sql}</execute> 
-		<requires>map</requires>
+		<requires>neighborlist</requires>
 		<verify></verify>
 		<output>
 		    edft.jobs.xml
@@ -164,7 +164,7 @@
 		<name>idft</name>
 		<description>Evaluates electronic coupling elements</description>
 		<execute>{ctp_job} -e {name} -o {name}.xml -f {sql}</execute> 
-		<requires>neighborlist,edft</requires>
+		<requires>edft</requires>
 		<verify></verify>
 		<output>
 		    idft.jobs.xml
