@@ -24,7 +24,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/numeric/ublas/operation.hpp>
 #include <votca/ctp/aomatrix.h>
-#include <votca/ctp/logger.h>
+#include <votca/ctp/threecenters.h>
+// #include <votca/ctp/logger.h>
 #include <votca/ctp/qmpackagefactory.h>
 
 #include <boost/numeric/ublas/symmetric.hpp>
@@ -39,60 +40,7 @@ namespace votca { namespace ctp {
 // +++++++++++++++++++++++++++++ //
 // GWBSE MEMBER FUNCTIONS         //
 // +++++++++++++++++++++++++++++ //
-/*
-    void GWBSE::FillOverlap(ub::matrix<double>* overlap, BasisSet* bs, vector<Segment* > segments){
-        // supposed to fill atomic orbital overlap matrix
-        cout << "\nYahoo, I'm filling an atomic orbital overlap matrix..." << endl;
-        cout << "... well, maybe at some point :( " << endl;
-        
-        cout << "First, let's try and determine the size of the AO basis:" << endl;
-        
-        vector< Atom* > _atoms;
-        vector< Atom* > ::iterator ait;
-        vector< Segment* >::iterator sit;
 
-        unsigned _AObasis_size = 0;
-        
-        // loop over segments
-        for (sit = segments.begin() ; sit != segments.end(); ++sit) {
-        
-            _atoms = (*sit)-> Atoms();
-            // loop over atoms in segment
-            for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
-                // get coordinates of this atom
-                vec     pos = (*ait)->getQMPos();
-                // get element type of the atom
-                string  name = (*ait)->getElement();
-                
-                // get the basis set entry for this element
-                Element* element = bs->getElement(name);
-                // and loop over all shells
-                for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
-                        
-                    Shell* shell = (*its);
-                    // we don't like contracted basis sets yet
-                    if ( shell->getSize() > 1 ) {
-                        cerr << "No contracted basis sets!" << flush;
-                    } else {
-                        _AObasis_size += NumFuncShell( shell->getType() );
-                    }
-                        
-                    // shell type, number primitives, scale factor
-                    //_com_file << shell->getType() << " " << shell->getSize() << " " << shell->getScale() << endl;
-                    //shell->getType() 
-                    /* for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
-                        GaussianPrimitive* gaussian = *itg;
-                        //_com_file << gaussian->decay << " " << gaussian->contraction << endl;
-                        _el_file << FortranFormat( gaussian->decay )<< " " << FortranFormat( gaussian->contraction ) << endl; 
-                    }
-                }
-            }
-        }
-        cout << "Atomic orbitals basis set size: " << _AObasis_size << endl;
-    }
-    */
-    
-    
    
  
     void GWBSE::CleanUp() {
@@ -202,24 +150,6 @@ void GWBSE::Initialize(Property *options) {
 
 Job::JobResult GWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 
-    /*string output;
-    
-    FILE *out;
-    Orbitals _orbitals;
-    Job::JobResult jres = Job::JobResult();
-
-
-
-    // log, com, and orbital files will be stored in ORB_FILES/package_name/frame_x/mol_ID/
-    // extracted information will be stored in  ORB_FILES/molecules/frame_x/molecule_ID.orb
-    
-    string edft_work_dir = "OR_FILES";
-    string frame_dir =  "frame_" + boost::lexical_cast<string>(top->getDatabaseId());      
-    string ID   = boost::lexical_cast<string>( seg->getId() );
-
-   
-  */
-    
     cout << "Starting GW-BSE"   ;      
     Orbitals _orbitals;
     Job::JobResult jres = Job::JobResult();
@@ -237,43 +167,64 @@ Job::JobResult GWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     Logger* pLog = opThread->getLogger();
     LOG(logINFO,*pLog) << TimeStamp() << " Evaluating site " << seg->getId() << flush; 
     
+    // load the DFT data 
+    string orb_file = (format("%1%_%2%%3%") % "molecule" % segId % ".orb").str();
+    string frame_dir =  "frame_" + boost::lexical_cast<string>(top->getDatabaseId());   
+    string edft_work_dir = "OR_FILES";
+    string DIR  =  edft_work_dir + "/molecules_gwbse/" + frame_dir;
+    std::ifstream ifs( (DIR + "/" + orb_file).c_str() );
+    LOG(logDEBUG,*pLog) << TimeStamp() << " Loading DFT data from " << DIR << "/" << orb_file << flush;   
+    boost::archive::binary_iarchive ia( ifs );
+    ia >> _orbitals;
+    ifs.close(); 
+    string _dft_package = _orbitals.getQMpackage();
+    LOG(logDEBUG,*pLog) << TimeStamp() << " DFT data was created by " << _dft_package << flush; 
     
+    // reorder DFT data, load DFT basis set
+    BasisSet dftbs;
+    string dftbasis_name("ubecppol");
+    
+    AOBasis dftbasis;
+    
+    dftbs.LoadBasisSet( dftbasis_name );
+    LOG(logDEBUG,*pLog) << TimeStamp() << " Loaded DFT Basis Set " << dftbasis_name << flush;
+    
+    dftbasis.AOBasisFill( &dftbs, segments );
+    LOG(logDEBUG,*pLog) << TimeStamp() << " Filled DFT Basis of size " << dftbasis._AOBasisSize << flush;
+    
+    // do the reordering depending on the QM package used to obtain the DFT data
+    ub::matrix<double> _dft_orbitals = *_orbitals.getOrbitals();
+    if (  _dft_package != "votca" ){
+        // get reordering vector _dft_package -> Votca 
+        vector<int> neworder;
+        dftbasis.getReorderVector( _dft_package , neworder );
+        // and reorder rows of _orbitals->_mo_coefficients() accordingly
+        AOBasis::ReorderMOs( _dft_orbitals, neworder );
+        // NWChem inverted sign for xz d-orbital
+        if ( _dft_package == "nwchem" ){
+            // get vector with multipliers, e.g. NWChem -> Votca (bloody sign for d_xz)
+            vector<int> multiplier;
+            dftbasis.getMultiplierVector( _dft_package, multiplier);
+            // and reorder rows of _orbitals->_mo_coefficients() accordingly
+            AOBasis::MultiplyMOs( _dft_orbitals, multiplier );    
+        }
+    } 
+    LOG(logDEBUG,*pLog) << TimeStamp() << " Converted DFT orbital coefficient order " << flush;  
 
-    /* obsolete Job::JobResult jres = Job::JobResult();
-
-    vector < Segment* > segments;    
-    Segment *seg = top->getSegment( boost::lexical_cast<int>( job->getTag() ));
-    segments.push_back( seg );
-
-    Logger* pLog = opThread->getLogger();
-    LOG(logINFO,*pLog) << TimeStamp() << " Evaluating site " << seg->getId() << flush; 
-     */ 
-       
-    // test setting up ao_overlap_matrix
+    // setting up ao_overlap_matrix
     list<string> elements;
-    BasisSet bs;
-    string basis_name("gwdefault");
+    BasisSet gwbs;
+    string gwbasis_name("gwdefault");
     
     AOBasis gwbasis;
     bool PPM_symmetric = true; // only PPM supported
     
     
-    bs.LoadBasisSet( basis_name );
-    LOG(logDEBUG,*pLog) << TimeStamp() << " Loaded Basis Set " << basis_name << flush;
+    gwbs.LoadBasisSet( gwbasis_name );
+    LOG(logDEBUG,*pLog) << TimeStamp() << " Loaded GW Basis Set " << gwbasis_name << flush;
     
-    gwbasis.AOBasisFill( &bs, segments );
+    gwbasis.AOBasisFill( &gwbs, segments );
     LOG(logDEBUG,*pLog) << TimeStamp() << " Filled GW Basis of size " << gwbasis._AOBasisSize << flush;
-    
-    
-    
-    // test output
-    /*for (vector< AOShell* >::iterator it = aobasis.firstShell(); it != aobasis.lastShell() ; it++ ) {
-        AOShell* _shell = aobasis.getShell( it );
-        cout << _shell->getType() << ":" << _shell->getScale() << ":" << _shell->getNumFunc() << ":"  << _shell->getStartIndex() << ":" << _shell->getPos() << endl;
-        for (AOShell::GaussianIterator itg = _shell->firstGaussian(); itg != _shell->lastGaussian(); itg++) {
-            cout << "\t" << (*itg)->decay << ":" << (*itg)->contraction << endl;
-        }
-    }*/
 
     // get overlap matrix as AOOverlap
     AOOverlap _gwoverlap;
@@ -281,17 +232,10 @@ Job::JobResult GWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     _gwoverlap.Initialize(gwbasis._AOBasisSize);
     // Fill overlap
     _gwoverlap.Fill( &gwbasis );
-    LOG(logDEBUG,*pLog) << TimeStamp() << " Filled  GW Overlap matrix of dimension: " << _gwoverlap._aomatrix.size1() <<  flush;
+    LOG(logDEBUG,*pLog) << TimeStamp() << " Filled GW Overlap matrix of dimension: " << _gwoverlap._aomatrix.size1() <<  flush;
     // _aooverlap.Print( "S" );
  
-    // get Coulomb matrix as AOCoulomb
-    AOCoulomb _gwcoulomb;
-    // initialize Coulomb matrix
-    _gwcoulomb.Initialize(gwbasis._AOBasisSize);
-    // Fill Coulomb matrix
-    _gwcoulomb.Fill( &gwbasis );
-    LOG(logDEBUG,*pLog) << TimeStamp() << " Filled GW Coulomb matrix of dimension: " << _gwcoulomb._aomatrix.size1() <<  flush;
-    // _gwcoulomb.Print( "COU" );
+ 
     
     // printing some debug info
     // _gwcoulomb.PrintIndexToFunction( &aobasis );
@@ -307,14 +251,49 @@ Job::JobResult GWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     LOG(logDEBUG,*pLog) << TimeStamp() << " Smallest eigenvalue of GW Overlap matrix : " << _eigenvalues[0] <<  flush;
  
     
+    
+    // get Coulomb matrix as AOCoulomb
+    AOCoulomb _gwcoulomb;
+    // initialize Coulomb matrix
+    _gwcoulomb.Initialize(gwbasis._AOBasisSize);
+    // Fill Coulomb matrix
+    _gwcoulomb.Fill( &gwbasis );
+    LOG(logDEBUG,*pLog) << TimeStamp() << " Filled GW Coulomb matrix of dimension: " << _gwcoulomb._aomatrix.size1() << flush;
+    // _gwcoulomb.Print( "COU" );
+    
+    
     // PPM is symmetric, so we need to get the sqrt of the Coulomb matrix
     if ( PPM_symmetric ){
-        
-        _gwcoulomb.Symmetrize(  _gwoverlap , gwbasis  );
-        
-        
- 
+       // _gwcoulomb.Symmetrize(  _gwoverlap , gwbasis  );
+        ;
     }
+    LOG(logDEBUG,*pLog) << TimeStamp() << " Prepared GW Coulomb matrix for symmetric PPM " << endl;
+    // scissors-shift DFT energies
+    
+    // calculate 3-center integrals,  convoluted with DFT eigenvectors
+
+    // --- prepare a multi dimensional array as container => M_mn
+    int mmin = 1; // lowest index occ 
+    int mmax = _orbitals.getNumberOfElectrons();
+    int nmin = 1;
+    int nmax = _orbitals.getNumberOfLevels();
+    int maxf = gwbasis.getMaxFunctions(); // maximum number of functions per shell in basis set
+    
+    // prepare 3-center integral object
+    TCMatrix _Mmn;
+    _Mmn.Initialize( gwbasis._AOBasisSize, mmin, mmax, nmin, nmax );
+    _Mmn.Fill( gwbasis, dftbasis, _dft_orbitals );
+/*
+    for ( int i = 0; i < gwbasis._AOBasisSize ; i++ ){
+        cout << i << ":" << _Mmn._array[i][0][0] << endl;
+    } */
+    
+    
+    
+    
+    
+    
+    
     return jres;
 }
 

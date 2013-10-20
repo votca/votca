@@ -25,14 +25,14 @@
 #include <vector>
 #include <votca/tools/property.h>
 #include <votca/ctp/segment.h>
-
+#include <boost/numeric/ublas/matrix.hpp>
 #include "basisset.h"
 
 using namespace std;
 using namespace votca::tools;
 
 namespace votca { namespace ctp {
-
+namespace ub = boost::numeric::ublas;
 class AOShell;  
 class AOBasis;
 
@@ -134,6 +134,46 @@ private:
 class AOBasis 
 {   
 public:
+       
+       template< class T >
+       static void ReorderMOs(ub::matrix<T> &v, vector<int> const &order )  { 
+          // Sanity check
+          if ( v.size2() != order.size() ) {
+              cerr << "Size mismatch in ReorderMOs" << v.size2() << ":" << order.size() << endl;
+              throw std::runtime_error( "Abort!");
+              
+          }
+           for ( int _i_orbital = 0; _i_orbital < v.size1(); _i_orbital++ ){
+        
+                for ( int s = 1, d; s < order.size(); ++ s ) {
+                    for ( d = order[s]; d < s; d = order[d] ) ;
+                          if ( d == s ) while ( d = order[d], d != s ) swap( v(_i_orbital,s), v(_i_orbital,d) );
+                }
+           }
+       }
+       
+      template< class T >   
+      static void MultiplyMOs(ub::matrix<T> &v, vector<int> const &multiplier )  { 
+          // Sanity check
+          if ( v.size2() != multiplier.size() ) {
+              cerr << "Size mismatch in MultiplyMOs" << v.size2() << ":" << multiplier.size() << endl;
+              throw std::runtime_error( "Abort!");
+          }
+
+          for ( int _i_orbital = 0; _i_orbital < v.size1(); _i_orbital++ ){
+
+               for ( int _i_basis = 0; _i_basis < v.size2(); _i_basis++ ){
+        
+                   v(_i_orbital, _i_basis ) = multiplier[_i_basis] * v(_i_orbital, _i_basis );
+                   
+               }
+               
+               
+           }
+       } 
+       
+       
+       
     
     void AOBasisFill( BasisSet* bs , vector<Segment* > segments);
     int NumFuncShell( string shell );
@@ -169,8 +209,162 @@ public:
    
    bool _is_stable;
    
-    vector<AOShell*> _aoshells;    
+    vector<AOShell*> _aoshells;
+
+    void getReorderVector( string& package, vector<int>& neworder );
+    void addReorderShell( string& package, string& shell, vector<int>& neworder );
+    void getMultiplierVector( string& package, vector<int>& multiplier );
+    void addMultiplierShell( string& package, string& shell, vector<int>& multiplier );  
+    
+    int getMaxFunctions ( );
 };
+
+
+inline int AOBasis::getMaxFunctions () {
+    
+    int _maxfunc = 0;
+    
+    // go through basisset
+    for (vector< AOShell* >::iterator _is = this->firstShell(); _is != this->lastShell() ; _is++ ) {
+        AOShell* _shell = this->getShell( _is );
+        int _func_here = _shell->getNumFunc();
+        if ( _func_here > _maxfunc ) _maxfunc = _func_here;
+    }
+
+    return _maxfunc;
+    
+}
+
+
+inline void AOBasis::getMultiplierVector( string& package, vector<int>& multiplier){
+
+    // go through basisset
+    for (vector< AOShell* >::iterator _is = this->firstShell(); _is != this->lastShell() ; _is++ ) {
+        AOShell* _shell = this->getShell( _is );
+        string _type =  _shell->getType();
+        this->addMultiplierShell(  package, _type, multiplier );
+    }
+    
+}
+
+
+
+
+inline void AOBasis::addMultiplierShell( string& package,  string& shell_type, vector<int>& multiplier ) {
+    
+    // current length of vector
+    int _cur_pos = multiplier.size() -1 ;
+    
+    // single type shells defined here
+    if ( shell_type.length() == 1 ){
+       if ( shell_type == "S" ){ 
+           multiplier.push_back( 1 );
+       }
+       
+       if ( shell_type == "P" ){ 
+           multiplier.push_back( 1 );
+           multiplier.push_back( 1 );
+           multiplier.push_back( 1 );
+       }
+       if ( shell_type == "D" ){ 
+           if ( package == "nwchem") {
+               multiplier.push_back( -1  ); 
+               multiplier.push_back( 1 );
+               multiplier.push_back( 1 );
+               multiplier.push_back( 1 ); 
+               multiplier.push_back( 1 );               
+           } else {
+               cerr << "Tried to get multipliers d-functions from package " << package << ".";
+               throw std::runtime_error( "Multiplication not implemented yet!");
+           }
+       }
+       if ( shell_type == "F" ){ 
+           cerr << "Tried to get multipliers for f-functions . ";
+           throw std::runtime_error( "Multiplication not implemented yet!");
+       }
+       if ( shell_type == "G" ){
+           cerr << "Tried to get multipliers g-functions . ";
+           throw std::runtime_error( "Multiplication not implemented yet!");
+       } 
+    } else {
+        // for combined shells, iterate over all contributions
+        //_nbf = 0;
+        for( int i = 0; i < shell_type.length(); ++i) {
+           string local_shell =    string( shell_type, i, 1 );
+           this->addMultiplierShell( package, local_shell, multiplier  );
+        }
+    }
+    
+    
+}
+
+
+inline void AOBasis::getReorderVector( string& package, vector<int>& neworder){
+
+    // go through basisset
+    for (vector< AOShell* >::iterator _is = this->firstShell(); _is != this->lastShell() ; _is++ ) {
+        AOShell* _shell = this->getShell( _is );
+        string _type =  _shell->getType();
+        this->addReorderShell( package,  _type, neworder );
+    }
+    
+}
+
+
+inline void AOBasis::addReorderShell( string& package,  string& shell_type, vector<int>& neworder ) {
+    
+    // current length of vector
+    int _cur_pos = neworder.size() -1 ;
+    
+    // single type shells defined here
+    if ( shell_type.length() == 1 ){
+       if ( shell_type == "S" ){ 
+           neworder.push_back( _cur_pos + 1 );
+       }
+       
+       if ( shell_type == "P" ){ 
+           neworder.push_back( _cur_pos + 1 );
+           neworder.push_back( _cur_pos + 2 );
+           neworder.push_back( _cur_pos + 3 );
+       }
+       if ( shell_type == "D" ){ 
+           if ( package == "gaussian"){
+               neworder.push_back( _cur_pos + 4 );
+               neworder.push_back( _cur_pos + 1 );
+               neworder.push_back( _cur_pos + 2 );
+               neworder.push_back( _cur_pos + 5 );
+               neworder.push_back( _cur_pos + 3 );
+           } else if ( package == "nwchem") {
+               neworder.push_back( _cur_pos + 3  ); 
+               neworder.push_back( _cur_pos + 2 );
+               neworder.push_back( _cur_pos + 4 );
+               neworder.push_back( -(_cur_pos + 1) ); // bloody inverted sign
+               neworder.push_back( _cur_pos + 5 );               
+           } else {
+               cerr << "Tried to reorder d-functions from package " << package << ".";
+               throw std::runtime_error( "Reordering not implemented yet!");
+           }
+       }
+       if ( shell_type == "F" ){ 
+           cerr << "Tried to reorder f-functions . ";
+           throw std::runtime_error( "Reordering not implemented yet!");
+       }
+       if ( shell_type == "G" ){
+           cerr << "Tried to reorder g-functions . ";
+           throw std::runtime_error( "Reordering not implemented yet!");
+       } 
+    } else {
+        // for combined shells, iterate over all contributions
+        //_nbf = 0;
+        for( int i = 0; i < shell_type.length(); ++i) {
+           string local_shell =    string( shell_type, i, 1 );
+           this->addReorderShell( package, local_shell, neworder  );
+        }
+    }
+    
+    
+}
+
 
 
 
@@ -183,7 +377,7 @@ inline void AOBasis::AOBasisFill(BasisSet* bs , vector<Segment* > segments) {
         vector< Segment* >::iterator sit;
 
        _AOBasisSize = 0;
-       _is_stable = false;
+       _is_stable = true; // _is_stable = true corresponds to gwa_basis%S_ev_stable = .false. 
         
         // loop over segments
         for (sit = segments.begin() ; sit != segments.end(); ++sit) {

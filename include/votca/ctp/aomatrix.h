@@ -51,12 +51,6 @@ namespace votca { namespace ctp {
         int getBlockSize( int size );
         
         void getTrafo( ub::matrix<double>& _trafo, int _lmax, const double& _decay );
-
-        /* Matrix inversion routine.
-           Uses lu_factorize and lu_substitute in uBLAS to invert a matrix */
-        //template<class T>
-        bool InvertMatrix(const ub::matrix<double>& input, ub::matrix<double>& inverse);
-
         
         void PrintIndexToFunction( AOBasis* aobasis);
         

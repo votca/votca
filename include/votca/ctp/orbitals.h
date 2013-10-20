@@ -84,7 +84,7 @@ public:
    bool   from_environment;
    
    template<typename Archive> 
-   void serialize(Archive& ar, const unsigned version) {
+   void serialize(Archive& ar, const unsigned int version) {
        ar & type;
        ar & x;
        ar & y;
@@ -138,6 +138,9 @@ public:
     double getQMEnergy() { return (_has_qm_energy) ? _qm_energy : 0; }
     
     // for GW-BSE
+    bool hasQMpackage() { return _has_qm_package; }
+    string getQMpackage() { return _qm_package; }
+    
     bool hasQPpert() { return _has_QPpert; }
     ub::matrix<double>* getQPpertEnergies() {return  &_QPpert_energies ;}
     bool hasQPdiag() { return _has_QPdiag; }
@@ -223,6 +226,8 @@ private:
     BasisSet                            _basis_set;
     
     // new variables for GW-BSE storage
+    bool                                _has_qm_package;
+    string                              _qm_package;
     // perturbative quasiparticle energies
     bool                                _has_QPpert;
     std::vector<int>                    _QP_levels_index;
@@ -260,7 +265,7 @@ private:
     
     // serialization itself (template implementation stays in the header)
     template<typename Archive> 
-    void serialize(Archive& ar, const unsigned version) {
+    void serialize(Archive& ar, const unsigned int version) {
 
        ar & _has_basis_set_size;
        ar & _has_occupied_levels;
@@ -274,6 +279,7 @@ private:
        ar & _has_qm_energy;
        ar & _has_self_energy;
        ar & _has_integrals;
+       ar & _has_qm_package;
        
        if ( _has_basis_set_size ) { ar & _basis_set_size; }
        if ( _has_occupied_levels ) { ar & _occupied_levels; }
@@ -285,24 +291,25 @@ private:
        if ( _has_overlap ) { 
            // symmetric matrix does not serialize by default
             if (Archive::is_saving::value) {
-                unsigned size = _overlap.size1();
+                unsigned int size = _overlap.size1();
                 ar & size;
              }
 
             // copy the values back if loading
             if (Archive::is_loading::value) {
-                unsigned size;
+                unsigned int size;
                 ar & size;
                 _overlap.resize(size);
              }
             
-           for (unsigned i = 0; i < _overlap.size1(); ++i)
-                for (unsigned j = 0; j <= i; ++j)
+           for (unsigned int i = 0; i < _overlap.size1(); ++i)
+                for (unsigned int j = 0; j <= i; ++j)
                     ar & _overlap(i, j); 
        }
 
        if ( _has_atoms ) { ar & _atoms; }
        if ( _has_qm_energy ) { ar & _qm_energy; }
+       if ( _has_qm_package ) { ar & _qm_package; }
        if ( _has_self_energy ) { ar & _self_energy; }     
        if ( _has_integrals ) { ar & _integrals; } 
 
@@ -322,19 +329,19 @@ private:
             if ( _has_vxc ) { 
                // symmetric matrix does not serialize by default
                 if (Archive::is_saving::value) {
-                    unsigned size = _vxc.size1();
+                    unsigned int size = _vxc.size1();
                     ar & size;
                  }
 
                 // copy the values back if loading
                 if (Archive::is_loading::value) {
-                    unsigned size;
+                    unsigned int size;
                     ar & size;
                     _vxc.resize(size);
                  }
 
-               for (unsigned i = 0; i < _vxc.size1(); ++i)
-                    for (unsigned j = 0; j <= i; ++j)
+               for (unsigned int i = 0; i < _vxc.size1(); ++i)
+                    for (unsigned int j = 0; j <= i; ++j)
                         ar & _vxc(i, j); 
             }
             
