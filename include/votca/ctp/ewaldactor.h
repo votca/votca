@@ -116,14 +116,23 @@ public:
     inline void PApplyBiasK(APolarSite &p);
     inline void UApplyBiasK(APolarSite &p);
     
+    // Structure amplitudes
     EWD::cmplx PUStructureAmplitude(vector<PolarSeg*> &s);
     EWD::cmplx PStructureAmplitude(vector<PolarSeg*> &s);
-    EWD::cmplx UStructureAmplitude(vector<PolarSeg*> &s);
+    EWD::cmplx UStructureAmplitude(vector<PolarSeg*> &s);    
+    EWD::cmplx PUStructureAmplitude(vector<PolarSeg*> &s, const vec &k);
+    EWD::cmplx PStructureAmplitude(vector<PolarSeg*> &s, const vec &k);
+    EWD::cmplx UStructureAmplitude(vector<PolarSeg*> &s, const vec &k);
     
+    // Fields
     EWD::cmplx FPU12_AS1S2_At_By(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV);
     EWD::cmplx FP12_AS1S2_At_By(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV);
-    EWD::cmplx FU12_AS1S2_At_By(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV);
+    EWD::cmplx FU12_AS1S2_At_By(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV);    
+
+    EWD::cmplx FP12_At_ByS2(const vec &k, vector<PolarSeg*> &s1, const EWD::cmplx &S2, double &rV);
+    EWD::cmplx FU12_At_ByS2(const vec &k, vector<PolarSeg*> &s1, const EWD::cmplx &S2, double &rV);
     
+    // Energies
     EWD::triple<EWD::cmplx> AS1S2(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2);
     EWD::triple<EWD::cmplx> S1S2(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2);
     

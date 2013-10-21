@@ -153,19 +153,24 @@ struct EucNorm { inline double operator() (const votca::tools::vec &v)
     { return votca::tools::abs(v); } };
 
 // K-vector class (for grading purposes)
-struct KVector
+class KVector
 {
+public:
     KVector(votca::tools::vec k, double grade)
-        : _k(k), _grade(grade) { ; }
-
-    votca::tools::vec _k;
-    double _grade;
-
+        : _k(k), _grade(grade), _has_sfactor(false) { ; }
     const votca::tools::vec &getK() const { return _k; }
     const double &getGrade() const { return _grade; }
     const double &getX() const { return _k.getX(); }
     const double &getY() const { return _k.getY(); }
-    const double &getZ() const { return _k.getZ(); }            
+    const double &getZ() const { return _k.getZ(); }
+    
+    void setStructureFactor(EWD::cmplx &sfac) { _sfactor = sfac; _has_sfactor = true; }
+    const EWD::cmplx &getStructureFactor() { return _sfactor; }
+private:
+    votca::tools::vec _k;
+    double _grade;
+    EWD::cmplx _sfactor;
+    bool _has_sfactor;
 };
 
 // Specialized K-vector norm

@@ -177,11 +177,11 @@ void PolarBackground::Polarize() {
     // I GENERATE PERMANENT FIELDS (FP)
     LOG(dbg,log) << flush;
     LOG(dbg,log) << "Generate permanent fields (FP)" << flush;
+    // I.B Reciprocal-space contribution
+    LOG(dbg,log) << "  o Reciprocal-space" << flush;
+    this->FP_ReciprocalSpace();
     // I.A Intermolecular real-space contribution
     this->FP_RealSpace();
-    // I.B Reciprocal-space contribution
-    LOG(dbg,log) << "  o TODO Reciprocal-space" << flush;
-    this->FP_ReciprocalSpace();
     // I.C Shape fields
     LOG(dbg,log) << "  o Shape fields" << flush;
     if (_shape == "xyslab") {
@@ -285,7 +285,7 @@ void PolarBackground::Polarize() {
                 % _shape) << flush;
         }
         // (5) Apply atomic ERF self-interaction correction
-        LOG(dbg,log) << "    - Atomic SI correction" << flush;
+        LOG(dbg,log) << "  o Atomic SI correction" << flush;
         rms = 0.0;
         rms_count = 0;
         for (sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
@@ -367,7 +367,8 @@ void PolarBackground::Polarize() {
 // ========================================================================== //
 
 
-PolarBackground::FPThread::FPThread(PolarBackground *master, int id) : _id(id) {
+PolarBackground::FPThread::FPThread(PolarBackground *master, int id) {
+    this->setId(id);
     _do_setup_nbs = true;
     _master = master;
     _full_bg_P = master->_bg_P;
@@ -389,7 +390,7 @@ void PolarBackground::FPThread::Run(void) {
     if (_do_setup_nbs) {
         if (_verbose) 
             LOG(logDEBUG,*(_master->_log)) 
-                << "MST DBG     - Clearing polar nb-list" << endl;
+                << "   - Clearing polar nb-list" << endl;
         for (sit1 = _part_bg_P.begin(); sit1 < _part_bg_P.end(); ++sit1) {
             (*sit1)->ClearPolarNbs();
         }
@@ -609,7 +610,8 @@ void PolarBackground::FP_RealSpace() {
 // ========================================================================== //
 
 
-PolarBackground::FUThread::FUThread(PolarBackground *master, int id) : _id(id) {
+PolarBackground::FUThread::FUThread(PolarBackground *master, int id) {
+    this->setId(id);
     _do_setup_nbs = true;
     _master = master;
     _full_bg_P = master->_bg_P;
@@ -631,7 +633,7 @@ void PolarBackground::FUThread::Run(void) {
         // CLEAR POLAR NEIGHBOR-LIST BEFORE SET-UP
         if (_verbose) 
             LOG(logDEBUG,*(_master->_log)) 
-                << "MST DBG     - Clearing polar nb-list" << endl;
+                << "   - Clearing polar nb-list" << endl;
         for (sit1 = _part_bg_P.begin(); sit1 < _part_bg_P.end(); ++sit1) {
             (*sit1)->ClearPolarNbs();
         }
@@ -847,8 +849,88 @@ void PolarBackground::FU_RealSpace(bool do_setup_nbs) {
 // FP RECIPROCAL SPACE
 // ========================================================================== //
 
+void PolarBackground::KThread::SFactorCalc() {
+    // Calculate structure factors for each k and store with KVector
+    int kvec_count = 0;
+    for (vector<EWD::KVector>::iterator kit = _part_kvecs.begin();
+        kit < _part_kvecs.end(); ++kit) {
+        kvec_count += 1;
+        EWD::cmplx sfactor
+            = _ewdactor.PStructureAmplitude(_full_bg_P, (*kit).getK());
+        (*kit).setStructureFactor(sfactor);
+        if (_verbose)
+            LOG(logDEBUG,*(_master->_log))
+                << "\rMST DBG     - Progress " << kvec_count
+                << "/" << _part_kvecs.size() << flush;
+    }
+    
+    return;
+}
+
+
+void PolarBackground::KThread::KFieldCalc() {
+    
+    return;
+}
+
+
 
 void PolarBackground::FP_ReciprocalSpace() {
+    
+    double sum_re = 0.0;
+    double sum_im = 0.0;
+    _field_converged_K = false;
+    double rV = 1./_LxLyLz;
+    
+    // THREAD FORCE & PROTOTYPE
+    KThread prototype(this);
+    ThreadForce<KThread, PrototypeCreator> threadforce;
+    ThreadForce<KThread, PrototypeCreator>::iterator tfit;
+    threadforce.setPrototype(&prototype);    
+    
+    // GENERATE K-VECTORS
+    LOG(logDEBUG,*_log)
+        << "  o Generate k-vectors" << flush;
+    _log->setPreface(logDEBUG, "\nMST DBG     - ");
+    GenerateKVectors(_bg_P, _bg_P);
+    _log->setPreface(logDEBUG, "\nMST DBG");
+    
+    // TWO COMPONENTS ZERO, ONE NON-ZERO
+    LOG(logINFO,*_log)
+        << "  o Two components zero, one non-zero" << flush;
+    
+    // Structure factors for all k-vectors
+    LOG(logDEBUG,*_log) << "    - Start & wait until done I" << flush << flush;
+    _log->setPreface(logDEBUG, "");
+    threadforce.Initialize(_n_threads);
+    threadforce.AssignMode<string>("SFactorCalc");
+    threadforce.ApportionInput<EWD::KVector>(_kvecs_2_0);
+    threadforce.StartAndWait();    
+    
+    // Merge [ _part_kvecs ] into _full_kvecs and communicate to threads
+    // Threads need to store rms information about the shell in some double
+    
+    LOG(logDEBUG,*_log) << "    - Start & wait until done I" << flush << flush;
+    _log->setPreface(logDEBUG, "");
+    threadforce.AssignMode<string>("KFieldCalc");
+    threadforce.ApportionInput<PolarSeg*>(_bg_P);
+    threadforce.StartAndWait();
+    _log->setPreface(logDEBUG, "\nMST DBG");
+    
+    // Evaluate rms information to verify convergence
+    
+    
+//    for (kvit = _kvecs_2_0.begin(); kvit < _kvecs_2_0.end(); ++kvit) {
+//        EWD::KVector kvec = *kvit;
+//        EWD::cmplx f_as1s2 = _ewdactor.FPU12_AS1S2_At_By(kvec.getK(), _fg_C, _bg_P, rV);
+//        sum_re += sqrt(f_as1s2._re);
+//        sum_im += f_as1s2._im;
+//    }
+    
+//    LOG(logDEBUG,*_log)
+//        << (format("  :: RE %1$+1.7e IM %2$+1.7e")
+//            % (sum_re*EWD::int2V_m)
+//            % (sum_im*EWD::int2V_m)).str() << flush;
     
     return;
 }
@@ -861,6 +943,160 @@ void PolarBackground::FP_ReciprocalSpace() {
 
 void PolarBackground::FU_ReciprocalSpace() {
     
+    return;
+}
+
+
+void PolarBackground::GenerateKVectors(vector<PolarSeg*> &ps1, 
+    vector<PolarSeg*> &ps2) {
+    
+    // Take care of norm for grading function
+    // All three components non-zero
+    //              S(kx)*S(ky)*S(kz)
+    // G = A(k) * ---------------------
+    //            (<S(kx)><S(ky)><S(kz)>)**(2/3)
+    // Component i zero
+    //                   S(kj)*S(kk)
+    // G = A(k) * -------------------------
+    //             (<S(kj)><S(kk)>)**(1/2)
+    // Components i,j zero
+    // => All S(k) calculated anyway, no need to grade
+    // We can use the same grading function if we set
+    //
+    // S(ki=0) = <S(ki)>**(2/3) (<S(kj)><S(kk)>)**(1/6)
+    
+    vector< EWD::KVector > kvecs_2_0; // 2 components zero
+    vector< EWD::KVector > kvecs_1_0; // 1 component zero
+    vector< EWD::KVector > kvecs_0_0; // 0 components zero
+    
+    // CONTAINERS FOR GRADING K-VECTORS
+    vector< double > kx_s1s2;
+    kx_s1s2.push_back(1);
+    vector< double > ky_s1s2;
+    ky_s1s2.push_back(1);
+    vector< double > kz_s1s2;
+    kz_s1s2.push_back(1);
+    double avg_kx_s1s2 = 0.0;
+    double avg_ky_s1s2 = 0.0;
+    double avg_kz_s1s2 = 0.0;
+    
+    // TWO COMPONENTS ZERO, ONE NON-ZERO
+    LOG(logDEBUG,*_log)
+        << "Generating K-vectors: Exploring K resonances" << flush;
+    for (int i = 1; i < _NA_max+1; ++i) {
+        vec k = +i*_A;
+        EWD::triple<EWD::cmplx> ppuu_posk = _ewdactor.S1S2(k, ps1, ps2);        
+        kx_s1s2.push_back(0.5*std::abs(ppuu_posk._pp._re));
+        avg_kx_s1s2 += 0.5*std::abs(ppuu_posk._pp._re);
+        EWD::KVector kvec_pos = EWD::KVector(+1*k,0.);
+        EWD::KVector kvec_neg = EWD::KVector(-1*k,0.);
+        kvecs_2_0.push_back(kvec_pos);
+        kvecs_2_0.push_back(kvec_neg);
+    }
+    avg_kx_s1s2 /= _NA_max;
+    
+    for (int i = 1; i < _NB_max+1; ++i) {
+        vec k = +i*_B;
+        EWD::triple<EWD::cmplx> ppuu_posk = _ewdactor.S1S2(k, ps1, ps2);        
+        ky_s1s2.push_back(0.5*std::abs(ppuu_posk._pp._re));
+        avg_ky_s1s2 += 0.5*std::abs(ppuu_posk._pp._re);
+        EWD::KVector kvec_pos = EWD::KVector(+1*k,0);
+        EWD::KVector kvec_neg = EWD::KVector(-1*k,0);
+        kvecs_2_0.push_back(kvec_pos);
+        kvecs_2_0.push_back(kvec_neg);
+    }
+    avg_ky_s1s2 /= _NB_max;
+    
+    for (int i = 1; i < _NC_max+1; ++i) {
+        vec k = +i*_C;
+        EWD::triple<EWD::cmplx> ppuu_posk = _ewdactor.S1S2(k, ps1, ps2);        
+        kz_s1s2.push_back(0.5*std::abs(ppuu_posk._pp._re));
+        avg_kz_s1s2 += 0.5*std::abs(ppuu_posk._pp._re);
+        EWD::KVector kvec_pos = EWD::KVector(+1*k,0);
+        EWD::KVector kvec_neg = EWD::KVector(-1*k,0);
+        kvecs_2_0.push_back(kvec_pos);
+        kvecs_2_0.push_back(kvec_neg);
+    }
+    avg_kz_s1s2 /= _NC_max;
+    
+    double kxyz_s1s2_norm = 1./pow(avg_kx_s1s2*avg_ky_s1s2*avg_kz_s1s2,2./3.) * EWD::int2eV / _LxLyLz;
+    kx_s1s2[0] = pow(avg_ky_s1s2*avg_kz_s1s2,1./6.)*pow(avg_kx_s1s2,2./3.);
+    ky_s1s2[0] = pow(avg_kz_s1s2*avg_kx_s1s2,1./6.)*pow(avg_ky_s1s2,2./3.);
+    kz_s1s2[0] = pow(avg_kx_s1s2*avg_ky_s1s2,1./6.)*pow(avg_kz_s1s2,2./3.);
+    
+    // ONE COMPONENT ZERO, TWO NON-ZERO
+    LOG(logDEBUG,*_log)
+        << "K-planes through origin: Applying K resonances" << flush;
+    
+    vector< EWD::KVector >::iterator kvit;
+    int kx, ky, kz;
+    kx = 0;
+    for (ky = -_NB_max; ky < _NB_max+1; ++ky) {
+        if (ky == 0) continue;
+        for (kz = -_NC_max; kz < _NC_max+1; ++kz) {
+            if (kz == 0) continue;
+            vec k = kx*_A + ky*_B + kz*_C;
+            double grade = _ewdactor.Ark2Expk2(k) * kx_s1s2[std::abs(kx)] * ky_s1s2[std::abs(ky)] * kz_s1s2[std::abs(kz)] * kxyz_s1s2_norm;
+            EWD::KVector kvec = EWD::KVector(k,grade);
+            kvecs_1_0.push_back(kvec);
+        }
+    }
+    ky = 0;
+    for (kx = -_NA_max; kx < _NA_max+1; ++kx) {
+        if (kx == 0) continue;
+        for (kz = -_NC_max; kz < _NC_max+1; ++kz) {
+            if (kz == 0) continue;
+            vec k = kx*_A + ky*_B + kz*_C;
+            double grade = _ewdactor.Ark2Expk2(k) * kx_s1s2[std::abs(kx)] * ky_s1s2[std::abs(ky)] * kz_s1s2[std::abs(kz)] * kxyz_s1s2_norm;
+            EWD::KVector kvec = EWD::KVector(k,grade);
+            kvecs_1_0.push_back(kvec);
+        }
+    }
+    kz = 0;
+    for (kx = -_NA_max; kx < _NA_max+1; ++kx) {
+        if (kx == 0) continue;
+        for (ky = -_NB_max; ky < _NB_max+1; ++ky) {
+            if (ky == 0) continue;
+            vec k = kx*_A + ky*_B + kz*_C;
+            double grade = _ewdactor.Ark2Expk2(k) * kx_s1s2[std::abs(kx)] * ky_s1s2[std::abs(ky)] * kz_s1s2[std::abs(kz)] * kxyz_s1s2_norm;
+            EWD::KVector kvec = EWD::KVector(k,grade);
+            kvecs_1_0.push_back(kvec);
+        }
+    }
+    _kvecsort._p = 1e-300;
+    std::sort(kvecs_1_0.begin(), kvecs_1_0.end(), _kvecsort);    
+    
+    // ZERO COMPONENTS ZERO, THREE NON-ZERO
+    LOG(logDEBUG,*_log)
+        << "K-space (off-axis): Applying K resonances" << flush;
+    
+    for (kx = -_NA_max; kx < _NA_max+1; ++kx) {
+        if (kx == 0) continue;
+        for (ky = -_NB_max; ky < _NB_max+1; ++ky) {
+            if (ky == 0) continue;
+            for (kz = -_NC_max; kz < _NC_max+1; ++kz) {
+                if (kz == 0) continue;
+                vec k = kx*_A + ky*_B + kz*_C;
+                double grade = _ewdactor.Ark2Expk2(k) * kx_s1s2[std::abs(kx)] * ky_s1s2[std::abs(ky)] * kz_s1s2[std::abs(kz)] * kxyz_s1s2_norm;
+                EWD::KVector kvec = EWD::KVector(k,grade);
+                kvecs_0_0.push_back(kvec);
+            }
+        }    
+    }
+    
+    _kvecsort._p = 1e-300;
+    std::sort(kvecs_0_0.begin(), kvecs_0_0.end(), _kvecsort);
+    
+    // STORE K-VECTORS
+    _kvecs_2_0.clear();
+    _kvecs_1_0.clear();
+    _kvecs_0_0.clear();
+    
+    _kvecs_2_0 = kvecs_2_0;
+    _kvecs_1_0 = kvecs_1_0;
+    _kvecs_0_0 = kvecs_0_0;
+    _kxyz_s1s2_norm = kxyz_s1s2_norm;
+
     return;
 }
     

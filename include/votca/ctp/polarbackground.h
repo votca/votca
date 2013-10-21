@@ -30,6 +30,8 @@ public:
     void FU_RealSpace(bool do_setup_nbs);
     void FU_ReciprocalSpace();
     
+    void GenerateKVectors(vector<PolarSeg*> &ps1, vector<PolarSeg*> &ps2);
+    
     // TODO Would be nicer to have as a local type in ::FP_RealSpace
     //      (which is possible by compiling with --std=c++0x)
     class FPThread : public QMThread
@@ -44,7 +46,6 @@ public:
         double AvgRco() { return _avg_R_co; }
         void DoSetupNbs(bool do_setup) { _do_setup_nbs = do_setup; }
     private:        
-        int _id;
         bool _verbose;
         PolarBackground *_master;
         EwdInteractor _ewdactor;
@@ -67,7 +68,6 @@ public:
         double AvgRco() { return _avg_R_co; }
         void DoSetupNbs(bool do_setup) { _do_setup_nbs = do_setup; }
     private:
-        int _id;
         bool _verbose;
         PolarBackground *_master;
         EwdInteractor _ewdactor;
@@ -76,6 +76,57 @@ public:
         int _not_converged_count;
         double _avg_R_co;
         bool _do_setup_nbs;
+    };
+    
+    class KThread : public QMThread
+    {
+    public:        
+        
+        KThread(PolarBackground *master) {
+            _master = master;
+            _mode_function["SFactorCalc"] = &KThread::SFactorCalc;
+            _mode_function["KFieldCalc"] = &KThread::KFieldCalc;
+            _full_bg_P = master->_bg_P;
+            _ewdactor = EwdInteractor(_master->_alpha, _master->_polar_aDamp);
+        }
+       ~KThread() { 
+           _full_bg_P.clear(); _full_kvecs.clear(); 
+           _part_bg_P.clear(); _part_kvecs.clear();
+        }
+        
+        typedef void (KThread::*RunFunct)();
+        KThread *Clone() { return new KThread(_master); }        
+        const string &getMode() { return _current_mode; }
+        void setMode(const string &mode) { _current_mode = mode; }
+        void setVerbose(bool verbose) { _verbose = verbose; }        
+        void Run(void) { 
+            RunFunct run = _mode_function[_current_mode]; 
+            ((*this).*run)(); 
+        }
+        
+        // MODE 1 : Compute structure factor of _part_kvecs using _full_bg_P
+        void SFactorCalc();
+        void AddInput(EWD::KVector k) { _part_kvecs.push_back(k); }
+        
+        // MODE 2 : Increment fields of _part_bg_P using _full_kvecs
+        void KFieldCalc();
+        void AddInput(PolarSeg *pseg) { _part_bg_P.push_back(pseg); }
+        
+    private:
+        // Thread administration
+        bool _verbose;
+        string _current_mode;
+        map<string,RunFunct> _mode_function;
+        
+        // Shared thread data
+        PolarBackground *_master;
+        vector<PolarSeg*> _full_bg_P;
+        vector<EWD::KVector> _full_kvecs;
+        
+        // Personal thread data
+        EwdInteractor _ewdactor;
+        vector<EWD::KVector> _part_kvecs;
+        vector<PolarSeg*> _part_bg_P;
     };
     
     
@@ -128,6 +179,121 @@ private:
     vector<EWD::KVector> _kvecs_0_0;     // K-vectors with no  components = zero
     double _kxyz_s1s2_norm;
 
+};
+
+
+template
+<
+    // REQUIRED Clone()
+    // OPTIONAL 
+    typename T
+>
+class PrototypeCreator
+{
+public:
+    PrototypeCreator(T *prototype=0) : _prototype(prototype) {}
+    T *Create() { return (_prototype) ? _prototype->Clone() : 0; }
+    T *getPrototype() { return _prototype; }
+    void setPrototype(T *prototype) { _prototype = prototype; }
+private:
+    T *_prototype;
+};
+
+
+template
+<
+    // REQUIRED setId(int), Start, WaitDone
+    // OPTIONAL setMode(<>), AddInput(<>), setVerbose(bool)
+    typename ThreadType,
+    // REQUIRED Create
+    // OPTIONAL
+    template<typename> class CreatorType
+>
+class ThreadForce : 
+    public vector<ThreadType*>, 
+    public CreatorType<ThreadType>
+{
+public:
+    typedef typename ThreadForce::iterator it_t;
+    
+    ThreadForce() {}
+   ~ThreadForce() { Disband(); }
+    
+    void Initialize(int n_threads) {
+        // Set-up threads via CreatorType policy
+        for (int t = 0; t < n_threads; ++t) {
+            ThreadType *new_thread = this->Create();
+            new_thread->setId(this->size()+1);
+            this->push_back(new_thread);
+        }
+        return;
+    }
+    
+    template<typename mode_t>
+    void AssignMode(mode_t mode) {
+        // Set mode
+        it_t tfit;
+        for (tfit = this->begin(); tfit < this->end(); ++tfit)
+           (*tfit)->setMode(mode);
+        return;
+    }
+    
+//    template<template<typename> class cnt_t, typename in_t>
+//    void ApportionInput(cnt_t<in_t> inputs) {
+//        // Assign input to threads
+//        typename cnt_t<in_t>::iterator iit;
+//        int in_idx = 0;
+//        int th_idx = 0;
+//        for (iit = inputs.begin(); iit != inputs.end(); ++iit, ++in_idx) {
+//            int th_idx = in_idx % this->size();
+//            (*this)[th_idx]->AddInput(*iit);
+//        }
+//        // The thread with the last input can be verbose
+//        for (it_t tfit = this->begin(); tfit < this->end(); ++tfit)
+//            (*tfit)->setVerbose(false);
+//        (*this)[th_idx]->setVerbose(true);
+//        return;
+//    }
+    
+    template<class in_t>
+    void ApportionInput(vector<in_t> &inputs) {
+        // Assign input to threads
+        typename vector<in_t>::iterator iit;
+        int in_idx = 0;
+        int th_idx = 0;
+        for (iit = inputs.begin(); iit != inputs.end(); ++iit, ++in_idx) {
+            int th_idx = in_idx % this->size();
+            (*this)[th_idx]->AddInput(*iit);
+        }
+        // The thread with the last input can be verbose
+        for (it_t tfit = this->begin(); tfit < this->end(); ++tfit)
+            (*tfit)->setVerbose(false);
+        (*this)[th_idx]->setVerbose(true);
+        return;
+    }
+    
+    
+    void StartAndWait() {
+        // Start threads
+        for (it_t tfit = this->begin(); tfit < this->end(); ++tfit)
+            (*tfit)->Start();
+        // Wait for threads
+        for (it_t tfit = this->begin(); tfit < this->end(); ++tfit)
+            (*tfit)->WaitDone();
+        return;
+    }
+    
+    void Disband() {
+        // Delete & clear
+        it_t tfit;
+        for (tfit = this->begin(); tfit < this->end(); ++tfit)
+            delete *tfit;
+        this->clear();
+        return;
+    }
+    
+private:
+    
 };
 
 
