@@ -24,8 +24,13 @@
 #include <votca/ctp/paircalculator.h>
 #include <math.h>
 #include <cmath>
-//#include <complex.h>
-#include <boost/math/special_functions/gamma.hpp>
+#include <complex>
+//#include <boost/math/special_functions/gamma.hpp>
+
+#ifndef NOGSL
+#include <gsl/gsl_sf_gamma.h>
+#include <gsl/gsl_complex.h>
+#endif
 
 namespace votca { namespace ctp {
 
@@ -68,6 +73,18 @@ private:
     int Factorial(int i);
 
 };
+
+complex <double> cgamma (complex <double> argument)
+{   // complex result of Gamma(z) with complex z
+    gsl_sf_result result_logradius;
+    gsl_sf_result result_phi;
+    gsl_sf_lngamma_complex_e(real(argument),imag(argument), &result_logradius, &result_phi);
+    double radius = result_logradius.val;
+    radius = exp(radius);
+    double phi = result_phi.val;
+    complex<double> result  = polar(radius,phi);
+    return result;
+}
 
 
 void Rates::Initialize(Property *options) {
@@ -424,11 +441,6 @@ void Rates::CalculateRate(Topology *top, QMPair *qmpair, int state) {
 
     } else if (_rateType == "weissdorsey") {
         
-        cout << "WANRNING: Weiss-Dorsey rates are not yet implemented"
-                "completely. The definition of a complex valued Gamma function"
-                "cgamma(complex<double> z) is missing. Do not use this option"
-                "yet.\n\nAll rates will be set to 0" << endl;
-        
         _kondo = _kondo/2+1; // going from alpha to alpha'
 
         reorg12 = reorg12 + lOut;
@@ -438,24 +450,20 @@ void Rates::CalculateRate(Topology *top, QMPair *qmpair, int state) {
         double characfreq21 = reorg21 /2 /_kondo;
         
         complex<double> M_I = (0,1);
-
-        // complex valued Gamma function cgamma needs to be implemented
         
-//        rate12 = J2/pow(hbar_eV,2)/characfreq12 
-//                * pow((hbar_eV*characfreq12/2/M_PI/_kT), (1-2*_kondo))
-//                * pow(std::abs(cgamma(_kondo+M_I*(+dG/2/M_PI/_kT))),2)
-//                * pow(tgamma(2*_kondo), -1) * exp(+dG/2/_kT)
-//                * exp(-std::abs(dG)/hbar_eV/characfreq12); 
-//
-//        rate21 = J2/pow(hbar_eV,2)/characfreq21 
-//                * pow((hbar_eV*characfreq21/2/M_PI/_kT), (1-2*_kondo))
-//                * pow(std::abs(cgamma(_kondo+M_I*(-dG/2/M_PI/_kT))),2)
-//                * pow(tgamma(2*_kondo), -1) * exp(-dG/2/_kT)
-//                * exp(-std::abs(dG)/hbar_eV/characfreq12); 
 
-        rate12 = 0;
-        rate21 = 0;
-        
+        J2/pow(hbar_eV,2)/characfreq12
+                * pow((hbar_eV*characfreq12/2/M_PI/_kT), (1-2*_kondo))
+                * pow(std::abs(cgamma(_kondo+M_I*(+dG/2/M_PI/_kT))),2)
+                * pow(gsl_sf_gamma(2*_kondo), -1) * exp(+dG/2/_kT)
+                * exp(-std::abs(dG)/hbar_eV/characfreq12); // due to this factor rates will always be zero
+
+        J2/pow(hbar_eV,2)/characfreq21
+                * pow((hbar_eV*characfreq21/2/M_PI/_kT), (1-2*_kondo))
+                * pow(std::abs(cgamma(_kondo+M_I*(-dG/2/M_PI/_kT))),2)
+                * pow(gsl_sf_gamma(2*_kondo), -1) * exp(-dG/2/_kT)
+                * exp(-std::abs(dG)/hbar_eV/characfreq12);
+
         
     // ++++++++++++ //
     // SYMMETRIC RATES //
