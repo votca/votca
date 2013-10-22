@@ -850,14 +850,18 @@ void PolarBackground::FU_RealSpace(bool do_setup_nbs) {
 // ========================================================================== //
 
 void PolarBackground::KThread::SFactorCalc() {
+    
+    //cout << endl << "Have P " << _full_bg_P.size() << "/" << _full_bg_P.size()
+    //        << " & K " << _part_kvecs.size() << "/" << _full_kvecs.size() << flush;
+    
     // Calculate structure factors for each k and store with KVector
     int kvec_count = 0;
-    for (vector<EWD::KVector>::iterator kit = _part_kvecs.begin();
+    for (vector<EWD::KVector*>::iterator kit = _part_kvecs.begin();
         kit < _part_kvecs.end(); ++kit) {
         kvec_count += 1;
         EWD::cmplx sfactor
-            = _ewdactor.PStructureAmplitude(_full_bg_P, (*kit).getK());
-        (*kit).setStructureFactor(sfactor);
+            = _ewdactor.PStructureAmplitude(_full_bg_P, (*kit)->getK());
+        (*kit)->setStructureFactor(sfactor);
         if (_verbose)
             LOG(logDEBUG,*(_master->_log))
                 << "\rMST DBG     - Progress " << kvec_count
@@ -870,67 +874,232 @@ void PolarBackground::KThread::SFactorCalc() {
 
 void PolarBackground::KThread::KFieldCalc() {
     
+    //cout << endl << "Have P " << _part_bg_P.size() << "/" << _full_bg_P.size()
+    //        << " & K " << _full_kvecs.size() << "/" << _full_kvecs.size() << flush;
+    
+    _rms_sum_re = 0.0;
+    _sum_im = 0.0;
+    
+    double rV = 1./_master->_LxLyLz;
+    
+    int kvec_count = 0;
+    for (vector<EWD::KVector*>::iterator kit = _full_kvecs.begin(); 
+        kit < _full_kvecs.end(); ++kit) {
+        kvec_count += 1;
+        vec k = (*kit)->getK();
+        EWD::cmplx S = (*kit)->getStructureFactor();
+        EWD::cmplx f_rms = _ewdactor.FP12_At_ByS2(k, _part_bg_P, S, rV);
+        _rms_sum_re += f_rms._re;
+        _sum_im += f_rms._im;
+        if (_verbose)
+            LOG(logDEBUG,*(_master->_log))
+                << "\rMST DBG     - Progress " << kvec_count
+                << "/" << _full_kvecs.size() << flush;
+    }
+    
     return;
 }
 
 
 
 void PolarBackground::FP_ReciprocalSpace() {
-    
+
     double sum_re = 0.0;
     double sum_im = 0.0;
     _field_converged_K = false;
-    double rV = 1./_LxLyLz;
-    
-    // THREAD FORCE & PROTOTYPE
-    KThread prototype(this);
-    ThreadForce<KThread, PrototypeCreator> threadforce;
-    ThreadForce<KThread, PrototypeCreator>::iterator tfit;
-    threadforce.setPrototype(&prototype);    
     
     // GENERATE K-VECTORS
     LOG(logDEBUG,*_log)
         << "  o Generate k-vectors" << flush;
     _log->setPreface(logDEBUG, "\nMST DBG     - ");
     GenerateKVectors(_bg_P, _bg_P);
-    _log->setPreface(logDEBUG, "\nMST DBG");
+    _log->setPreface(logDEBUG, "\nMST DBG");    
+    
+    
+    // THREAD FORCE & PROTOTYPE
+    KThread prototype(this);
+    ThreadForce<KThread, PrototypeCreator> threadforce;
+    ThreadForce<KThread, PrototypeCreator>::iterator tfit;
+    threadforce.setPrototype(&prototype);
+    threadforce.Initialize(_n_threads);
+    threadforce.AddSharedInput< vector<PolarSeg*> >(_bg_P);
+    threadforce.AddAtomicInput<PolarSeg*>(_bg_P);
+    
+    
     
     // TWO COMPONENTS ZERO, ONE NON-ZERO
     LOG(logINFO,*_log)
-        << "  o Two components zero, one non-zero" << flush;
-    
-    // Structure factors for all k-vectors
-    LOG(logDEBUG,*_log) << "    - Start & wait until done I" << flush << flush;
-    _log->setPreface(logDEBUG, "");
-    threadforce.Initialize(_n_threads);
+        << "  o Two components zero, one non-zero" << flush;    
+    // Assign k-vectors
+    threadforce.AddSharedInput< vector<KVector*> >(_kvecs_2_0);
+    threadforce.AddAtomicInput< EWD::KVector* >(_kvecs_2_0);
+    // Compute structure factors
+    LOG(logDEBUG,*_log) << "    - Mode I (SP)" << flush << flush;
     threadforce.AssignMode<string>("SFactorCalc");
-    threadforce.ApportionInput<EWD::KVector>(_kvecs_2_0);
-    threadforce.StartAndWait();    
-    
-    // Merge [ _part_kvecs ] into _full_kvecs and communicate to threads
-    // Threads need to store rms information about the shell in some double
-    
-    LOG(logDEBUG,*_log) << "    - Start & wait until done I" << flush << flush;
     _log->setPreface(logDEBUG, "");
-    threadforce.AssignMode<string>("KFieldCalc");
-    threadforce.ApportionInput<PolarSeg*>(_bg_P);
     threadforce.StartAndWait();
     _log->setPreface(logDEBUG, "\nMST DBG");
+    // Increment fields
+    LOG(logDEBUG,*_log) << "    - Mode II (FP)" << flush << flush;
+    threadforce.AssignMode<string>("KFieldCalc");
+    _log->setPreface(logDEBUG, "");
+    threadforce.StartAndWait();
+    _log->setPreface(logDEBUG, "\nMST DBG");    
+    // Collect r.m.s. information
+    double rms_sum_re = 0.0;
+    for (tfit = threadforce.begin(); tfit != threadforce.end(); ++tfit) {
+        rms_sum_re += (*tfit)->Workload("KFieldWload")*(*tfit)->_rms_sum_re;
+        sum_im += (*tfit)->_sum_im;
+    }
+    double shell_rms = sqrt(rms_sum_re/_kvecs_2_0.size())*EWD::int2V_m;
+    double e_measure = shell_rms*1e-10*_kvecs_2_0.size();    
+    if (_kvecs_2_0.size() > 0) LOG(logDEBUG,*_log)
+         << (format("M = %1$04d   G = %2$+1.3e   dF(rms) = %3$+1.3e V/m   [1eA => %4$+1.3e eV]")
+         % _kvecs_2_0.size()
+         % 0.0
+         % shell_rms
+         % e_measure).str() << flush;
+    // Clear k-vector containers
+    threadforce.Reset<string>("SFactorCalc");
+    threadforce.Reset<string>("KFieldCalc");
     
-    // Evaluate rms information to verify convergence
     
     
-//    for (kvit = _kvecs_2_0.begin(); kvit < _kvecs_2_0.end(); ++kvit) {
-//        EWD::KVector kvec = *kvit;
-//        EWD::cmplx f_as1s2 = _ewdactor.FPU12_AS1S2_At_By(kvec.getK(), _fg_C, _bg_P, rV);
-//        sum_re += sqrt(f_as1s2._re);
-//        sum_im += f_as1s2._im;
-//    }
+    // ONE COMPONENT ZERO, TWO NON-ZERO
+    LOG(logINFO,*_log)
+        << "  o One component zero, two non-zero" << flush;    
+    double crit_grade = 1. * _kxyz_s1s2_norm;
+    bool converged10 = false;
+    vector<EWD::KVector*>::iterator kit;
+    kit = _kvecs_1_0.begin();
+    while (!converged10 && kit < _kvecs_1_0.end()) {        
+        // Construct k-vector shell from critical grade
+        vector<KVector*> shell_kvecs;
+        while (kit < _kvecs_1_0.end()) {
+            if ((*kit)->getGrade() < crit_grade) break;
+            shell_kvecs.push_back(*kit);
+            ++kit;            
+        }
+        if (shell_kvecs.size() > 0) {
+            // Assign k-vectors
+            threadforce.AddSharedInput< vector<KVector*> >(shell_kvecs);
+            threadforce.AddAtomicInput< EWD::KVector* >(shell_kvecs);
+            // Compute structure factors
+            LOG(logDEBUG,*_log) << "    - Mode I (SP)" << flush << flush;
+            threadforce.AssignMode<string>("SFactorCalc");
+            _log->setPreface(logDEBUG, "");
+            threadforce.StartAndWait();
+            _log->setPreface(logDEBUG, "\nMST DBG");
+            // Increment fields
+            LOG(logDEBUG,*_log) << "    - Mode II (FP)" << flush << flush;
+            threadforce.AssignMode<string>("KFieldCalc");
+            _log->setPreface(logDEBUG, "");
+            threadforce.StartAndWait();
+            _log->setPreface(logDEBUG, "\nMST DBG");    
+            // Collect r.m.s. information
+            rms_sum_re = 0.0;
+            for (tfit = threadforce.begin(); tfit != threadforce.end(); ++tfit) {
+                rms_sum_re += (*tfit)->Workload("KFieldWload")*(*tfit)->_rms_sum_re;
+                sum_im += (*tfit)->_sum_im;
+            }
+            shell_rms = sqrt(rms_sum_re/shell_kvecs.size())*EWD::int2V_m;
+            e_measure = shell_rms*1e-10*shell_kvecs.size();
+            // Log & assert convergence
+            LOG(logDEBUG,*_log)
+                 << (format("M = %1$04d   G = %2$+1.3e   dF(rms) = %3$+1.3e V/m   [1eA => %4$+1.3e eV]")
+                 % shell_kvecs.size()
+                 % crit_grade
+                 % shell_rms
+                 % e_measure).str() << flush;
+            if (shell_kvecs.size() > 10 && e_measure <= _crit_dE) {
+                LOG(logINFO,*_log)
+                    << (format("  :: RE %1$+1.7e IM %2$+1.7e") 
+                    % (sqrt(sum_re)*EWD::int2V_m)
+                    % (sum_im*EWD::int2V_m)).str() << flush;
+                converged10 = true;
+            }
+            // Clear k-vector containers
+            threadforce.Reset<string>("SFactorCalc");
+            threadforce.Reset<string>("KFieldCalc");
+            shell_kvecs.clear();
+        }
+        crit_grade *= 0.1;
+    }    
     
-//    LOG(logDEBUG,*_log)
-//        << (format("  :: RE %1$+1.7e IM %2$+1.7e")
-//            % (sum_re*EWD::int2V_m)
-//            % (sum_im*EWD::int2V_m)).str() << flush;
+    
+    
+    // ZERO COMPONENTS ZERO, THREE NON-ZERO
+    LOG(logINFO,*_log)
+        << "  o One component zero, two non-zero" << flush;    
+    crit_grade = 1. * _kxyz_s1s2_norm;
+    bool converged00 = false;
+    kit = _kvecs_0_0.begin();
+    while (!converged00 && kit < _kvecs_0_0.end()) {
+        // Construct k-vector shell from critical grade
+        vector<KVector*> shell_kvecs;
+        while (kit < _kvecs_0_0.end()) {
+            if ((*kit)->getGrade() < crit_grade) break;
+            shell_kvecs.push_back(*kit);
+            ++kit;            
+        }
+        if (shell_kvecs.size() > 0) {
+            // Assign k-vectors
+            threadforce.AddSharedInput< vector<KVector*> >(shell_kvecs);
+            threadforce.AddAtomicInput< EWD::KVector* >(shell_kvecs);
+            // Compute structure factors
+            LOG(logDEBUG,*_log) << "    - Mode I (SP)" << flush << flush;
+            threadforce.AssignMode<string>("SFactorCalc");
+            _log->setPreface(logDEBUG, "");
+            threadforce.StartAndWait();
+            _log->setPreface(logDEBUG, "\nMST DBG");
+            // Increment fields
+            LOG(logDEBUG,*_log) << "    - Mode II (FP)" << flush << flush;
+            threadforce.AssignMode<string>("KFieldCalc");
+            _log->setPreface(logDEBUG, "");
+            threadforce.StartAndWait();
+            _log->setPreface(logDEBUG, "\nMST DBG");    
+            // Collect r.m.s. information
+            rms_sum_re = 0.0;
+            for (tfit = threadforce.begin(); tfit != threadforce.end(); ++tfit) {
+                rms_sum_re += (*tfit)->Workload("KFieldWload")*(*tfit)->_rms_sum_re;
+                sum_im += (*tfit)->_sum_im;
+            }
+            shell_rms = sqrt(rms_sum_re/shell_kvecs.size())*EWD::int2V_m;
+            e_measure = shell_rms*1e-10*shell_kvecs.size();
+            // Log & assert convergence
+            LOG(logDEBUG,*_log)
+                 << (format("M = %1$04d   G = %2$+1.3e   dF(rms) = %3$+1.3e V/m   [1eA => %4$+1.3e eV]")
+                 % shell_kvecs.size()
+                 % crit_grade
+                 % shell_rms
+                 % e_measure).str() << flush;
+            if (shell_kvecs.size() > 10 && e_measure <= _crit_dE) {
+                LOG(logINFO,*_log)
+                    << (format("  :: RE %1$+1.7e IM %2$+1.7e") 
+                    % (sqrt(sum_re)*EWD::int2V_m)
+                    % (sum_im*EWD::int2V_m)).str() << flush;
+                converged00 = true;
+            }
+            // Clear k-vector containers
+            threadforce.Reset<string>("SFactorCalc");
+            threadforce.Reset<string>("KFieldCalc");
+            shell_kvecs.clear();
+        }
+        crit_grade *= 0.1;
+    }
+    
+    
+    _field_converged_K = converged10 && converged00;
+    
+    if (_field_converged_K)
+        LOG(logINFO,*_log)
+            << (format("  :: Converged to precision, {0-2}, {1-2}, {0-3}."))
+            << flush;
+    
+    LOG(logDEBUG,*_log)
+        << (format("  :: RE %1$+1.7e IM %2$+1.7e")
+            % (sum_re*EWD::int2V_m)
+            % (sum_im*EWD::int2V_m)).str() << flush;
     
     return;
 }
@@ -965,9 +1134,9 @@ void PolarBackground::GenerateKVectors(vector<PolarSeg*> &ps1,
     //
     // S(ki=0) = <S(ki)>**(2/3) (<S(kj)><S(kk)>)**(1/6)
     
-    vector< EWD::KVector > kvecs_2_0; // 2 components zero
-    vector< EWD::KVector > kvecs_1_0; // 1 component zero
-    vector< EWD::KVector > kvecs_0_0; // 0 components zero
+    vector< EWD::KVector* > kvecs_2_0; // 2 components zero
+    vector< EWD::KVector* > kvecs_1_0; // 1 component zero
+    vector< EWD::KVector* > kvecs_0_0; // 0 components zero
     
     // CONTAINERS FOR GRADING K-VECTORS
     vector< double > kx_s1s2;
@@ -988,8 +1157,8 @@ void PolarBackground::GenerateKVectors(vector<PolarSeg*> &ps1,
         EWD::triple<EWD::cmplx> ppuu_posk = _ewdactor.S1S2(k, ps1, ps2);        
         kx_s1s2.push_back(0.5*std::abs(ppuu_posk._pp._re));
         avg_kx_s1s2 += 0.5*std::abs(ppuu_posk._pp._re);
-        EWD::KVector kvec_pos = EWD::KVector(+1*k,0.);
-        EWD::KVector kvec_neg = EWD::KVector(-1*k,0.);
+        EWD::KVector *kvec_pos = new EWD::KVector(+1*k,0.);
+        EWD::KVector *kvec_neg = new EWD::KVector(-1*k,0.);
         kvecs_2_0.push_back(kvec_pos);
         kvecs_2_0.push_back(kvec_neg);
     }
@@ -1000,8 +1169,8 @@ void PolarBackground::GenerateKVectors(vector<PolarSeg*> &ps1,
         EWD::triple<EWD::cmplx> ppuu_posk = _ewdactor.S1S2(k, ps1, ps2);        
         ky_s1s2.push_back(0.5*std::abs(ppuu_posk._pp._re));
         avg_ky_s1s2 += 0.5*std::abs(ppuu_posk._pp._re);
-        EWD::KVector kvec_pos = EWD::KVector(+1*k,0);
-        EWD::KVector kvec_neg = EWD::KVector(-1*k,0);
+        EWD::KVector *kvec_pos = new EWD::KVector(+1*k,0);
+        EWD::KVector *kvec_neg = new EWD::KVector(-1*k,0);
         kvecs_2_0.push_back(kvec_pos);
         kvecs_2_0.push_back(kvec_neg);
     }
@@ -1012,8 +1181,8 @@ void PolarBackground::GenerateKVectors(vector<PolarSeg*> &ps1,
         EWD::triple<EWD::cmplx> ppuu_posk = _ewdactor.S1S2(k, ps1, ps2);        
         kz_s1s2.push_back(0.5*std::abs(ppuu_posk._pp._re));
         avg_kz_s1s2 += 0.5*std::abs(ppuu_posk._pp._re);
-        EWD::KVector kvec_pos = EWD::KVector(+1*k,0);
-        EWD::KVector kvec_neg = EWD::KVector(-1*k,0);
+        EWD::KVector *kvec_pos = new EWD::KVector(+1*k,0);
+        EWD::KVector *kvec_neg = new EWD::KVector(-1*k,0);
         kvecs_2_0.push_back(kvec_pos);
         kvecs_2_0.push_back(kvec_neg);
     }
@@ -1028,7 +1197,6 @@ void PolarBackground::GenerateKVectors(vector<PolarSeg*> &ps1,
     LOG(logDEBUG,*_log)
         << "K-planes through origin: Applying K resonances" << flush;
     
-    vector< EWD::KVector >::iterator kvit;
     int kx, ky, kz;
     kx = 0;
     for (ky = -_NB_max; ky < _NB_max+1; ++ky) {
@@ -1037,7 +1205,7 @@ void PolarBackground::GenerateKVectors(vector<PolarSeg*> &ps1,
             if (kz == 0) continue;
             vec k = kx*_A + ky*_B + kz*_C;
             double grade = _ewdactor.Ark2Expk2(k) * kx_s1s2[std::abs(kx)] * ky_s1s2[std::abs(ky)] * kz_s1s2[std::abs(kz)] * kxyz_s1s2_norm;
-            EWD::KVector kvec = EWD::KVector(k,grade);
+            EWD::KVector *kvec = new EWD::KVector(k,grade);
             kvecs_1_0.push_back(kvec);
         }
     }
@@ -1048,7 +1216,7 @@ void PolarBackground::GenerateKVectors(vector<PolarSeg*> &ps1,
             if (kz == 0) continue;
             vec k = kx*_A + ky*_B + kz*_C;
             double grade = _ewdactor.Ark2Expk2(k) * kx_s1s2[std::abs(kx)] * ky_s1s2[std::abs(ky)] * kz_s1s2[std::abs(kz)] * kxyz_s1s2_norm;
-            EWD::KVector kvec = EWD::KVector(k,grade);
+            EWD::KVector *kvec = new EWD::KVector(k,grade);
             kvecs_1_0.push_back(kvec);
         }
     }
@@ -1059,12 +1227,12 @@ void PolarBackground::GenerateKVectors(vector<PolarSeg*> &ps1,
             if (ky == 0) continue;
             vec k = kx*_A + ky*_B + kz*_C;
             double grade = _ewdactor.Ark2Expk2(k) * kx_s1s2[std::abs(kx)] * ky_s1s2[std::abs(ky)] * kz_s1s2[std::abs(kz)] * kxyz_s1s2_norm;
-            EWD::KVector kvec = EWD::KVector(k,grade);
+            EWD::KVector *kvec = new EWD::KVector(k,grade);
             kvecs_1_0.push_back(kvec);
         }
     }
     _kvecsort._p = 1e-300;
-    std::sort(kvecs_1_0.begin(), kvecs_1_0.end(), _kvecsort);    
+    std::sort(kvecs_1_0.begin(), kvecs_1_0.end(), _kvecsort);
     
     // ZERO COMPONENTS ZERO, THREE NON-ZERO
     LOG(logDEBUG,*_log)
@@ -1078,7 +1246,7 @@ void PolarBackground::GenerateKVectors(vector<PolarSeg*> &ps1,
                 if (kz == 0) continue;
                 vec k = kx*_A + ky*_B + kz*_C;
                 double grade = _ewdactor.Ark2Expk2(k) * kx_s1s2[std::abs(kx)] * ky_s1s2[std::abs(ky)] * kz_s1s2[std::abs(kz)] * kxyz_s1s2_norm;
-                EWD::KVector kvec = EWD::KVector(k,grade);
+                EWD::KVector *kvec = new EWD::KVector(k,grade);
                 kvecs_0_0.push_back(kvec);
             }
         }    
@@ -1088,6 +1256,13 @@ void PolarBackground::GenerateKVectors(vector<PolarSeg*> &ps1,
     std::sort(kvecs_0_0.begin(), kvecs_0_0.end(), _kvecsort);
     
     // STORE K-VECTORS
+    vector<EWD::KVector*>::iterator kvit;
+    for (kvit = _kvecs_2_0.begin(); kvit < _kvecs_2_0.end(); ++kvit)
+        delete *kvit;
+    for (kvit = _kvecs_1_0.begin(); kvit < _kvecs_1_0.end(); ++kvit)
+        delete *kvit;
+    for (kvit = _kvecs_0_0.begin(); kvit < _kvecs_0_0.end(); ++kvit)
+        delete *kvit;
     _kvecs_2_0.clear();
     _kvecs_1_0.clear();
     _kvecs_0_0.clear();
@@ -1096,7 +1271,7 @@ void PolarBackground::GenerateKVectors(vector<PolarSeg*> &ps1,
     _kvecs_1_0 = kvecs_1_0;
     _kvecs_0_0 = kvecs_0_0;
     _kxyz_s1s2_norm = kxyz_s1s2_norm;
-
+    
     return;
 }
     

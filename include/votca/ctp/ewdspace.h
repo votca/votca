@@ -139,6 +139,7 @@ struct VectorSort
     VectorSort() : _p(1e-40) { ; }
     VectorSort(double precision) : _p(precision) { ; }
     inline bool operator() (const V &v1, const V &v2);
+    inline bool operator() (const V *v1, const V *v2);
     inline bool MatchDouble(double a, double b) 
         { return ((a-b)*(a-b) < _p) ? true : false; }
     double _p;
@@ -174,8 +175,10 @@ private:
 };
 
 // Specialized K-vector norm
-struct KNorm { inline double operator() (const KVector &v)
-    { return -v.getGrade(); } };
+struct KNorm { 
+    inline double operator() (const KVector &v) { return -v.getGrade(); }
+    inline double operator() (const KVector *v) { return -v->getGrade(); } 
+};
 
     
 template<class Norm, class V>
@@ -197,6 +200,37 @@ inline bool VectorSort<Norm,V>::operator() (const V &v1,
                 // LEVEL 4: Z
                 double Z1 = v1.getZ();
                 double Z2 = v2.getZ();
+                if (MatchDouble(Z1,Z2)) smaller = true;
+                else smaller = (Z1 < Z2) ? true : false;
+            }
+            else smaller = (Y1 < Y2) ? true : false;
+        }
+        else smaller = (X1 < X2) ? true : false;
+    }
+    else smaller = (V1 < V2) ? true : false;          
+    return smaller;
+}
+
+
+template<class Norm, class V>
+inline bool VectorSort<Norm,V>::operator() (const V *v1,
+    const V *v2) {
+    bool smaller = false;
+    // LEVEL 1: MAGNITUDE
+    double V1 = _norm(v1);
+    double V2 = _norm(v2);
+    if (MatchDouble(V1,V2)) {
+        // LEVEL 2: X
+        double X1 = v1->getX();
+        double X2 = v2->getX();
+        if (MatchDouble(X1,X2)) {
+            // LEVEL 3: Y
+            double Y1 = v1->getY();
+            double Y2 = v2->getY();
+            if (MatchDouble(Y1,Y2)) {
+                // LEVEL 4: Z
+                double Z1 = v1->getZ();
+                double Z2 = v2->getZ();
                 if (MatchDouble(Z1,Z2)) smaller = true;
                 else smaller = (Z1 < Z2) ? true : false;
             }

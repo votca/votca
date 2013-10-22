@@ -45,7 +45,15 @@
 		<name>emultipole</name>
 		<description>Computes electrostatic and induction contributions</description>
 		<execute>{ctp_run} -e {name} -o {name}.xml -f {sql} -t {nthreads}</execute> 
-		<requires>map</requires>
+		<requires>einternal</requires>
+		<verify>{ctp_state} -f {sql} -e energy2xml</verify>
+		<output>extract.energy.xml</output>
+	</test>
+	<test>
+		<name>zmultipole</name>
+		<description>Computes electrostatic and induction contributions</description>
+		<execute>{ctp_run} -e {name} -o {name}.xml -f {sql} -t {nthreads}</execute> 
+		<requires>einternal</requires>
 		<verify>{ctp_state} -f {sql} -e energy2xml</verify>
 		<output>extract.energy.xml</output>
 	</test>

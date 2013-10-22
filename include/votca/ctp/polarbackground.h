@@ -80,53 +80,82 @@ public:
     
     class KThread : public QMThread
     {
-    public:        
+    public:
         
         KThread(PolarBackground *master) {
             _master = master;
-            _mode_function["SFactorCalc"] = &KThread::SFactorCalc;
-            _mode_function["KFieldCalc"] = &KThread::KFieldCalc;
-            _full_bg_P = master->_bg_P;
             _ewdactor = EwdInteractor(_master->_alpha, _master->_polar_aDamp);
+            
+            _mode_runfunct["SFactorCalc"] = &KThread::SFactorCalc;
+            _mode_runfunct["KFieldCalc"] = &KThread::KFieldCalc;
+            _mode_resetfunct["SFactorCalc"] = &KThread::SFactorReset;
+            _mode_resetfunct["KFieldCalc"] = &KThread::KFieldReset;
+            _mode_wloadfunct["SFactorWload"] = &KThread::SFactorWload;
+            _mode_wloadfunct["KFieldWload"] = &KThread::KFieldWload;    
         }
-       ~KThread() { 
+       ~KThread() {
            _full_bg_P.clear(); _full_kvecs.clear(); 
            _part_bg_P.clear(); _part_kvecs.clear();
         }
         
+        // Standard multi-mode thread interface
         typedef void (KThread::*RunFunct)();
-        KThread *Clone() { return new KThread(_master); }        
+        typedef void (KThread::*ResetFunct)();
+        typedef double (KThread::*WloadFunct)();
+        KThread *Clone() { return new KThread(_master); }
         const string &getMode() { return _current_mode; }
         void setMode(const string &mode) { _current_mode = mode; }
         void setVerbose(bool verbose) { _verbose = verbose; }        
         void Run(void) { 
-            RunFunct run = _mode_function[_current_mode]; 
+            RunFunct run = _mode_runfunct[_current_mode]; 
             ((*this).*run)(); 
         }
+        void Reset(string mode) {
+            ResetFunct reset = _mode_resetfunct[mode];
+            ((*this).*reset)();
+        }
+        double Workload(string mode) {
+            WloadFunct wload = _mode_wloadfunct[mode];
+            return ((*this).*wload)();
+        }    
+        
+        void AddSharedInput(vector<EWD::KVector*> &full_kvecs) { _full_kvecs.clear(); _full_kvecs = full_kvecs; }
+        void AddSharedInput(vector<PolarSeg*> &full_bg_P) { _full_bg_P.clear(); _full_bg_P = full_bg_P; }
         
         // MODE 1 : Compute structure factor of _part_kvecs using _full_bg_P
         void SFactorCalc();
-        void AddInput(EWD::KVector k) { _part_kvecs.push_back(k); }
+        void AddAtomicInput(EWD::KVector *k) { _part_kvecs.push_back(k); }
+        void SFactorReset() { _part_kvecs.clear(); _full_kvecs.clear(); }
+        double SFactorWload() { return (double)_part_kvecs.size()/_full_kvecs.size(); }
         
         // MODE 2 : Increment fields of _part_bg_P using _full_kvecs
         void KFieldCalc();
-        void AddInput(PolarSeg *pseg) { _part_bg_P.push_back(pseg); }
+        void AddAtomicInput(PolarSeg *pseg) { _part_bg_P.push_back(pseg); }
+        void KFieldReset() { ; }
+        double KFieldWload() { return (double)_part_bg_P.size()/_full_bg_P.size(); }
         
     private:
-        // Thread administration
+        // Multi-mode thread members
         bool _verbose;
         string _current_mode;
-        map<string,RunFunct> _mode_function;
+        map<string,RunFunct> _mode_runfunct;
+        map<string,ResetFunct> _mode_resetfunct;
+        map<string,WloadFunct> _mode_wloadfunct;
         
         // Shared thread data
         PolarBackground *_master;
         vector<PolarSeg*> _full_bg_P;
-        vector<EWD::KVector> _full_kvecs;
+        vector<EWD::KVector*> _full_kvecs;
         
-        // Personal thread data
+        // Atomized thread data
         EwdInteractor _ewdactor;
-        vector<EWD::KVector> _part_kvecs;
+        vector<EWD::KVector*> _part_kvecs;
         vector<PolarSeg*> _part_bg_P;
+    
+    public:
+        // Convergence info
+        double _rms_sum_re;
+        double _sum_im;
     };
     
     
@@ -174,9 +203,9 @@ private:
     EWD::VectorSort<EWD::EucNorm,vec> _eucsort;
     EWD::VectorSort<EWD::KNorm,EWD::KVector> _kvecsort;
 
-    vector<EWD::KVector> _kvecs_2_0;     // K-vectors with two components = zero
-    vector<EWD::KVector> _kvecs_1_0;     // K-vectors with one component  = zero
-    vector<EWD::KVector> _kvecs_0_0;     // K-vectors with no  components = zero
+    vector<EWD::KVector*> _kvecs_2_0;   // K-vectors with two components = zero
+    vector<EWD::KVector*> _kvecs_1_0;   // K-vectors with one component  = zero
+    vector<EWD::KVector*> _kvecs_0_0;   // K-vectors with no  components = zero
     double _kxyz_s1s2_norm;
 
 };
@@ -203,7 +232,7 @@ private:
 template
 <
     // REQUIRED setId(int), Start, WaitDone
-    // OPTIONAL setMode(<>), AddInput(<>), setVerbose(bool)
+    // OPTIONAL setMode(<>), setVerbose(bool), AddAtomicInput(<>), ADdSharedInput(<>)
     typename ThreadType,
     // REQUIRED Create
     // OPTIONAL
@@ -238,32 +267,15 @@ public:
         return;
     }
     
-//    template<template<typename> class cnt_t, typename in_t>
-//    void ApportionInput(cnt_t<in_t> inputs) {
-//        // Assign input to threads
-//        typename cnt_t<in_t>::iterator iit;
-//        int in_idx = 0;
-//        int th_idx = 0;
-//        for (iit = inputs.begin(); iit != inputs.end(); ++iit, ++in_idx) {
-//            int th_idx = in_idx % this->size();
-//            (*this)[th_idx]->AddInput(*iit);
-//        }
-//        // The thread with the last input can be verbose
-//        for (it_t tfit = this->begin(); tfit < this->end(); ++tfit)
-//            (*tfit)->setVerbose(false);
-//        (*this)[th_idx]->setVerbose(true);
-//        return;
-//    }
-    
     template<class in_t>
-    void ApportionInput(vector<in_t> &inputs) {
-        // Assign input to threads
+    void AddAtomicInput(vector<in_t> &inputs) {
+        // Apportion the vector elements equally onto all threads
         typename vector<in_t>::iterator iit;
         int in_idx = 0;
         int th_idx = 0;
         for (iit = inputs.begin(); iit != inputs.end(); ++iit, ++in_idx) {
             int th_idx = in_idx % this->size();
-            (*this)[th_idx]->AddInput(*iit);
+            (*this)[th_idx]->AddAtomicInput(*iit);
         }
         // The thread with the last input can be verbose
         for (it_t tfit = this->begin(); tfit < this->end(); ++tfit)
@@ -272,6 +284,12 @@ public:
         return;
     }
     
+    template<class in_t>
+    void AddSharedInput(in_t &shared_input) {
+        for (it_t tfit = this->begin(); tfit < this->end(); ++tfit)
+            (*tfit)->AddSharedInput(shared_input);
+        return;
+    }
     
     void StartAndWait() {
         // Start threads
@@ -280,6 +298,13 @@ public:
         // Wait for threads
         for (it_t tfit = this->begin(); tfit < this->end(); ++tfit)
             (*tfit)->WaitDone();
+        return;
+    }
+    
+    template<class mode_t>
+    void Reset(mode_t mode) {
+        for (it_t tfit = this->begin(); tfit < this->end(); ++tfit)
+            (*tfit)->Reset(mode);
         return;
     }
     
