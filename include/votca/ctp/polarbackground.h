@@ -20,15 +20,14 @@ public:
 
     PolarBackground() : _top(NULL), _ptop(NULL), _log(NULL), _n_threads(1) {};
     PolarBackground(Topology *top, PolarTop *ptop, Property *opt, Logger *log, int n_threads);
-   ~PolarBackground() {};
+   ~PolarBackground();
    
     void Threaded(int n_threads) { _n_threads = n_threads; }
     void Polarize();
     
-    void FP_RealSpace();
-    void FP_ReciprocalSpace();
+    void FX_RealSpace(string mode);    
     void FU_RealSpace(bool do_setup_nbs);
-    void FU_ReciprocalSpace();
+    void FX_ReciprocalSpace(string mode1, string mode2, bool generate_kvecs);
     
     void GenerateKVectors(vector<PolarSeg*> &ps1, vector<PolarSeg*> &ps2);
     
@@ -78,6 +77,83 @@ public:
         bool _do_setup_nbs;
     };
     
+    class RThread : public QMThread
+    {
+    public:
+        RThread(PolarBackground *master) {
+            _master = master;
+            _do_setup_nbs = true;
+            _not_converged_count = 0;
+            _ewdactor = EwdInteractor(_master->_alpha, _master->_polar_aDamp);
+
+            _mode_startfunct["FP_MODE"] = &RThread::FP_FieldCalc;
+            _mode_startfunct["FU_MODE"] = &RThread::FU_FieldCalc;
+            
+            _mode_resetfunct["FP_MODE"] = &RThread::FX_FieldReset;
+            _mode_resetfunct["FU_MODE"] = &RThread::FX_FieldReset;
+            
+            _mode_wloadfunct["FP_MODE"] = &RThread::FX_FieldWload;
+            _mode_wloadfunct["FU_MODE"] = &RThread::FX_FieldWload;
+        }
+       ~RThread() {
+           _full_bg_P.clear(); _part_bg_P.clear();
+        }
+       
+        // Standard multi-mode thread interface
+        typedef void (RThread::*StartFunct)();
+        typedef void (RThread::*ResetFunct)();
+        typedef double (RThread::*WloadFunct)();
+        RThread *Clone() { return new RThread(_master); }
+        const string &getMode() { return _current_mode; }
+        void setMode(const string &mode) { _current_mode = mode; }
+        void setVerbose(bool verbose) { _verbose = verbose; }        
+        void Run(void) { 
+            StartFunct start = _mode_startfunct[_current_mode]; 
+            ((*this).*start)(); 
+        }
+        void Reset(string mode) {
+            ResetFunct reset = _mode_resetfunct[mode];
+            ((*this).*reset)();
+        }
+        double Workload(string mode) {
+            WloadFunct wload = _mode_wloadfunct[mode];
+            return ((*this).*wload)();
+        }
+        
+        // Input
+        void AddSharedInput(vector<PolarSeg*> &full_bg_P) { _full_bg_P = full_bg_P; }
+        void AddAtomicInput(PolarSeg *pseg) { _part_bg_P.push_back(pseg); }
+        
+        // Mode targets
+        void FU_FieldCalc() { ; }
+        void FP_FieldCalc();
+        void FX_FieldReset() { _not_converged_count = 0; _part_bg_P.clear(); }
+        double FX_FieldWload() { return 100.*_part_bg_P.size()/_full_bg_P.size(); }
+        
+        // Convergence & output related
+        const int NotConverged() { return _not_converged_count; }
+        double AvgRco() { return _avg_R_co; }
+        
+    private:
+        // Multi-mode thread members
+        bool _verbose;
+        string _current_mode;
+        map<string,StartFunct> _mode_startfunct;
+        map<string,ResetFunct> _mode_resetfunct;
+        map<string,WloadFunct> _mode_wloadfunct;
+        
+        // Shared thread data
+        PolarBackground *_master;
+        vector<PolarSeg*> _full_bg_P;        
+        // Atomized thread data
+        EwdInteractor _ewdactor;
+        vector<PolarSeg*> _part_bg_P;        
+        // Convergence & output-related
+        int _not_converged_count;
+        double _avg_R_co;
+        bool _do_setup_nbs;
+    };    
+    
     class KThread : public QMThread
     {
     public:
@@ -86,12 +162,20 @@ public:
             _master = master;
             _ewdactor = EwdInteractor(_master->_alpha, _master->_polar_aDamp);
             
-            _mode_runfunct["SFactorCalc"] = &KThread::SFactorCalc;
-            _mode_runfunct["KFieldCalc"] = &KThread::KFieldCalc;
-            _mode_resetfunct["SFactorCalc"] = &KThread::SFactorReset;
-            _mode_resetfunct["KFieldCalc"] = &KThread::KFieldReset;
-            _mode_wloadfunct["SFactorWload"] = &KThread::SFactorWload;
-            _mode_wloadfunct["KFieldWload"] = &KThread::KFieldWload;    
+            _mode_startfunct["SP_MODE"] = &KThread::SP_SFactorCalc;
+            _mode_startfunct["FP_MODE"] = &KThread::FP_KFieldCalc;
+            _mode_startfunct["SU_MODE"] = &KThread::SU_SFactorCalc;
+            _mode_startfunct["FU_MODE"] = &KThread::FU_KFieldCalc;
+            
+            _mode_resetfunct["SP_MODE"] = &KThread::SFactorReset;
+            _mode_resetfunct["FP_MODE"] = &KThread::KFieldReset;
+            _mode_resetfunct["SU_MODE"] = &KThread::SFactorReset;
+            _mode_resetfunct["FU_MODE"] = &KThread::KFieldReset;
+            
+            _mode_wloadfunct["SP_MODE"] = &KThread::SFactorWload;
+            _mode_wloadfunct["FP_MODE"] = &KThread::KFieldWload;
+            _mode_wloadfunct["SU_MODE"] = &KThread::SFactorWload;
+            _mode_wloadfunct["FU_MODE"] = &KThread::KFieldWload;
         }
        ~KThread() {
            _full_bg_P.clear(); _full_kvecs.clear(); 
@@ -99,7 +183,7 @@ public:
         }
         
         // Standard multi-mode thread interface
-        typedef void (KThread::*RunFunct)();
+        typedef void (KThread::*StartFunct)();
         typedef void (KThread::*ResetFunct)();
         typedef double (KThread::*WloadFunct)();
         KThread *Clone() { return new KThread(_master); }
@@ -107,8 +191,8 @@ public:
         void setMode(const string &mode) { _current_mode = mode; }
         void setVerbose(bool verbose) { _verbose = verbose; }        
         void Run(void) { 
-            RunFunct run = _mode_runfunct[_current_mode]; 
-            ((*this).*run)(); 
+            StartFunct start = _mode_startfunct[_current_mode]; 
+            ((*this).*start)(); 
         }
         void Reset(string mode) {
             ResetFunct reset = _mode_resetfunct[mode];
@@ -123,13 +207,15 @@ public:
         void AddSharedInput(vector<PolarSeg*> &full_bg_P) { _full_bg_P.clear(); _full_bg_P = full_bg_P; }
         
         // MODE 1 : Compute structure factor of _part_kvecs using _full_bg_P
-        void SFactorCalc();
+        void SP_SFactorCalc();
+        void SU_SFactorCalc();
         void AddAtomicInput(EWD::KVector *k) { _part_kvecs.push_back(k); }
         void SFactorReset() { _part_kvecs.clear(); _full_kvecs.clear(); }
         double SFactorWload() { return (double)_part_kvecs.size()/_full_kvecs.size(); }
         
         // MODE 2 : Increment fields of _part_bg_P using _full_kvecs
-        void KFieldCalc();
+        void FP_KFieldCalc();
+        void FU_KFieldCalc();
         void AddAtomicInput(PolarSeg *pseg) { _part_bg_P.push_back(pseg); }
         void KFieldReset() { ; }
         double KFieldWload() { return (double)_part_bg_P.size()/_full_bg_P.size(); }
@@ -138,7 +224,7 @@ public:
         // Multi-mode thread members
         bool _verbose;
         string _current_mode;
-        map<string,RunFunct> _mode_runfunct;
+        map<string,StartFunct> _mode_startfunct;
         map<string,ResetFunct> _mode_resetfunct;
         map<string,WloadFunct> _mode_wloadfunct;
         

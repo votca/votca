@@ -129,6 +129,20 @@ PolarBackground::PolarBackground(Topology *top, PolarTop *ptop, Property *opt,
 }
 
 
+PolarBackground::~PolarBackground() {    
+    vector<EWD::KVector*>::iterator kit;
+    for (kit = _kvecs_2_0.begin(); kit < _kvecs_2_0.end(); ++kit)
+        delete *kit;
+    for (kit = _kvecs_1_0.begin(); kit < _kvecs_1_0.end(); ++kit)
+        delete *kit;
+    for (kit = _kvecs_0_0.begin(); kit < _kvecs_0_0.end(); ++kit)
+        delete *kit;
+    _kvecs_2_0.clear();
+    _kvecs_1_0.clear();
+    _kvecs_0_0.clear();
+}
+
+
 void PolarBackground::Polarize() {    
     
     LOG(logDEBUG,*_log) << flush;
@@ -179,9 +193,9 @@ void PolarBackground::Polarize() {
     LOG(dbg,log) << "Generate permanent fields (FP)" << flush;
     // I.B Reciprocal-space contribution
     LOG(dbg,log) << "  o Reciprocal-space" << flush;
-    this->FP_ReciprocalSpace();
+    this->FX_ReciprocalSpace("SP_MODE", "FP_MODE", true);
     // I.A Intermolecular real-space contribution
-    this->FP_RealSpace();
+    this->FX_RealSpace("FP_MODE");
     // I.C Shape fields
     LOG(dbg,log) << "  o Shape fields" << flush;
     if (_shape == "xyslab") {
@@ -272,7 +286,7 @@ void PolarBackground::Polarize() {
         this->FU_RealSpace(do_setup_nbs);
         // (3) Reciprocal-space contribution
         LOG(dbg,log) << "  o TODO Reciprocal-space" << flush;
-        this->FU_ReciprocalSpace();
+        this->FX_ReciprocalSpace("SU_MODE", "FU_MODE", false);
         // (4) Calculate shape fields
         LOG(dbg,log) << "  o Shape fields" << flush;
         if (_shape == "xyslab") {
@@ -504,75 +518,252 @@ void PolarBackground::FPThread::Run(void) {
 }
 
 
-void PolarBackground::FP_RealSpace() {
-    
-    TLogLevel dbg = logDEBUG;
-    TLogLevel inf = logINFO;
-    TLogLevel err = logERROR;
-    Logger &log = *_log;
+void PolarBackground::RThread::FP_FieldCalc() {
     
     vector<PolarSeg*>::iterator sit1; 
     vector<APolarSite*> ::iterator pit1;
     vector<PolarSeg*>::iterator sit2; 
     vector<APolarSite*> ::iterator pit2;
+    vector<PolarNb*>::iterator nit;
+    _not_converged_count = 0;
     
-    LOG(dbg,log) << 
-        (format("  o Real-space intermolecular FP R(co)=%1$1.1fnm, N(th)=%2$d") 
-        % _R_co % _n_threads) << flush;
-    
-    // Create threads
-    vector<FPThread*> fpthreads;
-    for (int t = 0; t < _n_threads; ++t) {
-        FPThread *newthread = new FPThread(this, t+1);
-        fpthreads.push_back(newthread);
+    // CLEAR POLAR NEIGHBOR-LIST BEFORE SET-UP
+    if (_do_setup_nbs) {
+        if (_verbose) 
+            LOG(logDEBUG,*(_master->_log)) 
+                << "   - Clearing polar nb-list" << endl;
+        for (sit1 = _part_bg_P.begin(); sit1 < _part_bg_P.end(); ++sit1) {
+            (*sit1)->ClearPolarNbs();
+        }
     }
     
-    // Distribute workload
-    LOG(dbg,log) << "    - Thread workload = [ ";
-    for (sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
-        int tidx = ((*sit1)->getId()-1) % _n_threads;
-        fpthreads[tidx]->AddPolarSeg(*sit1);
+    double R_co_sum = 0.0;
+    int R_co_sum_count = 0;
+    
+    for (sit1 = _part_bg_P.begin(); sit1 < _part_bg_P.end(); ++sit1) {
+        PolarSeg *pseg1 = *sit1;
+        if (_verbose)
+            LOG(logDEBUG,*(_master->_log))
+                << "\rMST DBG     - Progress " << pseg1->getId() 
+                << "/" << _full_bg_P.size() << flush;
+        
+        // GENERATE NEIGHBOUR SHELLS
+        double dR_shell = 0.5;
+        double R_co_max = 2*_master->_R_co;
+        int N_shells = int(R_co_max/dR_shell)+1;
+        vector< vector<PolarNb*> > shelled_nbs;
+        shelled_nbs.resize(N_shells);
+        int allocated_count = 0;
+        int deleted_count = 0;
+        
+        for (sit2 = _full_bg_P.begin(); sit2 < _full_bg_P.end(); ++sit2) {
+            PolarSeg *pseg2 = *sit2;
+            // Active segment?
+            if (!pseg2->IsCharged() && !pseg2->IsPolarizable()) continue;
+            for (int na = -_master->_na_max; na < _master->_na_max+1; ++na) {
+            for (int nb = -_master->_nb_max; nb < _master->_nb_max+1; ++nb) {
+            for (int nc = -_master->_nc_max; nc < _master->_nc_max+1; ++nc) {
+                // Identical?
+                if (na == 0 && nb == 0 && nc == 0 && pseg1 == pseg2) continue;
+                if (na == 0 && nb == 0 && nc == 0 && pseg1->getId() == pseg2->getId()) assert(false);
+                // Apply periodic-boundary correction, check c/o, shift
+                vec dr12_pbc = _master->_top->PbShortestConnect(pseg1->getPos(), pseg2->getPos());
+                vec dr12_dir = pseg2->getPos() - pseg1->getPos();
+                // Image box correction
+                vec L = na*_master->_a + nb*_master->_b + nc*_master->_c;
+                vec dr12_pbc_L = dr12_pbc + L;
+                vec s22x_L = dr12_pbc_L - dr12_dir;
+                double R = votca::tools::abs(dr12_pbc_L);
+                if (R > R_co_max) continue;
+                // Add to shell
+                int shell_idx = int(R/dR_shell);
+                shelled_nbs[shell_idx].push_back(new PolarNb(pseg2, dr12_pbc_L, s22x_L));
+                allocated_count += 1;
+            }}}
+        }
+        
+        // SUM OVER CONSECUTIVE SHELLS & STORE NBS FOR REUSE
+        bool converged = false;
+        int charged_nbs_count = 0;
+        int shell_idx = 0;
+        double shell_R = 0;
+        for (int sidx = 0; sidx < N_shells; ++sidx) {
+            // Figure out shell parameters
+            shell_idx = sidx;
+            shell_R = (sidx+1)*dR_shell;
+            vector<PolarNb*> &nb_shell = shelled_nbs[sidx];
+            if (nb_shell.size() < 1) continue;
+            double shell_rms = 0.0;
+            int shell_rms_count = 0;
+            // Interact ...
+            for (nit = nb_shell.begin(); nit < nb_shell.end(); ++nit) {
+                PolarSeg *pseg2 = (*nit)->getNb();
+                // Add neighbour for later use
+                pseg1->AddPolarNb(*nit);
+                if (!pseg2->IsCharged()) continue;
+                charged_nbs_count += 1;
+                if (votca::tools::abs((*nit)->getR()) > R_co_max) assert(false);
+                // Interact taking into account shift
+                for (pit1 = pseg1->begin(); pit1 < pseg1->end(); ++pit1) {
+                    for (pit2 = pseg2->begin(); pit2 < pseg2->end(); ++pit2) {
+                        shell_rms += _ewdactor.FP12_ERFC_At_By(*(*pit1), *(*pit2), (*nit)->getS());
+                        shell_rms_count += 1;
+                    }
+                }
+            }
+            // Determine convergence - measure is the energy of a dipole
+            // of size 0.1*e*nm summed over the shell in an rms manner
+            shell_rms = sqrt(shell_rms/shell_rms_count)*EWD::int2V_m;
+            double e_measure = shell_rms*1e-10*shell_rms_count; 
+            if (shell_rms_count > 0 && e_measure <= _master->_crit_dE) {
+                converged = true;
+                break;
+            }
+        }
+        if (!converged && charged_nbs_count > 0) {
+            _not_converged_count += 1;
+        }
+        if (charged_nbs_count > 0) {
+            R_co_sum += shell_R;
+            R_co_sum_count += 1;
+        }
+        
+        // DELETE ALL NEIGHBOURS THAT WERE NOT NEEDED TO CONVERGE SUM
+        for (int sidx = shell_idx+1; sidx < N_shells; ++sidx) {
+            vector<PolarNb*> &nb_shell = shelled_nbs[sidx];
+            for (nit = nb_shell.begin(); nit < nb_shell.end(); ++nit) {
+                delete *nit;
+                deleted_count += 1;
+            }
+        }
+        shelled_nbs.clear();
+        assert(pseg1->PolarNbs().size()+deleted_count == allocated_count);        
     }
-    for (int t = 0; t < _n_threads; ++t) {
-        LOG(dbg,log) << (format("%1$1.2f%% ") % fpthreads[t]->Workload());
+    if (R_co_sum_count == 0) _avg_R_co = 0.0;
+    else _avg_R_co = R_co_sum/R_co_sum_count;
+    return;
+}
+
+
+void PolarBackground::FX_RealSpace(string mode) {
+    
+    RThread prototype(this);
+    ThreadForce<RThread, PrototypeCreator> tforce;
+    ThreadForce<RThread, PrototypeCreator>::iterator tfit;
+    tforce.setPrototype(&prototype);
+    tforce.Initialize(_n_threads);
+    
+    tforce.AddSharedInput< vector<PolarSeg*> >(_bg_P);
+    tforce.AddAtomicInput<PolarSeg*>(_bg_P);
+    tforce.AssignMode<string>(mode);
+    
+    // Output workload
+    LOG(logDEBUG,*_log) << "    - Thread workload = [ ";
+    for (tfit = tforce.begin(); tfit != tforce.end(); ++tfit) {
+        LOG(logDEBUG,*_log) << (format("%1$1.2f%% ") % (*tfit)->Workload(mode));
     }
-    LOG(dbg,log) << "]" << flush;
+    LOG(logDEBUG,*_log) << "]" << flush;
     
     // Start & wait
-    LOG(dbg,log) << "    - Start & wait until done" << flush << flush;
+    LOG(logDEBUG,*_log) << "    - Start & wait until done" << flush << flush;
     _log->setPreface(logDEBUG, "");
-    for (int t = 0; t < _n_threads; ++t) fpthreads[t]->Start();
-    for (int t = 0; t < _n_threads; ++t) fpthreads[t]->WaitDone();
-    _log->setPreface(logDEBUG,   "\nMST DBG");
+    tforce.StartAndWait();
+    _log->setPreface(logDEBUG, "\nMST DBG");
     
     // Assert convergence
     int not_converged_count = 0;
-    for (int t = 0; t < _n_threads; ++t) 
-        not_converged_count += fpthreads[t]->NotConverged();
-    if (not_converged_count == 0)
-        LOG(dbg,log) << "    - Converged" << flush;
-    else
-        LOG(err,log) << "    - ERROR " << not_converged_count 
-            << " items not converged." << flush;
+    for (tfit = tforce.begin(); tfit != tforce.end(); ++tfit)
+        not_converged_count += (*tfit)->NotConverged();
+    if (not_converged_count == 0) LOG(logDEBUG,*_log) << "    - Converged" << flush;
+    else LOG(logERROR,*_log) << "    - ERROR " << not_converged_count 
+        << " items not converged." << flush;
     
     // Neighbor-list info: radius & neighbours/site
     double avg_R_co = 0;
-    for (int t = 0; t < _n_threads; ++t) {
-        avg_R_co += 0.01*fpthreads[t]->Workload()*fpthreads[t]->AvgRco();
-    }
-    LOG(dbg,log) << "    - Real-space nb-list set: <R(c/o)> = " 
+    for (tfit = tforce.begin(); tfit != tforce.end(); ++tfit)
+        avg_R_co += 0.01*(*tfit)->Workload(mode)*(*tfit)->AvgRco();
+    LOG(logDEBUG,*_log) << "    - Real-space nb-list set: <R(c/o)> = " 
         << avg_R_co << flush;
     int total_nbs_count = 0;
-    for (sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
+    vector<PolarSeg*>::iterator sit1;
+    for (sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1)
         total_nbs_count += (*sit1)->PolarNbs().size();
-    }
-    LOG(dbg,log) << "    - Real-space nb-list set: <nbs/seg> = " 
+    LOG(logDEBUG,*_log) << "    - Real-space nb-list set: <nbs/seg> = " 
         << (double)total_nbs_count/_bg_P.size() << flush;
     _bg_P[288]->PrintPolarNbPDB("seg289.pdb");
     
-    // Delete threads
-    for (int t = 0; t < _n_threads; ++t) delete fpthreads[t];
-    fpthreads.clear();
+    
+    
+//    TLogLevel dbg = logDEBUG;
+//    TLogLevel inf = logINFO;
+//    TLogLevel err = logERROR;
+//    Logger &log = *_log;
+//    
+//    vector<PolarSeg*>::iterator sit1; 
+//    vector<APolarSite*> ::iterator pit1;
+//    vector<PolarSeg*>::iterator sit2; 
+//    vector<APolarSite*> ::iterator pit2;
+//    
+//    LOG(dbg,log) << 
+//        (format("  o Real-space intermolecular FP R(co)=%1$1.1fnm, N(th)=%2$d") 
+//        % _R_co % _n_threads) << flush;
+//    
+//    // Create threads
+//    vector<FPThread*> fpthreads;
+//    for (int t = 0; t < _n_threads; ++t) {
+//        FPThread *newthread = new FPThread(this, t+1);
+//        fpthreads.push_back(newthread);
+//    }
+//    
+//    // Distribute workload
+//    LOG(dbg,log) << "    - Thread workload = [ ";
+//    for (sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
+//        int tidx = ((*sit1)->getId()-1) % _n_threads;
+//        fpthreads[tidx]->AddPolarSeg(*sit1);
+//    }
+//    for (int t = 0; t < _n_threads; ++t) {
+//        LOG(dbg,log) << (format("%1$1.2f%% ") % fpthreads[t]->Workload());
+//    }
+//    LOG(dbg,log) << "]" << flush;
+//    
+//    // Start & wait
+//    LOG(dbg,log) << "    - Start & wait until done" << flush << flush;
+//    _log->setPreface(logDEBUG, "");
+//    for (int t = 0; t < _n_threads; ++t) fpthreads[t]->Start();
+//    for (int t = 0; t < _n_threads; ++t) fpthreads[t]->WaitDone();
+//    _log->setPreface(logDEBUG,   "\nMST DBG");
+//    
+//    // Assert convergence
+//    int not_converged_count = 0;
+//    for (int t = 0; t < _n_threads; ++t) 
+//        not_converged_count += fpthreads[t]->NotConverged();
+//    if (not_converged_count == 0)
+//        LOG(dbg,log) << "    - Converged" << flush;
+//    else
+//        LOG(err,log) << "    - ERROR " << not_converged_count 
+//            << " items not converged." << flush;
+//    
+//    // Neighbor-list info: radius & neighbours/site
+//    double avg_R_co = 0;
+//    for (int t = 0; t < _n_threads; ++t) {
+//        avg_R_co += 0.01*fpthreads[t]->Workload()*fpthreads[t]->AvgRco();
+//    }
+//    LOG(dbg,log) << "    - Real-space nb-list set: <R(c/o)> = " 
+//        << avg_R_co << flush;
+//    int total_nbs_count = 0;
+//    for (sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
+//        total_nbs_count += (*sit1)->PolarNbs().size();
+//    }
+//    LOG(dbg,log) << "    - Real-space nb-list set: <nbs/seg> = " 
+//        << (double)total_nbs_count/_bg_P.size() << flush;
+//    _bg_P[288]->PrintPolarNbPDB("seg289.pdb");
+//    
+//    // Delete threads
+//    for (int t = 0; t < _n_threads; ++t) delete fpthreads[t];
+//    fpthreads.clear();
+    
+    
+    
     
 //    cout << endl;
 //    double rms = 0.0;
@@ -846,13 +1037,11 @@ void PolarBackground::FU_RealSpace(bool do_setup_nbs) {
 
 
 // ========================================================================== //
-// FP RECIPROCAL SPACE
+// FP & FU RECIPROCAL SPACE
 // ========================================================================== //
 
-void PolarBackground::KThread::SFactorCalc() {
-    
-    //cout << endl << "Have P " << _full_bg_P.size() << "/" << _full_bg_P.size()
-    //        << " & K " << _part_kvecs.size() << "/" << _full_kvecs.size() << flush;
+
+void PolarBackground::KThread::SP_SFactorCalc() {
     
     // Calculate structure factors for each k and store with KVector
     int kvec_count = 0;
@@ -864,7 +1053,7 @@ void PolarBackground::KThread::SFactorCalc() {
         (*kit)->setStructureFactor(sfactor);
         if (_verbose)
             LOG(logDEBUG,*(_master->_log))
-                << "\rMST DBG     - Progress " << kvec_count
+                << "\rMST DBG     - " << _current_mode << " Progress " << kvec_count
                 << "/" << _part_kvecs.size() << flush;
     }
     
@@ -872,16 +1061,14 @@ void PolarBackground::KThread::SFactorCalc() {
 }
 
 
-void PolarBackground::KThread::KFieldCalc() {
-    
-    //cout << endl << "Have P " << _part_bg_P.size() << "/" << _full_bg_P.size()
-    //        << " & K " << _full_kvecs.size() << "/" << _full_kvecs.size() << flush;
+void PolarBackground::KThread::FP_KFieldCalc() {
     
     _rms_sum_re = 0.0;
     _sum_im = 0.0;
     
     double rV = 1./_master->_LxLyLz;
     
+    // Increment fields within _part_bg_P for each k-vector
     int kvec_count = 0;
     for (vector<EWD::KVector*>::iterator kit = _full_kvecs.begin(); 
         kit < _full_kvecs.end(); ++kit) {
@@ -893,7 +1080,7 @@ void PolarBackground::KThread::KFieldCalc() {
         _sum_im += f_rms._im;
         if (_verbose)
             LOG(logDEBUG,*(_master->_log))
-                << "\rMST DBG     - Progress " << kvec_count
+                << "\rMST DBG     - " << _current_mode << " Progress " << kvec_count
                 << "/" << _full_kvecs.size() << flush;
     }
     
@@ -901,19 +1088,72 @@ void PolarBackground::KThread::KFieldCalc() {
 }
 
 
+void PolarBackground::KThread::SU_SFactorCalc() {
+    
+    // Calculate structure factors for each k and store with KVector
+    int kvec_count = 0;
+    for (vector<EWD::KVector*>::iterator kit = _part_kvecs.begin();
+        kit < _part_kvecs.end(); ++kit) {
+        kvec_count += 1;
+        EWD::cmplx sfactor
+            = _ewdactor.UStructureAmplitude(_full_bg_P, (*kit)->getK());
+        (*kit)->setStructureFactor(sfactor);
+        if (_verbose)
+            LOG(logDEBUG,*(_master->_log))
+                << "\rMST DBG     - " << _current_mode << " Progress " << kvec_count
+                << "/" << _part_kvecs.size() << flush;
+    }
+    
+    return;
+}
 
-void PolarBackground::FP_ReciprocalSpace() {
+
+void PolarBackground::KThread::FU_KFieldCalc() {
+    
+    _rms_sum_re = 0.0;
+    _sum_im = 0.0;
+    
+    double rV = 1./_master->_LxLyLz;
+    
+    // Increment fields within _part_bg_P for each k-vector
+    int kvec_count = 0;
+    for (vector<EWD::KVector*>::iterator kit = _full_kvecs.begin(); 
+        kit < _full_kvecs.end(); ++kit) {
+        kvec_count += 1;
+        vec k = (*kit)->getK();
+        EWD::cmplx S = (*kit)->getStructureFactor();
+        EWD::cmplx f_rms = _ewdactor.FU12_At_ByS2(k, _part_bg_P, S, rV);
+        _rms_sum_re += f_rms._re;
+        _sum_im += f_rms._im;
+        if (_verbose)
+            LOG(logDEBUG,*(_master->_log))
+                << "\rMST DBG     - " << _current_mode << " Progress " << kvec_count
+                << "/" << _full_kvecs.size() << flush;
+    }
+    
+    return;
+}
+
+
+void PolarBackground::FX_ReciprocalSpace(string mode1, string mode2, 
+    bool generate_kvecs) {
 
     double sum_re = 0.0;
     double sum_im = 0.0;
     _field_converged_K = false;
     
+    if (mode1 == "SP_MODE") assert(mode2 == "FP_MODE");
+    else if (mode1 == "SU_MODE") assert(mode2 == "FU_MODE");
+    else assert(false);
+    
     // GENERATE K-VECTORS
-    LOG(logDEBUG,*_log)
-        << "  o Generate k-vectors" << flush;
-    _log->setPreface(logDEBUG, "\nMST DBG     - ");
-    GenerateKVectors(_bg_P, _bg_P);
-    _log->setPreface(logDEBUG, "\nMST DBG");    
+    if (generate_kvecs) {
+        LOG(logDEBUG,*_log)
+            << "  o Generate k-vectors" << flush;
+        _log->setPreface(logDEBUG, "\nMST DBG     - ");
+        GenerateKVectors(_bg_P, _bg_P);
+        _log->setPreface(logDEBUG, "\nMST DBG");
+    }
     
     
     // THREAD FORCE & PROTOTYPE
@@ -928,45 +1168,45 @@ void PolarBackground::FP_ReciprocalSpace() {
     
     
     // TWO COMPONENTS ZERO, ONE NON-ZERO
-    LOG(logINFO,*_log)
+    LOG(logDEBUG,*_log)
         << "  o Two components zero, one non-zero" << flush;    
     // Assign k-vectors
     threadforce.AddSharedInput< vector<KVector*> >(_kvecs_2_0);
     threadforce.AddAtomicInput< EWD::KVector* >(_kvecs_2_0);
     // Compute structure factors
-    LOG(logDEBUG,*_log) << "    - Mode I (SP)" << flush << flush;
-    threadforce.AssignMode<string>("SFactorCalc");
+    LOG(logDEBUG,*_log) << flush;
+    threadforce.AssignMode<string>(mode1);
     _log->setPreface(logDEBUG, "");
     threadforce.StartAndWait();
     _log->setPreface(logDEBUG, "\nMST DBG");
     // Increment fields
-    LOG(logDEBUG,*_log) << "    - Mode II (FP)" << flush << flush;
-    threadforce.AssignMode<string>("KFieldCalc");
+    LOG(logDEBUG,*_log) << flush;
+    threadforce.AssignMode<string>(mode2);
     _log->setPreface(logDEBUG, "");
     threadforce.StartAndWait();
     _log->setPreface(logDEBUG, "\nMST DBG");    
     // Collect r.m.s. information
     double rms_sum_re = 0.0;
     for (tfit = threadforce.begin(); tfit != threadforce.end(); ++tfit) {
-        rms_sum_re += (*tfit)->Workload("KFieldWload")*(*tfit)->_rms_sum_re;
+        rms_sum_re += (*tfit)->Workload(mode2)*(*tfit)->_rms_sum_re;
         sum_im += (*tfit)->_sum_im;
     }
     double shell_rms = sqrt(rms_sum_re/_kvecs_2_0.size())*EWD::int2V_m;
     double e_measure = shell_rms*1e-10*_kvecs_2_0.size();    
     if (_kvecs_2_0.size() > 0) LOG(logDEBUG,*_log)
-         << (format("M = %1$04d   G = %2$+1.3e   dF(rms) = %3$+1.3e V/m   [1eA => %4$+1.3e eV]")
+         << (format("    - M = %1$04d   G = %2$+1.3e   dF(rms) = %3$+1.3e V/m   [1eA => %4$+1.3e eV]")
          % _kvecs_2_0.size()
          % 0.0
          % shell_rms
          % e_measure).str() << flush;
     // Clear k-vector containers
-    threadforce.Reset<string>("SFactorCalc");
-    threadforce.Reset<string>("KFieldCalc");
+    threadforce.Reset<string>(mode1);
+    threadforce.Reset<string>(mode2);
     
     
     
     // ONE COMPONENT ZERO, TWO NON-ZERO
-    LOG(logINFO,*_log)
+    LOG(logDEBUG,*_log)
         << "  o One component zero, two non-zero" << flush;    
     double crit_grade = 1. * _kxyz_s1s2_norm;
     bool converged10 = false;
@@ -985,42 +1225,42 @@ void PolarBackground::FP_ReciprocalSpace() {
             threadforce.AddSharedInput< vector<KVector*> >(shell_kvecs);
             threadforce.AddAtomicInput< EWD::KVector* >(shell_kvecs);
             // Compute structure factors
-            LOG(logDEBUG,*_log) << "    - Mode I (SP)" << flush << flush;
-            threadforce.AssignMode<string>("SFactorCalc");
+            LOG(logDEBUG,*_log) << flush;
+            threadforce.AssignMode<string>(mode1);
             _log->setPreface(logDEBUG, "");
             threadforce.StartAndWait();
             _log->setPreface(logDEBUG, "\nMST DBG");
             // Increment fields
-            LOG(logDEBUG,*_log) << "    - Mode II (FP)" << flush << flush;
-            threadforce.AssignMode<string>("KFieldCalc");
+            LOG(logDEBUG,*_log) << flush;
+            threadforce.AssignMode<string>(mode2);
             _log->setPreface(logDEBUG, "");
             threadforce.StartAndWait();
             _log->setPreface(logDEBUG, "\nMST DBG");    
             // Collect r.m.s. information
             rms_sum_re = 0.0;
             for (tfit = threadforce.begin(); tfit != threadforce.end(); ++tfit) {
-                rms_sum_re += (*tfit)->Workload("KFieldWload")*(*tfit)->_rms_sum_re;
+                rms_sum_re += (*tfit)->Workload(mode2)*(*tfit)->_rms_sum_re;
                 sum_im += (*tfit)->_sum_im;
             }
             shell_rms = sqrt(rms_sum_re/shell_kvecs.size())*EWD::int2V_m;
             e_measure = shell_rms*1e-10*shell_kvecs.size();
             // Log & assert convergence
             LOG(logDEBUG,*_log)
-                 << (format("M = %1$04d   G = %2$+1.3e   dF(rms) = %3$+1.3e V/m   [1eA => %4$+1.3e eV]")
+                 << (format("    - M = %1$04d   G = %2$+1.3e   dF(rms) = %3$+1.3e V/m   [1eA => %4$+1.3e eV]")
                  % shell_kvecs.size()
                  % crit_grade
                  % shell_rms
                  % e_measure).str() << flush;
             if (shell_kvecs.size() > 10 && e_measure <= _crit_dE) {
-                LOG(logINFO,*_log)
-                    << (format("  :: RE %1$+1.7e IM %2$+1.7e") 
+                LOG(logDEBUG,*_log)
+                    << (format("    :: RE %1$+1.7e IM %2$+1.7e") 
                     % (sqrt(sum_re)*EWD::int2V_m)
                     % (sum_im*EWD::int2V_m)).str() << flush;
                 converged10 = true;
             }
             // Clear k-vector containers
-            threadforce.Reset<string>("SFactorCalc");
-            threadforce.Reset<string>("KFieldCalc");
+            threadforce.Reset<string>(mode1);
+            threadforce.Reset<string>(mode2);
             shell_kvecs.clear();
         }
         crit_grade *= 0.1;
@@ -1029,8 +1269,8 @@ void PolarBackground::FP_ReciprocalSpace() {
     
     
     // ZERO COMPONENTS ZERO, THREE NON-ZERO
-    LOG(logINFO,*_log)
-        << "  o One component zero, two non-zero" << flush;    
+    LOG(logDEBUG,*_log)
+        << "  o Zero components zero, three non-zero" << flush;    
     crit_grade = 1. * _kxyz_s1s2_norm;
     bool converged00 = false;
     kit = _kvecs_0_0.begin();
@@ -1047,42 +1287,42 @@ void PolarBackground::FP_ReciprocalSpace() {
             threadforce.AddSharedInput< vector<KVector*> >(shell_kvecs);
             threadforce.AddAtomicInput< EWD::KVector* >(shell_kvecs);
             // Compute structure factors
-            LOG(logDEBUG,*_log) << "    - Mode I (SP)" << flush << flush;
-            threadforce.AssignMode<string>("SFactorCalc");
+            LOG(logDEBUG,*_log) << flush;
+            threadforce.AssignMode<string>(mode1);
             _log->setPreface(logDEBUG, "");
             threadforce.StartAndWait();
             _log->setPreface(logDEBUG, "\nMST DBG");
             // Increment fields
-            LOG(logDEBUG,*_log) << "    - Mode II (FP)" << flush << flush;
-            threadforce.AssignMode<string>("KFieldCalc");
+            LOG(logDEBUG,*_log) << flush;
+            threadforce.AssignMode<string>(mode2);
             _log->setPreface(logDEBUG, "");
             threadforce.StartAndWait();
-            _log->setPreface(logDEBUG, "\nMST DBG");    
+            _log->setPreface(logDEBUG, "\nMST DBG");
             // Collect r.m.s. information
             rms_sum_re = 0.0;
             for (tfit = threadforce.begin(); tfit != threadforce.end(); ++tfit) {
-                rms_sum_re += (*tfit)->Workload("KFieldWload")*(*tfit)->_rms_sum_re;
+                rms_sum_re += (*tfit)->Workload(mode2)*(*tfit)->_rms_sum_re;
                 sum_im += (*tfit)->_sum_im;
             }
             shell_rms = sqrt(rms_sum_re/shell_kvecs.size())*EWD::int2V_m;
             e_measure = shell_rms*1e-10*shell_kvecs.size();
             // Log & assert convergence
             LOG(logDEBUG,*_log)
-                 << (format("M = %1$04d   G = %2$+1.3e   dF(rms) = %3$+1.3e V/m   [1eA => %4$+1.3e eV]")
+                 << (format("    - M = %1$04d   G = %2$+1.3e   dF(rms) = %3$+1.3e V/m   [1eA => %4$+1.3e eV]")
                  % shell_kvecs.size()
                  % crit_grade
                  % shell_rms
                  % e_measure).str() << flush;
             if (shell_kvecs.size() > 10 && e_measure <= _crit_dE) {
-                LOG(logINFO,*_log)
-                    << (format("  :: RE %1$+1.7e IM %2$+1.7e") 
+                LOG(logDEBUG,*_log)
+                    << (format("    :: RE %1$+1.7e IM %2$+1.7e") 
                     % (sqrt(sum_re)*EWD::int2V_m)
                     % (sum_im*EWD::int2V_m)).str() << flush;
                 converged00 = true;
             }
             // Clear k-vector containers
-            threadforce.Reset<string>("SFactorCalc");
-            threadforce.Reset<string>("KFieldCalc");
+            threadforce.Reset<string>(mode1);
+            threadforce.Reset<string>(mode2);
             shell_kvecs.clear();
         }
         crit_grade *= 0.1;
@@ -1092,25 +1332,9 @@ void PolarBackground::FP_ReciprocalSpace() {
     _field_converged_K = converged10 && converged00;
     
     if (_field_converged_K)
-        LOG(logINFO,*_log)
-            << (format("  :: Converged to precision, {0-2}, {1-2}, {0-3}."))
+        LOG(logDEBUG,*_log)
+            << (format("  o Converged to precision, {2-1}, {1-2}, {0-3}."))
             << flush;
-    
-    LOG(logDEBUG,*_log)
-        << (format("  :: RE %1$+1.7e IM %2$+1.7e")
-            % (sum_re*EWD::int2V_m)
-            % (sum_im*EWD::int2V_m)).str() << flush;
-    
-    return;
-}
-
-
-// ========================================================================== //
-// FU RECIPROCAL SPACE
-// ========================================================================== //
-
-
-void PolarBackground::FU_ReciprocalSpace() {
     
     return;
 }
