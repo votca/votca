@@ -19,6 +19,7 @@
 #define __VOTCA_KMC_STATE_H_
 
 #include <vector>
+#include <list>
 #include <votca/tools/database.h>
 #include <votca/tools/statement.h>
 #include <votca/tools/vec.h>
@@ -45,12 +46,11 @@ public:
     
     // Initialization/Growth of the reservoir structure
     void Grow(unsigned int growsize);
-    int state_grow_size;
+    
+    int state_grow_size; //Size by which the structures are grown every time the reservoir is empty
     
     vector<Carrier*> carriers; //Carriers which are either in the simulation box or in the reservoir (as defined by the in_sim_box vector)
     vector<int> carrier_reservoir;
-    
-    vector<vector<vector<Carrier*> > > carriers_in_mesh;
     
     string SQL_state_filename;
 
@@ -82,10 +82,14 @@ void State::Save(string SQL_state_filename){
         if (in_sim_box(carrier_nr)) {
             stmt->Bind(1, carrier_ID);
             stmt->Bind(2, carriers[carrier_nr]->carrier_node->node_ID);
+            int carrier_type;
+            if(carriers[carrier_nr]->carrier_type = Electron) {carrier_type = 0;}
+            if(carriers[carrier_nr]->carrier_type = Hole) {carrier_type = 1;}
+            stmt->Bind(3, carrier_type);
             myvec carrier_distance = carriers[carrier_nr]->carrier_distance;
-            stmt->Bind(3, carrier_distance.x());
-            stmt->Bind(4, carrier_distance.y()); 
-            stmt->Bind(5, carrier_distance.z());
+            stmt->Bind(4, carrier_distance.x());
+            stmt->Bind(5, carrier_distance.y()); 
+            stmt->Bind(6, carrier_distance.z());
             stmt->InsertStep();
             stmt->Reset();
         }        
@@ -106,47 +110,53 @@ void State::Load(string SQL_state_filename){
     stmt = db.Prepare("SELECT carrier_id, node_id, distanceX, distanceY, distanceZ FROM carriers;");
     
     while (stmt->Step() != SQLITE_DONE)
-    {
-        if(carrier_reservoir.empty()) {
-            Grow(state_grow_size);
-        }
-        
+    {        
         int carrier_nr = Buy();
 
         int carrier_ID = stmt->Column<int>(0);
         int node_ID = stmt->Column<int>(1);
-        double distancex = stmt->Column<double>(2);
-        double distancey = stmt->Column<double>(3);
-        double distancez = stmt->Column<double>(4);
+        int carrier_type = stmt->Column<int>(2);
+        double distancex = stmt->Column<double>(3);
+        double distancey = stmt->Column<double>(4);
+        double distancez = stmt->Column<double>(5);
         myvec carrier_distance = myvec(distancex,distancey,distancez);
         
         carriers[carrier_nr]->carrier_ID = carrier_ID;
         carriers[carrier_nr]->carrier_node = graph->nodes[node_ID];
         carriers[carrier_nr]->carrier_distance = carrier_distance;
+        if(carrier_type = 0) {carriers[carrier_nr]->carrier_type = Electron;}
+        if(carrier_type = 1) {carriers[carrier_nr]->carrier_type = Hole;}
     }
     delete stmt;
     stmt = NULL;    
 }
 
 unsigned int State::Buy() {
-  unsigned int carriernr_to_sim_box = carrier_reservoir.back();
-  carrier_reservoir.pop_back();
-  carriers[carriernr_to_sim_box]->is_in_sim_box = true;
-  return carriernr_to_sim_box;
+    
+    if(carrier_reservoir.empty()) {Grow(state_grow_size);}
+    unsigned int carriernr_to_sim_box = carrier_reservoir.back();
+    carrier_reservoir.pop_back();
+    carriers[carriernr_to_sim_box]->is_in_sim_box = true;
+    return carriernr_to_sim_box;
+    
 }
 
 void State::Sell(unsigned int remove_from_sim_box) {
+    
   carrier_reservoir.push_back(remove_from_sim_box);
   carriers[remove_from_sim_box]->is_in_sim_box = false;
+  
 }
 
 void State::Grow(unsigned int nr_carriers) {
+    
   unsigned int new_nr_carriers = carriers.size() + nr_carriers;
   carriers.resize(new_nr_carriers);
   for (unsigned int i=carriers.size(); i<new_nr_carriers; i++) {
     carrier_reservoir.push_back(i);
     carriers[i]->is_in_sim_box = false;
   }
+  
 }
 
 }} 
