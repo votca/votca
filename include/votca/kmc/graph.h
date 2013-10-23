@@ -18,7 +18,11 @@
 #ifndef __VOTCA_KMC_GRAPH_H_
 #define __VOTCA_KMC_GRAPH_H_
 
-
+#include <vector>
+#include <list>
+#include <votca/tools/database.h>
+#include <votca/tools/statement.h>
+#include <votca/tools/vec.h>
 #include <votca/kmc/node.h>
 
 namespace votca { namespace kmc {
@@ -27,15 +31,21 @@ using namespace std;
 
 typedef votca::tools::vec myvec;
 
-enum CorrelationType {Correlated, Anticorrelated, Uncorrelated};
-//enum NodeType {Normal, LeftElectrode, RightElectrode};
+enum CorrelationType{Uncorrelated, Correlated, Anticorrelated };
 
 class Graph {
 public:
-  vector<Node*> nodes;   
+    void Load_graph(string SQL_graph_filename);    
+    void Generate_cubic_graph(  int nx, int ny, int nz, double lattice_constant,
+                                double hopping_distance, double disorder_strength, double disorder_ratio, CorrelationType correlationtype);
+    
+    vector<Node*> nodes;   
  
 private:
-
+    void LoadGraphNodes();
+    void LoadGraphStaticEnergies();
+    void LoadGraphPairs();
+    void LoadGraphTransfers();
 };
 
       

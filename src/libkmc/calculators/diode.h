@@ -20,6 +20,7 @@
 
 //#include <votca/kmc/lattice.h>
 #include <votca/kmc/state.h>
+#include <votca/kmc/graph.h>
 //#include <votca/kmc/store.h>
 
 using namespace std;

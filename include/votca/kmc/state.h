@@ -44,9 +44,6 @@ public:
     unsigned int Buy();
     void Sell(unsigned int carrier_nr);
     
-    // Initialization/Growth of the reservoir structure
-    void Grow(unsigned int growsize);
-    
     int state_grow_size; //Size by which the structures are grown every time the reservoir is empty
     
     vector<Carrier*> carriers; //Carriers which are either in the simulation box or in the reservoir (as defined by the in_sim_box vector)
@@ -57,8 +54,10 @@ public:
     Graph* graph;
 
 private:
-    bool in_sim_box(int carrier_nr) {return carriers[carrier_nr]->is_in_sim_box;}
     
+    // Initialization/Growth of the reservoir structure
+    void Grow(unsigned int growsize);
+    bool in_sim_box(int carrier_nr) {return carriers[carrier_nr]->is_in_sim_box;}
 };
 
 
@@ -143,20 +142,19 @@ unsigned int State::Buy() {
 
 void State::Sell(unsigned int remove_from_sim_box) {
     
-  carrier_reservoir.push_back(remove_from_sim_box);
-  carriers[remove_from_sim_box]->is_in_sim_box = false;
+    carrier_reservoir.push_back(remove_from_sim_box);
+    carriers[remove_from_sim_box]->is_in_sim_box = false;
   
 }
 
 void State::Grow(unsigned int nr_carriers) {
     
-  unsigned int new_nr_carriers = carriers.size() + nr_carriers;
-  carriers.resize(new_nr_carriers);
-  for (unsigned int i=carriers.size(); i<new_nr_carriers; i++) {
-    carrier_reservoir.push_back(i);
-    carriers[i]->is_in_sim_box = false;
-    dsadsa
-  }
+    unsigned int new_nr_carriers = carriers.size() + nr_carriers;
+    carriers.resize(new_nr_carriers);
+    for (unsigned int i=carriers.size(); i<new_nr_carriers; i++) {
+        carrier_reservoir.push_back(i);
+        carriers[i]->is_in_sim_box = false;
+    }
   
 }
 
