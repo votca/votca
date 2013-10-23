@@ -1,6 +1,6 @@
 <options>
 
-<emultipole help="Evaluates polarization contribution based on the Thole model" label="calc:emultipole" section="sec:thole">
+<emultipole help="Evaluates polarization contribution based on the Thole model" section="sec:thole">
 
 	<multipoles help="Polar Site Definitions in GDMA punch-file format">system.xml</multipoles>
 

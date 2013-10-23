@@ -17,21 +17,34 @@
  *
  */
 
+// boost::ublas checks are switched off
+#define NDEBUG
+
 #include "votca/ctp/overlap.h"
 #include <votca/tools/linalg.h>
 
 #include <boost/numeric/ublas/operation.hpp>
+#include <boost/numeric/ublas/banded.hpp>
+#include <boost/numeric/ublas/matrix_proxy.hpp>
+#include <boost/numeric/ublas/vector_proxy.hpp>
 #include <boost/numeric/ublas/operation_blocked.hpp>
+
 #include <boost/progress.hpp>
 
+// FOR TEST PURPOSES - MOVE TO TOOLS
+//#include <votca/ctp/gsl_boost_ublas_matrix_prod.h>
+
 namespace votca { namespace ctp {
+
+namespace ub = boost::numeric::ublas;
 
 double inv_sqrt(double x) { return 1./sqrt(x); }
 
 /*
  * Calculates S^{-1/2}
  */
-void Overlap::SQRTOverlap(ub::symmetric_matrix<double> &S, ub::matrix<double> &S2 ) {
+void Overlap::SQRTOverlap(boost::numeric::ublas::symmetric_matrix<double> &S, 
+                          boost::numeric::ublas::matrix<double> &S2 ) {
        
     double (*_inv_sqrt)(double);
     _inv_sqrt = &inv_sqrt;
@@ -61,7 +74,7 @@ void Overlap::SQRTOverlap(ub::symmetric_matrix<double> &S, ub::matrix<double> &S
  }
 
 bool Overlap::CalculateIntegralsOptimized(Orbitals* _orbitalsA, Orbitals* _orbitalsB, 
-    Orbitals* _orbitalsAB, ub::matrix<double>* _JAB) {
+    Orbitals* _orbitalsAB, boost::numeric::ublas::matrix<double>* _JAB) {
           
     LOG(logDEBUG,*_pLog) << "Calculating electronic couplings" << flush;
         
@@ -167,7 +180,7 @@ bool Overlap::CalculateIntegralsOptimized(Orbitals* _orbitalsA, Orbitals* _orbit
 }
 
 double Overlap::getCouplingElement( int levelA, int levelB,  Orbitals* _orbitalsA,
-    Orbitals* _orbitalsB, ub::matrix<double>* _JAB, double  _energy_difference ) {
+    Orbitals* _orbitalsB, boost::numeric::ublas::matrix<double>* _JAB, double  _energy_difference ) {
 
     const double _conv_Hrt_eV = 27.21138386;   
 
@@ -199,7 +212,7 @@ double Overlap::getCouplingElement( int levelA, int levelB,  Orbitals* _orbitals
 
 
 bool Overlap::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB, 
-    Orbitals* _orbitalsAB, ub::matrix<double>* _JAB) {
+    Orbitals* _orbitalsAB, boost::numeric::ublas::matrix<double>* _JAB) {
 
     LOG(logDEBUG,*_pLog) << "Calculating electronic couplings" << flush;
         
@@ -246,19 +259,20 @@ bool Overlap::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     // Fock matrix of a dimer   
     LOG(logDEBUG,*_pLog) << "Constructing the dimer Fock matrix [" 
               << _orbitalsAB->getNumberOfLevels() << "x" 
-             << _orbitalsAB->getNumberOfLevels() << "]" << flush;    
+             << _orbitalsAB->getNumberOfLevels() << "] ";    
+    LOG(logDEBUG,*_pLog)  << " (" << t.elapsed() - _st << "s) " << flush; _st = t.elapsed();
  
     ub::diagonal_matrix<double> _fock_AB( _orbitalsAB->getNumberOfLevels(), (*_orbitalsAB->getEnergies()).data() ); 
    
     // psi_AxB * S_AB * psi_AB
-    LOG(logDEBUG,*_pLog) << TimeStamp() << " Projecting the dimer onto monomer orbitals" ;    
+    LOG(logDEBUG,*_pLog) << " Projecting the dimer onto monomer orbitals" ;    
     ub::matrix<double> _psi_AB = ub::prod( *_orbitalsAB->getOverlap(), ub::trans( *_orbitalsAB->getOrbitals() ) );          
     ub::matrix<double> _psi_AxB_dimer_basis = ub::prod( _psi_AxB, _psi_AB );
      _psi_AB.clear();
      LOG(logDEBUG,*_pLog)  << " (" << t.elapsed() - _st << "s) " << flush; _st = t.elapsed();    
 
     // J = psi_AxB_dimer_basis * FAB * psi_AxB_dimer_basis^T
-    LOG(logDEBUG,*_pLog) << TimeStamp() << " Projecting the Fock matrix onto the dimer basis";    
+    LOG(logDEBUG,*_pLog) << " Projecting the Fock matrix onto the dimer basis";    
     ub::matrix<double> _temp = ub::prod( _fock_AB, ub::trans( _psi_AxB_dimer_basis ) ) ;
     ub::matrix<double> JAB_dimer = ub::prod( _psi_AxB_dimer_basis, _temp);
     _temp.clear(); _fock_AB.clear();
