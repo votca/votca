@@ -769,7 +769,12 @@ void EMultipole::EStatify(Topology *top, Property *options) {
                 string mapKeyName = fragName + segName + molName;
 
                 string mpoles = (*fragit)->get("mpoles").as<string> ();
-
+                
+                if (tools::globals::verbose) {
+                    cout << endl << "Fragment " << fragName << flush;
+                    cout << endl << "Polar sites " << mpoles << flush;
+                }
+                
                 Tokenizer tokPoles(mpoles, " \t\n");
                 vector<string> mpoleInfo;
                 tokPoles.ToVector(mpoleInfo);
@@ -786,7 +791,12 @@ void EMultipole::EStatify(Topology *top, Property *options) {
 
                     int mpoleIdx = boost::lexical_cast<int>(poleInfo[0]);
                     string mpoleName = poleInfo[1];
-
+                    
+                    if (tools::globals::verbose) {
+                        cout << endl << "MP id=" << mpoleIdx << flush;
+                        cout << ", MP name=" << mpoleName << flush;
+                    }
+                    
                     mpoleIdcs.push_back(mpoleIdx);
                     mpoleNames.push_back(mpoleName);
                     
@@ -920,6 +930,7 @@ vector<PolarSite*> EMultipole::ParseGdmaFile(string filename, int state) {
     double Q0_total = 0.0;
     string units = "";
     bool useDefaultPs = true;
+    bool warn_anisotropy = false;
 
     vector<PolarSite*> poles;
     PolarSite *thisPole = NULL;
@@ -965,7 +976,7 @@ vector<PolarSite*> EMultipole::ParseGdmaFile(string filename, int state) {
             }
 
             // element,  position,  rank limit
-            else if ( split.size() == 6 ) {
+            else if ( split.size() == 6 && split[4] == "Rank" ) {
 
                 Qs.clear();
                 P1 = -1.;
@@ -1005,7 +1016,10 @@ vector<PolarSite*> EMultipole::ParseGdmaFile(string filename, int state) {
             }
 
             // 'P', dipole polarizability
-            else if ( split[0] == "P" && split.size() == 2 ) {
+            else if ( split[0] == "P" && (split.size() == 2 || split.size() == 7) ) {
+                if (split.size() == 7) {
+                    warn_anisotropy = true;
+                }
                 P1 = 1e-3 * boost::lexical_cast<double>(split[1]);
                 thisPole->setPs(P1, state);
                 useDefaultPs = false;
@@ -1067,9 +1081,13 @@ vector<PolarSite*> EMultipole::ParseGdmaFile(string filename, int state) {
             (*pol)->setPs(alpha, state);
         }
     }
+    
+    cout << endl << endl
+         << "WARNING '" << filename << "': EMultipole does not support "
+         << "tensorial polarizabilities, use zmultipole instead." 
+         << endl;
 
     return poles;
-    
 }
 
 

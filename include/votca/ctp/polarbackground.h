@@ -25,7 +25,7 @@ public:
     void Threaded(int n_threads) { _n_threads = n_threads; }
     void Polarize();
     
-    void FX_RealSpace(string mode);    
+    void FX_RealSpace(string mode, bool do_setup_nbs);    
     void FU_RealSpace(bool do_setup_nbs);
     void FX_ReciprocalSpace(string mode1, string mode2, bool generate_kvecs);
     
@@ -80,9 +80,9 @@ public:
     class RThread : public QMThread
     {
     public:
-        RThread(PolarBackground *master) {
+        RThread(PolarBackground *master, bool do_setup_nbs) {
             _master = master;
-            _do_setup_nbs = true;
+            _do_setup_nbs = do_setup_nbs;
             _not_converged_count = 0;
             _ewdactor = EwdInteractor(_master->_alpha, _master->_polar_aDamp);
 
@@ -103,7 +103,7 @@ public:
         typedef void (RThread::*StartFunct)();
         typedef void (RThread::*ResetFunct)();
         typedef double (RThread::*WloadFunct)();
-        RThread *Clone() { return new RThread(_master); }
+        RThread *Clone() { return new RThread(_master, _do_setup_nbs); }
         const string &getMode() { return _current_mode; }
         void setMode(const string &mode) { _current_mode = mode; }
         void setVerbose(bool verbose) { _verbose = verbose; }        
@@ -125,7 +125,7 @@ public:
         void AddAtomicInput(PolarSeg *pseg) { _part_bg_P.push_back(pseg); }
         
         // Mode targets
-        void FU_FieldCalc() { ; }
+        void FU_FieldCalc();
         void FP_FieldCalc();
         void FX_FieldReset() { _not_converged_count = 0; _part_bg_P.clear(); }
         double FX_FieldWload() { return 100.*_part_bg_P.size()/_full_bg_P.size(); }
@@ -318,7 +318,7 @@ private:
 template
 <
     // REQUIRED setId(int), Start, WaitDone
-    // OPTIONAL setMode(<>), setVerbose(bool), AddAtomicInput(<>), ADdSharedInput(<>)
+    // OPTIONAL setMode(<>), setVerbose(bool), AddAtomicInput(<>), AddSharedInput(<>)
     typename ThreadType,
     // REQUIRED Create
     // OPTIONAL
