@@ -106,7 +106,7 @@ namespace votca { namespace ctp {
         
         // f-functions
         if ( _lmax > 2 ){
-            _trafo(9,12) = 4.0 * 2.0 *pow(_decay,1.5); // f1 (f??)
+            _trafo(9,12) = 4.0 * 2.0 *pow(_decay,1.5)/sqrt(15.); // f1 (f??)
             _trafo(9,15) = -1.5 * _trafo(9,12);        // f1 (f??)
             _trafo(9,17) = _trafo(9,15);               // f1 (f??)
             

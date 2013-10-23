@@ -42,13 +42,40 @@ namespace votca { namespace ctp {
     public:
         ub::matrix<double> _aomatrix; 
 
-        typedef boost::multi_array<double, 3> ma_type;
-        typedef boost::multi_array_types::extent_range range;
-        typedef ma_type::index index;
-        ma_type::extent_gen extents;
-        ma_type _array;
+              
+        // likely better: go via vector of matrices
+        ub::vector< ub::matrix<double> > _matrix;
         
-        void Initialize( int _basissize, int _mmin, int _mmax, int _nmin, int _nmax ) {
+        // band summation indices
+        int mmin;
+        int mmax;
+        int nmin;
+        int nmax;
+        int ntotal;
+        int mtotal;
+        
+        
+        void Initialize ( int _basissize, int mmin, int mmax, int nmin, int nmax){
+
+            // here as stoarage indices starting from zero
+            this->mmin   = mmin -1 ;
+            this->mmax   = mmax -1 ;
+            this->nmin   = nmin -1 ;
+            this->nmax   = nmax -1 ;
+            this->mtotal = mmax - mmin +1;
+            this->ntotal = nmax - nmin +1;
+            
+            // vector has _basissize elements
+            this->_matrix.resize( _basissize );
+            
+            // each element is a m-by-n matrix, initialize to zero
+            for ( int i = 0; i < _basissize; i++){
+                this->_matrix(i) = ub::zero_matrix<double>(mtotal,ntotal);
+            }
+            
+        }
+        
+        /* void Initialize( int _basissize, int _mmin, int _mmax, int _nmin, int _nmax ) {
             
             this->_array.resize( extents[ _basissize ][ range( _mmin-1, _mmax )  ][ range(_nmin-1, _nmax )]);
     
@@ -60,7 +87,7 @@ namespace votca { namespace ctp {
                   }
                }
             } 
-        }
+        }*/
         
         void Fill( AOBasis& gwbasis, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals );
         
@@ -74,8 +101,11 @@ namespace votca { namespace ctp {
         void Print( string _ident);
         
         // block fill prototype
-        virtual void FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col) {} ;
+        //void FillBlock(ub::vector_range< ub::vector< ub::matrix<double> > >& _matrix,  AOShell* _shell, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals ) ;
+        void FillBlock(ub::vector_range< ub::vector< ub::matrix<double> > >& _matrix,  AOShell* _shell, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals ) ;
         
+        //bool FillThreeCenterOLBlock( ub::vector< ub::matrix<double> >& _subvector, AOShell* _shell, AOShell* _shell_row, AOShell* _shell_col);
+        bool FillThreeCenterOLBlock(  ub::matrix<double> & _subvector, AOShell* _shell, AOShell* _shell_row, AOShell* _shell_col);
     };
     
 

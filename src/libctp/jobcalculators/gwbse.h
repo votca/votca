@@ -74,6 +74,9 @@ public:
 
     void    CleanUp();
 
+    // int getMlower(){ return mmin -1; };
+    // int getMupper(){ return mmax -1; };
+    
 
 private:
 
@@ -91,7 +94,15 @@ private:
     string _gwpackage;
     Property _gwpackage_options; 
     
-   
+    // some calculation options that should be set by a proper definition later
+    int mmin ; // lowest index occ 
+    int mmax ;
+    int nmin ;
+    int nmax ;
+    int maxf ; // maximum number of functions per shell in basis set
+    int mtotal ;
+    int ntotal ;
+    
 
     
 
