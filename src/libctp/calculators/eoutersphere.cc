@@ -319,6 +319,7 @@ vector<PolarSite*> EOutersphere::ParseGdmaFile(string filename, int state) {
     double Q0_total = 0.0;
     string units = "";
     bool useDefaultPs = true;
+    bool warn_anisotropy = false;
 
     vector<PolarSite*> poles;
     PolarSite *thisPole = NULL;
@@ -364,7 +365,7 @@ vector<PolarSite*> EOutersphere::ParseGdmaFile(string filename, int state) {
             }
 
             // element,  position,  rank limit
-            else if ( split.size() == 6 ) {
+            else if ( split.size() == 6 && split[4] == "Rank" ) {
 
                 Qs.clear();
                 P1 = -1.;
@@ -390,7 +391,7 @@ vector<PolarSite*> EOutersphere::ParseGdmaFile(string filename, int state) {
                     throw std::runtime_error( "Unit " + units + " in file "
                                             + filename + " not supported.");
                 }
-
+                
                 vec pos = vec(x,y,z);
 
                 int rank = boost::lexical_cast<int>(split[5]);
@@ -404,7 +405,10 @@ vector<PolarSite*> EOutersphere::ParseGdmaFile(string filename, int state) {
             }
 
             // 'P', dipole polarizability
-            else if ( split[0] == "P" && split.size() == 2 ) {
+            else if ( split[0] == "P" && (split.size() == 2 || split.size() == 7) ) {
+                if (split.size() == 7) {
+                    warn_anisotropy = true;
+                }
                 P1 = 1e-3 * boost::lexical_cast<double>(split[1]);
                 thisPole->setPs(P1, state);
                 useDefaultPs = false;
@@ -466,9 +470,13 @@ vector<PolarSite*> EOutersphere::ParseGdmaFile(string filename, int state) {
             (*pol)->setPs(alpha, state);
         }
     }
+    
+    cout << endl << endl
+         << "WARNING '" << filename << "': EMultipole does not support "
+         << "tensorial polarizabilities, use zmultipole instead." 
+         << endl;
 
     return poles;
-
 }
 
 

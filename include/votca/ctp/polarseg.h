@@ -15,7 +15,7 @@ class PolarSeg : public vector<APolarSite*>
 
 public:
 
-    PolarSeg() {};
+    PolarSeg() : _id(-1), _is_charged(true), _is_polarizable(true) {};
     PolarSeg(int id, vector<APolarSite*> &psites);
     PolarSeg(PolarSeg *templ);
    ~PolarSeg();

@@ -52,7 +52,7 @@ void MolPolTool::Initialize(Property *options) {
     if ( options->exists(key+".tolerance") ) {
         _epsTol = options->get(key+".tolerance").as< double >();
     }
-    else { _epsTol = 0.001; }    
+    else { _epsTol = 0.001; }
 }
 
 
@@ -265,7 +265,7 @@ matrix MolPolTool::CalculateMolPol(vector<APolarSite*> &poles, bool verbose) {
                 eigx/min_eig,
                 eigy/min_eig,
                 eigz/min_eig);
-        printf("POLARIZABLE VOLUME                           "
+        printf("POLARIZABLE VOLUME (without 4PI/3)           "
                 "%3.3f A3\n", pow(eigx*eigy*eigz,1./3.)*NM3_2_A3);
         printf("UPPER %4.7f %4.7f %4.7f %4.7f %4.7f %4.7f\n",
                axx*NM3_2_A3, axy*NM3_2_A3, axz*NM3_2_A3,
