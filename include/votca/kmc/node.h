@@ -29,16 +29,59 @@ namespace votca { namespace kmc {
 using namespace std;
 
 
-
 class Node {
     
-  public:
+public:
+
+    void setPair(Node* pairing_node) {pairing_nodes.push_back(pairing_node);}
+    void setStaticeventinfo(Node* pairnode, myvec dr, double rate12e, double rate12h, double Jeff2e, double Jeff2h, double reorg_oute, double reorg_outh);    
+    
+    struct Static_event_info {
+        Node* pairnode;
+        myvec distance; //distance vector from start to destination node
+        double rate12e;
+        double rate12h;
+        double Jeff2e;
+        double Jeff2h;
+        double reorg_oute;
+        double reorg_outh;
+    };     
+
+    int node_ID;
+    myvec node_position;
+    vector<Node*> pairing_nodes;
+    vector<Static_event_info> static_event_info;
  
-      int node_ID;
-      
+    //static energies
+    double reorg_intorig_hole;
+    double reorg_intorig_electron;
+    double reorg_intdest_hole;
+    double reorg_intdest_electron;
+        
+    double eAnion;
+    double eNeutral;
+    double eCation;
+        
+    double internal_energy_electron;
+    double internal_energy_hole;
+        
+    double static_electron_node_energy;
+    double static_hole_node_energy;
+
+    
 };
 
-        
+void Node::setStaticeventinfo(Node* pairnode, myvec dr, double rate12e, double rate12h, double Jeff2e, double Jeff2h, double reorg_oute, double reorg_outh) {
+    Static_event_info newStatic;
+    newStatic.pairnode = pairnode;
+    newStatic.distance = dr;
+    newStatic.rate12e = rate12e;
+    newStatic.rate12h = rate12h;
+    newStatic.Jeff2e = Jeff2e;
+    newStatic.Jeff2h = Jeff2h;
+    newStatic.reorg_oute = reorg_oute;
+    newStatic.reorg_outh = reorg_outh;
+}       
         
 }} 
 

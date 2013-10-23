@@ -57,7 +57,7 @@ private:
     
     // Initialization/Growth of the reservoir structure
     void Grow(unsigned int growsize);
-    bool in_sim_box(int carrier_nr) {return carriers[carrier_nr]->is_in_sim_box;}
+    bool In_sim_box(int carrier_nr) {return carriers[carrier_nr]->is_in_sim_box;}
 };
 
 
@@ -78,7 +78,7 @@ void State::Save(string SQL_state_filename){
                             "?,     ?)");
     
     for(int carrier_nr = 0;carrier_nr<carriers.size();carrier_nr++) {
-        if (in_sim_box(carrier_nr)) {
+        if (In_sim_box(carrier_nr)) {
             stmt->Bind(1, carrier_ID);
             stmt->Bind(2, carriers[carrier_nr]->carrier_node->node_ID);
             int carrier_type;
