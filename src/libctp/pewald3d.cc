@@ -22,7 +22,7 @@ PEwald3D3D::PEwald3D3D(Topology *top, PolarTop *ptop, Property *opt, Logger *log
 }
 
 
-void PEwald3D3D::GenerateKVectors() {
+void PEwald3D3D::GenerateKVectors(vector<PolarSeg*> &ps1, vector<PolarSeg*> &ps2) {
     
     // Take care of norm for grading function
     // All three components non-zero
@@ -61,7 +61,7 @@ void PEwald3D3D::GenerateKVectors() {
         << "Generating K-vectors: Exploring K resonances" << flush;
     for (int i = 1; i < _NA_max+1; ++i) {
         vec k = +i*_A;
-        EWD::triple<EWD::cmplx> ppuu_posk = _ewdactor.S1S2(k, _fg_C, _bg_P);        
+        EWD::triple<EWD::cmplx> ppuu_posk = _ewdactor.S1S2(k, ps1, ps2);        
         kx_s1s2.push_back(0.5*std::abs(ppuu_posk._pp._re));
         avg_kx_s1s2 += 0.5*std::abs(ppuu_posk._pp._re);
         EWD::KVector kvec_pos = EWD::KVector(+1*k,0.);
@@ -73,7 +73,7 @@ void PEwald3D3D::GenerateKVectors() {
     
     for (int i = 1; i < _NB_max+1; ++i) {
         vec k = +i*_B;
-        EWD::triple<EWD::cmplx> ppuu_posk = _ewdactor.S1S2(k, _fg_C, _bg_P);        
+        EWD::triple<EWD::cmplx> ppuu_posk = _ewdactor.S1S2(k, ps1, ps2);        
         ky_s1s2.push_back(0.5*std::abs(ppuu_posk._pp._re));
         avg_ky_s1s2 += 0.5*std::abs(ppuu_posk._pp._re);
         EWD::KVector kvec_pos = EWD::KVector(+1*k,0);
@@ -85,7 +85,7 @@ void PEwald3D3D::GenerateKVectors() {
     
     for (int i = 1; i < _NC_max+1; ++i) {
         vec k = +i*_C;
-        EWD::triple<EWD::cmplx> ppuu_posk = _ewdactor.S1S2(k, _fg_C, _bg_P);        
+        EWD::triple<EWD::cmplx> ppuu_posk = _ewdactor.S1S2(k, ps1, ps2);        
         kz_s1s2.push_back(0.5*std::abs(ppuu_posk._pp._re));
         avg_kz_s1s2 += 0.5*std::abs(ppuu_posk._pp._re);
         EWD::KVector kvec_pos = EWD::KVector(+1*k,0);
@@ -95,7 +95,7 @@ void PEwald3D3D::GenerateKVectors() {
     }
     avg_kz_s1s2 /= _NC_max;
     
-    double kxyz_s1s2_norm = 1./pow(avg_kx_s1s2*avg_ky_s1s2*avg_kz_s1s2,2./3.) * _ewdactor.int2eV / _LxLyLz;
+    double kxyz_s1s2_norm = 1./pow(avg_kx_s1s2*avg_ky_s1s2*avg_kz_s1s2,2./3.) * EWD::int2eV / _LxLyLz;
     kx_s1s2[0] = pow(avg_ky_s1s2*avg_kz_s1s2,1./6.)*pow(avg_kx_s1s2,2./3.);
     ky_s1s2[0] = pow(avg_kz_s1s2*avg_kx_s1s2,1./6.)*pow(avg_ky_s1s2,2./3.);
     kz_s1s2[0] = pow(avg_kx_s1s2*avg_ky_s1s2,1./6.)*pow(avg_kz_s1s2,2./3.);
@@ -257,11 +257,11 @@ EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum() {
                 }
             }
         }
-        shell_rms = sqrt(shell_rms/shell_count)*_ewdactor.int2eV;
+        shell_rms = sqrt(shell_rms/shell_count)*EWD::int2eV;
         sum += shell_sum;
         LOG(logDEBUG,*_log)
             << (format("Rc = %1$+02.7f   |MGN| = %3$5d   ER = %2$+1.7f eV   dER2(sum) = %4$+1.3e eV") 
-            % shell_R % (sum*_ewdactor.int2eV) % shell_mg.size() % (shell_rms*shell_count)).str() << flush;
+            % shell_R % (sum*EWD::int2eV) % shell_mg.size() % (shell_rms*shell_count)).str() << flush;
         
         if (shell_rms*shell_count <= _crit_dE) {
             _converged_R = true;
@@ -287,7 +287,7 @@ EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum() {
 EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum() {
     
     if (!_did_generate_kvectors)
-        this->GenerateKVectors();
+        this->GenerateKVectors(_fg_C, _bg_P);
     vector< EWD::KVector >::iterator kvit;
     
     double sum_re = 0.0;
@@ -313,8 +313,8 @@ EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum() {
     
     LOG(logINFO,*_log)
         << (format("  :: RE %1$+1.7e IM %2$+1.7e")
-            % (sum_re/_LxLyLz*_ewdactor.int2eV)
-            % (sum_im/_LxLyLz*_ewdactor.int2eV)).str() << flush;
+            % (sum_re/_LxLyLz*EWD::int2eV)
+            % (sum_im/_LxLyLz*EWD::int2eV)).str() << flush;
     
     // ONE COMPONENT ZERO, TWO NON-ZERO
     LOG(logINFO,*_log)
@@ -353,13 +353,13 @@ EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum() {
              << (format("M = %1$04d   G = %2$+1.3e   dE(rms) = %3$+1.3e eV")
              % shell_count
              % crit_grade
-             % (de_this_shell/_LxLyLz*_ewdactor.int2eV)).str() << flush;
+             % (de_this_shell/_LxLyLz*EWD::int2eV)).str() << flush;
         
-        if (shell_count > 10 && de_this_shell/_LxLyLz*_ewdactor.int2eV < _crit_dE) {
+        if (shell_count > 10 && de_this_shell/_LxLyLz*EWD::int2eV < _crit_dE) {
             LOG(logINFO,*_log)
                 << (format("  :: RE %1$+1.7e IM %2$+1.7e") 
-                % (sum_re/_LxLyLz*_ewdactor.int2eV)
-                % (sum_im/_LxLyLz*_ewdactor.int2eV)).str() << flush;
+                % (sum_re/_LxLyLz*EWD::int2eV)
+                % (sum_im/_LxLyLz*EWD::int2eV)).str() << flush;
             converged12 = true;
         }
         
@@ -404,13 +404,13 @@ EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum() {
              << (format("M = %1$04d   G = %2$+1.3e   dE(rms) = %3$+1.3e eV")
              % shell_count
              % crit_grade
-             % (de_this_shell/_LxLyLz*_ewdactor.int2eV)).str() << flush;
+             % (de_this_shell/_LxLyLz*EWD::int2eV)).str() << flush;
         
-        if (shell_count > 10 && de_this_shell/_LxLyLz*_ewdactor.int2eV < _crit_dE) {
+        if (shell_count > 10 && de_this_shell/_LxLyLz*EWD::int2eV < _crit_dE) {
             LOG(logINFO,*_log)
                 << (format("  :: RE %1$+1.7e IM %2$+1.7e") 
-                % (sum_re/_LxLyLz*_ewdactor.int2eV)
-                % (sum_im/_LxLyLz*_ewdactor.int2eV)).str() << flush;
+                % (sum_re/_LxLyLz*EWD::int2eV)
+                % (sum_im/_LxLyLz*EWD::int2eV)).str() << flush;
             converged03 = true;
         }
         
@@ -548,7 +548,7 @@ void PEwald3D3D::Field_ConvergeRealSpaceSum() {
             for (sit2 = shell_mg.begin(); sit2 < shell_mg.end(); ++sit2) {
                 for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
                     for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
-                        shell_rms += _ewdactor.F12_ERFC_At_By(*(*pit1), *(*pit2));
+                        shell_rms += _ewdactor.FPU12_ERFC_At_By(*(*pit1), *(*pit2));
                         shell_count += 1;
                         //_actor.BiasStat(*(*pit1), *(*pit2));
                         //_actor.FieldPerm(*(*pit1), *(*pit2));
@@ -557,7 +557,7 @@ void PEwald3D3D::Field_ConvergeRealSpaceSum() {
             }
         }
         
-        shell_rms = sqrt(shell_rms/shell_count)*_ewdactor.int2V_m;
+        shell_rms = sqrt(shell_rms/shell_count)*EWD::int2V_m;
         double e_measure = shell_rms*1e-10*shell_count; // Energy of dipole of size 0.1*e*nm summed over shell
         
         LOG(logDEBUG,*_log)
@@ -581,9 +581,8 @@ void PEwald3D3D::Field_ConvergeRealSpaceSum() {
 
 
 void PEwald3D3D::Field_ConvergeReciprocalSpaceSum() {
-    
-    if (!_did_generate_kvectors)
-        this->GenerateKVectors();
+
+    this->GenerateKVectors(_fg_C, _bg_P);
     double sum_re = 0.0;
     double sum_im = 0.0;
     _field_converged_K = false;
@@ -596,15 +595,15 @@ void PEwald3D3D::Field_ConvergeReciprocalSpaceSum() {
         << "K-lines through origin: Checking K resonances" << flush;
     for (kvit = _kvecs_2_0.begin(); kvit < _kvecs_2_0.end(); ++kvit) {
         EWD::KVector kvec = *kvit;
-        EWD::cmplx f_as1s2 = _ewdactor.F12_AS1S2_At_By(kvec.getK(), _fg_C, _bg_P, rV);
+        EWD::cmplx f_as1s2 = _ewdactor.FPU12_AS1S2_At_By(kvec.getK(), _fg_C, _bg_P, rV);
         sum_re += sqrt(f_as1s2._re);
         sum_im += f_as1s2._im;
     }
     
     LOG(logINFO,*_log)
         << (format("  :: RE %1$+1.7e IM %2$+1.7e")
-            % (sum_re*_ewdactor.int2V_m)
-            % (sum_im*_ewdactor.int2V_m)).str() << flush;
+            % (sum_re*EWD::int2V_m)
+            % (sum_im*EWD::int2V_m)).str() << flush;
     
     // ONE COMPONENT ZERO, TWO NON-ZERO
     LOG(logINFO,*_log)
@@ -621,7 +620,7 @@ void PEwald3D3D::Field_ConvergeReciprocalSpaceSum() {
         while (kvit < _kvecs_1_0.end()) {
             EWD::KVector kvec = *kvit;
             if (kvec.getGrade() < crit_grade) break;
-            EWD::cmplx f_as1s2 = _ewdactor.F12_AS1S2_At_By(kvec.getK(), _fg_C, _bg_P, rV);
+            EWD::cmplx f_as1s2 = _ewdactor.FPU12_AS1S2_At_By(kvec.getK(), _fg_C, _bg_P, rV);
             sum_re += f_as1s2._re;
             sum_im += f_as1s2._im;
             shell_rms += f_as1s2._re;
@@ -631,7 +630,7 @@ void PEwald3D3D::Field_ConvergeReciprocalSpaceSum() {
             ++kvit;
             ++rms_count;
         }
-        shell_rms = (rms_count > 0) ? sqrt(shell_rms/rms_count)*_ewdactor.int2V_m : 0.0;
+        shell_rms = (rms_count > 0) ? sqrt(shell_rms/rms_count)*EWD::int2V_m : 0.0;
         double e_measure = shell_rms*1e-10*rms_count;
         
         if (rms_count > 0) LOG(logDEBUG,*_log)
@@ -644,8 +643,8 @@ void PEwald3D3D::Field_ConvergeReciprocalSpaceSum() {
         if (rms_count > 10 && e_measure <= _crit_dE) {
             LOG(logINFO,*_log)
                 << (format("  :: RE %1$+1.7e IM %2$+1.7e") 
-                % (sqrt(sum_re)*_ewdactor.int2V_m)
-                % (sum_im*_ewdactor.int2V_m)).str() << flush;
+                % (sqrt(sum_re)*EWD::int2V_m)
+                % (sum_im*EWD::int2V_m)).str() << flush;
             converged12 = true;
         }
         
@@ -667,7 +666,7 @@ void PEwald3D3D::Field_ConvergeReciprocalSpaceSum() {
         while (kvit < _kvecs_0_0.end()) {
             EWD::KVector kvec = *kvit;
             if (kvec.getGrade() < crit_grade) break;
-            EWD::cmplx f_as1s2 = _ewdactor.F12_AS1S2_At_By(kvec.getK(), _fg_C, _bg_P, rV);
+            EWD::cmplx f_as1s2 = _ewdactor.FPU12_AS1S2_At_By(kvec.getK(), _fg_C, _bg_P, rV);
             sum_re += f_as1s2._re;
             sum_im += f_as1s2._im;
             shell_rms += f_as1s2._re;
@@ -677,7 +676,7 @@ void PEwald3D3D::Field_ConvergeReciprocalSpaceSum() {
             ++kvit;
             ++rms_count;
         }
-        shell_rms = (rms_count > 0) ? sqrt(shell_rms/rms_count)*_ewdactor.int2V_m : 0.0;
+        shell_rms = (rms_count > 0) ? sqrt(shell_rms/rms_count)*EWD::int2V_m : 0.0;
         double e_measure = shell_rms*1e-10*rms_count;
         
         if (rms_count > 0) LOG(logDEBUG,*_log)
@@ -690,8 +689,8 @@ void PEwald3D3D::Field_ConvergeReciprocalSpaceSum() {
         if (rms_count > 10 && e_measure <= _crit_dE) {
             LOG(logINFO,*_log)
                 << (format("  :: RE %1$+1.7e IM %2$+1.7e") 
-                % (sqrt(sum_re)*_ewdactor.int2V_m)
-                % (sum_im*_ewdactor.int2V_m)).str() << flush;
+                % (sqrt(sum_re)*EWD::int2V_m)
+                % (sum_im*EWD::int2V_m)).str() << flush;
             converged03 = true;
         }
         
@@ -723,13 +722,13 @@ void PEwald3D3D::Field_CalculateForegroundCorrection() {
         for (sit2 = _fg_N.begin(); sit2 < _fg_N.end(); ++sit2) {
             for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
                 for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
-                    rms += _ewdactor.F12_ERF_At_By(*(*pit1), *(*pit2));
+                    rms += _ewdactor.FPU12_ERF_At_By(*(*pit1), *(*pit2));
                     rms_count += 1;
                 }
             }
         }
     }
-    rms = sqrt(rms/rms_count)*_ewdactor.int2V_m;
+    rms = sqrt(rms/rms_count)*EWD::int2V_m;
     
     return;
 }
@@ -746,23 +745,90 @@ void PEwald3D3D::Field_CalculateShapeCorrection() {
     int rms_count = 0;    
     if (_shape == "xyslab") {
         double TwoPi_V = 2*M_PI/_LxLyLz;
-        for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
-           for (sit2 = _bg_P.begin(); sit2 < _bg_P.end(); ++sit2) {
-              for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
-                 for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
-                    rms += _ewdactor.F12_XYSlab_At_By(*(*pit1), *(*pit2), TwoPi_V);
-                    rms_count += 1;
-                 }
-              }
-           }
-        }
+        
+//        for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
+//           for (sit2 = _bg_P.begin(); sit2 < _bg_P.end(); ++sit2) {
+//              for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+//                 for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
+//                    rms += _ewdactor.F12_XYSlab_At_By(*(*pit1), *(*pit2), TwoPi_V);
+//                    rms_count += 1;
+//                 }
+//              }
+//           }
+//        }
+        
+        _ewdactor.FPU12_XYSlab_ShapeField_At_By(_fg_C, _bg_P, TwoPi_V);
+        
     }
     else {
         LOG(logERROR,*_log)
             << (format("Shape %1$s not implemented. Setting EJ = 0.0 ...") 
             % _shape) << flush;
     }
-    rms = sqrt(rms/rms_count)*_ewdactor.int2V_m;
+    rms = sqrt(rms/rms_count)*EWD::int2V_m;
+    
+    return;
+}
+
+
+void PEwald3D3D::PolarizeBackground() {
+    
+    TLogLevel dbg = logDEBUG;
+    TLogLevel inf = logINFO;
+    TLogLevel err = logERROR;
+    Logger &log = *_log;
+    
+    LOG(dbg,log) << flush;
+    LOG(dbg,log) << "Polarize background" << flush;
+    
+    /*
+    Verify neutrality & depolarize
+    Generate permanent fields (FP)
+      o Converge intermolecular real-space contribution, remember cut-off
+      o Converge reciprocal-space contribution, remember K-vectors
+      o Calculate shape fields
+      o Apply MOLECULAR foreground correction     
+    Induce to 1st order
+    Loop until 2nd-order fields converged
+      | Reset 2nd-order fields
+      | (Re-)generate induction fields (FU)
+      | o Real-space INTRAmolecular contribution to 2nd-order fields
+      | o Real-space INTERmolecular contribution to 2nd-order fields
+      | o Reciprocal-space contribution, work off remembered K-vectors
+      | o Calculate shape fields
+      | o Apply ATOMIC foreground correction
+      | Induce to 2nd order
+      + Check convergence
+    Extract (or serialize) induction state to hard-drive
+    */
+    
+    vector<PolarSeg*>::iterator sit1; 
+    vector<APolarSite*> ::iterator pit1;
+    vector<PolarSeg*>::iterator sit2; 
+    vector<APolarSite*> ::iterator pit2;
+    
+    // VERIFY NEUTRALITY & DEPOLARIZE
+    // In principle, this was already checked in the Ewald3DnD constructor
+    double Q_bg_P = 0.0;
+    for (sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
+        Q_bg_P += (*sit1)->CalcTotQ();
+        for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+            (*pit1)->Depolarize();
+        }
+    }    
+    if (Q_bg_P < 1e-4) {
+        LOG(dbg,log) 
+            << "  o Net background charge is zero (enough). Proceed." << flush;
+    }
+    else {
+        LOG(err,log) 
+            << "  o ERROR Net background charge > 1e-4. Abort." << endl;
+        throw std::runtime_error("Bg charge density is not neutral (enough).");
+    }
+
+    
+    
+    
     
     return;
 }

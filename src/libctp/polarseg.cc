@@ -8,7 +8,7 @@ namespace votca { namespace ctp {
 PolarSeg::PolarSeg(int id, vector<APolarSite*> &psites) : _id(id) {    
     for (int i = 0; i < psites.size(); ++i) {
         push_back(psites[i]);
-    }    
+    }
     this->CalcPos();
 }
 
@@ -30,6 +30,10 @@ PolarSeg::~PolarSeg() {
        delete *pit;
    }
    clear();
+   vector<PolarNb*>::iterator nit;
+   for (nit = _nbs.begin(); nit < _nbs.end(); ++nit) 
+       delete *nit;
+   _nbs.clear();
 }
 
 
@@ -60,5 +64,62 @@ void PolarSeg::Translate(const vec &shift) {
 }
 
 
+void PolarSeg::CalcIsCharged() {
+    _is_charged = false;
+    for (int i = 0; i < size(); ++i) {
+        if ((*this)[i]->IsCharged()) _is_charged = true;
+    }
+    return;
+}
+
+
+void PolarSeg::CalcIsPolarizable() {
+    _is_polarizable = false;
+    for (int i = 0; i < size(); ++i) {
+        if ((*this)[i]->IsPolarizable()) _is_polarizable = true;
+    }
+    return;
+}
+
+
+void PolarSeg::ClearPolarNbs() {
+    vector<PolarNb*>::iterator nit;
+    for (nit = _nbs.begin(); nit < _nbs.end(); ++nit) 
+        delete *nit;
+    _nbs.clear();
+    return;
+}
+
+
+void PolarSeg::PrintPolarNbPDB(string outfile) {    
+    FILE *out;
+    out = fopen(outfile.c_str(),"w");
+    PolarSeg::iterator pit;
+    vector<PolarNb*>::iterator nit;
+    for (pit = begin(); pit < end(); ++pit) {
+        (*pit)->WritePdbLine(out, "CEN");
+    }
+    for (nit = _nbs.begin(); nit < _nbs.end(); ++nit) {
+        PolarSeg *nb = (*nit)->getNb();
+        nb->Translate((*nit)->getS());
+        for (pit = nb->begin(); pit < nb->end(); ++pit) {
+            (*pit)->WritePdbLine(out, "PNB");
+        }
+        nb->Translate(-1*(*nit)->getS());
+    }
+    fclose(out);
+    return;
+}
+
+
+//template void PolarSeg::serialize<boost::archive::text_oarchive>
+//    (boost::archive::text_oarchive &, const unsigned int);
+//template void PolarSeg::serialize<boost::archive::text_iarchive>
+//    (boost::archive::text_iarchive &, const unsigned int);
+//
+//template void PolarSeg::serialize<boost::archive::binary_oarchive>
+//    (boost::archive::binary_oarchive &, const unsigned int);
+//template void PolarSeg::serialize<boost::archive::binary_iarchive>
+//    (boost::archive::binary_iarchive &, const unsigned int);
 
 }}
