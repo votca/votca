@@ -155,6 +155,7 @@ void State::Grow(unsigned int nr_carriers) {
   for (unsigned int i=carriers.size(); i<new_nr_carriers; i++) {
     carrier_reservoir.push_back(i);
     carriers[i]->is_in_sim_box = false;
+    dsadsa
   }
   
 }
