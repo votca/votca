@@ -16,7 +16,7 @@
  */
 
 #include <stdlib.h>
-#include <votca/tools/propertyiomanipulator.h>
+//#include <votca/tools/propertyiomanipulator.h>
 #include <votca/kmc/kmccalculatorfactory.h>
 #include <votca/kmc/kmcapplication.h>
 #include <string>
@@ -61,7 +61,7 @@ void KMCApplication::ShowHelpText(std::ostream &out)
 }
 
 
-void KMCApplication::PrintDescription(const char *name, const bool length)
+/*void KMCApplication::PrintDescription(const char *name, const bool length)
 {
         // loading the documentation xml file from VOTCASHARE
         char *votca_share = getenv("VOTCASHARE");
@@ -84,7 +84,7 @@ void KMCApplication::PrintDescription(const char *name, const bool length)
         } catch(std::exception &error) {
             cout << string("XML file or description tag missing: ") << xmlFile << endl;
         }
-}
+}*/
 
 // check if required options are provided
 bool KMCApplication::EvaluateOptions() {
