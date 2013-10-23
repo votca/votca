@@ -176,6 +176,20 @@ int mol_and_orb::init(const char * nameinput){
 	ifstream in;
 	in.open(nameinput);
 	if(!in){cout << "Error, file " << nameinput << "does not exist" << endl; return 1;}
+        
+        // Skip header lines
+        string line;
+        std::getline(in, line);
+        vector< string > split;
+        Tokenizer toker(line, " \t");
+        toker.ToVector(split);
+        if (split.size() != 1) {
+            cout << endl << "Error, file " << nameinput << " does not conform to xyz standards." << endl;
+            throw runtime_error("(see above, input error)");
+        }
+        std::getline(in, line);
+        
+        // Continue with e x y z ...
 	string  xch,ych,zch;
 	double x,y,z;
         n_el=0;
