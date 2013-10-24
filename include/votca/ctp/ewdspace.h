@@ -139,6 +139,7 @@ struct VectorSort
     VectorSort() : _p(1e-40) { ; }
     VectorSort(double precision) : _p(precision) { ; }
     inline bool operator() (const V &v1, const V &v2);
+    inline bool operator() (const V *v1, const V *v2);
     inline bool MatchDouble(double a, double b) 
         { return ((a-b)*(a-b) < _p) ? true : false; }
     double _p;
@@ -153,24 +154,31 @@ struct EucNorm { inline double operator() (const votca::tools::vec &v)
     { return votca::tools::abs(v); } };
 
 // K-vector class (for grading purposes)
-struct KVector
+class KVector
 {
+public:
     KVector(votca::tools::vec k, double grade)
-        : _k(k), _grade(grade) { ; }
-
-    votca::tools::vec _k;
-    double _grade;
-
+        : _k(k), _grade(grade), _has_sfactor(false) { ; }
     const votca::tools::vec &getK() const { return _k; }
     const double &getGrade() const { return _grade; }
     const double &getX() const { return _k.getX(); }
     const double &getY() const { return _k.getY(); }
-    const double &getZ() const { return _k.getZ(); }            
+    const double &getZ() const { return _k.getZ(); }
+    
+    void setStructureFactor(EWD::cmplx &sfac) { _sfactor = sfac; _has_sfactor = true; }
+    const EWD::cmplx &getStructureFactor() { return _sfactor; }
+private:
+    votca::tools::vec _k;
+    double _grade;
+    EWD::cmplx _sfactor;
+    bool _has_sfactor;
 };
 
 // Specialized K-vector norm
-struct KNorm { inline double operator() (const KVector &v)
-    { return -v.getGrade(); } };
+struct KNorm { 
+    inline double operator() (const KVector &v) { return -v.getGrade(); }
+    inline double operator() (const KVector *v) { return -v->getGrade(); } 
+};
 
     
 template<class Norm, class V>
@@ -192,6 +200,37 @@ inline bool VectorSort<Norm,V>::operator() (const V &v1,
                 // LEVEL 4: Z
                 double Z1 = v1.getZ();
                 double Z2 = v2.getZ();
+                if (MatchDouble(Z1,Z2)) smaller = true;
+                else smaller = (Z1 < Z2) ? true : false;
+            }
+            else smaller = (Y1 < Y2) ? true : false;
+        }
+        else smaller = (X1 < X2) ? true : false;
+    }
+    else smaller = (V1 < V2) ? true : false;          
+    return smaller;
+}
+
+
+template<class Norm, class V>
+inline bool VectorSort<Norm,V>::operator() (const V *v1,
+    const V *v2) {
+    bool smaller = false;
+    // LEVEL 1: MAGNITUDE
+    double V1 = _norm(v1);
+    double V2 = _norm(v2);
+    if (MatchDouble(V1,V2)) {
+        // LEVEL 2: X
+        double X1 = v1->getX();
+        double X2 = v2->getX();
+        if (MatchDouble(X1,X2)) {
+            // LEVEL 3: Y
+            double Y1 = v1->getY();
+            double Y2 = v2->getY();
+            if (MatchDouble(Y1,Y2)) {
+                // LEVEL 4: Z
+                double Z1 = v1->getZ();
+                double Z2 = v2->getZ();
                 if (MatchDouble(Z1,Z2)) smaller = true;
                 else smaller = (Z1 < Z2) ? true : false;
             }

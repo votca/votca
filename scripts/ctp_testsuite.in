@@ -612,7 +612,7 @@ def GenerateNodeDict(node, path='', abbreviate=False):
 cprint = CPrint()
 suite = Suite(TESTSUITEXML, OPTIONS)
 if OPTIONS.listonly:
-	print '{0}{1}\n'.format(VOTCAHEADER, PROGTITLE)
+	print '{0}'.format(VOTCAHEADER)
 	suite.ListTests()
 	okquit()
 if OPTIONS.compareonly:
@@ -626,6 +626,11 @@ if OPTIONS.compareonly:
 if OPTIONS.sourcedirectory == '':
 	progargs.print_help()
 	okquit("\nQuit here, because: No source directory set (option -s/--source)")
+if OPTIONS.sourcedirectory != '':
+	abs_sourcedir = os.path.join(BASEDIR, TESTSOURCE)
+	rel_sourcedir = TESTSOURCE
+	if not os.path.exists(abs_sourcedir):
+		xxquit("Source directory '{src}' does not exist".format(src=abs_sourcedir))
 if OPTIONS.mailto != "":
 	sys.stdout = open("testsuite.txt","w")
 	cprint.Disable()

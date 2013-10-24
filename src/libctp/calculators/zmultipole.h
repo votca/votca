@@ -1857,24 +1857,24 @@ bool ZMultipole::EvaluateFrame(Topology *top) {
         }
         fclose(mpPDB);
 
-        string paNAME = "pa_check.xyz";
-        FILE *paXYZ = NULL;
-        paXYZ = fopen(paNAME.c_str(), "w");
-        fprintf(paXYZ, "%6d\n\n", 
-                    4*top->getSegment(1)->APolarSites().size()
-                   +4*top->getSegment(2)->APolarSites().size());
-        vector<APolarSite*>::iterator pit;
-        for (pit = top->getSegment(1)->APolarSites().begin();
-             pit < top->getSegment(1)->APolarSites().end();
-             ++pit) {
-            (*pit)->PrintTensorPDB(paXYZ, -1);
-        }
-        for (pit = top->getSegment(2)->APolarSites().begin();
-             pit < top->getSegment(2)->APolarSites().end();
-             ++pit) {
-            (*pit)->PrintTensorPDB(paXYZ, -1);
-        }
-        fclose(paXYZ);
+//        string paNAME = "pa_check.xyz";
+//        FILE *paXYZ = NULL;
+//        paXYZ = fopen(paNAME.c_str(), "w");
+//        fprintf(paXYZ, "%6d\n\n", 
+//                    4*top->getSegment(1)->APolarSites().size()
+//                   +4*top->getSegment(2)->APolarSites().size());
+//        vector<APolarSite*>::iterator pit;
+//        for (pit = top->getSegment(1)->APolarSites().begin();
+//             pit < top->getSegment(1)->APolarSites().end();
+//             ++pit) {
+//            (*pit)->PrintTensorPDB(paXYZ, -1);
+//        }
+//        for (pit = top->getSegment(2)->APolarSites().begin();
+//             pit < top->getSegment(2)->APolarSites().end();
+//             ++pit) {
+//            (*pit)->PrintTensorPDB(paXYZ, -1);
+//        }
+//        fclose(paXYZ);
     }
 
     if (_calcESP && _ESPdoSystem) {

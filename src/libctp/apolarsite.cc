@@ -145,27 +145,43 @@ void APolarSite::Rotate(const matrix &rot, const vec &refPos) {
 
 }
 
-bool APolarSite::getIsActive(bool estatics_only) {
-    // Returns false if charge and polarizability are both zero, true otherwise
-    bool isActive = false;
+bool APolarSite::getIsActive(bool estatics_only) {    
+    bool is_active = false;    
+    bool is_charged = IsCharged();
+    bool is_polarizable = IsPolarizable();
     
+    if (estatics_only) is_active = is_charged;
+    else is_active = is_charged || is_polarizable;
+    
+    return is_active;
+}
+
+bool APolarSite::IsCharged() {
+    bool is_charged = false;
     // Tolerances
     double q_tol = 1e-9; // [e]
     double d_tol = 1e-9; // [enm]
     double Q_tol = 1e-9; // [enm^2]
-    double p_tol = 1e-9; // [nm^3]   
     // Magnitudes
     double q_mag = sqrt(Q00*Q00);
     double d_mag = sqrt(Q1x*Q1x + Q1y*Q1y + Q1z*Q1z);
     double Q_mag = sqrt(Q20*Q20 + Q22c*Q22c + Q22s*Q22s + Q21c*Q21c + Q21s*Q21s);
     // Compare
-    if (q_mag>q_tol) isActive = true;
-    if (_rank > 0 && d_mag>d_tol) isActive = true;
-    if (_rank > 1 && Q_mag>Q_tol) isActive = true;    
-    if (getIsoP() > p_tol && !estatics_only) isActive = true;
-    
-    return isActive;
+    if (q_mag>q_tol) is_charged = true;
+    if (_rank > 0 && d_mag>d_tol) is_charged = true;
+    if (_rank > 1 && Q_mag>Q_tol) is_charged = true;
+    return is_charged;
 }
+
+bool APolarSite::IsPolarizable() {
+    bool is_polarizable = false;
+    // Tolerances
+    double p_tol = 1e-9; // [nm^3]
+    // Compare
+    if (getIsoP() > p_tol) is_polarizable = true;
+    return is_polarizable;    
+}
+
 
 void APolarSite::Translate(const vec &shift) {
 
