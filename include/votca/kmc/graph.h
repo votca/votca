@@ -36,10 +36,11 @@ enum CorrelationType{Uncorrelated, Correlated, Anticorrelated };
 class Graph {
 public:
     
-    void Load_graph(string SQL_graph_filename);    
+    void Load_graph(string SQL_graph_filename, double left_electrode_distance, double right_electrode_distance, double self_image_prefactor, int nr_sr_images);    
     void Generate_cubic_graph(  int nx, int ny, int nz, double lattice_constant,
                                 double hopping_distance, double disorder_strength,votca::tools::Random2 *RandomVariable, 
-                                double disorder_ratio, CorrelationType correlation_type);
+                                double disorder_ratio, CorrelationType correlation_type, double left_electrode_distance, double right_electro_distance,
+                                double self_image_prefactor, int nr_sr_images);
     
     vector<Node*> nodes;
     Node* left_electrode;
@@ -62,26 +63,46 @@ private:
     void Determine_graph_pairs(vector<Node*> nodes,double hopping_distance, myvec sim_box_size);
     
     void Setup_device_graph(vector<Node*> nodes, Node* left_electrode, Node* right_electrode, double hopping_distance, double left_electrode_distance, double right_electrode_distance);
-    void Calculate_self_image_potential(vector<Node*>, myvec simboxsize);
     void Break_periodicity(vector<Node*>nodes , bool x_direction, bool y_direction, bool z_direction);
     
     double Determine_hopping_distance(vector<Node*> nodes);
     myvec Determine_sim_box_size(vector<Node*> nodes);
     int Determine_max_pair_degree(vector<Node*> nodes);
 
-    void Set_all_self_image_potential(vector<Node*> nodes, myvec sim_box_size, double self_image_prefactor, int nr_sr_image);   
+    void Set_all_self_image_potential(vector<Node*> nodes, myvec sim_box_size, double self_image_prefactor, int nr_sr_images);   
     double Calculate_self_image_potential(double nodeposx, double length, double self_image_prefactor, int nr_sr_images);
 
     myvec Periodicdifference(myvec init, myvec final, myvec boxsize);    
     
 };
 
-void Graph::Load_graph(string filename){
+void Graph::Load_graph(string filename, double left_electrode_distance, double right_electrode_distance, double self_image_prefactor, int nr_sr_images){
     
     Load_graph_nodes(filename);
     Load_graph_static_energies(filename);
     Load_graph_pairs(filename);
     Load_graph_static_event_info(filename);
+    
+    hopping_distance = Determine_hopping_distance(nodes);
+    sim_box_size = Determine_sim_box_size(nodes);
+    max_pair_degree = Determine_max_pair_degree(nodes);
+    
+    Setup_device_graph(nodes,left_electrode,right_electrode,hopping_distance,left_electrode_distance,right_electrode_distance);
+    Set_all_self_image_potential(nodes,sim_box_size,self_image_prefactor,nr_sr_images);
+    
+}
+
+void Graph::Generate_cubic_graph(int nx, int ny, int nz, double lattice_constant,
+                                double hopping_distance, double disorder_strength, votca::tools::Random2 *RandomVariable, 
+                                double disorder_ratio, CorrelationType correlation_type, double left_electrode_distance, double right_electrode_distance,
+                                double self_image_prefactor, int nr_sr_images) {
+
+    Create_cubic_graph_nodes(nx, ny, nz, lattice_constant, myvec(0.0,0.0,0.0), myvec (lattice_constant, lattice_constant, lattice_constant));
+    Determine_graph_pairs(nodes,hopping_distance,sim_box_size);
+    Create_static_energies(RandomVariable, disorder_strength, disorder_ratio, correlation_type);    
+
+    Setup_device_graph(nodes,left_electrode,right_electrode,hopping_distance,left_electrode_distance,right_electrode_distance);
+    Set_all_self_image_potential(nodes,sim_box_size,self_image_prefactor,nr_sr_images);
     
 }
 
