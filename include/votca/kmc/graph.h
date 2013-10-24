@@ -38,7 +38,8 @@ public:
     
     void Load_graph(string SQL_graph_filename);    
     void Generate_cubic_graph(  int nx, int ny, int nz, double lattice_constant,
-                                double hopping_distance, double disorder_strength, double disorder_ratio, CorrelationType correlation_type);
+                                double hopping_distance, double disorder_strength,votca::tools::Random2 *RandomVariable, 
+                                double disorder_ratio, CorrelationType correlation_type);
     
     vector<Node*> nodes;
     Node* left_electrode;
@@ -55,10 +56,10 @@ private:
     void Load_graph_pairs(string filename);
     void Load_graph_static_event_info(string filename);
     
-    void Create_cubic_graph_nodes(int nx, int ny, int nz, double lattice_constant);
+    void Create_cubic_graph_nodes(int nx, int ny, int nz, double lattice_constant, myvec front, myvec back);
     void Create_static_energies(votca::tools::Random2 *RandomVariable, double disorder_strength, double disorder_ratio, CorrelationType correlation_type);
     
-    void Determine_graph_pairs(double hopping_distance);
+    void Determine_graph_pairs(vector<Node*> nodes,double hopping_distance, myvec sim_box_size);
     
     void Setup_device_graph(vector<Node*> nodes, Node* left_electrode, Node* right_electrode, double hopping_distance, double left_electrode_distance, double right_electrode_distance);
     void Calculate_self_image_potential(vector<Node*>, myvec simboxsize);
@@ -70,7 +71,8 @@ private:
 
     void Set_all_self_image_potential(vector<Node*> nodes, myvec sim_box_size, double self_image_prefactor, int nr_sr_image);   
     double Calculate_self_image_potential(double nodeposx, double length, double self_image_prefactor, int nr_sr_images);
-    
+
+    myvec Periodicdifference(myvec init, myvec final, myvec boxsize);    
     
 };
 
@@ -213,7 +215,7 @@ void Graph::Load_graph_static_event_info(string filename) {
     stmt = NULL;
 }
 
-void Graph::Create_cubic_graph_nodes(int NX, int NY, int NZ, double lattice_constant) {
+void Graph::Create_cubic_graph_nodes(int NX, int NY, int NZ, double lattice_constant, myvec front, myvec back) {
     
     int node_index = 0;
     
@@ -225,17 +227,43 @@ void Graph::Create_cubic_graph_nodes(int NX, int NY, int NZ, double lattice_cons
 
                 nodes[node_index]->node_ID = node_index;
 
-                myvec nodeposition = myvec(ix*lattice_constant,iy*lattice_constant,iz*lattice_constant);
+                myvec nodeposition = myvec(front.x() + ix*lattice_constant,front.y() + iy*lattice_constant,front.z() + iz*lattice_constant);
                 nodes[node_index]->node_position = nodeposition;
                 
                 node_index++;    
             }
         }
     }
+    
+    double sim_box_sizeX = front.x() + back.x() + NX*lattice_constant;
+    double sim_box_sizeY = front.y() + back.y() + NY*lattice_constant;
+    double sim_box_sizeZ = front.z() + back.z() + NZ*lattice_constant;
+    
+    sim_box_size = myvec(sim_box_sizeX,sim_box_sizeY,sim_box_sizeZ);
 }
 
-
-
+void Graph::Create_static_energies(votca::tools::Random2 *RandomVariable, double disorder_strength, double disorder_ratio, CorrelationType correlation_type){
+      
+    for(int inode=0;inode<nodes.size();inode++) {
+      
+        double el_node_energy = RandomVariable->rand_gaussian(disorder_strength);
+        double ho_node_energy;
+        nodes[inode]->static_electron_node_energy = el_node_energy;
+        
+        if(correlation_type == Correlated) {
+            ho_node_energy = disorder_ratio*el_node_energy;
+            nodes[inode]->static_hole_node_energy = ho_node_energy;
+        }
+        else if(correlation_type == Anticorrelated) {
+            ho_node_energy = -1.0*disorder_ratio*el_node_energy;
+            nodes[inode]->static_hole_node_energy = ho_node_energy;
+        }
+        else {
+            ho_node_energy = RandomVariable->rand_gaussian(disorder_ratio*disorder_strength);
+            nodes[inode]->static_hole_node_energy = ho_node_energy;
+        }
+    }
+}
 
 void Graph::Setup_device_graph(vector<Node*> nodes, Node* left_electrode, Node* right_electrode, double hopping_distance, double left_electrode_distance, double right_electrode_distance){
 
@@ -517,8 +545,104 @@ int Graph::Determine_max_pair_degree(vector<Node*> nodes){
     return maxdegree;    
 }
 
+void Graph::Determine_graph_pairs(vector<Node*> nodes, double hopping_distance, myvec sim_box_size) {  
+  
+    // define a node-mesh for pairfinding algorithm
+  
+    int meshsizeX = ceil(sim_box_size.x()/hopping_distance);
+    int meshsizeY = ceil(sim_box_size.y()/hopping_distance);
+    int meshsizeZ = ceil(sim_box_size.z()/hopping_distance);
+    
+    list<Node* > node_mesh [meshsizeX][meshsizeY][meshsizeZ];
 
+    for (int inode = 0; inode<nodes.size(); inode++) {
+        
+        myvec nodeposition = nodes[inode]->node_position;
+        double posx = nodeposition.x();
+        double posy = nodeposition.y();
+        double posz = nodeposition.z();
+        
+        int iposx = floor(posx/hopping_distance); 
+        int iposy = floor(posy/hopping_distance); 
+        int iposz = floor(posz/hopping_distance);
+      
+        node_mesh[iposx][iposy][iposz].push_back(nodes[inode]);
+    }
+  
+    for (int inode = 0; inode<nodes.size(); inode++) {
+      
+        // Define cubic boundaries in non-periodic coordinates
+        Node* initnode = nodes[inode];
+        myvec initnodepos = initnode->node_position;
+    
+        double ix1 = initnodepos.x()-hopping_distance; double ix2 = initnodepos.x()+hopping_distance;
+        double iy1 = initnodepos.y()-hopping_distance; double iy2 = initnodepos.y()+hopping_distance;
+        double iz1 = initnodepos.z()-hopping_distance; double iz2 = initnodepos.z()+hopping_distance;
 
+        // Translate cubic boundaries to sublattice boundaries in non-periodic coordinates
+        int sx1 = floor(ix1/hopping_distance);
+        int sx2 = floor(ix2/hopping_distance);
+        int sy1 = floor(iy1/hopping_distance);
+        int sy2 = floor(iy2/hopping_distance);
+        int sz1 = floor(iz1/hopping_distance);
+        int sz2 = floor(iz2/hopping_distance);      
+ 
+        // Now visit all relevant sublattices
+        for (int isz=sz1; isz<=sz2; isz++) {
+            int r_isz = isz;
+            while (r_isz < 0) r_isz += sim_box_size.z();
+            while (r_isz >= sim_box_size.z()) r_isz -= sim_box_size.z();
+            for (int isy=sy1; isy<=sy2; isy++) {
+                int r_isy = isy;
+                while (r_isy < 0) r_isy += sim_box_size.y();
+                while (r_isy >= sim_box_size.y()) r_isy -= sim_box_size.y();
+                for (int isx=sx1; isx<=sx2; isx++) {
+                    int r_isx = isx;
+                    while (r_isx < 0) r_isx += sim_box_size.x();
+                    while (r_isx >= sim_box_size.x()) r_isx -= sim_box_size.x();
+        
+                    // Ask a list of all nodes in this sublattice
+                    list<Node*>::iterator li1,li2,li3;
+                    list<Node* > *nodeList = &node_mesh[r_isx][r_isy][r_isz];
+                    li1 = nodeList->begin();
+                    li2 = nodeList->end();
+                    for (li3=li1; li3!=li2; li3++) {
+                        Node* probenode = *li3;
+                        if(inode!=probenode->node_ID){ 
+                            myvec probenodepos = probenode->node_position;
+                            myvec differ = Periodicdifference(initnodepos,probenodepos,sim_box_size);
+                            double distance = abs(differ);
+                            if(distance <= hopping_distance) {
+                                nodes[inode]->setPair(probenode);
+                                nodes[inode]->setStaticeventinfo(probenode, differ, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+myvec Graph::Periodicdifference(myvec init, myvec final, myvec boxsize) {
+    
+  myvec pre = final-init;
+  
+  double prex = pre.x();
+  double prey = pre.y();
+  double prez = pre.z();
+  
+  if(prex<-0.5) {prex+=boxsize.x();}
+  if(prex>0.5) {prex-=boxsize.x();}
+  if(prey<-0.5) {prey+=boxsize.y();}
+  if(prey>0.5) {prey-=boxsize.y();}
+  if(prez<-0.5) {prez+=boxsize.z();}
+  if(prez>0.5) {prez-=boxsize.z();}
+  
+  myvec perdif = myvec(prex,prey,prez);
+  
+  return perdif;       
+}   
 
 }}
 
