@@ -275,6 +275,7 @@ private:
        ar & _has_self_energy;
        ar & _has_integrals;
        
+       //cout << "\nLoaded 1\n" << flush;
        if ( _has_basis_set_size ) { ar & _basis_set_size; }
        if ( _has_occupied_levels ) { ar & _occupied_levels; }
        if ( _has_unoccupied_levels ) { ar & _unoccupied_levels; }
@@ -306,19 +307,21 @@ private:
        if ( _has_self_energy ) { ar & _self_energy; }     
        if ( _has_integrals ) { ar & _integrals; } 
 
+       //cout << "\nLoaded 2\n" << flush;
        // GW-BSE storage
        if(version > 0)  {
-            ar & _has_vxc;           
-            ar & _has_QPpert;
-            ar & _has_QPdiag;
-            ar & _has_BSE_singlets;
-            ar & _has_BSE_triplets;
+            ar & _has_vxc;               
+            ar & _has_QPpert;            
+            ar & _has_QPdiag;            
+            ar & _has_BSE_singlets;      
+            ar & _has_BSE_triplets;      
             if ( _has_QPpert ) { ar & _QP_levels_index; ar & _QPpert_energies; }
             if ( _has_QPdiag ) { ar & _QPdiag_energies; ar & _QPdiag_coefficients; }
             if ( _has_BSE_singlets || _has_BSE_triplets ) { ar & _BSE_levels_indices; }
             if ( _has_BSE_singlets ) { ar & _BSE_singlet_energies; ar & _BSE_singlet_coefficients; }
             if ( _has_BSE_triplets ) { ar & _BSE_triplet_energies; ar & _BSE_triplet_coefficients; }
-
+            
+            //cout << "\nLoaded 3\n" << flush;
             if ( _has_vxc ) { 
                // symmetric matrix does not serialize by default
                 if (Archive::is_saving::value) {
@@ -337,6 +340,7 @@ private:
                     for (unsigned j = 0; j <= i; ++j)
                         ar & _vxc(i, j); 
             }
+       //cout << "\nLoaded 4\n" << flush;
             
        } // end version 1: GW-BSE storage
     }// end of serialization

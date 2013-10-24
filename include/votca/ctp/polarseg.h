@@ -15,7 +15,7 @@ class PolarSeg : public vector<APolarSite*>
 
 public:
 
-    PolarSeg() {};
+    PolarSeg() : _id(-1), _is_charged(true), _is_polarizable(true) {};
     PolarSeg(int id, vector<APolarSite*> &psites);
     PolarSeg(PolarSeg *templ);
    ~PolarSeg();
@@ -34,6 +34,7 @@ public:
     void AddPolarNb(PolarNb *nb) { _nbs.push_back(nb); }
     void ClearPolarNbs();
     void PrintPolarNbPDB(string outfile);
+    void WriteMPS(string mpsfile, string tag="");
     
     bool IsCharged() { return _is_charged; }    
     bool IsPolarizable() { return _is_polarizable; }

@@ -634,6 +634,9 @@ if OPTIONS.sourcedirectory != '':
 if OPTIONS.mailto != "":
 	sys.stdout = open("testsuite.txt","w")
 	cprint.Disable()
+if OPTIONS.sourcedirectory != '':
+	abs_sourcedir = os.path.join(BASEDIR, TESTSOURCE)
+	rel_sourcedir = TESTSOURCE
 	if not os.path.exists(abs_sourcedir):
 		xxquit("Source directory '{src}' does not exist".format(src=abs_sourcedir))
 	
