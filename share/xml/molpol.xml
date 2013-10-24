@@ -13,7 +13,7 @@
 		</induction>
 		<target>
 			<optimize help="if 'true', refine atomic polarizabilities to match molecular polarizable volume specified in target.molpol">true</optimize>
-			<molpol help="target polarizability tensor in format xx xy xz yy yz zz, if optimize=true the associated polarizable volume will be matched iteratively and the resulting set of polar sites written to mpsfiles.output">77 0 0 77 0 77</molpol>
+			<molpol help="target polarizability tensor in format xx xy xz yy yz zz (this should be in the eigen-frame, hence xy = xz = yz = 0), if optimize=true the associated polarizable volume will be matched iteratively and the resulting set of polar sites written to mpsfiles.output">88 0 0 88 0 88</molpol>
 			<tolerance help="relative tolerance when optimizing the polarizable volume">0.00001</tolerance>
 		</target>
 	</molpol>

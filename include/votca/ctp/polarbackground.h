@@ -7,6 +7,7 @@
 #include <votca/ctp/ewaldactor.h>
 #include <votca/ctp/logger.h>
 #include <votca/ctp/qmthread.h>
+#include <votca/ctp/threadforce.h>
 
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
@@ -31,51 +32,9 @@ public:
     
     void GenerateKVectors(vector<PolarSeg*> &ps1, vector<PolarSeg*> &ps2);
     
-    // TODO Would be nicer to have as a local type in ::FP_RealSpace
-    //      (which is possible by compiling with --std=c++0x)
-    class FPThread : public QMThread
-    {
-    public:        
-        FPThread(PolarBackground *master, int id);
-       ~FPThread() { _full_bg_P.clear(); _part_bg_P.clear(); }       
-        void Run(void);        
-        void AddPolarSeg(PolarSeg *pseg) { _part_bg_P.push_back(pseg); return; }
-        double Workload() { return 100.*_part_bg_P.size()/_full_bg_P.size(); }
-        const int NotConverged() { return _not_converged_count; }
-        double AvgRco() { return _avg_R_co; }
-        void DoSetupNbs(bool do_setup) { _do_setup_nbs = do_setup; }
-    private:        
-        bool _verbose;
-        PolarBackground *_master;
-        EwdInteractor _ewdactor;
-        vector<PolarSeg*> _full_bg_P;
-        vector<PolarSeg*> _part_bg_P;
-        int _not_converged_count;
-        double _avg_R_co;
-        bool _do_setup_nbs;
-    };    
-    
-    class FUThread : public QMThread
-    {
-    public:        
-        FUThread(PolarBackground *master, int id);
-       ~FUThread() { _full_bg_P.clear(); _part_bg_P.clear(); }       
-        void Run(void);        
-        void AddPolarSeg(PolarSeg *pseg) { _part_bg_P.push_back(pseg); return; }        
-        double Workload() { return 100.*_part_bg_P.size()/_full_bg_P.size(); }
-        const int NotConverged() { return _not_converged_count; }
-        double AvgRco() { return _avg_R_co; }
-        void DoSetupNbs(bool do_setup) { _do_setup_nbs = do_setup; }
-    private:
-        bool _verbose;
-        PolarBackground *_master;
-        EwdInteractor _ewdactor;
-        vector<PolarSeg*> _full_bg_P;
-        vector<PolarSeg*> _part_bg_P;
-        int _not_converged_count;
-        double _avg_R_co;
-        bool _do_setup_nbs;
-    };
+    // TODO Would be nicer to have RThread / KThread as a local type in ...
+    //      ... but you cannot use local types as template parameters
+    //      (which is however possible by compiling with --std=c++0x)
     
     class RThread : public QMThread
     {
@@ -294,123 +253,8 @@ private:
     vector<EWD::KVector*> _kvecs_0_0;   // K-vectors with no  components = zero
     double _kxyz_s1s2_norm;
 
-};
+};    
 
-
-template
-<
-    // REQUIRED Clone()
-    // OPTIONAL 
-    typename T
->
-class PrototypeCreator
-{
-public:
-    PrototypeCreator(T *prototype=0) : _prototype(prototype) {}
-    T *Create() { return (_prototype) ? _prototype->Clone() : 0; }
-    T *getPrototype() { return _prototype; }
-    void setPrototype(T *prototype) { _prototype = prototype; }
-private:
-    T *_prototype;
-};
-
-
-template
-<
-    // REQUIRED setId(int), Start, WaitDone
-    // OPTIONAL setMode(<>), setVerbose(bool), AddAtomicInput(<>), AddSharedInput(<>)
-    typename ThreadType,
-    // REQUIRED Create
-    // OPTIONAL
-    template<typename> class CreatorType
->
-class ThreadForce : 
-    public vector<ThreadType*>, 
-    public CreatorType<ThreadType>
-{
-public:
-    typedef typename ThreadForce::iterator it_t;
-    
-    ThreadForce() {}
-   ~ThreadForce() { Disband(); }
-    
-    void Initialize(int n_threads) {
-        // Set-up threads via CreatorType policy
-        for (int t = 0; t < n_threads; ++t) {
-            ThreadType *new_thread = this->Create();
-            new_thread->setId(this->size()+1);
-            this->push_back(new_thread);
-        }
-        return;
-    }
-    
-    template<typename mode_t>
-    void AssignMode(mode_t mode) {
-        // Set mode
-        it_t tfit;
-        for (tfit = this->begin(); tfit < this->end(); ++tfit)
-           (*tfit)->setMode(mode);
-        return;
-    }
-    
-    template<class in_t>
-    void AddAtomicInput(vector<in_t> &inputs) {
-        // Apportion the vector elements equally onto all threads
-        typename vector<in_t>::iterator iit;
-        int in_idx = 0;
-        int th_idx = 0;
-        for (iit = inputs.begin(); iit != inputs.end(); ++iit, ++in_idx) {
-            int th_idx = in_idx % this->size();
-            (*this)[th_idx]->AddAtomicInput(*iit);
-        }
-        // The thread with the last input can be verbose
-        for (it_t tfit = this->begin(); tfit < this->end(); ++tfit)
-            (*tfit)->setVerbose(false);
-        (*this)[th_idx]->setVerbose(true);
-        return;
-    }
-    
-    template<class in_t>
-    void AddSharedInput(in_t &shared_input) {
-        for (it_t tfit = this->begin(); tfit < this->end(); ++tfit)
-            (*tfit)->AddSharedInput(shared_input);
-        return;
-    }
-    
-    void StartAndWait() {
-        // Start threads
-        for (it_t tfit = this->begin(); tfit < this->end(); ++tfit)
-            (*tfit)->Start();
-        // Wait for threads
-        for (it_t tfit = this->begin(); tfit < this->end(); ++tfit)
-            (*tfit)->WaitDone();
-        return;
-    }
-    
-    template<class mode_t>
-    void Reset(mode_t mode) {
-        for (it_t tfit = this->begin(); tfit < this->end(); ++tfit)
-            (*tfit)->Reset(mode);
-        return;
-    }
-    
-    void Disband() {
-        // Delete & clear
-        it_t tfit;
-        for (tfit = this->begin(); tfit < this->end(); ++tfit)
-            delete *tfit;
-        this->clear();
-        return;
-    }
-    
-private:
-    
-};
-
-
-    
-    
-}
-}}
+}}}
 
 #endif

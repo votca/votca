@@ -26,12 +26,20 @@
 		</output>
 	</test>
 	<test>
-		<name>molpol</name>
-		<description>Calculates the Thole polarizability tensor via the input mps-file</description>
+		<name>log2mps</name>
+		<description>Extracts charges from a QM log-file and exports them in mps format</description>
 		<execute>{ctp_app} -e {name} -o {name}.xml</execute>
 		<requires></requires>
 		<verify></verify>
-		<output>molpol.polar.out</output>
+		<output>input.mps</output>
+	</test>
+	<test>
+		<name>molpol</name>
+		<description>Calculates (and optimizes) the molecular polarizability tensor</description>
+		<execute>{ctp_app} -e {name} -o {name}.xml</execute>
+		<requires></requires>
+		<verify></verify>
+		<output>output.mps output.xml</output>
 	</test>
 	<test>
 		<name>einternal</name>
@@ -42,7 +50,7 @@
 		<output>extract.energy.xml</output>
 	</test>
 	<test>
-		<name>emultipole</name>
+		<name>zmultipole</name>
 		<description>Computes electrostatic and induction contributions</description>
 		<execute>{ctp_run} -e {name} -o {name}.xml -f {sql} -t {nthreads}</execute> 
 		<requires>einternal</requires>
@@ -50,7 +58,7 @@
 		<output>extract.energy.xml</output>
 	</test>
 	<test>
-		<name>zmultipole</name>
+		<name>emultipole</name>
 		<description>Computes electrostatic and induction contributions</description>
 		<execute>{ctp_run} -e {name} -o {name}.xml -f {sql} -t {nthreads}</execute> 
 		<requires>einternal</requires>

@@ -1082,10 +1082,10 @@ vector<PolarSite*> EMultipole::ParseGdmaFile(string filename, int state) {
         }
     }
     
-    cout << endl << endl
-         << "WARNING '" << filename << "': EMultipole does not support "
+    cout << endl
+         << "WARNING: '" << filename << "': EMultipole does not support "
          << "tensorial polarizabilities, use zmultipole instead." 
-         << endl;
+         << flush;
 
     return poles;
 }

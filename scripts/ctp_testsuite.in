@@ -390,6 +390,7 @@ class Comparator(object):
 		if not os.path.exists(reference_dir):
 			xxquit("No such reference directory: '{0}'".format(reference_dir))
 		target_items = os.listdir(target_dir)
+		target_items.sort()
 		reference_items = os.listdir(reference_dir)
 		none_different = True
 		for item in target_items:
