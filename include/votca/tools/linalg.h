@@ -36,6 +36,26 @@ namespace votca { namespace tools {
      * This function wraps the inversion of a matrix
      */
     void linalg_invert( ub::matrix<double> &A, ub::matrix<double> &V );
+ 
+   /**
+     * \brief transposes A
+     * @param A symmetric positive definite matrix
+     * @param V transposed matrix
+     *
+     * This function wraps the inversion of a matrix
+     */
+    void linalg_transpose( ub::matrix<double> &A, ub::matrix<double> &V );
+    
+     
+   /**
+     * \brief transposes A
+     * @param A symmetric positive definite matrix, transposed on output
+     *
+     * This function wraps the inversion of a matrix
+     */
+    void linalg_transpose( ub::matrix<double> &A );
+    
+    
     
     /**
      * \brief determines Cholesky decomposition of matrix A

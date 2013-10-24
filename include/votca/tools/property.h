@@ -323,10 +323,6 @@ inline void throwRuntimeError(string message) {
     
 }
 
-    static void PrintNodeTXT(std::ostream &out, Property &p, const int start_level, int level=0, string prefix="", string offset="");
-    static void PrintNodeXML(std::ostream &out, Property &p, const int start_level, int level=0, string prefix="", string offset="");
-    static void PrintNodeTEX(std::ostream &out, Property &p, const int start_level, int level=0, string prefix="", string offset="");
-    static void PrintNodeHLP(std::ostream &out, Property &p, const int start_level, int level=0, string prefix="",  string offset="");    
 
 
 }}

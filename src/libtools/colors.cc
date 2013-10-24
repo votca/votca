@@ -15,13 +15,11 @@
  *
  */
 
-#include <votca/tools/propertyiomanipulator.h>
+#include <votca/tools/colors.h>
 
 namespace votca { namespace tools {
 
-PropertyIOManipulator XML(PropertyIOManipulator::XML);
-PropertyIOManipulator TXT(PropertyIOManipulator::TXT);
-PropertyIOManipulator TEX(PropertyIOManipulator::TEX);
-PropertyIOManipulator HLP(PropertyIOManipulator::HLP);
+Color<csDefault> DEFAULT_COLORS;
 
 }}
+

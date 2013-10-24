@@ -63,6 +63,55 @@ void linalg_invert( ub::matrix<double> &A, ub::matrix<double> &V){
 #endif   
 }
 
+
+void linalg_transpose( ub::matrix<double> &A, ub::matrix<double> &V){
+    
+#ifdef NOGSL
+    throw std::runtime_error("linalg_invert is not compiled-in due to disabling of GSL - recompile Votca Tools with GSL support");
+#else
+        // matrix transposition using gsl
+        gsl_error_handler_t *handler = gsl_set_error_handler_off();
+	const size_t N = A.size1();
+	const size_t M = A.size2();
+        V.resize(M, N, false);
+	// Define all the used matrices
+        gsl_matrix_view A_view = gsl_matrix_view_array(&A(0,0), N, M);
+        gsl_matrix_view V_view = gsl_matrix_view_array(&V(0,0), M, N);
+
+        int status = gsl_matrix_transpose_memcpy (&V_view.matrix, &A_view.matrix);
+
+        gsl_set_error_handler(handler);
+        
+	// return (status != 0);
+    
+#endif   
+}
+
+void linalg_transpose( ub::matrix<double> &A){
+    
+#ifdef NOGSL
+    throw std::runtime_error("linalg_transpose is not compiled-in due to disabling of GSL - recompile Votca Tools with GSL support");
+#else
+        // matrix transposition using gsl
+        // after inversion, original matrix is overwritten!
+        gsl_error_handler_t *handler = gsl_set_error_handler_off();
+	const size_t N = A.size1();
+	// Define all the used matrices
+        gsl_matrix_view A_view = gsl_matrix_view_array(&A(0,0), N, N);
+
+        // this only works on square matrices
+
+        int status = gsl_matrix_transpose(&A_view.matrix);
+
+        gsl_set_error_handler(handler);
+        
+	// return (status != 0);
+    
+#endif   
+}
+
+
+
 void linalg_cholesky_decompose( ub::matrix<double> &A){
     
 #ifdef NOGSL
