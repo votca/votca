@@ -37,7 +37,7 @@ void XYZWriter::Close()
 void XYZWriter::Write(Topology *conf)
 {
     Topology *top = conf;
-    fprintf(_out, "%d\n", top->Beads().size());
+    fprintf(_out, "%d\n", (int)top->Beads().size());
     fprintf(_out, "frame: %d time: %f\n", top->getStep()+1, top->getTime());
 
     for(BeadContainer::iterator iter=conf->Beads().begin();
