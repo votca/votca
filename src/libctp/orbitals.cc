@@ -71,6 +71,13 @@ Orbitals::Orbitals() {
     _has_qm_energy = false;
     _has_self_energy = false;
     _has_qm_package = false;
+    
+    // GW-BSE
+    _has_vxc = false;
+    _has_QPpert = false;
+    _has_QPdiag = false;
+    _has_BSE_singlets = false;
+    _has_BSE_triplets = false;    
             
 };   
 

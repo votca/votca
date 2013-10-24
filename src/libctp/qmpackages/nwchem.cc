@@ -696,7 +696,10 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
                 // second line gives the j index in the matrix
                 getline(_input_file, _line); 
                 boost::tokenizer<> tok( _line );
+                
+                /// COMPILATION IS BROKEN DUE TO A BUG IN BOOST 1.53
                 std::transform( tok.begin(), tok.end(), std::back_inserter( _j_indeces ), &boost::lexical_cast<int,std::string> );
+
                 // third line is garbage again
                 getline(_input_file, _line);
 

@@ -1,6 +1,6 @@
 <options>
 
-<ianalyze help="Evaluates a histogram of a logarithm of squared couplings" label="calc:ianalyze">
+<ianalyze help="Evaluates a histogram of a logarithm of squared couplings" section="sec:ianalyze">
 	<resolution_logJ2 help="Bin size of histogram log(J2)">0.5</resolution_logJ2>
 	<states help="States for which to calculate the histogram. Example: 1 -1">+1 -1</states>
 </ianalyze>
