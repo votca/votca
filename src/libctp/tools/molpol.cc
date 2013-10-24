@@ -1,76 +1,168 @@
 #include "molpol.h"
+#include <votca/ctp/polartop.h>
 
 namespace votca { namespace ctp {
     
 void MolPolTool::Initialize(Property *options) {
 
-    // ===================== //
-    // LOAD OPTIONS FROM XML //
-    // ===================== //
-
-    string key = "options.molpol";
+    string key = "options.molpol.";
 
     // MPS INPUT / OUTPUT    
-    if (options->exists(key+".mps_input")) {
-        _mps_input = options->get(key+".mps_input").as<string>();
+    if (options->exists(key+"mpsfiles.input")) {
+        _mps_input = options->get(key+"mpsfiles.input").as<string>();
     }
     else {
         throw std::runtime_error("No .mps input specified in options.");
     }
-    if (options->exists(key+".mps_output")) {
-        _mps_output = options->get(key+".mps_output").as<string>();
+    if (options->exists(key+"mpsfiles.output")) {
+        _mps_output = options->get(key+"mpsfiles.output").as<string>();
     }
     else {
         throw std::runtime_error("No .mps output specified in options.");
     }
-    if (options->exists(key+".pol_output")) {
-        _pol_output = options->get(key+".pol_output").as<string>();
+    if (options->exists(key+"mpsfiles.polar")) {
+        _pol_output = options->get(key+"mpsfiles.polar").as<string>();
     }
     else {
-        _pol_output = "";
+        _pol_output = "molpol." + _mps_output + ".xml";
     }
 
-    // THOLE PARAMETERS
-    if ( options->exists(key+".expdamp") ) {
-        _aDamp = options->get(key+".expdamp").as< double >();
+    // THOLE & INDUCTION CONVERGENCE PARAMETERS
+    if ( options->exists(key+"induction.expdamp") ) {
+        _aDamp = options->get(key+"induction.expdamp").as< double >();
     }
     else {
         _aDamp = 0.390;
     }
-
-    // CONVERGENCE PARAMETERS
-    if ( options->exists(key+".wSOR") ) {
-        _wSOR = options->get(key+".wSOR").as< float >();
+    if ( options->exists(key+"induction.wSOR") ) {
+        _wSOR = options->get(key+"induction.wSOR").as< float >();
     }
     else { _wSOR = 0.25; }
 
-    if ( options->exists(key+".maxiter") ) {
-        _maxIter = options->get(key+".maxiter").as< int >();
+    if ( options->exists(key+"induction.maxiter") ) {
+        _maxIter = options->get(key+"induction.maxiter").as< int >();
     }
     else { _maxIter = 1024; }
 
-    if ( options->exists(key+".tolerance") ) {
-        _epsTol = options->get(key+".tolerance").as< double >();
+    if ( options->exists(key+"induction.tolerance") ) {
+        _epsTol = options->get(key+"induction.tolerance").as< double >();
     }
     else { _epsTol = 0.001; }
+    
+    // TARGET MOLECULAR POLARIZABILITY
+    if (options->exists(key+"target.molpol")) {
+        vector<double> u = options->get(key+"target.molpol").as< vector<double> >();
+        if (u.size() != 6) {
+            cout << endl << "... ... ERROR <options.molpol.target_molpol> "
+                " should have this format: pxx pxy pxz pyy pyz pzz" << endl;
+            throw std::runtime_error("(input error, see above)");
+        }
+        double A3_to_nm3 = 0.001;        
+        _target = A3_to_nm3 * matrix(vec(u[0],u[1],u[2]),
+                                     vec(u[1],u[3],u[4]),
+                                     vec(u[2],u[4],u[5]));
+    }
+    if (options->exists(key+"target.optimize")) {
+        _do_optimize = options->get(key+"target.optimize").as<bool>();
+    }
+    else {
+        _do_optimize = false;
+    }
+    if (options->exists(key+"target.tolerance")) {
+        _tolerance = options->get(key+"target.tolerance").as<double>();
+    }
+    else {
+        _tolerance = 1e-3;
+    }
 }
 
 
 bool MolPolTool::Evaluate() {
-
-    cout << endl << "... ... Started molpol" << flush;
     
     // Load polar sites
+    cout << endl << "... ... Start molpol - load polar sites" << flush;
     vector<APolarSite*> poles = APS_FROM_MPS(_mps_input, 0);
-
-    // Calculate polarizability tensor
-    matrix pmol = this->CalculateMolPol(poles, true);
-    pmol *= 1000.0;
-
-    // Output to screen
-    printf("\nPxx Pxy Pxz %+4.7f %+4.7f %+4.7f ", pmol.get(0,0), pmol.get(0,1), pmol.get(0,2));
-    printf("\nPyx Pyy Pyz %+4.7f %+4.7f %+4.7f ", pmol.get(1,0), pmol.get(1,1), pmol.get(1,2));
-    printf("\nPzx Pzy Pzz %+4.7f %+4.7f %+4.7f ", pmol.get(2,0), pmol.get(2,1), pmol.get(2,2));
+    PolarSeg pseg_input = PolarSeg(1, poles);
+    PolarSeg *pseg_output = 0;
+    
+    if (!_do_optimize) {
+        // Output only
+        pseg_input.WriteMPS(_mps_output, "MOLPOL (UNSCALED)");
+        matrix pmol = CalculateMolPol(pseg_input, true);
+    }
+    
+    else {        
+        
+        double scale = 1.0;
+        double omega = 1.0;
+        
+        bool converged = false;
+        int loop_count = 0;
+        int max_iter = 1024;
+        while (true) {
+            
+            PolarSeg pseg_inter = PolarSeg(&pseg_input);
+            
+            if (tools::globals::verbose)
+                cout << endl << "Relative scale s = " << scale << flush;
+            for (PolarSeg::iterator pit = pseg_inter.begin();
+                    pit < pseg_inter.end(); ++pit) {
+                (*pit)->Pxx = omega*(*pit)->Pxx*scale + (1-omega)*(*pit)->Pxx;
+                (*pit)->Pxy = omega*(*pit)->Pxy*scale + (1-omega)*(*pit)->Pxy;
+                (*pit)->Pxz = omega*(*pit)->Pxz*scale + (1-omega)*(*pit)->Pxz;
+                (*pit)->Pyy = omega*(*pit)->Pyy*scale + (1-omega)*(*pit)->Pyy;
+                (*pit)->Pyz = omega*(*pit)->Pyz*scale + (1-omega)*(*pit)->Pyz;
+                (*pit)->Pzz = omega*(*pit)->Pzz*scale + (1-omega)*(*pit)->Pzz;
+            }
+            
+            // Polarizability tensor "inter"
+            matrix p_inter = this->CalculateMolPol(pseg_inter, false);
+            // ... Eigen frame
+            matrix::eigensystem_t eig_inter;
+            p_inter.SolveEigensystem(eig_inter);
+            double eig_inter_x = eig_inter.eigenvalues[0];
+            double eig_inter_y = eig_inter.eigenvalues[1];
+            double eig_inter_z = eig_inter.eigenvalues[2];
+            // ... Polarizable volume
+            double pvol_inter = 1000*
+                pow(eig_inter_x*eig_inter_y*eig_inter_z,1./3.);
+            
+            // Polarizability tensor "target"
+            matrix p_target = _target;
+            // ... Eigen frame
+            matrix::eigensystem_t eig_target;
+            p_target.SolveEigensystem(eig_target);
+            double eig_target_x = eig_target.eigenvalues[0];
+            double eig_target_y = eig_target.eigenvalues[1];
+            double eig_target_z = eig_target.eigenvalues[2];
+            // ... Polarizable volume
+            double pvol_target = 1000*
+                pow(eig_target_x*eig_target_y*eig_target_z,1./3.);
+            
+            // Adjust scaling parameter
+            scale *= pow(pvol_target/pvol_inter,2);
+            
+            // Convergence test
+            loop_count += 1;
+            if (std::abs(1-pvol_target/pvol_inter) < _tolerance) {
+                cout << endl << "... ... Iterative refinement : *CONVERGED*" << flush;
+                converged = true;
+                pseg_output = new PolarSeg(&pseg_inter);
+                break;
+            }
+            if (loop_count > max_iter) {
+                cout << endl << "... ... Iterative refinement : *FAILED*";
+                break;
+            }
+        }
+        
+        // Output
+        pseg_output->WriteMPS(_mps_output, "MOLPOL (OPTIMIZED)");
+        matrix pmol = CalculateMolPol(*pseg_output, true);
+    }
+    
+    delete pseg_output;
+    pseg_output = 0;
     
     return true;
 }
@@ -232,27 +324,24 @@ matrix MolPolTool::CalculateMolPol(vector<APolarSite*> &poles, bool verbose) {
 
     
     if (verbose) {
-
-        printf("\n\n");
-        printf("CONVERGED IN X %4d  Y %4d  Z %4d", iter_x, iter_y, iter_z);
-        printf("\n\n");
         
-        printf("SUM ATOMIC POLAR XX YY ZZ  (input frame)     "
-                "%3.3f %3.3f %3.3f A3\n",
+        if (tools::globals::verbose) {
+            printf("\n\n");
+            printf("CONVERGED IN X %4d  Y %4d  Z %4d", iter_x, iter_y, iter_z);
+            printf("\n\n");
+        }
+        
+        printf("\n\nSummary mps='%s'\n", _mps_output.c_str());
+        printf("  o atomic polarizabilities, xx yy zz (sum, input frame)    "
+                "%+1.3e %+1.3e %+1.3e A**3\n",
                 SUM_alpha_x,
                 SUM_alpha_y,
                 SUM_alpha_z);
-        printf("SUM ATOMIC POLAR 1/3 TRACE                   "
-                "%3.3f A3\n",
-                SUM_alpha_iso);
-        printf("MOLECULAR  POLAR XX YY ZZ  (eigen frame)     "
-                "%3.3f %3.3f %3.3f A3\n",
+        printf("  o molecular polarizability xx yy zz (scf, eigen frame)    "
+                "%+1.3e %+1.3e %+1.3e A**3\n",
                 EIGEN.eigenvalues[0]*NM3_2_A3,
                 EIGEN.eigenvalues[1]*NM3_2_A3,
                 EIGEN.eigenvalues[2]*NM3_2_A3);
-        printf("MOLECULAR  POLAR 1/3 TRACE                   "
-                "%3.3f A3", ISO_alpha);
-        printf("\n");
 
         double eigx = EIGEN.eigenvalues[0];
         double eigy = EIGEN.eigenvalues[1];
@@ -260,21 +349,18 @@ matrix MolPolTool::CalculateMolPol(vector<APolarSite*> &poles, bool verbose) {
         double min_eig =  (eigx < eigy) ?
                          ((eigx < eigz) ? eigx : eigz)
                        : ((eigy < eigz) ? eigy : eigz);
-        printf("ANISOTROPY POLAR XX YY ZZ  (eigen frame)     "
+        printf("  o molecular anisotropy xx:yy:zz     (scf, eigen frame)    "
                 "%2.2f : %2.2f : %2.2f\n",
                 eigx/min_eig,
                 eigy/min_eig,
                 eigz/min_eig);
-        printf("POLARIZABLE VOLUME (without 4PI/3)           "
+        printf("  o polarizable volume (w/o 4PI/3)    (scf, eigen frame)    "
                 "%3.3f A3\n", pow(eigx*eigy*eigz,1./3.)*NM3_2_A3);
-        printf("UPPER %4.7f %4.7f %4.7f %4.7f %4.7f %4.7f\n",
+        printf("  o upper polarizability tensor       (scf, input frame)    "
+                "%+1.3e %+1.3e %+1.3e %+1.3e %+1.3e %+1.3e\n",
                axx*NM3_2_A3, axy*NM3_2_A3, axz*NM3_2_A3,
                              ayy*NM3_2_A3, ayz*NM3_2_A3,
                                            azz*NM3_2_A3);
-        printf("\n");
-
-
-        
     }
 
     if (verbose && _pol_output != "") {
@@ -286,22 +372,23 @@ matrix MolPolTool::CalculateMolPol(vector<APolarSite*> &poles, bool verbose) {
         vec y = EIGEN.eigenvecs[1];
         vec z = EIGEN.eigenvecs[2];
 
-
-        fprintf(out, "Polarizability tensor in global frame \n");
-        fprintf(out, "%4.7f  %4.7f  %4.7f \n", axx*NM3_2_A3, axy*NM3_2_A3, axz*NM3_2_A3);
-        fprintf(out, "%4.7f  %4.7f  %4.7f \n", ayx*NM3_2_A3, ayy*NM3_2_A3, ayz*NM3_2_A3);
-        fprintf(out, "%4.7f  %4.7f  %4.7f \n", azx*NM3_2_A3, azy*NM3_2_A3, azz*NM3_2_A3);
-        fprintf(out, "\n");
-        fprintf(out, "Polarizability tensor in eigenframe \n");
-        fprintf(out, "%4.7f  %4.7f  %4.7f \n", EIGEN.eigenvalues[0]*NM3_2_A3,0.,0.);
-        fprintf(out, "%4.7f  %4.7f  %4.7f \n", 0.,EIGEN.eigenvalues[1]*NM3_2_A3,0.);
-        fprintf(out, "%4.7f  %4.7f  %4.7f \n", 0.,0.,EIGEN.eigenvalues[2]*NM3_2_A3);
-        fprintf(out, "\n");
-        fprintf(out, "Polarizability tensor main axes \n");
-        fprintf(out, "%4.7f  %4.7f  %4.7f \n", x.getX(),x.getY(),x.getZ());
-        fprintf(out, "%4.7f  %4.7f  %4.7f \n", y.getX(),y.getY(),y.getZ());
-        fprintf(out, "%4.7f  %4.7f  %4.7f \n", z.getX(),z.getY(),z.getZ());
-
+        fprintf(out, "<polarizability mps='%s'>\n", _mps_output.c_str());
+        fprintf(out, "\t<polartensor type='scf' frame='global'>\n");
+        fprintf(out, "\t\t%+1.7e  %+1.7e  %+1.7e\n", axx*NM3_2_A3, axy*NM3_2_A3, axz*NM3_2_A3);
+        fprintf(out, "\t\t%+1.7e  %+1.7e  %+1.7e\n", ayx*NM3_2_A3, ayy*NM3_2_A3, ayz*NM3_2_A3);
+        fprintf(out, "\t\t%+1.7e  %+1.7e  %+1.7e\n", azx*NM3_2_A3, azy*NM3_2_A3, azz*NM3_2_A3);
+        fprintf(out, "\t</polartensor>\n");
+        fprintf(out, "\t<polartensor type='scf' frame='eigen'>\n");
+        fprintf(out, "\t\t%+1.7e  %+1.7e  %+1.7e \n", EIGEN.eigenvalues[0]*NM3_2_A3,0.,0.);
+        fprintf(out, "\t\t%+1.7e  %+1.7e  %+1.7e \n", 0.,EIGEN.eigenvalues[1]*NM3_2_A3,0.);
+        fprintf(out, "\t\t%+1.7e  %+1.7e  %+1.7e \n", 0.,0.,EIGEN.eigenvalues[2]*NM3_2_A3);
+        fprintf(out, "\t</polartensor>\n");
+        fprintf(out, "\t<principalaxes>\n");
+        fprintf(out, "\t\t%+1.7e  %+1.7e  %+1.7e \n", x.getX(),x.getY(),x.getZ());
+        fprintf(out, "\t\t%+1.7e  %+1.7e  %+1.7e \n", y.getX(),y.getY(),y.getZ());
+        fprintf(out, "\t\t%+1.7e  %+1.7e  %+1.7e \n", z.getX(),z.getY(),z.getZ());
+        fprintf(out, "\t</principalaxes>\n");
+        fprintf(out, "</polarizability>");
     }
 
     return alpha;

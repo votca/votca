@@ -605,6 +605,48 @@ void APolarSite::WriteChkLine(FILE *out, vec &shift, bool split_dpl,
 }
 
 
+void APolarSite::WriteMpsLine(std::ostream &out, string unit = "angstrom") {
+    
+    // Set conversion factor for higher-rank moments (e*nm**k to e*a0**k)
+    double conv_dpl = 1./0.0529189379;
+    double conv_qdr = conv_dpl*conv_dpl;
+    // Set conversion factor for polarizabilities (nm**3 to A**3)
+    double conv_pol = 1000;    
+    // Set conversion factor for positions (nm to ??)
+    double conv_pos = 1.;
+    if (unit == "angstrom") {
+        conv_pos = 10.;
+    }
+    else if (unit == "nanometer") {
+        conv_pos = 1.;
+    }
+    else assert(false); // Units error
+    
+    out << (boost::format(" %1$2s %2$+1.7f %3$+1.7f %4$+1.7f Rank %5$d\n") 
+            % _name % (_pos.getX()*conv_pos)
+            % (_pos.getY()*conv_pos) % (_pos.getZ()*conv_pos)
+            % _rank);
+    // Charged
+    out << (boost::format("    %1$+1.7f\n") % Q00);
+    if (_rank > 0) {
+        // Dipole z x y
+        out << (boost::format("    %1$+1.7f %2$+1.7f %3$+1.7f\n") 
+            % (Q1z*conv_dpl) % (Q1x*conv_dpl) % (Q1y*conv_dpl));
+        if (_rank > 1) {
+            // Quadrupole 20 21c 21s 22c 22s
+            out << (boost::format("    %1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f %5$+1.7f\n") 
+                % (Q20*conv_qdr) % (Q21c*conv_qdr) % (Q21s*conv_qdr) 
+                % (Q22c*conv_qdr) % (Q22s*conv_qdr));
+        }
+    }
+    // Polarizability
+    out << (boost::format("     P %1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f %5$+1.7f %6$+1.7f \n") 
+        % (Pxx*conv_pol) % (Pxy*conv_pol) % (Pxz*conv_pol) 
+        % (Pyy*conv_pol) % (Pyz*conv_pol) % (Pzz*conv_pol));
+    
+}
+
+
 vector<APolarSite*> APS_FROM_MPS(string filename, int state, QMThread *thread) {
 
     int poleCount = 1;

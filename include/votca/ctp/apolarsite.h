@@ -128,6 +128,7 @@ public:
     void            WriteChkLine(FILE *, vec &, bool, string, double);
     void            WriteXyzLine(FILE *, vec &, string);
     void            WritePdbLine(FILE *out, const string &tag = "");
+    void            WriteMpsLine(std::ostream &out, string unit);
 
     vector<APolarSite*> CreateFrom_MPS(string filename, int state) { 
         vector<APolarSite*> a; return a; 

@@ -34,6 +34,7 @@ public:
     void AddPolarNb(PolarNb *nb) { _nbs.push_back(nb); }
     void ClearPolarNbs();
     void PrintPolarNbPDB(string outfile);
+    void WriteMPS(string mpsfile, string tag="");
     
     bool IsCharged() { return _is_charged; }    
     bool IsPolarizable() { return _is_polarizable; }
