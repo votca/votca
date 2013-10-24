@@ -14,13 +14,9 @@ First, \slink{segments}{hopping sites} and a \slink{neighborlist}{neighbor list}
 %
 \begin{enumerate}
 \item Creation of a job file containing the list of molecules to be caclculated with DFT 
-\begin{bclogo}[couleur=bgblue, arrondi =0 , logo=\votcalogo, barre=line,noborder=true]{\small Writing job file for \calc{edft}}
-\itshape {\small \ctpparallel \opt \xmloptions \sql \sqlstate \exe \calc{edft} \job \wrt }
-\end{bclogo}
+\votcacommand{Writing job file for \calc{edft}}{\ctpparallel \opt \xmloptions \sql \sqlstate \exe \calc{edft} \job \wrt }
 \item Running of all jobs in job file 
-\begin{bclogo}[couleur=bgblue, arrondi =0 , logo=\votcalogo, barre=line,noborder=true]{\small Running all \calc{edft} jobs}
-\itshape {\small \ctpparallel \opt \xmloptions \sql \sqlstate \exe \calc{edft} \job \run }
-\end{bclogo}
+\votcacommand{Running all \calc{edft} jobs}{\ctpparallel \opt \xmloptions \sql \sqlstate \exe \calc{edft} \job \run }
 which includes
 \begin{itemize}
 \item creating the input files for the DFT calculation (using the package specified in \xmloptions) in the directory 
@@ -42,13 +38,9 @@ where {\tt F} is the index of the frame in the trajectory, {\tt M} is the index 
 After the momomer calculations have been completed successfully, the respective runs for dimers from the neighborlist can be performed using the parallel \calc{idft} \calculator, which manages the DFT runs for the hopping pairs and determines the coupling element using \dipro. Again, several steps are required:
 \begin{enumerate}
 \item Creation of a job file containing the list of pairs to be caclculated with DFT 
-\begin{bclogo}[couleur=bgblue, arrondi =0 , logo=\votcalogo, barre=line,noborder=true]{\small Writing job file for \calc{idft}}
-\itshape {\small \ctpparallel \opt \xmloptions \sql \sqlstate \exe \calc{idft} \job \wrt }
-\end{bclogo}
+\votcacommand{Writing job file for \calc{idft}}{\ctpparallel \opt \xmloptions \sql \sqlstate \exe \calc{idft} \job \wrt }
 \item Running of all jobs in job file 
-\begin{bclogo}[couleur=bgblue, arrondi =0 , logo=\votcalogo, barre=line,noborder=true]{\small Running all \calc{idft} jobs}
-\itshape {\small \ctpparallel \opt \xmloptions \sql \sqlstate \exe \calc{edft} \job \run }
-\end{bclogo}
+\votcacommand{Running all \calc{idft} jobs}{\ctpparallel \opt \xmloptions \sql \sqlstate \exe \calc{idft} \job \run }
 which includes
 \begin{itemize}
 \item creating the input files (including the merged guess for a noSCF calculation, if requested) for the DFT calculation (using the package specified in \xmloptions) in the directory 
@@ -65,9 +57,7 @@ where {\tt M} and {\tt N} are the indices of the molecules in this pair,
 \item calculating the coupling elements and write them to the job file
 \end{itemize}
 \item Reading the coupling elements from the job file and saving them to the \sqlstate file
-\begin{bclogo}[couleur=bgblue, arrondi =0 , logo=\votcalogo, barre=line,noborder=true]{\small Saving \calc{idft} results from job file to \sqlstate}
-\itshape {\small \ctpparallel \opt \xmloptions \sql \sqlstate \exe \calc{idft} \job \rd }
-\end{bclogo}
+\votcacommand{Saving \calc{idft} results from job file to \sqlstate}{\ctpparallel \opt \xmloptions \sql \sqlstate \exe \calc{idft} \job \rd }
 \end{enumerate}
 
 
