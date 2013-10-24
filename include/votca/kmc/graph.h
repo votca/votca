@@ -213,6 +213,27 @@ void Graph::Load_graph_static_event_info(string filename) {
     stmt = NULL;
 }
 
+void Graph::Create_cubic_graph_nodes(int NX, int NY, int NZ, double lattice_constant) {
+    
+    int node_index = 0;
+    
+    for(int ix=0; ix<NX; ix++) {
+        for(int iy=0; iy<NY; iy++) {
+            for(int iz=0; iz<NZ; iz++) {
+                Node *newNode = new Node();
+                nodes.push_back(newNode);
+
+                nodes[node_index]->node_ID = node_index;
+
+                myvec nodeposition = myvec(ix*lattice_constant,iy*lattice_constant,iz*lattice_constant);
+                nodes[node_index]->node_position = nodeposition;
+                
+                node_index++;    
+            }
+        }
+    }
+}
+
 
 
 
