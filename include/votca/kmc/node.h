@@ -20,7 +20,7 @@
 
 #include <vector>
 #include <votca/tools/vec.h>
-#include "carrier.h"
+#include <votca/kmc/carrier.h>
 
 typedef votca::tools::vec myvec;
 
@@ -35,6 +35,8 @@ public:
 
     void setPair(Node* pairing_node) {pairing_nodes.push_back(pairing_node);}
     void setStaticeventinfo(Node* pairnode, myvec dr, double rate12e, double rate12h, double Jeff2e, double Jeff2h, double reorg_oute, double reorg_outh);    
+
+    void removePair(int pairing_node_index);
     
     struct Static_event_info {
         Node* pairnode;
@@ -67,6 +69,8 @@ public:
         
     double static_electron_node_energy;
     double static_hole_node_energy;
+    
+    double self_image_potential;
 
     
 };
@@ -81,7 +85,13 @@ void Node::setStaticeventinfo(Node* pairnode, myvec dr, double rate12e, double r
     newStatic.Jeff2h = Jeff2h;
     newStatic.reorg_oute = reorg_oute;
     newStatic.reorg_outh = reorg_outh;
-}       
+    static_event_info.push_back(newStatic);
+}
+
+void Node::removePair(int pairing_node_index) {
+    pairing_nodes.erase(pairing_nodes.begin()+pairing_node_index);
+    static_event_info.erase(static_event_info.begin()+pairing_node_index);
+}
         
 }} 
 
