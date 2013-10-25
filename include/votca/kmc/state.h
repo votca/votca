@@ -48,6 +48,8 @@ public:
     
     vector<Carrier*> carriers; //Carriers which are either in the simulation box or in the reservoir (as defined by the in_sim_box vector)
     vector<int> carrier_reservoir;
+    vector<Carrier*> electrons; //change
+    vector<Carrier*> holes; //change
     
     string SQL_state_filename;
 
@@ -67,11 +69,9 @@ void State::Save(string SQL_state_filename){
     db.Open( SQL_state_filename );
     db.BeginTransaction();       
 
-    int carrier_ID = 0;
-    
     votca::tools::Statement *stmt;
     stmt = db.Prepare( "INSERT INTO carriers ("
-                            "carrier_id,    node_id,  distanceX,  "
+                            "node_id, carrier_type,  distanceX,  "
                             "distanceY, distanceZ)"
                             "VALUES ("
                             "?,     ?,     ?,"
@@ -79,16 +79,15 @@ void State::Save(string SQL_state_filename){
     
     for(int carrier_nr = 0;carrier_nr<carriers.size();carrier_nr++) {
         if (In_sim_box(carrier_nr)) {
-            stmt->Bind(1, carrier_ID);
-            stmt->Bind(2, carriers[carrier_nr]->carrier_node->node_ID);
+            stmt->Bind(1, carriers[carrier_nr]->carrier_node_ID);
             int carrier_type;
             if(carriers[carrier_nr]->carrier_type = Electron) {carrier_type = 0;}
             if(carriers[carrier_nr]->carrier_type = Hole) {carrier_type = 1;}
-            stmt->Bind(3, carrier_type);
+            stmt->Bind(2, carrier_type);
             myvec carrier_distance = carriers[carrier_nr]->carrier_distance;
-            stmt->Bind(4, carrier_distance.x());
-            stmt->Bind(5, carrier_distance.y()); 
-            stmt->Bind(6, carrier_distance.z());
+            stmt->Bind(3, carrier_distance.x());
+            stmt->Bind(4, carrier_distance.y()); 
+            stmt->Bind(5, carrier_distance.z());
             stmt->InsertStep();
             stmt->Reset();
         }        
@@ -106,25 +105,21 @@ void State::Load(string SQL_state_filename){
     db.Open( SQL_state_filename );
     
     votca::tools::Statement *stmt; 
-    stmt = db.Prepare("SELECT carrier_id, node_id, distanceX, distanceY, distanceZ FROM carriers;");
+    stmt = db.Prepare("SELECT node_id, carrier_type, distanceX, distanceY, distanceZ FROM carriers;");
     
     while (stmt->Step() != SQLITE_DONE)
-    {        
+    {   
         int carrier_nr = Buy();
-
-        int carrier_ID = stmt->Column<int>(0);
-        int node_ID = stmt->Column<int>(1);
-        int carrier_type = stmt->Column<int>(2);
-        double distancex = stmt->Column<double>(3);
-        double distancey = stmt->Column<double>(4);
-        double distancez = stmt->Column<double>(5);
-        myvec carrier_distance = myvec(distancex,distancey,distancez);
-        
-        carriers[carrier_nr]->carrier_ID = carrier_ID;
-        carriers[carrier_nr]->carrier_node = graph->nodes[node_ID];
-        carriers[carrier_nr]->carrier_distance = carrier_distance;
-        if(carrier_type = 0) {carriers[carrier_nr]->carrier_type = Electron;}
-        if(carrier_type = 1) {carriers[carrier_nr]->carrier_type = Hole;}
+        int node_ID = stmt->Column<int>(0);
+        carriers[carrier_nr]->carrier_node_ID  = node_ID;
+        int carrier_type = stmt->Column<int>(1);
+        if(carrier_type == 0) { carriers[carrier_nr]->carrier_type = Electron;}
+        if(carrier_type == 1) { carriers[carrier_nr]->carrier_type = Hole;}
+        graph->nodes[node_ID]->carriers_on_node.push_back(carriers[carrier_nr]);
+        double distancex = stmt->Column<double>(2);
+        double distancey = stmt->Column<double>(3);
+        double distancez = stmt->Column<double>(4);
+        carriers[carrier_nr]->carrier_distance = myvec(distancex,distancey,distancez);
     }
     delete stmt;
     stmt = NULL;    
@@ -152,8 +147,13 @@ void State::Grow(unsigned int nr_carriers) {
     unsigned int new_nr_carriers = carriers.size() + nr_carriers;
     carriers.resize(new_nr_carriers);
     for (unsigned int i=carriers.size(); i<new_nr_carriers; i++) {
+    
+        Carrier *newCarrier = new Carrier();
+        carriers.push_back(newCarrier);
+        
         carrier_reservoir.push_back(i);
-        carriers[i]->is_in_sim_box = false;
+        newCarrier->is_in_sim_box = false;
+        newCarrier->carrier_ID = i;
     }
   
 }

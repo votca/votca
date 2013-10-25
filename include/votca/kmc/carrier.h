@@ -19,7 +19,6 @@
 #define __VOTCA_KMC_CARRIER_H_
 
 #include <votca/tools/vec.h>
-#include <votca/kmc/node.h>
 
 typedef votca::tools::vec myvec;
 
@@ -30,10 +29,11 @@ using namespace std;
 enum CarrierType{ Electron, Hole};
 
 class Carrier {
+
 public:
     
     CarrierType carrier_type;
-    Node* carrier_node;
+    int carrier_node_ID;
     int carrier_ID;
     bool is_in_sim_box;
     myvec carrier_distance;

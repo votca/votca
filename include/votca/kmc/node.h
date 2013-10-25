@@ -28,6 +28,7 @@ namespace votca { namespace kmc {
   
 using namespace std;
 
+enum NodeType{Normal, LeftElectrode, RightElectrode};
 
 class Node {
     
@@ -50,10 +51,12 @@ public:
     };     
 
     int node_ID;
+    NodeType node_type;
     myvec node_position;
     vector<Node*> pairing_nodes;
     vector<Static_event_info> static_event_info;
- 
+    vector<Carrier*> carriers_on_node;
+    
     //static energies
     double reorg_intorig_hole;
     double reorg_intorig_electron;

@@ -21,7 +21,7 @@
 //#include <votca/kmc/lattice.h>
 #include <votca/kmc/state.h>
 #include <votca/kmc/graph.h>
-//#include <votca/kmc/store.h>
+#include <votca/kmc/events.h>
 
 using namespace std;
 
@@ -39,7 +39,7 @@ public:
   void Initialize(Property *options);
   bool EvaluateFrame();
 
-  State state;
+ // State state;
 
 
 protected:

@@ -18,13 +18,14 @@
 #ifndef __VOTCA_KMC_EVENT_H_
 #define __VOTCA_KMC_EVENT_H_
 
-#include <votca/kmc/node.h>
+//#include <votca/kmc/node.h>
 
 namespace votca { namespace kmc {
   
 using namespace std;
 
-enum EventType { _ElectronTransfer, _HoleTransfer, _ElectronInjection, _HoleInjection, _ElectronCollection, _HoleCollection, _Recombination, _Dissociation};
+enum From_step_event {Fromtransfer, Injection, Fromnotinbox};
+enum To_step_event {Totransfer, Recombination, Collection, Blocking, Tonotinbox};
 
 /*
  * Abstract base class for all events  
@@ -32,25 +33,12 @@ enum EventType { _ElectronTransfer, _HoleTransfer, _ElectronInjection, _HoleInje
 class Event {
     
 public:
-    
-    void Initialize(Node* node1, Node* node2) { ; }
-  
-    virtual void onExecute() = 0;
-    
-    virtual EventType &getEventType(){ return _type; }
-    
-    // maybe make _rate public (check the efficiency)) or inline it
-    const double &getRate() const { return _rate; }
-    
-    
-protected:
-    
-    EventType _type;
-    double _rate;
-    Node* node1; 
-    Node* node2;
-    
+
+    From_step_event fromtype;
+    To_step_event totype;
+    double rate;    
 };
+
 
 
 

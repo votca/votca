@@ -119,6 +119,7 @@ void Graph::Load_graph_nodes(string filename) {
         nodes.push_back(newNode);
 
         newNode->node_ID  = stmt->Column<int>(0);
+        newNode->node_type = Normal;
         
         double positionX = stmt->Column<double>(1);
         double positionY = stmt->Column<double>(2);
@@ -246,10 +247,11 @@ void Graph::Create_cubic_graph_nodes(int NX, int NY, int NZ, double lattice_cons
                 Node *newNode = new Node();
                 nodes.push_back(newNode);
 
-                nodes[node_index]->node_ID = node_index;
-
+                newNode->node_ID = node_index;
+                newNode->node_type = Normal;
+                
                 myvec nodeposition = myvec(front.x() + ix*lattice_constant,front.y() + iy*lattice_constant,front.z() + iz*lattice_constant);
-                nodes[node_index]->node_position = nodeposition;
+                newNode->node_position = nodeposition;
                 
                 node_index++;    
             }
@@ -288,6 +290,9 @@ void Graph::Create_static_energies(votca::tools::Random2 *RandomVariable, double
 
 void Graph::Setup_device_graph(vector<Node*> nodes, Node* left_electrode, Node* right_electrode, double hopping_distance, double left_electrode_distance, double right_electrode_distance){
 
+    left_electrode->node_type = LeftElectrode;
+    right_electrode->node_type = RightElectrode;
+    
     // Make sure the periodicity is broken up, i.e. pairs passing over the electrodes should be broken
     Break_periodicity(nodes, true, false, false);
     
