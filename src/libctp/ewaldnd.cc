@@ -25,11 +25,14 @@ Ewald3DnD::~Ewald3DnD() {
     _polar_qm0.clear();
     _polar_mm1.clear();
     _polar_mm2.clear();
+    
+    delete _fg_table;
+    _fg_table = 0;
 }
     
     
 Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log) 
-    : _top(top), _ptop(ptop), _log(log) {
+    : _top(top), _ptop(ptop), _log(log), _fg_table(0) {
     
     // EVALUATE OPTIONS
     string pfx = "options.ewald";
@@ -128,18 +131,18 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
     _fg_N = ptop->FGN();
     _bg_N = ptop->BGN();
     
-    // Grow fg vs. bg according to induction cut-off
-    this->ExpandForegroundReduceBackground(_polar_cutoff);    
+    // Construct periodic neutral background
     _bg_P.insert(_bg_P.end(), _fg_N.begin(), _fg_N.end());
-    _bg_P.insert(_bg_P.end(), _bg_N.begin(), _bg_N.end());
-    _inForeground.resize(_bg_P.size()+1,false);
+    _bg_P.insert(_bg_P.end(), _bg_N.begin(), _bg_N.end());    
+    // Grow foreground according to induction cut-off
+    this->ExpandForegroundReduceBackground(_polar_cutoff);
     
     // SET-UP MIDGROUND (INCLUDING PERIODIC IMAGES IF REQUIRED)
     LOG(logINFO,*_log) << flush;
     LOG(logINFO,*_log) << "Generate periodic images. ";
     this->SetupMidground(_R_co);
     
-    // CALCULATE COG POSITIONS, NET CHARGE; SET-UP BOOLEAN FG TABLE
+    // CALCULATE COG POSITIONS, NET CHARGE
     vector<PolarSeg*>::iterator sit; 
     vector<APolarSite*> ::iterator pit;
     double Q_fg_C = 0.0;
@@ -153,12 +156,10 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
         double Qseg = (*sit)->CalcTotQ();
         Q_fg_C += Qseg;
         Q_fg_C_2nd += Qseg*Qseg / _fg_C.size();
-        _inForeground[(*sit)->getId()] = true;
     }
     for (sit = _fg_N.begin(); sit < _fg_N.end(); ++sit) {
         (*sit)->CalcPos();
         Q_fg_N += (*sit)->CalcTotQ();
-        assert(_inForeground[(*sit)->getId()] == true);
     }
     for (sit = _mg_N.begin(); sit < _mg_N.end(); ++sit) {
         (*sit)->CalcPos();
@@ -167,7 +168,6 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
     for (sit = _bg_N.begin(); sit < _bg_N.end(); ++sit) {
         (*sit)->CalcPos();
         Q_bg_N += (*sit)->CalcTotQ();
-        assert(_inForeground[(*sit)->getId()] == false);
     }
     for (sit = _bg_P.begin(); sit < _bg_P.end(); ++sit) {
         (*sit)->CalcPos();
@@ -203,38 +203,6 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
         cout << endl << format("******************************************************************");
         cout << endl;
     }
-    
-//    // CHARGE APPROPRIATELY & DEPOLARIZE
-//    for (sit = _fg_C.begin(); sit < _fg_C.end(); ++sit) {        
-//        PolarSeg* pseg = *sit;        
-//        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
-//            (*pit)->Depolarize();
-//        }
-//    }
-//    for (sit = _fg_N.begin(); sit < _fg_N.end(); ++sit) {        
-//        PolarSeg* pseg = *sit;        
-//        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
-//            (*pit)->Depolarize();
-//        }
-//    }
-//    for (sit = _mg_N.begin(); sit < _mg_N.end(); ++sit) {        
-//        PolarSeg* pseg = *sit;        
-//        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
-//            (*pit)->Depolarize();
-//        }
-//    }
-//    for (sit = _bg_N.begin(); sit < _bg_N.end(); ++sit) {        
-//        PolarSeg* pseg = *sit;        
-//        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
-//            (*pit)->Depolarize();
-//        }
-//    }
-//    for (sit = _bg_P.begin(); sit < _bg_P.end(); ++sit) {        
-//        PolarSeg* pseg = *sit;        
-//        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
-//            (*pit)->Depolarize();
-//        }
-//    }
     
     // CALCULATE NET DIPOLE OF BGP & FGC
     vec netdpl_bgP = vec(0,0,0);
@@ -274,60 +242,118 @@ void Ewald3DnD::ExpandForegroundReduceBackground(double polar_R_co) {
     vector<PolarSeg*>::iterator sit1;
     vector<PolarSeg*>::iterator sit2;
     
-    for (sit1 = _polar_mm1.begin(); sit1 < _polar_mm1.end(); ++sit1)
-        delete *sit1;
-    _polar_qm0.clear();
-    _polar_mm1.clear();
-    _polar_mm2.clear();
+    assert(_polar_mm1.size() == 0 
+        && _polar_qm0.size() == 0 
+        && _polar_mm2.size() == 0);
     
     // Target containers
-    vector<PolarSeg*> new_exp_fg_C;
+    vector<PolarSeg*> exp_fg_C;
     vector<PolarSeg*> exp_fg_N;
-    vector<PolarSeg*> red_bg_N;    
+    vector<PolarSeg*> red_bg_N;
+    
+    // Image boxes to consider, set-up boolean foreground table
+    int polar_na_max = ceil(polar_R_co/maxnorm(_a)-0.5)+1;
+    int polar_nb_max = ceil(polar_R_co/maxnorm(_b)-0.5)+1;
+    int polar_nc_max = ceil(polar_R_co/maxnorm(_c)-0.5)+1;
+    
+    if (tools::globals::verbose)
+        LOG(logDEBUG,*_log) << "Expanding cell space for neighbour search:"
+                "+/-" << polar_na_max << " x +/-" << polar_nb_max << " x +/-" 
+                << polar_nc_max << flush;
+    
+    _fg_table = new ForegroundTable(
+        _bg_P.size(), polar_na_max, polar_nb_max, polar_nc_max);
     
     // Foreground remains in foreground + contributes to QM0
     for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
-        new_exp_fg_C.push_back(*sit1);
+        exp_fg_C.push_back(*sit1);
         _polar_qm0.push_back(*sit1);
+        _fg_table->AddToForeground((*sit1)->getId(), 0, 0, 0);
     }
     for (sit1 = _fg_N.begin(); sit1 < _fg_N.end(); ++sit1) {
         exp_fg_N.push_back(*sit1);
-    }
+    }    
     
-    // Shift segments from back- to foreground based on distance vs. c/o
-    // 'new' foreground copies contribute to MM1
-    for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
-        for (sit2 = _bg_N.begin(); sit2 < _bg_N.end(); ++sit2) {
-            PolarSeg *seg1 = *sit1;
-            PolarSeg *seg2 = *sit2;            
-            double dR = votca::tools::abs(seg1->getPos() - seg2->getPos());
-            if (dR < polar_R_co) {
-                // 'new' copy required for induction that affects fgC,
-                // ... but NOT fgN
-                PolarSeg *fgCopy = new PolarSeg(seg2);
-                new_exp_fg_C.push_back(fgCopy);
-                exp_fg_N.push_back(seg2);
-                _polar_mm1.push_back(fgCopy);
+    // Background expands and migrates to foreground OR remains background
+    int allocated_count_n = 0;
+    for (sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
+        PolarSeg *seg_bg = *sit1;
+        for (int na = -polar_na_max; na < polar_na_max+1; ++na) {
+        for (int nb = -polar_nb_max; nb < polar_nb_max+1; ++nb) {
+        for (int nc = -polar_nc_max; nc < polar_nc_max+1; ++nc) {            
+            vec L = na*_a + nb*_b + nc*_c;
+            
+            bool in_central_cell = (na == 0 && nb == 0 && nc == 0);
+            bool identical = false;
+            bool within_range = false;
+            
+            for (sit2 = _fg_C.begin(); sit2 < _fg_C.end(); ++sit2) {
+                PolarSeg *seg_fg = *sit2;
+                // Identical ?
+                if (in_central_cell && seg_bg->getId() == seg_fg->getId()) {
+                    assert(identical==false);
+                    identical = true;
+                }
+                // Within range ?
+                double dR_L = votca::tools::abs(
+                    seg_bg->getPos() + L - seg_fg->getPos());
+                if (dR_L <= polar_R_co) {
+                    within_range = true;
+                }
+            }
+            
+            if (!identical && within_range) {
+                _fg_table->AddToForeground(seg_bg->getId(), na, nb, nc);
+                // Add new shifted clone to fgC and MM1
+                PolarSeg *seg_bg_clone_fgc = new PolarSeg(seg_bg);
+                seg_bg_clone_fgc->Translate(L);
+                exp_fg_C.push_back(seg_bg_clone_fgc);
+                _polar_mm1.push_back(seg_bg_clone_fgc);
+                // Add original to fgN OR a shifted clone if image box != 0
+                if (in_central_cell)
+                    exp_fg_N.push_back(seg_bg);
+                else {
+                    allocated_count_n += 1;
+                    PolarSeg *seg_bg_clone_fgn = new PolarSeg(seg_bg);
+                    seg_bg_clone_fgn->Translate(L);
+                    exp_fg_N.push_back(seg_bg_clone_fgn);
+                }
+            }
+            else if (!identical && !within_range) {
+                // Add original to bgN OR a shifted clone if image box != 0
+                if (in_central_cell)
+                    red_bg_N.push_back(seg_bg);
+                else {
+                    ;
+                    //PolarSeg *seg_bg_clone_bgn = new PolarSeg(seg_bg);
+                    //seg_bg_clone_bgn->Translate(L);
+                    //red_bg_N.push_back(seg_bg_clone_bgn);
+                }
             }
             else {
-                red_bg_N.push_back(seg2);
+                ;
             }
-        }
-    }
+        }}} // Sum over image boxes
+    } // Sum over periodic neutral background
     
     // Exchange new for old containers
     _fg_C.clear();
     _fg_N.clear();
     _bg_N.clear();
-    _fg_C = new_exp_fg_C;
+    _fg_C = exp_fg_C;
     _fg_N = exp_fg_N;
     _bg_N = red_bg_N;
     
-    bool clean = false; // Already deleted via fgC
+    bool clean = true;
+    _ptop->setFGC(_fg_C, true);
+    _ptop->setFGN(_fg_N, true);
+    _ptop->setBGN(_bg_N, true);
+    clean = false; // Already deleted via fgC
     _ptop->setQM0(_polar_qm0, clean);
     _ptop->setMM1(_polar_mm1, clean);
-    _ptop->setMM2(_polar_mm2, clean);
+    _ptop->setMM2(_polar_mm2, clean);    
     
+    // Sanity checks
     assert(_polar_qm0.size()+_polar_mm1.size() == _fg_C.size());
     assert(_fg_C.size() == _fg_N.size());
     
@@ -337,60 +363,53 @@ void Ewald3DnD::ExpandForegroundReduceBackground(double polar_R_co) {
 
 void Ewald3DnD::SetupMidground(double R_co) {
     // SET-UP MIDGROUND
-    // TODO Extend this to several molecules in the foreground - DONE?
     // NOTE No periodic-boundary correction here: We require that all
     //      polar-segment CoM coords. be folded with respect to the central
     //      segment
-    // NOTE Excludes interaction of polar segment with neutral self in real-
-    //      space sum
-    // NOTE Includes periodic images if within cut-off
+    // NOTE Excludes interaction of fg polar segments with neutral selfs in 
+    //      real-space sum
+    // NOTE Includes periodic images if within cut-off    
     
-    vector<PolarSeg*>::iterator sit; 
+    // CLEAR ANY EXTANT MIDGROUND
+    vector<PolarSeg*>::iterator sit;
+    vector<PolarSeg*>::iterator sit2;
     vector<APolarSite*> ::iterator pit;
     for (sit = _mg_N.begin(); sit < _mg_N.end(); ++sit)
         delete (*sit);
     _mg_N.clear();
     
-    // IMAGE BOXES TO CONSIDER
-    vector< int > nas;
-    vector< int > nbs;
-    vector< int > ncs;
-    for (int na = -_na_max; na < _na_max+1; ++na)
-        nas.push_back(na);
-    for (int nb = -_nb_max; nb < _nb_max+1; ++nb)
-        nbs.push_back(nb);
-    for (int nc = -_nc_max; nc < _nc_max+1; ++nc)
-        ncs.push_back(nc);
-    vector< int >::iterator ait;
-    vector< int >::iterator bit;
-    vector< int >::iterator cit;
-    
     // SAMPLE MIDGROUND FROM BGP EXCLUDING CENTRAL SEG.
     assert(_fg_N.size() == _fg_C.size());
     for (sit = _bg_P.begin(); sit < _bg_P.end(); ++sit) {
         PolarSeg *pseg = *sit;
-        Segment *other = _top->getSegment(pseg->getId());
         // Periodic images
-        for (ait = nas.begin(); ait < nas.end(); ++ait) {
-            int na = *ait;
-            for (bit = nbs.begin(); bit < nbs.end(); ++bit) {                
-                int nb = *bit;
-                for (cit = ncs.begin(); cit < ncs.end(); ++cit) {
-                    int nc = *cit;
-                    if (na == 0 && nb == 0 && nc == 0 && _inForeground[other->getId()])
-                        continue;
-                    vec L = na*_a + nb*_b + nc*_c;
+        for (int na = -_na_max; na < _na_max+1; ++na) {
+        for (int nb = -_nb_max; nb < _nb_max+1; ++nb) {
+        for (int nc = -_nc_max; nc < _nc_max+1; ++nc) {
+            vec L = na*_a + nb*_b + nc*_c;
+            // In foreground ?
+            bool is_in_fg = _fg_table->IsInForeground(pseg->getId(),na,nb,nc);            
+            if (!is_in_fg) {
+                bool is_within_range = false;
+                // Within range ?
+                for (sit2 = _fg_C.begin(); sit2 < _fg_C.end(); ++sit2) {
                     vec pos_L = pseg->getPos() + L;
-                    double dR_L = abs(_center-pos_L);
+                    double dR_L = abs((*sit2)->getPos()-pos_L);
                     if (dR_L <= R_co) {
-                        PolarSeg *newSeg = new PolarSeg(pseg);
-                        newSeg->Translate(L);
-                        _mg_N.push_back(newSeg);
+                        is_within_range = true;
                     }
-                } // Loop over nc
-            } // Loop over nb
-        } // Loop over na
+                }
+                // Add if appropriate
+                if (is_within_range) {
+                    PolarSeg *newSeg = new PolarSeg(pseg);
+                    newSeg->Translate(L);
+                    _mg_N.push_back(newSeg);
+                }
+            }
+            else ;
+        }}} // Loop over na, nb, nc
     } // Loop over BGP
+    
     return;
 }
 
@@ -469,7 +488,6 @@ void Ewald3DnD::Evaluate() {
     LOG(logDEBUG,*_log) << "  o LxLy (for 3D2D EW):        " << _LxLy << " nm**2" << flush;
     LOG(logDEBUG,*_log) << "  o kx(max), ky(max), kz(max): " << _NA_max << ", " << _NB_max << ", " << _NC_max << flush;
     
-    if (_task_polarize_bg) PolarizeBackground();
     if (_task_calculate_fields) EvaluateFields();
     if (_task_polarize_fg) EvaluateInduction();
     if (_task_evaluate_energy) EvaluateEnergy();

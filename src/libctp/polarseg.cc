@@ -15,13 +15,15 @@ PolarSeg::PolarSeg(int id, vector<APolarSite*> &psites) : _id(id) {
 
 
 PolarSeg::PolarSeg(PolarSeg *templ) {
-    
+    // NOTE Polar neighbours _nbs are not copied !
     for (int i = 0; i < templ->size(); ++i) {
         APolarSite *newSite = new APolarSite((*templ)[i]);
         push_back(newSite);
     }
     this->_id = templ->_id;
-    this->_pos = templ->_pos;    
+    this->_pos = templ->_pos;
+    this->_is_charged = templ->_is_charged;
+    this->_is_polarizable = templ->_is_polarizable;
 }
     
     

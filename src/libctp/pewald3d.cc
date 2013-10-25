@@ -206,10 +206,10 @@ EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum() {
     double dR_shell = 0.5;
     double R_overhead = 1.1;
     double R_add = 3;
-    this->SetupMidground(R_overhead*_R_co+_polar_cutoff+R_add);
+    this->SetupMidground(R_overhead*_R_co+R_add);
     
     vector< vector<PolarSeg*> > shelled_mg_N;
-    int N_shells = int((R_overhead*_R_co+_polar_cutoff+R_add)/dR_shell)+1;
+    int N_shells = int((R_overhead*_R_co+R_add)/dR_shell)+1;
     shelled_mg_N.resize(N_shells);
     
     for (sit1 = _mg_N.begin(); sit1 != _mg_N.end(); ++sit1) {
@@ -518,10 +518,10 @@ void PEwald3D3D::Field_ConvergeRealSpaceSum() {
     double dR_shell = 0.5;
     double R_overhead = 1.1;
     double R_add = 3;
-    this->SetupMidground(R_overhead*_R_co+_polar_cutoff+R_add);
+    this->SetupMidground(R_overhead*_R_co+R_add);
     
     vector< vector<PolarSeg*> > shelled_mg_N;
-    int N_shells = int((R_overhead*_R_co+_polar_cutoff+R_add)/dR_shell)+1;
+    int N_shells = int((R_overhead*_R_co+R_add)/dR_shell)+1;
     shelled_mg_N.resize(N_shells);
     
     for (sit1 = _mg_N.begin(); sit1 != _mg_N.end(); ++sit1) {
