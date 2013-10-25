@@ -72,7 +72,7 @@ bool XYZReader::NextFrame(Topology &top)
         // read the number of atoms
         _natoms = boost::lexical_cast<int>(line);
         if(!_topology && _natoms !=top.BeadCount())
-            std::runtime_error("number of beads in topology and trajectory difffer");
+            throw std::runtime_error("number of beads in topology and trajectory difffer");
 
         // the title line
         getline(_fl, line); ++_line;
