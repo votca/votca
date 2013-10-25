@@ -15,11 +15,11 @@ class PolarBackground
 public:
 
     PolarBackground() : _top(NULL), _ptop(NULL), _log(NULL), _n_threads(1) {};
-    PolarBackground(Topology *, PolarTop *, Property *, Logger *, int);
+    PolarBackground(Topology *, PolarTop *, Property *, Logger *);
    ~PolarBackground();
    
     void Threaded(int n_threads) { _n_threads = n_threads; }
-    void Polarize();
+    void Polarize(int n_threads);
     
     void FX_RealSpace(string mode, bool do_setup_nbs);    
     void FX_ReciprocalSpace(string S_mode, string F_mode, bool gen_kvecs);    

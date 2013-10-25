@@ -769,69 +769,6 @@ void PEwald3D3D::Field_CalculateShapeCorrection() {
     
     return;
 }
-
-
-void PEwald3D3D::PolarizeBackground() {
-    
-    TLogLevel dbg = logDEBUG;
-    TLogLevel inf = logINFO;
-    TLogLevel err = logERROR;
-    Logger &log = *_log;
-    
-    LOG(dbg,log) << flush;
-    LOG(dbg,log) << "Polarize background" << flush;
-    
-    /*
-    Verify neutrality & depolarize
-    Generate permanent fields (FP)
-      o Converge intermolecular real-space contribution, remember cut-off
-      o Converge reciprocal-space contribution, remember K-vectors
-      o Calculate shape fields
-      o Apply MOLECULAR foreground correction     
-    Induce to 1st order
-    Loop until 2nd-order fields converged
-      | Reset 2nd-order fields
-      | (Re-)generate induction fields (FU)
-      | o Real-space INTRAmolecular contribution to 2nd-order fields
-      | o Real-space INTERmolecular contribution to 2nd-order fields
-      | o Reciprocal-space contribution, work off remembered K-vectors
-      | o Calculate shape fields
-      | o Apply ATOMIC foreground correction
-      | Induce to 2nd order
-      + Check convergence
-    Extract (or serialize) induction state to hard-drive
-    */
-    
-    vector<PolarSeg*>::iterator sit1; 
-    vector<APolarSite*> ::iterator pit1;
-    vector<PolarSeg*>::iterator sit2; 
-    vector<APolarSite*> ::iterator pit2;
-    
-    // VERIFY NEUTRALITY & DEPOLARIZE
-    // In principle, this was already checked in the Ewald3DnD constructor
-    double Q_bg_P = 0.0;
-    for (sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
-        Q_bg_P += (*sit1)->CalcTotQ();
-        for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
-            (*pit1)->Depolarize();
-        }
-    }    
-    if (Q_bg_P < 1e-4) {
-        LOG(dbg,log) 
-            << "  o Net background charge is zero (enough). Proceed." << flush;
-    }
-    else {
-        LOG(err,log) 
-            << "  o ERROR Net background charge > 1e-4. Abort." << endl;
-        throw std::runtime_error("Bg charge density is not neutral (enough).");
-    }
-
-    
-    
-    
-    
-    return;
-}
     
     
 }}

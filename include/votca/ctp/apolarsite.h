@@ -61,12 +61,12 @@ public:
     APolarSite(int id, string name)
             : _id(id), _name(name), _isVirtual(false), _locX(vec(1,0,0)),
               _locY(vec(0,1,0)),    _locZ(vec(0,0,1))
-            { _Qs.resize(3); _Ps.resize(3); };
+            { _Qs.resize(3); _Ps.resize(3); this->Depolarize(); };
 
     APolarSite()
             : _id(-1),  _isVirtual(false), _locX(vec(1,0,0)),
               _locY(vec(0,1,0)), _locZ(vec(0,0,1))
-            { _Qs.resize(3); _Ps.resize(3); };
+            { _Qs.resize(3); _Ps.resize(3); this->Depolarize(); };
             
     APolarSite(APolarSite *templ);
 

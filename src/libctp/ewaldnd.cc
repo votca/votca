@@ -131,7 +131,7 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
     // Grow fg vs. bg according to induction cut-off
     this->ExpandForegroundReduceBackground(_polar_cutoff);    
     _bg_P.insert(_bg_P.end(), _fg_N.begin(), _fg_N.end());
-    _bg_P.insert(_bg_P.end(), _bg_N.begin(), _bg_N.end());    
+    _bg_P.insert(_bg_P.end(), _bg_N.begin(), _bg_N.end());
     _inForeground.resize(_bg_P.size()+1,false);
     
     // SET-UP MIDGROUND (INCLUDING PERIODIC IMAGES IF REQUIRED)
@@ -204,37 +204,37 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
         cout << endl;
     }
     
-    // CHARGE APPROPRIATELY & DEPOLARIZE
-    for (sit = _fg_C.begin(); sit < _fg_C.end(); ++sit) {        
-        PolarSeg* pseg = *sit;        
-        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
-            (*pit)->Depolarize();
-        }
-    }
-    for (sit = _fg_N.begin(); sit < _fg_N.end(); ++sit) {        
-        PolarSeg* pseg = *sit;        
-        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
-            (*pit)->Depolarize();
-        }
-    }
-    for (sit = _mg_N.begin(); sit < _mg_N.end(); ++sit) {        
-        PolarSeg* pseg = *sit;        
-        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
-            (*pit)->Depolarize();
-        }
-    }
-    for (sit = _bg_N.begin(); sit < _bg_N.end(); ++sit) {        
-        PolarSeg* pseg = *sit;        
-        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
-            (*pit)->Depolarize();
-        }
-    }
-    for (sit = _bg_P.begin(); sit < _bg_P.end(); ++sit) {        
-        PolarSeg* pseg = *sit;        
-        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
-            (*pit)->Depolarize();
-        }
-    }
+//    // CHARGE APPROPRIATELY & DEPOLARIZE
+//    for (sit = _fg_C.begin(); sit < _fg_C.end(); ++sit) {        
+//        PolarSeg* pseg = *sit;        
+//        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
+//            (*pit)->Depolarize();
+//        }
+//    }
+//    for (sit = _fg_N.begin(); sit < _fg_N.end(); ++sit) {        
+//        PolarSeg* pseg = *sit;        
+//        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
+//            (*pit)->Depolarize();
+//        }
+//    }
+//    for (sit = _mg_N.begin(); sit < _mg_N.end(); ++sit) {        
+//        PolarSeg* pseg = *sit;        
+//        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
+//            (*pit)->Depolarize();
+//        }
+//    }
+//    for (sit = _bg_N.begin(); sit < _bg_N.end(); ++sit) {        
+//        PolarSeg* pseg = *sit;        
+//        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
+//            (*pit)->Depolarize();
+//        }
+//    }
+//    for (sit = _bg_P.begin(); sit < _bg_P.end(); ++sit) {        
+//        PolarSeg* pseg = *sit;        
+//        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
+//            (*pit)->Depolarize();
+//        }
+//    }
     
     // CALCULATE NET DIPOLE OF BGP & FGC
     vec netdpl_bgP = vec(0,0,0);

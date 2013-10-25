@@ -8,8 +8,8 @@ namespace EWD {
 using boost::format;
     
 PolarBackground::PolarBackground(Topology *top, PolarTop *ptop, Property *opt, 
-    Logger *log, int n_threads) : _top(top), _ptop(ptop), _log(log), 
-    _n_threads(n_threads) {
+    Logger *log) : _top(top), _ptop(ptop), _log(log), 
+    _n_threads(1) {
     
     // EVALUATE OPTIONS
     string pfx = "options.ewdbgpol";
@@ -143,7 +143,7 @@ PolarBackground::~PolarBackground() {
 }
 
 
-void PolarBackground::Polarize() {    
+void PolarBackground::Polarize(int n_threads = 1) {
     
     LOG(logDEBUG,*_log) << flush;
     LOG(logDEBUG,*_log) << "System & Ewald parameters" << flush;
@@ -161,6 +161,7 @@ void PolarBackground::Polarize() {
     TLogLevel inf = logINFO;
     TLogLevel err = logERROR;
     Logger &log = *_log;
+    _n_threads = n_threads;
     
     vector<PolarSeg*>::iterator sit1; 
     vector<APolarSite*> ::iterator pit1;
