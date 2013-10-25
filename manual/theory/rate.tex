@@ -16,7 +16,7 @@ k_\text{B} T} \right],
 \label{equ:marcus}
 \end{equation}
 %
-where $T$ is the temperature, $\lambda_{ij} = \lambda_{ij}^\text{int} + \lambda_{ij}^\text{out}$ is the \slink{reorganization}{reorganization energy}, which is a sum of intra- and inter-molecular (outersphere) contributions, $\Delta E_{ij}$ is the \slink{site_energies}{site-energy difference}, or driving force, and $J_{ij}$ is the \slink{transfer_integrals}{electronic coupling element}, or transfer integral. 
+where $T$ is the temperature, $\lambda_{ij} = \lambda_{ij}^\text{int} + \lambda_{ij}^\text{out}$ is the \slink{sec:reorganization}{reorganization energy}, which is a sum of intra- and inter-molecular (outersphere) contributions, $\Delta E_{ij}$ is the \slink{sec:site_energies}{site-energy difference}, or driving force, and $J_{ij}$ is the \slink{sec:transfer_integrals}{electronic coupling element}, or transfer integral. 
 
 
 \subsection{Semi-classical bimolecular rate}
@@ -59,13 +59,13 @@ H_{\indM'-k} \left( \frac{s_{i}}{\sqrt{2S^{cn}_i}}\right)
 \, ,
 %\end{split}
 \end{align}
-where $H_n(x)$ is a Hermite polynomial, $s_i=2\sqrt{\lambda_i^{nc}\lambda_i^{cn}} / \hbar(\omega_i^c+\omega_i^n)$, and $S^{cn}_i=\lambda_i^{cn}/\hbar\omega_i^c$. The FC factors for charging of molecule $j$ can be obtained by substituting $(s_i,S^{cn}_i,\omega_i^c)$ with $(-s_j,S^{nc}_j, \omega_j^n)$. In order to evaluate the FC factors, the \slink{eintramolecular}{internal reorganization energy} $\lambda_i^{cn}$ can be computed from the intramolecular PES.
+where $H_n(x)$ is a Hermite polynomial, $s_i=2\sqrt{\lambda_i^{nc}\lambda_i^{cn}} / \hbar(\omega_i^c+\omega_i^n)$, and $S^{cn}_i=\lambda_i^{cn}/\hbar\omega_i^c$. The FC factors for charging of molecule $j$ can be obtained by substituting $(s_i,S^{cn}_i,\omega_i^c)$ with $(-s_j,S^{nc}_j, \omega_j^n)$. In order to evaluate the FC factors, the \slink{sec:eintramolecular}{internal reorganization energy} $\lambda_i^{cn}$ can be computed from the intramolecular PES.
 
 \subsection{Semi-classical rate}
 \label{sec:rate_semiclassical}
 \index{charge transfer rate!semiclassical}
 
-One can also use the quantum-classical rate with a common set of vibrational coordinates~\cite{may_charge_2003}
+One can also use the quantum-classical rate with a common set of vibrational coordinates~\cite{may_charge_2011}
 \begin{align}
  \omega_{ij} = \frac{2\pi}{\hbar}  \frac{|J_{ij}|^2}{\sqrt{4\pi \lambda_{ij}^\text{out} k_\text{B}T}}
  \sum_{N=0}^\infty \frac{1}{N!} \left( \frac{\lambda_{ij}^\text{int}}{\hbar\omega^\text{int}} \right)^{N}
@@ -78,8 +78,6 @@ One can also use the quantum-classical rate with a common set of vibrational coo
 \end{align}
 
 Numerical estimates show that if  $\lambda_{ij}^\text{int} \approx \lambda_{ij}^\text{out}$ and $|\Delta E_{ij}| \ll \lambda_{ij}^\text{out}$ the rates are similar to those of ~\equ{marcus}. In general, there is no robust method to compute $\lambda_{ij}^\text{out}$~\cite{hoffman_reorganization_1996} and  both reorganization energies are often assumed to be of the same order of magnitude. In this case the second condition also holds, unless there are large differences in electron affinities or ionization potentials of neighboring molecules, e.g. in donor-acceptor blends.
-
-Rates are calculated and saved into the \sqlstate file by the \calc{rates} \calculator
-
-{\noindent \small \ctprun \opt \xmloptions \sql  \sqlstate \exe  \calc{rates} }
-\vskip 0.2cm
+\vskip 0.4cm
+To calculate rates of the type specified in \xmloptions for all pairs in the \slink{sec:neighborlist}{neighbor list} and to save them into the \sqlstate file, run the \calc{rates} \calculator. Note that all required ingredients (\slink{sec:reorganization}{reorganization energies}, \slink{sec:transfer_integrals}{transfer integrals}, and \slink{sec:site_energies}{site energies} have to be calculated before).
+\votcacommand{Calculation of transfer rates}{\cmdrates}

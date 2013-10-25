@@ -26,12 +26,13 @@ Here $U_{i}^{nC}$ is the internal energy of the neutral molecule $i$ in the geom
 %
 Note that the PES of the donor and acceptor are not identical for chemically different compounds or for conformers of the same molecule. In this case $\lambda_{i}^{cn} \ne \lambda_{j}^{cn}$ and  $\lambda_{i}^{nc} \ne \lambda_{j}^{nc}$. Thus $\lambda_{ij}^\text{int}$ is a property of the charge transfer complex, and not of a single molecule.
 
-Intramolecular reorganization energies for discharging ($\lambda^{cn}$) and charging ($\lambda^{nc}$) of a molecule are provided in the \xmlsegments file and are written to the \sqlstate file by the \ctpmap program. 
+Intramolecular reorganization energies for discharging ($\lambda^{cn}$) and charging ($\lambda^{nc}$) of a molecule need to be determined using quantum-chemistry and given in \xmlcsg. The values are written to the \sqlstate using the calculator \calc{einternal} (see also \slink{sec:einternal}{internal energy}):
+\votcacommand{Intramolecularl reorganization energies}{\cmdeint}
 
 \subsection{Outersphere reorganization energy}
 \index{reorganization energy!outersphere}
 \label{sec:eoutersphere}
-During the charge transfer reaction, also the molecules outside the charge transfer complex reorient and polarize in order to adjust for changes in electric potential, resulting in the outersphere contribution to the reorganization energy. $\lambda_{ij}^\text{out}$ is particularly important if charge transfer occurs in a polarizable environment. Assuming that charge transfer is much slower than electronic polarization but much faster than nuclear rearrangement of the environment, $\lambda_{ij}^\text{out}$ can be calculated from the electric displacement fields created by the charge transfer complex~\cite{may_charge_2003}
+During the charge transfer reaction, also the molecules outside the charge transfer complex reorient and polarize in order to adjust for changes in electric potential, resulting in the outersphere contribution to the reorganization energy. $\lambda_{ij}^\text{out}$ is particularly important if charge transfer occurs in a polarizable environment. Assuming that charge transfer is much slower than electronic polarization but much faster than nuclear rearrangement of the environment, $\lambda_{ij}^\text{out}$ can be calculated from the electric displacement fields created by the charge transfer complex~\cite{may_charge_2011}
 \begin{equation}
 \lambda_{ij}^\text{out}=
 \frac{c_p}{2\epsilon_0}\int_{V^\text{out}}d V
@@ -64,12 +65,11 @@ Assuming a uniform density of atoms, the integration in~\equ{lambda_outer1} can 
 The remaining unknown needed to calculate $\lambda_{ij}^\text{out}$ is the Pekar factor\index{Pekar factor}, $c_p$. In polar solvents $\epsilon_\text{s}\gg\epsilon_\text{opt}\sim 1$ and $c_p$ is of the order of 1. In most organic semiconductors, however, molecular orientations are fixed and therefore the low frequency dielectric permittivity is of the same order of magnitude as $\epsilon_\text{opt}$. Hence, $c_p$ is small and its value is very sensitive to differences in the permittivities. 
 
 
-Outersphere reorganization energies for all pairs of molecules in the \slink{neighborlist}{neighbor list} can be computed from the atomistic trajectory by using the \calc{eoutersphere} \calculator. 
+Outersphere reorganization energies for all pairs of molecules in the \slink{sec:neighborlist}{neighbor list} can be computed from the atomistic trajectory by using the \calc{eoutersphere} \calculator. 
 
-Two methods can be used to compute $\lambda_{ij}^\text{out}$. The first method uses the atomistic partial charges of neutral and charged molecules from files specified in \xmlsegments and \equ{lambda_outer1}. The Pekar factor $c_p$ and a cutoff radius  based on molecular centers of mass have to be specified in the \xmloptions file. 
+Two methods can be used to compute $\lambda_{ij}^\text{out}$. The first method uses the atomistic partial charges of neutral and charged molecules from files specified in \xmlcsg and \equ{lambda_outer1}. The Pekar factor $c_p$ and a cutoff radius  based on molecular centers of mass have to be specified in the \xmloptions file. 
 
 If this method is computationally prohibitive, $\lambda_{ij}^\text{out}$ can be computed using \equ{lambda_outer2}, which assumes spherical charge distributions on the molecules. In this case the radii of these spheres are specified in \xmlsegments, while the Pekar factor $c_p$ is given in the \xmloptions file and no cutoff radius is needed. 
 
 The outer sphere reorganization energies are saved to the \sqlstate file:
-
-{\small \ctprun \opt \xmloptions  \seg  \xmlsegments \sql  \sqlstate \exe  \calc{eoutersphere}}
+\votcacommand{Outersphere reorganization energy}{\cmdouter}

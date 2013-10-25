@@ -8,9 +8,9 @@ An approximate method based on Zerner's Intermediate Neglect of Differential Ove
 
 The main advantage of the molecular orbital overlap (\moo) library is {\em fast} evaluation of electronic coupling elements. Note that \moo is based on the ZINDO Hamiltonian which has limited applicability. The general advice is to first compare the accuracy of the \moo method to the DFT-based calculations. 
 
-\moo can be used both in a \slink{moo_standalone}{standalone mode} and as an \calc{izindo} \calculator of \votcactp. 
+\moo can be used both in a \slink{prog:moo_overlap}{standalone mode} and as an \calc{izindo} \calculator of \votcactp. 
 
-Since \moo constructs the Fock operator of a dimer from the  molecular orbitals of monomers by translating and rotating the orbitals of \slink{segments}{rigid fragments}, the optimized geometry of all \slink{segments}{conjugated segments} and the coefficients of the molecular orbitals are required as its input in addition to the state file (\sqlstate) with the \slink{neighborlist}{neighbor list}. Coordinates are stored in \xyz files with four columns, first being the atom type and the next three atom coordinates. This is a standard \texttt{xyz} format without a header. Note that the atom order in the \xyz files can be different from that of the mapping files. The correspondence between the two is established in the \xmlsegments file.
+Since \moo constructs the Fock operator of a dimer from the  molecular orbitals of monomers by translating and rotating the orbitals of \slink{sec:segments}{rigid fragments}, the optimized geometry of all \slink{sec:segments}{conjugated segments} and the coefficients of the molecular orbitals are required as its input in addition to the state file (\sqlstate) with the \slink{sec:neighborlist}{neighbor list}. Coordinates are stored in \xyz files with four columns, first being the atom type and the next three atom coordinates. This is a standard \texttt{xyz} format without a header. Note that the atom order in the \xyz files can be different from that of the mapping files. The correspondence between the two is established in the \xmlcsg file.
 
 The calculated transfer integrals are immediately saved to the \sqlstate file.
 \votcacommand{Transfer integrals from \calc{izindo}}{\ctprun \opt \xmloptions \sql \sqlstate \exe \calc{izindo} }
