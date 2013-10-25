@@ -4,8 +4,8 @@
 \newcommand{\Equ}[1]{Eq.~\eqref{equ:#1}}
 \newcommand{\fig}[1]{figure~\ref{fig:#1}}
 \newcommand{\Fig}[1]{Figure~\ref{fig:#1}}
-\newcommand{\sect}[1]{section~\ref{sec:#1}}
-
+\newcommand{\sect}[1]{chapter~\ref{sec:#1}}
+\newcommand{\Sect}[1]{Chapter~\ref{sec:#1}}
 \newcommand{\slink}[2]{\hyperref[#1]{#2}}
 
 
@@ -92,5 +92,19 @@
 \newcommand{\vctr}[1]{\mathbf{ \bar{#1} }}
 \newcommand{\oper}[1]{\hat{ #1 }}
 \newcommand{\matr}[1]{\mathbf{ #1 }}
+
+%% FULL COMMANDS LISTING
+\newcommand{\cmdmap}{\ctpmap \tpl \topology \trj \trajectory \seg \xmlcsg  \sql \sqlstate}
+\newcommand{\cmdnbl}{\ctprun \opt \xmloptions  \sql  \sqlstate \exe  \calc{neighborlist}}
+\newcommand{\cmdemlt}{\ctprun \opt \xmloptions  \sql  \sqlstate \exe  \calc{emultipole}}
+\newcommand{\cmdeint}{\ctprun \opt \xmloptions  \sql  \sqlstate \exe  \calc{einternal}}
+\newcommand{\cmdedft}{\ctpparallel \opt \xmloptions \sql \sqlstate \exe \calc{edft}}
+\newcommand{\cmdidft}{\ctpparallel \opt \xmloptions \sql \sqlstate \exe \calc{idft}}
+\newcommand{\cmdizindo}{\ctprun \opt \xmloptions  \sql  \sqlstate \exe  \calc{izindo}}
+\newcommand{\cmdouter}{\ctprun \opt \xmloptions  \sql  \sqlstate \exe  \calc{outersphere}}
+\newcommand{\cmdrates}{\ctprun \opt \xmloptions  \sql  \sqlstate \exe  \calc{rates}}
+\newcommand{\cmdkmc}{ \kmcrun \opt \xmloptions  \sql  \sqlstate \exe  \calc{kmcmultiple}}
+
+
 
 

@@ -35,7 +35,7 @@
 
 \newcommand\votcacommand[2]
 {
-\begin{bclogo}[couleur=bgblue, arrondi =0 , logo=\votcalogo, barre=line,noborder=true]{\small #1}
+\begin{bclogo}[couleur=mygray, arrondi =0 , logo=\votcalogo, barre=line,noborder=true]{\small #1}
 \itshape {\small #2}
 \end{bclogo}
 }
@@ -54,7 +54,7 @@
 \definecolor{webgreen}{rgb}{0,.5,0}
 \definecolor{webbrown}{rgb}{.6,0,0}
 \definecolor{invisiblegray}{rgb}{.97,0.97,0.97}
-
+\definecolor{mygray}{rgb}{0.86,0.86,0.86}
 \usepackage
 [ps2pdf, %dvips, %dvipdf, %or dvips or pdftex 
 pagebackref, %or backref
@@ -70,7 +70,8 @@ pdfsubject={VOTCA-CTP},
 pdfkeywords={charge transport organic semiconductors},
 bookmarksopen=false,
 pdfpagemode=UseNone]{hyperref}
-
+\usepackage[all]{hypcap}
+\usepackage[hyphenbreaks]{breakurl}
 %\pdfcompresslevel=9
 
 \usepackage[T1]{fontenc}
