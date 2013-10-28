@@ -63,6 +63,8 @@ public:
    
    void setThreads(const int threads) { _threads = threads; }
    
+   void doGetCharges(bool do_get_charges) { _get_charges = do_get_charges; }
+   
 protected:
 
     int                                 _charge;

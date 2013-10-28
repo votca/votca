@@ -16,7 +16,7 @@ public:
     MolPolTool() { };
    ~MolPolTool() { };
 
-    string Identify() { return "Molecular Polarizability Calculator"; }
+    string Identify() { return "molpol"; }
 
     void   Initialize(Property *options);
     bool   Evaluate();
@@ -30,6 +30,10 @@ private:
     string          _mps_input;
     string          _mps_output;
     string          _pol_output;
+    
+    bool            _do_optimize;
+    matrix          _target;
+    double          _tolerance;
     
     double          _aDamp;
     double          _wSOR;

@@ -8,6 +8,7 @@
 #include <votca/ctp/xinteractor.h>
 #include <votca/ctp/ewaldactor.h>
 #include <votca/ctp/xinductor.h>
+#include <boost/multi_array.hpp>
 
 namespace CSG = votca::csg;
 
@@ -59,7 +60,62 @@ namespace votca { namespace ctp {
         virtual void Field_CalculateForegroundCorrection() { ; }
         virtual void Field_CalculateShapeCorrection() { ; }
         
-        virtual void PolarizeBackground() { ; }
+        class ForegroundTable
+        {
+        public:
+            typedef boost::multi_array<bool,4> fgtable_t;
+            typedef fgtable_t::index idx_t;
+            
+            ForegroundTable(int n_segs_cell, int na_max, int nb_max, int nc_max)
+                : _na_max(na_max), _nb_max(nb_max), _nc_max(nc_max),
+                  _id_na_nb_nc__inFg(              
+                    fgtable_t(boost::extents [n_segs_cell]
+                                             [2*na_max+1]
+                                             [2*nb_max+1]
+                                             [2*nc_max+1]))
+            {
+                for (idx_t i = 0; i < n_segs_cell; ++i) {
+                for (idx_t a = 0; a < 2*na_max+1; ++a) {
+                for (idx_t b = 0; b < 2*nb_max+1; ++b) {
+                for (idx_t c = 0; c < 2*nc_max+1; ++c) {
+                    _id_na_nb_nc__inFg[i][a][b][c] = false;
+                }}}}
+            }
+            
+            void AddToForeground(int segid, int na, int nb, int nc) {
+                idx_t i = segid-1;
+                idx_t a = na + _na_max;
+                idx_t b = nb + _nb_max;
+                idx_t c = nc + _nc_max;
+                assert (_id_na_nb_nc__inFg[i][a][b][c] == false);
+                _id_na_nb_nc__inFg[i][a][b][c] = true;
+            }
+            
+            bool IsInForeground(int segid, int na, int nb, int nc) {
+                bool is_in_fg;
+                if (std::abs(na) > _na_max 
+                 || std::abs(nb) > _nb_max 
+                 || std::abs(nc) > _nc_max) {
+                    is_in_fg = false;
+                }
+                else {
+                    idx_t i = segid-1;
+                    idx_t a = na + _na_max;
+                    idx_t b = nb + _nb_max;
+                    idx_t c = nc + _nc_max;
+                    is_in_fg = _id_na_nb_nc__inFg[i][a][b][c];
+                }
+                return is_in_fg;
+            }
+            
+        private:
+            fgtable_t _id_na_nb_nc__inFg;
+            int _n_segs_cell;
+            int _na_max;
+            int _nb_max;
+            int _nc_max;
+        };
+        
         
     protected:
         
@@ -80,7 +136,7 @@ namespace votca { namespace ctp {
         vector< PolarSeg* > _mg_N;      // Neutral midground
         vector< PolarSeg* > _fg_N;      // Neutral foreground
         vector< PolarSeg* > _fg_C;      // Charged foreground
-        vector< bool > _inForeground;
+        ForegroundTable *_fg_table;
         string _jobType;                // Calculated from _fg_C charge distr.
         // Part II - Thole
         vector< PolarSeg* > _polar_qm0;

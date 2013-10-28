@@ -51,6 +51,7 @@
         <itemPath>../../src/libctp/calculators/xmultipole2.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f3" displayName="Tools" projectFiles="true">
+        <itemPath>../../src/libctp/tools/log2mps.h</itemPath>
         <itemPath>../../src/libctp/tools/molpol.cc</itemPath>
         <itemPath>../../src/libctp/tools/molpol.h</itemPath>
         <itemPath>../../src/libctp/tools/pdb2map.h</itemPath>
@@ -690,6 +691,8 @@
       </item>
       <item path="../../src/libctp/toolfactory.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libctp/tools/log2mps.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../src/libctp/tools/molpol.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/molpol.h" ex="false" tool="3" flavor2="0">
@@ -1214,6 +1217,8 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/toolfactory.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/tools/log2mps.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/molpol.cc" ex="false" tool="1" flavor2="0">
       </item>
