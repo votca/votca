@@ -419,6 +419,7 @@ std::ostream &operator<<(std::ostream &out, Property& p)
             _level = pm->getLevel();
             _type = pm->getType();
             // check if we > or >> to a file and remove color codes
+            // if ( out.tellp() != -1 )  - not suitable for pipes
             if( !isatty(STDOUT_FILENO) || !isatty(STDERR_FILENO) ) {
                 pm->setColorScheme<csDefault>();
             }
