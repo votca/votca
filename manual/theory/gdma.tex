@@ -35,4 +35,6 @@ Note how this requires a rule for the choice of the expansion site to which the 
 
 One important advantage of the DMA approach over fitting algorithms such as CHELPG or Merz-Kollman (MK) is that higher-order moments can also be derived without too large an ambiguity.
 
+The `mps' file format used by VOTCA for the definition of distributed multipoles (as well as point polarizabilities, see subsequent section) is based on the GDMA punch format of A. Stone's GDMA program~\cite{stone_distributed_2005} (the punch output file can be immediately plugged into VOTCA without any conversions to be applied). Furthermore the log-file of different QM packages (currently \gaussian, \turbomole and \nwchem) may be fed into the \toolref{log2mps} \tool, which will subsequently generate the appropriate mps-file.
+
 \votcacommand{Read in ESP charges from a QM log file}{\cmdlogmps}

@@ -48,8 +48,14 @@ VOTCA implements the Thole model with an exponentially-decaying fractional charg
 \end{align}
 where $\vec{u}(\vec{R},\alpha^a \alpha^b) = \vec{R} / (\alpha^a \alpha^b)^{1/6}$ and the smearing exponent $a=0.39$ (which can however be changed from the program options), as used in the AMOEBA force field~\cite{ren_polarizable_2003}.
 
-\votcacommand{Generate Thole polarizabilites for a segment}{\cmdmolpol}
+Even though the Thole model performs very well for many organic compounds with only the above small set of element-based polarizabilities, conjugated molecules may require a more intricate parametrization. The simplest approach is to resort to scaled polarizabilities to match the effective molecular polarizable volume $V \sim \alpha_{x} \alpha_{y} \alpha_{z}$ as predicted by QM calculations (here $\alpha_x, \alpha_y, \alpha_z$ are the eigenvalues of the molecular polarizability tensor). The \toolref{molpol} \tool assists with this task, it self-consistently calculates the Thole polarizability for an input mps-file and optimizes (if desired) the atomic polarizabilities in the above simple manner.
 
-The electrostatic and induction contribution to the site energy is evaluated by the \calc{emultipole} \calculator. Atomistic partial charges for charged and neutral molecules are taken from .mps-files (GDMA format extended for polarizabilities) specified in the \xmlcsg files. Note that, in order to speed up calculations for both methods, a cutoff radius (for the molecular centers of mass) can be given in \xmloptions. Threaded execution is advised.
+\votcacommand{Generate Thole-type polarizabilites for a segment}{\cmdmolpol}
+
+The electrostatic and induction contribution to the site energy is evaluated by the \calc{emultipole} \calculator. Atomistic partial charges for charged and neutral molecules are taken from mps-files (extended GDMA format) specified in \xmlcsg. Note that, in order to speed up calculations for both methods, a cut-off radius (for the molecular centers of mass) can be given in \xmloptions. Threaded execution is advised.
 
 \votcacommand{Electrostatic and induction corrections}{\cmdemlt}
+
+Furthermore available are \calc{zmultipole}, which extends \calc{emultipole} to allow for an electrostatic buffer layer (loosely related to the z-buffer in OpenGL, hence the name) and anisotropic point polarizabilities. For the interaction energy of charged clusters of any user-defined composition (Frenkel states, CT states, ...), \calc{xqmultipole} can be used.
+
+\votcacommand{Interaction energy of charged molecular clusters embedded in a molecular environment}{\cmdxqmult}

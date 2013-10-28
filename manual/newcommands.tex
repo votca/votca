@@ -25,6 +25,7 @@
 \newcommand{\votcactp}{{\MakeUppercase{votca-ctp}}\xspace}
 
 \newcommand{\calculator}{\hyperref[sec:calculators]{calculator}\xspace}
+\newcommand{\tool}{\hyperref[sec:calculators]{tool}\xspace}
 
 \newcommand{\xmloptions}{\texttt{options.xml}\xspace}
 \newcommand{\xmlcsg}{\hyperref[sec:xmlmap]{\texttt{map.xml}}\xspace}
@@ -78,6 +79,7 @@
 \newcommand{\calcopt}[1]{\hyperlink{\calcref{#1}}{\StrSubstitute{#1}{_}{\_}}\xspace}
 
 \newcommand{\calc}[1]{\hyperref[calc:#1]{\texttt{#1}}\xspace}
+\newcommand{\toolref}[1]{\hyperref[tool:#1]{\texttt{#1}}\xspace}
 
 \def\bibsection{%
     \chapter*{Bibliography}%
@@ -107,6 +109,7 @@
 \newcommand{\cmdkmc}{ \kmcrun \opt \xmloptions  \sql  \sqlstate \exe  \calc{kmcmultiple}}
 \newcommand{\cmdkmcsin}{ \kmcrun \opt \xmloptions  \sql  \sqlstate \exe  \calc{kmcsingle}}
 \newcommand{\cmdeana}{\ctprun \opt \xmloptions  \sql  \sqlstate \exe  \calc{eanalyze}}
-\newcommand{\cmdmolpol}{\ctptools \opt \xmloptions \exe \calc{molpol}}
-\newcommand{\cmdlogmps}{\ctptools \opt \xmloptions \exe \calc{log2mps}}
+\newcommand{\cmdmolpol}{\ctptools \opt \xmloptions \exe \toolref{molpol}}
+\newcommand{\cmdlogmps}{\ctptools \opt \xmloptions \exe \toolref{log2mps}}
+\newcommand{\cmdxqmult}{\ctpparallel \opt \xmloptions \sql \sqlstate \exe \calc{xqmultipole}}
 
