@@ -163,8 +163,7 @@ namespace votca { namespace ctp {
         bool   _converged_K;            // Did K-space sum converge?
         bool   _field_converged_R;
         bool   _field_converged_K;
-        bool   _did_field_pin_R_shell_idx;
-        int    _field_R_shell_idx;
+        bool   _did_field_pin_R_shell;
         // Part II - Thole
         bool _polar_do_induce;
         double _polar_aDamp;

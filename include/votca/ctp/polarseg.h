@@ -27,6 +27,7 @@ public:
     // Local neighbor-list
     vector<PolarNb*> &PolarNbs() { return _nbs; }
     void ReservePolarNbs(int nbsize) { _nbs.reserve(nbsize); }
+    void AddPolarNb(PolarSeg *pseg);
     void AddPolarNb(PolarNb *nb) { _nbs.push_back(nb); }
     void ClearPolarNbs();    
     // Position & total charge
@@ -73,7 +74,8 @@ public:
     // Use s22x to obtain effective connection vector
     // dreff = top->ShortestConnect(ref,nb) + _pbcshift
     PolarNb(PolarSeg *nb, vec &dr12, vec &s22x) 
-        : _nb(nb), _dr12(dr12), _s22x(s22x) {};        
+        : _nb(nb), _dr12(dr12), _s22x(s22x) {};
+    PolarNb(PolarSeg *nb) : _nb(nb) {};
     PolarSeg *getNb() { return _nb; }
     vec &getR() { return _dr12; }
     vec &getS() { return _s22x; }

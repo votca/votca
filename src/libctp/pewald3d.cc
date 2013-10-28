@@ -200,87 +200,117 @@ EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum() {
     vector<APolarSite*> ::iterator pit1;
     vector<PolarSeg*>::iterator sit2; 
     vector<APolarSite*> ::iterator pit2;
+    vector<PolarNb*>::iterator nit;
     vector< vector<PolarSeg*> > ::iterator vsit;
     
-    // GENERATE MIDGROUND & ASSEMBLE IT INTO SHELLS
-    double dR_shell = 0.5;
-    double R_overhead = 1.1;
-    double R_add = 3;
-    this->SetupMidground(R_overhead*_R_co+R_add);
-    
-    vector< vector<PolarSeg*> > shelled_mg_N;
-    int N_shells = int((R_overhead*_R_co+R_add)/dR_shell)+1;
-    shelled_mg_N.resize(N_shells);
-    
-    for (sit1 = _mg_N.begin(); sit1 != _mg_N.end(); ++sit1) {
-        double R = votca::tools::abs((*sit1)->getPos()-_center);
-        int shell_idx = int(R/dR_shell);
-        shelled_mg_N[shell_idx].push_back(*sit1);
-    }
-
-    //boost::timer::auto_cpu_timer t0(*_log);
-    //t0.start();
-    
-    // SUM OVER CONSECUTIVE SHELLS
-    bool converged = false;
-    int shell_idx_cutoff = 
-        (_did_field_pin_R_shell_idx) ? _field_R_shell_idx+1 : N_shells;
-    
-    if (_did_field_pin_R_shell_idx) LOG(logDEBUG,*_log)
-            << (format("NOTE Field calculation pinned R-shell index to %1$d") 
-                % _field_R_shell_idx) << flush;
-    for (int sidx = 0; sidx < shell_idx_cutoff; ++sidx) {
-        
-        vector<PolarSeg*> &shell_mg = shelled_mg_N[sidx];
-        double shell_sum = 0.0;
-        double shell_term = 0.0;
-        double shell_rms = 0.0;
-        double shell_R = (sidx+1)*dR_shell;
-        int shell_count = 0;
-        
-        if (shell_mg.size() < 1) continue;
-        
+    // ENERGY - REUSE NEIGHBOURS ?
+    if (_did_field_pin_R_shell) {    
         EWD::triple<double> ppuu(0,0,0);
         for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
-            for (sit2 = shell_mg.begin(); sit2 < shell_mg.end(); ++sit2) {
+            vector<PolarNb*> &nbs = (*sit1)->PolarNbs();
+            for (nit = nbs.begin(); nit != nbs.end(); ++nit) {
+                PolarSeg *nb = (*nit)->getNb();
                 for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
-                    for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
+                    for (pit2 = nb->begin(); pit2 < nb->end(); ++pit2) {
                         ppuu = _ewdactor.U12_ERFC(*(*pit1), *(*pit2));
                         sum_pp += ppuu._pp;
                         sum_pu += ppuu._pu;
                         sum_uu += ppuu._uu;
-                        shell_term = ppuu._pp + ppuu._pu + ppuu._uu;
-                        shell_sum += shell_term;
-                        shell_rms += shell_term*shell_term;
-                        shell_count += 1;
                     }
                 }
             }
-        }
-        shell_rms = sqrt(shell_rms/shell_count)*EWD::int2eV;
-        sum += shell_sum;
-        LOG(logDEBUG,*_log)
-            << (format("Rc = %1$+02.7f   |MGN| = %3$5d   ER = %2$+1.7f eV   dER2(sum) = %4$+1.3e eV") 
-            % shell_R % (sum*EWD::int2eV) % shell_mg.size() % (shell_rms*shell_count)).str() << flush;
-        
-        if (shell_rms*shell_count <= _crit_dE) {
-            _converged_R = true;
-            converged = true;
-            LOG(logDEBUG,*_log)  
-                << (format(":::: Converged to precision as of Rc = %1$+1.3f nm") 
-                % shell_R ) << flush;
-            if (!_did_field_pin_R_shell_idx) break;
-        }
-    }
-    if (!converged) {
-        _converged_R = false;
+            LOG(logDEBUG,*_log)
+                << (format("Id = %5$-4d Rc = %1$+02.7f   |MGN| = %2$5d   dF(rms) = %3$+1.3e V/m   [1eA => %4$+1.3e eV]") 
+                % -1.0 % nbs.size() % -1.0  % -1.0 % ((*sit1)->getId())).str() << flush;
+        }    
     }
     
+    // ENERGY - REGENERATE NEIGHBOURS ?
+    else {
+        double dR_shell = 0.5;
+        double R_overhead = 1.1;
+        double R_add = 3;
+        double R_max = _R_co*R_overhead+R_add;
+        double R_max_shell = R_max + _polar_cutoff;
+        this->SetupMidground(R_max);
+        
+        // FOR EACH FOREGROUND SEGMENT (FGC) ...
+        int energy_converged_count = 0;
+        for (sit1 = _fg_C.begin(); sit1 != _fg_C.end(); ++sit1) {        
+            (*sit1)->ClearPolarNbs();
+
+            // Bin midground into shells
+            vector< vector<PolarSeg*> > shelled_mg_N;
+            int N_shells = int(R_max_shell/dR_shell)+1;
+            shelled_mg_N.resize(N_shells);
+
+            for (sit2 = _mg_N.begin(); sit2 != _mg_N.end(); ++sit2) {
+                double R = votca::tools::abs((*sit1)->getPos()-(*sit2)->getPos());
+                int shell_idx = int(R/dR_shell);
+                shelled_mg_N[shell_idx].push_back(*sit2);
+            }
+
+            // Sum over consecutive shells
+            for (int sidx = 0; sidx < N_shells; ++sidx) {
+                // Shell rms trackers
+                double shell_sum = 0.0;
+                double shell_term = 0.0;
+                double shell_rms = 0.0;
+                int shell_count = 0;
+                // Interact with shell
+                vector<PolarSeg*> &shell_mg = shelled_mg_N[sidx];            
+                double shell_R = (sidx+1)*dR_shell;            
+                if (shell_mg.size() < 1) continue;            
+                EWD::triple<double> ppuu(0,0,0);
+                for (sit2 = shell_mg.begin(); sit2 < shell_mg.end(); ++sit2) {
+                    for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+                        for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
+                            ppuu = _ewdactor.U12_ERFC(*(*pit1), *(*pit2));
+                            sum_pp += ppuu._pp;
+                            sum_pu += ppuu._pu;
+                            sum_uu += ppuu._uu;
+                            shell_term = ppuu._pp + ppuu._pu + ppuu._uu;
+                            shell_sum += shell_term;
+                            shell_rms += shell_term*shell_term;
+                            shell_count += 1;
+                        }
+                    }
+                }
+                shell_rms = sqrt(shell_rms/shell_count)*EWD::int2eV;
+                sum += shell_sum;
+                LOG(logDEBUG,*_log)
+                    << (format("Id = %5$-4d Rc = %1$+02.7f   |MGN| = %3$5d   ER = %2$+1.7f eV   dER2(sum) = %4$+1.3e eV") 
+                    % shell_R % (sum*EWD::int2eV) % shell_mg.size() % (shell_rms*shell_count) % (*sit1)->getId()).str() << flush;
+
+                if (shell_rms*shell_count <= _crit_dE) {
+                    energy_converged_count += 1;
+                    LOG(logDEBUG,*_log)  
+                        << (format(":::: Converged to precision as of Rc = %1$+1.3f nm") 
+                        % shell_R ) << flush;
+                    break;
+                }
+            }
+        }
+
+        if (energy_converged_count == _fg_C.size()) {
+            _converged_R = true;
+        }
+        else if (energy_converged_count < _fg_C.size()) {
+            LOG(logERROR,*_log) << "ERROR Energy not converged on " 
+                << _fg_C.size() - energy_converged_count << " counts." << flush;
+            _converged_R = false;
+        }
+        else {
+            assert(false);
+        }
+    }
+    
+    //boost::timer::auto_cpu_timer t0(*_log);
+    //t0.start();
     //t0.stop();
     //t0.report();
     
     return EWD::triple<>(sum_pp, sum_pu, sum_uu);
-    //return sum;
 }
 
 
@@ -518,34 +548,38 @@ void PEwald3D3D::Field_ConvergeRealSpaceSum() {
     double dR_shell = 0.5;
     double R_overhead = 1.1;
     double R_add = 3;
-    this->SetupMidground(R_overhead*_R_co+R_add);
+    double R_max = _R_co*R_overhead+R_add;
+    double R_max_shell = R_max+2*_polar_cutoff;
+    this->SetupMidground(R_max);
     
-    vector< vector<PolarSeg*> > shelled_mg_N;
-    int N_shells = int((R_overhead*_R_co+R_add)/dR_shell)+1;
-    shelled_mg_N.resize(N_shells);
     
-    for (sit1 = _mg_N.begin(); sit1 != _mg_N.end(); ++sit1) {
-        double R = votca::tools::abs((*sit1)->getPos()-_center);
-        int shell_idx = int(R/dR_shell);
-        shelled_mg_N[shell_idx].push_back(*sit1);
-    }
-    
-    // SUM OVER CONSECUTIVE SHELLS
-    bool converged = false;
-    for (int sidx = 0; sidx < N_shells; ++sidx) {
+    // FOR EACH FOREGROUND SEGMENT (FGC) ...
+    int field_converged_count = 0;
+    for (sit1 = _fg_C.begin(); sit1 != _fg_C.end(); ++sit1) {        
+        (*sit1)->ClearPolarNbs();
         
-        _did_field_pin_R_shell_idx = true;
-        _field_R_shell_idx = sidx;
+        // Bin midground into shells
+        vector< vector<PolarSeg*> > shelled_mg_N;
+        int N_shells = int(R_max_shell/dR_shell)+1;
+        shelled_mg_N.resize(N_shells);
         
-        vector<PolarSeg*> &shell_mg = shelled_mg_N[sidx];
-        double shell_rms = 0.0;
-        double shell_R = (sidx+1)*dR_shell;
-        int shell_count = 0;
+        for (sit2 = _mg_N.begin(); sit2 != _mg_N.end(); ++sit2) {
+            double R = votca::tools::abs((*sit1)->getPos()-(*sit2)->getPos());
+            int shell_idx = int(R/dR_shell);
+            shelled_mg_N[shell_idx].push_back(*sit2);
+        }
         
-        if (shell_mg.size() < 1) continue;
-
-        for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
-            for (sit2 = shell_mg.begin(); sit2 < shell_mg.end(); ++sit2) {
+        // Sum over consecutive shells
+        for (int sidx = 0; sidx < N_shells; ++sidx) {
+            // Shell rms trackers
+            double shell_rms = 0.0;
+            int shell_count = 0;
+            // Interact with shell
+            vector<PolarSeg*> &shell_mg = shelled_mg_N[sidx];            
+            double shell_R = (sidx+1)*dR_shell;            
+            if (shell_mg.size() < 1) continue;            
+            for (sit2 = shell_mg.begin(); sit2 != shell_mg.end(); ++sit2) {
+                (*sit1)->AddPolarNb(*sit2);
                 for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
                     for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
                         shell_rms += _ewdactor.FPU12_ERFC_At_By(*(*pit1), *(*pit2));
@@ -555,27 +589,38 @@ void PEwald3D3D::Field_ConvergeRealSpaceSum() {
                     }
                 }
             }
-        }
+            
+            // Assert convergence: Energy of dipole of size 0.1*e*nm summed over shell
+            shell_rms = sqrt(shell_rms/shell_count)*EWD::int2V_m;
+            double e_measure = shell_rms*1e-10*shell_count; // 
         
-        shell_rms = sqrt(shell_rms/shell_count)*EWD::int2V_m;
-        double e_measure = shell_rms*1e-10*shell_count; // Energy of dipole of size 0.1*e*nm summed over shell
-        
-        LOG(logDEBUG,*_log)
-            << (format("Rc = %1$+02.7f   |MGN| = %2$5d   dF(rms) = %3$+1.3e V/m   [1eA => %4$+1.3e eV]") 
-            % shell_R % shell_mg.size() % shell_rms  % e_measure).str() << flush;
-        
-        if (e_measure <= _crit_dE) {
-            _field_converged_R = true;
-            converged = true;
             LOG(logDEBUG,*_log)
-                << (format(":::: Converged to precision as of Rc = %1$+1.3f nm") 
-                % shell_R) << flush;
-            break;
+                << (format("Id = %5$-4d Rc = %1$+02.7f   |MGN| = %2$5d   dF(rms) = %3$+1.3e V/m   [1eA => %4$+1.3e eV]") 
+                % shell_R % shell_mg.size() % shell_rms  % e_measure % ((*sit1)->getId())).str() << flush;
+            
+            if (e_measure <= _crit_dE) {
+                field_converged_count += 1;
+                LOG(logDEBUG,*_log)
+                    << (format(":::: Converged to precision as of Rc = %1$+1.3f nm") 
+                    % shell_R) << flush;
+                break;
+            }
         }
     }
-    if (!converged) {
+    
+    if (field_converged_count == _fg_C.size()) {
+        _field_converged_R = true;
+    }
+    else if (field_converged_count < _fg_C.size()) {
+        LOG(logERROR,*_log) << "ERROR Field not converged on " 
+            << _fg_C.size() - field_converged_count << " counts." << flush;
         _field_converged_R = false;
-    }    
+    }
+    else {
+        assert(false);
+    }
+    
+    _did_field_pin_R_shell = true;
     return;
 }
 

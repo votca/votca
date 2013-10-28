@@ -40,6 +40,12 @@ PolarSeg::~PolarSeg() {
 }
 
 
+void PolarSeg::AddPolarNb(PolarSeg *pseg) {
+    PolarNb *new_nb = new PolarNb(pseg);
+    _nbs.push_back(new_nb);
+}
+
+
 void PolarSeg::CalcPos() {    
     _pos = vec(0,0,0);    
     for (int i = 0; i < this->size(); ++i) {        

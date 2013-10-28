@@ -97,7 +97,7 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
     _alpha = _rfactor/_R_co;
     _ewdactor = EwdInteractor(_alpha, _polar_aDamp);
     
-    _did_field_pin_R_shell_idx = false;
+    _did_field_pin_R_shell = false;
     _did_generate_kvectors = false;
     
     // SET-UP REAL & RECIPROCAL SPACE
@@ -369,7 +369,7 @@ void Ewald3DnD::SetupMidground(double R_co) {
     // NOTE Excludes interaction of fg polar segments with neutral selfs in 
     //      real-space sum
     // NOTE Includes periodic images if within cut-off    
-    
+
     // CLEAR ANY EXTANT MIDGROUND
     vector<PolarSeg*>::iterator sit;
     vector<PolarSeg*>::iterator sit2;
