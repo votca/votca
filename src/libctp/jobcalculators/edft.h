@@ -240,7 +240,7 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     string segType = lSegments.front()->getAttribute<string>( "type" );
     
     Segment *seg = top->getSegment( segId );
-    assert( seg->Name() == segType );
+    assert( seg->getName() == segType ); 
     segments.push_back( seg );
 
     Logger* pLog = opThread->getLogger();

@@ -43,7 +43,7 @@ set (BOOST_LIBRARIES ${Boost_THREAD_LIBRARY} ${Boost_PROGRAM_OPTIONS_LIBRARY} ${
 set (BOOST_CFLAGS_PKG "-I${Boost_INCLUDE_DIRS}")
 string(REGEX REPLACE "^(.*)/lib([^/]*)\\.[^.]*$" "-L\\1 -l\\2" BOOST_LIBS_PKG ${BOOST_LIBRARIES})
 
-message(STATUS "BOOST_LIBRARIES='${BOOST_LIBRARIES}'")
+#message(STATUS "BOOST_LIBRARIES='${BOOST_LIBRARIES}'")
 
 find_package(VOTCA_TOOLS REQUIRED)
 include_directories(${VOTCA_TOOLS_INCLUDE_DIRS})
@@ -51,6 +51,47 @@ find_package(VOTCA_CSG REQUIRED)
 include_directories(${VOTCA_CSG_INCLUDE_DIRS})
 find_package(VOTCA_MOO REQUIRED)
 include_directories(${VOTCA_MOO_INCLUDE_DIRS})
+
+########################################################################
+# Checks what linear algebra packages are installed                    #
+########################################################################
+option(WITH_LINALG "Checking which BLAS libraries are installed" ON)
+if (WITH_LINALG)
+
+  find_package(Eigen)
+  find_package(GSL)
+  find_package(MKL)
+
+  if (EIGEN_FOUND) 
+    message("-- EIGEN found (not used at the moment)")
+    set(EIGEN TRUE) #used in votca_ctp_config.h
+    include_directories(${EIGEN_INCLUDE_DIRS})
+  else()
+    message("-- EIGEN not found")
+    set(EIGEN FALSE) #used in votca_ctp_config.h
+  endif()
+
+  if (GSL_FOUND) 
+    message("-- GSL found, overloading uBLAS prod()")
+    include_directories(${GSL_INCLUDE_DIRS})
+    set(GSL_PKG "gsl")
+    set(GSL TRUE) #used in votca_ctp_config.h
+  else()
+    message(WARNING "-- GSL not found, slow uBLAS::prod()")
+    set(GSL FALSE) #used in votca_ctp_config.h
+  endif()
+
+  if (MKL_FOUND) 
+    message("-- MKL found, overloading uBLAS prod()")
+    set(MKL TRUE) #used in votca_ctp_config.h
+  else()
+    message("-- MKL not found (hopefully GSL is here)")
+    set(MKL FALSE) #used in votca_ctp_config.h
+  endif()
+
+endif(WITH_LINALG)
+
+#configure_file(config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
 
 ########################################################################

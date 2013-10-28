@@ -1,7 +1,7 @@
 <options>
 
 <!-- ctp_run -e edft -f state.db -o options.xml -->
-<edft help="A wrapper for first principles based single site calculations" label="calc:edft">
+<edft help="A wrapper for first principles based single site calculations" section="sec:edft">
 
 	<job help="Job options">
 		<file help="Job control file (full path)"></file>
