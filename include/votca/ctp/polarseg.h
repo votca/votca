@@ -22,23 +22,28 @@ public:
 
     const int &getId() { return _id; }
     const vec &getPos() { return _pos; }
+    void setId(int id) { _id = id; }    
     
-    void CalcPos();
-    void CalcIsCharged();
-    void CalcIsPolarizable();
-    double CalcTotQ();    
-    void Translate(const vec &shift);
-    
+    // Local neighbor-list
     vector<PolarNb*> &PolarNbs() { return _nbs; }
     void ReservePolarNbs(int nbsize) { _nbs.reserve(nbsize); }
     void AddPolarNb(PolarNb *nb) { _nbs.push_back(nb); }
-    void ClearPolarNbs();
-    void PrintPolarNbPDB(string outfile);
-    void WriteMPS(string mpsfile, string tag="");
-    
-    bool IsCharged() { return _is_charged; }    
+    void ClearPolarNbs();    
+    // Position & total charge
+    void Translate(const vec &shift);
+    void CalcPos();    
+    double CalcTotQ();
+    // Evaluates to "true" ONLY if ALL contained polar sites have charge 0
+    void CalcIsCharged();
+    bool IsCharged() { return _is_charged; }
+    // Evaluates to "true" if ANY contained polar site has polarizability > 0
+    void CalcIsPolarizable();
     bool IsPolarizable() { return _is_polarizable; }
     
+    // File output methods
+    void PrintPolarNbPDB(string outfile);
+    void WriteMPS(string mpsfile, string tag="");    
+    // Serialization interface
     template<class Archive>
     void serialize(Archive &arch, const unsigned int version) {
         arch & boost::serialization::base_object< vector<APolarSite*> >(*this);
@@ -64,9 +69,9 @@ private:
 class PolarNb
 {
 public:
-    // _pbcshift = dr(nb,shift;pbc) - dr(nb,shift) + imageboxvector
-    // Effective connection vector
-    // top->ShortestConnect(ref,nb) + _pbcshift
+    // s22x = dr(nb,shift;pbc) - dr(nb,shift) + imageboxvector
+    // Use s22x to obtain effective connection vector
+    // dreff = top->ShortestConnect(ref,nb) + _pbcshift
     PolarNb(PolarSeg *nb, vec &dr12, vec &s22x) 
         : _nb(nb), _dr12(dr12), _s22x(s22x) {};        
     PolarSeg *getNb() { return _nb; }

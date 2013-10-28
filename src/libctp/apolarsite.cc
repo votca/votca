@@ -605,6 +605,48 @@ void APolarSite::WriteChkLine(FILE *out, vec &shift, bool split_dpl,
 }
 
 
+void APolarSite::WriteMpsLine(std::ostream &out, string unit = "angstrom") {
+    
+    // Set conversion factor for higher-rank moments (e*nm**k to e*a0**k)
+    double conv_dpl = 1./0.0529189379;
+    double conv_qdr = conv_dpl*conv_dpl;
+    // Set conversion factor for polarizabilities (nm**3 to A**3)
+    double conv_pol = 1000;    
+    // Set conversion factor for positions (nm to ??)
+    double conv_pos = 1.;
+    if (unit == "angstrom") {
+        conv_pos = 10.;
+    }
+    else if (unit == "nanometer") {
+        conv_pos = 1.;
+    }
+    else assert(false); // Units error
+    
+    out << (boost::format(" %1$2s %2$+1.7f %3$+1.7f %4$+1.7f Rank %5$d\n") 
+            % _name % (_pos.getX()*conv_pos)
+            % (_pos.getY()*conv_pos) % (_pos.getZ()*conv_pos)
+            % _rank);
+    // Charged
+    out << (boost::format("    %1$+1.7f\n") % Q00);
+    if (_rank > 0) {
+        // Dipole z x y
+        out << (boost::format("    %1$+1.7f %2$+1.7f %3$+1.7f\n") 
+            % (Q1z*conv_dpl) % (Q1x*conv_dpl) % (Q1y*conv_dpl));
+        if (_rank > 1) {
+            // Quadrupole 20 21c 21s 22c 22s
+            out << (boost::format("    %1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f %5$+1.7f\n") 
+                % (Q20*conv_qdr) % (Q21c*conv_qdr) % (Q21s*conv_qdr) 
+                % (Q22c*conv_qdr) % (Q22s*conv_qdr));
+        }
+    }
+    // Polarizability
+    out << (boost::format("     P %1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f %5$+1.7f %6$+1.7f \n") 
+        % (Pxx*conv_pol) % (Pxy*conv_pol) % (Pxz*conv_pol) 
+        % (Pyy*conv_pol) % (Pyz*conv_pol) % (Pzz*conv_pol));
+    
+}
+
+
 vector<APolarSite*> APS_FROM_MPS(string filename, int state, QMThread *thread) {
 
     int poleCount = 1;
@@ -797,26 +839,37 @@ vector<APolarSite*> APS_FROM_MPS(string filename, int state, QMThread *thread) {
         if (thread == NULL)
         cout << endl << "... ... ... NOTE Using default Thole polarizabilities "
              << "for charge state " << state << ". ";
-
+        
+        std::map<string,double> polar_table = POLAR_TABLE();
+        
         vector< APolarSite* > ::iterator pol;
         for (pol = poles.begin(); pol < poles.end(); ++pol) {
             string elem = (*pol)->getName();
             double alpha = 0.0;
-            // Original set of Thole polarizabilites
-            if      (elem == "C") { alpha = 1.75e-3;  } // <- conversion from
-            else if (elem == "H") { alpha = 0.696e-3; } //    A³ to nm³ = 10⁻³
-            else if (elem == "N") { alpha = 1.073e-3; }
-            else if (elem == "O") { alpha = 0.837e-3; }
-            else if (elem == "S") { alpha = 2.926e-3; }
-            // Different set of Thole polarizabilities
-            //if      (elem == "C") { alpha = 1.334e-3; } // <- conversion from
-            //else if (elem == "H") { alpha = 0.496e-3; } //    A³ to nm³ = 10⁻³
-            //else if (elem == "N") { alpha = 1.073e-3; }
-            //else if (elem == "O") { alpha = 0.837e-3; }
-            //else if (elem == "S") { alpha = 3.300e-3; }
-            else { throw runtime_error("No polarizability given "
-                                       "for polar site type " + elem + ". "); }
-
+            
+            try {
+                alpha = polar_table.at(elem);
+            }
+            catch(out_of_range){
+                cout << endl << "WARNING No default polarizability given for "
+                    << "polar site type '" << elem << "'. Defaulting to 1 A**3. " 
+                    << flush;
+                alpha = 1e-3;
+            }
+//            // Original set of Thole polarizabilites
+//            if      (elem == "C") { alpha = 1.75e-3;  } // <- conversion from
+//            else if (elem == "H") { alpha = 0.696e-3; } //    A³ to nm³ = 10⁻³
+//            else if (elem == "N") { alpha = 1.073e-3; }
+//            else if (elem == "O") { alpha = 0.837e-3; }
+//            else if (elem == "S") { alpha = 2.926e-3; }
+//            // Different set of Thole polarizabilities
+//            //if      (elem == "C") { alpha = 1.334e-3; } // <- conversion from
+//            //else if (elem == "H") { alpha = 0.496e-3; } //    A³ to nm³ = 10⁻³
+//            //else if (elem == "N") { alpha = 1.073e-3; }
+//            //else if (elem == "O") { alpha = 0.837e-3; }
+//            //else if (elem == "S") { alpha = 3.300e-3; }
+//            else { throw runtime_error("No polarizability given "
+//                                       "for polar site type " + elem + ". "); }
 
             P1 = matrix(vec(alpha,0,0),vec(0,alpha,0),vec(0,0,alpha));
 
@@ -831,5 +884,18 @@ vector<APolarSite*> APS_FROM_MPS(string filename, int state, QMThread *thread) {
 
     return poles;
 }
+
+
+map<string,double> POLAR_TABLE() {
+    map<string,double> polar_table;
+    polar_table["H"] = 0.496e-3;
+    polar_table["C"] = 1.334e-3;
+    polar_table["N"] = 1.073e-3;
+    polar_table["O"] = 0.837e-3;
+    polar_table["S"] = 2.926e-3;
+    polar_table["F"] = 0.440e-3;
+    return polar_table;
+}
+
 
 }}

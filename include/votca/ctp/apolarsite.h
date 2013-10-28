@@ -25,10 +25,11 @@
 #include <votca/tools/vec.h>
 #include <votca/tools/matrix.h>
 #include <votca/tools/types.h>
+#include <map>
 
 
 namespace votca { namespace ctp {
-
+    
 
 using namespace votca::tools;
 
@@ -60,12 +61,12 @@ public:
     APolarSite(int id, string name)
             : _id(id), _name(name), _isVirtual(false), _locX(vec(1,0,0)),
               _locY(vec(0,1,0)),    _locZ(vec(0,0,1))
-            { _Qs.resize(3); _Ps.resize(3); };
+            { _Qs.resize(3); _Ps.resize(3); this->Depolarize(); };
 
     APolarSite()
             : _id(-1),  _isVirtual(false), _locX(vec(1,0,0)),
               _locY(vec(0,1,0)), _locZ(vec(0,0,1))
-            { _Qs.resize(3); _Ps.resize(3); };
+            { _Qs.resize(3); _Ps.resize(3); this->Depolarize(); };
             
     APolarSite(APolarSite *templ);
 
@@ -95,13 +96,14 @@ public:
     vector<double> &getQs(int state) { return _Qs[state+1]; }
     void            setQs(vector<double> Qs, int state) { _Qs[state+1] = Qs; }
     void            setPs(matrix polar, int state) { _Ps[state+1] = polar; }
+    void            setIsoP(double p) { Pxx = Pyy = Pzz = p; Pxy = Pxz = Pyz = 0.0; }
     matrix         &getPs(int state) { return _Ps[state+1]; }
-    double          getIsoP() { return 1./3. * (Pxx+Pyy+Pzz); }
+    double          getIsoP() { return pow((Pxx*Pyy*Pzz),1./3.); }
     double          getProjP(vec &dir);
     vec             getFieldP() { return vec(FPx,FPy,FPz); } // Only IOP
     vec             getFieldU() { return vec(FUx,FUy,FUz); } // Only IOP
     
-    void            setQ00(double q, int s) { Q00 = q; _Qs[s+1][0] = q; }
+    void            setQ00(double q, int s) { Q00 = q; if (_Qs[s+1].size() < 1) _Qs[s+1].resize(1); _Qs[s+1][0] = q; }
     double         &getQ00() { return Q00; }
     void            Charge(int state);
     void            ChargeDelta(int state1, int state2);
@@ -126,6 +128,7 @@ public:
     void            WriteChkLine(FILE *, vec &, bool, string, double);
     void            WriteXyzLine(FILE *, vec &, string);
     void            WritePdbLine(FILE *out, const string &tag = "");
+    void            WriteMpsLine(std::ostream &out, string unit);
 
     vector<APolarSite*> CreateFrom_MPS(string filename, int state) { 
         vector<APolarSite*> a; return a; 
@@ -224,9 +227,7 @@ private:
 
 
 vector<APolarSite*> APS_FROM_MPS(string filename, int state, QMThread *thread = NULL);
-
-
-
+std::map<string,double> POLAR_TABLE();
 
 
 class BasicInteractor
