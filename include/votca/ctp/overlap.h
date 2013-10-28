@@ -17,7 +17,6 @@
  *
  */
 
-
 #include <votca/ctp/orbitals.h>
 #include <votca/ctp/logger.h>
 
