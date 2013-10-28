@@ -39,7 +39,7 @@
 		<execute>{ctp_app} -e {name} -o {name}.xml</execute>
 		<requires></requires>
 		<verify></verify>
-		<output>coupling.out</output>
+		<output>coupling.out.xml</output>
 	</test>
 	<test>
 		<name>einternal</name>
