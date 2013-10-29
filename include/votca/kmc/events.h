@@ -22,6 +22,7 @@
 #include <votca/kmc/graph.h>
 #include <votca/kmc/state.h>
 #include <votca/kmc/event.h>
+#include <votca/kmc/longrange.h>
 
 namespace votca { namespace kmc {
   
