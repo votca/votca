@@ -11,6 +11,7 @@ share/doc/html
 
 src/libctp/votca_config.h
 src/libctp/hgversion.h
+include/votca/ctp/votca_ctp_config.h
 
 src/tools/ctp_dump
 src/tools/ctp_parallel
