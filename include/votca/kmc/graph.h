@@ -50,6 +50,11 @@ public:
     int max_pair_degree;
     double hopping_distance;
     
+    int meshsizeX; int meshsizeY; int meshsizeZ;
+    vector< vector< vector <list<Node*> > > > node_mesh;
+    void Init_node_mesh(myvec sim_box_size, double hopdist);
+    void Add_to_node_mesh(Node* node, double hopdist);
+    
 private:
     
     void Load_graph_nodes(string filename);
@@ -60,7 +65,8 @@ private:
     void Create_cubic_graph_nodes(int nx, int ny, int nz, double lattice_constant, myvec front, myvec back);
     void Create_static_energies(votca::tools::Random2 *RandomVariable, double disorder_strength, double disorder_ratio, CorrelationType correlation_type);
     
-    void Determine_graph_pairs(vector<Node*> nodes,double hopping_distance, myvec sim_box_size);
+    void Determine_graph_pairs(vector<Node*> nodes, double hopping_distance, int meshsizeX, int meshsizeY, int meshsizeZ,
+                                         vector< vector< vector <list<Node*> > > > node_mesh );
     
     void Setup_device_graph(vector<Node*> nodes, Node* left_electrode, Node* right_electrode, double hopping_distance, double left_electrode_distance, double right_electrode_distance);
     void Break_periodicity(vector<Node*>nodes , bool x_direction, bool y_direction, bool z_direction);
@@ -75,6 +81,37 @@ private:
     myvec Periodicdifference(myvec init, myvec final, myvec boxsize);    
     
 };
+
+void Graph::Init_node_mesh(myvec sim_box_size, double hopdist){
+    meshsizeX = ceil(sim_box_size.x()/hopdist);
+    meshsizeY = ceil(sim_box_size.y()/hopdist);
+    meshsizeZ = ceil(sim_box_size.z()/hopdist);
+    
+    node_mesh.resize(meshsizeX);
+    for(int i = 0;i<meshsizeX;i++) {
+        node_mesh[i].resize(meshsizeY);
+        for(int j = 0;j<meshsizeY;j++) {
+            node_mesh[i][j].resize(meshsizeZ);
+        }
+    }
+    
+    for(int inode=0;inode<nodes.size();inode++){
+        Add_to_node_mesh(nodes[inode], hopdist);
+    }
+}
+
+void Graph::Add_to_node_mesh(Node* node, double hopdist){
+
+    double posx = node->node_position.x();
+    double posy = node->node_position.y();
+    double posz = node->node_position.z();
+        
+    int iposx = floor(posx/hopdist); 
+    int iposy = floor(posy/hopdist); 
+    int iposz = floor(posz/hopdist);
+    
+    node_mesh[iposx][iposy][iposz].push_back(node);       
+}
 
 void Graph::Load_graph(string filename, double left_electrode_distance, double right_electrode_distance, double self_image_prefactor, int nr_sr_images){
     
@@ -98,7 +135,8 @@ void Graph::Generate_cubic_graph(int nx, int ny, int nz, double lattice_constant
                                 double self_image_prefactor, int nr_sr_images) {
 
     Create_cubic_graph_nodes(nx, ny, nz, lattice_constant, myvec(0.0,0.0,0.0), myvec (lattice_constant, lattice_constant, lattice_constant));
-    Determine_graph_pairs(nodes,hopping_distance,sim_box_size);
+    Init_node_mesh(sim_box_size, hopping_distance);
+    Determine_graph_pairs(nodes,hopping_distance,meshsizeX,meshsizeY,meshsizeZ, node_mesh);
     Create_static_energies(RandomVariable, disorder_strength, disorder_ratio, correlation_type);    
 
     Setup_device_graph(nodes,left_electrode,right_electrode,hopping_distance,left_electrode_distance,right_electrode_distance);
@@ -291,7 +329,11 @@ void Graph::Create_static_energies(votca::tools::Random2 *RandomVariable, double
 void Graph::Setup_device_graph(vector<Node*> nodes, Node* left_electrode, Node* right_electrode, double hopping_distance, double left_electrode_distance, double right_electrode_distance){
 
     left_electrode->node_type = LeftElectrode;
+    left_electrode->static_electron_node_energy = 0.0;
+    left_electrode->static_hole_node_energy = 0.0;
     right_electrode->node_type = RightElectrode;
+    right_electrode->static_electron_node_energy = 0.0;
+    right_electrode->static_hole_node_energy = 0.0;
     
     // Make sure the periodicity is broken up, i.e. pairs passing over the electrodes should be broken
     Break_periodicity(nodes, true, false, false);
@@ -330,6 +372,9 @@ void Graph::Setup_device_graph(vector<Node*> nodes, Node* left_electrode, Node* 
     
     //determine the nodes which are injectable from the left electrode and the nodes which are injectable from the right electrode
 
+    int linjector_ID = 0;
+    int rinjector_ID = 0;
+
     for(int inode=0; inode<nodes.size(); inode++) { 
       
         double left_distance = nodes[inode]->node_position.x();
@@ -341,6 +386,8 @@ void Graph::Setup_device_graph(vector<Node*> nodes, Node* left_electrode, Node* 
             nodes[inode]->setStaticeventinfo(left_electrode, dr, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0); //NEED TO DETERMINE THIS
             left_electrode->setPair(nodes[inode]);
             left_electrode->setStaticeventinfo(nodes[inode], -1.0*dr, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0); //NEED TO DETERMINE THIS
+            nodes[inode]->left_injector_ID = linjector_ID;
+            linjector_ID++;
       
         }
       
@@ -353,6 +400,8 @@ void Graph::Setup_device_graph(vector<Node*> nodes, Node* left_electrode, Node* 
             nodes[inode]->setStaticeventinfo(right_electrode, dr, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0); //NEED TO DETERMINE THIS
             right_electrode->setPair(nodes[inode]);
             right_electrode->setStaticeventinfo(nodes[inode], -1.0*dr, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0); //NEED TO DETERMINE THIS            
+            nodes[inode]->right_injector_ID = rinjector_ID;
+            rinjector_ID++;
         }
     }
 }
@@ -364,6 +413,8 @@ void Graph::Set_all_self_image_potential(vector<Node*> nodes, myvec sim_box_size
         double device_length = sim_box_size.x();
         nodes[inode]->self_image_potential = Calculate_self_image_potential(nodepos.x(),device_length,self_image_prefactor,nr_sr_images);
     }
+    left_electrode->self_image_potential = 0.0;
+    right_electrode->self_image_potential = 0.0;
 }
 
 double Graph::Calculate_self_image_potential(double nodeposx, double length, double self_image_prefactor, int nr_sr_images){
@@ -571,29 +622,8 @@ int Graph::Determine_max_pair_degree(vector<Node*> nodes){
     return maxdegree;    
 }
 
-void Graph::Determine_graph_pairs(vector<Node*> nodes, double hopping_distance, myvec sim_box_size) {  
-  
-    // define a node-mesh for pairfinding algorithm
-  
-    int meshsizeX = ceil(sim_box_size.x()/hopping_distance);
-    int meshsizeY = ceil(sim_box_size.y()/hopping_distance);
-    int meshsizeZ = ceil(sim_box_size.z()/hopping_distance);
-    
-    list<Node* > node_mesh [meshsizeX][meshsizeY][meshsizeZ];
-
-    for (int inode = 0; inode<nodes.size(); inode++) {
-        
-        myvec nodeposition = nodes[inode]->node_position;
-        double posx = nodeposition.x();
-        double posy = nodeposition.y();
-        double posz = nodeposition.z();
-        
-        int iposx = floor(posx/hopping_distance); 
-        int iposy = floor(posy/hopping_distance); 
-        int iposz = floor(posz/hopping_distance);
-      
-        node_mesh[iposx][iposy][iposz].push_back(nodes[inode]);
-    }
+void Graph::Determine_graph_pairs(vector<Node*> nodes, double hopping_distance, int meshsizeX, int meshsizeY, int meshsizeZ,
+    vector< vector< vector <list<Node*> > > > node_mesh ) {  
   
     for (int inode = 0; inode<nodes.size(); inode++) {
       
@@ -616,16 +646,16 @@ void Graph::Determine_graph_pairs(vector<Node*> nodes, double hopping_distance, 
         // Now visit all relevant sublattices
         for (int isz=sz1; isz<=sz2; isz++) {
             int r_isz = isz;
-            while (r_isz < 0) r_isz += sim_box_size.z();
-            while (r_isz >= sim_box_size.z()) r_isz -= sim_box_size.z();
+            while (r_isz < 0) r_isz += meshsizeZ;
+            while (r_isz >= meshsizeZ) r_isz -= meshsizeZ;
             for (int isy=sy1; isy<=sy2; isy++) {
                 int r_isy = isy;
-                while (r_isy < 0) r_isy += sim_box_size.y();
-                while (r_isy >= sim_box_size.y()) r_isy -= sim_box_size.y();
+                while (r_isy < 0) r_isy += meshsizeY;
+                while (r_isy >= meshsizeY) r_isy -= meshsizeY;
                 for (int isx=sx1; isx<=sx2; isx++) {
                     int r_isx = isx;
-                    while (r_isx < 0) r_isx += sim_box_size.x();
-                    while (r_isx >= sim_box_size.x()) r_isx -= sim_box_size.x();
+                    while (r_isx < 0) r_isx += meshsizeX;
+                    while (r_isx >= meshsizeX) r_isx -= meshsizeX;
         
                     // Ask a list of all nodes in this sublattice
                     list<Node*>::iterator li1,li2,li3;

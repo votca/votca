@@ -57,6 +57,8 @@ public:
     vector<Static_event_info> static_event_info;
     vector<Carrier*> carriers_on_node;
     
+    int layer_index;
+    
     //static energies
     double reorg_intorig_hole;
     double reorg_intorig_electron;
@@ -74,7 +76,12 @@ public:
     double static_hole_node_energy;
     
     double self_image_potential;
-
+    
+    //for injection
+    
+    int left_injector_ID;
+    int right_injector_ID;
+    double injection_potential;
     
 };
 
