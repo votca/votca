@@ -29,12 +29,12 @@ using namespace std;
 class Bsumtree {
 public:
   void initialize(unsigned long nrelements);
-  void setelement(unsigned long i, double value);
-  double getelement(long i);
+  void setrate(unsigned long i, double value);
+  double getrate(long i);
   double compute_sum();
   long search(double searchkey);
   void resize(unsigned long newsize);
-  long getnrelements();    
+  long getnrrates();    
  
 private:
   bool dirty(unsigned long i);
@@ -46,9 +46,8 @@ private:
   unsigned long nrelements;
 };
 
-void Bsumtree::initialize(unsigned long nrelements_) { // Must be called before use
+void Bsumtree::initialize(unsigned long nrelements) { // Must be called before use
   // treesize is the smallest power of two above nrelements minus 1
-  nrelements = nrelements_;
   treesize = (unsigned long) pow(2,ceil(log((double) nrelements)/log((double) 2)))-1; // number of nodes
     
   dirty_array.resize(treesize);
@@ -65,7 +64,7 @@ void Bsumtree::initialize(unsigned long nrelements_) { // Must be called before 
   }
 }
 
-void Bsumtree::setelement(unsigned long i, double value) { // 0 <= i < nrelements
+void Bsumtree::setrate(unsigned long i, double value) { // 0 <= i < nrelements
   element_array[i] = value;
   long j = i+treesize;
   j = div(j-1,(long) 2).quot; // Parent node
@@ -77,7 +76,7 @@ void Bsumtree::setelement(unsigned long i, double value) { // 0 <= i < nrelement
   }
 }
 
-double Bsumtree::getelement(long i) {
+double Bsumtree::getrate(long i) {
   return element_array[i];
 }
   
@@ -133,11 +132,11 @@ void Bsumtree::resize(unsigned long newsize) { // Resize arrays. Expensive, so u
   }
   initialize(newsize);
   for (unsigned long i=0;i<newsize;i++) {
-    setelement(i, temp_element_array[i]);
+    setrate(i, temp_element_array[i]);
   }
 }
 
-long Bsumtree::getnrelements() {
+long Bsumtree::getnrrates() {
   return nrelements;
 }
 

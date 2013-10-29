@@ -23,6 +23,7 @@
 #include <votca/kmc/state.h>
 #include <votca/kmc/event.h>
 #include <votca/kmc/longrange.h>
+#include <votca/kmc/bsumtree.h>
 
 namespace votca { namespace kmc {
   
