@@ -50,6 +50,9 @@ public:
     int max_pair_degree;
     double hopping_distance;
     
+    int nr_left_injector_nodes;
+    int nr_right_injector_nodes;
+    
     int meshsizeX; int meshsizeY; int meshsizeZ;
     vector< vector< vector <list<Node*> > > > node_mesh;
     void Init_node_mesh(myvec sim_box_size, double hopdist);
@@ -405,6 +408,8 @@ void Graph::Setup_device_graph(vector<Node*> nodes, Node* left_electrode, Node* 
             rinjector_ID++;
         }
     }
+    nr_left_injector_nodes = linjector_ID;
+    nr_right_injector_nodes = rinjector_ID;
 }
 
 void Graph::Set_all_self_image_potential(vector<Node*> nodes, myvec sim_box_size, double self_image_prefactor, int nr_sr_images) {
