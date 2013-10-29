@@ -62,13 +62,13 @@ public:
     void Recompute_all_injection_events(bool dual_injection, Node* left_electrode, Node* right_electrode, int nr_left_injector_nodes, string formalism, Globaleventinfo* globevent);
     void Recompute_all_non_injection_events(vector<Node*> nodes, vector<Carrier*> electrons, vector<Carrier*> holes, int maxpairdegree,  string formalism, Globaleventinfo* globevent, bool device);
   
-    void Initialize_events_for_device(bool dual_injection, vector <Carrier*> electrons, vector <Carrier*> holes, Node* left_electrode, Node* right_electrode, int maxpairdegree); // if dual_injection is true, both types of carriers are injected from both electrodes
-    void Grow_non_injection_events(int carrier_grow_size, vector<Carrier*> carriers, vector<Event*> eventvector,int maxpairdegree);
+    void Initialize_eventvector_for_device(bool dual_injection, vector <Carrier*> electrons, vector <Carrier*> holes, Node* left_electrode, Node* right_electrode, int maxpairdegree); // if dual_injection is true, both types of carriers are injected from both electrodes
+    void Grow_non_injection_eventvector(int carrier_grow_size, vector<Carrier*> carriers, vector<Event*> eventvector,int maxpairdegree);
     
     double Compute_Coulomb_potential(double startx, myvec dif, myvec sim_box_size, double coulcut, int nr_sr_images, bool device);
     
 private:
-    void Initialize_injection_events(Node* electrode, vector<Event*> eventvector);
+    void Initialize_injection_eventvector(Node* electrode, vector<Event*> eventvector);
     
 };
 
@@ -568,32 +568,32 @@ void Events::Recompute_all_injection_events(bool dual_injection, Node* left_elec
     }
 }
 
-void Events::Initialize_events_for_device(bool dual_injection, vector <Carrier*> electrons, vector <Carrier*> holes, Node* left_electrode, Node* right_electrode, int maxpairdegree){ //
+void Events::Initialize_eventvector_for_device(bool dual_injection, vector <Carrier*> electrons, vector <Carrier*> holes, Node* left_electrode, Node* right_electrode, int maxpairdegree){ //
     
     El_non_injection_events.clear();
     Ho_non_injection_events.clear();
-    Grow_non_injection_events(electrons.size(), electrons, El_non_injection_events, maxpairdegree);
-    Grow_non_injection_events(holes.size(), holes,Ho_non_injection_events, maxpairdegree);
+    Grow_non_injection_eventvector(electrons.size(), electrons, El_non_injection_events, maxpairdegree);
+    Grow_non_injection_eventvector(holes.size(), holes,Ho_non_injection_events, maxpairdegree);
 
     
     if(dual_injection) {
         El_injection_events.clear();
         Ho_injection_events.clear();
-        Initialize_injection_events(left_electrode,El_injection_events);
-        Initialize_injection_events(right_electrode,El_injection_events);
-        Initialize_injection_events(left_electrode,Ho_injection_events);
-        Initialize_injection_events(right_electrode,Ho_injection_events);
+        Initialize_injection_eventvector(left_electrode,El_injection_events);
+        Initialize_injection_eventvector(right_electrode,El_injection_events);
+        Initialize_injection_eventvector(left_electrode,Ho_injection_events);
+        Initialize_injection_eventvector(right_electrode,Ho_injection_events);
     }
     else {
         El_injection_events.clear();
         Ho_injection_events.clear();
-        Initialize_injection_events(left_electrode,El_injection_events);
-        Initialize_injection_events(right_electrode,Ho_injection_events); 
+        Initialize_injection_eventvector(left_electrode,El_injection_events);
+        Initialize_injection_eventvector(right_electrode,Ho_injection_events); 
     }
     
 }
 
-void Events::Initialize_injection_events(Node* electrode, vector<Event*> eventvector){
+void Events::Initialize_injection_eventvector(Node* electrode, vector<Event*> eventvector){
 
     for (int inject_node = 0; inject_node<electrode->pairing_nodes.size(); inject_node++) {
 
@@ -603,7 +603,7 @@ void Events::Initialize_injection_events(Node* electrode, vector<Event*> eventve
     } 
 }
 
-void Events::Grow_non_injection_events(int carrier_grow_size, vector<Carrier*> carriers, vector<Event*> eventvector,int maxpairdegree){
+void Events::Grow_non_injection_eventvector(int carrier_grow_size, vector<Carrier*> carriers, vector<Event*> eventvector,int maxpairdegree){
     
     int old_nr_carriers = div(eventvector.size(),maxpairdegree).quot; //what was the number of carriers that we started with?
     
