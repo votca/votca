@@ -44,15 +44,17 @@ public:
     Bsumtree* Ho_non_injection_rates;
     Bsumtree* El_injection_rates;
     Bsumtree* Ho_injection_rates;
-    State* state;
     Graph* graph;
     Longrange* longrange;
+    
+    void Effect_of_event_in_device(Event* event, vector<Node*> nodes, State* state);
+    void Add_remove_carrier(action AR, Carrier* carrier, Node* action_node);
 
-    void Effect_potential_and_non_injection_rates_one_charge(action AR, Carrier* carrier,
+    void Effect_potential_and_non_injection_rates_one_carrier(action AR, Carrier* carrier,
                                                    int meshsizeX, int meshsizeY, int meshsizeZ, vector< vector< vector< vector <list<int> > > > > coulomb_mesh,
                                                    vector<Carrier*> electrons, vector<Carrier*> holes, double coulcut, double hopdist, bool device, myvec sim_box_size,
                                                    int nr_sr_images, vector<Node*> nodes, int max_pair_degree, string formalism, Globaleventinfo* globinfo);
-    void Effect_injection_rates_one_charge(action AR, vector<Node*> nodes, Carrier* carrier, 
+    void Effect_injection_rates_one_carrier(action AR, vector<Node*> nodes, Carrier* carrier, 
                                                    vector< vector< vector <list<Node*> > > > node_mesh,
                                                    int meshsizeX, int meshsizeY, int meshsizeZ,
                                                    double coulcut, double hopdist, double dist_to_electrode, Node* electrode, 
@@ -68,12 +70,115 @@ public:
     double Compute_Coulomb_potential(double startx, myvec dif, myvec sim_box_size, double coulcut, int nr_sr_images, bool device);
     
 private:
-    void Initialize_injection_eventvector(Node* electrode, vector<Event*> eventvector);
+    void Initialize_injection_eventvector(Node* electrode, vector<Event*> eventvector, CarrierType cartype);
     
 };
 
+void Events::Effect_of_event_in_device(Event* event, vector<Node*> nodes, State* state) {
+    
+    if(event->fromtype == Fromtransfer) {
+        Carrier* carrier = event->carrier;
+        Node* fromnode = nodes[carrier->carrier_node_ID]; 
+        Node* tonode = fromnode->pairing_nodes[event->tonode_ID];
+        Add_remove_carrier(Remove,carrier,fromnode);
+    
+        if(event->totype == Totransfer) {
+            Add_remove_carrier(Add,carrier,tonode);
+        }
+        else if(event->totype == Recombination) {
+            Carrier* recombined_carrier = tonode->carriers_on_node[0];
+            Add_remove_carrier(Remove, recombined_carrier, tonode);
+            if(carrier->carrier_type == Electron) {
+                state->Sell(state->electrons, state->electron_reservoir, carrier->carrier_ID);
+                state->Sell(state->holes, state->hole_reservoir, recombined_carrier->carrier_ID);
+            }
+            else if(carrier->carrier_type == Hole) {
+                state->Sell(state->holes, state->hole_reservoir, carrier->carrier_ID);
+                state->Sell(state->electrons, state->electron_reservoir, recombined_carrier->carrier_ID);
+            }
+        }
+        else if(event->totype == Collection) {
+            if(carrier->carrier_type == Electron) {
+                state->Sell(state->electrons, state->electron_reservoir, carrier->carrier_ID);
+            }
+            else if(carrier->carrier_type == Hole) {
+                state->Sell(state->holes, state->hole_reservoir, carrier->carrier_ID);
+            }            
+        }
+    }
+    else if(event->fromtype == Injection) {
+        Node* tonode = event->electrode->pairing_nodes[event->tonode_ID];
+        
+        if(event->totype == Totransfer) {
+            Add_remove_carrier(Add,event->carrier,tonode);
+            if(event->inject_cartype == Electron) {
+                state->Buy(state->electrons, state->electron_reservoir);
+            }
+            else {
+                state->Buy(state->holes, state->hole_reservoir);
+            }
+        }
+        else if(event->totype == Recombination) {
+            Carrier* recombined_carrier = tonode->carriers_on_node[0];
+            Add_remove_carrier(Remove,recombined_carrier,tonode);
+            if(event->inject_cartype == Electron) {
+                state->Sell(state->holes, state->hole_reservoir, recombined_carrier->carrier_ID);
+            }
+            else if(event->inject_cartype == Hole) {
+                state->Sell(state->electrons, state->electron_reservoir, recombined_carrier->carrier_ID);
+            }                        
+        }
+    }
+}
 
-void Events::Effect_potential_and_non_injection_rates_one_charge(action AR, Carrier* carrier,
+void Events::Add_remove_carrier(action AR, Carrier* carrier, Node* action_node){
+
+ /*   if(AR == Add) {
+        if(carrier->carrier_type==Hole) {
+            int hole1 = state->Buy(holes, hole_reservoir);
+            pcarrier = _hole_state.Get_item(carrier1);
+      carnode->_hole_number = carrier1;
+    }
+    else if(cartype==Electron) {
+      carrier1 = _electron_state.Buy();
+      pcarrier = _electron_state.Get_item(carrier1);        
+      carnode->_electron_number = carrier1;
+    }
+    pcarrier->_carriertype = cartype;
+    pcarrier->_node_index = carnode->_node_id;
+    carnode->_carrier = pcarrier1;
+    
+    if (cartype == Hole) {
+      if(_nholes == _maxholes){
+        int growsize = 10;
+        lattice_grow(growsize);
+      } 
+      _nholes++;
+      charge1 = 1;
+      pcarrier->_shortrange_coulomb.resize(1+carnode->_number_of_ho_pairs);
+      carnumberofpairs = _number_of_ho_pairs;
+    }
+    else if (cartype == Electron) {
+      if(_nelectrons == _maxelectrons){
+        int growsize = 10;
+        lattice_grow(growsize);
+      }
+      _nelectrons++;
+      charge1 = -1;
+      pcarrier->_shortrange_coulomb.resize(1+carnode->_number_of_el_pairs);
+      carnumberofpairs = _number_of_el_pairs;
+    } 
+    _ncarriers++;
+
+    // add charge to charge list
+    int iposx = floor(carpos.x()/_coul_box_dimX); 
+    int iposy = floor(carpos.y()/_coul_box_dimY); 
+    int iposz = floor(carpos.z()/_coul_box_dimZ);
+    chargelist[iposx][iposy][iposz].push_back(carrier1);    */
+}
+
+
+void Events::Effect_potential_and_non_injection_rates_one_carrier(action AR, Carrier* carrier,
                                                    int meshsizeX, int meshsizeY, int meshsizeZ, vector< vector< vector< vector <list<int> > > > > coulomb_mesh,
                                                    vector<Carrier*> electrons, vector<Carrier*> holes, double coulcut, double hopdist, bool device, myvec sim_box_size,
                                                    int nr_sr_images, vector<Node*> nodes, int max_pair_degree, string formalism, Globaleventinfo* globevent) {
@@ -292,7 +397,7 @@ void Events::Effect_potential_and_non_injection_rates_one_charge(action AR, Carr
     }
 }        
         
-void Events::Effect_injection_rates_one_charge(action AR, vector<Node*> nodes, Carrier* carrier, 
+void Events::Effect_injection_rates_one_carrier(action AR, vector<Node*> nodes, Carrier* carrier, 
                                                    vector< vector< vector <list<Node*> > > > node_mesh,
                                                    int meshsizeX, int meshsizeY, int meshsizeZ,
                                                    double coulcut, double hopdist, double dist_to_electrode, Node* electrode, 
@@ -579,26 +684,29 @@ void Events::Initialize_eventvector_for_device(bool dual_injection, vector <Carr
     if(dual_injection) {
         El_injection_events.clear();
         Ho_injection_events.clear();
-        Initialize_injection_eventvector(left_electrode,El_injection_events);
-        Initialize_injection_eventvector(right_electrode,El_injection_events);
-        Initialize_injection_eventvector(left_electrode,Ho_injection_events);
-        Initialize_injection_eventvector(right_electrode,Ho_injection_events);
+        Initialize_injection_eventvector(left_electrode,El_injection_events, Electron);
+        Initialize_injection_eventvector(right_electrode,El_injection_events, Electron);
+        Initialize_injection_eventvector(left_electrode,Ho_injection_events, Hole);
+        Initialize_injection_eventvector(right_electrode,Ho_injection_events, Hole);
     }
     else {
         El_injection_events.clear();
         Ho_injection_events.clear();
-        Initialize_injection_eventvector(left_electrode,El_injection_events);
-        Initialize_injection_eventvector(right_electrode,Ho_injection_events); 
+        Initialize_injection_eventvector(left_electrode,El_injection_events, Electron);
+        Initialize_injection_eventvector(right_electrode,Ho_injection_events, Hole); 
     }
     
 }
 
-void Events::Initialize_injection_eventvector(Node* electrode, vector<Event*> eventvector){
+void Events::Initialize_injection_eventvector(Node* electrode, vector<Event*> eventvector, CarrierType cartype){
 
     for (int inject_node = 0; inject_node<electrode->pairing_nodes.size(); inject_node++) {
 
         Event *newEvent = new Event();
         eventvector.push_back(newEvent);
+        newEvent->electrode = electrode;
+        newEvent->inject_cartype = cartype;
+        newEvent->tonode_ID = inject_node;
         
     } 
 }
@@ -614,6 +722,7 @@ void Events::Grow_non_injection_eventvector(int carrier_grow_size, vector<Carrie
             eventvector.push_back(newEvent);
 
             newEvent->carrier = carriers[carrier_ID];
+            newEvent->tonode_ID = jump_ID;
         }         
     }    
 }

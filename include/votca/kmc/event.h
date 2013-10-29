@@ -40,7 +40,15 @@ public:
     To_step_event totype;
     double rate;
     Graph* graph;
+    
     Carrier* carrier;
+    int tonode_ID;    
+    
+    Node* electrode;
+    CarrierType inject_cartype;
+    
+    
+    
     Globaleventinfo* globaleventinfo;
     
     void Set_injection_event(Node* electrode, int injectnode_ID, CarrierType carrier_type, string formalism,
