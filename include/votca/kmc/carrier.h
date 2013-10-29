@@ -37,11 +37,8 @@ public:
     int carrier_ID;
     bool is_in_sim_box;
     myvec carrier_distance;
-
-    
-//    vector<Dynamic_Event_Info> All_Dynamic_Event_Info; 
-    
-
+    double srform;
+    vector<double> srto;
 };
 
 }} 
