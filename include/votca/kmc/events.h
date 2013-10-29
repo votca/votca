@@ -276,7 +276,7 @@ void Events::Grow_non_injection_events(int carrier_grow_size, CarrierType carrie
             To_step_event totype = Determine_non_injection_to_event_type(carriers[carrier_ID], jump_ID);            
             
             newEvent->fromtype = fromtype;
-            newEvent->totype = totype;
+            newEvent->totype = totype; 
             newEvent->rate = Compute_non_injection_event_rate(carriers[carrier_ID], jump_ID, fromtype, totype);
         }         
     }    
