@@ -581,31 +581,22 @@ bool Gaussian::ParseOrbitalsFile( Orbitals* _orbitals )
     _orbitals->_has_mo_coefficients = true;
     _orbitals->_has_mo_energies = true;
     
-   // copying energies to a matrix  
-   _orbitals->_mo_energies.resize( _levels );
-   _level = 1;
-   for(size_t i=0; i < _orbitals->_mo_energies.size(); i++) {
-         _orbitals->_mo_energies[i] = _energies[ _level++ ];
-   }
+    // copying energies to the orbitals object  
+    ub::vector<double> &mo_energies = _orbitals->MOEnergies();   
+    mo_energies.resize( _levels );
+    for(size_t i=0; i < mo_energies.size(); i++) mo_energies[i] = _energies[ i+1 ];
    
-   // copying orbitals to the matrix
-   (_orbitals->_mo_coefficients).resize( _levels, _basis_size );     
-   for(size_t i = 0; i < _orbitals->_mo_coefficients.size1(); i++) {
-      for(size_t j = 0 ; j < _orbitals->_mo_coefficients.size2(); j++) {
-         _orbitals->_mo_coefficients(i,j) = _coefficients[i+1][j];
-         //cout << i << " " << j << endl;
-      }
-   }
+    // copying mo coefficients to the orbitals object
+    ub::matrix<double> &mo_coefficients = _orbitals->MOCoefficients(); 
+    mo_coefficients.resize( _levels, _basis_size );     
+    for(size_t i = 0; i < mo_coefficients.size1(); i++) 
+    for(size_t j = 0; j < mo_coefficients.size2(); j++) 
+          _orbitals->_mo_coefficients(i,j) = _coefficients[i+1][j];
 
     
    //cout << _mo_energies << endl;   
    //cout << _mo_coefficients << endl; 
-   
-   // cleanup
-   _coefficients.clear();
-   _energies.clear();
-   
-     
+        
    LOG(logDEBUG, *_pLog) << "Done reading MOs" << flush;
 
    return true;
@@ -787,8 +778,10 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
         if (overlap_pos != std::string::npos ) {
             
             // prepare the container
+            ub::symmetric_matrix<double> &overlap = _orbitals->MOOverlap();
+                    
             _orbitals->_has_overlap = true;
-            (_orbitals->_overlap).resize( _basis_set_size );
+            overlap.resize( _basis_set_size );
             
             _has_overlap_matrix = true;
             //cout << "Found the overlap matrix!" << endl;   
@@ -836,7 +829,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
                         
                         int _j_index = *_j_iter;                                
                         //_overlap( _i_index-1 , _j_index-1 ) = boost::lexical_cast<double>( _coefficient );
-                        _orbitals->_overlap( _i_index-1 , _j_index-1 ) = boost::lexical_cast<double>( _coefficient );
+                        overlap( _i_index-1 , _j_index-1 ) = boost::lexical_cast<double>( _coefficient );
                         _j_iter++;
                         
                     }
