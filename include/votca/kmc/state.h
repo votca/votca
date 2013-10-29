@@ -38,29 +38,100 @@ public:
     
     // Storage and readout of the node_id's of the nodes on which the carriers are to/from a SQL database
     void Save(string SQL_state_filename);
-    void Load(string SQL_state_filename);
+    void Load(string SQL_state_filename, vector <Node*> nodes);
 
     // Buying/Selling of carrier numbers from the reservoir
-    unsigned int Buy();
-    void Sell(unsigned int carrier_nr);
+    unsigned int Buy(vector <Carrier*> carriers, vector <int> carrier_reservoir);
+    void Sell(vector <Carrier*> carriers, vector <int> carrier_reservoir, unsigned int remove_from_sim_box);
+    void Grow(vector <Carrier*> carriers, vector <int> carrier_reservoir, unsigned int nr_new_carriers);
+    int state_grow_size;
     
-    int state_grow_size; //Size by which the structures are grown every time the reservoir is empty
-    
-    vector<Carrier*> carriers; //Carriers which are either in the simulation box or in the reservoir (as defined by the in_sim_box vector)
-    vector<int> carrier_reservoir;
     vector<Carrier*> electrons; //change
+    vector<int> electron_reservoir;
     vector<Carrier*> holes; //change
-    
+    vector<int> hole_reservoir;
+
     string SQL_state_filename;
 
     Graph* graph;
 
+    int meshsizeX; int meshsizeY; int meshsizeZ;
+    vector< vector< vector< vector <list<int> > > > > coulomb_mesh;
+    void Init_coulomb_mesh(vector<Node*> nodes, myvec sim_box_size, double coulomb_cutoff);
+    void Add_to_coulomb_mesh(vector<Node*> nodes, Carrier* carrier, double coulcut);
+    void Remove_from_coulomb_mesh(vector<Node*> nodes, Carrier* carrier, double coulcut);
+  
 private:
-    
-    // Initialization/Growth of the reservoir structure
-    void Grow(unsigned int growsize);
-    bool In_sim_box(int carrier_nr) {return carriers[carrier_nr]->is_in_sim_box;}
+    bool El_in_sim_box(int electron_nr) {return electrons[electron_nr]->is_in_sim_box;}
+    bool Ho_in_sim_box(int hole_nr) {return holes[hole_nr]->is_in_sim_box;}
 };
+
+void State::Init_coulomb_mesh(vector<Node*> nodes, myvec sim_box_size, double coulcut){
+    meshsizeX = ceil(sim_box_size.x()/coulcut);
+    meshsizeY = ceil(sim_box_size.y()/coulcut);
+    meshsizeZ = ceil(sim_box_size.z()/coulcut);
+    
+    coulomb_mesh.resize(meshsizeX);
+    for(int i = 0;i<meshsizeX;i++) {
+        coulomb_mesh[i].resize(meshsizeY);
+        for(int j = 0;j<meshsizeY;j++) {
+            coulomb_mesh[i][j].resize(meshsizeZ);
+            for(int k=0;k<meshsizeZ;k++) {
+                coulomb_mesh[i][j][k].resize(2);
+            }
+        }
+    }
+    
+    for(int ic=0;ic<electrons.size();ic++){
+        Add_to_coulomb_mesh(nodes, electrons[ic], coulcut);
+    }
+
+    for(int ic=0;ic<holes.size();ic++){
+        Add_to_coulomb_mesh(nodes, holes[ic], coulcut);
+    }
+}
+
+void State::Add_to_coulomb_mesh(vector<Node*> nodes, Carrier* carrier, double coulcut){
+
+    int charge;
+    if(carrier->carrier_type == Electron) {
+        charge = 0;
+    }
+    else if(carrier->carrier_type == Hole) {
+        charge = 1;
+    }
+    
+    double posx = nodes[carrier->carrier_node_ID]->node_position.x();
+    double posy = nodes[carrier->carrier_node_ID]->node_position.y();
+    double posz = nodes[carrier->carrier_node_ID]->node_position.z();
+        
+    int iposx = floor(posx/coulcut); 
+    int iposy = floor(posy/coulcut); 
+    int iposz = floor(posz/coulcut);
+    
+    coulomb_mesh[iposx][iposy][iposz][charge].push_back(carrier->carrier_ID);    
+}
+
+void State::Remove_from_coulomb_mesh(vector<Node*> nodes, Carrier* carrier, double coulcut){
+
+    int charge;
+    if(carrier->carrier_type == Electron) {
+        charge = 0;
+    }
+    else if(carrier->carrier_type == Hole) {
+        charge = 1;
+    }
+    
+    double posx = nodes[carrier->carrier_node_ID]->node_position.x();
+    double posy = nodes[carrier->carrier_node_ID]->node_position.y();
+    double posz = nodes[carrier->carrier_node_ID]->node_position.z();
+        
+    int iposx = floor(posx/coulcut); 
+    int iposy = floor(posy/coulcut); 
+    int iposz = floor(posz/coulcut);
+    
+    coulomb_mesh[iposx][iposy][iposz][charge].remove(carrier->carrier_ID);    
+}    
 
 
 void State::Save(string SQL_state_filename){
@@ -77,14 +148,24 @@ void State::Save(string SQL_state_filename){
                             "?,     ?,     ?,"
                             "?,     ?)");
     
-    for(int carrier_nr = 0;carrier_nr<carriers.size();carrier_nr++) {
-        if (In_sim_box(carrier_nr)) {
-            stmt->Bind(1, carriers[carrier_nr]->carrier_node_ID);
-            int carrier_type;
-            if(carriers[carrier_nr]->carrier_type = Electron) {carrier_type = 0;}
-            if(carriers[carrier_nr]->carrier_type = Hole) {carrier_type = 1;}
-            stmt->Bind(2, carrier_type);
-            myvec carrier_distance = carriers[carrier_nr]->carrier_distance;
+    for(int electron_nr = 0;electron_nr<electrons.size();electron_nr++) {
+        if (El_in_sim_box(electron_nr)) {
+            stmt->Bind(1, electrons[electron_nr]->carrier_node_ID);
+            stmt->Bind(2, 0);
+            myvec carrier_distance = electrons[electron_nr]->carrier_distance;
+            stmt->Bind(3, carrier_distance.x());
+            stmt->Bind(4, carrier_distance.y()); 
+            stmt->Bind(5, carrier_distance.z());
+            stmt->InsertStep();
+            stmt->Reset();
+        }        
+    }
+    
+    for(int hole_nr = 0;hole_nr<holes.size();hole_nr++) {
+        if (Ho_in_sim_box(hole_nr)) {
+            stmt->Bind(1, holes[hole_nr]->carrier_node_ID);
+            stmt->Bind(2, 1);
+            myvec carrier_distance = holes[hole_nr]->carrier_distance;
             stmt->Bind(3, carrier_distance.x());
             stmt->Bind(4, carrier_distance.y()); 
             stmt->Bind(5, carrier_distance.z());
@@ -99,7 +180,7 @@ void State::Save(string SQL_state_filename){
     db.EndTransaction();
 }
 
-void State::Load(string SQL_state_filename){
+void State::Load(string SQL_state_filename, vector <Node*> nodes){
     
     votca::tools::Database db;
     db.Open( SQL_state_filename );
@@ -109,42 +190,53 @@ void State::Load(string SQL_state_filename){
     
     while (stmt->Step() != SQLITE_DONE)
     {   
-        int carrier_nr = Buy();
-        int node_ID = stmt->Column<int>(0);
-        carriers[carrier_nr]->carrier_node_ID  = node_ID;
-        int carrier_type = stmt->Column<int>(1);
-        if(carrier_type == 0) { carriers[carrier_nr]->carrier_type = Electron;}
-        if(carrier_type == 1) { carriers[carrier_nr]->carrier_type = Hole;}
-        graph->nodes[node_ID]->carriers_on_node.push_back(carriers[carrier_nr]);
-        double distancex = stmt->Column<double>(2);
-        double distancey = stmt->Column<double>(3);
-        double distancez = stmt->Column<double>(4);
-        carriers[carrier_nr]->carrier_distance = myvec(distancex,distancey,distancez);
+        int cartype = stmt->Column<int>(1);
+        if(cartype == 0) { // electron
+            if(electron_reservoir.empty()) {Grow(electrons,electron_reservoir,state_grow_size);}
+            int electron_nr = Buy(electrons, electron_reservoir);
+            int carnode_ID = stmt->Column<int>(0);
+            electrons[electron_nr]->carrier_node_ID = carnode_ID;
+            electrons[electron_nr]->carrier_type = Electron;
+            nodes[carnode_ID]->carriers_on_node.push_back(electrons[electron_nr]);
+            double distancex = stmt->Column<double>(2);
+            double distancey = stmt->Column<double>(3);
+            double distancez = stmt->Column<double>(4);
+            electrons[electron_nr]->carrier_distance = myvec(distancex,distancey,distancez);            
+        }
+        else if(cartype == 1) { // hole
+            if(hole_reservoir.empty()) {Grow(holes,hole_reservoir,state_grow_size);}
+            int hole_nr = Buy(holes, hole_reservoir);
+            int carnode_ID = stmt->Column<int>(0);
+            holes[hole_nr]->carrier_node_ID = carnode_ID;
+            holes[hole_nr]->carrier_type = Hole;
+            nodes[carnode_ID]->carriers_on_node.push_back(holes[hole_nr]);
+            double distancex = stmt->Column<double>(2);
+            double distancey = stmt->Column<double>(3);
+            double distancez = stmt->Column<double>(4);
+            holes[hole_nr]->carrier_distance = myvec(distancex,distancey,distancez);                
+        }
     }
     delete stmt;
     stmt = NULL;    
 }
 
-unsigned int State::Buy() {
+unsigned int State::Buy(vector <Carrier*> carriers, vector <int> carrier_reservoir) {
     
-    if(carrier_reservoir.empty()) {Grow(state_grow_size);}
     unsigned int carriernr_to_sim_box = carrier_reservoir.back();
     carrier_reservoir.pop_back();
     carriers[carriernr_to_sim_box]->is_in_sim_box = true;
     return carriernr_to_sim_box;
-    
 }
 
-void State::Sell(unsigned int remove_from_sim_box) {
+void State::Sell(vector <Carrier*> carriers, vector <int> carrier_reservoir, unsigned int remove_from_sim_box) {
     
     carrier_reservoir.push_back(remove_from_sim_box);
     carriers[remove_from_sim_box]->is_in_sim_box = false;
-  
 }
 
-void State::Grow(unsigned int nr_carriers) {
+void State::Grow(vector <Carrier*> carriers, vector <int> carrier_reservoir, unsigned int nr_new_carriers) {
     
-    unsigned int new_nr_carriers = carriers.size() + nr_carriers;
+    unsigned int new_nr_carriers = carriers.size() + nr_new_carriers;
     carriers.resize(new_nr_carriers);
     for (unsigned int i=carriers.size(); i<new_nr_carriers; i++) {
     
