@@ -38,12 +38,12 @@ public:
     
     // Storage and readout of the node_id's of the nodes on which the carriers are to/from a SQL database
     void Save(string SQL_state_filename);
-    void Load(string SQL_state_filename, vector <Node*> nodes);
+    void Load(string SQL_state_filename, vector <Node*> nodes,int maxpairdegree);
 
     // Buying/Selling of carrier numbers from the reservoir
     unsigned int Buy(vector <Carrier*> carriers, vector <int> carrier_reservoir);
     void Sell(vector <Carrier*> carriers, vector <int> carrier_reservoir, unsigned int remove_from_sim_box);
-    void Grow(vector <Carrier*> carriers, vector <int> carrier_reservoir, unsigned int nr_new_carriers);
+    void Grow(vector <Carrier*> carriers, vector <int> carrier_reservoir, unsigned int nr_new_carriers, int maxpairdegree);
     int state_grow_size;
     
     vector<Carrier*> electrons; //change
@@ -180,7 +180,7 @@ void State::Save(string SQL_state_filename){
     db.EndTransaction();
 }
 
-void State::Load(string SQL_state_filename, vector <Node*> nodes){
+void State::Load(string SQL_state_filename, vector <Node*> nodes, int maxpairdegree){
     
     votca::tools::Database db;
     db.Open( SQL_state_filename );
@@ -192,7 +192,7 @@ void State::Load(string SQL_state_filename, vector <Node*> nodes){
     {   
         int cartype = stmt->Column<int>(1);
         if(cartype == 0) { // electron
-            if(electron_reservoir.empty()) {Grow(electrons,electron_reservoir,state_grow_size);}
+            if(electron_reservoir.empty()) {Grow(electrons,electron_reservoir,state_grow_size, maxpairdegree);}
             int electron_nr = Buy(electrons, electron_reservoir);
             int carnode_ID = stmt->Column<int>(0);
             electrons[electron_nr]->carrier_node_ID = carnode_ID;
@@ -204,7 +204,7 @@ void State::Load(string SQL_state_filename, vector <Node*> nodes){
             electrons[electron_nr]->carrier_distance = myvec(distancex,distancey,distancez);            
         }
         else if(cartype == 1) { // hole
-            if(hole_reservoir.empty()) {Grow(holes,hole_reservoir,state_grow_size);}
+            if(hole_reservoir.empty()) {Grow(holes,hole_reservoir,state_grow_size, maxpairdegree);}
             int hole_nr = Buy(holes, hole_reservoir);
             int carnode_ID = stmt->Column<int>(0);
             holes[hole_nr]->carrier_node_ID = carnode_ID;
@@ -234,10 +234,9 @@ void State::Sell(vector <Carrier*> carriers, vector <int> carrier_reservoir, uns
     carriers[remove_from_sim_box]->is_in_sim_box = false;
 }
 
-void State::Grow(vector <Carrier*> carriers, vector <int> carrier_reservoir, unsigned int nr_new_carriers) {
+void State::Grow(vector <Carrier*> carriers, vector <int> carrier_reservoir, unsigned int nr_new_carriers, int maxpairdegree) {
     
     unsigned int new_nr_carriers = carriers.size() + nr_new_carriers;
-    carriers.resize(new_nr_carriers);
     for (unsigned int i=carriers.size(); i<new_nr_carriers; i++) {
     
         Carrier *newCarrier = new Carrier();
@@ -246,8 +245,14 @@ void State::Grow(vector <Carrier*> carriers, vector <int> carrier_reservoir, uns
         carrier_reservoir.push_back(i);
         newCarrier->is_in_sim_box = false;
         newCarrier->carrier_ID = i;
+        
+        //initialize sr potential storage
+        newCarrier->srfrom = 0.0;
+        for(int i = 0; i<maxpairdegree; i++) {
+            newCarrier->srto.push_back(0.0);
+        }
+        
     }
-  
 }
 
 }} 

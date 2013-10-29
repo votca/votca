@@ -37,7 +37,7 @@ public:
     int carrier_ID;
     bool is_in_sim_box;
     myvec carrier_distance;
-    double srform;
+    double srfrom;
     vector<double> srto;
 };
 
