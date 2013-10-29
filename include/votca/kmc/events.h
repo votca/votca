@@ -47,8 +47,18 @@ public:
     Graph* graph;
     Longrange* longrange;
     
-    void Effect_of_event_in_device(Event* event, vector<Node*> nodes, State* state);
-    void Add_remove_carrier(action AR, Carrier* carrier, Node* action_node);
+    int nholes;
+    int nelectrons;
+    int ncarriers;
+    
+    void Effect_of_event_in_device(Event* event, vector<Node*> nodes, State* state, double coulcut,int state_grow_size, int maxpairdegree,
+                              vector< vector< vector <list<Node*> > > > node_mesh, int nodemeshsizeX, int nodemeshsizeY, int nodemeshsizeZ,
+                              Node* left_electrode, Node* right_electrode, bool dual_injection, int nr_left_injector_nodes,
+                              double hopdist, bool device, myvec sim_box_size, int nr_sr_images, string formalism, Globaleventinfo* globevent);
+    void Add_remove_carrier(action AR, Carrier* carrier, Node* action_node, State* state, vector<Node*> nodes, double coulcut, int state_grow_size, int maxpairdegree,
+                                   vector< vector< vector <list<Node*> > > > node_mesh, int nodemeshsizeX, int nodemeshsizeY, int nodemeshsizeZ,
+                                   Node* left_electrode, Node* right_electrode, bool dual_injection, int nr_left_injector_nodes,
+                                   double hopdist, bool device, myvec sim_box_size, int nr_sr_images, string formalism, Globaleventinfo* globevent);
 
     void Effect_potential_and_non_injection_rates_one_carrier(action AR, Carrier* carrier,
                                                    int meshsizeX, int meshsizeY, int meshsizeZ, vector< vector< vector< vector <list<int> > > > > coulomb_mesh,
@@ -74,20 +84,32 @@ private:
     
 };
 
-void Events::Effect_of_event_in_device(Event* event, vector<Node*> nodes, State* state) {
+void Events::Effect_of_event_in_device(Event* event, vector<Node*> nodes, State* state, double coulcut,int state_grow_size, int maxpairdegree,
+                              vector< vector< vector <list<Node*> > > > node_mesh, int nodemeshsizeX, int nodemeshsizeY, int nodemeshsizeZ,
+                              Node* left_electrode, Node* right_electrode, bool dual_injection, int nr_left_injector_nodes,
+                              double hopdist, bool device, myvec sim_box_size, int nr_sr_images, string formalism, Globaleventinfo* globevent) {
     
     if(event->fromtype == Fromtransfer) {
         Carrier* carrier = event->carrier;
         Node* fromnode = nodes[carrier->carrier_node_ID]; 
         Node* tonode = fromnode->pairing_nodes[event->tonode_ID];
-        Add_remove_carrier(Remove,carrier,fromnode);
+        Add_remove_carrier(Remove,carrier,fromnode,state,nodes,coulcut,state_grow_size,maxpairdegree,
+                        node_mesh, nodemeshsizeX, nodemeshsizeY, nodemeshsizeZ,
+                        left_electrode, right_electrode, dual_injection, nr_left_injector_nodes,
+                        hopdist, device, sim_box_size, nr_sr_images, formalism, globevent);
     
         if(event->totype == Totransfer) {
-            Add_remove_carrier(Add,carrier,tonode);
+            Add_remove_carrier(Add,carrier,tonode,state,nodes,coulcut,state_grow_size,maxpairdegree,
+                        node_mesh, nodemeshsizeX, nodemeshsizeY, nodemeshsizeZ,
+                        left_electrode, right_electrode, dual_injection, nr_left_injector_nodes,
+                        hopdist, device, sim_box_size, nr_sr_images, formalism, globevent);
         }
         else if(event->totype == Recombination) {
             Carrier* recombined_carrier = tonode->carriers_on_node[0];
-            Add_remove_carrier(Remove, recombined_carrier, tonode);
+            Add_remove_carrier(Remove, recombined_carrier, tonode,state,nodes,coulcut,state_grow_size,maxpairdegree,
+                        node_mesh, nodemeshsizeX, nodemeshsizeY, nodemeshsizeZ,
+                        left_electrode, right_electrode, dual_injection, nr_left_injector_nodes,
+                        hopdist, device, sim_box_size, nr_sr_images, formalism, globevent);
             if(carrier->carrier_type == Electron) {
                 state->Sell(state->electrons, state->electron_reservoir, carrier->carrier_ID);
                 state->Sell(state->holes, state->hole_reservoir, recombined_carrier->carrier_ID);
@@ -110,17 +132,28 @@ void Events::Effect_of_event_in_device(Event* event, vector<Node*> nodes, State*
         Node* tonode = event->electrode->pairing_nodes[event->tonode_ID];
         
         if(event->totype == Totransfer) {
-            Add_remove_carrier(Add,event->carrier,tonode);
+            int carrier_ID;
             if(event->inject_cartype == Electron) {
-                state->Buy(state->electrons, state->electron_reservoir);
+                carrier_ID = state->Buy(state->electrons, state->electron_reservoir);
+                Add_remove_carrier(Add,state->electrons[carrier_ID],tonode,state,nodes,coulcut,state_grow_size,maxpairdegree,
+                        node_mesh, nodemeshsizeX, nodemeshsizeY, nodemeshsizeZ,
+                        left_electrode, right_electrode, dual_injection, nr_left_injector_nodes,
+                        hopdist, device, sim_box_size, nr_sr_images, formalism, globevent);
             }
             else {
-                state->Buy(state->holes, state->hole_reservoir);
+                carrier_ID = state->Buy(state->holes, state->hole_reservoir);
+                Add_remove_carrier(Add,state->holes[carrier_ID],tonode,state,nodes,coulcut,state_grow_size,maxpairdegree,
+                        node_mesh, nodemeshsizeX, nodemeshsizeY, nodemeshsizeZ,
+                        left_electrode, right_electrode, dual_injection, nr_left_injector_nodes,
+                        hopdist, device, sim_box_size, nr_sr_images, formalism, globevent);
             }
         }
         else if(event->totype == Recombination) {
             Carrier* recombined_carrier = tonode->carriers_on_node[0];
-            Add_remove_carrier(Remove,recombined_carrier,tonode);
+            Add_remove_carrier(Remove,recombined_carrier,tonode,state,nodes,coulcut,state_grow_size,maxpairdegree,
+                        node_mesh, nodemeshsizeX, nodemeshsizeY, nodemeshsizeZ,
+                        left_electrode, right_electrode, dual_injection, nr_left_injector_nodes,
+                        hopdist, device, sim_box_size, nr_sr_images, formalism, globevent);
             if(event->inject_cartype == Electron) {
                 state->Sell(state->holes, state->hole_reservoir, recombined_carrier->carrier_ID);
             }
@@ -131,50 +164,65 @@ void Events::Effect_of_event_in_device(Event* event, vector<Node*> nodes, State*
     }
 }
 
-void Events::Add_remove_carrier(action AR, Carrier* carrier, Node* action_node){
+void Events::Add_remove_carrier(action AR, Carrier* carrier, Node* action_node, State* state, vector<Node*> nodes, double coulcut, int state_grow_size, int maxpairdegree,
+                                   vector< vector< vector <list<Node*> > > > node_mesh, int nodemeshsizeX, int nodemeshsizeY, int nodemeshsizeZ,
+                                   Node* left_electrode, Node* right_electrode, bool dual_injection, int nr_left_injector_nodes,
+                                   double hopdist, bool device, myvec sim_box_size, int nr_sr_images, string formalism, Globaleventinfo* globevent){
 
- /*   if(AR == Add) {
-        if(carrier->carrier_type==Hole) {
-            int hole1 = state->Buy(holes, hole_reservoir);
-            pcarrier = _hole_state.Get_item(carrier1);
-      carnode->_hole_number = carrier1;
-    }
-    else if(cartype==Electron) {
-      carrier1 = _electron_state.Buy();
-      pcarrier = _electron_state.Get_item(carrier1);        
-      carnode->_electron_number = carrier1;
-    }
-    pcarrier->_carriertype = cartype;
-    pcarrier->_node_index = carnode->_node_id;
-    carnode->_carrier = pcarrier1;
+    if(AR == Add) {
+        carrier->carrier_node_ID = action_node->node_ID;
+        action_node->carriers_on_node.push_back(carrier);
     
-    if (cartype == Hole) {
-      if(_nholes == _maxholes){
-        int growsize = 10;
-        lattice_grow(growsize);
-      } 
-      _nholes++;
-      charge1 = 1;
-      pcarrier->_shortrange_coulomb.resize(1+carnode->_number_of_ho_pairs);
-      carnumberofpairs = _number_of_ho_pairs;
-    }
-    else if (cartype == Electron) {
-      if(_nelectrons == _maxelectrons){
-        int growsize = 10;
-        lattice_grow(growsize);
-      }
-      _nelectrons++;
-      charge1 = -1;
-      pcarrier->_shortrange_coulomb.resize(1+carnode->_number_of_el_pairs);
-      carnumberofpairs = _number_of_el_pairs;
-    } 
-    _ncarriers++;
+        if (carrier->carrier_type == Hole) {
+            if(state->hole_reservoir.empty()){
+                state->Grow(state->holes, state->hole_reservoir, state_grow_size, maxpairdegree);
+            }  
+            nholes++;
+        }
+        else if (carrier->carrier_type == Electron) {
+            if(state->electron_reservoir.empty()){
+                state->Grow(state->electrons, state->electron_reservoir, state_grow_size, maxpairdegree);
+            }
+            nelectrons++;
+       } 
+       ncarriers++;
 
-    // add charge to charge list
-    int iposx = floor(carpos.x()/_coul_box_dimX); 
-    int iposy = floor(carpos.y()/_coul_box_dimY); 
-    int iposz = floor(carpos.z()/_coul_box_dimZ);
-    chargelist[iposx][iposy][iposz].push_back(carrier1);    */
+       state->Add_to_coulomb_mesh(nodes, carrier, coulcut);
+    }
+    else if(AR == Remove) {
+        action_node->carriers_on_node.pop_back();
+        // Remove existing carrier from lattice
+        if (carrier->carrier_type == Hole) {
+            nholes--;
+        }
+        else if (carrier->carrier_type == Electron) {
+            nelectrons--;
+        }
+        ncarriers--;
+    }
+    
+    Effect_potential_and_non_injection_rates_one_carrier(AR,carrier,state->meshsizeX,state->meshsizeY,state->meshsizeZ, state->coulomb_mesh,
+                                   state->electrons, state->holes, coulcut, hopdist, device, sim_box_size, nr_sr_images, nodes, maxpairdegree, formalism, globevent);
+ 
+    // check proximity to left electrode        
+    double dist_to_left_electrode = action_node->node_position.x();
+    if(dist_to_left_electrode<hopdist){
+        Effect_injection_rates_one_carrier(AR,nodes,carrier,node_mesh,nodemeshsizeX,nodemeshsizeY,nodemeshsizeZ,coulcut,
+                                           hopdist,dist_to_left_electrode,left_electrode,sim_box_size,
+                                           nr_sr_images,formalism,globevent,dual_injection,nr_left_injector_nodes);
+    }
+    
+    // check proximity to right electrode
+    double dist_to_right_electrode = sim_box_size.x() - action_node->node_position.x();
+    if(dist_to_right_electrode<hopdist){
+        Effect_injection_rates_one_carrier(AR,nodes,carrier,node_mesh,nodemeshsizeX,nodemeshsizeY,nodemeshsizeZ,coulcut,
+                                           hopdist,dist_to_right_electrode,right_electrode,sim_box_size,
+                                           nr_sr_images,formalism,globevent,dual_injection,nr_left_injector_nodes);
+    }
+    
+    if(AR == Remove){
+        state->Remove_from_coulomb_mesh(nodes, carrier, coulcut);
+    }
 }
 
 
@@ -301,7 +349,7 @@ void Events::Effect_potential_and_non_injection_rates_one_carrier(action AR, Car
                                 }                            
                             }
            
-                            // Adjust Coulomb potential for neighbours of carrier2
+                            // Adjust Coulomb potential and event rates for neighbours of carrier2
                             for (int jump=0; jump < probenode->pairing_nodes.size(); jump++) {
                                 myvec jumpdistancevector = probenode->static_event_info[jump].distance;
                                 myvec jumpprobepos = np_probepos+jumpdistancevector;
@@ -416,87 +464,82 @@ void Events::Effect_injection_rates_one_carrier(action AR, vector<Node*> nodes, 
     Node* carnode = nodes[carrier->carrier_node_ID];
     myvec carpos = carnode->node_position;
   
-    if (dist_to_electrode <= coulcut) { // Distance to electrode
+    double bound = sqrt(double(coulcut*coulcut - dist_to_electrode*dist_to_electrode));
+
+    // Define cubic boundaries in non-periodic coordinates
+    double iy1 = carpos.y()-bound-hopdist; double iy2 = carpos.y()+bound+hopdist;
+    double iz1 = carpos.z()-bound-hopdist; double iz2 = carpos.z()+bound+hopdist;
+
+    // Translate cubic boundaries to sublattice boundaries in non-periodic coordinates
+    int sy1 = floor(iy1/hopdist);
+    int sy2 = floor(iy2/hopdist);
+    int sz1 = floor(iz1/hopdist);
+    int sz2 = floor(iz2/hopdist);
   
-        //maximum entry inside device is hopdist (make this variable!!)
-
-        double bound = sqrt(double(coulcut*coulcut - dist_to_electrode*dist_to_electrode));
-
-        // Define cubic boundaries in non-periodic coordinates
-        double iy1 = carpos.y()-bound-hopdist; double iy2 = carpos.y()+bound+hopdist;
-        double iz1 = carpos.z()-bound-hopdist; double iz2 = carpos.z()+bound+hopdist;
-
-        // Translate cubic boundaries to sublattice boundaries in non-periodic coordinates
-        int sy1 = floor(iy1/hopdist);
-        int sy2 = floor(iy2/hopdist);
-        int sz1 = floor(iz1/hopdist);
-        int sz2 = floor(iz2/hopdist);
-  
-        // Now visit all relevant sublattices
-        for (int isz=sz1; isz<=sz2; isz++) {
-            int r_isz = isz;
-            while (r_isz < 0) r_isz += meshsizeZ;
-            while (r_isz >= meshsizeZ) r_isz -= meshsizeZ;
-            for (int isy=sy1; isy<=sy2; isy++) {
-                int r_isy = isy;
-                while (r_isy < 0) r_isy += meshsizeY;
-                while (r_isy >= meshsizeY) r_isy -= meshsizeY;
+    // Now visit all relevant sublattices
+    for (int isz=sz1; isz<=sz2; isz++) {
+        int r_isz = isz;
+        while (r_isz < 0) r_isz += meshsizeZ;
+        while (r_isz >= meshsizeZ) r_isz -= meshsizeZ;
+        for (int isy=sy1; isy<=sy2; isy++) {
+            int r_isy = isy;
+            while (r_isy < 0) r_isy += meshsizeY;
+            while (r_isy >= meshsizeY) r_isy -= meshsizeY;
        
-                // Ask a list of all nodes in this sublattice
-                list<Node*>::iterator li1,li2,li3;
-                list<Node*> *nodemesh = &node_mesh[x_mesh][r_isy][r_isz];
-                li1 = nodemesh->begin();
-                li2 = nodemesh->end();
-                for (li3=li1; li3!=li2; li3++) {
-                    Node* probenode = *li3;
-                    myvec probepos = probenode->node_position;
+            // Ask a list of all nodes in this sublattice
+            list<Node*>::iterator li1,li2,li3;
+            list<Node*> *nodemesh = &node_mesh[x_mesh][r_isy][r_isz];
+            li1 = nodemesh->begin();
+            li2 = nodemesh->end();
+            for (li3=li1; li3!=li2; li3++) {
+                Node* probenode = *li3;
+                myvec probepos = probenode->node_position;
           
-                    // Compute coordinates in non-periodic lattice
+                // Compute coordinates in non-periodic lattice
           
-                    myvec periodic_convert = myvec(0.0,(isy-r_isy)*hopdist,(isz-r_isz)*hopdist);
-                    myvec np_probepos = probepos + periodic_convert;
-                    myvec distance = np_probepos-carpos;
+                myvec periodic_convert = myvec(0.0,(isy-r_isy)*hopdist,(isz-r_isz)*hopdist);
+                myvec np_probepos = probepos + periodic_convert;
+                myvec distance = np_probepos-carpos;
 
-                    double distancesqr = abs(distance)*abs(distance);
+                double distancesqr = abs(distance)*abs(distance);
 
-                    if ((probenode->node_ID!=carnode->node_ID)&&(distancesqr <= coulcut*coulcut)) { // calculated for holes, multiply interact_sign with -1 for electrons
-                        probenode->injection_potential +=interact_sign*Compute_Coulomb_potential(carpos.x(),distance,sim_box_size,coulcut,nr_sr_images,true);
-                        int event_ID;
-                        int injector_ID;
-                        double tolongrange;
+                if ((probenode->node_ID!=carnode->node_ID)&&(distancesqr <= coulcut*coulcut)) { // calculated for holes, multiply interact_sign with -1 for electrons
+                    probenode->injection_potential +=interact_sign*Compute_Coulomb_potential(carpos.x(),distance,sim_box_size,coulcut,nr_sr_images,true);
+                    int event_ID;
+                    int injector_ID;
+                    double tolongrange;
                         
-                        if(probenode->node_type == Normal){
-                            tolongrange = longrange->Get_cached_longrange(probenode->layer_index);
-                        }
-                        else { // collection (in this case injection to collection)
-                            tolongrange = 0.0;
-                        }
+                    if(probenode->node_type == Normal){
+                        tolongrange = longrange->Get_cached_longrange(probenode->layer_index);
+                    }
+                    else { // collection (in this case injection to collection)
+                        tolongrange = 0.0;
+                    }
                         
-                        if(electrode->node_type == LeftElectrode) {
-                            injector_ID = probenode->left_injector_ID;
-                            event_ID = injector_ID;
-                            Ho_injection_events[event_ID]->Set_injection_event(electrode, injector_ID, 
+                    if(electrode->node_type == LeftElectrode) {
+                        injector_ID = probenode->left_injector_ID;
+                        event_ID = injector_ID;
+                        Ho_injection_events[event_ID]->Set_injection_event(electrode, injector_ID, 
                                                   Hole, formalism, 0.0, tolongrange, globevent);
-                            Ho_injection_rates->setrate(event_ID, Ho_injection_events[event_ID]->rate);
-                            if(dual_injection) {
-                                El_injection_events[event_ID]->Set_injection_event(electrode, injector_ID, 
-                                                  Electron, formalism, 0.0, tolongrange, globevent);
-                                El_injection_rates->setrate(event_ID, El_injection_events[event_ID]->rate);
-                            }
-                        }
-                        else if(electrode->node_type == RightElectrode) {
-                            injector_ID = probenode->right_injector_ID;
-                            event_ID = injector_ID;
-                            if(dual_injection) {
-                                event_ID += nr_left_injector_nodes;
-                                Ho_injection_events[event_ID]->Set_injection_event(electrode, injector_ID, 
-                                                  Hole, formalism, 0.0, tolongrange, globevent);
-                                Ho_injection_rates->setrate(event_ID, Ho_injection_events[event_ID]->rate); 
-                            }                               
+                        Ho_injection_rates->setrate(event_ID, Ho_injection_events[event_ID]->rate);
+                        if(dual_injection) {
                             El_injection_events[event_ID]->Set_injection_event(electrode, injector_ID, 
                                                   Electron, formalism, 0.0, tolongrange, globevent);
                             El_injection_rates->setrate(event_ID, El_injection_events[event_ID]->rate);
                         }
+                    }
+                    else if(electrode->node_type == RightElectrode) {
+                        injector_ID = probenode->right_injector_ID;
+                        event_ID = injector_ID;
+                        if(dual_injection) {
+                            event_ID += nr_left_injector_nodes;
+                            Ho_injection_events[event_ID]->Set_injection_event(electrode, injector_ID, 
+                                                  Hole, formalism, 0.0, tolongrange, globevent);
+                            Ho_injection_rates->setrate(event_ID, Ho_injection_events[event_ID]->rate); 
+                        }                               
+                        El_injection_events[event_ID]->Set_injection_event(electrode, injector_ID, 
+                                                  Electron, formalism, 0.0, tolongrange, globevent);
+                        El_injection_rates->setrate(event_ID, El_injection_events[event_ID]->rate);
                     }
                 }
             }
