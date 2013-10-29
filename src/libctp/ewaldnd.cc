@@ -488,9 +488,83 @@ void Ewald3DnD::Evaluate() {
     LOG(logDEBUG,*_log) << "  o LxLy (for 3D2D EW):        " << _LxLy << " nm**2" << flush;
     LOG(logDEBUG,*_log) << "  o kx(max), ky(max), kz(max): " << _NA_max << ", " << _NB_max << ", " << _NC_max << flush;
     
+    
+    
+    
+    // TEASER OUTPUT PERMANENT FIELDS
+    LOG(logDEBUG,*_log) << flush << "Foreground fields (BGP):" << flush;
+    int fieldCount = 0;
+    for (vector<PolarSeg*>::iterator sit1 = _bg_P.begin()+288; sit1 < _bg_P.end(); ++sit1) {
+        PolarSeg *pseg = *sit1;
+        Segment *seg = _top->getSegment(pseg->getId());
+        LOG(logDEBUG,*_log) << "ID = " << pseg->getId() << " (" << seg->getName() << ") " << flush;
+        for (PolarSeg::iterator pit1 = pseg->begin(); pit1 < pseg->end(); ++pit1) {
+            vec fp = (*pit1)->getFieldP();
+            vec fu = (*pit1)->getFieldU();
+            LOG(logDEBUG,*_log)
+               << (format("FP = (%1$+1.7e %2$+1.7e %3$+1.7e) V/m    ") 
+                    % (fp.getX()*EWD::int2V_m)
+                    % (fp.getY()*EWD::int2V_m) 
+                    % (fp.getZ()*EWD::int2V_m)).str();
+            LOG(logDEBUG,*_log)
+               << (format("FU = (%1$+1.7e %2$+1.7e %3$+1.7e) V/m") 
+                    % (fu.getX()*EWD::int2V_m)
+                    % (fu.getY()*EWD::int2V_m) 
+                    % (fu.getZ()*EWD::int2V_m)).str() << flush;
+            fieldCount += 1;
+            if (fieldCount > 10) {
+                LOG(logDEBUG,*_log)
+                    << "FP = ... ... ..." << flush;
+                break;
+            }
+        }
+        if (fieldCount > 10) break;
+    }
+        
+    
+    
+    
+    
     if (_task_calculate_fields) EvaluateFields();
     if (_task_polarize_fg) EvaluateInduction();
     if (_task_evaluate_energy) EvaluateEnergy();
+    
+    
+    
+    
+    
+    // TEASER OUTPUT PERMANENT FIELDS
+    LOG(logDEBUG,*_log) << flush << "Foreground fields (BGP):" << flush;
+    fieldCount = 0;
+    for (vector<PolarSeg*>::iterator sit1 = _bg_P.begin()+288; sit1 < _bg_P.end(); ++sit1) {
+        PolarSeg *pseg = *sit1;
+        Segment *seg = _top->getSegment(pseg->getId());
+        LOG(logDEBUG,*_log) << "ID = " << pseg->getId() << " (" << seg->getName() << ") " << flush;
+        for (PolarSeg::iterator pit1 = pseg->begin(); pit1 < pseg->end(); ++pit1) {
+            vec fp = (*pit1)->getFieldP();
+            vec fu = (*pit1)->getFieldU();
+            LOG(logDEBUG,*_log)
+               << (format("FP = (%1$+1.7e %2$+1.7e %3$+1.7e) V/m    ") 
+                    % (fp.getX()*EWD::int2V_m)
+                    % (fp.getY()*EWD::int2V_m) 
+                    % (fp.getZ()*EWD::int2V_m)).str();
+            LOG(logDEBUG,*_log)
+               << (format("FU = (%1$+1.7e %2$+1.7e %3$+1.7e) V/m") 
+                    % (fu.getX()*EWD::int2V_m)
+                    % (fu.getY()*EWD::int2V_m) 
+                    % (fu.getZ()*EWD::int2V_m)).str() << flush;
+            fieldCount += 1;
+            if (fieldCount > 10) {
+                LOG(logDEBUG,*_log)
+                    << "FP = ... ... ..." << flush;
+                break;
+            }
+        }
+        if (fieldCount > 10) break;
+    }
+    
+    
+    
     
     double outer_epp = _ET._pp;
     double outer_eppu = _ET._pu + _ET._uu;

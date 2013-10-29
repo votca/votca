@@ -102,6 +102,7 @@ public:
     double          getProjP(vec &dir);
     vec             getFieldP() { return vec(FPx,FPy,FPz); } // Only IOP
     vec             getFieldU() { return vec(FUx,FUy,FUz); } // Only IOP
+    vec             getU1() { return vec(U1x,U1y,U1z); }     // Only IOP
     
     void            setQ00(double q, int s) { Q00 = q; if (_Qs[s+1].size() < 1) _Qs[s+1].resize(1); _Qs[s+1][0] = q; }
     double         &getQ00() { return Q00; }
