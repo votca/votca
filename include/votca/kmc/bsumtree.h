@@ -39,9 +39,9 @@ public:
 private:
   bool dirty(unsigned long i);
   double partsum(unsigned long i);
-  std::valarray<bool> dirty_array; // Are the subtrees dirty?
-  std::valarray<double> element_array; // The elements (summands)
-  std::valarray<double> partsum_array; // Array of partial sums
+  valarray<bool> dirty_array; // Are the subtrees dirty?
+  valarray<double> element_array; // The elements (summands)
+  valarray<double> partsum_array; // Array of partial sums
   unsigned long treesize;
   unsigned long nrelements;
 };
@@ -126,7 +126,7 @@ void Bsumtree::resize(unsigned long newsize) { // Resize arrays. Expensive, so u
    *  When newsize >= oldsize: all elements are copied, new elements are 0.
    *  When newsize < oldsize: excess elements are thrown away.
    */
-  std::valarray<double> temp_element_array(double(0),newsize); // Temporary storage
+  valarray<double> temp_element_array(double(0),newsize); // Temporary storage
   for (unsigned long i=0;i<nrelements && i<newsize;i++) {
     temp_element_array[i] = element_array[i];
   }
