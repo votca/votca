@@ -36,7 +36,7 @@ enum CorrelationType{Uncorrelated, Correlated, Anticorrelated };
 class Graph {
 public:
     
-    void Load_graph(string SQL_graph_filename, double left_electrode_distance, double right_electrode_distance, double self_image_prefactor, int nr_sr_images);    
+    void Load_graph(string SQL_graph_filename, double left_electrode_distance, double right_electrode_distance, double self_image_prefactor, int nr_sr_images, bool device);    
     void Generate_cubic_graph(  int nx, int ny, int nz, double lattice_constant,
                                 double hopping_distance, double disorder_strength,votca::tools::Random2 *RandomVariable, 
                                 double disorder_ratio, CorrelationType correlation_type, double left_electrode_distance, double right_electro_distance,
@@ -78,7 +78,7 @@ private:
     void Set_all_self_image_potential(vector<Node*> nodes, myvec sim_box_size, double self_image_prefactor, int nr_sr_images);   
     double Calculate_self_image_potential(double nodeposx, double length, double self_image_prefactor, int nr_sr_images);
 
-    myvec Periodicdifference(myvec init, myvec final, myvec boxsize);    
+    myvec Periodicdistance(myvec init, myvec final, myvec boxsize);    
     
 };
 
@@ -113,7 +113,7 @@ void Graph::Add_to_node_mesh(Node* node, double hopdist){
     node_mesh[iposx][iposy][iposz].push_back(node);       
 }
 
-void Graph::Load_graph(string filename, double left_electrode_distance, double right_electrode_distance, double self_image_prefactor, int nr_sr_images){
+void Graph::Load_graph(string filename, double left_electrode_distance, double right_electrode_distance, double self_image_prefactor, int nr_sr_images, bool device){
     
     Load_graph_nodes(filename);
     Load_graph_static_energies(filename);
@@ -126,6 +126,7 @@ void Graph::Load_graph(string filename, double left_electrode_distance, double r
     
     Setup_device_graph(nodes,left_electrode,right_electrode,hopping_distance,left_electrode_distance,right_electrode_distance);
     Set_all_self_image_potential(nodes,sim_box_size,self_image_prefactor,nr_sr_images);
+    if(device) Init_node_mesh(sim_box_size, hopping_distance);
     
 }
 
@@ -666,7 +667,7 @@ void Graph::Determine_graph_pairs(vector<Node*> nodes, double hopping_distance, 
                         Node* probenode = *li3;
                         if(inode!=probenode->node_ID){ 
                             myvec probenodepos = probenode->node_position;
-                            myvec differ = Periodicdifference(initnodepos,probenodepos,sim_box_size);
+                            myvec differ = Periodicdistance(initnodepos,probenodepos,sim_box_size);
                             double distance = abs(differ);
                             if(distance <= hopping_distance) {
                                 nodes[inode]->setPair(probenode);
@@ -680,7 +681,7 @@ void Graph::Determine_graph_pairs(vector<Node*> nodes, double hopping_distance, 
     }
 }
 
-myvec Graph::Periodicdifference(myvec init, myvec final, myvec boxsize) {
+myvec Graph::Periodicdistance(myvec init, myvec final, myvec boxsize) {
     
   myvec pre = final-init;
   
