@@ -28,6 +28,7 @@
 #include <votca/ctp/orbitals.h>
 #include <votca/ctp/aobasis.h>
 #include <votca/ctp/aomatrix.h>
+#include <votca/ctp/threecenters.h>
 
 #include <votca/ctp/qmpackagefactory.h>
 #include <votca/ctp/parallelxjobcalc.h>
@@ -77,6 +78,8 @@ public:
     // int getMlower(){ return mmin -1; };
     // int getMupper(){ return mmax -1; };
     
+    
+    
 
 private:
 
@@ -103,6 +106,28 @@ private:
     int mtotal ;
     int ntotal ;
     
+
+    
+    // preshift of dft-energies
+    double _shift;
+    
+    
+    // PPM related variables and functions
+    ub::matrix<double> _ppm_phi;
+    ub::vector<double> _ppm_freq;
+    ub::vector<double> _ppm_weight;
+    
+    
+    void PPM_construct_parameters( ub::matrix<double>& _overlap_cholesky_inverse   );
+    
+    
+    // RPA related variables and functions
+    // container for the epsilon matrix
+    ub::vector< ub::matrix<double> > _epsilon;
+    // container for frequencies in screening (index 0: real part, index 1: imaginary part)
+    ub::matrix<double> _screening_freq;
+    void RPA_calculate_epsilon( TCMatrix& _Mmn_RPA , ub::matrix<double> _screening_freq , double _shift , ub::vector<double>& _dft_energies  );
+    void RPA_prepare_threecenters( TCMatrix& _Mmn_RPA, TCMatrix& _Mmn_full, AOBasis& gwbasis, AOMatrix& gwoverlap, AOMatrix& gwoverlap_inverse     );
 
     
 

@@ -31,6 +31,7 @@
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/multi_array.hpp>
 #include "basisset.h"
+#include "aomatrix.h"
 //#include "linalg_tools.h"
 
 using namespace std;
@@ -40,10 +41,72 @@ namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
     class TCMatrix {
     public:
-        ub::matrix<double> _aomatrix; 
+    
+        ub::vector< ub::matrix<double> >& matrix() { return this->_matrix ; }
 
-              
-        // likely better: go via vector of matrices
+        int get_mmin() { return this->mmin ;}
+        int get_mmax() { return this->mmax ;}
+        int get_nmin() { return this->nmin ;}
+        int get_nmax() { return this->nmax ;}
+        int get_mtot() { return this->mtotal ;}
+        int get_ntot() { return this->ntotal ;}
+
+        void set_mmin( int i ) { this->mmin = i ;}
+        void set_mmax( int i ) { this->mmax = i ;}
+        void set_nmin( int i ) { this->nmin = i ;}
+        void set_nmax( int i ) { this->nmax = i ;}
+        void set_mtot( int i ) { this->mtotal = i ;}
+        void set_ntot( int i ) { this->ntotal = i ;}
+        
+        
+        void Initialize ( int _basissize, int mmin, int mmax, int nmin, int nmax){
+
+            // here as storage indices starting from zero
+            set_mmin( mmin - 1 );
+            set_mmax( mmax - 1 );
+            set_nmin( nmin - 1 );
+            set_nmax( nmax - 1 );
+            set_mtot( mmax - mmin +1 );
+            set_ntot( nmax - nmin +1 );
+
+            /* let's try a different storage that is more convenient for
+             later access 
+            
+            // vector has _basissize elements
+            this->_matrix.resize( _basissize );
+            
+            // each element is a m-by-n matrix, initialize to zero
+            for ( int i = 0; i < _basissize; i++){
+                this->_matrix(i) = ub::zero_matrix<double>(mtotal,ntotal);
+            }
+
+             */
+
+            
+            // vector has mtotal elements
+            this->_matrix.resize( this->get_mtot() );
+            
+            // each element is a gwabssis-by-n matrix, initialize to zero
+            for ( int i = 0; i < this->get_mtot() ; i++){
+                this->_matrix(i) = ub::zero_matrix<double>(_basissize,ntotal);
+            }
+
+
+            
+        }
+        
+        void Fill( AOBasis& gwbasis, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals );
+
+        // matrix print 
+        void Print( string _ident);
+
+        void Symmetrize( ub::matrix<double>& coulomb  );
+
+        ub::matrix<double> matrixProd( int m, ub::matrix<double>& matrix);
+        
+    private:
+        
+        // store vector of matrices
         ub::vector< ub::matrix<double> > _matrix;
         
         // band summation indices
@@ -55,57 +118,19 @@ namespace votca { namespace ctp {
         int mtotal;
         
         
-        void Initialize ( int _basissize, int mmin, int mmax, int nmin, int nmax){
-
-            // here as stoarage indices starting from zero
-            this->mmin   = mmin -1 ;
-            this->mmax   = mmax -1 ;
-            this->nmin   = nmin -1 ;
-            this->nmax   = nmax -1 ;
-            this->mtotal = mmax - mmin +1;
-            this->ntotal = nmax - nmin +1;
-            
-            // vector has _basissize elements
-            this->_matrix.resize( _basissize );
-            
-            // each element is a m-by-n matrix, initialize to zero
-            for ( int i = 0; i < _basissize; i++){
-                this->_matrix(i) = ub::zero_matrix<double>(mtotal,ntotal);
-            }
-            
-        }
-        
-        /* void Initialize( int _basissize, int _mmin, int _mmax, int _nmin, int _nmax ) {
-            
-            this->_array.resize( extents[ _basissize ][ range( _mmin-1, _mmax )  ][ range(_nmin-1, _nmax )]);
-    
-            // --- initialize it to zero
-            for( index i = this->_array.index_bases()[0] ; i < this->_array.shape()[0]  ; ++i) {
-               for( index j =  this->_array.index_bases()[1] ; j < this->_array.shape()[1] ; ++j){
-                  for( index k = this->_array.index_bases()[2] ; k < this->_array.shape()[2] ; ++k){
-                      this->_array[i][j][k] = 0.0;
-                  }
-               }
-            } 
-        }*/
-        
-        void Fill( AOBasis& gwbasis, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals );
-        
         int getBlockSize( int size );
         
         void getTrafo( ub::matrix<double>& _trafo, int _lmax, const double& _decay );
         
-        void PrintIndexToFunction( AOBasis* aobasis);
-        
-        // matrix print 
-        void Print( string _ident);
-        
-        // block fill prototype
-        //void FillBlock(ub::vector_range< ub::vector< ub::matrix<double> > >& _matrix,  AOShell* _shell, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals ) ;
         void FillBlock(ub::vector_range< ub::vector< ub::matrix<double> > >& _matrix,  AOShell* _shell, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals ) ;
         
-        //bool FillThreeCenterOLBlock( ub::vector< ub::matrix<double> >& _subvector, AOShell* _shell, AOShell* _shell_row, AOShell* _shell_col);
+        void FillBlock(ub::vector< ub::matrix<double> >& _matrix,  AOShell* _shell, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals ) ;
+        
         bool FillThreeCenterOLBlock(  ub::matrix<double> & _subvector, AOShell* _shell, AOShell* _shell_row, AOShell* _shell_col);
+
+
+        
+        
     };
     
 

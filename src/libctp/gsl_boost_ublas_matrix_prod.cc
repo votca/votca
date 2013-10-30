@@ -1,7 +1,7 @@
-#ifndef _GSL_BOOST_UBLAS_MATRIX_PROD_
-#define _GSL_BOOST_UBLAS_MATRIX_PROD_
 
-#ifdef NDEBUG
+#include <votca/ctp/gsl_boost_ublas_matrix_prod.h>
+
+/* #ifdef NDEBUG
 
 #include <boost/version.hpp>
 #if defined (BOOST_VERSION) && (BOOST_VERSION >= 103401)
@@ -12,11 +12,14 @@
 
 #undef GSLDEBUG
 
-#include <gsl/gsl_blas.h>
+#include <gsl/gsl_blas.h> 
+
+
+
 
 namespace boost { namespace numeric { namespace ublas {
 
-    inline matrix<double>    // prod( m1, m2 )
+    matrix<double>    // prod( m1, m2 )
     prod(matrix<double> &m1, matrix<double> &m2)
     {
        gsl_matrix_view mA = gsl_matrix_view_array (&m1(0,0), m1.size1(), m1.size2());
@@ -34,7 +37,7 @@ namespace boost { namespace numeric { namespace ublas {
        return AxB;
     }
 
-    inline matrix<double> // prod( matrix<double>, matrix_range< symmetric_matrix<double> > )
+    matrix<double> // prod( matrix<double>, matrix_range< symmetric_matrix<double> > )
     prod(matrix<double> &m1, matrix_range< symmetric_matrix<double> > &m2)   
     {
        assert( m1.size2() == m2.size1() );
@@ -46,7 +49,7 @@ namespace boost { namespace numeric { namespace ublas {
        return prod(m1, _m2 );       
     } 
     
-    inline matrix<double>  prod(matrix_range< symmetric_matrix<double> > &m1, matrix<double> &m2 )   
+    matrix<double>  prod(matrix_range< symmetric_matrix<double> > &m1, matrix<double> &m2 )   
     {
        assert( m1.size1() == m2.size1() );
        // gsl_matrix_vew does not understand symmetric matrices storage. convert
@@ -57,7 +60,7 @@ namespace boost { namespace numeric { namespace ublas {
        return prod(_m1, m2 );       
     }     
 
-    inline matrix<double> prod(symmetric_matrix<double> &m1, matrix<double> &m2 )   
+    matrix<double> prod(symmetric_matrix<double> &m1, matrix<double> &m2 )   
     {
        assert( m1.size1() == m2.size1() );
 
@@ -71,7 +74,7 @@ namespace boost { namespace numeric { namespace ublas {
        return prod(_m1, m2 );
     } 
     
-    inline matrix<float>  prod(matrix<float> &m1, matrix<float> &m2)
+    matrix<float>  prod(matrix<float> &m1, matrix<float> &m2)
     {
        gsl_matrix_float_view mA = gsl_matrix_float_view_array (&m1(0,0), m1.size1(), m1.size2());
        gsl_matrix_float_view mB = gsl_matrix_float_view_array (&m2(0,0), m2.size1(), m2.size2());
@@ -89,4 +92,4 @@ namespace boost { namespace numeric { namespace ublas {
 
 #endif  // BOOST_VERSION
 #endif  // NDEBUG
-#endif  // _GSL_BOOST_UBLAS_MATRIX_PROD_   
+  */ 

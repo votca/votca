@@ -3,7 +3,7 @@
 
 /* Linear algebra packages */
 /* #undef EIGEN */
-/* #undef MKL */
+#define MKL
 #define GSL
 
 #define NDEBUG
