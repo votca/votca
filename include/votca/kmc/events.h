@@ -167,20 +167,20 @@ void Events::Add_remove_carrier(action AR, Carrier* carrier,Graph* graph, Node* 
     
     Effect_potential_and_non_injection_rates(AR,carrier,graph,state, globevent);
  
-    // check proximity to left electrode        
-    double dist_to_left_electrode = action_node->node_position.x();
-    if(dist_to_left_electrode<graph->hopdist){
-        Effect_injection_rates(AR,graph,carrier,dist_to_left_electrode,graph->left_electrode,
-                                           globevent);
-    }
+    // check proximity to left electrode
+    if(globevent->device){
+        double dist_to_left_electrode = action_node->node_position.x();
+        if(dist_to_left_electrode<graph->hopdist){
+            Effect_injection_rates(AR,graph,carrier,dist_to_left_electrode,graph->left_electrode,globevent);
+        }
     
-    // check proximity to right electrode
-    double dist_to_right_electrode = graph->sim_box_size.x() - action_node->node_position.x();
-    if(dist_to_right_electrode<graph->hopdist){
-        Effect_injection_rates(AR,graph,carrier,dist_to_right_electrode,graph->right_electrode,
-                                           globevent);
-    }
-    
+        // check proximity to right electrode
+        double dist_to_right_electrode = graph->sim_box_size.x() - action_node->node_position.x();
+        if(dist_to_right_electrode<graph->hopdist){
+            Effect_injection_rates(AR,graph,carrier,dist_to_right_electrode,graph->right_electrode, globevent);
+        }
+    }  
+  
     if(AR == Remove){
         state->Remove_from_coulomb_mesh(graph, carrier, globevent);
     }
@@ -689,15 +689,17 @@ void Events::Initialize_eventvector_for_device(Graph* graph, State* state, Globa
     Grow_non_injection_eventvector(state->holes.size(), state->holes,Ho_non_injection_events, graph->max_pair_degree);
     El_non_injection_rates->initialize(El_non_injection_events.size());
     Ho_non_injection_rates->initialize(Ho_non_injection_events.size());
- 
-    El_injection_events.clear();
-    Ho_injection_events.clear();    
-    if(globevent->left_injection[0]) Initialize_injection_eventvector(graph->left_electrode,El_injection_events, Electron);
-    if(globevent->left_injection[1]) Initialize_injection_eventvector(graph->left_electrode,Ho_injection_events, Hole);
-    if(globevent->right_injection[0]) Initialize_injection_eventvector(graph->right_electrode,El_injection_events, Electron);
-    if(globevent->right_injection[1]) Initialize_injection_eventvector(graph->right_electrode,Ho_injection_events, Hole);
-    El_injection_rates->initialize(El_injection_events.size());
-    Ho_injection_rates->initialize(Ho_injection_events.size());    
+    
+    if(globevent->device){
+        El_injection_events.clear();
+        Ho_injection_events.clear();    
+        if(globevent->left_injection[0]) Initialize_injection_eventvector(graph->left_electrode,El_injection_events, Electron);
+        if(globevent->left_injection[1]) Initialize_injection_eventvector(graph->left_electrode,Ho_injection_events, Hole);
+        if(globevent->right_injection[0]) Initialize_injection_eventvector(graph->right_electrode,El_injection_events, Electron);
+        if(globevent->right_injection[1]) Initialize_injection_eventvector(graph->right_electrode,Ho_injection_events, Hole);
+        El_injection_rates->initialize(El_injection_events.size());
+        Ho_injection_rates->initialize(Ho_injection_events.size());
+    }
 }
 
 void Events::Initialize_injection_eventvector(Node* electrode, vector<Event*> eventvector, CarrierType cartype){

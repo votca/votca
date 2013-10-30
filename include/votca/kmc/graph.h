@@ -23,6 +23,7 @@
 #include <votca/tools/database.h>
 #include <votca/tools/statement.h>
 #include <votca/tools/vec.h>
+#include <votca/tools/random2.h>
 #include <votca/kmc/node.h>
 #include <votca/kmc/globaleventinfo.h>
 

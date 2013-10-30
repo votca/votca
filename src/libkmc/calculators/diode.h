@@ -18,10 +18,10 @@
 #ifndef __VOTCA_KMC_DIODE_H
 #define	__VOTCA_KMC_DIODE_H
 
-//#include <votca/kmc/lattice.h>
 #include <votca/kmc/state.h>
 #include <votca/kmc/graph.h>
 #include <votca/kmc/events.h>
+//#include <votca/kmc/vssmgroup.h>
 
 using namespace std;
 
