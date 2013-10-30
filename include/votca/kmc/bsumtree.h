@@ -34,7 +34,9 @@ public:
   double compute_sum();
   long search(double searchkey);
   void resize(unsigned long newsize);
-  long getnrrates();    
+  long getnrrates();
+  
+  bool treedirty;
  
 private:
   bool dirty(unsigned long i);
