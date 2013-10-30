@@ -47,8 +47,12 @@ public:
     void Initialize(Property *options);
     bool EvaluateFrame();
 
-    // State state;
-
+    double sim_time;
+    
+    // input parameters (put in globaleventinfo?)
+    int seed; long nr_equilsteps; long nr_timesteps; long steps_update_longrange;
+    int nx; int ny; int nz; double lattice_constant; double hopdist; double disorder_strength; 
+    double disorder_ratio; CorrelationType correlation_type; double left_electrode_distance; double right_electro_distance;
 
 protected:
    void RunKMC(void); 
@@ -65,34 +69,9 @@ private:
 
 void Diode::Initialize(Property *options) {
     
-    int seed = 1;
-    int nx; int ny; int nz; double lattice_constant; double hopdist; double disorder_strength; 
-    double disorder_ratio; CorrelationType correlation_type; double left_electrode_distance; double right_electro_distance;
-    
-    srand(seed); // srand expects any integer in order to initialise the random number generator
-    votca::tools::Random2 *RandomVariable = new votca::tools::Random2();
-    RandomVariable->init(rand(), rand(), rand(), rand());
-    
-    // create graph
-    
     graph = new Graph();
-    graph->hopdist = hopdist;
-    graph->Generate_cubic_graph(nx, ny, nz, lattice_constant, disorder_strength,RandomVariable, disorder_ratio, 
-                                correlation_type, left_electrode_distance, right_electro_distance,globevent);
-    
-    // create state
-    
     state = new State();
-    state->Init();
-    
-    // create events class (including longrange object)
-    
     events = new Events();
-    events->Initialize_eventvector(graph, state, globevent);
-    events->Initialize_longrange (graph, globevent);
-    
-    // create vssmgroup
-    
     vssmgroup = new Vssmgroup();
 }
 
@@ -105,9 +84,38 @@ bool Diode::EvaluateFrame()
 }
 
 void Diode::RunKMC() {
-    std::cout << "something";
+ 
+    //Setup random number generator
+    seed = 1;
+    srand(seed); // srand expects any integer in order to initialise the random number generator
+    votca::tools::Random2 *RandomVariable = new votca::tools::Random2();
+    RandomVariable->init(rand(), rand(), rand(), rand());    
     
-
+    //Initialize all structures
+    graph->hopdist = hopdist;
+    graph->Generate_cubic_graph(nx, ny, nz, lattice_constant, disorder_strength,RandomVariable, disorder_ratio, 
+                                correlation_type, left_electrode_distance, right_electro_distance,globevent);   
+    state->Init();    
+    events->Initialize_eventvector(graph, state, globevent);
+    events->Initialize_longrange (graph, globevent);
+    events->Recompute_all_injection_events(graph, globevent);
+    events->Recompute_all_non_injection_events(graph, state, globevent); 
+    
+    
+    sim_time = 0.0;
+    for (long it = 0; it < 2*nr_equilsteps + nr_timesteps; it++) {
+        
+        // Update longrange cache (expensive, so not done at every timestep)
+        if(ldiv(it, steps_update_longrange).rem == 0 && it>0){
+            events->longrange->Update_cache(graph->sim_box_size, globevent);
+            events->Recompute_all_injection_events(graph, globevent);
+            events->Recompute_all_non_injection_events(graph,state,globevent);
+        }
+        
+        vssmgroup->Recompute_in_device(events);
+        sim_time += vssmgroup->Timestep(RandomVariable);
+        vssmgroup->Perform_one_step_in_device(events,graph,state,globevent,RandomVariable);
+    }
 }
 
 }}
