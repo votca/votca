@@ -55,7 +55,8 @@ public:
     void Recompute_all_injection_events(Graph* graph, Globaleventinfo* globevent);
     void Recompute_all_non_injection_events(Graph* graph, State* state, Globaleventinfo* globevent);
   
-    void Initialize_eventvector_for_device(Graph* graph, State* state, Globaleventinfo* globevent);
+    void Initialize_eventvector(Graph* graph, State* state, Globaleventinfo* globevent);
+    void Initialize_longrange(Graph* graph, Globaleventinfo* globevent);
     
     bool el_dirty;
     bool ho_dirty;
@@ -70,6 +71,11 @@ private:
     
     double Compute_Coulomb_potential(double startx, myvec dif, myvec sim_box_size, Globaleventinfo* globevent);
 };
+
+void Events::Initialize_longrange(Graph* graph, Globaleventinfo* globevent) {
+    longrange = new Longrange();
+    longrange->Initialize(graph,globevent); 
+}
 
 void Events::On_execute(Event* event, Graph* graph, State* state, Globaleventinfo* globevent) {
     
@@ -700,7 +706,7 @@ void Events::Recompute_all_injection_events(Graph* graph, Globaleventinfo* globe
     }
 }
 
-void Events::Initialize_eventvector_for_device(Graph* graph, State* state, Globaleventinfo* globevent){ //
+void Events::Initialize_eventvector(Graph* graph, State* state, Globaleventinfo* globevent){ //
     
     El_non_injection_events.clear();
     Ho_non_injection_events.clear();

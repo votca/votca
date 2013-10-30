@@ -20,6 +20,7 @@
 
 #include <votca/tools/vec.h>
 #include <votca/kmc/graph.h>
+#include <votca/kmc/globaleventinfo.h>
 
 typedef votca::tools::vec myvec;
 
@@ -30,13 +31,13 @@ using namespace std;
 class Longrange {
 
 public:
-    void Update_cache(double coulcut, myvec sim_box_size); // Update cached longrange contributions
+    void Update_cache(myvec sim_box_size, Globaleventinfo* globevent); // Update cached longrange contributions
     double Get_cached_longrange(int layer); // Return cached value
     void Reset();
     //note that the number of images for the calculation of the long range potential should be considerably larger 
     //than the number for the short range potential
-    void Initialize(vector<Node*> nodes, long nr_of_lr_images,double hopdist, myvec sim_box_size, double coulcut); 
-    double Calculate_longrange(int layer, bool cut_out_discs, myvec sim_box_size, double coulcut); // Calculate long-range part of Coulomb interaction
+    void Initialize(Graph* graph, Globaleventinfo* globevent); 
+    double Calculate_longrange(int layer, bool cut_out_discs, myvec sim_box_size, Globaleventinfo* globevent); // Calculate long-range part of Coulomb interaction
 
     vector<double> layercharge;
     vector<double> longrange_cache;
@@ -46,16 +47,16 @@ public:
 
 private:
     vector< vector <double> > precalculate_disc_contrib; // Precalculated disc contributions
-    double Calculate_disc_contrib(int calculate_layer, int contrib_layer, long nr_of_lr_images, double coulcut, myvec sim_box_size); // Calculate disc contributions
+    double Calculate_disc_contrib(int calculate_layer, int contrib_layer, myvec sim_box_size, Globaleventinfo* globevent); // Calculate disc contributions
   
     vector<int> first_contributing_layer; // What is the first layer that contributes to the relevant layer?
     vector<int> final_contributing_layer; // What is the last layer that contributes to the relevant layer?
   
 };
 
-void Longrange::Update_cache(double coulcut, myvec sim_box_size) {
+void Longrange::Update_cache(myvec sim_box_size, Globaleventinfo* globevent) {
     for (int i=0; i<number_of_layers; i++) {
-        longrange_cache[i] = Calculate_longrange(i,true, sim_box_size, coulcut);
+        longrange_cache[i] = Calculate_longrange(i,true, sim_box_size, globevent);
     }
 }
 
@@ -70,9 +71,9 @@ void Longrange::Reset() {
     }
 }
 
-void Longrange::Initialize (vector<Node*> nodes, long nr_of_lr_images,double hopdist, myvec sim_box_size, double coulcut) {
+void Longrange::Initialize (Graph* graph, Globaleventinfo* globevent) {
 
-    number_of_layers = ceil(sim_box_size.x()/hopdist);
+    number_of_layers = ceil(graph->sim_box_size.x()/graph->hopdist);
  
     vector<double> positional_sum;
     vector<int> number_of_charges;
@@ -84,12 +85,12 @@ void Longrange::Initialize (vector<Node*> nodes, long nr_of_lr_images,double hop
         flagged_for_deletion.push_back(false);
     }        
         
-    for (int inode=0; inode<nodes.size(); inode++) {
-        double posx = nodes[inode]->node_position.x();
-        int iposx = floor(posx/hopdist);
+    for (int inode=0; inode<graph->nodes.size(); inode++) {
+        double posx = graph->nodes[inode]->node_position.x();
+        int iposx = floor(posx/graph->hopdist);
         positional_sum[iposx] += posx;
         number_of_charges[iposx]++;
-        nodes[inode]->layer_index = iposx;
+        graph->nodes[inode]->layer_index = iposx;
     }
     
     int rem_layers = 0;
@@ -121,7 +122,7 @@ void Longrange::Initialize (vector<Node*> nodes, long nr_of_lr_images,double hop
         bool startfound = false;
         while (!startfound) {
             double start_layer = positional_average[start_index];
-            if((define_layer-start_layer)<=coulcut) {
+            if((define_layer-start_layer)<=globevent->coulcut) {
                 startfound = true;
                 first_contributing_layer[ilayer]=start_index;
             }
@@ -132,7 +133,7 @@ void Longrange::Initialize (vector<Node*> nodes, long nr_of_lr_images,double hop
         bool finalfound = false;
         while (!finalfound) {
             double final_layer = positional_average[final_index];
-            if((final_layer-define_layer)<=coulcut) {
+            if((final_layer-define_layer)<=globevent->coulcut) {
                 finalfound = true;
                 final_contributing_layer[ilayer]=final_index;
             }
@@ -149,21 +150,21 @@ void Longrange::Initialize (vector<Node*> nodes, long nr_of_lr_images,double hop
         int first_layer = first_contributing_layer[i];
         int final_layer = final_contributing_layer[i];
         for (int j=first_layer; j<=final_layer; j++) {
-            precalculate_disc_contrib[i][j-first_layer] = Calculate_disc_contrib(i,j,nr_of_lr_images, coulcut, sim_box_size);
+            precalculate_disc_contrib[i][j-first_layer] = Calculate_disc_contrib(i,j,graph->sim_box_size,globevent);
         }
     }
 }
 
-double Longrange::Calculate_disc_contrib(int calculate_layer, int contrib_layer, long nr_of_lr_images, double coulcut, myvec sim_box_size) {
+double Longrange::Calculate_disc_contrib(int calculate_layer, int contrib_layer, myvec sim_box_size,Globaleventinfo* globevent) {
  
     double calcpos = positional_average[calculate_layer];
     double contribpos = positional_average[contrib_layer];
     double rdist = contribpos-calcpos;
   
-    double contrib = coulcut-fabs(rdist); // Direct contribution (no image), factor 2 pi is missing, included in compute_longrange   
-    double radiussqr = coulcut*coulcut-rdist*rdist; //radius of contributing disc
+    double contrib = globevent->coulcut-fabs(rdist); // Direct contribution (no image), factor 2 pi is missing, included in compute_longrange   
+    double radiussqr = globevent->coulcut*globevent->coulcut-rdist*rdist; //radius of contributing disc
     
-    for (long i=0; i<nr_of_lr_images; i++) {
+    for (long i=0; i<globevent->nr_of_lr_images; i++) {
    
         // Calculate contribution from images
         long dist1;
@@ -186,7 +187,7 @@ double Longrange::Calculate_disc_contrib(int calculate_layer, int contrib_layer,
     return contrib;
 }
 
-double Longrange::Calculate_longrange(int layer, bool cut_out_discs, myvec sim_box_size, double coulcut) {
+double Longrange::Calculate_longrange(int layer, bool cut_out_discs, myvec sim_box_size, Globaleventinfo* globevent) {
     // Potential is expressed in multiples of e/(4*pi*epsilon) (with e the elementary charge>0)
     double plate_contrib1 = 0.0;
     double disc_contrib = 0.0;
@@ -197,7 +198,7 @@ double Longrange::Calculate_longrange(int layer, bool cut_out_discs, myvec sim_b
         plate_contrib1 += position_i*charge_i; // potential of a charged plate between two electrodes
         double distance = layer-position_i;
         int first_layer = first_contributing_layer[layer];
-        if (distance<=coulcut) {
+        if (distance<=globevent->coulcut) {
             // Cut out short-range sphere
             disc_contrib -= charge_i*precalculate_disc_contrib[layer][i-first_layer];
         }
@@ -209,7 +210,7 @@ double Longrange::Calculate_longrange(int layer, bool cut_out_discs, myvec sim_b
         plate_contrib2 += rel_position_i*charge_i; // potential of a charged plate between two electrodes
         double distance = positional_average[i]-layer;
         int first_layer = first_contributing_layer[layer];
-        if (distance<=coulcut) {
+        if (distance<=globevent->coulcut) {
             // Cut out short-range sphere
             disc_contrib -= charge_i*precalculate_disc_contrib[layer][i-first_layer];
         }

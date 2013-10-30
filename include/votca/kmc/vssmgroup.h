@@ -30,8 +30,8 @@ class Vssmgroup {
     
 public:
     
-    void Make_trees_clean_in_device(Events* events);
-    void Make_trees_clean_in_bulk(Events* events);
+    void Recompute_in_device(Events* events);
+    void Recompute_in_bulk(Events* events);
     double Timestep(votca::tools::Random2 *RandomVariable);
     void Perform_one_step_in_device(Events* events,Graph* graph, State* state, Globaleventinfo* globevent, votca::tools::Random2 *RandomVariable);
     void Perform_one_step_in_bulk(Events* events,Graph* graph, State* state, Globaleventinfo* globevent, votca::tools::Random2 *RandomVariable);
@@ -67,7 +67,7 @@ double Vssmgroup::Timestep(votca::tools::Random2 *RandomVariable){
     
 }
 
-void Vssmgroup::Make_trees_clean_in_device(Events* events){
+void Vssmgroup::Recompute_in_device(Events* events){
     
     if(events->el_dirty) {
         el_non_inject_probsum = events->El_non_injection_rates->compute_sum();
@@ -86,7 +86,7 @@ void Vssmgroup::Make_trees_clean_in_device(Events* events){
     tot_probsum = el_probsum + ho_probsum;
 }
 
-void Vssmgroup::Make_trees_clean_in_bulk(Events* events){
+void Vssmgroup::Recompute_in_bulk(Events* events){
     
     if(events->el_dirty) {
         el_probsum = events->El_non_injection_rates->compute_sum();

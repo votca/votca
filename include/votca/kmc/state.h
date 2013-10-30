@@ -40,6 +40,9 @@ public:
     // Storage and readout of the node_id's of the nodes on which the carriers are to/from a SQL database
     void Save(string SQL_state_filename);
     void Load(string SQL_state_filename, Graph* graph, Globaleventinfo* globevent);
+    
+    // Start with an empty state object
+    void Init();
 
     // Buying/Selling of carrier numbers from the reservoir
     unsigned int Buy(vector <Carrier*> carriers, vector <int> carrier_reservoir);
@@ -53,6 +56,7 @@ public:
 
     string SQL_state_filename;
 
+    // Creation of coulomb mesh
     int meshsizeX; int meshsizeY; int meshsizeZ;
     vector< vector< vector< vector <list<int> > > > > coulomb_mesh;
     void Init_coulomb_mesh(Graph* graph, Globaleventinfo* globevent);
@@ -63,6 +67,13 @@ private:
     bool El_in_sim_box(int electron_nr) {return electrons[electron_nr]->is_in_sim_box;}
     bool Ho_in_sim_box(int hole_nr) {return holes[hole_nr]->is_in_sim_box;}
 };
+
+void State::Init(){
+    electrons.clear();
+    holes.clear();
+    electron_reservoir.clear();
+    hole_reservoir.clear();
+}
 
 void State::Init_coulomb_mesh(Graph* graph, Globaleventinfo* globevent){
     meshsizeX = ceil(graph->sim_box_size.x()/globevent->coulcut);

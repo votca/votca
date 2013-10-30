@@ -40,7 +40,7 @@ public:
     
     void Load_graph(string SQL_graph_filename, double left_electrode_distance, double right_electrode_distance, Globaleventinfo* globevent);    
     void Generate_cubic_graph(  int nx, int ny, int nz, double lattice_constant,
-                                double hopdist, double disorder_strength,votca::tools::Random2 *RandomVariable, 
+                                double disorder_strength,votca::tools::Random2 *RandomVariable, 
                                 double disorder_ratio, CorrelationType correlation_type, double left_electrode_distance, double right_electro_distance,
                                 Globaleventinfo* globevent);
     
@@ -138,14 +138,15 @@ void Graph::Load_graph(string filename, double left_electrode_distance, double r
 }
 
 void Graph::Generate_cubic_graph(int nx, int ny, int nz, double lattice_constant,
-                                double hopdist, double disorder_strength, votca::tools::Random2 *RandomVariable, 
+                                double disorder_strength, votca::tools::Random2 *RandomVariable, 
                                 double disorder_ratio, CorrelationType correlation_type, double left_electrode_distance, double right_electrode_distance,
                                 Globaleventinfo* globevent) {
 
     Create_cubic_graph_nodes(nx, ny, nz, lattice_constant, myvec(0.0,0.0,0.0), myvec (lattice_constant, lattice_constant, lattice_constant));
+    sim_box_size = Determine_sim_box_size(nodes);
     Init_node_mesh(sim_box_size, hopdist);
     Determine_graph_pairs(nodes,hopdist,nodemeshsizeX,nodemeshsizeY,nodemeshsizeZ, node_mesh);
-    Create_static_energies(RandomVariable, disorder_strength, disorder_ratio, correlation_type);    
+    Create_static_energies(RandomVariable, disorder_strength, disorder_ratio, correlation_type);  
 
     if(globevent->device){
         Setup_device_graph(nodes,left_electrode,right_electrode,hopdist,left_electrode_distance,right_electrode_distance);
