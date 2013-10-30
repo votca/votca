@@ -30,6 +30,9 @@ class Vssmgroup {
     
 public:
     
+    void Make_trees_clean_in_device(Events* events);
+    void Make_trees_clean_in_bulk(Events* events);
+    double Timestep(votca::tools::Random2 *RandomVariable);
     void Perform_one_step_in_device(Events* events,Graph* graph, State* state, Globaleventinfo* globevent, votca::tools::Random2 *RandomVariable);
     void Perform_one_step_in_bulk(Events* events,Graph* graph, State* state, Globaleventinfo* globevent, votca::tools::Random2 *RandomVariable);
     
@@ -50,19 +53,21 @@ private:
     
 };
 
-/*       double rand_u = 1-RandomVariable->rand_uniform();
-        while(rand_u == 0)
-        {
-            cout << "WARNING: encountered 0 as a random variable! New try." << endl;
-            rand_u = 1-RandomVariable->rand_uniform();
-        }
-        dt = -1 / cumulated_rate * log(rand_u);*/
+double Vssmgroup::Timestep(votca::tools::Random2 *RandomVariable){
 
-void Vssmgroup::Perform_one_step_in_device(Events* events, Graph* graph, State* state, Globaleventinfo* globevent, votca::tools::Random2 *RandomVariable){
-
-    double randn = RandomVariable->rand_uniform();    
+    double timestep;
     
-    //first search the particular bsumtree
+    double rand_u = 1-RandomVariable->rand_uniform();
+    while(rand_u == 0) {
+        rand_u = 1-RandomVariable->rand_uniform();
+    }
+        
+    timestep = -1/tot_probsum*log(rand_u);
+    return timestep;
+    
+}
+
+void Vssmgroup::Make_trees_clean_in_device(Events* events){
     
     if(events->el_dirty) {
         el_non_inject_probsum = events->El_non_injection_rates->compute_sum();
@@ -79,6 +84,27 @@ void Vssmgroup::Perform_one_step_in_device(Events* events, Graph* graph, State* 
     }
 
     tot_probsum = el_probsum + ho_probsum;
+}
+
+void Vssmgroup::Make_trees_clean_in_bulk(Events* events){
+    
+    if(events->el_dirty) {
+        el_probsum = events->El_non_injection_rates->compute_sum();
+        events->el_dirty = false;
+    }
+
+    if(events->ho_dirty) {
+        ho_probsum = events->Ho_non_injection_rates->compute_sum();
+        events->ho_dirty = false;
+    }
+
+    tot_probsum = el_probsum + ho_probsum;
+    
+}
+
+void Vssmgroup::Perform_one_step_in_device(Events* events, Graph* graph, State* state, Globaleventinfo* globevent, votca::tools::Random2 *RandomVariable){
+
+    double randn = RandomVariable->rand_uniform();    
     
     long event_ID;
     Event* chosenevent;
@@ -118,19 +144,7 @@ void Vssmgroup::Perform_one_step_in_bulk(Events* events, Graph* graph, State* st
     double randn = RandomVariable->rand_uniform();    
     
     //first search the particular bsumtree
-    
-    if(events->el_dirty) {
-        el_probsum = events->El_non_injection_rates->compute_sum();
-        events->el_dirty = false;
-    }
-
-    if(events->ho_dirty) {
-        ho_probsum = events->Ho_non_injection_rates->compute_sum();
-        events->ho_dirty = false;
-    }
-
-    tot_probsum = el_probsum + ho_probsum;
-    
+   
     long event_ID;
     Event* chosenevent;
     
