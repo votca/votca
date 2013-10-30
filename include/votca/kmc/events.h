@@ -106,10 +106,18 @@ void Events::On_execute_in_device(Event* event, Graph* graph, State* state, Glob
         if(event->totype == Totransfer) {
             int carrier_ID;
             if(event->inject_cartype == Electron) {
+                if(state->electron_reservoir.empty()){
+                    state->Grow(state->electrons, state->electron_reservoir, globevent->state_grow_size, graph->max_pair_degree);
+                    Grow_non_injection_eventvector(globevent->state_grow_size, state->electrons, El_non_injection_events,graph->max_pair_degree);
+                }
                 carrier_ID = state->Buy(state->electrons, state->electron_reservoir);
                 Add_remove_carrier(Add,state->electrons[carrier_ID],graph,tonode,state,globevent);
             }
-            else {
+            else if (event->inject_cartype == Hole) {
+                if(state->hole_reservoir.empty()){
+                    state->Grow(state->holes, state->hole_reservoir, globevent->state_grow_size, graph->max_pair_degree);
+                    Grow_non_injection_eventvector(globevent->state_grow_size, state->holes, Ho_non_injection_events,graph->max_pair_degree);
+                }  
                 carrier_ID = state->Buy(state->holes, state->hole_reservoir);
                 Add_remove_carrier(Add,state->holes[carrier_ID],graph,tonode,state,globevent);
             }
@@ -134,22 +142,14 @@ void Events::Add_remove_carrier(action AR, Carrier* carrier,Graph* graph, Node* 
         action_node->carriers_on_node.push_back(carrier);
     
         if (carrier->carrier_type == Hole) {
-            if(state->hole_reservoir.empty()){
-                state->Grow(state->holes, state->hole_reservoir, globevent->state_grow_size, graph->max_pair_degree);
-                Grow_non_injection_eventvector(globevent->state_grow_size, state->holes, Ho_non_injection_events,graph->max_pair_degree);
-            }  
             nholes++;
         }
         else if (carrier->carrier_type == Electron) {
-            if(state->electron_reservoir.empty()){
-                state->Grow(state->electrons, state->electron_reservoir, globevent->state_grow_size, graph->max_pair_degree);
-                Grow_non_injection_eventvector(globevent->state_grow_size, state->electrons, El_non_injection_events,graph->max_pair_degree);
-            }
-            nelectrons++;
-       } 
-       ncarriers++;
+           nelectrons++;
+        } 
+        ncarriers++;
 
-       state->Add_to_coulomb_mesh(graph, carrier, globevent);
+        state->Add_to_coulomb_mesh(graph, carrier, globevent);
     }
     else if(AR == Remove) {
         action_node->carriers_on_node.pop_back();
