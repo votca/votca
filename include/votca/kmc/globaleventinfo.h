@@ -35,7 +35,8 @@ public:
     double coulcut;
     double self_image_prefactor;
     
-    bool dual_injection;
+    bool left_injection[2];
+    bool right_injection[2];
     bool device;
     string formalism;
     

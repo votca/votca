@@ -476,10 +476,12 @@ void Events::Effect_injection_rates(action AR, Graph* graph, Carrier* carrier,
                     if(electrode->node_type == LeftElectrode) {
                         injector_ID = probenode->left_injector_ID;
                         event_ID = injector_ID;
-                        Ho_injection_events[event_ID]->Set_injection_event(electrode, injector_ID, 
+                        if(globevent->left_injection[1]){
+                            Ho_injection_events[event_ID]->Set_injection_event(electrode, injector_ID, 
                                                   Hole, 0.0, tolongrange, globevent);
-                        Ho_injection_rates->setrate(event_ID, Ho_injection_events[event_ID]->rate);
-                        if(globevent->dual_injection) {
+                            Ho_injection_rates->setrate(event_ID, Ho_injection_events[event_ID]->rate);
+                        }
+                        if(globevent->left_injection[0]) {
                             El_injection_events[event_ID]->Set_injection_event(electrode, injector_ID, 
                                                   Electron, 0.0, tolongrange, globevent);
                             El_injection_rates->setrate(event_ID, El_injection_events[event_ID]->rate);
@@ -487,16 +489,20 @@ void Events::Effect_injection_rates(action AR, Graph* graph, Carrier* carrier,
                     }
                     else if(electrode->node_type == RightElectrode) {
                         injector_ID = probenode->right_injector_ID;
-                        event_ID = injector_ID;
-                        if(globevent->dual_injection) {
-                            event_ID += graph->nr_left_injector_nodes;
+                        if(globevent->right_injection[1]) {
+                            event_ID = injector_ID;
+                            if(globevent->left_injection[1]) event_ID += graph->nr_left_injector_nodes;
                             Ho_injection_events[event_ID]->Set_injection_event(electrode, injector_ID, 
                                                   Hole, 0.0, tolongrange, globevent);
                             Ho_injection_rates->setrate(event_ID, Ho_injection_events[event_ID]->rate); 
                         }                               
-                        El_injection_events[event_ID]->Set_injection_event(electrode, injector_ID, 
+                        if(globevent->right_injection[0]) {
+                            event_ID = injector_ID;
+                            if(globevent->left_injection[0]) event_ID += graph->nr_left_injector_nodes;
+                            El_injection_events[event_ID]->Set_injection_event(electrode, injector_ID, 
                                                   Electron, 0.0, tolongrange, globevent);
-                        El_injection_rates->setrate(event_ID, El_injection_events[event_ID]->rate);
+                            El_injection_rates->setrate(event_ID, El_injection_events[event_ID]->rate);
+                        }
                     }
                 }
             }
@@ -639,10 +645,11 @@ void Events::Recompute_all_injection_events(Graph* graph, Globaleventinfo* globe
         else { // Collection
             lrto = 0.0;
         }
-        
-        El_injection_events[Event_map]->Set_injection_event(graph->left_electrode, inject_node, Electron, 0.0, lrto, globevent);   
-        El_injection_rates->setrate(Event_map,El_injection_events[Event_map]->rate);
-        if(globevent->dual_injection) {
+        if(globevent->left_injection[0]){
+            El_injection_events[Event_map]->Set_injection_event(graph->left_electrode, inject_node, Electron, 0.0, lrto, globevent);   
+            El_injection_rates->setrate(Event_map,El_injection_events[Event_map]->rate);
+        }
+        if(globevent->left_injection[1]) {
             Ho_injection_events[Event_map]->Set_injection_event(graph->left_electrode, inject_node, Hole, 0.0, lrto, globevent);   
             Ho_injection_rates->setrate(Event_map,Ho_injection_events[Event_map]->rate);
         }        
@@ -659,17 +666,18 @@ void Events::Recompute_all_injection_events(Graph* graph, Globaleventinfo* globe
         }        
         
         
-        if(globevent->dual_injection){
-            Event_map = graph->nr_left_injector_nodes + inject_node;
+        if(globevent->right_injection[0]){
+            Event_map = inject_node;    
+            if(globevent->left_injection[0]) Event_map = graph->nr_left_injector_nodes + inject_node;
             El_injection_events[Event_map]->Set_injection_event(graph->right_electrode, inject_node, Electron, 0.0 , lrto, globevent);
             El_injection_rates->setrate(Event_map,El_injection_events[Event_map]->rate);
         }
-        else {
-            Event_map = inject_node;
+        if(globevent->right_injection[1]){
+            Event_map = inject_node;    
+            if(globevent->left_injection[0]) Event_map = graph->nr_left_injector_nodes + inject_node;
+            Ho_injection_events[Event_map]->Set_injection_event(graph->right_electrode, inject_node, Hole, 0.0, lrto, globevent);
+            Ho_injection_rates->setrate(Event_map,Ho_injection_events[Event_map]->rate);
         }
-        
-        Ho_injection_events[Event_map]->Set_injection_event(graph->right_electrode, inject_node, Hole, 0.0, lrto, globevent);
-        Ho_injection_rates->setrate(Event_map,Ho_injection_events[Event_map]->rate);
     }
 }
 
@@ -681,26 +689,15 @@ void Events::Initialize_eventvector_for_device(Graph* graph, State* state, Globa
     Grow_non_injection_eventvector(state->holes.size(), state->holes,Ho_non_injection_events, graph->max_pair_degree);
     El_non_injection_rates->initialize(El_non_injection_events.size());
     Ho_non_injection_rates->initialize(Ho_non_injection_events.size());
-    
-    if(globevent->dual_injection) {
-        El_injection_events.clear();
-        Ho_injection_events.clear();
-        Initialize_injection_eventvector(graph->left_electrode,El_injection_events, Electron);
-        Initialize_injection_eventvector(graph->right_electrode,El_injection_events, Electron);
-        Initialize_injection_eventvector(graph->left_electrode,Ho_injection_events, Hole);
-        Initialize_injection_eventvector(graph->right_electrode,Ho_injection_events, Hole);
-        El_injection_rates->initialize(El_injection_events.size());
-        Ho_injection_rates->initialize(Ho_injection_events.size());
-    }
-    else {
-        El_injection_events.clear();
-        Ho_injection_events.clear();
-        Initialize_injection_eventvector(graph->left_electrode,El_injection_events, Electron);
-        Initialize_injection_eventvector(graph->right_electrode,Ho_injection_events, Hole); 
-        El_injection_rates->initialize(El_injection_events.size());
-        Ho_injection_rates->initialize(Ho_injection_events.size());
-    }
-    
+ 
+    El_injection_events.clear();
+    Ho_injection_events.clear();    
+    if(globevent->left_injection[0]) Initialize_injection_eventvector(graph->left_electrode,El_injection_events, Electron);
+    if(globevent->left_injection[1]) Initialize_injection_eventvector(graph->left_electrode,Ho_injection_events, Hole);
+    if(globevent->right_injection[0]) Initialize_injection_eventvector(graph->right_electrode,El_injection_events, Electron);
+    if(globevent->right_injection[1]) Initialize_injection_eventvector(graph->right_electrode,Ho_injection_events, Hole);
+    El_injection_rates->initialize(El_injection_events.size());
+    Ho_injection_rates->initialize(Ho_injection_events.size());    
 }
 
 void Events::Initialize_injection_eventvector(Node* electrode, vector<Event*> eventvector, CarrierType cartype){
