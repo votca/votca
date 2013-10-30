@@ -480,7 +480,7 @@ void PolarBackground::RThread::FP_FieldCalc() {
             // of size 0.1*e*nm summed over the shell in an rms manner
             shell_rms = sqrt(shell_rms/shell_rms_count)*EWD::int2V_m;
             double e_measure = shell_rms*1e-10*shell_rms_count; 
-            if (shell_rms_count > 0 && e_measure <= _master->_crit_dE) {
+            if (shell_rms_count > 0 && e_measure <= _master->_crit_dE && shell_R >= _master->_R_co) {
                 converged = true;
                 break;
             }
@@ -606,7 +606,7 @@ void PolarBackground::RThread::FU_FieldCalc() {
                 // of size 0.1*e*nm summed over the shell in an rms manner
                 shell_rms = sqrt(shell_rms/shell_rms_count)*EWD::int2V_m;
                 double e_measure = shell_rms*1e-10*shell_rms_count; 
-                if (shell_rms_count > 0 && e_measure <= _master->_crit_dE) {
+                if (shell_rms_count > 0 && e_measure <= _master->_crit_dE  && shell_R >= _master->_R_co) {
                     converged = true;
                     break;
                 }

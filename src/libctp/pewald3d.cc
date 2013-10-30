@@ -301,7 +301,7 @@ EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum() {
                     << (format("  o ID = %5$-4d Rc = %1$+02.7f   |MGN| = %3$5d   ER = %2$+1.7f eV   dER2(sum) = %4$+1.3e eV") 
                     % shell_R % (sum*EWD::int2eV) % shell_mg.size() % (shell_rms*shell_count) % (*sit1)->getId()).str() << flush;
 
-                if (shell_rms*shell_count <= _crit_dE) {
+                if (shell_rms*shell_count <= _crit_dE && shell_R >= _R_co) {
                     energy_converged_count += 1;
                     LOG(logDEBUG,*_log)  
                         << (format("  :: ID = %2$-4d : Converged to precision as of Rc = %1$+1.3f nm") 
@@ -630,7 +630,7 @@ void PEwald3D3D::Field_ConvergeRealSpaceSum() {
                 << (format("  o ID = %5$-4d Rc = %1$+02.7f   |MGN| = %2$5d   dF(rms) = %3$+1.3e V/m   [1eA => %4$+1.3e eV]") 
                 % shell_R % shell_mg.size() % shell_rms  % e_measure % ((*sit1)->getId())).str() << flush;
             
-            if (e_measure <= _crit_dE) {
+            if (e_measure <= _crit_dE && shell_R >= _R_co) {
                 field_converged_count += 1;
                 LOG(logDEBUG,*_log)
                     << (format("  :: ID = %2$-4d Converged to precision as of Rc = %1$+1.3f nm") 
