@@ -2,7 +2,7 @@
 #include <boost/format.hpp>
 #include <algorithm>
 #include <boost/math/special_functions/round.hpp>
-
+#include <boost/timer/timer.hpp>
 
 
 namespace votca { namespace ctp {
@@ -492,7 +492,7 @@ void Ewald3DnD::Evaluate() {
     
     
     // TEASER OUTPUT PERMANENT FIELDS
-    LOG(logDEBUG,*_log) << flush << "Foreground fields (BGP):" << flush;
+    LOG(logDEBUG,*_log) << flush << "Background fields (BGP):" << flush;
     int fieldCount = 0;
     for (vector<PolarSeg*>::iterator sit1 = _bg_P.begin()+288; sit1 < _bg_P.end(); ++sit1) {
         PolarSeg *pseg = *sit1;
@@ -521,20 +521,23 @@ void Ewald3DnD::Evaluate() {
         if (fieldCount > 10) break;
     }
         
-    
-    
-    
-    
+    boost::timer::cpu_timer cpu_t;
+    cpu_t.start();
+    boost::timer::cpu_times t0 = cpu_t.elapsed();
     if (_task_calculate_fields) EvaluateFields();
+    boost::timer::cpu_times t1 = cpu_t.elapsed();
     if (_task_polarize_fg) EvaluateInduction();
+    boost::timer::cpu_times t2 = cpu_t.elapsed();
     if (_task_evaluate_energy) EvaluateEnergy();
+    boost::timer::cpu_times t3 = cpu_t.elapsed();
     
-    
-    
-    
+    LOG(logDEBUG,*_log) << flush << (format("Timing (T = %1$1.2f min)") % ((t3.wall-t0.wall)/1e9/60.)) << flush;
+    LOG(logDEBUG,*_log) << (format("  o Usage <Fields>     = %1$2.1f%%") % (100.*(t1.wall-t0.wall)/(t3.wall-t0.wall))) << flush;
+    LOG(logDEBUG,*_log) << (format("  o Usage <Induction>  = %1$2.1f%%") % (100.*(t2.wall-t1.wall)/(t3.wall-t0.wall))) << flush;
+    LOG(logDEBUG,*_log) << (format("  o Usage <Energy>     = %1$2.1f%%") % (100.*(t3.wall-t2.wall)/(t3.wall-t0.wall))) << flush;
     
     // TEASER OUTPUT PERMANENT FIELDS
-    LOG(logDEBUG,*_log) << flush << "Foreground fields (BGP):" << flush;
+    LOG(logDEBUG,*_log) << flush << "Background fields (BGP):" << flush;
     fieldCount = 0;
     for (vector<PolarSeg*>::iterator sit1 = _bg_P.begin()+288; sit1 < _bg_P.end(); ++sit1) {
         PolarSeg *pseg = *sit1;
