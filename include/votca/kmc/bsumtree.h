@@ -36,8 +36,6 @@ public:
   void resize(unsigned long newsize);
   long getnrrates();
   
-  bool treedirty;
- 
 private:
   bool dirty(unsigned long i);
   double partsum(unsigned long i);

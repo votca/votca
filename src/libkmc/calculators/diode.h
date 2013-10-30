@@ -21,7 +21,7 @@
 #include <votca/kmc/state.h>
 #include <votca/kmc/graph.h>
 #include <votca/kmc/events.h>
-//#include <votca/kmc/vssmgroup.h>
+#include <votca/kmc/vssmgroup.h>
 
 using namespace std;
 
