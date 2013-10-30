@@ -110,11 +110,43 @@ void Vssmgroup::Perform_one_step_in_device(Events* events, Graph* graph, State* 
             chosenevent = events->Ho_injection_events[event_ID];
         }
     }
-    
     events->On_execute(chosenevent, graph, state, globevent);
-
 }
 
+void Vssmgroup::Perform_one_step_in_bulk(Events* events, Graph* graph, State* state, Globaleventinfo* globevent, votca::tools::Random2 *RandomVariable){
+
+    double randn = RandomVariable->rand_uniform();    
+    
+    //first search the particular bsumtree
+    
+    if(events->el_dirty) {
+        el_probsum = events->El_non_injection_rates->compute_sum();
+        events->el_dirty = false;
+    }
+
+    if(events->ho_dirty) {
+        ho_probsum = events->Ho_non_injection_rates->compute_sum();
+        events->ho_dirty = false;
+    }
+
+    tot_probsum = el_probsum + ho_probsum;
+    
+    long event_ID;
+    Event* chosenevent;
+    
+    if(randn<el_probsum/tot_probsum) { // electron event
+        randn *= el_probsum;
+        event_ID = events->El_non_injection_rates->search(randn);
+        chosenevent = events->El_non_injection_events[event_ID];
+    }
+    else { //Hole event
+        randn -= el_probsum/tot_probsum;
+        randn *= ho_probsum;
+        event_ID = events->Ho_non_injection_rates->search(randn);
+        chosenevent = events->Ho_non_injection_events[event_ID];
+    }
+    events->On_execute(chosenevent, graph, state, globevent);
+}
 
 
 }} 
