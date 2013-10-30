@@ -109,6 +109,7 @@ void Events::On_execute_in_device(Event* event, Graph* graph, State* state, Glob
                 if(state->electron_reservoir.empty()){
                     state->Grow(state->electrons, state->electron_reservoir, globevent->state_grow_size, graph->max_pair_degree);
                     Grow_non_injection_eventvector(globevent->state_grow_size, state->electrons, El_non_injection_events,graph->max_pair_degree);
+                    El_non_injection_rates->resize(El_non_injection_events.size());
                 }
                 carrier_ID = state->Buy(state->electrons, state->electron_reservoir);
                 Add_remove_carrier(Add,state->electrons[carrier_ID],graph,tonode,state,globevent);
@@ -117,6 +118,7 @@ void Events::On_execute_in_device(Event* event, Graph* graph, State* state, Glob
                 if(state->hole_reservoir.empty()){
                     state->Grow(state->holes, state->hole_reservoir, globevent->state_grow_size, graph->max_pair_degree);
                     Grow_non_injection_eventvector(globevent->state_grow_size, state->holes, Ho_non_injection_events,graph->max_pair_degree);
+                    Ho_non_injection_rates->resize(Ho_non_injection_events.size());
                 }  
                 carrier_ID = state->Buy(state->holes, state->hole_reservoir);
                 Add_remove_carrier(Add,state->holes[carrier_ID],graph,tonode,state,globevent);
@@ -677,6 +679,8 @@ void Events::Initialize_eventvector_for_device(Graph* graph, State* state, Globa
     Ho_non_injection_events.clear();
     Grow_non_injection_eventvector(state->electrons.size(), state->electrons, El_non_injection_events, graph->max_pair_degree);
     Grow_non_injection_eventvector(state->holes.size(), state->holes,Ho_non_injection_events, graph->max_pair_degree);
+    El_non_injection_rates->initialize(El_non_injection_events.size());
+    Ho_non_injection_rates->initialize(Ho_non_injection_events.size());
     
     if(globevent->dual_injection) {
         El_injection_events.clear();
@@ -685,12 +689,16 @@ void Events::Initialize_eventvector_for_device(Graph* graph, State* state, Globa
         Initialize_injection_eventvector(graph->right_electrode,El_injection_events, Electron);
         Initialize_injection_eventvector(graph->left_electrode,Ho_injection_events, Hole);
         Initialize_injection_eventvector(graph->right_electrode,Ho_injection_events, Hole);
+        El_injection_rates->initialize(El_injection_events.size());
+        Ho_injection_rates->initialize(Ho_injection_events.size());
     }
     else {
         El_injection_events.clear();
         Ho_injection_events.clear();
         Initialize_injection_eventvector(graph->left_electrode,El_injection_events, Electron);
         Initialize_injection_eventvector(graph->right_electrode,Ho_injection_events, Hole); 
+        El_injection_rates->initialize(El_injection_events.size());
+        Ho_injection_rates->initialize(Ho_injection_events.size());
     }
     
 }
