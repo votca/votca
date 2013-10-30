@@ -24,6 +24,7 @@
 #include <votca/tools/statement.h>
 #include <votca/tools/vec.h>
 #include <votca/kmc/node.h>
+#include <votca/kmc/globaleventinfo.h>
 
 namespace votca { namespace kmc {
   
@@ -36,11 +37,11 @@ enum CorrelationType{Uncorrelated, Correlated, Anticorrelated };
 class Graph {
 public:
     
-    void Load_graph(string SQL_graph_filename, double left_electrode_distance, double right_electrode_distance, double self_image_prefactor, int nr_sr_images, bool device);    
+    void Load_graph(string SQL_graph_filename, double left_electrode_distance, double right_electrode_distance, Globaleventinfo* globevent);    
     void Generate_cubic_graph(  int nx, int ny, int nz, double lattice_constant,
-                                double hopping_distance, double disorder_strength,votca::tools::Random2 *RandomVariable, 
+                                double hopdist, double disorder_strength,votca::tools::Random2 *RandomVariable, 
                                 double disorder_ratio, CorrelationType correlation_type, double left_electrode_distance, double right_electro_distance,
-                                double self_image_prefactor, int nr_sr_images);
+                                Globaleventinfo* globevent);
     
     vector<Node*> nodes;
     Node* left_electrode;
@@ -48,12 +49,12 @@ public:
     
     myvec sim_box_size;    
     int max_pair_degree;
-    double hopping_distance;
+    double hopdist;
     
     int nr_left_injector_nodes;
     int nr_right_injector_nodes;
     
-    int meshsizeX; int meshsizeY; int meshsizeZ;
+    int nodemeshsizeX; int nodemeshsizeY; int nodemeshsizeZ;
     vector< vector< vector <list<Node*> > > > node_mesh;
     void Init_node_mesh(myvec sim_box_size, double hopdist);
     void Add_to_node_mesh(Node* node, double hopdist);
@@ -68,33 +69,33 @@ private:
     void Create_cubic_graph_nodes(int nx, int ny, int nz, double lattice_constant, myvec front, myvec back);
     void Create_static_energies(votca::tools::Random2 *RandomVariable, double disorder_strength, double disorder_ratio, CorrelationType correlation_type);
     
-    void Determine_graph_pairs(vector<Node*> nodes, double hopping_distance, int meshsizeX, int meshsizeY, int meshsizeZ,
+    void Determine_graph_pairs(vector<Node*> nodes, double hopdist, int nodemeshsizeX, int nodemeshsizeY, int nodemeshsizeZ,
                                          vector< vector< vector <list<Node*> > > > node_mesh );
     
-    void Setup_device_graph(vector<Node*> nodes, Node* left_electrode, Node* right_electrode, double hopping_distance, double left_electrode_distance, double right_electrode_distance);
+    void Setup_device_graph(vector<Node*> nodes, Node* left_electrode, Node* right_electrode, double hopdist, double left_electrode_distance, double right_electrode_distance);
     void Break_periodicity(vector<Node*>nodes , bool x_direction, bool y_direction, bool z_direction);
     
     double Determine_hopping_distance(vector<Node*> nodes);
     myvec Determine_sim_box_size(vector<Node*> nodes);
     int Determine_max_pair_degree(vector<Node*> nodes);
 
-    void Set_all_self_image_potential(vector<Node*> nodes, myvec sim_box_size, double self_image_prefactor, int nr_sr_images);   
-    double Calculate_self_image_potential(double nodeposx, double length, double self_image_prefactor, int nr_sr_images);
+    void Set_all_self_image_potential(vector<Node*> nodes, myvec sim_box_size, Globaleventinfo* globevent);   
+    double Calculate_self_image_potential(double nodeposx, double length, Globaleventinfo* globevent);
 
     myvec Periodicdistance(myvec init, myvec final, myvec boxsize);    
     
 };
 
 void Graph::Init_node_mesh(myvec sim_box_size, double hopdist){
-    meshsizeX = ceil(sim_box_size.x()/hopdist);
-    meshsizeY = ceil(sim_box_size.y()/hopdist);
-    meshsizeZ = ceil(sim_box_size.z()/hopdist);
+    nodemeshsizeX = ceil(sim_box_size.x()/hopdist);
+    nodemeshsizeY = ceil(sim_box_size.y()/hopdist);
+    nodemeshsizeZ = ceil(sim_box_size.z()/hopdist);
     
-    node_mesh.resize(meshsizeX);
-    for(int i = 0;i<meshsizeX;i++) {
-        node_mesh[i].resize(meshsizeY);
-        for(int j = 0;j<meshsizeY;j++) {
-            node_mesh[i][j].resize(meshsizeZ);
+    node_mesh.resize(nodemeshsizeX);
+    for(int i = 0;i<nodemeshsizeX;i++) {
+        node_mesh[i].resize(nodemeshsizeY);
+        for(int j = 0;j<nodemeshsizeY;j++) {
+            node_mesh[i][j].resize(nodemeshsizeZ);
         }
     }
     
@@ -116,35 +117,39 @@ void Graph::Add_to_node_mesh(Node* node, double hopdist){
     node_mesh[iposx][iposy][iposz].push_back(node);       
 }
 
-void Graph::Load_graph(string filename, double left_electrode_distance, double right_electrode_distance, double self_image_prefactor, int nr_sr_images, bool device){
+void Graph::Load_graph(string filename, double left_electrode_distance, double right_electrode_distance, Globaleventinfo* globevent){
     
     Load_graph_nodes(filename);
     Load_graph_static_energies(filename);
     Load_graph_pairs(filename);
     Load_graph_static_event_info(filename);
     
-    hopping_distance = Determine_hopping_distance(nodes);
+    hopdist = Determine_hopping_distance(nodes);
     sim_box_size = Determine_sim_box_size(nodes);
     max_pair_degree = Determine_max_pair_degree(nodes);
     
-    Setup_device_graph(nodes,left_electrode,right_electrode,hopping_distance,left_electrode_distance,right_electrode_distance);
-    Set_all_self_image_potential(nodes,sim_box_size,self_image_prefactor,nr_sr_images);
-    if(device) Init_node_mesh(sim_box_size, hopping_distance);
+    if(globevent->device) {
+        Setup_device_graph(nodes,left_electrode,right_electrode,hopdist,left_electrode_distance,right_electrode_distance);
+        Set_all_self_image_potential(nodes,sim_box_size,globevent);
+        Init_node_mesh(sim_box_size, hopdist);
+    }
     
 }
 
 void Graph::Generate_cubic_graph(int nx, int ny, int nz, double lattice_constant,
-                                double hopping_distance, double disorder_strength, votca::tools::Random2 *RandomVariable, 
+                                double hopdist, double disorder_strength, votca::tools::Random2 *RandomVariable, 
                                 double disorder_ratio, CorrelationType correlation_type, double left_electrode_distance, double right_electrode_distance,
-                                double self_image_prefactor, int nr_sr_images) {
+                                Globaleventinfo* globevent) {
 
     Create_cubic_graph_nodes(nx, ny, nz, lattice_constant, myvec(0.0,0.0,0.0), myvec (lattice_constant, lattice_constant, lattice_constant));
-    Init_node_mesh(sim_box_size, hopping_distance);
-    Determine_graph_pairs(nodes,hopping_distance,meshsizeX,meshsizeY,meshsizeZ, node_mesh);
+    Init_node_mesh(sim_box_size, hopdist);
+    Determine_graph_pairs(nodes,hopdist,nodemeshsizeX,nodemeshsizeY,nodemeshsizeZ, node_mesh);
     Create_static_energies(RandomVariable, disorder_strength, disorder_ratio, correlation_type);    
 
-    Setup_device_graph(nodes,left_electrode,right_electrode,hopping_distance,left_electrode_distance,right_electrode_distance);
-    Set_all_self_image_potential(nodes,sim_box_size,self_image_prefactor,nr_sr_images);
+    if(globevent->device){
+        Setup_device_graph(nodes,left_electrode,right_electrode,hopdist,left_electrode_distance,right_electrode_distance);
+        Set_all_self_image_potential(nodes,sim_box_size,globevent);
+    }
     
 }
 
@@ -330,7 +335,7 @@ void Graph::Create_static_energies(votca::tools::Random2 *RandomVariable, double
     }
 }
 
-void Graph::Setup_device_graph(vector<Node*> nodes, Node* left_electrode, Node* right_electrode, double hopping_distance, double left_electrode_distance, double right_electrode_distance){
+void Graph::Setup_device_graph(vector<Node*> nodes, Node* left_electrode, Node* right_electrode, double hopdist, double left_electrode_distance, double right_electrode_distance){
 
     left_electrode->node_type = LeftElectrode;
     left_electrode->static_electron_node_energy = 0.0;
@@ -383,7 +388,7 @@ void Graph::Setup_device_graph(vector<Node*> nodes, Node* left_electrode, Node* 
       
         double left_distance = nodes[inode]->node_position.x();
      
-        if(left_distance <= hopping_distance) {
+        if(left_distance <= hopdist) {
 
             myvec dr = myvec(-1.0*left_distance,0.0,0.0);            
             nodes[inode]->setPair(left_electrode);
@@ -397,7 +402,7 @@ void Graph::Setup_device_graph(vector<Node*> nodes, Node* left_electrode, Node* 
       
         double right_distance = sim_box_size.x() - nodes[inode]->node_position.x();
       
-        if(right_distance <= hopping_distance) {
+        if(right_distance <= hopdist) {
           
             myvec dr = myvec(right_distance,0.0,0.0);            
             nodes[inode]->setPair(right_electrode);
@@ -412,25 +417,25 @@ void Graph::Setup_device_graph(vector<Node*> nodes, Node* left_electrode, Node* 
     nr_right_injector_nodes = rinjector_ID;
 }
 
-void Graph::Set_all_self_image_potential(vector<Node*> nodes, myvec sim_box_size, double self_image_prefactor, int nr_sr_images) {
+void Graph::Set_all_self_image_potential(vector<Node*> nodes, myvec sim_box_size, Globaleventinfo* globevent) {
     
     for(int inode=0; inode<nodes.size();inode++){
         myvec nodepos = nodes[inode]->node_position;
         double device_length = sim_box_size.x();
-        nodes[inode]->self_image_potential = Calculate_self_image_potential(nodepos.x(),device_length,self_image_prefactor,nr_sr_images);
+        nodes[inode]->self_image_potential = Calculate_self_image_potential(nodepos.x(),device_length,globevent);
     }
     left_electrode->self_image_potential = 0.0;
     right_electrode->self_image_potential = 0.0;
 }
 
-double Graph::Calculate_self_image_potential(double nodeposx, double length, double self_image_prefactor, int nr_sr_images){
+double Graph::Calculate_self_image_potential(double nodeposx, double length, Globaleventinfo* globevent){
     
     double selfimagepot = 0.0;
 
     double distx_1;
     double distx_2;
     int sign;
-    for (int i=0;i<nr_sr_images; i++) {
+    for (int i=0;i<globevent->nr_sr_images; i++) {
         if (div(i,2).rem==0) { // even generation
             sign = -1;
             distx_1 = i*length + 2*nodeposx;
@@ -444,7 +449,7 @@ double Graph::Calculate_self_image_potential(double nodeposx, double length, dou
         selfimagepot += sign*(1.0/distx_1 + 1.0/distx_2);
     }
 
-    return self_image_prefactor*selfimagepot;        
+    return globevent->self_image_prefactor*selfimagepot;        
 }
 
 void Graph::Break_periodicity(vector<Node*> nodes, bool x_direction, bool y_direction, bool z_direction){
@@ -628,7 +633,7 @@ int Graph::Determine_max_pair_degree(vector<Node*> nodes){
     return maxdegree;    
 }
 
-void Graph::Determine_graph_pairs(vector<Node*> nodes, double hopping_distance, int meshsizeX, int meshsizeY, int meshsizeZ,
+void Graph::Determine_graph_pairs(vector<Node*> nodes, double hopdist, int nodemeshsizeX, int nodemeshsizeY, int nodemeshsizeZ,
     vector< vector< vector <list<Node*> > > > node_mesh ) {  
   
     for (int inode = 0; inode<nodes.size(); inode++) {
@@ -637,31 +642,31 @@ void Graph::Determine_graph_pairs(vector<Node*> nodes, double hopping_distance, 
         Node* initnode = nodes[inode];
         myvec initnodepos = initnode->node_position;
     
-        double ix1 = initnodepos.x()-hopping_distance; double ix2 = initnodepos.x()+hopping_distance;
-        double iy1 = initnodepos.y()-hopping_distance; double iy2 = initnodepos.y()+hopping_distance;
-        double iz1 = initnodepos.z()-hopping_distance; double iz2 = initnodepos.z()+hopping_distance;
+        double ix1 = initnodepos.x()-hopdist; double ix2 = initnodepos.x()+hopdist;
+        double iy1 = initnodepos.y()-hopdist; double iy2 = initnodepos.y()+hopdist;
+        double iz1 = initnodepos.z()-hopdist; double iz2 = initnodepos.z()+hopdist;
 
         // Translate cubic boundaries to sublattice boundaries in non-periodic coordinates
-        int sx1 = floor(ix1/hopping_distance);
-        int sx2 = floor(ix2/hopping_distance);
-        int sy1 = floor(iy1/hopping_distance);
-        int sy2 = floor(iy2/hopping_distance);
-        int sz1 = floor(iz1/hopping_distance);
-        int sz2 = floor(iz2/hopping_distance);      
+        int sx1 = floor(ix1/hopdist);
+        int sx2 = floor(ix2/hopdist);
+        int sy1 = floor(iy1/hopdist);
+        int sy2 = floor(iy2/hopdist);
+        int sz1 = floor(iz1/hopdist);
+        int sz2 = floor(iz2/hopdist);      
  
         // Now visit all relevant sublattices
         for (int isz=sz1; isz<=sz2; isz++) {
             int r_isz = isz;
-            while (r_isz < 0) r_isz += meshsizeZ;
-            while (r_isz >= meshsizeZ) r_isz -= meshsizeZ;
+            while (r_isz < 0) r_isz += nodemeshsizeZ;
+            while (r_isz >= nodemeshsizeZ) r_isz -= nodemeshsizeZ;
             for (int isy=sy1; isy<=sy2; isy++) {
                 int r_isy = isy;
-                while (r_isy < 0) r_isy += meshsizeY;
-                while (r_isy >= meshsizeY) r_isy -= meshsizeY;
+                while (r_isy < 0) r_isy += nodemeshsizeY;
+                while (r_isy >= nodemeshsizeY) r_isy -= nodemeshsizeY;
                 for (int isx=sx1; isx<=sx2; isx++) {
                     int r_isx = isx;
-                    while (r_isx < 0) r_isx += meshsizeX;
-                    while (r_isx >= meshsizeX) r_isx -= meshsizeX;
+                    while (r_isx < 0) r_isx += nodemeshsizeX;
+                    while (r_isx >= nodemeshsizeX) r_isx -= nodemeshsizeX;
         
                     // Ask a list of all nodes in this sublattice
                     list<Node*>::iterator li1,li2,li3;
@@ -674,7 +679,7 @@ void Graph::Determine_graph_pairs(vector<Node*> nodes, double hopping_distance, 
                             myvec probenodepos = probenode->node_position;
                             myvec differ = Periodicdistance(initnodepos,probenodepos,sim_box_size);
                             double distance = abs(differ);
-                            if(distance <= hopping_distance) {
+                            if(distance <= hopdist) {
                                 nodes[inode]->setPair(probenode);
                                 nodes[inode]->setStaticeventinfo(probenode, differ, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0);
                             }

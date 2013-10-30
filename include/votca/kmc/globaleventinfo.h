@@ -32,6 +32,16 @@ public:
     double injection_barrier;
     double binding_energy;
     double coulomb_strength;
+    double coulcut;
+    double self_image_prefactor;
+    
+    bool dual_injection;
+    bool device;
+    string formalism;
+    
+    int nr_sr_images;
+    long nr_of_lr_images;
+    int state_grow_size;
     
     double electron_prefactor;
     double hole_prefactor;

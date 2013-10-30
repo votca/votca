@@ -47,48 +47,45 @@ public:
     Node* electrode;
     CarrierType inject_cartype;
     
+    void Set_injection_event(Node* electrode, int injectnode_ID, CarrierType carrier_type,
+                                 double from_longrange, double to_longrange, Globaleventinfo* globevent);
+    void Set_non_injection_event(vector<Node*> nodes, Carrier* carrier, int jump_ID,
+                                 double from_longrange, double to_longrange, Globaleventinfo* globevent);
     
-    
-    Globaleventinfo* globaleventinfo;
-    
-    void Set_injection_event(Node* electrode, int injectnode_ID, CarrierType carrier_type, string formalism,
-                              double from_longrange, double to_longrange, Globaleventinfo* globaleventinfo);
-    void Set_non_injection_event(vector<Node*> nodes, Carrier* carrier, int jump_ID, string formalism, 
-                                 double from_longrange, double to_longrange, Globaleventinfo* globaleventinfo);
-    
+private:
     From_step_event Determine_non_injection_from_event_type(Carrier* carrier);
     To_step_event Determine_non_injection_to_event_type(Carrier* carrier, int jumpID, Node* carriernode);
     To_step_event Determine_injection_to_event_type(CarrierType carrier_type, Node* electrode, int inject_nodeID);
 
     double Compute_event_rate(Node* fromnode, int jump_ID, CarrierType carrier_type,
-                            From_step_event from_event_type, To_step_event to_event_type, string formalism,
+                            From_step_event from_event_type, To_step_event to_event_type,
                             double from_shortrange, double to_shortrange, double from_longrange, double to_longrange,
                             Globaleventinfo* globaleventinfo);
     
 };
 
-void Event::Set_injection_event(Node* electrode, int injectnode_ID, CarrierType carrier_type, string formalism,
-                              double from_longrange, double to_longrange, Globaleventinfo* globaleventinfo) {
+void Event::Set_injection_event(Node* electrode, int injectnode_ID, CarrierType carrier_type,
+                              double from_longrange, double to_longrange, Globaleventinfo* globevent) {
     
     fromtype = Injection;
     totype = Determine_injection_to_event_type(carrier_type, electrode, injectnode_ID);
-    rate = Compute_event_rate(electrode, injectnode_ID, carrier_type, fromtype, totype, formalism,
-                              0, 0.0, from_longrange, to_longrange, globaleventinfo);
+    rate = Compute_event_rate(electrode, injectnode_ID, carrier_type, fromtype, totype,
+                              0, 0.0, from_longrange, to_longrange, globevent);
        
 }
 
-void Event::Set_non_injection_event(vector<Node*> nodes, Carrier* carrier, int jump_ID, string formalism, 
+void Event::Set_non_injection_event(vector<Node*> nodes, Carrier* carrier, int jump_ID,
                                  double from_longrange, double to_longrange, Globaleventinfo* globaleventinfo) {
     
     fromtype = Determine_non_injection_from_event_type(carrier);
     totype = Determine_non_injection_to_event_type(carrier, jump_ID, nodes[carrier->carrier_node_ID]);
-    rate = Compute_event_rate(nodes[carrier->carrier_node_ID], jump_ID, carrier->carrier_type, fromtype, totype, formalism,
+    rate = Compute_event_rate(nodes[carrier->carrier_node_ID], jump_ID, carrier->carrier_type, fromtype, totype,
                                      carrier->srfrom, carrier->srto[jump_ID], from_longrange, to_longrange,
                                      globaleventinfo);    
 }
 
 double Event::Compute_event_rate(Node* fromnode, int jump_ID, CarrierType carrier_type,
-                                     From_step_event from_event_type, To_step_event to_event_type, string formalism,
+                                     From_step_event from_event_type, To_step_event to_event_type,
                                      double from_shortrange, double to_shortrange, double from_longrange, double to_longrange,
                                      Globaleventinfo* globevent){
 
@@ -158,7 +155,7 @@ double Event::Compute_event_rate(Node* fromnode, int jump_ID, CarrierType carrie
     double energycontrib;
     double energyfactor;
     
-    if (formalism == "Miller") {
+    if (globevent->formalism == "Miller") {
         if(to_event_type == Blocking) {
             energyfactor = 0.0; // Keep this here for eventual simulation of bipolaron formation for example
         }
