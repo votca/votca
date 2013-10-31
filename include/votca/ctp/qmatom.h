@@ -27,8 +27,9 @@
 namespace votca { namespace ctp {
     
 /**
-    \brief container for QM atoms 
-     Stores atom type, coordinates, charge
+ *    \brief container for QM atoms 
+ *
+ *    Stores atom type, coordinates, charge
  */    
 class QMAtom
 {
@@ -60,8 +61,7 @@ public:
    }  
 };
     
-
 }}
-        
+
 #endif	/* __VOTCA_CTP_QMATOM_H */
 

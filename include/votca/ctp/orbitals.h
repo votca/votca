@@ -62,11 +62,10 @@ namespace ub = boost::numeric::ublas;
 namespace votca { namespace ctp {
     
 /**
-    \brief container for molecular orbitals
- 
-    The Orbitals class stores orbital id, energy, MO coefficients
-    
-*/
+ * \brief container for molecular orbitals
+ * 
+ * The Orbitals class stores orbital id, energy, MO coefficients
+ */
 class Orbitals 
 {
 public:   
