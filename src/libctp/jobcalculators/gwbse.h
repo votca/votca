@@ -106,19 +106,16 @@ private:
     int mtotal ;
     int ntotal ;
     
+    
+    // band ranges for GW
+    int gwmin ;
+    int gwmax ;
+    int gwtotal;
+    int homo;
 
     
     // preshift of dft-energies
     double _shift;
-    
-    
-    // PPM related variables and functions
-    ub::matrix<double> _ppm_phi;
-    ub::vector<double> _ppm_freq;
-    ub::vector<double> _ppm_weight;
-    
-    
-    void PPM_construct_parameters( ub::matrix<double>& _overlap_cholesky_inverse   );
     
     
     // RPA related variables and functions
@@ -126,11 +123,31 @@ private:
     ub::vector< ub::matrix<double> > _epsilon;
     // container for frequencies in screening (index 0: real part, index 1: imaginary part)
     ub::matrix<double> _screening_freq;
+    
     void RPA_calculate_epsilon( TCMatrix& _Mmn_RPA , ub::matrix<double> _screening_freq , double _shift , ub::vector<double>& _dft_energies  );
     void RPA_prepare_threecenters( TCMatrix& _Mmn_RPA, TCMatrix& _Mmn_full, AOBasis& gwbasis, AOMatrix& gwoverlap, AOMatrix& gwoverlap_inverse     );
 
     
-
+    // PPM related variables and functions
+    ub::matrix<double> _ppm_phi;
+    ub::vector<double> _ppm_freq;
+    ub::vector<double> _ppm_weight;
+    
+    void PPM_construct_parameters( ub::matrix<double>& _overlap_cholesky_inverse   );
+    
+    // Sigma related variables and functions
+    ub::matrix<double> _sigma_x; // exchange term
+    ub::matrix<double> _sigma_c; // correlation term
+    
+    void sigma_prepare_threecenters( TCMatrix& _Mmn );
+    void sigma_x_setup( TCMatrix& _Mmn );
+    void sigma_c_setup( TCMatrix& _Mmn , ub::vector<double>& _edft );
+    
+    // QP variables
+    ub::vector<double> _qp_energies;
+    ub::matrix<double> _vxc;
+    
+    
 };
 
 

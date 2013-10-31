@@ -177,6 +177,8 @@ namespace votca {
             string _dft_package = _orbitals.getQMpackage();
             LOG(logDEBUG, *pLog) << TimeStamp() << " DFT data was created by " << _dft_package << flush;
 
+            
+            
             // reorder DFT data, load DFT basis set
             BasisSet dftbs;
             string dftbasis_name("ubecppol");
@@ -189,8 +191,39 @@ namespace votca {
             dftbasis.AOBasisFill(&dftbs, segments);
             LOG(logDEBUG, *pLog) << TimeStamp() << " Filled DFT Basis of size " << dftbasis._AOBasisSize << flush;
 
-            // do the reordering depending on the QM package used to obtain the DFT data
+            // set gw band range indices (-1)  => NEEDS TO FO TO OPTIONS
+            gwmin = 0;
+            gwmax = 2 * _orbitals.getNumberOfElectrons() -1;
+            gwtotal = gwmax - gwmin +1 ;
+            homo    = _orbitals.getNumberOfElectrons() - 1;
+
+            // process the DFT data
+            // a) form the expectation value of the XC functional in MOs
             ub::matrix<double> _dft_orbitals = *_orbitals.getOrbitals();
+            // we have to do some cartesian -> spherical transformation for Gaussian
+            ub::matrix<double> _vxc_ao;
+            if ( _dft_package == "gaussian" ){
+
+                ub::matrix<double> vxc_cart = (*_orbitals.getVxc()); 
+                ub::matrix<double> _carttrafo;
+                dftbasis.getTransformationCartToSpherical(_dft_package , _carttrafo );
+                ub::matrix<double> _temp = ub::prod( _carttrafo, vxc_cart  );
+                _vxc_ao = ub::prod( _temp, ub::trans( _carttrafo) );
+
+            } else {
+                _vxc_ao = (*_orbitals.getVxc()); 
+            }
+
+            // now get expectation values but only for those in gwmin:gwmax range
+            ub::matrix<double> _mos = ub::project( _dft_orbitals ,  ub::range( gwmin , gwmax +1 ), ub::range(0, dftbasis._AOBasisSize ) );
+            ub::matrix<double> _temp  = ub::prod( _vxc_ao, ub::trans( _mos ) ) ;
+            _vxc  = ub::prod( _mos  , _temp );
+            _vxc = 2.0 * _vxc;
+            LOG(logDEBUG, *pLog) << TimeStamp() << " Calculated exchange-correlation expectation values " << flush;
+            
+
+            
+            // b) reorder MO coefficients depending on the QM package used to obtain the DFT data
             if (_dft_package != "votca") {
                 // get reordering vector _dft_package -> Votca 
                 vector<int> neworder;
@@ -231,8 +264,6 @@ namespace votca {
             _gwoverlap.Fill(&gwbasis);
             LOG(logDEBUG, *pLog) << TimeStamp() << " Filled GW Overlap matrix of dimension: " << _gwoverlap._aomatrix.size1() << flush;
             // _aooverlap.Print( "S" );
-
-
 
             // printing some debug info
             // _gwcoulomb.PrintIndexToFunction( &aobasis );
@@ -287,6 +318,8 @@ namespace votca {
             LOG(logDEBUG, *pLog) << TimeStamp() << " Calculated Mmn_beta (3-center-overlap x orbitals)  " << flush;
             //_Mmn.Print( "Mmn " );
             
+            
+            
             // for use in RPA, make a copy of _Mmn with dimensions (1:HOMO)(gwabasissize,LUMO:nmax)
             TCMatrix _Mmn_RPA;
             _Mmn_RPA.Initialize(gwbasis._AOBasisSize, mmin, _orbitals.getNumberOfElectrons() , _orbitals.getNumberOfElectrons() +1 , nmax);
@@ -331,7 +364,38 @@ namespace votca {
   
             // construct PPM parameters
             PPM_construct_parameters( _gwoverlap_cholesky_inverse._aomatrix );
+            LOG(logDEBUG, *pLog) << TimeStamp() << " Constructed PPM parameters  " << flush;
             
+            // prepare threecenters for Sigma
+            sigma_prepare_threecenters(  _Mmn );
+            LOG(logDEBUG, *pLog) << TimeStamp() << " Prepared threecenters for sigma  " << flush;
+
+            // set gw band range indices (-1)  => NEEDS TO FO TO OPTIONS
+            gwmin = 0;
+            gwmax = 2 * _orbitals.getNumberOfElectrons() -1;
+            gwtotal = gwmax - gwmin +1 ;
+            homo    = _orbitals.getNumberOfElectrons() - 1;
+            
+            // calculate exchange part of sigma
+            sigma_x_setup( _Mmn );
+            LOG(logDEBUG, *pLog) << TimeStamp() << " Calculated exchange part of Sigma  " << flush;
+            
+            // TOCHECK: get rid of _ppm_phi?
+  
+            // ub::vector_range< ub::vector<double> > _edft = ub::subrange( _dft_energies, gwmin, gwmax +1 );
+            
+            // calculate correlation part of sigma
+            sigma_c_setup( _Mmn, _dft_energies   );
+            LOG(logDEBUG, *pLog) << TimeStamp() << " Calculated correlation part of Sigma  " << flush;
+
+            // Output of quasiparticle energies after all is done:
+            pLog->setPreface(logINFO, "\n");
+            
+            LOG(logINFO,*pLog) << (format("  ====== Quasiparticle energies (Rydberg) ====== ")).str() << flush;
+                        
+            for ( int _i = 0 ; _i < gwtotal ; _i++ ){
+               LOG(logINFO,*pLog) << (format("  Level = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = %4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") % (_i+gwmin+1) % _dft_energies( _i + gwmin ) % _vxc(_i,_i) % _sigma_x(_i,_i) % _sigma_c(_i,_i) % _qp_energies(_i) ).str() << flush;
+            }
             
             
             LOG(logINFO,*pLog) << TimeStamp() << " Finished evaluating site " << seg->getId() << flush; 
@@ -352,7 +416,112 @@ namespace votca {
             return jres;
         }
 
+
+        void GWBSE::sigma_c_setup(TCMatrix& _Mmn, ub::vector<double>& _edft){
+            
+            // iterative refinement of qp energies
+            int _max_iter = 5;
+            int _bandsum = _Mmn.matrix()(0).size2(); // total number of bands
+            int _gwsize  = _Mmn.matrix()(0).size1(); // size of the GW basis
+            const double pi = boost::math::constants::pi<double>();
+            
+            // initial _qp_energies are dft energies
+            _qp_energies = _edft;
+
+            for ( int _i_iter = 0 ; _i_iter < _max_iter ; _i_iter++ ){
+                // cout << " Iteration : "  << _i_iter +1 << endl;
+                
+                // initialize sigma_c to zero at the beginning of each iteration
+                _sigma_c = ub::zero_matrix<double>(gwtotal,gwtotal);
+
+                // loop over all bands
+                for ( int _i = 0; _i < _bandsum ; _i++ ){
+                    
+                    double occ = 1.0;
+                    if ( _i > homo ) occ = -1.0; // sign for empty levels
+                    
+                    // loop over all GW levels
+                    for (int _gw_level = 0; _gw_level < gwtotal ; _gw_level++ ){
+                        int m1_min = _gw_level;
+                        if ( (_i_iter +1) == _max_iter ) m1_min = gwmin;
+                        int m1_max = _gw_level;
+                        if ( (_i_iter +1) == _max_iter ) m1_max = gwmax;
+                        
+                        // loop over all functions in GW basis
+                        for ( int _i_gw = 0; _i_gw < _gwsize ; _i_gw++ ){
+                            
+                            // energy denominator
+                            double _denom = _qp_energies( _gw_level ) - _qp_energies( _i ) + occ*_ppm_freq( _i_gw );
+                            
+                            double _stab = 1.0;
+                            if ( std::abs(_denom) < 0.5 ) {
+                                _stab = 0.5 * ( 1.0 - cos(2.0 * pi * std::abs(_denom) ) );
+                            }
+                            
+                            double _factor = _ppm_weight( _i_gw ) * _ppm_freq( _i_gw) * _stab/_denom; // contains conversion factor 2!
+                            // final loop constructing sigma_c
+                            for ( int _m = m1_min ; _m <= m1_max ; _m++ ){
+                                _sigma_c( _m , _gw_level ) += _factor * _Mmn.matrix()( _m )( _i_gw , _i ) * _Mmn.matrix()( _gw_level ) ( _i_gw , _i ); 
+                            } // sigma_c
+                            
+                        }// GW basis functions
+                        
+                    }// GW levels
+                    
+                }// all bands
+    
+                // update _qp_energies
+                for ( int _m = 0 ; _m < gwtotal ; _m++ ){
+                    _qp_energies( _m ) = _edft( _m ) + _sigma_x(_m,_m) + _sigma_c(_m,_m) - _vxc(_m,_m);
+                }
+                
+                
+            } // iteration
+            
+ 
+            
+        }
+
+        void GWBSE::sigma_x_setup(TCMatrix& _Mmn){
         
+            // initialize sigma_x
+            _sigma_x = ub::zero_matrix<double>(gwtotal,gwtotal);
+            int _size  = _Mmn.matrix()(0).size1();
+
+            // band 1 loop over all GW bands
+            for ( int _m1 = 0 ; _m1 < gwtotal ; _m1++ ){
+                // band 2 loop over all GW bands
+                for ( int _m2 = 0 ; _m2 < gwtotal ; _m2++ ){
+                    // loop over all basis functions
+                    for ( int _i_gw = 0 ; _i_gw < _size ; _i_gw++ ){
+                        // loop over all occupied bands used in screening
+                        for ( int _i_occ = 0 ; _i_occ <= homo ; _i_occ++ ){
+                            
+                            _sigma_x( _m1, _m2 ) -= 2.0 * _Mmn.matrix()( _m1 )( _i_gw , _i_occ ) * _Mmn.matrix()( _m2 )( _i_gw , _i_occ );
+                            
+                        } // occupied bands
+                    } // gwbasis functions
+                } // band 2
+            } // band 1
+        
+        }
+
+
+
+        
+
+        void GWBSE::sigma_prepare_threecenters(TCMatrix& _Mmn){
+    
+            for ( int _m_band = 0 ; _m_band < _Mmn.get_mtot(); _m_band++ ){
+                // get Mmn for this _m_band
+                // ub::matrix<double> _temp = ub::trans(  _Mmn.matrix()( _m_band )   );
+                // and multiply with _ppm_phi = eigenvectors of epsilon
+                _Mmn.matrix()( _m_band ) = ub::prod(  _ppm_phi , _Mmn.matrix()( _m_band ) );
+                
+            }
+            
+
+        }        
         
         void GWBSE::PPM_construct_parameters(  ub::matrix<double>& _overlap_cholesky_inverse ){
             
@@ -368,49 +537,23 @@ namespace votca {
             _eigenvalues.resize(_temp.size1());
             _eigenvectors.resize(_temp.size1(), _temp.size1());
             linalg_eigenvalues(_temp, _eigenvalues, _eigenvectors);
-            // cout << _eigenvalues << endl;
-            //sort(_eigenvalues.begin(), _eigenvalues.end());
-            // cout << "min EV: " << _eigenvalues(0) << " max EV: " << _eigenvalues(_temp.size1() -1 ) << endl;
-            
             
             // multiply eigenvectors with overlap_cholesky_inverse_transpose and store as eigenvalues of epsilon
             _ppm_phi = ub::prod( _overlap_cholesky_inverse_transposed , _eigenvectors ); 
+
+ 
             
-
-
-
             // store PPM weights from eigenvalues
             _ppm_weight.resize( _eigenvalues.size() );
             for ( int _i = 0 ; _i <  _eigenvalues.size(); _i++   ){
                 _ppm_weight(_i) = 1.0 - 1.0/_eigenvalues(_i);
-		// cout << " PPM weight " << _eigenvalues(_i) << " : " << _ppm_weight(_i) << endl; 
             }
-            
-
-
 
             // determine PPM frequencies
             _ppm_freq.resize( _eigenvalues.size() );
             // a) phi^t * epsilon(1) * phi 
             _temp = ub::prod( ub::trans( _ppm_phi ) , _epsilon(1) );
             _eigenvectors  = ub::prod( _temp ,  _ppm_phi  );
-
-
-	    // before inversion
-
-
-	    /*	    for ( int i =0 ; i < _eigenvalues.size() ; i++){
-	      for ( int j =0 ; j < _eigenvalues.size() ; j++){
-	  
-		cout << " PPM_before " << i << ":" << j << "  " << _eigenvectors(i,j) << endl;
-
-	      }
-
-	      } */ 
-
-
-
-
             // b) invert
             _temp = ub::zero_matrix<double>( _eigenvalues.size(),_eigenvalues.size() )  ;
             linalg_invert( _eigenvectors , _temp ); //eigenvectors is destroyed after!
@@ -438,13 +581,12 @@ namespace votca {
 
             }
             
+            // will be needed transposed later
+            _ppm_phi = ub::trans( _ppm_phi );
+            
                    
             
         }
-        
-        
-        
-        
         
         
 

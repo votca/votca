@@ -86,7 +86,7 @@ namespace votca { namespace ctp {
             // vector has mtotal elements
             this->_matrix.resize( this->get_mtot() );
             
-            // each element is a gwabssis-by-n matrix, initialize to zero
+            // each element is a gwabasis-by-n matrix, initialize to zero
             for ( int i = 0; i < this->get_mtot() ; i++){
                 this->_matrix(i) = ub::zero_matrix<double>(_basissize,ntotal);
             }

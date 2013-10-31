@@ -26,6 +26,7 @@
 #include <votca/tools/property.h>
 #include <votca/ctp/segment.h>
 #include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/matrix_proxy.hpp>
 #include "basisset.h"
 
 using namespace std;
@@ -171,13 +172,14 @@ public:
                
            }
        } 
-       
-       
-       
-    
+
+      
+      
     void AOBasisFill( BasisSet* bs , vector<Segment* > segments);
     int NumFuncShell( string shell );
+    int NumFuncShell_cartesian( string shell );
     int OffsetFuncShell( string shell );
+    int OffsetFuncShell_cartesian( string shell );
     int getAOBasisSize() {return _AOBasisSize; }
     
     typedef vector< AOShell* >::iterator AOShellIterator;
@@ -216,8 +218,118 @@ public:
     void getMultiplierVector( string& package, vector<int>& multiplier );
     void addMultiplierShell( string& package, string& shell, vector<int>& multiplier );  
     
+    void getTransformationCartToSpherical( string& package, ub::matrix<double>& _trafomatrix );
+    void addTrafoCartShell(  AOShell* shell , ub::matrix_range< ub::matrix<double> >& _submatrix );
+    
     int getMaxFunctions ( );
 };
+
+
+        
+inline void AOBasis::getTransformationCartToSpherical( string& package, ub::matrix<double>& _trafomatrix ){
+
+    if ( package != "gaussian" ){
+        cout << " I should not have been called, will do nothing! " << endl;
+    } else {
+        // go through basisset, determine function sizes
+        int _dim_sph = 0;
+        int _dim_cart = 0;
+        for (vector< AOShell* >::iterator _is = this->firstShell(); _is != this->lastShell() ; _is++ ) {
+            AOShell* _shell = this->getShell( _is );
+            string _type =  _shell->getType();
+            
+            _dim_sph  += this->NumFuncShell( _type );
+            _dim_cart += this->NumFuncShell_cartesian( _type );
+            
+            
+            //this->addTrafoShell( package,  _type, _trafomatrix );
+        }   
+        
+        
+        // cout << " Filling trafo matrix of size : " << _dim_sph << " : " << _dim_cart << endl;
+        
+        // initialize _trafomatrix
+        _trafomatrix = ub::zero_matrix<double>( _dim_sph , _dim_cart );
+        
+        // now fill it
+        int _row_start = 0;
+        int _col_start = 0;
+        for (vector< AOShell* >::iterator _is = this->firstShell(); _is != this->lastShell() ; _is++ ) {
+            AOShell* _shell = this->getShell( _is );
+            string _type =  _shell->getType();
+            int _row_end = _row_start + this->NumFuncShell( _type );
+            int _col_end = _col_start + this->NumFuncShell_cartesian( _type );
+            
+            ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange( _trafomatrix, _row_start, _row_end, _col_start, _col_end);
+            this->addTrafoCartShell(  _shell, _submatrix  );
+            
+            _row_start = _row_end;
+            _col_start = _col_end;
+            
+        } 
+        
+        
+    }
+
+}
+
+inline void AOBasis::addTrafoCartShell( AOShell* shell , ub::matrix_range< ub::matrix<double> >& _trafo ){
+    
+    // cout << "getting trafo of shell type :" << shell->getType() << endl;
+    // fill _local according to _lmax;
+    int _lmax = shell->getLmax();
+    string _type = shell->getType();
+    
+    int _sph_size = this->NumFuncShell( _type ) + this->OffsetFuncShell( _type );
+    int _cart_size = this->NumFuncShell_cartesian( _type ) + this->OffsetFuncShell_cartesian( _type )  ;
+    
+    // cout << "    local size : " << _sph_size << " : " << _cart_size << endl;
+    
+    ub::matrix<double> _local =  ub::zero_matrix<double>(_sph_size,_cart_size);
+
+    // s-functions
+    _local(0,0) = 1.0; // s
+    
+    // p-functions
+    if ( _lmax > 0 ){
+        _local(1,1) = 1.0; 
+        _local(2,2) = 1.0;
+        _local(3,3) = 1.0;
+    }
+
+    // d-functions
+    if ( _lmax > 1 ){
+        _local(4,4) = -0.5;             // d3z2-r2 (dxx)
+        _local(4,5) = -0.5;             // d3z2-r2 (dyy)
+        _local(4,6) =  1.0;             // d3z2-r2 (dzz)
+        _local(5,8) =  1.0;             // dxz
+        _local(6,9) =  1.0;             // dyz
+        _local(7,4) = 0.5*sqrt(3.0);    // dx2-y2 (dxx)
+        _local(7,5) = -_local(7,4);      // dx2-y2 (dyy)
+        _local(8,7) = 1.0;              // dxy
+     }
+  
+    if ( _lmax > 2 ){
+        cerr << " Gaussian input with f- functions or higher not yet supported!" << endl;
+        exit(1);
+    }
+
+    // now copy to _trafo
+    for ( int _i_sph = 0 ; _i_sph < this->NumFuncShell( _type ) ; _i_sph++ ){
+        for  ( int _i_cart = 0 ; _i_cart < this->NumFuncShell_cartesian( _type ) ; _i_cart++ ){
+            
+            
+            _trafo( _i_sph , _i_cart ) = _local( _i_sph + this->OffsetFuncShell( _type ) , _i_cart +  this->OffsetFuncShell_cartesian( _type ) );
+            
+        }
+    }
+
+    
+}
+
+
+
+
 
 
 inline int AOBasis::getMaxFunctions () {
@@ -434,6 +546,54 @@ inline void AOBasis::AOBasisFill(BasisSet* bs , vector<Segment* > segments) {
 
     return _nbf;
 }
+    
+    
+ inline int AOBasis::NumFuncShell_cartesian( string shell_type ) {
+    int _nbf;
+    // single type shells defined here
+    if ( shell_type.length() == 1 ){
+       if ( shell_type == "S" ){ _nbf = 1;}
+       if ( shell_type == "P" ){ _nbf = 3;}
+       if ( shell_type == "D" ){ _nbf = 6;}
+       if ( shell_type == "F" ){ _nbf = 10;}
+       if ( shell_type == "G" ){ _nbf = 15;}
+    } else {
+        // for combined shells, sum over all contributions
+        _nbf = 0;
+        for( int i = 0; i < shell_type.length(); ++i) {
+            string local_shell =    string( shell_type, i, 1 );
+            _nbf += this->NumFuncShell_cartesian( local_shell  );
+        }
+    }
+
+    return _nbf;
+}
+    
+    
+    
+       
+
+    inline int AOBasis::OffsetFuncShell_cartesian( string shell_type ) {
+    int _nbf;
+    // single type shells
+    if ( shell_type.length() == 1 ){
+       if ( shell_type == "S" ){ _nbf = 0;}
+       if ( shell_type == "P" ){ _nbf = 1;}
+       if ( shell_type == "D" ){ _nbf = 4;}
+       if ( shell_type == "F" ){ _nbf = 10;}
+       if ( shell_type == "G" ){ _nbf = 20;}
+    } else {
+        // for combined shells, go over all contributions and find minimal offset
+        _nbf = 1000;
+        for(int i = 0; i < shell_type.length(); ++i) {
+            string local_shell = string( shell_type, i, 1 );
+            int _test = this->OffsetFuncShell( local_shell  );
+            if ( _test < _nbf ) { _nbf = _test;} 
+        }   
+    }
+    return _nbf;
+}
+    
 
     inline int AOBasis::OffsetFuncShell( string shell_type ) {
     int _nbf;
@@ -456,100 +616,6 @@ inline void AOBasis::AOBasisFill(BasisSet* bs , vector<Segment* > segments) {
     return _nbf;
 }
 
-/*
- * A collection of elements and shells forms the basis set 
- */
-/*class AOBasis 
-{
-public:
-    
-    void AOLoadBasisSet ( string name );
-    
-    AOElement* addElement(string elementType );
- 
-    AOElement* getElement( string element_type ) {
-        
-         map<string,AOElement*>::iterator itm = _aoelements.find( element_type );
-         
-         if ( itm == _aoelements.end() ) throw std::runtime_error( "Basis set does not have element of type " + element_type );
-         
-         AOElement* aoelement = (*itm).second;
-         return aoelement; 
-     }
-    
-    ~AOBasis();
-    
-private:    
-    
-    map<string,AOElement*> _aoelements;
-};
-
-
-inline void AOBasis::AOLoadBasisSet ( string name ) 
-{    
-    Property basis_property;
- 
-    // get the path to the shared folders with xml files
-    char *votca_share = getenv("VOTCASHARE");
-    if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
-    string xmlFile = string(getenv("VOTCASHARE")) + string("/ctp/basis_sets/") + name + string(".xml");
-    
-    bool success = load_property_from_xml(basis_property, xmlFile);
-    
-    if ( !success ) {; }
-    
-    list<Property*> elementProps = basis_property.Select("basis.element");
-        
-    for (list<Property*> ::iterator  ite = elementProps.begin(); ite != elementProps.end(); ++ite) 
-    {       
-        string elementName = (*ite)->getAttribute<string>("name");
-        AOElement *aoelement = addElement( elementName );
-        //cout << "\nElement " << elementName;
-        
-        list<Property*> shellProps = (*ite)->Select("shell");
-        for (list<Property*> ::iterator  its = shellProps.begin(); its != shellProps.end(); ++its) 
-        {            
-            string shellType = (*its)->getAttribute<string>("type");
-            double shellScale = (*its)->getAttribute<double>("scale");
-            
-            AOShell* aoshell = aoelement->addShell( shellType, shellScale );
-            //cout << "\n\tShell " << shellType;
-            
-            list<Property*> constProps = (*its)->Select("constant");
-            for (list<Property*> ::iterator  itc = constProps.begin(); itc != constProps.end(); ++itc) 
-            {
-                double decay = (*itc)->getAttribute<double>("decay");
-                double contraction = (*itc)->getAttribute<double>("contraction");
-                aoshell->addGaussian(decay, contraction);
-                //cout << "\n\t\t" << decay << " " << contraction << endl;
-            }
-            
-        }
-       
-    }
-    
-}
-
-// adding an Element to a Basis Set
-inline AOElement* AOBasis::addElement( string elementType ) {
-    AOElement *aoelement = new AOElement( elementType );
-    _aoelements[elementType] = aoelement;
-    return aoelement;
-};
-
-
-
-// cleanup the basis set
-inline AOBasis::~AOBasis() {
-    
-    for ( map< string,AOElement* >::iterator it = _aoelements.begin(); it !=  _aoelements.end(); it++ ) {
-         delete (*it).second;
-     }
-    
-    _aoelements.clear();
-};
-
- * */
 
 }}
 
