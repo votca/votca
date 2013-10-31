@@ -258,7 +258,7 @@ void Ewald3DnD::ExpandForegroundReduceBackground(double polar_R_co) {
     
     if (tools::globals::verbose)
         LOG(logDEBUG,*_log) << "Expanding cell space for neighbour search:"
-                "+/-" << polar_na_max << " x +/-" << polar_nb_max << " x +/-" 
+                " +/-" << polar_na_max << " x +/-" << polar_nb_max << " x +/-" 
                 << polar_nc_max << flush;
     
     _fg_table = new ForegroundTable(
@@ -295,9 +295,18 @@ void Ewald3DnD::ExpandForegroundReduceBackground(double polar_R_co) {
                     identical = true;
                 }
                 // Within range ?
+                // NOTE We have to truncate the decimal places for the radius
+                // and the cut-off before we draw the comparison - otherwise
+                // numerics may play a prank on us and produce different
+                // foregrounds for different charge states, making energy
+                // differences for those states pretty much meaningless.
+                // Note that abs(dR_L-polar_R_co) < 1e-xy won't do here,
+                // since we then to a large degree still rely on machine 
+                // precision.
                 double dR_L = votca::tools::abs(
                     seg_bg->getPos() + L - seg_fg->getPos());
-                if (dR_L <= polar_R_co) {
+                // Compare up to 3 decimal places (= 1e-3 nm)
+                if (int(dR_L*1e3+0.5) <= int(polar_R_co*1e3+0.5)) {
                     within_range = true;
                 }
             }
