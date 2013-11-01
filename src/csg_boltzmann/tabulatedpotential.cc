@@ -99,7 +99,7 @@ void TabulatedPotential::Help(string cmd, vector<string> &args)
         if(args.size() == 1) {
             cout << cmd << " set <option> <value>\n"
                  << "set option for this command. Use \"" << cmd << " set\""
-                    " for a list of available options. To get telp on a specific option use e.g.\n"
+                    " for a list of available options. To get help on a specific option use e.g.\n"
                     << cmd << " set periodic\n";
             return;
         }
