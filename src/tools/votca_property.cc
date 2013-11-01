@@ -17,6 +17,8 @@
 
 #include <iostream>
 #include <boost/program_options.hpp>
+#include <boost/format.hpp>
+
 #include <votca/tools/property.h>
 #include <votca/tools/propertyiomanipulator.h>
 #include <list>
@@ -26,7 +28,7 @@ using namespace votca::tools;
 
 void help_text()
 {
-    cout << "Helper program to parse xml file.\n\n";
+    cout << "Helper for parse xml files\n\n";
 }
 
 int main(int argc, char** argv)
@@ -42,6 +44,7 @@ int main(int argc, char** argv)
     po::options_description desc("Program options");    
     desc.add_options()
         ("help", "produce this help message")
+        ("man", "man pages")
         ("file", po::value<string>(&file), "xml file to parse")
         ("format", po::value<string>(&format), "output format [XML TXT TEX]")
         ("level", po::value<int>(&level), "output from this level ");
@@ -62,7 +65,23 @@ int main(int argc, char** argv)
         cout << desc << endl;
         return 0;
     }
-    // file specified
+
+    // does the user want man pages?
+    if (vm.count("man")) {
+        string option_format(".TP\n\\fB\\%1% [ \\-\\-%2% ]\\fR\n%3%\n");
+
+        typedef std::vector<boost::shared_ptr<boost::program_options::option_description> >::const_iterator OptionsIterator;
+        OptionsIterator it = desc.options().begin(), it_end = desc.options().end();
+        while(it != it_end) {
+            std::cout << boost::format(option_format) % (*it)->key("*") % (*it)->long_name() % (*it)->description();
+            ++it;
+        }      
+            desc.print(cout);
+        
+        //cout << desc << endl;
+        return 0;
+    }    // file specified
+
     if (!vm.count("file")) {
         cout << "please specify file\n";                
         cout << desc << endl;

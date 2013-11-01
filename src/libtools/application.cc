@@ -61,6 +61,7 @@ int Application::Exec(int argc, char **argv)
     try {
         //_continue_execution = true;
 	AddProgramOptions()("help,h", "  display this help and exit");
+	AddProgramOptions()("man", "  output manual pages");
 	AddProgramOptions()("verbose,v", "  be loud and noisy");
 	
 	Initialize(); // initialize program-specific parameters
