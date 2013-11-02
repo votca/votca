@@ -18,7 +18,9 @@
 #include <iostream>
 #include <boost/program_options.hpp>
 #include <boost/format.hpp>
+#include <boost/algorithm/string/replace.hpp>
 
+#include <votca/tools/version.h>
 #include <votca/tools/property.h>
 #include <votca/tools/propertyiomanipulator.h>
 #include <list>
@@ -26,13 +28,10 @@
 using namespace std;
 using namespace votca::tools;
 
-void help_text()
-{
-    cout << "Helper for parse xml files\n\n";
-}
-
 int main(int argc, char** argv)
 {      
+    string program_name = "votca_property";
+    string help_text = "Helper for parsing xml files";
     string file;
     string format;
     int level;
@@ -61,24 +60,49 @@ int main(int argc, char** argv)
     }
     // does the user want help?
     if (vm.count("help")) {
-        help_text();
+        cout << help_text << "\n\n";
         cout << desc << endl;
         return 0;
     }
 
     // does the user want man pages?
     if (vm.count("man")) {
-        string option_format(".TP\n\\fB\\%1% [ \\-\\-%2% ]\\fR\n%3%\n");
+        string option_format(".TP\n\\fB%1%\\fR\n%2%\n");
+        string header_format(".TH \"%1%\" 1 \"\" \"Version: %2%\"\n\n");
+        string name_format(".SH NAME\n\n.P\n%1% \\- Part of the VOTCA package\n"
+                           "\n.P\nPlease visit the program site at __%2%__\n\n"
+        );
+        string synopsis_format ("\n.SH SYNOPSIS\n\n.P\n\\fB%1%\\fR [\\fIOPTION\\fR] [\\fIPARAMETERS\\fR]\n");
+        string helptext_format ("\n.SH DESCRIPTION\n\n.P\n%1%\n\n.SH OPTIONS\n\n");
+        string url = "http://www.votca.org"; 
+        //string url_format = "\n.P\nPlease visit the program site at __%2%__\n\n";
+        
+        std::cout << boost::format(header_format) %  program_name % ToolsVersionStr();        
+        std::cout << boost::format(name_format) % program_name % url;
+        std::cout << boost::format(synopsis_format) % program_name;       
+        std::cout << boost::format(helptext_format) % help_text;
+        //std::cout << boost::format(url_format) % url;
 
         typedef std::vector<boost::shared_ptr<boost::program_options::option_description> >::const_iterator OptionsIterator;
         OptionsIterator it = desc.options().begin(), it_end = desc.options().end();
-        while(it != it_end) {
-            std::cout << boost::format(option_format) % (*it)->key("*") % (*it)->long_name() % (*it)->description();
+        while(it < it_end) {
+            
+            string format_name = (*it)->format_name() + " " + (*it)->format_parameter();
+            boost::replace_all(format_name, "-", "\\-");
+            std::cout << boost::format(option_format) % format_name % (*it)->description();
             ++it;
+            
+            //std::cout << " longname: " << (*it)->long_name() << endl;
+            //std::cout << " description: " << (*it)->description() << endl;
+            //std::cout << " format: " << (*it)->format_parameter() << endl;
+            //std::cout << " formatname: " << (*it)->format_name() << endl << endl;
+
+             //cout << format_name << endl;
+            
         }      
-            desc.print(cout);
+            //desc.print(cout);
         
-        //cout << desc << endl;
+        //cout << desc << endl; exit(0);
         return 0;
     }    // file specified
 
