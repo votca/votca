@@ -75,7 +75,7 @@ int main(int argc, char** argv)
         string footer_format ("\n.SH AUTHORS\n"
                               "\n.P\nWritten and maintained by the VOTCA Development Team <%1%>\n"
                               "\n.SH COPYRIGHT\n\n.P\n\n"
-                              "Copyright 2009\\-2011 The VOTCA Development Team (%2%)\n"
+                              "Copyright 2009\\-2011 The VOTCA Development Team (%2%).\n"
                               "\n.P\nLicensed under the Apache License, Version 2.0 (the \"License\") "
                               "you may not use this file except in compliance with the License. "
                               "You may obtain a copy of the License at"
@@ -87,7 +87,7 @@ int main(int argc, char** argv)
                               "limitations under the License.");
         
         
-        string synopsis_format ("\n.SH SYNOPSIS\n\n.P\n\\fB%1%\\fR [\\fIOPTION\\fR] [\\fIPARAMETERS\\fR]\n");
+        string synopsis_format ("\n.SH SYNOPSIS\n\n.P\n\\fB%1%\\fR [\\fIOPTION\\fR] [\\fIARGUMENTS\\fR]\n");
         string helptext_format ("\n.SH DESCRIPTION\n\n.P\n%1%\n\n.SH OPTIONS\n\n");
         string url = "http://www.votca.org"; 
         string email = "devs@votca.org";

@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,32 +15,12 @@
  *
  */
 
-
-#ifndef __VOTCA_TOOLS_GLOBALS_H
-#define	__VOTCA_TOOLS_GLOBALS_H
-
-#include <string>
+#include <votca/tools/globals.h>
 
 namespace votca { namespace tools {
 
-/**
-    \brief class to store global variables
-
-    This class is used to access global variables 
-*/
-
-class globals
-{
-    public:  
-	/// be loud and noisy
-        static bool verbose;      
-        /// web of the package
-        static std::string url;
-        /// email address of the developers
-        static std::string email;
-};
+	bool globals::verbose = false;
+	std::string globals::url = "http://www.votca.org";
+	std::string globals::email = "devs@votca.org";
 
 }}
-
-#endif	/* __VOTCA_TOOLS_GLOBALS_H */
-
