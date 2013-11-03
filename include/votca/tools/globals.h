@@ -29,10 +29,9 @@ namespace votca { namespace tools {
     This class is used to access global variables 
 */
 
-class globals
+struct globals
 {
-    public:  
-	/// be loud and noisy
+ 	/// be loud and noisy
         static bool verbose;      
         /// web of the package
         static std::string url;
@@ -40,15 +39,25 @@ class globals
         static std::string email;
         
         /// man pages format strings
-        static std::string option_fmt;
-        static std::string header_fmt;
-        static std::string name_fmt;
-        static std::string authors_fmt;
-        static std::string copyright_fmt;
-        static std::string synopsis_fmt;
-        static std::string description_fmt;
-        static std::string options_fmt;        
-        
+        struct man {
+                static std::string option;
+                static std::string header;
+                static std::string name;
+                static std::string authors;
+                static std::string copyright;
+                static std::string synopsis;
+                static std::string description;
+                static std::string options;        
+        };
+
+        /// TEX pages format strings
+        struct tex {
+                static std::string section;
+                static std::string label;
+                static std::string description;
+                static std::string options;
+                static std::string option;        
+        };
 };
 
 }}

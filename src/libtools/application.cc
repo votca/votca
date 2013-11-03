@@ -64,10 +64,10 @@ void Application::ShowHelpText(std::ostream &out)
 boost::program_options::options_description &Application::VisibleOptions() { 
             // remove Hidden group from the option list
             std::map<string, boost::program_options::options_description>::iterator iter;
+            string group("");
             for ( iter = _op_groups.begin(); iter!=_op_groups.end(); iter++ ) {
-                string group = iter->first;
-                if ( group == "Hidden" ) iter++; 
-               _visible_options.add(iter->second);
+                group = iter->first;
+                if ( group != "Hidden" ) _visible_options.add(iter->second);
             }
             return _visible_options;
      };
@@ -75,13 +75,13 @@ boost::program_options::options_description &Application::VisibleOptions() {
      
 void Application::ShowManPage(std::ostream &out) {
     
-        out << boost::format(globals::header_fmt) %  ProgramName() % VersionString();        
-        out << boost::format(globals::name_fmt) % ProgramName() % globals::url;
-        out << boost::format(globals::synopsis_fmt) % ProgramName();
+        out << boost::format(globals::man::header) %  ProgramName() % VersionString();        
+        out << boost::format(globals::man::name) % ProgramName() % globals::url;
+        out << boost::format(globals::man::synopsis) % ProgramName();
         std::stringstream ss;
         HelpText(ss);
-        out << boost::format(globals::description_fmt) % ss.str();
-        out << boost::format(globals::options_fmt);
+        out << boost::format(globals::man::description) % ss.str();
+        out << boost::format(globals::man::options);
 
         typedef std::vector<boost::shared_ptr<boost::program_options::option_description> >::const_iterator OptionsIterator;
         OptionsIterator it = _op_desc.options().begin(), it_end = _op_desc.options().end();
@@ -89,23 +89,43 @@ void Application::ShowManPage(std::ostream &out) {
         while(it < it_end) {
             string format_name = (*it)->format_name() + " " + (*it)->format_parameter();
             boost::replace_all(format_name, "-", "\\-");
-            std::cout << boost::format(globals::option_fmt) % format_name % (*it)->description();
+            out << boost::format(globals::man::option) % format_name % (*it)->description();
             ++it;           
         }      
 
-        std::cout << boost::format(globals::authors_fmt) % globals::email;
-        std::cout << boost::format(globals::copyright_fmt) % globals::url;
+        out << boost::format(globals::man::authors) % globals::email;
+        out << boost::format(globals::man::copyright) % globals::url;
     
 }
 
+void Application::ShowTEXPage(std::ostream &out) {
+    string program_name = ProgramName();
+    boost::replace_all(program_name, "_", "\\_");
+        out << boost::format(globals::tex::section) %  program_name;        
+        out << boost::format(globals::tex::label) % ProgramName();
+        std::stringstream ss, os;
+        HelpText(ss);
+        out << boost::format(globals::tex::description) % ss.str();
+
+       typedef std::vector<boost::shared_ptr<boost::program_options::option_description> >::const_iterator OptionsIterator;
+       OptionsIterator it = _op_desc.options().begin(), it_end = _op_desc.options().end();
+       while(it < it_end) {
+            string format_name = (*it)->format_name() + " " + (*it)->format_parameter();
+            boost::replace_all(format_name, "-", "{-}");
+            os << boost::format(globals::tex::option) % format_name % (*it)->description();
+            ++it;           
+        }      
+        out << boost::format(globals::tex::options) % os.str();
+}
 
 int Application::Exec(int argc, char **argv)
 {
     try {
         //_continue_execution = true;
 	AddProgramOptions()("help,h", "  display this help and exit");
-	AddProgramOptions("Hidden")("man", "  output manual pages");
 	AddProgramOptions()("verbose,v", "  be loud and noisy");
+	AddProgramOptions("Hidden")("man", "  output man-formatted manual pages");
+	AddProgramOptions("Hidden")("tex", "  output tex-formatted manual pages");
 	
 	Initialize(); // initialize program-specific parameters
 
@@ -119,7 +139,12 @@ int Application::Exec(int argc, char **argv)
             ShowManPage(cout);
             return 0;
         }
-
+        
+        if (_op_vm.count("tex")) {
+            ShowTEXPage(cout);
+            return 0;
+        }
+        
         if (_op_vm.count("help")) {
             ShowHelpText(cout);
             return 0;
