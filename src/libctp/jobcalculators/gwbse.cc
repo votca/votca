@@ -166,7 +166,7 @@ namespace votca {
 
 
 	    // iteration timing tests
-	    /* 
+	    /*
 	    // setup dummies
 	    ub::vector< ub::matrix<float> > _array;
 	    _array.resize( 102 );
@@ -198,7 +198,7 @@ namespace votca {
             int _gwsize  = _array(0).size1(); // size of the GW basis
             const double pi = boost::math::constants::pi<double>();
             
-
+            LOG(logDEBUG, *pLog) << TimeStamp() << " Timing " << endl;
 	    
 
 
@@ -209,10 +209,7 @@ namespace votca {
 	    ub::matrix<double> _sigma = ub::zero_matrix<double>(102,102);
 
 	    // row index GW levels in Sigma
-	    for ( int _m = 0 ; _m < 102 ; _m++ ){
-	      ub::matrix<float>& _matrix1 = _array( _m ); 
-
-
+for ( int _m = 0 ; _m < 102 ; _m++ ){	    
 	      // col index GW levels in Sigma
 	      for (int _gw_level = 0; _gw_level < 102 ; _gw_level++ ){
 		ub::matrix<float>& _matrix2 = _array( _gw_level );
@@ -241,9 +238,14 @@ namespace votca {
 		      _stab = 0.5 * ( 1.0 - cos(2.0 * pi * std::abs(_denom) ) );
 		    }
                             
-		    double  _factor = _freq( _i_gw ) * _freq( _i_gw) * _stab/_denom; // contains conversion factor 2!
+		    double  _factor = _matrix2(_i_gw, _i) * _freq( _i_gw ) * _freq( _i_gw) * _stab/_denom; // contains conversion factor 2!
 
-		    _sigma( _m , _gw_level ) += _factor * _matrix1(_i_gw, _i) * _matrix2(_i_gw,_i);
+  //ub::matrix<float>& _matrix1 = _array( _m ); 
+	      //
+
+  _sigma( _m , _gw_level ) += _factor * _array(_m)(_i_gw, _i);// * _matrix2(_i_gw,_i);
+
+		    //		    _sigma( _m , _gw_level ) += _factor * _matrix1(_i_gw, _i) * _matrix2(_i_gw,_i);
 		  } // screening levels
                   
 		}// GW basis functions
@@ -259,8 +261,8 @@ namespace votca {
             LOG(logDEBUG, *pLog) << TimeStamp() << " Timing " << endl;
 
 	    exit(0);
-
 	    */
+	    
 
 
 
@@ -584,15 +586,13 @@ namespace votca {
 	    // initialize sigma_c to zero at the beginning of each iteration
 	    _sigma_c = ub::zero_matrix<double>(gwtotal,gwtotal);
 
-	    // loop over row GW levels
-	    for ( int _m = 0 ; _m < gwtotal ; _m++) {
-
 	      // loop over col  GW levels
 	      for (int _gw_level = 0; _gw_level < gwtotal ; _gw_level++ ){
               
 		// loop over all functions in GW basis
 		for ( int _i_gw = 0; _i_gw < _gwsize ; _i_gw++ ){
                     
+
 		  // loop over all bands
 		  for ( int _i = 0; _i < _bandsum ; _i++ ){
                     
@@ -607,16 +607,19 @@ namespace votca {
 		      _stab = 0.5 * ( 1.0 - cos(2.0 * pi * std::abs(_denom) ) );
 		    }
                     
-		    double _factor = _ppm_weight( _i_gw ) * _ppm_freq( _i_gw) * _stab/_denom; // contains conversion factor 2!
+		    double _factor = _ppm_weight( _i_gw ) * _ppm_freq( _i_gw) *   _Mmn.matrix()( _gw_level )(_i_gw, _i) *_stab/_denom; // contains conversion factor 2!
+		    
+		    // loop over row GW levels
+		    for ( int _m = 0 ; _m < gwtotal ; _m++) {
+
 		    
 		    // sigma_c all elements
-		    _sigma_c( _m , _gw_level ) += _factor * _Mmn.matrix()( _m )(_i_gw, _i) *  _Mmn.matrix()( _gw_level )(_i_gw, _i);  //_submat(_i_gw,_i);
+		    _sigma_c( _m , _gw_level ) += _factor * _Mmn.matrix()( _m )(_i_gw, _i) ;  //_submat(_i_gw,_i);
 	                      
 		  }// bands
 		}// GW functions
 	      }// GW col 
-	      // update _qp_energies
-	      _qp_energies( _m ) = _edft( _m ) + _sigma_x(_m,_m) + _sigma_c(_m,_m) - _vxc(_m,_m);
+	      _qp_energies( _gw_level ) = _edft( _gw_level ) + _sigma_x(_gw_level,_gw_level) + _sigma_c(_gw_level,_gw_level) - _vxc(_gw_level,_gw_level);
 	    } // GW row
     
         } // sigma_c_setup
