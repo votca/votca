@@ -38,6 +38,17 @@ class globals
         static std::string url;
         /// email address of the developers
         static std::string email;
+        
+        /// man pages format strings
+        static std::string option_fmt;
+        static std::string header_fmt;
+        static std::string name_fmt;
+        static std::string authors_fmt;
+        static std::string copyright_fmt;
+        static std::string synopsis_fmt;
+        static std::string description_fmt;
+        static std::string options_fmt;        
+        
 };
 
 }}

@@ -21,6 +21,7 @@
 #include <boost/algorithm/string/replace.hpp>
 
 #include <votca/tools/version.h>
+#include <votca/tools/globals.h>
 #include <votca/tools/property.h>
 #include <votca/tools/propertyiomanipulator.h>
 #include <list>
@@ -67,53 +68,26 @@ int main(int argc, char** argv)
 
     // does the user want man pages?
     if (vm.count("man")) {
-        string option_format(".TP\n\\fB%1%\\fR\n%2%\n");
-        string header_format(".TH \"%1%\" 1 \"\" \"Version: %2%\"\n\n");
-        string name_format(".SH NAME\n\n.P\n%1% \\- Part of the VOTCA package\n"
-                           "\n.P\nPlease visit the program site at __%2%__\n\n"
-        );
-        string footer_format ("\n.SH AUTHORS\n"
-                              "\n.P\nWritten and maintained by the VOTCA Development Team <%1%>\n"
-                              "\n.SH COPYRIGHT\n\n.P\n\n"
-                              "Copyright 2009\\-2011 The VOTCA Development Team (%2%).\n"
-                              "\n.P\nLicensed under the Apache License, Version 2.0 (the \"License\") "
-                              "you may not use this file except in compliance with the License. "
-                              "You may obtain a copy of the License at"
-                              "\n.P\nhttp://www.apache.org/licenses/LICENSE\\-2.0\n"
-                              "\n.P\nUnless required by applicable law or agreed to in writing, software "
-                              "distributed under the License is distributed on an \"AS IS\" BASIS, "
-                              "WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. "
-                              "See the License for the specific language governing permissions and "
-                              "limitations under the License.");
+
         
-        
-        string synopsis_format ("\n.SH SYNOPSIS\n\n.P\n\\fB%1%\\fR [\\fIOPTION\\fR] [\\fIARGUMENTS\\fR]\n");
-        string helptext_format ("\n.SH DESCRIPTION\n\n.P\n%1%\n\n.SH OPTIONS\n\n");
-        string url = "http://www.votca.org"; 
-        string email = "devs@votca.org";
-        
-        std::cout << boost::format(header_format) %  program_name % ToolsVersionStr();        
-        std::cout << boost::format(name_format) % program_name % url;
-        std::cout << boost::format(synopsis_format) % program_name;       
-        std::cout << boost::format(helptext_format) % help_text;
+        std::cout << boost::format(globals::header_fmt) %  program_name % ToolsVersionStr();        
+        std::cout << boost::format(globals::name_fmt) % program_name % globals::url;
+        std::cout << boost::format(globals::synopsis_fmt) % program_name;       
+        std::cout << boost::format(globals::description_fmt) % help_text;
+        std::cout << boost::format(globals::options_fmt);
 
         typedef std::vector<boost::shared_ptr<boost::program_options::option_description> >::const_iterator OptionsIterator;
         OptionsIterator it = desc.options().begin(), it_end = desc.options().end();
+        
         while(it < it_end) {
-            
             string format_name = (*it)->format_name() + " " + (*it)->format_parameter();
             boost::replace_all(format_name, "-", "\\-");
-            std::cout << boost::format(option_format) % format_name % (*it)->description();
-            ++it;
-            
-            //std::cout << " longname: " << (*it)->long_name() << endl;
-            //std::cout << " description: " << (*it)->description() << endl;
-            //std::cout << " format: " << (*it)->format_parameter() << endl;
-            //std::cout << " formatname: " << (*it)->format_name() << endl << endl;
-            
+            std::cout << boost::format(globals::option_fmt) % format_name % (*it)->description();
+            ++it;           
         }      
 
-        std::cout << boost::format(footer_format) % email % url;
+        std::cout << boost::format(globals::authors_fmt) % globals::email;
+        std::cout << boost::format(globals::copyright_fmt) % globals::url;
 
         return 0;
     }    // file specified

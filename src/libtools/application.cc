@@ -20,6 +20,9 @@
 #include <votca/tools/version.h>
 #include <votca/tools/globals.h>
 
+#include <boost/format.hpp>
+#include <boost/algorithm/string/replace.hpp>
+
 namespace votca { namespace tools {
 
 Application::Application()
@@ -51,15 +54,57 @@ void Application::ShowHelpText(std::ostream &out)
         << "\n\n";
 
     HelpText(out);
-    out << "\n\n" << OptionsDesc() << endl;
+    
+    // remove Hidden group from the option list and print
+    out << "\n\n" << VisibleOptions() << endl;
+    
+    //out << "\n\n" << OptionsDesc() << endl;
 }
+
+boost::program_options::options_description &Application::VisibleOptions() { 
+            // remove Hidden group from the option list
+            std::map<string, boost::program_options::options_description>::iterator iter;
+            for ( iter = _op_groups.begin(); iter!=_op_groups.end(); iter++ ) {
+                string group = iter->first;
+                if ( group == "Hidden" ) iter++; 
+               _visible_options.add(iter->second);
+            }
+            return _visible_options;
+     };
+
+     
+void Application::ShowManPage(std::ostream &out) {
+    
+        out << boost::format(globals::header_fmt) %  ProgramName() % VersionString();        
+        out << boost::format(globals::name_fmt) % ProgramName() % globals::url;
+        out << boost::format(globals::synopsis_fmt) % ProgramName();
+        std::stringstream ss;
+        HelpText(ss);
+        out << boost::format(globals::description_fmt) % ss.str();
+        out << boost::format(globals::options_fmt);
+
+        typedef std::vector<boost::shared_ptr<boost::program_options::option_description> >::const_iterator OptionsIterator;
+        OptionsIterator it = _op_desc.options().begin(), it_end = _op_desc.options().end();
+        
+        while(it < it_end) {
+            string format_name = (*it)->format_name() + " " + (*it)->format_parameter();
+            boost::replace_all(format_name, "-", "\\-");
+            std::cout << boost::format(globals::option_fmt) % format_name % (*it)->description();
+            ++it;           
+        }      
+
+        std::cout << boost::format(globals::authors_fmt) % globals::email;
+        std::cout << boost::format(globals::copyright_fmt) % globals::url;
+    
+}
+
 
 int Application::Exec(int argc, char **argv)
 {
     try {
         //_continue_execution = true;
 	AddProgramOptions()("help,h", "  display this help and exit");
-	AddProgramOptions()("man", "  output manual pages");
+	AddProgramOptions("Hidden")("man", "  output manual pages");
 	AddProgramOptions()("verbose,v", "  be loud and noisy");
 	
 	Initialize(); // initialize program-specific parameters
@@ -68,6 +113,11 @@ int Application::Exec(int argc, char **argv)
 
         if (_op_vm.count("verbose")) {
 	  globals::verbose = true;
+        }
+        
+        if (_op_vm.count("man")) {
+            ShowManPage(cout);
+            return 0;
         }
 
         if (_op_vm.count("help")) {
