@@ -116,7 +116,9 @@ namespace votca {
 
             HelpTextHeader(name);
             HelpText(out);
-            out << "\n\n" << OptionsDesc() << endl;
+
+            out << "\n\n" << VisibleOptions() << endl;
+            //out << "\n\n" << OptionsDesc() << endl;
         }
 
         void CsgApplication::Worker::Run(void) {
