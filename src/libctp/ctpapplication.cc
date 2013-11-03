@@ -55,6 +55,7 @@ void CtpApplication::ShowHelpText(std::ostream &out) {
     votca::ctp::HelpTextHeader(name);
     HelpText(out);
     out << "\n\n" << VisibleOptions() << endl;
+    //out << "\n\n" << OptionsDesc() << endl;
 }
 
 
