@@ -16,6 +16,7 @@ share/doc/Doxyfile
 share/doc/html/*
 share/man/*.man
 src/tools/votca_property
+src/tools/*.man
 netbeans/*/build
 */nbproject/private
 CMakeFiles/*
