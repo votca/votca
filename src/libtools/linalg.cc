@@ -385,7 +385,7 @@ bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matri
 	gsl_eigen_symmv_workspace *w = gsl_eigen_symmv_alloc(N);
 
 	int status = gsl_eigen_symmv(&A_view.matrix, &E_view.vector, &V_view.matrix, w);
-	gsl_eigen_symmv_sort(&E_view.vector, &V_view.matrix, GSL_EIGEN_SORT_ABS_ASC);
+	gsl_eigen_symmv_sort(&E_view.vector, &V_view.matrix, GSL_EIGEN_SORT_VAL_ASC);
 	gsl_eigen_symmv_free(w);
 	gsl_set_error_handler(handler);
         
