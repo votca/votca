@@ -3,12 +3,12 @@
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="calculators" displayName="calculators" projectFiles="true">
       <itemPath>/data/isilon/kordt/votca/src/kmc/src/libkmc/calculators/diffusion.h</itemPath>
+      <itemPath>../../src/kmc/src/libkmc/calculators/diffusion.h</itemPath>
       <itemPath>../../src/libkmc/calculators/diode.h</itemPath>
       <itemPath>../../src/libkmc/calculators/kmclight.h</itemPath>
       <itemPath>/data/isilon/kordt/votca/src/kmc/src/libkmc/calculators/kmcmultiple.h</itemPath>
-      <itemPath>../../src/libkmc/calculators/kmcsingle.h</itemPath>
-      <itemPath>../../src/kmc/src/libkmc/calculators/diffusion.h</itemPath>
       <itemPath>../../src/kmc/src/libkmc/calculators/kmcmultiple.h</itemPath>
+      <itemPath>../../src/libkmc/calculators/kmcsingle.h</itemPath>
       <itemPath>../../src/kmc/src/libkmc/calculators/kmcsingle.h</itemPath>
       <itemPath>../../src/kmc/src/libkmc/calculators/node.h</itemPath>
     </logicalFolder>
@@ -55,8 +55,6 @@
       <toolsSet>
         <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GNU|GNU</compilerSet>
-        <dependencyChecking>true</dependencyChecking>
-        <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <compileType>
         <ccTool>
@@ -70,66 +68,11 @@
         <archiverTool>
         </archiverTool>
       </compileType>
-      <item path="../../include/votca/kmc/carrier.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/kmc/event.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/kmc/graph.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/kmc/kmcapplication.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/kmc/kmccalculator.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/kmc/kmccalculatorfactory.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/kmc/node.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/kmc/state.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/kmc/vssmgroup.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libkmc/calculators/diode.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libkmc/calculators/kmclight.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libkmc/calculators/kmcsingle.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libkmc/kmcapplication.cc" ex="false" tool="0" flavor2="0">
+      <item path="../../src/libkmc/kmcapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libkmc/kmccalculatorfactory.cc"
             ex="false"
-            tool="0"
-            flavor2="0">
-      </item>
-      <item path="/data/isilon/kordt/votca/src/kmc/src/libkmc/calculators/diffusion.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="/data/isilon/kordt/votca/src/kmc/src/libkmc/calculators/kmcmultiple.h"
-            ex="false"
-            tool="3"
+            tool="1"
             flavor2="0">
       </item>
     </conf>
@@ -137,8 +80,6 @@
       <toolsSet>
         <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GNU|GNU</compilerSet>
-        <dependencyChecking>true</dependencyChecking>
-        <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <compileType>
         <cTool>
@@ -161,66 +102,11 @@
         <archiverTool>
         </archiverTool>
       </compileType>
-      <item path="../../include/votca/kmc/carrier.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/kmc/event.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/kmc/graph.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/kmc/kmcapplication.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/kmc/kmccalculator.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/kmc/kmccalculatorfactory.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/kmc/node.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/kmc/state.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/kmc/vssmgroup.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libkmc/calculators/diode.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libkmc/calculators/kmclight.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libkmc/calculators/kmcsingle.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libkmc/kmcapplication.cc" ex="false" tool="0" flavor2="0">
+      <item path="../../src/libkmc/kmcapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libkmc/kmccalculatorfactory.cc"
             ex="false"
-            tool="0"
-            flavor2="0">
-      </item>
-      <item path="/data/isilon/kordt/votca/src/kmc/src/libkmc/calculators/diffusion.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="/data/isilon/kordt/votca/src/kmc/src/libkmc/calculators/kmcmultiple.h"
-            ex="false"
-            tool="3"
+            tool="1"
             flavor2="0">
       </item>
     </conf>

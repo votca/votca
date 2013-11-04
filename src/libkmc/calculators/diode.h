@@ -75,8 +75,8 @@ void Diode::Initialize(Property *options) {
     vssmgroup = new Vssmgroup();
 }
 
-bool Diode::EvaluateFrame()
-{
+bool Diode::EvaluateFrame() {
+    
     // register all QM packages (Gaussian, turbomole, etc))
     // EventFactory::RegisterAll(); 
         

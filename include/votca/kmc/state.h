@@ -26,6 +26,7 @@
 #include <votca/kmc/carrier.h>
 #include <votca/kmc/graph.h>
 #include <votca/kmc/globaleventinfo.h>
+#include <votca/kmc/bsumtree.h>
 
 typedef votca::tools::vec myvec;
 
@@ -33,6 +34,7 @@ namespace votca { namespace kmc {
   
 using namespace std;
 
+enum Inject_Type {Equal, Fermi};
 
 class State {
 public:
@@ -62,11 +64,35 @@ public:
     void Init_coulomb_mesh(Graph* graph, Globaleventinfo* globevent);
     void Add_to_coulomb_mesh(Graph* graph, Carrier* carrier, Globaleventinfo* globevent);
     void Remove_from_coulomb_mesh(Graph* graph, Carrier* carrier, Globaleventinfo* globevent);
+    
+    // Injection and removal of charges (for example in a double carrier bulk setting) (still to be done)
+    Bsumtree* electron_inject;
+    Bsumtree* hole_inject;
+    void Initialize_inject_trees(Graph* graph, Inject_Type injecttype, Globaleventinfo* globevent);
+    void Add_charge_in_box(Node* node, CarrierType carrier_type);
+    void Remove_charge_from_box(Node* node, CarrierType carrier_type);
+    
   
 private:
     bool El_in_sim_box(int electron_nr) {return electrons[electron_nr]->is_in_sim_box;}
     bool Ho_in_sim_box(int hole_nr) {return holes[hole_nr]->is_in_sim_box;}
 };
+
+void State::Initialize_inject_trees(Graph* graph, Inject_Type injecttype, Globaleventinfo* globevent) {
+    electron_inject->initialize(graph->nodes.size());
+    hole_inject->initialize(graph->nodes.size());
+    
+    for (int inode = 0; inode < graph->nodes.size(); inode++) {
+        if (injecttype == Equal) {
+            electron_inject->setrate(inode, 1.0);
+            hole_inject->setrate(inode, 1.0);
+        }
+        else if(injecttype == Fermi) {
+            electron_inject->setrate(inode, exp(-1.0*globevent->beta*graph->nodes[inode]->static_electron_node_energy));
+            hole_inject->setrate(inode, exp(-1.0*globevent->beta*graph->nodes[inode]->static_hole_node_energy));
+        }
+    }
+}
 
 void State::Init(){
     electrons.clear();
