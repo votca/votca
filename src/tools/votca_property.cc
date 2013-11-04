@@ -17,105 +17,108 @@
 
 #include <iostream>
 #include <boost/program_options.hpp>
+#include <boost/format.hpp>
+#include <boost/algorithm/string/replace.hpp>
+
+#include <votca/tools/version.h>
+#include <votca/tools/globals.h>
 #include <votca/tools/property.h>
+#include <votca/tools/application.h>
 #include <votca/tools/propertyiomanipulator.h>
 #include <list>
 
 using namespace std;
 using namespace votca::tools;
+namespace po = boost::program_options;
+    
+class VotcaProperty : public Application {
+    
+public:
+    VotcaProperty();
+   ~VotcaProperty();
+            
+    string ProgramName()  { return "votca_property"; }
+    
+    void   HelpText(ostream &out) {out << "Helper for parsing XML files"; }
 
-void help_text()
-{
-    cout << "Helper program to parse xml file.\n\n";
-}
+    void Initialize() {
 
-int main(int argc, char** argv)
-{      
+        format = "XML";
+        level = 1;
+        
+        AddProgramOptions() 
+        ("file", po::value<string>(), "xml file to parse")
+        ("format", po::value<string>(), "output format [XML TXT TEX]")
+        ("level", po::value<int>(), "output from this level ");   
+        
+     };
+    
+    bool EvaluateOptions() {
+        CheckRequired("file", "Missing XML file");
+        return true;
+    };
+    
+    
+    void Run(){
+
+        file = _op_vm["file"].as<string> ();
+        
+        if (_op_vm.count("format")) format = _op_vm["format"].as<string> ();
+        if (_op_vm.count("level")) level = _op_vm["level"].as<int> ();
+        
+        try {
+
+        Property p;
+
+        map<string, PropertyIOManipulator* > _mformat;
+        map<string, PropertyIOManipulator* >::iterator it;
+
+        _mformat["XML"] = &XML;
+        _mformat["TXT"] = &TXT;
+        _mformat["TEX"] = &TEX;
+        _mformat["HLP"] = &HLP;
+
+
+        load_property_from_xml(p, file);
+
+        it = _mformat.find( format );
+        if ( it != _mformat.end() ) {
+            PropertyIOManipulator *piom = _mformat.find( format )->second;
+            piom->setLevel(level);
+            piom->setIndentation("");
+            piom->setColorScheme<csRGB>();
+            cout << *piom  << p ;
+        } else {
+            cout << "format " << format << " not supported \n";
+        }
+
+        //PropertyIOManipulator XML(PropertyIOManipulator::XML,0,"---"); 
+        //cout << XML << p;
+        //cout << TXT << p;
+        //cout << T2T << p;
+        //cout << LOG << p;
+        //cout << TEX << p;
+
+        } catch(std::exception &error) {
+            cerr << "an error occurred:\n" << error.what() << endl;
+        }
+    };
+    
+private:
     string file;
     string format;
     int level;
-
-    // read in the program options
-    namespace po = boost::program_options;
-
-    // Declare the supported options.
-    po::options_description desc("Program options");    
-    desc.add_options()
-        ("help", "produce this help message")
-        ("file", po::value<string>(&file), "xml file to parse")
-        ("format", po::value<string>(&format), "output format [XML TXT TEX]")
-        ("level", po::value<int>(&level), "output from this level ");
-
-    // now read in the command line
-    po::variables_map vm;
-    try {
-        po::store(po::parse_command_line(argc, argv, desc), vm);    
-        po::notify(vm);
-    }
-    catch(po::error err) {
-        cout << "error parsing command line: " << err.what() << endl;
-        return -1;
-    }
-    // does the user want help?
-    if (vm.count("help")) {
-        help_text();
-        cout << desc << endl;
-        return 0;
-    }
-    // file specified
-    if (!vm.count("file")) {
-        cout << "please specify file\n";                
-        cout << desc << endl;
-        return -1;
-    }
-    // format specified
-    if (!vm.count("format")) {
-        cout << "format not specified, using XML\n";  
-        format = "XML";
-    } 
-    // format specified
-    if (!vm.count("level")) {
-        level = 1;
-    } 
-    
-    try {
-
-    Property p;
-    
-    map<string, PropertyIOManipulator* > _mformat;
-    map<string, PropertyIOManipulator* >::iterator it;
-
-    _mformat["XML"] = &XML;
-    _mformat["TXT"] = &TXT;
-    _mformat["TEX"] = &TEX;
-    _mformat["HLP"] = &HLP;
-    
-    load_property_from_xml(p, file);
-    
-    it = _mformat.find( format );
-    if ( it != _mformat.end() ) {
-        PropertyIOManipulator *piom = _mformat.find( format )->second;
-        piom->setLevel(level);
-        piom->setIndentation("");
-        piom->setColorScheme<csRGB>();
-        cout << *piom  << p ;
-    } else {
-        cout << "format " << format << " not supported \n";
-        cout << desc << endl;
-        return -1;
-    }
-
-    //PropertyIOManipulator XML(PropertyIOManipulator::XML,0,"---"); 
-    //cout << XML << p;
-    //cout << TXT << p;
-    //cout << T2T << p;
-    //cout << LOG << p;
-    //cout << TEX << p;
             
-    } catch(std::exception &error) {
-        cerr << "an error occurred:\n" << error.what() << endl;
-        return -1;
-    }
-    return 0;
+
+};
+
+VotcaProperty::VotcaProperty(void) {}
+
+VotcaProperty::~VotcaProperty(void) {}
+
+int main(int argc, char** argv)
+{        
+    VotcaProperty vp;
+    return vp.Exec(argc, argv);
 }
 

@@ -19,6 +19,8 @@
 #ifndef __VOTCA_TOOLS_GLOBALS_H
 #define	__VOTCA_TOOLS_GLOBALS_H
 
+#include <string>
+
 namespace votca { namespace tools {
 
 /**
@@ -27,11 +29,35 @@ namespace votca { namespace tools {
     This class is used to access global variables 
 */
 
-class globals
+struct globals
 {
-    public:  
-	/// be loud and noisy
-        static bool verbose;        
+ 	/// be loud and noisy
+        static bool verbose;      
+        /// web of the package
+        static std::string url;
+        /// email address of the developers
+        static std::string email;
+        
+        /// man pages format strings
+        struct man {
+                static std::string option;
+                static std::string header;
+                static std::string name;
+                static std::string authors;
+                static std::string copyright;
+                static std::string synopsis;
+                static std::string description;
+                static std::string options;        
+        };
+
+        /// TEX pages format strings
+        struct tex {
+                static std::string section;
+                static std::string label;
+                static std::string description;
+                static std::string options;
+                static std::string option;        
+        };
 };
 
 }}

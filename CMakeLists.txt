@@ -51,14 +51,9 @@ find_package(Mercurial)
 find_package(Threads REQUIRED)
 set(THREAD_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
 
-option(BUILD_MANPAGES "Build manpages" ON)
-if (BUILD_MANPAGES)
-  find_package(TXT2TAGS)
-else (BUILD_MANPAGES)
-  #we use TXT2TAGS_FOUND conditionals in other CMakeLists.txt
-  #so that TXT2TAGS is never required
-  set(TXT2TAGS_FOUND)
-endif (BUILD_MANPAGES)
+option(BUILD_MANPAGES "Build manpages (might lead to problem on system without rpath" ON)
+#define this target here, so that individual man pages can append to it.
+add_custom_target(manpages ALL)
 
 option(WITH_MKL "Checking if MKL is installed in order to improve UBLAS performance" OFF)
 if (WITH_MKL)

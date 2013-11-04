@@ -113,11 +113,17 @@ public:
      */
     boost::program_options::variables_map &OptionsMap() { return _op_vm; }
     boost::program_options::options_description &OptionsDesc() { return _op_desc; }
+    
+    /**
+     * \brief filters out the Hidden group from the options descriptions
+     * \return Option descriptions without the "Hidden" group
+     */
+    boost::program_options::options_description &VisibleOptions(){ return _visible_options; }
 
     /**
      * \brief call StopExecution after EvaluateOptions
      *
-     * This is usefule if the program executes an operation in EvaluateOptions
+     * This is useful if the program executes an operation in EvaluateOptions
      * and then wants to stop execution successfully. Call StopExecution and
      * return true in EvaluateOptions.
      */
@@ -129,16 +135,24 @@ protected:
 
     /// program options required by all applications
     boost::program_options::options_description _op_desc;
-
+                       
     std::map<string, boost::program_options::options_description> _op_groups;
     
     virtual void ShowHelpText(std::ostream &out);
 
+    void ShowManPage(std::ostream &out);
+
+    void ShowTEXPage(std::ostream &out);
+     
     bool _continue_execution;
     
 private:
     /// get input parameters from file, location may be specified in command line
     void ParseCommandLine(int argc, char **argv);
+    
+    /// program options without the Hidden group
+    boost::program_options::options_description _visible_options;
+    
 };
 
 }}

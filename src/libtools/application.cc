@@ -20,9 +20,10 @@
 #include <votca/tools/version.h>
 #include <votca/tools/globals.h>
 
-namespace votca { namespace tools {
+#include <boost/format.hpp>
+#include <boost/algorithm/string/replace.hpp>
 
-bool globals::verbose = false;
+namespace votca { namespace tools {
 
 Application::Application()
     : _op_desc("Allowed options"), _continue_execution(true)
@@ -53,7 +54,56 @@ void Application::ShowHelpText(std::ostream &out)
         << "\n\n";
 
     HelpText(out);
-    out << "\n\n" << OptionsDesc() << endl;
+    
+    // remove Hidden group from the option list and print
+    out << "\n\n" << VisibleOptions() << endl;
+    
+    //out << "\n\n" << OptionsDesc() << endl;
+}
+     
+void Application::ShowManPage(std::ostream &out) {
+    
+        out << boost::format(globals::man::header) %  ProgramName() % VersionString();        
+        out << boost::format(globals::man::name) % ProgramName() % globals::url;
+        out << boost::format(globals::man::synopsis) % ProgramName();
+        std::stringstream ss;
+        HelpText(ss);
+        out << boost::format(globals::man::description) % ss.str();
+        out << boost::format(globals::man::options);
+
+        typedef std::vector<boost::shared_ptr<boost::program_options::option_description> >::const_iterator OptionsIterator;
+        OptionsIterator it = _op_desc.options().begin(), it_end = _op_desc.options().end();
+        
+        while(it < it_end) {
+            string format_name = (*it)->format_name() + " " + (*it)->format_parameter();
+            boost::replace_all(format_name, "-", "\\-");
+            out << boost::format(globals::man::option) % format_name % (*it)->description();
+            ++it;           
+        }      
+
+        out << boost::format(globals::man::authors) % globals::email;
+        out << boost::format(globals::man::copyright) % globals::url;
+    
+}
+
+void Application::ShowTEXPage(std::ostream &out) {
+    string program_name = ProgramName();
+    boost::replace_all(program_name, "_", "\\_");
+        out << boost::format(globals::tex::section) %  program_name;        
+        out << boost::format(globals::tex::label) % ProgramName();
+        std::stringstream ss, os;
+        HelpText(ss);
+        out << boost::format(globals::tex::description) % ss.str();
+
+       typedef std::vector<boost::shared_ptr<boost::program_options::option_description> >::const_iterator OptionsIterator;
+       OptionsIterator it = _op_desc.options().begin(), it_end = _op_desc.options().end();
+       while(it < it_end) {
+            string format_name = (*it)->format_name() + " " + (*it)->format_parameter();
+            boost::replace_all(format_name, "-", "{-}");
+            os << boost::format(globals::tex::option) % format_name % (*it)->description();
+            ++it;           
+        }      
+        out << boost::format(globals::tex::options) % os.str();
 }
 
 int Application::Exec(int argc, char **argv)
@@ -62,6 +112,8 @@ int Application::Exec(int argc, char **argv)
         //_continue_execution = true;
 	AddProgramOptions()("help,h", "  display this help and exit");
 	AddProgramOptions()("verbose,v", "  be loud and noisy");
+	AddProgramOptions("Hidden")("man", "  output man-formatted manual pages");
+	AddProgramOptions("Hidden")("tex", "  output tex-formatted manual pages");
 	
 	Initialize(); // initialize program-specific parameters
 
@@ -70,7 +122,17 @@ int Application::Exec(int argc, char **argv)
         if (_op_vm.count("verbose")) {
 	  globals::verbose = true;
         }
-
+        
+        if (_op_vm.count("man")) {
+            ShowManPage(cout);
+            return 0;
+        }
+        
+        if (_op_vm.count("tex")) {
+            ShowTEXPage(cout);
+            return 0;
+        }
+        
         if (_op_vm.count("help")) {
             ShowHelpText(cout);
             return 0;
@@ -117,10 +179,15 @@ void Application::ParseCommandLine(int argc, char **argv)
     namespace po = boost::program_options;
 
     std::map<string, boost::program_options::options_description>::iterator iter;
-
-    // add all cathegories to list of available options
-    for(iter=_op_groups.begin(); iter!=_op_groups.end(); ++iter)
+    
+    // default options should be added to visible (the rest is handled via a map))
+    _visible_options.add(_op_desc);
+    
+    // add all categories to list of available options
+    for(iter=_op_groups.begin(); iter!=_op_groups.end(); ++iter) {       
         _op_desc.add(iter->second);
+        if ( iter->first != "Hidden" ) _visible_options.add(iter->second);
+    }
     
     // parse the command line
     try {
