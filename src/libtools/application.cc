@@ -64,7 +64,24 @@ void Application::ShowHelpText(std::ostream &out)
 boost::program_options::options_description &Application::VisibleOptions() { 
             // remove Hidden group from the option list
             std::map<string, boost::program_options::options_description>::iterator iter;
-            string group("");
+            
+            //boost::program_options::options_description &defaults = _op_desc.find("Allowed options",true,true,true);
+            
+            /*
+            typedef std::vector<boost::shared_ptr<boost::program_options::option_description> >::const_iterator OptionsIterator;
+            OptionsIterator it = _op_desc.options().begin(), it_end = _op_desc.options().end();
+
+            while(it < it_end)  {
+                cout << "FORMAT PARAMETER " << (*it)->format_parameter() << endl;
+                cout << "LONG NAME " << (*it)->long_name() << endl;
+                cout << "DESCRIPTION " << (*it)->description()<< endl;
+                cout << "SEMANTIC " << (*it)->semantic()->name()<< endl;
+                it++;
+            }         
+            */
+            //cout << _op_desc;
+            
+             string group("");
             for ( iter = _op_groups.begin(); iter!=_op_groups.end(); iter++ ) {
                 group = iter->first;
                 if ( group != "Hidden" ) _visible_options.add(iter->second);
@@ -191,8 +208,11 @@ void Application::ParseCommandLine(int argc, char **argv)
     namespace po = boost::program_options;
 
     std::map<string, boost::program_options::options_description>::iterator iter;
-
-    // add all cathegories to list of available options
+    
+    // default options should be added to visible (the rest is handled via a map))
+    _visible_options.add(_op_desc);
+    
+    // add all categories to list of available options
     for(iter=_op_groups.begin(); iter!=_op_groups.end(); ++iter)
         _op_desc.add(iter->second);
     
