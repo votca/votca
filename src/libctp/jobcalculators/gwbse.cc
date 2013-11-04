@@ -494,14 +494,88 @@ for ( int _m = 0 ; _m < 102 ; _m++ ){
             sigma_c_setup( _Mmn, _dft_energies   );
             LOG(logDEBUG, *pLog) << TimeStamp() << " Calculated correlation part of Sigma  " << flush;
 
+            /* One could also save the qp_energies directly to the orbitals object...
+                       // now copy energies in map into orbitals object matrix
+            (_orbitals->_QPpert_energies).resize( _levels, 5 );
+            for (size_t itl=0; itl < _levels; itl++){
+               for (size_t ite=0; ite<5; ite++) {
+                   _orbitals->_QPpert_energies(itl,ite) = _energies[itl+1][ite];
+               }
+            } 
+             */
+            
+            
+            
             // Output of quasiparticle energies after all is done:
             pLog->setPreface(logINFO, "\n");
             
-            LOG(logINFO,*pLog) << (format("  ====== Quasiparticle energies (Rydberg) ====== ")).str() << flush;
+            LOG(logINFO,*pLog) << (format("  ====== Perturbative quasiparticle energies (Rydberg) ====== ")).str() << flush;
                         
             for ( int _i = 0 ; _i < gwtotal ; _i++ ){
-               LOG(logINFO,*pLog) << (format("  Level = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = %4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") % (_i+gwmin+1) % _dft_energies( _i + gwmin ) % _vxc(_i,_i) % _sigma_x(_i,_i) % _sigma_c(_i,_i) % _qp_energies(_i) ).str() << flush;
+                if ( (_i + gwmin) == homo ){
+                    LOG(logINFO,*pLog) << (format("  HOMO  = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = %4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") % (_i+gwmin+1) % _dft_energies( _i + gwmin ) % _vxc(_i,_i) % _sigma_x(_i,_i) % _sigma_c(_i,_i) % _qp_energies(_i) ).str() << flush;
+                } else if ( (_i + gwmin) == homo+1 ){
+                    LOG(logINFO,*pLog) << (format("  LUMO  = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = %4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") % (_i+gwmin+1) % _dft_energies( _i + gwmin ) % _vxc(_i,_i) % _sigma_x(_i,_i) % _sigma_c(_i,_i) % _qp_energies(_i) ).str() << flush;                    
+                    
+                }else {
+                LOG(logINFO,*pLog) << (format("  Level = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = %4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") % (_i+gwmin+1) % _dft_energies( _i + gwmin ) % _vxc(_i,_i) % _sigma_x(_i,_i) % _sigma_c(_i,_i) % _qp_energies(_i) ).str() << flush;
+                }
             }
+
+            // constructing full quasiparticle Hamiltonian and diagonalize, if requested
+            FullQPHamiltonian();
+            LOG(logDEBUG, *pLog) << TimeStamp() << " Full quasiparticle Hamiltonian  " << flush;
+            LOG(logINFO, *pLog) << (format("  ====== Diagonalized quasiparticle energies (Rydberg) ====== ")).str() << flush;
+            for (int _i = 0; _i < gwtotal; _i++) {
+                if ((_i + gwmin) == homo) {
+                    LOG(logINFO, *pLog) << (format("  HOMO  = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") % (_i + gwmin + 1) % _qp_energies(_i) % _qp_diag_energies(_i)).str() << flush;
+                } else if ((_i + gwmin) == homo + 1) {
+                    LOG(logINFO, *pLog) << (format("  LUMO  = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") % (_i + gwmin + 1) % _qp_energies(_i) % _qp_diag_energies(_i)).str() << flush;
+
+                } else {
+                    LOG(logINFO, *pLog) << (format("  Level = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") % (_i + gwmin + 1) % _qp_energies(_i) % _qp_diag_energies(_i)).str() << flush;
+                }
+            }
+            
+            
+            // constructing electron-hole interaction for BSE
+            
+            // set BSE band range indices (-1)  => NEEDS TO GO TO OPTIONS
+            bse_vmin   = 0;
+            bse_vmax   = homo;
+            bse_vtotal = bse_vmax - bse_vmin +1 ;
+            bse_cmin   = homo+1;
+            bse_cmax   = gwmax;
+            bse_ctotal = bse_cmax - bse_cmin +1 ;
+            bse_size   = bse_vtotal * bse_ctotal;
+            
+            // calculate exchange part of eh interaction
+            BSE_x_setup(  _Mmn );
+            LOG(logINFO,*pLog) << TimeStamp() << " Exchange part of e-h interaction " << flush; 
+
+            // calculate direct part of eh interaction
+            BSE_d_setup ( _Mmn );
+            LOG(logINFO,*pLog) << TimeStamp() << " Direct part of e-h interaction " << flush; 
+            
+            BSE_solve_triplets();
+            LOG(logINFO,*pLog) << TimeStamp() << " Solved BSE for triplets " << flush; 
+            LOG(logINFO, *pLog) << (format("  ====== 10 lowest triplet energies (eV) ====== ")).str() << flush;
+            for (int _i = 0; _i < 10; _i++) {
+                
+                //cout << "\n" <<  _i << "  :   " << 13.605 * _bse_triplet_energies( _i ) << flush ;
+                LOG(logINFO, *pLog) << (format("  T = %1$4d Omega = %2$+1.4f ") % (_i + 1) % (13.605* _bse_triplet_energies( _i ))).str() << flush;
+            }
+
+            
+            BSE_solve_singlets();
+            LOG(logINFO,*pLog) << TimeStamp() << " Solved BSE for singlets " << flush; 
+            LOG(logINFO, *pLog) << (format("  ====== 10 lowest singlet energies (eV) ====== ")).str() << flush;
+            for (int _i = 0; _i < 10; _i++) {
+                       //   cout << "\n" <<  _i << "  :   " << 13.605 * _bse_singlet_energies( _i ) << flush ;
+                LOG(logINFO, *pLog) << (format("  S = %1$4d Omega = %2$+1.4f ") % (_i + 1) % (13.605 * _bse_singlet_energies( _i ))).str() << flush;
+            }
+            
+            
             
             
             LOG(logINFO,*pLog) << TimeStamp() << " Finished evaluating site " << seg->getId() << flush; 
@@ -522,7 +596,250 @@ for ( int _m = 0 ; _m < 102 ; _m++ ){
             return jres;
         }
 
+        
+             
+        void GWBSE::BSE_solve_triplets(){
+            
+            ub::matrix<double> _bse = -_eh_d;
+            
+            // add full QP Hamiltonian contributions to free transitions
+            for ( size_t _v1 = 0 ; _v1 < bse_vtotal ; _v1++){
+                for ( size_t _c1 = 0 ; _c1 < bse_ctotal ; _c1++){
+                    size_t _index_vc = bse_ctotal * _v1 + _c1;
 
+                    // diagonal
+                    _bse( _index_vc , _index_vc ) += _vxc(_c1 + bse_cmin ,_c1 + bse_cmin ) - _vxc(_v1,_v1);
+
+                    // v->c
+                    for ( size_t _c2 = 0 ; _c2 < bse_ctotal ; _c2++){
+                        size_t _index_vc2 = bse_ctotal * _v1 + _c2;
+                        if ( _c1 != _c2 ){
+                            _bse( _index_vc , _index_vc2 ) += _vxc(_c1+ bse_cmin ,_c2 + bse_cmin );
+                        }
+                    }
+                    
+                    // c-> v
+                    for ( size_t _v2 = 0 ; _v2 < bse_vtotal ; _v2++){
+                        size_t _index_vc2 = bse_ctotal * _v2 + _c1;
+                        if ( _v1 != _v2 ){
+                            _bse( _index_vc , _index_vc2 ) -= _vxc(_v1,_v2);
+                        }
+                    }
+                    
+                    
+                }
+            }
+            
+            
+            
+            _bse_triplet_energies.resize(_bse.size1());
+            _bse_triplet_coefficients.resize(_bse.size1(), _bse.size1());
+            linalg_eigenvalues(_bse, _bse_triplet_energies, _bse_triplet_coefficients);
+            
+            
+        }
+        
+        void GWBSE::BSE_solve_singlets(){
+            
+            ub::matrix<double> _bse = -_eh_d + 2.0 * _eh_x;
+                      // add full QP Hamiltonian contributions to free transitions
+            for ( size_t _v1 = 0 ; _v1 < bse_vtotal ; _v1++){
+                for ( size_t _c1 = 0 ; _c1 < bse_ctotal ; _c1++){
+                    size_t _index_vc = bse_ctotal * _v1 + _c1;
+
+                    // diagonal
+                    _bse( _index_vc , _index_vc ) += _vxc(_c1 + bse_cmin ,_c1 + bse_cmin) - _vxc(_v1,_v1);
+
+                    // v->c
+                    for ( size_t _c2 = 0 ; _c2 < bse_ctotal ; _c2++){
+                        size_t _index_vc2 = bse_ctotal * _v1 + _c2;
+                        if ( _c1 != _c2 ){
+                            _bse( _index_vc , _index_vc2 ) += _vxc(_c1 + bse_cmin ,_c2 + bse_cmin);
+                        }
+                    }
+                    
+                    // c-> v
+                    for ( size_t _v2 = 0 ; _v2 < bse_vtotal ; _v2++){
+                        size_t _index_vc2 = bse_ctotal * _v2 + _c1;
+                        if ( _v1 != _v2 ){
+                            _bse( _index_vc , _index_vc2 ) -= _vxc(_v1,_v2);
+                        }
+                    }
+                    
+                    
+                }
+            }
+            
+            
+            
+            
+            
+            
+            _bse_singlet_energies.resize(_bse.size1());
+            _bse_singlet_coefficients.resize(_bse.size1(), _bse.size1());
+            linalg_eigenvalues(_bse, _bse_singlet_energies, _bse_singlet_coefficients);
+            
+            
+        }
+        
+        
+        void GWBSE::BSE_d_setup (  TCMatrix& _Mmn){
+            // gwbasis size
+            size_t _gwsize = _Mmn.matrix()(0).size1();
+
+            // messy procedure, first get two matrices for occ and empty subbparts
+            // store occs directly transposed
+            ub::matrix<double> _storage_v = ub::zero_matrix<double>(  bse_vtotal * bse_vtotal , _gwsize );
+            for ( size_t _v1 = 0; _v1 < bse_vtotal; _v1++){
+                for ( size_t _v2 = 0; _v2 < bse_vtotal; _v2++){
+                    size_t _index_vv = bse_vtotal * _v1 + _v2;
+                    for ( size_t _i_gw = 0 ; _i_gw < _gwsize ; _i_gw++) {
+                        _storage_v( _index_vv , _i_gw ) = _Mmn.matrix()( _v1 )( _i_gw , _v2  );
+                    }
+                }
+            }
+            
+            
+            ub::matrix<double> _storage_c = ub::zero_matrix<double>( _gwsize, bse_ctotal * bse_ctotal );
+            for ( size_t _c1 = 0; _c1 < bse_ctotal; _c1++){
+                for ( size_t _c2 = 0; _c2 < bse_ctotal; _c2++){
+                    size_t _index_cc = bse_ctotal * _c1 + _c2;
+                    for ( size_t _i_gw = 0 ; _i_gw < _gwsize ; _i_gw++) {
+                        _storage_c( _i_gw , _index_cc ) = _Mmn.matrix()( _c1 + bse_cmin )( _i_gw , _c2 + bse_cmin );
+                    }
+                }
+            }
+            
+            // store elements in a vtotal^2 x ctotal^2 matrix
+            ub::matrix<double> _storage_prod = ub::prod( _storage_v , _storage_c );
+            
+            
+            
+            // now patch up _storage for screened interaction
+            for ( size_t _i_gw = 0 ; _i_gw < _gwsize ; _i_gw++ ){  
+                double _ppm_factor = sqrt( _ppm_weight( _i_gw ));
+                for ( size_t _v = 0 ; _v < (bse_vtotal* bse_vtotal) ; _v++){
+                    _storage_v( _v , _i_gw ) = _ppm_factor * _storage_v(_v , _i_gw );
+                }
+                for ( size_t _c = 0 ; _c < (bse_ctotal*bse_ctotal) ; _c++){
+                    _storage_c( _i_gw , _c ) = _ppm_factor * _storage_c( _i_gw , _c  );
+                }
+            }
+            
+            // multiply and subtract from _storage_prod
+            _storage_prod -= ub::prod( _storage_v , _storage_c );
+            
+            
+            // finally resort into _eh_d and multiply by to for Rydbergs
+            _eh_d = ub::zero_matrix<double>( bse_size , bse_size );
+            for ( size_t _v1 = 0 ; _v1 < bse_vtotal ; _v1++){
+                for ( size_t _v2 = 0 ; _v2 < bse_vtotal ; _v2++){
+                    size_t _index_vv = bse_vtotal * _v1 + _v2;
+                    
+                    for ( size_t _c1 = 0 ; _c1 < bse_ctotal ; _c1++){
+                        size_t _index_vc1 = bse_ctotal * _v1 + _c1 ;
+                              
+                        
+                        for ( size_t _c2 = 0 ; _c2 < bse_ctotal ; _c2++){
+                            size_t _index_vc2 = bse_ctotal * _v2 + _c2 ;
+                            size_t _index_cc  = bse_ctotal * _c1 + _c2;
+
+                            _eh_d( _index_vc1 , _index_vc2 ) = 2.0 * _storage_prod( _index_vv , _index_cc ); 
+
+                            
+                        }
+                    }
+                }
+            }
+            
+           /*  
+           // test output
+           for ( size_t _v1 = 0; _v1 < bse_vtotal ; _v1++ ){
+                // empty levels
+                for (size_t _c1 =0 ; _c1 < bse_ctotal ; _c1++ ){
+                     size_t _index_vc1 = bse_ctotal * _v1 + _c1;
+
+            for ( size_t _v2 = 0; _v2 < bse_vtotal ; _v2++ ){
+                // empty levels
+                for (size_t _c2 =0 ; _c2 < bse_ctotal ; _c2++ ){
+                     size_t _index_vc2 = bse_ctotal * _v2 + _c2 ;
+
+
+                     cout << " EH-d: " << _index_vc1 << " : " << _index_vc2 << " : " << _v1 << " : " << _c1+bse_cmin << " : " << _v2 << " : " << _c2+bse_cmin << " = " << _eh_d(_index_vc1, _index_vc2 ) << endl;
+                }
+
+            }
+                }
+            
+            } */
+            
+            
+            
+        }
+        
+        
+        
+        void GWBSE::BSE_x_setup(TCMatrix& _Mmn){
+            
+            /* unlike the fortran code, we store eh interaction directly in
+             * a suitable matrix form instead of a four-index array
+             */
+            
+            // allocate eh_x
+            _eh_x = ub::zero_matrix<double>( bse_size , bse_size );
+            
+            // gwbasis size
+            size_t _gwsize = _Mmn.matrix()(0).size1();
+            
+            // get a different storage for 3-center integrals we need
+            ub::matrix<double> _storage = ub::zero_matrix<double>( _gwsize , bse_size);
+            // occupied levels
+            for ( size_t _v = 0; _v < bse_vtotal ; _v++ ){
+                // empty levels
+                for (size_t _c =0 ; _c < bse_ctotal ; _c++ ){
+                    size_t _index_vc = bse_ctotal * _v + _c ;
+                    for (size_t _i_gw = 0 ; _i_gw < _gwsize ; _i_gw++ ){
+                        _storage( _i_gw, _index_vc ) = _Mmn.matrix()( _v )( _i_gw, _c + bse_cmin);
+                    }
+                }
+            }
+            
+            // with this storage, _eh_x is obtained by matrix multiplication
+            _eh_x = ub::prod( ub::trans( _storage ), _storage );
+            _eh_x = 2.0 * _eh_x; // Rydberg
+  
+            
+        }
+        
+        
+        
+
+        void GWBSE::FullQPHamiltonian(){
+            
+            // constructing full QP Hamiltonian, storage in vxc
+            _vxc = -_vxc + _sigma_x + _sigma_c;
+            // diagonal elements are given by _qp_energies
+            for (int _m = 0; _m < _vxc.size1(); _m++ ){
+              _vxc( _m,_m ) = _qp_energies( _m );
+            }
+                    
+            /* diagonalize, since _vxc will be needed in BSE, and GSL
+             * destroys the input array, we need to make a local copy first
+             */
+            
+            // get eigenvalues and eigenvectors of this matrix
+            ub::matrix<double> _temp = _vxc;
+            _qp_diag_energies.resize(_temp.size1());
+            _qp_diag_coefficients.resize(_temp.size1(), _temp.size1());
+            linalg_eigenvalues(_temp, _qp_diag_energies, _qp_diag_coefficients);
+
+            // TODO storage -> orbitals
+
+
+            
+        }
+        
+        
         void GWBSE::sigma_c_setup(TCMatrix& _Mmn, ub::vector<double>& _edft){
             
             // iterative refinement of qp energies

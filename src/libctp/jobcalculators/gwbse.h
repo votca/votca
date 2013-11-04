@@ -143,10 +143,31 @@ private:
     void sigma_x_setup( TCMatrix& _Mmn );
     void sigma_c_setup( TCMatrix& _Mmn , ub::vector<double>& _edft );
     
-    // QP variables
+    // QP variables and functions
     ub::vector<double> _qp_energies;
     ub::matrix<double> _vxc;
+    ub::vector<double> _qp_diag_energies;     // those should be directly stored in 
+    ub::matrix<double> _qp_diag_coefficients; // orbitals object, once the interface is set
+    void FullQPHamiltonian();
     
+    // BSE variables and functions
+    int bse_vmin ;
+    int bse_vmax ;
+    int bse_vtotal;
+    int bse_cmin ;
+    int bse_cmax ;
+    int bse_ctotal;
+    int bse_size;
+    ub::matrix<double> _eh_x;
+    ub::matrix<double> _eh_d;
+    ub::vector<double> _bse_singlet_energies;
+    ub::matrix<double> _bse_singlet_coefficients;
+    ub::vector<double> _bse_triplet_energies;
+    ub::matrix<double> _bse_triplet_coefficients;
+    void BSE_x_setup( TCMatrix& _Mmn );
+    void BSE_d_setup( TCMatrix& _Mmn );
+    void BSE_solve_triplets();
+    void BSE_solve_singlets();
     
 };
 
