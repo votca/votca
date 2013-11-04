@@ -39,7 +39,7 @@ public:
             
     string ProgramName()  { return "votca_property"; }
     
-    void   HelpText(ostream &out) {out << "Helper for parsing XML files" << endl;}
+    void   HelpText(ostream &out) {out << "Helper for parsing XML files"; }
 
     void Initialize() {
 
@@ -55,13 +55,16 @@ public:
     
     bool EvaluateOptions() {
         CheckRequired("file", "Missing XML file");
+        return true;
     };
     
     
     void Run(){
 
         file = _op_vm["file"].as<string> ();
-        cout << "RUNNING" << endl;
+        
+        if (_op_vm.count("format")) format = _op_vm["format"].as<string> ();
+        if (_op_vm.count("level")) level = _op_vm["level"].as<int> ();
         
         try {
 

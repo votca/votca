@@ -118,7 +118,7 @@ public:
      * \brief filters out the Hidden group from the options descriptions
      * \return Option descriptions without the "Hidden" group
      */
-    boost::program_options::options_description &VisibleOptions();
+    boost::program_options::options_description &VisibleOptions(){ return _visible_options; }
 
     /**
      * \brief call StopExecution after EvaluateOptions
