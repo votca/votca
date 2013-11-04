@@ -246,7 +246,7 @@ void APolarSite::Charge(int state) {
         Q22c = _Qs[idx][7];
         Q22s = _Qs[idx][8];
         
-        // Cartesian tensor
+        // Cartesian tensor * 1/3
         Qzz =      Q20;
         Qxx = -0.5*Q20 + 0.5*sqrt(3)*Q22c;
         Qyy = -0.5*Q20 - 0.5*sqrt(3)*Q22c;        

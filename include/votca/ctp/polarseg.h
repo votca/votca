@@ -3,6 +3,7 @@
 
 #include <votca/tools/vec.h>
 #include <votca/ctp/apolarsite.h>
+#include <votca/ctp/polarfrag.h>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/base_object.hpp>
 
@@ -15,15 +16,19 @@ class PolarSeg : public vector<APolarSite*>
 
 public:
 
-    PolarSeg() : _id(-1), _is_charged(true), _is_polarizable(true) {};
+    PolarSeg() : _id(-1), _is_charged(true), _is_polarizable(true) {}
     PolarSeg(int id, vector<APolarSite*> &psites);
-    PolarSeg(PolarSeg *templ);
+    explicit PolarSeg(PolarSeg *templ);
+    explicit PolarSeg(int id) : _id(id) {}
    ~PolarSeg();
 
     const int &getId() { return _id; }
     const vec &getPos() { return _pos; }
     void setId(int id) { _id = id; }    
     
+    // Polar fragments
+    PolarFrag *AddFragment() { _pfrags.push_back(new PolarFrag(this, (int)_pfrags.size())); return _pfrags.back(); }
+    vector<PolarFrag*> &PolarFrags() { return _pfrags; }
     // Local neighbor-list
     vector<PolarNb*> &PolarNbs() { return _nbs; }
     void ReservePolarNbs(int nbsize) { _nbs.reserve(nbsize); }
@@ -34,7 +39,8 @@ public:
     void Translate(const vec &shift);
     void CalcPos();    
     double CalcTotQ();
-    // Evaluates to "true" ONLY if ALL contained polar sites have charge 0
+    void Coarsegrain();
+    // Evaluates to "true" if ANY contained polar site has charge != 0
     void CalcIsCharged();
     bool IsCharged() { return _is_charged; }
     // Evaluates to "true" if ANY contained polar site has polarizability > 0
@@ -61,6 +67,7 @@ private:
     vec _pos;
     bool _is_charged;
     bool _is_polarizable;
+    vector<PolarFrag*> _pfrags;
     vector<PolarNb*> _nbs;
 
 

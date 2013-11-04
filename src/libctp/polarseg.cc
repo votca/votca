@@ -16,9 +16,15 @@ PolarSeg::PolarSeg(int id, vector<APolarSite*> &psites) : _id(id) {
 
 PolarSeg::PolarSeg(PolarSeg *templ) {
     // NOTE Polar neighbours _nbs are not copied !
-    for (int i = 0; i < templ->size(); ++i) {
-        APolarSite *newSite = new APolarSite((*templ)[i]);
-        push_back(newSite);
+    for (int i = 0; i < templ->_pfrags.size(); ++i) {
+        PolarFrag *ref_frag = templ->_pfrags[i];
+        PolarFrag *new_frag = this->AddFragment();
+        for (PolarFrag::iterator pit = ref_frag->begin();
+            pit != ref_frag->end(); ++pit) {
+            APolarSite *new_site = new APolarSite(*pit);
+            new_frag->push_back(new_site);
+            this->push_back(new_site);
+        }
     }
     this->_id = templ->_id;
     this->_pos = templ->_pos;
@@ -141,14 +147,37 @@ void PolarSeg::WriteMPS(string mpsfile, string tag) {
 }
 
 
-//template void PolarSeg::serialize<boost::archive::text_oarchive>
-//    (boost::archive::text_oarchive &, const unsigned int);
-//template void PolarSeg::serialize<boost::archive::text_iarchive>
-//    (boost::archive::text_iarchive &, const unsigned int);
-//
-//template void PolarSeg::serialize<boost::archive::binary_oarchive>
-//    (boost::archive::binary_oarchive &, const unsigned int);
-//template void PolarSeg::serialize<boost::archive::binary_iarchive>
-//    (boost::archive::binary_iarchive &, const unsigned int);
+void PolarSeg::Coarsegrain() {
+    // Reduce each polar fragment to a single polar site
+    vector<APolarSite*> cg_sites;
+    for (vector<PolarFrag*>::iterator fit = _pfrags.begin();
+        fit < _pfrags.end(); ++fit) {
+        // Position, state, rank, multipoles, polarizabilities
+        vec pos = (*fit)->CalcPos();
+        int state = 0; // neutral
+        int L = 2; // rank
+        vector<double> Q(L*L+2*L+1, 0.0);
+        votca::tools::matrix P = votca::tools::matrix();
+        // Generate new coarse-grained site from the above
+        APolarSite *cg_site = new APolarSite((*fit)->getId(), "CG");
+        cg_site->setPos(pos);
+        cg_site->setRank(L);
+        cg_site->setQs(Q, state);
+        cg_site->setPs(P, state);
+        cg_site->Charge(state);
+        cg_sites.push_back(cg_site);
+        // Clear fragment & reload
+        (*fit)->clear();
+        (*fit)->push_back(cg_site);
+    }
+    // Clean up & reload
+    assert(cg_sites.size() == _pfrags.size());
+    vector<APolarSite*> ::iterator pit;
+    for (pit = begin(); pit < end(); ++pit) delete *pit;
+    clear();
+    for (pit = cg_sites.begin(); pit < cg_sites.end(); ++pit) push_back(*pit);
+    return;
+}
+
 
 }}
