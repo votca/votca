@@ -116,7 +116,7 @@ bool MolPolTool::Evaluate() {
             }
             
             // Polarizability tensor "inter"
-            matrix p_inter = this->CalculateMolPol(pseg_inter, false);
+            matrix p_inter = this->CalculateMolPol(pseg_inter, true);
             // ... Eigen frame
             matrix::eigensystem_t eig_inter;
             p_inter.SolveEigensystem(eig_inter);
@@ -140,6 +140,9 @@ bool MolPolTool::Evaluate() {
                 pow(eig_target_x*eig_target_y*eig_target_z,1./3.);
             
             // Adjust scaling parameter
+            if (tools::globals::verbose) 
+                cout << endl << "Target volume " << pvol_target 
+                    << ", current volume " << pvol_inter << flush;
             scale *= pow(pvol_target/pvol_inter,2);
             
             // Convergence test

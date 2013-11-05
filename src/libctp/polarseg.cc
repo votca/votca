@@ -1,5 +1,6 @@
 #include <votca/ctp/polarseg.h>
 #include <boost/format.hpp>
+#include <votca/ctp/dmaspace.h>
 
 
 namespace votca { namespace ctp {
@@ -154,16 +155,62 @@ void PolarSeg::Coarsegrain() {
         fit < _pfrags.end(); ++fit) {
         // Position, state, rank, multipoles, polarizabilities
         vec pos = (*fit)->CalcPos();
-        int state = 0; // neutral
-        int L = 2; // rank
-        vector<double> Q(L*L+2*L+1, 0.0);
-        votca::tools::matrix P = votca::tools::matrix();
+        
+        // Collapse multipole moments
+        int state = 0;
+        int L = 2;
+        vector<double> QCG(L*L+2*L+1, 0.0);
+        
+        for (PolarFrag::iterator pit = (*fit)->begin();
+            pit < (*fit)->end(); ++pit) {
+            
+//            vector<double> Qlm_vector = (*pit)->getQs(0);
+//            DMA::ComplexSphericalMoments Xlm(Qlm_vector);
+//            vector<DMA::cmplx> Xlm_vector = Xlm.ToVector();
+//            DMA::RealSphericalMoments Qlm(Xlm_vector);
+//            
+//            cout << endl << "Converted from Qlm_vector:";
+//            Xlm.PrintReal();
+//            cout << endl << "Converted from Xlm_vector:";
+//            Qlm.PrintReal();
+            cout << endl << (*pit)->getName();
+            // Convert real to complex moments            
+            vector<double> Qlm = (*pit)->getQs(0);
+            DMA::ComplexSphericalMoments Xlm(Qlm);
+            cout << endl << "original";
+            Xlm.PrintReal();
+            // Shift moments
+            DMA::MomentShift mshift;
+            vec shift = vec(1,0,0); // = pos - (*pit)->getPos();
+            DMA::RegularSphericalHarmonics Clm(-shift);            
+            vector<DMA::cmplx> Xlm_shifted = mshift.Shift(Xlm, Clm);            
+            // Convert complex to real moments & add to base
+            DMA::RealSphericalMoments Qlm_shifted(Xlm_shifted);
+            Qlm_shifted.AddToVector(QCG);
+            cout << endl << "shifted";
+            Qlm_shifted.PrintReal();
+            
+            // Shift back (Error check)
+            vector<double> Qlm_shifted_vector = Qlm_shifted.ToVector();
+            DMA::ComplexSphericalMoments Xlm_back(Qlm_shifted_vector);
+            DMA::RegularSphericalHarmonics Clm_back(shift);
+            vector<DMA::cmplx> Xlm_shifted_back = mshift.Shift(Xlm_back, Clm_back);
+            DMA::RealSphericalMoments Qlm_back(Xlm_shifted_back);
+            cout << endl << "restored";
+            Qlm_back.PrintReal();
+            
+            
+            int a; cin >> a;
+        }
+        // Collapse polarizabilities
+        votca::tools::matrix PCG = votca::tools::matrix();
+        
         // Generate new coarse-grained site from the above
         APolarSite *cg_site = new APolarSite((*fit)->getId(), "CG");
         cg_site->setPos(pos);
         cg_site->setRank(L);
-        cg_site->setQs(Q, state);
-        cg_site->setPs(P, state);
+        cg_site->setQs(QCG, state);
+        cg_site->setPs(PCG, state);
         cg_site->Charge(state);
         cg_sites.push_back(cg_site);
         // Clear fragment & reload

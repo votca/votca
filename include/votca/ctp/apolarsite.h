@@ -94,13 +94,13 @@ public:
     // PERMANENT MOMENTS
     bool            IsCharged();
     vector<double> &getQs(int state) { return _Qs[state+1]; }
-    void            setQs(vector<double> Qs, int state) { _Qs[state+1] = Qs; }
+    void            setQs(vector<double> Qs, int state) { while (Qs.size() < 9) Qs.push_back(0.0); _Qs[state+1] = Qs; }
     void            setQ00(double q, int s) { Q00 = q; if (_Qs[s+1].size() < 1) _Qs[s+1].resize(1); _Qs[s+1][0] = q; }
     double         &getQ00() { return Q00; }    
     // POLARIZABILITIES
     bool            IsPolarizable();
     void            setPs(matrix polar, int state) { _Ps[state+1] = polar; }
-    void            setIsoP(double p) { Pxx = Pyy = Pzz = p; Pxy = Pxz = Pyz = 0.0; }
+    void            setIsoP(double p) { Pxx = Pyy = Pzz = p; Pxy = Pxz = Pyz = 0.0; eigenpxx = eigenpyy = eigenpzz = p; }
     matrix         &getPs(int state) { return _Ps[state+1]; }
     double          getIsoP() { return pow((Pxx*Pyy*Pzz),1./3.); }
     double          getProjP(vec &dir);

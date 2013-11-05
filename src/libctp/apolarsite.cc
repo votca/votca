@@ -184,59 +184,49 @@ bool APolarSite::IsPolarizable() {
 
 
 void APolarSite::Translate(const vec &shift) {
-
     _pos += shift;
-
+    return;
 }
 
 void APolarSite::Charge(int state) {
-
     int idx = state + 1;
-
     // Adjust polarizability to charge state
-        Pxx = _Ps[idx].get(0,0);
-        Pxy = _Ps[idx].get(0,1);
-        Pxz = _Ps[idx].get(0,2);
-        Pyy = _Ps[idx].get(1,1);
-        Pyz = _Ps[idx].get(1,2);
-        Pzz = _Ps[idx].get(2,2);
-
+    Pxx = _Ps[idx].get(0,0);
+    Pxy = _Ps[idx].get(0,1);
+    Pxz = _Ps[idx].get(0,2);
+    Pyy = _Ps[idx].get(1,1);
+    Pyz = _Ps[idx].get(1,2);
+    Pzz = _Ps[idx].get(2,2);
     // Calculate principal axes
-        matrix polarity = matrix( vec(Pxx,Pxy,Pxz),
-                                  vec(Pxy,Pyy,Pyz),
-                                  vec(Pxz,Pyz,Pzz) );
-        matrix::eigensystem_t eigensystem_polarity;
-        polarity.SolveEigensystem(eigensystem_polarity);
-
-        pax         = eigensystem_polarity.eigenvecs[0];
-        pay         = eigensystem_polarity.eigenvecs[1];
-        paz         = eigensystem_polarity.eigenvecs[2];
-        eigenpxx    = eigensystem_polarity.eigenvalues[0];
-        eigenpyy    = eigensystem_polarity.eigenvalues[1];
-        eigenpzz    = eigensystem_polarity.eigenvalues[2];
-
-//        eigendamp =  (Pxx > Pyy) ?
-//                         ((Pxx > Pzz) ? Pxx : Pzz)
-//                       : ((Pyy > Pzz) ? Pyy : Pzz);
-        eigendamp =  (eigenpxx > eigenpyy) ?
-                         ((eigenpxx > eigenpzz) ? eigenpxx : eigenpzz)
-                       : ((eigenpyy > eigenpzz) ? eigenpyy : eigenpzz);
-
-        // eigendamp = 10.;
-
-        //cout << endl << "eigensystem ...";
-        //cout << endl << pax << " --- " << eigenpxx;
-        //cout << endl << pay << " --- " << eigenpyy;
-        //cout << endl << paz << " --- " << eigenpzz;
-
+    matrix polarity = matrix( vec(Pxx,Pxy,Pxz),
+                              vec(Pxy,Pyy,Pyz),
+                              vec(Pxz,Pyz,Pzz) );
+    matrix::eigensystem_t eigensystem_polarity;
+    polarity.SolveEigensystem(eigensystem_polarity);
+    pax         = eigensystem_polarity.eigenvecs[0];
+    pay         = eigensystem_polarity.eigenvecs[1];
+    paz         = eigensystem_polarity.eigenvecs[2];
+    eigenpxx    = eigensystem_polarity.eigenvalues[0];
+    eigenpyy    = eigensystem_polarity.eigenvalues[1];
+    eigenpzz    = eigensystem_polarity.eigenvalues[2];
+    eigendamp =  (eigenpxx > eigenpyy) ?
+                     ((eigenpxx > eigenpzz) ? eigenpxx : eigenpzz)
+                   : ((eigenpyy > eigenpzz) ? eigenpyy : eigenpzz);
+    //cout << endl << "eigensystem ...";
+    //cout << endl << pax << " --- " << eigenpxx;
+    //cout << endl << pay << " --- " << eigenpyy;
+    //cout << endl << paz << " --- " << eigenpzz;
 
     // Adjust multipole moments to charge state
-        Q00 = _Qs[idx][0];
+    Q00 = _Qs[idx][0];
 
     if (_rank > 0) {
         Q1z = _Qs[idx][1];   // |
         Q1x = _Qs[idx][2];   // |-> NOTE: order z - x - y
         Q1y = _Qs[idx][3];   // |
+    }
+    else {
+        Q1z = Q1x = Q1y = 0.0;
     }
     if (_rank > 1) {
         // Spherical tensor
@@ -261,24 +251,25 @@ void APolarSite::Charge(int state) {
         Qxz *= 1./3.;
         Qyz *= 1./3.;
     }
+    else {
+        Q20 = Q21c = Q21s = Q22c = Q22s = 0.0;
+        Qzz = Qxx = Qyy = Qxy = Qxz = Qyz = 0.0;
+    }
+    return;
 }
 
 void APolarSite::ChargeDelta(int state1, int state2) {
-
     int idx1 = state1 + 1;
     int idx2 = state2 + 1;
-
     // Adjust polarizability to charge state
-        Pxx = 0.0;
-        Pxy = 0.0;
-        Pxz = 0.0;
-        Pyy = 0.0;
-        Pyz = 0.0;
-        Pzz = 0.0;
-
+    Pxx = 0.0;
+    Pxy = 0.0;
+    Pxz = 0.0;
+    Pyy = 0.0;
+    Pyz = 0.0;
+    Pzz = 0.0;
     // Adjust multipole moments to charge state
-        Q00 = _Qs[idx2][0] - _Qs[idx1][0];
-
+    Q00 = _Qs[idx2][0] - _Qs[idx1][0];
     if (_rank > 0) {
         Q1z = _Qs[idx2][1] - _Qs[idx1][1];   // |
         Q1x = _Qs[idx2][2] - _Qs[idx1][2];   // |-> NOTE: order z - x - y
@@ -291,83 +282,51 @@ void APolarSite::ChargeDelta(int state1, int state2) {
         Q22c = _Qs[idx2][7] - _Qs[idx1][7];
         Q22s = _Qs[idx2][8] - _Qs[idx1][8];
     }
+    return;
 }
 
 
 double APolarSite::getProjP(vec &dir) {
+    //double alpha_proj = fabs(dir * pax) * fabs(dir * pax) * eigenpxx
+    //     + fabs(dir * pay) * fabs(dir * pay) * eigenpyy
+    //     + fabs(dir * paz) * fabs(dir * paz) * eigenpzz;
 
+    // Mix ?
+    //alpha_proj = 0.5* (1./3. * (Pxx+Pyy+Pzz)) + 0.5*alpha_proj;
 
-    // Correct
-//    double alpha_proj = fabs(dir * pax) * fabs(dir * pax) * eigenpxx
-//         + fabs(dir * pay) * fabs(dir * pay) * eigenpyy
-//         + fabs(dir * paz) * fabs(dir * paz) * eigenpzz;
-
-    // Mix
-//    alpha_proj = 0.5* (1./3. * (Pxx+Pyy+Pzz)) + 0.5*alpha_proj;
-
-    // Wrong
-//    double alpha_proj = fabs(dir * pax) * eigenpxx
-//         + fabs(dir * pay) * eigenpyy
-//         + fabs(dir * paz) * eigenpzz;
-    //cout << endl << _name << " " << alpha_proj;
-
-    // Max
-    double alpha_proj;
-
-    if (Pxx > Pyy) {
-        if (Pxx > Pzz) {
-            alpha_proj = Pxx;
-        }
-        else {
-            alpha_proj = Pzz;
-        }
-    }
-    else {
-        if (Pyy > Pzz) {
-            alpha_proj = Pyy;
-        }
-        else {
-            alpha_proj = Pzz;
-        }
-    }
-
+    assert("APS::getProjP THIS FEATURE SHOULD NOT BE USED" == "" && false);
     return this->eigendamp;
 }
 
 void APolarSite::Induce(double wSOR) {
-
     U1_Hist.push_back( vec(U1x,U1y,U1z) );
-
-    U1x = (1 - wSOR) * U1x + wSOR * ( - Pxx * (FPx + FUx) - Pxy * (FPy + FUy) - Pxz * (FPz + FUz) ); // OVERRIDE
-    U1y = (1 - wSOR) * U1y + wSOR * ( - Pxy * (FPx + FUx) - Pyy * (FPy + FUy) - Pyz * (FPz + FUz) ); // OVERRIDE
-    U1z = (1 - wSOR) * U1z + wSOR * ( - Pxz * (FPx + FUx) - Pyz * (FPy + FUy) - Pzz * (FPz + FUz) ); // OVERRIDE
+    U1x = (1 - wSOR) * U1x + wSOR * ( - Pxx * (FPx + FUx) - Pxy * (FPy + FUy) - Pxz * (FPz + FUz) );
+    U1y = (1 - wSOR) * U1y + wSOR * ( - Pxy * (FPx + FUx) - Pyy * (FPy + FUy) - Pyz * (FPz + FUz) );
+    U1z = (1 - wSOR) * U1z + wSOR * ( - Pxz * (FPx + FUx) - Pyz * (FPy + FUy) - Pzz * (FPz + FUz) );
+    return;
 }
 
 void APolarSite::InduceDirect() {
-
     U1_Hist.push_back( vec(0.,0.,0.) );
-    U1x =  - Pxx * FPx - Pxy * FPy - Pxz * FPz; // OVERRIDE
-    U1y =  - Pxy * FPx - Pyy * FPy - Pyz * FPz; // OVERRIDE
-    U1z =  - Pxz * FPx - Pyz * FPy - Pzz * FPz; // OVERRIDE
+    U1x =  - Pxx * FPx - Pxy * FPy - Pxz * FPz;
+    U1y =  - Pxy * FPx - Pyy * FPy - Pyz * FPz;
+    U1z =  - Pxz * FPx - Pyz * FPy - Pzz * FPz;
+    return;
 }
 
 double APolarSite::HistdU() {
-
     vec dU = vec(U1x, U1y, U1z) - U1_Hist.back();
     return abs(dU)/abs(U1_Hist.back());
 }
 
-
-
 void APolarSite::Depolarize() {
-
     // Zero out induced moments
     U1x = U1y = U1z = 0.0;
     U1_Hist.clear();
-
     // Zero out fields
     FPx = FPy = FPz = 0.0;
     FUx = FUy = FUz = 0.0;
+    return;
 }
 
 

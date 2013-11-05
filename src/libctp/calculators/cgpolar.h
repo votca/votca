@@ -3,6 +3,7 @@
 
 #include <votca/ctp/qmcalculator.h>
 #include <votca/ctp/xmapper.h>
+#include <votca/ctp/dmaspace.h>
 
 namespace votca { 
 namespace ctp {
@@ -74,9 +75,10 @@ bool CgPolar::EvaluateFrame(Topology *top) {
     
     // COARSE-GRAIN
     vector<PolarSeg*> bgn = ptop.BGN();
-    for (vector<PolarSeg*>::iterator sit=bgn.begin();
+    for (vector<PolarSeg*>::iterator sit=bgn.begin()+288;
         sit<bgn.end(); ++sit) {
         (*sit)->Coarsegrain();
+        break;
     }
     if (_pdb_check) ptop.PrintPDB("cgpolar.coarse.pdb");
     
