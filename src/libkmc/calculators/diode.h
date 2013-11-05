@@ -21,8 +21,8 @@
 #include <votca/kmc/state.h>
 #include <votca/kmc/graph.h>
 #include <votca/kmc/globaleventinfo.h>
-#include <votca/kmc/events.h>
-#include <votca/kmc/vssmgroup.h>
+//#include <votca/kmc/events.h>
+//#include <votca/kmc/vssmgroup.h>
 
 using namespace std;
 
@@ -37,8 +37,8 @@ public:
     
     Graph* graph;
     State* state;
-    Events* events;
-    Vssmgroup* vssmgroup;
+//    Events* events;
+//    Vssmgroup* vssmgroup;
     Globaleventinfo* globevent;
     
     Diode() {};
@@ -71,8 +71,8 @@ void Diode::Initialize(Property *options) {
     
     graph = new Graph();
     state = new State();
-    events = new Events();
-    vssmgroup = new Vssmgroup();
+//    events = new Events();
+//    vssmgroup = new Vssmgroup();
 }
 
 bool Diode::EvaluateFrame() {
@@ -85,7 +85,7 @@ bool Diode::EvaluateFrame() {
 
 void Diode::RunKMC() {
  
-    //Setup random number generator
+/*    //Setup random number generator
     seed = 1;
     srand(seed); // srand expects any integer in order to initialise the random number generator
     votca::tools::Random2 *RandomVariable = new votca::tools::Random2();
@@ -115,7 +115,7 @@ void Diode::RunKMC() {
         vssmgroup->Recompute_in_device(events);
         sim_time += vssmgroup->Timestep(RandomVariable);
         vssmgroup->Perform_one_step_in_device(events,graph,state,globevent,RandomVariable);
-    }
+    }*/
 }
 
 }}

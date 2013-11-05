@@ -47,38 +47,35 @@ public:
     void Init();
 
     // Buying/Selling of carrier numbers from the reservoir
-    unsigned int Buy(vector <Carrier*> carriers, vector <int> carrier_reservoir);
-    void Sell(vector <Carrier*> carriers, vector <int> carrier_reservoir, unsigned int remove_from_sim_box);
-    void Grow(vector <Carrier*> carriers, vector <int> carrier_reservoir, unsigned int nr_new_carriers, int max_pair_degree);
+    unsigned int Buy();
+    void Sell(unsigned int remove_from_sim_box);
+    void Grow(unsigned int nr_new_carriers, int max_pair_degree);
     
-    vector<Carrier*> electrons; //change
-    vector<int> electron_reservoir;
-    vector<Carrier*> holes; //change
-    vector<int> hole_reservoir;
+    vector<Carrier*> carriers; //change
+    vector<int> carrier_reservoir;
 
     string SQL_state_filename;
 
     // Creation of coulomb mesh
     int meshsizeX; int meshsizeY; int meshsizeZ;
-    vector< vector< vector< vector <list<int> > > > > coulomb_mesh;
+    vector< vector< vector <list<int> > > > coulomb_mesh;
     void Init_coulomb_mesh(Graph* graph, Globaleventinfo* globevent);
     void Add_to_coulomb_mesh(Graph* graph, Carrier* carrier, Globaleventinfo* globevent);
     void Remove_from_coulomb_mesh(Graph* graph, Carrier* carrier, Globaleventinfo* globevent);
     
     // Injection and removal of charges (for example in a double carrier bulk setting) (still to be done)
-    Bsumtree* electron_inject;
-    Bsumtree* hole_inject;
-    void Initialize_inject_trees(Graph* graph, Inject_Type injecttype, Globaleventinfo* globevent);
-    void Add_charge_in_box(Node* node, CarrierType carrier_type);
-    void Remove_charge_from_box(Node* node, CarrierType carrier_type);
+   // Bsumtree* electron_inject;
+   // Bsumtree* hole_inject;
+   // void Initialize_inject_trees(Graph* graph, Inject_Type injecttype, Globaleventinfo* globevent);
+   // void Add_charge_in_box(Node* node, CarrierType carrier_type);
+   // void Remove_charge_from_box(Node* node, CarrierType carrier_type);
     
   
 private:
-    bool El_in_sim_box(int electron_nr) {return electrons[electron_nr]->is_in_sim_box;}
-    bool Ho_in_sim_box(int hole_nr) {return holes[hole_nr]->is_in_sim_box;}
+    bool Car_in_sim_box(int carrier_nr) {return carriers[carrier_nr]->is_in_sim_box;}
 };
 
-void State::Initialize_inject_trees(Graph* graph, Inject_Type injecttype, Globaleventinfo* globevent) {
+/*void State::Initialize_inject_trees(Graph* graph, Inject_Type injecttype, Globaleventinfo* globevent) {
     electron_inject->initialize(graph->nodes.size());
     hole_inject->initialize(graph->nodes.size());
     
@@ -92,13 +89,11 @@ void State::Initialize_inject_trees(Graph* graph, Inject_Type injecttype, Global
             hole_inject->setrate(inode, exp(-1.0*globevent->beta*graph->nodes[inode]->static_hole_node_energy));
         }
     }
-}
+}*/
 
 void State::Init(){
-    electrons.clear();
-    holes.clear();
-    electron_reservoir.clear();
-    hole_reservoir.clear();
+    carriers.clear();
+    carrier_reservoir.clear();
 }
 
 void State::Init_coulomb_mesh(Graph* graph, Globaleventinfo* globevent){
@@ -111,31 +106,16 @@ void State::Init_coulomb_mesh(Graph* graph, Globaleventinfo* globevent){
         coulomb_mesh[i].resize(meshsizeY);
         for(int j = 0;j<meshsizeY;j++) {
             coulomb_mesh[i][j].resize(meshsizeZ);
-            for(int k=0;k<meshsizeZ;k++) {
-                coulomb_mesh[i][j][k].resize(2);
-            }
         }
     }
     
-    for(int ic=0;ic<electrons.size();ic++){
-        Add_to_coulomb_mesh(graph, electrons[ic], globevent);
-    }
-
-    for(int ic=0;ic<holes.size();ic++){
-        Add_to_coulomb_mesh(graph, holes[ic], globevent);
+    for(int ic=0;ic<carriers.size();ic++){
+        Add_to_coulomb_mesh(graph, carriers[ic], globevent);
     }
 }
 
 void State::Add_to_coulomb_mesh(Graph* graph, Carrier* carrier, Globaleventinfo* globevent){
 
-    int charge;
-    if(carrier->carrier_type == Electron) {
-        charge = 0;
-    }
-    else if(carrier->carrier_type == Hole) {
-        charge = 1;
-    }
-    
     double posx = graph->nodes[carrier->carrier_node_ID]->node_position.x();
     double posy = graph->nodes[carrier->carrier_node_ID]->node_position.y();
     double posz = graph->nodes[carrier->carrier_node_ID]->node_position.z();
@@ -144,19 +124,11 @@ void State::Add_to_coulomb_mesh(Graph* graph, Carrier* carrier, Globaleventinfo*
     int iposy = floor(posy/globevent->coulcut); 
     int iposz = floor(posz/globevent->coulcut);
     
-    coulomb_mesh[iposx][iposy][iposz][charge].push_back(carrier->carrier_ID);    
+    coulomb_mesh[iposx][iposy][iposz].push_back(carrier->carrier_ID);    
 }
 
 void State::Remove_from_coulomb_mesh(Graph* graph, Carrier* carrier, Globaleventinfo* globevent){
 
-    int charge;
-    if(carrier->carrier_type == Electron) {
-        charge = 0;
-    }
-    else if(carrier->carrier_type == Hole) {
-        charge = 1;
-    }
-    
     double posx = graph->nodes[carrier->carrier_node_ID]->node_position.x();
     double posy = graph->nodes[carrier->carrier_node_ID]->node_position.y();
     double posz = graph->nodes[carrier->carrier_node_ID]->node_position.z();
@@ -165,7 +137,7 @@ void State::Remove_from_coulomb_mesh(Graph* graph, Carrier* carrier, Globalevent
     int iposy = floor(posy/globevent->coulcut); 
     int iposz = floor(posz/globevent->coulcut);
     
-    coulomb_mesh[iposx][iposy][iposz][charge].remove(carrier->carrier_ID);    
+    coulomb_mesh[iposx][iposy][iposz].remove(carrier->carrier_ID);    
 }    
 
 
@@ -183,11 +155,20 @@ void State::Save(string SQL_state_filename){
                             "?,     ?,     ?,"
                             "?,     ?)");
     
-    for(int electron_nr = 0;electron_nr<electrons.size();electron_nr++) {
-        if (El_in_sim_box(electron_nr)) {
-            stmt->Bind(1, electrons[electron_nr]->carrier_node_ID);
-            stmt->Bind(2, 0);
-            myvec carrier_distance = electrons[electron_nr]->carrier_distance;
+    for(int carrier_nr = 0;carrier_nr<carriers.size();carrier_nr++) {
+        if (Car_in_sim_box(carrier_nr)) {
+            stmt->Bind(1, carriers[carrier_nr]->carrier_node_ID);
+            
+            int cartype;
+            if(carriers[carrier_nr]->carrier_type == Electron) {
+                cartype = 0;
+            }
+            else if(carriers[carrier_nr]->carrier_type == Hole) {
+                cartype = 1;
+            }
+            stmt->Bind(2, cartype);
+            
+            myvec carrier_distance = carriers[carrier_nr]->carrier_distance;
             stmt->Bind(3, carrier_distance.x());
             stmt->Bind(4, carrier_distance.y()); 
             stmt->Bind(5, carrier_distance.z());
@@ -195,20 +176,7 @@ void State::Save(string SQL_state_filename){
             stmt->Reset();
         }        
     }
-    
-    for(int hole_nr = 0;hole_nr<holes.size();hole_nr++) {
-        if (Ho_in_sim_box(hole_nr)) {
-            stmt->Bind(1, holes[hole_nr]->carrier_node_ID);
-            stmt->Bind(2, 1);
-            myvec carrier_distance = holes[hole_nr]->carrier_distance;
-            stmt->Bind(3, carrier_distance.x());
-            stmt->Bind(4, carrier_distance.y()); 
-            stmt->Bind(5, carrier_distance.z());
-            stmt->InsertStep();
-            stmt->Reset();
-        }        
-    }
-    
+        
     delete stmt;
     stmt = NULL;
     
@@ -225,37 +193,32 @@ void State::Load(string SQL_state_filename, Graph* graph, Globaleventinfo* globe
     
     while (stmt->Step() != SQLITE_DONE)
     {   
-        int cartype = stmt->Column<int>(1);
-        if(cartype == 0) { // electron
-            if(electron_reservoir.empty()) {Grow(electrons,electron_reservoir,globevent->state_grow_size, graph->max_pair_degree);}
-            int electron_nr = Buy(electrons, electron_reservoir);
-            int carnode_ID = stmt->Column<int>(0);
-            electrons[electron_nr]->carrier_node_ID = carnode_ID;
-            electrons[electron_nr]->carrier_type = Electron;
-            graph->nodes[carnode_ID]->carriers_on_node.push_back(electrons[electron_nr]);
-            double distancex = stmt->Column<double>(2);
-            double distancey = stmt->Column<double>(3);
-            double distancez = stmt->Column<double>(4);
-            electrons[electron_nr]->carrier_distance = myvec(distancex,distancey,distancez);            
+        if(carrier_reservoir.empty()) {Grow(globevent->state_grow_size, graph->max_pair_degree);}
+        int carrier_nr = Buy();
+        int carnode_ID = stmt->Column<int>(0);
+        carriers[carrier_nr]->carrier_node_ID = carnode_ID;
+        
+        CarrierType cartype;
+        if(stmt->Column<int>(1) == 0) {
+            cartype == Electron;
         }
-        else if(cartype == 1) { // hole
-            if(hole_reservoir.empty()) {Grow(holes,hole_reservoir,globevent->state_grow_size, graph->max_pair_degree);}
-            int hole_nr = Buy(holes, hole_reservoir);
-            int carnode_ID = stmt->Column<int>(0);
-            holes[hole_nr]->carrier_node_ID = carnode_ID;
-            holes[hole_nr]->carrier_type = Hole;
-            graph->nodes[carnode_ID]->carriers_on_node.push_back(holes[hole_nr]);
-            double distancex = stmt->Column<double>(2);
-            double distancey = stmt->Column<double>(3);
-            double distancez = stmt->Column<double>(4);
-            holes[hole_nr]->carrier_distance = myvec(distancex,distancey,distancez);                
+        else if(stmt->Column<int>(1) == 1) {
+            cartype == Hole;
         }
+        carriers[carrier_nr]->carrier_type = cartype;
+        
+        graph->nodes[carnode_ID]->carriers_on_node.push_back(carriers[carrier_nr]);
+        
+        double distancex = stmt->Column<double>(2);
+        double distancey = stmt->Column<double>(3);
+        double distancez = stmt->Column<double>(4);
+        carriers[carrier_nr]->carrier_distance = myvec(distancex,distancey,distancez);            
     }
     delete stmt;
     stmt = NULL;    
 }
 
-unsigned int State::Buy(vector <Carrier*> carriers, vector <int> carrier_reservoir) {
+unsigned int State::Buy() {
     
     unsigned int carriernr_to_sim_box = carrier_reservoir.back();
     carrier_reservoir.pop_back();
@@ -263,13 +226,13 @@ unsigned int State::Buy(vector <Carrier*> carriers, vector <int> carrier_reservo
     return carriernr_to_sim_box;
 }
 
-void State::Sell(vector <Carrier*> carriers, vector <int> carrier_reservoir, unsigned int remove_from_sim_box) {
+void State::Sell(unsigned int remove_from_sim_box) {
     
     carrier_reservoir.push_back(remove_from_sim_box);
     carriers[remove_from_sim_box]->is_in_sim_box = false;
 }
 
-void State::Grow(vector <Carrier*> carriers, vector <int> carrier_reservoir, unsigned int nr_new_carriers, int max_pair_degree) {
+void State::Grow(unsigned int nr_new_carriers, int max_pair_degree) {
     
     unsigned int new_nr_carriers = carriers.size() + nr_new_carriers;
     for (unsigned int i=carriers.size(); i<new_nr_carriers; i++) {
