@@ -20,6 +20,7 @@ src/tools/ctp_run
 src/tools/ctp_tools
 src/dipro/*.mod
 src/dipro/*.x
+src/tools/*.man
 
 scripts/ctp_dipro.out
 scripts/ctp_dipro
