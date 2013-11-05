@@ -58,8 +58,6 @@ namespace votca {
         void TCMatrix::Fill(AOBasis& _gwbasis, AOBasis& _dftbasis, ub::matrix<double>& _dft_orbitals) {
 
             
-            // ub::vector< ub::matrix_range< ub::matrix<double> > > _block ( this->get_mtot() );
-           // _block.resize(  this->get_mtot()  );
             ub::vector< ub::matrix<double> > _block( this->get_mtot() );
             
             
@@ -69,18 +67,10 @@ namespace votca {
                 int _start = _shell->getStartIndex();
                 int _end = _start + _shell->getNumFunc();
 
-                // define subvector belonging to this shell 
-                //ub::vector_range< ub::vector< ub::matrix<double> > > _block = ub::subrange(this->_matrix, _start, _end);
-
-                
-                /* for later access of the three center matrices, it might be 
-                 * more convenient to store data as a vector of m instead 
-                 * of gwbasis */
-
-                
+       
                 // each element is a shell_size-by-n matrix, initialize to zero
                 for ( int i = 0; i < this->get_mtot() ; i++){
-                    _block(i) = ub::zero_matrix<double>( _shell->getNumFunc() ,ntotal);
+                    _block(i) = ub::zero_matrix<double>( _shell->getNumFunc() ,this->get_ntot());
                 }
                 
                                 
@@ -187,79 +177,7 @@ namespace votca {
         
         
 
-        void TCMatrix::FillBlock(ub::vector_range<ub::vector<ub::matrix<double> > >& _block, AOShell* _shell, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals) {
-
-            // cout << TimeStamp() << "  ... get the matrices for GW basis block of type " << _shell->getType() << endl;
-
-            /* calculate 3-center overlap between alpha(DFT),beta(GW), gamma(DFT)
-             * - for fixed beta(GW) given in call to this function, and all 
-             *    alpha,gamma combinations in DFT basis 
-             * - output should be in normalized spherical Gaussians
-             */
-
-            // prepare local container
-            ub::matrix<double> _imstore = ub::zero_matrix<double>(this->mtotal * _shell->getNumFunc(), dftbasis._AOBasisSize);
-            
-            // loop alpha(dft)
-            for (vector< AOShell* >::iterator _row = dftbasis.firstShell(); _row != dftbasis.lastShell(); _row++) {
-                AOShell* _shell_row = dftbasis.getShell(_row);
-                int _row_start = _shell_row->getStartIndex();
-                int _row_end = _row_start + _shell_row->getNumFunc();
-
-                // get slice of _dft_orbitals for m-summation, belonging to this shell
-                ub::matrix_range< ub::matrix<double> > _m_orbitals = ub::subrange(_dft_orbitals, this->mmin, this->mmax + 1, _row_start, _row_end);
-
-
-                // loop gamma(dft)
-                for (vector< AOShell* >::iterator _col = dftbasis.firstShell(); _col != dftbasis.lastShell(); _col++) {
-                    AOShell* _shell_col = dftbasis.getShell(_col);
-                    int _col_start = _shell_col->getStartIndex();
-                    int _col_end = _col_start + _shell_col->getNumFunc();
-
-                    // get 3-center overlap directly as "supermatrix"
-                    ub::matrix<double> _subvector = ub::zero_matrix<double>(_shell_row->getNumFunc(), _shell->getNumFunc() * _shell_col->getNumFunc());
-                    bool nonzero = FillThreeCenterOLBlock(_subvector, _shell, _shell_row, _shell_col);
-          
-                    // if this contributes, multiply _subvector with _dft_orbitals and place in _imstore
-                    if (nonzero) {
-
-                        ub::matrix<double> _temp = ub::prod(_m_orbitals, _subvector);
-                         
-                        // put _temp into _imstore
-                         for ( int _i_band = 0; _i_band < _temp.size1(); _i_band++ ){
-                            for ( int _i_gw = 0; _i_gw < _shell->getNumFunc() ; _i_gw++ ){
-                                int _ridx = _shell->getNumFunc() * ( _i_band - this->mmin ) + _i_gw;
-                                
-                                for ( int _cidx = _col_start; _cidx < _col_end; _cidx++ ){
-                                    
-                                int _tidx = _shell_col->getNumFunc() * ( _i_gw  ) +  _cidx-_col_start ;
-
-                                    _imstore( _ridx, _cidx ) += _temp( _i_band, _tidx ); 
-                                }
-                            }
-                        } 
-                    } // adding contribution                        
-                } // gamma-loop
-            } // alpha-loop
-
-
-            // get transposed slice of _dft_orbitals
-            ub::matrix<double> _n_orbitals = ub::trans(ub::subrange(_dft_orbitals, this->nmin, this->nmax + 1, 0, _dft_orbitals.size2()));
-            
-            // Now, finally multiply _imstore with _n_orbitals
-            ub::matrix<double> _temp = ub::prod(_imstore, _n_orbitals);
-
-            // and put it into the block it belongs to
-            for (int _m_band = 0; _m_band < this->mtotal; _m_band++) {
-                for (int _i_gw = 0; _i_gw < _shell->getNumFunc(); _i_gw++) {
-                    int _midx = _shell->getNumFunc() *(_m_band - this->mmin) + _i_gw;
-                    for (int _n_band = 0; _n_band < this->ntotal; _n_band++) {
-                        _block(_i_gw)(_m_band, _n_band) = _temp(_midx, _n_band);
-//                          cout << "MNb  [" << _i_gw << ":" << _m_band << ":" << _n_band << "] =" << _block(_i_gw)( _m_band, _n_band ) << endl;
-                    }
-                }
-            }
-        }
+ 
 
         
         bool TCMatrix::FillThreeCenterOLBlock(ub::matrix<double>& _subvector, AOShell* _shell_gw, AOShell* _shell_alpha, AOShell* _shell_gamma) {

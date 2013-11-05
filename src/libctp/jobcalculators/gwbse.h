@@ -83,11 +83,22 @@ public:
 
 private:
 
-    // void FillOverlap( ub::matrix<double> *overlap, BasisSet *bs, vector<Segment* > segments  );
-    int  NumFuncShell( string shell );
-    int  OffsetFuncShell( string shell );
     
     //bool   _maverick;
+    
+    // program tasks
+    bool                                _do_qp_diag;
+    bool                                _do_bse_singlets;
+    bool                                _do_bse_triplets;
+    
+    // storage tasks
+    bool                                _store_qp_pert;
+    bool                                _store_qp_diag;
+    bool                                _store_bse_singlets;
+    bool                                _store_bse_triplets;
+    
+    
+    
     string _outParent;
     string _outMonDir;
     
@@ -97,25 +108,31 @@ private:
     string _gwpackage;
     Property _gwpackage_options; 
     
-    // some calculation options that should be set by a proper definition later
-    int mmin ; // lowest index occ 
-    int mmax ;
-    int nmin ;
-    int nmax ;
-    int maxf ; // maximum number of functions per shell in basis set
-    int mtotal ;
-    int ntotal ;
-    
-    
-    // band ranges for GW
-    int gwmin ;
-    int gwmax ;
-    int gwtotal;
-    int homo;
+    // basis sets
+    string                              _gwbasis_name;
+    string                              _dftbasis_name;
 
-    
-    // preshift of dft-energies
-    double _shift;
+    string                              _ranges;          // range types
+    unsigned int                        _homo;            // HOMO index
+    unsigned int                        _rpamin;
+    unsigned int                        _rpamax;
+    double                              _rpamaxfactor;    // RPA level range
+    unsigned int                        _qpmin;
+    unsigned int                        _qpmax;
+    unsigned int                        _qptotal;
+    double                              _qpminfactor;
+    double                              _qpmaxfactor;     // QP level range
+    double                              _bseminfactor;
+    double                              _bsemaxfactor;
+    unsigned int                        _bse_vmin;
+    unsigned int                        _bse_vmax;
+    unsigned int                        _bse_cmin;
+    unsigned int                        _bse_cmax;
+    unsigned int                        _bse_size;
+    unsigned int                        _bse_vtotal;
+    unsigned int                        _bse_ctotal;
+         
+    double                              _shift;  // pre-shift of DFT energies
     
     
     // RPA related variables and functions
@@ -151,13 +168,6 @@ private:
     void FullQPHamiltonian();
     
     // BSE variables and functions
-    int bse_vmin ;
-    int bse_vmax ;
-    int bse_vtotal;
-    int bse_cmin ;
-    int bse_cmax ;
-    int bse_ctotal;
-    int bse_size;
     ub::matrix<double> _eh_x;
     ub::matrix<double> _eh_d;
     ub::vector<double> _bse_singlet_energies;

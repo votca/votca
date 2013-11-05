@@ -62,10 +62,10 @@ namespace votca { namespace ctp {
         void Initialize ( int _basissize, int mmin, int mmax, int nmin, int nmax){
 
             // here as storage indices starting from zero
-            set_mmin( mmin - 1 );
-            set_mmax( mmax - 1 );
-            set_nmin( nmin - 1 );
-            set_nmax( nmax - 1 );
+            set_mmin( mmin  );
+            set_mmax( mmax  );
+            set_nmin( nmin  );
+            set_nmax( nmax  );
             set_mtot( mmax - mmin +1 );
             set_ntot( nmax - nmin +1 );
 

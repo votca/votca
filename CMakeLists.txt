@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 2.6)
-
 project(votca-ctp)
 
 set(PROJECT_VERSION "1.3-dev")
