@@ -514,8 +514,11 @@ void Graph::Break_periodicity(vector<Node*> nodes, bool x_direction, bool y_dire
         }
 
         // remove pairs
+        int removed = 0;
         for(int iremove = 0; iremove<remove_pairs.size();iremove++){
-            nodes[inode]->removePair(remove_pairs[iremove]); //removes pairs and static event info objects
+            int to_be_removed = remove_pairs[iremove] - removed;
+            nodes[inode]->removePair(to_be_removed); //removes pairs and static event info objects
+            removed++;
         }
         
         // check max pair degree
