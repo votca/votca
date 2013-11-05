@@ -21,6 +21,7 @@ inline double binom(int upper, int lower) {
 // REGULAR SPHERICAL HARMONICS
 // o NOTE Currently only up to rank l=2 (<> quadrupole)
 // o TODO For higher ranks, use recursive construction
+// o Notation key: C1_1 => l=1 m=-1 and C1x1 => l=1 m=+1
 class RegularSphericalHarmonics
 {
 public:
@@ -29,12 +30,10 @@ public:
    ~RegularSphericalHarmonics() {}
     
     // Real spherical harmonics
-    inline double R00()  { return 1; }
-    
+    inline double R00()  { return 1; }    
     inline double R10()  { return _z; }
     inline double R11c() { return _x; }
-    inline double R11s() { return _y; }
-    
+    inline double R11s() { return _y; }    
     inline double R20()  { return 0.5*(3*_z*_z - _r2); }
     inline double R21c() { return std::sqrt(3)*_x*_z; }
     inline double R21s() { return std::sqrt(3)*_y*_z; }
@@ -43,11 +42,9 @@ public:
    
     // Complex spherical harmonics
     inline cmplx C00()   { return cmplx(R00(), 0.0); }    
-    
     inline cmplx C1_1()  { return std::sqrt(0.5)*cmplx(+1*R11c(), -1*R11s()); }
     inline cmplx C10()   { return cmplx(R10(), 0.0); }
-    inline cmplx C1x1()  { return std::sqrt(0.5)*cmplx(-1*R11c(), -1*R11s()); }
-    
+    inline cmplx C1x1()  { return std::sqrt(0.5)*cmplx(-1*R11c(), -1*R11s()); }    
     inline cmplx C2_2()  { return std::sqrt(0.5)*cmplx(+1*R22c(), -1*R22s()); }
     inline cmplx C2_1()  { return std::sqrt(0.5)*cmplx(+1*R21c(), -1*R21s()); }
     inline cmplx C20()   { return cmplx(R20(), 0.0); }
@@ -61,8 +58,10 @@ private:
 
 
 // SPHERICAL MOMENT CONVERTER - REAL TO COMPLEX
-// o Real spherical moments ordered like this:    lm = 00    10 11c 11s    20 21c 21s 22c ...
-// o Complex spherical moments ordered like this: lm = 0+0   1-1 1+0 1+1   2-2 2-1 20 2+1 2+2 ...
+// o Real spherical moments ordered like this:    
+//   lm = 00    10 11c 11s    20 21c 21s 22c 22s ...
+// o Complex spherical moments ordered like this: 
+//   lm = 0+0   1-1 1+0 1+1   2-2 2-1 20 2+1 2+2 ...
 class ComplexSphericalMoments
 {
 public:
@@ -71,12 +70,10 @@ public:
    ~ComplexSphericalMoments() {}
    
     // Real spherical moments (from constructor input)
-    const double &Q00()  { return _Qlm[0]; }
-    
+    const double &Q00()  { return _Qlm[0]; }    
     const double &Q10()  { return _Qlm[1]; }
     const double &Q11c() { return _Qlm[2]; }
-    const double &Q11s() { return _Qlm[3]; }
-    
+    const double &Q11s() { return _Qlm[3]; }    
     const double &Q20()  { return _Qlm[4]; }
     const double &Q21c() { return _Qlm[5]; }
     const double &Q21s() { return _Qlm[6]; }
@@ -84,12 +81,10 @@ public:
     const double &Q22s() { return _Qlm[8]; }
    
     // Complex spherical moments
-    inline cmplx X00()   { return cmplx(Q00(), 0.0); }
-    
+    inline cmplx X00()   { return cmplx(Q00(), 0.0); }    
     inline cmplx X1_1()  { return std::sqrt(0.5)*cmplx(+1*Q11c(), -1*Q11s()); }
     inline cmplx X10()   { return cmplx(Q10(), 0.0); }
-    inline cmplx X1x1()  { return std::sqrt(0.5)*cmplx(-1*Q11c(), -1*Q11s()); }
-    
+    inline cmplx X1x1()  { return std::sqrt(0.5)*cmplx(-1*Q11c(), -1*Q11s()); }    
     inline cmplx X2_2()  { return std::sqrt(0.5)*cmplx(+1*Q22c(), -1*Q22s()); }
     inline cmplx X2_1()  { return std::sqrt(0.5)*cmplx(+1*Q21c(), -1*Q21s()); }
     inline cmplx X20()   { return cmplx(Q20(), 0.0); }
@@ -128,8 +123,10 @@ private:
 
 
 // SPHERICAL MOMENT CONVERTER - COMPLEX TO REAL
-// o Real spherical moments ordered like this:    lm = 00    10 11c 11s    20 21c 21s 22c ...
-// o Complex spherical moments ordered like this: lm = 0+0   1-1 1+0 1+1   2-2 2-1 20 2+1 2+2 ...
+// o Real spherical moments ordered like this:    
+//   lm = 00    10 11c 11s    20 21c 21s 22c 22s ...
+// o Complex spherical moments ordered like this: 
+//   lm = 0+0   1-1 1+0 1+1   2-2 2-1 20 2+1 2+2 ...
 class RealSphericalMoments
 {
 public:
@@ -138,25 +135,21 @@ public:
    ~RealSphericalMoments() {}
    
     // Real spherical moments
-    inline double Q00()  { return X00().Re(); }
-    
+    inline double Q00()  { return X00().Re(); }    
     inline double Q10()  { return X10().Re(); }
-    inline double Q11c() { cmplx q = std::sqrt(0.5) * cmplx(1,0) * (X1_1() - X1x1()); return q.Re(); }
-    inline double Q11s() { cmplx q = std::sqrt(0.5) * cmplx(0,1) * (X1_1() + X1x1()); return q.Re(); }
-    
+    inline double Q11c() { cmplx q = std::sqrt(0.5) * cmplx(1,0) * (X1_1() - X1x1()); assert(q.Im() < 1e-8); return q.Re(); }
+    inline double Q11s() { cmplx q = std::sqrt(0.5) * cmplx(0,1) * (X1_1() + X1x1()); assert(q.Im() < 1e-8); return q.Re(); }    
     inline double Q20()  { return X20().Re(); }
-    inline double Q21c() { cmplx q = std::sqrt(0.5) * cmplx(1.,0.) * (X2_1() - X2x1()); return q.Re(); }
-    inline double Q21s() { cmplx q = std::sqrt(0.5) * cmplx(0.,1.) * (X2_1() + X2x1()); return q.Re(); }
-    inline double Q22c() { cmplx q = std::sqrt(0.5) * cmplx(1,0) * (X2_2() + X2x2()); return q.Re(); }
-    inline double Q22s() { cmplx q = std::sqrt(0.5) * cmplx(0,1) * (X2_2() - X2x2()); return q.Re(); }
+    inline double Q21c() { cmplx q = std::sqrt(0.5) * cmplx(1,0) * (X2_1() - X2x1()); assert(q.Im() < 1e-8); return q.Re(); }
+    inline double Q21s() { cmplx q = std::sqrt(0.5) * cmplx(0,1) * (X2_1() + X2x1()); assert(q.Im() < 1e-8); return q.Re(); }
+    inline double Q22c() { cmplx q = std::sqrt(0.5) * cmplx(1,0) * (X2_2() + X2x2()); assert(q.Im() < 1e-8); return q.Re(); }
+    inline double Q22s() { cmplx q = std::sqrt(0.5) * cmplx(0,1) * (X2_2() - X2x2()); assert(q.Im() < 1e-8); return q.Re(); }
 
     // Complex spherical moments (from constructor input)
-    const cmplx &X00()   { return _Xlm[0]; }
-    
+    const cmplx &X00()   { return _Xlm[0]; }    
     const cmplx &X1_1()  { return _Xlm[1]; }
     const cmplx &X10()   { return _Xlm[2]; }
-    const cmplx &X1x1()  { return _Xlm[3]; }
-    
+    const cmplx &X1x1()  { return _Xlm[3]; }    
     const cmplx &X2_2()  { return _Xlm[4]; }
     const cmplx &X2_1()  { return _Xlm[5]; }
     const cmplx &X20()   { return _Xlm[6]; }
@@ -213,24 +206,25 @@ public:
     MomentShift() {}
    ~MomentShift() {}
     
-    vector<cmplx> Shift(ComplexSphericalMoments &Xlm, RegularSphericalHarmonics &Clm) {
+    vector<cmplx> Shift(ComplexSphericalMoments &Xlm, 
+        RegularSphericalHarmonics &Clm) {
         
         vector<cmplx> Xlm_shifted;
         
         // CHARGE
         cmplx X00 = 
-                SqrtBinBin(0,0,0,0)   * Xlm.X00()*Clm.C00();  // L=0 M=0 l=0 m=0
+                SqrtBinBin(0,0,0,0)   * Xlm.X00()*Clm.C00();  // L=0 M=0  l=0  m=0
         Xlm_shifted.push_back(X00);
         
         // DIPOLE
         cmplx X1_1 = 
-                SqrtBinBin(1,-1,0,0)  * Xlm.X00()*Clm.C1_1()  // L=1 M=-1 l=0 m=0
-              + SqrtBinBin(1,-1,1,-1) * Xlm.X1_1()*Clm.C00(); // L=1 M=-1 l=1 m=-1
+                SqrtBinBin(1,-1,0,0)  * Xlm.X00()*Clm.C1_1()  // L=1 M=-1 l=0  m=0
+              + SqrtBinBin(1,-1,1,-1) * Xlm.X1_1()*Clm.C00(); // L=1 M=-1 l=1  m=-1
         cmplx X10 =
-                SqrtBinBin(1,0,0,0)   * Xlm.X00()*Clm.C10()   // L=1 M=0 l=0 m=0
-              + SqrtBinBin(1,0,1,0)   * Xlm.X10()*Clm.C00();  // L=1 M=0 l=1 m=0        
+                SqrtBinBin(1,0,0,0)   * Xlm.X00()*Clm.C10()   // L=1 M=0  l=0  m=0
+              + SqrtBinBin(1,0,1,0)   * Xlm.X10()*Clm.C00();  // L=1 M=0  l=1  m=0        
         cmplx X1x1 =
-                SqrtBinBin(1,1,0,0)   * Xlm.X00()*Clm.C1x1()  // L=1 M=+1 l=0 m=0
+                SqrtBinBin(1,1,0,0)   * Xlm.X00()*Clm.C1x1()  // L=1 M=+1 l=0  m=0
               + SqrtBinBin(1,1,1,1)   * Xlm.X1x1()*Clm.C00(); // L=1 M=+1 l=+1 m=+1
         Xlm_shifted.push_back(X1_1);
         Xlm_shifted.push_back(X10);
@@ -238,11 +232,11 @@ public:
         
         // QUADRUPOLE
         cmplx X2_2 =
-                SqrtBinBin(2,-2,0,0)  * Xlm.X00()*Clm.C2_2()
-              + SqrtBinBin(2,-2,1,-1) * Xlm.X1_1()*Clm.C1_1()
-              + SqrtBinBin(2,-2,2,-2) * Xlm.X2_2()*Clm.C00();
+                SqrtBinBin(2,-2,0,0)  * Xlm.X00()*Clm.C2_2()  // L=2 M=-2 l=0  m=0
+              + SqrtBinBin(2,-2,1,-1) * Xlm.X1_1()*Clm.C1_1() // L=2 M=-2 l=1  m=-1
+              + SqrtBinBin(2,-2,2,-2) * Xlm.X2_2()*Clm.C00(); // L=2 M=-2 l=2  m=-2
         cmplx X2_1 =
-                SqrtBinBin(2,-1,0,0)  * Xlm.X00()*Clm.C2_1()
+                SqrtBinBin(2,-1,0,0)  * Xlm.X00()*Clm.C2_1()  // ...
               + SqrtBinBin(2,-1,1,0)  * Xlm.X10()*Clm.C1_1()
               + SqrtBinBin(2,-1,1,-1) * Xlm.X1_1()*Clm.C10()
               + SqrtBinBin(2,-1,2,-1) * Xlm.X2_1()*Clm.C00();

@@ -4,6 +4,7 @@
 #include <votca/ctp/qmcalculator.h>
 #include <votca/ctp/xmapper.h>
 #include <votca/ctp/dmaspace.h>
+#include <votca/ctp/molpolengine.h>
 
 namespace votca { 
 namespace ctp {
@@ -75,9 +76,17 @@ bool CgPolar::EvaluateFrame(Topology *top) {
     
     // COARSE-GRAIN
     vector<PolarSeg*> bgn = ptop.BGN();
-    for (vector<PolarSeg*>::iterator sit=bgn.begin()+288;
+    int offset = 0; // = 288;
+    cout << endl;
+    for (vector<PolarSeg*>::iterator sit=bgn.begin()+offset;
         sit<bgn.end(); ++sit) {
+        MolPolEngine engine = MolPolEngine();
+        //engine.CalculateMolPol(*(*sit), true);
+        (*sit)->WriteMPS("seg_1_fine.mps", "FINE");
+        cout << "\r Coarse-grain ID = " << (*sit)->getId() << flush;
         (*sit)->Coarsegrain();
+        (*sit)->WriteMPS("seg_1_coarse.mps", "COARSE");
+        engine.CalculateMolPol(*(*sit), true);
         break;
     }
     if (_pdb_check) ptop.PrintPDB("cgpolar.coarse.pdb");

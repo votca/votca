@@ -39,6 +39,7 @@ public:
     void Translate(const vec &shift);
     void CalcPos();    
     double CalcTotQ();
+    vec CalcTotD();
     void Coarsegrain();
     // Evaluates to "true" if ANY contained polar site has charge != 0
     void CalcIsCharged();

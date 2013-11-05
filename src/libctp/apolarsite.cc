@@ -287,15 +287,15 @@ void APolarSite::ChargeDelta(int state1, int state2) {
 
 
 double APolarSite::getProjP(vec &dir) {
-    //double alpha_proj = fabs(dir * pax) * fabs(dir * pax) * eigenpxx
-    //     + fabs(dir * pay) * fabs(dir * pay) * eigenpyy
-    //     + fabs(dir * paz) * fabs(dir * paz) * eigenpzz;
+    double alpha_proj = fabs(dir * pax) * fabs(dir * pax) * eigenpxx
+         + fabs(dir * pay) * fabs(dir * pay) * eigenpyy
+         + fabs(dir * paz) * fabs(dir * paz) * eigenpzz;
 
     // Mix ?
     //alpha_proj = 0.5* (1./3. * (Pxx+Pyy+Pzz)) + 0.5*alpha_proj;
 
-    assert("APS::getProjP THIS FEATURE SHOULD NOT BE USED" == "" && false);
-    return this->eigendamp;
+    //assert("APS::getProjP THIS FEATURE SHOULD NOT BE USED" == "" && false);
+    return alpha_proj;
 }
 
 void APolarSite::Induce(double wSOR) {

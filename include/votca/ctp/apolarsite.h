@@ -96,7 +96,8 @@ public:
     vector<double> &getQs(int state) { return _Qs[state+1]; }
     void            setQs(vector<double> Qs, int state) { while (Qs.size() < 9) Qs.push_back(0.0); _Qs[state+1] = Qs; }
     void            setQ00(double q, int s) { Q00 = q; if (_Qs[s+1].size() < 1) _Qs[s+1].resize(1); _Qs[s+1][0] = q; }
-    double         &getQ00() { return Q00; }    
+    double         &getQ00() { return Q00; }
+    vec             getQ1() { return vec(Q1x, Q1y, Q1z); }  // Only IOP
     // POLARIZABILITIES
     bool            IsPolarizable();
     void            setPs(matrix polar, int state) { _Ps[state+1] = polar; }
@@ -106,8 +107,10 @@ public:
     double          getProjP(vec &dir);
     // FIELDS & INDUCED MOMENTS
     vec             getFieldP() { return vec(FPx,FPy,FPz); } // Only IOP
+    void            setFieldP(double &fx, double &fy, double &fz) { FPx = fx; FPy = fy; FPz = fz; }
     vec             getFieldU() { return vec(FUx,FUy,FUz); } // Only IOP
-    vec             getU1() { return vec(U1x,U1y,U1z); }     // Only IOP    
+    vec             getU1() { return vec(U1x,U1y,U1z); }     // Only IOP
+    void            setU1(vec &u1) { U1x = u1.getX(); U1y = u1.getY(); U1z = u1.getZ(); }
     // CHARGE -1 0 +1 & DELTA
     void            Charge(int state);
     void            ChargeDelta(int state1, int state2);
