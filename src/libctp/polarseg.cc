@@ -8,7 +8,8 @@ namespace votca { namespace ctp {
 
     
     
-PolarSeg::PolarSeg(int id, vector<APolarSite*> &psites) : _id(id) {
+PolarSeg::PolarSeg(int id, vector<APolarSite*> &psites) 
+    : _id(id), _is_charged(true), _is_polarizable(true) {
     PolarFrag *pfrag = this->AddFragment();
     for (int i = 0; i < psites.size(); ++i) {
         push_back(psites[i]);

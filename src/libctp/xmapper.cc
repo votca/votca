@@ -819,7 +819,6 @@ PolarSeg *XMpsMap::MapPolSitesToSeg(const vector<APolarSite*> &pols_n,
             APolarSite *templ = pols_n[poleId-1];
             APolarSite *newSite = new APolarSite(-1, name);
             newSite->ImportFrom(templ);
-            newSite->Charge(0); 
             // Shift + rotate
             if (!map2md) {
                 newSite->Translate(translateMP2MD);
@@ -829,7 +828,9 @@ PolarSeg *XMpsMap::MapPolSitesToSeg(const vector<APolarSite*> &pols_n,
                 vec mdpos = frag->Atoms()[i]->getPos();
                 newSite->setPos(mdpos);
                 if (newSite->getRank() > 0) print_huge_map2md_warning = true;
-            }                       
+            }
+            // Charge
+            newSite->Charge(0); 
             // Do not forget to deallocate if site is inactive
             if (!only_active_sites || newSite->getIsActive(_estatics_only)) {
                 pfrag->push_back(newSite);

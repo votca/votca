@@ -19,7 +19,7 @@ public:
     PolarSeg() : _id(-1), _is_charged(true), _is_polarizable(true) {}
     PolarSeg(int id, vector<APolarSite*> &psites);
     explicit PolarSeg(PolarSeg *templ);
-    explicit PolarSeg(int id) : _id(id) {}
+    explicit PolarSeg(int id) : _id(id), _is_charged(true), _is_polarizable(true) {}
    ~PolarSeg();
 
     const int &getId() { return _id; }
