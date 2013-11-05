@@ -1,0 +1,2 @@
+if (BUILD_MANPAGES)
+endif (BUILD_MANPAGES)

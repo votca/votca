@@ -54,7 +54,8 @@ void CtpApplication::ShowHelpText(std::ostream &out) {
     if (VersionString() != "") name = name + ", version " + VersionString();
     votca::ctp::HelpTextHeader(name);
     HelpText(out);
-    out << "\n\n" << OptionsDesc() << endl;
+    out << "\n\n" << VisibleOptions() << endl;
+    //out << "\n\n" << OptionsDesc() << endl;
 }
 
 
