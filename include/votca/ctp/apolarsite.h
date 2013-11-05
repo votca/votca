@@ -94,7 +94,7 @@ public:
     // PERMANENT MOMENTS
     bool            IsCharged();
     vector<double> &getQs(int state) { return _Qs[state+1]; }
-    void            setQs(vector<double> Qs, int state) { while (Qs.size() < 9) Qs.push_back(0.0); _Qs[state+1] = Qs; }
+    void            setQs(vector<double> Qs, int state) { while(Qs.size() < 9) Qs.push_back(0.0); _Qs[state+1] = Qs; }
     void            setQ00(double q, int s) { Q00 = q; if (_Qs[s+1].size() < 1) _Qs[s+1].resize(1); _Qs[s+1][0] = q; }
     double         &getQ00() { return Q00; }
     vec             getQ1() { return vec(Q1x, Q1y, Q1z); }  // Only IOP

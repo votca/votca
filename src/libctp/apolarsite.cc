@@ -70,14 +70,18 @@ void APolarSite::Rotate(const matrix &rot, const vec &refPos) {
     // Rotate multipoles into global frame >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     for (int state = -1; state < 2; state++) {
 
-        // Any multipoles for this charge state available?
-        if (_Qs[state+1].size() < 1) { continue; }
-
         //   0    1    2    3    4    5    6    7    8    9    10   ...
         //   Q00  Q10  Q1c  Q1s  Q20  Q21c Q21s Q22c Q22s Q30  Q31c ...
 
         matrix R = rot;
         matrix R_T = matrix(R.getRow(0),R.getRow(1),R.getRow(2));
+        
+        // Transform polarizability tensor into global frame
+        matrix P_Global = R * _Ps[state+1] * R_T;
+        _Ps[state+1] = P_Global;
+        
+        // Any multipoles for this charge state available?
+        if (_Qs[state+1].size() < 1) { continue; }
 
         // Transform dipole moment into global frame
         if (_Qs[state+1].size() > 1) {
@@ -134,10 +138,6 @@ void APolarSite::Rotate(const matrix &rot, const vec &refPos) {
                                           - Q_Global.get(1,1)); // Q22c
             _Qs[state+1][8] = 2 / sqrt(3) * Q_Global.get(0,1);  // Q22s
         }
-
-        // Transform polarizability tensor into global frame
-        matrix P_Global = R * _Ps[state+1] * R_T;
-        _Ps[state+1] = P_Global;
 
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -655,12 +655,9 @@ vector<APolarSite*> APS_FROM_MPS(string filename, int state, QMThread *thread) {
                                             + filename + " not supported.");
                 }
             }
-
             // element,  position,  rank limit
             else if ( split.size() == 6 ) {
-
                 Qs.clear();
-
                 int id = poleCount++;  // <- starts from 1
                 string name = split[0];
 
@@ -684,86 +681,62 @@ vector<APolarSite*> APS_FROM_MPS(string filename, int state, QMThread *thread) {
                 }
 
                 vec pos = vec(x,y,z);
-
                 int rank = boost::lexical_cast<int>(split[5]);
-
                 APolarSite *newPole = new APolarSite(id, name);
                 newPole->setRank(rank);
                 newPole->setPos(pos);
                 poles.push_back(newPole);
                 thisPole = newPole;
-
             }
-
             // 'P', dipole polarizability
             else if ( split[0] == "P") {
-
                 double pxx, pxy, pxz;
                 double      pyy, pyz;
                 double           pzz;
-
                 if (split.size() == 7) {
-
                     pxx = 1e-3 * boost::lexical_cast<double>(split[1]);
                     pxy = 1e-3 * boost::lexical_cast<double>(split[2]);
                     pxz = 1e-3 * boost::lexical_cast<double>(split[3]);
                     pyy = 1e-3 * boost::lexical_cast<double>(split[4]);
                     pyz = 1e-3 * boost::lexical_cast<double>(split[5]);
                     pzz = 1e-3 * boost::lexical_cast<double>(split[6]);
-
                     P1 = matrix(vec(pxx,pxy,pyy),
                                 vec(pxy,pyy,pyz),
                                 vec(pxz,pyz,pzz));
-
-
                 }
-
                 else if (split.size() == 2) {
-
                     pxx = 1e-3 * boost::lexical_cast<double>(split[1]);
                     pxy = 0.0;
                     pxz = 0.0;
                     pyy = pxx;
                     pyz = 0.0;
                     pzz = pxx;
-
                     P1 = matrix(vec(pxx,pxy,pxz),
                                 vec(pxy,pyy,pyz),
                                 vec(pxz,pyz,pzz));
                 }
-
                 else {
                     throw std::runtime_error("Invalid line in " + filename
                                              + ": " + line);
                 }
-
                 thisPole->setPs(P1, state);
                 useDefaultPs = false;
             }
-
-            // multipole line
+            // Multipole line
             else {
-
-                int lineRank = int( sqrt(thisPole->getQs(state).size()) + 0.5 );
-
+                int lineRank = int( sqrt(Qs.size()) + 0.5 );
                 if (lineRank == 0) {
                     Q0_total += boost::lexical_cast<double>(split[0]);
                 }
-
                 for (int i = 0; i < split.size(); i++) {
-
                     double qXYZ = boost::lexical_cast<double>(split[i]);
-
                     // Convert e*(a_0)^k to e*(nm)^k where k = rank
                     double BOHR2NM = 0.0529189379;
                     qXYZ *= pow(BOHR2NM, lineRank); // OVERRIDE
-
                     Qs.push_back(qXYZ);
-
                 }
                 thisPole->setQs(Qs, state);
-            }
-            
+            }            
         } /* Exit loop over lines */
     }
     else { cout << endl << "ERROR: No such file " << filename << endl;
