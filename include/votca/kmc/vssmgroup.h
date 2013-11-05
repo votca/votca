@@ -42,14 +42,10 @@ public:
     
 private:
 
-    double el_probsum;
-    double ho_probsum;
     double tot_probsum;
     
-    double el_non_inject_probsum;
-    double ho_non_inject_probsum;
-    double el_inject_probsum;
-    double ho_inject_probsum;
+    double non_inject_probsum;
+    double inject_probsum;
     
 };
 
@@ -68,38 +64,16 @@ double Vssmgroup::Timestep(votca::tools::Random2 *RandomVariable){
 }
 
 void Vssmgroup::Recompute_in_device(Events* events){
-    
-    if(events->el_dirty) {
-        el_non_inject_probsum = events->El_non_injection_rates->compute_sum();
-        el_inject_probsum = events->El_injection_rates->compute_sum();       
-        el_probsum = el_non_inject_probsum + el_inject_probsum;
-        events->el_dirty = false;
-    }
 
-    if(events->ho_dirty) {
-        ho_non_inject_probsum = events->Ho_non_injection_rates->compute_sum();
-        ho_inject_probsum = events->Ho_injection_rates->compute_sum();       
-        ho_probsum = ho_non_inject_probsum + ho_inject_probsum;
-        events->ho_dirty = false;
-    }
-
-    tot_probsum = el_probsum + ho_probsum;
+    non_inject_probsum = events->Non_injection_rates->compute_sum();
+    inject_probsum = events->Injection_rates->compute_sum();       
+    tot_probsum = non_inject_probsum + inject_probsum;
 }
 
 void Vssmgroup::Recompute_in_bulk(Events* events){
-    
-    if(events->el_dirty) {
-        el_probsum = events->El_non_injection_rates->compute_sum();
-        events->el_dirty = false;
-    }
 
-    if(events->ho_dirty) {
-        ho_probsum = events->Ho_non_injection_rates->compute_sum();
-        events->ho_dirty = false;
-    }
+    tot_probsum = events->Non_injection_rates->compute_sum();
 
-    tot_probsum = el_probsum + ho_probsum;
-    
 }
 
 void Vssmgroup::Perform_one_step_in_device(Events* events, Graph* graph, State* state, Globaleventinfo* globevent, votca::tools::Random2 *RandomVariable){
@@ -109,56 +83,33 @@ void Vssmgroup::Perform_one_step_in_device(Events* events, Graph* graph, State* 
     long event_ID;
     Event* chosenevent;
     
-    if(randn<el_probsum/tot_probsum) { // electron event
-        if(randn< el_non_inject_probsum/tot_probsum) { // non injection event
-            randn *= el_non_inject_probsum;
-            event_ID = events->El_non_injection_rates->search(randn);
-            chosenevent = events->El_non_injection_events[event_ID];
-        }
-        else { // injection event
-            randn -= el_non_inject_probsum/tot_probsum;
-            randn *= el_inject_probsum;
-            event_ID = events->El_injection_rates->search(randn);
-            chosenevent = events->El_injection_events[event_ID];
-        }
+    if(randn<inject_probsum/tot_probsum) { // injection event
+        randn *= inject_probsum;
+        event_ID = events->Injection_rates->search(randn);
+        chosenevent = events->Injection_events[event_ID];
     }
-    else { //Hole event
-        randn -= el_probsum/tot_probsum;
-        if(randn< ho_non_inject_probsum/tot_probsum) { // non injection event
-            randn *= ho_non_inject_probsum;
-            event_ID = events->Ho_non_injection_rates->search(randn);
-            chosenevent = events->Ho_non_injection_events[event_ID];
-        }
-        else { // injection event
-            randn -= ho_non_inject_probsum/tot_probsum;
-            randn *= ho_inject_probsum;
-            event_ID = events->Ho_injection_rates->search(randn);
-            chosenevent = events->Ho_injection_events[event_ID];
-        }
+    else {
+        randn -= inject_probsum/tot_probsum;
+        randn *= non_inject_probsum;
+        event_ID = events->Non_injection_rates->search(randn);
+        chosenevent = events->Non_injection_events[event_ID];        
     }
+
     events->On_execute(chosenevent, graph, state, globevent);
+
 }
 
 void Vssmgroup::Perform_one_step_in_bulk(Events* events, Graph* graph, State* state, Globaleventinfo* globevent, votca::tools::Random2 *RandomVariable){
 
     double randn = RandomVariable->rand_uniform();    
     
-    //first search the particular bsumtree
-   
     long event_ID;
     Event* chosenevent;
-    
-    if(randn<el_probsum/tot_probsum) { // electron event
-        randn *= el_probsum;
-        event_ID = events->El_non_injection_rates->search(randn);
-        chosenevent = events->El_non_injection_events[event_ID];
-    }
-    else { //Hole event
-        randn -= el_probsum/tot_probsum;
-        randn *= ho_probsum;
-        event_ID = events->Ho_non_injection_rates->search(randn);
-        chosenevent = events->Ho_non_injection_events[event_ID];
-    }
+
+    randn *= tot_probsum;
+    event_ID = events->Non_injection_rates->search(randn);
+    chosenevent = events->Non_injection_events[event_ID];
+
     events->On_execute(chosenevent, graph, state, globevent);
 }
 

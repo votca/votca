@@ -22,7 +22,7 @@
 #include <votca/kmc/graph.h>
 #include <votca/kmc/globaleventinfo.h>
 #include <votca/kmc/events.h>
-//#include <votca/kmc/vssmgroup.h>
+#include <votca/kmc/vssmgroup.h>
 
 using namespace std;
 
@@ -38,7 +38,7 @@ public:
     Graph* graph;
     State* state;
     Events* events;
-    //Vssmgroup* vssmgroup;
+    Vssmgroup* vssmgroup;
     Globaleventinfo* globevent;
     
     Diode() {};
@@ -72,7 +72,7 @@ void Diode::Initialize(Property *options) {
     graph = new Graph();
     state = new State();
     events = new Events();
-    //vssmgroup = new Vssmgroup();
+    vssmgroup = new Vssmgroup();
 }
 
 bool Diode::EvaluateFrame() {
@@ -112,9 +112,9 @@ void Diode::RunKMC() {
             events->Recompute_all_non_injection_events(graph,state,globevent);
         }
         
-        //vssmgroup->Recompute_in_device(events);
-        //sim_time += vssmgroup->Timestep(RandomVariable);
-        //vssmgroup->Perform_one_step_in_device(events,graph,state,globevent,RandomVariable);
+        vssmgroup->Recompute_in_device(events);
+        sim_time += vssmgroup->Timestep(RandomVariable);
+        vssmgroup->Perform_one_step_in_device(events,graph,state,globevent,RandomVariable);
     }
 }
 
