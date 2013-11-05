@@ -21,6 +21,7 @@
 #include <votca/kmc/node.h>
 #include <votca/tools/database.h>
 #include <votca/tools/vec.h>
+#include <votca/tools/random.h>
 
 
 namespace votca { namespace kmc {
@@ -29,10 +30,8 @@ using namespace std;
 
 class Graph {
  public:
-     // TO IMPLEMENT
-     // void Load(){};
-     // TO IMPLEMENT
-     void CreateSquareLattice(int NX, int NY, int NZ, double latconst);
+     void Load(){};
+     void CreateCubicLattice(int NX, int NY, int NZ, double latt_const);
      
      //const vector<Node*> &getNeighbours( Node* node, CarrierType type ) { return node->getNeighbours(type); }
    
@@ -41,7 +40,7 @@ class Graph {
      
 };
 
-/* void Graph::Load() {
+void Graph::Load() {
     
     votca::tools::Database db;
     db.Open( _filename );
@@ -51,27 +50,53 @@ class Graph {
     vec nodeposition;
     
     int index = 0;
+    int numberofnodes = 0;
     
     while (stmt->Step() != SQLITE_DONE) {
+        Node *newNode = new Node();
+        nodes.push_back(newNode);
+   
         node_id = stmt->Column<int>(0);
         nodeposition = vec(stmt->Column<double>(1),stmt->Coulumb<double(2),stmt->Coulomb<double(3)); //positions in nm
 
-        nodes[index]->id = node_id;
-        nodes[index]->position = nodeposition;
+        nodes[index]._id = node_id;
+        nodes[index]._position = nodeposition;
         
         index++;
-    }    
+        numberofnodes++;
+    }
+    delete stmt;
+
+    totalnumberofnodes = numberofnodes;
+
+    // Load pairs and distances    
     
+    stmt = db.Prepare("SELECT seg1-1, seg2-1, drX, drY, drZ FROM pairs ORDER BY segment1;");
 
-} */
+    int numberofpairs = 0;
+    
+    while (stmt->Step() != SQLITE_DONE)
+    {
+        int node1 = stmt->Column<int>(0);
+        int node2 = stmt->Column<int>(1);
 
-void Graph:: CreateSquareLattice(int NX, int NY, int NZ, double latt_const) {
+        nodes[node1]->setNeighbours(node2);
+        nodes[node2]->setNeighbours(node1);
+    }    
+    delete stmt;
+
+   
+
+}
+
+void Graph:: CreateCubicLattice(int NX, int NY, int NZ, double latt_const) {
     
     //specify lattice types (square lattice, fcc lattice, fractal lattice?)
     //and dimensions
     
     int node_id;
     vec nodeposition;
+    int numberofnodes = 0;
     int index = 0;
     
     for(int ix = 0; ix<NX; ix++) {
@@ -83,16 +108,52 @@ void Graph:: CreateSquareLattice(int NX, int NY, int NZ, double latt_const) {
                 node_id = NX*NY*iz + NX*iy + ix-1;
                 nodeposition = vec(latt_const*ix,latt_const*iy,latt_const*iz); //positions in nm
 
-                nodes[index]->setID(node_id);
-                nodes[index]->setPosition(latt_const*ix,latt_const*iy,latt_const*iz);
+                nodes[index]._id = node_id;
+                nodes[index]._position = nodeposition;
                     
                 index++;
+                numberofnodes++;
+            }
+        }
+    }
+    
+    totalnumberofnodes = numberofnodes;
+    
+    //specify pairs
+    
+    vec position1;
+    vec position2;
+    double distancesqr;
+    int numberofpairs = 0;
+    
+    for (int index1=0;index1<numberofnodes;index1++) {
+        for (int index2 = 0;index2<numberofnodes;index++) {
+            position1 = nodes[index1].getPosition();
+            position2 = nodes[index2].getPosition();
+            
+            distancesqr = (position1.x-position2.x)*(position1.x-position2.x)  +  (position1.y-position2.y)*(position1.y-position2.y) + (position1.z-position2.z)*(position1.z-position2.z);
+            
+            if(distancesqr <= hopping_distance*hopping_distance) {
+                nodes[index1]->setNeighbours(index2);
+                nodes[index2]->setNeighbours(index1);
+                numberofpairs++;
             }
         }
     }
 }
 
-}} 
+void Graph:: CreateGaussianEnergyLandscape(double disorder_strength) {
+   
+    for (int index1 = 0; index1<numberofnodes; index1++) {
+        votca::tools::Random *RandomVariable = new votca::tools::Random();
+        RandomVariable->init(rand(), rand(), rand(), rand());
+        nodes[index1]._static_energy = RandomVariable->rand_gaussian(disorder_strength);
+    }
+}
+
+}
+
+
 
 #endif
 

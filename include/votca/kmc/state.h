@@ -37,6 +37,7 @@ using namespace std;
 class State {
 public:
     
+    void Clear();
     void Save(){ ; }
     void Load(){ ; }
 
@@ -49,11 +50,19 @@ public:
 private:
     
     list<Carrier*> _carriers;  
-
     
 };
 
+void State::Clear {
+    
+    for (int node_index=0;node_index<totalnumberofnodes;node_index++) {
+        nodes[node_index]->setOccupation(Electron,0.0);
+        nodes[node_index]->setOccupation(Hole,0.0);
+        nodes[node_index]->setOccupation(Exciton,0.0);
+        nodes[node_index]->setCarrierID(-1);
 
+    }
+}
 
 }} 
 
