@@ -36,14 +36,10 @@ class Events {
     
 public:
     
-    vector<Event*> El_non_injection_events;
-    vector<Event*> Ho_non_injection_events;
-    vector<Event*> El_injection_events;
-    vector<Event*> Ho_injection_events;
-    Bsumtree* El_non_injection_rates;
-    Bsumtree* Ho_non_injection_rates;
-    Bsumtree* El_injection_rates;
-    Bsumtree* Ho_injection_rates;
+    vector<Event*> Non_injection_events;
+    vector<Event*> Injection_events;
+    Bsumtree* Non_injection_rates;
+    Bsumtree* Injection_rates;
     Longrange* longrange;
     
     int nholes;
@@ -57,13 +53,10 @@ public:
   
     void Initialize_eventvector(Graph* graph, State* state, Globaleventinfo* globevent);
     void Initialize_longrange(Graph* graph, Globaleventinfo* globevent);
-    
-    bool el_dirty;
-    bool ho_dirty;
-    
+        
 private:
     void Initialize_injection_eventvector(Node* electrode, vector<Event*> eventvector, CarrierType cartype);
-    void Grow_non_injection_eventvector(int carrier_grow_size, vector<Carrier*> carriers, vector<Event*> eventvector,int max_pair_degree);
+    void Grow_non_injection_eventvector(int carrier_grow_size, vector<Carrier*> carriers, int max_pair_degree);
 
     void Add_remove_carrier(action AR, Carrier* carrier, Graph* graph, Node* action_node, State* state, Globaleventinfo* globevent);
     void Effect_potential_and_non_injection_rates(action AR, Carrier* carrier, Graph* graph, State* state, Globaleventinfo* globevent);
@@ -91,22 +84,11 @@ void Events::On_execute(Event* event, Graph* graph, State* state, Globaleventinf
         else if(event->totype == Recombination) {
             Carrier* recombined_carrier = tonode->carriers_on_node[0];
             Add_remove_carrier(Remove, recombined_carrier, graph, tonode,state,globevent);
-            if(carrier->carrier_type == Electron) {
-                state->Sell(state->electrons, state->electron_reservoir, carrier->carrier_ID);
-                state->Sell(state->holes, state->hole_reservoir, recombined_carrier->carrier_ID);
-            }
-            else if(carrier->carrier_type == Hole) {
-                state->Sell(state->holes, state->hole_reservoir, carrier->carrier_ID);
-                state->Sell(state->electrons, state->electron_reservoir, recombined_carrier->carrier_ID);
-            }
+            state->Sell(carrier->carrier_ID);
+            state->Sell(recombined_carrier->carrier_ID);
         }
         else if(event->totype == Collection) {
-            if(carrier->carrier_type == Electron) {
-                state->Sell(state->electrons, state->electron_reservoir, carrier->carrier_ID);
-            }
-            else if(carrier->carrier_type == Hole) {
-                state->Sell(state->holes, state->hole_reservoir, carrier->carrier_ID);
-            }            
+            state->Sell(carrier->carrier_ID);
         }
     }
     else if(event->fromtype == Injection) {
@@ -114,34 +96,26 @@ void Events::On_execute(Event* event, Graph* graph, State* state, Globaleventinf
         
         if(event->totype == Totransfer) {
             int carrier_ID;
+            if(state->carrier_reservoir.empty()){
+                state->Grow(globevent->state_grow_size, graph->max_pair_degree);
+                Grow_non_injection_eventvector(globevent->state_grow_size, state->carriers,graph->max_pair_degree);
+                Non_injection_rates->resize(Non_injection_events.size());
+            }
+
+            carrier_ID = state->Buy();
             if(event->inject_cartype == Electron) {
-                if(state->electron_reservoir.empty()){
-                    state->Grow(state->electrons, state->electron_reservoir, globevent->state_grow_size, graph->max_pair_degree);
-                    Grow_non_injection_eventvector(globevent->state_grow_size, state->electrons, El_non_injection_events,graph->max_pair_degree);
-                    El_non_injection_rates->resize(El_non_injection_events.size());
-                }
-                carrier_ID = state->Buy(state->electrons, state->electron_reservoir);
-                Add_remove_carrier(Add,state->electrons[carrier_ID],graph,tonode,state,globevent);
+                state->carriers[carrier_ID]->carrier_type == Electron;
             }
-            else if (event->inject_cartype == Hole) {
-                if(state->hole_reservoir.empty()){
-                    state->Grow(state->holes, state->hole_reservoir, globevent->state_grow_size, graph->max_pair_degree);
-                    Grow_non_injection_eventvector(globevent->state_grow_size, state->holes, Ho_non_injection_events,graph->max_pair_degree);
-                    Ho_non_injection_rates->resize(Ho_non_injection_events.size());
-                }  
-                carrier_ID = state->Buy(state->holes, state->hole_reservoir);
-                Add_remove_carrier(Add,state->holes[carrier_ID],graph,tonode,state,globevent);
+            else if(event->inject_cartype == Hole) {
+                state->carriers[carrier_ID]->carrier_type == Hole;
             }
+            
+            Add_remove_carrier(Add,state->carriers[carrier_ID],graph,tonode,state,globevent);
         }
         else if(event->totype == Recombination) {
             Carrier* recombined_carrier = tonode->carriers_on_node[0];
             Add_remove_carrier(Remove,recombined_carrier,graph,tonode,state,globevent);
-            if(event->inject_cartype == Electron) {
-                state->Sell(state->holes, state->hole_reservoir, recombined_carrier->carrier_ID);
-            }
-            else if(event->inject_cartype == Hole) {
-                state->Sell(state->electrons, state->electron_reservoir, recombined_carrier->carrier_ID);
-            }                        
+            state->Sell(recombined_carrier->carrier_ID);
         }
     }
 }
@@ -249,117 +223,104 @@ void Events::Effect_potential_and_non_injection_rates(action AR, Carrier* carrie
                 int r_isx = isx;
                 while (r_isx < 0) r_isx += state->meshsizeX;
                 while (r_isx >= state->meshsizeX) r_isx -= state->meshsizeX;
-                for (int icartype = 0;icartype <2;icartype++) {
                 
-                    // Ask a list of all charges in this sublattice
-                    list<int>::iterator li1,li2,li3;
-                    list<int> *carrierList = &state->coulomb_mesh[r_isx][r_isy][r_isz][icartype];
-                    li1 = carrierList->begin();
-                    li2 = carrierList->end();
-                    for (li3=li1; li3!=li2; li3++) {
-                        int probecarrier_ID = *li3;
-                        Carrier* probecarrier;
-                        if(icartype == 0) {probecarrier = state->electrons[probecarrier_ID];}
-                        if(icartype == 1) {probecarrier = state->holes[probecarrier_ID];}
-                        Node* probenode = graph->nodes[probecarrier->carrier_node_ID];
-                        myvec probepos = probenode->node_position;
-                        int probecharge;
-                        if(icartype == 0) {
-                            probecharge = -1;
-                        }
-                        else {
-                            probecharge = 1;
-                        }
-          
-                        interact_sign *= probecharge;
-          
-                        // Compute coordinates in non-periodic lattice
-                        myvec periodic_convert = myvec((isx-r_isx)*globevent->coulcut,(isy-r_isy)*globevent->coulcut,(isz-r_isz)*globevent->coulcut);
-                        myvec np_probepos = probepos + periodic_convert;
-                        myvec distance = np_probepos-carpos;
+                // Ask a list of all charges in this sublattice
+                list<int>::iterator li1,li2,li3;
+                list<int> *carrierList = &state->coulomb_mesh[r_isx][r_isy][r_isz];
+                li1 = carrierList->begin();
+                li2 = carrierList->end();
+                for (li3=li1; li3!=li2; li3++) {
+                    int probecarrier_ID = *li3;
+                    Carrier* probecarrier = state->carriers[probecarrier_ID];
+                    CarrierType probecartype = probecarrier->carrier_type;
+                    Node* probenode = graph->nodes[probecarrier->carrier_node_ID];
+                    myvec probepos = probenode->node_position;
 
-                        double distancesqr = abs(distance)*abs(distance);
+                    int probecharge;
+                    if(probecartype == Electron) {
+                        probecharge = -1;
+                    }
+                    else if(probecartype == Hole) {
+                        probecharge = 1;
+                    }
+          
+                    interact_sign *= probecharge;
+          
+                    // Compute coordinates in non-periodic lattice
+                    myvec periodic_convert = myvec((isx-r_isx)*globevent->coulcut,(isy-r_isy)*globevent->coulcut,(isz-r_isz)*globevent->coulcut);
+                    myvec np_probepos = probepos + periodic_convert;
+                    myvec distance = np_probepos-carpos;
 
-                        if (probecarrier_ID!=carrier->carrier_ID) {
-                            if((carnode->node_ID!=probenode->node_ID)&&(distancesqr<=globevent->coulcut*globevent->coulcut)) { 
+                    double distancesqr = abs(distance)*abs(distance);
+
+                    if (probecarrier_ID!=carrier->carrier_ID) {
+                        if((carnode->node_ID!=probenode->node_ID)&&(distancesqr<=globevent->coulcut*globevent->coulcut)) { 
                                 
-                                // Charge interacting with its own images, taken care off in graph.h
-                                // In case multiple charges are on the same node, coulomb calculation on the same spot is catched
+                            // Charge interacting with its own images, taken care off in graph.h
+                            // In case multiple charges are on the same node, coulomb calculation on the same spot is catched
                           
-                                //First we take the direction sr interactions into account
-                                if (AR==Add) carrier->srfrom +=interact_sign*Compute_Coulomb_potential(np_probepos.x(),-1.0*distance,
-                                                            graph->sim_box_size,globevent);
-                                probecarrier->srfrom += interact_sign*Compute_Coulomb_potential(carpos.x(),distance,
-                                                            graph->sim_box_size,globevent);
-                            }
-                            if (AR==Add) {
+                            //First we take the direction sr interactions into account
+                            if (AR==Add) carrier->srfrom +=interact_sign*Compute_Coulomb_potential(np_probepos.x(),-1.0*distance,
+                                                        graph->sim_box_size,globevent);
+                            probecarrier->srfrom += interact_sign*Compute_Coulomb_potential(carpos.x(),distance,
+                                                        graph->sim_box_size,globevent);
+                        }
+                        if (AR==Add) {
               
-                                // Adjust Coulomb potential for neighbours of the added carrier
-                                for (int jump=0; jump < carnode->pairing_nodes.size(); jump++) {
-                                    myvec jumpdistancevector = carnode->static_event_info[jump].distance;
-                                    myvec jumpcarrierpos = carnode->node_position + jumpdistancevector;
-                                    myvec jumpdistance = np_probepos - jumpcarrierpos;
-                                    double distancejumpsqr = abs(jumpdistance)*abs(jumpdistance);
+                            // Adjust Coulomb potential for neighbours of the added carrier
+                            for (int jump=0; jump < carnode->pairing_nodes.size(); jump++) {
+                                myvec jumpdistancevector = carnode->static_event_info[jump].distance;
+                                myvec jumpcarrierpos = carnode->node_position + jumpdistancevector;
+                                myvec jumpdistance = np_probepos - jumpcarrierpos;
+                                double distancejumpsqr = abs(jumpdistance)*abs(jumpdistance);
 
-                                    if(distancejumpsqr <= globevent->coulcut*globevent->coulcut) {
+                                if(distancejumpsqr <= globevent->coulcut*globevent->coulcut) {
                                     
-                                        carrier->srto[jump] += interact_sign*Compute_Coulomb_potential(np_probepos.x(),jumpdistance,
-                                                         graph->sim_box_size, globevent);
-                                    }
+                                    carrier->srto[jump] += interact_sign*Compute_Coulomb_potential(np_probepos.x(),jumpdistance,
+                                                     graph->sim_box_size, globevent);
                                 }
                             }
-                            else if (AR==Remove) {
+                        }
+                        else if (AR==Remove) {
                             
-                                // Reset Coulomb potential for carrier1 and its neighbours
-                                carrier->srfrom = 0.0;
-                                for (int jump=0; jump < carnode->pairing_nodes.size(); jump++) {
-                                    carrier->srto[jump] = 0.0;  
-                                }                            
-                            }
+                            // Reset Coulomb potential for carrier1 and its neighbours
+                            carrier->srfrom = 0.0;
+                            for (int jump=0; jump < carnode->pairing_nodes.size(); jump++) {
+                                carrier->srto[jump] = 0.0;  
+                            }                            
+                        }
            
-                            // Adjust Coulomb potential and event rates for neighbours of carrier2
-                            for (int jump=0; jump < probenode->pairing_nodes.size(); jump++) {
-                                myvec jumpdistancevector = probenode->static_event_info[jump].distance;
-                                myvec jumpprobepos = np_probepos+jumpdistancevector;
-                                myvec jumpdistance = carpos-jumpprobepos;
-                                double distsqr = abs(jumpdistance)*abs(jumpdistance);
-                                int event_ID = probecarrier->carrier_ID*graph->max_pair_degree+jump;
+                        // Adjust Coulomb potential and event rates for neighbours of carrier2
+                        for (int jump=0; jump < probenode->pairing_nodes.size(); jump++) {
+                            myvec jumpdistancevector = probenode->static_event_info[jump].distance;
+                            myvec jumpprobepos = np_probepos+jumpdistancevector;
+                            myvec jumpdistance = carpos-jumpprobepos;
+                            double distsqr = abs(jumpdistance)*abs(jumpdistance);
+                            int event_ID = probecarrier->carrier_ID*graph->max_pair_degree+jump;
                                 
-                                double fromlongrange;
-                                double tolongrange;
-                                if(globevent->device) {
-                                    fromlongrange = longrange->Get_cached_longrange(probenode->layer_index);
-                                    if(probenode->pairing_nodes[jump]->node_type == Normal) {
-                                        tolongrange = longrange->Get_cached_longrange(probenode->pairing_nodes[jump]->layer_index);
-                                    }
-                                    else { // collection
-                                        tolongrange = 0.0;
-                                    }
+                            double fromlongrange;
+                            double tolongrange;
+                            if(globevent->device) {
+                                fromlongrange = longrange->Get_cached_longrange(probenode->layer_index);
+                                if(probenode->pairing_nodes[jump]->node_type == Normal) {
+                                    tolongrange = longrange->Get_cached_longrange(probenode->pairing_nodes[jump]->layer_index);
                                 }
-                                else {
-                                    fromlongrange = 0.0;
+                                else { // collection
                                     tolongrange = 0.0;
                                 }
+                            }
+                            else {
+                                fromlongrange = 0.0;
+                                tolongrange = 0.0;
+                            }
                                 
-                                if(distsqr <= globevent->coulcut*globevent->coulcut) {
-                                    if(probecarrier->carrier_type==Electron) {
-                                        probecarrier->srto[jump] += 
-                                                        interact_sign*Compute_Coulomb_potential(carpos.x(),jumpdistance,
-                                                        graph->sim_box_size, globevent);
+                            if(distsqr <= globevent->coulcut*globevent->coulcut) {
+                                probecarrier->srto[jump] += 
+                                                   interact_sign*Compute_Coulomb_potential(carpos.x(),jumpdistance,
+                                                   graph->sim_box_size, globevent);
                                         
-                                        El_non_injection_events[event_ID]->Set_non_injection_event(graph->nodes, probecarrier, jump, fromlongrange, tolongrange, globevent);
-                                        El_non_injection_rates->setrate(event_ID, El_non_injection_events[event_ID]->rate);
-                                        el_dirty = true;
-                                    }
-                                    else if(probecarrier->carrier_type==Hole) {
-                                        probecarrier->srto[jump] += 
-                                                            interact_sign*Compute_Coulomb_potential(carpos.x(),jumpdistance,
-                                                            graph->sim_box_size, globevent);
-                                        Ho_non_injection_events[event_ID]->Set_non_injection_event(graph->nodes, probecarrier, jump, fromlongrange, tolongrange, globevent);
-                                        Ho_non_injection_rates->setrate(event_ID, Ho_non_injection_events[event_ID]->rate);
-                                        ho_dirty = true;                                        
-                                    }
-                                }
+                                Non_injection_events[event_ID]->Set_non_injection_event(graph->nodes, probecarrier, jump, fromlongrange, tolongrange, globevent);
+                                Non_injection_rates->setrate(event_ID, Non_injection_events[event_ID]->rate);
                             }
                         }
                     }
@@ -388,33 +349,15 @@ void Events::Effect_potential_and_non_injection_rates(action AR, Carrier* carrie
             tolongrange = 0.0;
         }
         
-        if(carrier->carrier_type==Electron) {
-            if(AR == Add) {
-                El_non_injection_events[event_ID]->Set_non_injection_event(graph->nodes, carrier, jump, fromlongrange, tolongrange, globevent);
-                El_non_injection_rates->setrate(event_ID, El_non_injection_events[event_ID]->rate);
-                el_dirty = true;
-            }
-            else {
-                El_non_injection_events[event_ID]->fromtype = Fromnotinbox;
-                El_non_injection_events[event_ID]->totype = Tonotinbox;
-                El_non_injection_events[event_ID]->rate = 0.0;
-                El_non_injection_rates->setrate(event_ID, 0.0);
-                el_dirty = true;
-            }
+        if(AR == Add) {
+            Non_injection_events[event_ID]->Set_non_injection_event(graph->nodes, carrier, jump, fromlongrange, tolongrange, globevent);
+            Non_injection_rates->setrate(event_ID, Non_injection_events[event_ID]->rate);
         }
-        else if(carrier->carrier_type==Hole) {
-            if(AR == Add) {
-                Ho_non_injection_events[event_ID]->Set_non_injection_event(graph->nodes, carrier, jump, fromlongrange, tolongrange, globevent);
-                Ho_non_injection_rates->setrate(event_ID, Ho_non_injection_events[event_ID]->rate);
-                ho_dirty = true;
-            }
-            else {
-                Ho_non_injection_events[event_ID]->fromtype = Fromnotinbox;
-                Ho_non_injection_events[event_ID]->totype = Tonotinbox;
-                Ho_non_injection_events[event_ID]->rate = 0.0;
-                Ho_non_injection_rates->setrate(event_ID, 0.0);
-                ho_dirty = true;
-            }            
+        else {
+            Non_injection_events[event_ID]->fromtype = Fromnotinbox;
+            Non_injection_events[event_ID]->totype = Tonotinbox;
+            Non_injection_events[event_ID]->rate = 0.0;
+            Non_injection_rates->setrate(event_ID, 0.0);
         }
     }
 }        
@@ -487,41 +430,49 @@ void Events::Effect_injection_rates(action AR, Graph* graph, Carrier* carrier,
                     else { // collection (in this case injection to collection)
                         tolongrange = 0.0;
                     }
-                        
+                    
+                    int left_injection_count = 0;
+                    int right_injection_count = 0;
                     if(electrode->node_type == LeftElectrode) {
                         injector_ID = probenode->left_injector_ID;
                         event_ID = injector_ID;
-                        if(globevent->left_injection[1]){
-                            Ho_injection_events[event_ID]->Set_injection_event(electrode, injector_ID, 
-                                                  Hole, 0.0, tolongrange, globevent);
-                            Ho_injection_rates->setrate(event_ID, Ho_injection_events[event_ID]->rate);
-                            ho_dirty = true;
-                        }
-                        if(globevent->left_injection[0]) {
-                            El_injection_events[event_ID]->Set_injection_event(electrode, injector_ID, 
+                        if(globevent->left_injection[0]){
+                            event_ID += left_injection_count*graph->nr_left_injector_nodes + right_injection_count*graph->nr_right_injector_nodes;
+                            
+                            Injection_events[event_ID]->Set_injection_event(electrode, injector_ID, 
                                                   Electron, 0.0, tolongrange, globevent);
-                            El_injection_rates->setrate(event_ID, El_injection_events[event_ID]->rate);
-                            el_dirty = true;
+                            Injection_rates->setrate(event_ID, Injection_events[event_ID]->rate);
+                            left_injection_count++;
                         }
+                        if(globevent->left_injection[1]) {
+                            event_ID += left_injection_count*graph->nr_left_injector_nodes + right_injection_count*graph->nr_right_injector_nodes;
+                            
+                            Injection_events[event_ID]->Set_injection_event(electrode, injector_ID, 
+                                                  Hole, 0.0, tolongrange, globevent);
+                            Injection_rates->setrate(event_ID, Injection_events[event_ID]->rate);
+                            left_injection_count++;
+                        }
+ 
                     }
                     else if(electrode->node_type == RightElectrode) {
                         injector_ID = probenode->right_injector_ID;
-                        if(globevent->right_injection[1]) {
-                            event_ID = injector_ID;
-                            if(globevent->left_injection[1]) event_ID += graph->nr_left_injector_nodes;
-                            Ho_injection_events[event_ID]->Set_injection_event(electrode, injector_ID, 
-                                                  Hole, 0.0, tolongrange, globevent);
-                            Ho_injection_rates->setrate(event_ID, Ho_injection_events[event_ID]->rate);
-                            ho_dirty = true;
-                        }                               
+                        event_ID = injector_ID;
                         if(globevent->right_injection[0]) {
-                            event_ID = injector_ID;
-                            if(globevent->left_injection[0]) event_ID += graph->nr_left_injector_nodes;
-                            El_injection_events[event_ID]->Set_injection_event(electrode, injector_ID, 
+                            event_ID += left_injection_count*graph->nr_left_injector_nodes + right_injection_count*graph->nr_right_injector_nodes;
+
+                            Injection_events[event_ID]->Set_injection_event(electrode, injector_ID, 
                                                   Electron, 0.0, tolongrange, globevent);
-                            El_injection_rates->setrate(event_ID, El_injection_events[event_ID]->rate);
-                            el_dirty = true;
+                            Injection_rates->setrate(event_ID, Injection_events[event_ID]->rate);
+                            right_injection_count++;
                         }
+                        if(globevent->right_injection[1]) {
+                            event_ID += left_injection_count*graph->nr_left_injector_nodes + right_injection_count*graph->nr_right_injector_nodes;
+                            
+                            Injection_events[event_ID]->Set_injection_event(electrode, injector_ID, 
+                                                  Hole, 0.0, tolongrange, globevent);
+                            Injection_rates->setrate(event_ID, Injection_events[event_ID]->rate);
+                            right_injection_count++;
+                        }                               
                     }
                 }
             }
@@ -590,20 +541,20 @@ void Events::Recompute_all_non_injection_events(Graph* graph, State* state, Glob
     
     int Event_map;
        
-    for (int electron_ID = 0; electron_ID<state->electrons.size(); electron_ID++) {
-        Node* electron_node = graph->nodes[state->electrons[electron_ID]->carrier_node_ID];
-        for (int ipair = 0; ipair < electron_node->pairing_nodes.size();ipair++){
+    for (int carrier_ID = 0; carrier_ID<state->carriers.size(); carrier_ID++) {
+        Node* carrier_node = graph->nodes[state->carriers[carrier_ID]->carrier_node_ID];
+        for (int ipair = 0; ipair < carrier_node->pairing_nodes.size();ipair++){
             
-            Event_map = electron_ID*graph->max_pair_degree + ipair;
-            Carrier* electron = state->electrons[electron_ID];
+            Event_map = carrier_ID*graph->max_pair_degree + ipair;
+            Carrier* carrier = state->carriers[carrier_ID];
             
             double lrfrom;
             double lrto;
             
-            if(globevent->device && electron->is_in_sim_box){
-                lrfrom = longrange->Get_cached_longrange(electron_node->layer_index);
-                if(electron_node->pairing_nodes[ipair]->node_type == Normal) {
-                    lrto = longrange->Get_cached_longrange(electron_node->pairing_nodes[ipair]->layer_index);
+            if(globevent->device && carrier->is_in_sim_box){
+                lrfrom = longrange->Get_cached_longrange(carrier_node->layer_index);
+                if(carrier_node->pairing_nodes[ipair]->node_type == Normal) {
+                    lrto = longrange->Get_cached_longrange(carrier_node->pairing_nodes[ipair]->layer_index);
                 }
                 else { // Collection
                     lrto = 0.0;
@@ -614,50 +565,19 @@ void Events::Recompute_all_non_injection_events(Graph* graph, State* state, Glob
                 lrto = 0.0;
             }
             
-            El_non_injection_events[Event_map]->Set_non_injection_event(graph->nodes,electron, ipair, lrfrom,lrto, globevent);
-            El_non_injection_rates->setrate(Event_map,El_non_injection_events[Event_map]->rate);
-            el_dirty = true;
-        }
-    }
-
-    for (int hole_ID = 0; hole_ID<state->holes.size(); hole_ID++) {
-        Node* hole_node = graph->nodes[state->holes[hole_ID]->carrier_node_ID];
-        for (int ipair = 0; ipair < hole_node->pairing_nodes.size();ipair++){
-            
-            Event_map = hole_ID*graph->max_pair_degree + ipair;
-            Carrier* hole = state->holes[hole_ID];
-            
-            double lrfrom;
-            double lrto;
-            
-            if(globevent->device && hole->is_in_sim_box){
-                lrfrom = longrange->Get_cached_longrange(hole_node->layer_index);
-                if(hole_node->pairing_nodes[ipair]->node_type == Normal) {
-                    lrto = longrange->Get_cached_longrange(hole_node->pairing_nodes[ipair]->layer_index);
-                }
-                else { // Collection
-                    lrto = 0.0;
-                }
-            }
-            else {
-                lrfrom = 0.0;
-                lrto = 0.0;
-            }
-            
-            Ho_non_injection_events[Event_map]->Set_non_injection_event(graph->nodes,hole, ipair, lrfrom ,lrto, globevent);
-            Ho_non_injection_rates->setrate(Event_map,Ho_non_injection_events[Event_map]->rate);
-            ho_dirty = true;
+            Non_injection_events[Event_map]->Set_non_injection_event(graph->nodes,carrier, ipair, lrfrom,lrto, globevent);
+            Non_injection_rates->setrate(Event_map,Non_injection_events[Event_map]->rate);
         }
     }
 }
 
 void Events::Recompute_all_injection_events(Graph* graph, Globaleventinfo* globevent) {
     
-    int Event_map;
+    int Event_ID;
 
     for (int inject_node = 0; inject_node<graph->left_electrode->pairing_nodes.size(); inject_node++) {
 
-        Event_map = inject_node;
+        Event_ID = inject_node;
 
         double lrto;
         if(graph->left_electrode->pairing_nodes[inject_node]->node_type == Normal) {
@@ -666,20 +586,22 @@ void Events::Recompute_all_injection_events(Graph* graph, Globaleventinfo* globe
         else { // Collection
             lrto = 0.0;
         }
+        
         if(globevent->left_injection[0]){
-            El_injection_events[Event_map]->Set_injection_event(graph->left_electrode, inject_node, Electron, 0.0, lrto, globevent);   
-            El_injection_rates->setrate(Event_map,El_injection_events[Event_map]->rate);
-            el_dirty = true;
+            Injection_events[Event_ID]->Set_injection_event(graph->left_electrode, inject_node, Electron, 0.0, lrto, globevent);   
+            Injection_rates->setrate(Event_ID,Injection_events[Event_ID]->rate);
         }
         if(globevent->left_injection[1]) {
-            Ho_injection_events[Event_map]->Set_injection_event(graph->left_electrode, inject_node, Hole, 0.0, lrto, globevent);   
-            Ho_injection_rates->setrate(Event_map,Ho_injection_events[Event_map]->rate);
-            ho_dirty = true;
+            if(globevent->left_injection[0]) Event_ID += graph->nr_left_injector_nodes;
+            Injection_events[Event_ID]->Set_injection_event(graph->left_electrode, inject_node, Hole, 0.0, lrto, globevent);   
+            Injection_rates->setrate(Event_ID,Injection_events[Event_ID]->rate);
         }        
     }
     
     for (int inject_node = 0; inject_node<graph->right_electrode->pairing_nodes.size(); inject_node++) {
 
+        Event_ID = inject_node;           
+        
         double lrto;
         if(graph->right_electrode->pairing_nodes[inject_node]->node_type == Normal) {
             lrto = longrange->Get_cached_longrange(graph->right_electrode->pairing_nodes[inject_node]->layer_index);
@@ -690,40 +612,34 @@ void Events::Recompute_all_injection_events(Graph* graph, Globaleventinfo* globe
         
         
         if(globevent->right_injection[0]){
-            Event_map = inject_node;    
-            if(globevent->left_injection[0]) Event_map = graph->nr_left_injector_nodes + inject_node;
-            El_injection_events[Event_map]->Set_injection_event(graph->right_electrode, inject_node, Electron, 0.0 , lrto, globevent);
-            El_injection_rates->setrate(Event_map,El_injection_events[Event_map]->rate);
-            el_dirty = true;
+            if(globevent->left_injection[0]) Event_ID += graph->nr_left_injector_nodes;
+            if(globevent->left_injection[1]) Event_ID += graph->nr_left_injector_nodes;
+            Injection_events[Event_ID]->Set_injection_event(graph->right_electrode, inject_node, Electron, 0.0 , lrto, globevent);
+            Injection_rates->setrate(Event_ID,Injection_events[Event_ID]->rate);
         }
         if(globevent->right_injection[1]){
-            Event_map = inject_node;    
-            if(globevent->left_injection[0]) Event_map = graph->nr_left_injector_nodes + inject_node;
-            Ho_injection_events[Event_map]->Set_injection_event(graph->right_electrode, inject_node, Hole, 0.0, lrto, globevent);
-            Ho_injection_rates->setrate(Event_map,Ho_injection_events[Event_map]->rate);
-            ho_dirty = true;
+            if(globevent->left_injection[0]) Event_ID += graph->nr_left_injector_nodes;
+            if(globevent->left_injection[1]) Event_ID += graph->nr_left_injector_nodes;
+            if(globevent->right_injection[0]) Event_ID += graph->nr_right_injector_nodes;
+            Injection_events[Event_ID]->Set_injection_event(graph->right_electrode, inject_node, Hole, 0.0, lrto, globevent);
+            Injection_rates->setrate(Event_ID,Injection_events[Event_ID]->rate);
         }
     }
 }
 
 void Events::Initialize_eventvector(Graph* graph, State* state, Globaleventinfo* globevent){ //
     
-    El_non_injection_events.clear();
-    Ho_non_injection_events.clear();
-    Grow_non_injection_eventvector(state->electrons.size(), state->electrons, El_non_injection_events, graph->max_pair_degree);
-    Grow_non_injection_eventvector(state->holes.size(), state->holes,Ho_non_injection_events, graph->max_pair_degree);
-    El_non_injection_rates->initialize(El_non_injection_events.size());
-    Ho_non_injection_rates->initialize(Ho_non_injection_events.size());
+    Non_injection_events.clear();
+    Grow_non_injection_eventvector(state->carriers.size(), state->carriers, graph->max_pair_degree);
+    Non_injection_rates->initialize(Non_injection_events.size());
     
     if(globevent->device){
-        El_injection_events.clear();
-        Ho_injection_events.clear();    
-        if(globevent->left_injection[0]) Initialize_injection_eventvector(graph->left_electrode,El_injection_events, Electron);
-        if(globevent->left_injection[1]) Initialize_injection_eventvector(graph->left_electrode,Ho_injection_events, Hole);
-        if(globevent->right_injection[0]) Initialize_injection_eventvector(graph->right_electrode,El_injection_events, Electron);
-        if(globevent->right_injection[1]) Initialize_injection_eventvector(graph->right_electrode,Ho_injection_events, Hole);
-        El_injection_rates->initialize(El_injection_events.size());
-        Ho_injection_rates->initialize(Ho_injection_events.size());
+        Injection_events.clear();
+        if(globevent->left_injection[0]) Initialize_injection_eventvector(graph->left_electrode,Injection_events, Electron);
+        if(globevent->left_injection[1]) Initialize_injection_eventvector(graph->left_electrode,Injection_events, Hole);
+        if(globevent->right_injection[0]) Initialize_injection_eventvector(graph->right_electrode,Injection_events, Electron);
+        if(globevent->right_injection[1]) Initialize_injection_eventvector(graph->right_electrode,Injection_events, Hole);
+        Injection_rates->initialize(Injection_events.size());
     }
 }
 
@@ -740,15 +656,15 @@ void Events::Initialize_injection_eventvector(Node* electrode, vector<Event*> ev
     } 
 }
 
-void Events::Grow_non_injection_eventvector(int carrier_grow_size, vector<Carrier*> carriers, vector<Event*> eventvector,int max_pair_degree){
+void Events::Grow_non_injection_eventvector(int carrier_grow_size, vector<Carrier*> carriers, int max_pair_degree){
     
-    int old_nr_carriers = div(eventvector.size(),max_pair_degree).quot; //what was the number of carriers that we started with?
+    int old_nr_carriers = div(Non_injection_events.size(),max_pair_degree).quot; //what was the number of carriers that we started with?
     
     for(int carrier_ID = old_nr_carriers; carrier_ID<old_nr_carriers+carrier_grow_size; carrier_ID++) {
         for(int jump_ID = 0; jump_ID<max_pair_degree;jump_ID++) {
 
             Event *newEvent = new Event();
-            eventvector.push_back(newEvent);
+            Non_injection_events.push_back(newEvent);
 
             newEvent->carrier = carriers[carrier_ID];
             newEvent->tonode_ID = jump_ID;

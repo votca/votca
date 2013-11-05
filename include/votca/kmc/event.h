@@ -18,7 +18,7 @@
 #ifndef __VOTCA_KMC_EVENT_H_
 #define __VOTCA_KMC_EVENT_H_
 
-#include <votca/kmc/state.h>
+#include <votca/kmc/carrier.h>
 #include <votca/kmc/graph.h>
 #include <votca/kmc/globaleventinfo.h>
 
@@ -39,7 +39,6 @@ public:
     From_step_event fromtype;
     To_step_event totype;
     double rate;
-    Graph* graph;
     
     Carrier* carrier;
     int tonode_ID;    
