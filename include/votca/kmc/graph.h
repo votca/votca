@@ -417,6 +417,10 @@ void Graph::Setup_device_graph(vector<Node*> nodes, Node* left_electrode, Node* 
     }
     nr_left_injector_nodes = linjector_ID;
     nr_right_injector_nodes = rinjector_ID;
+
+    // Recompute the max pair degree, due to the breaking of the periodicity and the connection of nodes to the electrode nodes
+    max_pair_degree = Determine_max_pair_degree(nodes);
+
 }
 
 void Graph::Set_all_self_image_potential(vector<Node*> nodes, myvec sim_box_size, Globaleventinfo* globevent) {
