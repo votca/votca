@@ -199,10 +199,11 @@ void State::Load(string SQL_state_filename, Graph* graph, Globaleventinfo* globe
         carriers[carrier_nr]->carrier_node_ID = carnode_ID;
         
         CarrierType cartype;
-        if(stmt->Column<int>(1) == 0) {
+        int readcartype = stmt->Column<int>(1);
+        if(readcartype == 0) {
             cartype == Electron;
         }
-        else if(stmt->Column<int>(1) == 1) {
+        else if(readcartype == 1) {
             cartype == Hole;
         }
         carriers[carrier_nr]->carrier_type = cartype;
