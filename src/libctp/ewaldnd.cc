@@ -158,6 +158,9 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
     _bg_P.insert(_bg_P.end(), _bg_N.begin(), _bg_N.end());    
     // Grow foreground according to induction cut-off
     this->ExpandForegroundReduceBackground(_polar_cutoff);
+    // Coarse-grain as demanded by input
+    this->CoarseGrainDensities(_coarse_do_cg_background, 
+        _coarse_do_cg_foreground, _coarse_cg_radius);
     
     // SET-UP MIDGROUND (INCLUDING PERIODIC IMAGES IF REQUIRED)
     LOG(logINFO,*_log) << flush;
@@ -389,6 +392,93 @@ void Ewald3DnD::ExpandForegroundReduceBackground(double polar_R_co) {
     assert(_polar_qm0.size()+_polar_mm1.size() == _fg_C.size());
     assert(_fg_C.size() == _fg_N.size());
     
+    return;
+}
+
+
+void Ewald3DnD::CoarseGrainDensities(bool cg_bg, bool cg_fg, double cg_radius) {
+    
+    // COARSE-GRAIN BACKGROUND
+    if (cg_bg) {
+        cout << endl;
+        cout << endl << "MST DBG ... Coarse-grain background" << flush;
+        
+        int count_bgp = 0;
+        int count_fgn = 0;
+        int count_fgc = 0;
+        int count_bgp_id_in_fg = 0;
+        
+        cout << endl;
+        for (vector<PolarSeg*>::iterator sit = _bg_P.begin();
+            sit != _bg_P.end(); ++sit) {
+            if (_fg_table->IsInForeground((*sit)->getId(), 0, 0, 0)) {
+                ++count_bgp_id_in_fg;
+            }
+            // By checking whether there are more polar sites than polar
+            // fragments in the segment, one avoids coarse-graining twice
+            assert((*sit)->size() >= (*sit)->PolarFrags().size()
+               && "<::CoarseGrainDensities> BGN: FEWER POLAR SITES THAN FRAGS");
+            if ((*sit)->size() > (*sit)->PolarFrags().size()) {
+                cout << "\rMST DBG ...   o BGP ID = " << (*sit)->getId() 
+                    << "   " << flush;
+                (*sit)->Coarsegrain();
+                ++count_bgp;
+            }
+        }
+        
+        cout << endl;
+        for (vector<PolarSeg*>::iterator sit = _fg_N.begin();
+            sit != _fg_N.end(); ++sit) {
+            // By checking whether there are more polar sites than polar
+            // fragments in the segment, one avoids coarse-graining twice
+            assert((*sit)->size() >= (*sit)->PolarFrags().size()
+               && "<::CoarseGrainDensities> FGN: FEWER POLAR SITES THAN FRAGS");
+            if ((*sit)->size() > (*sit)->PolarFrags().size()) {
+                cout << "\rMST DBG ...   o FGN ID = " << (*sit)->getId() 
+                    << "   " << flush;
+                (*sit)->Coarsegrain();
+                ++count_fgn;
+            }
+        }
+        
+        cout << endl << "MST DBG ...   o Coarse-grained " 
+             << count_bgp << "/" << _bg_P.size() << " (BGP) "
+             << count_fgn << "/" << _fg_N.size() << " (FGN) "
+             << "with " << count_bgp_id_in_fg << " FG-table counts" << flush;
+    }
+    // COARSE-GRAIN FOREGROUND
+    if (cg_fg) {
+        cout << endl << "MST DBG ... Coarse-grain foreground" << flush;
+        
+        int count_fgc = 0;
+        
+        cout << endl;
+        for (vector<PolarSeg*>::iterator sit = _fg_C.begin();
+            sit != _fg_C.end(); ++sit) {
+            assert((*sit)->size() >= (*sit)->PolarFrags().size()
+               && "<::CoarseGrainDensities> FGC: FEWER POLAR SITES THAN FRAGS");            
+            // Only coarse-grain the site if the minimum distance of approach
+            // to any of the sites in QM0 is larger than cg_radius
+            // Negative radius: Coarse-grain all sites in FGC
+            double min_R = std::abs(2*cg_radius);
+            for (vector<PolarSeg*>::iterator qit = _polar_qm0.begin();
+                qit != _polar_qm0.end(); ++qit) {
+                double R = votca::tools::abs((*sit)->getPos()-(*qit)->getPos());
+                if (R < min_R) min_R = R;
+            }
+            // Different from above, here there should be no danger of 
+            // coarse-graining twice
+            if (min_R > cg_radius) {
+                cout << "\rMST DBG ...   o FGC ID = " << (*sit)->getId() 
+                    << "   " << flush;
+                (*sit)->Coarsegrain();
+                ++count_fgc;
+            }
+        }
+        
+        cout << endl << "MST DBG ...   o Coarse-grained " 
+             << count_fgc << "/" << _fg_C.size() << " (FGC) " << flush;
+    }    
     return;
 }
 

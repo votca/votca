@@ -35,6 +35,7 @@ public:
     virtual string IdentifyMethod() = 0;
     // POLAR SYSTEM SET-UP
     void ExpandForegroundReduceBackground(double polar_R_co);
+    void CoarseGrainDensities(bool cg_bg, bool cg_fg, double cg_radius);
     void SetupMidground(double R_co);
     void WriteDensitiesPDB(string pdbfile);
     // THOLEWALD EVALUATION

@@ -233,7 +233,7 @@ void PolarSeg::Coarsegrain() {
             && "<PolarSeg::CoarseGrain> INDUCED MOMENTS TRAFO - ERROR");
         // Collapse polarizabilities
         MolPolEngine engine = MolPolEngine();
-        votca::tools::matrix PCG = engine.CalculateMolPol(*(*fit), tools::globals::verbose);
+        votca::tools::matrix PCG = engine.CalculateMolPol(*(*fit), tools::globals::verbose && false);
         
         // Generate new coarse-grained site from the above
         APolarSite *cg_site = new APolarSite((*fit)->getId(), (*fit)->getName());
