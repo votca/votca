@@ -25,7 +25,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <omp.h>
+//#include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -37,97 +37,30 @@
 #include <votca/tools/random2.h>
 #include <tr1/unordered_map>
 #include <cmath> // needed for abs(double)
-// #include "node.h"
+#include "node.h"
 
 using namespace std;
 using namespace std::tr1;
 
 namespace votca { namespace kmc {
 
-static int verbose = 0; // 0=minimal output, 1=verbose output
+int verbose = 0; // 0=minimal output, 1=verbose output
+// if(votca::tools::globals::verbose) {verbose = 1;}
 static double kB   = 8.617332478E-5; // eV/K
 static double hbar = 6.5821192815E-16; // eV*s
 static double eps0 = 8.85418781762E-12/1.602176565E-19; // e**2/eV/m = 8.85418781762E-12 As/Vm
 static double epsr = 3.0; // relative material permittivity
 static double Pi   = 3.14159265358979323846;
 
-typedef votca::tools::vec myvec;
 typedef unordered_map<unsigned long, double> CoulombMap;
 typedef CoulombMap::const_iterator CoulombIt;
-
-
-struct EventMultiple
-{
-    // Event() : dr(3) {}
-    int destination;
-    double rate;
-    votca::tools::vec dr;
-    
-    // new stuff for Coulomb interaction
-    double Jeff2;
-    double reorg_out;
-    double initialrate;
-};
-
-
-class NodeMultiple
-{
-    public:
-        int id;
-        int occupied;
-        int injectable;
-        double escaperate;
-        double occupationtime;
-        myvec position;
-        vector<EventMultiple> event;
-        // new stuff for Coulomb interaction:
-        double siteenergy;
-        double reorg_intorig; // UnCnN
-        double reorg_intdest; // UcNcC
-    
-        double EscapeRate();
-        void AddEvent(int seg2, double rate12, myvec dr, double Jeff2, double reorg_out);
-        void InitEscapeRate();
-};
-
-
-void NodeMultiple::AddEvent(int seg2, double rate12, myvec dr, double Jeff2, double reorg_out)
-{
-    EventMultiple newEvent;
-    newEvent.destination = seg2;
-    newEvent.rate = rate12;
-    newEvent.initialrate = rate12;
-    newEvent.dr = dr;
-    newEvent.Jeff2 = Jeff2;
-    newEvent.reorg_out = reorg_out;
-    this->event.push_back(newEvent);
-}
-
-
-void NodeMultiple::InitEscapeRate()
-{
-    double newEscapeRate = 0;
-    for(unsigned int i=0; i<this->event.size();i++)
-    {
-        newEscapeRate += this->event[i].rate;
-    }
-    this->escaperate = newEscapeRate;
-    // cout << "Escape rate for segment " << this->id << " was set to " << newEscapeRate << endl;
-}
-
-
-double NodeMultiple::EscapeRate()
-{
-    return escaperate;
-}
-
 
 class Chargecarrier
 {
     public:
         int position;
         int id;
-        NodeMultiple *node;
+        Node *node;
         myvec dr_travelled;
 };
 
@@ -156,31 +89,31 @@ void progressbar(double fraction)
 }
 
 
-int OMPinfo() 
-{
-    int nthreads=1, tid=0, procs, inpar=0;
-    printf("\n||\n|| openMP PARALLEL COMPUTATION STATUS:\n");
-    #pragma omp parallel private(tid)
-    {
-        # ifdef _OPENMP
-        tid = omp_get_thread_num();
-        if (tid == 0) 
-        {
-            procs = omp_get_num_procs();
-            nthreads = omp_get_num_threads();
-            inpar = omp_in_parallel();
-            printf("|| Number of processors = %d\n", procs);
-            printf("|| Number of threads = %d\n", nthreads);
-    
-        }
-        # endif
-        if (tid == 0) 
-        {
-            printf("|| In parallel? = %d\n||\n", inpar);
-        }
-    }
-    return nthreads;
-}
+//int OMPinfo() 
+//{
+//    int nthreads=1, tid=0, procs, inpar=0;
+//    printf("\n||\n|| openMP PARALLEL COMPUTATION STATUS:\n");
+//    #pragma omp parallel private(tid)
+//    {
+//        # ifdef _OPENMP
+//        tid = omp_get_thread_num();
+//        if (tid == 0) 
+//        {
+//            procs = omp_get_num_procs();
+//            nthreads = omp_get_num_threads();
+//            inpar = omp_in_parallel();
+//            printf("|| Number of processors = %d\n", procs);
+//            printf("|| Number of threads = %d\n", nthreads);
+//    
+//        }
+//        # endif
+//        if (tid == 0) 
+//        {
+//            printf("|| In parallel? = %d\n||\n", inpar);
+//        }
+//    }
+//    return nthreads;
+//}
 
 
 class KMCMultiple : public KMCCalculator 
@@ -193,20 +126,19 @@ public:
     bool EvaluateFrame();
 
 protected:
-	    vector<NodeMultiple*>  LoadGraph();
+	    vector<Node*>  LoadGraph();
 	    CoulombMap LoadCoulomb(int numberofnodes);
-            vector<double> RunVSSM(vector<NodeMultiple*> node, double runtime, unsigned int numberofcharges, votca::tools::Random2 *RandomVariable, CoulombMap coulomb);
-            void WriteOcc(vector<double> occP, vector<NodeMultiple*> node);
-            void InitialRates(vector<NodeMultiple*> node);
-            void RateUpdateCoulomb(vector<NodeMultiple*> &node,  vector< Chargecarrier* > &carrier, CoulombMap &coulomb);
-            void InitBoxSize(vector<NodeMultiple*> node);
+            vector<double> RunVSSM(vector<Node*> node, double runtime, unsigned int numberofcharges, votca::tools::Random2 *RandomVariable, CoulombMap coulomb);
+            void WriteOcc(vector<double> occP, vector<Node*> node);
+            void InitialRates(vector<Node*> node);
+            void RateUpdateCoulomb(vector<Node*> &node,  vector< Chargecarrier* > &carrier, CoulombMap &coulomb);
+            void InitBoxSize(vector<Node*> node);
 
 
             string _injection_name;
             string _injectionmethod;
             int _injectionfree;
             double _runtime;
-            // double _dt;
             int _seed;
             int _numberofcharges;
             int _allowparallel;
@@ -354,9 +286,9 @@ void KMCMultiple::Initialize(const char *filename, Property *options, const char
 
 }
 
-vector<NodeMultiple*> KMCMultiple::LoadGraph()
+vector<Node*> KMCMultiple::LoadGraph()
 {
-    vector<NodeMultiple*> node;
+    vector<Node*> node;
     
     // Load nodes
     votca::tools::Database db;
@@ -367,7 +299,7 @@ vector<NodeMultiple*> KMCMultiple::LoadGraph()
     int i=0;
     while (stmt->Step() != SQLITE_DONE)
     {
-        NodeMultiple *newNode = new NodeMultiple();
+        Node *newNode = new Node();
         node.push_back(newNode);
 
         int newid = stmt->Column<int>(0);
@@ -481,7 +413,7 @@ int Forbidden(int id, vector<int> forbiddenlist)
     return forbidden;
 }
 
-int Surrounded(NodeMultiple* node, vector<int> forbiddendests)
+int Surrounded(Node* node, vector<int> forbiddendests)
 {
     int surrounded = 1;
     for(unsigned int i=0; i<node->event.size(); i++)
@@ -525,7 +457,7 @@ void printtime(int seconds_t)
 }
 
 
-void KMCMultiple::InitBoxSize(vector<NodeMultiple*> node)
+void KMCMultiple::InitBoxSize(vector<Node*> node)
 {
     cout << endl << "Analysing size of the simulation cell." << endl;
     double minX = 0;
@@ -563,7 +495,7 @@ void KMCMultiple::InitBoxSize(vector<NodeMultiple*> node)
     cout << "spatial electron density: " << _numberofcharges/_boxsizeX/_boxsizeY/_boxsizeZ << " m^-3" << endl;
 }
 
-void KMCMultiple::InitialRates(vector<NodeMultiple*> node)
+void KMCMultiple::InitialRates(vector<Node*> node)
 {
     cout << endl <<"Calculating initial Marcus rates." << endl;
     cout << "    Temperature T = " << _temperature << " K." << endl;
@@ -634,7 +566,7 @@ void KMCMultiple::InitialRates(vector<NodeMultiple*> node)
     }
 }
 
-void KMCMultiple::RateUpdateCoulomb(vector<NodeMultiple*> &node,  vector< Chargecarrier* > &carrier, CoulombMap &coulomb)
+void KMCMultiple::RateUpdateCoulomb(vector<Node*> &node,  vector< Chargecarrier* > &carrier, CoulombMap &coulomb)
 {
     // Calculate new rates for all possible events, i.e. for the possible hoppings of all occupied nodes
     //cout << "Updating Coulomb interaction part of rates." << endl;
@@ -642,13 +574,13 @@ void KMCMultiple::RateUpdateCoulomb(vector<NodeMultiple*> &node,  vector< Charge
     for(unsigned int cindex=0; cindex<carrier.size(); cindex++)
     {
         //cout << "  carrier no. "<< cindex+1 << endl;
-        NodeMultiple *node_i = carrier[cindex]->node;
+        Node *node_i = carrier[cindex]->node;
         double escaperate = 0;
         //#pragma omp parallel for
         for(unsigned int destindex=0; destindex<node_i->event.size(); destindex++)
         {
             int destid = node_i->event[destindex].destination;
-            NodeMultiple *node_j = node[destid];
+            Node *node_j = node[destid];
             if(node_j->occupied == 1)
             {  // in principal shouldn't be needed:
                node_i->event[destindex].rate = 0;
@@ -717,7 +649,7 @@ void KMCMultiple::RateUpdateCoulomb(vector<NodeMultiple*> &node,  vector< Charge
                     else // _explicitcoulomb==1 (partial charges)
                     {
                         CoulombIt coul_iterator;
-                        NodeMultiple *node_k = carrier[ncindex]->node;
+                        Node *node_k = carrier[ncindex]->node;
                         if(ncindex != cindex) // charge doesn't have Coulomb interaction with itself
                         {
                             // - E_ik
@@ -735,39 +667,6 @@ void KMCMultiple::RateUpdateCoulomb(vector<NodeMultiple*> &node,  vector< Charge
                                 contribution -= coul_iterator->second;
                                 substractionmade = 1;
                             }
-                            
-// ####################################################################################################
-//                            // + E_ik
-//                            myvec distancevec = carrier[ncindex]->node->position - node_i->position;
-//                            double epsR = 3;
-//                            double dX = std::abs(distancevec.x());
-//                            double dY = std::abs(distancevec.y());
-//                            double dZ = std::abs(distancevec.z());
-//                            if (dX > _boxsizeX/2)
-//                            {
-//                                dX = _boxsizeX - dX;
-//                            }
-//                            if (dY > _boxsizeY/2)
-//                            {
-//                                dY = _boxsizeY - dY;
-//                            }
-//                            if (dZ > _boxsizeZ/2)
-//                            {
-//                                dZ = _boxsizeZ - dZ;
-//                            }
-//                            double distance = sqrt(dX*dX+dY*dY+dZ*dZ);
-//                            double rawcoulombcontribution = 1.4399644850445791e-09 / epsR / distance;
-//                            if(distance >= 5E-9)
-//                            {
-//                                rawcoulombcontribution = 0;
-//                            }
-//                            if(rawcoulombcontribution -contribution > 1E-10)
-//                            {
-//                                cout << "WARNING: " << rawcoulombcontribution << " != " << contribution << " (distance=" << distance << ")"<< endl;
-//                                cout << "         for interaction i=" << node_i->id+1 << ", k=" << carrier[ncindex]->node->id+1 << endl;
-//                            }
-// ####################################################################################################
-                        
                             
                             // + E_jk
                             key = node_j->id + dimension * carrier[ncindex]->node->id;
@@ -823,7 +722,7 @@ void KMCMultiple::RateUpdateCoulomb(vector<NodeMultiple*> &node,  vector< Charge
     }
 }
 
-vector<double> KMCMultiple::RunVSSM(vector<NodeMultiple*> node, double runtime, unsigned int numberofcharges, votca::tools::Random2 *RandomVariable, CoulombMap coulomb)
+vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned int numberofcharges, votca::tools::Random2 *RandomVariable, CoulombMap coulomb)
 {
 
     int realtime_start = time(NULL);
@@ -898,6 +797,7 @@ vector<double> KMCMultiple::RunVSSM(vector<NodeMultiple*> node, double runtime, 
         
         double probsum;
         double fstepwidth = std::abs(0.01 * fermienergy);
+        probsum = 0;
         while(std::abs(probsum - numberofcharges) > 0.1)
         {
             cout << ".";
@@ -939,18 +839,6 @@ vector<double> KMCMultiple::RunVSSM(vector<NodeMultiple*> node, double runtime, 
                 }
             }
         }
-//        while(inside < _numberofcharges + _injectionfree)
-//        {
-//            inside = 0;
-//            deltaE += stepwidth;
-//            for(unsigned int i=0; i<energy.size(); i++)
-//            {
-//                if(energy[i] >= energypercarrier-0*deltaE && energy[i] <= energypercarrier+2*deltaE)
-//                {
-//                    inside += 1;
-//                }
-//            }
-//        }
         cout << inside << " charges in acceptance interval " << energypercarrier << " +/- " << deltaE << "." << endl;
         
     }
@@ -1070,8 +958,8 @@ vector<double> KMCMultiple::RunVSSM(vector<NodeMultiple*> node, double runtime, 
         {
             
             // determine which electron will escape
-            NodeMultiple* do_oldnode;
-            NodeMultiple* do_newnode;
+            Node* do_oldnode;
+            Node* do_newnode;
             Chargecarrier* do_affectedcarrier;
             
             double u = 1 - RandomVariable->rand_uniform();
@@ -1262,7 +1150,7 @@ vector<double> KMCMultiple::RunVSSM(vector<NodeMultiple*> node, double runtime, 
 }
 
 
-void KMCMultiple::WriteOcc(vector<double> occP, vector<NodeMultiple*> node)
+void KMCMultiple::WriteOcc(vector<double> occP, vector<Node*> node)
 {
     votca::tools::Database db;
     cout << "Opening for writing " << _filename << endl;
@@ -1292,7 +1180,7 @@ bool KMCMultiple::EvaluateFrame()
     votca::tools::Random2 *RandomVariable = new votca::tools::Random2();
     RandomVariable->init(rand(), rand(), rand(), rand());
     
-    vector<NodeMultiple*> node;
+    vector<Node*> node;
     node = KMCMultiple::LoadGraph();
     CoulombMap coulomb;
     if(_explicitcoulomb == 1)
