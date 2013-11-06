@@ -44,8 +44,6 @@ using namespace std::tr1;
 
 namespace votca { namespace kmc {
 
-int verbose = 0; // 0=minimal output, 1=verbose output
-// if(votca::tools::globals::verbose) {verbose = 1;}
 static double kB   = 8.617332478E-5; // eV/K
 static double hbar = 6.5821192815E-16; // eV*s
 static double eps0 = 8.85418781762E-12/1.602176565E-19; // e**2/eV/m = 8.85418781762E-12 As/Vm
@@ -293,7 +291,7 @@ vector<Node*> KMCMultiple::LoadGraph()
     // Load nodes
     votca::tools::Database db;
     db.Open( _filename );
-    if(verbose >= 1) {cout << "LOADING GRAPH" << endl << "database file: " << _filename << endl; }
+    if(votca::tools::globals::verbose) {cout << "LOADING GRAPH" << endl << "database file: " << _filename << endl; }
     votca::tools::Statement *stmt = db.Prepare("SELECT _id-1, name, posX, posY, posZ, UnCnN"+_carriertype+", UcNcC"+_carriertype+",eAnion,eNeutral,eCation,ucCnN"+_carriertype+" FROM segments;");
 
     int i=0;
@@ -334,7 +332,7 @@ vector<Node*> KMCMultiple::LoadGraph()
         i++;
     }
     delete stmt;
-    if(verbose >= 1) { cout << "segments: " << node.size() << endl; }
+    if(votca::tools::globals::verbose) { cout << "segments: " << node.size() << endl; }
     
     // Load pairs and rates
     int numberofpairs = 0;
@@ -354,7 +352,7 @@ vector<Node*> KMCMultiple::LoadGraph()
     }    
     delete stmt;
 
-    if(verbose >= 1) { cout << "pairs: " << numberofpairs/2 << endl; }
+    if(votca::tools::globals::verbose) { cout << "pairs: " << numberofpairs/2 << endl; }
     
     // Calculate initial escape rates !!!THIS SHOULD BE MOVED SO THAT IT'S NOT DONE TWICE IN CASE OF COULOMB INTERACTION!!!
     for(unsigned int i=0; i<node.size(); i++)
@@ -942,7 +940,7 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
         }
         dt = -1 / cumulated_rate * log(rand_u);
         simtime += dt;
-        if(verbose >= 1) {cout << "simtime += " << dt << endl << endl;}
+        if(votca::tools::globals::verbose) {cout << "simtime += " << dt << endl << endl;}
         step += 1;
         
         for(unsigned int i=0; i<numberofcharges; i++)
@@ -979,7 +977,7 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
             double maxprob = 0.;
             double newprob = 0.;
             myvec dr;
-            if(verbose >= 1) {cout << "Charge number " << do_affectedcarrier->id+1 << " which is sitting on segment " << do_oldnode->id+1 << " will escape!" << endl ;}
+            if(votca::tools::globals::verbose) {cout << "Charge number " << do_affectedcarrier->id+1 << " which is sitting on segment " << do_oldnode->id+1 << " will escape!" << endl ;}
             if(Forbidden(do_oldnode->id, forbiddennodes) == 1) {continue;}
             
             // determine where it will jump to
@@ -987,13 +985,13 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
             while(true)
             {
             // LEVEL 2
-                if(verbose >= 1) {cout << "There are " << do_oldnode->event.size() << " possible jumps for this charge:"; }
+                if(votca::tools::globals::verbose) {cout << "There are " << do_oldnode->event.size() << " possible jumps for this charge:"; }
 
                 do_newnode = NULL;
                 u = 1 - RandomVariable->rand_uniform();
                 for(unsigned int j=0; j<do_oldnode->event.size(); j++)
                 {
-                    if(verbose >= 1) { cout << " " << do_oldnode->event[j].destination+1 ; }
+                    if(votca::tools::globals::verbose) { cout << " " << do_oldnode->event[j].destination+1 ; }
                     u -= do_oldnode->event[j].rate/do_oldnode->EscapeRate();
                     if(u <= 0)
                     {
@@ -1007,18 +1005,18 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
 
                 if(do_newnode == NULL)
                 {
-                    if(verbose >= 1) {cout << endl << "Node " << do_oldnode->id+1  << " is SURROUNDED by forbidden destinations and zero rates. Adding it to the list of forbidden nodes. After that: selection of a new escape node." << endl; }
+                    if(votca::tools::globals::verbose) {cout << endl << "Node " << do_oldnode->id+1  << " is SURROUNDED by forbidden destinations and zero rates. Adding it to the list of forbidden nodes. After that: selection of a new escape node." << endl; }
                     AddForbidden(do_oldnode->id, forbiddennodes);
                     
                     int nothing=0;
                     break; // select new escape node (ends level 2 but without setting level1step to 1)
                 }
-                if(verbose >= 1) {cout << endl << "Selected jump: " << do_newnode->id+1 << endl; }
+                if(votca::tools::globals::verbose) {cout << endl << "Selected jump: " << do_newnode->id+1 << endl; }
                 
                 // check after the event if this was allowed
                 if(Forbidden(do_newnode->id, forbiddendests) == 1)
                 {
-                    if(verbose >= 1) {cout << "Node " << do_newnode->id+1  << " is FORBIDDEN. Now selection new hopping destination." << endl; }
+                    if(votca::tools::globals::verbose) {cout << "Node " << do_newnode->id+1  << " is FORBIDDEN. Now selection new hopping destination." << endl; }
                     continue;
                 }
 
@@ -1027,13 +1025,13 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
                 {
                     if(Surrounded(do_oldnode, forbiddendests) == 1)
                     {
-                        if(verbose >= 1) {cout << "Node " << do_oldnode->id+1  << " is SURROUNDED by forbidden destinations. Adding it to the list of forbidden nodes. After that: selection of a new escape node." << endl; }
+                        if(votca::tools::globals::verbose) {cout << "Node " << do_oldnode->id+1  << " is SURROUNDED by forbidden destinations. Adding it to the list of forbidden nodes. After that: selection of a new escape node." << endl; }
                         AddForbidden(do_oldnode->id, forbiddennodes);
                         break; // select new escape node (ends level 2 but without setting level1step to 1)
                     }
-                    if(verbose >= 1) {cout << "Selected segment: " << do_newnode->id+1 << " is already OCCUPIED. Added to forbidden list." << endl << endl;}
+                    if(votca::tools::globals::verbose) {cout << "Selected segment: " << do_newnode->id+1 << " is already OCCUPIED. Added to forbidden list." << endl << endl;}
                     AddForbidden(do_newnode->id, forbiddendests);
-                    if(verbose >= 1) {cout << "Now choosing different hopping destination." << endl; }
+                    if(votca::tools::globals::verbose) {cout << "Now choosing different hopping destination." << endl; }
                     continue; // select new destination
                 }
                 else
@@ -1043,11 +1041,11 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
                     do_affectedcarrier->node = do_newnode;
                     do_affectedcarrier->dr_travelled += dr;
                     level1step = 1;
-                    if(verbose >= 1) {cout << "Charge has jumped to segment: " << do_newnode->id+1 << "." << endl;}
+                    if(votca::tools::globals::verbose) {cout << "Charge has jumped to segment: " << do_newnode->id+1 << "." << endl;}
                     break; // this ends LEVEL 2 , so that the time is updated and the next MC step started
                 }
 
-                if(verbose >= 1) {cout << "." << endl;}
+                if(votca::tools::globals::verbose) {cout << "." << endl;}
             // END LEVEL 2
             }
         // END LEVEL 1
@@ -1175,7 +1173,7 @@ bool KMCMultiple::EvaluateFrame()
     std::cout << "-----------------------------------" << std::endl << std::endl;      
  
     // Initialise random number generator
-    if(verbose >= 1) { cout << endl << "Initialising random number generator" << endl; }
+    if(votca::tools::globals::verbose) { cout << endl << "Initialising random number generator" << endl; }
     srand(_seed); // srand expects any integer in order to initialise the random number generator
     votca::tools::Random2 *RandomVariable = new votca::tools::Random2();
     RandomVariable->init(rand(), rand(), rand(), rand());
