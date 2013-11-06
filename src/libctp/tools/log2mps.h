@@ -101,6 +101,7 @@ bool Log2Mps::Evaluate() {
         + (boost::format("(log-file='%1$s' : %2$d QM atoms)")
         % _logfile % qmatoms.size()).str();    
     pseg->WriteMPS(_mpsfile, tag);
+    return true;
 }
 
 

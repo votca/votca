@@ -70,14 +70,18 @@ void APolarSite::Rotate(const matrix &rot, const vec &refPos) {
     // Rotate multipoles into global frame >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     for (int state = -1; state < 2; state++) {
 
-        // Any multipoles for this charge state available?
-        if (_Qs[state+1].size() < 1) { continue; }
-
         //   0    1    2    3    4    5    6    7    8    9    10   ...
         //   Q00  Q10  Q1c  Q1s  Q20  Q21c Q21s Q22c Q22s Q30  Q31c ...
 
         matrix R = rot;
         matrix R_T = matrix(R.getRow(0),R.getRow(1),R.getRow(2));
+        
+        // Transform polarizability tensor into global frame
+        matrix P_Global = R * _Ps[state+1] * R_T;
+        _Ps[state+1] = P_Global;
+        
+        // Any multipoles for this charge state available?
+        if (_Qs[state+1].size() < 1) { continue; }
 
         // Transform dipole moment into global frame
         if (_Qs[state+1].size() > 1) {
@@ -135,10 +139,6 @@ void APolarSite::Rotate(const matrix &rot, const vec &refPos) {
             _Qs[state+1][8] = 2 / sqrt(3) * Q_Global.get(0,1);  // Q22s
         }
 
-        // Transform polarizability tensor into global frame
-        matrix P_Global = R * _Ps[state+1] * R_T;
-        _Ps[state+1] = P_Global;
-
     }
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -184,59 +184,49 @@ bool APolarSite::IsPolarizable() {
 
 
 void APolarSite::Translate(const vec &shift) {
-
     _pos += shift;
-
+    return;
 }
 
 void APolarSite::Charge(int state) {
-
     int idx = state + 1;
-
     // Adjust polarizability to charge state
-        Pxx = _Ps[idx].get(0,0);
-        Pxy = _Ps[idx].get(0,1);
-        Pxz = _Ps[idx].get(0,2);
-        Pyy = _Ps[idx].get(1,1);
-        Pyz = _Ps[idx].get(1,2);
-        Pzz = _Ps[idx].get(2,2);
-
+    Pxx = _Ps[idx].get(0,0);
+    Pxy = _Ps[idx].get(0,1);
+    Pxz = _Ps[idx].get(0,2);
+    Pyy = _Ps[idx].get(1,1);
+    Pyz = _Ps[idx].get(1,2);
+    Pzz = _Ps[idx].get(2,2);
     // Calculate principal axes
-        matrix polarity = matrix( vec(Pxx,Pxy,Pxz),
-                                  vec(Pxy,Pyy,Pyz),
-                                  vec(Pxz,Pyz,Pzz) );
-        matrix::eigensystem_t eigensystem_polarity;
-        polarity.SolveEigensystem(eigensystem_polarity);
-
-        pax         = eigensystem_polarity.eigenvecs[0];
-        pay         = eigensystem_polarity.eigenvecs[1];
-        paz         = eigensystem_polarity.eigenvecs[2];
-        eigenpxx    = eigensystem_polarity.eigenvalues[0];
-        eigenpyy    = eigensystem_polarity.eigenvalues[1];
-        eigenpzz    = eigensystem_polarity.eigenvalues[2];
-
-//        eigendamp =  (Pxx > Pyy) ?
-//                         ((Pxx > Pzz) ? Pxx : Pzz)
-//                       : ((Pyy > Pzz) ? Pyy : Pzz);
-        eigendamp =  (eigenpxx > eigenpyy) ?
-                         ((eigenpxx > eigenpzz) ? eigenpxx : eigenpzz)
-                       : ((eigenpyy > eigenpzz) ? eigenpyy : eigenpzz);
-
-        // eigendamp = 10.;
-
-        //cout << endl << "eigensystem ...";
-        //cout << endl << pax << " --- " << eigenpxx;
-        //cout << endl << pay << " --- " << eigenpyy;
-        //cout << endl << paz << " --- " << eigenpzz;
-
+    matrix polarity = matrix( vec(Pxx,Pxy,Pxz),
+                              vec(Pxy,Pyy,Pyz),
+                              vec(Pxz,Pyz,Pzz) );
+    matrix::eigensystem_t eigensystem_polarity;
+    polarity.SolveEigensystem(eigensystem_polarity);
+    pax         = eigensystem_polarity.eigenvecs[0];
+    pay         = eigensystem_polarity.eigenvecs[1];
+    paz         = eigensystem_polarity.eigenvecs[2];
+    eigenpxx    = eigensystem_polarity.eigenvalues[0];
+    eigenpyy    = eigensystem_polarity.eigenvalues[1];
+    eigenpzz    = eigensystem_polarity.eigenvalues[2];
+    eigendamp =  (eigenpxx > eigenpyy) ?
+                     ((eigenpxx > eigenpzz) ? eigenpxx : eigenpzz)
+                   : ((eigenpyy > eigenpzz) ? eigenpyy : eigenpzz);
+    //cout << endl << "eigensystem ...";
+    //cout << endl << pax << " --- " << eigenpxx;
+    //cout << endl << pay << " --- " << eigenpyy;
+    //cout << endl << paz << " --- " << eigenpzz;
 
     // Adjust multipole moments to charge state
-        Q00 = _Qs[idx][0];
+    Q00 = _Qs[idx][0];
 
     if (_rank > 0) {
         Q1z = _Qs[idx][1];   // |
         Q1x = _Qs[idx][2];   // |-> NOTE: order z - x - y
         Q1y = _Qs[idx][3];   // |
+    }
+    else {
+        Q1z = Q1x = Q1y = 0.0;
     }
     if (_rank > 1) {
         // Spherical tensor
@@ -246,7 +236,7 @@ void APolarSite::Charge(int state) {
         Q22c = _Qs[idx][7];
         Q22s = _Qs[idx][8];
         
-        // Cartesian tensor
+        // Cartesian tensor * 1/3
         Qzz =      Q20;
         Qxx = -0.5*Q20 + 0.5*sqrt(3)*Q22c;
         Qyy = -0.5*Q20 - 0.5*sqrt(3)*Q22c;        
@@ -261,24 +251,25 @@ void APolarSite::Charge(int state) {
         Qxz *= 1./3.;
         Qyz *= 1./3.;
     }
+    else {
+        Q20 = Q21c = Q21s = Q22c = Q22s = 0.0;
+        Qzz = Qxx = Qyy = Qxy = Qxz = Qyz = 0.0;
+    }
+    return;
 }
 
 void APolarSite::ChargeDelta(int state1, int state2) {
-
     int idx1 = state1 + 1;
     int idx2 = state2 + 1;
-
     // Adjust polarizability to charge state
-        Pxx = 0.0;
-        Pxy = 0.0;
-        Pxz = 0.0;
-        Pyy = 0.0;
-        Pyz = 0.0;
-        Pzz = 0.0;
-
+    Pxx = 0.0;
+    Pxy = 0.0;
+    Pxz = 0.0;
+    Pyy = 0.0;
+    Pyz = 0.0;
+    Pzz = 0.0;
     // Adjust multipole moments to charge state
-        Q00 = _Qs[idx2][0] - _Qs[idx1][0];
-
+    Q00 = _Qs[idx2][0] - _Qs[idx1][0];
     if (_rank > 0) {
         Q1z = _Qs[idx2][1] - _Qs[idx1][1];   // |
         Q1x = _Qs[idx2][2] - _Qs[idx1][2];   // |-> NOTE: order z - x - y
@@ -291,83 +282,51 @@ void APolarSite::ChargeDelta(int state1, int state2) {
         Q22c = _Qs[idx2][7] - _Qs[idx1][7];
         Q22s = _Qs[idx2][8] - _Qs[idx1][8];
     }
+    return;
 }
 
 
 double APolarSite::getProjP(vec &dir) {
+    double alpha_proj = fabs(dir * pax) * fabs(dir * pax) * eigenpxx
+         + fabs(dir * pay) * fabs(dir * pay) * eigenpyy
+         + fabs(dir * paz) * fabs(dir * paz) * eigenpzz;
 
+    // Mix ?
+    //alpha_proj = 0.5* (1./3. * (Pxx+Pyy+Pzz)) + 0.5*alpha_proj;
 
-    // Correct
-//    double alpha_proj = fabs(dir * pax) * fabs(dir * pax) * eigenpxx
-//         + fabs(dir * pay) * fabs(dir * pay) * eigenpyy
-//         + fabs(dir * paz) * fabs(dir * paz) * eigenpzz;
-
-    // Mix
-//    alpha_proj = 0.5* (1./3. * (Pxx+Pyy+Pzz)) + 0.5*alpha_proj;
-
-    // Wrong
-//    double alpha_proj = fabs(dir * pax) * eigenpxx
-//         + fabs(dir * pay) * eigenpyy
-//         + fabs(dir * paz) * eigenpzz;
-    //cout << endl << _name << " " << alpha_proj;
-
-    // Max
-    double alpha_proj;
-
-    if (Pxx > Pyy) {
-        if (Pxx > Pzz) {
-            alpha_proj = Pxx;
-        }
-        else {
-            alpha_proj = Pzz;
-        }
-    }
-    else {
-        if (Pyy > Pzz) {
-            alpha_proj = Pyy;
-        }
-        else {
-            alpha_proj = Pzz;
-        }
-    }
-
-    return this->eigendamp;
+    //assert("APS::getProjP THIS FEATURE SHOULD NOT BE USED" == "" && false);
+    return alpha_proj;
 }
 
 void APolarSite::Induce(double wSOR) {
-
     U1_Hist.push_back( vec(U1x,U1y,U1z) );
-
-    U1x = (1 - wSOR) * U1x + wSOR * ( - Pxx * (FPx + FUx) - Pxy * (FPy + FUy) - Pxz * (FPz + FUz) ); // OVERRIDE
-    U1y = (1 - wSOR) * U1y + wSOR * ( - Pxy * (FPx + FUx) - Pyy * (FPy + FUy) - Pyz * (FPz + FUz) ); // OVERRIDE
-    U1z = (1 - wSOR) * U1z + wSOR * ( - Pxz * (FPx + FUx) - Pyz * (FPy + FUy) - Pzz * (FPz + FUz) ); // OVERRIDE
+    U1x = (1 - wSOR) * U1x + wSOR * ( - Pxx * (FPx + FUx) - Pxy * (FPy + FUy) - Pxz * (FPz + FUz) );
+    U1y = (1 - wSOR) * U1y + wSOR * ( - Pxy * (FPx + FUx) - Pyy * (FPy + FUy) - Pyz * (FPz + FUz) );
+    U1z = (1 - wSOR) * U1z + wSOR * ( - Pxz * (FPx + FUx) - Pyz * (FPy + FUy) - Pzz * (FPz + FUz) );
+    return;
 }
 
 void APolarSite::InduceDirect() {
-
     U1_Hist.push_back( vec(0.,0.,0.) );
-    U1x =  - Pxx * FPx - Pxy * FPy - Pxz * FPz; // OVERRIDE
-    U1y =  - Pxy * FPx - Pyy * FPy - Pyz * FPz; // OVERRIDE
-    U1z =  - Pxz * FPx - Pyz * FPy - Pzz * FPz; // OVERRIDE
+    U1x =  - Pxx * FPx - Pxy * FPy - Pxz * FPz;
+    U1y =  - Pxy * FPx - Pyy * FPy - Pyz * FPz;
+    U1z =  - Pxz * FPx - Pyz * FPy - Pzz * FPz;
+    return;
 }
 
 double APolarSite::HistdU() {
-
     vec dU = vec(U1x, U1y, U1z) - U1_Hist.back();
     return abs(dU)/abs(U1_Hist.back());
 }
 
-
-
 void APolarSite::Depolarize() {
-
     // Zero out induced moments
     U1x = U1y = U1z = 0.0;
     U1_Hist.clear();
-
     // Zero out fields
     FPx = FPy = FPz = 0.0;
     FUx = FUy = FUz = 0.0;
+    return;
 }
 
 
@@ -696,12 +655,9 @@ vector<APolarSite*> APS_FROM_MPS(string filename, int state, QMThread *thread) {
                                             + filename + " not supported.");
                 }
             }
-
             // element,  position,  rank limit
             else if ( split.size() == 6 ) {
-
                 Qs.clear();
-
                 int id = poleCount++;  // <- starts from 1
                 string name = split[0];
 
@@ -725,86 +681,62 @@ vector<APolarSite*> APS_FROM_MPS(string filename, int state, QMThread *thread) {
                 }
 
                 vec pos = vec(x,y,z);
-
                 int rank = boost::lexical_cast<int>(split[5]);
-
                 APolarSite *newPole = new APolarSite(id, name);
                 newPole->setRank(rank);
                 newPole->setPos(pos);
                 poles.push_back(newPole);
                 thisPole = newPole;
-
             }
-
             // 'P', dipole polarizability
             else if ( split[0] == "P") {
-
                 double pxx, pxy, pxz;
                 double      pyy, pyz;
                 double           pzz;
-
                 if (split.size() == 7) {
-
                     pxx = 1e-3 * boost::lexical_cast<double>(split[1]);
                     pxy = 1e-3 * boost::lexical_cast<double>(split[2]);
                     pxz = 1e-3 * boost::lexical_cast<double>(split[3]);
                     pyy = 1e-3 * boost::lexical_cast<double>(split[4]);
                     pyz = 1e-3 * boost::lexical_cast<double>(split[5]);
                     pzz = 1e-3 * boost::lexical_cast<double>(split[6]);
-
                     P1 = matrix(vec(pxx,pxy,pyy),
                                 vec(pxy,pyy,pyz),
                                 vec(pxz,pyz,pzz));
-
-
                 }
-
                 else if (split.size() == 2) {
-
                     pxx = 1e-3 * boost::lexical_cast<double>(split[1]);
                     pxy = 0.0;
                     pxz = 0.0;
                     pyy = pxx;
                     pyz = 0.0;
                     pzz = pxx;
-
                     P1 = matrix(vec(pxx,pxy,pxz),
                                 vec(pxy,pyy,pyz),
                                 vec(pxz,pyz,pzz));
                 }
-
                 else {
                     throw std::runtime_error("Invalid line in " + filename
                                              + ": " + line);
                 }
-
                 thisPole->setPs(P1, state);
                 useDefaultPs = false;
             }
-
-            // multipole line
+            // Multipole line
             else {
-
-                int lineRank = int( sqrt(thisPole->getQs(state).size()) + 0.5 );
-
+                int lineRank = int( sqrt(Qs.size()) + 0.5 );
                 if (lineRank == 0) {
                     Q0_total += boost::lexical_cast<double>(split[0]);
                 }
-
                 for (int i = 0; i < split.size(); i++) {
-
                     double qXYZ = boost::lexical_cast<double>(split[i]);
-
                     // Convert e*(a_0)^k to e*(nm)^k where k = rank
                     double BOHR2NM = 0.0529189379;
                     qXYZ *= pow(BOHR2NM, lineRank); // OVERRIDE
-
                     Qs.push_back(qXYZ);
-
                 }
                 thisPole->setQs(Qs, state);
-            }
-            
+            }            
         } /* Exit loop over lines */
     }
     else { cout << endl << "ERROR: No such file " << filename << endl;

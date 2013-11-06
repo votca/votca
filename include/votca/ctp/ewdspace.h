@@ -29,6 +29,8 @@ struct cmplx
     cmplx() { ; }
     cmplx(double re, double im) : _re(re), _im(im) { ; }
     cmplx(const cmplx &c) : _re(c._re), _im(c._im) { ; }
+    const double &Re() const { return _re; }
+    const double &Im() const { return _im; }
     cmplx &operator*=(const double &d);
     cmplx &operator+=(const cmplx &c);
     cmplx &operator-=(const cmplx &c);
@@ -69,6 +71,10 @@ inline cmplx operator*(const cmplx &cl, const double &d) {
 
 inline cmplx operator*(const double &d, const cmplx &cr) {
     return (cmplx(cr)*=d);
+}
+
+inline cmplx operator*(const cmplx &cl, const cmplx &cr) {
+    return cmplx(cl.Re()*cr.Re()-cl.Im()*cr.Im(), cl.Re()*cr.Im() + cl.Im()*cr.Re());
 }
 
     

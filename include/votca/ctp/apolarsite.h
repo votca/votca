@@ -62,16 +62,14 @@ public:
             : _id(id), _name(name), _isVirtual(false), _locX(vec(1,0,0)),
               _locY(vec(0,1,0)),    _locZ(vec(0,0,1))
             { _Qs.resize(3); _Ps.resize(3); this->Depolarize(); };
-
     APolarSite()
             : _id(-1),  _isVirtual(false), _locX(vec(1,0,0)),
               _locY(vec(0,1,0)), _locZ(vec(0,0,1))
-            { _Qs.resize(3); _Ps.resize(3); this->Depolarize(); };
-            
+            { _Qs.resize(3); _Ps.resize(3); this->Depolarize(); };            
     APolarSite(APolarSite *templ);
-
    ~APolarSite() {};
-
+    
+    // GET & SET & IMPORT FUNCTIONS
     int             &getId() { return _id; }
     string          &getName() { return _name; }
     vec             &getPos() { return _pos; }
@@ -79,35 +77,44 @@ public:
     Topology        *getTopology() { return _top; }
     Segment         *getSegment() { return _seg; }
     Fragment        *getFragment() { return _frag; }
+    bool            getIsVirtual() { return _isVirtual; }
+    bool            getIsActive(bool estatics_only);
 
-
+    void            ImportFrom(APolarSite *templ, string tag = "basic");
     void            setIsVirtual(bool isVirtual) { _isVirtual = isVirtual; }
     void            setPos(vec &pos) { _pos = pos; }
     void            setRank(int rank) { _rank = rank; } // rank; } // OVERRIDE
     void            setTopology(Topology *top) { _top = top; }
     void            setSegment(Segment *seg) { _seg = seg; }
-    void            setFragment(Fragment *frag) { _frag = frag; }
+    void            setFragment(Fragment *frag) { _frag = frag; }    
     
-    bool            getIsVirtual() { return _isVirtual; }
-    bool            getIsActive(bool estatics_only);
+    // COORDINATE TRANSFORMATION
+    void            Translate(const vec &shift);
+    void            Rotate(const matrix &rot, const vec &refPos);
+    // PERMANENT MOMENTS
     bool            IsCharged();
-    bool            IsPolarizable();
-    
     vector<double> &getQs(int state) { return _Qs[state+1]; }
-    void            setQs(vector<double> Qs, int state) { _Qs[state+1] = Qs; }
+    void            setQs(vector<double> Qs, int state) { while(Qs.size() < 9) Qs.push_back(0.0); _Qs[state+1] = Qs; }
+    void            setQ00(double q, int s) { Q00 = q; if (_Qs[s+1].size() < 1) _Qs[s+1].resize(1); _Qs[s+1][0] = q; }
+    double         &getQ00() { return Q00; }
+    vec             getQ1() { return vec(Q1x, Q1y, Q1z); }  // Only IOP
+    // POLARIZABILITIES
+    bool            IsPolarizable();
     void            setPs(matrix polar, int state) { _Ps[state+1] = polar; }
-    void            setIsoP(double p) { Pxx = Pyy = Pzz = p; Pxy = Pxz = Pyz = 0.0; }
+    void            setIsoP(double p) { Pxx = Pyy = Pzz = p; Pxy = Pxz = Pyz = 0.0; eigenpxx = eigenpyy = eigenpzz = p; }
     matrix         &getPs(int state) { return _Ps[state+1]; }
     double          getIsoP() { return pow((Pxx*Pyy*Pzz),1./3.); }
     double          getProjP(vec &dir);
+    // FIELDS & INDUCED MOMENTS
     vec             getFieldP() { return vec(FPx,FPy,FPz); } // Only IOP
+    void            setFieldP(double &fx, double &fy, double &fz) { FPx = fx; FPy = fy; FPz = fz; }
     vec             getFieldU() { return vec(FUx,FUy,FUz); } // Only IOP
-    
-    void            setQ00(double q, int s) { Q00 = q; if (_Qs[s+1].size() < 1) _Qs[s+1].resize(1); _Qs[s+1][0] = q; }
-    double         &getQ00() { return Q00; }
+    vec             getU1() { return vec(U1x,U1y,U1z); }     // Only IOP
+    void            setU1(vec &u1) { U1x = u1.getX(); U1y = u1.getY(); U1z = u1.getZ(); }
+    // CHARGE -1 0 +1 & DELTA
     void            Charge(int state);
     void            ChargeDelta(int state1, int state2);
-
+    // POLARIZATION & DEPOLARIZATION
     void            Induce(double wSOR = 0.25);
     void            InduceDirect();
     double          InductionWork() { return -0.5*(U1x*(FPx+FUx) + U1y*(FPy+FUy) + U1z*(FPz+FUz)); }
@@ -116,23 +123,15 @@ public:
     void            ResetU1()     { U1x = U1y = U1z = 0.0; }
     void            ResetU1Hist() { U1_Hist.clear(); }
     void            Depolarize();
-    double          HistdU();
-
-
-    void            ImportFrom(APolarSite *templ, string tag = "basic");
-    void            Translate(const vec &shift);
-    void            Rotate(const matrix &rot, const vec &refPos);
-
+    double          HistdU();    
+    
+    // PRINT FUNCTS & OUTPUT TO FORMAT
     void            PrintInfo(std::ostream &out);
     void            PrintTensorPDB(FILE *out, int state);
     void            WriteChkLine(FILE *, vec &, bool, string, double);
     void            WriteXyzLine(FILE *, vec &, string);
     void            WritePdbLine(FILE *out, const string &tag = "");
     void            WriteMpsLine(std::ostream &out, string unit);
-
-    vector<APolarSite*> CreateFrom_MPS(string filename, int state) { 
-        vector<APolarSite*> a; return a; 
-    }
     
     template<class Archive>
     void serialize(Archive &arch, const unsigned int version) {

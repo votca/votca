@@ -4,6 +4,7 @@
 
 #include <votca/ctp/qmtool.h>
 #include <votca/ctp/topology.h>
+#include <votca/ctp/molpolengine.h>
 
 
 namespace votca { namespace ctp {
@@ -21,26 +22,23 @@ public:
     void   Initialize(Property *options);
     bool   Evaluate();
 
-    matrix CalculateMolPol(vector<APolarSite*> &poles, bool verb = true);
-    int    SCF_Induce(vector<APolarSite*> &poles);
-
-
 private:
 
+    // FILE I/O OPTIONS
     string          _mps_input;
     string          _mps_output;
     string          _pol_output;
-    
+    // MOLPOL OPTIMIZATION
     bool            _do_optimize;
     matrix          _target;
     double          _tolerance;
-    
+    // SCF MOLPOL OPTIONS
     double          _aDamp;
     double          _wSOR;
     int             _maxIter;
     double          _epsTol;
-
-    BasicInteractor _actor;
+    // MOLPOL ENGINE
+    MolPolEngine    _molpolengine;
 
 };
 

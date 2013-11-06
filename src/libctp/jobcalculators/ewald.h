@@ -240,7 +240,7 @@ Job::JobResult Ewald<EwaldMethod>::EvalJob(Topology *top, Job *job,
     }
     else {
         LOG(logINFO,*log) << "Mps-Mapper: Generate FGC, load FGN BGN from '" 
-                << _polar_bg_arch << "'." << flush;
+                << _polar_bg_arch << "'" << flush;
         _mps_mapper.Gen_FGC_Load_FGN_BGN(top, &xjob, _polar_bg_arch, thread);
     }
     

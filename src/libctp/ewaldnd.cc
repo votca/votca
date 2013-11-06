@@ -2,7 +2,7 @@
 #include <boost/format.hpp>
 #include <algorithm>
 #include <boost/math/special_functions/round.hpp>
-
+#include <boost/timer/timer.hpp>
 
 
 namespace votca { namespace ctp {
@@ -97,7 +97,7 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
     _alpha = _rfactor/_R_co;
     _ewdactor = EwdInteractor(_alpha, _polar_aDamp);
     
-    _did_field_pin_R_shell_idx = false;
+    _did_field_pin_R_shell = false;
     _did_generate_kvectors = false;
     
     // SET-UP REAL & RECIPROCAL SPACE
@@ -258,7 +258,7 @@ void Ewald3DnD::ExpandForegroundReduceBackground(double polar_R_co) {
     
     if (tools::globals::verbose)
         LOG(logDEBUG,*_log) << "Expanding cell space for neighbour search:"
-                "+/-" << polar_na_max << " x +/-" << polar_nb_max << " x +/-" 
+                " +/-" << polar_na_max << " x +/-" << polar_nb_max << " x +/-" 
                 << polar_nc_max << flush;
     
     _fg_table = new ForegroundTable(
@@ -295,9 +295,18 @@ void Ewald3DnD::ExpandForegroundReduceBackground(double polar_R_co) {
                     identical = true;
                 }
                 // Within range ?
+                // NOTE We have to truncate the decimal places for the radius
+                // and the cut-off before we draw the comparison - otherwise
+                // numerics may play a prank on us and produce different
+                // foregrounds for different charge states, making energy
+                // differences for those states pretty much meaningless.
+                // Note that abs(dR_L-polar_R_co) < 1e-xy won't do here,
+                // since we then to a large degree still rely on machine 
+                // precision.
                 double dR_L = votca::tools::abs(
                     seg_bg->getPos() + L - seg_fg->getPos());
-                if (dR_L <= polar_R_co) {
+                // Compare up to 3 decimal places (= 1e-3 nm)
+                if (int(dR_L*1e3+0.5) <= int(polar_R_co*1e3+0.5)) {
                     within_range = true;
                 }
             }
@@ -369,7 +378,7 @@ void Ewald3DnD::SetupMidground(double R_co) {
     // NOTE Excludes interaction of fg polar segments with neutral selfs in 
     //      real-space sum
     // NOTE Includes periodic images if within cut-off    
-    
+
     // CLEAR ANY EXTANT MIDGROUND
     vector<PolarSeg*>::iterator sit;
     vector<PolarSeg*>::iterator sit2;
@@ -488,9 +497,86 @@ void Ewald3DnD::Evaluate() {
     LOG(logDEBUG,*_log) << "  o LxLy (for 3D2D EW):        " << _LxLy << " nm**2" << flush;
     LOG(logDEBUG,*_log) << "  o kx(max), ky(max), kz(max): " << _NA_max << ", " << _NB_max << ", " << _NC_max << flush;
     
+    
+    
+    
+    // TEASER OUTPUT PERMANENT FIELDS
+    LOG(logDEBUG,*_log) << flush << "Background fields (BGP):" << flush;
+    int fieldCount = 0;
+    for (vector<PolarSeg*>::iterator sit1 = _bg_P.begin()+288; sit1 < _bg_P.end(); ++sit1) {
+        PolarSeg *pseg = *sit1;
+        Segment *seg = _top->getSegment(pseg->getId());
+        LOG(logDEBUG,*_log) << "ID = " << pseg->getId() << " (" << seg->getName() << ") " << flush;
+        for (PolarSeg::iterator pit1 = pseg->begin(); pit1 < pseg->end(); ++pit1) {
+            vec fp = (*pit1)->getFieldP();
+            vec fu = (*pit1)->getFieldU();
+            LOG(logDEBUG,*_log)
+               << (format("FP = (%1$+1.7e %2$+1.7e %3$+1.7e) V/m    ") 
+                    % (fp.getX()*EWD::int2V_m)
+                    % (fp.getY()*EWD::int2V_m) 
+                    % (fp.getZ()*EWD::int2V_m)).str();
+            LOG(logDEBUG,*_log)
+               << (format("FU = (%1$+1.7e %2$+1.7e %3$+1.7e) V/m") 
+                    % (fu.getX()*EWD::int2V_m)
+                    % (fu.getY()*EWD::int2V_m) 
+                    % (fu.getZ()*EWD::int2V_m)).str() << flush;
+            fieldCount += 1;
+            if (fieldCount > 10) {
+                LOG(logDEBUG,*_log)
+                    << "FP = ... ... ..." << flush;
+                break;
+            }
+        }
+        if (fieldCount > 10) break;
+    }
+        
+    boost::timer::cpu_timer cpu_t;
+    cpu_t.start();
+    boost::timer::cpu_times t0 = cpu_t.elapsed();
     if (_task_calculate_fields) EvaluateFields();
+    boost::timer::cpu_times t1 = cpu_t.elapsed();
     if (_task_polarize_fg) EvaluateInduction();
+    boost::timer::cpu_times t2 = cpu_t.elapsed();
     if (_task_evaluate_energy) EvaluateEnergy();
+    boost::timer::cpu_times t3 = cpu_t.elapsed();
+    
+    LOG(logDEBUG,*_log) << flush << (format("Timing (T = %1$1.2f min)") % ((t3.wall-t0.wall)/1e9/60.)) << flush;
+    LOG(logDEBUG,*_log) << (format("  o Usage <Fields>     = %1$2.1f%%") % (100.*(t1.wall-t0.wall)/(t3.wall-t0.wall))) << flush;
+    LOG(logDEBUG,*_log) << (format("  o Usage <Induction>  = %1$2.1f%%") % (100.*(t2.wall-t1.wall)/(t3.wall-t0.wall))) << flush;
+    LOG(logDEBUG,*_log) << (format("  o Usage <Energy>     = %1$2.1f%%") % (100.*(t3.wall-t2.wall)/(t3.wall-t0.wall))) << flush;
+    
+    // TEASER OUTPUT PERMANENT FIELDS
+    LOG(logDEBUG,*_log) << flush << "Background fields (BGP):" << flush;
+    fieldCount = 0;
+    for (vector<PolarSeg*>::iterator sit1 = _bg_P.begin()+288; sit1 < _bg_P.end(); ++sit1) {
+        PolarSeg *pseg = *sit1;
+        Segment *seg = _top->getSegment(pseg->getId());
+        LOG(logDEBUG,*_log) << "ID = " << pseg->getId() << " (" << seg->getName() << ") " << flush;
+        for (PolarSeg::iterator pit1 = pseg->begin(); pit1 < pseg->end(); ++pit1) {
+            vec fp = (*pit1)->getFieldP();
+            vec fu = (*pit1)->getFieldU();
+            LOG(logDEBUG,*_log)
+               << (format("FP = (%1$+1.7e %2$+1.7e %3$+1.7e) V/m    ") 
+                    % (fp.getX()*EWD::int2V_m)
+                    % (fp.getY()*EWD::int2V_m) 
+                    % (fp.getZ()*EWD::int2V_m)).str();
+            LOG(logDEBUG,*_log)
+               << (format("FU = (%1$+1.7e %2$+1.7e %3$+1.7e) V/m") 
+                    % (fu.getX()*EWD::int2V_m)
+                    % (fu.getY()*EWD::int2V_m) 
+                    % (fu.getZ()*EWD::int2V_m)).str() << flush;
+            fieldCount += 1;
+            if (fieldCount > 10) {
+                LOG(logDEBUG,*_log)
+                    << "FP = ... ... ..." << flush;
+                break;
+            }
+        }
+        if (fieldCount > 10) break;
+    }
+    
+    
+    
     
     double outer_epp = _ET._pp;
     double outer_eppu = _ET._pu + _ET._uu;

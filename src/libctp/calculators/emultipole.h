@@ -947,7 +947,7 @@ vector<PolarSite*> EMultipole::ParseGdmaFile(string filename, int state) {
 
             std::getline(intt, line);
             vector<string> split;
-            Tokenizer toker(line, " ");
+            Tokenizer toker(line, " \t");
             toker.ToVector(split);
 
             if ( !split.size()      ||
