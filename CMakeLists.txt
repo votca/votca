@@ -31,7 +31,7 @@ endif(NOT DEFINED MAN)
 if (NOT DEFINED DATA)
   set(DATA "share/votca")
 endif(NOT DEFINED DATA)
-option(WITH_DIPRO "Build mergeorbitals and DIPRO, which use fortran" ON)
+#option(WITH_DIPRO "Build mergeorbitals and DIPRO, which use fortran" ON)
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
 ########################################################################
@@ -43,7 +43,7 @@ set (BOOST_LIBRARIES ${Boost_THREAD_LIBRARY} ${Boost_PROGRAM_OPTIONS_LIBRARY} ${
 set (BOOST_CFLAGS_PKG "-I${Boost_INCLUDE_DIRS}")
 string(REGEX REPLACE "^(.*)/lib([^/]*)\\.[^.]*$" "-L\\1 -l\\2" BOOST_LIBS_PKG ${BOOST_LIBRARIES})
 
-option(BUILD_MANPAGES "Build manpages (might lead to problem on system without rpath" ON)
+option(BUILD_MANPAGES "Build manpages (might lead to problem on system without rpath" OFF)
 #define this target here, so that individual man pages can append to it.
 add_custom_target(manpages ALL)
 
