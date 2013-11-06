@@ -27,7 +27,6 @@
 namespace votca { namespace tools {
     namespace ub = boost::numeric::ublas;
 
-    
     /**
      * \brief inverts A
      * @param A symmetric positive definite matrix
@@ -46,7 +45,6 @@ namespace votca { namespace tools {
      */
     void linalg_transpose( ub::matrix<double> &A, ub::matrix<double> &V );
     
-     
    /**
      * \brief transposes A
      * @param A symmetric positive definite matrix, transposed on output
@@ -55,8 +53,6 @@ namespace votca { namespace tools {
      */
     void linalg_transpose( ub::matrix<double> &A );
     
-    
-    
     /**
      * \brief determines Cholesky decomposition of matrix A
      * @param A symmetric positive definite matrix
@@ -64,7 +60,6 @@ namespace votca { namespace tools {
      * This function wraps the Cholesky decomposition
      */
     void linalg_cholesky_decompose( ub::matrix<double> &A );
-    
     
     /**
      * \brief solves A*x=b
@@ -76,6 +71,7 @@ namespace votca { namespace tools {
      * This function wrapps the cholesky linear system solver
      */
     void linalg_cholesky_solve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<double> &b);
+
     /**
      * \brief solves A*x=b
      * @param x storage for x
@@ -110,7 +106,6 @@ namespace votca { namespace tools {
      */
     bool linalg_eigenvalues_symmetric( ub::symmetric_matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V );
     
-
    /**
      * \brief eigenvalues of a symmetric matrix A*x=E*x
      * @param A symmetric matrix 
