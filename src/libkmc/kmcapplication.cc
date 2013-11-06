@@ -185,6 +185,7 @@ bool KMCApplication::EvaluateFrame(){
     for (iter = _calculators.begin(); iter != _calculators.end(); ++iter){
         (*iter)->EvaluateFrame();
     }
+    return true;
 }
 
 void KMCApplication::EndEvaluate(){
