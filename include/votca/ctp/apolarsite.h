@@ -59,14 +59,18 @@ class APolarSite
 public:
 
     APolarSite(int id, string name)
-            : _id(id), _name(name), _isVirtual(false), _locX(vec(1,0,0)),
-              _locY(vec(0,1,0)),    _locZ(vec(0,0,1))
-            { _Qs.resize(3); _Ps.resize(3); this->Depolarize(); };
+            : _id(id),              _name(name),         _isVirtual(false), 
+              _locX(vec(1,0,0)),    _locY(vec(0,1,0)),   _locZ(vec(0,0,1)), 
+              _top(0),              _seg(0),             _frag(0)
+            { _Qs.resize(3); _Ps.resize(3); this->Depolarize();
+              for (int s = -1; s < 2; ++s) _Ps[s+1].ZeroMatrix(); }
     APolarSite()
-            : _id(-1),  _isVirtual(false), _locX(vec(1,0,0)),
-              _locY(vec(0,1,0)), _locZ(vec(0,0,1))
-            { _Qs.resize(3); _Ps.resize(3); this->Depolarize(); };            
-    APolarSite(APolarSite *templ);
+            : _id(-1),              _name(""),          _isVirtual(false),  
+              _locX(vec(1,0,0)),    _locY(vec(0,1,0)),  _locZ(vec(0,0,1)),  
+              _top(0),              _seg(0),            _frag(0)
+            { _Qs.resize(3); _Ps.resize(3); this->Depolarize();
+              for (int s = -1; s < 2; ++s) _Ps[s+1].ZeroMatrix(); }
+    APolarSite(APolarSite *templ, bool do_depolarize);
    ~APolarSite() {};
     
     // GET & SET & IMPORT FUNCTIONS
@@ -132,6 +136,7 @@ public:
     void            WriteXyzLine(FILE *, vec &, string);
     void            WritePdbLine(FILE *out, const string &tag = "");
     void            WriteMpsLine(std::ostream &out, string unit);
+    void            WriteXmlLine(std::ostream &out);
     
     template<class Archive>
     void serialize(Archive &arch, const unsigned int version) {

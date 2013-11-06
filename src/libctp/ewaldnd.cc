@@ -68,6 +68,28 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
         _polar_aDamp = opt->get(pfx+".polarmethod.aDamp").as<double>();
     else
         _polar_aDamp = 0.390;
+    // Coarse-graining
+    if (opt->exists(pfx+".coarsegrain.cg_background")) {
+        _coarse_do_cg_background = 
+            opt->get(pfx+".coarsegrain.cg_background").as<bool>();
+    }
+    else {
+        _coarse_do_cg_background = false;
+    }
+    if (opt->exists(pfx+".coarsegrain.cg_foreground")) {
+        _coarse_do_cg_foreground =
+            opt->get(pfx+".coarsegrain.cg_foreground").as<bool>();
+    }
+    else {
+        _coarse_do_cg_foreground = false;
+    }
+    if (opt->exists(pfx+".coarsegrain.cg_radius")) {
+        _coarse_cg_radius =
+            opt->get(pfx+".coarsegrain.cg_radius").as<double>();
+    }
+    else {
+        _coarse_cg_radius = _polar_cutoff;
+    }
     // Tasks to perform
     if (opt->exists(pfx+".tasks.polarize_bg")) {
         _task_polarize_bg = opt->get(pfx+".tasks.polarize_bg").as<bool>();
@@ -313,17 +335,18 @@ void Ewald3DnD::ExpandForegroundReduceBackground(double polar_R_co) {
             
             if (!identical && within_range) {
                 _fg_table->AddToForeground(seg_bg->getId(), na, nb, nc);
-                // Add new shifted clone to fgC and MM1
-                PolarSeg *seg_bg_clone_fgc = new PolarSeg(seg_bg);
+                // Add new shifted clone to fgC and MM1, depolarize = true
+                PolarSeg *seg_bg_clone_fgc = new PolarSeg(seg_bg, true);
                 seg_bg_clone_fgc->Translate(L);
                 exp_fg_C.push_back(seg_bg_clone_fgc);
                 _polar_mm1.push_back(seg_bg_clone_fgc);
-                // Add original to fgN OR a shifted clone if image box != 0
+                // Add original to fgN OR a shifted clone if image box != 0,
+                // depolarize = false
                 if (in_central_cell)
                     exp_fg_N.push_back(seg_bg);
                 else {
                     allocated_count_n += 1;
-                    PolarSeg *seg_bg_clone_fgn = new PolarSeg(seg_bg);
+                    PolarSeg *seg_bg_clone_fgn = new PolarSeg(seg_bg, false);
                     seg_bg_clone_fgn->Translate(L);
                     exp_fg_N.push_back(seg_bg_clone_fgn);
                 }
@@ -408,9 +431,9 @@ void Ewald3DnD::SetupMidground(double R_co) {
                         is_within_range = true;
                     }
                 }
-                // Add if appropriate
+                // Add if appropriate, depolarize = false
                 if (is_within_range) {
-                    PolarSeg *newSeg = new PolarSeg(pseg);
+                    PolarSeg *newSeg = new PolarSeg(pseg, false);
                     newSeg->Translate(L);
                     _mg_N.push_back(newSeg);
                 }
@@ -480,10 +503,15 @@ void Ewald3DnD::Evaluate() {
     
     LOG(logDEBUG,*_log) << flush;
     LOG(logDEBUG,*_log) << "Tasks to perform (" << IdentifyMethod() << ")" << flush;
-    LOG(logDEBUG,*_log) << "  o Polarize background:       " << ((_task_polarize_bg) ? "yes" : "no") << flush;
     LOG(logDEBUG,*_log) << "  o Calculate fg fields:       " << ((_task_calculate_fields) ? "yes" : "no") << flush;
     LOG(logDEBUG,*_log) << "  o Polarize foreground:       " << ((_task_polarize_fg) ? "yes" : "no") << flush;
     LOG(logDEBUG,*_log) << "  o Evaluate energy:           " << ((_task_evaluate_energy) ? "yes" : "no") << flush;
+    
+    LOG(logDEBUG,*_log) << flush;
+    LOG(logDEBUG,*_log) << "Coarse-graining summary" << flush;
+    LOG(logDEBUG,*_log) << "  o Coarse-grain background:   " << ((_coarse_do_cg_background) ? "yes" : "no") << flush;
+    LOG(logDEBUG,*_log) << "  o Coarse-grain foreground:   " << ((_coarse_do_cg_foreground) ? "yes" : "no") << flush;
+    LOG(logDEBUG,*_log) << "  o Coarse-graining radius:    " << _coarse_cg_radius << "nm" << flush;
     
     LOG(logDEBUG,*_log) << flush;
     LOG(logDEBUG,*_log) << "System & Ewald parameters (" << IdentifyMethod() << ")" << flush;

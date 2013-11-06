@@ -16,10 +16,12 @@ class PolarSeg : public vector<APolarSite*>
 
 public:
 
-    PolarSeg() : _id(-1), _is_charged(true), _is_polarizable(true) {}
+    PolarSeg() 
+        : _id(-1), _pos(vec(0,0,0)), _is_charged(true), _is_polarizable(true) {}
     PolarSeg(int id, vector<APolarSite*> &psites);
-    explicit PolarSeg(PolarSeg *templ);
-    explicit PolarSeg(int id) : _id(id), _is_charged(true), _is_polarizable(true) {}
+    PolarSeg(PolarSeg *templ, bool do_depolarize);
+    explicit PolarSeg(int id)
+        : _id(id), _pos(vec(0,0,0)), _is_charged(true), _is_polarizable(true) {}
    ~PolarSeg();
 
     const int &getId() { return _id; }
@@ -27,7 +29,7 @@ public:
     void setId(int id) { _id = id; }    
     
     // Polar fragments
-    PolarFrag *AddFragment() { _pfrags.push_back(new PolarFrag(this, (int)_pfrags.size())); return _pfrags.back(); }
+    PolarFrag *AddFragment(string name);
     vector<PolarFrag*> &PolarFrags() { return _pfrags; }
     // Local neighbor-list
     vector<PolarNb*> &PolarNbs() { return _nbs; }
@@ -55,6 +57,7 @@ public:
     template<class Archive>
     void serialize(Archive &arch, const unsigned int version) {
         arch & boost::serialization::base_object< vector<APolarSite*> >(*this);
+        arch & _pfrags;
         arch & _id;
         arch & _pos;
         arch & _is_charged;
