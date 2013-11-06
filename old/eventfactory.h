@@ -28,6 +28,8 @@ namespace votca { namespace kmc {
 using namespace tools;    
 using namespace std;
 
+enum EventType{ ElectronCollection, HoleCollection, ElectronTransfer, HoleTransfer};
+
 class EventFactory : public ObjectFactory<EventType, Event>
 {
 private:
