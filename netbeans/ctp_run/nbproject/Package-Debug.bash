@@ -13,7 +13,7 @@ CND_BUILDDIR=build
 CND_DLIB_EXT=so
 NBTMPDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}/tmp-packaging
 TMPDIRNAME=tmp-packaging
-OUTPUT_PATH=${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ctp_run
+OUTPUT_PATH=../../src/tools/ctp_run
 OUTPUT_BASENAME=ctp_run
 PACKAGE_TOP_DIR=ctprun/
 

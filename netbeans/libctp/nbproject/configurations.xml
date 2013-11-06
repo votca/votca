@@ -9,7 +9,6 @@
         <itemPath>../../src/libctp/calculators/emultipole.h</itemPath>
         <itemPath>../../src/libctp/calculators/eoutersphere.cc</itemPath>
         <itemPath>../../src/libctp/calculators/eoutersphere.h</itemPath>
-        <itemPath>../../src/libctp/calculators/ewdbgpol.h</itemPath>
         <itemPath>../../src/libctp/calculators/ianalyze.h</itemPath>
         <itemPath>../../src/libctp/calculators/iimport.h</itemPath>
         <itemPath>../../src/libctp/calculators/izindo.h</itemPath>
@@ -51,7 +50,7 @@
         <itemPath>../../src/libctp/calculators/xmultipole2.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f3" displayName="Tools" projectFiles="true">
-        <itemPath>../../src/libctp/tools/log2mps.h</itemPath>
+        <itemPath>../../src/libctp/tools/coupling.h</itemPath>
         <itemPath>../../src/libctp/tools/molpol.cc</itemPath>
         <itemPath>../../src/libctp/tools/molpol.h</itemPath>
         <itemPath>../../src/libctp/tools/pdb2map.h</itemPath>
@@ -71,14 +70,15 @@
       <itemPath>../../include/votca/ctp/ewald3d.h</itemPath>
       <itemPath>../../include/votca/ctp/ewaldactor.h</itemPath>
       <itemPath>../../include/votca/ctp/ewaldnd.h</itemPath>
-      <itemPath>../../include/votca/ctp/ewdspace.h</itemPath>
       <itemPath>../../include/votca/ctp/extractorfactory.h</itemPath>
       <itemPath>../../include/votca/ctp/factoryapplication.h</itemPath>
       <itemPath>../../include/votca/ctp/fragment.h</itemPath>
+      <itemPath>../../include/votca/ctp/gsl_boost_ublas_matrix_prod.h</itemPath>
       <itemPath>../../include/votca/ctp/job.h</itemPath>
       <itemPath>../../include/votca/ctp/jobapplication.h</itemPath>
       <itemPath>../../include/votca/ctp/jobcalculator.h</itemPath>
       <itemPath>../../include/votca/ctp/logger.h</itemPath>
+      <itemPath>../../include/votca/ctp/mkl_boost_ublas_matrix_prod.h</itemPath>
       <itemPath>../../include/votca/ctp/molecule.h</itemPath>
       <itemPath>../../include/votca/ctp/orbitals.h</itemPath>
       <itemPath>../../include/votca/ctp/paircalculator.h</itemPath>
@@ -86,11 +86,11 @@
       <itemPath>../../include/votca/ctp/parallelsitecalc.h</itemPath>
       <itemPath>../../include/votca/ctp/parallelxjobcalc.h</itemPath>
       <itemPath>../../include/votca/ctp/pewald3d.h</itemPath>
-      <itemPath>../../include/votca/ctp/polarbackground.h</itemPath>
       <itemPath>../../include/votca/ctp/polarseg.h</itemPath>
       <itemPath>../../include/votca/ctp/polarsite.h</itemPath>
       <itemPath>../../include/votca/ctp/polartop.h</itemPath>
       <itemPath>../../include/votca/ctp/progressobserver.h</itemPath>
+      <itemPath>../../include/votca/ctp/qmatom.h</itemPath>
       <itemPath>../../include/votca/ctp/qmcalculator.h</itemPath>
       <itemPath>../../include/votca/ctp/qmdatabase.h</itemPath>
       <itemPath>../../include/votca/ctp/qmmachine.h</itemPath>
@@ -106,6 +106,7 @@
       <itemPath>../../include/votca/ctp/statesaversqlite.h</itemPath>
       <itemPath>../../include/votca/ctp/topology.h</itemPath>
       <itemPath>../../include/votca/ctp/version.h</itemPath>
+      <itemPath>../../include/votca/ctp/votca_ctp_config.h.in</itemPath>
       <itemPath>../../include/votca/ctp/xinductor.h</itemPath>
       <itemPath>../../include/votca/ctp/xinteractor.h</itemPath>
       <itemPath>../../include/votca/ctp/xjob.h</itemPath>
@@ -122,6 +123,9 @@
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
                    projectFiles="true">
+    </logicalFolder>
+    <logicalFolder name="f3" displayName="Scripts" projectFiles="true" kind="ROOT">
+      <itemPath>../../scripts/ctp_testsuite.in</itemPath>
     </logicalFolder>
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
@@ -150,15 +154,14 @@
       <itemPath>../../src/libctp/apolarsite.cc</itemPath>
       <itemPath>../../src/libctp/ewald2d.cc</itemPath>
       <itemPath>../../src/libctp/ewald3d.cc</itemPath>
-      <itemPath>../../src/libctp/ewaldactor.cc</itemPath>
       <itemPath>../../src/libctp/ewaldnd.cc</itemPath>
       <itemPath>../../src/libctp/hgversion.h</itemPath>
       <itemPath>../../src/libctp/job.cc</itemPath>
       <itemPath>../../src/libctp/orbitals.cc</itemPath>
+      <itemPath>../../src/libctp/overlap.cc</itemPath>
       <itemPath>../../src/libctp/parallelpaircalc.cc</itemPath>
       <itemPath>../../src/libctp/parallelxjobcalc.cc</itemPath>
       <itemPath>../../src/libctp/pewald3d.cc</itemPath>
-      <itemPath>../../src/libctp/polarbackground.cc</itemPath>
       <itemPath>../../src/libctp/polarseg.cc</itemPath>
       <itemPath>../../src/libctp/polarsite.cc</itemPath>
       <itemPath>../../src/libctp/polartop.cc</itemPath>
@@ -240,8 +243,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/ctp/ewdspace.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/ctp/extractorfactory.h"
             ex="false"
             tool="3"
@@ -253,6 +254,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/fragment.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/gsl_boost_ublas_matrix_prod.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/ctp/job.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -267,6 +273,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/logger.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/mkl_boost_ublas_matrix_prod.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/ctp/molecule.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -292,11 +303,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/ctp/polarbackground.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/ctp/polarseg.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/polarsite.h"
@@ -308,6 +314,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/qmatom.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/qmcalculator.h"
             ex="false"
@@ -358,6 +366,11 @@
       </item>
       <item path="../../include/votca/ctp/version.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/ctp/votca_ctp_config.h.in"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/xinductor.h"
             ex="false"
             tool="3"
@@ -371,6 +384,8 @@
       <item path="../../include/votca/ctp/xjob.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/xmapper.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../scripts/ctp_testsuite.in" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/apolarsite.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -415,11 +430,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/calculators/eoutersphere.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/ewdbgpol.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -516,8 +526,6 @@
       </item>
       <item path="../../src/libctp/ctpapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libctp/ewaldactor.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libctp/extractorfactory.cc"
             ex="false"
             tool="1"
@@ -605,17 +613,14 @@
       </item>
       <item path="../../src/libctp/orbitals.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libctp/overlap.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libctp/parallelpaircalc.cc"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
       <item path="../../src/libctp/parallelxjobcalc.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/polarbackground.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -691,7 +696,7 @@
       </item>
       <item path="../../src/libctp/toolfactory.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libctp/tools/log2mps.h" ex="false" tool="3" flavor2="0">
+      <item path="../../src/libctp/tools/coupling.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/molpol.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -767,8 +772,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/ctp/ewdspace.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/ctp/extractorfactory.h"
             ex="false"
             tool="3"
@@ -780,6 +783,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/fragment.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/gsl_boost_ublas_matrix_prod.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/ctp/job.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -794,6 +802,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/logger.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/mkl_boost_ublas_matrix_prod.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/ctp/molecule.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -819,11 +832,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/ctp/polarbackground.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/ctp/polarseg.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/polarsite.h"
@@ -835,6 +843,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/qmatom.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/qmcalculator.h"
             ex="false"
@@ -885,6 +895,11 @@
       </item>
       <item path="../../include/votca/ctp/version.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/ctp/votca_ctp_config.h.in"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/xinductor.h"
             ex="false"
             tool="3"
@@ -898,6 +913,8 @@
       <item path="../../include/votca/ctp/xjob.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/xmapper.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../scripts/ctp_testsuite.in" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/apolarsite.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -942,11 +959,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/calculators/eoutersphere.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/calculators/ewdbgpol.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1043,8 +1055,6 @@
       </item>
       <item path="../../src/libctp/ctpapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libctp/ewaldactor.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libctp/extractorfactory.cc"
             ex="false"
             tool="1"
@@ -1132,17 +1142,14 @@
       </item>
       <item path="../../src/libctp/orbitals.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libctp/overlap.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libctp/parallelpaircalc.cc"
             ex="false"
             tool="0"
             flavor2="0">
       </item>
       <item path="../../src/libctp/parallelxjobcalc.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/polarbackground.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -1218,7 +1225,7 @@
       </item>
       <item path="../../src/libctp/toolfactory.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libctp/tools/log2mps.h" ex="false" tool="3" flavor2="0">
+      <item path="../../src/libctp/tools/coupling.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/molpol.cc" ex="false" tool="1" flavor2="0">
       </item>
