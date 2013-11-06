@@ -62,7 +62,7 @@ public:
         void FX_FieldReset() { _not_converged_count = 0; _part_bg_P.clear(); }
         double FX_FieldWload() { return 100.*_part_bg_P.size()/_full_bg_P.size(); }        
         // Convergence & output related
-        const int NotConverged() { return _not_converged_count; }
+        const int &NotConverged() { return _not_converged_count; }
         double AvgRco() { return _avg_R_co; }
         
     private:
