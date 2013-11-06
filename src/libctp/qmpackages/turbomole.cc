@@ -473,7 +473,7 @@ bool Turbomole::CheckLogFile() {
 }
 
 /**
- * Parses the Gaussian Log file and stores data in the Orbitals object 
+ * Parses the Turbomole Log file and stores data in the Orbitals object 
  * TO DO
  */
 bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
@@ -500,6 +500,9 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
 
     // check if LOG file is complete
     if ( !CheckLogFile() ) return false;
+    // save qmpackage name
+    _orbitals->_has_qm_package = true;
+    _orbitals->_qm_package = "turbomole";
     
     // Start parsing the file line by line
     ifstream _input_file( (_run_dir + "/" + _log_file_name).c_str() );

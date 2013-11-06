@@ -680,6 +680,11 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
     // check if LOG file is complete
     if ( !CheckLogFile() ) return false;
     
+    // save qmpackage name
+    _orbitals->_has_qm_package = true;
+    _orbitals->_qm_package = "gaussian"; 
+
+    
     // Start parsing the file line by line
     ifstream _input_file(_log_file_name_full.c_str());
     while (_input_file) {

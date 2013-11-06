@@ -12,12 +12,12 @@ foreach(PROG ctp_map ctp_run ctp_tools ctp_parallel ctp_dump)
 
   if (BUILD_MANPAGES)
      add_custom_command(OUTPUT ${PROG}.man
-       #COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${PROG} --man > ${PROG}.man
+       COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${PROG} --man > ${PROG}.man
        COMMENT "Building ${PROG} manpage"
        DEPENDS ${PROG})
      add_custom_target(${PROG}_manpage DEPENDS ${PROG}.man)
      add_dependencies(manpages ${PROG}_manpage)
-     #install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROG}.man DESTINATION ${MAN}/man1 RENAME ${PROG}.1)
+     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROG}.man DESTINATION ${MAN}/man1 RENAME ${PROG}.1)
   endif (BUILD_MANPAGES)
 endforeach(PROG)
 

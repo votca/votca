@@ -70,6 +70,7 @@ Orbitals::Orbitals() {
     _has_atoms = false;
     _has_qm_energy = false;
     _has_self_energy = false;
+    _has_qm_package = false;
     
     // GW-BSE
     _has_vxc = false;
