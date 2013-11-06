@@ -18,128 +18,151 @@
 #ifndef __VOTCA_KMC_VSSMGROUP_H_
 #define __VOTCA_KMC_VSSMGROUP_H_
 
-#include <votca/tools/random.h>
-#include <vector>
-#include <iostream>
+
+#include <votca/kmc/events.h>
+#include <votca/kmc/globaleventinfo.h>
 
 namespace votca { namespace kmc {
+  
+using namespace std;
 
-using namespace votca::tools;
-
-/***
- * \brief groups events based on variable step size method
- *
- * This class groups the events based on the variable step size method. 
- * The waiting time is calculated from the total rate. The probability to 
- * choose an event is P_i = \omega_i / \omega_tot 
- * 
- * The template argument is a class which has to implement the functions 
- * Rate, which should return the rate of the event and 
- * onExecute, which is called if the event occurs. 
- * VSSMGroup implements these methods it's own and therefore
- * can be used as an event itself. This allows hierarchical grouping 
- * of events.
- *
- * \todo add a refresh function if rates have changed
- */
-template<typename event_t>
-class VSSMGroup {
+class Vssmgroup {
+    
 public:
-	VSSMGroup() {
-		_acc_rate.push_back(0);
-	}
+    
+    void Recompute_in_device(Events* events);
+    void Recompute_in_bulk(Events* events);
+    double Timestep(votca::tools::Random2 *RandomVariable);
+    void Perform_one_step_in_device(Events* events,Graph* graph, State* state, Globaleventinfo* globevent, votca::tools::Random2 *RandomVariable);
+    void Perform_one_step_in_bulk(Events* events,Graph* graph, State* state, Globaleventinfo* globevent, votca::tools::Random2 *RandomVariable);
+    
+    votca::tools::Random2 *RandomVariable;   
+ 
 
-	/***
-	 * \brief add event to list of possible events
-	 */
-	void AddEvent(event_t *event) {
-		_events.push_back(event);
-		_acc_rate.push_back(_acc_rate.back() + event->Rate());
-		UpdateWaitingTime();
-	}
+    
+private:
 
-	/**
-	 * \brief get the total rate of this group
-	 */
-	double Rate() { return _acc_rate.back(); };
-
-	/**
-	 * \brief this group is called, select and execute an event in group
-	 */
-	void onExecute();
-	/**
-	 * \brief get the waiting time for this group of events
-	 */
-	double WaitingTime() { return _waiting_time; }
-
-	/**
-	 * \brief calculate a new waiting time
-	 */
-	void UpdateWaitingTime() {
-		_waiting_time = -log( 1.0 - Random::rand_uniform() ) / Rate();
-	}
-
-	event_t *getEvent(int i) { return _events[i]; }
-
-protected:
-	/**
-	 * \brief select an event to execute based on linear search O(N)
-	 */
-	event_t *SelectEvent_LinearSearch();
-
-	/**
-	 * \brief select an event to execute based on binary search O(log N)
-	 */
-	event_t *SelectEvent_BinarySearch();
-
-	std::vector<event_t*> _events;
-	std::vector<double> _acc_rate;
-	double _waiting_time;
+    double el_probsum;
+    double ho_probsum;
+    double tot_probsum;
+    
+    double el_non_inject_probsum;
+    double ho_non_inject_probsum;
+    double el_inject_probsum;
+    double ho_inject_probsum;
+    
 };
 
-template<typename event_t>
-inline void VSSMGroup<event_t>::onExecute()
-{
-	SelectEvent_BinarySearch()->onExecute();
-	UpdateWaitingTime();
+double Vssmgroup::Timestep(votca::tools::Random2 *RandomVariable){
+
+    double timestep;
+    
+    double rand_u = 1-RandomVariable->rand_uniform();
+    while(rand_u == 0) {
+        rand_u = 1-RandomVariable->rand_uniform();
+    }
+        
+    timestep = -1/tot_probsum*log(rand_u);
+    return timestep;
+    
 }
 
-template<typename event_t>
-inline event_t *VSSMGroup<event_t>::SelectEvent_LinearSearch()
-{
-	double u = (1.-Random::rand_uniform())*Rate();
-	event_t *event;
-	// find the biggest event for that u < \sum omega_i
-	for(typename std::vector<event_t*>::iterator e=_events.begin();
-			e!=_events.end(); ++e) {
-			u-=(*e)->Rate();
-			if(u<=0) return *e;
-	}
-	// should never happen
-	return _events.back();
+void Vssmgroup::Recompute_in_device(Events* events){
+    
+    if(events->el_dirty) {
+        el_non_inject_probsum = events->El_non_injection_rates->compute_sum();
+        el_inject_probsum = events->El_injection_rates->compute_sum();       
+        el_probsum = el_non_inject_probsum + el_inject_probsum;
+        events->el_dirty = false;
+    }
+
+    if(events->ho_dirty) {
+        ho_non_inject_probsum = events->Ho_non_injection_rates->compute_sum();
+        ho_inject_probsum = events->Ho_injection_rates->compute_sum();       
+        ho_probsum = ho_non_inject_probsum + ho_inject_probsum;
+        events->ho_dirty = false;
+    }
+
+    tot_probsum = el_probsum + ho_probsum;
 }
 
-template<typename event_t>
-event_t *VSSMGroup<event_t>::SelectEvent_BinarySearch()
-{
-	double u = 1.-Random::rand_uniform();
-	u=u*Rate();
-	double max = Rate();
-	// to a binary search in accumulated events
-	int imin=0;
-	int imax=_acc_rate.size();
-	while(imax - imin > 1) {
-		int imid=(int)((imin+imax)*0.5);
-		//std::cout << u << " " << _acc_rate[imid] << std::endl;
-		if(u<=_acc_rate[imid])
-			imax=imid;
-		else
-			imin=imid;
-	}
-        //std::cout << imin << " " << Rate() << " " << u << std::endl;
-	return _events[imin];
+void Vssmgroup::Recompute_in_bulk(Events* events){
+    
+    if(events->el_dirty) {
+        el_probsum = events->El_non_injection_rates->compute_sum();
+        events->el_dirty = false;
+    }
+
+    if(events->ho_dirty) {
+        ho_probsum = events->Ho_non_injection_rates->compute_sum();
+        events->ho_dirty = false;
+    }
+
+    tot_probsum = el_probsum + ho_probsum;
+    
 }
 
-}}
+void Vssmgroup::Perform_one_step_in_device(Events* events, Graph* graph, State* state, Globaleventinfo* globevent, votca::tools::Random2 *RandomVariable){
 
-#endif /* __VOTCA_KMC_VSSMGROUP_H_ */
+    double randn = RandomVariable->rand_uniform();    
+    
+    long event_ID;
+    Event* chosenevent;
+    
+    if(randn<el_probsum/tot_probsum) { // electron event
+        if(randn< el_non_inject_probsum/tot_probsum) { // non injection event
+            randn *= el_non_inject_probsum;
+            event_ID = events->El_non_injection_rates->search(randn);
+            chosenevent = events->El_non_injection_events[event_ID];
+        }
+        else { // injection event
+            randn -= el_non_inject_probsum/tot_probsum;
+            randn *= el_inject_probsum;
+            event_ID = events->El_injection_rates->search(randn);
+            chosenevent = events->El_injection_events[event_ID];
+        }
+    }
+    else { //Hole event
+        randn -= el_probsum/tot_probsum;
+        if(randn< ho_non_inject_probsum/tot_probsum) { // non injection event
+            randn *= ho_non_inject_probsum;
+            event_ID = events->Ho_non_injection_rates->search(randn);
+            chosenevent = events->Ho_non_injection_events[event_ID];
+        }
+        else { // injection event
+            randn -= ho_non_inject_probsum/tot_probsum;
+            randn *= ho_inject_probsum;
+            event_ID = events->Ho_injection_rates->search(randn);
+            chosenevent = events->Ho_injection_events[event_ID];
+        }
+    }
+    events->On_execute(chosenevent, graph, state, globevent);
+}
+
+void Vssmgroup::Perform_one_step_in_bulk(Events* events, Graph* graph, State* state, Globaleventinfo* globevent, votca::tools::Random2 *RandomVariable){
+
+    double randn = RandomVariable->rand_uniform();    
+    
+    //first search the particular bsumtree
+   
+    long event_ID;
+    Event* chosenevent;
+    
+    if(randn<el_probsum/tot_probsum) { // electron event
+        randn *= el_probsum;
+        event_ID = events->El_non_injection_rates->search(randn);
+        chosenevent = events->El_non_injection_events[event_ID];
+    }
+    else { //Hole event
+        randn -= el_probsum/tot_probsum;
+        randn *= ho_probsum;
+        event_ID = events->Ho_non_injection_rates->search(randn);
+        chosenevent = events->Ho_non_injection_events[event_ID];
+    }
+    events->On_execute(chosenevent, graph, state, globevent);
+}
+
+
+}} 
+
+#endif

@@ -15,18 +15,18 @@
  *
  */
 
-#ifndef __VOTCA_KMC_ElectronTransfer_H_
-#define __VOTCA_KMC_ElectronTransfer_H_
+#ifndef __VOTCA_KMC_HoleTransfer_H_
+#define __VOTCA_KMC_HoleTransfer_H_
 
 #include <votca/kmc/event.h>
 
 namespace votca { namespace kmc {
     
-class ElectronTransfer : public Event {
+class HoleTransfer : public Event {
 public:
     
     void onExecute() { 
-        cout << "Electron transfer executed" << endl; 
+        cout << "Hole transfer executed" << endl; 
     }
     // TODO updating the state
    

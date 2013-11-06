@@ -82,6 +82,7 @@ double Node::EscapeRate()
 
 
 // KMCSINGLE PART //
+/*
 struct link_t;
 
 class node_t : public VSSMGroup<link_t> {
@@ -116,7 +117,7 @@ struct link_t {
 	vec _r;
 };
 // END KMCSINGLE PART // 
-
+*/
 
 #endif	/* NODE_H */
 
