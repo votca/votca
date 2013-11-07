@@ -26,18 +26,13 @@
     <dlpoly>
       <table_bins>0.002</table_bins>
       <table_end>9</table_end>
-      <!-- work around until we can read dlpoly files !-->
-      <topol>topol.xml</topol>
-      <traj>traj.xyz</traj>
     </dlpoly>
     <initial_configuration>maindir</initial_configuration>
     <!-- these files are copied for each new run -->
-    <filelist>CONFIG CONTROL FIELD topol.xml spce.gro his2xyz.py</filelist>
+    <filelist>CONFIG CONTROL FIELD</filelist>
     <!-- do so many iterations -->
     <iterations_max>300</iterations_max>
     <!-- ibi: inverse biltzmann imc: inverse monte carlo -->
     <method>ibi</method>
-    <!-- directory for user scripts -->
-    <scriptpath>$PWD/scripts</scriptpath>
   </inverse>
 </cg>
