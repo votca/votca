@@ -32,6 +32,15 @@ namespace votca { namespace kmc {
 
 void EventFactory::RegisterAll(void)
 {
+<<<<<<< local
+        //Events().Register< ElectronTransfer >         ( _ElectronTransfer );
+        //Events().Register< HoleTransfer >         ( _HoleTransfer );
+        //Events().Register< ElectronInjection >         ( _ElectronInjection );
+        //Events().Register< HoleInjection >         ( _HoleInjection );
+        //Events().Register< ElectronCollection >         ( _ElectronCollection );
+        //Events().Register< HoleCollection >         ( _HoleCollection );
+        //Events().Register< Recombination >         ( _Recombination );
+=======
         Events().Register< ElectronTransfer >         ( _ElectronTransfer );
         Events().Register< HoleTransfer >         ( _HoleTransfer );
         Events().Register< ElectronInjection >         ( _ElectronInjection );
@@ -39,6 +48,7 @@ void EventFactory::RegisterAll(void)
         Events().Register< ElectronCollection >         ( _ElectronCollection );
         Events().Register< HoleCollection >         ( _HoleCollection );
         Events().Register< Recombination >         ( _Recombination );
+>>>>>>> other
 }
 
 }}
