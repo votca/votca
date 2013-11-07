@@ -90,6 +90,13 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
     else {
         _coarse_cg_radius = _polar_cutoff;
     }
+    if (opt->exists(pfx+".coarsegrain.cg_anisotropic")) {
+        _coarse_cg_anisotropic =
+            opt->get(pfx+".coarsegrain.cg_anisotropic").as<bool>();
+    }
+    else {
+        _coarse_cg_anisotropic = false;
+    }
     // Tasks to perform
     if (opt->exists(pfx+".tasks.polarize_bg")) {
         _task_polarize_bg = opt->get(pfx+".tasks.polarize_bg").as<bool>();
@@ -264,6 +271,9 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
 
 void Ewald3DnD::ExpandForegroundReduceBackground(double polar_R_co) {
     
+    LOG(logDEBUG,*_log) << flush;
+    LOG(logDEBUG,*_log) << "Set-up polar grounds" << flush;
+    
     vector<PolarSeg*>::iterator sit1;
     vector<PolarSeg*>::iterator sit2;
     
@@ -281,10 +291,9 @@ void Ewald3DnD::ExpandForegroundReduceBackground(double polar_R_co) {
     int polar_nb_max = ceil(polar_R_co/maxnorm(_b)-0.5)+1;
     int polar_nc_max = ceil(polar_R_co/maxnorm(_c)-0.5)+1;
     
-    if (tools::globals::verbose)
-        LOG(logDEBUG,*_log) << "Expanding cell space for neighbour search:"
-                " +/-" << polar_na_max << " x +/-" << polar_nb_max << " x +/-" 
-                << polar_nc_max << flush;
+    LOG(logDEBUG,*_log) << "  o Expanding cell space for neighbour search:"
+            " +/-" << polar_na_max << " x +/-" << polar_nb_max << " x +/-" 
+            << polar_nc_max << flush;
     
     _fg_table = new ForegroundTable(
         _bg_P.size(), polar_na_max, polar_nb_max, polar_nc_max);
@@ -398,17 +407,21 @@ void Ewald3DnD::ExpandForegroundReduceBackground(double polar_R_co) {
 
 void Ewald3DnD::CoarseGrainDensities(bool cg_bg, bool cg_fg, double cg_radius) {
     
+    LOG(logDEBUG,*_log) << "Coarse-graining agenda" << flush;
+    LOG(logDEBUG,*_log) << "  o Coarse-grain background:   " << ((_coarse_do_cg_background) ? "yes" : "no") << flush;
+    LOG(logDEBUG,*_log) << "  o Coarse-grain foreground:   " << ((_coarse_do_cg_foreground) ? "yes" : "no") << flush;
+    LOG(logDEBUG,*_log) << "  o Anisotropic P-tensor:      " << ((_coarse_cg_anisotropic) ? "yes" : "no") << flush;
+    LOG(logDEBUG,*_log) << "  o Coarse-graining radius:    " << _coarse_cg_radius << " nm" << flush;
+    
     // COARSE-GRAIN BACKGROUND
     if (cg_bg) {
-        cout << endl;
-        cout << endl << "MST DBG ... Coarse-grain background" << flush;
+        LOG(logDEBUG,*_log) << "Coarse-grain background" << flush;
         
         int count_bgp = 0;
         int count_fgn = 0;
         int count_fgc = 0;
         int count_bgp_id_in_fg = 0;
-        
-        cout << endl;
+
         for (vector<PolarSeg*>::iterator sit = _bg_P.begin();
             sit != _bg_P.end(); ++sit) {
             if (_fg_table->IsInForeground((*sit)->getId(), 0, 0, 0)) {
@@ -419,14 +432,13 @@ void Ewald3DnD::CoarseGrainDensities(bool cg_bg, bool cg_fg, double cg_radius) {
             assert((*sit)->size() >= (*sit)->PolarFrags().size()
                && "<::CoarseGrainDensities> BGN: FEWER POLAR SITES THAN FRAGS");
             if ((*sit)->size() > (*sit)->PolarFrags().size()) {
-                cout << "\rMST DBG ...   o BGP ID = " << (*sit)->getId() 
-                    << "   " << flush;
-                (*sit)->Coarsegrain();
+                //cout << "\rMST DBG ...   o BGP ID = " << (*sit)->getId() 
+                //     << "   " << flush;
+                (*sit)->Coarsegrain(_coarse_cg_anisotropic);
                 ++count_bgp;
             }
         }
-        
-        cout << endl;
+
         for (vector<PolarSeg*>::iterator sit = _fg_N.begin();
             sit != _fg_N.end(); ++sit) {
             // By checking whether there are more polar sites than polar
@@ -434,25 +446,24 @@ void Ewald3DnD::CoarseGrainDensities(bool cg_bg, bool cg_fg, double cg_radius) {
             assert((*sit)->size() >= (*sit)->PolarFrags().size()
                && "<::CoarseGrainDensities> FGN: FEWER POLAR SITES THAN FRAGS");
             if ((*sit)->size() > (*sit)->PolarFrags().size()) {
-                cout << "\rMST DBG ...   o FGN ID = " << (*sit)->getId() 
-                    << "   " << flush;
-                (*sit)->Coarsegrain();
+                //cout << "\rMST DBG ...   o FGN ID = " << (*sit)->getId() 
+                //     << "   " << flush;
+                (*sit)->Coarsegrain(_coarse_cg_anisotropic);
                 ++count_fgn;
             }
         }
         
-        cout << endl << "MST DBG ...   o Coarse-grained " 
+        LOG(logDEBUG,*_log) << "  o Coarse-grained "
              << count_bgp << "/" << _bg_P.size() << " (BGP) "
              << count_fgn << "/" << _fg_N.size() << " (FGN) "
              << "with " << count_bgp_id_in_fg << " FG-table counts" << flush;
     }
     // COARSE-GRAIN FOREGROUND
     if (cg_fg) {
-        cout << endl << "MST DBG ... Coarse-grain foreground" << flush;
+        LOG(logDEBUG,*_log) << "Coarse-grain foreground" << flush;
         
         int count_fgc = 0;
         
-        cout << endl;
         for (vector<PolarSeg*>::iterator sit = _fg_C.begin();
             sit != _fg_C.end(); ++sit) {
             assert((*sit)->size() >= (*sit)->PolarFrags().size()
@@ -466,17 +477,19 @@ void Ewald3DnD::CoarseGrainDensities(bool cg_bg, bool cg_fg, double cg_radius) {
                 double R = votca::tools::abs((*sit)->getPos()-(*qit)->getPos());
                 if (R < min_R) min_R = R;
             }
+            assert(min_R <= _polar_cutoff
+                && "<::CoarseGrainDensities> FGC: INCONSISTENT WITH EXPANSION");
             // Different from above, here there should be no danger of 
             // coarse-graining twice
             if (min_R > cg_radius) {
-                cout << "\rMST DBG ...   o FGC ID = " << (*sit)->getId() 
-                    << "   " << flush;
-                (*sit)->Coarsegrain();
+                //cout << "\rMST DBG ...   o FGC ID = " << (*sit)->getId() 
+                //     << "   " << flush;
+                (*sit)->Coarsegrain(_coarse_cg_anisotropic);
                 ++count_fgc;
             }
         }
         
-        cout << endl << "MST DBG ...   o Coarse-grained " 
+        LOG(logDEBUG,*_log) << "  o Coarse-grained "
              << count_fgc << "/" << _fg_C.size() << " (FGC) " << flush;
     }    
     return;
@@ -592,18 +605,6 @@ void Ewald3DnD::WriteDensitiesPDB(string pdbfile) {
 void Ewald3DnD::Evaluate() {
     
     LOG(logDEBUG,*_log) << flush;
-    LOG(logDEBUG,*_log) << "Tasks to perform (" << IdentifyMethod() << ")" << flush;
-    LOG(logDEBUG,*_log) << "  o Calculate fg fields:       " << ((_task_calculate_fields) ? "yes" : "no") << flush;
-    LOG(logDEBUG,*_log) << "  o Polarize foreground:       " << ((_task_polarize_fg) ? "yes" : "no") << flush;
-    LOG(logDEBUG,*_log) << "  o Evaluate energy:           " << ((_task_evaluate_energy) ? "yes" : "no") << flush;
-    
-    LOG(logDEBUG,*_log) << flush;
-    LOG(logDEBUG,*_log) << "Coarse-graining summary" << flush;
-    LOG(logDEBUG,*_log) << "  o Coarse-grain background:   " << ((_coarse_do_cg_background) ? "yes" : "no") << flush;
-    LOG(logDEBUG,*_log) << "  o Coarse-grain foreground:   " << ((_coarse_do_cg_foreground) ? "yes" : "no") << flush;
-    LOG(logDEBUG,*_log) << "  o Coarse-graining radius:    " << _coarse_cg_radius << "nm" << flush;
-    
-    LOG(logDEBUG,*_log) << flush;
     LOG(logDEBUG,*_log) << "System & Ewald parameters (" << IdentifyMethod() << ")" << flush;
     LOG(logDEBUG,*_log) << "  o Real-space unit cell:      " << _a << " x " << _b << " x " << _c << flush;
     LOG(logDEBUG,*_log) << "  o Real-space c/o (guess):    " << _R_co << " nm" << flush;
@@ -615,9 +616,11 @@ void Ewald3DnD::Evaluate() {
     LOG(logDEBUG,*_log) << "  o LxLy (for 3D2D EW):        " << _LxLy << " nm**2" << flush;
     LOG(logDEBUG,*_log) << "  o kx(max), ky(max), kz(max): " << _NA_max << ", " << _NB_max << ", " << _NC_max << flush;
     
-    
-    
-    
+    LOG(logDEBUG,*_log) << "Tasks to perform (" << IdentifyMethod() << ")" << flush;
+    LOG(logDEBUG,*_log) << "  o Calculate fg fields:       " << ((_task_calculate_fields) ? "yes" : "no") << flush;
+    LOG(logDEBUG,*_log) << "  o Polarize foreground:       " << ((_task_polarize_fg) ? "yes" : "no") << flush;
+    LOG(logDEBUG,*_log) << "  o Evaluate energy:           " << ((_task_evaluate_energy) ? "yes" : "no") << flush;
+        
     // TEASER OUTPUT PERMANENT FIELDS
     LOG(logDEBUG,*_log) << flush << "Background fields (BGP):" << flush;
     int fieldCount = 0;

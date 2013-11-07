@@ -42,7 +42,7 @@ public:
     void CalcPos();    
     double CalcTotQ();
     vec CalcTotD();
-    void Coarsegrain();
+    void Coarsegrain(bool cg_anisotropic);
     // Evaluates to "true" if ANY contained polar site has charge != 0
     void CalcIsCharged();
     bool IsCharged() { return _is_charged; }

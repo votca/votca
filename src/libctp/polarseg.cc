@@ -174,7 +174,7 @@ void PolarSeg::WriteMPS(string mpsfile, string tag) {
 }
 
 
-void PolarSeg::Coarsegrain() {
+void PolarSeg::Coarsegrain(bool cg_anisotropic) {
     // Reduce each polar fragment to a single polar site
     vector<APolarSite*> cg_sites;
     for (vector<PolarFrag*>::iterator fit = _pfrags.begin();
@@ -234,6 +234,17 @@ void PolarSeg::Coarsegrain() {
         // Collapse polarizabilities
         MolPolEngine engine = MolPolEngine();
         votca::tools::matrix PCG = engine.CalculateMolPol(*(*fit), tools::globals::verbose && false);
+        if (cg_anisotropic == false) {
+            // Reduce to isotropic tensor
+            votca::tools::matrix::eigensystem_t pcg_eigen;
+            PCG.SolveEigensystem(pcg_eigen);
+            double p11 = pcg_eigen.eigenvalues[0];
+            double p22 = pcg_eigen.eigenvalues[1];
+            double p33 = pcg_eigen.eigenvalues[2];
+            double piso = pow(p11*p22*p33, 1./3.);
+            PCG = votca::tools::matrix(
+                vec(piso,0,0), vec(0,piso,0), vec(0,0,piso));
+        }
         
         // Generate new coarse-grained site from the above
         APolarSite *cg_site = new APolarSite((*fit)->getId(), (*fit)->getName());

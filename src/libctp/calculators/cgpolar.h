@@ -28,6 +28,8 @@ private:
     XMpsMap                        _mps_mapper;
     bool                           _pdb_check;
     string                         _load_ptop_archfile;
+    
+    bool                           _cg_anisotropic;
 
 };
 
@@ -63,6 +65,12 @@ void CgPolar::Initialize(Property *opt) {
             _load_ptop_archfile = opt->get(key+".load_ptop_from").as<string>();
         }
         else { _load_ptop_archfile = ""; }
+    
+    key = "options.cgpolar.coarsegrain";
+        if (opt->exists(key+".cg_anisotropic")) {
+            _cg_anisotropic = opt->get(key+".cg_anisotropic").as<bool>();
+        }
+        else { _cg_anisotropic = false; }
 
     return;
 }
@@ -109,9 +117,10 @@ bool CgPolar::EvaluateFrame(Topology *top) {
         //engine.CalculateMolPol(*(*sit), true);
         //(*sit)->WriteMPS("cgpolar.fine.mps", "FINE");
         cout << "\rCoarse-grain ID = " << (*sit)->getId() << flush;
-        (*sit)->Coarsegrain();
-        //(*sit)->WriteMPS("cgpolar.coarse.mps", "COARSE");
+        (*sit)->Coarsegrain(_cg_anisotropic);
+        (*sit)->WriteMPS("cgpolar.coarse.mps", "COARSE");
         //engine.CalculateMolPol(*(*sit), true);
+        break;
     }
     
     // VERIFY OUTPUT: PDB, PTOP, XML

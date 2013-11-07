@@ -152,6 +152,7 @@ protected:
     bool _coarse_do_cg_background;
     bool _coarse_do_cg_foreground;
     double _coarse_cg_radius;
+    bool _coarse_cg_anisotropic;
 
     // TASKS
     bool _task_polarize_bg;
