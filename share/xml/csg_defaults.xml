@@ -27,7 +27,10 @@
       <command>dl_poly
 	<DESC> command to run dlpoly  (name or absolute path or mpirun dlpoly..) </DESC>
       </command>
-      <traj>HISTORY
+      <topol>.dlpoly
+	<DESC> Gromacs binary topology (tpr) file to be written by grompp and used for the simlation</DESC>
+      </topol>
+      <traj>.dlpoly
 	<DESC> Name of the output dlpoly trajectory file</DESC>
       </traj>
     </dlpoly>
