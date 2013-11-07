@@ -4,9 +4,16 @@ CMakeCache.txt
 CMakeFiles
 Makefile
 cmake_install.cmake
+
 include/votca/kmc/Makefile
 include/votca/kmc/cmake_install.cmake
+
 src/tools/kmc_run 
+src/tools/*.man
+
 install_manifest.txt
+
 src/libkmc/libvotca_kmc.so
 src/libkmc/hgversion.h
+src/libkmc/*.pc
+
