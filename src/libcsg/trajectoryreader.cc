@@ -27,6 +27,7 @@
 #ifdef GMX
 #include "modules/io/gmxtrajectoryreader.h"
 #endif
+#include "modules/io/dlpolytrajectoryreader.h"
 
 namespace votca { namespace csg {
 
@@ -41,6 +42,7 @@ void TrajectoryReader::RegisterPlugins(void)
     TrjReaderFactory().Register<GMXTrajectoryReader>("gro");
     TrjReaderFactory().Register<GMXTrajectoryReader>("pdb");
 #endif
+    TrjReaderFactory().Register<DLPOLYTrajectoryReader>("dlpoly");
 }
 
 }}
