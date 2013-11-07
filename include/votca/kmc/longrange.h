@@ -19,7 +19,7 @@
 #define __VOTCA_KMC_LONGRANGE_H_
 
 #include <votca/tools/vec.h>
-#include <votca/kmc/graph.h>
+#include <votca/kmc/graphlattice.h>
 #include <votca/kmc/globaleventinfo.h>
 
 typedef votca::tools::vec myvec;
@@ -36,7 +36,7 @@ public:
     void Reset();
     //note that the number of images for the calculation of the long range potential should be considerably larger 
     //than the number for the short range potential
-    void Initialize(Graph* graph, Globaleventinfo* globevent); 
+    void Initialize(GraphLattice* graph, Globaleventinfo* globevent); 
     double Calculate_longrange(int layer, bool cut_out_discs, myvec sim_box_size, Globaleventinfo* globevent); // Calculate long-range part of Coulomb interaction
 
     vector<double> layercharge;
@@ -71,7 +71,7 @@ void Longrange::Reset() {
     }
 }
 
-void Longrange::Initialize (Graph* graph, Globaleventinfo* globevent) {
+void Longrange::Initialize (GraphLattice* graph, Globaleventinfo* globevent) {
 
     number_of_layers = ceil(graph->sim_box_size.x()/graph->hopdist);
  

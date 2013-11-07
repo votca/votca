@@ -24,7 +24,7 @@
 #include <votca/tools/statement.h>
 #include <votca/tools/vec.h>
 #include <votca/kmc/carrier.h>
-#include <votca/kmc/graph.h>
+#include <votca/kmc/graphlattice.h>
 #include <votca/kmc/globaleventinfo.h>
 #include <votca/kmc/bsumtree.h>
 
@@ -41,7 +41,7 @@ public:
     
     // Storage and readout of the node_id's of the nodes on which the carriers are to/from a SQL database
     void Save(string SQL_state_filename);
-    void Load(string SQL_state_filename, Graph* graph, Globaleventinfo* globevent);
+    void Load(string SQL_state_filename, GraphLattice* graph, Globaleventinfo* globevent);
     
     // Start with an empty state object
     void Init();
@@ -59,14 +59,14 @@ public:
     // Creation of coulomb mesh
     int meshsizeX; int meshsizeY; int meshsizeZ;
     vector< vector< vector <list<int> > > > coulomb_mesh;
-    void Init_coulomb_mesh(Graph* graph, Globaleventinfo* globevent);
-    void Add_to_coulomb_mesh(Graph* graph, Carrier* carrier, Globaleventinfo* globevent);
-    void Remove_from_coulomb_mesh(Graph* graph, Carrier* carrier, Globaleventinfo* globevent);
+    void Init_coulomb_mesh(GraphLattice* graph, Globaleventinfo* globevent);
+    void Add_to_coulomb_mesh(GraphLattice* graph, Carrier* carrier, Globaleventinfo* globevent);
+    void Remove_from_coulomb_mesh(GraphLattice* graph, Carrier* carrier, Globaleventinfo* globevent);
     
     // Injection and removal of charges (for example in a double carrier bulk setting) (still to be done)
    // Bsumtree* electron_inject;
    // Bsumtree* hole_inject;
-   // void Initialize_inject_trees(Graph* graph, Inject_Type injecttype, Globaleventinfo* globevent);
+   // void Initialize_inject_trees(GraphLattice* graph, Inject_Type injecttype, Globaleventinfo* globevent);
    // void Add_charge_in_box(Node* node, CarrierType carrier_type);
    // void Remove_charge_from_box(Node* node, CarrierType carrier_type);
     
@@ -75,7 +75,7 @@ private:
     bool Car_in_sim_box(int carrier_nr) {return carriers[carrier_nr]->is_in_sim_box;}
 };
 
-/*void State::Initialize_inject_trees(Graph* graph, Inject_Type injecttype, Globaleventinfo* globevent) {
+/*void State::Initialize_inject_trees(GraphLattice* graph, Inject_Type injecttype, Globaleventinfo* globevent) {
     electron_inject->initialize(graph->nodes.size());
     hole_inject->initialize(graph->nodes.size());
     
@@ -96,7 +96,7 @@ void State::Init(){
     carrier_reservoir.clear();
 }
 
-void State::Init_coulomb_mesh(Graph* graph, Globaleventinfo* globevent){
+void State::Init_coulomb_mesh(GraphLattice* graph, Globaleventinfo* globevent){
     meshsizeX = ceil(graph->sim_box_size.x()/globevent->coulcut);
     meshsizeY = ceil(graph->sim_box_size.y()/globevent->coulcut);
     meshsizeZ = ceil(graph->sim_box_size.z()/globevent->coulcut);
@@ -114,7 +114,7 @@ void State::Init_coulomb_mesh(Graph* graph, Globaleventinfo* globevent){
     }
 }
 
-void State::Add_to_coulomb_mesh(Graph* graph, Carrier* carrier, Globaleventinfo* globevent){
+void State::Add_to_coulomb_mesh(GraphLattice* graph, Carrier* carrier, Globaleventinfo* globevent){
 
     double posx = graph->nodes[carrier->carrier_node_ID]->node_position.x();
     double posy = graph->nodes[carrier->carrier_node_ID]->node_position.y();
@@ -127,7 +127,7 @@ void State::Add_to_coulomb_mesh(Graph* graph, Carrier* carrier, Globaleventinfo*
     coulomb_mesh[iposx][iposy][iposz].push_back(carrier->carrier_ID);    
 }
 
-void State::Remove_from_coulomb_mesh(Graph* graph, Carrier* carrier, Globaleventinfo* globevent){
+void State::Remove_from_coulomb_mesh(GraphLattice* graph, Carrier* carrier, Globaleventinfo* globevent){
 
     double posx = graph->nodes[carrier->carrier_node_ID]->node_position.x();
     double posy = graph->nodes[carrier->carrier_node_ID]->node_position.y();
@@ -183,7 +183,7 @@ void State::Save(string SQL_state_filename){
     db.EndTransaction();
 }
 
-void State::Load(string SQL_state_filename, Graph* graph, Globaleventinfo* globevent){
+void State::Load(string SQL_state_filename, GraphLattice* graph, Globaleventinfo* globevent){
     
     votca::tools::Database db;
     db.Open( SQL_state_filename );

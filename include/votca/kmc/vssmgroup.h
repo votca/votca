@@ -33,8 +33,8 @@ public:
     void Recompute_in_device(Events* events);
     void Recompute_in_bulk(Events* events);
     double Timestep(votca::tools::Random2 *RandomVariable);
-    void Perform_one_step_in_device(Events* events,Graph* graph, State* state, Globaleventinfo* globevent, votca::tools::Random2 *RandomVariable);
-    void Perform_one_step_in_bulk(Events* events,Graph* graph, State* state, Globaleventinfo* globevent, votca::tools::Random2 *RandomVariable);
+    void Perform_one_step_in_device(Events* events,GraphLattice* graph, State* state, Globaleventinfo* globevent, votca::tools::Random2 *RandomVariable);
+    void Perform_one_step_in_bulk(Events* events,GraphLattice* graph, State* state, Globaleventinfo* globevent, votca::tools::Random2 *RandomVariable);
     
     votca::tools::Random2 *RandomVariable;   
  
@@ -76,7 +76,7 @@ void Vssmgroup::Recompute_in_bulk(Events* events){
 
 }
 
-void Vssmgroup::Perform_one_step_in_device(Events* events, Graph* graph, State* state, Globaleventinfo* globevent, votca::tools::Random2 *RandomVariable){
+void Vssmgroup::Perform_one_step_in_device(Events* events, GraphLattice* graph, State* state, Globaleventinfo* globevent, votca::tools::Random2 *RandomVariable){
 
     double randn = RandomVariable->rand_uniform();    
     
@@ -99,7 +99,7 @@ void Vssmgroup::Perform_one_step_in_device(Events* events, Graph* graph, State* 
 
 }
 
-void Vssmgroup::Perform_one_step_in_bulk(Events* events, Graph* graph, State* state, Globaleventinfo* globevent, votca::tools::Random2 *RandomVariable){
+void Vssmgroup::Perform_one_step_in_bulk(Events* events, GraphLattice* graph, State* state, Globaleventinfo* globevent, votca::tools::Random2 *RandomVariable){
 
     double randn = RandomVariable->rand_uniform();    
     

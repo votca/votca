@@ -19,7 +19,7 @@
 #define __VOTCA_KMC_EVENTS_H_
 
 
-#include <votca/kmc/graph.h>
+#include <votca/kmc/graphlattice.h>
 #include <votca/kmc/state.h>
 #include <votca/kmc/event.h>
 #include <votca/kmc/bsumtree.h>
@@ -46,31 +46,31 @@ public:
     int nelectrons;
     int ncarriers;
     
-    void On_execute(Event* event, Graph* graph, State* state, Globaleventinfo* globevent);
+    void On_execute(Event* event, GraphLattice* graph, State* state, Globaleventinfo* globevent);
 
-    void Recompute_all_injection_events(Graph* graph, Globaleventinfo* globevent);
-    void Recompute_all_non_injection_events(Graph* graph, State* state, Globaleventinfo* globevent);
+    void Recompute_all_injection_events(GraphLattice* graph, Globaleventinfo* globevent);
+    void Recompute_all_non_injection_events(GraphLattice* graph, State* state, Globaleventinfo* globevent);
   
-    void Initialize_eventvector(Graph* graph, State* state, Globaleventinfo* globevent);
-    void Initialize_longrange(Graph* graph, Globaleventinfo* globevent);
+    void Initialize_eventvector(GraphLattice* graph, State* state, Globaleventinfo* globevent);
+    void Initialize_longrange(GraphLattice* graph, Globaleventinfo* globevent);
         
 private:
     void Initialize_injection_eventvector(Node* electrode, vector<Event*> eventvector, CarrierType cartype);
     void Grow_non_injection_eventvector(int carrier_grow_size, vector<Carrier*> carriers, int max_pair_degree);
 
-    void Add_remove_carrier(action AR, Carrier* carrier, Graph* graph, Node* action_node, State* state, Globaleventinfo* globevent);
-    void Effect_potential_and_non_injection_rates(action AR, Carrier* carrier, Graph* graph, State* state, Globaleventinfo* globevent);
-    void Effect_injection_rates(action AR, Graph* graph, Carrier* carrier, double dist_to_electrode, Node* electrode, Globaleventinfo* globevent);    
+    void Add_remove_carrier(action AR, Carrier* carrier, GraphLattice* graph, Node* action_node, State* state, Globaleventinfo* globevent);
+    void Effect_potential_and_non_injection_rates(action AR, Carrier* carrier, GraphLattice* graph, State* state, Globaleventinfo* globevent);
+    void Effect_injection_rates(action AR, GraphLattice* graph, Carrier* carrier, double dist_to_electrode, Node* electrode, Globaleventinfo* globevent);    
     
     double Compute_Coulomb_potential(double startx, myvec dif, myvec sim_box_size, Globaleventinfo* globevent);
 };
 
-void Events::Initialize_longrange(Graph* graph, Globaleventinfo* globevent) {
+void Events::Initialize_longrange(GraphLattice* graph, Globaleventinfo* globevent) {
     longrange = new Longrange();
     longrange->Initialize(graph,globevent); 
 }
 
-void Events::On_execute(Event* event, Graph* graph, State* state, Globaleventinfo* globevent) {
+void Events::On_execute(Event* event, GraphLattice* graph, State* state, Globaleventinfo* globevent) {
     
     if(event->fromtype == Fromtransfer) {
         Carrier* carrier = event->carrier;
@@ -120,7 +120,7 @@ void Events::On_execute(Event* event, Graph* graph, State* state, Globaleventinf
     }
 }
 
-void Events::Add_remove_carrier(action AR, Carrier* carrier,Graph* graph, Node* action_node, State* state, Globaleventinfo* globevent){
+void Events::Add_remove_carrier(action AR, Carrier* carrier,GraphLattice* graph, Node* action_node, State* state, Globaleventinfo* globevent){
 
     if(AR == Add) {
         carrier->carrier_node_ID = action_node->node_ID;
@@ -170,7 +170,7 @@ void Events::Add_remove_carrier(action AR, Carrier* carrier,Graph* graph, Node* 
 }
 
 
-void Events::Effect_potential_and_non_injection_rates(action AR, Carrier* carrier, Graph* graph, State* state,
+void Events::Effect_potential_and_non_injection_rates(action AR, Carrier* carrier, GraphLattice* graph, State* state,
                                                    Globaleventinfo* globevent) {
 
     int interact_sign;
@@ -362,7 +362,7 @@ void Events::Effect_potential_and_non_injection_rates(action AR, Carrier* carrie
     }
 }        
         
-void Events::Effect_injection_rates(action AR, Graph* graph, Carrier* carrier, 
+void Events::Effect_injection_rates(action AR, GraphLattice* graph, Carrier* carrier, 
                                                    double dist_to_electrode, Node* electrode, 
                                                    Globaleventinfo* globevent) {
                                                    
@@ -537,7 +537,7 @@ double Events::Compute_Coulomb_potential(double startx, myvec dif, myvec sim_box
 }
 
 
-void Events::Recompute_all_non_injection_events(Graph* graph, State* state, Globaleventinfo* globevent) {
+void Events::Recompute_all_non_injection_events(GraphLattice* graph, State* state, Globaleventinfo* globevent) {
     
     int Event_map;
        
@@ -571,7 +571,7 @@ void Events::Recompute_all_non_injection_events(Graph* graph, State* state, Glob
     }
 }
 
-void Events::Recompute_all_injection_events(Graph* graph, Globaleventinfo* globevent) {
+void Events::Recompute_all_injection_events(GraphLattice* graph, Globaleventinfo* globevent) {
     
     int Event_ID;
 
@@ -627,7 +627,7 @@ void Events::Recompute_all_injection_events(Graph* graph, Globaleventinfo* globe
     }
 }
 
-void Events::Initialize_eventvector(Graph* graph, State* state, Globaleventinfo* globevent){ //
+void Events::Initialize_eventvector(GraphLattice* graph, State* state, Globaleventinfo* globevent){ //
     
     Non_injection_events.clear();
     Grow_non_injection_eventvector(state->carriers.size(), state->carriers, graph->max_pair_degree);
