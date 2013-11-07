@@ -64,15 +64,17 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
     // read the atoms
     int is=0;
     for(int im=0; im<nmolt; im++){
-        Molecule *mi = top.CreateMolecule(MolecBase[im].name);
-        for(int ims=0; ims<MolecBase[im].nsites; ims++, is++){
+        for(int imr=0; imr<MolecBase[im].nrept; ++imr) {
+            Molecule *mi = top.CreateMolecule(MolecBase[im].name);
+            for(int ims=0; ims<MolecBase[im].nsites; ims++) {
 
-            BeadType *type = top.GetOrCreateBeadType(FieldSite[is].name); // what is 
-            Bead *bead = top.CreateBead(1, FieldSite[is].type, type, res->getId(), FieldSite[is].m, FieldSite[is].q);  
+                BeadType *type = top.GetOrCreateBeadType(FieldSite[is].name); // what is 
+                Bead *bead = top.CreateBead(1, FieldSite[is].type, type, res->getId(), FieldSite[is].m, FieldSite[is].q);  
 
-            stringstream nm;
-            nm << bead->getResnr() + 1 << ":" <<  top.getResidue(bead->getResnr())->getName() << ":" << bead->getName();
-            mi->AddBead(bead, nm.str());
+                stringstream nm;
+                nm << bead->getResnr() + 1 << ":" <<  top.getResidue(bead->getResnr())->getName() << ":" << bead->getName();
+                mi->AddBead(bead, nm.str());
+            }
         }
     }
     
