@@ -61,7 +61,7 @@ namespace votca {
             if (DoTrajectory())
                 AddProgramOptions("Trajectory options")
                 ("trj", boost::program_options::value<string > (), "  atomistic trajectory file")
-                ("begin", boost::program_options::value<double>()->default_value(0.0), "  skip frames before this time")
+                ("begin", boost::program_options::value<double>()->default_value(0.0), "  skip frames before this time (only works for Gromacs files)")
                 ("first-frame", boost::program_options::value<int>()->default_value(0), "  start with this frame")
                 ("nframes", boost::program_options::value<int>(), "  process the given number of frames")
                 ;
