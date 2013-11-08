@@ -19,7 +19,7 @@ struct Event
     double rate;
     votca::tools::vec dr;
     
-    // new stuff for Coulomb interaction
+    // stuff for Coulomb interaction
     double Jeff2;
     double reorg_out;
     double initialrate;

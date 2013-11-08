@@ -532,7 +532,7 @@ void KMCMultiple::InitialRates(vector<Node*> node)
             
             double rate = 2*Pi/hbar * J2/sqrt(4*Pi*reorg*kB*_temperature) * exp(-(dG+reorg)*(dG+reorg) / (4*reorg*kB*_temperature));
             
-            // calculate relative difference compare to values in the table
+            // calculate relative difference compared to values in the table
             double reldiff = (node[i]->event[j].rate - rate) / node[i]->event[j].rate;
             if (reldiff > maxreldiff) {maxreldiff = reldiff;}
             reldiff = (node[i]->event[j].rate - rate) / rate;
