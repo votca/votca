@@ -43,12 +43,14 @@ void CtpRun::Initialize() {
 
 bool CtpRun::EvaluateOptions() {
 
+    string helpdir = "ctp/xml";
+    
     if (OptionsMap().count("list")) {
             cout << "Available calculators: \n";
             for(Calculatorfactory::assoc_map::const_iterator iter=
                     Calculators().getObjects().begin();
                     iter != Calculators().getObjects().end(); ++iter) {
-                PrintDescription( std::cout, (iter->first), _helpShort );
+                PrintDescription( std::cout, (iter->first), helpdir, Application::HelpShort );
             }
             StopExecution();
             return true;
@@ -66,7 +68,7 @@ bool CtpRun::EvaluateOptions() {
                         iter != Calculators().getObjects().end(); ++iter) {
 
                     if ( (*n).compare( (iter->first).c_str() ) == 0 ) {
-                        PrintDescription( std::cout, (iter->first), _helpLong );
+                        PrintDescription( std::cout, (iter->first), helpdir, Application::HelpLong );
                         printerror = false;
                         break;
                     }

@@ -18,12 +18,12 @@
  */
 
 
-#ifndef __QMTOOL__H
-#define __QMTOOL__H
+#ifndef __VOTCA_CTP_QMTOOL__H
+#define __VOTCA_CTP_QMTOOL__H
 
 
 #include <votca/tools/property.h>
-#include <votca/ctp/calculator.h>
+#include <votca/tools/calculator.h>
 #include <boost/format.hpp>
 
 
@@ -47,4 +47,4 @@ protected:
 
 }}
 
-#endif /* _QMTOOL_H */
+#endif /* _VOTCA_CTP_QMTOOL_H */
