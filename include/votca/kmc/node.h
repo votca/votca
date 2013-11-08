@@ -85,7 +85,7 @@ public:
     
 };
 
-void Node::setStaticeventinfo(Node* pairnode, myvec dr, double rate12e, double rate12h, double Jeff2e, double Jeff2h, double reorg_oute, double reorg_outh) {
+inline void Node::setStaticeventinfo(Node* pairnode, myvec dr, double rate12e, double rate12h, double Jeff2e, double Jeff2h, double reorg_oute, double reorg_outh) {
     Static_event_info newStatic;
     newStatic.pairnode = pairnode;
     newStatic.distance = dr;
@@ -98,7 +98,7 @@ void Node::setStaticeventinfo(Node* pairnode, myvec dr, double rate12e, double r
     static_event_info.push_back(newStatic);
 }
 
-void Node::removePair(int pairing_node_index) {
+inline void Node::removePair(int pairing_node_index) {
     pairing_nodes.erase(pairing_nodes.begin()+pairing_node_index);
     static_event_info.erase(static_event_info.begin()+pairing_node_index);
 }

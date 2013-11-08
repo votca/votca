@@ -18,8 +18,10 @@
 #ifndef __VOTCA_KMC_DIODE_H
 #define	__VOTCA_KMC_DIODE_H
 
+#include <iostream>
 #include <votca/kmc/state.h>
-#include <votca/kmc/graph.h>
+#include <votca/kmc/graphsql.h>
+#include <votca/kmc/graphcubic.h>
 #include <votca/kmc/globaleventinfo.h>
 #include <votca/kmc/events.h>
 #include <votca/kmc/vssmgroup.h>
@@ -35,7 +37,7 @@ class Diode : public KMCCalculator
 {
 public:
     
-    Graph* graph;
+    GraphCubic* graph;
     State* state;
     Events* events;
     Vssmgroup* vssmgroup;
@@ -44,7 +46,7 @@ public:
     Diode() {};
    ~Diode() {};
 
-    void Initialize(Property *options);
+    void Initialize(const char *filename, Property *options, const char *outputfile);
     bool EvaluateFrame();
 
     double sim_time;
@@ -52,7 +54,9 @@ public:
     // input parameters (put in globaleventinfo?)
     int seed; long nr_equilsteps; long nr_timesteps; long steps_update_longrange;
     int nx; int ny; int nz; double lattice_constant; double hopdist; double disorder_strength; 
-    double disorder_ratio; CorrelationType correlation_type; double left_electrode_distance; double right_electro_distance;
+    double disorder_ratio; CorrelationType correlation_type; double left_electrode_distance; double right_electrode_distance;
+    myvec graph_front; myvec graph_back;
+    
 
 protected:
    void RunKMC(void); 
@@ -67,9 +71,28 @@ private:
 };
 
 
-void Diode::Initialize(Property *options) {
+void Diode::Initialize(const char *filename, Property *options, const char *outputfile) {
     
-    graph = new Graph();
+    cout << "Initializing" << endl;
+    
+    nx = options->get("options.diode.nx").as<int>();
+    ny = options->get("options.diode.ny").as<int>();
+    nz = options->get("options.diode.nz").as<int>();
+    lattice_constant = options->get("options.diode.lattice_constant").as<double>();
+    graph_front = myvec(options->get("options.diode.graph_front_x").as<double>(),
+                        options->get("options.diode.graph_front_y").as<double>(),
+                        options->get("options.diode.graph_front_z").as<double>());
+    graph_back = myvec(options->get("options.diode.graph_back_x").as<double>(),
+                       options->get("options.diode.graph_back_y").as<double>(),
+                       options->get("options.diode.graph_back_z").as<double>());    
+    
+    graph = new GraphCubic();
+    graph->Create_cubic_graph_nodes(nx, ny, nz, lattice_constant, graph_front, graph_back);
+    graph->Print(std::cout);
+    delete graph;    
+    
+    exit(0);
+    
     state = new State();
     events = new Events();
     vssmgroup = new Vssmgroup();
@@ -85,6 +108,8 @@ bool Diode::EvaluateFrame() {
 
 void Diode::RunKMC() {
  
+    exit(0);
+    /*    
     //Setup random number generator
     seed = 1;
     srand(seed); // srand expects any integer in order to initialise the random number generator
@@ -116,6 +141,7 @@ void Diode::RunKMC() {
         sim_time += vssmgroup->Timestep(RandomVariable);
         vssmgroup->Perform_one_step_in_device(events,graph,state,globevent,RandomVariable);
     }
+     */
 }
 
 }}

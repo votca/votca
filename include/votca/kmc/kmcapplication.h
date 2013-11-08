@@ -55,11 +55,6 @@ protected:
     static const bool _short = true;
     static const bool _long = false;
 
-    string _fwstring(string original, size_t charCount ) {
-        original.resize( charCount, ' ' );
-        return original;
-    }
-
     /// List of calculators
     list<KMCCalculator *> _calculators;
     /// program options from the xml file

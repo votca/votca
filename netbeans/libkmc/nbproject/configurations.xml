@@ -8,7 +8,6 @@
       <itemPath>../../src/libkmc/calculators/kmcmultiple.h</itemPath>
       <itemPath>../../src/libkmc/calculators/kmcparallel.h</itemPath>
       <itemPath>../../src/libkmc/calculators/kmcsingle.h</itemPath>
-      <itemPath>../../src/libkmc/calculators/node.h</itemPath>
     </logicalFolder>
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
@@ -16,7 +15,6 @@
       <itemPath>../../include/votca/kmc/ImagePotential.h</itemPath>
       <itemPath>../../include/votca/kmc/bsumtree.h</itemPath>
       <itemPath>../../include/votca/kmc/carrier.h</itemPath>
-      <itemPath>../../include/votca/kmc/electrode.h</itemPath>
       <itemPath>../../include/votca/kmc/event.h</itemPath>
       <itemPath>../../include/votca/kmc/events.h</itemPath>
       <itemPath>../../include/votca/kmc/globaleventinfo.h</itemPath>
@@ -24,13 +22,10 @@
       <itemPath>../../include/votca/kmc/kmcapplication.h</itemPath>
       <itemPath>../../include/votca/kmc/kmccalculator.h</itemPath>
       <itemPath>../../include/votca/kmc/kmccalculatorfactory.h</itemPath>
-      <itemPath>../../include/votca/kmc/lattice.h</itemPath>
+      <itemPath>../../include/votca/kmc/link.h</itemPath>
       <itemPath>../../include/votca/kmc/longrange.h</itemPath>
       <itemPath>../../include/votca/kmc/node.h</itemPath>
-      <itemPath>../../include/votca/kmc/ratecalculator.h</itemPath>
-      <itemPath>../../include/votca/kmc/rates.h</itemPath>
       <itemPath>../../include/votca/kmc/state.h</itemPath>
-      <itemPath>../../include/votca/kmc/store.h</itemPath>
       <itemPath>../../include/votca/kmc/version.h</itemPath>
       <itemPath>../../include/votca/kmc/vssmgroup.h</itemPath>
     </logicalFolder>
@@ -98,11 +93,6 @@
       </item>
       <item path="../../include/votca/kmc/carrier.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/kmc/electrode.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/kmc/event.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/kmc/events.h" ex="false" tool="3" flavor2="0">
@@ -129,7 +119,7 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/kmc/lattice.h" ex="false" tool="3" flavor2="0">
+      <item path="../../include/votca/kmc/link.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/kmc/longrange.h"
             ex="false"
@@ -138,16 +128,7 @@
       </item>
       <item path="../../include/votca/kmc/node.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/kmc/ratecalculator.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/kmc/rates.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/kmc/state.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/kmc/store.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/kmc/version.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -194,11 +175,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libkmc/calculators/kmcsingle.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libkmc/calculators/node.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -251,11 +227,6 @@
       </item>
       <item path="../../include/votca/kmc/carrier.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/kmc/electrode.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/kmc/event.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/kmc/events.h" ex="false" tool="3" flavor2="0">
@@ -282,7 +253,7 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/kmc/lattice.h" ex="false" tool="3" flavor2="0">
+      <item path="../../include/votca/kmc/link.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/kmc/longrange.h"
             ex="false"
@@ -291,16 +262,7 @@
       </item>
       <item path="../../include/votca/kmc/node.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/kmc/ratecalculator.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/kmc/rates.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/kmc/state.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/kmc/store.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/kmc/version.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -347,11 +309,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libkmc/calculators/kmcsingle.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libkmc/calculators/node.h"
             ex="false"
             tool="3"
             flavor2="0">
