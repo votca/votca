@@ -42,8 +42,6 @@ public:
 protected:
 
     votca::tools::Property _options;
-
-    enum HelpOutputType { _helpShort, _helpLong };
     
 };
 
