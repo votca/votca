@@ -133,7 +133,7 @@
 		<name>rates</name>
 		<description>Evaluates charge transfer rates for molecular pairs</description>
 		<execute>{ctp_run} -e {name} -o {name}.xml -f {sql}</execute> 
-		<requires>einternal emultipole izindo</requires>
+		<requires>einternal emultipole izindo eoutersphere</requires>
 		<verify>{ctp_state} -f {sql} -e rates2xml</verify>
 		<output>extract.rates.xml</output>
 	</test>
