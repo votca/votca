@@ -23,6 +23,7 @@
 
 #include <boost/format.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <boost/filesystem.hpp>
 
 namespace votca { namespace tools {
 
@@ -211,33 +212,44 @@ void Application::CheckRequired(const string &option_name, const string &error_m
 void Application::PrintDescription(std::ostream &out, const string &calculator_name, const string help_path, HelpType help_type )
 {
     boost::format _format("%|3t|%1% %|20t|%2% \n");
-        
+    string help_string;
+    boost::filesystem::path arg_path;  
+    Property options;
+    string xmlFile = (arg_path / string(getenv("VOTCASHARE")) / help_path / (boost::format("%1%.%2%") % calculator_name % "xml").str()).c_str();
+    
     // loading the documentation xml file from VOTCASHARE
     char *votca_share = getenv("VOTCASHARE");
     if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
-    string xmlFile = string(getenv("VOTCASHARE")) + help_path + calculator_name + string(".xml");
-    
-    try {
-            Property options;
-            load_property_from_xml(options, xmlFile);
 
-            switch ( help_type )
-            {
-                default: 
-                    break;
-                case HelpShort: // short description of the calculator
-                    out << _format % calculator_name % options.get("options."+calculator_name).getAttribute<string>("help");
-                    break;
-                case HelpLong:
-                    votca::tools::PropertyIOManipulator iom(votca::tools::PropertyIOManipulator::HLP, 2, "");
-                    out << iom << options;                    
-                    break;
+    try {
+
+                load_property_from_xml(options, xmlFile);
+                Property &calculator_options = options.get("options." + calculator_name);
+                Property::AttributeIterator atr_it = calculator_options.findAttribute("help");
+
+                if (atr_it != calculator_options.lastAttribute()) {
+                    help_string = (*atr_it).second;
+                } else {
+                    if (tools::globals::verbose) out << _format % calculator_name % "Undocumented";
+                    return;
+                }
+
+                switch (help_type) {
+                    default:
+                        break;
+                    case HelpShort: // short description of the calculator
+                        out << _format % calculator_name % help_string;
+                        break;
+                    case HelpLong:
+                        votca::tools::PropertyIOManipulator iom(votca::tools::PropertyIOManipulator::HLP, 2, "");
+                        out << iom << options;
+                        break;
+                }
+
+            } catch (std::exception &error) {
+                if (tools::globals::verbose) out << _format % calculator_name % "Undocumented";
             }
-            
-        } catch(std::exception &error) {
-            if ( tools::globals::verbose ) out << _format % calculator_name % "Undocumented";
-            out << string("XML file or description tag missing: ") << xmlFile << endl;
-    }
+
 }
 
 }}
