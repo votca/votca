@@ -28,7 +28,7 @@ bool DLPOLYTrajectoryReader::Open(const string &file)
 {
     _fl.open("HISTORY");
     if(!_fl.is_open())
-        throw std::ios_base::failure("Error on open topologyl file: HISTORY");
+        throw std::ios_base::failure("Error on open topology file: HISTORY");
     return true;
 }
 
