@@ -67,7 +67,7 @@ bool KMCApplication::EvaluateOptions() {
             cout << "Available calculators: \n";
             for(KMCCalculatorFactory::assoc_map::const_iterator iter=Calculators().getObjects().begin();
                     iter != Calculators().getObjects().end(); ++iter) {
-                PrintCalculatorDescription( (iter->first).c_str(), "kmc/xml", Application::HelpShort );
+                PrintDescription( std::cout, (iter->first).c_str(), "kmc/xml", Application::HelpShort );
             }
             StopExecution();
             return true;
@@ -85,7 +85,7 @@ bool KMCApplication::EvaluateOptions() {
                         iter != Calculators().getObjects().end(); ++iter) {
 
                     if ( (*n).compare( (iter->first).c_str() ) == 0 ) {
-                        PrintCalculatorDescription( (iter->first).c_str(), "kmc/xml", Application::HelpLong );
+                        PrintDescription( std::cout, (iter->first).c_str(), "kmc/xml", Application::HelpLong );
                         printerror = false;
                         break;
                     }
