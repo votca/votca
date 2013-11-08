@@ -100,6 +100,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
     else {
       cout << "NOTE: Could open dlploy file CONFIG, so no boundary conditions, where set in the topology" << endl;
     }
+    fl.close();
 
     return true;
 }
