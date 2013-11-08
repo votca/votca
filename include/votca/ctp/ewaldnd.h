@@ -44,7 +44,7 @@ public:
     void EvaluateInduction();
     void EvaluateEnergy();
     // OUTPUT & ERROR COMMUNICATION
-    bool Converged() { return _converged_R && _converged_K; }
+    bool Converged() { return _converged_R && _converged_K && _polar_converged; }
     Property GenerateOutputString();
     string GenerateErrorString();        
     // K-VECTOR GENERATION
@@ -155,7 +155,6 @@ protected:
     bool _coarse_cg_anisotropic;
 
     // TASKS
-    bool _task_polarize_bg;
     bool _task_calculate_fields;
     bool _task_polarize_fg;
     bool _task_evaluate_energy;
@@ -179,6 +178,7 @@ protected:
     double _polar_wSOR_N;
     double _polar_wSOR_C;
     double _polar_cutoff;
+    double _polar_converged;
 
     // LATTICE (REAL, RECIPROCAL)
     vec _a; vec _b; vec _c;            // Real-space lattice vectors
@@ -187,6 +187,7 @@ protected:
     int _NA_max, _NB_max, _NC_max;     // Max. cell indices to sum over (K)
     double _LxLy;                      // |a^b|
     double _LxLyLz;                    // a*|b^c|
+    string _shape;                     // Summation shape (for 3D corr. term)
 
     EWD::VectorSort<EWD::MaxNorm,vec> _maxsort;
     EWD::VectorSort<EWD::EucNorm,vec> _eucsort;
@@ -216,6 +217,13 @@ protected:
     // Part I + Part II
     double _Estat;      double _Eindu;      double _Eppuu;
 
+    // TIMING (WALL CLOCK)
+    double _t_total;
+    double _t_coarsegrain;
+    double _t_fields;
+    double _t_induction;
+    double _t_energy;
+    
 
 };
 

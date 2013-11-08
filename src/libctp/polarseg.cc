@@ -248,6 +248,7 @@ void PolarSeg::Coarsegrain(bool cg_anisotropic) {
         
         // Generate new coarse-grained site from the above
         APolarSite *cg_site = new APolarSite((*fit)->getId(), (*fit)->getName());
+        cg_site->setResolution(APolarSite::coarsegrained);
         cg_site->setPos(target_pos);
         cg_site->setRank(L);
         cg_site->setQs(QCG, state);

@@ -118,9 +118,9 @@ bool CgPolar::EvaluateFrame(Topology *top) {
         //(*sit)->WriteMPS("cgpolar.fine.mps", "FINE");
         cout << "\rCoarse-grain ID = " << (*sit)->getId() << flush;
         (*sit)->Coarsegrain(_cg_anisotropic);
-        (*sit)->WriteMPS("cgpolar.coarse.mps", "COARSE");
+        //(*sit)->WriteMPS("cgpolar.coarse.mps", "COARSE");
         //engine.CalculateMolPol(*(*sit), true);
-        break;
+        //break;
     }
     
     // VERIFY OUTPUT: PDB, PTOP, XML

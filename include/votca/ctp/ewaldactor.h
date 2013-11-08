@@ -141,7 +141,8 @@ private:
     // Thole sharpness parameter & reduced interaction distance
     double ta1, ta2, ta3;
     double tu3;
-    double l3, l5, l7, l9;
+    double l3, l5, l7, l9;     // (damps fields originating in indu. m'poles)
+    double lp3, lp5, lp7, lp9; // (damps fields originating in perm. m'poles)
     
     // Ewald sharpness parameter powers
     double a1, a2, a3, a4, a5, a6, a7;
@@ -264,9 +265,21 @@ inline void EwdInteractor::ApplyBiasPolar(APolarSite& p1, APolarSite& p2) {
         l5 = L5();
         l7 = L7();
         l9 = L9();
+        // cg <> cg interactions : do not damp PU terms (field & energy)
+        if (p1._resolution == APolarSite::coarsegrained
+         && p2._resolution == APolarSite::coarsegrained) {
+                lp3 = lp5 = lp7 = lp9 = 1.;
+        }
+        else {
+            lp3 = l3;
+            lp5 = l5;
+            lp7 = l7;
+            lp9 = l9;
+        }
     }
     else {
         l3 = l5 = l7 = l9 = 1.;
+        lp3 = lp5 = lp7 = lp9 = 1.;
     }
     return;
 }
@@ -342,9 +355,11 @@ inline void EwdInteractor::ApplyBiasPolar(APolarSite& p1, APolarSite& p2, vec &s
         l5 = L5();
         l7 = L7();
         l9 = L9();
+        lp3 = lp5 = lp7 = lp9 = 1.; // new policy, trial
     }
     else {
         l3 = l5 = l7 = l9 = 1.;
+        lp3 = lp5 = lp7 = lp9 = 1.;
     }
     
     return;
@@ -538,33 +553,33 @@ inline double EwdInteractor::FPU12_ERFC_At_By(APolarSite &p1, APolarSite &p2) {
     double fz = 0.0;
     
     // Charge
-    fx += - p2.Q00*rx*l3*B1;
-    fy += - p2.Q00*ry*l3*B1;
-    fz += - p2.Q00*rz*l3*B1;
+    fx += - p2.Q00*rx*lp3*B1;
+    fy += - p2.Q00*ry*lp3*B1;
+    fz += - p2.Q00*rz*lp3*B1;
     
     if (p2._rank > 0) {
         // Dipole
-        fx += p2.Q1x*l3*B1;
-        fy += p2.Q1y*l3*B1;
-        fz += p2.Q1z*l3*B1;
+        fx += p2.Q1x*lp3*B1;
+        fy += p2.Q1y*lp3*B1;
+        fz += p2.Q1z*lp3*B1;
         
         double mu2_r = (p2.Q1x*rx + p2.Q1y*ry + p2.Q1z*rz);
-        fx += - rx*mu2_r*l5*B2;
-        fy += - ry*mu2_r*l5*B2;
-        fz += - rz*mu2_r*l5*B2;
+        fx += - rx*mu2_r*lp5*B2;
+        fy += - ry*mu2_r*lp5*B2;
+        fz += - rz*mu2_r*lp5*B2;
         
         if (p2._rank > 1) {
             // Quadrupole
-            fx += 2 * (p2.Qxx*rx + p2.Qxy*ry + p2.Qxz*rz) * l5*B2;
-            fy += 2 * (p2.Qxy*rx + p2.Qyy*ry + p2.Qyz*rz) * l5*B2;
-            fz += 2 * (p2.Qxz*rx + p2.Qyz*ry + p2.Qzz*rz) * l5*B2;
+            fx += 2 * (p2.Qxx*rx + p2.Qxy*ry + p2.Qxz*rz) * lp5*B2;
+            fy += 2 * (p2.Qxy*rx + p2.Qyy*ry + p2.Qyz*rz) * lp5*B2;
+            fz += 2 * (p2.Qxz*rx + p2.Qyz*ry + p2.Qzz*rz) * lp5*B2;
             
             double Q2__R = (p2.Qxx*rxx + 2*p2.Qxy*rxy + 2*p2.Qxz*rxz
                                        +   p2.Qyy*ryy + 2*p2.Qyz*ryz
                                                       +   p2.Qzz*rzz);            
-            fx += - Q2__R*rx*l7*B3;
-            fy += - Q2__R*ry*l7*B3;
-            fz += - Q2__R*rz*l7*B3;
+            fx += - Q2__R*rx*lp7*B3;
+            fy += - Q2__R*ry*lp7*B3;
+            fz += - Q2__R*rz*lp7*B3;
         }
     }
     
@@ -607,33 +622,33 @@ inline double EwdInteractor::FP12_ERFC_At_By(APolarSite &p1, APolarSite &p2) {
     double fz = 0.0;
     
     // Charge
-    fx += - p2.Q00*rx*l3*B1;
-    fy += - p2.Q00*ry*l3*B1;
-    fz += - p2.Q00*rz*l3*B1;
+    fx += - p2.Q00*rx*lp3*B1;
+    fy += - p2.Q00*ry*lp3*B1;
+    fz += - p2.Q00*rz*lp3*B1;
     
     if (p2._rank > 0) {
         // Dipole
-        fx += p2.Q1x*l3*B1;
-        fy += p2.Q1y*l3*B1;
-        fz += p2.Q1z*l3*B1;
+        fx += p2.Q1x*lp3*B1;
+        fy += p2.Q1y*lp3*B1;
+        fz += p2.Q1z*lp3*B1;
         
         double mu2_r = (p2.Q1x*rx + p2.Q1y*ry + p2.Q1z*rz);
-        fx += - rx*mu2_r*l5*B2;
-        fy += - ry*mu2_r*l5*B2;
-        fz += - rz*mu2_r*l5*B2;
+        fx += - rx*mu2_r*lp5*B2;
+        fy += - ry*mu2_r*lp5*B2;
+        fz += - rz*mu2_r*lp5*B2;
         
         if (p2._rank > 1) {
             // Quadrupole
-            fx += 2 * (p2.Qxx*rx + p2.Qxy*ry + p2.Qxz*rz) * l5*B2;
-            fy += 2 * (p2.Qxy*rx + p2.Qyy*ry + p2.Qyz*rz) * l5*B2;
-            fz += 2 * (p2.Qxz*rx + p2.Qyz*ry + p2.Qzz*rz) * l5*B2;
+            fx += 2 * (p2.Qxx*rx + p2.Qxy*ry + p2.Qxz*rz) * lp5*B2;
+            fy += 2 * (p2.Qxy*rx + p2.Qyy*ry + p2.Qyz*rz) * lp5*B2;
+            fz += 2 * (p2.Qxz*rx + p2.Qyz*ry + p2.Qzz*rz) * lp5*B2;
             
             double Q2__R = (p2.Qxx*rxx + 2*p2.Qxy*rxy + 2*p2.Qxz*rxz
                                        +   p2.Qyy*ryy + 2*p2.Qyz*ryz
                                                       +   p2.Qzz*rzz);            
-            fx += - Q2__R*rx*l7*B3;
-            fy += - Q2__R*ry*l7*B3;
-            fz += - Q2__R*rz*l7*B3;
+            fx += - Q2__R*rx*lp7*B3;
+            fy += - Q2__R*ry*lp7*B3;
+            fz += - Q2__R*rz*lp7*B3;
         }
     }
     
@@ -698,33 +713,33 @@ inline double EwdInteractor::FPU12_ERFC_At_By(APolarSite &p1, APolarSite &p2, ve
     double fz = 0.0;
     
     // Charge
-    fx += - p2.Q00*rx*l3*B1;
-    fy += - p2.Q00*ry*l3*B1;
-    fz += - p2.Q00*rz*l3*B1;
+    fx += - p2.Q00*rx*lp3*B1;
+    fy += - p2.Q00*ry*lp3*B1;
+    fz += - p2.Q00*rz*lp3*B1;
     
     if (p2._rank > 0) {
         // Dipole
-        fx += p2.Q1x*l3*B1;
-        fy += p2.Q1y*l3*B1;
-        fz += p2.Q1z*l3*B1;
+        fx += p2.Q1x*lp3*B1;
+        fy += p2.Q1y*lp3*B1;
+        fz += p2.Q1z*lp3*B1;
         
         double mu2_r = (p2.Q1x*rx + p2.Q1y*ry + p2.Q1z*rz);
-        fx += - rx*mu2_r*l5*B2;
-        fy += - ry*mu2_r*l5*B2;
-        fz += - rz*mu2_r*l5*B2;
+        fx += - rx*mu2_r*lp5*B2;
+        fy += - ry*mu2_r*lp5*B2;
+        fz += - rz*mu2_r*lp5*B2;
         
         if (p2._rank > 1) {
             // Quadrupole
-            fx += 2 * (p2.Qxx*rx + p2.Qxy*ry + p2.Qxz*rz) * l5*B2;
-            fy += 2 * (p2.Qxy*rx + p2.Qyy*ry + p2.Qyz*rz) * l5*B2;
-            fz += 2 * (p2.Qxz*rx + p2.Qyz*ry + p2.Qzz*rz) * l5*B2;
+            fx += 2 * (p2.Qxx*rx + p2.Qxy*ry + p2.Qxz*rz) * lp5*B2;
+            fy += 2 * (p2.Qxy*rx + p2.Qyy*ry + p2.Qyz*rz) * lp5*B2;
+            fz += 2 * (p2.Qxz*rx + p2.Qyz*ry + p2.Qzz*rz) * lp5*B2;
             
             double Q2__R = (p2.Qxx*rxx + 2*p2.Qxy*rxy + 2*p2.Qxz*rxz
                                        +   p2.Qyy*ryy + 2*p2.Qyz*ryz
                                                       +   p2.Qzz*rzz);            
-            fx += - Q2__R*rx*l7*B3;
-            fy += - Q2__R*ry*l7*B3;
-            fz += - Q2__R*rz*l7*B3;
+            fx += - Q2__R*rx*lp7*B3;
+            fy += - Q2__R*ry*lp7*B3;
+            fz += - Q2__R*rz*lp7*B3;
         }
     }
     
@@ -771,33 +786,33 @@ inline double EwdInteractor::FP12_ERFC_At_By(APolarSite &p1, APolarSite &p2, vec
     double fz = 0.0;
     
     // Charge
-    fx += - p2.Q00*rx*l3*B1;
-    fy += - p2.Q00*ry*l3*B1;
-    fz += - p2.Q00*rz*l3*B1;
+    fx += - p2.Q00*rx*lp3*B1;
+    fy += - p2.Q00*ry*lp3*B1;
+    fz += - p2.Q00*rz*lp3*B1;
     
     if (p2._rank > 0) {
         // Dipole
-        fx += p2.Q1x*l3*B1;
-        fy += p2.Q1y*l3*B1;
-        fz += p2.Q1z*l3*B1;
+        fx += p2.Q1x*lp3*B1;
+        fy += p2.Q1y*lp3*B1;
+        fz += p2.Q1z*lp3*B1;
         
         double mu2_r = (p2.Q1x*rx + p2.Q1y*ry + p2.Q1z*rz);
-        fx += - rx*mu2_r*l5*B2;
-        fy += - ry*mu2_r*l5*B2;
-        fz += - rz*mu2_r*l5*B2;
+        fx += - rx*mu2_r*lp5*B2;
+        fy += - ry*mu2_r*lp5*B2;
+        fz += - rz*mu2_r*lp5*B2;
         
         if (p2._rank > 1) {
             // Quadrupole
-            fx += 2 * (p2.Qxx*rx + p2.Qxy*ry + p2.Qxz*rz) * l5*B2;
-            fy += 2 * (p2.Qxy*rx + p2.Qyy*ry + p2.Qyz*rz) * l5*B2;
-            fz += 2 * (p2.Qxz*rx + p2.Qyz*ry + p2.Qzz*rz) * l5*B2;
+            fx += 2 * (p2.Qxx*rx + p2.Qxy*ry + p2.Qxz*rz) * lp5*B2;
+            fy += 2 * (p2.Qxy*rx + p2.Qyy*ry + p2.Qyz*rz) * lp5*B2;
+            fz += 2 * (p2.Qxz*rx + p2.Qyz*ry + p2.Qzz*rz) * lp5*B2;
             
             double Q2__R = (p2.Qxx*rxx + 2*p2.Qxy*rxy + 2*p2.Qxz*rxz
                                        +   p2.Qyy*ryy + 2*p2.Qyz*ryz
                                                       +   p2.Qzz*rzz);            
-            fx += - Q2__R*rx*l7*B3;
-            fy += - Q2__R*ry*l7*B3;
-            fz += - Q2__R*rz*l7*B3;
+            fx += - Q2__R*rx*lp7*B3;
+            fy += - Q2__R*ry*lp7*B3;
+            fz += - Q2__R*rz*lp7*B3;
         }
     }
     
@@ -1055,7 +1070,7 @@ inline EWD::triple<double> EwdInteractor::U12_ERFC(APolarSite &p1,
     double pp = 
         ppG0*B0 + ppG1*B1 + ppG2*B2 + ppG3*B3 + ppG4*B4;
     double pu = (ta1*tu3 < 40) ?
-        puG1*l3*B1 + puG2*l5*B2 + puG3*l7*B3
+        puG1*lp3*B1 + puG2*lp5*B2 + puG3*lp7*B3
       : puG1*B1 + puG2*B2 + puG3*B3;
     double uu = (ta1*tu3 < 40) ?
         uuG1*l3*B1 + uuG2*l5*B2

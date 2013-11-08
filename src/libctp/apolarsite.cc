@@ -9,7 +9,7 @@ namespace votca { namespace ctp {
 
 APolarSite::APolarSite(APolarSite *templ, bool do_depolarize) 
     : _id(templ->_id), _name(templ->_name), _isVirtual(templ->_isVirtual),        
-      _pos(templ->_pos),
+      _resolution(templ->_resolution), _pos(templ->_pos),
         
       _locX(templ->_locX), _locY(templ->_locY), _locZ(templ->_locZ),
         
@@ -37,6 +37,7 @@ APolarSite::APolarSite(APolarSite *templ, bool do_depolarize)
 void APolarSite::ImportFrom(APolarSite *templ, string tag) {
 
     _pos = templ->getPos();
+    _resolution = templ->getResolution();
 
     if (tag == "basic") {
         _Qs[0] = templ->getQs(-1);
@@ -615,6 +616,7 @@ void APolarSite::WriteXmlLine(std::ostream &out) {
     out << _id << endl;
     out << _name << endl;
     out << ((_isVirtual) ? "virtual" : "notvirtual") << endl;
+    out << "resolution" << (int)_resolution << endl;
     out << _pos << endl;
     out <<  _locX << " "; out <<  _locY << " "; out <<  _locZ << " "; out << endl;
     for (int state = -1; state < 2; ++state) {
