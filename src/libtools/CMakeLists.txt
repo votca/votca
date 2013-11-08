@@ -34,8 +34,8 @@ else(WITH_GSL)
   set(GSL_PKG)
 endif(WITH_GSL)
 
-file(GLOB_RECURSE VOTCA_SOURCES *.cc)
-file(GLOB NOT_VOTCA_SOURCES version_nb.cc linktest.cc)
+file(GLOB VOTCA_SOURCES *.cc)
+file(GLOB NOT_VOTCA_SOURCES version_nb.cc linktest.cc linalg.cc)
 file(GLOB_RECURSE VOTCA_SQL_SOURCES database.cc statement.cc)
 list(REMOVE_ITEM VOTCA_SOURCES ${NOT_VOTCA_SOURCES} ${VOTCA_SQL_SOURCES})
 
@@ -52,6 +52,9 @@ else(WITH_SQLITE3)
   set(VOTCA_SQL_SOURCES)
 endif(WITH_SQLITE3)
 
+#for linalg
+add_subdirectory(linalg)
+
 #for hgversion.h
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
@@ -61,7 +64,7 @@ include_directories(${CMAKE_BINARY_DIR}/include/votca/tools)
 add_custom_target(hgversion COMMAND ${CMAKE_COMMAND} -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}" -P ${CMAKE_MODULE_PATH}/hgversion.cmake)
 set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES hgversion.h)
 
-add_library(votca_tools ${VOTCA_SOURCES} ${VOTCA_SQL_SOURCES})
+add_library(votca_tools ${VOTCA_SOURCES} ${VOTCA_SQL_SOURCES} ${VOTCA_LINALG_SOURCES})
 add_dependencies(votca_tools hgversion)
 set_target_properties(votca_tools PROPERTIES SOVERSION ${SOVERSION})
 target_link_libraries(votca_tools ${BOOST_LIBRARIES} ${GSL_LIBRARIES} ${SQLITE3_LIBRARIES}
