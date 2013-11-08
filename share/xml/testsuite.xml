@@ -146,6 +146,14 @@
 		<output>extract.occupations.xml</output>
 	</test>
 	<test>
+		<name>kmcmultiple</name>
+		<description>Simulates drift-diffusion of multiple charge carriers</description>
+		<execute>{kmc_run} -e {name} -o {name}.xml -f {sql}</execute>
+		<requires>rates</requires>
+		<verify></verify>
+		<output>kmcmultiple.log kmcmultiple.trajectory.csv</output>
+	</test>
+	<test>
 		<name>jobwriter</name>
 		<description>Generates input files required for job-based calculators</description>
 		<execute>{ctp_run} -e {name} -o {name}.xml -f {sql}</execute> 
@@ -175,7 +183,6 @@
 		    edft.jobs.xml
 		</output>
 	</test>
-
 	<test>
 		<name>idft</name>
 		<description>Evaluates electronic coupling elements</description>
