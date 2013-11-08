@@ -19,8 +19,10 @@
 #define	__VOTCA_KMC_APPLICATION_H
 
 #include <votca/tools/application.h>
-#include "kmccalculator.h"
+
 #include <votca/kmc/version.h>
+#include "kmccalculator.h"
+#include <votca/kmc/graph.h>
 
 namespace votca { namespace kmc {
 
@@ -75,6 +77,9 @@ protected:
     /// loads the options in from the options file
     void LoadOptions();
 
+private:
+    /// application reads-in a Graph object from an sql file and provides it to all calculators
+    Graph graph;
 };
 
 }}
