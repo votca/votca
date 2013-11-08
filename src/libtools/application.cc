@@ -19,6 +19,7 @@
 #include <votca/tools/application.h>
 #include <votca/tools/version.h>
 #include <votca/tools/globals.h>
+#include <votca/tools/propertyiomanipulator.h>
 
 #include <boost/format.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -207,6 +208,36 @@ void Application::CheckRequired(const string &option_name, const string &error_m
     }
 }
 
+void Application::PrintDescription(std::ostream &out, const string &calculator_name, const string help_path, HelpType help_type )
+{
+    boost::format _format("%|3t|%1% %|20t|%2% \n");
+        
+    // loading the documentation xml file from VOTCASHARE
+    char *votca_share = getenv("VOTCASHARE");
+    if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
+    string xmlFile = string(getenv("VOTCASHARE")) + help_path + calculator_name + string(".xml");
+    
+    try {
+            Property options;
+            load_property_from_xml(options, xmlFile);
+
+            switch ( help_type )
+            {
+                default: 
+                    break;
+                case HelpShort: // short description of the calculator
+                    out << _format % calculator_name % options.get("options."+calculator_name).getAttribute<string>("help");
+                    break;
+                case HelpLong:
+                    votca::tools::PropertyIOManipulator iom(votca::tools::PropertyIOManipulator::HLP, 2, "");
+                    out << iom << options;                    
+                    break;
+            }
+            
+        } catch(std::exception &error) {
+            if ( tools::globals::verbose ) out << _format % calculator_name % "Undocumented";
+            out << string("XML file or description tag missing: ") << xmlFile << endl;
+    }
+}
 
 }}
-
