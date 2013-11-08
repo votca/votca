@@ -62,6 +62,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &top)
     getline(_fl, line); // timestep line
     if(!_fl.eof()) {
       int natoms;
+      int nr_atom_vectors;
       {
         Tokenizer tok(line, " ");
         vector<string> fields;
@@ -69,6 +70,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &top)
         natoms = boost::lexical_cast<int>(fields[2]);
         if(natoms !=top.BeadCount())
           throw std::runtime_error("number of beads in topology and trajectory differ");
+	nr_atom_vectors=boost::lexical_cast<int>(fields[3]);
 	top.setTime(boost::lexical_cast<double>(fields[6]));
       }
 
@@ -105,7 +107,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &top)
 
 	Bead *b = top.getBead(i);
 	vec atom_vec[3];
-	for (int j=0;j<3;j++){
+	for (int j=0;j<min(nr_atom_vectors,2)+1;j++){
           getline(_fl, line); //read atom positions
           if(_fl.eof())
             throw std::runtime_error("unexpected end of file in dlpoly file when reading atom vector" +
@@ -116,8 +118,10 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &top)
 	  atom_vec[j]=vec(fields[0],fields[1],fields[2]);
 	}
 	b->setPos(atom_vec[0]);
-	b->setVel(atom_vec[1]);
-	b->setF(atom_vec[2]);
+	if (nr_atom_vectors > 0)
+	  b->setVel(atom_vec[1]);
+	if (nr_atom_vectors > 1)
+	  b->setF(atom_vec[2]);
       }
     }
     return !_fl.eof();
