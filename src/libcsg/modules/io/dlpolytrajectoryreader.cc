@@ -91,7 +91,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &top)
 	{
           getline(_fl, line); //atom header line
           if(_fl.eof())
-            throw std::runtime_error("unexpected end of file in dlpoly filei when reader atom nr" +
+            throw std::runtime_error("unexpected end of file in dlpoly file, when reader atom nr" +
 		boost::lexical_cast<string>(i+1));
 
           vector<string> fields;
