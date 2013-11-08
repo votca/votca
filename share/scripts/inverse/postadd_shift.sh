@@ -18,15 +18,16 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implements the prepare step for lammps
+postadd shift script, shift pot and dpot
 
-Usage: ${0##*/}
+Usage: ${0##*/} infile outfile
 EOF
-  exit 0
+   exit 0
 fi
 
-msg --color blue "######################################################"
-msg --color blue "# WARNING the lammps interface is still experimental #"
-msg --color blue "# If you find a problem report it under:             #"
-msg --color blue "# http://code.google.com/p/votca/issues/list         #"
-msg --color blue "######################################################"
+[[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
+
+[[ -f $2 ]] && die "${0##*/}: $2 is already there"
+
+bondtype="$(csg_get_interaction_property bondtype)"
+do_external potential shift --type "${bondtype}" "$1" "$2"

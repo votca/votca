@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2013 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,16 +16,17 @@
 #
 
 if [ "$1" = "--help" ]; then
-cat <<EOF
+    cat <<EOF
 ${0##*/}, version %version%
-This script does the prepare step for gromacs
+This script implements the pre update tasks for the Relative Entropy Method
 
 Usage: ${0##*/}
 EOF
-   exit 0
+    exit 0
 fi
 
-conf="$(csg_get_property cg.inverse.gromacs.conf)"
-confout="$(csg_get_property cg.inverse.gromacs.conf_out)"
-cp_from_main_dir $conf
-critical cp $conf $confout
+sim_prog="$(csg_get_property cg.inverse.program)"
+#if using csg_stat, like in the case of gromacs 'for_all' is actually not needed
+#but in case of espresso the rdfs are calculated seperately
+for_all "non-bonded bonded" do_external rdf $sim_prog
+

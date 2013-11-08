@@ -215,12 +215,25 @@ for ((i=$begin;i<$iterations+1;i++)); do
   cd $this_dir || die "cd $this_dir failed"
   mark_done "stepdir"
 
-  if is_done "Initialize"; then
-    echo "Initialization already done"
+  if is_done "Filecopy"; then
+    echo "Filecopy already done"
+    for f in $filelist; do
+      [[ -f $f ]] || cp_from_main_dir "$f"
+      echo Comparing "$(get_main_dir)/$f" "$f"
+      [[ -z $(type -p cmp) ]] && echo "program 'cmp' not found, comparision skipped" && continue
+      cmp "$(get_main_dir)/$f" "$f" && echo "Unchanged" || \
+	msg --color blue --to-stderr "WARNING: file '$f' in the main dir was changed since the last execution, this will have no effect on current iteration, to take effect remove the current iteration ('${this_dir##*/}')"
+    done
   else
     #get need files (leave the " " unglob happens inside the function)
     cp_from_main_dir "$filelist"
 
+    mark_done "Filecopy"
+  fi
+
+  if is_done "Initialize"; then
+    echo "Initialization already done"
+  else
     #get files from last step, init sim_prog and ...
     do_external initstep $method
 
@@ -247,6 +260,8 @@ for ((i=$begin;i<$iterations+1;i++)); do
   else
     die "Simulation is in a strange state, it has no checkpoint and is not finished, check ${this_dir##*/} by hand"
   fi
+
+  do_external pre_update $method
 
   msg "Make update for $method"
   do_external update $method

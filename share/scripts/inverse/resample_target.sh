@@ -36,18 +36,17 @@ step=$(csg_get_interaction_property step )
 name=$(csg_get_interaction_property name)
 tabtype="$(csg_get_interaction_property bondtype)"
 
+comment="$(get_table_comment)"
+smooth="$(critical mktemp ${name}.dist.tgt_smooth.XXXXX)"
+critical csg_resample --in ${main_dir}/${input} --out ${smooth} --grid ${min}:${step}:${max} --comment "${comment}"
+extra="$(critical mktemp ${name}.dist.tgt_extrapolated.XXXXX)"
 if [[ $tabtype = "non-bonded" ]]; then
-  comment="$(get_table_comment)"
-  smooth="$(critical mktemp ${name}.dist.tgt_smooth.XXXXX)"
-  critical csg_resample --in ${main_dir}/${input} --out ${smooth} --grid ${min}:${step}:${max} --comment "${comment}"
-  #the left side is usually not a problem, but still we do it
-  do_external table extrapolate --function constant --avgpoints 1 --region leftright "${smooth}" "${output}"
+  extra2="$(critical mktemp ${name}.dist.tgt_extrapolated_left.XXXXX)"
+  do_external table extrapolate --function linear --avgpoints 1 --region left "${smooth}" "${extra2}"
+  do_external table extrapolate --function constant --avgpoints 1 --region right "${extra2}" "${extra}"
 elif [[ $tabtype = bond || $tabtype = angle || $tabtype = dihedral ]]; then
-  comment="$(get_table_comment)"
-  smooth="$(critical mktemp ${name}.dist.tgt_smooth.XXXXX)"
-  critical csg_resample --in ${main_dir}/${input} --out ${smooth} --grid ${min}:${step}:${max} --comment "${comment}"
-  #extrapolation is difficult, but constant will work in most cases
-  do_external table extrapolate --function constant --avgpoints 1 --region leftright "${smooth}" "${output}"
+  do_external table extrapolate --function linear --avgpoints 1 --region leftright "${smooth}" "${extra}"
 else
   die "${0##*/}: Resample of distribution of type $tabtype is not implemented yet"
 fi
+do_external dist adjust "${extra}" "${output}"

@@ -59,17 +59,6 @@ get_simulation_setting() { #gets a parameter (1st argument) from gromacs mdp fil
 }
 export -f get_simulation_setting
 
-check_cutoff() { #compared current interactions cutoff vs rvdw, 
-  local max rvdw
-  [[ "$(csg_get_property cg.inverse.gromacs.cutoff_check)" = "no" ]] && return 0
-  max="$(csg_get_interaction_property max)"
-  rvdw="$(get_simulation_setting rvdw)"
-  csg_calc "$max" ">" "$rvdw" && die "${FUNCNAME[0]}: rvdw ($rvdw) is smaller than max ($max)\n\
-To ignore this check set cg.inverse.gromacs.cutoff_check to 'no'"
-  return 0
-}
-export -f check_cutoff
-
 check_temp() { #compares k_B T in xml with temp in mpd file
   local kbt kbt2 temp t
   [[ "$(csg_get_property cg.inverse.gromacs.temp_check)" = "no" ]] && return 0
@@ -87,9 +76,8 @@ To disable this check set cg.inverse.gromacs.temp_check to 'no'"
 export -f check_temp
 
 simulation_finish() { #checks if simulation is finished
-  local ext traj confout
-  ext=$(csg_get_property cg.inverse.gromacs.traj_type)
-  traj="traj.${ext}"
+  local traj confout
+  traj=$(csg_get_property cg.inverse.gromacs.traj)
   confout="$(csg_get_property cg.inverse.gromacs.conf_out)"
   [[ $1 = "--no-traj" ]] && [[ -f $confout ]] && return 0
   [[ -f $traj ]] && [[ -f $confout ]] && return 0

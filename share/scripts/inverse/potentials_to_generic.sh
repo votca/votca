@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2013 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,24 +18,13 @@
 if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script initializes an espresso simulation
+This script converts all potentials to the format needed by the simulation program
 
 Usage: ${0##*/}
 EOF
    exit 0
 fi
 
-from=$(csg_get_property cg.inverse.initial_configuration)
-esp="$(csg_get_property cg.inverse.espresso.blockfile)"
-if [[ $from = "laststep" ]]; then
-  espout="$(csg_get_property cg.inverse.espresso.blockfile_out)"
-  #avoid overwriting $espout
-  cp_from_last_step --rename "$espout" "$esp"
-elif [[ $from = "maindir" ]]; then
-  cp_from_main_dir $esp
-else
-  die "${0##*/}: initial_configuration '$from' not implemented"
-fi
-
+sim_prog="$(csg_get_property cg.inverse.program)"
 #convert potential in format for sim_prog
-for_all "non-bonded bonded" do_external convert_potential espresso '$(csg_get_interaction_property name).pot.cur $(csg_get_interaction_property inverse.espresso.table)'
+for_all "non-bonded bonded" do_external convert_potential ${sim_prog} '$(csg_get_interaction_property name).pot.cur' '$'"(csg_get_interaction_property inverse.$sim_prog.table)"

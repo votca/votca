@@ -26,6 +26,7 @@ EOF
 fi
 
 sim_prog="$(csg_get_property cg.inverse.program)"
+
 name="$(csg_get_interaction_property name)"
 mol="$(csg_get_interaction_property inverse.optimizer.density.molname)"
 axis="$(csg_get_interaction_property inverse.optimizer.density.axis)"

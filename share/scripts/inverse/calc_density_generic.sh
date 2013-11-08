@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2013 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script calcs the density for gromacs
+This script calcs the density using csg_density
 
 Usage: ${0##*/} outputfile csg_density_options
 EOF
@@ -31,23 +31,18 @@ shift
 
 sim_prog="$(csg_get_property cg.inverse.program)"
 
-if [[ $sim_prog = "gromacs" ]]; then
-  topol=$(csg_get_property cg.inverse.gromacs.topol_out)
-  [[ -f $topol ]] || die "${0##*/}: gromacs topol file '$topol' not found"
+topol=$(csg_get_property cg.inverse.$sim_prog.topol)
+[[ -f $topol ]] || die "${0##*/}: topol file '$topol' not found"
 
-  ext=$(csg_get_property cg.inverse.gromacs.traj_type)
-  traj="traj.${ext}"
-  [[ -f $traj ]] || die "${0##*/}: gromacs traj file '$traj' not found"
-else
-  die "${0##*/}: Simulation program '$sim_prog' not supported yet"
-fi
+traj=$(csg_get_property cg.inverse.$sim_prog.traj)
+[[ -f $traj ]] || die "${0##*/}: traj file '$traj' not found"
 
 name=$(csg_get_interaction_property name)
 
-equi_time="$(csg_get_property cg.inverse.gromacs.equi_time)"
-first_frame="$(csg_get_property cg.inverse.gromacs.first_frame)"
+equi_time="$(csg_get_property cg.inverse.$sim_prog.equi_time)"
+first_frame="$(csg_get_property cg.inverse.$sim_prog.first_frame)"
 
-with_errors=$(csg_get_property cg.inverse.gromacs.density.with_errors)
+with_errors=$(csg_get_property cg.inverse.$sim_prog.density.with_errors)
 if [[ ${with_errors} = "yes" ]]; then
   suffix="_with_errors"
 else
@@ -61,10 +56,10 @@ fi
 
 if [[ ${with_errors} = "yes" ]]; then
   msg "Calculating density for $name with errors"
-  block_length=$(csg_get_property cg.inverse.gromacs.density.block_length)
+  block_length=$(csg_get_property cg.inverse.$sim_prog.density.block_length)
   critical csg_density --trj "$traj" --top "$topol" --out "${output}.block" --begin "$equi_time" --first-frame "$first_frame" --block-length $block_length "$@"
   for i in ${output}.block_*; do
-    [[ -f $i ]] || die "${0##*/}: Could not find ${output}.block_* after running csg_density, that usually means the blocksize (cg.inverse.gromacs.density.block_length) is too big."
+    [[ -f $i ]] || die "${0##*/}: Could not find ${output}.block_* after running csg_density, that usually means the blocksize (cg.inverse.$sim_prog.density.block_length) is too big."
   done
   #mind the --clean option to avoid ${name}.dist.block_* to fail on the second run
   do_external table average --clean --output "${output}" ${output}.block_*

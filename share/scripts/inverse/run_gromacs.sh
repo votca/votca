@@ -28,7 +28,7 @@ EOF
    exit 0
 fi
 
-tpr="$(csg_get_property cg.inverse.gromacs.topol_out)"
+tpr="$(csg_get_property cg.inverse.gromacs.topol)"
 
 mdp="$(csg_get_property cg.inverse.gromacs.mdp)"
 [[ -f $mdp ]] || die "${0##*/}: gromacs mdp file '$mdp' not found (make sure it is in cg.inverse.filelist)"
@@ -50,14 +50,17 @@ grompp_opts="$(csg_get_property --allow-empty cg.inverse.gromacs.grompp.opts)"
 grompp="$(csg_get_property cg.inverse.gromacs.grompp.bin)"
 [[ -n "$(type -p $grompp)" ]] || die "${0##*/}: grompp binary '$grompp' not found"
 
-ext=$(csg_get_property cg.inverse.gromacs.traj_type)
-[[ $ext = "xtc" || $ext = "trr" ]] || die "${0##*/}: error trajectory type $ext is not supported"
-if [[ $1 = "--pre" ]]; then
-  : #in a presimulation usually do care about traj
-elif  [[ $ext == "xtc" ]]; then
-  [[ $(get_simulation_setting nstxtcout 0) -eq 0 ]] && die "${0##*/}: trajectory type (cg.inverse.gromacs.traj_type) is $ext, but nstxtcout is 0 in $mdp. Please check the setting again and remove the current step."
-elif [[ $ext == "trr" ]]; then
-  [[ $(get_simulation_setting nstxout 0) -eq 0 ]] && die "${0##*/}: trajectory type (cg.inverse.gromacs.traj_type) is $ext, but nstxout is 0 in $mdp. Please check the setting again and remove the current step."
+traj=$(csg_get_property cg.inverse.gromacs.traj)
+if [[ $1 != "--pre" ]]; then
+  #in a presimulation usually do care about traj and temperature
+  check_temp || die "${0##*/}: check of tempertures failed"
+  if  [[ $traj == *.xtc ]]; then
+    [[ $(get_simulation_setting nstxtcout 0) -eq 0 ]] && die "${0##*/}: trajectory type (cg.inverse.gromacs.traj) is '${traj##*.}', but nstxtcout is 0 in $mdp. Please check the setting again and remove the current step."
+  elif [[ $traj == *.trr ]]; then
+    [[ $(get_simulation_setting nstxout 0) -eq 0 ]] && die "${0##*/}: trajectory type (cg.inverse.gromacs.traj) is '${traj##*.}', but nstxout is 0 in $mdp. Please check the setting again and remove the current step."
+  else
+    die "${0##*/}: error trajectory type '${traj##*.}' (ending from '$traj') is not supported"
+  fi
 fi
 
 checkpoint="$(csg_get_property cg.inverse.gromacs.mdrun.checkpoint)"
@@ -77,6 +80,7 @@ if [[ $(csg_get_property cg.inverse.gromacs.pre_simulation) = "yes" && $1 != "--
     for i in mdp topol_in index; do
       f="$(csg_get_property "cg.inverse.gromacs.pre_simulation.$i" "${!i}")" #filter me away
       [[ $f != ${!i} ]] && ((cp++))
+      [[ -f ${f} ]] || die "${0##*/}: file '$f' not found (make sure it is in cg.inverse.filelist)"
       critical cp "${f}" "./pre_simulation/${!i}"
     done
     [[ $cp -eq 0 ]] && die "${0##*/}: mdp, topol_in and index of the presimulation are the same as for the main simulation, that does not make sense - at least one has to be different!"
@@ -109,4 +113,7 @@ else
   echo "${0##*/}: No walltime defined, so no time limitation given to $mdrun"
 fi
 
-critical $mdrun -s "${tpr}" -c "${confout}" -o traj.trr -x traj.xtc ${mdrun_opts} 2>&1 | gromacs_log "$mdrun -s "${tpr}" -c "${confout}" -o traj.trr -x traj.xtc ${mdrun_opts}"
+critical $mdrun -s "${tpr}" -c "${confout}" -o "${traj%.*}".trr -x "${traj%.*}".xtc ${mdrun_opts} 2>&1 | gromacs_log "$mdrun -s "${tpr}" -c "${confout}" -o "${traj%.*}".trr -x "${traj%.*}".xtc ${mdrun_opts}"
+
+[[ -z "$(sed -n '/[nN][aA][nN]/p' ${confout})" ]] || die "${0##*/}: There is a nan in '${confout}', this seems to be wrong."
+

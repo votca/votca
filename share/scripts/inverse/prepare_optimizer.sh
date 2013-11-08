@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2013 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -35,7 +35,3 @@ for_all "non-bonded bonded" do_external prepare_single optimizer "${#parameters[
 
 do_external optimizer prepare_state "${otype}.state.cur"
 do_external optimizer state_to_potentials "${otype}.state.cur" "${otype}.state.new"
-
-# cp confout.gro and so on
-do_external prepare_generic $sim_prog
-

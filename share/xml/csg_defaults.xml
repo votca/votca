@@ -22,56 +22,46 @@
 	<DESC>type of convergence check to do</DESC>
       </type>
     </convergence_check>
+    <dlpoly>
+      <DESC> general dlpoly specific options </DESC>
+      <command>dl_poly
+	<DESC> command to run dlpoly  (name or absolute path or mpirun dlpoly..) </DESC>
+      </command>
+      <topol>.dlpoly
+	<DESC> Gromacs binary topology (tpr) file to be written by grompp and used for the simlation</DESC>
+      </topol>
+      <traj>.dlpoly
+	<DESC> Name of the output dlpoly trajectory file</DESC>
+      </traj>
+    </dlpoly>
     <espresso>
-      <blockfile>conf.esp.gz
-	<DESC>Name of the original blockfile read by Espresso</DESC>
-      </blockfile>
-      <blockfile_out>confout.esp.gz
-	<DESC>Name of the original outcome blockfile written by Espresso</DESC>
-      </blockfile_out>
       <command>Espresso
 	<DESC>Command to run espresso (name or absolute path or mpirun espresso..)</DESC>
       </command>
-      <debug>no
-	<DESC> debug Espresso (yes/no)</DESC>
-      </debug>
-      <exclusions>0
-	<DESC>Espresso bond partners to exclude</DESC>
-      </exclusions>
+      <opts>${script}
+	<DESC> option to be given to espresso program, use ${script} in there </DESC>
+      </opts>
       <first_frame>0
 	<DESC>trash the given number of frames at the beginning of trajectory</DESC>
       </first_frame>
-      <meta_cmd>
-	<DESC>Espresso metadynamics command to call [experimental]</DESC>
-      </meta_cmd>
-      <meta_min_sampling>
-	<DESC>Espresso metadynamics minimal number of sampling [experimental]</DESC>
-      </meta_min_sampling>
-      <n_snapshots>
-	<DESC>number of snapshots. Total time = n_steps * n_snapshots</DESC>
-      </n_snapshots>
-      <n_steps>
-	<DESC>Number of steps to integrate before a snapshot</DESC>
-      </n_steps>
-      <pressure_command>Espresso
-	<DESC>Espresso command to run when calculating the pressure (name or absolute path or mpirun espresso..)</DESC>
-      </pressure_command>
-      <rdf_command>Espresso
-	<DESC>Espresso command to run when calculating the rdf (name or absolute path or mpirun espresso..)</DESC>
-      </rdf_command>
-      <scriptdir>
-	<DESC>overwrite ESPRESSO_SCRIPTS from environment with this dir</DESC>
-      </scriptdir>
-      <success>success.esp
-	<DESC>File to create if Espresso simulation was successfull</DESC>
-      </success>
       <table_bins>
 	<DESC>espresso internal grid for tabulated potentials</DESC>
       </table_bins>
-      <traj>top_traj.esp
+      <traj>
 	<DESC> Name of the output Espresso trajectory file</DESC>
       </traj>
     </espresso>
+    <espressopp>
+      <command>python2
+	<DESC>Command to run espresso (name or absolute path or mpirun espresso..)</DESC>
+      </command>
+      <opts>${script}
+	<DESC> option to be given to espresso program, use ${script} in there </DESC>
+      </opts>
+      <first_frame>0
+	<DESC>trash the given number of frames at the beginning of trajectory</DESC>
+      </first_frame>
+    </espressopp>
     <filelist>
       <DESC>these files are copied to each iteration step</DESC>
     </filelist>
@@ -88,9 +78,6 @@
       <conf_out>confout.gro
 	<DESC>Name of the original outcome coordinate written by mdrun</DESC>
       </conf_out>
-      <cutoff_check>yes
-	<DESC>check non-bonded interaction cutoffs against rvdw in mdp file: yes/no</DESC>
-      </cutoff_check>
       <density>
 	<block_length>
 	  <DESC>Length of the block for the error analysis</DESC>
@@ -223,12 +210,12 @@
       <topol_in>topol.top
 	<DESC> Gromacs text topology (top) file read by grompp</DESC>
       </topol_in>
-      <topol_out>topol.tpr
+      <topol>topol.tpr
 	<DESC> Gromacs binary topology (tpr) file to be written by grompp and used for the simlation</DESC>
-      </topol_out>
-      <traj_type>xtc
-	<DESC> Gromacs trajectory type (xtc/trr) file to use</DESC>
-      </traj_type>
+      </topol>
+      <traj>traj.xtc
+	<DESC> Gromacs trajectory file to use</DESC>
+      </traj>
     </gromacs>
     <imc>
       <DESC> general imc specific options </DESC>
@@ -259,18 +246,43 @@
       <script>
 	<DESC> lammps script to run </DESC>
       </script>
+      <opts>-in ${script}
+	<DESC> option to be given to lammps program, use ${script} in there </DESC>
+      </opts>
       <traj>
 	<DESC> trajectory file to be created by lammps, use a format like xyz, which can be read by csg_stat</DESC>
       </traj>
     </lammps>
     <sim_prog>
       <DESC> options, which apply to all simulation programs</DESC>
+      <command>
+	<DESC>Command to run for the simulation (name or absolute path or mpirun XXX ..)</DESC>
+      </command>
+      <conf>
+	<DESC>Name of the coordinate file read by the simulation program (if needed)</DESC>
+      </conf>
+      <conf_out>
+	<DESC>Name of the original outcome coordinate written by simulation program (if any)</DESC>
+      </conf_out>
       <equi_time>0
 	<DESC>begin analysis after this time (max of this and first_frame is used)</DESC>
       </equi_time>
+      <density>
+	<block_length>
+	  <DESC>Length of the block for the error analysis</DESC>
+	</block_length>
+	<with_errors>no
+	  <DESC>calculate error on the density: yes/no</DESC>
+	</with_errors>
+      </density>
       <first_frame>0
 	<DESC> trash the given number of frames at the beginning of trajectory (max of this and first_frame is used)</DESC>
       </first_frame>
+      <re>
+	<topol>
+	  <DESC> topol file to be used for csg_reupdate</DESC>
+	</topol>
+      </re>
       <rdf>
 	<block_length>
 	  <DESC>Length of the block for the error analysis</DESC>
@@ -291,6 +303,12 @@
       <traj>
 	<DESC> trajectory file to be created by the simulation program</DESC>
       </traj>
+      <script>
+	<DESC> simulation script to run (if any)</DESC>
+      </script>
+      <opts>
+	<DESC> option to be given to simulation program, use ${script} in there </DESC>
+      </opts>
     </sim_prog>
     <re>
       <DESC>general options for realtive entropy method</DESC>
@@ -308,8 +326,8 @@
       <DESC>number of steps to be used for average computation</DESC>
       </steps>
     </average>
-    <initial_configuration>laststep
-      <DESC>what initial configuration to use in every step: maindir/laststep</DESC>
+    <initial_configuration>maindir
+      <DESC>what initial configuration to use in every step: maindir/laststep/nowhere.</DESC>
     </initial_configuration>
     <iterations_max>
       <DESC>do the given number of iterations (0=inf)</DESC>
@@ -338,11 +356,14 @@
       </type>
     </optimizer>
     <program>gromacs
-      <DESC>simulation package to be used (gromacs/espresso)</DESC>
+      <DESC>simulation package to be used (gromacs/espresso/lammps)</DESC>
     </program>
     <restart_file>restart_points.log
       <DESC>Name of the restart file in case a step has to be resumed</DESC>
     </restart_file>
+    <dist_min>1e-10
+      <DESC> minimal value for the rdf to consider for initial guess of the potential)</DESC>
+    </dist_min>
     <scriptpath>
       <DESC> list of directories for user scripts (e.g. $PWD) separated by a colon (like PATH)</DESC>
     </scriptpath>
@@ -444,14 +465,8 @@
       <espresso>
 	<DESC>Espresso specific options for this interations</DESC>
         <table>
-	  <DESC>Name of file for tabulated potential of this interaction. This fill will be created from the internal tabulated potential format in every step. Note, though, that the original espresso blockfile needs to contain the name of that table as the tabulated interaction (see tutorial methanol ibi_espresso for details).</DESC>
+	  <DESC>Name of file for tabulated potential of this interaction. This fill will be created from the internal tabulated potential format in every step. Note, though, that the original espresso script needs to contain the name of that table as the tabulated interaction (see tutorial methanol ibi_espresso for details).</DESC>
 	</table>
-	<index1>
-	  <DESC>Index list of type1 -- Name of the Tcl variable containing all index1 particles that is contained in the espresso blockfile.</DESC>
-	</index1>
-	<index2>
-	  <DESC>Index list of type2 -- Name of the Tcl variable containing all index1 particles that is contained in the espresso blockfile.</DESC>
-	</index2>
       </espresso>
       <gromacs>
 	<DESC>Gromacs specific options for this interations</DESC>
@@ -461,6 +476,9 @@
       </gromacs>
       <sim_prog>
         <DESC> interaction specific options, which apply to all simulation programs</DESC>
+        <table>
+	  <DESC>Name of file for tabulated potential of this interaction. This fill will be created from the internal tabulated potential format in every step. Note, though, that the original simulation script needs to contain the name of that table as the tabulated interaction (see tutorial methanol ibi_espresso for details).</DESC>
+	</table>
         <table_begin>
 	  <DESC> Start of the tabulated potential of this interaction. (Automatic for gromacs)</DESC>
 	</table_begin>

@@ -82,32 +82,16 @@ my $outfile="$ARGV[2]";
 my @r;
 my @r_repeat;
 my @pot;
-my @d_pot;
+my @minus_force;
 my @flag;
 my @flag_repeat;
 #cutoff is last point
 (readin_table($in_pot,@r,@pot,@flag)) || die "$progname: error at readin_table\n";
-(readin_table($in_deriv_pot,@r_repeat,@d_pot,@flag_repeat)) || die "$progname: error at readin_table\n";
+(readin_table($in_deriv_pot,@r_repeat,@minus_force,@flag_repeat)) || die "$progname: error at readin_table\n";
 
 #shift potential so that it is zero at cutoff
 for (my $i=0;$i<=$#r;$i++){
    $pot[$i]-=$pot[$#r];
-}
-
-my @minus_force=@d_pot;
-
-# Smooth out force (9-point avg) 
-for (my $i=4;$i<$#r_repeat-3;$i++){
-		$minus_force[$i]=($d_pot[$i-4]+$d_pot[$i-3]+$d_pot[$i-2]
-								+$d_pot[$i-1]+$d_pot[$i]+$d_pot[$i+1]+$d_pot[$i+2]
-								+$d_pot[$i+3]+$d_pot[$i+4])/(9.);
-}
-
-if ($sim_prog eq "espresso") {
-  # add extra 1/r factor for ESPResSo
-  for (my $i=0;$i<=$#r_repeat;$i++){
-		$minus_force[$i]*=1.0/$r_repeat[$i] if ($r_repeat[$i] > 0);
-  } 
 }
 
 open(OUTFILE,"> $outfile") or die "saveto_table: could not open $outfile\n";
@@ -115,7 +99,7 @@ open(OUTFILE,"> $outfile") or die "saveto_table: could not open $outfile\n";
 if ($sim_prog eq "espresso") {
   printf(OUTFILE "#%d %f %f\n", $#r+1, $r[0],$r[$#r]);
   for(my $i=0;$i<=$#r;$i++){
-    printf(OUTFILE "%15.10e %15.10e %15.10e\n",$r[$i], -$minus_force[$i], $pot[$i]);
+    printf(OUTFILE "%15.10e %15.10e %15.10e\n",$r[$i],($r[$i]>0)?-$minus_force[$i]/$r[$i]:-$minus_force[$i], $pot[$i]);
   }
 } elsif ($sim_prog eq "lammps") {
   printf(OUTFILE "VOTCA\n");
@@ -123,9 +107,26 @@ if ($sim_prog eq "espresso") {
   for(my $i=0;$i<=$#r;$i++){
     printf(OUTFILE "%i %15.10e %15.10e %15.10e\n",$i+1,$r[$i], $pot[$i], -$minus_force[$i]);
   }
+} elsif ($sim_prog eq "dlpoly") {
+  # see dlpoly manual ngrid = cut/delta+4 = $#r -1 + 4
+  # number of lines int((ngrid+3)/4)
+  for(my $i=0;$i<4*int(($#r+6)/4);$i++){
+    printf(OUTFILE "%15.7e",($i>$#r)?0:$pot[$i]);
+    printf(OUTFILE "%s",($i%4==3)?"\n":" ");
+  }
+  for(my $i=0;$i<4*int(($#r+6)/4);$i++){
+    printf(OUTFILE "%15.7e",($i>$#r)?0:-$minus_force[$i]*$r[$i]);
+    printf(OUTFILE "%s",($i%4==3)?"\n":" ");
+  }
+  printf(OUTFILE "\n");
+} elsif ($sim_prog eq "gromacs") {
+  printf(OUTFILE "#This is just a failback, for using different columns use table_to_xvg.pl instead!\n");
+  for(my $i=0;$i<=$#r;$i++){
+    printf(OUTFILE "%15.10e   %15.10e %15.10e   %15.10e %15.10e   %15.10e %15.10e\n",$r[$i], ,0,0,0,0,$pot[$i], -$minus_force[$i]);
+  }
 } else {
   for(my $i=0;$i<=$#r;$i++){
-    printf(OUTFILE "%i %15.10e %15.10e %15.10e\n",$r[$i], $pot[$i], -$minus_force[$i]);
+    printf(OUTFILE "%15.10e %15.10e %15.10e\n",$r[$i], $pot[$i], -$minus_force[$i]);
   }
 }
 close(OUTFILE) or die "Error at closing $outfile\n";

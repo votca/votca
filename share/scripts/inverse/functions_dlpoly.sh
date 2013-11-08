@@ -18,31 +18,36 @@
 if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
-Useful functions for lammps:
+Useful functions for the generic simulation program:
 EOF
 sed -n 's/^\(.*\)([)] {[^#]*#\(.*\)$/* \1   -- \2/p' ${0}
 
-echo
-echo Used external packages: espresso
   exit 0
 fi
 
 simulation_finish() { #checks if simulation is finished
-  local traj
-  traj="$(csg_get_property cg.inverse.lammps.traj)"
-  [[ -f $traj ]] && return 0 
+  local traj topol
+  if [[ -f "HISTORY" ]]; then
+    #hacky workaround as topol/traj is called '.dlpoly'
+    traj=$(csg_get_property cg.inverse.dlpoly.traj)
+    critical touch $traj
+    topol=$(csg_get_property cg.inverse.dlpoly.topol)
+    critical touch $topol
+    return 0
+  fi
   return 1
 }
 export -f simulation_finish
 
-checkpoint_exist() { #check if a checkpoint exists
-  #lammps no support for checkpoints, yet !
+checkpoint_exist() { #check if a checkpoint exists (not implemented)
+  #no support for checkpoints, yet !
   return 1
 }
 export -f checkpoint_exist
 
-get_simulation_setting() { #gets parameter a parameter from the settings file (1st argument) from simulation setting file
-  die "${FUNCNAME[0]}: Not implemented for lammps yet"
+get_simulation_setting() { #gets parameter a parameter from the settings file (1st argument) from simulation setting file (not implemented)
+  local sim_prog="$(csg_get_property cg.inverse.program)"
+  die "${FUNCNAME[0]}: Not implemented for ${sim_prog} yet"
   return 1
 }
 export -f get_simulation_setting

@@ -37,4 +37,4 @@ if [[ $otype = cma ]]; then
 fi
 
 #initialize sim_prog
-do_external initstep_generic $sim_prog
+do_external initstep $sim_prog

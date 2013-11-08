@@ -34,4 +34,4 @@ for_all non-bonded 'cp_from_last_step --rename $(csg_get_interaction_property na
 for_all non-bonded 'cp_from_last_step --rename $(csg_get_interaction_property name).pot.new $(csg_get_interaction_property name).pot.cur'
 
 # initialize sim_prog
-do_external initstep_generic $sim_prog
+do_external initstep $sim_prog

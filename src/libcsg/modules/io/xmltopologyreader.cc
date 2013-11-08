@@ -112,13 +112,21 @@ void XMLTopologyReader::ParseMolecules(const string &el, map<string, string> &at
 
 void XMLTopologyReader::ParseBeadTypes(const string &el, map<string, string> &attr)
 {
-    cout << "XXX" << endl;
     if (el == "rename") {
         string name = attr["name"];
         string newname = attr["newname"];
         if (name == "" || newname == "")
             throw runtime_error("invalid rename tag");
         _top->RenameBeadType(name, newname);
+        _parser.IgnoreChilds();
+    }
+    if (el == "mass") {
+        string name = attr["name"];
+        string svalue = attr["value"];
+        if (name == "" || svalue == "")
+            throw runtime_error("invalid rename tag");
+	double value = boost::lexical_cast<double>(svalue);
+        _top->SetBeadTypeMass(name, value);
         _parser.IgnoreChilds();
     }
 }

@@ -14,10 +14,10 @@
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <votca/tools/property.h>
 #include <votca/tools/histogramnew.h>
-#include "potentialfunctions/potentialfunction.h"
-#include "potentialfunctions/potentialfunctioncbspl.h"
-#include "potentialfunctions/potentialfunctionlj126.h"
-#include "potentialfunctions/potentialfunctionljg.h"
+#include <votca/csg/potentialfunctions/potentialfunction.h>
+#include <votca/csg/potentialfunctions/potentialfunctioncbspl.h>
+#include <votca/csg/potentialfunctions/potentialfunctionlj126.h>
+#include <votca/csg/potentialfunctions/potentialfunctionljg.h>
 #include <votca/csg/topologyreader.h>
 
 using namespace votca::csg;

@@ -48,8 +48,9 @@ table_begin="$(csg_get_interaction_property --allow-empty inverse.$sim_prog.tabl
 if [[ -z ${table_begin} ]]; then 
   table_begin="$r_min"
 else
+  #keep the grid for now, so that extrapolate can calculate the right mean
   smooth2="$(critical mktemp ${trunc}.pot.extended.XXXXX)"
-  critical csg_resample --in ${input} --out "${smooth2}" --grid "${table_begin}:${bin_size}:${r_cut}" --comment "$comment"
+  critical csg_resample --in ${input} --out "${smooth2}" --grid "${table_begin}:${step}:${r_cut}" --comment "$comment"
   extrapolate="$(critical mktemp ${trunc}.pot.extrapolated.XXXXX)"
   do_external potential extrapolate --type "$bondtype" "${smooth2}" "${extrapolate}"
   input="${extrapolate}"

@@ -226,6 +226,7 @@ if ($do_left) {
   else {
     $grad_beg = ($val[$first + $avgpoints] - $val[$first])/($r[$first + $avgpoints] - $r[$first]);
   }
+  print "$progname: extrapolating the left using $function with gradient $grad_beg\n";
 
   # now extrapolate beginning
   for(my $i=$first-1; $i >= 0; $i--) {
@@ -250,6 +251,7 @@ if ($do_right) {
   else {
     $grad_end = ($val[$last] - $val[$last - $avgpoints])/($r[$last] - $r[$last-$avgpoints]);
   }
+  print "$progname: extrapolating the right using $function with gradient $grad_end\n";
 
   # now extrapolate ends
   for(my $i=$last+1; $i <= $#r; $i++) {
