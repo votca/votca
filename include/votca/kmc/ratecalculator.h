@@ -1,5 +1,5 @@
-/*
- * Copyright 2009-2013 The VOTCA Development Team (http://www.votca.org)
+/* 
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,9 @@
  *
  */
 
-#ifndef __VOTCA_KMC_ElectronTransfer_H_
-#define __VOTCA_KMC_ElectronTransfer_H_
+#ifndef __VOTCA_KMC_RATECALCULATOR_H_
+#define	__VOTCA_KMC_RATECALCULATOR_H_
 
-#include <votca/kmc/event.h>
 
-namespace votca { namespace kmc {
-    
-class ElectronTransfer : public Event {
-public:
-    
-    void onExecute() { 
-        cout << "Electron transfer executed" << endl; 
-    }
-    // TODO updating the state
-   
-};
+#endif	/* RATECALCULATOR_H */
 
-}}
-
-#endif

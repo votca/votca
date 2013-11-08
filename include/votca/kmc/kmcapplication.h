@@ -37,8 +37,6 @@ public:
     bool EvaluateOptions();
     /// print help 
     void ShowHelpText(std::ostream &out);
-    /// print the description of a specific calculator
-    void PrintDescription(const char *name, const bool length);
     /// add a calculator to the list
     void AddCalculator(KMCCalculator* calculator);
     /// run all calculators

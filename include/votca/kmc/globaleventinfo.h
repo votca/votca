@@ -15,23 +15,43 @@
  *
  */
 
-#ifndef __VOTCA_KMC_ElectronTransfer_H_
-#define __VOTCA_KMC_ElectronTransfer_H_
-
-#include <votca/kmc/event.h>
+#ifndef __VOTCA_KMC_GLOBALEVENTINFO_H_
+#define __VOTCA_KMC_GLOBALEVENTINFO_H_
 
 namespace votca { namespace kmc {
-    
-class ElectronTransfer : public Event {
+  
+using namespace std;
+
+class Globaleventinfo {
+
 public:
     
-    void onExecute() { 
-        cout << "Electron transfer executed" << endl; 
-    }
-    // TODO updating the state
-   
+    double alpha;
+    double beta;
+    double efield;
+    double injection_barrier;
+    double binding_energy;
+    double coulomb_strength;
+    double coulcut;
+    double self_image_prefactor;
+    
+    bool left_injection[2];
+    bool right_injection[2];
+    bool device;
+    string formalism;
+    
+    int nr_sr_images;
+    long nr_of_lr_images;
+    int state_grow_size;
+    
+    double electron_prefactor;
+    double hole_prefactor;
+    double injection_prefactor;
+    double recombination_prefactor;
+    double collection_prefactor;
 };
 
-}}
+}} 
 
 #endif
+

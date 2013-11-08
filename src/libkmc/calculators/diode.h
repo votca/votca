@@ -18,150 +18,104 @@
 #ifndef __VOTCA_KMC_DIODE_H
 #define	__VOTCA_KMC_DIODE_H
 
-//#include <votca/kmc/graph.h>
-#include <votca/tools/vec.h>
-//#include <votca/kmc/carrier.h>
-//#include <votca/kmc/state.h>
-
-#include <votca/kmc/eventfactory.h>
-
-//#include <votca/kmc/store.h>
+#include <votca/kmc/state.h>
+#include <votca/kmc/graph.h>
+#include <votca/kmc/globaleventinfo.h>
+#include <votca/kmc/events.h>
+#include <votca/kmc/vssmgroup.h>
 
 using namespace std;
 
 namespace votca { namespace kmc {
     
+//typedef votca::tools::vec myvec;
+
+   
 class Diode : public KMCCalculator 
 {
 public:
-  Diode() {};
- ~Diode() {};
+    
+    Graph* graph;
+    State* state;
+    Events* events;
+    Vssmgroup* vssmgroup;
+    Globaleventinfo* globevent;
+    
+    Diode() {};
+   ~Diode() {};
 
-  void Initialize(Property *options);
-  bool EvaluateFrame();
-  
-  int totalnumberofnodes;
-  
+    void Initialize(Property *options);
+    bool EvaluateFrame();
+
+    double sim_time;
+    
+    // input parameters (put in globaleventinfo?)
+    int seed; long nr_equilsteps; long nr_timesteps; long steps_update_longrange;
+    int nx; int ny; int nz; double lattice_constant; double hopdist; double disorder_strength; 
+    double disorder_ratio; CorrelationType correlation_type; double left_electrode_distance; double right_electro_distance;
+
 protected:
-
- void RunKMC(void);    
- string _lattice_type;
- 
- // square lattice
- 
- int _Nbox_x;
- int _Nbox_y;
- int _Nbox_z;
- double _lattice_const;
- double _hopping_distance; //maximum distance over which hops are occuring (readable from statefile)
-// bool _to_recalculate_pairs; //want to recalculate the possible hopping pairs?
- double _disorder_strength;
+   void RunKMC(void); 
             
 private:
-  static const double kB   = 8.617332478E-5; // eV/K
-  static const double hbar = 6.5821192815E-16; // eV*s
-  static const double eps0 = 8.85418781762E-12/1.602176565E-19; // e**2/eV/m = 8.85418781762E-12 As/Vm
-  static const double epsr = 3.0; // relative material permittivity
-  static const double Pi   = 3.14159265358979323846;
-  
-  //input/output/options file
-  //string _statefile;
-  //string _optionsxml;
-  //string _outputfile;
-  
-  //Graph _graph;
-  //State _state;
+    static const double kB   = 8.617332478E-5; // eV/K
+    static const double hbar = 6.5821192815E-16; // eV*s
+    static const double eps0 = 8.85418781762E-12/1.602176565E-19; // e**2/eV/m = 8.85418781762E-12 As/Vm
+    static const double epsr = 3.0; // relative material permittivity
+    static const double Pi   = 3.14159265358979323846;
    
 };
 
 
-// void Diode::Initialize(const char *filename, Property *options, const char *outputfile ) {
-void Diode::Initialize(Property *options) {   
-        if (options->exists("options.lattice.lattice_type")) {
-	    _lattice_type = options->get("options.lattice.lattice_type").as<string>();
-	}
-        else {
-	    cout << "Reading node coordinates from state file \n";
-            _lattice_type = "statefile";
-        }
-        if(_lattice_type != "square" && _lattice_type != "statefile"){
-	    cout << "WARNING in simulation: Invalid options for lattice type. Correct options: statefile, square. Set to default option (statefile) \n" ;
-            _lattice_type = "statefile";
-        }
-
-        if(_lattice_type == "square") {
-            if(options->exists("options.lattice.Nbox_x")) {
-                 _Nbox_x = options->get("options.lattice.Nbox_x").as<int>();
-            }
-            else {
-                 cout << "WARNING: Invalid option for box size, dimension x. Set to default number (50 sites) \n";
-                 _Nbox_x = 50;
-            }
-            if(options->exists("options.lattice.Nbox_y")) {
-                 _Nbox_y = options->get("options.lattice.Nbox_y").as<int>();
-            }
-            else {
-                 cout << "WARNING: Invalid option for box size, dimension y. Set to default number (50 sites) \n";
-                 _Nbox_y = 50;
-            }
-            if(options->exists("options.lattice.Nbox_z")) {
-                 _Nbox_z = options->get("options.lattice.Nbox_z").as<int>();
-            }
-            else {
-                 cout << "WARNING: Invalid option for box size, dimension z. Set to default number (50 sites) \n";
-                 _Nbox_z = 50;
-            }            
-            if(options->exists("options.lattice.lattice_const")) {
-                 _lattice_const = options->get("options.lattice.lattice_const").as<double>();
-            }
-            else {
-                 cout << "WARNING: Invalid option for lattice constant. Set to default number (1.0) \n";
-                 _lattice_const = 1.0;
-            }
-        }
-        
-
-        //_statefile = statefile;
-        //_outputfile = outputfile;    
-        
-   
+void Diode::Initialize(Property *options) {
     
+    graph = new Graph();
+    state = new State();
+    events = new Events();
+    vssmgroup = new Vssmgroup();
 }
 
-bool Diode::EvaluateFrame()
-{
+bool Diode::EvaluateFrame() {
+    
     // register all QM packages (Gaussian, turbomole, etc))
-    EventFactory::RegisterAll(); 
+    // EventFactory::RegisterAll(); 
         
     RunKMC();
 }
 
 void Diode::RunKMC() {
+ 
+    //Setup random number generator
+    seed = 1;
+    srand(seed); // srand expects any integer in order to initialise the random number generator
+    votca::tools::Random2 *RandomVariable = new votca::tools::Random2();
+    RandomVariable->init(rand(), rand(), rand(), rand());    
     
-    cout << "I am in Run KMC\n" ;
+    //Initialize all structures
+    graph->hopdist = hopdist;
+    graph->Generate_cubic_graph(nx, ny, nz, lattice_constant, disorder_strength,RandomVariable, disorder_ratio, 
+                                correlation_type, left_electrode_distance, right_electro_distance,globevent);   
+    state->Init();    
+    events->Initialize_eventvector(graph, state, globevent);
+    events->Initialize_longrange (graph, globevent);
+    events->Recompute_all_injection_events(graph, globevent);
+    events->Recompute_all_non_injection_events(graph, state, globevent); 
     
-    // get the corresponding object from the QMPackageFactory
-    Event *_electron_transfer =  Events().Create( _ElectronTransfer );
-
-    _electron_transfer->onExecute();
     
- //   cout << _graph->nodes[0]->nodeposition.x;
-
-    totalnumberofnodes = 0;
-    
-    if(_lattice_type == "statefile") {
-      //_graph.Load();
+    sim_time = 0.0;
+    for (long it = 0; it < 2*nr_equilsteps + nr_timesteps; it++) {
+        
+        // Update longrange cache (expensive, so not done at every timestep)
+        if(ldiv(it, steps_update_longrange).rem == 0 && it>0){
+            events->longrange->Update_cache(graph->sim_box_size, globevent);
+            events->Recompute_all_injection_events(graph, globevent);
+            events->Recompute_all_non_injection_events(graph,state,globevent);
+        }
+        
+        vssmgroup->Recompute_in_device(events);
+        sim_time += vssmgroup->Timestep(RandomVariable);
+        vssmgroup->Perform_one_step_in_device(events,graph,state,globevent,RandomVariable);
     }
-    else if(_lattice_type == "square") {
-      //_graph.CreateCubicLattice(_Nbox_x,_Nbox_y,_Nbox_z,_lattice_const);
-    }
-    
-    //_graph.CreateGaussianEnergyLandscape(_disorder_strength);
-    
-    //_state.clear();
-//    State _state;
-//    _state.Load();
-
 }
 
 }}
