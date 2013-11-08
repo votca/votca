@@ -59,24 +59,35 @@ class APolarSite
 public:
 
     APolarSite(int id, string name)
-            : _id(id), _name(name), _isVirtual(false), _locX(vec(1,0,0)),
-              _locY(vec(0,1,0)),    _locZ(vec(0,0,1))
-            { _Qs.resize(3); _Ps.resize(3); this->Depolarize(); };
+            : _id(id),              _name(name),         _isVirtual(false), 
+              _locX(vec(1,0,0)),    _locY(vec(0,1,0)),   _locZ(vec(0,0,1)), 
+              _top(0),              _seg(0),             _frag(0),
+              _resolution(atomistic)
+            { _Qs.resize(3); _Ps.resize(3); this->Depolarize();
+              for (int s = -1; s < 2; ++s) _Ps[s+1].ZeroMatrix(); }
     APolarSite()
-            : _id(-1),  _isVirtual(false), _locX(vec(1,0,0)),
-              _locY(vec(0,1,0)), _locZ(vec(0,0,1))
-            { _Qs.resize(3); _Ps.resize(3); this->Depolarize(); };            
-    APolarSite(APolarSite *templ);
+            : _id(-1),              _name(""),          _isVirtual(false),  
+              _locX(vec(1,0,0)),    _locY(vec(0,1,0)),  _locZ(vec(0,0,1)),  
+              _top(0),              _seg(0),            _frag(0),
+              _resolution(atomistic)
+            { _Qs.resize(3); _Ps.resize(3); this->Depolarize();
+              for (int s = -1; s < 2; ++s) _Ps[s+1].ZeroMatrix(); }
+    APolarSite(APolarSite *templ, bool do_depolarize);
    ~APolarSite() {};
+   
+    // RESOLUTION (AFFECTS DAMPING PROPERTIES)
+    enum res_t { atomistic, coarsegrained };
+    const res_t    &getResolution() { return _resolution; }
+    void            setResolution(res_t res) { _resolution = res; }
     
     // GET & SET & IMPORT FUNCTIONS
-    int             &getId() { return _id; }
-    string          &getName() { return _name; }
-    vec             &getPos() { return _pos; }
-    int             &getRank() { return _rank; }
-    Topology        *getTopology() { return _top; }
-    Segment         *getSegment() { return _seg; }
-    Fragment        *getFragment() { return _frag; }
+    int            &getId() { return _id; }
+    string         &getName() { return _name; }
+    vec            &getPos() { return _pos; }
+    int            &getRank() { return _rank; }
+    Topology       *getTopology() { return _top; }
+    Segment        *getSegment() { return _seg; }
+    Fragment       *getFragment() { return _frag; }
     bool            getIsVirtual() { return _isVirtual; }
     bool            getIsActive(bool estatics_only);
 
@@ -132,12 +143,14 @@ public:
     void            WriteXyzLine(FILE *, vec &, string);
     void            WritePdbLine(FILE *out, const string &tag = "");
     void            WriteMpsLine(std::ostream &out, string unit);
+    void            WriteXmlLine(std::ostream &out);
     
     template<class Archive>
     void serialize(Archive &arch, const unsigned int version) {
         arch & _id;
         arch & _name;
         arch & _isVirtual;
+        arch & _resolution;
         arch & _pos;
         arch & _locX;
         arch & _locY;
@@ -182,6 +195,7 @@ private:
     int     _id;
     string  _name;
     bool    _isVirtual;
+    res_t   _resolution;
     vec     _pos;
     vec     _locX;
     vec     _locY;

@@ -37,8 +37,24 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
     // EVALUATE OPTIONS
     string pfx = "options.ewald";
     // Ewald parameters
-    _R_co = opt->get(pfx+".coulombmethod.cutoff").as<double>();
-    _crit_dE = opt->get(pfx+".convergence.energy").as<double>();
+    string cmethod = opt->get(pfx+".coulombmethod.method").as<string>();
+    assert(cmethod == "ewald" && "<::Ewald3DnD> CMETHOD NOT IMPLEMENTED");
+    if (opt->exists(pfx+".coulombmethod.cutoff")) {
+        _R_co = opt->get(pfx+".coulombmethod.cutoff").as<double>();
+    }
+    else
+        _R_co = 6.;
+    if (opt->exists(pfx+".coulombmethod.shape")) {
+        _shape = opt->get(pfx+".coulombmethod.shape").as<string>();
+    }
+    else
+        _shape = "xyslab";
+    // Convergence
+    if (opt->exists(pfx+".convergence.energy")) {
+        _crit_dE = opt->get(pfx+".convergence.energy").as<double>();
+    }
+    else
+        _crit_dE = 1e-5;
     if (opt->exists(pfx+".convergence.kfactor"))
         _kfactor = opt->get(pfx+".convergence.kfactor").as<double>();
     else
@@ -46,8 +62,10 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
     if (opt->exists(pfx+".convergence.rfactor"))
         _rfactor = opt->get(pfx+".convergence.rfactor").as<double>();
     else
-        _rfactor = 6.;    
-    // Polar parameters    
+        _rfactor = 6.;
+    // Polar parameters
+    string pmethod = opt->get(pfx+".coulombmethod.method").as<string>();
+    assert(pmethod == "ewald" && "<::Ewald3DnD> PMETHOD NOT IMPLEMENTED");
     if (opt->exists(pfx+".polarmethod.induce"))
         _polar_do_induce = opt->get(pfx+".polarmethod.induce").as<bool>();
     else
@@ -68,12 +86,32 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
         _polar_aDamp = opt->get(pfx+".polarmethod.aDamp").as<double>();
     else
         _polar_aDamp = 0.390;
-    // Tasks to perform
-    if (opt->exists(pfx+".tasks.polarize_bg")) {
-        _task_polarize_bg = opt->get(pfx+".tasks.polarize_bg").as<bool>();
+    // Coarse-graining
+    if (opt->exists(pfx+".coarsegrain.cg_background")) {
+        _coarse_do_cg_background = 
+            opt->get(pfx+".coarsegrain.cg_background").as<bool>();
     }
     else
-        _task_polarize_bg = false;
+        _coarse_do_cg_background = false;
+    if (opt->exists(pfx+".coarsegrain.cg_foreground")) {
+        _coarse_do_cg_foreground =
+            opt->get(pfx+".coarsegrain.cg_foreground").as<bool>();
+    }
+    else
+        _coarse_do_cg_foreground = false;
+    if (opt->exists(pfx+".coarsegrain.cg_radius")) {
+        _coarse_cg_radius =
+            opt->get(pfx+".coarsegrain.cg_radius").as<double>();
+    }
+    else
+        _coarse_cg_radius = _polar_cutoff;
+    if (opt->exists(pfx+".coarsegrain.cg_anisotropic")) {
+        _coarse_cg_anisotropic =
+            opt->get(pfx+".coarsegrain.cg_anisotropic").as<bool>();
+    }
+    else
+        _coarse_cg_anisotropic = false;
+    // Tasks to perform
     if (opt->exists(pfx+".tasks.calculate_fields")) {
         _task_calculate_fields 
             = opt->get(pfx+".tasks.calculate_fields").as<bool>();
@@ -136,6 +174,14 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
     _bg_P.insert(_bg_P.end(), _bg_N.begin(), _bg_N.end());    
     // Grow foreground according to induction cut-off
     this->ExpandForegroundReduceBackground(_polar_cutoff);
+    // Coarse-grain as demanded by input
+    boost::timer::cpu_timer cpu_t;
+    cpu_t.start();
+    boost::timer::cpu_times t0 = cpu_t.elapsed();
+    this->CoarseGrainDensities(_coarse_do_cg_background, 
+        _coarse_do_cg_foreground, _coarse_cg_radius);
+    boost::timer::cpu_times t1 = cpu_t.elapsed();
+    _t_coarsegrain = (t1.wall-t0.wall)/1e9/60.;
     
     // SET-UP MIDGROUND (INCLUDING PERIODIC IMAGES IF REQUIRED)
     LOG(logINFO,*_log) << flush;
@@ -239,6 +285,9 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
 
 void Ewald3DnD::ExpandForegroundReduceBackground(double polar_R_co) {
     
+    LOG(logDEBUG,*_log) << flush;
+    LOG(logDEBUG,*_log) << "Set-up polar grounds" << flush;
+    
     vector<PolarSeg*>::iterator sit1;
     vector<PolarSeg*>::iterator sit2;
     
@@ -256,10 +305,9 @@ void Ewald3DnD::ExpandForegroundReduceBackground(double polar_R_co) {
     int polar_nb_max = ceil(polar_R_co/maxnorm(_b)-0.5)+1;
     int polar_nc_max = ceil(polar_R_co/maxnorm(_c)-0.5)+1;
     
-    if (tools::globals::verbose)
-        LOG(logDEBUG,*_log) << "Expanding cell space for neighbour search:"
-                " +/-" << polar_na_max << " x +/-" << polar_nb_max << " x +/-" 
-                << polar_nc_max << flush;
+    LOG(logDEBUG,*_log) << "  o Expanding cell space for neighbour search:"
+            " +/-" << polar_na_max << " x +/-" << polar_nb_max << " x +/-" 
+            << polar_nc_max << flush;
     
     _fg_table = new ForegroundTable(
         _bg_P.size(), polar_na_max, polar_nb_max, polar_nc_max);
@@ -313,17 +361,18 @@ void Ewald3DnD::ExpandForegroundReduceBackground(double polar_R_co) {
             
             if (!identical && within_range) {
                 _fg_table->AddToForeground(seg_bg->getId(), na, nb, nc);
-                // Add new shifted clone to fgC and MM1
-                PolarSeg *seg_bg_clone_fgc = new PolarSeg(seg_bg);
+                // Add new shifted clone to fgC and MM1, depolarize = true
+                PolarSeg *seg_bg_clone_fgc = new PolarSeg(seg_bg, true);
                 seg_bg_clone_fgc->Translate(L);
                 exp_fg_C.push_back(seg_bg_clone_fgc);
                 _polar_mm1.push_back(seg_bg_clone_fgc);
-                // Add original to fgN OR a shifted clone if image box != 0
+                // Add original to fgN OR a shifted clone if image box != 0,
+                // depolarize = false
                 if (in_central_cell)
                     exp_fg_N.push_back(seg_bg);
                 else {
                     allocated_count_n += 1;
-                    PolarSeg *seg_bg_clone_fgn = new PolarSeg(seg_bg);
+                    PolarSeg *seg_bg_clone_fgn = new PolarSeg(seg_bg, false);
                     seg_bg_clone_fgn->Translate(L);
                     exp_fg_N.push_back(seg_bg_clone_fgn);
                 }
@@ -370,6 +419,97 @@ void Ewald3DnD::ExpandForegroundReduceBackground(double polar_R_co) {
 }
 
 
+void Ewald3DnD::CoarseGrainDensities(bool cg_bg, bool cg_fg, double cg_radius) {
+    
+    LOG(logDEBUG,*_log) << "Coarse-graining agenda" << flush;
+    LOG(logDEBUG,*_log) << "  o Coarse-grain background:   " << ((_coarse_do_cg_background) ? "yes" : "no") << flush;
+    LOG(logDEBUG,*_log) << "  o Coarse-grain foreground:   " << ((_coarse_do_cg_foreground) ? "yes" : "no") << flush;
+    LOG(logDEBUG,*_log) << "  o Anisotropic P-tensor:      " << ((_coarse_cg_anisotropic) ? "yes" : "no") << flush;
+    LOG(logDEBUG,*_log) << "  o Coarse-graining radius:    " << _coarse_cg_radius << " nm" << flush;
+    
+    // COARSE-GRAIN BACKGROUND
+    if (cg_bg) {
+        LOG(logDEBUG,*_log) << "Coarse-grain background" << flush;
+        
+        int count_bgp = 0;
+        int count_fgn = 0;
+        int count_fgc = 0;
+        int count_bgp_id_in_fg = 0;
+
+        for (vector<PolarSeg*>::iterator sit = _bg_P.begin();
+            sit != _bg_P.end(); ++sit) {
+            if (_fg_table->IsInForeground((*sit)->getId(), 0, 0, 0)) {
+                ++count_bgp_id_in_fg;
+            }
+            // By checking whether there are more polar sites than polar
+            // fragments in the segment, one avoids coarse-graining twice
+            assert((*sit)->size() >= (*sit)->PolarFrags().size()
+               && "<::CoarseGrainDensities> BGN: FEWER POLAR SITES THAN FRAGS");
+            if ((*sit)->size() > (*sit)->PolarFrags().size()) {
+                //cout << "\rMST DBG ...   o BGP ID = " << (*sit)->getId() 
+                //     << "   " << flush;
+                (*sit)->Coarsegrain(_coarse_cg_anisotropic);
+                ++count_bgp;
+            }
+        }
+
+        for (vector<PolarSeg*>::iterator sit = _fg_N.begin();
+            sit != _fg_N.end(); ++sit) {
+            // By checking whether there are more polar sites than polar
+            // fragments in the segment, one avoids coarse-graining twice
+            assert((*sit)->size() >= (*sit)->PolarFrags().size()
+               && "<::CoarseGrainDensities> FGN: FEWER POLAR SITES THAN FRAGS");
+            if ((*sit)->size() > (*sit)->PolarFrags().size()) {
+                //cout << "\rMST DBG ...   o FGN ID = " << (*sit)->getId() 
+                //     << "   " << flush;
+                (*sit)->Coarsegrain(_coarse_cg_anisotropic);
+                ++count_fgn;
+            }
+        }
+        
+        LOG(logDEBUG,*_log) << "  o Coarse-grained "
+             << count_bgp << "/" << _bg_P.size() << " (BGP) "
+             << count_fgn << "/" << _fg_N.size() << " (FGN) "
+             << "with " << count_bgp_id_in_fg << " FG-table counts" << flush;
+    }
+    // COARSE-GRAIN FOREGROUND
+    if (cg_fg) {
+        LOG(logDEBUG,*_log) << "Coarse-grain foreground" << flush;
+        
+        int count_fgc = 0;
+        
+        for (vector<PolarSeg*>::iterator sit = _fg_C.begin();
+            sit != _fg_C.end(); ++sit) {
+            assert((*sit)->size() >= (*sit)->PolarFrags().size()
+               && "<::CoarseGrainDensities> FGC: FEWER POLAR SITES THAN FRAGS");            
+            // Only coarse-grain the site if the minimum distance of approach
+            // to any of the sites in QM0 is larger than cg_radius
+            // Negative radius: Coarse-grain all sites in FGC
+            double min_R = std::abs(2*cg_radius);
+            for (vector<PolarSeg*>::iterator qit = _polar_qm0.begin();
+                qit != _polar_qm0.end(); ++qit) {
+                double R = votca::tools::abs((*sit)->getPos()-(*qit)->getPos());
+                if (R < min_R) min_R = R;
+            }
+            assert(min_R <= _polar_cutoff
+                && "<::CoarseGrainDensities> FGC: INCONSISTENT WITH EXPANSION");
+            // Different from above, here there should be no danger of 
+            // coarse-graining twice
+            if (min_R > cg_radius) {
+                //cout << "\rMST DBG ...   o FGC ID = " << (*sit)->getId() 
+                //     << "   " << flush;
+                (*sit)->Coarsegrain(_coarse_cg_anisotropic);
+                ++count_fgc;
+            }
+        }
+        
+        LOG(logDEBUG,*_log) << "  o Coarse-grained "
+             << count_fgc << "/" << _fg_C.size() << " (FGC) " << flush;
+    }    
+    return;
+}
+
+
 void Ewald3DnD::SetupMidground(double R_co) {
     // SET-UP MIDGROUND
     // NOTE No periodic-boundary correction here: We require that all
@@ -408,9 +548,9 @@ void Ewald3DnD::SetupMidground(double R_co) {
                         is_within_range = true;
                     }
                 }
-                // Add if appropriate
+                // Add if appropriate, depolarize = false
                 if (is_within_range) {
-                    PolarSeg *newSeg = new PolarSeg(pseg);
+                    PolarSeg *newSeg = new PolarSeg(pseg, false);
                     newSeg->Translate(L);
                     _mg_N.push_back(newSeg);
                 }
@@ -479,13 +619,6 @@ void Ewald3DnD::WriteDensitiesPDB(string pdbfile) {
 void Ewald3DnD::Evaluate() {
     
     LOG(logDEBUG,*_log) << flush;
-    LOG(logDEBUG,*_log) << "Tasks to perform (" << IdentifyMethod() << ")" << flush;
-    LOG(logDEBUG,*_log) << "  o Polarize background:       " << ((_task_polarize_bg) ? "yes" : "no") << flush;
-    LOG(logDEBUG,*_log) << "  o Calculate fg fields:       " << ((_task_calculate_fields) ? "yes" : "no") << flush;
-    LOG(logDEBUG,*_log) << "  o Polarize foreground:       " << ((_task_polarize_fg) ? "yes" : "no") << flush;
-    LOG(logDEBUG,*_log) << "  o Evaluate energy:           " << ((_task_evaluate_energy) ? "yes" : "no") << flush;
-    
-    LOG(logDEBUG,*_log) << flush;
     LOG(logDEBUG,*_log) << "System & Ewald parameters (" << IdentifyMethod() << ")" << flush;
     LOG(logDEBUG,*_log) << "  o Real-space unit cell:      " << _a << " x " << _b << " x " << _c << flush;
     LOG(logDEBUG,*_log) << "  o Real-space c/o (guess):    " << _R_co << " nm" << flush;
@@ -497,9 +630,11 @@ void Ewald3DnD::Evaluate() {
     LOG(logDEBUG,*_log) << "  o LxLy (for 3D2D EW):        " << _LxLy << " nm**2" << flush;
     LOG(logDEBUG,*_log) << "  o kx(max), ky(max), kz(max): " << _NA_max << ", " << _NB_max << ", " << _NC_max << flush;
     
-    
-    
-    
+    LOG(logDEBUG,*_log) << "Tasks to perform (" << IdentifyMethod() << ")" << flush;
+    LOG(logDEBUG,*_log) << "  o Calculate fg fields:       " << ((_task_calculate_fields) ? "yes" : "no") << flush;
+    LOG(logDEBUG,*_log) << "  o Polarize foreground:       " << ((_task_polarize_fg) ? "yes" : "no") << flush;
+    LOG(logDEBUG,*_log) << "  o Evaluate energy:           " << ((_task_evaluate_energy) ? "yes" : "no") << flush;
+        
     // TEASER OUTPUT PERMANENT FIELDS
     LOG(logDEBUG,*_log) << flush << "Background fields (BGP):" << flush;
     int fieldCount = 0;
@@ -510,20 +645,21 @@ void Ewald3DnD::Evaluate() {
         for (PolarSeg::iterator pit1 = pseg->begin(); pit1 < pseg->end(); ++pit1) {
             vec fp = (*pit1)->getFieldP();
             vec fu = (*pit1)->getFieldU();
+            vec u1 = (*pit1)->getU1();
             LOG(logDEBUG,*_log)
-               << (format("FP = (%1$+1.7e %2$+1.7e %3$+1.7e) V/m    ") 
-                    % (fp.getX()*EWD::int2V_m)
-                    % (fp.getY()*EWD::int2V_m) 
-                    % (fp.getZ()*EWD::int2V_m)).str();
+               << (format("FPU = (%1$+1.7e %2$+1.7e %3$+1.7e) V/m    ") 
+                    % (fp.getX()*EWD::int2V_m+fu.getX()*EWD::int2V_m)
+                    % (fp.getY()*EWD::int2V_m+fu.getY()*EWD::int2V_m) 
+                    % (fp.getZ()*EWD::int2V_m+fu.getZ()*EWD::int2V_m)).str();
             LOG(logDEBUG,*_log)
-               << (format("FU = (%1$+1.7e %2$+1.7e %3$+1.7e) V/m") 
-                    % (fu.getX()*EWD::int2V_m)
-                    % (fu.getY()*EWD::int2V_m) 
-                    % (fu.getZ()*EWD::int2V_m)).str() << flush;
+               << (format("U1* = (%1$+1.7e %2$+1.7e %3$+1.7e) e*nm") 
+                    % (u1.getX())
+                    % (u1.getY()) 
+                    % (u1.getY())).str() << flush;
             fieldCount += 1;
             if (fieldCount > 10) {
                 LOG(logDEBUG,*_log)
-                    << "FP = ... ... ..." << flush;
+                    << "FPU = ... ... ..." << flush;
                 break;
             }
         }
@@ -538,12 +674,11 @@ void Ewald3DnD::Evaluate() {
     if (_task_polarize_fg) EvaluateInduction();
     boost::timer::cpu_times t2 = cpu_t.elapsed();
     if (_task_evaluate_energy) EvaluateEnergy();
-    boost::timer::cpu_times t3 = cpu_t.elapsed();
+    boost::timer::cpu_times t3 = cpu_t.elapsed();    
     
-    LOG(logDEBUG,*_log) << flush << (format("Timing (T = %1$1.2f min)") % ((t3.wall-t0.wall)/1e9/60.)) << flush;
-    LOG(logDEBUG,*_log) << (format("  o Usage <Fields>     = %1$2.1f%%") % (100.*(t1.wall-t0.wall)/(t3.wall-t0.wall))) << flush;
-    LOG(logDEBUG,*_log) << (format("  o Usage <Induction>  = %1$2.1f%%") % (100.*(t2.wall-t1.wall)/(t3.wall-t0.wall))) << flush;
-    LOG(logDEBUG,*_log) << (format("  o Usage <Energy>     = %1$2.1f%%") % (100.*(t3.wall-t2.wall)/(t3.wall-t0.wall))) << flush;
+    _t_fields    = (t1.wall-t0.wall)/1e9/60.;
+    _t_induction = (t2.wall-t1.wall)/1e9/60.;
+    _t_energy    = (t3.wall-t2.wall)/1e9/60.;
     
     // TEASER OUTPUT PERMANENT FIELDS
     LOG(logDEBUG,*_log) << flush << "Background fields (BGP):" << flush;
@@ -555,20 +690,21 @@ void Ewald3DnD::Evaluate() {
         for (PolarSeg::iterator pit1 = pseg->begin(); pit1 < pseg->end(); ++pit1) {
             vec fp = (*pit1)->getFieldP();
             vec fu = (*pit1)->getFieldU();
+            vec u1 = (*pit1)->getU1();
             LOG(logDEBUG,*_log)
-               << (format("FP = (%1$+1.7e %2$+1.7e %3$+1.7e) V/m    ") 
-                    % (fp.getX()*EWD::int2V_m)
-                    % (fp.getY()*EWD::int2V_m) 
-                    % (fp.getZ()*EWD::int2V_m)).str();
+               << (format("FPU = (%1$+1.7e %2$+1.7e %3$+1.7e) V/m    ") 
+                    % (fp.getX()*EWD::int2V_m+fu.getX()*EWD::int2V_m)
+                    % (fp.getY()*EWD::int2V_m+fu.getY()*EWD::int2V_m) 
+                    % (fp.getZ()*EWD::int2V_m+fu.getZ()*EWD::int2V_m)).str();
             LOG(logDEBUG,*_log)
-               << (format("FU = (%1$+1.7e %2$+1.7e %3$+1.7e) V/m") 
-                    % (fu.getX()*EWD::int2V_m)
-                    % (fu.getY()*EWD::int2V_m) 
-                    % (fu.getZ()*EWD::int2V_m)).str() << flush;
+               << (format("U1* = (%1$+1.7e %2$+1.7e %3$+1.7e) e*nm") 
+                    % (u1.getX())
+                    % (u1.getY()) 
+                    % (u1.getY())).str() << flush;
             fieldCount += 1;
             if (fieldCount > 10) {
                 LOG(logDEBUG,*_log)
-                    << "FP = ... ... ..." << flush;
+                    << "FPU = ... ... ..." << flush;
                 break;
             }
         }
@@ -636,7 +772,17 @@ void Ewald3DnD::Evaluate() {
         << flush << (format("  + E  [stat+ind]  = %1$+1.7e = %2$+1.7e  %3$+1.7e eV")
             % _Eppuu % _Estat % _Eindu).str()
         << flush;
-
+    
+    
+    _t_total = _t_coarsegrain+_t_fields+_t_induction+_t_energy;
+    
+    LOG(logDEBUG,*_log) << flush << (format("Timing (T = %1$1.2f min)") % (_t_total)) << flush;
+    LOG(logDEBUG,*_log) << (format("  o Usage <Coarsegrain> = %1$2.2f%%") % (100*_t_coarsegrain/_t_total)) << flush;
+    LOG(logDEBUG,*_log) << (format("  o Usage <Fields>      = %1$2.2f%%") % (100*_t_fields/_t_total)) << flush;
+    LOG(logDEBUG,*_log) << (format("  o Usage <Induction>   = %1$2.2f%%") % (100*_t_induction/_t_total)) << flush;
+    LOG(logDEBUG,*_log) << (format("  o Usage <Energy>      = %1$2.2f%%") % (100*_t_energy/_t_total)) << flush;
+    
+    
     LOG(logDEBUG,*_log) << flush;
     return;
 }
@@ -708,8 +854,6 @@ void Ewald3DnD::EvaluateInduction() {
     LOG(logDEBUG,*_log) << (format("  o Induce within QM0:         yes")).str() << flush;
     LOG(logDEBUG,*_log) << (format("  o Subthreads:                single")).str() << flush;
     
-    // return; // OVERRIDE
-    
     // Forge XJob object to comply with XInductor interface
     bool polar_has_permanent_fields = true;
     XJob polar_xjob = XJob(_ptop, polar_has_permanent_fields);
@@ -733,6 +877,9 @@ void Ewald3DnD::EvaluateInduction() {
                                      _top);
     polar_xind.setLog(_log);
     polar_xind.Evaluate(&polar_xjob);
+    
+    // SAVE CONVERGENCE
+    _polar_converged = polar_xind.hasConverged();
     
     // SAVE RESULTS
     _polar_ETT = polar_xjob.getETOT();
@@ -872,9 +1019,11 @@ EWD::triple<> Ewald3DnD::CalculateHigherRankCorrection() {
 
 string Ewald3DnD::GenerateErrorString() {
     string rstr;
-    rstr += (format("Converged R-sum = %1$s, converged K-sum = %2$s")
+    rstr += (format("Converged R-sum = %1$s, converged K-sum = %2$s, ")
         % ((_converged_R) ? "true" : "false")
         % ((_converged_K) ? "true" : "false")).str();
+    rstr += (format("converged induction = %1$s")
+        % ((_polar_converged) ? "true" : "false")).str();
     return rstr;
 }
 
@@ -930,6 +1079,14 @@ Property Ewald3DnD::GenerateOutputString() {
     next->add("QM0", (format("%1$d") % _polar_qm0.size()).str());
     next->add("MM1", (format("%1$d") % _polar_mm1.size()).str());
     next->add("MM2", (format("%1$d") % _polar_mm2.size()).str());
+    
+    next = &out.add("timing", "");
+    next->add("t_total", (format("%1$1.2f") % _t_total).str())
+        .setAttribute("unit","min");
+    next->add("t_wload", (format("%1$1.2f %2$1.2f %3$1.2f %4$1.2f")
+        % (_t_coarsegrain) % (_t_fields)
+        % (_t_induction)   % (_t_energy)).str())
+        .setAttribute("unit","min");
         
     return prop;
 }

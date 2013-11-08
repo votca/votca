@@ -609,7 +609,7 @@ PolarSeg *XMpsMap::MapPolSitesToSeg(const vector<APolarSite*> &pols_n,
     bool map2md = _map2md[seg->getName()];
     
     PolarSeg *return_pols = new PolarSeg(seg->getId());
-    return_pols->reserve(pols_n.size());    
+    return_pols->reserve(pols_n.size());
 
     vector<Fragment*> ::iterator fit;
     for (fit = seg->Fragments().begin();
@@ -625,7 +625,7 @@ PolarSeg *XMpsMap::MapPolSitesToSeg(const vector<APolarSite*> &pols_n,
         vector<double> weightsInFrag= _alloc_frag_weights.at(idkey);
 
         // Add polar fragment to polar segment
-        PolarFrag *pfrag = return_pols->AddFragment();
+        PolarFrag *pfrag = return_pols->AddFragment(frag->getName().substr(0,2));
         
         if (map2md && polesInFrag.size() != frag->Atoms().size()) {
             cout << endl
@@ -817,7 +817,7 @@ PolarSeg *XMpsMap::MapPolSitesToSeg(const vector<APolarSite*> &pols_n,
             string name = namesInFrag[i];
             int poleId = polesInFrag[i];
             APolarSite *templ = pols_n[poleId-1];
-            APolarSite *newSite = new APolarSite(-1, name);
+            APolarSite *newSite = new APolarSite(return_pols->size()+1, name);
             newSite->ImportFrom(templ);
             // Shift + rotate
             if (!map2md) {

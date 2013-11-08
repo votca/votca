@@ -13,9 +13,7 @@ Ewald3D3D::~Ewald3D3D() { ; }
     
     
 Ewald3D3D::Ewald3D3D(Topology *top, PolarTop *ptop, Property *opt, Logger *log) 
-  : Ewald3DnD(top, ptop, opt, log) {
-    _shape = opt->get("options.ewald.coulombmethod.shape").as<string>();
-}
+  : Ewald3DnD(top, ptop, opt, log) {}
 
 
 EWD::triple<> Ewald3D3D::ConvergeReciprocalSpaceSum() {

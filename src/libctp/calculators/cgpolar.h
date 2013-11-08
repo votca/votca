@@ -27,6 +27,9 @@ private:
     string                         _xml_file;
     XMpsMap                        _mps_mapper;
     bool                           _pdb_check;
+    string                         _load_ptop_archfile;
+    
+    bool                           _cg_anisotropic;
 
 };
 
@@ -58,6 +61,16 @@ void CgPolar::Initialize(Property *opt) {
             _pdb_check = opt->get(key+".pdb_check").as<bool>();
         }
         else { _pdb_check = false; }
+        if (opt->exists(key+".load_ptop_from")) {
+            _load_ptop_archfile = opt->get(key+".load_ptop_from").as<string>();
+        }
+        else { _load_ptop_archfile = ""; }
+    
+    key = "options.cgpolar.coarsegrain";
+        if (opt->exists(key+".cg_anisotropic")) {
+            _cg_anisotropic = opt->get(key+".cg_anisotropic").as<bool>();
+        }
+        else { _cg_anisotropic = false; }
 
     return;
 }
@@ -67,30 +80,61 @@ void CgPolar::Initialize(Property *opt) {
 
 bool CgPolar::EvaluateFrame(Topology *top) {    
     
-    // GENERATE BACKGROUND (= periodic bg, with empty foreground)
-    cout << endl << "... ... Initialize MPS-mapper: " << flush;
-    PolarTop ptop(top);
-    _mps_mapper.GenerateMap(_xml_file, _mps_table, top);
-    _mps_mapper.Gen_BGN(top, &ptop, NULL);
-    if (_pdb_check) ptop.PrintPDB("cgpolar.fine.pdb");
-    
-    // COARSE-GRAIN
-    vector<PolarSeg*> bgn = ptop.BGN();
-    int offset = 0; // = 288;
-    cout << endl;
-    for (vector<PolarSeg*>::iterator sit=bgn.begin()+offset;
-        sit<bgn.end(); ++sit) {
-        MolPolEngine engine = MolPolEngine();
-        //engine.CalculateMolPol(*(*sit), true);
-        (*sit)->WriteMPS("seg_1_fine.mps", "FINE");
-        cout << "\r Coarse-grain ID = " << (*sit)->getId() << flush;
-        (*sit)->Coarsegrain();
-        (*sit)->WriteMPS("seg_1_coarse.mps", "COARSE");
-        engine.CalculateMolPol(*(*sit), true);
-        break;
+    // GENERATE POLAR TOPOLOGY
+    PolarTop ptop(top);    
+    if (_load_ptop_archfile == "") {
+        cout << endl << "... ... Create polar topology from map" << flush;
+        cout << endl << "... ... ... Initialize MPS-mapper: " << flush;
+        _mps_mapper.GenerateMap(_xml_file, _mps_table, top);
+        _mps_mapper.Gen_BGN(top, &ptop, NULL);        
     }
-    if (_pdb_check) ptop.PrintPDB("cgpolar.coarse.pdb");
+    else {
+        cout << endl << "... ... Load polar topology from hard drive: '"
+            << _load_ptop_archfile << "'" << flush;
+        ptop.LoadFromDrive(_load_ptop_archfile);
+    }
+    vector<PolarSeg*> bgn = ptop.BGN();
     
+    // VERIFY INPUT: PDB, PTOP, XML
+    if (_pdb_check) ptop.PrintPDB("cgpolar.fine.pdb");
+    ptop.SaveToDrive("cgpolar.fine.ptop");    
+    ofstream ofs;    
+    ofs.open("cgpolar.fine.xml", ofstream::out);
+    for (vector<PolarSeg*>::iterator sit = bgn.begin();
+        sit < bgn.end(); ++sit) {
+        for (PolarSeg::iterator pit = (*sit)->begin();
+            pit < (*sit)->end(); ++pit) {
+            (*pit)->WriteXmlLine(ofs);
+        }
+    }
+    ofs.close();    
+    
+    // COARSE-GRAIN    
+    cout << endl;
+    for (vector<PolarSeg*>::iterator sit=bgn.begin();
+        sit<bgn.end(); ++sit) {
+        //MolPolEngine engine = MolPolEngine();
+        //engine.CalculateMolPol(*(*sit), true);
+        //(*sit)->WriteMPS("cgpolar.fine.mps", "FINE");
+        cout << "\rCoarse-grain ID = " << (*sit)->getId() << flush;
+        (*sit)->Coarsegrain(_cg_anisotropic);
+        //(*sit)->WriteMPS("cgpolar.coarse.mps", "COARSE");
+        //engine.CalculateMolPol(*(*sit), true);
+        //break;
+    }
+    
+    // VERIFY OUTPUT: PDB, PTOP, XML
+    if (_pdb_check) ptop.PrintPDB("cgpolar.coarse.pdb");
+    ptop.SaveToDrive("cgpolar.coarse.ptop");
+    ofs.open("cgpolar.coarse.xml", ofstream::out);
+    for (vector<PolarSeg*>::iterator sit = bgn.begin();
+        sit < bgn.end(); ++sit) {
+        for (PolarSeg::iterator pit = (*sit)->begin();
+            pit < (*sit)->end(); ++pit) {
+            (*pit)->WriteXmlLine(ofs);
+        }
+    }
+    ofs.close();
     
     return true;
 }

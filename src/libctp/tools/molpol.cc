@@ -104,7 +104,7 @@ bool MolPolTool::Evaluate() {
         int max_iter = 1024;
         while (true) {
             
-            PolarSeg pseg_inter = PolarSeg(&pseg_input);
+            PolarSeg pseg_inter = PolarSeg(&pseg_input, true);
             
             if (tools::globals::verbose)
                 cout << endl << "Relative scale s = " << scale << flush;
@@ -154,7 +154,7 @@ bool MolPolTool::Evaluate() {
             if (std::abs(1-pvol_target/pvol_inter) < _tolerance) {
                 cout << endl << "... ... Iterative refinement : *CONVERGED*" << flush;
                 converged = true;
-                pseg_output = new PolarSeg(&pseg_inter);
+                pseg_output = new PolarSeg(&pseg_inter, true);
                 break;
             }
             if (loop_count > max_iter) {

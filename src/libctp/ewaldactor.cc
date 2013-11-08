@@ -384,7 +384,7 @@ EWD::cmplx EwdInteractor::FP12_AS1S2_At_By(const vec &k,
 
 EWD::cmplx EwdInteractor::FU12_AS1S2_At_By(const vec &k,
     vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV) {
-    // ATTENTION Increment INDUCDED fields of s1
+    // ATTENTION Increment INDUCED fields of s1
     // ATTENTION Structure factors include INDUCED moments of s2    
     
     ApplyBiasK(k);    

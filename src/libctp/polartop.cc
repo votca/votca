@@ -2,17 +2,19 @@
 #include <fstream>
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
 
 namespace votca { namespace ctp {
 
 
-PolarTop::PolarTop() : _top(NULL) {
+PolarTop::PolarTop() : _top(NULL), _center(vec(0,0,0)) {
     _clean_qm0 = _clean_mm1 = _clean_mm2 = true;
     _clean_bgN = _clean_fgN = _clean_fgC = true;
 };
 
 
-PolarTop::PolarTop(Topology *top) : _top(top) {
+PolarTop::PolarTop(Topology *top) : _top(top), _center(vec(0,0,0)) {
     _clean_qm0 = _clean_mm1 = _clean_mm2 = true;
     _clean_bgN = _clean_fgN = _clean_fgC = true;
 };

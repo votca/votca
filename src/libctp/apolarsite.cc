@@ -7,9 +7,9 @@
 namespace votca { namespace ctp {
 
 
-APolarSite::APolarSite(APolarSite *templ) 
+APolarSite::APolarSite(APolarSite *templ, bool do_depolarize) 
     : _id(templ->_id), _name(templ->_name), _isVirtual(templ->_isVirtual),        
-      _pos(templ->_pos),
+      _resolution(templ->_resolution), _pos(templ->_pos),
         
       _locX(templ->_locX), _locY(templ->_locY), _locZ(templ->_locZ),
         
@@ -24,15 +24,20 @@ APolarSite::APolarSite(APolarSite *templ)
       Q00(templ->Q00), Q1x(templ->Q1x), Q1y(templ->Q1y), Q1z(templ->Q1z),
       Q20(templ->Q20), Q21c(templ->Q21c), Q21s(templ->Q21s), Q22c(templ->Q22c),
       Q22s(templ->Q22s), Qxx(templ->Qxx), Qxy(templ->Qxy), Qxz(templ->Qxz),
-      Qyy(templ->Qyy), Qyz(templ->Qyz), Qzz(templ->Qzz) {
-        
-    this->Depolarize();
+      Qyy(templ->Qyy), Qyz(templ->Qyz), Qzz(templ->Qzz),
+
+      U1x(templ->U1x), U1y(templ->U1y), U1z(templ->U1z),
+      FPx(templ->FPx), FPy(templ->FPy), FPz(templ->FPz),
+      FUx(templ->FUx), FUy(templ->FUy), FUz(templ->FUz) {
+    
+    if (do_depolarize) this->Depolarize();
 }
     
     
 void APolarSite::ImportFrom(APolarSite *templ, string tag) {
 
     _pos = templ->getPos();
+    _resolution = templ->getResolution();
 
     if (tag == "basic") {
         _Qs[0] = templ->getQs(-1);
@@ -603,6 +608,60 @@ void APolarSite::WriteMpsLine(std::ostream &out, string unit = "angstrom") {
         % (Pxx*conv_pol) % (Pxy*conv_pol) % (Pxz*conv_pol) 
         % (Pyy*conv_pol) % (Pyz*conv_pol) % (Pzz*conv_pol));
     
+}
+
+
+void APolarSite::WriteXmlLine(std::ostream &out) {
+    out << "<aps>" << endl;
+    out << _id << endl;
+    out << _name << endl;
+    out << ((_isVirtual) ? "virtual" : "notvirtual") << endl;
+    out << "resolution" << (int)_resolution << endl;
+    out << _pos << endl;
+    out <<  _locX << " "; out <<  _locY << " "; out <<  _locZ << " "; out << endl;
+    for (int state = -1; state < 2; ++state) {
+        out << "<state>" << endl;
+        out << state << endl;
+        for (int i = 0; i < _Qs[state+1].size(); ++i) {
+            out << _Qs[state+1][i] << " ";
+        }
+        out << endl;
+        out << "</state>" << endl;
+    }
+    out <<  _rank; out << endl;
+
+    out << "<pol>" << endl;
+    for (int state = -1; state < 2; ++state) {
+        out << "<state>" << endl;
+        out << _Ps[state+1].get(0,0) << " " << _Ps[state+1].get(0,1) << " " << _Ps[state+1].get(0,2) << endl;
+        out << _Ps[state+1].get(1,0) << " " << _Ps[state+1].get(1,1) << " " << _Ps[state+1].get(1,2) << endl;
+        out << _Ps[state+1].get(2,0) << " " << _Ps[state+1].get(2,1) << " " << _Ps[state+1].get(2,2) << endl;
+        out << "</state>" << endl;
+    }
+    out << "</pol>" << endl;
+    
+    out << "<config>" << endl;
+    out <<  Pxx << " "; out <<  Pxy << " "; out <<  Pxz << " "; out << endl;
+    out <<  Pyy << " "; out <<  Pyz << " "; out << endl;
+    out <<  Pzz << " "; out << endl;
+
+    out <<  pax << " "; out <<  eigenpxx; out << endl;
+    out <<  pay << " "; out <<  eigenpyy; out << endl;
+    out <<  paz << " "; out <<  eigenpzz; out << endl;
+
+    out <<  eigendamp; out << endl;
+
+    out <<  Q00 << " "; out << endl;
+    out <<  Q1x << " "; out <<  Q1y << " ";  out <<  Q1z << " "; out << endl;
+    out <<  Q20 << " "; out <<  Q21c << " "; out <<  Q21s << " "; out <<  Q22c << " "; out <<  Q22s << " "; out << endl;
+    out <<  Qxx << " "; out <<  Qxy << " ";  out <<  Qxz << " ";  out <<  Qyy << " ";  out <<  Qyz << " "; out <<  Qzz << " "; out << endl;
+
+    out <<  U1x << " "; out <<  U1y << " "; out <<  U1z << " "; out << endl;
+    out <<  FPx << " "; out <<  FPy << " "; out <<  FPz << " "; out << endl;
+    out <<  FUx << " "; out <<  FUy << " "; out <<  FUz << " "; out << endl;
+    out << "</config>" << endl;
+    out << "</aps>" << endl;
+    return;
 }
 
 

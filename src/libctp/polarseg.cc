@@ -10,7 +10,7 @@ namespace votca { namespace ctp {
     
 PolarSeg::PolarSeg(int id, vector<APolarSite*> &psites) 
     : _id(id), _is_charged(true), _is_polarizable(true) {
-    PolarFrag *pfrag = this->AddFragment();
+    PolarFrag *pfrag = this->AddFragment("NN");
     for (int i = 0; i < psites.size(); ++i) {
         push_back(psites[i]);
         pfrag->push_back(psites[i]);
@@ -19,14 +19,14 @@ PolarSeg::PolarSeg(int id, vector<APolarSite*> &psites)
 }
 
 
-PolarSeg::PolarSeg(PolarSeg *templ) {
+PolarSeg::PolarSeg(PolarSeg *templ, bool do_depolarize) {
     // NOTE Polar neighbours _nbs are not copied !
     for (int i = 0; i < templ->_pfrags.size(); ++i) {
         PolarFrag *ref_frag = templ->_pfrags[i];
-        PolarFrag *new_frag = this->AddFragment();
+        PolarFrag *new_frag = this->AddFragment(ref_frag->getName());
         for (PolarFrag::iterator pit = ref_frag->begin();
             pit != ref_frag->end(); ++pit) {
-            APolarSite *new_site = new APolarSite(*pit);
+            APolarSite *new_site = new APolarSite(*pit, do_depolarize);
             new_frag->push_back(new_site);
             this->push_back(new_site);
         }
@@ -52,6 +52,12 @@ PolarSeg::~PolarSeg() {
    for (nit = _nbs.begin(); nit < _nbs.end(); ++nit) 
        delete *nit;
    _nbs.clear();
+}
+
+
+PolarFrag *PolarSeg::AddFragment(string name) { 
+    _pfrags.push_back(new PolarFrag(this, (int)_pfrags.size()+1, name)); 
+    return _pfrags.back();
 }
 
 
@@ -168,7 +174,7 @@ void PolarSeg::WriteMPS(string mpsfile, string tag) {
 }
 
 
-void PolarSeg::Coarsegrain() {
+void PolarSeg::Coarsegrain(bool cg_anisotropic) {
     // Reduce each polar fragment to a single polar site
     vector<APolarSite*> cg_sites;
     for (vector<PolarFrag*>::iterator fit = _pfrags.begin();
@@ -227,10 +233,22 @@ void PolarSeg::Coarsegrain() {
             && "<PolarSeg::CoarseGrain> INDUCED MOMENTS TRAFO - ERROR");
         // Collapse polarizabilities
         MolPolEngine engine = MolPolEngine();
-        votca::tools::matrix PCG = engine.CalculateMolPol(*(*fit), tools::globals::verbose);
+        votca::tools::matrix PCG = engine.CalculateMolPol(*(*fit), tools::globals::verbose && false);
+        if (cg_anisotropic == false) {
+            // Reduce to isotropic tensor
+            votca::tools::matrix::eigensystem_t pcg_eigen;
+            PCG.SolveEigensystem(pcg_eigen);
+            double p11 = pcg_eigen.eigenvalues[0];
+            double p22 = pcg_eigen.eigenvalues[1];
+            double p33 = pcg_eigen.eigenvalues[2];
+            double piso = pow(p11*p22*p33, 1./3.);
+            PCG = votca::tools::matrix(
+                vec(piso,0,0), vec(0,piso,0), vec(0,0,piso));
+        }
         
         // Generate new coarse-grained site from the above
-        APolarSite *cg_site = new APolarSite((*fit)->getId(), "CG");
+        APolarSite *cg_site = new APolarSite((*fit)->getId(), (*fit)->getName());
+        cg_site->setResolution(APolarSite::coarsegrained);
         cg_site->setPos(target_pos);
         cg_site->setRank(L);
         cg_site->setQs(QCG, state);
