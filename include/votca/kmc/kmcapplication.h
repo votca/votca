@@ -19,7 +19,6 @@
 #define	__VOTCA_KMC_APPLICATION_H
 
 #include <votca/tools/application.h>
-
 #include <votca/kmc/version.h>
 #include "kmccalculator.h"
 #include <votca/kmc/graph.h>
@@ -52,9 +51,6 @@ public:
     virtual void EndEvaluate();
    
 protected:
-    static const bool _short = true;
-    static const bool _long = false;
-
     /// List of calculators
     list<KMCCalculator *> _calculators;
     /// program options from the xml file

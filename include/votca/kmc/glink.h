@@ -15,12 +15,12 @@
  *
  */
 
-#ifndef _VOTCA_KMC_LINK_H
-#define	_VOTCA_KMC_LINK_H
+#ifndef _VOTCA_KMC_GLINK_H
+#define	_VOTCA_KMC_GLINK_H
 
 namespace votca { namespace kmc {
 
-struct Link
+struct GLink
 {
     int destination;
     double rate;
@@ -34,4 +34,4 @@ struct Link
 
 }} 
 
-#endif // _VOTCA_KMC_LINK_H
+#endif // _VOTCA_KMC_GLINK_H

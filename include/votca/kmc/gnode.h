@@ -19,7 +19,7 @@
 #define	_VOTCA_KMC_GNODE_H
 
 #include <votca/tools/vec.h>
-#include <votca/kmc/link.h>
+#include <votca/kmc/glink.h>
 
 using namespace std;
 using namespace votca::kmc;
@@ -40,7 +40,7 @@ class GNode
         double escaperate;
         double occupationtime;
         myvec position;
-        vector<Link> event;
+        vector<GLink> event;
         // stuff for Coulomb interaction:
         double siteenergy;
         double reorg_intorig; // UnCnN
@@ -54,7 +54,7 @@ class GNode
 
 void GNode::AddEvent(int seg2, double rate12, myvec dr, double Jeff2, double reorg_out)
 {
-    Link newEvent;
+    GLink newEvent;
     newEvent.destination = seg2;
     newEvent.rate = rate12;
     newEvent.initialrate = rate12;
