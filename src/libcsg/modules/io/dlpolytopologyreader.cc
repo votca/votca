@@ -17,14 +17,22 @@
 
 #include <iostream>
 #include <fstream>
+#include <boost/algorithm/string.hpp>
+
+#ifndef HAVE_NO_CONFIG
+#include <votca_config.h>
+#endif
 
 #include "dlpolytopologyreader.h"
+#ifdef DLPOLY
 #include "dlpoly/dlp_io_layer.h"
+#endif
 
 namespace votca { namespace csg {
 
 bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 {
+#ifdef DLPOLY
     struct FieldSpecsT  FieldBase;
     struct FrameSpecsT  FrameBase;
     struct MolecSpecsT *MolecBase;
@@ -76,8 +84,86 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 
     delete [] MolecBase;
     delete [] FieldSite;
+#else
+    // TODO: fix residue naming / assignment
+    Residue *res = top.CreateResidue("no");
 
     std::ifstream fl;
+    fl.open("FIELD");
+    if (!fl.is_open()){
+      throw std::runtime_error("could open dlpoly file FIELD");
+    } else {
+      string line;
+      getline(fl, line); //title
+      getline(fl, line); //unit line
+      fl >> line;
+      if (line != "MOLECULES")
+          throw std::runtime_error("unexpected line in dlpoly file FIELD, expected 'MOLECULES' got" + line);
+      int nmol_types;
+      fl >> nmol_types;
+      getline(fl, line); //rest of MOLECULES line
+      int id=0;
+      for (int nmol_type=0;nmol_type<nmol_types; nmol_type++){
+	string mol_name;
+        getline(fl, mol_name); //molecule name might incl. spaces
+	boost::erase_all(mol_name, " "); 
+        Molecule *mi = top.CreateMolecule(mol_name);
+        fl >> line;
+        if (line != "NUMMOLS")
+          throw std::runtime_error("unexpected line in dlpoly file FIELD, expected 'NUMMOLS' got" + line);
+	int nreplica;
+	fl >> nreplica;
+	fl >> line;
+        if (line != "ATOMS")
+          throw std::runtime_error("unexpected line in dlpoly file FIELD, expected 'ATOMS' got" + line);
+	int natoms;
+	fl >> natoms;
+	//read molecule
+	for (int i=0;i<natoms;){//i is altered in reapeater loop
+	  string beadtype;
+	  fl >> beadtype;
+	  BeadType *type = top.GetOrCreateBeadType(beadtype);
+	  double mass;
+	  fl >> mass;
+	  double charge;
+	  fl >> charge;
+          getline(fl,line); //rest of the atom line
+          Tokenizer tok(line, " ");
+          vector<int> fields;
+          tok.ConvertToVector<int>(fields);
+	  int repeater=1;
+	  if (fields.size() > 1)
+	    repeater=fields[0];
+	  for(int j=0;j<repeater;j++){
+	    string beadname = beadtype + boost::lexical_cast<string>(j+1);
+	    Bead *bead = top.CreateBead(1, beadname , type, res->getId(), mass, charge);
+            stringstream nm;
+            nm << bead->getResnr() + 1 << ":" <<  top.getResidue(bead->getResnr())->getName() << ":" << bead->getName();
+            mi->AddBead(bead, nm.str());
+	    i++;
+	  }
+	}
+	while (line != "FINISH"){
+	  fl >> line;
+	  if (fl.eof())
+            throw std::runtime_error("unexpected end of dlpoly file FIELD while scanning for 'FINISH'");
+	}
+	//replicate molecule
+	for (int replica=1;replica<nreplica;replica++){
+          Molecule *mi_replica = top.CreateMolecule(mol_name);
+	  for(int i=0;i<mi->BeadCount();i++){
+	    Bead *bead=mi->getBead(i);
+	    BeadType *type = top.GetOrCreateBeadType(bead->Type()->getName());
+	    string beadname=mi->getBeadName(i);
+	    Bead *bead_replica = top.CreateBead(1, bead->getName(), type, res->getId(), bead->getM(), bead->getQ());
+	    mi_replica->AddBead(bead_replica,beadname);
+	  }
+	}
+      }
+    }
+    //we don't need the rest.
+    fl.close();
+#endif
     fl.open("CONFIG");
     if(fl.is_open()) {
       string line;

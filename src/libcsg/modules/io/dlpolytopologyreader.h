@@ -47,5 +47,4 @@ private:
 
 }}
 
-#endif	/* _PDBTOPOLOGYREADER_H */
-
+#endif	/* _DLPTOPOLOGYREADER_H */

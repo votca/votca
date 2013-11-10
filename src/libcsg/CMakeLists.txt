@@ -9,7 +9,7 @@ file(GLOB NOT_GMX_SOURCES modules/io/gmx_print_version.cc modules/io/gmx_version
 list(REMOVE_ITEM GMX_SOURCES ${NOT_GMX_SOURCES})
 
 #only exclude topology reader, trajectory reader is pure C++
-file(GLOB DLPOLY_SOURCES modules/io/dlpolytopo*.cc modules/io/dlpoly/*.f)
+file(GLOB DLPOLY_SOURCES modules/io/dlpoly/*.f)
 
 file(GLOB IO_SOURCES modules/io/*.cc)
 file(GLOB NOT_IO_SOURCES modules/io/mdp*.cc)
