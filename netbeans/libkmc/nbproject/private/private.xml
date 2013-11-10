@@ -8,8 +8,12 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
+            <file>file:/home/andrienko/votca/src/kmc/include/votca/kmc/carrier.h</file>
+            <file>file:/home/andrienko/votca/src/kmc/include/votca/kmc/link.h</file>
             <file>file:/home/andrienko/votca/src/kmc/include/votca/kmc/kmcapplication.h</file>
-            <file>file:/home/andrienko/votca/src/kmc/src/libkmc/kmcapplication.cc</file>
+            <file>file:/home/andrienko/votca/src/kmc/include/votca/kmc/dnode.h</file>
+            <file>file:/home/andrienko/votca/src/kmc/src/libkmc/calculators/kmcsingle.h</file>
+            <file>file:/home/andrienko/votca/src/kmc/include/votca/kmc/gnode.h</file>
         </group>
     </open-files>
 </project-private>
