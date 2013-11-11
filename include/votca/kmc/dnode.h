@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef __VOTCA_KMC_NODE_H_
-#define	__VOTCA_KMC_NODE_H_
+#ifndef __VOTCA_KMC_DNODE_H_
+#define	__VOTCA_KMC_DNODE_H_
 
 #include <vector>
 #include <votca/tools/vec.h>
@@ -30,17 +30,17 @@ using namespace std;
 
 enum NodeType{Normal, LeftElectrode, RightElectrode};
 
-class Node {
+class DNode {
     
 public:
 
-    void setPair(Node* pairing_node) {pairing_nodes.push_back(pairing_node);}
-    void setStaticeventinfo(Node* pairnode, myvec dr, double rate12e, double rate12h, double Jeff2e, double Jeff2h, double reorg_oute, double reorg_outh);    
+    void setPair(DNode* pairing_node) {pairing_nodes.push_back(pairing_node);}
+    void setStaticeventinfo(DNode* pairnode, myvec dr, double rate12e, double rate12h, double Jeff2e, double Jeff2h, double reorg_oute, double reorg_outh);    
 
     void removePair(int pairing_node_index);
     
     struct Static_event_info {
-        Node* pairnode;
+        DNode* pairnode;
         myvec distance; //distance vector from start to destination node
         double rate12e;
         double rate12h;
@@ -53,7 +53,7 @@ public:
     int node_ID;
     NodeType node_type;
     myvec node_position;
-    vector<Node*> pairing_nodes;
+    vector<DNode*> pairing_nodes;
     vector<Static_event_info> static_event_info;
     vector<Carrier*> carriers_on_node;
     
@@ -85,7 +85,7 @@ public:
     
 };
 
-void Node::setStaticeventinfo(Node* pairnode, myvec dr, double rate12e, double rate12h, double Jeff2e, double Jeff2h, double reorg_oute, double reorg_outh) {
+inline void DNode::setStaticeventinfo(DNode* pairnode, myvec dr, double rate12e, double rate12h, double Jeff2e, double Jeff2h, double reorg_oute, double reorg_outh) {
     Static_event_info newStatic;
     newStatic.pairnode = pairnode;
     newStatic.distance = dr;
@@ -98,7 +98,7 @@ void Node::setStaticeventinfo(Node* pairnode, myvec dr, double rate12e, double r
     static_event_info.push_back(newStatic);
 }
 
-void Node::removePair(int pairing_node_index) {
+inline void DNode::removePair(int pairing_node_index) {
     pairing_nodes.erase(pairing_nodes.begin()+pairing_node_index);
     static_event_info.erase(static_event_info.begin()+pairing_node_index);
 }

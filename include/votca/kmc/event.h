@@ -43,27 +43,27 @@ public:
     Carrier* carrier;
     int tonode_ID;    
     
-    Node* electrode;
+    DNode* electrode;
     CarrierType inject_cartype;
     
-    void Set_injection_event(Node* electrode, int injectnode_ID, CarrierType carrier_type,
+    void Set_injection_event(DNode* electrode, int injectnode_ID, CarrierType carrier_type,
                                  double from_longrange, double to_longrange, Globaleventinfo* globevent);
-    void Set_non_injection_event(vector<Node*> nodes, Carrier* carrier, int jump_ID,
+    void Set_non_injection_event(vector<DNode*> nodes, Carrier* carrier, int jump_ID,
                                  double from_longrange, double to_longrange, Globaleventinfo* globevent);
     
 private:
     From_step_event Determine_non_injection_from_event_type(Carrier* carrier);
-    To_step_event Determine_non_injection_to_event_type(Carrier* carrier, int jumpID, Node* carriernode);
-    To_step_event Determine_injection_to_event_type(CarrierType carrier_type, Node* electrode, int inject_nodeID);
+    To_step_event Determine_non_injection_to_event_type(Carrier* carrier, int jumpID, DNode* carriernode);
+    To_step_event Determine_injection_to_event_type(CarrierType carrier_type, DNode* electrode, int inject_nodeID);
 
-    double Compute_event_rate(Node* fromnode, int jump_ID, CarrierType carrier_type,
+    double Compute_event_rate(DNode* fromnode, int jump_ID, CarrierType carrier_type,
                             From_step_event from_event_type, To_step_event to_event_type,
                             double from_shortrange, double to_shortrange, double from_longrange, double to_longrange,
                             Globaleventinfo* globaleventinfo);
     
 };
 
-void Event::Set_injection_event(Node* electrode, int injectnode_ID, CarrierType carrier_type,
+void Event::Set_injection_event(DNode* electrode, int injectnode_ID, CarrierType carrier_type,
                               double from_longrange, double to_longrange, Globaleventinfo* globevent) {
     
     fromtype = Injection;
@@ -73,7 +73,7 @@ void Event::Set_injection_event(Node* electrode, int injectnode_ID, CarrierType 
        
 }
 
-void Event::Set_non_injection_event(vector<Node*> nodes, Carrier* carrier, int jump_ID,
+void Event::Set_non_injection_event(vector<DNode*> nodes, Carrier* carrier, int jump_ID,
                                  double from_longrange, double to_longrange, Globaleventinfo* globaleventinfo) {
     
     fromtype = Determine_non_injection_from_event_type(carrier);
@@ -83,12 +83,12 @@ void Event::Set_non_injection_event(vector<Node*> nodes, Carrier* carrier, int j
                                      globaleventinfo);    
 }
 
-double Event::Compute_event_rate(Node* fromnode, int jump_ID, CarrierType carrier_type,
+double Event::Compute_event_rate(DNode* fromnode, int jump_ID, CarrierType carrier_type,
                                      From_step_event from_event_type, To_step_event to_event_type,
                                      double from_shortrange, double to_shortrange, double from_longrange, double to_longrange,
                                      Globaleventinfo* globevent){
 
-    Node* jumptonode = fromnode->pairing_nodes[jump_ID];
+    DNode* jumptonode = fromnode->pairing_nodes[jump_ID];
 
     double prefactor = 1.0;
     double charge;
@@ -191,7 +191,7 @@ From_step_event Event::Determine_non_injection_from_event_type(Carrier* carrier)
     
 }
 
-To_step_event Event::Determine_non_injection_to_event_type(Carrier* carrier, int jumpID, Node* carriernode){
+To_step_event Event::Determine_non_injection_to_event_type(Carrier* carrier, int jumpID, DNode* carriernode){
     
     To_step_event to_type;
     
@@ -201,7 +201,7 @@ To_step_event Event::Determine_non_injection_to_event_type(Carrier* carrier, int
     else {
         int node_degree = carriernode->pairing_nodes.size();
         if(jumpID < node_degree) { // hopping event exists in graph
-            Node* jumpnode = carriernode->pairing_nodes[jumpID];
+            DNode* jumpnode = carriernode->pairing_nodes[jumpID];
             if(jumpnode->carriers_on_node.empty()){
                 to_type = Totransfer;
             }
@@ -220,9 +220,9 @@ To_step_event Event::Determine_non_injection_to_event_type(Carrier* carrier, int
     return to_type;
 }
 
-To_step_event Event::Determine_injection_to_event_type(CarrierType carrier_type, Node* electrode, int inject_nodeID){
+To_step_event Event::Determine_injection_to_event_type(CarrierType carrier_type, DNode* electrode, int inject_nodeID){
     
-    Node* injectnode = electrode->pairing_nodes[inject_nodeID];
+    DNode* injectnode = electrode->pairing_nodes[inject_nodeID];
     if(injectnode->carriers_on_node.empty()){
         totype = Totransfer;
     }

@@ -19,8 +19,9 @@
 #define	__VOTCA_KMC_APPLICATION_H
 
 #include <votca/tools/application.h>
-#include "kmccalculator.h"
 #include <votca/kmc/version.h>
+#include "kmccalculator.h"
+#include <votca/kmc/graph.h>
 
 namespace votca { namespace kmc {
 
@@ -37,8 +38,6 @@ public:
     bool EvaluateOptions();
     /// print help 
     void ShowHelpText(std::ostream &out);
-    /// print the description of a specific calculator
-    void PrintDescription(const char *name, const bool length);
     /// add a calculator to the list
     void AddCalculator(KMCCalculator* calculator);
     /// run all calculators
@@ -52,14 +51,6 @@ public:
     virtual void EndEvaluate();
    
 protected:
-    static const bool _short = true;
-    static const bool _long = false;
-
-    string _fwstring(string original, size_t charCount ) {
-        original.resize( charCount, ' ' );
-        return original;
-    }
-
     /// List of calculators
     list<KMCCalculator *> _calculators;
     /// program options from the xml file
@@ -77,6 +68,9 @@ protected:
     /// loads the options in from the options file
     void LoadOptions();
 
+private:
+    /// application reads-in a Graph object from an sql file and provides it to all calculators
+    Graph graph;
 };
 
 }}

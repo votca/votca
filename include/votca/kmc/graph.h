@@ -19,7 +19,7 @@
 #define __VOTCA_KMC_GRAPH_H_
 
 #include <vector>
-#include <votca/kmc/node.h>
+#include <votca/kmc/dnode.h>
 
 namespace votca { namespace kmc {
   
@@ -29,15 +29,15 @@ public:
      Graph() {};
      
     ~Graph() {
-        std::vector<Node*>::iterator it;
+        std::vector<DNode*>::iterator it;
         for (it = nodes.begin(); it != nodes.end(); it++ ) delete *it;
     };   
     
     /// Add a node to the Graph
-    void AddNode(Node* node) { nodes.push_back(node); }
+    void AddNode(DNode* node) { nodes.push_back(node); }
     
     void Print(std::ostream& outstream){
-        std::vector<Node*>::iterator it;
+        std::vector<DNode*>::iterator it;
         /*for (it = nodes.begin(); it != nodes.begin()+10; it++ ) std::cout << (*it)->node_ID << " " << (*it)->node_position << " " 
                 << (*it)->reorg_intorig_hole << " " << (*it) ->reorg_intorig_electron << " "
                 << (*it)->reorg_intdest_hole << " " << (*it) ->reorg_intdest_electron << " "
@@ -49,7 +49,7 @@ public:
     }
     
 private:
-    std::vector<Node*> nodes;
+    std::vector<DNode*> nodes;
     
 };
 

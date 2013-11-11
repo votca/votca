@@ -15,13 +15,8 @@
  *
  */
 
-#include <stdlib.h>
-#include <votca/tools/propertyiomanipulator.h>
-#include <votca/kmc/kmccalculatorfactory.h>
 #include <votca/kmc/kmcapplication.h>
-#include <string>
-#include <cstdio>
-#include <iostream>
+#include <votca/kmc/kmccalculatorfactory.h>
 
 namespace votca { namespace kmc {
 
@@ -57,33 +52,7 @@ void KMCApplication::ShowHelpText(std::ostream &out)
 
     votca::kmc::HelpTextHeader(name);
     HelpText(out);
-    out << "\n\n" << OptionsDesc() << endl;
-}
-
-
-void KMCApplication::PrintDescription(const char *name, const bool length)
-{
-        // loading the documentation xml file from VOTCASHARE
-        char *votca_share = getenv("VOTCASHARE");
-        if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
-        string xmlFile = string(getenv("VOTCASHARE")) + string("/kmc/xml/")+name+string(".xml");
-        try {
-            Property options;
-            load_property_from_xml(options, xmlFile);
-
-           if ( length ) { // short description of the calculator
-               
-                 cout << string("  ") << _fwstring(string(name),14);
-                 cout << options.get("options."+string(name)).getAttribute<string>("help");
-
-            } else { // long description of the calculator
-                votca::tools::PropertyIOManipulator iom(votca::tools::PropertyIOManipulator::HLP, 2, "");
-                cout << iom << options;
-             }
-            cout << endl;
-        } catch(std::exception &error) {
-            cout << string("XML file or description tag missing: ") << xmlFile << endl;
-        }
+    out << "\n\n" << VisibleOptions() << endl;
 }
 
 // check if required options are provided
@@ -93,7 +62,7 @@ bool KMCApplication::EvaluateOptions() {
             cout << "Available calculators: \n";
             for(KMCCalculatorFactory::assoc_map::const_iterator iter=Calculators().getObjects().begin();
                     iter != Calculators().getObjects().end(); ++iter) {
-                PrintDescription( (iter->first).c_str(), _short );
+                PrintDescription( std::cout, (iter->first).c_str(), "kmc/xml", Application::HelpShort );
             }
             StopExecution();
             return true;
@@ -111,7 +80,7 @@ bool KMCApplication::EvaluateOptions() {
                         iter != Calculators().getObjects().end(); ++iter) {
 
                     if ( (*n).compare( (iter->first).c_str() ) == 0 ) {
-                         PrintDescription( (iter->first).c_str(), _long );
+                        PrintDescription( std::cout, (iter->first).c_str(), "kmc/xml", Application::HelpLong );
                         printerror = false;
                         break;
                     }

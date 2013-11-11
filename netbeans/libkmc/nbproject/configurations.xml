@@ -16,9 +16,13 @@
                    displayName="Header Files"
                    projectFiles="true">
       <itemPath>../../include/votca/kmc/diode.h</itemPath>
+      <itemPath>../../include/votca/kmc/events.h</itemPath>
+      <itemPath>../../include/votca/kmc/globaleventinfo.h</itemPath>
+      <itemPath>../../include/votca/kmc/graph.h</itemPath>
       <itemPath>../../include/votca/kmc/kmcapplication.h</itemPath>
       <itemPath>../../include/votca/kmc/kmccalculator.h</itemPath>
       <itemPath>../../include/votca/kmc/kmccalculatorfactory.h</itemPath>
+      <itemPath>../../include/votca/kmc/longrange.h</itemPath>
       <itemPath>../../include/votca/kmc/state.h</itemPath>
       <itemPath>../../include/votca/kmc/vssmgroup.h</itemPath>
     </logicalFolder>
