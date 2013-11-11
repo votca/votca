@@ -44,6 +44,9 @@ public:
     const double &rate12() const { return _rate12; }
     const double &rate21() const { return _rate21; }
     
+    void setnode1(Node* init_node) { node1 = init_node;}
+    void setnode2(Node* final_node) { node2 = final_node;}
+    
     // print Link info
     virtual void Print(std::ostream &out) {
         out << _id ;

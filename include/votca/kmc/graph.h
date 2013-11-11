@@ -36,6 +36,8 @@ public:
     /// Add a node to the Graph
     void AddNode(Node* node) { _nodes.push_back(node); }
     
+    Node* getnode(int node_ID) {return _nodes[node_ID];}
+    
     void Print(std::ostream& out){
         std::vector<Node*>::iterator it;
           for (it = _nodes.begin(); it != _nodes.end(); it++ ) (*it)->Print(out);    

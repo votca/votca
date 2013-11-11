@@ -30,9 +30,7 @@ public:
     void Initialize();
     
     void Load_graph_segments(string filename);
-    void Load_graph_pairs(string filename);
-    void Load_graph_static_event_info(string filename);
-    
+    void Load_graph_links(string filename);
     
 };
 
@@ -90,6 +88,35 @@ void GraphSQL::Load_graph_segments(string filename) {
     delete stmt;
     stmt = NULL;
    
+}
+
+void GraphSQL::Load_graph_links (string filename) {
+    
+    // Load Node Pairs
+    votca::tools::Database db;
+    db.Open(filename);
+    votca::tools::Statement *stmt = db.Prepare("SELECT seg1-1 AS 'segment1', seg2-1 AS 'segment2' FROM pairs UNION "
+                                               "SELECT seg2-1 AS 'segment1', seg1-1 AS 'segment2' FROM pairs ORDER BY segment1;");
+
+    while (stmt->Step() != SQLITE_DONE) {
+        
+        int node_ID1 = stmt->Column<int>(0);
+        int node_ID2 = stmt->Column<int>(1);
+        
+        Node* init_node = getnode(node_ID1);
+        Node* final_node = getnode(node_ID2);
+        
+        Link* newLink = new Link();
+        init_node->AddLink(newLink);
+        
+        newLink->setnode1(init_node);
+        newLink->setnode2(final_node);
+
+    }
+        
+    delete stmt;
+    stmt = NULL;
+    
 }
 
 }}
