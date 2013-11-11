@@ -70,7 +70,7 @@ protected:
 
 private:
     /// application reads-in a Graph object from an sql file and provides it to all calculators
-    Graph graph;
+    Graph* graph;
 };
 
 }}

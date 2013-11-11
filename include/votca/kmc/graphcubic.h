@@ -29,7 +29,7 @@ public:
     
     void Create_cubic_graph_nodes(int NX, int NY, int NZ, double lattice_constant, myvec front, myvec back);
 //    void Create_static_energies(votca::tools::Random2 *RandomVariable, double disorder_strength, double disorder_ratio, CorrelationType correlation_type);
-        
+    void Initialize();  
 };
 
 void GraphCubic::Create_cubic_graph_nodes(int NX, int NY, int NZ, double lattice_constant, myvec front, myvec back) {
@@ -82,6 +82,9 @@ void GraphCubic::Create_cubic_graph_nodes(int NX, int NY, int NZ, double lattice
         }
     }
 }*/
+
+void GraphCubic::Initialize(){;}
+
 }}
 
 

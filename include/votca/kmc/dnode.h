@@ -21,6 +21,7 @@
 #include <vector>
 #include <votca/tools/vec.h>
 #include <votca/kmc/carrier.h>
+#include <votca/kmc/node.h>
 
 typedef votca::tools::vec myvec;
 
@@ -30,8 +31,9 @@ using namespace std;
 
 enum NodeType{Normal, LeftElectrode, RightElectrode};
 
-class DNode {
-    
+class DNode: public Node 
+{
+   
 public:
 
     void setPair(DNode* pairing_node) {pairing_nodes.push_back(pairing_node);}
