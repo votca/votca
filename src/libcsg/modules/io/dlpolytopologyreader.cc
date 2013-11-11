@@ -32,6 +32,7 @@ namespace votca { namespace csg {
 
 bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 {
+    std::ifstream fl;
 #ifdef DLPOLY
     struct FieldSpecsT  FieldBase;
     struct FrameSpecsT  FrameBase;
@@ -88,7 +89,6 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
     // TODO: fix residue naming / assignment
     Residue *res = top.CreateResidue("no");
 
-    std::ifstream fl;
     fl.open("FIELD");
     if (!fl.is_open()){
       throw std::runtime_error("could open dlpoly file FIELD");
@@ -106,7 +106,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
       for (int nmol_type=0;nmol_type<nmol_types; nmol_type++){
 	string mol_name;
         getline(fl, mol_name); //molecule name might incl. spaces
-	boost::erase_all(mol_name, " "); 
+	boost::erase_all(mol_name, " ");
         Molecule *mi = top.CreateMolecule(mol_name);
         fl >> line;
         if (line != "NUMMOLS")
@@ -148,6 +148,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 	  if (fl.eof())
             throw std::runtime_error("unexpected end of dlpoly file FIELD while scanning for 'FINISH'");
 	}
+	getline(fl, line); //rest of the FINISH line
 	//replicate molecule
 	for (int replica=1;replica<nreplica;replica++){
           Molecule *mi_replica = top.CreateMolecule(mol_name);
