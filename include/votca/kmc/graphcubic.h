@@ -20,10 +20,12 @@
 
 #include <vector>
 #include <votca/kmc/graph.h>
+#include <votca/kmc/node.h>
+#include <votca/kmc/link.h>
 
 namespace votca { namespace kmc {
   
-class GraphCubic : public Graph {
+class GraphCubic : public Graph<Node,Link> {
 
 public:
     
