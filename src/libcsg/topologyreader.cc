@@ -29,9 +29,7 @@
 #include "modules/io/gmxtopologyreader.h"
 #include "modules/io/pdbtopologyreader.h"
 #endif
-#ifdef DLPOLY
 #include "modules/io/dlpolytopologyreader.h"
-#endif
 
 
 namespace votca { namespace csg {
@@ -47,9 +45,7 @@ void TopologyReader::RegisterPlugins(void)
     TopReaderFactory().Register<GMXTopologyReader>("tpr");
     TopReaderFactory().Register<PDBTopologyReader>("pdb");
 #endif
-#ifdef DLPOLY
     TopReaderFactory().Register<DLPOLYTopologyReader>("dlpoly");
-#endif
 }
 
 }}

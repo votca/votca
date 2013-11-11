@@ -2,14 +2,14 @@ option(WITH_GMX "Build gromacs reader/writer, disabling leads to reduced functio
 option(WITH_GMX_DEVEL "Build against gromacs devel version, very experimental!" OFF)
 option(GMX_DOUBLE "Use double precision version of gromacs" OFF)
 
-option(WITH_DLPOLY "Build DLPOLY reader/writer, requires Fortran compiler" OFF)
+option(WITH_DLPOLY "Build DLPOLY original fortran reader, otherwise build minimal pure c++ version" OFF)
 
 file(GLOB GMX_SOURCES modules/io/gmx*.cc modules/io/pdbtopology*.cc)
 file(GLOB NOT_GMX_SOURCES modules/io/gmx_print_version.cc modules/io/gmx_version_nb.cc)
 list(REMOVE_ITEM GMX_SOURCES ${NOT_GMX_SOURCES})
 
 #only exclude topology reader, trajectory reader is pure C++
-file(GLOB DLPOLY_SOURCES modules/io/dlpolytopo*.cc modules/io/dlpoly/*.f)
+file(GLOB DLPOLY_SOURCES modules/io/dlpoly/*.f)
 
 file(GLOB IO_SOURCES modules/io/*.cc)
 file(GLOB NOT_IO_SOURCES modules/io/mdp*.cc)
