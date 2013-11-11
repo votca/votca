@@ -10,7 +10,7 @@ option(WITH_FFTW "Use FFTW3, disabling leads to reduced functionality!" ON)
 if (WITH_FFTW)
   find_package(FFTW3)
   if(NOT FFTW3_FOUND)
-    message(FATAL_ERROR "FFTW3 not found,  make sure you have also installed the fftw3 and it's dev package")
+    message(FATAL_ERROR "FFTW3 not found,  make sure you have also installed the fftw3 and it's dev package (it can be disable with -DWITH_FFTW=OFF)")
   endif(NOT FFTW3_FOUND)
   include_directories(${FFTW3_INCLUDE_DIRS})
   set(FFTW3_PKG "fftw3")
@@ -23,49 +23,50 @@ endif(WITH_FFTW)
 option(WITH_GSL "Use GSL, disabling leads to reduced functionality!" ON)
 if (WITH_GSL)
   find_package(GSL)
-  if(NOT GSL_FOUND)
-    message(FATAL_ERROR "GSL not found,  make sure you have also installed the gsl and it's dev package")
-  endif(NOT GSL_FOUND)
-  include_directories(${GSL_INCLUDE_DIRS})
-  set(GSL_PKG "gsl")
-else(WITH_GSL)
-  #used in votca_config.h
-  set(NOGSL TRUE)
-  set(GSL_PKG)
 endif(WITH_GSL)
 
-message( "LIBTOOLS checking"  )
 option(WITH_MKL "Checking if MKL is installed in order to improve UBLAS performance" ON)
 if (WITH_MKL)
-  message( "LIBTOOLS checking" ${MKL_LIBRARIES} )
   find_package(MKL)
-  if (NOT MKL_FOUND) #REQUIRED is broken in find_package(MKL)
-    message(FATAL_ERROR "MKL not found, please install it!")
-  endif(NOT MKL_FOUND)
-
-  # lapack?
-  #set( ENV{BLA_VENDOR "Intel10_64lp") 
-  #find_package (BLAS REQUIRED)
-  #set( ENV{BLA_VENDOR} "Intel(mkl)" )
-  #find_package (LAPACK REQUIRED)
-
-  #message( ${MKL_LIBRARIES} )
-
-
-  include_directories(${MKL_INCLUDE_DIRS})
-  #used in votca_config.h
-  set(MKL TRUE)
-else(WITH_MKL)
-  set(MKL_INCLUDE_DIRS)
+  if(NOT MKL_FOUND AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+    #TODO: try to append -mkl to cflags
+  endif(NOT MKL_FOUND AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
 endif(WITH_MKL)
 
+option(WITH_EIGEN "Checking if Eigen3 is installed in order to improve performance" ON)
+if (WITH_EIGEN)
+  find_package(Eigen) #it looks for eigen3
+endif (WITH_EIGEN)
 
-
-
-
+#we can only use of of these
+set(MKL FALSE)
+set(NOGSL TRUE)
+set(GSL_PKG)
+set(EIGEN)
+set(EIGEN_PKG)
+#it seems there is a problem with gcc-4.8 and mkl
+# let force icc for now
+if (MKL_FOUND AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+  include_directories(${MKL_INCLUDE_DIRS})
+  file(GLOB VOTCA_LINALG_SOURCES linalg/mkl/*.cc)
+  set(MKL TRUE) #used in votca_config.h
+  set(LINALG_LIBRARIES ${MKL_LIBRARIES})
+elseif(GSL_FOUND)
+  include_directories(${GSL_INCLUDE_DIRS})
+  set(GSL_PKG "gsl") #used in libvotca_csg.pc
+  set(NOGSL FALSE) #used votca_config.
+  file(GLOB VOTCA_LINALG_SOURCES linalg/gsl/*.cc)
+  set(LINALG_LIBRARIES ${GSL_LIBRARIES})
+elseif (EIGEN_FOUND)
+  set(EIGEN TRUE) #used in votca_config.h
+  set(EIGEN_PKG "eigen3") #used in libvotca_csg.pc
+  include_directories(${EIGEN_INCLUDE_DIRS})
+  file(GLOB VOTCA_LINALG_SOURCES linalg/eigen/*.cc)
+  set(LINALG_LIBRARIES ${EIGEN_LIBRARIES})
+endif()
 
 file(GLOB VOTCA_SOURCES *.cc)
-file(GLOB NOT_VOTCA_SOURCES version_nb.cc linktest.cc linalg.cc)
+file(GLOB NOT_VOTCA_SOURCES version_nb.cc)
 file(GLOB_RECURSE VOTCA_SQL_SOURCES database.cc statement.cc)
 list(REMOVE_ITEM VOTCA_SOURCES ${NOT_VOTCA_SOURCES} ${VOTCA_SQL_SOURCES})
 
@@ -82,12 +83,6 @@ else(WITH_SQLITE3)
   set(VOTCA_SQL_SOURCES)
 endif(WITH_SQLITE3)
 
-#for linalg
-add_subdirectory(linalg)
-
-
-message( MKL------ ${MKL_LIBRARIES} )
-
 #for hgversion.h
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
@@ -100,8 +95,8 @@ set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES hgversion.h)
 add_library(votca_tools ${VOTCA_SOURCES} ${VOTCA_SQL_SOURCES} ${VOTCA_LINALG_SOURCES})
 add_dependencies(votca_tools hgversion)
 set_target_properties(votca_tools PROPERTIES SOVERSION ${SOVERSION})
-target_link_libraries(votca_tools ${BOOST_LIBRARIES} ${GSL_LIBRARIES} ${SQLITE3_LIBRARIES}
-  ${FFTW3_LIBRARIES} ${EXPAT_LIBRARIES} ${THREAD_LIBRARIES} ${MATH_LIBRARIES} ${MKL_LIBRARIES} )
+target_link_libraries(votca_tools ${BOOST_LIBRARIES} ${LINALG_LIBRARIES} ${SQLITE3_LIBRARIES}
+  ${FFTW3_LIBRARIES} ${EXPAT_LIBRARIES} ${THREAD_LIBRARIES} ${MATH_LIBRARIES})
 install(TARGETS votca_tools LIBRARY DESTINATION ${LIB} ARCHIVE DESTINATION ${LIB})
 
 configure_file(libvotca_tools.pc.in ${CMAKE_CURRENT_BINARY_DIR}/libvotca_tools.pc @ONLY)

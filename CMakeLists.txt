@@ -54,32 +54,15 @@ find_package(Mercurial)
 find_package(Threads REQUIRED)
 set(THREAD_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
 
+find_package(Boost 1.39.0 REQUIRED COMPONENTS program_options filesystem )
+include_directories(${Boost_INCLUDE_DIRS})
+set (BOOST_LIBRARIES ${Boost_PROGRAM_OPTIONS_LIBRARY} ${Boost_FILESYSTEM_LIBRARY})
+set (BOOST_CFLAGS_PKG "-I${Boost_INCLUDE_DIRS}")
+string(REGEX REPLACE "^(.*)/lib([^/]*)\\.[^.]*$" "-L\\1 -l\\2" BOOST_LIBS_PKG ${BOOST_LIBRARIES})
+
 option(BUILD_MANPAGES "Build manpages (might lead to problem on system without rpath" ON)
 #define this target here, so that individual man pages can append to it.
 add_custom_target(manpages ALL)
-
-option(WITH_MKL "Checking if MKL is installed in order to improve UBLAS performance" OFF)
-if (WITH_MKL)
-  find_package(MKL)
-  if (NOT MKL_FOUND) #REQUIRED is broken in find_package(MKL)
-    message(FATAL_ERROR "MKL not found, please install it!")
-  endif(NOT MKL_FOUND)
-
-  # lapack?
-  #set( ENV{BLA_VENDOR "Intel10_64lp") 
-  #find_package (BLAS REQUIRED)
-  #set( ENV{BLA_VENDOR} "Intel(mkl)" )
-  #find_package (LAPACK REQUIRED)
-
-  #message( ${MKL_LIBRARIES} )
-
-
-  include_directories(${MKL_INCLUDE_DIRS})
-  #used in votca_config.h
-  set(MKL TRUE)
-else(WITH_MKL)
-  set(MKL_INCLUDE_DIRS)
-endif(WITH_MKL)
 
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
