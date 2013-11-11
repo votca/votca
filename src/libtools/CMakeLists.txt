@@ -34,6 +34,36 @@ else(WITH_GSL)
   set(GSL_PKG)
 endif(WITH_GSL)
 
+message( "LIBTOOLS checking"  )
+option(WITH_MKL "Checking if MKL is installed in order to improve UBLAS performance" ON)
+if (WITH_MKL)
+  message( "LIBTOOLS checking" ${MKL_LIBRARIES} )
+  find_package(MKL)
+  if (NOT MKL_FOUND) #REQUIRED is broken in find_package(MKL)
+    message(FATAL_ERROR "MKL not found, please install it!")
+  endif(NOT MKL_FOUND)
+
+  # lapack?
+  #set( ENV{BLA_VENDOR "Intel10_64lp") 
+  #find_package (BLAS REQUIRED)
+  #set( ENV{BLA_VENDOR} "Intel(mkl)" )
+  #find_package (LAPACK REQUIRED)
+
+  #message( ${MKL_LIBRARIES} )
+
+
+  include_directories(${MKL_INCLUDE_DIRS})
+  #used in votca_config.h
+  set(MKL TRUE)
+else(WITH_MKL)
+  set(MKL_INCLUDE_DIRS)
+endif(WITH_MKL)
+
+
+
+
+
+
 file(GLOB VOTCA_SOURCES *.cc)
 file(GLOB NOT_VOTCA_SOURCES version_nb.cc linktest.cc linalg.cc)
 file(GLOB_RECURSE VOTCA_SQL_SOURCES database.cc statement.cc)
@@ -55,6 +85,9 @@ endif(WITH_SQLITE3)
 #for linalg
 add_subdirectory(linalg)
 
+
+message( MKL------ ${MKL_LIBRARIES} )
+
 #for hgversion.h
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
@@ -68,7 +101,7 @@ add_library(votca_tools ${VOTCA_SOURCES} ${VOTCA_SQL_SOURCES} ${VOTCA_LINALG_SOU
 add_dependencies(votca_tools hgversion)
 set_target_properties(votca_tools PROPERTIES SOVERSION ${SOVERSION})
 target_link_libraries(votca_tools ${BOOST_LIBRARIES} ${GSL_LIBRARIES} ${SQLITE3_LIBRARIES}
-  ${FFTW3_LIBRARIES} ${EXPAT_LIBRARIES} ${THREAD_LIBRARIES} ${MATH_LIBRARIES})
+  ${FFTW3_LIBRARIES} ${EXPAT_LIBRARIES} ${THREAD_LIBRARIES} ${MATH_LIBRARIES} ${MKL_LIBRARIES} )
 install(TARGETS votca_tools LIBRARY DESTINATION ${LIB} ARCHIVE DESTINATION ${LIB})
 
 configure_file(libvotca_tools.pc.in ${CMAKE_CURRENT_BINARY_DIR}/libvotca_tools.pc @ONLY)

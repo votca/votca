@@ -64,6 +64,16 @@ if (WITH_MKL)
   if (NOT MKL_FOUND) #REQUIRED is broken in find_package(MKL)
     message(FATAL_ERROR "MKL not found, please install it!")
   endif(NOT MKL_FOUND)
+
+  # lapack?
+  #set( ENV{BLA_VENDOR "Intel10_64lp") 
+  #find_package (BLAS REQUIRED)
+  #set( ENV{BLA_VENDOR} "Intel(mkl)" )
+  #find_package (LAPACK REQUIRED)
+
+  #message( ${MKL_LIBRARIES} )
+
+
   include_directories(${MKL_INCLUDE_DIRS})
   #used in votca_config.h
   set(MKL TRUE)
