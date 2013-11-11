@@ -15,14 +15,14 @@
  *
  */
 
-#ifndef _VOTCA_KMC_LINK_H
-#define	_VOTCA_KMC_LINK_H
+#ifndef _VOTCA_KMC_LINKSQL_H
+#define	_VOTCA_KMC_LINKSQL_H
 
 #include <votca/tools/vec.h>
+#include <votca/kmc/link.h>
 
 namespace votca { namespace kmc {
 
-class Node;
 
 /**
  * \brief A link between two nodes
@@ -30,39 +30,24 @@ class Node;
  * Container for pair properties: rates, couplings, separations 
  * 
  */
-class Link
+class LinkSQL: public Link
 {
 
 public:
     
-    const int &Id() const { return _id; }
-    
-    /// r2 - r1
-    const votca::tools::vec &r12() const { return _r12; }    
-    
-    void setnode1(Node* init_node) { node1 = init_node;}
-    void setnode2(Node* final_node) { node2 = final_node;}
-    
-    // print Link info
-    virtual void Print(std::ostream &out) {
-        out << _id ;
-    }
-    
+    /// forward and backward rates
+    const double &rate12() const { return _rate12; }
+    const double &rate21() const { return _rate21; }
+
 private:
-    
-    int _id;
-    
-    Node *node1;
-    Node *node2;
+
     
     /// forward and backward rates
     double _rate12;
     double _rate21;
-    
-    /// r2 - r1
-    votca::tools::vec _r12;       
+
 };
 
 }} 
 
-#endif // _VOTCA_KMC_LINK_H
+#endif // _VOTCA_KMC_LINKSQL_H

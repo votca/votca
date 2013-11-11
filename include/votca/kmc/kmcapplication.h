@@ -21,7 +21,7 @@
 #include <votca/tools/application.h>
 #include <votca/kmc/version.h>
 #include "kmccalculator.h"
-#include <votca/kmc/graph.h>
+#include <votca/kmc/graphsql.h>
 
 namespace votca { namespace kmc {
 
@@ -70,7 +70,7 @@ protected:
 
 private:
     /// application reads-in a Graph object from an sql file and provides it to all calculators
-    Graph* graph;
+    GraphSQL* graph;
 };
 
 }}

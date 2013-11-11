@@ -19,38 +19,45 @@
 #define __VOTCA_KMC_GRAPH_H_
 
 #include <vector>
-#include <votca/kmc/node.h>
 
 namespace votca { namespace kmc {
-  
+
+template<class TNode, class TLink>
 class Graph {
 
 public:
      Graph() {};
      
     ~Graph() {
-        std::vector<Node*>::iterator it;
+        typename std::vector<TNode*>::iterator it;
         for (it = _nodes.begin(); it != _nodes.end(); it++ ) delete *it;
     };   
     
     /// Add a node to the Graph
-    void AddNode(Node* node) { _nodes.push_back(node); }
+    TNode* AddNode() { 
+        TNode* node = new TNode();
+        _nodes.push_back(node); 
+        return node;
+    }    
+
+    void AddNode( TNode* node) { _nodes.push_back(node); }
     
-    Node* getnode(int node_ID) {return _nodes[node_ID];}
+    TNode* getnode(int node_ID) {return _nodes[node_ID];}
     
     void Print(std::ostream& out){
-        std::vector<Node*>::iterator it;
+        typename std::vector<TNode*>::iterator it;
           for (it = _nodes.begin(); it != _nodes.end(); it++ ) (*it)->Print(out);    
     }
     
     /// initialize nodes and links
-    virtual void Initialize() = 0;
+    virtual void Initialize(){;};
     
-private:
-    std::vector<Node*> _nodes;
-    std::vector<Link*> _links;
+protected:
+    std::vector<TNode*> _nodes;
+    std::vector<TLink*> _links;
     
 };
+
 
 
 }}

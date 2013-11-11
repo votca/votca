@@ -20,10 +20,13 @@
 
 #include <vector>
 #include <votca/kmc/graph.h>
+#include <votca/kmc/nodesql.h>
+#include <votca/kmc/linksql.h>
+#include <votca/tools/database.h>
 
 namespace votca { namespace kmc {
   
-class GraphSQL : public Graph {
+class GraphSQL : public Graph<NodeSQL, LinkSQL> {
 
 public:
    
@@ -34,55 +37,32 @@ public:
     
 };
 
-void GraphSQL::Initialize(){
+inline void GraphSQL::Initialize(){
     ;
 }
 
-void GraphSQL::Load_graph_segments(string filename) {
+inline void GraphSQL::Load_graph_segments(string filename) {
     
     // Load nodes
     votca::tools::Database db;
     db.Open( filename );
-    votca::tools::Statement *stmt = db.Prepare("SELECT _id-1, posX, posY, posZ, UnCnNe, UnCnNh, UcNcCe, UcNcCh, eAnion, eNeutral, eCation, ucCnNe, ucCnNh FROM segments;");
+    //votca::tools::Statement *stmt = db.Prepare("SELECT _id-1, posX, posY, posZ, UnCnNe, UnCnNh, UcNcCe, UcNcCh, eAnion, eNeutral, eCation, ucCnNe, ucCnNh FROM segments;");
+    
+    // only rates are needed if Coulomb interactions are is not calculated
+    votca::tools::Statement *stmt = db.Prepare("SELECT _id-1, posX, posY, posZ FROM segments;");
     
     while (stmt->Step() != SQLITE_DONE) {
         
-        DNode *newDNode = new DNode();
-        AddNode(newDNode);
+        int id = stmt->Column<int>(0);
 
-        newDNode->node_ID  = stmt->Column<int>(0);
-        newDNode->node_type = Normal;
+        double X = stmt->Column<double>(1);
+        double Y = stmt->Column<double>(2);
+        double Z = stmt->Column<double>(3);
         
-        double positionX = stmt->Column<double>(1);
-        double positionY = stmt->Column<double>(2);
-        double positionZ = stmt->Column<double>(3);
-        myvec node_position = myvec (positionX, positionY, positionZ);
-        newDNode->node_position = node_position;
+        NodeSQL *node = AddNode();
+         
+       // myvec node_position = myvec (X, Y, Z);
         
-        newDNode->reorg_intorig_hole= stmt->Column<double>(4); // UnCnNe
-        newDNode->reorg_intorig_electron = stmt->Column<double>(5); // UnCnNh
-        newDNode->reorg_intdest_hole = stmt->Column<double>(6); // UnNcCe
-        newDNode->reorg_intdest_electron = stmt->Column<double>(7); // UcNcCh
-        
-        double eAnion = stmt->Column<double>(8);
-        double eNeutral = stmt->Column<double>(9);
-        double eCation = stmt->Column<double>(10);
-        
-        double internal_energy_electron = stmt->Column<double>(11);
-        double internal_energy_hole = stmt->Column<double>(12);
-        
-        double static_electron_node_energy = eCation + internal_energy_electron;
-        double static_hole_node_energy = eAnion + internal_energy_hole;
-
-        newDNode->eAnion = eAnion;
-        newDNode->eNeutral = eNeutral;
-        newDNode->eCation = eCation;
-        
-        newDNode->internal_energy_electron = internal_energy_electron;
-        newDNode->internal_energy_hole = internal_energy_hole;
-        
-        newDNode->static_electron_node_energy = static_electron_node_energy;
-        newDNode->static_hole_node_energy = static_hole_node_energy;
     }
   
     delete stmt;
@@ -90,7 +70,7 @@ void GraphSQL::Load_graph_segments(string filename) {
    
 }
 
-void GraphSQL::Load_graph_links (string filename) {
+inline void GraphSQL::Load_graph_links (string filename) {
     
     // Load Node Pairs
     votca::tools::Database db;
