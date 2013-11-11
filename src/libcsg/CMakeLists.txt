@@ -2,7 +2,7 @@ option(WITH_GMX "Build gromacs reader/writer, disabling leads to reduced functio
 option(WITH_GMX_DEVEL "Build against gromacs devel version, very experimental!" OFF)
 option(GMX_DOUBLE "Use double precision version of gromacs" OFF)
 
-option(WITH_DLPOLY "Build DLPOLY original fortran reader, otherwise build minimal pure c++ version" OFF)
+option(WITH_DLPOLY_FORTRAN "Build DLPOLY original fortran reader, otherwise build minimal pure c++ version" OFF)
 
 file(GLOB GMX_SOURCES modules/io/gmx*.cc modules/io/pdbtopology*.cc)
 file(GLOB NOT_GMX_SOURCES modules/io/gmx_print_version.cc modules/io/gmx_version_nb.cc)
@@ -42,12 +42,12 @@ else(WITH_GMX)
   set(GMX_SOURCES)
 endif(WITH_GMX)
 
-if (WITH_DLPOLY)
+if (WITH_DLPOLY_FORTRAN)
   enable_language(Fortran)
   set(DLPOLY "true")
-else (WITH_DLPOLY)
+else (WITH_DLPOLY_FORTRAN)
   set(DLPOLY_SOURCES)
-endif (WITH_DLPOLY)
+endif (WITH_DLPOLY_FORTRAN)
 
 configure_file(votca_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/votca_config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
