@@ -24,7 +24,7 @@
 #include <votca/tools/statement.h>
 #include <votca/tools/vec.h>
 #include <votca/tools/random2.h>
-#include <votca/kmc/node.h>
+#include <votca/kmc/dnode.h>
 #include <votca/kmc/globaleventinfo.h>
 
 namespace votca { namespace kmc {
@@ -41,7 +41,7 @@ public:
      GraphLattice() {};
      
     ~GraphLattice() {
-        vector<Node*>::iterator it;
+        vector<DNode*>::iterator it;
         for (it = nodes.begin(); it != nodes.end(); it++ ) delete *it;
     };   
     
@@ -51,9 +51,9 @@ public:
                                 double disorder_ratio, CorrelationType correlation_type, double left_electrode_distance, double right_electro_distance,
                                 Globaleventinfo* globevent);
     
-    vector<Node*> nodes;
-    Node* left_electrode;
-    Node* right_electrode;
+    vector<DNode*> nodes;
+    DNode* left_electrode;
+    DNode* right_electrode;
     
     myvec sim_box_size;    
     int max_pair_degree;
@@ -63,9 +63,9 @@ public:
     int nr_right_injector_nodes;
     
     int nodemeshsizeX; int nodemeshsizeY; int nodemeshsizeZ;
-    vector< vector< vector <list<Node*> > > > node_mesh;
+    vector< vector< vector <list<DNode*> > > > node_mesh;
     void Init_node_mesh(myvec sim_box_size, double hopdist);
-    void Add_to_node_mesh(Node* node, double hopdist);
+    void Add_to_node_mesh(DNode* node, double hopdist);
     
 private:
     
@@ -77,17 +77,17 @@ private:
     void Create_cubic_graph_nodes(int nx, int ny, int nz, double lattice_constant, myvec front, myvec back);
     void Create_static_energies(votca::tools::Random2 *RandomVariable, double disorder_strength, double disorder_ratio, CorrelationType correlation_type);
     
-    void Determine_graph_pairs(vector<Node*> nodes, double hopdist, int nodemeshsizeX, int nodemeshsizeY, int nodemeshsizeZ,
-                                         vector< vector< vector <list<Node*> > > > node_mesh );
+    void Determine_graph_pairs(vector<DNode*> nodes, double hopdist, int nodemeshsizeX, int nodemeshsizeY, int nodemeshsizeZ,
+                                         vector< vector< vector <list<DNode*> > > > node_mesh );
     
-    void Setup_device_graph(vector<Node*> nodes, Node* left_electrode, Node* right_electrode, double hopdist, double left_electrode_distance, double right_electrode_distance);
-    void Break_periodicity(vector<Node*>nodes , bool x_direction, bool y_direction, bool z_direction);
+    void Setup_device_graph(vector<DNode*> nodes, DNode* left_electrode, DNode* right_electrode, double hopdist, double left_electrode_distance, double right_electrode_distance);
+    void Break_periodicity(vector<DNode*>nodes , bool x_direction, bool y_direction, bool z_direction);
     
-    double Determine_hopping_distance(vector<Node*> nodes);
-    myvec Determine_sim_box_size(vector<Node*> nodes);
-    int Determine_max_pair_degree(vector<Node*> nodes);
+    double Determine_hopping_distance(vector<DNode*> nodes);
+    myvec Determine_sim_box_size(vector<DNode*> nodes);
+    int Determine_max_pair_degree(vector<DNode*> nodes);
 
-    void Set_all_self_image_potential(vector<Node*> nodes, myvec sim_box_size, Globaleventinfo* globevent);   
+    void Set_all_self_image_potential(vector<DNode*> nodes, myvec sim_box_size, Globaleventinfo* globevent);   
     double Calculate_self_image_potential(double nodeposx, double length, Globaleventinfo* globevent);
 
     myvec Periodicdistance(myvec init, myvec final, myvec boxsize);    
@@ -112,7 +112,7 @@ void GraphLattice::Init_node_mesh(myvec sim_box_size, double hopdist){
     }
 }
 
-void GraphLattice::Add_to_node_mesh(Node* node, double hopdist){
+void GraphLattice::Add_to_node_mesh(DNode* node, double hopdist){
 
     double posx = node->node_position.x();
     double posy = node->node_position.y();
@@ -171,7 +171,7 @@ void GraphLattice::Load_graph_nodes(string filename) {
     
     while (stmt->Step() != SQLITE_DONE) {
         
-        Node *newNode = new Node();
+        DNode *newNode = new DNode();
         nodes.push_back(newNode);
 
         newNode->node_ID  = stmt->Column<int>(0);
@@ -199,7 +199,7 @@ void GraphLattice::Load_graph_static_energies(string filename) {
     int read_index = 0;
     while (stmt->Step() != SQLITE_DONE) {
         
-        Node* loadNode = nodes[read_index];
+        DNode* loadNode = nodes[read_index];
         if(loadNode->node_ID != stmt->Column<int>(0)) {std::cout << "WARNING: mismatch between the node_ID's /n";}
         
         loadNode->reorg_intorig_hole= stmt->Column<double>(1); // UnCnNe
@@ -246,8 +246,8 @@ void GraphLattice::Load_graph_pairs(string filename) {
         
         int node_ID1 = stmt->Column<int>(0);
         int node_ID2 = stmt->Column<int>(1);
-        Node* node1 = nodes[node_ID1];
-        Node* node2 = nodes[node_ID2];
+        DNode* node1 = nodes[node_ID1];
+        DNode* node2 = nodes[node_ID2];
         
         node1->setPair(node2);
     }
@@ -271,8 +271,8 @@ void GraphLattice::Load_graph_static_event_info(string filename) {
         
       int node_ID1 = stmt->Column<int>(0);
       int node_ID2 = stmt->Column<int>(1);
-      Node* node1 = nodes[node_ID1];
-      Node* node2 = nodes[node_ID2];
+      DNode* node1 = nodes[node_ID1];
+      DNode* node2 = nodes[node_ID2];
 
       double drX = stmt->Column<double>(2);
       double drY = stmt->Column<double>(3);
@@ -300,7 +300,7 @@ void GraphLattice::Create_cubic_graph_nodes(int NX, int NY, int NZ, double latti
     for(int ix=0; ix<NX; ix++) {
         for(int iy=0; iy<NY; iy++) {
             for(int iz=0; iz<NZ; iz++) {
-                Node *newNode = new Node();
+                DNode *newNode = new DNode();
                 nodes.push_back(newNode);
 
                 newNode->node_ID = node_index;
@@ -344,7 +344,7 @@ void GraphLattice::Create_static_energies(votca::tools::Random2 *RandomVariable,
     }
 }
 
-void GraphLattice::Setup_device_graph(vector<Node*> nodes, Node* left_electrode, Node* right_electrode, double hopdist, double left_electrode_distance, double right_electrode_distance){
+void GraphLattice::Setup_device_graph(vector<DNode*> nodes, DNode* left_electrode, DNode* right_electrode, double hopdist, double left_electrode_distance, double right_electrode_distance){
 
     left_electrode->node_type = LeftElectrode;
     left_electrode->static_electron_node_energy = 0.0;
@@ -430,7 +430,7 @@ void GraphLattice::Setup_device_graph(vector<Node*> nodes, Node* left_electrode,
 
 }
 
-void GraphLattice::Set_all_self_image_potential(vector<Node*> nodes, myvec sim_box_size, Globaleventinfo* globevent) {
+void GraphLattice::Set_all_self_image_potential(vector<DNode*> nodes, myvec sim_box_size, Globaleventinfo* globevent) {
     
     for(int inode=0; inode<nodes.size();inode++){
         myvec nodepos = nodes[inode]->node_position;
@@ -465,7 +465,7 @@ double GraphLattice::Calculate_self_image_potential(double nodeposx, double leng
     return globevent->self_image_prefactor*selfimagepot;        
 }
 
-void GraphLattice::Break_periodicity(vector<Node*> nodes, bool x_direction, bool y_direction, bool z_direction){
+void GraphLattice::Break_periodicity(vector<DNode*> nodes, bool x_direction, bool y_direction, bool z_direction){
 
     vector<int> remove_pairs;
     
@@ -537,7 +537,7 @@ void GraphLattice::Break_periodicity(vector<Node*> nodes, bool x_direction, bool
     }
 }    
 
-double GraphLattice::Determine_hopping_distance(vector<Node*> nodes) {
+double GraphLattice::Determine_hopping_distance(vector<DNode*> nodes) {
     
     //Determination of hopping distance
     
@@ -556,7 +556,7 @@ double GraphLattice::Determine_hopping_distance(vector<Node*> nodes) {
 }
 
 
-myvec GraphLattice::Determine_sim_box_size(vector<Node*> nodes) {
+myvec GraphLattice::Determine_sim_box_size(vector<DNode*> nodes) {
     
     //Determination of simulation box size
     //To do this, we first need to find a node with position vector a and pairing node with position vector b, such that
@@ -636,7 +636,7 @@ myvec GraphLattice::Determine_sim_box_size(vector<Node*> nodes) {
     return simboxsize;
 }
 
-int GraphLattice::Determine_max_pair_degree(vector<Node*> nodes){
+int GraphLattice::Determine_max_pair_degree(vector<DNode*> nodes){
     
     //Determination of the maximum degree in the graph
     
@@ -651,13 +651,13 @@ int GraphLattice::Determine_max_pair_degree(vector<Node*> nodes){
     return maxdegree;    
 }
 
-void GraphLattice::Determine_graph_pairs(vector<Node*> nodes, double hopdist, int nodemeshsizeX, int nodemeshsizeY, int nodemeshsizeZ,
-    vector< vector< vector <list<Node*> > > > node_mesh ) {  
+void GraphLattice::Determine_graph_pairs(vector<DNode*> nodes, double hopdist, int nodemeshsizeX, int nodemeshsizeY, int nodemeshsizeZ,
+    vector< vector< vector <list<DNode*> > > > node_mesh ) {  
   
     for (int inode = 0; inode<nodes.size(); inode++) {
       
         // Define cubic boundaries in non-periodic coordinates
-        Node* initnode = nodes[inode];
+        DNode* initnode = nodes[inode];
         myvec initnodepos = initnode->node_position;
     
         double ix1 = initnodepos.x()-hopdist; double ix2 = initnodepos.x()+hopdist;
@@ -687,12 +687,12 @@ void GraphLattice::Determine_graph_pairs(vector<Node*> nodes, double hopdist, in
                     while (r_isx >= nodemeshsizeX) r_isx -= nodemeshsizeX;
         
                     // Ask a list of all nodes in this sublattice
-                    list<Node*>::iterator li1,li2,li3;
-                    list<Node* > *nodeList = &node_mesh[r_isx][r_isy][r_isz];
+                    list<DNode*>::iterator li1,li2,li3;
+                    list<DNode* > *nodeList = &node_mesh[r_isx][r_isy][r_isz];
                     li1 = nodeList->begin();
                     li2 = nodeList->end();
                     for (li3=li1; li3!=li2; li3++) {
-                        Node* probenode = *li3;
+                        DNode* probenode = *li3;
                         if(inode!=probenode->node_ID){ 
                             myvec probenodepos = probenode->node_position;
                             myvec differ = Periodicdistance(initnodepos,probenodepos,sim_box_size);

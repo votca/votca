@@ -39,14 +39,14 @@ void GraphCubic::Create_cubic_graph_nodes(int NX, int NY, int NZ, double lattice
     for(int ix=0; ix<NX; ix++) {
         for(int iy=0; iy<NY; iy++) {
             for(int iz=0; iz<NZ; iz++) {
-                Node *newNode = new Node();
-                AddNode(newNode);
+                DNode *newDNode = new DNode();
+                AddNode(newDNode);
 
-                newNode->node_ID = node_index;
-                newNode->node_type = Normal;
+                newDNode->node_ID = node_index;
+                newDNode->node_type = Normal;
                 
                 myvec nodeposition = myvec(front.x() + ix*lattice_constant,front.y() + iy*lattice_constant,front.z() + iz*lattice_constant);
-                newNode->node_position = nodeposition;
+                newDNode->node_position = nodeposition;
                 
                 node_index++;    
             }

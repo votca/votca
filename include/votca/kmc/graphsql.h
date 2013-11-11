@@ -42,22 +42,22 @@ void GraphSQL::Load_graph_segments(string filename) {
     
     while (stmt->Step() != SQLITE_DONE) {
         
-        Node *newNode = new Node();
-        AddNode(newNode);
+        DNode *newDNode = new DNode();
+        AddNode(newDNode);
 
-        newNode->node_ID  = stmt->Column<int>(0);
-        newNode->node_type = Normal;
+        newDNode->node_ID  = stmt->Column<int>(0);
+        newDNode->node_type = Normal;
         
         double positionX = stmt->Column<double>(1);
         double positionY = stmt->Column<double>(2);
         double positionZ = stmt->Column<double>(3);
         myvec node_position = myvec (positionX, positionY, positionZ);
-        newNode->node_position = node_position;
+        newDNode->node_position = node_position;
         
-        newNode->reorg_intorig_hole= stmt->Column<double>(4); // UnCnNe
-        newNode->reorg_intorig_electron = stmt->Column<double>(5); // UnCnNh
-        newNode->reorg_intdest_hole = stmt->Column<double>(6); // UnNcCe
-        newNode->reorg_intdest_electron = stmt->Column<double>(7); // UcNcCh
+        newDNode->reorg_intorig_hole= stmt->Column<double>(4); // UnCnNe
+        newDNode->reorg_intorig_electron = stmt->Column<double>(5); // UnCnNh
+        newDNode->reorg_intdest_hole = stmt->Column<double>(6); // UnNcCe
+        newDNode->reorg_intdest_electron = stmt->Column<double>(7); // UcNcCh
         
         double eAnion = stmt->Column<double>(8);
         double eNeutral = stmt->Column<double>(9);
@@ -69,15 +69,15 @@ void GraphSQL::Load_graph_segments(string filename) {
         double static_electron_node_energy = eCation + internal_energy_electron;
         double static_hole_node_energy = eAnion + internal_energy_hole;
 
-        newNode->eAnion = eAnion;
-        newNode->eNeutral = eNeutral;
-        newNode->eCation = eCation;
+        newDNode->eAnion = eAnion;
+        newDNode->eNeutral = eNeutral;
+        newDNode->eCation = eCation;
         
-        newNode->internal_energy_electron = internal_energy_electron;
-        newNode->internal_energy_hole = internal_energy_hole;
+        newDNode->internal_energy_electron = internal_energy_electron;
+        newDNode->internal_energy_hole = internal_energy_hole;
         
-        newNode->static_electron_node_energy = static_electron_node_energy;
-        newNode->static_hole_node_energy = static_hole_node_energy;
+        newDNode->static_electron_node_energy = static_electron_node_energy;
+        newDNode->static_hole_node_energy = static_hole_node_energy;
     }
   
     delete stmt;

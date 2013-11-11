@@ -55,12 +55,12 @@ public:
     void Initialize_longrange(GraphLattice* graph, Globaleventinfo* globevent);
         
 private:
-    void Initialize_injection_eventvector(Node* electrode, vector<Event*> eventvector, CarrierType cartype);
+    void Initialize_injection_eventvector(DNode* electrode, vector<Event*> eventvector, CarrierType cartype);
     void Grow_non_injection_eventvector(int carrier_grow_size, vector<Carrier*> carriers, int max_pair_degree);
 
-    void Add_remove_carrier(action AR, Carrier* carrier, GraphLattice* graph, Node* action_node, State* state, Globaleventinfo* globevent);
+    void Add_remove_carrier(action AR, Carrier* carrier, GraphLattice* graph, DNode* action_node, State* state, Globaleventinfo* globevent);
     void Effect_potential_and_non_injection_rates(action AR, Carrier* carrier, GraphLattice* graph, State* state, Globaleventinfo* globevent);
-    void Effect_injection_rates(action AR, GraphLattice* graph, Carrier* carrier, double dist_to_electrode, Node* electrode, Globaleventinfo* globevent);    
+    void Effect_injection_rates(action AR, GraphLattice* graph, Carrier* carrier, double dist_to_electrode, DNode* electrode, Globaleventinfo* globevent);    
     
     double Compute_Coulomb_potential(double startx, myvec dif, myvec sim_box_size, Globaleventinfo* globevent);
 };
@@ -74,8 +74,8 @@ void Events::On_execute(Event* event, GraphLattice* graph, State* state, Globale
     
     if(event->fromtype == Fromtransfer) {
         Carrier* carrier = event->carrier;
-        Node* fromnode = graph->nodes[carrier->carrier_node_ID]; 
-        Node* tonode = fromnode->pairing_nodes[event->tonode_ID];
+        DNode* fromnode = graph->nodes[carrier->carrier_node_ID]; 
+        DNode* tonode = fromnode->pairing_nodes[event->tonode_ID];
         Add_remove_carrier(Remove,carrier,graph,fromnode,state,globevent);
     
         if(event->totype == Totransfer) {
@@ -92,7 +92,7 @@ void Events::On_execute(Event* event, GraphLattice* graph, State* state, Globale
         }
     }
     else if(event->fromtype == Injection) {
-        Node* tonode = event->electrode->pairing_nodes[event->tonode_ID];
+        DNode* tonode = event->electrode->pairing_nodes[event->tonode_ID];
         
         if(event->totype == Totransfer) {
             int carrier_ID;
@@ -120,7 +120,7 @@ void Events::On_execute(Event* event, GraphLattice* graph, State* state, Globale
     }
 }
 
-void Events::Add_remove_carrier(action AR, Carrier* carrier,GraphLattice* graph, Node* action_node, State* state, Globaleventinfo* globevent){
+void Events::Add_remove_carrier(action AR, Carrier* carrier,GraphLattice* graph, DNode* action_node, State* state, Globaleventinfo* globevent){
 
     if(AR == Add) {
         carrier->carrier_node_ID = action_node->node_ID;
@@ -180,7 +180,7 @@ void Events::Effect_potential_and_non_injection_rates(action AR, Carrier* carrie
     if(carrier->carrier_type == Electron) {interact_sign *= -1;}
     if(carrier->carrier_type == Hole) {interact_sign *=1;}
     
-    Node* carnode = graph->nodes[carrier->carrier_node_ID];
+    DNode* carnode = graph->nodes[carrier->carrier_node_ID];
     
     //calculate the change to the longrange cache
     
@@ -233,7 +233,7 @@ void Events::Effect_potential_and_non_injection_rates(action AR, Carrier* carrie
                     int probecarrier_ID = *li3;
                     Carrier* probecarrier = state->carriers[probecarrier_ID];
                     CarrierType probecartype = probecarrier->carrier_type;
-                    Node* probenode = graph->nodes[probecarrier->carrier_node_ID];
+                    DNode* probenode = graph->nodes[probecarrier->carrier_node_ID];
                     myvec probepos = probenode->node_position;
 
                     int probecharge;
@@ -363,7 +363,7 @@ void Events::Effect_potential_and_non_injection_rates(action AR, Carrier* carrie
 }        
         
 void Events::Effect_injection_rates(action AR, GraphLattice* graph, Carrier* carrier, 
-                                                   double dist_to_electrode, Node* electrode, 
+                                                   double dist_to_electrode, DNode* electrode, 
                                                    Globaleventinfo* globevent) {
                                                    
     int interact_sign;
@@ -376,7 +376,7 @@ void Events::Effect_injection_rates(action AR, GraphLattice* graph, Carrier* car
     if(electrode->node_type == LeftElectrode) {x_mesh = 0;}
     if(electrode->node_type == RightElectrode) {x_mesh = graph->nodemeshsizeX-1;}
     
-    Node* carnode = graph->nodes[carrier->carrier_node_ID];
+    DNode* carnode = graph->nodes[carrier->carrier_node_ID];
     myvec carpos = carnode->node_position;
   
     double bound = sqrt(double(globevent->coulcut*globevent->coulcut - dist_to_electrode*dist_to_electrode));
@@ -402,12 +402,12 @@ void Events::Effect_injection_rates(action AR, GraphLattice* graph, Carrier* car
             while (r_isy >= graph->nodemeshsizeY) r_isy -= graph->nodemeshsizeY;
        
             // Ask a list of all nodes in this sublattice
-            list<Node*>::iterator li1,li2,li3;
-            list<Node*> *nodemesh = &graph->node_mesh[x_mesh][r_isy][r_isz];
+            list<DNode*>::iterator li1,li2,li3;
+            list<DNode*> *nodemesh = &graph->node_mesh[x_mesh][r_isy][r_isz];
             li1 = nodemesh->begin();
             li2 = nodemesh->end();
             for (li3=li1; li3!=li2; li3++) {
-                Node* probenode = *li3;
+                DNode* probenode = *li3;
                 myvec probepos = probenode->node_position;
           
                 // Compute coordinates in non-periodic lattice
@@ -542,7 +542,7 @@ void Events::Recompute_all_non_injection_events(GraphLattice* graph, State* stat
     int Event_map;
        
     for (int carrier_ID = 0; carrier_ID<state->carriers.size(); carrier_ID++) {
-        Node* carrier_node = graph->nodes[state->carriers[carrier_ID]->carrier_node_ID];
+        DNode* carrier_node = graph->nodes[state->carriers[carrier_ID]->carrier_node_ID];
         for (int ipair = 0; ipair < carrier_node->pairing_nodes.size();ipair++){
             
             Event_map = carrier_ID*graph->max_pair_degree + ipair;
@@ -643,7 +643,7 @@ void Events::Initialize_eventvector(GraphLattice* graph, State* state, Globaleve
     }
 }
 
-void Events::Initialize_injection_eventvector(Node* electrode, vector<Event*> eventvector, CarrierType cartype){
+void Events::Initialize_injection_eventvector(DNode* electrode, vector<Event*> eventvector, CarrierType cartype){
 
     for (int inject_node = 0; inject_node<electrode->pairing_nodes.size(); inject_node++) {
 
