@@ -5,8 +5,33 @@ c     DL_POLY wrapper-routines needed for minimalistic I/O for
 c     CONFIG, FIELD & HISTORY files (wrappers for VOTCA calls) 
 c     NOTE: maximum length of strings is defined by lenrec=255 (parse_module.f)
 c     
-c     copyright - daresbury laboratory 2013
-c     author    - Andrey Brukhno  July 2013
+c copyright (c) 2013, daresbury laboratory
+c     author    - andrey brukhno  july 2013
+c all rights reserved.
+c 
+c redistribution and use in source and binary forms, with or without
+c modification, are permitted provided that the following conditions are met:
+c 
+c 1. redistributions of source code must retain the above copyright notice,
+c    this list of conditions and the following disclaimer.
+c 2. redistributions in binary form must reproduce the above copyright
+c    notice, this list of conditions and the following disclaimer in the
+c    documentation and/or other materials provided with the distribution.
+c 3. neither the name of the <organization> nor the names of its
+c    contributors may be used to endorse or promote products derived from
+c    this software without specific prior written permission.
+c 
+c this software is provided by the copyright holders and contributors "as is"
+c and any express or implied warranties, including, but not limited to, the
+c implied warranties of merchantability and fitness for a particular purpose
+c are disclaimed. in no event shall the copyright owner or contributors be
+c liable for any direct, indirect, incidental, special, exemplary, or
+c consequential damages (including, but not limited to, procurement of
+c substitute goods or services; loss of use, data, or profits; or business
+c interruption) however caused and on any theory of liability, whether in
+c contract, strict liability, or tort (including negligence or otherwise)
+c arising in any way out of the use of this software, even if advised of the
+c possibility of such damage.
 c     
 c***********************************************************************
 
