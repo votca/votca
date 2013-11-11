@@ -15,41 +15,32 @@
  *
  */
 
-#ifndef _VOTCA_KMC_LINK_H
-#define	_VOTCA_KMC_LINK_H
+#ifndef _VOTCA_KMC_NODE_H
+#define	_VOTCA_KMC_NODE_H
 
 #include <votca/tools/vec.h>
+#include <votca/kmc/link.h>
 
 namespace votca { namespace kmc {
 
-enum CarrierType{ Electron, Hole, Exciton };    
-    
-/**
- * \brief A link between two nodes
- * 
- * Container for pair properties: rates, couplings, separation 
- * 
- */
-class Link
+class Node
 {
-
 public:
-    /// r2 - r1
-    const votca::tools::vec &r12() const { return r12; }    
-    
-    /// forward and backward rates
-    const double &rate12() const { return rate12; }
-    const double &rate21() const { return rate21; }
-    
+        /// adds a link to a Node
+        AddLink( Link* link ) { links.push_back(link); }
+
 private:
-    /// forward and backward rates
-    double rate12;
-    double rate21;
+
+    int id;
+    int type;
+    double occupation_time;
+    votca::tools::vec position;
     
-    /// r2 - r1
-    votca::tools::vec r12;       
+    vector< Link* > links;
 };
 
-}} 
 
-#endif // _VOTCA_KMC_LINK_H
+}}
+
+#endif	/* _VOTCA_KMC_NODE_H */
+
