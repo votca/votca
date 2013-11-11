@@ -15,6 +15,7 @@
       <itemPath>../../include/votca/kmc/ImagePotential.h</itemPath>
       <itemPath>../../include/votca/kmc/bsumtree.h</itemPath>
       <itemPath>../../include/votca/kmc/carrier.h</itemPath>
+      <itemPath>../../include/votca/kmc/dnode.h</itemPath>
       <itemPath>../../include/votca/kmc/event.h</itemPath>
       <itemPath>../../include/votca/kmc/events.h</itemPath>
       <itemPath>../../include/votca/kmc/globaleventinfo.h</itemPath>
@@ -95,6 +96,8 @@
       <item path="../../include/votca/kmc/bsumtree.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/kmc/carrier.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/dnode.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/kmc/event.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -241,6 +244,8 @@
       <item path="../../include/votca/kmc/bsumtree.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/kmc/carrier.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/dnode.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/kmc/event.h" ex="false" tool="3" flavor2="0">
       </item>

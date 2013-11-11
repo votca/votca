@@ -19,7 +19,7 @@
 #define __VOTCA_KMC_GRAPH_H_
 
 #include <vector>
-#include <votca/kmc/dnode.h>
+#include <votca/kmc/node.h>
 
 namespace votca { namespace kmc {
   
@@ -29,27 +29,24 @@ public:
      Graph() {};
      
     ~Graph() {
-        std::vector<DNode*>::iterator it;
-        for (it = nodes.begin(); it != nodes.end(); it++ ) delete *it;
+        std::vector<Node*>::iterator it;
+        for (it = _nodes.begin(); it != _nodes.end(); it++ ) delete *it;
     };   
     
     /// Add a node to the Graph
-    void AddNode(DNode* node) { nodes.push_back(node); }
+    void AddNode(Node* node) { _nodes.push_back(node); }
     
-    void Print(std::ostream& outstream){
-        std::vector<DNode*>::iterator it;
-        /*for (it = nodes.begin(); it != nodes.begin()+10; it++ ) std::cout << (*it)->node_ID << " " << (*it)->node_position << " " 
-                << (*it)->reorg_intorig_hole << " " << (*it) ->reorg_intorig_electron << " "
-                << (*it)->reorg_intdest_hole << " " << (*it) ->reorg_intdest_electron << " "
-                << (*it)->eAnion << " " << (*it) ->eNeutral << " " << (*it) ->eCation << " "
-                << (*it)->internal_energy_electron << " " << (*it) ->internal_energy_hole << " "
-                << (*it)->static_electron_node_energy << " " << (*it)->static_hole_node_energy                   
-                << endl;   */
-          for (it = nodes.begin(); it != nodes.end(); it++ ) std::cout << (*it)->node_ID << " " << (*it)->node_position << endl;    
+    void Print(std::ostream& out){
+        std::vector<Node*>::iterator it;
+          for (it = _nodes.begin(); it != _nodes.end(); it++ ) (*it)->Print(out);    
     }
     
+    /// initialize nodes and links
+    virtual void Initialize() = 0;
+    
 private:
-    std::vector<DNode*> nodes;
+    std::vector<Node*> _nodes;
+    std::vector<Link*> _links;
     
 };
 

@@ -27,16 +27,26 @@ class Node
 {
 public:
         /// adds a link to a Node
-        AddLink( Link* link ) { links.push_back(link); }
+        void AddLink( Link* link ) { _links.push_back(link); }
+        /// link ID - syncing with the pair ID 
+        const int &id() const { return _id; } 
+        /// type
+        const int &type() const { return _type; } 
+        /// position (nm))
+        const votca::tools::vec &position() const { return _position; } 
+        /// print Node info
+        virtual void Print( std::ostream &out ) {
+            vector< Link* >::iterator it;
+            for (it = _links.begin(); it != _links.end(); it++ ) (*it)->Print( out );
+        }
+  
+protected:
 
-private:
-
-    int id;
-    int type;
-    double occupation_time;
-    votca::tools::vec position;
+    int _id;
+    int _type;
+    votca::tools::vec _position;
     
-    vector< Link* > links;
+    vector< Link* > _links;
 };
 
 

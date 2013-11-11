@@ -37,7 +37,7 @@ class Diode : public KMCCalculator
 {
 public:
     
-    GraphCubic* graph;
+    Graph* graph;
     State* state;
     Events* events;
     Vssmgroup* vssmgroup;
@@ -86,10 +86,18 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
                        options->get("options.diode.graph_back_y").as<double>(),
                        options->get("options.diode.graph_back_z").as<double>());    
     
+    /*
     graph = new GraphCubic();
     graph->Create_cubic_graph_nodes(nx, ny, nz, lattice_constant, graph_front, graph_back);
     graph->Print(std::cout);
     delete graph;    
+    */
+
+    graph = new GraphSQL();
+    graph->Initialize();
+    graph->Print(std::cout);
+    delete graph;    
+    
     
     exit(0);
     

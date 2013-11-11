@@ -27,11 +27,18 @@ class GraphSQL : public Graph {
 
 public:
    
+    void Initialize();
+    
     void Load_graph_segments(string filename);
     void Load_graph_pairs(string filename);
     void Load_graph_static_event_info(string filename);
     
+    
 };
+
+void GraphSQL::Initialize(){
+    ;
+}
 
 void GraphSQL::Load_graph_segments(string filename) {
     

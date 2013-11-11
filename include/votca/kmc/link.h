@@ -22,32 +22,46 @@
 
 namespace votca { namespace kmc {
 
-enum CarrierType{ Electron, Hole, Exciton };    
-    
+class Node;
+
 /**
  * \brief A link between two nodes
  * 
- * Container for pair properties: rates, couplings, separation 
+ * Container for pair properties: rates, couplings, separations 
  * 
  */
 class Link
 {
 
 public:
+    
+    const int &Id() const { return _id; }
+    
     /// r2 - r1
-    const votca::tools::vec &r12() const { return r12; }    
+    const votca::tools::vec &r12() const { return _r12; }    
     
     /// forward and backward rates
-    const double &rate12() const { return rate12; }
-    const double &rate21() const { return rate21; }
+    const double &rate12() const { return _rate12; }
+    const double &rate21() const { return _rate21; }
+    
+    // print Link info
+    virtual void Print(std::ostream &out) {
+        out << _id ;
+    }
     
 private:
+    
+    int _id;
+    
+    Node *node1;
+    Node *node2;
+    
     /// forward and backward rates
-    double rate12;
-    double rate21;
+    double _rate12;
+    double _rate21;
     
     /// r2 - r1
-    votca::tools::vec r12;       
+    votca::tools::vec _r12;       
 };
 
 }} 
