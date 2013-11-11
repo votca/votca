@@ -118,6 +118,20 @@ namespace votca { namespace tools {
      */
     bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V );
     
+    
+   /**
+     * \brief eigenvalues of a symmetric matrix A*x=E*x
+     * @param E vector of eigenvalues
+     * @param V input: matrix to diagonalize
+     * @param V output: eigenvectors      
+     * 
+     * This function wrapps gsl_eigen_symmv
+     * note that the eigenvalues/eigenvectors are UNSORTED 
+     * 
+     */
+    bool linalg_eigenvalues( ub::vector<double> &E, ub::matrix<double> &V );
+    
+    
 }}
 
 

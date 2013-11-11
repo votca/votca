@@ -31,6 +31,39 @@ namespace votca { namespace tools {
 using namespace std;
 
 
+void linalg_invert( ub::matrix<double> &A, ub::matrix<double> &V){
+    
+#ifdef NOGSL
+    throw std::runtime_error("linalg_invert is not compiled-in due to disabling of GSL - recompile Votca Tools with GSL support");
+#else
+        // matrix inversion using gsl
+        // problem: after inversion, original matrix is overwritten!
+        gsl_error_handler_t *handler = gsl_set_error_handler_off();
+	const size_t N = A.size1();
+	// signum s (for LU decomposition)
+	int s;
+
+        V.resize(N, N, false);
+        
+	// Define all the used matrices
+        gsl_matrix_view A_view = gsl_matrix_view_array(&A(0,0), N, N);
+        gsl_matrix_view V_view = gsl_matrix_view_array(&V(0,0), N, N);
+	gsl_permutation * perm = gsl_permutation_alloc (N);
+        
+	// Make LU decomposition of matrix A_view
+	gsl_linalg_LU_decomp (&A_view.matrix, perm, &s);
+
+	// Invert the matrix A_view
+	int status = gsl_linalg_LU_invert (&A_view.matrix, perm, &V_view.matrix);
+
+        gsl_set_error_handler(handler);
+        
+	// return (status != 0);
+    
+#endif   
+}
+
+
 void linalg_transpose( ub::matrix<double> &A, ub::matrix<double> &V){
     
 #ifdef NOGSL

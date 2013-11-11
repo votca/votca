@@ -129,18 +129,6 @@ public:
      */
     void StopExecution() { _continue_execution = false; }
 
-    /// length of the output help
-    enum HelpType{ HelpShort, HelpLong };
-
-    /**
-     * \brief Print long/short descriptions of calculators
-     * 
-     * @param calculator_name name of a calculator
-     * @param help_path path in VOTCASHARE were xml file with help is stored
-     * @param helptype long or short (with options) help
-     */
-    void PrintDescription(std::ostream &out, const string &calculator_name, const string help_path, HelpType helptype );
-    
 protected:
     /// Variable map containing all program options
     boost::program_options::variables_map _op_vm;
