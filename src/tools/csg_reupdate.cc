@@ -693,27 +693,35 @@ PotentialInfo::PotentialInfo(int index, bool bonded_, int vec_pos_,
 
     string core = _options->get("re.cbspl.core").as<string>();
 
-    /*
+
     // determine minimum for B-spline from CG-MD rdf
+    double new_min = 0.0;
     Table dist;
     string filename = potentialName + ".dist.new";
-    dist.Load(filename);
-    double new_min;
 
-    for( int i = 0; i < dist.size(); i++){
+    try{
 
-      if(dist.y(i) > 1.0e-3){
+      dist.Load(filename);
+      for( int i = 0; i < dist.size(); i++){
 
-        new_min = dist.x(i);
-        break;
+        if(dist.y(i) > 1.0e-3){
+
+          new_min = dist.x(i);
+          break;
+
+        }
 
       }
 
-    }
+      if(new_min > rmin)
+        rmin = new_min;
 
-    if(new_min > rmin)
-      rmin = new_min;
-    */
+    }catch(std::runtime_error){
+
+      cout << "Missing file for CG rdf for the interaction "  << potentialName << endl;
+      cout << "Hence, using user specified rmin = " << rmin << endl;
+
+    }
 
     ucg = new PotentialFunctionCBSPL(potentialName, nlam, core, rmin, rcut);
 

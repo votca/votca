@@ -79,25 +79,25 @@ void PotentialFunction::SavePotTab(const string& filename,
 
   double r_init;
   int i;
-  char flag;
+  char flag = 'i';
 
   for (r_init = rmin, i = 0; i < ngrid - 1; r_init += step) {
 
     // put point, result, flag at point out_x into the table
 
-    if( r_init < _min || r_init > _cut_off )
-      flag = 'o';
-    else
-      flag = 'i';
+    //if( r_init < _min || r_init > _cut_off )
+    //flag = 'o';
+    //else
+    //flag = 'i';
 
     pot_tab.set(i++, r_init, CalculateF(r_init), flag);
 
   }
 
-  if( rcut < _min || rcut > _cut_off )
-    flag = 'o';
-  else
-    flag = 'i';
+  //  if( rcut < _min || rcut > _cut_off )
+  //    flag = 'o';
+  //  else
+  //    flag = 'i';
 
   pot_tab.set(i, rcut, CalculateF(rcut), flag);
 
