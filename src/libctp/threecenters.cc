@@ -37,17 +37,16 @@
 using namespace std;
 using namespace votca::tools;
 
-namespace votca {
-    namespace ctp {
-        namespace ub = boost::numeric::ublas;
+namespace votca {  namespace ctp {
+namespace ub = boost::numeric::ublas;
 
         
         void TCMatrix::Symmetrize( const ub::matrix<double>& _coulomb ){
             // cout << "lala" << endl;
             
             for ( int _i_occ = 0; _i_occ < this->get_mtot(); _i_occ++ ){
-
-                this->_matrix( _i_occ ) = ub::prod(_coulomb, this->_matrix( _i_occ ) );
+                //POTENTIALLY A BUG
+                _matrix[ _i_occ ] = ub::prod(_coulomb, _matrix[ _i_occ ] );
 
             }
             
@@ -62,7 +61,7 @@ namespace votca {
         void TCMatrix::Fill(AOBasis& _gwbasis, AOBasis& _dftbasis, ub::matrix<double>& _dft_orbitals) {
 
             
-            ub::vector< ub::matrix<double> > _block( this->get_mtot() );
+            std::vector< ub::matrix<double> > _block( this->get_mtot() );
             
             
             // loop over all shells in the GW basis and get _Mmn for that shell
@@ -74,7 +73,7 @@ namespace votca {
        
                 // each element is a shell_size-by-n matrix, initialize to zero
                 for ( int i = 0; i < this->get_mtot() ; i++){
-                    _block(i) = ub::zero_matrix<double>( _shell->getNumFunc() ,this->get_ntot());
+                    _block[i] = ub::zero_matrix<double>( _shell->getNumFunc() ,this->get_ntot());
                 }
                 
                                 
@@ -88,7 +87,7 @@ namespace votca {
                         for ( int _n_band = 0; _n_band < this->get_ntot(); _n_band++){
                             
                 
-                            this->_matrix( _m_band )( _start + _i_gw , _n_band ) = _block( _m_band )( _i_gw , _n_band );
+                            _matrix[_m_band]( _start + _i_gw , _n_band ) = _block[_m_band]( _i_gw , _n_band );
                             
                             
                             
@@ -102,7 +101,7 @@ namespace votca {
         }
         
         // new storage test!
-        void TCMatrix::FillBlock(ub::vector<  ub::matrix<double> >& _block, AOShell* _shell, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals) {
+        void TCMatrix::FillBlock(std::vector<  ub::matrix<double> >& _block, AOShell* _shell, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals) {
 
            // cout << TimeStamp() << "  ... get the matrices for GW basis block of type " << _shell->getType() << endl;
 
@@ -169,7 +168,7 @@ namespace votca {
                 for (int _i_gw = 0; _i_gw < _shell->getNumFunc(); _i_gw++) {
                     int _midx = _shell->getNumFunc() *(_m_band - this->mmin) + _i_gw;
                     for (int _n_band = 0; _n_band < this->ntotal; _n_band++) {
-                        _block(_m_band)(_i_gw, _n_band) = _temp(_midx, _n_band);
+                        _block[_m_band](_i_gw, _n_band) = _temp(_midx, _n_band);
 //                          cout << "MNb  [" << _i_gw << ":" << _m_band << ":" << _n_band << "] =" << _block(_i_gw)( _m_band, _n_band ) << endl;
                     }
                 }
@@ -2518,9 +2517,9 @@ namespace votca {
         void TCMatrix::Print(string _ident) {
             cout << "\n" << endl;
             for (int k = 0; k < this->mtotal; k++){
-                    for (int i = 0; i< this->_matrix(1).size1() ; i++) {
+                    for (int i = 0; i< _matrix[1].size1() ; i++) {
                         for (int j = 0; j< this->ntotal; j++) {
-                           cout << _ident << "[" << i+1 << ":" << k + 1 << ":" << j + 1 << "] " << this->_matrix(k)(i, j) << endl;
+                           cout << _ident << "[" << i+1 << ":" << k + 1 << ":" << j + 1 << "] " << this->_matrix[k](i, j) << endl;
                         }
                 }
             }

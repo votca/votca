@@ -42,7 +42,16 @@ namespace votca { namespace ctp {
     class TCMatrix {
     public:
     
-        ub::vector< ub::matrix<double> >& matrix() { return this->_matrix ; }
+        /// returns one level as a constant reference
+        const ub::matrix<double>& operator[](const int i) const { return _matrix[i]; }
+        //const ub::matrix<double>& M_bn( const int m) const { return _matrix[m]; }
+        /// returns one level as a reference
+        ub::matrix<double>& operator[](const int i) { return _matrix[i]; }
+        //ub::matrix<double>& M_bn( const int m) { return _matrix[m]; }
+        
+        int size() {  return _matrix.size(); }
+        
+        //ub::vector< ub::matrix<double> >& matrix() { return this->_matrix ; }
 
         int get_mmin() { return this->mmin ;}
         int get_mmax() { return this->mmax ;}
@@ -84,11 +93,11 @@ namespace votca { namespace ctp {
 
             
             // vector has mtotal elements
-            this->_matrix.resize( this->get_mtot() );
+            _matrix.resize( this->get_mtot() );
             
             // each element is a gwabasis-by-n matrix, initialize to zero
             for ( int i = 0; i < this->get_mtot() ; i++){
-                this->_matrix(i) = ub::zero_matrix<double>(_basissize,ntotal);
+                _matrix[i] = ub::zero_matrix<double>(_basissize,ntotal);
             }
 
 
@@ -107,7 +116,7 @@ namespace votca { namespace ctp {
     private:
         
         // store vector of matrices
-        ub::vector< ub::matrix<double> > _matrix;
+        std::vector< ub::matrix<double> > _matrix;
         
         // band summation indices
         int mmin;
@@ -124,7 +133,7 @@ namespace votca { namespace ctp {
         
         // void FillBlock(ub::vector_range< ub::vector< ub::matrix<double> > >& _matrix,  AOShell* _shell, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals ) ;
         
-        void FillBlock(ub::vector< ub::matrix<double> >& _matrix,  AOShell* _shell, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals ) ;
+        void FillBlock(std::vector< ub::matrix<double> >& _matrix,  AOShell* _shell, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals ) ;
         
         bool FillThreeCenterOLBlock(  ub::matrix<double> & _subvector, AOShell* _shell, AOShell* _shell_row, AOShell* _shell_col);
 

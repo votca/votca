@@ -158,8 +158,8 @@ private:
     ub::matrix<double> _sigma_c; // correlation term
     
     void sigma_prepare_threecenters( TCMatrix& _Mmn );
-    void sigma_x_setup( TCMatrix& _Mmn );
-    void sigma_c_setup( TCMatrix& _Mmn , ub::vector<double>& _edft );
+    void sigma_x_setup(const TCMatrix& _Mmn );
+    void sigma_c_setup(const TCMatrix& _Mmn , const ub::vector<double>& _edft );
     
     // QP variables and functions
     ub::vector<double> _qp_energies;
@@ -175,8 +175,8 @@ private:
     ub::matrix<double> _bse_singlet_coefficients;
     ub::vector<double> _bse_triplet_energies;
     ub::matrix<double> _bse_triplet_coefficients;
-    void BSE_x_setup( TCMatrix& _Mmn );
-    void BSE_d_setup( TCMatrix& _Mmn );
+    void BSE_x_setup(const TCMatrix& _Mmn );
+    void BSE_d_setup(const TCMatrix& _Mmn );
     void BSE_solve_triplets();
     void BSE_solve_singlets();
     
