@@ -100,7 +100,7 @@ namespace votca { namespace ctp {
         // matrix print 
         void Print( string _ident);
 
-        void Symmetrize( ub::matrix<double>& coulomb  );
+        void Symmetrize( const ub::matrix<double>& coulomb  );
 
         ub::matrix<double> matrixProd( int m, ub::matrix<double>& matrix);
         

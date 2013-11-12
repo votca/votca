@@ -239,6 +239,11 @@ namespace votca { namespace ctp {
 
         //cout << _ol.size1() << ":" << _ol.size2() << endl;
         
+        /* FOR CONTRACTED FUNCTIONS, ADD LOOP OVER ALL DECAYS IN CONTRACTION
+         * MULTIPLY THE TRANSFORMATION MATRICES BY APPROPRIATE CONTRACTION 
+         * COEFFICIENTS, AND ADD TO matrix(i,j)
+         */
+        
         // get decay constants (this all is still valid only for uncontracted functions)
         const double& _decay_row = (*_shell_row->firstGaussian())->decay;
         const double& _decay_col = (*_shell_col->firstGaussian())->decay;
@@ -6922,9 +6927,7 @@ ndif
             // multiply with L from the left and L+ from the right
             _temp = ub::prod( _gwoverlap_cholesky._aomatrix , this->_aomatrix );
             
-            // boost standard, nesting prod and trans is superslow 
-            // this->_aomatrix = ub::prod( _temp , ub::trans( _gwoverlap_cholesky._aomatrix ) );
-
+            
             ub::matrix<double> _gwoverlap_cholesky_transposed = ub::trans( _gwoverlap_cholesky._aomatrix );
             this->_aomatrix = ub::prod( _temp ,_gwoverlap_cholesky_transposed);
             

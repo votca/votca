@@ -131,6 +131,7 @@ private:
     unsigned int                        _bse_size;
     unsigned int                        _bse_vtotal;
     unsigned int                        _bse_ctotal;
+    int                                 _bse_nmax;
          
     double                              _shift;  // pre-shift of DFT energies
     
@@ -140,7 +141,7 @@ private:
     ub::vector< ub::matrix<double> > _epsilon;
     // container for frequencies in screening (index 0: real part, index 1: imaginary part)
     ub::matrix<double> _screening_freq;
-    
+    void symmetrize_threecenters(TCMatrix& _Mmn, ub::matrix<double>& _coulomb);
     void RPA_calculate_epsilon( TCMatrix& _Mmn_RPA , ub::matrix<double> _screening_freq , double _shift , ub::vector<double>& _dft_energies  );
     void RPA_prepare_threecenters( TCMatrix& _Mmn_RPA, TCMatrix& _Mmn_full, AOBasis& gwbasis, AOMatrix& gwoverlap, AOMatrix& gwoverlap_inverse     );
 

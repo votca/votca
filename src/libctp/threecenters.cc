@@ -42,7 +42,7 @@ namespace votca {
         namespace ub = boost::numeric::ublas;
 
         
-        void TCMatrix::Symmetrize( ub::matrix<double>& _coulomb ){
+        void TCMatrix::Symmetrize( const ub::matrix<double>& _coulomb ){
             // cout << "lala" << endl;
             
             for ( int _i_occ = 0; _i_occ < this->get_mtot(); _i_occ++ ){
@@ -51,8 +51,12 @@ namespace votca {
 
             }
             
+           
         }
 
+        
+        
+        
         
         
         void TCMatrix::Fill(AOBasis& _gwbasis, AOBasis& _dftbasis, ub::matrix<double>& _dft_orbitals) {

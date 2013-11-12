@@ -36,7 +36,7 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 ########################################################################
 #Find external packages
 ########################################################################
-find_package(Boost 1.39.0 REQUIRED COMPONENTS program_options serialization filesystem )
+find_package(Boost 1.39.0 REQUIRED COMPONENTS program_options serialization filesystem  )
 include_directories(${Boost_INCLUDE_DIRS})
 set (BOOST_LIBRARIES ${Boost_THREAD_LIBRARY} ${Boost_PROGRAM_OPTIONS_LIBRARY} ${Boost_SERIALIZATION_LIBRARY} ${Boost_FILESYSTEM_LIBRARY} )
 set (BOOST_CFLAGS_PKG "-I${Boost_INCLUDE_DIRS}")
@@ -60,6 +60,7 @@ if (WITH_LINALG)
   find_package(Eigen)
   find_package(GSL)
   find_package(MKL)
+
 
   if (EIGEN_FOUND) 
     message("-- EIGEN found (not used at the moment)")

@@ -20,8 +20,6 @@
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/ctp/votca_ctp_config.h>
 
-#include "mkl.h"
-#include "mkl_lapacke.h"
 
 
 #include "gwbse.h"
@@ -62,6 +60,7 @@ namespace votca {
             _do_bse_triplets = false;
             _ranges          = "default";
             _store_qp_pert   = true;
+            // _bse_nmax        = 100;
             
             string key = "options." + Identify() + ".job";
             _jobfile = options->get(key + ".file").as<string>();
@@ -90,6 +89,9 @@ namespace votca {
                 cerr << "\nSpecified range option " << _ranges << " invalid. ";
                 throw std::runtime_error("\nValid options are: default,factor,explicit");
             }
+            
+            _bse_nmax      = options->get(key + ".exctotal").as<int> ();
+            
             
             _gwbasis_name  = options->get(key + ".gwbasis").as<string> ();
             _dftbasis_name = options->get(key + ".dftbasis").as<string> ();
@@ -214,10 +216,13 @@ namespace votca {
             _bse_ctotal = _bse_cmax - _bse_cmin +1 ;
             _bse_size   = _bse_vtotal * _bse_ctotal;
 
+            
             // some QP - BSE consistency checks are required
             if ( _bse_vmin < _qpmin ) _qpmin = _bse_vmin;
             if ( _bse_cmax < _qpmax ) _qpmax = _bse_cmax;
             _qptotal = _qpmax - _qpmin +1 ;
+            if ( _bse_nmax > _bse_size || _bse_nmax < 0 ) _bse_nmax = _bse_size;
+
             
                     
             LOG(logDEBUG, *pLog) << TimeStamp() << " Set RPA level range [" << _rpamin +1 << ":" << _rpamax +1 << "]" << flush;
@@ -297,15 +302,13 @@ namespace votca {
             // _gwcoulomb.PrintIndexToFunction( &aobasis );
 
             
- 
-            
-            
+           
             
             // check eigenvalues of overlap matrix
             ub::vector<double> _eigenvalues;
             ub::matrix<double> _eigenvectors;
-            _eigenvalues.resize(_gwoverlap._aomatrix.size1());
-            _eigenvectors.resize(_gwoverlap._aomatrix.size1(), _gwoverlap._aomatrix.size1());
+            // _eigenvalues.resize(_gwoverlap._aomatrix.size1());
+            // _eigenvectors.resize(_gwoverlap._aomatrix.size1(), _gwoverlap._aomatrix.size1());
             linalg_eigenvalues(_gwoverlap._aomatrix, _eigenvalues, _eigenvectors);
             // cout << _eigenvalues << endl;
             sort(_eigenvalues.begin(), _eigenvalues.end());
@@ -346,17 +349,19 @@ namespace votca {
             TCMatrix _Mmn_RPA;
             _Mmn_RPA.Initialize(gwbasis._AOBasisSize, _rpamin, _homo , _homo +1 , _rpamax);
             RPA_prepare_threecenters( _Mmn_RPA, _Mmn, gwbasis, _gwoverlap, _gwoverlap_inverse );
-            
+            LOG(logDEBUG, *pLog) << TimeStamp() << " Prepared Mmn_beta for RPA  " << flush;
 
             // TODO: now, we can get rid of _gwoverlap_inverse
             // make _Mmn_RPA symmetric for use in RPA
             _Mmn_RPA.Symmetrize( _gwcoulomb._aomatrix  );
-            LOG(logDEBUG, *pLog) << TimeStamp() << " Prepared Mmn_beta for RPA  " << flush;
+            //symmetrize_threecenters(_Mmn_RPA ,  _gwcoulomb._aomatrix);
+            LOG(logDEBUG, *pLog) << TimeStamp() << " Symmetrize Mmn_beta for RPA  " << flush;
             // _Mmn_RPA.Print( "Mmn_RPA" );
             
             // make _Mmn symmetric for use in self-energy calculation
             _Mmn.Symmetrize( _gwcoulomb._aomatrix  );
-            LOG(logDEBUG, *pLog) << TimeStamp() << " Prepared Mmn_beta for self-energy  " << flush;
+            //symmetrize_threecenters(_Mmn ,  _gwcoulomb._aomatrix);
+            LOG(logDEBUG, *pLog) << TimeStamp() << " Symmetrize Mmn_beta for self-energy  " << flush;
 
 
             // fix the frequencies for PPM
@@ -402,7 +407,7 @@ namespace votca {
             // calculate correlation part of sigma
             sigma_c_setup( _Mmn, _dft_energies   );
             LOG(logDEBUG, *pLog) << TimeStamp() << " Calculated correlation part of Sigma  " << flush;
-
+ 
             /* One could also save the qp_energies directly to the orbitals object...
                        // now copy energies in map into orbitals object matrix
             (_orbitals->_QPpert_energies).resize( _levels, 5 );
@@ -506,6 +511,22 @@ namespace votca {
             return jres;
         }
 
+
+
+
+        void GWBSE::symmetrize_threecenters(TCMatrix& _Mmn, ub::matrix<double>& _coulomb){
+    
+            for ( int _m_band = 0 ; _m_band < _Mmn.get_mtot(); _m_band++ ){
+                // get Mmn for this _m_band
+                // ub::matrix<double> _temp = ub::trans(  _Mmn.matrix()( _m_band )   );
+                // and multiply with _ppm_phi = eigenvectors of epsilon
+                _Mmn.matrix()( _m_band ) = ub::prod(  _coulomb , _Mmn.matrix()( _m_band ) );
+                
+            }
+            
+
+        }      
+
         
              
         void GWBSE::BSE_solve_triplets(){
@@ -541,16 +562,16 @@ namespace votca {
             }
             
             
-            _bse_triplet_energies.resize(_bse.size1());
-            _bse_triplet_coefficients.resize(_bse.size1(), _bse.size1());
-            linalg_eigenvalues(_bse, _bse_triplet_energies, _bse_triplet_coefficients);
             
+            linalg_eigenvalues( _bse, _bse_triplet_energies, _bse_triplet_coefficients, _bse_nmax);
         }
         
         void GWBSE::BSE_solve_singlets(){
             
             ub::matrix<double> _bse = -_eh_d + 2.0 * _eh_x;
-                      // add full QP Hamiltonian contributions to free transitions
+
+
+            // add full QP Hamiltonian contributions to free transitions
             for ( size_t _v1 = 0 ; _v1 < _bse_vtotal ; _v1++){
                 for ( size_t _c1 = 0 ; _c1 < _bse_ctotal ; _c1++){
                     size_t _index_vc = _bse_ctotal * _v1 + _c1;
@@ -578,12 +599,11 @@ namespace votca {
                 }
             }
             
+            // _bse_singlet_energies.resize(_bse_singlet_coefficients.size1());
+            int nmax = 100;
+            linalg_eigenvalues(_bse, _bse_singlet_energies, _bse_singlet_coefficients, _bse_nmax);
             
-            _bse_singlet_energies.resize(_bse.size1());
-            _bse_singlet_coefficients.resize(_bse.size1(), _bse.size1());
-            linalg_eigenvalues(_bse, _bse_singlet_energies, _bse_singlet_coefficients);
-            
-            
+          //  cout << TimeStamp() << " with GSL " << endl;
         }
         
         
@@ -635,6 +655,7 @@ namespace votca {
             
             
             // finally resort into _eh_d and multiply by to for Rydbergs
+            // can be limited to upper diagonal !
             _eh_d = ub::zero_matrix<double>( _bse_size , _bse_size );
             for ( size_t _v1 = 0 ; _v1 < _bse_vtotal ; _v1++){
                 for ( size_t _v2 = 0 ; _v2 < _bse_vtotal ; _v2++){
