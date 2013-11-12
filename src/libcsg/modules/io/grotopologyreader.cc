@@ -33,7 +33,7 @@ bool GROTopologyReader::ReadTopology(string file, Topology &top)
     
     fl.open(file.c_str());
     if(!fl.is_open())
-        return false;
+      throw std::runtime_error("Could not open file: " + file);
 
     string title;
     getline(fl, title);
