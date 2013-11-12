@@ -38,6 +38,12 @@ public:
     /// forward and backward rates
     const double &rate12() const { return _rate12; }
     const double &rate21() const { return _rate21; }
+    
+    /// square of effective transfer integral
+    const double &jeff2() const { return _jeff2; }
+    
+    /// outer reorganization energy
+    const double &lambda0() const { return _lambda0; }
 
 private:
 
@@ -45,7 +51,9 @@ private:
     /// forward and backward rates
     double _rate12;
     double _rate21;
-
+    double _jeff2;
+    double _lambda0;
+    
 };
 
 }} 

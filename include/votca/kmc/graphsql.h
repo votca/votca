@@ -89,8 +89,8 @@ inline void GraphSQL::Load_graph_links (string filename) {
         Link* newLink = new Link();
         init_node->AddLink(newLink);
         
-        newLink->setnode1(init_node);
-        newLink->setnode2(final_node);
+        newLink->Setnode1(init_node);
+        newLink->Setnode2(final_node);
 
     }
         
