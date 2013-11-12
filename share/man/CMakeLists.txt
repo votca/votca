@@ -1,5 +1,5 @@
 if (BUILD_MANPAGES)
   add_custom_target(votca_tools_manpages DEPENDS votca-tools.man)
   add_dependencies(manpages votca_tools_manpages)
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/votca-tools.man DESTINATION ${MAN}/man7 RENAME votca-tools.7)
+  install(FILES votca-tools.man DESTINATION ${MAN}/man7 RENAME votca-tools.7)
 endif (BUILD_MANPAGES)
