@@ -14,12 +14,14 @@
       <itemPath>../../include/votca/tools/datacollection.h</itemPath>
       <itemPath>../../include/votca/tools/getline.h</itemPath>
       <itemPath>../../include/votca/tools/globals.h</itemPath>
+      <itemPath>../../../ctp/include/votca/ctp/gsl_boost_ublas_matrix_prod.h</itemPath>
       <itemPath>../../include/votca/tools/histogram.h</itemPath>
       <itemPath>../../include/votca/tools/histogramnew.h</itemPath>
       <itemPath>../../include/votca/tools/lexical_cast.h</itemPath>
       <itemPath>../../include/votca/tools/linalg.h</itemPath>
       <itemPath>../../include/votca/tools/linspline.h</itemPath>
       <itemPath>../../include/votca/tools/matrix.h</itemPath>
+      <itemPath>../../../ctp/include/votca/ctp/mkl_boost_ublas_matrix_prod.h</itemPath>
       <itemPath>../../include/votca/tools/mutex.h</itemPath>
       <itemPath>../../include/votca/tools/objectfactory.h</itemPath>
       <itemPath>../../include/votca/tools/parsexml.h</itemPath>
@@ -124,6 +126,16 @@
           <output>../../src/libtools/libtools.a</output>
         </archiverTool>
       </compileType>
+      <item path="../../../ctp/include/votca/ctp/gsl_boost_ublas_matrix_prod.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../ctp/include/votca/ctp/mkl_boost_ublas_matrix_prod.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/tools/akimaspline.h"
             ex="false"
             tool="3"
@@ -378,6 +390,16 @@
           <output>../../src/libtools/libtools.a</output>
         </archiverTool>
       </compileType>
+      <item path="../../../ctp/include/votca/ctp/gsl_boost_ublas_matrix_prod.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../ctp/include/votca/ctp/mkl_boost_ublas_matrix_prod.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/tools/akimaspline.h"
             ex="false"
             tool="3"
@@ -632,6 +654,16 @@
           <output>../../src/libtools/libtools.a</output>
         </archiverTool>
       </compileType>
+      <item path="../../../ctp/include/votca/ctp/gsl_boost_ublas_matrix_prod.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../ctp/include/votca/ctp/mkl_boost_ublas_matrix_prod.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/tools/akimaspline.h"
             ex="false"
             tool="3"
