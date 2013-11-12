@@ -116,14 +116,23 @@ public:
     inline void PApplyBiasK(APolarSite &p);
     inline void UApplyBiasK(APolarSite &p);
     
+    // Structure amplitudes
     EWD::cmplx PUStructureAmplitude(vector<PolarSeg*> &s);
     EWD::cmplx PStructureAmplitude(vector<PolarSeg*> &s);
-    EWD::cmplx UStructureAmplitude(vector<PolarSeg*> &s);
+    EWD::cmplx UStructureAmplitude(vector<PolarSeg*> &s);    
+    EWD::cmplx PUStructureAmplitude(vector<PolarSeg*> &s, const vec &k);
+    EWD::cmplx PStructureAmplitude(vector<PolarSeg*> &s, const vec &k);
+    EWD::cmplx UStructureAmplitude(vector<PolarSeg*> &s, const vec &k);
     
+    // Fields
     EWD::cmplx FPU12_AS1S2_At_By(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV);
     EWD::cmplx FP12_AS1S2_At_By(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV);
-    EWD::cmplx FU12_AS1S2_At_By(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV);
+    EWD::cmplx FU12_AS1S2_At_By(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV);    
+
+    EWD::cmplx FP12_At_ByS2(const vec &k, vector<PolarSeg*> &s1, const EWD::cmplx &S2, double &rV);
+    EWD::cmplx FU12_At_ByS2(const vec &k, vector<PolarSeg*> &s1, const EWD::cmplx &S2, double &rV);
     
+    // Energies
     EWD::triple<EWD::cmplx> AS1S2(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2);
     EWD::triple<EWD::cmplx> S1S2(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2);
     
@@ -132,6 +141,8 @@ private:
     // Thole sharpness parameter & reduced interaction distance
     double ta1, ta2, ta3;
     double tu3;
+    double l3, l5, l7, l9;     // (damps fields originating in indu. m'poles)
+    double lp3, lp5, lp7, lp9; // (damps fields originating in perm. m'poles)
     
     // Ewald sharpness parameter powers
     double a1, a2, a3, a4, a5, a6, a7;
@@ -242,12 +253,34 @@ inline void EwdInteractor::ApplyBiasPolar(APolarSite& p1, APolarSite& p2) {
     //rR4 = 1./R4;
     //rR5 = 1./R5;
     
-    // Thole damping init.
+    // Thole damping initialization
     tu3   = R3 / sqrt(
         1./3.*(p1.Pxx*p2.Pxx + p1.Pxy*p2.Pxy + p1.Pxz*p2.Pxz
              + p1.Pxy*p2.Pxy + p1.Pyy*p2.Pyy + p1.Pyz*p2.Pyz
              + p1.Pxz*p2.Pxz + p1.Pyz*p2.Pyz + p1.Pzz*p2.Pzz) );
     
+    // Thole damping functions
+    if (ta1*tu3 < 40) {
+        l3 = L3(); 
+        l5 = L5();
+        l7 = L7();
+        l9 = L9();
+        // cg <> cg interactions : do not damp PU terms (field & energy)
+        if (p1._resolution == APolarSite::coarsegrained
+         && p2._resolution == APolarSite::coarsegrained) {
+                lp3 = lp5 = lp7 = lp9 = 1.;
+        }
+        else {
+            lp3 = l3;
+            lp5 = l5;
+            lp7 = l7;
+            lp9 = l9;
+        }
+    }
+    else {
+        l3 = l5 = l7 = l9 = 1.;
+        lp3 = lp5 = lp7 = lp9 = 1.;
+    }
     return;
 }
 
@@ -310,11 +343,24 @@ inline void EwdInteractor::ApplyBiasPolar(APolarSite& p1, APolarSite& p2, vec &s
     //rR4 = 1./R4;
     //rR5 = 1./R5;
     
-    // Thole damping init.
+    // Thole damping initialization
     tu3   = R3 / sqrt(
         1./3.*(p1.Pxx*p2.Pxx + p1.Pxy*p2.Pxy + p1.Pxz*p2.Pxz
              + p1.Pxy*p2.Pxy + p1.Pyy*p2.Pyy + p1.Pyz*p2.Pyz
              + p1.Pxz*p2.Pxz + p1.Pyz*p2.Pyz + p1.Pzz*p2.Pzz) );
+    
+    // Thole damping functions
+    if (ta1*tu3 < 40) {
+        l3 = L3(); 
+        l5 = L5();
+        l7 = L7();
+        l9 = L9();
+        lp3 = lp5 = lp7 = lp9 = 1.; // new policy, trial
+    }
+    else {
+        l3 = l5 = l7 = l9 = 1.;
+        lp3 = lp5 = lp7 = lp9 = 1.;
+    }
     
     return;
 }
@@ -501,48 +547,45 @@ inline double EwdInteractor::FPU12_ERFC_At_By(APolarSite &p1, APolarSite &p2) {
     // ATTENTION Increments p1->FP only, not p1->FU
     ApplyBiasPolar(p1, p2);
     UpdateAllBls();
-    
+
     double fx = 0.0;
     double fy = 0.0;
     double fz = 0.0;
     
     // Charge
-    fx += - p2.Q00*rx*B1;
-    fy += - p2.Q00*ry*B1;
-    fz += - p2.Q00*rz*B1;
+    fx += - p2.Q00*rx*lp3*B1;
+    fy += - p2.Q00*ry*lp3*B1;
+    fz += - p2.Q00*rz*lp3*B1;
     
     if (p2._rank > 0) {
         // Dipole
-        fx += p2.Q1x*B1;
-        fy += p2.Q1y*B1;
-        fz += p2.Q1z*B1;
+        fx += p2.Q1x*lp3*B1;
+        fy += p2.Q1y*lp3*B1;
+        fz += p2.Q1z*lp3*B1;
         
         double mu2_r = (p2.Q1x*rx + p2.Q1y*ry + p2.Q1z*rz);
-        fx += - rx*mu2_r*B2;
-        fy += - ry*mu2_r*B2;
-        fz += - rz*mu2_r*B2;
+        fx += - rx*mu2_r*lp5*B2;
+        fy += - ry*mu2_r*lp5*B2;
+        fz += - rz*mu2_r*lp5*B2;
         
         if (p2._rank > 1) {
             // Quadrupole
-            fx += 2 * (p2.Qxx*rx + p2.Qxy*ry + p2.Qxz*rz) * B2;
-            fy += 2 * (p2.Qxy*rx + p2.Qyy*ry + p2.Qyz*rz) * B2;
-            fz += 2 * (p2.Qxz*rx + p2.Qyz*ry + p2.Qzz*rz) * B2;
+            fx += 2 * (p2.Qxx*rx + p2.Qxy*ry + p2.Qxz*rz) * lp5*B2;
+            fy += 2 * (p2.Qxy*rx + p2.Qyy*ry + p2.Qyz*rz) * lp5*B2;
+            fz += 2 * (p2.Qxz*rx + p2.Qyz*ry + p2.Qzz*rz) * lp5*B2;
             
             double Q2__R = (p2.Qxx*rxx + 2*p2.Qxy*rxy + 2*p2.Qxz*rxz
                                        +   p2.Qyy*ryy + 2*p2.Qyz*ryz
                                                       +   p2.Qzz*rzz);            
-            fx += - Q2__R*rx*B3;
-            fy += - Q2__R*ry*B3;
-            fz += - Q2__R*rz*B3;
+            fx += - Q2__R*rx*lp7*B3;
+            fy += - Q2__R*ry*lp7*B3;
+            fz += - Q2__R*rz*lp7*B3;
         }
     }
     
     // Field generated by induced moments
     double u_mu2_r = (p2.U1x*rx + p2.U1y*ry + p2.U1z*rz);
-    if (ta1*tu3 < 40) {
-        double l3 = L3();
-        double l5 = L5();
-        
+    if (ta1*tu3 < 40) {        
         fx += p2.U1x*l3*B1;
         fy += p2.U1y*l3*B1;
         fz += p2.U1z*l3*B1;        
@@ -579,33 +622,33 @@ inline double EwdInteractor::FP12_ERFC_At_By(APolarSite &p1, APolarSite &p2) {
     double fz = 0.0;
     
     // Charge
-    fx += - p2.Q00*rx*B1;
-    fy += - p2.Q00*ry*B1;
-    fz += - p2.Q00*rz*B1;
+    fx += - p2.Q00*rx*lp3*B1;
+    fy += - p2.Q00*ry*lp3*B1;
+    fz += - p2.Q00*rz*lp3*B1;
     
     if (p2._rank > 0) {
         // Dipole
-        fx += p2.Q1x*B1;
-        fy += p2.Q1y*B1;
-        fz += p2.Q1z*B1;
+        fx += p2.Q1x*lp3*B1;
+        fy += p2.Q1y*lp3*B1;
+        fz += p2.Q1z*lp3*B1;
         
         double mu2_r = (p2.Q1x*rx + p2.Q1y*ry + p2.Q1z*rz);
-        fx += - rx*mu2_r*B2;
-        fy += - ry*mu2_r*B2;
-        fz += - rz*mu2_r*B2;
+        fx += - rx*mu2_r*lp5*B2;
+        fy += - ry*mu2_r*lp5*B2;
+        fz += - rz*mu2_r*lp5*B2;
         
         if (p2._rank > 1) {
             // Quadrupole
-            fx += 2 * (p2.Qxx*rx + p2.Qxy*ry + p2.Qxz*rz) * B2;
-            fy += 2 * (p2.Qxy*rx + p2.Qyy*ry + p2.Qyz*rz) * B2;
-            fz += 2 * (p2.Qxz*rx + p2.Qyz*ry + p2.Qzz*rz) * B2;
+            fx += 2 * (p2.Qxx*rx + p2.Qxy*ry + p2.Qxz*rz) * lp5*B2;
+            fy += 2 * (p2.Qxy*rx + p2.Qyy*ry + p2.Qyz*rz) * lp5*B2;
+            fz += 2 * (p2.Qxz*rx + p2.Qyz*ry + p2.Qzz*rz) * lp5*B2;
             
             double Q2__R = (p2.Qxx*rxx + 2*p2.Qxy*rxy + 2*p2.Qxz*rxz
                                        +   p2.Qyy*ryy + 2*p2.Qyz*ryz
                                                       +   p2.Qzz*rzz);            
-            fx += - Q2__R*rx*B3;
-            fy += - Q2__R*ry*B3;
-            fz += - Q2__R*rz*B3;
+            fx += - Q2__R*rx*lp7*B3;
+            fy += - Q2__R*ry*lp7*B3;
+            fz += - Q2__R*rz*lp7*B3;
         }
     }
     
@@ -628,10 +671,7 @@ inline double EwdInteractor::FU12_ERFC_At_By(APolarSite &p1, APolarSite &p2) {
     
     // Field generated by induced moments
     double u_mu2_r = (p2.U1x*rx + p2.U1y*ry + p2.U1z*rz);
-    if (ta1*tu3 < 40) {
-        double l3 = L3();
-        double l5 = L5();
-        
+    if (ta1*tu3 < 40) {        
         fx += p2.U1x*l3*B1;
         fy += p2.U1y*l3*B1;
         fz += p2.U1z*l3*B1;        
@@ -673,42 +713,39 @@ inline double EwdInteractor::FPU12_ERFC_At_By(APolarSite &p1, APolarSite &p2, ve
     double fz = 0.0;
     
     // Charge
-    fx += - p2.Q00*rx*B1;
-    fy += - p2.Q00*ry*B1;
-    fz += - p2.Q00*rz*B1;
+    fx += - p2.Q00*rx*lp3*B1;
+    fy += - p2.Q00*ry*lp3*B1;
+    fz += - p2.Q00*rz*lp3*B1;
     
     if (p2._rank > 0) {
         // Dipole
-        fx += p2.Q1x*B1;
-        fy += p2.Q1y*B1;
-        fz += p2.Q1z*B1;
+        fx += p2.Q1x*lp3*B1;
+        fy += p2.Q1y*lp3*B1;
+        fz += p2.Q1z*lp3*B1;
         
         double mu2_r = (p2.Q1x*rx + p2.Q1y*ry + p2.Q1z*rz);
-        fx += - rx*mu2_r*B2;
-        fy += - ry*mu2_r*B2;
-        fz += - rz*mu2_r*B2;
+        fx += - rx*mu2_r*lp5*B2;
+        fy += - ry*mu2_r*lp5*B2;
+        fz += - rz*mu2_r*lp5*B2;
         
         if (p2._rank > 1) {
             // Quadrupole
-            fx += 2 * (p2.Qxx*rx + p2.Qxy*ry + p2.Qxz*rz) * B2;
-            fy += 2 * (p2.Qxy*rx + p2.Qyy*ry + p2.Qyz*rz) * B2;
-            fz += 2 * (p2.Qxz*rx + p2.Qyz*ry + p2.Qzz*rz) * B2;
+            fx += 2 * (p2.Qxx*rx + p2.Qxy*ry + p2.Qxz*rz) * lp5*B2;
+            fy += 2 * (p2.Qxy*rx + p2.Qyy*ry + p2.Qyz*rz) * lp5*B2;
+            fz += 2 * (p2.Qxz*rx + p2.Qyz*ry + p2.Qzz*rz) * lp5*B2;
             
             double Q2__R = (p2.Qxx*rxx + 2*p2.Qxy*rxy + 2*p2.Qxz*rxz
                                        +   p2.Qyy*ryy + 2*p2.Qyz*ryz
                                                       +   p2.Qzz*rzz);            
-            fx += - Q2__R*rx*B3;
-            fy += - Q2__R*ry*B3;
-            fz += - Q2__R*rz*B3;
+            fx += - Q2__R*rx*lp7*B3;
+            fy += - Q2__R*ry*lp7*B3;
+            fz += - Q2__R*rz*lp7*B3;
         }
     }
     
     // Field generated by induced moments
     double u_mu2_r = (p2.U1x*rx + p2.U1y*ry + p2.U1z*rz);
     if (ta1*tu3 < 40) {
-        double l3 = L3();
-        double l5 = L5();
-        
         fx += p2.U1x*l3*B1;
         fy += p2.U1y*l3*B1;
         fz += p2.U1z*l3*B1;        
@@ -749,33 +786,33 @@ inline double EwdInteractor::FP12_ERFC_At_By(APolarSite &p1, APolarSite &p2, vec
     double fz = 0.0;
     
     // Charge
-    fx += - p2.Q00*rx*B1;
-    fy += - p2.Q00*ry*B1;
-    fz += - p2.Q00*rz*B1;
+    fx += - p2.Q00*rx*lp3*B1;
+    fy += - p2.Q00*ry*lp3*B1;
+    fz += - p2.Q00*rz*lp3*B1;
     
     if (p2._rank > 0) {
         // Dipole
-        fx += p2.Q1x*B1;
-        fy += p2.Q1y*B1;
-        fz += p2.Q1z*B1;
+        fx += p2.Q1x*lp3*B1;
+        fy += p2.Q1y*lp3*B1;
+        fz += p2.Q1z*lp3*B1;
         
         double mu2_r = (p2.Q1x*rx + p2.Q1y*ry + p2.Q1z*rz);
-        fx += - rx*mu2_r*B2;
-        fy += - ry*mu2_r*B2;
-        fz += - rz*mu2_r*B2;
+        fx += - rx*mu2_r*lp5*B2;
+        fy += - ry*mu2_r*lp5*B2;
+        fz += - rz*mu2_r*lp5*B2;
         
         if (p2._rank > 1) {
             // Quadrupole
-            fx += 2 * (p2.Qxx*rx + p2.Qxy*ry + p2.Qxz*rz) * B2;
-            fy += 2 * (p2.Qxy*rx + p2.Qyy*ry + p2.Qyz*rz) * B2;
-            fz += 2 * (p2.Qxz*rx + p2.Qyz*ry + p2.Qzz*rz) * B2;
+            fx += 2 * (p2.Qxx*rx + p2.Qxy*ry + p2.Qxz*rz) * lp5*B2;
+            fy += 2 * (p2.Qxy*rx + p2.Qyy*ry + p2.Qyz*rz) * lp5*B2;
+            fz += 2 * (p2.Qxz*rx + p2.Qyz*ry + p2.Qzz*rz) * lp5*B2;
             
             double Q2__R = (p2.Qxx*rxx + 2*p2.Qxy*rxy + 2*p2.Qxz*rxz
                                        +   p2.Qyy*ryy + 2*p2.Qyz*ryz
                                                       +   p2.Qzz*rzz);            
-            fx += - Q2__R*rx*B3;
-            fy += - Q2__R*ry*B3;
-            fz += - Q2__R*rz*B3;
+            fx += - Q2__R*rx*lp7*B3;
+            fy += - Q2__R*ry*lp7*B3;
+            fz += - Q2__R*rz*lp7*B3;
         }
     }
     
@@ -803,9 +840,6 @@ inline double EwdInteractor::FU12_ERFC_At_By(APolarSite &p1, APolarSite &p2, vec
     // Field generated by induced moments
     double u_mu2_r = (p2.U1x*rx + p2.U1y*ry + p2.U1z*rz);
     if (ta1*tu3 < 40) {
-        double l3 = L3();
-        double l5 = L5();
-        
         fx += p2.U1x*l3*B1;
         fy += p2.U1y*l3*B1;
         fz += p2.U1z*l3*B1;        
@@ -1035,11 +1069,11 @@ inline EWD::triple<double> EwdInteractor::U12_ERFC(APolarSite &p1,
     
     double pp = 
         ppG0*B0 + ppG1*B1 + ppG2*B2 + ppG3*B3 + ppG4*B4;
-    double pu = (ta1*tu3 < 40) ? 
-        puG1*L3()*B1 + puG2*L5()*B2 + puG3*L7()*B3
+    double pu = (ta1*tu3 < 40) ?
+        puG1*lp3*B1 + puG2*lp5*B2 + puG3*lp7*B3
       : puG1*B1 + puG2*B2 + puG3*B3;
     double uu = (ta1*tu3 < 40) ?
-        uuG1*L3()*B1 + uuG2*L5()*B2
+        uuG1*l3*B1 + uuG2*l5*B2
       : uuG1*B1 + uuG2*B2;
     
     return EWD::triple<double>(pp,pu,uu);
@@ -1187,6 +1221,7 @@ inline double EwdInteractor::gG3(APolarSite& p1, APolarSite& p2) {
                        +   p1.Qyy*ryy + 2*p1.Qyz*ryz
                                       +   p1.Qzz*rzz);
 }
+
 
 inline double EwdInteractor::gG4(APolarSite& p1, APolarSite& p2) {
     return (p1.Qxx*rxx + 2*p1.Qxy*rxy + 2*p1.Qxz*rxz

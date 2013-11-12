@@ -17,6 +17,7 @@
  *
  */
 
+#define NDEBUG
 
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/ctp/votca_ctp_config.h>

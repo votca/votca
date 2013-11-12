@@ -9,8 +9,67 @@
 
 
 namespace votca { namespace ctp {
+
     
+// ========================================================================== //
+// QM-MM INTERFACE CLASS - CONVERTS BETWEEN QMATOMS <> POLAR OBJECTS          //
+// ========================================================================== //
     
+class QMMInterface
+{
+public:
+    
+    QMMInterface() { _polar_table = POLAR_TABLE(); };
+   ~QMMInterface() {};
+    
+    // CONVERSION QM -> MM
+    APolarSite *Convert(QMAtom *atm, int id = -1) {
+        double A_to_nm = 0.1;
+        vec pos = A_to_nm*vec(atm->x, atm->y, atm->z);
+        double q = atm->charge;
+        string elem = atm->type;
+        double pol = 0.0;
+        try {
+            pol = _polar_table.at(elem);
+        }
+        catch(out_of_range) {
+            cout << endl << "QMMInterface - no default polarizability given "
+                << "for element type '" << elem << "'. Defaulting to 1A**3" << flush;
+            pol = 1e-3;
+        }
+
+        APolarSite *new_aps = new APolarSite(id, elem);
+        new_aps->setRank(0);
+        new_aps->setPos(pos);
+        new_aps->setQ00(q,0); // <- charge state 0 <> 'neutral'
+        new_aps->setIsoP(pol);
+        
+        return new_aps;
+    }
+    
+    PolarSeg *Convert(vector<QMAtom*> &atms) {        
+        PolarSeg *new_pseg = new PolarSeg();
+        vector<QMAtom*>::iterator it;
+        for (it = atms.begin(); it < atms.end(); ++it) {
+            APolarSite *new_site = this->Convert(*it);
+            new_pseg->push_back(new_site);
+        }
+        return new_pseg;
+    }
+    
+    // TODO CONVERSION MM -> QM
+    QMAtom *Convert(APolarSite*);
+    vector<QMAtom*> Convert(PolarSeg*);
+    
+private:
+    
+    // Allocates polarizabilities in A**3 to element types
+    map<string,double> _polar_table;
+    
+};
+
+
+
 // ========================================================================== //
 // QM-MM ITERATION CLASS - OBSERVES CONVERGENCE LOOP                          //
 // ========================================================================== //

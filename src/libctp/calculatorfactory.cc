@@ -43,6 +43,7 @@
 #include "calculators/qmultipole.h"
 #include "calculators/jobwriter.h"
 #include "calculators/ewdbgpol.h"
+#include "calculators/cgpolar.h"
 
 
 
@@ -72,6 +73,7 @@ void Calculatorfactory::RegisterAll(void)
         Calculators().Register<QMultipole>          ("qmultipole");
         Calculators().Register<JobWriter>           ("jobwriter");
         Calculators().Register<EwaldBgPolarizer>    ("ewdbgpol");
+        Calculators().Register<CgPolar>             ("cgpolar");
 }
 
 }}

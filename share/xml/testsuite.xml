@@ -26,12 +26,20 @@
 		</output>
 	</test>
 	<test>
-		<name>molpol</name>
-		<description>Calculates the Thole polarizability tensor via the input mps-file</description>
+		<name>log2mps</name>
+		<description>Extracts charges from a QM log-file and exports them in mps format</description>
 		<execute>{ctp_app} -e {name} -o {name}.xml</execute>
 		<requires></requires>
 		<verify></verify>
-		<output>molpol.polar.out</output>
+		<output>input.mps</output>
+	</test>
+	<test>
+		<name>molpol</name>
+		<description>Calculates (and optimizes) the molecular polarizability tensor</description>
+		<execute>{ctp_app} -e {name} -o {name}.xml</execute>
+		<requires></requires>
+		<verify></verify>
+		<output>output.mps output.xml</output>
 	</test>
 	<test>
 		<name>coupling</name>
@@ -39,7 +47,7 @@
 		<execute>{ctp_app} -e {name} -o {name}.xml</execute>
 		<requires></requires>
 		<verify></verify>
-		<output>coupling.out</output>
+		<output>coupling.out.xml</output>
 	</test>
 	<test>
 		<name>einternal</name>
@@ -50,10 +58,18 @@
 		<output>extract.energy.xml</output>
 	</test>
 	<test>
+		<name>zmultipole</name>
+		<description>Computes electrostatic and induction contributions</description>
+		<execute>{ctp_run} -e {name} -o {name}.xml -f {sql} -t {nthreads}</execute> 
+		<requires>einternal</requires>
+		<verify>{ctp_state} -f {sql} -e energy2xml</verify>
+		<output>extract.energy.xml</output>
+	</test>
+	<test>
 		<name>emultipole</name>
 		<description>Computes electrostatic and induction contributions</description>
 		<execute>{ctp_run} -e {name} -o {name}.xml -f {sql} -t {nthreads}</execute> 
-		<requires>map</requires>
+		<requires>einternal</requires>
 		<verify>{ctp_state} -f {sql} -e energy2xml</verify>
 		<output>extract.energy.xml</output>
 	</test>
@@ -117,7 +133,7 @@
 		<name>rates</name>
 		<description>Evaluates charge transfer rates for molecular pairs</description>
 		<execute>{ctp_run} -e {name} -o {name}.xml -f {sql}</execute> 
-		<requires>einternal emultipole izindo</requires>
+		<requires>einternal emultipole izindo eoutersphere</requires>
 		<verify>{ctp_state} -f {sql} -e rates2xml</verify>
 		<output>extract.rates.xml</output>
 	</test>
@@ -128,6 +144,14 @@
 		<requires>rates</requires>
 		<verify>{ctp_state} -f {sql} -e occupations2xml</verify>
 		<output>extract.occupations.xml</output>
+	</test>
+	<test>
+		<name>kmcmultiple</name>
+		<description>Simulates drift-diffusion of multiple charge carriers</description>
+		<execute>{kmc_run} -e {name} -o {name}.xml -f {sql}</execute>
+		<requires>rates</requires>
+		<verify></verify>
+		<output>kmcmultiple.log kmcmultiple.trajectory.csv</output>
 	</test>
 	<test>
 		<name>jobwriter</name>
@@ -159,7 +183,6 @@
 		    edft.jobs.xml
 		</output>
 	</test>
-
 	<test>
 		<name>idft</name>
 		<description>Evaluates electronic coupling elements</description>

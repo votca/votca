@@ -1,15 +1,11 @@
 #ifndef VOTCA_CTP_POLARBACKGROUND_H
 #define VOTCA_CTP_POLARBACKGROUND_H
 
-#include <votca/ctp/topology.h>
-#include <votca/ctp/polartop.h>
-#include <votca/ctp/ewdspace.h>
+
 #include <votca/ctp/ewaldactor.h>
 #include <votca/ctp/logger.h>
-#include <votca/ctp/qmthread.h>
+#include <votca/ctp/threadforce.h>
 
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/archive/text_oarchive.hpp>
 
 namespace votca { namespace ctp {    
 namespace EWD {
@@ -19,154 +15,133 @@ class PolarBackground
 public:
 
     PolarBackground() : _top(NULL), _ptop(NULL), _log(NULL), _n_threads(1) {};
-    PolarBackground(Topology *top, PolarTop *ptop, Property *opt, Logger *log, int n_threads);
-   ~PolarBackground() {};
+    PolarBackground(Topology *, PolarTop *, Property *, Logger *);
+   ~PolarBackground();
    
     void Threaded(int n_threads) { _n_threads = n_threads; }
-    void Polarize();
+    void Polarize(int n_threads);
     
-    void FP_RealSpace();
-    void FP_ReciprocalSpace();
-    void FU_RealSpace();
-    void FU_ReciprocalSpace();
+    void FX_RealSpace(string mode, bool do_setup_nbs);    
+    void FX_ReciprocalSpace(string S_mode, string F_mode, bool gen_kvecs);    
+    void GenerateKVectors(vector<PolarSeg*> &ps1, vector<PolarSeg*> &ps2);
     
-    // TODO Would be nicer to have as a local type in ::FP_RealSpace
-    //      ... but this is only possible via --std=c++0x
-    class FPThread : public QMThread
+    // TODO Would be nicer to have RThread / KThread as a local type in ...
+    //      ... but you cannot use local types as template parameters
+    //      (which is however possible by compiling with --std=c++0x)
+    
+    class RThread :
+        public MultiModeThread
+            <votca::tools::Thread, EWD::PolarBackground::RThread>
     {
-    public:
-        
-        FPThread(PolarBackground *master, int id) : _id(id) {
+    public:        
+        RThread(PolarBackground *master, bool do_setup_nbs) {
             _master = master;
-            _full_bg_P = master->_bg_P;
+            _do_setup_nbs = do_setup_nbs;
+            _not_converged_count = 0;
             _ewdactor = EwdInteractor(_master->_alpha, _master->_polar_aDamp);
-            _verbose = (_id-1 == (_full_bg_P.size()-1) % _master->_n_threads);
+
+            RegisterStart("FP_MODE", &RThread::FP_FieldCalc);
+            RegisterStart("FU_MODE", &RThread::FU_FieldCalc);            
+            RegisterReset("FP_MODE", &RThread::FX_FieldReset);
+            RegisterReset("FU_MODE", &RThread::FX_FieldReset);            
+            RegisterWload("FP_MODE", &RThread::FX_FieldWload);
+            RegisterWload("FU_MODE", &RThread::FX_FieldWload);
         }
-       ~FPThread() {
-            _full_bg_P.clear(); 
-            _part_bg_P.clear(); 
+       ~RThread() {
+           _full_bg_P.clear(); _part_bg_P.clear();
         }
        
-        void Run(void) {
-            vector<PolarSeg*>::iterator sit1; 
-            vector<APolarSite*> ::iterator pit1;
-            vector<PolarSeg*>::iterator sit2; 
-            vector<APolarSite*> ::iterator pit2;
-            double rms = 0.0;
-            int rms_count = 0;
-            for (sit1 = _part_bg_P.begin(); sit1 < _part_bg_P.end(); ++sit1) {
-                PolarSeg *pseg1 = *sit1;
-                if (_verbose)
-                    LOG(logDEBUG,*(_master->_log))
-                        << "\rMST DBG     - Progress " << pseg1->getId() 
-                        << "/" << _full_bg_P.size() << flush;
-                for (sit2 = _full_bg_P.begin(); sit2 < _full_bg_P.end(); ++sit2) {
-                    PolarSeg *pseg2 = *sit2;
-                    // Identical?
-                    if (pseg1 == pseg2) continue;
-                    if (pseg1->getId() == pseg2->getId()) assert(false);
-                    // Apply periodic-boundary correction, check c/o, shift
-                    vec dr12_pbc = _master->_top->PbShortestConnect(pseg1->getPos(), pseg2->getPos());
-                    if (votca::tools::abs(dr12_pbc) > _master->_R_co) continue;
-                    vec dr12_dir = pseg2->getPos() - pseg1->getPos();
-                    vec s22x = dr12_pbc - dr12_dir;
-                    // Interact taking into account shift
-                    for (pit1 = pseg1->begin(); pit1 < pseg1->end(); ++pit1) {
-                        for (pit2 = pseg2->begin(); pit2 < pseg2->end(); ++pit2) {
-                            rms += _ewdactor.FP12_ERFC_At_By(*(*pit1), *(*pit2), s22x);
-                            rms_count += 1;
-                        }
-                    }
-                }
-            }
-            rms = sqrt(rms/rms_count)*EWD::int2V_m;
-            return;
-        }
+        RThread *Clone() { return new RThread(_master, _do_setup_nbs); }
         
-        void AddPolarSeg(PolarSeg *pseg) {
-            _part_bg_P.push_back(pseg);
-            return;
-        }
-        
-        double Workload() { return 100.*(double)_part_bg_P.size()/_full_bg_P.size(); }
+        // Input
+        void AddSharedInput(vector<PolarSeg*> &fullbg) { _full_bg_P = fullbg; }
+        void AddAtomicInput(PolarSeg *pseg) { _part_bg_P.push_back(pseg); }        
+        // Mode targets
+        void FU_FieldCalc();
+        void FP_FieldCalc();
+        void FX_FieldReset() { _not_converged_count = 0; _part_bg_P.clear(); }
+        double FX_FieldWload() { return 100.*_part_bg_P.size()/_full_bg_P.size(); }        
+        // Convergence & output related
+        const int &NotConverged() { return _not_converged_count; }
+        double AvgRco() { return _avg_R_co; }
         
     private:
         
-        int _id;
-        bool _verbose;
         PolarBackground *_master;
-        EwdInteractor _ewdactor;
-        vector<PolarSeg*> _full_bg_P;
-        vector<PolarSeg*> _part_bg_P;
+        EwdInteractor _ewdactor;        
+        // Shared thread data        
+        vector<PolarSeg*> _full_bg_P;        
+        // Atomized thread data
+        vector<PolarSeg*> _part_bg_P;        
+        // Convergence & output-related
+        int _not_converged_count;
+        double _avg_R_co;
+        bool _do_setup_nbs;
     };
     
-    
-    class FUThread : public QMThread
+    class KThread : 
+        public MultiModeThread
+            <votca::tools::Thread, EWD::PolarBackground::KThread>
     {
     public:
         
-        FUThread(PolarBackground *master, int id) : _id(id) {
+        KThread(PolarBackground *master) {
             _master = master;
-            _full_bg_P = master->_bg_P;
             _ewdactor = EwdInteractor(_master->_alpha, _master->_polar_aDamp);
-            _verbose = (_id-1 == (_full_bg_P.size()-1) % _master->_n_threads);
+            
+            RegisterStart("SP_MODE", &KThread::SP_SFactorCalc);
+            RegisterStart("FP_MODE", &KThread::FP_KFieldCalc);
+            RegisterStart("SU_MODE", &KThread::SU_SFactorCalc);
+            RegisterStart("FU_MODE", &KThread::FU_KFieldCalc);            
+            RegisterReset("SP_MODE", &KThread::SFactorReset);
+            RegisterReset("FP_MODE", &KThread::KFieldReset);
+            RegisterReset("SU_MODE", &KThread::SFactorReset);
+            RegisterReset("FU_MODE", &KThread::KFieldReset);            
+            RegisterWload("SP_MODE", &KThread::SFactorWload);
+            RegisterWload("FP_MODE", &KThread::KFieldWload);
+            RegisterWload("SU_MODE", &KThread::SFactorWload);
+            RegisterWload("FU_MODE", &KThread::KFieldWload);
         }
-       ~FUThread() {
-            _full_bg_P.clear(); 
-            _part_bg_P.clear(); 
-        }
-       
-        void Run(void) {
-            vector<PolarSeg*>::iterator sit1; 
-            vector<APolarSite*> ::iterator pit1;
-            vector<PolarSeg*>::iterator sit2; 
-            vector<APolarSite*> ::iterator pit2;
-            double rms = 0.0;
-            int rms_count = 0;
-            for (sit1 = _part_bg_P.begin(); sit1 < _part_bg_P.end(); ++sit1) {
-                PolarSeg *pseg1 = *sit1;
-                if (_verbose)
-                    LOG(logDEBUG,*(_master->_log))
-                        << "\rMST DBG     - Progress " << pseg1->getId() 
-                        << "/" << _full_bg_P.size() << flush;
-                for (sit2 = _full_bg_P.begin(); sit2 < _full_bg_P.end(); ++sit2) {
-                    PolarSeg *pseg2 = *sit2;
-                    // Identical?
-                    if (pseg1 == pseg2) continue;
-                    if (pseg1->getId() == pseg2->getId()) assert(false);
-                    // Apply periodic-boundary correction, check c/o, shift
-                    vec dr12_pbc = _master->_top->PbShortestConnect(pseg1->getPos(), pseg2->getPos());
-                    if (votca::tools::abs(dr12_pbc) > _master->_R_co) continue;
-                    vec dr12_dir = pseg2->getPos() - pseg1->getPos();
-                    vec s22x = dr12_pbc - dr12_dir;
-                    // Interact taking into account shift
-                    for (pit1 = pseg1->begin(); pit1 < pseg1->end(); ++pit1) {
-                        for (pit2 = pseg2->begin(); pit2 < pseg2->end(); ++pit2) {
-                            rms += _ewdactor.FU12_ERFC_At_By(*(*pit1), *(*pit2), s22x);
-                            rms_count += 1;
-                        }
-                    }
-                }
-            }
-            rms = sqrt(rms/rms_count)*EWD::int2V_m;
-            return;
+       ~KThread() {
+           _full_bg_P.clear(); _full_kvecs.clear(); 
+           _part_bg_P.clear(); _part_kvecs.clear();
         }
         
-        void AddPolarSeg(PolarSeg *pseg) {
-            _part_bg_P.push_back(pseg);
-            return;
-        }
+        KThread *Clone() { return new KThread(_master); }
         
-        double Workload() { return 100.*(double)_part_bg_P.size()/_full_bg_P.size(); }
+        void AddSharedInput(vector<EWD::KVector*> &full_kvecs) 
+            { _full_kvecs.clear(); _full_kvecs = full_kvecs; }
+        void AddSharedInput(vector<PolarSeg*> &full_bg_P) 
+            { _full_bg_P.clear(); _full_bg_P = full_bg_P; }
+        
+        // MODE 1 : Compute structure factor of _part_kvecs using _full_bg_P
+        void SP_SFactorCalc();
+        void SU_SFactorCalc();
+        void SFactorReset() { _part_kvecs.clear(); _full_kvecs.clear(); }
+        void AddAtomicInput(EWD::KVector *k) { _part_kvecs.push_back(k); }        
+        double SFactorWload() { return 1.*_part_kvecs.size()/_full_kvecs.size(); }
+        
+        // MODE 2 : Increment fields of _part_bg_P using _full_kvecs
+        void FP_KFieldCalc();
+        void FU_KFieldCalc();
+        void KFieldReset() { ; }
+        void AddAtomicInput(PolarSeg *pseg) { _part_bg_P.push_back(pseg); }        
+        double KFieldWload() { return 1.*_part_bg_P.size()/_full_bg_P.size(); }
         
     private:
-        
-        int _id;
-        bool _verbose;
         PolarBackground *_master;
         EwdInteractor _ewdactor;
+        // Shared thread data        
         vector<PolarSeg*> _full_bg_P;
+        vector<EWD::KVector*> _full_kvecs;        
+        // Atomized thread data        
+        vector<EWD::KVector*> _part_kvecs;
         vector<PolarSeg*> _part_bg_P;
+    
+    public:
+        // Convergence info
+        double _rms_sum_re;
+        double _sum_im;
     };
     
     
@@ -210,21 +185,14 @@ private:
     double _LxLy;                   // |a^b|
     double _LxLyLz;                 // a*|b^c|
 
-    EWD::VectorSort<EWD::MaxNorm,vec> _maxsort;
-    EWD::VectorSort<EWD::EucNorm,vec> _eucsort;
     EWD::VectorSort<EWD::KNorm,EWD::KVector> _kvecsort;
-
-    vector<EWD::KVector> _kvecs_2_0;     // K-vectors with two components = zero
-    vector<EWD::KVector> _kvecs_1_0;     // K-vectors with one component  = zero
-    vector<EWD::KVector> _kvecs_0_0;     // K-vectors with no  components = zero
+    vector<EWD::KVector*> _kvecs_2_0;   // K-vectors with two components = zero
+    vector<EWD::KVector*> _kvecs_1_0;   // K-vectors with one component  = zero
+    vector<EWD::KVector*> _kvecs_0_0;   // K-vectors with no  components = zero
     double _kxyz_s1s2_norm;
 
-};
+};    
 
-
-    
-    
-}
-}}
+}}}
 
 #endif

@@ -227,6 +227,8 @@
           <output>../../src/libctp/libctp.a</output>
         </archiverTool>
       </compileType>
+      <item path="../../include/votca/ctp/aobasis.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/aomatrix.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/apolarsite.h"
@@ -252,6 +254,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/dmaspace.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/eigenvalues.h"
             ex="false"
@@ -820,6 +824,8 @@
         <archiverTool>
         </archiverTool>
       </compileType>
+      <item path="../../include/votca/ctp/aobasis.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/aomatrix.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/apolarsite.h"
@@ -845,6 +851,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/dmaspace.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/eigenvalues.h"
             ex="false"

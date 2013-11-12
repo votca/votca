@@ -66,7 +66,7 @@ bool CtpTools::EvaluateOptions() {
         for(QMToolFactory::assoc_map::const_iterator iter=
             QMTools().getObjects().begin();
             iter != QMTools().getObjects().end(); ++iter) {
-            PrintDescription( std::cout, (iter->first), _helpShort );
+            PrintDescription(std::cout, iter->first, "ctp/xml", Application::HelpShort );
         }
         StopExecution();
         return true;
@@ -84,7 +84,7 @@ bool CtpTools::EvaluateOptions() {
                 iter != QMTools().getObjects().end(); ++iter) {
 
                 if ( (*n).compare( (iter->first).c_str() ) == 0 ) {
-                    PrintDescription( std::cout, (iter->first), _helpLong );
+                    PrintDescription(std::cout, iter->first, "ctp/xml", Application::HelpLong );
                     printerror = false;
                     break;
                 }

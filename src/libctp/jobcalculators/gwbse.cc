@@ -20,8 +20,6 @@
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/ctp/votca_ctp_config.h>
 
-
-
 #include "gwbse.h"
 
 #include <boost/format.hpp>
@@ -511,23 +509,6 @@ namespace votca {
             return jres;
         }
 
-
-
-
-        void GWBSE::symmetrize_threecenters(TCMatrix& _Mmn, ub::matrix<double>& _coulomb){
-    
-            for ( int _m_band = 0 ; _m_band < _Mmn.get_mtot(); _m_band++ ){
-                // get Mmn for this _m_band
-                // ub::matrix<double> _temp = ub::trans(  _Mmn.matrix()( _m_band )   );
-                // and multiply with _ppm_phi = eigenvectors of epsilon
-                _Mmn.matrix()( _m_band ) = ub::prod(  _coulomb , _Mmn.matrix()( _m_band ) );
-                
-            }
-            
-
-        }      
-
-        
              
         void GWBSE::BSE_solve_triplets(){
             
@@ -607,18 +588,19 @@ namespace votca {
         }
         
         
-        void GWBSE::BSE_d_setup (  TCMatrix& _Mmn){
+        void GWBSE::BSE_d_setup (const TCMatrix& _Mmn){
             // gwbasis size
-            size_t _gwsize = _Mmn.matrix()(0).size1();
+            size_t _gwsize = _Mmn[0].size1();
 
             // messy procedure, first get two matrices for occ and empty subbparts
             // store occs directly transposed
             ub::matrix<double> _storage_v = ub::zero_matrix<double>(  _bse_vtotal * _bse_vtotal , _gwsize );
             for ( size_t _v1 = 0; _v1 < _bse_vtotal; _v1++){
+                const ub::matrix<double>& Mmn = _Mmn[_v1];
                 for ( size_t _v2 = 0; _v2 < _bse_vtotal; _v2++){
                     size_t _index_vv = _bse_vtotal * _v1 + _v2;
                     for ( size_t _i_gw = 0 ; _i_gw < _gwsize ; _i_gw++) {
-                        _storage_v( _index_vv , _i_gw ) = _Mmn.matrix()( _v1 )( _i_gw , _v2  );
+                        _storage_v( _index_vv , _i_gw ) = Mmn( _i_gw , _v2  );
                     }
                 }
             }
@@ -626,15 +608,17 @@ namespace votca {
             
             ub::matrix<double> _storage_c = ub::zero_matrix<double>( _gwsize, _bse_ctotal * _bse_ctotal );
             for ( size_t _c1 = 0; _c1 < _bse_ctotal; _c1++){
+                const ub::matrix<double>& Mmn = _Mmn[_c1 + _bse_cmin];
                 for ( size_t _c2 = 0; _c2 < _bse_ctotal; _c2++){
                     size_t _index_cc = _bse_ctotal * _c1 + _c2;
                     for ( size_t _i_gw = 0 ; _i_gw < _gwsize ; _i_gw++) {
-                        _storage_c( _i_gw , _index_cc ) = _Mmn.matrix()( _c1 + _bse_cmin )( _i_gw , _c2 + _bse_cmin );
+                        _storage_c( _i_gw , _index_cc ) = Mmn( _i_gw , _c2 + _bse_cmin );
                     }
                 }
             }
             
             // store elements in a vtotal^2 x ctotal^2 matrix
+            cout << "BSE_d_setup 1 [" << _storage_v.size1() << "x" << _storage_v.size2() << "]\n" << std::flush;
             ub::matrix<double> _storage_prod = ub::prod( _storage_v , _storage_c );
             
             
@@ -651,6 +635,7 @@ namespace votca {
             }
             
             // multiply and subtract from _storage_prod
+            cout << "BSE_d_setup 2 [" << _storage_c.size1() << "x" << _storage_c.size2() << "]\n" << std::flush;
             _storage_prod -= ub::prod( _storage_v , _storage_c );
             
             
@@ -682,7 +667,7 @@ namespace votca {
         
         
         
-        void GWBSE::BSE_x_setup(TCMatrix& _Mmn){
+        void GWBSE::BSE_x_setup(const TCMatrix& _Mmn){
             
             /* unlike the fortran code, we store eh interaction directly in
              * a suitable matrix form instead of a four-index array
@@ -692,22 +677,24 @@ namespace votca {
             _eh_x = ub::zero_matrix<double>( _bse_size , _bse_size );
             
             // gwbasis size
-            size_t _gwsize = _Mmn.matrix()(0).size1();
+            size_t _gwsize = _Mmn[0].size1();
             
             // get a different storage for 3-center integrals we need
             ub::matrix<double> _storage = ub::zero_matrix<double>( _gwsize , _bse_size);
             // occupied levels
             for ( size_t _v = 0; _v < _bse_vtotal ; _v++ ){
+                const ub::matrix<double>& Mmn = _Mmn[_v];
                 // empty levels
                 for (size_t _c =0 ; _c < _bse_ctotal ; _c++ ){
                     size_t _index_vc = _bse_ctotal * _v + _c ;
                     for (size_t _i_gw = 0 ; _i_gw < _gwsize ; _i_gw++ ){
-                        _storage( _i_gw, _index_vc ) = _Mmn.matrix()( _v )( _i_gw, _c + _bse_cmin);
+                        _storage( _i_gw, _index_vc ) = Mmn( _i_gw, _c + _bse_cmin);
                     }
                 }
             }
             
             // with this storage, _eh_x is obtained by matrix multiplication
+            cout << "BSE_x_setup [" << _gwsize << "x" << _bse_size << "]\n" << std::flush;
             _eh_x = ub::prod( ub::trans( _storage ), _storage );
             _eh_x = 2.0 * _eh_x; // Rydberg
   
@@ -746,12 +733,12 @@ namespace votca {
         }
         
         
-        void GWBSE::sigma_c_setup(TCMatrix& _Mmn, ub::vector<double>& _edft){
+        void GWBSE::sigma_c_setup(const TCMatrix& _Mmn, const ub::vector<double>& _edft){
             
             // iterative refinement of qp energies
             int _max_iter = 5;
-            int _bandsum = _Mmn.matrix()(0).size2(); // total number of bands
-            int _gwsize  = _Mmn.matrix()(0).size1(); // size of the GW basis
+            int _bandsum = _Mmn[0].size2(); // total number of bands
+            int _gwsize  = _Mmn[0].size1(); // size of the GW basis
             const double pi = boost::math::constants::pi<double>();
             
 
@@ -766,6 +753,8 @@ namespace votca {
 
 	      // loop over all GW levels
 	      for (int _gw_level = 0; _gw_level < _qptotal ; _gw_level++ ){
+                  
+                const ub::matrix<double>& Mmn = _Mmn[ _gw_level ];
               
 		// loop over all functions in GW basis
 		for ( int _i_gw = 0; _i_gw < _gwsize ; _i_gw++ ){
@@ -787,7 +776,7 @@ namespace votca {
 		    double _factor = _ppm_weight( _i_gw ) * _ppm_freq( _i_gw) * _stab/_denom; // contains conversion factor 2!
 		    
 		    // sigma_c diagonal elements
-		    _sigma_c( _gw_level , _gw_level ) += _factor * _Mmn.matrix()( _gw_level )(_i_gw, _i) *  _Mmn.matrix()( _gw_level )(_i_gw, _i);  
+		    _sigma_c( _gw_level , _gw_level ) += _factor * Mmn(_i_gw, _i) *  Mmn(_i_gw, _i);  
                             
 		  }// bands
                         
@@ -808,6 +797,7 @@ namespace votca {
 	      // loop over col  GW levels
 	      for (int _gw_level = 0; _gw_level < _qptotal ; _gw_level++ ){
               
+                const ub::matrix<double>& Mmn =  _Mmn[ _gw_level ];
 		// loop over all functions in GW basis
 		for ( int _i_gw = 0; _i_gw < _gwsize ; _i_gw++ ){
                     
@@ -826,14 +816,14 @@ namespace votca {
 		      _stab = 0.5 * ( 1.0 - cos(2.0 * pi * std::abs(_denom) ) );
 		    }
                     
-		    double _factor = _ppm_weight( _i_gw ) * _ppm_freq( _i_gw) *   _Mmn.matrix()( _gw_level )(_i_gw, _i) *_stab/_denom; // contains conversion factor 2!
+		    double _factor = _ppm_weight( _i_gw ) * _ppm_freq( _i_gw) *   Mmn(_i_gw, _i) *_stab/_denom; // contains conversion factor 2!
 		    
 		    // loop over row GW levels
 		    for ( int _m = 0 ; _m < _qptotal ; _m++) {
 
 		    
 		    // sigma_c all elements
-		    _sigma_c( _m , _gw_level ) += _factor * _Mmn.matrix()( _m )(_i_gw, _i) ;  //_submat(_i_gw,_i);
+		    _sigma_c( _m , _gw_level ) += _factor * _Mmn[_m](_i_gw, _i) ;  //_submat(_i_gw,_i);
 	                      
 		  }// bands
 		}// GW functions
@@ -843,22 +833,28 @@ namespace votca {
     
         } // sigma_c_setup
 
-        void GWBSE::sigma_x_setup(TCMatrix& _Mmn){
+        void GWBSE::sigma_x_setup(const TCMatrix& _Mmn){
         
             // initialize sigma_x
             _sigma_x = ub::zero_matrix<double>(_qptotal,_qptotal);
-            int _size  = _Mmn.matrix()(0).size1();
+            int _size  = _Mmn[0].size1();
 
             // band 1 loop over all GW bands
             for ( int _m1 = 0 ; _m1 < _qptotal ; _m1++ ){
+                
+                const ub::matrix<double>& M1mn =  _Mmn[ _m1 ];
+                
                 // band 2 loop over all GW bands
                 for ( int _m2 = 0 ; _m2 < _qptotal ; _m2++ ){
+                    
+                    const ub::matrix<double>& M2mn =  _Mmn[ _m2 ];
+                    
                     // loop over all basis functions
                     for ( int _i_gw = 0 ; _i_gw < _size ; _i_gw++ ){
                         // loop over all occupied bands used in screening
                         for ( int _i_occ = 0 ; _i_occ <= _homo ; _i_occ++ ){
                             
-                            _sigma_x( _m1, _m2 ) -= 2.0 * _Mmn.matrix()( _m1 )( _i_gw , _i_occ ) * _Mmn.matrix()( _m2 )( _i_gw , _i_occ );
+                            _sigma_x( _m1, _m2 ) -= 2.0 * M1mn( _i_gw , _i_occ ) * M2mn( _i_gw , _i_occ );
                             
                         } // occupied bands
                     } // gwbasis functions
@@ -877,7 +873,8 @@ namespace votca {
                 // get Mmn for this _m_band
                 // ub::matrix<double> _temp = ub::trans(  _Mmn.matrix()( _m_band )   );
                 // and multiply with _ppm_phi = eigenvectors of epsilon
-                _Mmn.matrix()( _m_band ) = ub::prod(  _ppm_phi , _Mmn.matrix()( _m_band ) );
+                // POTENTIAL BUG
+                _Mmn[ _m_band ] = ub::prod(  _ppm_phi , _Mmn[ _m_band ] );
                 
             }
             
@@ -953,7 +950,7 @@ namespace votca {
 
         void GWBSE::RPA_calculate_epsilon(TCMatrix& _Mmn_RPA, ub::matrix<double> _screening_freq, double _shift, ub::vector<double>& _dft_energies){
             
-            int _size = _Mmn_RPA.matrix()(0).size1(); // size of gwbasis
+            int _size = _Mmn_RPA[0].size1(); // size of gwbasis
             
             // loop over frequencies
             for ( int _i_freq = 0 ; _i_freq < _screening_freq.size1() ; _i_freq++ ){
@@ -963,6 +960,7 @@ namespace votca {
                 // loop over occupied bands -> vector index of _Mmn_RPA
                 for ( int _m_band = 0; _m_band < _Mmn_RPA.get_mtot() ; _m_band++ ){
                     int index_m = _Mmn_RPA.get_mmin();
+                    const ub::matrix<double>& Mmn_RPA =  _Mmn_RPA[ _m_band ];
 
                     // a temporary matrix, that will get filled in empty bands loop
                     ub::matrix<double> _temp = ub::zero_matrix<double>( _Mmn_RPA.get_ntot(), _size );
@@ -989,13 +987,13 @@ namespace votca {
                         }
 
                         for ( int _i_gw = 0 ; _i_gw < _size ; _i_gw++ ){
-                            _temp( _n_band , _i_gw ) = _energy_factor * _Mmn_RPA.matrix()( _m_band )( _i_gw , _n_band );
+                            _temp( _n_band , _i_gw ) = _energy_factor * Mmn_RPA( _i_gw , _n_band );
                         } // matrix size
                         
                     } // empty bands
 
                    // now multiply and add to epsilon
-                   _epsilon( _i_freq ) += ub::prod( _Mmn_RPA.matrix()( _m_band ) , _temp  );
+                   _epsilon( _i_freq ) += ub::prod( Mmn_RPA , _temp  );
 
                 } // occupied bands
                 
@@ -1013,9 +1011,9 @@ namespace votca {
         // loop over m-bands in _Mmn_full
         // for ( int _m_band = 0; _m_band < _Mmn_full.matrix().size() ; _m_band++ ){
         // actually, only needed for size of _Mmn_RPA (until VBM)
-        for ( int _m_band = 0; _m_band < _Mmn_RPA.matrix().size() ; _m_band++ ){
+        for ( int _m_band = 0; _m_band < _Mmn_RPA.size() ; _m_band++ ){
         
-            ub::matrix<double> _temp = ub::prod( gwoverlap_inverse._aomatrix , _Mmn_full.matrix()( _m_band ) );
+            ub::matrix<double> _temp = ub::prod( gwoverlap_inverse._aomatrix , _Mmn_full[ _m_band ] );
 
             // loop over n-bands in _Mmn_full 
             for ( int _n_band = 0; _n_band < _Mmn_full.get_ntot() ; _n_band++ ){
@@ -1101,7 +1099,7 @@ namespace votca {
             ub::matrix<double> _temp2 = ub::prod( gwoverlap._aomatrix , _temp );
             // copy to _Mmn_RPA
             // range(start, stop) contains all indices i with start <= i < stop
-            _Mmn_RPA.matrix()( _m_band ) = ub::project( _temp2, ub::range(0, gwbasis._AOBasisSize) , ub::range(_Mmn_RPA.get_nmin() - _Mmn_full.get_nmin()  , _Mmn_RPA.get_nmax() - _Mmn_full.get_nmin() +1 ));
+            _Mmn_RPA[ _m_band ] = ub::project( _temp2, ub::range(0, gwbasis._AOBasisSize) , ub::range(_Mmn_RPA.get_nmin() - _Mmn_full.get_nmin()  , _Mmn_RPA.get_nmax() - _Mmn_full.get_nmin() +1 ));
             
             
         }// loop m-bands

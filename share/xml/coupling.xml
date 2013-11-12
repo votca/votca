@@ -5,7 +5,7 @@
 
         <package help="First-principles package">gaussian</package>
 
-        <output help="Output file" default="coupling.out">coupling.out</output>
+        <output help="Output file" default="coupling.out.xml">coupling.out.xml</output>
 
         <degeneracy help="Criterium for the degeneracy of two levels" unit="eV" default="0">0</degeneracy>
 

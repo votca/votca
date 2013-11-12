@@ -21,6 +21,7 @@
 #define	__VOTCA_CTP_ORBITALS_H
 
 #include <votca/ctp/basisset.h>
+#include <votca/ctp/qmatom.h>
 
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
@@ -60,46 +61,13 @@ namespace ub = boost::numeric::ublas;
     
 namespace votca { namespace ctp {
     
-/**
-    \brief container for basic atoms 
-     Stores atom type, coordinates, charge, basis set
- */    
-class QMAtom
-{
-public:
-    
-   QMAtom (std::string _type, double _x, double _y, double _z, double _charge, bool _from_environment)
-            : type( _type ), x(_x), y(_y), z(_z), charge(_charge), from_environment( _from_environment )
-            {};
-            
-    QMAtom ()
-            : type( "" ), x(0), y(0), z(0), charge(0), from_environment( false )
-            {};     
-            
-   std::string type;
-   double x;
-   double y;
-   double z;
-   double charge;
-   bool   from_environment;
-   
-   template<typename Archive> 
-   void serialize(Archive& ar, const unsigned int version) {
-       ar & type;
-       ar & x;
-       ar & y;
-       ar & z;
-       ar & charge;
-       ar & from_environment;
-   }  
-};
-    
-/**
-    \brief container for molecular orbitals
  
-    The Orbitals class stores orbital id, energy, MO coefficients
-    
-*/
+/**
+ * \brief container for molecular orbitals
+ * 
+ * The Orbitals class stores orbital id, energy, MO coefficients, basis set
+ *     
+ */
 class Orbitals 
 {
 public:   
@@ -118,13 +86,33 @@ public:
     int            getNumberOfElectrons() { return (_has_number_of_electrons) ? _number_of_electrons : 0; } ;
     void           setNumberOfElectrons( const int &electrons );
     
+
     ub::symmetric_matrix<double>* getOverlap() { return &_overlap; }
-    ub::symmetric_matrix<double>* getVxc() { return &_vxc; }
     ub::matrix<double>* getOrbitals() { return &_mo_coefficients; }
     ub::vector<double>* getEnergies() { return &_mo_energies; }
-
     ub::matrix<double>* getIntegrals() { return _integrals; }
     void setIntegrals( ub::matrix<double>* integrals ) { _has_integrals = true;  _integrals = integrals; }
+
+    /// Does not allow to change the matrix: useful for fast access
+    const ub::symmetric_matrix<double> &MOOverlap() const { return _overlap; }
+    /// Allows to change the matrix: useful to fill in the matrix
+    ub::symmetric_matrix<double> &MOOverlap() { return _overlap; }
+
+    /// Does not allow to change the matrix: useful for fast access
+    const ub::matrix<double> &MOCoefficients() const { return _mo_coefficients; }
+    /// Allows to change the matrix: useful to fill in the matrix
+    ub::matrix<double> &MOCoefficients() { return _mo_coefficients; }
+    
+    /// Does not allow to change the matrix: useful for fast access
+    const ub::vector<double> &MOEnergies() const { return _mo_energies; }
+    /// Allows to change the matrix: useful to fill in the matrix
+    ub::vector<double> &MOEnergies() { return _mo_energies; }
+
+    /// Does not allow to change the matrix: useful for fast access    
+    const ub::matrix<double> &MOCouplings() const { return _mo_couplings; }
+    /// Allows to change the matrix: useful to fill in the matrix
+    ub::matrix<double> &MOCouplings() { return _mo_couplings; }
+
  
     double getEnergy( int level) { return (_has_mo_energies) ? _conv_Hrt_eV*_mo_energies[level-1] : 0; }
     
@@ -138,6 +126,8 @@ public:
     double getQMEnergy() { return (_has_qm_energy) ? _qm_energy : 0; }
     
     // for GW-BSE
+    ub::symmetric_matrix<double>* getVxc() { return &_vxc; }
+
     bool hasQMpackage() { return _has_qm_package; }
     string getQMpackage() { return _qm_package; }
     
@@ -160,8 +150,11 @@ public:
     // returns indeces of a re-sorted in a descending order vector of energies
     void SortEnergies( std::vector<int>* index );
     
-    QMAtom* AddAtom (std::string _type, double _x, double _y, double _z, double _charge = 0, bool _from_environment = false){
-        //std::cout << _type << std::endl;
+    /** Adds a QM atom to the atom list */
+    QMAtom* AddAtom (std::string _type, 
+                     double _x, double _y, double _z, 
+                     double _charge = 0, bool _from_environment = false)
+    {
         QMAtom* pAtom = new QMAtom(_type, _x, _y, _z, _charge, _from_environment);
         _atoms.push_back( pAtom );
         return pAtom;
@@ -221,7 +214,8 @@ private:
     
     bool                                _has_integrals;
     ub::matrix<double>*                 _integrals;
-    
+    ub::matrix<double>                  _mo_couplings;
+   
     bool                                _has_basis_set;
     BasisSet                            _basis_set;
     

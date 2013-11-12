@@ -30,17 +30,21 @@ endif(NOT DEFINED MAN)
 if (NOT DEFINED DATA)
   set(DATA "share/votca")
 endif(NOT DEFINED DATA)
-option(WITH_DIPRO "Build mergeorbitals and DIPRO, which use fortran" ON)
+#option(WITH_DIPRO "Build mergeorbitals and DIPRO, which use fortran" ON)
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
 ########################################################################
 #Find external packages
 ########################################################################
-find_package(Boost 1.39.0 REQUIRED COMPONENTS program_options serialization filesystem  )
+find_package(Boost 1.39.0 REQUIRED COMPONENTS program_options serialization filesystem timer)
 include_directories(${Boost_INCLUDE_DIRS})
-set (BOOST_LIBRARIES ${Boost_THREAD_LIBRARY} ${Boost_PROGRAM_OPTIONS_LIBRARY} ${Boost_SERIALIZATION_LIBRARY} ${Boost_FILESYSTEM_LIBRARY} )
+set (BOOST_LIBRARIES ${Boost_THREAD_LIBRARY} ${Boost_PROGRAM_OPTIONS_LIBRARY} ${Boost_SERIALIZATION_LIBRARY} ${Boost_FILESYSTEM_LIBRARY} ${Boost_TIMER_LIBRARY})
 set (BOOST_CFLAGS_PKG "-I${Boost_INCLUDE_DIRS}")
 string(REGEX REPLACE "^(.*)/lib([^/]*)\\.[^.]*$" "-L\\1 -l\\2" BOOST_LIBS_PKG ${BOOST_LIBRARIES})
+
+option(BUILD_MANPAGES "Build manpages (might lead to problem on system without rpath" OFF)
+#define this target here, so that individual man pages can append to it.
+add_custom_target(manpages ALL)
 
 #message(STATUS "BOOST_LIBRARIES='${BOOST_LIBRARIES}'")
 
@@ -133,3 +137,4 @@ add_subdirectory(src/tools)
 #add_subdirectory(src/dipro)
 #add_subdirectory(share/scripts/dipro) 
 add_subdirectory(share)  
+add_subdirectory(share/man)
