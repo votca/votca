@@ -30,7 +30,7 @@ namespace votca { namespace tools {
     Removes Windows end-of-line character
  
   */
-std::istream& getline (std::istream& is, std::string& str)
+inline std::istream& getline (std::istream& is, std::string& str)
 {
     std::istream& ist = getline( is, str, '\n' );
     str.erase(remove(str.begin(), str.end(), '\r'), str.end());
