@@ -1,5 +1,4 @@
 <topology base="spce.gro">
-  <box xx="4.03100" yy="4.03100" zz="4.03100"/>
   <molecules>
     <clear/>
     <define name="SOL" first="1" nbeads="1" nmols="2180"/>
