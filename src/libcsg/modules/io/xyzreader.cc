@@ -17,6 +17,7 @@
 
 #include <vector>
 #include <boost/lexical_cast.hpp>
+#include <votca/tools/getline.h>
 #include "xyzreader.h"
 
 namespace votca { namespace csg {

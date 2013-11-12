@@ -18,6 +18,7 @@
 #include <iostream>
 #include <fstream>
 #include <boost/algorithm/string.hpp>
+#include <votca/tools/getline.h>
 
 #ifndef HAVE_NO_CONFIG
 #include <votca_config.h>

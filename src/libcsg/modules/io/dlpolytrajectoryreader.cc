@@ -18,6 +18,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <votca/csg/topology.h>
+#include <votca/tools/getline.h>
 #include "dlpolytrajectoryreader.h"
 
 namespace votca { namespace csg {
