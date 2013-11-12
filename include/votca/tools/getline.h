@@ -20,7 +20,7 @@
 
 #include <iostream>
 #include <string>
-#include  <algorithm>
+#include <algorithm>
 
 namespace votca { namespace tools {
     

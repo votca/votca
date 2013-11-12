@@ -36,6 +36,22 @@
       <itemPath>../../include/votca/tools/vec.h</itemPath>
       <itemPath>../../include/votca/tools/version.h</itemPath>
     </logicalFolder>
+    <logicalFolder name="f1" displayName="Linalg" projectFiles="true">
+      <logicalFolder name="f2" displayName="GSL" projectFiles="true">
+        <itemPath>../../src/libtools/linalg/gsl/cholesky.cc</itemPath>
+        <itemPath>../../src/libtools/linalg/gsl/eigensystems.cc</itemPath>
+        <itemPath>../../src/libtools/linalg/gsl/invert.cc</itemPath>
+        <itemPath>../../src/libtools/linalg/gsl/qrsolve.cc</itemPath>
+        <itemPath>../../src/libtools/linalg/gsl/svd.cc</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f1" displayName="MKL" projectFiles="true">
+        <itemPath>../../src/libtools/linalg/mkl/cholesky.cc</itemPath>
+        <itemPath>../../src/libtools/linalg/mkl/eigensystems.cc</itemPath>
+        <itemPath>../../src/libtools/linalg/mkl/invert.cc</itemPath>
+        <itemPath>../../src/libtools/linalg/mkl/qrsolve.cc</itemPath>
+        <itemPath>../../src/libtools/linalg/mkl/svd.cc</itemPath>
+      </logicalFolder>
+    </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
                    projectFiles="true">
@@ -43,20 +59,6 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
-      <logicalFolder name="f1" displayName="linalg_gsl" projectFiles="true">
-        <itemPath>../../src/libtools/linalg/gsl/cholesky.cc</itemPath>
-        <itemPath>../../src/libtools/linalg/gsl/eigensystems.cc</itemPath>
-        <itemPath>../../src/libtools/linalg/gsl/invert.cc</itemPath>
-        <itemPath>../../src/libtools/linalg/gsl/qrsolve.cc</itemPath>
-        <itemPath>../../src/libtools/linalg/gsl/svd.cc</itemPath>
-      </logicalFolder>
-      <logicalFolder name="f2" displayName="linalg_mkl" projectFiles="true">
-        <itemPath>../../src/libtools/linalg/mkl/cholesky.cc</itemPath>
-        <itemPath>../../src/libtools/linalg/mkl/eigensystems.cc</itemPath>
-        <itemPath>../../src/libtools/linalg/mkl/invert.cc</itemPath>
-        <itemPath>../../src/libtools/linalg/mkl/qrsolve.cc</itemPath>
-        <itemPath>../../src/libtools/linalg/mkl/svd.cc</itemPath>
-      </logicalFolder>
       <itemPath>../../src/libtools/akimaspline.cc</itemPath>
       <itemPath>../../src/libtools/application.cc</itemPath>
       <itemPath>../../src/libtools/correlate.cc</itemPath>
@@ -66,6 +68,7 @@
       <itemPath>../../src/libtools/datacollection.cc</itemPath>
       <itemPath>../../src/libtools/histogram.cc</itemPath>
       <itemPath>../../src/libtools/histogramnew.cc</itemPath>
+      <itemPath>../../src/libtools/linalg.cc</itemPath>
       <itemPath>../../src/libtools/linspline.cc</itemPath>
       <itemPath>../../src/libtools/matrix.cc</itemPath>
       <itemPath>../../src/libtools/mutex.cc</itemPath>
@@ -84,8 +87,15 @@
                    projectFiles="false">
       <itemPath>Makefile_nb</itemPath>
     </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false">
+      <itemPath>Makefile_nb</itemPath>
+    </logicalFolder>
   </logicalFolder>
   <sourceRootList>
+    <Elem>../../src/libtools</Elem>
+    <Elem>../../include</Elem>
     <Elem>../../src/libtools</Elem>
     <Elem>../../include</Elem>
   </sourceRootList>

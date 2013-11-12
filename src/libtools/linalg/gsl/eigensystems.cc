@@ -126,7 +126,7 @@ bool linalg_eigenvalues( ub::vector<double> &E, ub::matrix<double> &V)
          ub::matrix<double> A = V;
     
          // now call wrapper for gsl_eigen_symmv
-         bool status = linalg_eigenvalues( &A , E, V );
+         bool status = linalg_eigenvalues( A , E, V );
 
          return status;
          
@@ -135,8 +135,17 @@ bool linalg_eigenvalues( ub::vector<double> &E, ub::matrix<double> &V)
 };
 
 
-
-
+/*
+ * use expert routine to calculate only a subrange of eigenvalues
+ */
+bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V , int nmax)
+{
+#ifdef NOGSL
+    throw std::runtime_error("Available only if intell compiler is used and MKL installed");
+#else    
+    throw std::runtime_error("Available only if intell compiler is used and MKL installed");
+#endif
+}
 
 
 }}
