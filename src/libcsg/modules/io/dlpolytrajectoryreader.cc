@@ -17,6 +17,7 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <boost/filesystem/convenience.hpp> 
 #include <votca/csg/topology.h>
 #include <votca/tools/getline.h>
 #include "dlpolytrajectoryreader.h"
@@ -27,9 +28,20 @@ using namespace std;
 
 bool DLPOLYTrajectoryReader::Open(const string &file)
 {
-    _fl.open("HISTORY");
+    boost::filesystem::path filepath(file.c_str());
+    string filename;
+    if ( boost::filesystem::basename(filepath).size() == 0 ) {
+      if (filepath.parent_path().string().size() == 0) {
+        filename="HISTORY";
+      } else {
+	filename=filepath.parent_path().string() + "/HISTORY";
+      }
+    } else {
+      filename=file;
+    }
+    _fl.open(filename.c_str());
     if(!_fl.is_open())
-        throw std::ios_base::failure("Error on open topology file: HISTORY");
+        throw std::ios_base::failure("Error on open trajectory file: "+ filename);
     return true;
 }
 

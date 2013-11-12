@@ -18,6 +18,7 @@
 #include <iostream>
 #include <fstream>
 #include <boost/algorithm/string.hpp>
+#include <boost/filesystem/convenience.hpp> 
 #include <votca/tools/getline.h>
 
 #ifndef HAVE_NO_CONFIG
@@ -34,7 +35,12 @@ namespace votca { namespace csg {
 bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 {
     std::ifstream fl;
+    boost::filesystem::path filepath(file.c_str());
+    string filename;
 #ifdef DLPOLY
+    if (file != ".dlpoly")
+      throw std::runtime_error("Reading from different filename/directories not implemented yet. (use --top '.dlpoly')");
+
     struct FieldSpecsT  FieldBase;
     struct FrameSpecsT  FrameBase;
     struct MolecSpecsT *MolecBase;
@@ -92,16 +98,25 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
     // TODO: fix residue naming / assignment
     Residue *res = top.CreateResidue("no");
 
-    fl.open("FIELD");
+    if ( boost::filesystem::basename(filepath).size() == 0 ) {
+      if (filepath.parent_path().string().size() == 0) {
+        filename="FIELD";
+      } else {
+	filename=filepath.parent_path().string() + "/FIELD";
+      }
+    } else {
+      filename=file;
+    }
+    fl.open(filename.c_str());
     if (!fl.is_open()){
-      throw std::runtime_error("could open dlpoly file FIELD");
+      throw std::runtime_error("could open dlpoly file " + filename);
     } else {
       string line;
       getline(fl, line); //title
       getline(fl, line); //unit line
       fl >> line;
       if (line != "MOLECULES")
-          throw std::runtime_error("unexpected line in dlpoly file FIELD, expected 'MOLECULES' got" + line);
+          throw std::runtime_error("unexpected line in dlpoly file " + filename + ", expected 'MOLECULES' got" + line);
       int nmol_types;
       fl >> nmol_types;
       getline(fl, line); //rest of MOLECULES line
@@ -113,12 +128,12 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
         Molecule *mi = top.CreateMolecule(mol_name);
         fl >> line;
         if (line != "NUMMOLS")
-          throw std::runtime_error("unexpected line in dlpoly file FIELD, expected 'NUMMOLS' got" + line);
+          throw std::runtime_error("unexpected line in dlpoly file " + filename + ", expected 'NUMMOLS' got" + line);
 	int nreplica;
 	fl >> nreplica;
 	fl >> line;
         if (line != "ATOMS")
-          throw std::runtime_error("unexpected line in dlpoly file FIELD, expected 'ATOMS' got" + line);
+          throw std::runtime_error("unexpected line in dlpoly file " + filename + ", expected 'ATOMS' got" + line);
 	int natoms;
 	fl >> natoms;
 	//read molecule
@@ -149,7 +164,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 	while (line != "FINISH"){
 	  fl >> line;
 	  if (fl.eof())
-            throw std::runtime_error("unexpected end of dlpoly file FIELD while scanning for 'FINISH'");
+            throw std::runtime_error("unexpected end of dlpoly file " + filename + " while scanning for 'FINISH'");
 	}
 	getline(fl, line); //rest of the FINISH line
 	//replicate molecule
@@ -168,7 +183,17 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
     //we don't need the rest.
     fl.close();
 #endif
-    fl.open("CONFIG");
+    if ( boost::filesystem::basename(filepath).size() == 0 ) {
+      if (filepath.parent_path().string().size() == 0) {
+        filename="CONFIG";
+      } else {
+	filename=filepath.parent_path().string() + "/CONFIG";
+      }
+    } else {
+      cout << "NOTE: Explicit dlploy topology filename given, so no config will be openend and no boundary conditions will set in the topology." << endl;
+      return true;
+    }
+    fl.open(filename.c_str());
     if(fl.is_open()) {
       string line;
       getline(fl, line); //title
@@ -177,7 +202,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
       for (int i=0;i<3;i++){ // read 3 box lines
         getline(fl, line);
         if(fl.eof())
-          throw std::runtime_error("unexpected end of file in dlpoly file CONFIG, when reading box vector"  +
+          throw std::runtime_error("unexpected end of file in dlpoly file " + filename +", when reading box vector"  +
               boost::lexical_cast<string>(i));
         Tokenizer tok(line, " ");
         vector<double> fields;
@@ -186,12 +211,11 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
       }
       matrix box(box_vectors[0],box_vectors[1],box_vectors[2]);
       top.setBox(box);
+      fl.close();
     }
     else {
-      cout << "NOTE: Could open dlploy file CONFIG, so no boundary conditions, where set in the topology" << endl;
+      cout << "NOTE: Could not open dlploy file " << filename << "so no boundary conditions, where set in the topology." << endl;
     }
-    fl.close();
-
     return true;
 }
 
