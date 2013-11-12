@@ -65,6 +65,7 @@ if (WITH_LINALG)
   find_package(GSL)
   find_package(MKL)
 
+
   if (EIGEN_FOUND) 
     message("-- EIGEN found (not used at the moment)")
     set(EIGEN TRUE) #used in votca_ctp_config.h

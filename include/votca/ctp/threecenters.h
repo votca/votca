@@ -100,7 +100,7 @@ namespace votca { namespace ctp {
         // matrix print 
         void Print( string _ident);
 
-        void Symmetrize( ub::matrix<double>& coulomb  );
+        void Symmetrize( const ub::matrix<double>& coulomb  );
 
         ub::matrix<double> matrixProd( int m, ub::matrix<double>& matrix);
         
@@ -122,7 +122,7 @@ namespace votca { namespace ctp {
         
         void getTrafo( ub::matrix<double>& _trafo, int _lmax, const double& _decay );
         
-        void FillBlock(ub::vector_range< ub::vector< ub::matrix<double> > >& _matrix,  AOShell* _shell, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals ) ;
+        // void FillBlock(ub::vector_range< ub::vector< ub::matrix<double> > >& _matrix,  AOShell* _shell, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals ) ;
         
         void FillBlock(ub::vector< ub::matrix<double> >& _matrix,  AOShell* _shell, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals ) ;
         
