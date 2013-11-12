@@ -94,19 +94,12 @@ for (my $i=0;$i<=$#r;$i++){
    $pot[$i]-=$pot[$#r];
 }
 
-if ($sim_prog eq "espresso") {
-  # add extra 1/r factor for ESPResSo
-  for (my $i=0;$i<=$#r_repeat;$i++){
-		$minus_force[$i]*=1.0/$r_repeat[$i] if ($r_repeat[$i] > 0);
-  } 
-}
-
 open(OUTFILE,"> $outfile") or die "saveto_table: could not open $outfile\n";
 # espresso specific header - no other starting comments
 if ($sim_prog eq "espresso") {
   printf(OUTFILE "#%d %f %f\n", $#r+1, $r[0],$r[$#r]);
   for(my $i=0;$i<=$#r;$i++){
-    printf(OUTFILE "%15.10e %15.10e %15.10e\n",$r[$i], -$minus_force[$i], $pot[$i]);
+    printf(OUTFILE "%15.10e %15.10e %15.10e\n",$r[$i],($r[$i]>0)?-$minus_force[$i]/$r[$i]:-$minus_force[$i], $pot[$i]);
   }
 } elsif ($sim_prog eq "lammps") {
   printf(OUTFILE "VOTCA\n");

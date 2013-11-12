@@ -17,6 +17,7 @@
 
 #include <vector>
 #include <boost/lexical_cast.hpp>
+#include <votca/tools/getline.h>
 #include "xyzreader.h"
 
 namespace votca { namespace csg {
@@ -72,7 +73,7 @@ bool XYZReader::NextFrame(Topology &top)
         // read the number of atoms
         _natoms = boost::lexical_cast<int>(line);
         if(!_topology && _natoms !=top.BeadCount())
-            std::runtime_error("number of beads in topology and trajectory difffer");
+            throw std::runtime_error("number of beads in topology and trajectory differ");
 
         // the title line
         getline(_fl, line); ++_line;

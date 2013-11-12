@@ -17,6 +17,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <votca/tools/getline.h>
 #include "esptrajectoryreader.h"
 
 namespace votca { namespace csg {

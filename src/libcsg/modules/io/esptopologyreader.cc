@@ -18,6 +18,7 @@
 #include <iostream>
 #include <fstream>
 #include <boost/lexical_cast.hpp>
+#include <votca/tools/getline.h>
 #include "esptopologyreader.h"
 
 namespace votca { namespace csg {

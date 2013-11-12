@@ -267,7 +267,7 @@ imc_stat dlpoly imc_stat_generic.sh
 density dlpoly calc_density_generic.sh
 
 # function for lammps
-functions dlpoly functions_genericsim.sh
+functions dlpoly functions_dlpoly.sh
 
 # lammps scripts
 convert_potential dlpoly potential_to_dlpoly.sh
