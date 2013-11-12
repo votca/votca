@@ -73,8 +73,9 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
             Molecule *mi = top.CreateMolecule(MolecBase[im].name);
             for(int ims=0; ims<MolecBase[im].nsites; ims++) {
 
-                BeadType *type = top.GetOrCreateBeadType(FieldSite[is].name); // what is
-                Bead *bead = top.CreateBead(1, FieldSite[is].type, type, res->getId(), FieldSite[is].m, FieldSite[is].q);
+                BeadType *type = top.GetOrCreateBeadType(FieldSite[is].type); // what is
+	        string beadname = boost::lexical_cast<string>(FieldSite[is].name) + "#" + boost::lexical_cast<string>(ims+1);
+                Bead *bead = top.CreateBead(1, beadname, type, res->getId(), FieldSite[is].m, FieldSite[is].q);
 
                 stringstream nm;
                 nm << bead->getResnr() + 1 << ":" <<  top.getResidue(bead->getResnr())->getName() << ":" << bead->getName();
@@ -135,7 +136,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 	  if (fields.size() > 1)
 	    repeater=fields[0];
 	  for(int j=0;j<repeater;j++){
-	    string beadname = beadtype + boost::lexical_cast<string>(j+1);
+	    string beadname = beadtype + "#" + boost::lexical_cast<string>(j+1);
 	    Bead *bead = top.CreateBead(1, beadname , type, res->getId(), mass, charge);
             stringstream nm;
             nm << bead->getResnr() + 1 << ":" <<  top.getResidue(bead->getResnr())->getName() << ":" << bead->getName();
