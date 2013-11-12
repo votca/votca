@@ -75,22 +75,16 @@ if (WITH_LINALG)
     set(EIGEN FALSE) #used in votca_ctp_config.h
   endif()
 
-  if (GSL_FOUND) 
+  set(MKL FALSE)
+  set(GSL FALSE)
+  if (MKL_FOUND AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+    message("-- MKL found, overloading uBLAS prod()")
+    set(MKL TRUE) #used in votca_ctp_config.h
+  elseif(GSL_FOUND)
     message("-- GSL found, overloading uBLAS prod()")
     include_directories(${GSL_INCLUDE_DIRS})
     set(GSL_PKG "gsl")
     set(GSL TRUE) #used in votca_ctp_config.h
-  else()
-    message(WARNING "-- GSL not found, slow uBLAS::prod()")
-    set(GSL FALSE) #used in votca_ctp_config.h
-  endif()
-
-  if (MKL_FOUND) 
-    message("-- MKL found, overloading uBLAS prod()")
-    set(MKL TRUE) #used in votca_ctp_config.h
-  else()
-    message("-- MKL not found (hopefully GSL is here)")
-    set(MKL FALSE) #used in votca_ctp_config.h
   endif()
 
 endif(WITH_LINALG)

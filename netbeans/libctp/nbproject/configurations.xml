@@ -68,7 +68,6 @@
       <itemPath>../../include/votca/ctp/basisset.h</itemPath>
       <itemPath>../../include/votca/ctp/calculator.h</itemPath>
       <itemPath>../../include/votca/ctp/calculatorfactory.h</itemPath>
-      <itemPath>/data/isilon/baumeier/votca_devel/src/ctp/include/votca/ctp</itemPath>
       <itemPath>../../include/votca/ctp/ctpapplication.h</itemPath>
       <itemPath>../../include/votca/ctp/eigenvalues.h</itemPath>
       <itemPath>../../include/votca/ctp/ewald2d.h</itemPath>
@@ -227,8 +226,6 @@
           <output>../../src/libctp/libctp.a</output>
         </archiverTool>
       </compileType>
-      <item path="../../include/votca/ctp/aobasis.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/ctp/aomatrix.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/apolarsite.h"
@@ -254,8 +251,6 @@
             ex="false"
             tool="3"
             flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/dmaspace.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/eigenvalues.h"
             ex="false"
@@ -784,11 +779,6 @@
       </item>
       <item path="../../src/libctp/xmapper.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="/data/isilon/baumeier/votca_devel/src/ctp/include/votca/ctp"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="/data/isilon/baumeier/votca_devel/src/ctp/include/votca/ctp/aobasis.h"
             ex="false"
             tool="3"
@@ -824,8 +814,6 @@
         <archiverTool>
         </archiverTool>
       </compileType>
-      <item path="../../include/votca/ctp/aobasis.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/ctp/aomatrix.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/apolarsite.h"
@@ -851,8 +839,6 @@
             ex="false"
             tool="3"
             flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/dmaspace.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/eigenvalues.h"
             ex="false"
@@ -1380,11 +1366,6 @@
       <item path="../../src/libctp/xjob.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/xmapper.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="/data/isilon/baumeier/votca_devel/src/ctp/include/votca/ctp"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="/data/isilon/baumeier/votca_devel/src/ctp/include/votca/ctp/aobasis.h"
             ex="false"
