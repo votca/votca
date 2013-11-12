@@ -12,6 +12,7 @@
       <itemPath>../../include/votca/tools/cubicspline.h</itemPath>
       <itemPath>../../include/votca/tools/database.h</itemPath>
       <itemPath>../../include/votca/tools/datacollection.h</itemPath>
+      <itemPath>../../include/votca/tools/getline.h</itemPath>
       <itemPath>../../include/votca/tools/globals.h</itemPath>
       <itemPath>../../include/votca/tools/histogram.h</itemPath>
       <itemPath>../../include/votca/tools/histogramnew.h</itemPath>
@@ -149,6 +150,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/tools/datacollection.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/getline.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -402,6 +408,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/tools/getline.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/tools/globals.h"
             ex="false"
             tool="3"
@@ -647,6 +658,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/tools/datacollection.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/getline.h"
             ex="false"
             tool="3"
             flavor2="0">
