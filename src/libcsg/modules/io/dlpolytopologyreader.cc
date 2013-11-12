@@ -67,12 +67,12 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
     Residue *res = top.CreateResidue("no");
 
     // read the atoms
-    int is=0;
+    int mol_offset=0;
     for(int im=0; im<nmolt; im++){
         for(int imr=0; imr<MolecBase[im].nrept; ++imr) {
             Molecule *mi = top.CreateMolecule(MolecBase[im].name);
             for(int ims=0; ims<MolecBase[im].nsites; ims++) {
-
+	        int is=mol_offset+ims;
                 BeadType *type = top.GetOrCreateBeadType(FieldSite[is].type); // what is
 	        string beadname = boost::lexical_cast<string>(FieldSite[is].name) + "#" + boost::lexical_cast<string>(ims+1);
                 Bead *bead = top.CreateBead(1, beadname, type, res->getId(), FieldSite[is].m, FieldSite[is].q);
@@ -82,6 +82,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
                 mi->AddBead(bead, nm.str());
             }
         }
+	mol_offset+=MolecBase[im].nsites;
     }
 
     delete [] MolecBase;
