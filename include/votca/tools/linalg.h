@@ -36,23 +36,7 @@ namespace votca { namespace tools {
      */
     void linalg_invert( ub::matrix<double> &A, ub::matrix<double> &V );
  
-   /**
-     * \brief transposes A
-     * @param A symmetric positive definite matrix
-     * @param V transposed matrix
-     *
-     * This function wraps the inversion of a matrix
-     */
-    void linalg_transpose( ub::matrix<double> &A, ub::matrix<double> &V );
-    
-   /**
-     * \brief transposes A
-     * @param A symmetric positive definite matrix, transposed on output
-     *
-     * This function wraps the inversion of a matrix
-     */
-    void linalg_transpose( ub::matrix<double> &A );
-    
+ 
     /**
      * \brief determines Cholesky decomposition of matrix A
      * @param A symmetric positive definite matrix
@@ -65,10 +49,10 @@ namespace votca { namespace tools {
      * \brief solves A*x=b
      * @param x storage for x
      * @param A symmetric positive definite matrix for linear system
-     * @param b inhomogenity
-     * @param if A is not sysmetrix positive definite throws error code GSL_EDOM
+     * @param b inhomogeniety
+     * @param if A is not symmetric positive definite throws error code 
      *
-     * This function wrapps the cholesky linear system solver
+     * This function wraps the cholesky linear system solver
      */
     void linalg_cholesky_solve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<double> &b);
 
@@ -90,17 +74,17 @@ namespace votca { namespace tools {
      * @param b inhomogenity
      * @param constr constrained condition B (or is it the transposed one? check that)
      *
-     * This function wrapps the qrsolver under constraints
+     * This function wraps the qrsolver under constraints
      */
     void linalg_constrained_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<double> &b, ub::matrix<double> &constr);
 
     /**
      * \brief eigenvalues of a symmetric matrix A*x=E*x
      * @param A symmetric matrix 
-     * @param E vector of eiganvalues
+     * @param E vector of eigenvalues
      * @param V matrix of eigenvalues
      * 
-     * This function wrapps gsl_eigen_symmv
+     * This function wraps gsl_eigen_symmv / DSYEV
      * note that the eigenvalues/eigenvectors are UNSORTED 
      * 
      */
@@ -108,12 +92,11 @@ namespace votca { namespace tools {
     
    /**
      * \brief eigenvalues of a symmetric matrix A*x=E*x
-     * @param A symmetric matrix 
-     * @param E vector of eiganvalues
+     * @param A matrix 
+     * @param E vector of eigenvalues
      * @param V matrix of eigenvalues
      * 
-     * This function wrapps gsl_eigen_symmv
-     * note that the eigenvalues/eigenvectors are UNSORTED 
+     * This function wraps gsl_eigen_symmv / DSYEV
      * 
      */
     bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V );
@@ -125,11 +108,23 @@ namespace votca { namespace tools {
      * @param V input: matrix to diagonalize
      * @param V output: eigenvectors      
      * 
-     * This function wrapps gsl_eigen_symmv
-     * note that the eigenvalues/eigenvectors are UNSORTED 
+     * This function wrapps gsl_eigen_symmv / DSYEV
      * 
      */
     bool linalg_eigenvalues( ub::vector<double> &E, ub::matrix<double> &V );
+    
+    
+   /**
+     * \brief eigenvalues of a symmetric matrix A*x=E*x
+     * @param E vector of eigenvalues
+     * @param V input: matrix to diagonalize
+     * @param V output: eigenvectors      
+     * 
+     * This function wrapps gsl_eigen_symmv / DSYEV
+     * 
+     */
+    bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V , int nmax );
+    
     
     
 }}

@@ -30,32 +30,15 @@ namespace votca { namespace tools {
 using namespace std;
 
 
-void linalg_invert( ub::matrix<double> &A, ub::matrix<double> &V){
+bool linalg_singular_value_decomposition( ub::matrix<double> &A, ub::matrix<double> &V, ub::vector<double> &S ){
     
 #ifdef NOMKL
-    throw std::runtime_error("linalg_invert is not compiled-in due to disabling of MKL - recompile Votca Tools with MKL support");
+    throw std::runtime_error("linalg_singular_value_decomposition is not compiled-in due to disabling of MKL - recompile Votca Tools with MKL support");
 #else
-
-    // matrix inversion using MKL
-    // input matrix is destroyed, make local copy
-    ub::matrix<double> work = A;
-    
-    // define LAPACK variables
-    MKL_INT n = A.size1();
-    MKL_INT info;
-    MKL_INT ipiv[n];
-    
-    // initialize V
-    V = ub::identity_matrix<double>(n,n);
-
-    // pointers for LAPACK
-    double * pV = const_cast<double*>(&V.data().begin()[0]);
-    double * pwork = const_cast<double*>(&work.data().begin()[0]);
-    
-    // solve
-    info = LAPACKE_dgesv( LAPACK_ROW_MAJOR, n, n, pwork , n, ipiv, pV, n );
-
-    
+        // matrix inversion using MKL
+   
+    throw std::runtime_error("linalg_singular_value_decomposition is not yet implemented with MKL support");
+    return false;
 #endif   
 }
 
