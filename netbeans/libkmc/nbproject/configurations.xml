@@ -130,8 +130,6 @@
       </item>
       <item path="../../include/votca/kmc/events.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/kmc/glink.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/kmc/globaleventinfo.h"
             ex="false"
             tool="3"
@@ -140,6 +138,11 @@
       <item path="../../include/votca/kmc/gnode.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/kmc/graph.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/graphbulk.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/kmc/graphcubic.h"
             ex="false"
@@ -282,8 +285,6 @@
       </item>
       <item path="../../include/votca/kmc/events.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/kmc/glink.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/kmc/globaleventinfo.h"
             ex="false"
             tool="3"
@@ -292,6 +293,11 @@
       <item path="../../include/votca/kmc/gnode.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/kmc/graph.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/graphbulk.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/kmc/graphcubic.h"
             ex="false"

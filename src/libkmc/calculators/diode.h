@@ -25,6 +25,7 @@
 #include <votca/kmc/globaleventinfo.h>
 #include <votca/kmc/events.h>
 #include <votca/kmc/vssmgroup.h>
+#include <votca/kmc/graphbulk.h>
 
 using namespace std;
 
@@ -37,7 +38,7 @@ class Diode : public KMCCalculator
 {
 public:
     
-    GraphSQL* graph;
+    GraphBulk<GraphSQL, NodeSQL, LinkSQL>* graph;
     State* state;
     Events* events;
     Vssmgroup* vssmgroup;
@@ -92,12 +93,12 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     graph->Print(std::cout);
     delete graph;    
     */
-    graph = new GraphSQL();
+    graph = new GraphBulk<GraphSQL, NodeSQL, LinkSQL>();
     graph->Initialize(filename);
     graph->PrintNodes(std::cout);
     graph->PrintLinks(std::cout);
+    graph->LinkBackwards();
     delete graph;    
-    cout << "Initializing" << endl;
     
     exit(0);
     
