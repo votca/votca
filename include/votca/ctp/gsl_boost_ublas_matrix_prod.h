@@ -10,7 +10,7 @@
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
 
-//#define GSLDEBUG
+#define GSLDEBUG
 
 #include <gsl/gsl_blas.h>
 

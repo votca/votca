@@ -18,7 +18,7 @@
  */
 
 #define NDEBUG
-//#define OVERLAP_DEBUG
+#define OVERLAP_DEBUG
 
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/ctp/votca_ctp_config.h>
