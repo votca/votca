@@ -34,8 +34,8 @@ public:
     };   
     
     /// Add a node to the Graph
-    TNode* AddNode() { 
-        TNode* node = new TNode();
+    TNode* AddNode(int id, tools::vec &position) { 
+        TNode* node = new TNode(id, position);
         _nodes.push_back(node); 
         return node;
     }    
@@ -46,7 +46,8 @@ public:
     
     void Print(std::ostream& out){
         typename std::vector<TNode*>::iterator it;
-          for (it = _nodes.begin(); it != _nodes.end(); it++ ) (*it)->Print(out);    
+//          for (it = _nodes.begin(); it != _nodes.end(); it++ ) (*it)->Print(out);    
+               for (it = _nodes.begin(); it != _nodes.end(); it++ ) out << (*it)->id() << " " << (*it)->position() << endl;    
     }
     
     /// initialize nodes and links

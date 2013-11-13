@@ -35,13 +35,14 @@ class Link
 
 public:
     
-    const int &Id() const { return _id; }
+    /// node ID
+    const int &id() const { return _id; }
     
     /// r2 - r1
     const votca::tools::vec &r12() const { return _r12; }    
     
-    void setnode1(Node* init_node) { node1 = init_node;}
-    void setnode2(Node* final_node) { node2 = final_node;}
+    /// set initial and final nodes of link
+    void SetNodes(const Node* node1, Node* node2) { _node1 = node1; _node2 = node2; }
     
     // print Link info
     virtual void Print(std::ostream &out) {
@@ -52,12 +53,8 @@ private:
     
     int _id;
     
-    Node *node1;
-    Node *node2;
-    
-    /// forward and backward rates
-    double _rate12;
-    double _rate21;
+    Node *_node1;
+    Node *_node2;
     
     /// r2 - r1
     votca::tools::vec _r12;       

@@ -26,20 +26,25 @@ namespace votca { namespace kmc {
 class Node
 {
 public:
-        /// adds a link to a Node
-        void AddLink( Link* link ) { _links.push_back(link); }
-        /// link ID - syncing with the pair ID 
-        const int &id() const { return _id; } 
-        /// type
-        const int &type() const { return _type; } 
-        /// position (nm))
-        const votca::tools::vec &position() const { return _position; } 
-        /// print Node info
-        virtual void Print( std::ostream &out ) {
-            vector< Link* >::iterator it;
-            for (it = _links.begin(); it != _links.end(); it++ ) (*it)->Print( out );
-        }
-  
+    Node( int id, tools::vec &position) {
+    _id  = id;
+    _position = position;
+    } 
+
+    /// adds a link to a Node
+    void AddLink( Link* link ) { _links.push_back(link); }
+    /// link ID - syncing with the pair ID 
+    const int &id() const { return _id; } 
+    /// type
+    const int &type() const { return _type; } 
+    /// position (nm))
+    const votca::tools::vec &position() const { return _position; } 
+    /// print Node info
+    virtual void Print( std::ostream &out ) {
+        vector< Link* >::iterator it;
+        for (it = _links.begin(); it != _links.end(); it++ ) (*it)->Print( out );
+    }
+
 protected:
 
     int _id;

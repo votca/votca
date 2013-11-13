@@ -32,13 +32,28 @@ public:
    
     void Initialize();
     
+    AddNode(_id-1, posX, posY, posZ, UnCnNe, UnCnNh, UcNcCe, UcNcCh, eAnion, eNeutral, eCation, ucCnNe, ucCnNh) {
+        
+    }
+            
+    
     void Load_graph_segments(string filename);
     void Load_graph_links(string filename);
     
 };
 
-inline void GraphSQL::Initialize(){
-    ;
+inline void GraphSQL::Initialize(string filename){
+    votca::tools::Database db;
+    db.Open( filename );
+    votca::tools::Statement *stmt = db.Prepare("SELECT _id-1, posX, posY, posZ, UnCnNe, UnCnNh, UcNcCe, UcNcCh, eAnion, eNeutral, eCation, ucCnNe, ucCnNh FROM segments;");
+
+    int id = stmt->Column<double>(0);
+    double PosX = stmt->Column<double>(1);
+    double PosY = stmt->Column<double>(2);
+    double PosZ = stmt->Column<double>(3);
+        
+    AddNode(_id-1, posX, posY, posZ, UnCnNe, UnCnNh, UcNcCe, UcNcCh, eAnion, eNeutral, eCation, ucCnNe, ucCnNh);
+    
 }
 
 inline void GraphSQL::Load_graph_segments(string filename) {
@@ -55,9 +70,7 @@ inline void GraphSQL::Load_graph_segments(string filename) {
         
         int id = stmt->Column<int>(0);
 
-        double X = stmt->Column<double>(1);
-        double Y = stmt->Column<double>(2);
-        double Z = stmt->Column<double>(3);
+
         
         NodeSQL *node = AddNode();
          
@@ -75,22 +88,21 @@ inline void GraphSQL::Load_graph_links (string filename) {
     // Load Node Pairs
     votca::tools::Database db;
     db.Open(filename);
-    votca::tools::Statement *stmt = db.Prepare("SELECT seg1-1 AS 'segment1', seg2-1 AS 'segment2' FROM pairs UNION "
-                                               "SELECT seg2-1 AS 'segment1', seg1-1 AS 'segment2' FROM pairs ORDER BY segment1;");
+    votca::tools::Statement *stmt = db.Prepare("SELECT seg1-1 AS 'segment1', seg2-1 AS 'segment2', rate12e AS 'rate_e', rate12h AS 'rate_h', drX, drY, drZ, Jeff2e, Jeff2h, lOe, lOh  FROM pairs UNION SELECT seg2-1 AS 'segment1', seg1-1 AS 'segment2', rate21e AS 'rate_e', rate21h AS 'rate_h', -drX AS 'drX', -drY AS 'drY', -drZ AS 'drZ', Jeff2e, Jeff2h, lOe, lOh  FROM pairs ORDER BY segment1;");
 
     while (stmt->Step() != SQLITE_DONE) {
         
         int node_ID1 = stmt->Column<int>(0);
         int node_ID2 = stmt->Column<int>(1);
         
-        Node* init_node = getnode(node_ID1);
-        Node* final_node = getnode(node_ID2);
+        Node* node1 = getnode(node_ID1);
+        Node* node2 = getnode(node_ID2);
         
         Link* newLink = new Link();
         init_node->AddLink(newLink);
         
-        newLink->setnode1(init_node);
-        newLink->setnode2(final_node);
+        newLink->SetNodes();
+        newLink->Setnode2(final_node);
 
     }
         
