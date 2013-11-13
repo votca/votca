@@ -41,7 +41,7 @@ public:
         _r12 = r12;
     } 
     
-    /// node ID
+    /// link ID
     const int &id() const { return _id; }
     
     /// r2 - r1

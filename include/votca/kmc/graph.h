@@ -55,14 +55,25 @@ public:
     
     void AddLink( TLink* link) { _links.push_back(link); }
     
-    void Print(std::ostream& out){
+    void PrintNodes(std::ostream& out){
         typename std::vector<TNode*>::iterator it;
 //          for (it = _nodes.begin(); it != _nodes.end(); it++ ) (*it)->Print(out);    
-               for (it = _nodes.begin(); it != _nodes.end(); it++ ) out << (*it)->id() << " " << (*it)->position() << endl;    
+        for (it = _nodes.begin(); it != _nodes.end(); it++ ) out << (*it)->id() << " " << (*it)->position() << " " <<
+               (*it)->UnCnNe() << " " << (*it)->UnCnNh() << " " << (*it)->UcNcCe() << " " << (*it)->UcNcCh() << " " <<
+               (*it)->eAnion() << " " << (*it)->eNeutral() << " " << (*it)->eCation() << " " <<
+               (*it)->ucCnNe() << " " << (*it)->ucCnNh() << endl;    
+    }
+
+    void PrintLinks(std::ostream& out){
+        typename std::vector<TLink*>::iterator it;
+//          for (it = _nodes.begin(); it != _nodes.end(); it++ ) (*it)->Print(out);    
+        for (it = _links.begin(); it != _links.end(); it++ ) out << (*it)->id() << " " << 
+               (*it)->r12() << " " << (*it)->rate12e() << " " << (*it)->rate12h() << " " << (*it)->rate21e() << " " << (*it)->rate21h() << " " <<
+               (*it)->Jeff2e() << " " << (*it)->Jeff2h() << " " << (*it)->lOe() << " " << (*it)->lOh() << endl;    
     }
     
     /// initialize nodes and links
-    virtual void Initialize(){;};
+    virtual void Initialize(string filename){;};
     
 protected:
     std::vector<TNode*> _nodes;

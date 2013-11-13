@@ -38,8 +38,8 @@ public:
     }
          
     void setE(double eAnion, double eNeutral, double eCation) {
-        _eAnion  = eAnion;
-        _eNeutral  = eNeutral;
+        _eAnion   = eAnion;
+        _eNeutral = eNeutral;
         _eCation  = eCation;
     }
     
@@ -48,7 +48,18 @@ public:
         _ucCnNh = ucCnNh;
     }
 
-         
+    //Debugging
+    const double &UnCnNe() const { return _UnCnNe; }     
+    const double &UnCnNh() const { return _UnCnNh; }   
+    const double &UcNcCe() const { return _UcNcCe; }   
+    const double &UcNcCh() const { return _UcNcCh; }   
+
+    const double &eAnion() const { return _eAnion; }       
+    const double &eNeutral() const { return _eNeutral; }   
+    const double &eCation() const { return _eCation; }   
+
+    const double &ucCnNe() const { return _ucCnNe; }   
+    const double &ucCnNh() const { return _ucCnNh; }   
     
 private:
 

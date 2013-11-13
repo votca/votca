@@ -55,6 +55,18 @@ public:
         _lOh = lOh;
     }
 
+    //Debugging
+    const double &rate12e() const { return _rate12e; }     
+    const double &rate12h() const { return _rate12h; }   
+    const double &rate21e() const { return _rate21e; }   
+    const double &rate21h() const { return _rate21h; }   
+
+    const double &Jeff2e() const { return _Jeff2e; }       
+    const double &Jeff2h() const { return _Jeff2h; }   
+
+    const double &lOe() const { return _lOe; }   
+    const double &lOh() const { return _lOh; }     
+    
     
 /*    /// forward and backward rates
     const double &rate12() const { return _rate12; }
