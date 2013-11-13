@@ -44,9 +44,12 @@ endif(WITH_GMX)
 
 if (WITH_DLPOLY_FORTRAN)
   enable_language(Fortran)
-  set(DLPOLY "true")
+  include(FortranCInterface)
+  FortranCInterface_HEADER(fortan_mangling.h)
+  set(DLPOLY_FORTRAN "true")
 else (WITH_DLPOLY_FORTRAN)
   set(DLPOLY_SOURCES)
+  set(DLPOLY_FORTRAN)
 endif (WITH_DLPOLY_FORTRAN)
 
 configure_file(votca_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/votca_config.h)

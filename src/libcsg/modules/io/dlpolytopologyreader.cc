@@ -26,8 +26,9 @@
 #endif
 
 #include "dlpolytopologyreader.h"
-#ifdef DLPOLY
+#ifdef DLPOLY_FORTRAN
 #include "dlpoly/dlp_io_layer.h"
+#include "fortan_mangling.h"
 #endif
 
 namespace votca { namespace csg {
@@ -37,7 +38,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
     std::ifstream fl;
     boost::filesystem::path filepath(file.c_str());
     string filename;
-#ifdef DLPOLY
+#ifdef DLPOLY_FORTRAN
     if (file != ".dlpoly")
       throw std::runtime_error("Reading from different filename/directories not implemented yet. (use --top '.dlpoly')");
 
@@ -56,7 +57,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
     istateF=1;
 
     // TODO: we need to fix the file naming!
-    field_scan_(&istateF,&matms,&natms,&nmolt);
+    FortranCInterface_GLOBAL(field_scan,FIELD_SCAN)(&istateF,&matms,&natms,&nmolt);
 
     MolecBase = new MolecSpecsT[nmolt];
     FieldSite = new FieldSiteT[natms];
@@ -64,7 +65,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
     FieldBase.nmols = nmolt;
     FieldBase.natms = natms;
 
-    field_read_(&istateF,&FieldBase,MolecBase,FieldSite);
+    FortranCInterface_GLOBAL(field_read,FIELD_READ)(&istateF,&FieldBase,MolecBase,FieldSite);
 
     // AB: if on return istateF < 0  => in the next F-call the relevant F-arrays will be deallocated (at the end)
     // AB: NOT TO RE-/DE-ALLOCATE F-arrays in the next F-call, reset istateF = 0
