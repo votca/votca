@@ -20,16 +20,19 @@
 #include "turbomole.h"
 #include "votca/ctp/segment.h"
 #include <votca/tools/globals.h>
+
 #include <boost/algorithm/string.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/filesystem.hpp>
+
 #include <stdio.h>
 #include <iomanip>
 #include <sys/stat.h>
 
 using namespace std;
+using namespace boost::filesystem;
 
 namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
@@ -313,7 +316,9 @@ bool Turbomole::ParseOrbitalsFile( Orbitals* _orbitals )
     unsigned _level;
     unsigned _basis_size = 0;
 
-    std::ifstream _input_file( (_run_dir + "/" + _orb_file_name).c_str() );
+    path arg_path; 
+    const char *orbFileName = (arg_path / _run_dir / _orb_file_name ).c_str();
+    std::ifstream _input_file( orbFileName );
     //cout << endl << (_run_dir + "/" + _orb_file_name).c_str();
 
     if (_input_file.fail()) {
@@ -434,7 +439,9 @@ bool Turbomole::CheckLogFile() {
     
     // check if the log file exists
     char ch;
-    ifstream _input_file( (_run_dir + "/" + _log_file_name).c_str());
+    path arg_path;
+    const char *logFileName = (arg_path / _run_dir / _log_file_name ).c_str();
+    ifstream _input_file( logFileName );
     //cout << (_run_dir + "/" + _log_file_name).c_str();
     if (_input_file.fail()) {
         LOG(logERROR,*_pLog) << "Turbomole LOG "<< _log_file_name << " is not found" << flush;
@@ -505,7 +512,9 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
     _orbitals->_qm_package = "turbomole";
     
     // Start parsing the file line by line
-    ifstream _input_file( (_run_dir + "/" + _log_file_name).c_str() );
+    path arg_path;
+    const char *logFileName = (arg_path / _run_dir / _log_file_name ).c_str();
+    ifstream _input_file( logFileName );
     
     while (_input_file) {
 

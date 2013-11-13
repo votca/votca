@@ -10,7 +10,7 @@
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
 
-#define GSLDEBUG
+//#define GSLDEBUG
 
 #include <gsl/gsl_blas.h>
 
@@ -19,9 +19,9 @@ namespace boost { namespace numeric { namespace ublas {
     /* 
      * GSL has separate implementations for floats and doubles
      * hence we first have specializations for these two types
-     * Then we specialize for the diagonal, symmetric and normal matreces
-     * and of course all their combinations. If you want to check 
-     * whether a specific routine is called, define GSLDEBUG
+     * TSeparate templates for diagonal and symmetric matreces
+     * and their combinations. To check  whether a specific
+     * routine is called, define GSLDEBUG
      */
     
     // partial specialization for double precision (dgemm))
