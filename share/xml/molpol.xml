@@ -1,5 +1,5 @@
 <options>
-	<molpol help="Molecular polarizability calculator (and optimizer)">
+	<molpol help="Molecular polarizability calculator (and optimizer)" label="tool:molpol">
 		<mpsfiles>
 			<input help="mps input file">input.mps</input>
 			<output help="mps output file">output.mps</output>

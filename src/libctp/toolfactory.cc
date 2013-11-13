@@ -24,6 +24,7 @@
 #include "tools/pdb2map.h"
 #include "tools/coupling.h"
 #include "tools/log2mps.h"
+#include "tools/ptopreader.h"
 
 
 namespace votca { namespace ctp {
@@ -33,7 +34,8 @@ void QMToolFactory::RegisterAll(void)
         QMTools().Register<MolPolTool>         ("molpol");
         QMTools().Register<PDB2Map>            ("pdb2map");
         QMTools().Register<Coupling>           ("coupling");
-        QMTools().Register<Log2Mps>            ("log2mps"); 
+        QMTools().Register<Log2Mps>            ("log2mps");
+        QMTools().Register<PtopReader>         ("ptopreader");
 }
 
 }}

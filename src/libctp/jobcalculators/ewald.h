@@ -23,7 +23,6 @@ namespace votca { namespace ctp {
 template<class EwaldMethod>
 class Ewald : public ParallelXJobCalc< vector<Job*>, Job*, Job::JobResult >
 {
-
 public:
     
     Ewald() {};
@@ -38,30 +37,24 @@ public:
     Job::JobResult  EvalJob(Topology *top, Job *job, QMThread *thread);
     void            PostProcess(Topology *top) { ; }
     
-    XJob            ProcessInputString(Job *, Topology *, QMThread *);
-    
+    XJob            ProcessInputString(Job *, Topology *, QMThread *);    
 
 private:
     
-    Property                       *_options;
-    
-    // ======================================== //
-    // MULTIPOLE ALLOCATION, XJOBS, ADD. OUTPUT //
-    // ======================================== //
-
-    string                         _mps_table;
+    Property                      *_options;
+    // MULTIPOLES DEFINITION & MAPPING
     string                         _xml_file;
+    string                         _mps_table;    
     string                         _polar_bg_arch;
     XMpsMap                        _mps_mapper;
     bool                           _pdb_check;
-    bool                           _estatics_only;
-
 };
 
 
 template<class EwaldMethod>
 void Ewald<EwaldMethod>::Initialize(Property *opt) {
 
+    // NOTE These options are passed on to <EwaldMethod> in ::EvalJob
     _options = opt;
     _maverick = (_nThreads == 1) ? true : false;
     
@@ -69,53 +62,45 @@ void Ewald<EwaldMethod>::Initialize(Property *opt) {
          << "... ... Initialized with " << _nThreads << " threads. "
          << flush;
 
-    string key = "options.ewald.multipoles";
-        if ( opt->exists(key) ) {
-            _xml_file = opt->get(key).as< string >();
-        }
-        else {
-            cout << endl;
-            throw std::runtime_error("No multipole mapping file provided");
-        }
-    key = "options.ewald.control";
+    string key = "options.ewald.jobcontrol";
         if ( opt->exists(key+".job_file")) {
             _jobfile = opt->get(key+".job_file").as<string>();
         }
         else {
+            cout << endl;
             throw std::runtime_error("Job-file not set. Abort.");
+        }    
+    
+    key = "options.ewald.multipoles";
+        if (opt->exists(key+".mapping")) {
+            _xml_file = opt->get(key+".mapping").as< string >();
+        }
+        else {
+            cout << endl;
+            throw std::runtime_error("Multipole mapping file not set. Abort.");
         }
         if ( opt->exists(key+".mps_table")) {
             _mps_table = opt->get(key+".mps_table").as<string>();
         }
         else {
-            throw std::runtime_error("Background mps table not set.");
+            cout << endl;
+            throw std::runtime_error("Background mps table not set. Abort.");
         }
         if ( opt->exists(key+".polar_bg")) {
             _polar_bg_arch = opt->get(key+".polar_bg").as<string>();
         }
-        else {
-            _polar_bg_arch = "";
-        }
+        else { _polar_bg_arch = ""; }
         if (opt->exists(key+".pdb_check")) {
             _pdb_check = opt->get(key+".pdb_check").as<bool>();
         }
-        else { _pdb_check = false; }    
-    key = "options.ewald.polarmethod";        
-        if (opt->exists(key+".induce")) {
-            _estatics_only = ! (opt->get(key+".induce").as<bool>());
-        }
-        else {
-            _estatics_only = true;
-        }
+        else { _pdb_check = false; }
     
-    _mps_mapper.setEstaticsOnly(_estatics_only);
     return;
 }
 
 
 template<class EwaldMethod>
 void Ewald<EwaldMethod>::PreProcess(Topology *top) {
-
     // INITIALIZE MPS-MAPPER (=> POLAR TOP PREP)
     cout << endl << "... ... Initialize MPS-mapper: " << flush;
     _mps_mapper.GenerateMap(_xml_file, _mps_table, top);
@@ -124,10 +109,9 @@ void Ewald<EwaldMethod>::PreProcess(Topology *top) {
 
 
 template<class EwaldMethod>
-void Ewald<EwaldMethod>::ReadJobFile(Topology *top) {
-    
-    assert(false);
-    
+void Ewald<EwaldMethod>::ReadJobFile(Topology *top) {    
+    assert(false && "<::ReadJobFile> NOT IMPLEMENTED");    
+    return;
 }
 
 
@@ -171,7 +155,8 @@ void Ewald<EwaldMethod>::WriteJobFile(Topology *top) {
             next = &out.add("segment", "");
             next->add("id", (format("%1$d") % id1).str());
             next->add("type", (format("%1$s") % name1).str());
-            next->add("mps", (format("MP_FILES/%1$s_%2$s.mps") % name1 % s1).str());
+            next->add("mps", (format("MP_FILES/%1$s_%2$s.mps") 
+                % name1 % s1).str());
             
             Job job(id, tag, input, Job::AVAILABLE);
             job.ToStream(ofs,"xml");
@@ -187,6 +172,9 @@ void Ewald<EwaldMethod>::WriteJobFile(Topology *top) {
 template<class EwaldMethod>
 XJob Ewald<EwaldMethod>::ProcessInputString(Job *job, Topology *top, 
     QMThread *thread) {
+    
+    // Input string looks like this:
+    // <id1>:<name1>:<mpsfile1> <id2>:<name2>: ... ... ...
     
     string input = job->getInput().as<string>();
     vector<Segment*> qmSegs;
@@ -240,15 +228,15 @@ Job::JobResult Ewald<EwaldMethod>::EvalJob(Topology *top, Job *job,
     }
     else {
         LOG(logINFO,*log) << "Mps-Mapper: Generate FGC, load FGN BGN from '" 
-                << _polar_bg_arch << "'." << flush;
+                << _polar_bg_arch << "'" << flush;
         _mps_mapper.Gen_FGC_Load_FGN_BGN(top, &xjob, _polar_bg_arch, thread);
     }
     
     // CALL THOLEWALD MAGIC
     EwaldMethod ewaldnd = EwaldMethod(top, xjob.getPolarTop(), _options, 
         thread->getLogger());
-    if (tools::globals::verbose || _pdb_check)
-        ewaldnd.WriteDensitiesPDB(xjob.getTag()+"_ew_densities.pdb");
+    if (_pdb_check)
+        ewaldnd.WriteDensitiesPDB(xjob.getTag()+".densities.pdb");
     ewaldnd.Evaluate();
     
     // GENERATE OUTPUT AND FORWARD TO PROGRESS OBSERVER (RETURN)
@@ -261,7 +249,7 @@ Job::JobResult Ewald<EwaldMethod>::EvalJob(Topology *top, Job *job,
         jres.setStatus(Job::FAILED);
         jres.setError(ewaldnd.GenerateErrorString());
         LOG(logERROR,*log) << ewaldnd.GenerateErrorString() << flush;
-    }    
+    }
     
     return jres;
 }

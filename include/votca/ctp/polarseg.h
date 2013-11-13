@@ -3,6 +3,7 @@
 
 #include <votca/tools/vec.h>
 #include <votca/ctp/apolarsite.h>
+#include <votca/ctp/polarfrag.h>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/base_object.hpp>
 
@@ -15,25 +16,34 @@ class PolarSeg : public vector<APolarSite*>
 
 public:
 
-    PolarSeg() : _id(-1), _is_charged(true), _is_polarizable(true) {};
+    PolarSeg() 
+        : _id(-1), _pos(vec(0,0,0)), _is_charged(true), _is_polarizable(true) {}
     PolarSeg(int id, vector<APolarSite*> &psites);
-    PolarSeg(PolarSeg *templ);
+    PolarSeg(PolarSeg *templ, bool do_depolarize);
+    explicit PolarSeg(int id)
+        : _id(id), _pos(vec(0,0,0)), _is_charged(true), _is_polarizable(true) {}
    ~PolarSeg();
 
     const int &getId() { return _id; }
     const vec &getPos() { return _pos; }
     void setId(int id) { _id = id; }    
     
+    // Polar fragments
+    PolarFrag *AddFragment(string name);
+    vector<PolarFrag*> &PolarFrags() { return _pfrags; }
     // Local neighbor-list
     vector<PolarNb*> &PolarNbs() { return _nbs; }
     void ReservePolarNbs(int nbsize) { _nbs.reserve(nbsize); }
+    void AddPolarNb(PolarSeg *pseg);
     void AddPolarNb(PolarNb *nb) { _nbs.push_back(nb); }
     void ClearPolarNbs();    
     // Position & total charge
     void Translate(const vec &shift);
     void CalcPos();    
     double CalcTotQ();
-    // Evaluates to "true" ONLY if ALL contained polar sites have charge 0
+    vec CalcTotD();
+    void Coarsegrain(bool cg_anisotropic);
+    // Evaluates to "true" if ANY contained polar site has charge != 0
     void CalcIsCharged();
     bool IsCharged() { return _is_charged; }
     // Evaluates to "true" if ANY contained polar site has polarizability > 0
@@ -47,6 +57,7 @@ public:
     template<class Archive>
     void serialize(Archive &arch, const unsigned int version) {
         arch & boost::serialization::base_object< vector<APolarSite*> >(*this);
+        arch & _pfrags;
         arch & _id;
         arch & _pos;
         arch & _is_charged;
@@ -60,6 +71,7 @@ private:
     vec _pos;
     bool _is_charged;
     bool _is_polarizable;
+    vector<PolarFrag*> _pfrags;
     vector<PolarNb*> _nbs;
 
 
@@ -73,7 +85,8 @@ public:
     // Use s22x to obtain effective connection vector
     // dreff = top->ShortestConnect(ref,nb) + _pbcshift
     PolarNb(PolarSeg *nb, vec &dr12, vec &s22x) 
-        : _nb(nb), _dr12(dr12), _s22x(s22x) {};        
+        : _nb(nb), _dr12(dr12), _s22x(s22x) {};
+    PolarNb(PolarSeg *nb) : _nb(nb) {};
     PolarSeg *getNb() { return _nb; }
     vec &getR() { return _dr12; }
     vec &getS() { return _s22x; }
