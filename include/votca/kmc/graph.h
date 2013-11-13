@@ -19,6 +19,8 @@
 #define __VOTCA_KMC_GRAPH_H_
 
 #include <vector>
+#include <votca/kmc/nodesql.h>
+#include <votca/kmc/linksql.h>
 
 namespace votca { namespace kmc {
 
@@ -26,21 +28,21 @@ template<class TNode, class TLink>
 class Graph {
 
 public:
-     Graph() {};
+     Graph() {}
      
     ~Graph() {
         typename std::vector<TNode*>::iterator it;
         for (it = _nodes.begin(); it != _nodes.end(); it++ ) delete *it;
-    };   
+    } 
     
     /// Add a node to the Graph
-    TNode* AddNode(int id, tools::vec &position) { 
+    TNode* AddNode(int id, votca::tools::vec &position) { 
         TNode* node = new TNode(id, position);
         _nodes.push_back(node); 
         return node;
-    }    
+    } 
 
-    void AddNode( TNode* node) { _nodes.push_back(node); }
+//    void AddNode( TNode* node) { _nodes.push_back(node); }
     
     TNode* getnode(int node_ID) {return _nodes[node_ID];}
     

@@ -26,9 +26,9 @@ namespace votca { namespace kmc {
 class Node
 {
 public:
-    Node( int id, tools::vec &position) {
-    _id  = id;
-    _position = position;
+    Node( int id, votca::tools::vec &position) {
+        _id  = id;
+        _position = position;
     } 
 
     /// adds a link to a Node

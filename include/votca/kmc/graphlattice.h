@@ -94,7 +94,7 @@ private:
     
 };
 
-void GraphLattice::Init_node_mesh(myvec sim_box_size, double hopdist){
+/*void GraphLattice::Init_node_mesh(myvec sim_box_size, double hopdist){
     nodemeshsizeX = ceil(sim_box_size.x()/hopdist);
     nodemeshsizeY = ceil(sim_box_size.y()/hopdist);
     nodemeshsizeZ = ceil(sim_box_size.z()/hopdist);
@@ -727,7 +727,7 @@ myvec GraphLattice::Periodicdistance(myvec init, myvec final, myvec boxsize) {
   myvec perdif = myvec(prex,prey,prez);
   
   return perdif;       
-}   
+}   */
 
 }}
 

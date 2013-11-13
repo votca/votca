@@ -42,7 +42,7 @@ public:
     const votca::tools::vec &r12() const { return _r12; }    
     
     /// set initial and final nodes of link
-    void SetNodes(const Node* node1, Node* node2) { _node1 = node1; _node2 = node2; }
+    void SetNodes(Node* node1, Node* node2) { _node1 = node1; _node2 = node2; }
     
     // print Link info
     virtual void Print(std::ostream &out) {

@@ -26,19 +26,23 @@ namespace votca { namespace kmc {
 class NodeSQL : public Node
 {
 public:
-int id, double posX, double posY, double posZ, 
-            double UnCnNe, double UnCnNh, double UcNcCe, double UcNcCh, 
-            double eAnion, double eNeutral, double eCation, 
-            double ucCnNe, double ucCnNh) : 
-          _id(id), 
-          _UnCnNe(UnCnNe), _UnCnNh(UnCnNh), _UcNcCh(UcNcCh),
-          _eAnion(eAnion), _eNeutral(eNeutral), _eCation(eCation
-    setU(double UnCnNe, double UnCnNh, double UcNcCe, double UcNcCh){
-             ; // FILL IN
+    
+    void setU(double UnCnNe, double UnCnNh, double UcNcCe, double UcNcCh){
+        _UnCnNe  = UnCnNe;
+        _UnCnNh  = UnCnNh;
+        _UcNcCe  = UcNcCe;
+        _UcNcCh  = UcNcCh;
     }
          
-    setE(double eAnion, double eNeutral, double eCation) {
-        ;
+    void setE(double eAnion, double eNeutral, double eCation) {
+        _eAnion  = eAnion;
+        _eNeutral  = eNeutral;
+        _eCation  = eCation;
+    }
+    
+    void setu(double ucCnNe, double ucCnNh) {
+        _ucCnNe = ucCnNe;
+        _ucCnNh = ucCnNh;
     }
 
          

@@ -26,16 +26,11 @@
 
 namespace votca { namespace kmc {
   
-class GraphSQL : public Graph<NodeSQL, LinkSQL> {
+class GraphSQL : public Graph<Node, Link> {
 
 public:
    
-    void Initialize();
-    
-    AddNode(_id-1, posX, posY, posZ, UnCnNe, UnCnNh, UcNcCe, UcNcCh, eAnion, eNeutral, eCation, ucCnNe, ucCnNh) {
-        
-    }
-            
+    void Initialize(string filename);
     
     void Load_graph_segments(string filename);
     void Load_graph_links(string filename);
@@ -48,15 +43,33 @@ inline void GraphSQL::Initialize(string filename){
     votca::tools::Statement *stmt = db.Prepare("SELECT _id-1, posX, posY, posZ, UnCnNe, UnCnNh, UcNcCe, UcNcCh, eAnion, eNeutral, eCation, ucCnNe, ucCnNh FROM segments;");
 
     int id = stmt->Column<double>(0);
-    double PosX = stmt->Column<double>(1);
-    double PosY = stmt->Column<double>(2);
-    double PosZ = stmt->Column<double>(3);
-        
-    AddNode(_id-1, posX, posY, posZ, UnCnNe, UnCnNh, UcNcCe, UcNcCh, eAnion, eNeutral, eCation, ucCnNe, ucCnNh);
+    double posX = stmt->Column<double>(1);
+    double posY = stmt->Column<double>(2);
+    double posZ = stmt->Column<double>(3);
+    votca::tools::vec position(posX,posY,posZ);
     
+    double UnCnNe = stmt->Column<double>(4);
+    double UnCnNh = stmt->Column<double>(5);
+    double UcNcCe = stmt->Column<double>(6);
+    double UcNcCh = stmt->Column<double>(7);
+
+    double eAnion = stmt->Column<double>(8);
+    double eNeutral = stmt->Column<double>(9);
+    double eCation = stmt->Column<double>(10);
+
+    double ucCnNe = stmt->Column<double>(11);
+    double ucCnNh = stmt->Column<double>(12);
+  
+   // NodeSQL* newNodeSQL(id, position);
+    Node* newNodeSQL = new Node(id, position);
+   // newNodeSQL->setU(UnCnNe, UnCnNh, UcNcCe, UcNcCh);
+   // newNodeSQL->setE(eAnion, eNeutral, eCation);
+   // newNodeSQL->setu(ucCnNe, ucCnNh);
+  //  AddNode(newNodeSQL);
+
 }
 
-inline void GraphSQL::Load_graph_segments(string filename) {
+/*inline void GraphSQL::Load_graph_segments(string filename) {
     
     // Load nodes
     votca::tools::Database db;
@@ -81,7 +94,7 @@ inline void GraphSQL::Load_graph_segments(string filename) {
     delete stmt;
     stmt = NULL;
    
-}
+}*/
 
 inline void GraphSQL::Load_graph_links (string filename) {
     
@@ -99,11 +112,8 @@ inline void GraphSQL::Load_graph_links (string filename) {
         Node* node2 = getnode(node_ID2);
         
         Link* newLink = new Link();
-        init_node->AddLink(newLink);
         
-        newLink->SetNodes();
-        newLink->Setnode2(final_node);
-
+        newLink->SetNodes(node1, node2);
     }
         
     delete stmt;
