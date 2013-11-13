@@ -92,12 +92,12 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     graph->Print(std::cout);
     delete graph;    
     */
-
-    graph = new Graph<Node,Link>();
+    cout << "Initializing" << endl;
+    graph = new Graph<NodeSQL,LinkSQL>();
     graph->Initialize();
     graph->Print(std::cout);
     delete graph;    
-    
+     cout << "Initializing" << endl;   
     
     exit(0);
     
