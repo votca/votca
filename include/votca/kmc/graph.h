@@ -34,8 +34,8 @@ public:
     };   
     
     /// Add a node to the Graph
-    TNode* AddNode() { 
-        TNode* node = new TNode();
+    TNode* AddNode(int id, tools::vec &position) { 
+        TNode* node = new TNode(id, position);
         _nodes.push_back(node); 
         return node;
     }    

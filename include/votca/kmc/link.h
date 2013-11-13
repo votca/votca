@@ -42,8 +42,7 @@ public:
     const votca::tools::vec &r12() const { return _r12; }    
     
     /// set initial and final nodes of link
-    void Setnode1(Node* init_node) { node1 = init_node;}
-    void Setnode2(Node* final_node) { node2 = final_node;}
+    void SetNodes(const Node* node1, Node* node2) { _node1 = node1; _node2 = node2; }
     
     // print Link info
     virtual void Print(std::ostream &out) {
@@ -54,8 +53,8 @@ private:
     
     int _id;
     
-    Node *node1;
-    Node *node2;
+    Node *_node1;
+    Node *_node2;
     
     /// r2 - r1
     votca::tools::vec _r12;       

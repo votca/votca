@@ -37,7 +37,7 @@ class Diode : public KMCCalculator
 {
 public:
     
-    Graph<Node,Link>* graph;
+    Graph<NodeSQL,LinkSQL>* graph;
     State* state;
     Events* events;
     Vssmgroup* vssmgroup;
