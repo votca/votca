@@ -491,7 +491,11 @@ void Ewald3DnD::CoarseGrainDensities(bool cg_bg, bool cg_fg, double cg_radius) {
                 double R = votca::tools::abs((*sit)->getPos()-(*qit)->getPos());
                 if (R < min_R) min_R = R;
             }
-            assert(min_R <= _polar_cutoff
+
+			if (!(min_R <= _polar_cutoff+1e-3)) {
+				cout << endl << "ASSERTION IMMINENT" << endl;
+			}
+            assert(min_R <= _polar_cutoff+1e-3
                 && "<::CoarseGrainDensities> FGC: INCONSISTENT WITH EXPANSION");
             // Different from above, here there should be no danger of 
             // coarse-graining twice

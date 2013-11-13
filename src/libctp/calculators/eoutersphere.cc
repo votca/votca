@@ -471,6 +471,7 @@ vector<PolarSite*> EOutersphere::ParseGdmaFile(string filename, int state) {
         }
     }
     
+    if (warn_anisotropy)
     cout << endl << endl
          << "WARNING '" << filename << "': EMultipole does not support "
          << "tensorial polarizabilities, use zmultipole instead." 
