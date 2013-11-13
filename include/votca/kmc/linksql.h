@@ -34,8 +34,29 @@ class LinkSQL: public Link
 {
 
 public:
+
+    LinkSQL( int id, Node* node1, Node* node2, votca::tools::vec r12) : Link(id,node1,node2,r12){
+    };
+
+    void setRate(double rate12e, double rate12h, double rate21e, double rate21h){
+        _rate12e  = rate12e;
+        _rate12h  = rate12h;
+        _rate21e  = rate21e;
+        _rate21h  = rate21h;
+    }
+         
+    void setJeff2(double Jeff2e, double Jeff2h) {
+        _Jeff2e  = Jeff2e;
+        _Jeff2h  = Jeff2h;
+    }
     
-    /// forward and backward rates
+    void setlO(double lOe, double lOh) {
+        _lOe = lOe;
+        _lOh = lOh;
+    }
+
+    
+/*    /// forward and backward rates
     const double &rate12() const { return _rate12; }
     const double &rate21() const { return _rate21; }
     
@@ -43,16 +64,22 @@ public:
     const double &jeff2() const { return _jeff2; }
     
     /// outer reorganization energy
-    const double &lambda0() const { return _lambda0; }
+    const double &lambda0() const { return _lambda0; }*/
 
 private:
 
     
     /// forward and backward rates
-    double _rate12;
-    double _rate21;
-    double _jeff2;
-    double _lambda0;
+    double _rate12e;
+    double _rate12h;
+    double _rate21e;
+    double _rate21h;
+    
+    double _Jeff2e;
+    double _Jeff2h;
+    
+    double _lOe;
+    double _lOh;
     
 };
 

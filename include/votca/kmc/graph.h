@@ -42,9 +42,18 @@ public:
         return node;
     } 
 
-//    void AddNode( TNode* node) { _nodes.push_back(node); }
+    void AddNode( TNode* node) { _nodes.push_back(node); }
     
-    TNode* getnode(int node_ID) {return _nodes[node_ID];}
+    TNode* GetNode(int node_ID) {return _nodes[node_ID];}
+
+    /// Add a node to the Graph
+    TLink* AddLink( int id, TNode* node1, TNode* node2, votca::tools::vec r12) { 
+        TLink* link = new TLink(id, node1, node2, r12);
+        _links.push_back(link); 
+        return link;
+    }
+    
+    void AddLink( TLink* link) { _links.push_back(link); }
     
     void Print(std::ostream& out){
         typename std::vector<TNode*>::iterator it;

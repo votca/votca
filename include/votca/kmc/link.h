@@ -34,6 +34,12 @@ class Link
 {
 
 public:
+    Link( int id, Node* node1, Node* node2, votca::tools::vec r12) {
+        _id  = id;
+        _node1 = node1;
+        _node2 = node2;
+        _r12 = r12;
+    } 
     
     /// node ID
     const int &id() const { return _id; }
