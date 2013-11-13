@@ -27,6 +27,9 @@ class NodeSQL : public Node
 {
 public:
     
+    NodeSQL(int id, tools::vec position) : Node(id, position){
+    };
+    
     void setU(double UnCnNe, double UnCnNh, double UcNcCe, double UcNcCh){
         _UnCnNe  = UnCnNe;
         _UnCnNh  = UnCnNh;
@@ -61,11 +64,12 @@ private:
     double _ucCnNe;
     double _ucCnNh;
 
+    ;
     
 };
 
 
 }}
 
-#endif	/* _VOTCA_KMC_NODE_H */
+#endif	/* _VOTCA_KMC_NODESQL_H */
 

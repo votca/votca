@@ -20,13 +20,11 @@
 
 #include <vector>
 #include <votca/kmc/graph.h>
-#include <votca/kmc/nodesql.h>
-#include <votca/kmc/linksql.h>
 #include <votca/tools/database.h>
 
 namespace votca { namespace kmc {
   
-class GraphSQL : public Graph<Node, Link> {
+class GraphSQL : public Graph<NodeSQL, LinkSQL> {
 
 public:
    
@@ -60,12 +58,10 @@ inline void GraphSQL::Initialize(string filename){
     double ucCnNe = stmt->Column<double>(11);
     double ucCnNh = stmt->Column<double>(12);
   
-   // NodeSQL* newNodeSQL(id, position);
-    Node* newNodeSQL = new Node(id, position);
-   // newNodeSQL->setU(UnCnNe, UnCnNh, UcNcCe, UcNcCh);
-   // newNodeSQL->setE(eAnion, eNeutral, eCation);
-   // newNodeSQL->setu(ucCnNe, ucCnNh);
-  //  AddNode(newNodeSQL);
+    NodeSQL* newNodeSQL = AddNode(id,position);
+    newNodeSQL->setU(UnCnNe, UnCnNh, UcNcCe, UcNcCh);
+    newNodeSQL->setE(eAnion, eNeutral, eCation);
+    newNodeSQL->setu(ucCnNe, ucCnNh);
 
 }
 
