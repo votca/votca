@@ -97,7 +97,7 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     graph->Initialize(filename);
     graph->PrintNodes(std::cout);
     graph->PrintLinks(std::cout);
-    graph->LinkBackwards();
+//    graph->LinkSort();
     delete graph;    
     
     exit(0);

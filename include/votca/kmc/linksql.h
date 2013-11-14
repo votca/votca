@@ -65,7 +65,7 @@ public:
     const double &Jeff2h() const { return _Jeff2h; }   
 
     const double &lOe() const { return _lOe; }   
-    const double &lOh() const { return _lOh; }     
+    const double &lOh() const { return _lOh;; }     
     
     
 /*    /// forward and backward rates

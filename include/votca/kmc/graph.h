@@ -74,11 +74,13 @@ public:
     
     /// initialize nodes and links
     virtual void Initialize(string filename){;};
+
+   
     
 protected:
+
     std::vector<TNode*> _nodes;
-    std::vector<TLink*> _links;
-    
+    std::vector<TLink*> _links;     
 };
 
 

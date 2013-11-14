@@ -18,7 +18,7 @@
 #ifndef _VOTCA_KMC_LINK_H
 #define	_VOTCA_KMC_LINK_H
 
-#include <votca/tools/vec.h>
+//#include <votca/kmc/node.h>
 
 namespace votca { namespace kmc {
 
@@ -46,6 +46,12 @@ public:
     
     /// r2 - r1
     const votca::tools::vec &r12() const { return _r12; }    
+    
+    /// node 1
+    Node* &node1() { return _node1; }
+    
+    /// node 2
+    Node* &node2() { return _node2; }
     
     /// set initial and final nodes of link
     void SetNodes(Node* node1, Node* node2) { _node1 = node1; _node2 = node2; }
