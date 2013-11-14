@@ -52,6 +52,7 @@ namespace votca { namespace ctp {
         // cout << "I'm supposed to fill out the AO overlap matrix" << endl;
         
         // loop row
+        #pragma omp parallel for
         for (vector< AOShell* >::iterator _row = aobasis->firstShell(); _row != aobasis->lastShell() ; _row++ ) {
             AOShell* _shell_row = aobasis->getShell( _row );
             int _row_start = _shell_row->getStartIndex();

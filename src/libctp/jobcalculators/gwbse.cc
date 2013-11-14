@@ -515,6 +515,7 @@ namespace votca {
             ub::matrix<double> _bse = -_eh_d;
             
             // add full QP Hamiltonian contributions to free transitions
+            #pragma omp parallel for
             for ( size_t _v1 = 0 ; _v1 < _bse_vtotal ; _v1++){
                 for ( size_t _c1 = 0 ; _c1 < _bse_ctotal ; _c1++){
                     size_t _index_vc = _bse_ctotal * _v1 + _c1;
@@ -553,6 +554,7 @@ namespace votca {
 
 
             // add full QP Hamiltonian contributions to free transitions
+            #pragma omp parallel for
             for ( size_t _v1 = 0 ; _v1 < _bse_vtotal ; _v1++){
                 for ( size_t _c1 = 0 ; _c1 < _bse_ctotal ; _c1++){
                     size_t _index_vc = _bse_ctotal * _v1 + _c1;
@@ -581,7 +583,6 @@ namespace votca {
             }
             
             // _bse_singlet_energies.resize(_bse_singlet_coefficients.size1());
-            int nmax = 100;
             linalg_eigenvalues(_bse, _bse_singlet_energies, _bse_singlet_coefficients, _bse_nmax);
             
           //  cout << TimeStamp() << " with GSL " << endl;
@@ -595,6 +596,7 @@ namespace votca {
             // messy procedure, first get two matrices for occ and empty subbparts
             // store occs directly transposed
             ub::matrix<double> _storage_v = ub::zero_matrix<double>(  _bse_vtotal * _bse_vtotal , _gwsize );
+            #pragma omp parallel for
             for ( size_t _v1 = 0; _v1 < _bse_vtotal; _v1++){
                 const ub::matrix<double>& Mmn = _Mmn[_v1];
                 for ( size_t _v2 = 0; _v2 < _bse_vtotal; _v2++){
@@ -607,6 +609,7 @@ namespace votca {
             
             
             ub::matrix<double> _storage_c = ub::zero_matrix<double>( _gwsize, _bse_ctotal * _bse_ctotal );
+            #pragma omp parallel for
             for ( size_t _c1 = 0; _c1 < _bse_ctotal; _c1++){
                 const ub::matrix<double>& Mmn = _Mmn[_c1 + _bse_cmin];
                 for ( size_t _c2 = 0; _c2 < _bse_ctotal; _c2++){
@@ -618,12 +621,13 @@ namespace votca {
             }
             
             // store elements in a vtotal^2 x ctotal^2 matrix
-            cout << "BSE_d_setup 1 [" << _storage_v.size1() << "x" << _storage_v.size2() << "]\n" << std::flush;
+            // cout << "BSE_d_setup 1 [" << _storage_v.size1() << "x" << _storage_v.size2() << "]\n" << std::flush;
             ub::matrix<double> _storage_prod = ub::prod( _storage_v , _storage_c );
             
             
             
             // now patch up _storage for screened interaction
+            #pragma omp parallel for
             for ( size_t _i_gw = 0 ; _i_gw < _gwsize ; _i_gw++ ){  
                 double _ppm_factor = sqrt( _ppm_weight( _i_gw ));
                 for ( size_t _v = 0 ; _v < (_bse_vtotal* _bse_vtotal) ; _v++){
@@ -635,13 +639,14 @@ namespace votca {
             }
             
             // multiply and subtract from _storage_prod
-            cout << "BSE_d_setup 2 [" << _storage_c.size1() << "x" << _storage_c.size2() << "]\n" << std::flush;
+            // cout << "BSE_d_setup 2 [" << _storage_c.size1() << "x" << _storage_c.size2() << "]\n" << std::flush;
             _storage_prod -= ub::prod( _storage_v , _storage_c );
             
             
             // finally resort into _eh_d and multiply by to for Rydbergs
             // can be limited to upper diagonal !
             _eh_d = ub::zero_matrix<double>( _bse_size , _bse_size );
+            #pragma omp parallel for
             for ( size_t _v1 = 0 ; _v1 < _bse_vtotal ; _v1++){
                 for ( size_t _v2 = 0 ; _v2 < _bse_vtotal ; _v2++){
                     size_t _index_vv = _bse_vtotal * _v1 + _v2;
@@ -681,7 +686,9 @@ namespace votca {
             
             // get a different storage for 3-center integrals we need
             ub::matrix<double> _storage = ub::zero_matrix<double>( _gwsize , _bse_size);
+            
             // occupied levels
+            #pragma omp parallel for
             for ( size_t _v = 0; _v < _bse_vtotal ; _v++ ){
                 const ub::matrix<double>& Mmn = _Mmn[_v];
                 // empty levels
@@ -694,7 +701,6 @@ namespace votca {
             }
             
             // with this storage, _eh_x is obtained by matrix multiplication
-            cout << "BSE_x_setup [" << _gwsize << "x" << _bse_size << "]\n" << std::flush;
             _eh_x = ub::prod( ub::trans( _storage ), _storage );
             _eh_x = 2.0 * _eh_x; // Rydberg
   
@@ -737,7 +743,7 @@ namespace votca {
             
             // iterative refinement of qp energies
             int _max_iter = 5;
-            int _bandsum = _Mmn[0].size2(); // total number of bands
+            int _levelsum = _Mmn[0].size2(); // total number of bands
             int _gwsize  = _Mmn[0].size1(); // size of the GW basis
             const double pi = boost::math::constants::pi<double>();
             
@@ -752,6 +758,7 @@ namespace votca {
 	      _sigma_c = ub::zero_matrix<double>(_qptotal,_qptotal);
 
 	      // loop over all GW levels
+              #pragma omp parallel for
 	      for (int _gw_level = 0; _gw_level < _qptotal ; _gw_level++ ){
                   
                 const ub::matrix<double>& Mmn = _Mmn[ _gw_level ];
@@ -760,7 +767,7 @@ namespace votca {
 		for ( int _i_gw = 0; _i_gw < _gwsize ; _i_gw++ ){
                     
 		  // loop over all bands
-		  for ( int _i = 0; _i < _bandsum ; _i++ ){
+		  for ( int _i = 0; _i < _levelsum ; _i++ ){
                     
 		    double occ = 1.0;
 		    if ( _i > _homo ) occ = -1.0; // sign for empty levels
@@ -791,19 +798,21 @@ namespace votca {
             
 
 	    // in final step, also calc offdiagonal elements
-	    // initialize sigma_c to zero at the beginning of each iteration
+	    // initialize sigma_c to zero at the beginning
 	    _sigma_c = ub::zero_matrix<double>(_qptotal,_qptotal);
 
-	      // loop over col  GW levels
-	      for (int _gw_level = 0; _gw_level < _qptotal ; _gw_level++ ){
+            // loop over col  GW levels
+            #pragma omp parallel for
+	    for (int _gw_level = 0; _gw_level < _qptotal ; _gw_level++ ){
               
                 const ub::matrix<double>& Mmn =  _Mmn[ _gw_level ];
+
 		// loop over all functions in GW basis
 		for ( int _i_gw = 0; _i_gw < _gwsize ; _i_gw++ ){
                     
 
-		  // loop over all bands
-		  for ( int _i = 0; _i < _bandsum ; _i++ ){
+		  // loop over all screening levels
+		  for ( int _i = 0; _i < _levelsum ; _i++ ){
                     
 		    double occ = 1.0;
 		    if ( _i > _homo ) occ = -1.0; // sign for empty levels
@@ -825,11 +834,11 @@ namespace votca {
 		    // sigma_c all elements
 		    _sigma_c( _m , _gw_level ) += _factor * _Mmn[_m](_i_gw, _i) ;  //_submat(_i_gw,_i);
 	                      
-		  }// bands
+		  }// screening levels
 		}// GW functions
-	      }// GW col 
+	      }// GW row 
 	      _qp_energies( _gw_level ) = _edft( _gw_level ) + _sigma_x(_gw_level,_gw_level) + _sigma_c(_gw_level,_gw_level) - _vxc(_gw_level,_gw_level);
-	    } // GW row
+	    } // GW col
     
         } // sigma_c_setup
 
@@ -839,12 +848,13 @@ namespace votca {
             _sigma_x = ub::zero_matrix<double>(_qptotal,_qptotal);
             int _size  = _Mmn[0].size1();
 
-            // band 1 loop over all GW bands
+            // band 1 loop over all GW levels
+            #pragma omp parallel for
             for ( int _m1 = 0 ; _m1 < _qptotal ; _m1++ ){
                 
                 const ub::matrix<double>& M1mn =  _Mmn[ _m1 ];
                 
-                // band 2 loop over all GW bands
+                // band 2 loop over all GW levels
                 for ( int _m2 = 0 ; _m2 < _qptotal ; _m2++ ){
                     
                     const ub::matrix<double>& M2mn =  _Mmn[ _m2 ];
@@ -853,13 +863,11 @@ namespace votca {
                     for ( int _i_gw = 0 ; _i_gw < _size ; _i_gw++ ){
                         // loop over all occupied bands used in screening
                         for ( int _i_occ = 0 ; _i_occ <= _homo ; _i_occ++ ){
-                            
                             _sigma_x( _m1, _m2 ) -= 2.0 * M1mn( _i_gw , _i_occ ) * M2mn( _i_gw , _i_occ );
-                            
                         } // occupied bands
                     } // gwbasis functions
-                } // band 2
-            } // band 1
+                } // level 2
+            } // level 1
         
         }
 
@@ -868,17 +876,14 @@ namespace votca {
         
 
         void GWBSE::sigma_prepare_threecenters(TCMatrix& _Mmn){
-    
-            for ( int _m_band = 0 ; _m_band < _Mmn.get_mtot(); _m_band++ ){
-                // get Mmn for this _m_band
-                // ub::matrix<double> _temp = ub::trans(  _Mmn.matrix()( _m_band )   );
+            #pragma omp parallel for
+            for ( int _m_level = 0 ; _m_level < _Mmn.get_mtot(); _m_level++ ){
+                // get Mmn for this _m_level
+                // ub::matrix<double> _temp = ub::trans(  _Mmn.matrix()( _m_level )   );
                 // and multiply with _ppm_phi = eigenvectors of epsilon
                 // POTENTIAL BUG
-                _Mmn[ _m_band ] = ub::prod(  _ppm_phi , _Mmn[ _m_band ] );
-                
+                _Mmn[ _m_level ] = ub::prod(  _ppm_phi , _Mmn[ _m_level ] );
             }
-            
-
         }        
         
         void GWBSE::PPM_construct_parameters(  ub::matrix<double>& _overlap_cholesky_inverse ){
@@ -954,24 +959,24 @@ namespace votca {
             
             // loop over frequencies
             for ( int _i_freq = 0 ; _i_freq < _screening_freq.size1() ; _i_freq++ ){
-                // initialize epsilon for this frequency
-                // _epsilon ( _i_freq ) = ub::zero_matrix<double>(_size, _size);
                 
-                // loop over occupied bands -> vector index of _Mmn_RPA
-                for ( int _m_band = 0; _m_band < _Mmn_RPA.get_mtot() ; _m_band++ ){
+                // loop over occupied levels -> vector index of _Mmn_RPA
+                // by default all variable shared, except for one defined in parallel region
+                #pragma omp parallel for 
+                for ( int _m_level = 0; _m_level < _Mmn_RPA.get_mtot() ; _m_level++ ){
                     int index_m = _Mmn_RPA.get_mmin();
-                    const ub::matrix<double>& Mmn_RPA =  _Mmn_RPA[ _m_band ];
+                    const ub::matrix<double>& Mmn_RPA =  _Mmn_RPA[ _m_level ];
 
-                    // a temporary matrix, that will get filled in empty bands loop
+                    // a temporary matrix, that will get filled in empty levels loop
                     ub::matrix<double> _temp = ub::zero_matrix<double>( _Mmn_RPA.get_ntot(), _size );
                     
                         
-                    // loop over empty bands
-                    for ( int _n_band = 0 ; _n_band < _Mmn_RPA.get_ntot() ; _n_band++ ){
+                    // loop over empty levels
+                    for ( int _n_level = 0 ; _n_level < _Mmn_RPA.get_ntot() ; _n_level++ ){
                         int index_n = _Mmn_RPA.get_nmin();
                         
                         
-                        double _deltaE = _shift + _dft_energies( _n_band + index_n ) - _dft_energies( _m_band + index_m ); // get indices and units right!!!
+                        double _deltaE = _shift + _dft_energies( _n_level + index_n ) - _dft_energies( _m_level + index_m ); // get indices and units right!!!
                         double _energy_factor;
                         // this only works, if we have either purely real or purely imaginary frequencies
                         if ( _screening_freq( _i_freq, 0) == 0.0 ) {
@@ -986,16 +991,22 @@ namespace votca {
                             exit(1);
                         }
 
-                        for ( int _i_gw = 0 ; _i_gw < _size ; _i_gw++ ){
-                            _temp( _n_band , _i_gw ) = _energy_factor * Mmn_RPA( _i_gw , _n_band );
-                        } // matrix size
                         
-                    } // empty bands
+                        
+                        // _temp = _energy_factor * ub::trans( Mmn_RPA );
+                        for ( int _i_gw = 0 ; _i_gw < _size ; _i_gw++ ){
+                            _temp( _n_level , _i_gw ) = _energy_factor * Mmn_RPA( _i_gw , _n_level );
+                         } // matrix size
+                        
+                    } // empty levels
 
                    // now multiply and add to epsilon
-                   _epsilon( _i_freq ) += ub::prod( Mmn_RPA , _temp  );
-
-                } // occupied bands
+                    ub::matrix<double> _add = ub::prod( Mmn_RPA , _temp  );
+                   #pragma omp critical
+                    {
+                   _epsilon( _i_freq ) += _add;// ub::prod( Mmn_RPA , _temp  );
+                    }
+                } // occupied levels
                 
             } // loop over frequencies
             
@@ -1008,15 +1019,14 @@ namespace votca {
     void GWBSE::RPA_prepare_threecenters( TCMatrix& _Mmn_RPA, TCMatrix& _Mmn_full, AOBasis& gwbasis, AOMatrix& gwoverlap, AOMatrix& gwoverlap_inverse     ){
         
          
-        // loop over m-bands in _Mmn_full
-        // for ( int _m_band = 0; _m_band < _Mmn_full.matrix().size() ; _m_band++ ){
-        // actually, only needed for size of _Mmn_RPA (until VBM)
-        for ( int _m_band = 0; _m_band < _Mmn_RPA.size() ; _m_band++ ){
+        // loop over m-levels in _Mmn_RPA
+        #pragma omp parallel for
+        for ( int _m_level = 0; _m_level < _Mmn_RPA.size() ; _m_level++ ){
         
-            ub::matrix<double> _temp = ub::prod( gwoverlap_inverse._aomatrix , _Mmn_full[ _m_band ] );
+            ub::matrix<double> _temp = ub::prod( gwoverlap_inverse._aomatrix , _Mmn_full[ _m_level ] );
 
-            // loop over n-bands in _Mmn_full 
-            for ( int _n_band = 0; _n_band < _Mmn_full.get_ntot() ; _n_band++ ){
+            // loop over n-levels in _Mmn_full 
+            for ( int _n_level = 0; _n_level < _Mmn_full.get_ntot() ; _n_level++ ){
 
                 double sc_plus  = 0.0;
                 double sc_minus = 0.0;
@@ -1057,7 +1067,7 @@ namespace votca {
 
                     // loop over all functions in shell
                     for ( int _i_gw = 0; _i_gw < _size ; _i_gw++ ){
-                        double _test = _temp( _i_gw + _start, _n_band   );
+                        double _test = _temp( _i_gw + _start, _n_level   );
                         if ( _test > 0.0  ){
                             sc_plus += chi[ _i_gw ]* _test;
                         } else if ( _test < 0.0 ){
@@ -1067,7 +1077,7 @@ namespace votca {
 
                 } // end loop over all shells
 
-                if ( _m_band <= _Mmn_RPA.get_mmax() && _n_band >= _Mmn_RPA.get_nmin()  ){
+                if ( _m_level <= _Mmn_RPA.get_mmax() && _n_level >= _Mmn_RPA.get_nmin()  ){
                     
                     double target = sqrt( sc_plus * sc_minus );
                     sc_plus  = target / sc_plus;
@@ -1082,27 +1092,26 @@ namespace votca {
                         chi[0] = 1.0;
                         // loop over all functions in shell
                         for ( int _i_gw = 0; _i_gw < _size ; _i_gw++ ){
-                            double _test = _temp( _i_gw + _start, _n_band   );
+                            double _test = _temp( _i_gw + _start, _n_level   );
                             if ( _test > 0.0 && std::abs( chi[_i_gw] ) > 1.e-10 ){
-                               _temp( _i_gw + _start, _n_band   ) = _temp( _i_gw + _start, _n_band   ) * sc_plus;
+                               _temp( _i_gw + _start, _n_level   ) = _temp( _i_gw + _start, _n_level   ) * sc_plus;
                             } else if ( _test < 0.0 && std::abs( chi[_i_gw] ) > 1.e-10  ){
-                               _temp( _i_gw + _start, _n_band   ) = _temp( _i_gw + _start, _n_band   ) * sc_minus;
+                               _temp( _i_gw + _start, _n_level   ) = _temp( _i_gw + _start, _n_level   ) * sc_minus;
                             }
                         } // end loop over functions in shell
                     } // end loop over all shells
                     
                 }                
                 
-            }// loop n-bands
+            }// loop n-levels
 
             // multiply _temp with overlap
             ub::matrix<double> _temp2 = ub::prod( gwoverlap._aomatrix , _temp );
             // copy to _Mmn_RPA
-            // range(start, stop) contains all indices i with start <= i < stop
-            _Mmn_RPA[ _m_band ] = ub::project( _temp2, ub::range(0, gwbasis._AOBasisSize) , ub::range(_Mmn_RPA.get_nmin() - _Mmn_full.get_nmin()  , _Mmn_RPA.get_nmax() - _Mmn_full.get_nmin() +1 ));
+            _Mmn_RPA[ _m_level ] = ub::project( _temp2, ub::range(0, gwbasis._AOBasisSize) , ub::range(_Mmn_RPA.get_nmin() - _Mmn_full.get_nmin()  , _Mmn_RPA.get_nmax() - _Mmn_full.get_nmin() +1 ));
             
             
-        }// loop m-bands
+        }// loop m-levels
         
     } // end RPA_prepare_threecenters
 

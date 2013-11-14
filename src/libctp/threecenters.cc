@@ -43,10 +43,12 @@ namespace ub = boost::numeric::ublas;
         
         void TCMatrix::Symmetrize( const ub::matrix<double>& _coulomb ){
             // cout << "lala" << endl;
-            
+            #pragma omp parallel for
             for ( int _i_occ = 0; _i_occ < this->get_mtot(); _i_occ++ ){
                 //POTENTIALLY A BUG
-                _matrix[ _i_occ ] = ub::prod(_coulomb, _matrix[ _i_occ ] );
+	      //ub::matrix<double> _temp = ub::prod(_coulomb, _matrix[ _i_occ ] );
+	      //_matrix[ _i_occ ] = _temp;
+		 _matrix[ _i_occ ] = ub::prod(_coulomb, _matrix[ _i_occ ] );
 
             }
             
@@ -65,6 +67,7 @@ namespace ub = boost::numeric::ublas;
             
             
             // loop over all shells in the GW basis and get _Mmn for that shell
+            #pragma omp parallel for
             for (vector< AOShell* >::iterator _is = _gwbasis.firstShell(); _is != _gwbasis.lastShell(); _is++) {
                 AOShell* _shell = _gwbasis.getShell(_is);
                 int _start = _shell->getStartIndex();
