@@ -215,7 +215,7 @@ void Application::PrintDescription(std::ostream &out, const string &calculator_n
     string help_string;
     boost::filesystem::path arg_path;  
     Property options;
-    string xmlFile = (arg_path / string(getenv("VOTCASHARE")) / help_path / (boost::format("%1%.%2%") % calculator_name % "xml").str()).c_str();
+    string xmlFile = (arg_path / string(getenv("VOTCASHARE")) / help_path / (boost::format("%1%.%2%") % calculator_name % "xml").str()).string().c_str();
     
     // loading the documentation xml file from VOTCASHARE
     char *votca_share = getenv("VOTCASHARE");
