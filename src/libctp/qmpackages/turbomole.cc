@@ -455,14 +455,14 @@ bool Turbomole::CheckLogFile() {
         _input_file.seekg(-2,ios_base::cur);
         _input_file.get(ch);   
         //cout << "\nChar: " << ch << endl;
-    } while ( ch == '\n' || ch == ' ' || (int)_input_file.tellg() == -1 );
+    } while ( ch == '\n' || ch == ' ' || ch == '\t' || (int)_input_file.tellg() == -1 );
  
     // get the beginning of the line or the file
     do {
        _input_file.seekg(-2,ios_base::cur);
        _input_file.get(ch);   
        //cout << "\nNext Char: " << ch << " TELL G " <<  (int)_input_file.tellg() << endl;
-    } while ( ch != '\n' || (int)_input_file.tellg() == -1 );
+    } while ( ch != '\n' && ((int)_input_file.tellg() != -1 ) );
             
     string _line;            
     getline(_input_file,_line);                      // Read the current line
