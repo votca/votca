@@ -622,7 +622,7 @@ bool Gaussian::CheckLogFile() {
         _input_file.seekg(-2,ios_base::cur);
         _input_file.get(ch);   
         //cout << "\nChar: " << ch << endl;
-    } while ( ch == '\n' || ch == ' ' || (int)_input_file.tellg() == -1 );
+    } while ( ch == '\n' || ch == ' ' || ch == '\t' || (int)_input_file.tellg() == -1 );
  
     // get the beginning of the line or the file
     do {

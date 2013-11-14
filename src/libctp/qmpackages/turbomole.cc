@@ -317,8 +317,8 @@ bool Turbomole::ParseOrbitalsFile( Orbitals* _orbitals )
     unsigned _basis_size = 0;
 
     path arg_path; 
-    const char *orbFileName = (arg_path / _run_dir / _orb_file_name ).c_str();
-    std::ifstream _input_file( orbFileName );
+    string orbFileName = (arg_path / _run_dir / _orb_file_name ).string();
+    std::ifstream _input_file( orbFileName.c_str() );
     //cout << endl << (_run_dir + "/" + _orb_file_name).c_str();
 
     if (_input_file.fail()) {
@@ -433,15 +433,15 @@ bool Turbomole::ParseOrbitalsFile( Orbitals* _orbitals )
 }
 
 /*
- * TO DO 
+ * Checks completeness of the TURBOMOLE log
  */
 bool Turbomole::CheckLogFile() {
     
     // check if the log file exists
     char ch;
     path arg_path;
-    const char *logFileName = (arg_path / _run_dir / _log_file_name ).c_str();
-    ifstream _input_file( logFileName );
+    string logFileName = (arg_path / _run_dir / _log_file_name ).string();
+    ifstream _input_file( logFileName.c_str() );
     //cout << (_run_dir + "/" + _log_file_name).c_str();
     if (_input_file.fail()) {
         LOG(logERROR,*_pLog) << "Turbomole LOG "<< _log_file_name << " is not found" << flush;
@@ -513,8 +513,8 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
     
     // Start parsing the file line by line
     path arg_path;
-    const char *logFileName = (arg_path / _run_dir / _log_file_name ).c_str();
-    ifstream _input_file( logFileName );
+    string logFileName = (arg_path / _run_dir / _log_file_name ).string();
+    ifstream _input_file( logFileName.c_str() );
     
     while (_input_file) {
 
