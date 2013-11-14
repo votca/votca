@@ -304,10 +304,17 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
        std::ofstream ofs( orbFileAB.c_str() );
        boost::archive::binary_oarchive oa( ofs );
 
-       if ( !( _store_orbitals && _do_parse && _parse_orbitals_status) )   _store_orbitals = false;
-       if ( !( _store_overlap && _do_parse && _parse_log_status) )    _store_overlap = false;
+       if ( !( _store_orbitals && _do_parse && _parse_orbitals_status) )  {
+           _store_orbitals = false; 
+           LOG(logINFO,*pLog) << "Not storing orbitals" << flush;
+       }
+       if ( !( _store_overlap && _do_parse && _parse_log_status) )  {
+           _store_overlap = false;
+           LOG(logINFO,*pLog) << "Not storing overlap" << flush;
+       }
        if ( !( _store_integrals && _do_project && _calculate_integrals) )  {
            _store_integrals = false; 
+           LOG(logINFO,*pLog) << "Not storing integrals" << flush;           
        } else {
            _orbitalsAB.setIntegrals( &_JAB );
        }
