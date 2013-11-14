@@ -69,37 +69,40 @@ inline void GraphSQL::Initialize(string filename){
 
     // Load Node Pairs
 
-    stmt = db.Prepare("SELECT _id-1, seg1-1, seg2-1, drX, drY, drZ, rate12e, rate12h, rate21e, rate21h, Jeff2e, Jeff2h, lOe, lOh  FROM pairs");
-
+    stmt = db.Prepare("SELECT seg1-1 AS 'segment1', seg2-1 AS 'segment2', drX, drY, drZ, rate12e, rate12h, rate21e, rate21h, Jeff2e, Jeff2h, lOe, lOh  FROM pairs UNION SELECT seg2-1 AS 'segment1', seg1-1 AS 'segment2', -drX AS 'drX', -drY AS 'drY', -drZ AS 'drZ', rate21e AS 'rate12e', rate21h AS 'rate12h', rate12e AS 'rate21e', rate12h AS 'rate21h',Jeff2e, Jeff2h, lOe, lOh  FROM pairs ORDER BY segment1;");
+    
+    int id = 0;
+    
     while (stmt->Step() != SQLITE_DONE) {
         
-        int id = stmt->Column<int>(0);
+//        int id = stmt->Column<int>(0);
         
-        int node1_id = stmt->Column<int>(1);
-        int node2_id = stmt->Column<int>(2);
+        int node1_id = stmt->Column<int>(0);
+        int node2_id = stmt->Column<int>(1);
         NodeSQL* node1 = GetNode(node1_id);
         NodeSQL* node2 = GetNode(node2_id);
 
-        double drX = stmt->Column<double>(3);
-        double drY = stmt->Column<double>(4);
-        double drZ = stmt->Column<double>(5);
+        double drX = stmt->Column<double>(2);
+        double drY = stmt->Column<double>(3);
+        double drZ = stmt->Column<double>(4);
         votca::tools::vec r12(drX,drY,drZ);
         
-        double rate12e = stmt->Column<double>(6);
-        double rate12h = stmt->Column<double>(7);
-        double rate21e = stmt->Column<double>(8);
-        double rate21h = stmt->Column<double>(9);
+        double rate12e = stmt->Column<double>(5);
+        double rate12h = stmt->Column<double>(6);
+        double rate21e = stmt->Column<double>(7);
+        double rate21h = stmt->Column<double>(8);
         
-        double Jeff2e = stmt->Column<double>(10);
-        double Jeff2h = stmt->Column<double>(11);
+        double Jeff2e = stmt->Column<double>(9);
+        double Jeff2h = stmt->Column<double>(10);
         
-        double lOe = stmt->Column<double>(12);
-        double lOh = stmt->Column<double>(13);
+        double lOe = stmt->Column<double>(11);
+        double lOh = stmt->Column<double>(12);
         
         LinkSQL* newLinkSQL = AddLink(id,node1, node2, r12);
         newLinkSQL->setRate(rate12e,rate12h,rate21e,rate21h);
         newLinkSQL->setJeff2(Jeff2e,Jeff2h);
         newLinkSQL->setlO(lOe,lOh);
+        id++;
     }
         
     delete stmt;
