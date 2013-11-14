@@ -242,7 +242,6 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     Segment *seg = top->getSegment( segId );
     assert( seg->getName() == segType ); 
     segments.push_back( seg );
-
     Logger* pLog = opThread->getLogger();
     LOG(logINFO,*pLog) << TimeStamp() << " Evaluating site " << seg->getId() << flush; 
 
