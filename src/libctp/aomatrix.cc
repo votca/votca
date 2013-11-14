@@ -74,6 +74,18 @@ namespace votca { namespace ctp {
         }
     }
     
+    
+    AOMatrix::~AOMatrix() {
+    
+    /* for ( map< string,Element* >::iterator it = _elements.begin(); it !=  _elements.end(); it++ ) {
+         delete (*it).second;
+     }*/
+    
+    _aomatrix.clear();
+    _aomatrix.resize(0,0);
+};
+    
+    
     void AOMatrix::Print( string _ident){
         cout << "\n" << endl;
         for ( int i =0; i< this->_aomatrix.size1(); i++){

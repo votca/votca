@@ -30,9 +30,8 @@
 #include <boost/numeric/ublas/lu.hpp>
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/multi_array.hpp>
-#include "basisset.h"
-#include "aomatrix.h"
-//#include "linalg_tools.h"
+
+
 
 using namespace std;
 using namespace votca::tools;
@@ -78,19 +77,6 @@ namespace votca { namespace ctp {
             set_mtot( mmax - mmin +1 );
             set_ntot( nmax - nmin +1 );
 
-            /* let's try a different storage that is more convenient for
-             later access 
-            
-            // vector has _basissize elements
-            this->_matrix.resize( _basissize );
-            
-            // each element is a m-by-n matrix, initialize to zero
-            for ( int i = 0; i < _basissize; i++){
-                this->_matrix(i) = ub::zero_matrix<double>(mtotal,ntotal);
-            }
-
-             */
-
             
             // vector has mtotal elements
             _matrix.resize( this->get_mtot() );
@@ -111,7 +97,11 @@ namespace votca { namespace ctp {
 
         void Symmetrize( const ub::matrix<double>& coulomb  );
 
-        ub::matrix<double> matrixProd( int m, ub::matrix<double>& matrix);
+        // ~TCMatrix();
+        
+        void Cleanup();
+        
+        // ub::matrix<double> matrixProd( int m, ub::matrix<double>& matrix);
         
     private:
         

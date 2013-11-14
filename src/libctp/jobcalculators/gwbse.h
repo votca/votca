@@ -138,7 +138,7 @@ private:
     
     // RPA related variables and functions
     // container for the epsilon matrix
-    ub::vector< ub::matrix<double> > _epsilon;
+    std::vector< ub::matrix<double> > _epsilon;
     // container for frequencies in screening (index 0: real part, index 1: imaginary part)
     ub::matrix<double> _screening_freq;
     void symmetrize_threecenters(TCMatrix& _Mmn, ub::matrix<double>& _coulomb);

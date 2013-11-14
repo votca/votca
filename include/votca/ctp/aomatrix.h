@@ -59,6 +59,10 @@ namespace votca { namespace ctp {
         
         // block fill prototype
         virtual void FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col) {} ;
+
+        ~AOMatrix();
+
+
         
     };
     
@@ -67,7 +71,17 @@ namespace votca { namespace ctp {
         //block fill for overlap, implementation in aomatrix.cc
         void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col );
         //void Print();
+        
+        ~AOOverlap();
+        
     };
+    
+    inline AOOverlap::~AOOverlap(){
+        
+    _aomatrix.clear();
+    _aomatrix.resize(0,0);
+        
+    }
     
     
     class AOCoulomb : public AOMatrix{

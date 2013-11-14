@@ -378,14 +378,19 @@ namespace votca {
             
             // for symmetric PPM, we can initialize _epsilon with the overlap matrix!
             for ( int _i_freq = 0 ; _i_freq < _screening_freq.size1() ; _i_freq++ ){
-                _epsilon( _i_freq ) = _gwoverlap._aomatrix ;
+                _epsilon[ _i_freq ] = _gwoverlap._aomatrix ;
             }
-            // TODO: now, we can get rid of _gwoverlap
+            // _gwoverlap is not needed further
+            _gwoverlap.~AOOverlap();
             
             // determine epsilon from RPA
             RPA_calculate_epsilon( _Mmn_RPA, _screening_freq, _shift, _dft_energies );
             LOG(logDEBUG, *pLog) << TimeStamp() << " Calculated epsilon via RPA  " << flush;
   
+            // _Mmn_RPA is not needed any further
+            // _Mmn_RPA.~TCMatrix();
+            _Mmn_RPA.Cleanup();
+            
             // construct PPM parameters
             PPM_construct_parameters( _gwoverlap_cholesky_inverse._aomatrix );
             LOG(logDEBUG, *pLog) << TimeStamp() << " Constructed PPM parameters  " << flush;
@@ -890,7 +895,7 @@ namespace votca {
             
             // multiply with L-1^t from the right
             ub::matrix<double> _overlap_cholesky_inverse_transposed = ub::trans( _overlap_cholesky_inverse );
-            ub::matrix<double> _temp = ub::prod( _epsilon(0) , _overlap_cholesky_inverse_transposed );
+            ub::matrix<double> _temp = ub::prod( _epsilon[0] , _overlap_cholesky_inverse_transposed );
             // multiply with L-1 from the left
             _temp = ub::prod( _overlap_cholesky_inverse, _temp );
             
@@ -915,7 +920,7 @@ namespace votca {
             // determine PPM frequencies
             _ppm_freq.resize( _eigenvalues.size() );
             // a) phi^t * epsilon(1) * phi 
-            _temp = ub::prod( ub::trans( _ppm_phi ) , _epsilon(1) );
+            _temp = ub::prod( ub::trans( _ppm_phi ) , _epsilon[1] );
             _eigenvectors  = ub::prod( _temp ,  _ppm_phi  );
             // b) invert
             _temp = ub::zero_matrix<double>( _eigenvalues.size(),_eigenvalues.size() )  ;
@@ -947,6 +952,9 @@ namespace votca {
             // will be needed transposed later
             _ppm_phi = ub::trans( _ppm_phi );
             
+            // epsilon can be deleted
+            _epsilon[0].resize(0,0);
+            _epsilon[1].resize(0,0);
                    
             
         }
@@ -1004,7 +1012,7 @@ namespace votca {
                     ub::matrix<double> _add = ub::prod( Mmn_RPA , _temp  );
                    #pragma omp critical
                     {
-                   _epsilon( _i_freq ) += _add;// ub::prod( Mmn_RPA , _temp  );
+                   _epsilon[ _i_freq ] += _add;// ub::prod( Mmn_RPA , _temp  );
                     }
                 } // occupied levels
                 
