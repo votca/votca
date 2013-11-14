@@ -165,7 +165,7 @@ bool Overlap::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     LOG(logDEBUG,*_pLog) << "Projecting dimer onto monomer orbitals"; 
     ub::matrix<double> _orbitalsAB_Transposed = ub::trans( *_orbitalsAB->getOrbitals() );  
     if ( (*_orbitalsAB->getOverlap()).size1() == 0 ) {
-            LOG(logDERROR,*_pLog) << "Overlap matrix is not sttored"; 
+            LOG(logERROR,*_pLog) << "Overlap matrix is not stored"; 
             return false;
     }
     #ifdef OVERLAP_DEBUG 
