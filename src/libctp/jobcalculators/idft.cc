@@ -103,7 +103,7 @@ void IDFT::ParseOptionsXML( votca::tools::Property *opt ) {
 
 void IDFT::LoadOrbitals(string file_name, Orbitals* orbitals, Logger *log ) {
 
-    if (log) LOG(logDEBUG, *log) << "Loading " << file_name << flush; 
+    LOG(logDEBUG, *log) << "Loading " << file_name << flush; 
     std::ifstream ifs( file_name.c_str() );
     boost::archive::binary_iarchive ia( ifs );
     ia >> *orbitals;
@@ -180,6 +180,7 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         boost::filesystem::create_directories( _qmpackage_work_dir );
         Orbitals *_orbitalsAB = NULL;        
         if ( _qmpackage->GuessRequested() ) { // do not want to do an SCF loop for a dimer
+            LOG(logINFO,*pLog) << "Guess requested, reading molecular orbitals" << flush;
             Orbitals _orbitalsA, _orbitalsB;   
             _orbitalsAB = new Orbitals();
             // load the corresponding monomer orbitals and prepare the dimer guess 
