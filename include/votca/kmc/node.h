@@ -31,7 +31,7 @@ public:
     } 
 
     /// adds a link to a Node
-    void AddLink( LinkSQL* link ) { _links.push_back(link); }
+    void AddLink( Link* link ) { _links.push_back(link); }
     /// link ID - syncing with the pair ID 
     const int &id() const { return _id; } 
     /// type
@@ -40,7 +40,7 @@ public:
     const votca::tools::vec &position() const { return _position; } 
     /// print Node info
     virtual void Print( std::ostream &out ) {
-        vector< LinkSQL* >::iterator it;
+        vector< Link* >::iterator it;
         for (it = _links.begin(); it != _links.end(); it++ ) (*it)->Print( out );
     }
 
@@ -50,7 +50,7 @@ protected:
     int _type;
     votca::tools::vec _position;
     
-    vector< LinkSQL* > _links;
+    vector< Link* > _links;
 };
 
 

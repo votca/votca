@@ -56,7 +56,7 @@ private:
     votca::tools::vec _sim_box_size;
      
 };
-/*
+
 template<class TGraph, class TNode, class TLink>
 void GraphBulk<TGraph, TNode, TLink>::LinkSort(){
     typename std::vector<TLink*>::iterator it;
@@ -67,7 +67,7 @@ void GraphBulk<TGraph, TNode, TLink>::LinkSort(){
         node1->addLink((*it));
     }
 }
-
+/*
 inline int GraphBulk::Determine_Max_Pair_Degree(){
     
     int max_pair_degree = 0;

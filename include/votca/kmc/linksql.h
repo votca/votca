@@ -37,7 +37,7 @@ public:
 
     LinkSQL( int id, Node* node1, Node* node2, votca::tools::vec r12) : Link(id,node1,node2,r12){
     };
-
+    
     void setRate(double rate12e, double rate12h, double rate21e, double rate21h){
         _rate12e  = rate12e;
         _rate12h  = rate12h;
