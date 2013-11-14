@@ -63,8 +63,9 @@ void Turbomole::Initialize( Property *opt ) {
     _write_guess = false;
 
     // check if the guess keyword is present, if yes, append the guess later
-    std::string::size_type iop_pos = _options.find("iter\n1 ");
-    if (iop_pos != std::string::npos) _write_guess = true;
+    std::string::size_type iop_pos1 = _options.find("iter\n1 "); // for 1 + space
+    std::string::size_type iop_pos2 = _options.find("iter\n1\n"); // for 1 + new line
+   if (iop_pos1 != std::string::npos || iop_pos2 != std::string::npos) _write_guess = true;
     
 }
     
