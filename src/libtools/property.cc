@@ -197,6 +197,7 @@ void PrintNodeXML(std::ostream &out, Property &p, PropertyIOManipulator *piom, i
     list<Property>::iterator iter;       
     Property::AttributeIterator ia;
     bool _endl = true;
+    bool has_value;
     
     const ColorSchemeBase *color = &DEFAULT_COLORS;
      
@@ -227,7 +228,7 @@ void PrintNodeXML(std::ostream &out, Property &p, PropertyIOManipulator *piom, i
             out << ">";
             
             // print node value if it is not empty
-            bool has_value = ( (p.value()).find_first_not_of("\t\n ") != std::string::npos );
+            has_value = ( (p.value()).find_first_not_of("\t\n ") != std::string::npos );
             if( has_value ) { 
                 out <<  cAttributeValue <<  p.value() << cReset;
                 _endl = false; 
@@ -249,9 +250,13 @@ void PrintNodeXML(std::ostream &out, Property &p, PropertyIOManipulator *piom, i
         
         if ( level >= start_level ) {
             if ( _endl ) {
-                out << indent << offset << "</" << cKey << p.name() << cReset << ">" << endl;
+                         out << indent << offset << "</" << cKey << p.name() << cReset << ">" << endl;
             } else {
-                out << indent << "</" << cKey << p.name() << cReset << ">" << endl;
+                if (has_value) { // avoid indent after the value
+                        out << "</" << cKey << p.name() << cReset << ">" << endl;
+                } else {
+                        out << indent << offset << "</" << cKey << p.name() << cReset << ">" << endl;
+                }
             }
         } 
 }
