@@ -175,7 +175,9 @@ void EDFT::WriteJobFile(Topology *top) {
 
     QMNBList::iterator pit;
     QMNBList &nblist = top->NBList();    
-
+    // regenerate superexchange pairs
+    nblist.GenerateSuperExchange();
+            
     int jobCount = 0;
     if (nblist.size() == 0) {
         cout << endl << "... ... No pairs in neighbor list, skip." << flush;
