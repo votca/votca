@@ -97,7 +97,12 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     graph->Initialize(filename);
     graph->PrintNodes(std::cout);
     graph->PrintLinks(std::cout);
-    graph->LinkSort();
+    graph->Break_periodicity(true,false,false);
+    graph->PrintLinks(std::cout);
+//    graph->LinkSort();
+//    std::cout << graph->Determine_Max_Pair_Degree() << endl;
+//    std::cout << graph->Determine_Hopping_Distance() << endl;
+//    std::cout << graph->Determine_Sim_Box_Size() << endl;
     delete graph;    
     
     exit(0);

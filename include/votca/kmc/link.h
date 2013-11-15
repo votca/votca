@@ -44,6 +44,7 @@ public:
     /// link ID
     const int &id() const { return _id; }
     
+    
     /// r2 - r1
     const votca::tools::vec &r12() const { return _r12; }    
     

@@ -23,7 +23,6 @@
 
 namespace votca { namespace kmc {
 
-
 /**
  * \brief A link between two nodes
  * 

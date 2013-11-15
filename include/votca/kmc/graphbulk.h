@@ -47,7 +47,10 @@ public:
     double Determine_Hopping_Distance();
     
     ///calculate the simulation box size
-    votca::tools::vec Determine_Sim_Box_Size();    
+    votca::tools::vec Determine_Sim_Box_Size();
+
+    ///break the periodicity of the graph (breaking boundary crossing pairs) .. (run before linksort)
+    void Break_periodicity(bool break_x, bool break_y, bool break_z);    
     
 private:
 
@@ -57,42 +60,45 @@ private:
      
 };
 
+
 template<class TGraph, class TNode, class TLink>
 void GraphBulk<TGraph, TNode, TLink>::LinkSort(){
     typename std::vector<TLink*>::iterator it;
     for (it = this->_links.begin(); it != this->_links.end(); it++ ) {
-        TNode* node1 = (*it)->node1();
+        Node* node1 = (*it)->node1();
         votca::tools::vec pos = node1->position();
-        std::cout << pos.x() << " " << pos.y() << " " << pos.z() << endl;
-        node1->addLink((*it));
+//        std::cout << pos.x() << " " << pos.y() << " " << pos.z() << endl;
+        node1->AddLink((*it));
     }
 }
-/*
-inline int GraphBulk::Determine_Max_Pair_Degree(){
+
+template<class TGraph, class TNode, class TLink>
+int GraphBulk<TGraph, TNode, TLink>::Determine_Max_Pair_Degree(){
     
     int max_pair_degree = 0;
     typename std::vector<TNode*>::iterator it;    
-    for(it = _nodes.begin(); it != _nodes.end(); it++) {
-        if((*it)->links().size()>maxdegree) maxdegree = (*it)->links().size();
+    for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) {
+        if((*it)->links().size()>max_pair_degree) max_pair_degree = (*it)->links().size();
     }
     return max_pair_degree; 
 }
 
-
-inline double GraphBulk::Determine_Hopping_Distance(){
+template<class TGraph, class TNode, class TLink>
+double GraphBulk<TGraph, TNode, TLink>::Determine_Hopping_Distance(){
     
     double hop_distance = 0.0;
     typename std::vector<TLink*>::iterator it;    
-    for(it = _links.begin(); it != _links.end(); it++) {
+    for(it = this->_links.begin(); it != this->_links.end(); it++) {
         votca::tools::vec dR = (*it)->r12();
         double distance = abs(dR);
-        if(distance>hopdistance) {hopdistance = distance;}
-        }
+        if(distance>hop_distance) hop_distance = distance;
     }
     return hop_distance;
 }
 
-inline votca::tools::vec GraphBulk::Determine_Sim_Box_Size(){ 
+
+template<class TGraph, class TNode, class TLink>
+votca::tools::vec GraphBulk<TGraph, TNode, TLink>::Determine_Sim_Box_Size(){ 
     
     //Determination of simulation box size
     //To do this, we first need to find a node with position vector a and pairing node with position vector b, such that
@@ -106,12 +112,12 @@ inline votca::tools::vec GraphBulk::Determine_Sim_Box_Size(){
     double sim_box_sizeX; double sim_box_sizeY; double sim_box_sizeZ;
     
     //initial values
-    votca::tools::vec initpos = _nodes[0]->position();
+    votca::tools::vec initpos = this->_nodes[0]->position();
     double maxX = initpos.x(); double maxY = initpos.y(); double maxZ = initpos.z();
     double minX = initpos.x(); double minY = initpos.y(); double minZ = initpos.z();
     
     typename std::vector<TLink*>::iterator it;    
-    for(it = _links.begin(); it != _links.end(); it++) {
+    for(it = this->_links.begin(); it != this->_links.end(); it++) {
         
         if(pairXfound&&pairYfound&&pairZfound) break;
         
@@ -145,11 +151,48 @@ inline votca::tools::vec GraphBulk::Determine_Sim_Box_Size(){
     votca::tools::vec sim_box_size(sim_box_sizeX, sim_box_sizeY, sim_box_sizeZ);
     return sim_box_size;
 
-}*/
-  
+}
+
+template<class TGraph, class TNode, class TLink>
+void GraphBulk<TGraph, TNode, TLink>::Break_periodicity(bool break_x, bool break_y, bool break_z){
+
+//    typename std::vector<TLink*>::iterator it;
+    int debugcount = 0;
+    std::cout <<  this->_links.size() << endl;
+    for(int it = this->_links.size()-1; it != 0; it--) {
+
+        TLink* ilink = this->_links[it];
+        
+        votca::tools::vec pos1 = ilink->node1()->position();
+        votca::tools::vec pos2 = ilink->node2()->position();
+        votca::tools::vec dr = ilink->r12();
+
+        bool remove_flag = false;
+        
+        if(break_x){
+            if(pos1.x() > pos2.x() && dr.x()>0) remove_flag = true;
+            if(pos1.x() < pos2.x() && dr.x()<0) remove_flag = true;
+        }        
+        if(break_y){
+            if(pos1.y() > pos2.y() && dr.y()>0) remove_flag = true;
+            if(pos1.y() < pos2.y() && dr.y()<0) remove_flag = true;
+        } 
+        if(break_z){
+            if(pos1.z() > pos2.z() && dr.z()>0) remove_flag = true;
+            if(pos1.z() < pos2.z() && dr.z()<0) remove_flag = true;
+        }
+        
+        if(remove_flag) {
+            //this->_links.erase(this->_links.begin()+it);/* std::cout << debugcount << endl;debugcount++;*/
+            this->RemoveLink(it);
+        }
+    }
+    std::cout <<  this->_links.size() << endl;
+}    
+    
 }}
 
-
+/*this->_links.erase(link_id-id_shift)*/
 
 #endif
 

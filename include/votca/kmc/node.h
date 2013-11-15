@@ -31,7 +31,7 @@ public:
     } 
 
     /// adds a link to a Node
-    void AddLink( Link* link ) { _links.push_back(link); }
+    virtual void AddLink( Link* link ) { _links.push_back(link); }
     /// link ID - syncing with the pair ID 
     const int &id() const { return _id; } 
     /// type
@@ -43,6 +43,8 @@ public:
         vector< Link* >::iterator it;
         for (it = _links.begin(); it != _links.end(); it++ ) (*it)->Print( out );
     }
+    
+    vector<Link* > &links() {return _links;}
 
 protected:
 

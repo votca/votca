@@ -29,6 +29,8 @@ public:
     
     NodeSQL(int id, tools::vec position) : Node(id, position){
     };
+
+//    void AddLink( LinkSQL* link ) { _links.push_back(link); }
     
     void setU(double UnCnNe, double UnCnNh, double UcNcCe, double UcNcCh){
         _UnCnNe  = UnCnNe;
