@@ -162,17 +162,6 @@ void EDFT::WriteJobFile(Topology *top) {
  
     ofs << "<jobs>" << endl;   
 
-    /* this is only good when ALL molecules shall be written out 
-    for (vector<Segment*>::iterator sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
-        int id = (*sit)->getId();
-        string tag = (*sit)->getId();
-        string input = "";
-        string stat = "AVAILABLE";
-        Job job(id, tag, input, stat);
-        job.ToStream(ofs,"xml");
-    }
-    */
-
     QMNBList::iterator pit;
     QMNBList &nblist = top->NBList();    
 
