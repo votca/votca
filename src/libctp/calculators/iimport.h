@@ -451,7 +451,7 @@ void IImport::FromIDFTWithSuperExchange(Topology *top, string &_idft_jobs_file) 
             
             
             // loop over the bridging segments
-            for ( vector< Segment* >::iterator itBridge = pair->getBridgingSegments().begin() ; itBridge != pair->getBridgingSegments().end(); itBridge++ ) {
+            for ( vector< Segment* >::const_iterator itBridge = pair->getBridgingSegments().begin() ; itBridge != pair->getBridgingSegments().end(); itBridge++ ) {
 
                 Segment* Bridge = *itBridge;
                 int IDBridge = Bridge->getId();
