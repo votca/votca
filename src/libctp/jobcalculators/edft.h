@@ -197,10 +197,13 @@ void EDFT::WriteJobFile(Topology *top) {
 	segments[id1] = (*pit)->Seg1();
         segments[id2] = (*pit)->Seg2();
         
-        // loop over bridging segments if any and add them to the map
+        /* loop over bridging segments if any and add them to the map
+           this in principle is not needed since all pairs between 
+           donors, acceptors, and bridges are already in the list 
+         */
         vector<Segment*> bridges = (*pit)->getBridgingSegments();
         for ( vector<Segment*>::const_iterator bsit = bridges.begin(); bsit != bridges.end(); bsit++ ) {
-            cout << "Bridging segment " << (*bsit)->getId() << " : " <<  (*bsit)->getName() << endl;
+            //cout << "Bridging segment " << (*bsit)->getId() << " : " <<  (*bsit)->getName() << endl;
             segments[ (*bsit)->getId() ] = (*bsit);
         }
 
