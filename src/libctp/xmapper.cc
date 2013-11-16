@@ -623,6 +623,7 @@ PolarSeg *XMpsMap::MapPolSitesToSeg(const vector<APolarSite*> &pols_n,
         vector<int> polesInFrag     = _alloc_frag_mpoleIdx.at(idkey);
         vector<string> namesInFrag  = _alloc_frag_mpoleName.at(idkey);
         vector<double> weightsInFrag= _alloc_frag_weights.at(idkey);
+        vector<int> isVirtualMp      = _alloc_frag_isVirtualMp.at(idkey);
 
         // Add polar fragment to polar segment
         PolarFrag *pfrag = return_pols->AddFragment(frag->getName().substr(0,2));
@@ -830,9 +831,11 @@ PolarSeg *XMpsMap::MapPolSitesToSeg(const vector<APolarSite*> &pols_n,
                 if (newSite->getRank() > 0) print_huge_map2md_warning = true;
             }
             // Charge
-            newSite->Charge(0); 
+            newSite->Charge(0);
+            newSite->setIsVirtual(isVirtualMp[i]);
             // Do not forget to deallocate if site is inactive
-            if (!only_active_sites || newSite->getIsActive(_estatics_only)) {
+            if (!newSite->getIsVirtual()
+               && (!only_active_sites || newSite->getIsActive(_estatics_only)) ) {
                 pfrag->push_back(newSite);
                 return_pols->push_back(newSite);
             }
