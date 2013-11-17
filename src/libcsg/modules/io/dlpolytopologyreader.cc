@@ -205,10 +205,28 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 	    string beadname=mi->getBeadName(i);
 	    Bead *bead_replica = top.CreateBead(1, bead->getName(), type, res->getId(), bead->getM(), bead->getQ());
 	    mi_replica->AddBead(bead_replica,beadname);
-	    //TODO copy interactions
+	  }
+	  InteractionContainer ics=mi->Interactions();
+          for(vector<Interaction *>::iterator ic=ics.begin(); ic!=ics.end(); ++ic) {
+            Interaction *ic_replica;
+	    //TODO: change if beads are not continous anymore
+	    int offset = mi_replica->getBead(0)->getId() - mi->getBead(0)->getId();
+	    if ((*ic)->BeadCount() == 2) {
+	      ic_replica = new IBond((*ic)->getBeadId(0)+offset,(*ic)->getBeadId(1)+offset);
+	    } else if ((*ic)->BeadCount() == 3) {
+	      ic_replica = new IAngle((*ic)->getBeadId(0)+offset,(*ic)->getBeadId(1)+offset,(*ic)->getBeadId(2)+offset);
+	    } else if ((*ic)->BeadCount() == 4) {
+	      ic_replica = new IDihedral((*ic)->getBeadId(0)+offset,(*ic)->getBeadId(1)+offset,(*ic)->getBeadId(2)+offset,(*ic)->getBeadId(3)+offset);
+	    }
+            ic_replica->setGroup((*ic)->getGroup());
+            ic_replica->setIndex((*ic)->getIndex());
+            ic_replica->setMolecule(mi_replica->getId());
+            top.AddBondedInteraction(ic_replica);
+            mi_replica->AddInteraction(ic_replica);
 	  }
 	}
       }
+      top.RebuildExclusions();
     }
     //we don't need the rest.
     fl.close();
