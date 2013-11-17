@@ -138,6 +138,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 	int natoms;
 	fl >> natoms;
 	//read molecule
+	int id_map[natoms];
 	for (int i=0;i<natoms;){//i is altered in reapeater loop
 	  string beadtype;
 	  fl >> beadtype;
@@ -159,10 +160,37 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
             stringstream nm;
             nm << bead->getResnr() + 1 << ":" <<  top.getResidue(bead->getResnr())->getName() << ":" << bead->getName();
             mi->AddBead(bead, nm.str());
+	    id_map[i]=bead->getId();
 	    i++;
 	  }
 	}
 	while (line != "FINISH"){
+	  if ((line == "BONDS")||(line == "ANGLES")||(line == "DIHEDRALS")) {
+	    string type = line;
+	    int count;
+	    fl >> count;
+	    for (int i=0;i<count;i++){
+	      fl >> line; //bond/angle/dih type not used
+	      int ids[4];
+              Interaction *ic;
+	      fl >> ids[0]; fl>>ids[1];
+	      if (type == "BONDS"){
+	        ic = new IBond(id_map[ids[0]-1],id_map[ids[1]-1]); // -1 due to fortran vs c 
+	      } else if (type == "ANGLES"){
+		fl >> ids[2];
+	        ic = new IAngle(id_map[ids[0]-1],id_map[ids[1]-1],id_map[ids[2]-1]); // -1 due to fortran vs c 
+	      } else if (type == "DIHEDRALS"){
+		fl >> ids[2]; fl >> ids[3];
+	        ic = new IDihedral(id_map[ids[0]-1],id_map[ids[1]-1],id_map[ids[2]-1],id_map[ids[3]-1]); // -1 due to fortran vs c 
+	      }
+              ic->setGroup(type);
+              ic->setIndex(i);
+              ic->setMolecule(mi->getId());
+              top.AddBondedInteraction(ic);
+              mi->AddInteraction(ic);
+	      getline(fl,line);
+	    }
+	  }
 	  fl >> line;
 	  if (fl.eof())
             throw std::runtime_error("unexpected end of dlpoly file " + filename + " while scanning for 'FINISH'");
@@ -177,6 +205,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 	    string beadname=mi->getBeadName(i);
 	    Bead *bead_replica = top.CreateBead(1, bead->getName(), type, res->getId(), bead->getM(), bead->getQ());
 	    mi_replica->AddBead(bead_replica,beadname);
+	    //TODO copy interactions
 	  }
 	}
       }
