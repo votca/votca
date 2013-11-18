@@ -38,10 +38,10 @@ for task in $tasklist shift; do
   echo "Doing postupd task '$task' for '${name}'"
 
   #save the current one
-  critical mv "${name}.dpot.new" "${name}.dpot.${i}"
+  critical mv "${name}.pot.new" "${name}.pot.${i}"
 
   #perform postupd task
-  do_external postupd "$task" "${name}.dpot.${i}" "${name}.dpot.new"
+  do_external postupd "$task" "${name}.pot.${i}" "${name}.pot.new"
 
   ((i++))
 done

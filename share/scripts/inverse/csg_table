@@ -68,10 +68,11 @@ post_update ibi post_update_generic.sh
 post_update imc post_update_generic.sh
 post_update tf post_update_generic.sh
 post_update optimizer dummy.sh
-post_update re dummy.sh
+post_update re post_update_generic.sh
 post_update_single ibi post_update_generic_single.sh
 post_update_single imc post_update_generic_single.sh
 post_update_single tf post_update_generic_single.sh
+post_update_single re post_update_re_single.sh
 
 #post update scripts
 postupd scale postupd_scale.sh

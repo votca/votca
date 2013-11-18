@@ -40,15 +40,11 @@ csg_reupdate_opts="$(csg_get_property --allow-empty cg.inverse.re.csg_reupdate.o
 
 tasks=$(get_number_tasks)
 if is_done "re_update"; then
-  echo "RE update is already done"
+    echo "RE update is already done"
 else
   #copy+resample all target dist in $this_dir
-  for_all "non-bonded bonded" do_external resample target '$(csg_get_interaction_property inverse.target)' '$(csg_get_interaction_property name).dist.tgt'
+    for_all "non-bonded bonded" do_external resample target '$(csg_get_interaction_property inverse.target)' '$(csg_get_interaction_property name).dist.tgt'
 
-  critical csg_reupdate --nt $tasks --top ${topol} --trj $traj --options $CSGXMLFILE --begin $equi_time --first-frame $first_frame ${csg_reupdate_opts}
-  mark_done "re_update"
-fi
-
-if [[ -f "notsympos" ]]; then
-  msg "re updated using the steepest descent"
+    critical csg_reupdate --nt $tasks --top ${topol} --trj $traj --options $CSGXMLFILE --begin $equi_time --first-frame $first_frame ${csg_reupdate_opts}
+    mark_done "re_update"
 fi
