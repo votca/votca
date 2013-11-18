@@ -26,10 +26,6 @@
 #endif
 
 #include "dlpolytopologyreader.h"
-#ifdef DLPOLY_FORTRAN
-#include "dlpoly/dlp_io_layer.h"
-#include "fortan_mangling.h"
-#endif
 
 namespace votca { namespace csg {
 
@@ -38,64 +34,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
     std::ifstream fl;
     boost::filesystem::path filepath(file.c_str());
     string filename;
-#ifdef DLPOLY_FORTRAN
-    if (file != ".dlpoly")
-      throw std::runtime_error("Reading from different filename/directories not implemented yet. (use --top '.dlpoly')");
 
-    struct FieldSpecsT  FieldBase;
-    struct FrameSpecsT  FrameBase;
-    struct MolecSpecsT *MolecBase;
-    struct FieldSiteT  *FieldSite;
-    struct FrameSiteT  *FrameSite;
-
-    int idnode,matms,natms,nmols,nmolt;
-    int istateF;
-
-    int inode=matms=natms=nmols=nmolt=0;
-
-    // TODO: istateF must be an enum!
-    istateF=1;
-
-    // TODO: we need to fix the file naming!
-    FortranCInterface_GLOBAL(field_scan,FIELD_SCAN)(&istateF,&matms,&natms,&nmolt);
-
-    MolecBase = new MolecSpecsT[nmolt];
-    FieldSite = new FieldSiteT[natms];
-
-    FieldBase.nmols = nmolt;
-    FieldBase.natms = natms;
-
-    FortranCInterface_GLOBAL(field_read,FIELD_READ)(&istateF,&FieldBase,MolecBase,FieldSite);
-
-    // AB: if on return istateF < 0  => in the next F-call the relevant F-arrays will be deallocated (at the end)
-    // AB: NOT TO RE-/DE-ALLOCATE F-arrays in the next F-call, reset istateF = 0
-    istateF = 0;
-
-    // TODO: fix residue naming / assignment
-    Residue *res = top.CreateResidue("no");
-
-    // read the atoms
-    int mol_offset=0;
-    for(int im=0; im<nmolt; im++){
-        for(int imr=0; imr<MolecBase[im].nrept; ++imr) {
-            Molecule *mi = top.CreateMolecule(MolecBase[im].name);
-            for(int ims=0; ims<MolecBase[im].nsites; ims++) {
-	        int is=mol_offset+ims;
-                BeadType *type = top.GetOrCreateBeadType(FieldSite[is].type); // what is
-	        string beadname = boost::lexical_cast<string>(FieldSite[is].name) + "#" + boost::lexical_cast<string>(ims+1);
-                Bead *bead = top.CreateBead(1, beadname, type, res->getId(), FieldSite[is].m, FieldSite[is].q);
-
-                stringstream nm;
-                nm << bead->getResnr() + 1 << ":" <<  top.getResidue(bead->getResnr())->getName() << ":" << bead->getName();
-                mi->AddBead(bead, nm.str());
-            }
-        }
-	mol_offset+=MolecBase[im].nsites;
-    }
-
-    delete [] MolecBase;
-    delete [] FieldSite;
-#else
     // TODO: fix residue naming / assignment
     Residue *res = top.CreateResidue("no");
 
@@ -230,7 +169,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
     }
     //we don't need the rest.
     fl.close();
-#endif
+
     if ( boost::filesystem::basename(filepath).size() == 0 ) {
       if (filepath.parent_path().string().size() == 0) {
         filename="CONFIG";
