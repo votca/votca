@@ -834,8 +834,8 @@ PolarSeg *XMpsMap::MapPolSitesToSeg(const vector<APolarSite*> &pols_n,
             newSite->Charge(0);
             newSite->setIsVirtual(isVirtualMp[i]);
             // Do not forget to deallocate if site is inactive
-            if (!newSite->getIsVirtual()
-               && (!only_active_sites || newSite->getIsActive(_estatics_only)) ) {
+            if (!newSite->getIsVirtual()) {
+               //&& (!only_active_sites || newSite->getIsActive(_estatics_only)) ) {
                 pfrag->push_back(newSite);
                 return_pols->push_back(newSite);
             }

@@ -202,6 +202,10 @@ bool MolPolTool::Evaluate() {
         }
     }
     
+    
+    pseg_input.Coarsegrain(true);
+    pseg_input.WriteMPS("molpol.coarse."+_mps_output, "MOLPOL (UNSCALED, COARSE)");
+    
     delete pseg_output;
     pseg_output = 0;
     

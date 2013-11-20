@@ -44,10 +44,12 @@ PolarSeg::~PolarSeg() {
        delete *pit;
    }
    clear();
+   
    vector<PolarFrag*>::iterator fit;
    for (fit = _pfrags.begin(); fit < _pfrags.end(); ++fit) 
        delete *fit;
    _pfrags.clear();
+   
    vector<PolarNb*>::iterator nit;
    for (nit = _nbs.begin(); nit < _nbs.end(); ++nit) 
        delete *nit;
@@ -61,9 +63,10 @@ PolarFrag *PolarSeg::AddFragment(string name) {
 }
 
 
-void PolarSeg::AddPolarNb(PolarSeg *pseg) {
+PolarNb *PolarSeg::AddNewPolarNb(PolarSeg *pseg) {
     PolarNb *new_nb = new PolarNb(pseg);
-    _nbs.push_back(new_nb);
+    this->_nbs.push_back(new_nb);
+    return new_nb;
 }
 
 
@@ -124,7 +127,7 @@ void PolarSeg::CalcIsPolarizable() {
 
 void PolarSeg::ClearPolarNbs() {
     vector<PolarNb*>::iterator nit;
-    for (nit = _nbs.begin(); nit < _nbs.end(); ++nit) 
+    for (nit = _nbs.begin(); nit != _nbs.end(); ++nit) 
         delete *nit;
     _nbs.clear();
     return;

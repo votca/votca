@@ -248,7 +248,7 @@ EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum() {
         double R_overhead = 1.1;
         double R_add = 3;
         double R_max = _R_co*R_overhead+R_add;
-        double R_max_shell = R_max + _polar_cutoff;
+        double R_max_shell = R_max+2*_polar_cutoff;
         this->SetupMidground(R_max);
         
         // FOR EACH FOREGROUND SEGMENT (FGC) ...
@@ -581,11 +581,11 @@ void PEwald3D3D::Field_ConvergeRealSpaceSum() {
     double R_max = _R_co*R_overhead+R_add;
     double R_max_shell = R_max+2*_polar_cutoff;
     this->SetupMidground(R_max);
-    
+
     
     // FOR EACH FOREGROUND SEGMENT (FGC) ...
     int field_converged_count = 0;
-    for (sit1 = _fg_C.begin(); sit1 != _fg_C.end(); ++sit1) {        
+    for (sit1 = _fg_C.begin(); sit1 != _fg_C.end(); ++sit1) {
         (*sit1)->ClearPolarNbs();
         
         // Bin midground into shells
@@ -597,7 +597,7 @@ void PEwald3D3D::Field_ConvergeRealSpaceSum() {
             double R = votca::tools::abs((*sit1)->getPos()-(*sit2)->getPos());
             int shell_idx = int(R/dR_shell);
             shelled_mg_N[shell_idx].push_back(*sit2);
-        }
+        }        
         
         // Sum over consecutive shells
         for (int sidx = 0; sidx < N_shells; ++sidx) {
@@ -605,11 +605,11 @@ void PEwald3D3D::Field_ConvergeRealSpaceSum() {
             double shell_rms = 0.0;
             int shell_count = 0;
             // Interact with shell
-            vector<PolarSeg*> &shell_mg = shelled_mg_N[sidx];            
+            vector<PolarSeg*> &shell_mg = shelled_mg_N[sidx];
             double shell_R = (sidx+1)*dR_shell;            
             if (shell_mg.size() < 1) continue;            
             for (sit2 = shell_mg.begin(); sit2 != shell_mg.end(); ++sit2) {
-                (*sit1)->AddPolarNb(*sit2);
+                if (_save_nblist) (*sit1)->AddNewPolarNb(*sit2);
                 for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
                     for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
                         shell_rms += _ewdactor.FPU12_ERFC_At_By(*(*pit1), *(*pit2));
@@ -652,8 +652,37 @@ void PEwald3D3D::Field_ConvergeRealSpaceSum() {
     else {
         assert(false);
     }
+   	
+	if (_save_nblist) 
+        _did_field_pin_R_shell = true;
+    else
+        _did_field_pin_R_shell = false;
     
-    _did_field_pin_R_shell = true;
+//    // THERE IS A MEMORY ISSUE HERE - VERY STRANGE
+//    // Change 18000 to 20000 and the leak disappears!?
+//    double sum = 0.0;
+//    _field_converged_R = false;
+//    LOG(logDEBUG,*_log) << flush 
+//        << "R-space fields via midground" << flush;
+//    
+//    vector<PolarSeg*>::iterator sit1;
+//    
+//    // FOR EACH FOREGROUND SEGMENT (FGC) ...
+//    int field_converged_count = 0;
+//    for (sit1 = _fg_C.begin(); sit1 != _fg_C.end(); ++sit1) {
+//        
+//        for (int cnt = 0; cnt < 18000; ++cnt) {
+//            PolarNb *new_nb = (*sit1)->AddNewPolarNb(*sit1);
+//        }
+//        
+//        (*sit1)->ClearPolarNbs();
+//        assert((*sit1)->PolarNbs().size() == 0);
+//        cout << endl << "sit1 = ID " << (*sit1)->getId() << flush;
+//        
+//        
+//    }
+//    _did_field_pin_R_shell = true;    
+    
     return;
 }
 

@@ -176,6 +176,7 @@ protected:
     bool   _field_converged_R;
     bool   _field_converged_K;
     bool   _did_field_pin_R_shell;
+    bool   _save_nblist;
     // Part II - Thole
     bool _polar_do_induce;
     double _polar_aDamp;

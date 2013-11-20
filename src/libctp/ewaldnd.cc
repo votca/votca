@@ -50,6 +50,11 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
     }
     else
         _shape = "xyslab";
+    if (opt->exists(pfx+".coulombmethod.save_nblist")) {
+        _save_nblist = opt->get(pfx+".coulombmethod.save_nblist").as<bool>();
+    }
+    else
+        _save_nblist = true;
     // Convergence
     if (opt->exists(pfx+".convergence.energy")) {
         _crit_dE = opt->get(pfx+".convergence.energy").as<double>();
@@ -808,10 +813,13 @@ void Ewald3DnD::Evaluate() {
     LOG(logDEBUG,*_log) << (format("  o Usage <Coarsegrain> = %1$2.2f%%") % (100*_t_coarsegrain/_t_total)) << flush;
     LOG(logDEBUG,*_log) << (format("  o Usage <Fields>      = %1$2.2f%%") % (100*_t_fields/_t_total)) << flush;
     LOG(logDEBUG,*_log) << (format("  o Usage <Induction>   = %1$2.2f%%") % (100*_t_induction/_t_total)) << flush;
-    LOG(logDEBUG,*_log) << (format("  o Usage <Energy>      = %1$2.2f%%") % (100*_t_energy/_t_total)) << flush;
-    
-    
+    LOG(logDEBUG,*_log) << (format("  o Usage <Energy>      = %1$2.2f%%") % (100*_t_energy/_t_total)) << flush;    
     LOG(logDEBUG,*_log) << flush;
+    
+    for (vector<PolarSeg*>::iterator sit1 = _fg_C.begin(); 
+        sit1 != _fg_C.end(); ++sit1) {
+        (*sit1)->ClearPolarNbs();
+    }
     return;
 }
 
