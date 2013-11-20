@@ -83,7 +83,7 @@ bool Turbomole::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_g
     
     double nm2Bohr = 18.897259886;
     
-    LOG(logDEBUG,*_pLog) << "Preparing TURBOMOLE input " << flush;
+    LOG(logDEBUG,*_pLog) << "TURBOMOLE: Preparing input " << flush;
     
     ofstream _coord_file;
 
@@ -145,7 +145,7 @@ bool Turbomole::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_g
     
     if ( _scratch_dir != "" ) {
         
-        LOG(logDEBUG,*_pLog) << "Setting the scratch dir to " << _scratch_dir + temp_suffix << flush;
+        LOG(logDEBUG,*_pLog) << "TURBOMOLE: scratch dir " << _scratch_dir + temp_suffix << flush;
 
         boost::filesystem::create_directories( _scratch_dir + temp_suffix );
     
@@ -220,7 +220,7 @@ bool Turbomole::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_g
         }
     }
 
-    LOG(logDEBUG,*_pLog) << "Finished with TURBOMOLE input" << flush;
+    LOG(logDEBUG,*_pLog) << "TURBOMOLE: Finished with input" << flush;
     return true;    
     
 }
@@ -243,7 +243,7 @@ string Turbomole::FortranFormat( const double &number ) {
 bool Turbomole::Run()
 {
 
-    LOG(logDEBUG,*_pLog) << "Running TURBOMOLE job" << flush;
+    LOG(logDEBUG,*_pLog) << "TURBOMOLE: Running job [" << _executable << "]" << flush;
     
     if (system(NULL)) {
         // if scratch is provided, run the shell script; 
@@ -252,11 +252,11 @@ bool Turbomole::Run()
         _command  = "cd " + _run_dir + "; " + _executable + " >& " + _executable + ".log ";
         
         int i = system ( _command.c_str() );
-        LOG(logDEBUG,*_pLog) << "Finished TURBOMOLE job" << flush;
+        LOG(logDEBUG,*_pLog) << "TURBOMOLE: Finished job" << flush;
         return true;
     }
     else {
-        LOG(logERROR,*_pLog) << _input_file_name << " failed to start" << flush; 
+        LOG(logERROR,*_pLog) << "TURBOMOLE: " <<  _input_file_name << " failed to start" << flush; 
         return false;
     }
     
@@ -445,7 +445,7 @@ bool Turbomole::CheckLogFile() {
     ifstream _input_file( logFileName.c_str() );
     //cout << (_run_dir + "/" + _log_file_name).c_str();
     if (_input_file.fail()) {
-        LOG(logERROR,*_pLog) << "Turbomole LOG "<< _log_file_name << " is not found" << flush;
+        LOG(logERROR,*_pLog) << "TURBOMOLE: "<< _log_file_name << " is not found" << flush;
         return false;
     };
 
@@ -472,7 +472,7 @@ bool Turbomole::CheckLogFile() {
         
     std::string::size_type self_energy_pos = _line.find("ended normally");
     if (self_energy_pos == std::string::npos) {
-            LOG(logERROR,*_pLog) << "Turbomole LOG is incomplete" << flush;
+            LOG(logERROR,*_pLog) << "TURBOMOLE: " <<  _log_file_name << " is incomplete" << flush;
             return false;      
     } else {
             //LOG(logDEBUG,*_pLog) << "Gaussian LOG is complete" << flush;
@@ -504,7 +504,7 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
     int _basis_set_size = 0;
 
     
-    LOG(logDEBUG,*_pLog) << "Parsing " << _log_file_name << flush;
+    LOG(logDEBUG,*_pLog) << "TURBOMOLE: Parsing " << _log_file_name << flush;
 
     // check if LOG file is complete
     if ( !CheckLogFile() ) return false;
@@ -673,7 +673,7 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
         
     } // end of reading the file line-by-line
    
-    LOG(logDEBUG,*_pLog) << "Done parsing" << flush;
+    LOG(logDEBUG,*_pLog) << "TURBOMOLE: Done parsing" << flush;
     return true;
 }
 
