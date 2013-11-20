@@ -113,14 +113,14 @@ bool CgPolar::EvaluateFrame(Topology *top) {
     cout << endl;
     for (vector<PolarSeg*>::iterator sit=bgn.begin();
         sit<bgn.end(); ++sit) {
-        //MolPolEngine engine = MolPolEngine();
-        //engine.CalculateMolPol(*(*sit), true);
+        MolPolEngine engine = MolPolEngine();
+        matrix p0 = engine.CalculateMolPol(*(*sit), true);
         //(*sit)->WriteMPS("cgpolar.fine.mps", "FINE");
         cout << "\rCoarse-grain ID = " << (*sit)->getId() << flush;
         (*sit)->Coarsegrain(_cg_anisotropic);
         //(*sit)->WriteMPS("cgpolar.coarse.mps", "COARSE");
-        //engine.CalculateMolPol(*(*sit), true);
-        //break;
+        matrix p1 = engine.CalculateMolPol(*(*sit), true);
+        int a; cin >> a;
     }
     
     // VERIFY OUTPUT: PDB, PTOP, XML
