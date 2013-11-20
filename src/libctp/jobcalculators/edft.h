@@ -480,7 +480,7 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     jres.setStatus(Job::COMPLETE);
 
     // dump the LOG
-    cout << *pLog;
+    //cout << *pLog;
     
     return jres;
 

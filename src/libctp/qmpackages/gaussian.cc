@@ -19,11 +19,13 @@
 
 #include "gaussian.h"
 #include "votca/ctp/segment.h"
+
 #include <boost/algorithm/string.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/format.hpp>
+#include <boost/filesystem.hpp>
 
 #include <stdio.h>
 #include <iomanip>
@@ -410,7 +412,7 @@ bool Gaussian::WriteShellScript() {
 bool Gaussian::Run()
 {
 
-    LOG(logDEBUG,*_pLog) << "Running GAUSSIAN job" << flush;
+    LOG(logDEBUG,*_pLog) << "GAUSSIAN: running [" << _executable << " " << _input_file_name << "]" << flush;
     
     if (system(NULL)) {
         // if scratch is provided, run the shell script; 
@@ -427,10 +429,10 @@ bool Gaussian::Run()
         int i = system ( _command.c_str() );
         
         if ( CheckLogFile() ) {
-            LOG(logDEBUG,*_pLog) << "Finished GAUSSIAN job" << flush;
+            LOG(logDEBUG,*_pLog) << "GAUSSIAN: finished job" << flush;
             return true;
         } else {
-            LOG(logDEBUG,*_pLog) << "GAUSSIAN job failed" << flush;
+            LOG(logDEBUG,*_pLog) << "GAUSSIAN: job failed" << flush;
         }
     }
     else {
@@ -597,7 +599,7 @@ bool Gaussian::ParseOrbitalsFile( Orbitals* _orbitals )
    //cout << _mo_energies << endl;   
    //cout << _mo_coefficients << endl; 
         
-   LOG(logDEBUG, *_pLog) << "Done reading MOs" << flush;
+   LOG(logDEBUG, *_pLog) << "GAUSSAIN: done reading MOs" << flush;
 
    return true;
 }
@@ -605,13 +607,14 @@ bool Gaussian::ParseOrbitalsFile( Orbitals* _orbitals )
 bool Gaussian::CheckLogFile() {
     
     // check if the log file exists
+    boost::filesystem::path arg_path;
     char ch;
-    string _full_name = _log_file_name;
-    if ( _run_dir != "" ) _full_name = _run_dir + "/" + _log_file_name;
+
+    string _full_name = ( arg_path / _run_dir / _log_file_name ).c_str();
     ifstream _input_file( _full_name.c_str() );
     
     if (_input_file.fail()) {
-        LOG(logERROR,*_pLog) << "Gaussian LOG is not found" << flush;
+        LOG(logERROR,*_pLog) << "GAUSSAIN: " << _full_name << " is not found" << flush;
         return false;
     };
 
@@ -629,7 +632,7 @@ bool Gaussian::CheckLogFile() {
        _input_file.seekg(-2,ios_base::cur);
        _input_file.get(ch);   
        //cout << "\nNext Char: " << ch << " TELL G " <<  (int)_input_file.tellg() << endl;
-    } while ( ch != '\n' && (int)_input_file.tellg() == -1 );
+    } while ( ch != '\n' && (int)_input_file.tellg() != -1 );
             
     string _line;            
     getline(_input_file,_line);                      // Read the current line
@@ -638,7 +641,7 @@ bool Gaussian::CheckLogFile() {
         
     std::string::size_type self_energy_pos = _line.find("Normal termination of Gaussian");
     if (self_energy_pos == std::string::npos) {
-            LOG(logERROR,*_pLog) << "Gaussian LOG is incomplete" << flush;
+            LOG(logERROR,*_pLog) << "GAUSSAIN: " << _full_name  <<  " is incomplete" << flush;
             return false;      
     } else {
             //LOG(logDEBUG,*_pLog) << "Gaussian LOG is complete" << flush;
@@ -672,7 +675,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
     int _basis_set_size = 0;
     int _cart_basis_set_size = 0;
     
-    LOG(logDEBUG,*_pLog) << "Parsing " << _log_file_name << flush;
+    LOG(logDEBUG,*_pLog) << "GAUSSIAN: parsing " << _log_file_name << flush;
     
     string _log_file_name_full =  _log_file_name;
     if ( _run_dir != "" ) _log_file_name_full =  _run_dir + "/" + _log_file_name;

@@ -254,11 +254,28 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
        if ( !_do_parse ) LoadOrbitals( orbFileAB, &_orbitalsAB, pLog );
        
        Orbitals _orbitalsA, _orbitalsB;
+       
+       // failed to load; wrap-up and finish current job
+       if ( !_orbitalsA.Load( orbFileA ) ) {
+               LOG(logERROR,*pLog) << "Failed loading orbitals from " << orbFileA << flush; 
+               cout << *pLog;
+               output += "failed on " + orbFileA;
+               jres.setOutput( output ); 
+               jres.setStatus(Job::FAILED);
+               delete _qmpackage;
+               return jres;
+       }
+       
+        if ( !_orbitalsB.Load( orbFileB ) ) {
+              LOG(logERROR,*pLog) << "Failed loading orbitals from " << orbFileB << flush; 
+               cout << *pLog;
+               output += "failed on " + orbFileB;
+               jres.setOutput( output ); 
+               jres.setStatus(Job::FAILED);
+               delete _qmpackage;
+               return jres;
+        }
  
-        // load the corresponding monomer orbitals
-        LoadOrbitals( orbFileA, &_orbitalsA, pLog );
-        LoadOrbitals( orbFileB, &_orbitalsB, pLog );
-     
         if ( _do_trim ) {
              LOG(logDEBUG,*pLog) << "Trimming virtual orbitals A:" 
                     << _orbitalsA.getNumberOfLevels() - _orbitalsA.getNumberOfElectrons() << "->" 
@@ -301,7 +318,7 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
        
         // Output the thread run summary and clean the Logger
         LOG(logINFO,*pLog) << TimeStamp() << " Finished evaluating pair " << ID_A << ":" << ID_B << flush; 
-        cout << *pLog;
+        //cout << *pLog;
 
        // save orbitals 
        boost::filesystem::create_directories(_orb_dir);  
