@@ -106,7 +106,12 @@ void IDFT::LoadOrbitals(string file_name, Orbitals* orbitals, Logger *log ) {
     LOG(logDEBUG, *log) << "Loading " << file_name << flush; 
     std::ifstream ifs( file_name.c_str() );
     boost::archive::binary_iarchive ia( ifs );
-    ia >> *orbitals;
+    try {
+        ia >> *orbitals;
+    } catch(std::exception &err) {
+        LOG(logDEBUG, *log) << "Could not load orbitals from " << file_name << flush; 
+        std::cerr << "An error occurred:\n" << err.what() << endl;
+    } 
     ifs.close();
 
 }

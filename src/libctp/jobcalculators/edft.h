@@ -164,13 +164,18 @@ void EDFT::WriteJobFile(Topology *top) {
 
     QMNBList::iterator pit;
     QMNBList &nblist = top->NBList();    
-
+    
+            
     int jobCount = 0;
     if (nblist.size() == 0) {
         cout << endl << "... ... No pairs in neighbor list, skip." << flush;
         return;
     } 
 
+    // regenerate the list of bridging segments for every pair 
+    // (Donor - Bridge1 - Bridge2 - ... - Acceptor) type
+    nblist.GenerateSuperExchange();
+    
     map< int,Segment* > segments;
     map< int,Segment* >::iterator sit;
 
@@ -180,6 +185,16 @@ void EDFT::WriteJobFile(Topology *top) {
         int id2 = (*pit)->Seg2()->getId();
 	segments[id1] = (*pit)->Seg1();
         segments[id2] = (*pit)->Seg2();
+        
+        /* loop over bridging segments if any and add them to the map
+           this in principle is not needed since all pairs between 
+           donors, acceptors, and bridges are already in the list 
+         */
+        vector<Segment*> bridges = (*pit)->getBridgingSegments();
+        for ( vector<Segment*>::const_iterator bsit = bridges.begin(); bsit != bridges.end(); bsit++ ) {
+            //cout << "Bridging segment " << (*bsit)->getId() << " : " <<  (*bsit)->getName() << endl;
+            segments[ (*bsit)->getId() ] = (*bsit);
+        }
 
     }
     
