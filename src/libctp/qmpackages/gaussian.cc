@@ -783,7 +783,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
         if (overlap_pos != std::string::npos ) {
             
             // prepare the container
-            ub::symmetric_matrix<double> &overlap = _orbitals->MOOverlap();
+            ub::symmetric_matrix<double> &overlap = _orbitals->AOOverlap();
                     
             _orbitals->_has_overlap = true;
             overlap.resize( _basis_set_size );

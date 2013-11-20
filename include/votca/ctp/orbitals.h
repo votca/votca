@@ -93,17 +93,23 @@ public:
     ub::matrix<double>* getIntegrals() { return _integrals; }
     void setIntegrals( ub::matrix<double>* integrals ) { _has_integrals = true;  _integrals = integrals; }
 
-    /// Does not allow to change the matrix: useful for fast access
-    const ub::symmetric_matrix<double> &MOOverlap() const { return _overlap; }
+    /** Atomic orbitals
+     * Does not allow to change the matrix: useful for fast access
+     */
+    const ub::symmetric_matrix<double> &AOOverlap() const { return _overlap; }
     /// Allows to change the matrix: useful to fill in the matrix
-    ub::symmetric_matrix<double> &MOOverlap() { return _overlap; }
+    ub::symmetric_matrix<double> &AOOverlap() { return _overlap; }
 
-    /// Does not allow to change the matrix: useful for fast access
+    /** Molecular Orbitals 
+     *  Does not allow to change the matrix: useful for fast access
+     */
     const ub::matrix<double> &MOCoefficients() const { return _mo_coefficients; }
     /// Allows to change the matrix: useful to fill in the matrix
     ub::matrix<double> &MOCoefficients() { return _mo_coefficients; }
     
-    /// Does not allow to change the matrix: useful for fast access
+    /** Molecular Orbital energies
+     *  Does not allow to change the matrix: useful for fast access
+     */
     const ub::vector<double> &MOEnergies() const { return _mo_energies; }
     /// Allows to change the matrix: useful to fill in the matrix
     ub::vector<double> &MOEnergies() { return _mo_energies; }
@@ -171,6 +177,12 @@ public:
     // reduces number of virtual orbitals to factor*number_of_occupied_orbitals
     void Trim( int factor );
 
+    /** Loads orbitals from a file
+     * Returns true if successful and does not throw an exception.
+     * If exception is required, please use the << overload.
+     */
+    bool Load(string file_name);    
+    
 private:
     
     static const double                 _conv_Hrt_eV = 27.21138386;

@@ -335,13 +335,18 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         
        int factor = 2;
        if ( !_do_parse ) { // orbitals must be loaded from a file
-           string ORB_FILE = "molecule_" + ID + ".orb";
-           LOG(logDEBUG,*pLog) << "Loading orbitals from " << ORB_FILE << flush;    
-           std::ifstream ifs( (ORB_DIR + "/" + ORB_FILE).c_str() );
-           boost::archive::binary_iarchive ia( ifs );
-           ia >> _orbitals;
-           ifs.close();
-       }        
+           boost::filesystem::path arg_path;
+           string ORB_FILE = ( arg_path / ORB_DIR / (format("molecule_%1%.orb") % ID ).str() ).c_str() ;
+           LOG(logDEBUG,*pLog) << "Loading orbitals from " << ORB_FILE << flush;  
+           if ( ! _orbitals.Load(ORB_FILE) ) { // did not manage to load
+               LOG(logERROR,*pLog) << "Failed loading orbitals from " << ORB_FILE << flush; 
+               output += "failed loading " + ORB_FILE;
+               jres.setOutput( output ); 
+               jres.setStatus(Job::FAILED);
+               delete _qmpackage;
+               return jres;
+           }
+        }        
        
        _orbitals.Trim(factor);   
         LOG(logDEBUG,*pLog) << "Trimming virtual orbitals from " 
