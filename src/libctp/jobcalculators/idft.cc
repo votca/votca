@@ -189,8 +189,28 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
             Orbitals _orbitalsA, _orbitalsB;   
             _orbitalsAB = new Orbitals();
             // load the corresponding monomer orbitals and prepare the dimer guess 
-            LoadOrbitals( orbFileA, &_orbitalsA, pLog );
-            LoadOrbitals( orbFileB, &_orbitalsB, pLog );
+            
+            // failed to load; wrap-up and finish current job
+            if ( !_orbitalsA.Load( orbFileA ) ) {
+               LOG(logERROR,*pLog) << "Do input: failed loading orbitals from " << orbFileA << flush; 
+               cout << *pLog;
+               output += "failed on " + orbFileA;
+               jres.setOutput( output ); 
+               jres.setStatus(Job::FAILED);
+               delete _qmpackage;
+               return jres;
+            }
+            
+            if ( !_orbitalsB.Load( orbFileB ) ) {
+               LOG(logERROR,*pLog) << "Do input: failed loading orbitals from " << orbFileB << flush; 
+               cout << *pLog;
+               output += "failed on " + orbFileB;
+               jres.setOutput( output ); 
+               jres.setStatus(Job::FAILED);
+               delete _qmpackage;
+               return jres;
+            }
+
             PrepareGuess(&_orbitalsA, &_orbitalsB, _orbitalsAB, pLog);
         }
         _qmpackage->WriteInputFile(segments, _orbitalsAB);

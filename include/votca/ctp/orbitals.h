@@ -93,30 +93,24 @@ public:
     ub::matrix<double>* getIntegrals() { return _integrals; }
     void setIntegrals( ub::matrix<double>* integrals ) { _has_integrals = true;  _integrals = integrals; }
 
-    /** Atomic orbitals
-     * Does not allow to change the matrix: useful for fast access
-     */
+    /// Atomic orbitals
     const ub::symmetric_matrix<double> &AOOverlap() const { return _overlap; }
-    /// Allows to change the matrix: useful to fill in the matrix
+    // Allows to change the matrix: useful to fill in the matrix
     ub::symmetric_matrix<double> &AOOverlap() { return _overlap; }
 
-    /** Molecular Orbitals 
-     *  Does not allow to change the matrix: useful for fast access
-     */
+    /// Molecular Orbital coefficients
     const ub::matrix<double> &MOCoefficients() const { return _mo_coefficients; }
-    /// Allows to change the matrix: useful to fill in the matrix
+    // Allows to change the matrix: useful to fill in the values
     ub::matrix<double> &MOCoefficients() { return _mo_coefficients; }
     
-    /** Molecular Orbital energies
-     *  Does not allow to change the matrix: useful for fast access
-     */
+    /// Molecular Orbital energies
     const ub::vector<double> &MOEnergies() const { return _mo_energies; }
-    /// Allows to change the matrix: useful to fill in the matrix
+    // Allows to change the matrix: useful to fill in the values
     ub::vector<double> &MOEnergies() { return _mo_energies; }
 
     /// Does not allow to change the matrix: useful for fast access    
     const ub::matrix<double> &MOCouplings() const { return _mo_couplings; }
-    /// Allows to change the matrix: useful to fill in the matrix
+    // Allows to change the matrix: useful to fill in the values
     ub::matrix<double> &MOCouplings() { return _mo_couplings; }
 
  
