@@ -70,7 +70,8 @@ public:
     int    getOffset() { return _offset ;}
     
     
-    int getLmax(  ) {
+    int getLmax(  ) { return detlmax( _type );}
+    /*
         int _lmax;
         if ( _type == "S" ) _lmax = 0;
         if ( _type == "SP" ) _lmax = 1;
@@ -78,8 +79,10 @@ public:
         if ( _type == "P" ) _lmax = 1;
         if ( _type == "PD" ) _lmax = 2;
         if ( _type == "D" ) _lmax = 2;
+        
+        
         return _lmax;
-    }; 
+    };*/ 
     
     vec getPos() { return _pos; }
     double getScale() { return _scale; }
@@ -123,7 +126,7 @@ private:
     int _offset;
      
     AOBasis* _aobasis;
-
+    int detlmax( string shell );
     // vector of pairs of decay constants and contraction coefficients
     vector< AOGaussianPrimitive* > _gaussians;
 
@@ -272,6 +275,33 @@ inline void AOBasis::getTransformationCartToSpherical( string& package, ub::matr
     }
 
 }
+
+
+inline int AOShell::detlmax( string shell_type ) {
+    int _lmax;
+    // single type shells defined here
+    if ( shell_type.length() == 1 ){
+       if ( shell_type == "S" ){ _lmax = 0;}
+       if ( shell_type == "P" ){ _lmax = 1;}
+       if ( shell_type == "D" ){ _lmax = 2;}
+       if ( shell_type == "F" ){ _lmax = 3;}
+       if ( shell_type == "G" ){ _lmax = 4;}
+    } else {
+        // for combined shells check all contributions
+        _lmax = 0;
+        for( int i = 0; i < shell_type.length(); ++i) {
+            string local_shell =    string( shell_type, i, 1 );
+            int _test = this->detlmax( local_shell  );
+            if ( _test > _lmax ) { _lmax = _test;} 
+        }
+    }
+
+    return _lmax;
+}
+
+
+
+
 
 inline void AOBasis::addTrafoCartShell( AOShell* shell , ub::matrix_range< ub::matrix<double> >& _trafo ){
     

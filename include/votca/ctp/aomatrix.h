@@ -38,7 +38,28 @@ using namespace votca::tools;
 
 namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
-    class AOMatrix {
+    
+    
+    
+    
+    /* "superclass" AOSuperMatrix contains all common functionality for
+     * atomic orbital matrix types
+     */
+        class AOSuperMatrix{
+    public:
+        
+        int getBlockSize( int size );
+        
+        void getTrafo( ub::matrix<double>& _trafo, int _lmax, const double& _decay );
+        
+        void PrintIndexToFunction( AOBasis* aobasis);
+        
+        
+    };
+    
+    
+    // base class for 1D atomic orbital matrix types (overlap, Coulomb, ESP)
+    class AOMatrix : public AOSuperMatrix {
     public:
         ub::matrix<double> _aomatrix; 
         
@@ -48,28 +69,85 @@ namespace votca { namespace ctp {
         
         void Fill( AOBasis* aobasis );
         
-        int getBlockSize( int size );
-        
-        void getTrafo( ub::matrix<double>& _trafo, int _lmax, const double& _decay );
-        
-        void PrintIndexToFunction( AOBasis* aobasis);
-        
         // matrix print 
         void Print( string _ident);
         
         // block fill prototype
-        virtual void FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col) {} ;
+        virtual void FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, bool _raw = false) {} ;
 
         ~AOMatrix();
 
+    };
+    
+    
+    
+    /* base class class for 3D atomic orbital matrix types 
+     * (in principle, we could make nD and 1D and 3D are just special types)
+     */
+    class AOMatrix3D : public AOSuperMatrix {
+    public:
+        std::vector<ub::matrix<double> > _aomatrix; 
+        
+        void Initialize( int size ) {
+            _aomatrix.resize(3);
+            for (int i = 0; i < 3 ; i++){
+              _aomatrix[ i ] = ub::zero_matrix<double>(size,size);
+            }
+        }
 
+
+
+        // matrix print 
+        void Print( string _ident);
+
+        
+        void Fill( AOBasis* aobasis );
+
+        // block fill prototype
+        virtual void FillBlock(std::vector< ub::matrix_range< ub::matrix<double> > >& _matrix, AOShell* _shell_row, AOShell* _shell_col, bool _raw = false) {} ;
+
+        
+        void Cleanup();
+        
+      //  ~AOMatrix3D();
         
     };
     
+    
+    
+    /* derived class for atomic orbital gradient matrices, required for
+     * momentum transition dipoles
+     */
+    class AOMomentum : public AOMatrix3D { 
+        
+        //block fill for gradient/momentum operator, implementation in aomomentum.cc
+        void FillBlock( std::vector< ub::matrix_range< ub::matrix<double> > >& _matrix, AOShell* _shell_row, AOShell* _shell_col , bool _raw = false);
+        
+        
+    };
+    
+    
+    
+    /* derived class for atomic orbital electrical dipole matrices, required for
+     * electical transition dipoles
+     */
+    class AODipole : public AOMatrix3D { 
+        
+        //block fill for gradient/momentum operator, implementation in aomomentum.cc
+        void FillBlock( std::vector< ub::matrix_range< ub::matrix<double> > >& _matrix, AOShell* _shell_row, AOShell* _shell_col , bool _raw = false);
+        
+        
+    };
+    
+    
+    
+    
+    
+    // derived class for atomic orbital overlap
     class AOOverlap : public AOMatrix{
     public:
-        //block fill for overlap, implementation in aomatrix.cc
-        void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col );
+        //block fill for overlap, implementation in aooverlap.cc
+        void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, bool _raw = false );
         //void Print();
         
         ~AOOverlap();
@@ -83,11 +161,11 @@ namespace votca { namespace ctp {
         
     }
     
-    
+    //derived class for atomic orbital Coulomb interaction
     class AOCoulomb : public AOMatrix{
     public:
         int getExtraBlockSize( int lmax_row, int lmax_col  );
-        void FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col);
+        void FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, bool _raw = false);
         void XIntegrate( vector<double>& _FmT, const double& _T );
         void Symmetrize( AOOverlap& _overlap , AOBasis& _basis, AOOverlap& _overlap_inverse , AOOverlap& _gwoverlap_cholesky_inverse );
         

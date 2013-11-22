@@ -171,12 +171,17 @@ private:
     // BSE variables and functions
     ub::matrix<double> _eh_x;
     ub::matrix<double> _eh_d;
+    ub::matrix<double> _eh_qp;
     ub::vector<double> _bse_singlet_energies;
     ub::matrix<double> _bse_singlet_coefficients;
     ub::vector<double> _bse_triplet_energies;
     ub::matrix<double> _bse_triplet_coefficients;
+    
+    std::vector< ub::matrix<double> > _interlevel_dipoles;
+    std::vector< ub::matrix<double> > _interlevel_dipoles_electrical;
     void BSE_x_setup(const TCMatrix& _Mmn );
     void BSE_d_setup(const TCMatrix& _Mmn );
+    void BSE_qp_setup( );
     void BSE_solve_triplets();
     void BSE_solve_singlets();
     
