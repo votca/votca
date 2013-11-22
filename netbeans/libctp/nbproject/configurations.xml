@@ -84,6 +84,7 @@
       <itemPath>../../include/votca/ctp/jobapplication.h</itemPath>
       <itemPath>../../include/votca/ctp/jobcalculator.h</itemPath>
       <itemPath>../../include/votca/ctp/logger.h</itemPath>
+      <itemPath>/data/isilon/baumeier/votca_devel/src/ctp/include/votca/ctp/mbpt.h</itemPath>
       <itemPath>../../include/votca/ctp/mkl_boost_ublas_matrix_prod.h</itemPath>
       <itemPath>../../include/votca/ctp/molecule.h</itemPath>
       <itemPath>../../include/votca/ctp/orbitals.h</itemPath>
@@ -171,6 +172,7 @@
       <itemPath>../../src/libctp/gsl_boost_ublas_matrix_prod.cc</itemPath>
       <itemPath>../../src/libctp/hgversion.h</itemPath>
       <itemPath>../../src/libctp/job.cc</itemPath>
+      <itemPath>/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/mbpt.cc</itemPath>
       <itemPath>../../src/libctp/orbitals.cc</itemPath>
       <itemPath>../../src/libctp/overlap.cc</itemPath>
       <itemPath>../../src/libctp/parallelpaircalc.cc</itemPath>
@@ -786,6 +788,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="/data/isilon/baumeier/votca_devel/src/ctp/include/votca/ctp/mbpt.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/aomatrices/aocoulomb.cc"
             ex="false"
             tool="1"
@@ -807,6 +814,11 @@
             flavor2="0">
       </item>
       <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/aomatrices/aooverlap.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/mbpt.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -1397,6 +1409,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="/data/isilon/baumeier/votca_devel/src/ctp/include/votca/ctp/mbpt.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/aomatrices/aocoulomb.cc"
             ex="false"
             tool="1"
@@ -1418,6 +1435,11 @@
             flavor2="0">
       </item>
       <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/aomatrices/aooverlap.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/mbpt.cc"
             ex="false"
             tool="1"
             flavor2="0">

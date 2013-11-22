@@ -24,6 +24,8 @@
 #ifndef _CALC_GWBSE_TOOL_H
 #define	_CALC_GWBSE_TOOL_H
 
+
+#include <votca/ctp/mbpt.h> // including GWBSE functionality
 #include <votca/ctp/segment.h>
 #include <votca/ctp/orbitals.h>
 #include <votca/ctp/aobasis.h>
@@ -70,7 +72,7 @@ public:
 
     string  Identify() { return "gwbse"; }
     void    Initialize( Property *options);
-    void    ParseOrbitalsXML(Topology *top, Property *options);
+    // void    ParseOrbitalsXML(Topology *top, Property *options);
     Job::JobResult EvalJob(Topology *top, Job *job, QMThread *thread);
 
     void    CleanUp();
@@ -78,113 +80,9 @@ public:
     // int getMlower(){ return mmin -1; };
     // int getMupper(){ return mmax -1; };
     
-    
-    
+    // all GWBSE functionality is in Mbpt object
+    MBPT _mbpt; 
 
-private:
-
-    
-    //bool   _maverick;
-    
-    // program tasks
-    bool                                _do_qp_diag;
-    bool                                _do_bse_singlets;
-    bool                                _do_bse_triplets;
-    
-    // storage tasks
-    bool                                _store_qp_pert;
-    bool                                _store_qp_diag;
-    bool                                _store_bse_singlets;
-    bool                                _store_bse_triplets;
-    
-    
-    
-    string _outParent;
-    string _outMonDir;
-    
-    string _package;
-    Property _package_options;   
-    
-    string _gwpackage;
-    Property _gwpackage_options; 
-    
-    // basis sets
-    string                              _gwbasis_name;
-    string                              _dftbasis_name;
-
-    string                              _ranges;          // range types
-    unsigned int                        _homo;            // HOMO index
-    unsigned int                        _rpamin;
-    unsigned int                        _rpamax;
-    double                              _rpamaxfactor;    // RPA level range
-    unsigned int                        _qpmin;
-    unsigned int                        _qpmax;
-    unsigned int                        _qptotal;
-    double                              _qpminfactor;
-    double                              _qpmaxfactor;     // QP level range
-    double                              _bseminfactor;
-    double                              _bsemaxfactor;
-    unsigned int                        _bse_vmin;
-    unsigned int                        _bse_vmax;
-    unsigned int                        _bse_cmin;
-    unsigned int                        _bse_cmax;
-    unsigned int                        _bse_size;
-    unsigned int                        _bse_vtotal;
-    unsigned int                        _bse_ctotal;
-    int                                 _bse_nmax;
-         
-    double                              _shift;  // pre-shift of DFT energies
-    
-    
-    // RPA related variables and functions
-    // container for the epsilon matrix
-    std::vector< ub::matrix<double> > _epsilon;
-    // container for frequencies in screening (index 0: real part, index 1: imaginary part)
-    ub::matrix<double> _screening_freq;
-    void symmetrize_threecenters(TCMatrix& _Mmn, ub::matrix<double>& _coulomb);
-    void RPA_calculate_epsilon( TCMatrix& _Mmn_RPA , ub::matrix<double> _screening_freq , double _shift , ub::vector<double>& _dft_energies  );
-    void RPA_prepare_threecenters( TCMatrix& _Mmn_RPA, TCMatrix& _Mmn_full, AOBasis& gwbasis, AOMatrix& gwoverlap, AOMatrix& gwoverlap_inverse     );
-
-    
-    // PPM related variables and functions
-    ub::matrix<double> _ppm_phi;
-    ub::vector<double> _ppm_freq;
-    ub::vector<double> _ppm_weight;
-    
-    void PPM_construct_parameters( ub::matrix<double>& _overlap_cholesky_inverse   );
-    
-    // Sigma related variables and functions
-    ub::matrix<double> _sigma_x; // exchange term
-    ub::matrix<double> _sigma_c; // correlation term
-    
-    void sigma_prepare_threecenters( TCMatrix& _Mmn );
-    void sigma_x_setup(const TCMatrix& _Mmn );
-    void sigma_c_setup(const TCMatrix& _Mmn , const ub::vector<double>& _edft );
-    
-    // QP variables and functions
-    ub::vector<double> _qp_energies;
-    ub::matrix<double> _vxc;
-    ub::vector<double> _qp_diag_energies;     // those should be directly stored in 
-    ub::matrix<double> _qp_diag_coefficients; // orbitals object, once the interface is set
-    void FullQPHamiltonian();
-    
-    // BSE variables and functions
-    ub::matrix<double> _eh_x;
-    ub::matrix<double> _eh_d;
-    ub::matrix<double> _eh_qp;
-    ub::vector<double> _bse_singlet_energies;
-    ub::matrix<double> _bse_singlet_coefficients;
-    ub::vector<double> _bse_triplet_energies;
-    ub::matrix<double> _bse_triplet_coefficients;
-    
-    std::vector< ub::matrix<double> > _interlevel_dipoles;
-    std::vector< ub::matrix<double> > _interlevel_dipoles_electrical;
-    void BSE_x_setup(const TCMatrix& _Mmn );
-    void BSE_d_setup(const TCMatrix& _Mmn );
-    void BSE_qp_setup( );
-    void BSE_solve_triplets();
-    void BSE_solve_singlets();
-    
 };
 
 
