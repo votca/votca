@@ -53,6 +53,7 @@
         <itemPath>../../src/libctp/calculators/xmultipole2.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f3" displayName="Tools" projectFiles="true">
+        <itemPath>/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/tools/coupling.h</itemPath>
         <itemPath>../../src/libctp/tools/molpol.cc</itemPath>
         <itemPath>../../src/libctp/tools/molpol.h</itemPath>
         <itemPath>../../src/libctp/tools/pdb2map.h</itemPath>
@@ -815,6 +816,11 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/tools/coupling.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
     </conf>
     <conf name="Release" type="3">
       <toolsSet>
@@ -1419,6 +1425,11 @@
       <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/threecenters.cc"
             ex="false"
             tool="1"
+            flavor2="0">
+      </item>
+      <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/tools/coupling.h"
+            ex="false"
+            tool="3"
             flavor2="0">
       </item>
     </conf>

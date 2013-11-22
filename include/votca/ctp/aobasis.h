@@ -25,6 +25,7 @@
 #include <vector>
 #include <votca/tools/property.h>
 #include <votca/ctp/segment.h>
+#include <votca/ctp/qmatom.h>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include "basisset.h"
@@ -178,7 +179,8 @@ public:
 
       
       
-    void AOBasisFill( BasisSet* bs , vector<Segment* > segments);
+    // void AOBasisFill( BasisSet* bs , vector<Segment* > segments);
+    void AOBasisFill( BasisSet* bs , vector<QMAtom* > segments);
     int NumFuncShell( string shell );
     int NumFuncShell_cartesian( string shell );
     int OffsetFuncShell( string shell );
@@ -510,27 +512,48 @@ inline void AOBasis::addReorderShell( string& package,  string& shell_type, vect
 
 
 
-inline void AOBasis::AOBasisFill(BasisSet* bs , vector<Segment* > segments) {
+inline void AOBasis::AOBasisFill(BasisSet* bs , vector<QMAtom* > _atoms) {
     
         // cout << "\n Filling AO basis:" << endl;
         
-        vector< Atom* > _atoms;
-        vector< Atom* > ::iterator ait;
-        vector< Segment* >::iterator sit;
+//        vector< Atom* > _atoms;
+        vector< QMAtom* > :: iterator ait;
+ //       vector< Segment* >::iterator sit;
 
+        
+        
+
+            std::vector < QMAtom* > :: iterator atom;
+/*        
+//             cout << _atoms->begin()
+    int id = 0;
+    
+    for (atom = _atoms->begin(); atom < _atoms->end(); ++atom){
+         id++;      
+         string resname = ( (*atom)->from_environment ) ? "MM" : "QM";
+         int resnr = 1;
+         
+         cout << id << " " << (*atom)->type << " " << (*atom)->x << endl;
+    } */
+     
+        
        _AOBasisSize = 0;
        _is_stable = true; // _is_stable = true corresponds to gwa_basis%S_ev_stable = .false. 
         
         // loop over segments
-        for (sit = segments.begin() ; sit != segments.end(); ++sit) {
+        // for (sit = segments.begin() ; sit != segments.end(); ++sit) {
         
-            _atoms = (*sit)-> Atoms();
+            // _atoms = (*sit)-> Atoms();
             // loop over atoms in segment
             for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
-                // get coordinates of this atom and convert from nm to Bohr
-                vec     pos = (*ait)->getQMPos() * 18.897259886;
+                // get coordinates of this atom and convert from Angstrom to Bohr
+                //vec     pos = (*ait)->getQMPos() * 1.8897259886;
+                vec pos;
+                pos.setX( (*ait)->x * 1.8897259886  );
+                pos.setY( (*ait)->y * 1.8897259886  );
+                pos.setZ( (*ait)->z * 1.8897259886  );
                 // get element type of the atom
-                string  name = (*ait)->getElement();
+                string  name = (*ait)->type;
                 // get the basis set entry for this element
                 Element* element = bs->getElement(name);
                 // and loop over all shells
@@ -549,7 +572,7 @@ inline void AOBasis::AOBasisFill(BasisSet* bs , vector<Segment* > segments) {
                     }
                 }
             }
-        }
+       //  }
          //cout << "Atomic orbitals basis set size: " << _AOBasisSize << endl;
     
     

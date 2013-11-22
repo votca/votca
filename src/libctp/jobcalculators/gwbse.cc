@@ -154,9 +154,24 @@ namespace votca {
             boost::archive::binary_iarchive ia(ifs);
             ia >> _orbitals;
             ifs.close();
+
+
+            // from here, it can all go to separate object that needs only _orbitals and options as input
+
+
+
+
             string _dft_package = _orbitals.getQMpackage();
             LOG(logDEBUG, *pLog) << TimeStamp() << " DFT data was created by " << _dft_package << flush;
 
+            
+            
+            
+            // get atoms from orbitals object
+            std::vector<QMAtom*>* _atoms = _orbitals.getAtoms();
+
+
+            
             
             
             // reorder DFT data, load DFT basis set
@@ -168,7 +183,9 @@ namespace votca {
             dftbs.LoadBasisSet(_dftbasis_name);
             LOG(logDEBUG, *pLog) << TimeStamp() << " Loaded DFT Basis Set " << _dftbasis_name << flush;
 
-            dftbasis.AOBasisFill(&dftbs, segments);
+            //dftbasis.AOBasisFill(&dftbs, segments);
+            dftbasis.AOBasisFill(&dftbs, *_atoms);
+
             LOG(logDEBUG, *pLog) << TimeStamp() << " Filled DFT Basis of size " << dftbasis._AOBasisSize << flush;
 
    
@@ -284,7 +301,7 @@ namespace votca {
             gwbs.LoadBasisSet(_gwbasis_name);
             LOG(logDEBUG, *pLog) << TimeStamp() << " Loaded GW Basis Set " << _gwbasis_name << flush;
 
-            gwbasis.AOBasisFill(&gwbs, segments);
+            gwbasis.AOBasisFill(&gwbs, *_atoms);
             LOG(logDEBUG, *pLog) << TimeStamp() << " Filled GW Basis of size " << gwbasis._AOBasisSize << flush;
 
             
@@ -295,7 +312,7 @@ namespace votca {
             _dft_momentum.Fill(&dftbasis);
   
             // now transition dipole elements for free interlevel transitions
-            _interlevel_dipoles.resize(3);
+           /* _interlevel_dipoles.resize(3);
             for ( int _i_comp = 0; _i_comp < 3; _i_comp++){
                 // 1st: multiply each _dft_momentum component with range of empty states considered in BSE
                 ub::matrix<double> _levels = ub::project( _dft_orbitals ,  ub::range( _bse_cmin , _bse_cmax +1 ), ub::range(0, dftbasis._AOBasisSize ) );
@@ -307,7 +324,7 @@ namespace votca {
             _temp.resize(0,0);
             _dft_momentum.Cleanup();
             LOG(logDEBUG, *pLog) << TimeStamp() << " Calculated free interlevel transition dipole moments (momentum) " << flush;         
-            
+            */
             
             // Testing electric dipole AOMatrix
             AODipole _dft_dipole;
@@ -315,18 +332,18 @@ namespace votca {
             _dft_dipole.Fill(&dftbasis);
   
             // now transition dipole elements for free interlevel transitions
-            _interlevel_dipoles_electrical.resize(3);
+            _interlevel_dipoles.resize(3);
             for ( int _i_comp = 0; _i_comp < 3; _i_comp++){
                 // 1st: multiply each _dft_momentum component with range of empty states considered in BSE
                 ub::matrix<double> _levels = ub::project( _dft_orbitals ,  ub::range( _bse_cmin , _bse_cmax +1 ), ub::range(0, dftbasis._AOBasisSize ) );
                 _temp    = ub::prod( _dft_dipole._aomatrix[_i_comp] , ub::trans( _levels ) ) ;
                 // 2nd: multiply this with range of occupied states considered in BSE
                 _levels = ub::project( _dft_orbitals ,  ub::range( _bse_vmin , _bse_vmax +1 ), ub::range(0, dftbasis._AOBasisSize ) );
-                _interlevel_dipoles_electrical[ _i_comp ] = ub::prod( _levels, _temp);
+                _interlevel_dipoles[ _i_comp ] = ub::prod( _levels, _temp);
             }
             _temp.resize(0,0);
             _dft_dipole.Cleanup();
-            LOG(logDEBUG, *pLog) << TimeStamp() << " Calculated free interlevel transition dipole moments (electrical)" << flush;          
+            LOG(logDEBUG, *pLog) << TimeStamp() << " Calculated free interlevel transition dipole moments " << flush;          
             
         /*    // getting ground state dipole moment
             std::vector<double> _dipole(3,0.0);
@@ -644,164 +661,15 @@ namespace votca {
 		//                cout << _i_exc << " : " << _tdipole[0] << " : "  << _tdipole[1] << " : " << _tdipole[2] << endl;
                 _transition_dipoles.push_back( _tdipole );
                 _transition_dipole_strength.push_back( (_tdipole[0]*_tdipole[0] + _tdipole[1]*_tdipole[1] + _tdipole[2]*_tdipole[2]  )  );               
-                _oscillator_strength.push_back( _transition_dipole_strength[_i_exc] * 4.0/3.0 /(_bse_singlet_energies( _i_exc )) ) ;
+                _oscillator_strength.push_back( _transition_dipole_strength[_i_exc] * 1.0/3.0 * (_bse_singlet_energies( _i_exc )) ) ;
             }
-            
-
-            // no renormalization electrical explicit
-            std::vector<std::vector<double> > _transition_dipoles_elec;
-            std::vector<double> _oscillator_strength_elec;
-            std::vector<double> _transition_dipole_strength_elec;
-            
-            // no renormalization electrical via virial
-            std::vector<std::vector<double> > _transition_dipoles_virial;
-            std::vector<double> _transition_dipole_strength_virial;
-            std::vector<double> _oscillator_strength_virial;
-            
-            for (int _i_exc = 0; _i_exc < 10 ; _i_exc++){
-                std::vector<double> _tdipole(3,0.0);
-                std::vector<double> _tdipole_virial(3,0.0);         
-                for ( int _v = 0 ; _v < _bse_vtotal ; _v++ ){
-                    for ( int _c = 0; _c < _bse_ctotal ; _c++){
- 
-                        int index_vc = _bse_ctotal * _v + _c;
-                    
-                        for ( int _i_comp =0 ; _i_comp < 3; _i_comp++){
-                                _tdipole[ _i_comp ] += _bse_singlet_coefficients( index_vc , _i_exc   ) * _interlevel_dipoles_electrical[_i_comp](_v,_c);
-                                _tdipole_virial[ _i_comp ] += _bse_singlet_coefficients( index_vc , _i_exc   ) * _interlevel_dipoles[_i_comp](_v,_c) * 2.0 / _bse_singlet_energies( _i_exc) ;
-                        }
-                        
-                    }
-                    
-                }
-		//                cout << _i_exc << " : " << _tdipole[0] << " : "  << _tdipole[1] << " : " << _tdipole[2] << endl;
-                _transition_dipoles_elec.push_back( _tdipole );
-                _transition_dipole_strength_elec.push_back( (_tdipole[0]*_tdipole[0] + _tdipole[1]*_tdipole[1] + _tdipole[2]*_tdipole[2]  )  );      
-                _oscillator_strength_elec.push_back( _transition_dipole_strength_elec[_i_exc] * _bse_singlet_energies( _i_exc )/3.0 ) ;
-                
-                _transition_dipoles_virial.push_back( _tdipole_virial );
-                _transition_dipole_strength_virial.push_back( (_tdipole_virial[0]*_tdipole_virial[0] + _tdipole_virial[1]*_tdipole_virial[1] + _tdipole_virial[2]*_tdipole_virial[2]  )  );      
-                _oscillator_strength_virial.push_back( _transition_dipole_strength_virial[_i_exc] * _bse_singlet_energies( _i_exc )/3.0 ) ;
-                
-            }
-
-
-
-
-
-
-            std::vector< ub::matrix<double> > _interlevel_dipoles_electrical_inverse(3,ub::zero_matrix<double>(_bse_vtotal,_bse_ctotal));
-            // renormalize (see Levine and Allan, PRL 63, 1718 (1989), PRB 43, 4187 (1991)
-            for ( int _v = 0 ; _v < _bse_vtotal ; _v++ ){
-                for ( int _c = 0; _c < _bse_ctotal ; _c++){
-                    double _renorm_factor = ( _qp_energies(_bse_cmin + _c) - _qp_energies(_v) )/( _dft_energies(_bse_cmin  + _c) - _dft_energies(_v) );
-		    
-
-                    for ( int _i_comp = 0 ; _i_comp < 3 ; _i_comp++){
-                        _interlevel_dipoles[ _i_comp ](_v,_c) = _renorm_factor * _interlevel_dipoles[ _i_comp ](_v,_c);
-
-                        _interlevel_dipoles_electrical_inverse[ _i_comp ](_v,_c) = _interlevel_dipoles_electrical[ _i_comp ](_v,_c) / _renorm_factor  ;
-                        _interlevel_dipoles_electrical[ _i_comp ](_v,_c) = _interlevel_dipoles_electrical[ _i_comp ](_v,_c) * _renorm_factor  ;
-                    }
-                }
-            }
-            
-            
-            std::vector<std::vector<double> > _transition_dipoles_renorm;
-            std::vector<double> _transition_dipole_strength_renorm;
-            std::vector<double> _oscillator_strength_renorm;
-            
-            
-            std::vector<std::vector<double> > _transition_dipoles_renorm_virial;
-            std::vector<double> _transition_dipole_strength_renorm_virial;
-            std::vector<double> _oscillator_strength_renorm_virial;
-            
-            for (int _i_exc = 0; _i_exc < 10 ; _i_exc++){
-                std::vector<double> _tdipole(3,0.0);
-                std::vector<double> _tdipole_virial(3,0.0);
-                for ( int _v = 0 ; _v < _bse_vtotal ; _v++ ){
-                    for ( int _c = 0; _c < _bse_ctotal ; _c++){
- 
-                        int index_vc = _bse_ctotal * _v + _c;
-                    
-                        for ( int _i_comp =0 ; _i_comp < 3; _i_comp++){
-                                _tdipole[ _i_comp ] += _bse_singlet_coefficients( index_vc , _i_exc   ) * _interlevel_dipoles[_i_comp](_v,_c);
-                                _tdipole_virial[ _i_comp ] += _bse_singlet_coefficients( index_vc , _i_exc   ) * _interlevel_dipoles[_i_comp](_v,_c) * 2.0 / _bse_singlet_energies( _i_exc) ;
-                        }
-                        
-                    }
-                    
-                }
-		//                cout << _i_exc << " : " << _tdipole[0] << " : "  << _tdipole[1] << " : " << _tdipole[2] << endl;
-                _transition_dipoles_renorm.push_back( _tdipole );
-                _transition_dipole_strength_renorm.push_back( (_tdipole[0]*_tdipole[0] + _tdipole[1]*_tdipole[1] + _tdipole[2]*_tdipole[2]  )  );
-                _oscillator_strength_renorm.push_back( _transition_dipole_strength_renorm[_i_exc] * 4.0/3.0 /(_bse_singlet_energies( _i_exc )) ) ;
-
-                _transition_dipoles_renorm_virial.push_back(_tdipole_virial );
-                _transition_dipole_strength_renorm_virial.push_back( (_tdipole_virial[0]*_tdipole_virial[0] + _tdipole_virial[1]*_tdipole_virial[1] + _tdipole_virial[2]*_tdipole_virial[2]  )  );
-                _oscillator_strength_renorm_virial.push_back( _transition_dipole_strength_renorm_virial[_i_exc] * 1.0/3.0 *(_bse_singlet_energies( _i_exc )) ) ;
-            }
-            
-
-            
-            
-            std::vector<std::vector<double> > _transition_dipoles_electrical_renorm;
-            std::vector<std::vector<double> > _transition_dipoles_electrical_renorm_inverse;
-           
-            std::vector<double> _transition_dipole_strength_electrical_renorm;
-            std::vector<double> _transition_dipole_strength_electrical_renorm_inverse;
-            
-            std::vector<double> _oscillator_strength_electrical_renorm;
-            std::vector<double> _oscillator_strength_electrical_renorm_inverse;
-            
-            
-            for (int _i_exc = 0; _i_exc < 10 ; _i_exc++){
-                std::vector<double> _tdipole(3,0.0);
-                std::vector<double> _tdipole_inverse(3,0.0);
-                for ( int _v = 0 ; _v < _bse_vtotal ; _v++ ){
-                    for ( int _c = 0; _c < _bse_ctotal ; _c++){
- 
-                        int index_vc = _bse_ctotal * _v + _c;
-                    
-                        for ( int _i_comp =0 ; _i_comp < 3; _i_comp++){
-                                _tdipole[ _i_comp ] += _bse_singlet_coefficients( index_vc , _i_exc   ) * _interlevel_dipoles_electrical[_i_comp](_v,_c);
-                                _tdipole_inverse[ _i_comp ] += _bse_singlet_coefficients( index_vc , _i_exc   ) * _interlevel_dipoles_electrical_inverse[_i_comp](_v,_c);
-                        }
-                        
-                    }
-                    
-                }
-		//                cout << _i_exc << " : " << _tdipole[0] << " : "  << _tdipole[1] << " : " << _tdipole[2] << endl;
-                _transition_dipoles_electrical_renorm.push_back( _tdipole );
-                _transition_dipoles_electrical_renorm_inverse.push_back( _tdipole_inverse );
-
-                _transition_dipole_strength_electrical_renorm.push_back(  (_tdipole[0]*_tdipole[0] + _tdipole[1]*_tdipole[1] + _tdipole[2]*_tdipole[2]  )            );
-                _transition_dipole_strength_electrical_renorm_inverse.push_back(  (_tdipole_inverse[0]*_tdipole_inverse[0] + _tdipole_inverse[1]*_tdipole_inverse[1] + _tdipole_inverse[2]*_tdipole_inverse[2]  )            );
-                
-                _oscillator_strength_electrical_renorm.push_back( _transition_dipole_strength_electrical_renorm[_i_exc] * _bse_singlet_energies( _i_exc )/3.0 );
-                _oscillator_strength_electrical_renorm_inverse.push_back( _transition_dipole_strength_electrical_renorm_inverse[_i_exc] * _bse_singlet_energies( _i_exc )/3.0 );
-            }
-    
-            
-            
-            
             
             
             LOG(logINFO, *pLog) << (format("  ====== 10 lowest singlet energies (eV) ====== ")).str() << flush;
             for (int _i = 0; _i < 10; _i++) {
 
                 LOG(logINFO, *pLog) << (format("  S = %1$4d Omega = %2$+1.4f <FT> = %3$+1.4f <K_x> = %4$+1.4f <K_d> = %5$+1.4f") % (_i + 1) % (13.6058 * _bse_singlet_energies( _i )) % (13.6058 * _contrib_qp[_i]) % (13.6058 * _contrib_x[_i]) % (13.6058 * _contrib_d[ _i ]) ).str() << flush;
-
-                //LOG(logINFO, *pLog) << (format("    ----- no renormalization ----- ")).str() << flush;
-                //LOG(logINFO, *pLog) << (format("            TrDipole momentum coupling    dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f") %  (_transition_dipoles[_i][0]) % (_transition_dipoles[_i][1]) % (_transition_dipoles[_i][2]) % (_transition_dipole_strength[_i]) %  (_oscillator_strength[_i]) ).str() << flush;
-                //LOG(logINFO, *pLog) << (format("            TrDipole virial conversion    dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f") %  (_transition_dipoles_virial[_i][0]) % (_transition_dipoles_virial[_i][1]) % (_transition_dipoles_virial[_i][2]) % (_transition_dipole_strength_virial[_i]) %  (_oscillator_strength_virial[_i])).str() << flush;
-                LOG(logINFO, *pLog) << (format("            TrDipole length gauge   dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f") %  (_transition_dipoles_elec[_i][0]) % (_transition_dipoles_elec[_i][1]) % (_transition_dipoles_elec[_i][2]) % (_transition_dipole_strength_elec[_i]) %  (_oscillator_strength_elec[_i])).str() << flush;
-                //LOG(logINFO, *pLog) << (format("    ----- with renormalization ----- ")).str() << flush;
-                //LOG(logINFO, *pLog) << (format("            TrDipole momentum coupling    dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f") %  (_transition_dipoles_renorm[_i][0]) % (_transition_dipoles_renorm[_i][1]) % (_transition_dipoles_renorm[_i][2]) % (_transition_dipole_strength_renorm[_i]) %  (_oscillator_strength_renorm[_i]) ).str() << flush;
-                //LOG(logINFO, *pLog) << (format("            TrDipole virial conversion    dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f") %  (_transition_dipoles_renorm_virial[_i][0]) % (_transition_dipoles_renorm_virial[_i][1]) % (_transition_dipoles_renorm_virial[_i][2]) % (_transition_dipole_strength_renorm_virial[_i]) %  (_oscillator_strength_renorm_virial[_i])).str() << flush;
-                //LOG(logINFO, *pLog) << (format("            TrDipole electric coupling    dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f") %  (_transition_dipoles_electrical_renorm[_i][0]) % (_transition_dipoles_electrical_renorm[_i][1]) % (_transition_dipoles_electrical_renorm[_i][2]) % (_transition_dipole_strength_electrical_renorm[_i]) %  (_oscillator_strength_electrical_renorm[_i])).str() << flush;
-                //LOG(logINFO, *pLog) << (format("            TrDipole electric coupling i  dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f") %  (_transition_dipoles_electrical_renorm_inverse[_i][0]) % (_transition_dipoles_electrical_renorm_inverse[_i][1]) % (_transition_dipoles_electrical_renorm_inverse[_i][2]) % (_transition_dipole_strength_electrical_renorm_inverse[_i]) %  (_oscillator_strength_electrical_renorm_inverse[_i])).str() << flush;
-                
+                LOG(logINFO, *pLog) << (format("            TrDipole length gauge   dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f") %  (_transition_dipoles[_i][0]) % (_transition_dipoles[_i][1]) % (_transition_dipoles[_i][2]) % (_transition_dipole_strength[_i]) %  (_oscillator_strength[_i])).str() << flush;
                 LOG(logINFO, *pLog) << (format("   ")).str() << flush;
             }
             
