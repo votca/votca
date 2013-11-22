@@ -297,17 +297,16 @@ void Orbitals::Trim( int factor ) {
 }
 
 bool Orbitals::Load(string file_name) {
-
-    std::ifstream ifs( file_name.c_str() );
-    boost::archive::binary_iarchive ia( ifs );
     try {
+        std::ifstream ifs( file_name.c_str() );
+        boost::archive::binary_iarchive ia( ifs );
         ia >> *this;
+        ifs.close();
     } catch(std::exception &err) {
         std::cerr << "Could not load orbitals from " << file_name << flush; 
         std::cerr << "An error occurred:\n" << err.what() << endl;
         return false;
     } 
-    ifs.close();
     return true;
 }
 
