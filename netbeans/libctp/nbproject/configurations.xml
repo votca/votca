@@ -54,6 +54,7 @@
       </logicalFolder>
       <logicalFolder name="f3" displayName="Tools" projectFiles="true">
         <itemPath>/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/tools/coupling.h</itemPath>
+        <itemPath>/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/tools/exciton.h</itemPath>
         <itemPath>../../src/libctp/tools/molpol.cc</itemPath>
         <itemPath>../../src/libctp/tools/molpol.h</itemPath>
         <itemPath>../../src/libctp/tools/pdb2map.h</itemPath>
@@ -113,6 +114,7 @@
       <itemPath>../../include/votca/ctp/sqlapplication.h</itemPath>
       <itemPath>../../include/votca/ctp/statesaversqlite.h</itemPath>
       <itemPath>../../include/votca/ctp/threecenters.h</itemPath>
+      <itemPath>/data/isilon/baumeier/votca_devel/src/ctp/include/votca/ctp/toolfactory.h</itemPath>
       <itemPath>../../include/votca/ctp/topology.h</itemPath>
       <itemPath>../../include/votca/ctp/version.h</itemPath>
       <itemPath>../../include/votca/ctp/votca_ctp_config.h</itemPath>
@@ -793,6 +795,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="/data/isilon/baumeier/votca_devel/src/ctp/include/votca/ctp/toolfactory.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/aomatrices/aocoulomb.cc"
             ex="false"
             tool="1"
@@ -829,6 +836,11 @@
             flavor2="0">
       </item>
       <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/tools/coupling.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/tools/exciton.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1414,6 +1426,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="/data/isilon/baumeier/votca_devel/src/ctp/include/votca/ctp/toolfactory.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/aomatrices/aocoulomb.cc"
             ex="false"
             tool="1"
@@ -1450,6 +1467,11 @@
             flavor2="0">
       </item>
       <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/tools/coupling.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/tools/exciton.h"
             ex="false"
             tool="3"
             flavor2="0">

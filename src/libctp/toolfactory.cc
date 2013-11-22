@@ -25,6 +25,7 @@
 #include "tools/coupling.h"
 #include "tools/log2mps.h"
 #include "tools/ptopreader.h"
+#include "tools/exciton.h"
 
 
 namespace votca { namespace ctp {
@@ -36,6 +37,7 @@ void QMToolFactory::RegisterAll(void)
         QMTools().Register<Coupling>           ("coupling");
         QMTools().Register<Log2Mps>            ("log2mps");
         QMTools().Register<PtopReader>         ("ptopreader");
+        QMTools().Register<Exciton>            ("exciton");
 }
 
 }}

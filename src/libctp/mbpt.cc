@@ -47,132 +47,14 @@ namespace votca {
         void MBPT::CleanUp() {
 
         }
-
-        /* void MBPT::Initialize(Property *options) {
-
-            _maverick = (_nThreads == 1) ? true : false;
-
-            // setting some defaults
-            _do_qp_diag      = false;
-            _do_bse_singlets = false;
-            _do_bse_triplets = false;
-            _ranges          = "default";
-            _store_qp_pert   = true;
-            // _bse_nmax        = 100;
-            
-            string key = "options." + Identify() + ".job";
-            _jobfile = options->get(key + ".file").as<string>();
-
-            key = "options." + Identify();
-            // getting level ranges 
-            _ranges = options->get(key + ".ranges").as<string> ();
-            // now check validity, and get rpa, qp, and bse level ranges accordingly
-            if (_ranges == "factor") {
-                // get factors
-                _rpamaxfactor = options->get(key + ".rpamax").as<double> ();
-                _qpminfactor  = options->get(key + ".qpmin").as<double> ();
-                _qpmaxfactor  = options->get(key + ".qpmax").as<double> ();
-                _bseminfactor = options->get(key + ".bsemin").as<double> ();
-                _bsemaxfactor = options->get(key + ".bsemax").as<double> ();
-            } else if (_ranges == "explicit") {
-                //get explicit numbers
-                _rpamax   = options->get(key + ".rpamax").as<unsigned int> ();
-                _qpmin    = options->get(key + ".qpmin").as<unsigned int> ();
-                _qpmax    = options->get(key + ".qpmax").as<unsigned int> ();
-                _bse_vmin = options->get(key + ".bsemin").as<unsigned int> ();
-                _bse_cmax = options->get(key + ".bsemax").as<unsigned int> ();
-            } else if  ( _ranges == "" ){
-                _ranges = "default";
-            } else {
-                cerr << "\nSpecified range option " << _ranges << " invalid. ";
-                throw std::runtime_error("\nValid options are: default,factor,explicit");
-            }
-            
-            _bse_nmax      = options->get(key + ".exctotal").as<int> ();
-            
-            
-            _gwbasis_name  = options->get(key + ".gwbasis").as<string> ();
-            _dftbasis_name = options->get(key + ".dftbasis").as<string> ();
-            _shift         = options->get(key + ".shift").as<double> ();
-
-
-            // possible tasks
-            // diagQP, singlets, triplets, all
-            string _tasks_string = options->get(key+".tasks").as<string> ();
-            if (_tasks_string.find("all") != std::string::npos) {
-                _do_qp_diag      = true;
-                _do_bse_singlets = true;
-                _do_bse_triplets = true;
-            }
-            if (_tasks_string.find("qpdiag") != std::string::npos) _do_qp_diag = true;
-            if (_tasks_string.find("singlets") != std::string::npos) _do_bse_singlets = true;
-            if (_tasks_string.find("triplets") != std::string::npos) _do_bse_triplets = true;
-            
-            // possible storage 
-            // qpPert, qpdiag_energies, qp_diag_coefficients, bse_singlet_energies, bse_triplet_energies, bse_singlet_coefficients, bse_triplet_coefficients
-
-            string _store_string = options->get(key+".store").as<string> ();
-            if ((_store_string.find("all") != std::string::npos) ||(_store_string.find("") != std::string::npos))  {
-                // store according to tasks choice
-                if ( _do_qp_diag ) _store_qp_diag = true;
-                if ( _do_bse_singlets ) _store_bse_singlets = true;
-                if ( _do_bse_triplets ) _store_bse_triplets = true;
-            }
-            if (_store_string.find("qpdiag") != std::string::npos) _store_qp_diag = true;
-            if (_store_string.find("singlets") != std::string::npos) _store_bse_singlets = true;
-            if (_store_string.find("triplets") != std::string::npos) _store_bse_triplets = true;
-    
-
-        } */
-
-//        bool MBPT::Evaluate(Topology *top, Job *job, QMThread *opThread) {
         bool MBPT::Evaluate( Orbitals* _orbitals) {
-            cout << "Starting GW-BSE";
-           /* Orbitals _orbitals;
-            Job::JobResult jres = Job::JobResult();
-            Property _job_input = job->getInput();
-            list<Property*> lSegments = _job_input.Select("segment");
-
-            vector < Segment* > segments;
-            int segId = lSegments.front()->getAttribute<int>("id");
-            string segType = lSegments.front()->getAttribute<string>("type");
-
-            Segment *seg = top->getSegment(segId);
-            assert(seg->Name() == segType);
-            segments.push_back(seg);
-
-            Logger* pLog = opThread->getLogger();
-            LOG(logINFO, *pLog) << TimeStamp() << " Evaluating site " << seg->getId() << flush;
-
-            // load the DFT data from serialized orbitals object
-            string orb_file = (format("%1%_%2%%3%") % "molecule" % segId % ".orb").str();
-            string frame_dir = "frame_" + boost::lexical_cast<string>(top->getDatabaseId());
-            string edft_work_dir = "OR_FILES";
-            string DIR = edft_work_dir + "/molecules_gwbse/" + frame_dir;
-            std::ifstream ifs((DIR + "/" + orb_file).c_str());
-            LOG(logDEBUG, *pLog) << TimeStamp() << " Loading DFT data from " << DIR << "/" << orb_file << flush;
-            boost::archive::binary_iarchive ia(ifs);
-            ia >> _orbitals;
-            ifs.close();*/
-
-
-            // from here, it can all go to separate object that needs only _orbitals and options as input
-
-
 
 
             string _dft_package = _orbitals->getQMpackage();
             LOG(logDEBUG, *_pLog) << TimeStamp() << " DFT data was created by " << _dft_package << flush;
 
-            
-            
-            
             // get atoms from orbitals object
             std::vector<QMAtom*>* _atoms = _orbitals->getAtoms();
-
-
-            
-            
             
             // reorder DFT data, load DFT basis set
             BasisSet dftbs;
@@ -230,6 +112,16 @@ namespace votca {
             _bse_vtotal = _bse_vmax - _bse_vmin +1 ;
             _bse_ctotal = _bse_cmax - _bse_cmin +1 ;
             _bse_size   = _bse_vtotal * _bse_ctotal;
+            
+            // indexing info
+            for ( int _v = 0; _v < _bse_vtotal; _v++ ){
+                for ( int _c = 0; _c < _bse_ctotal ; _c++){
+
+                    _index2v.push_back( _bse_vmin + _v );
+                    _index2c.push_back( _bse_cmin + _c );
+                    
+                }
+            }
 
             
             // some QP - BSE consistency checks are required
@@ -344,61 +236,6 @@ namespace votca {
             _temp.resize(0,0);
             _dft_dipole.Cleanup();
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculated free interlevel transition dipole moments " << flush;          
-            
-        /*    // getting ground state dipole moment
-            std::vector<double> _dipole(3,0.0);
-            cout << "\n";
-            for ( int _i_occ = 0 ; _i_occ < 51 ; _i_occ++){
-                for ( int _i_a = 0 ; _i_a < dftbasis._AOBasisSize ; _i_a++){
-                    for ( int _i_b = 0 ; _i_b < dftbasis._AOBasisSize ; _i_b++){
-                        for ( int _i_comp = 0 ; _i_comp < 3 ; _i_comp++){
-
-                        _dipole[ _i_comp ] += 2.0 * _dft_orbitals(_i_occ, _i_a ) * _dft_orbitals(_i_occ, _i_b ) * _dft_dipole._aomatrix[_i_comp](_i_a,_i_b);
-                        }
-                    }
-                }
-            }
-            LOG(logDEBUG, *pLog) << TimeStamp() << " GS dipole electrons (e*aB): " << _dipole[0] << " : " << _dipole[1] << " : " << _dipole[2] << flush;
-            // get nuclear dipole moment
-            std::vector<double> _dipole_nuclear(3,0.0);
-            vector< Atom* > _atoms;
-            vector< Atom* > ::iterator ait;
-            vector< Segment* >::iterator sit;
-            // loop over segments
-            for (sit = segments.begin() ; sit != segments.end(); ++sit) {
-        
-            _atoms = (*sit)-> Atoms();
-            // loop over atoms in segment
-            for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
-                // get coordinates of this atom and convert from nm to Bohr
-                vec     pos = (*ait)->getQMPos() * 18.897259886;
-                // get element type of the atom
-                string  name = (*ait)->getElement();
-                double _nuc_crg;
-                if ( name == "C") _nuc_crg=4.0;
-                if ( name == "S") _nuc_crg=6.0;
-                if ( name == "N") _nuc_crg=5.0;
-                if ( name == "H") _nuc_crg=1.0;
-                // cout << "Atom " << name << " Charge " << _nuc_crg << " position " << pos.getX() << " : " << pos.getY() << " : " << pos.getZ() << endl;
-                _dipole_nuclear[0] += _nuc_crg*pos.getX();
-                _dipole_nuclear[1] += _nuc_crg*pos.getY();
-                _dipole_nuclear[2] += _nuc_crg*pos.getZ();
-                
-            }
-            }
-            LOG(logDEBUG, *pLog) << TimeStamp() << " GS dipole nuclei    (e*aB): " << _dipole_nuclear[0] << " : " << _dipole_nuclear[1] << " : " << _dipole_nuclear[2] << flush;
-            LOG(logDEBUG, *pLog) << TimeStamp() << " GS dipole total     (D)   : " << (_dipole_nuclear[0]-_dipole[0])* 2.541746 << " : " << (_dipole_nuclear[1]-_dipole[1])* 2.541746 << " : " << (_dipole_nuclear[2]-_dipole[2])* 2.541746 << flush;           
-            exit(0);
-         * 
-         * 
-         * 
-         * THIS CHECKED OUT -> reproduces ground state dipole moment of DCV2T, looks like aodipole.cc is correct
-         * 
-         * 
-            */
-            
-            
-            
             
             // get overlap matrix as AOOverlap
             AOOverlap _gwoverlap;
@@ -593,13 +430,41 @@ namespace votca {
             if ( _do_bse_triplets ){
             BSE_solve_triplets();
             LOG(logINFO,*_pLog) << TimeStamp() << " Solved BSE for triplets " << flush; 
+            
+            // expectation values, contributions from e-h coupling
+            std::vector<double> _contrib_x(10,0.0);
+            std::vector<double> _contrib_d(10,0.0);
+            std::vector<double> _contrib_qp(10,0.0);
+            for (int _i_exc = 0; _i_exc < 10; _i_exc++){
+                
+                ub::matrix<double> _slice = ub::project( _bse_triplet_coefficients ,  ub::range( 0 , _bse_size ), ub::range(_i_exc, _i_exc + 1 ) );
+                
+                ub::matrix<double> _temp = ub::prod( _eh_d, _slice );
+                ub::matrix<double>  _res =  ub::prod( ub::trans( _slice) , _temp  );
+                _contrib_d[_i_exc] = -_res(0,0);
+                
+                _temp = ub::prod( _eh_qp, _slice );
+                _res =  ub::prod( ub::trans( _slice) , _temp  );
+                _contrib_qp[_i_exc] = _res(0,0);
+                
+            }
+            
+            
+            
             LOG(logINFO, *_pLog) << (format("  ====== 10 lowest triplet energies (eV) ====== ")).str() << flush;
             for (int _i = 0; _i < 10; _i++) {
-                
-                //cout << "\n" <<  _i << "  :   " << 13.605 * _bse_triplet_energies( _i ) << flush ;
-                LOG(logINFO, *_pLog) << (format("  T = %1$4d Omega = %2$+1.4f ") % (_i + 1) % (13.605* _bse_triplet_energies( _i ))).str() << flush;
+                LOG(logINFO, *_pLog) << (format("  T = %1$4d Omega = %2$+1.4f <FT> = %3$+1.4f <K_x> = %4$+1.4f <K_d> = %5$+1.4f") % (_i + 1) % (13.6058 * _bse_triplet_energies( _i )) % (13.6058 * _contrib_qp[_i]) % (13.6058 * _contrib_x[_i]) % (13.6058 * _contrib_d[ _i ]) ).str() << flush;
+
+                for ( int _i_bse = 0 ; _i_bse < _bse_size; _i_bse++){
+                    // if contribution is larger than 0.2, print
+                    double _weight = pow(_bse_triplet_coefficients( _i_bse, _i),2);
+                    if ( _weight > 0.2 ){
+                        LOG(logINFO, *_pLog) << (format("           HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%") % (_homo-_index2v[_i_bse]) % ( _index2c[_i_bse] - _homo -1) % (100.0 * _weight) ).str() << flush;
+                    }
+                }
+                LOG(logINFO, *_pLog) << (format("   ")).str() << flush;
             }
-            }
+            } // do_triplets
             
             if ( _do_bse_singlets ){
             BSE_solve_singlets();
@@ -607,11 +472,11 @@ namespace votca {
 
 
             // expectation values, contributions from e-h coupling
-            std::vector<double> _contrib_x(10,0.0);
+                             std::vector<double> _contrib_x(10,0.0);
             std::vector<double> _contrib_d(10,0.0);
-            std::vector<double> _contrib_qp(10,0.0);
+            std::vector<double> _contrib_qp(10,0.0);           
             for (int _i_exc = 0; _i_exc < 10; _i_exc++){
-                
+
                 ub::matrix<double> _slice = ub::project( _bse_singlet_coefficients ,  ub::range( 0 , _bse_size ), ub::range(_i_exc, _i_exc + 1 ) );
                 
                 ub::matrix<double> _temp = ub::prod( _eh_x, _slice );
@@ -626,20 +491,9 @@ namespace votca {
                 _res =  ub::prod( ub::trans( _slice) , _temp  );
                 _contrib_qp[_i_exc] = _res(0,0);
                 
-              //  cout << "\n" << _i_exc << " : " << _contrib_x[_i_exc]*13.605 << endl;
-                
             }
             
-            
-            
-            
-
-
-
-
-            
             // for transition dipole moments
-            // no renormalization, momentum coupling
             std::vector<std::vector<double> > _transition_dipoles;
             std::vector<double> _oscillator_strength;
             std::vector<double> _transition_dipole_strength;
@@ -669,29 +523,21 @@ namespace votca {
             for (int _i = 0; _i < 10; _i++) {
 
                 LOG(logINFO, *_pLog) << (format("  S = %1$4d Omega = %2$+1.4f <FT> = %3$+1.4f <K_x> = %4$+1.4f <K_d> = %5$+1.4f") % (_i + 1) % (13.6058 * _bse_singlet_energies( _i )) % (13.6058 * _contrib_qp[_i]) % (13.6058 * _contrib_x[_i]) % (13.6058 * _contrib_d[ _i ]) ).str() << flush;
-                LOG(logINFO, *_pLog) << (format("            TrDipole length gauge   dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f") %  (_transition_dipoles[_i][0]) % (_transition_dipoles[_i][1]) % (_transition_dipoles[_i][2]) % (_transition_dipole_strength[_i]) %  (_oscillator_strength[_i])).str() << flush;
+                LOG(logINFO, *_pLog) << (format("           TrDipole length gauge   dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f") %  (_transition_dipoles[_i][0]) % (_transition_dipoles[_i][1]) % (_transition_dipoles[_i][2]) % (_transition_dipole_strength[_i]) %  (_oscillator_strength[_i])).str() << flush;
+                for ( int _i_bse = 0 ; _i_bse < _bse_size; _i_bse++){
+                    // if contribution is larger than 0.2, print
+                    double _weight = pow(_bse_triplet_coefficients( _i_bse, _i),2);
+                    if ( _weight > 0.2 ){
+                        LOG(logINFO, *_pLog) << (format("           HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%") % (_homo-_index2v[_i_bse]) % ( _index2c[_i_bse] - _homo -1) % (100.0 * _weight) ).str() << flush;
+                    }
+                }
                 LOG(logINFO, *_pLog) << (format("   ")).str() << flush;
             }
             
             }
             }
             
-/*            LOG(logINFO,*pLog) << TimeStamp() << " Finished evaluating site " << seg->getId() << flush; 
- 
-            Property _job_summary;
-            Property *_output_summary = &_job_summary.add("output","");
-            Property *_segment_summary = &_output_summary->add("segment","");
-            string segName = seg->getName();
-            segId = seg->getId();
-            _segment_summary->setAttribute("id", segId);
-            _segment_summary->setAttribute("type", segName);
-            // output of the JOB 
-            jres.setOutput( _job_summary );
-            jres.setStatus(Job::COMPLETE);
 
-            // dump the LOG
-            cout << *pLog;
-            return jres; */
             
             return true;
         }

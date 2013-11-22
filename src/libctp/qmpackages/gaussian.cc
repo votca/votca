@@ -666,6 +666,8 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
     bool _has_qm_energy = false;
     bool _has_self_energy = false;
     
+    bool _read_vxc = false;
+    
     int _occupied_levels = 0;
     int _unoccupied_levels = 0;
     int _number_of_electrons = 0;
@@ -693,6 +695,16 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
         boost::trim(_line);
 
         /*
+         * Check is pseudo keyword is present in LOG file -> read vxc
+         */
+        std::string::size_type pseudo_pos = _line.find("pseudo=read");
+         if (pseudo_pos != std::string::npos) {
+             _read_vxc = true;
+         }
+        
+        
+        
+        /*
          * number of occupied and virtual orbitals
          * N alpha electrons      M beta electrons
          */
@@ -719,7 +731,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
             _orbitals->_has_basis_set_size = true;
             _cart_basis_set_size = boost::lexical_cast<int>(results[6] );
             LOG(logDEBUG,*_pLog) << "Basis functions: " << _basis_set_size << flush;
-            if ( _write_pseudopotentials ) {
+            if ( _read_vxc ) {
                 LOG(logDEBUG,*_pLog) << "Cartesian functions: " << _cart_basis_set_size << flush;
             }
         }
@@ -999,14 +1011,23 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
      * if we request writing of pseudopotential data to the input file, this
      * implies a GW-BSE run. For this, we have to 
      * - parse atomic orbitals Vxc matrix */
-   if ( _write_pseudopotentials ) {
+   if ( _read_vxc ) {
         LOG(logDEBUG,*_pLog) << "Parsing fort.24 for Vxc"  << flush;
-        string _log_file_name_full =  _run_dir + "/fort.24";
-
+        string _log_file_name_full;
+        if ( _run_dir == "" ){
+            _log_file_name_full =  "fort.24";
+        }else{
+                _log_file_name_full =  _run_dir + "/fort.24";
+        }
+        cout << "Reading from " << _log_file_name_full;
+        
        // prepare the container
        _orbitals->_has_vxc = true;
        (_orbitals->_vxc).resize( _cart_basis_set_size );
             
+       
+       cout << " Vxc matrix is of size " << (_orbitals->_vxc).size1();
+       
        _has_vxc_matrix = true;
        //cout << "Found the overlap matrix!" << endl;   
        vector<int> _j_indeces;

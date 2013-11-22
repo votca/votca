@@ -1,11 +1,18 @@
 <options>
 
-<!-- ctp_run -e gwbse -f state.db -o options.xml -->
-<gwbse help="An implementation of GW-BSE." label="calc:gwbse">
+<!-- ctp_tools -e coupling options.xml -->
+<exciton help="Electronic couplings from log and orbital files (GAUSSAIN, TURBOMOLE, NWChem)" section="sec:overlap">
 
-	<job help="Job options">
-		<file help="Job control file (full path)"></file>
-	</job>
+        <package help="First-principles package">gaussian</package>
+
+        <output help="Output file" default="coupling.out.xml">coupling.out.xml</output>
+
+        <molecule help="">
+                <log help="Log file of molecule A" default="A.log">A.log</log>
+                <orbitals help="Orbitals file" default="A.orb">A.orb</orbitals>
+                <levels help="Output HOMO, ..., HOMO-levels; LUMO, ..., LUMO+levels" default="3">3</levels>
+        </molecule>
+
 
         <dftbasis>ubecppol</dftbasis>
         <gwbasis>gwdefault</gwbasis>
@@ -20,6 +27,9 @@
 		<store>orbitals</store>
         <exctotal>100</exctotal>
 
-</gwbse>
+
+</exciton>
 
 </options>
+
+

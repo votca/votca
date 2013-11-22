@@ -256,6 +256,9 @@ public:
     void BSE_solve_triplets();
     void BSE_solve_singlets();
     
+    std::vector<int> _index2v;
+    std::vector<int> _index2c;
+    
 };
 
 
