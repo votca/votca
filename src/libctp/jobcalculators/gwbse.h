@@ -25,7 +25,7 @@
 #define	_CALC_GWBSE_TOOL_H
 
 
-#include <votca/ctp/mbpt.h> // including GWBSE functionality
+#include <votca/ctp/mbgft.h> // including GWBSE functionality
 #include <votca/ctp/segment.h>
 #include <votca/ctp/orbitals.h>
 #include <votca/ctp/aobasis.h>
@@ -81,7 +81,7 @@ public:
     // int getMupper(){ return mmax -1; };
     
     // all GWBSE functionality is in Mbpt object
-    MBPT _mbpt; 
+    MBGFT _mbgft; 
 
 };
 

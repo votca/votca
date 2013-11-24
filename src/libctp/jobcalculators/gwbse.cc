@@ -21,7 +21,7 @@
 #include <votca/ctp/votca_ctp_config.h>
 
 #include "gwbse.h"
-#include <votca/ctp/mbpt.h>
+#include <votca/ctp/mbgft.h>
 
 
 #include <boost/format.hpp>
@@ -55,11 +55,11 @@ namespace votca {
             _maverick = (_nThreads == 1) ? true : false;
 
             // setting some defaults
-            _mbpt.set_do_qp_diag( false );
-            _mbpt.set_do_bse_singlets(false);
-            _mbpt.set_do_bse_triplets(false);
-            _mbpt.set_ranges("default");
-            _mbpt.set_store_qp_pert(true);
+            _mbgft.set_do_qp_diag( false );
+            _mbgft.set_do_bse_singlets(false);
+            _mbgft.set_do_bse_triplets(false);
+            _mbgft.set_ranges("default");
+            _mbgft.set_store_qp_pert(true);
             
             // _bse_nmax        = 100;
             
@@ -68,48 +68,48 @@ namespace votca {
 
             key = "options." + Identify();
             // getting level ranges 
-            _mbpt.set_ranges ( options->get(key + ".ranges").as<string> () );
+            _mbgft.set_ranges ( options->get(key + ".ranges").as<string> () );
             // now check validity, and get rpa, qp, and bse level ranges accordingly
-            if (_mbpt.get_ranges() == "factor") {
+            if (_mbgft.get_ranges() == "factor") {
                 // get factors
-                _mbpt.set_rpamaxfactor ( options->get(key + ".rpamax").as<double> () );
-                _mbpt.set_qpminfactor( options->get(key + ".qpmin").as<double> () );
-                _mbpt.set_qpmaxfactor( options->get(key + ".qpmax").as<double> () );
-                _mbpt.set_bseminfactor( options->get(key + ".bsemin").as<double> () );
-                _mbpt.set_bsemaxfactor( options->get(key + ".bsemax").as<double> () );
-            } else if (_mbpt.get_ranges() == "explicit") {
+                _mbgft.set_rpamaxfactor ( options->get(key + ".rpamax").as<double> () );
+                _mbgft.set_qpminfactor( options->get(key + ".qpmin").as<double> () );
+                _mbgft.set_qpmaxfactor( options->get(key + ".qpmax").as<double> () );
+                _mbgft.set_bseminfactor( options->get(key + ".bsemin").as<double> () );
+                _mbgft.set_bsemaxfactor( options->get(key + ".bsemax").as<double> () );
+            } else if (_mbgft.get_ranges() == "explicit") {
                 //get explicit numbers
-                _mbpt.set_rpamax( options->get(key + ".rpamax").as<unsigned int> () );
-                _mbpt.set_qpmin( options->get(key + ".qpmin").as<unsigned int> () );
-                _mbpt.set_qpmax( options->get(key + ".qpmax").as<unsigned int> () );
-                _mbpt.set_bse_vmin( options->get(key + ".bsemin").as<unsigned int> () );
-                _mbpt.set_bse_cmax( options->get(key + ".bsemax").as<unsigned int> () );
-            } else if  ( _mbpt.get_ranges() == "" ){
-                _mbpt.set_ranges("default");
+                _mbgft.set_rpamax( options->get(key + ".rpamax").as<unsigned int> () );
+                _mbgft.set_qpmin( options->get(key + ".qpmin").as<unsigned int> () );
+                _mbgft.set_qpmax( options->get(key + ".qpmax").as<unsigned int> () );
+                _mbgft.set_bse_vmin( options->get(key + ".bsemin").as<unsigned int> () );
+                _mbgft.set_bse_cmax( options->get(key + ".bsemax").as<unsigned int> () );
+            } else if  ( _mbgft.get_ranges() == "" ){
+                _mbgft.set_ranges("default");
             } else {
-                cerr << "\nSpecified range option " << _mbpt.get_ranges() << " invalid. ";
+                cerr << "\nSpecified range option " << _mbgft.get_ranges() << " invalid. ";
                 throw std::runtime_error("\nValid options are: default,factor,explicit");
             }
             
-            _mbpt.set_bse_nmax( options->get(key + ".exctotal").as<int> () );
+            _mbgft.set_bse_nmax( options->get(key + ".exctotal").as<int> () );
             
             
-            _mbpt.set_gwbasis_name( options->get(key + ".gwbasis").as<string> () );
-            _mbpt.set_dftbasis_name( options->get(key + ".dftbasis").as<string> () );
-            _mbpt.set_shift( options->get(key + ".shift").as<double> () );
+            _mbgft.set_gwbasis_name( options->get(key + ".gwbasis").as<string> () );
+            _mbgft.set_dftbasis_name( options->get(key + ".dftbasis").as<string> () );
+            _mbgft.set_shift( options->get(key + ".shift").as<double> () );
 
 
             // possible tasks
             // diagQP, singlets, triplets, all
             string _tasks_string = options->get(key+".tasks").as<string> ();
             if (_tasks_string.find("all") != std::string::npos) {
-                _mbpt.set_do_qp_diag(true);
-                _mbpt.set_do_bse_singlets(true);
-                _mbpt.set_do_bse_triplets(true);
+                _mbgft.set_do_qp_diag(true);
+                _mbgft.set_do_bse_singlets(true);
+                _mbgft.set_do_bse_triplets(true);
             }
-            if (_tasks_string.find("qpdiag") != std::string::npos) _mbpt.set_do_qp_diag(true);
-            if (_tasks_string.find("singlets") != std::string::npos) _mbpt.set_do_bse_singlets(true);
-            if (_tasks_string.find("triplets") != std::string::npos) _mbpt.set_do_bse_triplets(true);
+            if (_tasks_string.find("qpdiag") != std::string::npos) _mbgft.set_do_qp_diag(true);
+            if (_tasks_string.find("singlets") != std::string::npos) _mbgft.set_do_bse_singlets(true);
+            if (_tasks_string.find("triplets") != std::string::npos) _mbgft.set_do_bse_triplets(true);
             
             // possible storage 
             // qpPert, qpdiag_energies, qp_diag_coefficients, bse_singlet_energies, bse_triplet_energies, bse_singlet_coefficients, bse_triplet_coefficients
@@ -117,13 +117,13 @@ namespace votca {
             string _store_string = options->get(key+".store").as<string> ();
             if ((_store_string.find("all") != std::string::npos) ||(_store_string.find("") != std::string::npos))  {
                 // store according to tasks choice
-                if ( _mbpt.get_do_qp_diag() ) _mbpt.set_store_qp_diag(true);
-                if ( _mbpt.get_do_bse_singlets() ) _mbpt.set_store_bse_singlets(true);
-                if ( _mbpt.get_do_bse_triplets() ) _mbpt.set_store_bse_triplets(true);
+                if ( _mbgft.get_do_qp_diag() ) _mbgft.set_store_qp_diag(true);
+                if ( _mbgft.get_do_bse_singlets() ) _mbgft.set_store_bse_singlets(true);
+                if ( _mbgft.get_do_bse_triplets() ) _mbgft.set_store_bse_triplets(true);
             }
-            if (_store_string.find("qpdiag") != std::string::npos) _mbpt.set_store_qp_diag(true);
-            if (_store_string.find("singlets") != std::string::npos) _mbpt.set_store_bse_singlets(true);
-            if (_store_string.find("triplets") != std::string::npos) _mbpt.set_store_bse_triplets(true);
+            if (_store_string.find("qpdiag") != std::string::npos) _mbgft.set_store_qp_diag(true);
+            if (_store_string.find("singlets") != std::string::npos) _mbgft.set_store_bse_singlets(true);
+            if (_store_string.find("triplets") != std::string::npos) _mbgft.set_store_bse_triplets(true);
     
 
         }
@@ -158,8 +158,8 @@ namespace votca {
             ia >> _orbitals;
             ifs.close();
 
-            _mbpt.setLogger(pLog);
-            bool _evaluate = _mbpt.Evaluate( &_orbitals );
+            _mbgft.setLogger(pLog);
+            bool _evaluate = _mbgft.Evaluate( &_orbitals );
             
             
             LOG(logINFO,*pLog) << TimeStamp() << " Finished evaluating site " << seg->getId() << flush; 

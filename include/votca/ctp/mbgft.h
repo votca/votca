@@ -21,8 +21,8 @@
 #define NDEBUG
 #define BOOST_UBLAS_NDEBUG
 
-#ifndef _VOTCA_CTP_MBPT_H
-#define	_VOTCA_CTP_MBPT_H
+#ifndef _VOTCA_CTP_MBGFT_H
+#define	_VOTCA_CTP_MBGFT_H
 
 #include <votca/ctp/segment.h>
 #include <votca/ctp/orbitals.h>
@@ -54,19 +54,25 @@
 namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
 /**
-* \brief GWBSE implementation
+* \brief Electronic excitations from GW-BSE
 *
-* Requires a first-principles package, i.e. GAUSSIAN installation
-*
-* Callname: gwbse
+* Evaluates electronic excitations in molecular systems based on
+* many-body Green's functions theory within the GW approximation and the
+* Bethe-Salpeter equation. Requires molecular orbitals of two monomers
+* and a dimer in GAUSSIAN, NWChem, or TURBOMOLE format.
+* 
+*  B. Baumeier, J. Kirkpatrick, D. Andrienko, 
+*  Phys. Chem. Chem. Phys., 12, 11103-11113, 2010
+* 
+* Callname: idft
 */
 
-class MBPT 
+class MBGFT 
 {
 public:
 
-    MBPT() {};
-   ~MBPT() {};
+    MBGFT() {};
+   ~MBGFT() {};
 
   /*  string  Identify() { return "gwbse"; }
     void    Initialize( Property *options);
@@ -264,4 +270,4 @@ public:
 
 }}
 
-#endif	/* _VOTCA_CTP_MBPT_H */
+#endif	/* _VOTCA_CTP_MBGFT_H */

@@ -20,7 +20,7 @@
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/ctp/votca_ctp_config.h>
 
-#include <votca/ctp/mbpt.h>
+#include <votca/ctp/mbgft.h>
 
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
@@ -41,13 +41,19 @@ namespace votca {
         namespace ub = boost::numeric::ublas;
 
         // +++++++++++++++++++++++++++++ //
-        // GWBSE MEMBER FUNCTIONS         //
+        // MBPT MEMBER FUNCTIONS         //
         // +++++++++++++++++++++++++++++ //
 
-        void MBPT::CleanUp() {
+        void MBGFT::CleanUp() {
 
         }
-        bool MBPT::Evaluate( Orbitals* _orbitals) {
+        
+        
+        /* 
+         
+         */
+        
+        bool MBGFT::Evaluate( Orbitals* _orbitals) {
 
 
             string _dft_package = _orbitals->getQMpackage();
@@ -544,7 +550,7 @@ namespace votca {
 
 
         
-        void MBPT::BSE_qp_setup(){
+        void MBGFT::BSE_qp_setup(){
             _eh_qp = ub::zero_matrix<double>( _bse_size , _bse_size );
             
             
@@ -581,7 +587,7 @@ namespace votca {
         
         
         
-        void MBPT::BSE_solve_triplets(){
+        void MBGFT::BSE_solve_triplets(){
             
             ub::matrix<double> _bse = _eh_qp -_eh_d;
             /*
@@ -619,7 +625,7 @@ namespace votca {
             linalg_eigenvalues( _bse, _bse_triplet_energies, _bse_triplet_coefficients, _bse_nmax);
         }
         
-        void MBPT::BSE_solve_singlets(){
+        void MBGFT::BSE_solve_singlets(){
             
             ub::matrix<double> _bse = -_eh_d + 2.0 * _eh_x;
 
@@ -660,7 +666,7 @@ namespace votca {
         }
         
         
-        void MBPT::BSE_d_setup (const TCMatrix& _Mmn){
+        void MBGFT::BSE_d_setup (const TCMatrix& _Mmn){
             // gwbasis size
             size_t _gwsize = _Mmn[0].size1();
 
@@ -743,7 +749,7 @@ namespace votca {
         
         
         
-        void MBPT::BSE_x_setup(const TCMatrix& _Mmn){
+        void MBGFT::BSE_x_setup(const TCMatrix& _Mmn){
             
             /* unlike the fortran code, we store eh interaction directly in
              * a suitable matrix form instead of a four-index array
@@ -781,7 +787,7 @@ namespace votca {
         
         
 
-        void MBPT::FullQPHamiltonian(){
+        void MBGFT::FullQPHamiltonian(){
             
             // constructing full QP Hamiltonian, storage in vxc
             _vxc = -_vxc + _sigma_x + _sigma_c;
@@ -810,7 +816,7 @@ namespace votca {
         }
         
         
-        void MBPT::sigma_c_setup(const TCMatrix& _Mmn, const ub::vector<double>& _edft){
+        void MBGFT::sigma_c_setup(const TCMatrix& _Mmn, const ub::vector<double>& _edft){
             
             // iterative refinement of qp energies
             int _max_iter = 5;
@@ -915,7 +921,7 @@ namespace votca {
     
         } // sigma_c_setup
 
-        void MBPT::sigma_x_setup(const TCMatrix& _Mmn){
+        void MBGFT::sigma_x_setup(const TCMatrix& _Mmn){
         
             // initialize sigma_x
             _sigma_x = ub::zero_matrix<double>(_qptotal,_qptotal);
@@ -948,7 +954,7 @@ namespace votca {
 
         
 
-        void MBPT::sigma_prepare_threecenters(TCMatrix& _Mmn){
+        void MBGFT::sigma_prepare_threecenters(TCMatrix& _Mmn){
             #pragma omp parallel for
             for ( int _m_level = 0 ; _m_level < _Mmn.get_mtot(); _m_level++ ){
                 // get Mmn for this _m_level
@@ -959,7 +965,7 @@ namespace votca {
             }
         }        
         
-        void MBPT::PPM_construct_parameters(  ub::matrix<double>& _overlap_cholesky_inverse ){
+        void MBGFT::PPM_construct_parameters(  ub::matrix<double>& _overlap_cholesky_inverse ){
             
             // multiply with L-1^t from the right
             ub::matrix<double> _overlap_cholesky_inverse_transposed = ub::trans( _overlap_cholesky_inverse );
@@ -1029,7 +1035,7 @@ namespace votca {
         
         
 
-        void MBPT::RPA_calculate_epsilon(TCMatrix& _Mmn_RPA, ub::matrix<double> _screening_freq, double _shift, ub::vector<double>& _dft_energies){
+        void MBGFT::RPA_calculate_epsilon(TCMatrix& _Mmn_RPA, ub::matrix<double> _screening_freq, double _shift, ub::vector<double>& _dft_energies){
             
             int _size = _Mmn_RPA[0].size1(); // size of gwbasis
             
@@ -1092,7 +1098,7 @@ namespace votca {
         
    
     
-    void MBPT::RPA_prepare_threecenters( TCMatrix& _Mmn_RPA, TCMatrix& _Mmn_full, AOBasis& gwbasis, AOMatrix& gwoverlap, AOMatrix& gwoverlap_inverse     ){
+    void MBGFT::RPA_prepare_threecenters( TCMatrix& _Mmn_RPA, TCMatrix& _Mmn_full, AOBasis& gwbasis, AOMatrix& gwoverlap, AOMatrix& gwoverlap_inverse     ){
         
          
         // loop over m-levels in _Mmn_RPA

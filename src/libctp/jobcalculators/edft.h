@@ -355,7 +355,7 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     std::ofstream ofs( (ORB_DIR + "/" + ORB_FILE).c_str() );
     boost::archive::binary_oarchive oa( ofs );
     oa << _orbitals;
-    ofs.close();
+    // ofs.close();
    }
    
    // Convert to GW
