@@ -45,6 +45,9 @@ public:
     }
     
     vector<Link* > &links() {return _links;}
+    
+    void SetType(int type) { _type = type;}
+    void SetPosition(votca::tools::vec position) { _position = position;}
 
 protected:
 

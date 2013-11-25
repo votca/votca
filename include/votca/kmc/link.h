@@ -57,6 +57,9 @@ public:
     /// set initial and final nodes of link
     void SetNodes(Node* node1, Node* node2) { _node1 = node1; _node2 = node2; }
     
+    /// (re)set ID
+    void SetID( int id) { _id = id; } 
+    
     // print Link info
     virtual void Print(std::ostream &out) {
         out << _id ;

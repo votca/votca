@@ -29,7 +29,7 @@ namespace votca { namespace kmc {
   
 using namespace std;
 
-enum NodeType{Normal, LeftElectrode, RightElectrode};
+enum Node_Type{Normal, LeftElectrode, RightElectrode};
 
 class DNode: public Node 
 {
@@ -53,7 +53,7 @@ public:
     };     
 
     int node_ID;
-    NodeType node_type;
+    Node_Type node_type;
     myvec node_position;
     vector<DNode*> pairing_nodes;
     vector<Static_event_info> static_event_info;

@@ -55,7 +55,7 @@ public:
     
     void AddLink( TLink* link) { _links.push_back(link); }
         
-    void RemoveLink(int linknr) { _links.erase(_links.begin()+linknr); }
+    void RemoveLink(int linknr) {_links.erase(_links.begin()+linknr); }
     
     void PrintNodes(std::ostream& out){
         typename std::vector<TNode*>::iterator it;

@@ -20,11 +20,11 @@
 
 #include <iostream>
 #include <votca/kmc/state.h>
-#include <votca/kmc/graphsql.h>
+//#include <votca/kmc/graphsql.h>
 //#include <votca/kmc/graphcubic.h>
 #include <votca/kmc/globaleventinfo.h>
-#include <votca/kmc/events.h>
-#include <votca/kmc/vssmgroup.h>
+//#include <votca/kmc/events.h>
+//#include <votca/kmc/vssmgroup.h>
 #include <votca/kmc/graphbulk.h>
 
 using namespace std;
@@ -40,8 +40,8 @@ public:
     
     GraphBulk<GraphSQL, NodeSQL, LinkSQL>* graph;
     State* state;
-    Events* events;
-    Vssmgroup* vssmgroup;
+//    Events* events;
+//    Vssmgroup* vssmgroup;
     Globaleventinfo* globevent;
     
     Diode() {};
@@ -56,7 +56,6 @@ public:
     int seed; long nr_equilsteps; long nr_timesteps; long steps_update_longrange;
     int nx; int ny; int nz; double lattice_constant; double hopdist; double disorder_strength; 
     double disorder_ratio; CorrelationType correlation_type; double left_electrode_distance; double right_electrode_distance;
-    myvec graph_front; myvec graph_back;
     
 
 protected:
@@ -80,12 +79,8 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     ny = options->get("options.diode.ny").as<int>();
     nz = options->get("options.diode.nz").as<int>();
     lattice_constant = options->get("options.diode.lattice_constant").as<double>();
-    graph_front = myvec(options->get("options.diode.graph_front_x").as<double>(),
-                        options->get("options.diode.graph_front_y").as<double>(),
-                        options->get("options.diode.graph_front_z").as<double>());
-    graph_back = myvec(options->get("options.diode.graph_back_x").as<double>(),
-                       options->get("options.diode.graph_back_y").as<double>(),
-                       options->get("options.diode.graph_back_z").as<double>());    
+//    left_electrode_distance = (options->get("options.diode.left_electrode_distance").as<double>());
+    right_electrode_distance = (options->get("options.diode.right_electrode_distance").as<double>()); 
     
     /*
     graph = new GraphCubic();
@@ -95,10 +90,10 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     */
     graph = new GraphBulk<GraphSQL, NodeSQL, LinkSQL>();
     graph->Initialize(filename);
-    graph->PrintNodes(std::cout);
-    graph->PrintLinks(std::cout);
+//    graph->PrintLinks(std::cout);
     graph->Break_periodicity(true,false,false);
     graph->PrintLinks(std::cout);
+    graph->Setup_device_graph(left_electrode_distance, right_electrode_distance);  
 //    graph->LinkSort();
 //    std::cout << graph->Determine_Max_Pair_Degree() << endl;
 //    std::cout << graph->Determine_Hopping_Distance() << endl;
@@ -108,8 +103,8 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     exit(0);
     
     state = new State();
-    events = new Events();
-    vssmgroup = new Vssmgroup();
+//    events = new Events();
+//    vssmgroup = new Vssmgroup();
 }
 
 bool Diode::EvaluateFrame() {
