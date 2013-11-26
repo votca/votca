@@ -133,7 +133,7 @@
 		<name>rates</name>
 		<description>Evaluates charge transfer rates for molecular pairs</description>
 		<execute>{ctp_run} -e {name} -o {name}.xml -f {sql}</execute> 
-		<requires>einternal emultipole izindo</requires>
+		<requires>einternal emultipole izindo eoutersphere</requires>
 		<verify>{ctp_state} -f {sql} -e rates2xml</verify>
 		<output>extract.rates.xml</output>
 	</test>
@@ -144,6 +144,14 @@
 		<requires>rates</requires>
 		<verify>{ctp_state} -f {sql} -e occupations2xml</verify>
 		<output>extract.occupations.xml</output>
+	</test>
+	<test>
+		<name>kmcmultiple</name>
+		<description>Simulates drift-diffusion of multiple charge carriers</description>
+		<execute>{kmc_run} -e {name} -o {name}.xml -f {sql}</execute>
+		<requires>rates</requires>
+		<verify></verify>
+		<output>kmcmultiple.log kmcmultiple.trajectory.csv</output>
 	</test>
 	<test>
 		<name>jobwriter</name>
@@ -175,7 +183,6 @@
 		    edft.jobs.xml
 		</output>
 	</test>
-
 	<test>
 		<name>idft</name>
 		<description>Evaluates electronic coupling elements</description>

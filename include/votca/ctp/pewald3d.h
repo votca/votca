@@ -47,8 +47,6 @@ namespace votca { namespace ctp {
     
     private:
         
-        string _shape; // Summation shape (for 3D corr. term)
-        
     };
 
 }}

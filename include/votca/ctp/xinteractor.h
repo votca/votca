@@ -113,10 +113,18 @@ private:
     double EUU;
 
 
-    vec    e12;     //  |
-    double u3;      //  |-> NOTE: Only needed when using Thole model
-    double a;       //  |         (do not forget to init. though...)
-
+    vec    e12;      //  |
+    double u3;       //  |-> NOTE: Only needed when using Thole model
+    double a;        //  |         (do not forget to init. though...)
+    double lambda3;  //  |
+    double lambda5;  //  |
+    double lambda7;  //  |
+    double lambda9;  //  |
+    double plambda3; //  |
+    double plambda5; //  |
+    double plambda7; //  |
+    double plambda9; //  |
+    
     double R;       //  |
     double R2;      //  |
     double R3;      //  |-> NOTE: reciprocal, i.e. e.g. R3 = 1/(R*R*R)
@@ -129,11 +137,15 @@ private:
     double cyx, cyy, cyz;
     double czx, czy, czz;
 
-    inline double lambda3() { return 1 - exp( -a*u3); }
-    inline double lambda5() { return 1 - (1 + a*u3) * exp( -a*u3); }
-    inline double lambda7() { return 1 - (1 + a*u3 + 0.6*a*a*u3*u3) * exp( -a*u3); }
-    inline double lambda9() { return 1 - (1 + a*u3 + (18*a*a*u3*u3 + 9*a*a*a*u3*u3*u3)/35) * exp( -a*u3); }
-
+    inline void setLambda3() { lambda3 = 1 - exp( -a*u3); }
+    inline void setLambda5() { lambda5 = 1 - (1 + a*u3) * exp( -a*u3); }
+    inline void setLambda7() { lambda7 = 1 - (1 + a*u3 + 0.6*a*a*u3*u3) * exp( -a*u3); }
+    inline void setLambda9() { lambda9 = 1 - (1 + a*u3 + (18*a*a*u3*u3 + 9*a*a*a*u3*u3*u3)/35) * exp( -a*u3); }
+    inline void setpLambda3() { plambda3 = 1 - exp( -a*u3); }
+    inline void setpLambda5() { plambda5 = 1 - (1 + a*u3) * exp( -a*u3); }
+    inline void setpLambda7() { plambda7 = 1 - (1 + a*u3 + 0.6*a*a*u3*u3) * exp( -a*u3); }
+    inline void setpLambda9() { plambda9 = 1 - (1 + a*u3 + (18*a*a*u3*u3 + 9*a*a*a*u3*u3*u3)/35) * exp( -a*u3); }
+    
     inline double T00_00() { return R; }
 
     inline double T1x_00() { return R2 * rax; }
@@ -143,12 +155,19 @@ private:
     inline double T00_1y() { return R2 * rby; }
     inline double T00_1z() { return R2 * rbz; }
 
-    inline double TU1x_00() { return lambda3() * R2 * rax; }
-    inline double TU1y_00() { return lambda3() * R2 * ray; }
-    inline double TU1z_00() { return lambda3() * R2 * raz; }
-    inline double TU00_1x() { return lambda3() * R2 * rbx; }
-    inline double TU00_1y() { return lambda3() * R2 * rby; }
-    inline double TU00_1z() { return lambda3() * R2 * rbz; }
+    inline double TU1x_00() { return lambda3 * R2 * rax; }
+    inline double TU1y_00() { return lambda3 * R2 * ray; }
+    inline double TU1z_00() { return lambda3 * R2 * raz; }
+    inline double TU00_1x() { return lambda3 * R2 * rbx; }
+    inline double TU00_1y() { return lambda3 * R2 * rby; }
+    inline double TU00_1z() { return lambda3 * R2 * rbz; }
+    
+    inline double pTU1x_00() { return plambda3 * R2 * rax; }
+    inline double pTU1y_00() { return plambda3 * R2 * ray; }
+    inline double pTU1z_00() { return plambda3 * R2 * raz; }
+    inline double pTU00_1x() { return plambda3 * R2 * rbx; }
+    inline double pTU00_1y() { return plambda3 * R2 * rby; }
+    inline double pTU00_1z() { return plambda3 * R2 * rbz; }
 
     inline double T20_00()  { return R3 * 0.5 * (3 * raz*raz - 1); }
     inline double T21c_00() { return R3 * sqrt(3) * rax * raz; }
@@ -171,15 +190,25 @@ private:
     inline double T1z_1y() { return R3 * (3 * raz*rby + czy); }
     inline double T1z_1z() { return R3 * (3 * raz*rbz + czz); }
 
-    inline double TU1x_1x() { return R3 * (lambda5()*3*rax*rbx + lambda3()*cxx); }
-    inline double TU1x_1y() { return R3 * (lambda5()*3*rax*rby + lambda3()*cxy); }
-    inline double TU1x_1z() { return R3 * (lambda5()*3*rax*rbz + lambda3()*cxz); }
-    inline double TU1y_1x() { return R3 * (lambda5()*3*ray*rbx + lambda3()*cyx); }
-    inline double TU1y_1y() { return R3 * (lambda5()*3*ray*rby + lambda3()*cyy); }
-    inline double TU1y_1z() { return R3 * (lambda5()*3*ray*rbz + lambda3()*cyz); }
-    inline double TU1z_1x() { return R3 * (lambda5()*3*raz*rbx + lambda3()*czx); }
-    inline double TU1z_1y() { return R3 * (lambda5()*3*raz*rby + lambda3()*czy); }
-    inline double TU1z_1z() { return R3 * (lambda5()*3*raz*rbz + lambda3()*czz); }
+    inline double TU1x_1x() { return R3 * (lambda5*3*rax*rbx + lambda3*cxx); }
+    inline double TU1x_1y() { return R3 * (lambda5*3*rax*rby + lambda3*cxy); }
+    inline double TU1x_1z() { return R3 * (lambda5*3*rax*rbz + lambda3*cxz); }
+    inline double TU1y_1x() { return R3 * (lambda5*3*ray*rbx + lambda3*cyx); }
+    inline double TU1y_1y() { return R3 * (lambda5*3*ray*rby + lambda3*cyy); }
+    inline double TU1y_1z() { return R3 * (lambda5*3*ray*rbz + lambda3*cyz); }
+    inline double TU1z_1x() { return R3 * (lambda5*3*raz*rbx + lambda3*czx); }
+    inline double TU1z_1y() { return R3 * (lambda5*3*raz*rby + lambda3*czy); }
+    inline double TU1z_1z() { return R3 * (lambda5*3*raz*rbz + lambda3*czz); }
+    
+    inline double pTU1x_1x() { return R3 * (plambda5*3*rax*rbx + plambda3*cxx); }
+    inline double pTU1x_1y() { return R3 * (plambda5*3*rax*rby + plambda3*cxy); }
+    inline double pTU1x_1z() { return R3 * (plambda5*3*rax*rbz + plambda3*cxz); }
+    inline double pTU1y_1x() { return R3 * (plambda5*3*ray*rbx + plambda3*cyx); }
+    inline double pTU1y_1y() { return R3 * (plambda5*3*ray*rby + plambda3*cyy); }
+    inline double pTU1y_1z() { return R3 * (plambda5*3*ray*rbz + plambda3*cyz); }
+    inline double pTU1z_1x() { return R3 * (plambda5*3*raz*rbx + plambda3*czx); }
+    inline double pTU1z_1y() { return R3 * (plambda5*3*raz*rby + plambda3*czy); }
+    inline double pTU1z_1z() { return R3 * (plambda5*3*raz*rbz + plambda3*czz); }
 
     inline double T20_1x()  { return R4 * 0.5 * (15*raz*raz*rbx + 6*raz*czx - 3*rbx); }
     inline double T20_1y()  { return R4 * 0.5 * (15*raz*raz*rby + 6*raz*czy - 3*rby); }
@@ -213,38 +242,70 @@ private:
     inline double T1y_22s() { return R4 * sqrt(3) * ( 5*rbx*rby*ray + rbx*cyy + rby*cyx ); }
     inline double T1z_22s() { return R4 * sqrt(3) * ( 5*rbx*rby*raz + rbx*czy + rby*czx ); }
 
-    inline double TU20_1x()  { return R4 * 0.5 * (lambda7()*15*raz*raz*rbx + lambda5()*(6*raz*czx - 3*rbx)); }
-    inline double TU20_1y()  { return R4 * 0.5 * (lambda7()*15*raz*raz*rby + lambda5()*(6*raz*czy - 3*rby)); }
-    inline double TU20_1z()  { return R4 * 0.5 * (lambda7()*15*raz*raz*rbz + lambda5()*(6*raz*czz - 3*rbz)); }
-    inline double TU21c_1x() { return R4 * sqrt(3) * (lambda5()*(rax*czx + cxx*raz) + lambda7()*5*rax*raz*rbx); }
-    inline double TU21c_1y() { return R4 * sqrt(3) * (lambda5()*(rax*czy + cxy*raz) + lambda7()*5*rax*raz*rby); }
-    inline double TU21c_1z() { return R4 * sqrt(3) * (lambda5()*(rax*czz + cxz*raz) + lambda7()*5*rax*raz*rbz); }
-    inline double TU21s_1x() { return R4 * sqrt(3) * (lambda5()*(ray*czx + cyx*raz) + lambda7()*5*ray*raz*rbx); }
-    inline double TU21s_1y() { return R4 * sqrt(3) * (lambda5()*(ray*czy + cyy*raz) + lambda7()*5*ray*raz*rby); }
-    inline double TU21s_1z() { return R4 * sqrt(3) * (lambda5()*(ray*czz + cyz*raz) + lambda7()*5*ray*raz*rbz); }
-    inline double TU22c_1x() { return R4 * 0.5 * sqrt(3) * (lambda7()*5*(rax*rax-ray*ray)*rbx + lambda5()*(2*rax*cxx - 2*ray*cyx)); }
-    inline double TU22c_1y() { return R4 * 0.5 * sqrt(3) * (lambda7()*5*(rax*rax-ray*ray)*rby + lambda5()*(2*rax*cxy - 2*ray*cyy)); }
-    inline double TU22c_1z() { return R4 * 0.5 * sqrt(3) * (lambda7()*5*(rax*rax-ray*ray)*rbz + lambda5()*(2*rax*cxz - 2*ray*cyz)); }
-    inline double TU22s_1x() { return R4 * sqrt(3) * (lambda7()*5*rax*ray*rbx + lambda5()*(rax*cyx + ray*cxx) ); }
-    inline double TU22s_1y() { return R4 * sqrt(3) * (lambda7()*5*rax*ray*rby + lambda5()*(rax*cyy + ray*cxy) ); }
-    inline double TU22s_1z() { return R4 * sqrt(3) * (lambda7()*5*rax*ray*rbz + lambda5()*(rax*cyz + ray*cxz) ); }
+    inline double TU20_1x()  { return R4 * 0.5 * (lambda7*15*raz*raz*rbx + lambda5*(6*raz*czx - 3*rbx)); }
+    inline double TU20_1y()  { return R4 * 0.5 * (lambda7*15*raz*raz*rby + lambda5*(6*raz*czy - 3*rby)); }
+    inline double TU20_1z()  { return R4 * 0.5 * (lambda7*15*raz*raz*rbz + lambda5*(6*raz*czz - 3*rbz)); }
+    inline double TU21c_1x() { return R4 * sqrt(3) * (lambda5*(rax*czx + cxx*raz) + lambda7*5*rax*raz*rbx); }
+    inline double TU21c_1y() { return R4 * sqrt(3) * (lambda5*(rax*czy + cxy*raz) + lambda7*5*rax*raz*rby); }
+    inline double TU21c_1z() { return R4 * sqrt(3) * (lambda5*(rax*czz + cxz*raz) + lambda7*5*rax*raz*rbz); }
+    inline double TU21s_1x() { return R4 * sqrt(3) * (lambda5*(ray*czx + cyx*raz) + lambda7*5*ray*raz*rbx); }
+    inline double TU21s_1y() { return R4 * sqrt(3) * (lambda5*(ray*czy + cyy*raz) + lambda7*5*ray*raz*rby); }
+    inline double TU21s_1z() { return R4 * sqrt(3) * (lambda5*(ray*czz + cyz*raz) + lambda7*5*ray*raz*rbz); }
+    inline double TU22c_1x() { return R4 * 0.5 * sqrt(3) * (lambda7*5*(rax*rax-ray*ray)*rbx + lambda5*(2*rax*cxx - 2*ray*cyx)); }
+    inline double TU22c_1y() { return R4 * 0.5 * sqrt(3) * (lambda7*5*(rax*rax-ray*ray)*rby + lambda5*(2*rax*cxy - 2*ray*cyy)); }
+    inline double TU22c_1z() { return R4 * 0.5 * sqrt(3) * (lambda7*5*(rax*rax-ray*ray)*rbz + lambda5*(2*rax*cxz - 2*ray*cyz)); }
+    inline double TU22s_1x() { return R4 * sqrt(3) * (lambda7*5*rax*ray*rbx + lambda5*(rax*cyx + ray*cxx) ); }
+    inline double TU22s_1y() { return R4 * sqrt(3) * (lambda7*5*rax*ray*rby + lambda5*(rax*cyy + ray*cxy) ); }
+    inline double TU22s_1z() { return R4 * sqrt(3) * (lambda7*5*rax*ray*rbz + lambda5*(rax*cyz + ray*cxz) ); }
 
-    inline double TU1x_20()  { return R4 * 0.5 * (lambda7()*15*rbz*rbz*rax + lambda5()*(6*rbz*cxz - 3*rax)); }
-    inline double TU1y_20()  { return R4 * 0.5 * (lambda7()*15*rbz*rbz*ray + lambda5()*(6*rbz*cyz - 3*ray)); }
-    inline double TU1z_20()  { return R4 * 0.5 * (lambda7()*15*rbz*rbz*raz + lambda5()*(6*rbz*czz - 3*raz)); }
-    inline double TU1x_21c() { return R4 * sqrt(3) * (lambda5()*(rbx*cxz + cxx*rbz) + lambda7()*5*rbx*rbz*rax); }
-    inline double TU1y_21c() { return R4 * sqrt(3) * (lambda5()*(rbx*cyz + cyx*rbz) + lambda7()*5*rbx*rbz*ray); }
-    inline double TU1z_21c() { return R4 * sqrt(3) * (lambda5()*(rbx*czz + czx*rbz) + lambda7()*5*rbx*rbz*raz); }
-    inline double TU1x_21s() { return R4 * sqrt(3) * (lambda5()*(rby*cxz + cxy*rbz) + lambda7()*5*rby*rbz*rax); }
-    inline double TU1y_21s() { return R4 * sqrt(3) * (lambda5()*(rby*cyz + cyy*rbz) + lambda7()*5*rby*rbz*ray); }
-    inline double TU1z_21s() { return R4 * sqrt(3) * (lambda5()*(rby*czz + czy*rbz) + lambda7()*5*rby*rbz*raz); }
-    inline double TU1x_22c() { return R4 * 0.5 * sqrt(3) * (lambda7()*5*(rbx*rbx-rby*rby)*rax + lambda5()*(2*rbx*cxx - 2*rby*cxy)); }
-    inline double TU1y_22c() { return R4 * 0.5 * sqrt(3) * (lambda7()*5*(rbx*rbx-rby*rby)*ray + lambda5()*(2*rbx*cyx - 2*rby*cyy)); }
-    inline double TU1z_22c() { return R4 * 0.5 * sqrt(3) * (lambda7()*5*(rbx*rbx-rby*rby)*raz + lambda5()*(2*rbx*czx - 2*rby*czy)); }
-    inline double TU1x_22s() { return R4 * sqrt(3) * (lambda7()*5*rbx*rby*rax + lambda5()*(rbx*cxy + rby*cxx) ); }
-    inline double TU1y_22s() { return R4 * sqrt(3) * (lambda7()*5*rbx*rby*ray + lambda5()*(rbx*cyy + rby*cyx) ); }
-    inline double TU1z_22s() { return R4 * sqrt(3) * (lambda7()*5*rbx*rby*raz + lambda5()*(rbx*czy + rby*czx) ); }
+    inline double TU1x_20()  { return R4 * 0.5 * (lambda7*15*rbz*rbz*rax + lambda5*(6*rbz*cxz - 3*rax)); }
+    inline double TU1y_20()  { return R4 * 0.5 * (lambda7*15*rbz*rbz*ray + lambda5*(6*rbz*cyz - 3*ray)); }
+    inline double TU1z_20()  { return R4 * 0.5 * (lambda7*15*rbz*rbz*raz + lambda5*(6*rbz*czz - 3*raz)); }
+    inline double TU1x_21c() { return R4 * sqrt(3) * (lambda5*(rbx*cxz + cxx*rbz) + lambda7*5*rbx*rbz*rax); }
+    inline double TU1y_21c() { return R4 * sqrt(3) * (lambda5*(rbx*cyz + cyx*rbz) + lambda7*5*rbx*rbz*ray); }
+    inline double TU1z_21c() { return R4 * sqrt(3) * (lambda5*(rbx*czz + czx*rbz) + lambda7*5*rbx*rbz*raz); }
+    inline double TU1x_21s() { return R4 * sqrt(3) * (lambda5*(rby*cxz + cxy*rbz) + lambda7*5*rby*rbz*rax); }
+    inline double TU1y_21s() { return R4 * sqrt(3) * (lambda5*(rby*cyz + cyy*rbz) + lambda7*5*rby*rbz*ray); }
+    inline double TU1z_21s() { return R4 * sqrt(3) * (lambda5*(rby*czz + czy*rbz) + lambda7*5*rby*rbz*raz); }
+    inline double TU1x_22c() { return R4 * 0.5 * sqrt(3) * (lambda7*5*(rbx*rbx-rby*rby)*rax + lambda5*(2*rbx*cxx - 2*rby*cxy)); }
+    inline double TU1y_22c() { return R4 * 0.5 * sqrt(3) * (lambda7*5*(rbx*rbx-rby*rby)*ray + lambda5*(2*rbx*cyx - 2*rby*cyy)); }
+    inline double TU1z_22c() { return R4 * 0.5 * sqrt(3) * (lambda7*5*(rbx*rbx-rby*rby)*raz + lambda5*(2*rbx*czx - 2*rby*czy)); }
+    inline double TU1x_22s() { return R4 * sqrt(3) * (lambda7*5*rbx*rby*rax + lambda5*(rbx*cxy + rby*cxx) ); }
+    inline double TU1y_22s() { return R4 * sqrt(3) * (lambda7*5*rbx*rby*ray + lambda5*(rbx*cyy + rby*cyx) ); }
+    inline double TU1z_22s() { return R4 * sqrt(3) * (lambda7*5*rbx*rby*raz + lambda5*(rbx*czy + rby*czx) ); }
 
+    inline double pTU20_1x()  { return R4 * 0.5 * (plambda7*15*raz*raz*rbx + plambda5*(6*raz*czx - 3*rbx)); }
+    inline double pTU20_1y()  { return R4 * 0.5 * (plambda7*15*raz*raz*rby + plambda5*(6*raz*czy - 3*rby)); }
+    inline double pTU20_1z()  { return R4 * 0.5 * (plambda7*15*raz*raz*rbz + plambda5*(6*raz*czz - 3*rbz)); }
+    inline double pTU21c_1x() { return R4 * sqrt(3) * (plambda5*(rax*czx + cxx*raz) + plambda7*5*rax*raz*rbx); }
+    inline double pTU21c_1y() { return R4 * sqrt(3) * (plambda5*(rax*czy + cxy*raz) + plambda7*5*rax*raz*rby); }
+    inline double pTU21c_1z() { return R4 * sqrt(3) * (plambda5*(rax*czz + cxz*raz) + plambda7*5*rax*raz*rbz); }
+    inline double pTU21s_1x() { return R4 * sqrt(3) * (plambda5*(ray*czx + cyx*raz) + plambda7*5*ray*raz*rbx); }
+    inline double pTU21s_1y() { return R4 * sqrt(3) * (plambda5*(ray*czy + cyy*raz) + plambda7*5*ray*raz*rby); }
+    inline double pTU21s_1z() { return R4 * sqrt(3) * (plambda5*(ray*czz + cyz*raz) + plambda7*5*ray*raz*rbz); }
+    inline double pTU22c_1x() { return R4 * 0.5 * sqrt(3) * (plambda7*5*(rax*rax-ray*ray)*rbx + plambda5*(2*rax*cxx - 2*ray*cyx)); }
+    inline double pTU22c_1y() { return R4 * 0.5 * sqrt(3) * (plambda7*5*(rax*rax-ray*ray)*rby + plambda5*(2*rax*cxy - 2*ray*cyy)); }
+    inline double pTU22c_1z() { return R4 * 0.5 * sqrt(3) * (plambda7*5*(rax*rax-ray*ray)*rbz + plambda5*(2*rax*cxz - 2*ray*cyz)); }
+    inline double pTU22s_1x() { return R4 * sqrt(3) * (plambda7*5*rax*ray*rbx + plambda5*(rax*cyx + ray*cxx) ); }
+    inline double pTU22s_1y() { return R4 * sqrt(3) * (plambda7*5*rax*ray*rby + plambda5*(rax*cyy + ray*cxy) ); }
+    inline double pTU22s_1z() { return R4 * sqrt(3) * (plambda7*5*rax*ray*rbz + plambda5*(rax*cyz + ray*cxz) ); }
+
+    inline double pTU1x_20()  { return R4 * 0.5 * (plambda7*15*rbz*rbz*rax + plambda5*(6*rbz*cxz - 3*rax)); }
+    inline double pTU1y_20()  { return R4 * 0.5 * (plambda7*15*rbz*rbz*ray + plambda5*(6*rbz*cyz - 3*ray)); }
+    inline double pTU1z_20()  { return R4 * 0.5 * (plambda7*15*rbz*rbz*raz + plambda5*(6*rbz*czz - 3*raz)); }
+    inline double pTU1x_21c() { return R4 * sqrt(3) * (plambda5*(rbx*cxz + cxx*rbz) + plambda7*5*rbx*rbz*rax); }
+    inline double pTU1y_21c() { return R4 * sqrt(3) * (plambda5*(rbx*cyz + cyx*rbz) + plambda7*5*rbx*rbz*ray); }
+    inline double pTU1z_21c() { return R4 * sqrt(3) * (plambda5*(rbx*czz + czx*rbz) + plambda7*5*rbx*rbz*raz); }
+    inline double pTU1x_21s() { return R4 * sqrt(3) * (plambda5*(rby*cxz + cxy*rbz) + plambda7*5*rby*rbz*rax); }
+    inline double pTU1y_21s() { return R4 * sqrt(3) * (plambda5*(rby*cyz + cyy*rbz) + plambda7*5*rby*rbz*ray); }
+    inline double pTU1z_21s() { return R4 * sqrt(3) * (plambda5*(rby*czz + czy*rbz) + plambda7*5*rby*rbz*raz); }
+    inline double pTU1x_22c() { return R4 * 0.5 * sqrt(3) * (plambda7*5*(rbx*rbx-rby*rby)*rax + plambda5*(2*rbx*cxx - 2*rby*cxy)); }
+    inline double pTU1y_22c() { return R4 * 0.5 * sqrt(3) * (plambda7*5*(rbx*rbx-rby*rby)*ray + plambda5*(2*rbx*cyx - 2*rby*cyy)); }
+    inline double pTU1z_22c() { return R4 * 0.5 * sqrt(3) * (plambda7*5*(rbx*rbx-rby*rby)*raz + plambda5*(2*rbx*czx - 2*rby*czy)); }
+    inline double pTU1x_22s() { return R4 * sqrt(3) * (plambda7*5*rbx*rby*rax + plambda5*(rbx*cxy + rby*cxx) ); }
+    inline double pTU1y_22s() { return R4 * sqrt(3) * (plambda7*5*rbx*rby*ray + plambda5*(rbx*cyy + rby*cyx) ); }
+    inline double pTU1z_22s() { return R4 * sqrt(3) * (plambda7*5*rbx*rby*raz + plambda5*(rbx*czy + rby*czx) ); }
+    
     inline double T20_20()   { return R5 * 0.75 * (35*raz*raz*rbz*rbz - 5*raz*raz - 5*rbz*rbz + 20*raz*rbz*czz + 2*czz*czz + 1); }
     inline double T20_21c()  { return R5 * 0.5 * sqrt(3) * (35*raz*raz*rbx*rbz - 5*rbx*rbz + 10*raz*rbx*czz + 10*raz*rbz*czx + 2*czx*czz); }
     inline double T20_21s()  { return R5 * 0.5 * sqrt(3) * (35*raz*raz*rby*rbz - 5*rby*rbz + 10*raz*rby*czz + 10*raz*rbz*czy + 2*czy*czz); }
@@ -561,7 +622,7 @@ inline void XInteractor::FieldIndu(APolarSite &pol1, APolarSite &pol2) {
 //        czz = 1;
 
     // Fields generated by rank-1 induced m'poles
-
+    
     if (a*u3 < 40.0) {
         pol1.FUx += TU1x_1x() * pol2.U1x;
         pol1.FUx += TU1x_1y() * pol2.U1y;
@@ -658,77 +719,153 @@ inline void XInteractor::FieldPerm(APolarSite &pol1, APolarSite &pol2) {
 //        czz = 1;
 //    }
 
-    // Fields generated by rank-0 m'poles
-        pol1.FPx += T1x_00() * pol2.Q00;
-        pol1.FPy += T1y_00() * pol2.Q00;
-        pol1.FPz += T1z_00() * pol2.Q00;
+    if (a*u3 < 40) {
+        // Fields generated by rank-0 m'poles
+            pol1.FPx += pTU1x_00() * pol2.Q00;
+            pol1.FPy += pTU1y_00() * pol2.Q00;
+            pol1.FPz += pTU1z_00() * pol2.Q00;
 
-        pol2.FPx += T00_1x() * pol1.Q00;
-        pol2.FPy += T00_1y() * pol1.Q00;
-        pol2.FPz += T00_1z() * pol1.Q00;
+            pol2.FPx += pTU00_1x() * pol1.Q00;
+            pol2.FPy += pTU00_1y() * pol1.Q00;
+            pol2.FPz += pTU00_1z() * pol1.Q00;
 
-    // Fields generated by rank-1 m'poles
-    if (pol2._rank > 0) {
-        pol1.FPx += T1x_1x() * pol2.Q1x;
-        pol1.FPx += T1x_1y() * pol2.Q1y;
-        pol1.FPx += T1x_1z() * pol2.Q1z;
-        pol1.FPy += T1y_1x() * pol2.Q1x;
-        pol1.FPy += T1y_1y() * pol2.Q1y;
-        pol1.FPy += T1y_1z() * pol2.Q1z;
-        pol1.FPz += T1z_1x() * pol2.Q1x;
-        pol1.FPz += T1z_1y() * pol2.Q1y;
-        pol1.FPz += T1z_1z() * pol2.Q1z;
+        // Fields generated by rank-1 m'poles
+        if (pol2._rank > 0) {
+            pol1.FPx += pTU1x_1x() * pol2.Q1x;
+            pol1.FPx += pTU1x_1y() * pol2.Q1y;
+            pol1.FPx += pTU1x_1z() * pol2.Q1z;
+            pol1.FPy += pTU1y_1x() * pol2.Q1x;
+            pol1.FPy += pTU1y_1y() * pol2.Q1y;
+            pol1.FPy += pTU1y_1z() * pol2.Q1z;
+            pol1.FPz += pTU1z_1x() * pol2.Q1x;
+            pol1.FPz += pTU1z_1y() * pol2.Q1y;
+            pol1.FPz += pTU1z_1z() * pol2.Q1z;
+        }
+        if (pol1._rank > 0) {
+            pol2.FPx += pTU1x_1x() * pol1.Q1x;
+            pol2.FPx += pTU1y_1x() * pol1.Q1y;
+            pol2.FPx += pTU1z_1x() * pol1.Q1z;
+            pol2.FPy += pTU1x_1y() * pol1.Q1x;
+            pol2.FPy += pTU1y_1y() * pol1.Q1y;
+            pol2.FPy += pTU1z_1y() * pol1.Q1z;
+            pol2.FPz += pTU1x_1z() * pol1.Q1x;
+            pol2.FPz += pTU1y_1z() * pol1.Q1y;
+            pol2.FPz += pTU1z_1z() * pol1.Q1z;
+        }
+
+        // Fields generated by rank-2 m'poles
+        if (pol2._rank > 1) {
+            pol1.FPx += pTU1x_20()  * pol2.Q20;
+            pol1.FPx += pTU1x_21c() * pol2.Q21c;
+            pol1.FPx += pTU1x_21s() * pol2.Q21s;
+            pol1.FPx += pTU1x_22c() * pol2.Q22c;
+            pol1.FPx += pTU1x_22s() * pol2.Q22s;
+
+            pol1.FPy += pTU1y_20()  * pol2.Q20;
+            pol1.FPy += pTU1y_21c() * pol2.Q21c;
+            pol1.FPy += pTU1y_21s() * pol2.Q21s;
+            pol1.FPy += pTU1y_22c() * pol2.Q22c;
+            pol1.FPy += pTU1y_22s() * pol2.Q22s;
+
+            pol1.FPz += pTU1z_20()  * pol2.Q20;
+            pol1.FPz += pTU1z_21c() * pol2.Q21c;
+            pol1.FPz += pTU1z_21s() * pol2.Q21s;
+            pol1.FPz += pTU1z_22c() * pol2.Q22c;
+            pol1.FPz += pTU1z_22s() * pol2.Q22s;
+        }
+        if (pol1._rank > 1) {
+            pol2.FPx += pTU20_1x()  * pol1.Q20;
+            pol2.FPx += pTU21c_1x() * pol1.Q21c;
+            pol2.FPx += pTU21s_1x() * pol1.Q21s;
+            pol2.FPx += pTU22c_1x() * pol1.Q22c;
+            pol2.FPx += pTU22s_1x() * pol1.Q22s;
+
+            pol2.FPy += pTU20_1y()  * pol1.Q20;
+            pol2.FPy += pTU21c_1y() * pol1.Q21c;
+            pol2.FPy += pTU21s_1y() * pol1.Q21s;
+            pol2.FPy += pTU22c_1y() * pol1.Q22c;
+            pol2.FPy += pTU22s_1y() * pol1.Q22s;
+
+            pol2.FPz += pTU20_1z()  * pol1.Q20;
+            pol2.FPz += pTU21c_1z() * pol1.Q21c;
+            pol2.FPz += pTU21s_1z() * pol1.Q21s;
+            pol2.FPz += pTU22c_1z() * pol1.Q22c;
+            pol2.FPz += pTU22s_1z() * pol1.Q22s;        
+        }
     }
-    if (pol1._rank > 0) {
-        pol2.FPx += T1x_1x() * pol1.Q1x;
-        pol2.FPx += T1y_1x() * pol1.Q1y;
-        pol2.FPx += T1z_1x() * pol1.Q1z;
-        pol2.FPy += T1x_1y() * pol1.Q1x;
-        pol2.FPy += T1y_1y() * pol1.Q1y;
-        pol2.FPy += T1z_1y() * pol1.Q1z;
-        pol2.FPz += T1x_1z() * pol1.Q1x;
-        pol2.FPz += T1y_1z() * pol1.Q1y;
-        pol2.FPz += T1z_1z() * pol1.Q1z;
-    }
+    else {
+        // Fields generated by rank-0 m'poles
+            pol1.FPx += T1x_00() * pol2.Q00;
+            pol1.FPy += T1y_00() * pol2.Q00;
+            pol1.FPz += T1z_00() * pol2.Q00;
 
-    // Fields generated by rank-2 m'poles
-    if (pol2._rank > 1) {
-        pol1.FPx += T1x_20()  * pol2.Q20;
-        pol1.FPx += T1x_21c() * pol2.Q21c;
-        pol1.FPx += T1x_21s() * pol2.Q21s;
-        pol1.FPx += T1x_22c() * pol2.Q22c;
-        pol1.FPx += T1x_22s() * pol2.Q22s;
+            pol2.FPx += T00_1x() * pol1.Q00;
+            pol2.FPy += T00_1y() * pol1.Q00;
+            pol2.FPz += T00_1z() * pol1.Q00;
 
-        pol1.FPy += T1y_20()  * pol2.Q20;
-        pol1.FPy += T1y_21c() * pol2.Q21c;
-        pol1.FPy += T1y_21s() * pol2.Q21s;
-        pol1.FPy += T1y_22c() * pol2.Q22c;
-        pol1.FPy += T1y_22s() * pol2.Q22s;
+        // Fields generated by rank-1 m'poles
+        if (pol2._rank > 0) {
+            pol1.FPx += T1x_1x() * pol2.Q1x;
+            pol1.FPx += T1x_1y() * pol2.Q1y;
+            pol1.FPx += T1x_1z() * pol2.Q1z;
+            pol1.FPy += T1y_1x() * pol2.Q1x;
+            pol1.FPy += T1y_1y() * pol2.Q1y;
+            pol1.FPy += T1y_1z() * pol2.Q1z;
+            pol1.FPz += T1z_1x() * pol2.Q1x;
+            pol1.FPz += T1z_1y() * pol2.Q1y;
+            pol1.FPz += T1z_1z() * pol2.Q1z;
+        }
+        if (pol1._rank > 0) {
+            pol2.FPx += T1x_1x() * pol1.Q1x;
+            pol2.FPx += T1y_1x() * pol1.Q1y;
+            pol2.FPx += T1z_1x() * pol1.Q1z;
+            pol2.FPy += T1x_1y() * pol1.Q1x;
+            pol2.FPy += T1y_1y() * pol1.Q1y;
+            pol2.FPy += T1z_1y() * pol1.Q1z;
+            pol2.FPz += T1x_1z() * pol1.Q1x;
+            pol2.FPz += T1y_1z() * pol1.Q1y;
+            pol2.FPz += T1z_1z() * pol1.Q1z;
+        }
 
-        pol1.FPz += T1z_20()  * pol2.Q20;
-        pol1.FPz += T1z_21c() * pol2.Q21c;
-        pol1.FPz += T1z_21s() * pol2.Q21s;
-        pol1.FPz += T1z_22c() * pol2.Q22c;
-        pol1.FPz += T1z_22s() * pol2.Q22s;
-    }
-    if (pol1._rank > 1) {
-        pol2.FPx += T20_1x()  * pol1.Q20;
-        pol2.FPx += T21c_1x() * pol1.Q21c;
-        pol2.FPx += T21s_1x() * pol1.Q21s;
-        pol2.FPx += T22c_1x() * pol1.Q22c;
-        pol2.FPx += T22s_1x() * pol1.Q22s;
+        // Fields generated by rank-2 m'poles
+        if (pol2._rank > 1) {
+            pol1.FPx += T1x_20()  * pol2.Q20;
+            pol1.FPx += T1x_21c() * pol2.Q21c;
+            pol1.FPx += T1x_21s() * pol2.Q21s;
+            pol1.FPx += T1x_22c() * pol2.Q22c;
+            pol1.FPx += T1x_22s() * pol2.Q22s;
 
-        pol2.FPy += T20_1y()  * pol1.Q20;
-        pol2.FPy += T21c_1y() * pol1.Q21c;
-        pol2.FPy += T21s_1y() * pol1.Q21s;
-        pol2.FPy += T22c_1y() * pol1.Q22c;
-        pol2.FPy += T22s_1y() * pol1.Q22s;
+            pol1.FPy += T1y_20()  * pol2.Q20;
+            pol1.FPy += T1y_21c() * pol2.Q21c;
+            pol1.FPy += T1y_21s() * pol2.Q21s;
+            pol1.FPy += T1y_22c() * pol2.Q22c;
+            pol1.FPy += T1y_22s() * pol2.Q22s;
 
-        pol2.FPz += T20_1z()  * pol1.Q20;
-        pol2.FPz += T21c_1z() * pol1.Q21c;
-        pol2.FPz += T21s_1z() * pol1.Q21s;
-        pol2.FPz += T22c_1z() * pol1.Q22c;
-        pol2.FPz += T22s_1z() * pol1.Q22s;        
+            pol1.FPz += T1z_20()  * pol2.Q20;
+            pol1.FPz += T1z_21c() * pol2.Q21c;
+            pol1.FPz += T1z_21s() * pol2.Q21s;
+            pol1.FPz += T1z_22c() * pol2.Q22c;
+            pol1.FPz += T1z_22s() * pol2.Q22s;
+        }
+        if (pol1._rank > 1) {
+            pol2.FPx += T20_1x()  * pol1.Q20;
+            pol2.FPx += T21c_1x() * pol1.Q21c;
+            pol2.FPx += T21s_1x() * pol1.Q21s;
+            pol2.FPx += T22c_1x() * pol1.Q22c;
+            pol2.FPx += T22s_1x() * pol1.Q22s;
+
+            pol2.FPy += T20_1y()  * pol1.Q20;
+            pol2.FPy += T21c_1y() * pol1.Q21c;
+            pol2.FPy += T21s_1y() * pol1.Q21s;
+            pol2.FPy += T22c_1y() * pol1.Q22c;
+            pol2.FPy += T22s_1y() * pol1.Q22s;
+
+            pol2.FPz += T20_1z()  * pol1.Q20;
+            pol2.FPz += T21c_1z() * pol1.Q21c;
+            pol2.FPz += T21s_1z() * pol1.Q21s;
+            pol2.FPz += T22c_1z() * pol1.Q22c;
+            pol2.FPz += T22s_1z() * pol1.Q22s;        
+        }
     }
 }
 
@@ -1692,13 +1829,13 @@ inline double XInteractor::E_f(APolarSite &pol1, APolarSite &pol2) {
         //cout << "E up to q <-> q " << E << endl;
 
     if (a*u3 < 40) {
-        epu += pol1.U1x * TU1x_00() * pol2.Q00;
-        epu += pol1.U1y * TU1y_00() * pol2.Q00;
-        epu += pol1.U1z * TU1z_00() * pol2.Q00;
+        epu += pol1.U1x * pTU1x_00() * pol2.Q00;
+        epu += pol1.U1y * pTU1y_00() * pol2.Q00;
+        epu += pol1.U1z * pTU1z_00() * pol2.Q00;
 
-        epu += pol1.Q00 * TU00_1x() * pol2.U1x;
-        epu += pol1.Q00 * TU00_1y() * pol2.U1y;
-        epu += pol1.Q00 * TU00_1z() * pol2.U1z;
+        epu += pol1.Q00 * pTU00_1x() * pol2.U1x;
+        epu += pol1.Q00 * pTU00_1y() * pol2.U1y;
+        epu += pol1.Q00 * pTU00_1z() * pol2.U1z;
     }
     else {
         epu += pol1.U1x * T1x_00() * pol2.Q00;
@@ -1773,15 +1910,15 @@ inline double XInteractor::E_f(APolarSite &pol1, APolarSite &pol2) {
 
     if (pol1._rank > 0) {
         if (a*u3 < 40) {
-            epu += pol1.Q1x * TU1x_1x() * pol2.U1x;
-            epu += pol1.Q1x * TU1x_1y() * pol2.U1y;
-            epu += pol1.Q1x * TU1x_1z() * pol2.U1z;
-            epu += pol1.Q1y * TU1y_1x() * pol2.U1x;
-            epu += pol1.Q1y * TU1y_1y() * pol2.U1y;
-            epu += pol1.Q1y * TU1y_1z() * pol2.U1z;
-            epu += pol1.Q1z * TU1z_1x() * pol2.U1x;
-            epu += pol1.Q1z * TU1z_1y() * pol2.U1y;
-            epu += pol1.Q1z * TU1z_1z() * pol2.U1z;
+            epu += pol1.Q1x * pTU1x_1x() * pol2.U1x;
+            epu += pol1.Q1x * pTU1x_1y() * pol2.U1y;
+            epu += pol1.Q1x * pTU1x_1z() * pol2.U1z;
+            epu += pol1.Q1y * pTU1y_1x() * pol2.U1x;
+            epu += pol1.Q1y * pTU1y_1y() * pol2.U1y;
+            epu += pol1.Q1y * pTU1y_1z() * pol2.U1z;
+            epu += pol1.Q1z * pTU1z_1x() * pol2.U1x;
+            epu += pol1.Q1z * pTU1z_1y() * pol2.U1y;
+            epu += pol1.Q1z * pTU1z_1z() * pol2.U1z;
         }
         else {
             epu += pol1.Q1x * T1x_1x() * pol2.U1x;
@@ -1797,15 +1934,15 @@ inline double XInteractor::E_f(APolarSite &pol1, APolarSite &pol2) {
     }
     if (pol2._rank > 0) {
         if (a*u3 < 40) {
-            epu += pol1.U1x * TU1x_1x() * pol2.Q1x;
-            epu += pol1.U1x * TU1x_1y() * pol2.Q1y;
-            epu += pol1.U1x * TU1x_1z() * pol2.Q1z;
-            epu += pol1.U1y * TU1y_1x() * pol2.Q1x;
-            epu += pol1.U1y * TU1y_1y() * pol2.Q1y;
-            epu += pol1.U1y * TU1y_1z() * pol2.Q1z;
-            epu += pol1.U1z * TU1z_1x() * pol2.Q1x;
-            epu += pol1.U1z * TU1z_1y() * pol2.Q1y;
-            epu += pol1.U1z * TU1z_1z() * pol2.Q1z;
+            epu += pol1.U1x * pTU1x_1x() * pol2.Q1x;
+            epu += pol1.U1x * pTU1x_1y() * pol2.Q1y;
+            epu += pol1.U1x * pTU1x_1z() * pol2.Q1z;
+            epu += pol1.U1y * pTU1y_1x() * pol2.Q1x;
+            epu += pol1.U1y * pTU1y_1y() * pol2.Q1y;
+            epu += pol1.U1y * pTU1y_1z() * pol2.Q1z;
+            epu += pol1.U1z * pTU1z_1x() * pol2.Q1x;
+            epu += pol1.U1z * pTU1z_1y() * pol2.Q1y;
+            epu += pol1.U1z * pTU1z_1z() * pol2.Q1z;
         }
         else {
             epu += pol1.U1x * T1x_1x() * pol2.Q1x;
@@ -1867,21 +2004,21 @@ inline double XInteractor::E_f(APolarSite &pol1, APolarSite &pol2) {
 
     if (pol1._rank > 1) {
         if (a*u3 < 40.0) {
-            epu += pol1.Q20  * TU20_1x()  * pol2.U1x;
-            epu += pol1.Q20  * TU20_1y()  * pol2.U1y;
-            epu += pol1.Q20  * TU20_1z()  * pol2.U1z;
-            epu += pol1.Q21c * TU21c_1x() * pol2.U1x;
-            epu += pol1.Q21c * TU21c_1y() * pol2.U1y;
-            epu += pol1.Q21c * TU21c_1z() * pol2.U1z;
-            epu += pol1.Q21s * TU21s_1x() * pol2.U1x;
-            epu += pol1.Q21s * TU21s_1y() * pol2.U1y;
-            epu += pol1.Q21s * TU21s_1z() * pol2.U1z;
-            epu += pol1.Q22c * TU22c_1x() * pol2.U1x;
-            epu += pol1.Q22c * TU22c_1y() * pol2.U1y;
-            epu += pol1.Q22c * TU22c_1z() * pol2.U1z;
-            epu += pol1.Q22s * TU22s_1x() * pol2.U1x;
-            epu += pol1.Q22s * TU22s_1y() * pol2.U1y;
-            epu += pol1.Q22s * TU22s_1z() * pol2.U1z;
+            epu += pol1.Q20  * pTU20_1x()  * pol2.U1x;
+            epu += pol1.Q20  * pTU20_1y()  * pol2.U1y;
+            epu += pol1.Q20  * pTU20_1z()  * pol2.U1z;
+            epu += pol1.Q21c * pTU21c_1x() * pol2.U1x;
+            epu += pol1.Q21c * pTU21c_1y() * pol2.U1y;
+            epu += pol1.Q21c * pTU21c_1z() * pol2.U1z;
+            epu += pol1.Q21s * pTU21s_1x() * pol2.U1x;
+            epu += pol1.Q21s * pTU21s_1y() * pol2.U1y;
+            epu += pol1.Q21s * pTU21s_1z() * pol2.U1z;
+            epu += pol1.Q22c * pTU22c_1x() * pol2.U1x;
+            epu += pol1.Q22c * pTU22c_1y() * pol2.U1y;
+            epu += pol1.Q22c * pTU22c_1z() * pol2.U1z;
+            epu += pol1.Q22s * pTU22s_1x() * pol2.U1x;
+            epu += pol1.Q22s * pTU22s_1y() * pol2.U1y;
+            epu += pol1.Q22s * pTU22s_1z() * pol2.U1z;
         }
         else {
             epu += pol1.Q20  * T20_1x()  * pol2.U1x;
@@ -1903,21 +2040,21 @@ inline double XInteractor::E_f(APolarSite &pol1, APolarSite &pol2) {
     }
     if (pol2._rank > 1) {
         if (a*u3 < 40.0) {
-            epu += pol1.U1x * TU1x_20()  * pol2.Q20;
-            epu += pol1.U1x * TU1x_21c() * pol2.Q21c;
-            epu += pol1.U1x * TU1x_21s() * pol2.Q21s;
-            epu += pol1.U1x * TU1x_22c() * pol2.Q22c;
-            epu += pol1.U1x * TU1x_22s() * pol2.Q22s;
-            epu += pol1.U1y * TU1y_20()  * pol2.Q20;
-            epu += pol1.U1y * TU1y_21c() * pol2.Q21c;
-            epu += pol1.U1y * TU1y_21s() * pol2.Q21s;
-            epu += pol1.U1y * TU1y_22c() * pol2.Q22c;
-            epu += pol1.U1y * TU1y_22s() * pol2.Q22s;
-            epu += pol1.U1z * TU1z_20()  * pol2.Q20;
-            epu += pol1.U1z * TU1z_21c() * pol2.Q21c;
-            epu += pol1.U1z * TU1z_21s() * pol2.Q21s;
-            epu += pol1.U1z * TU1z_22c() * pol2.Q22c;
-            epu += pol1.U1z * TU1z_22s() * pol2.Q22s;
+            epu += pol1.U1x * pTU1x_20()  * pol2.Q20;
+            epu += pol1.U1x * pTU1x_21c() * pol2.Q21c;
+            epu += pol1.U1x * pTU1x_21s() * pol2.Q21s;
+            epu += pol1.U1x * pTU1x_22c() * pol2.Q22c;
+            epu += pol1.U1x * pTU1x_22s() * pol2.Q22s;
+            epu += pol1.U1y * pTU1y_20()  * pol2.Q20;
+            epu += pol1.U1y * pTU1y_21c() * pol2.Q21c;
+            epu += pol1.U1y * pTU1y_21s() * pol2.Q21s;
+            epu += pol1.U1y * pTU1y_22c() * pol2.Q22c;
+            epu += pol1.U1y * pTU1y_22s() * pol2.Q22s;
+            epu += pol1.U1z * pTU1z_20()  * pol2.Q20;
+            epu += pol1.U1z * pTU1z_21c() * pol2.Q21c;
+            epu += pol1.U1z * pTU1z_21s() * pol2.Q21s;
+            epu += pol1.U1z * pTU1z_22c() * pol2.Q22c;
+            epu += pol1.U1z * pTU1z_22s() * pol2.Q22s;
         }
         else {
             epu += pol1.U1x * T1x_20()  * pol2.Q20;
@@ -2114,9 +2251,9 @@ inline double XInteractor::E_m(APolarSite &pol1, APolarSite &pol2) {
 
 
     if (a*u3 < 40) {
-        epu += pol1.U1x * TU1x_00() * pol2.Q00;
-        epu += pol1.U1y * TU1y_00() * pol2.Q00;
-        epu += pol1.U1z * TU1z_00() * pol2.Q00;
+        epu += pol1.U1x * pTU1x_00() * pol2.Q00;
+        epu += pol1.U1y * pTU1y_00() * pol2.Q00;
+        epu += pol1.U1z * pTU1z_00() * pol2.Q00;
 
     }
     else {
@@ -2127,15 +2264,15 @@ inline double XInteractor::E_m(APolarSite &pol1, APolarSite &pol2) {
 
     if (pol2._rank > 0) {
         if (a*u3 < 40) {
-            epu += pol1.U1x * TU1x_1x() * pol2.Q1x;
-            epu += pol1.U1x * TU1x_1y() * pol2.Q1y;
-            epu += pol1.U1x * TU1x_1z() * pol2.Q1z;
-            epu += pol1.U1y * TU1y_1x() * pol2.Q1x;
-            epu += pol1.U1y * TU1y_1y() * pol2.Q1y;
-            epu += pol1.U1y * TU1y_1z() * pol2.Q1z;
-            epu += pol1.U1z * TU1z_1x() * pol2.Q1x;
-            epu += pol1.U1z * TU1z_1y() * pol2.Q1y;
-            epu += pol1.U1z * TU1z_1z() * pol2.Q1z;
+            epu += pol1.U1x * pTU1x_1x() * pol2.Q1x;
+            epu += pol1.U1x * pTU1x_1y() * pol2.Q1y;
+            epu += pol1.U1x * pTU1x_1z() * pol2.Q1z;
+            epu += pol1.U1y * pTU1y_1x() * pol2.Q1x;
+            epu += pol1.U1y * pTU1y_1y() * pol2.Q1y;
+            epu += pol1.U1y * pTU1y_1z() * pol2.Q1z;
+            epu += pol1.U1z * pTU1z_1x() * pol2.Q1x;
+            epu += pol1.U1z * pTU1z_1y() * pol2.Q1y;
+            epu += pol1.U1z * pTU1z_1z() * pol2.Q1z;
         }
         else {
             epu += pol1.U1x * T1x_1x() * pol2.Q1x;
@@ -2152,21 +2289,21 @@ inline double XInteractor::E_m(APolarSite &pol1, APolarSite &pol2) {
 
     if (pol2._rank > 1) {
         if (a*u3 < 40.0) {
-            epu += pol1.U1x * TU1x_20()  * pol2.Q20;
-            epu += pol1.U1x * TU1x_21c() * pol2.Q21c;
-            epu += pol1.U1x * TU1x_21s() * pol2.Q21s;
-            epu += pol1.U1x * TU1x_22c() * pol2.Q22c;
-            epu += pol1.U1x * TU1x_22s() * pol2.Q22s;
-            epu += pol1.U1y * TU1y_20()  * pol2.Q20;
-            epu += pol1.U1y * TU1y_21c() * pol2.Q21c;
-            epu += pol1.U1y * TU1y_21s() * pol2.Q21s;
-            epu += pol1.U1y * TU1y_22c() * pol2.Q22c;
-            epu += pol1.U1y * TU1y_22s() * pol2.Q22s;
-            epu += pol1.U1z * TU1z_20()  * pol2.Q20;
-            epu += pol1.U1z * TU1z_21c() * pol2.Q21c;
-            epu += pol1.U1z * TU1z_21s() * pol2.Q21s;
-            epu += pol1.U1z * TU1z_22c() * pol2.Q22c;
-            epu += pol1.U1z * TU1z_22s() * pol2.Q22s;
+            epu += pol1.U1x * pTU1x_20()  * pol2.Q20;
+            epu += pol1.U1x * pTU1x_21c() * pol2.Q21c;
+            epu += pol1.U1x * pTU1x_21s() * pol2.Q21s;
+            epu += pol1.U1x * pTU1x_22c() * pol2.Q22c;
+            epu += pol1.U1x * pTU1x_22s() * pol2.Q22s;
+            epu += pol1.U1y * pTU1y_20()  * pol2.Q20;
+            epu += pol1.U1y * pTU1y_21c() * pol2.Q21c;
+            epu += pol1.U1y * pTU1y_21s() * pol2.Q21s;
+            epu += pol1.U1y * pTU1y_22c() * pol2.Q22c;
+            epu += pol1.U1y * pTU1y_22s() * pol2.Q22s;
+            epu += pol1.U1z * pTU1z_20()  * pol2.Q20;
+            epu += pol1.U1z * pTU1z_21c() * pol2.Q21c;
+            epu += pol1.U1z * pTU1z_21s() * pol2.Q21s;
+            epu += pol1.U1z * pTU1z_22c() * pol2.Q22c;
+            epu += pol1.U1z * pTU1z_22s() * pol2.Q22s;
         }
         else {
             epu += pol1.U1x * T1x_20()  * pol2.Q20;
@@ -2432,15 +2569,20 @@ inline double XInteractor::E_Q0_DQ(APolarSite &pol1, APolarSite &pol2) {
 inline void XInteractor::BiasStat(APolarSite &pol1, APolarSite &pol2) {
     
     // NOTE >>> e12 points from polar site 1 to polar site 2 <<< NOTE //
-    //          This implies that induced = - alpha * field
     //e12  = _top->PbShortestConnect(pol1.getPos(), pol2.getPos());
-    e12  = pol2.getPos() - pol1.getPos();    
+    e12  = pol2.getPos() - pol1.getPos();
     R    = 1/abs(e12);
     R2   = R*R;
     R3   = R2*R;
     R4   = R3*R;
     R5   = R4*R;
     e12 *= R;
+
+    // Thole damping init.
+    u3   = 1 / (R3 * sqrt( 
+        1./3.*(pol1.Pxx*pol2.Pxx + pol1.Pxy*pol2.Pxy + pol1.Pxz*pol2.Pxz
+             + pol1.Pxy*pol2.Pxy + pol1.Pyy*pol2.Pyy + pol1.Pyz*pol2.Pyz
+             + pol1.Pxz*pol2.Pxz + pol1.Pyz*pol2.Pyz + pol1.Pzz*pol2.Pzz) ));
 
 //        rax =   pol1._locX * e12;
 //        ray =   pol1._locY * e12;
@@ -2453,7 +2595,6 @@ inline void XInteractor::BiasStat(APolarSite &pol1, APolarSite &pol2) {
         ray = e12.getY(); rby = - ray;
         raz = e12.getZ(); rbz = - raz;
 
-    if (pol1._rank > 0 || pol2._rank > 0) {
 //        cxx = pol1._locX * pol2._locX;
 //        cxy = pol1._locX * pol2._locY;
 //        cxz = pol1._locX * pol2._locZ;
@@ -2467,6 +2608,28 @@ inline void XInteractor::BiasStat(APolarSite &pol1, APolarSite &pol2) {
         cxx = 1;        cxy = 0;        cxz = 0;
         cyx = 0;        cyy = 1;        cyz = 0;
         czx = 0;        czy = 0;        czz = 1;
+        
+    // Interaction modifiers
+    if (a*u3 < 40) {
+        setLambda3();
+        setLambda5();
+        setLambda7();
+        setLambda9();
+        // PU interactions (field & energy): do not damp if both sites are CG
+        if (false && pol1._resolution == APolarSite::coarsegrained
+         && pol2._resolution == APolarSite::coarsegrained) {
+            plambda3 = plambda5 = plambda7 = plambda9 = 1.;
+        }
+        else {
+            plambda3 = lambda3;
+            plambda5 = lambda5;
+            plambda7 = lambda7;
+            plambda9 = lambda9;
+        }
+    }
+    else {
+        lambda3  = lambda5  = lambda7  = lambda9  = 1.;
+        plambda3 = plambda5 = plambda7 = plambda9 = 1.;
     }
 }
 
@@ -2513,7 +2676,29 @@ inline void XInteractor::BiasIndu(APolarSite &pol1, APolarSite &pol2) {
         cxx = 1;        cxy = 0;        cxz = 0;
         cyx = 0;        cyy = 1;        cyz = 0;
         czx = 0;        czy = 0;        czz = 1;
-
+        
+    // Interaction modifiers
+    if (a*u3 < 40) {
+        setLambda3();
+        setLambda5();
+        setLambda7();
+        setLambda9();
+        // PU interactions (field & energy): do not damp if both sites are CG
+        if (false && pol1._resolution == APolarSite::coarsegrained
+         && pol2._resolution == APolarSite::coarsegrained) {
+            plambda3 = plambda5 = plambda7 = plambda9 = 1.;
+        }
+        else {
+            plambda3 = lambda3;
+            plambda5 = lambda5;
+            plambda7 = lambda7;
+            plambda9 = lambda9;
+        }
+    }
+    else {
+        lambda3  = lambda5  = lambda7  = lambda9  = 1.;
+        plambda3 = plambda5 = plambda7 = plambda9 = 1.;
+    }
 }
 
 
