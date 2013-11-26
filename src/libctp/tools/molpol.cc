@@ -158,17 +158,28 @@ bool MolPolTool::Evaluate() {
                 break;
             }
             if (loop_count > max_iter) {
-                cout << endl << "... ... Iterative refinement : *FAILED*";
+                cout << endl << "... ... Iterative refinement : *FAILED*" << flush;
+                converged = false;
+                pseg_output = new PolarSeg(&pseg_inter, true);
                 break;
             }
         }
         
         // Output
-        pseg_output->WriteMPS(_mps_output, "MOLPOL (OPTIMIZED)");
-        matrix pmol = _molpolengine.CalculateMolPol(*pseg_output, true);
-        if (_pol_output != "") {
+        if (converged)
+            pseg_output->WriteMPS(_mps_output, "MOLPOL (OPTIMIZED)");
+        else {
+            cout << endl << "... ... ERROR Convergence not achieved. "
+                 << "Check your input mps-file, target polarizability <target> "
+                 << "or try decreasing <wSOR>." 
+                 << flush;
+        }        
+        
+        if (converged && _pol_output != "") {
+            matrix pmol = _molpolengine.CalculateMolPol(*pseg_output, true);
+            
             FILE *out;
-            out = fopen(_pol_output.c_str(), "w");
+            out = fopen(_pol_output.c_str(), "w");            
             
             double NM3_2_A3 = 1000.;
             double axx = pmol.get(0,0); double axy = pmol.get(0,1); double axz = pmol.get(0,2);
@@ -202,9 +213,11 @@ bool MolPolTool::Evaluate() {
         }
     }
     
-    
-    pseg_input.Coarsegrain(true);
-    pseg_input.WriteMPS("molpol.coarse."+_mps_output, "MOLPOL (UNSCALED, COARSE)");
+    if (tools::globals::verbose) {
+        pseg_input.Coarsegrain(true);
+        pseg_input.WriteMPS("molpol.coarse."+_mps_output,
+            "MOLPOL (UNSCALED, COARSE)");
+    }
     
     delete pseg_output;
     pseg_output = 0;
