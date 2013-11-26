@@ -23,7 +23,8 @@
 #include <votca/tools/database.h>
 
 namespace votca { namespace kmc {
-  
+
+    
 class GraphSQL : public Graph<NodeSQL, LinkSQL> {
 
 public:

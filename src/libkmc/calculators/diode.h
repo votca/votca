@@ -26,6 +26,7 @@
 //#include <votca/kmc/events.h>
 //#include <votca/kmc/vssmgroup.h>
 #include <votca/kmc/graphbulk.h>
+#include <votca/kmc/nodedevice.h>
 
 using namespace std;
 
@@ -38,7 +39,8 @@ class Diode : public KMCCalculator
 {
 public:
     
-    GraphBulk<GraphSQL, NodeSQL, LinkSQL>* graph;
+//    GraphBulk<GraphSQL, NodeSQL, LinkSQL>* graph;
+    GraphSQL* graph;
     State* state;
 //    Events* events;
 //    Vssmgroup* vssmgroup;
@@ -88,12 +90,16 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     graph->Print(std::cout);
     delete graph;    
     */
-    graph = new GraphBulk<GraphSQL, NodeSQL, LinkSQL>();
+    graph = new GraphSQL
+//    graph = new GraphBulk<GraphSQL, NodeSQL, LinkSQL>();
     graph->Initialize(filename);
 //    graph->PrintLinks(std::cout);
     graph->Break_periodicity(true,false,false);
-    graph->PrintLinks(std::cout);
-    graph->Setup_device_graph(left_electrode_distance, right_electrode_distance);  
+//    graph->PrintLinks(std::cout);
+    graph->LinkSort();
+    std::cout << graph->Determine_Max_Pair_Degree() << " a\n";
+    graph->Setup_device_graph(left_electrode_distance, right_electrode_distance);
+    
 //    graph->LinkSort();
 //    std::cout << graph->Determine_Max_Pair_Degree() << endl;
 //    std::cout << graph->Determine_Hopping_Distance() << endl;

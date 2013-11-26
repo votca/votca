@@ -66,8 +66,8 @@ private:
     double _hop_distance;
     votca::tools::vec _sim_box_size;
     
-    Node* left_electrode;
-    Node* right_electrode;
+    TNode* left_electrode;
+    TNode* right_electrode;
      
 };
 
@@ -208,17 +208,17 @@ void GraphBulk<TGraph, TNode, TLink>::Setup_device_graph(double left_distance, d
 
     // Translate the graph due to the spatial location of the electrodes and update system box size accordingly, putting the left electrode at x = 0
     // left_electrode_distance is the distance of the left electrode to the node with minimum x-coordinate
-
+    
+ /* 
     votca::tools::vec pos = this->_nodes[0]->position(); // initial value 
     double minX = pos.x();
 
     typename std::vector<TNode*>::iterator it;      
-    for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) {
+     for(int it = this->_nodes.begin(); it != this->_nodes.end(); it++) {
         pos = (*it)->position(); if(pos.x() < minX) {minX = pos.x();}
     }
-   // std::cout << minX << "\n";
-    
-    //distance by which the graph should be translated is left_electrode_distance - minX
+    std::cout << minX << "\n";
+   //distance by which the graph should be translated is left_electrode_distance - minX
 
     double xtranslate = left_distance - minX;
 
@@ -238,7 +238,7 @@ void GraphBulk<TGraph, TNode, TLink>::Setup_device_graph(double left_distance, d
     //introduce electrode nodes
     votca::tools::vec leftpos = votca::tools::vec(0.0,0.0,0.0);
     votca::tools::vec rightpos = votca::tools::vec(_sim_box_size.x(),0.0,0.0);
-    left_electrode = this->AddNode(-1, leftpos);
+     left_electrode = this->AddNode(-1, leftpos);
     right_electrode = this->AddNode(-2, rightpos);
 
     std::cout << (int) LeftElectrode << " " << (int) RightElectrode << "\n";
@@ -250,8 +250,8 @@ void GraphBulk<TGraph, TNode, TLink>::Setup_device_graph(double left_distance, d
 //    right_electrode->SetType(2);
     std::cout << left_electrode->type() << " " << right_electrode->type() << "\n";    
     
-    //determine the nodes which are injectable from the left electrode and the nodes which are injectable from the right electrode
-/*
+   //determine the nodes which are injectable from the left electrode and the nodes which are injectable from the right electrode
+
     int linjector_ID = 0;
     int rinjector_ID = 0;
 
