@@ -254,9 +254,9 @@ void GraphBulk<TGraph, TNode, TLink>::Setup_device_graph(double left_distance, d
         if(left_distance <= hopdist) {
 
             votca::tools::vec dr = votca::tools::vec(-1.0*left_distance,0.0,0.0);   
-   //         TLink* newLinkintoDevice = AddLink(linksize+linkID,(*it), left_electrode, dr); linkID++;
-   //         TLink* newLinkfromDevice = TLink(linksize+linkID, left_electrode, (*it), -1.0*dr); linkID++;
-   //         left_electrode->Node::AddLink(newLinkfromDevice);
+            TLink* newLinkintoDevice = this->AddLink(linksize+linkID,(*it), left_electrode, dr); linkID++;
+            TLink* newLinkfromDevice = new TLink(linksize+linkID, left_electrode, (*it), -1.0*dr); linkID++;
+            left_electrode->AddLink(newLinkfromDevice);
             
         }
       
@@ -265,9 +265,9 @@ void GraphBulk<TGraph, TNode, TLink>::Setup_device_graph(double left_distance, d
         if(right_distance <= hopdist) {
 
             votca::tools::vec dr = votca::tools::vec(right_distance,0.0,0.0);   
-  //          TLink* newLinkintoDevice = AddLink(linksize+linkID,(*it), right_electrode, dr); linkID++;
-  //          TLink* newLinkfromDevice = TLink(linksize+linkID, right_electrode, (*it), -1.0*dr); linkID++;
-  //          right_electrode->Node::AddLink(newLinkfromDevice);
+            TLink* newLinkintoDevice = this->AddLink(linksize+linkID,(*it), right_electrode, dr); linkID++;
+            TLink* newLinkfromDevice = new TLink(linksize+linkID, right_electrode, (*it), -1.0*dr); linkID++;
+            right_electrode->Node::AddLink(newLinkfromDevice);
             
         }
     }

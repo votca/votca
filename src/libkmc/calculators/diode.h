@@ -96,7 +96,7 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
 //    graph->PrintLinks(std::cout);
     graph->LinkSort();
     std::cout << graph->Determine_Max_Pair_Degree() << " a\n";
-//    graph->Setup_device_graph(left_electrode_distance, right_electrode_distance, hopdist);
+    graph->Setup_device_graph(left_electrode_distance, right_electrode_distance, hopdist);
     
 //    graph->LinkSort();
 //    std::cout << graph->Determine_Max_Pair_Degree() << endl;
