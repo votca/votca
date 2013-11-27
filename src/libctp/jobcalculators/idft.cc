@@ -513,7 +513,10 @@ void IDFT::WriteJobFile(Topology *top) {
     
 }
 
-
+/**
+ * Reads-in electronic couplings from the job file to topology 
+ * Does not detect level degeneracy! (TO DO)
+ */
 void IDFT::Import( Topology *top ) 
 {
     Property xml;
@@ -523,10 +526,10 @@ void IDFT::Import( Topology *top )
     int _current_pairs = 0;
     int _incomplete_jobs = 0;
     
-    Logger _log;
-    _log.setReportLevel(logINFO);
+    Logger log;
+    log.setReportLevel(logINFO);
     
-
+    // load the xml job file into the property object
     string _idft_jobs_file;
     load_property_from_xml(xml, _idft_jobs_file);
     
@@ -535,9 +538,8 @@ void IDFT::Import( Topology *top )
 
     for (it = jobProps.begin(); it != jobProps.end(); ++it) {
  
+        // check if this job has output, otherwise complain
         if ( (*it)->exists("output") && (*it)->exists("output.pair") ) {
-            
-            //cout << **it;
             
             Property poutput = (*it)->get("output.pair");
             
@@ -549,14 +551,15 @@ void IDFT::Import( Topology *top )
                        
             string typeA = poutput.getAttribute<string>("typeA");
             string typeB = poutput.getAttribute<string>("typeB");
+
             //cout << idA << ":" << idB << "\n"; 
             Segment *segA = top->getSegment(idA);
             Segment *segB = top->getSegment(idB);
-
             QMPair *qmp = nblist.FindPair(segA,segB);
             
-            if (qmp == NULL) { // there is no pair in the neighbor list with this name
-                //LOG(logINFO, _log) << "No pair " <<  idA << ":" << idB << " found in the neighbor list. Ignoring" << flush; 
+            // there is no pair in the neighbor list with this name
+            if (qmp == NULL) { 
+                LOG(logINFO, log) << "No pair " <<  idA << ":" << idB << " found in the neighbor list. Ignoring" << flush; 
             }   else {
                 
                 _current_pairs++;
@@ -564,7 +567,7 @@ void IDFT::Import( Topology *top )
                 list<Property*> pOverlap = poutput.Select("overlap");
                 list<Property*> ::iterator itOverlap;
 
-                    
+                    // run over all level combinations and select HOMO-HOMO and LUMO-LUMO
                     for (itOverlap = pOverlap.begin(); itOverlap != pOverlap.end(); ++itOverlap) {
 
                         double energyA = (*itOverlap)->getAttribute<double>("eA");
@@ -585,19 +588,19 @@ void IDFT::Import( Topology *top )
                     }    
             }
             
-        } else {
+        } else { // output not found, job failed - report - throw an exception in the future
             _incomplete_jobs++;
-            LOG(logINFO, _log) << "Job " << (*it)->get( "id" ).as<string>() << " is " << (*it)->get( "status" ).as<string>() << endl;
+            LOG(logINFO, log) << "Job " << (*it)->get( "id" ).as<string>() << " is " << (*it)->get( "status" ).as<string>() << endl;
         }
     }
     
-    LOG(logINFO, _log) << "Pairs [total:updated] " <<  _number_of_pairs << ":" << _current_pairs << " Incomplete jobs: " << _incomplete_jobs << flush; 
-    cout << _log;
+    LOG(logINFO, log) << "Pairs [total:saved] " <<  _number_of_pairs << ":" << _current_pairs << " Incomplete jobs: " << _incomplete_jobs << flush; 
+    cout << log;
 }
 
 /* SUPEREXCHANGE 
 
-void IImport::FromIDFTWithSuperExchange(Topology *top, string &_idft_jobs_file) {
+void ImportSuperExchange(Topology *top) {
 
     Property xml;
 
