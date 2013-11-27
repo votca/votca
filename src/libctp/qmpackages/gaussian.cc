@@ -599,7 +599,7 @@ bool Gaussian::ParseOrbitalsFile( Orbitals* _orbitals )
    //cout << _mo_energies << endl;   
    //cout << _mo_coefficients << endl; 
         
-   LOG(logDEBUG, *_pLog) << "GAUSSAIN: done reading MOs" << flush;
+   LOG(logDEBUG, *_pLog) << "GAUSSIAN: done reading MOs" << flush;
 
    return true;
 }
@@ -614,7 +614,7 @@ bool Gaussian::CheckLogFile() {
     ifstream _input_file( _full_name.c_str() );
     
     if (_input_file.fail()) {
-        LOG(logERROR,*_pLog) << "GAUSSAIN: " << _full_name << " is not found" << flush;
+        LOG(logERROR,*_pLog) << "GAUSSIAN: " << _full_name << " is not found" << flush;
         return false;
     };
 
@@ -954,11 +954,31 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
             vector<string> block;
             vector<string> energy;
             boost::algorithm::split(block, *coord_block, boost::is_any_of("\\"), boost::algorithm::token_compress_on);
-            boost::algorithm::split(energy, block[1], boost::is_any_of("="), boost::algorithm::token_compress_on);
-            _orbitals->_qm_energy = _conv_Hrt_eV * boost::lexical_cast<double> ( energy[1] );
+            map<string,string> properties;
+            vector<string>::iterator block_it;
+            for (block_it = block.begin(); block_it != block.end(); ++block_it) {
+                vector<string> property;
+                boost::algorithm::split(property, *block_it, boost::is_any_of("="), boost::algorithm::token_compress_on);
+                properties[property[0]] = property[1];                
+            }
             
-            LOG(logDEBUG, *_pLog) << "QM energy " << _orbitals->_qm_energy <<  flush;
-            _has_qm_energy = true;
+            if (properties.count("HF") > 0) {
+                double energy_hartree = boost::lexical_cast<double>(properties["HF"]);
+                _orbitals->_has_qm_energy = true;
+                _orbitals->_qm_energy = _conv_Hrt_eV * energy_hartree;
+                LOG(logDEBUG, *_pLog) << "QM energy " << _orbitals->_qm_energy <<  flush;
+            }
+            else {
+                cout << endl;
+                throw std::runtime_error("ERROR No energy in archive");
+            }
+            
+//            boost::algorithm::split(energy, block[1], boost::is_any_of("="), boost::algorithm::token_compress_on);
+//            cout << endl << energy[1] << endl;
+//            _orbitals->_qm_energy = _conv_Hrt_eV * boost::lexical_cast<double> ( energy[1] );
+//            
+//            LOG(logDEBUG, *_pLog) << "QM energy " << _orbitals->_qm_energy <<  flush;
+//            _has_qm_energy = true;
             _orbitals->_has_atoms = true;
             _orbitals->_has_qm_energy = true;
 

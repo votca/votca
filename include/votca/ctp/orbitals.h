@@ -65,8 +65,12 @@ namespace votca { namespace ctp {
 /**
  * \brief container for molecular orbitals
  * 
+<<<<<<< local
  * The Orbitals class stores orbital id, energy, MO coefficients, basis set
  *     
+=======
+ * The Orbitals class stores orbital id, energy, MO coefficients
+>>>>>>> other
  */
 class Orbitals 
 {
@@ -100,12 +104,12 @@ public:
 
     /// Molecular Orbital coefficients
     const ub::matrix<double> &MOCoefficients() const { return _mo_coefficients; }
-    // Allows to change the matrix: useful to fill in the values
+    /// Allows to change the matrix: useful to fill in the matrix
     ub::matrix<double> &MOCoefficients() { return _mo_coefficients; }
     
     /// Molecular Orbital energies
     const ub::vector<double> &MOEnergies() const { return _mo_energies; }
-    // Allows to change the matrix: useful to fill in the values
+    /// Allows to change the matrix: useful to fill in the matrix
     ub::vector<double> &MOEnergies() { return _mo_energies; }
 
     /// Does not allow to change the matrix: useful for fast access    
@@ -127,10 +131,8 @@ public:
     
     // for GW-BSE
     ub::symmetric_matrix<double>* getVxc() { return &_vxc; }
-
     bool hasQMpackage() { return _has_qm_package; }
     string getQMpackage() { return _qm_package; }
-    
     bool hasQPpert() { return _has_QPpert; }
     ub::matrix<double>* getQPpertEnergies() {return  &_QPpert_energies ;}
     bool hasQPdiag() { return _has_QPdiag; }
