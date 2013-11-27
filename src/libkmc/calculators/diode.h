@@ -39,8 +39,7 @@ class Diode : public KMCCalculator
 {
 public:
     
-//    GraphBulk<GraphSQL, NodeSQL, LinkSQL>* graph;
-    GraphSQL* graph;
+    GraphBulk<GraphSQL, NodeSQL, LinkSQL>* graph;
     State* state;
 //    Events* events;
 //    Vssmgroup* vssmgroup;
@@ -90,8 +89,7 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     graph->Print(std::cout);
     delete graph;    
     */
-    graph = new GraphSQL
-//    graph = new GraphBulk<GraphSQL, NodeSQL, LinkSQL>();
+    graph = new GraphBulk<GraphSQL, NodeSQL, LinkSQL>();
     graph->Initialize(filename);
 //    graph->PrintLinks(std::cout);
     graph->Break_periodicity(true,false,false);
