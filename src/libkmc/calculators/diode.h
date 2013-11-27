@@ -26,7 +26,6 @@
 //#include <votca/kmc/events.h>
 //#include <votca/kmc/vssmgroup.h>
 #include <votca/kmc/graphbulk.h>
-#include <votca/kmc/nodedevice.h>
 
 using namespace std;
 
@@ -80,8 +79,9 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     ny = options->get("options.diode.ny").as<int>();
     nz = options->get("options.diode.nz").as<int>();
     lattice_constant = options->get("options.diode.lattice_constant").as<double>();
-//    left_electrode_distance = (options->get("options.diode.left_electrode_distance").as<double>());
-    right_electrode_distance = (options->get("options.diode.right_electrode_distance").as<double>()); 
+    left_electrode_distance = (options->get("options.diode.left_electrode_distance").as<double>());
+    right_electrode_distance = (options->get("options.diode.right_electrode_distance").as<double>());
+    hopdist = (options->get("options.diode.hopping_distance").as<double>());
     
     /*
     graph = new GraphCubic();
@@ -96,7 +96,7 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
 //    graph->PrintLinks(std::cout);
     graph->LinkSort();
     std::cout << graph->Determine_Max_Pair_Degree() << " a\n";
-    graph->Setup_device_graph(left_electrode_distance, right_electrode_distance);
+//    graph->Setup_device_graph(left_electrode_distance, right_electrode_distance, hopdist);
     
 //    graph->LinkSort();
 //    std::cout << graph->Determine_Max_Pair_Degree() << endl;

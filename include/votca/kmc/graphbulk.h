@@ -56,7 +56,7 @@ public:
     void Break_periodicity(bool break_x, bool break_y, bool break_z);
 
     ///define electrode nodes and form links between those nodes and neighbouring nodes
-    void Setup_device_graph(double left_distance, double right_distance);   
+    void Setup_device_graph(double left_distance, double right_distance, double hopdist);   
     
 private:
 
@@ -76,10 +76,11 @@ template<class TGraph, class TNode, class TLink>
 void GraphBulk<TGraph, TNode, TLink>::LinkSort(){
     typename std::vector<TLink*>::iterator it;
     for (it = this->_links.begin(); it != this->_links.end(); it++ ) {
-        Node* node1 = (*it)->node1();
+        TNode* node1 = dynamic_cast<TNode*>((*it)->node1());
+//        TNode* node2 = dynamic_cast<TNode*>((*it)->node2());     
         votca::tools::vec pos = node1->position();
-//        std::cout << pos.x() << " " << pos.y() << " " << pos.z() << endl;
         node1->AddLink((*it));
+//        std::cout << debugcount << " " << node1->id() << " " << node2->id() << " " << node1->links()[0]->node2()->id() << " " << pos << " " << node1->UnCnNe() << endl;
     }
 }
 
@@ -194,7 +195,7 @@ void GraphBulk<TGraph, TNode, TLink>::Break_periodicity(bool break_x, bool break
         }
         
         if(remove_flag) {
-            std::cout << pos1 << " " << pos2 << "\n";
+            //std::cout << pos1 << " " << pos2 << "\n";
             //this->_links.erase(this->_links.begin()+it);/* std::cout << debugcount << endl;debugcount++;*/
             this->RemoveLink(it);
         }
@@ -204,22 +205,22 @@ void GraphBulk<TGraph, TNode, TLink>::Break_periodicity(bool break_x, bool break
 }
 
 template<class TGraph, class TNode, class TLink>
-void GraphBulk<TGraph, TNode, TLink>::Setup_device_graph(double left_distance, double right_distance){
+void GraphBulk<TGraph, TNode, TLink>::Setup_device_graph(double left_distance, double right_distance, double hopdist){
 
     // Translate the graph due to the spatial location of the electrodes and update system box size accordingly, putting the left electrode at x = 0
     // left_electrode_distance is the distance of the left electrode to the node with minimum x-coordinate
     
- /* 
+ 
     votca::tools::vec pos = this->_nodes[0]->position(); // initial value 
     double minX = pos.x();
 
     typename std::vector<TNode*>::iterator it;      
-     for(int it = this->_nodes.begin(); it != this->_nodes.end(); it++) {
+     for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) {
         pos = (*it)->position(); if(pos.x() < minX) {minX = pos.x();}
     }
     std::cout << minX << "\n";
    //distance by which the graph should be translated is left_electrode_distance - minX
-
+ 
     double xtranslate = left_distance - minX;
 
     for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) {
@@ -234,61 +235,42 @@ void GraphBulk<TGraph, TNode, TLink>::Setup_device_graph(double left_distance, d
     votca::tools::vec old_sim_box_size = _sim_box_size;
     double new_sim_box_sizeX = old_sim_box_size.x() + left_distance + right_distance;
     _sim_box_size =  votca::tools::vec(new_sim_box_sizeX, old_sim_box_size.y(), old_sim_box_size.z());
-            
-    //introduce electrode nodes
-    votca::tools::vec leftpos = votca::tools::vec(0.0,0.0,0.0);
-    votca::tools::vec rightpos = votca::tools::vec(_sim_box_size.x(),0.0,0.0);
-     left_electrode = this->AddNode(-1, leftpos);
-    right_electrode = this->AddNode(-2, rightpos);
-
-    std::cout << (int) LeftElectrode << " " << (int) RightElectrode << "\n";
     
-
+    //introduce the electrode nodes
+    
     left_electrode->SetType((int) LeftElectrode);
     right_electrode->SetType((int) RightElectrode);
-//    left_electrode->SetType(1);
-//    right_electrode->SetType(2);
     std::cout << left_electrode->type() << " " << right_electrode->type() << "\n";    
-    
+   
    //determine the nodes which are injectable from the left electrode and the nodes which are injectable from the right electrode
 
-    int linjector_ID = 0;
-    int rinjector_ID = 0;
-
-    for(int inode=0; inode<nodes.size(); inode++) { 
+    for(it  = this->_nodes.begin(); it != this->_nodes.end(); it++) { 
       
-        double left_distance = nodes[inode]->node_position.x();
+        votca::tools::vec nodepos = (*it)->position();
+        double left_distance = nodepos.x();
+        int linksize = this->_links.size();
+        int linkID = 0;
      
         if(left_distance <= hopdist) {
 
-            myvec dr = myvec(-1.0*left_distance,0.0,0.0);            
-            nodes[inode]->setPair(left_electrode);
-            nodes[inode]->setStaticeventinfo(left_electrode, dr, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0); //NEED TO DETERMINE THIS
-            left_electrode->setPair(nodes[inode]);
-            left_electrode->setStaticeventinfo(nodes[inode], -1.0*dr, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0); //NEED TO DETERMINE THIS
-            nodes[inode]->left_injector_ID = linjector_ID;
-            linjector_ID++;
-      
+            votca::tools::vec dr = votca::tools::vec(-1.0*left_distance,0.0,0.0);   
+   //         TLink* newLinkintoDevice = AddLink(linksize+linkID,(*it), left_electrode, dr); linkID++;
+   //         TLink* newLinkfromDevice = TLink(linksize+linkID, left_electrode, (*it), -1.0*dr); linkID++;
+   //         left_electrode->Node::AddLink(newLinkfromDevice);
+            
         }
       
-        double right_distance = sim_box_size.x() - nodes[inode]->node_position.x();
+        double right_distance = _sim_box_size.x() - nodepos.x();
       
         if(right_distance <= hopdist) {
-          
-            myvec dr = myvec(right_distance,0.0,0.0);            
-            nodes[inode]->setPair(right_electrode);
-            nodes[inode]->setStaticeventinfo(right_electrode, dr, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0); //NEED TO DETERMINE THIS
-            right_electrode->setPair(nodes[inode]);
-            right_electrode->setStaticeventinfo(nodes[inode], -1.0*dr, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0); //NEED TO DETERMINE THIS            
-            nodes[inode]->right_injector_ID = rinjector_ID;
-            rinjector_ID++;
+
+            votca::tools::vec dr = votca::tools::vec(right_distance,0.0,0.0);   
+  //          TLink* newLinkintoDevice = AddLink(linksize+linkID,(*it), right_electrode, dr); linkID++;
+  //          TLink* newLinkfromDevice = TLink(linksize+linkID, right_electrode, (*it), -1.0*dr); linkID++;
+  //          right_electrode->Node::AddLink(newLinkfromDevice);
+            
         }
     }
-    nr_left_injector_nodes = linjector_ID;
-    nr_right_injector_nodes = rinjector_ID;
-
-    // Recompute the max pair degree, due to the breaking of the periodicity and the connection of nodes to the electrode nodes
-    max_pair_degree = Determine_max_pair_degree(nodes);*/
 
 }
 
