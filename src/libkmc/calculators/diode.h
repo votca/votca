@@ -25,7 +25,7 @@
 #include <votca/kmc/globaleventinfo.h>
 //#include <votca/kmc/events.h>
 //#include <votca/kmc/vssmgroup.h>
-#include <votca/kmc/graphbulk.h>
+#include <votca/kmc/graphdevice.h>
 
 using namespace std;
 
@@ -38,7 +38,7 @@ class Diode : public KMCCalculator
 {
 public:
     
-    GraphBulk<GraphSQL, NodeSQL, LinkSQL>* graph;
+    GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph;
     State* state;
 //    Events* events;
 //    Vssmgroup* vssmgroup;
@@ -89,19 +89,20 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     graph->Print(std::cout);
     delete graph;    
     */
-    graph = new GraphBulk<GraphSQL, NodeSQL, LinkSQL>();
+    graph = new GraphDevice<GraphSQL, NodeSQL, LinkSQL>();
     graph->Initialize(filename);
 //    graph->PrintLinks(std::cout);
     graph->Break_periodicity(true,false,false);
 //    graph->PrintLinks(std::cout);
     graph->LinkSort();
     std::cout << graph->Determine_Max_Pair_Degree() << " a\n";
+    graph->Determine_Sim_Box_Size();
     graph->Setup_device_graph(left_electrode_distance, right_electrode_distance, hopdist);
     
 //    graph->LinkSort();
 //    std::cout << graph->Determine_Max_Pair_Degree() << endl;
 //    std::cout << graph->Determine_Hopping_Distance() << endl;
-//    std::cout << graph->Determine_Sim_Box_Size() << endl;
+//    std::cout << 
     delete graph;    
     
     exit(0);

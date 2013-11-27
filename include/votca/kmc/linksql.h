@@ -43,18 +43,17 @@ public:
         _rate21e  = rate21e;
         _rate21h  = rate21h;
     }
-         
+    
     void setJeff2(double Jeff2e, double Jeff2h) {
         _Jeff2e  = Jeff2e;
         _Jeff2h  = Jeff2h;
     }
-    
+
     void setlO(double lOe, double lOh) {
         _lOe = lOe;
         _lOh = lOh;
     }
 
-    //Debugging
     const double &rate12e() const { return _rate12e; }     
     const double &rate12h() const { return _rate12h; }   
     const double &rate21e() const { return _rate21e; }   
@@ -67,20 +66,9 @@ public:
     const double &lOh() const { return _lOh;; }     
     
     
-/*    /// forward and backward rates
-    const double &rate12() const { return _rate12; }
-    const double &rate21() const { return _rate21; }
-    
-    /// square of effective transfer integral
-    const double &jeff2() const { return _jeff2; }
-    
-    /// outer reorganization energy
-    const double &lambda0() const { return _lambda0; }*/
-
 private:
 
     
-    /// forward and backward rates
     double _rate12e;
     double _rate12h;
     double _rate21e;

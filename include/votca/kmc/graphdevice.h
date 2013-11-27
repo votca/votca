@@ -28,7 +28,7 @@ namespace votca { namespace kmc {
 enum NodeType {NormalNode, LeftElectrodeNode, RightElectrodeNode};    
     
 template<class TGraph, class TNode, class TLink>    
-class GraphBulk : public TGraph {
+class GraphDevice : public TGraph {
 
 public:
 
@@ -50,7 +50,7 @@ public:
     double Determine_Hopping_Distance();
     
     ///calculate the simulation box size
-    votca::tools::vec Determine_Sim_Box_Size();
+    void Determine_Sim_Box_Size();
 
     ///break the periodicity of the graph (breaking boundary crossing pairs) .. (run before linksort)
     void Break_periodicity(bool break_x, bool break_y, bool break_z);
@@ -66,14 +66,11 @@ private:
     double _hop_distance;
     votca::tools::vec _sim_box_size;
     
-    TNode* left_electrode;
-    TNode* right_electrode;
-     
 };
 
 
 template<class TGraph, class TNode, class TLink>
-void GraphBulk<TGraph, TNode, TLink>::LinkSort(){
+void GraphDevice<TGraph, TNode, TLink>::LinkSort(){
     typename std::vector<TLink*>::iterator it;
     for (it = this->_links.begin(); it != this->_links.end(); it++ ) {
         TNode* node1 = dynamic_cast<TNode*>((*it)->node1());
@@ -85,7 +82,7 @@ void GraphBulk<TGraph, TNode, TLink>::LinkSort(){
 }
 
 template<class TGraph, class TNode, class TLink>
-int GraphBulk<TGraph, TNode, TLink>::Determine_Max_Pair_Degree(){
+int GraphDevice<TGraph, TNode, TLink>::Determine_Max_Pair_Degree(){
     
     int max_pair_degree = 0;
     typename std::vector<TNode*>::iterator it;    
@@ -96,7 +93,7 @@ int GraphBulk<TGraph, TNode, TLink>::Determine_Max_Pair_Degree(){
 }
 
 template<class TGraph, class TNode, class TLink>
-double GraphBulk<TGraph, TNode, TLink>::Determine_Hopping_Distance(){
+double GraphDevice<TGraph, TNode, TLink>::Determine_Hopping_Distance(){
     
     double hop_distance = 0.0;
     typename std::vector<TLink*>::iterator it;    
@@ -110,7 +107,7 @@ double GraphBulk<TGraph, TNode, TLink>::Determine_Hopping_Distance(){
 
 
 template<class TGraph, class TNode, class TLink>
-votca::tools::vec GraphBulk<TGraph, TNode, TLink>::Determine_Sim_Box_Size(){ 
+void GraphDevice<TGraph, TNode, TLink>::Determine_Sim_Box_Size(){ 
     
     //Determination of simulation box size
     //To do this, we first need to find a node with position vector a and pairing node with position vector b, such that
@@ -161,12 +158,12 @@ votca::tools::vec GraphBulk<TGraph, TNode, TLink>::Determine_Sim_Box_Size(){
     if(!pairZfound) {sim_box_sizeZ = maxZ-minZ;}
 
     votca::tools::vec sim_box_size(sim_box_sizeX, sim_box_sizeY, sim_box_sizeZ);
-    return sim_box_size;
+    _sim_box_size = sim_box_size;
 
 }
 
 template<class TGraph, class TNode, class TLink>
-void GraphBulk<TGraph, TNode, TLink>::Break_periodicity(bool break_x, bool break_y, bool break_z){
+void GraphDevice<TGraph, TNode, TLink>::Break_periodicity(bool break_x, bool break_y, bool break_z){
 
 //    typename std::vector<TLink*>::iterator it;
     int debugcount = 0;
@@ -205,7 +202,7 @@ void GraphBulk<TGraph, TNode, TLink>::Break_periodicity(bool break_x, bool break
 }
 
 template<class TGraph, class TNode, class TLink>
-void GraphBulk<TGraph, TNode, TLink>::Setup_device_graph(double left_distance, double right_distance, double hopdist){
+void GraphDevice<TGraph, TNode, TLink>::Setup_device_graph(double left_distance, double right_distance, double hopdist){
 
     // Translate the graph due to the spatial location of the electrodes and update system box size accordingly, putting the left electrode at x = 0
     // left_electrode_distance is the distance of the left electrode to the node with minimum x-coordinate
@@ -235,11 +232,17 @@ void GraphBulk<TGraph, TNode, TLink>::Setup_device_graph(double left_distance, d
     votca::tools::vec old_sim_box_size = _sim_box_size;
     double new_sim_box_sizeX = old_sim_box_size.x() + left_distance + right_distance;
     _sim_box_size =  votca::tools::vec(new_sim_box_sizeX, old_sim_box_size.y(), old_sim_box_size.z());
+    std::cout << old_sim_box_size << " " << _sim_box_size << endl;
     
-    //introduce the electrode nodes
+    //set node types for existing nodes as Normal
+    for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) (*it)->SetType((int) Normal);
     
+    //introduce the electrode nodes (might make a special electrode node header file for this)
+    TNode* left_electrode = new TNode(-1, tools::vec(0.0,0.0,0.0));
+    TNode* right_electrode = new TNode(-2, tools::vec(_sim_box_size.x(),0.0,0.0));
     left_electrode->SetType((int) LeftElectrode);
     right_electrode->SetType((int) RightElectrode);
+
     std::cout << left_electrode->type() << " " << right_electrode->type() << "\n";    
    
    //determine the nodes which are injectable from the left electrode and the nodes which are injectable from the right electrode
@@ -248,34 +251,35 @@ void GraphBulk<TGraph, TNode, TLink>::Setup_device_graph(double left_distance, d
       
         votca::tools::vec nodepos = (*it)->position();
         double left_distance = nodepos.x();
-        int linksize = this->_links.size();
-        int linkID = 0;
+        int linkID = this->_links.size();
      
         if(left_distance <= hopdist) {
 
             votca::tools::vec dr = votca::tools::vec(-1.0*left_distance,0.0,0.0);   
-            TLink* newLinkintoDevice = this->AddLink(linksize+linkID,(*it), left_electrode, dr); linkID++;
-            TLink* newLinkfromDevice = new TLink(linksize+linkID, left_electrode, (*it), -1.0*dr); linkID++;
+            TLink* newLinkintoDevice = this->AddLink(linkID,(*it), left_electrode, dr); linkID++;
+            TLink* newLinkfromDevice = new TLink(linkID, left_electrode, (*it), -1.0*dr); linkID++;
             left_electrode->AddLink(newLinkfromDevice);
             
         }
       
         double right_distance = _sim_box_size.x() - nodepos.x();
-      
         if(right_distance <= hopdist) {
 
             votca::tools::vec dr = votca::tools::vec(right_distance,0.0,0.0);   
-            TLink* newLinkintoDevice = this->AddLink(linksize+linkID,(*it), right_electrode, dr); linkID++;
-            TLink* newLinkfromDevice = new TLink(linksize+linkID, right_electrode, (*it), -1.0*dr); linkID++;
-            right_electrode->Node::AddLink(newLinkfromDevice);
+            TLink* newLinkintoDevice = this->AddLink(linkID,(*it), right_electrode, dr); linkID++;
+            TLink* newLinkfromDevice = new TLink(linkID, right_electrode, (*it), -1.0*dr); linkID++;
+            right_electrode->AddLink(newLinkfromDevice);
             
         }
+        
     }
 
+    left_electrode->Print(std::cout);
+    right_electrode->Print(std::cout);
 }
 
 template<class TGraph, class TNode, class TLink>
-void GraphBulk<TGraph,TNode, TLink>::RenumberId() {
+void GraphDevice<TGraph,TNode, TLink>::RenumberId() {
     int resetID = 0;
     typename std::vector<TLink*>::iterator it;
     for (it = this->_links.begin(); it != this->_links.end(); it++) {

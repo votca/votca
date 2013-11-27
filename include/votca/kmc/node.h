@@ -39,12 +39,16 @@ public:
     /// position (nm))
     const votca::tools::vec &position() const { return _position; } 
     /// print Node info
+    
+    /// links
+    const vector<Link* > &links() const {return _links;}
+    
     virtual void Print( std::ostream &out ) {
         vector< Link* >::iterator it;
         for (it = _links.begin(); it != _links.end(); it++ ) (*it)->Print( out );
     }
     
-    vector<Link* > &links() {return _links;}
+
     
     void SetType(int type) { _type = type;}
     void SetPosition(votca::tools::vec position) { _position = position;}
