@@ -83,27 +83,16 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     right_electrode_distance = (options->get("options.diode.right_electrode_distance").as<double>());
     hopdist = (options->get("options.diode.hopping_distance").as<double>());
     
-    /*
-    graph = new GraphCubic();
-    graph->Create_cubic_graph_nodes(nx, ny, nz, lattice_constant, graph_front, graph_back);
-    graph->Print(std::cout);
-    delete graph;    
-    */
     graph = new GraphDevice<GraphSQL, NodeSQL, LinkSQL>();
     graph->Initialize(filename);
-//    graph->PrintLinks(std::cout);
-    graph->Break_periodicity(true,false,false);
-//    graph->PrintLinks(std::cout);
-    graph->LinkSort();
-    std::cout << graph->Determine_Max_Pair_Degree() << " a\n";
-    graph->Determine_Sim_Box_Size();
-    graph->Setup_device_graph(left_electrode_distance, right_electrode_distance, hopdist);
-    
-//    graph->LinkSort();
-//    std::cout << graph->Determine_Max_Pair_Degree() << endl;
-//    std::cout << graph->Determine_Hopping_Distance() << endl;
-//    std::cout << 
+    graph->Setup_device_graph(left_electrode_distance, right_electrode_distance);
+    std::cout << "max pair degree: " << graph->maxpairdegree() << endl;
+    std::cout << "hopping distance: " << graph->hopdist() << endl;
+    std::cout << "simulation box size: " << graph->simboxsize() << endl;
+    std::cout << "number of left electrode injector nodes " << graph->left()->links().size() << endl;
+    std::cout << "number of right electrode injector nodes " << graph->right()->links().size() << endl;
     delete graph;    
+
     
     exit(0);
     
