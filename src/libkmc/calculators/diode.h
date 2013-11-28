@@ -81,7 +81,6 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     lattice_constant = options->get("options.diode.lattice_constant").as<double>();
     left_electrode_distance = (options->get("options.diode.left_electrode_distance").as<double>());
     right_electrode_distance = (options->get("options.diode.right_electrode_distance").as<double>());
-    hopdist = (options->get("options.diode.hopping_distance").as<double>());
     
     graph = new GraphDevice<GraphSQL, NodeSQL, LinkSQL>();
     graph->Initialize(filename);
@@ -91,12 +90,15 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     std::cout << "simulation box size: " << graph->simboxsize() << endl;
     std::cout << "number of left electrode injector nodes " << graph->left()->links().size() << endl;
     std::cout << "number of right electrode injector nodes " << graph->right()->links().size() << endl;
+
+    state = new State();
+    
     delete graph;    
 
     
     exit(0);
     
-    state = new State();
+
 //    events = new Events();
 //    vssmgroup = new Vssmgroup();
 }

@@ -28,7 +28,12 @@ public:
     Node( int id, votca::tools::vec &position) {
         _id  = id;
         _position = position;
-    } 
+    }
+    
+    ~Node(){
+        typename std::vector<Link*>::iterator it;
+        for (it = _links.begin(); it != _links.end(); it++ ) delete *it;        
+    }
 
     /// adds a link to a Node
     virtual void AddLink( Link* link ) { _links.push_back(link); }
