@@ -28,6 +28,7 @@ public:
     Node( int id, votca::tools::vec &position) {
         _id  = id;
         _position = position;
+        _occupation = -1; //empty
     }
     
     ~Node(){
@@ -48,12 +49,17 @@ public:
     /// links
     const vector<Link* > &links() const {return _links;}
     
+    /// carriers
+    const int &occ() const {return _occupation;}
+    
     virtual void Print( std::ostream &out ) {
         vector< Link* >::iterator it;
         for (it = _links.begin(); it != _links.end(); it++ ) (*it)->Print( out );
     }
     
-
+    /// Add and remove carrier to node (-1 being empty)
+    void AddCarrier(int carrier_ID) {_occupation = carrier_ID;}
+    void RemoveCarrier(int carrier_ID) {_occupation = -1;}
     
     void SetType(int type) { _type = type;}
     void SetPosition(votca::tools::vec position) { _position = position;}
@@ -63,6 +69,7 @@ protected:
     int _id;
     int _type;
     votca::tools::vec _position;
+    int _occupation;
     
     vector< Link* > _links;
 };

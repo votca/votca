@@ -34,7 +34,7 @@ enum To_step_event {Totransfer, Recombination, Collection, Blocking, Tonotinbox}
  */
 class Event {
     
-public:
+/*public:
 
     From_step_event fromtype;
     To_step_event totype;
@@ -59,11 +59,11 @@ private:
     double Compute_event_rate(DNode* fromnode, int jump_ID, CarrierType carrier_type,
                             From_step_event from_event_type, To_step_event to_event_type,
                             double from_shortrange, double to_shortrange, double from_longrange, double to_longrange,
-                            Globaleventinfo* globaleventinfo);
+                            Globaleventinfo* globaleventinfo);*/
     
 };
 
-void Event::Set_injection_event(DNode* electrode, int injectnode_ID, CarrierType carrier_type,
+/*void Event::Set_injection_event(DNode* electrode, int injectnode_ID, CarrierType carrier_type,
                               double from_longrange, double to_longrange, Globaleventinfo* globevent) {
     
     fromtype = Injection;
@@ -234,7 +234,7 @@ To_step_event Event::Determine_injection_to_event_type(CarrierType carrier_type,
     }
     
     return totype;
-}
+}*/
 
 
 

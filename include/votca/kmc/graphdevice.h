@@ -123,8 +123,6 @@ void GraphDevice<TGraph, TNode, TLink>::Setup_device_graph(double left_distance,
     _right_electrode = new TNode(-2, tools::vec(_sim_box_size.x(),0.0,0.0));
     _left_electrode->SetType((int) LeftElectrode);
     _right_electrode->SetType((int) RightElectrode);
-    this->AddNode(_left_electrode); //in this way the electrode nodes are caught by destructor
-    this->AddNode(_right_electrode); 
 
     //determine the nodes which are injectable from the left electrode and the nodes which are injectable from the right electrode
 
@@ -150,6 +148,9 @@ void GraphDevice<TGraph, TNode, TLink>::Setup_device_graph(double left_distance,
         }
     }
 
+    this->AddNode(_left_electrode); //in this way the electrode nodes are caught by destructor
+    this->AddNode(_right_electrode);     
+    
     // associate links in links vector with the corresponding nodes
     this->LinkSort();
     
@@ -175,7 +176,9 @@ int GraphDevice<TGraph, TNode, TLink>::Determine_Max_Pair_Degree(){
     int max_pair_degree = 0;
     typename std::vector<TNode*>::iterator it;    
     for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) {
-        if((*it)->links().size()>max_pair_degree) max_pair_degree = (*it)->links().size();
+        if((*it)->type() == Normal) {        
+            if((*it)->links().size()>max_pair_degree) max_pair_degree = (*it)->links().size();
+        }
     }
     return max_pair_degree;
     

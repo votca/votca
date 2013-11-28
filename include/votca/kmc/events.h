@@ -20,7 +20,7 @@
 
 
 #include <votca/kmc/graphlattice.h>
-#include <votca/kmc/state.h>
+#include <votca/kmc/statedevice.h>
 #include <votca/kmc/event.h>
 #include <votca/kmc/bsumtree.h>
 #include <votca/kmc/longrange.h>
@@ -34,7 +34,7 @@ enum action{Add, Remove };
 
 class Events {
     
-public:
+/*public:
     
     vector<Event*> Non_injection_events;
     vector<Event*> Injection_events;
@@ -62,10 +62,10 @@ private:
     void Effect_potential_and_non_injection_rates(action AR, Carrier* carrier, GraphLattice* graph, State* state, Globaleventinfo* globevent);
     void Effect_injection_rates(action AR, GraphLattice* graph, Carrier* carrier, double dist_to_electrode, DNode* electrode, Globaleventinfo* globevent);    
     
-    double Compute_Coulomb_potential(double startx, myvec dif, myvec sim_box_size, Globaleventinfo* globevent);
+    double Compute_Coulomb_potential(double startx, myvec dif, myvec sim_box_size, Globaleventinfo* globevent);*/
 };
 
-void Events::Initialize_longrange(GraphLattice* graph, Globaleventinfo* globevent) {
+/*void Events::Initialize_longrange(GraphLattice* graph, Globaleventinfo* globevent) {
     longrange = new Longrange();
     longrange->Initialize(graph,globevent); 
 }
@@ -670,7 +670,7 @@ void Events::Grow_non_injection_eventvector(int carrier_grow_size, vector<Carrie
             newEvent->tonode_ID = jump_ID;
         }         
     }    
-}
+}*/
 
 
 }} 

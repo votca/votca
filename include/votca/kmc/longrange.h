@@ -30,7 +30,7 @@ using namespace std;
 
 class Longrange {
 
-public:
+/*public:
     void Update_cache(myvec sim_box_size, Globaleventinfo* globevent); // Update cached longrange contributions
     double Get_cached_longrange(int layer); // Return cached value
     void Reset();
@@ -50,11 +50,11 @@ private:
     double Calculate_disc_contrib(int calculate_layer, int contrib_layer, myvec sim_box_size, Globaleventinfo* globevent); // Calculate disc contributions
   
     vector<int> first_contributing_layer; // What is the first layer that contributes to the relevant layer?
-    vector<int> final_contributing_layer; // What is the last layer that contributes to the relevant layer?
+    vector<int> final_contributing_layer; // What is the last layer that contributes to the relevant layer?*/
   
 };
 
-void Longrange::Update_cache(myvec sim_box_size, Globaleventinfo* globevent) {
+/*void Longrange::Update_cache(myvec sim_box_size, Globaleventinfo* globevent) {
     for (int i=0; i<number_of_layers; i++) {
         longrange_cache[i] = Calculate_longrange(i,true, sim_box_size, globevent);
     }
@@ -218,7 +218,7 @@ double Longrange::Calculate_longrange(int layer, bool cut_out_discs, myvec sim_b
     if (!cut_out_discs) { disc_contrib = 0.0; }
     double layerpos = positional_average[layer];
     return 4*PI*(plate_contrib1*(1-layerpos/sim_box_size.x()) + plate_contrib2*(layerpos/sim_box_size.x()) + 0.5*disc_contrib)/(sim_box_size.y()*sim_box_size.z());
-}
+}*/
 
 }}
 

@@ -34,7 +34,7 @@ enum Node_Type{Normal, LeftElectrode, RightElectrode};
 class DNode: public Node 
 {
    
-public:
+/*public:
 
     void setPair(DNode* pairing_node) {pairing_nodes.push_back(pairing_node);}
     void setStaticeventinfo(DNode* pairnode, myvec dr, double rate12e, double rate12h, double Jeff2e, double Jeff2h, double reorg_oute, double reorg_outh);    
@@ -83,11 +83,11 @@ public:
     
     int left_injector_ID;
     int right_injector_ID;
-    double injection_potential;
+    double injection_potential;*/
     
 };
 
-inline void DNode::setStaticeventinfo(DNode* pairnode, myvec dr, double rate12e, double rate12h, double Jeff2e, double Jeff2h, double reorg_oute, double reorg_outh) {
+/*inline void DNode::setStaticeventinfo(DNode* pairnode, myvec dr, double rate12e, double rate12h, double Jeff2e, double Jeff2h, double reorg_oute, double reorg_outh) {
     Static_event_info newStatic;
     newStatic.pairnode = pairnode;
     newStatic.distance = dr;
@@ -103,7 +103,7 @@ inline void DNode::setStaticeventinfo(DNode* pairnode, myvec dr, double rate12e,
 inline void DNode::removePair(int pairing_node_index) {
     pairing_nodes.erase(pairing_nodes.begin()+pairing_node_index);
     static_event_info.erase(static_event_info.begin()+pairing_node_index);
-}
+}*/
         
 }} 
 

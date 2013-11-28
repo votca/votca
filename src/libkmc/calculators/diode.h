@@ -22,10 +22,11 @@
 #include <votca/kmc/state.h>
 //#include <votca/kmc/graphsql.h>
 //#include <votca/kmc/graphcubic.h>
-#include <votca/kmc/globaleventinfo.h>
+//#include <votca/kmc/globaleventinfo.h>
 //#include <votca/kmc/events.h>
 //#include <votca/kmc/vssmgroup.h>
 #include <votca/kmc/graphdevice.h>
+#include <votca/kmc/node.h>
 
 using namespace std;
 
@@ -42,7 +43,7 @@ public:
     State* state;
 //    Events* events;
 //    Vssmgroup* vssmgroup;
-    Globaleventinfo* globevent;
+//    Globaleventinfo* globevent;
     
     Diode() {};
    ~Diode() {};
@@ -92,7 +93,9 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     std::cout << "number of right electrode injector nodes " << graph->right()->links().size() << endl;
 
     state = new State();
+//    state->Print();
     
+    delete state;
     delete graph;    
 
     

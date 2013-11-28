@@ -18,27 +18,46 @@
 #ifndef __VOTCA_KMC_CARRIER_H_
 #define __VOTCA_KMC_CARRIER_H_
 
-#include <votca/tools/vec.h>
-
-typedef votca::tools::vec myvec;
 
 namespace votca { namespace kmc {
-  
-using namespace std;
 
-enum CarrierType{ Electron, Hole};
-
+template<class TNode>
 class Carrier {
-
 public:
+
+    Carrier(int id, TNode* node, int carrier_type){
+        _carrier_id = id;
+        _carrier_node = node;
+        _carrier_type = carrier_type;
+    };
     
-    CarrierType carrier_type;
-    int carrier_node_ID;
-    int carrier_ID;
-    bool is_in_sim_box;
-    myvec carrier_distance;
-    double srfrom;
-    vector<double> srto;
+    /// carrier_id
+    const int &id() const { return _carrier_id; }
+    /// carrier node
+    TNode* &node() { return _carrier_node; }    
+    /// carrier type
+    const int &type() const { return _carrier_type; } 
+    /// travelled distance
+    const votca::tools::vec &distance() const { return _carrier_distance; } 
+    
+    /// is carrier in box or not?
+    const bool &inbox() const { return _in_sim_box; }
+    
+    /// set carrier node
+    void SetCarrierNode(TNode* carnode) { _carrier_node = carnode; }
+    /// set travelled distance
+    void SetDistance(votca::tools::vec distance) { _carrier_distance = distance; }
+    /// set "inbox/outbox" status
+    void SetInBox(bool in_sim_box) {_in_sim_box = in_sim_box;}
+    
+private:
+    
+    int _carrier_id;
+    TNode* _carrier_node;
+    int _carrier_type;
+    votca::tools::vec _carrier_distance;
+    
+    bool _in_sim_box;
 };
 
 }} 

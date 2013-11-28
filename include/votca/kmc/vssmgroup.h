@@ -29,7 +29,7 @@ using namespace std;
 class Vssmgroup {
     
 public:
-    
+/*    
     void Recompute_in_device(Events* events);
     void Recompute_in_bulk(Events* events);
     double Timestep(votca::tools::Random2 *RandomVariable);
@@ -45,11 +45,11 @@ private:
     double tot_probsum;
     
     double non_inject_probsum;
-    double inject_probsum;
+    double inject_probsum;*/
     
 };
 
-double Vssmgroup::Timestep(votca::tools::Random2 *RandomVariable){
+/*double Vssmgroup::Timestep(votca::tools::Random2 *RandomVariable){
 
     double timestep;
     
@@ -111,7 +111,7 @@ void Vssmgroup::Perform_one_step_in_bulk(Events* events, GraphLattice* graph, St
     chosenevent = events->Non_injection_events[event_ID];
 
     events->On_execute(chosenevent, graph, state, globevent);
-}
+}*/
 
 
 }} 
