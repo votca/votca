@@ -19,7 +19,6 @@
 #define	__VOTCA_KMC_DIODE_H
 
 #include <iostream>
-#include <votca/kmc/state.h>
 //#include <votca/kmc/graphsql.h>
 //#include <votca/kmc/graphcubic.h>
 //#include <votca/kmc/globaleventinfo.h>
@@ -27,6 +26,7 @@
 //#include <votca/kmc/vssmgroup.h>
 #include <votca/kmc/graphdevice.h>
 #include <votca/kmc/node.h>
+#include <votca/kmc/state.h>
 
 using namespace std;
 
@@ -40,7 +40,7 @@ class Diode : public KMCCalculator
 public:
     
     GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph;
-    State* state;
+    State<GraphDevice<GraphSQL, NodeSQL, LinkSQL> >* state;
 //    Events* events;
 //    Vssmgroup* vssmgroup;
 //    Globaleventinfo* globevent;
@@ -92,8 +92,8 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     std::cout << "number of left electrode injector nodes " << graph->left()->links().size() << endl;
     std::cout << "number of right electrode injector nodes " << graph->right()->links().size() << endl;
 
-    state = new State();
-//    state->Print();
+    state = new State<GraphDevice<GraphSQL, NodeSQL, LinkSQL> >();
+    state->Print();
     
     delete state;
     delete graph;    

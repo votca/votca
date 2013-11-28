@@ -22,46 +22,47 @@
 #include <list>
 #include <votca/kmc/carrier.h>
 #include <votca/kmc/node.h>
-#include <votca/kmc/graphdevice.h>
+#include <votca/kmc/graph.h>
 
 enum CarrierType{ Electron, Hole, Exciton};
 
 namespace votca { namespace kmc {
-  
-template<class TNode>
-class State {
-public:
+
+template <class TGraph>
+class State {    
+
+    public:
 
     State(){}
     ~State(){
-        typename std::vector<Carrier<TNode>*>::iterator it;
+        typename std::vector<Carrier*>::iterator it;
         for (it = _carriers.begin(); it != _carriers.end(); it++ ) delete *it;        
     }
     
     /// Add a node to the Graph
-    Carrier<TNode>* AddCarrier(int id, TNode* node) { 
-        Carrier<TNode>* carrier = new Carrier(id, TNode* node);
+    Carrier* AddCarrier(int id, Node* node, int carrier_type) { 
+        Carrier* carrier = new Carrier(id, node, carrier_type);
         _carriers.push_back(carrier); 
         return carrier;
     } 
 
     void Print() {std::cout << "what?" << endl;}
     
-    void AddCarrier( Carrier<TNode>* carrier) { _carriers.push_back(carrier); }
+    void AddCarrier( Carrier* carrier) { _carriers.push_back(carrier); }
     
     void InitState() {_carriers.clear();}
     
     // Storage and readout of the node_id's of the nodes on which the carriers are to/from a SQL database
     void Save(string SQL_state_filename);
-    void Load(string SQL_state_filename, Graph* graph);
+    void Load(string SQL_state_filename, TGraph* graph);
     
 private:
-    bool In_sim_box(Carrier*) {return Carrier<TNode>->in_sim_box};
-    vector<Carrier<TNode>*> _carriers;
+    bool In_sim_box(Carrier* carrier) {return carrier->inbox();}
+    vector<Carrier*> _carriers;
 };
 
-template<class Tnode>
-void State<Tnode>::Save(string SQL_state_filename){
+template <class TGraph>
+void State<TGraph>::Save(string SQL_state_filename){
     
     votca::tools::Database db;
     db.Open( SQL_state_filename );
@@ -75,9 +76,9 @@ void State<Tnode>::Save(string SQL_state_filename){
                             "?,     ?,     ?,"
                             "?,     ?)");
 
-    typename std::vector<Carrier<TNode>*>::iterator it;
+    typename std::vector<Carrier*>::iterator it;
     for (it = _carriers.begin(); it != _carriers.end(); it++ ) {
-        if(In_sim_box((*it)) {
+        if(In_sim_box((*it))) {
             stmt->Bind(1, (*it)->node()->id());
             stmt->Bind(2, (*it)->type());
             votca::tools::vec carrier_distance = (*it)->distance();
@@ -95,8 +96,8 @@ void State<Tnode>::Save(string SQL_state_filename){
     db.EndTransaction();
 }
 
-template<class Tnode>
-void State<Tnode>::Load(string SQL_state_filename, TGraph* graph){
+template <class TGraph>
+void State<TGraph>::Load(string SQL_state_filename, TGraph* graph){
     
     votca::tools::Database db;
     db.Open( SQL_state_filename );
@@ -116,7 +117,7 @@ void State<Tnode>::Load(string SQL_state_filename, TGraph* graph){
         votca::tools::vec carrier_distance(distancex,distancey,distancez);
 
         Node* carrier_node =  graph->GetNode(stmt->Column<int>(0));
-        Carrier<TNode>* newcarrier = AddCarrier(carrier_ID,carrier_node, carrier_type); 
+        Carrier* newcarrier = AddCarrier(carrier_ID,carrier_node, carrier_type); 
         carrier_node->AddCarrier(carrier_ID);
         carrier_ID++;
         
