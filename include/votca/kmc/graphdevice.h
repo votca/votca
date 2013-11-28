@@ -123,6 +123,8 @@ void GraphDevice<TGraph, TNode, TLink>::Setup_device_graph(double left_distance,
     _right_electrode = new TNode(-2, tools::vec(_sim_box_size.x(),0.0,0.0));
     _left_electrode->SetType((int) LeftElectrode);
     _right_electrode->SetType((int) RightElectrode);
+    this->AddNode(_left_electrode); //in this way the electrode nodes are caught by destructor
+    this->AddNode(_right_electrode); 
 
     //determine the nodes which are injectable from the left electrode and the nodes which are injectable from the right electrode
 
@@ -163,7 +165,7 @@ void GraphDevice<TGraph, TNode, TLink>::LinkSort(){
     typename std::vector<TLink*>::iterator it;
     for (it = this->_links.begin(); it != this->_links.end(); it++ ) {
         TNode* node1 = dynamic_cast<TNode*>((*it)->node1());
-        node1->AddLink((*it));
+        if(node1->type() == Normal) node1->AddLink((*it));
     }
 }
 
