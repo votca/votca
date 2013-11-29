@@ -103,10 +103,15 @@ void IDFT::ParseOptionsXML( votca::tools::Property *opt ) {
 
 void IDFT::LoadOrbitals(string file_name, Orbitals* orbitals, Logger *log ) {
 
-    if (log) LOG(logDEBUG, *log) << "Loading " << file_name << flush; 
+    LOG(logDEBUG, *log) << "Loading " << file_name << flush; 
     std::ifstream ifs( file_name.c_str() );
     boost::archive::binary_iarchive ia( ifs );
-    ia >> *orbitals;
+    try {
+        ia >> *orbitals;
+    } catch(std::exception &err) {
+        LOG(logDEBUG, *log) << "Could not load orbitals from " << file_name << flush; 
+        std::cerr << "An error occurred:\n" << err.what() << endl;
+    } 
     ifs.close();
 
 }
@@ -180,11 +185,32 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         boost::filesystem::create_directories( _qmpackage_work_dir );
         Orbitals *_orbitalsAB = NULL;        
         if ( _qmpackage->GuessRequested() ) { // do not want to do an SCF loop for a dimer
+            LOG(logINFO,*pLog) << "Guess requested, reading molecular orbitals" << flush;
             Orbitals _orbitalsA, _orbitalsB;   
             _orbitalsAB = new Orbitals();
             // load the corresponding monomer orbitals and prepare the dimer guess 
-            LoadOrbitals( orbFileA, &_orbitalsA, pLog );
-            LoadOrbitals( orbFileB, &_orbitalsB, pLog );
+            
+            // failed to load; wrap-up and finish current job
+            if ( !_orbitalsA.Load( orbFileA ) ) {
+               LOG(logERROR,*pLog) << "Do input: failed loading orbitals from " << orbFileA << flush; 
+               cout << *pLog;
+               output += "failed on " + orbFileA;
+               jres.setOutput( output ); 
+               jres.setStatus(Job::FAILED);
+               delete _qmpackage;
+               return jres;
+            }
+            
+            if ( !_orbitalsB.Load( orbFileB ) ) {
+               LOG(logERROR,*pLog) << "Do input: failed loading orbitals from " << orbFileB << flush; 
+               cout << *pLog;
+               output += "failed on " + orbFileB;
+               jres.setOutput( output ); 
+               jres.setStatus(Job::FAILED);
+               delete _qmpackage;
+               return jres;
+            }
+
             PrepareGuess(&_orbitalsA, &_orbitalsB, _orbitalsAB, pLog);
         }
         _qmpackage->WriteInputFile(segments, _orbitalsAB);
@@ -248,11 +274,28 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
        if ( !_do_parse ) LoadOrbitals( orbFileAB, &_orbitalsAB, pLog );
        
        Orbitals _orbitalsA, _orbitalsB;
+       
+       // failed to load; wrap-up and finish current job
+       if ( !_orbitalsA.Load( orbFileA ) ) {
+               LOG(logERROR,*pLog) << "Failed loading orbitals from " << orbFileA << flush; 
+               cout << *pLog;
+               output += "failed on " + orbFileA;
+               jres.setOutput( output ); 
+               jres.setStatus(Job::FAILED);
+               delete _qmpackage;
+               return jres;
+       }
+       
+        if ( !_orbitalsB.Load( orbFileB ) ) {
+              LOG(logERROR,*pLog) << "Failed loading orbitals from " << orbFileB << flush; 
+               cout << *pLog;
+               output += "failed on " + orbFileB;
+               jres.setOutput( output ); 
+               jres.setStatus(Job::FAILED);
+               delete _qmpackage;
+               return jres;
+        }
  
-        // load the corresponding monomer orbitals
-        LoadOrbitals( orbFileA, &_orbitalsA, pLog );
-        LoadOrbitals( orbFileB, &_orbitalsB, pLog );
-     
         if ( _do_trim ) {
              LOG(logDEBUG,*pLog) << "Trimming virtual orbitals A:" 
                     << _orbitalsA.getNumberOfLevels() - _orbitalsA.getNumberOfElectrons() << "->" 
@@ -295,7 +338,7 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
        
         // Output the thread run summary and clean the Logger
         LOG(logINFO,*pLog) << TimeStamp() << " Finished evaluating pair " << ID_A << ":" << ID_B << flush; 
-        cout << *pLog;
+        //cout << *pLog;
 
        // save orbitals 
        boost::filesystem::create_directories(_orb_dir);  
@@ -304,10 +347,17 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
        std::ofstream ofs( orbFileAB.c_str() );
        boost::archive::binary_oarchive oa( ofs );
 
-       if ( !( _store_orbitals && _do_parse && _parse_orbitals_status) )   _store_orbitals = false;
-       if ( !( _store_overlap && _do_parse && _parse_log_status) )    _store_overlap = false;
+       if ( !( _store_orbitals && _do_parse && _parse_orbitals_status) )  {
+           _store_orbitals = false; 
+           LOG(logINFO,*pLog) << "Not storing orbitals" << flush;
+       }
+       if ( !( _store_overlap && _do_parse && _parse_log_status) )  {
+           _store_overlap = false;
+           LOG(logINFO,*pLog) << "Not storing overlap" << flush;
+       }
        if ( !( _store_integrals && _do_project && _calculate_integrals) )  {
            _store_integrals = false; 
+           LOG(logINFO,*pLog) << "Not storing integrals" << flush;           
        } else {
            // _orbitalsAB.setIntegrals( &_JAB );
            ub::matrix<double>& _JAB_store = _orbitalsAB.MOCouplings();
@@ -368,7 +418,7 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 void IDFT::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _orbitalsAB, Logger *log ) 
 {
     
-    if (log) LOG(logDEBUG,*log)  << "Constructing the guess for dimer orbitals" << flush;   
+    LOG(logDEBUG,*log)  << "Constructing the guess for dimer orbitals" << flush;   
    
     // constructing the direct product orbA x orbB
     int _basisA = _orbitalsA->getBasisSetSize();
@@ -465,7 +515,10 @@ void IDFT::WriteJobFile(Topology *top) {
     
 }
 
-
+/**
+ * Reads-in electronic couplings from the job file to topology 
+ * Does not detect level degeneracy! (TO DO)
+ */
 void IDFT::Import( Topology *top ) 
 {
     Property xml;
@@ -475,10 +528,10 @@ void IDFT::Import( Topology *top )
     int _current_pairs = 0;
     int _incomplete_jobs = 0;
     
-    Logger _log;
-    _log.setReportLevel(logINFO);
+    Logger log;
+    log.setReportLevel(logINFO);
     
-
+    // load the xml job file into the property object
     string _idft_jobs_file;
     load_property_from_xml(xml, _idft_jobs_file);
     
@@ -487,9 +540,8 @@ void IDFT::Import( Topology *top )
 
     for (it = jobProps.begin(); it != jobProps.end(); ++it) {
  
+        // check if this job has output, otherwise complain
         if ( (*it)->exists("output") && (*it)->exists("output.pair") ) {
-            
-            //cout << **it;
             
             Property poutput = (*it)->get("output.pair");
             
@@ -501,14 +553,15 @@ void IDFT::Import( Topology *top )
                        
             string typeA = poutput.getAttribute<string>("typeA");
             string typeB = poutput.getAttribute<string>("typeB");
+
             //cout << idA << ":" << idB << "\n"; 
             Segment *segA = top->getSegment(idA);
             Segment *segB = top->getSegment(idB);
-
             QMPair *qmp = nblist.FindPair(segA,segB);
             
-            if (qmp == NULL) { // there is no pair in the neighbor list with this name
-                //LOG(logINFO, _log) << "No pair " <<  idA << ":" << idB << " found in the neighbor list. Ignoring" << flush; 
+            // there is no pair in the neighbor list with this name
+            if (qmp == NULL) { 
+                LOG(logINFO, log) << "No pair " <<  idA << ":" << idB << " found in the neighbor list. Ignoring" << flush; 
             }   else {
                 
                 _current_pairs++;
@@ -516,7 +569,7 @@ void IDFT::Import( Topology *top )
                 list<Property*> pOverlap = poutput.Select("overlap");
                 list<Property*> ::iterator itOverlap;
 
-                    
+                    // run over all level combinations and select HOMO-HOMO and LUMO-LUMO
                     for (itOverlap = pOverlap.begin(); itOverlap != pOverlap.end(); ++itOverlap) {
 
                         double energyA = (*itOverlap)->getAttribute<double>("eA");
@@ -537,19 +590,19 @@ void IDFT::Import( Topology *top )
                     }    
             }
             
-        } else {
+        } else { // output not found, job failed - report - throw an exception in the future
             _incomplete_jobs++;
-            LOG(logINFO, _log) << "Job " << (*it)->get( "id" ).as<string>() << " is " << (*it)->get( "status" ).as<string>() << endl;
+            LOG(logINFO, log) << "Job " << (*it)->get( "id" ).as<string>() << " is " << (*it)->get( "status" ).as<string>() << endl;
         }
     }
     
-    LOG(logINFO, _log) << "Pairs [total:updated] " <<  _number_of_pairs << ":" << _current_pairs << " Incomplete jobs: " << _incomplete_jobs << flush; 
-    cout << _log;
+    LOG(logINFO, log) << "Pairs [total:saved] " <<  _number_of_pairs << ":" << _current_pairs << " Incomplete jobs: " << _incomplete_jobs << flush; 
+    cout << log;
 }
 
 /* SUPEREXCHANGE 
 
-void IImport::FromIDFTWithSuperExchange(Topology *top, string &_idft_jobs_file) {
+void ImportSuperExchange(Topology *top) {
 
     Property xml;
 

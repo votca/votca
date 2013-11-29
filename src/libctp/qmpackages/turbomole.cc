@@ -20,16 +20,19 @@
 #include "turbomole.h"
 #include "votca/ctp/segment.h"
 #include <votca/tools/globals.h>
+
 #include <boost/algorithm/string.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/filesystem.hpp>
+
 #include <stdio.h>
 #include <iomanip>
 #include <sys/stat.h>
 
 using namespace std;
+using namespace boost::filesystem;
 
 namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
@@ -60,8 +63,9 @@ void Turbomole::Initialize( Property *opt ) {
     _write_guess = false;
 
     // check if the guess keyword is present, if yes, append the guess later
-    std::string::size_type iop_pos = _options.find("iter\n1 ");
-    if (iop_pos != std::string::npos) _write_guess = true;
+    std::string::size_type iop_pos1 = _options.find("iter\n1 "); // for 1 + space
+    std::string::size_type iop_pos2 = _options.find("iter\n1\n"); // for 1 + new line
+   if (iop_pos1 != std::string::npos || iop_pos2 != std::string::npos) _write_guess = true;
     
 }
     
@@ -79,7 +83,7 @@ bool Turbomole::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_g
     
     double nm2Bohr = 18.897259886;
     
-    LOG(logDEBUG,*_pLog) << "Preparing TURBOMOLE input " << flush;
+    LOG(logDEBUG,*_pLog) << "TURBOMOLE: Preparing input " << flush;
     
     ofstream _coord_file;
 
@@ -141,7 +145,7 @@ bool Turbomole::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_g
     
     if ( _scratch_dir != "" ) {
         
-        LOG(logDEBUG,*_pLog) << "Setting the scratch dir to " << _scratch_dir + temp_suffix << flush;
+        LOG(logDEBUG,*_pLog) << "TURBOMOLE: scratch dir " << _scratch_dir + temp_suffix << flush;
 
         boost::filesystem::create_directories( _scratch_dir + temp_suffix );
     
@@ -216,7 +220,7 @@ bool Turbomole::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_g
         }
     }
 
-    LOG(logDEBUG,*_pLog) << "Finished with TURBOMOLE input" << flush;
+    LOG(logDEBUG,*_pLog) << "TURBOMOLE: Finished with input" << flush;
     return true;    
     
 }
@@ -239,7 +243,7 @@ string Turbomole::FortranFormat( const double &number ) {
 bool Turbomole::Run()
 {
 
-    LOG(logDEBUG,*_pLog) << "Running TURBOMOLE job" << flush;
+    LOG(logDEBUG,*_pLog) << "TURBOMOLE: Running job [" << _executable << "]" << flush;
     
     if (system(NULL)) {
         // if scratch is provided, run the shell script; 
@@ -248,11 +252,11 @@ bool Turbomole::Run()
         _command  = "cd " + _run_dir + "; " + _executable + " >& " + _executable + ".log ";
         
         int i = system ( _command.c_str() );
-        LOG(logDEBUG,*_pLog) << "Finished TURBOMOLE job" << flush;
+        LOG(logDEBUG,*_pLog) << "TURBOMOLE: Finished job" << flush;
         return true;
     }
     else {
-        LOG(logERROR,*_pLog) << _input_file_name << " failed to start" << flush; 
+        LOG(logERROR,*_pLog) << "TURBOMOLE: " <<  _input_file_name << " failed to start" << flush; 
         return false;
     }
     
@@ -313,7 +317,9 @@ bool Turbomole::ParseOrbitalsFile( Orbitals* _orbitals )
     unsigned _level;
     unsigned _basis_size = 0;
 
-    std::ifstream _input_file( (_run_dir + "/" + _orb_file_name).c_str() );
+    path arg_path; 
+    string orbFileName = (arg_path / _run_dir / _orb_file_name ).string();
+    std::ifstream _input_file( orbFileName.c_str() );
     //cout << endl << (_run_dir + "/" + _orb_file_name).c_str();
 
     if (_input_file.fail()) {
@@ -428,16 +434,18 @@ bool Turbomole::ParseOrbitalsFile( Orbitals* _orbitals )
 }
 
 /*
- * TO DO 
+ * Checks completeness of the TURBOMOLE log
  */
 bool Turbomole::CheckLogFile() {
     
     // check if the log file exists
     char ch;
-    ifstream _input_file( (_run_dir + "/" + _log_file_name).c_str());
+    path arg_path;
+    string logFileName = (arg_path / _run_dir / _log_file_name ).string();
+    ifstream _input_file( logFileName.c_str() );
     //cout << (_run_dir + "/" + _log_file_name).c_str();
     if (_input_file.fail()) {
-        LOG(logERROR,*_pLog) << "Turbomole LOG "<< _log_file_name << " is not found" << flush;
+        LOG(logERROR,*_pLog) << "TURBOMOLE: "<< _log_file_name << " is not found" << flush;
         return false;
     };
 
@@ -448,14 +456,14 @@ bool Turbomole::CheckLogFile() {
         _input_file.seekg(-2,ios_base::cur);
         _input_file.get(ch);   
         //cout << "\nChar: " << ch << endl;
-    } while ( ch == '\n' || ch == ' ' || (int)_input_file.tellg() == -1 );
+    } while ( ch == '\n' || ch == ' ' || ch == '\t' || (int)_input_file.tellg() == -1 );
  
     // get the beginning of the line or the file
     do {
        _input_file.seekg(-2,ios_base::cur);
        _input_file.get(ch);   
        //cout << "\nNext Char: " << ch << " TELL G " <<  (int)_input_file.tellg() << endl;
-    } while ( ch != '\n' || (int)_input_file.tellg() == -1 );
+    } while ( ch != '\n' && ((int)_input_file.tellg() != -1 ) );
             
     string _line;            
     getline(_input_file,_line);                      // Read the current line
@@ -464,7 +472,7 @@ bool Turbomole::CheckLogFile() {
         
     std::string::size_type self_energy_pos = _line.find("ended normally");
     if (self_energy_pos == std::string::npos) {
-            LOG(logERROR,*_pLog) << "Turbomole LOG is incomplete" << flush;
+            LOG(logERROR,*_pLog) << "TURBOMOLE: " <<  _log_file_name << " is incomplete" << flush;
             return false;      
     } else {
             //LOG(logDEBUG,*_pLog) << "Gaussian LOG is complete" << flush;
@@ -496,7 +504,7 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
     int _basis_set_size = 0;
 
     
-    LOG(logDEBUG,*_pLog) << "Parsing " << _log_file_name << flush;
+    LOG(logDEBUG,*_pLog) << "TURBOMOLE: Parsing " << _log_file_name << flush;
 
     // check if LOG file is complete
     if ( !CheckLogFile() ) return false;
@@ -505,7 +513,9 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
     _orbitals->setQMpakckage("turbomole");
     
     // Start parsing the file line by line
-    ifstream _input_file( (_run_dir + "/" + _log_file_name).c_str() );
+    path arg_path;
+    string logFileName = (arg_path / _run_dir / _log_file_name ).string();
+    ifstream _input_file( logFileName.c_str() );
     
     while (_input_file) {
 
@@ -663,7 +673,7 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
         
     } // end of reading the file line-by-line
    
-    LOG(logDEBUG,*_pLog) << "Done parsing" << flush;
+    LOG(logDEBUG,*_pLog) << "TURBOMOLE: Done parsing" << flush;
     return true;
 }
 

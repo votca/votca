@@ -2616,7 +2616,7 @@ inline void XInteractor::BiasStat(APolarSite &pol1, APolarSite &pol2) {
         setLambda7();
         setLambda9();
         // PU interactions (field & energy): do not damp if both sites are CG
-        if (pol1._resolution == APolarSite::coarsegrained
+        if (false && pol1._resolution == APolarSite::coarsegrained
          && pol2._resolution == APolarSite::coarsegrained) {
             plambda3 = plambda5 = plambda7 = plambda9 = 1.;
         }
@@ -2684,7 +2684,7 @@ inline void XInteractor::BiasIndu(APolarSite &pol1, APolarSite &pol2) {
         setLambda7();
         setLambda9();
         // PU interactions (field & energy): do not damp if both sites are CG
-        if (pol1._resolution == APolarSite::coarsegrained
+        if (false && pol1._resolution == APolarSite::coarsegrained
          && pol2._resolution == APolarSite::coarsegrained) {
             plambda3 = plambda5 = plambda7 = plambda9 = 1.;
         }
