@@ -191,6 +191,7 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     
     // EXTRACT & SAVE QMATOM DATA
     vector< QMAtom* > &atoms = *(orb_iter_output.getAtoms());
+    
     thisIter->UpdatePosChrgFromQMAtoms(atoms, _job->getPolarTop()->QM0());
 
     LOG(logINFO,*_log) 

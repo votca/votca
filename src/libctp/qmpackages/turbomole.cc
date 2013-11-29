@@ -394,8 +394,8 @@ bool Turbomole::ParseOrbitalsFile( Orbitals* _orbitals )
 
     // copying information to the orbitals object
     _orbitals->setBasisSetSize( _basis_size );
-    _orbitals->_has_mo_coefficients = true;
-    _orbitals->_has_mo_energies = true;
+    // _orbitals->_has_mo_coefficients = true;
+    // _orbitals->_has_mo_energies = true;
     
    // copying energies to a matrix  
    _orbitals->_mo_energies.resize( _levels );
@@ -501,8 +501,8 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
     // check if LOG file is complete
     if ( !CheckLogFile() ) return false;
     // save qmpackage name
-    _orbitals->_has_qm_package = true;
-    _orbitals->_qm_package = "turbomole";
+    //_orbitals->_has_qm_package = true;
+    _orbitals->setQMpakckage("turbomole");
     
     // Start parsing the file line by line
     ifstream _input_file( (_run_dir + "/" + _log_file_name).c_str() );
@@ -560,7 +560,7 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
         if (overlap_pos != std::string::npos ) {
 
             // prepare the container
-            _orbitals->_has_overlap = true;
+            // _orbitals->_has_overlap = true;
             (_orbitals->_overlap).resize( _basis_set_size );
             
             _has_overlap_matrix = true;
@@ -619,7 +619,7 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
         if (charge_pos != std::string::npos && _get_charges ) {        
                 LOG(logDEBUG,*_pLog) << "Getting charges" << flush;
                 _has_charges = true;
-                _orbitals->_has_atoms = true;
+                //_orbitals->_has_atoms = true;
         }
         
 
@@ -631,10 +631,10 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
         if (coordinates_pos != std::string::npos) {
             LOG(logDEBUG,*_pLog) << "Getting the coordinates" << flush;
             _has_coordinates = true;
-            LOG(logDEBUG, *_pLog) << "QM energy " << _orbitals->_qm_energy <<  flush;
+            LOG(logDEBUG, *_pLog) << "QM energy " << _orbitals->getQMEnergy() <<  flush;
                     
-            _orbitals->_has_atoms = true;
-            _orbitals->_has_qm_energy = true;
+            //_orbitals->_has_atoms = true;
+            // _orbitals->_has_qm_energy = true;
 
         }
 
@@ -646,9 +646,9 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
         if (self_energy_pos != std::string::npos) {
             LOG(logDEBUG,*_pLog) << "Getting the self energy\n";  
             _has_self_energy = true;
-            LOG(logDEBUG, *_pLog) << "Self energy " << _orbitals->_self_energy <<  flush;
+            LOG(logDEBUG, *_pLog) << "Self energy " << _orbitals->getSelfEnergy() <<  flush;
             
-            _orbitals->_has_self_energy = true;
+            // _orbitals->_has_self_energy = true;
         }
         
         // check if all information has been accumulated and quit 

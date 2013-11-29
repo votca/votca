@@ -576,10 +576,10 @@ bool Gaussian::ParseOrbitalsFile( Orbitals* _orbitals )
     LOG( logDEBUG, *_pLog ) << "Basis set size: " << _basis_size << flush;
 
     // copying information to the orbitals object
-    _orbitals->_basis_set_size = _basis_size;
-    _orbitals->_has_basis_set_size = true;
-    _orbitals->_has_mo_coefficients = true;
-    _orbitals->_has_mo_energies = true;
+    _orbitals->setBasisSetSize( _basis_size ); // = _basis_size;
+    // _orbitals->_has_basis_set_size = true;
+    // _orbitals->_has_mo_coefficients = true;
+    // _orbitals->_has_mo_energies = true;
     
     // copying energies to the orbitals object  
     ub::vector<double> &mo_energies = _orbitals->MOEnergies();   
@@ -683,8 +683,8 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
     if ( !CheckLogFile() ) return false;
     
     // save qmpackage name
-    _orbitals->_has_qm_package = true;
-    _orbitals->_qm_package = "gaussian"; 
+    //_orbitals->_has_qm_package = true;
+    _orbitals->setQMpakckage("gaussian"); 
 
     
     // Start parsing the file line by line
@@ -713,8 +713,8 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
             boost::algorithm::split(results, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
             _has_number_of_electrons = true;
             _number_of_electrons =  boost::lexical_cast<int>(results.front()) ;
-            _orbitals->_number_of_electrons = _number_of_electrons ;
-            _orbitals->_has_number_of_electrons = true;
+            _orbitals->setNumberOfElectrons( _number_of_electrons );
+            // _orbitals->_has_number_of_electrons = true;
             LOG(logDEBUG,*_pLog) << "Alpha electrons: " << _number_of_electrons << flush ;
         }
 
@@ -727,8 +727,8 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
             boost::algorithm::split(results, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
             _has_basis_set_size = true;
             _basis_set_size = boost::lexical_cast<int>(results.front());
-            _orbitals->_basis_set_size = _basis_set_size ;
-            _orbitals->_has_basis_set_size = true;
+            _orbitals->setBasisSetSize( _basis_set_size );
+            // _orbitals->_has_basis_set_size = true;
             _cart_basis_set_size = boost::lexical_cast<int>(results[6] );
             LOG(logDEBUG,*_pLog) << "Basis functions: " << _basis_set_size << flush;
             if ( _read_vxc ) {
@@ -776,10 +776,11 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
                 if (eigenvalues_pos == std::string::npos) {
                     _has_occupied_levels = true;
                     _has_unoccupied_levels = true;
-                    _orbitals->_occupied_levels = _occupied_levels;
-                    _orbitals->_unoccupied_levels = _unoccupied_levels;
-                    _orbitals->_has_occupied_levels = true;
-                    _orbitals->_has_unoccupied_levels = true;
+                    _orbitals->setNumberOfLevels( _occupied_levels , _unoccupied_levels );
+                    // _orbitals->_occupied_levels = _occupied_levels;
+                    // _orbitals->_unoccupied_levels = _unoccupied_levels;
+                    // _orbitals->_has_occupied_levels = true;
+                    // _orbitals->_has_unoccupied_levels = true;
                     LOG(logDEBUG,*_pLog) << "Occupied levels: " << _occupied_levels << flush;
                     LOG(logDEBUG,*_pLog) << "Unoccupied levels: " << _unoccupied_levels << flush;
                 }
@@ -795,9 +796,9 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
         if (overlap_pos != std::string::npos ) {
             
             // prepare the container
-            ub::symmetric_matrix<double> &overlap = _orbitals->MOOverlap();
+            ub::symmetric_matrix<double> &overlap = _orbitals->AOOverlap();
                     
-            _orbitals->_has_overlap = true;
+            // _orbitals->_has_overlap = true;
             overlap.resize( _basis_set_size );
             
             _has_overlap_matrix = true;
@@ -872,6 +873,8 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
                 getline(_input_file, _line);
                 getline(_input_file, _line);
                 
+                bool _has_atoms = _orbitals->hasQMAtoms();
+                
                 vector<string> _row;
                 getline(_input_file, _line);
                 boost::trim( _line );
@@ -891,7 +894,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
                     boost::algorithm::split( _row , _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);  
                     nfields =  _row.size();
                     
-                     if ( _orbitals->_has_atoms == false ) {
+                     if ( _has_atoms == false ) {
                          _orbitals->AddAtom( atom_type, 0, 0, 0, atom_charge );
                      } else {
                          QMAtom* pAtom = _orbitals->_atoms.at( atom_id - 1 );
@@ -900,7 +903,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
                      }
                     
                 }
-                _orbitals->_has_atoms = true;
+                //_orbitals->_has_atoms = true;
         }
         
 
@@ -919,7 +922,8 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
                 boost::trim(_line);
                 archive += _line;                
             }
-            
+                            
+            bool _has_atoms = _orbitals->hasQMAtoms();
             std::list<std::string> stringList;
             vector<string> results;
             boost::iter_split( stringList, archive, boost::first_finder("\\\\") );
@@ -945,7 +949,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
                 double _y =  boost::lexical_cast<double>( *(--it_atom) );
                 double _x =  boost::lexical_cast<double>( *(--it_atom) );
                 
-                if ( _orbitals->_has_atoms == false ) {
+                if ( _has_atoms == false ) {
                         _orbitals->AddAtom( _atom_type, _x, _y, _z );
                 } else {
                          QMAtom* pAtom = _orbitals->_atoms.at( aindex );
@@ -964,12 +968,12 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
             vector<string> energy;
             boost::algorithm::split(block, *coord_block, boost::is_any_of("\\"), boost::algorithm::token_compress_on);
             boost::algorithm::split(energy, block[1], boost::is_any_of("="), boost::algorithm::token_compress_on);
-            _orbitals->_qm_energy = _conv_Hrt_eV * boost::lexical_cast<double> ( energy[1] );
+            _orbitals->setQMEnergy( _conv_Hrt_eV * boost::lexical_cast<double> ( energy[1] ) );
             
-            LOG(logDEBUG, *_pLog) << "QM energy " << _orbitals->_qm_energy <<  flush;
+            LOG(logDEBUG, *_pLog) << "QM energy " << _orbitals->getQMEnergy() <<  flush;
             _has_qm_energy = true;
-            _orbitals->_has_atoms = true;
-            _orbitals->_has_qm_energy = true;
+            //_orbitals->_has_atoms = true;
+            //_orbitals->_has_qm_energy = true;
 
         }
 
@@ -985,10 +989,10 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
             boost::algorithm::split(block, _line, boost::is_any_of("="), boost::algorithm::token_compress_on);
             boost::algorithm::split(energy, block[1], boost::is_any_of("\t "), boost::algorithm::token_compress_on);
             
-            _orbitals->_has_self_energy = true;
-            _orbitals->_self_energy = _conv_Hrt_eV * boost::lexical_cast<double> ( energy[1] );
+            // _orbitals->_has_self_energy = true;
+            _orbitals->setSelfEnergy( _conv_Hrt_eV * boost::lexical_cast<double> ( energy[1] ) );
             
-            LOG(logDEBUG, *_pLog) << "Self energy " << _orbitals->_self_energy <<  flush;
+            LOG(logDEBUG, *_pLog) << "Self energy " << _orbitals->getSelfEnergy() <<  flush;
 
         }
         
@@ -1022,12 +1026,11 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
         cout << "Reading from " << _log_file_name_full;
         
        // prepare the container
-       _orbitals->_has_vxc = true;
-       (_orbitals->_vxc).resize( _cart_basis_set_size );
+       // _orbitals->_has_vxc = true;
+       ub::symmetric_matrix<double>& _vxc = _orbitals->AOVxc(); 
+       _vxc.resize( _cart_basis_set_size  );
             
-       
-       cout << " Vxc matrix is of size " << (_orbitals->_vxc).size1();
-       
+
        _has_vxc_matrix = true;
        //cout << "Found the overlap matrix!" << endl;   
        vector<int> _j_indeces;
@@ -1046,7 +1049,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
            int _i_index = boost::lexical_cast<int>(  _row[0]  ); 
            int _j_index = boost::lexical_cast<int>(  _row[1]  );
            //cout << "Vxc element [" << _i_index << ":" << _j_index << "] " << boost::lexical_cast<double>( _row[2] ) << endl;
-           _orbitals->_vxc( _i_index-1 , _j_index-1 ) = boost::lexical_cast<double>( _row[2] );
+           _vxc( _i_index-1 , _j_index-1 ) = boost::lexical_cast<double>( _row[2] );
         }
         
         LOG(logDEBUG,*_pLog) << "Done parsing" << flush;
@@ -1089,7 +1092,7 @@ bool Gaussian::ConvertToGW( Orbitals* _orbitals ) {
     //int _basis_size      = _orbitals->getBasisSetSize();
     std::vector<double>::size_type _basis_size = _orbitals->getBasisSetSize();
     //int _cart_basis_size = _orbitals->_vxc.size1();
-    ub::matrix<double>::size_type _cart_basis_size = _orbitals->_vxc.size1();
+    ub::matrix<double>::size_type _cart_basis_size = _orbitals->AOVxc().size1();
     //cout << "\nSpherical basis size is " << _basis_size << endl;
     //cout << "\nCartesian basis size is " << _cart_basis_size << endl;
     
@@ -1178,7 +1181,7 @@ bool Gaussian::ConvertToGW( Orbitals* _orbitals ) {
      */
     
     ub::matrix<double> vxc  = ub::zero_matrix<double> (_basis_size, _basis_size);
-    ub::matrix<double> vxc_cart = (*_orbitals->getVxc()); 
+    const ub::matrix<double> vxc_cart = _orbitals->AOVxc(); 
     vector< QMAtom* >::iterator jta;
 
     int _isp = 0;

@@ -356,6 +356,8 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     boost::archive::binary_oarchive oa( ofs );
     oa << _orbitals;
     // ofs.close();
+    
+    LOG(logDEBUG,*pLog) << "Done serializing " <<  ORB_FILE << flush;
    }
    
    // Convert to GW

@@ -80,7 +80,7 @@ public:
     // int getMlower(){ return mmin -1; };
     // int getMupper(){ return mmax -1; };
     
-    // all GWBSE functionality is in Mbpt object
+    // all GWBSE functionality is in MBGFT object
     MBGFT _mbgft; 
 
 };

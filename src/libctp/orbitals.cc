@@ -57,28 +57,30 @@ Orbitals::Orbitals() {
     _occupied_levels = 0;
     _unoccupied_levels = 0;
     _number_of_electrons = 0;
+    _self_energy = 0.0;
+    _qm_energy = 0.0;
     
-    _has_basis_set_size = false;
-    _has_occupied_levels = false;
-    _has_unoccupied_levels = false;
-    _has_number_of_electrons = false;   
-    _has_level_degeneracy = false;
-    _has_mo_coefficients = false;
-    _has_mo_energies = false;
-    _has_overlap = false;
-    _has_integrals = false;
-    _has_atoms = false;
-    _has_qm_energy = false;
-    _has_self_energy = false;
-    _has_qm_package = false;
+
+    //_has_atoms = false;
+
     
     // GW-BSE
-    _has_vxc = false;
-    _has_QPpert = false;
-    _has_QPdiag = false;
-    _has_BSE_singlets = false;
-    _has_BSE_triplets = false;    
-            
+    _qpmin = 0;
+    _qpmax = 0;
+    _qptotal = 0;
+    
+    _rpamin = 0;
+    _rpamax = 0;
+    
+    _bse_cmin = 0;
+    _bse_cmax = 0;
+    _bse_vmin = 0;
+    _bse_vmax = 0;
+    _bse_vtotal = 0;
+    _bse_ctotal = 0;
+    _bse_size = 0;
+    _bse_nmax = 0;
+  
 };   
 
 Orbitals::~Orbitals() { 
@@ -88,6 +90,7 @@ Orbitals::~Orbitals() {
     
     std::vector< QMAtom* >::iterator it;
     for ( it = _atoms.begin(); it != _atoms.end(); ++it ) delete *it;
+    
 };   
 
 /*
@@ -100,10 +103,10 @@ const int    &Orbitals::getBasisSetSize() const {
 }
 */
 
-void          Orbitals::setBasisSetSize( const int &basis_set_size ){
-    _has_basis_set_size = true; 
-    _basis_set_size = basis_set_size; 
-}
+//void          Orbitals::setBasisSetSize( const int &basis_set_size ){
+//    _has_basis_set_size = true; 
+//    _basis_set_size = basis_set_size; 
+// }
 
 /*
 int     Orbitals::getNumberOfLevels() {
@@ -116,8 +119,8 @@ int     Orbitals::getNumberOfLevels() {
 */
 
 void   Orbitals::setNumberOfLevels( const int &occupied_levels,const int &unoccupied_levels  ){
-    _has_occupied_levels = true; 
-    _has_unoccupied_levels = true; 
+    // _has_occupied_levels = true; 
+    // _has_unoccupied_levels = true; 
     _occupied_levels = occupied_levels; 
     _unoccupied_levels = unoccupied_levels; 
 }
@@ -130,10 +133,10 @@ const int     &Orbitals::getNumberOfElectrons() const {
     }
 }
 */
-void          Orbitals::setNumberOfElectrons( const int &electrons ){
-    _has_number_of_electrons = true; 
-    _number_of_electrons = electrons; 
-}
+//void          Orbitals::setNumberOfElectrons( const int &electrons ){
+//    _has_number_of_electrons = true; 
+//    _number_of_electrons = electrons; 
+//}
 
 /**
  * 
@@ -168,7 +171,7 @@ bool Orbitals::CheckDegeneracy( double _energy_difference ) {
             // in all containers counters start with 0; real life - with 1
             int _level2 = std::distance(_mo_energies.begin(), it2) + 1;
             
-            if ( abs(energy1 - energy2)*_conv_Hrt_eV < _energy_difference ) {
+            if ( std::abs(energy1 - energy2)*_conv_Hrt_eV < _energy_difference ) {
                 _level_degeneracy[_level1].push_back( _level2 );
                 _level_degeneracy[_level2].push_back( _level1 );
                 _degenerate = true;
@@ -201,13 +204,13 @@ bool Orbitals::CheckDegeneracy( double _energy_difference ) {
     
     }
     
-    _has_level_degeneracy = true;
+    // _has_level_degeneracy = true;
     return _degenerate;
     
 }    
 
 std::vector<int>* Orbitals::getDegeneracy( int level, double _energy_difference ) {
-    if ( !_has_level_degeneracy ) {
+    if ( ! hasDegeneracy() ) {
         
         CheckDegeneracy( _energy_difference );       
         /* 
@@ -283,12 +286,12 @@ void Orbitals::WritePDB( FILE *out ) {
 // reduces the number of virtual orbitals to factor*number_of_occupied_orbitals
 void Orbitals::Trim( int factor ) {
     
-    if ( _has_mo_coefficients ) {
+    if ( hasMOCoefficients() ) {
         _mo_coefficients.resize ( factor * _occupied_levels, _basis_set_size, true);
         _unoccupied_levels = ( factor -1 ) * _occupied_levels;        
     }
 
-    if ( _has_mo_energies ) {
+    if ( hasMOEnergies() ) {
         //cout << "\nBefore: " << _mo_energies.size();
         _mo_energies.resize(  factor * _occupied_levels, true );
         _unoccupied_levels = ( factor - 1) * _occupied_levels;

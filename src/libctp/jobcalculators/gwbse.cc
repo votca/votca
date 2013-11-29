@@ -60,7 +60,7 @@ namespace votca {
             _mbgft.set_do_bse_triplets(false);
             _mbgft.set_ranges("default");
             _mbgft.set_store_qp_pert(true);
-            
+            _mbgft.set_store_eh_interaction(false);
             // _bse_nmax        = 100;
             
             string key = "options." + Identify() + ".job";
@@ -124,7 +124,7 @@ namespace votca {
             if (_store_string.find("qpdiag") != std::string::npos) _mbgft.set_store_qp_diag(true);
             if (_store_string.find("singlets") != std::string::npos) _mbgft.set_store_bse_singlets(true);
             if (_store_string.find("triplets") != std::string::npos) _mbgft.set_store_bse_triplets(true);
-    
+            if (_store_string.find("ehint") != std::string::npos) _mbgft.set_store_eh_interaction(true);
 
         }
 
@@ -161,9 +161,33 @@ namespace votca {
             _mbgft.setLogger(pLog);
             bool _evaluate = _mbgft.Evaluate( &_orbitals );
             
-            
             LOG(logINFO,*pLog) << TimeStamp() << " Finished evaluating site " << seg->getId() << flush; 
+           
  
+            
+            
+       LOG(logDEBUG,*pLog) << "Saving data to " << orb_file << flush;
+       std::ofstream ofs( (DIR + "/" + orb_file).c_str() );
+       boost::archive::binary_oarchive oa( ofs );
+
+     //  if ( !( _store_orbitals && _do_parse && _parse_orbitals_status) )   _store_orbitals = false;
+     //  if ( !( _store_overlap && _do_parse && _parse_log_status) )    _store_overlap = false;
+     //  if ( !( _store_integrals && _do_project && _calculate_integrals) )  {
+     //      _store_integrals = false; 
+     //  } else {
+     //      _orbitalsAB.setIntegrals( &_JAB );
+     //  }
+
+     //  _orbitalsAB.setStorage( _store_orbitals, _store_overlap, _store_integrals );
+
+       
+       oa << _orbitals;
+       ofs.close();
+
+            
+            
+            
+            
             Property _job_summary;
             Property *_output_summary = &_job_summary.add("output","");
             Property *_segment_summary = &_output_summary->add("segment","");
@@ -173,10 +197,10 @@ namespace votca {
             _segment_summary->setAttribute("type", segName);
             // output of the JOB 
             jres.setOutput( _job_summary );
-            jres.setStatus(Job::COMPLETE);
+            jres.setStatus(Job::COMPLETE); 
 
             // dump the LOG
-            cout << *pLog;
+
             return jres;
         }
 

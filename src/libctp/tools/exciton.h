@@ -210,13 +210,29 @@ bool Exciton::Evaluate() {
         }
     }
  */
+     
+           
+            
+       LOG(logDEBUG,_log) << "Saving data to " << _output_file << flush;
+       std::ofstream ofs( ( _output_file).c_str() );
+       boost::archive::binary_oarchive oa( ofs );
+
+
+       
+       oa << _orbitals;
+       ofs.close();
+
+     
+     
+     
+     
     Property _summary; 
     Property *_job_output = &_summary.add("output","");
     votca::tools::PropertyIOManipulator iomXML(votca::tools::PropertyIOManipulator::XML, 1, "");
      
-    std::ofstream ofs (_output_file.c_str(), std::ofstream::out);
-    ofs << *_job_output;    
-    ofs.close();
+    //ofs (_output_file.c_str(), std::ofstream::out);
+    //ofs << *_job_output;    
+    //ofs.close();
     
     return true;
 }

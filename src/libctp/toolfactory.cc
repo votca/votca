@@ -26,7 +26,7 @@
 #include "tools/log2mps.h"
 #include "tools/ptopreader.h"
 #include "tools/exciton.h"
-
+#include "tools/qmanalyze.h"
 
 namespace votca { namespace ctp {
 
@@ -38,6 +38,10 @@ void QMToolFactory::RegisterAll(void)
         QMTools().Register<Log2Mps>            ("log2mps");
         QMTools().Register<PtopReader>         ("ptopreader");
         QMTools().Register<Exciton>            ("exciton");
+        QMTools().Register<QMAnalyze>          ("qmanalyze");
+        
+       
+        
 }
 
 }}

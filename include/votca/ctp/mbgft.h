@@ -53,26 +53,29 @@
 
 namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
-/**
-* \brief Electronic excitations from GW-BSE
-*
-* Evaluates electronic excitations in molecular systems based on
-* many-body Green's functions theory within the GW approximation and the
-* Bethe-Salpeter equation. Requires molecular orbitals of two monomers
-* and a dimer in GAUSSIAN, NWChem, or TURBOMOLE format.
-* 
-*  B. Baumeier, J. Kirkpatrick, D. Andrienko, 
-*  Phys. Chem. Chem. Phys., 12, 11103-11113, 2010
-* 
-* Callname: idft
-*/
+
+        /**
+         * \brief Electronic excitations from GW-BSE
+         *
+         * Evaluates electronic excitations in molecular systems based on
+         * many-body Green's functions theory within the GW approximation and the
+         * Bethe-Salpeter equation. Requires molecular orbitals of the object
+         * in GAUSSIAN, NWChem, or TURBOMOLE format.
+         * 
+         *  B. Baumeier, Y. Ma, D. Andrienko, M. Rohlfing
+         *  J. Chem. Theory Comput. 8, 997-1002 (2012)
+         * 
+         *  B. Baumeier, D. Andrienko, M. Rohlfing
+         *  J. Chem. Theory Comput. 8, 2790-2795 (2012) 
+         * 
+         */
 
 class MBGFT 
 {
 public:
 
-    MBGFT() {};
-   ~MBGFT() {};
+    MBGFT() { };
+   ~MBGFT() { };
 
   /*  string  Identify() { return "gwbse"; }
     void    Initialize( Property *options);
@@ -106,6 +109,10 @@ public:
     
     bool get_store_bse_singlets(){ return _store_bse_singlets ;}
     void set_store_bse_singlets( bool inp ){ _store_bse_singlets = inp;}
+
+    bool get_store_eh_interaction(){ return _store_eh_interaction ;}
+    void set_store_eh_interaction( bool inp ){ _store_eh_interaction = inp;}
+
     
     bool get_store_bse_triplets(){ return _store_bse_triplets ;}
     void set_store_bse_triplets( bool inp ){ _store_bse_triplets = inp;}
@@ -146,6 +153,9 @@ public:
     int get_bse_nmax(){return _bse_nmax;}
     void set_bse_nmax( int inp){ _bse_nmax = inp;}
     
+    int get_bse_nprint(){return _bse_nprint;}
+    void set_bse_nprint( int inp){ _bse_nprint = inp;}
+    
     string get_gwbasis_name(){return _gwbasis_name;}
     void set_gwbasis_name(string inp){ _gwbasis_name = inp;}
     
@@ -173,7 +183,7 @@ public:
     bool                                _store_qp_diag;
     bool                                _store_bse_singlets;
     bool                                _store_bse_triplets;
-    
+    bool                                _store_eh_interaction;
     
     
     string _outParent;
@@ -209,6 +219,7 @@ public:
     unsigned int                        _bse_vtotal;
     unsigned int                        _bse_ctotal;
     int                                 _bse_nmax;
+    int                                 _bse_nprint;
          
     double                              _shift;  // pre-shift of DFT energies
 

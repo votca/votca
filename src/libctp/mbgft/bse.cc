@@ -85,8 +85,8 @@ namespace votca {
         
         void MBGFT::BSE_solve_triplets(){
             
-            ub::matrix<double> _bse = _eh_qp -_eh_d;
-            /*
+            ub::matrix<double> _bse =  -_eh_d;
+            
             // add full QP Hamiltonian contributions to free transitions
             #pragma omp parallel for
             for ( size_t _v1 = 0 ; _v1 < _bse_vtotal ; _v1++){
@@ -116,7 +116,7 @@ namespace votca {
                 }
             }
             
-            */
+            
             
             linalg_eigenvalues( _bse, _bse_triplet_energies, _bse_triplet_coefficients, _bse_nmax);
         }

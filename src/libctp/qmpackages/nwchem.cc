@@ -492,17 +492,18 @@ bool NWChem::ParseOrbitalsFile( Orbitals* _orbitals )
 
   
     // copying information to the orbitals object
-    _orbitals->_basis_set_size = _basis_size;
-    _orbitals->_has_basis_set_size = true;
-    _orbitals->_number_of_electrons = _number_of_electrons ;
-    _orbitals->_has_number_of_electrons = true;
-    _orbitals->_has_mo_coefficients = true;
-    _orbitals->_has_mo_energies = true;
-    _orbitals->_has_occupied_levels = true;
-    _orbitals->_has_unoccupied_levels = true;
-    _orbitals->_occupied_levels = _occupied_levels;
-    _orbitals->_unoccupied_levels = _unoccupied_levels;
-   
+    _orbitals->setBasisSetSize(  _basis_size );
+    //_orbitals->_has_basis_set_size = true;
+    _orbitals->setNumberOfElectrons( _number_of_electrons );
+    // _orbitals->_has_number_of_electrons = true;
+    // _orbitals->_has_mo_coefficients = true;
+    // _orbitals->_has_mo_energies = true;
+    //_orbitals->_has_occupied_levels = true;
+    //_orbitals->_has_unoccupied_levels = true;
+    //_orbitals->_occupied_levels = _occupied_levels;
+    //_orbitals->_unoccupied_levels = _unoccupied_levels;
+    _orbitals->setNumberOfLevels( _occupied_levels , _unoccupied_levels );
+    
    // copying energies to a matrix  
    _orbitals->_mo_energies.resize( _levels );
    //_level = 1;
@@ -626,8 +627,8 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
     if ( !CheckLogFile() ) return false;
     
     // save qmpackage name
-    _orbitals->_has_qm_package = true;
-    _orbitals->_qm_package = "nwchem";
+    // _orbitals->_has_qm_package = true;
+    _orbitals->setQMpakckage("nwchem");
     
     // set _found_optimization to true if this is a run without optimization
     if ( !_is_optimization ) {
@@ -666,10 +667,10 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
             boost::algorithm::split(results, _line, boost::is_any_of("="), boost::algorithm::token_compress_on);
             string _energy = results.back();
             boost::trim( _energy );
-            _orbitals->_qm_energy = _conv_Hrt_eV * boost::lexical_cast<double>(_energy);
-            LOG(logDEBUG, *_pLog) << "QM energy " << _orbitals->_qm_energy <<  flush;
+            _orbitals->setQMEnergy ( _conv_Hrt_eV * boost::lexical_cast<double>(_energy) );
+            LOG(logDEBUG, *_pLog) << "QM energy " << _orbitals->getQMEnergy() <<  flush;
             _has_qm_energy = true;
-            _orbitals->_has_qm_energy = true;
+            // _orbitals->_has_qm_energy = true;
             
         }
  
@@ -681,7 +682,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
        if (overlap_pos != std::string::npos ) {
             
            // prepare the container
-           _orbitals->_has_overlap = true;
+           // _orbitals->_has_overlap = true;
            (_orbitals->_overlap).resize( _basis_set_size );
             
            _has_overlap_matrix = true;
@@ -770,7 +771,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
                     boost::algorithm::split( _row , _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);  
                     nfields =  _row.size();
                     
-                     if ( _orbitals->_has_atoms == false ) {
+                     if ( _orbitals->hasQMAtoms() == false ) {
                          _orbitals->AddAtom( atom_type, 0, 0, 0, atom_charge );
                      } else {
                          QMAtom* pAtom = _orbitals->_atoms.at( atom_id - 1 );
@@ -779,7 +780,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
                      }
                     
                 }
-                _orbitals->_has_atoms = true;
+                //_orbitals->_has_atoms = true;
         }
         
 
@@ -826,7 +827,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
                 boost::algorithm::split( _row , _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);  
                 nfields =  _row.size();
                     
-                if ( _orbitals->_has_atoms == false ) {
+                if ( _orbitals->hasQMAtoms() == false ) {
                     _orbitals->AddAtom( _atom_type, _x, _y, _z );
                 } else {
                     QMAtom* pAtom = _orbitals->_atoms.at( atom_id - 1 );
@@ -838,7 +839,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
                     
             }
       
-            _orbitals->_has_atoms = true;
+            // _orbitals->_has_atoms = true;
 
         }
 
@@ -854,10 +855,10 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
             boost::algorithm::split(block, _line, boost::is_any_of("="), boost::algorithm::token_compress_on);
             boost::algorithm::split(energy, block[1], boost::is_any_of("\t "), boost::algorithm::token_compress_on);
             
-            _orbitals->_has_self_energy = true;
-            _orbitals->_self_energy = _conv_Hrt_eV * boost::lexical_cast<double> ( energy[1] );
+            // _orbitals->_has_self_energy = true;
+            _orbitals->setSelfEnergy( _conv_Hrt_eV * boost::lexical_cast<double> ( energy[1] ) );
             
-            LOG(logDEBUG, *_pLog) << "Self energy " << _orbitals->_self_energy <<  flush;
+            LOG(logDEBUG, *_pLog) << "Self energy " << _orbitals->getSelfEnergy() <<  flush;
 
         }
         
