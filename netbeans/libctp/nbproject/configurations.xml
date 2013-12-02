@@ -53,12 +53,8 @@
         <itemPath>../../src/libctp/calculators/xmultipole2.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f3" displayName="Tools" projectFiles="true">
-<<<<<<< local
-        <itemPath>/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/tools/coupling.h</itemPath>
-        <itemPath>/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/tools/exciton.h</itemPath>
-=======
         <itemPath>../../src/libctp/tools/coupling.h</itemPath>
->>>>>>> other
+        <itemPath>../../src/libctp/tools/exciton.h</itemPath>
         <itemPath>../../src/libctp/tools/molpol.cc</itemPath>
         <itemPath>../../src/libctp/tools/molpol.h</itemPath>
         <itemPath>../../src/libctp/tools/pdb2map.h</itemPath>
@@ -90,7 +86,6 @@
       <itemPath>../../include/votca/ctp/jobapplication.h</itemPath>
       <itemPath>../../include/votca/ctp/jobcalculator.h</itemPath>
       <itemPath>../../include/votca/ctp/logger.h</itemPath>
-      <itemPath>../../include/votca/ctp/mbgft.h</itemPath>
       <itemPath>../../include/votca/ctp/mkl_boost_ublas_matrix_prod.h</itemPath>
       <itemPath>../../include/votca/ctp/molecule.h</itemPath>
       <itemPath>../../include/votca/ctp/orbitals.h</itemPath>
@@ -119,7 +114,6 @@
       <itemPath>../../include/votca/ctp/sqlapplication.h</itemPath>
       <itemPath>../../include/votca/ctp/statesaversqlite.h</itemPath>
       <itemPath>../../include/votca/ctp/threecenters.h</itemPath>
-      <itemPath>/data/isilon/baumeier/votca_devel/src/ctp/include/votca/ctp/toolfactory.h</itemPath>
       <itemPath>../../include/votca/ctp/topology.h</itemPath>
       <itemPath>../../include/votca/ctp/version.h</itemPath>
       <itemPath>../../include/votca/ctp/votca_ctp_config.h</itemPath>
@@ -157,12 +151,6 @@
         <itemPath>../../src/libctp/qmpackagefactory.cc</itemPath>
         <itemPath>../../src/libctp/toolfactory.cc</itemPath>
       </logicalFolder>
-      <logicalFolder name="f4" displayName="MBGFT" projectFiles="true">
-        <itemPath>../../src/libctp/mbgft/bse.cc</itemPath>
-        <itemPath>../../src/libctp/mbgft/gwa.cc</itemPath>
-        <itemPath>../../src/libctp/mbgft/mbgft.cc</itemPath>
-        <itemPath>../../src/libctp/mbgft/rpa.cc</itemPath>
-      </logicalFolder>
       <logicalFolder name="f3" displayName="Topology" projectFiles="true">
         <itemPath>../../src/libctp/fragment.cc</itemPath>
         <itemPath>../../src/libctp/molecule.cc</itemPath>
@@ -172,11 +160,10 @@
         <itemPath>../../src/libctp/segmenttype.cc</itemPath>
         <itemPath>../../src/libctp/topology.cc</itemPath>
       </logicalFolder>
-      <itemPath>/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/aomatrices/aocoulomb.cc</itemPath>
-      <itemPath>/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/aomatrices/aodipole.cc</itemPath>
-      <itemPath>/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/aomatrices/aomatrix.cc</itemPath>
-      <itemPath>/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/aomatrices/aomomentum.cc</itemPath>
-      <itemPath>/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/aomatrices/aooverlap.cc</itemPath>
+      <itemPath>../../src/libctp/aomatrix.cc</itemPath>
+      <itemPath>/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/aomatrix.cc</itemPath>
+      <itemPath>../../src/libctp/aomatrices/aomatrix.cc</itemPath>
+      <itemPath>../../src/libctp/aomatrices/aooverlap.cc</itemPath>
       <itemPath>../../src/libctp/apolarsite.cc</itemPath>
       <itemPath>../../src/libctp/ewald2d.cc</itemPath>
       <itemPath>../../src/libctp/ewald3d.cc</itemPath>
@@ -185,6 +172,7 @@
       <itemPath>../../src/libctp/gsl_boost_ublas_matrix_prod.cc</itemPath>
       <itemPath>../../src/libctp/hgversion.h</itemPath>
       <itemPath>../../src/libctp/job.cc</itemPath>
+      <itemPath>../../src/libctp/mbgft/mbgft.cc</itemPath>
       <itemPath>../../src/libctp/orbitals.cc</itemPath>
       <itemPath>../../src/libctp/overlap.cc</itemPath>
       <itemPath>../../src/libctp/parallelpaircalc.cc</itemPath>
@@ -201,6 +189,7 @@
       <itemPath>../../src/libctp/qmtool.cc</itemPath>
       <itemPath>../../src/libctp/statesaversqlite.cc</itemPath>
       <itemPath>../../src/libctp/threecenters.cc</itemPath>
+      <itemPath>/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/threecenters.cc</itemPath>
       <itemPath>../../src/libctp/version.cc</itemPath>
       <itemPath>../../src/libctp/version_nb.cc</itemPath>
       <itemPath>../../src/libctp/votca_config.h</itemPath>
@@ -307,8 +296,6 @@
       </item>
       <item path="../../include/votca/ctp/logger.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/ctp/mbgft.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/ctp/mkl_boost_ublas_matrix_prod.h"
             ex="false"
             tool="3"
@@ -429,6 +416,18 @@
       <item path="../../include/votca/ctp/xjob.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/xmapper.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libctp/aomatrices/aomatrix.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/aomatrices/aooverlap.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/aomatrix.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/apolarsite.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -674,13 +673,7 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libctp/mbgft/bse.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/mbgft/gwa.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libctp/mbgft/mbgft.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/mbgft/rpa.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/molecule.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -782,6 +775,8 @@
       </item>
       <item path="../../src/libctp/tools/coupling.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../src/libctp/tools/exciton.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../src/libctp/tools/molpol.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/molpol.h" ex="false" tool="3" flavor2="0">
@@ -813,44 +808,14 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="/data/isilon/baumeier/votca_devel/src/ctp/include/votca/ctp/toolfactory.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/aomatrices/aocoulomb.cc"
+      <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/aomatrix.cc"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
-      <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/aomatrices/aodipole.cc"
+      <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/threecenters.cc"
             ex="false"
             tool="1"
-            flavor2="0">
-      </item>
-      <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/aomatrices/aomatrix.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/aomatrices/aomomentum.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/aomatrices/aooverlap.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/tools/coupling.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/tools/exciton.h"
-            ex="false"
-            tool="3"
             flavor2="0">
       </item>
     </conf>
@@ -936,8 +901,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/logger.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/mbgft.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/mkl_boost_ublas_matrix_prod.h"
             ex="false"
@@ -1059,6 +1022,18 @@
       <item path="../../include/votca/ctp/xjob.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/xmapper.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libctp/aomatrices/aomatrix.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/aomatrices/aooverlap.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/aomatrix.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/apolarsite.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1304,13 +1279,7 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libctp/mbgft/bse.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/mbgft/gwa.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libctp/mbgft/mbgft.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/mbgft/rpa.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/molecule.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1412,6 +1381,8 @@
       </item>
       <item path="../../src/libctp/tools/coupling.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../src/libctp/tools/exciton.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../src/libctp/tools/molpol.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/molpol.h" ex="false" tool="3" flavor2="0">
@@ -1443,44 +1414,14 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="/data/isilon/baumeier/votca_devel/src/ctp/include/votca/ctp/toolfactory.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/aomatrices/aocoulomb.cc"
+      <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/aomatrix.cc"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
-      <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/aomatrices/aodipole.cc"
+      <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/threecenters.cc"
             ex="false"
             tool="1"
-            flavor2="0">
-      </item>
-      <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/aomatrices/aomatrix.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/aomatrices/aomomentum.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/aomatrices/aooverlap.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/tools/coupling.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/tools/exciton.h"
-            ex="false"
-            tool="3"
             flavor2="0">
       </item>
     </conf>

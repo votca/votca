@@ -114,4 +114,38 @@
                 </shell>
 	</element>
 
+	<element name="O">
+		<shell type="S" scale="1.00">
+			<constant decay="47.105518" contraction="1.0"></constant> 
+		</shell>
+		<shell type="S" scale="1.00">
+			<constant decay="5.911346" contraction="1.0"></constant>
+		</shell>
+                <shell type="S" scale="1.00">
+                        <constant decay="0.976483" contraction="1.0"></constant>
+                </shell>
+                <shell type="S" scale="1.00">
+                        <constant decay="0.296070" contraction="1.0"></constant>
+                </shell>
+                <shell type="P" scale="1.00">
+                        <constant decay="16.692219" contraction="1.0"></constant>
+                </shell>
+                <shell type="P" scale="1.00">
+                        <constant decay="3.900702" contraction="1.0"></constant>
+                </shell>
+                <shell type="P" scale="1.00">
+                        <constant decay="1.078253" contraction="1.0"></constant>
+                </shell>
+                <shell type="P" scale="1.00">
+                        <constant decay="0.284189" contraction="1.0"></constant>
+                </shell>
+                <shell type="P" scale="1.00">
+                        <constant decay="0.070200" contraction="1.0"></constant>
+                </shell>
+                <shell type="D" scale="1.00">
+                        <constant decay="1.2920000" contraction="1.0"></constant>
+                </shell>
+	</element>
+
+
 </basis>
