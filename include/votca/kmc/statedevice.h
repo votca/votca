@@ -88,7 +88,9 @@ void StateDevice<TGraph>::Grow(unsigned int nr_new_carriers) {
         carrier_reservoir.push_back(i);
         newcarrier->SetInBox(false);
         newcarrier->SetDistance(votca::tools::vec(0.0,0.0,0.0)); //initialize the travelled distance vector
-        newcarrier->SetCarrierType((int) Void); //set carrier in reservoir        
+        newcarrier->SetCarrierType((int) Reservoir); //set carrier in reservoir
+        std::cout << "type : " << (int) Reservoir << endl;
+        std::cout << newcarrier->type() << endl;
     }
 }
 

@@ -34,7 +34,7 @@ public:
     /// carrier node
     Node* &node() { return _carrier_node; }    
     /// carrier type
-    const int &type() const { return _carrier_type; } 
+    int &type() { return _carrier_type; } 
     /// travelled distance
     const votca::tools::vec &distance() const { return _carrier_distance; } 
     
@@ -48,7 +48,7 @@ public:
     /// set "inbox/outbox" status
     void SetInBox(bool in_sim_box) {_in_sim_box = in_sim_box;}
     /// set carrier type
-    void SetCarrierType(int carrier_type) {_carrier_type = _carrier_type;}
+    void SetCarrierType(int carrier_type) {_carrier_type = carrier_type;}
     
 private:
     

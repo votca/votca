@@ -94,7 +94,7 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
 
     state = new StateDevice<GraphDevice<GraphSQL, NodeSQL, LinkSQL> >();
     state->Grow(5);
-    
+    state->PrintDevice(std::cout);
     
     delete state;
     delete graph;    

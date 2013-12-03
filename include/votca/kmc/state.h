@@ -24,7 +24,7 @@
 #include <votca/kmc/node.h>
 #include <votca/kmc/graph.h>
 
-enum CarrierType{ Void, Electron, Hole, Exciton};
+enum CarrierType{ Reservoir, Electron, Hole, Exciton};
 
 namespace votca { namespace kmc {
 
