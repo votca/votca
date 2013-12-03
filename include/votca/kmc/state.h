@@ -24,7 +24,7 @@
 #include <votca/kmc/node.h>
 #include <votca/kmc/graph.h>
 
-enum CarrierType{ Electron, Hole, Exciton};
+enum CarrierType{ Void, Electron, Hole, Exciton};
 
 namespace votca { namespace kmc {
 
@@ -46,7 +46,7 @@ class State {
         return carrier;
     } 
 
-    void Print() {std::cout << "what?" << endl;}
+    void Print(std::ostream& out);
     
     Carrier* GetCarrier(int id) { return _carriers[id];}
     int GetCarrierSize() {return _carriers.size();}
@@ -138,6 +138,14 @@ void State<TGraph>::Load(string SQL_state_filename, TGraph* graph){
 
     delete stmt;
     stmt = NULL;    
+}
+
+template <class TGraph>
+void State<TGraph>::Print(std::ostream& out) {
+    
+    typename std::vector<Carrier*>::iterator it;    
+    for(it = _carriers.begin(); it != _carriers.end(); it++)  out << (*it)->id() << " " << (*it)->node()->position() << " " << 
+            (*it)->type() << " " << (*it)->distance() << " " << endl;
 }
 
 }} 

@@ -44,7 +44,10 @@ public:
     void Sell(unsigned int remove_from_sim_box);
     
     /// Growing of carrier and reservoir vector
-    void Grow(unsigned int nr_new_carriers, int max_pair_degree);
+    void Grow(unsigned int nr_new_carriers);
+    
+    /// Print carrier list (for debugging)
+    void PrintDevice(std::ostream& out);
     
 private:
 
@@ -75,7 +78,7 @@ void StateDevice<TGraph>::Sell(unsigned int remove_from_sim_box) {
 }
 
 template <class TGraph>
-void StateDevice<TGraph>::Grow(unsigned int nr_new_carriers, int max_pair_degree) {
+void StateDevice<TGraph>::Grow(unsigned int nr_new_carriers) {
     
     unsigned int new_nr_carriers = this->GetCarrierSize() + nr_new_carriers;
     for (unsigned int i=this->GetCarrierSize(); i<new_nr_carriers; i++) {
@@ -84,8 +87,23 @@ void StateDevice<TGraph>::Grow(unsigned int nr_new_carriers, int max_pair_degree
 
         carrier_reservoir.push_back(i);
         newcarrier->SetInBox(false);
-        
+        newcarrier->SetDistance(votca::tools::vec(0.0,0.0,0.0)); //initialize the travelled distance vector
+        newcarrier->SetCarrierType((int) Void); //set carrier in reservoir        
     }
+}
+
+template <class TGraph>
+void StateDevice<TGraph>::PrintDevice(std::ostream& out) {
+    
+    this->Print(out);
+    std::cout << endl;
+    std::cout << "reservoir indices: ";
+    typename std::vector<int>::iterator it;   
+    for(it = carrier_reservoir.begin(); it != carrier_reservoir.end(); it++) { 
+
+        std::cout << (*it) << " ";
+    }
+    std::cout << endl;
 }
 
 }} 

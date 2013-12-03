@@ -93,6 +93,8 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     std::cout << "number of right electrode injector nodes " << graph->right()->links().size() << endl;
 
     state = new StateDevice<GraphDevice<GraphSQL, NodeSQL, LinkSQL> >();
+    state->Grow(5);
+    
     
     delete state;
     delete graph;    
