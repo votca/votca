@@ -54,11 +54,13 @@ public:
     double sim_time;
     
     // input parameters (put in globaleventinfo?)
-    int seed; long nr_equilsteps; long nr_timesteps; long steps_update_longrange;
-    int nx; int ny; int nz; double lattice_constant; double hopdist; double disorder_strength; 
-    double disorder_ratio; CorrelationType correlation_type; double left_electrode_distance; double right_electrode_distance;
+//    int seed; long nr_equilsteps; long nr_timesteps; long steps_update_longrange;
+//   int nx; int ny; int nz; double lattice_constant; double hopdist; double disorder_strength; 
+//    double disorder_ratio; CorrelationType correlation_type; double left_electrode_distance; double right_electrode_distance;
     
-
+    int nx; int ny; int nz; double lattice_constant; double left_electrode_distance; double right_electrode_distance;
+    int growsize;
+    
 protected:
    void RunKMC(void); 
             
@@ -82,6 +84,7 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     lattice_constant = options->get("options.diode.lattice_constant").as<double>();
     left_electrode_distance = (options->get("options.diode.left_electrode_distance").as<double>());
     right_electrode_distance = (options->get("options.diode.right_electrode_distance").as<double>());
+    growsize = (options->get("options.diode.growsize").as<int>());
     
     graph = new GraphDevice<GraphSQL, NodeSQL, LinkSQL>();
     graph->Initialize(filename);
@@ -93,9 +96,7 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     std::cout << "number of right electrode injector nodes " << graph->right()->links().size() << endl;
 
     state = new StateDevice<GraphDevice<GraphSQL, NodeSQL, LinkSQL> >();
-    state->Grow(5);
-    state->PrintDevice(std::cout);
-    
+   
     delete state;
     delete graph;    
 

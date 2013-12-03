@@ -39,8 +39,11 @@ public:
     /// clear the carriers vector and the carrier reservoir and set length of both vectors equal to zero
     void InitStateDevice();
     
+    /// clear reservoir
+    void InitReservoir() {carrier_reservoir.clear();}
+    
     /// Buying/Selling of carrier numbers from the reservoir
-    unsigned int Buy();
+    unsigned int Buy(int growsize);
     void Sell(unsigned int remove_from_sim_box);
     
     /// Growing of carrier and reservoir vector
@@ -62,8 +65,9 @@ void StateDevice<TGraph>::InitStateDevice(){
 }
 
 template <class TGraph>
-unsigned int StateDevice<TGraph>::Buy() {
+unsigned int StateDevice<TGraph>::Buy(int growsize) {
     
+    if(carrier_reservoir.size()==0) {Grow(growsize);}
     unsigned int carriernr_to_sim_box = carrier_reservoir.back();
     carrier_reservoir.pop_back();
     this->GetCarrier(carriernr_to_sim_box)->SetInBox(true);
@@ -89,8 +93,6 @@ void StateDevice<TGraph>::Grow(unsigned int nr_new_carriers) {
         newcarrier->SetInBox(false);
         newcarrier->SetDistance(votca::tools::vec(0.0,0.0,0.0)); //initialize the travelled distance vector
         newcarrier->SetCarrierType((int) Reservoir); //set carrier in reservoir
-        std::cout << "type : " << (int) Reservoir << endl;
-        std::cout << newcarrier->type() << endl;
     }
 }
 

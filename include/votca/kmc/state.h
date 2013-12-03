@@ -131,7 +131,7 @@ void State<TGraph>::Load(string SQL_state_filename, TGraph* graph){
         // Set distance travelled
         newcarrier->SetDistance(carrier_distance);
         
-        // New carrier is ofcourse in the simulation box
+        // New carrier is in the simulation box
         newcarrier->SetInBox(true);
         
     }
@@ -145,7 +145,7 @@ void State<TGraph>::Print(std::ostream& out) {
     
     typename std::vector<Carrier*>::iterator it;    
     for(it = _carriers.begin(); it != _carriers.end(); it++)  out << (*it)->id() << " " << (*it)->node()->position() << " " << 
-            (*it)->type() << " " << (*it)->distance() << " " << endl;
+            (*it)->type() << " " << (*it)->distance() << " " << (*it)->inbox() << endl;
 }
 
 }} 
