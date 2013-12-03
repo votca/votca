@@ -40,7 +40,7 @@ class Diode : public KMCCalculator
 public:
     
     GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph;
-    State<GraphDevice<GraphSQL, NodeSQL, LinkSQL> >* state;
+    StateDevice<GraphDevice<GraphSQL, NodeSQL, LinkSQL> >* state;
 //    Events* events;
 //    Vssmgroup* vssmgroup;
 //    Globaleventinfo* globevent;
@@ -92,8 +92,7 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     std::cout << "number of left electrode injector nodes " << graph->left()->links().size() << endl;
     std::cout << "number of right electrode injector nodes " << graph->right()->links().size() << endl;
 
-    state = new State<GraphDevice<GraphSQL, NodeSQL, LinkSQL> >();
-    state->Print();
+    state = new StateDevice<GraphDevice<GraphSQL, NodeSQL, LinkSQL> >();
     
     delete state;
     delete graph;    

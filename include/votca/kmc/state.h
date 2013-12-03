@@ -40,15 +40,18 @@ class State {
     }
     
     /// Add a node to the Graph
-    Carrier* AddCarrier(int id, Node* node, int carrier_type) { 
-        Carrier* carrier = new Carrier(id, node, carrier_type);
+    Carrier* AddCarrier(int id) { 
+        Carrier* carrier = new Carrier(id);
         _carriers.push_back(carrier); 
         return carrier;
     } 
 
     void Print() {std::cout << "what?" << endl;}
     
-    void AddCarrier( Carrier* carrier) { _carriers.push_back(carrier); }
+    Carrier* GetCarrier(int id) { return _carriers[id];}
+    int GetCarrierSize() {return _carriers.size();}
+    
+    virtual void AddCarrier( Carrier* carrier) { _carriers.push_back(carrier); }
     
     void InitState() {_carriers.clear();}
     
@@ -110,15 +113,19 @@ void State<TGraph>::Load(string SQL_state_filename, TGraph* graph){
     while (stmt->Step() != SQLITE_DONE)
     {   
         int carrier_nodeID = stmt->Column<int>(0);
+        Node* carrier_node =  graph->GetNode(stmt->Column<int>(0));
+        
         int carrier_type = stmt->Column<int>(1);
+        
         double distancex = stmt->Column<double>(2);
         double distancey = stmt->Column<double>(3);
         double distancez = stmt->Column<double>(4);
         votca::tools::vec carrier_distance(distancex,distancey,distancez);
 
-        Node* carrier_node =  graph->GetNode(stmt->Column<int>(0));
-        Carrier* newcarrier = AddCarrier(carrier_ID,carrier_node, carrier_type); 
+        Carrier* newcarrier = AddCarrier(carrier_ID);
+        newcarrier->SetCarrierNode(carrier_node);
         carrier_node->AddCarrier(carrier_ID);
+        newcarrier->SetCarrierType(carrier_type);
         carrier_ID++;
         
         // Set distance travelled

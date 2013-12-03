@@ -25,10 +25,8 @@ namespace votca { namespace kmc {
 class Carrier {
 public:
 
-    Carrier(int id, Node* node, int carrier_type){
+    Carrier(int id){
         _carrier_id = id;
-        _carrier_node = node;
-        _carrier_type = carrier_type;
     };
     
     /// carrier_id
@@ -49,6 +47,8 @@ public:
     void SetDistance(votca::tools::vec distance) { _carrier_distance = distance; }
     /// set "inbox/outbox" status
     void SetInBox(bool in_sim_box) {_in_sim_box = in_sim_box;}
+    /// set carrier type
+    void SetCarrierType(int carrier_type) {_carrier_type = _carrier_type;}
     
 private:
     
