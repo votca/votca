@@ -28,6 +28,7 @@
 #include "modules/io/gmxtrajectorywriter.h"
 #include "modules/io/growriter.h"
 #endif
+#include "modules/io/dlpolytrajectorywriter.h"
 
 namespace votca { namespace csg {
 
@@ -42,5 +43,6 @@ void TrajectoryWriter::RegisterPlugins()
     TrjWriterFactory().Register<GMXTrajectoryWriter>("xtc");
     TrjWriterFactory().Register<GROWriter>("gro");
 #endif
+    TrjWriterFactory().Register<DLPOLYTrajectoryWriter>("dlpoly");
 }
 }}
