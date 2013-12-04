@@ -27,6 +27,7 @@
 #include <votca/kmc/graphdevice.h>
 #include <votca/kmc/node.h>
 #include <votca/kmc/state.h>
+#include <votca/kmc/mesh.h>
 
 using namespace std;
 
@@ -41,6 +42,7 @@ public:
     
     GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph;
     StateDevice<GraphDevice<GraphSQL, NodeSQL, LinkSQL> >* state;
+    Mesh<Carrier>* mesh;
 //    Events* events;
 //    Vssmgroup* vssmgroup;
 //    Globaleventinfo* globevent;
@@ -96,7 +98,9 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     std::cout << "number of right electrode injector nodes " << graph->right()->links().size() << endl;
 
     state = new StateDevice<GraphDevice<GraphSQL, NodeSQL, LinkSQL> >();
-   
+    mesh = new Mesh<Carrier>(2.0,3.0,4.0,graph->simboxsize());
+
+    delete mesh;
     delete state;
     delete graph;    
 
