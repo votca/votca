@@ -52,8 +52,9 @@ void XYZWriter::Write(Topology *conf)
         while(atomname.size()<3)
             atomname=" " + atomname;
         
-        fprintf(_out,
-                "%s%10.5f%10.5f%10.5f\n", atomname.c_str(), 10.*r.getX(), 10.*r.getY(), 10.*r.getZ()
+        fprintf(_out, // AB: do not scale the coords - keep the original units
+                //"%s%10.5f%10.5f%10.5f\n", atomname.c_str(), 10.*r.getX(), 10.*r.getY(), 10.*r.getZ()
+                "%s%10.5f%10.5f%10.5f\n", atomname.c_str(), r.getX(), r.getY(), r.getZ()
         );       
     }
     fflush(_out);

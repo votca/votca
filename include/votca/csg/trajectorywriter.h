@@ -19,6 +19,8 @@
 #define	_trajectorywriter_H
 
 #include <string>
+#include <iostream>
+#include <fstream>
 #include "fileformatfactory.h"
 #include "topology.h"
 
