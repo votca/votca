@@ -22,6 +22,8 @@
 
 namespace votca { namespace kmc {
 
+enum CarrierType{ Reservoir, Electron, Hole, Exciton};    
+    
 class Carrier {
 public:
 
@@ -49,6 +51,9 @@ public:
     void SetInBox(bool in_sim_box) {_in_sim_box = in_sim_box;}
     /// set carrier type
     void SetCarrierType(int carrier_type) {_carrier_type = carrier_type;}
+    
+    bool isElectron() { if(_carrier_type == Electron) {return true;} else {return false;}}
+    bool isHole() { if(_carrier_type == Hole) {return true;} else {return false;}}
     
 private:
     

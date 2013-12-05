@@ -59,7 +59,7 @@ public:
     
     /// Add and remove carrier to node (-1 being empty)
     void AddCarrier(int carrier_ID) {_occupation = carrier_ID;}
-    void RemoveCarrier(int carrier_ID) {_occupation = -1;}
+    void RemoveCarrier() {_occupation = -1;}
     
     void SetType(int type) { _type = type;}
     void SetPosition(votca::tools::vec position) { _position = position;}

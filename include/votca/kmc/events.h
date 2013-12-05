@@ -30,7 +30,7 @@ namespace votca { namespace kmc {
   
 using namespace std;
 
-enum action{Add, Remove };
+
 
 class Events {
     

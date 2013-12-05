@@ -24,8 +24,6 @@
 #include <votca/kmc/node.h>
 #include <votca/kmc/graph.h>
 
-enum CarrierType{ Reservoir, Electron, Hole, Exciton};
-
 namespace votca { namespace kmc {
 
 template <class TGraph>
@@ -53,7 +51,7 @@ class State {
     
     virtual void AddCarrier( Carrier* carrier) { _carriers.push_back(carrier); }
     
-    void InitState() {_carriers.clear();}
+    void InitState(TGraph* graph);
     
     // Storage and readout of the node_id's of the nodes on which the carriers are to/from a SQL database
     void Save(string SQL_state_filename);
@@ -63,6 +61,12 @@ private:
     bool In_sim_box(Carrier* carrier) {return carrier->inbox();}
     vector<Carrier*> _carriers;
 };
+
+template <class TGraph>
+void State<TGraph>::InitState(TGraph* graph){
+    _carriers.clear();
+    graph->Clear(); 
+}
 
 template <class TGraph>
 void State<TGraph>::Save(string SQL_state_filename){

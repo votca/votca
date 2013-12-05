@@ -15,20 +15,28 @@
  *
  */
 
-#ifndef __VOTCA_KMC_GLOBALEVENTINFO_H_
-#define __VOTCA_KMC_GLOBALEVENTINFO_H_
+#ifndef __VOTCA_KMC_EVENTINFO_H_
+#define __VOTCA_KMC_EVENTINFO_H_
 
 namespace votca { namespace kmc {
   
 using namespace std;
 
-class Globaleventinfo {
+class Eventinfo {
 
 public:
     
+    int nx;
+    int ny;
+    int nz;
+    double lattice_constant;
+    double left_electrode_distance;
+    double right_electrode_distance;
     double alpha;
     double beta;
-    double efield;
+    double efield_x;
+    double efield_y;
+    double efield_z;
     double injection_barrier;
     double binding_energy;
     double coulomb_strength;
@@ -42,13 +50,14 @@ public:
     
     int nr_sr_images;
     long nr_of_lr_images;
-    int state_grow_size;
+    int growsize;
     
     double electron_prefactor;
     double hole_prefactor;
     double injection_prefactor;
     double recombination_prefactor;
     double collection_prefactor;
+
 };
 
 }} 

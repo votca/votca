@@ -77,6 +77,13 @@ public:
     /// initialize nodes and links
     virtual void Initialize(string filename){;};
 
+    /// Clear occupation
+    void Clear() {
+        typename std::vector<TNode*>::iterator it;      
+        for(it = _nodes.begin(); it != _nodes.end(); it++) {
+            (*it)->RemoveCarrier();
+        }   
+    }
     
 protected:
 

@@ -28,6 +28,7 @@
 #include <votca/kmc/node.h>
 #include <votca/kmc/state.h>
 #include <votca/kmc/mesh.h>
+#include <votca/kmc/eventinfo.h>
 
 using namespace std;
 
@@ -42,10 +43,10 @@ public:
     
     GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph;
     StateDevice<GraphDevice<GraphSQL, NodeSQL, LinkSQL> >* state;
-    Mesh<Carrier>* mesh;
 //    Events* events;
 //    Vssmgroup* vssmgroup;
 //    Globaleventinfo* globevent;
+    Eventinfo* eventinfo;
     
     Diode() {};
    ~Diode() {};
@@ -61,7 +62,7 @@ public:
 //    double disorder_ratio; CorrelationType correlation_type; double left_electrode_distance; double right_electrode_distance;
     
     int nx; int ny; int nz; double lattice_constant; double left_electrode_distance; double right_electrode_distance;
-    int growsize;
+    int growsize; double alpha; double beta; double efield_x; double efield_y; double efield_z; double injection_barrier; double binding_energy;
     
 protected:
    void RunKMC(void); 
@@ -80,13 +81,26 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     
     cout << "Initializing" << endl;
     
-    nx = options->get("options.diode.nx").as<int>();
-    ny = options->get("options.diode.ny").as<int>();
-    nz = options->get("options.diode.nz").as<int>();
-    lattice_constant = options->get("options.diode.lattice_constant").as<double>();
-    left_electrode_distance = (options->get("options.diode.left_electrode_distance").as<double>());
-    right_electrode_distance = (options->get("options.diode.right_electrode_distance").as<double>());
-    growsize = (options->get("options.diode.growsize").as<int>());
+    nx                          = options->get("options.diode.nx").as<int>();                               eventinfo->nx = nx;
+    ny                          = options->get("options.diode.ny").as<int>();                               eventinfo->ny = ny;
+    nz                          = options->get("options.diode.nz").as<int>();                               eventinfo->nz = nz;
+    lattice_constant            = options->get("options.diode.lattice_constant").as<double>();              eventinfo->lattice_constant = lattice_constant;
+    left_electrode_distance     = options->get("options.diode.left_electrode_distance").as<double>();       eventinfo->left_electrode_distance = left_electrode_distance;
+    right_electrode_distance    = options->get("options.diode.right_electrode_distance").as<double>();      eventinfo->right_electrode_distance = right_electrode_distance;
+    growsize                    = options->get("options.diode.growsize").as<int>();                         eventinfo->growsize = growsize;
+    alpha                       = options->get("options.diode.alpha").as<double>();                         eventinfo->alpha = alpha;
+    beta                        = options->get("options.diode.beta").as<double>();                          eventinfo->beta = beta;
+    efield_x                    = options->get("options.diode.efield_x").as<double>();                      eventinfo->efield_x = efield_x;
+    efield_y                    = options->get("options.diode.efield_y").as<double>();                      eventinfo->efield_y = efield_y;
+    efield_z                    = options->get("options.diode.efield_z").as<double>();                      eventinfo->efield_z = efield_z;
+    injection_barrier           = options->get("options.diode.injection_barrier").as<double>();             eventinfo->injection_barrier = injection_barrier;
+    binding_energy              = options->get("options.diode.binding_energy").as<double>();                eventinfo->binding_energy = binding_energy;
+ 
+    
+    
+    
+
+
     
     graph = new GraphDevice<GraphSQL, NodeSQL, LinkSQL>();
     graph->Initialize(filename);
@@ -98,9 +112,10 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     std::cout << "number of right electrode injector nodes " << graph->right()->links().size() << endl;
 
     state = new StateDevice<GraphDevice<GraphSQL, NodeSQL, LinkSQL> >();
-    mesh = new Mesh<Carrier>(2.0,3.0,4.0,graph->simboxsize());
-
-    delete mesh;
+    state->InitState(graph);
+    std::cout << graph->GetNode(10)->occ() << endl;
+    
+    
     delete state;
     delete graph;    
 

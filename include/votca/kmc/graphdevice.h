@@ -25,7 +25,7 @@
 
 namespace votca { namespace kmc {
 
-enum NodeType {NormalNode, LeftElectrodeNode, RightElectrodeNode};    
+enum NodeType{NormalNode, LeftElectrodeNode, RightElectrodeNode };    
     
 template<class TGraph, class TNode, class TLink>    
 class GraphDevice : public TGraph {
