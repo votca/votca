@@ -84,6 +84,7 @@ void EwdInteractor::FU12_XYSlab_ShapeField_At_By(vector<PolarSeg*> &at,
 //                                 S-FACTORS                                  //
 
 EWD::cmplx EwdInteractor::PUStructureAmplitude(vector<PolarSeg*> &s) {
+    // Requires ApplyBias(k) to be called previously
     double re_S = 0.0;
     double im_S = 0.0;
     vector<PolarSeg*>::iterator sit;
@@ -102,6 +103,7 @@ EWD::cmplx EwdInteractor::PUStructureAmplitude(vector<PolarSeg*> &s) {
 
 
 EWD::cmplx EwdInteractor::PStructureAmplitude(vector<PolarSeg*> &s) {
+    // Requires ApplyBias(k) to be called previously
     double re_S = 0.0;
     double im_S = 0.0;
     vector<PolarSeg*>::iterator sit;
@@ -118,6 +120,7 @@ EWD::cmplx EwdInteractor::PStructureAmplitude(vector<PolarSeg*> &s) {
 
 
 EWD::cmplx EwdInteractor::UStructureAmplitude(vector<PolarSeg*> &s) {
+    // Requires ApplyBias(k) to be called previously
     double re_S = 0.0;
     double im_S = 0.0;
     vector<PolarSeg*>::iterator sit;
@@ -133,8 +136,134 @@ EWD::cmplx EwdInteractor::UStructureAmplitude(vector<PolarSeg*> &s) {
 }
 
 
+EWD::cmplx EwdInteractor::PUStructureAmplitude(vector<PolarSeg*> &s, const vec &k) {
+    ApplyBiasK(k);
+    return PUStructureAmplitude(s);
+}
+
+
+EWD::cmplx EwdInteractor::PStructureAmplitude(vector<PolarSeg*> &s, const vec &k) {
+    ApplyBiasK(k);
+    return PStructureAmplitude(s);
+}
+
+
+EWD::cmplx EwdInteractor::UStructureAmplitude(vector<PolarSeg*> &s, const vec &k) {
+    ApplyBiasK(k);
+    return UStructureAmplitude(s);
+}
+
+
 // ============================ RECIPROCAL SPACE ============================ //
 //                                   FIELD                                    //
+
+
+EWD::cmplx EwdInteractor::FP12_At_ByS2(const vec &k, vector<PolarSeg*> &s1, 
+    const EWD::cmplx &S2, double &rV) {
+    // ATTENTION Increment PERMANENT fields of s1
+    // ATTENTION Structure factor S2 from PERM & INDU moments of s2, k    
+    double re_S2 = S2._re;
+    double im_S2 = - S2._im; // !! NOTE THE (-) !!
+    
+    // NOTE sum_re_f_rms => convergence check (to be performed by caller)
+    // NOTE sum_im_f_xyz => sanity check      (to be performed by caller)
+    double sum_re_f_rms = 0.0;
+    double sum_im_f_xyz = 0.0;
+    int rms_count = 0;
+    
+    // Compute k-component of fields acting on s1 = A(c)
+    ApplyBiasK(k);
+    
+    vector<PolarSeg*>::iterator sit;
+    vector<APolarSite*> ::iterator pit;    
+    for (sit = s1.begin(); sit < s1.end(); ++sit) {
+        for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {
+            kr = kx * (*pit)->getPos().getX()
+               + ky * (*pit)->getPos().getY()
+               + kz * (*pit)->getPos().getZ();
+            coskr = cos(kr);
+            sinkr = sin(kr);
+            
+            // Real component
+            double fx = -rV*AK * kx * (sinkr*re_S2 + coskr*im_S2);
+            double fy = -rV*AK * ky * (sinkr*re_S2 + coskr*im_S2);
+            double fz = -rV*AK * kz * (sinkr*re_S2 + coskr*im_S2);
+            
+            (*pit)->FPx += fx;
+            (*pit)->FPy += fy;
+            (*pit)->FPz += fz;
+            
+            // Imaginary component (error check)
+            double ifx = -rV*AK * kx * (sinkr*im_S2 - coskr*re_S2);
+            double ify = -rV*AK * ky * (sinkr*im_S2 - coskr*re_S2);
+            double ifz = -rV*AK * kz * (sinkr*im_S2 - coskr*re_S2);
+            
+            rms_count += 1;
+            sum_re_f_rms += fx*fx + fy*fy + fz*fz;
+            sum_im_f_xyz += ifx + ify + ifz;            
+        }
+    }
+    
+    sum_re_f_rms /= rms_count;
+    
+    // NOTE sum_re_f_rms => convergence check (to be performed by caller)
+    // NOTE sum_im_f_xyz => sanity check      (to be performed by caller)
+    return EWD::cmplx(sum_re_f_rms, sum_im_f_xyz);
+}
+
+
+EWD::cmplx EwdInteractor::FU12_At_ByS2(const vec &k, vector<PolarSeg*> &s1, 
+    const EWD::cmplx &S2, double &rV) {
+    // ATTENTION Increment PERMANENT fields of s1
+    // ATTENTION Structure factor S2 from PERM & INDU moments of s2, k    
+    double re_S2 = S2._re;
+    double im_S2 = - S2._im; // !! NOTE THE (-) !!
+    
+    // NOTE sum_re_f_rms => convergence check (to be performed by caller)
+    // NOTE sum_im_f_xyz => sanity check      (to be performed by caller)
+    double sum_re_f_rms = 0.0;
+    double sum_im_f_xyz = 0.0;
+    int rms_count = 0;
+    
+    // Compute k-component of fields acting on s1 = A(c)
+    ApplyBiasK(k);
+    
+    vector<PolarSeg*>::iterator sit;
+    vector<APolarSite*> ::iterator pit;    
+    for (sit = s1.begin(); sit < s1.end(); ++sit) {
+        for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {
+            kr = kx * (*pit)->getPos().getX()
+               + ky * (*pit)->getPos().getY()
+               + kz * (*pit)->getPos().getZ();
+            coskr = cos(kr);
+            sinkr = sin(kr);
+            
+            // Real component
+            double fx = -rV*AK * kx * (sinkr*re_S2 + coskr*im_S2);
+            double fy = -rV*AK * ky * (sinkr*re_S2 + coskr*im_S2);
+            double fz = -rV*AK * kz * (sinkr*re_S2 + coskr*im_S2);
+            
+            (*pit)->FUx += fx;
+            (*pit)->FUy += fy;
+            (*pit)->FUz += fz;
+            
+            // Imaginary component (error check)
+            double ifx = -rV*AK * kx * (sinkr*im_S2 - coskr*re_S2);
+            double ify = -rV*AK * ky * (sinkr*im_S2 - coskr*re_S2);
+            double ifz = -rV*AK * kz * (sinkr*im_S2 - coskr*re_S2);
+            
+            rms_count += 1;
+            sum_re_f_rms += fx*fx + fy*fy + fz*fz;
+            sum_im_f_xyz += ifx + ify + ifz;            
+        }
+    }
+    
+    sum_re_f_rms /= rms_count;
+    
+    // NOTE sum_re_f_rms => convergence check (to be performed by caller)
+    // NOTE sum_im_f_xyz => sanity check      (to be performed by caller)
+    return EWD::cmplx(sum_re_f_rms, sum_im_f_xyz);
+}
 
 
 EWD::cmplx EwdInteractor::FPU12_AS1S2_At_By(const vec &k,
@@ -255,7 +384,7 @@ EWD::cmplx EwdInteractor::FP12_AS1S2_At_By(const vec &k,
 
 EWD::cmplx EwdInteractor::FU12_AS1S2_At_By(const vec &k,
     vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV) {
-    // ATTENTION Increment INDUCDED fields of s1
+    // ATTENTION Increment INDUCED fields of s1
     // ATTENTION Structure factors include INDUCED moments of s2    
     
     ApplyBiasK(k);    

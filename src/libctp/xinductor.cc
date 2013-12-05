@@ -15,6 +15,7 @@ void XInductor::Evaluate(XJob *job) {
     _qmm.clear();
     
     _job = job;
+    _isConverged = !this->_induce;
     
     // QMM = [ QM0 --- MM1 ] --- MM2 = [ MM2 ]    
     _qm0 = job->getPolarTop()->QM0();

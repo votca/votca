@@ -162,26 +162,20 @@ void EDFT::WriteJobFile(Topology *top) {
  
     ofs << "<jobs>" << endl;   
 
-    /* this is only good when ALL molecules shall be written out 
-    for (vector<Segment*>::iterator sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
-        int id = (*sit)->getId();
-        string tag = (*sit)->getId();
-        string input = "";
-        string stat = "AVAILABLE";
-        Job job(id, tag, input, stat);
-        job.ToStream(ofs,"xml");
-    }
-    */
-
     QMNBList::iterator pit;
     QMNBList &nblist = top->NBList();    
-
+    
+            
     int jobCount = 0;
     if (nblist.size() == 0) {
         cout << endl << "... ... No pairs in neighbor list, skip." << flush;
         return;
     } 
 
+    // regenerate the list of bridging segments for every pair 
+    // (Donor - Bridge1 - Bridge2 - ... - Acceptor) type
+    nblist.GenerateSuperExchange();
+    
     map< int,Segment* > segments;
     map< int,Segment* >::iterator sit;
 
@@ -191,6 +185,16 @@ void EDFT::WriteJobFile(Topology *top) {
         int id2 = (*pit)->Seg2()->getId();
 	segments[id1] = (*pit)->Seg1();
         segments[id2] = (*pit)->Seg2();
+        
+        /* loop over bridging segments if any and add them to the map
+           this in principle is not needed since all pairs between 
+           donors, acceptors, and bridges are already in the list 
+         */
+        vector<Segment*> bridges = (*pit)->getBridgingSegments();
+        for ( vector<Segment*>::const_iterator bsit = bridges.begin(); bsit != bridges.end(); bsit++ ) {
+            //cout << "Bridging segment " << (*bsit)->getId() << " : " <<  (*bsit)->getName() << endl;
+            segments[ (*bsit)->getId() ] = (*bsit);
+        }
 
     }
     
@@ -240,9 +244,8 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     string segType = lSegments.front()->getAttribute<string>( "type" );
     
     Segment *seg = top->getSegment( segId );
-    assert( seg->Name() == segType );
+    assert( seg->getName() == segType ); 
     segments.push_back( seg );
-
     Logger* pLog = opThread->getLogger();
     LOG(logINFO,*pLog) << TimeStamp() << " Evaluating site " << seg->getId() << flush; 
 
@@ -332,13 +335,18 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         
        int factor = 2;
        if ( !_do_parse ) { // orbitals must be loaded from a file
-           string ORB_FILE = "molecule_" + ID + ".orb";
-           LOG(logDEBUG,*pLog) << "Loading orbitals from " << ORB_FILE << flush;    
-           std::ifstream ifs( (ORB_DIR + "/" + ORB_FILE).c_str() );
-           boost::archive::binary_iarchive ia( ifs );
-           ia >> _orbitals;
-           ifs.close();
-       }        
+           boost::filesystem::path arg_path;
+           string ORB_FILE = ( arg_path / ORB_DIR / (format("molecule_%1%.orb") % ID ).str() ).c_str() ;
+           LOG(logDEBUG,*pLog) << "Loading orbitals from " << ORB_FILE << flush;  
+           if ( ! _orbitals.Load(ORB_FILE) ) { // did not manage to load
+               LOG(logERROR,*pLog) << "Failed loading orbitals from " << ORB_FILE << flush; 
+               output += "failed loading " + ORB_FILE;
+               jres.setOutput( output ); 
+               jres.setStatus(Job::FAILED);
+               delete _qmpackage;
+               return jres;
+           }
+        }        
        
        _orbitals.Trim(factor);   
         LOG(logDEBUG,*pLog) << "Trimming virtual orbitals from " 
@@ -472,7 +480,7 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     jres.setStatus(Job::COMPLETE);
 
     // dump the LOG
-    cout << *pLog;
+    //cout << *pLog;
     
     return jres;
 

@@ -17,10 +17,6 @@
  *
  */
 
-// UBLAS stops checking types and array bounds if this flag is defined
-#define NDEBUG
-#define BOOST_UBLAS_NDEBUG
-
 #ifndef _CALC_INTEGRALS_DFT_H
 #define	_CALC_INTEGRALS_DFT_H
 
@@ -64,7 +60,7 @@ public:
 
     void WriteJobFile(Topology *top);
 
-    void Import( Topology *top );
+    void ReadJobFile( Topology *top );
     
 /*  
     void    EvalPair(Topology *top, QMPair *pair, int slot);
@@ -106,10 +102,13 @@ private:
      * orbitals: | A 0 | and energies: [EA, EB]
      *           | 0 B |
      */
-    void PrepareGuess(         Orbitals* _orbitalsA, 
-                               Orbitals* _orbitalsB, 
-                               Orbitals* _orbitalsAB, 
-                               QMThread *opThread );
+    void PrepareGuess(         Orbitals *_orbitalsA, 
+                               Orbitals *_orbitalsB, 
+                               Orbitals *_orbitalsAB, 
+                               Logger *log = NULL );
+    
+    void LoadOrbitals(string file_name, Orbitals* orbitals, Logger *log = NULL );
+        
 };
 
 }}

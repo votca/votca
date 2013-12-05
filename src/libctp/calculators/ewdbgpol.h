@@ -83,12 +83,11 @@ bool EwaldBgPolarizer::EvaluateFrame(Topology *top) {
     PolarTop ptop(top);
     _mps_mapper.GenerateMap(_xml_file, _mps_table, top);
     _mps_mapper.Gen_BGN(top, &ptop, &master);
-    if (_pdb_check) ptop.PrintPDB("ewdbgpol.background.pdb");
+    if (_pdb_check) ptop.PrintPDB("ewdbgpol.ptop.pdb");
     
     // POLARIZE SYSTEM
-    LOG(logINFO,log) << "Generate polarization state" << flush;
-    EWD::PolarBackground pbg(top, &ptop, _options, &log, _nThreads);
-    pbg.Polarize();
+    EWD::PolarBackground pbg(top, &ptop, _options, &log);
+    pbg.Polarize(_nThreads);
     
     // SAVE POLARIZATION STATE
     LOG(logINFO,log) << "Save polarization state" << flush;

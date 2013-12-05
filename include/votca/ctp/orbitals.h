@@ -21,6 +21,7 @@
 #define	__VOTCA_CTP_ORBITALS_H
 
 #include <votca/ctp/basisset.h>
+#include <votca/ctp/qmatom.h>
 
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
@@ -60,46 +61,17 @@ namespace ub = boost::numeric::ublas;
     
 namespace votca { namespace ctp {
     
-/**
-    \brief container for basic atoms 
-     Stores atom type, coordinates, charge, basis set
- */    
-class QMAtom
-{
-public:
-    
-   QMAtom (std::string _type, double _x, double _y, double _z, double _charge, bool _from_environment)
-            : type( _type ), x(_x), y(_y), z(_z), charge(_charge), from_environment( _from_environment )
-            {};
-            
-    QMAtom ()
-            : type( "" ), x(0), y(0), z(0), charge(0), from_environment( false )
-            {};     
-            
-   std::string type;
-   double x;
-   double y;
-   double z;
-   double charge;
-   bool   from_environment;
-   
-   template<typename Archive> 
-   void serialize(Archive& ar, const unsigned version) {
-       ar & type;
-       ar & x;
-       ar & y;
-       ar & z;
-       ar & charge;
-       ar & from_environment;
-   }  
-};
-    
-/**
-    \brief container for molecular orbitals
  
-    The Orbitals class stores orbital id, energy, MO coefficients
-    
-*/
+/**
+ * \brief container for molecular orbitals
+ * 
+<<<<<<< local
+ * The Orbitals class stores orbital id, energy, MO coefficients, basis set
+ *     
+=======
+ * The Orbitals class stores orbital id, energy, MO coefficients
+>>>>>>> other
+ */
 class Orbitals 
 {
 public:   
@@ -118,13 +90,33 @@ public:
     int            getNumberOfElectrons() { return (_has_number_of_electrons) ? _number_of_electrons : 0; } ;
     void           setNumberOfElectrons( const int &electrons );
     
+
     ub::symmetric_matrix<double>* getOverlap() { return &_overlap; }
-    ub::symmetric_matrix<double>* getVxc() { return &_vxc; }
     ub::matrix<double>* getOrbitals() { return &_mo_coefficients; }
     ub::vector<double>* getEnergies() { return &_mo_energies; }
-
     ub::matrix<double>* getIntegrals() { return _integrals; }
     void setIntegrals( ub::matrix<double>* integrals ) { _has_integrals = true;  _integrals = integrals; }
+
+    /// Atomic orbitals
+    const ub::symmetric_matrix<double> &AOOverlap() const { return _overlap; }
+    // Allows to change the matrix: useful to fill in the matrix
+    ub::symmetric_matrix<double> &AOOverlap() { return _overlap; }
+
+    /// Molecular Orbital coefficients
+    const ub::matrix<double> &MOCoefficients() const { return _mo_coefficients; }
+    /// Allows to change the matrix: useful to fill in the matrix
+    ub::matrix<double> &MOCoefficients() { return _mo_coefficients; }
+    
+    /// Molecular Orbital energies
+    const ub::vector<double> &MOEnergies() const { return _mo_energies; }
+    /// Allows to change the matrix: useful to fill in the matrix
+    ub::vector<double> &MOEnergies() { return _mo_energies; }
+
+    /// Does not allow to change the matrix: useful for fast access    
+    const ub::matrix<double> &MOCouplings() const { return _mo_couplings; }
+    // Allows to change the matrix: useful to fill in the values
+    ub::matrix<double> &MOCouplings() { return _mo_couplings; }
+
  
     double getEnergy( int level) { return (_has_mo_energies) ? _conv_Hrt_eV*_mo_energies[level-1] : 0; }
     
@@ -138,6 +130,9 @@ public:
     double getQMEnergy() { return (_has_qm_energy) ? _qm_energy : 0; }
     
     // for GW-BSE
+    ub::symmetric_matrix<double>* getVxc() { return &_vxc; }
+    bool hasQMpackage() { return _has_qm_package; }
+    string getQMpackage() { return _qm_package; }
     bool hasQPpert() { return _has_QPpert; }
     ub::matrix<double>* getQPpertEnergies() {return  &_QPpert_energies ;}
     bool hasQPdiag() { return _has_QPdiag; }
@@ -157,8 +152,11 @@ public:
     // returns indeces of a re-sorted in a descending order vector of energies
     void SortEnergies( std::vector<int>* index );
     
-    QMAtom* AddAtom (std::string _type, double _x, double _y, double _z, double _charge = 0, bool _from_environment = false){
-        //std::cout << _type << std::endl;
+    /** Adds a QM atom to the atom list */
+    QMAtom* AddAtom (std::string _type, 
+                     double _x, double _y, double _z, 
+                     double _charge = 0, bool _from_environment = false)
+    {
         QMAtom* pAtom = new QMAtom(_type, _x, _y, _z, _charge, _from_environment);
         _atoms.push_back( pAtom );
         return pAtom;
@@ -175,6 +173,12 @@ public:
     // reduces number of virtual orbitals to factor*number_of_occupied_orbitals
     void Trim( int factor );
 
+    /** Loads orbitals from a file
+     * Returns true if successful and does not throw an exception.
+     * If exception is required, please use the << overload.
+     */
+    bool Load(string file_name);    
+    
 private:
     
     static const double                 _conv_Hrt_eV = 27.21138386;
@@ -218,11 +222,14 @@ private:
     
     bool                                _has_integrals;
     ub::matrix<double>*                 _integrals;
-    
+    ub::matrix<double>                  _mo_couplings;
+   
     bool                                _has_basis_set;
     BasisSet                            _basis_set;
     
     // new variables for GW-BSE storage
+    bool                                _has_qm_package;
+    string                              _qm_package;
     // perturbative quasiparticle energies
     bool                                _has_QPpert;
     std::vector<int>                    _QP_levels_index;
@@ -260,7 +267,7 @@ private:
     
     // serialization itself (template implementation stays in the header)
     template<typename Archive> 
-    void serialize(Archive& ar, const unsigned version) {
+    void serialize(Archive& ar, const unsigned int version) {
 
        ar & _has_basis_set_size;
        ar & _has_occupied_levels;
@@ -274,7 +281,9 @@ private:
        ar & _has_qm_energy;
        ar & _has_self_energy;
        ar & _has_integrals;
+       ar & _has_qm_package;
        
+       //cout << "\nLoaded 1\n" << flush;
        if ( _has_basis_set_size ) { ar & _basis_set_size; }
        if ( _has_occupied_levels ) { ar & _occupied_levels; }
        if ( _has_unoccupied_levels ) { ar & _unoccupied_levels; }
@@ -285,58 +294,62 @@ private:
        if ( _has_overlap ) { 
            // symmetric matrix does not serialize by default
             if (Archive::is_saving::value) {
-                unsigned size = _overlap.size1();
+                unsigned int size = _overlap.size1();
                 ar & size;
              }
 
             // copy the values back if loading
             if (Archive::is_loading::value) {
-                unsigned size;
+                unsigned int size;
                 ar & size;
                 _overlap.resize(size);
              }
             
-           for (unsigned i = 0; i < _overlap.size1(); ++i)
-                for (unsigned j = 0; j <= i; ++j)
+           for (unsigned int i = 0; i < _overlap.size1(); ++i)
+                for (unsigned int j = 0; j <= i; ++j)
                     ar & _overlap(i, j); 
        }
 
        if ( _has_atoms ) { ar & _atoms; }
        if ( _has_qm_energy ) { ar & _qm_energy; }
+       if ( _has_qm_package ) { ar & _qm_package; }
        if ( _has_self_energy ) { ar & _self_energy; }     
        if ( _has_integrals ) { ar & _integrals; } 
 
+       //cout << "\nLoaded 2\n" << flush;
        // GW-BSE storage
        if(version > 0)  {
-            ar & _has_vxc;           
-            ar & _has_QPpert;
-            ar & _has_QPdiag;
-            ar & _has_BSE_singlets;
-            ar & _has_BSE_triplets;
+            ar & _has_vxc;               
+            ar & _has_QPpert;            
+            ar & _has_QPdiag;            
+            ar & _has_BSE_singlets;      
+            ar & _has_BSE_triplets;      
             if ( _has_QPpert ) { ar & _QP_levels_index; ar & _QPpert_energies; }
             if ( _has_QPdiag ) { ar & _QPdiag_energies; ar & _QPdiag_coefficients; }
             if ( _has_BSE_singlets || _has_BSE_triplets ) { ar & _BSE_levels_indices; }
             if ( _has_BSE_singlets ) { ar & _BSE_singlet_energies; ar & _BSE_singlet_coefficients; }
             if ( _has_BSE_triplets ) { ar & _BSE_triplet_energies; ar & _BSE_triplet_coefficients; }
-
+            
+            //cout << "\nLoaded 3\n" << flush;
             if ( _has_vxc ) { 
                // symmetric matrix does not serialize by default
                 if (Archive::is_saving::value) {
-                    unsigned size = _vxc.size1();
+                    unsigned int size = _vxc.size1();
                     ar & size;
                  }
 
                 // copy the values back if loading
                 if (Archive::is_loading::value) {
-                    unsigned size;
+                    unsigned int size;
                     ar & size;
                     _vxc.resize(size);
                  }
 
-               for (unsigned i = 0; i < _vxc.size1(); ++i)
-                    for (unsigned j = 0; j <= i; ++j)
+               for (unsigned int i = 0; i < _vxc.size1(); ++i)
+                    for (unsigned int j = 0; j <= i; ++j)
                         ar & _vxc(i, j); 
             }
+       //cout << "\nLoaded 4\n" << flush;
             
        } // end version 1: GW-BSE storage
     }// end of serialization

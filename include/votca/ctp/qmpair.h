@@ -97,7 +97,7 @@ public:
    void     setType( PairType pair_type ) { _pair_type = pair_type; }
    void     setType( int pair_type ) { _pair_type = (PairType) pair_type; }
    void     AddBridgingSegment( Segment* _segment ){ _bridging_segments.push_back(_segment); }
-   vector<Segment*> &getBridgingSegments() { return _bridging_segments; }
+   const vector<Segment*> &getBridgingSegments() const { return _bridging_segments; }
    PairType &getType(){return _pair_type;}
 
 protected:

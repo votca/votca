@@ -19,11 +19,13 @@
 
 #include "gaussian.h"
 #include "votca/ctp/segment.h"
+
 #include <boost/algorithm/string.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/format.hpp>
+#include <boost/filesystem.hpp>
 
 #include <stdio.h>
 #include <iomanip>
@@ -410,7 +412,7 @@ bool Gaussian::WriteShellScript() {
 bool Gaussian::Run()
 {
 
-    LOG(logDEBUG,*_pLog) << "Running GAUSSIAN job" << flush;
+    LOG(logDEBUG,*_pLog) << "GAUSSIAN: running [" << _executable << " " << _input_file_name << "]" << flush;
     
     if (system(NULL)) {
         // if scratch is provided, run the shell script; 
@@ -427,10 +429,10 @@ bool Gaussian::Run()
         int i = system ( _command.c_str() );
         
         if ( CheckLogFile() ) {
-            LOG(logDEBUG,*_pLog) << "Finished GAUSSIAN job" << flush;
+            LOG(logDEBUG,*_pLog) << "GAUSSIAN: finished job" << flush;
             return true;
         } else {
-            LOG(logDEBUG,*_pLog) << "GAUSSIAN job failed" << flush;
+            LOG(logDEBUG,*_pLog) << "GAUSSIAN: job failed" << flush;
         }
     }
     else {
@@ -503,7 +505,8 @@ bool Gaussian::ParseOrbitalsFile( Orbitals* _orbitals )
     unsigned _level;
     unsigned _basis_size = 0;
 
-    string _orb_file_name_full = _run_dir + "/" + _orb_file_name;
+    string _orb_file_name_full = _orb_file_name ;
+    if ( _run_dir != "" )  _orb_file_name_full  = _run_dir + "/" + _orb_file_name;
     std::ifstream _input_file( _orb_file_name_full.c_str() );
     
     if (_input_file.fail()) {
@@ -580,32 +583,23 @@ bool Gaussian::ParseOrbitalsFile( Orbitals* _orbitals )
     _orbitals->_has_mo_coefficients = true;
     _orbitals->_has_mo_energies = true;
     
-   // copying energies to a matrix  
-   _orbitals->_mo_energies.resize( _levels );
-   _level = 1;
-   for(size_t i=0; i < _orbitals->_mo_energies.size(); i++) {
-         _orbitals->_mo_energies[i] = _energies[ _level++ ];
-   }
+    // copying energies to the orbitals object  
+    ub::vector<double> &mo_energies = _orbitals->MOEnergies();   
+    mo_energies.resize( _levels );
+    for(size_t i=0; i < mo_energies.size(); i++) mo_energies[i] = _energies[ i+1 ];
    
-   // copying orbitals to the matrix
-   (_orbitals->_mo_coefficients).resize( _levels, _basis_size );     
-   for(size_t i = 0; i < _orbitals->_mo_coefficients.size1(); i++) {
-      for(size_t j = 0 ; j < _orbitals->_mo_coefficients.size2(); j++) {
-         _orbitals->_mo_coefficients(i,j) = _coefficients[i+1][j];
-         //cout << i << " " << j << endl;
-      }
-   }
+    // copying mo coefficients to the orbitals object
+    ub::matrix<double> &mo_coefficients = _orbitals->MOCoefficients(); 
+    mo_coefficients.resize( _levels, _basis_size );     
+    for(size_t i = 0; i < mo_coefficients.size1(); i++) 
+    for(size_t j = 0; j < mo_coefficients.size2(); j++) 
+          _orbitals->_mo_coefficients(i,j) = _coefficients[i+1][j];
 
     
    //cout << _mo_energies << endl;   
    //cout << _mo_coefficients << endl; 
-   
-   // cleanup
-   _coefficients.clear();
-   _energies.clear();
-   
-     
-   LOG(logDEBUG, *_pLog) << "Done reading MOs" << flush;
+        
+   LOG(logDEBUG, *_pLog) << "GAUSSIAN: done reading MOs" << flush;
 
    return true;
 }
@@ -613,11 +607,14 @@ bool Gaussian::ParseOrbitalsFile( Orbitals* _orbitals )
 bool Gaussian::CheckLogFile() {
     
     // check if the log file exists
+    boost::filesystem::path arg_path;
     char ch;
-    ifstream _input_file((_run_dir + "/" + _log_file_name).c_str());
+
+    string _full_name = ( arg_path / _run_dir / _log_file_name ).c_str();
+    ifstream _input_file( _full_name.c_str() );
     
     if (_input_file.fail()) {
-        LOG(logERROR,*_pLog) << "Gaussian LOG is not found" << flush;
+        LOG(logERROR,*_pLog) << "GAUSSIAN: " << _full_name << " is not found" << flush;
         return false;
     };
 
@@ -628,14 +625,14 @@ bool Gaussian::CheckLogFile() {
         _input_file.seekg(-2,ios_base::cur);
         _input_file.get(ch);   
         //cout << "\nChar: " << ch << endl;
-    } while ( ch == '\n' || ch == ' ' || (int)_input_file.tellg() == -1 );
+    } while ( ch == '\n' || ch == ' ' || ch == '\t' || (int)_input_file.tellg() == -1 );
  
     // get the beginning of the line or the file
     do {
        _input_file.seekg(-2,ios_base::cur);
        _input_file.get(ch);   
        //cout << "\nNext Char: " << ch << " TELL G " <<  (int)_input_file.tellg() << endl;
-    } while ( ch != '\n' || (int)_input_file.tellg() == -1 );
+    } while ( ch != '\n' && (int)_input_file.tellg() != -1 );
             
     string _line;            
     getline(_input_file,_line);                      // Read the current line
@@ -644,7 +641,7 @@ bool Gaussian::CheckLogFile() {
         
     std::string::size_type self_energy_pos = _line.find("Normal termination of Gaussian");
     if (self_energy_pos == std::string::npos) {
-            LOG(logERROR,*_pLog) << "Gaussian LOG is incomplete" << flush;
+            LOG(logERROR,*_pLog) << "GAUSSAIN: " << _full_name  <<  " is incomplete" << flush;
             return false;      
     } else {
             //LOG(logDEBUG,*_pLog) << "Gaussian LOG is complete" << flush;
@@ -678,10 +675,18 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
     int _basis_set_size = 0;
     int _cart_basis_set_size = 0;
     
-    LOG(logDEBUG,*_pLog) << "Parsing " << _log_file_name << flush;
-    string _log_file_name_full =  _run_dir + "/" + _log_file_name;
+    LOG(logDEBUG,*_pLog) << "GAUSSIAN: parsing " << _log_file_name << flush;
+    
+    string _log_file_name_full =  _log_file_name;
+    if ( _run_dir != "" ) _log_file_name_full =  _run_dir + "/" + _log_file_name;
+
     // check if LOG file is complete
     if ( !CheckLogFile() ) return false;
+    
+    // save qmpackage name
+    _orbitals->_has_qm_package = true;
+    _orbitals->_qm_package = "gaussian"; 
+
     
     // Start parsing the file line by line
     ifstream _input_file(_log_file_name_full.c_str());
@@ -781,8 +786,10 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
         if (overlap_pos != std::string::npos ) {
             
             // prepare the container
+            ub::symmetric_matrix<double> &overlap = _orbitals->AOOverlap();
+                    
             _orbitals->_has_overlap = true;
-            (_orbitals->_overlap).resize( _basis_set_size );
+            overlap.resize( _basis_set_size );
             
             _has_overlap_matrix = true;
             //cout << "Found the overlap matrix!" << endl;   
@@ -830,7 +837,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
                         
                         int _j_index = *_j_iter;                                
                         //_overlap( _i_index-1 , _j_index-1 ) = boost::lexical_cast<double>( _coefficient );
-                        _orbitals->_overlap( _i_index-1 , _j_index-1 ) = boost::lexical_cast<double>( _coefficient );
+                        overlap( _i_index-1 , _j_index-1 ) = boost::lexical_cast<double>( _coefficient );
                         _j_iter++;
                         
                     }
@@ -947,11 +954,31 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
             vector<string> block;
             vector<string> energy;
             boost::algorithm::split(block, *coord_block, boost::is_any_of("\\"), boost::algorithm::token_compress_on);
-            boost::algorithm::split(energy, block[1], boost::is_any_of("="), boost::algorithm::token_compress_on);
-            _orbitals->_qm_energy = _conv_Hrt_eV * boost::lexical_cast<double> ( energy[1] );
+            map<string,string> properties;
+            vector<string>::iterator block_it;
+            for (block_it = block.begin(); block_it != block.end(); ++block_it) {
+                vector<string> property;
+                boost::algorithm::split(property, *block_it, boost::is_any_of("="), boost::algorithm::token_compress_on);
+                properties[property[0]] = property[1];                
+            }
             
-            LOG(logDEBUG, *_pLog) << "QM energy " << _orbitals->_qm_energy <<  flush;
-            _has_qm_energy = true;
+            if (properties.count("HF") > 0) {
+                double energy_hartree = boost::lexical_cast<double>(properties["HF"]);
+                _orbitals->_has_qm_energy = true;
+                _orbitals->_qm_energy = _conv_Hrt_eV * energy_hartree;
+                LOG(logDEBUG, *_pLog) << "QM energy " << _orbitals->_qm_energy <<  flush;
+            }
+            else {
+                cout << endl;
+                throw std::runtime_error("ERROR No energy in archive");
+            }
+            
+//            boost::algorithm::split(energy, block[1], boost::is_any_of("="), boost::algorithm::token_compress_on);
+//            cout << endl << energy[1] << endl;
+//            _orbitals->_qm_energy = _conv_Hrt_eV * boost::lexical_cast<double> ( energy[1] );
+//            
+//            LOG(logDEBUG, *_pLog) << "QM energy " << _orbitals->_qm_energy <<  flush;
+//            _has_qm_energy = true;
             _orbitals->_has_atoms = true;
             _orbitals->_has_qm_energy = true;
 

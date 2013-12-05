@@ -82,10 +82,17 @@ void CtpMap::Run() {
     // Initialize MD2QM Engine and SQLite Db //
     // +++++++++++++++++++++++++++++++++++++ //
 
+    bool abort = false;
     _outdb = _op_vm["file"].as<string> ();
     _statsav.Open(_qmtopol, _outdb, false);
-    _statsav.FramesInDatabase();
+    int frames_in_db = _statsav.FramesInDatabase();
+    if (frames_in_db > 0) {
+        cout << endl << "ERROR <ctp_map> : state file '" 
+             << _outdb << "' already in use. Abort." << endl;
+        abort = true;
+    }
     _statsav.Close();
+    if (abort) return;
 
     string cgfile = _op_vm["segments"].as<string> ();
     _md2qm.Initialize(cgfile);
@@ -208,7 +215,8 @@ void CtpMap::ShowHelpText(std::ostream &out) {
     if (VersionString() != "") name = name + ", version " + VersionString();
     votca::ctp::HelpTextHeader(name);
     HelpText(out);
-    out << "\n\n" << OptionsDesc() << endl;
+    //out << "\n\n" << OptionsDesc() << endl;
+    out << "\n\n" << VisibleOptions() << endl;
 }
 
 

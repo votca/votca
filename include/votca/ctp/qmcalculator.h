@@ -18,14 +18,15 @@
  */
 
 
-#ifndef _QMCALCULATOR_H
-#define _QMCALCULATOR_H
+#ifndef _VOTCA_CTP_QMCALCULATOR_H
+#define _VOTCA_CTP_QMCALCULATOR_H
 
 
-#include <votca/ctp/calculator.h>
+#include <votca/tools/calculator.h>
 #include <votca/ctp/topology.h>
 
 namespace CTP = votca::ctp;
+namespace TOOLS = votca::tools;
 
 namespace votca { namespace ctp {
 

@@ -54,38 +54,10 @@ void CtpApplication::ShowHelpText(std::ostream &out) {
     if (VersionString() != "") name = name + ", version " + VersionString();
     votca::ctp::HelpTextHeader(name);
     HelpText(out);
-    out << "\n\n" << OptionsDesc() << endl;
+    out << "\n\n" << VisibleOptions() << endl;
+    //out << "\n\n" << OptionsDesc() << endl;
 }
 
-
-void CtpApplication::PrintDescription(std::ostream &out, string name,  HelpOutputType _help_output_type) {
-    
-    // loading documentation from the xml file in VOTCASHARE
-    char *votca_share = getenv("VOTCASHARE");
-    if (votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
-    string xmlFile = string(getenv("VOTCASHARE")) + string("/ctp/xml/") + name + string(".xml");
-
-    boost::format _format("%|3t|%1% %|20t|%2% \n");
-    try {
-        votca::tools::Property options;
-        load_property_from_xml(options, xmlFile);
-
-        switch (_help_output_type) {
-
-            case _helpShort:
-                _format % name % options.get("options." + name).getAttribute<string>("help");
-                out << _format;
-                break;
-                
-            case _helpLong:
-                votca::tools::PropertyIOManipulator iom(votca::tools::PropertyIOManipulator::HLP, 2, "");
-                out << iom << options;
-        }
-
-    } catch (std::exception &error) {
-        if ( tools::globals::verbose ) out << _format % name % "Undocumented";
-    }    
-}
 
 
 }}
