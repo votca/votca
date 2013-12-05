@@ -67,7 +67,7 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf)
     }
 
     _fl << "timestep" << setprecision(9) << setw(10) << step << setw(10) << conf->BeadCount() << setw(10) << mavecs << setw(10) << mpbct;
-    _fl << setprecision(6) << setw(12) << conf->getTime()/(double)(step) << setw(12) <<conf->getTime() << endl;
+    _fl << setprecision(9) << setw(12) << conf->getTime()/(double)(step) << setw(12) <<conf->getTime() << endl;
 
     matrix m=conf->getBox();
     for (int i=0;i<3;i++) 
