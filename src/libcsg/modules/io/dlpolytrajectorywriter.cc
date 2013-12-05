@@ -58,8 +58,8 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf)
     if      (conf->HasForce()) { mavecs=2; }
     else if (conf->HasVel())   { mavecs=1; }
 
-    if (conf->getBoxType()==BoundaryCondition::typeOrthorhombic) mavecs=2;
-    if (conf->getBoxType()==BoundaryCondition::typeTriclinic)    mavecs=3;
+    if (conf->getBoxType()==BoundaryCondition::typeOrthorhombic) mpbct=2;
+    if (conf->getBoxType()==BoundaryCondition::typeTriclinic)    mpbct=3;
 
     if (step==1) {
       _fl << "From VOTCA with love" << endl;
@@ -67,7 +67,7 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf)
     }
 
     _fl << "timestep" << setprecision(9) << setw(10) << step << setw(10) << conf->BeadCount() << setw(10) << mavecs << setw(10) << mpbct;
-    _fl << setprecision(16) << setw(20) << conf->getTime()/(double)(step) << setw(20) <<conf->getTime() << endl;
+    _fl << setprecision(6) << setw(12) << conf->getTime()/(double)(step) << setw(12) <<conf->getTime() << endl;
 
     matrix m=conf->getBox();
     for (int i=0;i<3;i++) 
@@ -75,12 +75,26 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf)
 
     for (int i=0;i<conf->BeadCount(); i++){
       Bead *bead=conf->getBead(i);
-      _fl << bead->getName() << setprecision(9) << setw(10) << i << setw(12) << bead->getM() << setw(12) << bead->getQ() << "   0.0" << endl;
-      _fl << setprecision(12) << setw(16) << bead->getPos().getX() << setw(16) << bead->getPos().getY() << setw(16) << bead->getPos().getZ() << endl;
-      if (mavecs>0)
-        _fl << setprecision(12) << setw(16) << bead->getVel().getX() << setw(16) << bead->getVel().getY() << setw(16) << bead->getVel().getZ() << endl;
-      if (mavecs>1)
-        _fl << setprecision(12) << setw(16) << bead->getF().getX() << setw(16) << bead->getF().getY() << setw(16) << bead->getF().getZ() << endl;
+
+      // AB: DL_POLY needs bead TYPE not name, but currently bead->getType() returns junk!
+
+      _fl << setw(8) << left << bead->getName() << right << setw(10) << i+1;
+      //_fl << setw(8) << left << bead->getType() << right << setw(10) << i+1;
+      _fl << fixed << setprecision(6) << setw(12) << bead->getM() << setw(12) << bead->getQ() << "   0.0" << endl;
+
+      _fl << resetiosflags(std::ios::fixed) << setprecision(12) << setw(16) << bead->getPos().getX();
+      _fl << setw(16) << bead->getPos().getY() << setw(16) << bead->getPos().getZ() << endl;
+
+      if (mavecs>0) {
+	//if (bead->HasVel()) {
+        _fl << setprecision(12) << setw(16) << bead->getVel().getX() << setw(16);
+        _fl << bead->getVel().getY() << setw(16) << bead->getVel().getZ() << endl;
+      }
+      if (mavecs>1) {
+	//if (bead->HasF()) {
+        _fl << setprecision(12) << setw(16) << bead->getF().getX() << setw(16);
+	_fl << bead->getF().getY() << setw(16) << bead->getF().getZ() << endl;
+      }
     }
     step++;
 }

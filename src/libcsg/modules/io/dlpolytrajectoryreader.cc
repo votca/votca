@@ -94,10 +94,11 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &top)
       hasFs=(mavecs > 1);
 
       if(hasVs != top.HasVel() || hasFs != top.HasForce()) {
-	//cout << "Warning: TrajKey (# of atom vectors) in HISTORY (trajectory) header & CONFIG (initial frame) differ" << endl;
+	cout << "Warning: TrajKey (# of atom vectors) in HISTORY (trajectory) header & CONFIG (initial frame) differ" << endl;
 	top.SetHasVel(hasVs);
 	top.SetHasForce(hasFs);
       }
+      cout << "Read from HISTORY: traj_key - " << mavecs << ", hasV - " << top.HasVel() << ", hasF - " << top.HasForce()  << endl;
 
       //if(fields[2] != top.BeadCount())
       if(matoms != top.BeadCount())
@@ -112,6 +113,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &top)
       else if(mpbct == 3) {
 	pbc_type=BoundaryCondition::typeTriclinic;
       }
+      cout << "Read from HISTORY: pbc_type - '" << pbc_type << "'" << endl;
 
       if(pbc_type != top.getBoxType())
 	//throw std::runtime_error("PBC type in HISTORY (trajectory) header & CONFIG (initial frame) differ");
@@ -120,7 +122,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &top)
 
     //read normal frame
     getline(_fl, line); // timestep line
-    cout << "Read from HISTORY: '" << line << "'" << endl;
+    //cout << "Read from HISTORY: '" << line << "'" << endl;
 
     if(!_fl.eof()) {
       double dtime,stime,scale;
@@ -161,8 +163,8 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &top)
 	top.setTime(nstep*dtime);
 	//top.setTime(boost::lexical_cast<double>(fields[5]));
 
-	if(stime != top.getTime() )
-	  cout << "Check: nstep = " << nstep << ", dt = " << dtime << ", time = " << top.getTime() << " (correct?)" << endl;
+	//if(stime != top.getTime() )
+	//cout << "Check: nstep = " << nstep << ", dt = " << dtime << ", time = " << top.getTime() << " (correct?)" << endl;
       }
 
       vec box_vectors[3];
