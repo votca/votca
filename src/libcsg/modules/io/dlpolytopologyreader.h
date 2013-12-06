@@ -28,7 +28,7 @@ using namespace votca::tools;
 using namespace std;
 
 /**
-    \brief reader for gromacs topology files
+    \brief reader for dlpoly FIELD (topology) files
 
     This class encapsulates the dlpoly reading functions and provides an interface to fill a topolgy class
 
