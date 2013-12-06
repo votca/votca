@@ -4,7 +4,6 @@
 
 #include <votca/ctp/topology.h>
 #include <votca/ctp/atom.h>
-#include <votca/ctp/atom.h>
 #include <votca/ctp/logger.h>
 #include <boost/algorithm/string.hpp>
 #include <votca/tools/vec.h>
@@ -21,19 +20,48 @@ public:
 
     PDB2Map() { };
    ~PDB2Map() { };
-
+   
     string Identify() { return "pdb2map"; }
-
+    
+    // read options    
     void   Initialize(Property *options);
+    
+    // make xml
     bool   Evaluate();
-
+    
+    // helpful guys
+    void readPDB();
+    void readGRO();
+    void readXYZ();
+    void setTopologies();
+    void compatibilityQM2MD();
+    void topMdQm2xml();
+//    void deb(string);
+    
+    void error1(string line){ cout << endl; throw runtime_error(line); };
  
-
+    
 private:
-    string      _input_file;
-    string      _output_file;
-    Topology    _top;
-    Logger      _log;
+    string      _input_pdb;
+    string      _input_gro;
+    string      _input_xyz;
+    
+    string      _output_xml;
+    
+    bool        _has_pdb;
+    bool        _has_gro;
+    bool        _has_xyz;    
+
+    bool        _has_md;    
+    bool        _has_qm;    
+    
+    bool        _can_convert_md2qm;
+    bool        _QM2MDcompatible;
+    
+    bool        _deb;
+    
+    Topology    _MDtop;
+    Topology    _QMtop;
 
    // element:mass map
     map <string,int> el2mass;
@@ -41,9 +69,9 @@ private:
 };
 
 void PDB2Map::Initialize(Property* options) 
-{
+{   
 
-    // fill out periodic table
+    // fill in periodic table
     el2mass["H"]        = 1;
     el2mass["B"]        = 10;
     el2mass["C"]        = 12;
@@ -56,272 +84,680 @@ void PDB2Map::Initialize(Property* options)
     el2mass["S"]        = 32;
     el2mass["Cl"]       = 35;
     el2mass["Ir"]       = 192;
+    
+    // good guys
+    _has_pdb = false;
+    _has_gro = false;
+    _has_xyz = false;
+    
+    _has_qm  = false;
+    _has_md  = false;
+    
+    _can_convert_md2qm = false;
+    
+    _deb = false;
+    
+    // read options    
+    string key = "options.pdb2map.";
+    
+    // find PDB, then GRO, then error
+    if ( options->exists(key+"pdb") ){
+        _input_pdb      = options->get(key+"pdb").as<string> ();
+        _has_pdb        = true;
+        cout << endl << "... ... PDB input specified: \t" << _input_pdb;
+    }
+    else if ( options->exists(key+"gro") ){
+        _input_gro      = options->get(key+"gro").as<string> ();
+        _has_gro        = true;
+        cout << endl << "... ... GRO input specified: \t" << _input_gro;
+    }
+    else{
+        error1("... ... No MD(PDB,GRO) file provided. "
+                                "\n... ... Tags: pdb, gro");     
+    }
+    
+    // find XYZ 
+    if ( options->exists(key+"xyz") ){
+        _input_xyz      = options->get(key+"xyz").as<string> ();
+        _has_xyz        = true;
+        cout << endl << "... ... XYZ input specified: \t" << _input_xyz;
+    }
+    else if (_has_pdb){
+            cout << endl << "... ... *** No QM(XYZ) file provided. Tags: xyz\n"
+                  "... ... BUT I can make a map from PDB only. Continue.";
+    }
+    else{
+        error1("... ... No QM(XYZ) file provided. Tags: xyz "
+                                "\n... ... No QM(PDB) as substitute.");    
+    }
 
-    
-    // options reading
-    _input_file  = options->get("options.pdb2map.file").as<string> ();
-    _output_file = options->get("options.pdb2map.outfile").as<string> ();
-    
-    //cout << "\n... ... " <<"Reading from: " << _input_file << "\n\n";
-
-    
+    // find XML or generate it
+    if ( options->exists(key+"xml") ){
+        _output_xml = options->get(key+"xml").as<string> ();
+        cout << endl << "... ... XML output specified: \t" << _output_xml;
+        }
+        else{
+                _output_xml = "system_output.xml";
+                cout << endl << "... ... *** No XML output specified.";
+                cout << endl << "... ... Default XML is: \t" << _output_xml;
+        }
+//    if ( options->exists(key+"dbg") ){
+//        _deb = true;
+//        cout << endl << "... ... >>>!<<< DEBUG MODE >>>!<<<";
+//    }
 }
-
-
 
 bool PDB2Map::Evaluate() {
     
-    LOG( logINFO, _log ) << "Reading from: " << _input_file << flush;
+    setTopologies();
     
-    // read strings to vector
-    
-    std::ifstream _file( _input_file.c_str() );
-    
-    vector<string>      strVec;
-    string _line;
-    // push lines to vector + only ATOM, HETATM
-    while ( std::getline(_file, _line,'\n') ){
-        if(boost::find_first(_line, "ATOM") || 
-                boost::find_first(_line, "HETATM")){
-            strVec.push_back(_line);
-        }
+    if (_has_xyz)
+    {
+        compatibilityQM2MD();
     }
     
-    // topology insanity
+    topMdQm2xml();
     
-    Molecule * newMolecule = _top.AddMolecule("newMolecule");
-    Segment  * newSegment  = _top.AddSegment ("newSegment");
+//    LOG( logINFO, _log ) << "Reading from: " << _input_file << flush;    
+//    cout << _log;
+//                                                deb("Evaluate DONE");
+}
+
+void PDB2Map::setTopologies(){
+//                                                deb("setTopologies start");
+    if (_has_pdb){
+        readPDB();
+        _has_md = true;
+//                                                deb("topMdQm2xml, _has_pdb");
+    }
+    else if (_has_gro){
+        readGRO();
+        _has_md = true;
+//                                                deb("topMdQm2xml, _has_gro");
+    }
+    else{
+//                                                deb("topMdQm2xml, error1");
+        error1("No good MD topology. I stop.");
+    }
+    
+    if (_has_xyz){
+        readXYZ();
+        _has_qm = true;
+//                                                deb("topMdQm2xml, _has_xyz");
+    }
+    else if (_can_convert_md2qm){
+        _QMtop = _MDtop;
+        _has_qm = true;
+//                                        deb("topMdQm2xml, _can_convert_md2qm");
+    }
+    else{
+//                                                deb("topMdQm2xml, error1");
+        error1("No good QM topology. I stop.");
+    }
+//                                                deb("setTopologies end");
+}
+
+//void PDB2Map::deb(string line)
+//{
+//    if (_deb){
+//        cout << endl << "... ... ... DEBUG here --->>> " << line;
+//    }
+//}
+
+void PDB2Map::compatibilityQM2MD(){
+//                deb("compatibilityQM2MD, start");
+                
+    int numMDatoms = _MDtop.getMolecule(1)->NumberOfAtoms();
+    int numQMatoms = _QMtop.getMolecule(1)->NumberOfAtoms();
+    
+    _QM2MDcompatible = (numMDatoms == numQMatoms) ? true : false;
+    
+    if (_QM2MDcompatible){
+//                deb("compatibilityQM2MD, _QM2MDcompatible, if start");
+        Molecule * MDmolecule = _MDtop.getMolecule(1);
+        Molecule * QMmolecule = _QMtop.getMolecule(1);
+        
+        vector<Segment*> MDsegments = MDmolecule->Segments();
+        vector<Segment*> QMsegments = QMmolecule->Segments();
+        
+        vector<Segment*>::iterator MDSegIt;
+        vector<Segment*>::iterator QMSegIt;
+        
+        for(MDSegIt = MDsegments.begin(), QMSegIt = QMsegments.begin();
+                MDSegIt < MDsegments.end();
+                MDSegIt++, QMSegIt++  )
+        {
+            Fragment * QMfragment;
+            
+            vector<Atom*> MDSegAtoms = (*MDSegIt)->Atoms();
+            vector<Atom*> QMSegAtoms = (*QMSegIt)->Atoms();
+            
+            vector<Atom*>::iterator MDSegAtIt;
+            vector<Atom*>::iterator QMSegAtIt;
+            
+            int old_res_num = -1;
+            int new_res_num;
+            string res_name = "bad_wolf";
+            
+            for(MDSegAtIt = MDSegAtoms.begin(), QMSegAtIt = QMSegAtoms.begin();
+                    MDSegAtIt < MDSegAtoms.end();
+                    MDSegAtIt++, QMSegAtIt++)
+            {
+                new_res_num = (*MDSegAtIt)->getResnr();
+                if (new_res_num != old_res_num)
+                {
+                    old_res_num = new_res_num;
+                    res_name = (*MDSegAtIt)->getResname();
+                    
+                    QMfragment = _QMtop.AddFragment(res_name);
+                    QMfragment->setTopology(&_QMtop);
+                    
+                    QMmolecule->AddFragment(QMfragment);
+                    QMfragment->setMolecule(QMmolecule);
+                    
+                    (*QMSegIt)->AddFragment(QMfragment);
+                    QMfragment->setSegment(*QMSegIt);
+                    
+                    (*QMSegAtIt)->setFragment(QMfragment);
+                    QMfragment->AddAtom(*QMSegAtIt);                    
+                }
+                else
+                {
+                    (*QMSegAtIt)->setFragment(QMfragment);
+                    QMfragment->AddAtom(*QMSegAtIt);    
+                }
+            }
+            
+        }
+//                deb("compatibilityQM2MD, _QM2MDcompatible, if end");
+    }
+    else{
+//                deb("compatibilityQM2MD, _QM2MDcompatible, else error1");
+        error1("\n... ... Number of MD atoms is different from QM."
+               "\n... ... If it's the case of reduced molecule, "
+                        " I need a map."
+               "\n ... ... Tags: map"
+               "\n ... ... NOT IMPLEMENTED");
+    }
+//                                              deb("compatibilityQM2MD, end");
+}
+
+void PDB2Map::readPDB(){
+//                                              deb("readPDB start");
+    cout << endl << "... ... Assuming: PDB for MD. Read.";
+    
+    // make molecule and segment in molecule
+    Molecule * newMolecule = _MDtop.AddMolecule("newMolecule");
+    newMolecule->setTopology(&_MDtop);
+    
+    Segment  * newSegment  = _MDtop.AddSegment ("newSegment");
+    newSegment->setTopology(&_MDtop);
     
     newMolecule->AddSegment(newSegment);
     newSegment->setMolecule(newMolecule);
-            
- 
-    // iterate over lines, create atoms
+
+    // reading from PDB file and creating topology
+    std::ifstream _file( _input_pdb.c_str() );
     
+    if (!_file.is_open()) {
+       error1(  "... ... Bad file: " + _input_pdb + \
+              "\n... ... Does it exist? Bad name?");
+    }
+    
+    string _line;
+
     int _atom_id = 0;
     int _newResNum = 0;
-    for (vector<string>::iterator p = strVec.begin() ; 
-                        p != strVec.end(); ++p)
-    {
-        
-        //      according to PDB format
-        string _recType    (*p,( 1-1),6); // str,  "ATOM", "HETATM"
-        string _atNum      (*p,( 7-1),6); // int,  Atom serial number
-        string _atName     (*p,(13-1),4); // str,  Atom name
-        string _atAltLoc   (*p,(17-1),1); // char, Alternate location indicator
-        string _resName    (*p,(18-1),4); // str,  Residue name
-        string _chainID    (*p,(22-1),1); // char, Chain identifier
-        string _resNum     (*p,(23-1),4); // int,  Residue sequence number
-        string _atICode    (*p,(27-1),1); // char, Code for insertion of res
-        string _x          (*p,(31-1),8); // float 8.3 ,x
-        string _y          (*p,(39-1),8); // float 8.3 ,y
-        string _z          (*p,(47-1),8); // float 8.3 ,z
-        string _atOccup    (*p,(55-1),6); // float  6.2, Occupancy
-        string _atTFactor  (*p,(61-1),6); // float  6.2, Temperature factor
-        string _segID      (*p,(73-1),4); // str, Segment identifier
-        string _atElement  (*p,(77-1),2); // str, Element symbol
-        string _atCharge   (*p,(79-1),2); // str, Charge on the atom
-        
-        
-        //              I print out formated pdb if print_us = 1
-        int print_us = 0;
-        if (print_us == 1)
-        {
-            string _delim = "|";
+    bool chem_message_showed = false;
 
-            cout << _recType   << _delim;
-            cout << _atNum     << _delim;
-            cout << _atName    << _delim;
-            cout << _atAltLoc  << _delim;
-            cout << _resName   << _delim;
-            cout << _chainID   << _delim;
-            cout << _resNum    << _delim;
-            cout << _atICode   << _delim;
-            cout << _x         << _delim;
-            cout << _y         << _delim;
-            cout << _z         << _delim;
-            cout << _atOccup   << _delim;
-            cout << _atTFactor << _delim;
-            cout << _segID     << _delim;
-            cout << _atElement << _delim;
-            cout << _atCharge  <<   endl; 
+    while ( std::getline(_file, _line,'\n') ){
+        if(     boost::find_first(_line, "ATOM"  )   || 
+                boost::find_first(_line, "HETATM")      
+                ){
+            
+            //      according to PDB format
+            string _recType    (_line,( 1-1),6); // str,  "ATOM", "HETATM"
+            string _atNum      (_line,( 7-1),6); // int,  Atom serial number
+            string _atName     (_line,(13-1),4); // str,  Atom name
+            string _atAltLoc   (_line,(17-1),1); // char, Alternate location indicator
+            string _resName    (_line,(18-1),4); // str,  Residue name
+            string _chainID    (_line,(22-1),1); // char, Chain identifier
+            string _resNum     (_line,(23-1),4); // int,  Residue sequence number
+            string _atICode    (_line,(27-1),1); // char, Code for insertion of res
+            string _x          (_line,(31-1),8); // float 8.3 ,x
+            string _y          (_line,(39-1),8); // float 8.3 ,y
+            string _z          (_line,(47-1),8); // float 8.3 ,z
+            string _atOccup    (_line,(55-1),6); // float  6.2, Occupancy
+            string _atTFactor  (_line,(61-1),6); // float  6.2, Temperature factor
+            string _segID      (_line,(73-1),4); // str, Segment identifier
+            string _atElement  (_line,(77-1),2); // str, Element symbol
+            string _atCharge   (_line,(79-1),2); // str, Charge on the atom
+
+            ba::trim(_recType);
+            ba::trim(_atNum);
+            ba::trim(_atName);
+            ba::trim(_atAltLoc);
+            ba::trim(_resName);
+            ba::trim(_chainID);
+            ba::trim(_resNum);
+            ba::trim(_atICode);
+            ba::trim(_x);
+            ba::trim(_y);
+            ba::trim(_z);
+            ba::trim(_atOccup);
+            ba::trim(_atTFactor);
+            ba::trim(_segID);
+            ba::trim(_atElement);
+            ba::trim(_atCharge);
+            
+            if (_atElement.empty() && !chem_message_showed && !_has_xyz ){
+                cout << endl << "... ... *** No chemical elements in PDB!"
+                        << endl << "... ... *** Expect: empty slots "
+                        << "in <qmatoms> and <multipoles>, zeros in <weights>."
+                        << endl << "... ... To add chemical symbols use: "
+                        "editconf (GROMACS), babel, (hands+pdb format)";                   
+                chem_message_showed = true;
+            }
+            else
+            {
+              _can_convert_md2qm = true;
+            }
+            
+
+            double _xd = boost::lexical_cast<double>(_x);
+            double _yd = boost::lexical_cast<double>(_y);
+            double _zd = boost::lexical_cast<double>(_z);
+            int _resNumInt = boost::lexical_cast<int>(_resNum);
+
+            vec r(_xd , _yd , _zd);
+
+            Atom * newAtom = _MDtop.AddAtom(_atName);
+            newAtom->setTopology(&_MDtop);
+
+            newAtom->setResnr        (_resNumInt);
+            newAtom->setResname      (_resName);
+            newAtom->setElement      (_atElement);
+            newAtom->setPos          (r);
+
+            newMolecule->AddAtom(newAtom);
+            newAtom->setMolecule(newMolecule);        
+            
+            newSegment->AddAtom(newAtom);
+            newAtom->setSegment(newSegment);
+
+            Fragment * newFragment;
+            if ( _newResNum != _resNumInt ){
+
+                _newResNum = _resNumInt;
+                string _newResName = _resName+'_'+_resNum;
+                
+                newFragment = _MDtop.AddFragment(_newResName);
+                newFragment->setTopology(&_MDtop);
+
+                newMolecule->AddFragment(newFragment);
+                newFragment->setMolecule(newMolecule);
+
+                newSegment->AddFragment(newFragment);
+                newFragment->setSegment(newSegment);
+            }
+
+            newFragment->AddAtom(newAtom);
+            newAtom->setFragment(newFragment);
         }
-        
-        
-        ba::trim(_recType);
-        ba::trim(_atNum);
-        ba::trim(_atName);
-        ba::trim(_atAltLoc);
-        ba::trim(_resName);
-        ba::trim(_chainID);
-        ba::trim(_resNum);
-        ba::trim(_atICode);
-        ba::trim(_x);
-        ba::trim(_y);
-        ba::trim(_z);
-        ba::trim(_atOccup);
-        ba::trim(_atTFactor);
-        ba::trim(_segID);
-        ba::trim(_atElement);
-        ba::trim(_atCharge);
-        
-        
+    }
+//                                                      deb("readPDB end");
+    return;
+}
+
+void PDB2Map::readGRO(){
+//                                                        deb("readGRO start");
+    cout << endl << "... ... Assuming: GRO for MD. Read.";
+
+    // make molecule and segment in molecule
+    Molecule * newMolecule = _MDtop.AddMolecule("newMolecule");
+    newMolecule->setTopology(&_MDtop);
+    
+    Segment  * newSegment  = _MDtop.AddSegment ("newSegment");
+    newSegment->setTopology(&_MDtop);
+    
+    newMolecule->AddSegment(newSegment);
+    newSegment->setMolecule(newMolecule);
+
+    // reading from GRO file and creating topology
+    std::ifstream _file( _input_gro.c_str() );
+
+    if (!_file.is_open()) {
+        cout << endl;
+        throw runtime_error("Bad file: " + _input_pdb + \
+                            "\n... ... Does it exist? Bad name?");
+    }
+    
+    string _line;
+
+    int _atom_id = 0;
+    int _newResNum = 0;
+    
+    // ignore first 2 lines - as in GRO format
+    std::getline(_file, _line,'\n');
+    std::getline(_file, _line,'\n');
+    
+    ba::trim(_line);
+    int atom_num = boost::lexical_cast<int>(_line);
+    int counter = 0;
+    
+    while ( std::getline(_file, _line,'\n') ){
+        if (counter < atom_num){
+            
+            string _resNum     (_line, 0,5); // int,  Residue number
+            string _resName    (_line, 5,5); // str,  Residue name
+            string _atName     (_line,10,5); // str,  Atom name
+            string _atNum      (_line,15,5); // int,  Atom number
+            string _x          (_line,20,8); // float 8.3 ,x
+            string _y          (_line,28,8); // float 8.3 ,y
+            string _z          (_line,36,8); // float 8.3 ,z
+            
+            ba::trim(_atNum);
+            ba::trim(_atName);
+            ba::trim(_resNum);
+            ba::trim(_resName);
+            ba::trim(_x);
+            ba::trim(_y);
+            ba::trim(_z);
+            
+            double _xd = boost::lexical_cast<double>(_x);
+            double _yd = boost::lexical_cast<double>(_y);
+            double _zd = boost::lexical_cast<double>(_z);
+            
+            vec r(_xd , _yd , _zd);
+            
+            int _resNumInt = boost::lexical_cast<int>(_resNum);
+            
+            Atom * newAtom = _MDtop.AddAtom(_atName);
+            newAtom->setTopology(&_MDtop);
+
+            newAtom->setResnr        (_resNumInt);
+            newAtom->setResname      (_resName);
+            newAtom->setPos          (r);
+
+            newMolecule->AddAtom(newAtom);
+            newAtom->setMolecule(newMolecule);        
+            
+            newSegment->AddAtom(newAtom);
+            newAtom->setSegment(newSegment);
+
+            Fragment * newFragment;
+            if ( _newResNum != _resNumInt ){
+
+                _newResNum = _resNumInt;
+                string _newResName = _resName+'_'+_resNum;
+                
+                newFragment = _MDtop.AddFragment(_newResName);
+                newFragment->setTopology(&_MDtop);
+
+                newMolecule->AddFragment(newFragment);
+                newFragment->setMolecule(newMolecule);
+
+                newSegment->AddFragment(newFragment);
+                newFragment->setSegment(newSegment);
+            }
+
+            newFragment->AddAtom(newAtom);
+            newAtom->setFragment(newFragment);
+        }
+        counter++;
+    }
+//                                                      deb("readGRO end");
+    
+    return;
+}
+
+void PDB2Map::readXYZ(){
+//                                                      deb("readXYZ start");
+    cout << endl << "... ... Assuming: XYZ for QM. Read.";
+    
+    // make molecule and segment
+    Molecule * newMolecule = _QMtop.AddMolecule("newMolecule");
+    newMolecule->setTopology(&_QMtop);
+    
+    Segment  * newSegment  = _QMtop.AddSegment ("newSegment");
+    newSegment->setTopology(&_QMtop);
+    newSegment->setMolecule(newMolecule);
+    newMolecule->AddSegment(newSegment);
+    
+//    Fragment * newFragment = _QMtop.AddFragment("newFragment");
+//    newFragment->setTopology(&_QMtop);
+//    newMolecule->AddFragment(newFragment);
+//    newFragment->setMolecule(newMolecule);
+//    newSegment->AddFragment(newFragment);
+//    newFragment->setSegment(newSegment);
+    
+    // reading from PDB file and creating topology
+    std::ifstream _file( _input_xyz.c_str() );
+    
+    if (!_file.is_open()) {
+        error1(   "... ... Bad file: " + _input_pdb + \
+                "\n... ... Does it exist? Bad name?");
+    }    
+       
+    string _line;
+    
+    // ignoring first 2 lines - as in XYZ format
+    std::getline(_file, _line,'\n');
+    std::getline(_file, _line,'\n');
+    
+    while ( std::getline(_file, _line,'\n') ){
+ 
+        Tokenizer tokLine( _line, " ");
+        vector<string> vecLine;
+        tokLine.ToVector(vecLine);
+    
+        string _atName     (vecLine[0]); // str,  Atom name
+        string _x          (vecLine[1]); // float 8.3 ,x
+        string _y          (vecLine[2]); // float 8.3 ,y
+        string _z          (vecLine[3]); // float 8.3 ,z
+
         double _xd = boost::lexical_cast<double>(_x);
         double _yd = boost::lexical_cast<double>(_y);
         double _zd = boost::lexical_cast<double>(_z);
-        int _resNumInt = boost::lexical_cast<int>(_resNum);
-        
+
         vec r(_xd , _yd , _zd);
-        
-        Atom *newAtom = _top.AddAtom(_atName);
-        
-        newAtom->setResnr        (_resNumInt);
-        newAtom->setResname      (_resName);
-        newAtom->setElement      (_atElement);
-        newAtom->setPos          (r);
-        
+            
+        Atom * newAtom = _QMtop.AddAtom(_atName);
+        newAtom->setElement(_atName);
+        newAtom->setTopology(&_QMtop);
+        newAtom->setPos(r);
+
+        newMolecule->AddAtom(newAtom);
         newAtom->setMolecule(newMolecule);        
+
+        newSegment->AddAtom(newAtom);
         newAtom->setSegment(newSegment);
         
-        newMolecule->AddAtom(newAtom);
-        newSegment->AddAtom(newAtom);
-        
-        Fragment * newFragment;
-        if ( _newResNum != _resNumInt ){
-            _newResNum = _resNumInt;
-            string _newResName = _resName+'_'+_resNum;
-            newFragment = _top.AddFragment(_newResName);
-
-            newFragment->setMolecule(newMolecule);
-            newFragment->setSegment(newSegment);
-            
-            newMolecule->AddFragment(newFragment);
-            newSegment->AddFragment(newFragment);
-        }
-        
-        newFragment->AddAtom(newAtom);
+//        newFragment->AddAtom(newAtom);
+//        newAtom->setFragment(newFragment);
     }
+//                                                      deb("readXYZ end");
     
-    // iterating over thins, making system.xml
+    return;
+}
+
+void PDB2Map::topMdQm2xml(){
+//                                                      deb("topMdQm2xml start");
+    cout << endl << "... ... (A)merging XML from MD and QM topologies.";
+//                                                        deb("topMdQm2xml  -2");
+    if ( !_has_qm ) 
+    {
+        error1("... ... Error from topMdQm2xml(). QM top is missing.");    
+    }
+    else if (!_has_md)
+    {
+        error1("... ... Error from topMdQm2xml(). MD top is missing.");   
+    }
+//                                                        deb("topMdQm2xml  -1");
+    Molecule * MDmolecule = _MDtop.getMolecule(1);
+    Molecule * QMmolecule = _QMtop.getMolecule(1);
+//                                                        deb("topMdQm2xml  1 ");
+    // xml stuff
     
-    stringstream map2pdbFile;
-    
-    string headlines = 
-                  "<topology>\n"
-                "\t<molecules>\n"
-                "\t<molecule>\n"
-              "\t\t<name>MOLECULE_NAME</name>\n"
-              "\t\t<mdname>Other</mdname>\n"
-              "\t\t<segments>\n"
-              "\t\t<segment>\n"
-            "\t\t\t<name>SEGMENT_NAME</name>\n"
-            "\t\t\t<qmcoords>QC_FILES/your_file_with.xyz</qmcoords>\n\n"
-            "\t\t\t<orbitals>QC_FILES/your_file_with.fort7</orbitals>\n"
-            "\t\t\t<basisset>INDO</basisset>\n"
-            "\t\t\t<torbital_h>NUMBER</torbital_h>\n\n"
-            "\t\t\t<U_cC_nN_h>NUMBER</U_cC_nN_h>\n"
-            "\t\t\t<U_nC_nN_h>NUMBER</U_nC_nN_h>\n"
-            "\t\t\t<U_cN_cC_h>NUMBER</U_cN_cC_h>\n\n"
-            "\t\t\t<multipoles_n>MP_FILES/your_file_with.mps</multipoles_n>\n"
-            "\t\t\t<multipoles_h>MP_FILES/your_file_with.mps</multipoles_h>\n"
-            "\t\t\t<map2md>1</map2md>\n\n"
-            "\t\t\t<fragments>\n";
-    
-    map2pdbFile << headlines;
-    
-    
-    vector < Segment * > allSegments = newMolecule->Segments();
-    vector < Segment * >::iterator segIt;
-    for (       segIt = allSegments.begin();
-                segIt < allSegments.end();
-                segIt++){
-        
-        vector < Fragment * > allFragments = (*segIt)->Fragments();
-        vector < Fragment * >::iterator fragIt;
-        for (   fragIt = allFragments.begin();
-                fragIt < allFragments.end();
-                fragIt++){
+    Property record;
+    Property *ptopology_p = &record.add("topology","");
+    Property *pmolecules_p = &ptopology_p->add("molecules","");
+    Property *pmolecule_p = &pmolecules_p->add("molecule","");
+    pmolecule_p->add("name","MOLECULE_NAME");
+    pmolecule_p->add("mdname","Other");
+    Property *psegments_p = &pmolecule_p->add("segments","");
+    Property *psegment_p = &psegments_p->add("segment","");
+    psegment_p->add("name","SEGMENT_NAME");
+    psegment_p->add("qmcoords","QC_FILES/your_file_with.xyz");
+    psegment_p->add("orbitals","QC_FILES/your_file_with.fort7");
+    psegment_p->add("basisset","INDO");
+    psegment_p->add("torbital_h","NUMBER");
+    psegment_p->add("U_cC_nN_h","NUMBER");
+    psegment_p->add("U_nC_nN_h","NUMBER");
+    psegment_p->add("U_cN_cC_h","NUMBER");
+    psegment_p->add("multipoles_n","MP_FILES/your_file_with.mps");
+    psegment_p->add("multipoles_h","your_file_with.mps");
+    psegment_p->add("map2md","1");
+    Property *pfragments_p = &psegment_p->add("fragments","");
+//                                                        deb("topMdQm2xml  2 ");
+                                        
+    vector < Segment * > allMdSegments = MDmolecule->Segments();
+    vector < Segment * > allQmSegments = QMmolecule->Segments();
+  
+    vector < Segment * >::iterator segMdIt;
+    vector < Segment * >::iterator segQmIt;
+//                                                        deb("topMdQm2xml  3 ");
+                                        
+    for ( segMdIt = allMdSegments.begin(), 
+                segQmIt = allQmSegments.begin();
             
-            string mapName      = (*fragIt)->getName() ;
+          (allMdSegments.size() > allQmSegments.size()) ? 
+              segMdIt < allMdSegments.end() :
+              segQmIt < allQmSegments.end();
+            
+          segMdIt++, segQmIt++)
+    {
+        
+        vector < Fragment * > allMdFragments = (*segMdIt)->Fragments();
+        vector < Fragment * > allQmFragments = (*segQmIt)->Fragments();
+//                                                        deb("topMdQm2xml  4 ");
+                                        
+        vector < Fragment * >::iterator fragMdIt;
+        vector < Fragment * >::iterator fragQmIt;
+//                                                        deb("topMdQm2xml  5 ");
+                                        
+        for ( fragMdIt = allMdFragments.begin() , 
+                fragQmIt = allQmFragments.begin();
+                
+              (allMdFragments.size() > allQmFragments.size()) ?
+                  fragMdIt < allMdFragments.end() :
+                  fragQmIt < allQmFragments.end();
+                
+              fragMdIt++,fragQmIt++ )
+        {
+            string mapName;            
             stringstream mapMdAtoms;
             stringstream mapQmAtoms;
+            stringstream mapMpoles;
             stringstream mapWeight;
             stringstream mapFrame;
+//                                                        deb("topMdQm2xml  6 ");
+
+            mapName      = (*fragMdIt)->getName() ;
             
             int localCounter = 0;
-            vector < Atom * > allAtoms = (*fragIt)->Atoms();
-            vector < Atom * >::iterator atomIt;
-            for (       atomIt = allAtoms.begin();
-                        atomIt < allAtoms.end();
-                        atomIt++){
-                
-               mapMdAtoms << boost::format("%=13s") % 
+            vector < Atom * > allMdAtoms = (*fragMdIt)->Atoms();
+            vector < Atom * > allQmAtoms = (*fragQmIt)->Atoms();
+
+            vector < Atom * >::iterator atomMdIt;
+            vector < Atom * >::iterator atomQmIt;
+//                                                        deb("topMdQm2xml  7 ");
+            for ( atomMdIt = allMdAtoms.begin(),
+                    atomQmIt = allQmAtoms.begin();
+                    
+                  (allMdAtoms.size() > allQmAtoms.size()) ? 
+                      atomMdIt < allMdAtoms.end() :
+                      atomQmIt < allQmAtoms.end();
+                  
+                  atomMdIt++, atomQmIt++ )
+            {
+//                                                        deb("topMdQm2xml  8 ");
+                if (atomMdIt < allMdAtoms.end())
+                {
+                        mapMdAtoms << boost::format("%=13s") % 
                                 (boost::format("%s:%s:%s") 
-                                   % (*atomIt)->getResnr()
-                                   % (*atomIt)->getResname()
-                                   % (*atomIt)->getName()).str();
-                mapQmAtoms << boost::format("%=13s") %
-                                (boost::format("%1%:%2% ") 
-                                   % (*atomIt)->getId()
-                                   % (*atomIt)->getElement()).str();
-                mapWeight << boost::format("%=13i") 
-                                   % el2mass[(*atomIt)->getElement()];
+                                   % (*atomMdIt)->getResnr()
+                                   % (*atomMdIt)->getResname()
+                                   % (*atomMdIt)->getName()).str() ;
+                        
+                                if (el2mass.find((*atomQmIt)->getElement()) 
+                                        != el2mass.end())
+                                {
+                        mapWeight << boost::format("%=13i")
+                                           % el2mass[(*atomQmIt)->getElement()];
+                                }
+                                else
+                                {
+                        mapWeight << boost::format("%=13i") % " ";        
+                                }
+                }
+                else
+                {
+                        mapMdAtoms << boost::format("%=13s") %
+                                (boost::format("%s:%s:%s") 
+                                        % " " % " " % " " ).str();
+                        
+                        mapWeight << boost::format("%=13i") % " " ;
+                }
                 
-                if (localCounter < 3){
+                if (atomQmIt < allQmAtoms.end())
+                {
+                        mapQmAtoms << boost::format("%=13s") %
+                                (boost::format("%1%:%2% ") 
+                                   % (*atomQmIt)->getId()
+                                   % (*atomQmIt)->getElement()).str() ;
+                }
+                else
+                {
+                        mapQmAtoms << boost::format("%=13s") %
+                                (boost::format("%1%:%2% ") 
+                                        % " " % " " ).str();
+                }
+                
+                if (localCounter < 3 && localCounter < allMdAtoms.size())
+                {
                         mapFrame << boost::format("%=5i")
-                                   % (*atomIt)->getId();
+                                   % (*atomMdIt)->getId();
                 }
                 localCounter++;
             }
             
-            Property record;
-         
-            Property *pfragment = &record.add("fragment","");
-            pfragment->add("name", mapName);
-            pfragment->add("mdatoms", mapMdAtoms.str());
-            pfragment->add("qmatoms", mapQmAtoms.str());
-            pfragment->add("mpoles", mapQmAtoms.str());
-            pfragment->add("weights", mapWeight.str());
-            pfragment->add("localframe", mapFrame.str());
-
-            votca::tools::PropertyIOManipulator iomXML(votca::tools::PropertyIOManipulator::XML, 1, "");
-
-            cout << iomXML << record;
+            mapMpoles << " " << mapQmAtoms.str();
             
-            map2pdbFile 
-                 << "\t\t\t\t<fragment>\n"
-                 << "\t\t\t\t\t<name> "     << mapName          << " </name>\n"
-                 << "\t\t\t\t\t<mdatoms>"   << mapMdAtoms.str() << "</mdatoms>\n"
-                 << "\t\t\t\t\t<qmatoms>"   << mapQmAtoms.str() << "</qmatoms>\n"
-                 << "\t\t\t\t\t<mpoles> "   << mapQmAtoms.str() << "</mpoles>\n"
-                 << "\t\t\t\t\t<weights>"   << mapWeight.str()  << "</weights>\n"
-                 << "\t\t\t\t\t<localframe>"<< mapFrame.str()   << "</localframe>\n"   
-                 << "\t\t\t\t</fragment>\n";
+            Property *pfragment_p  = &pfragments_p->add("fragment","");
+            pfragment_p->add("name", mapName);
+            pfragment_p->add("mdatoms", mapMdAtoms.str());
+            pfragment_p->add("qmatoms", mapQmAtoms.str());
+            pfragment_p->add("mpoles",  mapMpoles.str());
+            pfragment_p->add("weights", mapWeight.str());
+            pfragment_p->add("localframe", mapFrame.str());
+//                                                        deb("topMdQm2xml  9 ");
+
          }
     }
     
-    string tailLine =
-    "\t\t\t</fragments>\n"
-    "\t\t\t</segment>\n"              
-      "\t\t</segments>\n"
-        "\t</molecule>\n"    
-        "\t</molecules>\n"
-          "</topology>\n";    
-    map2pdbFile << tailLine;
-    
-    //cout << "\n... ... " <<"Writing into: " << _output_file << "\n\n";
-    
-    LOG( logINFO, _log ) << "Writing into: " << _output_file << flush;
+//    cout << endl << setlevel(1) << XML << record;
         
-    ofstream outfile( _output_file.c_str() );
-    outfile << map2pdbFile.str();
+    ofstream outfile( _output_xml.c_str() );
+    
+    PropertyIOManipulator XML(PropertyIOManipulator::XML,1,""); 
+    outfile << XML << record;
     outfile.close();
     
-    cout << _log;
+//                                                         deb("topMdQm2xml end");
     
-    return true;
+    return;
 }
-
 
 }}
 
