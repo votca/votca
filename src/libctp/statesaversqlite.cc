@@ -565,7 +565,7 @@ void StateSaverSQLite::WriteSuperExchange(bool update) {
                            "?, ?, ?"
                            ")");
 
-    list< QMNBList::SuperExchangeType* > ::iterator seit;
+    list< QMNBList::SuperExchangeType* >::const_iterator seit;
 
     for (seit = _qmtop->NBList().getSuperExchangeTypes().begin();
          seit != _qmtop->NBList().getSuperExchangeTypes().end();

@@ -1,4 +1,5 @@
 #include <votca/ctp/ewaldnd.h>
+#include <votca/ctp/poissongrid.h>
 #include <boost/format.hpp>
 #include <algorithm>
 #include <boost/math/special_functions/round.hpp>
@@ -129,6 +130,12 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
     }
     else
         _task_evaluate_energy = false;
+    if (opt->exists(pfx+".tasks.solve_poisson")) {
+        _task_solve_poisson
+            = opt->get(pfx+".tasks.solve_poisson").as<bool>();
+    }
+    else
+        _task_solve_poisson = false;
     
     // EWALD INTERACTION PARAMETERS (GUESS ONLY)
     _K_co = _kfactor/_R_co;
@@ -278,6 +285,22 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
     LOG(logINFO,*_log)
         << flush << (format("  o Sigma q|z|**2 [e*nm**2] = %1$+1.7f   ")
         % qzz_bgP) << flush;
+    
+    
+    // ZERO ENERGIES
+    _ER  = EWD::triple<>(0, 0, 0);
+    _EC  = EWD::triple<>(0, 0, 0);
+    _EK  = EWD::triple<>(0, 0, 0);
+    _E0  = EWD::triple<>(0, 0, 0);
+    _ET  = EWD::triple<>(0, 0, 0);
+    _EDQ = EWD::triple<>(0, 0, 0);
+    _EJ  = EWD::triple<>(0, 0, 0);
+    _polar_ETT = 0;
+    _polar_EPP = 0;  _polar_EPU = 0;  _polar_EUU = 0;
+    _polar_EF00 = 0; _polar_EF01 = 0; _polar_EF02 = 0;
+    _polar_EF11 = 0; _polar_EF12 = 0;
+    _polar_EM0 = 0;  _polar_EM1 = 0;  _polar_EM2 = 0;
+    _Estat = 0;      _Eindu = 0;      _Eppuu = 0;
     
     return;
 }
@@ -678,7 +701,8 @@ void Ewald3DnD::Evaluate() {
     if (_task_polarize_fg) EvaluateInduction();
     boost::timer::cpu_times t2 = cpu_t.elapsed();
     if (_task_evaluate_energy) EvaluateEnergy();
-    boost::timer::cpu_times t3 = cpu_t.elapsed();    
+    boost::timer::cpu_times t3 = cpu_t.elapsed();
+    if (_task_solve_poisson) EvaluatePoisson();
     
     _t_fields    = (t1.wall-t0.wall)/1e9/60.;
     _t_induction = (t2.wall-t1.wall)/1e9/60.;
@@ -933,6 +957,12 @@ void Ewald3DnD::EvaluateEnergy() {
     _ET  = _ER + _EK + _E0 + _EJ + _EDQ - _EC;
     
     return;
+}
+
+
+void Ewald3DnD::EvaluatePoisson() {
+    
+    POI::PoissonGrid poisson_grid(_top, _fg_C, _bg_P, _log);
 }
 
 

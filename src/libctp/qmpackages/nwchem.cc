@@ -624,7 +624,11 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
     string _log_file_name_full =  _run_dir + "/" + _log_file_name;
     // check if LOG file is complete
     if ( !CheckLogFile() ) return false;
-
+    
+    // save qmpackage name
+    _orbitals->_has_qm_package = true;
+    _orbitals->_qm_package = "nwchem";
+    
     // set _found_optimization to true if this is a run without optimization
     if ( !_is_optimization ) {
         _found_optimization = true;
