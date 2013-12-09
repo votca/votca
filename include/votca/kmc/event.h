@@ -189,9 +189,9 @@ void Event::Set_event(Link* link, Carrier* carrier, Eventinfo* eventinfo, StateD
         }
         else {
             energycontrib = final_energy - init_energy -charge*(eventinfo->efield_x*distancevector.x()+eventinfo->efield_y*distancevector.y()+eventinfo->efield_z*distancevector.z());
-            std::cout << "contrib " << final_energy << " " << static_node_energy_to << " " << to_event_energy << " " <<
-                    init_energy << " " << static_node_energy_from << " " << from_event_energy << " " <<
-                    charge*(eventinfo->efield_x*distancevector.x()+eventinfo->efield_y*distancevector.y()+eventinfo->efield_z*distancevector.z()) << endl;
+//            std::cout << "contrib " << final_energy << " " << static_node_energy_to << " " << to_event_energy << " " <<
+//                    init_energy << " " << static_node_energy_from << " " << from_event_energy << " " <<
+//                    charge*(eventinfo->efield_x*distancevector.x()+eventinfo->efield_y*distancevector.y()+eventinfo->efield_z*distancevector.z()) << endl;
             if (energycontrib>0.0) {
                 energyfactor = exp(-1.0*eventinfo->beta*energycontrib);
             }
@@ -200,7 +200,7 @@ void Event::Set_event(Link* link, Carrier* carrier, Eventinfo* eventinfo, StateD
             }
         }
     }
-    std::cout << "factors " << prefactor << " " << distancefactor << " " << energyfactor << endl;
+//    std::cout << "factors " << prefactor << " " << distancefactor << " " << energyfactor << endl;
     _rate = prefactor*distancefactor*energyfactor;
 }
 

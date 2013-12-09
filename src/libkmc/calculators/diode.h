@@ -91,6 +91,7 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
 
     state = new StateDevice<GraphDevice<GraphSQL, NodeSQL, LinkSQL> >();
     state->InitState(graph);
+    
     std::cout << graph->GetNode(10)->occ() << endl;
     int carrier_ID = state->Buy(10);
     Carrier* newcarrier = state->GetCarrier(carrier_ID);
@@ -110,8 +111,17 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     typename std::vector<Link*>::iterator it;
     for(it = links.begin(); it != links.end(); it++) {
         Event* newevent = new Event((*it), newcarrier, eventdata,state);
-        std::cout << (*it)->id() << " " << newevent->rate() << " " << newevent->init_type() << " " << newevent->final_type() << " " 
-                  << abs((*it)->r12()) << " " << (*it)->r12() << " " <<  exp(-1.0*eventdata->alpha*abs((*it)->r12())) << " " 
+//        std::cout << (*it)->id() << " " << newevent->rate() << " " << newevent->init_type() << " " << newevent->final_type() << " " 
+//                  << abs((*it)->r12()) << " " << (*it)->r12() << " " <<  exp(-1.0*eventdata->alpha*abs((*it)->r12())) << " " 
+//                  << endl;
+
+    }
+    vector<Link*> inj_links = graph->left()->links();
+    typename std::vector<Link*>:: iterator inj;
+    for(inj = inj_links.begin(); inj != inj_links.end(); inj++) {
+        Event* newevent = new Event((*inj), newcarrier, eventdata,state);
+        std::cout << (*inj)->id() << " " << newevent->rate() << " " << newevent->init_type() << " " << newevent->final_type() << " " 
+                  << abs((*inj)->r12()) << " " << (*inj)->r12() << " " <<  exp(-1.0*eventdata->alpha*abs((*inj)->r12())) << " " 
                   << endl;
 
     }
