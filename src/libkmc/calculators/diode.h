@@ -28,6 +28,7 @@
 #include <votca/kmc/state.h>
 #include <votca/kmc/mesh.h>
 #include <votca/kmc/eventinfo.h>
+#include <votca/kmc/event.h>
 
 using namespace std;
 
@@ -44,8 +45,7 @@ public:
     StateDevice<GraphDevice<GraphSQL, NodeSQL, LinkSQL> >* state;
 //    Events* events;
 //    Vssmgroup* vssmgroup;
-//    Globaleventinfo* globevent;
-    Eventinfo* eventinfo;
+    Eventinfo* eventdata;
     
     Diode() {};
    ~Diode() {};
@@ -59,9 +59,6 @@ public:
 //    int seed; long nr_equilsteps; long nr_timesteps; long steps_update_longrange;
 //   int nx; int ny; int nz; double lattice_constant; double hopdist; double disorder_strength; 
 //    double disorder_ratio; CorrelationType correlation_type; double left_electrode_distance; double right_electrode_distance;
-    
-    int nx; int ny; int nz; double lattice_constant; double left_electrode_distance; double right_electrode_distance;
-    int growsize; double alpha; double beta; double efield_x; double efield_y; double efield_z; double injection_barrier; double binding_energy;
     
 protected:
    void RunKMC(void); 
@@ -80,30 +77,12 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     
     cout << "Initializing" << endl;
     
-    nx                          = options->get("options.diode.nx").as<int>();                               eventinfo->nx = nx;
-    ny                          = options->get("options.diode.ny").as<int>();                               eventinfo->ny = ny;
-    nz                          = options->get("options.diode.nz").as<int>();                               eventinfo->nz = nz;
-    lattice_constant            = options->get("options.diode.lattice_constant").as<double>();              eventinfo->lattice_constant = lattice_constant;
-    left_electrode_distance     = options->get("options.diode.left_electrode_distance").as<double>();       eventinfo->left_electrode_distance = left_electrode_distance;
-    right_electrode_distance    = options->get("options.diode.right_electrode_distance").as<double>();      eventinfo->right_electrode_distance = right_electrode_distance;
-    growsize                    = options->get("options.diode.growsize").as<int>();                         eventinfo->growsize = growsize;
-    alpha                       = options->get("options.diode.alpha").as<double>();                         eventinfo->alpha = alpha;
-    beta                        = options->get("options.diode.beta").as<double>();                          eventinfo->beta = beta;
-    efield_x                    = options->get("options.diode.efield_x").as<double>();                      eventinfo->efield_x = efield_x;
-    efield_y                    = options->get("options.diode.efield_y").as<double>();                      eventinfo->efield_y = efield_y;
-    efield_z                    = options->get("options.diode.efield_z").as<double>();                      eventinfo->efield_z = efield_z;
-    injection_barrier           = options->get("options.diode.injection_barrier").as<double>();             eventinfo->injection_barrier = injection_barrier;
-    binding_energy              = options->get("options.diode.binding_energy").as<double>();                eventinfo->binding_energy = binding_energy;
- 
-    
-    
-    
-
-
+    eventdata = new Eventinfo();
+    eventdata->Read_In(options);
     
     graph = new GraphDevice<GraphSQL, NodeSQL, LinkSQL>();
     graph->Initialize(filename);
-    graph->Setup_device_graph(left_electrode_distance, right_electrode_distance);
+    graph->Setup_device_graph(eventdata->left_electrode_distance, eventdata->right_electrode_distance);
     std::cout << "max pair degree: " << graph->maxpairdegree() << endl;
     std::cout << "hopping distance: " << graph->hopdist() << endl;
     std::cout << "simulation box size: " << graph->simboxsize() << endl;
@@ -117,12 +96,25 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     Carrier* newcarrier = state->GetCarrier(carrier_ID);
     Node* carrier_node = graph->GetNode(20);
     newcarrier->SetCarrierNode(carrier_node);
+    newcarrier->SetCarrierType(2);
     carrier_node->AddCarrier(carrier_ID);
-    std::cout << graph->GetNode(20)->occ() << endl;
-    std::cout << carrier_node->position() << " " << carrier_ID << " " << newcarrier->node()->position() << endl;
-    std::cout << newcarrier->type() << " why" << endl;
-    newcarrier->SetInBox(true);
-    std::cout << state->In_sim_box(newcarrier) << " " << newcarrier->inbox() << endl;
+    vector<Link*> links = carrier_node->links();
+    std::cout << links.size() << endl;
+    vector<Event*> testvector;
+    Carrier* newcarrier2 = state->GetCarrier(3);
+    newcarrier2->SetCarrierType(2);
+    for(int it = 0; it < graph->maxpairdegree(); it++) {
+        Event* newevent = new Event(newcarrier2);
+        std::cout << it << " " << newevent->rate() << " " << newevent->init_type() << " " << newevent->final_type() << " " << endl;
+    }
+    typename std::vector<Link*>::iterator it;
+    for(it = links.begin(); it != links.end(); it++) {
+        Event* newevent = new Event((*it), newcarrier, eventdata,state);
+        std::cout << (*it)->id() << " " << newevent->rate() << " " << newevent->init_type() << " " << newevent->final_type() << " " 
+                  << abs((*it)->r12()) << " " << (*it)->r12() << " " <<  exp(-1.0*eventdata->alpha*abs((*it)->r12())) << " " 
+                  << endl;
+
+    }
     
     delete state;
     delete graph;    

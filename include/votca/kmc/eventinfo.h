@@ -26,19 +26,39 @@ class Eventinfo {
 
 public:
     
-    int nx;
-    int ny;
-    int nz;
-    double lattice_constant;
-    double left_electrode_distance;
-    double right_electrode_distance;
-    double alpha;
-    double beta;
-    double efield_x;
-    double efield_y;
-    double efield_z;
-    double injection_barrier;
-    double binding_energy;
+    Eventinfo(){};
+    
+    void Read_In(Property *options){ 
+    
+        nx                          = options->get("options.diode.nx").as<int>();
+        ny                          = options->get("options.diode.ny").as<int>();
+        nz                          = options->get("options.diode.nz").as<int>();
+        lattice_constant            = options->get("options.diode.lattice_constant").as<double>();
+        left_electrode_distance     = options->get("options.diode.left_electrode_distance").as<double>();
+        right_electrode_distance    = options->get("options.diode.right_electrode_distance").as<double>();
+        growsize                    = options->get("options.diode.growsize").as<int>();
+        alpha                       = options->get("options.diode.alpha").as<double>();
+        beta                        = options->get("options.diode.beta").as<double>();
+        efield_x                    = options->get("options.diode.efield_x").as<double>();
+        efield_y                    = options->get("options.diode.efield_y").as<double>();
+        efield_z                    = options->get("options.diode.efield_z").as<double>();
+        injection_barrier           = options->get("options.diode.injection_barrier").as<double>();
+        binding_energy              = options->get("options.diode.binding_energy").as<double>();
+        formalism                   = options->get("options.diode.formalism").as<string>();
+        electron_prefactor          = options->get("options.diode.electron_prefactor").as<double>();
+        hole_prefactor              = options->get("options.diode.hole_prefactor").as<double>();
+        injection_prefactor         = options->get("options.diode.injection_prefactor").as<double>();
+        collection_prefactor        = options->get("options.diode.collection_prefactor").as<double>();
+        recombination_prefactor     = options->get("options.diode.recombination_prefactor").as<double>();
+    }
+        
+    int nx; int ny; int nz; int growsize;
+    double lattice_constant; double left_electrode_distance; double right_electrode_distance; double alpha; double beta;
+    double efield_x; double efield_y; double efield_z;
+    double electron_prefactor; double hole_prefactor; double injection_prefactor; double recombination_prefactor; double collection_prefactor;
+    string formalism; double injection_barrier; double binding_energy;
+    
+    
     double coulomb_strength;
     double coulcut;
     double self_image_prefactor;
@@ -46,17 +66,12 @@ public:
     bool left_injection[2];
     bool right_injection[2];
     bool device;
-    string formalism;
     
     int nr_sr_images;
     long nr_of_lr_images;
-    int growsize;
+
     
-    double electron_prefactor;
-    double hole_prefactor;
-    double injection_prefactor;
-    double recombination_prefactor;
-    double collection_prefactor;
+
 
 };
 

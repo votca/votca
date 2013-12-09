@@ -149,7 +149,9 @@ void GraphDevice<TGraph, TNode, TLink>::Setup_device_graph(double left_distance,
     }
 
     this->AddNode(_left_electrode); //in this way the electrode nodes are caught by destructor
-    this->AddNode(_right_electrode);     
+    this->AddNode(_right_electrode);
+    _left_electrode->RemoveCarrier();
+    _right_electrode->RemoveCarrier();    
     
     // associate links in links vector with the corresponding nodes
     this->LinkSort();

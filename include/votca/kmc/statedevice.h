@@ -72,9 +72,6 @@ unsigned int StateDevice<TGraph>::Buy(int growsize) {
     carrier_reservoir.pop_back();
     Carrier* newcarrier = this->GetCarrier(carriernr_to_sim_box);
     newcarrier->SetInBox(true);
-    std::cout << newcarrier->inbox() << " a" << endl;
-    std::cout << (this->GetCarrier(8))->inbox() << " a" << endl;
-    std::cout << newcarrier->type() << endl;
     return carriernr_to_sim_box;
 }
 
