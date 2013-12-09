@@ -458,7 +458,7 @@ void Rates::CalculateRate(Topology *top, QMPair *qmpair, int state) {
                 * pow(gsl_sf_gamma(2*_kondo), -1) * exp(+dG/2/_kT)
                 * exp(-std::abs(dG)/hbar_eV/characfreq12); // due to this factor rates will always be zero
 
-        rate12 = J2/pow(hbar_eV,2)/characfreq21
+        rate21 = J2/pow(hbar_eV,2)/characfreq21
                 * pow((hbar_eV*characfreq21/2/M_PI/_kT), (1-2*_kondo))
                 * pow(std::abs(cgamma(_kondo+M_I*(-dG/2/M_PI/_kT))),2)
                 * pow(gsl_sf_gamma(2*_kondo), -1) * exp(-dG/2/_kT)
