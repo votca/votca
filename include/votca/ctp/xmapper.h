@@ -43,10 +43,12 @@ public:
     void EquipWithPolSites(Topology *top);
     
     // Adapt to XJob
-    vector<APolarSite*> MapPolSitesToSeg(const vector<APolarSite*> &pols_n, Segment *seg);
+    PolarSeg *MapPolSitesToSeg(const vector<APolarSite*> &pols_n, Segment *seg, bool only_active_sites = true);
     vector<APolarSite*> GetOrCreateRawSites(const string &mpsfile, QMThread *thread = NULL);
     void Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2, QMThread *thread = NULL);
     void Gen_FGC_FGN_BGN(Topology *top, XJob *job, QMThread *thread = NULL);
+    void Gen_BGN(Topology *top, PolarTop *ptop, QMThread *thread = NULL);
+    void Gen_FGC_Load_FGN_BGN(Topology *top, XJob *job, string archfile, QMThread *thread = NULL);
     
     void setEstaticsOnly(bool estatics_only) { _estatics_only = estatics_only; }
     

@@ -22,7 +22,7 @@
 
 #include <map>
 #include <votca/tools/objectfactory.h>
-#include "qmcalculator.h"
+#include <votca/ctp/qmcalculator.h>
 
 namespace votca { namespace ctp {
 

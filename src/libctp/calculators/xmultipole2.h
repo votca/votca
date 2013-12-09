@@ -15,7 +15,7 @@ public:
    ~XMP() {};
 
     string              Identify() { return "XMultipole"; }
-    void                Initialize(Topology *, Property *);
+    void                Initialize(Property *);
     bool                EvaluateFrame(Topology *top);
 
     // +++++++++++++++++++++++++++++++ //
@@ -873,7 +873,7 @@ private:
 // ========================================================================== //
 
 
-void XMP::Initialize(Topology *top, Property *opt) {
+void XMP::Initialize(Property *opt) {
 
     cout << endl
          << "... ... Initialized with " << _nThreads << " threads. "
@@ -2172,6 +2172,8 @@ bool XMP::EvaluateFrame(Topology *top) {
     }
     fclose(out);
 
+    return true;
+    
 }
 
 

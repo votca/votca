@@ -33,7 +33,7 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
 
     Property typology;
     load_property_from_xml(typology, xmlfile.c_str());
-
+    
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
     // XML to Types: Molecules => Segments => Fragments => Atoms //
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
@@ -85,7 +85,9 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
          // ++++++++++++++ //
          // Load fragments //
          // ++++++++++++++ //
-
+         
+         map<string,bool> fragname_isTaken;
+         
          key = "fragments.fragment";
          list<Property *> fragments = (*it_segment)->Select(key);
          list<Property *>::iterator it_fragment;
@@ -98,7 +100,21 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
             // Create new fragment
             CTP::Fragment* fragment=AddFragmentType(fragment_id++,*it_fragment);
             segment->AddFragment( fragment );
-
+            
+            // Verify that this fragment name is not taken already
+            try {
+                // This should throw
+                bool taken = fragname_isTaken.at(fragment->getName());
+                cout << "ERROR Fragment name '" << fragment->getName()
+                     << "' in segment '" << segment->getName()
+                     << "' occurs more than once." << endl;
+                if (taken)
+                    throw runtime_error("(see above, naming collision)");
+            }
+            catch (out_of_range) {
+                fragname_isTaken[fragment->getName()] = true;
+            }
+            
             // Load local-frame definition
             vector<int> trihedron = (*it_fragment)->get("localframe")
                                                 .as< vector<int> >();
@@ -425,6 +441,7 @@ CTP::Molecule *Md2QmEngine::ExportMolecule(CTP::Molecule *refMol,
         newMol->AddSegment(newSeg);
     } /* exit loop over template molecules */
 
+    return newMol;
 }
 
 

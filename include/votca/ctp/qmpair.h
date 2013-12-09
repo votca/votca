@@ -66,6 +66,9 @@ public:
 
    void     setLambdaO(double lO, int carrier);
    double   getLambdaO(int carrier);
+   
+   double   getReorg12(int state) { return first->getU_nC_nN(state) + second->getU_cN_cC(state); } // 1->2
+   double   getReorg21(int state) { return first->getU_cN_cC(state) + second->getU_nC_nN(state); } // 2->1
 
    void     setRate12(double rate, int state);
    void     setRate21(double rate, int state);

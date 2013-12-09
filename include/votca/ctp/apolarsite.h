@@ -25,10 +25,11 @@
 #include <votca/tools/vec.h>
 #include <votca/tools/matrix.h>
 #include <votca/tools/types.h>
+#include <map>
 
 
 namespace votca { namespace ctp {
-
+    
 
 using namespace votca::tools;
 
@@ -51,75 +52,141 @@ class APolarSite
     friend class XInteractor;
     friend class QMMIter;
     friend class Ewald3D3D;
+    friend class PEwald3D3D;
+    friend class EwdInteractor;
 
 
 public:
 
     APolarSite(int id, string name)
-            : _id(id), _name(name), _isVirtual(false), _locX(vec(1,0,0)),
-              _locY(vec(0,1,0)),    _locZ(vec(0,0,1))
-            { _Qs.resize(3); _Ps.resize(3); };
-
+            : _id(id),              _name(name),         _isVirtual(false), 
+              _locX(vec(1,0,0)),    _locY(vec(0,1,0)),   _locZ(vec(0,0,1)), 
+              _top(0),              _seg(0),             _frag(0),
+              _resolution(atomistic)
+            { _Qs.resize(3); _Ps.resize(3); this->Depolarize();
+              for (int s = -1; s < 2; ++s) _Ps[s+1].ZeroMatrix(); }
     APolarSite()
-            : _id(-1),  _isVirtual(false), _locX(vec(1,0,0)),
-              _locY(vec(0,1,0)), _locZ(vec(0,0,1))
-            { _Qs.resize(3); _Ps.resize(3); };
-            
-    APolarSite(APolarSite *templ);
-
+            : _id(-1),              _name(""),          _isVirtual(false),  
+              _locX(vec(1,0,0)),    _locY(vec(0,1,0)),  _locZ(vec(0,0,1)),  
+              _top(0),              _seg(0),            _frag(0),
+              _resolution(atomistic)
+            { _Qs.resize(3); _Ps.resize(3); this->Depolarize();
+              for (int s = -1; s < 2; ++s) _Ps[s+1].ZeroMatrix(); }
+    APolarSite(APolarSite *templ, bool do_depolarize);
    ~APolarSite() {};
+   
+    // RESOLUTION (AFFECTS DAMPING PROPERTIES)
+    enum res_t { atomistic, coarsegrained };
+    const res_t    &getResolution() { return _resolution; }
+    void            setResolution(res_t res) { _resolution = res; }
+    
+    // GET & SET & IMPORT FUNCTIONS
+    int            &getId() { return _id; }
+    string         &getName() { return _name; }
+    vec            &getPos() { return _pos; }
+    int            &getRank() { return _rank; }
+    Topology       *getTopology() { return _top; }
+    Segment        *getSegment() { return _seg; }
+    Fragment       *getFragment() { return _frag; }
+    bool            getIsVirtual() { return _isVirtual; }
+    bool            getIsActive(bool estatics_only);
 
-    int             &getId() { return _id; }
-    string          &getName() { return _name; }
-    vec             &getPos() { return _pos; }
-    int             &getRank() { return _rank; }
-    Topology        *getTopology() { return _top; }
-    Segment         *getSegment() { return _seg; }
-    Fragment        *getFragment() { return _frag; }
-
-
+    void            ImportFrom(APolarSite *templ, string tag = "basic");
     void            setIsVirtual(bool isVirtual) { _isVirtual = isVirtual; }
     void            setPos(vec &pos) { _pos = pos; }
     void            setRank(int rank) { _rank = rank; } // rank; } // OVERRIDE
     void            setTopology(Topology *top) { _top = top; }
     void            setSegment(Segment *seg) { _seg = seg; }
-    void            setFragment(Fragment *frag) { _frag = frag; }
+    void            setFragment(Fragment *frag) { _frag = frag; }    
     
-    bool            getIsVirtual() { return _isVirtual; }
-    bool            getIsActive(bool estatics_only);
-    vector<double> &getQs(int state) { return _Qs[state+1]; }
-    void            setQs(vector<double> Qs, int state) { _Qs[state+1] = Qs; }
-    void            setPs(matrix polar, int state) { _Ps[state+1] = polar; }
-    matrix         &getPs(int state) { return _Ps[state+1]; }
-    double          getIsoP() { return 1./3. * (Pxx+Pyy+Pzz); }
-    double          getProjP(vec &dir);
-    
-    double          setQ00(double q, int s) { Q00 = q; _Qs[s+1][0] = q; }
-    double         &getQ00() { return Q00; }
-    void            Charge(int state);
-    void            ChargeDelta(int state1, int state2);
-
-    void            Induce(double wSOR = 0.25);
-    void            InduceDirect();
-    void            ResetFieldU() { FUx = FUy = FUz = 0.0; }
-    void            ResetFieldP() { FPx = FPy = FPz = 0.0; }
-    void            ResetU1Hist() { U1_Hist.clear(); }
-    void            Depolarize();
-    double          HistdU();
-
-
-    void            ImportFrom(APolarSite *templ, string tag = "basic");
+    // COORDINATE TRANSFORMATION
     void            Translate(const vec &shift);
     void            Rotate(const matrix &rot, const vec &refPos);
-
+    // PERMANENT MOMENTS
+    bool            IsCharged();
+    vector<double> &getQs(int state) { return _Qs[state+1]; }
+    void            setQs(vector<double> Qs, int state) { while(Qs.size() < 9) Qs.push_back(0.0); _Qs[state+1] = Qs; }
+    void            setQ00(double q, int s) { Q00 = q; if (_Qs[s+1].size() < 1) _Qs[s+1].resize(1); _Qs[s+1][0] = q; }
+    double         &getQ00() { return Q00; }
+    vec             getQ1() { return vec(Q1x, Q1y, Q1z); }  // Only IOP
+    // POLARIZABILITIES
+    bool            IsPolarizable();
+    void            setPs(matrix polar, int state) { _Ps[state+1] = polar; }
+    void            setIsoP(double p) { Pxx = Pyy = Pzz = p; Pxy = Pxz = Pyz = 0.0; eigenpxx = eigenpyy = eigenpzz = p; }
+    matrix         &getPs(int state) { return _Ps[state+1]; }
+    double          getIsoP() { return pow((Pxx*Pyy*Pzz),1./3.); }
+    double          getProjP(vec &dir);
+    // FIELDS & INDUCED MOMENTS
+    vec             getFieldP() { return vec(FPx,FPy,FPz); } // Only IOP
+    void            setFieldP(double &fx, double &fy, double &fz) { FPx = fx; FPy = fy; FPz = fz; }
+    vec             getFieldU() { return vec(FUx,FUy,FUz); } // Only IOP
+    vec             getU1() { return vec(U1x,U1y,U1z); }     // Only IOP
+    void            setU1(vec &u1) { U1x = u1.getX(); U1y = u1.getY(); U1z = u1.getZ(); }
+    // CHARGE -1 0 +1 & DELTA
+    void            Charge(int state);
+    void            ChargeDelta(int state1, int state2);
+    // POLARIZATION & DEPOLARIZATION
+    void            Induce(double wSOR = 0.25);
+    void            InduceDirect();
+    double          InductionWork() { return -0.5*(U1x*(FPx+FUx) + U1y*(FPy+FUy) + U1z*(FPz+FUz)); }
+    void            ResetFieldU() { FUx = FUy = FUz = 0.0; }
+    void            ResetFieldP() { FPx = FPy = FPz = 0.0; }
+    void            ResetU1()     { U1x = U1y = U1z = 0.0; }
+    void            ResetU1Hist() { U1_Hist.clear(); }
+    void            Depolarize();
+    double          HistdU();    
+    
+    // PRINT FUNCTS & OUTPUT TO FORMAT
     void            PrintInfo(std::ostream &out);
     void            PrintTensorPDB(FILE *out, int state);
     void            WriteChkLine(FILE *, vec &, bool, string, double);
     void            WriteXyzLine(FILE *, vec &, string);
     void            WritePdbLine(FILE *out, const string &tag = "");
+    void            WriteMpsLine(std::ostream &out, string unit);
+    void            WriteXmlLine(std::ostream &out);
+    
+    template<class Archive>
+    void serialize(Archive &arch, const unsigned int version) {
+        arch & _id;
+        arch & _name;
+        arch & _isVirtual;
+        arch & _resolution;
+        arch & _pos;
+        arch & _locX;
+        arch & _locY;
+        arch & _locZ;
 
-    vector<APolarSite*> CreateFrom_MPS(string filename, int state) { ; }
+        arch & _Qs;
+        arch & _rank;
 
+        arch & _Ps;
+
+        arch & Pxx; arch & Pxy; arch & Pxz;
+        arch & Pyy; arch & Pyz;
+        arch & Pzz;
+
+        arch & pax; arch & eigenpxx;
+        arch & pay; arch & eigenpyy;
+        arch & paz; arch & eigenpzz;
+
+        arch & eigendamp;
+
+        arch & Q00;
+        arch & Q1x; arch & Q1y;  arch & Q1z;
+        arch & Q20; arch & Q21c; arch & Q21s; arch & Q22c; arch & Q22s;
+        arch & Qxx; arch & Qxy;  arch & Qxz;  arch & Qyy;  arch & Qyz; arch & Qzz;
+
+        arch & U1x; arch & U1y; arch & U1z;
+        arch & FPx; arch & FPy; arch & FPz;
+        arch & FUx; arch & FUy; arch & FUz;
+
+        // NOT ARCHIVED
+        // Topology *_top;
+        // Segment  *_seg;
+        // Fragment *_frag;
+        // vector< vec > U1_Hist;                  // Ind. u history
+        return;
+    }
 
 
 
@@ -128,6 +195,7 @@ private:
     int     _id;
     string  _name;
     bool    _isVirtual;
+    res_t   _resolution;
     vec     _pos;
     vec     _locX;
     vec     _locY;
@@ -155,6 +223,7 @@ private:
     double Q00;
     double Q1x, Q1y, Q1z;
     double Q20, Q21c, Q21s, Q22c, Q22s;
+    double Qxx, Qxy, Qxz, Qyy, Qyz, Qzz;
 
     double U1x, U1y, U1z;                   // Induced dipole
     double FPx, FPy, FPz;                   // Electric field (due to permanent)
@@ -171,9 +240,7 @@ private:
 
 
 vector<APolarSite*> APS_FROM_MPS(string filename, int state, QMThread *thread = NULL);
-
-
-
+std::map<string,double> POLAR_TABLE();
 
 
 class BasicInteractor

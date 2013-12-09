@@ -35,8 +35,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/715944016/ctp_app.o \
-	${OBJECTDIR}/_ext/484457893/toolfactory.o
+	${OBJECTDIR}/_ext/715944016/ctp_tools.o
 
 
 # C Compiler Flags
@@ -61,17 +60,12 @@ LDLIBSOPTIONS=
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ctp_app: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ctp_app ${OBJECTFILES} ${LDLIBSOPTIONS} 
+	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ctp_app ${OBJECTFILES} ${LDLIBSOPTIONS}
 
-${OBJECTDIR}/_ext/715944016/ctp_app.o: ../../src/tools/ctp_app.cc 
+${OBJECTDIR}/_ext/715944016/ctp_tools.o: nbproject/Makefile-${CND_CONF}.mk ../../src/tools/ctp_tools.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
 	${RM} $@.d
-	$(COMPILE.c) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/ctp_app.o ../../src/tools/ctp_app.cc
-
-${OBJECTDIR}/_ext/484457893/toolfactory.o: ../../src/libctp/toolfactory.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
-	${RM} $@.d
-	$(COMPILE.c) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/toolfactory.o ../../src/libctp/toolfactory.cc
+	$(COMPILE.cc) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/ctp_tools.o ../../src/tools/ctp_tools.cc
 
 # Subprojects
 .build-subprojects:

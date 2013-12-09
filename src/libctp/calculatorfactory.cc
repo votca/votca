@@ -27,8 +27,6 @@
 #include "calculators/tdump.h"
 #include "calculators/rates.h"
 #include "calculators/izindo.h"
-#include "calculators/idft.h"
-#include "calculators/edft.h"
 #include "calculators/einternal.h"
 #include "calculators/eoutersphere.h"
 #include "calculators/emultipole.h"
@@ -36,19 +34,16 @@
 #include "calculators/eanalyze.h"
 #include "calculators/eimport.h"
 #include "calculators/pairdump.h"
-//#include "calculators/ecoulomb.h"
 #include "calculators/iimport.h"
 #include "calculators/ianalyze.h"
 #include "calculators/profile.h"
 #include "calculators/xmultipole2.h"
 #include "calculators/velocity.h"
-#include "calculators/molpol.h"
 #include "calculators/zmultipole.h"
 #include "calculators/qmultipole.h"
-#include "calculators/xqmultipole.h"
-#include "calculators/qmmm.h"
 #include "calculators/jobwriter.h"
-#include "calculators/ewald.h"
+#include "calculators/ewdbgpol.h"
+#include "calculators/cgpolar.h"
 
 
 
@@ -62,8 +57,6 @@ void Calculatorfactory::RegisterAll(void)
         Calculators().Register<StateServer>         ("stateserver");
         Calculators().Register<TDump>               ("tdump");
         Calculators().Register<IZindo>              ("izindo");
-        Calculators().Register<EDFT>                ("edft");
-        Calculators().Register<IDFT>                ("idft");
         Calculators().Register<Rates>               ("rates");
         Calculators().Register<EInternal>           ("einternal");
         Calculators().Register<EOutersphere>        ("eoutersphere");
@@ -76,14 +69,11 @@ void Calculatorfactory::RegisterAll(void)
         Calculators().Register<Profile>             ("profile");
         Calculators().Register<XMP>                 ("xmultipole");
         Calculators().Register<Velocity>            ("velocity");
-        Calculators().Register<MolPol>              ("molpol");
         Calculators().Register<ZMultipole>          ("zmultipole");
         Calculators().Register<QMultipole>          ("qmultipole");
-        Calculators().Register<XQMP>                ("xqmultipole");
-        Calculators().Register<QMMM>                ("qmmm");
         Calculators().Register<JobWriter>           ("jobwriter");
-        Calculators().Register< Ewald<Ewald3D2D> >  ("ewald2d");
-        Calculators().Register< Ewald<Ewald3D3D> >  ("ewald3d");
+        Calculators().Register<EwaldBgPolarizer>    ("ewdbgpol");
+        Calculators().Register<CgPolar>             ("cgpolar");
 }
 
 }}

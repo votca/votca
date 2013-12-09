@@ -17,7 +17,7 @@ public:
 
     string Identify() { return "molpol"; }
 
-    void                Initialize(Topology *top, Property *options);
+    void                Initialize(Property *options);
     bool                EvaluateFrame(Topology *top);
 
     matrix              CalculateMolPol(vector<APolarSite*> &poles, bool verb = true);
@@ -41,7 +41,7 @@ private:
 
 
 
-void MolPol::Initialize(Topology *top, Property *options) {
+void MolPol::Initialize(Property *options) {
 
     // ===================== //
     // LOAD OPTIONS FROM XML //

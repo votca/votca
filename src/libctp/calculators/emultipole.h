@@ -18,8 +18,8 @@
  */
 
 
-#ifndef EMULTIPOLE_H
-#define EMULTIPOLE_H
+#ifndef VOTCA_CTP_EMULTIPOLE_H
+#define VOTCA_CTP_EMULTIPOLE_H
 
 
 #include <votca/ctp/qmcalculator.h>
@@ -42,7 +42,7 @@ public:
     // Multipole Distribution //
     // ++++++++++++++++++++++ //
 
-    void     Initialize(Topology *top, Property *options);
+    void     Initialize(Property *options);
     void     EStatify(Topology *top, Property *options);
     void     DistributeMpoles(Topology *top);
 
@@ -425,12 +425,15 @@ private:
  * ... SOR parameters (convergence)
  * ... Control options (first, last seg., ...)
  */
-void EMultipole::Initialize(Topology *top, Property *opt) {
+void EMultipole::Initialize(Property *opt) {
+
+    // update options with the VOTCASHARE defaults   
+    UpdateWithDefaults( opt );
 
     cout << endl << "... ... Initialize with " << _nThreads << " threads.";
     _maverick = (_nThreads == 1) ? true : false;
 
-    cout << endl <<  "... ... Parametrizing Thole model";
+    cout << endl <<  "... ... Parameterizing Thole model";
 
     string key;
     string xmlfile;
@@ -653,12 +656,12 @@ void EMultipole::Initialize(Topology *top, Property *opt) {
         }
         else { _epsTol = 0.001; }
 
-    if (!top->isEStatified()) { this->EStatify(top, opt); }
+    this->EStatify(NULL, opt);
 
-    if (_calcESP && (!_ESPdoSystem))      { this->CalculateESPInput(top); }
-    if (this->_calcESF)                   { this->CalculateESF(top); }
-    if (this->_calcAlphaMol)              { this->CalculateAlphaInput(top); }
-    if (_calcGSP && _dma_input)           { this->CalculateGSPInput(top); }
+    if (_calcESP && (!_ESPdoSystem))      { this->CalculateESPInput(NULL); }
+    if (this->_calcESF)                   { this->CalculateESF(NULL); }
+    if (this->_calcAlphaMol)              { this->CalculateAlphaInput(NULL); }
+    if (_calcGSP && _dma_input)           { this->CalculateGSPInput(NULL); }
 }
 
 
@@ -766,7 +769,12 @@ void EMultipole::EStatify(Topology *top, Property *options) {
                 string mapKeyName = fragName + segName + molName;
 
                 string mpoles = (*fragit)->get("mpoles").as<string> ();
-
+                
+                if (tools::globals::verbose) {
+                    cout << endl << "Fragment " << fragName << flush;
+                    cout << endl << "Polar sites " << mpoles << flush;
+                }
+                
                 Tokenizer tokPoles(mpoles, " \t\n");
                 vector<string> mpoleInfo;
                 tokPoles.ToVector(mpoleInfo);
@@ -783,7 +791,12 @@ void EMultipole::EStatify(Topology *top, Property *options) {
 
                     int mpoleIdx = boost::lexical_cast<int>(poleInfo[0]);
                     string mpoleName = poleInfo[1];
-
+                    
+                    if (tools::globals::verbose) {
+                        cout << endl << "MP id=" << mpoleIdx << flush;
+                        cout << ", MP name=" << mpoleName << flush;
+                    }
+                    
                     mpoleIdcs.push_back(mpoleIdx);
                     mpoleNames.push_back(mpoleName);
                     
@@ -917,6 +930,7 @@ vector<PolarSite*> EMultipole::ParseGdmaFile(string filename, int state) {
     double Q0_total = 0.0;
     string units = "";
     bool useDefaultPs = true;
+    bool warn_anisotropy = false;
 
     vector<PolarSite*> poles;
     PolarSite *thisPole = NULL;
@@ -933,7 +947,7 @@ vector<PolarSite*> EMultipole::ParseGdmaFile(string filename, int state) {
 
             std::getline(intt, line);
             vector<string> split;
-            Tokenizer toker(line, " ");
+            Tokenizer toker(line, " \t");
             toker.ToVector(split);
 
             if ( !split.size()      ||
@@ -962,7 +976,7 @@ vector<PolarSite*> EMultipole::ParseGdmaFile(string filename, int state) {
             }
 
             // element,  position,  rank limit
-            else if ( split.size() == 6 ) {
+            else if ( split.size() == 6 && split[4] == "Rank" ) {
 
                 Qs.clear();
                 P1 = -1.;
@@ -1002,7 +1016,10 @@ vector<PolarSite*> EMultipole::ParseGdmaFile(string filename, int state) {
             }
 
             // 'P', dipole polarizability
-            else if ( split[0] == "P" && split.size() == 2 ) {
+            else if ( split[0] == "P" && (split.size() == 2 || split.size() == 7) ) {
+                if (split.size() == 7) {
+                    warn_anisotropy = true;
+                }
                 P1 = 1e-3 * boost::lexical_cast<double>(split[1]);
                 thisPole->setPs(P1, state);
                 useDefaultPs = false;
@@ -1064,9 +1081,14 @@ vector<PolarSite*> EMultipole::ParseGdmaFile(string filename, int state) {
             (*pol)->setPs(alpha, state);
         }
     }
+    
+    if (warn_anisotropy)
+    cout << endl
+         << "WARNING: '" << filename << "': EMultipole does not support "
+         << "tensorial polarizabilities, use zmultipole instead." 
+         << flush;
 
     return poles;
-    
 }
 
 
@@ -2679,7 +2701,7 @@ void EMultipole::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
 //    FILE *out;
 //    string shellFile = "OuterShell.pdb";
 //    out = fopen(shellFile.c_str(), "w");
-//    for (sit = _segsOutSphere.begin(); sit < _segsOutSphere.end(); ++sit) {
+//    for (sit = _segsPolSphere.begin(); sit < _segsPolSphere.end(); ++sit) {
 //        (*sit)->WritePDB(out, "Multipoles", "");
 //    }
 //    fclose(out);
@@ -4576,10 +4598,4 @@ inline double EMultipole::Interactor::EnergyInterESP(PolarSite &pol1,
 
 }}
 
-
-
-
-
-
-
-#endif
+#endif // VOTCA_CTP_EMULTIPOLE_H

@@ -42,7 +42,7 @@ public:
     // Multipole Distribution //
     // ++++++++++++++++++++++ //
 
-    void     Initialize(Topology *top, Property *options);
+    void     Initialize(Property *options);
     void     EStatify(Topology *top, Property *options);
     void     DistributeMpoles(Topology *top);
 
@@ -434,7 +434,7 @@ private:
  * ... SOR parameters (convergence)
  * ... Control options (first, last seg., ...)
  */
-void QMultipole::Initialize(Topology *top, Property *opt) {
+void QMultipole::Initialize(Property *opt) {
 
     cout << endl << "... ... Initialize with " << _nThreads << " threads.";
     _maverick = (_nThreads == 1) ? true : false;
@@ -632,11 +632,11 @@ void QMultipole::Initialize(Topology *top, Property *opt) {
         }
         else { _epsTol = 0.001; }
 
-    if (!top->isEStatified()) { this->EStatify(top, opt); }
+    //if (!top->isEStatified()) { this->EStatify(top, opt); }
 
-    if (_calcESP && (!_ESPdoSystem))      { this->CalculateESPInput(top); }
-    if (this->_calcESF)                   { this->CalculateESF(top); }
-    if (this->_calcAlphaMol)              { this->CalculateAlphaInput(top); }
+    if (_calcESP && (!_ESPdoSystem))      { this->CalculateESPInput(NULL); }
+    if (this->_calcESF)                   { this->CalculateESF(NULL); }
+    if (this->_calcAlphaMol)              { this->CalculateAlphaInput(NULL); }
 }
 
 

@@ -53,18 +53,18 @@ public:
     void             setHasState(bool yesno, int e_h);
     bool             hasState(int e_h);
 
-    const double     getOcc(int e_h);
+    const double    &getOcc(int e_h);
     void             setOcc(double occ, int e_h);
 
     void             setU_cC_nN(double dU, int state);
     void             setU_nC_nN(double dU, int state);
     void             setU_cN_cC(double dU, int state);
-    const double     getU_cC_nN(int state);
-    const double     getU_nC_nN(int state);
-    const double     getU_cN_cC(int state);
-    const double     getSiteEnergy(int state);
+    const double    &getU_cC_nN(int state);
+    const double    &getU_nC_nN(int state);
+    const double    &getU_cN_cC(int state);
+    double           getSiteEnergy(int state);
 
-    const double     getEMpoles(int e_h);
+    double           getEMpoles(int e_h);
     void             setEMpoles(int e_h, double energy);
     bool             hasChrgState(int e_h) { return _hasChrgState[e_h+1]; }
     void             setChrgStates(vector<bool> yesno) { _hasChrgState = yesno;}

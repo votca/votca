@@ -5,8 +5,8 @@
 
 	<axis help="Axis along which to calculate density and energy profiles">
 		<direction help="Axis direction" default="0 0 1">0 0 1</direction>
-		<min help="Minimal distance for manual binning" unit="nm">-10</min>
-		<max help="Maximal distance for manual binning" unit="nm">10</max>
+		<min help="Minimal projected position for manual binning" unit="nm">-10</min>
+		<max help="Maximal projected position for manual binning" unit="nm">10</max>
 		<bin help="Spatial resolution of the profile" unit="nm" default="0.1">0.5</bin>
 		<auto help="'0' for manual binning using min and max, '1' for automated" default="1">1</auto>
 	</axis>
@@ -18,8 +18,8 @@
 	</particles>
 
 	<output>
-		<density help="Density profile file" default="density.dat">density.dat</density>
-		<energy help="Energy profile file" default="energy.dat">energy.dat</energy>
+		<density help="Density profile file" default="density.dat">profile.density.out</density>
+		<energy help="Energy profile file" default="energy.dat">profile.energy.out</energy>
 	</output>
 
 </profile>

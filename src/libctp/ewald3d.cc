@@ -13,13 +13,11 @@ Ewald3D3D::~Ewald3D3D() { ; }
     
     
 Ewald3D3D::Ewald3D3D(Topology *top, PolarTop *ptop, Property *opt, Logger *log) 
-  : Ewald3DnD(top, ptop, opt, log) {
-    _shape = opt->get("options.ewald.coulombmethod.shape").as<string>();
-}
+  : Ewald3DnD(top, ptop, opt, log) {}
 
 
-double Ewald3D3D::ConvergeReciprocalSpaceSum() {
-    
+EWD::triple<> Ewald3D3D::ConvergeReciprocalSpaceSum() {
+
     vector<PolarSeg*>::iterator sit;
     vector<APolarSite*> ::iterator pit;    
     
@@ -174,11 +172,11 @@ double Ewald3D3D::ConvergeReciprocalSpaceSum() {
     } // Sum over k-shells
     
     EKK_fgC_bgP = re_E/_LxLyLz;
-    return EKK_fgC_bgP;
+    return EWD::triple<>(EKK_fgC_bgP,0,0);
 }
 
 
-double Ewald3D3D::CalculateShapeCorrection() {
+EWD::triple<> Ewald3D3D::CalculateShapeCorrection() {
     
     vector<PolarSeg*>::iterator sit1; 
     vector<APolarSite*> ::iterator pit1;
@@ -232,7 +230,7 @@ double Ewald3D3D::CalculateShapeCorrection() {
         EJ = 0.0;
     }
         
-    return EJ;
+    return EWD::triple<>(EJ,0,0);
 }
 
 

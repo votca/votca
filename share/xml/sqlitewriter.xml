@@ -1,7 +1,0 @@
-<sqlitewriter>
-
-	<description>Writes out data using sqlite3 format</description>
-
-	<sectionlabel>statefile</sectionlabel>
-
-</sqlitewriter>

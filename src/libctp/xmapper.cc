@@ -602,15 +602,14 @@ void XMpsMap::EquipWithPolSites(Topology *top) {
 }
 
 
-vector<APolarSite*> XMpsMap::MapPolSitesToSeg(const vector<APolarSite*> &pols_n, Segment *seg) {
+PolarSeg *XMpsMap::MapPolSitesToSeg(const vector<APolarSite*> &pols_n, 
+    Segment *seg, bool only_active_sites) {
 
     bool print_huge_map2md_warning = false;
-
-    vector<APolarSite*> return_pols;
-    return_pols.reserve(pols_n.size());
-
-    int segId                   = seg->getId();
-    bool map2md                 = _map2md[seg->getName()];
+    bool map2md = _map2md[seg->getName()];
+    
+    PolarSeg *return_pols = new PolarSeg(seg->getId());
+    return_pols->reserve(pols_n.size());
 
     vector<Fragment*> ::iterator fit;
     for (fit = seg->Fragments().begin();
@@ -620,12 +619,14 @@ vector<APolarSite*> XMpsMap::MapPolSitesToSeg(const vector<APolarSite*> &pols_n,
         Fragment *frag = *fit;
 
         // Retrieve polar-site data for this fragment
-        string idkey                = frag->getName() + seg->getName()
-                                    + seg->getMolecule()->getName();
+        string idkey = frag->getName()+seg->getName()+seg->getMolecule()->getName();
         vector<int> polesInFrag     = _alloc_frag_mpoleIdx.at(idkey);
         vector<string> namesInFrag  = _alloc_frag_mpoleName.at(idkey);
         vector<double> weightsInFrag= _alloc_frag_weights.at(idkey);
 
+        // Add polar fragment to polar segment
+        PolarFrag *pfrag = return_pols->AddFragment(frag->getName().substr(0,2));
+        
         if (map2md && polesInFrag.size() != frag->Atoms().size()) {
             cout << endl
                  << "ERROR: Segment " << seg->getName()
@@ -666,7 +667,6 @@ vector<APolarSite*> XMpsMap::MapPolSitesToSeg(const vector<APolarSite*> &pols_n,
                     }
                 }
             }
-
 
             int symmetry = trihedron_pol.size();
             assert (trihedron_pol.size() == trihedron_atm.size() );
@@ -799,40 +799,26 @@ vector<APolarSite*> XMpsMap::MapPolSitesToSeg(const vector<APolarSite*> &pols_n,
 
             rotateMP2MD = rotMD * rotMP.Transpose();
 
-
-            // ++++++++++++++++++ //
-            // Transform fragment //
-            // ++++++++++++++++++ //
-
-
+            // Transform fragment
             vec CoMP = vec(0.,0.,0.);
             double W = 0.0;
             for (int i = 0; i < polesInFrag.size(); ++i) {
-
                 double weight = weightsInFrag[i];
-
                 vec pos = pols_n[polesInFrag[i]-1]->getPos();
-
                 CoMP += weight*pos;
                 W += weight;
-
             }
             CoMP /= W;
-
             translateMP2MD = frag->getCoMD() - CoMP;
-
         }
 
         // Create polar sites
         for (int i = 0; i < polesInFrag.size(); i++) {
-
-            string name             = namesInFrag[i];
-            int poleId              = polesInFrag[i];
-
-            APolarSite *templ        = pols_n[poleId-1];
-            APolarSite *newSite      = new APolarSite(-1, name);
+            string name = namesInFrag[i];
+            int poleId = polesInFrag[i];
+            APolarSite *templ = pols_n[poleId-1];
+            APolarSite *newSite = new APolarSite(return_pols->size()+1, name);
             newSite->ImportFrom(templ);
-
             // Shift + rotate
             if (!map2md) {
                 newSite->Translate(translateMP2MD);
@@ -841,32 +827,31 @@ vector<APolarSite*> XMpsMap::MapPolSitesToSeg(const vector<APolarSite*> &pols_n,
             else {
                 vec mdpos = frag->Atoms()[i]->getPos();
                 newSite->setPos(mdpos);
-                if (newSite->getRank() > 0) {
-                    print_huge_map2md_warning = true;
-                }
+                if (newSite->getRank() > 0) print_huge_map2md_warning = true;
             }
-
-            newSite->Charge(0);
+            // Charge
+            newSite->Charge(0); 
             // Do not forget to deallocate if site is inactive
-            if (newSite->getIsActive(_estatics_only))           
-                return_pols.push_back(newSite);
-            else 
-                delete newSite;
-
+            if (!only_active_sites || newSite->getIsActive(_estatics_only)) {
+                pfrag->push_back(newSite);
+                return_pols->push_back(newSite);
+            }
+            else delete newSite;
         }
     } // End loop over fragments
 
     if (print_huge_map2md_warning) {
         cout << endl << endl
-             << "**************************************************************"
-             << "WARNING: MAP2MD = TRUE while using higher-rank multipoles can "
-             << "mess up the orientation of those multipoles if the coordinate "
-             << "frame used in the .mps file does not agree with the global MD "
-             << "frame. If you know what you are doing - proceed ... "
-             << "**************************************************************"
+             << "**************************************************************" << endl
+             << "WARNING: MAP2MD = TRUE while using higher-rank multipoles can " << endl
+             << "mess up the orientation of those multipoles if the coordinate " << endl
+             << "frame used in the .mps file does not agree with the global MD " << endl
+             << "frame. If you know what you are doing - proceed ... "           << endl
+             << "**************************************************************" << endl
              << endl;
     }
 
+    return_pols->CalcPos();
     return return_pols;
 }
 
@@ -878,6 +863,46 @@ vector<APolarSite*> XMpsMap::GetOrCreateRawSites(const string &mpsfile, QMThread
     }
     _lockThread.Unlock();
     return _mpsFile_pSites_job[mpsfile];
+}
+
+
+void XMpsMap::Gen_BGN(Topology *top, PolarTop *new_ptop, QMThread *thread) {
+    // Generates (periodic) background charge distribution for Ewald summations
+    // 'NEW' instances of polar sites are not registered in the topology.
+    // Modifies the polar topology (*PolarTop*) passed during function call
+    
+    // DECLARE TARGET CONTAINERS
+    vector<PolarSeg*> bgN;
+    vector<PolarSeg*>::iterator psit;
+    vector<Segment*> segs_bgN;
+    vector<Segment*>::iterator sit;
+    
+    // PARTITION SEGMENTS ONTO BACKGROUND + FOREGROUND
+    segs_bgN.reserve(top->Segments().size());
+    for (sit = top->Segments().begin();
+         sit < top->Segments().end();
+         ++sit) {        
+        Segment *seg = *sit;        
+        segs_bgN.push_back(seg);      
+    }
+    
+    // CREATE POLAR SITES FOR FOREGROUND + BACKGROUND
+    // Background
+    bool only_active_sites = true;
+    bgN.reserve(segs_bgN.size());
+    for (sit = segs_bgN.begin(); sit < segs_bgN.end(); ++sit) {
+        Segment *seg = *sit;
+        // Look up appropriate set of polar sites
+        string mps = _segId_mpsFile_n[seg->getId()];
+        vector<APolarSite*> psites_raw  = _mpsFile_pSites[mps];
+        PolarSeg *new_pseg = this->MapPolSitesToSeg(psites_raw, seg);
+        bgN.push_back(new_pseg);        
+    }
+    
+    // PROPAGATE SHELLS TO POLAR TOPOLOGY
+    new_ptop->setBGN(bgN);    
+    new_ptop->setSegsBGN(segs_bgN);
+    return;
 }
 
 
@@ -918,6 +943,7 @@ void XMpsMap::Gen_FGC_FGN_BGN(Topology *top, XJob *job, QMThread *thread) {
     
     // CREATE POLAR SITES FOR FOREGROUND + BACKGROUND
     // Foreground
+    bool only_active_sites = false;
     fgC.reserve(segs_fgC.size());
     fgN.reserve(segs_fgN.size());
     for (int i = 0; i < job->getSegments().size(); ++i) {        
@@ -926,26 +952,26 @@ void XMpsMap::Gen_FGC_FGN_BGN(Topology *top, XJob *job, QMThread *thread) {
         string mps_C = job->getSegMps()[i];
         vector<APolarSite*> psites_raw_C 
             = this->GetOrCreateRawSites(mps_C,thread);
-        vector<APolarSite*> psites_mapped_C
-            = this->MapPolSitesToSeg(psites_raw_C, seg);        
-        fgC.push_back(new PolarSeg(seg->getId(), psites_mapped_C));
+        PolarSeg *psegC 
+            = this->MapPolSitesToSeg(psites_raw_C, seg, only_active_sites);        
+        fgC.push_back(psegC);
         // Neutral => look up mps file
         string mps_N = _segId_mpsFile_n[seg->getId()];
         vector<APolarSite*> psites_raw_N  = _mpsFile_pSites[mps_N];
-        vector<APolarSite*> psites_mapped_N
-            = this->MapPolSitesToSeg(psites_raw_N, seg);
-        fgN.push_back(new PolarSeg(seg->getId(), psites_mapped_N));
+        PolarSeg *psegN
+            = this->MapPolSitesToSeg(psites_raw_N, seg, only_active_sites);
+        fgN.push_back(psegN);
     }
     // Background
+    only_active_sites = true;
     bgN.reserve(segs_bgN.size());
     for (sit = segs_bgN.begin(); sit < segs_bgN.end(); ++sit) {
         Segment *seg = *sit;
         // Look up appropriate set of polar sites
         string mps = _segId_mpsFile_n[seg->getId()];
         vector<APolarSite*> psites_raw  = _mpsFile_pSites[mps];
-        vector<APolarSite*> psites_mapped
-                = this->MapPolSitesToSeg(psites_raw, seg);
-        bgN.push_back(new PolarSeg(seg->getId(), psites_mapped));        
+        PolarSeg *psegN = this->MapPolSitesToSeg(psites_raw, seg);
+        bgN.push_back(psegN);        
     }
     
     // PROPAGATE SHELLS TO POLAR TOPOLOGY
@@ -960,6 +986,109 @@ void XMpsMap::Gen_FGC_FGN_BGN(Topology *top, XJob *job, QMThread *thread) {
     new_ptop->CenterAround(center);
     job->setPolarTop(new_ptop);
     
+}
+
+
+void XMpsMap::Gen_FGC_Load_FGN_BGN(Topology *top, XJob *job, string archfile, 
+    QMThread *thread) {
+    
+    // LOAD BACKGROUND POLARIZATION STATE
+    PolarTop bgp_ptop = PolarTop(top);
+    bgp_ptop.LoadFromDrive(archfile);
+    
+    // SANITY CHECKS I
+    if (bgp_ptop.QM0().size() || bgp_ptop.MM1().size() || bgp_ptop.MM2().size()
+        || bgp_ptop.FGC().size() || bgp_ptop.FGN().size()) {
+        cout << endl;
+        cout << "ERROR The polar topology from '" << archfile 
+            << "' contains more than just background. ";
+        cout << endl;
+        throw std::runtime_error
+            ("Sanity checks I in XMpsMap::Gen_FGC_Load_FGN_BGN failed.");
+    }
+    
+    // DECLARE TARGET CONTAINERS
+    PolarTop *new_ptop = new PolarTop(top);    
+    vector<PolarSeg*> fgC;
+    vector<PolarSeg*> fgN;
+    vector<PolarSeg*> bgN;
+    vector<PolarSeg*>::iterator psit;    
+    vector<Segment*> segs_fgC;
+    vector<Segment*> segs_fgN;
+    vector<Segment*> segs_bgN;
+    vector<Segment*>::iterator sit;
+    
+    // PARTITION SEGMENTS ONTO BACKGROUND + FOREGROUND
+    segs_fgC.reserve(job->getSegments().size());
+    segs_fgN.reserve(job->getSegments().size());
+    segs_bgN.reserve(top->Segments().size()-job->getSegments().size());
+    for (sit = top->Segments().begin();
+         sit < top->Segments().end();
+         ++sit) {        
+        Segment *seg = *sit;        
+        // Foreground
+        if (job->isInCenter(seg->getId())) {
+            segs_fgN.push_back(seg);
+            segs_fgC.push_back(seg);
+        }
+        // Background
+        else {
+            segs_bgN.push_back(seg);
+        }        
+    }
+    
+    // CREATE POLAR SITES FOR FGC
+    bool only_active_sites = false;
+    fgC.reserve(segs_fgC.size());
+    for (int i = 0; i < job->getSegments().size(); ++i) {        
+        Segment *seg = job->getSegments()[i];
+        // Charged => mps-file from job
+        string mps_C = job->getSegMps()[i];
+        vector<APolarSite*> psites_raw_C 
+            = this->GetOrCreateRawSites(mps_C,thread);
+        PolarSeg *psegC
+            = this->MapPolSitesToSeg(psites_raw_C, seg, only_active_sites);        
+        fgC.push_back(psegC);
+    }
+    
+    // DIVIDE POLAR SEGMENTS FROM RESURRECTED BACKGROUND ONTO FGN, BGN
+    for (psit = bgp_ptop.BGN().begin(); psit < bgp_ptop.BGN().end(); ++psit) {
+        // Move to (neutral) foreground?
+        if (job->isInCenter((*psit)->getId())) {
+            fgN.push_back(*psit);
+        }
+        // Move to (neutral) background?
+        else {
+            bgN.push_back(*psit);
+        }
+    }
+    
+    // SANITY CHECKS II
+    if ((fgN.size() != fgC.size())
+        || (fgN.size() + bgN.size() != top->Segments().size())
+        || (bgp_ptop.BGN().size() != top->Segments().size())) {
+        cout << endl;
+        cout << "ERROR Is the background binary compatible with this system? ";
+        cout << "(archive = '" << archfile << "')";
+        cout << endl;
+        throw std::runtime_error
+            ("Sanity checks II in XMpsMap::Gen_FGC_Load_FGN_BGN failed.");
+    }
+    
+    // PROPAGATE SHELLS TO POLAR TOPOLOGY
+    new_ptop->setFGC(fgC);
+    new_ptop->setFGN(fgN);
+    new_ptop->setBGN(bgN);    
+    new_ptop->setSegsFGC(segs_fgC);
+    new_ptop->setSegsFGN(segs_fgN);
+    new_ptop->setSegsBGN(segs_bgN);
+    // Remember to remove ownership from temporary bgp_ptop
+    bgp_ptop.RemoveAllOwnership();
+    // Center polar topology
+    vec center = job->Center();
+    new_ptop->CenterAround(center);
+    job->setPolarTop(new_ptop);
+    return;
 }
 
 
@@ -1008,36 +1137,39 @@ void XMpsMap::Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2, Q
     
     // CREATE POLAR SEGMENTS FROM SHELLS    
     // ... QM0 SHELL
+    bool only_active_sites = false;
     qm0.reserve(segs_qm0.size());
     for (int i = 0; i < job->getSegments().size(); ++i) {        
         Segment *seg = job->getSegments()[i];
         vector<APolarSite*> psites_raw 
                 = this->GetOrCreateRawSites(job->getSegMps()[i],thread);
-        vector<APolarSite*> psites_mapped
-                = this->MapPolSitesToSeg(psites_raw, seg);        
-        qm0.push_back(new PolarSeg(seg->getId(), psites_mapped));        
+        PolarSeg *psites_mapped
+                = this->MapPolSitesToSeg(psites_raw, seg, only_active_sites);        
+        qm0.push_back(psites_mapped);        
     }
     // ... MM1 SHELL
+    only_active_sites = true;
     mm1.reserve(segs_mm1.size());
     for (sit = segs_mm1.begin(); sit < segs_mm1.end(); ++sit) {
         Segment *seg = *sit;
         // Look up appropriate set of polar sites
         string mps = _segId_mpsFile_n[seg->getId()];
         vector<APolarSite*> psites_raw  = _mpsFile_pSites[mps];
-        vector<APolarSite*> psites_mapped
-                = this->MapPolSitesToSeg(psites_raw, seg);
-        mm1.push_back(new PolarSeg(seg->getId(), psites_mapped));        
+        PolarSeg *psites_mapped
+                = this->MapPolSitesToSeg(psites_raw, seg, only_active_sites);
+        mm1.push_back(psites_mapped);        
     }
     // ... MM2 SHELL
+    only_active_sites = true;
     mm2.reserve(segs_mm2.size());
     for (sit = segs_mm2.begin(); sit < segs_mm2.end(); ++sit) {
         Segment *seg = *sit;
         // Look up appropriate set of polar sites
         string mps = _segId_mpsFile_n[seg->getId()];
         vector<APolarSite*> psites_raw  = _mpsFile_pSites[mps];
-        vector<APolarSite*> psites_mapped
-                = this->MapPolSitesToSeg(psites_raw, seg);
-        mm2.push_back(new PolarSeg(seg->getId(), psites_mapped));
+        PolarSeg *psites_mapped
+                = this->MapPolSitesToSeg(psites_raw, seg, only_active_sites);
+        mm2.push_back(psites_mapped);
     }
     
     // PROPAGATE SHELLS TO POLAR TOPOLOGY

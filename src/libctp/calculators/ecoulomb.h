@@ -32,7 +32,7 @@ public:
 
     string  Identify() { return "ecoulomb"; }
 
-    void    Initialize(Topology *top, Property *options);
+    void    Initialize(Property *options);
     bool    EvaluateFrame(Topology *top);
     void    EvaluateSegment(Topology *top, Segment *seg, int state);
     void    Output2File(Topology *top);
@@ -49,7 +49,7 @@ private:
 };
 
 
-void ECoulomb::Initialize(Topology *top, Property *options) {
+void ECoulomb::Initialize(Property *options) {
 
     // _options already has default values, update them with the supplied options
     _options.CopyValues("", *options );

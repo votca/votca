@@ -261,11 +261,10 @@ bool NWChem::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gues
     
     }   
 
-
-   
-    
     _com_file << endl;
     _com_file.close();
+    
+    return true;
     
 }
 
@@ -281,6 +280,8 @@ bool NWChem::WriteShellScript() {
     _shell_file << "setenv GAUSS_SCRDIR " << _scratch_dir << endl;
     _shell_file << _executable << " " << _input_file_name << endl;    
     _shell_file.close();
+    
+    return true;   
 }
 
 /**
@@ -325,9 +326,7 @@ bool NWChem::Run()
         return false;
     }
     
-
-
-
+    return true;
 }
 
 /**
@@ -597,7 +596,7 @@ bool NWChem::CheckLogFile() {
     
     
     _input_file.close();
-    
+    return true;    
 }
 
 /**
@@ -693,7 +692,10 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
                 // second line gives the j index in the matrix
                 getline(_input_file, _line); 
                 boost::tokenizer<> tok( _line );
+                
+                /// COMPILATION IS BROKEN DUE TO A BUG IN BOOST 1.53
                 std::transform( tok.begin(), tok.end(), std::back_inserter( _j_indeces ), &boost::lexical_cast<int,std::string> );
+
                 // third line is garbage again
                 getline(_input_file, _line);
 
@@ -868,6 +870,17 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
     LOG(logDEBUG,*_pLog) << "Done parsing" << flush;
     return true;
 }
+
+
+
+/**
+ * Converts the NWChem data stored in the Orbitals object to GW input format
+ */
+bool NWChem::ConvertToGW( Orbitals* _orbitals ) {
+    cerr << "Tried to convert to GW from NWChem package. ";
+    throw std::runtime_error( "Conversion not implemented yet!");
+}
+
 
 string NWChem::FortranFormat( const double &number ) {
     stringstream _ssnumber;

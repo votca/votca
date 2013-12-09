@@ -45,7 +45,7 @@ public:
 
     string Identify() { return "neighborlist"; }
     
-    void Initialize(Topology *top, Property *options);
+    void Initialize(Property *options);
     bool EvaluateFrame(Topology *top);
     void GenerateFromFile(Topology *top, string filename);
 
@@ -63,10 +63,12 @@ private:
 };
     
 
-void Neighborlist::Initialize(Topology* top, Property *options) {
+void Neighborlist::Initialize(Property *options) {
 
-    std::string key = "options.neighborlist";
-
+    // update options with the VOTCASHARE defaults   
+    UpdateWithDefaults( options );
+    std::string key = "options." + Identify();
+    
     list< Property* > segs = options->Select(key+".segments");
     list< Property* > ::iterator segsIt;
 

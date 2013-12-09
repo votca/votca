@@ -42,7 +42,7 @@ public:
     // Multipole Distribution //
     // ++++++++++++++++++++++ //
 
-    void                Initialize(Topology *top, Property *options);
+    void                Initialize(Property *options);
     void                DistributeMpoles(Topology *top);
     vector<PolarSite*>  ParseGdmaFile(string filename, int state);
     vector< vec >       ParseCubeFileHeader(string filename);
@@ -413,7 +413,7 @@ private:
  * ... SOR parameters (convergence)
  * ... Control options (first, last seg., ...)
  */
-void EMultipole_StdAl::Initialize(Topology *top, Property *opt) {
+void EMultipole_StdAl::Initialize(Property *opt) {
 
     cout << endl << "... ... Initialize with " << _nThreads << " threads.";
     _maverick = (_nThreads == 1) ? true : false;

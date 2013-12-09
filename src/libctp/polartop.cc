@@ -1,34 +1,56 @@
 #include <votca/ctp/polartop.h>
 #include <fstream>
-
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
 
 namespace votca { namespace ctp {
 
-    
-PolarTop::PolarTop(Topology *top) : _top(top) {
-    ;
+
+PolarTop::PolarTop() : _top(NULL), _center(vec(0,0,0)) {
+    _clean_qm0 = _clean_mm1 = _clean_mm2 = true;
+    _clean_bgN = _clean_fgN = _clean_fgC = true;
+};
+
+
+PolarTop::PolarTop(Topology *top) : _top(top), _center(vec(0,0,0)) {
+    _clean_qm0 = _clean_mm1 = _clean_mm2 = true;
+    _clean_bgN = _clean_fgN = _clean_fgC = true;
 };
     
     
 PolarTop::~PolarTop() {
     vector<PolarSeg*> ::iterator psit;
-    for (psit = _qm0.begin(); psit < _qm0.end(); ++psit) {          
-      delete *psit;          
+    if (_clean_qm0) {
+        for (psit = _qm0.begin(); psit < _qm0.end(); ++psit) {          
+          delete *psit;          
+        }
     }
-    for (psit = _mm1.begin(); psit < _mm1.end(); ++psit) {
-      delete *psit;
+    if (_clean_mm1) {
+        for (psit = _mm1.begin(); psit < _mm1.end(); ++psit) {
+          delete *psit;
+        }
     }
-    for (psit = _mm2.begin(); psit < _mm2.end(); ++psit) {
-      delete *psit;
+    if (_clean_mm2) {
+        for (psit = _mm2.begin(); psit < _mm2.end(); ++psit) {
+          delete *psit;
+        }
     }
-    for (psit = _bgN.begin(); psit < _bgN.end(); ++psit) {          
-      delete *psit;          
+    if (_clean_bgN) {
+        for (psit = _bgN.begin(); psit < _bgN.end(); ++psit) {          
+          delete *psit;          
+        }
     }
-    for (psit = _fgN.begin(); psit < _fgN.end(); ++psit) {
-      delete *psit;
+    if (_clean_fgN) {
+        for (psit = _fgN.begin(); psit < _fgN.end(); ++psit) {
+          delete *psit;
+        }
     }
-    for (psit = _fgC.begin(); psit < _fgC.end(); ++psit) {
-      delete *psit;
+    if (_clean_fgC) {
+        for (psit = _fgC.begin(); psit < _fgC.end(); ++psit) {
+          delete *psit;
+        }
     }
 
     _qm0.clear(); _mm1.clear(); _mm2.clear();
@@ -132,6 +154,8 @@ void PolarTop::CenterAround(const vec &center) {
                          -(pseg->getPos() - center);        
         pseg->Translate(shift);
     }
+    
+    _center = center;
 }
 
 
@@ -242,5 +266,31 @@ void PolarTop::PrintInduState(FILE *out, string format,
     }
     
 }
+
+
+void PolarTop::RemoveAllOwnership() {
+    _clean_qm0 = _clean_mm1 = _clean_mm2 = false;
+    _clean_bgN = _clean_fgN = _clean_fgC = false;
+    return;
+}
+
+
+void PolarTop::SaveToDrive(string archfile) {
+    // Carve into archive
+    std::ofstream ofs(archfile.c_str());
+    boost::archive::binary_oarchive arch(ofs);
+    arch << (*this);
+    return;    
+}
+
+
+void PolarTop::LoadFromDrive(string archfile) {
+    // Resurrect from archive
+    std::ifstream ifs(archfile.c_str(), std::ios::binary);
+    boost::archive::binary_iarchive arch(ifs);
+    arch >> (*this);  
+    return;
+}
+
 
 }}

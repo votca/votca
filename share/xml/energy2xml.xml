@@ -1,0 +1,3 @@
+<options>
+	<energy2xml help="Write out energies from SQL file" label="calc:extract.energy"></energy2xml>
+</options>

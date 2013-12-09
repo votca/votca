@@ -62,7 +62,7 @@ public:
     const string &getBasisName() { return _basisSetName; }
     const string &getOrbitalsFile() { return _orbitalsFile; }
     const string &getQMCoordsFile() { return _qmCoordsFile; }
-    const bool    canRigidify() { return _canRigidify; }
+    const bool   &canRigidify() { return _canRigidify; }
 
 
 

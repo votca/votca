@@ -61,7 +61,9 @@ public:
    bool ParseLogFile( Orbitals* _orbitals );
 
    bool ParseOrbitalsFile( Orbitals* _orbitals );
-      
+
+   bool ConvertToGW( Orbitals* _orbitals );
+   
    string getScratchDir( ) { return _scratch_dir; }
    
 private:  

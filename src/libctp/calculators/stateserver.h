@@ -36,9 +36,9 @@ public:
     StateServer() { };
    ~StateServer() { };
 
-    string Identify() { return "StateServer"; }
+    string Identify() { return "stateserver"; }
 
-    void Initialize(Topology *top, Property *options);
+    void Initialize(Property *options);
     bool EvaluateFrame(Topology *top);
 
     void DownloadTopology(FILE *out, Topology *top);
@@ -67,8 +67,11 @@ private:
 };
 
 
-void StateServer::Initialize(Topology *top, Property *opt) {
+void StateServer::Initialize(Property *opt) {
     
+    // update options with the VOTCASHARE defaults   
+    UpdateWithDefaults( opt );
+
     string tag = "options.stateserver";
 
     // Tabular output
@@ -187,7 +190,7 @@ bool StateServer::EvaluateFrame(Topology *top) {
 
         else if (*key == "mps") {
 
-                cout << "MPS input, ";
+                cout << "MPS background, ";
 
                 FILE *out_emp;
                 string emp_file = "mps.tab";
@@ -243,7 +246,8 @@ bool StateServer::EvaluateFrame(Topology *top) {
         fclose(out);
 
     }
-
+    
+    return true;
 }
 
 void StateServer::DownloadTopology(FILE *out, Topology *top) {

@@ -16,7 +16,7 @@ public:
 
     string  Identify() { return "PairDump"; }
 
-    void    Initialize(Topology *top, Property *options);
+    void    Initialize(Property *options);
     bool    EvaluateFrame(Topology *top);
 
 private:
@@ -31,9 +31,11 @@ private:
 };
 
 
-void PairDump::Initialize(Topology *top, Property *options) {
+void PairDump::Initialize(Property *options) {
 
-    string key = "options.pairdump";   
+    // update options with the VOTCASHARE defaults   
+    UpdateWithDefaults( options );
+    string key = "options." + Identify();
     
     int useQMPos = options->get(key+".useQMcoords").as< int >();
     _useQMPos = (useQMPos == 1) ? true : false;
@@ -83,6 +85,8 @@ bool PairDump::EvaluateFrame(Topology *top) {
         (*pit)->WriteXYZ(out, _useQMPos);
         fclose(out);
     }
+    
+    return true;
 }
 
 

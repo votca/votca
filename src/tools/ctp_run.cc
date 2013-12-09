@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string>
 #include <iostream>
-#include <votca/ctp/qmapplication.h>
+#include <votca/ctp/sqlapplication.h>
 #include <votca/ctp/calculatorfactory.h>
 
 
@@ -9,7 +9,7 @@ using namespace std;
 using namespace votca::ctp;
 
 
-class CtpRun : public QMApplication
+class CtpRun : public SqlApplication
 {
 public:
 
@@ -31,7 +31,7 @@ namespace propt = boost::program_options;
 
 void CtpRun::Initialize() {
 
-    QMApplication::Initialize();
+    SqlApplication::Initialize();
 
     AddProgramOptions("Calculators") ("execute,e", propt::value<string>(),
                       "List of calculators separated by ',' or ' '");
@@ -77,14 +77,17 @@ bool CtpRun::EvaluateOptions() {
             return true;     
     }
 
-    QMApplication::EvaluateOptions();
+    SqlApplication::EvaluateOptions();
+    CheckRequired("options", "Please provide an xml file with calculator options");
     CheckRequired("execute", "Nothing to do here: Abort.");
 
     Tokenizer calcs(OptionsMap()["execute"].as<string>(), " ,\n\t");
     Tokenizer::iterator it;
     for (it = calcs.begin(); it != calcs.end(); it++) {
-        QMApplication::AddCalculator(Calculators().Create((*it).c_str()));
+        SqlApplication::AddCalculator(Calculators().Create((*it).c_str()));
     }
+    
+    load_property_from_xml(_options, _op_vm["options"].as<string>());
     return true;
 }
 

@@ -61,6 +61,17 @@ class Shell
 public:
 
     string getType() { return _type; }
+
+    int getLmax(  ) {
+        int _lmax;
+        if ( _type == "S" ) _lmax = 0;
+        if ( _type == "SP" ) _lmax = 1;
+        if ( _type == "SPD" ) _lmax = 2;
+        if ( _type == "P" ) _lmax = 1;
+        if ( _type == "PD" ) _lmax = 2;
+        if ( _type == "D" ) _lmax = 2;
+        return _lmax;
+    }; 
     
     double getScale() { return _scale; }
     
@@ -240,7 +251,7 @@ inline void BasisSet::LoadBasisSet ( string name )
         }
        
     }
-
+    
 }
 
 

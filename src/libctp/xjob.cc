@@ -12,7 +12,7 @@ XJob::XJob(int id, string tag, vector<Segment*> &qmSegs,
      vector<string> &qmSegMps, Topology *top) :
 
      _id(id), _tag(tag), _top(top), _start_from_cpt(false),
-     _qmSegs(qmSegs), _qmSegMps(qmSegMps), _ptop(NULL) {
+     _qmSegs(qmSegs), _qmSegMps(qmSegMps), _ptop(NULL), _clean_ptop(true) {
 
      // Sanity checks
      assert(qmSegs.size() == qmSegMps.size());
@@ -22,9 +22,21 @@ XJob::XJob(int id, string tag, vector<Segment*> &qmSegs,
 }
 
 
+XJob::XJob(PolarTop *ptop, bool start_from_cpt)
+        : _id(-1), _tag("__notag__"), _top(NULL),
+          _ptop(ptop), _start_from_cpt(start_from_cpt), _clean_ptop(false) {
+    
+    _center = _ptop->getCenter();
+    _isSegInCenter.clear();    
+    vector<PolarSeg*>::iterator sit;
+    for (sit = _ptop->QM0().begin(); sit < _ptop->QM0().end(); ++sit) {
+        _isSegInCenter[(*sit)->getId()] = true;
+    }
+}
+
 
 XJob::~XJob() {
-    delete _ptop;
+    if (_clean_ptop) delete _ptop;
 }
 
 

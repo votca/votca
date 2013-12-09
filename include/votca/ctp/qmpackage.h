@@ -40,6 +40,8 @@ public:
    virtual bool ParseOrbitalsFile( Orbitals* _orbitals ) = 0;
    
    virtual void CleanUp() = 0;
+   
+   virtual bool ConvertToGW( Orbitals* _orbitals ) = 0;
 
    void setRunDir( string run_dir ) { _run_dir = run_dir; }
    
@@ -52,12 +54,16 @@ public:
    void setLog( Logger* pLog ) { _pLog = pLog; }
       
    bool GuessRequested( ) { return _write_guess; }
+   
+   bool ECPRequested( ) { return _write_pseudopotentials; }
 
    void setCharge(const int charge) { _charge = charge; }
    
    void setSpin(const int spin) { _spin = spin; }
    
    void setThreads(const int threads) { _threads = threads; }
+   
+   void doGetCharges(bool do_get_charges) { _get_charges = do_get_charges; }
    
 protected:
 
