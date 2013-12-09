@@ -201,6 +201,9 @@ void KMCMultiple::Initialize(const char *filename, Property *options, const char
             
         }
 
+        if (options->exists("options.kmcmultiple.fieldX")) {
+	    _fieldX = options->get("options.kmcmultiple.fieldX").as<double>();
+	}
         else {
             _fieldX = 0;
         }
