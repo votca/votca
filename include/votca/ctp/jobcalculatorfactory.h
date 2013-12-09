@@ -55,7 +55,7 @@ inline JobCalculatorfactory &JobCalculators()
 
 inline JobCalculator* JobCalculatorfactory::Create(const string &key)
 {
-    typename assoc_map::const_iterator it(getObjects().find(key));
+    assoc_map::const_iterator it(getObjects().find(key));
     if (it != getObjects().end()) {
         JobCalculator* calc = (it->second)();
         calc->LoadDefaults();

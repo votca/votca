@@ -43,6 +43,7 @@ public:
     void EvaluateFields();
     void EvaluateInduction();
     void EvaluateEnergy();
+    void EvaluatePoisson();
     // OUTPUT & ERROR COMMUNICATION
     bool Converged() { return _converged_R && _converged_K && _polar_converged; }
     Property GenerateOutputString();
@@ -64,6 +65,8 @@ public:
     virtual void Field_ConvergeReciprocalSpaceSum() { ; }
     virtual void Field_CalculateForegroundCorrection() { ; }
     virtual void Field_CalculateShapeCorrection() { ; }
+    // GENERALIZED POISSON METHODS
+    
 
     // FOREGROUND TRACKER
     class ForegroundTable
@@ -158,6 +161,7 @@ protected:
     bool _task_calculate_fields;
     bool _task_polarize_fg;
     bool _task_evaluate_energy;
+    bool _task_solve_poisson;
 
     // CONVERGENCE
     // Part I - Ewald

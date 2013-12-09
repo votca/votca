@@ -55,7 +55,7 @@ inline Calculatorfactory &Calculators()
 
 inline QMCalculator* Calculatorfactory::Create(const string &key)
 {
-    typename assoc_map::const_iterator it(getObjects().find(key));
+    assoc_map::const_iterator it(getObjects().find(key));
     if (it != getObjects().end()) {
         QMCalculator* calc = (it->second)();
         calc->LoadDefaults();

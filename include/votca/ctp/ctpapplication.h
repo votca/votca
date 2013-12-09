@@ -42,11 +42,7 @@ public:
 protected:
 
     votca::tools::Property _options;
-
-    enum HelpOutputType { _helpShort, _helpLong };
     
-    void PrintDescription(std::ostream &out, string name,  HelpOutputType _help_output_type);
-
 };
 
 }}

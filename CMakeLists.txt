@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 2.6)
-
 project(votca-ctp)
 
 set(PROJECT_VERSION "1.3-dev")
@@ -31,7 +30,7 @@ endif(NOT DEFINED MAN)
 if (NOT DEFINED DATA)
   set(DATA "share/votca")
 endif(NOT DEFINED DATA)
-option(WITH_DIPRO "Build mergeorbitals and DIPRO, which use fortran" ON)
+#option(WITH_DIPRO "Build mergeorbitals and DIPRO, which use fortran" ON)
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
 ########################################################################
@@ -43,7 +42,7 @@ set (BOOST_LIBRARIES ${Boost_THREAD_LIBRARY} ${Boost_PROGRAM_OPTIONS_LIBRARY} ${
 set (BOOST_CFLAGS_PKG "-I${Boost_INCLUDE_DIRS}")
 string(REGEX REPLACE "^(.*)/lib([^/]*)\\.[^.]*$" "-L\\1 -l\\2" BOOST_LIBS_PKG ${BOOST_LIBRARIES})
 
-option(BUILD_MANPAGES "Build manpages (might lead to problem on system without rpath" ON)
+option(BUILD_MANPAGES "Build manpages (might lead to problem on system without rpath" OFF)
 #define this target here, so that individual man pages can append to it.
 add_custom_target(manpages ALL)
 
@@ -66,6 +65,7 @@ if (WITH_LINALG)
   find_package(GSL)
   find_package(MKL)
 
+
   if (EIGEN_FOUND) 
     message("-- EIGEN found (not used at the moment)")
     set(EIGEN TRUE) #used in votca_ctp_config.h
@@ -75,22 +75,16 @@ if (WITH_LINALG)
     set(EIGEN FALSE) #used in votca_ctp_config.h
   endif()
 
-  if (GSL_FOUND) 
+  set(MKL FALSE)
+  set(GSL FALSE)
+  if (MKL_FOUND AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+    message("-- MKL found, overloading uBLAS prod()")
+    set(MKL TRUE) #used in votca_ctp_config.h
+  elseif(GSL_FOUND)
     message("-- GSL found, overloading uBLAS prod()")
     include_directories(${GSL_INCLUDE_DIRS})
     set(GSL_PKG "gsl")
     set(GSL TRUE) #used in votca_ctp_config.h
-  else()
-    message(WARNING "-- GSL not found, slow uBLAS::prod()")
-    set(GSL FALSE) #used in votca_ctp_config.h
-  endif()
-
-  if (MKL_FOUND) 
-    message("-- MKL found, overloading uBLAS prod()")
-    set(MKL TRUE) #used in votca_ctp_config.h
-  else()
-    message("-- MKL not found (hopefully GSL is here)")
-    set(MKL FALSE) #used in votca_ctp_config.h
   endif()
 
 endif(WITH_LINALG)
