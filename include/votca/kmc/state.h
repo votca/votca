@@ -56,9 +56,9 @@ class State {
     // Storage and readout of the node_id's of the nodes on which the carriers are to/from a SQL database
     void Save(string SQL_state_filename);
     void Load(string SQL_state_filename, TGraph* graph);
-    
+
+    bool In_sim_box(Carrier* carrier) {return carrier->inbox();}    
 private:
-    bool In_sim_box(Carrier* carrier) {return carrier->inbox();}
     vector<Carrier*> _carriers;
 };
 

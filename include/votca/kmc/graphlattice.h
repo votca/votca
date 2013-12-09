@@ -25,7 +25,7 @@
 #include <votca/tools/vec.h>
 #include <votca/tools/random2.h>
 #include <votca/kmc/dnode.h>
-#include <votca/kmc/globaleventinfo.h>
+#include <votca/kmc/eventinfo.h>
 
 namespace votca { namespace kmc {
   
@@ -45,11 +45,11 @@ public:
         for (it = nodes.begin(); it != nodes.end(); it++ ) delete *it;
     };   
     
-    void Load_graph(string SQL_graph_filename, double left_electrode_distance, double right_electrode_distance, Globaleventinfo* globevent);    
+    void Load_graph(string SQL_graph_filename, double left_electrode_distance, double right_electrode_distance, Eventinfo* globevent);    
     void Generate_cubic_graph(  int nx, int ny, int nz, double lattice_constant,
                                 double disorder_strength,votca::tools::Random2 *RandomVariable, 
                                 double disorder_ratio, CorrelationType correlation_type, double left_electrode_distance, double right_electro_distance,
-                                Globaleventinfo* globevent);
+                                Eventinfo* globevent);
     
     vector<DNode*> nodes;
     DNode* left_electrode;
@@ -87,8 +87,8 @@ private:
     myvec Determine_sim_box_size(vector<DNode*> nodes);
     int Determine_max_pair_degree(vector<DNode*> nodes);
 
-    void Set_all_self_image_potential(vector<DNode*> nodes, myvec sim_box_size, Globaleventinfo* globevent);   
-    double Calculate_self_image_potential(double nodeposx, double length, Globaleventinfo* globevent);
+    void Set_all_self_image_potential(vector<DNode*> nodes, myvec sim_box_size, Eventinfo* globevent);   
+    double Calculate_self_image_potential(double nodeposx, double length, Eventinfo* globevent);
 
     myvec Periodicdistance(myvec init, myvec final, myvec boxsize);    
     
@@ -125,7 +125,7 @@ void GraphLattice::Add_to_node_mesh(DNode* node, double hopdist){
     node_mesh[iposx][iposy][iposz].push_back(node);       
 }
 
-void GraphLattice::Load_graph(string filename, double left_electrode_distance, double right_electrode_distance, Globaleventinfo* globevent){
+void GraphLattice::Load_graph(string filename, double left_electrode_distance, double right_electrode_distance, Eventinfo* globevent){
     
     Load_graph_nodes(filename);
     Load_graph_static_energies(filename);
@@ -147,7 +147,7 @@ void GraphLattice::Load_graph(string filename, double left_electrode_distance, d
 void GraphLattice::Generate_cubic_graph(int nx, int ny, int nz, double lattice_constant,
                                 double disorder_strength, votca::tools::Random2 *RandomVariable, 
                                 double disorder_ratio, CorrelationType correlation_type, double left_electrode_distance, double right_electrode_distance,
-                                Globaleventinfo* globevent) {
+                                Eventinfo* globevent) {
 
     Create_cubic_graph_nodes(nx, ny, nz, lattice_constant, myvec(0.0,0.0,0.0), myvec (lattice_constant, lattice_constant, lattice_constant));
     sim_box_size = Determine_sim_box_size(nodes);
@@ -430,7 +430,7 @@ void GraphLattice::Setup_device_graph(vector<DNode*> nodes, DNode* left_electrod
 
 }
 
-void GraphLattice::Set_all_self_image_potential(vector<DNode*> nodes, myvec sim_box_size, Globaleventinfo* globevent) {
+void GraphLattice::Set_all_self_image_potential(vector<DNode*> nodes, myvec sim_box_size, Eventinfo* globevent) {
     
     for(int inode=0; inode<nodes.size();inode++){
         myvec nodepos = nodes[inode]->node_position;
@@ -441,7 +441,7 @@ void GraphLattice::Set_all_self_image_potential(vector<DNode*> nodes, myvec sim_
     right_electrode->self_image_potential = 0.0;
 }
 
-double GraphLattice::Calculate_self_image_potential(double nodeposx, double length, Globaleventinfo* globevent){
+double GraphLattice::Calculate_self_image_potential(double nodeposx, double length, Eventinfo* globevent){
     
     double selfimagepot = 0.0;
 

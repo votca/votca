@@ -20,7 +20,6 @@
 
 
 #include <votca/kmc/events.h>
-#include <votca/kmc/globaleventinfo.h>
 
 namespace votca { namespace kmc {
   

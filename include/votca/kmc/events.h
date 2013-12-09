@@ -24,7 +24,6 @@
 #include <votca/kmc/event.h>
 #include <votca/kmc/bsumtree.h>
 #include <votca/kmc/longrange.h>
-#include <votca/kmc/globaleventinfo.h>
 
 namespace votca { namespace kmc {
   

@@ -21,7 +21,6 @@
 #include <iostream>
 //#include <votca/kmc/graphsql.h>
 //#include <votca/kmc/graphcubic.h>
-//#include <votca/kmc/globaleventinfo.h>
 //#include <votca/kmc/events.h>
 //#include <votca/kmc/vssmgroup.h>
 #include <votca/kmc/graphdevice.h>
@@ -114,7 +113,16 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     state = new StateDevice<GraphDevice<GraphSQL, NodeSQL, LinkSQL> >();
     state->InitState(graph);
     std::cout << graph->GetNode(10)->occ() << endl;
-    
+    int carrier_ID = state->Buy(10);
+    Carrier* newcarrier = state->GetCarrier(carrier_ID);
+    Node* carrier_node = graph->GetNode(20);
+    newcarrier->SetCarrierNode(carrier_node);
+    carrier_node->AddCarrier(carrier_ID);
+    std::cout << graph->GetNode(20)->occ() << endl;
+    std::cout << carrier_node->position() << " " << carrier_ID << " " << newcarrier->node()->position() << endl;
+    std::cout << newcarrier->type() << " why" << endl;
+    newcarrier->SetInBox(true);
+    std::cout << state->In_sim_box(newcarrier) << " " << newcarrier->inbox() << endl;
     
     delete state;
     delete graph;    
