@@ -64,11 +64,12 @@ public:
     
     /// right electrode node
     TNode* &right() { return _right_electrode; }
+
+    /// renumber the Id's of all links
+    void RenumberId();      
     
 private:
 
-    void RenumberId();        
-    
     int _max_pair_degree;  
     double _hop_distance;
     votca::tools::vec _sim_box_size;
@@ -116,13 +117,13 @@ void GraphDevice<TGraph, TNode, TLink>::Setup_device_graph(double left_distance,
     _sim_box_size =  votca::tools::vec(new_sim_box_sizeX, old_sim_box_size.y(), old_sim_box_size.z());
     
     //set node types for existing nodes as Normal
-    for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) (*it)->SetType((int) Normal);
+    for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) (*it)->SetType((int) NormalNode);
     
     //introduce the electrode nodes (might make a special electrode node header file for this)
     _left_electrode = new TNode(-1, tools::vec(0.0,0.0,0.0));
     _right_electrode = new TNode(-2, tools::vec(_sim_box_size.x(),0.0,0.0));
-    _left_electrode->SetType((int) LeftElectrode);
-    _right_electrode->SetType((int) RightElectrode);
+    _left_electrode->SetType((int) LeftElectrodeNode);
+    _right_electrode->SetType((int) RightElectrodeNode);
 
     //determine the nodes which are injectable from the left electrode and the nodes which are injectable from the right electrode
 
@@ -158,7 +159,13 @@ void GraphDevice<TGraph, TNode, TLink>::Setup_device_graph(double left_distance,
     
     // determine maximum degree of graph
     _max_pair_degree = this->Determine_Max_Pair_Degree();
+    
+    // clear the occupation of the graph
+    this->Clear();
 
+    //renumber link id's
+    this->RenumberId();    
+    
 }
 
 
@@ -168,8 +175,9 @@ void GraphDevice<TGraph, TNode, TLink>::LinkSort(){
     typename std::vector<TLink*>::iterator it;
     for (it = this->_links.begin(); it != this->_links.end(); it++ ) {
         TNode* node1 = dynamic_cast<TNode*>((*it)->node1());
-        if(node1->type() == Normal) node1->AddLink((*it));
+        if(node1->type() == NormalNode) node1->AddLink((*it));
     }
+        
 }
 
 template<class TGraph, class TNode, class TLink>
@@ -178,7 +186,7 @@ int GraphDevice<TGraph, TNode, TLink>::Determine_Max_Pair_Degree(){
     int max_pair_degree = 0;
     typename std::vector<TNode*>::iterator it;    
     for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) {
-        if((*it)->type() == Normal) {        
+        if((*it)->type() == NormalNode) {        
             if((*it)->links().size()>max_pair_degree) max_pair_degree = (*it)->links().size();
         }
     }
@@ -278,24 +286,25 @@ void GraphDevice<TGraph, TNode, TLink>::Break_periodicity(bool break_x, bool bre
         
     }
     
-    //renumber link id's (need to check whether this is really necessary)
-    this->RenumberId();
 }
 
 template<class TGraph, class TNode, class TLink>
 void GraphDevice<TGraph,TNode, TLink>::RenumberId() {
-    int resetID = 0;
-    typename std::vector<TLink*>::iterator it;
-    for (it = this->_links.begin(); it != this->_links.end(); it++) {
-        (*it)->SetID(resetID);
-        resetID++;
+
+    typename std::vector<TNode*>::iterator it;
+    for (it = this->_nodes.begin(); it != this->_nodes.end(); it++) {
+        
+        vector<Link*> links = (*it)->links();
+        int renum_ID = 0;
+        
+        typename std::vector<Link*>::iterator ilink;              
+        for (ilink = links.begin() ; ilink != links.end(); ilink++) {
+            (*ilink)->SetID(renum_ID); renum_ID++;
+        }        
     }
-    // are pair IDs necessary?
 }
     
 }}
-
-/*this->_links.erase(link_id-id_shift)*/
 
 #endif
 

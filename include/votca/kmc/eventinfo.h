@@ -28,7 +28,7 @@ public:
     
     Eventinfo(){};
     
-    void Read_In(Property *options){ 
+    void Read(Property *options){ 
     
         nx                          = options->get("options.diode.nx").as<int>();
         ny                          = options->get("options.diode.ny").as<int>();
@@ -45,11 +45,19 @@ public:
         injection_barrier           = options->get("options.diode.injection_barrier").as<double>();
         binding_energy              = options->get("options.diode.binding_energy").as<double>();
         formalism                   = options->get("options.diode.formalism").as<string>();
+        
         electron_prefactor          = options->get("options.diode.electron_prefactor").as<double>();
         hole_prefactor              = options->get("options.diode.hole_prefactor").as<double>();
         injection_prefactor         = options->get("options.diode.injection_prefactor").as<double>();
         collection_prefactor        = options->get("options.diode.collection_prefactor").as<double>();
         recombination_prefactor     = options->get("options.diode.recombination_prefactor").as<double>();
+        
+        left_electron_injection     = options->get("options.diode.left_electron_injection").as<bool>();
+        left_hole_injection         = options->get("options.diode.left_hole_injection").as<bool>();
+        right_electron_injection    = options->get("options.diode.right_electron_injection").as<bool>();
+        right_hole_injection        = options->get("options.diode.right_hole_injection").as<bool>();
+        
+        device                      = options->get("options.diode.device").as<bool>();
     }
         
     int nx; int ny; int nz; int growsize;
@@ -57,15 +65,14 @@ public:
     double efield_x; double efield_y; double efield_z;
     double electron_prefactor; double hole_prefactor; double injection_prefactor; double recombination_prefactor; double collection_prefactor;
     string formalism; double injection_barrier; double binding_energy;
+    bool left_electron_injection; bool left_hole_injection; bool right_electron_injection; bool right_hole_injection; bool device;
     
     
     double coulomb_strength;
     double coulcut;
     double self_image_prefactor;
     
-    bool left_injection[2];
-    bool right_injection[2];
-    bool device;
+
     
     int nr_sr_images;
     long nr_of_lr_images;

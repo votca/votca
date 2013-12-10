@@ -31,8 +31,7 @@
 
 namespace votca { namespace kmc {
 
-template<class TGraph>    
-class StateDevice : public State<TGraph> {
+class StateDevice : public State<GraphDevice<GraphSQL, NodeSQL, LinkSQL> > {
     
 public:
 
@@ -58,14 +57,12 @@ private:
     
 };
 
-template <class TGraph>
-void StateDevice<TGraph>::InitStateDevice(){
+void StateDevice::InitStateDevice(){
     this->InitState();
-    carrier_reservoir.clear();
+    InitReservoir();
 }
 
-template <class TGraph>
-unsigned int StateDevice<TGraph>::Buy(int growsize) {
+unsigned int StateDevice::Buy(int growsize) {
     
     if(carrier_reservoir.size()==0) {Grow(growsize);}
     unsigned int carriernr_to_sim_box = carrier_reservoir.back();
@@ -75,15 +72,13 @@ unsigned int StateDevice<TGraph>::Buy(int growsize) {
     return carriernr_to_sim_box;
 }
 
-template <class TGraph>
-void StateDevice<TGraph>::Sell(unsigned int remove_from_sim_box) {
+void StateDevice::Sell(unsigned int remove_from_sim_box) {
     
     carrier_reservoir.push_back(remove_from_sim_box);
     this->GetCarrier(remove_from_sim_box)->SetInBox(false);
 }
 
-template <class TGraph>
-void StateDevice<TGraph>::Grow(unsigned int nr_new_carriers) {
+void StateDevice::Grow(unsigned int nr_new_carriers) {
     
     unsigned int new_nr_carriers = this->GetCarrierSize() + nr_new_carriers;
     for (unsigned int i=this->GetCarrierSize(); i<new_nr_carriers; i++) {
@@ -97,8 +92,7 @@ void StateDevice<TGraph>::Grow(unsigned int nr_new_carriers) {
     }
 }
 
-template <class TGraph>
-void StateDevice<TGraph>::PrintDevice(std::ostream& out) {
+void StateDevice::PrintDevice(std::ostream& out) {
     
     this->Print(out);
     std::cout << endl;

@@ -51,7 +51,7 @@ class State {
     
     virtual void AddCarrier( Carrier* carrier) { _carriers.push_back(carrier); }
     
-    void InitState(TGraph* graph);
+    void InitState();
     
     // Storage and readout of the node_id's of the nodes on which the carriers are to/from a SQL database
     void Save(string SQL_state_filename);
@@ -63,9 +63,8 @@ private:
 };
 
 template <class TGraph>
-void State<TGraph>::InitState(TGraph* graph){
+void State<TGraph>::InitState(){
     _carriers.clear();
-    graph->Clear(); 
 }
 
 template <class TGraph>

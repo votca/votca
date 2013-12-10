@@ -21,7 +21,7 @@
 #include <iostream>
 //#include <votca/kmc/graphsql.h>
 //#include <votca/kmc/graphcubic.h>
-//#include <votca/kmc/events.h>
+
 //#include <votca/kmc/vssmgroup.h>
 #include <votca/kmc/graphdevice.h>
 #include <votca/kmc/node.h>
@@ -29,6 +29,7 @@
 #include <votca/kmc/mesh.h>
 #include <votca/kmc/eventinfo.h>
 #include <votca/kmc/event.h>
+#include <votca/kmc/events.h>
 
 using namespace std;
 
@@ -42,8 +43,8 @@ class Diode : public KMCCalculator
 public:
     
     GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph;
-    StateDevice<GraphDevice<GraphSQL, NodeSQL, LinkSQL> >* state;
-//    Events* events;
+    StateDevice* state;
+    Events* events;
 //    Vssmgroup* vssmgroup;
     Eventinfo* eventdata;
     
@@ -78,7 +79,7 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     cout << "Initializing" << endl;
     
     eventdata = new Eventinfo();
-    eventdata->Read_In(options);
+    eventdata->Read(options);
     
     graph = new GraphDevice<GraphSQL, NodeSQL, LinkSQL>();
     graph->Initialize(filename);
@@ -89,8 +90,10 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     std::cout << "number of left electrode injector nodes " << graph->left()->links().size() << endl;
     std::cout << "number of right electrode injector nodes " << graph->right()->links().size() << endl;
 
-    state = new StateDevice<GraphDevice<GraphSQL, NodeSQL, LinkSQL> >();
-    state->InitState(graph);
+    state = new StateDevice();
+    state->InitState();
+    
+    events = new Events();
     
     std::cout << graph->GetNode(10)->occ() << endl;
     int carrier_ID = state->Buy(10);
@@ -100,17 +103,23 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     newcarrier->SetCarrierType(2);
     carrier_node->AddCarrier(carrier_ID);
     vector<Link*> links = carrier_node->links();
-    std::cout << links.size() << endl;
-    vector<Event*> testvector;
+    
+    
     Carrier* newcarrier2 = state->GetCarrier(3);
     newcarrier2->SetCarrierType(2);
-    for(int it = 0; it < graph->maxpairdegree(); it++) {
-        Event* newevent = new Event(newcarrier2);
-        std::cout << it << " " << newevent->rate() << " " << newevent->init_type() << " " << newevent->final_type() << " " << endl;
+    
+    events->Initialize_eventvector(graph,state,eventdata);
+    
+    
+    
+    
+/*    for(int it = 0; it < graph->maxpairdegree(); it++) {
+        Event* newevent = new Event();
+//        std::cout << it << " " << newevent->rate() << " " << newevent->init_type() << " " << newevent->final_type() << " " << endl;
     }
     typename std::vector<Link*>::iterator it;
     for(it = links.begin(); it != links.end(); it++) {
-        Event* newevent = new Event((*it), newcarrier, eventdata,state);
+        Event* newevent = new Event((*it), newcarrier->type(), eventdata,state);
 //        std::cout << (*it)->id() << " " << newevent->rate() << " " << newevent->init_type() << " " << newevent->final_type() << " " 
 //                  << abs((*it)->r12()) << " " << (*it)->r12() << " " <<  exp(-1.0*eventdata->alpha*abs((*it)->r12())) << " " 
 //                  << endl;
@@ -119,15 +128,17 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     vector<Link*> inj_links = graph->left()->links();
     typename std::vector<Link*>:: iterator inj;
     for(inj = inj_links.begin(); inj != inj_links.end(); inj++) {
-        Event* newevent = new Event((*inj), newcarrier, eventdata,state);
-        std::cout << (*inj)->id() << " " << newevent->rate() << " " << newevent->init_type() << " " << newevent->final_type() << " " 
-                  << abs((*inj)->r12()) << " " << (*inj)->r12() << " " <<  exp(-1.0*eventdata->alpha*abs((*inj)->r12())) << " " 
-                  << endl;
+        Event* newevent = new Event((*inj), 2, eventdata,state);
+//        std::cout << (*inj)->id() << " " << newevent->rate() << " " << newevent->init_type() << " " << newevent->final_type() << " " 
+//                  << abs((*inj)->r12()) << " " << (*inj)->r12() << " " <<  exp(-1.0*eventdata->alpha*abs((*inj)->r12())) << " " 
+//                  << endl;
 
-    }
+    }*/
     
     delete state;
-    delete graph;    
+    delete graph;
+    delete events;
+    delete eventdata;    
 
     
     exit(0);

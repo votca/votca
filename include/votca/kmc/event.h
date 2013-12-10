@@ -35,45 +35,31 @@ class Event {
     
 public:
     
-    Event(Carrier* carrier) {
-        Set_not_in_box_event(carrier);
+    Event() {
+        Set_not_in_box_event();
     }
 
-    Event(Link* link, Carrier* carrier, Eventinfo* eventinfo, StateDevice<GraphDevice<GraphSQL, NodeSQL, LinkSQL> >* state){
+    Event(Link* link, int carrier_type, Eventinfo* eventinfo, StateDevice* state){
         _link = link;
-        Set_event(link, carrier, eventinfo, state);
-    };
+        Set_event(link, carrier_type, state,eventinfo);
+    }
  
     double &rate() { return _rate; }
     int &init_type() { return _init_type; }
     int &final_type() { return _final_type;}
     
-    void Set_event(Link* link, Carrier* carrier, Eventinfo* eventinfo, StateDevice<GraphDevice<GraphSQL, NodeSQL, LinkSQL> >* state);
-    void Set_not_in_box_event(Carrier* carrier);
+    void Set_event(Link* link, int carrier_type, StateDevice* state,Eventinfo* eventinfo);
+    void Set_not_in_box_event();
 
     /// Determine initial event type
     int Determine_init_event_type(Node* node1);
     /// Determine non injection event type in case two carriers are on linking nodes
-    int Determine_final_event_type(Carrier* carrier1, Carrier* carrier2, Node* node1, Node* node2);
+    int Determine_final_event_type(int carrier_type1, int carrier_type2, Node* node1, Node* node2);
     /// Determine non injection event type in case only one carrier is on a link
     int Determine_final_event_type(Node* node1, Node* node2);
 
-    
- //   void Set_injection_event(DNode* electrode, int injectnode_ID, CarrierType carrier_type,
- //                                double from_longrange, double to_longrange, Globaleventinfo* globevent);
- //   void Set_non_injection_event(vector<DNode*> nodes, Carrier* carrier, int jump_ID,
- //                                double from_longrange, double to_longrange, Globaleventinfo* globevent);
-    
 protected:
- //   From_step_event Determine_non_injection_from_event_type(Carrier* carrier);
- //   To_step_event Determine_non_injection_to_event_type(Carrier* carrier, int jumpID, DNode* carriernode);
- //   To_step_event Determine_injection_to_event_type(CarrierType carrier_type, DNode* electrode, int inject_nodeID);
 
- //   double Compute_event_rate(DNode* fromnode, int jump_ID, CarrierType carrier_type,
- //                           From_step_event from_event_type, To_step_event to_event_type,
-//                            double from_shortrange, double to_shortrange, double from_longrange, double to_longrange,
-//                            Globaleventinfo* globaleventinfo);
-    
     Link* _link;
     Carrier* _carrier;
     
@@ -86,7 +72,7 @@ protected:
     
 };
 
-void Event::Set_not_in_box_event(Carrier* carrier) {
+void Event::Set_not_in_box_event() {
     _init_type = (int) NotinboxFrom;
     _final_type = (int) NotinboxTo;
     _rate = 0.0;
@@ -97,9 +83,9 @@ int Event::Determine_final_event_type(Node* node1, Node* node2) {
     if (node2->type() == (int) LeftElectrodeNode || node2->type() == (int) RightElectrodeNode)              return (int) Collection; // Collection at electrode
 }
 
-int Event::Determine_final_event_type(Carrier* carrier1, Carrier* carrier2, Node* node1, Node* node2) {
-    if ((carrier1->isElectron() && carrier2->isElectron())||(carrier1->isHole() && carrier2->isHole()))     return (int) Blocking; // Blocking
-    if ((carrier1->isElectron() && carrier2->isHole())    ||(carrier1->isHole() && carrier2->isElectron())) return (int) Recombination; // Recombination
+int Event::Determine_final_event_type(int carrier_type1, int carrier_type2, Node* node1, Node* node2) {
+    if (((carrier_type1 == (int) Electron) && (carrier_type2 == (int) Electron)) || ((carrier_type1 == (int) Hole) && (carrier_type2 == (int) Hole)))     return (int) Blocking; // Blocking
+    if (((carrier_type1 == (int) Electron) && (carrier_type2 == (int) Hole))     || ((carrier_type1 == (int) Hole) && (carrier_type2 == (int) Electron))) return (int) Recombination; // Recombination
 }
 
 int Event::Determine_init_event_type(Node* node1) {
@@ -107,7 +93,7 @@ int Event::Determine_init_event_type(Node* node1) {
     if((node1->type() == (int) LeftElectrodeNode) || (node1->type() == (int) RightElectrodeNode))           return (int) Injection;
 }
 
-void Event::Set_event(Link* link, Carrier* carrier, Eventinfo* eventinfo, StateDevice<GraphDevice<GraphSQL, NodeSQL, LinkSQL> >* state) {
+void Event::Set_event(Link* link, int carrier_type, StateDevice* state,Eventinfo* eventinfo) {
     
     Node* node1 = link->node1();
     Node* node2 = link->node2();
@@ -115,7 +101,7 @@ void Event::Set_event(Link* link, Carrier* carrier, Eventinfo* eventinfo, StateD
     _init_type = Determine_init_event_type(node1);
 
     if (node2->occ() == -1) _final_type = Determine_final_event_type(node1, node2);
-    else                    _final_type = Determine_final_event_type(carrier, state->GetCarrier(node2->occ()), node1, node2);    
+    else                    _final_type = Determine_final_event_type(carrier_type, state->GetCarrier(node2->occ())->type(), node1, node2);    
 
     double prefactor = 1.0; // total prefactor
   
@@ -123,17 +109,18 @@ void Event::Set_event(Link* link, Carrier* carrier, Eventinfo* eventinfo, StateD
     double static_node_energy_from;
     double static_node_energy_to;
 
-    if(carrier->isElectron()) {
+    if(carrier_type == (int) Electron) {
         charge = -1.0;
         prefactor = prefactor*(eventinfo->electron_prefactor);
         static_node_energy_from = dynamic_cast<NodeSQL*>(node1)->eCation() + dynamic_cast<NodeSQL*>(node1)->ucCnNe();
         static_node_energy_to = dynamic_cast<NodeSQL*>(node2)->eCation() + dynamic_cast<NodeSQL*>(node2)->ucCnNe();
     }
-    else if(carrier->isHole()) {
+    else if(carrier_type == (int) Hole) {
         charge = 1.0;
         prefactor = prefactor*(eventinfo->hole_prefactor);
         static_node_energy_from = dynamic_cast<NodeSQL*>(node1)->eAnion() + dynamic_cast<NodeSQL*>(node1)->ucCnNh();
         static_node_energy_to = dynamic_cast<NodeSQL*>(node2)->eAnion() + dynamic_cast<NodeSQL*>(node2)->ucCnNh();
+//        std::cout << "from " << static_node_energy_from << " to " << static_node_energy_to << endl;
     }
 
 
@@ -152,10 +139,6 @@ void Event::Set_event(Link* link, Carrier* carrier, Eventinfo* eventinfo, StateD
     double from_event_energy = 0.0;
     double to_event_energy = 0.0;
 
-//    if(from_event_type == Injection) {
-//        fromtype_energy -= globevent->injection_barrier;
-//        prefactor *= globevent->injection_prefactor;
-//    }
     if(_init_type == Injection)           { from_event_energy -= eventinfo->injection_barrier; prefactor *= eventinfo->injection_prefactor;     _action_node1 = (int) None;   } // injection
     else if(_init_type == TransferFrom)   {                                                                                                     _action_node1 = (int) Remove; } // transfer
 
@@ -200,33 +183,9 @@ void Event::Set_event(Link* link, Carrier* carrier, Eventinfo* eventinfo, StateD
             }
         }
     }
-//    std::cout << "factors " << prefactor << " " << distancefactor << " " << energyfactor << endl;
+    std::cout << "factors " << prefactor << " " << distancefactor << " " << energyfactor << endl;
     _rate = prefactor*distancefactor*energyfactor;
 }
-
-/*void Event::Set_injection_event(DNode* electrode, int injectnode_ID, CarrierType carrier_type,
-                              double from_longrange, double to_longrange, Globaleventinfo* globevent) {
-    
-    fromtype = Injection;
-    totype = Determine_injection_to_event_type(carrier_type, electrode, injectnode_ID);
-    rate = Compute_event_rate(electrode, injectnode_ID, carrier_type, fromtype, totype,
-                              0, 0.0, from_longrange, to_longrange, globevent);
-       
-}*/
-/*
-
-void Event::Set_non_injection_event(vector<DNode*> nodes, Carrier* carrier, int jump_ID,
-                                 double from_longrange, double to_longrange, Globaleventinfo* globaleventinfo) {
-    
-    fromtype = Determine_non_injection_from_event_type(carrier);
-    totype = Determine_non_injection_to_event_type(carrier, jump_ID, nodes[carrier->carrier_node_ID]);
-    rate = Compute_event_rate(nodes[carrier->carrier_node_ID], jump_ID, carrier->carrier_type, fromtype, totype,
-                                     carrier->srfrom, carrier->srto[jump_ID], from_longrange, to_longrange,
-                                     globaleventinfo);    
-}
-*/
-
-
 
 }} 
 
