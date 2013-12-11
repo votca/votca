@@ -58,6 +58,11 @@ public:
         right_hole_injection        = options->get("options.diode.right_hole_injection").as<bool>();
         
         device                      = options->get("options.diode.device").as<bool>();
+        
+        mesh_x                      = options->get("options.diode.mesh_x").as<double>();
+        mesh_y                      = options->get("options.diode.mesh_y").as<double>();
+        mesh_z                      = options->get("options.diode.mesh_z").as<double>();
+        
     }
         
     int nx; int ny; int nz; int growsize;
@@ -66,6 +71,7 @@ public:
     double electron_prefactor; double hole_prefactor; double injection_prefactor; double recombination_prefactor; double collection_prefactor;
     string formalism; double injection_barrier; double binding_energy;
     bool left_electron_injection; bool left_hole_injection; bool right_electron_injection; bool right_hole_injection; bool device;
+    double mesh_x; double mesh_y; double mesh_z;
     
     
     double coulomb_strength;

@@ -42,8 +42,7 @@ public:
     } 
     
 /*public:
-    Bsumtree* Non_injection_rates;
-    Bsumtree* Injection_rates;
+
     Longrange* longrange;
     
     int nholes;
@@ -59,15 +58,17 @@ public:
     void Recompute_all_injection_events(GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph, StateDevice* state, Eventinfo* eventinfo);    
 
     void Initialize_eventvector(GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph, StateDevice* state, Eventinfo* eventinfo);
-    void Initialize_injection_eventvector(Node* electrode, int carrier_type, StateDevice* state, Eventinfo* eventinfo);
+    void Initialize_injection_eventvector(int Event_counter, Node* electrode, int carrier_type, StateDevice* state, Eventinfo* eventinfo);
     void Grow_non_injection_eventvector(StateDevice* state, int max_pair_degree, Eventinfo* eventinfo);
     
-    int meshsizeX; int meshsizeY; int meshsizeZ;
-    void Init_non_injection_mesh(GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph, Eventinfo* eventinfo);
-    void Init_injection_mesh(GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph, Eventinfo* eventinfo);
-    void Add_to_non_injection_mesh(GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph, Event* event, Eventinfo* eventinfo);
-    void Remove_from_non_injection_mesh(GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph, Event* event, Eventinfo* eventinfo);
-   
+    
+    
+    void Init_meshes(GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph, Eventinfo* eventinfo);
+    inline void Resize_mesh(int meshnr_x, int meshnr_y, int meshnr_z, vector< vector< vector <list<int> > > > mesh);
+    inline void Add_non_injection_event_to_mesh(Event* event,vector< vector< vector <list<int> > > > mesh, GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph, Eventinfo* eventinfo);
+    inline void Add_injection_event_to_mesh(Event* event,vector< vector< vector <list<int> > > > mesh, GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph, Eventinfo* eventinfo);
+    inline void Remove_from_mesh(Event* event,vector< vector< vector <list<int> > > > mesh, GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph, Eventinfo* eventinfo);
+    
 //    void Add_remove_carrier(int action_flag1, Carrier* carrier, GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph, DNode* action_node, State* state, Globaleventinfo* globevent);
 //    void Effect_potential_and_non_injection_rates(action AR, Carrier* carrier, GraphLattice* graph, State* state, Globaleventinfo* globevent);
 //    void Effect_injection_rates(action AR, GraphLattice* graph, Carrier* carrier, double dist_to_electrode, DNode* electrode, Globaleventinfo* globevent);    
@@ -79,15 +80,21 @@ private:
     vector<Event*> _non_injection_events;
     vector<Event*> _injection_events;
     
-    vector< vector< vector <list<int> > > > _non_injection_event_mesh;
-    vector< vector <list<int> > >  _injection_event_mesh;
+    int _meshnr_x; int _inject_meshnr_x; int _meshnr_y; int _meshnr_z; 
+    vector< vector< vector <list<int> > > > _non_injection_events_mesh;
+    vector< vector< vector <list<int> > > > _left_injection_events_mesh;
+    vector< vector< vector <list<int> > > > _right_injection_events_mesh;
+    
+    Bsumtree* _non_injection_rates;
+    Bsumtree* _injection_rates;
 };
 
 /*void Events::Initialize_longrange(GraphLattice* graph, Globaleventinfo* globevent) {
     longrange = new Longrange();
     longrange->Initialize(graph,globevent); 
-}
+}*/
 
+/*    
 void Events::On_execute(Event* event, GraphLattice* graph, State* state, Globaleventinfo* globevent) {
     
     if(event->fromtype == Fromtransfer) {
@@ -592,14 +599,14 @@ void Events::Recompute_all_non_injection_events(GraphDevice<GraphSQL, NodeSQL, L
 //                lrto = 0.0;
 //            }
             
-                _non_injection_events[Event_map]->Set_event((*it), probecarrier->type(), state, eventinfo);
+                _non_injection_events[Event_map]->Set_event(Event_map,(*it), probecarrier->type(), state, eventinfo);
 //            Non_injection_rates->setrate(Event_map,Non_injection_events[Event_map]->rate);
                 fillcount++;
             }
-            for (int ifill = fillcount; ifill<graph->maxpairdegree(); ifill++) { Event_map = carrier_ID*graph->maxpairdegree() + ifill; _non_injection_events[Event_map]->Set_not_in_box_event();}
+            for (int ifill = fillcount; ifill<graph->maxpairdegree(); ifill++) { Event_map = carrier_ID*graph->maxpairdegree() + ifill; _non_injection_events[Event_map]->Set_not_in_box_event(Event_map);}
         }
         else  {
-            for (int ifill = 0; ifill<graph->maxpairdegree(); ifill++) { Event_map = carrier_ID*graph->maxpairdegree() + ifill; _non_injection_events[Event_map]->Set_not_in_box_event(); }
+            for (int ifill = 0; ifill<graph->maxpairdegree(); ifill++) { Event_map = carrier_ID*graph->maxpairdegree() + ifill; _non_injection_events[Event_map]->Set_not_in_box_event(Event_map); }
         }
     }
 }
@@ -624,12 +631,12 @@ void Events::Recompute_all_injection_events(GraphDevice<GraphSQL, NodeSQL, LinkS
         int event_ID = (*it)->id();
         
         if(eventinfo->left_electron_injection){
-            _injection_events[event_ID]->Set_event((*it), (int) Electron, state , eventinfo);   
+            _injection_events[event_ID]->Set_event(event_ID,(*it), (int) Electron, state , eventinfo);   
 //            Injection_rates->setrate(Event_ID,Injection_events[Event_ID]->rate);
         }
         if(eventinfo->left_hole_injection) {
             if(eventinfo->left_electron_injection) event_ID += left_electrode_links.size();
-            _injection_events[event_ID]->Set_event((*it), (int) Hole, state, eventinfo);   
+            _injection_events[event_ID]->Set_event(event_ID,(*it), (int) Hole, state, eventinfo);   
 //            Injection_rates->setrate(Event_ID,Injection_events[Event_ID]->rate);
         }        
     }
@@ -649,14 +656,14 @@ void Events::Recompute_all_injection_events(GraphDevice<GraphSQL, NodeSQL, LinkS
         if(eventinfo->right_electron_injection){
             if(eventinfo->left_electron_injection) event_ID += left_electrode_links.size();
             if(eventinfo->left_hole_injection) event_ID += left_electrode_links.size();
-            _injection_events[event_ID]->Set_event((*it), (int) Electron, state, eventinfo);
+            _injection_events[event_ID]->Set_event(event_ID,(*it), (int) Electron, state, eventinfo);
 //            Injection_rates->setrate(Event_ID,Injection_events[Event_ID]->rate);
         }
         if(eventinfo->right_hole_injection){
             if(eventinfo->left_electron_injection) event_ID += left_electrode_links.size();
             if(eventinfo->left_hole_injection) event_ID += left_electrode_links.size();
             if(eventinfo->right_electron_injection) event_ID += right_electrode_links.size();
-            _injection_events[event_ID]->Set_event((*it), (int) Hole, state, eventinfo);
+            _injection_events[event_ID]->Set_event(event_ID,(*it), (int) Hole, state, eventinfo);
 //            Injection_rates->setrate(Event_ID,Injection_events[Event_ID]->rate);
         }
     }
@@ -671,21 +678,24 @@ void Events::Initialize_eventvector(GraphDevice<GraphSQL, NodeSQL, LinkSQL>* gra
     
     if(eventinfo->device){
         _injection_events.clear();
-        if(eventinfo->left_electron_injection) Initialize_injection_eventvector(graph->left(), (int) Electron, state, eventinfo);
-        if(eventinfo->left_hole_injection) Initialize_injection_eventvector(graph->left(), (int) Hole, state, eventinfo);
-        if(eventinfo->right_electron_injection) Initialize_injection_eventvector(graph->right(), (int) Electron, state, eventinfo);
-        if(eventinfo->right_hole_injection) Initialize_injection_eventvector(graph->right(), (int) Hole, state, eventinfo);
+        int Event_id_count = 0;
+        if(eventinfo->left_electron_injection) {Initialize_injection_eventvector(Event_id_count,graph->left(), (int) Electron, state, eventinfo); Event_id_count += graph->left()->links().size();}
+        if(eventinfo->left_hole_injection) {Initialize_injection_eventvector(Event_id_count,graph->left(), (int) Hole, state, eventinfo); Event_id_count += graph->left()->links().size();}
+        if(eventinfo->right_electron_injection) {Initialize_injection_eventvector(Event_id_count,graph->right(), (int) Electron, state, eventinfo); Event_id_count += graph->right()->links().size();}
+        if(eventinfo->right_hole_injection) {Initialize_injection_eventvector(Event_id_count,graph->right(), (int) Hole, state, eventinfo);}
 //        Injection_rates->initialize(Injection_events.size());
     }
 }
 
-void Events::Initialize_injection_eventvector(Node* electrode, int carrier_type, StateDevice* state, Eventinfo* eventinfo){
+void Events::Initialize_injection_eventvector(int Event_id_count, Node* electrode, int carrier_type, StateDevice* state, Eventinfo* eventinfo){
 
+    int Event_map = Event_id_count;
     vector<Link*> injectorlinks = electrode->links();
     typename std::vector<Link*>::iterator it;    
     for (it = injectorlinks.begin(); it != injectorlinks.end(); it++) {
-        Event *newEvent = new Event((*it), carrier_type, eventinfo, state);
+        Event *newEvent = new Event(Event_map, (*it), carrier_type, eventinfo, state);
         _injection_events.push_back(newEvent);
+        Event_map++;
     } 
 }
 
@@ -696,19 +706,89 @@ void Events::Grow_non_injection_eventvector(StateDevice* state, int max_pair_deg
     
     for(int carrier_ID = old_nr_carriers; carrier_ID<old_nr_carriers+eventinfo->growsize; carrier_ID++) {
         Carrier* probecarrier = state->GetCarrier(carrier_ID);
+        int Event_map = carrier_ID*max_pair_degree;
         if(probecarrier->inbox()) { 
             int fillcount = 0;
             vector<Link*> carrierlinks = probecarrier->node()->links();
             typename std::vector<Link*>::iterator it;    
-            for(it = carrierlinks.begin(); it != carrierlinks.end();it++)      { Event *newEvent = new Event((*it), probecarrier->type(), eventinfo, state); _non_injection_events.push_back(newEvent); fillcount++; }
-            for(int ifill = fillcount; ifill<max_pair_degree; ifill++) { Event *newEvent = new Event(); _non_injection_events.push_back(newEvent); } // non-existent event
+            for(it = carrierlinks.begin(); it != carrierlinks.end();it++){ Event_map += (*it)->id(); Event *newEvent = new Event(Event_map, (*it), probecarrier->type(), eventinfo, state); _non_injection_events.push_back(newEvent); fillcount++; }
+            for(int ifill = fillcount; ifill<max_pair_degree; ifill++) { Event_map += ifill; Event *newEvent = new Event(Event_map); _non_injection_events.push_back(newEvent); } // non-existent event
         }
         else {
-            for(int ifill = 0; ifill<max_pair_degree; ifill++) { Event *newEvent = new Event(); _non_injection_events.push_back(newEvent); } // carrier not in box
+            for(int ifill = 0; ifill<max_pair_degree; ifill++) { Event_map += ifill; Event *newEvent = new Event(Event_map); _non_injection_events.push_back(newEvent); } // carrier not in box
         }
     }    
 }
 
+void Events::Init_meshes(GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph, Eventinfo* eventinfo) {
+
+    // determine the dimensions of the meshes
+    
+    votca::tools::vec simboxsize = graph->simboxsize();
+    _meshnr_x = ceil(simboxsize.x()/eventinfo->mesh_x); 
+    _meshnr_y = ceil(simboxsize.y()/eventinfo->mesh_y); 
+    _meshnr_z = ceil(simboxsize.z()/eventinfo->mesh_z);
+    
+    _inject_meshnr_x = ceil(graph->hopdist()/eventinfo->mesh_x);
+    
+    // resize the meshes
+    
+    Resize_mesh(_meshnr_x,_meshnr_y,_meshnr_z,_non_injection_events_mesh);
+    Resize_mesh(_inject_meshnr_x,_meshnr_y,_meshnr_z,_left_injection_events_mesh);
+    Resize_mesh(_inject_meshnr_x,_meshnr_y,_meshnr_z,_right_injection_events_mesh);
+    
+    // initialize meshes
+    typename std::vector<Event*>::iterator it;
+    for (it = _non_injection_events.begin(); it != _non_injection_events.end(); it++ ) Add_non_injection_event_to_mesh((*it),_non_injection_events_mesh, graph, eventinfo);
+    for (it = _injection_events.begin(); it != _injection_events.end(); it++ ) {
+        if((*it)->link()->node1()->type()==LeftElectrodeNode) Add_injection_event_to_mesh((*it),_left_injection_events_mesh, graph, eventinfo);
+        if((*it)->link()->node1()->type()==RightElectrodeNode) Add_injection_event_to_mesh((*it),_right_injection_events_mesh, graph, eventinfo);    
+    }
+    
+}
+
+inline void Events::Resize_mesh(int meshnr_x, int meshnr_y, int meshnr_z, vector< vector< vector <list<int> > > > mesh) {
+    mesh.resize(meshnr_x);
+    for(int i = 0;i<meshnr_x;i++) {
+        mesh[i].resize(meshnr_y);
+        for(int j = 0;j<meshnr_y;j++) {
+            mesh[i][j].resize(meshnr_z);
+            for(int k = 0; k<meshnr_z;k++) {
+                mesh[i][j][k].clear();
+            }
+        }
+    }
+}
+
+inline void Events::Add_non_injection_event_to_mesh(Event* event,vector< vector< vector <list<int> > > > mesh, GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph, Eventinfo* eventinfo){
+    
+    votca::tools::vec carrierpos = event->link()->node1()->position();
+    double posx = carrierpos.x(); int iposx = floor(posx/eventinfo->mesh_x);
+    double posy = carrierpos.y(); int iposy = floor(posy/eventinfo->mesh_y);
+    double posz = carrierpos.z(); int iposz = floor(posz/eventinfo->mesh_z);
+     
+    mesh[iposx][iposy][iposz].push_back(event->id());     
+};
+
+inline void Events::Add_injection_event_to_mesh(Event* event,vector< vector< vector <list<int> > > > mesh, GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph, Eventinfo* eventinfo){
+    
+    votca::tools::vec injectpos = event->link()->node2()->position();
+    double posx = injectpos.x(); int iposx = floor(posx/eventinfo->mesh_x);
+    double posy = injectpos.y(); int iposy = floor(posy/eventinfo->mesh_y);
+    double posz = injectpos.z(); int iposz = floor(posz/eventinfo->mesh_z);
+     
+    mesh[iposx][iposy][iposz].push_back(event->id());     
+};
+
+inline void Events::Remove_from_mesh(Event* event,vector< vector< vector <list<int> > > > mesh, GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph, Eventinfo* eventinfo){
+    
+    votca::tools::vec carrierpos = event->link()->node1()->position();
+    double posx = carrierpos.x(); int iposx = floor(posx/eventinfo->mesh_x);
+    double posy = carrierpos.y(); int iposy = floor(posy/eventinfo->mesh_y);
+    double posz = carrierpos.z(); int iposz = floor(posz/eventinfo->mesh_z);
+     
+    mesh[iposx][iposy][iposz].remove(event->id());
+}
 
 }} 
 

@@ -35,21 +35,23 @@ class Event {
     
 public:
     
-    Event() {
-        Set_not_in_box_event();
+    Event(int id) {
+        Set_not_in_box_event(id);
     }
 
-    Event(Link* link, int carrier_type, Eventinfo* eventinfo, StateDevice* state){
+    Event(int id, Link* link, int carrier_type, Eventinfo* eventinfo, StateDevice* state){
         _link = link;
-        Set_event(link, carrier_type, state,eventinfo);
+        Set_event(id, link, carrier_type, state,eventinfo);
     }
  
     double &rate() { return _rate; }
     int &init_type() { return _init_type; }
     int &final_type() { return _final_type;}
+    Link* link() {return _link;}
+    int &id() { return _id;}
     
-    void Set_event(Link* link, int carrier_type, StateDevice* state,Eventinfo* eventinfo);
-    void Set_not_in_box_event();
+    void Set_event(int id, Link* link, int carrier_type, StateDevice* state,Eventinfo* eventinfo);
+    void Set_not_in_box_event(int id);
 
     /// Determine initial event type
     int Determine_init_event_type(Node* node1);
@@ -66,13 +68,15 @@ protected:
     double _rate;
     int _final_type;
     int _init_type;
+    int _id;
     
     int _action_node1;
     int _action_node2;
     
 };
 
-void Event::Set_not_in_box_event() {
+void Event::Set_not_in_box_event(int id) {
+    _id = id;
     _init_type = (int) NotinboxFrom;
     _final_type = (int) NotinboxTo;
     _rate = 0.0;
@@ -93,7 +97,9 @@ int Event::Determine_init_event_type(Node* node1) {
     if((node1->type() == (int) LeftElectrodeNode) || (node1->type() == (int) RightElectrodeNode))           return (int) Injection;
 }
 
-void Event::Set_event(Link* link, int carrier_type, StateDevice* state,Eventinfo* eventinfo) {
+void Event::Set_event(int id, Link* link, int carrier_type, StateDevice* state,Eventinfo* eventinfo) {
+    
+    _id = id;
     
     Node* node1 = link->node1();
     Node* node2 = link->node2();
