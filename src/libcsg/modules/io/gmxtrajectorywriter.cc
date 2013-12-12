@@ -61,7 +61,7 @@ void GMXTrajectoryWriter::Write(Topology *conf)
 
     for(int i=0; i<3; i++)
         for(int j=0; j<3; j++)
-            frame.box[i][j] = box[i][j];
+            frame.box[j][i] = box[i][j];
     
 for(int i=0; i<N; ++i) {
         vec pos = conf->getBead(i)->getPos();

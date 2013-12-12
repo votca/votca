@@ -93,8 +93,8 @@ void GROWriter::Write(Topology *conf)
 	    l,pr,l,pr,l,pr,l,pr,l,pr,l,pr,l,pr,l,pr,l,pr);
     fprintf(_out,format,
 	    box[0][0],box[1][1],box[2][2],
-	    box[0][1],box[0][2],box[1][0],
-	    box[1][2],box[2][0],box[2][1]);
+	    box[1][0],box[2][0],box[0][1],
+	    box[2][1],box[0][2],box[1][2]);
   } else {
     sprintf(format,"%%%d.%df%%%d.%df%%%d.%df\n",l,pr,l,pr,l,pr);
     fprintf(_out,format,

@@ -38,6 +38,7 @@ void PDBWriter::Write(Topology *conf)
 {
     Topology *top = conf;
     fprintf(_out, "MODEL     %4d\n", conf->getStep());
+    fprintf(_out, "REMARK  length units are natural and NOT Angstroms");
     for(BeadContainer::iterator iter=conf->Beads().begin();
     iter!=conf->Beads().end(); ++iter) {
         Bead *bi = *iter;
@@ -61,7 +62,7 @@ void PDBWriter::Write(Topology *conf)
                 resname.c_str(), // residue name
                 " ", // chain identifier 1 char
                 bi->getResnr()+1, // residue sequence number
-                10.*r.x(), 10.*r.y(), 10.*r.z(),
+                r.x(), r.y(), r.z(),
                 bi->getQ(), bi->getM());  // is this correct??
           
         if(bi->getSymmetry()>=2) {
@@ -74,7 +75,7 @@ void PDBWriter::Write(Topology *conf)
                 "REU", // residue name
                 " ", // chain identifier 1 char
                 bi->getResnr()+1, // residue sequence number
-                10.*ru.x(), 10.*ru.y(), 10.*ru.z(),
+                ru.x(), ru.y(), ru.z(),
                 0., 0.);  // is this correct??
         }
         if(bi->getSymmetry()>=3) {
@@ -86,7 +87,7 @@ void PDBWriter::Write(Topology *conf)
                 "REV", // residue name
                 " ", // chain identifier 1 char
                 bi->getResnr()+1, // residue sequence number
-                10.*rv.x(), 10.*rv.y(), 10.*rv.z(),
+                rv.x(), rv.y(), rv.z(),
                 0.,0.);  // is this correct??  /**/
         }
    }

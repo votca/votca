@@ -38,7 +38,7 @@ void XYZWriter::Write(Topology *conf)
 {
     Topology *top = conf;
     fprintf(_out, "%d\n", (int)top->Beads().size());
-    fprintf(_out, "frame: %d time: %f\n", top->getStep()+1, top->getTime());
+    fprintf(_out, "frame: %d time: %f lengths: natural (NOT Angstroms)\n", top->getStep()+1, top->getTime());
 
     for(BeadContainer::iterator iter=conf->Beads().begin();
     iter!=conf->Beads().end(); ++iter) {
@@ -53,7 +53,7 @@ void XYZWriter::Write(Topology *conf)
             atomname=" " + atomname;
         
         fprintf(_out,
-                "%s%10.5f%10.5f%10.5f\n", atomname.c_str(), 10.*r.getX(), 10.*r.getY(), 10.*r.getZ()
+                "%s%10.5f%10.5f%10.5f\n", atomname.c_str(), r.getX(), r.getY(), r.getZ()
         );       
     }
     fflush(_out);

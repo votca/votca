@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright 2009-2013 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,36 +15,29 @@
  *
  */
 
-#ifndef _DLPTOPOLOGYREADER_H
-#define	_DLPTOPOLOGYREADER_H
+#ifndef _DLPOLYTRAJECTORYWRITER_H
+#define	_DLPOLYTRAJECTORYWRITER_H
 
-#include <string>
 #include <votca/csg/topology.h>
-#include <votca/csg/topologyreader.h>
+#include <votca/csg/trajectorywriter.h>
 
 namespace votca { namespace csg {
 using namespace votca::tools;
 
-using namespace std;
-
-/**
-    \brief reader for dlpoly FIELD (topology) files
-
-    This class encapsulates the dlpoly reading functions and provides an interface to fill a topolgy class
-
-*/
-class DLPOLYTopologyReader
-    : public TopologyReader
+class DLPOLYTrajectoryWriter
+    : public TrajectoryWriter
 {
 public:
-    DLPOLYTopologyReader() {}
 
-    /// read a topology file
-    bool ReadTopology(string file, Topology &top);
+    void Open(string file, bool bAppend = false);
+    void Close();
+    void Write(Topology *conf);
 
-private:
+    private:
+       ofstream _fl;
 };
 
 }}
 
-#endif	/* _DLPTOPOLOGYREADER_H */
+#endif	/* _DLPOLYTRAJECTORYWRITER_H */
+
