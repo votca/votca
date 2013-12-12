@@ -113,7 +113,7 @@ if ("${GROMACS_PKG}" MATCHES "libgmx")
    find_path(GROMACS_INCLUDE_DIR gromacs/tpxio.h HINTS ${PC_GROMACS_INCLUDE_DIRS})
   endif(${GMX_VERSION} EQUAL 40)
 elseif("${GROMACS_PKG}" MATCHES "libgromacs")
-  find_path(GROMACS_INCLUDE_DIR gromacs/legacyheaders/tpxio.h HINTS ${PC_GROMACS_INCLUDE_DIRS})
+  find_path(GROMACS_INCLUDE_DIR gromacs/fileio/tpxio.h HINTS ${PC_GROMACS_INCLUDE_DIRS})
 endif("${GROMACS_PKG}" MATCHES "libgmx")
 
 set(GROMACS_LIBRARIES "${GROMACS_LIBRARY};${GROMACS_DEP_LIBRARIES}" )

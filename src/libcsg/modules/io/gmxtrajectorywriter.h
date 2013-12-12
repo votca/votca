@@ -27,13 +27,7 @@
 #include "gmx_version_check.h"
 
 #if GMX == 50
-        #include <gromacs/legacyheaders/statutil.h>
-        #include <gromacs/legacyheaders/typedefs.h>
-        #include <gromacs/legacyheaders/smalloc.h>
-        #include <gromacs/legacyheaders/vec.h>
-        #include <gromacs/legacyheaders/copyrite.h>
-        #include <gromacs/legacyheaders/statutil.h>
-        #include <gromacs/legacyheaders/tpxio.h>
+        #include <gromacs/fileio/trxio.h>
 #elif GMX == 45
         #include <gromacs/statutil.h>
         #include <gromacs/typedefs.h>

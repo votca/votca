@@ -29,7 +29,7 @@
         #include <gromacs/legacyheaders/vec.h>
         #include <gromacs/legacyheaders/copyrite.h>
         #include <gromacs/legacyheaders/statutil.h>
-        #include <gromacs/legacyheaders/tpxio.h>
+        #include <gromacs/fileio/tpxio.h>
 #elif GMX == 45
         #include <gromacs/statutil.h>
         #include <gromacs/typedefs.h>
@@ -64,7 +64,6 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
     int natoms;
     // cleanup topology to store new data
     top.Cleanup();
-    set_program_name("VOTCA");
 
 #if GMX == 50
     t_inputrec ir;
@@ -72,10 +71,14 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
 
     (void)read_tpx((char *)file.c_str(),&ir,gbox,&natoms,NULL,NULL,NULL,&mtop);
 #elif GMX == 45
+    set_program_name("VOTCA");
+
     t_inputrec ir;
     ::matrix gbox;
     (void)read_tpx((char *)file.c_str(),&ir,gbox,&natoms,NULL,NULL,NULL,&mtop);
 #elif GMX == 40
+    set_program_name("VOTCA");
+
     int sss;   // wtf is this
     ::real    ttt,lll; // wtf is this
     (void)read_tpx((char *)file.c_str(),&sss,&ttt,&lll,NULL,NULL,&natoms,NULL,NULL,NULL,&mtop);
