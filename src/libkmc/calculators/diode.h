@@ -96,7 +96,8 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     events = new Events();
     
     std::cout << graph->GetNode(10)->occ() << endl;
-    int carrier_ID = state->Buy(10);
+    state->Grow(10);
+    int carrier_ID = state->Buy();
     Carrier* newcarrier = state->GetCarrier(carrier_ID);
     Node* carrier_node = graph->GetNode(20);
     newcarrier->SetCarrierNode(carrier_node);
@@ -109,6 +110,7 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     newcarrier2->SetCarrierType(2);
     
     events->Initialize_eventvector(graph,state,eventdata);
+
     
     
     
@@ -136,11 +138,9 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     }*/
     
     delete state;
-    delete graph;
     delete events;
+    delete graph;
     delete eventdata;    
-
-    
     exit(0);
     
 

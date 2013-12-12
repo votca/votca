@@ -27,21 +27,23 @@ namespace votca { namespace kmc {
   
 using namespace std;
 
-enum Final_Event_Type {TransferTo, Collection, Recombination, Blocking, NotinboxTo};
-enum Init_Event_Type {Injection, TransferFrom, NotinboxFrom};
+enum Final_Event_Type {TransferTo, Collection, Recombination, Blocking, Notinbox, Notingraph};
+enum Init_Event_Type {Injection, TransferFrom};
 enum Action{Add, Remove, None };
 
 class Event {
     
 public:
     
-    Event(int id) {
-        Set_not_in_box_event(id);
+    Event(int id, int type) {
+        _id = id;
+        _final_type = type;
+        _rate = 0.0;
     }
 
     Event(int id, Link* link, int carrier_type, Eventinfo* eventinfo, StateDevice* state){
-        _link = link;
-        Set_event(id, link, carrier_type, state,eventinfo);
+        _id = id;
+        Set_event(link, carrier_type, state,eventinfo);
     }
  
     double &rate() { return _rate; }
@@ -49,23 +51,38 @@ public:
     int &final_type() { return _final_type;}
     Link* link() {return _link;}
     int &id() { return _id;}
+    int &carrier_type() { return _carrier_type;}
+    int &action_node1() { return _action_node1;}
+    int &action_node2() { return _action_node2;}
     
-    void Set_event(int id, Link* link, int carrier_type, StateDevice* state,Eventinfo* eventinfo);
-    void Set_not_in_box_event(int id);
-
+    void Set_event(Link* link, int carrier_type, StateDevice* state,Eventinfo* eventinfo);
+    /// Determine rate
+    void Determine_rate(Eventinfo* eventinfo);
+    /// Set rate to value
+    void Set_rate(double rate) {_rate = rate;}
+    
     /// Determine initial event type
     int Determine_init_event_type(Node* node1);
     /// Determine non injection event type in case two carriers are on linking nodes
     int Determine_final_event_type(int carrier_type1, int carrier_type2, Node* node1, Node* node2);
     /// Determine non injection event type in case only one carrier is on a link
     int Determine_final_event_type(Node* node1, Node* node2);
+    /// Determine action flag for node 1
+    int Determine_action_flag_node1();
+    /// Determine action flag for node 2
+    int Determine_action_flag_node2();
+
 
 protected:
 
     Link* _link;
-    Carrier* _carrier;
+    int _carrier_type;
     
     double _rate;
+    
+    double _sr_from;
+    double _sr_to;
+    
     int _final_type;
     int _init_type;
     int _id;
@@ -74,13 +91,6 @@ protected:
     int _action_node2;
     
 };
-
-void Event::Set_not_in_box_event(int id) {
-    _id = id;
-    _init_type = (int) NotinboxFrom;
-    _final_type = (int) NotinboxTo;
-    _rate = 0.0;
-}
 
 int Event::Determine_final_event_type(Node* node1, Node* node2) {
     if (node2->type() == (int) NormalNode)                                                                  return (int) TransferTo; // Transfer to empty node
@@ -97,31 +107,39 @@ int Event::Determine_init_event_type(Node* node1) {
     if((node1->type() == (int) LeftElectrodeNode) || (node1->type() == (int) RightElectrodeNode))           return (int) Injection;
 }
 
-void Event::Set_event(int id, Link* link, int carrier_type, StateDevice* state,Eventinfo* eventinfo) {
+int Event::Determine_action_flag_node1() {
+    int action_node1;
+    if(_init_type == Injection)           {action_node1 = (int) None;   } // injection
+    else if(_init_type == TransferFrom)   {action_node1 = (int) Remove; } // transfer
+    return action_node1;    
+}
+
+int Event::Determine_action_flag_node2() {
+    int action_node2;
+    if(_final_type == TransferTo)         {action_node2 = (int) Add;    } // transfer
+    else if(_final_type == Collection)    {action_node2 = (int) None;   } // collection
+    else if(_final_type == Recombination) {action_node2 = (int) Remove; } // recombination
+    return action_node2;    
+}
+
+void Event::Determine_rate(Eventinfo* eventinfo) {
     
-    _id = id;
+    Node* node1 = _link->node1();
+    Node* node2 = _link->node2();
     
-    Node* node1 = link->node1();
-    Node* node2 = link->node2();
-
-    _init_type = Determine_init_event_type(node1);
-
-    if (node2->occ() == -1) _final_type = Determine_final_event_type(node1, node2);
-    else                    _final_type = Determine_final_event_type(carrier_type, state->GetCarrier(node2->occ())->type(), node1, node2);    
-
     double prefactor = 1.0; // total prefactor
   
     double charge;
     double static_node_energy_from;
     double static_node_energy_to;
 
-    if(carrier_type == (int) Electron) {
+    if(_carrier_type == (int) Electron) {
         charge = -1.0;
         prefactor = prefactor*(eventinfo->electron_prefactor);
         static_node_energy_from = dynamic_cast<NodeSQL*>(node1)->eCation() + dynamic_cast<NodeSQL*>(node1)->ucCnNe();
         static_node_energy_to = dynamic_cast<NodeSQL*>(node2)->eCation() + dynamic_cast<NodeSQL*>(node2)->ucCnNe();
     }
-    else if(carrier_type == (int) Hole) {
+    else if(_carrier_type == (int) Hole) {
         charge = 1.0;
         prefactor = prefactor*(eventinfo->hole_prefactor);
         static_node_energy_from = dynamic_cast<NodeSQL*>(node1)->eAnion() + dynamic_cast<NodeSQL*>(node1)->ucCnNh();
@@ -131,7 +149,7 @@ void Event::Set_event(int id, Link* link, int carrier_type, StateDevice* state,E
 
 
    //first calculate quantum mechanical wavefunction overlap
-    votca::tools::vec distancevector = link->r12();
+    votca::tools::vec distancevector = _link->r12();
     double distance = abs(distancevector);
 
     double distancefactor = exp(-1.0*eventinfo->alpha*distance);
@@ -145,12 +163,12 @@ void Event::Set_event(int id, Link* link, int carrier_type, StateDevice* state,E
     double from_event_energy = 0.0;
     double to_event_energy = 0.0;
 
-    if(_init_type == Injection)           { from_event_energy -= eventinfo->injection_barrier; prefactor *= eventinfo->injection_prefactor;     _action_node1 = (int) None;   } // injection
-    else if(_init_type == TransferFrom)   {                                                                                                     _action_node1 = (int) Remove; } // transfer
+    if(_init_type == Injection)           { from_event_energy -= eventinfo->injection_barrier; prefactor *= eventinfo->injection_prefactor;    } // injection
+    else if(_init_type == TransferFrom)   {                                                                                                    } // transfer
 
-    if(_final_type == TransferTo)         {                                                                                                     _action_node2 = (int) Add;    } // transfer
-    else if(_final_type == Collection)    { to_event_energy   -= eventinfo->injection_barrier; prefactor *= eventinfo->collection_prefactor;    _action_node2 = (int) None;   } // collection
-    else if(_final_type == Recombination) { to_event_energy   -= eventinfo->binding_energy;    prefactor *= eventinfo->recombination_prefactor; _action_node2 = (int) Remove; } // recombination
+    if(_final_type == TransferTo)         {                                                                                                    } // transfer
+    else if(_final_type == Collection)    { to_event_energy   -= eventinfo->injection_barrier; prefactor *= eventinfo->collection_prefactor;   } // collection
+    else if(_final_type == Recombination) { to_event_energy   -= eventinfo->binding_energy;    prefactor *= eventinfo->recombination_prefactor;} // recombination
 
 //    double coulomb_from;
 //    double coulomb_to;
@@ -191,6 +209,23 @@ void Event::Set_event(int id, Link* link, int carrier_type, StateDevice* state,E
     }
     std::cout << "factors " << prefactor << " " << distancefactor << " " << energyfactor << endl;
     _rate = prefactor*distancefactor*energyfactor;
+}
+
+void Event::Set_event(Link* link, int carrier_type, StateDevice* state,Eventinfo* eventinfo) {
+    
+    _link = link;
+    Node* node1 = link->node1();
+    Node* node2 = link->node2();
+
+    _carrier_type = carrier_type;
+    _init_type = Determine_init_event_type(node1);
+
+    if (node2->occ() == -1) _final_type = Determine_final_event_type(node1, node2);
+    else                    _final_type = Determine_final_event_type(carrier_type, state->GetCarrier(node2->occ())->type(), node1, node2);    
+
+    _action_node1 = Determine_action_flag_node1();
+    _action_node2 = Determine_action_flag_node2();
+    Determine_rate(eventinfo);
 }
 
 }} 
