@@ -46,6 +46,8 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 ########################################################################
 #Find external packages
 ########################################################################
+find_package(Threads REQUIRED)
+set(THREAD_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
 find_package(TXT2TAGS)
 option(EXTERNAL_BOOST "Use external boost" ON)
 if (EXTERNAL_BOOST)

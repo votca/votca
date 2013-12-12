@@ -76,6 +76,7 @@ for (my $i=$#pot;$i>=0;$i--){
      last;
    }
 }
+die "All data points from file '$infile' are invalid after Boltzmann inversion, please check if your distribution is a valid rdf.\n" if ($first_undef_bin==$#pot);
 
 #find i which is the cutoff
 my $i_cut=$#r;
