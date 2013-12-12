@@ -28,6 +28,8 @@
 #ifdef GMX
 #include "modules/io/gmxtopologyreader.h"
 #include "modules/io/pdbtopologyreader.h"
+#else
+#include "modules/io/pdbreader.h"
 #endif
 #include "modules/io/dlpolytopologyreader.h"
 
@@ -44,6 +46,8 @@ void TopologyReader::RegisterPlugins(void)
 #ifdef GMX
     TopReaderFactory().Register<GMXTopologyReader>("tpr");
     TopReaderFactory().Register<PDBTopologyReader>("pdb");
+#else
+    TopReaderFactory().Register<PDBReader>("pdb");
 #endif
     TopReaderFactory().Register<DLPOLYTopologyReader>("dlpoly");
 }
