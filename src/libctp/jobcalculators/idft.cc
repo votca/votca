@@ -518,8 +518,9 @@ void IDFT::WriteJobFile(Topology *top) {
 /**
  * Reads-in electronic couplings from the job file to topology 
  * Does not detect level degeneracy! (TO DO)
- */
-void IDFT::Import( Topology *top ) 
+ * Does not account for SUPEREXCHANGE (TO DO) 
+ * 
+void IDFT::ReadJobFile( Topology *top ) 
 {
     Property xml;
 
@@ -532,8 +533,7 @@ void IDFT::Import( Topology *top )
     log.setReportLevel(logINFO);
     
     // load the xml job file into the property object
-    string _idft_jobs_file;
-    load_property_from_xml(xml, _idft_jobs_file);
+    load_property_from_xml(xml, _jobfile);
     
     list<Property*> jobProps = xml.Select("jobs.job");
     list<Property*> ::iterator it;
@@ -592,74 +592,85 @@ void IDFT::Import( Topology *top )
             
         } else { // output not found, job failed - report - throw an exception in the future
             _incomplete_jobs++;
-            LOG(logINFO, log) << "Job " << (*it)->get( "id" ).as<string>() << " is " << (*it)->get( "status" ).as<string>() << endl;
+            LOG(logINFO, log) << "Job " << (*it)->get( "id" ).as<string>() << " status is: " << (*it)->get( "status" ).as<string>() << endl;
         }
     }
     
     LOG(logINFO, log) << "Pairs [total:saved] " <<  _number_of_pairs << ":" << _current_pairs << " Incomplete jobs: " << _incomplete_jobs << flush; 
     cout << log;
 }
+*/
 
-/* SUPEREXCHANGE 
+/** 
+ * Imports electronic couplings with superexchange
+ */  
 
-void ImportSuperExchange(Topology *top) {
+void IDFT::ReadJobFile(Topology *top) {
 
     Property xml;
 
     vector<Property*> records;
-            
+    
+    // gets the neighborlist from the topology
     QMNBList &nblist = top->NBList();
     int _number_of_pairs = nblist.size();
     int _current_pairs = 0;
     int _incomplete_jobs = 0;
     
+    // output using logger
     Logger _log;
     _log.setReportLevel(logINFO);
     
-    //generate lists of bridges for superexchange pairs
+    // generate lists of bridges for superexchange pairs
     nblist.GenerateSuperExchange();
 
     // load the QC results in a vector indexed by the pair ID
-    load_property_from_xml(xml, _idft_jobs_file);
+    load_property_from_xml(xml, _jobfile);
     list<Property*> jobProps = xml.Select("jobs.job");
     
     records.resize( jobProps.size() + 1  );
     
+    // loop over all jobs = pair records in the job file
     for (list<Property*> ::iterator  it = jobProps.begin(); it != jobProps.end(); ++it) {
  
+        // if job produced an output, then continue with analysis
         if ( (*it)->exists("output") && (*it)->exists("output.pair") ) {
             
+            // get the output records
             Property poutput = (*it)->get("output.pair");
-            
+            // id's of two segments of a pair
             int idA = poutput.getAttribute<int>("idA");
             int idB = poutput.getAttribute<int>("idB");
-                       
+            // segments which correspond to these ids           
             Segment *segA = top->getSegment(idA);
             Segment *segB = top->getSegment(idB);
-
+            // pair that corresponds to the two segments
             QMPair *qmp = nblist.FindPair(segA,segB);
             
             if (qmp == NULL) { // there is no pair in the neighbor list with this name
-                ;//LOG(logINFO, _log) << "No pair " <<  idA << ":" << idB << " found in the neighbor list. Ignoring" << flush; 
+                LOG(logINFO, _log) << "No pair " <<  idA << ":" << idB << " found in the neighbor list. Ignoring" << flush; 
             }   else {
-                LOG(logINFO, _log) << "Store in record: " <<  idA << ":" << idB << flush; 
+                //LOG(logINFO, _log) << "Store in record: " <<  idA << ":" << idB << flush; 
                 records[qmp->getId()] = & ((*it)->get("output.pair"));
             }
+        } else {
+            throw runtime_error("\nERROR: Job file incomplete.\n Check your job file for FAIL, AVAILABLE, or ASSIGNED. Exiting\n");
         }
     } // finished loading from the file
 
 
-    // loop over all pairs in the neighborlist
+    // loop over all pairs in the neighbor list
+    std::cout << "Neighborlist size " << top->NBList().size() << std::endl;
     for (QMNBList::iterator ipair = top->NBList().begin(); ipair != top->NBList().end(); ++ipair) {
         
         QMPair *pair = *ipair;
-        Segment* segmentA = pair->Seg1PbCopy();
-        Segment* segmentB = pair->Seg2PbCopy();
+        Segment* segmentA = pair->Seg1();
+        Segment* segmentB = pair->Seg2();
         
         double Jeff2_homo = 0;
         double Jeff2_lumo = 0;
         
-        cout << "Processing pair " << segmentA->getId() << ":" << segmentB->getId() << endl;
+        cout << "Processing pair " << segmentA->getId() << ":" << segmentB->getId() << flush;
         
         QMPair::PairType _ptype = pair->getType();
         Property* pair_property = records[ pair->getId() ];
@@ -669,7 +680,7 @@ void ImportSuperExchange(Topology *top) {
        
         // If a pair is of a direct type 
         if ( _ptype == QMPair::Hopping ||  _ptype == QMPair::SuperExchangeAndHopping ) {
-            cout << "Pair is hopping" << endl;
+            cout << ":hopping" ;
             list<Property*> pOverlap = pair_property->Select("overlap");
  
             for (list<Property*> ::iterator itOverlap = pOverlap.begin(); itOverlap != pOverlap.end(); ++itOverlap) {
@@ -677,7 +688,7 @@ void ImportSuperExchange(Topology *top) {
                 double overlapAB = (*itOverlap)->getAttribute<double>("jAB");
                 int orbA = (*itOverlap)->getAttribute<double>("orbA");
                 int orbB = (*itOverlap)->getAttribute<double>("orbB");
-
+                cout << " orbA:orbB " << orbA << ":" << orbB << flush;
                 if ( orbA == homoA && orbB == homoB ) {
                     Jeff2_homo += overlapAB*overlapAB;
                 }
@@ -691,7 +702,7 @@ void ImportSuperExchange(Topology *top) {
         
         // if pair has bridges only
         if ( _ptype == QMPair::SuperExchange  ||  _ptype == QMPair::SuperExchangeAndHopping ) {
-            
+            cout << ":superexchange" << endl;
             list<Property*> pOverlap = pair_property->Select("overlap");
             
             // this is to select HOMO_A and HOMO_B 
@@ -702,27 +713,48 @@ void ImportSuperExchange(Topology *top) {
             double energyB;
             
             for (list<Property*> ::iterator itOverlap = pOverlap.begin(); itOverlap != pOverlap.end(); ++itOverlap) {
-                if ( orbA == homoA && orbB == homoB ) {  
+               orbA = (*itOverlap)->getAttribute<int>("orbA");
+               orbB = (*itOverlap)->getAttribute<int>("orbB");
+               if ( orbA == homoA && orbB == homoB ) {  
                     overlapAB = (*itOverlap)->getAttribute<double>("jAB");
-                    orbA = (*itOverlap)->getAttribute<double>("orbA");
-                    orbB = (*itOverlap)->getAttribute<double>("orbB");
                     energyA = (*itOverlap)->getAttribute<double>("eA");
                     energyB = (*itOverlap)->getAttribute<double>("eB");
+                    break;
                 }
             }
             
-            
-            
-            // loop over the bridging segments
-            for ( vector< Segment* >::iterator itBridge = pair->getBridgingSegments().begin() ; itBridge != pair->getBridgingSegments().end(); itBridge++ ) {
+            cout << " homoA:homoB, orbA:orbB " << homoA << ":" << homoB << "," << orbA << ":" << orbB;
 
+            /*QMNBList::iterator nit;
+            for (nit = nblist.begin(); nit != nblist.end(); ++nit) {
+                
+                QMPair *qmp = *nit;
+                Segment *seg1 = qmp->Seg1();
+                Segment *seg2 = qmp->Seg2();
+                
+                cout << "ID1 " << seg1->getId();
+                cout << " <> ID2 " << seg2->getId() << endl;
+                
+            }*/
+            // loop over the bridging segments
+            for ( vector< Segment* >::const_iterator itBridge = pair->getBridgingSegments().begin() ; itBridge != pair->getBridgingSegments().end(); itBridge++ ) {
+                        
                 Segment* Bridge = *itBridge;
                 int IDBridge = Bridge->getId();
+                
+                cout << " BridgeID:" << IDBridge;
 
                 // pairs from the bridge to the donor and acceptor
                 QMPair* Bridge_A = nblist.FindPair( segmentA, Bridge );
-                QMPair* Bridge_B = nblist.FindPair( segmentB, Bridge );
+                if( Bridge_A == NULL ) cout << "Bridge-SegmentA pair not found" << std::endl;  
 
+                QMPair* Bridge_B = nblist.FindPair( segmentB, Bridge );
+                if( Bridge_B == NULL ) cout << "Bridge-SegmentB pair not found " << segmentB->getId() << ":" << Bridge->getId()<< std::endl;
+                
+
+                cout << " IDBA:IDBB " << Bridge_A->getId() << ":" << Bridge_B->getId();
+
+                
                 Property* pBridge_A = records[ Bridge_A->getId() ];
                 Property* pBridge_B = records[ Bridge_B->getId() ];
 
@@ -733,6 +765,8 @@ void ImportSuperExchange(Topology *top) {
                 int IdA = segmentA->getId();
                 int IdB = segmentB->getId();
 
+
+                                
                 // IDs stored in the file
                 int id1A = pBridge_A->getAttribute<int>("idA");
                 int id2A = pBridge_A->getAttribute<int>("idB");
@@ -740,17 +774,26 @@ void ImportSuperExchange(Topology *top) {
                 int id1B = pBridge_B->getAttribute<int>("idA");
                 int id2B = pBridge_B->getAttribute<int>("idB");
 
-                // suffix for the donor and acceptor
+                // suffix for the donor and acceptor 
                 string suffixA = ( id1A == IDBridge ) ? "B" : "A"; // use "A" as a bridge 
                 string suffixB = ( id1B == IDBridge ) ? "B" : "A"; // use "A" as a bridge 
                 string suffixBridgeA = ( id1A == IDBridge ) ? "A" : "B";
                 string suffixBridgeB = ( id1B == IDBridge ) ? "A" : "B";
                 
-                int homoBridgeA = pBridge_A->getAttribute<int>("orb" + suffixBridgeA );
-                int homoBridgeB = pBridge_B->getAttribute<int>("orb" + suffixBridgeB );
+                cout << " id1A:id1B " << id1A << ":" << id1B;
+                
+                //cout << *pBridge_A << endl;
+                //cout << *pBridge_B << endl;
+               
+                //double check if the records are correct
+                int homoBridgeA = pBridge_A->getAttribute<int>("homo" + suffixBridgeA );
+                int homoBridgeB = pBridge_B->getAttribute<int>("homo" + suffixBridgeB );
                 assert( homoBridgeA == homoBridgeB );
                 int homoBridge = homoBridgeA;
                
+                //exit(0);
+                
+                // double loop over all levels of A and B
                 for (list<Property*> ::iterator itOverlapA = pOverlapA.begin(); itOverlapA != pOverlapA.end(); ++itOverlapA) {
                 for (list<Property*> ::iterator itOverlapB = pOverlapB.begin(); itOverlapB != pOverlapB.end(); ++itOverlapB) {
                     
@@ -800,25 +843,21 @@ void ImportSuperExchange(Topology *top) {
                      
                 }}
             } // end over bridges 
-            
-            
-            
+          
         } // end of if superexchange
-         
+        
+        cout << endl;
+                    
         pair->setJeff2(Jeff2_homo, 1);
         pair->setIsPathCarrier(true, 1);
         
         pair->setJeff2(Jeff2_lumo, -1);
         pair->setIsPathCarrier(true, -1);
-       
-        break;
+
     }
                     
     LOG(logINFO, _log) << "Pairs [total:updated] " <<  _number_of_pairs << ":" << _current_pairs << " Incomplete jobs: " << _incomplete_jobs << flush; 
     cout << _log;
 }
-
-
-*/
 
 }};
