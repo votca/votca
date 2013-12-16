@@ -20,9 +20,7 @@
 
 #include <votca/tools/vec.h>
 #include <votca/kmc/graphlattice.h>
-#include <votca/kmc/globaleventinfo.h>
-
-typedef votca::tools::vec myvec;
+#include <votca/kmc/eventinfo.h>
 
 namespace votca { namespace kmc {
   
@@ -30,14 +28,14 @@ using namespace std;
 
 class Longrange {
 
-/*public:
-    void Update_cache(myvec sim_box_size, Globaleventinfo* globevent); // Update cached longrange contributions
+public:
+    void Update_cache(myvec sim_box_size, Eventinfo* eventinfo); // Update cached longrange contributions
     double Get_cached_longrange(int layer); // Return cached value
     void Reset();
     //note that the number of images for the calculation of the long range potential should be considerably larger 
     //than the number for the short range potential
-    void Initialize(GraphLattice* graph, Globaleventinfo* globevent); 
-    double Calculate_longrange(int layer, bool cut_out_discs, myvec sim_box_size, Globaleventinfo* globevent); // Calculate long-range part of Coulomb interaction
+    void Initialize(GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph, Eventinfo* eventinfo){}; 
+    double Calculate_longrange(int layer, bool cut_out_discs, myvec sim_box_size, Eventinfo* eventinfo); // Calculate long-range part of Coulomb interaction
 
     vector<double> layercharge;
     vector<double> longrange_cache;
@@ -47,7 +45,7 @@ class Longrange {
 
 private:
     vector< vector <double> > precalculate_disc_contrib; // Precalculated disc contributions
-    double Calculate_disc_contrib(int calculate_layer, int contrib_layer, myvec sim_box_size, Globaleventinfo* globevent); // Calculate disc contributions
+    double Calculate_disc_contrib(int calculate_layer, int contrib_layer, myvec sim_box_size, Eventinfo* eventinfo); // Calculate disc contributions
   
     vector<int> first_contributing_layer; // What is the first layer that contributes to the relevant layer?
     vector<int> final_contributing_layer; // What is the last layer that contributes to the relevant layer?*/

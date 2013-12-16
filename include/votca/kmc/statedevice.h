@@ -47,7 +47,7 @@ public:
     void Sell(unsigned int remove_from_sim_box);
     
     /// Growing of carrier and reservoir vector
-    void Grow(unsigned int nr_new_carriers);
+    void Grow(unsigned int nr_new_carriers, int maxpairdegree);
     
     /// Print carrier list (for debugging)
     void PrintDevice(std::ostream& out);
@@ -79,9 +79,11 @@ void StateDevice::Sell(unsigned int remove_from_sim_box) {
     carrier_reservoir.push_back(remove_from_sim_box);
     this->GetCarrier(remove_from_sim_box)->SetInBox(false);
     this->GetCarrier(remove_from_sim_box)->SetCarrierType((int) Reservoir);
+    this->GetCarrier(remove_from_sim_box)->Reset_to_Coulomb();
+    this->GetCarrier(remove_from_sim_box)->Set_from_Coulomb(0.0);
 }
 
-void StateDevice::Grow(unsigned int nr_new_carriers) {
+void StateDevice::Grow(unsigned int nr_new_carriers, int maxpairdegree) {
     
     unsigned int new_nr_carriers = this->GetCarrierSize() + nr_new_carriers;
     for (unsigned int i=this->GetCarrierSize(); i<new_nr_carriers; i++) {
@@ -92,6 +94,8 @@ void StateDevice::Grow(unsigned int nr_new_carriers) {
         newcarrier->SetInBox(false);
         newcarrier->SetDistance(votca::tools::vec(0.0,0.0,0.0)); //initialize the travelled distance vector
         newcarrier->SetCarrierType((int) Reservoir); //set carrier in reservoir
+        newcarrier->Init_to_Coulomb(maxpairdegree);
+        newcarrier->Set_from_Coulomb(0.0);
     }
 }
 

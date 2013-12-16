@@ -60,6 +60,12 @@ public:
     void Determine_rate(Eventinfo* eventinfo);
     /// Set rate to value
     void Set_rate(double rate) {_rate = rate;}
+    /// Set out of box
+    void Set_not_in_box_event() {_final_type = (int) Notinbox; _rate = 0.0;}
+    /// Set injection potential
+    void Set_injection_potential(double injection_potential) {_injection_potential = injection_potential;}
+    /// Add injection potential
+    void Add_injection_potential(double injection_potential) {_injection_potential += injection_potential;}
     
     /// Determine initial event type
     int Determine_init_event_type(Node* node1);
@@ -80,15 +86,17 @@ protected:
     
     double _rate;
     
-    double _sr_from;
-    double _sr_to;
-    
     int _final_type;
     int _init_type;
     int _id;
     
     int _action_node1;
     int _action_node2;
+    
+    int _layer_node1;
+    int _layer_node2;
+    
+    double _injection_potential;
     
 };
 

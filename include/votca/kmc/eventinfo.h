@@ -64,6 +64,12 @@ public:
         mesh_z                      = options->get("options.diode.mesh_z").as<double>();
         
     }
+    
+    void Graph_Parameters(double graph_hopdist, votca::tools::vec graph_simboxsize, int graph_maxpairdegree) {
+        hopdist = graph_hopdist;
+        simboxsize = graph_simboxsize;
+        maxpairdegree = graph_maxpairdegree;
+    }
         
     int nx; int ny; int nz; int growsize;
     double lattice_constant; double left_electrode_distance; double right_electrode_distance; double alpha; double beta;
@@ -73,6 +79,9 @@ public:
     bool left_electron_injection; bool left_hole_injection; bool right_electron_injection; bool right_hole_injection; bool device;
     double mesh_x; double mesh_y; double mesh_z;
     
+    double hopdist;
+    votca::tools::vec simboxsize;
+    int maxpairdegree;
     
     double coulomb_strength;
     double coulcut;

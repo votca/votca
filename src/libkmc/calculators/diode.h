@@ -89,6 +89,7 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     std::cout << "simulation box size: " << graph->simboxsize() << endl;
     std::cout << "number of left electrode injector nodes " << graph->left()->links().size() << endl;
     std::cout << "number of right electrode injector nodes " << graph->right()->links().size() << endl;
+    eventdata->Graph_Parameters(graph->hopdist(), graph->simboxsize(), graph->maxpairdegree());
 
     state = new StateDevice();
     state->InitState();
@@ -96,7 +97,7 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     events = new Events();
     
     std::cout << graph->GetNode(10)->occ() << endl;
-    state->Grow(10);
+    state->Grow(10, graph->maxpairdegree());
     int carrier_ID = state->Buy();
     Carrier* newcarrier = state->GetCarrier(carrier_ID);
     Node* carrier_node = graph->GetNode(20);

@@ -30,17 +30,24 @@ public:
     
     /// is carrier in box or not?
     const bool &inbox() const { return _in_sim_box; }
-    const double &on_site_coulomb() const {return _on_site_coulomb; }
+    const double &on_site_coulomb() const {return _from_coulomb; }
     
     /// set "inbox/outbox" status
     void SetInBox(bool in_sim_box) {_in_sim_box = in_sim_box;}
     
-    void SetCoulomb(double coulomb) {_on_site_coulomb = coulomb;}
+    void Add_from_Coulomb(double coulomb) {_from_coulomb += coulomb;}
+    void Set_from_Coulomb(double coulomb) {_from_coulomb = coulomb;}
+    
+    void Init_to_Coulomb(int maxpairdegree) {_to_coulomb.resize(maxpairdegree); Reset_to_Coulomb();}
+    void Reset_to_Coulomb() { for (int it = 0; it < _to_coulomb.size(); it++ ) { _to_coulomb[it] = 0.0;} }
+    void Add_to_Coulomb(double coulomb, int linkID) {_to_coulomb[linkID] += coulomb;}
+    void Set_to_Coulomb(double coulomb, int linkID) {_to_coulomb[linkID] = coulomb;}
     
 private:
     
     bool _in_sim_box;
-    double _on_site_coulomb;
+    double _from_coulomb;
+    vector<double> _to_coulomb;
 };
 
 }} 
