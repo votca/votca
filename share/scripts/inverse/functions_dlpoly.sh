@@ -28,7 +28,7 @@ fi
 simulation_finish() { #checks if simulation is finished
   local traj topol
   if [[ -f "HISTORY" ]]; then
-    #hacky workaround as topol/traj is called '.dlpoly'
+    #hacky workaround as topol/traj is called '.dlph/.dlpf'
     traj=$(csg_get_property cg.inverse.dlpoly.traj)
     critical touch $traj
     topol=$(csg_get_property cg.inverse.dlpoly.topol)
