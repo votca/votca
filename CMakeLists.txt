@@ -16,6 +16,9 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
   #Release comes with -O3 by default
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
+if(CMAKE_BUILD_TYPE STREQUAL Debug)
+  add_definitions(-DDEBUG)
+endif(CMAKE_BUILD_TYPE STREQUAL Debug)
 
 enable_language(CXX)
 
