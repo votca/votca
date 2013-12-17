@@ -32,7 +32,7 @@
 
 namespace votca { namespace kmc {
 
-class StateDevice : public State<GraphDevice<GraphSQL, NodeSQL, LinkSQL>, CarrierDevice> {
+class StateDevice : public State<GraphDevice, CarrierDevice> {
     
 public:
 

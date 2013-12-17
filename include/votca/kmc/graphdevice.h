@@ -20,15 +20,15 @@
 
 #include <vector>
 #include <votca/kmc/graphsql.h>
-//#include <votca/kmc/nodedevice.h>
+#include <votca/kmc/nodedevice.h>
+#include <votca/kmc/linkdevice.h>
 //#include <votca/kmc/graphcubic.h>
 
 namespace votca { namespace kmc {
 
 enum NodeType{NormalNode, LeftElectrodeNode, RightElectrodeNode };    
     
-template<class TGraph, class TNode, class TLink>    
-class GraphDevice : public TGraph {
+class GraphDevice : public GraphSQL<NodeDevice,LinkDevice> {
 
 public:
 
@@ -60,10 +60,10 @@ public:
     const votca::tools::vec &simboxsize() const { return _sim_box_size; }
     
     /// left electrode node
-    TNode* &left() { return _left_electrode; }
+    NodeDevice* &left() { return _left_electrode; }
     
     /// right electrode node
-    TNode* &right() { return _right_electrode; }
+    NodeDevice* &right() { return _right_electrode; }
 
     /// renumber the Id's of all links
     void RenumberId();      
@@ -74,13 +74,12 @@ private:
     double _hop_distance;
     votca::tools::vec _sim_box_size;
 
-    TNode* _left_electrode;
-    TNode* _right_electrode;
+    NodeDevice* _left_electrode;
+    NodeDevice* _right_electrode;
     
 };
 
-template<class TGraph, class TNode, class TLink>
-void GraphDevice<TGraph, TNode, TLink>::Setup_device_graph(double left_distance, double right_distance){
+void GraphDevice::Setup_device_graph(double left_distance, double right_distance){
 
     // Determine hopping distance before breaking periodicity
     _hop_distance = this->Determine_Hopping_Distance();
@@ -94,7 +93,7 @@ void GraphDevice<TGraph, TNode, TLink>::Setup_device_graph(double left_distance,
     votca::tools::vec pos = this->_nodes[0]->position(); // initial value 
     double minX = pos.x();
 
-    typename std::vector<TNode*>::iterator it;      
+    typename std::vector<NodeDevice*>::iterator it;      
     for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) {
         pos = (*it)->position(); if(pos.x() < minX) {minX = pos.x();}
     }
@@ -120,8 +119,8 @@ void GraphDevice<TGraph, TNode, TLink>::Setup_device_graph(double left_distance,
     for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) (*it)->SetType((int) NormalNode);
     
     //introduce the electrode nodes (might make a special electrode node header file for this)
-    _left_electrode = new TNode(-1, tools::vec(0.0,0.0,0.0));
-    _right_electrode = new TNode(-2, tools::vec(_sim_box_size.x(),0.0,0.0));
+    _left_electrode = new NodeDevice(-1, tools::vec(0.0,0.0,0.0));
+    _right_electrode = new NodeDevice(-2, tools::vec(_sim_box_size.x(),0.0,0.0));
     _left_electrode->SetType((int) LeftElectrodeNode);
     _right_electrode->SetType((int) RightElectrodeNode);
 
@@ -135,16 +134,16 @@ void GraphDevice<TGraph, TNode, TLink>::Setup_device_graph(double left_distance,
      
         if(left_distance <= _hop_distance) {
             votca::tools::vec dr = votca::tools::vec(-1.0*left_distance,0.0,0.0);   
-            TLink* newLinkCollect = this->AddLink(linkID,(*it), _left_electrode, dr); linkID++;
-            TLink* newLinkInject = new TLink(linkID, _left_electrode, (*it), -1.0*dr);
+            LinkSQL* newLinkCollect = this->AddLink(linkID,(*it), _left_electrode, dr); linkID++;
+            LinkSQL* newLinkInject = new LinkSQL(linkID, _left_electrode, (*it), -1.0*dr);
             _left_electrode->AddLink(newLinkInject);
         }
       
         double right_distance = _sim_box_size.x() - nodepos.x();
         if(right_distance <= _hop_distance) {
             votca::tools::vec dr = votca::tools::vec(right_distance,0.0,0.0);   
-            TLink* newLinkCollect = this->AddLink(linkID,(*it), _right_electrode, dr); linkID++;
-            TLink* newLinkInject = new TLink(linkID, _right_electrode, (*it), -1.0*dr);
+            LinkSQL* newLinkCollect = this->AddLink(linkID,(*it), _right_electrode, dr); linkID++;
+            LinkSQL* newLinkInject = new LinkSQL(linkID, _right_electrode, (*it), -1.0*dr);
             _right_electrode->AddLink(newLinkInject);
         }
     }
@@ -169,22 +168,20 @@ void GraphDevice<TGraph, TNode, TLink>::Setup_device_graph(double left_distance,
 }
 
 
-template<class TGraph, class TNode, class TLink>
-void GraphDevice<TGraph, TNode, TLink>::LinkSort(){
+void GraphDevice::LinkSort(){
     
-    typename std::vector<TLink*>::iterator it;
+    typename std::vector<LinkDevice*>::iterator it;
     for (it = this->_links.begin(); it != this->_links.end(); it++ ) {
-        TNode* node1 = dynamic_cast<TNode*>((*it)->node1());
+        NodeDevice* node1 = dynamic_cast<NodeDevice*>((*it)->node1());
         if(node1->type() == NormalNode) node1->AddLink((*it));
     }
         
 }
 
-template<class TGraph, class TNode, class TLink>
-int GraphDevice<TGraph, TNode, TLink>::Determine_Max_Pair_Degree(){
+int GraphDevice::Determine_Max_Pair_Degree(){
     
     int max_pair_degree = 0;
-    typename std::vector<TNode*>::iterator it;    
+    typename std::vector<NodeDevice*>::iterator it;    
     for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) {
         if((*it)->type() == NormalNode) {        
             if((*it)->links().size()>max_pair_degree) max_pair_degree = (*it)->links().size();
@@ -194,11 +191,10 @@ int GraphDevice<TGraph, TNode, TLink>::Determine_Max_Pair_Degree(){
     
 }
 
-template<class TGraph, class TNode, class TLink>
-double GraphDevice<TGraph, TNode, TLink>::Determine_Hopping_Distance(){
+double GraphDevice::Determine_Hopping_Distance(){
     
     double hop_distance = 0.0;
-    typename std::vector<TLink*>::iterator it;    
+    typename std::vector<LinkDevice*>::iterator it;    
     for(it = this->_links.begin(); it != this->_links.end(); it++) {
         votca::tools::vec dR = (*it)->r12();
         double distance = abs(dR);
@@ -208,8 +204,7 @@ double GraphDevice<TGraph, TNode, TLink>::Determine_Hopping_Distance(){
 }
 
 
-template<class TGraph, class TNode, class TLink>
-votca::tools::vec GraphDevice<TGraph, TNode, TLink>::Determine_Sim_Box_Size(){ 
+votca::tools::vec GraphDevice::Determine_Sim_Box_Size(){ 
     
     votca::tools::vec sim_box_size;
     //Determination of simulation box size
@@ -231,7 +226,7 @@ votca::tools::vec GraphDevice<TGraph, TNode, TLink>::Determine_Sim_Box_Size(){
     double maxX = initpos.x(); double maxY = initpos.y(); double maxZ = initpos.z();
     double minX = initpos.x(); double minY = initpos.y(); double minZ = initpos.z();
     
-    typename std::vector<TLink*>::iterator it;    
+    typename std::vector<LinkDevice*>::iterator it;    
     for(it = this->_links.begin(); it != this->_links.end(); it++) {
         
         if(pairXfound&&pairYfound&&pairZfound) break;
@@ -265,12 +260,11 @@ votca::tools::vec GraphDevice<TGraph, TNode, TLink>::Determine_Sim_Box_Size(){
     return sim_box_size;
 }
 
-template<class TGraph, class TNode, class TLink>
-void GraphDevice<TGraph, TNode, TLink>::Break_periodicity(bool break_x, bool break_y, bool break_z){
+void GraphDevice::Break_periodicity(bool break_x, bool break_y, bool break_z){
 
     for(int it = this->_links.size()-1; it != 0; it--) {
 
-        TLink* ilink = this->_links[it];
+        LinkDevice* ilink = this->_links[it];
         
         votca::tools::vec pos1 = ilink->node1()->position();
         votca::tools::vec pos2 = ilink->node2()->position();
@@ -288,18 +282,14 @@ void GraphDevice<TGraph, TNode, TLink>::Break_periodicity(bool break_x, bool bre
     
 }
 
-template<class TGraph, class TNode, class TLink>
-void GraphDevice<TGraph,TNode, TLink>::RenumberId() {
+void GraphDevice::RenumberId() {
 
-    typename std::vector<TNode*>::iterator it;
+    typename std::vector<NodeDevice*>::iterator it;
     for (it = this->_nodes.begin(); it != this->_nodes.end(); it++) {
         
-        vector<Link*> links = (*it)->links();
         int renum_ID = 0;
-        
-        typename std::vector<Link*>::iterator ilink;              
-        for (ilink = links.begin() ; ilink != links.end(); ilink++) {
-            (*ilink)->SetID(renum_ID); renum_ID++;
+        for (int ilink = 0 ; ilink < (*it)->links().size(); ilink++) {
+            (*it)->links()[ilink]->SetID(renum_ID); renum_ID++;
         }        
     }
 }

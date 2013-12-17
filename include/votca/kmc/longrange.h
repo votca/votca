@@ -34,7 +34,7 @@ public:
     void Reset();
     //note that the number of images for the calculation of the long range potential should be considerably larger 
     //than the number for the short range potential
-    void Initialize(GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph, Eventinfo* eventinfo){}; 
+    void Initialize(GraphDevice* graph, Eventinfo* eventinfo){}; 
     double Calculate_longrange(int layer, bool cut_out_discs, myvec sim_box_size, Eventinfo* eventinfo); // Calculate long-range part of Coulomb interaction
 
     vector<double> layercharge;

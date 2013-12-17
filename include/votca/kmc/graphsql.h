@@ -24,8 +24,8 @@
 
 namespace votca { namespace kmc {
 
-    
-class GraphSQL : public Graph<NodeSQL, LinkSQL> {
+template<class TNode, class TLink>    
+class GraphSQL : public Graph<TNode, TLink> {
 
 public:
    
@@ -33,7 +33,8 @@ public:
     
 };
 
-inline void GraphSQL::Initialize(string filename){
+template<class TNode, class TLink>    
+inline void GraphSQL<TNode,TLink>::Initialize(string filename){
     
     // Load Nodes
     votca::tools::Database db;
@@ -59,10 +60,10 @@ inline void GraphSQL::Initialize(string filename){
         double ucCnNe = stmt->Column<double>(11);
         double ucCnNh = stmt->Column<double>(12);
 
-        NodeSQL* newNodeSQL = AddNode(id,position);
-        newNodeSQL->setU(UnCnNe, UnCnNh, UcNcCe, UcNcCh);
-        newNodeSQL->setE(eAnion, eNeutral, eCation);
-        newNodeSQL->setu(ucCnNe, ucCnNh);
+        TNode* newTNode = this->AddNode(id,position);
+        newTNode->setU(UnCnNe, UnCnNh, UcNcCe, UcNcCh);
+        newTNode->setE(eAnion, eNeutral, eCation);
+        newTNode->setu(ucCnNe, ucCnNh);
         
     }
     
@@ -80,8 +81,8 @@ inline void GraphSQL::Initialize(string filename){
         
         int node1_id = stmt->Column<int>(0);
         int node2_id = stmt->Column<int>(1);
-        NodeSQL* node1 = GetNode(node1_id);
-        NodeSQL* node2 = GetNode(node2_id);
+        TNode* node1 = this->GetNode(node1_id);
+        TNode* node2 = this->GetNode(node2_id);
 
         double drX = stmt->Column<double>(2);
         double drY = stmt->Column<double>(3);
@@ -99,10 +100,10 @@ inline void GraphSQL::Initialize(string filename){
         double lOe = stmt->Column<double>(11);
         double lOh = stmt->Column<double>(12);
         
-        LinkSQL* newLinkSQL = AddLink(id,node1, node2, r12);
-        newLinkSQL->setRate(rate12e,rate12h,rate21e,rate21h);
-        newLinkSQL->setJeff2(Jeff2e,Jeff2h);
-        newLinkSQL->setlO(lOe,lOh);
+        TLink* newTLink = this->AddLink(id,node1, node2, r12);
+        newTLink->setRate(rate12e,rate12h,rate21e,rate21h);
+        newTLink->setJeff2(Jeff2e,Jeff2h);
+        newTLink->setlO(lOe,lOh);
         id++;
     }
         

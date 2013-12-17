@@ -36,6 +36,7 @@ public:
     Events() {
         _non_injection_rates = new Bsumtree();
         _injection_rates = new Bsumtree();
+        _longrange = new Longrange();
     }
      
     ~Events() {
@@ -47,15 +48,15 @@ public:
         delete _longrange;
     } 
     
-    void On_execute(Event* event, GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph, StateDevice* state, Eventinfo* eventinfo);
-    void On_execute_node(Node* node, int action, int carrier_type, GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph, StateDevice* state, Eventinfo* eventinfo);
-    void Add_carrier(Node* node, int carrier_type, GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph, StateDevice* state, Eventinfo* eventinfo);
-    void Remove_carrier(Node* node, GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph, StateDevice* state, Eventinfo* eventinfo);
+    void On_execute(Event* event, GraphDevice* graph, StateDevice* state, Eventinfo* eventinfo);
+    void On_execute_node(Node* node, int action, int carrier_type, GraphDevice* graph, StateDevice* state, Eventinfo* eventinfo);
+    void Add_carrier(Node* node, int carrier_type, GraphDevice* graph, StateDevice* state, Eventinfo* eventinfo);
+    void Remove_carrier(Node* node, GraphDevice* graph, StateDevice* state, Eventinfo* eventinfo);
     
     void Recompute_all_non_injection_events(StateDevice* state, Eventinfo* eventinfo);
     void Recompute_all_injection_events(Eventinfo* eventinfo);    
 
-    void Initialize_eventvector(GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph, StateDevice* state, Eventinfo* eventinfo);
+    void Initialize_eventvector(GraphDevice* graph, StateDevice* state, Eventinfo* eventinfo);
     void Initialize_injection_eventvector(int Event_counter, Node* electrode, int carrier_type, StateDevice* state, Eventinfo* eventinfo);
     void Grow_non_injection_eventvector(StateDevice* state, Eventinfo* eventinfo);
     
@@ -66,14 +67,14 @@ public:
     inline void Add_to_mesh(int ID, votca::tools::vec position, vector< vector< vector <list<int> > > > mesh, Eventinfo* eventinfo);
     inline void Remove_from_mesh(int ID,votca::tools::vec position,vector< vector< vector <list<int> > > > mesh, Eventinfo* eventinfo);
 
-    void Effect_potential_and_rates(int action, CarrierDevice* carrier, Node* node, GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph, StateDevice* state, Eventinfo* eventinfo);    
+    void Effect_potential_and_rates(int action, CarrierDevice* carrier, Node* node, GraphDevice* graph, StateDevice* state, Eventinfo* eventinfo);    
     void Effect_potential_and_non_injection_rates(int action, CarrierDevice* carrier1, Node* node, StateDevice* state, Eventinfo* eventinfo);
     void Effect_injection_rates(int action, CarrierDevice* carrier, Node* node, Node* electrode, double dist_to_electrode, StateDevice* state, Eventinfo* eventinfo);
     
     double Compute_Self_Coulomb_potential(double startx, votca::tools::vec simboxsize, Eventinfo* eventinfo); 
     double Compute_Coulomb_potential(double startx, votca::tools::vec dif, votca::tools::vec sim_box_size, Eventinfo* eventinfo);
  
-    void Initialize_longrange(GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph, Eventinfo* eventinfo);
+    void Initialize_longrange(GraphDevice* graph, Eventinfo* eventinfo);
     
 private:
 
@@ -95,12 +96,12 @@ private:
     int _ncarriers;
 };
 
-void Events::Initialize_longrange(GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph, Eventinfo* eventinfo) {
+void Events::Initialize_longrange(GraphDevice* graph, Eventinfo* eventinfo) {
     _longrange = new Longrange();
     _longrange->Initialize(graph,eventinfo); 
 }
 
-void Events::On_execute(Event* event, GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph, StateDevice* state, Eventinfo* eventinfo) {
+void Events::On_execute(Event* event, GraphDevice* graph, StateDevice* state, Eventinfo* eventinfo) {
     
     Node* node1 = event->link()->node1();
     Node* node2 = event->link()->node2();
@@ -109,14 +110,14 @@ void Events::On_execute(Event* event, GraphDevice<GraphSQL, NodeSQL, LinkSQL>* g
 
 }
 
-void Events::On_execute_node(Node* node, int action, int carrier_type, GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph, StateDevice* state, Eventinfo* eventinfo) {
+void Events::On_execute_node(Node* node, int action, int carrier_type, GraphDevice* graph, StateDevice* state, Eventinfo* eventinfo) {
     
     if(action == (int) None)        {                                            }
     else if(action == (int) Add)    {Add_carrier(node, carrier_type, graph, state, eventinfo); } 
     else if(action == (int) Remove) {Remove_carrier(node, graph, state, eventinfo);            }
 }
 
-void Events:: Add_carrier(Node* node, int carrier_type, GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph, StateDevice* state, Eventinfo* eventinfo) {
+void Events:: Add_carrier(Node* node, int carrier_type, GraphDevice* graph, StateDevice* state, Eventinfo* eventinfo) {
     
     int new_carrier_ID;
     
@@ -152,7 +153,7 @@ void Events:: Add_carrier(Node* node, int carrier_type, GraphDevice<GraphSQL, No
 
 }
 
-void Events:: Remove_carrier(Node* node, GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph, StateDevice* state, Eventinfo* eventinfo) {
+void Events:: Remove_carrier(Node* node, GraphDevice* graph, StateDevice* state, Eventinfo* eventinfo) {
  
     CarrierDevice* removed_carrier = state->GetCarrier(node->occ());
 
@@ -177,7 +178,7 @@ void Events:: Remove_carrier(Node* node, GraphDevice<GraphSQL, NodeSQL, LinkSQL>
     node->RemoveCarrier();
 }
 
-inline void Events::Effect_potential_and_rates(int action, CarrierDevice* carrier, Node* node, GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph, StateDevice* state, Eventinfo* eventinfo) {
+inline void Events::Effect_potential_and_rates(int action, CarrierDevice* carrier, Node* node, GraphDevice* graph, StateDevice* state, Eventinfo* eventinfo) {
 
     Effect_potential_and_non_injection_rates((int) Add, carrier, node, state, eventinfo);
     
@@ -606,7 +607,7 @@ void Events::Recompute_all_injection_events(Eventinfo* eventinfo) {
 }
 
 
-void Events::Initialize_eventvector(GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph, StateDevice* state, Eventinfo* eventinfo){ //
+void Events::Initialize_eventvector(GraphDevice* graph, StateDevice* state, Eventinfo* eventinfo){ //
 
     typename std::vector<Event*>::iterator it;
     

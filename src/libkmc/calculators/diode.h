@@ -42,7 +42,7 @@ class Diode : public KMCCalculator
 {
 public:
     
-    GraphDevice<GraphSQL, NodeSQL, LinkSQL>* graph;
+    GraphDevice* graph;
     StateDevice* state;
     Events* events;
 //    Vssmgroup* vssmgroup;
@@ -81,7 +81,7 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     eventdata = new Eventinfo();
     eventdata->Read(options);
     
-    graph = new GraphDevice<GraphSQL, NodeSQL, LinkSQL>();
+    graph = new GraphDevice();
     graph->Initialize(filename);
     graph->Setup_device_graph(eventdata->left_electrode_distance, eventdata->right_electrode_distance);
     std::cout << "max pair degree: " << graph->maxpairdegree() << endl;
