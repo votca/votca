@@ -33,12 +33,12 @@ namespace votca { namespace csg {
 
 bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 {
-    static int  mavecs=0;
-    static int  mpbct=0;
-    static int  matoms=0;
-    static int  natoms=0;
-    static bool hasVs=false;
-    static bool hasFs=false;
+    int  mavecs=0;
+    int  mpbct=0;
+    int  matoms=0;
+    int  natoms=0;
+    bool hasVs=false;
+    bool hasFs=false;
 
     BoundaryCondition::eBoxtype pbc_type=BoundaryCondition::typeAuto;
 
