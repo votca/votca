@@ -71,7 +71,6 @@ public:
     void Effect_potential_and_non_injection_rates(int action, CarrierDevice* carrier1, Node* node, StateDevice* state, Eventinfo* eventinfo);
     void Effect_injection_rates(int action, CarrierDevice* carrier, Node* node, Node* electrode, double dist_to_electrode, StateDevice* state, Eventinfo* eventinfo);
     
-    double Compute_Self_Coulomb_potential(double startx, votca::tools::vec simboxsize, Eventinfo* eventinfo); 
     double Compute_Coulomb_potential(double startx, votca::tools::vec dif, votca::tools::vec sim_box_size, Eventinfo* eventinfo);
  
     void Initialize_longrange(GraphDevice* graph, Eventinfo* eventinfo);
@@ -487,46 +486,6 @@ void Events:: Effect_injection_rates(int action, CarrierDevice* carrier, Node* n
             }
         }
     }  
-}
-
-double Events::Compute_Self_Coulomb_potential(double startx, votca::tools::vec simboxsize, Eventinfo* eventinfo) {
-
-    double coulpot = 0.0;
-    double L = simboxsize.x();
-      
-    int sign;
-    double distx_1;
-    double distx_2;
-    bool outside_cut_off1 = false;
-    bool outside_cut_off2 = false;
-      
-    while(!(outside_cut_off1&&outside_cut_off2)) {
-        for (int i=0;i<eventinfo->nr_sr_images; i++) {
-            if (div(i,2).rem==0) { // even generation
-                sign = -1;
-                distx_1 = i*L + 2*startx;
-                distx_2 = (i+2)*L - 2*startx; 
-            }
-            else {
-                sign = 1;
-                distx_1 = (i+1)*L;
-                distx_2 = (i+1)*L;
-            }
-            if (distx_1<=eventinfo->coulcut) {
-                coulpot += sign*1.0/sqrt(distx_1)-1.0/(eventinfo->coulcut);
-            }
-            else {
-                outside_cut_off1 = true;
-            }
-            if (distx_2<=eventinfo->coulcut) {
-                coulpot += sign*1.0/sqrt(distx_2)-1.0/(eventinfo->coulcut);
-            }
-            else {
-                outside_cut_off2 = true;
-            }
-        }
-    }
-    return eventinfo->self_image_prefactor*coulpot;    
 }
 
 double Events::Compute_Coulomb_potential(double startx, votca::tools::vec dif, votca::tools::vec simboxsize, Eventinfo* eventinfo) {

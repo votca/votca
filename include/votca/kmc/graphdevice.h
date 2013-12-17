@@ -282,6 +282,63 @@ void GraphDevice::Break_periodicity(bool break_x, bool break_y, bool break_z){
     
 }
 
+void GraphDevice::Set_Self_Coulomb_Potential(){
+    
+    typename std::vector<NodeDevice*>::iterator it;    
+    for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) {
+        (*it)->setSelfImage(Compute_Self_Coulomb_Potential((*it)->position().x(),_sim_box_size, eventinfo));
+    }
+
+    typename std::vector<LinkDevice*>::iterator it;    
+    for(it = this->_links.begin(); it != this->_links.end(); it++) {
+        double SelfImageNode2 = (*it)->node2()->self_image();
+        double SelfImageNode1 = (*it)->node1()->self_image();
+        (*it)->setSelfImage(SelfImageNode2-SelfImageNode1);
+    }      
+}
+
+
+
+double Events::Compute_Self_Coulomb_potential(double startx, votca::tools::vec simboxsize, Eventinfo* eventinfo) {
+
+    double coulpot = 0.0;
+    double L = simboxsize.x();
+      
+    int sign;
+    double distx_1;
+    double distx_2;
+    bool outside_cut_off1 = false;
+    bool outside_cut_off2 = false;
+      
+    while(!(outside_cut_off1&&outside_cut_off2)) {
+        for (int i=0;i<eventinfo->nr_sr_images; i++) {
+            if (div(i,2).rem==0) { // even generation
+                sign = -1;
+                distx_1 = i*L + 2*startx;
+                distx_2 = (i+2)*L - 2*startx; 
+            }
+            else {
+                sign = 1;
+                distx_1 = (i+1)*L;
+                distx_2 = (i+1)*L;
+            }
+            if (distx_1<=eventinfo->coulcut) {
+                coulpot += sign*1.0/sqrt(distx_1)-1.0/(eventinfo->coulcut);
+            }
+            else {
+                outside_cut_off1 = true;
+            }
+            if (distx_2<=eventinfo->coulcut) {
+                coulpot += sign*1.0/sqrt(distx_2)-1.0/(eventinfo->coulcut);
+            }
+            else {
+                outside_cut_off2 = true;
+            }
+        }
+    }
+    return eventinfo->self_image_prefactor*coulpot;    
+}
+
 void GraphDevice::RenumberId() {
 
     typename std::vector<NodeDevice*>::iterator it;
