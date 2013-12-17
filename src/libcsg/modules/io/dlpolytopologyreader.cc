@@ -19,7 +19,7 @@
 #include <iomanip>
 #include <fstream>
 #include <boost/algorithm/string.hpp>
-#include <boost/filesystem/convenience.hpp> 
+#include <boost/filesystem/convenience.hpp>
 #include <votca/tools/getline.h>
 
 #ifndef HAVE_NO_CONFIG
@@ -81,7 +81,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 
       if( fields.size() < 2 ) {
 	throw std::runtime_error("Error: missing number of molecules in directive '" + line + "' in topology file '"+ filename +"'");
-      } 
+      }
 
       nmol_types = boost::lexical_cast<int>(fields[fields.size()-1]);
 
@@ -166,13 +166,13 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
               Interaction *ic;
 	      fl >> ids[0]; fl>>ids[1];
 	      if (type == "BONDS"){
-	        ic = new IBond(id_map[ids[0]-1],id_map[ids[1]-1]); // -1 due to fortran vs c 
+	        ic = new IBond(id_map[ids[0]-1],id_map[ids[1]-1]); // -1 due to fortran vs c
 	      } else if (type == "ANGLES"){
 		fl >> ids[2];
-	        ic = new IAngle(id_map[ids[0]-1],id_map[ids[1]-1],id_map[ids[2]-1]); // -1 due to fortran vs c 
+	        ic = new IAngle(id_map[ids[0]-1],id_map[ids[1]-1],id_map[ids[2]-1]); // -1 due to fortran vs c
 	      } else if (type == "DIHEDRALS"){
 		fl >> ids[2]; fl >> ids[3];
-	        ic = new IDihedral(id_map[ids[0]-1],id_map[ids[1]-1],id_map[ids[2]-1],id_map[ids[3]-1]); // -1 due to fortran vs c 
+	        ic = new IDihedral(id_map[ids[0]-1],id_map[ids[1]-1],id_map[ids[2]-1],id_map[ids[3]-1]); // -1 due to fortran vs c
 	      }
               ic->setGroup(type);
               ic->setIndex(i);
@@ -203,11 +203,10 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 	    Bead *bead_replica = top.CreateBead(1, bead->getName(), type, res->getId(), bead->getM(), bead->getQ());
 	    mi_replica->AddBead(bead_replica,beadname);
 	  }
+	  matoms+=mi->BeadCount();
 	  InteractionContainer ics=mi->Interactions();
           for(vector<Interaction *>::iterator ic=ics.begin(); ic!=ics.end(); ++ic) {
             Interaction *ic_replica;
-
-	    //TODO: change if beads are not continous anymore - ???
 
 	    int offset = mi_replica->getBead(0)->getId() - mi->getBead(0)->getId();
 	    if ((*ic)->BeadCount() == 2) {
@@ -228,9 +227,8 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
       top.RebuildExclusions();
     }
 
-    getline(fl, line); //is "close" found?
-
 #ifdef DEBUG
+    getline(fl, line); //is "close" found?
     if(line=="close") {
       cout << "Read from topology file " << filename << " : '" << line << "' - done with topology" << endl;
     }
@@ -274,8 +272,8 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
       vector<string> fields;
       tok.ToVector(fields);
 
-      if( fields.size() < 3 ) 
-	throw std::runtime_error("Error: too few directive switches (<3) in the initial configuration (check its 2-nd line)");	
+      if( fields.size() < 3 )
+	throw std::runtime_error("Error: too few directive switches (<3) in the initial configuration (check its 2-nd line)");
 
       mavecs = boost::lexical_cast<int>(fields[0]);
       mpbct  = boost::lexical_cast<int>(fields[1]);
@@ -291,7 +289,8 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 #ifdef DEBUG
 	cout << "Warning: N of atoms/beads in initial configuration & topology differ: " << natoms << " =?= " << matoms << endl;
 #else
-	throw std::runtime_error("Error: N of atoms/beads in initial configuration & topology differ");
+	throw std::runtime_error("Error: N of atoms/beads in initial configuration & topology differ " +
+	    boost::lexical_cast<string>(natoms) + " vs " + boost::lexical_cast<string>(matoms));
 #endif
 
       vec box_vectors[3];
