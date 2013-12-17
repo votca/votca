@@ -18,7 +18,6 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
-#include <boost/regex.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem/convenience.hpp> 
 #include <votca/tools/getline.h>
@@ -44,7 +43,6 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 
     std::ifstream fl;
     boost::filesystem::path filepath(file.c_str());
-    boost::cmatch matches;
 
     string filename,line;
 
@@ -86,60 +84,6 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
       } 
 
       nmol_types = boost::lexical_cast<int>(fields[fields.size()-1]);
-
-      /*
-
-      // use regular expressions for reading ambiguous directives (where more than one keyword allowed)
-
-      string stre;
-
-      stre="([\\w\\s#]+)+(\\d+)";
-
-      boost::regex re_int;
-
-      // re_int is set as a case-insensitive regexp
-      re_int.assign(stre, boost::regex_constants::icase);
-
-#ifdef DEBUG
-      // checking if the regexp is fine - only need to do once, for debugging
-      try {
-	// re_int is set as a case-insensitive regexp
-	re_int.assign(stre, boost::regex_constants::icase);
-      }
-      catch (boost::regex_error &erre) {
-	throw std::runtime_error("Error: '"+stre+"' is not a valid regular expression: '"+erre.what()+"'");
-      }
-#endif
-
-      if (boost::regex_match(line.c_str(), matches, re_int)) {
-
-#ifdef DEBUG
-	// matches[0] contains the original string.  
-	// matches[i] contains a sub_match object for each subexpression
-	
-	for (int i = 0; i < matches.size(); i++) {
-	  // sub_match::first and sub_match::second are iterators that
-	  // refer to the first and one past the last chars of the
-	  // matching subexpression
-	  string match(matches[i].first, matches[i].second);
-	  cout << "\tmatches[" << i << "] = '" << match << "'" << endl;
-	}
-#endif
-
-	string match1(matches[1].first, matches[1].second);
-	string match2(matches[matches.size()-1].first, matches[matches.size()-1].second);
-
-	nmol_types = boost::lexical_cast<int>(match2);
-
-#ifdef DEBUG
-	cout << "Read from topology file " << filename << " : '" << match1 << "' - " << nmol_types << endl;
-#endif
-      }
-      else {
-	throw std::runtime_error("Error: regexp '" + stre + "' does not match '" + line + "'");
-      }
-
-      */
 
       string mol_name;
 
