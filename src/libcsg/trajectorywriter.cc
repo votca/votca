@@ -24,7 +24,6 @@
 #include "modules/io/pdbwriter.h"
 #include "modules/io/xyzwriter.h"
 #include "modules/io/dlpolytrajectorywriter.h"
-//#include "modules/io/dlpolyconfigwriter.h"
 
 #ifdef GMX
 #include "modules/io/gmxtrajectorywriter.h"
@@ -42,8 +41,6 @@ void TrajectoryWriter::RegisterPlugins()
     TrjWriterFactory().Register<XYZWriter>("xyz");
     TrjWriterFactory().Register<DLPOLYTrajectoryWriter>("dlph");
     TrjWriterFactory().Register<DLPOLYTrajectoryWriter>("dlpc");
-    //TrjWriterFactory().Register<DLPOLYTrajectoryWriter>("dlpoly");
-    //TrjWriterFactory().Register<DLPOLYConfigWriter>("conf");
 #ifdef GMX
     TrjWriterFactory().Register<GMXTrajectoryWriter>("trr");
     TrjWriterFactory().Register<GMXTrajectoryWriter>("xtc");

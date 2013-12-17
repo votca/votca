@@ -45,7 +45,6 @@ void TrajectoryReader::RegisterPlugins(void)
     TrjReaderFactory().Register<PDBReader>("pdb");
     TrjReaderFactory().Register<DLPOLYTrajectoryReader>("dlph");
     TrjReaderFactory().Register<DLPOLYTrajectoryReader>("dlpc");
-    //TrjReaderFactory().Register<DLPOLYTrajectoryReader>("dlpoly");
 }
 
 }}

@@ -46,7 +46,6 @@ void TopologyReader::RegisterPlugins(void)
 #endif
     TopReaderFactory().Register<PDBReader>("pdb");
     TopReaderFactory().Register<DLPOLYTopologyReader>("dlpf");
-    //TopReaderFactory().Register<DLPOLYTopologyReader>("dlpoly");
 }
 
 }}
