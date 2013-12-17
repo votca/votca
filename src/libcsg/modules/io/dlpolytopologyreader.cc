@@ -64,7 +64,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
       re_int.assign(stre, boost::regex_constants::icase);
     }
     catch (boost::regex_error &erre) {
-      throw std::runtime_error("\""+stre+"\" is not a valid regular expression: \""+erre.what()+"\"");
+      throw std::runtime_error("Error: '"+stre+"' is not a valid regular expression: '"+erre.what()+"'");
     }
 #endif
 
@@ -84,7 +84,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
     fl.open(filename.c_str());
 
     if (!fl.is_open()){
-      throw std::runtime_error("could not open dlpoly file " + filename + " (topology)");
+      throw std::runtime_error("Error on opening dlpoly file '" + filename + "'");
     } else {
 
       getline(fl, line); //title
@@ -95,7 +95,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
       getline(fl, line);     // "MOLECules or MOLECular species/types #" - may contain a few words!
       boost::to_upper(line); // allow user not to bother about the case
       if (line.substr(0,5) != "MOLEC")
-          throw std::runtime_error("unexpected line in dlpoly file " + filename + ", expected 'MOLEC<ULES>' but got: " + line.substr(0,5));
+          throw std::runtime_error("Error: unexpected line in dlpoly file " + filename + ", expected 'MOLEC<ULES>' but got '" + line + "'");
 
       if (boost::regex_match(line.c_str(), matches, re_int)) {
 
@@ -115,12 +115,14 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 	string match1(matches[1].first, matches[1].second);
 	string match2(matches[matches.size()-1].first, matches[matches.size()-1].second);
 
-	nmol_types = atoi(match2.c_str());
+	nmol_types = boost::lexical_cast<int>(match2);
 
-	cout << "Read from FIELD: '" << match1 << "' - " << nmol_types << endl;
+#ifdef DEBUG
+	cout << "Read from topology file " << filename << " : '" << match1 << "' - " << nmol_types << endl;
+#endif
       }
       else {
-	throw std::runtime_error("The regexp '" + stre + "' does not match '" + line + "'");
+	throw std::runtime_error("Error: regexp '" + stre + "' does not match '" + line + "'");
       }
 
       string mol_name;
@@ -128,7 +130,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
       int id=0;
       for (int nmol_type=0;nmol_type<nmol_types; nmol_type++){
 
-        getline(fl, mol_name); //molecule name might incl. spaces - so why not allow???
+        getline(fl, mol_name); // molecule name might incl. spaces - so why not allow???
 	//boost::erase_all(mol_name, " ");
 
         Molecule *mi = top.CreateMolecule(mol_name);
@@ -140,18 +142,22 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 	int nreplica;
 	fl >> nreplica;
 
-	cout << "Read from FIELD: '" << mol_name << "' - '" << line << "' - " << nreplica << endl;
+#ifdef DEBUG
+	cout << "Read from topology file " << filename << " : '" << mol_name << "' - '" << line << "' - " << nreplica << endl;
+#endif
 
 	getline(fl, line); //rest of NUMMOLs line
 
 	fl >> line; boost::to_upper(line);
 
         if (line != "ATOMS")
-          throw std::runtime_error("unexpected line in dlpoly file " + filename + ", expected 'ATOMS' but got: '" + line + "'");
+          throw std::runtime_error("Error: unexpected line in dlpoly file " + filename + ", expected 'ATOMS' but got: '" + line + "'");
 
 	fl >> natoms;
 
-	cout << "Read from FIELD: '" << line << "' - " << natoms << endl;
+#ifdef DEBUG
+	cout << "Read from topology file " << filename << " : '" << line << "' - " << natoms << endl;
+#endif
 
 	//read molecule
 	int id_map[natoms];
@@ -183,7 +189,9 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
             mi->AddBead(bead, nm.str());
 	    id_map[i]=bead->getId();
 	    i++;
-	    //cout << "Atom identification in maps '" << nm.str() << "'" << endl;
+#ifdef DEBUG
+	    cout << "Atom identification in maps '" << nm.str() << "'" << endl;
+#endif
 	  }
 	  matoms += repeater;
 	}
@@ -217,10 +225,12 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 	  }
 	  fl >> line; boost::to_upper(line);
 	  if (fl.eof())
-            throw std::runtime_error("unexpected end of dlpoly file " + filename + " while scanning for 'FINISH'");
+            throw std::runtime_error("Error: unexpected end of dlpoly file " + filename + " while scanning for kerword 'finish'");
 	}
 
-	cout << "Read from FIELD: '" << line << "' - done with '" << mol_name << "'" << endl;
+#ifdef DEBUG
+	cout << "Read from topology file " << filename << " : '" << line << "' - done with '" << mol_name << "'" << endl;
+#endif
 
 	getline(fl, line); //rest of the FINISH line
 
@@ -261,12 +271,12 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 
     getline(fl, line); //is "close" found?
 
-    if(line=="close") {
-      cout << "Read from FIELD: '" << line << "' - done with topology" << endl;
-    }
 #ifdef DEBUG
+    if(line=="close") {
+      cout << "Read from topology file " << filename << " : '" << line << "' - done with topology" << endl;
+    }
     else {
-      cout << "Read from FIELD: 'EOF' - done with topology (directive 'close' not read!)" << endl;
+      cout << "Read from topology file " << filename << " : 'EOF' - done with topology (directive 'close' not read!)" << endl;
     }
 #endif
 
@@ -281,9 +291,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
       }
     } else {
       filename=filepath.parent_path().string()+boost::filesystem::basename(filepath)+".dlpc";
-      cout << "NOTE: Explicit dlpoly FIELD (topology) filename given '" << file << "', so trying to read boundary conditions from CONFIG file named '" << filename << "'" << endl;
-      //cout << "NOTE: Explicit dlpoly topology filename given, so no CONFIG will be openend and no boundary conditions will set in the topology." << endl;
-      //return true;
+      cout << "NOTE: explicit dlpoly topology file name given '" << file << "', so trying to read boundary conditions from CONFIG file named '" << filename << "'" << endl;
     }
 
     fl.open(filename.c_str());
@@ -292,15 +300,20 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
       string line;
 
       getline(fl, line); //title
-      cout << "Read from CONFIG: '" << line << "' - header" << endl;
+
+#ifdef DEBUG
+      cout << "Read from initial configuration file : '" << line << "' - header" << endl;
+#endif
 
       getline(fl, line); // 2nd header line
-      cout << "Read from CONFIG: '" << line << "' - directives line" << endl;
+
+#ifdef DEBUG
+      cout << "Read from initial configuration file : '" << line << "' - directives line" << endl;
+#endif
 
       Tokenizer tok(line, " \t");
       vector<string> fields;
       tok.ToVector(fields);
-      //tok.ConvertToVector<string>(fields);
 
       mavecs = boost::lexical_cast<int>(fields[0]);
       mpbct  = boost::lexical_cast<int>(fields[1]);
@@ -314,9 +327,9 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 
       if(natoms != matoms)
 #ifdef DEBUG
-	cout << "Number of atoms/beads in CONFIG (initial frame) & FIELD differ: " << natoms << " =?= " << matoms << endl;
+	cout << "Warning: N of atoms/beads in initial configuration & topology differ: " << natoms << " =?= " << matoms << endl;
 #else
-	throw std::runtime_error("Number of atoms/beads in CONFIG (initial frame) & FIELD differ");
+	throw std::runtime_error("Error: N of atoms/beads in initial configuration & topology differ");
 #endif
 
       vec box_vectors[3];
@@ -324,11 +337,11 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
         getline(fl, line);
 
 #ifdef DEBUG
-	cout << "Read from CONFIG: '" << line << "' - box vector # " << i+1 << " (Angs)" << endl;
+	cout << "Read from initial configuration file : '" << line << "' - box vector # " << i+1 << " (Angs)" << endl;
 #endif
 
         if(fl.eof())
-          throw std::runtime_error("unexpected end of file in dlpoly file " + filename +", when reading box vector"  +
+          throw std::runtime_error("Error: unexpected EOF in dlpoly file " + filename +", when reading box vector " +
               boost::lexical_cast<string>(i));
 
         Tokenizer tok(line, " \t");
@@ -337,7 +350,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
         box_vectors[i]=vec(fields[0],fields[1],fields[2]);
 
 #ifdef DEBUG
-	cout << "Read from CONFIG: '" << fixed << setprecision(10) << setw(20) << fields[0] << setw(20) << fields[1] << setw(20) << fields[2] << "' - box vector # " << i+1 << " (Angs)" << endl;
+	cout << "Read from initial configuration file : '" << fixed << setprecision(10) << setw(20) << fields[0] << setw(20) << fields[1] << setw(20) << fields[2] << "' - box vector # " << i+1 << " (Angs)" << endl;
 #endif
       }
       matrix box(box_vectors[0],box_vectors[1],box_vectors[2]);
@@ -357,11 +370,11 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
       fl.close();
 
 #ifdef DEBUG
-      cout << "Read from CONFIG: box/cell matrix - done with boundaries" << endl << endl;
+      cout << "Read from initial configuration file : box/cell matrix - done with boundaries" << endl << endl;
 #endif
     }
     else {
-      cout << "NOTE: Could not open dlpoly file " << filename << ", so no PBC set in topology - assuming 'open box'" << endl;
+      cout << "NOTE: could not open dlpoly file " << filename << ", so no PBC set in topology - assuming 'open box'" << endl;
     }
 
     return true;
