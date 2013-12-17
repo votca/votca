@@ -75,8 +75,8 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf)
     int    mpbct  = 0;
     double energy = 0.0;
 
-    if      (conf->HasForce()) { mavecs=2; }
-    else if (conf->HasVel())   { mavecs=1; }
+    if( conf->HasForce() && conf->HasVel() ) { mavecs=2; }
+    else if               ( conf->HasVel() ) { mavecs=1; }
 
     if (conf->getBoxType()==BoundaryCondition::typeOrthorhombic) mpbct=2;
     if (conf->getBoxType()==BoundaryCondition::typeTriclinic)    mpbct=3;
@@ -130,7 +130,7 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf)
       _fl << setw(20) << bead->getPos().getY() << setw(20) << bead->getPos().getZ() << endl;
 
       if (mavecs>0) {
-	if (!bead->HasVel()) 
+	if (!bead->HasVel())
 	  throw std::ios_base::failure("Error: dlpoly frame is supposed to contain velocities, but bead does not have v-data");
 
         _fl << setprecision(12) << setw(20) << bead->getVel().getX() << setw(20);

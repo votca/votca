@@ -46,27 +46,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
     boost::filesystem::path filepath(file.c_str());
     boost::cmatch matches;
 
-    string filename,stre,line;
-
-    // use regular expressions for reading ambiguous directives (where more than one keyword allowed)
-
-    stre="([\\w\\s#]+)+(\\d+)";
-
-    boost::regex re_int;
-
-    // re_int is set as a case-insensitive regexp
-    re_int.assign(stre, boost::regex_constants::icase);
-
-#ifdef DEBUG
-    // checking if the regexp is fine - only need to do once, for debugging
-    try {
-      // re_int is set as a case-insensitive regexp
-      re_int.assign(stre, boost::regex_constants::icase);
-    }
-    catch (boost::regex_error &erre) {
-      throw std::runtime_error("Error: '"+stre+"' is not a valid regular expression: '"+erre.what()+"'");
-    }
-#endif
+    string filename,line;
 
     // TODO: fix residue naming / assignment - DL_POLY has no means to recognise residues!
     Residue *res = top.CreateResidue("no");
@@ -97,6 +77,40 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
       if (line.substr(0,5) != "MOLEC")
           throw std::runtime_error("Error: unexpected line in dlpoly file " + filename + ", expected 'MOLEC<ULES>' but got '" + line + "'");
 
+      Tokenizer tok(line, " \t");
+      vector<string> fields;
+      tok.ToVector(fields);
+
+      if( fields.size() < 2 ) {
+	throw std::runtime_error("Error: missing number of molecules in directive '" + line + "' in topology file '"+ filename +"'");
+      } 
+
+      nmol_types = boost::lexical_cast<int>(fields[fields.size()-1]);
+
+      /*
+
+      // use regular expressions for reading ambiguous directives (where more than one keyword allowed)
+
+      string stre;
+
+      stre="([\\w\\s#]+)+(\\d+)";
+
+      boost::regex re_int;
+
+      // re_int is set as a case-insensitive regexp
+      re_int.assign(stre, boost::regex_constants::icase);
+
+#ifdef DEBUG
+      // checking if the regexp is fine - only need to do once, for debugging
+      try {
+	// re_int is set as a case-insensitive regexp
+	re_int.assign(stre, boost::regex_constants::icase);
+      }
+      catch (boost::regex_error &erre) {
+	throw std::runtime_error("Error: '"+stre+"' is not a valid regular expression: '"+erre.what()+"'");
+      }
+#endif
+
       if (boost::regex_match(line.c_str(), matches, re_int)) {
 
 #ifdef DEBUG
@@ -125,19 +139,20 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 	throw std::runtime_error("Error: regexp '" + stre + "' does not match '" + line + "'");
       }
 
+      */
+
       string mol_name;
 
       int id=0;
       for (int nmol_type=0;nmol_type<nmol_types; nmol_type++){
 
         getline(fl, mol_name); // molecule name might incl. spaces - so why not allow???
-	//boost::erase_all(mol_name, " ");
 
         Molecule *mi = top.CreateMolecule(mol_name);
         fl >> line; boost::to_upper(line); // allow user not to bother about the case
 
         if (line.substr(0,6) != "NUMMOL")
-          throw std::runtime_error("unexpected line in dlpoly file " + filename + ", expected 'NUMMOLS' but got: '" + line.substr(0,6) + "'");
+          throw std::runtime_error("unexpected line in dlpoly file " + filename + ", expected 'NUMMOLS' but got '" + line.substr(0,6) + "'");
 
 	int nreplica;
 	fl >> nreplica;
@@ -151,7 +166,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 	fl >> line; boost::to_upper(line);
 
         if (line != "ATOMS")
-          throw std::runtime_error("Error: unexpected line in dlpoly file " + filename + ", expected 'ATOMS' but got: '" + line + "'");
+          throw std::runtime_error("Error: unexpected line in dlpoly file " + filename + ", expected 'ATOMS' but got '" + line + "'");
 
 	fl >> natoms;
 
@@ -314,6 +329,9 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
       Tokenizer tok(line, " \t");
       vector<string> fields;
       tok.ToVector(fields);
+
+      if( fields.size() < 3 ) 
+	throw std::runtime_error("Error: too few directive switches (<3) in the initial configuration (check its 2-nd line)");	
 
       mavecs = boost::lexical_cast<int>(fields[0]);
       mpbct  = boost::lexical_cast<int>(fields[1]);

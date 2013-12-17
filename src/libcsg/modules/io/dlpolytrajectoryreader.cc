@@ -111,6 +111,9 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &top)
       vector<string> fields;
       tok.ToVector(fields);
 
+      if( fields.size() < 3 ) 
+	throw std::runtime_error("Error: too few directive switches (<3) in "+_fname+" header (check its 2-nd line)");
+
       mavecs = boost::lexical_cast<int>(fields[0]);
       mpbct  = boost::lexical_cast<int>(fields[1]);
       matoms = boost::lexical_cast<int>(fields[2]);
@@ -187,6 +190,9 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &top)
         Tokenizer tok(line, " \t");
         vector<string> fields;
         tok.ToVector(fields);
+
+	if( fields.size() < 7 ) 
+	  throw std::runtime_error("Error: too few directive switches (<6) in 'timestep' record");	
 
 	nstep  = boost::lexical_cast<int>(fields[1]);
         natoms = boost::lexical_cast<int>(fields[2]);
