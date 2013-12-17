@@ -16,6 +16,7 @@
  */
 
 #include <cstdlib>
+#include <cmath>
 #include <iostream>
 #include <boost/filesystem/convenience.hpp> 
 #include <votca/csg/topology.h>
@@ -30,21 +31,38 @@ using namespace std;
 bool DLPOLYTrajectoryReader::Open(const string &file)
 {
     boost::filesystem::path filepath(file.c_str());
-    string filename;
+    string inp_name="HISTORY";
+
+    if ( boost::filesystem::extension(filepath).size() == 0 ) {
+
+      throw std::ios_base::failure("Error on opening original dlpoly file '" + file + "' - extension is expected, .dlph or .dlpc");
+
+    } else if( boost::filesystem::extension(filepath)==".dlpc" ) {
+
+      _isConfig=true;
+      inp_name="CONFIG";
+
+    } else if( boost::filesystem::extension(filepath)==".dlph" ) {
+
+      _isConfig=false;
+
+    } else {
+      throw std::ios_base::failure("Error on opening original dlpoly file '" + file + "' - wrong extension, use .dlph or .dlpc");      
+    }
 
     if ( boost::filesystem::basename(filepath).size() == 0 ) {
       if (filepath.parent_path().string().size() == 0) {
-        filename="HISTORY";
+        _fname=inp_name;
       } else {
-	filename=filepath.parent_path().string() + "/HISTORY";
+        _fname=filepath.parent_path().string() + "/" + inp_name;
       }
     } else {
-      filename=file;
+      _fname=file;
     }
 
-    _fl.open(filename.c_str());
+    _fl.open(_fname.c_str());
     if(!_fl.is_open())
-        throw std::ios_base::failure("Error on open trajectory file: "+ filename);
+        throw std::ios_base::failure("Error on opening original dlpoly file '"+ _fname + "'");
     return true;
 }
 
@@ -63,46 +81,58 @@ bool DLPOLYTrajectoryReader::FirstFrame(Topology &top)
 
 bool DLPOLYTrajectoryReader::NextFrame(Topology &top)
 {
-    static int  mavecs=0;
-    static int  mpbct=0;
-    static int  matoms=0;
-    static bool hasVs=false;
-    static bool hasFs=false;
+    static int  mavecs = 0; // number of 3d vectors per atom = keytrj in DL_POLY manuals
+    static int  mpbct  = 0; // cell PBC type = imcon in DL_POLY manuals
+    static int  matoms = 0; // number of atoms/beads in a frame
+    static bool hasVs  = false;
+    static bool hasFs  = false;
+
+    int nerrt = 0;
 
     string line;
 
     BoundaryCondition::eBoxtype pbc_type=BoundaryCondition::typeAuto;
 
     if (_first_frame) {
-      getline(_fl, line); //title
-      cout << "Read from HISTORY: '" << line << "' - header" << endl;
+
+      getline(_fl, line); // title
+
+#ifdef DEBUG
+      cout << "Read from " << _fname << " : '" << line << "' - header" << endl;
+#endif
 
       getline(_fl, line); // 2nd header line
-      cout << "Read from HISTORY: '" << line << "' - directives line" << endl;
+
+#ifdef DEBUG
+      cout << "Read from " << _fname << " : '" << line << "' - directives line" << endl;
+#endif
 
       Tokenizer tok(line, " \t");
-      vector<int> fields;
-      tok.ConvertToVector<int>(fields);
+      vector<string> fields;
+      tok.ToVector(fields);
 
       mavecs = boost::lexical_cast<int>(fields[0]);
       mpbct  = boost::lexical_cast<int>(fields[1]);
       matoms = boost::lexical_cast<int>(fields[2]);
 
-      //if(mavecs > 0 ) hasVs=true;
-      //if(mavecs > 1 ) hasFs=true;
-      hasVs=(mavecs > 0);
-      hasFs=(mavecs > 1);
+      hasVs = (mavecs > 0); // 1 or 2 => in DL_POLY frame velocity vector follows coords for each atom/bead
+      hasFs = (mavecs > 1); // 2      => in DL_POLY frame force vector follows velocities for each atom/bead
 
       if(hasVs != top.HasVel() || hasFs != top.HasForce()) {
-	cout << "Warning: TrajKey (# of atom vectors) in HISTORY (trajectory) header & CONFIG (initial frame) differ" << endl;
-	top.SetHasVel(hasVs);
-	top.SetHasForce(hasFs);
+#ifdef DEBUG
+	cout << "Warning: N of atom vectors (keytrj) in " << _fname << " header differs from that read with topology" << endl;
+#endif
       }
-      cout << "Read from HISTORY: traj_key - " << mavecs << ", hasV - " << top.HasVel() << ", hasF - " << top.HasForce()  << endl;
 
-      //if(fields[2] != top.BeadCount())
+      top.SetHasVel(hasVs);
+      top.SetHasForce(hasFs);
+
+#ifdef DEBUG
+      cout << "Read from " << _fname << " : keytrj - " << mavecs << ", hasV - " << top.HasVel() << ", hasF - " << top.HasForce()  << endl;
+#endif
+
       if(matoms != top.BeadCount())
-        throw std::runtime_error("Number of atoms/beads in HISTORY (trajectory) header & CONFIG (initial frame) differ");
+        throw std::runtime_error("Number of atoms/beads in "+_fname+" header differs from that read with topology");
 
       if(mpbct == 0) {
 	pbc_type=BoundaryCondition::typeOpen;
@@ -113,28 +143,48 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &top)
       else if(mpbct == 3) {
 	pbc_type=BoundaryCondition::typeTriclinic;
       }
-      cout << "Read from HISTORY: pbc_type - '" << pbc_type << "'" << endl;
+
+#ifdef DEBUG
+      cout << "Read from " << _fname << " : pbc_type (imcon) - '" << pbc_type << "'" << endl;
+#endif
 
       if(pbc_type != top.getBoxType())
-	//throw std::runtime_error("PBC type in HISTORY (trajectory) header & CONFIG (initial frame) differ");
-	cout << "Warning: PBC type in HISTORY (trajectory) header & CONFIG (initial frame) differ" << endl;
+	cout << "Warning: PBC type in " << _fname << " header differs from that read with topology" << endl;
+	//throw std::runtime_error("Error: Boundary conditions in "+_fname+" header differs from that read with topology");
     }
 
     //read normal frame
-    getline(_fl, line); // timestep line
-    //cout << "Read from HISTORY: '" << line << "'" << endl;
+
+    if( !_isConfig ) { 
+      getline(_fl, line); // timestep line - only present in HISTORY, and not in CONFIG
+#ifdef DEBUG
+      cout << "Read from " << _fname << " : '" << line << "'" << endl;
+#endif
+    }
 
     if(!_fl.eof()) {
-      double dtime,stime,scale;
+      double dtime,stime;
       int nstep;
       int natoms;
       int navecs;
       int npbct;
 
-      //scale = 0.1; // AB: factor to convert Angstroem to nm
-      scale = 1.0; // AB: factor to convert Angstroem to nm - not needed?
+      if( _isConfig ) { 
+	// use the above read specs from the header, and skip the data missing in CONFIG
 
-      {
+	natoms = matoms;
+	navecs = mavecs;
+	npbct  = mpbct;
+
+	top.SetHasVel(hasVs);
+	top.SetHasForce(hasFs);
+
+#ifdef DEBUG
+	cout << "Read from CONFIG: traj_key - " << navecs << ", hasV - " << top.HasVel() << ", hasF - " << top.HasForce()  << endl;
+#endif
+
+      } else {
+
         Tokenizer tok(line, " \t");
         vector<string> fields;
         tok.ToVector(fields);
@@ -143,55 +193,65 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &top)
         natoms = boost::lexical_cast<int>(fields[2]);
 	navecs = boost::lexical_cast<int>(fields[3]);
 	npbct  = boost::lexical_cast<int>(fields[4]);
-	dtime  = boost::lexical_cast<double>(fields[5]);
-	stime  = boost::lexical_cast<double>(fields[fields.size()-1]);
+	dtime  = boost::lexical_cast<double>(fields[5]);               // normally it is the 5-th column in 'timestep' line
+	stime  = boost::lexical_cast<double>(fields[fields.size()-1]); // normally it is the last column in 'timestep' line
 
-	//cout << "Read from HISTORY: natoms = " << natoms << ", levcfg = " << fields[3];
-	//cout << ", dt = " << fields[5] << ", time = " << stime  << endl;
-
-	// AB-TODO: would be nice to store navecs (levcfg) & npbct (imcon, PBC switch)
+#ifdef DEBUG
+	cout << "Read from " << _fname << " : natoms = " << natoms << ", levcfg = " << fields[3];
+	cout << ", dt = " << fields[5] << ", time = " << stime  << endl;
+#endif
 
         if(natoms != top.BeadCount())
-          throw std::runtime_error("number of atoms/beads in HISTORY (trajectory) frame & FIELD (topology) differ");
-        if(navecs != mavecs)
-	  throw std::runtime_error("TrajKey (# of atom vectors) in HISTORY (trajectory) header & frame differ");
+          throw std::runtime_error("Error: N of atoms/beads in "+_fname+" header differs from that found in topology");
         if(natoms != matoms)
-	  throw std::runtime_error("Number of atoms/beads in HISTORY (trajectory) header & frame differ");
+	  throw std::runtime_error("Error: N of atoms/beads in "+_fname+" header differs from that found in the frame");
+        if(navecs != mavecs)
+	  throw std::runtime_error("Error: N of atom vectors (keytrj) in "+_fname+" header differs from that found in the frame");
         if(npbct != mpbct)
-	  throw std::runtime_error("PBC type in HISTORY (trajectory) header & frame differ");
+	  throw std::runtime_error("Error: boundary conditions (imcon) in "+_fname+" header differs from that found in the frame");
 
+	// total time - calculated as product due to differences between DL_POLY versions in HISTORY formats
 	top.setTime(nstep*dtime);
-	//top.setTime(boost::lexical_cast<double>(fields[5]));
 
-	//if(stime != top.getTime() )
-	//cout << "Check: nstep = " << nstep << ", dt = " << dtime << ", time = " << top.getTime() << " (correct?)" << endl;
+	if( std::abs(stime - top.getTime()) > 1.e-10 ) {
+	  if( nerrt < 11 ) {
+	    cout << "Check: nstep = " << nstep << ", dt = " << dtime << ", time = " << top.getTime() << " (correct?)" << endl;
+	  }
+	  else if( nerrt == 11 ) {
+	    cout << "Check: timestep - more than 10 mismatches in total time found..." << endl;
+	  }
+	}
+
+	if(npbct == 0) {
+	  pbc_type=BoundaryCondition::typeOpen;
+	}
+	else if(npbct == 1 || npbct == 2 ) {
+	  pbc_type=BoundaryCondition::typeOrthorhombic;
+	}
+	else if(npbct == 3) {
+	  pbc_type=BoundaryCondition::typeTriclinic;
+	}
       }
 
       vec box_vectors[3];
-      for (int i=0;i<3;i++){ // read 3 box lines
+      for (int i=0;i<3;i++) { // read 3 box/cell lines
+
         getline(_fl, line);
-	//cout << "Read from HISTORY: '" << line << "' - box vector # " << i+1 << endl;
+
+#ifdef DEBUG
+	cout << "Read from " << _fname << " : '" << line << "' - box vector # " << i+1 << endl;
+#endif
 
         if(_fl.eof())
-          throw std::runtime_error("unexpected EOF in HISTOPY (trajectory), when reading box vector"+
+          throw std::runtime_error("Error: unexpected EOF in "+_fname+", when reading box vector"+
 	      boost::lexical_cast<string>(i));
 	
         Tokenizer tok(line, " \t");
         vector<double> fields;
         tok.ConvertToVector<double>(fields);
-	box_vectors[i]=vec(fields[0]*scale,fields[1]*scale,fields[2]*scale);
+	box_vectors[i]=vec(fields[0],fields[1],fields[2]);
       }
       matrix box(box_vectors[0],box_vectors[1],box_vectors[2]);
-
-      if(npbct == 0) {
-	pbc_type=BoundaryCondition::typeOpen;
-      }
-      else if(npbct == 1 || npbct == 2 ) {
-	pbc_type=BoundaryCondition::typeOrthorhombic;
-      }
-      else if(npbct == 3) {
-	pbc_type=BoundaryCondition::typeTriclinic;
-      }
 
       top.setBox(box,pbc_type);
 
@@ -199,46 +259,63 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &top)
 
 	{
           getline(_fl, line); //atom header line
-	  //cout << "Read from HISTORY: '" << line << endl;
+
+#ifdef DEBUG
+	  cout << "Read from " << _fname << " : '" << line << "'" << endl;
+#endif
 
           if(_fl.eof())
-            throw std::runtime_error("unexpected EOF in HISTOPY (trajectory), when reading atom/bead nr" +
+            throw std::runtime_error("Error: unexpected EOF in "+_fname+", when reading atom/bead # " +
 		boost::lexical_cast<string>(i+1));
 
           vector<string> fields;
           Tokenizer tok(line, " \t");
           tok.ToVector(fields);
-	  int id=boost::lexical_cast<double>(fields[1]);
+	  int id=boost::lexical_cast<int>(fields[1]);
 	  if (i+1 != id )
-            throw std::runtime_error("unexpected atom/bead index in HISTOPY (trajectory), expected" +
-		 boost::lexical_cast<string>(i+1) + "got" + boost::lexical_cast<string>(id));
+            throw std::runtime_error("Error: unexpected atom/bead index in "+_fname+" : expected " +
+		 boost::lexical_cast<string>(i+1) + " but got " + boost::lexical_cast<string>(id));
 	}
 
 	Bead *b = top.getBead(i);
 	vec atom_vec[3];
 	for (int j=0;j<min(navecs,2)+1;j++){
+
           getline(_fl, line); //read atom positions
+
+#ifdef DEBUG
+	  cout << "Read from " << _fname << " : '" << line << "'" << endl;
+#endif
+
           if(_fl.eof())
-            throw std::runtime_error("unexpected EOF in HISTOPY (trajectory) when reading atom/bead vector" +
+            throw std::runtime_error("Error: unexpected EOF in "+_fname+" when reading atom/bead vector # " +
 		boost::lexical_cast<string>(j) + " of atom " + boost::lexical_cast<string>(i+1) );
+
           vector<double> fields;
           Tokenizer tok(line, " \t");
           tok.ConvertToVector<double>(fields);
-	  if(j<3) { 
-	    // AB: convert Angstroem to nm; j=1 => x,y,z; j=2 => vx,vy,vz
-	    atom_vec[j]=vec(fields[0]*scale,fields[1]*scale,fields[2]*scale);
-	  }
-	  else { // AB: forces do not need to be converted (assuming kJ/mole?)
-	    atom_vec[j]=vec(fields[0],fields[1],fields[2]);
+	  atom_vec[j]=vec(fields[0],fields[1],fields[2]);
+	}
+
+	b->setPos(atom_vec[0]);
+#ifdef DEBUG
+	cout << "Crds from " << _fname << " : " << atom_vec[0] << endl;
+#endif
+	if (navecs > 0) {
+	  b->setVel(atom_vec[1]);
+#ifdef DEBUG
+	  cout << "Vels from " << _fname << " : " << atom_vec[1] << endl;
+#endif
+	  if (navecs > 1) {
+	    b->setF(atom_vec[2]);
+#ifdef DEBUG
+	    cout << "Frcs from " << _fname << " : " << atom_vec[2] << endl;
+#endif
 	  }
 	}
-	b->setPos(atom_vec[0]);
-	if (navecs > 0)
-	  b->setVel(atom_vec[1]);
-	if (navecs > 1)
-	  b->setF(atom_vec[2]);
       }
     }
+
     return !_fl.eof();
 }
 

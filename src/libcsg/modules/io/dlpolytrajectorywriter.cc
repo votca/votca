@@ -22,33 +22,44 @@
 
 namespace votca { namespace csg {
 
-//void DLPOLYTrajectoryWriter::Open(string file, bool bAppend, const bool isConfig=false)
 void DLPOLYTrajectoryWriter::Open(string file, bool bAppend)
 {
     if (bAppend)
-        throw std::runtime_error("Append to dlpoly HISTORY (trajectory) not implemented");
+        throw std::runtime_error("Error: appending to dlpoly files not implemented");
 
     boost::filesystem::path filepath(file.c_str());
-    string filename;
+    string out_name="HISTORY_CGV";
 
-    //string trajname="HISTORY_CG";
-    //if( isConfig ) trajname="CONFIG_CG";
+    if ( boost::filesystem::extension(filepath).size() == 0 ) {
+
+      throw std::ios_base::failure("Error on opening transformed dlpoly file '" + file + "' - extension is expected, .dlph or .dlpc");
+
+    } else if( boost::filesystem::extension(filepath)==".dlpc" ) {
+
+      _isConfig=true;
+      out_name="CONFIG_CGV";
+
+    } else if( boost::filesystem::extension(filepath)==".dlph" ) {
+
+      _isConfig=false;
+
+    } else {
+      throw std::ios_base::failure("Error on opening transformed dlpoly file '" + file + "' - wrong extension, use .dlph or .dlpc");      
+    }
 
     if ( boost::filesystem::basename(filepath).size() == 0 ) {
       if (filepath.parent_path().string().size() == 0) {
-        filename="HISTORY_CG";
-        //filename=trajname;
+        _fname=out_name;
       } else {
-        filename=filepath.parent_path().string() + "/HISTORY_CG";
-        //filename=filepath.parent_path().string() + "/" + trajname;
+        _fname=filepath.parent_path().string() + "/" + out_name;
       }
     } else {
-      filename=file;
+      _fname=file;
     }
 
-    _fl.open(filename.c_str());
+    _fl.open(_fname.c_str());
     if(!_fl.is_open())
-      throw std::ios_base::failure("Error on open dlpoly file: '" + filename + "'");
+        throw std::ios_base::failure("Error on opening transformed dlpoly file '"+ _fname + "'");
 }
 
 void DLPOLYTrajectoryWriter::Close()
@@ -56,13 +67,13 @@ void DLPOLYTrajectoryWriter::Close()
   _fl.close();
 }
 
-//void DLPOLYTrajectoryWriter::Write(Topology *conf, const bool isConfig=false)
 void DLPOLYTrajectoryWriter::Write(Topology *conf)
 {
-    static int step = 1;
-    int mavecs=0;
-    int mpbct=0;
-    //double energy=0.0;
+    static int     step = 1;
+    static double dstep = 0.0;
+    int    mavecs = 0;
+    int    mpbct  = 0;
+    double energy = 0.0;
 
     if      (conf->HasForce()) { mavecs=2; }
     else if (conf->HasVel())   { mavecs=1; }
@@ -70,42 +81,48 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf)
     if (conf->getBoxType()==BoundaryCondition::typeOrthorhombic) mpbct=2;
     if (conf->getBoxType()==BoundaryCondition::typeTriclinic)    mpbct=3;
 
-    //if( isConfig ) {
-    //_fl << "From VOTCA with love" << endl;
-    //_fl << setw(10) << mavecs << setw(10) << mpbct << setw(10) << conf->BeadCount() << setw(20) << energy << endl;
-    //matrix m=conf->getBox();
-    //for (int i=0;i<3;i++) 
-      //_fl << fixed << setprecision(10) << setw(20) << m[i][0] << setw(20) << m[i][1] << setw(20) << m[i][2] << endl;
-    //}
-    //else {
-    if (step==1) {
+    if( _isConfig ) {
+
       _fl << "From VOTCA with love" << endl;
-      _fl << setw(10) << mavecs << setw(10) << mpbct << setw(10) << conf->BeadCount() << endl;
+      _fl << setw(10) << mavecs << setw(10) << mpbct << setw(10) << conf->BeadCount() << setw(20) << energy << endl;
+      matrix m=conf->getBox();
+      for (int i=0;i<3;i++) 
+	_fl << fixed << setprecision(10) << setw(20) << m[i][0] << setw(20) << m[i][1] << setw(20) << m[i][2] << endl;
+
+    } else {
+
+      if (step==1) {
+	_fl << "From VOTCA with love" << endl;
+	_fl << setw(10) << mavecs << setw(10) << mpbct << setw(10) << conf->BeadCount() << endl;
+	dstep = conf->getTime()/(double)(step);
+      }
+
+      _fl << "timestep" << setprecision(9) << setw(10) << step << setw(10) << conf->BeadCount() << setw(10) << mavecs << setw(10) << mpbct;
+      _fl << setprecision(9) << setw(12) << dstep << setw(12) <<conf->getTime() << endl;
+
+      matrix m=conf->getBox();
+      for (int i=0;i<3;i++) 
+	_fl << setprecision(12) << setw(20) << m[i][0] << setw(20) << m[i][1] << setw(20) << m[i][2] << endl;
+
     }
-
-    _fl << "timestep" << setprecision(9) << setw(10) << step << setw(10) << conf->BeadCount() << setw(10) << mavecs << setw(10) << mpbct;
-    _fl << setprecision(9) << setw(12) << conf->getTime()/(double)(step) << setw(12) <<conf->getTime() << endl;
-
-    matrix m=conf->getBox();
-    for (int i=0;i<3;i++) 
-      _fl << setprecision(12) << setw(20) << m[i][0] << setw(20) << m[i][1] << setw(20) << m[i][2] << endl;
-    //}
 
     for (int i=0;i<conf->BeadCount(); i++){
       Bead *bead=conf->getBead(i);
 
-      // AB: DL_POLY needs bead TYPE not name!
+      // AB: DL_POLY needs bead TYPE, not name!
 
-      //if( isConfig) {
-      //_fl << setw(8) << left << bead->getType()->getName() << right << setw(10) << i+1 << endl;
-      //}
-      //else {
-      _fl << setw(8) << left << bead->getType()->getName() << right << setw(10) << i+1;
-      _fl << setprecision(6) << setw(12) << bead->getM() << setw(12) << bead->getQ() << setw(12) << "   0.0" << endl;
-      //}
+      if( _isConfig) {
 
-      // AB: alternative with atom NAME & fixed floating point format
+	_fl << setw(8) << left << bead->getType()->getName() << right << setw(10) << i+1 << endl;
 
+      } else {
+
+	_fl << setw(8) << left << bead->getType()->getName() << right << setw(10) << i+1;
+	_fl << setprecision(6) << setw(12) << bead->getM() << setw(12) << bead->getQ() << setw(12) << "   0.0" << endl;
+
+      }
+
+      // alternative with atom NAME & fixed floating point format (in case the need arises)
       //_fl << setw(8) << left << bead->getName() << right << setw(10) << i+1;
       //_fl << fixed << setprecision(6) << setw(12) << bead->getM() << setw(12) << bead->getQ() << "   0.0" << endl;
 
@@ -113,14 +130,19 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf)
       _fl << setw(20) << bead->getPos().getY() << setw(20) << bead->getPos().getZ() << endl;
 
       if (mavecs>0) {
-	//if (bead->HasVel()) {
+	if (!bead->HasVel()) 
+	  throw std::ios_base::failure("Error: dlpoly frame is supposed to contain velocities, but bead does not have v-data");
+
         _fl << setprecision(12) << setw(20) << bead->getVel().getX() << setw(20);
         _fl << bead->getVel().getY() << setw(20) << bead->getVel().getZ() << endl;
-      }
-      if (mavecs>1) {
-	//if (bead->HasF()) {
-        _fl << setprecision(12) << setw(20) << bead->getF().getX() << setw(20);
-	_fl << bead->getF().getY() << setw(20) << bead->getF().getZ() << endl;
+
+	if (mavecs>1) {
+	  if (!bead->HasF())
+	    throw std::ios_base::failure("Error: dlpoly frame is supposed to contain forces, but bead does not have f-data");
+
+	  _fl << setprecision(12) << setw(20) << bead->getF().getX() << setw(20);
+	  _fl << bead->getF().getY() << setw(20) << bead->getF().getZ() << endl;
+	}
       }
     }
     step++;

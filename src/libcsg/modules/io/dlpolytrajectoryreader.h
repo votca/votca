@@ -29,27 +29,35 @@ using namespace votca::tools;
 using namespace std;
 
 /**
-    \brief class for reading gromacs trajectory files
+    \brief class for reading dlpoly trajectory files
 
     This class provides the TrajectoryReader interface and encapsulates the trajectory reading function of dl_poly
 
 */
-class DLPOLYTrajectoryReader : public TrajectoryReader
+class DLPOLYTrajectoryReader 
+   : public TrajectoryReader
 {
-    public:
-        /// open a trejectory file
-        bool Open(const string &file);
-        /// read in the first frame
-        bool FirstFrame(Topology &top);
-        /// read in the next frame
-        bool NextFrame(Topology &top);
-        /// close trejectory file
-        void Close();
+ public:
+  // open original trajectory file
+  bool Open(const string &file);
+  // read in the first frame
+  bool FirstFrame(Topology &top);
+  // read in the next frame
+  bool NextFrame(Topology &top);
+  // close original trajectory file
+  void Close();
 
-    private:
-        ifstream _fl;
-        bool _first_frame;
-
+  void   setFname(string name) { _fname = name; return; }
+  string getFname()            { return _fname; }
+  
+  void setIsConfig(bool isConf) { _isConfig=isConf; return; }
+  bool getIsConfig()            { return _isConfig; }
+  
+ private:
+  ifstream _fl;
+  string _fname;
+  bool _first_frame;
+  bool _isConfig;
 };
 
 }}

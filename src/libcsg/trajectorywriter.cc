@@ -40,13 +40,14 @@ void TrajectoryWriter::RegisterPlugins()
 {
     TrjWriterFactory().Register<PDBWriter>("pdb");
     TrjWriterFactory().Register<XYZWriter>("xyz");
-    TrjWriterFactory().Register<DLPOLYTrajectoryWriter>("dlpoly");
+    TrjWriterFactory().Register<DLPOLYTrajectoryWriter>("dlph");
+    TrjWriterFactory().Register<DLPOLYTrajectoryWriter>("dlpc");
+    //TrjWriterFactory().Register<DLPOLYTrajectoryWriter>("dlpoly");
     //TrjWriterFactory().Register<DLPOLYConfigWriter>("conf");
 #ifdef GMX
     TrjWriterFactory().Register<GMXTrajectoryWriter>("trr");
     TrjWriterFactory().Register<GMXTrajectoryWriter>("xtc");
     TrjWriterFactory().Register<GROWriter>("gro");
 #endif
-    TrjWriterFactory().Register<DLPOLYTrajectoryWriter>("dlpoly");
 }
 }}

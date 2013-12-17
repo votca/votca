@@ -16,7 +16,7 @@
  */
 
 #ifndef _DLPOLYTRAJECTORYWRITER_H
-#define	_DLPOLYTRAJECTORYWRITER_H
+#define _DLPOLYTRAJECTORYWRITER_H
 
 #include <votca/csg/topology.h>
 #include <votca/csg/trajectorywriter.h>
@@ -25,19 +25,28 @@ namespace votca { namespace csg {
 using namespace votca::tools;
 
 class DLPOLYTrajectoryWriter
-    : public TrajectoryWriter
+   : public TrajectoryWriter
 {
-public:
-
-    void Open(string file, bool bAppend = false);
-    void Close();
-    void Write(Topology *conf);
-
-    private:
-       ofstream _fl;
+ public:
+  // open transformed trajectory file
+  void Open(string file, bool bAppend=false);
+  // close transformed trajectory file
+  void Close();
+  // write a frame into transformed trajectory file
+  void Write(Topology *conf);
+  
+  void   setFname(string name) { _fname = name; return; }
+  string getFname()            { return _fname; }
+  
+  void setIsConfig(bool isConf) { _isConfig=isConf;  return; }
+  bool getIsConfig()            { return _isConfig; }
+  
+ private:
+  ofstream _fl;
+  string _fname;
+  bool _isConfig;
 };
 
 }}
 
-#endif	/* _DLPOLYTRAJECTORYWRITER_H */
-
+#endif  /* _DLPOLYTRAJECTORYWRITER_H */

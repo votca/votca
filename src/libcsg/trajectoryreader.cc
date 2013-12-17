@@ -43,7 +43,9 @@ void TrajectoryReader::RegisterPlugins(void)
     TrjReaderFactory().Register<GMXTrajectoryReader>("gro");
 #endif
     TrjReaderFactory().Register<PDBReader>("pdb");
-    TrjReaderFactory().Register<DLPOLYTrajectoryReader>("dlpoly");
+    TrjReaderFactory().Register<DLPOLYTrajectoryReader>("dlph");
+    TrjReaderFactory().Register<DLPOLYTrajectoryReader>("dlpc");
+    //TrjReaderFactory().Register<DLPOLYTrajectoryReader>("dlpoly");
 }
 
 }}

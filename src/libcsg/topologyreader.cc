@@ -45,7 +45,8 @@ void TopologyReader::RegisterPlugins(void)
     TopReaderFactory().Register<GMXTopologyReader>("tpr");
 #endif
     TopReaderFactory().Register<PDBReader>("pdb");
-    TopReaderFactory().Register<DLPOLYTopologyReader>("dlpoly");
+    TopReaderFactory().Register<DLPOLYTopologyReader>("dlpf");
+    //TopReaderFactory().Register<DLPOLYTopologyReader>("dlpoly");
 }
 
 }}
