@@ -20,7 +20,6 @@
 #endif
 
 #include <votca/csg/topologyreader.h>
-#include "modules/io/esptopologyreader.h"
 #include "modules/io/lammpsreader.h"
 #include "modules/io/xmltopologyreader.h"
 #include "modules/io/xyzreader.h"
@@ -36,7 +35,6 @@ namespace votca { namespace csg {
 
 void TopologyReader::RegisterPlugins(void)
 {
-    TopReaderFactory().Register<ESPTopologyReader>("esp");		
     TopReaderFactory().Register<XMLTopologyReader>("xml");
     TopReaderFactory().Register<LAMMPSReader>("dump");
     TopReaderFactory().Register<XYZReader>("xyz");

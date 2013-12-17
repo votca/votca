@@ -20,7 +20,6 @@
 #endif
 
 #include <votca/csg/trajectoryreader.h>
-#include "modules/io/esptrajectoryreader.h"
 #include "modules/io/lammpsreader.h"
 #include "modules/io/xyzreader.h"
 
@@ -34,7 +33,6 @@ namespace votca { namespace csg {
 
 void TrajectoryReader::RegisterPlugins(void)
 {
-    TrjReaderFactory().Register<ESPTrajectoryReader>("esp");
     TrjReaderFactory().Register<LAMMPSReader>("dump");
     TrjReaderFactory().Register<XYZReader>("xyz");
 #ifdef GMX
