@@ -154,8 +154,9 @@ inline double Event::Determine_to_sr_coulomb(Node* node1, StateDevice* state, Ev
 
 inline double Event::Determine_lr_coulomb(Node* node, Longrange* longrange) {
     double lr_coulomb;
-    if(node->type() == (int) NormalNode) {lr_coulomb = longrange->Get_cached_longrange(dynamic_cast<NodeDevice*>(node)->layer());}
-    else {lr_coulomb = 0.0;} //potential at electrodes = 0.0;
+    lr_coulomb = 0.0;
+ //   if(node->type() == (int) NormalNode) {lr_coulomb = longrange->Get_cached_longrange(dynamic_cast<NodeDevice*>(node)->layer());}
+  //  else {lr_coulomb = 0.0;} //potential at electrodes = 0.0;
     return lr_coulomb;
 }
 

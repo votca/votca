@@ -94,12 +94,9 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     eventdata->Graph_Parameters(graph->hopdist(), graph->simboxsize(), graph->maxpairdegree());
 
     longrange = new Longrange(graph,eventdata);
-    
+    longrange->Initialize(eventdata);
     state = new StateDevice();
-    state->InitState();
-    
-    events = new Events();
-    
+    state->InitStateDevice();
     std::cout << graph->GetNode(10)->occ() << endl;
     state->Grow(10, graph->maxpairdegree());
     int carrier_ID = state->Buy();
@@ -108,15 +105,12 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     newcarrier->SetCarrierNode(carrier_node);
     newcarrier->SetCarrierType(2);
     carrier_node->AddCarrier(carrier_ID);
-    vector<Link*> links = carrier_node->links();
+    longrange->Init_Load_State(state, eventdata);
     
-    
-    Carrier* newcarrier2 = state->GetCarrier(3);
-    newcarrier2->SetCarrierType(2);
-    
+    events = new Events();    
     events->Initialize_eventvector(graph,state,longrange,eventdata);
 
-    
+
     
     
     

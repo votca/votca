@@ -506,13 +506,13 @@ void Events::Recompute_all_injection_events(StateDevice* state, Longrange* longr
 void Events::Initialize_eventvector(GraphDevice* graph, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo){ //
 
     typename std::vector<Event*>::iterator it;
-    
+   
     _non_injection_events.clear();
     Grow_non_injection_eventvector(state, longrange, eventinfo);
     _non_injection_rates->initialize(_non_injection_events.size());
-    
+
     for (it = _non_injection_events.begin(); it!=_non_injection_events.end(); it++) {_non_injection_rates->setrate((*it)->id(),(*it)->rate());}    
-    
+
     if(eventinfo->device){
         _injection_events.clear();
         int Event_id_count = 0;

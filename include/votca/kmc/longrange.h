@@ -35,8 +35,10 @@ public:
     Longrange(GraphDevice* graph, Eventinfo* eventinfo) : Profile(graph, eventinfo){
     };    
 
-    void Add_charge(double charge, int layer) {_layercharge[layer] += charge;}
+    void Init_Load_State(StateDevice* state, Eventinfo* eventinfo);    
     
+    void Add_charge(double charge, int layer) {_layercharge[layer] += charge;}
+
     void Update_cache(Eventinfo* eventinfo); // Update cached longrange contributions
     double Get_cached_longrange(int layer); // Return cached value
     void Reset();
@@ -61,6 +63,20 @@ private:
     vector<int> _final_contributing_layer; // What is the last layer that contributes to the relevant layer?*/
   
 };
+
+void Longrange::Init_Load_State(StateDevice* state, Eventinfo* eventinfo) {
+    for(int icar =0; icar<state->GetCarrierSize(); icar++) {
+        CarrierDevice* carrier = state->GetCarrier(icar);
+        Node* node = carrier->node();
+        if(carrier->type() == (int) Electron) {
+            Add_charge(-1.0,dynamic_cast<NodeDevice*>(node)->layer());
+        }
+        else if(carrier->type() == (int) Hole) {
+            Add_charge(1.0,dynamic_cast<NodeDevice*>(node)->layer());
+        }
+    }
+    Update_cache(eventinfo);
+}
 
 void Longrange::Update_cache(Eventinfo* eventinfo) {
     for (int i=0; i<this->number_of_layers(); i++) {
