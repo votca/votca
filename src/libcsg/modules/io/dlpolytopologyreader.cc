@@ -55,7 +55,8 @@ string DLPOLYTopologyReader::_NextKeyInt(ifstream &fs, const char* wsp, const st
   stringstream sl(_NextKeyline(fs,wsp));
   string line,sval;
 
-  sl >> line; boost::to_upper(line); // allow user not to bother about the case
+  sl >> line; // allow user not to bother about the case
+  boost::to_upper(line);
 
   if( line.substr(0,word.size()) != word )
     throw std::runtime_error("Error: unexpected line in dlpoly file " + _fname + ", expected '" + word + "' but got '" + line + "'");
@@ -142,14 +143,17 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
     } else {
 
       line = _NextKeyline(fl,WSP); //read title line and skip it
-      line = _NextKeyline(fl,WSP); boost::to_upper(line); //read next directive line
+      line = _NextKeyline(fl,WSP); //read next directive line
+      boost::to_upper(line);
 
       if( line.substr(0,4)=="UNIT" ) { //skip 'unit' line
-	line = _NextKeyline(fl,WSP); boost::to_upper(line); //read next directive line
+	line = _NextKeyline(fl,WSP); //read next directive line
+	boost::to_upper(line); 
       }
 
       if( line.substr(0,4)=="NEUT" ) { //skip 'neutral groups' line (DL_POLY Classic FIELD format)
-	line = _NextKeyline(fl,WSP); boost::to_upper(line); //look for next directive line
+	line = _NextKeyline(fl,WSP); //look for next directive line
+	boost::to_upper(line);
       }
 
       int nmol_types;
@@ -246,7 +250,8 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 	      getline(fl,line);
 	    }
 	  }
-	  fl >> line; boost::to_upper(line);
+	  fl >> line;
+	  boost::to_upper(line);
 	  if (fl.eof())
             throw std::runtime_error("Error: unexpected end of dlpoly file " + _fname + " while scanning for kerword 'finish'");
 	}
