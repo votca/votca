@@ -22,7 +22,7 @@
 //#include <votca/kmc/graphsql.h>
 //#include <votca/kmc/graphcubic.h>
 
-//#include <votca/kmc/vssmgroup.h>
+#include <votca/kmc/vssmgroup.h>
 #include <votca/kmc/graphdevice.h>
 #include <votca/kmc/node.h>
 #include <votca/kmc/state.h>
@@ -46,7 +46,7 @@ public:
     GraphDevice* graph;
     StateDevice* state;
     Events* events;
-//    Vssmgroup* vssmgroup;
+    Vssmgroup* vssmgroup;
     Eventinfo* eventdata;
     Longrange* longrange;
     
@@ -110,6 +110,7 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     events = new Events();    
     events->Initialize_eventvector(graph,state,longrange,eventdata);
 
+    vssmgroup = new Vssmgroup();
 
     
     
@@ -140,7 +141,8 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     delete events;
     delete graph;
     delete eventdata;
-    delete longrange;    
+    delete longrange;
+    delete vssmgroup;    
     exit(0);
     
 
