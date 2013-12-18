@@ -27,108 +27,67 @@ namespace votca { namespace kmc {
 using namespace std;
 
 class Longrange {
-
+    
 public:
-    void Update_cache(myvec sim_box_size, Eventinfo* eventinfo); // Update cached longrange contributions
+
+    Longrange(GraphDevice* graph, Eventinfo* eventinfo) : Profile(graph, eventinfo){
+    };    
+
+    void Update_cache(Eventinfo* eventinfo); // Update cached longrange contributions
     double Get_cached_longrange(int layer); // Return cached value
     void Reset();
+    
+    /// Initialize the longrange class: -determine which layers are contributing to which layers -precalculate all cut-out disc contributions
+    void Initialize(Eventinfo* eventinfo);
     //note that the number of images for the calculation of the long range potential should be considerably larger 
     //than the number for the short range potential
-    void Initialize(GraphDevice* graph, Eventinfo* eventinfo){}; 
     double Calculate_longrange(int layer, bool cut_out_discs, myvec sim_box_size, Eventinfo* eventinfo); // Calculate long-range part of Coulomb interaction
 
-    vector<double> layercharge;
-    vector<double> longrange_cache;
-    vector<double> positional_average;
-  
+    ///precalculate the coulombic contributions from the cut-out discs
+    inline double Calculate_disc_contrib(int calculate_layer, int contrib_layer, myvec sim_box_size, Eventinfo* eventinfo);
+
 private:
 
-    int _number_of_layers;
+    vector<double> _layercharge;
+    vector<double> _longrange_cache;
     
-    vector< vector <double> > precalculate_disc_contrib; // Precalculated disc contributions
-    double Calculate_disc_contrib(int calculate_layer, int contrib_layer, myvec sim_box_size, Eventinfo* eventinfo); // Calculate disc contributions
+    vector< vector <double> > _precalculate_disc_contrib; // Precalculated disc contributions
   
-    vector<int> first_contributing_layer; // What is the first layer that contributes to the relevant layer?
-    vector<int> final_contributing_layer; // What is the last layer that contributes to the relevant layer?*/
+    vector<int> _first_contributing_layer; // What is the first layer that contributes to the relevant layer?
+    vector<int> _final_contributing_layer; // What is the last layer that contributes to the relevant layer?*/
   
 };
 
-/*void Longrange::Update_cache(myvec sim_box_size, Globaleventinfo* globevent) {
-    for (int i=0; i<number_of_layers; i++) {
-        longrange_cache[i] = Calculate_longrange(i,true, sim_box_size, globevent);
+void Longrange::Update_cache(Eventinfo* eventinfo) {
+    for (int i=0; i<_number_of_layers; i++) {
+        _longrange_cache[i] = Calculate_longrange(i,true, eventinfo);
     }
 }
 
 double Longrange::Get_cached_longrange(int layer) {
-    return longrange_cache[layer];
+    return _longrange_cache[layer];
 }
 
 void Longrange::Reset() {
-    for (int i=0; i<number_of_layers; i++) {
-        layercharge[i] = 0.0;
-        longrange_cache[i] = 0.0;
+    for (int i=0; i<_number_of_layers; i++) {
+        _layercharge[i] = 0.0;
+        _longrange_cache[i] = 0.0;
     }
 }
 
-void Longrange::Initialize_arrays(Eventinfo* eventinfo) {
-    
-    _number_of_layers = ceil(eventinfo->simboxsize.x()/eventinfo->layersize);
- 
-    vector<double> _positional_sum;
-    vector<int> _number_of_charges;
-    
-    for (int ilayer=0; ilayer<number_of_layers; ilayer++) {
-        positional_sum.push_back(0.0);
-        number_of_charges.push_back(0);
-    } 
+void Longrange::Initialize (Eventinfo* eventinfo) {
 
-    layercharge.resize(number_of_layers);
-    longrange_cache.resize(number_of_layers);
-
-    precalculate_disc_contrib.resize(number_of_layers);
-    first_contributing_layer.resize(number_of_layers);
-    final_contributing_layer.resize(number_of_layers);  
-    
-    
-}
-
-void Longrange::Initialize (Node* node, Eventinfo* eventinfo) {
-
-       
-        
-    for (int inode=0; inode<graph->nodes.size(); inode++) {
-        double posx = graph->nodes[inode]->node_position.x();
-        int iposx = floor(posx/graph->hopdist);
-        positional_sum[iposx] += posx;
-        number_of_charges[iposx]++;
-    }
-    
-    int rem_layers = 0;
-    
-    for (int ilayer=0; ilayer<number_of_layers; ilayer++) {
-        if(number_of_charges[ilayer] != 0) {
-            positional_average.push_back(positional_sum[ilayer]/number_of_charges[ilayer]);
-        }
-        else {
-            rem_layers++;
-        }
-    }
-    
-    number_of_layers -= rem_layers;
-    
-           
-  
-    for (int ilayer=0;ilayer<number_of_layers;ilayer++) {
+    for (int ilayer=0;ilayer<_number_of_layers;ilayer++) {
         // define for every layer, how many other layers are within the coulomb cut off radius from this layer
-        double define_layer = positional_average[ilayer];
+        double define_layer = _positional_average[ilayer];
     
         int start_index = 0;
         bool startfound = false;
         while (!startfound) {
-            double start_layer = positional_average[start_index];
-            if((define_layer-start_layer)<=globevent->coulcut) {
+            double start_layer = _positional_average[start_index];
+            if((define_layer-start_layer)<=eventinfo->coulcut) {
                 startfound = true;
-                first_contributing_layer[ilayer]=start_index;
+                _first_contributing_layer[ilayer]=start_index;
             }
             start_index++;
         }
@@ -137,39 +96,40 @@ void Longrange::Initialize (Node* node, Eventinfo* eventinfo) {
         bool finalfound = false;
         while (!finalfound) {
             double final_layer = positional_average[final_index];
-            if((final_layer-define_layer)<=globevent->coulcut) {
+            if((final_layer-define_layer)<=eventinfo->coulcut) {
                 finalfound = true;
-                final_contributing_layer[ilayer]=final_index;
+                _final_contributing_layer[ilayer]=final_index;
             }
             final_index--;
         }
     
-        int number_of_contributing_layers = final_contributing_layer[ilayer]-first_contributing_layer[ilayer]+1;
-        precalculate_disc_contrib[ilayer].resize(number_of_contributing_layers);
+        int number_of_contributing_layers = _final_contributing_layer[ilayer]-_first_contributing_layer[ilayer]+1;
+        _precalculate_disc_contrib[ilayer].resize(number_of_contributing_layers);
     }
   
     for(int i=0; i<number_of_layers; i++) {
-        layercharge[i] = 0.0;
-        longrange_cache[i] = 0.0;
-        int first_layer = first_contributing_layer[i];
-        int final_layer = final_contributing_layer[i];
+        _layercharge[i] = 0.0;
+        _longrange_cache[i] = 0.0;
+        int first_layer = _first_contributing_layer[i];
+        int final_layer = _final_contributing_layer[i];
         for (int j=first_layer; j<=final_layer; j++) {
-            precalculate_disc_contrib[i][j-first_layer] = Calculate_disc_contrib(i,j,graph->sim_box_size,globevent);
+            _precalculate_disc_contrib[i][j-first_layer] = Calculate_disc_contrib(i,j,eventinfo);
         }
     }
 }
 
-/*
-double Longrange::Calculate_disc_contrib(int calculate_layer, int contrib_layer, myvec sim_box_size,Globaleventinfo* globevent) {
+inline double Longrange::Calculate_disc_contrib(int calculate_layer, int contrib_layer, Eventinfo* eventinfo) {
  
-    double calcpos = positional_average[calculate_layer];
-    double contribpos = positional_average[contrib_layer];
+    double calcpos = _positional_average[calculate_layer];
+    double contribpos = _positional_average[contrib_layer];
     double rdist = contribpos-calcpos;
   
-    double contrib = globevent->coulcut-fabs(rdist); // Direct contribution (no image), factor 2 pi is missing, included in compute_longrange   
-    double radiussqr = globevent->coulcut*globevent->coulcut-rdist*rdist; //radius of contributing disc
+    double contrib = eventinfo->coulcut-fabs(rdist); // Direct contribution (no image), factor 2 pi is missing, included in compute_longrange   
+    double radiussqr = eventinfo->coulcut*eventinfo->coulcut-rdist*rdist; //radius of contributing disc
     
-    for (long i=0; i<globevent->nr_of_lr_images; i++) {
+    double L = eventinfo->simboxsize.x();
+    
+    for (long i=0; i<eventinfo->nr_of_lr_images; i++) {
    
         // Calculate contribution from images
         long dist1;
@@ -177,13 +137,13 @@ double Longrange::Calculate_disc_contrib(int calculate_layer, int contrib_layer,
         long sign;
         if (ldiv(i,2).rem==0) { // even generation (x-position of image charges is -p.x + 2*j*L, j=...,-1,0,1,...)
             sign = -1;
-            dist1 = i*sim_box_size.x() + 2*contribpos - rdist;
-            dist2 = i*sim_box_size.x() + 2*sim_box_size.x() - 2*contribpos + rdist;
+            dist1 = i*L + 2*contribpos - rdist;
+            dist2 = i*L + 2*L - 2*contribpos + rdist;
         }
         else { // odd generation (x-position of image charges is -p.x + 2*j*L, j=...,-1,0,1,...)
             sign = 1; 
-            dist1 = (i+1)*sim_box_size.x() + rdist;
-            dist2 = (i+1)*sim_box_size.x() - rdist;
+            dist1 = (i+1)*L + rdist;
+            dist2 = (i+1)*L - rdist;
         }
         double diag1 = sqrt(radiussqr+dist1*dist1);
         double diag2 = sqrt(radiussqr+dist2*dist2);
@@ -192,38 +152,39 @@ double Longrange::Calculate_disc_contrib(int calculate_layer, int contrib_layer,
     return contrib;
 }
 
-double Longrange::Calculate_longrange(int layer, bool cut_out_discs, myvec sim_box_size, Globaleventinfo* globevent) {
+
+double Longrange::Calculate_longrange(int layer, bool cut_out_discs,Globaleventinfo* globevent) {
     // Potential is expressed in multiples of e/(4*pi*epsilon) (with e the elementary charge>0)
     double plate_contrib1 = 0.0;
     double disc_contrib = 0.0;
-    double PI = 3.14159265358979323846264338327950288419716939937510;
+
     for(int i=0; i<layer; i++) {
-        double charge_i = 1.0*layercharge[i];
-        double position_i = 1.0*positional_average[i];
+        double charge_i = 1.0*_layercharge[i];
+        double position_i = 1.0*_positional_average[i];
         plate_contrib1 += position_i*charge_i; // potential of a charged plate between two electrodes
         double distance = layer-position_i;
-        int first_layer = first_contributing_layer[layer];
-        if (distance<=globevent->coulcut) {
+        int first_layer = _first_contributing_layer[layer];
+        if (distance<=eventinfo->coulcut) {
             // Cut out short-range sphere
-            disc_contrib -= charge_i*precalculate_disc_contrib[layer][i-first_layer];
+            disc_contrib -= charge_i*_precalculate_disc_contrib[layer][i-first_layer];
         }
     }
     double plate_contrib2 = 0.0;
-    for(int i=layer; i<number_of_layers; i++) {
-        double charge_i = 1.0*layercharge[i];
-        double rel_position_i = 1.0*(sim_box_size.x()-positional_average[i]);
+    for(int i=layer; i<_number_of_layers; i++) {
+        double charge_i = 1.0*_layercharge[i];
+        double rel_position_i = 1.0*(eventinfo->simboxsize.x()-_positional_average[i]);
         plate_contrib2 += rel_position_i*charge_i; // potential of a charged plate between two electrodes
-        double distance = positional_average[i]-layer;
-        int first_layer = first_contributing_layer[layer];
-        if (distance<=globevent->coulcut) {
+        double distance = _positional_average[i]-layer;
+        int first_layer = _first_contributing_layer[layer];
+        if (distance<=eventinfo->coulcut) {
             // Cut out short-range sphere
-            disc_contrib -= charge_i*precalculate_disc_contrib[layer][i-first_layer];
+            disc_contrib -= charge_i*_precalculate_disc_contrib[layer][i-first_layer];
         }
     }
     if (!cut_out_discs) { disc_contrib = 0.0; }
-    double layerpos = positional_average[layer];
-    return 4*PI*(plate_contrib1*(1-layerpos/sim_box_size.x()) + plate_contrib2*(layerpos/sim_box_size.x()) + 0.5*disc_contrib)/(sim_box_size.y()*sim_box_size.z());
-}*/
+    double layerpos = _positional_average[layer];
+    return 4*eventinfo->PI*(plate_contrib1*(1-layerpos/eventinfo->simboxsize.x()) + plate_contrib2*(layerpos/eventinfo->simboxsize.x()) + 0.5*disc_contrib)/(eventinfo->simboxsize.y()*eventinfo->simboxsize.z());
+}
 
 }}
 

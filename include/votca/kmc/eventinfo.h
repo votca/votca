@@ -70,7 +70,9 @@ public:
         simboxsize = graph_simboxsize;
         maxpairdegree = graph_maxpairdegree;
     }
-        
+
+    double PI = 3.14159265358979323846264338327950288419716939937510;    
+    
     int nx; int ny; int nz; int growsize;
     double lattice_constant; double left_electrode_distance; double right_electrode_distance; double alpha; double beta;
     double efield_x; double efield_y; double efield_z;
@@ -86,11 +88,8 @@ public:
     double coulomb_strength;
     double coulcut;
     double self_image_prefactor;
-    
 
-    
-    int nr_sr_images;
-    long nr_of_lr_images;
+    int nr_sr_images; long nr_of_lr_images;
 
     
 
