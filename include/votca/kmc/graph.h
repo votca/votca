@@ -45,6 +45,8 @@ public:
     void AddNode( TNode* node) { _nodes.push_back(node); }
     
     TNode* GetNode(int node_ID) {return _nodes[node_ID];}
+    
+    int Numberofnodes() {return _nodes.size();}
 
     /// Add a node to the Graph
     TLink* AddLink( int id, TNode* node1, TNode* node2, votca::tools::vec r12) { 

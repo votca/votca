@@ -41,9 +41,10 @@ public:
     vector<double> longrange_cache;
     vector<double> positional_average;
   
-    int number_of_layers;
-
 private:
+
+    int _number_of_layers;
+    
     vector< vector <double> > precalculate_disc_contrib; // Precalculated disc contributions
     double Calculate_disc_contrib(int calculate_layer, int contrib_layer, myvec sim_box_size, Eventinfo* eventinfo); // Calculate disc contributions
   
@@ -69,26 +70,37 @@ void Longrange::Reset() {
     }
 }
 
-void Longrange::Initialize (GraphLattice* graph, Globaleventinfo* globevent) {
-
-    number_of_layers = ceil(graph->sim_box_size.x()/graph->hopdist);
+void Longrange::Initialize_arrays(Eventinfo* eventinfo) {
+    
+    _number_of_layers = ceil(eventinfo->simboxsize.x()/eventinfo->layersize);
  
-    vector<double> positional_sum;
-    vector<int> number_of_charges;
-    vector<bool> flagged_for_deletion;
+    vector<double> _positional_sum;
+    vector<int> _number_of_charges;
     
     for (int ilayer=0; ilayer<number_of_layers; ilayer++) {
         positional_sum.push_back(0.0);
         number_of_charges.push_back(0);
-        flagged_for_deletion.push_back(false);
-    }        
+    } 
+
+    layercharge.resize(number_of_layers);
+    longrange_cache.resize(number_of_layers);
+
+    precalculate_disc_contrib.resize(number_of_layers);
+    first_contributing_layer.resize(number_of_layers);
+    final_contributing_layer.resize(number_of_layers);  
+    
+    
+}
+
+void Longrange::Initialize (Node* node, Eventinfo* eventinfo) {
+
+       
         
     for (int inode=0; inode<graph->nodes.size(); inode++) {
         double posx = graph->nodes[inode]->node_position.x();
         int iposx = floor(posx/graph->hopdist);
         positional_sum[iposx] += posx;
         number_of_charges[iposx]++;
-        graph->nodes[inode]->layer_index = iposx;
     }
     
     int rem_layers = 0;
@@ -98,19 +110,13 @@ void Longrange::Initialize (GraphLattice* graph, Globaleventinfo* globevent) {
             positional_average.push_back(positional_sum[ilayer]/number_of_charges[ilayer]);
         }
         else {
-            flagged_for_deletion[ilayer] = true;
             rem_layers++;
         }
     }
     
     number_of_layers -= rem_layers;
     
-    layercharge.resize(number_of_layers);
-    longrange_cache.resize(number_of_layers);
-
-    precalculate_disc_contrib.resize(number_of_layers);
-    first_contributing_layer.resize(number_of_layers);
-    final_contributing_layer.resize(number_of_layers);             
+           
   
     for (int ilayer=0;ilayer<number_of_layers;ilayer++) {
         // define for every layer, how many other layers are within the coulomb cut off radius from this layer
@@ -153,6 +159,7 @@ void Longrange::Initialize (GraphLattice* graph, Globaleventinfo* globevent) {
     }
 }
 
+/*
 double Longrange::Calculate_disc_contrib(int calculate_layer, int contrib_layer, myvec sim_box_size,Globaleventinfo* globevent) {
  
     double calcpos = positional_average[calculate_layer];

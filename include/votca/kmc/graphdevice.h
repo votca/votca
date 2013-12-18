@@ -22,6 +22,7 @@
 #include <votca/kmc/graphsql.h>
 #include <votca/kmc/nodedevice.h>
 #include <votca/kmc/linkdevice.h>
+#include <votca/kmc/eventinfo.h>
 //#include <votca/kmc/graphcubic.h>
 
 namespace votca { namespace kmc {
@@ -33,7 +34,7 @@ class GraphDevice : public GraphSQL<NodeDevice,LinkDevice> {
 public:
 
     ///define electrode nodes and form links between those nodes and neighbouring nodes and set maxpairdegree/hopping_distance/sim_box_size
-    void Setup_device_graph(double left_distance, double right_distance);       
+    void Setup_device_graph(double left_distance, double right_distance, Eventinfo* eventinfo);       
     
     ///associate all links in links vector to the corresponding nodes
     void LinkSort();
@@ -65,8 +66,14 @@ public:
     /// right electrode node
     NodeDevice* &right() { return _right_electrode; }
 
+    /// set self-image coulomb potential on all nodes and links
+    void Set_Self_Image_Coulomb_Potential(Eventinfo* eventinfo);
+    
     /// renumber the Id's of all links
     void RenumberId();      
+     
+    /// attach layer indices to nodes
+    void Set_Layer_indices(Eventinfo* eventinfo);
     
 private:
 
@@ -79,7 +86,7 @@ private:
     
 };
 
-void GraphDevice::Setup_device_graph(double left_distance, double right_distance){
+void GraphDevice::Setup_device_graph(double left_distance, double right_distance, Eventinfo* eventinfo){
 
     // Determine hopping distance before breaking periodicity
     _hop_distance = this->Determine_Hopping_Distance();
@@ -158,6 +165,12 @@ void GraphDevice::Setup_device_graph(double left_distance, double right_distance
     
     // determine maximum degree of graph
     _max_pair_degree = this->Determine_Max_Pair_Degree();
+    
+    // Set the self-image coulomb potential on every node
+    this->Set_Self_Image_Coulomb_Potential(eventinfo);
+    
+    // Set the layer indices on every node
+    this->Set_Layer_indices(eventinfo);
     
     // clear the occupation of the graph
     this->Clear();
@@ -282,61 +295,24 @@ void GraphDevice::Break_periodicity(bool break_x, bool break_y, bool break_z){
     
 }
 
-void GraphDevice::Set_Self_Coulomb_Potential(){
+void GraphDevice::Set_Self_Image_Coulomb_Potential(Eventinfo* eventinfo){
     
     typename std::vector<NodeDevice*>::iterator it;    
     for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) {
-        (*it)->setSelfImage(Compute_Self_Coulomb_Potential((*it)->position().x(),_sim_box_size, eventinfo));
+        votca::tools::vec node_pos = (*it)->position();
+        (*it)->Compute_Self_Image_Coulomb_Potential(node_pos.x(),_sim_box_size, eventinfo);
     }
 
-    typename std::vector<LinkDevice*>::iterator it;    
-    for(it = this->_links.begin(); it != this->_links.end(); it++) {
-        double SelfImageNode2 = (*it)->node2()->self_image();
-        double SelfImageNode1 = (*it)->node1()->self_image();
-        (*it)->setSelfImage(SelfImageNode2-SelfImageNode1);
-    }      
 }
 
-
-
-double Events::Compute_Self_Coulomb_potential(double startx, votca::tools::vec simboxsize, Eventinfo* eventinfo) {
-
-    double coulpot = 0.0;
-    double L = simboxsize.x();
-      
-    int sign;
-    double distx_1;
-    double distx_2;
-    bool outside_cut_off1 = false;
-    bool outside_cut_off2 = false;
-      
-    while(!(outside_cut_off1&&outside_cut_off2)) {
-        for (int i=0;i<eventinfo->nr_sr_images; i++) {
-            if (div(i,2).rem==0) { // even generation
-                sign = -1;
-                distx_1 = i*L + 2*startx;
-                distx_2 = (i+2)*L - 2*startx; 
-            }
-            else {
-                sign = 1;
-                distx_1 = (i+1)*L;
-                distx_2 = (i+1)*L;
-            }
-            if (distx_1<=eventinfo->coulcut) {
-                coulpot += sign*1.0/sqrt(distx_1)-1.0/(eventinfo->coulcut);
-            }
-            else {
-                outside_cut_off1 = true;
-            }
-            if (distx_2<=eventinfo->coulcut) {
-                coulpot += sign*1.0/sqrt(distx_2)-1.0/(eventinfo->coulcut);
-            }
-            else {
-                outside_cut_off2 = true;
-            }
-        }
+void GraphDevice::Set_Layer_indices(Eventinfo* eventinfo){
+    typename std::vector<NodeDevice*>::iterator it;
+    for (it = this->_nodes.begin(); it != this->_nodes.end(); it++) {
+        votca::tools::vec pos = (*it)->position();
+        double posx = pos.x();
+        int iposx = floor(posx/eventinfo->layersize);
+        (*it)->setLayer(iposx);
     }
-    return eventinfo->self_image_prefactor*coulpot;    
 }
 
 void GraphDevice::RenumberId() {

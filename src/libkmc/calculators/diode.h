@@ -30,6 +30,7 @@
 #include <votca/kmc/eventinfo.h>
 #include <votca/kmc/event.h>
 #include <votca/kmc/events.h>
+#include <votca/kmc/profile.h>
 
 using namespace std;
 
@@ -47,6 +48,7 @@ public:
     Events* events;
 //    Vssmgroup* vssmgroup;
     Eventinfo* eventdata;
+    Profile* longrange;
     
     Diode() {};
    ~Diode() {};
@@ -83,7 +85,7 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     
     graph = new GraphDevice();
     graph->Initialize(filename);
-    graph->Setup_device_graph(eventdata->left_electrode_distance, eventdata->right_electrode_distance);
+    graph->Setup_device_graph(eventdata->left_electrode_distance, eventdata->right_electrode_distance, eventdata);
     std::cout << "max pair degree: " << graph->maxpairdegree() << endl;
     std::cout << "hopping distance: " << graph->hopdist() << endl;
     std::cout << "simulation box size: " << graph->simboxsize() << endl;
@@ -91,6 +93,8 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     std::cout << "number of right electrode injector nodes " << graph->right()->links().size() << endl;
     eventdata->Graph_Parameters(graph->hopdist(), graph->simboxsize(), graph->maxpairdegree());
 
+    longrange = new Profile(graph,eventdata);
+    
     state = new StateDevice();
     state->InitState();
     

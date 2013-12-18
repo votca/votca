@@ -57,7 +57,7 @@ public:
     
     void Set_event(Link* link, int carrier_type, StateDevice* state,Eventinfo* eventinfo);
     /// Determine rate
-    void Determine_rate(Eventinfo* eventinfo);
+    void Determine_rate(StateDevice* state, Eventinfo* eventinfo);
     /// Set rate to value
     void Set_rate(double rate) {_rate = rate;}
     /// Set out of box
@@ -68,17 +68,19 @@ public:
     void Add_injection_potential(double injection_potential) {_injection_potential += injection_potential;}
     
     /// Determine initial event type
-    int Determine_init_event_type(Node* node1);
+    inline int Determine_init_event_type(Node* node1);
     /// Determine non injection event type in case two carriers are on linking nodes
-    int Determine_final_event_type(int carrier_type1, int carrier_type2, Node* node1, Node* node2);
+    inline int Determine_final_event_type(int carrier_type1, int carrier_type2, Node* node1, Node* node2);
     /// Determine non injection event type in case only one carrier is on a link
-    int Determine_final_event_type(Node* node1, Node* node2);
+    inline int Determine_final_event_type(Node* node1, Node* node2);
     /// Determine action flag for node 1
-    int Determine_action_flag_node1();
+    inline int Determine_action_flag_node1();
     /// Determine action flag for node 2
-    int Determine_action_flag_node2();
+    inline int Determine_action_flag_node2();
 
-
+    inline double Determine_from_coulomb(Node* node1, StateDevice* state, Eventinfo* eventinfo);    
+    inline double Determine_to_coulomb(Node* node1, StateDevice* state, Eventinfo* eventinfo); 
+    
 protected:
 
     Link* _link;
@@ -100,29 +102,29 @@ protected:
     
 };
 
-int Event::Determine_final_event_type(Node* node1, Node* node2) {
+inline int Event::Determine_final_event_type(Node* node1, Node* node2) {
     if (node2->type() == (int) NormalNode)                                                                  return (int) TransferTo; // Transfer to empty node
     if (node2->type() == (int) LeftElectrodeNode || node2->type() == (int) RightElectrodeNode)              return (int) Collection; // Collection at electrode
 }
 
-int Event::Determine_final_event_type(int carrier_type1, int carrier_type2, Node* node1, Node* node2) {
+inline int Event::Determine_final_event_type(int carrier_type1, int carrier_type2, Node* node1, Node* node2) {
     if (((carrier_type1 == (int) Electron) && (carrier_type2 == (int) Electron)) || ((carrier_type1 == (int) Hole) && (carrier_type2 == (int) Hole)))     return (int) Blocking; // Blocking
     if (((carrier_type1 == (int) Electron) && (carrier_type2 == (int) Hole))     || ((carrier_type1 == (int) Hole) && (carrier_type2 == (int) Electron))) return (int) Recombination; // Recombination
 }
 
-int Event::Determine_init_event_type(Node* node1) {
+inline int Event::Determine_init_event_type(Node* node1) {
     if(node1->type() == (int) NormalNode)                                                                   return (int) TransferFrom;
     if((node1->type() == (int) LeftElectrodeNode) || (node1->type() == (int) RightElectrodeNode))           return (int) Injection;
 }
 
-int Event::Determine_action_flag_node1() {
+inline int Event::Determine_action_flag_node1() {
     int action_node1;
     if(_init_type == Injection)           {action_node1 = (int) None;   } // injection
     else if(_init_type == TransferFrom)   {action_node1 = (int) Remove; } // transfer
     return action_node1;    
 }
 
-int Event::Determine_action_flag_node2() {
+inline int Event::Determine_action_flag_node2() {
     int action_node2;
     if(_final_type == TransferTo)         {action_node2 = (int) Add;    } // transfer
     else if(_final_type == Collection)    {action_node2 = (int) None;   } // collection
@@ -130,7 +132,21 @@ int Event::Determine_action_flag_node2() {
     return action_node2;    
 }
 
-void Event::Determine_rate(Eventinfo* eventinfo) {
+inline double Event::Determine_from_coulomb(Node* node1, StateDevice* state, Eventinfo* eventinfo) {
+    double coulomb_from;
+    if(_init_type == Injection)   {coulomb_from = 0.0;                                                                                     }
+    else                          {coulomb_from = eventinfo->coulomb_strength*state->GetCarrier(node1->occ())->on_site_coulomb();         }
+    return coulomb_from;
+}
+
+inline double Event::Determine_to_coulomb(Node* node1, StateDevice* state, Eventinfo* eventinfo) {
+    double coulomb_to;
+    if(_final_type == Collection) {coulomb_to = 0.0;                                                                                       }
+    else                          {coulomb_to = eventinfo->coulomb_strength*state->GetCarrier(node1->occ())->to_site_coulomb(_link->id());}
+    return coulomb_to;
+}
+
+void Event::Determine_rate(StateDevice* state, Eventinfo* eventinfo) {
     
     Node* node1 = _link->node1();
     Node* node2 = _link->node2();
@@ -144,19 +160,18 @@ void Event::Determine_rate(Eventinfo* eventinfo) {
     if(_carrier_type == (int) Electron) {
         charge = -1.0;
         prefactor = prefactor*(eventinfo->electron_prefactor);
-        static_node_energy_from = dynamic_cast<NodeSQL*>(node1)->eCation() + dynamic_cast<NodeSQL*>(node1)->ucCnNe();
-        static_node_energy_to = dynamic_cast<NodeSQL*>(node2)->eCation() + dynamic_cast<NodeSQL*>(node2)->ucCnNe();
+        static_node_energy_from = dynamic_cast<NodeDevice*>(node1)->eCation() + dynamic_cast<NodeDevice*>(node1)->ucCnNe();
+        static_node_energy_to = dynamic_cast<NodeDevice*>(node2)->eCation() + dynamic_cast<NodeDevice*>(node2)->ucCnNe();
     }
     else if(_carrier_type == (int) Hole) {
         charge = 1.0;
         prefactor = prefactor*(eventinfo->hole_prefactor);
-        static_node_energy_from = dynamic_cast<NodeSQL*>(node1)->eAnion() + dynamic_cast<NodeSQL*>(node1)->ucCnNh();
-        static_node_energy_to = dynamic_cast<NodeSQL*>(node2)->eAnion() + dynamic_cast<NodeSQL*>(node2)->ucCnNh();
+        static_node_energy_from = dynamic_cast<NodeDevice*>(node1)->eAnion() + dynamic_cast<NodeDevice*>(node1)->ucCnNh();
+        static_node_energy_to = dynamic_cast<NodeDevice*>(node2)->eAnion() + dynamic_cast<NodeDevice*>(node2)->ucCnNh();
 //        std::cout << "from " << static_node_energy_from << " to " << static_node_energy_to << endl;
     }
-
-
-   //first calculate quantum mechanical wavefunction overlap
+    
+    //first calculate quantum mechanical wavefunction overlap
     votca::tools::vec distancevector = _link->r12();
     double distance = abs(distancevector);
 
@@ -166,8 +181,8 @@ void Event::Determine_rate(Eventinfo* eventinfo) {
 
     double init_energy;
     double final_energy;
-//    double selfimpot_from = fromnode->self_image_potential;
-//    double selfimpot_to = jumptonode->self_image_potential;
+    double selfimpot_from = dynamic_cast<NodeDevice*>(node1)->self_image();
+    double selfimpot_to = dynamic_cast<NodeDevice*>(node2)->self_image();
     double from_event_energy = 0.0;
     double to_event_energy = 0.0;
 
@@ -178,22 +193,11 @@ void Event::Determine_rate(Eventinfo* eventinfo) {
     else if(_final_type == Collection)    { to_event_energy   -= eventinfo->injection_barrier; prefactor *= eventinfo->collection_prefactor;   } // collection
     else if(_final_type == Recombination) { to_event_energy   -= eventinfo->binding_energy;    prefactor *= eventinfo->recombination_prefactor;} // recombination
 
-//    double coulomb_from;
-//    double coulomb_to;
+    double coulomb_from = Determine_from_coulomb(node1, state, eventinfo);
+    double coulomb_to = Determine_to_coulomb(node1, state, eventinfo);
 
-//    if ((from_event_type != Injection)) { 
-//        coulomb_from = globevent->coulomb_strength*(from_shortrange+charge*from_longrange);
-//        coulomb_to = globevent->coulomb_strength*(to_shortrange+charge*to_longrange);
-//    }
-//    else if(from_event_type == Injection){
-//        coulomb_from = 0.0;
-//        coulomb_to = charge*globevent->coulomb_strength*(jumptonode->injection_potential+to_longrange);
-//    }
-
-//    init_energy = static_node_energy_from + selfimpot_from + coulomb_from;
-    init_energy = static_node_energy_from + from_event_energy;
-//    final_energy = static_node_energy_to + selfimpot_to + coulomb_to;
-    final_energy = static_node_energy_to + to_event_energy;
+    init_energy = static_node_energy_from + selfimpot_from + from_event_energy + coulomb_from;
+    final_energy = static_node_energy_to + selfimpot_to + to_event_energy + coulomb_to;
 
     double energycontrib;
     double energyfactor;
@@ -233,7 +237,7 @@ void Event::Set_event(Link* link, int carrier_type, StateDevice* state,Eventinfo
 
     _action_node1 = Determine_action_flag_node1();
     _action_node2 = Determine_action_flag_node2();
-    Determine_rate(eventinfo);
+    Determine_rate(state, eventinfo);
 }
 
 }} 

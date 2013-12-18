@@ -31,6 +31,7 @@ public:
     /// is carrier in box or not?
     const bool &inbox() const { return _in_sim_box; }
     const double &on_site_coulomb() const {return _from_coulomb; }
+    const double &to_site_coulomb(int linkid) const {return _to_coulomb[linkid];}
     
     /// set "inbox/outbox" status
     void SetInBox(bool in_sim_box) {_in_sim_box = in_sim_box;}
