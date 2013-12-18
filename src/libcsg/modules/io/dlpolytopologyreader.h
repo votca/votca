@@ -49,6 +49,7 @@ private:
     string _fname;
     string _NextKeyline(ifstream &fs, const char* wsp);
     string _NextKeyInt(ifstream &fs, const char* wsp, const string &word, int &ival);
+    bool   _isKeyInt(const string &line, const char* wsp, const string &word, int &ival);
 };
 
 }}

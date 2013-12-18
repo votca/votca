@@ -40,6 +40,10 @@ string DLPOLYTopologyReader::_NextKeyline(ifstream &fs, const char* wsp)
 
   do {
     getline(fs, line);
+
+    if (fs.eof())
+      throw std::runtime_error("Error: unexpected end of dlpoly file '" + _fname + "'");
+
     i_nws = line.find_first_not_of(wsp);
   } while ( line.substr(i_nws,1) == "#" || line.substr(i_nws,1) == ";" );
 
@@ -49,21 +53,61 @@ string DLPOLYTopologyReader::_NextKeyline(ifstream &fs, const char* wsp)
 string DLPOLYTopologyReader::_NextKeyInt(ifstream &fs, const char* wsp, const string &word, int &ival)
 {
   stringstream sl(_NextKeyline(fs,wsp));
-  string line;
+  string line,sval;
 
   sl >> line; boost::to_upper(line); // allow user not to bother about the case
 
   if( line.substr(0,word.size()) != word )
     throw std::runtime_error("Error: unexpected line in dlpoly file " + _fname + ", expected '" + word + "' but got '" + line + "'");
 
-  sl >> ival;
+  sl >> sval;
+
+  size_t i_num = sval.find_first_of("0123456789"); // assume integer number straight after the only keyword
+
+  if( i_num>0 ) 
+    throw std::runtime_error("Error: missing integer number in directive '" + line + "' in topology file '"+ _fname +"'");
+
+  ival = boost::lexical_cast<int>(sval);
 
   return sl.str();
+}
+
+bool DLPOLYTopologyReader::_isKeyInt(const string &line, const char* wsp, const string &word, int &ival)
+{
+  Tokenizer tok(line,wsp); // split directives consisting of a few words - the keyword is the first one!
+  vector<string> fields;
+  tok.ToVector(fields);
+
+  ival = 0;
+
+  if( fields.size() < 2 ) return false;
+  //throw std::runtime_error("Error: missing integer number in directive '" + line + "' in topology file '"+ _fname +"'");
+
+  boost::to_upper(fields[0]);
+
+  if (fields[0].substr(0,word.size()) != word )
+    throw std::runtime_error("Error: unexpected directive in dlpoly file '" + _fname + "', expected keyword '"+ word +"' but got '" + fields[0] + "'");
+
+  size_t i_num=string::npos;
+
+  int i=1;
+  do { // find integer number in the field with the lowest index (closest to the keyword)
+    i_num = fields[i++].find_first_of("0123456789");
+  } while ( i_num>0 && i<fields.size() );
+
+  if( i_num>0 ) return false;
+  //throw std::runtime_error("Error: missing integer number in directive '" + line + "' in topology file '"+ _fname +"'");
+
+  ival = boost::lexical_cast<int>(fields[i-1]);
+
+  return true;
 }
 
 
 bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 {
+#define WSP " \t"
+
     int  mavecs=0;
     int  mpbct=0;
     int  matoms=0;
@@ -77,7 +121,6 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
     boost::filesystem::path filepath(file.c_str());
 
     string line;
-    string wsp=" \t";
 
     // TODO: fix residue naming / assignment - DL_POLY has no means to recognise residues!
     Residue *res = top.CreateResidue("no");
@@ -98,50 +141,42 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
       throw std::runtime_error("Error on opening dlpoly file '" + _fname + "'");
     } else {
 
-      getline(fl, line); //title
-      getline(fl, line); //unit line
+      line = _NextKeyline(fl,WSP); //read title line and skip it
+      line = _NextKeyline(fl,WSP); boost::to_upper(line); //read next directive line
 
-      line = _NextKeyline(fl," \t");
-      boost::to_upper(line);
-
-      if( line.substr(0,4)=="NEUT" ) {
-	line = _NextKeyline(fl," \t");
-	boost::to_upper(line);
+      if( line.substr(0,4)=="UNIT" ) { //skip 'unit' line
+	line = _NextKeyline(fl,WSP); boost::to_upper(line); //read next directive line
       }
 
-      Tokenizer tok(line, " \t"); // "MOLECules or MOLECular species/types #" - may contain a few words!
-      vector<string> fields;
-      tok.ToVector(fields);
+      if( line.substr(0,4)=="NEUT" ) { //skip 'neutral groups' line (DL_POLY Classic FIELD format)
+	line = _NextKeyline(fl,WSP); boost::to_upper(line); //look for next directive line
+      }
 
-      size_t i_num = line.find_first_of("0123456789");
+      int nmol_types;
 
-      if( fields.size() < 2 || i_num == string::npos ) {
-
+      if( !_isKeyInt(line,WSP,"MOLEC",nmol_types) ) 
 	throw std::runtime_error("Error: missing integer number in directive '" + line + "' in topology file '"+ _fname +"'");
 
-      } else if (fields[0].substr(0,5) != "MOLEC") {
-
-	throw std::runtime_error("Error: unexpected line in dlpoly file " + _fname + ", expected 'MOLEC<ULES>' but got '" + line + "'");
-      }
-
-      int nmol_types = boost::lexical_cast<int>(fields[fields.size()-1]);
+#ifdef DEBUG
+      cout << "Read from topology file " << _fname << " : '" << line << "' - " << nmol_types << endl;
+#endif
 
       string mol_name;
 
       int id=0;
       for (int nmol_type=0;nmol_type<nmol_types; nmol_type++) {
 
-	mol_name = _NextKeyline(fl," \t");
+	mol_name = _NextKeyline(fl,WSP);
         Molecule *mi = top.CreateMolecule(mol_name);
 
 	int nreplica = 1;
-	line = _NextKeyInt(fl," \t","NUMMOL",nreplica);
+	line = _NextKeyInt(fl,WSP,"NUMMOL",nreplica);
 
 #ifdef DEBUG
 	cout << "Read from topology file " << _fname << " : '" << mol_name << "' - '" << line << "' - " << nreplica << endl;
 #endif
 
-	line = _NextKeyInt(fl," \t","ATOMS",natoms);
+	line = _NextKeyInt(fl,WSP,"ATOMS",natoms);
 
 #ifdef DEBUG
 	cout << "Read from topology file " << _fname << " : '" << line << "' - " << natoms << endl;
@@ -160,7 +195,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 
           getline(fl,line); //rest of the atom line
 
-          Tokenizer tok(line, " \t");
+          Tokenizer tok(line, WSP);
 	  vector<string> fields;
 	  tok.ToVector(fields);
 
@@ -261,7 +296,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
       cout << "Read from topology file " << _fname << " : '" << line << "' - done with topology" << endl;
     }
     else {
-      cout << "Read from topology file " << _fname << " : 'EOF' - done with topology (directive 'close' not read!)" << endl;
+      	    cout << "Read from topology file " << _fname << " : 'EOF' - done with topology (directive 'close' not read!)" << endl;
     }
 #endif
 
@@ -298,7 +333,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
       cout << "Read from initial configuration file : '" << line << "' - directives line" << endl;
 #endif
 
-      Tokenizer tok(line, " \t");
+      Tokenizer tok(line, WSP);
       vector<string> fields;
       tok.ToVector(fields);
 
@@ -319,7 +354,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 #ifdef DEBUG
 	cout << "Warning: N of atoms/beads in initial configuration & topology differ: " << natoms << " =?= " << matoms << endl;
 #else
-	throw std::runtime_error("Error: N of atoms/beads in initial configuration & topology differ " +
+      	throw std::runtime_error("Error: N of atoms/beads in initial configuration & topology differ " +
 	    boost::lexical_cast<string>(natoms) + " vs " + boost::lexical_cast<string>(matoms));
 #endif
 
@@ -335,7 +370,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
           throw std::runtime_error("Error: unexpected EOF in dlpoly file " + filename +", when reading box vector " +
               boost::lexical_cast<string>(i));
 
-        Tokenizer tok(line, " \t");
+        Tokenizer tok(line, WSP);
         vector<double> fields;
         tok.ConvertToVector<double>(fields);
         box_vectors[i]=vec(fields[0],fields[1],fields[2]);
