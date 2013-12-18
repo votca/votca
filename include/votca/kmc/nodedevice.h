@@ -31,7 +31,8 @@ public:
 
     void setLayer(int layer){_layer = layer;}
 //    void Compute_Self_Coulomb_potential(double startx, votca::tools::vec simboxsize, Eventinfo* eventinfo); 
-    void Compute_Self_Image_Coulomb_Potential(double startx, votca::tools::vec simboxsize, Eventinfo* eventinfo); 
+    void Compute_Self_Image_Coulomb_Potential(double startx, double device_length, Eventinfo* eventinfo);
+    void setSelfImage(double self_image) {_self_image = self_image;}
     
     const double &self_image() const { return _self_image; }     
     const int &layer() const {return _layer;}
@@ -46,10 +47,10 @@ private:
     
 };
 
-void NodeDevice::Compute_Self_Image_Coulomb_Potential(double startx, votca::tools::vec simboxsize, Eventinfo* eventinfo) {
+void NodeDevice::Compute_Self_Image_Coulomb_Potential(double startx, double device_length, Eventinfo* eventinfo) {
 
     double coulpot = 0.0;
-    double L = simboxsize.x();
+    double L = device_length;
       
     int sign;
     double distx_1;

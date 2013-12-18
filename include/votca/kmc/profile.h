@@ -38,6 +38,8 @@ public:
      
     ~Profile(){}     
     
+    const int &number_of_layers() const { return _number_of_layers; }
+    const double &position(int i) const {return _positional_average[i]; }
     
     inline void Initialize_storage_arrays(Eventinfo* eventinfo);
     inline void Add_nodes_to_profile(GraphDevice* graph);

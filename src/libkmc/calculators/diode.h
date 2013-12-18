@@ -48,7 +48,7 @@ public:
     Events* events;
 //    Vssmgroup* vssmgroup;
     Eventinfo* eventdata;
-    Profile* longrange;
+    Longrange* longrange;
     
     Diode() {};
    ~Diode() {};
@@ -93,7 +93,7 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     std::cout << "number of right electrode injector nodes " << graph->right()->links().size() << endl;
     eventdata->Graph_Parameters(graph->hopdist(), graph->simboxsize(), graph->maxpairdegree());
 
-    longrange = new Profile(graph,eventdata);
+    longrange = new Longrange(graph,eventdata);
     
     state = new StateDevice();
     state->InitState();
@@ -114,7 +114,7 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     Carrier* newcarrier2 = state->GetCarrier(3);
     newcarrier2->SetCarrierType(2);
     
-    events->Initialize_eventvector(graph,state,eventdata);
+    events->Initialize_eventvector(graph,state,longrange,eventdata);
 
     
     
@@ -145,7 +145,8 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     delete state;
     delete events;
     delete graph;
-    delete eventdata;    
+    delete eventdata;
+    delete longrange;    
     exit(0);
     
 

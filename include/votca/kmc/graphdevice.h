@@ -67,7 +67,7 @@ public:
     NodeDevice* &right() { return _right_electrode; }
 
     /// set self-image coulomb potential on all nodes and links
-    void Set_Self_Image_Coulomb_Potential(Eventinfo* eventinfo);
+    void Set_Self_Image_Coulomb_Potential(double device_length,Eventinfo* eventinfo);
     
     /// renumber the Id's of all links
     void RenumberId();      
@@ -166,9 +166,10 @@ void GraphDevice::Setup_device_graph(double left_distance, double right_distance
     // determine maximum degree of graph
     _max_pair_degree = this->Determine_Max_Pair_Degree();
     
+    std::cout << "hier?" << endl;
     // Set the self-image coulomb potential on every node
-    this->Set_Self_Image_Coulomb_Potential(eventinfo);
-    
+    this->Set_Self_Image_Coulomb_Potential(_sim_box_size.x(), eventinfo);
+    std::cout << "hier?" << endl;    
     // Set the layer indices on every node
     this->Set_Layer_indices(eventinfo);
     
@@ -295,14 +296,16 @@ void GraphDevice::Break_periodicity(bool break_x, bool break_y, bool break_z){
     
 }
 
-void GraphDevice::Set_Self_Image_Coulomb_Potential(Eventinfo* eventinfo){
+void GraphDevice::Set_Self_Image_Coulomb_Potential(double device_length, Eventinfo* eventinfo){
     
     typename std::vector<NodeDevice*>::iterator it;    
     for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) {
         votca::tools::vec node_pos = (*it)->position();
-        (*it)->Compute_Self_Image_Coulomb_Potential(node_pos.x(),_sim_box_size, eventinfo);
+        (*it)->Compute_Self_Image_Coulomb_Potential(node_pos.x(),device_length,eventinfo);
     }
-
+    
+    _left_electrode->setSelfImage(0.0);
+    _right_electrode->setSelfImage(0.0);
 }
 
 void GraphDevice::Set_Layer_indices(Eventinfo* eventinfo){

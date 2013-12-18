@@ -22,6 +22,7 @@
 #include <votca/kmc/graphdevice.h>
 #include <votca/kmc/eventinfo.h>
 #include <votca/kmc/state.h>
+#include <votca/kmc/longrange.h>
 
 namespace votca { namespace kmc {
   
@@ -41,9 +42,10 @@ public:
         _rate = 0.0;
     }
 
-    Event(int id, Link* link, int carrier_type, Eventinfo* eventinfo, StateDevice* state){
+    Event(int id, Link* link, int carrier_type, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo){
         _id = id;
-        Set_event(link, carrier_type, state,eventinfo);
+        Set_event(link, carrier_type, state, longrange, eventinfo);
+
     }
  
     double &rate() { return _rate; }
@@ -55,9 +57,9 @@ public:
     int &action_node1() { return _action_node1;}
     int &action_node2() { return _action_node2;}
     
-    void Set_event(Link* link, int carrier_type, StateDevice* state,Eventinfo* eventinfo);
+    void Set_event(Link* link, int carrier_type, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo);
     /// Determine rate
-    void Determine_rate(StateDevice* state, Eventinfo* eventinfo);
+    void Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* eventinfo);
     /// Set rate to value
     void Set_rate(double rate) {_rate = rate;}
     /// Set out of box
@@ -78,8 +80,9 @@ public:
     /// Determine action flag for node 2
     inline int Determine_action_flag_node2();
 
-    inline double Determine_from_coulomb(Node* node1, StateDevice* state, Eventinfo* eventinfo);    
-    inline double Determine_to_coulomb(Node* node1, StateDevice* state, Eventinfo* eventinfo); 
+    inline double Determine_from_sr_coulomb(Node* node1, StateDevice* state, Eventinfo* eventinfo);    
+    inline double Determine_to_sr_coulomb(Node* node1, StateDevice* state, Eventinfo* eventinfo);
+    inline double Determine_lr_coulomb(Node* node, Longrange* longrange);
     
 protected:
 
@@ -132,27 +135,36 @@ inline int Event::Determine_action_flag_node2() {
     return action_node2;    
 }
 
-inline double Event::Determine_from_coulomb(Node* node1, StateDevice* state, Eventinfo* eventinfo) {
+inline double Event::Determine_from_sr_coulomb(Node* node1, StateDevice* state, Eventinfo* eventinfo) {
+
     double coulomb_from;
     if(_init_type == Injection)   {coulomb_from = 0.0;                                                                                     }
     else                          {coulomb_from = eventinfo->coulomb_strength*state->GetCarrier(node1->occ())->on_site_coulomb();         }
     return coulomb_from;
 }
 
-inline double Event::Determine_to_coulomb(Node* node1, StateDevice* state, Eventinfo* eventinfo) {
+inline double Event::Determine_to_sr_coulomb(Node* node1, StateDevice* state, Eventinfo* eventinfo) {
+
     double coulomb_to;
     if(_final_type == Collection) {coulomb_to = 0.0;                                                                                       }
-    else                          {coulomb_to = eventinfo->coulomb_strength*state->GetCarrier(node1->occ())->to_site_coulomb(_link->id());}
+    else if(_init_type != Injection) {coulomb_to = eventinfo->coulomb_strength*state->GetCarrier(node1->occ())->to_site_coulomb(_link->id());}
+    else if(_init_type == Injection) {coulomb_to = eventinfo->coulomb_strength*_injection_potential;}
     return coulomb_to;
 }
 
-void Event::Determine_rate(StateDevice* state, Eventinfo* eventinfo) {
+inline double Event::Determine_lr_coulomb(Node* node, Longrange* longrange) {
+    double lr_coulomb;
+    if(node->type() == (int) NormalNode) {lr_coulomb = longrange->Get_cached_longrange(dynamic_cast<NodeDevice*>(node)->layer());}
+    else {lr_coulomb = 0.0;} //potential at electrodes = 0.0;
+    return lr_coulomb;
+}
+
+void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* eventinfo) {
     
     Node* node1 = _link->node1();
     Node* node2 = _link->node2();
     
     double prefactor = 1.0; // total prefactor
-  
     double charge;
     double static_node_energy_from;
     double static_node_energy_to;
@@ -170,7 +182,7 @@ void Event::Determine_rate(StateDevice* state, Eventinfo* eventinfo) {
         static_node_energy_to = dynamic_cast<NodeDevice*>(node2)->eAnion() + dynamic_cast<NodeDevice*>(node2)->ucCnNh();
 //        std::cout << "from " << static_node_energy_from << " to " << static_node_energy_to << endl;
     }
-    
+   
     //first calculate quantum mechanical wavefunction overlap
     votca::tools::vec distancevector = _link->r12();
     double distance = abs(distancevector);
@@ -193,11 +205,14 @@ void Event::Determine_rate(StateDevice* state, Eventinfo* eventinfo) {
     else if(_final_type == Collection)    { to_event_energy   -= eventinfo->injection_barrier; prefactor *= eventinfo->collection_prefactor;   } // collection
     else if(_final_type == Recombination) { to_event_energy   -= eventinfo->binding_energy;    prefactor *= eventinfo->recombination_prefactor;} // recombination
 
-    double coulomb_from = Determine_from_coulomb(node1, state, eventinfo);
-    double coulomb_to = Determine_to_coulomb(node1, state, eventinfo);
+    double sr_coulomb_from = Determine_from_sr_coulomb(node1, state, eventinfo);
+    double sr_coulomb_to = Determine_to_sr_coulomb(node1, state, eventinfo);
 
-    init_energy = static_node_energy_from + selfimpot_from + from_event_energy + coulomb_from;
-    final_energy = static_node_energy_to + selfimpot_to + to_event_energy + coulomb_to;
+    double lr_coulomb_from = eventinfo->coulomb_strength*charge*Determine_lr_coulomb(node1, longrange);
+    double lr_coulomb_to = eventinfo->coulomb_strength*charge*Determine_lr_coulomb(node2, longrange);
+    
+    init_energy = static_node_energy_from + selfimpot_from + from_event_energy + sr_coulomb_from + lr_coulomb_from;
+    final_energy = static_node_energy_to + selfimpot_to + to_event_energy + sr_coulomb_to + sr_coulomb_to;
 
     double energycontrib;
     double energyfactor;
@@ -223,12 +238,12 @@ void Event::Determine_rate(StateDevice* state, Eventinfo* eventinfo) {
     _rate = prefactor*distancefactor*energyfactor;
 }
 
-void Event::Set_event(Link* link, int carrier_type, StateDevice* state,Eventinfo* eventinfo) {
+void Event::Set_event(Link* link, int carrier_type, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo) {
     
     _link = link;
     Node* node1 = link->node1();
     Node* node2 = link->node2();
-
+    
     _carrier_type = carrier_type;
     _init_type = Determine_init_event_type(node1);
 
@@ -237,7 +252,8 @@ void Event::Set_event(Link* link, int carrier_type, StateDevice* state,Eventinfo
 
     _action_node1 = Determine_action_flag_node1();
     _action_node2 = Determine_action_flag_node2();
-    Determine_rate(state, eventinfo);
+
+    Determine_rate(state, longrange, eventinfo);
 }
 
 }} 
