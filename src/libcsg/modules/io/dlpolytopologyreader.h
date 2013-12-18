@@ -34,15 +34,21 @@ using namespace std;
 
 */
 class DLPOLYTopologyReader
-    : public TopologyReader
+   : public TopologyReader
 {
 public:
     DLPOLYTopologyReader() {}
 
     /// read a topology file
     bool ReadTopology(string file, Topology &top);
+  
+    void   setFname(string name) { _fname = name; return; }
+    string getFname()            { return _fname; }
 
 private:
+    string _fname;
+    string _NextKeyline(ifstream &fs, const char* wsp);
+    string _NextKeyInt(ifstream &fs, const char* wsp, const string &word, int &ival);
 };
 
 }}

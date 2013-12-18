@@ -19,7 +19,7 @@
 #include <iomanip>
 #include <fstream>
 #include <boost/algorithm/string.hpp>
-#include <boost/filesystem/convenience.hpp>
+#include <boost/filesystem/convenience.hpp> 
 #include <votca/tools/getline.h>
 
 #ifndef HAVE_NO_CONFIG
@@ -29,6 +29,38 @@
 #include "dlpolytopologyreader.h"
 
 namespace votca { namespace csg {
+
+using namespace std;
+
+
+string DLPOLYTopologyReader::_NextKeyline(ifstream &fs, const char* wsp)
+{
+  string line;
+  size_t i_nws=0;
+
+  do {
+    getline(fs, line);
+    i_nws = line.find_first_not_of(wsp);
+  } while ( line.substr(i_nws,1) == "#" || line.substr(i_nws,1) == ";" );
+
+  return line.substr(i_nws,line.size()-i_nws);
+}
+
+string DLPOLYTopologyReader::_NextKeyInt(ifstream &fs, const char* wsp, const string &word, int &ival)
+{
+  stringstream sl(_NextKeyline(fs,wsp));
+  string line;
+
+  sl >> line; boost::to_upper(line); // allow user not to bother about the case
+
+  if( line.substr(0,word.size()) != word )
+    throw std::runtime_error("Error: unexpected line in dlpoly file " + _fname + ", expected '" + word + "' but got '" + line + "'");
+
+  sl >> ival;
+
+  return sl.str();
+}
+
 
 bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 {
@@ -44,78 +76,73 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
     std::ifstream fl;
     boost::filesystem::path filepath(file.c_str());
 
-    string filename,line;
+    string line;
+    string wsp=" \t";
 
     // TODO: fix residue naming / assignment - DL_POLY has no means to recognise residues!
     Residue *res = top.CreateResidue("no");
 
     if ( boost::filesystem::basename(filepath).size() == 0 ) {
       if (filepath.parent_path().string().size() == 0) {
-        filename="FIELD"; // DL_POLY uses fixed file names in current/working directory
+        _fname="FIELD"; // DL_POLY uses fixed file names in current/working directory
       } else {
-	filename=filepath.parent_path().string() + "/FIELD";
+	_fname=filepath.parent_path().string() + "/FIELD";
       }
     } else {
-      filename=file;
+      _fname=file;
     }
 
-    fl.open(filename.c_str());
+    fl.open(_fname.c_str());
 
     if (!fl.is_open()){
-      throw std::runtime_error("Error on opening dlpoly file '" + filename + "'");
+      throw std::runtime_error("Error on opening dlpoly file '" + _fname + "'");
     } else {
 
       getline(fl, line); //title
       getline(fl, line); //unit line
 
-      int nmol_types;
+      line = _NextKeyline(fl," \t"); boost::to_upper(line);
 
-      getline(fl, line);     // "MOLECules or MOLECular species/types #" - may contain a few words!
-      boost::to_upper(line); // allow user not to bother about the case
-      if (line.substr(0,5) != "MOLEC")
-          throw std::runtime_error("Error: unexpected line in dlpoly file " + filename + ", expected 'MOLEC<ULES>' but got '" + line + "'");
+      if( line.substr(0,4)=="NEUT" ) {
+	line = _NextKeyline(fl," \t"); boost::to_upper(line);
+      }
 
-      Tokenizer tok(line, " \t");
+      Tokenizer tok(line, " \t"); // "MOLECules or MOLECular species/types #" - may contain a few words!
       vector<string> fields;
       tok.ToVector(fields);
 
-      if( fields.size() < 2 ) {
-	throw std::runtime_error("Error: missing number of molecules in directive '" + line + "' in topology file '"+ filename +"'");
+      size_t i_num = line.find_first_of("0123456789");
+
+      if( fields.size() < 2 || i_num == string::npos ) {
+
+	throw std::runtime_error("Error: missing integer number in directive '" + line + "' in topology file '"+ _fname +"'");
+
+      } else if (fields[0].substr(0,5) != "MOLEC") {
+
+	throw std::runtime_error("Error: unexpected line in dlpoly file " + _fname + ", expected 'MOLEC<ULES>' but got '" + line + "'");
       }
 
-      nmol_types = boost::lexical_cast<int>(fields[fields.size()-1]);
+      int nmol_types = boost::lexical_cast<int>(fields[fields.size()-1]);
 
       string mol_name;
 
       int id=0;
-      for (int nmol_type=0;nmol_type<nmol_types; nmol_type++){
+      for (int nmol_type=0;nmol_type<nmol_types; nmol_type++) {
 
-        getline(fl, mol_name); // molecule name might incl. spaces - so why not allow???
-
+	mol_name = _NextKeyline(fl," \t");
         Molecule *mi = top.CreateMolecule(mol_name);
-        fl >> line; boost::to_upper(line); // allow user not to bother about the case
 
-        if (line.substr(0,6) != "NUMMOL")
-          throw std::runtime_error("unexpected line in dlpoly file " + filename + ", expected 'NUMMOLS' but got '" + line.substr(0,6) + "'");
-
-	int nreplica;
-	fl >> nreplica;
+	int nreplica = 1;
+	line = _NextKeyInt(fl," \t","NUMMOL",nreplica);
 
 #ifdef DEBUG
-	cout << "Read from topology file " << filename << " : '" << mol_name << "' - '" << line << "' - " << nreplica << endl;
+	cout << "Read from topology file " << _fname << " : '" << mol_name << "' - '" << line << "' - " << nreplica << endl;
 #endif
 
-	getline(fl, line); //rest of NUMMOLs line
-
-	fl >> line; boost::to_upper(line);
-
-        if (line != "ATOMS")
-          throw std::runtime_error("Error: unexpected line in dlpoly file " + filename + ", expected 'ATOMS' but got '" + line + "'");
-
-	fl >> natoms;
+	line = _NextKeyInt(fl," \t","ATOMS",natoms);
 
 #ifdef DEBUG
-	cout << "Read from topology file " << filename << " : '" << line << "' - " << natoms << endl;
+	cout << "Read from topology file " << _fname << " : '" << line << "' - " << natoms << endl;
 #endif
 
 	//read molecule
@@ -166,13 +193,13 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
               Interaction *ic;
 	      fl >> ids[0]; fl>>ids[1];
 	      if (type == "BONDS"){
-	        ic = new IBond(id_map[ids[0]-1],id_map[ids[1]-1]); // -1 due to fortran vs c
+	        ic = new IBond(id_map[ids[0]-1],id_map[ids[1]-1]); // -1 due to fortran vs c 
 	      } else if (type == "ANGLES"){
 		fl >> ids[2];
-	        ic = new IAngle(id_map[ids[0]-1],id_map[ids[1]-1],id_map[ids[2]-1]); // -1 due to fortran vs c
+	        ic = new IAngle(id_map[ids[0]-1],id_map[ids[1]-1],id_map[ids[2]-1]); // -1 due to fortran vs c 
 	      } else if (type == "DIHEDRALS"){
 		fl >> ids[2]; fl >> ids[3];
-	        ic = new IDihedral(id_map[ids[0]-1],id_map[ids[1]-1],id_map[ids[2]-1],id_map[ids[3]-1]); // -1 due to fortran vs c
+	        ic = new IDihedral(id_map[ids[0]-1],id_map[ids[1]-1],id_map[ids[2]-1],id_map[ids[3]-1]); // -1 due to fortran vs c 
 	      }
               ic->setGroup(type);
               ic->setIndex(i);
@@ -184,11 +211,11 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 	  }
 	  fl >> line; boost::to_upper(line);
 	  if (fl.eof())
-            throw std::runtime_error("Error: unexpected end of dlpoly file " + filename + " while scanning for kerword 'finish'");
+            throw std::runtime_error("Error: unexpected end of dlpoly file " + _fname + " while scanning for kerword 'finish'");
 	}
 
 #ifdef DEBUG
-	cout << "Read from topology file " << filename << " : '" << line << "' - done with '" << mol_name << "'" << endl;
+	cout << "Read from topology file " << _fname << " : '" << line << "' - done with '" << mol_name << "'" << endl;
 #endif
 
 	getline(fl, line); //rest of the FINISH line
@@ -203,10 +230,11 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 	    Bead *bead_replica = top.CreateBead(1, bead->getName(), type, res->getId(), bead->getM(), bead->getQ());
 	    mi_replica->AddBead(bead_replica,beadname);
 	  }
-	  matoms+=mi->BeadCount();
 	  InteractionContainer ics=mi->Interactions();
           for(vector<Interaction *>::iterator ic=ics.begin(); ic!=ics.end(); ++ic) {
             Interaction *ic_replica;
+
+	    //TODO: change if beads are not continous anymore - ???
 
 	    int offset = mi_replica->getBead(0)->getId() - mi->getBead(0)->getId();
 	    if ((*ic)->BeadCount() == 2) {
@@ -227,18 +255,21 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
       top.RebuildExclusions();
     }
 
-#ifdef DEBUG
     getline(fl, line); //is "close" found?
+
+#ifdef DEBUG
     if(line=="close") {
-      cout << "Read from topology file " << filename << " : '" << line << "' - done with topology" << endl;
+      cout << "Read from topology file " << _fname << " : '" << line << "' - done with topology" << endl;
     }
     else {
-      cout << "Read from topology file " << filename << " : 'EOF' - done with topology (directive 'close' not read!)" << endl;
+      cout << "Read from topology file " << _fname << " : 'EOF' - done with topology (directive 'close' not read!)" << endl;
     }
 #endif
 
     //we don't need the rest
     fl.close();
+
+    string filename;
 
     if ( boost::filesystem::basename(filepath).size() == 0 ) {
       if (filepath.parent_path().string().size() == 0) {
@@ -272,8 +303,8 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
       vector<string> fields;
       tok.ToVector(fields);
 
-      if( fields.size() < 3 )
-	throw std::runtime_error("Error: too few directive switches (<3) in the initial configuration (check its 2-nd line)");
+      if( fields.size() < 3 ) 
+	throw std::runtime_error("Error: too few directive switches (<3) in the initial configuration (check its 2-nd line)");	
 
       mavecs = boost::lexical_cast<int>(fields[0]);
       mpbct  = boost::lexical_cast<int>(fields[1]);
@@ -289,8 +320,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 #ifdef DEBUG
 	cout << "Warning: N of atoms/beads in initial configuration & topology differ: " << natoms << " =?= " << matoms << endl;
 #else
-	throw std::runtime_error("Error: N of atoms/beads in initial configuration & topology differ " +
-	    boost::lexical_cast<string>(natoms) + " vs " + boost::lexical_cast<string>(matoms));
+	throw std::runtime_error("Error: N of atoms/beads in initial configuration & topology differ");
 #endif
 
       vec box_vectors[3];
