@@ -101,10 +101,12 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
       getline(fl, line); //title
       getline(fl, line); //unit line
 
-      line = _NextKeyline(fl," \t"); boost::to_upper(line);
+      line = _NextKeyline(fl," \t");
+      boost::to_upper(line);
 
       if( line.substr(0,4)=="NEUT" ) {
-	line = _NextKeyline(fl," \t"); boost::to_upper(line);
+	line = _NextKeyline(fl," \t");
+	boost::to_upper(line);
       }
 
       Tokenizer tok(line, " \t"); // "MOLECules or MOLECular species/types #" - may contain a few words!
@@ -230,12 +232,10 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 	    Bead *bead_replica = top.CreateBead(1, bead->getName(), type, res->getId(), bead->getM(), bead->getQ());
 	    mi_replica->AddBead(bead_replica,beadname);
 	  }
+	  matoms+=mi->BeadCount();
 	  InteractionContainer ics=mi->Interactions();
           for(vector<Interaction *>::iterator ic=ics.begin(); ic!=ics.end(); ++ic) {
             Interaction *ic_replica;
-
-	    //TODO: change if beads are not continous anymore - ???
-
 	    int offset = mi_replica->getBead(0)->getId() - mi->getBead(0)->getId();
 	    if ((*ic)->BeadCount() == 2) {
 	      ic_replica = new IBond((*ic)->getBeadId(0)+offset,(*ic)->getBeadId(1)+offset);
@@ -255,9 +255,8 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
       top.RebuildExclusions();
     }
 
-    getline(fl, line); //is "close" found?
-
 #ifdef DEBUG
+    getline(fl, line); //is "close" found?
     if(line=="close") {
       cout << "Read from topology file " << _fname << " : '" << line << "' - done with topology" << endl;
     }
@@ -320,7 +319,8 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 #ifdef DEBUG
 	cout << "Warning: N of atoms/beads in initial configuration & topology differ: " << natoms << " =?= " << matoms << endl;
 #else
-	throw std::runtime_error("Error: N of atoms/beads in initial configuration & topology differ");
+	throw std::runtime_error("Error: N of atoms/beads in initial configuration & topology differ " +
+	    boost::lexical_cast<string>(natoms) + " vs " + boost::lexical_cast<string>(matoms));
 #endif
 
       vec box_vectors[3];
