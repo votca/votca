@@ -24,7 +24,7 @@
     </convergence_check>
     <dlpoly>
       <DESC> general dlpoly specific options </DESC>
-      <command>dl_poly
+      <command>DLPOLY.Z
 	<DESC> command to run dlpoly  (name or absolute path or mpirun dlpoly..) </DESC>
       </command>
       <topol>.dlpf
