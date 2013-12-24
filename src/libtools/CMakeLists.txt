@@ -63,6 +63,8 @@ elseif(GSL_FOUND)
 #  include_directories(${EIGEN_INCLUDE_DIRS})
 #  file(GLOB VOTCA_LINALG_SOURCES linalg/eigen/*.cc)
 #  set(LINALG_LIBRARIES ${EIGEN_LIBRARIES})
+else()
+  message(FATAL_ERROR "NO gsl nor mkl found")
 endif()
 
 file(GLOB VOTCA_SOURCES *.cc)
