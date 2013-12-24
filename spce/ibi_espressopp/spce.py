@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+
+# DON'T RUN THIS MANUALLY
+# RUN "csg_inverse --options settings.xml" instead
+
 import sys
 import espresso
 import MPI
@@ -82,11 +86,9 @@ print "runing ..."
 
 espresso.tools.info(system, integrator)
 for step in range(50):
-  integrator.run(10)
+  integrator.run(100)
   espresso.tools.info(system, integrator)
   print 'writing .xyz trajectory...'
   espresso.tools.DumpConfigurations.fastwritexyz_standard('traj.xyz', system, unfolded = False, append = True)
   
 print "finished"
-
-
