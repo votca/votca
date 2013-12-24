@@ -33,10 +33,10 @@ if (WITH_MKL)
   endif(NOT MKL_FOUND AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
 endif(WITH_MKL)
 
-option(WITH_EIGEN "Checking if Eigen3 is installed in order to improve performance" ON)
-if (WITH_EIGEN)
-  find_package(Eigen) #it looks for eigen3
-endif (WITH_EIGEN)
+#option(WITH_EIGEN "Checking if Eigen3 is installed in order to improve performance" ON)
+#if (WITH_EIGEN)
+#  find_package(Eigen) #it looks for eigen3
+#endif (WITH_EIGEN)
 
 #we can only use of of these
 set(MKL FALSE)
@@ -57,12 +57,12 @@ elseif(GSL_FOUND)
   set(NOGSL FALSE) #used votca_config.
   file(GLOB VOTCA_LINALG_SOURCES linalg/gsl/*.cc)
   set(LINALG_LIBRARIES ${GSL_LIBRARIES})
-elseif (EIGEN_FOUND)
-  set(EIGEN TRUE) #used in votca_config.h
-  set(EIGEN_PKG "eigen3") #used in libvotca_csg.pc
-  include_directories(${EIGEN_INCLUDE_DIRS})
-  file(GLOB VOTCA_LINALG_SOURCES linalg/eigen/*.cc)
-  set(LINALG_LIBRARIES ${EIGEN_LIBRARIES})
+#elseif (EIGEN_FOUND)
+#  set(EIGEN TRUE) #used in votca_config.h
+#  set(EIGEN_PKG "eigen3") #used in libvotca_csg.pc
+#  include_directories(${EIGEN_INCLUDE_DIRS})
+#  file(GLOB VOTCA_LINALG_SOURCES linalg/eigen/*.cc)
+#  set(LINALG_LIBRARIES ${EIGEN_LIBRARIES})
 endif()
 
 file(GLOB VOTCA_SOURCES *.cc)
