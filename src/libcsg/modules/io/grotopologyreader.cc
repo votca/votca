@@ -19,6 +19,7 @@
 #include <fstream>
 #include <boost/lexical_cast.hpp>
 #include <votca/tools/getline.h>
+#include <boost/algorithm/string.hpp>
 #include "grotopologyreader.h"
 
 
@@ -43,24 +44,35 @@ bool GROTopologyReader::ReadTopology(string file, Topology &top)
     for(;natoms>0; natoms--) {
         char c[6];
         fl.read(c, 5);
-        c[5] = 0;  
-    
-        string resname;
-        fl >> resname;
+        c[5] = 0; //fix trailing char
+
         int resnr = atoi(c);
+        //residue name
+        fl.read(c, 5);
         if(resnr >= top.ResidueCount()) {
             if (top.ResidueCount()==0) //gro resnr start with 1 but VOTCA starts with 0
-	      top.CreateResidue("ZERO"); // create 0 res, to allow to keep gro numbering
-            top.CreateResidue(resname);
-            //cout << " created residue " << c << " " << resnr << " " << resname<<"-\n";
+              top.CreateResidue("ZERO"); // create 0 res, to allow to keep gro numbering
+            string withoutWhitespace;
+            withoutWhitespace  = string(c);
+            boost::algorithm::trim(withoutWhitespace);
+            top.CreateResidue(withoutWhitespace);
         }
-        string atomname;
-        string x, y, z;
-        fl >> atomname;
-        fl >> tmp;
-        fl >> x; fl >> y; fl >> z;
-	//BeadType=atomname is not correct, but still better than no type at all!
-        top.CreateBead(1, atomname, top.GetOrCreateBeadType(atomname), resnr, 1., 0.);
+        //atom name
+        char atomname[6];
+        fl.read(atomname, 5);
+        atomname[5]=0; //fix trailing character
+        string atomnameWoWs;
+        atomnameWoWs  = string(atomname);
+        boost::algorithm::trim(atomnameWoWs);
+        //atom number, not needed
+        char buf[5];
+        fl.read(buf, 5);
+        //position
+        char x[8], y[8], z[8];
+        fl.read(x,8);
+        fl.read(y,8);
+        fl.read(z,8);
+        top.CreateBead(1, atomnameWoWs, top.GetOrCreateBeadType(atomnameWoWs), resnr, 1., 0.);
         getline(fl, tmp);
     }
 
