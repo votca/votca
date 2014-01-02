@@ -102,16 +102,18 @@ bool GROReader::NextFrame(Topology &top)
         char buf[5];
         _fl.read(buf, 5);
         //position
-        char x[8], y[8], z[8];
-        _fl.read(x,8);
-        _fl.read(y,8);
-        _fl.read(z,8);
+        getline(_fl, tmp); //rest of line
+        string x=string(tmp,0,8); // float 8.3 ,x
+        string y=string(tmp,9,8); // float 8.3 ,y
+        string z=string(tmp,18,8); // float 8.3 ,z
+        boost::algorithm::trim(x);
+        boost::algorithm::trim(y);
+        boost::algorithm::trim(z);
         b->setPos(vec(
           boost::lexical_cast<double>(x),
           boost::lexical_cast<double>(y),
           boost::lexical_cast<double>(z)
         ));
-        getline(_fl, tmp); //rest of line
     }
 
     getline(_fl, tmp); //read box line
