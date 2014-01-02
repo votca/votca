@@ -32,7 +32,7 @@ using namespace std;
     This class encapsulates the gromacs reading functions and provides an interface to fill a topolgy class
 
 */
-class GROTopologyReader
+class GROReader
     : public TopologyReader
 {
 public:

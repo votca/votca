@@ -20,12 +20,12 @@
 #include <boost/lexical_cast.hpp>
 #include <votca/tools/getline.h>
 #include <boost/algorithm/string.hpp>
-#include "grotopologyreader.h"
+#include "groreader.h"
 
 
 namespace votca { namespace csg {
 
-bool GROTopologyReader::ReadTopology(string file, Topology &top)
+bool GROReader::ReadTopology(string file, Topology &top)
 { 
     // cleanup topology to store new data
     ifstream fl;

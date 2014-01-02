@@ -26,6 +26,7 @@
 #ifdef GMX
 #include "modules/io/gmxtrajectoryreader.h"
 #endif
+//#include "modules/io/groreader.h"
 #include "modules/io/pdbreader.h"
 #include "modules/io/dlpolytrajectoryreader.h"
 
@@ -40,6 +41,7 @@ void TrajectoryReader::RegisterPlugins(void)
     TrjReaderFactory().Register<GMXTrajectoryReader>("xtc");
     TrjReaderFactory().Register<GMXTrajectoryReader>("gro");
 #endif
+    //TrjReaderFactory().Register<GroReader>("gro");
     TrjReaderFactory().Register<PDBReader>("pdb");
     TrjReaderFactory().Register<DLPOLYTrajectoryReader>("dlph");
     TrjReaderFactory().Register<DLPOLYTrajectoryReader>("dlpc");
