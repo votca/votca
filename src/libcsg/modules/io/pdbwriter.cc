@@ -56,39 +56,36 @@ void PDBWriter::Write(Topology *conf)
         }
         
         fprintf(_out,
-                "ATOM  %5d %4s %3s %1s%4d    %8.3f%8.3f%8.3f%6.2f%6.2f\n",
+                "ATOM  %5d %4s %3s %1s%4d    %8.3f%8.3f%8.3f\n",
                 (bi->getId()+1)%100000,   // atom serial number
                 atomname.c_str(),  // atom name
                 resname.c_str(), // residue name
                 " ", // chain identifier 1 char
                 bi->getResnr()+1, // residue sequence number
-                r.x(), r.y(), r.z(),
-                bi->getQ(), bi->getM());  // is this correct??
+                r.x(), r.y(), r.z()); //we skip the charge
           
         if(bi->getSymmetry()>=2) {
            vec ru = 0.1*bi->getU() + r;
        
             fprintf(_out,
-                "HETATM%5d %4s %3s %1s%4d    %8.3f%8.3f%8.4f%6.2f%6.2f\n",
+                "HETATM%5d %4s %3s %1s%4d    %8.3f%8.3f%8.4f\n",
                 bi->getId()+1,   // atom serial number
                 bi->getName().c_str(),  // atom name
                 "REU", // residue name
                 " ", // chain identifier 1 char
                 bi->getResnr()+1, // residue sequence number
-                ru.x(), ru.y(), ru.z(),
-                0., 0.);  // is this correct??
+                ru.x(), ru.y(), ru.z()); //we skip the charge
         }
         if(bi->getSymmetry()>=3) {
            vec rv = 0.1*bi->getV() + r;
             fprintf(_out,
-                "HETATM%5d %4s %3s %1s%4d    %8.3f%8.3f%8.4f%6.2f%6.2f\n",
+                "HETATM%5d %4s %3s %1s%4d    %8.3f%8.3f%8.4f\n",
                 bi->getId()+1,   // atom serial number
                 bi->getName().c_str(),  // atom name
                 "REV", // residue name
                 " ", // chain identifier 1 char
                 bi->getResnr()+1, // residue sequence number
-                rv.x(), rv.y(), rv.z(),
-                0.,0.);  // is this correct??  /**/
+                rv.x(), rv.y(), rv.z()); //we skip the charge
         }
    }
     fprintf(_out, "ENDMDL\n");
