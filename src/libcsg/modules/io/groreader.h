@@ -15,11 +15,14 @@
  *
  */
 
-#ifndef _GROTOPOLOGYREADER_H
-#define	_GROTOPOLOGYREADER_H
+#ifndef _VOTCA_CSG_GROREADER_H
+#define	_VOTCA_CSG_GROREADER_H
 
 #include <string>
+#include <iostream>
+#include <fstream>
 #include <votca/csg/topologyreader.h>
+#include <votca/csg/trajectoryreader.h>
 
 namespace votca { namespace csg {
 using namespace votca::tools;
@@ -27,22 +30,37 @@ using namespace votca::tools;
 using namespace std;
     
 /**
-    \brief reader for gromacs topology files
+    \brief reader for gro files
 
-    This class encapsulates the gromacs reading functions and provides an interface to fill a topolgy class
+    This class provides the TrajectoryReader + Topology reader interface
+    for gro files
 
 */
-class GROReader
-    : public TopologyReader
+class GROReader :
+    public TrajectoryReader, public TopologyReader
 {
-public:
-    /// read a topology file
-    bool ReadTopology(string file, Topology &top);
-    
-private:
+    public:
+        GROReader() {}
+        ~GROReader() {}
+
+        /// open a topology file
+        bool ReadTopology(string file, Topology &top);
+
+        /// open a trejectory file
+        bool Open(const string &file);
+        /// read in the first frame
+        bool FirstFrame(Topology &top);
+        /// read in the next frame
+        bool NextFrame(Topology &top);
+
+        void Close();
+
+    private:
+        ifstream _fl;
+        bool _topology;
 };
 
 }}
 
-#endif	/* _GROTOPOLOGYREADER_H */
+#endif	/* _VOTCA_CSG_GROREADER_H */
 
