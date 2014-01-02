@@ -90,12 +90,12 @@ bool GROTopologyReader::ReadTopology(string file, Topology &top)
       box[0][0]=  fields[0];
       box[1][1]=  fields[1];
       box[2][2]=  fields[2];
-      box[0][1]=  fields[3];
-      box[0][2]=  fields[4];
-      box[1][1]=  fields[5];
-      box[1][2]=  fields[6];
-      box[2][1]=  fields[7];
-      box[2][2]=  fields[8];
+      box[1][0]=  fields[3];
+      box[2][0]=  fields[4];
+      box[0][1]=  fields[5];
+      box[2][1]=  fields[6];
+      box[0][2]=  fields[7];
+      box[1][2]=  fields[8];
     } else {
       throw std::runtime_error("Error while reading box (last) line of"+ file);
     }
