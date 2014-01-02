@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2013 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ bool XYZReader::ReadTopology(string file,  Topology &top)
 
    _fl.open(file.c_str());
     if(!_fl.is_open())
-        throw std::ios_base::failure("Error on open topologyl file: " + file);
+        throw std::ios_base::failure("Error on open topology file: " + file);
 
    if(_topology)
         top.CreateResidue("DUM");
@@ -47,7 +47,7 @@ bool XYZReader::Open(const string &file)
 {
     _fl.open(file.c_str());
     if(!_fl.is_open())
-        throw std::ios_base::failure("Error on open topologyl file: " + file);
+        throw std::ios_base::failure("Error on open trajectory file: " + file);
     _line = 0;
     return true;
 }
