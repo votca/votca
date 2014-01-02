@@ -34,9 +34,6 @@ bool PDBReader::ReadTopology(string file,  Topology &top)
     if(!_fl.is_open())
         throw std::ios_base::failure("Error on open topologyl file: " + file);
 
-   if(_topology)
-        top.CreateResidue("DUM");
-
    NextFrame(top);
 
     _fl.close();
