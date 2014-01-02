@@ -32,7 +32,7 @@ bool PDBReader::ReadTopology(string file,  Topology &top)
 
    _fl.open(file.c_str());
     if(!_fl.is_open())
-        throw std::ios_base::failure("Error on open topologyl file: " + file);
+        throw std::ios_base::failure("Error on open topology file: " + file);
 
    NextFrame(top);
 
@@ -45,7 +45,7 @@ bool PDBReader::Open(const string &file)
 {
     _fl.open(file.c_str());
     if(!_fl.is_open())
-        throw std::ios_base::failure("Error on open topologyl file: " + file);
+        throw std::ios_base::failure("Error on open trajectory file: " + file);
     return true;
 }
 

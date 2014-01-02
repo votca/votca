@@ -33,7 +33,7 @@ using namespace std;
     \brief class for reading pdb files
 
     This class provides the TrajectoryReader + Topology reader interface
-    for xyz files
+    for pdb files
 
 */
 class PDBReader :
@@ -56,8 +56,6 @@ class PDBReader :
         void Close();
 
     private:
-        void ReadAtoms(Topology &top, string itemline);
-
         ifstream _fl;
         bool _topology;
 };
