@@ -70,50 +70,67 @@ bool GROReader::NextFrame(Topology &top)
       throw std::runtime_error("number of beads in topology and trajectory differ");
    
     for(int i=0;i<natoms; i++) {
-        char c[6];
-        _fl.read(c, 5);
-        c[5] = 0; //fix trailing char
-
-        int resnr = atoi(c);
-        //residue name
-        _fl.read(c, 5);
-        if(resnr >= top.ResidueCount()) {
-            if (top.ResidueCount()==0) //gro resnr start with 1 but VOTCA starts with 0
-              top.CreateResidue("ZERO"); // create 0 res, to allow to keep gro numbering
-            string withoutWhitespace;
-            withoutWhitespace  = string(c);
-            boost::algorithm::trim(withoutWhitespace);
-            top.CreateResidue(withoutWhitespace);
-        }
-        //atom name
-        char atomname[6];
-        _fl.read(atomname, 5);
-        atomname[5]=0; //fix trailing character
-        string atomnameWoWs;
-        atomnameWoWs  = string(atomname);
-        boost::algorithm::trim(atomnameWoWs);
-        Bead *b;
-        if(_topology){
-	  b = top.CreateBead(1, atomnameWoWs, top.GetOrCreateBeadType(atomnameWoWs), resnr, 1., 0.);
-	} else {
-          b = top.getBead(i);
+        string line;
+        getline(_fl, line);
+	string resNum,resName, atName, x,y,z;
+	try {
+          resNum= string(line,0,5); // %5i
+          resName = string(line,5,5); //%5s
+	  atName = string(line,10,5); // %5s
+	  //atNum= string(line,15,5); // %5i not needed
+	  x = string(line,20,8); // %8.3f
+	  y = string(line,28,8); // %8.3f
+	  z = string(line,36,8); // %8.3f
+	} catch (std::out_of_range& err) {
+	  throw std::runtime_error("Misformated gro file");
 	}
-        //atom number, not needed
-        char buf[5];
-        _fl.read(buf, 5);
-        //position
-        getline(_fl, tmp); //rest of line
-        string x=string(tmp,0,8); // float 8.3 ,x
-        string y=string(tmp,9,8); // float 8.3 ,y
-        string z=string(tmp,18,8); // float 8.3 ,z
+        boost::algorithm::trim(atName);
+        boost::algorithm::trim(resName);
+        boost::algorithm::trim(resNum);
         boost::algorithm::trim(x);
         boost::algorithm::trim(y);
         boost::algorithm::trim(z);
+	string vx,vy,vz;
+	bool hasVel=true;
+	try {
+	  vx = string(line,44,8); // %8.4f
+	  vy = string(line,52,8); // %8.4f
+	  vz = string(line,60,8); // %8.4f
+	} catch (std::out_of_range& err) {
+	  hasVel=false;
+	}
+
+        Bead *b;
+        if(_topology){
+	  int resnr = boost::lexical_cast<int>(resNum);
+          if(resnr >= top.ResidueCount()) {
+              if (top.ResidueCount()==0) //gro resnr start with 1 but VOTCA starts with 0
+                top.CreateResidue("ZERO"); // create 0 res, to allow to keep gro numbering
+              top.CreateResidue(resName);
+          }
+          //this is not correct, but still better than no type at all!
+	  BeadType *type = top.GetOrCreateBeadType(atName);
+
+	  b = top.CreateBead(1, atName, type, resnr, 1., 0.);
+	} else {
+          b = top.getBead(i);
+	}
+
         b->setPos(vec(
           boost::lexical_cast<double>(x),
           boost::lexical_cast<double>(y),
           boost::lexical_cast<double>(z)
         ));
+	if (hasVel) {
+          boost::algorithm::trim(vx);
+          boost::algorithm::trim(vy);
+          boost::algorithm::trim(vz);
+          b->setVel(vec(
+            boost::lexical_cast<double>(vx),
+            boost::lexical_cast<double>(vy),
+            boost::lexical_cast<double>(vz)
+          ));
+	}
     }
 
     getline(_fl, tmp); //read box line
