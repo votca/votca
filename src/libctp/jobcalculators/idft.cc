@@ -665,10 +665,11 @@ void IDFT::ReadJobFile(Topology *top) {
         Segment* segmentA = pair->Seg1();
         Segment* segmentB = pair->Seg2();
         
+        double Jhop2_homo = 0;
         double Jeff2_homo = 0;
         double Jeff2_lumo = 0;
         
-        cout << "Processing pair " << segmentA->getId() << ":" << segmentB->getId() << flush;
+        cout << "\nProcessing pair " << segmentA->getId() << ":" << segmentB->getId() << flush;
         
         QMPair::PairType _ptype = pair->getType();
         Property* pair_property = records[ pair->getId() ];
@@ -686,14 +687,16 @@ void IDFT::ReadJobFile(Topology *top) {
                 double overlapAB = (*itOverlap)->getAttribute<double>("jAB");
                 int orbA = (*itOverlap)->getAttribute<double>("orbA");
                 int orbB = (*itOverlap)->getAttribute<double>("orbB");
-                cout << " orbA:orbB " << orbA << ":" << orbB << flush;
+                // cout << " orbA:orbB " << orbA << ":" << orbB << flush;
                 if ( orbA == homoA && orbB == homoB ) {
                     Jeff2_homo += overlapAB*overlapAB;
+                    Jhop2_homo += overlapAB*overlapAB;
                 }
 
                 if ( orbA == homoA+1 && orbB == homoB+1 ) {
                     Jeff2_lumo += overlapAB*overlapAB;
                 }
+                
             }    
             
         }
@@ -721,7 +724,7 @@ void IDFT::ReadJobFile(Topology *top) {
                 }
             }
             
-            cout << " homoA:homoB, orbA:orbB " << homoA << ":" << homoB << "," << orbA << ":" << orbB;
+            // cout << " homoA:homoB, orbA:orbB " << homoA << ":" << homoB << "," << orbA << ":" << orbB;
 
             /*QMNBList::iterator nit;
             for (nit = nblist.begin(); nit != nblist.end(); ++nit) {
@@ -740,7 +743,7 @@ void IDFT::ReadJobFile(Topology *top) {
                 Segment* Bridge = *itBridge;
                 int IDBridge = Bridge->getId();
                 
-                cout << " BridgeID:" << IDBridge;
+                cout << " bridging molecule:" << IDBridge << "\n    bridge constructed via the pairs" << endl;
 
                 // pairs from the bridge to the donor and acceptor
                 QMPair* Bridge_A = nblist.FindPair( segmentA, Bridge );
@@ -750,7 +753,7 @@ void IDFT::ReadJobFile(Topology *top) {
                 if( Bridge_B == NULL ) cout << "Bridge-SegmentB pair not found " << segmentB->getId() << ":" << Bridge->getId()<< std::endl;
                 
 
-                cout << " IDBA:IDBB " << Bridge_A->getId() << ":" << Bridge_B->getId();
+                // cout << " IDBA:IDBB " << Bridge_A->getId() << ":" << Bridge_B->getId() << endl;
 
                 
                 Property* pBridge_A = records[ Bridge_A->getId() ];
@@ -771,14 +774,16 @@ void IDFT::ReadJobFile(Topology *top) {
 
                 int id1B = pBridge_B->getAttribute<int>("idA");
                 int id2B = pBridge_B->getAttribute<int>("idB");
-
+                
+                cout << "    " << id1A << ":" << id2A << " (id:" <<   Bridge_A->getId() << ") " << "  |  "  << id1B << ":" << id2B << " (id:" <<   Bridge_B->getId() << ") " << endl;
+                        
                 // suffix for the donor and acceptor 
                 string suffixA = ( id1A == IDBridge ) ? "B" : "A"; // use "A" as a bridge 
                 string suffixB = ( id1B == IDBridge ) ? "B" : "A"; // use "A" as a bridge 
                 string suffixBridgeA = ( id1A == IDBridge ) ? "A" : "B";
                 string suffixBridgeB = ( id1B == IDBridge ) ? "A" : "B";
                 
-                cout << " id1A:id1B " << id1A << ":" << id1B;
+                // cout << " id1A:id1B " << id1A << ":" << id1B << endl;
                 
                 //cout << *pBridge_A << endl;
                 //cout << *pBridge_B << endl;
@@ -812,9 +817,9 @@ void IDFT::ReadJobFile(Topology *top) {
                         
                         //assert( eBridgeA - eBridgeB < 1e-50 );
                      
-                        cout << homoA << " " << homoB << " " << (*itOverlapA)->getAttribute<int>( "orb" + suffixBridgeA )
-                             << " JDB " << jDB 
-                             << " JBA " << jBA << endl;
+                        cout << "    bridge level: " << (*itOverlapA)->getAttribute<int>( "orb" + suffixBridgeA ) << " (hole transfer)";
+                        cout <<  " (HOMO: " << homoBridge << ")" << endl;
+                        cout << "      J_DB = " << jDB << "  |  J_BA = " << jBA << endl;
                         
                         // This in principle violates detailed balance. Any ideas?
                         double Jeff = 0.5 * (jDB*jBA / (eA - eBridgeA) + jDB*jBA / (eB - eBridgeB));
@@ -825,6 +830,7 @@ void IDFT::ReadJobFile(Topology *top) {
 
                     if (  orbDonor == homoA+1 && orbAcceptor == homoB+1 && orbBridgeA == orbBridgeB && orbBridgeA > homoBridge) {
                         
+                        // cout << " electron transfer" << endl;
                         double jDB = (*itOverlapA)->getAttribute<double>( "jAB" );
                         double jBA = (*itOverlapB)->getAttribute<double>( "jAB" );
                         double eA  = (*itOverlapA)->getAttribute<double>( "e" + suffixA );
@@ -845,6 +851,10 @@ void IDFT::ReadJobFile(Topology *top) {
             } // end over bridges 
           
         } // end of if superexchange
+        
+        cout << " Jhop2_HOMO: " << Jhop2_homo << endl;
+        cout << " Jeff2_HOMO: " << Jeff2_homo << " (+" << (Jeff2_homo-Jhop2_homo)/Jhop2_homo*100 << " %)" << endl;
+        // cout << " Jeff2_LUMO: " << Jeff2_lumo << endl;
         
         cout << endl;
                     
