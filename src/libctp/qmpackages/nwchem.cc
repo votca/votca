@@ -94,7 +94,8 @@ void NWChem::Initialize( Property *options ) {
     // check if the guess should be prepared, if yes, append the guess later
     iop_pos = _options.find("iterations 1 ");
     if (iop_pos != std::string::npos) _write_guess = true;
-
+    iop_pos = _options.find("iterations 1\n");
+    if (iop_pos != std::string::npos) _write_guess = true;
 }    
 
 /**
@@ -799,7 +800,10 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
         
         if ( _found_optimization && coordinates_pos != std::string::npos) {
             LOG(logDEBUG,*_pLog) << "Getting the coordinates" << flush;
+            
             _has_coordinates = true;
+            bool _has_QMAtoms = _orbitals->hasQMAtoms();
+
             // three garbage lines
             getline(_input_file, _line);
             getline(_input_file, _line);
@@ -809,10 +813,10 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
             vector<string> _row;
             getline(_input_file, _line);
             boost::trim( _line );
-            //cout << _line << endl;
+
             boost::algorithm::split( _row , _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on); 
             int nfields =  _row.size();
-            //cout << _row.size() << endl;
+
                 
             while ( nfields == 6 ) {
                 int atom_id = boost::lexical_cast< int >( _row.at(0) );
@@ -826,10 +830,11 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
                 boost::trim( _line );
                 boost::algorithm::split( _row , _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);  
                 nfields =  _row.size();
-                    
-                if ( _orbitals->hasQMAtoms() == false ) {
+
+                if ( _has_QMAtoms == false ) {
                     _orbitals->AddAtom( _atom_type, _x, _y, _z );
                 } else {
+                                        cout << " 2 " << endl;
                     QMAtom* pAtom = _orbitals->_atoms.at( atom_id - 1 );
                     pAtom->type = _atom_type;
                     pAtom->x = _x;
@@ -842,7 +847,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
             // _orbitals->_has_atoms = true;
 
         }
-
+        
          /*
          * TODO Self-energy of external charges
          */
