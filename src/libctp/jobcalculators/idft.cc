@@ -698,7 +698,7 @@ void IDFT::ReadJobFile(Topology *top) {
             
         }
         
-        // if pair has bridges only
+        // if pair has bridges
         if ( _ptype == QMPair::SuperExchange  ||  _ptype == QMPair::SuperExchangeAndHopping ) {
             cout << ":superexchange" << endl;
             list<Property*> pOverlap = pair_property->Select("overlap");
@@ -817,7 +817,8 @@ void IDFT::ReadJobFile(Topology *top) {
                              << " JBA " << jBA << endl;
                         
                         // This in principle violates detailed balance. Any ideas?
-                        Jeff2_homo += 0.5 * (jDB*jBA / (eA - eBridgeA) + jDB*jBA / (eB - eBridgeB));
+                        double Jeff = 0.5 * (jDB*jBA / (eA - eBridgeA) + jDB*jBA / (eB - eBridgeB));
+                        Jeff2_homo += Jeff*Jeff;
                         
                                 
                     }
@@ -833,7 +834,8 @@ void IDFT::ReadJobFile(Topology *top) {
                         double eBridgeB  = (*itOverlapB)->getAttribute<double>( "e" + suffixBridgeB );
                         
                          // This in principle violates detailed balance. Any ideas?
-                        Jeff2_lumo += 0.5 * (jDB*jBA / (eA - eBridgeA) + jDB*jBA / (eB - eBridgeB));
+                        double Jeff = 0.5 * (jDB*jBA / (eA - eBridgeA) + jDB*jBA / (eB - eBridgeB));
+                        Jeff2_lumo += Jeff*Jeff;
                         //jDB*jBA / (eB - eBridgeB);
                                 
                     }
