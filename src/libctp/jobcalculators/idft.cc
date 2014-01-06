@@ -851,6 +851,7 @@ void IDFT::ReadJobFile(Topology *top) {
         
         double Jeff2_homo = Jeff_homo*Jeff_homo;
         double Jeff2_lumo = Jeff_lumo*Jeff_lumo;
+        
 
         cout << " Jhop2_HOMO: " << Jhop2_homo << endl;
         cout << " Jeff2_HOMO: " << Jeff2_homo << " (+" << (Jeff2_homo-Jhop2_homo)/Jhop2_homo*100 << " %)" << endl;
