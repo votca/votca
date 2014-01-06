@@ -666,8 +666,8 @@ void IDFT::ReadJobFile(Topology *top) {
         Segment* segmentB = pair->Seg2();
         
         double Jhop2_homo = 0;
-        double Jeff2_homo = 0;
-        double Jeff2_lumo = 0;
+        double Jeff_homo = 0;
+        double Jeff_lumo = 0;
         
         cout << "\nProcessing pair " << segmentA->getId() << ":" << segmentB->getId() << flush;
         
@@ -689,12 +689,12 @@ void IDFT::ReadJobFile(Topology *top) {
                 int orbB = (*itOverlap)->getAttribute<double>("orbB");
                 // cout << " orbA:orbB " << orbA << ":" << orbB << flush;
                 if ( orbA == homoA && orbB == homoB ) {
-                    Jeff2_homo += overlapAB*overlapAB;
+                    Jeff_homo += overlapAB;
                     Jhop2_homo += overlapAB*overlapAB;
                 }
 
                 if ( orbA == homoA+1 && orbB == homoB+1 ) {
-                    Jeff2_lumo += overlapAB*overlapAB;
+                    Jeff_lumo += overlapAB;
                 }
                 
             }    
@@ -822,8 +822,7 @@ void IDFT::ReadJobFile(Topology *top) {
                         cout << "      J_DB = " << jDB << "  |  J_BA = " << jBA << endl;
                         
                         // This in principle violates detailed balance. Any ideas?
-                        double Jeff = 0.5 * (jDB*jBA / (eA - eBridgeA) + jDB*jBA / (eB - eBridgeB));
-                        Jeff2_homo += Jeff*Jeff;
+                        Jeff_homo += 0.5 * (jDB*jBA / (eA - eBridgeA) + jDB*jBA / (eB - eBridgeB));
                         
                                 
                     }
@@ -840,9 +839,7 @@ void IDFT::ReadJobFile(Topology *top) {
                         double eBridgeB  = (*itOverlapB)->getAttribute<double>( "e" + suffixBridgeB );
                         
                          // This in principle violates detailed balance. Any ideas?
-                        double Jeff = 0.5 * (jDB*jBA / (eA - eBridgeA) + jDB*jBA / (eB - eBridgeB));
-                        Jeff2_lumo += Jeff*Jeff;
-                        //jDB*jBA / (eB - eBridgeB);
+                        double Jeff_lumo = 0.5 * (jDB*jBA / (eA - eBridgeA) + jDB*jBA / (eB - eBridgeB));
                                 
                     }
                     
@@ -852,6 +849,9 @@ void IDFT::ReadJobFile(Topology *top) {
           
         } // end of if superexchange
         
+        double Jeff2_homo = Jeff_homo*Jeff_homo;
+        double Jeff2_lumo = Jeff_lumo*Jeff_lumo;
+
         cout << " Jhop2_HOMO: " << Jhop2_homo << endl;
         cout << " Jeff2_HOMO: " << Jeff2_homo << " (+" << (Jeff2_homo-Jhop2_homo)/Jhop2_homo*100 << " %)" << endl;
         // cout << " Jeff2_LUMO: " << Jeff2_lumo << endl;
