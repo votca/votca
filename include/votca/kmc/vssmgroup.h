@@ -20,6 +20,9 @@
 
 
 #include <votca/kmc/events.h>
+#include <votca/kmc/graphdevice.h>
+#include <votca/kmc/statedevice.h>
+#include <votca/kmc/eventinfo.h>
 
 namespace votca { namespace kmc {
   
@@ -28,27 +31,23 @@ using namespace std;
 class Vssmgroup {
     
 public:
-/*    
-    void Recompute_in_device(Events* events);
-    void Recompute_in_bulk(Events* events);
+    
+    void Recompute_in_device(Events* events, Bsumtree* non_injection_rates, Bsumtree* injection_rates);
     double Timestep(votca::tools::Random2 *RandomVariable);
-    void Perform_one_step_in_device(Events* events,GraphLattice* graph, State* state, Globaleventinfo* globevent, votca::tools::Random2 *RandomVariable);
-    void Perform_one_step_in_bulk(Events* events,GraphLattice* graph, State* state, Globaleventinfo* globevent, votca::tools::Random2 *RandomVariable);
+    void Perform_one_step_in_device(Events* events,GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo, votca::tools::Random2 *RandomVariable);
     
     votca::tools::Random2 *RandomVariable;   
  
-
-    
 private:
 
     double tot_probsum;
     
     double non_inject_probsum;
-    double inject_probsum;*/
+    double inject_probsum;
     
 };
 
-/*double Vssmgroup::Timestep(votca::tools::Random2 *RandomVariable){
+double Vssmgroup::Timestep(votca::tools::Random2 *RandomVariable){
 
     double timestep;
     
@@ -62,20 +61,14 @@ private:
     
 }
 
-void Vssmgroup::Recompute_in_device(Events* events){
+void Vssmgroup::Recompute_in_device(Events* events, Bsumtree* non_injection_rates, Bsumtree* injection_rates){
 
-    non_inject_probsum = events->Non_injection_rates->compute_sum();
-    inject_probsum = events->Injection_rates->compute_sum();       
+    non_inject_probsum = non_injection_rates->compute_sum();
+    inject_probsum = injection_rates->compute_sum();       
     tot_probsum = non_inject_probsum + inject_probsum;
 }
 
-void Vssmgroup::Recompute_in_bulk(Events* events){
-
-    tot_probsum = events->Non_injection_rates->compute_sum();
-
-}
-
-void Vssmgroup::Perform_one_step_in_device(Events* events, GraphLattice* graph, State* state, Globaleventinfo* globevent, votca::tools::Random2 *RandomVariable){
+void Vssmgroup::Perform_one_step_in_device(Events* events,GraphDevice* graph, StateDevice* state,Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo, votca::tools::Random2 *RandomVariable){
 
     double randn = RandomVariable->rand_uniform();    
     
@@ -84,34 +77,19 @@ void Vssmgroup::Perform_one_step_in_device(Events* events, GraphLattice* graph, 
     
     if(randn<inject_probsum/tot_probsum) { // injection event
         randn *= inject_probsum;
-        event_ID = events->Injection_rates->search(randn);
-        chosenevent = events->Injection_events[event_ID];
+        event_ID = injection_rates->search(randn);
+        chosenevent = events->get_injection_event(event_ID);
     }
     else {
         randn -= inject_probsum/tot_probsum;
         randn *= non_inject_probsum;
-        event_ID = events->Non_injection_rates->search(randn);
-        chosenevent = events->Non_injection_events[event_ID];        
+        event_ID = non_injection_rates->search(randn);
+        chosenevent = events->get_non_injection_event(event_ID);       
     }
 
-    events->On_execute(chosenevent, graph, state, globevent);
+    events->On_execute(chosenevent, graph, state, longrange, non_injection_rates, injection_rates, eventinfo);
 
 }
-
-void Vssmgroup::Perform_one_step_in_bulk(Events* events, GraphLattice* graph, State* state, Globaleventinfo* globevent, votca::tools::Random2 *RandomVariable){
-
-    double randn = RandomVariable->rand_uniform();    
-    
-    long event_ID;
-    Event* chosenevent;
-
-    randn *= tot_probsum;
-    event_ID = events->Non_injection_rates->search(randn);
-    chosenevent = events->Non_injection_events[event_ID];
-
-    events->On_execute(chosenevent, graph, state, globevent);
-}*/
-
 
 }} 
 

@@ -19,8 +19,6 @@
 #define	__VOTCA_KMC_DIODE_H
 
 #include <iostream>
-//#include <votca/kmc/graphsql.h>
-//#include <votca/kmc/graphcubic.h>
 
 #include <votca/kmc/vssmgroup.h>
 #include <votca/kmc/graphdevice.h>
@@ -49,6 +47,8 @@ public:
     Vssmgroup* vssmgroup;
     Eventinfo* eventdata;
     Longrange* longrange;
+    Bsumtree* non_injection_rates;
+    Bsumtree* injection_rates;
     
     Diode() {};
    ~Diode() {};
@@ -57,11 +57,6 @@ public:
     bool EvaluateFrame();
 
     double sim_time;
-    
-    // input parameters (put in globaleventinfo?)
-//    int seed; long nr_equilsteps; long nr_timesteps; long steps_update_longrange;
-//   int nx; int ny; int nz; double lattice_constant; double hopdist; double disorder_strength; 
-//    double disorder_ratio; CorrelationType correlation_type; double left_electrode_distance; double right_electrode_distance;
     
 protected:
    void RunKMC(void); 
@@ -94,10 +89,15 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     eventdata->Graph_Parameters(graph->hopdist(), graph->simboxsize(), graph->maxpairdegree());
 
     longrange = new Longrange(graph,eventdata);
+
     longrange->Initialize(eventdata);
+
     state = new StateDevice();
+
     state->InitStateDevice();
+
     std::cout << graph->GetNode(10)->occ() << endl;
+
     state->Grow(10, graph->maxpairdegree());
     int carrier_ID = state->Buy();
     Carrier* newcarrier = state->GetCarrier(carrier_ID);
@@ -106,48 +106,29 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     newcarrier->SetCarrierType(2);
     carrier_node->AddCarrier(carrier_ID);
     longrange->Init_Load_State(state, eventdata);
+
+    
+    non_injection_rates = new Bsumtree();
+    injection_rates = new Bsumtree();
     
     events = new Events();    
-    events->Initialize_eventvector(graph,state,longrange,eventdata);
+    events->Initialize_eventvector(graph,state,longrange,non_injection_rates,injection_rates,eventdata);
 
     vssmgroup = new Vssmgroup();
 
     
-    
-    
-/*    for(int it = 0; it < graph->maxpairdegree(); it++) {
-        Event* newevent = new Event();
-//        std::cout << it << " " << newevent->rate() << " " << newevent->init_type() << " " << newevent->final_type() << " " << endl;
-    }
-    typename std::vector<Link*>::iterator it;
-    for(it = links.begin(); it != links.end(); it++) {
-        Event* newevent = new Event((*it), newcarrier->type(), eventdata,state);
-//        std::cout << (*it)->id() << " " << newevent->rate() << " " << newevent->init_type() << " " << newevent->final_type() << " " 
-//                  << abs((*it)->r12()) << " " << (*it)->r12() << " " <<  exp(-1.0*eventdata->alpha*abs((*it)->r12())) << " " 
-//                  << endl;
-
-    }
-    vector<Link*> inj_links = graph->left()->links();
-    typename std::vector<Link*>:: iterator inj;
-    for(inj = inj_links.begin(); inj != inj_links.end(); inj++) {
-        Event* newevent = new Event((*inj), 2, eventdata,state);
-//        std::cout << (*inj)->id() << " " << newevent->rate() << " " << newevent->init_type() << " " << newevent->final_type() << " " 
-//                  << abs((*inj)->r12()) << " " << (*inj)->r12() << " " <<  exp(-1.0*eventdata->alpha*abs((*inj)->r12())) << " " 
-//                  << endl;
-
-    }*/
     
     delete state;
     delete events;
     delete graph;
     delete eventdata;
     delete longrange;
-    delete vssmgroup;    
+    delete vssmgroup;
+    delete non_injection_rates;
+    delete injection_rates;    
     exit(0);
     
 
-//    events = new Events();
-//    vssmgroup = new Vssmgroup();
 }
 
 bool Diode::EvaluateFrame() {

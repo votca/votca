@@ -97,45 +97,52 @@ void Longrange::Reset() {
 
 void Longrange::Initialize (Eventinfo* eventinfo) {
 
+    std::cout << this->number_of_layers() << endl;
     for (int ilayer=0;ilayer<this->number_of_layers();ilayer++) {
+
         // define for every layer, how many other layers are within the coulomb cut off radius from this layer
         double define_layer = this->position(ilayer);
-    
+
         int start_index = 0;
         bool startfound = false;
         while (!startfound) {
             double start_layer = this->position(start_index);
             if((define_layer-start_layer)<=eventinfo->coulcut) {
                 startfound = true;
-                _first_contributing_layer[ilayer]=start_index;
+                _first_contributing_layer.push_back(start_index);
             }
             start_index++;
         }
-    
+
         int final_index = this->number_of_layers()-1;
         bool finalfound = false;
         while (!finalfound) {
             double final_layer = this->position(final_index);
             if((final_layer-define_layer)<=eventinfo->coulcut) {
                 finalfound = true;
-                _final_contributing_layer[ilayer]=final_index;
+                _final_contributing_layer.push_back(final_index);
             }
             final_index--;
         }
-    
-        int number_of_contributing_layers = _final_contributing_layer[ilayer]-_first_contributing_layer[ilayer]+1;
-        _precalculate_disc_contrib[ilayer].resize(number_of_contributing_layers);
+
     }
   
-    for(int i=0; i<this->number_of_layers(); i++) {
-        _layercharge[i] = 0.0;
-        _longrange_cache[i] = 0.0;
-        int first_layer = _first_contributing_layer[i];
-        int final_layer = _final_contributing_layer[i];
+    _precalculate_disc_contrib.resize(this->number_of_layers());
+    
+    for(int ilayer=0; ilayer<this->number_of_layers(); ilayer++) {
+        _layercharge.push_back(0.0);
+        _longrange_cache.push_back(0.0);
+        int first_layer = _first_contributing_layer[ilayer];
+        int final_layer = _final_contributing_layer[ilayer];
+
+        int number_of_contributing_layers = final_layer - first_layer + 1;        
+        _precalculate_disc_contrib[ilayer].resize(number_of_contributing_layers);
+
         for (int j=first_layer; j<=final_layer; j++) {
-            _precalculate_disc_contrib[i][j-first_layer] = Calculate_disc_contrib(i,j,eventinfo);
+            _precalculate_disc_contrib[ilayer][j-first_layer] = Calculate_disc_contrib(ilayer,j,eventinfo);
         }
     }
+
 }
 
 inline double Longrange::Calculate_disc_contrib(int calculate_layer, int contrib_layer, Eventinfo* eventinfo) {
