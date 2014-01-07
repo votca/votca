@@ -105,11 +105,6 @@ bool DLPOLYTopologyReader::_isKeyInt(const string &line, const char* wspace, con
 
 bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 {
-<<<<<<< local
-  //#define WhiteSpace " \t"
-
-=======
->>>>>>> other
   const char *WhiteSpace=" \t";
 
     int  mavecs=0;

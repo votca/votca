@@ -60,6 +60,8 @@ void DLPTopolApp::Initialize(void)
 
 bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *top_ref)
 {
+  // check the file names from options
+
   string fname=OptionsMap()["top"].as<string>();
 
   if( fname == ".dlpf" ) {
@@ -83,6 +85,8 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *top_ref)
 #else
   cout << "output file-name: " << fname << endl;
 #endif
+
+  // do the mapping
 
   if(top->MoleculeCount() > 1)
     cout << "WARNING: cannot create topology for topology with"
