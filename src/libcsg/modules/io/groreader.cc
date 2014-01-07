@@ -64,6 +64,9 @@ bool GROReader::NextFrame(Topology &top)
 {
     string tmp;
     getline(_fl, tmp);//title
+    if (_fl.eof()) {
+      return !_fl.eof();
+    }
     getline(_fl, tmp);//number atoms
     int natoms = atoi(tmp.c_str());
     if(!_topology && natoms != top.BeadCount())
@@ -158,11 +161,11 @@ bool GROReader::NextFrame(Topology &top)
     }
     top.setBox(box);
 
-    _fl.close();
+    if (_topology) {
+      cout << "WARNING: topology created from .gro file, masses and charges are wrong!\n";
+    }
     
-    cout << "WARNING: topology created from .gro file, masses and charges are wrong!\n";
-    
-    return true;
+    return !_fl.eof();
 }
 
 }}
