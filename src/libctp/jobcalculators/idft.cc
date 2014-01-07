@@ -820,6 +820,7 @@ void IDFT::ReadJobFile(Topology *top) {
                         cout << "    bridge level: " << (*itOverlapA)->getAttribute<int>( "orb" + suffixBridgeA ) << " (hole transfer)";
                         cout <<  " (HOMO: " << homoBridge << ")" << endl;
                         cout << "      J_DB = " << jDB << "  |  J_BA = " << jBA << endl;
+                        cout << "      E_D = " << eA << ", E_B = " <<  eBridgeA << " = " << eBridgeB << ", E_A = " << eB << endl;
                         
                         // This in principle violates detailed balance. Any ideas?
                         Jeff_homo += 0.5 * (jDB*jBA / (eA - eBridgeA) + jDB*jBA / (eB - eBridgeB));
