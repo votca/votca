@@ -82,7 +82,6 @@ bool DLPOLYTopologyReader::_isKeyInt(const string &line, const char* wspace, con
   ival = 0;
 
   if( fields.size() < 2 ) return false;
-  //throw std::runtime_error("Error: missing integer number in directive '" + line + "' in topology file '"+ _fname +"'");
 
   boost::to_upper(fields[0]);
 
@@ -97,7 +96,6 @@ bool DLPOLYTopologyReader::_isKeyInt(const string &line, const char* wspace, con
   } while ( i_num>0 && i<fields.size() );
 
   if( i_num>0 ) return false;
-  //throw std::runtime_error("Error: missing integer number in directive '" + line + "' in topology file '"+ _fname +"'");
 
   ival = boost::lexical_cast<int>(fields[i-1]);
 
@@ -107,8 +105,11 @@ bool DLPOLYTopologyReader::_isKeyInt(const string &line, const char* wspace, con
 
 bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 {
+<<<<<<< local
   //#define WhiteSpace " \t"
 
+=======
+>>>>>>> other
   const char *WhiteSpace=" \t";
 
     int  mavecs=0;
