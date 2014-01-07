@@ -33,7 +33,7 @@ namespace votca { namespace csg {
 using namespace std;
 
 
-string DLPOLYTopologyReader::_NextKeyline(ifstream &fs, const char* wsp)
+string DLPOLYTopologyReader::_NextKeyline(ifstream &fs, const char* wspace)
 {
   string line;
   size_t i_nws=0;
@@ -44,15 +44,15 @@ string DLPOLYTopologyReader::_NextKeyline(ifstream &fs, const char* wsp)
     if (fs.eof())
       throw std::runtime_error("Error: unexpected end of dlpoly file '" + _fname + "'");
 
-    i_nws = line.find_first_not_of(wsp);
+    i_nws = line.find_first_not_of(wspace);
   } while ( line.substr(i_nws,1) == "#" || line.substr(i_nws,1) == ";" );
 
   return line.substr(i_nws,line.size()-i_nws);
 }
 
-string DLPOLYTopologyReader::_NextKeyInt(ifstream &fs, const char* wsp, const string &word, int &ival)
+string DLPOLYTopologyReader::_NextKeyInt(ifstream &fs, const char* wspace, const string &word, int &ival)
 {
-  stringstream sl(_NextKeyline(fs,wsp));
+  stringstream sl(_NextKeyline(fs,wspace));
   string line,sval;
 
   sl >> line; // allow user not to bother about the case
@@ -73,16 +73,15 @@ string DLPOLYTopologyReader::_NextKeyInt(ifstream &fs, const char* wsp, const st
   return sl.str();
 }
 
-bool DLPOLYTopologyReader::_isKeyInt(const string &line, const char* wsp, const string &word, int &ival)
+bool DLPOLYTopologyReader::_isKeyInt(const string &line, const char* wspace, const string &word, int &ival)
 {
-  Tokenizer tok(line,wsp); // split directives consisting of a few words - the keyword is the first one!
+  Tokenizer tok(line,wspace); // split directives consisting of a few words - the keyword is the first one!
   vector<string> fields;
   tok.ToVector(fields);
 
   ival = 0;
 
   if( fields.size() < 2 ) return false;
-  //throw std::runtime_error("Error: missing integer number in directive '" + line + "' in topology file '"+ _fname +"'");
 
   boost::to_upper(fields[0]);
 
@@ -97,7 +96,6 @@ bool DLPOLYTopologyReader::_isKeyInt(const string &line, const char* wsp, const 
   } while ( i_num>0 && i<fields.size() );
 
   if( i_num>0 ) return false;
-  //throw std::runtime_error("Error: missing integer number in directive '" + line + "' in topology file '"+ _fname +"'");
 
   ival = boost::lexical_cast<int>(fields[i-1]);
 
@@ -107,7 +105,7 @@ bool DLPOLYTopologyReader::_isKeyInt(const string &line, const char* wsp, const 
 
 bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 {
-#define WSP " \t"
+  const char *WhiteSpace=" \t";
 
     int  mavecs=0;
     int  mpbct=0;
@@ -142,23 +140,23 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
       throw std::runtime_error("Error on opening dlpoly file '" + _fname + "'");
     } else {
 
-      line = _NextKeyline(fl,WSP); //read title line and skip it
-      line = _NextKeyline(fl,WSP); //read next directive line
+      line = _NextKeyline(fl,WhiteSpace); //read title line and skip it
+      line = _NextKeyline(fl,WhiteSpace); //read next directive line
       boost::to_upper(line);
 
       if( line.substr(0,4)=="UNIT" ) { //skip 'unit' line
-	line = _NextKeyline(fl,WSP); //read next directive line
+	line = _NextKeyline(fl,WhiteSpace); //read next directive line
 	boost::to_upper(line); 
       }
 
       if( line.substr(0,4)=="NEUT" ) { //skip 'neutral groups' line (DL_POLY Classic FIELD format)
-	line = _NextKeyline(fl,WSP); //look for next directive line
+	line = _NextKeyline(fl,WhiteSpace); //look for next directive line
 	boost::to_upper(line);
       }
 
       int nmol_types;
 
-      if( !_isKeyInt(line,WSP,"MOLEC",nmol_types) ) 
+      if( !_isKeyInt(line,WhiteSpace,"MOLEC",nmol_types) ) 
 	throw std::runtime_error("Error: missing integer number in directive '" + line + "' in topology file '"+ _fname +"'");
 
 #ifdef DEBUG
@@ -170,17 +168,17 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
       int id=0;
       for (int nmol_type=0;nmol_type<nmol_types; nmol_type++) {
 
-	mol_name = _NextKeyline(fl,WSP);
+	mol_name = _NextKeyline(fl,WhiteSpace);
         Molecule *mi = top.CreateMolecule(mol_name);
 
 	int nreplica = 1;
-	line = _NextKeyInt(fl,WSP,"NUMMOL",nreplica);
+	line = _NextKeyInt(fl,WhiteSpace,"NUMMOL",nreplica);
 
 #ifdef DEBUG
 	cout << "Read from topology file " << _fname << " : '" << mol_name << "' - '" << line << "' - " << nreplica << endl;
 #endif
 
-	line = _NextKeyInt(fl,WSP,"ATOMS",natoms);
+	line = _NextKeyInt(fl,WhiteSpace,"ATOMS",natoms);
 
 #ifdef DEBUG
 	cout << "Read from topology file " << _fname << " : '" << line << "' - " << natoms << endl;
@@ -199,7 +197,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 
           getline(fl,line); //rest of the atom line
 
-          Tokenizer tok(line, WSP);
+          Tokenizer tok(line, WhiteSpace);
 	  vector<string> fields;
 	  tok.ToVector(fields);
 
@@ -338,7 +336,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
       cout << "Read from initial configuration file : '" << line << "' - directives line" << endl;
 #endif
 
-      Tokenizer tok(line, WSP);
+      Tokenizer tok(line, WhiteSpace);
       vector<string> fields;
       tok.ToVector(fields);
 
@@ -375,7 +373,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
           throw std::runtime_error("Error: unexpected EOF in dlpoly file " + filename +", when reading box vector " +
               boost::lexical_cast<string>(i));
 
-        Tokenizer tok(line, WSP);
+        Tokenizer tok(line, WhiteSpace);
         vector<double> fields;
         tok.ConvertToVector<double>(fields);
         box_vectors[i]=vec(fields[0],fields[1],fields[2]);
