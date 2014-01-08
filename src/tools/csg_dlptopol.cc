@@ -90,10 +90,20 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *top_ref)
 
   if(top->MoleculeCount() > 1)
     cout << "WARNING: cannot create topology for topology with"
-      "multiple molecules, using only first molecule\n";
+      "multiple molecular types, using only first molecule\n";
+
   ofstream fl;
   fl.open(fname.c_str());
+  fl << "From VOTCA with love\n";
+  fl << "units kJ\n";
+  fl << "molecular types 1\n";
+
   WriteMolecule(fl, *(top->MoleculeByIndex(0)));
+
+  //todo - insert vdw interactions!
+
+  fl << "close" << endl;
+
   fl.close();
   return true;
 }
@@ -101,7 +111,7 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *top_ref)
 
 void DLPTopolApp::WriteAtoms(ostream &out, Molecule &cg)
 {
-  out << "ATOMS " << cg.BeadCount() << "\n";
+  out << "atoms " << cg.BeadCount() << "\n";
     out << "# name mass charge nrept ifrozen (optional: ngroup, index, type, residue) \n";
     for(int i=0; i<cg.BeadCount(); ++i) {
         Bead *b=cg.getBead(i);
@@ -120,16 +130,25 @@ void DLPTopolApp::WriteInteractions(ostream &out, Molecule &cg)
   
     InteractionContainer &ics=cg.getParent()->BondedInteractions();
 
-    int n_entries = ics.end()-ics.begin()+1;
+    stringstream sout;
+
+    int n_entries = 0;
 
     for(iter=ics.begin(); iter!=ics.end(); ++iter) {
         ic = *iter;
         if(ic->getMolecule() != cg.getId()) continue;
         if(nb != ic->BeadCount()) {
+
+	  if(sout.str()!="") 
+	    out << n_entries << endl << sout.str();
+
+	  sout.str("");
+	  n_entries = 0;
+
             nb=ic->BeadCount();
             switch(nb) {
                 case 2:
-                    out << "bonds ";
+		  out << "bonds ";
                     break;
                 case 3:
                     out << "angles ";
@@ -141,27 +160,25 @@ void DLPTopolApp::WriteInteractions(ostream &out, Molecule &cg)
                     throw runtime_error(string("cannot handle number of beads in interaction:") +
                             ic->getName());
             }
-	    out << " -1  # check/amend the number of interactions!\n";
-	    //out << n_entries << endl;
         }
-        out << " tab ";
+	n_entries++;
+        sout << " tab ";
         for(int i=0; i<nb; ++i)
-            out << ic->getBeadId(i)+1 << " ";
-        out << " # " << ic->getName() << endl;
+	  sout << ic->getBeadId(i)+1 << " ";
+        sout << " # " << ic->getName() << endl;
     }
+    if(sout.str()!="") out << n_entries << endl << sout.str();
 }
 
 void DLPTopolApp::WriteMolecule(ostream &out, Molecule &cg)
 {
-    out << "From VOTCA with love\n";
-    out << "UNITS kJ\n";
-    out << "MOLECULE TYPES 1\n";
-
     out << cg.getName() << endl;
-    out << "NUMMOLS " << 1 << " # check/amend the number of molecule repetitions!\n";
+    out << "nummols " << cg.getParent()->Molecules().size() << " # check/amend the number of molecule repetitions!\n";
 
     WriteAtoms(out, cg);
     WriteInteractions(out, cg);
+
+    out << "finish" << endl;
 
     cout << "Created template for dlpoly topology - please, check & amend if needed!" << endl;
 }
