@@ -34,7 +34,7 @@ public:
     
     void Recompute_in_device(Events* events, Bsumtree* non_injection_rates, Bsumtree* injection_rates);
     double Timestep(votca::tools::Random2 *RandomVariable);
-    void Perform_one_step_in_device(Events* events,GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo, votca::tools::Random2 *RandomVariable);
+    Event* Choose_event(Events* events, Bsumtree* non_injection_rates, Bsumtree* injection_rates, votca::tools::Random2 *RandomVariable);
     
     votca::tools::Random2 *RandomVariable;   
  
@@ -68,27 +68,32 @@ void Vssmgroup::Recompute_in_device(Events* events, Bsumtree* non_injection_rate
     tot_probsum = non_inject_probsum + inject_probsum;
 }
 
-void Vssmgroup::Perform_one_step_in_device(Events* events,GraphDevice* graph, StateDevice* state,Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo, votca::tools::Random2 *RandomVariable){
+Event* Vssmgroup::Choose_event(Events* events, Bsumtree* non_injection_rates, Bsumtree* injection_rates, votca::tools::Random2 *RandomVariable){
 
     double randn = RandomVariable->rand_uniform();    
     
     long event_ID;
     Event* chosenevent;
     
+    std::cout << "random " << randn << " " <<  non_inject_probsum << " " << inject_probsum << " " << tot_probsum << endl;
+    
     if(randn<inject_probsum/tot_probsum) { // injection event
         randn *= inject_probsum;
         event_ID = injection_rates->search(randn);
         chosenevent = events->get_injection_event(event_ID);
+        std::cout << "injectie " << event_ID << " " << injection_rates->getrate(event_ID) << " " << endl;
+        std::cout << chosenevent->id() << endl;
     }
     else {
+        std::cout << " niet injectie" << endl;
+
         randn -= inject_probsum/tot_probsum;
         randn *= non_inject_probsum;
         event_ID = non_injection_rates->search(randn);
         chosenevent = events->get_non_injection_event(event_ID);       
     }
 
-    events->On_execute(chosenevent, graph, state, longrange, non_injection_rates, injection_rates, eventinfo);
-
+    return chosenevent;
 }
 
 }} 

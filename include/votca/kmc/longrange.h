@@ -97,7 +97,6 @@ void Longrange::Reset() {
 
 void Longrange::Initialize (Eventinfo* eventinfo) {
 
-    std::cout << this->number_of_layers() << endl;
     for (int ilayer=0;ilayer<this->number_of_layers();ilayer++) {
 
         // define for every layer, how many other layers are within the coulomb cut off radius from this layer

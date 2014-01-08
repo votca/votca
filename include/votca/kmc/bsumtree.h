@@ -47,41 +47,42 @@ private:
   int nrelements;
 };
 
-void Bsumtree::initialize(int nrelements) { // Must be called before use
+void Bsumtree::initialize(int nr_elements) { // Must be called before use
 
     // treesize is the smallest power of two above nrelements minus 1
-  treesize = pow(2,ceil(log((double) nrelements)/log((double) 2)))-1; // number of nodes
+    nrelements = nr_elements;
+    treesize = pow(2,ceil(log((double) nrelements)/log((double) 2)))-1; // number of nodes
+    std::cout << "nrelements " << nrelements << " treesize " << treesize << endl;
   
-  // clear the arrays
-  dirty_array.clear();
-  element_array.clear();
-  partsum_array.clear();
+    // clear the arrays
+    dirty_array.clear();
+    element_array.clear();
+    partsum_array.clear();
   
-  // Initialize arrays
-  for (int i=0;i<treesize;i++) {
-    dirty_array.push_back(false);
-    partsum_array.push_back(0.0);
-
-  }
-  for (int i=0;i<nrelements;i++) {
-    element_array.push_back(0.0);
-  }
+    // Initialize arrays
+    for (int i=0;i<treesize;i++) {
+        dirty_array.push_back(false);
+        partsum_array.push_back(0.0);
+    }
+    for (int i=0;i<nrelements;i++) {
+        element_array.push_back(0.0);
+    }
 }
 
 void Bsumtree::setrate(int i, double value) { // 0 <= i < nrelements
-  element_array[i] = value;
-  int j = i+treesize;
-  j = div(j-1, 2).quot; // Parent node
-  while (!dirty_array[j]) { // Mark this node and all parents dirty if not already
-    dirty_array[j] = true;
-    if (j != 0) { // Make sure we stop at the root node
-      j = div(j-1, 2).quot; // Parent node
+    element_array[i] = value;
+    int j = i+treesize;
+    j = div(j-1, 2).quot; // Parent node
+    while (!dirty_array[j]) { // Mark this node and all parents dirty if not already
+        dirty_array[j] = true;
+        if (j != 0) { // Make sure we stop at the root node
+            j = div(j-1, 2).quot; // Parent node
+        }
     }
-  }
 }
 
 double Bsumtree::getrate(int i) {
-  return element_array[i];
+      return element_array[i];
 }
   
 double Bsumtree::compute_sum() { // Returns total sum of all elements
@@ -113,6 +114,7 @@ long Bsumtree::search(double searchkey) { // Returns index to element
   int maxindex = treesize + nrelements;
   int i = 0; // value must be located in subtree denoted by index i
   while (2*i+2<maxindex) {
+      std::cout << "i " << i << endl;
     if (searchkey <= partsum(2*i+1)) { // value is located in left subtree
       i = 2*i+1;
     }
@@ -120,8 +122,11 @@ long Bsumtree::search(double searchkey) { // Returns index to element
       searchkey -= partsum(2*i+1); // values are relative
       i = 2*i+2;
     }
-  }
+  }      std::cout << "i " << i << endl;
+
   i -= treesize;
+      std::cout << "i " << i << endl;
+
   return i;
 }
 
@@ -159,10 +164,10 @@ double Bsumtree::partsum(int i) {
   }
   else {
     if (i<treesize + nrelements) {
-      return element_array[i-treesize];
+        return element_array[i-treesize];
     }
     else {
-      return 0.0; // Non-existent nodes have partial rate sum equal to 0
+      return 0.0; // Non-existing nodes have partial rate sum equal to 0
     }
   }
 }

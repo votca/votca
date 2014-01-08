@@ -166,10 +166,8 @@ void GraphDevice::Setup_device_graph(double left_distance, double right_distance
     // determine maximum degree of graph
     _max_pair_degree = this->Determine_Max_Pair_Degree();
     
-    std::cout << "hier?" << endl;
     // Set the self-image coulomb potential on every node
     this->Set_Self_Image_Coulomb_Potential(_sim_box_size.x(), eventinfo);
-    std::cout << "hier?" << endl;    
     // Set the layer indices on every node
     this->Set_Layer_indices(eventinfo);
     

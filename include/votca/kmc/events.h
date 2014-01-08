@@ -67,8 +67,8 @@ public:
     
     double Compute_Coulomb_potential(double startx, votca::tools::vec dif, votca::tools::vec sim_box_size, Eventinfo* eventinfo);
  
-    Event* get_non_injection_event(int eventID) {_non_injection_events[eventID];}
-    Event* get_injection_event(int eventID) {_injection_events[eventID];}
+    Event* get_non_injection_event(int eventID) {return _non_injection_events[eventID];}
+    Event* get_injection_event(int eventID) {return _injection_events[eventID];}
     
 private:
 
@@ -92,9 +92,14 @@ void Events::Recompute_all_events(StateDevice* state, Longrange* longrange, Bsum
 
 void Events::On_execute(Event* event, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo) {
     
+    std::cout << "hierasda? " << event->id() << " " << event->rate() << endl;
     Node* node1 = event->link()->node1();
     Node* node2 = event->link()->node2();
+    std::cout << "hier?" << endl;
+
     On_execute_node(node1, event->action_node1(), event->carrier_type(), graph, state, longrange, non_injection_rates, injection_rates, eventinfo );
+    std::cout << "hier?" << endl;
+
     On_execute_node(node2, event->action_node2(), event->carrier_type(), graph, state, longrange, non_injection_rates, injection_rates, eventinfo );
 
 }
@@ -502,7 +507,7 @@ void Events::Recompute_all_injection_events(StateDevice* state, Longrange* longr
 void Events::Initialize_eventvector(GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo){ //
 
     typename std::vector<Event*>::iterator it;
-   
+
     _non_injection_events.clear();
     Grow_non_injection_eventvector(state, longrange, eventinfo);
     non_injection_rates->initialize(_non_injection_events.size());
@@ -530,7 +535,7 @@ void Events::Initialize_eventvector(GraphDevice* graph, StateDevice* state, Long
         injection_rates->initialize(_injection_events.size());
         for (it = _injection_events.begin(); it!=_injection_events.end(); it++) {injection_rates->setrate((*it)->id(),(*it)->rate());}  
     }
-
+    
 }
 
 void Events::Initialize_injection_eventvector(int Event_id_count, Node* electrode, int carrier_type, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo){
@@ -550,8 +555,9 @@ void Events::Initialize_injection_eventvector(int Event_id_count, Node* electrod
 void Events::Grow_non_injection_eventvector(StateDevice* state, Longrange* longrange, Eventinfo* eventinfo){
 
     int old_nr_carriers = div(_non_injection_events.size(),eventinfo->maxpairdegree).quot; //what was the number of carriers that we started with?
-    
+
     for(int carrier_ID = old_nr_carriers; carrier_ID<old_nr_carriers+eventinfo->growsize; carrier_ID++) {
+
         CarrierDevice* probecarrier = state->GetCarrier(carrier_ID);
         int Event_map = carrier_ID*eventinfo->maxpairdegree;
         if(probecarrier->inbox()) { 
@@ -572,7 +578,8 @@ void Events::Grow_non_injection_eventvector(StateDevice* state, Longrange* longr
             for(int ifill = 0; ifill<eventinfo->maxpairdegree; ifill++) { 
                 Event_map += ifill; 
                 Event *newEvent = new Event(Event_map, (int) Notinbox); 
-                _non_injection_events.push_back(newEvent); } // carrier not in box
+                _non_injection_events.push_back(newEvent); 
+            } // carrier not in box
         }
     }
 }

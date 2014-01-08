@@ -30,6 +30,11 @@ public:
     
     void Read(Property *options){ 
     
+        seed                        = options->get("options.diode.seed").as<int>();
+        nr_equilsteps               = options->get("options.diode.nr_equilsteps").as<int>();
+        nr_timesteps                = options->get("options.diode.nr_timesteps").as<int>();
+        steps_update_longrange      = options->get("options.diode.steps_update_longrange").as<int>();
+        
         nx                          = options->get("options.diode.nx").as<int>();
         ny                          = options->get("options.diode.ny").as<int>();
         nz                          = options->get("options.diode.nz").as<int>();
@@ -78,7 +83,7 @@ public:
         maxpairdegree = graph_maxpairdegree;
     }
 
-    
+    int seed; int nr_equilsteps; int nr_timesteps; int steps_update_longrange;
     int nx; int ny; int nz; int growsize;
     double lattice_constant; double left_electrode_distance; double right_electrode_distance; double alpha; double beta;
     double efield_x; double efield_y; double efield_z;

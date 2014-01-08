@@ -89,34 +89,36 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     eventdata->Graph_Parameters(graph->hopdist(), graph->simboxsize(), graph->maxpairdegree());
 
     longrange = new Longrange(graph,eventdata);
-
     longrange->Initialize(eventdata);
 
     state = new StateDevice();
-
     state->InitStateDevice();
+    state->Grow(eventdata->growsize, eventdata->maxpairdegree); //initial growth
 
-    std::cout << graph->GetNode(10)->occ() << endl;
-
-    state->Grow(10, graph->maxpairdegree());
+/*    state->Grow(10, graph->maxpairdegree());
     int carrier_ID = state->Buy();
     Carrier* newcarrier = state->GetCarrier(carrier_ID);
     Node* carrier_node = graph->GetNode(20);
     newcarrier->SetCarrierNode(carrier_node);
     newcarrier->SetCarrierType(2);
     carrier_node->AddCarrier(carrier_ID);
-    longrange->Init_Load_State(state, eventdata);
-
+    longrange->Init_Load_State(state, eventdata);*/
     
     non_injection_rates = new Bsumtree();
     injection_rates = new Bsumtree();
-    
-    events = new Events();    
+    events = new Events();
     events->Initialize_eventvector(graph,state,longrange,non_injection_rates,injection_rates,eventdata);
 
     vssmgroup = new Vssmgroup();
 
+}
+
+bool Diode::EvaluateFrame() {
     
+    // register all QM packages (Gaussian, turbomole, etc))
+    // EventFactory::RegisterAll(); 
+        
+    RunKMC();
     
     delete state;
     delete events;
@@ -127,54 +129,33 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     delete non_injection_rates;
     delete injection_rates;    
     exit(0);
-    
-
-}
-
-bool Diode::EvaluateFrame() {
-    
-    // register all QM packages (Gaussian, turbomole, etc))
-    // EventFactory::RegisterAll(); 
-        
-    RunKMC();
 }
 
 void Diode::RunKMC() {
- 
-    exit(0);
-    /*    
+    
     //Setup random number generator
-    seed = 1;
-    srand(seed); // srand expects any integer in order to initialise the random number generator
+    srand(eventdata->seed); // srand expects any integer in order to initialise the random number generator
     votca::tools::Random2 *RandomVariable = new votca::tools::Random2();
     RandomVariable->init(rand(), rand(), rand(), rand());    
-    
-    //Initialize all structures
-    graph->hopdist = hopdist;
-    graph->Generate_cubic_graph(nx, ny, nz, lattice_constant, disorder_strength,RandomVariable, disorder_ratio, 
-                                correlation_type, left_electrode_distance, right_electro_distance,globevent);   
-    state->Init();    
-    events->Initialize_eventvector(graph, state, globevent);
-    events->Initialize_longrange (graph, globevent);
-    events->Recompute_all_injection_events(graph, globevent);
-    events->Recompute_all_non_injection_events(graph, state, globevent); 
-    
-    
+
     sim_time = 0.0;
-    for (long it = 0; it < 2*nr_equilsteps + nr_timesteps; it++) {
+    for (long it = 0; it < 2*eventdata->nr_equilsteps + eventdata->nr_timesteps; it++) {
         
         // Update longrange cache (expensive, so not done at every timestep)
-        if(ldiv(it, steps_update_longrange).rem == 0 && it>0){
-            events->longrange->Update_cache(graph->sim_box_size, globevent);
-            events->Recompute_all_injection_events(graph, globevent);
-            events->Recompute_all_non_injection_events(graph,state,globevent);
+        if(ldiv(it, eventdata->steps_update_longrange).rem == 0 && it>0){
+            longrange->Update_cache(eventdata);
+            events->Recompute_all_events(state, longrange, non_injection_rates, injection_rates, eventdata);
         }
         
-        vssmgroup->Recompute_in_device(events);
+        vssmgroup->Recompute_in_device(events, non_injection_rates, injection_rates);
         sim_time += vssmgroup->Timestep(RandomVariable);
-        vssmgroup->Perform_one_step_in_device(events,graph,state,globevent,RandomVariable);
+        Event* chosenevent = vssmgroup->Choose_event(events, non_injection_rates, injection_rates, RandomVariable);
+
+        events->On_execute(chosenevent, graph, state, longrange, non_injection_rates, injection_rates, eventdata);
+
+        // take care of output here
+
     }
-     */
 }
 
 }}
