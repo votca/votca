@@ -50,6 +50,7 @@ void IDFT::Initialize(votca::tools::Property* options ) {
     _do_parse = false;
     _do_project = false;
     _do_trim = false;
+    _do_extract = false;
     
     _store_orbitals = false;
     _store_overlap = false;
@@ -77,6 +78,7 @@ void IDFT::ParseOptionsXML( votca::tools::Property *opt ) {
     if (_tasks_string.find("parse") != std::string::npos) _do_parse = true;
     if (_tasks_string.find("project") != std::string::npos) _do_project = true;
     if (_tasks_string.find("trim") != std::string::npos) _do_trim = true;
+    if (_tasks_string.find("extract") != std::string::npos) _do_extract = true;
 
     string _store_string = opt->get(key+".store").as<string> ();
     if (_store_string.find("orbitals") != std::string::npos) _store_orbitals = true;
@@ -128,6 +130,16 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     bool _calculate_integrals = false;
     stringstream sout;
     string output;
+    
+    int HOMO_A;
+    int HOMO_B;
+    int LUMO_A;
+    int LUMO_B;
+    Orbitals _orbitalsA, _orbitalsB;
+    Overlap _overlap; 
+
+
+
     
      // report back to the progress observer
     Job::JobResult jres = Job::JobResult();
@@ -267,7 +279,9 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     string _pair_file = ( format("%1%%2%%3%%4%%5%") % "pair_" % ID_A % "_" % ID_B % ".orb" ).str();
    ub::matrix<double> _JAB;
 
+   
    Property _job_summary;
+
    if ( _do_project ) {
        
        // orbitals must be loaded from a file
@@ -308,7 +322,6 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
             _orbitalsB.Trim(_trim_factor);
         }
      
-        Overlap _overlap; 
         _overlap.setLogger(pLog);
          
         // 10 seconds for a small system
@@ -325,11 +338,11 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
                 return jres;
         } 
     
-        int HOMO_A = _orbitalsA.getNumberOfElectrons() ;
-        int HOMO_B = _orbitalsB.getNumberOfElectrons() ;
+        HOMO_A = _orbitalsA.getNumberOfElectrons() ;
+        HOMO_B = _orbitalsB.getNumberOfElectrons() ;
     
-        int LUMO_A = HOMO_A + 1;
-        int LUMO_B = HOMO_B + 1;
+        LUMO_A = HOMO_A + 1;
+        LUMO_B = HOMO_B + 1;
     
         double J_h = _overlap.getCouplingElement( HOMO_A , HOMO_B, &_orbitalsA, &_orbitalsB, &_JAB, _energy_difference );
         double J_e = _overlap.getCouplingElement( LUMO_A , LUMO_B, &_orbitalsA, &_orbitalsB, &_JAB, _energy_difference );
@@ -374,6 +387,23 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
      * </pair>
      */
 
+   } // end of the projection loop
+   
+   
+   if ( _do_extract ) {
+       LoadOrbitals( orbFileAB, &_orbitalsAB, pLog );
+       LoadOrbitals( orbFileA, &_orbitalsA, pLog );
+       LoadOrbitals( orbFileB, &_orbitalsB, pLog );
+       //_JAB = _orbitalsAB.getOverlap();
+       HOMO_A = _orbitalsA.getNumberOfElectrons() ;
+       HOMO_B = _orbitalsB.getNumberOfElectrons() ;
+       LUMO_A = HOMO_A + 1;
+       LUMO_B = HOMO_B + 1;
+       
+       
+   }
+   
+   if ( _do_project || _do_extract ) {
         Property *_job_output = &_job_summary.add("output","");
         Property *_pair_summary = &_job_output->add("pair","");
          string nameA = seg_A->getName();
@@ -400,7 +430,7 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         
         votca::tools::PropertyIOManipulator iomXML(votca::tools::PropertyIOManipulator::XML, 1, "");
         sout <<  iomXML << _job_summary;
-   } // end of the projection loop
+   } 
 
    // cleanup whatever is not needed
    _qmpackage->CleanUp();
@@ -820,7 +850,7 @@ void IDFT::ReadJobFile(Topology *top) {
                         cout << "    bridge level: " << (*itOverlapA)->getAttribute<int>( "orb" + suffixBridgeA ) << " (hole transfer)";
                         cout <<  " (HOMO: " << homoBridge << ")" << endl;
                         cout << "      J_DB = " << jDB << "  |  J_BA = " << jBA << endl;
-                        cout << "      E_D = " << eA << ", E_B = " <<  eBridgeA << " = " << eBridgeB << ", E_A = " << eB << endl;
+                        cout << "      E_D = " << eA << ", E_B = " <<  eBridgeA << ", E_A = " << eB << endl;
                         
                         // This in principle violates detailed balance. Any ideas?
                         Jeff_homo += 0.5 * (jDB*jBA / (eA - eBridgeA) + jDB*jBA / (eB - eBridgeB));
@@ -871,5 +901,7 @@ void IDFT::ReadJobFile(Topology *top) {
     LOG(logINFO, _log) << "Pairs [total:updated] " <<  _number_of_pairs << ":" << _current_pairs << " Incomplete jobs: " << _incomplete_jobs << flush; 
     cout << _log;
 }
+
+
 
 }};
