@@ -107,6 +107,7 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     non_injection_rates = new Bsumtree();
     injection_rates = new Bsumtree();
     events = new Events();
+    events->Init_meshes(state, eventdata);
     events->Initialize_eventvector(graph,state,longrange,non_injection_rates,injection_rates,eventdata);
 
     vssmgroup = new Vssmgroup();

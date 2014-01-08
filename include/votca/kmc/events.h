@@ -57,9 +57,9 @@ public:
     
     
     void Init_meshes(StateDevice* state, Eventinfo* eventinfo);
-    inline void Resize_mesh(int meshnr_x, int meshnr_y, int meshnr_z, vector< vector< vector <list<int> > > > mesh);
-    inline void Add_to_mesh(int ID, votca::tools::vec position, vector< vector< vector <list<int> > > > mesh, Eventinfo* eventinfo);
-    inline void Remove_from_mesh(int ID,votca::tools::vec position,vector< vector< vector <list<int> > > > mesh, Eventinfo* eventinfo);
+    vector< vector< vector <list<int> > > > Resize_mesh(int meshnr_x, int meshnr_y, int meshnr_z);
+    void Add_to_mesh(int ID, votca::tools::vec position, Eventinfo* eventinfo);
+    void Remove_from_mesh(int ID,votca::tools::vec position, Eventinfo* eventinfo);
 
     void Effect_potential_and_rates(int action, CarrierDevice* carrier, Node* node, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo);    
     void Effect_potential_and_non_injection_rates(int action, CarrierDevice* carrier1, Node* node, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Eventinfo* eventinfo);
@@ -92,20 +92,22 @@ void Events::Recompute_all_events(StateDevice* state, Longrange* longrange, Bsum
 
 void Events::On_execute(Event* event, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo) {
     
-    std::cout << "hierasda? " << event->id() << " " << event->rate() << endl;
+    std::cout << "event types " << event->init_type() << " " << event->final_type() << endl;
+
     Node* node1 = event->link()->node1();
     Node* node2 = event->link()->node2();
-    std::cout << "hier?" << endl;
 
+    std::cout << "nodes " << node1->id() << " " << node2->id() << endl;
+    
+    
     On_execute_node(node1, event->action_node1(), event->carrier_type(), graph, state, longrange, non_injection_rates, injection_rates, eventinfo );
-    std::cout << "hier?" << endl;
-
     On_execute_node(node2, event->action_node2(), event->carrier_type(), graph, state, longrange, non_injection_rates, injection_rates, eventinfo );
-
 }
 
 void Events::On_execute_node(Node* node, int action, int carrier_type, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo) {
-    
+        
+    std::cout << action << " " << carrier_type << endl;
+
     if(action == (int) None)        {                                            }
     else if(action == (int) Add)    {Add_carrier(node, carrier_type, graph, state, longrange, non_injection_rates, injection_rates, eventinfo); } 
     else if(action == (int) Remove) {Remove_carrier(node, graph, state, longrange, non_injection_rates, injection_rates, eventinfo);            }
@@ -114,13 +116,21 @@ void Events::On_execute_node(Node* node, int action, int carrier_type, GraphDevi
 void Events:: Add_carrier(Node* node, int carrier_type, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo) {
     
     int new_carrier_ID;
+    std::cout << "blaa" << endl; 
     
     //make sure the carrier_reservoir is not empty
     if(state->ReservoirEmpty()){
         state->Grow(eventinfo->growsize, eventinfo->maxpairdegree);
+    std::cout << "growth" << endl; 
+
         Grow_non_injection_eventvector(state, longrange, eventinfo);
+    std::cout << "growth" << endl; 
+
         non_injection_rates->resize(_non_injection_events.size());
+    std::cout << "growth" << endl; 
+
     }
+    std::cout << "blaa" << endl; 
 
     //"buy" the "new" carrier
     new_carrier_ID = state->Buy();
@@ -134,15 +144,18 @@ void Events:: Add_carrier(Node* node, int carrier_type, GraphDevice* graph, Stat
         _nholes++;
     }
     _ncarriers++;
+    std::cout << "blaa" << endl; 
 
     //place the new carrier in the graph
     
     new_carrier->SetCarrierNode(node);
     node->AddCarrier(new_carrier_ID);
-    
+
     //add to mesh
-    Add_to_mesh(new_carrier_ID,node->position(),_non_injection_events_mesh, eventinfo);
-    
+    std::cout << "blaa" << endl; 
+
+    Add_to_mesh(new_carrier_ID,node->position(), eventinfo);
+    std::cout << "blab" << endl; 
     Effect_potential_and_rates((int) Add, new_carrier, node, graph, state, longrange, non_injection_rates, injection_rates, eventinfo);
 
 }
@@ -163,7 +176,7 @@ void Events:: Remove_carrier(Node* node, GraphDevice* graph, StateDevice* state,
     Effect_potential_and_rates((int) Remove, removed_carrier, node, graph, state, longrange, non_injection_rates, injection_rates, eventinfo);    
     
     //remove from mesh
-    Remove_from_mesh(removed_carrier->id(), node->position(), _non_injection_events_mesh,  eventinfo);
+    Remove_from_mesh(removed_carrier->id(), node->position(), eventinfo);
 
     //push to reservoir
     state->Sell(removed_carrier->id());    
@@ -594,38 +607,50 @@ void Events::Init_meshes(StateDevice* state, Eventinfo* eventinfo) {
     _meshnr_z = ceil(simboxsize.z()/eventinfo->mesh_z);
     
     _inject_meshnr_x = ceil(eventinfo->hopdist/eventinfo->mesh_x);
-    
-    // resize the meshes
-    
-    Resize_mesh(_meshnr_x,_meshnr_y,_meshnr_z,_non_injection_events_mesh);
-    Resize_mesh(_inject_meshnr_x,_meshnr_y,_meshnr_z,_left_injection_events_mesh);
-    Resize_mesh(_inject_meshnr_x,_meshnr_y,_meshnr_z,_right_injection_events_mesh);
-    
+
+    _non_injection_events_mesh = Resize_mesh(_meshnr_x,_meshnr_y,_meshnr_z);
+    _left_injection_events_mesh = Resize_mesh(_inject_meshnr_x,_meshnr_y,_meshnr_z);
+    _right_injection_events_mesh = Resize_mesh(_inject_meshnr_x,_meshnr_y,_meshnr_z);
+   
     // initialize meshes
     for (int icar = 0; icar < state->GetCarrierSize(); icar++ ) {
-        if(!state->GetCarrier(icar)->inbox()){
+        if(state->GetCarrier(icar)->inbox()){
             CarrierDevice* carrier = state->GetCarrier(icar);
             votca::tools::vec position = carrier->node()->position();
-            Add_to_mesh(icar,position,_non_injection_events_mesh, eventinfo);
+
+            Add_to_mesh(icar,position,eventinfo);
         }
     }
-    
+
     typename std::vector<Event*>::iterator it;
     for (it = _injection_events.begin(); it != _injection_events.end(); it++ ) {
-        if((*it)->link()->node1()->type()==LeftElectrodeNode) Add_to_mesh((*it)->id(),(*it)->link()->node2()->position(),_left_injection_events_mesh, eventinfo);
+        if((*it)->link()->node1()->type()==LeftElectrodeNode) {
+            votca::tools::vec position = (*it)->link()->node2()->position();
+            double posx = position.x(); int iposx = floor(posx/eventinfo->mesh_x);
+            double posy = position.y(); int iposy = floor(posy/eventinfo->mesh_y);
+            double posz = position.z(); int iposz = floor(posz/eventinfo->mesh_z);
+
+            _left_injection_events_mesh[iposx][iposy][iposz].push_back((*it)->id());             
+        }
         
         //for the righthandside electrode, we take the distance from said electrode
 
         if((*it)->link()->node1()->type()==RightElectrodeNode) {
             votca::tools::vec simboxsize = eventinfo->simboxsize;
-            votca::tools::vec eventpos = votca::tools::vec(simboxsize.x(),0.0,0.0)-(*it)->link()->node2()->position();
-            Add_to_mesh((*it)->id(),eventpos,_right_injection_events_mesh, eventinfo);
+            votca::tools::vec position = votca::tools::vec(simboxsize.x(),0.0,0.0)-(*it)->link()->node2()->position();
+
+            double posx = position.x(); int iposx = floor(posx/eventinfo->mesh_x);
+            double posy = position.y(); int iposy = floor(posy/eventinfo->mesh_y);
+            double posz = position.z(); int iposz = floor(posz/eventinfo->mesh_z);
+
+            _right_injection_events_mesh[iposx][iposy][iposz].push_back((*it)->id()); 
         }
     }
-    
 }
 
-inline void Events::Resize_mesh(int meshnr_x, int meshnr_y, int meshnr_z, vector< vector< vector <list<int> > > > mesh) {
+vector< vector< vector <list<int> > > > Events::Resize_mesh(int meshnr_x, int meshnr_y, int meshnr_z) {
+    
+    vector< vector< vector <list<int> > > > mesh;
     mesh.resize(meshnr_x);
     for(int i = 0;i<meshnr_x;i++) {
         mesh[i].resize(meshnr_y);
@@ -636,24 +661,25 @@ inline void Events::Resize_mesh(int meshnr_x, int meshnr_y, int meshnr_z, vector
             }
         }
     }
+    return mesh;
 }
 
-inline void Events::Add_to_mesh(int ID, votca::tools::vec position, vector< vector< vector <list<int> > > > mesh, Eventinfo* eventinfo){
+void Events::Add_to_mesh(int ID, votca::tools::vec position, Eventinfo* eventinfo){
     
     double posx = position.x(); int iposx = floor(posx/eventinfo->mesh_x);
     double posy = position.y(); int iposy = floor(posy/eventinfo->mesh_y);
     double posz = position.z(); int iposz = floor(posz/eventinfo->mesh_z);
-     
-    mesh[iposx][iposy][iposz].push_back(ID);     
+    
+    _non_injection_events_mesh[iposx][iposy][iposz].push_back(ID);     
 };
 
-inline void Events::Remove_from_mesh(int ID, votca::tools::vec position, vector< vector< vector <list<int> > > > mesh,  Eventinfo* eventinfo){
+void Events::Remove_from_mesh(int ID, votca::tools::vec position, Eventinfo* eventinfo){
     
     double posx = position.x(); int iposx = floor(posx/eventinfo->mesh_x);
     double posy = position.y(); int iposy = floor(posy/eventinfo->mesh_y);
     double posz = position.z(); int iposz = floor(posz/eventinfo->mesh_z);
      
-    mesh[iposx][iposy][iposz].remove(ID);
+    _non_injection_events_mesh[iposx][iposy][iposz].remove(ID);
 }
 
 }} 
