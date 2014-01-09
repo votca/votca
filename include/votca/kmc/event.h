@@ -135,19 +135,23 @@ inline int Event::Determine_action_flag_node2() {
     return action_node2;    
 }
 
-inline double Event::Determine_from_sr_coulomb(Node* node1, StateDevice* state, Eventinfo* eventinfo) {
+inline double Event::Determine_from_sr_coulomb(Node* node, StateDevice* state, Eventinfo* eventinfo) {
 
     double coulomb_from;
     if(_init_type == Injection)   {coulomb_from = 0.0;                                                                                     }
-    else                          {coulomb_from = eventinfo->coulomb_strength*state->GetCarrier(node1->occ())->on_site_coulomb();         }
+    else                          {//std::cout << "hier anders?" << endl;
+        coulomb_from = eventinfo->coulomb_strength*state->GetCarrier(node->occ())->on_site_coulomb();
+ //   std::cout << "hier anders?" << endl;
+    }
     return coulomb_from;
 }
 
-inline double Event::Determine_to_sr_coulomb(Node* node1, StateDevice* state, Eventinfo* eventinfo) {
+inline double Event::Determine_to_sr_coulomb(Node* node, StateDevice* state, Eventinfo* eventinfo) {
 
     double coulomb_to;
     if(_final_type == Collection) {coulomb_to = 0.0;                                                                                       }
-    else if(_init_type != Injection) {coulomb_to = eventinfo->coulomb_strength*state->GetCarrier(node1->occ())->to_site_coulomb(_link->id());}
+    else if(_init_type != Injection) {//std::cout << "hier nog toch?" << endl;
+        coulomb_to = eventinfo->coulomb_strength*state->GetCarrier(node->occ())->to_site_coulomb(_link->id());}
     else if(_init_type == Injection) {coulomb_to = eventinfo->coulomb_strength*_injection_potential;}
     return coulomb_to;
 }
@@ -164,6 +168,7 @@ void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* 
     
     Node* node1 = _link->node1();
     Node* node2 = _link->node2();
+    
     
     double prefactor = 1.0; // total prefactor
     double charge;
@@ -183,7 +188,6 @@ void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* 
         static_node_energy_to = dynamic_cast<NodeDevice*>(node2)->eAnion() + dynamic_cast<NodeDevice*>(node2)->ucCnNh();
 //        std::cout << "from " << static_node_energy_from << " to " << static_node_energy_to << endl;
     }
-   
     //first calculate quantum mechanical wavefunction overlap
     votca::tools::vec distancevector = _link->r12();
     double distance = abs(distancevector);
@@ -206,8 +210,11 @@ void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* 
     else if(_final_type == Collection)    { to_event_energy   -= eventinfo->injection_barrier; prefactor *= eventinfo->collection_prefactor;   } // collection
     else if(_final_type == Recombination) { to_event_energy   -= eventinfo->binding_energy;    prefactor *= eventinfo->recombination_prefactor;} // recombination
 
+ //       std::cout << "sr " << node1->id() << " " << node2->id() << endl;
+
     double sr_coulomb_from = Determine_from_sr_coulomb(node1, state, eventinfo);
     double sr_coulomb_to = Determine_to_sr_coulomb(node1, state, eventinfo);
+//        std::cout << "lr " << sr_coulomb_from << " " << sr_coulomb_to << endl;
 
     double lr_coulomb_from = eventinfo->coulomb_strength*charge*Determine_lr_coulomb(node1, longrange);
     double lr_coulomb_to = eventinfo->coulomb_strength*charge*Determine_lr_coulomb(node2, longrange);
@@ -235,6 +242,7 @@ void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* 
             }
         }
     }
+
 //    std::cout << "factors " << prefactor << " " << distancefactor << " " << energyfactor << endl;
     _rate = prefactor*distancefactor*energyfactor;
 }

@@ -92,12 +92,12 @@ void Events::Recompute_all_events(StateDevice* state, Longrange* longrange, Bsum
 
 void Events::On_execute(Event* event, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo) {
     
-    std::cout << "event types " << event->init_type() << " " << event->final_type() << endl;
+  //  std::cout << "event types " << event->init_type() << " " << event->final_type() << endl;
 
     Node* node1 = event->link()->node1();
     Node* node2 = event->link()->node2();
 
-    std::cout << "nodes " << node1->id() << " " << node2->id() << endl;
+ //   std::cout << "nodes " << node1->id() << " " << node2->id() << endl;
     
     
     On_execute_node(node1, event->action_node1(), event->carrier_type(), graph, state, longrange, non_injection_rates, injection_rates, eventinfo );
@@ -106,7 +106,7 @@ void Events::On_execute(Event* event, GraphDevice* graph, StateDevice* state, Lo
 
 void Events::On_execute_node(Node* node, int action, int carrier_type, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo) {
         
-    std::cout << action << " " << carrier_type << endl;
+ //   std::cout << "ACTION " << action << " " << carrier_type << endl;
 
     if(action == (int) None)        {                                            }
     else if(action == (int) Add)    {Add_carrier(node, carrier_type, graph, state, longrange, non_injection_rates, injection_rates, eventinfo); } 
@@ -116,21 +116,12 @@ void Events::On_execute_node(Node* node, int action, int carrier_type, GraphDevi
 void Events:: Add_carrier(Node* node, int carrier_type, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo) {
     
     int new_carrier_ID;
-    std::cout << "blaa" << endl; 
-    
     //make sure the carrier_reservoir is not empty
     if(state->ReservoirEmpty()){
         state->Grow(eventinfo->growsize, eventinfo->maxpairdegree);
-    std::cout << "growth" << endl; 
-
         Grow_non_injection_eventvector(state, longrange, eventinfo);
-    std::cout << "growth" << endl; 
-
         non_injection_rates->resize(_non_injection_events.size());
-    std::cout << "growth" << endl; 
-
     }
-    std::cout << "blaa" << endl; 
 
     //"buy" the "new" carrier
     new_carrier_ID = state->Buy();
@@ -144,7 +135,6 @@ void Events:: Add_carrier(Node* node, int carrier_type, GraphDevice* graph, Stat
         _nholes++;
     }
     _ncarriers++;
-    std::cout << "blaa" << endl; 
 
     //place the new carrier in the graph
     
@@ -152,16 +142,16 @@ void Events:: Add_carrier(Node* node, int carrier_type, GraphDevice* graph, Stat
     node->AddCarrier(new_carrier_ID);
 
     //add to mesh
-    std::cout << "blaa" << endl; 
 
     Add_to_mesh(new_carrier_ID,node->position(), eventinfo);
-    std::cout << "blab" << endl; 
+
     Effect_potential_and_rates((int) Add, new_carrier, node, graph, state, longrange, non_injection_rates, injection_rates, eventinfo);
 
 }
 
 void Events:: Remove_carrier(Node* node, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo) {
- 
+   
+    
     CarrierDevice* removed_carrier = state->GetCarrier(node->occ());
 
     // Remove existing carrier from lattice
@@ -174,13 +164,13 @@ void Events:: Remove_carrier(Node* node, GraphDevice* graph, StateDevice* state,
     _ncarriers--;
 
     Effect_potential_and_rates((int) Remove, removed_carrier, node, graph, state, longrange, non_injection_rates, injection_rates, eventinfo);    
-    
+
     //remove from mesh
     Remove_from_mesh(removed_carrier->id(), node->position(), eventinfo);
 
     //push to reservoir
     state->Sell(removed_carrier->id());    
-    
+
     //remove from graph
     node->RemoveCarrier();
 }
@@ -188,23 +178,22 @@ void Events:: Remove_carrier(Node* node, GraphDevice* graph, StateDevice* state,
 inline void Events::Effect_potential_and_rates(int action, CarrierDevice* carrier, Node* node, GraphDevice* graph, StateDevice* state, Longrange* longrange, 
                                    Bsumtree* non_injection_rates, Bsumtree* injection_rates,Eventinfo* eventinfo) {
 
-    Effect_potential_and_non_injection_rates((int) Add, carrier, node, state, longrange, non_injection_rates, eventinfo);
-    
+    Effect_potential_and_non_injection_rates(action, carrier, node, state, longrange, non_injection_rates, eventinfo);
+
     votca::tools::vec nodeposition = node->position();
     if(nodeposition.x()<eventinfo->coulcut) {
         double dist_to_electrode = nodeposition.x();
-        Effect_injection_rates((int) Add, carrier, node, graph->left(), dist_to_electrode, state, longrange, injection_rates, eventinfo);
+        Effect_injection_rates(action, carrier, node, graph->left(), dist_to_electrode, state, longrange, injection_rates, eventinfo);
     }
     else if(eventinfo->simboxsize.x()-nodeposition.x() < eventinfo->coulcut) {
         double dist_to_electrode = eventinfo->simboxsize.x()-nodeposition.x();
-        Effect_injection_rates((int) Add, carrier, node, graph->right(), dist_to_electrode, state, longrange, injection_rates, eventinfo);
+        Effect_injection_rates(action, carrier, node, graph->right(), dist_to_electrode, state, longrange, injection_rates, eventinfo);
     }
 }
 
 void Events::Effect_potential_and_non_injection_rates(int action, CarrierDevice* carrier1, Node* node, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Eventinfo* eventinfo) {
 
     int interact_sign;
-    
     if(action == (int) Add)    {interact_sign =  1;}
     if(action == (int) Remove) {interact_sign = -1;}
     if(carrier1->type() == (int) Electron) {interact_sign *= -1;}
@@ -212,18 +201,16 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierDevice*
     
     double RCSQR = eventinfo->coulcut*eventinfo->coulcut;
     
-    
     if(eventinfo->device){ 
         longrange->Add_charge(interact_sign, dynamic_cast<NodeDevice*>(node)->layer());
     }
-     
+
     votca::tools::vec carrier1_pos = node->position();
 
     // Define cubic boundaries in non-periodic coordinates
     double ix1 = carrier1_pos.x()-eventinfo->mesh_x-eventinfo->hopdist; double ix2 = carrier1_pos.x()+eventinfo->mesh_x+eventinfo->hopdist;
     double iy1 = carrier1_pos.y()-eventinfo->mesh_y-eventinfo->hopdist; double iy2 = carrier1_pos.y()+eventinfo->mesh_y+eventinfo->hopdist;
     double iz1 = carrier1_pos.z()-eventinfo->mesh_z-eventinfo->hopdist; double iz2 = carrier1_pos.z()+eventinfo->mesh_z+eventinfo->hopdist;
-
     // Break periodicity in x-direction
     if(eventinfo->device) {
         if (ix1<0.0) ix1 = 0.0;
@@ -249,9 +236,10 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierDevice*
             while (r_isy >= _meshnr_y) r_isy -= _meshnr_y;
             for (int isx=sx1; isx<=sx2; isx++) {
                 int r_isx = isx;
-                while (r_isx < 0) r_isx += _meshnr_x;
-                while (r_isx >= _meshnr_x) r_isx -= _meshnr_x;
-                
+//                while (r_isx < 0) r_isx += _meshnr_x;
+//                while (r_isx >= _meshnr_x) r_isx -= _meshnr_x;
+                    std::cout << isx << " " << isy << " " << isz << endl;
+                    std::cout << r_isx << " " << r_isy << " " << r_isz << endl;                
                 // Ask a list of all charges in this sublattice
                 list<int>::iterator li1,li2,li3;
                 list<int> *carrierlist = &_non_injection_events_mesh[r_isx][r_isy][r_isz];
@@ -263,7 +251,11 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierDevice*
                     int carrier2_type = carrier2->type();
                     Node* carrier2_node = carrier2->node();
                     votca::tools::vec carrier2_pos = carrier2_node->position();
-
+                    std::cout << "c1 pos " << carrier1_pos.x() << " " << carrier1_pos.y() << " " << carrier1_pos.z() << " " << endl;
+                    std::cout << "c2 pos " << carrier2_pos.x() << " " << carrier2_pos.y() << " " << carrier2_pos.z() << " " << endl;
+                    std::cout << isx << " " << isy << " " << isz << endl;
+                    std::cout << r_isx << " " << r_isy << " " << r_isz << endl;
+                    std::cout << "inside pot " << carrier2_node->links().size() << endl;
                     int carrier2_charge;
                     if(carrier2_type == (int) Electron) {
                         carrier2_charge = -1;
@@ -271,7 +263,7 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierDevice*
                     else if(carrier2_type == (int) Hole) {
                         carrier2_charge = 1;
                     }
-          
+
                     interact_sign *= carrier2_charge;
           
                     // Compute coordinates in non-periodic lattice
@@ -281,20 +273,26 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierDevice*
 
                     double distancesqr = abs(distance)*abs(distance);
 
-                    if (carrier2_ID==carrier1->id()) { // self_image_potential interaction
+                    if (carrier2_ID==carrier1->id()) { // self_image_potential interaction taken into account elsewhere (graph.h)
                     }
                     else {
                         if((node->id()!=carrier2_node->id())&&(distancesqr<=RCSQR)) { 
-                                
+ //                                                 std::cout << " direct inside pot" << " " << distancesqr << endl;
+  
                             // Charge interacting with its own images, taken care off in graph.h
                           
                             //First we take the direct sr interactions into account
                             if (action == (int) Add) carrier1->Add_from_Coulomb(interact_sign*Compute_Coulomb_potential(np_carrier2_pos.x(),-1.0*distance, eventinfo->simboxsize,eventinfo));
+                                                  std::cout << np_carrier2_pos.x() << " " << -1.0*distance << endl;
+                                                  std::cout << "carrier 2 op 1 " << interact_sign*Compute_Coulomb_potential(np_carrier2_pos.x(),-1.0*distance, eventinfo->simboxsize,eventinfo) << " " << eventinfo->simboxsize.x() << endl;
                             carrier2->Add_from_Coulomb(interact_sign*Compute_Coulomb_potential(carrier1_pos.x(),distance, eventinfo->simboxsize,eventinfo));
+                                                  std::cout << "carrier 1 op 2 " << interact_sign*Compute_Coulomb_potential(carrier1_pos.x(),distance, eventinfo->simboxsize,eventinfo) << endl;
                             
                         }
+  //                      std::cout << "action is " << action << endl;
                         if (action== (int) Add) {
-              
+ //                                 std::cout << "add inside pot" << " " << distancesqr << endl;
+
                             // Adjust Coulomb potential for neighbours of the added carrier
                             for (int it = 0 ; it < node->links().size(); it++) {
                                 votca::tools::vec jumpdistancevector = node->links()[it]->r12();
@@ -308,33 +306,52 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierDevice*
                                 
                             }
                         }
-                        else if (action == (int) Remove) { // will be done in outside method
-                            // Reset Coulomb potential for carrier1 and its neighbours
-                            carrier1->Set_from_Coulomb(0.0);
-                            carrier1->Reset_to_Coulomb();
-                        }
-           
                         // Adjust Coulomb potential and event rates for neighbours of carrier2
                         typename std::vector<Link*>::iterator it;
                         for (int it = 0; it < carrier2_node->links().size(); it++) {
-                            votca::tools::vec jumpdistancevector = node->links()[it]->r12();
+//                            std::cout << "carrier " << it << " " << carrier2_node->id() << " " << carrier2_node->type() << " " << carrier2_node->links().size() << endl;
+                            Link* linktest = carrier2_node->links()[it];
+                            votca::tools::vec node1pos = linktest->node1()->position();
+                            votca::tools::vec node2pos = linktest->node2()->position();
+//                    std::cout << "link1 pos " << node1pos.x() << " " << node1pos.y() << " " << node1pos.z() << " " << endl;
+//                    std::cout << "link2 pos " << node2pos.x() << " " << node2pos.y() << " " << node2pos.z() << " " << endl;
+//                            std::cout << "link readout " << linktest->node1()->id() << " " << linktest->node2()->id() << endl;
+                            votca::tools::vec jumpdistancevector = carrier2_node->links()[it]->r12();
                             votca::tools::vec jump_from_carrier2_pos = np_carrier2_pos+jumpdistancevector;
                             votca::tools::vec jumpdistance = carrier1_pos-jump_from_carrier2_pos;
                             double distsqr = abs(jumpdistance)*abs(jumpdistance);
-                            
+//                            std::cout << "distsqr " << distsqr << " " << RCSQR << endl;
                             if(distsqr <= RCSQR) {
                                 carrier2->Add_to_Coulomb(interact_sign*Compute_Coulomb_potential(carrier1_pos.x(),jumpdistance,eventinfo->simboxsize, eventinfo), it);
                                 int event_ID = carrier2->id()*eventinfo->maxpairdegree + it;
+ //                                                          std::cout << event_ID << " hier?" << endl;
+
                                 if(carrier2_node->links()[it]->node2()->id() == node->id()) {
+ //                   std::cout << "c1 pos " << carrier1_pos.x() << " " << carrier1_pos.y() << " " << carrier1_pos.z() << " " << endl;
+ //                   std::cout << "link2 pos " << node2pos.x() << " " << node2pos.y() << " " << node2pos.z() << " " << endl;
+                    
+ //                                                               std::cout << event_ID << " eventhier?" << endl;
+
                                     _non_injection_events[event_ID]->Set_event(carrier2_node->links()[it], carrier2_type, state, longrange, eventinfo); // if carrier2 is actually linking with carrier1
                                 }
                                 else {
+    //                                                                                                std::cout << event_ID << " ratehier?" << endl;
+
                                     _non_injection_events[event_ID]->Determine_rate(state, longrange, eventinfo);
                                 }
                                 non_injection_rates->setrate(event_ID,_non_injection_events[event_ID]->rate());
                             }
                         }
+    //                    std::cout << "voorbij loop" << endl;
                     }
+                    if (action == (int) Remove) { // will be done in outside method
+    //                    std::cout << "remove inside pot" << " " << distancesqr << endl;
+
+                        // Reset Coulomb potential for carrier1 and its neighbours
+                        carrier1->Set_from_Coulomb(0.0);
+                        carrier1->Reset_to_Coulomb();
+                    }
+  //                  std::cout << *li3 << " ending" << endl;
                 }
             }
         }   
@@ -450,7 +467,6 @@ double Events::Compute_Coulomb_potential(double startx, votca::tools::vec dif, v
         
         double L = simboxsize.x();
         double distsqr_planar = dif.y()*dif.y() + dif.z()*dif.z();
-        double distsqr = dif.x()*dif.x() + distsqr_planar;
       
         int sign;
         double distx_1;
@@ -602,9 +618,10 @@ void Events::Init_meshes(StateDevice* state, Eventinfo* eventinfo) {
     // determine the dimensions of the meshes
     
     votca::tools::vec simboxsize = eventinfo->simboxsize;
-    _meshnr_x = ceil(simboxsize.x()/eventinfo->mesh_x); 
-    _meshnr_y = ceil(simboxsize.y()/eventinfo->mesh_y); 
-    _meshnr_z = ceil(simboxsize.z()/eventinfo->mesh_z);
+    _meshnr_x = floor(simboxsize.x()/eventinfo->mesh_x); 
+    _meshnr_y = floor(simboxsize.y()/eventinfo->mesh_y); 
+    _meshnr_z = floor(simboxsize.z()/eventinfo->mesh_z);
+    std::cout << simboxsize.x() << " " << eventinfo->mesh_x << " meshsize_x "  << _meshnr_x << endl;
     
     _inject_meshnr_x = ceil(eventinfo->hopdist/eventinfo->mesh_x);
 
@@ -651,12 +668,12 @@ void Events::Init_meshes(StateDevice* state, Eventinfo* eventinfo) {
 vector< vector< vector <list<int> > > > Events::Resize_mesh(int meshnr_x, int meshnr_y, int meshnr_z) {
     
     vector< vector< vector <list<int> > > > mesh;
-    mesh.resize(meshnr_x);
-    for(int i = 0;i<meshnr_x;i++) {
-        mesh[i].resize(meshnr_y);
-        for(int j = 0;j<meshnr_y;j++) {
-            mesh[i][j].resize(meshnr_z);
-            for(int k = 0; k<meshnr_z;k++) {
+    mesh.resize(meshnr_x+1);
+    for(int i = 0;i<meshnr_x+1;i++) {
+        mesh[i].resize(meshnr_y+1);
+        for(int j = 0;j<meshnr_y+1;j++) {
+            mesh[i][j].resize(meshnr_z+1);
+            for(int k = 0; k<meshnr_z+1;k++) {
                 mesh[i][j][k].clear();
             }
         }

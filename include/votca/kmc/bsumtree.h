@@ -132,15 +132,16 @@ void Bsumtree::resize(int newsize) { // Resize arrays. Expensive, so use with ca
    *  When newsize >= oldsize: all elements are copied, new elements are 0.
    *  When newsize < oldsize: excess elements are thrown away.
    */
-    std::cout << "hier?" << endl;
   vector<double> temp_element_array(double(0),newsize); // Temporary storage
-    std::cout << "hier?" << endl;
 
   for (int i=0;i<nrelements && i<newsize;i++) {
     temp_element_array.push_back(element_array[i]);
   }
+  
+  int oldsize = nrelements;
   initialize(newsize);
-  for (int i=0;i<newsize;i++) {
+  
+  for (int i=0;i<oldsize;i++) {
     setrate(i, temp_element_array[i]);
   }
 }

@@ -138,18 +138,22 @@ void GraphDevice::Setup_device_graph(double left_distance, double right_distance
         votca::tools::vec nodepos = (*it)->position();
         double left_distance = nodepos.x();
         int linkID = this->_links.size();
-     
+
         if(left_distance <= _hop_distance) {
+            if((*it)->id() == 7739) std::cout << "left" << endl;
             votca::tools::vec dr = votca::tools::vec(-1.0*left_distance,0.0,0.0);   
-            LinkSQL* newLinkCollect = this->AddLink(linkID,(*it), _left_electrode, dr); linkID++;
+            LinkSQL* newLinkCollect = this->AddLink(linkID,(*it), _left_electrode, dr); 
+            linkID++;
             LinkSQL* newLinkInject = new LinkSQL(linkID, _left_electrode, (*it), -1.0*dr);
             _left_electrode->AddLink(newLinkInject);
         }
       
         double right_distance = _sim_box_size.x() - nodepos.x();
         if(right_distance <= _hop_distance) {
+
             votca::tools::vec dr = votca::tools::vec(right_distance,0.0,0.0);   
-            LinkSQL* newLinkCollect = this->AddLink(linkID,(*it), _right_electrode, dr); linkID++;
+            LinkSQL* newLinkCollect = this->AddLink(linkID,(*it), _right_electrode, dr); 
+            linkID++;
             LinkSQL* newLinkInject = new LinkSQL(linkID, _right_electrode, (*it), -1.0*dr);
             _right_electrode->AddLink(newLinkInject);
         }
@@ -187,7 +191,7 @@ void GraphDevice::LinkSort(){
         NodeDevice* node1 = dynamic_cast<NodeDevice*>((*it)->node1());
         if(node1->type() == NormalNode) node1->AddLink((*it));
     }
-        
+    
 }
 
 int GraphDevice::Determine_Max_Pair_Degree(){
@@ -195,7 +199,7 @@ int GraphDevice::Determine_Max_Pair_Degree(){
     int max_pair_degree = 0;
     typename std::vector<NodeDevice*>::iterator it;    
     for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) {
-        if((*it)->type() == NormalNode) {        
+        if((*it)->type() == NormalNode) {
             if((*it)->links().size()>max_pair_degree) max_pair_degree = (*it)->links().size();
         }
     }
