@@ -46,9 +46,10 @@ public:
     bool EvaluateTopology(Topology *top, Topology *top_ref);
 
 protected:
-    void WriteAtoms(ostream &out, Molecule &cg);
-    void WriteInteractions(ostream &out, Molecule &cg);
-    void WriteMolecule(ostream &out, Molecule &cg);
+    void WriteMoleculeAtoms(ostream &out, Molecule &cg);
+    void WriteMoleculeInteractions(ostream &out, Molecule &cg);
+    void WriteVDWInteractions(ostream &out, Molecule &cg);
+    void WriteMolecularType(ostream &out, Molecule &cg, int nummol);
 };
 
 void DLPTopolApp::Initialize(void)
@@ -86,64 +87,143 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *top_ref)
   cout << "output file-name: " << fname << endl;
 #endif
 
-  // do the mapping
+  // do CG mapping
 
-  if(top->MoleculeCount() > 1)
-    cout << "WARNING: cannot create topology for topology with"
-      "multiple molecular types, using only first molecule\n";
+  MoleculeContainer &mols = top->Molecules();
+  MoleculeContainer MolecularTypes;
+  MoleculeContainer::iterator iter;
+
+  int prv_mol_number = 1;
+  string prv_mol_name;
+  vector<int> nummols;
+
+  vector<string> vdw_pairs;
+
+  // find all unique molecular types
+
+  for(iter=mols.begin(); iter!=mols.end(); ++iter) {
+    Molecule *mol = *iter;
+
+    // molecules are ignored during the mapping stage 
+    // i.e. the ignored ones do not enter the CG topology (*top) - ?
+    //if( IsIgnored(mol->getName()) ) continue;
+
+    if( mol->getName()==prv_mol_name ) {
+      prv_mol_number++;
+      continue;
+    }
+
+    nummols.push_back(prv_mol_number);
+    prv_mol_number = 1;
+    prv_mol_name   = mol->getName();
+
+    //#ifdef DEBUG
+    cout << "'" << mol->getName() << "' added to CG molecular types" << endl;
+    //#endif
+
+    MolecularTypes.push_back(mol);
+
+    // collect unique bead pairs over all molecular types found
+
+    for(int ib1=0; ib1<mol->BeadCount(); ib1++) {
+      string bead_name1 = mol->getBead(ib1)->getType()->getName();
+
+      for(int imt=0; imt<MolecularTypes.size(); imt++) {
+
+	for(int ib2=0; ib2<MolecularTypes[imt]->BeadCount(); ib2++) {
+
+	  string bead_name2 = MolecularTypes[imt]->getBead(ib2)->getType()->getName();
+	  stringstream ss_bp1,ss_bp2;
+
+	  ss_bp1 << format("%8s%8s" ) % bead_name1 % bead_name2;
+	  ss_bp2 << format("%8s%8s" ) % bead_name2 % bead_name1;
+
+          bool is_new_pair=true;
+
+	  for(int ibp=0; ibp<vdw_pairs.size(); ibp++) {
+	    if( ss_bp1.str()==vdw_pairs[ibp] || ss_bp2.str()==vdw_pairs[ibp] ) { 
+	      is_new_pair=false; 
+	      break;
+	    }
+	  }
+	  if( is_new_pair ) {
+	    vdw_pairs.push_back(ss_bp1.str());
+#ifdef DEBUG
+	    cout << "'" << ss_bp1.str() << "' added to CG vdw pairs" << endl;
+#endif
+	  }
+	}
+      }
+    }
+  }
+  nummols.push_back(prv_mol_number);
+
+  if(MolecularTypes.size() > 1)
+    cout << "WARNING: creation of topology for multiple molecular types "
+      "is experimental at this stage\n";
 
   ofstream fl;
   fl.open(fname.c_str());
-  fl << "From VOTCA with love\n";
+
+  fl << "From VOTCA with love" << " # check/amend this file if needed!\n";
   fl << "units kJ\n";
-  fl << "molecular types 1\n";
+  fl << "molecular types " << MolecularTypes.size() << endl;
 
-  WriteMolecule(fl, *(top->MoleculeByIndex(0)));
+  for(int i=0; i<MolecularTypes.size(); i++) {
+    WriteMolecularType(fl, *(MolecularTypes[i]), nummols[i+1]);
+  }
 
-  //todo - insert vdw interactions!
+  // vdw seciton (pairwise vdw/CG interactions)
+
+  if( vdw_pairs.size()>0 ) {
+
+    fl << "vdw "<< vdw_pairs.size() << endl;
+   
+    for(int ibp=0; ibp<vdw_pairs.size(); ibp++) {
+      fl << vdw_pairs[ibp] << " tab   1.00000  0.00000\n";
+    }
+  }
 
   fl << "close" << endl;
+
+  cout << "Created template for dlpoly topology - please, check & amend if needed!" << endl;
 
   fl.close();
   return true;
 }
 
 
-void DLPTopolApp::WriteAtoms(ostream &out, Molecule &cg)
+void DLPTopolApp::WriteMoleculeAtoms(ostream &out, Molecule &cg)
 {
-  out << "atoms " << cg.BeadCount() << "\n";
+  out << "atoms " << cg.BeadCount() << endl;
     out << "# name mass charge nrept ifrozen (optional: ngroup, index, type, residue) \n";
     for(int i=0; i<cg.BeadCount(); ++i) {
         Bead *b=cg.getBead(i);
        
-        out << format("%4s %f %f 1 0 1 %d %s \n")
+        out << format("%8s  %f  %f  1  0  1  %d  %s \n")
             % b->getType()->getName() % b->getM() % b->getQ() % (i+1) % b->getName();
     }
 }
 
-void DLPTopolApp::WriteInteractions(ostream &out, Molecule &cg)
+void DLPTopolApp::WriteMoleculeInteractions(ostream &out, Molecule &cg)
 {
-    int nb=-1;
-    
-    Interaction *ic;
+    InteractionContainer ics=cg.Interactions();
     vector<Interaction *>::iterator iter;
-  
-    InteractionContainer &ics=cg.getParent()->BondedInteractions();
 
     stringstream sout;
 
     int n_entries = 0;
+    int nb=-1;
 
     for(iter=ics.begin(); iter!=ics.end(); ++iter) {
-        ic = *iter;
-        if(ic->getMolecule() != cg.getId()) continue;
+        Interaction *ic = *iter;
         if(nb != ic->BeadCount()) {
 
-	  if(sout.str()!="") 
-	    out << n_entries << endl << sout.str();
+	    if(sout.str()!="") 
+	      out << n_entries << endl << sout.str();
 
-	  sout.str("");
-	  n_entries = 0;
+	    sout.str("");
+	    n_entries = 0;
 
             nb=ic->BeadCount();
             switch(nb) {
@@ -170,17 +250,15 @@ void DLPTopolApp::WriteInteractions(ostream &out, Molecule &cg)
     if(sout.str()!="") out << n_entries << endl << sout.str();
 }
 
-void DLPTopolApp::WriteMolecule(ostream &out, Molecule &cg)
+void DLPTopolApp::WriteMolecularType(ostream &out, Molecule &cg, int nummol)
 {
     out << cg.getName() << endl;
-    out << "nummols " << cg.getParent()->Molecules().size() << " # check/amend the number of molecule repetitions!\n";
+    out << "nummols " << nummol << endl;
 
-    WriteAtoms(out, cg);
-    WriteInteractions(out, cg);
+    WriteMoleculeAtoms(out, cg);
+    WriteMoleculeInteractions(out, cg);
 
     out << "finish" << endl;
-
-    cout << "Created template for dlpoly topology - please, check & amend if needed!" << endl;
 }
 
 int main(int argc, char** argv)

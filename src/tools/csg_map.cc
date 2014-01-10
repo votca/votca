@@ -58,11 +58,11 @@ public:
     void BeginEvaluate(Topology *top, Topology *top_ref);
 void EvalConfiguration(Topology *top, Topology *top_ref) {
         if (!_do_hybrid) {
-            // simply write the topology mapped by csgapplication classe
+            // simply write the topology mapped by csgapplication class
             if (_do_vel) top->SetHasVel(true);
             _writer->Write(top);
         } else {
-            // we want to combinge atomistic and coarse-grained into one topology
+            // we want to combine atomistic and coarse-grained into one topology
             Topology *hybtol = new Topology();
 
             BeadContainer::iterator it_bead;
