@@ -17,6 +17,8 @@
  *
  */
 
+#define NDEBUG
+
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/ctp/votca_ctp_config.h>
 
@@ -47,7 +49,7 @@ namespace votca {
 
         
         void MBGFT::BSE_qp_setup(){
-            _eh_qp = ub::zero_matrix<double>( _bse_size , _bse_size );
+            _eh_qp = ub::zero_matrix<float>( _bse_size , _bse_size );
             
             
             #pragma omp parallel for
@@ -162,16 +164,16 @@ namespace votca {
         }
         
         
-        void MBGFT::BSE_d_setup (const TCMatrix& _Mmn){
+        void MBGFT::BSE_d_setup ( TCMatrix& _Mmn){
             // gwbasis size
             size_t _gwsize = _Mmn[0].size1();
 
             // messy procedure, first get two matrices for occ and empty subbparts
             // store occs directly transposed
-            ub::matrix<double> _storage_v = ub::zero_matrix<double>(  _bse_vtotal * _bse_vtotal , _gwsize );
+            ub::matrix<float> _storage_v = ub::zero_matrix<float>(  _bse_vtotal * _bse_vtotal , _gwsize );
             #pragma omp parallel for
             for ( size_t _v1 = 0; _v1 < _bse_vtotal; _v1++){
-                const ub::matrix<double>& Mmn = _Mmn[_v1];
+                const ub::matrix<float>& Mmn = _Mmn[_v1];
                 for ( size_t _v2 = 0; _v2 < _bse_vtotal; _v2++){
                     size_t _index_vv = _bse_vtotal * _v1 + _v2;
                     for ( size_t _i_gw = 0 ; _i_gw < _gwsize ; _i_gw++) {
@@ -181,10 +183,10 @@ namespace votca {
             }
             
             
-            ub::matrix<double> _storage_c = ub::zero_matrix<double>( _gwsize, _bse_ctotal * _bse_ctotal );
+            ub::matrix<float> _storage_c = ub::zero_matrix<float>( _gwsize, _bse_ctotal * _bse_ctotal );
             #pragma omp parallel for
             for ( size_t _c1 = 0; _c1 < _bse_ctotal; _c1++){
-                const ub::matrix<double>& Mmn = _Mmn[_c1 + _bse_cmin];
+                const ub::matrix<float>& Mmn = _Mmn[_c1 + _bse_cmin];
                 for ( size_t _c2 = 0; _c2 < _bse_ctotal; _c2++){
                     size_t _index_cc = _bse_ctotal * _c1 + _c2;
                     for ( size_t _i_gw = 0 ; _i_gw < _gwsize ; _i_gw++) {
@@ -193,9 +195,11 @@ namespace votca {
                 }
             }
             
+            if ( ! _do_bse_singlets )  _Mmn.Cleanup();
+            
             // store elements in a vtotal^2 x ctotal^2 matrix
             // cout << "BSE_d_setup 1 [" << _storage_v.size1() << "x" << _storage_v.size2() << "]\n" << std::flush;
-            ub::matrix<double> _storage_prod = ub::prod( _storage_v , _storage_c );
+            ub::matrix<float> _storage_prod = ub::prod( _storage_v , _storage_c );
             
             
             
@@ -215,10 +219,14 @@ namespace votca {
             // cout << "BSE_d_setup 2 [" << _storage_c.size1() << "x" << _storage_c.size2() << "]\n" << std::flush;
             _storage_prod -= ub::prod( _storage_v , _storage_c );
             
+            // free storage_v and storage_c
+            _storage_c.resize(0,0);
+            _storage_v.resize(0,0);
+            
             
             // finally resort into _eh_d and multiply by to for Rydbergs
             // can be limited to upper diagonal !
-            _eh_d = ub::zero_matrix<double>( _bse_size , _bse_size );
+            _eh_d = ub::zero_matrix<float>( _bse_size , _bse_size );
             #pragma omp parallel for
             for ( size_t _v1 = 0 ; _v1 < _bse_vtotal ; _v1++){
                 for ( size_t _v2 = 0 ; _v2 < _bse_vtotal ; _v2++){
@@ -245,25 +253,30 @@ namespace votca {
         
         
         
-        void MBGFT::BSE_x_setup(const TCMatrix& _Mmn){
+        void MBGFT::BSE_x_setup( TCMatrix& _Mmn){
             
             /* unlike the fortran code, we store eh interaction directly in
              * a suitable matrix form instead of a four-index array
              */
             
+            
+           
             // allocate eh_x
-            _eh_x = ub::zero_matrix<double>( _bse_size , _bse_size );
+            // _eh_x = ub::zero_matrix<float>( _bse_size , _bse_size );
             
             // gwbasis size
             size_t _gwsize = _Mmn[0].size1();
             
             // get a different storage for 3-center integrals we need
-            ub::matrix<double> _storage = ub::zero_matrix<double>( _gwsize , _bse_size);
+            ub::matrix<float> _storage = ub::zero_matrix<float>( _gwsize , _bse_size);
+
+
             
             // occupied levels
             #pragma omp parallel for
             for ( size_t _v = 0; _v < _bse_vtotal ; _v++ ){
-                const ub::matrix<double>& Mmn = _Mmn[_v];
+                // cout << " act threads: " << omp_get_thread_num( ) << " total threads " << omp_get_num_threads( ) << " max threads " << omp_get_max_threads( ) <<endl;
+                ub::matrix<float>& Mmn = _Mmn[_v];
                 // empty levels
                 for (size_t _c =0 ; _c < _bse_ctotal ; _c++ ){
                     size_t _index_vc = _bse_ctotal * _v + _c ;
@@ -272,11 +285,25 @@ namespace votca {
                     }
                 }
             }
+
+            
+            _Mmn.Cleanup();
+            
+
             
             // with this storage, _eh_x is obtained by matrix multiplication
-            _eh_x = ub::prod( ub::trans( _storage ), _storage );
+            
+	    _eh_x = ub::prod( ub::trans( _storage ), _storage ); 
             _eh_x = 2.0 * _eh_x; // Rydberg
   
+            
+            
+            
+            
+            
+            
+            
+            
             
         }
         

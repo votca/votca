@@ -62,8 +62,6 @@ option(WITH_LINALG "Checking which BLAS libraries are installed" ON)
 if (WITH_LINALG)
 
   find_package(Eigen)
-  find_package(GSL)
-  find_package(MKL)
 
 
   if (EIGEN_FOUND) 
@@ -77,6 +75,11 @@ if (WITH_LINALG)
 
   set(MKL FALSE)
   set(GSL FALSE)
+
+  #find_package(GSL)
+  find_package(MKL)
+
+
   if (MKL_FOUND AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
     message("-- MKL found, overloading uBLAS prod()")
     set(MKL TRUE) #used in votca_ctp_config.h

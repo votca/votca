@@ -122,6 +122,7 @@ namespace votca {
                 // by default all variable shared, except for one defined in parallel region
                 #pragma omp parallel for 
                 for ( int _m_level = 0; _m_level < _Mmn_RPA.get_mtot() ; _m_level++ ){
+                    //cout << " act threads: " << omp_get_thread_num( ) << " total threads " << omp_get_num_threads( ) << " max threads " << omp_get_max_threads( ) <<endl;
                     int index_m = _Mmn_RPA.get_mmin();
                     const ub::matrix<double>& Mmn_RPA =  _Mmn_RPA[ _m_level ];
 
@@ -176,12 +177,21 @@ namespace votca {
     
     void MBGFT::RPA_prepare_threecenters( TCMatrix& _Mmn_RPA, TCMatrix& _Mmn_full, AOBasis& gwbasis, AOMatrix& gwoverlap, AOMatrix& gwoverlap_inverse     ){
         
-         
+
+      //ub::matrix<double> _temp;
+      //ub::matrix<double> _temp2;
+
+
         // loop over m-levels in _Mmn_RPA
-        #pragma omp parallel for
+        #pragma omp parallel for 
         for ( int _m_level = 0; _m_level < _Mmn_RPA.size() ; _m_level++ ){
         
-            ub::matrix<double> _temp = ub::prod( gwoverlap_inverse._aomatrix , _Mmn_full[ _m_level ] );
+	  //ub::matrix<double> _temp = ub::prod( gwoverlap_inverse._aomatrix , _Mmn_full[ _m_level ] );
+	  // try casting for efficient prod() overloading
+	  // cast _Mmn_full to double
+	  ub::matrix<double> _Mmn_double = _Mmn_full[ _m_level ];
+	  ub::matrix<double> _temp = ub::prod( gwoverlap_inverse._aomatrix , _Mmn_double );
+	 
 
             // loop over n-levels in _Mmn_full 
             for ( int _n_level = 0; _n_level < _Mmn_full.get_ntot() ; _n_level++ ){
@@ -264,10 +274,15 @@ namespace votca {
             }// loop n-levels
 
             // multiply _temp with overlap
-            ub::matrix<double> _temp2 = ub::prod( gwoverlap._aomatrix , _temp );
+            ub::matrix<float> _temp2 = ub::prod( gwoverlap._aomatrix , _temp );
+	    //_temp2 = ub::prod( gwoverlap._aomatrix , _temp );
             // copy to _Mmn_RPA
-            _Mmn_RPA[ _m_level ] = ub::project( _temp2, ub::range(0, gwbasis._AOBasisSize) , ub::range(_Mmn_RPA.get_nmin() - _Mmn_full.get_nmin()  , _Mmn_RPA.get_nmax() - _Mmn_full.get_nmin() +1 ));
+                      
+            //ub::matrix<float> _cut = ub::project( _temp2, ub::range(0, gwbasis._AOBasisSize) , ub::range(_Mmn_RPA.get_nmin() - _Mmn_full.get_nmin()  , _Mmn_RPA.get_nmax() - _Mmn_full.get_nmin() +1 ));
             
+            _Mmn_RPA[ _m_level ] = ub::project( _temp2, ub::range(0, gwbasis._AOBasisSize) , ub::range(_Mmn_RPA.get_nmin() - _Mmn_full.get_nmin()  , _Mmn_RPA.get_nmax() - _Mmn_full.get_nmin() +1 ));
+            //_Mmn_RPA[ _m_level ] =  ub::zero_matrix<float>(gwbasis._AOBasisSize,_Mmn_RPA[0].size2() );
+            //_Mmn_RPA[ _m_level ] = _cut;
             
         }// loop m-levels
         

@@ -26,6 +26,7 @@
 		<tasks>all</tasks> <!-- default task is perturbative QP only, other options: qpdiag, singlets, triplets, all -->
 		<store>orbitals</store>
         <exctotal>100</exctotal>
+        <print>10</print>
 
 
 </exciton>

@@ -32,6 +32,7 @@
 #include <boost/multi_array.hpp>
 #include <votca/ctp/logger.h>
 #include <votca/tools/linalg.h>
+#include <omp.h>
 
 using namespace std;
 using namespace votca::tools;
@@ -50,14 +51,21 @@ namespace votca { namespace ctp {
     
     void AOMatrix::Fill( AOBasis* aobasis ) {
         // cout << "I'm supposed to fill out the AO overlap matrix" << endl;
+
+          //      cout << aobasis->_aoshells.size();
+
         
         // loop row
         #pragma omp parallel for
-        for (vector< AOShell* >::iterator _row = aobasis->firstShell(); _row != aobasis->lastShell() ; _row++ ) {
+        for ( int _row = 0; _row <  aobasis->_aoshells.size() ; _row++ ){
+        //for (vector< AOShell* >::iterator _row = aobasis->firstShell(); _row != aobasis->lastShell() ; _row++ ) {
+            //cout << " act threads: " << omp_get_thread_num( ) << " total threads " << omp_get_num_threads( ) << " max threads " << omp_get_max_threads( ) <<endl;
             AOShell* _shell_row = aobasis->getShell( _row );
             int _row_start = _shell_row->getStartIndex();
             int _row_end   = _row_start + _shell_row->getNumFunc();
 
+            // cout << _row << " " << _row_start << " " << _row_end << endl; 
+            
             // loop column
             for (vector< AOShell* >::iterator _col = aobasis->firstShell(); _col != aobasis->lastShell() ; _col++ ) {
                 AOShell* _shell_col = aobasis->getShell( _col );
@@ -80,7 +88,8 @@ namespace votca { namespace ctp {
         
         // loop row
         #pragma omp parallel for
-        for (vector< AOShell* >::iterator _row = aobasis->firstShell(); _row != aobasis->lastShell() ; _row++ ) {
+        for ( int _row = 0; _row <  aobasis->_aoshells.size() ; _row++ ){
+        // for (vector< AOShell* >::iterator _row = aobasis->firstShell(); _row != aobasis->lastShell() ; _row++ ) {
             AOShell* _shell_row = aobasis->getShell( _row );
             int _row_start = _shell_row->getStartIndex();
             int _row_end   = _row_start + _shell_row->getNumFunc();
@@ -298,7 +307,7 @@ namespace votca { namespace ctp {
         if ( _lmax == 1 ) { _block_size = 4  ;}  // p
         if ( _lmax == 2 ) { _block_size = 10 ;}  // d
         if ( _lmax == 3 ) { _block_size = 20 ;}  // f
-        if ( _lmax == 4 ) { _block_size = 35 ;}  // g
+        if ( _lmax >= 4 ) { _block_size = 35 ;}  // g
         
         return _block_size;
     }

@@ -35,7 +35,8 @@
 #if defined (BOOST_VERSION) && (BOOST_VERSION >= 103401)
 
 #include <boost/numeric/ublas/matrix.hpp>
-
+#include <omp.h>
+#include <mkl.h>
 #include "mkl_boost_ublas_gemm.hpp"
 
 namespace boost { namespace numeric { namespace ublas {

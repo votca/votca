@@ -100,6 +100,7 @@ void Exciton::Initialize(Property* options) {
             }
 
             _mbgft.set_bse_nmax(options->get(key + ".exctotal").as<int> ());
+	    _mbgft.set_bse_nprint(options->get(key + ".print").as<int> ());
 
 
             _mbgft.set_gwbasis_name(options->get(key + ".gwbasis").as<string> ());

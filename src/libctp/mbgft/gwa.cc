@@ -55,7 +55,11 @@ namespace votca {
             for (int _m = 0; _m < _vxc.size1(); _m++ ){
               _vxc( _m,_m ) = _qp_energies( _m );
             }
-                   
+
+            
+            // sigma matrices can be freed
+            _sigma_x.resize(0,0);
+            _sigma_c.resize(0,0);
             
             
             if ( _do_qp_diag ){
@@ -221,7 +225,11 @@ namespace votca {
                 // ub::matrix<double> _temp = ub::trans(  _Mmn.matrix()( _m_level )   );
                 // and multiply with _ppm_phi = eigenvectors of epsilon
                 // POTENTIAL BUG
-                _Mmn[ _m_level ] = ub::prod(  _ppm_phi , _Mmn[ _m_level ] );
+	      // casting _Mmn to double for efficint prod() overload
+	      ub::matrix<double> _Mmn_double = _Mmn[_m_level];
+
+                ub::matrix<float> _temp = ub::prod(  _ppm_phi , _Mmn[ _m_level ] );
+                _Mmn[ _m_level ] = _temp;
             }
         }        
         

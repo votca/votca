@@ -149,6 +149,7 @@ namespace votca {
             if ( _bse_cmax < _qpmax ) _qpmax = _bse_cmax;
             _qptotal = _qpmax - _qpmin +1 ;
             if ( _bse_nmax > _bse_size || _bse_nmax < 0 ) _bse_nmax = _bse_size;
+	    if ( _bse_nprint > _bse_nmax ) _bse_nprint = _bse_nmax;
 
             // store information in _orbitals for later use
             _orbitals->setRPAindices( _rpamin, _rpamax);
@@ -184,9 +185,7 @@ namespace votca {
             _vxc  = ub::prod( _mos  , _temp );
             _vxc = 2.0 * _vxc;
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculated exchange-correlation expectation values " << flush;
-            
-
-            
+                  
             // b) reorder MO coefficients depending on the QM package used to obtain the DFT data
             if (_dft_package != "votca") {
                 // get reordering vector _dft_package -> Votca 
@@ -255,8 +254,8 @@ namespace votca {
             // Fill Coulomb matrix
             _gwcoulomb.Fill(&gwbasis);
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled GW Coulomb matrix of dimension: " << _gwcoulomb._aomatrix.size1() << flush;
-
-            
+            //_gwcoulomb.Print("Cou");
+            //exit(0);
             
             // PPM is symmetric, so we need to get the sqrt of the Coulomb matrix
             AOOverlap _gwoverlap_inverse;               // will also be needed in PPM itself
@@ -281,11 +280,16 @@ namespace votca {
             _Mmn.Fill(gwbasis, dftbasis, _dft_orbitals);
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculated Mmn_beta (3-center-overlap x orbitals)  " << flush;
             
+
+
             // for use in RPA, make a copy of _Mmn with dimensions (1:HOMO)(gwabasissize,LUMO:nmax)
             TCMatrix _Mmn_RPA;
             _Mmn_RPA.Initialize(gwbasis._AOBasisSize, _rpamin, _homo , _homo +1 , _rpamax);
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " Init Mmn_beta for RPA  " << flush;
             RPA_prepare_threecenters( _Mmn_RPA, _Mmn, gwbasis, _gwoverlap, _gwoverlap_inverse );
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Prepared Mmn_beta for RPA  " << flush;
+
+	    //exit(0);
 
             // make _Mmn_RPA symmetric for use in RPA
             _Mmn_RPA.Symmetrize( _gwcoulomb._aomatrix  );
@@ -405,28 +409,17 @@ namespace votca {
                         }
                         // _orbitals->setQPdiag(true);
                     } // _store_qp_diag
+                    
+                    // free memory
+                    _qp_diag_energies.resize(0);
+                    _qp_diag_coefficients.resize(0,0);
+                    
                 } // _do_qp_diag
             } // constructing full quasiparticle Hamiltonian
             
             
             // proceed only if BSE requested
             if (_do_bse_singlets || _do_bse_triplets) {
-                // BSE_qp_setup();
-                // constructing electron-hole interaction for BSE
-                if (_do_bse_singlets) {
-                    // calculate exchange part of eh interaction, only needed for singlets
-                    BSE_x_setup(_Mmn);
-                    if ( _store_eh_interaction) {
-                    ub::matrix<double>& _eh_x_store = _orbitals->eh_x();
-                    _eh_x_store = _eh_x;
-                    // _orbitals->setEHinteraction(true);
-                }
-                
-                    
-                    
-                    LOG(logINFO, *_pLog) << TimeStamp() << " Exchange part of e-h interaction " << flush;
-                }
-
 
                 // calculate direct part of eh interaction, needed for singlets and triplets
                 BSE_d_setup(_Mmn);
@@ -437,17 +430,18 @@ namespace votca {
                     _eh_d_store = _eh_d;
                     // _orbitals->setEHinteraction(true);
                 }
+                      
                 
-
+               
                 if (_do_bse_triplets) {
                     BSE_solve_triplets();
                     LOG(logINFO, *_pLog) << TimeStamp() << " Solved BSE for triplets " << flush;
 
                     // expectation values, contributions from e-h coupling for _n_print lowest excitations
-                    std::vector<double> _contrib_x(10, 0.0);
-                    std::vector<double> _contrib_d(10, 0.0);
-                    std::vector<double> _contrib_qp(10, 0.0);
-                    for (int _i_exc = 0; _i_exc < 10; _i_exc++) {
+                    std::vector<double> _contrib_x(_bse_nprint, 0.0);
+                    std::vector<double> _contrib_d(_bse_nprint, 0.0);
+                    std::vector<double> _contrib_qp(_bse_nprint, 0.0);
+                    for (int _i_exc = 0; _i_exc < _bse_nprint; _i_exc++) {
                         // get slice of _bse_triplet_coefficients
                         ub::matrix<double> _slice = ub::project(_bse_triplet_coefficients, ub::range(0, _bse_size), ub::range(_i_exc, _i_exc + 1));
 
@@ -460,11 +454,12 @@ namespace votca {
                         _contrib_qp[_i_exc] = _bse_triplet_energies( _i_exc ) - _contrib_d[ _i_exc ];
 
                     }
+ 
+                    
 
 
-
-                    LOG(logINFO, *_pLog) << (format("  ====== 10 lowest triplet energies (eV) ====== ")).str() << flush;
-                    for (int _i = 0; _i < 10; _i++) {
+                    LOG(logINFO, *_pLog) << (format("  ====== lowest triplet energies (eV) ====== ")).str() << flush;
+                    for (int _i = 0; _i < _bse_nprint; _i++) {
                         LOG(logINFO, *_pLog) << (format("  T = %1$4d Omega = %2$+1.4f <FT> = %3$+1.4f <K_x> = %4$+1.4f <K_d> = %5$+1.4f") % (_i + 1) % (13.6058 * _bse_triplet_energies(_i)) % (13.6058 * _contrib_qp[_i]) % (13.6058 * _contrib_x[_i]) % (13.6058 * _contrib_d[ _i ])).str() << flush;
 
                         for (int _i_bse = 0; _i_bse < _bse_size; _i_bse++) {
@@ -492,9 +487,29 @@ namespace votca {
                         // _orbitals->setBSETriplets(true);
                     } // _store_bse_triplets
                     
+                    // free memory
+                    _bse_triplet_energies.resize(0);
+                    _bse_triplet_coefficients.resize(0,0);
                     
                     
                 } // do_triplets
+                    
+                
+                
+                // constructing electron-hole interaction for BSE
+                if (_do_bse_singlets) {
+                    // calculate exchange part of eh interaction, only needed for singlets
+                    BSE_x_setup(_Mmn);
+                    if ( _store_eh_interaction) {
+                    ub::matrix<double>& _eh_x_store = _orbitals->eh_x();
+                    _eh_x_store = _eh_x;
+                    // _orbitals->setEHinteraction(true);
+                    }
+                    
+                    LOG(logINFO, *_pLog) << TimeStamp() << " Exchange part of e-h interaction " << flush;
+                }
+
+
 
                 if (_do_bse_singlets) {
                     BSE_solve_singlets();
@@ -502,10 +517,10 @@ namespace votca {
 
 
                     // expectation values, contributions from e-h coupling
-                    std::vector<double> _contrib_x(10, 0.0);
-                    std::vector<double> _contrib_d(10, 0.0);
-                    std::vector<double> _contrib_qp(10, 0.0);
-                    for (int _i_exc = 0; _i_exc < 10; _i_exc++) {
+                    std::vector<double> _contrib_x(_bse_nprint, 0.0);
+                    std::vector<double> _contrib_d(_bse_nprint, 0.0);
+                    std::vector<double> _contrib_qp(_bse_nprint, 0.0);
+                    for (int _i_exc = 0; _i_exc < _bse_nprint; _i_exc++) {
 
                         ub::matrix<double> _slice = ub::project(_bse_singlet_coefficients, ub::range(0, _bse_size), ub::range(_i_exc, _i_exc + 1));
 
@@ -551,7 +566,7 @@ namespace votca {
                     std::vector<std::vector<double> > _transition_dipoles;
                     std::vector<double> _oscillator_strength;
                     std::vector<double> _transition_dipole_strength;
-                    for (int _i_exc = 0; _i_exc < 10; _i_exc++) {
+                    for (int _i_exc = 0; _i_exc < _bse_nprint; _i_exc++) {
                         std::vector<double> _tdipole(3, 0.0);
 
                         for (int _v = 0; _v < _bse_vtotal; _v++) {
@@ -574,7 +589,7 @@ namespace votca {
 
 
                     LOG(logINFO, *_pLog) << (format("  ====== 10 lowest singlet energies (eV) ====== ")).str() << flush;
-                    for (int _i = 0; _i < 10; _i++) {
+                    for (int _i = 0; _i < _bse_nprint; _i++) {
 
                         LOG(logINFO, *_pLog) << (format("  S = %1$4d Omega = %2$+1.4f <FT> = %3$+1.4f <K_x> = %4$+1.4f <K_d> = %5$+1.4f") % (_i + 1) % (13.6058 * _bse_singlet_energies(_i)) % (13.6058 * _contrib_qp[_i]) % (13.6058 * _contrib_x[_i]) % (13.6058 * _contrib_d[ _i ])).str() << flush;
                         LOG(logINFO, *_pLog) << (format("           TrDipole length gauge   dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f") % (_transition_dipoles[_i][0]) % (_transition_dipoles[_i][1]) % (_transition_dipoles[_i][2]) % (_transition_dipole_strength[_i]) % (_oscillator_strength[_i])).str() << flush;

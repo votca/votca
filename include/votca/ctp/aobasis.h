@@ -196,6 +196,8 @@ public:
         
     AOShell* getShell( AOShellIterator it ) { return (*it); }
     
+    AOShell* getShell( int idx ){ return _aoshells[idx] ;}
+    
     AOShell* addShell( string shellType, double shellScale, int shellFunc, int startIndex, int offset, vec pos ) 
     { 
         AOShell* aoshell = new AOShell( shellType, shellScale, shellFunc, startIndex, offset, pos, this );
