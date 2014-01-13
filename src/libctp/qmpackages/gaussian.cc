@@ -688,7 +688,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
     // save qmpackage name
     //_orbitals->_has_qm_package = true;
     _orbitals->setQMpakckage("gaussian"); 
-
+    
     
     // Start parsing the file line by line
     ifstream _input_file(_log_file_name_full.c_str());
@@ -703,6 +703,15 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
         std::string::size_type pseudo_pos = _line.find("pseudo=read");
          if (pseudo_pos != std::string::npos) {
              _read_vxc = true;
+         }
+        
+        /* Check for ScaHFX = factor of HF exchange included in functional */
+        std::string::size_type HFX_pos = _line.find("ScaHFX=");
+         if (HFX_pos != std::string::npos) {
+             boost::algorithm::split(results, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
+             double _ScaHFX = boost::lexical_cast<double>(results.back()) ;
+             _orbitals->setScaHFX( _ScaHFX );
+             LOG(logDEBUG,*_pLog) << "DFT with " << _ScaHFX << " of HF exchange!" << flush ;
          }
         
         
@@ -1049,7 +1058,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
         }else{
                 _log_file_name_full =  _run_dir + "/fort.24";
         }
-        cout << "Reading from " << _log_file_name_full;
+        
         
        // prepare the container
        // _orbitals->_has_vxc = true;

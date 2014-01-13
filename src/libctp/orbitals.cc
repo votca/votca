@@ -72,6 +72,8 @@ Orbitals::Orbitals() {
     _rpamin = 0;
     _rpamax = 0;
     
+    _ScaHFX = 0.0;
+    
     _bse_cmin = 0;
     _bse_cmax = 0;
     _bse_vmin = 0;

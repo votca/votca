@@ -217,6 +217,9 @@ public:
     int getBSEcmin() const { return _bse_cmin;}
     int getBSEcmax() const { return _bse_cmax;}
     
+    double getScaHFX() const { return _ScaHFX;}
+    void   setScaHFX( double ScaHFX ) { _ScaHFX = ScaHFX; }
+    
     // access to perturbative QP energies
     bool hasQPpert() { return ( _QPpert_energies.size1() > 0 ) ? true : false ; }
     const ub::matrix<double> &QPpertEnergies() const {return  _QPpert_energies ;}
@@ -339,6 +342,8 @@ private:
     unsigned int                            _bse_vtotal;
     unsigned int                            _bse_ctotal;
     int                                     _bse_nmax;
+    
+    double                                  _ScaHFX;
     
     string                                  _dftbasis;
     string                                  _gwbasis;

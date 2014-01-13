@@ -69,12 +69,11 @@ void Exciton::Initialize(Property* options) {
             _mbgft.set_ranges("default");
             _mbgft.set_store_qp_pert(true);
 
-            // _bse_nmax        = 100;
 
             string key = "options." + Identify();
-            // _jobfile = options->get(key + ".file").as<string>();
 
-            key = "options." + Identify();
+           _output_file =  options->get(key + ".archive").as<string>();
+            
             // getting level ranges 
             _mbgft.set_ranges(options->get(key + ".ranges").as<string> ());
             // now check validity, and get rpa, qp, and bse level ranges accordingly

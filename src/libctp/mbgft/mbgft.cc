@@ -156,11 +156,13 @@ namespace votca {
             _orbitals->setGWAindices( _qpmin, _qpmax);
             _orbitals->setBSEindices( _bse_vmin, _bse_vmax, _bse_cmin, _bse_cmax, _bse_nmax);
             
+	    // information for hybrid DFT
+	    _ScaHFX = _orbitals->getScaHFX();
                     
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Set RPA level range [" << _rpamin +1 << ":" << _rpamax +1 << "]" << flush;
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Set QP  level range [" << _qpmin +1 << ":" << _qpmax +1 << "]" << flush;
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Set BSE level range occ[" << _bse_vmin +1 << ":" << _bse_vmax +1 << "]  virt[" << _bse_cmin +1 << ":" << _bse_cmax +1 << "]" << flush;
-                        
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " Set hybrid exchange factor: " << _ScaHFX << flush;
             
             // process the DFT data
             // a) form the expectation value of the XC functional in MOs
@@ -458,7 +460,7 @@ namespace votca {
                     
 
 
-                    LOG(logINFO, *_pLog) << (format("  ====== lowest triplet energies (eV) ====== ")).str() << flush;
+                    LOG(logINFO, *_pLog) << (format("  ====== triplet energies (eV) ====== ")).str() << flush;
                     for (int _i = 0; _i < _bse_nprint; _i++) {
                         LOG(logINFO, *_pLog) << (format("  T = %1$4d Omega = %2$+1.4f <FT> = %3$+1.4f <K_x> = %4$+1.4f <K_d> = %5$+1.4f") % (_i + 1) % (13.6058 * _bse_triplet_energies(_i)) % (13.6058 * _contrib_qp[_i]) % (13.6058 * _contrib_x[_i]) % (13.6058 * _contrib_d[ _i ])).str() << flush;
 
@@ -588,7 +590,7 @@ namespace votca {
                     }
 
 
-                    LOG(logINFO, *_pLog) << (format("  ====== 10 lowest singlet energies (eV) ====== ")).str() << flush;
+                    LOG(logINFO, *_pLog) << (format("  ====== singlet energies (eV) ====== ")).str() << flush;
                     for (int _i = 0; _i < _bse_nprint; _i++) {
 
                         LOG(logINFO, *_pLog) << (format("  S = %1$4d Omega = %2$+1.4f <FT> = %3$+1.4f <K_x> = %4$+1.4f <K_d> = %5$+1.4f") % (_i + 1) % (13.6058 * _bse_singlet_energies(_i)) % (13.6058 * _contrib_qp[_i]) % (13.6058 * _contrib_x[_i]) % (13.6058 * _contrib_d[ _i ])).str() << flush;

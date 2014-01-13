@@ -211,6 +211,7 @@ public:
     double                              _qpmaxfactor;     // QP level range
     double                              _bseminfactor;
     double                              _bsemaxfactor;
+    double                              _ScaHFX; 
     unsigned int                        _bse_vmin;
     unsigned int                        _bse_vmax;
     unsigned int                        _bse_cmin;

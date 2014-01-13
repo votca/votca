@@ -212,6 +212,9 @@ namespace votca {
                 } // level 2
             } // level 1
         
+	    // factor for hybrid DFT
+	    _sigma_x = ( 1.0 - _ScaHFX ) * _sigma_x;
+
         }
 
 
@@ -228,7 +231,8 @@ namespace votca {
 	      // casting _Mmn to double for efficint prod() overload
 	      ub::matrix<double> _Mmn_double = _Mmn[_m_level];
 
-                ub::matrix<float> _temp = ub::prod(  _ppm_phi , _Mmn[ _m_level ] );
+                //ub::matrix<float> _temp = ub::prod(  _ppm_phi , _Mmn[ _m_level ] );
+              ub::matrix<float> _temp = ub::prod(  _ppm_phi , _Mmn_double );
                 _Mmn[ _m_level ] = _temp;
             }
         }        
