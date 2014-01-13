@@ -103,6 +103,43 @@ bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matri
 #endif
 };
 
+/**
+*
+* ublas binding for gsl_eigen_symmv
+* input matrix type general matrix single precision!
+* wrapping gsl_eigen_symmv 
+* 
+*/
+bool linalg_eigenvalues( ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<float> &V)
+{
+#ifdef NOGSL
+    throw std::runtime_error("linalg_eigenvalues is not compiled-in due to disabling of GSL - recompile Votca Tools with GSL support");
+#else
+    
+	gsl_error_handler_t *handler = gsl_set_error_handler_off();
+	const size_t N = A.size1();
+        
+        // gsl does not handle conversion of a symmetric_matrix 
+        ub::matrix<float> _A( N,N );
+        _A = A;
+        
+	E.resize(N, false);
+	V.resize(N, N, false);
+	gsl_matrix_view A_view = gsl_matrix_view_array(&_A(0,0), N, N);
+	gsl_vector_view E_view = gsl_vector_view_array(&E(0), N);
+	gsl_matrix_view V_view = gsl_matrix_view_array(&V(0,0), N, N);
+	gsl_eigen_symmv_workspace *w = gsl_eigen_symmv_alloc(N);
+
+	int status = gsl_eigen_symmv(&A_view.matrix, &E_view.vector, &V_view.matrix, w);
+	gsl_eigen_symmv_sort(&E_view.vector, &V_view.matrix, GSL_EIGEN_SORT_VAL_ASC);
+	gsl_eigen_symmv_free(w);
+	gsl_set_error_handler(handler);
+        
+	return (status != 0);
+#endif
+};
+
+
 
 /**
 *
@@ -146,6 +183,27 @@ bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matri
     throw std::runtime_error("Available only if intell compiler is used and MKL installed");
 #endif
 }
+
+/*
+ * use expert routine to calculate only a subrange of eigenvalues single precision
+ */
+bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V , int nmax)
+{
+#ifdef NOGSL
+    throw std::runtime_error("Available only if intell compiler is used and MKL installed");
+#else    
+    // throw std::runtime_error("Available only if intell compiler is used and MKL installed");
+
+    // now call wrapper for gsl_eigen_symmv
+    bool status = linalg_eigenvalues( A , E, V );
+
+    return status;
+         
+
+
+#endif
+}
+
 
 
 }}
