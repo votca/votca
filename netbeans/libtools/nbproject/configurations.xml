@@ -50,6 +50,7 @@
         <itemPath>../../src/libtools/linalg/mkl/cholesky.cc</itemPath>
         <itemPath>../../src/libtools/linalg/mkl/eigensystems.cc</itemPath>
         <itemPath>../../src/libtools/linalg/mkl/invert.cc</itemPath>
+        <itemPath>../../src/libtools/linalg/mkl/matmul.cc</itemPath>
         <itemPath>../../src/libtools/linalg/mkl/qrsolve.cc</itemPath>
         <itemPath>../../src/libtools/linalg/mkl/svd.cc</itemPath>
       </logicalFolder>
@@ -328,6 +329,11 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libtools/linalg/mkl/matmul.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libtools/linalg/mkl/qrsolve.cc"
             ex="false"
             tool="1"
@@ -592,6 +598,11 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libtools/linalg/mkl/matmul.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libtools/linalg/mkl/qrsolve.cc"
             ex="false"
             tool="1"
@@ -852,6 +863,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libtools/linalg/mkl/invert.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libtools/linalg/mkl/matmul.cc"
             ex="false"
             tool="1"
             flavor2="0">

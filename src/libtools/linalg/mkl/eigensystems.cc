@@ -185,6 +185,8 @@ bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matri
     lda = n;
     ldz = nmax;
     
+    
+    
     // make sure that containers for eigenvalues and eigenvectors are of correct size
     E.resize(nmax);
     V.resize(n,nmax);
@@ -193,7 +195,7 @@ bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matri
     lwork = -1;
     il = 1;
     iu = nmax;
-    abstol = -1.0; // use default
+    abstol = 0.0; // use default
     vl = 0.0;
     vu = 0.0;
     // make a pointer to the ublas matrix so that LAPACK understands it
@@ -212,6 +214,67 @@ bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matri
 
 #endif
 };
+
+
+
+/*
+ * use expert routine to calculate only a subrange of eigenvalues
+ */
+bool linalg_eigenvalues( ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<float> &V , int nmax)
+{
+#ifdef NOMKL
+    throw std::runtime_error("linalg_eigenvalues is not compiled-in due to disabling of MKL - recompile Votca Tools with MKL support");
+#else
+    
+    /*
+     * INPUT:  matrix A (N,N)
+     * OUTPUT: matrix V (N,NMAX)
+     *         vector E (NMAX)
+     */
+    float wkopt;
+    float* work;
+    float abstol, vl, vu;
+     
+    MKL_INT lda;
+    MKL_INT info;
+    MKL_INT lwork;
+    MKL_INT il, iu, m, ldz ;
+    
+    int n = A.size1();
+    MKL_INT ifail[n];
+    lda = n;
+    ldz = nmax;
+    
+    
+    
+    // make sure that containers for eigenvalues and eigenvectors are of correct size
+    E.resize(nmax);
+    V.resize(n,nmax);
+
+    
+    lwork = -1;
+    il = 1;
+    iu = nmax;
+    abstol = 0.0; // use default
+    vl = 0.0;
+    vu = 0.0;
+    // make a pointer to the ublas matrix so that LAPACK understands it
+    float * pA = const_cast<float*>(&A.data().begin()[0]);   
+    float * pV = const_cast<float*>(&V.data().begin()[0]);
+    float * pE = const_cast<float*>(&E.data()[0]);
+    
+    // call LAPACK via C interface
+    info = LAPACKE_ssyevx( LAPACK_ROW_MAJOR, 'V', 'I', 'U', n, pA , lda, vl, vu, il, iu, abstol, &m, pE, pV, nmax,  ifail );
+
+    if( info > 0 ) {
+        return false;
+    } else {
+        return true;
+    }
+
+#endif
+};
+
 
 
 

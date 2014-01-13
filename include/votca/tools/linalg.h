@@ -35,7 +35,7 @@ namespace votca { namespace tools {
      * This function wraps the inversion of a matrix
      */
     void linalg_invert( ub::matrix<double> &A, ub::matrix<double> &V );
- 
+
  
     /**
      * \brief determines Cholesky decomposition of matrix A
@@ -125,7 +125,16 @@ namespace votca { namespace tools {
      */
     bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V , int nmax );
     
-    
+      /**
+     * \brief eigenvalues of a symmetric matrix A*x=E*x single precision
+     * @param E vector of eigenvalues
+     * @param V input: matrix to diagonalize
+     * @param V output: eigenvectors      
+     * 
+     * This function wrapps gsl_eigen_symmv / DSYEV
+     * 
+     */
+    bool linalg_eigenvalues( ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<float> &V , int nmax );
     
 }}
 
