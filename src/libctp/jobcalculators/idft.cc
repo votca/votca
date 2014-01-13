@@ -394,7 +394,7 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
        LoadOrbitals( orbFileAB, &_orbitalsAB, pLog );
        LoadOrbitals( orbFileA, &_orbitalsA, pLog );
        LoadOrbitals( orbFileB, &_orbitalsB, pLog );
-       //_JAB = _orbitalsAB.getOverlap();
+       _JAB = *_orbitalsAB.getIntegrals();
        HOMO_A = _orbitalsA.getNumberOfElectrons() ;
        HOMO_B = _orbitalsB.getNumberOfElectrons() ;
        LUMO_A = HOMO_A + 1;
@@ -431,6 +431,7 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         votca::tools::PropertyIOManipulator iomXML(votca::tools::PropertyIOManipulator::XML, 1, "");
         sout <<  iomXML << _job_summary;
    } 
+   
 
    // cleanup whatever is not needed
    _qmpackage->CleanUp();
