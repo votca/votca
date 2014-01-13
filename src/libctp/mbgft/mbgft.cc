@@ -438,16 +438,16 @@ namespace votca {
                     LOG(logINFO, *_pLog) << TimeStamp() << " Solved BSE for triplets " << flush;
 
                     // expectation values, contributions from e-h coupling for _n_print lowest excitations
-                    std::vector<double> _contrib_x(_bse_nprint, 0.0);
-                    std::vector<double> _contrib_d(_bse_nprint, 0.0);
-                    std::vector<double> _contrib_qp(_bse_nprint, 0.0);
+                    std::vector<float> _contrib_x(_bse_nprint, 0.0);
+                    std::vector<float> _contrib_d(_bse_nprint, 0.0);
+                    std::vector<float> _contrib_qp(_bse_nprint, 0.0);
                     for (int _i_exc = 0; _i_exc < _bse_nprint; _i_exc++) {
                         // get slice of _bse_triplet_coefficients
-                        ub::matrix<double> _slice = ub::project(_bse_triplet_coefficients, ub::range(0, _bse_size), ub::range(_i_exc, _i_exc + 1));
+                        ub::matrix<float> _slice = ub::project(_bse_triplet_coefficients, ub::range(0, _bse_size), ub::range(_i_exc, _i_exc + 1));
 
                         // calculate expectation value of direct e-h interaction
-                        ub::matrix<double> _temp = ub::prod(_eh_d, _slice);
-                        ub::matrix<double> _res = ub::prod(ub::trans(_slice), _temp);
+                        ub::matrix<float> _temp = ub::prod(_eh_d, _slice);
+                        ub::matrix<float> _res = ub::prod(ub::trans(_slice), _temp);
                         _contrib_d[_i_exc] = -_res(0, 0);
 
                         // contribution from free interlevel transition
@@ -464,7 +464,7 @@ namespace votca {
 
                         for (int _i_bse = 0; _i_bse < _bse_size; _i_bse++) {
                             // if contribution is larger than 0.2, print
-                            double _weight = pow(_bse_triplet_coefficients(_i_bse, _i), 2);
+                            float _weight = pow(_bse_triplet_coefficients(_i_bse, _i), 2);
                             if (_weight > 0.2) {
                                 LOG(logINFO, *_pLog) << (format("           HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%") % (_homo - _index2v[_i_bse]) % (_index2c[_i_bse] - _homo - 1) % (100.0 * _weight)).str() << flush;
                             }
@@ -517,15 +517,15 @@ namespace votca {
 
 
                     // expectation values, contributions from e-h coupling
-                    std::vector<double> _contrib_x(_bse_nprint, 0.0);
-                    std::vector<double> _contrib_d(_bse_nprint, 0.0);
-                    std::vector<double> _contrib_qp(_bse_nprint, 0.0);
+                    std::vector<float> _contrib_x(_bse_nprint, 0.0);
+                    std::vector<float> _contrib_d(_bse_nprint, 0.0);
+                    std::vector<float> _contrib_qp(_bse_nprint, 0.0);
                     for (int _i_exc = 0; _i_exc < _bse_nprint; _i_exc++) {
 
-                        ub::matrix<double> _slice = ub::project(_bse_singlet_coefficients, ub::range(0, _bse_size), ub::range(_i_exc, _i_exc + 1));
+                        ub::matrix<float> _slice = ub::project(_bse_singlet_coefficients, ub::range(0, _bse_size), ub::range(_i_exc, _i_exc + 1));
 
-                        ub::matrix<double> _temp = ub::prod(_eh_x, _slice);
-                        ub::matrix<double> _res = ub::prod(ub::trans(_slice), _temp);
+                        ub::matrix<float> _temp = ub::prod(_eh_x, _slice);
+                        ub::matrix<float> _res = ub::prod(ub::trans(_slice), _temp);
                         _contrib_x[_i_exc] = 2.0 * _res(0, 0);
 
                         _temp = ub::prod(_eh_d, _slice);

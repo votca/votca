@@ -85,9 +85,49 @@ namespace votca {
         
         
         
-        void MBGFT::BSE_solve_triplets(){
+/*        void MBGFT::BSE_solve_triplets(){
             
             ub::matrix<double> _bse =  -_eh_d;
+            
+            // add full QP Hamiltonian contributions to free transitions
+            #pragma omp parallel for
+            for ( size_t _v1 = 0 ; _v1 < _bse_vtotal ; _v1++){
+                for ( size_t _c1 = 0 ; _c1 < _bse_ctotal ; _c1++){
+                    size_t _index_vc = _bse_ctotal * _v1 + _c1;
+
+                    // diagonal
+                    _bse( _index_vc , _index_vc ) += _vxc(_c1 + _bse_cmin ,_c1 + _bse_cmin ) - _vxc(_v1,_v1);
+
+                    // v->c
+                    for ( size_t _c2 = 0 ; _c2 < _bse_ctotal ; _c2++){
+                        size_t _index_vc2 = _bse_ctotal * _v1 + _c2;
+                        if ( _c1 != _c2 ){
+                            _bse( _index_vc , _index_vc2 ) += _vxc(_c1+ _bse_cmin ,_c2 + _bse_cmin );
+                        }
+                    }
+                    
+                    // c-> v
+                    for ( size_t _v2 = 0 ; _v2 < _bse_vtotal ; _v2++){
+                        size_t _index_vc2 = _bse_ctotal * _v2 + _c1;
+                        if ( _v1 != _v2 ){
+                            _bse( _index_vc , _index_vc2 ) -= _vxc(_v1,_v2);
+                        }
+                    }
+                    
+                    
+                }
+            }
+            
+            
+            
+           // linalg_eigenvalues( _bse, _bse_triplet_energies, _bse_triplet_coefficients, _bse_nmax);
+        } */
+
+
+
+        void MBGFT::BSE_solve_triplets(){
+            
+            ub::matrix<float> _bse =  -_eh_d;
             
             // add full QP Hamiltonian contributions to free transitions
             #pragma omp parallel for
@@ -123,7 +163,9 @@ namespace votca {
             linalg_eigenvalues( _bse, _bse_triplet_energies, _bse_triplet_coefficients, _bse_nmax);
         }
         
-        void MBGFT::BSE_solve_singlets(){
+
+        
+        /*void MBGFT::BSE_solve_singlets(){
             
             ub::matrix<double> _bse = -_eh_d + 2.0 * _eh_x;
 
@@ -161,7 +203,49 @@ namespace votca {
             linalg_eigenvalues(_bse, _bse_singlet_energies, _bse_singlet_coefficients, _bse_nmax);
             
           //  cout << TimeStamp() << " with GSL " << endl;
-        }
+        } */
+        
+        
+        
+      void MBGFT::BSE_solve_singlets(){
+            
+            ub::matrix<float> _bse = -_eh_d + 2.0 * _eh_x;
+
+
+            // add full QP Hamiltonian contributions to free transitions
+            #pragma omp parallel for
+            for ( size_t _v1 = 0 ; _v1 < _bse_vtotal ; _v1++){
+                for ( size_t _c1 = 0 ; _c1 < _bse_ctotal ; _c1++){
+                    size_t _index_vc = _bse_ctotal * _v1 + _c1;
+
+                    // diagonal
+                    _bse( _index_vc , _index_vc ) += _vxc(_c1 + _bse_cmin ,_c1 + _bse_cmin) - _vxc(_v1,_v1);
+
+                    // v->c
+                    for ( size_t _c2 = 0 ; _c2 < _bse_ctotal ; _c2++){
+                        size_t _index_vc2 = _bse_ctotal * _v1 + _c2;
+                        if ( _c1 != _c2 ){
+                            _bse( _index_vc , _index_vc2 ) += _vxc(_c1 + _bse_cmin ,_c2 + _bse_cmin);
+                        }
+                    }
+                    
+                    // c-> v
+                    for ( size_t _v2 = 0 ; _v2 < _bse_vtotal ; _v2++){
+                        size_t _index_vc2 = _bse_ctotal * _v2 + _c1;
+                        if ( _v1 != _v2 ){
+                            _bse( _index_vc , _index_vc2 ) -= _vxc(_v1,_v2);
+                        }
+                    }
+                    
+                    
+                }
+            }
+            
+            // _bse_singlet_energies.resize(_bse_singlet_coefficients.size1());
+            linalg_eigenvalues(_bse, _bse_singlet_energies, _bse_singlet_coefficients, _bse_nmax);
+            
+          //  cout << TimeStamp() << " with GSL " << endl;
+        } 
         
         
         void MBGFT::BSE_d_setup ( TCMatrix& _Mmn){

@@ -265,10 +265,14 @@ public:
     ub::matrix<float> _eh_d;
     ub::matrix<float> _eh_qp;
     
-    ub::vector<double> _bse_singlet_energies;
-    ub::matrix<double> _bse_singlet_coefficients;
-    ub::vector<double> _bse_triplet_energies;
-    ub::matrix<double> _bse_triplet_coefficients;
+    // ub::vector<double> _bse_singlet_energies;
+    // ub::matrix<double> _bse_singlet_coefficients;
+    //ub::vector<double> _bse_triplet_energies;
+    //ub::matrix<double> _bse_triplet_coefficients;
+    ub::vector<float> _bse_singlet_energies;
+    ub::matrix<float> _bse_singlet_coefficients;
+    ub::vector<float> _bse_triplet_energies;
+    ub::matrix<float> _bse_triplet_coefficients;
     
     std::vector< ub::matrix<double> > _interlevel_dipoles;
     std::vector< ub::matrix<double> > _interlevel_dipoles_electrical;
