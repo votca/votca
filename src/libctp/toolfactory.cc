@@ -27,6 +27,7 @@
 #include "tools/ptopreader.h"
 #include "tools/exciton.h"
 #include "tools/qmanalyze.h"
+#include "tools/qmsandbox.h"
 
 namespace votca { namespace ctp {
 
@@ -39,7 +40,7 @@ void QMToolFactory::RegisterAll(void)
         QMTools().Register<PtopReader>         ("ptopreader");
         QMTools().Register<Exciton>            ("exciton");
         QMTools().Register<QMAnalyze>          ("qmanalyze");
-        
+        QMTools().Register<QMSandbox>          ("qmsandbox");
        
         
 }

@@ -60,7 +60,7 @@ public:
 
     void WriteJobFile(Topology *top);
 
-    void Import( Topology *top );
+    void ReadJobFile( Topology *top );
     
 /*  
     void    EvalPair(Topology *top, QMPair *pair, int slot);

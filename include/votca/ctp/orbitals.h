@@ -235,7 +235,7 @@ public:
     ub::matrix<double> &eh_x()  { return _eh_x; }
     const ub::matrix<double> &eh_d() const { return _eh_d; }
     ub::matrix<double> &eh_d()  { return _eh_d; }
-    
+
     // access to triplet energies and wave function coefficients
     bool hasBSETriplets() {return ( _BSE_triplet_energies.size() > 0 ) ? true : false ;}
     const std::vector<double> &BSETripletEnergies() const { return _BSE_triplet_energies; }
@@ -250,10 +250,9 @@ public:
     const ub::matrix<double> &BSESingletCoefficients() const { return _BSE_singlet_coefficients;}
     ub::matrix<double> &BSESingletCoefficients() { return _BSE_singlet_coefficients;}
 
-    
     /* ===
      *    OLD ACCESS FUNCTIONS
-     */
+     */    
     std::vector<double>* getQPdiagEnergies() {return  &_QPdiag_energies ;} 
     ub::matrix<double>* getQPdiagCoefficients() {return  &_QPdiag_coefficients ;}
 
@@ -291,7 +290,11 @@ public:
     // reduces number of virtual orbitals to factor*number_of_occupied_orbitals
     void Trim( int factor );
 
-
+    /** Loads orbitals from a file
+     * Returns true if successful and does not throw an exception.
+     * If exception is required, please use the << overload.
+     */
+    bool Load(string file_name);    
     
 private:
     
