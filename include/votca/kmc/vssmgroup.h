@@ -70,27 +70,27 @@ void Vssmgroup::Recompute_in_device(Events* events, Bsumtree* non_injection_rate
 
 Event* Vssmgroup::Choose_event(Events* events, Bsumtree* non_injection_rates, Bsumtree* injection_rates, votca::tools::Random2 *RandomVariable){
 
-    double randn = RandomVariable->rand_uniform();    
+    double randn = tot_probsum*RandomVariable->rand_uniform();
     
     long event_ID;
     Event* chosenevent;
     
     std::cout << "random " << randn << " " <<  non_inject_probsum << " " << inject_probsum << " " << tot_probsum << endl;
     
-    if(randn<inject_probsum/tot_probsum) { // injection event
-        randn *= inject_probsum;
+    if(randn<inject_probsum) { // injection event
         event_ID = injection_rates->search(randn);
         chosenevent = events->get_injection_event(event_ID);
-//        std::cout << "injectie " << event_ID << " " << injection_rates->getrate(event_ID) << " " << endl;
+ //       std::cout << "injectie " << event_ID << " " << injection_rates->getrate(event_ID) << " " << endl;
 //        std::cout << chosenevent->id() << endl;
     }
     else {
-        std::cout << " niet injectie" << endl;
 
-        randn -= inject_probsum/tot_probsum;
-        randn *= non_inject_probsum;
+        randn -= inject_probsum;
         event_ID = non_injection_rates->search(randn);
         chosenevent = events->get_non_injection_event(event_ID);       
+
+        //       std::cout << " niet injectie" << event_ID << endl;
+
     }
 
     return chosenevent;

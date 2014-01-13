@@ -64,9 +64,9 @@ public:
         
         device                      = options->get("options.diode.device").as<bool>();
         
-        mesh_x                      = options->get("options.diode.mesh_x").as<double>();
-        mesh_y                      = options->get("options.diode.mesh_y").as<double>();
-        mesh_z                      = options->get("options.diode.mesh_z").as<double>();
+        mesh_x                      = options->get("options.diode.mesh_x").as<int>();
+        mesh_y                      = options->get("options.diode.mesh_y").as<int>();
+        mesh_z                      = options->get("options.diode.mesh_z").as<int>();
         layersize                   = options->get("options.diode.layersize").as<double>();
         
         nr_sr_images                = options->get("options.diode.nr_sr_images").as<int>();
@@ -90,7 +90,7 @@ public:
     double electron_prefactor; double hole_prefactor; double injection_prefactor; double recombination_prefactor; double collection_prefactor;
     string formalism; double injection_barrier; double binding_energy;
     bool left_electron_injection; bool left_hole_injection; bool right_electron_injection; bool right_hole_injection; bool device;
-    double mesh_x; double mesh_y; double mesh_z; double layersize;
+    int mesh_x; int mesh_y; int mesh_z; double layersize;
     
     double hopdist;
     votca::tools::vec simboxsize;

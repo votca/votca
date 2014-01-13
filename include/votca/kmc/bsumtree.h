@@ -111,6 +111,7 @@ double Bsumtree::compute_sum() { // Returns total sum of all elements
 // Search returns index to element i: sum(0..i) <= searchkey < sum(0..i+1),
 // where the sum is taken over the succesive elements.
 long Bsumtree::search(double searchkey) { // Returns index to element
+    std::cout << "searchkey is " << searchkey << endl;
   int maxindex = treesize + nrelements;
   int i = 0; // value must be located in subtree denoted by index i
   while (2*i+2<maxindex) {

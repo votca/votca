@@ -45,7 +45,6 @@ public:
     Event(int id, Link* link, int carrier_type, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo){
         _id = id;
         Set_event(link, carrier_type, state, longrange, eventinfo);
-
     }
  
     double &rate() { return _rate; }
@@ -139,9 +138,9 @@ inline double Event::Determine_from_sr_coulomb(Node* node, StateDevice* state, E
 
     double coulomb_from;
     if(_init_type == Injection)   {coulomb_from = 0.0;                                                                                     }
-    else                          {//std::cout << "hier anders?" << endl;
+    else                          {//std::cout << "hier anders? " << node->occ() << endl;
         coulomb_from = eventinfo->coulomb_strength*state->GetCarrier(node->occ())->on_site_coulomb();
- //   std::cout << "hier anders?" << endl;
+//    std::cout << "hier anders?" << endl;
     }
     return coulomb_from;
 }
@@ -210,7 +209,7 @@ void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* 
     else if(_final_type == Collection)    { to_event_energy   -= eventinfo->injection_barrier; prefactor *= eventinfo->collection_prefactor;   } // collection
     else if(_final_type == Recombination) { to_event_energy   -= eventinfo->binding_energy;    prefactor *= eventinfo->recombination_prefactor;} // recombination
 
- //       std::cout << "sr " << node1->id() << " " << node2->id() << endl;
+//        std::cout << "sr " << node1->id() << " " << node2->id() << endl;
 
     double sr_coulomb_from = Determine_from_sr_coulomb(node1, state, eventinfo);
     double sr_coulomb_to = Determine_to_sr_coulomb(node1, state, eventinfo);
@@ -255,9 +254,10 @@ void Event::Set_event(Link* link, int carrier_type, StateDevice* state, Longrang
     
     _carrier_type = carrier_type;
     _init_type = Determine_init_event_type(node1);
-
-    if (node2->occ() == -1) _final_type = Determine_final_event_type(node1, node2);
-    else                    _final_type = Determine_final_event_type(carrier_type, state->GetCarrier(node2->occ())->type(), node1, node2);    
+//    if(node1->type() != (int) NormalNode ) std::cout << "injection node" << endl;
+//    std::cout << "decide node occ " << node2->occ() << endl;
+    if (node2->occ() == -1) {_final_type = Determine_final_event_type(node1, node2);}
+    else                    {_final_type = Determine_final_event_type(carrier_type, state->GetCarrier(node2->occ())->type(), node1, node2);}    
 
     _action_node1 = Determine_action_flag_node1();
     _action_node2 = Determine_action_flag_node2();
