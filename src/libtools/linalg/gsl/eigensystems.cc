@@ -115,7 +115,9 @@ bool linalg_eigenvalues( ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<
 #ifdef NOGSL
     throw std::runtime_error("linalg_eigenvalues is not compiled-in due to disabling of GSL - recompile Votca Tools with GSL support");
 #else
-    
+    throw std::runtime_error("linalg_eigenvalues is not implemented with float precision, switch to MKL");
+    return -1;
+    /*
 	gsl_error_handler_t *handler = gsl_set_error_handler_off();
 	const size_t N = A.size1();
         
@@ -125,9 +127,9 @@ bool linalg_eigenvalues( ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<
         
 	E.resize(N, false);
 	V.resize(N, N, false);
-	gsl_matrix_view A_view = gsl_matrix_view_array(&_A(0,0), N, N);
-	gsl_vector_view E_view = gsl_vector_view_array(&E(0), N);
-	gsl_matrix_view V_view = gsl_matrix_view_array(&V(0,0), N, N);
+	gsl_matrix_float_view A_view = gsl_matrix_float_view_array(&_A(0,0), N, N);
+	gsl_vector_float_view E_view = gsl_vector_float_view_array(&E(0), N);
+	gsl_matrix_float_view V_view = gsl_matrix_float_view_array(&V(0,0), N, N);
 	gsl_eigen_symmv_workspace *w = gsl_eigen_symmv_alloc(N);
 
 	int status = gsl_eigen_symmv(&A_view.matrix, &E_view.vector, &V_view.matrix, w);
@@ -136,6 +138,7 @@ bool linalg_eigenvalues( ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<
 	gsl_set_error_handler(handler);
         
 	return (status != 0);
+     */
 #endif
 };
 
@@ -187,7 +190,7 @@ bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matri
 /*
  * use expert routine to calculate only a subrange of eigenvalues single precision
  */
-bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V , int nmax)
+bool linalg_eigenvalues( ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<float> &V , int nmax)
 {
 #ifdef NOGSL
     throw std::runtime_error("Available only if intell compiler is used and MKL installed");
