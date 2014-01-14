@@ -29,12 +29,17 @@ public:
     
     NodeDevice(int id, tools::vec position) : NodeSQL(id, position){};
 
+    /// Set layer index of node (defined by profile object)
     void setLayer(int layer){_layer = layer;}
-//    void Compute_Self_Coulomb_potential(double startx, votca::tools::vec simboxsize, Eventinfo* eventinfo); 
+    
+    /// Compute and set self image coulomb potential (potential of image charges  of a charge on the charge itself)
     void Compute_Self_Image_Coulomb_Potential(double startx, double device_length, Eventinfo* eventinfo);
     void setSelfImage(double self_image) {_self_image = self_image;}
     
+    /// Self image coulomb potential (potential of image charges  of a charge on the charge itself)
     const double &self_image() const { return _self_image; }     
+    
+    /// Layer index
     const int &layer() const {return _layer;}
 
     

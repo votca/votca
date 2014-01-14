@@ -29,6 +29,7 @@ class GraphSQL : public Graph<TNode, TLink> {
 
 public:
    
+    /// Reads node information from filename
     void Initialize(string filename);
     
 };

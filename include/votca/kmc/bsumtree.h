@@ -29,12 +29,25 @@ class Bsumtree {
     
 public:
  
+    /// initialize binary sumtree objects
     void initialize(int nrelements);
+    
+    /// set rate of element i
     void setrate(int i, double value);
+    
+    /// obtain rate of element i
     double getrate(int i);
+    
+    /// calculate all partial sums and obtain total sum of all elements in the tree
     double compute_sum();
+    
+    /// search element with searchkey
     long search(double searchkey);
+    
+    /// resize binary sum trees
     void resize(int newsize);
+    
+    /// get nr of elements
     long getnrrates();
   
 private:

@@ -79,8 +79,13 @@ public:
     /// Determine action flag for node 2
     inline int Determine_action_flag_node2();
 
-    inline double Determine_from_sr_coulomb(Node* node1, StateDevice* state, Eventinfo* eventinfo);    
+    /// Determine short range coulomb potential at node from which hop occur
+    inline double Determine_from_sr_coulomb(Node* node1, StateDevice* state, Eventinfo* eventinfo); 
+    
+    /// Determine short range coulomb potential at node to which hop occur
     inline double Determine_to_sr_coulomb(Node* node1, StateDevice* state, Eventinfo* eventinfo);
+    
+    /// Determine long range coulomb potential for given node (equal to 0 in case of electrode node)
     inline double Determine_lr_coulomb(Node* node, Longrange* longrange);
     
 protected:

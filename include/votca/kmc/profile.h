@@ -38,13 +38,25 @@ public:
      
     ~Profile(){}     
     
+    /// number of profile layers
     const int &number_of_layers() const { return _number_of_layers; }
+    
+    /// positional average of the nodes in the layer
     const double &position(int i) const {return _positional_average[i]; }
     
+    /// Initialize arrays
     inline void Initialize_storage_arrays(Eventinfo* eventinfo);
+    
+    /// Read out positions of nodes from graph object
     inline void Add_nodes_to_profile(GraphDevice* graph);
+    
+    /// Read out positions per layer
     inline void Add_node_to_layer(double posx, int layer);
+    
+    /// Calculate positional average of all layers
     inline void Calculate_positional_average();
+    
+    /// Calculate boundaries between layers
     inline void Calculate_layer_boundaries(Eventinfo* eventinfo);
 
 private:

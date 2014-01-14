@@ -37,8 +37,10 @@ public:
     LinkDevice( int id, Node* node1, Node* node2, votca::tools::vec r12) : LinkSQL(id,node1,node2,r12){
     };
     
+    /// Set self image coulomb potential (potential of image charges  of a charge on the charge itself)
     void setSelfImage(double selfimage){_self_image = selfimage;}
 
+    /// self image coulomb potential (potential of image charges  of a charge on the charge itself)
     const double &self_image() const { return _self_image; }         
     
 private:

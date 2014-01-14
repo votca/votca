@@ -43,34 +43,55 @@ public:
         for (it = _injection_events.begin(); it != _injection_events.end(); it++ ) delete *it;
     } 
     
+    /// On execute methode
     void On_execute(Event* event, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo);
+    /// On execute method node wise
     void On_execute_node(Node* node, int action, int carrier_type, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo);
+    /// Execute method in case carrier is added on node
     void Add_carrier(Node* node, int carrier_type, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo);
+    /// Execute method in case carrier is removed from node
     void Remove_carrier(Node* node, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo);
     
+    /// Recalculate rates of all events
     void Recompute_all_events(StateDevice* state, Longrange* longrange,Bsumtree* non_injection_rates, Bsumtree* injection_rates,  Eventinfo* eventinfo);
+    /// Recalculate rates of all non-injection events
     void Recompute_all_non_injection_events(StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Eventinfo* eventinfo);
+    /// Recalculate rates of all injection events
     void Recompute_all_injection_events(StateDevice* state, Longrange* longrange, Bsumtree* injection_rates, Eventinfo* eventinfo);    
 
+    /// Initialize event vectors
     void Initialize_eventvector(GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo);
+    /// Initialize injection event vector
     void Initialize_injection_eventvector(int Event_counter, Node* electrode, int carrier_type, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo);
+    /// Grow (and initialize) non-injection event vector
     void Grow_non_injection_eventvector(StateDevice* state, Longrange* longrange, Eventinfo* eventinfo);
     
-    
-    
+    /// Initialize mesh for non-injection events
     void Init_non_injection_meshes(StateDevice* state, Eventinfo* eventinfo);
+    /// Initialize mesh for injection events
     void Init_injection_meshes(StateDevice* state, Eventinfo* eventinfo);
+    /// Resize mesh
     vector< vector< vector <list<int> > > > Resize_mesh(int meshnr_x, int meshnr_y, int meshnr_z);
+    /// Add id (of node or carrier) to mesh
     void Add_to_mesh(int ID, votca::tools::vec position, Eventinfo* eventinfo);
+    /// Remove id (of node or carrier) from mesh
     void Remove_from_mesh(int ID,votca::tools::vec position, Eventinfo* eventinfo);
 
+    /// Effect of adding/removing carrier to/from box on the coulomb potential and event rates
     void Effect_potential_and_rates(int action, CarrierDevice* carrier, Node* node, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo);    
+    /// Effect of adding/removing carrier to/from box on the coulomb potential and event rates (non-injection)
     void Effect_potential_and_non_injection_rates(int action, CarrierDevice* carrier1, Node* node, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Eventinfo* eventinfo);
+    /// Effect of adding/removing carrier to/from box on the coulomb potential and event rates (injection)
     void Effect_injection_rates(int action, CarrierDevice* carrier, Node* node, Node* electrode, double dist_to_electrode, StateDevice* state, Longrange* longrange, Bsumtree* injection_rates,  Eventinfo* eventinfo);
     
+    /// Calculate shortrange coulomb potential
+    /// startx is x-coordinate of carrier of which we want to calculate the coulomb potential
+    /// dif is startx - x coordinate of node on which we want to know the coulomb potential
     double Compute_Coulomb_potential(double startx, votca::tools::vec dif, bool direct, votca::tools::vec sim_box_size, Eventinfo* eventinfo);
- 
+
+    /// Obtain non-injection event with id eventID
     Event* get_non_injection_event(int eventID) {return _non_injection_events[eventID];}
+    /// Obtain injection event with id eventID
     Event* get_injection_event(int eventID) {return _injection_events[eventID];}
     
 private:

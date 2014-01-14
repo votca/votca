@@ -91,19 +91,8 @@ public:
     string formalism; double injection_barrier; double binding_energy;
     bool left_electron_injection; bool left_hole_injection; bool right_electron_injection; bool right_hole_injection; bool device;
     int mesh_x; int mesh_y; int mesh_z; double layersize;
-    
-    double hopdist;
-    votca::tools::vec simboxsize;
-    int maxpairdegree;
-    
-    double coulomb_strength;
-    double coulcut;
-    double self_image_prefactor;
-
-    int nr_sr_images; long nr_lr_images;
-
-    
-
+    double hopdist; votca::tools::vec simboxsize; int maxpairdegree;
+    double coulomb_strength; double coulcut; double self_image_prefactor; int nr_sr_images; long nr_lr_images;
 
 };
 

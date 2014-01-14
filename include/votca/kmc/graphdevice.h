@@ -23,7 +23,6 @@
 #include <votca/kmc/nodedevice.h>
 #include <votca/kmc/linkdevice.h>
 #include <votca/kmc/eventinfo.h>
-//#include <votca/kmc/graphcubic.h>
 
 namespace votca { namespace kmc {
 
@@ -87,7 +86,7 @@ private:
 };
 
 void GraphDevice::Setup_device_graph(double left_distance, double right_distance, Eventinfo* eventinfo){
-
+    
     // Determine hopping distance before breaking periodicity
     _hop_distance = this->Determine_Hopping_Distance();
     
@@ -150,7 +149,6 @@ void GraphDevice::Setup_device_graph(double left_distance, double right_distance
       
         double right_distance = _sim_box_size.x() - nodepos.x();
         if(right_distance <= _hop_distance) {
-
             votca::tools::vec dr = votca::tools::vec(right_distance,0.0,0.0);   
             LinkSQL* newLinkCollect = this->AddLink(linkID,(*it), _right_electrode, dr); 
             linkID++;

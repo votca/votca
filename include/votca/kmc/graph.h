@@ -44,8 +44,10 @@ public:
 
     void AddNode( TNode* node) { _nodes.push_back(node); }
     
+    /// Obtain node
     TNode* GetNode(int node_ID) {return _nodes[node_ID];}
     
+    /// Get number of nodes
     int Numberofnodes() {return _nodes.size();}
 
     /// Add a node to the Graph
@@ -56,9 +58,11 @@ public:
     }
     
     void AddLink( TLink* link) { _links.push_back(link); }
-        
+    
+    /// Remove link    
     void RemoveLink(int linknr) {_links.erase(_links.begin()+linknr); }
     
+    /// Print node information
     void PrintNodes(std::ostream& out){
         typename std::vector<TNode*>::iterator it;
 //          for (it = _nodes.begin(); it != _nodes.end(); it++ ) (*it)->Print(out);    
@@ -68,6 +72,7 @@ public:
                (*it)->ucCnNe() << " " << (*it)->ucCnNh() << endl;    
     }
 
+    /// Print link information    
     void PrintLinks(std::ostream& out){
         typename std::vector<TLink*>::iterator it;
 //          for (it = _nodes.begin(); it != _nodes.end(); it++ ) (*it)->Print(out);    

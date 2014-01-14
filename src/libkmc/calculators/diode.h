@@ -24,7 +24,6 @@
 #include <votca/kmc/graphdevice.h>
 #include <votca/kmc/node.h>
 #include <votca/kmc/state.h>
-#include <votca/kmc/mesh.h>
 #include <votca/kmc/eventinfo.h>
 #include <votca/kmc/event.h>
 #include <votca/kmc/events.h>
@@ -151,7 +150,7 @@ void Diode::RunKMC() {
             events->Recompute_all_events(state, longrange, non_injection_rates, injection_rates, eventdata);
         }
         
-        vssmgroup->Recompute_in_device(events, non_injection_rates, injection_rates);
+        vssmgroup->Recompute(events, non_injection_rates, injection_rates);
         sim_time += vssmgroup->Timestep(RandomVariable);
         Event* chosenevent = vssmgroup->Choose_event(events, non_injection_rates, injection_rates, RandomVariable);
 

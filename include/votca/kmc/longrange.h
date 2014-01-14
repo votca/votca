@@ -35,12 +35,19 @@ public:
     Longrange(GraphDevice* graph, Eventinfo* eventinfo) : Profile(graph, eventinfo){
     };    
 
+    /// Initialize longrange profile after state is read in
     void Init_Load_State(StateDevice* state, Eventinfo* eventinfo);    
     
+    /// Add charge to longrange object
     void Add_charge(double charge, int layer) {_layercharge[layer] += charge;}
 
-    void Update_cache(Eventinfo* eventinfo); // Update cached longrange contributions
-    double Get_cached_longrange(int layer); // Return cached value
+    /// Update longrange coulomb potential cache
+    void Update_cache(Eventinfo* eventinfo);
+    
+    /// Get longrange coulomb potential cache
+    double Get_cached_longrange(int layer);
+    
+    /// Reser longrange coulomb potential cache
     void Reset();
     
     /// Initialize the longrange class: -determine which layers are contributing to which layers -precalculate all cut-out disc contributions

@@ -19,7 +19,6 @@
 #define	_VOTCA_KMC_NODE_H
 
 #include <votca/tools/vec.h>
-#include <votca/kmc/linksql.h>
 
 namespace votca { namespace kmc {
 class Node
@@ -57,11 +56,14 @@ public:
         for (it = _links.begin(); it != _links.end(); it++ ) (*it)->Print( out );
     }
     
-    /// Add and remove carrier to node (-1 being empty)
+    /// Set and remove carrier occupation (carrier index) of node (-1 being empty)
     void AddCarrier(int carrier_ID) {_occupation = carrier_ID;}
     void RemoveCarrier() {_occupation = -1;}
     
+    /// Set node type
     void SetType(int type) { _type = type;}
+    
+    /// Set node position
     void SetPosition(votca::tools::vec position) { _position = position;}
 
 protected:
