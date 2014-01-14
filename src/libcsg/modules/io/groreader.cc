@@ -106,6 +106,8 @@ bool GROReader::NextFrame(Topology &top)
         Bead *b;
         if(_topology){
 	  int resnr = boost::lexical_cast<int>(resNum);
+	  if (resnr < 1)
+	    throw std::runtime_error("Misformated gro file, resnr has to be > 1");
           if(resnr >= top.ResidueCount()) {
               if (top.ResidueCount()==0) //gro resnr start with 1 but VOTCA starts with 0
                 top.CreateResidue("ZERO"); // create 0 res, to allow to keep gro numbering
