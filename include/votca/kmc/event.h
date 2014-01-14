@@ -62,7 +62,7 @@ public:
     /// Set rate to value
     void Set_rate(double rate) {_rate = rate;}
     /// Set out of box
-    void Set_not_in_box_event() {_final_type = (int) Notinbox; _rate = 0.0;}
+    void Set_not_in_box_event() {_final_type = Notinbox; _rate = 0.0;}
     /// Set injection potential
     void Set_injection_potential(double injection_potential) {_injection_potential = injection_potential;}
     /// Add injection potential

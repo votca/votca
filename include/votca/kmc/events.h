@@ -96,7 +96,8 @@ void Events::Recompute_all_events(StateDevice* state, Longrange* longrange, Bsum
 
 void Events::On_execute(Event* event, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo) {
     
-    std::cout << "event types " << " " << event->id() << " " << event->init_type() << " " << event->final_type() << endl;
+    std::cout << "event types " << " " << event->id() << " " << event->init_type() << " " << event->final_type() << " " << event->rate() << endl;
+    std::cout << "rate " << non_injection_rates->getrate(event->id()) << endl;
 
     Node* node1 = event->link()->node1();
     Node* node2 = event->link()->node2();
@@ -360,6 +361,7 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierDevice*
                                 if(carrier2_node->links()[it]->node2()->id() == node->id()) {
                                     carrier2->Add_to_Coulomb(interact_sign*Compute_Coulomb_potential(carrier1_pos.x(),jumpdistance,false,eventinfo->simboxsize, eventinfo), it);
                                     _non_injection_events[event_ID]->Set_event(carrier2_node->links()[it], carrier2_type, state, longrange, eventinfo); // if carrier2 is actually linking with carrier1
+//                                    std::cout << "set event " << event_ID << " " << _non_injection_events[event_ID]->id() << endl;
                                 }
                                 else {
                                     carrier2->Add_to_Coulomb(interact_sign*Compute_Coulomb_potential(carrier1_pos.x(),jumpdistance,true,eventinfo->simboxsize, eventinfo), it);
@@ -390,6 +392,8 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierDevice*
         if(action == (int) Add) {
             _non_injection_events[event_ID]->Set_event(node->links()[it], carrier1->type(), state, longrange, eventinfo);
             non_injection_rates->setrate(event_ID, _non_injection_events[event_ID]->rate());
+//            std::cout << "set event own carrier " << event_ID << " " << _non_injection_events[event_ID]->id() << endl;
+
         }
         else {
             _non_injection_events[event_ID]->Set_not_in_box_event();
@@ -493,9 +497,9 @@ void Events:: Effect_injection_rates(int action, CarrierDevice* carrier, Node* n
                             inject_event->Add_injection_potential(interact_sign*Compute_Coulomb_potential(carrier1_pos.x(),distance,false,eventinfo->simboxsize,eventinfo));                    
                             _injection_events[eventID]->Set_event(inject_event->link(), inject_event->carrier_type(),state, longrange, eventinfo);
                             injection_rates->setrate(eventID, _injection_events[eventID]->rate());
-                            std::cout << "event setting" << inject_event->carrier_type() << endl;
-                            std::cout << "setting " << inject_event->link()->node2()->id() << endl;
-                            std::cout << "types " << inject_event->init_type() << " " << inject_event->final_type() << endl;
+ //                           std::cout << "event setting" << inject_event->carrier_type() << endl;
+//                            std::cout << "setting " << inject_event->link()->node2()->id() << endl;
+//                            std::cout << "types " << inject_event->init_type() << " " << inject_event->final_type() << endl;
                         }
                     }
                 }
@@ -639,38 +643,48 @@ void Events::Initialize_injection_eventvector(int Event_id_count, Node* electrod
 
 void Events::Grow_non_injection_eventvector(StateDevice* state, Longrange* longrange, Eventinfo* eventinfo){
 
-    std::cout << "grow" << endl;
+//    std::cout << "grow" << endl;
     int old_nr_carriers = div(_non_injection_events.size(),eventinfo->maxpairdegree).quot; //what was the number of carriers that we started with?
-
+    
     for(int carrier_ID = old_nr_carriers; carrier_ID<old_nr_carriers+eventinfo->growsize; carrier_ID++) {
-        std::cout << "grow" << endl;
+//        std::cout << "grow" << endl;
         CarrierDevice* probecarrier = state->GetCarrier(carrier_ID);
         int Event_map = carrier_ID*eventinfo->maxpairdegree;
-               std::cout << "grow" << " " << Event_map << endl;
+        Event *newEvent;
+//               std::cout << "grow" << " " << Event_map << endl;
 
         if(probecarrier->inbox()) { 
             int fillcount = 0;
             for(int it = 0; it < probecarrier->node()->links().size();it++){ 
                 Link* probelink = probecarrier->node()->links()[it];
-                Event_map += probelink->id(); 
-                Event *newEvent = new Event(Event_map, probelink, probecarrier->type(), state, longrange, eventinfo); 
-                _non_injection_events.push_back(newEvent); fillcount++;
+                newEvent = new Event(Event_map, probelink, probecarrier->type(), state, longrange, eventinfo); 
+                _non_injection_events.push_back(newEvent); 
+                Event_map ++; 
+                fillcount++;
 //                std::cout << "initialize  inbox" << endl;
+//                std::cout << "grow event vector in " << Event_map << " " << newEvent->id() << endl;
+
             }
             for(int ifill = fillcount; ifill<eventinfo->maxpairdegree; ifill++) { 
-                Event_map += ifill; 
-                Event *newEvent = new Event(Event_map, (int) Notingraph); 
+                newEvent = new Event(Event_map, (int) Notingraph); 
                 _non_injection_events.push_back(newEvent); // non-existent event
+                Event_map ++; 
+
+                //               std::cout << "grow event vector outgraph " << Event_map << " " << newEvent->id() << endl;
+
             }
         }
         else {
-            for(int ifill = 0; ifill<eventinfo->maxpairdegree; ifill++) { 
-                Event_map += ifill; 
-                Event *newEvent = new Event(Event_map, (int) Notinbox); 
-                               std::cout << "grow" << " " << ifill << " " << _non_injection_events.size() << " " << endl;
-                               std::cout << _non_injection_events.max_size() << endl;
+//            for(int ifill = 0; ifill<eventinfo->maxpairdegree; ifill++) { 
+          for(int ifill = 0; ifill<eventinfo->maxpairdegree; ifill++) {
+                newEvent = new Event(Event_map, (int) Notinbox); 
+//                               std::cout << "grow" << " " << ifill << " " << _non_injection_events.size() << " " << endl;
+//                               std::cout << _non_injection_events.max_size() << endl;
 
                 _non_injection_events.push_back(newEvent); 
+            Event_map ++; 
+
+                //               std::cout << "grow event vector outbox " << Event_map << " " << newEvent->id() << endl;
 
                 //                std::cout << "initialize not inbox" << endl;
             } // carrier not in box
@@ -681,16 +695,17 @@ void Events::Grow_non_injection_eventvector(StateDevice* state, Longrange* longr
 void Events::Init_non_injection_meshes(StateDevice* state, Eventinfo* eventinfo) {
 
     // determine the dimensions of the meshes
-    
+//      std::cout << "here mesh" << endl;
+  
     votca::tools::vec simboxsize = eventinfo->simboxsize;
     _meshsize_x = simboxsize.x()/eventinfo->mesh_x; 
     _meshsize_y = simboxsize.y()/eventinfo->mesh_y; 
     _meshsize_z = simboxsize.z()/eventinfo->mesh_z;
-    
-    _non_injection_events_mesh = Resize_mesh(eventinfo->mesh_x,eventinfo->mesh_y,eventinfo->mesh_z);
-    _left_injection_events_mesh = Resize_mesh(_inject_meshnr_x,eventinfo->mesh_y,eventinfo->mesh_z);
-    _right_injection_events_mesh = Resize_mesh(_inject_meshnr_x,eventinfo->mesh_y,eventinfo->mesh_z);
+ //    std::cout << "here mesh" << eventinfo->mesh_x << " " << eventinfo->mesh_y << " " << eventinfo->mesh_z <<  endl;
    
+    _non_injection_events_mesh = Resize_mesh(eventinfo->mesh_x,eventinfo->mesh_y,eventinfo->mesh_z);
+//        std::cout << "here mesh1" << endl;
+
     // initialize meshes
     for (int icar = 0; icar < state->GetCarrierSize(); icar++ ) {
         if(state->GetCarrier(icar)->inbox()){

@@ -111,20 +111,24 @@ double Bsumtree::compute_sum() { // Returns total sum of all elements
 // Search returns index to element i: sum(0..i) <= searchkey < sum(0..i+1),
 // where the sum is taken over the succesive elements.
 long Bsumtree::search(double searchkey) { // Returns index to element
-    std::cout << "searchkey is " << searchkey << endl;
+    //std::cout << "searchkey is " << searchkey << endl;
   int maxindex = treesize + nrelements;
   int i = 0; // value must be located in subtree denoted by index i
   while (2*i+2<maxindex) {
-    if (searchkey <= partsum(2*i+1)) { // value is located in left subtree
+  //    std::cout << "partsum: " << partsum(2*i+1) << " " << partsum(2*i+2) << " " << searchkey << " " << treesize << " " << nrelements << endl;
+
+      if (searchkey <= partsum(2*i+1)) { // value is located in left subtree
       i = 2*i+1;
     }
     else { // value is located in right subtree
       searchkey -= partsum(2*i+1); // values are relative
       i = 2*i+2;
     }
+  //  std::cout << "i: " << i << endl;
   }    
 
   i -= treesize;
+ // std::cout << "returned i:" << i << " " << element_array[i] << endl;
   return i;
 }
 
@@ -133,7 +137,8 @@ void Bsumtree::resize(int newsize) { // Resize arrays. Expensive, so use with ca
    *  When newsize >= oldsize: all elements are copied, new elements are 0.
    *  When newsize < oldsize: excess elements are thrown away.
    */
-  vector<double> temp_element_array(double(0),newsize); // Temporary storage
+  vector<double> temp_element_array; // Temporary storage
+  temp_element_array.clear();
 
   for (int i=0;i<nrelements && i<newsize;i++) {
     temp_element_array.push_back(element_array[i]);

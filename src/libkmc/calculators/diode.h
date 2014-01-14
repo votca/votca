@@ -94,7 +94,7 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     state = new StateDevice();
     state->InitStateDevice();
     state->Grow(eventdata->growsize, eventdata->maxpairdegree); //initial growth
-
+    std::cout <<"here" << endl;
 /*    state->Grow(10, graph->maxpairdegree());
     int carrier_ID = state->Buy();
     Carrier* newcarrier = state->GetCarrier(carrier_ID);
@@ -107,8 +107,14 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     non_injection_rates = new Bsumtree();
     injection_rates = new Bsumtree();
     events = new Events();
+    std::cout <<"here" << endl;
+
     events->Init_non_injection_meshes(state, eventdata);
+    std::cout <<"here" << endl;
+
     events->Initialize_eventvector(graph,state,longrange,non_injection_rates,injection_rates,eventdata);
+    std::cout <<"here" << endl;
+
     events->Init_injection_meshes(state, eventdata);
 
     vssmgroup = new Vssmgroup();
