@@ -81,41 +81,37 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     graph = new GraphDevice();
     graph->Initialize(filename);
     graph->Setup_device_graph(eventdata->left_electrode_distance, eventdata->right_electrode_distance, eventdata);
+    eventdata->Graph_Parameters(graph->hopdist(), graph->simboxsize(), graph->maxpairdegree());
+
+    std::cout << "graph initialized" << endl;
     std::cout << "max pair degree: " << graph->maxpairdegree() << endl;
     std::cout << "hopping distance: " << graph->hopdist() << endl;
     std::cout << "simulation box size: " << graph->simboxsize() << endl;
     std::cout << "number of left electrode injector nodes " << graph->left()->links().size() << endl;
-    std::cout << "number of right electrode injector nodes " << graph->right()->links().size() << endl;
-    eventdata->Graph_Parameters(graph->hopdist(), graph->simboxsize(), graph->maxpairdegree());
-
+    std::cout << "number of right electrode injector nodes " << graph->right()->links().size() << endl;    
+    
     longrange = new Longrange(graph,eventdata);
     longrange->Initialize(eventdata);
+    
+    std::cout << "longrange profile initialized" << endl;
 
     state = new StateDevice();
     state->InitStateDevice();
     state->Grow(eventdata->growsize, eventdata->maxpairdegree); //initial growth
-    std::cout <<"here" << endl;
-/*    state->Grow(10, graph->maxpairdegree());
-    int carrier_ID = state->Buy();
-    Carrier* newcarrier = state->GetCarrier(carrier_ID);
-    Node* carrier_node = graph->GetNode(20);
-    newcarrier->SetCarrierNode(carrier_node);
-    newcarrier->SetCarrierType(2);
-    carrier_node->AddCarrier(carrier_ID);
-    longrange->Init_Load_State(state, eventdata);*/
+    
+    std::cout << "state initialized" << endl;
     
     non_injection_rates = new Bsumtree();
     injection_rates = new Bsumtree();
+    
+    std::cout << "binary tree structures initialized" << endl;
+
     events = new Events();
-    std::cout <<"here" << endl;
-
     events->Init_non_injection_meshes(state, eventdata);
-    std::cout <<"here" << endl;
-
     events->Initialize_eventvector(graph,state,longrange,non_injection_rates,injection_rates,eventdata);
-    std::cout <<"here" << endl;
-
     events->Init_injection_meshes(state, eventdata);
+    
+    std::cout << "event vectors and meshes initialized" << endl;
 
     vssmgroup = new Vssmgroup();
 
@@ -159,6 +155,9 @@ void Diode::RunKMC() {
         sim_time += vssmgroup->Timestep(RandomVariable);
         Event* chosenevent = vssmgroup->Choose_event(events, non_injection_rates, injection_rates, RandomVariable);
 
+        std::cout << it << endl;
+        
+        
         events->On_execute(chosenevent, graph, state, longrange, non_injection_rates, injection_rates, eventdata);
 
         // take care of output here

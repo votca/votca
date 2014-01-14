@@ -29,22 +29,24 @@ class Bsumtree {
     
 public:
  
-  void initialize(int nrelements);
-  void setrate(int i, double value);
-  double getrate(int i);
-  double compute_sum();
-  long search(double searchkey);
-  void resize(int newsize);
-  long getnrrates();
+    void initialize(int nrelements);
+    void setrate(int i, double value);
+    double getrate(int i);
+    double compute_sum();
+    long search(double searchkey);
+    void resize(int newsize);
+    long getnrrates();
   
 private:
-  bool dirty(int i);
-  double partsum(int i);
-  vector<bool> dirty_array; // Are the subtrees dirty?
-  vector<double> element_array; // The elements (summands)
-  vector<double> partsum_array; // Array of partial sums
-  int treesize;
-  int nrelements;
+    
+    bool dirty(int i);
+    double partsum(int i);
+    vector<bool> dirty_array; // Are the subtrees dirty?
+    vector<double> element_array; // The elements (summands)
+    vector<double> partsum_array; // Array of partial sums
+    int treesize;
+    int nrelements;
+    
 };
 
 void Bsumtree::initialize(int nr_elements) { // Must be called before use
@@ -52,7 +54,6 @@ void Bsumtree::initialize(int nr_elements) { // Must be called before use
     // treesize is the smallest power of two above nrelements minus 1
     nrelements = nr_elements;
     treesize = pow(2,ceil(log((double) nrelements)/log((double) 2)))-1; // number of nodes
-    std::cout << "nrelements " << nrelements << " treesize " << treesize << endl;
   
     // clear the arrays
     dirty_array.clear();
@@ -82,101 +83,96 @@ void Bsumtree::setrate(int i, double value) { // 0 <= i < nrelements
 }
 
 double Bsumtree::getrate(int i) {
-      return element_array[i];
+    return element_array[i];
 }
   
 double Bsumtree::compute_sum() { // Returns total sum of all elements
-  // recursively recompute all dirty nodes
-  int i = 0; // Start at root node
-  while (dirty(i)) {
-    if (dirty(2*i + 1)) { // Is left subtree dirty ?
-      i = 2*i + 1;
-    }
-    else {
-      if (dirty(2*i + 2)) { // Is right subtree dirty?
-        i = 2*i + 2;
-      }
-      else { // Both subtrees are clean, update this node
-        partsum_array[i] = partsum(2*i+1) + partsum(2*i+2);
-        dirty_array[i] = false;
-        if (i != 0) { // Make sure we stop at the root node
-          i = div(i-1, 2).quot; // Parent node
+    // recursively recompute all dirty nodes
+    int i = 0; // Start at root node
+    while (dirty(i)) {
+        if (dirty(2*i + 1)) { // Is left subtree dirty ?
+            i = 2*i + 1;
         }
-      }
+        else {
+            if (dirty(2*i + 2)) { // Is right subtree dirty?
+                i = 2*i + 2;
+            }
+            else { // Both subtrees are clean, update this node
+                partsum_array[i] = partsum(2*i+1) + partsum(2*i+2);
+                dirty_array[i] = false;
+                if (i != 0) { // Make sure we stop at the root node
+                    i = div(i-1, 2).quot; // Parent node
+                }
+            }
+        }
     }
-  }
-  return partsum_array[0];
+    return partsum_array[0];
 }
 
 // Search returns index to element i: sum(0..i) <= searchkey < sum(0..i+1),
 // where the sum is taken over the succesive elements.
 long Bsumtree::search(double searchkey) { // Returns index to element
-    //std::cout << "searchkey is " << searchkey << endl;
-  int maxindex = treesize + nrelements;
-  int i = 0; // value must be located in subtree denoted by index i
-  while (2*i+2<maxindex) {
-  //    std::cout << "partsum: " << partsum(2*i+1) << " " << partsum(2*i+2) << " " << searchkey << " " << treesize << " " << nrelements << endl;
+    int maxindex = treesize + nrelements;
+    int i = 0; // value must be located in subtree denoted by index i
+    while (2*i+2<maxindex) {
+        if (searchkey <= partsum(2*i+1)) { // value is located in left subtree
+            i = 2*i+1;
+        }
+        else { // value is located in right subtree
+            searchkey -= partsum(2*i+1); // values are relative
+            i = 2*i+2;
+        }
+    }    
 
-      if (searchkey <= partsum(2*i+1)) { // value is located in left subtree
-      i = 2*i+1;
-    }
-    else { // value is located in right subtree
-      searchkey -= partsum(2*i+1); // values are relative
-      i = 2*i+2;
-    }
-  //  std::cout << "i: " << i << endl;
-  }    
-
-  i -= treesize;
- // std::cout << "returned i:" << i << " " << element_array[i] << endl;
-  return i;
+    i -= treesize;
+    return i;
 }
 
 void Bsumtree::resize(int newsize) { // Resize arrays. Expensive, so use with care!
-  /*
-   *  When newsize >= oldsize: all elements are copied, new elements are 0.
-   *  When newsize < oldsize: excess elements are thrown away.
-   */
-  vector<double> temp_element_array; // Temporary storage
-  temp_element_array.clear();
+    /*
+     *  When newsize >= oldsize: all elements are copied, new elements are 0.
+     *  When newsize < oldsize: excess elements are thrown away.
+     */
+    vector<double> temp_element_array; // Temporary storage
+    temp_element_array.clear();
 
-  for (int i=0;i<nrelements && i<newsize;i++) {
-    temp_element_array.push_back(element_array[i]);
-  }
+    for (int i=0;i<nrelements && i<newsize;i++) {
+        temp_element_array.push_back(element_array[i]);
+    }
   
-  int oldsize = nrelements;
-  initialize(newsize);
+    int oldsize = nrelements;
+    initialize(newsize);
   
-  for (int i=0;i<oldsize;i++) {
-    setrate(i, temp_element_array[i]);
-  }
+    for (int i=0;i<oldsize;i++) {
+        setrate(i, temp_element_array[i]);
+    }
 }
 
 long Bsumtree::getnrrates() {
-  return nrelements;
+    return nrelements;
 }
 
 bool Bsumtree::dirty(int i) {
-  if (i<treesize) {
-    return dirty_array[i];
-  }
-  else {
-    return false; // Nodes outside the partial rate sum tree are always clean
-  }
+    if (i<treesize) {
+        return dirty_array[i];
+    }
+    else {
+        return false; // Nodes outside the partial rate sum tree are always clean
+    }
 }
 
 double Bsumtree::partsum(int i) {
-  if (i < treesize) {
-    return partsum_array[i];
-  }
-  else {
-    if (i<treesize + nrelements) {
-        return element_array[i-treesize];
+    if (i < treesize) {
+        return partsum_array[i];
     }
     else {
-      return 0.0; // Non-existing nodes have partial rate sum equal to 0
+        if (i<treesize + nrelements) {
+            return element_array[i-treesize];
+        }
+        else {
+            return 0.0; // Non-existing nodes have partial rate sum equal to 0
+        }
     }
-  }
 }
   
 }}

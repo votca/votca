@@ -75,24 +75,14 @@ Event* Vssmgroup::Choose_event(Events* events, Bsumtree* non_injection_rates, Bs
     long event_ID;
     Event* chosenevent;
     
-//    std::cout << "random " << randn << " " <<  non_inject_probsum << " " << inject_probsum << " " << tot_probsum << endl;
-    
     if(randn<inject_probsum) { // injection event
         event_ID = injection_rates->search(randn);
         chosenevent = events->get_injection_event(event_ID);
-
-       std::cout << "injectie " << event_ID << " " << injection_rates->getrate(event_ID) << " " << endl;
-       std::cout << chosenevent->id() << endl;
     }
     else {
-
         randn -= inject_probsum;
         event_ID = non_injection_rates->search(randn);
         chosenevent = events->get_non_injection_event(event_ID);       
-
-        std::cout << " niet injectie" << event_ID << " " << non_injection_rates->getrate(event_ID) << endl;
-        std::cout << chosenevent->id() << endl;
-
     }
 
     return chosenevent;
