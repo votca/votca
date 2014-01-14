@@ -36,7 +36,6 @@ public:
     void setTopologies();
     void compatibilityQM2MD();
     void topMdQm2xml();
-//    void deb(string);
     
     void error1(string line){ cout << endl; throw runtime_error(line); };
  
@@ -57,8 +56,6 @@ private:
     
     bool        _can_convert_md2qm;
     bool        _QM2MDcompatible;
-    
-    bool        _deb;
     
     Topology    _MDtop;
     Topology    _QMtop;
@@ -97,8 +94,6 @@ void PDB2Map::Initialize(Property* options)
     _has_md  = false;
     
     _can_convert_md2qm = false;
-    
-    _deb = false;
     
     // read options    
     string key = "options.pdb2map.";
@@ -144,10 +139,7 @@ void PDB2Map::Initialize(Property* options)
                 cout << endl << "... ... *** No XML output specified.";
                 cout << endl << "... ... Default XML is: \t" << _output_xml;
         }
-//    if ( options->exists(key+"dbg") ){
-//        _deb = true;
-//        cout << endl << "... ... >>>!<<< DEBUG MODE >>>!<<<";
-//    }
+    cout << endl << "HERE" << endl;
 }
 
 bool PDB2Map::Evaluate() {
@@ -163,52 +155,36 @@ bool PDB2Map::Evaluate() {
     
 //    LOG( logINFO, _log ) << "Reading from: " << _input_file << flush;    
 //    cout << _log;
-//                                                deb("Evaluate DONE");
 }
 
 void PDB2Map::setTopologies(){
-//                                                deb("setTopologies start");
     if (_has_pdb){
         readPDB();
         _has_md = true;
-//                                                deb("topMdQm2xml, _has_pdb");
     }
     else if (_has_gro){
         readGRO();
         _has_md = true;
-//                                                deb("topMdQm2xml, _has_gro");
     }
     else{
-//                                                deb("topMdQm2xml, error1");
         error1("No good MD topology. I stop.");
     }
     
     if (_has_xyz){
         readXYZ();
         _has_qm = true;
-//                                                deb("topMdQm2xml, _has_xyz");
     }
     else if (_can_convert_md2qm){
         _QMtop = _MDtop;
         _has_qm = true;
-//                                        deb("topMdQm2xml, _can_convert_md2qm");
     }
     else{
-//                                                deb("topMdQm2xml, error1");
         error1("No good QM topology. I stop.");
     }
-//                                                deb("setTopologies end");
 }
 
-//void PDB2Map::deb(string line)
-//{
-//    if (_deb){
-//        cout << endl << "... ... ... DEBUG here --->>> " << line;
-//    }
-//}
 
 void PDB2Map::compatibilityQM2MD(){
-//                deb("compatibilityQM2MD, start");
                 
     int numMDatoms = _MDtop.getMolecule(1)->NumberOfAtoms();
     int numQMatoms = _QMtop.getMolecule(1)->NumberOfAtoms();
@@ -216,7 +192,6 @@ void PDB2Map::compatibilityQM2MD(){
     _QM2MDcompatible = (numMDatoms == numQMatoms) ? true : false;
     
     if (_QM2MDcompatible){
-//                deb("compatibilityQM2MD, _QM2MDcompatible, if start");
         Molecule * MDmolecule = _MDtop.getMolecule(1);
         Molecule * QMmolecule = _QMtop.getMolecule(1);
         
@@ -272,22 +247,19 @@ void PDB2Map::compatibilityQM2MD(){
             }
             
         }
-//                deb("compatibilityQM2MD, _QM2MDcompatible, if end");
     }
     else{
-//                deb("compatibilityQM2MD, _QM2MDcompatible, else error1");
         error1("\n... ... Number of MD atoms is different from QM."
                "\n... ... If it's the case of reduced molecule, "
                         " I need a map."
                "\n ... ... Tags: map"
                "\n ... ... NOT IMPLEMENTED");
     }
-//                                              deb("compatibilityQM2MD, end");
 }
 
 void PDB2Map::readPDB(){
-//                                              deb("readPDB start");
-    cout << endl << "... ... Assuming: PDB for MD. Read.";
+   cout << endl << "... ... Assuming: PDB for MD. Read1.";
+   cout << endl << "... ... DUCK~!" << endl;
     
     // make molecule and segment in molecule
     Molecule * newMolecule = _MDtop.AddMolecule("newMolecule");
@@ -408,12 +380,10 @@ void PDB2Map::readPDB(){
             newAtom->setFragment(newFragment);
         }
     }
-//                                                      deb("readPDB end");
     return;
 }
 
 void PDB2Map::readGRO(){
-//                                                        deb("readGRO start");
     cout << endl << "... ... Assuming: GRO for MD. Read.";
 
     // make molecule and segment in molecule
@@ -440,7 +410,7 @@ void PDB2Map::readGRO(){
     int _atom_id = 0;
     int _newResNum = 0;
     
-    // ignore first 2 lines - as in GRO format
+    // ignore first 2 lines - GRO format
     std::getline(_file, _line,'\n');
     std::getline(_file, _line,'\n');
     
@@ -450,7 +420,8 @@ void PDB2Map::readGRO(){
     
     while ( std::getline(_file, _line,'\n') ){
         if (counter < atom_num){
-            
+         cout << endl << "Done";
+       
             string _resNum     (_line, 0,5); // int,  Residue number
             string _resName    (_line, 5,5); // str,  Residue name
             string _atName     (_line,10,5); // str,  Atom name
@@ -509,23 +480,27 @@ void PDB2Map::readGRO(){
         }
         counter++;
     }
-//                                                      deb("readGRO end");
     
     return;
 }
 
 void PDB2Map::readXYZ(){
-//                                                      deb("readXYZ start");
     cout << endl << "... ... Assuming: XYZ for QM. Read.";
+    
+    cout << endl << "Done";
     
     // make molecule and segment
     Molecule * newMolecule = _QMtop.AddMolecule("newMolecule");
     newMolecule->setTopology(&_QMtop);
     
+    cout << endl << "Done";
+    
     Segment  * newSegment  = _QMtop.AddSegment ("newSegment");
     newSegment->setTopology(&_QMtop);
     newSegment->setMolecule(newMolecule);
     newMolecule->AddSegment(newSegment);
+    
+    cout << endl << "Done";
     
 //    Fragment * newFragment = _QMtop.AddFragment("newFragment");
 //    newFragment->setTopology(&_QMtop);
@@ -544,7 +519,7 @@ void PDB2Map::readXYZ(){
        
     string _line;
     
-    // ignoring first 2 lines - as in XYZ format
+    // ignore first 2 lines - XYZ format
     std::getline(_file, _line,'\n');
     std::getline(_file, _line,'\n');
     
@@ -579,15 +554,12 @@ void PDB2Map::readXYZ(){
 //        newFragment->AddAtom(newAtom);
 //        newAtom->setFragment(newFragment);
     }
-//                                                      deb("readXYZ end");
     
     return;
 }
 
 void PDB2Map::topMdQm2xml(){
-//                                                      deb("topMdQm2xml start");
     cout << endl << "... ... (A)merging XML from MD and QM topologies.";
-//                                                        deb("topMdQm2xml  -2");
     if ( !_has_qm ) 
     {
         error1("... ... Error from topMdQm2xml(). QM top is missing.");    
@@ -596,10 +568,8 @@ void PDB2Map::topMdQm2xml(){
     {
         error1("... ... Error from topMdQm2xml(). MD top is missing.");   
     }
-//                                                        deb("topMdQm2xml  -1");
     Molecule * MDmolecule = _MDtop.getMolecule(1);
     Molecule * QMmolecule = _QMtop.getMolecule(1);
-//                                                        deb("topMdQm2xml  1 ");
     // xml stuff
     
     Property record;
@@ -622,14 +592,12 @@ void PDB2Map::topMdQm2xml(){
     psegment_p->add("multipoles_h","your_file_with.mps");
     psegment_p->add("map2md","1");
     Property *pfragments_p = &psegment_p->add("fragments","");
-//                                                        deb("topMdQm2xml  2 ");
                                         
     vector < Segment * > allMdSegments = MDmolecule->Segments();
     vector < Segment * > allQmSegments = QMmolecule->Segments();
   
     vector < Segment * >::iterator segMdIt;
     vector < Segment * >::iterator segQmIt;
-//                                                        deb("topMdQm2xml  3 ");
                                         
     for ( segMdIt = allMdSegments.begin(), 
                 segQmIt = allQmSegments.begin();
@@ -643,11 +611,9 @@ void PDB2Map::topMdQm2xml(){
         
         vector < Fragment * > allMdFragments = (*segMdIt)->Fragments();
         vector < Fragment * > allQmFragments = (*segQmIt)->Fragments();
-//                                                        deb("topMdQm2xml  4 ");
                                         
         vector < Fragment * >::iterator fragMdIt;
         vector < Fragment * >::iterator fragQmIt;
-//                                                        deb("topMdQm2xml  5 ");
                                         
         for ( fragMdIt = allMdFragments.begin() , 
                 fragQmIt = allQmFragments.begin();
@@ -664,7 +630,6 @@ void PDB2Map::topMdQm2xml(){
             stringstream mapMpoles;
             stringstream mapWeight;
             stringstream mapFrame;
-//                                                        deb("topMdQm2xml  6 ");
 
             mapName      = (*fragMdIt)->getName() ;
             
@@ -674,7 +639,6 @@ void PDB2Map::topMdQm2xml(){
 
             vector < Atom * >::iterator atomMdIt;
             vector < Atom * >::iterator atomQmIt;
-//                                                        deb("topMdQm2xml  7 ");
             for ( atomMdIt = allMdAtoms.begin(),
                     atomQmIt = allQmAtoms.begin();
                     
@@ -684,7 +648,6 @@ void PDB2Map::topMdQm2xml(){
                   
                   atomMdIt++, atomQmIt++ )
             {
-//                                                        deb("topMdQm2xml  8 ");
                 if (atomMdIt < allMdAtoms.end())
                 {
                         mapMdAtoms << boost::format("%=13s") % 
@@ -744,7 +707,6 @@ void PDB2Map::topMdQm2xml(){
             pfragment_p->add("mpoles",  mapMpoles.str());
             pfragment_p->add("weights", mapWeight.str());
             pfragment_p->add("localframe", mapFrame.str());
-//                                                        deb("topMdQm2xml  9 ");
 
          }
     }
@@ -757,7 +719,6 @@ void PDB2Map::topMdQm2xml(){
     outfile << XML << record;
     outfile.close();
     
-//                                                         deb("topMdQm2xml end");
     
     return;
 }
