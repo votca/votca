@@ -28,6 +28,7 @@
 #include <votca/kmc/event.h>
 #include <votca/kmc/events.h>
 #include <votca/kmc/profile.h>
+#include <votca/kmc/numoutput.h>
 
 using namespace std;
 
@@ -48,6 +49,7 @@ public:
     Longrange* longrange;
     Bsumtree* non_injection_rates;
     Bsumtree* injection_rates;
+    Numoutput* numoutput;
     
     Diode() {};
    ~Diode() {};
@@ -113,6 +115,9 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     std::cout << "event vectors and meshes initialized" << endl;
 
     vssmgroup = new Vssmgroup();
+    
+    numoutput = new Numoutput();
+    numoutput->Initialize();
 
 }
 
@@ -130,7 +135,8 @@ bool Diode::EvaluateFrame() {
     delete longrange;
     delete vssmgroup;
     delete non_injection_rates;
-    delete injection_rates;    
+    delete injection_rates;
+    delete numoutput;    
     exit(0);
 }
 
@@ -151,14 +157,19 @@ void Diode::RunKMC() {
         }
         
         vssmgroup->Recompute(events, non_injection_rates, injection_rates);
-        sim_time += vssmgroup->Timestep(RandomVariable);
+        double timestep = vssmgroup->Timestep(RandomVariable);
+        sim_time += timestep;
         Event* chosenevent = vssmgroup->Choose_event(events, non_injection_rates, injection_rates, RandomVariable);
 
-        std::cout << it << endl;
-        
+        numoutput->Update(chosenevent, sim_time, timestep);        
         
         events->On_execute(chosenevent, graph, state, longrange, non_injection_rates, injection_rates, eventdata);
 
+        
+        std::cout << "it " << it << " ts " << timestep << " st " << sim_time;
+        numoutput->Write();
+      
+        
         // take care of output here
 
     }

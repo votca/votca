@@ -34,7 +34,6 @@ class Events {
 
 public: 
     Events() {
-    counter = 0;
     }
      
     ~Events() {
@@ -104,10 +103,6 @@ private:
     vector< vector< vector <list<int> > > > _left_injection_events_mesh;
     vector< vector< vector <list<int> > > > _right_injection_events_mesh;
 
-    int _nholes;
-    int _nelectrons;
-    int _ncarriers;
-    int counter;
 };
 
 void Events::Recompute_all_events(StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo) {
@@ -149,13 +144,10 @@ void Events:: Add_carrier(Node* node, int carrier_type, GraphDevice* graph, Stat
 
     if(carrier_type == (int) Electron) {
         new_carrier->SetCarrierType((int) Electron);
-        _nelectrons++;
     }
     else if(carrier_type == (int) Hole) {
         new_carrier->SetCarrierType((int) Hole);
-        _nholes++;
     }
-    _ncarriers++;
 
     //place the new carrier in the graph
     
@@ -175,15 +167,6 @@ void Events:: Remove_carrier(Node* node, GraphDevice* graph, StateDevice* state,
    
     
     CarrierDevice* removed_carrier = state->GetCarrier(node->occ());
-
-    // Remove existing carrier from lattice
-    if (removed_carrier->type() == Hole) {
-        _nholes--;
-    }
-    else if (removed_carrier->type() == Electron) {
-        _nelectrons--;
-    }
-    _ncarriers--;
 
     //remove from graph
     node->RemoveCarrier();    

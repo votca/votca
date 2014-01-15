@@ -252,8 +252,10 @@ void Event::Set_event(Link* link, int carrier_type, StateDevice* state, Longrang
 
     _action_node1 = Determine_action_flag_node1();
     _action_node2 = Determine_action_flag_node2();
-
+    
     Determine_rate(state, longrange, eventinfo);
+
+//    if(_final_type == (int) Collection) {std::cout << "coll " << _rate << endl;}
 }
 
 }} 
