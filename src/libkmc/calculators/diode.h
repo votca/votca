@@ -167,7 +167,7 @@ void Diode::RunKMC() {
 
         
         std::cout << "it " << it << " ts " << timestep << " st " << sim_time;
-        numoutput->Write();
+        numoutput->Write(sim_time);
       
         
         // take care of output here

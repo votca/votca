@@ -30,7 +30,7 @@ public:
     void Initialize();
     void Initialize_equilibrate();
     void Update(Event* event, double simtime, double timestep);
-    void Write();
+    void Write(double simtime);
     
 private:
     
@@ -88,65 +88,82 @@ void Numoutput::Initialize_equilibrate() {
 
 void Numoutput::Update(Event* event, double simtime, double timestep) {
     
-    if(event->init_type() == (int) Injection)   {
+    if(event->init_type() == (int) Injection)   { // Injection events
         _ninjections++;
         if(event->link()->node1()->type() == LeftElectrodeNode) { _nleftinjections++; } else { _nrightinjections++; }
     
-        if(event->final_type() != (int) Recombination) {
+        if(event->final_type() == (int) TransferTo) {
             _ncarriers++;
             if(event->carrier_type() == (int) Electron) { _nelectrons++; } else { _nholes++;}
         }
+        else if(event->final_type() == (int) Recombination) {
+            _nrecombinations++;
+            _ninject_to_recombination++;
+            _ncarriers--; 
+            if(event->carrier_type() == (int) Electron) {
+                // hole gets recombined away
+                _nholes--;
+            }
+            else {
+                // electron gets recombined away
+                _nelectrons--;
+            }
+        }
+        else if(event->final_type() == (int) Collection) {
+            _ncollections++;
+            if(event->link()->node2()->type() == LeftElectrodeNode) { _nleftcollections++;} else { _nrightcollections++;}
+        }
     }
-    
-    if(event->final_type() == (int) Collection) {
-        _ncollections++;
-        if(event->link()->node2()->type() == LeftElectrodeNode) { _nleftcollections++;} else { _nrightcollections++;}
+    else if(event->init_type() == (int) TransferFrom) { // Normal transfer
+        if(event->final_type() == (int) Collection) {
+            _ncollections++;
+            if(event->link()->node2()->type() == LeftElectrodeNode) { _nleftcollections++;} else { _nrightcollections++;}
+
+            _ncarriers--;
+            if(event->carrier_type() == (int) Electron) { _nelectrons--; } else { _nholes--;}    
+        }
+        if(event->final_type() == (int) Recombination) { //injection to recombination (sink of charges here)
+            _nrecombinations++;
+            _nelectrons--;    _ncarriers--;
+            _nholes--;        _ncarriers--;  
+        }
+        else if(event->final_type() == (int) TransferTo) {
+            _nplaintransfer++;
+        }
+    }
         
-        _ncarriers--;
-        if(event->carrier_type() == (int) Electron) { _nelectrons--; } else { _nholes--;}    
-    }
-    
-    if(event->final_type() == (int) Recombination) {
-        _nrecombinations++;
-        _nelectrons--;    _ncarriers--;
-        _nholes--;        _ncarriers--;  
-    }
-    
     _ninjectionrate = _ninjections/simtime;
     _ncollectionrate = _ncollections/simtime;
     _nrecombinationrate = _nrecombinations/simtime;
     
-    if((event->init_type() == (int) TransferFrom)&&(event->final_type() == (int) TransferTo)) _nplaintransfer++;
-    if((event->init_type() == (int) Injection) && (event->final_type() == (int) Recombination))  _ninject_to_recombination++;    
-
     votca::tools::vec travelvec = event->link()->r12();
     double direction;
     if(event->carrier_type() == (int) Electron) { direction = -1.0; } else { direction = 1.0;}
     
-    _vel_x += direction*travelvec.x()/timestep;
-    _vel_y += direction*travelvec.y()/timestep;
-    _vel_z += direction*travelvec.z()/timestep;
+    _vel_x += direction*travelvec.x();
+    _vel_y += direction*travelvec.y();
+    _vel_z += direction*travelvec.z();
     
     if(event->carrier_type() == (int) Electron) {
-        _electron_vel_x += direction*travelvec.x()/timestep;
-        _electron_vel_y += direction*travelvec.y()/timestep;
-        _electron_vel_z += direction*travelvec.z()/timestep;        
+        _electron_vel_x += direction*travelvec.x();
+        _electron_vel_y += direction*travelvec.y();
+        _electron_vel_z += direction*travelvec.z();        
     }
     
     if(event->carrier_type() == (int) Hole) {
-        _hole_vel_x += direction*travelvec.x()/timestep;
-        _hole_vel_y += direction*travelvec.y()/timestep;
-        _hole_vel_z += direction*travelvec.z()/timestep;        
+        _hole_vel_x += direction*travelvec.x();
+        _hole_vel_y += direction*travelvec.y();
+        _hole_vel_z += direction*travelvec.z();        
     }
 }
 
-void Numoutput::Write() {
+void Numoutput::Write(double simtime) {
     std::cout << " el " << _nelectrons << " ho " << _nholes  << " ca " << _ncarriers << 
             " tr " << _nplaintransfer << " rec " << _nrecombinations << " irec " << _ninject_to_recombination <<
             " in " << _ninjections << " co " << _ncollections <<
 //            " lin " << _nleftinjections << " rin " << _nrightinjections << " lco " << _nleftcollections << " rco " << _nrightcollections <<
             " ira " << _ninjectionrate << " cra " << _ncollectionrate << " rra " << _nrecombinationrate << 
-            " vx " << _vel_x << " vy " << _vel_y << " vz " << _vel_z <<
+            " vx " << _vel_x/simtime << " vy " << _vel_y/simtime << " vz " << _vel_z/simtime <<
 //            " evx " << _electron_vel_x << " evy " << _electron_vel_y << " evz " << _electron_vel_z <<
 //            " hvx " << _hole_vel_x << " hvy " << _hole_vel_y << " hvz " << _hole_vel_z << 
             endl;
