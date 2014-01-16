@@ -102,6 +102,7 @@ void PDB2Map::Initialize(Property* options)
     if ( options->exists(key+"pdb") ){
         _input_pdb      = options->get(key+"pdb").as<string> ();
         _has_pdb        = true;
+        cout << endl << _input_pdb;
         cout << endl << "... ... PDB input specified: \t" << _input_pdb;
     }
     else if ( options->exists(key+"gro") ){
@@ -139,19 +140,19 @@ void PDB2Map::Initialize(Property* options)
                 cout << endl << "... ... *** No XML output specified.";
                 cout << endl << "... ... Default XML is: \t" << _output_xml;
         }
-    cout << endl << "HERE" << endl;
+
 }
 
 bool PDB2Map::Evaluate() {
     
     setTopologies();
     
-    if (_has_xyz)
-    {
-        compatibilityQM2MD();
-    }
-    
-    topMdQm2xml();
+//    if (_has_xyz)
+//    {
+//        compatibilityQM2MD();
+//    }
+//    
+//    topMdQm2xml();
     
 //    LOG( logINFO, _log ) << "Reading from: " << _input_file << flush;    
 //    cout << _log;
@@ -167,7 +168,8 @@ void PDB2Map::setTopologies(){
         _has_md = true;
     }
     else{
-        error1("No good MD topology. I stop.");
+        error1("Bad MD topology.\n"
+                "Please supply PDB or GRO file");
     }
     
     if (_has_xyz){
@@ -179,7 +181,8 @@ void PDB2Map::setTopologies(){
         _has_qm = true;
     }
     else{
-        error1("No good QM topology. I stop.");
+        error1("Bad MD topology.\n"
+                "Please supply XYZ file or PDB with chemical elements");
     }
 }
 
@@ -259,9 +262,9 @@ void PDB2Map::compatibilityQM2MD(){
 
 void PDB2Map::readPDB(){
    cout << endl << "... ... Assuming: PDB for MD. Read1.";
-   cout << endl << "... ... DUCK~!" << endl;
     
-    // make molecule and segment in molecule
+    //  make molecule
+    //  make segment in molecule
     Molecule * newMolecule = _MDtop.AddMolecule("newMolecule");
     newMolecule->setTopology(&_MDtop);
     
@@ -420,7 +423,6 @@ void PDB2Map::readGRO(){
     
     while ( std::getline(_file, _line,'\n') ){
         if (counter < atom_num){
-         cout << endl << "Done";
        
             string _resNum     (_line, 0,5); // int,  Residue number
             string _resName    (_line, 5,5); // str,  Residue name
@@ -485,74 +487,117 @@ void PDB2Map::readGRO(){
 }
 
 void PDB2Map::readXYZ(){
-    cout << endl << "... ... Assuming: XYZ for QM. Read.";
+    cout << endl << "... ... Assuming: XYZ for QM.";
     
-    cout << endl << "Done";
+    // set molecule >> segment >> fragment
+    // reconnect them all
+    Topology* _qmTopPtr = 0;
+    // direct
+    _qmTopPtr = &_QMtop;
     
-    // make molecule and segment
-    Molecule * newMolecule = _QMtop.AddMolecule("newMolecule");
-    newMolecule->setTopology(&_QMtop);
+    Molecule * newMolecule = 0;
+    // direct
+    newMolecule = _qmTopPtr->AddMolecule("newMolecule");
+                // inverse
+                newMolecule->setTopology(_qmTopPtr);
     
-    cout << endl << "Done";
+    Segment  * newSegment  = 0;
+    // direct
+    newSegment = _qmTopPtr->AddSegment("newSegment");
+               newMolecule->AddSegment(newSegment);
+               // inverse
+                newSegment->setTopology(_qmTopPtr);
+                newSegment->setMolecule(newMolecule);
     
-    Segment  * newSegment  = _QMtop.AddSegment ("newSegment");
-    newSegment->setTopology(&_QMtop);
-    newSegment->setMolecule(newMolecule);
-    newMolecule->AddSegment(newSegment);
+    Fragment * newFragment = 0;
+    // direct
+    newFragment = _qmTopPtr->AddFragment("newFragment");
+                newMolecule->AddFragment(newFragment);
+                 newSegment->AddFragment(newFragment);
+                // inverse
+                newFragment->setTopology(_qmTopPtr);
+                newFragment->setMolecule(newMolecule);
+                newFragment->setSegment(newSegment);
     
-    cout << endl << "Done";
+    // try: read xyz file
+    std::ifstream _file( _input_xyz.c_str());
+    if (_file.fail()) {
+        error1( "... ... Can not open: " + _input_xyz + "\n"
+                "... ... Does it exist? Is it correct file name?\n");
+    }
+    else{
+        cout << endl << 
+                ("... ... File " + _input_xyz + ""
+                 " was opened successfully.\n");
+    }
     
-//    Fragment * newFragment = _QMtop.AddFragment("newFragment");
-//    newFragment->setTopology(&_QMtop);
-//    newMolecule->AddFragment(newFragment);
-//    newFragment->setMolecule(newMolecule);
-//    newSegment->AddFragment(newFragment);
-//    newFragment->setSegment(newSegment);
-    
-    // reading from PDB file and creating topology
-    std::ifstream _file( _input_xyz.c_str() );
-    
-    if (!_file.is_open()) {
-        error1(   "... ... Bad file: " + _input_pdb + \
-                "\n... ... Does it exist? Bad name?");
-    }    
-       
+    // read XYZ line by line
     string _line;
     
-    // ignore first 2 lines - XYZ format
-    std::getline(_file, _line,'\n');
+    // XYZ: first two lines are tech specs -> ignore them
+    // XYZ check: if first line can cast to int, then ok
+    try
+    {   
+        // first line, number of atoms in XYZ
+        std::getline(_file, _line,'\n');
+        int numXYZatoms = boost::lexical_cast<double>(_line);
+    }
+    catch(boost::bad_lexical_cast &)
+    {
+        error1( "... ... Bad XYZ file format!\n"
+                "... ... First two line must contain technical specs.\n");
+    }
+    
+    // ignore second line, it's a comment
     std::getline(_file, _line,'\n');
     
     while ( std::getline(_file, _line,'\n') ){
- 
+        
+        // tokenize wrt space (free format)
         Tokenizer tokLine( _line, " ");
         vector<string> vecLine;
         tokLine.ToVector(vecLine);
-    
-        string _atName     (vecLine[0]); // str,  Atom name
-        string _x          (vecLine[1]); // float 8.3 ,x
-        string _y          (vecLine[2]); // float 8.3 ,y
-        string _z          (vecLine[3]); // float 8.3 ,z
-
-        double _xd = boost::lexical_cast<double>(_x);
-        double _yd = boost::lexical_cast<double>(_y);
-        double _zd = boost::lexical_cast<double>(_z);
-
-        vec r(_xd , _yd , _zd);
-            
-        Atom * newAtom = _QMtop.AddAtom(_atName);
-        newAtom->setElement(_atName);
-        newAtom->setTopology(&_QMtop);
-        newAtom->setPos(r);
-
-        newMolecule->AddAtom(newAtom);
-        newAtom->setMolecule(newMolecule);        
-
-        newSegment->AddAtom(newAtom);
-        newAtom->setSegment(newSegment);
         
-//        newFragment->AddAtom(newAtom);
-//        newAtom->setFragment(newFragment);
+        if (vecLine.size()!=4){
+            error1("... ... Bad coord line in XYZ. Fix your XYZ file!\n");
+        }
+        
+        string _atName     (vecLine[0]); // str,  Atom name
+        string _x          (vecLine[1]); // 
+        string _y          (vecLine[2]); // 
+        string _z          (vecLine[3]); // 
+        
+        // try transform xyz coords to double
+        double _xd(0),_yd(0),_zd(0);
+        try{
+            _xd = boost::lexical_cast<double>(_x);
+            _yd = boost::lexical_cast<double>(_y);
+            _zd = boost::lexical_cast<double>(_z);
+        }
+        catch(boost::bad_lexical_cast &)
+        {
+                 error1( "... ... Can't make numbers from strings.\n"
+                         "... ... Check if coords are numbers!\n");
+        }
+        vec r(_xd , _yd , _zd);
+        
+        // set atom
+        // reconnect to topology, molecule, segment, fragment
+        Atom * newAtom = 0;
+        // direct
+        newAtom = _qmTopPtr->AddAtom(_atName);
+                newMolecule->AddAtom(newAtom);
+                 newSegment->AddAtom(newAtom);
+                newFragment->AddAtom(newAtom);
+                    // inverse
+                    newAtom->setTopology(_qmTopPtr);
+                    newAtom->setMolecule(newMolecule);        
+                    newAtom->setSegment(newSegment);
+                    newAtom->setFragment(newFragment);
+        
+        // set atom name, position
+        newAtom->setElement(_atName);
+        newAtom->setPos(r);
     }
     
     return;
@@ -570,27 +615,46 @@ void PDB2Map::topMdQm2xml(){
     }
     Molecule * MDmolecule = _MDtop.getMolecule(1);
     Molecule * QMmolecule = _QMtop.getMolecule(1);
+    
+    //
     // xml stuff
+    //
     
     Property record;
     Property *ptopology_p = &record.add("topology","");
     Property *pmolecules_p = &ptopology_p->add("molecules","");
     Property *pmolecule_p = &pmolecules_p->add("molecule","");
-    pmolecule_p->add("name","MOLECULE_NAME");
-    pmolecule_p->add("mdname","Other");
+    pmolecule_p->add("name","random_molecule_name");
+    pmolecule_p->add("mdname","name_from_topol.top");
     Property *psegments_p = &pmolecule_p->add("segments","");
     Property *psegment_p = &psegments_p->add("segment","");
-    psegment_p->add("name","SEGMENT_NAME");
+    psegment_p->add("name","random_segment_name");
+    
+    // qc data
     psegment_p->add("qmcoords","QC_FILES/your_file_with.xyz");
     psegment_p->add("orbitals","QC_FILES/your_file_with.fort7");
     psegment_p->add("basisset","INDO");
-    psegment_p->add("torbital_h","NUMBER");
-    psegment_p->add("U_cC_nN_h","NUMBER");
-    psegment_p->add("U_nC_nN_h","NUMBER");
-    psegment_p->add("U_cN_cC_h","NUMBER");
-    psegment_p->add("multipoles_n","MP_FILES/your_file_with.mps");
-    psegment_p->add("multipoles_h","your_file_with.mps");
+    
+    // hole
+    psegment_p->add("torbital_h","number_of_electrons,150");
+    psegment_p->add("U_cC_nN_h","0.0000");
+    psegment_p->add("U_nC_nN_h","0.0000");
+    psegment_p->add("U_cN_cC_h","0.0000");
+    
+    // electron
+    psegment_p->add("torbital_e","number_of_electrons+1,151");
+    psegment_p->add("U_cC_nN_e","0.0000");
+    psegment_p->add("U_nC_nN_e","0.0000");
+    psegment_p->add("U_cN_cC_e","0.0000");
+
+    // mps entry
+    psegment_p->add("multipoles_n","MP_FILES/file_with.mps");
+    psegment_p->add("multipoles_h","MP_FILES/file_with.mps");
+    psegment_p->add("multipoles_e","MP_FILES/file_with.mps");
+    
     psegment_p->add("map2md","1");
+    
+    // main body 
     Property *pfragments_p = &psegment_p->add("fragments","");
                                         
     vector < Segment * > allMdSegments = MDmolecule->Segments();
