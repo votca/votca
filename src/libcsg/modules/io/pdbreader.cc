@@ -107,11 +107,12 @@ bool PDBReader::NextFrame(Topology &top)
             Bead *b;
             if(_topology){
 	      int resnr = boost::lexical_cast<int>(resNum);
-	      if (resnr < 1)
-	        throw std::runtime_error("Misformated gro file, resnr has to be > 1");
+              if (resnr < 0)
+                throw std::runtime_error("Misformated pdb file, resnr has to be >= 0");
+	      //TODO: fix the case that resnr is not in ascending order
               if(resnr >= top.ResidueCount()) {
-                if (top.ResidueCount()==0) //pdb resnr start with 1 but VOTCA starts with 0
-	          top.CreateResidue("ZERO"); // create 0 res, to allow to keep pdb numbering
+                while (resnr<top.ResidueCount()) //pdb resnr should start with 1 but accept sloppy files
+	          top.CreateResidue("DUMMY"); // create dummy residue, hopefully it will never show
                 top.CreateResidue(resName);
 	      }
               //this is not correct, but still better than no type at all!
