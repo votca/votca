@@ -34,7 +34,7 @@ public:
     void readGRO();
     void readXYZ();
     void setTopologies();
-    void compatibilityQM2MD();
+    void adaptQM2MD();
     void topMdQm2xml();
     
     void error1(string line){ cout << endl; throw runtime_error(line); };
@@ -69,7 +69,7 @@ void PDB2Map::Initialize(Property* options)
 {   
 
     // update options with the VOTCASHARE defaults   
-    UpdateWithDefaults( options );
+    //    UpdateWithDefaults( options );
     
     // fill in periodic table
     el2mass["H"]        = 1;
@@ -85,14 +85,16 @@ void PDB2Map::Initialize(Property* options)
     el2mass["Cl"]       = 35;
     el2mass["Ir"]       = 192;
     
-    // good guys
+    // file exists
     _has_pdb = false;
     _has_gro = false;
     _has_xyz = false;
     
+    // top exists
     _has_qm  = false;
     _has_md  = false;
     
+    // can convert from MD to QM, if QM is not found
     _can_convert_md2qm = false;
     
     // read options    
@@ -115,7 +117,7 @@ void PDB2Map::Initialize(Property* options)
                                 "\n... ... Tags: pdb, gro");     
     }
     
-    // find XYZ 
+    // find XYZ, then error
     if ( options->exists(key+"xyz") ){
         _input_xyz      = options->get(key+"xyz").as<string> ();
         _has_xyz        = true;
@@ -147,12 +149,13 @@ bool PDB2Map::Evaluate() {
     
     setTopologies();
     
-//    if (_has_xyz)
-//    {
-//        compatibilityQM2MD();
-//    }
-//    
-//    topMdQm2xml();
+    // if has XYZ
+    // XYZ has no residues
+    // adaptQM2MD() maps MD residues to QM top
+    // in order to iterate properly
+    if (_has_xyz){adaptQM2MD();}
+
+    topMdQm2xml();
     
 //    LOG( logINFO, _log ) << "Reading from: " << _input_file << flush;    
 //    cout << _log;
@@ -182,18 +185,20 @@ void PDB2Map::setTopologies(){
     }
     else{
         error1("Bad MD topology.\n"
-                "Please supply XYZ file or PDB with chemical elements");
+               "Please supply XYZ file or PDB with chemical elements");
     }
 }
 
 
-void PDB2Map::compatibilityQM2MD(){
-                
+void PDB2Map::adaptQM2MD(){
+    
+    // check if atom number is the same in QM and MD
     int numMDatoms = _MDtop.getMolecule(1)->NumberOfAtoms();
     int numQMatoms = _QMtop.getMolecule(1)->NumberOfAtoms();
     
     _QM2MDcompatible = (numMDatoms == numQMatoms) ? true : false;
     
+    // if so, proceed
     if (_QM2MDcompatible){
         Molecule * MDmolecule = _MDtop.getMolecule(1);
         Molecule * QMmolecule = _QMtop.getMolecule(1);
@@ -208,7 +213,7 @@ void PDB2Map::compatibilityQM2MD(){
                 MDSegIt < MDsegments.end();
                 MDSegIt++, QMSegIt++  )
         {
-            Fragment * QMfragment;
+            Fragment * QMfragment = 0;
             
             vector<Atom*> MDSegAtoms = (*MDSegIt)->Atoms();
             vector<Atom*> QMSegAtoms = (*QMSegIt)->Atoms();
@@ -216,8 +221,7 @@ void PDB2Map::compatibilityQM2MD(){
             vector<Atom*>::iterator MDSegAtIt;
             vector<Atom*>::iterator QMSegAtIt;
             
-            int old_res_num = -1;
-            int new_res_num;
+            int old_res_num(-1),new_res_num(-1);
             string res_name = "bad_wolf";
             
             for(MDSegAtIt = MDSegAtoms.begin(), QMSegAtIt = QMSegAtoms.begin();
@@ -225,18 +229,17 @@ void PDB2Map::compatibilityQM2MD(){
                     MDSegAtIt++, QMSegAtIt++)
             {
                 new_res_num = (*MDSegAtIt)->getResnr();
-                if (new_res_num != old_res_num)
+                if ( new_res_num != old_res_num)
                 {
                     old_res_num = new_res_num;
                     res_name = (*MDSegAtIt)->getResname();
                     
                     QMfragment = _QMtop.AddFragment(res_name);
-                    QMfragment->setTopology(&_QMtop);
-                    
                     QMmolecule->AddFragment(QMfragment);
-                    QMfragment->setMolecule(QMmolecule);
-                    
                     (*QMSegIt)->AddFragment(QMfragment);
+                    
+                    QMfragment->setTopology(&_QMtop);
+                    QMfragment->setMolecule(QMmolecule);
                     QMfragment->setSegment(*QMSegIt);
                     
                     (*QMSegAtIt)->setFragment(QMfragment);
@@ -248,45 +251,58 @@ void PDB2Map::compatibilityQM2MD(){
                     QMfragment->AddAtom(*QMSegAtIt);    
                 }
             }
-            
         }
     }
     else{
-        error1("\n... ... Number of MD atoms is different from QM."
-               "\n... ... If it's the case of reduced molecule, "
-                        " I need a map."
-               "\n ... ... Tags: map"
-               "\n ... ... NOT IMPLEMENTED");
+        error1("... ... Number of MD atoms is different from QM.\n"
+               "... ... If it's the case of reduced molecule, "
+                        " I need a map.\n"
+               " ... ... Tags: map\n"
+               " ... ... NOT IMPLEMENTED\n");
     }
 }
 
 void PDB2Map::readPDB(){
-   cout << endl << "... ... Assuming: PDB for MD. Read1.";
+   cout << endl << "... ... Assuming: PDB for MD.";
     
-    //  make molecule
-    //  make segment in molecule
-    Molecule * newMolecule = _MDtop.AddMolecule("newMolecule");
-    newMolecule->setTopology(&_MDtop);
+    // set molecule >> segment >> fragment
+    // reconnect them all
+    Topology * _topPtr = 0;
+    _topPtr = &_MDtop;
     
-    Segment  * newSegment  = _MDtop.AddSegment ("newSegment");
-    newSegment->setTopology(&_MDtop);
+    Molecule * _molPtr = 0;
+    // direct
+    _molPtr = _topPtr->AddMolecule("M1");
+                // inverse
+                _molPtr->setTopology(_topPtr);
     
-    newMolecule->AddSegment(newSegment);
-    newSegment->setMolecule(newMolecule);
+    Segment  * _segPtr  = 0;
+    // direct
+    _segPtr = _topPtr->AddSegment("S1");
+               _molPtr->AddSegment(_segPtr);
+               // inverse
+                _segPtr->setTopology(_topPtr);
+                _segPtr->setMolecule(_molPtr);
 
-    // reading from PDB file and creating topology
-    std::ifstream _file( _input_pdb.c_str() );
-    
-    if (!_file.is_open()) {
-       error1(  "... ... Bad file: " + _input_pdb + \
-              "\n... ... Does it exist? Bad name?");
+    // try: read PDB file
+    std::ifstream _file( _input_pdb.c_str());
+    if (_file.fail()) {
+        error1( "... ... Can not open: " + _input_pdb + "\n"
+                "... ... Does it exist? Is it correct file name?\n");
     }
-    
-    string _line;
+    else{
+        cout << endl << 
+                ("... ... File " + _input_pdb + ""
+                 " was opened successfully.\n");
+    }
 
-    int _atom_id = 0;
+    // read PDB line by line
+    string _line;
+    
+    // counters for loops
+//    int _atom_id = 0;
     int _newResNum = 0;
-    bool chem_message_showed = false;
+    bool warning_showed = false;
 
     while ( std::getline(_file, _line,'\n') ){
         if(     boost::find_first(_line, "ATOM"  )   || 
@@ -328,102 +344,153 @@ void PDB2Map::readPDB(){
             ba::trim(_atElement);
             ba::trim(_atCharge);
             
-            if (_atElement.empty() && !chem_message_showed && !_has_xyz ){
-                cout << endl << "... ... *** No chemical elements in PDB!"
-                        << endl << "... ... *** Expect: empty slots "
-                        << "in <qmatoms> and <multipoles>, zeros in <weights>."
-                        << endl << "... ... To add chemical symbols use: "
-                        "editconf (GROMACS), babel, (hands+pdb format)";                   
-                chem_message_showed = true;
-            }
-            else
-            {
-              _can_convert_md2qm = true;
+            if ( !_has_xyz && !warning_showed && _atElement.empty() ){
+               cout << endl << "... ... WARNING: No chemical elements in PDB!\n"
+                            << "... ... Expect: empty slots \n"
+                            << "in <qmatoms> and <multipoles>, "
+                               "zeros in <weights>.\n"
+                            << "... ... To add chemical symbols use: "
+                               "editconf (GROMACS), babel, "
+                               "(hands+pdb format)";                   
+               warning_showed = true;
             }
             
-
-            double _xd = boost::lexical_cast<double>(_x);
-            double _yd = boost::lexical_cast<double>(_y);
-            double _zd = boost::lexical_cast<double>(_z);
-            int _resNumInt = boost::lexical_cast<int>(_resNum);
-
+            double _xd(0),_yd(0),_zd(0);
+            int _resNumInt(0); 
+            
+            try
+            {
+            _xd = boost::lexical_cast<double>(_x);
+            _yd = boost::lexical_cast<double>(_y);
+            _zd = boost::lexical_cast<double>(_z);
+            _resNumInt = boost::lexical_cast<int>(_resNum);
+            }
+            catch(boost::bad_lexical_cast &)
+            {
+                error1( "... ... Can not convert PDB coord line!\n"
+                        "... ... Atom number: " + _atNum + "\n"
+                        "... ... Make sure this line is PDB style\n");
+            }
+            
             vec r(_xd , _yd , _zd);
 
-            Atom * newAtom = _MDtop.AddAtom(_atName);
-            newAtom->setTopology(&_MDtop);
-
-            newAtom->setResnr        (_resNumInt);
-            newAtom->setResname      (_resName);
-            newAtom->setElement      (_atElement);
-            newAtom->setPos          (r);
-
-            newMolecule->AddAtom(newAtom);
-            newAtom->setMolecule(newMolecule);        
-            
-            newSegment->AddAtom(newAtom);
-            newAtom->setSegment(newSegment);
-
-            Fragment * newFragment;
+            // set fragment
+            // reconnect to topology, molecule, segment
+            Fragment * _fragPtr = 0;
+            // make new frag for new res number
+            // otherwise use last created
             if ( _newResNum != _resNumInt ){
 
                 _newResNum = _resNumInt;
                 string _newResName = _resName+'_'+_resNum;
                 
-                newFragment = _MDtop.AddFragment(_newResName);
-                newFragment->setTopology(&_MDtop);
-
-                newMolecule->AddFragment(newFragment);
-                newFragment->setMolecule(newMolecule);
-
-                newSegment->AddFragment(newFragment);
-                newFragment->setSegment(newSegment);
+                // direct
+                _fragPtr = _topPtr->AddFragment(_newResName);
+                           _molPtr->AddFragment(_fragPtr);
+                           _segPtr->AddFragment(_fragPtr);
+                          // inverse
+                          _fragPtr->setTopology(_topPtr);
+                          _fragPtr->setMolecule(_molPtr);
+                          _fragPtr->setSegment(_segPtr);        
             }
-
-            newFragment->AddAtom(newAtom);
-            newAtom->setFragment(newFragment);
+            else{
+                _fragPtr = _topPtr->Fragments().back();
+            }
+            if (_fragPtr==0) {error1("Zero pointer in GRO reader. Why?");}
+                        
+            // set atom
+            // reconnect to topology, molecule, segment, fragment
+            Atom * _atmPtr = 0;
+            // direct
+            _atmPtr = _topPtr->AddAtom(_atName);
+                      _molPtr->AddAtom(_atmPtr);
+                      _segPtr->AddAtom(_atmPtr);
+                     _fragPtr->AddAtom(_atmPtr);
+                      // inverse
+                      _atmPtr->setTopology(_topPtr);
+                      _atmPtr->setMolecule(_molPtr);        
+                      _atmPtr->setSegment(_segPtr);
+                      _atmPtr->setFragment(_fragPtr);
+                      
+            _atmPtr->setResnr        (_resNumInt);
+            _atmPtr->setResname      (_resName);
+            _atmPtr->setPos          (r);
         }
     }
+    
+    // if all was read OK and
+    // no XYZ file mentioned for QM top
+    // make MD topology convertable to QM top
+    if (!_has_xyz){_can_convert_md2qm = true;}
+    
     return;
 }
 
 void PDB2Map::readGRO(){
-    cout << endl << "... ... Assuming: GRO for MD. Read.";
+    cout << endl << "... ... Assuming: GRO for MD.";
 
-    // make molecule and segment in molecule
-    Molecule * newMolecule = _MDtop.AddMolecule("newMolecule");
-    newMolecule->setTopology(&_MDtop);
+    // set molecule >> segment >> fragment
+    // reconnect them all
+    Topology * _topPtr = 0;
+    _topPtr = &_MDtop;
     
-    Segment  * newSegment  = _MDtop.AddSegment ("newSegment");
-    newSegment->setTopology(&_MDtop);
+    Molecule * _molPtr = 0;
+    // direct
+    _molPtr = _topPtr->AddMolecule("M1");
+                // inverse
+                _molPtr->setTopology(_topPtr);
     
-    newMolecule->AddSegment(newSegment);
-    newSegment->setMolecule(newMolecule);
+    Segment  * _segPtr  = 0;
+    // direct
+    _segPtr = _topPtr->AddSegment("S1");
+               _molPtr->AddSegment(_segPtr);
+               // inverse
+                _segPtr->setTopology(_topPtr);
+                _segPtr->setMolecule(_molPtr);
 
-    // reading from GRO file and creating topology
-    std::ifstream _file( _input_gro.c_str() );
-
-    if (!_file.is_open()) {
-        cout << endl;
-        throw runtime_error("Bad file: " + _input_pdb + \
-                            "\n... ... Does it exist? Bad name?");
+    // try: read GRO file
+    std::ifstream _file( _input_gro.c_str());
+    if (_file.fail()) {
+        error1( "... ... Can not open: " + _input_gro + "\n"
+                "... ... Does it exist? Is it correct file name?\n");
     }
-    
-    string _line;
+    else{
+        cout << endl << 
+                ("... ... File " + _input_gro + ""
+                 " was opened successfully.\n");
+    }
 
-    int _atom_id = 0;
-    int _newResNum = 0;
+    // read GRO line by line
+    string _line;
     
-    // ignore first 2 lines - GRO format
+    // counters for loops
+    int _newResNum = -1; // res reference
+    int _atTotl = 0;  // total num of atoms in GRO
+    int _atCntr = 0;  // atom number counter
+    
+    // GRO: first two lines are tech specs -> ignore them
+    // ignore first line, it's a comment
     std::getline(_file, _line,'\n');
-    std::getline(_file, _line,'\n');
-    
-    ba::trim(_line);
-    int atom_num = boost::lexical_cast<int>(_line);
-    int counter = 0;
-    
+
+    // GRO check: if second line can cast to int, then ok
+
+    try
+    {   
+        // first line, number of atoms in XYZ
+        std::getline(_file, _line,'\n');
+        ba::trim(_line);
+        _atTotl = boost::lexical_cast<int>(_line);
+    }
+    catch(boost::bad_lexical_cast &)
+    {
+        error1( "... ... Bad GRO file format!\n"
+                "... ... First two line must contain technical specs.\n");
+    }
+
+    // actual loop
     while ( std::getline(_file, _line,'\n') ){
-        if (counter < atom_num){
-       
+        if (_atCntr < _atTotl){
+            
             string _resNum     (_line, 0,5); // int,  Residue number
             string _resName    (_line, 5,5); // str,  Residue name
             string _atName     (_line,10,5); // str,  Atom name
@@ -440,47 +507,71 @@ void PDB2Map::readGRO(){
             ba::trim(_y);
             ba::trim(_z);
             
-            double _xd = boost::lexical_cast<double>(_x);
-            double _yd = boost::lexical_cast<double>(_y);
-            double _zd = boost::lexical_cast<double>(_z);
+            // try cast
+            int _resNumInt(0),_atNumInt(0);
+            double _xd(0),_yd(0),_zd(0);
+            try
+            {
+                _resNumInt = boost::lexical_cast<int>(_resNum);
+                _atNumInt  = boost::lexical_cast<int>(_atNum);
+
+                _xd = boost::lexical_cast<double>(_x);
+                _yd = boost::lexical_cast<double>(_y);
+                _zd = boost::lexical_cast<double>(_z);
+            }
+            catch (boost::bad_lexical_cast &)
+            {
+                error1( "... ... Can not convert GRO coord line!\n"
+                        "... ... Atom number: " + _atNum + "\n"
+                        "... ... Make sure this line is GRO style\n");
+            }
             
             vec r(_xd , _yd , _zd);
-            
-            int _resNumInt = boost::lexical_cast<int>(_resNum);
-            
-            Atom * newAtom = _MDtop.AddAtom(_atName);
-            newAtom->setTopology(&_MDtop);
-
-            newAtom->setResnr        (_resNumInt);
-            newAtom->setResname      (_resName);
-            newAtom->setPos          (r);
-
-            newMolecule->AddAtom(newAtom);
-            newAtom->setMolecule(newMolecule);        
-            
-            newSegment->AddAtom(newAtom);
-            newAtom->setSegment(newSegment);
-
-            Fragment * newFragment;
+                
+            // set fragment
+            // reconnect to topology, molecule, segment
+            Fragment * _fragPtr = 0;
+            // make new frag for new res number
+            // otherwise use last created
             if ( _newResNum != _resNumInt ){
 
                 _newResNum = _resNumInt;
                 string _newResName = _resName+'_'+_resNum;
                 
-                newFragment = _MDtop.AddFragment(_newResName);
-                newFragment->setTopology(&_MDtop);
-
-                newMolecule->AddFragment(newFragment);
-                newFragment->setMolecule(newMolecule);
-
-                newSegment->AddFragment(newFragment);
-                newFragment->setSegment(newSegment);
+                // direct
+                _fragPtr = _topPtr->AddFragment(_newResName);
+                           _molPtr->AddFragment(_fragPtr);
+                           _segPtr->AddFragment(_fragPtr);
+                          // inverse
+                          _fragPtr->setTopology(_topPtr);
+                          _fragPtr->setMolecule(_molPtr);
+                          _fragPtr->setSegment(_segPtr);        
             }
-
-            newFragment->AddAtom(newAtom);
-            newAtom->setFragment(newFragment);
+            else{
+                _fragPtr = _topPtr->Fragments().back();
+            }
+            if (_fragPtr==0) {error1("Zero pointer in GRO reader. Why?");}
+                        
+            // set atom
+            // reconnect to topology, molecule, segment, fragment
+            Atom * _atmPtr = 0;
+            // direct
+            _atmPtr = _topPtr->AddAtom(_atName);
+                      _molPtr->AddAtom(_atmPtr);
+                      _segPtr->AddAtom(_atmPtr);
+                     _fragPtr->AddAtom(_atmPtr);
+                      // inverse
+                      _atmPtr->setTopology(_topPtr);
+                      _atmPtr->setMolecule(_molPtr);        
+                      _atmPtr->setSegment(_segPtr);
+                      _atmPtr->setFragment(_fragPtr);
+        
+            _atmPtr->setResnr        (_resNumInt);
+            _atmPtr->setResname      (_resName);
+            _atmPtr->setPos          (r);
+        
         }
-        counter++;
+        _atCntr++;
     }
     
     return;
@@ -491,33 +582,32 @@ void PDB2Map::readXYZ(){
     
     // set molecule >> segment >> fragment
     // reconnect them all
-    Topology* _qmTopPtr = 0;
-    // direct
-    _qmTopPtr = &_QMtop;
+    Topology * _topPtr = 0;
+    _topPtr = &_QMtop;
     
-    Molecule * newMolecule = 0;
+    Molecule * _molPtr = 0;
     // direct
-    newMolecule = _qmTopPtr->AddMolecule("newMolecule");
+    _molPtr = _topPtr->AddMolecule("M1");
                 // inverse
-                newMolecule->setTopology(_qmTopPtr);
+                _molPtr->setTopology(_topPtr);
     
-    Segment  * newSegment  = 0;
+    Segment  * _segPtr  = 0;
     // direct
-    newSegment = _qmTopPtr->AddSegment("newSegment");
-               newMolecule->AddSegment(newSegment);
+    _segPtr = _topPtr->AddSegment("S1");
+               _molPtr->AddSegment(_segPtr);
                // inverse
-                newSegment->setTopology(_qmTopPtr);
-                newSegment->setMolecule(newMolecule);
+                _segPtr->setTopology(_topPtr);
+                _segPtr->setMolecule(_molPtr);
     
-    Fragment * newFragment = 0;
-    // direct
-    newFragment = _qmTopPtr->AddFragment("newFragment");
-                newMolecule->AddFragment(newFragment);
-                 newSegment->AddFragment(newFragment);
-                // inverse
-                newFragment->setTopology(_qmTopPtr);
-                newFragment->setMolecule(newMolecule);
-                newFragment->setSegment(newSegment);
+//    Fragment * _fragPtr = 0;
+//    // direct
+//    _fragPtr = _topPtr->AddFragment("F1");
+//               _molPtr->AddFragment(_fragPtr);
+//               _segPtr->AddFragment(_fragPtr);
+//                // inverse
+//              _fragPtr->setTopology(_topPtr);
+//              _fragPtr->setMolecule(_molPtr);
+//              _fragPtr->setSegment(_segPtr);
     
     // try: read xyz file
     std::ifstream _file( _input_xyz.c_str());
@@ -540,6 +630,7 @@ void PDB2Map::readXYZ(){
     {   
         // first line, number of atoms in XYZ
         std::getline(_file, _line,'\n');
+        ba::trim(_line);
         int numXYZatoms = boost::lexical_cast<double>(_line);
     }
     catch(boost::bad_lexical_cast &)
@@ -552,7 +643,7 @@ void PDB2Map::readXYZ(){
     std::getline(_file, _line,'\n');
     
     while ( std::getline(_file, _line,'\n') ){
-        
+
         // tokenize wrt space (free format)
         Tokenizer tokLine( _line, " ");
         vector<string> vecLine;
@@ -577,27 +668,29 @@ void PDB2Map::readXYZ(){
         catch(boost::bad_lexical_cast &)
         {
                  error1( "... ... Can't make numbers from strings.\n"
+                         "... ... I don't like this string: \n\n"
+                         "" + _line + "\n\n"
                          "... ... Check if coords are numbers!\n");
         }
         vec r(_xd , _yd , _zd);
         
         // set atom
         // reconnect to topology, molecule, segment, fragment
-        Atom * newAtom = 0;
+        Atom * _atmPtr = 0;
         // direct
-        newAtom = _qmTopPtr->AddAtom(_atName);
-                newMolecule->AddAtom(newAtom);
-                 newSegment->AddAtom(newAtom);
-                newFragment->AddAtom(newAtom);
+        _atmPtr = _topPtr->AddAtom(_atName);
+                _molPtr->AddAtom(_atmPtr);
+                 _segPtr->AddAtom(_atmPtr);
+//                _fragPtr->AddAtom(_atmPtr);
                     // inverse
-                    newAtom->setTopology(_qmTopPtr);
-                    newAtom->setMolecule(newMolecule);        
-                    newAtom->setSegment(newSegment);
-                    newAtom->setFragment(newFragment);
+                    _atmPtr->setTopology(_topPtr);
+                    _atmPtr->setMolecule(_molPtr);        
+                    _atmPtr->setSegment(_segPtr);
+//                    _atmPtr->setFragment(_fragPtr);
         
         // set atom name, position
-        newAtom->setElement(_atName);
-        newAtom->setPos(r);
+        _atmPtr->setElement(_atName);
+        _atmPtr->setPos(r);
     }
     
     return;
@@ -652,7 +745,7 @@ void PDB2Map::topMdQm2xml(){
     psegment_p->add("multipoles_h","MP_FILES/file_with.mps");
     psegment_p->add("multipoles_e","MP_FILES/file_with.mps");
     
-    psegment_p->add("map2md","1");
+    psegment_p->add("map2md","0");
     
     // main body 
     Property *pfragments_p = &psegment_p->add("fragments","");

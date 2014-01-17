@@ -59,6 +59,7 @@
         <itemPath>../../src/libctp/tools/molpol.h</itemPath>
         <itemPath>../../src/libctp/tools/pdb2map.h</itemPath>
         <itemPath>../../src/libctp/tools/qmanalyze.h</itemPath>
+        <itemPath>../../src/libctp/tools/top2map.h</itemPath>
       </logicalFolder>
     </logicalFolder>
     <logicalFolder name="HeaderFiles"
@@ -767,6 +768,8 @@
       </item>
       <item path="../../src/libctp/tools/qmanalyze.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../src/libctp/tools/top2map.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../src/libctp/topology.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/version.cc" ex="false" tool="1" flavor2="0">
@@ -1357,6 +1360,8 @@
       <item path="../../src/libctp/tools/pdb2map.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/qmanalyze.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libctp/tools/top2map.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/topology.cc" ex="false" tool="1" flavor2="0">
       </item>
