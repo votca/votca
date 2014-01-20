@@ -287,7 +287,6 @@ namespace votca {
             // for use in RPA, make a copy of _Mmn with dimensions (1:HOMO)(gwabasissize,LUMO:nmax)
             TCMatrix _Mmn_RPA;
             _Mmn_RPA.Initialize(gwbasis._AOBasisSize, _rpamin, _homo , _homo +1 , _rpamax);
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Init Mmn_beta for RPA  " << flush;
             RPA_prepare_threecenters( _Mmn_RPA, _Mmn, gwbasis, _gwoverlap, _gwoverlap_inverse );
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Prepared Mmn_beta for RPA  " << flush;
 
@@ -350,6 +349,12 @@ namespace votca {
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculated correlation part of Sigma  " << flush;
  
             
+            // free no longer required three-center matrices in _Mmn
+            // max required is _bse_cmax (could be smaller than _qpmax)
+            _Mmn.Prune(gwbasis._AOBasisSize, _bse_vmin, _bse_cmax);
+            
+            
+            
             // Output of quasiparticle energies after all is done:
             _pLog->setPreface(logINFO, "\n");
             
@@ -357,14 +362,17 @@ namespace votca {
                         
             for ( int _i = 0 ; _i < _qptotal ; _i++ ){
                 if ( (_i + _qpmin) == _homo ){
-                    LOG(logINFO,*_pLog) << (format("  HOMO  = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = %4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") % (_i+_qpmin+1) % _dft_energies( _i + _qpmin ) % _vxc(_i,_i) % _sigma_x(_i,_i) % _sigma_c(_i,_i) % _qp_energies(_i) ).str() << flush;
+                    LOG(logINFO,*_pLog) << (format("  HOMO  = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = %4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") % (_i+_qpmin+1) % _dft_energies( _i + _qpmin ) % _vxc(_i,_i) % _sigma_x(_i,_i) % _sigma_c(_i,_i) % _qp_energies(_i + _qpmin ) ).str() << flush;
                 } else if ( (_i + _qpmin) == _homo+1 ){
-                    LOG(logINFO,*_pLog) << (format("  LUMO  = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = %4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") % (_i+_qpmin+1) % _dft_energies( _i + _qpmin ) % _vxc(_i,_i) % _sigma_x(_i,_i) % _sigma_c(_i,_i) % _qp_energies(_i) ).str() << flush;                    
+                    LOG(logINFO,*_pLog) << (format("  LUMO  = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = %4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") % (_i+_qpmin+1) % _dft_energies( _i + _qpmin ) % _vxc(_i,_i) % _sigma_x(_i,_i) % _sigma_c(_i,_i) % _qp_energies(_i + _qpmin ) ).str() << flush;                    
                     
                 }else {
-                LOG(logINFO,*_pLog) << (format("  Level = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = %4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") % (_i+_qpmin+1) % _dft_energies( _i + _qpmin ) % _vxc(_i,_i) % _sigma_x(_i,_i) % _sigma_c(_i,_i) % _qp_energies(_i) ).str() << flush;
+                LOG(logINFO,*_pLog) << (format("  Level = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = %4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") % (_i+_qpmin+1) % _dft_energies( _i + _qpmin ) % _vxc(_i,_i) % _sigma_x(_i,_i) % _sigma_c(_i,_i) % _qp_energies(_i + _qpmin ) ).str() << flush;
                 }
             }
+
+
+
             
             // store perturbative QP energy data in orbitals object (DFT, S_x,S_c, V_xc, E_qp) 
             if ( _store_qp_pert ){
@@ -388,12 +396,12 @@ namespace votca {
                     LOG(logINFO, *_pLog) << (format("  ====== Diagonalized quasiparticle energies (Rydberg) ====== ")).str() << flush;
                     for (int _i = 0; _i < _qptotal; _i++) {
                         if ((_i + _qpmin) == _homo) {
-                            LOG(logINFO, *_pLog) << (format("  HOMO  = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") % (_i + _qpmin + 1) % _qp_energies(_i) % _qp_diag_energies(_i)).str() << flush;
+                            LOG(logINFO, *_pLog) << (format("  HOMO  = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") % (_i + _qpmin + 1) % _qp_energies(_i + _qpmin ) % _qp_diag_energies(_i)).str() << flush;
                         } else if ((_i + _qpmin) == _homo + 1) {
-                            LOG(logINFO, *_pLog) << (format("  LUMO  = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") % (_i + _qpmin + 1) % _qp_energies(_i) % _qp_diag_energies(_i)).str() << flush;
+                            LOG(logINFO, *_pLog) << (format("  LUMO  = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") % (_i + _qpmin + 1) % _qp_energies(_i + _qpmin ) % _qp_diag_energies(_i)).str() << flush;
 
                         } else {
-                            LOG(logINFO, *_pLog) << (format("  Level = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") % (_i + _qpmin + 1) % _qp_energies(_i) % _qp_diag_energies(_i)).str() << flush;
+                            LOG(logINFO, *_pLog) << (format("  Level = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") % (_i + _qpmin + 1) % _qp_energies(_i + _qpmin ) % _qp_diag_energies(_i)).str() << flush;
                         }
                     }
                     
@@ -415,7 +423,7 @@ namespace votca {
                     // free memory
                     _qp_diag_energies.resize(0);
                     _qp_diag_coefficients.resize(0,0);
-                    
+                                //exit(0);
                 } // _do_qp_diag
             } // constructing full quasiparticle Hamiltonian
             
@@ -428,7 +436,7 @@ namespace votca {
                 LOG(logINFO, *_pLog) << TimeStamp() << " Direct part of e-h interaction " << flush;
 
                 if ( _store_eh_interaction) {
-                    ub::matrix<double>& _eh_d_store = _orbitals->eh_d();
+                    ub::matrix<float>& _eh_d_store = _orbitals->eh_d();
                     _eh_d_store = _eh_d;
                     // _orbitals->setEHinteraction(true);
                 }
@@ -476,8 +484,8 @@ namespace votca {
                     
                     // storage to orbitals object
                     if ( _store_bse_triplets ) {
-                        std::vector<double>& _bse_triplet_energies_store = _orbitals->BSETripletEnergies();
-                        ub::matrix<double>& _bse_triplet_coefficients_store = _orbitals->BSETripletCoefficients();
+                        std::vector<float>& _bse_triplet_energies_store = _orbitals->BSETripletEnergies();
+                        ub::matrix<float>& _bse_triplet_coefficients_store = _orbitals->BSETripletCoefficients();
                         _bse_triplet_energies_store.resize( _bse_nmax );
                         _bse_triplet_coefficients_store.resize( _bse_size, _bse_nmax);
                         for  (int _i_exc = 0; _i_exc < _bse_nmax; _i_exc++) {
@@ -503,7 +511,7 @@ namespace votca {
                     // calculate exchange part of eh interaction, only needed for singlets
                     BSE_x_setup(_Mmn);
                     if ( _store_eh_interaction) {
-                    ub::matrix<double>& _eh_x_store = _orbitals->eh_x();
+                    ub::matrix<float>& _eh_x_store = _orbitals->eh_x();
                     _eh_x_store = _eh_x;
                     // _orbitals->setEHinteraction(true);
                     }
@@ -607,17 +615,24 @@ namespace votca {
 
                      // storage to orbitals object
                     if ( _store_bse_singlets ) {
-                        std::vector<double>& _bse_singlet_energies_store = _orbitals->BSESingletEnergies();
-                        ub::matrix<double>& _bse_singlet_coefficients_store = _orbitals->BSESingletCoefficients();
+                        std::vector<float>& _bse_singlet_energies_store = _orbitals->BSESingletEnergies();
+                        ub::matrix<float>& _bse_singlet_coefficients_store = _orbitals->BSESingletCoefficients();
+                        std::vector< std::vector<double> >& _transition_dipoles_store = _orbitals->TransitionDipoles();
                         _bse_singlet_energies_store.resize( _bse_nmax );
                         _bse_singlet_coefficients_store.resize( _bse_size, _bse_nmax);
+                        _transition_dipoles_store.resize( _bse_nprint );
                         for  (int _i_exc = 0; _i_exc < _bse_nmax; _i_exc++) {
                            _bse_singlet_energies_store[_i_exc] = _bse_singlet_energies( _i_exc );
                            for  (int _i_bse = 0; _i_bse < _qptotal; _i_bse++) {
                                _bse_singlet_coefficients_store( _i_bse, _i_exc ) = _bse_singlet_coefficients(_i_bse,_i_exc);
                            }
+
+                           if ( _i_exc < _bse_nprint ){
+                               _transition_dipoles_store[_i_exc] = _transition_dipoles[_i_exc];
+                           }
+                           
                         }
-                        // _orbitals->setBSESinglets(true);
+                        
                     } // _store_bse_triplets
                                        
                     

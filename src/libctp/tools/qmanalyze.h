@@ -291,6 +291,15 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
         LOG(logDEBUG, _log) << "      BSE singlet excitons:   not stored" << flush;
     }  
     
+    // Transition dipole moments
+    if ( _orbitals.hasTransitionDipoles()){
+        LOG(logDEBUG, _log) << "      BSE transition dipoles: " << _orbitals.TransitionDipoles().size() << flush;
+    } else {
+        LOG(logDEBUG, _log) << "      BSE transition dipoles: not stored" << flush;
+    }  
+    
+       
+    
     // BSE triplet excitons
     if ( _orbitals.hasBSETriplets()){
         LOG(logDEBUG, _log) << "      BSE triplet excitons:   " << _orbitals.getBSETripletEnergies()->size() << flush;

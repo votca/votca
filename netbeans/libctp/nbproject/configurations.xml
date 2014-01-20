@@ -59,6 +59,7 @@
         <itemPath>../../src/libctp/tools/molpol.h</itemPath>
         <itemPath>../../src/libctp/tools/pdb2map.h</itemPath>
         <itemPath>../../src/libctp/tools/qmanalyze.h</itemPath>
+        <itemPath>../../src/libctp/tools/spectrum.h</itemPath>
       </logicalFolder>
     </logicalFolder>
     <logicalFolder name="HeaderFiles"
@@ -83,6 +84,7 @@
       <itemPath>../../include/votca/ctp/jobapplication.h</itemPath>
       <itemPath>../../include/votca/ctp/jobcalculator.h</itemPath>
       <itemPath>../../include/votca/ctp/logger.h</itemPath>
+      <itemPath>../../include/votca/ctp/mbgft.h</itemPath>
       <itemPath>../../include/votca/ctp/mkl_boost_ublas_matrix_prod.h</itemPath>
       <itemPath>../../include/votca/ctp/molecule.h</itemPath>
       <itemPath>../../include/votca/ctp/orbitals.h</itemPath>
@@ -194,6 +196,7 @@
       <itemPath>../../src/libctp/qmtool.cc</itemPath>
       <itemPath>../../src/libctp/statesaversqlite.cc</itemPath>
       <itemPath>../../src/libctp/threecenters.cc</itemPath>
+      <itemPath>../../src/libctp/threecenters_tools.cc</itemPath>
       <itemPath>../../src/libctp/version.cc</itemPath>
       <itemPath>../../src/libctp/version_nb.cc</itemPath>
       <itemPath>../../src/libctp/votca_config.h</itemPath>
@@ -284,6 +287,8 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/logger.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/mbgft.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/molecule.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -741,6 +746,11 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libctp/threecenters_tools.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/toolfactory.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/coupling.h" ex="false" tool="3" flavor2="0">
@@ -754,6 +764,8 @@
       <item path="../../src/libctp/tools/pdb2map.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/qmanalyze.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libctp/tools/spectrum.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/topology.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -834,6 +846,8 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/logger.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/mbgft.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/molecule.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1291,6 +1305,11 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libctp/threecenters_tools.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/toolfactory.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/coupling.h" ex="false" tool="3" flavor2="0">
@@ -1304,6 +1323,8 @@
       <item path="../../src/libctp/tools/pdb2map.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/qmanalyze.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libctp/tools/spectrum.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/topology.cc" ex="false" tool="1" flavor2="0">
       </item>

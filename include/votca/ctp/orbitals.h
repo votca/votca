@@ -234,25 +234,30 @@ public:
 
     // access to eh interaction
     bool hasEHinteraction() { return ( _eh_d.size1() > 0) ? true : false; }
-    const ub::matrix<double> &eh_x() const { return _eh_x; }
-    ub::matrix<double> &eh_x()  { return _eh_x; }
-    const ub::matrix<double> &eh_d() const { return _eh_d; }
-    ub::matrix<double> &eh_d()  { return _eh_d; }
+    const ub::matrix<float> &eh_x() const { return _eh_x; }
+    ub::matrix<float> &eh_x()  { return _eh_x; }
+    const ub::matrix<float> &eh_d() const { return _eh_d; }
+    ub::matrix<float> &eh_d()  { return _eh_d; }
 
     // access to triplet energies and wave function coefficients
     bool hasBSETriplets() {return ( _BSE_triplet_energies.size() > 0 ) ? true : false ;}
-    const std::vector<double> &BSETripletEnergies() const { return _BSE_triplet_energies; }
-    std::vector<double> &BSETripletEnergies()  { return _BSE_triplet_energies; }
-    const ub::matrix<double> &BSETripletCoefficients() const { return _BSE_triplet_coefficients;}
-    ub::matrix<double> &BSETripletCoefficients()  { return _BSE_triplet_coefficients;}
+    const std::vector<float> &BSETripletEnergies() const { return _BSE_triplet_energies; }
+    std::vector<float> &BSETripletEnergies()  { return _BSE_triplet_energies; }
+    const ub::matrix<float> &BSETripletCoefficients() const { return _BSE_triplet_coefficients;}
+    ub::matrix<float> &BSETripletCoefficients()  { return _BSE_triplet_coefficients;}
     
     // access to singlet energies and wave function coefficients
     bool hasBSESinglets() {return (_BSE_singlet_energies.size() > 0 ) ? true : false ;}
-    const std::vector<double> &BSESingletEnergies() const { return _BSE_singlet_energies; }
-    std::vector<double> &BSESingletEnergies()  { return _BSE_singlet_energies; }
-    const ub::matrix<double> &BSESingletCoefficients() const { return _BSE_singlet_coefficients;}
-    ub::matrix<double> &BSESingletCoefficients() { return _BSE_singlet_coefficients;}
+    const std::vector<float> &BSESingletEnergies() const { return _BSE_singlet_energies; }
+    std::vector<float> &BSESingletEnergies()  { return _BSE_singlet_energies; }
+    const ub::matrix<float> &BSESingletCoefficients() const { return _BSE_singlet_coefficients;}
+    ub::matrix<float> &BSESingletCoefficients() { return _BSE_singlet_coefficients;}
 
+    // access to transition dipole moments
+    bool hasTransitionDipoles() {return (_transition_dipoles.size() > 0 ) ? true : false ;}
+    const std::vector<std::vector<double> > &TransitionDipoles() const { return _transition_dipoles; }
+    std::vector<std::vector<double> > &TransitionDipoles()  { return _transition_dipoles; }
+    
     /* ===
      *    OLD ACCESS FUNCTIONS
      */    
@@ -260,12 +265,13 @@ public:
     ub::matrix<double>* getQPdiagCoefficients() {return  &_QPdiag_coefficients ;}
 
 
-    std::vector<double>* getBSESingletEnergies() {return &_BSE_singlet_energies;}
-    ub::matrix<double>* getBSESingletCoefficients() {return &_BSE_singlet_coefficients;}
+    std::vector<float>* getBSESingletEnergies() {return &_BSE_singlet_energies;}
+    ub::matrix<float>* getBSESingletCoefficients() {return &_BSE_singlet_coefficients;}
 
-    std::vector<double>* getBSETripletEnergies() {return &_BSE_triplet_energies;}
-    ub::matrix<double>* getBSETripletCoefficients() {return &_BSE_triplet_coefficients; }   
+    std::vector<float>* getBSETripletEnergies() {return &_BSE_triplet_energies;}
+    ub::matrix<float>* getBSETripletCoefficients() {return &_BSE_triplet_coefficients; }   
     
+   
 
     
     // returns indeces of a re-sorted in a descending order vector of energies
@@ -361,12 +367,13 @@ private:
     std::vector<int>                        _index2c;
 
     
-    ub::matrix<double>                      _eh_d;
-    ub::matrix<double>                      _eh_x;
-    std::vector<double>                     _BSE_singlet_energies;
-    ub::matrix<double>                      _BSE_singlet_coefficients;
-    std::vector<double>                     _BSE_triplet_energies;
-    ub::matrix<double>                      _BSE_triplet_coefficients;    
+    ub::matrix<float>                      _eh_d;
+    ub::matrix<float>                      _eh_x;
+    std::vector<float>                     _BSE_singlet_energies;
+    ub::matrix<float>                      _BSE_singlet_coefficients;
+    std::vector<std::vector<double> >      _transition_dipoles;
+    std::vector<float>                     _BSE_triplet_energies;
+    ub::matrix<float>                      _BSE_triplet_coefficients;    
     
 
 private:
@@ -448,7 +455,9 @@ private:
          
         ar & _BSE_singlet_energies; 
         ar & _BSE_singlet_coefficients; 
-         
+        
+        ar & _transition_dipoles;
+        
         ar & _BSE_triplet_energies; 
         ar & _BSE_triplet_coefficients;
             

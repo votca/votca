@@ -53,7 +53,7 @@ namespace votca {
             _vxc = -_vxc + _sigma_x + _sigma_c;
             // diagonal elements are given by _qp_energies
             for (int _m = 0; _m < _vxc.size1(); _m++ ){
-              _vxc( _m,_m ) = _qp_energies( _m );
+              _vxc( _m,_m ) = _qp_energies( _m + _qpmin );
             }
 
             
@@ -104,7 +104,7 @@ namespace votca {
               #pragma omp parallel for
 	      for (int _gw_level = 0; _gw_level < _qptotal ; _gw_level++ ){
                   
-                const ub::matrix<double>& Mmn = _Mmn[ _gw_level ];
+                const ub::matrix<double>& Mmn = _Mmn[ _gw_level + _qpmin ];
               
 		// loop over all functions in GW basis
 		for ( int _i_gw = 0; _i_gw < _gwsize ; _i_gw++ ){
@@ -116,7 +116,7 @@ namespace votca {
 		    if ( _i > _homo ) occ = -1.0; // sign for empty levels
                                                     
 		    // energy denominator
-		    double _denom = _qp_energies( _gw_level ) - _qp_energies( _i ) + occ*_ppm_freq( _i_gw );
+		    double _denom = _qp_energies( _gw_level + _qpmin  ) - _qp_energies( _i ) + occ*_ppm_freq( _i_gw );
                     
 		    double _stab = 1.0;
 		    if ( std::abs(_denom) < 0.5 ) {
@@ -133,7 +133,7 @@ namespace votca {
 		}// GW functions
 		
 		// update _qp_energies
-		_qp_energies( _gw_level ) = _edft( _gw_level ) + _sigma_x(_gw_level, _gw_level) + _sigma_c(_gw_level,_gw_level) - _vxc(_gw_level,_gw_level);
+		_qp_energies( _gw_level  + _qpmin) = _edft( _gw_level + _qpmin ) + _sigma_x(_gw_level, _gw_level) + _sigma_c(_gw_level,_gw_level) - _vxc(_gw_level  ,_gw_level );
                     
 	      }// all bands
                 
@@ -148,7 +148,7 @@ namespace votca {
             #pragma omp parallel for
 	    for (int _gw_level = 0; _gw_level < _qptotal ; _gw_level++ ){
               
-                const ub::matrix<double>& Mmn =  _Mmn[ _gw_level ];
+                const ub::matrix<double>& Mmn =  _Mmn[ _gw_level + _qpmin ];
 
 		// loop over all functions in GW basis
 		for ( int _i_gw = 0; _i_gw < _gwsize ; _i_gw++ ){
@@ -161,7 +161,7 @@ namespace votca {
 		    if ( _i > _homo ) occ = -1.0; // sign for empty levels
                     
 		    // energy denominator
-		    double _denom = _qp_energies( _gw_level ) - _qp_energies( _i ) + occ*_ppm_freq( _i_gw );
+		    double _denom = _qp_energies( _gw_level + _qpmin ) - _qp_energies( _i ) + occ*_ppm_freq( _i_gw );
                     
 		    double _stab = 1.0;
 		    if ( std::abs(_denom) < 0.5 ) {
@@ -172,15 +172,15 @@ namespace votca {
 		    
 		    // loop over row GW levels
 		    for ( int _m = 0 ; _m < _qptotal ; _m++) {
-
+                    
 		    
 		    // sigma_c all elements
-		    _sigma_c( _m , _gw_level ) += _factor * _Mmn[_m](_i_gw, _i) ;  //_submat(_i_gw,_i);
+		    _sigma_c( _m  , _gw_level ) += _factor * _Mmn[_m + _qpmin](_i_gw, _i) ;  //_submat(_i_gw,_i);
 	                      
 		  }// screening levels
 		}// GW functions
 	      }// GW row 
-	      _qp_energies( _gw_level ) = _edft( _gw_level ) + _sigma_x(_gw_level,_gw_level) + _sigma_c(_gw_level,_gw_level) - _vxc(_gw_level,_gw_level);
+	      _qp_energies( _gw_level + _qpmin ) = _edft( _gw_level + _qpmin ) + _sigma_x(_gw_level,_gw_level) + _sigma_c(_gw_level,_gw_level) - _vxc(_gw_level ,_gw_level );
 	    } // GW col
     
         } // sigma_c_setup
@@ -193,14 +193,16 @@ namespace votca {
 
             // band 1 loop over all GW levels
             #pragma omp parallel for
+            //for ( int _m1 = _qpmin ; _m1 <= _qpmax ; _m1++ ){
             for ( int _m1 = 0 ; _m1 < _qptotal ; _m1++ ){
                 
-                const ub::matrix<double>& M1mn =  _Mmn[ _m1 ];
+                const ub::matrix<double>& M1mn =  _Mmn[ _m1 + _qpmin ];
                 
                 // band 2 loop over all GW levels
+                //for ( int _m2 = _qpmin ; _m2 <= _qpmax ; _m2++ ){
                 for ( int _m2 = 0 ; _m2 < _qptotal ; _m2++ ){
                     
-                    const ub::matrix<double>& M2mn =  _Mmn[ _m2 ];
+                    const ub::matrix<double>& M2mn =  _Mmn[ _m2 + _qpmin ];
                     
                     // loop over all basis functions
                     for ( int _i_gw = 0 ; _i_gw < _size ; _i_gw++ ){

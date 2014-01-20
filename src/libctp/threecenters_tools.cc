@@ -190,7 +190,27 @@ namespace votca {
         } // TCMatrix::FillBlock
 
         
-        
+             void TCMatrix::Prune ( int _basissize, int min, int max){
+
+            int size1 = _matrix[0].size1();
+            
+            // vector needs only max entries
+            _matrix.resize( max + 1 );
+            
+            
+            
+            // entries until min can be freed
+            for ( int i = 0; i < min ; i++){
+                //_matrix[i] = ub::zero_matrix<double>(_basissize,ntotal);
+                _matrix[i].resize(0,0,false);
+            }
+
+            for ( int i=min; i < _matrix.size(); i++){
+                _matrix[i].resize(size1,max+1);
+            }
+
+            
+        }
         
  
 

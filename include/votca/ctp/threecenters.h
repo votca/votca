@@ -93,6 +93,11 @@ namespace votca { namespace ctp {
             
         }
         
+        void Prune ( int _basissize, int min, int max);
+        
+        
+        
+        
         void Fill( AOBasis& gwbasis, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals );
 
         // matrix print 
