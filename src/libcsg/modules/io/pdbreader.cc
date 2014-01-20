@@ -77,7 +77,7 @@ bool PDBReader::NextFrame(Topology &top)
               //string atNum      (line,( 7-1),6); // int,  Atom serial number
               atName=string(line,(13-1),4); // str,  Atom name
               //string atAltLoc   (line,(17-1),1); // char, Alternate location indicator
-              resName=string(line,(18-1),4); // str,  Residue name
+              resName=string(line,(18-1),3); // str,  Residue name
               //string chainID    (line,(22-1),1); // char, Chain identifier
               resNum=string(line,(23-1),4); // int,  Residue sequence number
               //string atICode    (line,(27-1),1); // char, Code for insertion of res
@@ -131,8 +131,8 @@ bool PDBReader::NextFrame(Topology &top)
 
 	}
 
-        if (( line == "ENDMDL" )||( _fl.eof())){
-	  break;
+        if (( line == "ENDMDL" ) || ( line == "END" ) || ( _fl.eof())){
+          break;
 	}
     }
 
