@@ -2236,15 +2236,15 @@ void ZMultipole::SiteOpZMultipole::EvalSite(Topology *top, Segment *seg) {
         }
     }
 
-
-//    FILE *out;
-//    string shellFile = "OuterShell.pdb";
-//    out = fopen(shellFile.c_str(), "w");
-//    for (sit = _segsOutSphere.begin(); sit < _segsOutSphere.end(); ++sit) {
-//        (*sit)->WritePDB(out, "Multipoles", "");
-//    }
-//    fclose(out);
-
+    if (tools::globals::verbose) {
+        FILE *out;
+        string shellFile = "seg_" + boost::lexical_cast<string>(seg->getId())+ ".pdb";
+        out = fopen(shellFile.c_str(), "w");
+        for (sit = _segsPolSphere.begin(); sit < _segsPolSphere.end(); ++sit) {
+            (*sit)->WritePDB(out, "Multipoles", "Charges");
+        }
+        fclose(out);        
+    }
 
 
     // +++++++++++++++++++++++++ //

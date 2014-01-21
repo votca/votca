@@ -203,10 +203,10 @@ void JobWriter::mps_ct(Topology *top) {
     map< string, vector<string> > ::iterator mit;
     vector<string> ::iterator vit;
     state1_state2["n"] = vector<string>(1,"n");
-    state1_state2["h"] = vector<string>(1,"h");
-    state1_state2["h"].push_back("e");
-    state1_state2["e"] = vector<string>(1,"e");
-    state1_state2["e"].push_back("h");
+    state1_state2["h"] = vector<string>(1,"e");
+    //state1_state2["h"].push_back("h");
+    state1_state2["e"] = vector<string>(1,"h");
+    //state1_state2["e"].push_back("e");
     
     // CREATE JOBS FOR ALL PAIRS AND STATES
     cout << endl;

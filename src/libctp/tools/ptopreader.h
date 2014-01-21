@@ -23,6 +23,7 @@ public:
 private:
 
     string _ptop_file;
+    string _ptop_key;
     string _ptop_xml_file;
     string _ptop_tab_file;
 
@@ -33,6 +34,10 @@ void PtopReader::Initialize(Property *opt) {
     
     string key = "options.ptopreader";
     _ptop_file = opt->get(key+".ptop_file").as<string>();
+    if (opt->exists(key+".ptop_key")) {
+        _ptop_key = opt->get(key+".ptop_key").as<string>();
+    }
+    else _ptop_key = "bgn";
     _ptop_xml_file = _ptop_file+".xml";
     _ptop_tab_file = _ptop_file+".tab";
 }
@@ -46,8 +51,17 @@ bool PtopReader::Evaluate() {
     // LOAD BACKGROUND POLARIZATION STATE
     PolarTop ptop = PolarTop(NULL);
     ptop.LoadFromDrive(_ptop_file);
+    ptop.RemoveAllOwnership();
     
-    vector<PolarSeg*> bgn = ptop.BGN();  
+    vector<PolarSeg*> bgn;
+    if (_ptop_key == "bgn")
+        bgn = ptop.BGN();
+    else if (_ptop_key == "fgc")
+        bgn = ptop.FGC();
+    else if (_ptop_key == "fgn")
+        bgn = ptop.FGN();
+    else if (_ptop_key == "qm0")
+        bgn = ptop.QM0();
     
     
     cout << endl << pfx << "Background size = " << bgn.size() << flush;

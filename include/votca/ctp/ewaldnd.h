@@ -38,6 +38,7 @@ public:
     void CoarseGrainDensities(bool cg_bg, bool cg_fg, double cg_radius);
     void SetupMidground(double R_co);
     void WriteDensitiesPDB(string pdbfile);
+    void WriteDensitiesPtop(string fg, string mg, string bg);
     // THOLEWALD EVALUATION
     void Evaluate();
     void EvaluateFields();
@@ -149,7 +150,8 @@ protected:
     // Part II - Thole
     vector< PolarSeg* > _polar_qm0;
     vector< PolarSeg* > _polar_mm1;
-    vector< PolarSeg* > _polar_mm2;    // Should not be used        
+    vector< PolarSeg* > _polar_mm2;    // Should not be used
+    double _max_int_dist_qm0;
 
     // COARSE-GRAINING
     bool _coarse_do_cg_background;

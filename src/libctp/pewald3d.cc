@@ -248,7 +248,7 @@ EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum() {
         double R_overhead = 1.1;
         double R_add = 3;
         double R_max = _R_co*R_overhead+R_add;
-        double R_max_shell = R_max+2*_polar_cutoff;
+        double R_max_shell = R_max+2*_polar_cutoff+_max_int_dist_qm0;
         this->SetupMidground(R_max);
         
         // FOR EACH FOREGROUND SEGMENT (FGC) ...
@@ -579,7 +579,7 @@ void PEwald3D3D::Field_ConvergeRealSpaceSum() {
     double R_overhead = 1.1;
     double R_add = 3;
     double R_max = _R_co*R_overhead+R_add;
-    double R_max_shell = R_max+2*_polar_cutoff;
+    double R_max_shell = R_max+2*_polar_cutoff+_max_int_dist_qm0;
     this->SetupMidground(R_max);
 
     
