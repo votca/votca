@@ -7,7 +7,13 @@
 \newcommand{\sect}[1]{chapter~\ref{sec:#1}}
 \newcommand{\Sect}[1]{Chapter~\ref{sec:#1}}
 \newcommand{\slink}[2]{\hyperref[#1]{#2}}
-
+\newcommand\votcalogo{\includegraphics[width=17pt]{fig/logo_trans}}
+\newcommand\votcacommand[2]
+{
+\begin{bclogo}[couleur=mygray, arrondi =0 , logo=\votcalogo, barre=line,noborder=true]{\small #1}
+\itshape {\small #2}
+\end{bclogo}
+}
 
 \newcommand{\xml}{XML\xspace}
 \newcommand{\gromacs}{\texttt{GROMACS}\xspace}
