@@ -171,8 +171,8 @@ void PDB2Map::setTopologies(){
         _has_md = true;
     }
     else{
-        error1("Bad MD topology.\n"
-                "Please supply PDB or GRO file");
+        error1("... ... Bad MD topology.\n"
+               "... ... Please supply PDB or GRO file");
     }
     
     if (_has_xyz){
@@ -184,8 +184,8 @@ void PDB2Map::setTopologies(){
         _has_qm = true;
     }
     else{
-        error1("Bad MD topology.\n"
-               "Please supply XYZ file or PDB with chemical elements");
+        error1("... ... Bad MD topology.\n"
+               "... ... Please supply XYZ file or PDB with chemical elements");
     }
 }
 
@@ -273,16 +273,16 @@ void PDB2Map::readPDB(){
     Molecule * _molPtr = 0;
     // direct
     _molPtr = _topPtr->AddMolecule("M1");
-                // inverse
-                _molPtr->setTopology(_topPtr);
+              // inverse
+              _molPtr->setTopology(_topPtr);
     
     Segment  * _segPtr  = 0;
     // direct
     _segPtr = _topPtr->AddSegment("S1");
-               _molPtr->AddSegment(_segPtr);
-               // inverse
-                _segPtr->setTopology(_topPtr);
-                _segPtr->setMolecule(_molPtr);
+              _molPtr->AddSegment(_segPtr);
+              // inverse
+              _segPtr->setTopology(_topPtr);
+              _segPtr->setMolecule(_molPtr);
 
     // try: read PDB file
     std::ifstream _file( _input_pdb.c_str());
@@ -300,7 +300,6 @@ void PDB2Map::readPDB(){
     string _line;
     
     // counters for loops
-//    int _atom_id = 0;
     int _newResNum = 0;
     bool warning_showed = false;
 

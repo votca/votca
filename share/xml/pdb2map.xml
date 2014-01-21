@@ -1,7 +1,6 @@
 <options>
 
-<pdb2map help="Converts MD (pdb,gro) + QM (xyz) files to VOTCA mapping" label="calc:pdb2map" section="sec:pdb2map">
-	<mol_number help="Number of molecules in the box" default="1">1</mol_number>
+<pdb2map help="Converts MD + QM files to VOTCA mapping. Combinations: pdb,pdb+xyz,gro+xyz" label="calc:pdb2map" section="sec:pdb2map">
         <pdb help="Input pdb file" default="conf.pdb">conf.pdb</pdb>
         <gro help="Input gro file" default="conf.gro">conf.gro</gro>
         <xyz help="Input xyz file" default="conf.xyz">conf.xyz</xyz>
