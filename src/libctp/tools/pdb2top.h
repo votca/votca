@@ -56,7 +56,7 @@ private:
 
 void PDB2Top::Initialize(Property* options) {
     // read options    
-    string key = "options.top2map.";
+    string key = "options.pdb2top.";
 
     // set boolean constants to false
     _has_pdb = false;
