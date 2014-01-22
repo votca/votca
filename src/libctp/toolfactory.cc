@@ -25,6 +25,8 @@
 #include "tools/coupling.h"
 #include "tools/log2mps.h"
 #include "tools/ptopreader.h"
+#include "tools/pdb2top.h"
+
 
 
 namespace votca { namespace ctp {
@@ -36,6 +38,7 @@ void QMToolFactory::RegisterAll(void)
         QMTools().Register<Coupling>           ("coupling");
         QMTools().Register<Log2Mps>            ("log2mps");
         QMTools().Register<PtopReader>         ("ptopreader");
+        QMTools().Register<PDB2Top>            ("pdb2top");
 }
 
 }}
