@@ -108,10 +108,13 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     std::cout << "binary tree structures initialized" << endl;
 
     events = new Events();
+    std::cout << "meshes" << endl;
     events->Init_non_injection_meshes(state, eventdata);
+    std::cout << "meshes" << endl;
     events->Initialize_eventvector(graph,state,longrange,non_injection_rates,injection_rates,eventdata);
+    std::cout << "meshes" << endl;
     events->Init_injection_meshes(state, eventdata);
-    
+    std::cout << "meshes" << endl;    
     std::cout << "event vectors and meshes initialized" << endl;
 
     vssmgroup = new Vssmgroup();
@@ -149,21 +152,25 @@ void Diode::RunKMC() {
 
     sim_time = 0.0;
     for (long it = 0; it < 2*eventdata->nr_equilsteps + eventdata->nr_timesteps; it++) {
+//    for (long it = 0; it < 2; it++) {
         
         // Update longrange cache (expensive, so not done at every timestep)
         if(ldiv(it, eventdata->steps_update_longrange).rem == 0 && it>0){
             longrange->Update_cache(eventdata);
             events->Recompute_all_events(state, longrange, non_injection_rates, injection_rates, eventdata);
         }
-        
+        std::cout << "update" << endl;
         vssmgroup->Recompute(events, non_injection_rates, injection_rates);
         double timestep = vssmgroup->Timestep(RandomVariable);
         sim_time += timestep;
         Event* chosenevent = vssmgroup->Choose_event(events, non_injection_rates, injection_rates, RandomVariable);
+        std::cout << "choose event" << endl;
 
         numoutput->Update(chosenevent, sim_time, timestep);        
-        
+                std::cout << "execute before" << endl;
+
         events->On_execute(chosenevent, graph, state, longrange, non_injection_rates, injection_rates, eventdata);
+                std::cout << "execute after" << endl;
 
         
         std::cout << "it " << it << " ts " << timestep << " st " << sim_time;

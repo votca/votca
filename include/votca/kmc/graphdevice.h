@@ -35,6 +35,15 @@ public:
     ///define electrode nodes and form links between those nodes and neighbouring nodes and set maxpairdegree/hopping_distance/sim_box_size
     void Setup_device_graph(double left_distance, double right_distance, Eventinfo* eventinfo);       
     
+    ///translate graph in such a way that the minimum coordinates are at 0
+    void Translate_graph();
+    
+    ///reperiodicize graph
+    void Reperiodical();
+    
+    ///translate graph to accomodate device geometry
+    void Translate_electrode(double left_distance);
+    
     ///associate all links in links vector to the corresponding nodes
     void LinkSort();
     
@@ -85,42 +94,110 @@ private:
     
 };
 
+void GraphDevice::Translate_graph(){
+
+    // Put min x at 0
+    
+    votca::tools::vec pos = this->_nodes[0]->position(); // initial value 
+    double minX = pos.x();
+    double minY = pos.y();
+    double minZ = pos.z();
+
+    typename std::vector<NodeDevice*>::iterator it;      
+    for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) {
+        pos = (*it)->position(); 
+        if(pos.x() < minX) {minX = pos.x();}
+        if(pos.y() < minY) {minY = pos.y();}
+        if(pos.z() < minZ) {minZ = pos.z();}
+    }
+
+   //distance by which the graph should be translated is left_electrode_distance - minX
+ 
+    double xtranslate = -1.0*minX;
+    double ytranslate = -1.0*minY;
+    double ztranslate = -1.0*minZ;
+
+    for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) {
+        votca::tools::vec oldpos = (*it)->position();
+        double newxpos = oldpos.x() + xtranslate;
+        double newypos = oldpos.y() + ytranslate;
+        double newzpos = oldpos.z() + ztranslate;
+        votca::tools::vec newpos = votca::tools::vec(newxpos,newypos,newzpos);
+        (*it)->SetPosition(newpos);
+    }
+}
+
+void GraphDevice::Reperiodical(){
+   
+    //checks which nodes are falling outside the simboxsize
+    //periodically determine where they are in the simulation box
+    
+    votca::tools::vec old_sim_box_size = this->Determine_Sim_Box_Size();
+
+    typename std::vector<NodeDevice*>::iterator it;      
+    for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) {
+        votca::tools::vec oldpos = (*it)->position();
+        double newxpos = oldpos.x();
+        double newypos = oldpos.y();
+        double newzpos = oldpos.z();
+        if(oldpos.x()>old_sim_box_size.x()) { newxpos = oldpos.x()-old_sim_box_size.x();}
+        if(oldpos.y()>old_sim_box_size.y()) { newypos = oldpos.y()-old_sim_box_size.y();}
+        if(oldpos.z()>old_sim_box_size.z()) { newzpos = oldpos.z()-old_sim_box_size.z();}
+
+        votca::tools::vec newpos = votca::tools::vec(newxpos,newypos,newzpos);
+        (*it)->SetPosition(newpos);
+    }        
+}
+
+void GraphDevice::Translate_electrode(double left_distance) {
+    
+    // minimum coordinate is already at 0
+    double xtranslate = left_distance;
+
+    typename std::vector<NodeDevice*>::iterator it;      
+    for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) {
+        votca::tools::vec oldpos = (*it)->position();
+        double newxpos = oldpos.x() + xtranslate;
+        double newypos = oldpos.y(); double newzpos = oldpos.z();
+        votca::tools::vec newpos = votca::tools::vec(newxpos,newypos,newzpos);
+        (*it)->SetPosition(newpos);
+    }
+}
+
 void GraphDevice::Setup_device_graph(double left_distance, double right_distance, Eventinfo* eventinfo){
     
     // Determine hopping distance before breaking periodicity
     _hop_distance = this->Determine_Hopping_Distance();
     
-    // Break periodicity
-    this->Break_periodicity(true, false, false);
+    // Make sure injection hops are possible
+    if(left_distance > _hop_distance) {_hop_distance = left_distance;}
+    if(right_distance > _hop_distance) {_hop_distance = right_distance;}
     
     // Translate the graph due to the spatial location of the electrodes and update system box size accordingly, putting the left electrode at x = 0
     // left_electrode_distance is the distance of the left electrode to the node with minimum x-coordinate
+    // distance by which the graph should be translated is left_electrode_distance - minX
+
+    // Translate graph so that minimum coordinates are at 0
+    this->Translate_graph();
+
+    // Reperiodize the box
+    this->Reperiodical();
+
+    // Break periodicity
+    this->Break_periodicity(true, false, false);    
     
-    votca::tools::vec pos = this->_nodes[0]->position(); // initial value 
-    double minX = pos.x();
-
-    typename std::vector<NodeDevice*>::iterator it;      
-    for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) {
-        pos = (*it)->position(); if(pos.x() < minX) {minX = pos.x();}
-    }
-
-   //distance by which the graph should be translated is left_electrode_distance - minX
- 
-    double xtranslate = left_distance - minX;
-
-    for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) {
-        votca::tools::vec oldpos = (*it)->position();
-        double newxpos = oldpos.x() + xtranslate;
-        votca::tools::vec newpos = votca::tools::vec(newxpos,oldpos.y(),oldpos.z());
-        (*it)->SetPosition(newpos);
-    }
+    // Translate graph to accomodate for device geometry
+    this->Translate_electrode(left_distance);    
 
     //determine system box size and adjust accordingly to given electrode distances
-
+    
     votca::tools::vec old_sim_box_size = this->Determine_Sim_Box_Size();
     double new_sim_box_sizeX = old_sim_box_size.x() + left_distance + right_distance;
     _sim_box_size =  votca::tools::vec(new_sim_box_sizeX, old_sim_box_size.y(), old_sim_box_size.z());
+
+    std::cout << "simbox " << old_sim_box_size << " " << _sim_box_size << endl;
     
+    typename std::vector<NodeDevice*>::iterator it;    
     //set node types for existing nodes as Normal
     for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) (*it)->SetType((int) NormalNode);
     
@@ -139,7 +216,6 @@ void GraphDevice::Setup_device_graph(double left_distance, double right_distance
         int linkID = this->_links.size();
 
         if(left_distance <= _hop_distance) {
-            if((*it)->id() == 7739) std::cout << "left" << endl;
             votca::tools::vec dr = votca::tools::vec(-1.0*left_distance,0.0,0.0);   
             LinkSQL* newLinkCollect = this->AddLink(linkID,(*it), _left_electrode, dr); 
             linkID++;
@@ -240,15 +316,19 @@ votca::tools::vec GraphDevice::Determine_Sim_Box_Size(){
     double maxX = initpos.x(); double maxY = initpos.y(); double maxZ = initpos.z();
     double minX = initpos.x(); double minY = initpos.y(); double minZ = initpos.z();
     
+    int pairxfound1; int pairxfound2;
+    int pairyfound1; int pairyfound2;    
+    int pairzfound1; int pairzfound2;
+    
     typename std::vector<LinkDevice*>::iterator it;    
     for(it = this->_links.begin(); it != this->_links.end(); it++) {
-        
-        if(pairXfound&&pairYfound&&pairZfound) break;
         
         votca::tools::vec pos1 = (*it)->node1()->position();
         votca::tools::vec pos2 = (*it)->node2()->position();
         votca::tools::vec dr = (*it)->r12();
 
+        if((*it)->node1()->id() == 334) { std::cout << pos1 << " " << pos2 << " " << dr << endl;}
+        
         if(maxX<pos1.x()) {maxX = pos1.x();}   if(minX>pos1.x()) {minX = pos1.x();}
         if(maxY<pos1.y()) {maxY = pos1.y();}   if(minY>pos1.y()) {minY = pos1.y();}
         if(maxZ<pos1.z()) {maxZ = pos1.z();}   if(minZ>pos1.z()) {minZ = pos1.z();}

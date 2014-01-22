@@ -89,7 +89,8 @@ Event* Vssmgroup::Choose_event(Events* events, Bsumtree* non_injection_rates, Bs
         event_ID = non_injection_rates->search(randn);
         chosenevent = events->get_non_injection_event(event_ID);       
     }
-
+    std::cout << " tot_probsum " << tot_probsum << " " << inject_probsum << " " << non_inject_probsum << endl;
+    std::cout << randn << " event " << chosenevent->id() << " " << chosenevent->link()->node1()->id() << " " << chosenevent->link()->node2()->id() << endl;
     return chosenevent;
 }
 
