@@ -159,18 +159,14 @@ void Diode::RunKMC() {
             longrange->Update_cache(eventdata);
             events->Recompute_all_events(state, longrange, non_injection_rates, injection_rates, eventdata);
         }
-        std::cout << "update" << endl;
         vssmgroup->Recompute(events, non_injection_rates, injection_rates);
         double timestep = vssmgroup->Timestep(RandomVariable);
         sim_time += timestep;
         Event* chosenevent = vssmgroup->Choose_event(events, non_injection_rates, injection_rates, RandomVariable);
-        std::cout << "choose event" << endl;
 
         numoutput->Update(chosenevent, sim_time, timestep);        
-                std::cout << "execute before" << endl;
 
         events->On_execute(chosenevent, graph, state, longrange, non_injection_rates, injection_rates, eventdata);
-                std::cout << "execute after" << endl;
 
         
         std::cout << "it " << it << " ts " << timestep << " st " << sim_time;

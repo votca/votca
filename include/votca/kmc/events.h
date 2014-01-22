@@ -114,9 +114,8 @@ void Events::On_execute(Event* event, GraphDevice* graph, StateDevice* state, Lo
     
     Node* node1 = event->link()->node1();
     Node* node2 = event->link()->node2();
-    std::cout << "node1 " << event->init_type() << " " << event->final_type() << " " << node1->id() << " " << node2->id() << " " << node1->occ() << " " << node2->occ() << endl;
+    
     On_execute_node(node1, event->action_node1(), event->carrier_type(), graph, state, longrange, non_injection_rates, injection_rates, eventinfo );
-    std::cout << "node2" << endl;
     On_execute_node(node2, event->action_node2(), event->carrier_type(), graph, state, longrange, non_injection_rates, injection_rates, eventinfo );
         
 }
@@ -133,17 +132,14 @@ void Events:: Add_carrier(Node* node, int carrier_type, GraphDevice* graph, Stat
 
     int new_carrier_ID;
     //make sure the carrier_reservoir is not empty
-    std::cout << "before increase" << endl;
     if(state->ReservoirEmpty()){
         state->Grow(eventinfo->growsize, eventinfo->maxpairdegree);
         Grow_non_injection_eventvector(state, longrange, eventinfo);
         non_injection_rates->resize(_non_injection_events.size());
     }
-    std::cout << "after increase" << endl;
     //"buy" the "new" carrier
     new_carrier_ID = state->Buy();
     CarrierDevice* new_carrier = state->GetCarrier(new_carrier_ID);
-    std::cout << "after buy" << endl;
 
     if(carrier_type == (int) Electron) {
         new_carrier->SetCarrierType((int) Electron);
@@ -153,18 +149,11 @@ void Events:: Add_carrier(Node* node, int carrier_type, GraphDevice* graph, Stat
     }
 
     //place the new carrier in the graph
-        std::cout << "before placement" << endl;
-
     new_carrier->SetCarrierNode(node);
     node->AddCarrier(new_carrier_ID);
-        std::cout << "after placement" << endl;
 
     //add to mesh
-
-    std::cout << new_carrier_ID << " " << node->position() << endl;
-    
     Add_to_mesh(new_carrier_ID,node->position(), eventinfo);
-        std::cout << "after mesh" << endl;
 
     //Determine effect on Coulomb potential and rates
     Effect_potential_and_rates((int) Add, new_carrier, node, graph, state, longrange, non_injection_rates, injection_rates, eventinfo);
@@ -194,16 +183,13 @@ inline void Events::Effect_potential_and_rates(int action, CarrierDevice* carrie
                                    Bsumtree* non_injection_rates, Bsumtree* injection_rates,Eventinfo* eventinfo) {
 
     Effect_potential_and_non_injection_rates(action, carrier, node, state, longrange, non_injection_rates, eventinfo);
-    std::cout << "main " << endl;
+
     votca::tools::vec nodeposition = node->position();
     if(nodeposition.x()<eventinfo->coulcut) {
-    std::cout << "left pot " << endl;
         double dist_to_electrode = nodeposition.x();
         Effect_injection_rates(action, carrier, node, graph->left(), dist_to_electrode, state, longrange, injection_rates, eventinfo);
     }
     else if(eventinfo->simboxsize.x()-nodeposition.x() < eventinfo->coulcut) {
-    std::cout << "right pot " << endl;
-
         double dist_to_electrode = eventinfo->simboxsize.x()-nodeposition.x();
         Effect_injection_rates(action, carrier, node, graph->right(), dist_to_electrode, state, longrange, injection_rates, eventinfo);
     }
@@ -637,7 +623,7 @@ void Events::Init_non_injection_meshes(StateDevice* state, Eventinfo* eventinfo)
     _meshsize_x = simboxsize.x()/eventinfo->mesh_x; 
     _meshsize_y = simboxsize.y()/eventinfo->mesh_y; 
     _meshsize_z = simboxsize.z()/eventinfo->mesh_z;
-    std::cout << "meshsizes " << _meshsize_x << " " << _meshsize_y << " " << _meshsize_z << endl;
+
     _non_injection_events_mesh = Resize_mesh(eventinfo->mesh_x,eventinfo->mesh_y,eventinfo->mesh_z);
 
     // initialize meshes
@@ -714,8 +700,6 @@ void Events::Add_to_mesh(int ID, votca::tools::vec position, Eventinfo* eventinf
     double posx = position.x(); int iposx = floor(posx/_meshsize_x);
     double posy = position.y(); int iposy = floor(posy/_meshsize_y);
     double posz = position.z(); int iposz = floor(posz/_meshsize_z);
-    
-    std::cout << posx << " " << posy << " " << posz << " " << iposx << " " << iposy << " " << iposz << endl;
     
     if(posx == eventinfo->simboxsize.x()) {iposx--;}
     if(posy == eventinfo->simboxsize.y()) {iposy--;}
