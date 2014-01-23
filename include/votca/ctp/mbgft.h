@@ -94,7 +94,10 @@ public:
     // interfaces for options getting/setting
     bool get_do_qp_diag(){ return _do_qp_diag ;}
     void set_do_qp_diag( bool inp ){ _do_qp_diag = inp;}
-
+    
+    bool get_do_bse_diag(){ return _do_bse_diag ;}
+    void set_do_bse_diag( bool inp ){ _do_bse_diag = inp;}
+    
     bool get_do_bse_singlets(){ return _do_bse_singlets ;}
     void set_do_bse_singlets( bool inp ){ _do_bse_singlets = inp;}
 
@@ -175,6 +178,7 @@ public:
     
     // program tasks
     bool                                _do_qp_diag;
+    bool                                _do_bse_diag;
     bool                                _do_bse_singlets;
     bool                                _do_bse_triplets;
     

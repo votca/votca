@@ -68,7 +68,8 @@ void Exciton::Initialize(Property* options) {
             _mbgft.set_do_bse_triplets(false);
             _mbgft.set_ranges("default");
             _mbgft.set_store_qp_pert(true);
-
+            _mbgft.set_do_bse_diag(true);
+            _mbgft.set_store_eh_interaction(false);
 
             string key = "options." + Identify();
 
@@ -108,7 +109,7 @@ void Exciton::Initialize(Property* options) {
 
 
             // possible tasks
-            // diagQP, singlets, triplets, all
+            // diagQP, singlets, triplets, all, ibse
             string _tasks_string = options->get(key + ".tasks").as<string> ();
             if (_tasks_string.find("all") != std::string::npos) {
                 _mbgft.set_do_qp_diag(true);
@@ -119,6 +120,14 @@ void Exciton::Initialize(Property* options) {
             if (_tasks_string.find("singlets") != std::string::npos) _mbgft.set_do_bse_singlets(true);
             if (_tasks_string.find("triplets") != std::string::npos) _mbgft.set_do_bse_triplets(true);
 
+            // special construction for ibse mode
+            if (_tasks_string.find("ibse") != std::string::npos) {
+               _mbgft.set_do_qp_diag(false); // no qp diagonalization
+               _mbgft.set_do_bse_diag(false); // no diagonalization of BSE Hamiltonian
+               _mbgft.set_store_eh_interaction(true);
+            }
+            
+            
             // possible storage 
             // qpPert, qpdiag_energies, qp_diag_coefficients, bse_singlet_energies, bse_triplet_energies, bse_singlet_coefficients, bse_triplet_coefficients
 
@@ -132,7 +141,7 @@ void Exciton::Initialize(Property* options) {
             if (_store_string.find("qpdiag") != std::string::npos) _mbgft.set_store_qp_diag(true);
             if (_store_string.find("singlets") != std::string::npos) _mbgft.set_store_bse_singlets(true);
             if (_store_string.find("triplets") != std::string::npos) _mbgft.set_store_bse_triplets(true);
-
+            if (_store_string.find("ehint") != std::string::npos) _mbgft.set_store_eh_interaction(true);
 
             
             

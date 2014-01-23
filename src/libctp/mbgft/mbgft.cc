@@ -437,13 +437,20 @@ namespace votca {
 
                 if ( _store_eh_interaction) {
                     ub::matrix<float>& _eh_d_store = _orbitals->eh_d();
-                    _eh_d_store = _eh_d;
-                    // _orbitals->setEHinteraction(true);
+                    if ( _do_bse_diag  ){
+                       _eh_d_store = _eh_d;
+                    } else {
+                        // setup free transition part of BSE Hamiltonian and add to _eh_d storage
+                        BSE_qp_setup();
+                       _eh_d_store = _eh_d + _eh_qp; 
+                       _eh_qp.resize(0,0);
+                    }
+                               
                 }
                       
                 
                
-                if (_do_bse_triplets) {
+                if (_do_bse_triplets  && _do_bse_diag ) {
                     BSE_solve_triplets();
                     LOG(logINFO, *_pLog) << TimeStamp() << " Solved BSE for triplets " << flush;
 
@@ -490,7 +497,7 @@ namespace votca {
                         _bse_triplet_coefficients_store.resize( _bse_size, _bse_nmax);
                         for  (int _i_exc = 0; _i_exc < _bse_nmax; _i_exc++) {
                            _bse_triplet_energies_store[_i_exc] = _bse_triplet_energies( _i_exc );
-                           for  (int _i_bse = 0; _i_bse < _qptotal; _i_bse++) {
+                           for  (int _i_bse = 0; _i_bse < _bse_size; _i_bse++) {
                                _bse_triplet_coefficients_store( _i_bse, _i_exc ) = _bse_triplet_coefficients(_i_bse,_i_exc);
                            }
                         }
@@ -510,7 +517,7 @@ namespace votca {
                 if (_do_bse_singlets) {
                     // calculate exchange part of eh interaction, only needed for singlets
                     BSE_x_setup(_Mmn);
-                    if ( _store_eh_interaction) {
+                    if ( _store_eh_interaction ) {
                     ub::matrix<float>& _eh_x_store = _orbitals->eh_x();
                     _eh_x_store = _eh_x;
                     // _orbitals->setEHinteraction(true);
@@ -521,7 +528,7 @@ namespace votca {
 
 
 
-                if (_do_bse_singlets) {
+                if (_do_bse_singlets && _do_bse_diag ) {
                     BSE_solve_singlets();
                     LOG(logINFO, *_pLog) << TimeStamp() << " Solved BSE for singlets " << flush;
 
@@ -623,7 +630,7 @@ namespace votca {
                         _transition_dipoles_store.resize( _bse_nprint );
                         for  (int _i_exc = 0; _i_exc < _bse_nmax; _i_exc++) {
                            _bse_singlet_energies_store[_i_exc] = _bse_singlet_energies( _i_exc );
-                           for  (int _i_bse = 0; _i_bse < _qptotal; _i_bse++) {
+                           for  (int _i_bse = 0; _i_bse < _bse_size; _i_bse++) {
                                _bse_singlet_coefficients_store( _i_bse, _i_exc ) = _bse_singlet_coefficients(_i_bse,_i_exc);
                            }
 

@@ -29,6 +29,7 @@
 #include "tools/qmanalyze.h"
 #include "tools/qmsandbox.h"
 #include "tools/spectrum.h"
+#include "tools/excitoncoupling.h"
 
 namespace votca { namespace ctp {
 
@@ -42,7 +43,8 @@ void QMToolFactory::RegisterAll(void)
         QMTools().Register<Exciton>            ("exciton");
         QMTools().Register<QMAnalyze>          ("qmanalyze");
         QMTools().Register<QMSandbox>          ("qmsandbox");
-        QMTools().Register<Spectrum>           ("spectrum"); 
+        QMTools().Register<Spectrum>           ("spectrum");
+        QMTools().Register<ExcitonCoupling>    ("excitoncoupling"); 
 }
 
 }}

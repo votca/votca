@@ -61,6 +61,7 @@ namespace votca {
             _mbgft.set_ranges("default");
             _mbgft.set_store_qp_pert(true);
             _mbgft.set_store_eh_interaction(false);
+            _mbgft.set_do_bse_diag(true);
             // _bse_nmax        = 100;
             
             string key = "options." + Identify() + ".job";

@@ -55,6 +55,7 @@
       <logicalFolder name="f3" displayName="Tools" projectFiles="true">
         <itemPath>../../src/libctp/tools/coupling.h</itemPath>
         <itemPath>../../src/libctp/tools/exciton.h</itemPath>
+        <itemPath>../../src/libctp/tools/excitoncoupling.h</itemPath>
         <itemPath>../../src/libctp/tools/molpol.cc</itemPath>
         <itemPath>../../src/libctp/tools/molpol.h</itemPath>
         <itemPath>../../src/libctp/tools/pdb2map.h</itemPath>
@@ -70,6 +71,7 @@
       <itemPath>../../include/votca/ctp/apolarsite.h</itemPath>
       <itemPath>../../include/votca/ctp/atom.h</itemPath>
       <itemPath>../../include/votca/ctp/basisset.h</itemPath>
+      <itemPath>../../include/votca/ctp/bsecoupling.h</itemPath>
       <itemPath>../../include/votca/ctp/calculatorfactory.h</itemPath>
       <itemPath>../../include/votca/ctp/ctpapplication.h</itemPath>
       <itemPath>../../include/votca/ctp/ewald2d.h</itemPath>
@@ -173,6 +175,7 @@
         <itemPath>../../src/libctp/topology.cc</itemPath>
       </logicalFolder>
       <itemPath>../../src/libctp/apolarsite.cc</itemPath>
+      <itemPath>../../src/libctp/bsecoupling.cc</itemPath>
       <itemPath>../../src/libctp/ewald2d.cc</itemPath>
       <itemPath>../../src/libctp/ewald3d.cc</itemPath>
       <itemPath>../../src/libctp/ewaldactor.cc</itemPath>
@@ -254,6 +257,11 @@
       <item path="../../include/votca/ctp/atom.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/basisset.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/bsecoupling.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/ctp/calculatorfactory.h"
             ex="false"
@@ -420,6 +428,8 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/apolarsite.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/bsecoupling.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/calculatorfactory.cc"
             ex="false"
@@ -757,6 +767,11 @@
       </item>
       <item path="../../src/libctp/tools/exciton.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../src/libctp/tools/excitoncoupling.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/tools/molpol.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/molpol.h" ex="false" tool="3" flavor2="0">
@@ -813,6 +828,11 @@
       <item path="../../include/votca/ctp/atom.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/basisset.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/bsecoupling.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/ctp/calculatorfactory.h"
             ex="false"
@@ -979,6 +999,8 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/apolarsite.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/bsecoupling.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/calculatorfactory.cc"
             ex="false"
@@ -1315,6 +1337,11 @@
       <item path="../../src/libctp/tools/coupling.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/exciton.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libctp/tools/excitoncoupling.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../src/libctp/tools/molpol.cc" ex="false" tool="1" flavor2="0">
       </item>

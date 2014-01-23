@@ -58,13 +58,13 @@ namespace votca {
                     size_t _index_vc = _bse_ctotal * _v1 + _c1;
 
                     // diagonal
-                    _eh_qp( _index_vc , _index_vc ) += _vxc(_c1 + _bse_cmin ,_c1 + _bse_cmin ) - _vxc(_v1,_v1);
+                    _eh_qp( _index_vc , _index_vc ) += _vxc(_c1 + _bse_vtotal ,_c1 + _bse_vtotal ) - _vxc(_v1,_v1);
 
                     // v->c
                     for ( size_t _c2 = 0 ; _c2 < _bse_ctotal ; _c2++){
                         size_t _index_vc2 = _bse_ctotal * _v1 + _c2;
                         if ( _c1 != _c2 ){
-                            _eh_qp( _index_vc , _index_vc2 ) += _vxc(_c1+ _bse_cmin ,_c2 + _bse_cmin );
+                            _eh_qp( _index_vc , _index_vc2 ) += _vxc(_c1+ _bse_vtotal ,_c2 + _bse_vtotal );
                         }
                     }
                     
@@ -165,6 +165,8 @@ namespace votca {
             
             // _bse_singlet_energies.resize(_bse_singlet_coefficients.size1());
             linalg_eigenvalues(_bse, _bse_singlet_energies, _bse_singlet_coefficients, _bse_nmax);
+            
+       
             
         } 
         
