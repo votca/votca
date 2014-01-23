@@ -5,6 +5,7 @@
 #include <votca/ctp/xmapper.h>
 #include <votca/ctp/dmaspace.h>
 #include <votca/ctp/molpolengine.h>
+#include <boost/filesystem.hpp>
 
 namespace votca { 
 namespace ctp {
@@ -27,6 +28,7 @@ private:
     string                         _xml_file;
     XMpsMap                        _mps_mapper;
     bool                           _pdb_check;
+    bool                           _mps_check;
     string                         _load_ptop_archfile;
     
     bool                           _cg_anisotropic;
@@ -61,6 +63,10 @@ void CgPolar::Initialize(Property *opt) {
             _pdb_check = opt->get(key+".pdb_check").as<bool>();
         }
         else { _pdb_check = false; }
+        if (opt->exists(key+".mps_check")) {
+            _mps_check = opt->get(key+".mps_check").as<bool>();
+        }
+        else { _mps_check = false; }
         if (opt->exists(key+".load_ptop_from")) {
             _load_ptop_archfile = opt->get(key+".load_ptop_from").as<string>();
         }
@@ -95,6 +101,18 @@ bool CgPolar::EvaluateFrame(Topology *top) {
     }
     vector<PolarSeg*> bgn = ptop.BGN();
     
+    if (_mps_check) {
+        string atomistic = "mps_mapped";
+        if (!boost::filesystem::exists(atomistic)) {
+            boost::filesystem::create_directory(atomistic);
+        }
+        for (vector<PolarSeg*>::iterator sit = bgn.begin();
+            sit < bgn.end(); ++sit) {
+            string mpsfile = atomistic + "/" + boost::lexical_cast<string>((*sit)->getId()) + ".mps";
+            (*sit)->WriteMPS(mpsfile, "<cgpolar> (atomistic)");
+        }
+    }
+    
     // VERIFY INPUT: PDB, PTOP, XML
     if (_pdb_check) ptop.PrintPDB("cgpolar.fine.pdb");
     ptop.SaveToDrive("cgpolar.fine.ptop");    
@@ -119,8 +137,20 @@ bool CgPolar::EvaluateFrame(Topology *top) {
         cout << "\rCoarse-grain ID = " << (*sit)->getId() << flush;
         (*sit)->Coarsegrain(_cg_anisotropic);
         //(*sit)->WriteMPS("cgpolar.coarse.mps", "COARSE");
-        matrix p1 = engine.CalculateMolPol(*(*sit), true);
-        int a; cin >> a;
+        //matrix p1 = engine.CalculateMolPol(*(*sit), true);
+        //int a; cin >> a;
+    }
+    
+    if (_mps_check) {
+        string coarse = "mps_coarse";
+        if (!boost::filesystem::exists(coarse)) {
+            boost::filesystem::create_directory(coarse);
+        }
+        for (vector<PolarSeg*>::iterator sit = bgn.begin();
+            sit < bgn.end(); ++sit) {
+            string mpsfile = coarse + "/" + boost::lexical_cast<string>((*sit)->getId()) + ".mps";
+            (*sit)->WriteMPS(mpsfile, "<cgpolar> (coarse)");
+        }
     }
     
     // VERIFY OUTPUT: PDB, PTOP, XML
