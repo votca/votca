@@ -114,22 +114,22 @@ void Events::On_execute(Event* event, GraphDevice* graph, StateDevice* state, Lo
     
     Node* node1 = event->link()->node1();
     Node* node2 = event->link()->node2();
-    
+                  
     On_execute_node(node1, event->action_node1(), event->carrier_type(), graph, state, longrange, non_injection_rates, injection_rates, eventinfo );
     On_execute_node(node2, event->action_node2(), event->carrier_type(), graph, state, longrange, non_injection_rates, injection_rates, eventinfo );
-        
+    
 }
 
 void Events::On_execute_node(Node* node, int action, int carrier_type, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo) {
         
     if(action == (int) None)        {                                            }
     else if(action == (int) Add)    {Add_carrier(node, carrier_type, graph, state, longrange, non_injection_rates, injection_rates, eventinfo); } 
-    else if(action == (int) Remove) {Remove_carrier(node, graph, state, longrange, non_injection_rates, injection_rates, eventinfo);            }
-
+    else if(action == (int) Remove) { Remove_carrier(node, graph, state, longrange, non_injection_rates, injection_rates, eventinfo);            }
 }
 
 void Events:: Add_carrier(Node* node, int carrier_type, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo) {
 
+    
     int new_carrier_ID;
     //make sure the carrier_reservoir is not empty
     if(state->ReservoirEmpty()){
@@ -140,7 +140,7 @@ void Events:: Add_carrier(Node* node, int carrier_type, GraphDevice* graph, Stat
     //"buy" the "new" carrier
     new_carrier_ID = state->Buy();
     CarrierDevice* new_carrier = state->GetCarrier(new_carrier_ID);
-
+    
     if(carrier_type == (int) Electron) {
         new_carrier->SetCarrierType((int) Electron);
     }
@@ -154,7 +154,7 @@ void Events:: Add_carrier(Node* node, int carrier_type, GraphDevice* graph, Stat
 
     //add to mesh
     Add_to_mesh(new_carrier_ID,node->position(), eventinfo);
-
+ 
     //Determine effect on Coulomb potential and rates
     Effect_potential_and_rates((int) Add, new_carrier, node, graph, state, longrange, non_injection_rates, injection_rates, eventinfo);
 
@@ -162,18 +162,17 @@ void Events:: Add_carrier(Node* node, int carrier_type, GraphDevice* graph, Stat
 
 void Events:: Remove_carrier(Node* node, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo) {
    
-    
     CarrierDevice* removed_carrier = state->GetCarrier(node->occ());
 
     //remove from graph
     node->RemoveCarrier();    
-    
+  
     //Determine effect on Coulomb potential and rates
     Effect_potential_and_rates((int) Remove, removed_carrier, node, graph, state, longrange, non_injection_rates, injection_rates, eventinfo);    
 
     //remove from mesh
     Remove_from_mesh(removed_carrier->id(), node->position(), eventinfo);
-
+   
     //push back to reservoir
     state->Sell(removed_carrier->id());    
 
@@ -200,6 +199,7 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierDevice*
     int interact_sign;
     if(action == (int) Add)    {interact_sign =  1;}
     if(action == (int) Remove) {interact_sign = -1;}
+
     if(carrier1->type() == (int) Electron) {interact_sign *= -1;}
     if(carrier1->type() == (int) Hole)     {interact_sign *=  1;}
     
@@ -212,9 +212,9 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierDevice*
     votca::tools::vec carrier1_pos = node->position();
 
     // Define cubic boundaries in non-periodic coordinates
-    double ix1 = carrier1_pos.x()-eventinfo->mesh_x-eventinfo->hopdist; double ix2 = carrier1_pos.x()+eventinfo->mesh_x+eventinfo->hopdist;
-    double iy1 = carrier1_pos.y()-eventinfo->mesh_y-eventinfo->hopdist; double iy2 = carrier1_pos.y()+eventinfo->mesh_y+eventinfo->hopdist;
-    double iz1 = carrier1_pos.z()-eventinfo->mesh_z-eventinfo->hopdist; double iz2 = carrier1_pos.z()+eventinfo->mesh_z+eventinfo->hopdist;
+    double ix1 = carrier1_pos.x()-eventinfo->coulcut-eventinfo->hopdist; double ix2 = carrier1_pos.x()+eventinfo->coulcut+eventinfo->hopdist;
+    double iy1 = carrier1_pos.y()-eventinfo->coulcut-eventinfo->hopdist; double iy2 = carrier1_pos.y()+eventinfo->coulcut+eventinfo->hopdist;
+    double iz1 = carrier1_pos.z()-eventinfo->coulcut-eventinfo->hopdist; double iz2 = carrier1_pos.z()+eventinfo->coulcut+eventinfo->hopdist;
     
     // Break periodicity in x-direction
     if(eventinfo->device) {
@@ -229,12 +229,12 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierDevice*
     int sy2 = floor(iy2/_meshsize_y);
     int sz1 = floor(iz1/_meshsize_z);
     int sz2 = floor(iz2/_meshsize_z);
-    
+
     // Catch for the exceptional case that a carrier is on the boundary of the box
     if(ix2 == eventinfo->simboxsize.x()) {sx2--;}
     if(iy2 == eventinfo->simboxsize.y()) {sy2--;}
     if(iz2 == eventinfo->simboxsize.z()) {sz2--;}
-  
+
     // Now visit all relevant sublattices
     for (int isz=sz1; isz<=sz2; isz++) {
         int r_isz = isz;
@@ -319,7 +319,6 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierDevice*
                             if(distsqr <= RCSQR) {
 
                                 int event_ID = carrier2->id()*eventinfo->maxpairdegree + it;
-
                                 if(carrier2_node->links()[it]->node2()->id() == node->id()) {
                                     carrier2->Add_to_Coulomb(interact_sign*Compute_Coulomb_potential(carrier1_pos.x(),jumpdistance,false,eventinfo->simboxsize, eventinfo), it);
                                     _non_injection_events[event_ID]->Set_event(carrier2_node->links()[it], carrier2_type, state, longrange, eventinfo); // if carrier2 is actually linking with carrier1
@@ -342,7 +341,7 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierDevice*
             }
         }   
     }  
-
+   
     // update event rates for carrier 1 , done after all carriers within radius coulcut are checked
     for (int it = 0; it < node->links().size(); it++) { 
         int event_ID = carrier1->id()*eventinfo->maxpairdegree+it;

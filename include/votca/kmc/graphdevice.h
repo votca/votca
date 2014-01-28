@@ -34,12 +34,19 @@ public:
 
     ///define electrode nodes and form links between those nodes and neighbouring nodes and set maxpairdegree/hopping_distance/sim_box_size
     void Setup_device_graph(double left_distance, double right_distance, Eventinfo* eventinfo);       
+
+    void Init_cross_types();
+    
+    void Determine_cross_types();
     
     ///translate graph in such a way that the minimum coordinates are at 0
     void Translate_graph();
     
     ///reperiodicize graph
-    void Reperiodical();
+    void Push_in_box();
+    
+    ///resize the graph (by periodically repeating the morphology)
+    void Resize(double dimX, double dimY, double dimZ);
     
     ///translate graph to accomodate device geometry
     void Translate_electrode(double left_distance);
@@ -94,61 +101,6 @@ private:
     
 };
 
-void GraphDevice::Translate_graph(){
-
-    // Put min x at 0
-    
-    votca::tools::vec pos = this->_nodes[0]->position(); // initial value 
-    double minX = pos.x();
-    double minY = pos.y();
-    double minZ = pos.z();
-
-    typename std::vector<NodeDevice*>::iterator it;      
-    for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) {
-        pos = (*it)->position(); 
-        if(pos.x() < minX) {minX = pos.x();}
-        if(pos.y() < minY) {minY = pos.y();}
-        if(pos.z() < minZ) {minZ = pos.z();}
-    }
-
-   //distance by which the graph should be translated is left_electrode_distance - minX
- 
-    double xtranslate = -1.0*minX;
-    double ytranslate = -1.0*minY;
-    double ztranslate = -1.0*minZ;
-
-    for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) {
-        votca::tools::vec oldpos = (*it)->position();
-        double newxpos = oldpos.x() + xtranslate;
-        double newypos = oldpos.y() + ytranslate;
-        double newzpos = oldpos.z() + ztranslate;
-        votca::tools::vec newpos = votca::tools::vec(newxpos,newypos,newzpos);
-        (*it)->SetPosition(newpos);
-    }
-}
-
-void GraphDevice::Reperiodical(){
-   
-    //checks which nodes are falling outside the simboxsize
-    //periodically determine where they are in the simulation box
-    
-    votca::tools::vec old_sim_box_size = this->Determine_Sim_Box_Size();
-
-    typename std::vector<NodeDevice*>::iterator it;      
-    for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) {
-        votca::tools::vec oldpos = (*it)->position();
-        double newxpos = oldpos.x();
-        double newypos = oldpos.y();
-        double newzpos = oldpos.z();
-        if(oldpos.x()>old_sim_box_size.x()) { newxpos = oldpos.x()-old_sim_box_size.x();}
-        if(oldpos.y()>old_sim_box_size.y()) { newypos = oldpos.y()-old_sim_box_size.y();}
-        if(oldpos.z()>old_sim_box_size.z()) { newzpos = oldpos.z()-old_sim_box_size.z();}
-
-        votca::tools::vec newpos = votca::tools::vec(newxpos,newypos,newzpos);
-        (*it)->SetPosition(newpos);
-    }        
-}
-
 void GraphDevice::Translate_electrode(double left_distance) {
     
     // minimum coordinate is already at 0
@@ -172,7 +124,13 @@ void GraphDevice::Setup_device_graph(double left_distance, double right_distance
     // Make sure injection hops are possible
     if(left_distance > _hop_distance) {_hop_distance = left_distance;}
     if(right_distance > _hop_distance) {_hop_distance = right_distance;}
-    
+
+    // Determine boundary crossing types
+    this->Determine_cross_types();
+  
+    // Determine simulation box size
+    _sim_box_size = this->Determine_Sim_Box_Size();
+  
     // Translate the graph due to the spatial location of the electrodes and update system box size accordingly, putting the left electrode at x = 0
     // left_electrode_distance is the distance of the left electrode to the node with minimum x-coordinate
     // distance by which the graph should be translated is left_electrode_distance - minX
@@ -180,27 +138,33 @@ void GraphDevice::Setup_device_graph(double left_distance, double right_distance
     // Translate graph so that minimum coordinates are at 0
     this->Translate_graph();
 
-    // Reperiodize the box
-    this->Reperiodical();
-
+    // Push nodes back in box (crossing types are changed by this operation, so re-evaluate)
+    this->Push_in_box();
+    this->Determine_cross_types();
+    
+    // Resize by copying the box (crossing types are changed by this operation, so re-evaluate)
+    this->Resize(9.0, 9.0, 9.0);
+    this->Determine_cross_types();
+    
     // Break periodicity
     this->Break_periodicity(true, false, false);    
     
+    // Recalculate simulation box size after resizing and periodicity breaking
+    _sim_box_size = this->Determine_Sim_Box_Size();
+
     // Translate graph to accomodate for device geometry
     this->Translate_electrode(left_distance);    
 
-    //determine system box size and adjust accordingly to given electrode distances
+    //adjust simulation box size accordingly to given electrode distances
     
-    votca::tools::vec old_sim_box_size = this->Determine_Sim_Box_Size();
+    votca::tools::vec old_sim_box_size = _sim_box_size;
     double new_sim_box_sizeX = old_sim_box_size.x() + left_distance + right_distance;
-    _sim_box_size =  votca::tools::vec(new_sim_box_sizeX, old_sim_box_size.y(), old_sim_box_size.z());
+     _sim_box_size =  votca::tools::vec(new_sim_box_sizeX, old_sim_box_size.y(), old_sim_box_size.z());
 
-    std::cout << "simbox " << old_sim_box_size << " " << _sim_box_size << endl;
-    
     typename std::vector<NodeDevice*>::iterator it;    
     //set node types for existing nodes as Normal
     for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) (*it)->SetType((int) NormalNode);
-    
+ 
     //introduce the electrode nodes (might make a special electrode node header file for this)
     _left_electrode = new NodeDevice(-1, tools::vec(0.0,0.0,0.0));
     _right_electrode = new NodeDevice(-2, tools::vec(_sim_box_size.x(),0.0,0.0));
@@ -237,24 +201,25 @@ void GraphDevice::Setup_device_graph(double left_distance, double right_distance
     this->AddNode(_right_electrode);
     _left_electrode->RemoveCarrier();
     _right_electrode->RemoveCarrier();    
-    
+ 
     // associate links in links vector with the corresponding nodes
     this->LinkSort();
     
     // determine maximum degree of graph
     _max_pair_degree = this->Determine_Max_Pair_Degree();
-    
+   
     // Set the self-image coulomb potential on every node
     this->Set_Self_Image_Coulomb_Potential(_sim_box_size.x(), eventinfo);
+
     // Set the layer indices on every node
     this->Set_Layer_indices(eventinfo);
-    
+  
     // clear the occupation of the graph
     this->Clear();
 
     //renumber link id's
     this->RenumberId();    
-    
+   
 }
 
 
@@ -301,7 +266,6 @@ votca::tools::vec GraphDevice::Determine_Sim_Box_Size(){
     //Note that it is possible that none of the pairs pass the simulation box boundaries
     //In this special case, we must determine the node with max x/y/z coordinate and min x/y/z coordinate
     
-    //is a boundary crossing pair being found?
     bool pairXfound = false; bool pairYfound = false; bool pairZfound = false;
     
     //for determination of initial value of simboxsize
@@ -316,10 +280,6 @@ votca::tools::vec GraphDevice::Determine_Sim_Box_Size(){
     double maxX = initpos.x(); double maxY = initpos.y(); double maxZ = initpos.z();
     double minX = initpos.x(); double minY = initpos.y(); double minZ = initpos.z();
     
-    int pairxfound1; int pairxfound2;
-    int pairyfound1; int pairyfound2;    
-    int pairzfound1; int pairzfound2;
-    
     typename std::vector<LinkDevice*>::iterator it;    
     for(it = this->_links.begin(); it != this->_links.end(); it++) {
         
@@ -327,8 +287,6 @@ votca::tools::vec GraphDevice::Determine_Sim_Box_Size(){
         votca::tools::vec pos2 = (*it)->node2()->position();
         votca::tools::vec dr = (*it)->r12();
 
-        if((*it)->node1()->id() == 334) { std::cout << pos1 << " " << pos2 << " " << dr << endl;}
-        
         if(maxX<pos1.x()) {maxX = pos1.x();}   if(minX>pos1.x()) {minX = pos1.x();}
         if(maxY<pos1.y()) {maxY = pos1.y();}   if(minY>pos1.y()) {minY = pos1.y();}
         if(maxZ<pos1.z()) {maxZ = pos1.z();}   if(minZ>pos1.z()) {minZ = pos1.z();}
@@ -336,22 +294,112 @@ votca::tools::vec GraphDevice::Determine_Sim_Box_Size(){
         //theoretical possibility that hopping distance is larger than the actual simulation box size (pair crosses boundaries more than once), in which the value of simboxsize is to large
         //check for minimum to catch these exceptional cases
         
-        if(pos2.x()-pos1.x() < 0.0  && dr.x() > 0.0 ) { pairXfound = true; newX = pos1.x() + dr.x() - pos2.x(); if(!initXfound) {initXfound = true; simX = newX;} else if(simX>newX) { simX = newX;} }
-        if(pos2.x()-pos1.x() > 0.0  && dr.x() < 0.0 ) { pairXfound = true; newX = pos2.x() - dr.x() - pos1.x(); if(!initXfound) {initXfound = true; simX = newX;} else if(simX>newX) { simX = newX;} }
-        if(pos2.y()-pos1.y() < 0.0  && dr.y() > 0.0 ) { pairYfound = true; newY = pos1.y() + dr.y() - pos2.y(); if(!initYfound) {initYfound = true; simY = newY;} else if(simY>newY) { simY = newY;} }
-        if(pos2.y()-pos1.y() > 0.0  && dr.y() < 0.0 ) { pairYfound = true; newY = pos2.y() - dr.y() - pos1.y(); if(!initYfound) {initYfound = true; simY = newY;} else if(simY>newY) { simY = newY;} }
-        if(pos2.z()-pos1.z() < 0.0  && dr.z() > 0.0 ) { pairZfound = true; newZ = pos1.z() + dr.z() - pos2.z(); if(!initZfound) {initZfound = true; simZ = newZ;} else if(simZ>newZ) { simZ = newZ;} }
-        if(pos2.z()-pos1.z() > 0.0  && dr.z() < 0.0 ) { pairZfound = true; newZ = pos2.z() - dr.z() - pos1.z(); if(!initZfound) {initZfound = true; simZ = newZ;} else if(simZ>newZ) { simZ = newZ;} }
+        if((*it)->crossxtype() == (int) PosxCross ) {pairXfound = true; newX = pos1.x() + dr.x() - pos2.x(); if(!initXfound) {initXfound = true; simX = newX;} else if(simX<newX) { simX = newX;} }
+        if((*it)->crossxtype() == (int) NegxCross ) {pairXfound = true; newX = pos2.x() - dr.x() - pos1.x(); if(!initXfound) {initXfound = true; simX = newX;} else if(simX<newX) { simX = newX;} }
+        if((*it)->crossytype() == (int) PosyCross ) {pairYfound = true; newY = pos1.y() + dr.y() - pos2.y(); if(!initYfound) {initYfound = true; simY = newY;} else if(simY<newY) { simY = newY;} }
+        if((*it)->crossytype() == (int) NegyCross ) {pairYfound = true; newY = pos2.y() - dr.y() - pos1.y(); if(!initYfound) {initYfound = true; simY = newY;} else if(simY<newY) { simY = newY;} }
+        if((*it)->crossztype() == (int) PoszCross ) {pairZfound = true; newZ = pos1.z() + dr.z() - pos2.z(); if(!initZfound) {initZfound = true; simZ = newZ;} else if(simZ<newZ) { simZ = newZ;} }
+        if((*it)->crossztype() == (int) NegzCross ) {pairZfound = true; newZ = pos2.z() - dr.z() - pos1.z(); if(!initZfound) {initZfound = true; simZ = newZ;} else if(simZ<newZ) { simZ = newZ;} }
         
     }
     
-    //for the possible outcome that none of the pairs have crossed the simulation box boundary
+    //for the possible outcome that none of the pairs are crossing the simulation box boundary
     if(!pairXfound) {simX = maxX-minX;}
     if(!pairYfound) {simY = maxY-minY;}
     if(!pairZfound) {simZ = maxZ-minZ;}
 
     sim_box_size = votca::tools::vec(simX,simY,simZ);
     return sim_box_size;
+}
+
+void GraphDevice::Determine_cross_types(){
+
+    int number_of_x_crossing_links = 0;
+    int number_of_y_crossing_links = 0;
+    int number_of_z_crossing_links = 0;
+    
+    typename std::vector<LinkDevice*>::iterator it;
+    for(it = this->_links.begin(); it != this->_links.end(); it++) {
+
+        votca::tools::vec pos1 = (*it)->node1()->position();
+        votca::tools::vec pos2 = (*it)->node2()->position();
+        votca::tools::vec dr = (*it)->r12();
+
+        int crossx_flag = (int) NoxCross;
+        int crossy_flag = (int) NoyCross;
+        int crossz_flag = (int) NozCross;
+
+        if(pos2.x()-pos1.x() < 0.0  && dr.x() > 0.0 ) { crossx_flag = (int) PosxCross; number_of_x_crossing_links++; }
+        if(pos2.x()-pos1.x() > 0.0  && dr.x() < 0.0 ) { crossx_flag = (int) NegxCross; number_of_x_crossing_links++; }  
+        if(pos2.y()-pos1.y() < 0.0  && dr.y() > 0.0 ) { crossy_flag = (int) PosyCross; number_of_y_crossing_links++; }  
+        if(pos2.y()-pos1.y() > 0.0  && dr.y() < 0.0 ) { crossy_flag = (int) NegyCross; number_of_y_crossing_links++; }
+        if(pos2.z()-pos1.z() < 0.0  && dr.z() > 0.0 ) { crossz_flag = (int) PoszCross; number_of_z_crossing_links++; }  
+        if(pos2.z()-pos1.z() > 0.0  && dr.z() < 0.0 ) { crossz_flag = (int) NegzCross; number_of_z_crossing_links++; }
+        
+        (*it)->setCrossxType(crossx_flag);
+        (*it)->setCrossyType(crossy_flag);
+        (*it)->setCrosszType(crossz_flag);
+        
+    }
+}
+
+void GraphDevice::Translate_graph(){
+
+    // Put min x at 0
+    
+    votca::tools::vec pos = this->_nodes[0]->position(); // initial value 
+    double minX = pos.x();
+    double minY = pos.y();
+    double minZ = pos.z();
+
+    typename std::vector<NodeDevice*>::iterator it;      
+    for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) {
+        pos = (*it)->position(); 
+        if(pos.x() < minX) {minX = pos.x();}
+        if(pos.y() < minY) {minY = pos.y();}
+        if(pos.z() < minZ) {minZ = pos.z();}
+    }
+
+   //distance by which the graph should be translated is left_electrode_distance - minX
+ 
+    double xtranslate = -1.0*minX;
+    double ytranslate = -1.0*minY;
+    double ztranslate = -1.0*minZ;
+
+    for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) {
+        votca::tools::vec oldpos = (*it)->position();
+        double newxpos = oldpos.x() + xtranslate;
+        double newypos = oldpos.y() + ytranslate;
+        double newzpos = oldpos.z() + ztranslate;
+        votca::tools::vec newpos = votca::tools::vec(newxpos,newypos,newzpos);
+        (*it)->SetPosition(newpos);
+    }
+    
+}
+
+void GraphDevice::Push_in_box(){
+   
+    //checks which nodes are falling outside the simboxsize
+    //periodically determine where they are in the simulation box
+
+    int push_in_box_ops = 0;
+    
+    typename std::vector<NodeDevice*>::iterator it;      
+    for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) {
+        
+        votca::tools::vec pos = (*it)->position();
+        
+        double newxpos = pos.x(); double newypos = pos.y(); double newzpos = pos.z();
+        
+        while(newxpos>_sim_box_size.x()) { newxpos -= _sim_box_size.x(); push_in_box_ops++; }
+        while(newypos>_sim_box_size.y()) { newypos -= _sim_box_size.y(); push_in_box_ops++; }
+        while(newzpos>_sim_box_size.z()) { newzpos -= _sim_box_size.z(); push_in_box_ops++; }        
+
+        votca::tools::vec newpos = votca::tools::vec(newxpos,newypos,newzpos);
+        (*it)->SetPosition(newpos);
+
+    }
+    
 }
 
 void GraphDevice::Break_periodicity(bool break_x, bool break_y, bool break_z){
@@ -366,14 +414,151 @@ void GraphDevice::Break_periodicity(bool break_x, bool break_y, bool break_z){
 
         bool remove_flag = false;
         
-        if(break_x){ if(pos2.x()-pos1.x() < 0.0  && dr.x() > 0.0 ) remove_flag = true;  if(pos2.x()-pos1.x() > 0.0  && dr.x() < 0.0 ) remove_flag = true; }        
-        if(break_y){ if(pos2.y()-pos1.y() < 0.0  && dr.y() > 0.0 ) remove_flag = true;  if(pos2.y()-pos1.y() > 0.0  && dr.y() < 0.0 ) remove_flag = true; }
-        if(break_z){ if(pos2.z()-pos1.z() < 0.0  && dr.z() > 0.0 ) remove_flag = true;  if(pos2.z()-pos1.z() > 0.0  && dr.z() < 0.0 ) remove_flag = true; }
-        
+        if(break_x){ if(ilink->crossxtype() != (int) NoxCross) { remove_flag = true; } }        
+        if(break_y){ if(ilink->crossytype() != (int) NoyCross) { remove_flag = true; } } 
+        if(break_z){ if(ilink->crossztype() != (int) NozCross) { remove_flag = true; } }  
         if(remove_flag) this->RemoveLink(it);
         
     }
     
+}
+
+void GraphDevice::Resize(double dimX, double dimY, double dimZ) {
+
+    // determine number of copies
+    // the dimensions parallel to the electrodes are not really important (can be multiples of the box size)
+    // for dimensions perpendicular to the electrodes one can cut off the morphology
+    
+    double numberX = dimX/_sim_box_size.x();
+    double numberY = dimY/_sim_box_size.y();
+    double numberZ = dimZ/_sim_box_size.z();
+    
+    int repeatX = ceil(numberX);
+    int repeatY = ceil(numberY);
+    int repeatZ = ceil(numberZ);
+ 
+    int number_of_nodes = this->Numberofnodes();
+
+    // repeat nodes
+ 
+
+    for(int ix = 0; ix<repeatX; ix++){
+        for(int iy = 0; iy<repeatY; iy++){
+            for(int iz = 0; iz<repeatZ; iz++){
+                if(!((ix==0)&&((iy==0)&&(iz==0)))) {
+                    for(int it = 0; it < number_of_nodes; it++) {
+                        NodeDevice* probenode = this->GetNode(it);
+                        int node_id = probenode->id();
+                        votca::tools::vec node_pos = probenode->position();
+                        // remapping of the positions
+
+                        double posX = node_pos.x() + ix*_sim_box_size.x();
+                        double posY = node_pos.y() + iy*_sim_box_size.y();
+                        double posZ = node_pos.z() + iz*_sim_box_size.z();
+                        votca::tools::vec new_node_pos = votca::tools::vec(posX,posY,posZ);
+                        // remapping of the indices
+                        int new_node_id = node_id + (iz+iy*repeatZ+ix*repeatY*repeatZ)*number_of_nodes;
+
+                        // add node to nodes vector
+                        NodeDevice* newNodeDevice = this->AddNode(new_node_id,new_node_pos);
+                        Node* testnode = this->GetNode(new_node_id);
+
+                        // copy data to the periodically repeated nodes
+                        newNodeDevice->setU(probenode->UnCnNe(), probenode->UnCnNh(),   probenode->UcNcCe(), probenode->UcNcCh());
+                        newNodeDevice->setE(probenode->eAnion(), probenode->eNeutral(), probenode->eCation());
+                        newNodeDevice->setu(probenode->ucCnNe(), probenode->ucCnNh());
+                    }
+                }
+            }
+        }
+    }
+    
+    
+    // repeat links
+    
+    long number_of_links = this->Numberoflinks();
+    
+    for(long ilink = 0; ilink < number_of_links; ilink++) {
+        
+        LinkDevice* probelink = this->GetLink(ilink);
+        long link_id = ilink;
+        int node1_id = probelink->node1()->id();
+        int node2_id = probelink->node2()->id();
+        NodeDevice* node1 = this->GetNode(node1_id);
+        NodeDevice* node2 = this->GetNode(node2_id);
+
+        votca::tools::vec link_r12 = probelink->r12();
+
+        int lx; int ly; int lz;
+        int crossxtype = probelink->crossxtype();
+        int crossytype = probelink->crossytype();
+        int crossztype = probelink->crossztype();
+        
+        // make copies of the links
+
+        for(int ix = 0; ix<repeatX; ix++){
+            for(int iy = 0; iy<repeatY; iy++){
+                for(int iz = 0; iz<repeatZ; iz++){
+                    if(!((ix==0)&&((iy==0)&&(iz==0)))) {
+                        
+                        // id is in vector format not important
+                        long new_link_id = link_id + (iz+iy*repeatZ+ix*repeatY*repeatZ)*number_of_links;  
+                         
+                        // shift indices to allow for correct crossing over boundaries
+                        if(crossxtype == (int) NoxCross) { lx = ix;}
+                        if(crossxtype == (int) PosxCross) { lx = ix+1; if(lx == repeatX) {lx = 0;}}
+                        if(crossxtype == (int) NegxCross) { lx = ix-1; if(lx == -1) {lx = repeatX-1;}}
+
+                        if(crossytype == (int) NoyCross) { ly = iy;}
+                        if(crossytype == (int) PosyCross) { ly = iy+1; if(ly == repeatY) {ly = 0;}}
+                        if(crossytype == (int) NegyCross) { ly = iy-1; if(ly == -1) {ly = repeatY-1;}}
+
+                        if(crossztype == (int) NozCross) { lz = iz;}
+                        if(crossztype == (int) PoszCross) { lz = iz+1; if(lz == repeatZ) {lz = 0;}}
+                        if(crossztype == (int) NegzCross) { lz = iz-1; if(lz == -1) {lz = repeatZ-1;}}                        
+                        
+                        // obtain the new node pointers via the mapped id's
+                        int new_node1_id = node1_id + (iz+iy*repeatZ+ix*repeatY*repeatZ)*number_of_nodes;
+                        int new_node2_id = node2_id + (lz+ly*repeatZ+lx*repeatY*repeatZ)*number_of_nodes;
+
+                        NodeDevice* new_node1 = this->GetNode(new_node1_id);
+                        NodeDevice* new_node2 = this->GetNode(new_node2_id);
+                        
+                        // r12 is merely translated, not changed
+                        
+                        LinkDevice* newLinkDevice = this->AddLink(new_link_id,new_node1,new_node2,link_r12);
+                        
+                        // copy data to the periodically repeated nodes
+                        newLinkDevice->setRate(  probelink->rate12e(),probelink->rate12h(),probelink->rate21e(),probelink->rate21h());
+                        newLinkDevice->setJeff2( probelink->Jeff2e(), probelink->Jeff2h());
+                        newLinkDevice->setlO(    probelink->lOe(),    probelink->lOh());                        
+                        
+                    }
+                }
+            }
+        }
+        
+        // correctly reconnect the original links
+        if(crossxtype == (int) NoxCross)  { lx = 0;         }
+        if(crossxtype == (int) PosxCross) { lx = 1;         }
+        if(crossxtype == (int) NegxCross) { lx = repeatX-1; } 
+
+        if(crossytype == (int) NoyCross)  { ly = 0;         }
+        if(crossytype == (int) PosyCross) { ly = 1;         }
+        if(crossytype == (int) NegyCross) { ly = repeatY-1; }
+
+        if(crossztype == (int) NozCross)  { lz = 0;         }
+        if(crossztype == (int) PoszCross) { lz = 1;         }
+        if(crossztype == (int) NegzCross) { lz = repeatY-1; }
+        
+        int new_node1_id = node1_id;
+        int new_node2_id = node2_id + (lz+ly*repeatZ+lx*repeatY*repeatZ)*number_of_nodes;
+        NodeDevice* new_node1 = this->GetNode(new_node1_id);
+        NodeDevice* new_node2 = this->GetNode(new_node2_id);
+
+        probelink->SetNodes(new_node1, new_node2);        
+        
+    } 
 }
 
 void GraphDevice::Set_Self_Image_Coulomb_Potential(double device_length, Eventinfo* eventinfo){

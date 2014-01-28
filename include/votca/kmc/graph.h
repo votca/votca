@@ -28,7 +28,8 @@ template<class TNode, class TLink>
 class Graph {
 
 public:
-     Graph() {}
+     Graph() {
+     }
      
     ~Graph() {
         typename std::vector<TNode*>::iterator it;
@@ -51,7 +52,7 @@ public:
     int Numberofnodes() {return _nodes.size();}
 
     /// Add a node to the Graph
-    TLink* AddLink( int id, TNode* node1, TNode* node2, votca::tools::vec r12) { 
+    TLink* AddLink( long id, TNode* node1, TNode* node2, votca::tools::vec r12) { 
         TLink* link = new TLink(id, node1, node2, r12);
         _links.push_back(link); 
         return link;
@@ -59,8 +60,13 @@ public:
     
     void AddLink( TLink* link) { _links.push_back(link); }
     
+    TLink* GetLink(long link_ID) {return _links[link_ID];}
+    
     /// Remove link    
-    void RemoveLink(int linknr) {_links.erase(_links.begin()+linknr); }
+    void RemoveLink(long linknr) {_links.erase(_links.begin()+linknr); }
+    
+    /// Get number of links
+    int Numberoflinks() {return _links.size();}
     
     /// Print node information
     void PrintNodes(std::ostream& out){

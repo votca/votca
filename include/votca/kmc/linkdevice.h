@@ -23,6 +23,10 @@
 
 namespace votca { namespace kmc {
 
+enum CrossxType{NoxCross, PosxCross, NegxCross };        
+enum CrossyType{NoyCross, PosyCross, NegyCross };        
+enum CrosszType{NozCross, PoszCross, NegzCross };        
+    
 /**
  * \brief A link between two nodes
  * 
@@ -34,17 +38,28 @@ class LinkDevice: public LinkSQL
 
 public:
 
-    LinkDevice( int id, Node* node1, Node* node2, votca::tools::vec r12) : LinkSQL(id,node1,node2,r12){
+    LinkDevice( long id, Node* node1, Node* node2, votca::tools::vec r12) : LinkSQL(id,node1,node2,r12){
     };
     
     /// Set self image coulomb potential (potential of image charges  of a charge on the charge itself)
     void setSelfImage(double selfimage){_self_image = selfimage;}
 
+    void setCrossxType(int xtype) {_crossxtype = xtype;}
+    void setCrossyType(int ytype) {_crossytype = ytype;}
+    void setCrosszType(int ztype) {_crossztype = ztype;}
+    
     /// self image coulomb potential (potential of image charges  of a charge on the charge itself)
-    const double &self_image() const { return _self_image; }         
+    const double &self_image() const { return _self_image; }
+    
+    const int &crossxtype() const { return _crossxtype; }
+    const int &crossytype() const { return _crossytype; }
+    const int &crossztype() const { return _crossztype; }    
     
 private:
     double _self_image;
+    int _crossxtype;
+    int _crossytype;
+    int _crossztype;
     
 };
 

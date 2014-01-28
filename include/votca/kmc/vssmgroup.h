@@ -53,14 +53,13 @@ private:
 };
 
 double Vssmgroup::Timestep(votca::tools::Random2 *RandomVariable){
-
     double timestep;
     
     double rand_u = 1-RandomVariable->rand_uniform();
     while(rand_u == 0) {
         rand_u = 1-RandomVariable->rand_uniform();
     }
-        
+       
     timestep = -1/tot_probsum*log(rand_u);
     return timestep;
     
@@ -79,7 +78,6 @@ Event* Vssmgroup::Choose_event(Events* events, Bsumtree* non_injection_rates, Bs
     
     long event_ID;
     Event* chosenevent;
-    
     if(randn<inject_probsum) { // injection event
         event_ID = injection_rates->search(randn);
         chosenevent = events->get_injection_event(event_ID);
@@ -89,8 +87,6 @@ Event* Vssmgroup::Choose_event(Events* events, Bsumtree* non_injection_rates, Bs
         event_ID = non_injection_rates->search(randn);
         chosenevent = events->get_non_injection_event(event_ID);       
     }
-    std::cout << " tot_probsum " << tot_probsum << " " << inject_probsum << " " << non_inject_probsum << endl;
-    std::cout << randn << " event " << chosenevent->id() << " " << chosenevent->link()->node1()->id() << " " << chosenevent->link()->node2()->id() << endl;
     return chosenevent;
 }
 

@@ -36,6 +36,7 @@ namespace votca { namespace kmc {
     
 //typedef votca::tools::vec myvec;
 
+// LUMO level substracted!!!
    
 class Diode : public KMCCalculator 
 {
@@ -108,13 +109,9 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     std::cout << "binary tree structures initialized" << endl;
 
     events = new Events();
-    std::cout << "meshes" << endl;
     events->Init_non_injection_meshes(state, eventdata);
-    std::cout << "meshes" << endl;
     events->Initialize_eventvector(graph,state,longrange,non_injection_rates,injection_rates,eventdata);
-    std::cout << "meshes" << endl;
     events->Init_injection_meshes(state, eventdata);
-    std::cout << "meshes" << endl;    
     std::cout << "event vectors and meshes initialized" << endl;
 
     vssmgroup = new Vssmgroup();
@@ -149,36 +146,57 @@ void Diode::RunKMC() {
     srand(eventdata->seed); // srand expects any integer in order to initialise the random number generator
     votca::tools::Random2 *RandomVariable = new votca::tools::Random2();
     RandomVariable->init(rand(), rand(), rand(), rand());    
-
+    
     sim_time = 0.0;
-    for (long it = 0; it < 2*eventdata->nr_equilsteps + eventdata->nr_timesteps; it++) {
-//    for (long it = 0; it < 2; it++) {
-        
+    for (long it = 0; it < 20000 + 10000; it++) {
+//        std::cout << it << " wat" << endl;
         // Update longrange cache (expensive, so not done at every timestep)
         if(ldiv(it, eventdata->steps_update_longrange).rem == 0 && it>0){
             longrange->Update_cache(eventdata);
             events->Recompute_all_events(state, longrange, non_injection_rates, injection_rates, eventdata);
         }
         vssmgroup->Recompute(events, non_injection_rates, injection_rates);
+
         double timestep = vssmgroup->Timestep(RandomVariable);
+
         sim_time += timestep;
+
         Event* chosenevent = vssmgroup->Choose_event(events, non_injection_rates, injection_rates, RandomVariable);
 
         numoutput->Update(chosenevent, sim_time, timestep);        
-
+    
         events->On_execute(chosenevent, graph, state, longrange, non_injection_rates, injection_rates, eventdata);
 
-        
-        std::cout << "it " << it << " ts " << timestep << " st " << sim_time;
+        std::cout << it << " " << sim_time << " " << timestep << " ";
         numoutput->Write(sim_time);
-      
-        
-        // take care of output here
-
     }
+
 }
 
 }}
 
 
 #endif	/* __VOTCA_KMC_DIODE_H */
+
+/*        if(chosenevent->final_type() == (int) Recombination) {
+            NodeDevice* probenode = dynamic_cast<NodeDevice*>(chosenevent->link()->node2());
+            probenode->Add_reco();
+        }
+        
+        for(int icar=0;icar<state->GetCarrierSize();icar++){
+            if(state->GetCarrier(icar)->inbox()){
+                if(state->GetCarrier(icar)->type() == (int) Hole ){
+                    NodeDevice* probenode = dynamic_cast<NodeDevice*>(state->GetCarrier(icar)->node());
+                    probenode->Add_hole_occ(timestep);
+                }
+                else if(state->GetCarrier(icar)->type() == (int) Electron ){
+                    NodeDevice* probenode = dynamic_cast<NodeDevice*>(state->GetCarrier(icar)->node());
+                    probenode->Add_el_occ(timestep);
+                }
+            }
+        }*/
+
+
+/*    for (int inode = 0; inode<graph->Numberofnodes(); inode++) {
+        graph->GetNode(inode)->Init_vals();
+    }*/

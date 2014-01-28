@@ -151,7 +151,7 @@ inline double Event::Determine_to_sr_coulomb(Node* node, StateDevice* state, Eve
 
     double coulomb_to;
     if(_final_type == Collection) {coulomb_to = 0.0;                                                                                       }
-    else if(_init_type != Injection) {//std::cout << "hier nog toch?" << endl;
+    else if(_init_type != Injection) {
         coulomb_to = eventinfo->coulomb_strength*state->GetCarrier(node->occ())->to_site_coulomb(_link->id());}
     else if(_init_type == Injection) {coulomb_to = eventinfo->coulomb_strength*_injection_potential;}
     return coulomb_to;
@@ -186,6 +186,8 @@ void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* 
         prefactor = prefactor*(eventinfo->hole_prefactor);
         static_node_energy_from = dynamic_cast<NodeDevice*>(node1)->eAnion() + dynamic_cast<NodeDevice*>(node1)->ucCnNh();
         static_node_energy_to = dynamic_cast<NodeDevice*>(node2)->eAnion() + dynamic_cast<NodeDevice*>(node2)->ucCnNh();
+        if(_init_type == Injection) static_node_energy_from += 21.5;
+        if(_final_type == Collection) static_node_energy_to += 21.5;
     }
     //first calculate quantum mechanical wavefunction overlap
     votca::tools::vec distancevector = _link->r12();
@@ -235,6 +237,7 @@ void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* 
             }
         }
     }
+
     _rate = prefactor*distancefactor*energyfactor;
 }
 
@@ -246,7 +249,7 @@ void Event::Set_event(Link* link, int carrier_type, StateDevice* state, Longrang
     
     _carrier_type = carrier_type;
     _init_type = Determine_init_event_type(node1);
-
+    
     if (node2->occ() == -1) {_final_type = Determine_final_event_type(node1, node2);}
     else                    {_final_type = Determine_final_event_type(carrier_type, state->GetCarrier(node2->occ())->type(), node1, node2);}    
 
@@ -255,7 +258,6 @@ void Event::Set_event(Link* link, int carrier_type, StateDevice* state, Longrang
     
     Determine_rate(state, longrange, eventinfo);
 
-//    if(_final_type == (int) Collection) {std::cout << "coll " << _rate << endl;}
 }
 
 }} 

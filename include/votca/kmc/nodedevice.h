@@ -42,13 +42,23 @@ public:
     /// Layer index
     const int &layer() const {return _layer;}
 
+    const int &reco() const {return _reco_rate;}
+    const double &hole_occ() const {return _hole_occ;}
+    const double &el_occ() const {return _el_occ;}
+    
+    void Add_hole_occ(double occ) { _hole_occ += occ;}
+    void Add_el_occ(double occ) {_el_occ += occ;}
+    void Add_reco() {_reco_rate ++;}
+    
+    void Init_vals() {_hole_occ = 0.0; _el_occ = 0.0; _reco_rate = 0;}
     
 private:
 
     int _layer;
     double _self_image;
-
-    ;
+    double _hole_occ;
+    double _el_occ;
+    int _reco_rate;
     
 };
 
@@ -60,33 +70,23 @@ void NodeDevice::Compute_Self_Image_Coulomb_Potential(double startx, double devi
     int sign;
     double distx_1;
     double distx_2;
-    bool outside_cut_off1 = false;
-    bool outside_cut_off2 = false;
       
-    while(!(outside_cut_off1&&outside_cut_off2)) {
-        for (int i=0;i<eventinfo->nr_sr_images; i++) {
-            if (div(i,2).rem==0) { // even generation
-                sign = -1;
-                distx_1 = i*L + 2*startx;
-                distx_2 = (i+2)*L - 2*startx; 
-            }
-            else {
-                sign = 1;
-                distx_1 = (i+1)*L;
-                distx_2 = (i+1)*L;
-            }
-            if (distx_1<=eventinfo->coulcut) {
-                coulpot += sign*1.0/sqrt(distx_1)-1.0/(eventinfo->coulcut);
-            }
-            else {
-                outside_cut_off1 = true;
-            }
-            if (distx_2<=eventinfo->coulcut) {
-                coulpot += sign*1.0/sqrt(distx_2)-1.0/(eventinfo->coulcut);
-            }
-            else {
-                outside_cut_off2 = true;
-            }
+    for (int i=0;i<eventinfo->nr_sr_images; i++) {
+        if (div(i,2).rem==0) { // even generation
+            sign = -1;
+            distx_1 = i*L + 2*startx;
+            distx_2 = (i+2)*L - 2*startx; 
+        }
+        else {
+            sign = 1;
+            distx_1 = (i+1)*L;
+            distx_2 = (i+1)*L;
+        }
+        if (distx_1<=eventinfo->coulcut) {
+            coulpot += sign*1.0/sqrt(distx_1)-1.0/(eventinfo->coulcut);
+        }
+        if (distx_2<=eventinfo->coulcut) {
+            coulpot += sign*1.0/sqrt(distx_2)-1.0/(eventinfo->coulcut);
         }
     }
     _self_image = eventinfo->coulomb_strength*eventinfo->self_image_prefactor*coulpot;    

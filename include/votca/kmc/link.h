@@ -34,7 +34,7 @@ class Link
 {
 
 public:
-    Link( int id, Node* node1, Node* node2, votca::tools::vec r12) {
+    Link( long id, Node* node1, Node* node2, votca::tools::vec r12) {
         _id  = id;
         _node1 = node1;
         _node2 = node2;
@@ -42,7 +42,7 @@ public:
     } 
     
     /// link ID
-    const int &id() const { return _id; }
+    const long &id() const { return _id; }
     
     /// r2 - r1
     const votca::tools::vec &r12() const { return _r12; }    
@@ -57,7 +57,7 @@ public:
     void SetNodes(Node* node1, Node* node2) { _node1 = node1; _node2 = node2; }
     
     /// (re)set ID
-    void SetID(int id) { _id = id; } 
+    void SetID(long id) { _id = id; } 
     
     // print Link info
     virtual void Print(std::ostream &out) {
@@ -66,7 +66,7 @@ public:
     
 private:
     
-    int _id;
+    long _id;
     
     Node *_node1;
     Node *_node2;
