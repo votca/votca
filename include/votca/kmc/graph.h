@@ -47,6 +47,9 @@ public:
     
     /// Obtain node
     TNode* GetNode(int node_ID) {return _nodes[node_ID];}
+
+    /// Remove node    
+    void RemoveNode(long nodenr) {_nodes.erase(_nodes.begin()+nodenr);}
     
     /// Get number of nodes
     int Numberofnodes() {return _nodes.size();}
@@ -63,7 +66,7 @@ public:
     TLink* GetLink(long link_ID) {return _links[link_ID];}
     
     /// Remove link    
-    void RemoveLink(long linknr) {_links.erase(_links.begin()+linknr); }
+    void RemoveLink(long linknr) {_links.erase(_links.begin()+linknr);}
     
     /// Get number of links
     int Numberoflinks() {return _links.size();}

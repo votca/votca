@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef __VOTCA_KMC_GRAPHBULK_H_
-#define __VOTCA_KMC_GRAPHBULK_H_
+#ifndef __VOTCA_KMC_GRAPHDEVICE_H_
+#define __VOTCA_KMC_GRAPHDEVICE_H_
 
 #include <vector>
 #include <votca/kmc/graphsql.h>
@@ -55,7 +55,7 @@ public:
     void LinkSort();
     
     ///break the periodicity of the graph (breaking boundary crossing pairs) .. (run before linksort)
-    void Break_periodicity(bool break_x, bool break_y, bool break_z);
+    void Break_periodicity(bool break_x, double dimX, bool break_y, double dimY, bool break_z, double dimZ);
 
     ///calculate the maximum of all degrees in the graph
     int Determine_Max_Pair_Degree();
@@ -145,11 +145,14 @@ void GraphDevice::Setup_device_graph(double left_distance, double right_distance
     // Resize by copying the box (crossing types are changed by this operation, so re-evaluate)
     this->Resize(9.0, 9.0, 9.0);
     this->Determine_cross_types();
+
+    // Recalculate simulation box size after resizing
+    _sim_box_size = this->Determine_Sim_Box_Size();
     
     // Break periodicity
-    this->Break_periodicity(true, false, false);    
+    this->Break_periodicity(true,9.0,false,9.0,false,9.0);    
     
-    // Recalculate simulation box size after resizing and periodicity breaking
+    // Recalculate simulation box size after periodicity breaking
     _sim_box_size = this->Determine_Sim_Box_Size();
 
     // Translate graph to accomodate for device geometry
@@ -402,8 +405,9 @@ void GraphDevice::Push_in_box(){
     
 }
 
-void GraphDevice::Break_periodicity(bool break_x, bool break_y, bool break_z){
+void GraphDevice::Break_periodicity(bool break_x, double dimX, bool break_y, double dimY, bool break_z, double dimZ){
 
+    // Break crossing links
     for(int it = this->_links.size()-1; it != 0; it--) {
 
         LinkDevice* ilink = this->_links[it];
@@ -414,12 +418,41 @@ void GraphDevice::Break_periodicity(bool break_x, bool break_y, bool break_z){
 
         bool remove_flag = false;
         
-        if(break_x){ if(ilink->crossxtype() != (int) NoxCross) { remove_flag = true; } }        
-        if(break_y){ if(ilink->crossytype() != (int) NoyCross) { remove_flag = true; } } 
-        if(break_z){ if(ilink->crossztype() != (int) NozCross) { remove_flag = true; } }  
-        if(remove_flag) this->RemoveLink(it);
+        // remove crossing links and links which are connected to nodes which will fall out of the simulation box
+        
+        if(break_x){ if(ilink->crossxtype() != (int) NoxCross || (pos1.x() > dimX || pos2.x() > dimX)) { remove_flag = true; } }        
+        if(break_y){ if(ilink->crossytype() != (int) NoyCross || (pos1.y() > dimY || pos2.x() > dimX)) { remove_flag = true; } } 
+        if(break_z){ if(ilink->crossztype() != (int) NozCross || (pos1.z() > dimZ || pos2.x() > dimX)) { remove_flag = true; } }  
+        
+        if(remove_flag) {
+            this->RemoveLink(it);
+            delete ilink;   
+        }
         
     }
+  
+    // Remove nodes
+    
+    for(int it = this->_nodes.size()-1; it != 0; it--) {
+        
+        NodeDevice* inode = this->_nodes[it];
+        
+        votca::tools::vec pos = inode->position();
+        double xpos = pos.x(); double ypos = pos.y(); double zpos = pos.z();
+        
+        bool remove_flag = false;        
+        
+        if(break_x && xpos > dimX) { remove_flag = true; }
+        if(break_y && ypos > dimY) { remove_flag = true; }
+        if(break_z && zpos > dimZ) { remove_flag = true; }        
+                //   std::cout << "let me guess " << it << " " << pos.x() << " " << pos.y() << " " << pos.z() << " " << remove_flag << " ";    
+ 
+        if(remove_flag) {
+            this->RemoveNode(it);
+            delete inode;
+        }
+
+    }    
     
 }
 
