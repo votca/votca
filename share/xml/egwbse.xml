@@ -1,7 +1,7 @@
 <options>
 
 <!-- ctp_run -e gwbse -f state.db -o options.xml -->
-<gwbse help="An implementation of GW-BSE." label="calc:gwbse">
+<egwbse help="An implementation of GW-BSE." label="calc:gwbse">
 
 	<job help="Job options">
 		<file help="Job control file (full path)"></file>
@@ -21,6 +21,6 @@
         <exctotal>100</exctotal>
         <print>10</print>
 
-</gwbse>
+</egwbse>
 
 </options>

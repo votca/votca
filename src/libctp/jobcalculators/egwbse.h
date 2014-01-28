@@ -25,7 +25,7 @@
 #define	_CALC_GWBSE_TOOL_H
 
 
-#include <votca/ctp/mbgft.h> // including GWBSE functionality
+#include <votca/ctp/gwbse.h> // including GWBSE functionality
 #include <votca/ctp/segment.h>
 #include <votca/ctp/orbitals.h>
 #include <votca/ctp/aobasis.h>
@@ -49,9 +49,7 @@
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/io.hpp>
-// #include <gsl/gsl_eigen.h>
-// #include <gsl/gsl_linalg.h>
-// #include <gsl/gsl_cblas.h>
+
 
 namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
@@ -60,28 +58,39 @@ namespace votca { namespace ctp {
 *
 * Requires a first-principles package, i.e. GAUSSIAN installation
 *
-* Callname: gwbse
+* Callname: egwbse
 */
 
-class GWBSE : public ParallelXJobCalc< vector<Job*>, Job*, Job::JobResult >
+class EGWBSE : public ParallelXJobCalc< vector<Job*>, Job*, Job::JobResult >
 {
 public:
 
-    GWBSE() {};
-   ~GWBSE() {};
+    EGWBSE() {};
+   ~EGWBSE() {};
 
-    string  Identify() { return "gwbse"; }
+    string  Identify() { return "egwbse"; }
     void    Initialize( Property *options);
-    // void    ParseOrbitalsXML(Topology *top, Property *options);
     Job::JobResult EvalJob(Topology *top, Job *job, QMThread *thread);
-
+    
+    string              _package;
+    Property            _package_options; 
+    Property            _gwbse_options; 
+    
     void    CleanUp();
 
-    // int getMlower(){ return mmin -1; };
-    // int getMupper(){ return mmax -1; };
     
-    // all GWBSE functionality is in MBGFT object
-    MBGFT _mbgft; 
+    // what to do
+    bool                _do_dft_input;
+    bool                _do_dft_run;
+    bool                _do_dft_parse;
+    bool                _do_gwbse;
+
+    
+    // all GWBSE functionality is in GWBSE object
+    GWBSE _gwbse; 
+    
+    
+    void ParseOptionsXML( Property *options);    
 
 };
 

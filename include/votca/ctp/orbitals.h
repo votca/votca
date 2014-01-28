@@ -257,6 +257,25 @@ public:
     bool hasTransitionDipoles() {return (_transition_dipoles.size() > 0 ) ? true : false ;}
     const std::vector<std::vector<double> > &TransitionDipoles() const { return _transition_dipoles; }
     std::vector<std::vector<double> > &TransitionDipoles()  { return _transition_dipoles; }
+
+    // access to singlet coupling elements
+    bool hasSingletCouplings() {return (_BSE_singlet_couplings.size1() > 0 ) ? true : false ;}
+    const ub::matrix<float> &SingletCouplings() const { return _BSE_singlet_couplings; }
+    ub::matrix<float> &SingletCouplings()   { return _BSE_singlet_couplings; }
+
+    // access to triplet coupling elements
+    bool hasTripletCouplings() {return (_BSE_triplet_couplings.size1() > 0 ) ? true : false ;}
+    const ub::matrix<float> &TripletCouplings() const { return _BSE_triplet_couplings; }
+    ub::matrix<float> &TripletCouplings()   { return _BSE_triplet_couplings; }
+    
+    // exciton coupling number of levels information
+    bool           hasCoupledExcitonsA() { return ( _couplingsA > 0 ) ? true : false ; }
+    int            getCoupledExcitonsA() { return  _couplingsA ; } 
+    void           setCoupledExcitonsA( const int &excitons ) { _couplingsA = excitons;}
+    bool           hasCoupledExcitonsB() { return ( _couplingsB > 0 ) ? true : false ; }
+    int            getCoupledExcitonsB() { return  _couplingsB ; } 
+    void           setCoupledExcitonsB( const int &excitons ) { _couplingsB = excitons;}
+
     
     /* ===
      *    OLD ACCESS FUNCTIONS
@@ -373,7 +392,12 @@ private:
     ub::matrix<float>                      _BSE_singlet_coefficients;
     std::vector<std::vector<double> >      _transition_dipoles;
     std::vector<float>                     _BSE_triplet_energies;
-    ub::matrix<float>                      _BSE_triplet_coefficients;    
+    ub::matrix<float>                      _BSE_triplet_coefficients;   
+    
+    ub::matrix<float>                      _BSE_singlet_couplings;
+    ub::matrix<float>                      _BSE_triplet_couplings;
+    int                                    _couplingsA;
+    int                                    _couplingsB;
     
 
 private:
@@ -460,6 +484,11 @@ private:
         
         ar & _BSE_triplet_energies; 
         ar & _BSE_triplet_coefficients;
+        
+        ar & _BSE_singlet_couplings;
+        ar & _BSE_triplet_couplings;
+        ar & _couplingsA;
+        ar & _couplingsB;
             
         // symmetric matrix does not serialize by default
          if (Archive::is_saving::value) {
@@ -478,6 +507,8 @@ private:
                for (unsigned int j = 0; j <= i; ++j)
                    ar & _vxc(i, j); 
             
+           
+           
        } // end version 1: GW-BSE storage
     }// end of serialization
 };

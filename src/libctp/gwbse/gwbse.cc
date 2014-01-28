@@ -20,7 +20,7 @@
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/ctp/votca_ctp_config.h>
 
-#include <votca/ctp/mbgft.h>
+#include <votca/ctp/gwbse.h>
 
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
@@ -32,6 +32,7 @@
 #include <boost/math/constants/constants.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <votca/tools/linalg.h>
+#include <omp.h>
 
 using boost::format;
 using namespace boost::filesystem;
@@ -41,12 +42,108 @@ namespace votca {
         namespace ub = boost::numeric::ublas;
 
         // +++++++++++++++++++++++++++++ //
-        // MBGFT MEMBER FUNCTIONS        //
+        // GWBSE MEMBER FUNCTIONS        //
         // +++++++++++++++++++++++++++++ //
 
-        void MBGFT::CleanUp() {
+        void GWBSE::CleanUp() {
 
         }
+        
+        
+        void GWBSE::Initialize(Property* options){
+
+           // setting some defaults
+            _do_qp_diag = false;
+            _do_bse_singlets = false;
+            _do_bse_triplets = false;
+            _ranges = "default";
+            _store_qp_pert = true;
+            _do_bse_diag = true;
+            _store_eh_interaction = false;
+            _openmp_threads = 0; // take all available
+            string key =  Identify();
+    
+            // getting level ranges 
+            _ranges = options->get(key + ".ranges").as<string> ();
+            // now check validity, and get rpa, qp, and bse level ranges accordingly
+            if (_ranges == "factor") {
+                // get factors
+                _rpamaxfactor = options->get(key + ".rpamax").as<double> ();
+                _qpminfactor = options->get(key + ".qpmin").as<double> ();
+                _qpmaxfactor = options->get(key + ".qpmax").as<double> ();
+                _bseminfactor = options->get(key + ".bsemin").as<double> ();
+                _bsemaxfactor = options->get(key + ".bsemax").as<double> ();
+            } else if ( _ranges == "explicit") {
+                //get explicit numbers
+                _rpamax = options->get(key + ".rpamax").as<unsigned int> ();
+                _qpmin = options->get(key + ".qpmin").as<unsigned int> ();
+                _qpmax = options->get(key + ".qpmax").as<unsigned int> ();
+                _bse_vmin = options->get(key + ".bsemin").as<unsigned int> ();
+                _bse_cmax = options->get(key + ".bsemax").as<unsigned int> ();
+            } else if ( _ranges == "") {
+                _ranges  = "default";
+            } else {
+                cerr << "\nSpecified range option " << _ranges<< " invalid. ";
+                throw std::runtime_error("\nValid options are: default,factor,explicit");
+            }
+
+            _bse_nmax = options->get(key + ".exctotal").as<int> ();
+	    _bse_nprint = options->get(key + ".print").as<int> ();
+
+            // get OpenMP thread number
+            _openmp_threads = options->get(key + ".openmp").as<int> ();
+            
+            
+            _gwbasis_name = options->get(key + ".gwbasis").as<string> ();
+            _dftbasis_name = options->get(key + ".dftbasis").as<string> ();
+            _shift = options->get(key + ".shift").as<double> ();
+
+
+            // possible tasks
+            // diagQP, singlets, triplets, all, ibse
+            string _tasks_string = options->get(key + ".tasks").as<string> ();
+            if (_tasks_string.find("all") != std::string::npos) {
+                _do_qp_diag = true;
+                _do_bse_singlets = true;
+                _do_bse_triplets = true;
+            }
+            if (_tasks_string.find("qpdiag") != std::string::npos) _do_qp_diag = true;
+            if (_tasks_string.find("singlets") != std::string::npos) _do_bse_singlets = true;
+            if (_tasks_string.find("triplets") != std::string::npos) _do_bse_triplets = true;
+
+            // special construction for ibse mode
+            if (_tasks_string.find("igwbse") != std::string::npos) {
+               _do_qp_diag = false; // no qp diagonalization
+               _do_bse_diag = false; // no diagonalization of BSE Hamiltonian
+               _store_eh_interaction = true;
+            }
+            
+            
+            // possible storage 
+            // qpPert, qpdiag_energies, qp_diag_coefficients, bse_singlet_energies, bse_triplet_energies, bse_singlet_coefficients, bse_triplet_coefficients
+
+            string _store_string = options->get(key + ".store").as<string> ();
+            if ((_store_string.find("all") != std::string::npos) || (_store_string.find("") != std::string::npos)) {
+                // store according to tasks choice
+                if ( _do_qp_diag ) _store_qp_diag = true;
+                if ( _do_bse_singlets) _store_bse_singlets = true;
+                if ( _do_bse_triplets) _store_bse_triplets = true;
+            }
+            if (_store_string.find("qpdiag") != std::string::npos) _store_qp_diag = true;
+            if (_store_string.find("singlets") != std::string::npos) _store_bse_singlets = true;
+            if (_store_string.find("triplets") != std::string::npos) _store_bse_triplets = true;
+            if (_store_string.find("ehint") != std::string::npos) _store_eh_interaction = true;
+
+            
+
+
+
+            
+            
+        }
+        
+        
+        
         
         
         /* 
@@ -61,8 +158,11 @@ namespace votca {
          
          */
         
-        bool MBGFT::Evaluate( Orbitals* _orbitals) {
+        bool GWBSE::Evaluate( Orbitals* _orbitals) {
 
+            
+            // set the parallelization 
+            if ( _openmp_threads > 0 ) omp_set_num_threads(_openmp_threads);
 
             /* check which QC program was used for the DFT run 
              * -> implicit info about MO coefficient storage order 

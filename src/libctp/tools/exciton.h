@@ -23,7 +23,7 @@
 #include <stdio.h>
 
 #include <votca/ctp/logger.h>
-#include <votca/ctp/mbgft.h>
+#include <votca/ctp/gwbse.h>
 #include <votca/ctp/qmpackagefactory.h>
 
 namespace votca { namespace ctp {
@@ -41,7 +41,7 @@ public:
     void   Initialize(Property *options);
     bool   Evaluate();
 
-    MBGFT _mbgft;
+    GWBSE _gwbse;
  
 
 private:
@@ -50,7 +50,8 @@ private:
     string      _logfile;
 
     string      _package;
-    Property    _package_options; 
+    Property    _package_options;
+    Property    _gwbse_options;
     
     string      _output_file;
     
@@ -61,90 +62,17 @@ private:
 void Exciton::Initialize(Property* options) {
 
             // update options with the VOTCASHARE defaults   
-    UpdateWithDefaults( options );
-            // setting some defaults
-            _mbgft.set_do_qp_diag(false);
-            _mbgft.set_do_bse_singlets(false);
-            _mbgft.set_do_bse_triplets(false);
-            _mbgft.set_ranges("default");
-            _mbgft.set_store_qp_pert(true);
-            _mbgft.set_do_bse_diag(true);
-            _mbgft.set_store_eh_interaction(false);
+            UpdateWithDefaults( options );
 
             string key = "options." + Identify();
-
            _output_file =  options->get(key + ".archive").as<string>();
-            
-            // getting level ranges 
-            _mbgft.set_ranges(options->get(key + ".ranges").as<string> ());
-            // now check validity, and get rpa, qp, and bse level ranges accordingly
-            if (_mbgft.get_ranges() == "factor") {
-                // get factors
-                _mbgft.set_rpamaxfactor(options->get(key + ".rpamax").as<double> ());
-                _mbgft.set_qpminfactor(options->get(key + ".qpmin").as<double> ());
-                _mbgft.set_qpmaxfactor(options->get(key + ".qpmax").as<double> ());
-                _mbgft.set_bseminfactor(options->get(key + ".bsemin").as<double> ());
-                _mbgft.set_bsemaxfactor(options->get(key + ".bsemax").as<double> ());
-            } else if (_mbgft.get_ranges() == "explicit") {
-                //get explicit numbers
-                _mbgft.set_rpamax(options->get(key + ".rpamax").as<unsigned int> ());
-                _mbgft.set_qpmin(options->get(key + ".qpmin").as<unsigned int> ());
-                _mbgft.set_qpmax(options->get(key + ".qpmax").as<unsigned int> ());
-                _mbgft.set_bse_vmin(options->get(key + ".bsemin").as<unsigned int> ());
-                _mbgft.set_bse_cmax(options->get(key + ".bsemax").as<unsigned int> ());
-            } else if (_mbgft.get_ranges() == "") {
-                _mbgft.set_ranges("default");
-            } else {
-                cerr << "\nSpecified range option " << _mbgft.get_ranges() << " invalid. ";
-                throw std::runtime_error("\nValid options are: default,factor,explicit");
-            }
 
-            _mbgft.set_bse_nmax(options->get(key + ".exctotal").as<int> ());
-	    _mbgft.set_bse_nprint(options->get(key + ".print").as<int> ());
-
-
-            _mbgft.set_gwbasis_name(options->get(key + ".gwbasis").as<string> ());
-            _mbgft.set_dftbasis_name(options->get(key + ".dftbasis").as<string> ());
-            _mbgft.set_shift(options->get(key + ".shift").as<double> ());
-
-
-            // possible tasks
-            // diagQP, singlets, triplets, all, ibse
-            string _tasks_string = options->get(key + ".tasks").as<string> ();
-            if (_tasks_string.find("all") != std::string::npos) {
-                _mbgft.set_do_qp_diag(true);
-                _mbgft.set_do_bse_singlets(true);
-                _mbgft.set_do_bse_triplets(true);
-            }
-            if (_tasks_string.find("qpdiag") != std::string::npos) _mbgft.set_do_qp_diag(true);
-            if (_tasks_string.find("singlets") != std::string::npos) _mbgft.set_do_bse_singlets(true);
-            if (_tasks_string.find("triplets") != std::string::npos) _mbgft.set_do_bse_triplets(true);
-
-            // special construction for ibse mode
-            if (_tasks_string.find("ibse") != std::string::npos) {
-               _mbgft.set_do_qp_diag(false); // no qp diagonalization
-               _mbgft.set_do_bse_diag(false); // no diagonalization of BSE Hamiltonian
-               _mbgft.set_store_eh_interaction(true);
-            }
-            
-            
-            // possible storage 
-            // qpPert, qpdiag_energies, qp_diag_coefficients, bse_singlet_energies, bse_triplet_energies, bse_singlet_coefficients, bse_triplet_coefficients
-
-            string _store_string = options->get(key + ".store").as<string> ();
-            if ((_store_string.find("all") != std::string::npos) || (_store_string.find("") != std::string::npos)) {
-                // store according to tasks choice
-                if (_mbgft.get_do_qp_diag()) _mbgft.set_store_qp_diag(true);
-                if (_mbgft.get_do_bse_singlets()) _mbgft.set_store_bse_singlets(true);
-                if (_mbgft.get_do_bse_triplets()) _mbgft.set_store_bse_triplets(true);
-            }
-            if (_store_string.find("qpdiag") != std::string::npos) _mbgft.set_store_qp_diag(true);
-            if (_store_string.find("singlets") != std::string::npos) _mbgft.set_store_bse_singlets(true);
-            if (_store_string.find("triplets") != std::string::npos) _mbgft.set_store_bse_triplets(true);
-            if (_store_string.find("ehint") != std::string::npos) _mbgft.set_store_eh_interaction(true);
-
-            
-            
+           // options for GWBSE package
+           string _gwbse_xml = options->get(key+".gwbse").as<string> ();
+           //cout << endl << "... ... Parsing " << _package_xml << endl ;
+           load_property_from_xml( _gwbse_options, _gwbse_xml.c_str() );    
+           
+           
             // something unique
            _package = options->get(key + ".package").as<string> ();
        
@@ -189,9 +117,9 @@ bool Exciton::Evaluate() {
     _qmpackage->setLogFileName( _logfile );
     int _parse_log_status = _qmpackage->ParseLogFile( &_orbitals );
     
-//     MBPT _overlap; 
-    _mbgft.setLogger(&_log);
-     bool _evaluate = _mbgft.Evaluate( &_orbitals );
+    _gwbse.setLogger(&_log);
+    _gwbse.Initialize( &_gwbse_options );
+     bool _evaluate = _gwbse.Evaluate( &_orbitals );
      std::cout << _log;
  
      

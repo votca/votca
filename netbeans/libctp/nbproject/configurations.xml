@@ -35,11 +35,13 @@
       </logicalFolder>
       <logicalFolder name="f1" displayName="JobCalculators" projectFiles="true">
         <itemPath>../../src/libctp/jobcalculators/edft.h</itemPath>
+        <itemPath>../../src/libctp/jobcalculators/egwbse.cc</itemPath>
+        <itemPath>../../src/libctp/jobcalculators/egwbse.h</itemPath>
         <itemPath>../../src/libctp/jobcalculators/ewald.h</itemPath>
-        <itemPath>../../src/libctp/jobcalculators/gwbse.cc</itemPath>
-        <itemPath>../../src/libctp/jobcalculators/gwbse.h</itemPath>
         <itemPath>../../src/libctp/jobcalculators/idft.cc</itemPath>
         <itemPath>../../src/libctp/jobcalculators/idft.h</itemPath>
+        <itemPath>../../src/libctp/jobcalculators/igwbse.cc</itemPath>
+        <itemPath>../../src/libctp/jobcalculators/igwbse.h</itemPath>
         <itemPath>../../src/libctp/jobcalculators/qmmm.h</itemPath>
         <itemPath>../../src/libctp/jobcalculators/xqmultipole.h</itemPath>
       </logicalFolder>
@@ -82,11 +84,11 @@
       <itemPath>../../include/votca/ctp/extractorfactory.h</itemPath>
       <itemPath>../../include/votca/ctp/fragment.h</itemPath>
       <itemPath>../../include/votca/ctp/gsl_boost_ublas_matrix_prod.h</itemPath>
+      <itemPath>../../include/votca/ctp/gwbse.h</itemPath>
       <itemPath>../../include/votca/ctp/job.h</itemPath>
       <itemPath>../../include/votca/ctp/jobapplication.h</itemPath>
       <itemPath>../../include/votca/ctp/jobcalculator.h</itemPath>
       <itemPath>../../include/votca/ctp/logger.h</itemPath>
-      <itemPath>../../include/votca/ctp/mbgft.h</itemPath>
       <itemPath>../../include/votca/ctp/mkl_boost_ublas_matrix_prod.h</itemPath>
       <itemPath>../../include/votca/ctp/molecule.h</itemPath>
       <itemPath>../../include/votca/ctp/orbitals.h</itemPath>
@@ -160,10 +162,10 @@
         <itemPath>../../src/libctp/toolfactory.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f4" displayName="MBGFT" projectFiles="true">
-        <itemPath>../../src/libctp/mbgft/bse.cc</itemPath>
-        <itemPath>../../src/libctp/mbgft/gwa.cc</itemPath>
-        <itemPath>../../src/libctp/mbgft/mbgft.cc</itemPath>
-        <itemPath>../../src/libctp/mbgft/rpa.cc</itemPath>
+        <itemPath>../../src/libctp/gwbse/bse.cc</itemPath>
+        <itemPath>../../src/libctp/gwbse/gwa.cc</itemPath>
+        <itemPath>../../src/libctp/gwbse/gwbse.cc</itemPath>
+        <itemPath>../../src/libctp/gwbse/rpa.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f3" displayName="Topology" projectFiles="true">
         <itemPath>../../src/libctp/fragment.cc</itemPath>
@@ -282,6 +284,8 @@
       </item>
       <item path="../../include/votca/ctp/fragment.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/ctp/gwbse.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/job.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/jobapplication.h"
@@ -295,8 +299,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/logger.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/mbgft.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/molecule.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -617,6 +619,14 @@
       </item>
       <item path="../../src/libctp/fragment.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libctp/gwbse/bse.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/gwbse/gwa.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/gwbse/gwbse.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/gwbse/rpa.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libctp/hgversion.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/job.cc" ex="false" tool="1" flavor2="0">
@@ -629,6 +639,16 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/jobcalculators/edft.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/jobcalculators/egwbse.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/jobcalculators/egwbse.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -648,6 +668,16 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libctp/jobcalculators/igwbse.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/jobcalculators/igwbse.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/jobcalculators/qmmm.h"
             ex="false"
             tool="3"
@@ -657,14 +687,6 @@
             ex="false"
             tool="3"
             flavor2="0">
-      </item>
-      <item path="../../src/libctp/mbgft/bse.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/mbgft/gwa.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/mbgft/mbgft.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/mbgft/rpa.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/molecule.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -853,6 +875,8 @@
       </item>
       <item path="../../include/votca/ctp/fragment.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/ctp/gwbse.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/job.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/jobapplication.h"
@@ -866,8 +890,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/logger.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/mbgft.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/molecule.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1188,6 +1210,14 @@
       </item>
       <item path="../../src/libctp/fragment.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libctp/gwbse/bse.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/gwbse/gwa.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/gwbse/gwbse.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/gwbse/rpa.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libctp/hgversion.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/job.cc" ex="false" tool="1" flavor2="0">
@@ -1200,6 +1230,16 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/jobcalculators/edft.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/jobcalculators/egwbse.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/jobcalculators/egwbse.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1219,6 +1259,16 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libctp/jobcalculators/igwbse.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/jobcalculators/igwbse.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/jobcalculators/qmmm.h"
             ex="false"
             tool="3"
@@ -1228,14 +1278,6 @@
             ex="false"
             tool="3"
             flavor2="0">
-      </item>
-      <item path="../../src/libctp/mbgft/bse.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/mbgft/gwa.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/mbgft/mbgft.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/mbgft/rpa.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/molecule.cc" ex="false" tool="1" flavor2="0">
       </item>

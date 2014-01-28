@@ -59,6 +59,8 @@ Orbitals::Orbitals() {
     _number_of_electrons = 0;
     _self_energy = 0.0;
     _qm_energy = 0.0;
+    _couplingsA = 0;
+    _couplingsB = 0;
     
 
     //_has_atoms = false;

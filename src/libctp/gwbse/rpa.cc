@@ -20,7 +20,7 @@
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/ctp/votca_ctp_config.h>
 
-#include <votca/ctp/mbgft.h>
+#include <votca/ctp/gwbse.h>
 
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
@@ -41,7 +41,7 @@ namespace votca {
         namespace ub = boost::numeric::ublas;
 
         
-        void MBGFT::PPM_construct_parameters(  ub::matrix<double>& _overlap_cholesky_inverse ){
+        void GWBSE::PPM_construct_parameters(  ub::matrix<double>& _overlap_cholesky_inverse ){
             
             // multiply with L-1^t from the right
             ub::matrix<double> _overlap_cholesky_inverse_transposed = ub::trans( _overlap_cholesky_inverse );
@@ -111,7 +111,7 @@ namespace votca {
         
         
 
-        void MBGFT::RPA_calculate_epsilon(TCMatrix& _Mmn_RPA, ub::matrix<double> _screening_freq, double _shift, ub::vector<double>& _dft_energies){
+        void GWBSE::RPA_calculate_epsilon(TCMatrix& _Mmn_RPA, ub::matrix<double> _screening_freq, double _shift, ub::vector<double>& _dft_energies){
             
             int _size = _Mmn_RPA[0].size1(); // size of gwbasis
             
@@ -175,7 +175,7 @@ namespace votca {
         
    
     
-    void MBGFT::RPA_prepare_threecenters( TCMatrix& _Mmn_RPA, TCMatrix& _Mmn_full, AOBasis& gwbasis, AOMatrix& gwoverlap, AOMatrix& gwoverlap_inverse     ){
+    void GWBSE::RPA_prepare_threecenters( TCMatrix& _Mmn_RPA, TCMatrix& _Mmn_full, AOBasis& gwbasis, AOMatrix& gwoverlap, AOMatrix& gwoverlap_inverse     ){
         
 
       //ub::matrix<double> _temp;

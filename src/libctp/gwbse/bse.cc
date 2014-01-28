@@ -22,7 +22,7 @@
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/ctp/votca_ctp_config.h>
 
-#include <votca/ctp/mbgft.h>
+#include <votca/ctp/gwbse.h>
 
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
@@ -48,7 +48,7 @@ namespace votca {
 
 
         
-        void MBGFT::BSE_qp_setup(){
+        void GWBSE::BSE_qp_setup(){
             _eh_qp = ub::zero_matrix<float>( _bse_size , _bse_size );
             
             
@@ -86,7 +86,7 @@ namespace votca {
     
 
 
-        void MBGFT::BSE_solve_triplets(){
+        void GWBSE::BSE_solve_triplets(){
             
             ub::matrix<float> _bse =  -_eh_d;
             
@@ -129,7 +129,7 @@ namespace votca {
 
    
         
-      void MBGFT::BSE_solve_singlets(){
+      void GWBSE::BSE_solve_singlets(){
             
             ub::matrix<float> _bse = -_eh_d + 2.0 * _eh_x;
 
@@ -171,7 +171,7 @@ namespace votca {
         } 
         
         
-        void MBGFT::BSE_d_setup ( TCMatrix& _Mmn){
+        void GWBSE::BSE_d_setup ( TCMatrix& _Mmn){
             // gwbasis size
             size_t _gwsize = _Mmn[_homo].size1();
 
@@ -260,7 +260,7 @@ namespace votca {
         
         
         
-        void MBGFT::BSE_x_setup( TCMatrix& _Mmn){
+        void GWBSE::BSE_x_setup( TCMatrix& _Mmn){
             
             /* unlike the fortran code, we store eh interaction directly in
              * a suitable matrix form instead of a four-index array

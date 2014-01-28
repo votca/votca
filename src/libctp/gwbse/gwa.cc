@@ -20,7 +20,7 @@
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/ctp/votca_ctp_config.h>
 
-#include <votca/ctp/mbgft.h>
+#include <votca/ctp/gwbse.h>
 
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
@@ -47,7 +47,7 @@ namespace votca {
         
         
 
-        void MBGFT::FullQPHamiltonian(){
+        void GWBSE::FullQPHamiltonian(){
             
             // constructing full QP Hamiltonian, storage in vxc
             _vxc = -_vxc + _sigma_x + _sigma_c;
@@ -80,7 +80,7 @@ namespace votca {
         }
         
         
-        void MBGFT::sigma_c_setup(const TCMatrix& _Mmn, const ub::vector<double>& _edft){
+        void GWBSE::sigma_c_setup(const TCMatrix& _Mmn, const ub::vector<double>& _edft){
             
             // iterative refinement of qp energies
             int _max_iter = 5;
@@ -185,7 +185,7 @@ namespace votca {
     
         } // sigma_c_setup
 
-        void MBGFT::sigma_x_setup(const TCMatrix& _Mmn){
+        void GWBSE::sigma_x_setup(const TCMatrix& _Mmn){
         
             // initialize sigma_x
             _sigma_x = ub::zero_matrix<double>(_qptotal,_qptotal);
@@ -223,7 +223,7 @@ namespace votca {
 
         
 
-        void MBGFT::sigma_prepare_threecenters(TCMatrix& _Mmn){
+        void GWBSE::sigma_prepare_threecenters(TCMatrix& _Mmn){
             #pragma omp parallel for
             for ( int _m_level = 0 ; _m_level < _Mmn.get_mtot(); _m_level++ ){
                 // get Mmn for this _m_level

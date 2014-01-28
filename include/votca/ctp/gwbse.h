@@ -21,8 +21,8 @@
 #define NDEBUG
 #define BOOST_UBLAS_NDEBUG
 
-#ifndef _VOTCA_CTP_MBGFT_H
-#define	_VOTCA_CTP_MBGFT_H
+#ifndef _VOTCA_CTP_GWBSE_H
+#define	_VOTCA_CTP_GWBSE_H
 
 #include <votca/ctp/segment.h>
 #include <votca/ctp/orbitals.h>
@@ -70,16 +70,19 @@ namespace votca { namespace ctp {
          * 
          */
 
-class MBGFT 
+class GWBSE 
 {
 public:
 
-    MBGFT() { };
-   ~MBGFT() { };
+    GWBSE() { };
+   ~GWBSE() { };
 
-  /*  string  Identify() { return "gwbse"; }
+   
+   
     void    Initialize( Property *options);
-    void    ParseOrbitalsXML(Topology *top, Property *options);
+  string  Identify() { return "gwbse"; }
+   
+  /*  void    ParseOrbitalsXML(Topology *top, Property *options);
     Job::JobResult EvalJob(Topology *top, Job *job, QMThread *thread);
  */
     void    CleanUp();
@@ -189,6 +192,7 @@ public:
     bool                                _store_bse_triplets;
     bool                                _store_eh_interaction;
     
+    int                                 _openmp_threads;
     
     string _outParent;
     string _outMonDir;
@@ -295,4 +299,4 @@ public:
 
 }}
 
-#endif	/* _VOTCA_CTP_MBGFT_H */
+#endif	/* _VOTCA_CTP_GWBSE_H */

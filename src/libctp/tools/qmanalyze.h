@@ -307,6 +307,21 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
         LOG(logDEBUG, _log) << "      BSE triplet excitons:   not stored" << flush;
     }  
 
+
+    // BSE singlet couplings
+    if ( _orbitals.hasSingletCouplings()){
+        LOG(logDEBUG, _log) << "      BSE singlet couplings:  between " << _orbitals.getCoupledExcitonsA() << " lowest excitons" << flush;
+    } else {
+        LOG(logDEBUG, _log) << "      BSE singlet couplings:  not stored" << flush;
+    } 
+
+    
+    // BSE triplet couplings
+    if ( _orbitals.hasTripletCouplings()){
+        LOG(logDEBUG, _log) << "      BSE triplet couplings:  between " << _orbitals.getCoupledExcitonsA() << " lowest excitons" << flush;
+    } else {
+        LOG(logDEBUG, _log) << "      BSE triplet couplings:  not stored" << flush;
+    }  
     
     
     
