@@ -147,27 +147,35 @@ void Diode::RunKMC() {
     votca::tools::Random2 *RandomVariable = new votca::tools::Random2();
     RandomVariable->init(rand(), rand(), rand(), rand());    
     
+    int repeat_counter = 0; // to check whether anti repeating methods are useful
+    int old_from_node_id = -10;
+    int old_to_node_id = -10;
+    
     sim_time = 0.0;
     for (long it = 0; it < 20000 + 10000; it++) {
-//        std::cout << it << " wat" << endl;
         // Update longrange cache (expensive, so not done at every timestep)
         if(ldiv(it, eventdata->steps_update_longrange).rem == 0 && it>0){
             longrange->Update_cache(eventdata);
             events->Recompute_all_events(state, longrange, non_injection_rates, injection_rates, eventdata);
         }
+
         vssmgroup->Recompute(events, non_injection_rates, injection_rates);
-
         double timestep = vssmgroup->Timestep(RandomVariable);
-
         sim_time += timestep;
 
         Event* chosenevent = vssmgroup->Choose_event(events, non_injection_rates, injection_rates, RandomVariable);
-
         numoutput->Update(chosenevent, sim_time, timestep);        
-    
         events->On_execute(chosenevent, graph, state, longrange, non_injection_rates, injection_rates, eventdata);
 
-        std::cout << it << " " << sim_time << " " << timestep << " ";
+        // check for direct repeats
+        
+        int goto_node_id = chosenevent->link()->node2()->id();
+        int from_node_id = chosenevent->link()->node1()->id();
+        if(goto_node_id == old_from_node_id && from_node_id == old_to_node_id) repeat_counter++;
+        old_from_node_id = from_node_id;
+        old_to_node_id = goto_node_id;
+        
+        std::cout << it << " " << repeat_counter << " " << sim_time << " " << timestep << " ";
         numoutput->Write(sim_time);
     }
 
