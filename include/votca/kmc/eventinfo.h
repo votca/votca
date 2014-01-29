@@ -35,6 +35,9 @@ public:
         nr_timesteps                = options->get("options.diode.nr_timesteps").as<int>();
         steps_update_longrange      = options->get("options.diode.steps_update_longrange").as<int>();
         
+        number_direct_conv_iv       = options->get("options.diode.number_direct_conv_iv").as<int>();
+        number_direct_conv_iv       = options->get("options.diode.number_direct_conv_iv").as<int>();
+        
         nx                          = options->get("options.diode.nx").as<int>();
         ny                          = options->get("options.diode.ny").as<int>();
         nz                          = options->get("options.diode.nz").as<int>();
@@ -84,6 +87,7 @@ public:
     }
 
     int seed; int nr_equilsteps; int nr_timesteps; int steps_update_longrange;
+    int number_direct_conv_iv; int number_direct_conv_reco;
     int nx; int ny; int nz; int growsize;
     double lattice_constant; double left_electrode_distance; double right_electrode_distance; double alpha; double beta;
     double efield_x; double efield_y; double efield_z;

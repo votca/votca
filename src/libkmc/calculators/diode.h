@@ -147,12 +147,20 @@ void Diode::RunKMC() {
     votca::tools::Random2 *RandomVariable = new votca::tools::Random2();
     RandomVariable->init(rand(), rand(), rand(), rand());    
     
-    int repeat_counter = 0; // to check whether anti repeating methods are useful
+    // to check whether anti repeating methods are useful
+    int repeat_counter = 0; 
     int old_from_node_id = -10;
     int old_to_node_id = -10;
     
+    // convergence criteria
+    bool direct_iv_convergence = false;
+    bool direct_reco_convergence = false;
+    int direct_iv_counter = 0; //if the convergence criterium is counted ten times in a row, result is converged
+    int direct_reco_counter = 0;
+    
     sim_time = 0.0;
-    for (long it = 0; it < 20000 + 10000; it++) {
+    for (long it = 0; it < 2*eventdata->nr_equilsteps + eventdata->nr_timesteps; it++) {
+        
         // Update longrange cache (expensive, so not done at every timestep)
         if(ldiv(it, eventdata->steps_update_longrange).rem == 0 && it>0){
             longrange->Update_cache(eventdata);
@@ -175,8 +183,33 @@ void Diode::RunKMC() {
         old_from_node_id = from_node_id;
         old_to_node_id = goto_node_id;
         
-        std::cout << it << " " << repeat_counter << " " << sim_time << " " << timestep << " ";
-        numoutput->Write(sim_time);
+        // set inital values for convergence checking
+        if(it == 2*eventdata->nr_equilsteps) numoutput->Init_convergence_check(sim_time);
+        
+        // equilibration
+        
+        if(it == eventdata->nr_equilsteps || it == 2*eventdata->nr_equilsteps) {
+            numoutput->Initialize_equilibrate();
+            sim_time = 0.0;
+        }
+        
+        // convergence checking
+        
+        if(ldiv(it,100).rem==0 && it> 2*eventdata->nr_equilsteps) numoutput->Convergence_check(sim_time, eventdata);
+
+        // direct output
+        
+        if(ldiv(it,100).rem==0){
+            std::cout << it << " " << repeat_counter << " " << 
+                         numoutput->iv_conv() << " " << numoutput->iv_count() << " " << 
+                         numoutput->reco_conv() << " " << numoutput->reco_count() <<  " " << 
+                         sim_time << " " << timestep << " ";
+            numoutput->Write(sim_time);
+        }
+        
+        // break out of loop
+        if(numoutput->iv_conv() && numoutput->reco_conv()) {break;}
+        
     }
 
 }

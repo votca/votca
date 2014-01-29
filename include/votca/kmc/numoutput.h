@@ -29,8 +29,16 @@ public:
     
     void Initialize();
     void Initialize_equilibrate();
+    void Init_convergence_check(double simtime);
+    void Convergence_check(double simtime, Eventinfo* eventinfo);
     void Update(Event* event, double simtime, double timestep);
     void Write(double simtime);
+    
+    const bool &iv_conv() const {return _direct_iv_convergence;}
+    const bool &reco_conv() const {return _direct_reco_convergence;}
+    
+    const int &iv_count() const {return _direct_iv_counter;}
+    const int &reco_count() const {return _direct_reco_counter;}
     
 private:
     
@@ -64,10 +72,25 @@ private:
     double _hole_vel_x;
     double _hole_vel_y;
     double _hole_vel_z;
+    
+    double _vx_old;
+    double _reco_old;
+    
+    int _direct_iv_counter;
+    int _direct_reco_counter;
+    
+    bool _direct_iv_convergence;
+    bool _direct_reco_convergence;
 };
 
 void Numoutput::Initialize() {
     _nelectrons = 0; _nholes = 0; _ncarriers = 0;
+    
+    _direct_iv_counter = 0;
+    _direct_reco_counter = 0;
+    
+    _direct_iv_convergence = false;
+    _direct_reco_convergence = false;
     
     Initialize_equilibrate();
 }
@@ -84,6 +107,23 @@ void Numoutput::Initialize_equilibrate() {
     _vel_x = 0.0; _vel_y = 0.0; _vel_z = 0.0;
     _electron_vel_x = 0.0; _electron_vel_y = 0.0; _electron_vel_z = 0.0;
     _hole_vel_x = 0.0; _hole_vel_y = 0.0; _hole_vel_z = 0.0;       
+}
+
+void Numoutput::Init_convergence_check(double simtime) {
+    _vx_old = _vel_x/simtime;
+    _reco_old = _nrecombinations/simtime;
+}
+
+void Numoutput::Convergence_check(double simtime, Eventinfo* eventinfo) {
+    
+    if (fabs(_vel_x/simtime-_vx_old)/_vx_old < 0.05)               { _direct_iv_counter++;  } else { _direct_iv_counter = 0;  }
+    if (fabs(_nrecombinations/simtime-_reco_old)/_reco_old < 0.05) { _direct_reco_counter++;} else { _direct_reco_counter = 0;}
+
+    if(_direct_iv_counter >= eventinfo->number_direct_conv_iv) {_direct_iv_convergence = true;}
+    if(_direct_reco_counter >= eventinfo->number_direct_conv_reco) {_direct_reco_convergence = true;}
+
+    _vx_old   = _vel_x/simtime;
+    _reco_old = _nrecombinations/simtime;
 }
 
 void Numoutput::Update(Event* event, double simtime, double timestep) {
