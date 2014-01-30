@@ -52,6 +52,7 @@ private:
     int N; // the number of atoms in the molecule
 
     vec centre;
+    vec centre_input;
 
     orb *orbitals;
     multipoles *_crged;
@@ -72,6 +73,7 @@ public:
 
 
     vec getCentre() { return centre; }
+    vec getCentreInput() { return centre_input; }
     void setCentre(const vec &pos) { centre = pos; }
     vector< vec > getAtomPos() { return atom_pos; }
     void setAtomPos(vector< vec > &positions) { atom_pos = positions; }
@@ -388,7 +390,6 @@ public:
         vector <int>::iterator it_at ;
 
         for (it_at = list_at.begin(); it_at != list_at.end(); ++it_at) {
-
             mol2->atom_pos[*it_at] = M * ( mol2->atom_pos[*it_at] - com ) + a;
         }
     }

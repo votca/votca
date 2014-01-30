@@ -301,11 +301,12 @@ int mol_and_orb::init(const char * nameinput){
             centre += *iter_pos;
 	}
 	centre /= double(N);
+        centre_input = centre;
 	
-	for (iter_pos = atom_pos.begin() ;iter_pos < atom_pos.end() ; iter_pos++){
-	    *iter_pos -= centre;
-	}
-        centre.setX(0.); centre.setY(0.) ; centre.setZ(0.);
+//	for (iter_pos = atom_pos.begin() ;iter_pos < atom_pos.end() ; iter_pos++){
+//	    *iter_pos -= centre;
+//	}
+//        centre.setX(0.); centre.setY(0.) ; centre.setZ(0.);
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
         // cout << " Finished loading atoms" << endl;
