@@ -54,9 +54,9 @@ public:
     const double &UcNcCe() const { return _UcNcCe; }   
     const double &UcNcCh() const { return _UcNcCh; }   
 
-    const double &eAnion() const { return _eAnion; }       
-    const double &eNeutral() const { return _eNeutral; }   
-    const double &eCation() const { return _eCation; }   
+    const double &eAnion()   const { return _eAnion;  }       
+    const double &eNeutral() const { return _eNeutral;}   
+    const double &eCation()  const { return _eCation; }   
 
     const double &ucCnNe() const { return _ucCnNe; }   
     const double &ucCnNh() const { return _ucCnNh; }   

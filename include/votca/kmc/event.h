@@ -89,7 +89,7 @@ public:
     inline double Determine_lr_coulomb(Node* node, Longrange* longrange);
     
 protected:
-
+                         
     Link* _link;
     int _carrier_type;
     
@@ -169,33 +169,65 @@ void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* 
     Node* node1 = _link->node1();
     Node* node2 = _link->node2();
     
-    
     double prefactor = 1.0; // total prefactor
     double charge;
     double static_node_energy_from;
     double static_node_energy_to;
 
+    const double hbar = 6.58211928E-16; // eV*s
+    const double Pi   = 3.14159265358979323846264338327950288419716939937510;
+    const double kB   = 8.617332478E-5; // ev/K     
+    
     if(_carrier_type == (int) Electron) {
         charge = -1.0;
         prefactor = prefactor*(eventinfo->electron_prefactor);
-        static_node_energy_from = dynamic_cast<NodeDevice*>(node1)->eCation() + dynamic_cast<NodeDevice*>(node1)->ucCnNe();
-        static_node_energy_to = dynamic_cast<NodeDevice*>(node2)->eCation() + dynamic_cast<NodeDevice*>(node2)->ucCnNe();
+        static_node_energy_from = dynamic_cast<NodeSQL*>(node1)->eCation() + dynamic_cast<NodeSQL*>(node1)->ucCnNe();
+        static_node_energy_to = dynamic_cast<NodeSQL*>(node2)->eCation() + dynamic_cast<NodeSQL*>(node2)->ucCnNe();
     }
     else if(_carrier_type == (int) Hole) {
         charge = 1.0;
         prefactor = prefactor*(eventinfo->hole_prefactor);
-        static_node_energy_from = dynamic_cast<NodeDevice*>(node1)->eAnion() + dynamic_cast<NodeDevice*>(node1)->ucCnNh();
-        static_node_energy_to = dynamic_cast<NodeDevice*>(node2)->eAnion() + dynamic_cast<NodeDevice*>(node2)->ucCnNh();
+        static_node_energy_from = dynamic_cast<NodeSQL*>(node1)->eAnion() + dynamic_cast<NodeSQL*>(node1)->ucCnNh();
+        static_node_energy_to = dynamic_cast<NodeSQL*>(node2)->eAnion() + dynamic_cast<NodeSQL*>(node2)->ucCnNh();
         if(_init_type == Injection) static_node_energy_from += 21.5;
         if(_final_type == Collection) static_node_energy_to += 21.5;
     }
-    //first calculate quantum mechanical wavefunction overlap
+    
+    //first transfer integrals
+    
+    double transferfactor = 1.0;
     votca::tools::vec distancevector = _link->r12();
-    double distance = abs(distancevector);
+    double Reorg;
+    double Jeff2;
+    
+    if (eventinfo->formalism == "Miller") {
+        double distance = abs(distancevector);
+        transferfactor = exp(-1.0*eventinfo->alpha*distance);
+    }
+    else if((eventinfo->formalism == "Marcus")&&(_init_type==Injection||_final_type==Collection)) {
+         double distance = abs(distancevector);
+         Jeff2 = exp(-2.0*eventinfo->alpha*distance);
+         Reorg = 0.1345;
+         transferfactor = (2*Pi/hbar)*(Jeff2/sqrt(4*Pi*Reorg*kB*eventinfo->temperature));
+    }
+    else if(eventinfo->formalism == "Marcus") {
 
-    double distancefactor = exp(-1.0*eventinfo->alpha*distance);
+        if(_carrier_type == (int) Electron) {
+            Jeff2 = dynamic_cast<LinkSQL*>(_link)->Jeff2e();
+            Reorg = dynamic_cast<NodeSQL*>(node1)->UnCnNe() + dynamic_cast<NodeSQL*>(node2)->UcNcCe() + dynamic_cast<LinkSQL*>(_link)->lOe();
+        }
+        if(_carrier_type == (int) Hole) {
+            Jeff2 = dynamic_cast<LinkSQL*>(_link)->Jeff2h();
+            Reorg = dynamic_cast<NodeSQL*>(node1)->UnCnNh() + dynamic_cast<NodeSQL*>(node2)->UcNcCh() + dynamic_cast<LinkSQL*>(_link)->lOh();
+//            std::cout << Jeff2 << " " << dynamic_cast<NodeSQL*>(node1)->UnCnNh() << " " << dynamic_cast<NodeSQL*>(node2)->UcNcCh() << " " << dynamic_cast<LinkSQL*>(_link)->lOh() << endl;
 
-    //second, calculate boltzmann factor (Coulomb interaction still have to be implemented)
+        }
+        transferfactor = (2*Pi/hbar)*(Jeff2/sqrt(4*Pi*Reorg*kB*eventinfo->temperature));
+    }
+
+    
+    
+    //second, calculate boltzmann factor
 
     double init_energy;
     double final_energy;
@@ -223,22 +255,34 @@ void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* 
     double energycontrib;
     double energyfactor;
 
-    if (eventinfo->formalism == "Miller") {
+    if ((eventinfo->formalism == "Miller")||(_init_type==Injection||_final_type==Collection)) {
         if(_final_type == Blocking) {
             energyfactor = 0.0; // Keep this here for eventual simulation of bipolaron formation for example
         }
         else {
             energycontrib = final_energy - init_energy -charge*(eventinfo->efield_x*distancevector.x()+eventinfo->efield_y*distancevector.y()+eventinfo->efield_z*distancevector.z());
             if (energycontrib>0.0) {
-                energyfactor = exp(-1.0*eventinfo->beta*energycontrib);
+                energyfactor = exp(-1.0*(kB*eventinfo->temperature)*energycontrib);
             }
             else {
                 energyfactor = 1.0;
             }
         }
     }
+    else if (eventinfo->formalism == "Marcus") {
+        if(_final_type == Blocking) {
+            energyfactor = 0.0; // Keep this here for eventual simulation of bipolaron formation for example
+        }
+        else {
+            energycontrib = final_energy - init_energy -charge*(eventinfo->efield_x*distancevector.x()+eventinfo->efield_y*distancevector.y()+eventinfo->efield_z*distancevector.z());
+            energyfactor = exp(-1.0*(energycontrib+Reorg)*(energycontrib+Reorg)/(4*Reorg*kB*eventinfo->temperature));
+        }       
+    }
 
-    _rate = prefactor*distancefactor*energyfactor;
+    _rate = prefactor*transferfactor*energyfactor;
+    if ((eventinfo->formalism == "Marcus")&&!(_init_type==Injection||_final_type==Collection)) {
+//        std::cout << prefactor << " " << transferfactor << " " << energyfactor << " " << dynamic_cast<LinkSQL*>(_link)->Jeff2h() << " " << dynamic_cast<LinkSQL*>(_link)->lOh() << " " << Reorg << endl;
+    }
 }
 
 void Event::Set_event(Link* link, int carrier_type, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo) {

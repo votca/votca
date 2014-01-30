@@ -46,7 +46,7 @@ public:
         right_electrode_distance    = options->get("options.diode.right_electrode_distance").as<double>();
         growsize                    = options->get("options.diode.growsize").as<int>();
         alpha                       = options->get("options.diode.alpha").as<double>();
-        beta                        = options->get("options.diode.beta").as<double>();
+        temperature                 = options->get("options.diode.temperature").as<double>();
         efield_x                    = options->get("options.diode.efield_x").as<double>();
         efield_y                    = options->get("options.diode.efield_y").as<double>();
         efield_z                    = options->get("options.diode.efield_z").as<double>();
@@ -89,7 +89,8 @@ public:
     int seed; int nr_equilsteps; int nr_timesteps; int steps_update_longrange;
     int number_direct_conv_iv; int number_direct_conv_reco;
     int nx; int ny; int nz; int growsize;
-    double lattice_constant; double left_electrode_distance; double right_electrode_distance; double alpha; double beta;
+    double lattice_constant; double left_electrode_distance; double right_electrode_distance; 
+    double alpha; double temperature;
     double efield_x; double efield_y; double efield_z;
     double electron_prefactor; double hole_prefactor; double injection_prefactor; double recombination_prefactor; double collection_prefactor;
     string formalism; double injection_barrier; double binding_energy;

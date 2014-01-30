@@ -188,9 +188,10 @@ inline double Longrange::Calculate_disc_contrib(int calculate_layer, int contrib
 
 double Longrange::Calculate_longrange(int layer, bool cut_out_discs,Eventinfo* eventinfo) {
     // Potential is expressed in multiples of e/(4*pi*epsilon) (with e the elementary charge>0)
+    const double Pi = 3.14159265358979323846264338327950288419716939937510;       
+
     double plate_contrib1 = 0.0;
     double disc_contrib = 0.0;
-    double PI = 3.14159265358979323846264338327950288419716939937510;    
 
     for(int i=0; i<layer; i++) {
         double charge_i = 1.0*_layercharge[i];
@@ -217,7 +218,7 @@ double Longrange::Calculate_longrange(int layer, bool cut_out_discs,Eventinfo* e
     }
     if (!cut_out_discs) { disc_contrib = 0.0; }
     double layerpos = this->position(layer);
-    return 4.0*PI*(plate_contrib1*(1-layerpos/eventinfo->simboxsize.x()) + plate_contrib2*(layerpos/eventinfo->simboxsize.x()) + 0.5*disc_contrib)/(eventinfo->simboxsize.y()*eventinfo->simboxsize.z());
+    return 4.0*Pi*(plate_contrib1*(1-layerpos/eventinfo->simboxsize.x()) + plate_contrib2*(layerpos/eventinfo->simboxsize.x()) + 0.5*disc_contrib)/(eventinfo->simboxsize.y()*eventinfo->simboxsize.z());
 }
 
 }}

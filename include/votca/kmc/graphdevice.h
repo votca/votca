@@ -565,7 +565,6 @@ void GraphDevice::Resize(double dimX, double dimY, double dimZ) {
                         newLinkDevice->setRate(  probelink->rate12e(),probelink->rate12h(),probelink->rate21e(),probelink->rate21h());
                         newLinkDevice->setJeff2( probelink->Jeff2e(), probelink->Jeff2h());
                         newLinkDevice->setlO(    probelink->lOe(),    probelink->lOh());                        
-                        
                     }
                 }
             }
@@ -590,7 +589,7 @@ void GraphDevice::Resize(double dimX, double dimY, double dimZ) {
         NodeDevice* new_node2 = this->GetNode(new_node2_id);
 
         probelink->SetNodes(new_node1, new_node2);        
-        
+//        std::cout << probelink->Jeff2e() << " " << probelink->Jeff2h() << " " << probelink->lOe() << " " << probelink->lOh() << endl;                        
     } 
 }
 
