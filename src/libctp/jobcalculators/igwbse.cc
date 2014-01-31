@@ -194,15 +194,6 @@ Job::JobResult IGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     // get the package options
     _qmpackage->Initialize( &_package_options );
 
-    cout << orbFileA << endl;
-    cout << orbFileB << endl;
-    cout << orbFileAB << endl;
-    cout << _orb_dir << endl;
-
-    cout << _qmpackage_work_dir << endl;
-    
-    
-    
     // if asked, prepare the input files
     if (_do_dft_input) {
         boost::filesystem::create_directories( _qmpackage_work_dir );

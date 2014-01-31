@@ -332,10 +332,12 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
         _com_file2 << "%nprocshared=1" << endl;
         
         // adjusting the options line to Vxc output only
-        boost::algorithm::replace_all(_options, "pseudo=read", "Geom=AllCheck");
-        boost::algorithm::replace_all(_options, "/gen", " chkbasis");  
-        boost::algorithm::replace_all(_options, "punch=mo", "Guess=read");  
-        if ( _options.size() ) _com_file2 <<  _options << endl ;
+        string _options_vxc = _options;
+        boost::algorithm::replace_all(_options_vxc, "pseudo=read", "Geom=AllCheck");
+        boost::algorithm::replace_all(_options_vxc, "/gen", " chkbasis");  
+        boost::algorithm::replace_all(_options_vxc, "punch=mo", "");  
+        boost::algorithm::replace_all(_options_vxc, "guess=tcheck", "guess=read");  
+        if ( _options_vxc.size() ) _com_file2 <<  _options_vxc << endl ;
 
         // # pop=minimal pbepbe/gen pseudo=read scf=tight punch=mo
         // # pop=minimal pbepbe chkbasis nosymm Geom=AllCheck Guess=Read
@@ -346,8 +348,7 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
         _com_file2 << endl;
         _com_file2.close();
 
-        // and now generate a shell script to run both jobs
-        WriteShellScript();
+
     
         
     }
@@ -380,7 +381,8 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
     
     _com_file << endl;
     _com_file.close();
-    
+            // and now generate a shell script to run both jobs
+        WriteShellScript();
     return true;
 }
 
