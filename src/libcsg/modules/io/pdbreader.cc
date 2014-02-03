@@ -122,11 +122,11 @@ bool PDBReader::NextFrame(Topology &top)
 	    } else {
                 b = top.getBead(i-1);
 	    }
-
+            // convert to nm from A
             b->setPos(vec(
-                    boost::lexical_cast<double>(x),
-                    boost::lexical_cast<double>(y),
-                    boost::lexical_cast<double>(z)
+                    boost::lexical_cast<double>(x)/10.0,
+                    boost::lexical_cast<double>(y)/10.0,
+                    boost::lexical_cast<double>(z)/10.0
                 ));
 
 	}
