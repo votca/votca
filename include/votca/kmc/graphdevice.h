@@ -32,11 +32,13 @@ class GraphDevice : public GraphSQL<NodeDevice,LinkDevice> {
 
 public:
 
-    ///define electrode nodes and form links between those nodes and neighbouring nodes and set maxpairdegree/hopping_distance/sim_box_size
-    void Setup_device_graph(double left_distance, double right_distance, Eventinfo* eventinfo);       
-
-    void Init_cross_types();
+    ///setup graph for bulk simulations
+    void Setup_bulk_graph(bool resize, Eventinfo* eventinfo);
     
+    ///define electrode nodes and form links between those nodes and neighbouring nodes and set maxpairdegree/hopping_distance/sim_box_size
+    void Setup_device_graph(double left_distance, double right_distance, bool resize, Eventinfo* eventinfo);       
+
+    ///determine the crossing types of the links    
     void Determine_cross_types();
     
     ///translate graph in such a way that the minimum coordinates are at 0
@@ -51,12 +53,18 @@ public:
     ///translate graph to accomodate device geometry
     void Translate_electrode(double left_distance);
     
+    ///add electrode nodes
+    void Add_electrodes(double left_distance, double right_distance);
+    
     ///associate all links in links vector to the corresponding nodes
     void LinkSort();
     
     ///break the periodicity of the graph (breaking boundary crossing pairs) .. (run before linksort)
     void Break_periodicity(bool break_x, double dimX, bool break_y, double dimY, bool break_z, double dimZ);
 
+    ///break the periodicity of the graph (breaking boundary crossing pairs) .. (run before linksort)
+    void Break_periodicity(bool break_x, bool break_y, bool break_z);    
+    
     ///calculate the maximum of all degrees in the graph
     int Determine_Max_Pair_Degree();
     
@@ -90,6 +98,9 @@ public:
     /// attach layer indices to nodes
     void Set_Layer_indices(Eventinfo* eventinfo);
     
+    /// initialize node types to normal type
+    void Init_node_types();
+    
 private:
 
     int _max_pair_degree;  
@@ -116,7 +127,47 @@ void GraphDevice::Translate_electrode(double left_distance) {
     }
 }
 
-void GraphDevice::Setup_device_graph(double left_distance, double right_distance, Eventinfo* eventinfo){
+void GraphDevice::Setup_bulk_graph( bool resize, Eventinfo* eventinfo){
+
+    // Determine hopping distance
+    _hop_distance = this->Determine_Hopping_Distance();
+
+    // Determine boundary crossing types            
+    this->Determine_cross_types();
+    
+    // Detemine simulation box size
+    _sim_box_size = this->Determine_Sim_Box_Size();            
+
+    // Push nodes back in box (crossing types are changed by this operation, so re-evaluate)    
+    this->Push_in_box();
+    this->Determine_cross_types();    
+
+    // Resize by copying the box (crossing types are changed by this operation, so re-evaluate)    
+    if(resize) {this->Resize(eventinfo->size_x, eventinfo->size_y, eventinfo->size_z); this->Determine_cross_types(); _sim_box_size = this->Determine_Sim_Box_Size();}
+    
+    //set node types for existing nodes as Normal
+    this->Init_node_types();
+
+    // associate links in links vector with the corresponding nodes
+    this->LinkSort();
+    
+    // determine maximum degree of graph
+    _max_pair_degree = this->Determine_Max_Pair_Degree();    
+    
+    // Set the layer indices on every node
+    this->Set_Layer_indices(eventinfo);
+  
+    // clear the occupation of the graph
+    this->Clear();
+
+    //renumber link id's
+    this->RenumberId();   
+
+}    
+            
+            
+
+void GraphDevice::Setup_device_graph(double left_distance, double right_distance, bool resize, Eventinfo* eventinfo){
     
     // Determine hopping distance before breaking periodicity
     _hop_distance = this->Determine_Hopping_Distance();
@@ -143,14 +194,16 @@ void GraphDevice::Setup_device_graph(double left_distance, double right_distance
     this->Determine_cross_types();
     
     // Resize by copying the box (crossing types are changed by this operation, so re-evaluate)
-    this->Resize(9.0, 9.0, 9.0);
-    this->Determine_cross_types();
+    if(resize) {this->Resize(eventinfo->size_x, eventinfo->size_y, eventinfo->size_z); this->Determine_cross_types(); _sim_box_size = this->Determine_Sim_Box_Size();}
 
-    // Recalculate simulation box size after resizing
-    _sim_box_size = this->Determine_Sim_Box_Size();
     
     // Break periodicity
-    this->Break_periodicity(true,9.0,false,9.0,false,9.0);    
+    if(resize) {
+        this->Break_periodicity(true,eventinfo->size_x,false,eventinfo->size_y,false,eventinfo->size_z);
+    }
+    else {
+        this->Break_periodicity(true,false,false);
+    }
     
     // Recalculate simulation box size after periodicity breaking
     _sim_box_size = this->Determine_Sim_Box_Size();
@@ -164,10 +217,38 @@ void GraphDevice::Setup_device_graph(double left_distance, double right_distance
     double new_sim_box_sizeX = old_sim_box_size.x() + left_distance + right_distance;
      _sim_box_size =  votca::tools::vec(new_sim_box_sizeX, old_sim_box_size.y(), old_sim_box_size.z());
 
-    typename std::vector<NodeDevice*>::iterator it;    
     //set node types for existing nodes as Normal
-    for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) (*it)->SetType((int) NormalNode);
+    this->Init_node_types();
  
+    this->Add_electrodes(left_distance, right_distance);
+ 
+    // associate links in links vector with the corresponding nodes
+    this->LinkSort();
+    
+    // determine maximum degree of graph
+    _max_pair_degree = this->Determine_Max_Pair_Degree();
+   
+    // Set the self-image coulomb potential on every node
+    this->Set_Self_Image_Coulomb_Potential(_sim_box_size.x(), eventinfo);
+
+    // Set the layer indices on every node
+    this->Set_Layer_indices(eventinfo);
+  
+    // clear the occupation of the graph
+    this->Clear();
+
+    //renumber link id's
+    this->RenumberId();    
+   
+}
+
+void GraphDevice::Init_node_types() {
+    typename std::vector<NodeDevice*>::iterator it;    
+    for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) (*it)->SetType((int) NormalNode);    
+}
+
+void GraphDevice::Add_electrodes(double left_distance, double right_distance) {
+    
     //introduce the electrode nodes (might make a special electrode node header file for this)
     _left_electrode = new NodeDevice(-1, tools::vec(0.0,0.0,0.0));
     _right_electrode = new NodeDevice(-2, tools::vec(_sim_box_size.x(),0.0,0.0));
@@ -176,6 +257,7 @@ void GraphDevice::Setup_device_graph(double left_distance, double right_distance
 
     //determine the nodes which are injectable from the left electrode and the nodes which are injectable from the right electrode
 
+    typename std::vector<NodeDevice*>::iterator it;    
     for(it  = this->_nodes.begin(); it != this->_nodes.end(); it++) { 
       
         votca::tools::vec nodepos = (*it)->position();
@@ -204,27 +286,8 @@ void GraphDevice::Setup_device_graph(double left_distance, double right_distance
     this->AddNode(_right_electrode);
     _left_electrode->RemoveCarrier();
     _right_electrode->RemoveCarrier();    
- 
-    // associate links in links vector with the corresponding nodes
-    this->LinkSort();
-    
-    // determine maximum degree of graph
-    _max_pair_degree = this->Determine_Max_Pair_Degree();
-   
-    // Set the self-image coulomb potential on every node
-    this->Set_Self_Image_Coulomb_Potential(_sim_box_size.x(), eventinfo);
 
-    // Set the layer indices on every node
-    this->Set_Layer_indices(eventinfo);
-  
-    // clear the occupation of the graph
-    this->Clear();
-
-    //renumber link id's
-    this->RenumberId();    
-   
 }
-
 
 void GraphDevice::LinkSort(){
     
@@ -445,7 +508,6 @@ void GraphDevice::Break_periodicity(bool break_x, double dimX, bool break_y, dou
         if(break_x && xpos > dimX) { remove_flag = true; }
         if(break_y && ypos > dimY) { remove_flag = true; }
         if(break_z && zpos > dimZ) { remove_flag = true; }        
-                //   std::cout << "let me guess " << it << " " << pos.x() << " " << pos.y() << " " << pos.z() << " " << remove_flag << " ";    
  
         if(remove_flag) {
             this->RemoveNode(it);
@@ -453,6 +515,30 @@ void GraphDevice::Break_periodicity(bool break_x, double dimX, bool break_y, dou
         }
 
     }    
+    
+}
+
+void GraphDevice::Break_periodicity(bool break_x, bool break_y, bool break_z){
+
+    // Break crossing links
+    for(int it = this->_links.size()-1; it != 0; it--) {
+
+        LinkDevice* ilink = this->_links[it];
+        
+        bool remove_flag = false;
+        
+        // remove crossing links and links which are connected to nodes which will fall out of the simulation box
+        
+        if(break_x && ilink->crossxtype() != (int) NoxCross) { remove_flag = true; }        
+        if(break_y && ilink->crossytype() != (int) NoyCross) { remove_flag = true; } 
+        if(break_z && ilink->crossztype() != (int) NozCross) { remove_flag = true; }  
+        
+        if(remove_flag) {
+            this->RemoveLink(it);
+            delete ilink;   
+        }
+        
+    }   
     
 }
 

@@ -49,11 +49,13 @@ public:
     
     /// get nr of elements
     long getnrrates();
-  
+ 
+        double partsum(int i);
+    
 private:
     
     bool dirty(int i);
-    double partsum(int i);
+
     vector<bool> dirty_array; // Are the subtrees dirty?
     vector<double> element_array; // The elements (summands)
     vector<double> partsum_array; // Array of partial sums
@@ -126,8 +128,9 @@ double Bsumtree::compute_sum() { // Returns total sum of all elements
 // where the sum is taken over the succesive elements.
 long Bsumtree::search(double searchkey) { // Returns index to element
     int maxindex = treesize + nrelements;
+
     int i = 0; // value must be located in subtree denoted by index i
-    while (2*i+2<maxindex) {
+    while (2*i+2<=maxindex) {
         if (searchkey <= partsum(2*i+1)) { // value is located in left subtree
             i = 2*i+1;
         }
@@ -138,6 +141,7 @@ long Bsumtree::search(double searchkey) { // Returns index to element
     }    
 
     i -= treesize;
+
     return i;
 }
 

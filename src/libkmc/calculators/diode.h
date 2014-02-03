@@ -82,7 +82,7 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     
     graph = new GraphDevice();
     graph->Initialize(filename);
-    graph->Setup_device_graph(eventdata->left_electrode_distance, eventdata->right_electrode_distance, eventdata);
+    graph->Setup_device_graph(eventdata->left_electrode_distance, eventdata->right_electrode_distance, false, eventdata);
     eventdata->Graph_Parameters(graph->hopdist(), graph->simboxsize(), graph->maxpairdegree());
 
     std::cout << "graph initialized" << endl;
@@ -172,7 +172,9 @@ void Diode::RunKMC() {
         sim_time += timestep;
 
         Event* chosenevent = vssmgroup->Choose_event(events, non_injection_rates, injection_rates, RandomVariable);
+
         numoutput->Update(chosenevent, sim_time, timestep);        
+
         events->On_execute(chosenevent, graph, state, longrange, non_injection_rates, injection_rates, eventdata);
 
         // check for direct repeats
@@ -198,7 +200,6 @@ void Diode::RunKMC() {
         if(ldiv(it,100).rem==0 && it> 2*eventdata->nr_equilsteps) numoutput->Convergence_check(sim_time, eventdata);
 
         // direct output
-        
         if(ldiv(it,100).rem==0){
             std::cout << it << " " << repeat_counter << " " << 
                          numoutput->iv_conv() << " " << numoutput->iv_count() << " " << 

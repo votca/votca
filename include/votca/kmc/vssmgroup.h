@@ -75,7 +75,6 @@ void Vssmgroup::Recompute(Events* events, Bsumtree* non_injection_rates, Bsumtre
 Event* Vssmgroup::Choose_event(Events* events, Bsumtree* non_injection_rates, Bsumtree* injection_rates, votca::tools::Random2 *RandomVariable){
 
     double randn = tot_probsum*RandomVariable->rand_uniform();
-    
     long event_ID;
     Event* chosenevent;
     if(randn<inject_probsum) { // injection event

@@ -129,6 +129,7 @@ void Numoutput::Convergence_check(double simtime, Eventinfo* eventinfo) {
 void Numoutput::Update(Event* event, double simtime, double timestep) {
     
     if(event->init_type() == (int) Injection)   { // Injection events
+
         _ninjections++;
         if(event->link()->node1()->type() == LeftElectrodeNode) { _nleftinjections++; } else { _nrightinjections++; }
     
@@ -155,6 +156,7 @@ void Numoutput::Update(Event* event, double simtime, double timestep) {
         }
     }
     else if(event->init_type() == (int) TransferFrom) { // Normal transfer
+
         if(event->final_type() == (int) Collection) {
             _ncollections++;
             if(event->link()->node2()->type() == LeftElectrodeNode) { _nleftcollections++;} else { _nrightcollections++;}

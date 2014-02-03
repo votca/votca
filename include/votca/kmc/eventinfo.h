@@ -41,6 +41,9 @@ public:
         nx                          = options->get("options.diode.nx").as<int>();
         ny                          = options->get("options.diode.ny").as<int>();
         nz                          = options->get("options.diode.nz").as<int>();
+        size_x                      = options->get("options.diode.size_x").as<double>();
+        size_y                      = options->get("options.diode.size_y").as<double>();
+        size_z                      = options->get("options.diode.size_z").as<double>();
         lattice_constant            = options->get("options.diode.lattice_constant").as<double>();
         left_electrode_distance     = options->get("options.diode.left_electrode_distance").as<double>();
         right_electrode_distance    = options->get("options.diode.right_electrode_distance").as<double>();
@@ -89,6 +92,7 @@ public:
     int seed; int nr_equilsteps; int nr_timesteps; int steps_update_longrange;
     int number_direct_conv_iv; int number_direct_conv_reco;
     int nx; int ny; int nz; int growsize;
+    double size_x; double size_y; double size_z;
     double lattice_constant; double left_electrode_distance; double right_electrode_distance; 
     double alpha; double temperature;
     double efield_x; double efield_y; double efield_z;

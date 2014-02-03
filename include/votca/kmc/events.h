@@ -114,10 +114,10 @@ void Events::On_execute(Event* event, GraphDevice* graph, StateDevice* state, Lo
     
     Node* node1 = event->link()->node1();
     Node* node2 = event->link()->node2();
-                  
+    
     On_execute_node(node1, event->action_node1(), event->carrier_type(), graph, state, longrange, non_injection_rates, injection_rates, eventinfo );
     On_execute_node(node2, event->action_node2(), event->carrier_type(), graph, state, longrange, non_injection_rates, injection_rates, eventinfo );
-    
+   
 }
 
 void Events::On_execute_node(Node* node, int action, int carrier_type, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo) {
@@ -569,12 +569,15 @@ void Events::Initialize_injection_eventvector(int Event_id_count, Node* electrod
 
     int Event_map = Event_id_count;
     
+    std::cout << "Electrode size " << electrode->links().size() << " " << electrode->type() << endl;
+    
     for (int it = 0; it < electrode->links().size(); it++) {
 
         Event *newEvent = new Event(Event_map, electrode->links()[it], carrier_type, state, longrange, eventinfo);
         newEvent->Set_injection_potential(0.0);
         _injection_events.push_back(newEvent);
         Event_map++;
+        std::cout << it << " " << newEvent->link()->node1()->type() << " " << newEvent->rate() << endl;
 
     }
 }
