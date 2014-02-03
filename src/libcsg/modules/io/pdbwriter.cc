@@ -38,7 +38,7 @@ void PDBWriter::Write(Topology *conf)
 {
     Topology *top = conf;
     fprintf(_out, "MODEL     %4d\n", conf->getStep());
-    fprintf(_out, "REMARK  length units are natural and NOT Angstroms\n");
+    fprintf(_out, "REMARK  coordinates are in 10*internal units (From gromacs: nm*10=Angstrom)\n");
     for(BeadContainer::iterator iter=conf->Beads().begin();
     iter!=conf->Beads().end(); ++iter) {
         Bead *bi = *iter;
@@ -62,7 +62,7 @@ void PDBWriter::Write(Topology *conf)
                 resname.c_str(), // residue name
                 " ", // chain identifier 1 char
                 bi->getResnr()+1, // residue sequence number
-                r.x(), r.y(), r.z()); //we skip the charge
+                10*r.x(), 10*r.y(), 10*r.z()); //we skip the charge
           
         if(bi->getSymmetry()>=2) {
            vec ru = 0.1*bi->getU() + r;

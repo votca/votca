@@ -122,7 +122,7 @@ bool PDBReader::NextFrame(Topology &top)
 	    } else {
                 b = top.getBead(i-1);
 	    }
-            // convert to nm from A
+            // TODO: only works for Gromacs convert to nm from A
             b->setPos(vec(
                     boost::lexical_cast<double>(x)/10.0,
                     boost::lexical_cast<double>(y)/10.0,
