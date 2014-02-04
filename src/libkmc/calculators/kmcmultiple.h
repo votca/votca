@@ -531,7 +531,7 @@ void KMCMultiple::InitialRates(vector<Node*> node)
 
             double J2 = node[i]->event[j].Jeff2;
 
-            double dG = dG_Site + dG_Field;
+            double dG = dG_Site - dG_Field;
             
             double rate = 2*Pi/hbar * J2/sqrt(4*Pi*reorg*kB*_temperature) * exp(-(dG+reorg)*(dG+reorg) / (4*reorg*kB*_temperature));
             
@@ -697,7 +697,7 @@ void KMCMultiple::RateUpdateCoulomb(vector<Node*> &node,  vector< Chargecarrier*
                 double dG_Field = _q * (dX*_fieldX +  dY*_fieldY + dZ*_fieldZ);
                 double reorg = node_i->reorg_intorig + node_j->reorg_intdest + node_i->event[destindex].reorg_out;
                 double dG_Site = node_j->siteenergy - node_i->siteenergy;
-                double dG = dG_Site + dG_Field;
+                double dG = dG_Site - dG_Field;
                 double coulombfactor = exp(-(2*(dG_Site+reorg) * coulombsum + coulombsum*coulombsum) / (4*reorg*kB*_temperature) );
                 // cout << coulombfactor << endl;
                 // double coulombfactor = 1.0;
@@ -1129,7 +1129,7 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
     // calculate mobilities
     double absolute_field = sqrt(_fieldX*_fieldX + _fieldY*_fieldY + _fieldZ*_fieldZ);
     double average_mobilityZ = 0;
-    if (absolute_field != 0)
+    if (_fieldZ != 0)
     {
         cout << endl << "Mobilities (cm^2/Vs): " << endl;
         for(unsigned int i=0; i<numberofcharges; i++)
