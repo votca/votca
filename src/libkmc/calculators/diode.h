@@ -110,7 +110,7 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
 
     events = new Events();
     events->Init_non_injection_meshes(state, eventdata);
-    events->Initialize_eventvector(graph,state,longrange,non_injection_rates,injection_rates,eventdata);
+    events->Initialize_eventvector(eventdata->device,graph,state,longrange,non_injection_rates,injection_rates,eventdata);
     events->Init_injection_meshes(state, eventdata);
     std::cout << "event vectors and meshes initialized" << endl;
 
@@ -160,23 +160,49 @@ void Diode::RunKMC() {
     
     sim_time = 0.0;
     for (long it = 0; it < 2*eventdata->nr_equilsteps + eventdata->nr_timesteps; it++) {
-        
         // Update longrange cache (expensive, so not done at every timestep)
+        std::cout << "here?" << endl;
         if(ldiv(it, eventdata->steps_update_longrange).rem == 0 && it>0){
+                      std::cout << "here within?" << endl;
+
             longrange->Update_cache(eventdata);
-            events->Recompute_all_events(state, longrange, non_injection_rates, injection_rates, eventdata);
+                               std::cout << "here within?" << endl;
+
+            events->Recompute_all_events(eventdata->device,state, longrange, non_injection_rates, injection_rates, eventdata);
+                           std::cout << "here within?" << endl;
+
         }
+           std::cout << "here?" << endl;
 
         vssmgroup->Recompute(events, non_injection_rates, injection_rates);
+            std::cout << "here?" << endl;
+
         double timestep = vssmgroup->Timestep(RandomVariable);
+                std::cout << "here?" << endl;
+
         sim_time += timestep;
+                std::cout << "here?" << endl;
 
         Event* chosenevent = vssmgroup->Choose_event(events, non_injection_rates, injection_rates, RandomVariable);
+                std::cout << "here?" << endl;
 
         numoutput->Update(chosenevent, sim_time, timestep);        
+                std::cout << "here?" << endl;
 
-        events->On_execute(chosenevent, graph, state, longrange, non_injection_rates, injection_rates, eventdata);
-
+        events->On_execute(chosenevent, eventdata->device, graph, state, longrange, non_injection_rates, injection_rates, eventdata);
+        std::cout << it << "hier na execute?" << endl;
+        if(state->GetCarrierSize()>=131) {
+            Carrier* probecar = state->GetCarrier(131);
+            if(probecar->inbox()) {
+            //    std::cout << it << " " << probecar->node()->id();
+            }
+            else {
+           //     std::cout << it << " not in box";
+            }
+        }
+        Node* probenode = graph->GetNode(42);
+        Node* probenode2 = graph->GetNode(0);
+        std::cout << it << " node occ 42 " << probenode->occ() << " " << probenode2->occ() << endl;
         // check for direct repeats
         
         int goto_node_id = chosenevent->link()->node2()->id();
@@ -187,11 +213,6 @@ void Diode::RunKMC() {
         
         // set inital values for convergence checking
         if(it == 2*eventdata->nr_equilsteps) numoutput->Init_convergence_check(sim_time);
-        
-        if(it == 100) {
-            state->Save("state_store.out");
-            state->Load("state_store.out", graph);
-        }
         
         // equilibration
         
@@ -205,13 +226,13 @@ void Diode::RunKMC() {
         if(ldiv(it,100).rem==0 && it> 2*eventdata->nr_equilsteps) numoutput->Convergence_check(sim_time, eventdata);
 
         // direct output
-        if(ldiv(it,100).rem==0){
+/*        if(ldiv(it,100).rem==0){
             std::cout << it << " " << repeat_counter << " " << 
                          numoutput->iv_conv() << " " << numoutput->iv_count() << " " << 
                          numoutput->reco_conv() << " " << numoutput->reco_count() <<  " " << 
                          sim_time << " " << timestep << " ";
             numoutput->Write(sim_time);
-        }
+        }*/
         
         // break out of loop
         if(numoutput->iv_conv() && numoutput->reco_conv()) {break;}

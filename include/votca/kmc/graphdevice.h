@@ -471,7 +471,7 @@ void GraphDevice::Push_in_box(){
 void GraphDevice::Break_periodicity(bool break_x, double dimX, bool break_y, double dimY, bool break_z, double dimZ){
 
     // Break crossing links
-    for(int it = this->_links.size()-1; it != 0; it--) {
+    for(int it = this->_links.size()-1; it >= 0; it--) {
 
         LinkDevice* ilink = this->_links[it];
         
@@ -496,7 +496,7 @@ void GraphDevice::Break_periodicity(bool break_x, double dimX, bool break_y, dou
   
     // Remove nodes
     
-    for(int it = this->_nodes.size()-1; it != 0; it--) {
+    for(int it = this->_nodes.size()-1; it >= 0; it--) {
         
         NodeDevice* inode = this->_nodes[it];
         
@@ -521,7 +521,7 @@ void GraphDevice::Break_periodicity(bool break_x, double dimX, bool break_y, dou
 void GraphDevice::Break_periodicity(bool break_x, bool break_y, bool break_z){
 
     // Break crossing links
-    for(int it = this->_links.size()-1; it != 0; it--) {
+    for(int it = this->_links.size()-1; it >= 0; it--) {
 
         LinkDevice* ilink = this->_links[it];
         

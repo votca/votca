@@ -42,9 +42,9 @@ public:
         _rate = 0.0;
     }
 
-    Event(int id, Link* link, int carrier_type, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo){
+    Event(int id, Link* link, bool device, int carrier_type, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo){
         _id = id;
-        Set_event(link, carrier_type, state, longrange, eventinfo);
+        Set_event(link, device, carrier_type, state, longrange, eventinfo);
     }
  
     double &rate() { return _rate; }
@@ -56,9 +56,9 @@ public:
     int &action_node1() { return _action_node1;}
     int &action_node2() { return _action_node2;}
     
-    void Set_event(Link* link, int carrier_type, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo);
+    void Set_event(Link* link, bool device, int carrier_type, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo);
     /// Determine rate
-    void Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* eventinfo);
+    void Determine_rate(bool device, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo, bool debug);
     /// Set rate to value
     void Set_rate(double rate) {_rate = rate;}
     /// Set out of box
@@ -164,7 +164,7 @@ inline double Event::Determine_lr_coulomb(Node* node, Longrange* longrange) {
     return lr_coulomb;
 }
 
-void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* eventinfo) {
+void Event::Determine_rate(bool device, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo, bool debug) {
     
     Node* node1 = _link->node1();
     Node* node2 = _link->node2();
@@ -177,7 +177,6 @@ void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* 
     const double hbar = 6.58211928E-16; // eV*s
     const double Pi   = 3.14159265358979323846264338327950288419716939937510;
     const double kB   = 8.617332478E-5; // ev/K     
-    
     if(_carrier_type == (int) Electron) {
         charge = -1.0;
         prefactor = prefactor*(eventinfo->electron_prefactor);
@@ -194,7 +193,7 @@ void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* 
     }
     
     //first transfer integrals
-    
+   
     double transferfactor = 1.0;
     votca::tools::vec distancevector = _link->r12();
     double Reorg;
@@ -219,20 +218,16 @@ void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* 
         if(_carrier_type == (int) Hole) {
             Jeff2 = dynamic_cast<LinkSQL*>(_link)->Jeff2h();
             Reorg = dynamic_cast<NodeSQL*>(node1)->UnCnNh() + dynamic_cast<NodeSQL*>(node2)->UcNcCh() + dynamic_cast<LinkSQL*>(_link)->lOh();
-//            std::cout << Jeff2 << " " << dynamic_cast<NodeSQL*>(node1)->UnCnNh() << " " << dynamic_cast<NodeSQL*>(node2)->UcNcCh() << " " << dynamic_cast<LinkSQL*>(_link)->lOh() << endl;
 
         }
         transferfactor = (2*Pi/hbar)*(Jeff2/sqrt(4*Pi*Reorg*kB*eventinfo->temperature));
     }
-
-    
-    
+ //   if(debug)      std::cout << "rate calc" << endl;
+  
     //second, calculate boltzmann factor
 
     double init_energy;
     double final_energy;
-    double selfimpot_from = dynamic_cast<NodeDevice*>(node1)->self_image();
-    double selfimpot_to = dynamic_cast<NodeDevice*>(node2)->self_image();
     double from_event_energy = 0.0;
     double to_event_energy = 0.0;
 
@@ -243,14 +238,33 @@ void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* 
     else if(_final_type == Collection)    { to_event_energy   -= eventinfo->injection_barrier; prefactor *= eventinfo->collection_prefactor;   } // collection
     else if(_final_type == Recombination) { to_event_energy   -= eventinfo->binding_energy;    prefactor *= eventinfo->recombination_prefactor;} // recombination
 
+    if(debug)  std::cout << "hier?" << " " << node1->occ() << endl;
     double sr_coulomb_from = Determine_from_sr_coulomb(node1, state, eventinfo);
-    double sr_coulomb_to = Determine_to_sr_coulomb(node1, state, eventinfo);
+    if(debug)  std::cout << "hier?" << endl;
 
-    double lr_coulomb_from = eventinfo->coulomb_strength*charge*Determine_lr_coulomb(node1, longrange);
-    double lr_coulomb_to = eventinfo->coulomb_strength*charge*Determine_lr_coulomb(node2, longrange);
-    
-    init_energy = static_node_energy_from + selfimpot_from + from_event_energy + sr_coulomb_from + lr_coulomb_from;
-    final_energy = static_node_energy_to + selfimpot_to + to_event_energy + sr_coulomb_to + sr_coulomb_to;
+    double sr_coulomb_to = Determine_to_sr_coulomb(node1, state, eventinfo);
+ //   if(debug)  std::cout << "hier?" << endl;
+
+    if(device) {
+    //        if(debug)  std::cout << "hier?" << endl;
+
+        double selfimpot_from = dynamic_cast<NodeDevice*>(node1)->self_image();
+        double selfimpot_to = dynamic_cast<NodeDevice*>(node2)->self_image();    
+   //         if(debug)  std::cout << "hier?" << endl;
+
+        double lr_coulomb_from = eventinfo->coulomb_strength*charge*Determine_lr_coulomb(node1, longrange);
+        double lr_coulomb_to = eventinfo->coulomb_strength*charge*Determine_lr_coulomb(node2, longrange);
+       
+   //         if(debug)  std::cout << "hier?" << endl;
+
+        init_energy = static_node_energy_from + selfimpot_from + from_event_energy + sr_coulomb_from + lr_coulomb_from;
+        final_energy = static_node_energy_to + selfimpot_to + to_event_energy + sr_coulomb_to + sr_coulomb_to;
+    }
+    else {
+        init_energy = static_node_energy_from + from_event_energy + sr_coulomb_from;
+        final_energy = static_node_energy_to + to_event_energy + sr_coulomb_to;        
+    }
+ //if(debug)    std::cout << "rate calc" << endl;
 
     double energycontrib;
     double energyfactor;
@@ -278,18 +292,19 @@ void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* 
             energyfactor = exp(-1.0*(energycontrib+Reorg)*(energycontrib+Reorg)/(4*Reorg*kB*eventinfo->temperature));
         }       
     }
+//if(debug)     std::cout << "rate calc" << endl;
 
     _rate = prefactor*transferfactor*energyfactor;
-    if ((eventinfo->formalism == "Marcus")&&!(_init_type==Injection||_final_type==Collection)) {
 //        std::cout << prefactor << " " << transferfactor << " " << energyfactor << " " << dynamic_cast<LinkSQL*>(_link)->Jeff2h() << " " << dynamic_cast<LinkSQL*>(_link)->lOh() << " " << Reorg << endl;
-    }
 }
 
-void Event::Set_event(Link* link, int carrier_type, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo) {
+void Event::Set_event(Link* link, bool device, int carrier_type, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo) {
     
     _link = link;
     Node* node1 = link->node1();
     Node* node2 = link->node2();
+    
+    if(node1->id() == 0 && node2->id() == 0) { std::cout << "EVENT BEPALING " << _carrier_type << " " << _init_type << " " << _final_type << " " << _action_node1 <<  " " << _action_node2 << " " << _rate << endl;}
     
     _carrier_type = carrier_type;
     _init_type = Determine_init_event_type(node1);
@@ -300,7 +315,8 @@ void Event::Set_event(Link* link, int carrier_type, StateDevice* state, Longrang
     _action_node1 = Determine_action_flag_node1();
     _action_node2 = Determine_action_flag_node2();
     
-    Determine_rate(state, longrange, eventinfo);
+    Determine_rate(device, state, longrange, eventinfo, false);
+    if(node1->id() == 0 && node2->id() == 0) { std::cout << "EVENT BEPALING NA " << _carrier_type << " " << _init_type << " " << _final_type << " " << _action_node1 <<  " " << _action_node2 << " " << _rate << endl;}
 
 }
 
