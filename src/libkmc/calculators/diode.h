@@ -188,6 +188,11 @@ void Diode::RunKMC() {
         // set inital values for convergence checking
         if(it == 2*eventdata->nr_equilsteps) numoutput->Init_convergence_check(sim_time);
         
+        if(it == 100) {
+            state->Save("state_store.out");
+            state->Load("state_store.out", graph);
+        }
+        
         // equilibration
         
         if(it == eventdata->nr_equilsteps || it == 2*eventdata->nr_equilsteps) {

@@ -569,16 +569,12 @@ void Events::Initialize_injection_eventvector(int Event_id_count, Node* electrod
 
     int Event_map = Event_id_count;
     
-    std::cout << "Electrode size " << electrode->links().size() << " " << electrode->type() << endl;
-    
     for (int it = 0; it < electrode->links().size(); it++) {
 
         Event *newEvent = new Event(Event_map, electrode->links()[it], carrier_type, state, longrange, eventinfo);
         newEvent->Set_injection_potential(0.0);
         _injection_events.push_back(newEvent);
         Event_map++;
-        std::cout << it << " " << newEvent->link()->node1()->type() << " " << newEvent->rate() << endl;
-
     }
 }
 

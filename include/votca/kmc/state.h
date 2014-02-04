@@ -20,6 +20,8 @@
 
 #include <vector>
 #include <list>
+#include <fstream>
+#include <iostream>
 #include <votca/kmc/carrier.h>
 #include <votca/kmc/node.h>
 #include <votca/kmc/graph.h>
@@ -54,8 +56,8 @@ class State {
     void InitState();
     
     // Storage and readout of the node_id's of the nodes on which the carriers are to/from a SQL database
-    void Save(string SQL_state_filename);
-    void Load(string SQL_state_filename, TGraph* graph);
+    void Save(const char* filename);
+    void Load(const char* filename, TGraph* graph);
 
     bool In_sim_box(TCarrier* carrier) {return carrier->inbox();}    
 private:
@@ -68,79 +70,69 @@ void State<TGraph, TCarrier>::InitState(){
 }
 
 template <class TGraph, class TCarrier>
-void State<TGraph, TCarrier>::Save(string SQL_state_filename){
+void State<TGraph, TCarrier>::Save(const char* filename){
     
-    votca::tools::Database db;
-    db.Open( SQL_state_filename );
-    db.BeginTransaction();       
-
-    votca::tools::Statement *stmt;
-    stmt = db.Prepare( "INSERT INTO carriers ("
-                            "node_id, carrier_type,  distanceX,  "
-                            "distanceY, distanceZ)"
-                            "VALUES ("
-                            "?,     ?,     ?,"
-                            "?,     ?)");
-
-    typename std::vector<TCarrier*>::iterator it;
-    for (it = _carriers.begin(); it != _carriers.end(); it++ ) {
-        if(In_sim_box((*it))) {
-            stmt->Bind(1, (*it)->node()->id());
-            stmt->Bind(2, (*it)->type());
-            votca::tools::vec carrier_distance = (*it)->distance();
-            stmt->Bind(3, carrier_distance.x());
-            stmt->Bind(4, carrier_distance.y());
-            stmt->Bind(5, carrier_distance.z());
-            stmt->InsertStep();
-            stmt->Reset();            
+    ofstream statestore;
+    statestore.open(filename);
+    
+    if(statestore.is_open()) {
+        typename std::vector<TCarrier*>::iterator it;
+        for (it = _carriers.begin(); it != _carriers.end(); it++ ) {
+            if(In_sim_box((*it))) {
+                votca::tools::vec c_distance = (*it)->distance();
+                statestore << (*it)->node()->id() << " " << (*it)->type() << " " << c_distance.x() << " " << c_distance.y() << " " << c_distance.z() << endl;
+            }
         }
-    }      
-        
-    delete stmt;
-    stmt = NULL;
+    }
+    else {
+        std::cout << "WARNING: Can't open state store file" << endl;
+    }
     
-    db.EndTransaction();
+    statestore.close();
 }
 
 template <class TGraph, class TCarrier>
-void State<TGraph,TCarrier>::Load(string SQL_state_filename, TGraph* graph){
+void State<TGraph,TCarrier>::Load(const char* filename, TGraph* graph){
     
-    votca::tools::Database db;
-    db.Open( SQL_state_filename );
+    ifstream statestore;
+    statestore.open(filename);
+    string line;
     
-    votca::tools::Statement *stmt; 
-    stmt = db.Prepare("SELECT node_id, carrier_type, distanceX, distanceY, distanceZ FROM carriers;");
+    int car_nodeID; int car_type;
+    double car_distancex; double car_distancey; double car_distancez;
     
     int carrier_ID = 0;
     
-    while (stmt->Step() != SQLITE_DONE)
-    {   
-        int carrier_nodeID = stmt->Column<int>(0);
-        Node* carrier_node =  graph->GetNode(stmt->Column<int>(0));
-        
-        int carrier_type = stmt->Column<int>(1);
-        
-        double distancex = stmt->Column<double>(2);
-        double distancey = stmt->Column<double>(3);
-        double distancez = stmt->Column<double>(4);
-        votca::tools::vec carrier_distance(distancex,distancey,distancez);
+    if(statestore.is_open()) {
+        while (getline(statestore,line)) {
 
-        TCarrier* newcarrier = AddCarrier(carrier_ID);
-        newcarrier->SetCarrierNode(carrier_node);
-        carrier_node->AddCarrier(carrier_ID);
-        newcarrier->SetCarrierType(carrier_type);
-        carrier_ID++;
-        
-        // Set distance travelled
-        newcarrier->SetDistance(carrier_distance);
-        
-        // New carrier is in the simulation box
-        newcarrier->SetInBox(true);
-        
+            //read and parse lines
+            std::istringstream linestream(line);
+            linestream >> car_nodeID >> car_type >> car_distancex >> car_distancey >> car_distancez;
+            
+            //add carrier to node
+            TCarrier* newcarrier = AddCarrier(carrier_ID);
+            Node* carrier_node =  graph->GetNode(car_nodeID);
+            newcarrier->SetCarrierNode(carrier_node);
+            carrier_node->AddCarrier(carrier_ID);
+
+            //set carrier type
+            newcarrier->SetCarrierType(car_type);
+
+            // Set distance travelled
+            votca::tools::vec carrier_distance(car_distancex,car_distancey,car_distancez);
+            newcarrier->SetDistance(carrier_distance);
+
+            // New carrier is in the simulation box
+            newcarrier->SetInBox(true);
+            carrier_ID++;
+        }
+    }
+    else {
+        std::cout << "WARNING: Can't open state store file" << endl;
     }
 
-    delete stmt;
-    stmt = NULL;    
+    statestore.close();    
 }
 
 template <class TGraph, class TCarrier>
