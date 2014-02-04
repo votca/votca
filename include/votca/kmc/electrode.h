@@ -15,23 +15,25 @@
  *
  */
 
-#ifndef __VOTCA_KMC_ElectronTransfer_H_
-#define __VOTCA_KMC_ElectronTransfer_H_
-
-#include <votca/kmc/event.h>
+#ifndef __VOTCA_KMC_ELECTRODE_H_
+#define	__VOTCA_KMC_ELECTRODE_H_
 
 namespace votca { namespace kmc {
+  
+using namespace std;
+
+enum Electrodetype{ _Left, _Right};
+
+class Electrode {
     
-class ElectronTransfer : public Event {
-public:
-    
-    void onExecute() { 
-        cout << "Electron transfer executed" << endl; 
-    }
-    // TODO updating the state
-   
+    public:
+        
+        Electrodetype _electrodetype;
+        double _static_energy;
+        
 };
 
-}}
+}} 
 
 #endif
+

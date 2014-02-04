@@ -25,7 +25,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <omp.h>
+//#include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -37,97 +37,28 @@
 #include <votca/tools/random2.h>
 #include <tr1/unordered_map>
 #include <cmath> // needed for abs(double)
-// #include "node.h"
+#include "node.h"
 
 using namespace std;
 using namespace std::tr1;
 
 namespace votca { namespace kmc {
 
-static int verbose = 0; // 0=minimal output, 1=verbose output
 static double kB   = 8.617332478E-5; // eV/K
 static double hbar = 6.5821192815E-16; // eV*s
 static double eps0 = 8.85418781762E-12/1.602176565E-19; // e**2/eV/m = 8.85418781762E-12 As/Vm
 static double epsr = 3.0; // relative material permittivity
 static double Pi   = 3.14159265358979323846;
 
-typedef votca::tools::vec myvec;
 typedef unordered_map<unsigned long, double> CoulombMap;
 typedef CoulombMap::const_iterator CoulombIt;
-
-
-struct EventMultiple
-{
-    // Event() : dr(3) {}
-    int destination;
-    double rate;
-    votca::tools::vec dr;
-    
-    // new stuff for Coulomb interaction
-    double Jeff2;
-    double reorg_out;
-    double initialrate;
-};
-
-
-class NodeMultiple
-{
-    public:
-        int id;
-        int occupied;
-        int injectable;
-        double escaperate;
-        double occupationtime;
-        myvec position;
-        vector<EventMultiple> event;
-        // new stuff for Coulomb interaction:
-        double siteenergy;
-        double reorg_intorig; // UnCnN
-        double reorg_intdest; // UcNcC
-    
-        double EscapeRate();
-        void AddEvent(int seg2, double rate12, myvec dr, double Jeff2, double reorg_out);
-        void InitEscapeRate();
-};
-
-
-void NodeMultiple::AddEvent(int seg2, double rate12, myvec dr, double Jeff2, double reorg_out)
-{
-    EventMultiple newEvent;
-    newEvent.destination = seg2;
-    newEvent.rate = rate12;
-    newEvent.initialrate = rate12;
-    newEvent.dr = dr;
-    newEvent.Jeff2 = Jeff2;
-    newEvent.reorg_out = reorg_out;
-    this->event.push_back(newEvent);
-}
-
-
-void NodeMultiple::InitEscapeRate()
-{
-    double newEscapeRate = 0;
-    for(unsigned int i=0; i<this->event.size();i++)
-    {
-        newEscapeRate += this->event[i].rate;
-    }
-    this->escaperate = newEscapeRate;
-    // cout << "Escape rate for segment " << this->id << " was set to " << newEscapeRate << endl;
-}
-
-
-double NodeMultiple::EscapeRate()
-{
-    return escaperate;
-}
-
 
 class Chargecarrier
 {
     public:
         int position;
         int id;
-        NodeMultiple *node;
+        Node *node;
         myvec dr_travelled;
 };
 
@@ -156,31 +87,31 @@ void progressbar(double fraction)
 }
 
 
-int OMPinfo() 
-{
-    int nthreads=1, tid=0, procs, inpar=0;
-    printf("\n||\n|| openMP PARALLEL COMPUTATION STATUS:\n");
-    #pragma omp parallel private(tid)
-    {
-        # ifdef _OPENMP
-        tid = omp_get_thread_num();
-        if (tid == 0) 
-        {
-            procs = omp_get_num_procs();
-            nthreads = omp_get_num_threads();
-            inpar = omp_in_parallel();
-            printf("|| Number of processors = %d\n", procs);
-            printf("|| Number of threads = %d\n", nthreads);
-    
-        }
-        # endif
-        if (tid == 0) 
-        {
-            printf("|| In parallel? = %d\n||\n", inpar);
-        }
-    }
-    return nthreads;
-}
+//int OMPinfo() 
+//{
+//    int nthreads=1, tid=0, procs, inpar=0;
+//    printf("\n||\n|| openMP PARALLEL COMPUTATION STATUS:\n");
+//    #pragma omp parallel private(tid)
+//    {
+//        # ifdef _OPENMP
+//        tid = omp_get_thread_num();
+//        if (tid == 0) 
+//        {
+//            procs = omp_get_num_procs();
+//            nthreads = omp_get_num_threads();
+//            inpar = omp_in_parallel();
+//            printf("|| Number of processors = %d\n", procs);
+//            printf("|| Number of threads = %d\n", nthreads);
+//    
+//        }
+//        # endif
+//        if (tid == 0) 
+//        {
+//            printf("|| In parallel? = %d\n||\n", inpar);
+//        }
+//    }
+//    return nthreads;
+//}
 
 
 class KMCMultiple : public KMCCalculator 
@@ -193,20 +124,19 @@ public:
     bool EvaluateFrame();
 
 protected:
-	    vector<NodeMultiple*>  LoadGraph();
+	    vector<Node*>  LoadGraph();
 	    CoulombMap LoadCoulomb(int numberofnodes);
-            vector<double> RunVSSM(vector<NodeMultiple*> node, double runtime, unsigned int numberofcharges, votca::tools::Random2 *RandomVariable, CoulombMap coulomb);
-            void WriteOcc(vector<double> occP, vector<NodeMultiple*> node);
-            void InitialRates(vector<NodeMultiple*> node);
-            void RateUpdateCoulomb(vector<NodeMultiple*> &node,  vector< Chargecarrier* > &carrier, CoulombMap &coulomb);
-            void InitBoxSize(vector<NodeMultiple*> node);
+            vector<double> RunVSSM(vector<Node*> node, double runtime, unsigned int numberofcharges, votca::tools::Random2 *RandomVariable, CoulombMap coulomb);
+            void WriteOcc(vector<double> occP, vector<Node*> node);
+            void InitialRates(vector<Node*> node);
+            void RateUpdateCoulomb(vector<Node*> &node,  vector< Chargecarrier* > &carrier, CoulombMap &coulomb);
+            void InitBoxSize(vector<Node*> node);
 
 
             string _injection_name;
             string _injectionmethod;
             int _injectionfree;
             double _runtime;
-            // double _dt;
             int _seed;
             int _numberofcharges;
             int _allowparallel;
@@ -271,6 +201,9 @@ void KMCMultiple::Initialize(const char *filename, Property *options, const char
             
         }
 
+        if (options->exists("options.kmcmultiple.fieldX")) {
+	    _fieldX = options->get("options.kmcmultiple.fieldX").as<double>();
+	}
         else {
             _fieldX = 0;
         }
@@ -354,20 +287,20 @@ void KMCMultiple::Initialize(const char *filename, Property *options, const char
 
 }
 
-vector<NodeMultiple*> KMCMultiple::LoadGraph()
+vector<Node*> KMCMultiple::LoadGraph()
 {
-    vector<NodeMultiple*> node;
+    vector<Node*> node;
     
     // Load nodes
     votca::tools::Database db;
     db.Open( _filename );
-    if(verbose >= 1) {cout << "LOADING GRAPH" << endl << "database file: " << _filename << endl; }
+    if(votca::tools::globals::verbose) {cout << "LOADING GRAPH" << endl << "database file: " << _filename << endl; }
     votca::tools::Statement *stmt = db.Prepare("SELECT _id-1, name, posX, posY, posZ, UnCnN"+_carriertype+", UcNcC"+_carriertype+",eAnion,eNeutral,eCation,ucCnN"+_carriertype+" FROM segments;");
 
     int i=0;
     while (stmt->Step() != SQLITE_DONE)
     {
-        NodeMultiple *newNode = new NodeMultiple();
+        Node *newNode = new Node();
         node.push_back(newNode);
 
         int newid = stmt->Column<int>(0);
@@ -402,7 +335,7 @@ vector<NodeMultiple*> KMCMultiple::LoadGraph()
         i++;
     }
     delete stmt;
-    if(verbose >= 1) { cout << "segments: " << node.size() << endl; }
+    if(votca::tools::globals::verbose) { cout << "segments: " << node.size() << endl; }
     
     // Load pairs and rates
     int numberofpairs = 0;
@@ -422,7 +355,7 @@ vector<NodeMultiple*> KMCMultiple::LoadGraph()
     }    
     delete stmt;
 
-    if(verbose >= 1) { cout << "pairs: " << numberofpairs/2 << endl; }
+    if(votca::tools::globals::verbose) { cout << "pairs: " << numberofpairs/2 << endl; }
     
     // Calculate initial escape rates !!!THIS SHOULD BE MOVED SO THAT IT'S NOT DONE TWICE IN CASE OF COULOMB INTERACTION!!!
     for(unsigned int i=0; i<node.size(); i++)
@@ -481,7 +414,7 @@ int Forbidden(int id, vector<int> forbiddenlist)
     return forbidden;
 }
 
-int Surrounded(NodeMultiple* node, vector<int> forbiddendests)
+int Surrounded(Node* node, vector<int> forbiddendests)
 {
     int surrounded = 1;
     for(unsigned int i=0; i<node->event.size(); i++)
@@ -525,7 +458,7 @@ void printtime(int seconds_t)
 }
 
 
-void KMCMultiple::InitBoxSize(vector<NodeMultiple*> node)
+void KMCMultiple::InitBoxSize(vector<Node*> node)
 {
     cout << endl << "Analysing size of the simulation cell." << endl;
     double minX = 0;
@@ -563,7 +496,7 @@ void KMCMultiple::InitBoxSize(vector<NodeMultiple*> node)
     cout << "spatial electron density: " << _numberofcharges/_boxsizeX/_boxsizeY/_boxsizeZ << " m^-3" << endl;
 }
 
-void KMCMultiple::InitialRates(vector<NodeMultiple*> node)
+void KMCMultiple::InitialRates(vector<Node*> node)
 {
     cout << endl <<"Calculating initial Marcus rates." << endl;
     cout << "    Temperature T = " << _temperature << " K." << endl;
@@ -598,11 +531,11 @@ void KMCMultiple::InitialRates(vector<NodeMultiple*> node)
 
             double J2 = node[i]->event[j].Jeff2;
 
-            double dG = dG_Site + dG_Field;
+            double dG = dG_Site - dG_Field;
             
             double rate = 2*Pi/hbar * J2/sqrt(4*Pi*reorg*kB*_temperature) * exp(-(dG+reorg)*(dG+reorg) / (4*reorg*kB*_temperature));
             
-            // calculate relative difference compare to values in the table
+            // calculate relative difference compared to values in the table
             double reldiff = (node[i]->event[j].rate - rate) / node[i]->event[j].rate;
             if (reldiff > maxreldiff) {maxreldiff = reldiff;}
             reldiff = (node[i]->event[j].rate - rate) / rate;
@@ -634,7 +567,7 @@ void KMCMultiple::InitialRates(vector<NodeMultiple*> node)
     }
 }
 
-void KMCMultiple::RateUpdateCoulomb(vector<NodeMultiple*> &node,  vector< Chargecarrier* > &carrier, CoulombMap &coulomb)
+void KMCMultiple::RateUpdateCoulomb(vector<Node*> &node,  vector< Chargecarrier* > &carrier, CoulombMap &coulomb)
 {
     // Calculate new rates for all possible events, i.e. for the possible hoppings of all occupied nodes
     //cout << "Updating Coulomb interaction part of rates." << endl;
@@ -642,13 +575,13 @@ void KMCMultiple::RateUpdateCoulomb(vector<NodeMultiple*> &node,  vector< Charge
     for(unsigned int cindex=0; cindex<carrier.size(); cindex++)
     {
         //cout << "  carrier no. "<< cindex+1 << endl;
-        NodeMultiple *node_i = carrier[cindex]->node;
+        Node *node_i = carrier[cindex]->node;
         double escaperate = 0;
         //#pragma omp parallel for
         for(unsigned int destindex=0; destindex<node_i->event.size(); destindex++)
         {
             int destid = node_i->event[destindex].destination;
-            NodeMultiple *node_j = node[destid];
+            Node *node_j = node[destid];
             if(node_j->occupied == 1)
             {  // in principal shouldn't be needed:
                node_i->event[destindex].rate = 0;
@@ -717,7 +650,7 @@ void KMCMultiple::RateUpdateCoulomb(vector<NodeMultiple*> &node,  vector< Charge
                     else // _explicitcoulomb==1 (partial charges)
                     {
                         CoulombIt coul_iterator;
-                        NodeMultiple *node_k = carrier[ncindex]->node;
+                        Node *node_k = carrier[ncindex]->node;
                         if(ncindex != cindex) // charge doesn't have Coulomb interaction with itself
                         {
                             // - E_ik
@@ -735,39 +668,6 @@ void KMCMultiple::RateUpdateCoulomb(vector<NodeMultiple*> &node,  vector< Charge
                                 contribution -= coul_iterator->second;
                                 substractionmade = 1;
                             }
-                            
-// ####################################################################################################
-//                            // + E_ik
-//                            myvec distancevec = carrier[ncindex]->node->position - node_i->position;
-//                            double epsR = 3;
-//                            double dX = std::abs(distancevec.x());
-//                            double dY = std::abs(distancevec.y());
-//                            double dZ = std::abs(distancevec.z());
-//                            if (dX > _boxsizeX/2)
-//                            {
-//                                dX = _boxsizeX - dX;
-//                            }
-//                            if (dY > _boxsizeY/2)
-//                            {
-//                                dY = _boxsizeY - dY;
-//                            }
-//                            if (dZ > _boxsizeZ/2)
-//                            {
-//                                dZ = _boxsizeZ - dZ;
-//                            }
-//                            double distance = sqrt(dX*dX+dY*dY+dZ*dZ);
-//                            double rawcoulombcontribution = 1.4399644850445791e-09 / epsR / distance;
-//                            if(distance >= 5E-9)
-//                            {
-//                                rawcoulombcontribution = 0;
-//                            }
-//                            if(rawcoulombcontribution -contribution > 1E-10)
-//                            {
-//                                cout << "WARNING: " << rawcoulombcontribution << " != " << contribution << " (distance=" << distance << ")"<< endl;
-//                                cout << "         for interaction i=" << node_i->id+1 << ", k=" << carrier[ncindex]->node->id+1 << endl;
-//                            }
-// ####################################################################################################
-                        
                             
                             // + E_jk
                             key = node_j->id + dimension * carrier[ncindex]->node->id;
@@ -797,7 +697,7 @@ void KMCMultiple::RateUpdateCoulomb(vector<NodeMultiple*> &node,  vector< Charge
                 double dG_Field = _q * (dX*_fieldX +  dY*_fieldY + dZ*_fieldZ);
                 double reorg = node_i->reorg_intorig + node_j->reorg_intdest + node_i->event[destindex].reorg_out;
                 double dG_Site = node_j->siteenergy - node_i->siteenergy;
-                double dG = dG_Site + dG_Field;
+                double dG = dG_Site - dG_Field;
                 double coulombfactor = exp(-(2*(dG_Site+reorg) * coulombsum + coulombsum*coulombsum) / (4*reorg*kB*_temperature) );
                 // cout << coulombfactor << endl;
                 // double coulombfactor = 1.0;
@@ -823,7 +723,7 @@ void KMCMultiple::RateUpdateCoulomb(vector<NodeMultiple*> &node,  vector< Charge
     }
 }
 
-vector<double> KMCMultiple::RunVSSM(vector<NodeMultiple*> node, double runtime, unsigned int numberofcharges, votca::tools::Random2 *RandomVariable, CoulombMap coulomb)
+vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned int numberofcharges, votca::tools::Random2 *RandomVariable, CoulombMap coulomb)
 {
 
     int realtime_start = time(NULL);
@@ -898,6 +798,7 @@ vector<double> KMCMultiple::RunVSSM(vector<NodeMultiple*> node, double runtime, 
         
         double probsum;
         double fstepwidth = std::abs(0.01 * fermienergy);
+        probsum = 0;
         while(std::abs(probsum - numberofcharges) > 0.1)
         {
             cout << ".";
@@ -939,18 +840,6 @@ vector<double> KMCMultiple::RunVSSM(vector<NodeMultiple*> node, double runtime, 
                 }
             }
         }
-//        while(inside < _numberofcharges + _injectionfree)
-//        {
-//            inside = 0;
-//            deltaE += stepwidth;
-//            for(unsigned int i=0; i<energy.size(); i++)
-//            {
-//                if(energy[i] >= energypercarrier-0*deltaE && energy[i] <= energypercarrier+2*deltaE)
-//                {
-//                    inside += 1;
-//                }
-//            }
-//        }
         cout << inside << " charges in acceptance interval " << energypercarrier << " +/- " << deltaE << "." << endl;
         
     }
@@ -1054,7 +943,7 @@ vector<double> KMCMultiple::RunVSSM(vector<NodeMultiple*> node, double runtime, 
         }
         dt = -1 / cumulated_rate * log(rand_u);
         simtime += dt;
-        if(verbose >= 1) {cout << "simtime += " << dt << endl << endl;}
+        if(votca::tools::globals::verbose) {cout << "simtime += " << dt << endl << endl;}
         step += 1;
         
         for(unsigned int i=0; i<numberofcharges; i++)
@@ -1070,8 +959,8 @@ vector<double> KMCMultiple::RunVSSM(vector<NodeMultiple*> node, double runtime, 
         {
             
             // determine which electron will escape
-            NodeMultiple* do_oldnode;
-            NodeMultiple* do_newnode;
+            Node* do_oldnode;
+            Node* do_newnode;
             Chargecarrier* do_affectedcarrier;
             
             double u = 1 - RandomVariable->rand_uniform();
@@ -1091,7 +980,7 @@ vector<double> KMCMultiple::RunVSSM(vector<NodeMultiple*> node, double runtime, 
             double maxprob = 0.;
             double newprob = 0.;
             myvec dr;
-            if(verbose >= 1) {cout << "Charge number " << do_affectedcarrier->id+1 << " which is sitting on segment " << do_oldnode->id+1 << " will escape!" << endl ;}
+            if(votca::tools::globals::verbose) {cout << "Charge number " << do_affectedcarrier->id+1 << " which is sitting on segment " << do_oldnode->id+1 << " will escape!" << endl ;}
             if(Forbidden(do_oldnode->id, forbiddennodes) == 1) {continue;}
             
             // determine where it will jump to
@@ -1099,13 +988,13 @@ vector<double> KMCMultiple::RunVSSM(vector<NodeMultiple*> node, double runtime, 
             while(true)
             {
             // LEVEL 2
-                if(verbose >= 1) {cout << "There are " << do_oldnode->event.size() << " possible jumps for this charge:"; }
+                if(votca::tools::globals::verbose) {cout << "There are " << do_oldnode->event.size() << " possible jumps for this charge:"; }
 
                 do_newnode = NULL;
                 u = 1 - RandomVariable->rand_uniform();
                 for(unsigned int j=0; j<do_oldnode->event.size(); j++)
                 {
-                    if(verbose >= 1) { cout << " " << do_oldnode->event[j].destination+1 ; }
+                    if(votca::tools::globals::verbose) { cout << " " << do_oldnode->event[j].destination+1 ; }
                     u -= do_oldnode->event[j].rate/do_oldnode->EscapeRate();
                     if(u <= 0)
                     {
@@ -1119,18 +1008,18 @@ vector<double> KMCMultiple::RunVSSM(vector<NodeMultiple*> node, double runtime, 
 
                 if(do_newnode == NULL)
                 {
-                    if(verbose >= 1) {cout << endl << "Node " << do_oldnode->id+1  << " is SURROUNDED by forbidden destinations and zero rates. Adding it to the list of forbidden nodes. After that: selection of a new escape node." << endl; }
+                    if(votca::tools::globals::verbose) {cout << endl << "Node " << do_oldnode->id+1  << " is SURROUNDED by forbidden destinations and zero rates. Adding it to the list of forbidden nodes. After that: selection of a new escape node." << endl; }
                     AddForbidden(do_oldnode->id, forbiddennodes);
                     
                     int nothing=0;
                     break; // select new escape node (ends level 2 but without setting level1step to 1)
                 }
-                if(verbose >= 1) {cout << endl << "Selected jump: " << do_newnode->id+1 << endl; }
+                if(votca::tools::globals::verbose) {cout << endl << "Selected jump: " << do_newnode->id+1 << endl; }
                 
                 // check after the event if this was allowed
                 if(Forbidden(do_newnode->id, forbiddendests) == 1)
                 {
-                    if(verbose >= 1) {cout << "Node " << do_newnode->id+1  << " is FORBIDDEN. Now selection new hopping destination." << endl; }
+                    if(votca::tools::globals::verbose) {cout << "Node " << do_newnode->id+1  << " is FORBIDDEN. Now selection new hopping destination." << endl; }
                     continue;
                 }
 
@@ -1139,13 +1028,13 @@ vector<double> KMCMultiple::RunVSSM(vector<NodeMultiple*> node, double runtime, 
                 {
                     if(Surrounded(do_oldnode, forbiddendests) == 1)
                     {
-                        if(verbose >= 1) {cout << "Node " << do_oldnode->id+1  << " is SURROUNDED by forbidden destinations. Adding it to the list of forbidden nodes. After that: selection of a new escape node." << endl; }
+                        if(votca::tools::globals::verbose) {cout << "Node " << do_oldnode->id+1  << " is SURROUNDED by forbidden destinations. Adding it to the list of forbidden nodes. After that: selection of a new escape node." << endl; }
                         AddForbidden(do_oldnode->id, forbiddennodes);
                         break; // select new escape node (ends level 2 but without setting level1step to 1)
                     }
-                    if(verbose >= 1) {cout << "Selected segment: " << do_newnode->id+1 << " is already OCCUPIED. Added to forbidden list." << endl << endl;}
+                    if(votca::tools::globals::verbose) {cout << "Selected segment: " << do_newnode->id+1 << " is already OCCUPIED. Added to forbidden list." << endl << endl;}
                     AddForbidden(do_newnode->id, forbiddendests);
-                    if(verbose >= 1) {cout << "Now choosing different hopping destination." << endl; }
+                    if(votca::tools::globals::verbose) {cout << "Now choosing different hopping destination." << endl; }
                     continue; // select new destination
                 }
                 else
@@ -1155,11 +1044,11 @@ vector<double> KMCMultiple::RunVSSM(vector<NodeMultiple*> node, double runtime, 
                     do_affectedcarrier->node = do_newnode;
                     do_affectedcarrier->dr_travelled += dr;
                     level1step = 1;
-                    if(verbose >= 1) {cout << "Charge has jumped to segment: " << do_newnode->id+1 << "." << endl;}
+                    if(votca::tools::globals::verbose) {cout << "Charge has jumped to segment: " << do_newnode->id+1 << "." << endl;}
                     break; // this ends LEVEL 2 , so that the time is updated and the next MC step started
                 }
 
-                if(verbose >= 1) {cout << "." << endl;}
+                if(votca::tools::globals::verbose) {cout << "." << endl;}
             // END LEVEL 2
             }
         // END LEVEL 1
@@ -1240,7 +1129,7 @@ vector<double> KMCMultiple::RunVSSM(vector<NodeMultiple*> node, double runtime, 
     // calculate mobilities
     double absolute_field = sqrt(_fieldX*_fieldX + _fieldY*_fieldY + _fieldZ*_fieldZ);
     double average_mobilityZ = 0;
-    if (absolute_field != 0)
+    if (_fieldZ != 0)
     {
         cout << endl << "Mobilities (cm^2/Vs): " << endl;
         for(unsigned int i=0; i<numberofcharges; i++)
@@ -1262,7 +1151,7 @@ vector<double> KMCMultiple::RunVSSM(vector<NodeMultiple*> node, double runtime, 
 }
 
 
-void KMCMultiple::WriteOcc(vector<double> occP, vector<NodeMultiple*> node)
+void KMCMultiple::WriteOcc(vector<double> occP, vector<Node*> node)
 {
     votca::tools::Database db;
     cout << "Opening for writing " << _filename << endl;
@@ -1287,12 +1176,12 @@ bool KMCMultiple::EvaluateFrame()
     std::cout << "-----------------------------------" << std::endl << std::endl;      
  
     // Initialise random number generator
-    if(verbose >= 1) { cout << endl << "Initialising random number generator" << endl; }
+    if(votca::tools::globals::verbose) { cout << endl << "Initialising random number generator" << endl; }
     srand(_seed); // srand expects any integer in order to initialise the random number generator
     votca::tools::Random2 *RandomVariable = new votca::tools::Random2();
     RandomVariable->init(rand(), rand(), rand(), rand());
     
-    vector<NodeMultiple*> node;
+    vector<Node*> node;
     node = KMCMultiple::LoadGraph();
     CoulombMap coulomb;
     if(_explicitcoulomb == 1)

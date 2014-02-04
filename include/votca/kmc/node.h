@@ -16,67 +16,93 @@
  */
 
 #ifndef __VOTCA_KMC_NODE_H_
-#define __VOTCA_KMC_NODE_H_
+#define	__VOTCA_KMC_NODE_H_
 
+#include <vector>
 #include <votca/tools/vec.h>
+#include <votca/kmc/carrier.h>
+
+typedef votca::tools::vec myvec;
 
 namespace votca { namespace kmc {
   
 using namespace std;
 
-
+enum NodeType{Normal, LeftElectrode, RightElectrode};
 
 class Node {
     
-    public:
-        
-        const int &getID() const { return _id; }
-        
-        const string &getType() const { return _type; }
-        
-        const vec &getPosition() const { return _position; }
-        
-//        const vector<Node*> &getNeighbours(CarrierType type){ return _neighbours[type]; }
-        
-        const vector<Node*> &getNeighbours{ return _neighbours[_id]; }
-        
-        const double &getOccupation( CarrierType type ) const { return _occupation[type]; }
-        
-        const int &getCarrierID const {return _carrierid;} // -1 if empty
-        
-        const double &getStaticEnergy const {return _static_energy;}
-        
-//        void setID (int index) {
-//            _id = index;
-//        }
-//        void setPosition (double ix, double iy, double iz) {
-//            _position = vec(ix,iy,iz);
-//        }
-        
-        void setNeighbours (int vertex2) {
-            _neighbours.push_back(index2);
-        }
-        
-//        void setOccupation(CarrierType type, double occup) {
-//            _occupation[type] = occup;
-//        }
-        
-//        void setCarrierID(int carID) {
-//            _carrierID = carID;
-//        }
-        
-        ;
+public:
 
-    private:
-        int _id;
-        const string _type;
-        vec _position;
-        vector<Node*> _neighbours;
-        double _occupation[3];
-        int _carrierID;
-        double _static_energy;
+    void setPair(Node* pairing_node) {pairing_nodes.push_back(pairing_node);}
+    void setStaticeventinfo(Node* pairnode, myvec dr, double rate12e, double rate12h, double Jeff2e, double Jeff2h, double reorg_oute, double reorg_outh);    
+
+    void removePair(int pairing_node_index);
+    
+    struct Static_event_info {
+        Node* pairnode;
+        myvec distance; //distance vector from start to destination node
+        double rate12e;
+        double rate12h;
+        double Jeff2e;
+        double Jeff2h;
+        double reorg_oute;
+        double reorg_outh;
+    };     
+
+    int node_ID;
+    NodeType node_type;
+    myvec node_position;
+    vector<Node*> pairing_nodes;
+    vector<Static_event_info> static_event_info;
+    vector<Carrier*> carriers_on_node;
+    
+    int layer_index;
+    
+    //static energies
+    double reorg_intorig_hole;
+    double reorg_intorig_electron;
+    double reorg_intdest_hole;
+    double reorg_intdest_electron;
+        
+    double eAnion;
+    double eNeutral;
+    double eCation;
+        
+    double internal_energy_electron;
+    double internal_energy_hole;
+        
+    double static_electron_node_energy;
+    double static_hole_node_energy;
+    
+    double self_image_potential;
+    
+    //for injection
+    
+    int left_injector_ID;
+    int right_injector_ID;
+    double injection_potential;
+    
 };
 
+void Node::setStaticeventinfo(Node* pairnode, myvec dr, double rate12e, double rate12h, double Jeff2e, double Jeff2h, double reorg_oute, double reorg_outh) {
+    Static_event_info newStatic;
+    newStatic.pairnode = pairnode;
+    newStatic.distance = dr;
+    newStatic.rate12e = rate12e;
+    newStatic.rate12h = rate12h;
+    newStatic.Jeff2e = Jeff2e;
+    newStatic.Jeff2h = Jeff2h;
+    newStatic.reorg_oute = reorg_oute;
+    newStatic.reorg_outh = reorg_outh;
+    static_event_info.push_back(newStatic);
+}
+
+void Node::removePair(int pairing_node_index) {
+    pairing_nodes.erase(pairing_nodes.begin()+pairing_node_index);
+    static_event_info.erase(static_event_info.begin()+pairing_node_index);
+}
+        
 }} 
 
 #endif

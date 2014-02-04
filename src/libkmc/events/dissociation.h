@@ -15,18 +15,18 @@
  *
  */
 
-#ifndef __VOTCA_KMC_ElectronTransfer_H_
-#define __VOTCA_KMC_ElectronTransfer_H_
+#ifndef __VOTCA_KMC_Dissociation_H_
+#define __VOTCA_KMC_Dissociation_H_
 
 #include <votca/kmc/event.h>
 
 namespace votca { namespace kmc {
     
-class ElectronTransfer : public Event {
+class Dissociation : public Event {
 public:
     
     void onExecute() { 
-        cout << "Electron transfer executed" << endl; 
+        cout << "Dissociation executed" << endl; 
     }
     // TODO updating the state
    

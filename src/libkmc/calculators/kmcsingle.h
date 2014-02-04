@@ -129,13 +129,12 @@ void KMCSingle::LoadGraph() {
     //delete stmt;
     cout << "  -Nodes: " << _nodes.size() << endl;
     cout << "seed:" << _seed << endl;
-    if(_seed > _nodes.size()){ throw invalid_argument ("Seed is bigger than number of nodes. Please specify a smaller seed in your input file."); }
     cout << "  -Injection Points: " << _injection.size() << endl;
 
     delete stmt;
 
     int links = 0;
-    stmt = db.Prepare("SELECT seg1, seg2, rate12e, rate21e, drX, drY, drZ FROM pairs;"); // electron rates, check (think about) this
+    stmt = db.Prepare("SELECT seg1, seg2, rate12e, rate21e, drX, drY, drZ FROM pairs;"); // electron rates, kmcsingle still lacks capability to treat holes
     while (stmt->Step() != SQLITE_DONE) {
         node_t *n1 = _nodes_lookup[stmt->Column<int>(0)];
         node_t *n2 = _nodes_lookup[stmt->Column<int>(1)];
