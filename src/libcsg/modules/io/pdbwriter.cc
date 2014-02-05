@@ -38,7 +38,6 @@ void PDBWriter::Write(Topology *conf)
 {
     Topology *top = conf;
     fprintf(_out, "MODEL     %4d\n", conf->getStep());
-    fprintf(_out, "REMARK  coordinates are in 10*internal units (From gromacs: nm*10=Angstrom)\n");
     for(BeadContainer::iterator iter=conf->Beads().begin();
     iter!=conf->Beads().end(); ++iter) {
         Bead *bi = *iter;
