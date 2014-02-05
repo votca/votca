@@ -14,13 +14,17 @@ proc write_data {file_name i time_step} {
     close $f
 }
 
-proc write_xyz {file_name} {
+proc write_gro {file_name} {
   set f [open $file_name "a"]
+  puts $f "gro by Espresso, time [setmd time]"
   puts $f "[setmd n_part]"
-  puts $f "xyz by Espresso, time [setmd time]"
   for { set i 1} { $i <= [setmd n_part] } { incr i 1} {
-    puts $f "CG [part $i print pos]"
+    set pos [part $i print pos]
+    set vel [part $i print v]
+    puts $f [format "%5d%-5s%5s%5d%8.3f%8.3f%8.3f%8.4f%8.4f%8.4f" $i "SOL" "CG" $i [lindex $pos 0] [lindex $pos 1] [lindex $pos 2] [lindex $vel 0] [lindex $vel 1] [lindex $vel 2] ]
   }
+  set box [setmd box_l]
+  puts $f [format "%10.5f%10.5f%10.5f" [lindex $box 0] [lindex $box 1] [lindex $box 2]]
   close $f
 }
 
@@ -107,7 +111,7 @@ for { set i 0} { $i < $int_steps } { incr i 1} {
   #for paraview: usage open files -> part_data* -> use glyph ->spheres radius 0.05
   #writevtk part_data$i.vtk
   #for vmd output
-  write_xyz traj.xyz
+  write_gro traj.gro
   #imd positions
 }
 puts "\n"

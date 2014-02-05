@@ -35,7 +35,7 @@
       <!-- topology to be used by  csg_stat !-->
       <topol>topol.xml</topol>
       <!-- traj file created by espresso !-->
-      <traj>traj.xyz</traj>
+      <traj>traj.gro</traj>
     </espresso>
     <initial_configuration>maindir</initial_configuration>
     <!-- these files are copied for each new run -->
