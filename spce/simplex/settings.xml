@@ -23,12 +23,6 @@
       <gromacs>
       <table>table_CG_CG.xvg</table>
       </gromacs>
-      <lammps>
-        <!-- name of the table for lammps run -->
-	<table>CG_CG.pot</table>
-	<table_begin>0.20</table_begin>
-	<table_bins>0.002</table_bins>
-      </lammps>
       <optimizer>
         <target_weights>1 0</target_weights>
 	<function>4*eps*((sig/x)**12-(sig/x)**6)</function>
@@ -43,8 +37,7 @@
            <min>0</min>
            <max>10.6</max>
            <step>0.2</step>
-	   <axis>z</axis>
-	   <molname>SOL</molname>
+           <axis>z</axis>
          </density>
       </optimizer>
     </inverse>
@@ -55,17 +48,8 @@
      <!-- 300*0.00831451 gromacs units -->
     <kBT>2.49435</kBT>
     <!-- use gromacs as simulation program -->
-    <program>lammps</program>
+    <program>gromacs</program>
     <!-- gromacs specific options -->
-    <lammps>
-      <!-- lammps script to run !-->
-      <script>spce.in</script>
-      <!-- topology to be used by  csg_stat !-->
-      <topol>topol.xml</topol>
-      <!-- traj file created by lammps !-->
-      <traj>traj.xyz</traj>
-    </lammps>
-    <initial_configuration>maindir</initial_configuration>
     <gromacs>
       <pre_simulation>yes
 	  <mdp>grompp.prep.mdp</mdp>
@@ -80,7 +64,7 @@
       <table_end>3.0</table_end>
     </gromacs>
     <!-- these files are copied for each new run -->
-    <filelist>spce.data spce.in topol.xml spce.pdb</filelist>
+    <filelist>grompp.prep.mdp grompp.mdp topol.top table.xvg index.ndx</filelist>
     <!-- do so many iterations -->
     <iterations_max>300</iterations_max>
     <!-- ibm: inverse boltzmann imc: inverse monte carlo -->
