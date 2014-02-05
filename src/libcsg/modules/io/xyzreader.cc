@@ -102,10 +102,11 @@ bool XYZReader::NextFrame(Topology &top)
             else
                 b = top.getBead(i);
 
+            // convert to nm from A
             b->setPos(vec(
-                    boost::lexical_cast<double>(fields[1]),
-                    boost::lexical_cast<double>(fields[2]),
-                    boost::lexical_cast<double>(fields[3])
+                    boost::lexical_cast<double>(fields[1])/10.0,
+                    boost::lexical_cast<double>(fields[2])/10.0,
+                    boost::lexical_cast<double>(fields[3])/10.0
                 ));
 
         }
