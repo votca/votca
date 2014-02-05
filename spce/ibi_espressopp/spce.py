@@ -89,6 +89,7 @@ for step in range(50):
   integrator.run(100)
   espresso.tools.info(system, integrator)
   print 'writing .xyz trajectory...'
-  espresso.tools.DumpConfigurations.fastwritexyz_standard('traj.xyz', system, unfolded = False, append = True)
+  # we are simulating in nm, but xyz files are in angstroms! -> scale= 10.0
+  espresso.tools.DumpConfigurations.fastwritexyz('traj.xyz', system, unfolded = False, append = True, velocities = False, scale = 10.0)
   
 print "finished"
