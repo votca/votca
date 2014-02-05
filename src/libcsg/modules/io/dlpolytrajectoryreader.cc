@@ -254,7 +254,8 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &top)
         Tokenizer tok(line, " \t");
         vector<double> fields;
         tok.ConvertToVector<double>(fields);
-	box_vectors[i]=vec(fields[0],fields[1],fields[2]);
+        //Angs -> nm
+	box_vectors[i]=vec(fields[0]/10.0,fields[1]/10.0,fields[2]/10.0);
       }
       matrix box(box_vectors[0],box_vectors[1],box_vectors[2]);
 
@@ -299,7 +300,8 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &top)
           vector<double> fields;
           Tokenizer tok(line, " \t");
           tok.ConvertToVector<double>(fields);
-	  atom_vec[j]=vec(fields[0],fields[1],fields[2]);
+          //Angs -> nm
+	  atom_vec[j]=vec(fields[0]/10.0,fields[1]/10.0,fields[2]/10.0);
 	}
 
 	b->setPos(atom_vec[0]);

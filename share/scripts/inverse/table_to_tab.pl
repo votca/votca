@@ -115,7 +115,8 @@ if ($sim_prog eq "espresso") {
     printf(OUTFILE "%s",($i%4==3)?"\n":" ");
   }
   for(my $i=0;$i<4*int(($#r+6)/4);$i++){
-    printf(OUTFILE "%15.7e",($i>$#r)?0:-$minus_force[$i]*$r[$i]);
+    # 1 kJ/nm = 0.1*kJ/Angs
+    printf(OUTFILE "%15.7e",($i>$#r)?0:-$minus_force[$i]*$r[$i]*0.1);
     printf(OUTFILE "%s",($i%4==3)?"\n":" ");
   }
   printf(OUTFILE "\n");

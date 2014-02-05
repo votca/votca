@@ -376,10 +376,11 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
         Tokenizer tok(line, WhiteSpace);
         vector<double> fields;
         tok.ConvertToVector<double>(fields);
-        box_vectors[i]=vec(fields[0],fields[1],fields[2]);
+	//Angs -> nm
+        box_vectors[i]=vec(fields[0]/10.0,fields[1]/10.0,fields[2]/10.0);
 
 #ifdef DEBUG
-	cout << "Read from initial configuration file : '" << fixed << setprecision(10) << setw(20) << fields[0] << setw(20) << fields[1] << setw(20) << fields[2] << "' - box vector # " << i+1 << " (Angs)" << endl;
+	cout << "Read from initial configuration file : '" << fixed << setprecision(10) << setw(20) << fields[0] << setw(20) << fields[1] << setw(20) << fields[2] << "' - box vector # " << i+1 << " (nm)" << endl;
 #endif
       }
       matrix box(box_vectors[0],box_vectors[1],box_vectors[2]);

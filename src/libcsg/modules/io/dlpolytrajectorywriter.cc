@@ -126,22 +126,25 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf)
       //_fl << setw(8) << left << bead->getName() << right << setw(10) << i+1;
       //_fl << fixed << setprecision(6) << setw(12) << bead->getM() << setw(12) << bead->getQ() << "   0.0" << endl;
 
-      _fl << resetiosflags(std::ios::fixed) << setprecision(12) << setw(20) << bead->getPos().getX();
-      _fl << setw(20) << bead->getPos().getY() << setw(20) << bead->getPos().getZ() << endl;
+      //nm -> Angs
+      _fl << resetiosflags(std::ios::fixed) << setprecision(12) << setw(20) << bead->getPos().getX()*10.0;
+      _fl << setw(20) << bead->getPos().getY()*10.0 << setw(20) << bead->getPos().getZ()*10.0 << endl;
 
       if (mavecs>0) {
 	if (!bead->HasVel())
 	  throw std::ios_base::failure("Error: dlpoly frame is supposed to contain velocities, but bead does not have v-data");
 
-        _fl << setprecision(12) << setw(20) << bead->getVel().getX() << setw(20);
-        _fl << bead->getVel().getY() << setw(20) << bead->getVel().getZ() << endl;
+        //nm -> Angs
+        _fl << setprecision(12) << setw(20) << bead->getVel().getX()*10.0 << setw(20);
+        _fl << bead->getVel().getY()*10.0 << setw(20) << bead->getVel().getZ()*10.0 << endl;
 
 	if (mavecs>1) {
 	  if (!bead->HasF())
 	    throw std::ios_base::failure("Error: dlpoly frame is supposed to contain forces, but bead does not have f-data");
 
-	  _fl << setprecision(12) << setw(20) << bead->getF().getX() << setw(20);
-	  _fl << bead->getF().getY() << setw(20) << bead->getF().getZ() << endl;
+          //nm -> Angs
+	  _fl << setprecision(12) << setw(20) << bead->getF().getX()*10.0 << setw(20);
+	  _fl << bead->getF().getY()*10.0 << setw(20) << bead->getF().getZ()*10.0 << endl;
 	}
       }
     }

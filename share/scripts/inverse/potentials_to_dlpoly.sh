@@ -33,5 +33,8 @@ table_end="$(csg_get_property cg.inverse.dlpoly.table_end)"
 ngrid="$(csg_calc $table_end / $bin_size)"
 ngrid="$(to_int $ngrid)"
 ngrid="$(($ngrid+4))"
+#nm -> Angs
+table_end="$(csg_calc "$table_end" "*" 10)"
+bin_size="$(csg_calc "$bin_size" "*" 10)"
 echo "$bin_size $table_end $ngrid" >> TABLE
 for_all "non-bonded" do_external convert_potential dlpoly '$(csg_get_interaction_property name).pot.cur' '$(csg_get_interaction_property name).pot dlpoly'
