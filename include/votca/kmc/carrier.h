@@ -41,7 +41,7 @@ public:
     const votca::tools::vec &distance() const { return _carrier_distance; } 
     
     /// is carrier in box or not?
-    const bool &inbox() const { return _in_sim_box; }
+    bool &inbox() { return _in_sim_box; }
     
     /// set carrier node
     void SetCarrierNode(Node* carnode) { _carrier_node = carnode; }

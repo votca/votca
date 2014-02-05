@@ -29,7 +29,7 @@ namespace votca { namespace kmc {
 using namespace std;
 
 enum Final_Event_Type {TransferTo, Collection, Recombination, Blocking, Notinbox, Notingraph};
-enum Init_Event_Type {Injection, TransferFrom};
+enum Init_Event_Type {Injection, TransferFrom, Notinboxfrom};
 enum Action{Add, Remove, None };
 
 class Event {
@@ -38,6 +38,7 @@ public:
     
     Event(int id, int type) {
         _id = id;
+        _init_type = (int) Notinboxfrom;
         _final_type = type;
         _rate = 0.0;
     }
@@ -222,7 +223,7 @@ void Event::Determine_rate(bool device, StateDevice* state, Longrange* longrange
         }
         transferfactor = (2*Pi/hbar)*(Jeff2/sqrt(4*Pi*Reorg*kB*eventinfo->temperature));
     }
- //   if(debug)      std::cout << "rate calc" << endl;
+//    if(debug)      std::cout << "rate calc" << endl;
   
     //second, calculate boltzmann factor
 
@@ -238,9 +239,9 @@ void Event::Determine_rate(bool device, StateDevice* state, Longrange* longrange
     else if(_final_type == Collection)    { to_event_energy   -= eventinfo->injection_barrier; prefactor *= eventinfo->collection_prefactor;   } // collection
     else if(_final_type == Recombination) { to_event_energy   -= eventinfo->binding_energy;    prefactor *= eventinfo->recombination_prefactor;} // recombination
 
-    if(debug)  std::cout << "hier?" << " " << node1->occ() << endl;
+ //   if(debug)  std::cout << "hier?" << " " << node1->occ() << endl;
     double sr_coulomb_from = Determine_from_sr_coulomb(node1, state, eventinfo);
-    if(debug)  std::cout << "hier?" << endl;
+ //   if(debug)  std::cout << "hier?" << endl;
 
     double sr_coulomb_to = Determine_to_sr_coulomb(node1, state, eventinfo);
  //   if(debug)  std::cout << "hier?" << endl;
@@ -304,7 +305,7 @@ void Event::Set_event(Link* link, bool device, int carrier_type, StateDevice* st
     Node* node1 = link->node1();
     Node* node2 = link->node2();
     
-    if(node1->id() == 0 && node2->id() == 0) { std::cout << "EVENT BEPALING " << _carrier_type << " " << _init_type << " " << _final_type << " " << _action_node1 <<  " " << _action_node2 << " " << _rate << endl;}
+    if(_id == 544) { std::cout << "EVENT BEPALING " << _carrier_type << " " << _init_type << " " << _final_type << " " << _action_node1 <<  " " << _action_node2 << " " << _rate << endl;}
     
     _carrier_type = carrier_type;
     _init_type = Determine_init_event_type(node1);
@@ -316,7 +317,7 @@ void Event::Set_event(Link* link, bool device, int carrier_type, StateDevice* st
     _action_node2 = Determine_action_flag_node2();
     
     Determine_rate(device, state, longrange, eventinfo, false);
-    if(node1->id() == 0 && node2->id() == 0) { std::cout << "EVENT BEPALING NA " << _carrier_type << " " << _init_type << " " << _final_type << " " << _action_node1 <<  " " << _action_node2 << " " << _rate << endl;}
+    if(_id == 544) { std::cout << "EVENT BEPALING NA " << _carrier_type << " " << _init_type << " " << _final_type << " " << _action_node1 <<  " " << _action_node2 << " " << _rate << endl;}
 
 }
 

@@ -89,7 +89,7 @@ void StateDevice::Grow(unsigned int nr_new_carriers, int maxpairdegree) {
     for (unsigned int i=this->GetCarrierSize(); i<new_nr_carriers; i++) {
 
         CarrierDevice* newcarrier = this->AddCarrier(i);         
-
+        if(i==36) {std::cout << "inserted" << endl;}
         carrier_reservoir.push_back(i);
         newcarrier->SetInBox(false);
         newcarrier->SetDistance(votca::tools::vec(0.0,0.0,0.0)); //initialize the travelled distance vector
