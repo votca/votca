@@ -550,6 +550,7 @@ void Events::Recompute_all_non_injection_events(bool device, StateDevice* state,
     
     typename std::vector<Event*>::iterator it;
     for(it = _non_injection_events.begin(); it != _non_injection_events.end(); it++) {
+        std::cout << it << endl;
         if(((*it)->final_type() != (int) Notinbox)&&((*it)->final_type() != (int) Notingraph)) {
             (*it)->Determine_rate(device, state, longrange, eventinfo,false);
         }
