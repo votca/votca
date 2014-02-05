@@ -61,7 +61,8 @@ void PDBWriter::Write(Topology *conf)
                 resname.c_str(), // residue name
                 " ", // chain identifier 1 char
                 bi->getResnr()+1, // residue sequence number
-                10*r.x(), 10*r.y(), 10*r.z()); //we skip the charge
+                10*r.x(), 10*r.y(), 10*r.z()); //nm -> Angs
+		//we skip the charge
           
         if(bi->getSymmetry()>=2) {
            vec ru = 0.1*bi->getU() + r;
