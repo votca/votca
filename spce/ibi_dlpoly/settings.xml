@@ -7,12 +7,12 @@
     <type1>CG</type1>
     <type2>CG</type2>
     <!-- dimension + grid spacing of tables for calculations -->
-    <min>2.5</min>
-    <max>9</max>
-    <step>0.1</step>
+    <min>0.25</min>
+    <max>0.9</max>
+    <step>0.01</step>
     <inverse>
       <!-- target distribution (rdf)  -->
-      <target>CG-CG.dist_A.tgt</target>
+      <target>CG-CG.dist.tgt</target>
     </inverse>
   </non-bonded>
   
@@ -24,8 +24,8 @@
     <program>dlpoly</program>
     <!-- dlpoly specific options -->
     <dlpoly>
-      <table_bins>0.002</table_bins>
-      <table_end>9</table_end>
+      <table_bins>0.0002</table_bins>
+      <table_end>0.9</table_end>
     </dlpoly>
     <initial_configuration>maindir</initial_configuration>
     <!-- these files are copied for each new run -->
