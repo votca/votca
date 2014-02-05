@@ -160,64 +160,21 @@ void Diode::RunKMC() {
     
     sim_time = 0.0;
     for (long it = 0; it < 2*eventdata->nr_equilsteps + eventdata->nr_timesteps; it++) {
-//      for (long it = 0; it < 2; it++) {
-    // Update longrange cache (expensive, so not done at every timestep)
- //       std::cout << "here?" << endl;
+
+        // Update longrange cache (expensive, so not done at every timestep)
         if(ldiv(it, eventdata->steps_update_longrange).rem == 0 && it>0){
-                      //std::cout << "here within?" << endl;
 
             longrange->Update_cache(eventdata);
-                             //std::cout << "here within?" << endl;
-
             events->Recompute_all_events(eventdata->device,state, longrange, non_injection_rates, injection_rates, eventdata);
-                          //std::cout << "here within?" << endl;
-
         }
-        //  std::cout << "here?" << endl;
 
         vssmgroup->Recompute(events, non_injection_rates, injection_rates);
- //           std::cout << "here?" << endl;
-
         double timestep = vssmgroup->Timestep(RandomVariable);
-//                std::cout << "here?" << endl;
-
         sim_time += timestep;
-//                std::cout << "here?" << endl;
-
+        
         Event* chosenevent = vssmgroup->Choose_event(events, non_injection_rates, injection_rates, RandomVariable);
- //               std::cout << "here?" << endl;
-
         numoutput->Update(chosenevent, sim_time, timestep);        
-   //             std::cout << "here?" << endl;
-//    std::cout << "chosenevent " << chosenevent->link()->node1()->id() << " " << chosenevent->link()->node1()->occ() << " " << chosenevent->link()->node2()->id() << " " << chosenevent->link()->node2()->occ() << " " << chosenevent->init_type() << " " << chosenevent->final_type() << " " << chosenevent->action_node1() << " " << chosenevent->action_node2() << endl;
-
         events->On_execute(chosenevent, eventdata->device, graph, state, longrange, non_injection_rates, injection_rates, eventdata);
-//     std::cout << "chosenevent na " << chosenevent->link()->node1()->id() << " " << chosenevent->link()->node1()->occ() << " " << chosenevent->link()->node2()->id() << " " << chosenevent->link()->node2()->occ() << " " << chosenevent->init_type() << " " << chosenevent->final_type() << " " << chosenevent->action_node1() << " " << chosenevent->action_node2() << endl;
-
-   //            std::cout << it << endl;
-            NodeDevice* probenode = graph->GetNode(352);
-            NodeDevice* probenode2 = graph->GetNode(213);
-             std::cout << it << " occups " << probenode->occ() << " " << probenode2->occ() << endl;    
-  /*      if(state->GetCarrierSize()>=36) {
-            CarrierDevice* probecar1 = state->GetCarrier(36);
-            CarrierDevice* probecar2 = state->GetCarrier(9);
-            
-            NodeDevice* probenode = graph->GetNode(323);
-            NodeDevice* probenode2 = graph->GetNode(0);
-            if(probecar1->inbox() && probecar2->inbox()) {
-                std::cout << it << " both " << probecar1->node()->id() << " " << probecar2->node()->id() << " " << probenode->occ() << " " << chosenevent->init_type() << " " << chosenevent->final_type() << endl;
-                std::cout << " a " << chosenevent->action_node1() << " " << chosenevent->action_node2() << " " << chosenevent->link()->node1()->id() << " " << chosenevent->link()->node2()->id() << " " << chosenevent->link()->node1()->occ() << endl;
-            }
-            else if(probecar1->inbox()){
-                std::cout << it << " only 1 " << probecar1->node()->id() << " " << probenode->occ() << " " << chosenevent->init_type() << " " << chosenevent->final_type()  << " " << chosenevent->link()->node1()->id() << " " << chosenevent->link()->node2()->id() << " " << chosenevent->id() << endl;
-            }
-            else if(probecar2->inbox()){
-                std::cout << it << " only 2 " << probecar2->node()->id() << " " << probenode->occ() << " " << chosenevent->init_type() << " " << chosenevent->final_type() << " " << chosenevent->link()->node1()->id() << " " << chosenevent->link()->node2()->id() << " " << chosenevent->id() << endl;
-            }
-            else{
-                std::cout << it << " " << probenode->occ() << " " << chosenevent->init_type() << " " << chosenevent->final_type() << " " << chosenevent->link()->node1()->id() << " " << chosenevent->link()->node2()->id() << " " << chosenevent->id() << endl;
-            }
-        }*/
 
         // check for direct repeats
         
@@ -226,8 +183,7 @@ void Diode::RunKMC() {
         if(goto_node_id == old_from_node_id && from_node_id == old_to_node_id) repeat_counter++;
         old_from_node_id = from_node_id;
         old_to_node_id = goto_node_id;
- //       std::cout << "hier?" << endl;
-        // set inital values for convergence checking
+
         if(it == 2*eventdata->nr_equilsteps) numoutput->Init_convergence_check(sim_time);
         
         // equilibration
@@ -242,13 +198,13 @@ void Diode::RunKMC() {
         if(ldiv(it,100).rem==0 && it> 2*eventdata->nr_equilsteps) numoutput->Convergence_check(sim_time, eventdata);
 
         // direct output
-/*        if(ldiv(it,100).rem==0){
+        if(ldiv(it,100).rem==0){
             std::cout << it << " " << repeat_counter << " " << 
                          numoutput->iv_conv() << " " << numoutput->iv_count() << " " << 
                          numoutput->reco_conv() << " " << numoutput->reco_count() <<  " " << 
                          sim_time << " " << timestep << " ";
             numoutput->Write(sim_time);
-        }*/
+        }
         
         // break out of loop
         if(numoutput->iv_conv() && numoutput->reco_conv()) {break;}
