@@ -206,6 +206,10 @@ void LAMMPSReader::ReadAtoms(Topology &top, string itemline) {
                 b->F().y() = boost::lexical_cast<double>(*itok);
             else if(fields[j] == "fz")
                 b->F().z() = boost::lexical_cast<double>(*itok);
+            else if((fields[j] == "type")&&_topology){
+                BeadType *type = top.GetOrCreateBeadType(*itok);
+                b->setType(type);
+            }
             
         }
     }
