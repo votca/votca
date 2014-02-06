@@ -14,7 +14,7 @@ timestep	0.001
 fix		1 all nve
 fix		2 all langevin 2.49 2.49 0.2 545454
 
-dump		1 all xyz 50 traj.xyz
+dump		1 all atom 50 traj.dump
 
 thermo		50
 run		2500

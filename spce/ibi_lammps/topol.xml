@@ -1,4 +1,4 @@
-<topology base="spce.gro">
+<topology base="spce.dump">
   <molecules>
     <clear/>
     <define name="SOL" first="1" nbeads="1" nmols="2180"/>
