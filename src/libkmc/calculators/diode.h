@@ -121,7 +121,7 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     std::cout << "binary tree structures initialized" << endl;
 
     events = new Events();
-    events->Init_non_injection_meshes(state, eventdata);
+    events->Init_non_injection_meshes(eventdata);
     events->Initialize_eventvector(graph,state,longrange,eventdata);
     events->Initialize_rates(non_injection_rates,injection_rates,eventdata);
     events->Init_injection_meshes(state, eventdata);
@@ -170,23 +170,21 @@ void Diode::RunKMC() {
     int direct_reco_counter = 0;
     
     sim_time = 0.0;
-//    for (long it = 0; it < 2*eventdata->nr_equilsteps + eventdata->nr_timesteps; it++) {
-    for (long it = 0; it < 2; it++) {
-
+    for (long it = 0; it < 2*eventdata->nr_equilsteps + eventdata->nr_timesteps; it++) {
         
         // Update longrange cache (expensive, so not done at every timestep)
         if(ldiv(it, eventdata->steps_update_longrange).rem == 0 && it>0){
             longrange->Update_cache(eventdata);
             events->Recompute_all_events(state, longrange, non_injection_rates, injection_rates, eventdata);
         }
-
+        
         vssmgroup->Recompute_device(non_injection_rates, injection_rates);
         double timestep = vssmgroup->Timestep(RandomVariable);
         sim_time += timestep;
-        
+    
         Event* chosenevent = vssmgroup->Choose_event_device(events, non_injection_rates, injection_rates, RandomVariable);
         numoutput->Update(chosenevent, sim_time, timestep); 
-        
+   
         events->On_execute(chosenevent, graph, state, longrange, non_injection_rates, injection_rates, eventdata);
 
         // check for direct repeats

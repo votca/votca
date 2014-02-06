@@ -72,7 +72,7 @@ public:
     void Initialize_after_charge_placement(GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo);
     
     /// Initialize mesh for non-injection events
-    void Init_non_injection_meshes(StateDevice* state, Eventinfo* eventinfo);
+    void Init_non_injection_meshes(Eventinfo* eventinfo);
     /// Initialize mesh for injection events
     void Init_injection_meshes(StateDevice* state, Eventinfo* eventinfo);
     /// Resize mesh
@@ -180,9 +180,8 @@ void Events:: Remove_carrier(Node* node, GraphDevice* graph, StateDevice* state,
 
 inline void Events::Effect_potential_and_rates(int action, CarrierDevice* carrier, Node* node, GraphDevice* graph, StateDevice* state, Longrange* longrange, 
                                    Bsumtree* non_injection_rates, Bsumtree* injection_rates,Eventinfo* eventinfo) {
-
     Effect_potential_and_non_injection_rates(action, carrier, node, state, longrange, non_injection_rates, eventinfo);
-    
+   
     if(eventinfo->device){
         votca::tools::vec nodeposition = node->position();
         if(nodeposition.x()<eventinfo->coulcut) {
@@ -261,6 +260,7 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierDevice*
                 for (li3=li1; li3!=li2; li3++) {
 
                     int carrier2_ID = *li3;
+
                     CarrierDevice* carrier2 = state->GetCarrier(carrier2_ID);
 
                     int carrier2_type = carrier2->type();
@@ -350,6 +350,7 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierDevice*
     }  
 
     // update event rates for carrier 1 , done after all carriers within radius coulcut are checked
+
     for (int it = 0; it < node->links().size(); it++) { 
         int event_ID = carrier1->id()*eventinfo->maxpairdegree+it;
     
@@ -604,10 +605,8 @@ void Events::Initialize_after_charge_placement(GraphDevice* graph, StateDevice* 
 
     for(int icar = 0; icar< state->GetCarrierSize(); icar++) {
         CarrierDevice* probe_carrier = state->GetCarrier(icar);
-        NodeDevice* carrier_node = dynamic_cast<NodeDevice*>(probe_carrier->node());
-        
+        Node* carrier_node = probe_carrier->node();
         if(probe_carrier->inbox()) {
-            
            Add_to_mesh(icar,carrier_node->position(), eventinfo);
            Effect_potential_and_rates((int) Add, probe_carrier, carrier_node, graph, state, longrange, non_injection_rates, injection_rates, eventinfo);
         }
@@ -640,7 +639,7 @@ void Events::Grow_non_injection_eventvector(StateDevice* state, Longrange* longr
     }
 }
 
-void Events::Init_non_injection_meshes(StateDevice* state, Eventinfo* eventinfo) {
+void Events::Init_non_injection_meshes(Eventinfo* eventinfo) {
 
     // determine the dimensions of the meshes
   
@@ -651,15 +650,6 @@ void Events::Init_non_injection_meshes(StateDevice* state, Eventinfo* eventinfo)
 
     _non_injection_events_mesh = Resize_mesh(eventinfo->mesh_x,eventinfo->mesh_y,eventinfo->mesh_z);
 
-    // initialize meshes
-    for (int icar = 0; icar < state->GetCarrierSize(); icar++ ) {
-        if(state->GetCarrier(icar)->inbox()){
-            CarrierDevice* carrier = state->GetCarrier(icar);
-            votca::tools::vec position = carrier->node()->position();
-
-            Add_to_mesh(icar,position,eventinfo);
-        }
-    }
 }
 
 void Events::Init_injection_meshes(StateDevice* state, Eventinfo* eventinfo) {
