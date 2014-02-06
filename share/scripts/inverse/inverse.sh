@@ -222,7 +222,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
       echo Comparing "$(get_main_dir)/$f" "$f"
       [[ -z $(type -p cmp) ]] && echo "program 'cmp' not found, comparision skipped" && continue
       cmp "$(get_main_dir)/$f" "$f" && echo "Unchanged" || \
-	msg --color blue --to-stderr "WARNING: file '$f' in the main dir was changed since the last execution, this will have no effect on current iteration, to take effect remove the current iteration ('${this_dir##*/}')"
+	msg --color blue --to-stderr "WARNING: file '$f' in the main dir was changed since the last execution, this will have no effect on the current iteration, to take effect remove the current iteration ('${this_dir##*/}')"
     done
   else
     #get need files (leave the " " unglob happens inside the function)
