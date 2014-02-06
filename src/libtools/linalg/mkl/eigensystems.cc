@@ -157,6 +157,49 @@ bool linalg_eigenvalues(  ub::vector<double> &E, ub::matrix<double> &V)
 };
 
 
+
+bool linalg_eigenvalues(  ub::vector<float> &E, ub::matrix<float> &V)
+{
+#ifdef NOMKL
+    throw std::runtime_error("linalg_eigenvalues is not compiled-in due to disabling of MKL - recompile Votca Tools with MKL support");
+#else
+    
+    // cout << " \n I'm really using MKL! " << endl;
+    
+    int n = V.size1();
+    int lda = n ;
+    // make sure that containers for eigenvalues and eigenvectors are of correct size
+    E.resize(n);
+    // V.resize(n, n);
+    // Query and allocate the optimal workspace 
+    float wkopt;
+    float* work;
+    int info;
+    int lwork;
+    lwork = -1;
+
+    // MKL is different to GSL because it overwrites the input matrix
+    // V = A; // make a copy (might actually be unnecessary in most cases!)
+
+    // make a pointer to the ublas matrix so that LAPACK understands it
+    float * pV = const_cast<float*>(&V.data().begin()[0]);
+    float * pE = const_cast<float*>(&E.data()[0]);
+    
+    // call LAPACK via C interface
+    info = LAPACKE_ssyev( LAPACK_ROW_MAJOR, 'V', 'U', n, pV , lda, pE );
+
+    if( info > 0 ) {
+        return false;
+    } else {
+        return true;
+    }
+
+#endif
+};
+
+
+
+
 /*
  * use expert routine to calculate only a subrange of eigenvalues
  */
