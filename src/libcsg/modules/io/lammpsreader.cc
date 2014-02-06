@@ -67,13 +67,13 @@ bool LAMMPSReader::NextFrame(Topology &top)
     while(!_fl.eof()) {
         if(line.substr(0, 5) != "ITEM:")
             throw std::ios_base::failure("unexpected line in lammps file:\n"+line);
-        if(line.substr(6) == "TIMESTEP") {
+        if(line.substr(6,8) == "TIMESTEP") {
                 ReadTimestep(top, line);
         }
-        else if(line.substr(6) == "NUMBER OF ATOMS") {
+        else if(line.substr(6,15) == "NUMBER OF ATOMS") {
                 ReadNumAtoms(top, line);
         }
-        else if(line.substr(6) == "BOX BOUNDS") {
+        else if(line.substr(6,10) == "BOX BOUNDS") {
                 ReadBox(top, line);
         }
         else if(line.substr(6, 5) == "ATOMS") {
@@ -122,40 +122,60 @@ void LAMMPSReader::ReadNumAtoms(Topology &top, string itemline)
     getline(_fl, s);
     _natoms = boost::lexical_cast<int>(s);
     if(!_topology && _natoms !=top.BeadCount())
-        std::runtime_error("number of beads in topology and trajectory difffer");
+        std::runtime_error("number of beads in topology and trajectory differ");
 }
 
 void LAMMPSReader::ReadAtoms(Topology &top, string itemline) {
-    top.CreateResidue("dum");
+    if(_topology){
+      top.CreateResidue("dum");
+      for(int i=0; i<_natoms; ++i) {
+        Bead *b = top.CreateBead(1, "", top.GetOrCreateBeadType("no"), 0, 0, 0);
+      }
+    }
+
     bool pos=false;
     bool force=false;
+    bool vel=false;
+    int id=-1;
 
     vector<string> fields;
 
     {
         Tokenizer tok(itemline.substr(12), " ");
         tok.ToVector(fields);
-        for(Tokenizer::iterator i=tok.begin(); i!=tok.end(); ++i) {
+	int j=0;
+        for(Tokenizer::iterator i=tok.begin(); i!=tok.end(); ++i,++j) {
             if(*i == "x" || *i == "y" || *i == "z")
                 pos =true;
+	    else if(*i == "xs" || *i == "ys" || *i == "zs")
+                pos =true;
+	    else if(*i == "vx" || *i == "vy" || *i == "vz")
+                vel =true;
             else if(*i == "fx" || *i == "fy" || *i == "fz")
                 force=true;
+	    else if(*i == "id")
+	      id=j;
         }
     }
+    if (id<0){
+      throw std::runtime_error("error, id not found in any column of the atoms section");
+    }
+
     for(int i=0; i<_natoms; ++i) {
         string s;
         getline(_fl, s);
-        Bead *b;
-        if(_topology)
-            b = top.CreateBead(1, "", top.GetOrCreateBeadType("no"), 0, 0, 0);
-        else
-            b = top.getBead(i);
-
-        b->HasPos(pos);
-        b->HasF(force);
 
         Tokenizer tok(s, " ");
         Tokenizer::iterator itok= tok.begin();
+        vector<string> fields2;
+        tok.ToVector(fields2);
+	// internal numbering begins with 0
+        Bead *b = top.getBead((boost::lexical_cast<int>(fields2[id]))-1);
+        b->HasPos(pos);
+        b->HasF(force);
+        b->HasVel(vel);
+        matrix m=top.getBox();
+
         for(size_t j=0; itok!=tok.end(); ++itok, ++j) {
             if(j == fields.size())
                 throw std::runtime_error("error, wrong number of columns in atoms section");
@@ -165,6 +185,18 @@ void LAMMPSReader::ReadAtoms(Topology &top, string itemline) {
                 b->Pos().y() = boost::lexical_cast<double>(*itok);
             else if(fields[j] == "z")
                 b->Pos().z() = boost::lexical_cast<double>(*itok);
+            else if(fields[j] == "xs")
+                b->Pos().x() = boost::lexical_cast<double>(*itok)*m[0][0];
+            else if(fields[j] == "ys")
+                b->Pos().y() = boost::lexical_cast<double>(*itok)*m[1][1];
+            else if(fields[j] == "zs")
+                b->Pos().z() = boost::lexical_cast<double>(*itok)*m[2][2];
+            else if(fields[j] == "vx")
+                b->Vel().x() = boost::lexical_cast<double>(*itok);
+            else if(fields[j] == "vy")
+                b->Vel().y() = boost::lexical_cast<double>(*itok);
+            else if(fields[j] == "vz")
+                b->Vel().z() = boost::lexical_cast<double>(*itok);
             else if(fields[j] == "fx")
                 b->F().x() = boost::lexical_cast<double>(*itok);
             else if(fields[j] == "fy")
