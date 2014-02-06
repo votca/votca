@@ -28,6 +28,8 @@ echo
 exit 0
 fi
 
+shopt -s extglob
+
 msg() { #echos a msg on the screen and send it to the logfile if logging is enabled
   local color colors="blue cyan cyann green red purp"
   if [[ -z ${CSGNOCOLOR} ]]; then
@@ -184,7 +186,7 @@ critical() { #executes arguments as command and calls die if not succesful
 export -f critical
 
 for_all (){ #do something for all interactions (1st argument)
-  local bondtypes type name interactions quiet="no"
+  local bondtype ibondtype rbondtype bondtypes name interactions quiet="no"
   [[ $1 = "-q" ]] && quiet="yes" && shift
   [[ -z $1 || -z $2 ]] && die "${FUNCNAME[0]}: need at least two arguments"
   bondtypes="$1"
@@ -195,19 +197,26 @@ for_all (){ #do something for all interactions (1st argument)
   name=$(has_duplicate "${interactions[@]}") && die "${FUNCNAME[0]}: interaction name $name appears twice"
   for bondtype in $bondtypes; do
     #check that type is bonded or non-bonded
-    [[ $bondtype = "non-bonded" || $bondtype = "bonded" ]] || die  "for_all: Argument 1 is not non-bonded or bonded"
+    [[ $bondtype = @(non-bonded|bonded|angle|bond|dihedral) ]] || die  "for_all: Argument 1 needs to be non-bonded, bonded, angle, bond or dihedral"
     [[ $quiet = "no" ]] && echo "For all $bondtype" >&2
-    interactions=( $(csg_get_property --allow-empty cg.$bondtype.name) ) #filter me away
+    #internal bondtype
+    [[ $bondtype = @(angle|bond|dihedral) ]] && ibondtype="bonded" || ibondtype="non-bonded"
+    interactions=( $(csg_get_property --allow-empty cg.$ibondtype.name) ) #filter me away
     for name in "${interactions[@]}"; do
+      #check if interaction is actually angle, bond or dihedral
+      if [[ $bondtype = @(angle|bond|dihedral) ]]; then
+	rbondtype=$(bondtype="$ibondtype" bondname="$name" csg_get_interaction_property bondtype)
+	[[ $rbondtype = $bondtype ]] || continue
+      fi
       #print this message to stderr to avoid problem with $(for_all something)
-      [[ $quiet = no ]] && echo "for_all: run '$*'" >&2
+      [[ $quiet = no ]] && echo "for_all: run '$*' for interaction named '$name'" >&2
       #we need to use bash -c here to allow things like $(csg_get_interaction_property name) in arguments
       #write variable defines in the front is better, that export
       #no need to run unset afterwards
-      bondtype="$bondtype" \
+      bondtype="$ibondtype" \
       bondname="$name" \
       CSG_CALLSTACK="$(show_callstack)" \
-      bash -c "$*" || die "${FUNCNAME[0]}: bash -c '$*' failed for bondname '$name'"
+      bash -c "$*" || die "${FUNCNAME[0]}: bash -c '$*' failed for interaction named '$name'"
     done
   done
 }
