@@ -163,7 +163,6 @@ void Diode::RunKMC() {
 
         // Update longrange cache (expensive, so not done at every timestep)
         if(ldiv(it, eventdata->steps_update_longrange).rem == 0 && it>0){
-
             longrange->Update_cache(eventdata);
             events->Recompute_all_events(eventdata->device,state, longrange, non_injection_rates, injection_rates, eventdata);
         }
@@ -173,7 +172,8 @@ void Diode::RunKMC() {
         sim_time += timestep;
         
         Event* chosenevent = vssmgroup->Choose_event(events, non_injection_rates, injection_rates, RandomVariable);
-        numoutput->Update(chosenevent, sim_time, timestep);        
+        numoutput->Update(chosenevent, sim_time, timestep); 
+        
         events->On_execute(chosenevent, eventdata->device, graph, state, longrange, non_injection_rates, injection_rates, eventdata);
 
         // check for direct repeats

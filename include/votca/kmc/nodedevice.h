@@ -77,16 +77,16 @@ void NodeDevice::Compute_Self_Image_Coulomb_Potential(double startx, double devi
             distx_1 = i*L + 2*startx;
             distx_2 = (i+2)*L - 2*startx; 
         }
-        else {
+        else { // odd generation
             sign = 1;
             distx_1 = (i+1)*L;
             distx_2 = (i+1)*L;
         }
         if (distx_1<=eventinfo->coulcut) {
-            coulpot += sign*1.0/sqrt(distx_1)-1.0/(eventinfo->coulcut);
+            coulpot += sign*(1.0/sqrt(distx_1)-1.0/(eventinfo->coulcut));
         }
         if (distx_2<=eventinfo->coulcut) {
-            coulpot += sign*1.0/sqrt(distx_2)-1.0/(eventinfo->coulcut);
+            coulpot += sign*(1.0/sqrt(distx_2)-1.0/(eventinfo->coulcut));
         }
     }
     _self_image = eventinfo->coulomb_strength*eventinfo->self_image_prefactor*coulpot;    

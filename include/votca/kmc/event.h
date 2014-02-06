@@ -266,7 +266,7 @@ void Event::Determine_rate(bool device, StateDevice* state, Longrange* longrange
         else {
             energycontrib = final_energy - init_energy -charge*(eventinfo->efield_x*distancevector.x()+eventinfo->efield_y*distancevector.y()+eventinfo->efield_z*distancevector.z());
             if (energycontrib>0.0) {
-                energyfactor = exp(-1.0*(kB*eventinfo->temperature)*energycontrib);
+                energyfactor = exp(-1.0*energycontrib/(kB*eventinfo->temperature));
             }
             else {
                 energyfactor = 1.0;

@@ -489,14 +489,14 @@ double Events::Compute_Coulomb_potential(double startx, votca::tools::vec dif, b
                 }
                 distancesqr_1 = distx_1*distx_1 + distsqr_planar;
                 if (distancesqr_1<=RCSQR) {
-                    coulpot += sign*1.0/sqrt(distancesqr_1)-1.0/(RC);
+                    coulpot += sign*(1.0/sqrt(distancesqr_1)-1.0/(RC));
                 }
                 else {
                     outside_cut_off1 = true;
                 }
                 distancesqr_2 = distx_2*distx_2 + distsqr_planar;
                 if (distancesqr_2<=RCSQR) {
-                    coulpot += sign*1.0/sqrt(distancesqr_2)-1.0/(RC);
+                    coulpot += sign*(1.0/sqrt(distancesqr_2)-1.0/(RC));
                 }
                 else {
                     outside_cut_off2 = true;
