@@ -86,6 +86,9 @@ bool LAMMPSReader::NextFrame(Topology &top)
         }
         getline(_fl, line);
     }
+    if (_topology) {
+      cout << "WARNING: topology created from .dump file, masses, charges, types, residue names are wrong!\n";
+    }
     return !_fl.eof();;
 }
 
@@ -129,7 +132,7 @@ void LAMMPSReader::ReadAtoms(Topology &top, string itemline) {
     if(_topology){
       top.CreateResidue("dum");
       for(int i=0; i<_natoms; ++i) {
-        Bead *b = top.CreateBead(1, "", top.GetOrCreateBeadType("no"), 0, 0, 0);
+        Bead *b = top.CreateBead(1, "no", top.GetOrCreateBeadType("no"), 0, 0, 0);
       }
     }
 
