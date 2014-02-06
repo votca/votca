@@ -39,6 +39,15 @@ public:
     /// clear the carriers vector and the carrier reservoir and set length of both vectors equal to zero
     void InitStateDevice();
     
+    /// load a state store file
+    void LoadStateDevice();
+    
+    /// save a state store file
+    void SaveStateDevice();
+    
+    /// initialize interactions (set to 0)
+    void InitInteractions(int pre_size, int post_size);
+    
     /// clear reservoir
     void InitReservoir() {carrier_reservoir.clear();}
     
@@ -65,6 +74,27 @@ void StateDevice::InitStateDevice(){
     InitReservoir();
 }
 
+void StateDevice::LoadStateDevice(){
+    
+    // Initializes the Coulomb interactions
+    
+    int pre_carrier_size = this->GetCarrierSize();
+    this->Load(const char* filename, GraphDevice* graph);
+    int post_carrier_size = this->GetCarrierSize();
+
+    this->InitInteractions(pre_carrier_size,post_carrier_size);
+}
+
+void StateDevice::InitInteractions(int pre_carrier_size,int post_carrier_size){
+
+    for (unsigned int i=pre_carrier_size; i < post_carrier_size; i++) {
+        CarrierDevice* probecarrier = this->_carriers[i];
+        probecarrier->Init_to_Coulomb(maxpairdegree);
+        probecarrier->Set_from_Coulomb(0.0);        
+    }
+}
+
+
 unsigned int StateDevice::Buy() {
     
     unsigned int carriernr_to_sim_box = carrier_reservoir.back();
@@ -89,7 +119,6 @@ void StateDevice::Grow(unsigned int nr_new_carriers, int maxpairdegree) {
     for (unsigned int i=this->GetCarrierSize(); i<new_nr_carriers; i++) {
 
         CarrierDevice* newcarrier = this->AddCarrier(i);         
-        if(i==36) {std::cout << "inserted" << endl;}
         carrier_reservoir.push_back(i);
         newcarrier->SetInBox(false);
         newcarrier->SetDistance(votca::tools::vec(0.0,0.0,0.0)); //initialize the travelled distance vector

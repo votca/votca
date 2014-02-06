@@ -59,11 +59,14 @@ public:
     void Recompute_all_injection_events(StateDevice* state, Longrange* longrange, Bsumtree* injection_rates, Eventinfo* eventinfo);    
 
     /// Initialize event vectors
-    void Initialize_eventvector(bool device, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo);
+    void Initialize_eventvector(bool device, GraphDevice* graph, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo);
     /// Initialize injection event vector
     void Initialize_injection_eventvector(int Event_counter, Node* electrode, int carrier_type, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo);
     /// Grow (and initialize) non-injection event vector
     void Grow_non_injection_eventvector(bool device, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo);
+    
+    /// Initialize rates (after initialization of events)
+    void Initialize_rates(bool device, Bsumtree* non_injection_rates, Bsumtree* injection_rates)
     
     /// Initialize mesh for non-injection events
     void Init_non_injection_meshes(StateDevice* state, Eventinfo* eventinfo);
@@ -326,7 +329,7 @@ void Events::Effect_potential_and_non_injection_rates(int action, bool device, C
                                 }
                                 else {
                                     carrier2->Add_to_Coulomb(interact_sign*Compute_Coulomb_potential(carrier1_pos.x(),jumpdistance,device,true,eventinfo->simboxsize, eventinfo), it);
-                                    _non_injection_events[event_ID]->Determine_rate(device, state, longrange, eventinfo, false);
+                                    _non_injection_events[event_ID]->Determine_rate(device, state, longrange, eventinfo);
                                 }
                                 non_injection_rates->setrate(event_ID,_non_injection_events[event_ID]->rate());
                             }
@@ -434,7 +437,7 @@ void Events:: Effect_injection_rates(int action, CarrierDevice* carrier, Node* n
                     
                         if (probenode->id()!=node->id()) {
                             inject_event->Add_injection_potential(interact_sign*Compute_Coulomb_potential(carrier1_pos.x(),distance,true,true,eventinfo->simboxsize,eventinfo));                    
-                            _injection_events[eventID]->Determine_rate(true, state, longrange, eventinfo,false);
+                            _injection_events[eventID]->Determine_rate(true, state, longrange, eventinfo);
                             injection_rates->setrate(eventID, _injection_events[eventID]->rate());
                         }
                         else {
@@ -519,7 +522,7 @@ void Events::Recompute_all_non_injection_events(bool device, StateDevice* state,
     typename std::vector<Event*>::iterator it;
     for(it = _non_injection_events.begin(); it != _non_injection_events.end(); it++) {
         if(((*it)->final_type() != (int) Notinbox)&&((*it)->final_type() != (int) Notingraph)) {
-            (*it)->Determine_rate(device, state, longrange, eventinfo,false);
+            (*it)->Determine_rate(device, state, longrange, eventinfo);
         }
         else {
             (*it)->Set_rate(0.0);
@@ -532,22 +535,19 @@ void Events::Recompute_all_injection_events(StateDevice* state, Longrange* longr
     
     typename std::vector<Event*>::iterator it;
     for (it = _injection_events.begin(); it!=_injection_events.end(); it++){
-        (*it)->Determine_rate(true, state, longrange, eventinfo,false);
+        (*it)->Determine_rate(true, state, longrange, eventinfo);
         injection_rates->setrate((*it)->id(),(*it)->rate());
 
     }
 }
 
 
-void Events::Initialize_eventvector(bool device, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo){ //
+void Events::Initialize_eventvector(bool device, GraphDevice* graph, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo){ //
 
     typename std::vector<Event*>::iterator it;
 
     _non_injection_events.clear();
     Grow_non_injection_eventvector(device, state, longrange, eventinfo);
-    non_injection_rates->initialize(_non_injection_events.size());
-
-    for (it = _non_injection_events.begin(); it!=_non_injection_events.end(); it++) {non_injection_rates->setrate((*it)->id(),(*it)->rate());}    
 
     if(device){
         _injection_events.clear();
@@ -567,6 +567,17 @@ void Events::Initialize_eventvector(bool device, GraphDevice* graph, StateDevice
         if(eventinfo->right_hole_injection) {
             Initialize_injection_eventvector(Event_id_count,graph->right(), (int) Hole, state, longrange, eventinfo);
         }
+    }
+    
+}
+
+void Events::Initialize_rates(bool device, Bsumtree* non_injection_rates, Bsumtree* injection_rates){
+
+    non_injection_rates->initialize(_non_injection_events.size());
+    typename std::vector<Event*>::iterator it; 
+    for (it = _non_injection_events.begin(); it!=_non_injection_events.end(); it++) {non_injection_rates->setrate((*it)->id(),(*it)->rate());}     
+
+    if(device) {
         injection_rates->initialize(_injection_events.size());
         for (it = _injection_events.begin(); it!=_injection_events.end(); it++) {injection_rates->setrate((*it)->id(),(*it)->rate());}  
     }

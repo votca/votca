@@ -59,7 +59,7 @@ public:
     
     void Set_event(Link* link, bool device, int carrier_type, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo);
     /// Determine rate
-    void Determine_rate(bool device, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo, bool debug);
+    void Determine_rate(bool device, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo);
     /// Set rate to value
     void Set_rate(double rate) {_rate = rate;}
     /// Set out of box
@@ -165,7 +165,7 @@ inline double Event::Determine_lr_coulomb(Node* node, Longrange* longrange) {
     return lr_coulomb;
 }
 
-void Event::Determine_rate(bool device, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo, bool debug) {
+void Event::Determine_rate(bool device, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo) {
     
     Node* node1 = _link->node1();
     Node* node2 = _link->node2();
@@ -178,6 +178,7 @@ void Event::Determine_rate(bool device, StateDevice* state, Longrange* longrange
     const double hbar = 6.58211928E-16; // eV*s
     const double Pi   = 3.14159265358979323846264338327950288419716939937510;
     const double kB   = 8.617332478E-5; // ev/K     
+    
     if(_carrier_type == (int) Electron) {
         charge = -1.0;
         prefactor = prefactor*(eventinfo->electron_prefactor);
@@ -302,7 +303,7 @@ void Event::Set_event(Link* link, bool device, int carrier_type, StateDevice* st
     _action_node1 = Determine_action_flag_node1();
     _action_node2 = Determine_action_flag_node2();
     
-    Determine_rate(device, state, longrange, eventinfo, false);
+    Determine_rate(device, state, longrange, eventinfo);
 
 }
 

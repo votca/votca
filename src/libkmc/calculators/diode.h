@@ -110,7 +110,8 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
 
     events = new Events();
     events->Init_non_injection_meshes(state, eventdata);
-    events->Initialize_eventvector(eventdata->device,graph,state,longrange,non_injection_rates,injection_rates,eventdata);
+    events->Initialize_eventvector(eventdata->device,graph,state,longrange,eventdata);
+    events->Initialize_rates(non_injection_rates,injection_rates);
     events->Init_injection_meshes(state, eventdata);
     std::cout << "event vectors and meshes initialized" << endl;
 
