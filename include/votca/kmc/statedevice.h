@@ -40,13 +40,13 @@ public:
     void InitStateDevice();
     
     /// load a state store file
-    void LoadStateDevice();
+    void LoadStateDevice(const char* filename, GraphDevice* graph,Eventinfo* eventinfo);
     
     /// save a state store file
     void SaveStateDevice();
     
     /// initialize interactions (set to 0)
-    void InitInteractions(int pre_size, int post_size);
+    void InitInteractions(int pre_size, int post_size,Eventinfo* eventinfo);
     
     /// clear reservoir
     void InitReservoir() {carrier_reservoir.clear();}
@@ -74,22 +74,22 @@ void StateDevice::InitStateDevice(){
     InitReservoir();
 }
 
-void StateDevice::LoadStateDevice(){
+void StateDevice::LoadStateDevice(const char* filename, GraphDevice* graph,Eventinfo* eventinfo){
     
     // Initializes the Coulomb interactions
     
     int pre_carrier_size = this->GetCarrierSize();
-    this->Load(const char* filename, GraphDevice* graph);
+    this->Load(filename, graph);
     int post_carrier_size = this->GetCarrierSize();
 
-    this->InitInteractions(pre_carrier_size,post_carrier_size);
+    this->InitInteractions(pre_carrier_size,post_carrier_size,eventinfo);
 }
 
-void StateDevice::InitInteractions(int pre_carrier_size,int post_carrier_size){
+void StateDevice::InitInteractions(int pre_carrier_size,int post_carrier_size,Eventinfo* eventinfo){
 
     for (unsigned int i=pre_carrier_size; i < post_carrier_size; i++) {
-        CarrierDevice* probecarrier = this->_carriers[i];
-        probecarrier->Init_to_Coulomb(maxpairdegree);
+        CarrierDevice* probecarrier = GetCarrier(i);
+        probecarrier->Init_to_Coulomb(eventinfo->maxpairdegree);
         probecarrier->Set_from_Coulomb(0.0);        
     }
 }

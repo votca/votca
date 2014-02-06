@@ -43,9 +43,9 @@ public:
         _rate = 0.0;
     }
 
-    Event(int id, Link* link, bool device, int carrier_type, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo){
+    Event(int id, Link* link, int carrier_type, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo){
         _id = id;
-        Set_event(link, device, carrier_type, state, longrange, eventinfo);
+        Set_event(link, carrier_type, state, longrange, eventinfo);
     }
  
     double &rate() { return _rate; }
@@ -57,9 +57,9 @@ public:
     int &action_node1() { return _action_node1;}
     int &action_node2() { return _action_node2;}
     
-    void Set_event(Link* link, bool device, int carrier_type, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo);
+    void Set_event(Link* link, int carrier_type, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo);
     /// Determine rate
-    void Determine_rate(bool device, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo);
+    void Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* eventinfo);
     /// Set rate to value
     void Set_rate(double rate) {_rate = rate;}
     /// Set out of box
@@ -165,7 +165,7 @@ inline double Event::Determine_lr_coulomb(Node* node, Longrange* longrange) {
     return lr_coulomb;
 }
 
-void Event::Determine_rate(bool device, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo) {
+void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* eventinfo) {
     
     Node* node1 = _link->node1();
     Node* node2 = _link->node2();
@@ -242,7 +242,7 @@ void Event::Determine_rate(bool device, StateDevice* state, Longrange* longrange
     double sr_coulomb_from = Determine_from_sr_coulomb(node1, state, eventinfo);
     double sr_coulomb_to = Determine_to_sr_coulomb(node1, state, eventinfo);
 
-    if(device) {
+    if(eventinfo->device) {
         double selfimpot_from = dynamic_cast<NodeDevice*>(node1)->self_image();
         double selfimpot_to = dynamic_cast<NodeDevice*>(node2)->self_image();    
 
@@ -288,7 +288,7 @@ void Event::Determine_rate(bool device, StateDevice* state, Longrange* longrange
 //        std::cout << prefactor << " " << transferfactor << " " << energyfactor << " " << dynamic_cast<LinkSQL*>(_link)->Jeff2h() << " " << dynamic_cast<LinkSQL*>(_link)->lOh() << " " << Reorg << endl;
 }
 
-void Event::Set_event(Link* link, bool device, int carrier_type, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo) {
+void Event::Set_event(Link* link,int carrier_type, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo) {
     
     _link = link;
     Node* node1 = link->node1();
@@ -303,7 +303,7 @@ void Event::Set_event(Link* link, bool device, int carrier_type, StateDevice* st
     _action_node1 = Determine_action_flag_node1();
     _action_node2 = Determine_action_flag_node2();
     
-    Determine_rate(device, state, longrange, eventinfo);
+    Determine_rate( state, longrange, eventinfo);
 
 }
 

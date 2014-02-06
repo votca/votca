@@ -43,30 +43,30 @@ public:
     } 
     
     /// On execute methode
-    void On_execute(Event* event, bool device, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo);
+    void On_execute(Event* event, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo);
     /// On execute method node wise
-    void On_execute_node(Node* node, bool device, int action, int carrier_type, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo);
+    void On_execute_node(Node* node, int action, int carrier_type, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo);
     /// Execute method in case carrier is added on node
-    void Add_carrier(Node* node, bool device, int carrier_type, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo);
+    void Add_carrier(Node* node, int carrier_type, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo);
     /// Execute method in case carrier is removed from node
-    void Remove_carrier(Node* node, bool device, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo);
+    void Remove_carrier(Node* node, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo);
     
     /// Recalculate rates of all events
-    void Recompute_all_events(bool device, StateDevice* state, Longrange* longrange,Bsumtree* non_injection_rates, Bsumtree* injection_rates,  Eventinfo* eventinfo);
+    void Recompute_all_events(StateDevice* state, Longrange* longrange,Bsumtree* non_injection_rates, Bsumtree* injection_rates,  Eventinfo* eventinfo);
     /// Recalculate rates of all non-injection events
-    void Recompute_all_non_injection_events(bool device, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Eventinfo* eventinfo);
+    void Recompute_all_non_injection_events(StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Eventinfo* eventinfo);
     /// Recalculate rates of all injection events
     void Recompute_all_injection_events(StateDevice* state, Longrange* longrange, Bsumtree* injection_rates, Eventinfo* eventinfo);    
 
     /// Initialize event vectors
-    void Initialize_eventvector(bool device, GraphDevice* graph, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo);
+    void Initialize_eventvector(GraphDevice* graph, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo);
     /// Initialize injection event vector
     void Initialize_injection_eventvector(int Event_counter, Node* electrode, int carrier_type, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo);
     /// Grow (and initialize) non-injection event vector
-    void Grow_non_injection_eventvector(bool device, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo);
+    void Grow_non_injection_eventvector(StateDevice* state, Longrange* longrange, Eventinfo* eventinfo);
     
     /// Initialize rates (after initialization of events)
-    void Initialize_rates(bool device, Bsumtree* non_injection_rates, Bsumtree* injection_rates)
+    void Initialize_rates(Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo);
     
     /// Initialize mesh for non-injection events
     void Init_non_injection_meshes(StateDevice* state, Eventinfo* eventinfo);
@@ -80,16 +80,16 @@ public:
     void Remove_from_mesh(int ID,votca::tools::vec position, Eventinfo* eventinfo);
 
     /// Effect of adding/removing carrier to/from box on the coulomb potential and event rates
-    void Effect_potential_and_rates(int action, bool device, CarrierDevice* carrier, Node* node, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo);    
+    void Effect_potential_and_rates(int action, CarrierDevice* carrier, Node* node, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo);    
     /// Effect of adding/removing carrier to/from box on the coulomb potential and event rates (non-injection)
-    void Effect_potential_and_non_injection_rates(int action, bool device, CarrierDevice* carrier1, Node* node, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Eventinfo* eventinfo);
+    void Effect_potential_and_non_injection_rates(int action, CarrierDevice* carrier1, Node* node, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Eventinfo* eventinfo);
     /// Effect of adding/removing carrier to/from box on the coulomb potential and event rates (injection)
     void Effect_injection_rates(int action, CarrierDevice* carrier, Node* node, Node* electrode, double dist_to_electrode, StateDevice* state, Longrange* longrange, Bsumtree* injection_rates,  Eventinfo* eventinfo);
     
     /// Calculate shortrange coulomb potential
     /// startx is x-coordinate of carrier of which we want to calculate the coulomb potential
     /// dif is startx - x coordinate of node on which we want to know the coulomb potential
-    double Compute_Coulomb_potential(double startx, votca::tools::vec dif, bool device, bool direct, votca::tools::vec sim_box_size, Eventinfo* eventinfo);
+    double Compute_Coulomb_potential(double startx, votca::tools::vec dif, bool direct, votca::tools::vec sim_box_size, Eventinfo* eventinfo);
 
     /// Obtain non-injection event with id eventID
     Event* get_non_injection_event(int eventID) {return _non_injection_events[eventID];}
@@ -108,23 +108,23 @@ private:
 
 };
 
-void Events::On_execute(Event* event, bool device, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo) {
+void Events::On_execute(Event* event, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo) {
     
     Node* node1 = event->link()->node1();
     Node* node2 = event->link()->node2();
     
-    On_execute_node(node1, device, event->action_node1(), event->carrier_type(), graph, state, longrange, non_injection_rates, injection_rates, eventinfo );
-    On_execute_node(node2, device, event->action_node2(), event->carrier_type(), graph, state, longrange, non_injection_rates, injection_rates, eventinfo );
+    On_execute_node(node1, event->action_node1(), event->carrier_type(), graph, state, longrange, non_injection_rates, injection_rates, eventinfo );
+    On_execute_node(node2, event->action_node2(), event->carrier_type(), graph, state, longrange, non_injection_rates, injection_rates, eventinfo );
 }
 
-void Events::On_execute_node(Node* node, bool device, int action, int carrier_type, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo) {
+void Events::On_execute_node(Node* node, int action, int carrier_type, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo) {
         
     if(action == (int) None)        {                                                                                                                   }
-    else if(action == (int) Add)    { Add_carrier(node, device, carrier_type, graph, state, longrange, non_injection_rates, injection_rates, eventinfo);} 
-    else if(action == (int) Remove) { Remove_carrier(node, device, graph, state, longrange, non_injection_rates, injection_rates, eventinfo);           }
+    else if(action == (int) Add)    { Add_carrier(node, carrier_type, graph, state, longrange, non_injection_rates, injection_rates, eventinfo);} 
+    else if(action == (int) Remove) { Remove_carrier(node, graph, state, longrange, non_injection_rates, injection_rates, eventinfo);           }
 }
 
-void Events:: Add_carrier(Node* node, bool device, int carrier_type, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo) {
+void Events:: Add_carrier(Node* node, int carrier_type, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo) {
 
     
     int new_carrier_ID;
@@ -132,7 +132,7 @@ void Events:: Add_carrier(Node* node, bool device, int carrier_type, GraphDevice
     //make sure the carrier_reservoir is not empty
     if(state->ReservoirEmpty()){
         state->Grow(eventinfo->growsize, eventinfo->maxpairdegree);
-        Grow_non_injection_eventvector(device, state, longrange, eventinfo);
+        Grow_non_injection_eventvector(state, longrange, eventinfo);
         non_injection_rates->resize(_non_injection_events.size());
     }
 
@@ -155,10 +155,10 @@ void Events:: Add_carrier(Node* node, bool device, int carrier_type, GraphDevice
     Add_to_mesh(new_carrier_ID,node->position(), eventinfo);
 
     //Determine effect on Coulomb potential and rates
-    Effect_potential_and_rates((int) Add, device, new_carrier, node, graph, state, longrange, non_injection_rates, injection_rates, eventinfo);
+    Effect_potential_and_rates((int) Add, new_carrier, node, graph, state, longrange, non_injection_rates, injection_rates, eventinfo);
 }
 
-void Events:: Remove_carrier(Node* node, bool device, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo) {
+void Events:: Remove_carrier(Node* node, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo) {
    
     CarrierDevice* removed_carrier = state->GetCarrier(node->occ());
 
@@ -166,7 +166,7 @@ void Events:: Remove_carrier(Node* node, bool device, GraphDevice* graph, StateD
     node->RemoveCarrier();    
 
     //Determine effect on Coulomb potential and rates
-    Effect_potential_and_rates((int) Remove, device, removed_carrier, node, graph, state, longrange, non_injection_rates, injection_rates, eventinfo);    
+    Effect_potential_and_rates((int) Remove, removed_carrier, node, graph, state, longrange, non_injection_rates, injection_rates, eventinfo);    
 
     //remove from mesh
     Remove_from_mesh(removed_carrier->id(), node->position(), eventinfo);
@@ -175,12 +175,12 @@ void Events:: Remove_carrier(Node* node, bool device, GraphDevice* graph, StateD
     state->Sell(removed_carrier->id());    
 }
 
-inline void Events::Effect_potential_and_rates(int action, bool device, CarrierDevice* carrier, Node* node, GraphDevice* graph, StateDevice* state, Longrange* longrange, 
+inline void Events::Effect_potential_and_rates(int action, CarrierDevice* carrier, Node* node, GraphDevice* graph, StateDevice* state, Longrange* longrange, 
                                    Bsumtree* non_injection_rates, Bsumtree* injection_rates,Eventinfo* eventinfo) {
 
-    Effect_potential_and_non_injection_rates(action, device, carrier, node, state, longrange, non_injection_rates, eventinfo);
+    Effect_potential_and_non_injection_rates(action, carrier, node, state, longrange, non_injection_rates, eventinfo);
     
-    if(device){
+    if(eventinfo->device){
         votca::tools::vec nodeposition = node->position();
         if(nodeposition.x()<eventinfo->coulcut) {
 
@@ -195,7 +195,7 @@ inline void Events::Effect_potential_and_rates(int action, bool device, CarrierD
     }
 }
 
-void Events::Effect_potential_and_non_injection_rates(int action, bool device, CarrierDevice* carrier1, Node* node, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Eventinfo* eventinfo) {
+void Events::Effect_potential_and_non_injection_rates(int action, CarrierDevice* carrier1, Node* node, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Eventinfo* eventinfo) {
 
     int interact_sign;
     if(action == (int) Add)    {interact_sign =  1;}
@@ -206,7 +206,7 @@ void Events::Effect_potential_and_non_injection_rates(int action, bool device, C
    
     double RCSQR = eventinfo->coulcut*eventinfo->coulcut;
     
-    if(device){ 
+    if(eventinfo->device){ 
         longrange->Add_charge(interact_sign, dynamic_cast<NodeDevice*>(node)->layer());
     }
 
@@ -218,7 +218,7 @@ void Events::Effect_potential_and_non_injection_rates(int action, bool device, C
     double iz1 = carrier1_pos.z()-eventinfo->coulcut-eventinfo->hopdist; double iz2 = carrier1_pos.z()+eventinfo->coulcut+eventinfo->hopdist;
 
     // Break periodicity in x-direction
-    if(device) {
+    if(eventinfo->device) {
         if (ix1<0.0) ix1 = 0.0;
         if (ix2>eventinfo->simboxsize.x()) ix2 = eventinfo->simboxsize.x();
     }
@@ -289,8 +289,8 @@ void Events::Effect_potential_and_non_injection_rates(int action, bool device, C
                             // Charge interacting with its own images, taken care off in graph.h
                           
                             //First we take the direct sr interactions into account
-                            if (action == (int) Add) carrier1->Add_from_Coulomb(interact_sign*Compute_Coulomb_potential(np_carrier2_pos.x(),-1.0*distance, device, true, eventinfo->simboxsize,eventinfo));
-                            carrier2->Add_from_Coulomb(interact_sign*Compute_Coulomb_potential(carrier1_pos.x(),distance, device, true, eventinfo->simboxsize,eventinfo));
+                            if (action == (int) Add) carrier1->Add_from_Coulomb(interact_sign*Compute_Coulomb_potential(np_carrier2_pos.x(),-1.0*distance, true, eventinfo->simboxsize,eventinfo));
+                            carrier2->Add_from_Coulomb(interact_sign*Compute_Coulomb_potential(carrier1_pos.x(),distance, true, eventinfo->simboxsize,eventinfo));
                         }
                         if (action== (int) Add) {
 
@@ -304,10 +304,10 @@ void Events::Effect_potential_and_non_injection_rates(int action, bool device, C
 
                                 if(distancejumpsqr <= RCSQR) {
                                     if (node->links()[it]->node2()->id() != carrier2_node->id()) { // coulomb interaction on equal nodes lead to zero distance vector (fixed by exciton binding energy)
-                                        carrier1->Add_to_Coulomb(interact_sign*Compute_Coulomb_potential(np_carrier2_pos.x(),-1.0*jumpdistance, device, true, eventinfo->simboxsize, eventinfo),it);
+                                        carrier1->Add_to_Coulomb(interact_sign*Compute_Coulomb_potential(np_carrier2_pos.x(),-1.0*jumpdistance, true, eventinfo->simboxsize, eventinfo),it);
                                     }
                                     else {
-                                        carrier1->Add_to_Coulomb(interact_sign*Compute_Coulomb_potential(np_carrier2_pos.x(),-1.0*jumpdistance, device, false, eventinfo->simboxsize, eventinfo),it);
+                                        carrier1->Add_to_Coulomb(interact_sign*Compute_Coulomb_potential(np_carrier2_pos.x(),-1.0*jumpdistance, false, eventinfo->simboxsize, eventinfo),it);
                                     }
                                 }
                             }
@@ -324,12 +324,12 @@ void Events::Effect_potential_and_non_injection_rates(int action, bool device, C
 
                                 int event_ID = carrier2->id()*eventinfo->maxpairdegree + it;
                                 if(carrier2_node->links()[it]->node2()->id() == node->id()) {
-                                    carrier2->Add_to_Coulomb(interact_sign*Compute_Coulomb_potential(carrier1_pos.x(),jumpdistance,device,false,eventinfo->simboxsize, eventinfo), it);
-                                    _non_injection_events[event_ID]->Set_event(carrier2_node->links()[it], device, carrier2_type, state, longrange, eventinfo); // if carrier2 is actually linking with carrier1
+                                    carrier2->Add_to_Coulomb(interact_sign*Compute_Coulomb_potential(carrier1_pos.x(),jumpdistance,false,eventinfo->simboxsize, eventinfo), it);
+                                    _non_injection_events[event_ID]->Set_event(carrier2_node->links()[it], carrier2_type, state, longrange, eventinfo); // if carrier2 is actually linking with carrier1
                                 }
                                 else {
-                                    carrier2->Add_to_Coulomb(interact_sign*Compute_Coulomb_potential(carrier1_pos.x(),jumpdistance,device,true,eventinfo->simboxsize, eventinfo), it);
-                                    _non_injection_events[event_ID]->Determine_rate(device, state, longrange, eventinfo);
+                                    carrier2->Add_to_Coulomb(interact_sign*Compute_Coulomb_potential(carrier1_pos.x(),jumpdistance,true,eventinfo->simboxsize, eventinfo), it);
+                                    _non_injection_events[event_ID]->Determine_rate(state, longrange, eventinfo);
                                 }
                                 non_injection_rates->setrate(event_ID,_non_injection_events[event_ID]->rate());
                             }
@@ -351,7 +351,7 @@ void Events::Effect_potential_and_non_injection_rates(int action, bool device, C
         int event_ID = carrier1->id()*eventinfo->maxpairdegree+it;
     
         if(action == (int) Add) {
-            _non_injection_events[event_ID]->Set_event(node->links()[it], device, carrier1->type(), state, longrange, eventinfo);
+            _non_injection_events[event_ID]->Set_event(node->links()[it], carrier1->type(), state, longrange, eventinfo);
             non_injection_rates->setrate(event_ID, _non_injection_events[event_ID]->rate());
         }
         else {
@@ -436,13 +436,13 @@ void Events:: Effect_injection_rates(int action, CarrierDevice* carrier, Node* n
                         if(inject_event->carrier_type() == (int) Electron) {interact_sign *= -1;}
                     
                         if (probenode->id()!=node->id()) {
-                            inject_event->Add_injection_potential(interact_sign*Compute_Coulomb_potential(carrier1_pos.x(),distance,true,true,eventinfo->simboxsize,eventinfo));                    
-                            _injection_events[eventID]->Determine_rate(true, state, longrange, eventinfo);
+                            inject_event->Add_injection_potential(interact_sign*Compute_Coulomb_potential(carrier1_pos.x(),distance,true,eventinfo->simboxsize,eventinfo));                    
+                            _injection_events[eventID]->Determine_rate(state, longrange, eventinfo);
                             injection_rates->setrate(eventID, _injection_events[eventID]->rate());
                         }
                         else {
-                            inject_event->Add_injection_potential(interact_sign*Compute_Coulomb_potential(carrier1_pos.x(),distance,true,false,eventinfo->simboxsize,eventinfo));                    
-                            _injection_events[eventID]->Set_event(inject_event->link(), true, inject_event->carrier_type(),state, longrange, eventinfo);
+                            inject_event->Add_injection_potential(interact_sign*Compute_Coulomb_potential(carrier1_pos.x(),distance,false,eventinfo->simboxsize,eventinfo));                    
+                            _injection_events[eventID]->Set_event(inject_event->link(), inject_event->carrier_type(),state, longrange, eventinfo);
                             injection_rates->setrate(eventID, _injection_events[eventID]->rate());
                         }
                     }
@@ -452,7 +452,7 @@ void Events:: Effect_injection_rates(int action, CarrierDevice* carrier, Node* n
     }  
 }
 
-double Events::Compute_Coulomb_potential(double startx, votca::tools::vec dif, bool device, bool direct, votca::tools::vec simboxsize, Eventinfo* eventinfo) {
+double Events::Compute_Coulomb_potential(double startx, votca::tools::vec dif, bool direct, votca::tools::vec simboxsize, Eventinfo* eventinfo) {
 
     double RC = eventinfo->coulcut;
     double RCSQR = RC*RC;
@@ -465,7 +465,7 @@ double Events::Compute_Coulomb_potential(double startx, votca::tools::vec dif, b
         coulpot = 0.0;
     }
     
-    if(device) {
+    if(eventinfo->device) {
         
         double L = simboxsize.x();
         double distsqr_planar = dif.y()*dif.y() + dif.z()*dif.z();
@@ -510,19 +510,19 @@ double Events::Compute_Coulomb_potential(double startx, votca::tools::vec dif, b
     return coulpot;
 }
 
-void Events::Recompute_all_events(bool device, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo) {
+void Events::Recompute_all_events(StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo) {
   
-    Recompute_all_non_injection_events(device, state,longrange, non_injection_rates, eventinfo);
-    if(device) Recompute_all_injection_events(state,longrange,injection_rates, eventinfo);
+    Recompute_all_non_injection_events(state,longrange, non_injection_rates, eventinfo);
+    if(eventinfo->device) Recompute_all_injection_events(state,longrange,injection_rates, eventinfo);
 
 }
 
-void Events::Recompute_all_non_injection_events(bool device, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Eventinfo* eventinfo) {
+void Events::Recompute_all_non_injection_events(StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Eventinfo* eventinfo) {
     
     typename std::vector<Event*>::iterator it;
     for(it = _non_injection_events.begin(); it != _non_injection_events.end(); it++) {
         if(((*it)->final_type() != (int) Notinbox)&&((*it)->final_type() != (int) Notingraph)) {
-            (*it)->Determine_rate(device, state, longrange, eventinfo);
+            (*it)->Determine_rate(state, longrange, eventinfo);
         }
         else {
             (*it)->Set_rate(0.0);
@@ -535,21 +535,21 @@ void Events::Recompute_all_injection_events(StateDevice* state, Longrange* longr
     
     typename std::vector<Event*>::iterator it;
     for (it = _injection_events.begin(); it!=_injection_events.end(); it++){
-        (*it)->Determine_rate(true, state, longrange, eventinfo);
+        (*it)->Determine_rate(state, longrange, eventinfo);
         injection_rates->setrate((*it)->id(),(*it)->rate());
 
     }
 }
 
 
-void Events::Initialize_eventvector(bool device, GraphDevice* graph, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo){ //
+void Events::Initialize_eventvector(GraphDevice* graph, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo){ //
 
     typename std::vector<Event*>::iterator it;
 
     _non_injection_events.clear();
-    Grow_non_injection_eventvector(device, state, longrange, eventinfo);
+    Grow_non_injection_eventvector(state, longrange, eventinfo);
 
-    if(device){
+    if(eventinfo->device){
         _injection_events.clear();
         int Event_id_count = 0;
         if(eventinfo->left_electron_injection) {
@@ -571,13 +571,13 @@ void Events::Initialize_eventvector(bool device, GraphDevice* graph, StateDevice
     
 }
 
-void Events::Initialize_rates(bool device, Bsumtree* non_injection_rates, Bsumtree* injection_rates){
+void Events::Initialize_rates(Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo){
 
     non_injection_rates->initialize(_non_injection_events.size());
     typename std::vector<Event*>::iterator it; 
     for (it = _non_injection_events.begin(); it!=_non_injection_events.end(); it++) {non_injection_rates->setrate((*it)->id(),(*it)->rate());}     
 
-    if(device) {
+    if(eventinfo->device) {
         injection_rates->initialize(_injection_events.size());
         for (it = _injection_events.begin(); it!=_injection_events.end(); it++) {injection_rates->setrate((*it)->id(),(*it)->rate());}  
     }
@@ -590,7 +590,7 @@ void Events::Initialize_injection_eventvector(int Event_id_count, Node* electrod
     
     for (int it = 0; it < electrode->links().size(); it++) {
 
-        Event *newEvent = new Event(Event_map, electrode->links()[it], true, carrier_type, state, longrange, eventinfo);
+        Event *newEvent = new Event(Event_map, electrode->links()[it], carrier_type, state, longrange, eventinfo);
         newEvent->Set_injection_potential(0.0);
         _injection_events.push_back(newEvent);
         Event_map++;
@@ -598,11 +598,20 @@ void Events::Initialize_injection_eventvector(int Event_id_count, Node* electrod
 }
 
 
-void Events::Grow_non_injection_eventvector(bool device, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo){
+void Events::Grow_non_injection_eventvector(StateDevice* state, Longrange* longrange, Eventinfo* eventinfo){
 
     int old_nr_carriers = div(_non_injection_events.size(),eventinfo->maxpairdegree).quot; //what was the number of carriers that we started with?
     
-    for(int carrier_ID = old_nr_carriers; carrier_ID<old_nr_carriers+eventinfo->growsize; carrier_ID++) {
+    // if the grow size of the carriers vector is bigger than the growsize defined in eventinfo object, correct for this
+    int growth;
+    if(eventinfo->growsize < (state->GetCarrierSize()-old_nr_carriers)) {
+        growth = (state->GetCarrierSize() - old_nr_carriers);
+    }
+    else {
+        growth = eventinfo->growsize;
+    }
+    
+    for(int carrier_ID = old_nr_carriers; carrier_ID<old_nr_carriers+growth; carrier_ID++) {
         CarrierDevice* probecarrier = state->GetCarrier(carrier_ID);
         int Event_map = carrier_ID*eventinfo->maxpairdegree;
         Event *newEvent;
@@ -611,7 +620,7 @@ void Events::Grow_non_injection_eventvector(bool device, StateDevice* state, Lon
             int fillcount = 0;
             for(int it = 0; it < probecarrier->node()->links().size();it++){ 
                 Link* probelink = probecarrier->node()->links()[it];
-                newEvent = new Event(Event_map, probelink, device, probecarrier->type(), state, longrange, eventinfo); 
+                newEvent = new Event(Event_map, probelink,probecarrier->type(), state, longrange, eventinfo); 
                 _non_injection_events.push_back(newEvent); 
                 Event_map ++; 
                 fillcount++;

@@ -110,8 +110,8 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
 
     events = new Events();
     events->Init_non_injection_meshes(state, eventdata);
-    events->Initialize_eventvector(eventdata->device,graph,state,longrange,eventdata);
-    events->Initialize_rates(non_injection_rates,injection_rates);
+    events->Initialize_eventvector(graph,state,longrange,eventdata);
+    events->Initialize_rates(non_injection_rates,injection_rates,eventdata);
     events->Init_injection_meshes(state, eventdata);
     std::cout << "event vectors and meshes initialized" << endl;
 
@@ -165,17 +165,17 @@ void Diode::RunKMC() {
         // Update longrange cache (expensive, so not done at every timestep)
         if(ldiv(it, eventdata->steps_update_longrange).rem == 0 && it>0){
             longrange->Update_cache(eventdata);
-            events->Recompute_all_events(eventdata->device,state, longrange, non_injection_rates, injection_rates, eventdata);
+            events->Recompute_all_events(state, longrange, non_injection_rates, injection_rates, eventdata);
         }
 
-        vssmgroup->Recompute(events, non_injection_rates, injection_rates);
+        vssmgroup->Recompute_device(events, non_injection_rates, injection_rates);
         double timestep = vssmgroup->Timestep(RandomVariable);
         sim_time += timestep;
         
-        Event* chosenevent = vssmgroup->Choose_event(events, non_injection_rates, injection_rates, RandomVariable);
+        Event* chosenevent = vssmgroup->Choose_event_device(events, non_injection_rates, injection_rates, RandomVariable);
         numoutput->Update(chosenevent, sim_time, timestep); 
         
-        events->On_execute(chosenevent, eventdata->device, graph, state, longrange, non_injection_rates, injection_rates, eventdata);
+        events->On_execute(chosenevent, graph, state, longrange, non_injection_rates, injection_rates, eventdata);
 
         // check for direct repeats
         
