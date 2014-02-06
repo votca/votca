@@ -57,6 +57,9 @@ public:
         binding_energy              = options->get("options.diode.binding_energy").as<double>();
         formalism                   = options->get("options.diode.formalism").as<string>();
         
+        el_density                  = options->get("options.diode.el_density").as<double>();
+        ho_density                  = options->get("options.diode.ho_density").as<double>();
+        
         electron_prefactor          = options->get("options.diode.electron_prefactor").as<double>();
         hole_prefactor              = options->get("options.diode.hole_prefactor").as<double>();
         injection_prefactor         = options->get("options.diode.injection_prefactor").as<double>();
@@ -94,7 +97,7 @@ public:
     int nx; int ny; int nz; int growsize;
     double size_x; double size_y; double size_z;
     double lattice_constant; double left_electrode_distance; double right_electrode_distance; 
-    double alpha; double temperature;
+    double alpha; double temperature; double el_density; double ho_density;
     double efield_x; double efield_y; double efield_z;
     double electron_prefactor; double hole_prefactor; double injection_prefactor; double recombination_prefactor; double collection_prefactor;
     string formalism; double injection_barrier; double binding_energy;

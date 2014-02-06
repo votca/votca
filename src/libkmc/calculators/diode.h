@@ -42,6 +42,7 @@ class Diode : public KMCCalculator
 {
 public:
     
+    votca::tools::Random2 *RandomVariable;
     GraphDevice* graph;
     StateDevice* state;
     Events* events;
@@ -50,6 +51,7 @@ public:
     Longrange* longrange;
     Bsumtree* non_injection_rates;
     Bsumtree* injection_rates;
+    Bsumtree* site_inject_probs;
     Numoutput* numoutput;
     
     Diode() {};
@@ -74,6 +76,11 @@ private:
 
 
 void Diode::Initialize(const char *filename, Property *options, const char *outputfile) {
+
+    //Setup random number generator
+    srand(eventdata->seed); // srand expects any integer in order to initialise the random number generator
+    RandomVariable = new votca::tools::Random2();
+    RandomVariable->init(rand(), rand(), rand(), rand());     
     
     cout << "Initializing" << endl;
     
@@ -99,7 +106,12 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
 
     state = new StateDevice();
     state->InitStateDevice();
-    state->Grow(eventdata->growsize, eventdata->maxpairdegree); //initial growth
+    
+    site_inject_probs = new Bsumtree();
+    site_inject_probs->initialize(graph->Numberofnodes()); // take care of electrode nodes
+    state->Random_init_injection((int) Hole, site_inject_probs, graph, eventdata, RandomVariable);
+    
+    if(state->ReservoirEmpty()) state->Grow(eventdata->growsize, eventdata->maxpairdegree);
     
     std::cout << "state initialized" << endl;
     
@@ -113,6 +125,7 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     events->Initialize_eventvector(graph,state,longrange,eventdata);
     events->Initialize_rates(non_injection_rates,injection_rates,eventdata);
     events->Init_injection_meshes(state, eventdata);
+    events->Initialize_after_charge_placement(graph,state, longrange, non_injection_rates, injection_rates, eventdata);
     std::cout << "event vectors and meshes initialized" << endl;
 
     vssmgroup = new Vssmgroup();
@@ -129,6 +142,7 @@ bool Diode::EvaluateFrame() {
         
     RunKMC();
     
+    delete RandomVariable;
     delete state;
     delete events;
     delete graph;
@@ -137,16 +151,12 @@ bool Diode::EvaluateFrame() {
     delete vssmgroup;
     delete non_injection_rates;
     delete injection_rates;
-    delete numoutput;    
+    delete numoutput;
+    delete site_inject_probs;
     exit(0);
 }
 
 void Diode::RunKMC() {
-    
-    //Setup random number generator
-    srand(eventdata->seed); // srand expects any integer in order to initialise the random number generator
-    votca::tools::Random2 *RandomVariable = new votca::tools::Random2();
-    RandomVariable->init(rand(), rand(), rand(), rand());    
     
     // to check whether anti repeating methods are useful
     int repeat_counter = 0; 
@@ -160,15 +170,17 @@ void Diode::RunKMC() {
     int direct_reco_counter = 0;
     
     sim_time = 0.0;
-    for (long it = 0; it < 2*eventdata->nr_equilsteps + eventdata->nr_timesteps; it++) {
+//    for (long it = 0; it < 2*eventdata->nr_equilsteps + eventdata->nr_timesteps; it++) {
+    for (long it = 0; it < 2; it++) {
 
+        
         // Update longrange cache (expensive, so not done at every timestep)
         if(ldiv(it, eventdata->steps_update_longrange).rem == 0 && it>0){
             longrange->Update_cache(eventdata);
             events->Recompute_all_events(state, longrange, non_injection_rates, injection_rates, eventdata);
         }
 
-        vssmgroup->Recompute_device(events, non_injection_rates, injection_rates);
+        vssmgroup->Recompute_device(non_injection_rates, injection_rates);
         double timestep = vssmgroup->Timestep(RandomVariable);
         sim_time += timestep;
         
@@ -218,26 +230,3 @@ void Diode::RunKMC() {
 
 
 #endif	/* __VOTCA_KMC_DIODE_H */
-
-/*        if(chosenevent->final_type() == (int) Recombination) {
-            NodeDevice* probenode = dynamic_cast<NodeDevice*>(chosenevent->link()->node2());
-            probenode->Add_reco();
-        }
-        
-        for(int icar=0;icar<state->GetCarrierSize();icar++){
-            if(state->GetCarrier(icar)->inbox()){
-                if(state->GetCarrier(icar)->type() == (int) Hole ){
-                    NodeDevice* probenode = dynamic_cast<NodeDevice*>(state->GetCarrier(icar)->node());
-                    probenode->Add_hole_occ(timestep);
-                }
-                else if(state->GetCarrier(icar)->type() == (int) Electron ){
-                    NodeDevice* probenode = dynamic_cast<NodeDevice*>(state->GetCarrier(icar)->node());
-                    probenode->Add_el_occ(timestep);
-                }
-            }
-        }*/
-
-
-/*    for (int inode = 0; inode<graph->Numberofnodes(); inode++) {
-        graph->GetNode(inode)->Init_vals();
-    }*/

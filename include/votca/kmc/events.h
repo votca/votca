@@ -68,6 +68,9 @@ public:
     /// Initialize rates (after initialization of events)
     void Initialize_rates(Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo);
     
+    /// Initialize mesh/potential and rates after placement of charges
+    void Initialize_after_charge_placement(GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo);
+    
     /// Initialize mesh for non-injection events
     void Init_non_injection_meshes(StateDevice* state, Eventinfo* eventinfo);
     /// Initialize mesh for injection events
@@ -521,7 +524,7 @@ void Events::Recompute_all_non_injection_events(StateDevice* state, Longrange* l
     
     typename std::vector<Event*>::iterator it;
     for(it = _non_injection_events.begin(); it != _non_injection_events.end(); it++) {
-        if(((*it)->final_type() != (int) Notinbox)&&((*it)->final_type() != (int) Notingraph)) {
+        if(((*it)->final_type() != (int) Notinbox)) {
             (*it)->Determine_rate(state, longrange, eventinfo);
         }
         else {
@@ -597,6 +600,19 @@ void Events::Initialize_injection_eventvector(int Event_id_count, Node* electrod
     }
 }
 
+void Events::Initialize_after_charge_placement(GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo){
+
+    for(int icar = 0; icar< state->GetCarrierSize(); icar++) {
+        CarrierDevice* probe_carrier = state->GetCarrier(icar);
+        NodeDevice* carrier_node = dynamic_cast<NodeDevice*>(probe_carrier->node());
+        
+        if(probe_carrier->inbox()) {
+            
+           Add_to_mesh(icar,carrier_node->position(), eventinfo);
+           Effect_potential_and_rates((int) Add, probe_carrier, carrier_node, graph, state, longrange, non_injection_rates, injection_rates, eventinfo);
+        }
+    }
+}
 
 void Events::Grow_non_injection_eventvector(StateDevice* state, Longrange* longrange, Eventinfo* eventinfo){
 
@@ -616,28 +632,11 @@ void Events::Grow_non_injection_eventvector(StateDevice* state, Longrange* longr
         int Event_map = carrier_ID*eventinfo->maxpairdegree;
         Event *newEvent;
 
-        if(probecarrier->inbox()) { 
-            int fillcount = 0;
-            for(int it = 0; it < probecarrier->node()->links().size();it++){ 
-                Link* probelink = probecarrier->node()->links()[it];
-                newEvent = new Event(Event_map, probelink,probecarrier->type(), state, longrange, eventinfo); 
-                _non_injection_events.push_back(newEvent); 
-                Event_map ++; 
-                fillcount++;
-            }
-            for(int ifill = fillcount; ifill<eventinfo->maxpairdegree; ifill++) { 
-                newEvent = new Event(Event_map, (int) Notingraph); 
-                _non_injection_events.push_back(newEvent); // non-existent event
-                Event_map ++; 
-            }
-        }
-        else {
-            for(int ifill = 0; ifill<eventinfo->maxpairdegree; ifill++) {
-                newEvent = new Event(Event_map, (int) Notinbox); 
-                _non_injection_events.push_back(newEvent); 
-                Event_map ++; 
-            } // carrier not in box
-        }
+        for(int ifill = 0; ifill<eventinfo->maxpairdegree; ifill++) {
+            newEvent = new Event(Event_map, (int) Notinbox); 
+            _non_injection_events.push_back(newEvent); 
+            Event_map ++; 
+        } // carrier not in box
     }
 }
 

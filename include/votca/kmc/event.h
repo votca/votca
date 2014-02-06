@@ -28,7 +28,7 @@ namespace votca { namespace kmc {
   
 using namespace std;
 
-enum Final_Event_Type {TransferTo, Collection, Recombination, Blocking, Notinbox, Notingraph};
+enum Final_Event_Type {TransferTo, Collection, Recombination, Blocking, Notinbox};
 enum Init_Event_Type {Injection, TransferFrom, Notinboxfrom};
 enum Action{Add, Remove, None };
 
