@@ -200,7 +200,7 @@ for_all (){ #do something for all interactions (1st argument)
     [[ $bondtype = @(non-bonded|bonded|angle|bond|dihedral) ]] || die  "for_all: Argument 1 needs to be non-bonded, bonded, angle, bond or dihedral"
     [[ $quiet = "no" ]] && echo "For all $bondtype" >&2
     #internal bondtype
-    [[ $bondtype = @(angle|bond|dihedral) ]] && ibondtype="bonded" || ibondtype="non-bonded"
+    [[ $bondtype = @(angle|bond|dihedral|bonded) ]] && ibondtype="bonded" || ibondtype="non-bonded"
     interactions=( $(csg_get_property --allow-empty cg.$ibondtype.name) ) #filter me away
     for name in "${interactions[@]}"; do
       #check if interaction is actually angle, bond or dihedral
