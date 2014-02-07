@@ -685,7 +685,8 @@ void IDFT::ReadJobFile(Topology *top) {
                 records[qmp->getId()] = & ((*it)->get("output.pair"));
             }
         } else {
-            throw runtime_error("\nERROR: Job file incomplete.\n Check your job file for FAIL, AVAILABLE, or ASSIGNED. Exiting\n");
+            Property thebadone = (*it)->get("id");
+            throw runtime_error("\nERROR: Job file incomplete.\n Job with id "+thebadone.as<string>()+" is not finished. Check your job file for FAIL, AVAILABLE, or ASSIGNED. Exiting\n");
         }
     } // finished loading from the file
 
@@ -826,10 +827,11 @@ void IDFT::ReadJobFile(Topology *top) {
                 int homoBridgeB = pBridge_B->getAttribute<int>("homo" + suffixBridgeB );
                 assert( homoBridgeA == homoBridgeB );
                 int homoBridge = homoBridgeA;
-               
-                //exit(0);
                 
                 // double loop over all levels of A and B
+                int levelcount = 0;
+
+                cout << "LEVEL " << ", ENERGY " << ", ENERGYDIFF " << " , JEFFSINGLE " <<  ", JEFF " << ", J_DB " << ", J_BA " << endl;
                 for (list<Property*> ::iterator itOverlapA = pOverlapA.begin(); itOverlapA != pOverlapA.end(); ++itOverlapA) {
                 for (list<Property*> ::iterator itOverlapB = pOverlapB.begin(); itOverlapB != pOverlapB.end(); ++itOverlapB) {
                     
@@ -850,14 +852,16 @@ void IDFT::ReadJobFile(Topology *top) {
                         
                         //assert( eBridgeA - eBridgeB < 1e-50 );
                      
-                        cout << "    bridge level: " << (*itOverlapA)->getAttribute<int>( "orb" + suffixBridgeA ) << " (hole transfer)";
-                        cout <<  " (HOMO: " << homoBridge << ")" << endl;
-                        cout << "      J_DB = " << jDB << "  |  J_BA = " << jBA << endl;
-                        cout << "      E_D = " << eA << ", E_B = " <<  eBridgeA << ", E_A = " << eB << endl;
+                        // cout << "    bridge level: " << (*itOverlapA)->getAttribute<int>( "orb" + suffixBridgeA ) << " (hole transfer)";
+                        // cout <<  " (HOMO: " << homoBridge << ")" << endl;
+                        // cout << "      J_DB = " << jDB << "  |  J_BA = " << jBA << endl;
+                        // cout << "      E_D = " << eA << ", E_B = " <<  eBridgeA << ", E_A = " << eB << endl;
                         
                         // This in principle violates detailed balance. Any ideas?
                         Jeff_homo += 0.5 * (jDB*jBA / (eA - eBridgeA) + jDB*jBA / (eB - eBridgeB));
                         
+                        cout << orbBridgeA << ", " << eBridgeA << ", " << eA-eBridgeA << " , " <<   0.5 * (jDB*jBA / (eA - eBridgeA) + jDB*jBA / (eB - eBridgeB)) << ", " << Jeff_homo << ", " << jDB << ", " << jBA << endl;
+                        levelcount += 1;
                                 
                     }
 
