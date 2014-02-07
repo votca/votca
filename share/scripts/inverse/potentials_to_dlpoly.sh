@@ -36,5 +36,14 @@ ngrid="$(($ngrid+4))"
 #nm -> Angs
 table_end="$(csg_calc "$table_end" "*" 10)"
 bin_size="$(csg_calc "$bin_size" "*" 10)"
-echo "$bin_size $table_end $ngrid" >> TABLE
+
+rm -f TABLE TABBND TABANG TABDIH
+for_all non-bonded touch TABLE
+for_all bond touch TABBND
+for_all angle touch TABANG
+for_all dihedral touch TABDIH
+#we have at least on non-bonded interaction
+[[ -f TABLE ]] &&  echo "$bin_size $table_end $ngrid" >> TABLE
+#TODO write header for TABBND TABANG TABDIH
+
 for_all "non-bonded" do_external convert_potential dlpoly '$(csg_get_interaction_property name).pot.cur' '$(csg_get_interaction_property name).pot dlpoly'
