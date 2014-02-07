@@ -46,4 +46,4 @@ for_all dihedral touch TABDIH
 [[ -f TABLE ]] &&  echo "$bin_size $table_end $ngrid" >> TABLE
 #TODO write header for TABBND TABANG TABDIH
 
-for_all "non-bonded" do_external convert_potential dlpoly '$(csg_get_interaction_property name).pot.cur' '$(csg_get_interaction_property name).pot dlpoly'
+for_all "non-bonded" do_external convert_potential dlpoly '$(csg_get_interaction_property name).pot.cur' '$(csg_get_interaction_property name).pot.dlpoly'

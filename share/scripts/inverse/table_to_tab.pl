@@ -69,7 +69,7 @@ EOF
   }
 }
 
-die "$progname: conversion of bonded interaction to generic tables is not implemented yet!" unless ($type eq "non-bonded");
+die "$progname: conversion of bonded interaction to generic tables is only implemented for dlpoly!\n" unless (($type eq "non-bonded")||($sim_prog ne "dlpoly"));
 
 die "3 parameters are necessary\n" if ($#ARGV<2);
 
@@ -108,18 +108,25 @@ if ($sim_prog eq "espresso") {
     printf(OUTFILE "%i %15.10e %15.10e %15.10e\n",$i+1,$r[$i], $pot[$i], -$pot_deriv[$i]);
   }
 } elsif ($sim_prog eq "dlpoly") {
-  # see dlpoly manual ngrid = cut/delta+4 = $#r -1 + 4
-  # number of lines int((ngrid+3)/4)
-  for(my $i=0;$i<4*int(($#r+6)/4);$i++){
-    printf(OUTFILE "%15.7e",($i>$#r)?0:$pot[$i]);
-    printf(OUTFILE "%s",($i%4==3)?"\n":" ");
+  if ($type eq "non-bonded"){
+    # see dlpoly manual ngrid = cut/delta + 4  = $#r + 4 as table starts with delta (not 0)
+    # number of lines int((ngrid+3)/4)
+    for(my $i=0;$i<4*int(($#r+7)/4);$i++){
+      printf(OUTFILE "%15.7e",($i>$#r)?0:$pot[$i]);
+      printf(OUTFILE "%s",($i%4==3)?"\n":" ");
+    }
+    for(my $i=0;$i<4*int(($#r+7)/4);$i++){
+      # no scaling factor needed 1 kJ/nm *nm = 1*kJ/Angs*Angs
+      printf(OUTFILE "%15.7e",($i>$#r)?0:-$pot_deriv[$i]*$r[$i]);
+      printf(OUTFILE "%s",($i%4==3)?"\n":" ");
+    }
+    printf(OUTFILE "\n");
+  } elsif ( $type eq "bond" ) {
+    die "$progname: dlpoly bond not implemented\n";
+  } else {
+    #should never happen
+    die "$progname: dlpoly $type not implemented\n";
   }
-  for(my $i=0;$i<4*int(($#r+6)/4);$i++){
-    # no scaling factor neeed 1 kJ/nm *nm = 1*kJ/Angs*angs
-    printf(OUTFILE "%15.7e",($i>$#r)?0:-$pot_deriv[$i]*$r[$i]);
-    printf(OUTFILE "%s",($i%4==3)?"\n":" ");
-  }
-  printf(OUTFILE "\n");
 } elsif ($sim_prog eq "gromacs") {
   printf(OUTFILE "#This is just a failback, for using different columns use table_to_xvg.pl instead!\n");
   for(my $i=0;$i<=$#r;$i++){

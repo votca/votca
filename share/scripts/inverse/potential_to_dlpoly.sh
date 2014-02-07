@@ -66,5 +66,6 @@ if [[ -f $OUT ]]; then
     echo "${header}" >> "$OUT"
   else
     echo "$(csg_get_interaction_property dlpoly.header)" >> "$OUT"
+  fi
   cat "${output}" >> "$OUT"
 fi
