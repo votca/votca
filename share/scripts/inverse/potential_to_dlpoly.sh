@@ -48,11 +48,23 @@ do_external potential extrapolate --type "$bondtype" "${smooth2}" "${extrapolate
 
 smooth="$(critical mktemp ${trunc}.pot.smooth.XXXXX)"
 deriv="$(critical mktemp ${trunc}.pot.deriv.XXXXX)"
-critical csg_resample --in ${extrapolate} --out "${smooth}" --der "${deriv}" --grid "0:${bin_size}:${table_end}" --comment "$comment"
+# Yes, the dlpoly table starts at ${bin_size}
+critical csg_resample --in ${extrapolate} --out "${smooth}" --der "${deriv}" --grid "${bin_size}:${bin_size}:${table_end}" --comment "$comment"
 do_external convert_potential tab --header dlpoly --type "${bondtype}" "${smooth}" "${deriv}" "${output}"
 
-if [[ -f TABLE ]]; then
-  echo "Appending $output to TABLE"
-  echo "$(csg_get_interaction_property type1) $(csg_get_interaction_property type2)" >> TABLE
-  cat "${output}" >> TABLE
+OUT="TABLE"
+[[ $bondtype = bond ]] && OUT="TABBND"
+[[ $bondtype = angle ]] && OUT="TABANG"
+[[ $bondtype = dihedral ]] && OUT="TABDIH"
+
+if [[ -f $OUT ]]; then
+  echo "Appending $output to $OUT"
+  if [[ $bondtype = non-bonded ]]; then
+    #votca types might not correspond to dl_poly's internal types
+    header="$(csg_get_interaction_property --allow-empty dlpoly.header)"
+    [[ -z ${header} ]] && header="$(csg_get_interaction_property type1) $(csg_get_interaction_property type2)"
+    echo "${header}" >> "$OUT"
+  else
+    echo "$(csg_get_interaction_property dlpoly.header)" >> "$OUT"
+  cat "${output}" >> "$OUT"
 fi
