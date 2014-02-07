@@ -82,12 +82,12 @@ my $outfile="$ARGV[2]";
 my @r;
 my @r_repeat;
 my @pot;
-my @minus_force;
+my @pot_deriv;
 my @flag;
 my @flag_repeat;
 #cutoff is last point
 (readin_table($in_pot,@r,@pot,@flag)) || die "$progname: error at readin_table\n";
-(readin_table($in_deriv_pot,@r_repeat,@minus_force,@flag_repeat)) || die "$progname: error at readin_table\n";
+(readin_table($in_deriv_pot,@r_repeat,@pot_deriv,@flag_repeat)) || die "$progname: error at readin_table\n";
 
 #shift potential so that it is zero at cutoff
 for (my $i=0;$i<=$#r;$i++){
@@ -99,13 +99,13 @@ open(OUTFILE,"> $outfile") or die "saveto_table: could not open $outfile\n";
 if ($sim_prog eq "espresso") {
   printf(OUTFILE "#%d %f %f\n", $#r+1, $r[0],$r[$#r]);
   for(my $i=0;$i<=$#r;$i++){
-    printf(OUTFILE "%15.10e %15.10e %15.10e\n",$r[$i],($r[$i]>0)?-$minus_force[$i]/$r[$i]:-$minus_force[$i], $pot[$i]);
+    printf(OUTFILE "%15.10e %15.10e %15.10e\n",$r[$i],($r[$i]>0)?-$pot_deriv[$i]/$r[$i]:-$pot_deriv[$i], $pot[$i]);
   }
 } elsif ($sim_prog eq "lammps") {
   printf(OUTFILE "VOTCA\n");
   printf(OUTFILE "N %i R %f %f\n\n",$#r+1,$r[0],$r[$#r]);
   for(my $i=0;$i<=$#r;$i++){
-    printf(OUTFILE "%i %15.10e %15.10e %15.10e\n",$i+1,$r[$i], $pot[$i], -$minus_force[$i]);
+    printf(OUTFILE "%i %15.10e %15.10e %15.10e\n",$i+1,$r[$i], $pot[$i], -$pot_deriv[$i]);
   }
 } elsif ($sim_prog eq "dlpoly") {
   # see dlpoly manual ngrid = cut/delta+4 = $#r -1 + 4
@@ -115,19 +115,19 @@ if ($sim_prog eq "espresso") {
     printf(OUTFILE "%s",($i%4==3)?"\n":" ");
   }
   for(my $i=0;$i<4*int(($#r+6)/4);$i++){
-    # 1 kJ/nm = 0.1*kJ/Angs
-    printf(OUTFILE "%15.7e",($i>$#r)?0:-$minus_force[$i]*$r[$i]*0.1);
+    # no scaling factor neeed 1 kJ/nm *nm = 1*kJ/Angs*angs
+    printf(OUTFILE "%15.7e",($i>$#r)?0:-$pot_deriv[$i]*$r[$i]);
     printf(OUTFILE "%s",($i%4==3)?"\n":" ");
   }
   printf(OUTFILE "\n");
 } elsif ($sim_prog eq "gromacs") {
   printf(OUTFILE "#This is just a failback, for using different columns use table_to_xvg.pl instead!\n");
   for(my $i=0;$i<=$#r;$i++){
-    printf(OUTFILE "%15.10e   %15.10e %15.10e   %15.10e %15.10e   %15.10e %15.10e\n",$r[$i], ,0,0,0,0,$pot[$i], -$minus_force[$i]);
+    printf(OUTFILE "%15.10e   %15.10e %15.10e   %15.10e %15.10e   %15.10e %15.10e\n",$r[$i], ,0,0,0,0,$pot[$i], -$pot_deriv[$i]);
   }
 } else {
   for(my $i=0;$i<=$#r;$i++){
-    printf(OUTFILE "%15.10e %15.10e %15.10e\n",$r[$i], $pot[$i], -$minus_force[$i]);
+    printf(OUTFILE "%15.10e %15.10e %15.10e\n",$r[$i], $pot[$i], -$pot_deriv[$i]);
   }
 }
 close(OUTFILE) or die "Error at closing $outfile\n";
