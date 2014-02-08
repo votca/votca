@@ -25,8 +25,6 @@ EOF
    exit 0
 fi
 
-[[ -f TABLE ]] && echo "We will now overwrite TABLE"
-echo "Table for dlpoly from VOTCA with love" > TABLE #max 100 chars
 bin_size="$(csg_get_property cg.inverse.dlpoly.table_bins)"
 table_end="$(csg_get_property cg.inverse.dlpoly.table_end)"
 # see dlpoly manual ngrid = int(cut/delta) + 4
@@ -37,13 +35,19 @@ ngrid="$(($ngrid+4))"
 table_end="$(csg_calc "$table_end" "*" 10)"
 bin_size="$(csg_calc "$bin_size" "*" 10)"
 
+for i in TABLE TABBND TABANG TABDIH; do
+  [[ -f $i ]] && echo "We will now overwrite $i"
+done
 rm -f TABLE TABBND TABANG TABDIH
 for_all non-bonded touch TABLE
 for_all bond touch TABBND
 for_all angle touch TABANG
 for_all dihedral touch TABDIH
 #we have at least on non-bonded interaction
-[[ -f TABLE ]] &&  echo "$bin_size $table_end $ngrid" >> TABLE
+if [[ -f TABLE ]]; then
+  echo "Table for dlpoly from VOTCA with love" >> TABLE #max 100 chars
+  echo "$bin_size $table_end $ngrid" >> TABLE
+fi
 #TODO write header for TABBND TABANG TABDIH
 
 for_all "non-bonded" do_external convert_potential dlpoly '$(csg_get_interaction_property name).pot.cur' '$(csg_get_interaction_property name).pot.dlpoly'
