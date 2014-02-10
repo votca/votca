@@ -87,7 +87,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &top)
     static bool hasVs  = false;
     static bool hasFs  = false;
 
-    int nerrt = 0;
+    static int nerrt = 0;
 
     string line;
 
@@ -191,7 +191,8 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &top)
         vector<string> fields;
         tok.ToVector(fields);
 
-	if( fields.size() < 7 ) 
+	//if( fields.size() < 7 ) 
+	if( fields.size() < 6 ) 
 	  throw std::runtime_error("Error: too few directive switches (<6) in 'timestep' record");	
 
 	nstep  = boost::lexical_cast<int>(fields[1]);
@@ -218,7 +219,8 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &top)
 	// total time - calculated as product due to differences between DL_POLY versions in HISTORY formats
 	top.setTime(nstep*dtime);
 
-	if( std::abs(stime - top.getTime()) > 1.e-10 ) {
+	if( std::abs(stime - top.getTime()) > 1.e-8 ) {
+	  nerrt++;
 	  if( nerrt < 11 ) {
 	    cout << "Check: nstep = " << nstep << ", dt = " << dtime << ", time = " << top.getTime() << " (correct?)" << endl;
 	  }

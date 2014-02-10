@@ -25,25 +25,70 @@ EOF
    exit 0
 fi
 
-[[ -f TABLE ]] && echo "We will now overwrite TABLE"
-echo "Table for dlpoly from VOTCA with love" > TABLE #max 100 chars
-bin_size="$(csg_get_property cg.inverse.dlpoly.table_bins)"
-table_end="$(csg_get_property cg.inverse.dlpoly.table_end)"
+OUTTAB="TABLE"
+OUTBND="TABBND"
+OUTANG="TABANG"
+OUTDIH="TABDIH"
+
+[[ -f "$OUTTAB" ]] && echo "We will now overwrite $OUTTAB"
+[[ -f "$OUTBND" ]] && echo "We will now overwrite $OUTBND"
+[[ -f "$OUTANG" ]] && echo "We will now overwrite $OUTANG"
+[[ -f "$OUTDIH" ]] && echo "We will now overwrite $OUTDIH"
+
+rm -fv "$OUTTAB" "$OUTBND" "$OUTANG" "$OUTDIH"
+for_all "non-bonded" touch "$OUTTAB"
+for_all "bond"       touch "$OUTBND"
+for_all "angle"      touch "$OUTANG"
+for_all "dihedral"   touch "$OUTDIH"
+
+#we have at least one non-bonded interaction
+#[[ -f "$OUTTAB" ]] &&  echo "$bin_size $table_end $ngrid" >> "$OUTTAB"
+#TODO write header for "$OUTBND" "$OUTANG" "$OUTDIH"
+
+if [[ -f "$OUTTAB" ]]; then
+  echo "Table for dlpoly from VOTCA with love" > "$OUTTAB" #max 80 chars
+  bin_size="$(csg_get_property cg.inverse.dlpoly.table_bins)"
+  table_end="$(csg_get_property cg.inverse.dlpoly.table_end)"
+
 # see dlpoly manual ngrid = int(cut/delta) + 4
-ngrid="$(csg_calc $table_end / $bin_size)"
-ngrid="$(to_int $ngrid)"
-ngrid="$(($ngrid+4))"
-#nm -> Angs
-table_end="$(csg_calc "$table_end" "*" 10)"
-bin_size="$(csg_calc "$bin_size" "*" 10)"
+  ngrid="$(csg_calc $table_end / $bin_size)"
+  ngrid="$(to_int $ngrid)"
+  ngrid="$(($ngrid+4))"
 
-rm -f TABLE TABBND TABANG TABDIH
-for_all non-bonded touch TABLE
-for_all bond touch TABBND
-for_all angle touch TABANG
-for_all dihedral touch TABDIH
-#we have at least on non-bonded interaction
-[[ -f TABLE ]] &&  echo "$bin_size $table_end $ngrid" >> TABLE
-#TODO write header for TABBND TABANG TABDIH
+# nm -> Angs
+  bin_size="$(csg_calc "$bin_size" "*" 10)"
+  table_end="$(csg_calc "$table_end" "*" 10)"
+  echo "$bin_size $table_end $ngrid" >> "$OUTTAB"
 
-for_all "non-bonded" do_external convert_potential dlpoly '$(csg_get_interaction_property name).pot.cur' '$(csg_get_interaction_property name).pot.dlpoly'
+  for_all "non-bonded" do_external convert_potential dlpoly '$(csg_get_interaction_property name).pot.cur' '$(csg_get_interaction_property name).pot.dlpoly'
+fi
+
+if [[ -f "$OUTBND" ]]; then
+  echo "# Table for dlpoly from VOTCA with love" > "$OUTBND" #max 80 chars
+  table_end="$(csg_get_property cg.inverse.dlpoly.bonds.table_end)"
+  ngrid="$(csg_get_property cg.inverse.dlpoly.bonds.table_grid)"
+
+# nm -> Angs
+  table_end="$(csg_calc "$table_end" "*" 10)"
+  echo "# $table_end $ngrid" >> "$OUTBND"
+
+  for_all "bond" do_external convert_potential dlpoly '$(csg_get_interaction_property name).pot.cur' '$(csg_get_interaction_property name).pot.dlpoly'
+fi
+
+if [[ -f "$OUTANG" ]]; then
+  echo "# Table for dlpoly from VOTCA with love" > "$OUTANG" #max 80 chars
+#  table_end="$(csg_get_property cg.inverse.dlpoly.angles.table_end)"
+  ngrid="$(csg_get_property cg.inverse.dlpoly.angles.table_grid)"
+  echo "# $ngrid" >> "$OUTANG"
+
+  for_all "angle" do_external convert_potential dlpoly '$(csg_get_interaction_property name).pot.cur' '$(csg_get_interaction_property name).pot.dlpoly'
+fi
+
+if [[ -f "$OUTDIH" ]]; then
+  echo "# Table for dlpoly from VOTCA with love" > "$OUTDIH" #max 80 chars
+#  table_end="$(csg_get_property cg.inverse.dlpoly.dihedrals.table_end)"
+  ngrid="$(csg_get_property cg.inverse.dlpoly.dihedrals.table_grid)"
+  echo "# $ngrid" >> "$OUTDIH"
+
+  for_all "dihedral" do_external convert_potential dlpoly '$(csg_get_interaction_property name).pot.cur' '$(csg_get_interaction_property name).pot.dlpoly'
+fi

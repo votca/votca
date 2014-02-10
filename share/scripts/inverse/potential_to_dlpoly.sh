@@ -33,11 +33,33 @@ output="$2"
 echo "Convert $input to $output"
 
 bondtype="$(csg_get_interaction_property bondtype)"
-[[ $bondtype != non-bonded ]] && die "${0##*/}: conversion of bonded interaction to generic tables is not implemented yet!"
+#[[ $bondtype != non-bonded ]] && die "${0##*/}: conversion of bonded interaction to generic tables is not implemented yet!"
+#[[ $bondtype != non-bonded && $bondtype != bonded && $bondtype != bond && $bondtype != angle ]] && die "${0##*/}: conversion of ${bondtype} interaction to generic tables is not implemented yet!"
 
-step=$(csg_get_interaction_property step)
-bin_size="$(csg_get_property cg.inverse.dlpoly.table_bins)"
-table_end="$(csg_get_property cg.inverse.dlpoly.table_end)"
+if [[ $bondtype = non-bonded ]]; then 
+  OUT="TABLE"
+  step="$(csg_get_interaction_property step)"
+  bin_size="$(csg_get_property cg.inverse.dlpoly.table_bins)"
+  table_end="$(csg_get_property cg.inverse.dlpoly.table_end)"
+elif [[ $bondtype = bond ]]; then 
+  OUT="TABBND"
+  step="$(csg_get_interaction_property step)"
+  table_end="$(csg_get_property cg.inverse.dlpoly.bonds.table_end)"
+  table_grid="$(csg_get_property cg.inverse.dlpoly.bonds.table_grid)"
+  bin_size="$(csg_calc "$table_end" "/" $table_grid)"
+#  bin_size="$(csg_get_property cg.inverse.dlpoly.bonds.table_bins)"
+elif [[ $bondtype = angle ]]; then 
+  OUT="TABANG"
+  step="$(csg_get_interaction_property step)"
+  table_end="$(csg_get_property cg.inverse.dlpoly.angles.table_end)"
+  table_grid="$(csg_get_property cg.inverse.dlpoly.angles.table_grid)"
+  bin_size="$(csg_calc "$table_end" "/" $table_grid)"
+#  bin_size="$(csg_get_property cg.inverse.dlpoly.angles.table_bins)"
+elif [[ $bondtype = dihedral ]]; then
+  OUT="TABDIH"
+else
+  die "${0##*/}: conversion of ${bondtype} interaction to generic tables is not implemented yet!"
+fi
 
 #keep the grid for now, so that extrapolate can calculate the right mean
 comment="$(get_table_comment)"
@@ -52,20 +74,36 @@ deriv="$(critical mktemp ${trunc}.pot.deriv.XXXXX)"
 critical csg_resample --in ${extrapolate} --out "${smooth}" --der "${deriv}" --grid "${bin_size}:${bin_size}:${table_end}" --comment "$comment"
 do_external convert_potential tab --header dlpoly --type "${bondtype}" "${smooth}" "${deriv}" "${output}"
 
-OUT="TABLE"
-[[ $bondtype = bond ]] && OUT="TABBND"
-[[ $bondtype = angle ]] && OUT="TABANG"
-[[ $bondtype = dihedral ]] && OUT="TABDIH"
-
 if [[ -f $OUT ]]; then
-  echo "Appending $output to $OUT"
+  echo "Appending $output to $OUT" 
   if [[ $bondtype = non-bonded ]]; then
     #votca types might not correspond to dl_poly's internal types
     header="$(csg_get_interaction_property --allow-empty dlpoly.header)"
     [[ -z ${header} ]] && header="$(csg_get_interaction_property type1) $(csg_get_interaction_property type2)"
     echo "${header}" >> "$OUT"
+  elif [[ $bondtype = bond ]]; then
+    #votca types might not correspond to dl_poly's internal types
+    header="$(csg_get_interaction_property --allow-empty dlpoly.header)"
+    [[ -z ${header} ]] && header="$(csg_get_interaction_property type1) $(csg_get_interaction_property type2)"
+    # an empty line must precede each data block (for another bond type), then the bond type (two atom types) follow
+    echo "" >> "$OUT"
+    echo "# ${header}" >> "$OUT"
+  elif [[ $bondtype = angle ]]; then
+    #votca types might not correspond to dl_poly's internal types
+    header="$(csg_get_interaction_property --allow-empty dlpoly.header)"
+    [[ -z ${header} ]] && header="$(csg_get_interaction_property type1) $(csg_get_interaction_property type2) $(csg_get_interaction_property type3)"
+    # an empty line must precede each data block (for another angle type), then the angle type (three atom types) follow
+    echo "" >> "$OUT"
+    echo "# ${header}" >> "$OUT"
+  elif [[ $bondtype = dihedral ]]; then
+    #votca types might not correspond to dl_poly's internal types
+    header="$(csg_get_interaction_property --allow-empty dlpoly.header)"
+    [[ -z ${header} ]] && header="$(csg_get_interaction_property type1) $(csg_get_interaction_property type2) $(csg_get_interaction_property type3) $(csg_get_interaction_property type4)"
+    # an empty line must precede each data block (for another dihedral type), then the dihedral type (three atom types) follow
+    echo "" >> "$OUT"
+    echo "# ${header}" >> "$OUT"
   else
-    echo "$(csg_get_interaction_property dlpoly.header)" >> "$OUT"
+    echo "# $(csg_get_interaction_property dlpoly.header)" >> "$OUT"
   fi
   cat "${output}" >> "$OUT"
 fi

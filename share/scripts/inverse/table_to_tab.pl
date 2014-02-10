@@ -38,7 +38,7 @@ while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
     print <<EOF;
 $progname, version %version%
 This script converts csg potential files to the tab format
-(as read by espresso and lammps).
+(as read by espresso or lammps or dlpoly).
 
 In addition, it does some magic tricks:
 - shift the potential, so that it is zero at the cutoff
@@ -69,7 +69,8 @@ EOF
   }
 }
 
-die "$progname: conversion of bonded interaction to generic tables is only implemented for dlpoly!\n" unless (($type eq "non-bonded")||($sim_prog ne "dlpoly"));
+#die "$progname: conversion of bonded interaction to generic tables is only implemented for dlpoly!\n" unless (($type eq "non-bonded")||($sim_prog eq "dlpoly"));
+die "$progname: conversion of ${type} interaction to generic tables is only implemented for dlpoly!\n" unless (($sim_prog eq "dlpoly"));
 
 die "3 parameters are necessary\n" if ($#ARGV<2);
 
@@ -120,12 +121,21 @@ if ($sim_prog eq "espresso") {
       printf(OUTFILE "%15.7e",($i>$#r)?0:-$pot_deriv[$i]*$r[$i]);
       printf(OUTFILE "%s",($i%4==3)?"\n":" ");
     }
-    printf(OUTFILE "\n");
+#    printf(OUTFILE "\n");
   } elsif ( $type eq "bond" ) {
-    die "$progname: dlpoly bond not implemented\n";
+#    die "$progname: dlpoly ${type} table not implemented\n";
+    for(my $i=0;$i<=$#r;$i++){
+      printf(OUTFILE "%15.7e %15.7e %15.7e\n",$r[$i]*10.0, $pot[$i], -$pot_deriv[$i]*$r[$i]);
+    }
+  } elsif ( $type eq "angle" ||  $type eq "dihedral" ) {
+#    die "$progname: dlpoly ${type} table not implemented\n";
+    my $RadToDegree=180.0/3.14159265359;
+    for(my $i=0;$i<=$#r;$i++){
+      printf(OUTFILE "%15.7e %15.7e %15.7e\n",$r[$i]*$RadToDegree, $pot[$i], -$pot_deriv[$i]/$RadToDegree);
+    }
   } else {
     #should never happen
-    die "$progname: dlpoly $type not implemented\n";
+    die "$progname: tabulated potentials/forces for dlpoly $type not implemented\n";
   }
 } elsif ($sim_prog eq "gromacs") {
   printf(OUTFILE "#This is just a failback, for using different columns use table_to_xvg.pl instead!\n");
