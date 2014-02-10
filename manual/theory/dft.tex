@@ -13,7 +13,7 @@ The code currently contains supports evaluation of transfer integrals from quant
 First, \slink{sec:segments}{hopping sites} and a \slink{sec:neighborlist}{neighbor list} need to be generated from the atomistic topology and trajectory and written to the \sqlstate file. Then the parallel \calc{edft} \calculator manages the calculation of the monomer properties required for the determination of electronic coupling elements. Specifically, the individual steps it performs are:
 %
 \begin{enumerate}
-\item Creation of a job file containing the list of molecules to be caclculated with DFT 
+\item Creation of a job file containing the list of molecules to be calculated with DFT 
 \votcacommand{Writing job file for \calc{edft}}{\ctpparallel \opt \xmloptions \sql \sqlstate \exe \calc{edft} \job \wrt }
 \item Running of all jobs in job file 
 \votcacommand{Running all \calc{edft} jobs}{\ctpparallel \opt \xmloptions \sql \sqlstate \exe \calc{edft} \job \run }
@@ -37,7 +37,7 @@ where {\tt F} is the index of the frame in the trajectory, {\tt M} is the index 
 \label{sec:idft}
 After the momomer calculations have been completed successfully, the respective runs for dimers from the neighborlist can be performed using the parallel \calc{idft} \calculator, which manages the DFT runs for the hopping pairs and determines the coupling element using \dipro. Again, several steps are required:
 \begin{enumerate}
-\item Creation of a job file containing the list of pairs to be caclculated with DFT 
+\item Creation of a job file containing the list of pairs to be calculated with DFT 
 \votcacommand{Writing job file for \calc{idft}}{\ctpparallel \opt \xmloptions \sql \sqlstate \exe \calc{idft} \job \wrt }
 \item Running of all jobs in job file 
 \votcacommand{Running all \calc{idft} jobs}{\ctpparallel \opt \xmloptions \sql \sqlstate \exe \calc{idft} \job \run }

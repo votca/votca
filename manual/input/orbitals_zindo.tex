@@ -1,6 +1,8 @@
 \section{Molecular orbitals}
 If the semi-empirical method is used to calculate electronic coupling elements, molecular orbitals of all molecules must be supplied. They can be generated using \gaussian program. The \gaussian input file for \dcvt is shown in listing~\ref{list:zindo_orbitals}. Provided with this input, \gaussian will generate \texttt{fort.7} file which contains the molecular orbitals of a \dcvt. This file can be renamed to \texttt{\dcvt.orb}. Note that the order of the atoms in the input file and the order of coefficients should always match. Therefore, the coordinate part of the input file must be supplied together with the orbitals. We will assume the coordinates, in the format \texttt{atom\_type: x y z}, is saved to the \texttt{\dcvt.xyz} file.
 
+\attention{Izindo requires the specification of orbitals for hole and electron transport in \xmlcsg. They are the HOMO and LUMO respectively and can be retrieved from the \texttt{log} file from which the \texttt{\dcvt.orb} file is generated. The number of \texttt{alpha electrons} is the HOMO, the LUMO is HOMO+1 } 
+
 \lstinputlisting[
  label=list:zindo_orbitals, 
  basicstyle=\ttfamily\footnotesize,

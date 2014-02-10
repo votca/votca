@@ -15,6 +15,13 @@
 \end{bclogo}
 }
 
+\newcommand\attention[1]
+{
+\begin{bclogo}[couleur=mygray, arrondi =0.1 , logo=\bctakecare, barre=line]{\small Be careful!}
+{\small #1}
+\end{bclogo}
+}
+
 \newcommand{\xml}{XML\xspace}
 \newcommand{\gromacs}{\texttt{GROMACS}\xspace}
 \newcommand{\gaussian}{\texttt{Gaussian}\xspace}
@@ -36,7 +43,7 @@
 \newcommand{\xmloptions}{\texttt{options.xml}\xspace}
 \newcommand{\xmlcsg}{\hyperref[sec:xmlmap]{\texttt{map.xml}}\xspace}
 \newcommand{\xmlsegments}{\hyperref[sec:xmlsegments]{\texttt{segments.xml}}\xspace}
-\newcommand{\sqlstate}{\hyperref[sec:statefile]{\texttt{state.db}}\xspace}
+\newcommand{\sqlstate}{\hyperref[sec:statefile]{\texttt{state.sql}}\xspace}
 \newcommand{\topology}{\texttt{topol.tpr}\xspace}
 \newcommand{\trajectory}{\texttt{traj.xtc}\xspace}
 

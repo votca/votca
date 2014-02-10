@@ -11,7 +11,7 @@
 	     <!-- IZINDO INPUT -->		    	   
         <basisset>INDO</basisset>
         <orbitals>QC_FILES/DCV2T.orb</orbitals>     
-        <torbital_h>50</torbital_h><!-- Number of the HOMO Orbital (e.g. #electrons/2) -->
+        <torbital_h>50</torbital_h><!-- Number of the HOMO Orbital (e.g.  alpha electrons, can be found in the log-file belonging to DCV2T.orb) -->
             
             <!-- EMULTIPOLE INPUT -->		           
         <multipoles_n>MP_FILES/DCV2T.mps</multipoles_n><!-- Multipole file for neutral state -->
