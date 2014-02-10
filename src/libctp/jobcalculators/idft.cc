@@ -282,12 +282,14 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
    
    Property _job_summary;
 
+   // Orbitals _orbitalsA, _orbitalsB;
+
+   
    if ( _do_project ) {
        
        // orbitals must be loaded from a file
        if ( !_do_parse ) LoadOrbitals( orbFileAB, &_orbitalsAB, pLog );
        
-       Orbitals _orbitalsA, _orbitalsB;
        
        // failed to load; wrap-up and finish current job
        if ( !_orbitalsA.Load( orbFileA ) ) {
@@ -422,6 +424,11 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
                         double JAB = _overlap.getCouplingElement( levelA , levelB, &_orbitalsA, &_orbitalsB, &_JAB, _energy_difference );
                         double energyA = _orbitalsA.getEnergy( levelA );
                         double energyB = _orbitalsB.getEnergy( levelB );
+                        cout << "levelA=" << levelA << endl;
+                        cout << "levelB=" << levelB << endl;
+                        cout << "JAB=" << JAB << endl;
+                        cout << "energyA=" << energyA << endl;
+                        cout << "energyB=" << energyB << endl;
                         _overlap_summary->setAttribute("orbA", levelA);
                         _overlap_summary->setAttribute("orbB", levelB);
                         _overlap_summary->setAttribute("jAB", JAB);
