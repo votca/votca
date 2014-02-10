@@ -335,8 +335,8 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
         string _options_vxc = _options;
         boost::algorithm::replace_all(_options_vxc, "pseudo=read", "Geom=AllCheck");
         boost::algorithm::replace_all(_options_vxc, "/gen", " chkbasis");  
-        boost::algorithm::replace_all(_options_vxc, "punch=mo", "");  
-        boost::algorithm::replace_all(_options_vxc, "guess=tcheck", "guess=read");  
+        boost::algorithm::replace_all(_options_vxc, "punch=mo", "guess=read");  
+        boost::algorithm::replace_all(_options_vxc, "guess=tcheck", "");  
         if ( _options_vxc.size() ) _com_file2 <<  _options_vxc << endl ;
 
         // # pop=minimal pbepbe/gen pseudo=read scf=tight punch=mo
@@ -401,7 +401,8 @@ bool Gaussian::WriteShellScript() {
         _shell_file << "rm fort.22" << endl;
         _shell_file << "setenv DoPrtXC YES" << endl;
         _shell_file << _executable << " " << _input_vxc_file_name << " >& /dev/null " << endl; 
-        _shell_file << "setenv DoPrtXC NO" << endl;       
+        _shell_file << "setenv DoPrtXC NO" << endl;    
+        _shell_file << "rm $GAUSS_SCRDIR/*" << endl;
     }
     _shell_file.close();
     

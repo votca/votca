@@ -30,6 +30,7 @@
 #include "tools/qmsandbox.h"
 #include "tools/spectrum.h"
 #include "tools/excitoncoupling.h"
+#include "tools/orb2isogwa.h"
 
 namespace votca { namespace ctp {
 
@@ -44,7 +45,8 @@ void QMToolFactory::RegisterAll(void)
         QMTools().Register<QMAnalyze>          ("qmanalyze");
         QMTools().Register<QMSandbox>          ("qmsandbox");
         QMTools().Register<Spectrum>           ("spectrum");
-        QMTools().Register<ExcitonCoupling>    ("excitoncoupling"); 
+        QMTools().Register<ExcitonCoupling>    ("excitoncoupling");
+        QMTools().Register<Orb2IsoGWA>         ("orb2isogwa"); 
 }
 
 }}
