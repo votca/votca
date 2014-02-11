@@ -191,7 +191,6 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &top)
         vector<string> fields;
         tok.ToVector(fields);
 
-	//if( fields.size() < 7 ) 
 	if( fields.size() < 6 ) 
 	  throw std::runtime_error("Error: too few directive switches (<6) in 'timestep' record");	
 
