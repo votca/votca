@@ -72,4 +72,4 @@ if [[ -f "TABDIH" ]]; then
   ngrid="$(csg_get_property cg.inverse.dlpoly.dihedrals.table_grid)"
   echo "# $ngrid" >> "TABDIH"
 fi
-for_all "non-bonded bond" do_external convert_potential dlpoly '$(csg_get_interaction_property name).pot.cur' '$(csg_get_interaction_property name).pot.dlpoly'
+for_all "non-bonded bonded" do_external convert_potential dlpoly '$(csg_get_interaction_property name).pot.cur' '$(csg_get_interaction_property name).pot.dlpoly'
