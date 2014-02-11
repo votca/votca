@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 #
-# Copyright 2009-2013 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2014 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -69,8 +69,7 @@ EOF
   }
 }
 
-#die "$progname: conversion of bonded interaction to generic tables is only implemented for dlpoly!\n" unless (($type eq "non-bonded")||($sim_prog eq "dlpoly"));
-die "$progname: conversion of ${type} interaction to generic tables is only implemented for dlpoly!\n" unless (($sim_prog eq "dlpoly"));
+die "$progname: conversion of ${type} interaction to generic tables is only implemented for dlpoly!\n" unless (($type eq "non-bonded")||($sim_prog eq "dlpoly"));
 
 die "3 parameters are necessary\n" if ($#ARGV<2);
 
@@ -96,8 +95,8 @@ for (my $i=0;$i<=$#r;$i++){
 }
 
 open(OUTFILE,"> $outfile") or die "saveto_table: could not open $outfile\n";
-# espresso specific header - no other starting comments
 if ($sim_prog eq "espresso") {
+  # espresso specific header - no other starting comments
   printf(OUTFILE "#%d %f %f\n", $#r+1, $r[0],$r[$#r]);
   for(my $i=0;$i<=$#r;$i++){
     printf(OUTFILE "%15.10e %15.10e %15.10e\n",$r[$i],($r[$i]>0)?-$pot_deriv[$i]/$r[$i]:-$pot_deriv[$i], $pot[$i]);
@@ -121,14 +120,12 @@ if ($sim_prog eq "espresso") {
       printf(OUTFILE "%15.7e",($i>$#r)?0:-$pot_deriv[$i]*$r[$i]);
       printf(OUTFILE "%s",($i%4==3)?"\n":" ");
     }
-#    printf(OUTFILE "\n");
   } elsif ( $type eq "bond" ) {
-#    die "$progname: dlpoly ${type} table not implemented\n";
     for(my $i=0;$i<=$#r;$i++){
+      #nm -> Angs: $r[$i]*10.0 
       printf(OUTFILE "%15.7e %15.7e %15.7e\n",$r[$i]*10.0, $pot[$i], -$pot_deriv[$i]*$r[$i]);
     }
   } elsif ( $type eq "angle" ||  $type eq "dihedral" ) {
-#    die "$progname: dlpoly ${type} table not implemented\n";
     my $RadToDegree=180.0/3.14159265359;
     for(my $i=0;$i<=$#r;$i++){
       printf(OUTFILE "%15.7e %15.7e %15.7e\n",$r[$i]*$RadToDegree, $pot[$i], -$pot_deriv[$i]/$RadToDegree);

@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2013 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2014 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,70 +25,51 @@ EOF
    exit 0
 fi
 
-OUTTAB="TABLE"
-OUTBND="TABBND"
-OUTANG="TABANG"
-OUTDIH="TABDIH"
+for i in TABLE TABBND TABANG TABDIH; do
+  [[ -f "$i" ]] && echo "We will now overwrite $i"
+  rm -v "$i"
+done
 
-[[ -f "$OUTTAB" ]] && echo "We will now overwrite $OUTTAB"
-[[ -f "$OUTBND" ]] && echo "We will now overwrite $OUTBND"
-[[ -f "$OUTANG" ]] && echo "We will now overwrite $OUTANG"
-[[ -f "$OUTDIH" ]] && echo "We will now overwrite $OUTDIH"
+for_all "non-bonded" touch "TABLE"
+for_all "bond"       touch "TABBND"
+for_all "angle"      touch "TABANG"
+for_all "dihedral"   touch "TABDIH"
 
-rm -fv "$OUTTAB" "$OUTBND" "$OUTANG" "$OUTDIH"
-for_all "non-bonded" touch "$OUTTAB"
-for_all "bond"       touch "$OUTBND"
-for_all "angle"      touch "$OUTANG"
-for_all "dihedral"   touch "$OUTDIH"
-
-#we have at least one non-bonded interaction
-#[[ -f "$OUTTAB" ]] &&  echo "$bin_size $table_end $ngrid" >> "$OUTTAB"
-#TODO write header for "$OUTBND" "$OUTANG" "$OUTDIH"
-
-if [[ -f "$OUTTAB" ]]; then
-  echo "Table for dlpoly from VOTCA with love" > "$OUTTAB" #max 80 chars
+#if we have at least one  interaction for that kind
+for i in TABLE TABBND TABANG TABDIH; do
+  echo "Table for dlpoly from VOTCA with love" > "$i" #max 80 chars
+done
+if [[ -f "TABLE" ]]; then
   bin_size="$(csg_get_property cg.inverse.dlpoly.table_bins)"
   table_end="$(csg_get_property cg.inverse.dlpoly.table_end)"
 
-# see dlpoly manual ngrid = int(cut/delta) + 4
+  # see dlpoly manual ngrid = int(cut/delta) + 4
   ngrid="$(csg_calc $table_end / $bin_size)"
   ngrid="$(to_int $ngrid)"
   ngrid="$(($ngrid+4))"
 
-# nm -> Angs
+  # nm -> Angs
   bin_size="$(csg_calc "$bin_size" "*" 10)"
   table_end="$(csg_calc "$table_end" "*" 10)"
-  echo "$bin_size $table_end $ngrid" >> "$OUTTAB"
-
-  for_all "non-bonded" do_external convert_potential dlpoly '$(csg_get_interaction_property name).pot.cur' '$(csg_get_interaction_property name).pot.dlpoly'
+  echo "$bin_size $table_end $ngrid" >> "TABLE"
 fi
 
-if [[ -f "$OUTBND" ]]; then
-  echo "# Table for dlpoly from VOTCA with love" > "$OUTBND" #max 80 chars
+if [[ -f "TABBND" ]]; then
   table_end="$(csg_get_property cg.inverse.dlpoly.bonds.table_end)"
   ngrid="$(csg_get_property cg.inverse.dlpoly.bonds.table_grid)"
 
-# nm -> Angs
+  # nm -> Angs
   table_end="$(csg_calc "$table_end" "*" 10)"
-  echo "# $table_end $ngrid" >> "$OUTBND"
-
-  for_all "bond" do_external convert_potential dlpoly '$(csg_get_interaction_property name).pot.cur' '$(csg_get_interaction_property name).pot.dlpoly'
+  echo "# $table_end $ngrid" >> "TABBND"
 fi
 
-if [[ -f "$OUTANG" ]]; then
-  echo "# Table for dlpoly from VOTCA with love" > "$OUTANG" #max 80 chars
-#  table_end="$(csg_get_property cg.inverse.dlpoly.angles.table_end)"
+if [[ -f "TABANG" ]]; then
   ngrid="$(csg_get_property cg.inverse.dlpoly.angles.table_grid)"
-  echo "# $ngrid" >> "$OUTANG"
-
-  for_all "angle" do_external convert_potential dlpoly '$(csg_get_interaction_property name).pot.cur' '$(csg_get_interaction_property name).pot.dlpoly'
+  echo "# $ngrid" >> "TABANG"
 fi
 
-if [[ -f "$OUTDIH" ]]; then
-  echo "# Table for dlpoly from VOTCA with love" > "$OUTDIH" #max 80 chars
-#  table_end="$(csg_get_property cg.inverse.dlpoly.dihedrals.table_end)"
+if [[ -f "TABDIH" ]]; then
   ngrid="$(csg_get_property cg.inverse.dlpoly.dihedrals.table_grid)"
-  echo "# $ngrid" >> "$OUTDIH"
-
-  for_all "dihedral" do_external convert_potential dlpoly '$(csg_get_interaction_property name).pot.cur' '$(csg_get_interaction_property name).pot.dlpoly'
+  echo "# $ngrid" >> "TABDIH"
 fi
+for_all "non-bonded bond" do_external convert_potential dlpoly '$(csg_get_interaction_property name).pot.cur' '$(csg_get_interaction_property name).pot.dlpoly'
