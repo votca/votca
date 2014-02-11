@@ -123,13 +123,13 @@ if ($sim_prog eq "espresso") {
   } elsif ( $type eq "bond" ) {
     for(my $i=0;$i<=$#r;$i++){
       #nm -> Angs: $r[$i]*10.0
-      printf(OUTFILE "%15.7e %15.7e %15.7e\n",$r[$i]*10.0, $pot[$i], -$pot_deriv[$i]*$r[$i]);
+      printf(OUTFILE "%12.5e %15.7e %15.7e\n",$r[$i]*10.0, $pot[$i], -$pot_deriv[$i]*$r[$i]);
     }
   } elsif ( $type eq "angle" ||  $type eq "dihedral" ) {
     my $RadToDegree=180.0/3.14159265359;
     for(my $i=0;$i<=$#r;$i++){
       #rad -> degree: $r[$i]*$RadToDegree, and $pot_deriv[$i]/$RadToDegree
-      printf(OUTFILE "%15.7e %15.7e %15.7e\n",$r[$i]*$RadToDegree, $pot[$i], -$pot_deriv[$i]/$RadToDegree);
+      printf(OUTFILE "%12.5e %15.7e %15.7e\n",$r[$i]*$RadToDegree, $pot[$i], -$pot_deriv[$i]/$RadToDegree);
     }
   } else {
     #should never happen

@@ -53,7 +53,7 @@ elif [[ $bondtype = "dihedral" ]]; then
   OUT="TABDIH"
   table_zero="-3.14159265359"
   table_end="3.14159265359"
-  table_grid="$(csg_get_property cg.inverse.dlpoly.angles.table_grid)"
+  table_grid="$(csg_get_property cg.inverse.dlpoly.dihedrals.table_grid)"
   bin_size="$(csg_calc "$table_end" "-" $table_zero)"
   bin_size="$(csg_calc "$bin_size" "/" $table_grid)"
 else

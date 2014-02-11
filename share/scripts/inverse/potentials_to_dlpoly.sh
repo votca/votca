@@ -80,5 +80,3 @@ if [[ -f "TABDIH" ]]; then
   echo "# $ngrid" >> "TABDIH"
   for_all "dihedral" do_external convert_potential dlpoly '$(csg_get_interaction_property name).pot.cur' '$(csg_get_interaction_property name).pot.dlpoly'
 fi
-
-#for_all "non-bonded bonded" do_external convert_potential dlpoly '$(csg_get_interaction_property name).pot.cur' '$(csg_get_interaction_property name).pot.dlpoly'
