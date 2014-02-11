@@ -116,18 +116,19 @@ if ($sim_prog eq "espresso") {
       printf(OUTFILE "%s",($i%4==3)?"\n":" ");
     }
     for(my $i=0;$i<4*int(($#r+7)/4);$i++){
-      # no scaling factor needed 1 kJ/nm *nm = 1*kJ/Angs*Angs
+      # no scaling factor needed 1 kJ/nm *nm = 1 (kJ/Angs)*Angs
       printf(OUTFILE "%15.7e",($i>$#r)?0:-$pot_deriv[$i]*$r[$i]);
       printf(OUTFILE "%s",($i%4==3)?"\n":" ");
     }
   } elsif ( $type eq "bond" ) {
     for(my $i=0;$i<=$#r;$i++){
-      #nm -> Angs: $r[$i]*10.0 
+      #nm -> Angs: $r[$i]*10.0
       printf(OUTFILE "%15.7e %15.7e %15.7e\n",$r[$i]*10.0, $pot[$i], -$pot_deriv[$i]*$r[$i]);
     }
   } elsif ( $type eq "angle" ||  $type eq "dihedral" ) {
     my $RadToDegree=180.0/3.14159265359;
     for(my $i=0;$i<=$#r;$i++){
+      #rad -> degree: $r[$i]*$RadToDegree, and $pot_deriv[$i]/$RadToDegree
       printf(OUTFILE "%15.7e %15.7e %15.7e\n",$r[$i]*$RadToDegree, $pot[$i], -$pot_deriv[$i]/$RadToDegree);
     }
   } else {

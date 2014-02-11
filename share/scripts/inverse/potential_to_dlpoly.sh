@@ -32,12 +32,13 @@ trunc="${1%%.*}"
 output="$2"
 echo "Convert $input to $output"
 
+table_zero="0"
 step="$(csg_get_interaction_property step)"
 bondtype="$(csg_get_interaction_property bondtype)"
 if [[ $bondtype = "non-bonded" ]]; then 
   OUT="TABLE"
-  bin_size="$(csg_get_property cg.inverse.dlpoly.table_bins)"
   table_end="$(csg_get_property cg.inverse.dlpoly.table_end)"
+  bin_size="$(csg_get_property cg.inverse.dlpoly.table_bins)"
 elif [[ $bondtype = "bond" ]]; then 
   OUT="TABBND"
   table_end="$(csg_get_property cg.inverse.dlpoly.bonds.table_end)"
@@ -45,23 +46,27 @@ elif [[ $bondtype = "bond" ]]; then
   bin_size="$(csg_calc "$table_end" "/" $table_grid)"
 elif [[ $bondtype = "angle" ]]; then 
   OUT="TABANG"
-  table_end="3.1415"
+  table_end="3.14159265359"
   table_grid="$(csg_get_property cg.inverse.dlpoly.angles.table_grid)"
   bin_size="$(csg_calc "$table_end" "/" $table_grid)"
-elif [[ $bondtype = dihedral ]]; then
-  table_begin="-3.1415"
-  table_end="3.1415"
+elif [[ $bondtype = "dihedral" ]]; then
   OUT="TABDIH"
+  table_zero="-3.14159265359"
+  table_end="3.14159265359"
+  table_grid="$(csg_get_property cg.inverse.dlpoly.angles.table_grid)"
+  bin_size="$(csg_calc "$table_end" "-" $table_zero)"
+  bin_size="$(csg_calc "$bin_size" "/" $table_grid)"
 else
   die "${0##*/}: conversion of ${bondtype} interaction to generic tables is not implemented yet!"
 fi
 # Yes, the dlpoly table starts at ${bin_size}
-table_begin="${bin_size}"
+#table_begin="${bin_size}"
+table_begin="$(csg_calc "$table_zero" "+" $bin_size)"
 
 #keep the grid for now, so that extrapolate can calculate the right mean
 comment="$(get_table_comment)"
 smooth2="$(critical mktemp ${trunc}.pot.extended.XXXXX)"
-critical csg_resample --in ${input} --out "${smooth2}" --grid "0:${step}:${table_end}" --comment "$comment"
+critical csg_resample --in ${input} --out "${smooth2}" --grid "${table_zero}:${step}:${table_end}" --comment "$comment"
 extrapolate="$(critical mktemp ${trunc}.pot.extrapolated.XXXXX)"
 do_external potential extrapolate --type "$bondtype" "${smooth2}" "${extrapolate}"
 
