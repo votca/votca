@@ -232,6 +232,9 @@ EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum() {
                         sum_pp += ppuu._pp;
                         sum_pu += ppuu._pu;
                         sum_uu += ppuu._uu;
+//                        _actor.BiasIndu(*(*pit1), *(*pit2));
+//                        double ef = _actor.E_f(*(*pit1), *(*pit2));
+//                        sum_pp += ef;
                     }
                 }
             }
@@ -240,6 +243,7 @@ EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum() {
                 % -1.0 % nbs.size() % -1.0  % -1.0 % ((*sit1)->getId())).str() << flush;
         }
         _converged_R = true;
+//        cout << endl << "XINTERACTOR " << _actor.getEPP() << " " << _actor.getEPU() << " "<< _actor.getEUU() << flush;
     }
     
     // ENERGY - REGENERATE NEIGHBOURS ?
@@ -290,6 +294,13 @@ EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum() {
                             shell_sum += shell_term;
                             shell_rms += shell_term*shell_term;
                             shell_count += 1;
+//                            _actor.BiasIndu(*(*pit1), *(*pit2));
+//                            double ef = _actor.E_f(*(*pit1), *(*pit2));
+//                            sum_pp += ef;
+//                            shell_term = ef;
+//                            shell_sum += shell_term;
+//                            shell_rms += shell_term*shell_term;
+//                            shell_count += 1;
                         }
                     }
                 }
@@ -308,6 +319,8 @@ EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum() {
                 }
             }
         }
+        
+//        cout << endl << "XINTERACTOR " << _actor.getEPP() << " " << _actor.getEPU() << " "<< _actor.getEUU() << flush;
 
         if (energy_converged_count == _fg_C.size()) {
             LOG(logDEBUG,*_log)  
@@ -614,8 +627,13 @@ void PEwald3D3D::Field_ConvergeRealSpaceSum() {
                     for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
                         shell_rms += _ewdactor.FPU12_ERFC_At_By(*(*pit1), *(*pit2));
                         shell_count += 1;
-                        //_actor.BiasStat(*(*pit1), *(*pit2));
-                        //_actor.FieldPerm(*(*pit1), *(*pit2));
+//                        vec f0 = (*pit1)->getFieldP();
+//                        _actor.BiasStat(*(*pit1), *(*pit2));
+//                        _actor.FieldPerm(*(*pit1), *(*pit2));
+//                        vec f1 = (*pit1)->getFieldP();
+//                        vec df = f1-f0;
+//                        shell_rms += df*df;
+//                        shell_count += 1;
                     }
                 }
             }

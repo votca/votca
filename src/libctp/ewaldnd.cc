@@ -711,6 +711,7 @@ void Ewald3DnD::WriteDensitiesPtop(string fg, string mg, string bg) {
     return;
 }
 
+
 void Ewald3DnD::Evaluate() {
     
     LOG(logDEBUG,*_log) << flush;
@@ -733,7 +734,8 @@ void Ewald3DnD::Evaluate() {
     // TEASER OUTPUT PERMANENT FIELDS
     LOG(logDEBUG,*_log) << flush << "Background fields (BGP):" << flush;
     int fieldCount = 0;
-    for (vector<PolarSeg*>::iterator sit1 = _bg_P.begin()+288; sit1 < _bg_P.end(); ++sit1) {
+    //for (vector<PolarSeg*>::iterator sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
+    for (vector<PolarSeg*>::iterator sit1 = _fg_N.begin(); sit1 < _fg_N.end(); ++sit1) {
         PolarSeg *pseg = *sit1;
         Segment *seg = _top->getSegment(pseg->getId());
         LOG(logDEBUG,*_log) << "ID = " << pseg->getId() << " (" << seg->getName() << ") " << flush;
@@ -750,7 +752,7 @@ void Ewald3DnD::Evaluate() {
                << (format("U1* = (%1$+1.7e %2$+1.7e %3$+1.7e) e*nm") 
                     % (u1.getX())
                     % (u1.getY()) 
-                    % (u1.getY())).str() << flush;
+                    % (u1.getZ())).str() << flush;
             fieldCount += 1;
             if (fieldCount > 10) {
                 LOG(logDEBUG,*_log)
@@ -779,7 +781,8 @@ void Ewald3DnD::Evaluate() {
     // TEASER OUTPUT PERMANENT FIELDS
     LOG(logDEBUG,*_log) << flush << "Background fields (BGP):" << flush;
     fieldCount = 0;
-    for (vector<PolarSeg*>::iterator sit1 = _bg_P.begin()+288; sit1 < _bg_P.end(); ++sit1) {
+    //for (vector<PolarSeg*>::iterator sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
+    for (vector<PolarSeg*>::iterator sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
         PolarSeg *pseg = *sit1;
         Segment *seg = _top->getSegment(pseg->getId());
         LOG(logDEBUG,*_log) << "ID = " << pseg->getId() << " (" << seg->getName() << ") " << flush;
@@ -796,7 +799,7 @@ void Ewald3DnD::Evaluate() {
                << (format("U1* = (%1$+1.7e %2$+1.7e %3$+1.7e) e*nm") 
                     % (u1.getX())
                     % (u1.getY()) 
-                    % (u1.getY())).str() << flush;
+                    % (u1.getZ())).str() << flush;
             fieldCount += 1;
             if (fieldCount > 10) {
                 LOG(logDEBUG,*_log)

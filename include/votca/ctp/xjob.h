@@ -56,6 +56,7 @@ public:
    inline bool          isWithinDist(const vec &pt, double dist, Topology *top);
    bool                 StartFromCPT()  { return _start_from_cpt; }
    void                 WriteInfoLine(FILE *out);
+   Property             GenerateOutputProperty();
 
    
    

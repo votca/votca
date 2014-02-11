@@ -304,11 +304,49 @@ double APolarSite::getProjP(vec &dir) {
 }
 
 void APolarSite::Induce(double wSOR) {
+    // SUCCESSIVE OVERRELAXATION
     U1_Hist.push_back( vec(U1x,U1y,U1z) );
     U1x = (1 - wSOR) * U1x + wSOR * ( - Pxx * (FPx + FUx) - Pxy * (FPy + FUy) - Pxz * (FPz + FUz) );
     U1y = (1 - wSOR) * U1y + wSOR * ( - Pxy * (FPx + FUx) - Pyy * (FPy + FUy) - Pyz * (FPz + FUz) );
     U1z = (1 - wSOR) * U1z + wSOR * ( - Pxz * (FPx + FUx) - Pyz * (FPy + FUy) - Pzz * (FPz + FUz) );
     return;
+    
+    /*
+    // ANDERSON + SUCCESSIVE OVERRELAXATION
+    U1_Hist.push_back( vec(U1x,U1y,U1z) );
+    
+    // Back up U(N,i)
+    U1_i.push_back(vec(U1x, U1y, U1z));    
+    // Compute U(N,o)
+    U1x = - Pxx * (FPx + FUx) - Pxy * (FPy + FUy) - Pxz * (FPz + FUz);
+    U1y = - Pxy * (FPx + FUx) - Pyy * (FPy + FUy) - Pyz * (FPz + FUz);
+    U1z = - Pxz * (FPx + FUx) - Pyz * (FPy + FUy) - Pzz * (FPz + FUz);
+    // Back up U(N,o)
+    U1_o.push_back(vec(U1x, U1y, U1z));
+    
+    // Compile Anderson in/out values from U1 record
+    vec U1_i_mix = vec(0,0,0);
+    vec U1_o_mix = vec(0,0,0);    
+    if (U1_i.size() > 2 && U1_o.size() > 2) {
+        // Compute Anderson mixing factor from minimal rms deviation
+        vec D_N   = U1_o[U1_o.size()-1] - U1_i[U1_i.size()-1];
+        vec D_N_1 = U1_o[U1_o.size()-2] - U1_i[U1_i.size()-2];
+        vec D_N_N_1 = D_N - D_N_1;        
+        double wAND = - D_N_1*D_N_N_1/(D_N_N_1*D_N_N_1);        
+        // Mingle new and old via wAND ...
+        U1_i_mix = wAND*U1_i[U1_i.size()-1] + (1-wAND)*U1_i[U1_i.size()-2];
+        U1_o_mix = wAND*U1_o[U1_o.size()-1] + (1-wAND)*U1_o[U1_o.size()-2];
+    }
+    else {
+        U1_i_mix = U1_i.back();
+        U1_o_mix = U1_o.back();
+    }
+    
+    // Apply SOR
+    vec U1 = (1-wSOR)*U1_i_mix + wSOR*U1_o_mix;
+    U1x = U1.getX(); U1y = U1.getY(); U1z = U1.getZ();
+    return;
+    */
 }
 
 void APolarSite::InduceDirect() {

@@ -343,6 +343,12 @@ inline void EwdInteractor::ApplyBiasPolar(APolarSite& p1, APolarSite& p2, vec &s
     //rR4 = 1./R4;
     //rR5 = 1./R5;
     
+    // Thole damping initialization
+    tu3   = R3 / sqrt(
+        1./3.*(p1.Pxx*p2.Pxx + p1.Pxy*p2.Pxy + p1.Pxz*p2.Pxz
+             + p1.Pxy*p2.Pxy + p1.Pyy*p2.Pyy + p1.Pyz*p2.Pyz
+             + p1.Pxz*p2.Pxz + p1.Pyz*p2.Pyz + p1.Pzz*p2.Pzz) );
+    
     // Thole damping functions
     if (ta1*tu3 < 40) {
         l3 = L3(); 

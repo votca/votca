@@ -286,8 +286,9 @@ Job::JobResult XQMP::EvalJob(Topology *top, Job *job, QMThread *thread) {
     
     
     // GENERATE OUTPUT AND FORWARD TO PROGRESS OBSERVER (RETURN)
+    Property output = xjob.GenerateOutputProperty();
     Job::JobResult jres = Job::JobResult();
-    jres.setOutput(xjob.getInfoLine());
+    jres.setOutput(output);
     jres.setStatus(Job::COMPLETE);
     
     if (!inductor.hasConverged()) {

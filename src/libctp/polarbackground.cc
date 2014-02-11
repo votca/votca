@@ -226,7 +226,7 @@ void PolarBackground::Polarize(int n_threads = 1) {
     // TEASER OUTPUT PERMANENT FIELDS
     LOG(logDEBUG,*_log) << flush << "Foreground fields:" << flush;
     int fieldCount = 0;
-    for (sit1 = _bg_P.begin()+288; sit1 < _bg_P.end(); ++sit1) {
+    for (sit1 = _bg_P.begin()+16; sit1 < _bg_P.end(); ++sit1) {
         PolarSeg *pseg = *sit1;
         Segment *seg = _top->getSegment(pseg->getId());
         LOG(logDEBUG,*_log) << "ID = " << pseg->getId() << " (" << seg->getName() << ") " << flush;
@@ -246,7 +246,7 @@ void PolarBackground::Polarize(int n_threads = 1) {
         }
         if (fieldCount > 10) break;
     }
-        
+    
     
     // II INDUCE TO 1ST ORDER
     LOG(dbg,log) << flush << "Induce to first order" << flush;

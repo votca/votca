@@ -250,12 +250,12 @@ int XInductor::Induce(XJob *job) {
                  avgdU += dU;
                  ++baseN;
                  if ( dU > maxdU ) { maxdU = dU; }
-                 if ( dU > eTOL ) { converged = false; }
+                 if ( dU > eTOL) { converged = false; }
              }
         }
         avgdU /= baseN;
         if (avgdU < eTOL/10.) { converged = true; }
-
+        else { converged = false; }
 //        cout << " | MAX dU " << maxdU
 //             << " | AVG dU " << avgdU
 //             << " | SOR " << wSOR << flush;
@@ -274,8 +274,8 @@ int XInductor::Induce(XJob *job) {
                "(%1$d steps, AVG(dU:U) = %2$1.3e)") % maxI % avgdU).str());
             break;
         }
-    }
-
+    }    
+    
     return iter;
 
 }

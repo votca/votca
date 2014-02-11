@@ -229,7 +229,10 @@ private:
     double FPx, FPy, FPz;                   // Electric field (due to permanent)
     double FUx, FUy, FUz;                   // Electric field (due to induced)
     vector< vec > U1_Hist;                  // Ind. u history
-
+    
+    // Required for SOR+Anderson
+    //vector<vec> U1_i; // in
+    //vector<vec> U1_o; // out
 
 
 
