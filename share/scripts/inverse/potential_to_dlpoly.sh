@@ -38,17 +38,40 @@ bondtype="$(csg_get_interaction_property bondtype)"
 if [[ $bondtype = "non-bonded" ]]; then 
   OUT="TABLE"
   table_end="$(csg_get_property cg.inverse.dlpoly.table_end)"
-  bin_size="$(csg_get_property cg.inverse.dlpoly.table_bins)"
+  table_grid="$(csg_get_property cg.inverse.dlpoly.table_grid)"
+  bin_size="$(csg_calc "$table_end" "/" $table_grid)"
+  # make sure the TAB* file is removed externally
+  if [[ ! -f $OUT ]]; then
+    echo "Table for dlpoly from VOTCA with love" > "${OUT}" #max 80 chars
+    # see dlpoly manual ngrid = int(cut/delta) + 4
+    table_grid="$(($table_grid+4))"
+    # nm -> Angs
+    bin_size1="$(csg_calc "$bin_size" "*" 10)"
+    table_end1="$(csg_calc "$table_end" "*" 10)"
+    echo "$bin_size1 $table_end1 $table_grid" >> "${OUT}"
+  fi
 elif [[ $bondtype = "bond" ]]; then 
   OUT="TABBND"
   table_end="$(csg_get_property cg.inverse.dlpoly.bonds.table_end)"
   table_grid="$(csg_get_property cg.inverse.dlpoly.bonds.table_grid)"
   bin_size="$(csg_calc "$table_end" "/" $table_grid)"
+  # make sure the TAB* file is removed externally
+  if [[ ! -f $OUT ]]; then
+    echo "# Table for dlpoly from VOTCA with love" > "${OUT}" #max 80 chars
+    # nm -> Angs
+    table_end1="$(csg_calc "$table_end" "*" 10)"
+    echo "# $table_end1 $table_grid" >> "${OUT}"
+  fi
 elif [[ $bondtype = "angle" ]]; then 
   OUT="TABANG"
   table_end="3.14159265359"
   table_grid="$(csg_get_property cg.inverse.dlpoly.angles.table_grid)"
   bin_size="$(csg_calc "$table_end" "/" $table_grid)"
+  # make sure the TAB* file is removed externally
+  if [[ ! -f $OUT ]]; then
+    echo "# Table for dlpoly from VOTCA with love" > "${OUT}" #max 80 chars
+    echo "# $table_grid" >> "${OUT}"
+  fi
 elif [[ $bondtype = "dihedral" ]]; then
   OUT="TABDIH"
   table_zero="-3.14159265359"
@@ -56,6 +79,11 @@ elif [[ $bondtype = "dihedral" ]]; then
   table_grid="$(csg_get_property cg.inverse.dlpoly.dihedrals.table_grid)"
   bin_size="$(csg_calc "$table_end" "-" $table_zero)"
   bin_size="$(csg_calc "$bin_size" "/" $table_grid)"
+  # make sure the TAB* file is removed externally
+  if [[ ! -f $OUT ]]; then
+    echo "# Table for dlpoly from VOTCA with love" > "${OUT}" #max 80 chars
+    echo "# $table_grid" >> "${OUT}"
+  fi
 else
   die "${0##*/}: conversion of ${bondtype} interaction to generic tables is not implemented yet!"
 fi
