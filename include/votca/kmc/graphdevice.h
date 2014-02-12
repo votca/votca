@@ -26,7 +26,7 @@
 
 namespace votca { namespace kmc {
 
-enum NodeType{NormalNode, LeftElectrodeNode, RightElectrodeNode };    
+enum NodeType{NormalNode, LeftElectrodeNode, RightElectrodeNode};
     
 class GraphDevice : public GraphSQL<NodeDevice,LinkDevice> {
 
@@ -41,6 +41,9 @@ public:
     ///determine the crossing types of the links    
     void Determine_cross_types();
     
+    ///determine injection nodes for Ohmic contacts
+    void Determine_source_nodes();
+    
     ///translate graph in such a way that the minimum coordinates are at 0
     void Translate_graph();
     
@@ -48,13 +51,13 @@ public:
     void Push_in_box();
     
     ///resize the graph (by periodically repeating the morphology)
-    void Resize(double dimX, double dimY, double dimZ);
+    void Resize(int dimX, int dimY, int dimZ);
     
     ///translate graph to accomodate device geometry
-    void Translate_electrode(double left_distance);
+    void Translate_graph(double translate_x, double translate_y, double translate_z);
     
     ///add electrode nodes
-    void Add_electrodes(double left_distance, double right_distance);
+    void Add_electrodes(de);
     
     ///associate all links in links vector to the corresponding nodes
     void LinkSort();
@@ -101,6 +104,12 @@ public:
     /// initialize node types to normal type
     void Init_node_types();
     
+    /// 'roll' morphology, so injection is in a different part of the morphology
+    void Roll_morph(double translate_x, double translate_y, double translate_z); 
+    
+    /// rotate morphology (if rotate_axis = 0, rotation around z axis, if rotate_axis = 1, rotation around y axis)
+    void Rotate_morph(double rotate_in_rads, int rotate_axis);
+    
 private:
 
     int _max_pair_degree;  
@@ -112,16 +121,14 @@ private:
     
 };
 
-void GraphDevice::Translate_electrode(double left_distance) {
+void GraphDevice::Translate_graph(double translate_x, double translate_y, double translate_z) {
     
-    // minimum coordinate is already at 0
-    double xtranslate = left_distance;
-
     typename std::vector<NodeDevice*>::iterator it;      
     for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) {
         votca::tools::vec oldpos = (*it)->position();
-        double newxpos = oldpos.x() + xtranslate;
-        double newypos = oldpos.y(); double newzpos = oldpos.z();
+        double newxpos = oldpos.x() + translate_x;
+        double newypos = oldpos.y() + translate_y; 
+        double newzpos = oldpos.z() + translate_z;
         votca::tools::vec newpos = votca::tools::vec(newxpos,newypos,newzpos);
         (*it)->SetPosition(newpos);
     }
@@ -187,7 +194,7 @@ void GraphDevice::Setup_device_graph(double left_distance, double right_distance
     // distance by which the graph should be translated is left_electrode_distance - minX
 
     // Translate graph so that minimum coordinates are at 0
-    this->Translate_graph();
+    this->Put_at_zero_graph();
 
     // Push nodes back in box (crossing types are changed by this operation, so re-evaluate)
     this->Push_in_box();
@@ -209,7 +216,7 @@ void GraphDevice::Setup_device_graph(double left_distance, double right_distance
     _sim_box_size = this->Determine_Sim_Box_Size();
 
     // Translate graph to accomodate for device geometry
-    this->Translate_electrode(left_distance);    
+    this->Translate_graph(left_distance, 0.0, 0.0);    
 
     //adjust simulation box size accordingly to given electrode distances
     
@@ -247,7 +254,29 @@ void GraphDevice::Init_node_types() {
     for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) (*it)->SetType((int) NormalNode);    
 }
 
-void GraphDevice::Add_electrodes(double left_distance, double right_distance) {
+void GraphDevice::Determine_source_nodes() {
+
+    //determine the nodes which are injectable from the left side and the nodes which are injectable from the right side
+
+    typename std::vector<NodeDevice*>::iterator it;    
+    for(it  = this->_nodes.begin(); it != this->_nodes.end(); it++) { 
+   
+        //default
+        (*it)->SetInjectable(false);
+        
+        votca::tools::vec nodepos = (*it)->position();
+        double left_distance = nodepos.x();
+        int linkID = this->_links.size();
+
+        if(left_distance <= _hop_distance) (*it)->SetInjectable(true);
+        double right_distance = _sim_box_size.x() - nodepos.x();
+        if(right_distance <= _hop_distance) (*it)->SetInjectable(true);     
+
+    }    
+    
+}
+
+void GraphDevice::Add_electrodes() {
     
     //introduce the electrode nodes (might make a special electrode node header file for this)
     _left_electrode = new NodeDevice(-1, tools::vec(0.0,0.0,0.0));
@@ -260,6 +289,9 @@ void GraphDevice::Add_electrodes(double left_distance, double right_distance) {
     typename std::vector<NodeDevice*>::iterator it;    
     for(it  = this->_nodes.begin(); it != this->_nodes.end(); it++) { 
       
+        // when electrodes are present physically, no need to keep track of injectability of the nodes
+        (*it)->SetInjectable(false);
+        
         votca::tools::vec nodepos = (*it)->position();
         double left_distance = nodepos.x();
         int linkID = this->_links.size();
@@ -409,7 +441,7 @@ void GraphDevice::Determine_cross_types(){
     }
 }
 
-void GraphDevice::Translate_graph(){
+void GraphDevice::Put_at_zero_graph(){
 
     // Put min x at 0
     
@@ -432,15 +464,7 @@ void GraphDevice::Translate_graph(){
     double ytranslate = -1.0*minY;
     double ztranslate = -1.0*minZ;
 
-    for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) {
-        votca::tools::vec oldpos = (*it)->position();
-        double newxpos = oldpos.x() + xtranslate;
-        double newypos = oldpos.y() + ytranslate;
-        double newzpos = oldpos.z() + ztranslate;
-        votca::tools::vec newpos = votca::tools::vec(newxpos,newypos,newzpos);
-        (*it)->SetPosition(newpos);
-    }
-    
+    this->Translate_graph(xtranslate,ytranslate,ztranslate);
 }
 
 void GraphDevice::Push_in_box(){
@@ -458,9 +482,12 @@ void GraphDevice::Push_in_box(){
         double newxpos = pos.x(); double newypos = pos.y(); double newzpos = pos.z();
         
         while(newxpos>_sim_box_size.x()) { newxpos -= _sim_box_size.x(); push_in_box_ops++; }
+        while(newxpos<0.0)               { newxpos += _sim_box_size.x(); push_in_box_ops++; }
         while(newypos>_sim_box_size.y()) { newypos -= _sim_box_size.y(); push_in_box_ops++; }
+        while(newypos<0.0)               { newypos += _sim_box_size.y(); push_in_box_ops++; }
         while(newzpos>_sim_box_size.z()) { newzpos -= _sim_box_size.z(); push_in_box_ops++; }        
-
+        while(newzpos<0.0)               { newzpos += _sim_box_size.z(); push_in_box_ops++; }
+        
         votca::tools::vec newpos = votca::tools::vec(newxpos,newypos,newzpos);
         (*it)->SetPosition(newpos);
 
@@ -542,19 +569,12 @@ void GraphDevice::Break_periodicity(bool break_x, bool break_y, bool break_z){
     
 }
 
-void GraphDevice::Resize(double dimX, double dimY, double dimZ) {
+void GraphDevice::Resize(int dimX, int dimY, int dimZ) {
 
-    // determine number of copies
-    // the dimensions parallel to the electrodes are not really important (can be multiples of the box size)
-    // for dimensions perpendicular to the electrodes one can cut off the morphology
     
-    double numberX = dimX/_sim_box_size.x();
-    double numberY = dimY/_sim_box_size.y();
-    double numberZ = dimZ/_sim_box_size.z();
-    
-    int repeatX = ceil(numberX);
-    int repeatY = ceil(numberY);
-    int repeatZ = ceil(numberZ);
+    int repeatX = dimX;
+    int repeatY = dimY;
+    int repeatZ = dimZ;
  
     int number_of_nodes = this->Numberofnodes();
 
@@ -711,6 +731,33 @@ void GraphDevice::RenumberId() {
             (*it)->links()[ilink]->SetID(renum_ID); renum_ID++;
         }        
     }
+}
+
+void GraphDevice::Roll_morph(double translate_x, double translate_y, double translate_z) {
+ 
+    this->Determine_cross_types();
+
+    _sim_box_size = this->Determine_Sim_Box_Size();            
+
+    this->Push_in_box();
+    this->Determine_cross_types();
+    
+    this->Translate_graph(translate_x, translate_y, translate_z);
+    this->Push_in_box();
+    this->Determine_cross_types();
+}
+
+void GraphDevice::Rotate_morph(double rotate_in_rads, int rotate_axis) {
+    
+    this->Determine_cross_types();
+    
+    _sim_box_size = this->Determine_Sim_Box_Size();
+    
+    this->Push_in_box();
+    this->Determine_cross_types();
+
+    // first resize the morphology, rotate and cut off
+    
 }
     
 }}

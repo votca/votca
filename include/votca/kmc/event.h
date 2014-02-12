@@ -28,8 +28,8 @@ namespace votca { namespace kmc {
   
 using namespace std;
 
-enum Final_Event_Type {TransferTo, Collection, Recombination, Blocking, Notinbox};
-enum Init_Event_Type {Injection, TransferFrom, Notinboxfrom};
+enum Final_Event_Type {TransferTo, Collection, CollectiontoNode, Recombination, Blocking, Notinbox};
+enum Init_Event_Type {Injection, InjectionfromNode, TransferFrom, Notinboxfrom};
 enum Action{Add, Remove, None };
 
 class Event {
@@ -111,7 +111,10 @@ protected:
 };
 
 inline int Event::Determine_final_event_type(Node* node1, Node* node2) {
-    if (node2->type() == (int) NormalNode){                                                                  return (int) TransferTo;} // Transfer to empty node
+    if (node2->type() == (int) NormalNode){                                                                  
+        if(!node2->injectable) return (int) TransferTo;
+        if(node2->injectable) return (int) CollectiontoNode;
+    }
     else if (node2->type() == (int) LeftElectrodeNode || node2->type() == (int) RightElectrodeNode){         return (int) Collection;} // Collection at electrode
 }
 
@@ -121,7 +124,10 @@ inline int Event::Determine_final_event_type(int carrier_type1, int carrier_type
 }
 
 inline int Event::Determine_init_event_type(Node* node1) {
-    if(node1->type() == (int) NormalNode){                                                                   return (int) TransferFrom;}
+    if(node1->type() == (int) NormalNode){                                                                   
+        if(!node1->injectable) return (int) TransferFrom;
+        if(node1->injectable) return (int) InjectionfromNode;
+    }
     else if((node1->type() == (int) LeftElectrodeNode) || (node1->type() == (int) RightElectrodeNode)){      return (int) Injection;   }
 }
 
