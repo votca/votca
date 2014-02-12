@@ -89,10 +89,12 @@ my @flag_repeat;
 (readin_table($in_pot,@r,@pot,@flag)) || die "$progname: error at readin_table\n";
 (readin_table($in_deriv_pot,@r_repeat,@pot_deriv,@flag_repeat)) || die "$progname: error at readin_table\n";
 
-#shift potential so that it is zero at cutoff
-for (my $i=0;$i<=$#r;$i++){
-   $pot[$i]-=$pot[$#r];
-}
+if ($type eq "non-bonded"){
+  #shift potential so that it is zero at cutoff
+  for (my $i=0;$i<=$#r;$i++){
+    $pot[$i]-=$pot[$#r];
+  }
+} #hopefully shift for bonded interactions have been done outside
 
 open(OUTFILE,"> $outfile") or die "saveto_table: could not open $outfile\n";
 if ($sim_prog eq "espresso") {

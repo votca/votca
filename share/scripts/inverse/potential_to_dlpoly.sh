@@ -100,7 +100,12 @@ do_external potential extrapolate --type "$bondtype" "${smooth2}" "${extrapolate
 smooth="$(critical mktemp ${trunc}.pot.smooth.XXXXX)"
 deriv="$(critical mktemp ${trunc}.pot.deriv.XXXXX)"
 critical csg_resample --in ${extrapolate} --out "${smooth}" --der "${deriv}" --grid "${table_begin}:${bin_size}:${table_end}" --comment "$comment"
-do_external convert_potential tab --header dlpoly --type "${bondtype}" "${smooth}" "${deriv}" "${output}"
+
+#shift does not change derivative
+tshift="$(critical mktemp ${trunc}.pot.shift.XXXXX)"
+do_external potential shift --type "$bondtype" "${smooth}" "${tshift}"
+
+do_external convert_potential tab --header dlpoly --type "${bondtype}" "${tshift}" "${deriv}" "${output}"
 
 if [[ -f $OUT ]]; then
   echo "Appending $output to $OUT" 
