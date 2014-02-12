@@ -142,7 +142,7 @@ if ($sim_prog eq "espresso") {
   for(my $i=0;$i<=$#r;$i++){
     printf(OUTFILE "%15.10e   %15.10e %15.10e   %15.10e %15.10e   %15.10e %15.10e\n",$r[$i], ,0,0,0,0,$pot[$i], -$pot_deriv[$i]);
   }
-} else {
+} else { #espressopp
   for(my $i=0;$i<=$#r;$i++){
     printf(OUTFILE "%15.10e %15.10e %15.10e\n",$r[$i], $pot[$i], -$pot_deriv[$i]);
   }
