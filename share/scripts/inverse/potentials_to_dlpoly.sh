@@ -27,13 +27,11 @@ fi
 
 for i in TABLE TABBND TABANG TABDIH; do
   if [[ -f "${i}" ]]; then
-#    echo "We will now overwrite ${i}"
-#    rm -v "${i}"
     echo "Renaming ${i} ..."
     if [[ -f "${i}.prv" ]]; then
       echo "Overwriting ${i}.prv ..."
     fi
-    mv -v "${i}" "${i}.prv"
+    critical mv -v "${i}" "${i}.prv"
   fi
 done
 
