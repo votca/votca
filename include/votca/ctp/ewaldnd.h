@@ -184,6 +184,7 @@ protected:
     double _polar_aDamp;
     double _polar_wSOR_N;
     double _polar_wSOR_C;
+    double _polar_epstol;
     double _polar_cutoff;
     double _polar_converged;
 

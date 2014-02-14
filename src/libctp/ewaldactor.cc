@@ -7,7 +7,7 @@ namespace ctp {
     
 void EwdInteractor::FPU12_XYSlab_ShapeField_At_By(vector<PolarSeg*> &at, 
     vector<PolarSeg*> &by, double &TwoPi_V) {
-    // This function requires neutrality of &s but gets around
+    // This function requires neutrality of &by but gets around
     // the double sum (see ::F12_XYSlab_At_By)
     // ATTENTION Only increments FPz, not FUz
     double fz = 0.0;
@@ -15,7 +15,7 @@ void EwdInteractor::FPU12_XYSlab_ShapeField_At_By(vector<PolarSeg*> &at,
     vector<APolarSite*> ::iterator pit;
     for (sit = by.begin(); sit < by.end(); ++sit) {
         for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {
-            fz += 2*( (*pit)->Q00*(*pit)->getPos().getX() + (*pit)->U1z);
+            fz += 2*( (*pit)->Q00*(*pit)->getPos().getZ() + (*pit)->U1z);
             if ((*pit)->_rank > 0) 
                 fz += 2*(*pit)->Q1z;
         }
@@ -33,14 +33,14 @@ void EwdInteractor::FPU12_XYSlab_ShapeField_At_By(vector<PolarSeg*> &at,
 
 void EwdInteractor::FP12_XYSlab_ShapeField_At_By(vector<PolarSeg*> &at, 
     vector<PolarSeg*> &by, double &TwoPi_V) {
-    // This function requires neutrality of &s but gets around
+    // This function requires neutrality of &by but gets around
     // the double sum (see ::F12_XYSlab_At_By)
     double fz = 0.0;
     vector<PolarSeg*>::iterator sit;
     vector<APolarSite*> ::iterator pit;
     for (sit = by.begin(); sit < by.end(); ++sit) {
         for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {
-            fz += 2*( (*pit)->Q00*(*pit)->getPos().getX() );
+            fz += 2*( (*pit)->Q00*(*pit)->getPos().getZ() );
             if ((*pit)->_rank > 0) 
                 fz += 2*(*pit)->Q1z;
         }
@@ -58,7 +58,7 @@ void EwdInteractor::FP12_XYSlab_ShapeField_At_By(vector<PolarSeg*> &at,
 
 void EwdInteractor::FU12_XYSlab_ShapeField_At_By(vector<PolarSeg*> &at, 
     vector<PolarSeg*> &by, double &TwoPi_V) {
-    // This function requires neutrality of &s but gets around
+    // This function requires neutrality of &by but gets around
     // the double sum (see ::F12_XYSlab_At_By)
     double fz = 0.0;
     vector<PolarSeg*>::iterator sit;

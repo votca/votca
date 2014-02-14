@@ -238,7 +238,7 @@ EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum() {
                     }
                 }
             }
-            LOG(logDEBUG,*_log)
+            if (tools::globals::verbose) LOG(logDEBUG,*_log)
                 << (format("  o Id = %5$-4d Rc = %1$+02.7f   |MGN| = %2$5d   dF(rms) = %3$+1.3e V/m   [1eA => %4$+1.3e eV]") 
                 % -1.0 % nbs.size() % -1.0  % -1.0 % ((*sit1)->getId())).str() << flush;
         }
@@ -312,7 +312,7 @@ EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum() {
 
                 if (shell_rms*shell_count <= _crit_dE && shell_R >= _R_co) {
                     energy_converged_count += 1;
-                    LOG(logDEBUG,*_log)  
+                    if (tools::globals::verbose) LOG(logDEBUG,*_log)  
                         << (format("  :: ID = %2$-4d : Converged to precision as of Rc = %1$+1.3f nm") 
                         % shell_R % (*sit1)->getId()) << flush;
                     break;
@@ -412,7 +412,7 @@ EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum() {
         }
         de_this_shell = (de_this_shell < 0.) ? -de_this_shell : de_this_shell;
         
-        LOG(logDEBUG,*_log)
+        if (shell_count > 0) LOG(logDEBUG,*_log)
              << (format("  o M = %1$04d   G = %2$+1.3e   dE(rms) = %3$+1.3e eV")
              % shell_count
              % crit_grade
@@ -463,7 +463,7 @@ EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum() {
         }
         de_this_shell = (de_this_shell < 0.) ? -de_this_shell : de_this_shell;
         
-        LOG(logDEBUG,*_log)
+        if (shell_count > 0) LOG(logDEBUG,*_log)
              << (format("  o M = %1$04d   G = %2$+1.3e   dE(rms) = %3$+1.3e eV")
              % shell_count
              % crit_grade
@@ -648,7 +648,7 @@ void PEwald3D3D::Field_ConvergeRealSpaceSum() {
             
             if (e_measure <= _crit_dE && shell_R >= _R_co) {
                 field_converged_count += 1;
-                LOG(logDEBUG,*_log)
+                if (tools::globals::verbose) LOG(logDEBUG,*_log)
                     << (format("  :: ID = %2$-4d Converged to precision as of Rc = %1$+1.3f nm") 
                     % shell_R % (*sit1)->getId()) << flush;
                 break;

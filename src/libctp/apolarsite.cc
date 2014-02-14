@@ -358,8 +358,27 @@ void APolarSite::InduceDirect() {
 }
 
 double APolarSite::HistdU() {
-    vec dU = vec(U1x, U1y, U1z) - U1_Hist.back();
-    return abs(dU)/abs(U1_Hist.back());
+    vec U0 = U1_Hist.back();
+    vec U1 = vec(U1x, U1y, U1z);
+    vec dU = U1 - U0;
+    
+    double abs_U0 = votca::tools::abs(U0);
+    double abs_U1 = votca::tools::abs(U1);
+    double abs_dU = votca::tools::abs(dU);
+    double small = 1e-10; // in e*nm
+    double abs_U = (abs_U1 > abs_U0 && small > abs_U0) ? abs_U1 : abs_U0;
+    
+    double dU_U = 1.;
+    if (small > abs_U) dU_U = abs_U; // i.e.: U1, U0 << 1 enm    
+    else dU_U = abs_dU / abs_U;
+    return dU_U;
+}
+
+double APolarSite::HistdU2() {
+    vec U0 = U1_Hist.back();
+    vec U1 = vec(U1x, U1y, U1z);
+    double dU2 = (U1-U0)*(U1-U0);
+    return dU2;
 }
 
 void APolarSite::Depolarize() {

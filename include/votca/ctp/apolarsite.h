@@ -134,7 +134,8 @@ public:
     void            ResetU1()     { U1x = U1y = U1z = 0.0; }
     void            ResetU1Hist() { U1_Hist.clear(); }
     void            Depolarize();
-    double          HistdU();    
+    double          HistdU();
+    double          HistdU2();
     
     // PRINT FUNCTS & OUTPUT TO FORMAT
     void            PrintInfo(std::ostream &out);

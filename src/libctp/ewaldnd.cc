@@ -92,6 +92,10 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
         _polar_aDamp = opt->get(pfx+".polarmethod.aDamp").as<double>();
     else
         _polar_aDamp = 0.390;
+    if (opt->exists(pfx+".polarmethod.tolerance"))
+        _polar_epstol = opt->get(pfx+".polarmethod.tolerance").as<double>();
+    else
+        _polar_epstol = 0.001;
     // Coarse-graining
     if (opt->exists(pfx+".coarsegrain.cg_background")) {
         _coarse_do_cg_background = 
@@ -270,6 +274,8 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
         PolarSeg* pseg = *sit;        
         for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
             netdpl_bgP += (*pit)->getPos() * (*pit)->getQ00();
+            if ((*pit)->getRank() > 0)
+                netdpl_bgP += (*pit)->getQ1();
             qzz_bgP += (*pit)->getQ00() * ((*pit)->getPos().getZ() * (*pit)->getPos().getZ());
         }
     }
@@ -277,6 +283,8 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
         PolarSeg* pseg = *sit;        
         for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
             netdpl_fgC += (*pit)->getPos() * (*pit)->getQ00();
+            if ((*pit)->getRank() > 0)
+                netdpl_fgC += (*pit)->getQ1();
         }
     }
     
@@ -952,7 +960,7 @@ void Ewald3DnD::EvaluateInduction() {
     LOG(logDEBUG,*_log) << (format("  o Thole sharpness parameter: ")).str() << _polar_aDamp << flush;
     LOG(logDEBUG,*_log) << (format("  o SOR mixing factor:         ")).str() << _polar_wSOR_N << " (N) " << _polar_wSOR_C << " (C) "  << flush;
     LOG(logDEBUG,*_log) << (format("  o Iterations (max):          512")).str() << flush;
-    LOG(logDEBUG,*_log) << (format("  o Tolerance (rms, e*nm):     0.001")).str() << flush;
+    LOG(logDEBUG,*_log) << (format("  o Tolerance (dU/U):          %1$1.3e") % _polar_epstol).str() << flush;
     LOG(logDEBUG,*_log) << (format("  o Induce within QM0:         yes")).str() << flush;
     LOG(logDEBUG,*_log) << (format("  o Subthreads:                single")).str() << flush;
     
@@ -963,7 +971,6 @@ void Ewald3DnD::EvaluateInduction() {
     // INITIALIZE XINDUCTOR
     bool    polar_induce_intra_pair = true;
     int     polar_subthreads = 1;
-    double  polar_epstol = 0.001;
     int     polar_maxIter = 512;
     bool    polar_maverick = _log->isMaverick(); // TODO Extract from _log
     
@@ -972,7 +979,7 @@ void Ewald3DnD::EvaluateInduction() {
                                      polar_subthreads,
                                      _polar_wSOR_N,
                                      _polar_wSOR_C,
-                                     polar_epstol,
+                                     _polar_epstol,
                                      polar_maxIter,
                                      _polar_aDamp,
                                      polar_maverick,
