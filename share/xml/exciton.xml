@@ -1,33 +1,29 @@
 <options>
 
-<!-- ctp_tools -e coupling options.xml -->
-<exciton help="Electronic couplings from log and orbital files (GAUSSAIN, TURBOMOLE, NWChem)" section="sec:overlap">
+<exciton>
 
-        <package help="First-principles package">gaussian</package>
+        <package>gaussian_egwbse_molecule.xml</package>
 
-        <output help="Output file" default="coupling.out.xml">coupling.out.xml</output>
+        <tasks>input,dft,parse,gwbse,optimize</tasks>
+        <reporting>default</reporting>
+        <output>coupling.out.xml</output>
 
         <molecule help="">
-                <log help="Log file of molecule A" default="A.log">A.log</log>
-                <orbitals help="Orbitals file" default="A.orb">A.orb</orbitals>
-                <levels help="Output HOMO, ..., HOMO-levels; LUMO, ..., LUMO+levels" default="3">3</levels>
+                <log>system.log</log>
+                <orbitals>fort.7</orbitals>
+                <xyz>system.xyz</xyz>
+                <levels>3</levels>
         </molecule>
 
+        <gwbse>mbgft.xml</gwbse>
 
-        <dftbasis>ubecppol</dftbasis>
-        <gwbasis>gwdefault</gwbasis>
-        <ranges></ranges> <!-- default: all levels in RPA, 1:2*HOMO in QP and BSE; other options: factor,explicit -->
-        <rpamax>10</rpamax> <!-- only needed, if ranges is factor or explicit -->
-        <qpmin>1</qpmin> <!-- needed, if ranges is factor or explicit -->
-        <qpmax>11</qpmax> <!-- needed, if ranges is factor or explicit -->
-        <bsemin>1</bsemin> <!-- needed, if ranges is factor or explicit -->
-        <bsemax>11</bsemax> <!-- needed, if ranges is factor or explicit -->
-		<shift>0.3</shift> <!-- preshift of DFT energies in Rydberg -->
-		<tasks>all</tasks> <!-- default task is perturbative QP only, other options: qpdiag, singlets, triplets, all -->
-		<store>orbitals</store>
-        <exctotal>100</exctotal>
-        <print>10</print>
-
+        <optimize>
+            <state>1</state>
+            <spintype>singlet</spintype>
+            <displacement>0.001</displacement>
+            <convergence>0.001</convergence>
+        </optimize> 
+        <archive>system.orb</archive>
 
 </exciton>
 

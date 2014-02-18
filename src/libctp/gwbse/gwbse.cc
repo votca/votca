@@ -456,7 +456,7 @@ namespace votca {
             
             
             // Output of quasiparticle energies after all is done:
-            _pLog->setPreface(logINFO, "\n");
+            // _pLog->setPreface(logINFO, "\n");
             
             LOG(logINFO,*_pLog) << (format("  ====== Perturbative quasiparticle energies (Rydberg) ====== ")).str() << flush;
                         
@@ -533,7 +533,7 @@ namespace votca {
 
                 // calculate direct part of eh interaction, needed for singlets and triplets
                 BSE_d_setup(_Mmn);
-                LOG(logINFO, *_pLog) << TimeStamp() << " Direct part of e-h interaction " << flush;
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Direct part of e-h interaction " << flush;
 
                 if ( _store_eh_interaction) {
                     ub::matrix<float>& _eh_d_store = _orbitals->eh_d();
@@ -552,7 +552,7 @@ namespace votca {
                
                 if (_do_bse_triplets  && _do_bse_diag ) {
                     BSE_solve_triplets();
-                    LOG(logINFO, *_pLog) << TimeStamp() << " Solved BSE for triplets " << flush;
+                    LOG(logDEBUG, *_pLog) << TimeStamp() << " Solved BSE for triplets " << flush;
 
                     // expectation values, contributions from e-h coupling for _n_print lowest excitations
                     std::vector<float> _contrib_x(_bse_nprint, 0.0);
@@ -623,14 +623,14 @@ namespace votca {
                     // _orbitals->setEHinteraction(true);
                     }
                     
-                    LOG(logINFO, *_pLog) << TimeStamp() << " Exchange part of e-h interaction " << flush;
+                    LOG(logDEBUG, *_pLog) << TimeStamp() << " Exchange part of e-h interaction " << flush;
                 }
 
 
 
                 if (_do_bse_singlets && _do_bse_diag ) {
                     BSE_solve_singlets();
-                    LOG(logINFO, *_pLog) << TimeStamp() << " Solved BSE for singlets " << flush;
+                    LOG(logDEBUG, *_pLog) << TimeStamp() << " Solved BSE for singlets " << flush;
 
 
                     // expectation values, contributions from e-h coupling

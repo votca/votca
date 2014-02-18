@@ -58,7 +58,8 @@ private:
     Property    _gwbse_options;
     
     string      _output_file;
-    
+
+    string      _reporting;    
     Logger      _log;
     
     bool _do_dft_input;
@@ -70,33 +71,42 @@ private:
     int _opt_state;
     double _displacement;
     double _convergence;
+    double _trust_radius;
+    double _trust_radius_max;
+    double _delta_energy_estimate;
+    double _norm_delta_pos;
     string _spintype;
+    string _forces; 
     
     
     int _natoms;
-    
+    int _iteration;
     ub::matrix<double> _force;
     ub::matrix<double> _force_old;
     ub::matrix<double> _xyz_shift;
     ub::matrix<double> _speed;
     ub::matrix<double> _current_xyz;
     ub::matrix<double> _old_xyz; 
+    ub::matrix<double> _trial_xyz; 
     ub::matrix<double> _hessian;
+    
+    bool _step_accepted;
+    bool _update_hessian;
+    bool _restart_opt;
     
     void ExcitationEnergies( QMPackage* _qmpackage, vector <Segment* > _segments, Orbitals* _orbitals );
     void ReadXYZ( Segment* _segment, string filename);
     void Orbitals2Segment(Segment* _segment, Orbitals* _orbitals);
+    void Coord2Segment(Segment* _segment );
     double GetTotalEnergy( Orbitals* _orbitals, string _spintype, int _opt_state );
+      
+    void BFGSStep( int& _iteration, bool& _update_hessian,  ub::matrix<double>& _force, ub::matrix<double>& _force_old,  ub::matrix<double>& _current_xyz, ub::matrix<double>&  _old_xyz, ub::matrix<double>& _hessian ,ub::matrix<double>& _xyz_shift ,ub::matrix<double>& _trial_xyz  );
+    void ReloadState();
+    void NumForceForward(double energy, vector <Atom* > _atoms, ub::matrix<double>& _force, QMPackage* _qmpackage,vector <Segment* > _segments, Orbitals* _orbitals );
+    void NumForceCentral(double energy, vector <Atom* > _atoms, ub::matrix<double>& _force, QMPackage* _qmpackage,vector <Segment* > _segments, Orbitals* _orbitals );
     
+    void WriteIteration( FILE* out, int _iteration, Segment* _segment, ub::matrix<double>& _force  );
     
-    void ConjugateGradientStep( int& _iteration, ub::matrix<double>& _force, ub::matrix<double>& _force_old,  ub::matrix<double>& _xyz_shift, ub::matrix<double>& _speed, ub::matrix<double>& _current_xyz, ub::matrix<double>&  _old_xyz );
-
-    void BroydenStep( int& _iteration, ub::matrix<double>& _force, ub::matrix<double>& _force_old,  ub::matrix<double>& _current_xyz, ub::matrix<double>&  _old_xyz, ub::matrix<double>& _hessian ,ub::matrix<double>& _xyz_shift );
-    
-    
-    
-    
-
     double getMax( ub::matrix<double>& _matrix );
     double getRMS( ub::matrix<double>& _matrix );
     
@@ -126,10 +136,12 @@ void Exciton::Initialize(Property* options) {
             _do_dft_parse = false;
             _do_gwbse = false;
             _do_optimize = false;
+            _restart_opt = false;
+            
             
             string key = "options." + Identify();
             _output_file = options->get(key + ".archive").as<string>();
-
+            _reporting =  options->get(key + ".reporting").as<string> ();
             // options for GWBSE package
             string _gwbse_xml = options->get(key + ".gwbse").as<string> ();
             //cout << endl << "... ... Parsing " << _package_xml << endl ;
@@ -143,6 +155,8 @@ void Exciton::Initialize(Property* options) {
             if (_tasks_string.find("parse") != std::string::npos) _do_dft_parse = true;
             if (_tasks_string.find("gwbse") != std::string::npos) _do_gwbse = true;
             if (_tasks_string.find("optimize") != std::string::npos) _do_optimize = true;
+            
+ 
             
             // something unique
             // _package = options->get(key + ".package").as<string> ();
@@ -171,6 +185,14 @@ void Exciton::Initialize(Property* options) {
                   _displacement = options->get(key + ".optimize.displacement").as<double> ();
                   _convergence = options->get(key + ".optimize.convergence").as<double>();
                   _spintype = options->get(key + ".optimize.spintype").as<string> ();
+                  _trust_radius = options->get(key + ".optimize.trust").as<double> ();
+                  _forces = options->get(key + ".optimize.forces").as<string> ();
+                  string _restart_string = options->get(key + ".optimize.restart").as<string> ();
+                  if ( _restart_string == "restart" ) _restart_opt = true;
+                  if ( _restart_opt  && ! boost::filesystem::exists("restart.opt")) {
+                      cout << " ERROR: Restart requested but restart.opt file not found!" << endl;
+                      exit(1);
+                  };
             }
 
             // get the path to the shared folders with xml files
@@ -181,26 +203,38 @@ void Exciton::Initialize(Property* options) {
 
             // register all QM packages (Gaussian, TURBOMOLE, etc)
             QMPackageFactory::RegisterAll();
+
+
+           
             
 }
 
 bool Exciton::Evaluate() {
 
-    _log.setReportLevel( logDEBUG );
-    _log.setMultithreading( true );
     
+    if ( _reporting == "silent")   _log.setReportLevel( logERROR ); // only output ERRORS, GEOOPT info, and excited state info for trial geometry
+    if ( _reporting == "noisy")    _log.setReportLevel( logDEBUG ); // OUTPUT ALL THE THINGS
+    if ( _reporting == "default")  _log.setReportLevel( logINFO );  // 
+    
+    _log.setMultithreading( true );
     _log.setPreface(logINFO,    "\n... ...");
     _log.setPreface(logERROR,   "\n... ...");
     _log.setPreface(logWARNING, "\n... ...");
     _log.setPreface(logDEBUG,   "\n... ..."); 
 
-    
+    TLogLevel _ReportLevel = _log.getReportLevel( ); // backup report level
     
     if ( _do_optimize ){
-       LOG(logDEBUG,_log) << "Requested geometry optimization of excited state " << _spintype << " " << _opt_state << flush; 
-       LOG(logDEBUG,_log) << " ... displacement for numerical forces:          " << _displacement << " Angstrom" << flush; 
-       LOG(logDEBUG,_log) << " ... convergence of total energy (?):            " << _convergence << " Ryd. (?)" << flush; 
-       LOG(logDEBUG,_log) << " ... GOOD LUCK YOU CRAZY BASTARD!            "  << flush; 
+        _trust_radius = _trust_radius * 1.889725989; // initial trust radius in a.u.
+        _trust_radius_max = 0.1; 
+        _displacement = _displacement * 1.889725989; // initial trust radius in a.u.
+        _log.setReportLevel( logINFO );
+        LOG(logINFO,_log) << "Requested geometry optimization of excited state " << _spintype << " " << _opt_state << flush; 
+        LOG(logINFO,_log) << "... forces calculation using " << _forces << " differences " << flush;
+        LOG(logINFO,_log) << "... displacement for numerical forces:           " << _displacement << " Bohr" << flush; 
+        LOG(logINFO,_log) << "... convergence of total energy:                 " << _convergence << " Hartree" << flush;
+        LOG(logINFO,_log) << "... initial trust radius:                        " << _trust_radius << " Bohr " << flush;
+        _log.setReportLevel( _ReportLevel );
     }
     
     
@@ -220,10 +254,19 @@ bool Exciton::Evaluate() {
     _qmpackage->setRunDir(".");
     Orbitals _orbitals;
 
-   // do GWBSE   
-   ExcitationEnergies( _qmpackage, _segments, &_orbitals);
-   
- 
+    
+    
+    _iteration = 0;
+    string _geoopt_preface = "\n... ... GEOOPT " + boost::lexical_cast<std::string>(_iteration);
+    if ( _do_optimize ) _log.setPreface(logINFO, _geoopt_preface );
+    
+    if ( ! _restart_opt ){
+    
+    // do GWBSE for start geometry
+    if ( _reporting == "silent" ) _log.setReportLevel( logINFO );
+    ExcitationEnergies( _qmpackage, _segments, &_orbitals);
+
+    }
 
    // only do this, if optimization is requested 
    if ( _do_optimize ){
@@ -235,21 +278,43 @@ bool Exciton::Evaluate() {
       
       // convergence checks
       bool _converged          = false;
+      double energy;
+      if ( _restart_opt ){
+          // reload data from restart.opt
+          ReloadState();
+          // exit(0);
+      } else {
 
+         // get total energy for this excited state
+          energy = GetTotalEnergy( &_orbitals, _spintype, _opt_state );
+         LOG(logINFO,_log) << " Total energy at initial geometry for " << _spintype << " " << _opt_state << " is " << energy << " Hartree " << flush;
+         LOG(logINFO,_log) << "   " << flush;
+         _log.setReportLevel( _ReportLevel ); // go silent again during numerical force calculation, if requested
       
-      int _iteration = 0;
-      // get total energy for this excited state
-      double energy = GetTotalEnergy( &_orbitals, _spintype, _opt_state );
-      cout << " energy of " << _spintype << " " << _opt_state << " is " << energy << " a.u. at iteration " << _iteration << endl;
+      }
       double energy_new;
       // now iterate
       while ( ! _converged ){ 
-
+           _geoopt_preface = "\n... ... GEOOPT " + boost::lexical_cast<std::string>(_iteration+1);
+           _log.setPreface(logINFO, _geoopt_preface );
+           
+           
            vector <Segment* > _molecule;
            Segment _current_coordinates(0, "mol");
-           // get current coordinates from Orbitals object
-           Orbitals2Segment( &_current_coordinates , &_orbitals);
-           _molecule.push_back( &_current_coordinates );
+           if ( _restart_opt) {
+               // fill current coordinates from reloaded data
+               ReadXYZ( &_current_coordinates, _xyzfile );
+               Coord2Segment( &_current_coordinates);
+               _molecule.push_back( &_current_coordinates );
+                ExcitationEnergies( _qmpackage, _segments, &_orbitals);
+                energy = GetTotalEnergy( &_orbitals, _spintype, _opt_state );
+               _restart_opt = false;
+           } else {
+               // get current coordinates from Orbitals object
+               Orbitals2Segment( &_current_coordinates , &_orbitals);
+               _molecule.push_back( &_current_coordinates );
+           }
+          
            
            // displace all atoms in each cartesian coordinate and get new energy
            // for each atom
@@ -258,102 +323,119 @@ bool Exciton::Evaluate() {
            _atoms = _current_coordinates.Atoms();
            
            if ( _iteration == 0 ){
-              _natoms = _current_coordinates.Atoms().size();
-              _force = ub::zero_matrix<double>(_natoms ,3);
-              _force_old = ub::zero_matrix<double>(_natoms ,3);
-              _xyz_shift = ub::zero_matrix<double>(_natoms ,3);
-              _speed = ub::zero_matrix<double>(_natoms ,3);
-              _current_xyz = ub::zero_matrix<double>(_natoms ,3);
-              _old_xyz = ub::zero_matrix<double>(_natoms ,3);
-              _hessian = ub::zero_matrix<double>(3*_natoms,3*_natoms);
-           }
-           
-           
-           int _i_atom = 0;
-           
-           for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
-               // get its current coordinates
-               vec _current_pos = (*ait)->getQMPos(); // in nm
-               
-               for ( int _i_cart = 0 ; _i_cart < 3; _i_cart++ ){
-                   
-                            // get displacement vector
-                            vec _displaced(0, 0, 0);
-                            if (_i_cart == 0) {
-                                _displaced.setX(_displacement / 10); // x, _displacement in in Angstrom
-                                _current_xyz(_i_atom,_i_cart ) = _current_pos.getX() * 18.897259886; // in Bohr
-                            }
-                            if (_i_cart == 1) {
-                                _current_xyz(_i_atom,_i_cart ) = _current_pos.getY() * 18.897259886; // in Bohr
-                                _displaced.setY(_displacement / 10); // y, _displacement in in Angstrom
-                            }
-                            if (_i_cart == 2) {
-                                _current_xyz(_i_atom,_i_cart ) = _current_pos.getZ() * 18.897259886; // in Bohr
-                                _displaced.setZ(_displacement / 10); // z, _displacement in in Angstrom
-                            }
-                            
-                            // update the coordinate
-                            vec _pos_displaced = _current_pos + _displaced;
-                            (*ait)->setQMPos(_pos_displaced); // put updated coordinate into segment
-
-                            // run DFT and GW-BSE for this geometry
-                            ExcitationEnergies(_qmpackage, _molecule, &_orbitals);
-                            
-                            // get total energy for this excited state
-                            double energy_displaced = GetTotalEnergy(&_orbitals, _spintype, _opt_state);
-                            // calculate force and put into matrix
-                            _force(_i_atom,_i_cart) = (energy - energy_displaced) / _displacement / 1.889725989; // force a.u./a.u.
-                                                  
-                            (*ait)->setQMPos(_current_pos); // restore original coordinate into segment
-               }
-               
-               // cout << " Force on atom " << _i_atom << " " << setprecision(12) << _force(_i_atom, 0 ) << " : " << setprecision(12) << _force(_i_atom, 1 ) << " : " << _force(_i_atom, 2 ) << endl;
-               _i_atom++;
-
-           
-        }
-           
-               //ConjugateGradientStep( _iteration, _force, _force_old, _xyz_shift, _speed, _current_xyz, _old_xyz );
-               BroydenStep(_iteration, _force,_force_old, _current_xyz, _old_xyz, _hessian,  _xyz_shift);
-           
-               double _RMSForce = getRMS( _force );
-               double _MaxForce = getMax( _force );
-               double _RMSStep  = getRMS( _xyz_shift );
-               double _MaxStep  = getMax( _xyz_shift );
-               
-               
-               // cout << " Atoms are shifted by (in Ang): " << endl;
-               
-               for ( int _i_atoms = 0 ; _i_atoms < _natoms; _i_atoms++){
-                   cout << "  atom " << _i_atoms << " : x " << _xyz_shift(_i_atoms,0)*0.529177249 << " y " << _xyz_shift(_i_atoms,1)*0.529177249  << " z " << _xyz_shift(_i_atoms,2)*0.529177249 << endl;
-               }
-           
-                
-           
-           // put new coordinates into _segment
-           _i_atom = 0;
-           for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
-               // put new coordinates (_current_xyz is in Bohr, segments in nm)
-               vec _pos_displaced( _current_xyz(_i_atom,0)*0.052917725 , _current_xyz(_i_atom,1)*0.052917725, _current_xyz(_i_atom,2)*0.052917725 );
-               (*ait)->setQMPos(_pos_displaced); // put updated coordinate into segment
-               _i_atom++;
-           }
-
-           // for the updated geometry, get new reference energy
-           ExcitationEnergies(_qmpackage, _molecule, &_orbitals);
-           double energy_new  = GetTotalEnergy( &_orbitals, _spintype, _opt_state );
-           
-           double energy_delta = energy_new - energy;
-           energy = energy_new;
-           // checking convergence
+              _natoms      = _current_coordinates.Atoms().size();
               
-            bool _energy_converged   = false;
-            bool _RMSForce_converged = false;
-            bool _MaxForce_converged = false;
-            bool _RMSStep_converged  = false;
-            bool _MaxStep_converged  = false;
-          
-          
+              _force       = ub::zero_matrix<double>(_natoms ,3);
+              _force_old   = ub::zero_matrix<double>(_natoms ,3);
+              _xyz_shift   = ub::zero_matrix<double>(_natoms ,3);
+              _current_xyz = ub::zero_matrix<double>(_natoms ,3);
+              _old_xyz     = ub::zero_matrix<double>(_natoms ,3);
+              _trial_xyz   = ub::zero_matrix<double>(_natoms ,3);
+              _hessian     = ub::zero_matrix<double>(3*_natoms,3*_natoms);
+           }
+           
+           // calculate numerical forces
+           if ( _forces == "forward" ) NumForceForward( energy, _atoms, _force, _qmpackage, _molecule, &_orbitals );
+           if ( _forces == "central" ) NumForceCentral( energy, _atoms, _force, _qmpackage, _molecule, &_orbitals );
+
+           
+           // writing current coordinates and forces
+           FILE *out;
+           vector<Segment*> ::iterator sit;
+           string FILENAME = "geometry_optimization.xyz";
+           for (sit = _molecule.begin(); sit < _molecule.end(); ++sit) {
+             if ( _iteration == 0 ) {
+                 out = fopen(FILENAME.c_str(),"w");
+             }else{
+                 out = fopen(FILENAME.c_str(),"a");
+             }
+              WriteIteration(out,_iteration,(*sit),_force);
+           }
+              
+           fclose(out);
+           
+           
+           _step_accepted = false; // at every iteration
+           
+           // initial trial -> update Hessian
+           _update_hessian = true;
+           double _RMSForce;
+           double _MaxForce;
+           double _RMSStep;
+           double _MaxStep;
+           double energy_delta;
+           double energy_new;
+           double _old_TR = _trust_radius;
+           while ( ! _step_accepted ){
+           
+               BFGSStep(_iteration, _update_hessian, _force,_force_old, _current_xyz, _old_xyz, _hessian,  _xyz_shift, _trial_xyz);
+           
+               // put trial coordinates into _segment
+               int _i_atom = 0;
+               for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
+                   // put trial coordinates (_trial_xyz is in Bohr, segments in nm)
+                   vec _pos_displaced( _trial_xyz(_i_atom,0)*0.052917725 , _trial_xyz(_i_atom,1)*0.052917725, _trial_xyz(_i_atom,2)*0.052917725 );
+                   (*ait)->setQMPos(_pos_displaced); // put updated coordinate into segment
+                   _i_atom++;
+               }
+
+               // for the updated geometry, get new reference energy
+               if ( _reporting == "silent" ) _log.setReportLevel( logINFO );
+               ExcitationEnergies(_qmpackage, _molecule, &_orbitals);
+               energy_new  = GetTotalEnergy( &_orbitals, _spintype, _opt_state );
+               
+               // LOG(logINFO,_log) << " Total energy of " << _spintype << " " << _opt_state << " is " << energy_new << " a.u. at " << _iteration << flush;
+               energy_delta = energy_new - energy;
+               _old_TR = _trust_radius;
+               // check the energy at the trial coordinates
+               if ( energy_delta > 0.0 ){
+                   // total energy has unexpectedly increased, half the trust radius
+                   _trust_radius = 0.5 * _trust_radius;
+                   // Hessian should not be updated for reduced trust radius
+                   _update_hessian = false;
+                   LOG(logINFO,_log) << " BFGS-TRM: total energy increased, this step is rejected and the new trust radius is: " << _trust_radius << endl;
+                   // repeat BGFSStep with new trust radius
+               } else {
+                   // total energy has decreased, we accept the step but might update the trust radius
+                   _step_accepted = true;
+                   LOG(logINFO,_log) << " BFGS-TRM: step accepted" << flush;
+                   // adjust trust radius, if required
+                   double _tr_check = energy_delta / _delta_energy_estimate;
+                   if ( _tr_check > 0.75 && 1.25*sqrt(_norm_delta_pos) > _trust_radius ){
+                      _trust_radius = 2.0 * _trust_radius;
+                      // if ( _trust_radius > _trust_radius_max) _trust_radius = _trust_radius_max;
+		      LOG(logINFO,_log) << " BFGS-TRM: increasing trust radius to " << _trust_radius << endl; 
+                   } else if ( _tr_check < 0.25 ) {
+                      _trust_radius = 0.25*sqrt(_norm_delta_pos);
+                      LOG(logINFO,_log) << " BFGS-TRM: reducing trust radius to " << _trust_radius << endl;
+                   }
+               
+		   }
+
+           }
+           
+           // after the step is accepted, we can shift the stored data   
+           energy       = energy_new;
+           _old_xyz     = _current_xyz;
+           _current_xyz = _trial_xyz;
+           _force_old   = _force; 
+
+           // checking convergence
+           bool _energy_converged   = false;
+           bool _RMSForce_converged = false;
+           bool _MaxForce_converged = false;
+           bool _RMSStep_converged  = false;
+           bool _MaxStep_converged  = false;
+
+           _xyz_shift = _current_xyz - _old_xyz;
+           
+           _RMSForce = getRMS( _force );
+           _MaxForce = getMax( _force );
+           _RMSStep  = getRMS( _xyz_shift );
+           _MaxStep  = getMax( _xyz_shift );
+
+
+           
            if ( std::abs(energy_delta) < _convergence) _energy_converged = true;
            if ( std::abs(_RMSForce) < 0.01 ) _RMSForce_converged = true;
            if ( std::abs(_MaxForce) < 0.01 ) _MaxForce_converged = true;
@@ -362,31 +444,64 @@ bool Exciton::Evaluate() {
            
            if ( _energy_converged && _RMSForce_converged && _MaxForce_converged && _RMSStep_converged && _MaxStep_converged ) _converged = true;
 
-            
-           // writing new coordinates 
-           FILE *out;
-           vector<Segment*> ::iterator sit;
-           for (sit = _molecule.begin(); sit < _molecule.end(); ++sit) {
-              string ID   = boost::lexical_cast<string>(_iteration);
-              string FILE = "iteration_" + ID + ".xyz";
-              out = fopen(FILE.c_str(),"w");
-              (*sit)->WriteXYZ(out, true);
-              fclose(out);
-          }
+        // dump information to restart file
+        
+        FILE *restart;
+        string FILE = "restart.opt";
+        restart = fopen(FILE.c_str(),"w");
+        fprintf(restart, "atoms %d \n", _natoms);
+        fprintf(restart, "iteration %d \n", _iteration);
+        // output current xyz
+        fprintf(restart, "current xyz \n");
+        for ( int _i_atom=0; _i_atom< _natoms; _i_atom++){
+            fprintf(restart, "%le %le %le \n", _current_xyz(_i_atom,0) , _current_xyz(_i_atom,1) , _current_xyz(_i_atom,2)  );
+        }
+        // output old xyz
+        fprintf(restart, "old xyz \n");
+        for ( int _i_atom=0; _i_atom< _natoms; _i_atom++){
+            fprintf(restart, "%le %le %le \n", _old_xyz(_i_atom,0) , _old_xyz(_i_atom,1) , _old_xyz(_i_atom,2)  );
+        }
+        // output current force
+        fprintf(restart, "current force \n");
+        for ( int _i_atom=0; _i_atom< _natoms; _i_atom++){
+            fprintf(restart, "%le %le %le \n", _force(_i_atom,0) , _force(_i_atom,1) , _force(_i_atom,2)  );
+        }
+        // output old force
+        fprintf(restart, "old force \n");
+        for ( int _i_atom=0; _i_atom< _natoms; _i_atom++){
+            fprintf(restart, "%le %le %le \n", _force_old(_i_atom,0) , _force_old(_i_atom,1) , _force_old(_i_atom,2)  );
+        }
+        // output Hessian
+        fprintf(restart, "Hessian \n");
+        for ( int _i = 0; _i < _hessian.size1() ; _i++){
+            for ( int _j = 0; _j < _hessian.size2() ; _j++){
+                
+                fprintf(restart, "%d %d %le \n", _i,_j,_hessian(_i,_j)); 
+                
+            }
+        }
+ 
+        fclose(restart);
+    
            
-           LOG(logINFO,_log) << " GEOOPT iteration " << _iteration +1 << flush;
-           LOG(logINFO,_log) << "    total energy of " << _spintype << " " << _opt_state << " is " << energy_new << " a.u."  << flush;
+          
+           
+           LOG(logINFO,_log) << " Summary of iteration " << _iteration +1 << flush;
+           LOG(logINFO,_log) << "    total energy of " << _spintype << " " << _opt_state << " is " << energy_new << " Hartree "  << flush;
+           LOG(logINFO,_log) << "    BFGS-TRM: trust radius was " << _old_TR << " Bohr" << flush;
            LOG(logINFO,_log) << "    convergence: " << flush;
            LOG(logINFO,_log) << "       energy change: " << setprecision(12) << energy_delta << " a.u. " << Convergence( _energy_converged ) << flush;
            LOG(logINFO,_log) << "       RMS force:     " << setprecision(12) << _RMSForce << Convergence( _RMSForce_converged ) << flush;
            LOG(logINFO,_log) << "       Max force:     " << setprecision(12) << _MaxForce << Convergence( _MaxForce_converged ) << flush;
            LOG(logINFO,_log) << "       RMS step:      " << setprecision(12) << _RMSStep << Convergence( _RMSStep_converged ) << flush;
            LOG(logINFO,_log) << "       Max step:      " << setprecision(12) << _MaxStep << Convergence( _MaxStep_converged ) << flush;
+           LOG(logINFO,_log) << "       Geometry       " << Convergence( _converged ) << flush;
            LOG(logINFO,_log) << "   " << flush;
+           _log.setReportLevel( _ReportLevel ); // go silent again
            
-           // cout << "    energy change is "  << setprecision(12) << energy_delta << " a.u. or  " << energy_delta*27.21138386 << " eV " << endl;
            
            _iteration++;
+	   // exit(0);
        } // optimization while loop
        
    }// if optimization
@@ -419,7 +534,246 @@ bool Exciton::Evaluate() {
 
 
 
-void Exciton::BroydenStep(int& _iteration, ub::matrix<double>& _force, ub::matrix<double>& _force_old, ub::matrix<double>& _current_xyz, ub::matrix<double>& _old_xyz, ub::matrix<double>& _hessian, ub::matrix<double>& _shift){
+
+
+void Exciton::Coord2Segment(Segment* _segment){
+    
+    
+            vector< Atom* > _atoms;
+            vector< Atom* > ::iterator ait;
+            _atoms = _segment->Atoms();
+            
+            string type;
+            int _i_atom = 0;
+            for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
+                vec position(_current_xyz(_i_atom,0)*0.052917725, _current_xyz(_i_atom,1)*0.052917725, _current_xyz(_i_atom,2)*0.052917725); // current_xyz has Bohr, votca stores nm
+                (*ait)->setQMPos(position);
+                _i_atom++;
+               
+            }
+
+    
+}
+
+
+/* reload previous optimization state*/
+void Exciton::ReloadState(){
+    
+    // open restart.opt
+    ifstream in;
+    string _filename = "restart.opt";
+    LOG(logDEBUG,_log) << " Reloading from restart.opt " << flush;
+    in.open(_filename.c_str(), ios::in);
+    if (!in) throw runtime_error(string("Error reading coordinates from restart.opt"));
+    string label;
+    string type;
+    // atoms
+    in >> label;
+    if ( label != "atoms" ) throw runtime_error(string("Expected atoms in restart.opt"));
+    in >> _natoms;
+    // initialize matrices
+    _force       = ub::zero_matrix<double>(_natoms ,3);
+    _force_old   = ub::zero_matrix<double>(_natoms ,3);
+    _xyz_shift   = ub::zero_matrix<double>(_natoms ,3);
+    _current_xyz = ub::zero_matrix<double>(_natoms ,3);
+    _old_xyz     = ub::zero_matrix<double>(_natoms ,3);
+    _trial_xyz   = ub::zero_matrix<double>(_natoms ,3);
+    _hessian     = ub::zero_matrix<double>(3*_natoms,3*_natoms);
+    
+    // info about last iteration
+    in >> label;
+    if ( label != "iteration" ) throw runtime_error(string("Expected iteration in restart.opt"));
+    in >> _iteration;
+    
+    // current xyz
+    in >> label; 
+    if ( label != "current" ) throw runtime_error(string("Expected current xyz in restart.opt"));
+    in >> type;
+    if ( type != "xyz" ) throw runtime_error(string("Expected current xyz in restart.opt"));
+    int _i_atom = 0;
+    while ( _i_atom < _natoms ){
+        in >> _current_xyz(_i_atom,0);
+        in >> _current_xyz(_i_atom,1);
+        in >> _current_xyz(_i_atom,2);
+        _i_atom++;
+    }
+
+    // old xyz
+    in >> label; 
+    if ( label != "old" ) throw runtime_error(string("Expected old xyz in restart.opt"));
+    in >> type;
+    if ( type != "xyz" ) throw runtime_error(string("Expected old xyz in restart.opt"));
+    _i_atom = 0;
+    while ( _i_atom < _natoms ){
+        in >> _old_xyz(_i_atom,0);
+        in >> _old_xyz(_i_atom,1);
+        in >> _old_xyz(_i_atom,2);
+        _i_atom++;
+    }
+    
+    // current force
+    in >> label; 
+    if ( label != "current" ) throw runtime_error(string("Expected current force in restart.opt"));
+    in >> type;
+    if ( type != "force" ) throw runtime_error(string("Expected current force in restart.opt"));
+    _i_atom = 0;
+    while ( _i_atom < _natoms ){
+        in >> _force(_i_atom,0);
+        in >> _force(_i_atom,1);
+        in >> _force(_i_atom,2);
+        _i_atom++;
+    }   
+    
+    // old force
+    in >> label; 
+    if ( label != "old" ) throw runtime_error(string("Expected old force in restart.opt"));
+    in >> type;
+    if ( type != "force" ) throw runtime_error(string("Expected old force in restart.opt"));
+    _i_atom = 0;
+    while ( _i_atom < _natoms ){
+        in >> _force_old(_i_atom,0);
+        in >> _force_old(_i_atom,1);
+        in >> _force_old(_i_atom,2);
+        _i_atom++;
+    }   
+       
+    // hessian
+    int _i_in;
+    int _j_in;
+    in >> label; 
+    if ( label != "Hessian" ) throw runtime_error(string("Expected Hessian in restart.opt"));
+    for ( int _i =0 ; _i < 3*_natoms; _i++){
+        for ( int _j =0 ; _j < 3*_natoms; _j++){
+            in >> _i_in;
+            in >> _j_in;
+            in >> _hessian(_i,_j);
+        }
+    }
+    
+    
+}
+
+
+
+
+
+/* Calculate forces on atoms numerically by central differences */
+void Exciton::NumForceCentral(double energy, vector<Atom*> _atoms, ub::matrix<double>& _force, QMPackage* _qmpackage, vector<Segment*> _molecule, Orbitals* _orbitals){
+    
+
+    vector< Atom* > ::iterator ait;
+    int _i_atom = 0;
+    for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
+       // get its current coordinates
+       vec _current_pos = (*ait)->getQMPos(); // in nm
+    
+       // go through all cartesian components
+       for ( int _i_cart = 0 ; _i_cart < 3; _i_cart++ ){
+           
+           // get displacement vector in positive direction
+           vec _displaced(0, 0, 0);
+           if (_i_cart == 0) {
+              _displaced.setX(_displacement / 18.897259886 ); // x, _displacement in Bohr
+              _current_xyz(_i_atom,_i_cart ) = _current_pos.getX() * 18.897259886; // in Bohr
+           }
+           if (_i_cart == 1) {
+              _current_xyz(_i_atom,_i_cart ) = _current_pos.getY() * 18.897259886; // in Bohr
+              _displaced.setY(_displacement / 18.897259886 ); // y, _displacement in in Angstrom
+           }
+           if (_i_cart == 2) {
+              _current_xyz(_i_atom,_i_cart ) = _current_pos.getZ() * 18.897259886; // in Bohr
+              _displaced.setZ(_displacement / 18.897259886 ); // z, _displacement in in Angstrom
+           }
+                            
+           // update the coordinate
+           vec _pos_displaced = _current_pos + _displaced;
+           (*ait)->setQMPos(_pos_displaced); // put updated coordinate into segment
+
+           // run DFT and GW-BSE for this geometry
+           ExcitationEnergies(_qmpackage, _molecule, _orbitals);
+                            
+           // get total energy for this excited state
+           double energy_displaced_plus = GetTotalEnergy(_orbitals, _spintype, _opt_state);
+           
+           // get displacement vector in negative direction
+
+           // update the coordinate
+           _pos_displaced = _current_pos - 2.0 * _displaced;
+           (*ait)->setQMPos(_pos_displaced); // put updated coordinate into segment
+
+           // run DFT and GW-BSE for this geometry
+           ExcitationEnergies(_qmpackage, _molecule, _orbitals);
+                            
+           // get total energy for this excited state
+           double energy_displaced_minus = GetTotalEnergy(_orbitals, _spintype, _opt_state);
+           
+           // calculate force and put into matrix
+           _force(_i_atom,_i_cart) = 0.5 * (energy_displaced_minus - energy_displaced_plus) / _displacement ; // force a.u./a.u.
+                                                  
+           (*ait)->setQMPos(_current_pos); // restore original coordinate into segment
+        }
+               
+      _i_atom++;
+   }
+    
+
+    
+
+}
+
+
+
+/* Calculate forces on atoms numerically by forward differences */
+void Exciton::NumForceForward(double energy, vector<Atom*> _atoms, ub::matrix<double>& _force, QMPackage* _qmpackage, vector<Segment*> _molecule, Orbitals* _orbitals){
+
+    vector< Atom* > ::iterator ait;
+    int _i_atom = 0;
+    for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
+       // get its current coordinates
+       vec _current_pos = (*ait)->getQMPos(); // in nm
+       //       if ( _i_atom < 2 ) {        
+       for ( int _i_cart = 0 ; _i_cart < 3; _i_cart++ ){
+                   
+           // get displacement vector
+           vec _displaced(0, 0, 0);
+           if (_i_cart == 0) {
+              _displaced.setX(_displacement / 18.897259886 ); // x, _displacement in Bohr
+              _current_xyz(_i_atom,_i_cart ) = _current_pos.getX() * 18.897259886; // in Bohr
+           }
+           if (_i_cart == 1) {
+              _current_xyz(_i_atom,_i_cart ) = _current_pos.getY() * 18.897259886; // in Bohr
+              _displaced.setY(_displacement / 18.897259886 ); // y, _displacement in in Angstrom
+           }
+           if (_i_cart == 2) {
+              _current_xyz(_i_atom,_i_cart ) = _current_pos.getZ() * 18.897259886; // in Bohr
+              _displaced.setZ(_displacement / 18.897259886 ); // z, _displacement in in Angstrom
+           }
+                            
+           // update the coordinate
+           vec _pos_displaced = _current_pos + _displaced;
+           (*ait)->setQMPos(_pos_displaced); // put updated coordinate into segment
+
+           // run DFT and GW-BSE for this geometry
+           ExcitationEnergies(_qmpackage, _molecule, _orbitals);
+                            
+           // get total energy for this excited state
+           double energy_displaced = GetTotalEnergy(_orbitals, _spintype, _opt_state);
+           // calculate force and put into matrix
+           
+           _force(_i_atom,_i_cart) = (energy - energy_displaced) / _displacement ; // force a.u./a.u.
+                                                  
+           (*ait)->setQMPos(_current_pos); // restore original coordinate into segment
+        }
+     
+      _i_atom++;
+   }
+    
+    
+}
+
+
+
+void Exciton::BFGSStep(int& _iteration, bool& _update_hessian, ub::matrix<double>& _force, ub::matrix<double>& _force_old, ub::matrix<double>& _current_xyz, ub::matrix<double>& _old_xyz, ub::matrix<double>& _hessian, ub::matrix<double>& _shift, ub::matrix<double>& _trial_xyz){
 
     // stuff to prepare
     ub::vector<double> _total_force(3,0.0);
@@ -430,21 +784,25 @@ void Exciton::BroydenStep(int& _iteration, ub::matrix<double>& _force, ub::matri
            _force_norm += _force(_i_atom,_i_cart)*_force(_i_atom,_i_cart);
         }
     }
+
+    cout << "Total force: " << _total_force(0) << " " << _total_force(1) << " " << _total_force(2) << endl;
             
     // remove CoM force
+    LOG(logINFO,_log) << " ----------------- Forces ------------------- " << flush;
+    LOG(logINFO,_log) << " Atom        x-comp       y-comp      z-comp  " << flush;
     for ( int _i_atom = 0 ; _i_atom < _natoms; _i_atom++ ){
-        for ( int _i_cart = 0; _i_cart < 3; _i_cart++ ){
-          _force(_i_atom,_i_cart) -= _total_force(_i_cart)/_natoms;
-          cout << " force on atom " << _i_atom << " in dir " << _i_cart << " is : " << _force(_i_atom,_i_cart) << endl;
-        }
+      for ( int _i_cart = 0; _i_cart < 3; _i_cart++ ){
+	// _force(_i_atom,_i_cart) -= _total_force(_i_cart)/_natoms;
+       }
+        LOG(logINFO,_log) <<  _i_atom << "   " <<  _force(_i_atom,0) << "   " <<  _force(_i_atom,1) << "   " <<  _force(_i_atom,2) << endl;
     }
-    
+    LOG(logINFO,_log) << " -------------------------------------------- " << flush;
     // construct vectors
     int _dim = 3*_natoms;
     ub::vector<double> _previous_pos(_dim,0.0);
     ub::vector<double> _current_pos(_dim,0.0);
-    ub::vector<double> _previous_force(_dim,0.0);
-    ub::vector<double> _current_force(_dim,0.0);
+    ub::vector<double> _previous_gradient(_dim,0.0);
+    ub::vector<double> _current_gradient(_dim,0.0);
     
     for ( int _i_atom = 0 ; _i_atom < _natoms; _i_atom++ ){
         for ( int _i_cart = 0; _i_cart < 3; _i_cart++ ){
@@ -452,45 +810,53 @@ void Exciton::BroydenStep(int& _iteration, ub::matrix<double>& _force, ub::matri
             int _idx = 3*_i_atom + _i_cart;
             _previous_pos( _idx ) = _old_xyz( _i_atom, _i_cart);
             _current_pos( _idx ) = _current_xyz( _i_atom, _i_cart);
-            _previous_force( _idx ) = _force_old( _i_atom, _i_cart);
-            _current_force( _idx ) = _force( _i_atom, _i_cart);
+            _previous_gradient( _idx ) = -_force_old( _i_atom, _i_cart);
+            _current_gradient( _idx ) = -_force( _i_atom, _i_cart);
             
         }
     }
     
-    ub::vector<double> _delta_pos = _previous_pos - _current_pos;
-    double _norm_delta_pos = ub::inner_prod(_delta_pos,_delta_pos);
+    // delta is new - old
+    ub::vector<double> _delta_pos =  _current_pos - _previous_pos;
+    _norm_delta_pos = ub::inner_prod(_delta_pos,_delta_pos);
     
     
-    // we have no Hessian in the first iteration => start with something
-    if ( _iteration == 0 ) {
-        
-        for ( int _i = 0; _i < _dim; _i++){
-            _hessian(_i,_i) = -2.0; // ? why this
-        }
-        
-        
-    } else {
-        /* for later iteration, we can make use of an iterative refinement of 
-         * the initial Hessian based on the gradient (force) history
-         */
-        
-        ub::vector<double> _d = _previous_force - _current_force - ub::prod(_hessian,_delta_pos);
-        
-        // update Hessian
-        _hessian += ub::outer_prod(_d,_delta_pos)/_norm_delta_pos;
-        
-        // symmetrize Hessian (since d2E/dxidxj should be symmetric)
-        for ( int _i = 0; _i < _dim; _i++){
-            for ( int _j = _i+1; _j < _dim; _j++){
-                double _sum = 0.5*( _hessian(_i,_j) + _hessian(_j,_i) );
-                _hessian(_i,_j) = _sum;
-                _hessian(_j,_i) = _sum;
-            }
-        }
-        
-    }
+    // update of Hessian only in first trial 
+    if ( _update_hessian ){
     
+       // we have no Hessian in the first iteration => start with something
+       if ( _iteration == 0 ) {
+        
+           for ( int _i = 0; _i < _dim; _i++){
+               _hessian(_i,_i) = 1.0; // unit matrix
+           }
+        
+       } else {
+           /* for later iteration, we can make use of an iterative refinement of 
+            * the initial Hessian based on the gradient (force) history
+            */
+        
+           ub::vector<double> _delta_gradient = _current_gradient - _previous_gradient;
+        
+           // second term in BFGS update (needs current Hessian)
+           ub::vector<double> _temp1 = ub::prod(_hessian,_delta_pos);
+           ub::vector<double> _temp2 = ub::prod(ub::trans(_delta_pos),_hessian);
+           _hessian -= ub::outer_prod(_temp1,_temp2) / ub::inner_prod(_delta_pos,_temp1);
+        
+           // first term in BFGS update
+           _hessian += ub::outer_prod(_delta_gradient,_delta_gradient)/ub::inner_prod( _delta_gradient,_delta_pos);
+
+           // symmetrize Hessian (since d2E/dxidxj should be symmetric)
+           for ( int _i = 0; _i < _dim; _i++){
+               for ( int _j = _i+1; _j < _dim; _j++){
+                   double _sum = 0.5*( _hessian(_i,_j) + _hessian(_j,_i) );
+                   _hessian(_i,_j) = _sum;
+                   _hessian(_j,_i) = _sum;
+               }
+           }
+        
+       }
+    } // update Hessian
     
     
     // get inverse of the Hessian
@@ -498,13 +864,14 @@ void Exciton::BroydenStep(int& _iteration, ub::matrix<double>& _force, ub::matri
     linalg_invert(_hessian,_hessian_inverse);
     
     // new displacements for the atoms
-    _delta_pos = -ub::prod(_hessian_inverse,_current_force);
+    _delta_pos      = -ub::prod(_hessian_inverse,_current_gradient);
     _norm_delta_pos = ub::inner_prod(_delta_pos,_delta_pos);
     
     // TRM -> trust radius check
-    double _trust_radius_squared = 0.05; 
-    double _max_step_squared;
-    cout << " step sq " << _norm_delta_pos << " vs. TR sq" << _trust_radius_squared << endl;
+    double _trust_radius_squared = _trust_radius * _trust_radius;
+    double _max_step_squared = 0.0;
+    
+    // cout << " step sq " << _norm_delta_pos << " vs. TR sq" << _trust_radius_squared << endl;
     if ( _norm_delta_pos > _trust_radius_squared ){
         
         // get eigenvalues and eigenvectors of Hessian
@@ -512,15 +879,21 @@ void Exciton::BroydenStep(int& _iteration, ub::matrix<double>& _force, ub::matri
         ub::vector<double> _eigenvalues;
         linalg_eigenvalues( _hessian, _eigenvalues, _eigenvectors);
         
-        cout << "Lowest eigenvalue of Hessian is... " << _eigenvalues(0) << endl;
+        LOG(logDEBUG, _log) << " BFGS-TRM: Lowest eigenvalue of Hessian is... " << _eigenvalues(0) << flush;
+    
         // start value for lambda  a bit lower than lowest eigenvalue of Hessian
-        double _lambda = 1.05*_eigenvalues(0);
+        double _lambda;
+        if ( _eigenvalues(0) > 0.0 ){
+            _lambda = -0.05 * std::abs( _eigenvalues(0) );
+        } else {
+            _lambda = 1.05*_eigenvalues(0);
+        }
         
         // for constrained step, we expect
         _max_step_squared = _norm_delta_pos ;
         while ( _max_step_squared > _trust_radius_squared ){
            _max_step_squared = 0.0;
-           _lambda += 0.05*_eigenvalues(0); 
+           _lambda -= 0.05*  std::abs( _eigenvalues(0) ); 
            for ( int _i =0 ; _i < _dim; _i++ ){
                ub::vector<double> _slice(_dim,0.0);
                for ( int _j =0 ; _j< _dim ; _j++){
@@ -528,14 +901,14 @@ void Exciton::BroydenStep(int& _iteration, ub::matrix<double>& _force, ub::matri
                }
                
                //cout << " forece is of dim " << _current_force.size1() << "  " << _current_force.size2() << endl;
-               double _temp = ub::inner_prod(_slice,_current_force);
+               double _temp = ub::inner_prod(_slice,_current_gradient);
                //cout << " slice is of dim " << _slice.size1() << "  " << _slice.size2() << endl;            cout << " tmep is of dim " << _temp.size1() << "  " << _temp.size2() << endl;
                // cout << " into max_step_sq " << _temp << " and  "  << ( _eigenvalues(_i) - _lambda ) << endl;
                _max_step_squared += _temp * _temp /( _eigenvalues(_i) - _lambda ) / ( _eigenvalues(_i) - _lambda ) ;
            }
         }
 
-        cout << " with lambda " << _lambda << " max step sq is " << _max_step_squared << endl;
+        LOG(logDEBUG,_log) << " BFGS-TRM: with lambda " << _lambda << " max step sq is " << _max_step_squared << flush;
         
         _delta_pos = ub::zero_vector<double>(_dim);
         for ( int _i =0 ; _i < _dim; _i++ ){
@@ -544,10 +917,10 @@ void Exciton::BroydenStep(int& _iteration, ub::matrix<double>& _force, ub::matri
                 _slice(_j) = _eigenvectors(_j,_i);
             }
             
-            _delta_pos += _slice * ub::inner_prod(_slice,_current_force)/  ( _eigenvalues(_i) - _lambda ) ; 
+            _delta_pos -= _slice * ub::inner_prod(_slice,_current_gradient)/  ( _eigenvalues(_i) - _lambda ) ; 
         }
         
-        _norm_delta_pos = ub::inner_prod(_delta_pos,_delta_pos); //_max_step_squared;
+        _norm_delta_pos = ub::inner_prod(_delta_pos,_delta_pos); //_max_step_squared; 
     }
     
     
@@ -556,22 +929,21 @@ void Exciton::BroydenStep(int& _iteration, ub::matrix<double>& _force, ub::matri
     
     
     ub::vector<double> _new_pos = _current_pos + _delta_pos;
-    cout << "Broyden step: " << sqrt(_norm_delta_pos) << " vs " << sqrt(_max_step_squared) << " vs TR " << sqrt(_trust_radius_squared) << endl  ;
+    LOG(logDEBUG,_log) << "BFGS-TRM: step " << sqrt(_norm_delta_pos) << " vs TR " << sqrt(_trust_radius_squared) << flush  ;
 
+    // get the energy estimate for a local quadratic surface
     ub::vector<double> _temp_ene = ub::prod( _hessian, _delta_pos );
-    double _energy_estimate = ub::inner_prod( _current_force, _delta_pos ) + 0.5 * ub::inner_prod(_delta_pos,_temp_ene );
+    _delta_energy_estimate = ub::inner_prod( _current_gradient, _delta_pos ) + 0.5 * ub::inner_prod(_delta_pos,_temp_ene );
 
-    cout << " Estimated energy change: " << setprecision(12) << _energy_estimate << endl;
-    // backup current pos and current force
-    _old_xyz = _current_xyz;
-    _force_old = _force;
-    
+    LOG(logINFO,_log) << " BFGS-TRM: estimated energy change: " << setprecision(12) << _delta_energy_estimate << endl;
+   
     // update atom coordinates
     ub::vector<double> _total_shift(3,0.0);
     for ( int _i_atom = 0; _i_atom < _natoms; _i_atom++){
         for ( int _i_cart = 0; _i_cart < 3; _i_cart++ ){
              int _idx = 3*_i_atom + _i_cart;
-            _current_xyz(_i_atom,_i_cart) = _new_pos(_idx);
+            //_current_xyz(_i_atom,_i_cart) = _new_pos(_idx);
+             _trial_xyz(_i_atom,_i_cart) = _new_pos(_idx);
             _total_shift(_i_cart) += _delta_pos(_idx);
         }
     }
@@ -580,190 +952,10 @@ void Exciton::BroydenStep(int& _iteration, ub::matrix<double>& _force, ub::matri
        for ( int _i_atom = 0; _i_atom < _natoms; _i_atom++){
         for ( int _i_cart = 0; _i_cart < 3; _i_cart++ ){
              int _idx = 3*_i_atom + _i_cart;
-            _current_xyz(_i_atom,_i_cart) -= _total_shift(_i_cart)/_natoms;
-            //_xyz_shift( _i_atom,_i_cart ) = _current_xyz()
+            //_current_xyz(_i_atom,_i_cart) -= _total_shift(_i_cart)/_natoms;
+            // _trial_xyz(_i_atom,_i_cart) -= _total_shift(_i_cart)/_natoms;
         }
     }
-    
-    _xyz_shift = _current_xyz - _old_xyz;
-    
-    
-}
-
-
-
-
-void Exciton::ConjugateGradientStep(int& _iteration, ub::matrix<double>& _force, ub::matrix<double>& _force_old, ub::matrix<double>& _xyz_shift, ub::matrix<double>& _speed, ub::matrix<double>& _current_xyz, ub::matrix<double>& _old_xyz){
-    
-
-    // stuff to prepare
-    ub::vector<double> _total_force(3,0.0);
-    double _force_norm = 0.0;
-    for ( int _i_atom = 0 ; _i_atom < _natoms; _i_atom++ ){
-        for ( int _i_cart = 0; _i_cart < 3; _i_cart++ ){
-           _total_force( _i_cart ) += _force(_i_atom,_i_cart);
-           _force_norm += _force(_i_atom,_i_cart)*_force(_i_atom,_i_cart);
-        }
-    }
-    
-    //cout << " Total force " << _total_force( 0 ) << " " << _total_force( 1 ) << " " << _total_force( 2 ) << endl;
-    //cout << " Total force norm " << _force_norm;
-            
-            
-    // remove CoM force
-    for ( int _i_atom = 0 ; _i_atom < _natoms; _i_atom++ ){
-        for ( int _i_cart = 0; _i_cart < 3; _i_cart++ ){
-          _force(_i_atom,_i_cart) -= _total_force(_i_cart)/_natoms;
-        }
-    }
-    
-    
-    /* cout << " Forces after CoM removal:" << endl;
-    for ( int _i_atom = 0 ; _i_atom < _natoms; _i_atom++ ){
-        cout << " Force on  " << _i_atom << _force( _i_atom, 0 ) << " " << _force( _i_atom, 1 ) << " " << _force( _i_atom, 2 ) << endl;
-    } */
-    
-    // first trial point is just a plain step in the direction of the forces
-    if ( _iteration == 0 ){
-        _force_old = _force; // backup force
-        _old_xyz = _current_xyz; // backup coordinates
-        _speed = _force; // initialize 
-        double _lambda0 = 0.2;
-        double _factor = _lambda0/sqrt(_force_norm);
-        _xyz_shift = _factor * _force;
-                // check, if max step size exceeded
-        for ( int _i_atom = 0 ; _i_atom < _natoms; _i_atom++ ){
-            for ( int _i_cart = 0; _i_cart < 3; _i_cart++ ){
-              
-                if ( _xyz_shift(_i_atom, _i_cart) > 0.2 )  _xyz_shift(_i_atom, _i_cart) = 0.2;
-                if ( _xyz_shift(_i_atom, _i_cart) < -0.2 )  _xyz_shift(_i_atom, _i_cart) = -0.2;
-
-                
-            }  
-        }
-        // new xyz
-        _current_xyz += _xyz_shift;
-    } else if  ( _iteration % 2 != 0 ) {
-        // odd iterations (1,3,5,...) => minimize force along the line
-        ub::matrix<double> _step = _xyz_shift; // backup copy of _xyz_shift
-        double alpha1 = 0.0;
-        double alpha2 = 0.0;
-        for ( int _i_atom = 0 ; _i_atom < _natoms; _i_atom++ ){
-            for ( int _i_cart = 0; _i_cart < 3; _i_cart++ ){
-              alpha1 += _speed(_i_atom, _i_cart) * _force_old(_i_atom,_i_cart);
-              alpha2 += _speed(_i_atom, _i_cart) * (_force(_i_atom,_i_cart) - _force_old(_i_atom,_i_cart));
-            }  
-        }
-        double lambda = -alpha1/alpha2; // optimal lambda
-        _xyz_shift = lambda * _step; // 
-                // check, if max step size exceeded
-        for ( int _i_atom = 0 ; _i_atom < _natoms; _i_atom++ ){
-            for ( int _i_cart = 0; _i_cart < 3; _i_cart++ ){
-              
-                if ( _xyz_shift(_i_atom, _i_cart) > 0.2 )  _xyz_shift(_i_atom, _i_cart) = 0.2;
-                if ( _xyz_shift(_i_atom, _i_cart) < -0.2 )  _xyz_shift(_i_atom, _i_cart) = -0.2;
-
-                
-            }  
-        }
-        // new coordinates
-        _current_xyz = _old_xyz + _xyz_shift; 
-        
-    } else {
-        // even iteration (2,4,6,...) => construct new direction and trial point
-        ub::matrix<double> _step = _xyz_shift; // backup copy of _xyz_shift
-        double alpha1 = 0.0;
-        double alpha2 = 0.0;
-        for ( int _i_atom = 0 ; _i_atom < _natoms; _i_atom++ ){
-            for ( int _i_cart = 0; _i_cart < 3; _i_cart++ ){
-              alpha1 += _speed(_i_atom, _i_cart) * _force_old(_i_atom,_i_cart);
-              alpha2 += _speed(_i_atom, _i_cart) * (_force(_i_atom,_i_cart) - _force_old(_i_atom,_i_cart));
-            }  
-        }
-        double lambda = -alpha1/alpha2; // optimal lambda
-        _xyz_shift = lambda * _step; // 
-        // new coordinates
-        _current_xyz = _old_xyz + _xyz_shift; 
-        
-        // new step direction
-        double _norm_old_force = 0.0;
-        alpha1 = 0.0;
-        for ( int _i_atom = 0 ; _i_atom < _natoms; _i_atom++ ){
-            for ( int _i_cart = 0; _i_cart < 3; _i_cart++ ){
-              _norm_old_force += _force_old(_i_atom,_i_cart) * _force_old(_i_atom,_i_cart);
-              alpha1 += _force(_i_atom, _i_cart) * (_force(_i_atom,_i_cart) - _force_old(_i_atom,_i_cart));
-            }  
-        }
-        //double beta = _force_norm / _norm_old_force; // original conjugate-gradient
-        double beta = alpha1 / _norm_old_force; // Polak/Ribiere (?)
-        _speed = beta*_speed + _force;
-        
-        // construct new step along new direction
-        double _norm_h = 0.0;
-        double _norm_old_step = 0.0;
-        for ( int _i_atom = 0 ; _i_atom < _natoms; _i_atom++ ){
-            for ( int _i_cart = 0; _i_cart < 3; _i_cart++ ){
-              _norm_h += _speed(_i_atom,_i_cart) * _speed(_i_atom,_i_cart);
-              _norm_old_step += _xyz_shift(_i_atom, _i_cart) * _xyz_shift(_i_atom,_i_cart);
-            }  
-        }
-        double lambda0 = sqrt(_norm_old_step);
-        beta = lambda0 / sqrt(_norm_h);
-        
-        _xyz_shift = beta*_speed;
-        // check, if max step size exceeded
-        for ( int _i_atom = 0 ; _i_atom < _natoms; _i_atom++ ){
-            for ( int _i_cart = 0; _i_cart < 3; _i_cart++ ){
-              
-                if ( _xyz_shift(_i_atom, _i_cart) > 0.2 )  _xyz_shift(_i_atom, _i_cart) = 0.2;
-                if ( _xyz_shift(_i_atom, _i_cart) < -0.2 )  _xyz_shift(_i_atom, _i_cart) = -0.2;
-
-                
-            }  
-        }
-
-        
-        // finally update stuff
-        _old_xyz = _current_xyz;
-        _current_xyz += _xyz_shift;
-        _force_old = _force;
-        
-        
-    }
-
-        // dump information to restart file
-        
-        FILE *restart;
-        string FILE = "restart.opt";
-        restart = fopen(FILE.c_str(),"w");
-
-        fprintf(restart, "iteration %d \n", _iteration);
-        // output current xyz
-        fprintf(restart, "current xyz \n");
-        for ( int _i_atom=0; _i_atom< _natoms; _i_atom++){
-            fprintf(restart, "%le %le %le \n", _current_xyz(_i_atom,0) , _current_xyz(_i_atom,1) , _current_xyz(_i_atom,2)  );
-        }
-        // output old xyz
-        fprintf(restart, "old xyz \n");
-        for ( int _i_atom=0; _i_atom< _natoms; _i_atom++){
-            fprintf(restart, "%le %le %le \n", _old_xyz(_i_atom,0) , _old_xyz(_i_atom,1) , _old_xyz(_i_atom,2)  );
-        }
-        // output old force
-        fprintf(restart, "old force \n");
-        for ( int _i_atom=0; _i_atom< _natoms; _i_atom++){
-            fprintf(restart, "%le %le %le \n", _force_old(_i_atom,0) , _force_old(_i_atom,1) , _force_old(_i_atom,2)  );
-        }
-        // output shift
-        fprintf(restart, "shift \n");
-        for ( int _i_atom=0; _i_atom< _natoms; _i_atom++){
-            fprintf(restart, "%le %le %le \n", _xyz_shift(_i_atom,0) , _xyz_shift(_i_atom,1) , _xyz_shift(_i_atom,2)  );
-        }
-        // output speed
-        fprintf(restart, "speed \n");
-        for ( int _i_atom=0; _i_atom< _natoms; _i_atom++){
-            fprintf(restart, "%le %le %le \n", _speed(_i_atom,0) , _speed(_i_atom,1) , _speed(_i_atom,2)  );
-        }
-        fclose(restart);
     
     
 }
@@ -825,7 +1017,9 @@ double Exciton::GetTotalEnergy(Orbitals* _orbitals, string _spintype, int _opt_s
     
     // DFT total energy is stored in eV
     // singlet energies are stored in Ryd...
+    cout << "DFT " << setprecision(12) << _dft_energy/27.21138386 << " exc " << _omega*0.5 << endl; 
     return _total_energy = _dft_energy/27.21138386 + _omega*0.5; // a.u.
+    
 }
 
 
@@ -839,7 +1033,7 @@ void Exciton::ReadXYZ(Segment* _segment, string filename){
                 string label, type;
                 vec pos;
 
-                cout << " Reading molecular coordinates from " << _xyzfile << endl;
+                LOG(logDEBUG,_log) << " Reading molecular coordinates from " << _xyzfile << flush;
                 in.open(_xyzfile.c_str(), ios::in);
                 if (!in) throw runtime_error(string("Error reading coordinates from: ")
                         + _xyzfile);
@@ -928,6 +1122,40 @@ void Exciton::Orbitals2Segment(Segment* _segment, Orbitals* _orbitals){
    }
 
 
+  
+  // write iteration
+  void Exciton::WriteIteration(FILE *out, int _iteration, Segment* _segment, ub::matrix<double>& _force) {
+
+    vector< Atom* > ::iterator ait;
+    vector< Atom* > _atoms = _segment->Atoms();
+    int qmatoms = 0;
+    for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
+        ++qmatoms;
+    }
+
+    fprintf(out, "%6d \n", qmatoms);
+    fprintf(out, "at iteration %d \n", _iteration);
+    
+    int _i_atom = 0;
+    for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
+
+        vec     pos = (*ait)->getQMPos();
+        string  name = (*ait)->getElement();
+
+        fprintf(out, "%2s %4.7f %4.7f %4.7f atom_vector %4.7f %4.7f %4.7f \n",
+                        name.c_str(),
+                        pos.getX()*10,
+                        pos.getY()*10,
+                        pos.getZ()*10,
+                        _force(_i_atom,0)*51.4220822067,
+                        _force(_i_atom,1)*51.4220822067,
+                        _force(_i_atom,2)*51.4220822067);
+        _i_atom++;
+    }
+
+
+}
+  
 
 }}
 
