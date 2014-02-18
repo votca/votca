@@ -40,7 +40,7 @@ inline void GraphSQL<TNode,TLink>::Initialize(string filename){
     // Load Nodes
     votca::tools::Database db;
     db.Open( filename );
-    votca::tools::Statement *stmt = db.Prepare("SELECT _id-1, posX, posY, posZ, UnCnNe, UnCnNh, UcNcCe, UcNcCh, eAnion, eNeutral, eCation, ucCnNe, ucCnNh FROM segments;");
+    votca::tools::Statement *stmt = db.Prepare("SELECT _id-1, posX, posY, posZ, UnCnNe, UnCnNh, UcNcCe, UcNcCh, eAnion, eNeutral, eCation, UcCnNe, UcCnNh FROM segments;");
 
     while (stmt->Step() != SQLITE_DONE) {    
       
@@ -58,13 +58,13 @@ inline void GraphSQL<TNode,TLink>::Initialize(string filename){
         double eNeutral = stmt->Column<double>(9);
         double eCation = stmt->Column<double>(10);
 
-        double ucCnNe = stmt->Column<double>(11);
-        double ucCnNh = stmt->Column<double>(12);
+        double UcCnNe = stmt->Column<double>(11);
+        double UcCnNh = stmt->Column<double>(12);
 
         TNode* newTNode = this->AddNode(id,position);
         newTNode->setU(UnCnNe, UnCnNh, UcNcCe, UcNcCh);
         newTNode->setE(eAnion, eNeutral, eCation);
-        newTNode->setu(ucCnNe, ucCnNh);
+        newTNode->setu(UcCnNe, UcCnNh);
         
     }
     

@@ -43,9 +43,9 @@ public:
         _eCation  = eCation;
     }
     
-    void setu(double ucCnNe, double ucCnNh) {
-        _ucCnNe = ucCnNe;
-        _ucCnNh = ucCnNh;
+    void setu(double UcCnNe, double UcCnNh) {
+        _UcCnNe = UcCnNe;
+        _UcCnNh = UcCnNh;
     }
 
     //Debugging
@@ -58,8 +58,8 @@ public:
     const double &eNeutral() const { return _eNeutral;}   
     const double &eCation()  const { return _eCation; }   
 
-    const double &ucCnNe() const { return _ucCnNe; }   
-    const double &ucCnNh() const { return _ucCnNh; }   
+    const double &UcCnNe() const { return _UcCnNe; }   
+    const double &UcCnNh() const { return _UcCnNh; }   
     
 private:
 
@@ -72,8 +72,8 @@ private:
     double _eNeutral;
     double _eCation;
 
-    double _ucCnNe;
-    double _ucCnNh;
+    double _UcCnNe;
+    double _UcCnNh;
 
     ;
     

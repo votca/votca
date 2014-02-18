@@ -90,7 +90,7 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     graph = new GraphDevice();
     graph->Initialize(filename);
     graph->Setup_device_graph(eventdata->left_electrode_distance, eventdata->right_electrode_distance, false, eventdata);
-    eventdata->Graph_Parameters(graph->hopdist(), graph->simboxsize(), graph->maxpairdegree());
+    eventdata->Graph_Parameters(graph->hopdist(), graph->simboxsize(), graph->maxpairdegree(),graph->Av_hole_node_energy());
 
     std::cout << "graph initialized" << endl;
     std::cout << "max pair degree: " << graph->maxpairdegree() << endl;

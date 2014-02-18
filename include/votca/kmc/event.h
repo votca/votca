@@ -112,8 +112,8 @@ protected:
 
 inline int Event::Determine_final_event_type(Node* node1, Node* node2) {
     if (node2->type() == (int) NormalNode){                                                                  
-        if(!node2->injectable) return (int) TransferTo;
-        if(node2->injectable) return (int) CollectiontoNode;
+        if(!dynamic_cast<NodeDevice*>(node2)->injectable()) return (int) TransferTo;
+        if(dynamic_cast<NodeDevice*>(node2)->injectable()) return (int) CollectiontoNode;
     }
     else if (node2->type() == (int) LeftElectrodeNode || node2->type() == (int) RightElectrodeNode){         return (int) Collection;} // Collection at electrode
 }
@@ -125,8 +125,8 @@ inline int Event::Determine_final_event_type(int carrier_type1, int carrier_type
 
 inline int Event::Determine_init_event_type(Node* node1) {
     if(node1->type() == (int) NormalNode){                                                                   
-        if(!node1->injectable) return (int) TransferFrom;
-        if(node1->injectable) return (int) InjectionfromNode;
+        if(!dynamic_cast<NodeDevice*>(node1)->injectable()) return (int) TransferFrom;
+        if(dynamic_cast<NodeDevice*>(node1)->injectable()) return (int) InjectionfromNode;
     }
     else if((node1->type() == (int) LeftElectrodeNode) || (node1->type() == (int) RightElectrodeNode)){      return (int) Injection;   }
 }
@@ -188,14 +188,14 @@ void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* 
     if(_carrier_type == (int) Electron) {
         charge = -1.0;
         prefactor = prefactor*(eventinfo->electron_prefactor);
-        static_node_energy_from = dynamic_cast<NodeSQL*>(node1)->eCation() + dynamic_cast<NodeSQL*>(node1)->ucCnNe();
-        static_node_energy_to = dynamic_cast<NodeSQL*>(node2)->eCation() + dynamic_cast<NodeSQL*>(node2)->ucCnNe();
+        static_node_energy_from = dynamic_cast<NodeSQL*>(node1)->eCation() + dynamic_cast<NodeSQL*>(node1)->UcCnNe();
+        static_node_energy_to = dynamic_cast<NodeSQL*>(node2)->eCation() + dynamic_cast<NodeSQL*>(node2)->UcCnNe();
     }
     else if(_carrier_type == (int) Hole) {
         charge = 1.0;
         prefactor = prefactor*(eventinfo->hole_prefactor);
-        static_node_energy_from = dynamic_cast<NodeSQL*>(node1)->eAnion() + dynamic_cast<NodeSQL*>(node1)->ucCnNh();
-        static_node_energy_to = dynamic_cast<NodeSQL*>(node2)->eAnion() + dynamic_cast<NodeSQL*>(node2)->ucCnNh();
+        static_node_energy_from = dynamic_cast<NodeSQL*>(node1)->eAnion() + dynamic_cast<NodeSQL*>(node1)->UcCnNh();
+        static_node_energy_to = dynamic_cast<NodeSQL*>(node2)->eAnion() + dynamic_cast<NodeSQL*>(node2)->UcCnNh();
         if(_init_type == Injection) static_node_energy_from += 21.5;
         if(_final_type == Collection) static_node_energy_to += 21.5;
     }
@@ -213,9 +213,7 @@ void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* 
     }
     else if((eventinfo->formalism == "Marcus")&&(_init_type==Injection||_final_type==Collection)) {
          double distance = abs(distancevector);
-         Jeff2 = exp(-2.0*eventinfo->alpha*distance);
-         Reorg = 0.1345;
-         transferfactor = (2*Pi/hbar)*(Jeff2/sqrt(4*Pi*Reorg*kB*eventinfo->temperature));
+         transferfactor = exp(-2.0*eventinfo->alpha*distance);
     }
     else if(eventinfo->formalism == "Marcus") {
 

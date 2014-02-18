@@ -45,7 +45,7 @@ public:
     void Determine_source_nodes();
     
     ///translate graph in such a way that the minimum coordinates are at 0
-    void Translate_graph();
+    void Put_at_zero_graph();
     
     ///reperiodicize graph
     void Push_in_box();
@@ -57,7 +57,7 @@ public:
     void Translate_graph(double translate_x, double translate_y, double translate_z);
     
     ///add electrode nodes
-    void Add_electrodes(de);
+    void Add_electrodes();
     
     ///associate all links in links vector to the corresponding nodes
     void LinkSort();
@@ -108,7 +108,9 @@ public:
     void Roll_morph(double translate_x, double translate_y, double translate_z); 
     
     /// rotate morphology (if rotate_axis = 0, rotation around z axis, if rotate_axis = 1, rotation around y axis)
-    void Rotate_morph(double rotate_in_rads, int rotate_axis);
+    // void Rotate_morph(double rotate_in_rads, int rotate_axis);
+    
+    double Av_hole_node_energy();
     
 private:
 
@@ -119,7 +121,23 @@ private:
     NodeDevice* _left_electrode;
     NodeDevice* _right_electrode;
     
+    
+    
 };
+
+double GraphDevice::Av_hole_node_energy() {
+    
+    double ho_energy = 0.0;
+    double av_ho_energy = 0.0;
+    
+    typename std::vector<NodeDevice*>:: iterator it;
+    for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) {
+        ho_energy += (*it)->eAnion() + (*it)->UcCnNh();
+    }
+    
+    av_ho_energy = ho_energy/this->Numberofnodes();
+    return av_ho_energy;
+}
 
 void GraphDevice::Translate_graph(double translate_x, double translate_y, double translate_z) {
     
@@ -227,7 +245,7 @@ void GraphDevice::Setup_device_graph(double left_distance, double right_distance
     //set node types for existing nodes as Normal
     this->Init_node_types();
  
-    this->Add_electrodes(left_distance, right_distance);
+    this->Add_electrodes();
  
     // associate links in links vector with the corresponding nodes
     this->LinkSort();
@@ -605,7 +623,7 @@ void GraphDevice::Resize(int dimX, int dimY, int dimZ) {
                         // copy data to the periodically repeated nodes
                         newNodeDevice->setU(probenode->UnCnNe(), probenode->UnCnNh(),   probenode->UcNcCe(), probenode->UcNcCh());
                         newNodeDevice->setE(probenode->eAnion(), probenode->eNeutral(), probenode->eCation());
-                        newNodeDevice->setu(probenode->ucCnNe(), probenode->ucCnNh());
+                        newNodeDevice->setu(probenode->UcCnNe(), probenode->UcCnNh());
                     }
                 }
             }
@@ -747,7 +765,7 @@ void GraphDevice::Roll_morph(double translate_x, double translate_y, double tran
     this->Determine_cross_types();
 }
 
-void GraphDevice::Rotate_morph(double rotate_in_rads, int rotate_axis) {
+/*void GraphDevice::Rotate_morph(double rotate_in_rads, int rotate_axis) {
     
     this->Determine_cross_types();
     
@@ -758,7 +776,7 @@ void GraphDevice::Rotate_morph(double rotate_in_rads, int rotate_axis) {
 
     // first resize the morphology, rotate and cut off
     
-}
+}*/
     
 }}
 
