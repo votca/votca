@@ -196,8 +196,8 @@ void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* 
         prefactor = prefactor*(eventinfo->hole_prefactor);
         static_node_energy_from = dynamic_cast<NodeSQL*>(node1)->eAnion() + dynamic_cast<NodeSQL*>(node1)->UcCnNh();
         static_node_energy_to = dynamic_cast<NodeSQL*>(node2)->eAnion() + dynamic_cast<NodeSQL*>(node2)->UcCnNh();
-        if(_init_type == Injection) static_node_energy_from += 21.5;
-        if(_final_type == Collection) static_node_energy_to += 21.5;
+        if(_init_type == Injection) static_node_energy_from += eventinfo->avholeenergy;
+        if(_final_type == Collection) static_node_energy_to += eventinfo->avholeenergy;
     }
     
     //first transfer integrals
