@@ -44,6 +44,7 @@ public:
     void EvaluateFields();
     void EvaluateInduction();
     void EvaluateEnergy();
+    void EvaluateRadialCorrection();
     void EvaluatePoisson();
     // OUTPUT & ERROR COMMUNICATION
     bool Converged() { return _converged_R && _converged_K && _polar_converged; }
@@ -163,6 +164,7 @@ protected:
     bool _task_calculate_fields;
     bool _task_polarize_fg;
     bool _task_evaluate_energy;
+    bool _task_apply_radial;
     bool _task_solve_poisson;
 
     // CONVERGENCE
@@ -187,6 +189,7 @@ protected:
     double _polar_epstol;
     double _polar_cutoff;
     double _polar_converged;
+    double _polar_radial_corr_epsilon;
 
     // LATTICE (REAL, RECIPROCAL)
     vec _a; vec _b; vec _c;            // Real-space lattice vectors
@@ -224,6 +227,8 @@ protected:
     double _polar_EM0;  double _polar_EM1;  double _polar_EM2;
     // Part I + Part II
     double _Estat;      double _Eindu;      double _Eppuu;
+    // Radial dielectric correction
+    double _polar_ERC;
 
     // TIMING (WALL CLOCK)
     double _t_total;
@@ -231,6 +236,7 @@ protected:
     double _t_fields;
     double _t_induction;
     double _t_energy;
+    double _t_radial;
     
 
 };
