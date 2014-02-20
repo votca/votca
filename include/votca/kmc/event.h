@@ -209,7 +209,7 @@ void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* 
     
     if (eventinfo->formalism == "Miller") {
         double distance = abs(distancevector);
-        transferfactor = exp(-1.0*eventinfo->alpha*distance);
+        transferfactor = exp(-2.0*eventinfo->alpha*distance);
     }
     else if((eventinfo->formalism == "Marcus")&&(_init_type==Injection||_final_type==Collection)) {
          double distance = abs(distancevector);
@@ -289,7 +289,7 @@ void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* 
     }
 
     _rate = prefactor*transferfactor*energyfactor;
-//        std::cout << prefactor << " " << transferfactor << " " << energyfactor << " " << dynamic_cast<LinkSQL*>(_link)->Jeff2h() << " " << dynamic_cast<LinkSQL*>(_link)->lOh() << " " << Reorg << endl;
+//        std::cout << _init_type << " " << _final_type << " " << prefactor << " " << transferfactor << " " << energyfactor << " " << dynamic_cast<LinkSQL*>(_link)->Jeff2h() << " " << dynamic_cast<LinkSQL*>(_link)->lOh() << " " << Reorg << endl;
 }
 
 void Event::Set_event(Link* link,int carrier_type, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo) {

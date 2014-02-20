@@ -53,6 +53,7 @@ public:
         efield_x                    = options->get("options.diode.efield_x").as<double>();
         efield_y                    = options->get("options.diode.efield_y").as<double>();
         efield_z                    = options->get("options.diode.efield_z").as<double>();
+        voltage                     = options->get("options.diode.voltage").as<double>();
         injection_barrier           = options->get("options.diode.injection_barrier").as<double>();
         binding_energy              = options->get("options.diode.binding_energy").as<double>();
         formalism                   = options->get("options.diode.formalism").as<string>();
@@ -92,6 +93,10 @@ public:
         maxpairdegree = graph_maxpairdegree;
         avholeenergy = av_ho_energy;
     }
+    
+    void Set_field(){
+        efield_x = voltage/(size_x + left_electrode_distance + right_electrode_distance);
+    }
 
     int seed; int nr_equilsteps; int nr_timesteps; int steps_update_longrange;
     int number_direct_conv_iv; int number_direct_conv_reco;
@@ -99,7 +104,7 @@ public:
     double size_x; double size_y; double size_z;
     double lattice_constant; double left_electrode_distance; double right_electrode_distance; 
     double alpha; double temperature; double el_density; double ho_density;
-    double efield_x; double efield_y; double efield_z;
+    double efield_x; double efield_y; double efield_z; double voltage;
     double electron_prefactor; double hole_prefactor; double injection_prefactor; double recombination_prefactor; double collection_prefactor;
     string formalism; double injection_barrier; double binding_energy;
     bool left_electron_injection; bool left_hole_injection; bool right_electron_injection; bool right_hole_injection; bool device;

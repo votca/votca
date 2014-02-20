@@ -43,13 +43,13 @@ public:
     } 
     
     /// On execute methode
-    void On_execute(Event* event, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo);
+    void On_execute(Event* event, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo, int it);
     /// On execute method node wise
-    void On_execute_node(Node* node, int action, int carrier_type, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo);
+    void On_execute_node(Node* node, int action, int carrier_type, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo, int it);
     /// Execute method in case carrier is added on node
-    void Add_carrier(Node* node, int carrier_type, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo);
+    void Add_carrier(Node* node, int carrier_type, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo, int it);
     /// Execute method in case carrier is removed from node
-    void Remove_carrier(Node* node, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo);
+    void Remove_carrier(Node* node, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo, int it);
     
     /// Recalculate rates of all events
     void Recompute_all_events(StateDevice* state, Longrange* longrange,Bsumtree* non_injection_rates, Bsumtree* injection_rates,  Eventinfo* eventinfo);
@@ -111,23 +111,24 @@ private:
 
 };
 
-void Events::On_execute(Event* event, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo) {
+void Events::On_execute(Event* event, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo, int it) {
     
     Node* node1 = event->link()->node1();
     Node* node2 = event->link()->node2();
     
-    On_execute_node(node1, event->action_node1(), event->carrier_type(), graph, state, longrange, non_injection_rates, injection_rates, eventinfo );
-    On_execute_node(node2, event->action_node2(), event->carrier_type(), graph, state, longrange, non_injection_rates, injection_rates, eventinfo );
+    On_execute_node(node1, event->action_node1(), event->carrier_type(), graph, state, longrange, non_injection_rates, injection_rates, eventinfo, it );
+    On_execute_node(node2, event->action_node2(), event->carrier_type(), graph, state, longrange, non_injection_rates, injection_rates, eventinfo, it );
+
 }
 
-void Events::On_execute_node(Node* node, int action, int carrier_type, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo) {
+void Events::On_execute_node(Node* node, int action, int carrier_type, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo, int it) {
         
     if(action == (int) None)        {                                                                                                                   }
-    else if(action == (int) Add)    { Add_carrier(node, carrier_type, graph, state, longrange, non_injection_rates, injection_rates, eventinfo);} 
-    else if(action == (int) Remove) { Remove_carrier(node, graph, state, longrange, non_injection_rates, injection_rates, eventinfo);           }
+    else if(action == (int) Add)    { Add_carrier(node, carrier_type, graph, state, longrange, non_injection_rates, injection_rates, eventinfo, it);} 
+    else if(action == (int) Remove) { Remove_carrier(node, graph, state, longrange, non_injection_rates, injection_rates, eventinfo, it);           }
 }
 
-void Events:: Add_carrier(Node* node, int carrier_type, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo) {
+void Events:: Add_carrier(Node* node, int carrier_type, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo, int it) {
 
     
     int new_carrier_ID;
@@ -161,10 +162,9 @@ void Events:: Add_carrier(Node* node, int carrier_type, GraphDevice* graph, Stat
     Effect_potential_and_rates((int) Add, new_carrier, node, graph, state, longrange, non_injection_rates, injection_rates, eventinfo);
 }
 
-void Events:: Remove_carrier(Node* node, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo) {
+void Events:: Remove_carrier(Node* node, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo, int it) {
    
     CarrierDevice* removed_carrier = state->GetCarrier(node->occ());
-
     //remove from graph
     node->RemoveCarrier();    
 
@@ -176,6 +176,7 @@ void Events:: Remove_carrier(Node* node, GraphDevice* graph, StateDevice* state,
 
     //push back to reservoir
     state->Sell(removed_carrier->id());    
+
 }
 
 inline void Events::Effect_potential_and_rates(int action, CarrierDevice* carrier, Node* node, GraphDevice* graph, StateDevice* state, Longrange* longrange, 
@@ -228,16 +229,19 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierDevice*
     // Translate cubic boundaries to sublattice boundaries in non-periodic coordinates
     int sx1 = floor(ix1/_meshsize_x);
     int sx2 = floor(ix2/_meshsize_x);
+    if (ix2>eventinfo->simboxsize.x()) {sx2 = eventinfo->mesh_x + floor((ix2-eventinfo->simboxsize.x())/_meshsize_x) + 1;}
     int sy1 = floor(iy1/_meshsize_y);
     int sy2 = floor(iy2/_meshsize_y);
+    if (iy2>eventinfo->simboxsize.y()) {sy2 = eventinfo->mesh_y + floor((iy2-eventinfo->simboxsize.y())/_meshsize_y) + 1;}
     int sz1 = floor(iz1/_meshsize_z);
     int sz2 = floor(iz2/_meshsize_z);
+    if (iz2>eventinfo->simboxsize.z()) {sz2 = eventinfo->mesh_z + floor((iz2-eventinfo->simboxsize.z())/_meshsize_z) + 1;}
     
     // Catch for the exceptional case that a carrier is on the boundary of the box
     if(sx2 == eventinfo->mesh_x) {sx2--;}
     if(sy2 == eventinfo->mesh_y) {sy2--;}
     if(sz2 == eventinfo->mesh_z) {sz2--;}
-    
+
     // Now visit all relevant sublattices
     for (int isz=sz1; isz<=sz2; isz++) {
         int r_isz = isz;
@@ -260,7 +264,6 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierDevice*
                 for (li3=li1; li3!=li2; li3++) {
 
                     int carrier2_ID = *li3;
-
                     CarrierDevice* carrier2 = state->GetCarrier(carrier2_ID);
 
                     int carrier2_type = carrier2->type();
@@ -720,7 +723,7 @@ void Events::Add_to_mesh(int ID, votca::tools::vec position, Eventinfo* eventinf
     if(iposy == eventinfo->mesh_y) {iposy--;}
     if(iposz == eventinfo->mesh_z) {iposz--;}
     
-    _non_injection_events_mesh[iposx][iposy][iposz].push_back(ID);     
+    _non_injection_events_mesh[iposx][iposy][iposz].push_back(ID);
 };
 
 void Events::Remove_from_mesh(int ID, votca::tools::vec position, Eventinfo* eventinfo){

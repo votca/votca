@@ -38,6 +38,8 @@ public:
     ///define electrode nodes and form links between those nodes and neighbouring nodes and set maxpairdegree/hopping_distance/sim_box_size
     void Setup_device_graph(double left_distance, double right_distance, bool resize, Eventinfo* eventinfo);       
 
+    void Setup_ohmic_device_graph(double left_distance, double right_distance, bool resize, Eventinfo* eventinfo);         
+    
     ///determine the crossing types of the links    
     void Determine_cross_types();
     
@@ -190,7 +192,9 @@ void GraphDevice::Setup_bulk_graph( bool resize, Eventinfo* eventinfo){
 
 }    
             
-            
+void GraphDevice::Setup_ohmic_device_graph(double left_distance, double right_distance, bool resize, Eventinfo* eventinfo){
+    
+}            
 
 void GraphDevice::Setup_device_graph(double left_distance, double right_distance, bool resize, Eventinfo* eventinfo){
     
@@ -220,8 +224,7 @@ void GraphDevice::Setup_device_graph(double left_distance, double right_distance
     
     // Resize by copying the box (crossing types are changed by this operation, so re-evaluate)
     if(resize) {this->Resize(eventinfo->size_x, eventinfo->size_y, eventinfo->size_z); this->Determine_cross_types(); _sim_box_size = this->Determine_Sim_Box_Size();}
-
-    
+  
     // Break periodicity
     if(resize) {
         this->Break_periodicity(true,eventinfo->size_x,false,eventinfo->size_y,false,eventinfo->size_z);
@@ -263,7 +266,7 @@ void GraphDevice::Setup_device_graph(double left_distance, double right_distance
     this->Clear();
 
     //renumber link id's
-    this->RenumberId();    
+    this->RenumberId(); 
    
 }
 
@@ -536,7 +539,6 @@ void GraphDevice::Break_periodicity(bool break_x, double dimX, bool break_y, dou
             this->RemoveLink(it);
             delete ilink;   
         }
-        
     }
   
     // Remove nodes
@@ -590,9 +592,9 @@ void GraphDevice::Break_periodicity(bool break_x, bool break_y, bool break_z){
 void GraphDevice::Resize(int dimX, int dimY, int dimZ) {
 
     
-    int repeatX = dimX;
-    int repeatY = dimY;
-    int repeatZ = dimZ;
+    int repeatX = ceil(dimX/_sim_box_size.x());
+    int repeatY = ceil(dimY/_sim_box_size.y());
+    int repeatZ = ceil(dimZ/_sim_box_size.z());
  
     int number_of_nodes = this->Numberofnodes();
 
@@ -615,7 +617,6 @@ void GraphDevice::Resize(int dimX, int dimY, int dimZ) {
                         votca::tools::vec new_node_pos = votca::tools::vec(posX,posY,posZ);
                         // remapping of the indices
                         int new_node_id = node_id + (iz+iy*repeatZ+ix*repeatY*repeatZ)*number_of_nodes;
-
                         // add node to nodes vector
                         NodeDevice* newNodeDevice = this->AddNode(new_node_id,new_node_pos);
                         Node* testnode = this->GetNode(new_node_id);

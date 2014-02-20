@@ -89,8 +89,9 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     
     graph = new GraphDevice();
     graph->Initialize(filename);
-    graph->Setup_device_graph(eventdata->left_electrode_distance, eventdata->right_electrode_distance, false, eventdata);
+    graph->Setup_device_graph(eventdata->left_electrode_distance, eventdata->right_electrode_distance, true, eventdata);
     eventdata->Graph_Parameters(graph->hopdist(), graph->simboxsize(), graph->maxpairdegree(),graph->Av_hole_node_energy());
+    eventdata->Set_field(); // convert voltage to electric field
 
     std::cout << "graph initialized" << endl;
     std::cout << "max pair degree: " << graph->maxpairdegree() << endl;
@@ -171,21 +172,20 @@ void Diode::RunKMC() {
     
     sim_time = 0.0;
     for (long it = 0; it < 2*eventdata->nr_equilsteps + eventdata->nr_timesteps; it++) {
-        
         // Update longrange cache (expensive, so not done at every timestep)
         if(ldiv(it, eventdata->steps_update_longrange).rem == 0 && it>0){
             longrange->Update_cache(eventdata);
             events->Recompute_all_events(state, longrange, non_injection_rates, injection_rates, eventdata);
         }
-        
+       
         vssmgroup->Recompute_device(non_injection_rates, injection_rates);
         double timestep = vssmgroup->Timestep(RandomVariable);
         sim_time += timestep;
-    
+ 
         Event* chosenevent = vssmgroup->Choose_event_device(events, non_injection_rates, injection_rates, RandomVariable);
         numoutput->Update(chosenevent, sim_time, timestep); 
-   
-        events->On_execute(chosenevent, graph, state, longrange, non_injection_rates, injection_rates, eventdata);
+
+        events->On_execute(chosenevent, graph, state, longrange, non_injection_rates, injection_rates, eventdata, it);
 
         // check for direct repeats
         
