@@ -196,8 +196,8 @@ void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* 
         prefactor = prefactor*(eventinfo->hole_prefactor);
         static_node_energy_from = dynamic_cast<NodeSQL*>(node1)->eAnion() + dynamic_cast<NodeSQL*>(node1)->UcCnNh();
         static_node_energy_to = dynamic_cast<NodeSQL*>(node2)->eAnion() + dynamic_cast<NodeSQL*>(node2)->UcCnNh();
-        if(_init_type == Injection) static_node_energy_from += eventinfo->avholeenergy;
-        if(_final_type == Collection) static_node_energy_to += eventinfo->avholeenergy;
+        if(_init_type == Injection) static_node_energy_from = eventinfo->avholeenergy;
+        if(_final_type == Collection) static_node_energy_to = eventinfo->avholeenergy;
     }
     
     //first transfer integrals
@@ -289,7 +289,8 @@ void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* 
     }
 
     _rate = prefactor*transferfactor*energyfactor;
-//        std::cout << _init_type << " " << _final_type << " " << prefactor << " " << transferfactor << " " << energyfactor << " " << dynamic_cast<LinkSQL*>(_link)->Jeff2h() << " " << dynamic_cast<LinkSQL*>(_link)->lOh() << " " << Reorg << endl;
+//        std::cout << _init_type << " " << _final_type << " " << prefactor << " " << transferfactor << " " << energyfactor << " " << energycontrib << " " << final_energy << " " << init_energy << " " << charge*(eventinfo->efield_x*distancevector.x()+eventinfo->efield_y*distancevector.y()+eventinfo->efield_z*distancevector.z()) << " " << static_node_energy_from << " " << static_node_energy_to << endl;
+      
 }
 
 void Event::Set_event(Link* link,int carrier_type, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo) {

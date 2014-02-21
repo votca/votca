@@ -539,6 +539,7 @@ void GraphDevice::Break_periodicity(bool break_x, double dimX, bool break_y, dou
             this->RemoveLink(it);
             delete ilink;   
         }
+        std::cout << it << endl;
     }
   
     // Remove nodes

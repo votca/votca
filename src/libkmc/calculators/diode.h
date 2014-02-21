@@ -90,7 +90,7 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     graph = new GraphDevice();
     graph->Initialize(filename);
     graph->Setup_device_graph(eventdata->left_electrode_distance, eventdata->right_electrode_distance, true, eventdata);
-    eventdata->Graph_Parameters(graph->hopdist(), graph->simboxsize(), graph->maxpairdegree(),graph->Av_hole_node_energy());
+    eventdata->Graph_Parameters(graph->hopdist(),graph->simboxsize(), graph->maxpairdegree(),graph->Av_hole_node_energy());
     eventdata->Set_field(); // convert voltage to electric field
 
     std::cout << "graph initialized" << endl;

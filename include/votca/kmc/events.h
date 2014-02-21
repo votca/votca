@@ -229,19 +229,19 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierDevice*
     // Translate cubic boundaries to sublattice boundaries in non-periodic coordinates
     int sx1 = floor(ix1/_meshsize_x);
     int sx2 = floor(ix2/_meshsize_x);
-    if (ix2>eventinfo->simboxsize.x()) {sx2 = eventinfo->mesh_x + floor((ix2-eventinfo->simboxsize.x())/_meshsize_x) + 1;}
+    if (ix2 == eventinfo->simboxsize.x()) {sx2--;}
+//    if (ix2 > eventinfo->simboxsize.x()) {sx2 = eventinfo->mesh_x + floor((ix2-eventinfo->simboxsize.x())/_meshsize_x);}
+    
     int sy1 = floor(iy1/_meshsize_y);
     int sy2 = floor(iy2/_meshsize_y);
-    if (iy2>eventinfo->simboxsize.y()) {sy2 = eventinfo->mesh_y + floor((iy2-eventinfo->simboxsize.y())/_meshsize_y) + 1;}
+    if (iy2 == eventinfo->simboxsize.y()) {sy2--;}
+//   if (iy2 > eventinfo->simboxsize.y()) {sy2 = eventinfo->mesh_y + floor((iy2-eventinfo->simboxsize.y())/_meshsize_y);}
+    
     int sz1 = floor(iz1/_meshsize_z);
     int sz2 = floor(iz2/_meshsize_z);
-    if (iz2>eventinfo->simboxsize.z()) {sz2 = eventinfo->mesh_z + floor((iz2-eventinfo->simboxsize.z())/_meshsize_z) + 1;}
+    if (iz2 == eventinfo->simboxsize.z()) {sz2--;}
+//    if (iz2 > eventinfo->simboxsize.z()) {sz2 = eventinfo->mesh_z + floor((iz2-eventinfo->simboxsize.z())/_meshsize_z);}
     
-    // Catch for the exceptional case that a carrier is on the boundary of the box
-    if(sx2 == eventinfo->mesh_x) {sx2--;}
-    if(sy2 == eventinfo->mesh_y) {sy2--;}
-    if(sz2 == eventinfo->mesh_z) {sz2--;}
-
     // Now visit all relevant sublattices
     for (int isz=sz1; isz<=sz2; isz++) {
         int r_isz = isz;
@@ -397,8 +397,12 @@ void Events:: Effect_injection_rates(int action, CarrierDevice* carrier, Node* n
     int sy1 = floor(iy1/_meshsize_y); int sy2 = floor(iy2/_meshsize_y);
     int sz1 = floor(iz1/_meshsize_z); int sz2 = floor(iz2/_meshsize_z);
 
-    if(sy2 == eventinfo->mesh_y) {sy2--;}
-    if(sz2 == eventinfo->mesh_z) {sz2--;}    
+    if (iy2 == eventinfo->simboxsize.y()) {sy2--;}    
+    if (iz2 == eventinfo->simboxsize.z()) {sz2--;}    
+
+    
+//    if(sy2 == eventinfo->mesh_y) {sy2--;}
+//    if(sz2 == eventinfo->mesh_z) {sz2--;}    
    
     // Now visit all relevant sublattices
     for (int isz=sz1; isz<=sz2; isz++) {
