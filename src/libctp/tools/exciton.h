@@ -307,7 +307,7 @@ bool Exciton::Evaluate() {
                Coord2Segment( &_current_coordinates);
                _molecule.push_back( &_current_coordinates );
                 ExcitationEnergies( _qmpackage, _segments, &_orbitals);
-                energy = GetTotalEnergy( &_orbitals, _spintype, _opt_state );
+                energy = GetTotalEnergy( &_orbitals, _spintype, _opt_state )
                _restart_opt = false;
            } else {
                // get current coordinates from Orbitals object

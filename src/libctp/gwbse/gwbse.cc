@@ -61,6 +61,8 @@ namespace votca {
             _do_bse_diag = true;
             _store_eh_interaction = false;
             _openmp_threads = 0; // take all available
+            _iterate_shift = false;
+            
             string key =  Identify();
     
             // getting level ranges 
@@ -97,8 +99,12 @@ namespace votca {
             _gwbasis_name = options->get(key + ".gwbasis").as<string> ();
             _dftbasis_name = options->get(key + ".dftbasis").as<string> ();
             _shift = options->get(key + ".shift").as<double> ();
-
-
+            string _shift_type = options->get(key + ".shift_type").as<string> ();
+            if ( _shift_type != "fixed" ) _iterate_shift = true;
+                                
+           
+            
+            
             // possible tasks
             // diagQP, singlets, triplets, all, ibse
             string _tasks_string = options->get(key + ".tasks").as<string> ();
@@ -414,41 +420,86 @@ namespace votca {
             // one entry to epsilon for each frequency
             _epsilon.resize( _screening_freq.size1() );
             
-            // for symmetric PPM, we can initialize _epsilon with the overlap matrix!
-            for ( int _i_freq = 0 ; _i_freq < _screening_freq.size1() ; _i_freq++ ){
-                _epsilon[ _i_freq ] = _gwoverlap._aomatrix ;
+            /* for automatic iteration of _shift, we need to
+             * - make a copy of _Mmn
+             * - calculate eps
+             * - construct ppm
+             * - threecenters for sigma
+             * - sigma_x
+             * - sigma_c 
+             * - test for convergence
+             * 
+             */
+            
+            _shift_converged = false;
+            TCMatrix _Mmn_backup;
+            if ( _iterate_shift ){ 
+
+                // make copy of _Mmn, memory++
+                
+                _Mmn_backup.Initialize(gwbasis._AOBasisSize, _rpamin, _qpmax, _rpamin, _rpamax);
+                int _mnsize = _Mmn_backup.get_mtot();
+                for (int _i = 0; _i < _mnsize; _i++) {
+                   _Mmn_backup[ _i ] = _Mmn[ _i ];
+                }
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Made backup of _Mmn  " << flush;
             }
             
-            // _gwoverlap is not needed further
-            _gwoverlap.~AOOverlap();
+            while ( ! _shift_converged ){
+                
+                // for symmetric PPM, we can initialize _epsilon with the overlap matrix!
+                for ( int _i_freq = 0 ; _i_freq < _screening_freq.size1() ; _i_freq++ ){
+                    _epsilon[ _i_freq ] = _gwoverlap._aomatrix ;
+                }
             
-            // determine epsilon from RPA
-            RPA_calculate_epsilon( _Mmn_RPA, _screening_freq, _shift, _dft_energies );
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculated epsilon via RPA  " << flush;
+                // _gwoverlap is not needed further, if no shift iteration
+                if ( ! _iterate_shift) _gwoverlap.~AOOverlap();
+            
+                // determine epsilon from RPA
+                RPA_calculate_epsilon( _Mmn_RPA, _screening_freq, _shift, _dft_energies );
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculated epsilon via RPA  " << flush;
   
-            // _Mmn_RPA is not needed any further
-            _Mmn_RPA.Cleanup();
+                // _Mmn_RPA is not needed any further, if no shift iteration
+                if ( ! _iterate_shift) _Mmn_RPA.Cleanup();
             
-            // construct PPM parameters
-            PPM_construct_parameters( _gwoverlap_cholesky_inverse._aomatrix );
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Constructed PPM parameters  " << flush;
+                // construct PPM parameters
+                PPM_construct_parameters( _gwoverlap_cholesky_inverse._aomatrix );
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Constructed PPM parameters  " << flush;
             
-            // prepare threecenters for Sigma
-            sigma_prepare_threecenters(  _Mmn );
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Prepared threecenters for sigma  " << flush;
+                // prepare threecenters for Sigma
+                sigma_prepare_threecenters(  _Mmn );
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Prepared threecenters for sigma  " << flush;
 
-            // calculate exchange part of sigma
-            sigma_x_setup( _Mmn );
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculated exchange part of Sigma  " << flush;
+                // calculate exchange part of sigma
+                sigma_x_setup( _Mmn );
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculated exchange part of Sigma  " << flush;
             
-            // TOCHECK: get rid of _ppm_phi?
+                // TOCHECK: get rid of _ppm_phi?
   
             
-            // calculate correlation part of sigma
-            sigma_c_setup( _Mmn, _dft_energies   );
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculated correlation part of Sigma  " << flush;
+                // calculate correlation part of sigma
+                sigma_c_setup( _Mmn, _dft_energies   );
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculated correlation part of Sigma  " << flush;
+                
+                // restore _Mmn, if shift has not converged
+                if ( _iterate_shift &&  ! _shift_converged){
+                   int _mnsize = _Mmn_backup.get_mtot();
+                   for (int _i = 0; _i <  _mnsize; _i++) {
+                      _Mmn[ _i ] = _Mmn_backup[ _i ];
+                   }
+                   
+                }
+                
+                if ( ! _iterate_shift ) _shift_converged = true;
  
+            }
             
+            // free unused variable if shift is iterated
+            if ( _iterate_shift ){
+                _gwoverlap.~AOOverlap();
+                _Mmn_RPA.Cleanup();
+                _Mmn_backup.Cleanup();
+            }
             // free no longer required three-center matrices in _Mmn
             // max required is _bse_cmax (could be smaller than _qpmax)
             _Mmn.Prune(gwbasis._AOBasisSize, _bse_vmin, _bse_cmax);

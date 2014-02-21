@@ -101,6 +101,7 @@ void Gaussian::Initialize( Property *options ) {
     iop_pos = _options.find("gen");
     if (iop_pos != std::string::npos) {
         _write_basis_set = true;
+        _basisset_name =  options->get(key + ".basisset").as<string> ();
     } else
     {
         _write_basis_set = false;
@@ -208,10 +209,10 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
         _com_file << endl;
         list<string> elements;
         BasisSet bs;
-        string basis_name("ubecppol");
+        // string basis_name(_basis);
         
-        bs.LoadBasisSet( basis_name );
-        LOG(logDEBUG,*_pLog) << "Loaded Basis Set " << basis_name << flush;
+        bs.LoadBasisSet( _basisset_name );
+        LOG(logDEBUG,*_pLog) << "Loaded Basis Set " << _basisset_name << flush;
 
         for (sit = segments.begin(); sit != segments.end(); ++sit) {
             
@@ -1117,10 +1118,10 @@ bool Gaussian::ConvertToGW( Orbitals* _orbitals ) {
     // reload the basis set
     list<string> elements;
     BasisSet bs;
-    string basis_name("ubecppol");
+    // string _basisset_name("ubecppol");
         
-    bs.LoadBasisSet( basis_name );
-    LOG(logDEBUG,*_pLog) << "Loaded Basis Set " << basis_name << flush;
+    bs.LoadBasisSet( _basisset_name );
+    LOG(logDEBUG,*_pLog) << "Loaded Basis Set " << _basisset_name << flush;
     
     // rewriting the molecular orbitals
     ofstream _orb_file;

@@ -192,6 +192,10 @@ public:
     bool                                _store_bse_triplets;
     bool                                _store_eh_interaction;
     
+    // automatic scissors iteration
+    bool                                _iterate_shift;
+    bool                                _shift_converged;
+    
     int                                 _openmp_threads;
     
     string _outParent;

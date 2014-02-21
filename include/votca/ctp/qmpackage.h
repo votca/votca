@@ -81,6 +81,7 @@ protected:
     
     string                              _run_dir;
         
+    string                              _basisset_name;
     list< string >                      _cleanup_list;
     
     bool                                _get_orbitals;

@@ -91,7 +91,7 @@ namespace votca {
 
             // initial _qp_energies are dft energies
             _qp_energies = _edft; // RANGES!
-            
+            double _DFTgap = _qp_energies( _homo +1 ) - _qp_energies( _homo  );
      
 
 	    // only diagonal elements except for in final iteration
@@ -139,7 +139,21 @@ namespace votca {
                 
             } // iterations
             
-
+            // check HOMO-LUMO gap shift
+            // cout << " QP HOMO : " << _qp_energies( _homo  ) << endl;
+            // cout << " QP LUMO : " << _qp_energies( _homo +1 ) << endl;
+            double _QPgap = _qp_energies( _homo +1 ) - _qp_energies( _homo  );
+            // cout << " QP Gap  : " << _QPgap << endl;
+            double _shift_new = _QPgap - _DFTgap;
+            // cout << " shift new " << _shift_new << endl;
+            if ( std::abs( (_shift_new - _shift)*13.605698066 ) > 0.01 ) {
+                _shift = _shift_new;
+            } else {
+                _shift_converged = true;
+            }
+            
+            // only if _shift is converged
+            if ( _shift_converged ){
 	    // in final step, also calc offdiagonal elements
 	    // initialize sigma_c to zero at the beginning
 	    _sigma_c = ub::zero_matrix<double>(_qptotal,_qptotal);
@@ -182,7 +196,7 @@ namespace votca {
 	      }// GW row 
 	      _qp_energies( _gw_level + _qpmin ) = _edft( _gw_level + _qpmin ) + _sigma_x(_gw_level,_gw_level) + _sigma_c(_gw_level,_gw_level) - _vxc(_gw_level ,_gw_level );
 	    } // GW col
-    
+            }
         } // sigma_c_setup
 
         void GWBSE::sigma_x_setup(const TCMatrix& _Mmn){
