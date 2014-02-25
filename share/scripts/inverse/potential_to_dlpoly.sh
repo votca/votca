@@ -93,7 +93,7 @@ table_begin="$(csg_calc "$table_zero" "+" $bin_size)"
 #keep the grid for now, so that extrapolate can calculate the right mean
 comment="$(get_table_comment)"
 smooth2="$(critical mktemp ${trunc}.pot.extended.XXXXX)"
-critical csg_resample --in ${input} --out "${smooth2}" --grid "${table_begin}:${step}:${table_end}" --comment "$comment"
+critical csg_resample --in ${input} --out "${smooth2}" --grid "${table_zero}:${step}:${table_end}" --comment "$comment"
 extrapolate="$(critical mktemp ${trunc}.pot.extrapolated.XXXXX)"
 do_external potential extrapolate --type "$bondtype" "${smooth2}" "${extrapolate}"
 

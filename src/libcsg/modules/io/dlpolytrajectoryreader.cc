@@ -155,6 +155,10 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &top)
 	cout << "Warning: PBC type in " << _fname << " header differs from that read with topology" << endl;
 	//throw std::runtime_error("Error: Boundary conditions in "+_fname+" header differs from that read with topology");
     } 
+    else if( _isConfig ) {
+
+      return false;
+    }
     //read normal frame
 
     if( !_isConfig ) { 

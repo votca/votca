@@ -200,8 +200,8 @@ void DLPTopolApp::WriteMoleculeAtoms(ostream &out, Molecule &cg)
     for(int i=0; i<cg.BeadCount(); ++i) {
         Bead *b=cg.getBead(i);
        
-        out << format("%8s  %10f  %10f     1     0     1 %10d  %s \n")
-            % b->getType()->getName() % b->getM() % b->getQ() % (i+1) % b->getName();
+        out << format("%8s  %10f  %10f     1     0     1 %10d  %8s  %8s %10d \n")
+            % b->getType()->getName() % b->getM() % b->getQ() % (i+1) % b->getType()->getName() % b->getName() % (i+1);
     }
 }
 
