@@ -469,7 +469,9 @@ private:
         ar & _bse_nmax; 
         ar & _index2c; 
         ar & _index2v;
-            
+        ar & _ScaHFX;    
+        
+        
             
         ar & _QPpert_energies;
         ar & _QPdiag_energies; 

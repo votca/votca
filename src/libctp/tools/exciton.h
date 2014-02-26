@@ -726,49 +726,110 @@ void Exciton::NumForceCentral(double energy, vector<Atom*> _atoms, ub::matrix<do
 /* Calculate forces on atoms numerically by forward differences */
 void Exciton::NumForceForward(double energy, vector<Atom*> _atoms, ub::matrix<double>& _force, QMPackage* _qmpackage, vector<Segment*> _molecule, Orbitals* _orbitals){
 
+    
+    // check if file "forces.resume" exists
+    string _filename = "forces.resume";
+    bool _forcefile_exists = boost::filesystem::exists(_filename);
+    ifstream in;
+    bool _forces_resume = false;
+    double f_in;
+    if ( _forcefile_exists ) {
+        // get iteration number
+        in.open(_filename.c_str(), ios::in);
+        int _iter_resume;
+        in >> _iter_resume;
+        if ( _iter_resume != _iteration ){
+            LOG(logDEBUG,_log) << " Forces in " << _filename << " from iteration " << _iter_resume << " and not iteration " << _iteration << flush;
+            LOG(logDEBUG,_log) << "  discard data..." << flush;
+        } else {
+            LOG(logDEBUG,_log) << " Resuming force calculation from  " << _filename << flush;
+            _forces_resume = true;
+            in >> f_in;
+        }
+    }
+
+
+
+    ofstream out;
     vector< Atom* > ::iterator ait;
     int _i_atom = 0;
     for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
-       // get its current coordinates
-       vec _current_pos = (*ait)->getQMPos(); // in nm
-       //       if ( _i_atom < 2 ) {        
-       for ( int _i_cart = 0 ; _i_cart < 3; _i_cart++ ){
-                   
-           // get displacement vector
-           vec _displaced(0, 0, 0);
-           if (_i_cart == 0) {
-              _displaced.setX(_displacement / 18.897259886 ); // x, _displacement in Bohr
-              _current_xyz(_i_atom,_i_cart ) = _current_pos.getX() * 18.897259886; // in Bohr
-           }
-           if (_i_cart == 1) {
-              _current_xyz(_i_atom,_i_cart ) = _current_pos.getY() * 18.897259886; // in Bohr
-              _displaced.setY(_displacement / 18.897259886 ); // y, _displacement in in Angstrom
-           }
-           if (_i_cart == 2) {
-              _current_xyz(_i_atom,_i_cart ) = _current_pos.getZ() * 18.897259886; // in Bohr
-              _displaced.setZ(_displacement / 18.897259886 ); // z, _displacement in in Angstrom
-           }
-                            
-           // update the coordinate
-           vec _pos_displaced = _current_pos + _displaced;
-           (*ait)->setQMPos(_pos_displaced); // put updated coordinate into segment
+        
 
-           // run DFT and GW-BSE for this geometry
-           ExcitationEnergies(_qmpackage, _molecule, _orbitals);
+          // get its current coordinates
+          vec _current_pos = (*ait)->getQMPos(); // in nm
+          //       if ( _i_atom < 2 ) {        
+          for ( int _i_cart = 0 ; _i_cart < 3; _i_cart++ ){
+
+             // try reading from forces.resume
+             if ( _forces_resume && !in.eof()){
+                 cout << " reading " << _i_atom << " " << _i_cart << endl;
+                _force(_i_atom,_i_cart) = f_in;
+                in >> f_in;
+                if (_i_cart == 0) {
+                   _current_xyz(_i_atom,_i_cart ) = _current_pos.getX() * 18.897259886; // in Bohr
+                }
+                if (_i_cart == 1) {
+                 _current_xyz(_i_atom,_i_cart ) = _current_pos.getY() * 18.897259886; // in Bohr
+                }
+                if (_i_cart == 2) {
+                 _current_xyz(_i_atom,_i_cart ) = _current_pos.getZ() * 18.897259886; // in Bohr
+                }
+             } else {
+        
+                 if ( in.is_open() ) {
+                     // close for reading
+                     in.close();
+                     out.open( _filename.c_str(), ios::app  );
+                 } else {
+                     // and open to append
+                     if ( ! out.is_open() ) {
+                         out.open( _filename.c_str(), ios::app  );
+                         out << _iteration << endl;
+                     }
+                 }    
+                 cout << " calculating " << _i_atom << " " << _i_cart << endl;
+              
+              // get displacement vector
+              vec _displaced(0, 0, 0);
+              if (_i_cart == 0) {
+                 _displaced.setX(_displacement / 18.897259886 ); // x, _displacement in Bohr
+                 _current_xyz(_i_atom,_i_cart ) = _current_pos.getX() * 18.897259886; // in Bohr
+              }
+              if (_i_cart == 1) {
+                 _current_xyz(_i_atom,_i_cart ) = _current_pos.getY() * 18.897259886; // in Bohr
+                 _displaced.setY(_displacement / 18.897259886 ); // y, _displacement in in Angstrom
+              }
+              if (_i_cart == 2) {
+                 _current_xyz(_i_atom,_i_cart ) = _current_pos.getZ() * 18.897259886; // in Bohr
+                 _displaced.setZ(_displacement / 18.897259886 ); // z, _displacement in in Angstrom
+              }
                             
-           // get total energy for this excited state
-           double energy_displaced = GetTotalEnergy(_orbitals, _spintype, _opt_state);
-           // calculate force and put into matrix
+              // update the coordinate
+              vec _pos_displaced = _current_pos + _displaced;
+              (*ait)->setQMPos(_pos_displaced); // put updated coordinate into segment
+
+              // run DFT and GW-BSE for this geometry
+              ExcitationEnergies(_qmpackage, _molecule, _orbitals);
+                            
+              // get total energy for this excited state
+              double energy_displaced = GetTotalEnergy(_orbitals, _spintype, _opt_state);
+              // calculate force and put into matrix
            
-           _force(_i_atom,_i_cart) = (energy - energy_displaced) / _displacement ; // force a.u./a.u.
-                                                  
-           (*ait)->setQMPos(_current_pos); // restore original coordinate into segment
-        }
-     
+              _force(_i_atom,_i_cart) = (energy - energy_displaced) / _displacement ; // force a.u./a.u.
+              cout << "writing force " << _i_atom << " " << _i_cart << endl;
+              out << setprecision(12) << _force(_i_atom,_i_cart) << endl;
+              
+              
+              
+              (*ait)->setQMPos(_current_pos); // restore original coordinate into segment
+           }
+          }  
       _i_atom++;
-   }
+   
+    }
     
-    
+    if ( out.is_open() ) out.close();
 }
 
 
