@@ -187,15 +187,20 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 	//read molecule
 	int id_map[natoms];
 	for (int i=0;i<natoms;){//i is altered in repeater loop
+	  stringstream sl(_NextKeyline(fl,WhiteSpace));
+
+#ifdef DEBUG
+	  cout << "Read atom specs in FIELD : '" << sl.str() << "'" << endl;
+#endif
 	  string beadtype;
-	  fl >> beadtype;
+	  sl >> beadtype;
 	  BeadType *type = top.GetOrCreateBeadType(beadtype);
 	  double mass;
-	  fl >> mass;
+	  sl >> mass;
 	  double charge;
-	  fl >> charge;
+	  sl >> charge;
 
-          getline(fl,line); //rest of the atom line
+	  sl >> line; //rest of the atom line
 
           Tokenizer tok(line, WhiteSpace);
 	  vector<string> fields;
@@ -222,22 +227,37 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 	}
 
 	while (line != "FINISH"){
+
+	  stringstream nl(_NextKeyline(fl,WhiteSpace));
+	  nl >> line;
+
+#ifdef DEBUG
+	  cout << "Read unit type# in FIELD : '" << nl.str() << "'" << endl;
+#endif
+	  boost::to_upper(line);
 	  if ((line == "BONDS")||(line == "ANGLES")||(line == "DIHEDRALS")) {
 	    string type = line;
 	    int count;
-	    fl >> count;
+	    nl >> count;
 	    for (int i=0;i<count;i++){
-	      fl >> line; //bond/angle/dih type not used
+
+	      stringstream sl(_NextKeyline(fl,WhiteSpace));
+#ifdef DEBUG
+	      cout << "Read unit specs in FIELD : '" << sl.str() << "'" << endl;
+#endif
+	      sl >> line; //bond/angle/dih type not used
 	      int ids[4];
               Interaction *ic;
-	      fl >> ids[0]; fl>>ids[1];
+	      sl >> ids[0]; 
+	      sl >> ids[1];
 	      if (type == "BONDS"){
 	        ic = new IBond(id_map[ids[0]-1],id_map[ids[1]-1]); // -1 due to fortran vs c 
 	      } else if (type == "ANGLES"){
-		fl >> ids[2];
+		sl >> ids[2];
 	        ic = new IAngle(id_map[ids[0]-1],id_map[ids[1]-1],id_map[ids[2]-1]); // -1 due to fortran vs c 
 	      } else if (type == "DIHEDRALS"){
-		fl >> ids[2]; fl >> ids[3];
+		sl >> ids[2]; 
+                sl >> ids[3];
 	        ic = new IDihedral(id_map[ids[0]-1],id_map[ids[1]-1],id_map[ids[2]-1],id_map[ids[3]-1]); // -1 due to fortran vs c 
 	      }
               ic->setGroup(type);
@@ -245,20 +265,17 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
               ic->setMolecule(mi->getId());
               top.AddBondedInteraction(ic);
               mi->AddInteraction(ic);
-	      getline(fl,line);
 	    }
 	  }
-	  fl >> line;
-	  boost::to_upper(line);
-	  if (fl.eof())
-            throw std::runtime_error("Error: unexpected end of dlpoly file " + _fname + " while scanning for kerword 'finish'");
 	}
 
 #ifdef DEBUG
 	cout << "Read from topology file " << _fname << " : '" << line << "' - done with '" << mol_name << "'" << endl;
-#endif
 
-	getline(fl, line); //rest of the FINISH line
+	//getline(fl, line); //rest of the FINISH line
+	//if (fl.eof())
+	//throw std::runtime_error("Error: unexpected end of dlpoly file " + _fname + " while scanning for kerword 'finish'");
+#endif
 
 	//replicate molecule
 	for (int replica=1;replica<nreplica;replica++){
@@ -299,7 +316,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
       cout << "Read from topology file " << _fname << " : '" << line << "' - done with topology" << endl;
     }
     else {
-      	    cout << "Read from topology file " << _fname << " : 'EOF' - done with topology (directive 'close' not read!)" << endl;
+      cout << "Read from topology file " << _fname << " : 'EOF' - done with topology (directive 'close' not read!)" << endl;
     }
 #endif
 
