@@ -1020,7 +1020,7 @@ void Ewald3DnD::Evaluate() {
         sit1 != _fg_C.end(); ++sit1) {
         (*sit1)->ClearPolarNbs();
     }    
-    
+   	/* 
     // Field effect
     std::ofstream ofs;
     ofs.open("field_effect", ofstream::out);
@@ -1067,6 +1067,7 @@ void Ewald3DnD::Evaluate() {
     }
     
     ofs.close();
+	*/
     
     
     
@@ -1424,8 +1425,8 @@ Property Ewald3DnD::GenerateOutputString() {
     next->add("C-pp-pu-uu", (format("%1$+1.5e = %2$+1.5e %3$+1.5e %4$+1.5e") % _EC.Sum() % _EC._pp % _EC._pu % _EC._uu).str());
     next->add("Q-pp-pu-uu", (format("%1$+1.5e = %2$+1.5e %3$+1.5e %4$+1.5e") % _EDQ.Sum() % _EDQ._pp % _EDQ._pu % _EDQ._uu).str());
     
-    next = &out.add("terms_+", "");
-    next->add("radial_corr", (format("%1$+1.5e") % _polar_ERC).str());
+    next = &out.add("terms_c", "");
+    next->add("radial_corr", (format("%1$+1.7e") % _polar_ERC).str());
     
     next = &out.add("shells", "");
     next->add("FGC", (format("%1$d") % _fg_C.size()).str());
