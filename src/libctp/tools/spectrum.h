@@ -150,7 +150,7 @@ bool Spectrum::Evaluate() {
     int _n_exc = TransitionDipoles.size();
  
   
-    LOG(logDEBUG, _log) << " Considering " << _n_exc << " excitation with max energy " << BSESingletEnergies[_n_exc] * _rydtoev << " eV / min wave length " <<  evtonm(BSESingletEnergies[_n_exc] * _rydtoev) << " nm" << flush;
+    LOG(logDEBUG, _log) << " Considering " << _n_exc << " excitation with max energy " << BSESingletEnergies[_n_exc-1] * _rydtoev << " eV / min wave length " <<  evtonm(BSESingletEnergies[_n_exc-1] * _rydtoev) << " nm" << flush;
     
     /*
      * 
@@ -196,7 +196,7 @@ bool Spectrum::Evaluate() {
         
     std::ofstream ofs (_output_file.c_str(), std::ofstream::out);
     
-    ofs << "E(eV)    epsGaussian    IM(eps)Gaussian   epsLorentz    Im(esp)Lorentz\n";
+    ofs << "# E(eV)    epsGaussian    IM(eps)Gaussian   epsLorentz    Im(esp)Lorentz\n";
     for ( int _i_pt = 0 ; _i_pt <= _n_pt; _i_pt++ ){
     
         double _e = (_lower + _i_pt * ( _upper - _lower)/_n_pt)/_rydtoev;
