@@ -303,10 +303,10 @@ bool Exciton::Evaluate() {
            Segment _current_coordinates(0, "mol");
            if ( _restart_opt) {
                // fill current coordinates from reloaded data
-               ReadXYZ( &_current_coordinates, _xyzfile );
-               Coord2Segment( &_current_coordinates);
+               ReadXYZ( &_current_coordinates, _xyzfile ); // to initialize
+               Coord2Segment( &_current_coordinates); // overwrite coordinates
                _molecule.push_back( &_current_coordinates );
-                ExcitationEnergies( _qmpackage, _segments, &_orbitals);
+                ExcitationEnergies( _qmpackage, _molecule, &_orbitals);
                 energy = GetTotalEnergy( &_orbitals, _spintype, _opt_state );
                _restart_opt = false;
            } else {
