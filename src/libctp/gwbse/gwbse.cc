@@ -510,7 +510,7 @@ namespace votca {
             // _pLog->setPreface(logINFO, "\n");
             
             LOG(logINFO,*_pLog) << (format("  ====== Perturbative quasiparticle energies (Rydberg) ====== ")).str() << flush;
-                        
+            LOG(logINFO,*_pLog) << (format("   DeltaHLGap = %1$+1.4f Ryd") % _shift ).str()  <<  flush;
             for ( int _i = 0 ; _i < _qptotal ; _i++ ){
                 if ( (_i + _qpmin) == _homo ){
                     LOG(logINFO,*_pLog) << (format("  HOMO  = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = %4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") % (_i+_qpmin+1) % _dft_energies( _i + _qpmin ) % _vxc(_i,_i) % _sigma_x(_i,_i) % _sigma_c(_i,_i) % _qp_energies(_i + _qpmin ) ).str() << flush;
