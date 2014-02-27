@@ -338,6 +338,7 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
         boost::algorithm::replace_all(_options_vxc, "/gen", " chkbasis");  
         boost::algorithm::replace_all(_options_vxc, "punch=mo", "guess=read");  
         boost::algorithm::replace_all(_options_vxc, "guess=tcheck", "");  
+        boost::algorithm::replace_all(_options_vxc, "guess=huckel", "");  
         if ( _options_vxc.size() ) _com_file2 <<  _options_vxc << endl ;
 
         // # pop=minimal pbepbe/gen pseudo=read scf=tight punch=mo
