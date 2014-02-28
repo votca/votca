@@ -28,6 +28,8 @@ echo
 exit 0
 fi
 
+export BASH #need in CsgFunctions.pm
+
 shopt -s extglob
 
 msg() { #echos a msg on the screen and send it to the logfile if logging is enabled
@@ -80,7 +82,7 @@ show_callstack() { #show the current callstack
   else
     space=""
   fi
-  [[ $0 = "bash" ]] || echo "${space}${0} - linenumber ${BASH_LINENO[ $(( ${#FUNCNAME[@]} -2 ))]}"
+  [[ $0 = *"bash" ]] || echo "${space}${0} - linenumber ${BASH_LINENO[ $(( ${#FUNCNAME[@]} -2 ))]}"
   for ((c=${#FUNCNAME[*]}-1;c>0;c--)); do
     [[ ${FUNCNAME[$c]} = main ]] && continue #main is useless as the info was printed 2 lines above
     space+="    "
@@ -160,7 +162,7 @@ do_external() { #takes two tags, find the according script and excute it
   #print this message to stderr to allow $(do_external ) and do_external XX > 
   [[ $quiet = "no" ]] && echo "Running subscript '${script##*/}${3:+ }${@:3}' (from tags $tags) dir ${script%/*}" >&2
   if [[ -n $CSGDEBUG ]] && [[ $1 = "function" || -n "$(sed -n '1s@bash@XXX@p' "${script/ *}")" ]]; then
-    CSG_CALLSTACK="$(show_callstack)" bash -x $script "${@:3}"
+    CSG_CALLSTACK="$(show_callstack)" "${BASH}" -x $script "${@:3}"
   elif [[ -n $CSGDEBUG && -n "$(sed -n '1s@perl@XXX@p' "${script/ *}")" ]]; then
     local perl_debug="$(mktemp perl_debug.XXX)" ret
     PERLDB_OPTS="NonStop=1 AutoTrace=1 frame=2 LineInfo=$perl_debug" perl -dS $script "${@:3}"
@@ -216,7 +218,7 @@ for_all (){ #do something for all interactions (1st argument)
       bondtype="$ibondtype" \
       bondname="$name" \
       CSG_CALLSTACK="$(show_callstack)" \
-      bash -c "$*" || die "${FUNCNAME[0]}: bash -c '$*' failed for interaction named '$name'"
+      "${BASH}" -c "$*" || die "${FUNCNAME[0]}: ${BASH} -c '$*' failed for interaction named '$name'"
     done
   done
 }
