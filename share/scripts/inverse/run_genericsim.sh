@@ -42,7 +42,7 @@ fi
 
 method="$(csg_get_property cg.inverse.method)"
 shopt -s extglob
-[[ $method = @(ibi|imc|optimizer|re) ]] || die "${0##*/}: ${sim_prog} does not support method $method yet!"
+is_part "$method" "ibi imc optimizer re" || die "${0##*/}: ${sim_prog} does not support method $method yet!"
 
 critical $cmd ${opts}
 

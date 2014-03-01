@@ -199,14 +199,14 @@ for_all (){ #do something for all interactions (1st argument)
   name=$(has_duplicate "${interactions[@]}") && die "${FUNCNAME[0]}: interaction name $name appears twice"
   for bondtype in $bondtypes; do
     #check that type is bonded or non-bonded
-    [[ $bondtype = @(non-bonded|bonded|angle|bond|dihedral) ]] || die  "for_all: Argument 1 needs to be non-bonded, bonded, angle, bond or dihedral"
+    is_part "$bondtype" "non-bonded bonded angle bond dihedral" || die  "for_all: Argument 1 needs to be non-bonded, bonded, angle, bond or dihedral"
     [[ $quiet = "no" ]] && echo "For all $bondtype" >&2
     #internal bondtype
-    [[ $bondtype = @(angle|bond|dihedral|bonded) ]] && ibondtype="bonded" || ibondtype="non-bonded"
+    is_part "$bondtype" "angle bond dihedral bonded" && ibondtype="bonded" || ibondtype="non-bonded"
     interactions=( $(csg_get_property --allow-empty cg.$ibondtype.name) ) #filter me away
     for name in "${interactions[@]}"; do
       #check if interaction is actually angle, bond or dihedral
-      if [[ $bondtype = @(angle|bond|dihedral) ]]; then
+      if is_part "$bondtype" "angle bond dihedral"; then
 	rbondtype=$(bondtype="$ibondtype" bondname="$name" csg_get_interaction_property bondtype)
 	[[ $rbondtype = $bondtype ]] || continue
       fi
