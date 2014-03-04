@@ -44,7 +44,7 @@ export -f simulation_finish
 checkpoint_exist() { #check if a checkpoint exists (REVIVE _and_ REVCON - both are needed!)
   #support for checkpoint
   local checkpoint check
-  checkpoint="($(csg_get_property cg.inverse.dlpoly.checkpoint))"
+  checkpoint="$(csg_get_property cg.inverse.dlpoly.checkpoint)"
   for check in $checkpoint; do
     [[ ! -f ${check} ]] && return 1
   done
