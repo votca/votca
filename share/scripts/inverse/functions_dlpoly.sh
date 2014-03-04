@@ -26,22 +26,30 @@ sed -n 's/^\(.*\)([)] {[^#]*#\(.*\)$/* \1   -- \2/p' ${0}
 fi
 
 simulation_finish() { #checks if simulation is finished
-  local traj topol
-  if [[ -f "HISTORY" ]]; then
-    #hacky workaround as topol/traj is called '.dlph/.dlpf'
-    traj=$(csg_get_property cg.inverse.dlpoly.traj)
-    critical touch $traj
-    topol=$(csg_get_property cg.inverse.dlpoly.topol)
-    critical touch $topol
-    return 0
-  fi
-  return 1
+  local nneeded npassed
+  [[ ! -f "HISTORY" ]] && return 1
+  [[ ! -s "OUTPUT"  ]] && return 1
+  nneeded=$(awk '/selected number of timesteps/{print $5}' OUTPUT)
+  npassed=$(awk '/run terminated after/{print $4}' OUTPUT)
+  [[ $npassed -lt $nneeded ]] && return 1
+  echo "DL_POLY simulation completed"
+  traj=$(csg_get_property cg.inverse.dlpoly.traj)
+  topol=$(csg_get_property cg.inverse.dlpoly.topol)
+  critical touch $traj
+  critical touch $topol
+  return 0
 }
 export -f simulation_finish
 
-checkpoint_exist() { #check if a checkpoint exists (not implemented)
-  #no support for checkpoints, yet !
-  return 1
+checkpoint_exist() { #check if a checkpoint exists (REVIVE _and_ REVCON - both are needed!)
+  #support for checkpoint
+  local checkpoint check
+  checkpoint="($(csg_get_property cg.inverse.dlpoly.checkpoint))"
+  for check in $checkpoint; do
+    [[ ! -f ${check} ]] && return 1
+  done
+  echo "DL_POLY checkpoint present (${checkpoint} found)"
+  return 0
 }
 export -f checkpoint_exist
 

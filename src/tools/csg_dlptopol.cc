@@ -196,7 +196,7 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *top_ref)
 void DLPTopolApp::WriteMoleculeAtoms(ostream &out, Molecule &cg)
 {
   out << "atoms " << cg.BeadCount() << endl;
-    out << "# name mass charge nrept ifrozen (optional: ngroup, index, type, residue) \n";
+    out << "# name  mass  charge  nrept  ifrozen (optional: ngroup, index, name/type, type/residue, index/res-ID) \n";
     for(int i=0; i<cg.BeadCount(); ++i) {
         Bead *b=cg.getBead(i);
        
@@ -245,7 +245,8 @@ void DLPTopolApp::WriteMoleculeInteractions(ostream &out, Molecule &cg)
         sout << " tab ";
         for(int i=0; i<nb; ++i)
 	  sout << ic->getBeadId(i)+1 << " ";
-        sout << " # " << ic->getName() << endl;
+        sout << "   1.00000  0.00000" << " # " << ic->getName() << endl;
+        //sout << "   1.00000  0.00000" << " # " << ic->getName() << endl;
     }
     if(sout.str()!="") out << n_entries << endl << sout.str();
 }

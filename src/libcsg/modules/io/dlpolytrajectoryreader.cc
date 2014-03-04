@@ -71,21 +71,22 @@ void DLPOLYTrajectoryReader::Close()
     _fl.close();
 }
 
-bool DLPOLYTrajectoryReader::FirstFrame(Topology &top)
+bool DLPOLYTrajectoryReader::FirstFrame(Topology &conf)
 {
     _first_frame=true;
-    bool res=NextFrame(top);
+    bool res=NextFrame(conf);
     _first_frame=false;
     return res;
 }
 
-bool DLPOLYTrajectoryReader::NextFrame(Topology &top)
+bool DLPOLYTrajectoryReader::NextFrame(Topology &conf)
 {
+    static bool hasVs  = false;
+    static bool hasFs  = false;
     static int  mavecs = 0; // number of 3d vectors per atom = keytrj in DL_POLY manuals
     static int  mpbct  = 0; // cell PBC type = imcon in DL_POLY manuals
     static int  matoms = 0; // number of atoms/beads in a frame
-    static bool hasVs  = false;
-    static bool hasFs  = false;
+    static double scale = 0.1; // A -> nm factor
 
     static int nerrt = 0;
 
@@ -121,20 +122,20 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &top)
       hasVs = (mavecs > 0); // 1 or 2 => in DL_POLY frame velocity vector follows coords for each atom/bead
       hasFs = (mavecs > 1); // 2      => in DL_POLY frame force vector follows velocities for each atom/bead
 
-      if(hasVs != top.HasVel() || hasFs != top.HasForce()) {
+      if(hasVs != conf.HasVel() || hasFs != conf.HasForce()) {
 #ifdef DEBUG
 	cout << "Warning: N of atom vectors (keytrj) in " << _fname << " header differs from that read with topology" << endl;
 #endif
       }
 
-      top.SetHasVel(hasVs);
-      top.SetHasForce(hasFs);
+      conf.SetHasVel(hasVs);
+      conf.SetHasForce(hasFs);
 
 #ifdef DEBUG
-      cout << "Read from " << _fname << " : keytrj - " << mavecs << ", hasV - " << top.HasVel() << ", hasF - " << top.HasForce()  << endl;
+      cout << "Read from " << _fname << " : keytrj - " << mavecs << ", hasV - " << conf.HasVel() << ", hasF - " << conf.HasForce()  << endl;
 #endif
 
-      if(matoms != top.BeadCount())
+      if(matoms != conf.BeadCount())
         throw std::runtime_error("Number of atoms/beads in "+_fname+" header differs from that read with topology");
 
       if(mpbct == 0) {
@@ -151,7 +152,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &top)
       cout << "Read from " << _fname << " : pbc_type (imcon) - '" << pbc_type << "'" << endl;
 #endif
 
-      if(pbc_type != top.getBoxType())
+      if(pbc_type != conf.getBoxType())
 	cout << "Warning: PBC type in " << _fname << " header differs from that read with topology" << endl;
 	//throw std::runtime_error("Error: Boundary conditions in "+_fname+" header differs from that read with topology");
     } 
@@ -182,11 +183,11 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &top)
 	navecs = mavecs;
 	npbct  = mpbct;
 
-	top.SetHasVel(hasVs);
-	top.SetHasForce(hasFs);
+	conf.SetHasVel(hasVs);
+	conf.SetHasForce(hasFs);
 
 #ifdef DEBUG
-	cout << "Read from CONFIG: traj_key - " << navecs << ", hasV - " << top.HasVel() << ", hasF - " << top.HasForce()  << endl;
+	cout << "Read from CONFIG: traj_key - " << navecs << ", hasV - " << conf.HasVel() << ", hasF - " << conf.HasForce()  << endl;
 #endif
 
       } else {
@@ -210,7 +211,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &top)
 	cout << ", dt = " << fields[5] << ", time = " << stime  << endl;
 #endif
 
-        if(natoms != top.BeadCount())
+        if(natoms != conf.BeadCount())
           throw std::runtime_error("Error: N of atoms/beads in "+_fname+" header differs from that found in topology");
         if(natoms != matoms)
 	  throw std::runtime_error("Error: N of atoms/beads in "+_fname+" header differs from that found in the frame");
@@ -220,12 +221,14 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &top)
 	  throw std::runtime_error("Error: boundary conditions (imcon) in "+_fname+" header differs from that found in the frame");
 
 	// total time - calculated as product due to differences between DL_POLY versions in HISTORY formats
-	top.setTime(nstep*dtime);
+	conf.setTime(nstep*dtime);
+	conf.setStep(nstep);
 
-	if( std::abs(stime - top.getTime()) > 1.e-8 ) {
+	if( std::abs(stime - conf.getTime()) > 1.e-8 ) {
 	  nerrt++;
 	  if( nerrt < 11 ) {
-	    cout << "Check: nstep = " << nstep << ", dt = " << dtime << ", time = " << top.getTime() << " (correct?)" << endl;
+	    cout << "Check: nstep = " << nstep << ", dt = " << dtime << ", time = " << stime << " (correct?)" << endl;
+	    //cout << "Check: nstep = " << nstep << ", dt = " << dtime << ", time = " << conf.getTime() << " (correct?)" << endl;
 	  }
 	  else if( nerrt == 11 ) {
 	    cout << "Check: timestep - more than 10 mismatches in total time found..." << endl;
@@ -260,11 +263,11 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &top)
         vector<double> fields;
         tok.ConvertToVector<double>(fields);
         //Angs -> nm
-	box_vectors[i]=vec(fields[0]/10.0,fields[1]/10.0,fields[2]/10.0);
+	box_vectors[i]=vec(fields[0]*scale,fields[1]*scale,fields[2]*scale);
       }
       matrix box(box_vectors[0],box_vectors[1],box_vectors[2]);
 
-      top.setBox(box,pbc_type);
+      conf.setBox(box,pbc_type);
 
       for (int i=0;i<natoms;i++){
 
@@ -288,7 +291,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &top)
 		 boost::lexical_cast<string>(i+1) + " but got " + boost::lexical_cast<string>(id));
 	}
 
-	Bead *b = top.getBead(i);
+	Bead *b = conf.getBead(i);
 	vec atom_vec[3];
 	for (int j=0;j<min(navecs,2)+1;j++){
 
@@ -306,7 +309,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &top)
           Tokenizer tok(line, " \t");
           tok.ConvertToVector<double>(fields);
           //Angs -> nm
-	  atom_vec[j]=vec(fields[0]/10.0,fields[1]/10.0,fields[2]/10.0);
+	  atom_vec[j]=vec(fields[0]*scale,fields[1]*scale,fields[2]*scale);
 	}
 
 	b->setPos(atom_vec[0]);

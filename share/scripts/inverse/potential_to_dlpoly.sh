@@ -41,7 +41,7 @@ if [[ $bondtype = "non-bonded" ]]; then
   table_grid="$(csg_get_property cg.inverse.dlpoly.table_grid)"
   bin_size="$(csg_calc "$table_end" "/" $table_grid)"
   # make sure the TAB* file is removed externally
-  if [[ ! -f $OUT ]]; then
+  if [[ ! -f "${OUT}" ]]; then
     echo "Table for dlpoly from VOTCA with love" > "${OUT}" #max 80 chars
     # see dlpoly manual ngrid = int(cut/delta) + 4
     table_grid="$(($table_grid+4))"
@@ -56,7 +56,7 @@ elif [[ $bondtype = "bond" ]]; then
   table_grid="$(csg_get_property cg.inverse.dlpoly.bonds.table_grid)"
   bin_size="$(csg_calc "$table_end" "/" $table_grid)"
   # make sure the TAB* file is removed externally
-  if [[ ! -f $OUT ]]; then
+  if [[ ! -f "${OUT}" ]]; then
     echo "# Table for dlpoly from VOTCA with love" > "${OUT}" #max 80 chars
     # nm -> Angs
     table_end1="$(csg_calc "$table_end" "*" 10)"
@@ -68,7 +68,7 @@ elif [[ $bondtype = "angle" ]]; then
   table_grid="$(csg_get_property cg.inverse.dlpoly.angles.table_grid)"
   bin_size="$(csg_calc "$table_end" "/" $table_grid)"
   # make sure the TAB* file is removed externally
-  if [[ ! -f $OUT ]]; then
+  if [[ ! -f "${OUT}" ]]; then
     echo "# Table for dlpoly from VOTCA with love" > "${OUT}" #max 80 chars
     echo "# $table_grid" >> "${OUT}"
   fi
@@ -80,7 +80,7 @@ elif [[ $bondtype = "dihedral" ]]; then
   bin_size="$(csg_calc "$table_end" "-" $table_zero)"
   bin_size="$(csg_calc "$bin_size" "/" $table_grid)"
   # make sure the TAB* file is removed externally
-  if [[ ! -f $OUT ]]; then
+  if [[ ! -f "${OUT}" ]]; then
     echo "# Table for dlpoly from VOTCA with love" > "${OUT}" #max 80 chars
     echo "# $table_grid" >> "${OUT}"
   fi

@@ -33,6 +33,9 @@
       <traj>.dlph
 	<DESC> Name of the output dlpoly trajectory file</DESC>
       </traj>
+      <checkpoint>REVIVE REVCON
+	<DESC> Names of the  dlpoly checkpoint files</DESC>
+      </checkpoint>
     </dlpoly>
     <espresso>
       <command>Espresso

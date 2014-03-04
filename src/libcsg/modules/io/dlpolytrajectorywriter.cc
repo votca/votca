@@ -69,8 +69,9 @@ void DLPOLYTrajectoryWriter::Close()
 
 void DLPOLYTrajectoryWriter::Write(Topology *conf)
 {
-    static int     step = 1;
+    static int    nstep = 1;
     static double dstep = 0.0;
+    static double scale = 10.0; // nm -> A factor
     int    mavecs = 0;
     int    mpbct  = 0;
     double energy = 0.0;
@@ -87,22 +88,23 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf)
       _fl << setw(10) << mavecs << setw(10) << mpbct << setw(10) << conf->BeadCount() << setw(20) << energy << endl;
       matrix m=conf->getBox();
       for (int i=0;i<3;i++) 
-	_fl << fixed << setprecision(10) << setw(20) << m[i][0] << setw(20) << m[i][1] << setw(20) << m[i][2] << endl;
+	_fl << fixed << setprecision(10) << setw(20) << m[i][0]*scale << setw(20) << m[i][1]*scale << setw(20) << m[i][2]*scale << endl;
 
     } else {
 
-      if (step==1) {
+      if (nstep==1) {
 	_fl << "From VOTCA with love" << endl;
 	_fl << setw(10) << mavecs << setw(10) << mpbct << setw(10) << conf->BeadCount() << endl;
-	dstep = conf->getTime()/(double)(step);
+	dstep = conf->getTime()/(double)(conf->getStep());
       }
 
-      _fl << "timestep" << setprecision(9) << setw(10) << step << setw(10) << conf->BeadCount() << setw(10) << mavecs << setw(10) << mpbct;
+      _fl << "timestep" << setprecision(9) << setw(10) << conf->getStep() << setw(10) << conf->BeadCount()
+	                                   << setw(10) << mavecs << setw(10) << mpbct;
       _fl << setprecision(9) << setw(12) << dstep << setw(12) <<conf->getTime() << endl;
 
       matrix m=conf->getBox();
       for (int i=0;i<3;i++) 
-	_fl << setprecision(12) << setw(20) << m[i][0] << setw(20) << m[i][1] << setw(20) << m[i][2] << endl;
+	_fl << setprecision(12) << setw(20) << m[i][0]*scale << setw(20) << m[i][1]*scale << setw(20) << m[i][2]*scale << endl;
 
     }
 
@@ -127,28 +129,28 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf)
       //_fl << fixed << setprecision(6) << setw(12) << bead->getM() << setw(12) << bead->getQ() << "   0.0" << endl;
 
       //nm -> Angs
-      _fl << resetiosflags(std::ios::fixed) << setprecision(12) << setw(20) << bead->getPos().getX()*10.0;
-      _fl << setw(20) << bead->getPos().getY()*10.0 << setw(20) << bead->getPos().getZ()*10.0 << endl;
+      _fl << resetiosflags(std::ios::fixed) << setprecision(12) << setw(20) << bead->getPos().getX()*scale;
+      _fl << setw(20) << bead->getPos().getY()*scale << setw(20) << bead->getPos().getZ()*scale << endl;
 
       if (mavecs>0) {
 	if (!bead->HasVel())
 	  throw std::ios_base::failure("Error: dlpoly frame is supposed to contain velocities, but bead does not have v-data");
 
         //nm -> Angs
-        _fl << setprecision(12) << setw(20) << bead->getVel().getX()*10.0 << setw(20);
-        _fl << bead->getVel().getY()*10.0 << setw(20) << bead->getVel().getZ()*10.0 << endl;
+        _fl << setprecision(12) << setw(20) << bead->getVel().getX()*scale << setw(20);
+        _fl << bead->getVel().getY()*scale << setw(20) << bead->getVel().getZ()*scale << endl;
 
 	if (mavecs>1) {
 	  if (!bead->HasF())
 	    throw std::ios_base::failure("Error: dlpoly frame is supposed to contain forces, but bead does not have f-data");
 
           //nm -> Angs
-	  _fl << setprecision(12) << setw(20) << bead->getF().getX()*10.0 << setw(20);
-	  _fl << bead->getF().getY()*10.0 << setw(20) << bead->getF().getZ()*10.0 << endl;
+	  _fl << setprecision(12) << setw(20) << bead->getF().getX()*scale << setw(20);
+	  _fl << bead->getF().getY()*scale << setw(20) << bead->getF().getZ()*scale << endl;
 	}
       }
     }
-    step++;
+    nstep++;
 }
 
 }}

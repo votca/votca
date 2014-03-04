@@ -31,7 +31,7 @@ for i in TABLE TABBND TABANG TABDIH; do
     if [[ -f "${i}.prv" ]]; then
       echo "Overwriting ${i}.prv ..."
     fi
-    critical mv -v "${i}" "${i}.prv"
+    critical mv -vf "${i}" "${i}.prv"
   fi
 done
 
