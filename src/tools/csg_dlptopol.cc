@@ -30,9 +30,12 @@ class DLPTopolApp
 public:
     string ProgramName() { return "csg_dlptopol"; }
     void HelpText(ostream &out) {
-        out << "Create template for dlpoly topology (FIELD) based on atomistic one"
-	  "and a mapping file (cg-map.xml).\n"
-	  "File still needs to be inspected/modified by the user.";
+        out << "Create template for dlpoly topology based on atomistic one"
+	  "and a mapping file (cg-map.xml): FIELD -> FIELD_CGV\n"
+	  "File FIELD_CGV still needs to be inspected and amended by the user.\n\n"
+          "Examples of usage:\n"
+          "                  csg_dlptopol --top .dlpf --cg cg-map.xml --out .dlpf\n"
+          "                  csg_dlptopol --top atomistic.dlpf --cg cg-map.xml --out coarse-grained.dlpf\n";
     }
 
     bool DoMapping(void) { return true; }
@@ -56,7 +59,7 @@ void DLPTopolApp::Initialize(void)
 {
     CsgApplication::Initialize();
     AddProgramOptions()
-      ("out", boost::program_options::value<string>(), "output dlpoly topology (will create FIELD_CGV or <name>.dlpf )");
+      ("out", boost::program_options::value<string>(), "output dlpoly topology ( .dlpf = FIELD_CGV or <name>.dlpf )");
 }
 
 bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *top_ref)
@@ -242,11 +245,13 @@ void DLPTopolApp::WriteMoleculeInteractions(ostream &out, Molecule &cg)
             }
         }
 	n_entries++;
+	// to do: is it possible to use bond/angle/dihedral function types for 1:1 mapping? (CG map overwrites ic->Group anyway)
+        //sout << ic->getInteractionFunc(); // something like that (only for 1:1 mapping!)
         sout << " tab ";
         for(int i=0; i<nb; ++i)
 	  sout << ic->getBeadId(i)+1 << " ";
         sout << "   1.00000  0.00000" << " # " << ic->getName() << endl;
-        //sout << "   1.00000  0.00000" << " # " << ic->getName() << endl;
+        //sout << "   1.00000  0.00000" << " # " << ic->getGroup() << endl;
     }
     if(sout.str()!="") out << n_entries << endl << sout.str();
 }

@@ -59,7 +59,7 @@ string DLPOLYTopologyReader::_NextKeyInt(ifstream &fs, const char* wspace, const
   boost::to_upper(line);
 
   if( line.substr(0,word.size()) != word )
-    throw std::runtime_error("Error: unexpected line in dlpoly file " + _fname + ", expected '" + word + "' but got '" + line + "'");
+    throw std::runtime_error("Error: unexpected line in dlpoly file '" + _fname + "', expected '" + word + "' but got '" + line + "'");
 
   sl >> sval;
 
@@ -160,7 +160,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 	throw std::runtime_error("Error: missing integer number in directive '" + line + "' in topology file '"+ _fname +"'");
 
 #ifdef DEBUG
-      cout << "Read from topology file " << _fname << " : '" << line << "' - " << nmol_types << endl;
+      cout << "Read from topology file '" << _fname << "' : '" << line << "' - " << nmol_types << endl;
 #endif
 
       string mol_name;
@@ -175,13 +175,13 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 	line = _NextKeyInt(fl,WhiteSpace,"NUMMOL",nreplica);
 
 #ifdef DEBUG
-	cout << "Read from topology file " << _fname << " : '" << mol_name << "' - '" << line << "' - " << nreplica << endl;
+	cout << "Read from topology file '" << _fname << "' : '" << mol_name << "' - '" << line << "' - " << nreplica << endl;
 #endif
 
 	line = _NextKeyInt(fl,WhiteSpace,"ATOMS",natoms);
 
 #ifdef DEBUG
-	cout << "Read from topology file " << _fname << " : '" << line << "' - " << natoms << endl;
+	cout << "Read from topology file '" << _fname << "' : '" << line << "' - " << natoms << endl;
 #endif
 
 	//read molecule
@@ -190,7 +190,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 	  stringstream sl(_NextKeyline(fl,WhiteSpace));
 
 #ifdef DEBUG
-	  cout << "Read atom specs in FIELD : '" << sl.str() << "'" << endl;
+	  cout << "Read atom specs in dlpoly topology : '" << sl.str() << "'" << endl;
 #endif
 	  string beadtype;
 	  sl >> beadtype;
@@ -232,10 +232,11 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 	  nl >> line;
 
 #ifdef DEBUG
-	  cout << "Read unit type# in FIELD : '" << nl.str() << "'" << endl;
+	  cout << "Read unit type# in dlpoly topology : '" << nl.str() << "'" << endl;
 #endif
 	  boost::to_upper(line);
-	  if ((line == "BONDS")||(line == "ANGLES")||(line == "DIHEDRALS")) {
+          line=line.substr(0,6);
+	  if ((line == "BONDS")||(line == "ANGLES")||(line == "DIHEDR")) {
 	    string type = line;
 	    int count;
 	    nl >> count;
@@ -243,9 +244,9 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 
 	      stringstream sl(_NextKeyline(fl,WhiteSpace));
 #ifdef DEBUG
-	      cout << "Read unit specs in FIELD : '" << sl.str() << "'" << endl;
+	      cout << "Read unit specs in dlpoly topology : '" << sl.str() << "'" << endl;
 #endif
-	      sl >> line; //bond/angle/dih type not used
+	      sl >> line; //internal dlpoly bond/angle/dihedral function types are merely skipped (ignored)
 	      int ids[4];
               Interaction *ic;
 	      sl >> ids[0]; 
@@ -255,11 +256,14 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 	      } else if (type == "ANGLES"){
 		sl >> ids[2];
 	        ic = new IAngle(id_map[ids[0]-1],id_map[ids[1]-1],id_map[ids[2]-1]); // -1 due to fortran vs c 
-	      } else if (type == "DIHEDRALS"){
+	      } else if (type.substr(0,6) == "DIHEDR"){
+                type = "DIHEDRALS";
 		sl >> ids[2]; 
                 sl >> ids[3];
 	        ic = new IDihedral(id_map[ids[0]-1],id_map[ids[1]-1],id_map[ids[2]-1],id_map[ids[3]-1]); // -1 due to fortran vs c 
 	      }
+	      // could one use bond/angle/dihedral function types for 1:1 mapping? (CG map overwrites ic->Group anyway)
+              //ic->setGroup(line); 
               ic->setGroup(type);
               ic->setIndex(i);
               ic->setMolecule(mi->getId());
@@ -270,11 +274,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 	}
 
 #ifdef DEBUG
-	cout << "Read from topology file " << _fname << " : '" << line << "' - done with '" << mol_name << "'" << endl;
-
-	//getline(fl, line); //rest of the FINISH line
-	//if (fl.eof())
-	//throw std::runtime_error("Error: unexpected end of dlpoly file " + _fname + " while scanning for kerword 'finish'");
+	cout << "Read from topology file '" << _fname << "' : '" << line << "' - done with '" << mol_name << "'" << endl;
 #endif
 
 	//replicate molecule
@@ -313,116 +313,15 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 #ifdef DEBUG
     getline(fl, line); //is "close" found?
     if(line=="close") {
-      cout << "Read from topology file " << _fname << " : '" << line << "' - done with topology" << endl;
+      cout << "Read from topology file '" << _fname << "' : '" << line << "' - done with topology" << endl;
     }
     else {
-      cout << "Read from topology file " << _fname << " : 'EOF' - done with topology (directive 'close' not read!)" << endl;
+      cout << "Read from topology file '" << _fname << "' : 'EOF' - done with topology (directive 'close' not read!)" << endl;
     }
 #endif
 
     //we don't need the rest
     fl.close();
-
-    string filename;
-
-    if ( boost::filesystem::basename(filepath).size() == 0 ) {
-      if (filepath.parent_path().string().size() == 0) {
-        filename="CONFIG";
-      } else {
-	filename=filepath.parent_path().string() + "/CONFIG";
-      }
-    } else {
-      filename=filepath.parent_path().string()+boost::filesystem::basename(filepath)+".dlpc";
-      cout << "NOTE: explicit dlpoly topology file name given '" << file << "', so trying to read boundary conditions from CONFIG file named '" << filename << "'" << endl;
-    }
-
-    fl.open(filename.c_str());
-
-    if(fl.is_open()) {
-      string line;
-
-      getline(fl, line); //title
-
-#ifdef DEBUG
-      cout << "Read from initial configuration file : '" << line << "' - header" << endl;
-#endif
-
-      getline(fl, line); // 2nd header line
-
-#ifdef DEBUG
-      cout << "Read from initial configuration file : '" << line << "' - directives line" << endl;
-#endif
-
-      Tokenizer tok(line, WhiteSpace);
-      vector<string> fields;
-      tok.ToVector(fields);
-
-      if( fields.size() < 3 ) 
-	throw std::runtime_error("Error: too few directive switches (<3) in the initial configuration (check its 2-nd line)");	
-
-      mavecs = boost::lexical_cast<int>(fields[0]);
-      mpbct  = boost::lexical_cast<int>(fields[1]);
-      natoms = boost::lexical_cast<int>(fields[2]);
-
-      hasVs = (mavecs > 0); // 1 or 2 => in DL_POLY frame velocity vector follows coords for each atom/bead
-      hasFs = (mavecs > 1); // 2      => in DL_POLY frame force vector follows velocities for each atom/bead
-
-      top.SetHasVel(hasVs);
-      top.SetHasForce(hasFs);
-
-      if(natoms != matoms)
-#ifdef DEBUG
-	cout << "Warning: N of atoms/beads in initial configuration & topology differ: " << natoms << " =?= " << matoms << endl;
-#else
-      	throw std::runtime_error("Error: N of atoms/beads in initial configuration & topology differ " +
-	    boost::lexical_cast<string>(natoms) + " vs " + boost::lexical_cast<string>(matoms));
-#endif
-
-      vec box_vectors[3];
-      for (int i=0;i<3;i++){ // read 3 box lines
-        getline(fl, line);
-
-#ifdef DEBUG
-	cout << "Read from initial configuration file : '" << line << "' - box vector # " << i+1 << " (Angs)" << endl;
-#endif
-
-        if(fl.eof())
-          throw std::runtime_error("Error: unexpected EOF in dlpoly file " + filename +", when reading box vector " +
-              boost::lexical_cast<string>(i));
-
-        Tokenizer tok(line, WhiteSpace);
-        vector<double> fields;
-        tok.ConvertToVector<double>(fields);
-	//Angs -> nm
-        box_vectors[i]=vec(fields[0]/10.0,fields[1]/10.0,fields[2]/10.0);
-
-#ifdef DEBUG
-	cout << "Read from initial configuration file : '" << fixed << setprecision(10) << setw(20) << fields[0] << setw(20) << fields[1] << setw(20) << fields[2] << "' - box vector # " << i+1 << " (nm)" << endl;
-#endif
-      }
-      matrix box(box_vectors[0],box_vectors[1],box_vectors[2]);
-
-      if(mpbct == 0) {
-	pbc_type=BoundaryCondition::typeOpen;
-      }
-      else if(mpbct == 1 || mpbct == 2 ) {
-	pbc_type=BoundaryCondition::typeOrthorhombic;
-      }
-      else if(mpbct == 3) {
-	pbc_type=BoundaryCondition::typeTriclinic;
-      }
-
-      top.setBox(box,pbc_type);
-
-      fl.close();
-
-#ifdef DEBUG
-      cout << "Read from initial configuration file : box/cell matrix - done with boundaries" << endl << endl;
-#endif
-    }
-    else {
-      cout << "NOTE: could not open dlpoly file " << filename << ", so no PBC set in topology - assuming 'open box'" << endl;
-    }
 
     return true;
 }
