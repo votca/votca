@@ -40,10 +40,10 @@ public:
         out << "Create a dlpoly topology template based on an existing (atomistic) topology "
 	    << "and a mapping xml-file.\n"
 	    << "NOTE: the created template file needs to be inspected and amended by the user!\n\n"
-	    << "Examples of usage:\n"
-	    << "'csg_dlptopol --top .dlpf --out .dlpf --cg cg-map.xml'      by convention transforms FIELD -> FIELD_CGV\n"
-	    << "'csg_dlptopol --top FA-dlpoly.dlpf --out CG-dlpoly.dlpf --cg cg-map.xml'  transforms FA-dlpoly.dlpf -> CG-dlpoly.dlpf\n"
-	    << "'csg_dlptopol --top FA-gromacs.tpr --out FA-dlpoly.dlpf --no-map'         transforms FA-gromacs.tpr -> FA-dlpoly.dlpf";
+	    << "Examples:\n"
+	    << "* csg_dlptopol --top .dlpf --out .dlpf --cg cg-map.xml     convent FIELD to FIELD_CGV using cg-map.xml\n"
+	    << "* csg_dlptopol --top FA-dlpoly.dlpf --out CG-dlpoly.dlpf --cg cg-map.xml   transforms FA-dlpoly.dlpf to CG-dlpoly.dlpf\n"
+	    << "* csg_dlptopol --top FA-gromacs.tpr --out FA-dlpoly.dlpf --no-map          transforms FA-gromacs.tpr to FA-dlpoly.dlpf";
     }
 
     bool DoMapping(void) { return true; }
