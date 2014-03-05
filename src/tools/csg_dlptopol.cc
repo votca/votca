@@ -30,12 +30,13 @@ class DLPTopolApp
 public:
     string ProgramName() { return "csg_dlptopol"; }
     void HelpText(ostream &out) {
-        out << "Create template for dlpoly topology based on atomistic one"
-	  "and a mapping file (cg-map.xml): FIELD -> FIELD_CGV\n"
-	  "File FIELD_CGV still needs to be inspected and amended by the user.\n\n"
-          "Examples of usage:\n"
-          "                  csg_dlptopol --top .dlpf --cg cg-map.xml --out .dlpf\n"
-          "                  csg_dlptopol --top atomistic.dlpf --cg cg-map.xml --out coarse-grained.dlpf\n";
+        out << "Create a dlpoly topology template based on an existing (atomistic) topology "
+	    << "and a mapping xml-file.\n"
+	    << "NOTE: the created template file needs to be inspected and amended by the user!\n\n"
+	    << "Examples of usage:\n"
+	    << "'csg_dlptopol --top .dlpf --out .dlpf --cg cg-map.xml'      by convention transforms FIELD -> FIELD_CGV\n"
+	    << "'csg_dlptopol --top FA-dlpoly.dlpf --out CG-dlpoly.dlpf --cg cg-map.xml'  transforms FA-dlpoly.dlpf -> CG-dlpoly.dlpf\n"
+	    << "'csg_dlptopol --top FA-gromacs.tpr --out FA-dlpoly.dlpf --no-map'         transforms FA-gromacs.tpr -> FA-dlpoly.dlpf";
     }
 
     bool DoMapping(void) { return true; }
@@ -58,8 +59,12 @@ protected:
 void DLPTopolApp::Initialize(void)
 {
     CsgApplication::Initialize();
+    //AddProgramOptions()
+    //("top", boost::program_options::value<string>(), 
+    //"  input topology in any known format:\n  <name>.dlpf for dlpoly, <name>.tpr for gromacs\n  (convention: '.dlpf'='use FIELD')");
     AddProgramOptions()
-      ("out", boost::program_options::value<string>(), "output dlpoly topology ( .dlpf = FIELD_CGV or <name>.dlpf )");
+      ("out", boost::program_options::value<string>(), 
+       "  output topology in dlpoly format:\n  <name>.dlpf (convention: '.dlpf'='use FIELD_CGV')");
 }
 
 bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *top_ref)

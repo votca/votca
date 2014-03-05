@@ -32,7 +32,7 @@ void DLPOLYTrajectoryWriter::Open(string file, bool bAppend)
 
     if ( boost::filesystem::extension(filepath).size() == 0 ) {
 
-      throw std::ios_base::failure("Error on opening transformed dlpoly file '" + file + "' - extension is expected, .dlph or .dlpc");
+      throw std::ios_base::failure("Error on creating dlpoly file '" + file + "' - extension is expected, .dlph or .dlpc");
 
     } else if( boost::filesystem::extension(filepath)==".dlpc" ) {
 
@@ -44,7 +44,7 @@ void DLPOLYTrajectoryWriter::Open(string file, bool bAppend)
       _isConfig=false;
 
     } else {
-      throw std::ios_base::failure("Error on opening transformed dlpoly file '" + file + "' - wrong extension, use .dlph or .dlpc");      
+      throw std::ios_base::failure("Error on creating dlpoly file '" + file + "' - wrong extension, use .dlph or .dlpc");      
     }
 
     if ( boost::filesystem::basename(filepath).size() == 0 ) {
@@ -59,7 +59,7 @@ void DLPOLYTrajectoryWriter::Open(string file, bool bAppend)
 
     _fl.open(_fname.c_str());
     if(!_fl.is_open())
-        throw std::ios_base::failure("Error on opening transformed dlpoly file '"+ _fname + "'");
+        throw std::ios_base::failure("Error on creating dlpoly file '"+ _fname + "'");
 }
 
 void DLPOLYTrajectoryWriter::Close()

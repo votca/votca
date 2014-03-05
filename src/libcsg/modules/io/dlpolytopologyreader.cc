@@ -59,7 +59,7 @@ string DLPOLYTopologyReader::_NextKeyInt(ifstream &fs, const char* wspace, const
   boost::to_upper(line);
 
   if( line.substr(0,word.size()) != word )
-    throw std::runtime_error("Error: unexpected line in dlpoly file '" + _fname + "', expected '" + word + "' but got '" + line + "'");
+    throw std::runtime_error("Error: unexpected line from dlpoly file '" + _fname + "', expected '" + word + "' but got '" + line + "'");
 
   sl >> sval;
 
@@ -86,7 +86,7 @@ bool DLPOLYTopologyReader::_isKeyInt(const string &line, const char* wspace, con
   boost::to_upper(fields[0]);
 
   if (fields[0].substr(0,word.size()) != word )
-    throw std::runtime_error("Error: unexpected directive in dlpoly file '" + _fname + "', expected keyword '"+ word +"' but got '" + fields[0] + "'");
+    throw std::runtime_error("Error: unexpected directive from dlpoly file '" + _fname + "', expected keyword '"+ word +"' but got '" + fields[0] + "'");
 
   size_t i_num=string::npos;
 
@@ -160,7 +160,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 	throw std::runtime_error("Error: missing integer number in directive '" + line + "' in topology file '"+ _fname +"'");
 
 #ifdef DEBUG
-      cout << "Read from topology file '" << _fname << "' : '" << line << "' - " << nmol_types << endl;
+      cout << "Read from dlpoly file '" << _fname << "' : '" << line << "' - " << nmol_types << endl;
 #endif
 
       string mol_name;
@@ -175,13 +175,13 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 	line = _NextKeyInt(fl,WhiteSpace,"NUMMOL",nreplica);
 
 #ifdef DEBUG
-	cout << "Read from topology file '" << _fname << "' : '" << mol_name << "' - '" << line << "' - " << nreplica << endl;
+	cout << "Read from dlpoly file '" << _fname << "' : '" << mol_name << "' - '" << line << "' - " << nreplica << endl;
 #endif
 
 	line = _NextKeyInt(fl,WhiteSpace,"ATOMS",natoms);
 
 #ifdef DEBUG
-	cout << "Read from topology file '" << _fname << "' : '" << line << "' - " << natoms << endl;
+	cout << "Read from dlpoly file '" << _fname << "' : '" << line << "' - " << natoms << endl;
 #endif
 
 	//read molecule
@@ -190,7 +190,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 	  stringstream sl(_NextKeyline(fl,WhiteSpace));
 
 #ifdef DEBUG
-	  cout << "Read atom specs in dlpoly topology : '" << sl.str() << "'" << endl;
+	  cout << "Read atom specs from dlpoly topology : '" << sl.str() << "'" << endl;
 #endif
 	  string beadtype;
 	  sl >> beadtype;
@@ -232,7 +232,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 	  nl >> line;
 
 #ifdef DEBUG
-	  cout << "Read unit type# in dlpoly topology : '" << nl.str() << "'" << endl;
+	  cout << "Read unit type# from dlpoly topology : '" << nl.str() << "'" << endl;
 #endif
 	  boost::to_upper(line);
           line=line.substr(0,6);
@@ -244,7 +244,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 
 	      stringstream sl(_NextKeyline(fl,WhiteSpace));
 #ifdef DEBUG
-	      cout << "Read unit specs in dlpoly topology : '" << sl.str() << "'" << endl;
+	      cout << "Read unit specs from dlpoly topology : '" << sl.str() << "'" << endl;
 #endif
 	      sl >> line; //internal dlpoly bond/angle/dihedral function types are merely skipped (ignored)
 	      int ids[4];
@@ -274,7 +274,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 	}
 
 #ifdef DEBUG
-	cout << "Read from topology file '" << _fname << "' : '" << line << "' - done with '" << mol_name << "'" << endl;
+	cout << "Read from dlpoly file '" << _fname << "' : '" << line << "' - done with '" << mol_name << "'" << endl;
 #endif
 
 	//replicate molecule
@@ -313,10 +313,10 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 #ifdef DEBUG
     getline(fl, line); //is "close" found?
     if(line=="close") {
-      cout << "Read from topology file '" << _fname << "' : '" << line << "' - done with topology" << endl;
+      cout << "Read from dlpoly file '" << _fname << "' : '" << line << "' - done with topology" << endl;
     }
     else {
-      cout << "Read from topology file '" << _fname << "' : 'EOF' - done with topology (directive 'close' not read!)" << endl;
+      cout << "Read from dlpoly file '" << _fname << "' : 'EOF' - done with topology (directive 'close' not read!)" << endl;
     }
 #endif
 
