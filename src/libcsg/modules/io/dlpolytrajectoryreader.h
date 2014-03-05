@@ -29,27 +29,31 @@ using namespace votca::tools;
 using namespace std;
 
 /**
-    \brief class for reading dlpoly trajectory files
+    \brief class for reading dlpoly trajectory and configuration files
 
-    This class provides the TrajectoryReader interface and encapsulates the trajectory reading function of dl_poly
+    This class encapsulates the dlpoly trajectory and configuration reading function and provides an interface to fill a topology class
 
 */
+
 class DLPOLYTrajectoryReader 
    : public TrajectoryReader
 {
  public:
-  // open original trajectory file
+  /// open original trajectory file
   bool Open(const string &file);
-  // read in the first frame
-  bool FirstFrame(Topology &top);
-  // read in the next frame
-  bool NextFrame(Topology &top);
-  // close original trajectory file
+  /// read in the first frame
+  bool FirstFrame(Topology &conf);
+  /// read in the next frame
+  bool NextFrame(Topology &conf);
+  /// close original trajectory file
   void Close();
 
+  /// set/get the original configuration or trajectory file name: 
+  /// <name>.dlpc/<name>.dlph (convention: ".dlpc"="CONFIG", ".dlph"="HISTORY")
   void   setFname(string name) { _fname = name; return; }
   string getFname()            { return _fname; }
   
+  /// set/check the flag for the read-in file as configuration, i.e. not trajectory format
   void setIsConfig(bool isConf) { _isConfig=isConf; return; }
   bool getIsConfig()            { return _isConfig; }
   

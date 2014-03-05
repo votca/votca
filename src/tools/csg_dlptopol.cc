@@ -24,6 +24,13 @@ using namespace votca::csg;
 using namespace std;
 using boost::format;
 
+/**
+    \brief class for writing dlpoly topology files
+
+    This class encapsulates the dlpoly topology writing functions
+
+*/
+
 class DLPTopolApp
     : public CsgApplication
 {

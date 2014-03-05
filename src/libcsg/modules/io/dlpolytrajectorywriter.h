@@ -24,6 +24,13 @@
 namespace votca { namespace csg {
 using namespace votca::tools;
 
+/**
+    \brief class for writing dlpoly trajectory and configuration files
+
+    This class encapsulates the dlpoly trajectory and configuration writing function
+
+*/
+
 class DLPOLYTrajectoryWriter
    : public TrajectoryWriter
 {
@@ -35,9 +42,12 @@ class DLPOLYTrajectoryWriter
   // write a frame into transformed trajectory file
   void Write(Topology *conf);
   
+  /// set/get the created configuration or trajectory file name: 
+  /// <name>.dlpc or <name>.dlph (convention: ".dlpc"="CONFIG_CGV", ".dlph"="HISTORY_CGV")
   void   setFname(string name) { _fname = name; return; }
   string getFname()            { return _fname; }
   
+  /// set/check the flag for the created file as configuration, i.e. not trajectory format
   void setIsConfig(bool isConf) { _isConfig=isConf;  return; }
   bool getIsConfig()            { return _isConfig; }
   

@@ -29,6 +29,8 @@ namespace votca { namespace csg {
 using namespace std;
 
 bool DLPOLYTrajectoryReader::Open(const string &file)
+// open the original dlpoly configuration or trajectory file
+// NOTE: allowed file naming - <name>.dlpc or <name>.dlph (convention: ".dlpc"="CONFIG", ".dlph"="HISTORY")
 {
     boost::filesystem::path filepath(file.c_str());
     string inp_name="HISTORY";

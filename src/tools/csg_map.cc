@@ -42,10 +42,12 @@ public:
     void Initialize() {
         CsgApplication::Initialize();
         AddProgramOptions()
-            ("out", boost::program_options::value<string>(),
-                "  output file for coarse-grained trajectory")
-                ("vel", "Write mapped velocities (if available)")
-                ("hybrid", "Create hybrid trajectory containing both atomistic and coarse-grained");
+	  ("out", boost::program_options::value<string>(), 
+           "  output file for coarse-grained trajectory\n"
+           "  examples: <name>.xtc or <name>.gro for gromacs,\n"
+           "  <name>.dlpfh or <name>.dlpc for dpoly\n  ('.dlph'='use HISTORY_CGV', '.dlpc'='use CONFIG_CGV')")
+	  ("vel", "  Write mapped velocities (if available)")
+	  ("hybrid", "  Create hybrid trajectory containing both atomistic and coarse-grained");
     }
 
     bool EvaluateOptions() {

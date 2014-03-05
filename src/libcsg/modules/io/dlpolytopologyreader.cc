@@ -34,6 +34,8 @@ using namespace std;
 
 
 string DLPOLYTopologyReader::_NextKeyline(ifstream &fs, const char* wspace)
+// function to find and read the next line starting with a keyword/directive (skipping comments starting with "#" or ";")
+// NOTE: the line is returned case-preserved, not to alter molecule/atom names (consider if --no-map is used)
 {
   string line;
   size_t i_nws=0;
@@ -51,6 +53,8 @@ string DLPOLYTopologyReader::_NextKeyline(ifstream &fs, const char* wspace)
 }
 
 string DLPOLYTopologyReader::_NextKeyInt(ifstream &fs, const char* wspace, const string &word, int &ival)
+// function to read the next line containing only a given keyword and an integer value after it (only skipping comments!)
+// NOTE: this function must only be called when the next directive line has to contain the given keyword and an integer value
 {
   stringstream sl(_NextKeyline(fs,wspace));
   string line,sval;
@@ -74,8 +78,11 @@ string DLPOLYTopologyReader::_NextKeyInt(ifstream &fs, const char* wspace, const
 }
 
 bool DLPOLYTopologyReader::_isKeyInt(const string &line, const char* wspace, const string &word, int &ival)
+// function to check if the given (last read) directive line starts with a given keyword and has an integer value at the end
+// NOTE: comments are allowed beyond the integer (anything after the first integer is ignored)
 {
-  Tokenizer tok(line,wspace); // split directives consisting of a few words - the keyword is the first one!
+  // split directives consisting of a few words: the sought keyword must be the first one!
+  Tokenizer tok(line,wspace); 
   vector<string> fields;
   tok.ToVector(fields);
 
