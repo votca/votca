@@ -71,7 +71,7 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf)
 {
     static int    nstep = 1;
     static double dstep = 0.0;
-    static double scale = 10.0; // nm -> A factor
+    const double scale = 10.0; // nm -> A factor
     int    mavecs = 0;
     int    mpbct  = 0;
     double energy = 0.0;

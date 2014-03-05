@@ -86,7 +86,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf)
     static int  mavecs = 0; // number of 3d vectors per atom = keytrj in DL_POLY manuals
     static int  mpbct  = 0; // cell PBC type = imcon in DL_POLY manuals
     static int  matoms = 0; // number of atoms/beads in a frame
-    static double scale = 0.1; // A -> nm factor
+    const double scale = 0.1; // A -> nm factor
 
     static int nerrt = 0;
 
