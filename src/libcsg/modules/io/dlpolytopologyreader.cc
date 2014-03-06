@@ -207,11 +207,16 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 	  double charge;
 	  sl >> charge;
 
+          line = " ";
 	  sl >> line; //rest of the atom line
 
           Tokenizer tok(line, WhiteSpace);
 	  vector<string> fields;
 	  tok.ToVector(fields);
+
+#ifdef DEBUG
+	  cout << "Rest atom specs from dlpoly topology : '" << line << "'" << endl;
+#endif
 
 	  int repeater=1;
 	  if (fields.size() > 1) repeater=boost::lexical_cast<int>(fields[0]);
@@ -241,6 +246,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 #ifdef DEBUG
 	  cout << "Read unit type# from dlpoly topology : '" << nl.str() << "'" << endl;
 #endif
+
 	  boost::to_upper(line);
           line=line.substr(0,6);
 	  if ((line == "BONDS")||(line == "ANGLES")||(line == "DIHEDR")) {
