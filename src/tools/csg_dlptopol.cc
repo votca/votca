@@ -37,13 +37,16 @@ class DLPTopolApp
 public:
     string ProgramName() { return "csg_dlptopol"; }
     void HelpText(ostream &out) {
-        out << "Create a dlpoly topology template based on an existing (atomistic) topology "
-	    << "and a mapping xml-file.\n"
-	    << "NOTE: the created template file needs to be inspected and amended by the user!\n\n"
+        out << "Create a dlpoly topology template based on an existing (atomistic) topology and \n"
+	    << "a mapping xml-file. The conventional file extensions of other simulation engines, \n"
+            << "e.g. Gromacs, are recognized in the input (option --top), whereas <name>.dlpf must \n"
+            << "be used for DL_POLY topology files. By convention, <name> can be omitted, in which \n"
+            << "case '.dlpf' implies 'using standard naming': FIELD as input or FIELD_CGV as output. \n"
+	    << "- NOTE: the created template file needs to be inspected and amended by the user!\n\n"
 	    << "Examples:\n"
-	    << "* csg_dlptopol --top .dlpf --out .dlpf --cg cg-map.xml     convent FIELD to FIELD_CGV using cg-map.xml\n"
-	    << "* csg_dlptopol --top FA-dlpoly.dlpf --out CG-dlpoly.dlpf --cg cg-map.xml   transforms FA-dlpoly.dlpf to CG-dlpoly.dlpf\n"
-	    << "* csg_dlptopol --top FA-gromacs.tpr --out FA-dlpoly.dlpf --no-map          transforms FA-gromacs.tpr to FA-dlpoly.dlpf";
+	    << "* csg_dlptopol --top .dlpf --out .dlpf --cg cg-map.xml\n  - convert FIELD to FIELD_CGV using cg-map.xml\n"
+	    << "* csg_dlptopol --top FA-dlpoly.dlpf --out CG-dlpoly.dlpf --cg cg-map.xml\n  - convert FA-dlpoly.dlpf to CG-dlpoly.dlpf\n"
+	    << "* csg_dlptopol --top FA-gromacs.tpr --out FA-dlpoly.dlpf --no-map\n  - convert FA-gromacs.tpr to FA-dlpoly.dlpf";
     }
 
     bool DoMapping(void) { return true; }
@@ -71,7 +74,8 @@ void DLPTopolApp::Initialize(void)
     //"  input topology in any known format:\n  <name>.dlpf for dlpoly, <name>.tpr for gromacs\n  (convention: '.dlpf'='use FIELD')");
     AddProgramOptions()
       ("out", boost::program_options::value<string>(), 
-       "  output topology in dlpoly format:\n  <name>.dlpf (convention: '.dlpf'='use FIELD_CGV')");
+       "  output topology in dlpoly format; examples:\n"
+       "  - <name>.dlpf, .dlpf (convention: '.dlpf'='use FIELD_CGV')");
 }
 
 bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *top_ref)
