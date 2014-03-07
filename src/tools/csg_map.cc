@@ -33,26 +33,13 @@ public:
     void HelpText(ostream &out) {
       out << "Convert a reference atomistic trajectory or configuration into a coarse-grained one \n"
           << "based on a mapping xml-file. The mapping can be applied to either an entire trajectory \n"
-          << "or a selected set of frames only (see options). The conventional file extensions of \n"
-	  << "the supported simulation engines, e.g. Gromacs, are recognized. In the case of DL_POLY \n"
-          << "the following convention is adopted: <name>.dlpf, <name>.dlpc and <name>.dlph  must \n"
-	  << "be used for topology, configuration and trajectory files (aka FIELD, CONFIG and HISTORY). \n"
-	  << "Moreover, by convention, <name> can be omitted, i.e. stand-alone extensions can be used, \n"
-	  << "which invoke the corresponding standard names: FIELD, CONFIG, HISTORY (in the input), \n"
-	  << "or FIELD_CGV, CONFIG_CGV, HISTORY_CGV (in the output). \n"
-	  << "- NOTE: the tool can also be used for cross-converting configuration or trajectory files \n"
-	  << "between the formats of the supported simulation engines!\n\n"
+          << "or a selected set of frames only (see options).\n"
 	  << "Examples:\n"
-	  << "* csg_map --top FA-gromacs.tpr --trj FA-gromacs.trr --out CG-gromacs.xtc --cg cg-map.xml\n"
-	  << "  - convert FA-gromacs.trr to CG-gromacs.xtc (trajectory in Gromacs format)\n"
-	  << "* csg_map --top FA-gromacs.tpr --trj FA-gromacs.gro --out CG-gromacs.gro --cg cg-map.xml\n"
-	  << "  - convert FA-gromacs.gro to CG-gromacs.gro (configuration in Gromacs format)\n"
-	  << "* csg_map --top FA-dlpoly.dlpf --trj FA-dlpoly.dlph --out CG-dlpoly.dlph --cg cg-map.xml\n"
-	  << "  - convert FA-dlpoly.dlph to CG-dlpoly.dlph (trajectory in DL_POLY format)\n"
-	  << "* csg_map --top FA-gromacs.tpr --trj FA-gromacs.gro --out CG-dlpoly.dlpc --no-map\n"
-	  << "  - convert FA-gromacs.gro to CG-dlpoly.dlpc (configuration: Gromacs to DL_POLY format)\n"
-	  << "* csg_map --top .dlpf --trj .dlph --out .dlph --cg cg-map.xml --nframes 100\n"
-	  << "  - convert HISTORY to HISTORY_CGV (trajectory in DL_POLY format: 100 frames only)\n";
+	  << "* csg_map --top topol.tpr --trj traj.trr --out traj_cg.xtc --cg cg-map.xml\n"
+	  << "* csg_map --top topol.tpr --trj conf.gro --out traj_cg.trr --cg cg-map.xml\n"
+	  << "* csg_map --top dlpoly_field.dlpf --trj dlpoly.dlph --out CG-dlpoly.dlph --cg cg-map.xml\n"
+	  << "* csg_map --top topol.tpr --trj conf.gro --out dlpoly.dlpc --no-map\n"
+	  << "* csg_map --top .dlpf --trj .dlph --out .dlph --cg cg-map.xml  convert HISTORY to HISTORY_CGV\n";
     }
 
     bool DoTrajectory() { return true;}
@@ -61,10 +48,7 @@ public:
     void Initialize() {
         CsgApplication::Initialize();
         AddProgramOptions()
-	  ("out", boost::program_options::value<string>(), 
-           "  output file for coarse-grained trajectory; examples:\n"
-           "  - <name>.trr, <name>.xtc, <name>.gro (Gromacs),\n"
-           "  - <name>.dlph, <name>.dlpc, .dlph, .dlpc (DL_POLY)\n  ('.dlph'='use HISTORY_CGV', '.dlpc'='use CONFIG_CGV')")
+	  ("out", boost::program_options::value<string>(),"  output file for coarse-grained trajectory")
 	  ("vel", "  Write mapped velocities (if available)")
 	  ("hybrid", "  Create hybrid trajectory containing both atomistic and coarse-grained");
     }
