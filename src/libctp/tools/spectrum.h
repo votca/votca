@@ -66,7 +66,7 @@ private:
 
     const double _rydtoev = 13.6058;  
     
-    
+    string _spectrum_type;
     // lineshape functions
     double Gaussian( double _x, double _center, double _fwhm );
     double Lorentzian( double _x, double _center, double _fwhm );
@@ -91,9 +91,9 @@ void Spectrum::Initialize(Property* options) {
            _n_pt  = options->get(key + ".points").as<int> ();
            _lower  = options->get(key + ".lower").as<double> ();
            _upper  = options->get(key + ".upper").as<double> ();
-           _fwhm  = options->get(key + ".fwhm").as<double>() / _rydtoev;
+           _fwhm  = options->get(key + ".fwhm").as<double>();
+           _spectrum_type = options->get(key + ".type").as<string> ();
            
-            
     
   
     // get the path to the shared folders with xml files
@@ -196,27 +196,62 @@ bool Spectrum::Evaluate() {
         
     std::ofstream ofs (_output_file.c_str(), std::ofstream::out);
     
-    ofs << "# E(eV)    epsGaussian    IM(eps)Gaussian   epsLorentz    Im(esp)Lorentz\n";
-    for ( int _i_pt = 0 ; _i_pt <= _n_pt; _i_pt++ ){
     
-        double _e = (_lower + _i_pt * ( _upper - _lower)/_n_pt)/_rydtoev;
-        
-        double _eps_Gaussian     = 0.0;
-        double _imeps_Gaussian   = 0.0;
-        double _eps_Lorentzian   = 0.0;
-        double _imeps_Lorentzian = 0.0;
-        
-        for ( int _i_exc = 0 ; _i_exc < _n_exc ; _i_exc++){
-           _eps_Gaussian     +=  _osc[_i_exc] * Gaussian(_e, BSESingletEnergies[_i_exc], _fwhm);
-           _imeps_Gaussian   +=  _osc[_i_exc] *  BSESingletEnergies[_i_exc ] * Gaussian(_e, BSESingletEnergies[_i_exc], _fwhm);
-           _eps_Lorentzian   +=  _osc[_i_exc] * Lorentzian(_e, BSESingletEnergies[_i_exc], _fwhm);
-           _imeps_Lorentzian +=  _osc[_i_exc] *  BSESingletEnergies[_i_exc ] * Lorentzian(_e, BSESingletEnergies[_i_exc], _fwhm);
-        }
-        
-        ofs << _e*_rydtoev << "    " << _eps_Gaussian << "   " << _imeps_Gaussian << "   " << _eps_Lorentzian << "   " << _imeps_Lorentzian << endl;
+    if ( _spectrum_type == "energy"){
+        _fwhm = _fwhm / _rydtoev;
+        ofs << "# E(eV)    epsGaussian    IM(eps)Gaussian   epsLorentz    Im(esp)Lorentz\n";
+        for ( int _i_pt = 0 ; _i_pt <= _n_pt; _i_pt++ ){
     
+           double _e = (_lower + _i_pt * ( _upper - _lower)/_n_pt)/_rydtoev;
+        
+           double _eps_Gaussian     = 0.0;
+           double _imeps_Gaussian   = 0.0;
+           double _eps_Lorentzian   = 0.0;
+           double _imeps_Lorentzian = 0.0;
+        
+           for ( int _i_exc = 0 ; _i_exc < _n_exc ; _i_exc++){
+              _eps_Gaussian     +=  _osc[_i_exc] * Gaussian(_e, BSESingletEnergies[_i_exc], _fwhm);
+              _imeps_Gaussian   +=  _osc[_i_exc] *  BSESingletEnergies[_i_exc ] * Gaussian(_e, BSESingletEnergies[_i_exc], _fwhm);
+              _eps_Lorentzian   +=  _osc[_i_exc] * Lorentzian(_e, BSESingletEnergies[_i_exc], _fwhm);
+              _imeps_Lorentzian +=  _osc[_i_exc] *  BSESingletEnergies[_i_exc ] * Lorentzian(_e, BSESingletEnergies[_i_exc], _fwhm);
+           }
+        
+           ofs << _e*_rydtoev << "    " << _eps_Gaussian << "   " << _imeps_Gaussian << "   " << _eps_Lorentzian << "   " << _imeps_Lorentzian << endl;
+    
+       }
+        
+        LOG(logDEBUG, _log) << " Spectrum in energy range from  " << _lower << " to " << _upper << " eV and with broadening of FWHM " << _fwhm << " eV written to file  " << _output_file << flush;
     }
     
+    if ( _spectrum_type == "wavelength"){
+        
+        
+    
+        ofs << "# lambda(nm)    epsGaussian    IM(eps)Gaussian   epsLorentz    Im(esp)Lorentz\n";
+        for ( int _i_pt = 0 ; _i_pt <= _n_pt; _i_pt++ ){
+        
+            double _lambda =(_lower + _i_pt * ( _upper - _lower)/_n_pt) ;
+
+            double _eps_Gaussian     = 0.0;
+            double _imeps_Gaussian   = 0.0;
+            double _eps_Lorentzian   = 0.0;
+            double _imeps_Lorentzian = 0.0;
+            
+            for ( int _i_exc = 0 ; _i_exc < _n_exc ; _i_exc++){
+                cout << BSESingletEnergies[_i_exc]*_rydtoev << "  " << nmtoev(BSESingletEnergies[_i_exc]*_rydtoev) << endl;
+              double _exc_lambda = nmtoev(BSESingletEnergies[_i_exc]*_rydtoev);
+              _eps_Gaussian     +=  _osc[_i_exc] * Gaussian(_lambda, _exc_lambda, _fwhm);
+              _imeps_Gaussian   +=  _osc[_i_exc] *  _exc_lambda * Gaussian(_lambda, _exc_lambda, _fwhm);
+              _eps_Lorentzian   +=  _osc[_i_exc] * Lorentzian(_lambda, _exc_lambda, _fwhm);
+              _imeps_Lorentzian +=  _osc[_i_exc] *  _exc_lambda * Lorentzian(_lambda, BSESingletEnergies[_i_exc], _fwhm);
+            }
+
+            ofs << _lambda << "    " << _eps_Gaussian << "   " << _imeps_Gaussian << "   " << _eps_Lorentzian << "   " << _imeps_Lorentzian << endl;
+        }    
+    LOG(logDEBUG, _log) << " Spectrum in wavelength range from  " << _lower << " to " << _upper << " nm and with broadening of FWHM " << _fwhm << " nm written to file  " << _output_file << flush;        
+    }
+
+
     ofs.close();
     
 /* exit(0);    
@@ -259,7 +294,6 @@ bool Spectrum::Evaluate() {
     
     */
 
-    LOG(logDEBUG, _log) << " Spectrum in energy range from  " << _lower << " to " << _upper << " eV and with broadening of FWHM " << _fwhm << " eV written to file  " << _output_file << flush;
 
     
     return true;
