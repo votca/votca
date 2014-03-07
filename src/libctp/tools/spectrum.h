@@ -70,6 +70,7 @@ private:
     // lineshape functions
     double Gaussian( double _x, double _center, double _fwhm );
     double Lorentzian( double _x, double _center, double _fwhm );
+    double TruncatedLorentzian( double _x, double _center, double _fwhm );
     
 };
 
@@ -208,15 +209,19 @@ bool Spectrum::Evaluate() {
            double _imeps_Gaussian   = 0.0;
            double _eps_Lorentzian   = 0.0;
            double _imeps_Lorentzian = 0.0;
-        
+           double _eps_TruncLorentzian   = 0.0;
+           double _imeps_TruncLorentzian = 0.0;
+           
            for ( int _i_exc = 0 ; _i_exc < _n_exc ; _i_exc++){
               _eps_Gaussian     +=  _osc[_i_exc] * Gaussian(_e, BSESingletEnergies[_i_exc], _fwhm);
               _imeps_Gaussian   +=  _osc[_i_exc] *  BSESingletEnergies[_i_exc ] * Gaussian(_e, BSESingletEnergies[_i_exc], _fwhm);
               _eps_Lorentzian   +=  _osc[_i_exc] * Lorentzian(_e, BSESingletEnergies[_i_exc], _fwhm);
               _imeps_Lorentzian +=  _osc[_i_exc] *  BSESingletEnergies[_i_exc ] * Lorentzian(_e, BSESingletEnergies[_i_exc], _fwhm);
+              _eps_TruncLorentzian   +=  _osc[_i_exc] * TruncatedLorentzian(_e, BSESingletEnergies[_i_exc], _fwhm);
+              _imeps_TruncLorentzian +=  _osc[_i_exc] *  BSESingletEnergies[_i_exc ] * TruncatedLorentzian(_e, BSESingletEnergies[_i_exc], _fwhm);
            }
         
-           ofs << _e*_rydtoev << "    " << _eps_Gaussian << "   " << _imeps_Gaussian << "   " << _eps_Lorentzian << "   " << _imeps_Lorentzian << endl;
+           ofs << _e*_rydtoev << "    " << _eps_Gaussian << "   " << _imeps_Gaussian << "   " << _eps_Lorentzian << "   " << _imeps_Lorentzian << "  " << _eps_TruncLorentzian << "   " << _imeps_TruncLorentzian  << endl;
     
        }
         
@@ -236,6 +241,8 @@ bool Spectrum::Evaluate() {
             double _imeps_Gaussian   = 0.0;
             double _eps_Lorentzian   = 0.0;
             double _imeps_Lorentzian = 0.0;
+            double _eps_TruncLorentzian   = 0.0;
+            double _imeps_TruncLorentzian = 0.0;
             
             for ( int _i_exc = 0 ; _i_exc < _n_exc ; _i_exc++){
                 //cout << BSESingletEnergies[_i_exc]*_rydtoev << "  " << nmtoev(BSESingletEnergies[_i_exc]*_rydtoev) << endl;
@@ -243,10 +250,12 @@ bool Spectrum::Evaluate() {
               _eps_Gaussian     +=  _osc[_i_exc] * Gaussian(_lambda, _exc_lambda, _fwhm);
               _imeps_Gaussian   +=  _osc[_i_exc] *  _exc_lambda * Gaussian(_lambda, _exc_lambda, _fwhm);
               _eps_Lorentzian   +=  _osc[_i_exc] * Lorentzian(_lambda, _exc_lambda, _fwhm);
-              _imeps_Lorentzian +=  _osc[_i_exc] *  _exc_lambda * Lorentzian(_lambda, BSESingletEnergies[_i_exc], _fwhm);
+              _imeps_Lorentzian +=  _osc[_i_exc] *  _exc_lambda * Lorentzian(_lambda, _exc_lambda, _fwhm);
+              _eps_TruncLorentzian   +=  _osc[_i_exc] * TruncatedLorentzian(_lambda, _exc_lambda, _fwhm);
+              _imeps_TruncLorentzian +=  _osc[_i_exc] *  BSESingletEnergies[_i_exc ] * TruncatedLorentzian(_lambda, _exc_lambda, _fwhm);
             }
 
-            ofs << _lambda << "    " << _eps_Gaussian << "   " << _imeps_Gaussian << "   " << _eps_Lorentzian << "   " << _imeps_Lorentzian << endl;
+            ofs << _lambda << "    " << _eps_Gaussian << "   " << _imeps_Gaussian << "   " << _eps_Lorentzian << "   " << _imeps_Lorentzian << "   " << _eps_TruncLorentzian << "   " << _imeps_TruncLorentzian << endl;
         }    
     LOG(logDEBUG, _log) << " Spectrum in wavelength range from  " << _lower << " to " << _upper << " nm and with broadening of FWHM " << _fwhm << " nm written to file  " << _output_file << flush;        
     }
@@ -300,12 +309,30 @@ bool Spectrum::Evaluate() {
 }
 
 
+double Spectrum::TruncatedLorentzian(double _x, double _center, double _fwhm){
+    
+    double _result;
+    double _abs_diff = std::abs(_x-_center) ; 
+    if ( _abs_diff > 0.5*_fwhm &&  _abs_diff < _fwhm ){
+        _result = 1.0/(0.25*_fwhm*_fwhm) - 1.0/( pow(_abs_diff - _fwhm,2) + 0.25*_fwhm*_fwhm );
+    } else if ( _abs_diff < 0.5*_fwhm ) {
+        _result = 1.0/( pow(_x-_center,2) + 0.25*_fwhm*_fwhm  );
+    } else {
+        _result = 0.0;
+    }
+    
+    
+    return 0.5*_fwhm * _result / boost::math::constants::pi<double>();
+}
+
 double Spectrum::Lorentzian(double _x, double _center, double _fwhm){
+    
+    
+    
+    
     
     return 0.5*_fwhm/( pow(_x-_center,2) + 0.25*_fwhm*_fwhm  ) / boost::math::constants::pi<double>();
 }
-
-
 
 double Spectrum::Gaussian(double _x, double _center, double _fwhm){
 
