@@ -238,7 +238,7 @@ bool Spectrum::Evaluate() {
             double _imeps_Lorentzian = 0.0;
             
             for ( int _i_exc = 0 ; _i_exc < _n_exc ; _i_exc++){
-                cout << BSESingletEnergies[_i_exc]*_rydtoev << "  " << nmtoev(BSESingletEnergies[_i_exc]*_rydtoev) << endl;
+                //cout << BSESingletEnergies[_i_exc]*_rydtoev << "  " << nmtoev(BSESingletEnergies[_i_exc]*_rydtoev) << endl;
               double _exc_lambda = nmtoev(BSESingletEnergies[_i_exc]*_rydtoev);
               _eps_Gaussian     +=  _osc[_i_exc] * Gaussian(_lambda, _exc_lambda, _fwhm);
               _imeps_Gaussian   +=  _osc[_i_exc] *  _exc_lambda * Gaussian(_lambda, _exc_lambda, _fwhm);
