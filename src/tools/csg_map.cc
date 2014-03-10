@@ -35,10 +35,10 @@ public:
           << "based on a mapping xml-file. The mapping can be applied to either an entire trajectory \n"
           << "or a selected set of frames only (see options).\n"
 	  << "Examples:\n"
-	  << "* csg_map --top topol.tpr --trj traj.trr --out traj_cg.xtc --cg cg-map.xml\n"
-	  << "* csg_map --top topol.tpr --trj conf.gro --out traj_cg.trr --cg cg-map.xml\n"
-	  << "* csg_map --top dlpoly_field.dlpf --trj dlpoly.dlph --out CG-dlpoly.dlph --cg cg-map.xml\n"
-	  << "* csg_map --top topol.tpr --trj conf.gro --out dlpoly.dlpc --no-map\n"
+	  << "* csg_map --top FA-topol.tpr --trj FA-traj.trr --out CG-traj.xtc --cg cg-map.xml\n"
+	  << "* csg_map --top FA-topol.tpr --trj FA-conf.gro --out CG-conf.gro --cg cg-map.xml\n"
+	  << "* csg_map --top FA-topol.tpr --trj FA-traj.xtc --out FA-history.dlph --no-map\n"
+	  << "* csg_map --top FA-field.dlpf --trj FA-history.dlph --out CG-history.dlph --cg cg-map.xml\n"
 	  << "* csg_map --top .dlpf --trj .dlph --out .dlph --cg cg-map.xml  convert HISTORY to HISTORY_CGV\n";
     }
 

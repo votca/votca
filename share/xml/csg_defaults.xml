@@ -25,7 +25,7 @@
     <dlpoly>
       <DESC> general dlpoly specific options </DESC>
       <command>DLPOLY.Z
-	<DESC> command to run dlpoly  (name or absolute path or mpirun dlpoly..) </DESC>
+	<DESC> command to run dlpoly  (name or absolute path or 'mpirun dlpoly' or such) </DESC>
       </command>
       <topol>.dlpf
 	<DESC> Gromacs binary topology (tpr) file to be written by grompp and used for the simlation</DESC>
@@ -36,6 +36,33 @@
       <checkpoint>REVIVE REVCON
 	<DESC> Names of the  dlpoly checkpoint files</DESC>
       </checkpoint>
+      <table_end>
+	<DESC>dlpoly internal grid end point for tabulated non-bonded potentials (applied to all non-bonded)</DESC>
+      </table_end>
+      <table_grid>
+	<DESC>dlpoly internal grid number for tabulated non-bonded potentials (applied to all non-bonded)</DESC>
+      </table_grid>
+      <bonds>
+	<DESC>dlpoly specs for tabulated bonded potentials (applied to all bonds)</DESC>
+        <table_end>
+	  <DESC>dlpoly internal grid end point for tabulated potentials</DESC>
+        </table_end>
+        <table_grid>
+	  <DESC>dlpoly internal grid number for tabulated potentials</DESC>
+        </table_grid>
+      </bonds>
+      <angles>
+	<DESC>dlpoly specs for tabulated bonded potentials (applied to all angles)</DESC>
+        <table_grid>
+	  <DESC>dlpoly internal grid number for tabulated potentials</DESC>
+        </table_grid>
+      </angles>
+      <dihedrals>
+	<DESC>dlpoly specs for tabulated bonded potentials (applied to all dihedrals)</DESC>
+        <table_grid>
+	  <DESC>dlpoly internal grid number for tabulated potentials</DESC>
+        </table_grid>
+      </dihedrals>
     </dlpoly>
     <espresso>
       <command>Espresso
@@ -385,12 +412,20 @@
   </nbsearch>
   <bonded>
     <DESC>Interaction specific option for bonded interactions, see the cg.non-bonded section for all options</DESC>
+    <dlpoly><header>
+      <DESC>Header of the interaction in dlpoly TABBND or TABANG file. The header should be a unique set of the interaction-site names, and these should match the corresponding names specified in the mapping file.</DESC>
+    </header>
+    </dlpoly>
     <name>
       <DESC>Name of the bonded interaction. The name can be arbitrary but should be unique. For bonded interactions, this should match the name specified in the mapping file.</DESC>
     </name>
   </bonded>
   <non-bonded>
     <DESC>Interaction specific option for non-bonded interactions</DESC>
+    <dlpoly><header>
+      <DESC>Header of the interaction in dlpoly TABLE file. The header should be a unique pair of the interaction-site names, and these should match the corresponding names specified in the mapping file.</DESC>
+    </header>
+    </dlpoly>
     <name>
       <DESC>Name of the interaction. The name can be arbitrary but should be unique. For bonded interactions, this should match the name specified in the mapping file.</DESC>
     </name>
