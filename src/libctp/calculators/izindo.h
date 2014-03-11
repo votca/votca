@@ -202,7 +202,7 @@ void IZindo::ParseOrbitalsXML(Property *opt) {
 void IZindo::EvalPair(Topology *top, QMPair *qmpair, PairOperator *opThread) {
 
     this->LockCout();
-    cout << "\r... ... Evaluating pair " << qmpair->getId()+1 << flush;
+    cout << "\r... ... Evaluating pair " << qmpair->getId() << flush;
     this->UnlockCout();
 
     string segName1 = qmpair->Seg1()->getName();
@@ -253,7 +253,7 @@ void IZindo::CTP2MOO2CTP(QMPair *pair, PairOperator *opThread, int state) {
     string basisName1;
     string basisName2;
     string orbFile1;
-    string orbFile2;
+    string orbFile2;    
     vector<int> torbs1;
     vector<int> torbs2;
         
@@ -299,9 +299,15 @@ void IZindo::CTP2MOO2CTP(QMPair *pair, PairOperator *opThread, int state) {
     // Create orbitals //
     morb1->init_orbitals(*orb1, orbFile1.c_str());
     morb2->init_orbitals(*orb2, orbFile2.c_str());
-
-    orb1->strip_orbitals(torbs1);
-    orb2->strip_orbitals(torbs2);
+    
+    // Convert: Counting from 1 => Counting from 0
+    vector<int> torbs1_from_zero;
+    vector<int> torbs2_from_zero;
+    for (int i = 0; i < torbs1.size(); ++i) torbs1_from_zero.push_back(torbs1[i]-1);
+    for (int i = 0; i < torbs2.size(); ++i) torbs2_from_zero.push_back(torbs2[i]-1);
+    
+    orb1->strip_orbitals(torbs1_from_zero);
+    orb2->strip_orbitals(torbs2_from_zero);
     
     int frontier1 = torbs1.size();
     int frontier2 = torbs2.size();
@@ -311,9 +317,8 @@ void IZindo::CTP2MOO2CTP(QMPair *pair, PairOperator *opThread, int state) {
     morb1->assign_orb(orb1);
     morb2->assign_orb(orb2);
 
-    // Initialise Fock matrix //
-    fock12->init(*morb1, *morb2);
-
+    
+    
 
     // ++++++++++++++++++++++++++++++++++++++++ //
     // Rotate + Translate to MD Frame: Mol&Orb1 //
@@ -330,7 +335,7 @@ void IZindo::CTP2MOO2CTP(QMPair *pair, PairOperator *opThread, int state) {
         vec CoMD = frag->getCoMD();
         vec CoQM = frag->getCoQM();
         matrix rotQM2MD = frag->getRotQM2MD();
-
+        
         // Fill container with atom QM indices
         vector<int> atmIdcs;
         vector< Atom* > ::iterator ait;
@@ -368,7 +373,7 @@ void IZindo::CTP2MOO2CTP(QMPair *pair, PairOperator *opThread, int state) {
         // Centers of maps, rotation matrix MD2QM
         Fragment *frag = *fit;
         vec CoMD = frag->getCoMD();
-        vec CoQM = frag->getCoQM();
+        vec CoQM = frag->getCoQM();        
         matrix rotQM2MD = frag->getRotQM2MD();
         // Fill container with atom QM indices
         vector<int> atmIdcs;
@@ -393,11 +398,13 @@ void IZindo::CTP2MOO2CTP(QMPair *pair, PairOperator *opThread, int state) {
         }
     }
 
-    morb2->write_pdb("morbs.pdb", "MOL", 1);
+    morb2->write_pdb("morbs.pdb", "MOL", 1);    
     // ++++++++++++++++++++++++++++ //
     // Calculate transfer integrals //
     // ++++++++++++++++++++++++++++ //
-
+    
+    // Initialise Fock matrix //
+    fock12->init(*morb1, *morb2);
     
     vector<double> Js;
     std::pair< int, int > torb2torb;

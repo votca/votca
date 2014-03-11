@@ -53,11 +53,14 @@
         <itemPath>../../src/libctp/calculators/xmultipole2.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f3" displayName="Tools" projectFiles="true">
+        <itemPath>../../src/libctp/tools/configReader.h</itemPath>
         <itemPath>../../src/libctp/tools/coupling.h</itemPath>
         <itemPath>../../src/libctp/tools/exciton.h</itemPath>
+        <itemPath>../../src/libctp/tools/log2mps.h</itemPath>
         <itemPath>../../src/libctp/tools/molpol.cc</itemPath>
         <itemPath>../../src/libctp/tools/molpol.h</itemPath>
         <itemPath>../../src/libctp/tools/pdb2map.h</itemPath>
+        <itemPath>../../src/libctp/tools/pdb2top.h</itemPath>
         <itemPath>../../src/libctp/tools/qmanalyze.h</itemPath>
       </logicalFolder>
     </logicalFolder>
@@ -755,15 +758,24 @@
       </item>
       <item path="../../src/libctp/toolfactory.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libctp/tools/configReader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/tools/coupling.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/exciton.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libctp/tools/log2mps.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/molpol.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/molpol.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/pdb2map.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libctp/tools/pdb2top.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/qmanalyze.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1346,15 +1358,24 @@
       </item>
       <item path="../../src/libctp/toolfactory.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libctp/tools/configReader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/tools/coupling.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/exciton.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libctp/tools/log2mps.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/molpol.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/molpol.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/pdb2map.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libctp/tools/pdb2top.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/qmanalyze.h" ex="false" tool="3" flavor2="0">
       </item>

@@ -33,7 +33,7 @@ public:
     
     ProgObserver()
         : _lockFile("__NOFILE__"), _progFile("__NOFILE__"), _cacheSize(-1),
-          _nextjit(NULL), _metajit(NULL) { ; }
+          _nextjit(NULL), _metajit(NULL), _startJobsCount(0) { ; }
     
    ~ProgObserver() { ; }
     
@@ -70,7 +70,9 @@ private:
     bool _restartMode;
     int _jobsReported;
 
-	bool _moreJobsAvailable;
+    bool _moreJobsAvailable;
+    int _startJobsCount;
+    int _maxJobs;
     
 };
 
