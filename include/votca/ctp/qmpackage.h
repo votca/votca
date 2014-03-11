@@ -109,7 +109,7 @@ inline bool QMPackage::WriteInputFilePBC( QMPair* pair, Orbitals* orbitals) {
     
     Segment* seg1 = pair->Seg1();
     Segment* seg2 = pair->Seg2();
-    Segment* _ghost = seg2;
+    Segment* ghost = NULL;
     
     Topology* _top = seg1->getTopology();
 
@@ -120,23 +120,22 @@ inline bool QMPackage::WriteInputFilePBC( QMPair* pair, Orbitals* orbitals) {
 
     // Check whether pair formed across periodic boundary
     if ( abs(r2 - r1 - _R) > 1e-8 ) {
-        _ghost = new Segment(seg2);
-        _ghost->TranslateBy(r1 - r2 + _R);
-        //std::cout << "\nQMPackage " << getPackageName() << ": Applying PBC to the ghost" << std::endl;
-        //std::cout << "\nCoordinates: " << r1 << ":" << r2 << ":" << _R << std::endl; 
-        
-        //vec rg = _ghost->getPos();
-        //vec _Rg = _top->PbShortestConnect(r1, rg);
-        //std::cout << "\nGhost: " << abs(rg - r1 - _Rg) << std::endl; 
+        ghost = new Segment(seg2);
+        ghost->TranslateBy(r1 - r2 + _R);
     }
  
     vector< Segment* > segments;
     segments.push_back(seg1);
-    segments.push_back(_ghost);
+    
+    if ( ghost ) {
+        segments.push_back(ghost);
+    } else {
+        segments.push_back(seg2);
+    }
    
     WriteInputFile( segments, orbitals);
     
-    delete _ghost;
+    delete ghost;
 }   
 
 }}
