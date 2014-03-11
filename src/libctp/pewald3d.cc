@@ -499,41 +499,62 @@ EWD::triple<> PEwald3D3D::CalculateShapeCorrection() {
     LOG(logDEBUG,*_log)
         << "  o Shape-correction to energy, using '" << _shape << "'" << flush;
     
-    vector<PolarSeg*>::iterator sit1; 
-    vector<APolarSite*> ::iterator pit1;
-    vector<PolarSeg*>::iterator sit2; 
-    vector<APolarSite*> ::iterator pit2;
+    EWD::triple<double> ppuu = _ewdactor.U12_ShapeTerm(_fg_C, _bg_P,
+        _shape, _LxLyLz);
+    double sum_pp = ppuu._pp;
+    double sum_pu = ppuu._pu;
+    double sum_uu = ppuu._uu;
     
-    double EJ = 0.0;
-    double sum_pp = 0.0;
-    double sum_pu = 0.0;
-    double sum_uu = 0.0;
+//    vector<PolarSeg*>::iterator sit1; 
+//    vector<APolarSite*> ::iterator pit1;
+//    vector<PolarSeg*>::iterator sit2; 
+//    vector<APolarSite*> ::iterator pit2;
+//    
+//    double EJ = 0.0;
     
-    if (_shape == "xyslab") {
-        EWD::triple<double> ppuu(0,0,0);
-        for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
-           for (sit2 = _bg_P.begin(); sit2 < _bg_P.end(); ++sit2) {
-              for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
-                 for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
-                    ppuu = _ewdactor.U12_XYSlab(*(*pit1), *(*pit2));
-                    sum_pp += ppuu._pp;
-                    sum_pu += ppuu._pu;
-                    sum_uu += ppuu._uu;
-                 }
-              }
-           }
-        }
-        sum_pp *= -2*M_PI/_LxLyLz;
-        sum_pu *= -2*M_PI/_LxLyLz;
-        sum_uu *= -2*M_PI/_LxLyLz;
-        EJ = sum_pp + sum_pu + sum_uu;
-    }
-    else {
-        LOG(logERROR,*_log)
-            << (format("Shape %1$s not implemented. Setting EJ = 0.0 ...") 
-            % _shape) << flush;
-        EJ = 0.0;
-    }
+//    if (_shape == "xyslab") {
+//        EWD::triple<double> ppuu(0,0,0);
+//        for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
+//           for (sit2 = _bg_P.begin(); sit2 < _bg_P.end(); ++sit2) {
+//              for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+//                 for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
+//                    ppuu = _ewdactor.U12_XYSlab(*(*pit1), *(*pit2));
+//                    sum_pp += ppuu._pp;
+//                    sum_pu += ppuu._pu;
+//                    sum_uu += ppuu._uu;
+//                 }
+//              }
+//           }
+//        }
+//        sum_pp *= -2*M_PI/_LxLyLz;
+//        sum_pu *= -2*M_PI/_LxLyLz;
+//        sum_uu *= -2*M_PI/_LxLyLz;
+//        EJ = sum_pp + sum_pu + sum_uu;
+//        
+//        // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+//        EWD::triple<double> ppuu_fast = _ewdactor.U12_XYSlab_Factorized(_fg_C, _bg_P);
+//        double sum_pp_fast = ppuu_fast._pp;
+//        double sum_pu_fast = ppuu_fast._pu;
+//        double sum_uu_fast = ppuu_fast._uu;
+//        sum_pp_fast *= -4*M_PI/_LxLyLz;
+//        sum_pu_fast *= -4*M_PI/_LxLyLz;
+//        sum_uu_fast *= -4*M_PI/_LxLyLz;
+//        cout << endl << "Slow: " << sum_pp << " " << sum_pu << " " << sum_uu << flush;
+//        cout << endl << "Fast: " << sum_pp_fast << " " << sum_pu_fast << " " << sum_uu_fast << flush;
+//        
+//        EWD::triple<double> ppuu_cube = _ewdactor.U12_ShapeTerm_Factorized(_fg_C, _bg_P, _shape, _LxLyLz);
+//        double sum_pp_cube = ppuu_cube._pp;
+//        double sum_pu_cube = ppuu_cube._pu;
+//        double sum_uu_cube = ppuu_cube._uu;
+//        cout << endl << "Cube: " << sum_pp_cube << " " << sum_pu_cube << " " << sum_uu_cube << flush;
+//        // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+//    }
+//    else {
+//        LOG(logERROR,*_log)
+//            << (format("Shape %1$s not implemented. Setting EJ = 0.0 ...") 
+//            % _shape) << flush;
+//        EJ = 0.0;
+//    }
     
     return EWD::triple<>(sum_pp, sum_pu, sum_uu);
     //return EJ;
@@ -869,36 +890,38 @@ void PEwald3D3D::Field_CalculateShapeCorrection() {
     LOG(logDEBUG,*_log)
         << "  o Shape-correction to fields, using '" << _shape << "'" << flush;
     
-    vector<PolarSeg*>::iterator sit1; 
-    vector<APolarSite*> ::iterator pit1;
-    vector<PolarSeg*>::iterator sit2; 
-    vector<APolarSite*> ::iterator pit2;
+    _ewdactor.FPU12_ShapeField_At_By(_fg_C, _bg_P, _shape, _LxLyLz);
     
-    double rms = 0.0;
-    int rms_count = 0;    
-    if (_shape == "xyslab") {
-        double TwoPi_V = 2*M_PI/_LxLyLz;
-        
-//        for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
-//           for (sit2 = _bg_P.begin(); sit2 < _bg_P.end(); ++sit2) {
-//              for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
-//                 for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
-//                    rms += _ewdactor.F12_XYSlab_At_By(*(*pit1), *(*pit2), TwoPi_V);
-//                    rms_count += 1;
-//                 }
-//              }
-//           }
-//        }
-        
-        _ewdactor.FPU12_XYSlab_ShapeField_At_By(_fg_C, _bg_P, TwoPi_V);
-        
-    }
-    else {
-        LOG(logERROR,*_log)
-            << (format("Shape %1$s not implemented. Setting EJ = 0.0 ...") 
-            % _shape) << flush;
-    }
-    rms = sqrt(rms/rms_count)*EWD::int2V_m;
+//    vector<PolarSeg*>::iterator sit1; 
+//    vector<APolarSite*> ::iterator pit1;
+//    vector<PolarSeg*>::iterator sit2; 
+//    vector<APolarSite*> ::iterator pit2;
+//    
+//    double rms = 0.0;
+//    int rms_count = 0;    
+//    if (_shape == "xyslab") {
+//        double TwoPi_V = 2*M_PI/_LxLyLz;
+//        
+////        for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
+////           for (sit2 = _bg_P.begin(); sit2 < _bg_P.end(); ++sit2) {
+////              for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+////                 for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
+////                    rms += _ewdactor.F12_XYSlab_At_By(*(*pit1), *(*pit2), TwoPi_V);
+////                    rms_count += 1;
+////                 }
+////              }
+////           }
+////        }
+//        
+//        _ewdactor.FPU12_XYSlab_ShapeField_At_By(_fg_C, _bg_P, TwoPi_V);
+//        
+//    }
+//    else {
+//        LOG(logERROR,*_log)
+//            << (format("Shape %1$s not implemented. Setting EJ = 0.0 ...") 
+//            % _shape) << flush;
+//    }
+//    rms = sqrt(rms/rms_count)*EWD::int2V_m;
     
     return;
 }
