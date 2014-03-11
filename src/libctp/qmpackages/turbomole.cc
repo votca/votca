@@ -97,6 +97,9 @@ bool Turbomole::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_g
     _coord_file << "$coord" << endl;
 
     for (sit = segments.begin() ; sit != segments.end(); ++sit) {
+        
+       /// HERE PBCs must be taken into account
+        
         _atoms = (*sit)-> Atoms();
 
         temp_suffix = temp_suffix + "_" + boost::lexical_cast<string>( (*sit)->getId() );
