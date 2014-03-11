@@ -541,6 +541,18 @@
       </post_add>
       <post_add_options>
 	<DESC>Contains all options of post add scripts</DESC>
+	<compress>
+	  <DESC>Contains all options of the postadd compress sripts</DESC>
+	  <filelist>
+	    <DESC>Files to be compressed</DESC>
+	  </filelist>
+	  <program_opts>-9
+	    <DESC>Option to give to the compression command</DESC>
+	  </program_opts>
+	  <program>gzip
+	    <DESC>Compression command to run</DESC>
+	  </program>
+	</compress>
 	<convergence>
 	  <weight>1
 	    <DESC>weight factors for the convergence of this interaction, should be a list of same length as inverse.post_add_options.convergence.what</DESC>
