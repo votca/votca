@@ -121,14 +121,6 @@ source_function $sim_prog
 iterations_max="$(csg_get_property cg.inverse.iterations_max)"
 is_int "$iterations_max" || die "inverse.sh: cg.inverse.iterations_max needs to be a number, but I got $iterations_max"
 echo "We are doing $iterations_max iterations (0=inf)."
-convergence_check="$(csg_get_property cg.inverse.convergence_check.type)"
-[[ $convergence_check = none ]] || echo "After every iteration we will do the following check: $convergence_check"
-
-filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
-[[ -z $filelist ]] || echo "We extra cp '$filelist' to every step to run the simulation"
-
-cleanlist="$(csg_get_property --allow-empty cg.inverse.cleanlist)"
-[[ -z $cleanlist ]] || echo "We extra clean '$cleanlist' after a step is done"
 
 scriptpath="$(csg_get_property --allow-empty cg.inverse.scriptpath)"
 [[ -n $scriptpath ]] && echo "Adding $scriptpath to csgshare" && add_to_csgshare "$scriptpath"
@@ -160,8 +152,9 @@ else
   if is_done "Prepare"; then
     msg "Prepare of potentials already done"
   else
+    filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
     #get need files (leave the " " unglob happens inside the function)
-    cp_from_main_dir "$filelist"
+    [[ -n ${filelist} ]] && cp_from_main_dir "$filelist"
 
     do_external prepare $method
     mark_done "Prepare"
@@ -215,6 +208,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
   cd $this_dir || die "cd $this_dir failed"
   mark_done "stepdir"
 
+  filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
   if is_done "Filecopy"; then
     echo "Filecopy already done"
     for f in $filelist; do
@@ -226,7 +220,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
     done
   else
     #get need files (leave the " " unglob happens inside the function)
-    cp_from_main_dir "$filelist"
+    [[ -n ${filelist} ]] && cp_from_main_dir "$filelist"
 
     mark_done "Filecopy"
   fi
@@ -272,8 +266,10 @@ for ((i=$begin;i<$iterations+1;i++)); do
   msg "Post add"
   do_external post add
 
+  cleanlist="$(csg_get_property --allow-empty cg.inverse.cleanlist)"
   if [[ -n ${cleanlist} ]]; then
-    msg "Clean up"
+    msg "Clean up files: $cleanlist"
+    #no quote to allow globbing
     rm -f ${cleanlist}
   fi
 
@@ -283,6 +279,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
 
   touch "done"
 
+  convergence_check="$(csg_get_property cg.inverse.convergence_check.type)"
   if [[ $convergence_check = none ]]; then
     echo "No convergence check to be done"
   else
