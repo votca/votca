@@ -25,7 +25,7 @@ Usage: ${0##*/} [OPTIONS] --options settings.xml [clean]
 
 Allowed options:
 -h, --help                    show this help
--N, --do-iterations N         only do N iterations
+-N, --do-iterations N         only do N iterations (ignoring settings.xml)
     --wall-time SEK           Set wall clock time
     --options FILE            Specify the options xml file to use
     --debug                   enable debug mode with a lot of information
@@ -118,10 +118,6 @@ sim_prog="$(csg_get_property cg.inverse.program)"
 echo "We are using Sim Program: $sim_prog"
 source_function $sim_prog
 
-iterations_max="$(csg_get_property cg.inverse.iterations_max)"
-is_int "$iterations_max" || die "inverse.sh: cg.inverse.iterations_max needs to be a number, but I got $iterations_max"
-echo "We are doing $iterations_max iterations (0=inf)."
-
 scriptpath="$(csg_get_property --allow-empty cg.inverse.scriptpath)"
 [[ -n $scriptpath ]] && echo "Adding $scriptpath to csgshare" && add_to_csgshare "$scriptpath"
 
@@ -182,9 +178,14 @@ unset nr trunc
 
 avg_steptime=0
 steps_done=0
-[[ $iterations_max -eq 0 ]] && iterations=$begin || iterations=$iterations_max
-for ((i=$begin;i<$iterations+1;i++)); do
-  [[ $iterations_max -eq 0 ]] && ((iterations++))
+i="$begin"
+while true; do
+  if [[ -z ${do_iterations} ]]; then
+    iterations_max="$(csg_get_property cg.inverse.iterations_max)"
+    is_int "$iterations_max" || die "inverse.sh: cg.inverse.iterations_max needs to be a number, but I got $iterations_max"
+    echo "We are doing $i of $iterations_max iterations (0=inf)."
+    [[ $iterations_max -ne 0 && $i -gt $iterations_max ]] && break
+  fi
   step_starttime="$(get_time)"
   update_stepnames $i
   last_dir=$(get_last_step_dir)
@@ -276,6 +277,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
   step_time="$(( $(get_time) - $step_starttime ))"
   msg "\nstep $i done, needed $step_time secs"
   ((steps_done++))
+  ((i++))
 
   touch "done"
 
