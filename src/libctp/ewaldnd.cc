@@ -50,6 +50,11 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
     }
     else
         _shape = "xyslab";
+    if (opt->exists(pfx+".coulombmethod.save_nblist")) {
+        _save_nblist = opt->get(pfx+".coulombmethod.save_nblist").as<bool>();
+    }
+    else
+        _save_nblist = true;
     // Convergence
     if (opt->exists(pfx+".convergence.energy")) {
         _crit_dE = opt->get(pfx+".convergence.energy").as<double>();
@@ -156,9 +161,9 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
     _B = 2*M_PI/_LxLyLz * _c^_a;
     _C = 2*M_PI/_LxLyLz * _a^_b;
 
-    _na_max = ceil(_R_co/maxnorm(_a)-0.5)+1;
-    _nb_max = ceil(_R_co/maxnorm(_b)-0.5)+1;
-    _nc_max = ceil(_R_co/maxnorm(_c)-0.5)+1;
+    _na_max = ceil((_R_co+_polar_cutoff)/maxnorm(_a)-0.5)+1;
+    _nb_max = ceil((_R_co+_polar_cutoff)/maxnorm(_b)-0.5)+1;
+    _nc_max = ceil((_R_co+_polar_cutoff)/maxnorm(_c)-0.5)+1;
 
     _NA_max = ceil(_K_co/maxnorm(_A));
     _NB_max = ceil(_K_co/maxnorm(_B));
@@ -334,6 +339,18 @@ void Ewald3DnD::ExpandForegroundReduceBackground(double polar_R_co) {
     
     _fg_table = new ForegroundTable(
         _bg_P.size(), polar_na_max, polar_nb_max, polar_nc_max);
+    
+    // Max. distance between any two segments in FGC before expansion
+    _max_int_dist_qm0 = 0.0;
+    for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
+        for (sit2 = sit1+1; sit2 < _fg_C.end(); ++sit2) {
+            double R = votca::tools::abs((*sit1)->getPos()-(*sit2)->getPos());
+            _max_int_dist_qm0 = (R > _max_int_dist_qm0) ? R : _max_int_dist_qm0;
+        }
+    }
+    
+    LOG(logDEBUG,*_log) << "  o Max. int. distance (QM0): " << 
+        _max_int_dist_qm0 << "nm" << flush;
     
     // Foreground remains in foreground + contributes to QM0
     for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
@@ -643,6 +660,57 @@ void Ewald3DnD::WriteDensitiesPDB(string pdbfile) {
 }
 
 
+void Ewald3DnD::WriteDensitiesPtop(string fg, string mg, string bg) {
+    // FGC, FGN, BGN, QM0, MM1, MM2
+    _ptop->SaveToDrive(fg);
+    // MGN
+    PolarTop mg_ptop;
+    mg_ptop.setBGN(_mg_N, false);
+    mg_ptop.SaveToDrive(mg);
+    // BGP
+    PolarTop bg_ptop;
+    bg_ptop.setBGN(_bg_P, false);
+    bg_ptop.SaveToDrive(bg);
+    
+    string fg_pdb = fg + ".pdb";
+    string mg_pdb = mg + ".pdb";
+    string bg_pdb = bg + ".pdb";
+    vector<PolarSeg*>::iterator sit; 
+    vector<APolarSite*> ::iterator pit;    
+    FILE *out;
+    out = fopen(fg_pdb.c_str(),"w");
+    for (sit = _polar_qm0.begin(); sit < _polar_qm0.end(); ++sit) {        
+        PolarSeg* pseg = *sit;        
+        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
+            (*pit)->WritePdbLine(out, "QM0");
+        }
+    }
+    for (sit = _polar_mm1.begin(); sit < _polar_mm1.end(); ++sit) {        
+        PolarSeg* pseg = *sit;        
+        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
+            (*pit)->WritePdbLine(out, "MM1");
+        }
+    }
+    fclose(out);
+    out = fopen(mg_pdb.c_str(),"w");
+    for (sit = _mg_N.begin(); sit < _mg_N.end(); ++sit) {        
+        PolarSeg* pseg = *sit;        
+        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
+            (*pit)->WritePdbLine(out, "MGN");
+        }
+    }
+    fclose(out);
+    out = fopen(bg_pdb.c_str(),"w");
+    for (sit = _bg_P.begin(); sit < _bg_P.end(); ++sit) {        
+        PolarSeg* pseg = *sit;        
+        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
+            (*pit)->WritePdbLine(out, "BGP");
+        }
+    }
+    fclose(out);
+    return;
+}
+
 void Ewald3DnD::Evaluate() {
     
     LOG(logDEBUG,*_log) << flush;
@@ -808,10 +876,13 @@ void Ewald3DnD::Evaluate() {
     LOG(logDEBUG,*_log) << (format("  o Usage <Coarsegrain> = %1$2.2f%%") % (100*_t_coarsegrain/_t_total)) << flush;
     LOG(logDEBUG,*_log) << (format("  o Usage <Fields>      = %1$2.2f%%") % (100*_t_fields/_t_total)) << flush;
     LOG(logDEBUG,*_log) << (format("  o Usage <Induction>   = %1$2.2f%%") % (100*_t_induction/_t_total)) << flush;
-    LOG(logDEBUG,*_log) << (format("  o Usage <Energy>      = %1$2.2f%%") % (100*_t_energy/_t_total)) << flush;
-    
-    
+    LOG(logDEBUG,*_log) << (format("  o Usage <Energy>      = %1$2.2f%%") % (100*_t_energy/_t_total)) << flush;    
     LOG(logDEBUG,*_log) << flush;
+    
+    for (vector<PolarSeg*>::iterator sit1 = _fg_C.begin(); 
+        sit1 != _fg_C.end(); ++sit1) {
+        (*sit1)->ClearPolarNbs();
+    }    
     return;
 }
 
