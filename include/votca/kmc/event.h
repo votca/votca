@@ -254,7 +254,7 @@ void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* 
         double lr_coulomb_to = eventinfo->coulomb_strength*charge*Determine_lr_coulomb(node2, longrange);
 
         init_energy = static_node_energy_from + selfimpot_from + from_event_energy + sr_coulomb_from + lr_coulomb_from;
-        final_energy = static_node_energy_to + selfimpot_to + to_event_energy + sr_coulomb_to + sr_coulomb_to;
+        final_energy = static_node_energy_to + selfimpot_to + to_event_energy + sr_coulomb_to + lr_coulomb_to;
     }
     else {
         init_energy = static_node_energy_from + from_event_energy + sr_coulomb_from;
@@ -289,7 +289,7 @@ void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* 
     }
 
     _rate = prefactor*transferfactor*energyfactor;
-//        std::cout << _init_type << " " << _final_type << " " << prefactor << " " << transferfactor << " " << energyfactor << " " << energycontrib << " " << final_energy << " " << init_energy << " " << charge*(eventinfo->efield_x*distancevector.x()+eventinfo->efield_y*distancevector.y()+eventinfo->efield_z*distancevector.z()) << " " << static_node_energy_from << " " << static_node_energy_to << endl;
+        std::cout << _init_type << " " << _final_type << " " << prefactor << " " << transferfactor << " " << energyfactor << " " << energycontrib << " " << final_energy << " " << init_energy << " " << charge*(eventinfo->efield_x*distancevector.x()+eventinfo->efield_y*distancevector.y()+eventinfo->efield_z*distancevector.z()) << " " << static_node_energy_from << " " << static_node_energy_to << endl;
       
 }
 

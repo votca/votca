@@ -52,6 +52,8 @@ public:
     Bsumtree* non_injection_rates;
     Bsumtree* injection_rates;
     Bsumtree* site_inject_probs;
+    Bsumtree* left_ohmic_node_probs;
+    Bsumtree* right_ohmic_node_probs;
     Numoutput* numoutput;
     
     Diode() {};
@@ -89,7 +91,7 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     
     graph = new GraphDevice();
     graph->Initialize(filename);
-    graph->Setup_device_graph(eventdata->left_electrode_distance, eventdata->right_electrode_distance, true, eventdata);
+    graph->Setup_ohmic_device_graph(eventdata->left_electrode_distance, eventdata->right_electrode_distance, true, eventdata);
     eventdata->Graph_Parameters(graph->hopdist(),graph->simboxsize(), graph->maxpairdegree(),graph->Av_hole_node_energy());
     eventdata->Set_field(); // convert voltage to electric field
 
@@ -108,9 +110,14 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     state = new StateDevice();
     state->InitStateDevice();
     
-    site_inject_probs = new Bsumtree();
-    site_inject_probs->initialize(graph->Numberofnodes()); // take care of electrode nodes
-    state->Random_init_injection((int) Hole, site_inject_probs, graph, eventdata, RandomVariable);
+    // site_inject_probs = new Bsumtree();
+    // site_inject_probs->initialize(graph->Numberofnodes()); // take care of electrode nodes
+    // state->Random_init_injection((int) Hole, site_inject_probs, graph, eventdata, RandomVariable);
+    
+    left_ohmic_node_probs = new Bsumtree();
+    left_ohmic_node_probs->initialize(graph->numleftohmic());
+    right_ohmic_node_probs = new Bsumtree();
+    right_ohmic_node_probs->initialize(graph->numrightohmic());
     
     if(state->ReservoirEmpty()) state->Grow(eventdata->growsize, eventdata->maxpairdegree);
     
@@ -154,6 +161,8 @@ bool Diode::EvaluateFrame() {
     delete injection_rates;
     delete numoutput;
     delete site_inject_probs;
+    delete left_ohmic_node_probs;
+    delete right_ohmic_node_probs;
     exit(0);
 }
 

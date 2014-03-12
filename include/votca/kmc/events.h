@@ -22,6 +22,7 @@
 #include <votca/kmc/graphdevice.h>
 #include <votca/kmc/statedevice.h>
 #include <votca/kmc/event.h>
+#include <votca/kmc/ohmic_event.h>
 #include <votca/kmc/bsumtree.h>
 #include <votca/kmc/longrange.h>
 #include <votca/kmc/eventinfo.h>
@@ -40,6 +41,10 @@ public:
         typename std::vector<Event*>::iterator it;
         for (it = _non_injection_events.begin(); it != _non_injection_events.end(); it++ ) delete *it;
         for (it = _injection_events.begin(); it != _injection_events.end(); it++ ) delete *it;
+        
+        typename std::vector<Ohmic_event*>::iterator it;
+        for (it = _left_ohmic_injection_events.begin(); it != _left_ohmic_injection_events.end(); it++ ) delete *it;
+        for (it = _right_ohmic_injection_events.begin(); it != _right_ohmic_injection_events.end(); it++ ) delete *it;
     } 
     
     /// On execute methode
@@ -103,6 +108,9 @@ private:
 
     vector<Event*> _non_injection_events;
     vector<Event*> _injection_events;
+    
+    vector<Ohmic_event*> _left_ohmic_injection_events;
+    vector<Ohmic_event*> _right_ohmic_injection_events;
     
     double _meshsize_x; int _inject_meshnr_x; double _meshsize_y; double _meshsize_z; 
     vector< vector< vector <list<int> > > > _non_injection_events_mesh;
@@ -580,6 +588,38 @@ void Events::Initialize_eventvector(GraphDevice* graph, StateDevice* state, Long
         }
     }
     
+    if(eventinfo->ohmic){
+        Initialize_ohmic_injection_eventvector(graph,state, longrange, eventinfo); 
+    }
+    
+}
+
+void Events::Initialize_ohmic_injection_eventvector(Graphdevice* graph, Statedevice* state, Longrange* longrange, Eventinfo* eventinfo) {
+
+    _left_ohmic_injection_events.clear();
+    _right_ohmic_injection_events.clear();    
+    
+    int Event_map = 0;
+    int electrode;    
+    
+    for (int it = 0; it < graph->numleftohmic(); it++) {
+        electrode = 0;
+        Nodedevice* ohmic_node = Get_ohmic_node(it, electrode); 
+        Ohmic_event *newOhmic = new Ohmic_event(Event_map, ohmic_node, electrode, state, longrange, eventinfo);
+        newOhmic->Set_injection_potential(0.0);
+        _left_ohmic_injection_events.push_back(newOhmic);
+        Event_map++;
+    }
+    
+    Event_map = 0;
+    for (int it = 0; it < graph->numrightohmic(); it++) {
+        electrode = 1;
+        Nodedevice* ohmic_node = Get_ohmic_node(it, electrode); 
+        Ohmic_event *newOhmic = new Ohmic_event(Event_map, ohmic_node, electrode, state, longrange, eventinfo);
+        newOhmic->Set_injection_potential(0.0);
+        _right_ohmic_injection_events.push_back(newOhmic);
+        Event_map++;
+    }    
 }
 
 void Events::Initialize_rates(Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo){

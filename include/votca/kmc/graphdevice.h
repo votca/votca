@@ -44,7 +44,7 @@ public:
     void Determine_cross_types();
     
     ///determine injection nodes for Ohmic contacts
-    void Determine_source_nodes();
+    //void Determine_source_nodes();
     
     ///translate graph in such a way that the minimum coordinates are at 0
     void Put_at_zero_graph();
@@ -275,7 +275,7 @@ void GraphDevice::Init_node_types() {
     for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) (*it)->SetType((int) NormalNode);    
 }
 
-void GraphDevice::Determine_source_nodes() {
+/* void GraphDevice::Determine_source_nodes() {
 
     //determine the nodes which are injectable from the left side and the nodes which are injectable from the right side
 
@@ -295,7 +295,7 @@ void GraphDevice::Determine_source_nodes() {
 
     }    
     
-}
+}*/
 
 void GraphDevice::Add_electrodes() {
     
