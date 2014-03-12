@@ -72,8 +72,8 @@ LDLIBSOPTIONS=../libctp/dist/Debug/GNU-Linux-x86/liblibctp.a ../../../csg/netbea
 
 ${OBJECTDIR}/_ext/715944016/ctp_run.o: nbproject/Makefile-${CND_CONF}.mk ../../src/tools/ctp_run.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
-	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../moo/include -I../../../csg/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/ctp_run.o ../../src/tools/ctp_run.cc
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../moo/include -I../../../csg/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/715944016/ctp_run.o ../../src/tools/ctp_run.cc
 
 # Subprojects
 .build-subprojects:

@@ -160,11 +160,6 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     Segment *seg_B = top->getSegment( ID_B );
     assert( seg_B->getName() == type_B );
     
-    vector < Segment* > segments;
-    segments.push_back( seg_A );
-    segments.push_back( seg_B );
-    
-
     LOG(logINFO,*pLog) << TimeStamp() << " Evaluating pair "  
             << _job_ID << " ["  << ID_A << ":" << ID_B << "] out of " << 
            (top->NBList()).size()  << flush; 
@@ -213,7 +208,21 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 
             PrepareGuess(&_orbitalsA, &_orbitalsB, _orbitalsAB, pLog);
         }
-        _qmpackage->WriteInputFile(segments, _orbitalsAB);
+        
+        // if a pair object is available, take into account PBC, otherwise write as is
+        QMNBList* nblist = &top->NBList();
+        QMPair* pair = nblist->FindPair(seg_A, seg_B);
+    
+        if ( pair == NULL ) {
+            vector < Segment* > segments;
+            segments.push_back( seg_A );
+            segments.push_back( seg_B );
+            LOG(logWARNING,*pLog) << "PBCs are not taken into account when writing the coordinate file!" << flush; 
+            _qmpackage->WriteInputFile(segments, _orbitalsAB);
+        } else {
+            _qmpackage->WriteInputFilePBC(pair, _orbitalsAB);
+        }
+        
         delete _orbitalsAB;
     } // end of the input
  
@@ -698,7 +707,7 @@ void IDFT::ReadJobFile(Topology *top) {
             
         }
         
-        // if pair has bridges only
+        // if pair has bridges
         if ( _ptype == QMPair::SuperExchange  ||  _ptype == QMPair::SuperExchangeAndHopping ) {
             cout << ":superexchange" << endl;
             list<Property*> pOverlap = pair_property->Select("overlap");
@@ -817,7 +826,8 @@ void IDFT::ReadJobFile(Topology *top) {
                              << " JBA " << jBA << endl;
                         
                         // This in principle violates detailed balance. Any ideas?
-                        Jeff2_homo += 0.5 * (jDB*jBA / (eA - eBridgeA) + jDB*jBA / (eB - eBridgeB));
+                        double Jeff = 0.5 * (jDB*jBA / (eA - eBridgeA) + jDB*jBA / (eB - eBridgeB));
+                        Jeff2_homo += Jeff*Jeff;
                         
                                 
                     }
@@ -833,7 +843,8 @@ void IDFT::ReadJobFile(Topology *top) {
                         double eBridgeB  = (*itOverlapB)->getAttribute<double>( "e" + suffixBridgeB );
                         
                          // This in principle violates detailed balance. Any ideas?
-                        Jeff2_lumo += 0.5 * (jDB*jBA / (eA - eBridgeA) + jDB*jBA / (eB - eBridgeB));
+                        double Jeff = 0.5 * (jDB*jBA / (eA - eBridgeA) + jDB*jBA / (eB - eBridgeB));
+                        Jeff2_lumo += Jeff*Jeff;
                         //jDB*jBA / (eB - eBridgeB);
                                 
                     }

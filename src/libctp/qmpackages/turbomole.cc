@@ -97,6 +97,9 @@ bool Turbomole::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_g
     _coord_file << "$coord" << endl;
 
     for (sit = segments.begin() ; sit != segments.end(); ++sit) {
+        
+        // PBCs are taken care of here
+
         _atoms = (*sit)-> Atoms();
 
         temp_suffix = temp_suffix + "_" + boost::lexical_cast<string>( (*sit)->getId() );
@@ -224,7 +227,6 @@ bool Turbomole::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_g
     return true;    
     
 }
-
 
 string Turbomole::FortranFormat( const double &number ) {
     stringstream _ssnumber;
