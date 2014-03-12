@@ -38,8 +38,6 @@ public:
     ///define electrode nodes and form links between those nodes and neighbouring nodes and set maxpairdegree/hopping_distance/sim_box_size
     void Setup_device_graph(double left_distance, double right_distance, bool resize, Eventinfo* eventinfo);       
 
-    void Setup_ohmic_device_graph(double left_distance, double right_distance, bool resize, Eventinfo* eventinfo);         
-    
     ///determine the crossing types of the links    
     void Determine_cross_types();
     
@@ -113,6 +111,7 @@ public:
     // void Rotate_morph(double rotate_in_rads, int rotate_axis);
     
     double Av_hole_node_energy();
+    double Av_electron_node_energy();
     
 private:
 
@@ -139,6 +138,20 @@ double GraphDevice::Av_hole_node_energy() {
     
     av_ho_energy = ho_energy/this->Numberofnodes();
     return av_ho_energy;
+}
+
+double GraphDevice::Av_electron_node_energy() {
+    
+    double elect_energy = 0.0;
+    double av_elect_energy = 0.0;
+    
+    typename std::vector<NodeDevice*>:: iterator it;
+    for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) {
+        elect_energy += (*it)->eCation() + (*it)->UcCnNe();
+    }
+    
+    av_elect_energy = elect_energy/this->Numberofnodes();
+    return av_elect_energy;
 }
 
 void GraphDevice::Translate_graph(double translate_x, double translate_y, double translate_z) {
@@ -191,10 +204,6 @@ void GraphDevice::Setup_bulk_graph( bool resize, Eventinfo* eventinfo){
     this->RenumberId();   
 
 }    
-            
-void GraphDevice::Setup_ohmic_device_graph(double left_distance, double right_distance, bool resize, Eventinfo* eventinfo){
-    
-}            
 
 void GraphDevice::Setup_device_graph(double left_distance, double right_distance, bool resize, Eventinfo* eventinfo){
     
@@ -311,7 +320,7 @@ void GraphDevice::Add_electrodes() {
     for(it  = this->_nodes.begin(); it != this->_nodes.end(); it++) { 
       
         // when electrodes are present physically, no need to keep track of injectability of the nodes
-        (*it)->SetInjectable(false);
+        //(*it)->SetInjectable(false);
         
         votca::tools::vec nodepos = (*it)->position();
         double left_distance = nodepos.x();
@@ -539,7 +548,7 @@ void GraphDevice::Break_periodicity(bool break_x, double dimX, bool break_y, dou
             this->RemoveLink(it);
             delete ilink;   
         }
-        std::cout << it << endl;
+        //std::cout << it << endl;
     }
   
     // Remove nodes

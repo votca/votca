@@ -47,7 +47,7 @@ public:
         _id = id;
         Set_event(link, carrier_type, state, longrange, eventinfo);
     }
- 
+    
     double &rate() { return _rate; }
     int &init_type() { return _init_type; }
     int &final_type() { return _final_type;}
@@ -60,6 +60,8 @@ public:
     void Set_event(Link* link, int carrier_type, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo);
     /// Determine rate
     void Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* eventinfo);
+    /// Determine ohmic injection probability
+    void Determine_ohmic_rate(StateDevice* state, Longrange* longrange, Eventinfo* eventinfo);
     /// Set rate to value
     void Set_rate(double rate) {_rate = rate;}
     /// Set out of box
@@ -111,10 +113,7 @@ protected:
 };
 
 inline int Event::Determine_final_event_type(Node* node1, Node* node2) {
-    if (node2->type() == (int) NormalNode){                                                                  
-        if(!dynamic_cast<NodeDevice*>(node2)->injectable()) return (int) TransferTo;
-        if(dynamic_cast<NodeDevice*>(node2)->injectable()) return (int) CollectiontoNode;
-    }
+    if (node2->type() == (int) NormalNode){                                                                  return (int) TransferTo;}
     else if (node2->type() == (int) LeftElectrodeNode || node2->type() == (int) RightElectrodeNode){         return (int) Collection;} // Collection at electrode
 }
 
@@ -124,10 +123,7 @@ inline int Event::Determine_final_event_type(int carrier_type1, int carrier_type
 }
 
 inline int Event::Determine_init_event_type(Node* node1) {
-    if(node1->type() == (int) NormalNode){                                                                   
-        if(!dynamic_cast<NodeDevice*>(node1)->injectable()) return (int) TransferFrom;
-        if(dynamic_cast<NodeDevice*>(node1)->injectable()) return (int) InjectionfromNode;
-    }
+    if(node1->type() == (int) NormalNode){                                                                   return (int) TransferFrom;}
     else if((node1->type() == (int) LeftElectrodeNode) || (node1->type() == (int) RightElectrodeNode)){      return (int) Injection;   }
 }
 
@@ -246,7 +242,7 @@ void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* 
     double sr_coulomb_from = Determine_from_sr_coulomb(node1, state, eventinfo);
     double sr_coulomb_to = Determine_to_sr_coulomb(node1, state, eventinfo);
 
-    if(eventinfo->device) {
+    if(eventinfo->device > 0) {
         double selfimpot_from = dynamic_cast<NodeDevice*>(node1)->self_image();
         double selfimpot_to = dynamic_cast<NodeDevice*>(node2)->self_image();    
 
@@ -289,8 +285,52 @@ void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* 
     }
 
     _rate = prefactor*transferfactor*energyfactor;
-        std::cout << _init_type << " " << _final_type << " " << prefactor << " " << transferfactor << " " << energyfactor << " " << energycontrib << " " << final_energy << " " << init_energy << " " << charge*(eventinfo->efield_x*distancevector.x()+eventinfo->efield_y*distancevector.y()+eventinfo->efield_z*distancevector.z()) << " " << static_node_energy_from << " " << static_node_energy_to << endl;
+//        std::cout << _init_type << " " << _final_type << " " << prefactor << " " << transferfactor << " " << energyfactor << " " << energycontrib << " " << final_energy << " " << init_energy << " " << charge*(eventinfo->efield_x*distancevector.x()+eventinfo->efield_y*distancevector.y()+eventinfo->efield_z*distancevector.z()) << " " << static_node_energy_from << " " << static_node_energy_to << endl;
       
+}
+
+void Event::Determine_ohmic_rate(StateDevice* state, Longrange* longrange, Eventinfo* eventinfo) {
+
+    if(_final_type == Blocking) {
+       _rate = 0.0; // No double occupation
+    }
+    else { // Note that double carrier simulations are not tackled correctly here
+        
+        Node* node = _link->node2();
+
+        double charge;
+        double static_electrode_energy;
+        double static_node_energy;
+        
+        const double kB   = 8.617332478E-5; // ev/K     
+
+        // we are interested in the difference with the electrode
+
+        if(_carrier_type == (int) Electron) {
+            charge = -1.0;
+            static_node_energy = dynamic_cast<NodeSQL*>(node)->eCation() + dynamic_cast<NodeSQL*>(node)->UcCnNe();
+            static_electrode_energy = eventinfo->avelectronenergy;
+        }
+        else if(_carrier_type == (int) Hole) {
+            charge = 1.0;
+            static_node_energy = dynamic_cast<NodeSQL*>(node)->eAnion() + dynamic_cast<NodeSQL*>(node)->UcCnNh();
+            static_electrode_energy = eventinfo->avholeenergy;
+        }    
+
+        double inject_bar = 1.0*eventinfo->injection_barrier;
+        double sr_coulomb = eventinfo->coulomb_strength*_injection_potential;
+        double lr_coulomb = eventinfo->coulomb_strength*charge*longrange->Get_cached_longrange(dynamic_cast<NodeDevice*>(node)->layer());
+        double selfimpot = dynamic_cast<NodeDevice*>(node)->self_image();    
+
+        double node_energy = static_node_energy + selfimpot + inject_bar + sr_coulomb + lr_coulomb;
+
+        votca::tools::vec distancevector = _link->r12();
+
+        double energybarrier = node_energy - static_electrode_energy -charge*(eventinfo->efield_x*distancevector.x());
+
+        _rate = 1.0/(1.0+exp(energybarrier/(kB*eventinfo->temperature)));
+    }
+    
 }
 
 void Event::Set_event(Link* link,int carrier_type, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo) {
@@ -308,7 +348,8 @@ void Event::Set_event(Link* link,int carrier_type, StateDevice* state, Longrange
     _action_node1 = Determine_action_flag_node1();
     _action_node2 = Determine_action_flag_node2();
     
-    Determine_rate( state, longrange, eventinfo);
+    if(_init_type == (int) Injection && eventinfo->device == 2) Determine_ohmic_rate(state,longrange,eventinfo);
+    else                                                        Determine_rate( state, longrange, eventinfo);
 
 }
 

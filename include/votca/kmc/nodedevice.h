@@ -39,7 +39,7 @@ public:
     /// Self image coulomb potential (potential of image charges  of a charge on the charge itself)
     const double &self_image() const { return _self_image; }     
     
-    const bool &injectable() const { return _injectable; }
+//    const bool &injectable() const { return _injectable; }
     /// Layer index
     const int &layer() const {return _layer;}
 
@@ -53,7 +53,7 @@ public:
     
     void Init_vals() {_hole_occ = 0.0; _el_occ = 0.0; _reco_rate = 0;}
     
-    void SetInjectable(bool injectable) { _injectable = injectable;}
+//    void SetInjectable(bool injectable) { _injectable = injectable;}
     
 private:
 
@@ -63,7 +63,7 @@ private:
     double _el_occ;
     int _reco_rate;
     
-    bool _injectable;
+//    bool _injectable;
     
 };
 

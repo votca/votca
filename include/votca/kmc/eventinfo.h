@@ -72,7 +72,7 @@ public:
         right_electron_injection    = options->get("options.diode.right_electron_injection").as<bool>();
         right_hole_injection        = options->get("options.diode.right_hole_injection").as<bool>();
         
-        device                      = options->get("options.diode.device").as<bool>();
+        device                      = options->get("options.diode.device").as<int>();
         
         mesh_x                      = options->get("options.diode.mesh_x").as<int>();
         mesh_y                      = options->get("options.diode.mesh_y").as<int>();
@@ -87,11 +87,12 @@ public:
         
     }
     
-    void Graph_Parameters(double graph_hopdist, votca::tools::vec graph_simboxsize, int graph_maxpairdegree, double av_ho_energy) {
+    void Graph_Parameters(double graph_hopdist, votca::tools::vec graph_simboxsize, int graph_maxpairdegree, double av_ho_energy, double av_elect_energy) {
         hopdist = graph_hopdist;
         simboxsize = graph_simboxsize;
         maxpairdegree = graph_maxpairdegree;
         avholeenergy = av_ho_energy;
+        avelectronenergy = av_elect_energy;
     }
     
     void Set_field(){
@@ -107,9 +108,9 @@ public:
     double efield_x; double efield_y; double efield_z; double voltage;
     double electron_prefactor; double hole_prefactor; double injection_prefactor; double recombination_prefactor; double collection_prefactor;
     string formalism; double injection_barrier; double binding_energy;
-    bool left_electron_injection; bool left_hole_injection; bool right_electron_injection; bool right_hole_injection; bool device;
+    bool left_electron_injection; bool left_hole_injection; bool right_electron_injection; bool right_hole_injection; int device;
     int mesh_x; int mesh_y; int mesh_z; double layersize;
-    double hopdist; votca::tools::vec simboxsize; int maxpairdegree; double avholeenergy;
+    double hopdist; votca::tools::vec simboxsize; int maxpairdegree; double avholeenergy; double avelectronenergy;
     double coulomb_strength; double coulcut; double self_image_prefactor; int nr_sr_images; long nr_lr_images;
 
 };

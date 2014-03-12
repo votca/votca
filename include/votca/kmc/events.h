@@ -22,7 +22,6 @@
 #include <votca/kmc/graphdevice.h>
 #include <votca/kmc/statedevice.h>
 #include <votca/kmc/event.h>
-#include <votca/kmc/ohmic_event.h>
 #include <votca/kmc/bsumtree.h>
 #include <votca/kmc/longrange.h>
 #include <votca/kmc/eventinfo.h>
@@ -41,10 +40,6 @@ public:
         typename std::vector<Event*>::iterator it;
         for (it = _non_injection_events.begin(); it != _non_injection_events.end(); it++ ) delete *it;
         for (it = _injection_events.begin(); it != _injection_events.end(); it++ ) delete *it;
-        
-        typename std::vector<Ohmic_event*>::iterator it;
-        for (it = _left_ohmic_injection_events.begin(); it != _left_ohmic_injection_events.end(); it++ ) delete *it;
-        for (it = _right_ohmic_injection_events.begin(); it != _right_ohmic_injection_events.end(); it++ ) delete *it;
     } 
     
     /// On execute methode
@@ -108,9 +103,6 @@ private:
 
     vector<Event*> _non_injection_events;
     vector<Event*> _injection_events;
-    
-    vector<Ohmic_event*> _left_ohmic_injection_events;
-    vector<Ohmic_event*> _right_ohmic_injection_events;
     
     double _meshsize_x; int _inject_meshnr_x; double _meshsize_y; double _meshsize_z; 
     vector< vector< vector <list<int> > > > _non_injection_events_mesh;
@@ -191,7 +183,7 @@ inline void Events::Effect_potential_and_rates(int action, CarrierDevice* carrie
                                    Bsumtree* non_injection_rates, Bsumtree* injection_rates,Eventinfo* eventinfo) {
     Effect_potential_and_non_injection_rates(action, carrier, node, state, longrange, non_injection_rates, eventinfo);
    
-    if(eventinfo->device){
+    if(eventinfo->device > 0){
         votca::tools::vec nodeposition = node->position();
         if(nodeposition.x()<eventinfo->coulcut) {
 
@@ -217,7 +209,7 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierDevice*
    
     double RCSQR = eventinfo->coulcut*eventinfo->coulcut;
     
-    if(eventinfo->device){ 
+    if(eventinfo->device > 0){ 
         longrange->Add_charge(interact_sign, dynamic_cast<NodeDevice*>(node)->layer());
     }
 
@@ -229,7 +221,7 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierDevice*
     double iz1 = carrier1_pos.z()-eventinfo->coulcut-eventinfo->hopdist; double iz2 = carrier1_pos.z()+eventinfo->coulcut+eventinfo->hopdist;
 
     // Break periodicity in x-direction
-    if(eventinfo->device) {
+    if(eventinfo->device > 0) {
         if (ix1<0.0) ix1 = 0.0;
         if (ix2>eventinfo->simboxsize.x()) ix2 = eventinfo->simboxsize.x();
     }
@@ -484,7 +476,7 @@ double Events::Compute_Coulomb_potential(double startx, votca::tools::vec dif, b
         coulpot = 0.0;
     }
     
-    if(eventinfo->device) {
+    if(eventinfo->device > 0) {
         
         double L = simboxsize.x();
         double distsqr_planar = dif.y()*dif.y() + dif.z()*dif.z();
@@ -532,7 +524,7 @@ double Events::Compute_Coulomb_potential(double startx, votca::tools::vec dif, b
 void Events::Recompute_all_events(StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo) {
   
     Recompute_all_non_injection_events(state,longrange, non_injection_rates, eventinfo);
-    if(eventinfo->device) Recompute_all_injection_events(state,longrange,injection_rates, eventinfo);
+    if(eventinfo->device > 0) Recompute_all_injection_events(state,longrange,injection_rates, eventinfo);
 
 }
 
@@ -568,7 +560,7 @@ void Events::Initialize_eventvector(GraphDevice* graph, StateDevice* state, Long
     _non_injection_events.clear();
     Grow_non_injection_eventvector(state, longrange, eventinfo);
 
-    if(eventinfo->device){
+    if(eventinfo->device > 0){
         _injection_events.clear();
         int Event_id_count = 0;
         if(eventinfo->left_electron_injection) {
@@ -588,38 +580,6 @@ void Events::Initialize_eventvector(GraphDevice* graph, StateDevice* state, Long
         }
     }
     
-    if(eventinfo->ohmic){
-        Initialize_ohmic_injection_eventvector(graph,state, longrange, eventinfo); 
-    }
-    
-}
-
-void Events::Initialize_ohmic_injection_eventvector(Graphdevice* graph, Statedevice* state, Longrange* longrange, Eventinfo* eventinfo) {
-
-    _left_ohmic_injection_events.clear();
-    _right_ohmic_injection_events.clear();    
-    
-    int Event_map = 0;
-    int electrode;    
-    
-    for (int it = 0; it < graph->numleftohmic(); it++) {
-        electrode = 0;
-        Nodedevice* ohmic_node = Get_ohmic_node(it, electrode); 
-        Ohmic_event *newOhmic = new Ohmic_event(Event_map, ohmic_node, electrode, state, longrange, eventinfo);
-        newOhmic->Set_injection_potential(0.0);
-        _left_ohmic_injection_events.push_back(newOhmic);
-        Event_map++;
-    }
-    
-    Event_map = 0;
-    for (int it = 0; it < graph->numrightohmic(); it++) {
-        electrode = 1;
-        Nodedevice* ohmic_node = Get_ohmic_node(it, electrode); 
-        Ohmic_event *newOhmic = new Ohmic_event(Event_map, ohmic_node, electrode, state, longrange, eventinfo);
-        newOhmic->Set_injection_potential(0.0);
-        _right_ohmic_injection_events.push_back(newOhmic);
-        Event_map++;
-    }    
 }
 
 void Events::Initialize_rates(Bsumtree* non_injection_rates, Bsumtree* injection_rates, Eventinfo* eventinfo){
@@ -628,7 +588,7 @@ void Events::Initialize_rates(Bsumtree* non_injection_rates, Bsumtree* injection
     typename std::vector<Event*>::iterator it; 
     for (it = _non_injection_events.begin(); it!=_non_injection_events.end(); it++) {non_injection_rates->setrate((*it)->id(),(*it)->rate());}     
 
-    if(eventinfo->device) {
+    if(eventinfo->device > 0) {
         injection_rates->initialize(_injection_events.size());
         for (it = _injection_events.begin(); it!=_injection_events.end(); it++) {injection_rates->setrate((*it)->id(),(*it)->rate());}  
     }

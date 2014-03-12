@@ -91,8 +91,8 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     
     graph = new GraphDevice();
     graph->Initialize(filename);
-    graph->Setup_ohmic_device_graph(eventdata->left_electrode_distance, eventdata->right_electrode_distance, true, eventdata);
-    eventdata->Graph_Parameters(graph->hopdist(),graph->simboxsize(), graph->maxpairdegree(),graph->Av_hole_node_energy());
+    graph->Setup_device_graph(eventdata->left_electrode_distance, eventdata->right_electrode_distance, true, eventdata);
+    eventdata->Graph_Parameters(graph->hopdist(),graph->simboxsize(), graph->maxpairdegree(),graph->Av_hole_node_energy(), graph->Av_electron_node_energy());
     eventdata->Set_field(); // convert voltage to electric field
 
     std::cout << "graph initialized" << endl;
@@ -113,12 +113,7 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     // site_inject_probs = new Bsumtree();
     // site_inject_probs->initialize(graph->Numberofnodes()); // take care of electrode nodes
     // state->Random_init_injection((int) Hole, site_inject_probs, graph, eventdata, RandomVariable);
-    
-    left_ohmic_node_probs = new Bsumtree();
-    left_ohmic_node_probs->initialize(graph->numleftohmic());
-    right_ohmic_node_probs = new Bsumtree();
-    right_ohmic_node_probs->initialize(graph->numrightohmic());
-    
+        
     if(state->ReservoirEmpty()) state->Grow(eventdata->growsize, eventdata->maxpairdegree);
     
     std::cout << "state initialized" << endl;
