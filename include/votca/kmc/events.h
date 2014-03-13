@@ -126,12 +126,8 @@ void Events::On_execute(Event* event, GraphDevice* graph, StateDevice* state, Lo
     Node* node1 = event->link()->node1();
     Node* node2 = event->link()->node2();
     
-    std::cout<<"here?" << endl;
     On_execute_node(node1, event->action_node1(), event->carrier_type(), graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);
-    std::cout<<"here?" << endl;
-
     On_execute_node(node2, event->action_node2(), event->carrier_type(), graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);
-    std::cout<<"here?" << endl;
 
 }
 

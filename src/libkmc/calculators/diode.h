@@ -184,6 +184,7 @@ void Diode::RunKMC() {
     sim_time = 0.0;
     for (long it = 0; it < 2*eventdata->nr_equilsteps + eventdata->nr_timesteps; it++) {
         // Update longrange cache (expensive, so not done at every timestep)
+        std::cout << "it " << it << endl;
         if(ldiv(it, eventdata->steps_update_longrange).rem == 0 && it>0){
             longrange->Update_cache(eventdata);
             events->Recompute_all_events(state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventdata);
