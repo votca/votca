@@ -50,10 +50,10 @@ public:
     Eventinfo* eventdata;
     Longrange* longrange;
     Bsumtree* non_injection_rates;
-    Bsumtree* injection_rates;
+    Bsumtree* left_injection_rates;
+    Bsumtree* right_injection_rates;
     Bsumtree* site_inject_probs;
-    Bsumtree* left_ohmic_node_probs;
-    Bsumtree* right_ohmic_node_probs;
+
     Numoutput* numoutput;
     
     Diode() {};
@@ -119,16 +119,17 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     std::cout << "state initialized" << endl;
     
     non_injection_rates = new Bsumtree();
-    injection_rates = new Bsumtree();
-    
+    left_injection_rates = new Bsumtree();
+    right_injection_rates = new Bsumtree();
+
     std::cout << "binary tree structures initialized" << endl;
 
     events = new Events();
     events->Init_non_injection_meshes(eventdata);
     events->Initialize_eventvector(graph,state,longrange,eventdata);
-    events->Initialize_rates(non_injection_rates,injection_rates,eventdata);
+    events->Initialize_rates(non_injection_rates, left_injection_rates, right_injection_rates,eventdata);
     events->Init_injection_meshes(state, eventdata);
-    events->Initialize_after_charge_placement(graph,state, longrange, non_injection_rates, injection_rates, eventdata);
+    events->Initialize_after_charge_placement(graph,state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventdata);
     std::cout << "event vectors and meshes initialized" << endl;
 
     vssmgroup = new Vssmgroup();
@@ -153,11 +154,10 @@ bool Diode::EvaluateFrame() {
     delete longrange;
     delete vssmgroup;
     delete non_injection_rates;
-    delete injection_rates;
+    delete left_injection_rates;
+    delete right_injection_rates;
     delete numoutput;
     delete site_inject_probs;
-    delete left_ohmic_node_probs;
-    delete right_ohmic_node_probs;
     exit(0);
 }
 
@@ -174,22 +174,34 @@ void Diode::RunKMC() {
     int direct_iv_counter = 0; //if the convergence criterium is counted ten times in a row, result is converged
     int direct_reco_counter = 0;
     
+    if(eventdata->device == 2) {
+        
+        // start with an initial carrier density near the electrodes, which will be calculated on the fly
+        
+        
+    }
+    
     sim_time = 0.0;
     for (long it = 0; it < 2*eventdata->nr_equilsteps + eventdata->nr_timesteps; it++) {
         // Update longrange cache (expensive, so not done at every timestep)
         if(ldiv(it, eventdata->steps_update_longrange).rem == 0 && it>0){
             longrange->Update_cache(eventdata);
-            events->Recompute_all_events(state, longrange, non_injection_rates, injection_rates, eventdata);
+            events->Recompute_all_events(state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventdata);
         }
        
-        vssmgroup->Recompute_device(non_injection_rates, injection_rates);
+        if(eventdata->device == 1) vssmgroup->Recompute_device(non_injection_rates, left_injection_rates, right_injection_rates);
+        if(eventdata->device == 2) vssmgroup->Recompute_bulk(non_injection_rates);
+                
         double timestep = vssmgroup->Timestep(RandomVariable);
         sim_time += timestep;
  
-        Event* chosenevent = vssmgroup->Choose_event_device(events, non_injection_rates, injection_rates, RandomVariable);
+        Event* chosenevent;
+        if(eventdata->device == 1) chosenevent = vssmgroup->Choose_event_device(events, non_injection_rates, left_injection_rates, right_injection_rates, RandomVariable);
+        if(eventdata->device == 2) chosenevent = vssmgroup->Choose_event_bulk(events, non_injection_rates, RandomVariable);
+        
         numoutput->Update(chosenevent, sim_time, timestep); 
 
-        events->On_execute(chosenevent, graph, state, longrange, non_injection_rates, injection_rates, eventdata, it);
+        events->On_execute(chosenevent, graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventdata);
 
         // check for direct repeats
         
@@ -217,7 +229,7 @@ void Diode::RunKMC() {
             std::cout << it << " " << repeat_counter << " " << 
                          numoutput->iv_conv() << " " << numoutput->iv_count() << " " << 
                          numoutput->reco_conv() << " " << numoutput->reco_count() <<  " " << 
-                         sim_time << " " << timestep << " ";
+                         sim_time << " " << timestep << " " << vssmgroup->totprobsum() << " "  << vssmgroup->noninjectprobsum() << " "  << vssmgroup->leftinjectprobsum() << " "  << vssmgroup->rightinjectprobsum() << " " ;
             numoutput->Write(sim_time);
         }
         

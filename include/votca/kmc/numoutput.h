@@ -203,7 +203,7 @@ void Numoutput::Write(double simtime) {
     std::cout << " el " << _nelectrons << " ho " << _nholes  << " ca " << _ncarriers << 
             " tr " << _nplaintransfer << " rec " << _nrecombinations << " irec " << _ninject_to_recombination <<
             " in " << _ninjections << " co " << _ncollections <<
-//            " lin " << _nleftinjections << " rin " << _nrightinjections << " lco " << _nleftcollections << " rco " << _nrightcollections <<
+            " lin " << _nleftinjections << " rin " << _nrightinjections << " lco " << _nleftcollections << " rco " << _nrightcollections <<
             " ira " << _ninjectionrate << " cra " << _ncollectionrate << " rra " << _nrecombinationrate << 
             " vx " << _vel_x/simtime << " vy " << _vel_y/simtime << " vz " << _vel_z/simtime <<
 //            " evx " << _electron_vel_x << " evy " << _electron_vel_y << " evz " << _electron_vel_z <<

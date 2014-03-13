@@ -50,7 +50,7 @@ public:
     /// get nr of elements
     long getnrrates();
  
-        double partsum(int i);
+    double partsum(int i);
     
 private:
     

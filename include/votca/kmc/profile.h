@@ -41,6 +41,9 @@ public:
     /// number of profile layers
     const int &number_of_layers() const { return _number_of_layers; }
     
+    /// number of nodes
+    const int &number_of_nodes(int i) const {return _number_of_nodes[i]; }
+    
     /// positional average of the nodes in the layer
     const double &position(int i) const {return _positional_average[i]; }
     

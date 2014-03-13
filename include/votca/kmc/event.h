@@ -285,7 +285,7 @@ void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* 
     }
 
     _rate = prefactor*transferfactor*energyfactor;
-//        std::cout << _init_type << " " << _final_type << " " << prefactor << " " << transferfactor << " " << energyfactor << " " << energycontrib << " " << final_energy << " " << init_energy << " " << charge*(eventinfo->efield_x*distancevector.x()+eventinfo->efield_y*distancevector.y()+eventinfo->efield_z*distancevector.z()) << " " << static_node_energy_from << " " << static_node_energy_to << endl;
+    //std::cout << _init_type << " " << _final_type << " " << prefactor << " " << transferfactor << " " << energyfactor << " " << energycontrib << " " << final_energy << " " << init_energy << " " << charge*(eventinfo->efield_x*distancevector.x()+eventinfo->efield_y*distancevector.y()+eventinfo->efield_z*distancevector.z()) << " " << static_node_energy_from << " " << static_node_energy_to << endl;
       
 }
 

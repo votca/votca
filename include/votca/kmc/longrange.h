@@ -104,16 +104,21 @@ void Longrange::Reset() {
 
 void Longrange::Initialize (Eventinfo* eventinfo) {
 
+    // the properties of the profile object are initialized in the constructor of the profile object itself
+    
+    _first_contributing_layer.clear();
+    _final_contributing_layer.clear();
+    
     for (int ilayer=0;ilayer<this->number_of_layers();ilayer++) {
 
         // define for every layer, how many other layers are within the coulomb cut off radius from this layer
-        double define_layer = this->position(ilayer);
+        double define_layerpos = this->position(ilayer);
 
         int start_index = 0;
         bool startfound = false;
         while (!startfound) {
-            double start_layer = this->position(start_index);
-            if((define_layer-start_layer)<=eventinfo->coulcut) {
+            double start_layerpos = this->position(start_index);
+            if((define_layerpos-start_layerpos)<=eventinfo->coulcut) {
                 startfound = true;
                 _first_contributing_layer.push_back(start_index);
             }
@@ -123,8 +128,8 @@ void Longrange::Initialize (Eventinfo* eventinfo) {
         int final_index = this->number_of_layers()-1;
         bool finalfound = false;
         while (!finalfound) {
-            double final_layer = this->position(final_index);
-            if((final_layer-define_layer)<=eventinfo->coulcut) {
+            double final_layerpos = this->position(final_index);
+            if((final_layerpos-define_layerpos)<=eventinfo->coulcut) {
                 finalfound = true;
                 _final_contributing_layer.push_back(final_index);
             }
@@ -157,7 +162,7 @@ inline double Longrange::Calculate_disc_contrib(int calculate_layer, int contrib
     double contribpos = this->position(contrib_layer);
     double rdist = contribpos-calcpos;
   
-    double contrib = eventinfo->coulcut-fabs(rdist); // Direct contribution (no image), factor 2 pi is missing, included in compute_longrange   
+    double contrib = eventinfo->coulcut-fabs(rdist); // Direct contribution (no image), factor 2 pi is missing, included in calculate_longrange   
     double radiussqr = eventinfo->coulcut*eventinfo->coulcut-rdist*rdist; //radius of contributing disc
     
     double L = eventinfo->simboxsize.x();
@@ -192,33 +197,38 @@ double Longrange::Calculate_longrange(int layer, bool cut_out_discs,Eventinfo* e
 
     double plate_contrib1 = 0.0;
     double disc_contrib = 0.0;
-
+    double layerpos = this->position(layer);
+    
     for(int i=0; i<layer; i++) {
-        double charge_i = 1.0*_layercharge[i];
+        double charge_i = 1.0*_layercharge[i]/this->number_of_nodes(i);
         double position_i = 1.0*this->position(i);
         plate_contrib1 += position_i*charge_i; // potential of a charged plate between two electrodes
-        double distance = layer-position_i;
+        
+        // calculation of contribution of disc
+        double distance = layerpos -position_i;
         int first_layer = _first_contributing_layer[layer];
         if (distance<=eventinfo->coulcut) {
-            // Cut out short-range sphere
+            // Cut out short-range sphere (relative to first contributing layer)
             disc_contrib -= charge_i*_precalculate_disc_contrib[layer][i-first_layer];
         }
     }
     double plate_contrib2 = 0.0;
     for(int i=layer; i<this->number_of_layers(); i++) {
-        double charge_i = 1.0*_layercharge[i];
+        double charge_i = 1.0*_layercharge[i]/this->number_of_nodes(i);
         double rel_position_i = 1.0*(eventinfo->simboxsize.x()-this->position(i));
         plate_contrib2 += rel_position_i*charge_i; // potential of a charged plate between two electrodes
-        double distance = this->position(i)-layer;
+
+        // calculation of contribution of disc        
+        double distance = this->position(i)-layerpos;
         int first_layer = _first_contributing_layer[layer];
         if (distance<=eventinfo->coulcut) {
-            // Cut out short-range sphere
+            // Cut out short-range sphere (relative to first contributing layer)
             disc_contrib -= charge_i*_precalculate_disc_contrib[layer][i-first_layer];
         }
     }
     if (!cut_out_discs) { disc_contrib = 0.0; }
-    double layerpos = this->position(layer);
-    return 4.0*Pi*(plate_contrib1*(1-layerpos/eventinfo->simboxsize.x()) + plate_contrib2*(layerpos/eventinfo->simboxsize.x()) + 0.5*disc_contrib)/(eventinfo->simboxsize.y()*eventinfo->simboxsize.z());
+
+    return 4.0*Pi*(plate_contrib1*(1-layerpos/eventinfo->simboxsize.x()) + plate_contrib2*(layerpos/eventinfo->simboxsize.x()) + 0.5*disc_contrib);
 }
 
 }}
