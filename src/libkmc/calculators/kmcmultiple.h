@@ -147,7 +147,6 @@ protected:
             double _fieldY;
             double _fieldZ;
             double _outputtime;
-            double _diffusionfreq;
             string _trajectoryfile;
             string _carriertype;
             int _explicitcoulomb;
@@ -231,12 +230,6 @@ void KMCMultiple::Initialize(const char *filename, Property *options, const char
 	}
         else {
             _outputtime = 0;
-        }
-        if (options->exists("options.kmcmultiple.diffusionfreq")) {
-	    _diffusionfreq = options->get("options.kmcmultiple.diffusionfreq").as<double>();
-	}
-        else {
-            _diffusionfreq = 0;
         }
         if (options->exists("options.kmcmultiple.trajectoryfile")) {
 	    _trajectoryfile = options->get("options.kmcmultiple.trajectoryfile").as<string>();
@@ -777,6 +770,7 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
     string stopcondition;
     unsigned long maxsteps;
     int diffusionsteps = 0;
+    int diffusion_stepsize = 10000;
     matrix avgdiffusiontensor;
     avgdiffusiontensor.ZeroMatrix();
     if(runtime > 100)
@@ -792,12 +786,6 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
         cout << "(If you specify runtimes larger than 100 kmcmultiple assumes that you are specifying the number of steps.)" << endl;
     }
     
-    if(_diffusionfreq != 0)
-    {
-        cout << "Diffusion tensor with time step " << _diffusionfreq << " will be calculated." << endl;
-    }
-    
- 
     if(numberofcharges > node.size())
     {
         throw runtime_error("ERROR in kmcmultiple: specified number of charges is greater than the number of nodes. This conflicts with single occupation.");
@@ -966,7 +954,7 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
     double nextoutput = outputfrequency;
     unsigned long nextstepoutput = outputstepfrequency;
     double nexttrajoutput = _outputtime;
-    double nextdiffstep = _diffusionfreq;
+    int nextdiffstep = diffusion_stepsize;
     
     progressbar(0.);
     vector<int> forbiddennodes;
@@ -1148,9 +1136,9 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
         // END LEVEL 1
         }    
 
-        if(_diffusionfreq != 0 && simtime > nextdiffstep)       
+        if(step > nextdiffstep)       
         {
-            nextdiffstep = simtime + _diffusionfreq;
+            nextdiffstep += diffusion_stepsize;
             for(unsigned int i=0; i<numberofcharges; i++) 
             {
                 diffusionsteps  += 1;
@@ -1251,24 +1239,21 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
     cout << endl;
     
     // calculate diffusion tensor
-    if(_diffusionfreq != 0)
+    avgdiffusiontensor /= (diffusionsteps*2*simtime*numberofcharges);
+    cout<<endl<<"Diffusion tensor averaged over all carriers (m^2):" << endl << avgdiffusiontensor << endl;
+
+    matrix::eigensystem_t diff_tensor_eigensystem;
+    cout<<endl<<"Eigenvalues: "<<endl<<endl;
+    avgdiffusiontensor.SolveEigensystem(diff_tensor_eigensystem);
+    for(int i=0; i<=2; i++)
     {
-        avgdiffusiontensor /= (diffusionsteps*2*simtime*numberofcharges);
-        cout<<endl<<"Diffusion tensor averaged over all carriers (m^2):" << endl << avgdiffusiontensor << endl;
-
-        matrix::eigensystem_t diff_tensor_eigensystem;
-        cout<<endl<<"Eigenvalues: "<<endl<<endl;
-        avgdiffusiontensor.SolveEigensystem(diff_tensor_eigensystem);
-        for(int i=0; i<=2; i++)
-        {
-            cout<<"Eigenvalue: "<<diff_tensor_eigensystem.eigenvalues[i]<<endl<<"Eigenvector: ";
-                 
-            cout<<diff_tensor_eigensystem.eigenvecs[i].x()<<"   ";
-            cout<<diff_tensor_eigensystem.eigenvecs[i].y()<<"   ";
-            cout<<diff_tensor_eigensystem.eigenvecs[i].z()<<endl<<endl;
-        }
-
+        cout<<"Eigenvalue: "<<diff_tensor_eigensystem.eigenvalues[i]<<endl<<"Eigenvector: ";
+               
+        cout<<diff_tensor_eigensystem.eigenvecs[i].x()<<"   ";
+        cout<<diff_tensor_eigensystem.eigenvecs[i].y()<<"   ";
+        cout<<diff_tensor_eigensystem.eigenvecs[i].z()<<endl<<endl;
     }
+
 
     
     return occP;
