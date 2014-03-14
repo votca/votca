@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <votca/tools/vec.h>
+#include <votca/tools/matrix.h>
 #include <votca/tools/statement.h>
 #include <votca/tools/database.h>
 #include <votca/tools/tokenizer.h>
@@ -38,6 +39,7 @@
 #include <tr1/unordered_map>
 #include <cmath> // needed for abs(double)
 #include "node.h"
+#include <math.h> // needed for fmod()
 
 using namespace std;
 using namespace std::tr1;
@@ -60,6 +62,7 @@ class Chargecarrier
         int id;
         Node *node;
         myvec dr_travelled;
+        double tof_travelled;
 };
 
 
@@ -144,6 +147,7 @@ protected:
             double _fieldY;
             double _fieldZ;
             double _outputtime;
+            double _diffusionfreq;
             string _trajectoryfile;
             string _carriertype;
             int _explicitcoulomb;
@@ -155,6 +159,9 @@ protected:
             double _boxsizeY;
             double _boxsizeZ;
             string _rates;
+            int    _tof;
+            double _toflength;
+            string _tofdirection;
 };
 
 
@@ -225,6 +232,12 @@ void KMCMultiple::Initialize(const char *filename, Property *options, const char
         else {
             _outputtime = 0;
         }
+        if (options->exists("options.kmcmultiple.diffusionfreq")) {
+	    _diffusionfreq = options->get("options.kmcmultiple.diffusionfreq").as<double>();
+	}
+        else {
+            _diffusionfreq = 0;
+        }
         if (options->exists("options.kmcmultiple.trajectoryfile")) {
 	    _trajectoryfile = options->get("options.kmcmultiple.trajectoryfile").as<string>();
 	}
@@ -280,6 +293,37 @@ void KMCMultiple::Initialize(const char *filename, Property *options, const char
 	    cout << "WARNING in kmcmultiple: Invalid option rates. Valid options are 'statefile' or 'calculate'. Setting it to 'statefile'." << endl;
             _rates = "statefile";
         }
+
+
+        if (options->exists("options.kmcmultiple.tofdirection")) {
+	    _tofdirection = options->get("options.kmcmultiple.tofdirection").as<string>();
+	}
+        if (_tofdirection != "x" && _tofdirection != "y" && _tofdirection != "z"  ) {
+	    _tofdirection = "y";
+	}
+        if (options->exists("options.kmcmultiple.tof")) {
+	    _tof = options->get("options.kmcmultiple.tof").as<int>();
+	}
+        if(_tof == 1){
+            cout << "Time of flight experiment: ON" << endl;
+            cout << "direction for TOF condition: " << _tofdirection << endl;
+        }
+        else{
+            cout << "Time of flight experiment: OFF (bulk mode)" << endl;
+        }
+        if (options->exists("options.kmcmultiple.toflength")) {
+	    _toflength = options->get("options.kmcmultiple.toflength").as<double>() * 1E-9;
+            cout << "Sample length for TOF experiment: " << _toflength*1E9 << " nm" << endl;
+	}
+        else{
+            if(_tof==1){
+                cout << "WARNING: time-of-flight mode one, but no sample length (option toflength) defined. Setting it to 50 nm" << endl;
+                _toflength = 50.0E-9;
+            }
+        }
+  
+
+        
         
 
         _filename = filename;
@@ -732,6 +776,9 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
     cout << "number of nodes: " << node.size() << endl;
     string stopcondition;
     unsigned long maxsteps;
+    int diffusionsteps = 0;
+    matrix avgdiffusiontensor;
+    avgdiffusiontensor.ZeroMatrix();
     if(runtime > 100)
     {
         stopcondition = "steps";
@@ -745,8 +792,12 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
         cout << "(If you specify runtimes larger than 100 kmcmultiple assumes that you are specifying the number of steps.)" << endl;
     }
     
- 
+    if(_diffusionfreq != 0)
+    {
+        cout << "Diffusion tensor with time step " << _diffusionfreq << " will be calculated." << endl;
+    }
     
+ 
     if(numberofcharges > node.size())
     {
         throw runtime_error("ERROR in kmcmultiple: specified number of charges is greater than the number of nodes. This conflicts with single occupation.");
@@ -868,6 +919,7 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
         // cout << "selected segment " << newCharge->node->id+1 << " which has energy " << newCharge->node->siteenergy << " within the interval [" << energypercarrier-0*deltaE << ", " << energypercarrier+2*deltaE << "]" << endl;
         newCharge->node->occupied = 1;
         newCharge->dr_travelled = myvec(0,0,0);
+        newCharge->tof_travelled = 0;
         startposition[i] = newCharge->node->position;
         cout << "starting position for charge " << i+1 << ": segment " << newCharge->node->id+1 << endl;
         carrier.push_back(newCharge);
@@ -914,6 +966,7 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
     double nextoutput = outputfrequency;
     unsigned long nextstepoutput = outputstepfrequency;
     double nexttrajoutput = _outputtime;
+    double nextdiffstep = _diffusionfreq;
     
     progressbar(0.);
     vector<int> forbiddennodes;
@@ -1045,6 +1098,47 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
                     do_affectedcarrier->dr_travelled += dr;
                     level1step = 1;
                     if(votca::tools::globals::verbose) {cout << "Charge has jumped to segment: " << do_newnode->id+1 << "." << endl;}
+                    
+                    if (_tof == 1)
+                    {   // time-of-flight experiment
+                        
+                        // keep track of travel in TOF direction
+                        double dr_tof = 0;
+                        if(_tofdirection == "x"){
+                            dr_tof = dr.getX();
+                        }
+                        else if(_tofdirection == "y"){
+                            dr_tof = dr.getY();
+                        }
+                        else {
+                            dr_tof = dr.getZ();
+                        }
+                        
+                        do_affectedcarrier->tof_travelled += dr_tof;
+                        
+                        // boundary crossing
+                        if(do_affectedcarrier->tof_travelled > _toflength){
+                            cout << "\nTOF length has been crossed in "+_tofdirection+" direction." << endl;
+                            cout << "LAST POSITION: " << (do_affectedcarrier->dr_travelled-dr) *1E9 << ", NEW POSITION: " << do_affectedcarrier->dr_travelled *1E9 << endl ; 
+
+                            // now re-inject the carrier to a new random position
+                            Node *temp_node = new Node;
+                            temp_node = do_affectedcarrier->node;
+                            do_affectedcarrier->node = node[RandomVariable->rand_uniform_int(node.size())];
+                            while(do_affectedcarrier->node->occupied == 1 || do_affectedcarrier->node->injectable != 1)
+                            {   // maybe already occupied? or maybe not injectable?
+                                do_affectedcarrier->node = node[RandomVariable->rand_uniform_int(node.size())];
+                            }
+                            do_affectedcarrier->node->occupied = 1;
+                            temp_node->occupied = 0;
+                            cout << "carrier " << do_affectedcarrier->id << " has been instanteneously moved from node " << temp_node->id+1 << " to node " << do_affectedcarrier->node->id+1 << endl << endl; 
+                            
+                            // reset TOF length counter
+                            do_affectedcarrier->tof_travelled -= _toflength;
+                        }
+                        
+                    }
+                    
                     break; // this ends LEVEL 2 , so that the time is updated and the next MC step started
                 }
 
@@ -1053,6 +1147,16 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
             }
         // END LEVEL 1
         }    
+
+        if(_diffusionfreq != 0 && simtime > nextdiffstep)       
+        {
+            nextdiffstep = simtime + _diffusionfreq;
+            for(unsigned int i=0; i<numberofcharges; i++) 
+            {
+                diffusionsteps  += 1;
+                avgdiffusiontensor += (startposition[i]+carrier[i]->dr_travelled)|(startposition[i]+carrier[i]->dr_travelled);
+            }
+        }
         
         if(_outputtime != 0 && simtime > nexttrajoutput)       
         {
@@ -1145,6 +1249,26 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
         cout << std::scientific << "  Overall average z-mobility <muZ>=" << average_mobilityZ << endl;
       }
     cout << endl;
+    
+    // calculate diffusion tensor
+    if(_diffusionfreq != 0)
+    {
+        avgdiffusiontensor /= (diffusionsteps*2*simtime*numberofcharges);
+        cout<<endl<<"Diffusion tensor averaged over all carriers (m^2):" << endl << avgdiffusiontensor << endl;
+
+        matrix::eigensystem_t diff_tensor_eigensystem;
+        cout<<endl<<"Eigenvalues: "<<endl<<endl;
+        avgdiffusiontensor.SolveEigensystem(diff_tensor_eigensystem);
+        for(int i=0; i<=2; i++)
+        {
+            cout<<"Eigenvalue: "<<diff_tensor_eigensystem.eigenvalues[i]<<endl<<"Eigenvector: ";
+                 
+            cout<<diff_tensor_eigensystem.eigenvecs[i].x()<<"   ";
+            cout<<diff_tensor_eigensystem.eigenvecs[i].y()<<"   ";
+            cout<<diff_tensor_eigensystem.eigenvecs[i].z()<<endl<<endl;
+        }
+
+    }
 
     
     return occP;
