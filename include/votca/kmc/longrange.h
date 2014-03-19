@@ -46,6 +46,7 @@ public:
     
     /// Get longrange coulomb potential cache
     double Get_cached_longrange(int layer);
+    double Get_cached_density(int layer, Eventinfo* eventinfo);
     
     /// Reser longrange coulomb potential cache
     void Reset();
@@ -87,12 +88,16 @@ void Longrange::Init_Load_State(StateDevice* state, Eventinfo* eventinfo) {
 
 void Longrange::Update_cache(Eventinfo* eventinfo) {
     for (int i=0; i<this->number_of_layers(); i++) {
-        _longrange_cache[i] = Calculate_longrange(i,true, eventinfo);
+        if(!this->emptylayer(i)) {_longrange_cache[i] = Calculate_longrange(i,true, eventinfo);}
     }
 }
 
 double Longrange::Get_cached_longrange(int layer) {
     return _longrange_cache[layer];
+}
+
+double Longrange::Get_cached_density(int layer, Eventinfo* eventinfo) {
+    return _layercharge[layer]/(eventinfo->simboxsize.y()*eventinfo->simboxsize.z()*eventinfo->layersize);
 }
 
 void Longrange::Reset() {
@@ -117,6 +122,7 @@ void Longrange::Initialize (Eventinfo* eventinfo) {
         int start_index = 0;
         bool startfound = false;
         while (!startfound) {
+            while(this->emptylayer(start_index)) start_index++;
             double start_layerpos = this->position(start_index);
             if((define_layerpos-start_layerpos)<=eventinfo->coulcut) {
                 startfound = true;
@@ -128,6 +134,7 @@ void Longrange::Initialize (Eventinfo* eventinfo) {
         int final_index = this->number_of_layers()-1;
         bool finalfound = false;
         while (!finalfound) {
+            while(this->emptylayer(final_index)) final_index--;
             double final_layerpos = this->position(final_index);
             if((final_layerpos-define_layerpos)<=eventinfo->coulcut) {
                 finalfound = true;
@@ -142,15 +149,20 @@ void Longrange::Initialize (Eventinfo* eventinfo) {
     
     for(int ilayer=0; ilayer<this->number_of_layers(); ilayer++) {
         _layercharge.push_back(0.0);
-        _longrange_cache.push_back(0.0);
-        int first_layer = _first_contributing_layer[ilayer];
-        int final_layer = _final_contributing_layer[ilayer];
+        _longrange_cache.push_back(0.0);   
 
-        int number_of_contributing_layers = final_layer - first_layer + 1;        
-        _precalculate_disc_contrib[ilayer].resize(number_of_contributing_layers);
+        if(this->emptylayer(ilayer)) {_precalculate_disc_contrib[ilayer].clear(); }
+        else {
+            int first_layer = _first_contributing_layer[ilayer];
+            int final_layer = _final_contributing_layer[ilayer];
 
-        for (int j=first_layer; j<=final_layer; j++) {
-            _precalculate_disc_contrib[ilayer][j-first_layer] = Calculate_disc_contrib(ilayer,j,eventinfo);
+            int number_of_contributing_layers = final_layer - first_layer + 1;        
+            _precalculate_disc_contrib[ilayer].resize(number_of_contributing_layers);
+
+            for (int j=first_layer; j<=final_layer; j++) {
+                if(this->emptylayer(j)) { _precalculate_disc_contrib[ilayer][j-first_layer] = 0.0;} // no nodes in this layer
+                else {_precalculate_disc_contrib[ilayer][j-first_layer] = Calculate_disc_contrib(ilayer,j,eventinfo);}
+            }
         }
     }
 
@@ -200,34 +212,41 @@ double Longrange::Calculate_longrange(int layer, bool cut_out_discs,Eventinfo* e
     double layerpos = this->position(layer);
     
     for(int i=0; i<layer; i++) {
-        double charge_i = 1.0*_layercharge[i]/this->number_of_nodes(i);
-        double position_i = 1.0*this->position(i);
-        plate_contrib1 += position_i*charge_i; // potential of a charged plate between two electrodes
-        
-        // calculation of contribution of disc
-        double distance = layerpos -position_i;
-        int first_layer = _first_contributing_layer[layer];
-        if (distance<=eventinfo->coulcut) {
-            // Cut out short-range sphere (relative to first contributing layer)
-            disc_contrib -= charge_i*_precalculate_disc_contrib[layer][i-first_layer];
+        if(!this->emptylayer(i)) {
+            double charge_i = 1.0*_layercharge[i]/(eventinfo->simboxsize.y()*eventinfo->simboxsize.z()*eventinfo->layersize);
+            double position_i = 1.0*this->position(i);
+            plate_contrib1 += position_i*charge_i; // potential of a charged plate between two electrodes
+
+            // calculation of contribution of disc
+            double distance = layerpos -position_i;
+            if (distance<=eventinfo->coulcut) {
+                // Cut out short-range sphere (relative to first contributing layer)
+                int first_layer = _first_contributing_layer[layer];
+                disc_contrib -= charge_i*_precalculate_disc_contrib[layer][i-first_layer];
+            }
         }
     }
+    
     double plate_contrib2 = 0.0;
+    
     for(int i=layer; i<this->number_of_layers(); i++) {
-        double charge_i = 1.0*_layercharge[i]/this->number_of_nodes(i);
-        double rel_position_i = 1.0*(eventinfo->simboxsize.x()-this->position(i));
-        plate_contrib2 += rel_position_i*charge_i; // potential of a charged plate between two electrodes
+        if(!this->emptylayer(i)) {
+            double charge_i = 1.0*_layercharge[i]/(eventinfo->simboxsize.y()*eventinfo->simboxsize.z()*eventinfo->layersize);
+            double rel_position_i = 1.0*(eventinfo->simboxsize.x()-this->position(i));
+            plate_contrib2 += rel_position_i*charge_i; // potential of a charged plate between two electrodes
 
-        // calculation of contribution of disc        
-        double distance = this->position(i)-layerpos;
-        int first_layer = _first_contributing_layer[layer];
-        if (distance<=eventinfo->coulcut) {
-            // Cut out short-range sphere (relative to first contributing layer)
-            disc_contrib -= charge_i*_precalculate_disc_contrib[layer][i-first_layer];
+            // calculation of contribution of disc        
+            double distance = this->position(i)-layerpos;
+
+            if (distance<=eventinfo->coulcut) {
+                // Cut out short-range sphere (relative to first contributing layer)
+                int first_layer = _first_contributing_layer[layer];
+                disc_contrib -= charge_i*_precalculate_disc_contrib[layer][i-first_layer];
+            }
         }
     }
     if (!cut_out_discs) { disc_contrib = 0.0; }
-
+    
     return 4.0*Pi*(plate_contrib1*(1-layerpos/eventinfo->simboxsize.x()) + plate_contrib2*(layerpos/eventinfo->simboxsize.x()) + 0.5*disc_contrib);
 }
 

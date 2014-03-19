@@ -84,11 +84,15 @@ public:
         
         coulomb_strength            = options->get("options.diode.coulomb_strength").as<double>();
         coulcut                     = options->get("options.diode.coulcut").as<double>();
+        self_image_prefactor        = options->get("options.diode.self_image_prefactor").as<double>();
+        
+        interpolate_longrange       = options->get("options.diode.interpolate_longrange").as<bool>();
         
     }
     
-    void Graph_Parameters(double graph_hopdist, votca::tools::vec graph_simboxsize, int graph_maxpairdegree, double av_ho_energy, double av_elect_energy) {
+    void Graph_Parameters(double graph_hopdist, double graph_mindist, votca::tools::vec graph_simboxsize, int graph_maxpairdegree, double av_ho_energy, double av_elect_energy) {
         hopdist = graph_hopdist;
+        mindist = graph_mindist;
         simboxsize = graph_simboxsize;
         maxpairdegree = graph_maxpairdegree;
         avholeenergy = av_ho_energy;
@@ -110,8 +114,9 @@ public:
     string formalism; double injection_barrier; double binding_energy;
     bool left_electron_injection; bool left_hole_injection; bool right_electron_injection; bool right_hole_injection; int device;
     int mesh_x; int mesh_y; int mesh_z; double layersize;
-    double hopdist; votca::tools::vec simboxsize; int maxpairdegree; double avholeenergy; double avelectronenergy;
+    double hopdist; double mindist; votca::tools::vec simboxsize; int maxpairdegree; double avholeenergy; double avelectronenergy;
     double coulomb_strength; double coulcut; double self_image_prefactor; int nr_sr_images; long nr_lr_images;
+    bool interpolate_longrange;
 
 };
 

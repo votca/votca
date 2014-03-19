@@ -41,11 +41,13 @@ public:
     /// number of profile layers
     const int &number_of_layers() const { return _number_of_layers; }
     
-    /// number of nodes
-    const int &number_of_nodes(int i) const {return _number_of_nodes[i]; }
+    /// number of nodes in a layer
+    const int &number_of_nodes(int i) const { return _number_of_nodes[i];}
     
     /// positional average of the nodes in the layer
     const double &position(int i) const {return _positional_average[i]; }
+    
+    const bool emptylayer(int i) const {return _empty_layer[i]; }
     
     /// Initialize arrays
     inline void Initialize_storage_arrays(Eventinfo* eventinfo);
@@ -87,8 +89,10 @@ inline void Profile::Initialize_storage_arrays(Eventinfo* eventinfo) {
 inline void Profile::Add_nodes_to_profile(GraphDevice* graph){
     for(int i =0; i<graph->Numberofnodes(); i++){
         NodeDevice* node = graph->GetNode(i);
-        votca::tools::vec position = node->position();
-        Add_node_to_layer(position.x(), node->layer());
+        if(node->type() == (int) NormalNode) {
+            votca::tools::vec position = node->position();
+            Add_node_to_layer(position.x(), node->layer());
+        }
     }
 }
 

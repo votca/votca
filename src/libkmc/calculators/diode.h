@@ -47,6 +47,8 @@ public:
     StateDevice* state;
     Events* events;
     Vssmgroup* vssmgroup;
+    Vssmgroup* left_chargegroup;
+    Vssmgroup* right_chargegroup;
     Eventinfo* eventdata;
     Longrange* longrange;
     Bsumtree* non_injection_rates;
@@ -91,8 +93,13 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     
     graph = new GraphDevice();
     graph->Initialize(filename);
+    // form a histogram of the site energies
+    
     graph->Setup_device_graph(eventdata->left_electrode_distance, eventdata->right_electrode_distance, true, eventdata);
-    eventdata->Graph_Parameters(graph->hopdist(),graph->simboxsize(), graph->maxpairdegree(),graph->Av_hole_node_energy(), graph->Av_electron_node_energy());
+    
+//    std::cout << "min " << graph->min_hole_node_energy() << " max " << graph->max_hole_node_energy() << " av " << graph->Av_hole_node_energy() << endl;
+    
+    eventdata->Graph_Parameters(graph->hopdist(), graph->mindist(), graph->simboxsize(), graph->maxpairdegree(),graph->Av_hole_node_energy(), graph->Av_electron_node_energy());
     eventdata->Set_field(); // convert voltage to electric field
 
     std::cout << "graph initialized" << endl;
@@ -110,7 +117,7 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     state = new StateDevice();
     state->InitStateDevice();
     
-    // site_inject_probs = new Bsumtree();
+    site_inject_probs = new Bsumtree();
     // site_inject_probs->initialize(graph->Numberofnodes()); // take care of electrode nodes
     // state->Random_init_injection((int) Hole, site_inject_probs, graph, eventdata, RandomVariable);
         
@@ -133,7 +140,9 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     std::cout << "event vectors and meshes initialized" << endl;
 
     vssmgroup = new Vssmgroup();
-    
+    left_chargegroup = new Vssmgroup();
+    right_chargegroup = new Vssmgroup();
+
     numoutput = new Numoutput();
     numoutput->Initialize();
 
@@ -145,7 +154,6 @@ bool Diode::EvaluateFrame() {
     // EventFactory::RegisterAll(); 
         
     RunKMC();
-    
     delete RandomVariable;
     delete state;
     delete events;
@@ -153,6 +161,8 @@ bool Diode::EvaluateFrame() {
     delete eventdata;
     delete longrange;
     delete vssmgroup;
+    delete left_chargegroup;
+    delete right_chargegroup;
     delete non_injection_rates;
     delete left_injection_rates;
     delete right_injection_rates;
@@ -173,33 +183,66 @@ void Diode::RunKMC() {
     bool direct_reco_convergence = false;
     int direct_iv_counter = 0; //if the convergence criterium is counted ten times in a row, result is converged
     int direct_reco_counter = 0;
+
+    int numcharges_distrib;
+    std::cout << graph->avrate() << endl;
     
-    if(eventdata->device == 2) {
-        
-        // start with an initial carrier density near the electrodes, which will be calculated on the fly
-        
-        
-    }
+//    for(int it= 0; it< longrange->number_of_layers(); it++ ){
+//        std::cout << longrange->number_of_nodes(it) << " ";
+//    }
+//    std::cout << endl;
     
     sim_time = 0.0;
     for (long it = 0; it < 2*eventdata->nr_equilsteps + eventdata->nr_timesteps; it++) {
-        // Update longrange cache (expensive, so not done at every timestep)
-        std::cout << "it " << it << endl;
+//     for (long it = 0; it < 1; it++) {
+    // Update longrange cache (expensive, so not done at every timestep)
+
+        if(eventdata->device == 2) {
+            // make sure the number of carriers on the left equals
+            left_chargegroup->Recompute_injection(left_injection_rates);
+            numcharges_distrib = floor(left_chargegroup->totprobsum());
+            if(numcharges_distrib == 0 && numoutput->holes() == 0) numcharges_distrib = 1; // at least one charge per time in the device
+//            std::cout << "numcharges left " << left_chargegroup->totprobsum() << endl;
+            
+            while(numcharges_distrib > 0) { // need to fill nodes
+                Event* chosencharge = left_chargegroup->Choose_injection_event(events, 0, left_injection_rates, RandomVariable);
+                events->On_execute(chosencharge, graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventdata);
+                left_chargegroup->Recompute_injection(left_injection_rates);
+                numcharges_distrib = floor(left_chargegroup->totprobsum());
+//            std::cout << "numcharges left " << left_chargegroup->totprobsum() << endl;
+
+            }
+
+            // make sure the number of carriers on the left equals
+            right_chargegroup->Recompute_injection(right_injection_rates);
+            numcharges_distrib = floor(right_chargegroup->totprobsum());
+ //           std::cout << "numcharges right " << right_chargegroup->totprobsum() << endl;
+
+            // preference given to the major injecting electrode
+            while(numcharges_distrib > 0) { // need to fill nodes
+                Event* chosencharge = right_chargegroup->Choose_injection_event(events, 1, right_injection_rates, RandomVariable);
+                events->On_execute(chosencharge, graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventdata);
+                right_chargegroup->Recompute_injection(right_injection_rates);
+                numcharges_distrib = floor(right_chargegroup->totprobsum());
+//           std::cout << "numcharges right " << right_chargegroup->totprobsum() << endl;
+
+            }
+        }
+
         if(ldiv(it, eventdata->steps_update_longrange).rem == 0 && it>0){
             longrange->Update_cache(eventdata);
             events->Recompute_all_events(state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventdata);
         }
-       
         if(eventdata->device == 1) vssmgroup->Recompute_device(non_injection_rates, left_injection_rates, right_injection_rates);
         if(eventdata->device == 2) vssmgroup->Recompute_bulk(non_injection_rates);
-                
+
         double timestep = vssmgroup->Timestep(RandomVariable);
         sim_time += timestep;
- 
+
         Event* chosenevent;
         if(eventdata->device == 1) chosenevent = vssmgroup->Choose_event_device(events, non_injection_rates, left_injection_rates, right_injection_rates, RandomVariable);
         if(eventdata->device == 2) chosenevent = vssmgroup->Choose_event_bulk(events, non_injection_rates, RandomVariable);
-        
+
         numoutput->Update(chosenevent, sim_time, timestep); 
 
         events->On_execute(chosenevent, graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventdata);
@@ -215,23 +258,44 @@ void Diode::RunKMC() {
         if(it == 2*eventdata->nr_equilsteps) numoutput->Init_convergence_check(sim_time);
         
         // equilibration
-        
+   
         if(it == eventdata->nr_equilsteps || it == 2*eventdata->nr_equilsteps) {
             numoutput->Initialize_equilibrate();
             sim_time = 0.0;
         }
-        
+    
         // convergence checking
         
-        if(ldiv(it,100).rem==0 && it> 2*eventdata->nr_equilsteps) numoutput->Convergence_check(sim_time, eventdata);
+        if(ldiv(it,10000).rem==0 && it> 2*eventdata->nr_equilsteps) numoutput->Convergence_check(sim_time, eventdata);
 
         // direct output
-        if(ldiv(it,100).rem==0){
+        if(ldiv(it,10000).rem==0){
             std::cout << it << " " << repeat_counter << " " << 
                          numoutput->iv_conv() << " " << numoutput->iv_count() << " " << 
                          numoutput->reco_conv() << " " << numoutput->reco_count() <<  " " << 
                          sim_time << " " << timestep << " " << vssmgroup->totprobsum() << " "  << vssmgroup->noninjectprobsum() << " "  << vssmgroup->leftinjectprobsum() << " "  << vssmgroup->rightinjectprobsum() << " " ;
             numoutput->Write(sim_time);
+/*            std::cout << endl;
+            std::cout << "position" << endl;
+           
+            for(int i =0; i< longrange->number_of_layers(); i++) {
+                std::cout << longrange->position(i) << " ";
+            }
+            
+            std::cout << endl;*/
+            std::cout << "charge" << endl;
+           
+            for(int i =0; i< longrange->number_of_layers(); i++) {
+                std::cout << longrange->Get_cached_density(i, eventdata) << " ";
+            }
+            
+            std::cout << endl;
+            std::cout << "pot" << endl;
+           
+            for(int i =0; i< longrange->number_of_layers(); i++) {
+                std::cout << longrange->Get_cached_longrange(i) << " ";
+            }            
+            std::cout << endl;
         }
         
         // break out of loop

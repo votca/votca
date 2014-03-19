@@ -40,6 +40,8 @@ public:
     const int &iv_count() const {return _direct_iv_counter;}
     const int &reco_count() const {return _direct_reco_counter;}
     
+    const int &holes() const {return _nholes;}
+    
 private:
     
     int _nelectrons;

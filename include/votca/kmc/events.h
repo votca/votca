@@ -128,7 +128,6 @@ void Events::On_execute(Event* event, GraphDevice* graph, StateDevice* state, Lo
     
     On_execute_node(node1, event->action_node1(), event->carrier_type(), graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);
     On_execute_node(node2, event->action_node2(), event->carrier_type(), graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);
-
 }
 
 void Events::On_execute_node(Node* node, int action, int carrier_type, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, 
@@ -239,22 +238,18 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierDevice*
         if (ix1<0.0) ix1 = 0.0;
         if (ix2>eventinfo->simboxsize.x()) ix2 = eventinfo->simboxsize.x();
     }
-
     // Translate cubic boundaries to sublattice boundaries in non-periodic coordinates
     int sx1 = floor(ix1/_meshsize_x);
     int sx2 = floor(ix2/_meshsize_x);
-    if (ix2 == eventinfo->simboxsize.x()) {sx2--;}
-//    if (ix2 > eventinfo->simboxsize.x()) {sx2 = eventinfo->mesh_x + floor((ix2-eventinfo->simboxsize.x())/_meshsize_x);}
+    if (ix2 == eventinfo->simboxsize.x()) {sx2 = eventinfo->mesh_x;}
     
     int sy1 = floor(iy1/_meshsize_y);
     int sy2 = floor(iy2/_meshsize_y);
-    if (iy2 == eventinfo->simboxsize.y()) {sy2--;}
-//   if (iy2 > eventinfo->simboxsize.y()) {sy2 = eventinfo->mesh_y + floor((iy2-eventinfo->simboxsize.y())/_meshsize_y);}
+    if (iy2 == eventinfo->simboxsize.y()) {sy2 = eventinfo->mesh_y;}
     
     int sz1 = floor(iz1/_meshsize_z);
     int sz2 = floor(iz2/_meshsize_z);
-    if (iz2 == eventinfo->simboxsize.z()) {sz2--;}
-//    if (iz2 > eventinfo->simboxsize.z()) {sz2 = eventinfo->mesh_z + floor((iz2-eventinfo->simboxsize.z())/_meshsize_z);}
+    if (iz2 == eventinfo->simboxsize.z()) {sz2 = eventinfo->mesh_z;}
     
     // Now visit all relevant sublattices
     for (int isz=sz1; isz<=sz2; isz++) {
@@ -411,8 +406,8 @@ void Events:: Effect_injection_rates(int action, CarrierDevice* carrier, Node* n
     int sy1 = floor(iy1/_meshsize_y); int sy2 = floor(iy2/_meshsize_y);
     int sz1 = floor(iz1/_meshsize_z); int sz2 = floor(iz2/_meshsize_z);
 
-    if (iy2 == eventinfo->simboxsize.y()) {sy2--;}    
-    if (iz2 == eventinfo->simboxsize.z()) {sz2--;}    
+    if (iy2 == eventinfo->simboxsize.y()) {sy2 = eventinfo->mesh_y;}    
+    if (iz2 == eventinfo->simboxsize.z()) {sz2 = eventinfo->mesh_z;}    
 
     
 //    if(sy2 == eventinfo->mesh_y) {sy2--;}
@@ -455,7 +450,7 @@ void Events:: Effect_injection_rates(int action, CarrierDevice* carrier, Node* n
          
                     // Compute coordinates in non-periodic lattice
           
-                    votca::tools::vec periodic_convert = votca::tools::vec(0.0,(isy-r_isy)*eventinfo->hopdist,(isz-r_isz)*eventinfo->hopdist);
+                    votca::tools::vec periodic_convert = votca::tools::vec(0.0,(isy-r_isy)*_meshsize_y,(isz-r_isz)*_meshsize_z);
                     votca::tools::vec np_probepos = probepos + periodic_convert;
                     votca::tools::vec distance = np_probepos-carrier1_pos;
 
@@ -466,7 +461,8 @@ void Events:: Effect_injection_rates(int action, CarrierDevice* carrier, Node* n
                     
                         if (probenode->id()!=node->id()) {
                             inject_event->Add_injection_potential(interact_sign*Compute_Coulomb_potential(carrier1_pos.x(),distance,true,eventinfo->simboxsize,eventinfo));                    
-                            _injection_events[eventID]->Determine_rate(state, longrange, eventinfo);
+                            if(eventinfo->device == 1) _injection_events[eventID]->Determine_rate(state, longrange, eventinfo);
+                            else if(eventinfo->device ==2) _injection_events[eventID]->Determine_ohmic_rate(state, longrange, eventinfo);
                             injection_rates->setrate(eventID - IDelectrodeswitch, _injection_events[eventID]->rate());
                         }
                         else {
@@ -488,7 +484,7 @@ double Events::Compute_Coulomb_potential(double startx, votca::tools::vec dif, b
     double coulpot;
     
     if(direct){
-        coulpot = 1.0/abs(dif)-1.0/RC;
+        coulpot = 1.0/abs(dif);
     }
     else {
         coulpot = 0.0;
@@ -507,34 +503,23 @@ double Events::Compute_Coulomb_potential(double startx, votca::tools::vec dif, b
         bool outside_cut_off1 = false;
         bool outside_cut_off2 = false;
       
-        while(!(outside_cut_off1&&outside_cut_off2)) {
-            for (int i=0;i<eventinfo->nr_sr_images; i++) {
-                if (div(i,2).rem==0) { // even generation
-                    sign = -1;
-                    distx_1 = i*L + 2*startx + dif.x();
-                    distx_2 = (i+2)*L - 2*startx - dif.x(); 
-                }
-                else {
-                    sign = 1;
-                    distx_1 = (i+1)*L + dif.x();
-                    distx_2 = (i+1)*L - dif.x();
-                }
-                distancesqr_1 = distx_1*distx_1 + distsqr_planar;
-                if (distancesqr_1<=RCSQR) {
-                    coulpot += sign*(1.0/sqrt(distancesqr_1)-1.0/(RC));
-                }
-                else {
-                    outside_cut_off1 = true;
-                }
-                distancesqr_2 = distx_2*distx_2 + distsqr_planar;
-                if (distancesqr_2<=RCSQR) {
-                    coulpot += sign*(1.0/sqrt(distancesqr_2)-1.0/(RC));
-                }
-                else {
-                    outside_cut_off2 = true;
-                }
+        for (int i=0;i<eventinfo->nr_sr_images; i++) {
+            if (div(i,2).rem==0) { // even generation
+                sign = -1;
+                distx_1 = i*L + 2*startx + dif.x();
+                distx_2 = (i+2)*L - 2*startx - dif.x(); 
             }
+            else {
+                sign = 1;
+                distx_1 = (i+1)*L + dif.x();
+                distx_2 = (i+1)*L - dif.x();
+            }
+            distancesqr_1 = distx_1*distx_1 + distsqr_planar;
+            coulpot += sign*(1.0/sqrt(distancesqr_1));
+            distancesqr_2 = distx_2*distx_2 + distsqr_planar;
+            coulpot += sign*(1.0/sqrt(distancesqr_2));
         }
+
     }
     return coulpot;
 }
@@ -565,7 +550,8 @@ void Events::Recompute_all_injection_events(StateDevice* state, Longrange* longr
     
     typename std::vector<Event*>::iterator it;
     for (it = _injection_events.begin(); it!=_injection_events.end(); it++){
-        (*it)->Determine_rate(state, longrange, eventinfo);        
+        if(eventinfo->device==1) (*it)->Determine_rate(state, longrange, eventinfo);
+        else if(eventinfo->device==2) (*it)->Determine_ohmic_rate(state, longrange, eventinfo);        
         if((*it)->link()->node1()->type() == (int) LeftElectrodeNode) {
             left_injection_rates->setrate((*it)->id(),(*it)->rate());       
         } 
