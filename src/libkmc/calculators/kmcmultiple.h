@@ -1201,7 +1201,7 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
     cout << "runtime: ";
     printtime(time(NULL) - realtime_start); 
     myvec dr_travelled = myvec (0,0,0);
-    cout << endl << "Average velocities (m/s): " << endl;
+    myvec avgvelocity = myvec(0,0,0);
     for(unsigned int i=0; i<numberofcharges; i++)
     {
         //cout << std::scientific << "    charge " << i+1 << ": " << carrier[i]->dr_travelled/simtime*1e-9 << endl;
@@ -1210,7 +1210,8 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
     }
     dr_travelled /= numberofcharges;
     //cout << std::scientific << "  Overall average velocity (m/s): " << dr_travelled/simtime*1e-9 << endl;
-    cout << std::scientific << "  Overall average velocity (m/s): " << dr_travelled/simtime << endl;
+    avgvelocity = dr_travelled/simtime; 
+    cout << std::scientific << "  Overall average velocity (m/s): " << avgvelocity << endl;
 
     cout << endl << "Distances travelled (m): " << endl;
     for(unsigned int i=0; i<numberofcharges; i++)
@@ -1253,6 +1254,35 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
         cout<<diff_tensor_eigensystem.eigenvecs[i].y()<<"   ";
         cout<<diff_tensor_eigensystem.eigenvecs[i].z()<<endl<<endl;
     }
+    
+    // check if Einstein relation is fulfilled
+    string direction = "";
+    double field = 0;
+    if(_fieldX != 0 && _fieldY == 0 && _fieldZ == 0) {direction = "x"; field = _fieldX;}
+    else if(_fieldX == 0 && _fieldY != 0 && _fieldZ == 0) {direction = "y"; field = _fieldY;}
+    else if(_fieldX == 0 && _fieldY == 0 && _fieldZ != 0) {direction = "z"; field = _fieldZ;}
+    if(direction != "")
+    {
+        cout << "components of the mobility tensor in " << direction << " direction (m^2/Vs):" << endl;
+        double mu1 = avgvelocity.getX()/field;
+        double mu2 = avgvelocity.getY()/field;
+        double mu3 = avgvelocity.getZ()/field;
+        cout << "mu_x" << direction << " = " << avgvelocity.getX()/field << endl;
+        cout << "mu_y" << direction << " = " << avgvelocity.getY()/field << endl;
+        cout << "mu_z" << direction << " = " << avgvelocity.getZ()/field << endl;
+        
+        cout << "\nideality factor for the Einstein relation in " << direction << " direction." << endl;
+        double D1;
+        double D2;
+        double D3;
+        if(direction == "x"){D1 = avgdiffusiontensor.get(0,0);D2 = avgdiffusiontensor.get(1,0);D3 = avgdiffusiontensor.get(2,0);}
+        else if(direction == "y"){D1 = avgdiffusiontensor.get(0,1);D2 = avgdiffusiontensor.get(1,1);D3 = avgdiffusiontensor.get(2,1);}
+        else if(direction == "z"){D1 = avgdiffusiontensor.get(0,2);D2 = avgdiffusiontensor.get(1,2);D3 = avgdiffusiontensor.get(2,2);}
+        cout << "g_x" << direction << " = " << (D1/mu1) / (kB*_temperature) << endl;
+        cout << "g_y" << direction << " = " << (D2/mu2) / (kB*_temperature) << endl;
+        cout << "g_z" << direction << " = " << (D3/mu3) / (kB*_temperature) << endl;
+    }
+    
 
 
     
