@@ -1271,16 +1271,16 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
         cout << "mu_y" << direction << " = " << avgvelocity.getY()/field << endl;
         cout << "mu_z" << direction << " = " << avgvelocity.getZ()/field << endl;
         
-        cout << "\nideality factor for the Einstein relation in " << direction << " direction." << endl;
-        double D1;
-        double D2;
-        double D3;
-        if(direction == "x"){D1 = avgdiffusiontensor.get(0,0);D2 = avgdiffusiontensor.get(1,0);D3 = avgdiffusiontensor.get(2,0);}
-        else if(direction == "y"){D1 = avgdiffusiontensor.get(0,1);D2 = avgdiffusiontensor.get(1,1);D3 = avgdiffusiontensor.get(2,1);}
-        else if(direction == "z"){D1 = avgdiffusiontensor.get(0,2);D2 = avgdiffusiontensor.get(1,2);D3 = avgdiffusiontensor.get(2,2);}
-        cout << "g_x" << direction << " = " << (D1/mu1) / (kB*_temperature) << endl;
-        cout << "g_y" << direction << " = " << (D2/mu2) / (kB*_temperature) << endl;
-        cout << "g_z" << direction << " = " << (D3/mu3) / (kB*_temperature) << endl;
+        //cout << "\nideality factor for the Einstein relation in " << direction << " direction." << endl;
+        //double D1;
+        //double D2;
+        //double D3;
+        //if(direction == "x"){D1 = avgdiffusiontensor.get(0,0);D2 = avgdiffusiontensor.get(1,0);D3 = avgdiffusiontensor.get(2,0);}
+        //else if(direction == "y"){D1 = avgdiffusiontensor.get(0,1);D2 = avgdiffusiontensor.get(1,1);D3 = avgdiffusiontensor.get(2,1);}
+        //else if(direction == "z"){D1 = avgdiffusiontensor.get(0,2);D2 = avgdiffusiontensor.get(1,2);D3 = avgdiffusiontensor.get(2,2);}
+        //cout << "g_x" << direction << " = " << (D1/mu1) / (kB*_temperature) << endl;
+        //cout << "g_y" << direction << " = " << (D2/mu2) / (kB*_temperature) << endl;
+        //cout << "g_z" << direction << " = " << (D3/mu3) / (kB*_temperature) << endl;
     }
     
 
