@@ -146,8 +146,10 @@ protected:
             double _fieldX;
             double _fieldY;
             double _fieldZ;
+            myvec _field;
             double _outputtime;
             string _trajectoryfile;
+            string _timefile;
             string _carriertype;
             int _explicitcoulomb;
             double _temperature;
@@ -225,6 +227,7 @@ void KMCMultiple::Initialize(const char *filename, Property *options, const char
         else {
             _fieldZ = 0;
         }
+        _field = myvec(_fieldX,_fieldY,_fieldZ);
         if (options->exists("options.kmcmultiple.outputtime")) {
 	    _outputtime = options->get("options.kmcmultiple.outputtime").as<double>();
 	}
@@ -239,6 +242,15 @@ void KMCMultiple::Initialize(const char *filename, Property *options, const char
         }
         if (_trajectoryfile == "") {
             _trajectoryfile = "trajectory.csv";
+        }
+        if (options->exists("options.kmcmultiple.timefile")) {
+	    _timefile = options->get("options.kmcmultiple.timefile").as<string>();
+	}
+        else {
+            _timefile = "timedependence.csv";
+        }
+        if (_timefile == "") {
+            _timefile = "timedependence.csv";
         }
         if (options->exists("options.kmcmultiple.carriertype")) {
 	    _carriertype = options->get("options.kmcmultiple.carriertype").as<string>();
@@ -773,6 +785,13 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
     int diffusion_stepsize = 10000;
     matrix avgdiffusiontensor;
     avgdiffusiontensor.ZeroMatrix();
+    double accumulatedenergy = 0;
+    int tdpendencesteps = 1;
+    double currentmobility_laststep = 7E77;
+    int currentkmcstep_laststep = 0;
+    double relaxationtime = 0;
+    double relaxationlength = 0;
+    int mobilitycheck = 0;
     if(runtime > 100)
     {
         stopcondition = "steps";
@@ -796,6 +815,11 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
     strcpy(trajfile, _trajectoryfile.c_str());
     cout << "Writing trajectory to " << trajfile << "." << endl; 
     traj.open (trajfile, fstream::out);
+    fstream tfile;
+    char timefile[100];
+    strcpy(timefile, _timefile.c_str());
+    cout << "Writing time dependence of energy and mobility to " << timefile << "." << endl; 
+    tfile.open (timefile, fstream::out);
     if(_outputtime != 0)
     {   
         traj << "'time[s]'\t";
@@ -811,10 +835,14 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
         }
         traj << endl;
         
+        tfile << "'time[s]'\t'energy_per_carrier[eV]\t'mobility[m**2/Vs]'\t'diffusion_coefficient[m**2]'" << endl;
+        
     }
     double outputfrequency = runtime/100;
     double outputstepfrequency = maxsteps/100;
     vector<double> occP(node.size(),0.);
+    
+    double absolute_field = sqrt(_fieldX*_fieldX + _fieldY*_fieldY + _fieldZ*_fieldZ);
 
     // Injection
     cout << endl << "injection method: " << _injectionmethod << endl;
@@ -1148,6 +1176,7 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
         
         if(_outputtime != 0 && simtime > nexttrajoutput)       
         {
+            // write to trajectory file
             nexttrajoutput = simtime + _outputtime;
             traj << simtime << "\t";
             for(unsigned int i=0; i<numberofcharges; i++) 
@@ -1164,6 +1193,60 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
                     traj << endl;
                 }
             }
+            
+            // write to time development file
+            // a) energy
+            double currentenergy = 0;
+            // b) mobility
+            double currentmobility = 0;
+            if(absolute_field != 0)
+            {
+                myvec dr_travelled_current = myvec (0,0,0);
+                myvec avgvelocity_current = myvec(0,0,0);
+                for(unsigned int i=0; i<numberofcharges; i++)
+                {
+                    dr_travelled_current += carrier[i]->dr_travelled;
+                    accumulatedenergy += carrier[i]->node->siteenergy;
+                }
+                dr_travelled_current /= numberofcharges;
+                currentenergy = accumulatedenergy /tdpendencesteps/numberofcharges;
+                avgvelocity_current = dr_travelled_current/simtime; 
+                currentmobility = avgvelocity_current*_field /absolute_field/absolute_field/numberofcharges;
+            }
+            tfile << simtime << "\t" << currentenergy << "\t" << currentmobility << endl;
+            
+            if(currentmobility>0)
+            {
+                if((currentmobility - currentmobility_laststep)/currentmobility < 0.001)
+                {
+                    mobilitycheck += step - currentkmcstep_laststep;
+                }
+                else
+                {
+                    mobilitycheck = 0;
+                }
+            }
+            if(mobilitycheck >= 1E8 && relaxationtime == 0)
+            {
+                cout << "\nKMC probably converged at t= " << simtime << endl;
+                cout << "    (For the last 10^8 KMC steps the relative difference in mobility was smaller than 0.001.)" << endl;
+                relaxationtime = simtime;
+                for(unsigned int i=0; i<numberofcharges; i++)
+                {
+                    double thisX = carrier[i]->dr_travelled.getX();
+                    double thisY = carrier[i]->dr_travelled.getY();
+                    double thisZ = carrier[i]->dr_travelled.getZ();
+                    relaxationlength += sqrt(thisX*thisX+thisY*thisY+thisZ*thisZ);
+                }
+                relaxationlength /= numberofcharges;
+                cout << "    relaxation time: " << relaxationtime << " s." << endl;
+                cout << "    relaxation length: " << relaxationlength*1E9 << " nm." << endl;
+            }
+            
+            
+            currentmobility_laststep = currentmobility;
+            tdpendencesteps += 1;
+            currentkmcstep_laststep = step;
             
         }
         if(stopcondition == "runtime" && simtime > nextoutput)
@@ -1186,6 +1269,7 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
     if(_outputtime != 0)
     {   
         traj.close();
+        tfile.close();
     }
 
 
@@ -1220,9 +1304,8 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
     }
     
     // calculate mobilities
-    double absolute_field = sqrt(_fieldX*_fieldX + _fieldY*_fieldY + _fieldZ*_fieldZ);
-    double average_mobilityZ = 0;
-    if (_fieldZ != 0)
+    double average_mobility = 0;
+    if (absolute_field != 0)
     {
         cout << endl << "Mobilities (cm^2/Vs): " << endl;
         for(unsigned int i=0; i<numberofcharges; i++)
@@ -1231,11 +1314,11 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
             myvec velocity = carrier[i]->dr_travelled/simtime;
             double absolute_velocity = sqrt(velocity.x()*velocity.x() + velocity.y()*velocity.y() + velocity.z()*velocity.z());
             //cout << std::scientific << "    charge " << i+1 << ": mu=" << absolute_velocity/absolute_field*1E4 << endl;
-            cout << std::scientific << "    charge " << i+1 << ": muZ=" << velocity.z()/_fieldZ*1E4 << endl;
-            average_mobilityZ += velocity.z()/_fieldZ*1E4;
+            cout << std::scientific << "    charge " << i+1 << ": mu=" << (velocity*_field)/absolute_field/absolute_field*1E4 << endl;
+            average_mobility += (velocity*_field) /absolute_field/absolute_field *1E4;
         }
-        average_mobilityZ /= numberofcharges;
-        cout << std::scientific << "  Overall average z-mobility <muZ>=" << average_mobilityZ << endl;
+        average_mobility /= numberofcharges;
+        cout << std::scientific << "  Overall average mobility in field direction <mu>=" << average_mobility << endl;
       }
     cout << endl;
     
@@ -1283,6 +1366,18 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
         //cout << "g_z" << direction << " = " << (D3/mu3) / (kB*_temperature) << endl;
     }
     
+    if(_outputtime != 0 && relaxationtime != 0)
+    {
+        cout << "\nKMC probably converged at t= " << simtime << endl;
+        cout << "    (For the last 10^8 KMC steps the relative difference in mobility was smaller than 0.001.)" << endl;
+        relaxationtime = simtime;
+        cout << "    relaxation time: " << relaxationtime << " s." << endl;
+        cout << "    relaxation length: " << relaxationlength*1E9 << " nm." << endl;
+    }
+    else if(_outputtime != 0 && relaxationtime == 0)
+    {
+        cout << "\nKMC probably has not converged yet." << endl;
+    }
 
 
     
