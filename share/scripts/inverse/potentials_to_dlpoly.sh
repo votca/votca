@@ -27,7 +27,7 @@ fi
 
 for i in TABLE TABBND TABANG TABDIH; do
   if [[ -f "${i}" ]]; then
-    echo "Renaming ${i} ..."
+    echo "Storing ${i} ..."
     if [[ -f "${i}.prv" ]]; then
       echo "Overwriting ${i}.prv ..."
     fi
@@ -37,3 +37,14 @@ done
 
 for_all "non-bonded bonded" do_external convert_potential dlpoly '$(csg_get_interaction_property name).pot.cur' '$(csg_get_interaction_property name).pot.dlpoly'
 
+for i in TAB*prv; do
+  if [[ -s "${i}" ]]; then
+    fname="$(basename ${i} .prv)"
+    if [[ -s "${fname}" ]]; then
+      echo "New ${fname} has been created based on the latest distribution"
+    else
+      echo "Restoring ${fname} ..."
+      critical mv -vf "${i}" "${fname}"
+    fi
+  fi
+done
