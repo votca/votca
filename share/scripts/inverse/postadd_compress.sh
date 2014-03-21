@@ -20,14 +20,10 @@ cat <<EOF
 ${0##*/}, version %version%
 postadd compress script, compresses files
 
-Usage: ${0##*/} infile outfile
+Usage: ${0##*/}
 EOF
    exit 0
 fi
-
-[[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
-
-do_external postadd dummy "$1" "$2"
 
 packer=$(csg_get_interaction_property inverse.post_add_options.compress.program)
 [[ -n "$(type -p $packer)" ]] || die "${0##*/}: packer binary '$packer' not found"

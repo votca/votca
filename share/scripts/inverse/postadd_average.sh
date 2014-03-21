@@ -23,14 +23,10 @@ calcs averages of (\${name}.DIST.cur) for the past few steps
 and saves it to \${name}.DIST.avg
 DIST can be specified by average.what option
 
-usage: ${0##*/} infile outfile
+usage: ${0##*/}
 EOF
    exit 0
 fi
-
-[[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
-
-do_external postadd dummy "$1" "$2"
 
 name=$(csg_get_interaction_property name)
 

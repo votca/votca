@@ -20,17 +20,12 @@ cat <<EOF
 ${0##*/}, version %version%
 postadd plot script, send a certain plot script to gnuplot
 
-Usage: ${0##*/} infile outfile
+Usage: ${0##*/}
 
 Used external packages: gnuplot
 EOF
    exit 0
 fi
-
-[[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
-
-[[ -f $2 ]] && die "${0##*/}: $2 is already there"
-do_external postadd dummy "$1" "$2"
 
 gnuplot=$(csg_get_property cg.inverse.gnuplot.bin)
 [ -n "$(type -p $gnuplot)" ] || die "${0##*/}: gnuplot binary '$gnuplot' not found"

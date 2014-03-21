@@ -41,7 +41,13 @@ for task in $tasklist shift tag; do
   critical mv "${name}.pot.new" "${name}.pot.${i}"
 
   #perform postadd task
-  do_external postadd "$task" "${name}.pot.${i}" "${name}.pot.new" 
+  do_external postadd "$task" "${name}.pot.${i}" "${name}.pot.new"
+
+  if [[ ! -f ${name}.pot.new ]]; then
+    echo "$task didn't create an output (${name}.pot.new), running dummy update"
+    do_external postadd dummy "${name}.pot.${i}" "${name}.pot.new"
+  fi
+
 
   ((i++))
 done
