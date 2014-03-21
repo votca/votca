@@ -196,6 +196,7 @@ while true; do
   if [[ -d $this_dir ]]; then
     if [[ -f "$this_dir/done" ]]; then
       msg "step $i is already done - skipping"
+      ((i++))
       continue
     else
       msg "Incomplete step $i"
