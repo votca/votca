@@ -34,7 +34,7 @@ packer=$(csg_get_interaction_property inverse.post_add_options.compress.program)
 opts=$(csg_get_interaction_property --allow-empty inverse.post_add_options.compress.program_opts)
 filelist=$(csg_get_interaction_property inverse.post_add_options.compress.filelist)
 for i in $filelist; do
-  [[ -f $i ]] || die "${0##*/}: don't exist"
+  [[ -f $i ]] || die "${0##*/}: $i don't exist"
   echo "${0##*/}: compressing $i"
   critical "${packer}" ${opts} "${i}"
 done
