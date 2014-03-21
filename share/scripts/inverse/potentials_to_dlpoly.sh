@@ -25,10 +25,10 @@ EOF
    exit 0
 fi
 
-for i in TABLE TABBND TABANG TABDIH; do
-  if [[ -f "${i}" ]]; then
+for i in TAB{LE,BND,ANG,DIH}; do
+  if [[ -f ${i} ]]; then
     echo "Storing ${i} ..."
-    if [[ -f "${i}.prv" ]]; then
+    if [[ -f ${i}.prv ]]; then
       echo "Overwriting ${i}.prv ..."
     fi
     critical mv -vf "${i}" "${i}.prv"
@@ -37,10 +37,10 @@ done
 
 for_all "non-bonded bonded" do_external convert_potential dlpoly '$(csg_get_interaction_property name).pot.cur' '$(csg_get_interaction_property name).pot.dlpoly'
 
-for i in TAB*prv; do
-  if [[ -s "${i}" ]]; then
-    fname="$(basename ${i} .prv)"
-    if [[ -s "${fname}" ]]; then
+for i in TAB{LE,BND,ANG,DIH}.prv; do
+  if [[ -s ${i} ]]; then
+    fname="${i%.prv}"
+    if [[ -s ${fname} ]]; then
       echo "New ${fname} has been created based on the latest distribution"
     else
       echo "Restoring ${fname} ..."
