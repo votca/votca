@@ -178,8 +178,9 @@ unset nr trunc
 
 avg_steptime=0
 steps_done=0
-i="$begin"
+i="$(( $begin - 1 ))"
 while true; do
+  ((i++))
   if [[ -z ${do_iterations} ]]; then
     iterations_max="$(csg_get_property cg.inverse.iterations_max)"
     is_int "$iterations_max" || die "inverse.sh: cg.inverse.iterations_max needs to be a number, but I got $iterations_max"
@@ -196,7 +197,6 @@ while true; do
   if [[ -d $this_dir ]]; then
     if [[ -f "$this_dir/done" ]]; then
       msg "step $i is already done - skipping"
-      ((i++))
       continue
     else
       msg "Incomplete step $i"
@@ -268,17 +268,11 @@ while true; do
   msg "Post add"
   do_external post add
 
-  cleanlist="$(csg_get_property --allow-empty cg.inverse.cleanlist)"
-  if [[ -n ${cleanlist} ]]; then
-    msg "Clean up files: $cleanlist"
-    #no quote to allow globbing
-    rm -f ${cleanlist}
-  fi
+  do_external clean $sim_prog
 
   step_time="$(( $(get_time) - $step_starttime ))"
   msg "\nstep $i done, needed $step_time secs"
   ((steps_done++))
-  ((i++))
 
   touch "done"
 
@@ -309,7 +303,7 @@ while true; do
   fi
 
   if [[ -n $do_iterations ]]; then
-    if [[ $do_iterations -ge $steps_done ]] ; then
+    if [[ $do_iterations -eq $steps_done ]] ; then
       msg "Stopping at step $i, user requested to take some rest after this amount of iterations"
       exit 0
     else

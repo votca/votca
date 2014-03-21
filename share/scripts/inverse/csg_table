@@ -204,6 +204,7 @@ tables jackknife tables_jackknife.pl
 # interface to gromacs
 initstep gromacs initialize_step_genericsim.sh
 run gromacs run_gromacs.sh
+clean gromacs clean_generic.sh
 presimulation gromacs run_gromacs.sh --pre
 pressure gromacs calc_pressure_gromacs.sh
 rdf gromacs calc_rdf_generic.sh
@@ -222,6 +223,7 @@ functions gromacs functions_gromacs.sh
 # Interface to ESPResSo
 initstep espresso initialize_step_genericsim.sh
 run espresso run_genericsim.sh
+clean espresso clean_generic.sh
 rdf espresso calc_rdf_generic.sh
 imc_stat espresso imc_stat_generic.sh
 density espresso calc_density_generic.sh
@@ -240,6 +242,7 @@ convert_potentials lammps potentials_to_generic.sh
 # interface to lammps
 initstep lammps initialize_step_genericsim.sh
 run lammps run_genericsim.sh
+clean lammps clean_generic.sh
 rdf lammps calc_rdf_generic.sh
 imc_stat lammps imc_stat_generic.sh
 density lammps calc_density_generic.sh
@@ -254,6 +257,7 @@ convert_potentials espressopp potentials_to_generic.sh
 # interface to espressopp
 initstep espressopp initialize_step_genericsim.sh
 run espressopp run_genericsim.sh
+clean espressopp clean_generic.sh
 rdf espressopp calc_rdf_generic.sh
 imc_stat espressopp imc_stat_generic.sh
 density espressopp calc_density_generic.sh
@@ -264,6 +268,7 @@ functions espressopp functions_genericsim.sh
 # interface to dlpoly
 initstep dlpoly initialize_step_genericsim.sh
 run dlpoly run_genericsim.sh
+clean dlpoly clean_generic.sh
 rdf dlpoly calc_rdf_generic.sh
 imc_stat dlpoly imc_stat_generic.sh
 density dlpoly calc_density_generic.sh
