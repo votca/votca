@@ -835,7 +835,7 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
         }
         traj << endl;
         
-        tfile << "'time[s]'\t'energy_per_carrier[eV]\t'mobility[m**2/Vs]'\t'diffusion_coefficient[m**2]'" << endl;
+        tfile << "'time[s]'\t'energy_per_carrier[eV]\t'mobility[m**2/Vs]'\t'distance_fielddirection[m]'\t'distance_absolute[m]'\t'diffusion_coefficient[m**2]'" << endl;
         
     }
     double outputfrequency = runtime/100;
@@ -1199,9 +1199,9 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
             double currentenergy = 0;
             // b) mobility
             double currentmobility = 0;
+            myvec dr_travelled_current = myvec (0,0,0);
             if(absolute_field != 0)
             {
-                myvec dr_travelled_current = myvec (0,0,0);
                 myvec avgvelocity_current = myvec(0,0,0);
                 for(unsigned int i=0; i<numberofcharges; i++)
                 {
@@ -1211,13 +1211,13 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
                 dr_travelled_current /= numberofcharges;
                 currentenergy = accumulatedenergy /tdpendencesteps/numberofcharges;
                 avgvelocity_current = dr_travelled_current/simtime; 
-                currentmobility = avgvelocity_current*_field /absolute_field/absolute_field/numberofcharges;
+                currentmobility = (avgvelocity_current*_field) /absolute_field/absolute_field;
             }
-            tfile << simtime << "\t" << currentenergy << "\t" << currentmobility << endl;
+            tfile << simtime << "\t" << currentenergy << "\t" << currentmobility << "\t" << (dr_travelled_current*_field)/absolute_field << "\t" << abs(dr_travelled_current) << endl;
             
             if(currentmobility>0)
             {
-                if((currentmobility - currentmobility_laststep)/currentmobility < 0.001)
+                if(std::abs((currentmobility - currentmobility_laststep)/currentmobility) < 0.001)
                 {
                     mobilitycheck += step - currentkmcstep_laststep;
                 }
@@ -1240,7 +1240,7 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
                 }
                 relaxationlength /= numberofcharges;
                 cout << "    relaxation time: " << relaxationtime << " s." << endl;
-                cout << "    relaxation length: " << relaxationlength*1E9 << " nm." << endl;
+                cout << "    relaxation length: " << relaxationlength << " m." << endl;
             }
             
             
@@ -1284,6 +1284,7 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
     cout << "simulated time " << simtime << " seconds." << endl;
     cout << "runtime: ";
     printtime(time(NULL) - realtime_start); 
+    cout << endl << endl;
     myvec dr_travelled = myvec (0,0,0);
     myvec avgvelocity = myvec(0,0,0);
     for(unsigned int i=0; i<numberofcharges; i++)
@@ -1307,7 +1308,7 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
     double average_mobility = 0;
     if (absolute_field != 0)
     {
-        cout << endl << "Mobilities (cm^2/Vs): " << endl;
+        cout << endl << "Mobilities (m^2/Vs): " << endl;
         for(unsigned int i=0; i<numberofcharges; i++)
         {
             //myvec velocity = carrier[i]->dr_travelled/simtime*1e-9;
@@ -1315,10 +1316,10 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
             double absolute_velocity = sqrt(velocity.x()*velocity.x() + velocity.y()*velocity.y() + velocity.z()*velocity.z());
             //cout << std::scientific << "    charge " << i+1 << ": mu=" << absolute_velocity/absolute_field*1E4 << endl;
             cout << std::scientific << "    charge " << i+1 << ": mu=" << (velocity*_field)/absolute_field/absolute_field*1E4 << endl;
-            average_mobility += (velocity*_field) /absolute_field/absolute_field *1E4;
+            average_mobility += (velocity*_field) /absolute_field/absolute_field;
         }
         average_mobility /= numberofcharges;
-        cout << std::scientific << "  Overall average mobility in field direction <mu>=" << average_mobility << endl;
+        cout << std::scientific << "  Overall average mobility in field direction <mu>=" << average_mobility << " (= " << average_mobility*1E4 << "cm^2/Vs)" << endl;
       }
     cout << endl;
     
@@ -1368,11 +1369,10 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
     
     if(_outputtime != 0 && relaxationtime != 0)
     {
-        cout << "\nKMC probably converged at t= " << simtime << endl;
+        cout << "\nKMC probably converged at t= " << relaxationtime << endl;
         cout << "    (For the last 10^8 KMC steps the relative difference in mobility was smaller than 0.001.)" << endl;
-        relaxationtime = simtime;
         cout << "    relaxation time: " << relaxationtime << " s." << endl;
-        cout << "    relaxation length: " << relaxationlength*1E9 << " nm." << endl;
+        cout << "    relaxation length: " << relaxationlength << " m." << endl;
     }
     else if(_outputtime != 0 && relaxationtime == 0)
     {
