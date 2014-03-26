@@ -1371,12 +1371,12 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
     {
         cout << "\nKMC probably converged at t= " << relaxationtime << endl;
         cout << "    (For the last 10^8 KMC steps the relative difference in mobility was smaller than 0.001.)" << endl;
-        cout << "    relaxation time: " << relaxationtime << " s." << endl;
-        cout << "    relaxation length: " << relaxationlength << " m." << endl;
+        cout << "    convergence time: " << relaxationtime << " s." << endl;
+        cout << "    convergence length: " << relaxationlength << " m." << endl;
     }
     else if(_outputtime != 0 && relaxationtime == 0)
     {
-        cout << "\nKMC probably has not converged yet." << endl;
+        //cout << "\nKMC probably has not converged yet." << endl;
     }
 
 
