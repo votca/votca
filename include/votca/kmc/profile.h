@@ -32,14 +32,14 @@ public:
     Profile(GraphDevice* graph, Eventinfo* eventinfo) {
         Initialize_storage_arrays(eventinfo);
         Add_nodes_to_profile(graph);
-        Calculate_positional_average();
+        Calculate_positional_average(eventinfo);
         Calculate_layer_boundaries(eventinfo);
     }
      
     ~Profile(){}     
     
     /// number of profile layers
-    const int &number_of_layers() const { return _number_of_layers; }
+    const double &layersize() const { return _layersize; }
     
     /// number of nodes in a layer
     const int &number_of_nodes(int i) const { return _number_of_nodes[i];}
@@ -59,14 +59,14 @@ public:
     inline void Add_node_to_layer(double posx, int layer);
     
     /// Calculate positional average of all layers
-    inline void Calculate_positional_average();
+    inline void Calculate_positional_average(Eventinfo* eventinfo);
     
     /// Calculate boundaries between layers
     inline void Calculate_layer_boundaries(Eventinfo* eventinfo);
 
 private:
 
-    int _number_of_layers;
+    double _layersize;
 
     vector<double> _positional_sum;
     vector<int> _number_of_nodes;
@@ -79,10 +79,10 @@ private:
 
 inline void Profile::Initialize_storage_arrays(Eventinfo* eventinfo) {
     
-    _number_of_layers = ceil(eventinfo->simboxsize.x()/eventinfo->layersize);
+    _layersize = (eventinfo->simboxsize.x()-eventinfo->left_electrode_distance - eventinfo->right_electrode_distance)/eventinfo->number_layers;
  
-    _positional_sum.resize(_number_of_layers);
-    _number_of_nodes.resize(_number_of_layers); 
+    _positional_sum.resize(eventinfo->number_layers);
+    _number_of_nodes.resize(eventinfo->number_layers); 
 
 }
 
@@ -91,6 +91,7 @@ inline void Profile::Add_nodes_to_profile(GraphDevice* graph){
         NodeDevice* node = graph->GetNode(i);
         if(node->type() == (int) NormalNode) {
             votca::tools::vec position = node->position();
+//            std::cout << _layersize << " " << position.x() << " " << node->layer() << endl;
             Add_node_to_layer(position.x(), node->layer());
         }
     }
@@ -101,10 +102,11 @@ inline void Profile::Add_node_to_layer(double posx, int layer){
     _positional_sum[layer] += posx;
 };
 
-inline void Profile::Calculate_positional_average(){
+inline void Profile::Calculate_positional_average(Eventinfo* eventinfo){
 
-    double average = 0.0;
-    for(int i = 0;i<_number_of_layers;i++) {
+    _positional_average.clear();
+    /*double average = 0.0;
+    for(int i = 0;i<eventinfo->number_layers;i++) {
         if(_number_of_nodes[i] != 0) {
             average = _positional_sum[i]/(1.0*_number_of_nodes[i]);
             _positional_average.push_back(average);
@@ -114,14 +116,21 @@ inline void Profile::Calculate_positional_average(){
             _positional_average.push_back(average);
             _empty_layer.push_back(true);
         }
+    }*/
+    
+    for(int i = 0; i<eventinfo->number_layers;i++){
+        double position = eventinfo->left_electrode_distance + (0.5+1.0*i)*_layersize; 
+        _positional_average.push_back(position);
+        if(_number_of_nodes[i] != 0) _empty_layer.push_back(false);
+        else _empty_layer.push_back(true);
     }
 }
 
 inline void Profile::Calculate_layer_boundaries(Eventinfo* eventinfo){
     double boundary = 0.0;
-    for(int i = 0;i<_number_of_layers;i++) {
+    for(int i = 0;i<eventinfo->number_layers;i++) {
         _layer_boundaries.push_back(boundary);
-        boundary += eventinfo->layersize;
+        boundary += _layersize;
     }
     _layer_boundaries.push_back(eventinfo->simboxsize.x());
 }

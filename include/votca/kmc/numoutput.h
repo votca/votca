@@ -32,6 +32,7 @@ public:
     void Init_convergence_check(double simtime);
     void Convergence_check(double simtime, Eventinfo* eventinfo);
     void Update(Event* event, double simtime, double timestep);
+    void Update_ohmic(Event* event);
     void Write(double simtime);
     
     const bool &iv_conv() const {return _direct_iv_convergence;}
@@ -108,7 +109,7 @@ void Numoutput::Initialize_equilibrate() {
     
     _vel_x = 0.0; _vel_y = 0.0; _vel_z = 0.0;
     _electron_vel_x = 0.0; _electron_vel_y = 0.0; _electron_vel_z = 0.0;
-    _hole_vel_x = 0.0; _hole_vel_y = 0.0; _hole_vel_z = 0.0;       
+    _hole_vel_x = 0.0; _hole_vel_y = 0.0; _hole_vel_z = 0.0;
 }
 
 void Numoutput::Init_convergence_check(double simtime) {
@@ -126,6 +127,18 @@ void Numoutput::Convergence_check(double simtime, Eventinfo* eventinfo) {
 
     _vx_old   = _vel_x/simtime;
     _reco_old = _nrecombinations/simtime;
+}
+
+void Numoutput::Update_ohmic(Event* event) {
+    if(event->init_type() == (int) Injection)   { // Injection events    
+        _ninjections++;
+        if(event->link()->node1()->type() == LeftElectrodeNode) { _nleftinjections++; } else { _nrightinjections++; }
+    
+        if(event->final_type() == (int) TransferTo) {
+            _ncarriers++;
+            if(event->carrier_type() == (int) Electron) { _nelectrons++; } else { _nholes++;}
+        }
+    }
 }
 
 void Numoutput::Update(Event* event, double simtime, double timestep) {
@@ -180,25 +193,83 @@ void Numoutput::Update(Event* event, double simtime, double timestep) {
     _ncollectionrate = _ncollections/simtime;
     _nrecombinationrate = _nrecombinations/simtime;
     
+    Node* node1 = event->link()->node1();
+    Node* node2 = event->link()->node2();
     votca::tools::vec travelvec = event->link()->r12();
     double direction;
-    if(event->carrier_type() == (int) Electron) { direction = -1.0; } else { direction = 1.0;}
-    
-    _vel_x += direction*travelvec.x();
-    _vel_y += direction*travelvec.y();
-    _vel_z += direction*travelvec.z();
-    
-    if(event->carrier_type() == (int) Electron) {
-        _electron_vel_x += direction*travelvec.x();
-        _electron_vel_y += direction*travelvec.y();
-        _electron_vel_z += direction*travelvec.z();        
+    double dirx; double diry; double dirz;
+    if(node1->type() == (int) NormalNode) {
+        if(event->carrier_type() == (int) Electron) { direction = -1.0; } else { direction = 1.0;}
+        if(travelvec.x() > 0) {dirx = 1.0;} else {if(travelvec.x() == 0) {dirx = 0.0;} else {dirx = -1.0;}}
+        if(travelvec.y() > 0) {diry = 1.0;} else {if(travelvec.y() == 0) {diry = 0.0;} else {diry = -1.0;}}
+        if(travelvec.z() > 0) {dirz = 1.0;} else {if(travelvec.z() == 0) {dirz = 0.0;} else {dirz = -1.0;}}
+
+
+        _vel_x += direction*dirx;
+        _vel_y += direction*diry;
+        _vel_z += direction*dirz;
+
+        if(event->carrier_type() == (int) Electron) {
+            _electron_vel_x += direction*travelvec.x();
+            _electron_vel_y += direction*travelvec.y();
+            _electron_vel_z += direction*travelvec.z();        
+        }
+
+        if(event->carrier_type() == (int) Hole) {
+            _hole_vel_x += direction*travelvec.x();
+            _hole_vel_y += direction*travelvec.y();
+            _hole_vel_z += direction*travelvec.z();        
+        }
     }
     
-    if(event->carrier_type() == (int) Hole) {
-        _hole_vel_x += direction*travelvec.x();
-        _hole_vel_y += direction*travelvec.y();
-        _hole_vel_z += direction*travelvec.z();        
-    }
+/*    if(node2->type() == (int) NormalNode) {
+        if(event->carrier_type() == (int) Electron) { direction = -1.0; } else { direction = 1.0;}
+        if(travelvec.x() > 0) {dirx = 1.0;} else {if(travelvec.x() == 0) {dirx = 0.0;} else {dirx = -1.0;}}
+        if(travelvec.y() > 0) {diry = 1.0;} else {if(travelvec.y() == 0) {diry = 0.0;} else {diry = -1.0;}}
+        if(travelvec.z() > 0) {dirz = 1.0;} else {if(travelvec.z() == 0) {dirz = 0.0;} else {dirz = -1.0;}}
+
+
+        _vel_x += -1.0*direction*dirx;
+        _vel_y += -1.0*direction*diry;
+        _vel_z += -1.0*direction*dirz;
+
+        if(event->carrier_type() == (int) Electron) {
+            _electron_vel_x += direction*travelvec.x();
+            _electron_vel_y += direction*travelvec.y();
+            _electron_vel_z += direction*travelvec.z();        
+        }
+
+        if(event->carrier_type() == (int) Hole) {
+            _hole_vel_x += direction*travelvec.x();
+            _hole_vel_y += direction*travelvec.y();
+            _hole_vel_z += direction*travelvec.z();        
+        }
+    }*/    
+    
+/*    if(node1->type() == (int) NormalNode) {
+        if(event->carrier_type() == (int) Electron) { direction = -1.0; } else { direction = 1.0;}
+//        if(travelvec.x() > 0) {dirx = -1.0;} else {if(travelvec.x() == 0) {dirx = 0.0;} else {dirx = 1.0;}}
+//        if(travelvec.y() > 0) {diry = -1.0;} else {if(travelvec.y() == 0) {diry = 0.0;} else {diry = 1.0;}}
+//        if(travelvec.z() > 0) {dirz = -1.0;} else {if(travelvec.z() == 0) {dirz = 0.0;} else {dirz = 1.0;}}
+
+
+        _vel_x += direction*travelvec.x();
+        _vel_y += direction*travelvec.y();
+        _vel_z += direction*travelvec.z();
+
+        if(event->carrier_type() == (int) Electron) {
+            _electron_vel_x += direction*dirx;
+            _electron_vel_y += direction*diry;
+            _electron_vel_z += direction*dirz;        
+        }
+
+        if(event->carrier_type() == (int) Hole) {
+            _hole_vel_x += direction*dirx;
+            _hole_vel_y += direction*diry;
+            _hole_vel_z += direction*dirz;        
+        }
+ //   }*/
+    
 }
 
 void Numoutput::Write(double simtime) {

@@ -39,6 +39,8 @@ public:
     void Add_from_Coulomb(double coulomb) {_from_coulomb += coulomb;}
     void Set_from_Coulomb(double coulomb) {_from_coulomb = coulomb;}
     
+    void Set_on_node(double sim_time) {_on_node = sim_time;}
+    
     void Init_to_Coulomb(int maxpairdegree) {_to_coulomb.resize(maxpairdegree); Reset_to_Coulomb();}
     void Reset_to_Coulomb() { for (int it = 0; it < _to_coulomb.size(); it++ ) { _to_coulomb[it] = 0.0;} }
     void Add_to_Coulomb(double coulomb, int linkID) {_to_coulomb[linkID] += coulomb;}
@@ -49,6 +51,7 @@ private:
     bool _in_sim_box;
     double _from_coulomb;
     vector<double> _to_coulomb;
+    double _on_node;
 };
 
 }} 

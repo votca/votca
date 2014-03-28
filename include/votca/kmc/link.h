@@ -64,12 +64,21 @@ public:
         out << _id << " " << _r12 << endl ;
     }
     
+    void setcount(double type) {_count = type;}
+    void inccount() {_count++;}
+    void incval(double val) {_count += val;}
+    void deccount() {_count--;}
+    void decval(double val) {_count -= val;}
+    const double &count() const { return _count; }
+    
 private:
     
     long _id;
     
     Node *_node1;
     Node *_node2;
+    
+    double _count;
     
     /// r2 - r1
     votca::tools::vec _r12;       

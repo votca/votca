@@ -77,7 +77,7 @@ public:
         mesh_x                      = options->get("options.diode.mesh_x").as<int>();
         mesh_y                      = options->get("options.diode.mesh_y").as<int>();
         mesh_z                      = options->get("options.diode.mesh_z").as<int>();
-        layersize                   = options->get("options.diode.layersize").as<double>();
+        number_layers               = options->get("options.diode.number_layers").as<int>();
         
         nr_sr_images                = options->get("options.diode.nr_sr_images").as<int>();
         nr_lr_images                = options->get("options.diode.nr_lr_images").as<int>();
@@ -87,6 +87,7 @@ public:
         self_image_prefactor        = options->get("options.diode.self_image_prefactor").as<double>();
         
         interpolate_longrange       = options->get("options.diode.interpolate_longrange").as<bool>();
+        longrange_slab              = options->get("options.diode.longrange_slab").as<bool>();
         
     }
     
@@ -100,7 +101,7 @@ public:
     }
     
     void Set_field(){
-        efield_x = voltage/(size_x + left_electrode_distance + right_electrode_distance);
+        efield_x = voltage/(simboxsize.x());
     }
 
     int seed; int nr_equilsteps; int nr_timesteps; int steps_update_longrange;
@@ -113,10 +114,10 @@ public:
     double electron_prefactor; double hole_prefactor; double injection_prefactor; double recombination_prefactor; double collection_prefactor;
     string formalism; double injection_barrier; double binding_energy;
     bool left_electron_injection; bool left_hole_injection; bool right_electron_injection; bool right_hole_injection; int device;
-    int mesh_x; int mesh_y; int mesh_z; double layersize;
+    int mesh_x; int mesh_y; int mesh_z; int number_layers;
     double hopdist; double mindist; votca::tools::vec simboxsize; int maxpairdegree; double avholeenergy; double avelectronenergy;
     double coulomb_strength; double coulcut; double self_image_prefactor; int nr_sr_images; long nr_lr_images;
-    bool interpolate_longrange;
+    bool interpolate_longrange; bool longrange_slab;
 
 };
 

@@ -66,12 +66,27 @@ public:
     /// Set node position
     void SetPosition(votca::tools::vec position) { _position = position;}
 
+    const int &vel_x() const {return _vel_x;} 
+    const int &vel_y() const {return _vel_y;} 
+    const int &vel_z() const {return _vel_z;}     
+    
+    void Add_velx(int dis) { _vel_x += dis;}
+    void Add_vely(int dis) { _vel_y += dis;}
+    void Add_velz(int dis) { _vel_z += dis;}
+    
+    void Init_vals() {_vel_x = 0; _vel_y = 0; _vel_z = 0;}    
+    
 protected:
 
     int _id;
     int _type;
     votca::tools::vec _position;
     int _occupation;
+
+//    double _vel_x;
+    int _vel_x;
+    int _vel_y;
+    int _vel_z;
     
     vector< Link* > _links;
 };

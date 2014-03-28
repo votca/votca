@@ -174,55 +174,13 @@ inline double Event::Determine_to_sr_coulomb(Node* node, StateDevice* state, Eve
 
 inline double Event::Determine_lr_coulomb(Node* node, Longrange* longrange, Eventinfo* eventinfo) {
     double lr_coulomb;
+
     if(node->type() == (int) NormalNode) {
-        if(!eventinfo->interpolate_longrange) {
+        if(!eventinfo->longrange_slab) {
             lr_coulomb = eventinfo->coulomb_strength*longrange->Get_cached_longrange(dynamic_cast<NodeDevice*>(node)->layer());
         }
         else {
-            //first determine relative position of node corresponding to the average position of the layer
-            int layernum = dynamic_cast<NodeDevice*>(node)->layer();
-            double layer_pos = longrange->position(layernum);
-            votca::tools::vec nodeposvec = node->position();
-            double node_pos = nodeposvec.x();
-            
-            double first_pos; double second_pos;
-            double first_val; double second_val;
-            
-            if(node_pos<=layer_pos) { //node is "in front" of the average position of the layer
-                int prevint = 0;
-                bool prevfound = false;
-                while(!prevfound) {
-                    prevint++;
-                    if(layernum - prevint < 0) {
-                        first_val = 0.0; second_val = longrange->Get_cached_longrange(layernum);
-                        first_pos = 0.0; second_pos = layer_pos;
-                        prevfound = true;
-                    }
-                    else if(!longrange->emptylayer(layernum-prevint)) {
-                        first_val = longrange->Get_cached_longrange(layernum-prevint) ; second_val = longrange->Get_cached_longrange(layernum);
-                        first_pos = longrange->position(layernum - prevint); second_pos = layer_pos;
-                        prevfound = true;
-                    }                    
-                }
-            }  
-            else {
-                int nextint = 1;
-                bool nextfound = false;
-                while(!nextfound) {
-                    nextint++;
-                    if((longrange->number_of_layers() - 1 -(layernum+nextint))<0) {
-                        first_val = longrange->Get_cached_longrange(layernum) ; second_val = 0.0;
-                        first_pos = layer_pos ; second_pos = eventinfo->simboxsize.x();
-                        nextfound = true;
-                    }
-                    else if(!longrange->emptylayer(layernum+nextint)) {
-                        first_val = longrange->Get_cached_longrange(layernum) ; second_val = longrange->Get_cached_longrange(layernum + nextint);
-                        first_pos = layer_pos; second_pos = longrange->position(layernum + nextint);
-                        nextfound = true;
-                    }
-                }
-            }
-            lr_coulomb = eventinfo->coulomb_strength*(first_val + (node_pos - first_pos)*(second_val - first_val)/(second_pos - first_pos));
+            lr_coulomb = eventinfo->coulomb_strength*longrange->Get_cached_longrange_slab(node->id());
         }
     }
     else {lr_coulomb = 0.0;} //potential at electrodes = 0.0;
@@ -279,9 +237,18 @@ void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* 
             transferfactor = exp(-2.0*eventinfo->alpha*distance);
         }
         else if((eventinfo->formalism == "Marcus")&&(_init_type==Injection||_final_type==Collection)) {
-            std::cout << "hier?" << endl;
-             double distance = abs(distancevector);
-             transferfactor = exp(-2.0*eventinfo->alpha*distance);
+            double distance = abs(distancevector);
+            Jeff2 = exp(-2.0*eventinfo->alpha*distance);
+            
+            // take Reorg equal to inside organic material (obviously not true))
+            if(_carrier_type == (int) Electron) {
+                Reorg = dynamic_cast<NodeSQL*>(node1)->UnCnNe() + dynamic_cast<NodeSQL*>(node2)->UcNcCe() + dynamic_cast<LinkSQL*>(_link)->lOe();
+            }
+            if(_carrier_type == (int) Hole) {
+//                Reorg = dynamic_cast<NodeSQL*>(node1)->UnCnNh() + dynamic_cast<NodeSQL*>(node2)->UcNcCh() + dynamic_cast<LinkSQL*>(_link)->lOh();
+                Reorg = 0.1345;
+            }
+            transferfactor = (2*Pi/hbar)*(Jeff2/sqrt(4*Pi*Reorg*kB*eventinfo->temperature));
         }
         else if(eventinfo->formalism == "Marcus") {
 

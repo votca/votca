@@ -31,6 +31,9 @@ public:
 
     /// Set layer index of node (defined by profile object)
     void setLayer(int layer){_layer = layer;}
+
+    void setfirstcontriblayer(int layer){_firstcontriblayer = layer;}
+    void setfinalcontriblayer(int layer){_finalcontriblayer = layer;}  
     
     /// Compute and set self image coulomb potential (potential of image charges  of a charge on the charge itself)
     void Compute_Self_Image_Coulomb_Potential(double startx, double device_length, Eventinfo* eventinfo);
@@ -43,6 +46,10 @@ public:
     /// Layer index
     const int &layer() const {return _layer;}
 
+    const int &firstcontriblayer() const {return _firstcontriblayer;}
+    const int &finalcontriblayer() const {return _finalcontriblayer;} 
+    double &contrib(int layer) {return disc_coul_contrib[layer];}
+    
     const int &reco() const {return _reco_rate;}
     const double &hole_occ() const {return _hole_occ;}
     const double &el_occ() const {return _el_occ;}
@@ -51,7 +58,9 @@ public:
     void Add_el_occ(double occ) {_el_occ += occ;}
     void Add_reco() {_reco_rate ++;}
     
-    void Init_vals() {_hole_occ = 0.0; _el_occ = 0.0; _reco_rate = 0;}
+    void disc_coul_clear() {disc_coul_contrib.clear();}
+    void disc_coul_set(double val) {disc_coul_contrib.push_back(val); }
+    int disc_coul_size() {return disc_coul_contrib.size();}
     
     void SetInjectable(bool injectable) { _injectable = injectable;}
     
@@ -64,6 +73,11 @@ private:
     int _reco_rate;
     
     bool _injectable;
+
+    int _firstcontriblayer;
+    int _finalcontriblayer;
+    
+    vector<double> disc_coul_contrib;
     
 };
 
@@ -72,18 +86,18 @@ void NodeDevice::Compute_Self_Image_Coulomb_Potential(double startx, double devi
     double coulpot = 0.0;
     double L = device_length;
       
-    int sign;
+    double sign;
     double distx_1;
     double distx_2;
       
     for (int i=0;i<eventinfo->nr_sr_images; i++) {
         if (div(i,2).rem==0) { // even generation
-            sign = -1;
+            sign = -1.0;
             distx_1 = i*L + 2*startx;
             distx_2 = (i+2)*L - 2*startx; 
         }
         else { // odd generation
-            sign = 1;
+            sign = 1.0;
             distx_1 = (i+1)*L;
             distx_2 = (i+1)*L;
         }

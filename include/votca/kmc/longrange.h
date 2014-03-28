@@ -43,23 +43,31 @@ public:
 
     /// Update longrange coulomb potential cache
     void Update_cache(Eventinfo* eventinfo);
+    void Update_cache_slab(GraphDevice* graph, Eventinfo* eventinfo);
     
     /// Get longrange coulomb potential cache
     double Get_cached_longrange(int layer);
+    double Get_cached_longrange_slab(int node_index);
     double Get_cached_density(int layer, Eventinfo* eventinfo);
     
     /// Reser longrange coulomb potential cache
-    void Reset();
+    void Reset(Eventinfo* eventinfo);
+    void Reset_slab(GraphDevice* graph, Eventinfo* eventinfo); 
     
     /// Initialize the longrange class: -determine which layers are contributing to which layers -precalculate all cut-out disc contributions
     void Initialize(Eventinfo* eventinfo);
+    void Initialize_slab_node(NodeDevice* node, Eventinfo* eventinfo);
+    void Initialize_slab(GraphDevice* graph, Eventinfo* eventinfo);
+    
     //note that the number of images for the calculation of the long range potential should be considerably larger 
     //than the number for the short range potential
     double Calculate_longrange(int layer, bool cut_out_discs, Eventinfo* eventinfo); // Calculate long-range part of Coulomb interaction
+    double Calculate_longrange_slab(Node* node, double left_node_distance, double right_node_distance, bool cut_out_discs,Eventinfo* eventinfo);
 
     ///precalculate the coulombic contributions from the cut-out discs
     inline double Calculate_disc_contrib(int calculate_layer, int contrib_layer, Eventinfo* eventinfo);
-
+    inline double Calculate_disc_contrib_slab_node(NodeDevice* node, int contrib_layer, Eventinfo* eventinfo);
+    
 private:
 
     vector<double> _layercharge;
@@ -87,8 +95,18 @@ void Longrange::Init_Load_State(StateDevice* state, Eventinfo* eventinfo) {
 }
 
 void Longrange::Update_cache(Eventinfo* eventinfo) {
-    for (int i=0; i<this->number_of_layers(); i++) {
+    for (int i=0; i<eventinfo->number_layers; i++) {
         if(!this->emptylayer(i)) {_longrange_cache[i] = Calculate_longrange(i,true, eventinfo);}
+    }
+}
+
+void Longrange::Update_cache_slab(GraphDevice* graph, Eventinfo* eventinfo) {
+    for (int i=0; i<graph->Numberofnodes(); i++) {
+        Node* node = graph->GetNode(i);
+        votca::tools::vec node_pos = node->position();
+        if(node->type() == (int) NormalNode) {
+            _longrange_cache[i] = Calculate_longrange_slab(node, node_pos.x(), eventinfo->simboxsize.x()-node_pos.x(),true, eventinfo);
+        }
     }
 }
 
@@ -96,13 +114,26 @@ double Longrange::Get_cached_longrange(int layer) {
     return _longrange_cache[layer];
 }
 
-double Longrange::Get_cached_density(int layer, Eventinfo* eventinfo) {
-    return _layercharge[layer]/(eventinfo->simboxsize.y()*eventinfo->simboxsize.z()*eventinfo->layersize);
+double Longrange::Get_cached_longrange_slab(int node_index) {
+    return _longrange_cache[node_index];
 }
 
-void Longrange::Reset() {
-    for (int i=0; i<this->number_of_layers(); i++) {
+double Longrange::Get_cached_density(int layer, Eventinfo* eventinfo) {
+    return _layercharge[layer]/(this->number_of_nodes(layer));
+}
+
+void Longrange::Reset(Eventinfo* eventinfo) {
+    for (int i=0; i<eventinfo->number_layers; i++) {
         _layercharge[i] = 0.0;
+        _longrange_cache[i] = 0.0;
+    }
+}
+
+void Longrange::Reset_slab(GraphDevice* graph, Eventinfo* eventinfo) {
+    for (int i=0; i<eventinfo->number_layers; i++) {
+        _layercharge[i] = 0.0;
+    }
+    for (int i=0; i<graph->Numberofnodes(); i++){
         _longrange_cache[i] = 0.0;
     }
 }
@@ -114,7 +145,8 @@ void Longrange::Initialize (Eventinfo* eventinfo) {
     _first_contributing_layer.clear();
     _final_contributing_layer.clear();
     
-    for (int ilayer=0;ilayer<this->number_of_layers();ilayer++) {
+    
+    for (int ilayer=0;ilayer<eventinfo->number_layers;ilayer++) {
 
         // define for every layer, how many other layers are within the coulomb cut off radius from this layer
         double define_layerpos = this->position(ilayer);
@@ -131,7 +163,7 @@ void Longrange::Initialize (Eventinfo* eventinfo) {
             start_index++;
         }
 
-        int final_index = this->number_of_layers()-1;
+        int final_index = eventinfo->number_layers-1;
         bool finalfound = false;
         while (!finalfound) {
             while(this->emptylayer(final_index)) final_index--;
@@ -144,10 +176,10 @@ void Longrange::Initialize (Eventinfo* eventinfo) {
         }
 
     }
-  
-    _precalculate_disc_contrib.resize(this->number_of_layers());
-    
-    for(int ilayer=0; ilayer<this->number_of_layers(); ilayer++) {
+
+    _precalculate_disc_contrib.resize(eventinfo->number_layers);
+
+    for(int ilayer=0; ilayer<eventinfo->number_layers; ilayer++) {
         _layercharge.push_back(0.0);
         _longrange_cache.push_back(0.0);   
 
@@ -165,7 +197,161 @@ void Longrange::Initialize (Eventinfo* eventinfo) {
             }
         }
     }
+ 
+}
 
+void Longrange::Initialize_slab (GraphDevice* graph, Eventinfo* eventinfo) {
+
+    for(int it = 0; it < graph->Numberofnodes(); it++) {
+//    for(int it = 0; it < 10; it++) {
+        if(graph->GetNode(it)->type() == (int) NormalNode) {
+            this->Initialize_slab_node(graph->GetNode(it),eventinfo);
+        }
+        int first = dynamic_cast<NodeDevice*>(graph->GetNode(it))->firstcontriblayer();
+        int final = dynamic_cast<NodeDevice*>(graph->GetNode(it))->finalcontriblayer();
+//        std::cout << it << " " << dynamic_cast<NodeDevice*>(graph->GetNode(it))->position() <<  " " << first << " " << final << " " << dynamic_cast<NodeDevice*>(graph->GetNode(it))->disc_coul_size() << " "; // << this->position(first) << " " << this->position(final) << " ";
+        for(int lay = first; lay <= final; lay++) {
+//            std::cout << dynamic_cast<NodeDevice*>(graph->GetNode(it))->contrib(lay-first) << " a" << lay << " ";
+        }
+//        std::cout << endl;
+        _longrange_cache.push_back(0.0);
+    }    
+
+    for(int ilayer=0; ilayer<eventinfo->number_layers; ilayer++) {
+        _layercharge.push_back(0.0);
+    }
+}
+
+void Longrange::Initialize_slab_node (NodeDevice* node, Eventinfo* eventinfo) {
+
+    // the properties of the profile object are initialized in the constructor of the profile object itself
+    
+    // define for every layer, how many other layers are within the coulomb cut off radius from this layer
+    votca::tools::vec define_nodepos = node->position();
+    double nodeposx = define_nodepos.x();
+    int start_index;
+    int final_index;
+    
+    if(node->layer() == 0) {
+       node->setfirstcontriblayer(0.0);
+       start_index = 0;
+    }
+    else {   
+        start_index = 0;
+        bool startfound = false;
+        while (!startfound) {
+            while(this->emptylayer(start_index)) start_index++;
+            double start_layerpos = this->position(start_index) + 0.5*this->layersize();
+            if((nodeposx-start_layerpos)<=eventinfo->coulcut) {
+                startfound = true;
+                node->setfirstcontriblayer(start_index);
+            }
+            else {
+                start_index++;
+            }
+        }
+    }
+
+    if(node->layer() == eventinfo->number_layers-1) {
+       node->setfinalcontriblayer(eventinfo->number_layers-1);
+       final_index = eventinfo->number_layers-1;
+    }
+    else {   
+        final_index = eventinfo->number_layers-1;
+        bool finalfound = false;
+        while (!finalfound) {
+            while(this->emptylayer(final_index)) final_index--;
+            double final_layerpos = this->position(final_index)-0.5*this->layersize();
+            if((final_layerpos-nodeposx)<=eventinfo->coulcut) {
+                finalfound = true;
+                node->setfinalcontriblayer(final_index);
+            }
+            else {
+                final_index--;
+            }
+        }
+    }
+
+    node->disc_coul_clear();
+    
+    for (int j=start_index; j<=final_index; j++) {
+//        if(this->emptylayer(j)) {node->disc_coul_set(0.0);} // no nodes in this layer
+//        else {
+            double disc_contrib = Calculate_disc_contrib_slab_node(node,j,eventinfo);
+            node->disc_coul_set(disc_contrib);
+//        }
+    }
+
+}
+
+inline double Longrange::Calculate_disc_contrib_slab_node(NodeDevice* node, int contrib_layer, Eventinfo* eventinfo) {
+
+    votca::tools::vec nodepos = node->position();
+    double calcpos = nodepos.x();
+    int node_layer = node->layer();
+    
+    double RC = eventinfo->coulcut;
+    
+    double first_contrib_pos;
+    first_contrib_pos = this->position(contrib_layer) - 0.5*this->layersize();
+    if(calcpos-first_contrib_pos > RC) first_contrib_pos = calcpos - RC;
+    double second_contrib_pos;
+    second_contrib_pos = this->position(contrib_layer) + 0.5*this->layersize();
+    if(second_contrib_pos - calcpos > RC) second_contrib_pos = calcpos + RC;
+ 
+    // determination of relative distances
+    
+    bool firstleft = true;
+    bool secondleft = true;
+    
+    double firstrdist = first_contrib_pos-calcpos;
+//    if(firstrdist<0 && fabs(firstrdist) > RC) firstrdist = -1.0*RC;
+//    if(firstrdist>0) firstleft = false;
+    
+    double secondrdist = second_contrib_pos-calcpos;
+//    if(secondrdist>0 && fabs(secondrdist)> RC) secondrdist = 1.0*RC;
+//    if(secondrdist>0) secondleft = false; 
+     
+    double direct_contrib;
+    direct_contrib = RC*(secondrdist-firstrdist) - 0.5*secondrdist*fabs(secondrdist) + 0.5*firstrdist*fabs(firstrdist);
+    
+    double L = eventinfo->simboxsize.x();
+    double mirror_contrib = 0.0;
+//    for (long i=0; i<eventinfo->nr_lr_images; i++) {
+    for (long i=0; i<10; i++) {
+        
+        // Calculate contribution from images
+        double dist1;
+        double dist2;
+        
+        long sign;
+        double mirror1_firstrdist;
+        double mirror1_secondrdist;
+        double mirror2_firstrdist;
+        double mirror2_secondrdist;
+
+        if (ldiv(i,2).rem==0) { // even generation (x-position of image charges is -p.x + 2*j*L, j=...,-1,0,1,...)
+            sign = -1;
+            dist1 = 1.0*i*L + 2.0*calcpos;         mirror1_firstrdist = firstrdist;       mirror1_secondrdist = secondrdist;
+            dist2 = 1.0*i*L + 2.0*L - 2.0*calcpos; mirror2_firstrdist = -1.0*secondrdist; mirror2_secondrdist = -1.0*firstrdist;
+        }
+        else { // odd generation (x-position of image charges is -p.x + 2*j*L, j=...,-1,0,1,...)
+            sign = 1; 
+            dist1 = (i+1)*L;  mirror1_firstrdist = firstrdist;       mirror1_secondrdist = secondrdist;
+            dist2 = (i+1)*L;  mirror2_firstrdist = -1.0*secondrdist; mirror2_secondrdist = -1.0*firstrdist;
+        }
+        mirror_contrib += sign*(pow((RC*RC + 2.0*dist1*mirror1_secondrdist+dist1*dist1),(3.0/2.0))/(3.0*dist1)
+                               -pow((RC*RC + 2.0*dist1*mirror1_firstrdist+dist1*dist1),(3.0/2.0))/(3.0*dist1)
+             -(mirror1_secondrdist*(mirror1_secondrdist+2*dist1)*sqrt((mirror1_secondrdist+dist1)*(mirror1_secondrdist+dist1)))/(2.0*(mirror1_secondrdist + dist1))
+             +(mirror1_firstrdist*(mirror1_firstrdist+2*dist1)*sqrt((mirror1_firstrdist+dist1)*(mirror1_firstrdist+dist1)))/(2.0*(mirror1_firstrdist + dist1)));
+
+        mirror_contrib += sign*(pow((RC*RC + 2.0*dist2*mirror2_secondrdist+dist2*dist2),(3.0/2.0))/(3.0*dist2)
+                               -pow((RC*RC + 2.0*dist2*mirror2_firstrdist+dist2*dist2),(3.0/2.0))/(3.0*dist2)
+             -(mirror2_secondrdist*(mirror2_secondrdist+2*dist2)*sqrt((mirror2_secondrdist+dist2)*(mirror2_secondrdist+dist2)))/(2.0*(mirror2_secondrdist + dist2))
+             +(mirror2_firstrdist*(mirror2_firstrdist+2*dist2)*sqrt((mirror2_firstrdist+dist2)*(mirror2_firstrdist+dist2)))/(2.0*(mirror2_firstrdist + dist2)));
+    }
+    double contrib = direct_contrib + mirror_contrib;
+    return contrib;
 }
 
 inline double Longrange::Calculate_disc_contrib(int calculate_layer, int contrib_layer, Eventinfo* eventinfo) {
@@ -182,11 +368,11 @@ inline double Longrange::Calculate_disc_contrib(int calculate_layer, int contrib
     for (long i=0; i<eventinfo->nr_lr_images; i++) {
    
         // Calculate contribution from images
-        long dist1;
-        long dist2;
-        long sign;
+        double dist1;
+        double dist2;
+        double sign;
         if (ldiv(i,2).rem==0) { // even generation (x-position of image charges is -p.x + 2*j*L, j=...,-1,0,1,...)
-            sign = -1;
+            sign = -1.0;
             dist1 = i*L + 2*contribpos - rdist;
             dist2 = i*L + 2*L - 2*contribpos + rdist;
         }
@@ -202,6 +388,71 @@ inline double Longrange::Calculate_disc_contrib(int calculate_layer, int contrib
     return contrib;
 }
 
+double Longrange::Calculate_longrange_slab(Node* node, double left_node_distance, double right_node_distance, bool cut_out_discs,Eventinfo* eventinfo) {
+    // Potential is expressed in multiples of e/(4*pi*epsilon) (with e the elementary charge>0)
+    const double Pi = 3.14159265358979323846264338327950288419716939937510;       
+
+    double slab_contrib1 = 0.0;
+    double cut_out_contrib = 0.0;
+    double longrangeslab = 0;
+
+    int start_index = dynamic_cast<NodeDevice*>(node)->firstcontriblayer();     
+    int layer = dynamic_cast<NodeDevice*>(node)->layer();
+    
+    for(int i=0; i<layer; i++) {
+        if(!this->emptylayer(i)) {
+            double charge_i = 1.0*_layercharge[i]/(this->number_of_nodes(i));
+            double position_i = 1.0*this->position(i);
+            slab_contrib1 += position_i*charge_i*this->layersize(); // potential of a charged plate between two electrodes
+
+            // calculation of contribution of disc
+            if (i>=start_index) {
+                // Cut out short-range sphere (relative to first contributing layer)
+                cut_out_contrib += charge_i*dynamic_cast<NodeDevice*>(node)->contrib(i-start_index);
+            }
+        }
+    }
+    
+    double slab_contrib2 = 0.0;
+    
+    for(int i=layer+1; i<eventinfo->number_layers; i++) {
+        if(!this->emptylayer(i)) {
+            double charge_i = 1.0*_layercharge[i]/(this->number_of_nodes(i));
+            double rel_position_i = 1.0*(eventinfo->simboxsize.x()-this->position(i));
+            slab_contrib2 += rel_position_i*charge_i*this->layersize(); // potential of a charged plate between two electrodes
+
+            int final_index = dynamic_cast<NodeDevice*>(node)->finalcontriblayer();
+            
+            if (final_index >= i) {
+                // Cut out short-range sphere (relative to first contributing layer)
+                cut_out_contrib += charge_i*dynamic_cast<NodeDevice*>(node)->contrib(i-start_index);
+            }
+        }
+    }
+    
+    double slab_contrib3 = 0.0;
+    double charge_i = 1.0*_layercharge[layer]/(this->number_of_nodes(layer));
+    double position_i = 1.0*this->position(layer);
+    slab_contrib3 += 0.5*position_i*charge_i*this->layersize(); // potential of a charged plate between two electrodes
+
+    double slab_contrib4 = 0.0;
+    double rel_position_i = 1.0*(eventinfo->simboxsize.x()-this->position(layer));
+    slab_contrib4 += 0.5*rel_position_i*charge_i*this->layersize(); // potential of a charged plate between two electrodes
+    
+    cut_out_contrib -= charge_i*dynamic_cast<NodeDevice*>(node)->contrib(layer-start_index);    
+    
+    if (!cut_out_discs) { cut_out_contrib = 0.0; }    
+    
+    //note that local positioning in the slab itself is calculated on the fly
+    longrangeslab += 4.0*Pi*(slab_contrib1*(right_node_distance/eventinfo->simboxsize.x()) + slab_contrib2*(left_node_distance/eventinfo->simboxsize.x()));
+    longrangeslab += 4.0*Pi*(slab_contrib3*(right_node_distance/eventinfo->simboxsize.x()) + slab_contrib4*(left_node_distance/eventinfo->simboxsize.x()));
+    longrangeslab += -2.0*Pi*_layercharge[layer]*(left_node_distance - this->position(layer))*(left_node_distance - this->position(layer));
+    longrangeslab += -2.0*Pi*_layercharge[layer]*0.25*this->layersize()*this->layersize(); // d = 0.5 layersize, therefore the 0.25
+    longrangeslab += -2.0*Pi*cut_out_contrib;
+    
+    
+//    + 0.5*disc_contrib);
+}
 
 double Longrange::Calculate_longrange(int layer, bool cut_out_discs,Eventinfo* eventinfo) {
     // Potential is expressed in multiples of e/(4*pi*epsilon) (with e the elementary charge>0)
@@ -213,7 +464,9 @@ double Longrange::Calculate_longrange(int layer, bool cut_out_discs,Eventinfo* e
     
     for(int i=0; i<layer; i++) {
         if(!this->emptylayer(i)) {
-            double charge_i = 1.0*_layercharge[i]/(eventinfo->simboxsize.y()*eventinfo->simboxsize.z()*eventinfo->layersize);
+//            double charge_i = 1.0*_layercharge[i]/(eventinfo->simboxsize.y()*eventinfo->simboxsize.z()*this->layersize());
+            double charge_i = 1.0*_layercharge[i]/(this->number_of_nodes(i));
+//            double charge_i = 1.0*_layercharge[i]/(this->number_of_nodes(i));
             double position_i = 1.0*this->position(i);
             plate_contrib1 += position_i*charge_i; // potential of a charged plate between two electrodes
 
@@ -229,9 +482,10 @@ double Longrange::Calculate_longrange(int layer, bool cut_out_discs,Eventinfo* e
     
     double plate_contrib2 = 0.0;
     
-    for(int i=layer; i<this->number_of_layers(); i++) {
+    for(int i=layer; i<eventinfo->number_layers; i++) {
         if(!this->emptylayer(i)) {
-            double charge_i = 1.0*_layercharge[i]/(eventinfo->simboxsize.y()*eventinfo->simboxsize.z()*eventinfo->layersize);
+//            double charge_i = 1.0*_layercharge[i]/(eventinfo->simboxsize.y()*eventinfo->simboxsize.z()*this->layersize());
+            double charge_i = 1.0*_layercharge[i]/(this->number_of_nodes(i));
             double rel_position_i = 1.0*(eventinfo->simboxsize.x()-this->position(i));
             plate_contrib2 += rel_position_i*charge_i; // potential of a charged plate between two electrodes
 
