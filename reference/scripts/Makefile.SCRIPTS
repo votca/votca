@@ -24,5 +24,5 @@ Makefile.incl: dummy
 
 clean:
 	rm -f Makefile.incl
-	@[ -z "$(shell ls *.tex *.t2t 2> /dev/null)" ] || echo "There are files left: $(shell ls *.tex *.t2t)" 
-	@[ -z "$(shell ls *.tex *.t2t 2> /dev/null)" ] 
+	@[ -z "$(wildcard *.tex *.t2t)" ] || echo "There are files left: $(wildcard *.tex *.t2t)"
+	@[ -z "$(wildcard *.tex *.t2t)" ]
