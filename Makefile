@@ -32,7 +32,7 @@ qclean:
 	$(LATEXMK) -C $(NAME).tex
 
 install: all
-	echo "$(NAME).pdf is ready to use, no need to install it."
+	@echo "$(NAME).pdf is ready to use, no need to install it."
 
 clean: qclean fig_subclean functionality_subclean reference_subclean usage_subclean
 	rm -f $(NAME).fdb_latexmk $(NAME).brf
