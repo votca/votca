@@ -302,14 +302,17 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
   ret="$(csg_property --file $CSGXMLFILE --short --path cg.${xmltype} --filter name=$bondname --print $1 | trim_all)"
   #overwrite with function call value
   [[ -z $ret && -n $2 ]] && ret="$2"
+  [[ -z $ret ]] && echo "${FUNCNAME[0]}: No value found in $CSGXMLFILE, trying $VOTCASHARE/xml/csg_defaults.xml" >&2
   # if still empty fetch it from defaults file
   if [[ -z $ret && -f $VOTCASHARE/xml/csg_defaults.xml ]]; then
     ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --short --path cg.${xmltype}.$1 --print . | trim_all)"
     [[ $allow_empty = "yes" && -n "$res" ]] && msg "WARNING: '${FUNCNAME[0]} $1' was called with --allow-empty, but a default was found in '$VOTCASHARE/xml/csg_defaults.xml'"
     #from time to time the default is only given in the non-bonded section
     [[ -z $ret ]] && ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --short --path cg.non-bonded.$1 --print . | trim_all)"
+    [[ -n $ret ]] && echo "${FUNCNAME[0]}: value from $VOTCASHARE/xml/csg_defaults.xml: $ret" >&2
   fi
   [[ $allow_empty = "no" && -z $ret ]] && die "${FUNCNAME[0]}: Could not get '$1' for interaction with name '$bondname' from ${CSGXMLFILE} and no default was found in $VOTCASHARE/xml/csg_defaults.xml"
+  [[ -z $ret ]] && echo "${FUNCNAME[0]}: returning emtpy value" >&2
   echo "${ret}"
 }
 export -f csg_get_interaction_property
@@ -330,6 +333,7 @@ csg_get_property () { #get an property from the xml file
   ret="$(critical -q csg_property --file $CSGXMLFILE --path ${1} --short --print . | trim_all)"
   #overwrite with function call value
   [[ -z $ret && -n $2 ]] && ret="$2"
+  [[ -z $ret ]] && echo "${FUNCNAME[0]}: No value found in $CSGXMLFILE, trying $VOTCASHARE/xml/csg_defaults.xml" >&2
   #if still empty fetch it from defaults file
   if [[ -z $ret && -f $VOTCASHARE/xml/csg_defaults.xml ]]; then
     ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --path "${1}" --short --print . | trim_all)"
@@ -341,9 +345,11 @@ csg_get_property () { #get an property from the xml file
       local path=${1/${sim_prog}/sim_prog}
       ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --path "${path}" --short --print . | trim_all)"
     fi
+    [[ -n $ret ]] && echo "${FUNCNAME[0]}: value from $VOTCASHARE/xml/csg_defaults.xml: $ret" >&2
     [[ $allow_empty = "yes" && -n "$res" ]] && msg "WARNING: '${FUNCNAME[0]} $1' was called with --allow-empty, but a default was found in '$VOTCASHARE/xml/csg_defaults.xml'"
   fi
   [[ $allow_empty = "no" && -z $ret ]] && die "${FUNCNAME[0]}: Could not get '$1' from ${CSGXMLFILE} and no default was found in $VOTCASHARE/xml/csg_defaults.xml"
+  [[ -z $ret ]] && echo "${FUNCNAME[0]}: returning emtpy value" >&2
   echo "${ret}"
 }
 export -f csg_get_property

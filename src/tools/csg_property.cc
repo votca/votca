@@ -118,7 +118,7 @@ int main(int argc, char** argv)
         cout << endl;
     }
     } catch(std::exception &error) {
-        cerr << "an error occurred:\n" << error.what() << endl;
+        cerr << "Warning from parsing xml file '"<< file << "':\n" << error.what() << endl;
         return -1;
     }
     return 0;
