@@ -942,6 +942,7 @@ map<string,double> POLAR_TABLE() {
     polar_table["O"] = 0.837e-3;
     polar_table["S"] = 2.926e-3;
     polar_table["F"] = 0.440e-3;
+    polar_table["Si"] = 3.700e-3; // TODO Check this
     return polar_table;
 }
 
