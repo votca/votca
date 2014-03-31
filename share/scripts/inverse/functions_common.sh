@@ -579,7 +579,7 @@ export -f get_table_comment
 csg_inverse_clean() { #clean out the main directory 
   local i files log t
   [[ -n $1 ]] && t="$1" || t="30"
-  log="$(csg_get_property cg.inverse.log_file)"
+  log="$(csg_get_property cg.inverse.log_file 2>/dev/null)"
   echo -e "So, you want to clean?\n"
   echo "I will remove:"
   files="$(ls -d done ${log} $(get_stepname --trunc)* *~ 2>/dev/null)"
