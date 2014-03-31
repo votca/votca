@@ -15,6 +15,16 @@
 # limitations under the License.
 #
 
+if [ "$1" = "--help" ]; then
+    cat <<EOF
+${0##*/}, version %version%
+This script cleans up after a simulation step
+
+Usage: ${0##*/}
+EOF
+    exit 0
+fi
+
 cleanlist="$(csg_get_property --allow-empty cg.inverse.cleanlist)"
 if [[ -n ${cleanlist} ]]; then
   msg "Clean up files: $cleanlist"
