@@ -198,80 +198,94 @@ void Numoutput::Update(Event* event, double simtime, double timestep) {
     votca::tools::vec travelvec = event->link()->r12();
     double direction;
     double dirx; double diry; double dirz;
-    if(node1->type() == (int) NormalNode) {
+//    if(node1->type() == (int) NormalNode) {
         if(event->carrier_type() == (int) Electron) { direction = -1.0; } else { direction = 1.0;}
         if(travelvec.x() > 0) {dirx = 1.0;} else {if(travelvec.x() == 0) {dirx = 0.0;} else {dirx = -1.0;}}
         if(travelvec.y() > 0) {diry = 1.0;} else {if(travelvec.y() == 0) {diry = 0.0;} else {diry = -1.0;}}
         if(travelvec.z() > 0) {dirz = 1.0;} else {if(travelvec.z() == 0) {dirz = 0.0;} else {dirz = -1.0;}}
 
-
-        _vel_x += direction*dirx;
+/*        _vel_x += direction*dirx;
         _vel_y += direction*diry;
-        _vel_z += direction*dirz;
-
-        if(event->carrier_type() == (int) Electron) {
-            _electron_vel_x += direction*travelvec.x();
-            _electron_vel_y += direction*travelvec.y();
-            _electron_vel_z += direction*travelvec.z();        
-        }
-
-        if(event->carrier_type() == (int) Hole) {
-            _hole_vel_x += direction*travelvec.x();
-            _hole_vel_y += direction*travelvec.y();
-            _hole_vel_z += direction*travelvec.z();        
-        }
-    }
-    
-/*    if(node2->type() == (int) NormalNode) {
-        if(event->carrier_type() == (int) Electron) { direction = -1.0; } else { direction = 1.0;}
-        if(travelvec.x() > 0) {dirx = 1.0;} else {if(travelvec.x() == 0) {dirx = 0.0;} else {dirx = -1.0;}}
-        if(travelvec.y() > 0) {diry = 1.0;} else {if(travelvec.y() == 0) {diry = 0.0;} else {diry = -1.0;}}
-        if(travelvec.z() > 0) {dirz = 1.0;} else {if(travelvec.z() == 0) {dirz = 0.0;} else {dirz = -1.0;}}
-
-
-        _vel_x += -1.0*direction*dirx;
-        _vel_y += -1.0*direction*diry;
-        _vel_z += -1.0*direction*dirz;
-
-        if(event->carrier_type() == (int) Electron) {
-            _electron_vel_x += direction*travelvec.x();
-            _electron_vel_y += direction*travelvec.y();
-            _electron_vel_z += direction*travelvec.z();        
-        }
-
-        if(event->carrier_type() == (int) Hole) {
-            _hole_vel_x += direction*travelvec.x();
-            _hole_vel_y += direction*travelvec.y();
-            _hole_vel_z += direction*travelvec.z();        
-        }
-    }*/    
-    
-/*    if(node1->type() == (int) NormalNode) {
-        if(event->carrier_type() == (int) Electron) { direction = -1.0; } else { direction = 1.0;}
-//        if(travelvec.x() > 0) {dirx = -1.0;} else {if(travelvec.x() == 0) {dirx = 0.0;} else {dirx = 1.0;}}
-//        if(travelvec.y() > 0) {diry = -1.0;} else {if(travelvec.y() == 0) {diry = 0.0;} else {diry = 1.0;}}
-//        if(travelvec.z() > 0) {dirz = -1.0;} else {if(travelvec.z() == 0) {dirz = 0.0;} else {dirz = 1.0;}}
-
-
+        _vel_z += direction*dirz;*/
+        
         _vel_x += direction*travelvec.x();
         _vel_y += direction*travelvec.y();
         _vel_z += direction*travelvec.z();
 
         if(event->carrier_type() == (int) Electron) {
-            _electron_vel_x += direction*dirx;
-            _electron_vel_y += direction*diry;
-            _electron_vel_z += direction*dirz;        
+            _electron_vel_x += direction*travelvec.x();
+            _electron_vel_y += direction*travelvec.y();
+            _electron_vel_z += direction*travelvec.z();        
         }
 
         if(event->carrier_type() == (int) Hole) {
-            _hole_vel_x += direction*dirx;
-            _hole_vel_y += direction*diry;
-            _hole_vel_z += direction*dirz;        
+            _hole_vel_x += direction*travelvec.x();
+            _hole_vel_y += direction*travelvec.y();
+            _hole_vel_z += direction*travelvec.z();        
         }
- //   }*/
+//    }
     
 }
 
+/*void Numoutput::Prepare_Filament_viz
+       Link* count_link = chosenevent->link();
+        int node1_id = count_link->node1()->id();
+        Node* node1 = count_link->node1();
+        Node* node2 = count_link->node2();
+        votca::tools::vec node1_pos = node1->position();
+        votca::tools::vec node2_pos = node2->position();
+
+        if(node1->type() == (int) NormalNode) {
+            if(node1_pos.x() < node2_pos.x()) {
+                votca::tools::vec travelvec = chosenevent->link()->r12();
+                count_link->incval(1.0);
+                layercurrent[dynamic_cast<NodeDevice*>(node1)->layer()] += 1.0;
+                if(layercurrent[dynamic_cast<NodeDevice*>(node1)->layer()] <= count_link->count()) std::cout << count_link->count() << " " << layercurrent[dynamic_cast<NodeDevice*>(node1)->layer()] << endl;
+            }
+            else {
+    //            for (int j = 0; j < node2->links().size(); j++ ) {
+    //                if(node2->links()[j]->node2()->id() == node1_id) {
+    //                    node2->links()[j]->deccount();    
+    //                }
+    //            }
+            }
+        }
+        
+        double maxcount = 0.0;
+
+//        if(it == 2*eventdata->nr_equilsteps + 1500000) {
+        if(it == 88888) {
+
+            ofstream curstore;
+//            curstore.open("curdens"); 
+            
+//            curstore << "{";
+            for(int i = 0; i<graph->Numberofnodes(); i++) {
+                if(graph->GetNode(i)->type() == (int) NormalNode){ 
+                    for (int j = 0; j < graph->GetNode(i)->links().size(); j++ ) {  
+                        votca::tools::vec n1pos = graph->GetNode(i)->links()[j]->node1()->position();
+                        votca::tools::vec n2pos = graph->GetNode(i)->links()[j]->node2()->position();
+                        double count =  graph->GetNode(i)->links()[j]->count()/layercurrent[dynamic_cast<NodeDevice*>(node1)->layer()];
+                        if(count!=0) {
+//                           std::cout << i << " " << j << " " << n1pos << " " << n2pos << " " << graph->GetNode(i)->links()[j]->count() << " " << layercurrent[dynamic_cast<NodeDevice*>(node1)->layer()] << endl; 
+                           if(graph->GetNode(i)->type() != NormalNode) {
+//                                curstore << "Cylinder[{{" << n1pos.x() << "," << n2pos.y() << "," << n2pos.z() << "},{" << n2pos.x() << "," << n2pos.y() << "," << n2pos.z() << "}}," << count+0.5 << "/C],";                    
+                            }
+                            else if(graph->GetNode(i)->links()[j]->node2()->type() != NormalNode) {
+//                                curstore << "Tube[{{" << n1pos.x() << "," << n1pos.y() << "," << n1pos.z() << "},{" << n2pos.x() << "," << n1pos.y() << "," << n1pos.z() << "}}," << count << "/C],";                    
+                            }
+                            else {
+//                                curstore << "Tube[{{" << n1pos.x() << "," << n1pos.y() << "," << n1pos.z() << "},{" << n2pos.x() << "," << n2pos.y() << "," << n2pos.z() << "}}," << count << "/C],";                    
+                                if(maxcount<count) maxcount = count;
+                            }
+                        }
+                    }
+                }
+            }         
+//            curstore << "maxcount " << maxcount << endl;
+        }
+ */
+ 
 void Numoutput::Write(double simtime) {
     std::cout << " el " << _nelectrons << " ho " << _nholes  << " ca " << _ncarriers << 
             " tr " << _nplaintransfer << " rec " << _nrecombinations << " irec " << _ninject_to_recombination <<

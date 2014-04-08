@@ -203,23 +203,16 @@ void Longrange::Initialize (Eventinfo* eventinfo) {
 void Longrange::Initialize_slab (GraphDevice* graph, Eventinfo* eventinfo) {
 
     for(int it = 0; it < graph->Numberofnodes(); it++) {
-//    for(int it = 0; it < 10; it++) {
         if(graph->GetNode(it)->type() == (int) NormalNode) {
             this->Initialize_slab_node(graph->GetNode(it),eventinfo);
         }
-        int first = dynamic_cast<NodeDevice*>(graph->GetNode(it))->firstcontriblayer();
-        int final = dynamic_cast<NodeDevice*>(graph->GetNode(it))->finalcontriblayer();
-//        std::cout << it << " " << dynamic_cast<NodeDevice*>(graph->GetNode(it))->position() <<  " " << first << " " << final << " " << dynamic_cast<NodeDevice*>(graph->GetNode(it))->disc_coul_size() << " "; // << this->position(first) << " " << this->position(final) << " ";
-        for(int lay = first; lay <= final; lay++) {
-//            std::cout << dynamic_cast<NodeDevice*>(graph->GetNode(it))->contrib(lay-first) << " a" << lay << " ";
-        }
-//        std::cout << endl;
         _longrange_cache.push_back(0.0);
     }    
 
     for(int ilayer=0; ilayer<eventinfo->number_layers; ilayer++) {
         _layercharge.push_back(0.0);
     }
+    
 }
 
 void Longrange::Initialize_slab_node (NodeDevice* node, Eventinfo* eventinfo) {
@@ -275,11 +268,11 @@ void Longrange::Initialize_slab_node (NodeDevice* node, Eventinfo* eventinfo) {
     node->disc_coul_clear();
     
     for (int j=start_index; j<=final_index; j++) {
-//        if(this->emptylayer(j)) {node->disc_coul_set(0.0);} // no nodes in this layer
-//        else {
+        if(this->emptylayer(j)) {node->disc_coul_set(0.0);} // no nodes in this layer
+        else {
             double disc_contrib = Calculate_disc_contrib_slab_node(node,j,eventinfo);
             node->disc_coul_set(disc_contrib);
-//        }
+        }
     }
 
 }
@@ -305,20 +298,14 @@ inline double Longrange::Calculate_disc_contrib_slab_node(NodeDevice* node, int 
     bool secondleft = true;
     
     double firstrdist = first_contrib_pos-calcpos;
-//    if(firstrdist<0 && fabs(firstrdist) > RC) firstrdist = -1.0*RC;
-//    if(firstrdist>0) firstleft = false;
-    
     double secondrdist = second_contrib_pos-calcpos;
-//    if(secondrdist>0 && fabs(secondrdist)> RC) secondrdist = 1.0*RC;
-//    if(secondrdist>0) secondleft = false; 
      
     double direct_contrib;
     direct_contrib = RC*(secondrdist-firstrdist) - 0.5*secondrdist*fabs(secondrdist) + 0.5*firstrdist*fabs(firstrdist);
     
     double L = eventinfo->simboxsize.x();
     double mirror_contrib = 0.0;
-//    for (long i=0; i<eventinfo->nr_lr_images; i++) {
-    for (long i=0; i<10; i++) {
+    for (long i=0; i<eventinfo->nr_lr_images; i++) {
         
         // Calculate contribution from images
         double dist1;
@@ -449,9 +436,7 @@ double Longrange::Calculate_longrange_slab(Node* node, double left_node_distance
     longrangeslab += -2.0*Pi*_layercharge[layer]*(left_node_distance - this->position(layer))*(left_node_distance - this->position(layer));
     longrangeslab += -2.0*Pi*_layercharge[layer]*0.25*this->layersize()*this->layersize(); // d = 0.5 layersize, therefore the 0.25
     longrangeslab += -2.0*Pi*cut_out_contrib;
-    
-    
-//    + 0.5*disc_contrib);
+
 }
 
 double Longrange::Calculate_longrange(int layer, bool cut_out_discs,Eventinfo* eventinfo) {
@@ -464,9 +449,7 @@ double Longrange::Calculate_longrange(int layer, bool cut_out_discs,Eventinfo* e
     
     for(int i=0; i<layer; i++) {
         if(!this->emptylayer(i)) {
-//            double charge_i = 1.0*_layercharge[i]/(eventinfo->simboxsize.y()*eventinfo->simboxsize.z()*this->layersize());
             double charge_i = 1.0*_layercharge[i]/(this->number_of_nodes(i));
-//            double charge_i = 1.0*_layercharge[i]/(this->number_of_nodes(i));
             double position_i = 1.0*this->position(i);
             plate_contrib1 += position_i*charge_i; // potential of a charged plate between two electrodes
 
@@ -484,7 +467,6 @@ double Longrange::Calculate_longrange(int layer, bool cut_out_discs,Eventinfo* e
     
     for(int i=layer; i<eventinfo->number_layers; i++) {
         if(!this->emptylayer(i)) {
-//            double charge_i = 1.0*_layercharge[i]/(eventinfo->simboxsize.y()*eventinfo->simboxsize.z()*this->layersize());
             double charge_i = 1.0*_layercharge[i]/(this->number_of_nodes(i));
             double rel_position_i = 1.0*(eventinfo->simboxsize.x()-this->position(i));
             plate_contrib2 += rel_position_i*charge_i; // potential of a charged plate between two electrodes

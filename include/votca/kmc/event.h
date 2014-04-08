@@ -45,6 +45,7 @@ public:
 
     Event(int id, Link* link, int carrier_type, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo){
         _id = id;
+        if(link->node1()->type() != (int) NormalNode ) _injection_potential = 0.0;
         Set_event(link, carrier_type, state, longrange, eventinfo);
     }
     
@@ -56,6 +57,7 @@ public:
     int &carrier_type() { return _carrier_type;}
     int &action_node1() { return _action_node1;}
     int &action_node2() { return _action_node2;}
+    double &transferfactor() { return _transferfactor;}
     double &energyfactor() { return _energyfactor;}
     
     double self_impot1(Eventinfo* eventinfo) { return Determine_self_coulomb(_link->node1(), eventinfo);}
@@ -101,13 +103,14 @@ public:
  
     inline double Determine_self_coulomb(Node* node, Eventinfo* eventinfo);    
     
-protected:
+private:
                          
     Link* _link;
     int _carrier_type;
     
     double _rate;
     double _energyfactor;
+    double _transferfactor;
     
     int _final_type;
     int _init_type;
@@ -227,17 +230,18 @@ void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* 
 
         //first transfer integrals
 
-        double transferfactor = 1.0;
+        double _transferfactor = 1.0;
         votca::tools::vec distancevector = _link->r12();
         double Reorg;
         double Jeff2;
+        double distance;
 
         if (eventinfo->formalism == "Miller") {
-            double distance = abs(distancevector);
-            transferfactor = exp(-2.0*eventinfo->alpha*distance);
+            distance = abs(distancevector);
+            _transferfactor = exp(-2.0*eventinfo->alpha*distance);
         }
         else if((eventinfo->formalism == "Marcus")&&(_init_type==Injection||_final_type==Collection)) {
-            double distance = abs(distancevector);
+            distance = abs(distancevector);
             Jeff2 = exp(-2.0*eventinfo->alpha*distance);
             
             // take Reorg equal to inside organic material (obviously not true))
@@ -248,10 +252,9 @@ void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* 
 //                Reorg = dynamic_cast<NodeSQL*>(node1)->UnCnNh() + dynamic_cast<NodeSQL*>(node2)->UcNcCh() + dynamic_cast<LinkSQL*>(_link)->lOh();
                 Reorg = 0.1345;
             }
-            transferfactor = (2*Pi/hbar)*(Jeff2/sqrt(4*Pi*Reorg*kB*eventinfo->temperature));
+            _transferfactor = (2*Pi/hbar)*(Jeff2/sqrt(4*Pi*Reorg*kB*eventinfo->temperature));
         }
         else if(eventinfo->formalism == "Marcus") {
-
             if(_carrier_type == (int) Electron) {
                 Jeff2 = dynamic_cast<LinkSQL*>(_link)->Jeff2e();
                 Reorg = dynamic_cast<NodeSQL*>(node1)->UnCnNe() + dynamic_cast<NodeSQL*>(node2)->UcNcCe() + dynamic_cast<LinkSQL*>(_link)->lOe();
@@ -260,7 +263,7 @@ void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* 
                 Jeff2 = dynamic_cast<LinkSQL*>(_link)->Jeff2h();
                 Reorg = dynamic_cast<NodeSQL*>(node1)->UnCnNh() + dynamic_cast<NodeSQL*>(node2)->UcNcCh() + dynamic_cast<LinkSQL*>(_link)->lOh();
             }
-            transferfactor = (2*Pi/hbar)*(Jeff2/sqrt(4*Pi*Reorg*kB*eventinfo->temperature));
+            _transferfactor = (2*Pi/hbar)*(Jeff2/sqrt(4*Pi*Reorg*kB*eventinfo->temperature));
         }
 
         //second, calculate boltzmann factor
@@ -279,13 +282,17 @@ void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* 
 
         double sr_coulomb_from = Determine_from_sr_coulomb(node1, state, eventinfo);
         double sr_coulomb_to = Determine_to_sr_coulomb(node1, state, eventinfo);
-
+        double selfimpot_from;
+        double selfimpot_to;
+        double lr_coulomb_from;
+        double lr_coulomb_to;
+        
         if(eventinfo->device > 0) {
-            double selfimpot_from = Determine_self_coulomb(node1, eventinfo);
-            double selfimpot_to = Determine_self_coulomb(node2, eventinfo);   
-
-            double lr_coulomb_from = charge*Determine_lr_coulomb(node1, longrange, eventinfo);
-            double lr_coulomb_to = charge*Determine_lr_coulomb(node2, longrange, eventinfo);
+            selfimpot_from = Determine_self_coulomb(node1, eventinfo);
+            selfimpot_to = Determine_self_coulomb(node2, eventinfo);   
+            
+            lr_coulomb_from = charge*Determine_lr_coulomb(node1, longrange, eventinfo);
+            lr_coulomb_to = charge*Determine_lr_coulomb(node2, longrange, eventinfo);
 
             init_energy = static_node_energy_from + selfimpot_from + from_event_energy + sr_coulomb_from + lr_coulomb_from;
             final_energy = static_node_energy_to + selfimpot_to + to_event_energy + sr_coulomb_to + lr_coulomb_to;
@@ -297,7 +304,7 @@ void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* 
 
         double energycontrib = 0.0;
 
-        if ((eventinfo->formalism == "Miller")||(_init_type==Injection||_final_type==Collection)) {
+        if (eventinfo->formalism == "Miller") {
             if(_final_type == Blocking) {
                 _energyfactor = 0.0; // Keep this here for eventual simulation of bipolaron formation for example
             }
@@ -313,19 +320,16 @@ void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* 
         }
         else if (eventinfo->formalism == "Marcus") {
             if(_final_type == Blocking) {
-//                std::cout << "block" << endl;
-
                 _energyfactor = 0.0; // Keep this here for eventual simulation of bipolaron formation for example
             }
             else {
                 energycontrib = final_energy - init_energy -charge*(eventinfo->efield_x*distancevector.x()+eventinfo->efield_y*distancevector.y()+eventinfo->efield_z*distancevector.z());
-//                std::cout << energycontrib << endl;
                 _energyfactor = exp(-1.0*(energycontrib+Reorg)*(energycontrib+Reorg)/(4*Reorg*kB*eventinfo->temperature));
             }       
         }
 
-        _rate = prefactor*transferfactor*_energyfactor;
-//         std::cout << _rate << " " << prefactor << " " << transferfactor << " " << _energyfactor << " " << energycontrib << " " << charge*(eventinfo->efield_x*distancevector.x()+eventinfo->efield_y*distancevector.y()+eventinfo->efield_z*distancevector.z()) << " " << final_energy << " " << init_energy << " "  << endl;
+        _rate = prefactor*_transferfactor*_energyfactor;
+
     }  
 }
 

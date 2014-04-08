@@ -91,7 +91,6 @@ inline void Profile::Add_nodes_to_profile(GraphDevice* graph){
         NodeDevice* node = graph->GetNode(i);
         if(node->type() == (int) NormalNode) {
             votca::tools::vec position = node->position();
-//            std::cout << _layersize << " " << position.x() << " " << node->layer() << endl;
             Add_node_to_layer(position.x(), node->layer());
         }
     }
@@ -100,27 +99,16 @@ inline void Profile::Add_nodes_to_profile(GraphDevice* graph){
 inline void Profile::Add_node_to_layer(double posx, int layer){
     _number_of_nodes[layer]++;
     _positional_sum[layer] += posx;
-};
+}
 
 inline void Profile::Calculate_positional_average(Eventinfo* eventinfo){
 
     _positional_average.clear();
-    /*double average = 0.0;
-    for(int i = 0;i<eventinfo->number_layers;i++) {
-        if(_number_of_nodes[i] != 0) {
-            average = _positional_sum[i]/(1.0*_number_of_nodes[i]);
-            _positional_average.push_back(average);
-            _empty_layer.push_back(false);
-        }
-        else {
-            _positional_average.push_back(average);
-            _empty_layer.push_back(true);
-        }
-    }*/
     
     for(int i = 0; i<eventinfo->number_layers;i++){
         double position = eventinfo->left_electrode_distance + (0.5+1.0*i)*_layersize; 
         _positional_average.push_back(position);
+        std::cout << position << " " << eventinfo->simboxsize.x() << endl;
         if(_number_of_nodes[i] != 0) _empty_layer.push_back(false);
         else _empty_layer.push_back(true);
     }

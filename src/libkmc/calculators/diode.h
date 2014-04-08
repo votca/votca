@@ -108,7 +108,7 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     std::cout << "simulation box size: " << graph->simboxsize() << endl;
     std::cout << "number of left electrode injector nodes " << graph->left()->links().size() << endl;
     std::cout << "number of right electrode injector nodes " << graph->right()->links().size() << endl;
-    std::cout << "number of nodes" << graph->Numberofnodes() << endl;    
+    std::cout << "number of nodes " << graph->Numberofnodes() << endl;    
     
     longrange = new Longrange(graph,eventdata);
     if(eventdata->longrange_slab) longrange->Initialize_slab(graph,eventdata);
@@ -120,8 +120,8 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     state->InitStateDevice();
     
     site_inject_probs = new Bsumtree();
-    // site_inject_probs->initialize(graph->Numberofnodes()); // take care of electrode nodes
-    // state->Random_init_injection((int) Hole, site_inject_probs, graph, eventdata, RandomVariable);
+    site_inject_probs->initialize(graph->Numberofnodes()); // take care of electrode nodes
+    state->Random_init_injection((int) Hole, site_inject_probs, graph, eventdata, RandomVariable);
         
     if(state->ReservoirEmpty()) state->Grow(eventdata->growsize, eventdata->maxpairdegree);
     
@@ -188,39 +188,22 @@ void Diode::RunKMC() {
     int direct_reco_counter = 0;
 
     int numcharges_distrib;
-    std::cout << graph->avrate() << endl;
     
     for(int it= 0; it< eventdata->number_layers; it++ ){
         std::cout << longrange->number_of_nodes(it) << " ";
     }
     std::cout << endl;
     
-    vector<double> layercurrent;
-    for(int it= 0; it< eventdata->number_layers; it++ ){
-        layercurrent.push_back(0.0);
-    }    
-    
-    for(int i = 0; i<graph->Numberofnodes(); i++) {
-        for (int it = 0; it < graph->GetNode(i)->links().size(); it++ ) {
-            graph->GetNode(i)->links()[it]->setcount(0); 
- //           std::cout << i << " " << it << " " << graph->GetNode(i)->links()[it]->id() << " " << graph->GetNode(i)->links()[it]->count() << endl;
-
-        }
-    }     
-    
     std::cout << "total link x distance : " << graph->totdistancex() << endl;
     
     sim_time = 0.0;
     for (long it = 0; it < 2*eventdata->nr_equilsteps + eventdata->nr_timesteps; it++) {
-//     for (long it = 0; it < 1; it++) {
-    // Update longrange cache (expensive, so not done at every timestep)
 
         if(eventdata->device == 2) {
             // make sure the number of carriers on the left equals
             left_chargegroup->Recompute_injection(left_injection_rates);
             numcharges_distrib = floor(left_chargegroup->totprobsum()+0.5);
             if(numcharges_distrib == 0 && numoutput->holes() == 0) { numcharges_distrib = 1;} // at least one charge per time in the device
-//            std::cout << "numcharges left " << left_chargegroup->totprobsum() << endl;
             
             while(numcharges_distrib > 0) { // need to fill nodes
                 Event* chosencharge = left_chargegroup->Choose_injection_event(events, 0, left_injection_rates, RandomVariable);
@@ -228,14 +211,12 @@ void Diode::RunKMC() {
                 events->On_execute(chosencharge, graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventdata);
                 left_chargegroup->Recompute_injection(left_injection_rates);
                 numcharges_distrib = floor(left_chargegroup->totprobsum()+0.5);
-//            std::cout << "numcharges left " << it << " " << left_chargegroup->totprobsum() << endl;
 
             }
 
             // make sure the number of carriers on the left equals
             right_chargegroup->Recompute_injection(right_injection_rates);
             numcharges_distrib = floor(right_chargegroup->totprobsum()+0.5);
- //           std::cout << "numcharges right " << right_chargegroup->totprobsum() << endl;
 
             // preference given to the major injecting electrode
             while(numcharges_distrib > 0) { // need to fill nodes
@@ -244,7 +225,6 @@ void Diode::RunKMC() {
                 events->On_execute(chosencharge, graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventdata);
                 right_chargegroup->Recompute_injection(right_injection_rates);
                 numcharges_distrib = floor(right_chargegroup->totprobsum()+0.5);
-//           std::cout << "numcharges right " << right_chargegroup->totprobsum() << endl;
 
             }
         }
@@ -254,116 +234,17 @@ void Diode::RunKMC() {
             else                          longrange->Update_cache(eventdata);
             events->Recompute_all_events(state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventdata);
         }
+        
         if(eventdata->device == 1) vssmgroup->Recompute_device(non_injection_rates, left_injection_rates, right_injection_rates);
         if(eventdata->device == 2) vssmgroup->Recompute_bulk(non_injection_rates);
-
+        
         double timestep = vssmgroup->Timestep(RandomVariable);
         sim_time += timestep;
-
+        
         Event* chosenevent;
         if(eventdata->device == 1) chosenevent = vssmgroup->Choose_event_device(events, non_injection_rates, left_injection_rates, right_injection_rates, RandomVariable);
         if(eventdata->device == 2) chosenevent = vssmgroup->Choose_event_bulk(events, non_injection_rates, RandomVariable);
-
-        Link* count_link = chosenevent->link();
-        int node1_id = count_link->node1()->id();
-        Node* node1 = count_link->node1();
-        Node* node2 = count_link->node2();
-        votca::tools::vec node1_pos = node1->position();
-        votca::tools::vec node2_pos = node2->position();
-
-        if(node1->type() == (int) NormalNode) {
-            if(node1_pos.x() < node2_pos.x()) {
-                votca::tools::vec travelvec = chosenevent->link()->r12();
-                count_link->incval(travelvec.x());
-                layercurrent[dynamic_cast<NodeDevice*>(node1)->layer()] += travelvec.x();
-            }
-            else {
-    //            for (int j = 0; j < node2->links().size(); j++ ) {
-    //                if(node2->links()[j]->node2()->id() == node1_id) {
-    //                    node2->links()[j]->deccount();    
-    //                }
-    //            }
-            }
-        }
-        
-        double maxcount = 0.0;
-
-        if(it == 2*eventdata->nr_equilsteps + 1500000) {
-//        if(it == 88888) {
-
-            ofstream curstore;
-            curstore.open("curdens"); 
-            
-            curstore << "{";
-            for(int i = 0; i<graph->Numberofnodes(); i++) {
-                if(graph->GetNode(i)->type() == (int) NormalNode){ 
-                    for (int j = 0; j < graph->GetNode(i)->links().size(); j++ ) {  
-                        votca::tools::vec n1pos = graph->GetNode(i)->links()[j]->node1()->position();
-                        votca::tools::vec n2pos = graph->GetNode(i)->links()[j]->node2()->position();
-                        double count =  graph->GetNode(i)->links()[j]->count()/layercurrent[dynamic_cast<NodeDevice*>(node1)->layer()];
-                        if(count!=0) {
-                            if(graph->GetNode(i)->type() != NormalNode) {
-//                                curstore << "Cylinder[{{" << n1pos.x() << "," << n2pos.y() << "," << n2pos.z() << "},{" << n2pos.x() << "," << n2pos.y() << "," << n2pos.z() << "}}," << count+0.5 << "/C],";                    
-                            }
-                            else if(graph->GetNode(i)->links()[j]->node2()->type() != NormalNode) {
-                                curstore << "Tube[{{" << n1pos.x() << "," << n1pos.y() << "," << n1pos.z() << "},{" << n2pos.x() << "," << n1pos.y() << "," << n1pos.z() << "}}," << count << "/C],";                    
-                            }
-                            else {
-                                curstore << "Tube[{{" << n1pos.x() << "," << n1pos.y() << "," << n1pos.z() << "},{" << n2pos.x() << "," << n2pos.y() << "," << n2pos.z() << "}}," << count << "/C],";                    
-                                if(maxcount<count) maxcount = count;
-                            }
-                        }
-                        if(count!= 0) std::cout << count << endl;
-                    }
-                }
-            }         
-            curstore << "maxcount " << maxcount << endl;
-        }
-
-//        if(it > eventdata->nr_equilsteps) {
-/*        if(it > eventdata->nr_equilsteps) {
-            Node* node1 = chosenevent->link()->node1();
-            Node* node2 = chosenevent->link()->node2();
-            votca::tools::vec dir = chosenevent->link()->r12();
-            if(node1->type() == (int) NormalNode) node1->Add_velx(dir.x(),timestep); node1->Add_vely(dir.y(),timestep); node1->Add_velz(dir.z(),timestep);
-//            if(node2->type() == (int) NormalNode) node2->Add_velx(-dir.x(),timestep); node2->Add_vely(-dir.y(),timestep); node2->Add_velz(-dir.z(),timestep);
-//            std::cout << node1->vel_x() << " " << node2->vel_x() << " " << node1->vel_y() << " " << node2->vel_y() << " " << node1->vel_z() << " " << node2->vel_z() << endl;
-        }*/
-         
-/*        if(it == 10*eventdata->nr_equilsteps) {
-//          if(it == 10) {
-            ofstream tempstore;
-            const char* filename = "test";
-            tempstore.open(filename);
-            tempstore << "{";
-            for(int i = 0; i<graph->Numberofnodes(); i++) {
-                Node* nodeprob = graph->GetNode(i);
-                votca::tools::vec nodepos = nodeprob->position();
-                tempstore << "{" << nodepos.x() << "," << nodepos.y() << "," << nodepos.z() << "},";
-            }
-            tempstore << "}";
-            tempstore << endl;
-            tempstore << "{";
-            for(int i = 0; i<graph->Numberofnodes(); i++) {
-                Node* nodeprob = graph->GetNode(i);
-                tempstore <<  nodeprob->vel_x()/sim_time << ","; 
-            }                    
-            tempstore << "}";
-            tempstore << endl;
-            tempstore << "{";
-            for(int i = 0; i<graph->Numberofnodes(); i++) {
-                Node* nodeprob = graph->GetNode(i);
-                tempstore <<  nodeprob->vel_y()/sim_time << ","; 
-            } 
-            tempstore << "}";
-            tempstore << endl;
-            tempstore << "{";
-            for(int i = 0; i<graph->Numberofnodes(); i++) {
-                Node* nodeprob = graph->GetNode(i);
-                tempstore <<  nodeprob->vel_z()/sim_time << ","; 
-            } 
-        }*/
-        
+       
         numoutput->Update(chosenevent, sim_time, timestep); 
 
         events->On_execute(chosenevent, graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventdata);
@@ -383,15 +264,6 @@ void Diode::RunKMC() {
         if(it == eventdata->nr_equilsteps || it == 2*eventdata->nr_equilsteps) {
             numoutput->Initialize_equilibrate();
             sim_time = 0.0;
-            for(int i = 0; i<graph->Numberofnodes(); i++) {
-                for (int j = 0; j < graph->GetNode(i)->links().size(); j++ ) {  
-                   graph->GetNode(i)->links()[j]->setcount(0.0); 
-                }
-            }
-            layercurrent.clear();
-            for(int j= 0; j< eventdata->number_layers; j++ ){
-                layercurrent.push_back(0.0);
-            }  
         }
     
         // convergence checking
@@ -406,13 +278,13 @@ void Diode::RunKMC() {
                          sim_time << " " << timestep << " " << vssmgroup->totprobsum() << " "  << vssmgroup->noninjectprobsum() << " "  << vssmgroup->leftinjectprobsum() << " "  << vssmgroup->rightinjectprobsum() << " " ;
             numoutput->Write(sim_time);
             std::cout << endl;
-           /* std::cout << "position" << endl;
-           
-            for(int i =0; i< eventdata->number_layers; i++) {
-                std::cout << longrange->position(i) << " ";
-            }
-            
-            std::cout << endl;
+//            std::cout << "position" << endl;
+//           
+//            for(int i =0; i< eventdata->number_layers; i++) {
+//                std::cout << longrange->position(i) << " ";
+//            }
+//            
+//            std::cout << endl;
             std::cout << "charge" << endl;
            
             for(int i =0; i< eventdata->number_layers; i++) {
@@ -420,12 +292,12 @@ void Diode::RunKMC() {
             }
             
             std::cout << endl;
-            std::cout << "pot" << endl;
-           
-            for(int i =0; i< eventdata->number_layers; i++) {
-                std::cout << longrange->Get_cached_longrange(i) << " ";
-            }            
-            std::cout << endl;*/
+//            std::cout << "pot" << endl;
+//           
+//            for(int i =0; i< eventdata->number_layers; i++) {
+//                std::cout << longrange->Get_cached_longrange(i) << " ";
+//            }            
+//            std::cout << endl;
         }
         
         // break out of loop

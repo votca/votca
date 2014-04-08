@@ -62,8 +62,6 @@ public:
     ///associate all links in links vector to the corresponding nodes
     void LinkSort();
     
-    void LinkMirror();
-    
     ///break the periodicity of the graph (breaking boundary crossing pairs) .. (run before linksort)
     void Break_periodicity(bool break_x, double dimX, bool break_y, double dimY, bool break_z, double dimZ);
 
@@ -249,37 +247,8 @@ void GraphDevice::Translate_graph(double translate_x, double translate_y, double
     }
 }
 
-void GraphDevice::LinkMirror() {
-
-    int numberlinks = this->_links.size();
-    for(int it = 0; it != numberlinks; it++) {
-        
-        int id = this->GetLink(it)->id()+numberlinks;
-        NodeDevice* node1 = dynamic_cast<NodeDevice*>(this->GetLink(it)->node1());
-        NodeDevice* node2 = dynamic_cast<NodeDevice*>(this->GetLink(it)->node2());
-        votca::tools::vec r12 = -1.0*this->GetLink(it)->r12();
-       
-        double rate12e = this->GetLink(it)->rate21e();
-        double rate12h = this->GetLink(it)->rate21h();
-        double rate21e = this->GetLink(it)->rate12e();
-        double rate21h = this->GetLink(it)->rate12h();
-        
-        double Jeff2e = this->GetLink(it)->Jeff2e();
-        double Jeff2h = this->GetLink(it)->Jeff2h();
-        double lOe = this->GetLink(it)->lOe();
-        double lOh = this->GetLink(it)->lOh();
-        
-        LinkDevice* newTLink = this->AddLink(id,node2, node1, r12);
-        newTLink->setRate(rate12e,rate12h,rate21e,rate21h);
-        newTLink->setJeff2(Jeff2e,Jeff2h);
-        newTLink->setlO(lOe,lOh);
-    }
-}
-
 void GraphDevice::Setup_bulk_graph( bool resize, Eventinfo* eventinfo){
 
-    this->LinkMirror();
-    
     // Determine hopping distance
     _hop_distance = this->Determine_Hopping_Distance();
 
@@ -322,8 +291,6 @@ void GraphDevice::Setup_bulk_graph( bool resize, Eventinfo* eventinfo){
 
 void GraphDevice::Setup_device_graph(double left_distance, double right_distance, bool resize, Eventinfo* eventinfo){
 
-    this->LinkMirror();
-    
     // Determine hopping distance before breaking periodicity
     _hop_distance = this->Determine_Hopping_Distance();
     
@@ -470,6 +437,7 @@ void GraphDevice::Add_electrodes() {
             LinkSQL* newLinkInject = new LinkSQL(linkID, _right_electrode, (*it), -1.0*dr);
             _right_electrode->AddLink(newLinkInject);
         }
+//        if(left_distance < 0.0) std::cout << left_distance << " " << right_distance << endl;
     }
 
     this->AddNode(_left_electrode); //in this way the electrode nodes are caught by destructor
@@ -498,6 +466,7 @@ void GraphDevice::LinkSort(){
     for (it = this->_links.begin(); it != this->_links.end(); it++ ) {
         NodeDevice* node1 = dynamic_cast<NodeDevice*>((*it)->node1());
         if(node1->type() == NormalNode) node1->AddLink((*it));
+        if (node1->id() == 144) std::cout << (*it)->node1()->id() << " " << (*it)->node2()->id() << endl;
     }
     
 }
