@@ -69,7 +69,7 @@ public:
     void Random_init_double_injection(Bsumtree* ho_site_inject_probs, Bsumtree* el_site_inject_probs,  GraphDevice* graph, Eventinfo* eventinfo, votca::tools::Random2 *RandomVariable);
     
     /// Random injection of charges (one carrier type))
-    void Random_init_injection(int carrier_type, Bsumtree* site_inject_probs, GraphDevice* graph, Eventinfo* eventinfo, votca::tools::Random2 *RandomVariable);
+    void Random_init_injection(int carrier_type, double density, Bsumtree* site_inject_probs, GraphDevice* graph, Eventinfo* eventinfo, votca::tools::Random2 *RandomVariable);
   
 private:
 
@@ -154,12 +154,12 @@ void StateDevice::PrintDevice(std::ostream& out) {
     std::cout << endl;
 }
 
-void StateDevice::Random_init_injection(int carrier_type, Bsumtree* site_inject_probs, GraphDevice* graph, Eventinfo* eventinfo, votca::tools::Random2* RandomVariable){
+void StateDevice::Random_init_injection(int carrier_type, double density, Bsumtree* site_inject_probs, GraphDevice* graph, Eventinfo* eventinfo, votca::tools::Random2* RandomVariable){
    
-    double density;
+//    double density;
     
-    if(carrier_type == (int) Hole)          {density = eventinfo->ho_density;}
-    else if(carrier_type == (int) Electron) {density = eventinfo->el_density;}
+//    if(carrier_type == (int) Hole)          {density = eventinfo->ho_density;}
+//    else if(carrier_type == (int) Electron) {density = eventinfo->el_density;}
     
     this->Random_injection_one_type(density,carrier_type, site_inject_probs,graph,eventinfo,RandomVariable);
     

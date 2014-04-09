@@ -121,8 +121,13 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     
     site_inject_probs = new Bsumtree();
     site_inject_probs->initialize(graph->Numberofnodes()); // take care of electrode nodes
-    state->Random_init_injection((int) Hole, site_inject_probs, graph, eventdata, RandomVariable);
-        
+    
+    // Random charge distribution (assume homogeneous distributed over device)
+    double density = (eventdata->voltage)/(2*Pi*eventdata->coulomb_strength*eventdata->simboxsize.x()*eventdata->simboxsize.x());
+    std::cout << "initial density: " << density << endl; 
+    state->Random_init_injection((int) Hole, density, site_inject_probs, graph, eventdata, RandomVariable);
+    std::cout << "charges injected" << endl; 
+    
     if(state->ReservoirEmpty()) state->Grow(eventdata->growsize, eventdata->maxpairdegree);
     
     std::cout << "state initialized" << endl;
