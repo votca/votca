@@ -51,7 +51,7 @@ public:
     void Push_in_box();
     
     ///resize the graph (by periodically repeating the morphology)
-    void Resize(int dimX, int dimY, int dimZ);
+    void Resize(double dimX, bool breakX, double dimY, bool breakY, double dimZ, bool breakZ);
     
     ///translate graph to accomodate device geometry
     void Translate_graph(double translate_x, double translate_y, double translate_z);
@@ -263,7 +263,7 @@ void GraphDevice::Setup_bulk_graph( bool resize, Eventinfo* eventinfo){
     this->Determine_cross_types();    
 
     // Resize by copying the box (crossing types are changed by this operation, so re-evaluate)    
-    if(resize) {this->Resize(eventinfo->size_x, eventinfo->size_y, eventinfo->size_z); this->Determine_cross_types(); _sim_box_size = this->Determine_Sim_Box_Size();}
+    if(resize) {this->Resize(eventinfo->size_x, false, eventinfo->size_y, false, eventinfo->size_z, false); this->Determine_cross_types(); _sim_box_size = this->Determine_Sim_Box_Size();}
     
     //set node types for existing nodes as Normal
     this->Init_node_types();
@@ -317,16 +317,17 @@ void GraphDevice::Setup_device_graph(double left_distance, double right_distance
   
     // Resize by copying the box (crossing types are changed by this operation, so re-evaluate)
     if(resize) {
-        this->Resize(eventinfo->size_x, eventinfo->size_y, eventinfo->size_z); 
+        this->Resize(eventinfo->size_x,true, eventinfo->size_y,false, eventinfo->size_z, false); 
         this->Determine_cross_types(); 
         _sim_box_size = this->Determine_Sim_Box_Size();
     }
 
     // Break periodicity
-    if(resize) {
-        this->Break_periodicity(true,eventinfo->size_x,false,eventinfo->size_y,false,eventinfo->size_z);
-    }
-    else {
+//    if(resize) {
+//        this->Break_periodicity(true,eventinfo->size_x,false,eventinfo->size_y,false,eventinfo->size_z);
+//    }
+//    else {
+    if(!resize) {
         this->Break_periodicity(true,false,false);
     }
    
@@ -466,7 +467,6 @@ void GraphDevice::LinkSort(){
     for (it = this->_links.begin(); it != this->_links.end(); it++ ) {
         NodeDevice* node1 = dynamic_cast<NodeDevice*>((*it)->node1());
         if(node1->type() == NormalNode) node1->AddLink((*it));
-        if (node1->id() == 144) std::cout << (*it)->node1()->id() << " " << (*it)->node2()->id() << endl;
     }
     
 }
@@ -648,7 +648,14 @@ void GraphDevice::Push_in_box(){
 
 void GraphDevice::Break_periodicity(bool break_x, double dimX, bool break_y, double dimY, bool break_z, double dimZ){
     // Break crossing links
+    int progresscount = 0;
     for(int it = this->_links.size()-1; it >= 0; it--) {
+
+        if(1.0*(this->_links.size()-1-it)/(1.0*this->_links.size()) >= progresscount*0.01) { 
+            std::cout << "breaking links: " << progresscount << "% done" << endl;
+            progresscount++;
+        }        
+
         LinkDevice* ilink = this->_links[it];
         
         votca::tools::vec pos1 = ilink->node1()->position();
@@ -673,10 +680,19 @@ void GraphDevice::Break_periodicity(bool break_x, double dimX, bool break_y, dou
             delete ilink;   
         }
     }
-  
+
+    std::cout << "breaking links: 100% done" << endl;
+    std::cout << endl;
+    
     // Remove nodes
     
+    progresscount = 0;
     for(int it = this->_nodes.size()-1; it >= 0; it--) {
+
+        if(1.0*(this->_nodes.size()-1-it)/(1.0*this->_nodes.size()) >= progresscount*0.01) { 
+            std::cout << "removing nodes after breaking periodicity: " << progresscount << "% done" << endl;
+            progresscount++;
+        }   
         
         NodeDevice* inode = this->_nodes[it];
         
@@ -695,6 +711,9 @@ void GraphDevice::Break_periodicity(bool break_x, double dimX, bool break_y, dou
         }
 
     }    
+
+    std::cout << "removing nodes after breaking periodicity: 100% done" << endl;
+    std::cout << endl;   
     
 }
 
@@ -722,7 +741,7 @@ void GraphDevice::Break_periodicity(bool break_x, bool break_y, bool break_z){
     
 }
 
-void GraphDevice::Resize(int dimX, int dimY, int dimZ) {
+void GraphDevice::Resize(double dimX, bool breakX, double dimY, bool breakY, double dimZ, bool breakZ) {
 
     
     int repeatX = ceil(dimX/_sim_box_size.x());
@@ -743,9 +762,10 @@ void GraphDevice::Resize(int dimX, int dimY, int dimZ) {
                         votca::tools::vec node_pos = probenode->position();
                         // remapping of the positions
 
-                        double posX = node_pos.x() + ix*_sim_box_size.x();
+                        double posX = node_pos.x() + ix*_sim_box_size.x();                        
                         double posY = node_pos.y() + iy*_sim_box_size.y();
                         double posZ = node_pos.z() + iz*_sim_box_size.z();
+
                         votca::tools::vec new_node_pos = votca::tools::vec(posX,posY,posZ);
                         // remapping of the indices
                         int new_node_id = node_id + (iz+iy*repeatZ+ix*repeatY*repeatZ)*number_of_nodes;
@@ -768,7 +788,7 @@ void GraphDevice::Resize(int dimX, int dimY, int dimZ) {
     
     long number_of_links = this->Numberoflinks();
     
-    for(long ilink = 0; ilink < number_of_links; ilink++) {
+    for(long ilink = number_of_links - 1; ilink >= 0; ilink--) {
         
         LinkDevice* probelink = this->GetLink(ilink);
         long link_id = ilink;
@@ -794,59 +814,99 @@ void GraphDevice::Resize(int dimX, int dimY, int dimZ) {
                         // id is in vector format not important
                         long new_link_id = link_id + (iz+iy*repeatZ+ix*repeatY*repeatZ)*number_of_links;  
 
+                        bool nocopy_link = false;
+                        
                         // shift indices to allow for correct crossing over boundaries
                         if(crossxtype == (int) NoxCross) { lx = ix;}
-                        if(crossxtype == (int) PosxCross) { lx = ix+1; if(lx == repeatX) {lx = 0;}}
-                        if(crossxtype == (int) NegxCross) { lx = ix-1; if(lx == -1) {lx = repeatX-1;}}
+                        if(crossxtype == (int) PosxCross) { lx = ix+1; if(lx == repeatX) {lx = 0; if(breakX) {nocopy_link = true;}}}
+                        if(crossxtype == (int) NegxCross) { lx = ix-1; if(lx == -1) {lx = repeatX-1; if(breakX) {nocopy_link = true;}}}
 
                         if(crossytype == (int) NoyCross) { ly = iy;}
-                        if(crossytype == (int) PosyCross) { ly = iy+1; if(ly == repeatY) {ly = 0;}}
-                        if(crossytype == (int) NegyCross) { ly = iy-1; if(ly == -1) {ly = repeatY-1;}}
+                        if(crossytype == (int) PosyCross) { ly = iy+1; if(ly == repeatY) {ly = 0; if(breakY) {nocopy_link = true;}}}
+                        if(crossytype == (int) NegyCross) { ly = iy-1; if(ly == -1) {ly = repeatY-1; if(breakY) {nocopy_link = true;}}}
 
                         if(crossztype == (int) NozCross) { lz = iz;}
-                        if(crossztype == (int) PoszCross) { lz = iz+1; if(lz == repeatZ) {lz = 0;}}
-                        if(crossztype == (int) NegzCross) { lz = iz-1; if(lz == -1) {lz = repeatZ-1;}}                        
+                        if(crossztype == (int) PoszCross) { lz = iz+1; if(lz == repeatZ) {lz = 0; if(breakZ) {nocopy_link = true;}}}
+                        if(crossztype == (int) NegzCross) { lz = iz-1; if(lz == -1) {lz = repeatZ-1; if(breakZ) {nocopy_link = true;}}}                        
                         
                         // obtain the new node pointers via the mapped id's
                         int new_node1_id = node1_id + (iz+iy*repeatZ+ix*repeatY*repeatZ)*number_of_nodes;
                         int new_node2_id = node2_id + (lz+ly*repeatZ+lx*repeatY*repeatZ)*number_of_nodes;
 
                         NodeDevice* new_node1 = this->GetNode(new_node1_id);
+                        votca::tools::vec newnode1pos = new_node1->position();
+                        
                         NodeDevice* new_node2 = this->GetNode(new_node2_id);
+                        votca::tools::vec newnode2pos = new_node2->position();
+                       
+                        if ((newnode1pos.x() > dimX || newnode2pos.x() > dimX)&&breakX) nocopy_link = true;
+                        if ((newnode1pos.y() > dimY || newnode2pos.y() > dimY)&&breakY) nocopy_link = true;
+                        if ((newnode1pos.z() > dimZ || newnode2pos.z() > dimZ)&&breakZ) nocopy_link = true;
                         
                         // r12 is merely translated, not changed
                         
-                        LinkDevice* newLinkDevice = this->AddLink(new_link_id,new_node1,new_node2,link_r12);
-                        
-                        // copy data to the periodically repeated nodes
-                        newLinkDevice->setRate(  probelink->rate12e(),probelink->rate12h(),probelink->rate21e(),probelink->rate21h());
-                        newLinkDevice->setJeff2( probelink->Jeff2e(), probelink->Jeff2h());
-                        newLinkDevice->setlO(    probelink->lOe(),    probelink->lOh());                        
+                        if(!nocopy_link) {
+                            LinkDevice* newLinkDevice = this->AddLink(new_link_id,new_node1,new_node2,link_r12);
+
+                            // copy data to the periodically repeated nodes
+                            newLinkDevice->setRate(  probelink->rate12e(),probelink->rate12h(),probelink->rate21e(),probelink->rate21h());
+                            newLinkDevice->setJeff2( probelink->Jeff2e(), probelink->Jeff2h());
+                            newLinkDevice->setlO(    probelink->lOe(),    probelink->lOh());
+                        }
                     }
                 }
             }
         }
-        
+
+        bool break_link = false;
         // correctly reconnect the original links (split up)
         if(crossxtype == (int) NoxCross)  { lx = 0;                                 }
-        if(crossxtype == (int) PosxCross) { lx = 1;         if(repeatX == 1) {lx = 0;}}
-        if(crossxtype == (int) NegxCross) { lx = repeatX-1; if(repeatX == 1) {lx = 0;}} 
+        if(crossxtype == (int) PosxCross) { lx = 1;         if(repeatX == 1) {lx = 0; if(breakX) {break_link = true;}}}
+        if(crossxtype == (int) NegxCross) { lx = repeatX-1; if(repeatX == 1) {lx = 0;} if(breakX) {break_link = true;}} 
 
         if(crossytype == (int) NoyCross)  { ly = 0;                                 }
-        if(crossytype == (int) PosyCross) { ly = 1;         if(repeatY == 1) {ly = 0;}}
-        if(crossytype == (int) NegyCross) { ly = repeatY-1; if(repeatY == 1) {ly = 0;}}
+        if(crossytype == (int) PosyCross) { ly = 1;         if(repeatY == 1) {ly = 0; if(breakY) {break_link = true;}}}
+        if(crossytype == (int) NegyCross) { ly = repeatY-1; if(repeatY == 1) {ly = 0;} if(breakY) {break_link = true;}}
 
         if(crossztype == (int) NozCross)  { lz = 0;                                 }
-        if(crossztype == (int) PoszCross) { lz = 1;         if(repeatZ == 1) {lz = 0;}}
-        if(crossztype == (int) NegzCross) { lz = repeatY-1; if(repeatZ == 1) {lz = 0;}}
+        if(crossztype == (int) PoszCross) { lz = 1;         if(repeatZ == 1) {lz = 0; if(breakZ) {break_link = true;}}}
+        if(crossztype == (int) NegzCross) { lz = repeatY-1; if(repeatZ == 1) {lz = 0;} if(breakZ) {break_link = true;}}
         
-        int new_node1_id = node1_id;
-        int new_node2_id = node2_id + (lz+ly*repeatZ+lx*repeatY*repeatZ)*number_of_nodes;
-        NodeDevice* new_node1 = this->GetNode(new_node1_id);
-        NodeDevice* new_node2 = this->GetNode(new_node2_id);
-        probelink->SetNodes(new_node1, new_node2);
+        if(!break_link) {
+            int new_node1_id = node1_id;
+            int new_node2_id = node2_id + (lz+ly*repeatZ+lx*repeatY*repeatZ)*number_of_nodes;
+            NodeDevice* new_node1 = this->GetNode(new_node1_id);
+            NodeDevice* new_node2 = this->GetNode(new_node2_id);
+            probelink->SetNodes(new_node1, new_node2);
+        }
+        else {
+            this->RemoveLink(ilink);            
+        }
 
-    } 
+    }
+    
+    // remove nodes which fall outside of the simulation box
+    
+    for(int it = this->_nodes.size()-1; it >= 0; it--) {
+
+        NodeDevice* inode = this->_nodes[it];
+        
+        votca::tools::vec pos = inode->position();
+        double xpos = pos.x(); double ypos = pos.y(); double zpos = pos.z();
+        
+        bool remove_flag = false;        
+        
+        if(breakX && xpos > dimX) { remove_flag = true; }
+        if(breakY && ypos > dimY) { remove_flag = true; }
+        if(breakZ && zpos > dimZ) { remove_flag = true; }        
+ 
+        if(remove_flag) {
+            this->RemoveNode(it);
+            delete inode;
+        }
+
+    }        
+
 }
 
 void GraphDevice::Set_Self_Image_Coulomb_Potential(double device_length, Eventinfo* eventinfo){

@@ -204,6 +204,8 @@ void Diode::RunKMC() {
     sim_time = 0.0;
     for (long it = 0; it < 2*eventdata->nr_equilsteps + eventdata->nr_timesteps; it++) {
 
+        if(ldiv(it,100).rem == 0) std::cout << it << endl; 
+        
         if(eventdata->device == 2) {
             // make sure the number of carriers on the left equals
             left_chargegroup->Recompute_injection(left_injection_rates);
