@@ -123,6 +123,49 @@ void XJob::WriteInfoLine(FILE *out) {
 }
 
 
+Property XJob::GenerateOutputProperty() {
+    
+    Property prop;
+    Property &out = prop.add("output","");
+    Property *next = NULL;
+    
+    next = &out.add("summary", "");
+    next->add("type", _tag);
+    next->add("xyz", (format("%1$+1.7f %2$+1.7f %3$+1.7f") 
+        % _center.getX() % _center.getY() % _center.getZ()).str())
+        .setAttribute("unit","nm");
+    next->add("total_scf", (format("%1$+1.7f") 
+        % (_EF_PAIR_PAIR+_EF_PAIR_SPH1+_EF_PAIR_SPH2+_EF_SPH1_SPH1
+          +_EF_SPH1_SPH2+_EM_PAIR+_EM_SPH1+_EM_SPH2)).str())
+        .setAttribute("unit","eV");
+    next->add("total", (format("%1$+1.7f") 
+        % _E_Tot).str())
+        .setAttribute("unit","eV");
+    next->add("estat", (format("%1$+1.7f") 
+        % _EPP).str())
+        .setAttribute("unit","eV");
+    next->add("eindu", (format("%1$+1.7f") 
+        % _EPU).str())
+        .setAttribute("unit","eV");
+    
+    next = &out.add("terms_i", "");
+    next->add("F-00-01-02", (format("%1$+1.5e %2$+1.5e %3$+1.5e") % _EF_PAIR_PAIR % _EF_PAIR_SPH1 % _EF_PAIR_SPH2).str());
+    next->add("F-11-12---", (format("%1$+1.5e %2$+1.5e") % _EF_SPH1_SPH1 % _EF_SPH1_SPH2).str());
+    next->add("M-00-11-22", (format("%1$+1.5e %2$+1.5e %3$+1.5e") % _EM_PAIR % _EM_SPH1 % _EM_SPH2).str());
+    next->add("E-PP-PU-UU", (format("%1$+1.5e %2$+1.5e %3$+1.5e") % _EPP % _EPU % _EUU).str());
+    
+    next = &out.add("shells", "");
+    next->add("QM0", (format("%1$d") % _qm0_size).str());
+    next->add("MM1", (format("%1$d") % _mm1_size).str());
+    next->add("MM2", (format("%1$d") % _mm2_size).str());
+    
+    next = &out.add("convg", "");
+    next->add("iter", (format("%1$d") % _iter).str());
+        
+    return prop;
+}
+
+
 void XJob::setInfoLine(bool printMM, bool printQM) {
 
     // Job ID & tag

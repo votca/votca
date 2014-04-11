@@ -199,16 +199,8 @@ void PolarBackground::Polarize(int n_threads = 1) {
     LOG(dbg,log) << "  o Reciprocal-space" << flush;
     this->FX_ReciprocalSpace("SP_MODE", "FP_MODE", true);
     // I.C Shape fields
-    LOG(dbg,log) << "  o Shape fields" << flush;
-    if (_shape == "xyslab") {
-        double TwoPi_V = 2*M_PI/_LxLyLz;        
-        _ewdactor.FP12_XYSlab_ShapeField_At_By(_bg_P, _bg_P, TwoPi_V);        
-    }
-    else {
-        LOG(logERROR,*_log)
-            << (format("Shape '%1$s' not implemented. Omitting shape fields.") 
-            % _shape) << flush;
-    }
+    LOG(dbg,log) << "  o Shape fields ('" << _shape << "')" << flush;
+    _ewdactor.FP12_ShapeField_At_By(_bg_P, _bg_P, _shape, _LxLyLz);
     // I.D Molecular ERF self-interaction correction
     LOG(dbg,log) << "  o Molecular SI correction" << flush;
     double rms = 0.0;
@@ -226,7 +218,7 @@ void PolarBackground::Polarize(int n_threads = 1) {
     // TEASER OUTPUT PERMANENT FIELDS
     LOG(logDEBUG,*_log) << flush << "Foreground fields:" << flush;
     int fieldCount = 0;
-    for (sit1 = _bg_P.begin()+288; sit1 < _bg_P.end(); ++sit1) {
+    for (sit1 = _bg_P.begin()+16; sit1 < _bg_P.end(); ++sit1) {
         PolarSeg *pseg = *sit1;
         Segment *seg = _top->getSegment(pseg->getId());
         LOG(logDEBUG,*_log) << "ID = " << pseg->getId() << " (" << seg->getName() << ") " << flush;
@@ -246,7 +238,7 @@ void PolarBackground::Polarize(int n_threads = 1) {
         }
         if (fieldCount > 10) break;
     }
-        
+    
     
     // II INDUCE TO 1ST ORDER
     LOG(dbg,log) << flush << "Induce to first order" << flush;
@@ -290,16 +282,8 @@ void PolarBackground::Polarize(int n_threads = 1) {
         LOG(dbg,log) << "  o Reciprocal-space" << flush;
         this->FX_ReciprocalSpace("SU_MODE", "FU_MODE", false);
         // (4) Calculate shape fields
-        LOG(dbg,log) << "  o Shape fields" << flush;
-        if (_shape == "xyslab") {
-            double TwoPi_V = 2*M_PI/_LxLyLz;        
-            _ewdactor.FU12_XYSlab_ShapeField_At_By(_bg_P, _bg_P, TwoPi_V);        
-        }
-        else {
-            LOG(logERROR,*_log) 
-                << (format("Shape '%1$s' not implemented. Omitting shape fields.") 
-                % _shape) << flush;
-        }
+        LOG(dbg,log) << "  o Shape fields ('" << _shape << "')" << flush;
+        _ewdactor.FU12_ShapeField_At_By(_bg_P, _bg_P, _shape, _LxLyLz);
         // (5) Apply atomic ERF self-interaction correction
         LOG(dbg,log) << "  o Atomic SI correction" << flush;
         rms = 0.0;

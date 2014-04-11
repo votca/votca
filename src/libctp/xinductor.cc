@@ -194,7 +194,6 @@ int XInductor::Induce(XJob *job) {
     
     int iter = 0;
     for ( ; iter < maxI; ++iter) {
-
         // Reset fields FUx, FUy, FUz
         for (sit1 = _qmm.begin(); sit1 < _qmm.end(); ++sit1) {
             for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
@@ -241,24 +240,29 @@ int XInductor::Induce(XJob *job) {
 
         // Check for convergence
         bool    converged       = true;
-        double  maxdU           = -1;
-        double  avgdU           = 0.0;
+        double  maxdU_U         = -1;
+        double  avgdU_U         = 0.0;
+        double  rmsdU           = 0.0;
         int     baseN           = 0;
         for (sit1 = _qmm.begin(); sit1 < _qmm.end(); ++sit1) {
              for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
-                 double dU = (*pit1)->HistdU();
-                 avgdU += dU;
+                 double dU_U = (*pit1)->HistdU();
+                 avgdU_U += dU_U;
+                 double dU2 = (*pit1)->HistdU2();
+                 rmsdU += dU2;
                  ++baseN;
-                 if ( dU > maxdU ) { maxdU = dU; }
-                 if ( dU > eTOL ) { converged = false; }
+                 if ( dU_U > maxdU_U ) { maxdU_U = dU_U; }
+                 if ( dU_U > eTOL) { converged = false; }
              }
         }
-        avgdU /= baseN;
-        if (avgdU < eTOL/10.) { converged = true; }
-
-//        cout << " | MAX dU " << maxdU
-//             << " | AVG dU " << avgdU
-//             << " | SOR " << wSOR << flush;
+        avgdU_U /= baseN;
+        rmsdU /= baseN;
+        rmsdU = sqrt(rmsdU);
+        if (avgdU_U < eTOL/10.) { converged = true; }
+        
+        LOG(logINFO,*_log) << (boost::format(
+            "  Iter %1$3d | max(dU/U) %2$1.7e  avg(dU/U) %3$1.7e  rms(dU) %4$1.7e  N %5$d") 
+            % iter % maxdU_U % avgdU_U % rmsdU % baseN).str() << flush;
 
         // Break if converged
         if      (converged) { 
@@ -271,11 +275,11 @@ int XInductor::Induce(XJob *job) {
             //    + boost::lexical_cast<string>(maxI) + " steps, AVG dU:U " 
             //    + boost::lexical_cast<string>(avgdU) + ")");
             this->setError((boost::format("Did not converge to precision "
-               "(%1$d steps, AVG(dU:U) = %2$1.3e)") % maxI % avgdU).str());
+               "(%1$d steps, AVG(dU:U) = %2$1.3e)") % maxI % avgdU_U).str());
             break;
         }
-    }
-
+    }    
+    
     return iter;
 
 }

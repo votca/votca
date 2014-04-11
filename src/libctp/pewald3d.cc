@@ -232,14 +232,18 @@ EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum() {
                         sum_pp += ppuu._pp;
                         sum_pu += ppuu._pu;
                         sum_uu += ppuu._uu;
+//                        _actor.BiasIndu(*(*pit1), *(*pit2));
+//                        double ef = _actor.E_f(*(*pit1), *(*pit2));
+//                        sum_pp += ef;
                     }
                 }
             }
-            LOG(logDEBUG,*_log)
+            if (tools::globals::verbose) LOG(logDEBUG,*_log)
                 << (format("  o Id = %5$-4d Rc = %1$+02.7f   |MGN| = %2$5d   dF(rms) = %3$+1.3e V/m   [1eA => %4$+1.3e eV]") 
                 % -1.0 % nbs.size() % -1.0  % -1.0 % ((*sit1)->getId())).str() << flush;
         }
         _converged_R = true;
+//        cout << endl << "XINTERACTOR " << _actor.getEPP() << " " << _actor.getEPU() << " "<< _actor.getEUU() << flush;
     }
     
     // ENERGY - REGENERATE NEIGHBOURS ?
@@ -290,6 +294,13 @@ EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum() {
                             shell_sum += shell_term;
                             shell_rms += shell_term*shell_term;
                             shell_count += 1;
+//                            _actor.BiasIndu(*(*pit1), *(*pit2));
+//                            double ef = _actor.E_f(*(*pit1), *(*pit2));
+//                            sum_pp += ef;
+//                            shell_term = ef;
+//                            shell_sum += shell_term;
+//                            shell_rms += shell_term*shell_term;
+//                            shell_count += 1;
                         }
                     }
                 }
@@ -301,13 +312,15 @@ EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum() {
 
                 if (shell_rms*shell_count <= _crit_dE && shell_R >= _R_co) {
                     energy_converged_count += 1;
-                    LOG(logDEBUG,*_log)  
+                    if (tools::globals::verbose) LOG(logDEBUG,*_log)  
                         << (format("  :: ID = %2$-4d : Converged to precision as of Rc = %1$+1.3f nm") 
                         % shell_R % (*sit1)->getId()) << flush;
                     break;
                 }
             }
         }
+        
+//        cout << endl << "XINTERACTOR " << _actor.getEPP() << " " << _actor.getEPU() << " "<< _actor.getEUU() << flush;
 
         if (energy_converged_count == _fg_C.size()) {
             LOG(logDEBUG,*_log)  
@@ -399,7 +412,7 @@ EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum() {
         }
         de_this_shell = (de_this_shell < 0.) ? -de_this_shell : de_this_shell;
         
-        LOG(logDEBUG,*_log)
+        if (shell_count > 0) LOG(logDEBUG,*_log)
              << (format("  o M = %1$04d   G = %2$+1.3e   dE(rms) = %3$+1.3e eV")
              % shell_count
              % crit_grade
@@ -450,7 +463,7 @@ EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum() {
         }
         de_this_shell = (de_this_shell < 0.) ? -de_this_shell : de_this_shell;
         
-        LOG(logDEBUG,*_log)
+        if (shell_count > 0) LOG(logDEBUG,*_log)
              << (format("  o M = %1$04d   G = %2$+1.3e   dE(rms) = %3$+1.3e eV")
              % shell_count
              % crit_grade
@@ -486,41 +499,62 @@ EWD::triple<> PEwald3D3D::CalculateShapeCorrection() {
     LOG(logDEBUG,*_log)
         << "  o Shape-correction to energy, using '" << _shape << "'" << flush;
     
-    vector<PolarSeg*>::iterator sit1; 
-    vector<APolarSite*> ::iterator pit1;
-    vector<PolarSeg*>::iterator sit2; 
-    vector<APolarSite*> ::iterator pit2;
+    EWD::triple<double> ppuu = _ewdactor.U12_ShapeTerm(_fg_C, _bg_P,
+        _shape, _LxLyLz);
+    double sum_pp = ppuu._pp;
+    double sum_pu = ppuu._pu;
+    double sum_uu = ppuu._uu;
     
-    double EJ = 0.0;
-    double sum_pp = 0.0;
-    double sum_pu = 0.0;
-    double sum_uu = 0.0;
+//    vector<PolarSeg*>::iterator sit1; 
+//    vector<APolarSite*> ::iterator pit1;
+//    vector<PolarSeg*>::iterator sit2; 
+//    vector<APolarSite*> ::iterator pit2;
+//    
+//    double EJ = 0.0;
     
-    if (_shape == "xyslab") {
-        EWD::triple<double> ppuu(0,0,0);
-        for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
-           for (sit2 = _bg_P.begin(); sit2 < _bg_P.end(); ++sit2) {
-              for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
-                 for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
-                    ppuu = _ewdactor.U12_XYSlab(*(*pit1), *(*pit2));
-                    sum_pp += ppuu._pp;
-                    sum_pu += ppuu._pu;
-                    sum_uu += ppuu._uu;
-                 }
-              }
-           }
-        }
-        sum_pp *= -2*M_PI/_LxLyLz;
-        sum_pu *= -2*M_PI/_LxLyLz;
-        sum_uu *= -2*M_PI/_LxLyLz;
-        EJ = sum_pp + sum_pu + sum_uu;
-    }
-    else {
-        LOG(logERROR,*_log)
-            << (format("Shape %1$s not implemented. Setting EJ = 0.0 ...") 
-            % _shape) << flush;
-        EJ = 0.0;
-    }
+//    if (_shape == "xyslab") {
+//        EWD::triple<double> ppuu(0,0,0);
+//        for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
+//           for (sit2 = _bg_P.begin(); sit2 < _bg_P.end(); ++sit2) {
+//              for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+//                 for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
+//                    ppuu = _ewdactor.U12_XYSlab(*(*pit1), *(*pit2));
+//                    sum_pp += ppuu._pp;
+//                    sum_pu += ppuu._pu;
+//                    sum_uu += ppuu._uu;
+//                 }
+//              }
+//           }
+//        }
+//        sum_pp *= -2*M_PI/_LxLyLz;
+//        sum_pu *= -2*M_PI/_LxLyLz;
+//        sum_uu *= -2*M_PI/_LxLyLz;
+//        EJ = sum_pp + sum_pu + sum_uu;
+//        
+//        // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+//        EWD::triple<double> ppuu_fast = _ewdactor.U12_XYSlab_Factorized(_fg_C, _bg_P);
+//        double sum_pp_fast = ppuu_fast._pp;
+//        double sum_pu_fast = ppuu_fast._pu;
+//        double sum_uu_fast = ppuu_fast._uu;
+//        sum_pp_fast *= -4*M_PI/_LxLyLz;
+//        sum_pu_fast *= -4*M_PI/_LxLyLz;
+//        sum_uu_fast *= -4*M_PI/_LxLyLz;
+//        cout << endl << "Slow: " << sum_pp << " " << sum_pu << " " << sum_uu << flush;
+//        cout << endl << "Fast: " << sum_pp_fast << " " << sum_pu_fast << " " << sum_uu_fast << flush;
+//        
+//        EWD::triple<double> ppuu_cube = _ewdactor.U12_ShapeTerm_Factorized(_fg_C, _bg_P, _shape, _LxLyLz);
+//        double sum_pp_cube = ppuu_cube._pp;
+//        double sum_pu_cube = ppuu_cube._pu;
+//        double sum_uu_cube = ppuu_cube._uu;
+//        cout << endl << "Cube: " << sum_pp_cube << " " << sum_pu_cube << " " << sum_uu_cube << flush;
+//        // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+//    }
+//    else {
+//        LOG(logERROR,*_log)
+//            << (format("Shape %1$s not implemented. Setting EJ = 0.0 ...") 
+//            % _shape) << flush;
+//        EJ = 0.0;
+//    }
     
     return EWD::triple<>(sum_pp, sum_pu, sum_uu);
     //return EJ;
@@ -614,8 +648,13 @@ void PEwald3D3D::Field_ConvergeRealSpaceSum() {
                     for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
                         shell_rms += _ewdactor.FPU12_ERFC_At_By(*(*pit1), *(*pit2));
                         shell_count += 1;
-                        //_actor.BiasStat(*(*pit1), *(*pit2));
-                        //_actor.FieldPerm(*(*pit1), *(*pit2));
+//                        vec f0 = (*pit1)->getFieldP();
+//                        _actor.BiasStat(*(*pit1), *(*pit2));
+//                        _actor.FieldPerm(*(*pit1), *(*pit2));
+//                        vec f1 = (*pit1)->getFieldP();
+//                        vec df = f1-f0;
+//                        shell_rms += df*df;
+//                        shell_count += 1;
                     }
                 }
             }
@@ -630,7 +669,7 @@ void PEwald3D3D::Field_ConvergeRealSpaceSum() {
             
             if (e_measure <= _crit_dE && shell_R >= _R_co) {
                 field_converged_count += 1;
-                LOG(logDEBUG,*_log)
+                if (tools::globals::verbose) LOG(logDEBUG,*_log)
                     << (format("  :: ID = %2$-4d Converged to precision as of Rc = %1$+1.3f nm") 
                     % shell_R % (*sit1)->getId()) << flush;
                 break;
@@ -851,36 +890,38 @@ void PEwald3D3D::Field_CalculateShapeCorrection() {
     LOG(logDEBUG,*_log)
         << "  o Shape-correction to fields, using '" << _shape << "'" << flush;
     
-    vector<PolarSeg*>::iterator sit1; 
-    vector<APolarSite*> ::iterator pit1;
-    vector<PolarSeg*>::iterator sit2; 
-    vector<APolarSite*> ::iterator pit2;
+    _ewdactor.FPU12_ShapeField_At_By(_fg_C, _bg_P, _shape, _LxLyLz);
     
-    double rms = 0.0;
-    int rms_count = 0;    
-    if (_shape == "xyslab") {
-        double TwoPi_V = 2*M_PI/_LxLyLz;
-        
-//        for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
-//           for (sit2 = _bg_P.begin(); sit2 < _bg_P.end(); ++sit2) {
-//              for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
-//                 for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
-//                    rms += _ewdactor.F12_XYSlab_At_By(*(*pit1), *(*pit2), TwoPi_V);
-//                    rms_count += 1;
-//                 }
-//              }
-//           }
-//        }
-        
-        _ewdactor.FPU12_XYSlab_ShapeField_At_By(_fg_C, _bg_P, TwoPi_V);
-        
-    }
-    else {
-        LOG(logERROR,*_log)
-            << (format("Shape %1$s not implemented. Setting EJ = 0.0 ...") 
-            % _shape) << flush;
-    }
-    rms = sqrt(rms/rms_count)*EWD::int2V_m;
+//    vector<PolarSeg*>::iterator sit1; 
+//    vector<APolarSite*> ::iterator pit1;
+//    vector<PolarSeg*>::iterator sit2; 
+//    vector<APolarSite*> ::iterator pit2;
+//    
+//    double rms = 0.0;
+//    int rms_count = 0;    
+//    if (_shape == "xyslab") {
+//        double TwoPi_V = 2*M_PI/_LxLyLz;
+//        
+////        for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
+////           for (sit2 = _bg_P.begin(); sit2 < _bg_P.end(); ++sit2) {
+////              for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+////                 for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
+////                    rms += _ewdactor.F12_XYSlab_At_By(*(*pit1), *(*pit2), TwoPi_V);
+////                    rms_count += 1;
+////                 }
+////              }
+////           }
+////        }
+//        
+//        _ewdactor.FPU12_XYSlab_ShapeField_At_By(_fg_C, _bg_P, TwoPi_V);
+//        
+//    }
+//    else {
+//        LOG(logERROR,*_log)
+//            << (format("Shape %1$s not implemented. Setting EJ = 0.0 ...") 
+//            % _shape) << flush;
+//    }
+//    rms = sqrt(rms/rms_count)*EWD::int2V_m;
     
     return;
 }

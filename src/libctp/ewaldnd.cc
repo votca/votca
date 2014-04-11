@@ -92,6 +92,16 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
         _polar_aDamp = opt->get(pfx+".polarmethod.aDamp").as<double>();
     else
         _polar_aDamp = 0.390;
+    if (opt->exists(pfx+".polarmethod.tolerance"))
+        _polar_epstol = opt->get(pfx+".polarmethod.tolerance").as<double>();
+    else
+        _polar_epstol = 0.001;
+    if (opt->exists(pfx+".polarmethod.radial_dielectric")) {
+        _polar_radial_corr_epsilon 
+            = opt->get(pfx+".polarmethod.radial_dielectric").as<double>();
+    }
+    else
+        _polar_radial_corr_epsilon = 4.;
     // Coarse-graining
     if (opt->exists(pfx+".coarsegrain.cg_background")) {
         _coarse_do_cg_background = 
@@ -135,6 +145,12 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
     }
     else
         _task_evaluate_energy = false;
+    if (opt->exists(pfx+".tasks.apply_radial")) {
+        _task_apply_radial
+            = opt->get(pfx+".tasks.apply_radial").as<bool>();
+    }
+    else
+        _task_apply_radial = false;
     if (opt->exists(pfx+".tasks.solve_poisson")) {
         _task_solve_poisson
             = opt->get(pfx+".tasks.solve_poisson").as<bool>();
@@ -270,6 +286,8 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
         PolarSeg* pseg = *sit;        
         for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
             netdpl_bgP += (*pit)->getPos() * (*pit)->getQ00();
+            if ((*pit)->getRank() > 0)
+                netdpl_bgP += (*pit)->getQ1();
             qzz_bgP += (*pit)->getQ00() * ((*pit)->getPos().getZ() * (*pit)->getPos().getZ());
         }
     }
@@ -277,6 +295,8 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
         PolarSeg* pseg = *sit;        
         for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
             netdpl_fgC += (*pit)->getPos() * (*pit)->getQ00();
+            if ((*pit)->getRank() > 0)
+                netdpl_fgC += (*pit)->getQ1();
         }
     }
     
@@ -306,6 +326,7 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
     _polar_EF11 = 0; _polar_EF12 = 0;
     _polar_EM0 = 0;  _polar_EM1 = 0;  _polar_EM2 = 0;
     _Estat = 0;      _Eindu = 0;      _Eppuu = 0;
+    _polar_ERC = 0;
     
     return;
 }
@@ -661,55 +682,166 @@ void Ewald3DnD::WriteDensitiesPDB(string pdbfile) {
 
 
 void Ewald3DnD::WriteDensitiesPtop(string fg, string mg, string bg) {
-    // FGC, FGN, BGN, QM0, MM1, MM2
-    _ptop->SaveToDrive(fg);
-    // MGN
-    PolarTop mg_ptop;
-    mg_ptop.setBGN(_mg_N, false);
-    mg_ptop.SaveToDrive(mg);
-    // BGP
-    PolarTop bg_ptop;
-    bg_ptop.setBGN(_bg_P, false);
-    bg_ptop.SaveToDrive(bg);
+//    // FGC, FGN, BGN, QM0, MM1, MM2
+//    _ptop->SaveToDrive(fg);
+//    // MGN
+//    PolarTop mg_ptop;
+//    mg_ptop.setBGN(_mg_N, false);
+//    mg_ptop.SaveToDrive(mg);
+//    // BGP
+//    PolarTop bg_ptop;
+//    bg_ptop.setBGN(_bg_P, false);
+//    bg_ptop.SaveToDrive(bg);
+//    
+//    string fg_pdb = fg + ".pdb";
+//    string mg_pdb = mg + ".pdb";
+//    string bg_pdb = bg + ".pdb";
+//    vector<PolarSeg*>::iterator sit; 
+//    vector<APolarSite*> ::iterator pit;    
+//    FILE *out;
+//    out = fopen(fg_pdb.c_str(),"w");
+//    for (sit = _polar_qm0.begin(); sit < _polar_qm0.end(); ++sit) {        
+//        PolarSeg* pseg = *sit;        
+//        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
+//            (*pit)->WritePdbLine(out, "QM0");
+//        }
+//    }
+//    for (sit = _polar_mm1.begin(); sit < _polar_mm1.end(); ++sit) {        
+//        PolarSeg* pseg = *sit;        
+//        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
+//            (*pit)->WritePdbLine(out, "MM1");
+//        }
+//    }
+//    fclose(out);
+//    out = fopen(mg_pdb.c_str(),"w");
+//    for (sit = _mg_N.begin(); sit < _mg_N.end(); ++sit) {        
+//        PolarSeg* pseg = *sit;        
+//        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
+//            (*pit)->WritePdbLine(out, "MGN");
+//        }
+//    }
+//    fclose(out);
+//    out = fopen(bg_pdb.c_str(),"w");
+//    for (sit = _bg_P.begin(); sit < _bg_P.end(); ++sit) {        
+//        PolarSeg* pseg = *sit;        
+//        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
+//            (*pit)->WritePdbLine(out, "BGP");
+//        }
+//    }
+//    fclose(out);
+//    return;
     
-    string fg_pdb = fg + ".pdb";
-    string mg_pdb = mg + ".pdb";
-    string bg_pdb = bg + ".pdb";
-    vector<PolarSeg*>::iterator sit; 
-    vector<APolarSite*> ::iterator pit;    
-    FILE *out;
-    out = fopen(fg_pdb.c_str(),"w");
-    for (sit = _polar_qm0.begin(); sit < _polar_qm0.end(); ++sit) {        
-        PolarSeg* pseg = *sit;        
-        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
-            (*pit)->WritePdbLine(out, "QM0");
+
+    vector<PolarSeg*>::iterator sit;
+    vector<PolarSeg*>::iterator sit2;
+    vector<APolarSite*> ::iterator pit;
+    assert(_fg_N.size() == _fg_C.size());
+    
+    std::ofstream ofs;
+    ofs.open((fg+bg).c_str(), ofstream::out);
+    ofs << "<ptop>\n";
+
+    // Multiplied system: box info
+    vec na_a = (2*_na_max+1)*_a;
+    vec nb_b = (2*_nb_max+1)*_b;
+    vec nc_c = (2*_nc_max+1)*_c;
+    ofs << "\t<box>\n";
+    ofs << (format("\t\t<a>%1$1.4f %2$1.4f %3$1.4f</a>\n") 
+        % na_a.getX() % na_a.getY() % na_a.getZ());
+    ofs << (format("\t\t<b>%1$1.4f %2$1.4f %3$1.4f</b>\n") 
+        % nb_b.getX() % nb_b.getY() % nb_b.getZ());
+    ofs << (format("\t\t<c>%1$1.4f %2$1.4f %3$1.4f</c>\n") 
+        % nc_c.getX() % nc_c.getY() % nc_c.getZ());
+    ofs << "\t</box>\n";    
+    
+    // Foreground
+    for (sit = _fg_C.begin(); sit < _fg_C.end(); ++sit) {
+        PolarSeg *pseg = *sit;
+        // Position
+        vec pos = pseg->getPos();
+        // Net induced dipole
+        vec u1_tot = vec(0,0,0);                
+        for (PolarSeg::iterator pit = (*sit)->begin();
+            pit != (*sit)->end(); ++pit) {            
+            u1_tot += (*pit)->getU1();     
         }
-    }
-    for (sit = _polar_mm1.begin(); sit < _polar_mm1.end(); ++sit) {        
-        PolarSeg* pseg = *sit;        
-        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
-            (*pit)->WritePdbLine(out, "MM1");
+        // Output: polar segment
+        ofs << "\t<pseg>\n";
+        ofs << (format("\t\t<id>%1$d</id>\n") % (*sit)->getId());
+        ofs << (format("\t\t<size>%1$d</size>\n") % (*sit)->size());
+        ofs << (format("\t\t<name>%1$s</name>\n") % _top->getSegment((*sit)->getId())->getName());
+        ofs << (format("\t\t<region>fgc</region>\n"));
+        ofs << (format("\t\t<pos>%1$1.4f %2$1.4f %3$1.4f</pos>\n") 
+            % pos.getX() % pos.getY() % pos.getZ());
+        ofs << (format("\t\t<dpl>%1$1.7e %2$1.7e %3$1.7e</dpl>\n") 
+            % u1_tot.getX() % u1_tot.getY() % u1_tot.getZ());
+        // Output: polar sites in segment
+        for (PolarSeg::iterator pit = (*sit)->begin();
+            pit != (*sit)->end(); ++pit) {
+            vec pos = (*pit)->getPos();
+            vec u1 = (*pit)->getU1();
+            ofs << "\t\t<psit>\n";
+            ofs << (format("\t\t\t<pos>%1$1.4f %2$1.4f %3$1.4f</pos>\n") 
+                % pos.getX() % pos.getY() % pos.getZ());
+            ofs << (format("\t\t\t<dpl>%1$1.7e %2$1.7e %3$1.7e</dpl>\n") 
+                % u1.getX() % u1.getY() % u1.getZ());            
+            ofs << "\t\t</psit>\n";
         }
-    }
-    fclose(out);
-    out = fopen(mg_pdb.c_str(),"w");
-    for (sit = _mg_N.begin(); sit < _mg_N.end(); ++sit) {        
-        PolarSeg* pseg = *sit;        
-        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
-            (*pit)->WritePdbLine(out, "MGN");
-        }
-    }
-    fclose(out);
-    out = fopen(bg_pdb.c_str(),"w");
-    for (sit = _bg_P.begin(); sit < _bg_P.end(); ++sit) {        
-        PolarSeg* pseg = *sit;        
-        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
-            (*pit)->WritePdbLine(out, "BGP");
-        }
-    }
-    fclose(out);
+        ofs << "\t</pseg>\n";
+    }    
+    
+    // Background
+    for (sit = _bg_P.begin(); sit < _bg_P.end(); ++sit) {
+        PolarSeg *pseg = *sit;
+        // Periodic images
+        for (int na = -_na_max; na < _na_max+1; ++na) {
+        for (int nb = -_nb_max; nb < _nb_max+1; ++nb) {
+        for (int nc = -_nc_max; nc < _nc_max+1; ++nc) {
+            vec L = na*_a + nb*_b + nc*_c;
+            // In foreground ?
+            bool is_in_fg = _fg_table->IsInForeground(pseg->getId(),na,nb,nc);
+            if (!is_in_fg) {
+                // Position
+                vec pos_L = pseg->getPos() + L;
+                // Net induced dipole
+                vec u1_tot = vec(0,0,0);                
+                for (PolarSeg::iterator pit = (*sit)->begin();
+                    pit != (*sit)->end(); ++pit) {            
+                    u1_tot += (*pit)->getU1();     
+                }
+                // Output: polar segment
+                ofs << "\t<pseg>\n";
+                ofs << (format("\t\t<id>%1$d</id>\n") % (*sit)->getId());
+                ofs << (format("\t\t<size>%1$d</size>\n") % (*sit)->size());
+                ofs << (format("\t\t<name>%1$s</name>\n") % _top->getSegment((*sit)->getId())->getName());
+                ofs << (format("\t\t<region>bgp*\\fgc</region>\n"));
+                ofs << (format("\t\t<pos>%1$1.4f %2$1.4f %3$1.4f</pos>\n") 
+                    % pos_L.getX() % pos_L.getY() % pos_L.getZ());
+                ofs << (format("\t\t<dpl>%1$1.7e %2$1.7e %3$1.7e</dpl>\n") 
+                    % u1_tot.getX() % u1_tot.getY() % u1_tot.getZ());
+                // Output: polar sites in segment
+                for (PolarSeg::iterator pit = (*sit)->begin();
+                    pit != (*sit)->end(); ++pit) {
+                    vec pos = (*pit)->getPos() + L;
+                    vec u1 = (*pit)->getU1();
+                    ofs << "\t\t<psit>\n";
+                    ofs << (format("\t\t\t<pos>%1$1.4f %2$1.4f %3$1.4f</pos>\n") 
+                        % pos.getX() % pos.getY() % pos.getZ());
+                    ofs << (format("\t\t\t<dpl>%1$1.7e %2$1.7e %3$1.7e</dpl>\n") 
+                        % u1.getX() % u1.getY() % u1.getZ());            
+                    ofs << "\t\t</psit>\n";
+                }
+                ofs << "\t</pseg>\n";
+            }
+            else ;
+        }}} // Loop over na, nb, nc
+    } // Loop over BGP
+    
+    ofs.close();
+    
     return;
 }
+
 
 void Ewald3DnD::Evaluate() {
     
@@ -733,7 +865,8 @@ void Ewald3DnD::Evaluate() {
     // TEASER OUTPUT PERMANENT FIELDS
     LOG(logDEBUG,*_log) << flush << "Background fields (BGP):" << flush;
     int fieldCount = 0;
-    for (vector<PolarSeg*>::iterator sit1 = _bg_P.begin()+288; sit1 < _bg_P.end(); ++sit1) {
+    //for (vector<PolarSeg*>::iterator sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
+    for (vector<PolarSeg*>::iterator sit1 = _fg_N.begin(); sit1 < _fg_N.end(); ++sit1) {
         PolarSeg *pseg = *sit1;
         Segment *seg = _top->getSegment(pseg->getId());
         LOG(logDEBUG,*_log) << "ID = " << pseg->getId() << " (" << seg->getName() << ") " << flush;
@@ -750,7 +883,7 @@ void Ewald3DnD::Evaluate() {
                << (format("U1* = (%1$+1.7e %2$+1.7e %3$+1.7e) e*nm") 
                     % (u1.getX())
                     % (u1.getY()) 
-                    % (u1.getY())).str() << flush;
+                    % (u1.getZ())).str() << flush;
             fieldCount += 1;
             if (fieldCount > 10) {
                 LOG(logDEBUG,*_log)
@@ -770,16 +903,20 @@ void Ewald3DnD::Evaluate() {
     boost::timer::cpu_times t2 = cpu_t.elapsed();
     if (_task_evaluate_energy) EvaluateEnergy();
     boost::timer::cpu_times t3 = cpu_t.elapsed();
+    if (_task_apply_radial) EvaluateRadialCorrection();
+    boost::timer::cpu_times t4 = cpu_t.elapsed();
     if (_task_solve_poisson) EvaluatePoisson();
     
     _t_fields    = (t1.wall-t0.wall)/1e9/60.;
     _t_induction = (t2.wall-t1.wall)/1e9/60.;
     _t_energy    = (t3.wall-t2.wall)/1e9/60.;
+    _t_radial    = (t4.wall-t3.wall)/1e9/60.;
     
     // TEASER OUTPUT PERMANENT FIELDS
     LOG(logDEBUG,*_log) << flush << "Background fields (BGP):" << flush;
     fieldCount = 0;
-    for (vector<PolarSeg*>::iterator sit1 = _bg_P.begin()+288; sit1 < _bg_P.end(); ++sit1) {
+    //for (vector<PolarSeg*>::iterator sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
+    for (vector<PolarSeg*>::iterator sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
         PolarSeg *pseg = *sit1;
         Segment *seg = _top->getSegment(pseg->getId());
         LOG(logDEBUG,*_log) << "ID = " << pseg->getId() << " (" << seg->getName() << ") " << flush;
@@ -796,7 +933,7 @@ void Ewald3DnD::Evaluate() {
                << (format("U1* = (%1$+1.7e %2$+1.7e %3$+1.7e) e*nm") 
                     % (u1.getX())
                     % (u1.getY()) 
-                    % (u1.getY())).str() << flush;
+                    % (u1.getZ())).str() << flush;
             fieldCount += 1;
             if (fieldCount > 10) {
                 LOG(logDEBUG,*_log)
@@ -883,6 +1020,58 @@ void Ewald3DnD::Evaluate() {
         sit1 != _fg_C.end(); ++sit1) {
         (*sit1)->ClearPolarNbs();
     }    
+   	/* 
+    // Field effect
+    std::ofstream ofs;
+    ofs.open("field_effect", ofstream::out);
+    vector<PolarSeg*>::iterator sit1, sit2;
+    PolarSeg::iterator pit1, pit2;
+    for (sit1 = _fg_C.begin(), sit2 = _fg_N.begin(); 
+        sit1 < _fg_C.end();
+        ++sit1, ++sit2) {
+        PolarSeg *pseg_h = *sit1;
+        PolarSeg *pseg_n = *sit2;
+        
+        vec dr = pseg_h->getPos() - _polar_qm0[0]->getPos();
+        double dR = votca::tools::abs(dr);
+        
+        assert(pseg_h->getId() == pseg_n->getId());
+        assert(pseg_h->size() == pseg_n->size());
+        
+        for (pit1 = pseg_h->begin(), pit2 = pseg_n->begin(); 
+            pit1 < pseg_h->end(); 
+            ++pit1, ++pit2) {
+            
+            vec fp_h = (*pit1)->getFieldP();
+            vec fu_h = (*pit1)->getFieldU();
+            vec ft_h = fp_h+fu_h;
+            
+            vec fp_n = (*pit2)->getFieldP();
+            vec fu_n = (*pit2)->getFieldU();
+            vec ft_n = fp_n+fu_n;
+            
+            vec dfp = fp_h - fp_n;
+            vec dfu = fu_h - fu_n;
+            vec dft = ft_h - ft_n;
+            
+            double frac_prj_dfp = dfp*dr/dR / votca::tools::abs(dfp);
+            double frac_prj_dfu = dfu*dr/dR / votca::tools::abs(dfu);
+            double frac_prj_dft = dft*dr/dR / votca::tools::abs(dft);
+            
+            ofs << (format("dR2 %1$+1.7f fput456 %2$+1.7e %3$+1.7e %4$+1.7e "
+                    "fprjput8910 %5$+1.7e %6$+1.7e %7$+1.7e\n")
+                % dR % (votca::tools::abs(dfp)*EWD::int2V_m) % (votca::tools::abs(dfu)*EWD::int2V_m) % (votca::tools::abs(dft)*EWD::int2V_m)
+                % frac_prj_dfp % frac_prj_dfu % frac_prj_dft);
+        }
+
+    }
+    
+    ofs.close();
+	*/
+    
+    
+    
+    
     return;
 }
 
@@ -949,7 +1138,7 @@ void Ewald3DnD::EvaluateInduction() {
     LOG(logDEBUG,*_log) << (format("  o Thole sharpness parameter: ")).str() << _polar_aDamp << flush;
     LOG(logDEBUG,*_log) << (format("  o SOR mixing factor:         ")).str() << _polar_wSOR_N << " (N) " << _polar_wSOR_C << " (C) "  << flush;
     LOG(logDEBUG,*_log) << (format("  o Iterations (max):          512")).str() << flush;
-    LOG(logDEBUG,*_log) << (format("  o Tolerance (rms, e*nm):     0.001")).str() << flush;
+    LOG(logDEBUG,*_log) << (format("  o Tolerance (dU/U):          %1$1.3e") % _polar_epstol).str() << flush;
     LOG(logDEBUG,*_log) << (format("  o Induce within QM0:         yes")).str() << flush;
     LOG(logDEBUG,*_log) << (format("  o Subthreads:                single")).str() << flush;
     
@@ -960,7 +1149,6 @@ void Ewald3DnD::EvaluateInduction() {
     // INITIALIZE XINDUCTOR
     bool    polar_induce_intra_pair = true;
     int     polar_subthreads = 1;
-    double  polar_epstol = 0.001;
     int     polar_maxIter = 512;
     bool    polar_maverick = _log->isMaverick(); // TODO Extract from _log
     
@@ -969,7 +1157,7 @@ void Ewald3DnD::EvaluateInduction() {
                                      polar_subthreads,
                                      _polar_wSOR_N,
                                      _polar_wSOR_C,
-                                     polar_epstol,
+                                     _polar_epstol,
                                      polar_maxIter,
                                      _polar_aDamp,
                                      polar_maverick,
@@ -1027,6 +1215,68 @@ void Ewald3DnD::EvaluateEnergy() {
     _EC  = EPP_fgC_fgN * int2eV;
     _ET  = _ER + _EK + _E0 + _EJ + _EDQ - _EC;
     
+    return;
+}
+
+
+void Ewald3DnD::EvaluateRadialCorrection() {
+    
+    // ATTENTION This method depolarizes the midground. Do not call prematurely.
+    
+    LOG(logINFO,*_log) << flush;
+    LOG(logINFO,*_log) << "Apply dielectric radial correction" << flush;
+    LOG(logINFO,*_log) << "  o Radial screening constant: " 
+        << _polar_radial_corr_epsilon << flush;
+    LOG(logINFO,*_log) << "  o Radial extension: " << _polar_cutoff << "nm <> "
+        << _polar_cutoff+_R_co << "nm" << flush;
+    
+    vector<PolarSeg*>::iterator sit1;
+    vector<PolarSeg*>::iterator sit2;
+    PolarSeg::iterator pit1;
+    PolarSeg::iterator pit2;
+    
+    LOG(logDEBUG,*_log) << "Steps I-IV" << flush;
+    // Depolarize midground
+    LOG(logDEBUG,*_log) << "  o Depolarize midground" << flush;
+    for (sit1 = _mg_N.begin(); sit1 != _mg_N.end(); ++sit1) {
+        for (pit1 = (*sit1)->begin(); pit1 != (*sit1)->end(); ++pit1) {
+            (*pit1)->Depolarize();
+        }
+    }    
+    // Add screened field contribution from QM0
+    LOG(logDEBUG,*_log) << "  o Add screened field contribution (QM0)" << flush;
+    for (sit1 = _mg_N.begin(); sit1 != _mg_N.end(); ++sit1) {
+        for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+            for (sit2 = _polar_qm0.begin(); sit2 != _polar_qm0.end(); ++sit2) {
+                for (pit2 = (*sit2)->begin(); pit2 != (*sit2)->end(); ++pit2) {
+                    _actor.BiasStat(*(*pit1), *(*pit2));
+                    _actor.FieldPerm_At_By(*(*pit1), *(*pit2), _polar_radial_corr_epsilon);
+                }
+            }
+        }
+    }    
+    // Induce
+    LOG(logDEBUG,*_log) << "  o Induce (direct)" << flush;
+    for (sit1 = _mg_N.begin(); sit1 != _mg_N.end(); ++sit1) {
+        for (pit1 = (*sit1)->begin(); pit1 != (*sit1)->end(); ++pit1) {
+            (*pit1)->InduceDirect();
+        }
+    }    
+    // Evaluate Energy
+    LOG(logDEBUG,*_log) << "  o Evaluate stabilization energy" << flush;
+    _polar_ERC = 0.0;
+    for (sit1 = _mg_N.begin(); sit1 != _mg_N.end(); ++sit1) {
+        for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+            for (sit2 = _polar_qm0.begin(); sit2 != _polar_qm0.end(); ++sit2) {
+                for (pit2 = (*sit2)->begin(); pit2 != (*sit2)->end(); ++pit2) {
+                    _actor.BiasStat(*(*pit1), *(*pit2));
+                    _polar_ERC += _actor.EnergyInter_Indu_Perm(*(*pit1), *(*pit2));
+                }
+            }
+        }
+    }
+    _polar_ERC *= EWD::int2eV;
+    LOG(logINFO,*_log) << "=> ERC = " << _polar_ERC << "eV" << flush;
     return;
 }
 
@@ -1174,6 +1424,9 @@ Property Ewald3DnD::GenerateOutputString() {
     next->add("J-pp-pu-uu", (format("%1$+1.5e = %2$+1.5e %3$+1.5e %4$+1.5e") % _EJ.Sum() % _EJ._pp % _EJ._pu % _EJ._uu).str());
     next->add("C-pp-pu-uu", (format("%1$+1.5e = %2$+1.5e %3$+1.5e %4$+1.5e") % _EC.Sum() % _EC._pp % _EC._pu % _EC._uu).str());
     next->add("Q-pp-pu-uu", (format("%1$+1.5e = %2$+1.5e %3$+1.5e %4$+1.5e") % _EDQ.Sum() % _EDQ._pp % _EDQ._pu % _EDQ._uu).str());
+    
+    next = &out.add("terms_c", "");
+    next->add("radial_corr", (format("%1$+1.7e") % _polar_ERC).str());
     
     next = &out.add("shells", "");
     next->add("FGC", (format("%1$d") % _fg_C.size()).str());
