@@ -74,6 +74,7 @@ public:
    void     setRate21(double rate, int state);
    double   getRate12(int state);
    double   getRate21(int state);
+   vec      getR();
 
    void     setJs(const vector <double> Js, int state);
    double   calcJeff2(int state);

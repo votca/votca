@@ -77,6 +77,12 @@ double QMPair::getRate21(int carrier) {
 
 }
 
+vec QMPair::getR() {
+
+    return _R;
+}
+
+
 void QMPair::setLambdaO(double lO, int state) {
 
     if (state == -1) {
