@@ -161,8 +161,6 @@ void IAnalyze::IRdependence(Topology *top, int state) {
     }
     
     // Prepare R bins
-    // int _pointsR = 20;
-    // double _resolutionR = (MAXR-MINR)/_pointsR ;
     int _pointsR = (MAXR-MINR)/_resolution_space;
     vector< vector<double> > rJ2;
     rJ2.resize(_pointsR);
