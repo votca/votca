@@ -83,16 +83,19 @@ void IAnalyze::IHist(Topology *top, int state) {
 
     double MIN = log10(nblist.front()->getJeff2(state));
     double MAX = log10(nblist.front()->getJeff2(state));
-
+    
     // Collect J2s from pairs
     vector< double > J2s;
     J2s.reserve(nblist.size());
 
     for (nit = nblist.begin(); nit != nblist.end(); ++nit) {
         double J2 = log10((*nit)->getJeff2(state));
-
+        
+        if(J2 < -10) {break;} // avoid -inf in output
         MIN = (J2 < MIN) ? J2 : MIN;
         MAX = (J2 > MAX) ? J2 : MAX;
+        
+        
 
         J2s.push_back(J2);
     }

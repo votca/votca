@@ -168,7 +168,7 @@ void PAnalyze::SiteConnection(Topology *top) {
     }
 
     // Prepare R bins
-    int _pointsR = (MAXR-MINR)/_resolution_space +1;
+    int _pointsR = ((MAXR-MINR)/_resolution_space+0.5) +1;
     cout << "... ... minimal R: " << MINR << " nm" << endl;
     cout << "... ... maximal R: " << MAXR << " nm" << endl;
     cout << "... ... R points:  " << _pointsR << endl;
@@ -222,7 +222,8 @@ void PAnalyze::SiteConnection(Topology *top) {
         }
         // cout << thisMINR << "    " << Rprobability[j] << endl;
     }
-    Rprobability[Rprobability.size()-1]=0;
+    
+    Rprobability.push_back(0);
     
     cout << endl << "... ... Done with evaluation. Now writing output files.";
 
@@ -231,7 +232,7 @@ void PAnalyze::SiteConnection(Topology *top) {
     out = fopen(tag.c_str(), "w");
 
     fprintf(out, "# PANALYZE: CONNECTION PROBABILITY DEPENDING ON CENTRE-OF-MASS DISTANCE. \n");
-    for (int j = 0; j < _pointsR; ++j) {
+    for (int j = 0; j < _pointsR+1; ++j) {
         double thisMINR = MINR + (j+0.5)*_resolution_space;
         fprintf(out, "%4.7f %4.7f \n", thisMINR, Rprobability[j]);
     }
