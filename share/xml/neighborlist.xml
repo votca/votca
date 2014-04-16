@@ -9,6 +9,7 @@
 		<cutoff help="Cutoff radius for centers of mass of rigid fragments" unit="nm">1.0</cutoff>
 	</segments>
 
+        <probabilityfile default="panalyze.distanceprobability.out" help="For coarse grained simulations provide here a probability function for the site connection. This file can be created using the panalyze calculator.">panalyze.distanceprobability.out</probabilityfile>
 </neighborlist>
 
 </options>
