@@ -232,7 +232,7 @@ void PAnalyze::SiteConnection(Topology *top) {
 
     fprintf(out, "# PANALYZE: CONNECTION PROBABILITY DEPENDING ON CENTRE-OF-MASS DISTANCE. \n");
     for (int j = 0; j < _pointsR; ++j) {
-        double thisMINR = MINR + j*_resolution_space;
+        double thisMINR = MINR + (j+0.5)*_resolution_space;
         fprintf(out, "%4.7f %4.7f \n", thisMINR, Rprobability[j]);
     }
     fclose(out);
