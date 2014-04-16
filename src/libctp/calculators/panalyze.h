@@ -159,18 +159,6 @@ void PAnalyze::SiteConnection(Topology *top) {
     vector <Segment*>::iterator seg2;
     
     // get MINR and MAXR
-//    
-//    double MINR = abs(nblist.front()->getR());
-//    double MAXR = abs(nblist.front()->getR());
-//    for (seg1 = segments.begin(); seg1!= segments.end(); seg1++){
-//        for (seg2 = seg1; seg2!= segments.end(); seg2++){ // for (seg2 = segments.begin(); seg2!= segments.end(); seg2++)
-//            vec r1 = (*seg1)->getPos();
-//            vec r2 = (*seg2)->getPos();
-//            double distance = abs( top->PbShortestConnect(r1, r2));
-//            MINR = (distance < MINR) ? distance : MINR;
-//            MAXR = (distance > MAXR) ? distance : MAXR;
-//        }
-//    }
     double MINR = abs(nblist.front()->getR());
     double MAXR = abs(nblist.front()->getR());
     for (nit = nblist.begin(); nit != nblist.end(); ++nit) {
