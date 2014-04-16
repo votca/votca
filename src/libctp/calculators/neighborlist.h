@@ -363,7 +363,6 @@ void Neighborlist::StochasticConnectivity(Topology *top, string filename) {
             }
             linenumber++;
         }
-        cout << endl << "... ... MINR = " << distances[0] << ", MAXR = " << distances[distances.size()-1] << endl;
     }
     else { cout << endl << "ERROR: No such file " << filename << endl;
            throw std::runtime_error("Supply input file."); }
