@@ -159,19 +159,28 @@ void PAnalyze::SiteConnection(Topology *top) {
     vector <Segment*>::iterator seg2;
     
     // get MINR and MAXR
+//    
+//    double MINR = abs(nblist.front()->getR());
+//    double MAXR = abs(nblist.front()->getR());
+//    for (seg1 = segments.begin(); seg1!= segments.end(); seg1++){
+//        for (seg2 = seg1; seg2!= segments.end(); seg2++){ // for (seg2 = segments.begin(); seg2!= segments.end(); seg2++)
+//            vec r1 = (*seg1)->getPos();
+//            vec r2 = (*seg2)->getPos();
+//            double distance = abs( top->PbShortestConnect(r1, r2));
+//            MINR = (distance < MINR) ? distance : MINR;
+//            MAXR = (distance > MAXR) ? distance : MAXR;
+//        }
+//    }
     double MINR = abs(nblist.front()->getR());
     double MAXR = abs(nblist.front()->getR());
-    for (seg1 = segments.begin(); seg1!= segments.end(); seg1++){
-        for (seg2 = seg1; seg2!= segments.end(); seg2++){ // for (seg2 = segments.begin(); seg2!= segments.end(); seg2++)
-            vec r1 = (*seg1)->getPos();
-            vec r2 = (*seg2)->getPos();
-            double distance = abs( top->PbShortestConnect(r1, r2));
-            MINR = (distance < MINR) ? distance : MINR;
-            MAXR = (distance > MAXR) ? distance : MAXR;
-        }
+    for (nit = nblist.begin(); nit != nblist.end(); ++nit) {
+    double distance = abs((*nit)->getR());
+    MINR = (distance < MINR) ? distance : MINR;
+    MAXR = (distance > MAXR) ? distance : MAXR;
     }
+
     // Prepare R bins
-    int _pointsR = (MAXR-MINR)/_resolution_space;
+    int _pointsR = (MAXR-MINR)/_resolution_space +1;
     cout << "... ... minimal R: " << MINR << " nm" << endl;
     cout << "... ... maximal R: " << MAXR << " nm" << endl;
     cout << "... ... R points:  " << _pointsR << endl;
@@ -188,23 +197,25 @@ void PAnalyze::SiteConnection(Topology *top) {
         cout << "\r... ... ..." << " checking segment ID = "
              << (*seg1)->getId() << flush;
 
-        for (seg2 = segments.begin(); seg2!= segments.end(); seg2++){
+        for (seg2 = seg1; seg2!= segments.end(); seg2++){ // for (seg2 = segments.begin(); seg2!= segments.end(); seg2++):q
             vec r1 = (*seg1)->getPos();
             vec r2 = (*seg2)->getPos();
             double distance = abs( top->PbShortestConnect(r1, r2));
-            int inpairlist = 0;
-            vector< vector<int> >::iterator thissegids;
-            for(int i = 0; i<segids.size(); i++){
-                if(((*seg1)->getId()==segids[i][0] && (*seg2)->getId() == segids[i][1]) || ((*seg1)->getId()==segids[i][1] && (*seg2)->getId() == segids[i][2])){
-                    inpairlist = 1;
-                    break;
+            if(MINR <= distance && distance <= MAXR){
+                int inpairlist = 0;
+                vector< vector<int> >::iterator thissegids;
+                for(int i = 0; i<segids.size(); i++){
+                    if(((*seg1)->getId()==segids[i][0] && (*seg2)->getId() == segids[i][1]) || ((*seg1)->getId()==segids[i][1] && (*seg2)->getId() == segids[i][2])){
+                        inpairlist = 1;
+                        break;
+                    }
                 }
-            }
-            int j = floor((distance-MINR)/_resolution_space);
-            if(j < 0 || j > _pointsR) {cout << "WARNING: R bins seem incorrect. This should not happen. r = " << distance << ", j = " << j; break;}
-            Rtotal[j] ++;
-            if(inpairlist == 1){
-                Rconnected[j] ++;
+                int j = floor((distance-MINR)/_resolution_space);
+                if(j < 0 || j > _pointsR) {cout << "WARNING: R bins seem incorrect. This should not happen. r = " << distance << ", j = " << j; break;}
+                Rtotal[j] ++;
+                if(inpairlist == 1){
+                    Rconnected[j] ++;
+                }
             }
         }
         
@@ -215,10 +226,15 @@ void PAnalyze::SiteConnection(Topology *top) {
     // evaluate connection probability function
     for (int j = 0; j< _pointsR; ++j){
         double thisMINR = MINR + j*_resolution_space;
-        Rprobability[j] = Rconnected[j] / Rtotal[j];
-        cout << thisMINR << "    " << Rprobability[j] << endl;
+        if(Rconnected[j] == 0) {
+            Rprobability[j]=0;
+        }
+        else{
+            Rprobability[j] = Rconnected[j] / Rtotal[j];
+        }
+        // cout << thisMINR << "    " << Rprobability[j] << endl;
     }
-    
+    Rprobability[Rprobability.size()-1]=0;
     
     cout << endl << " ... ... Done with evaluation. Now writing output files.";
 
