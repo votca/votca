@@ -224,7 +224,7 @@ void PAnalyze::SiteConnection(Topology *top) {
     }
     Rprobability[Rprobability.size()-1]=0;
     
-    cout << endl << " ... ... Done with evaluation. Now writing output files.";
+    cout << endl << "... ... Done with evaluation. Now writing output files.";
 
     FILE *out;
     string tag = boost::lexical_cast<string>("panalyze.distanceprobability.out");
