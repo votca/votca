@@ -15,16 +15,34 @@
 # limitations under the License.
 #
 
-if [ "$1" = "--help" ]; then
+if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
-postadd copyback script, copies files back to the maindir
+This script makes all the post update with backup for single pairs incl. backups
 
 Usage: ${0##*/}
 EOF
    exit 0
 fi
 
-filelist=$(csg_get_interaction_property inverse.post_add_options.copyback.filelist)
-echo "${0##*/}: copy $filelist to $(get_main_dir)"
-critical cp $filelist $(get_main_dir)
+name=$(csg_get_interaction_property name)
+
+#could be done by a overwrite somewhere
+is_done "post_update-$name" && exit 0
+
+tasklist=$(csg_get_interaction_property --allow-empty inverse.post_update)
+[[ -n $tasklist ]] && msg "Postupd tasks for $name: $tasklist"
+i=1
+#after all other task shift dpot
+for task in $tasklist shift; do
+  echo "Doing postupd task '$task' for '${name}'"
+
+  #save the current one
+  critical mv "${name}.pot.new" "${name}.pot.${i}"
+
+  #perform postupd task
+  do_external postupd "$task" "${name}.pot.${i}" "${name}.pot.new"
+
+  ((i++))
+done
+mark_done "post_update-$name"

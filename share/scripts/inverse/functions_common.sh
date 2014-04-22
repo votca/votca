@@ -28,6 +28,10 @@ echo
 exit 0
 fi
 
+export BASH #need in CsgFunctions.pm
+
+shopt -s extglob
+
 msg() { #echos a msg on the screen and send it to the logfile if logging is enabled
   local color colors="blue cyan cyann green red purp"
   if [[ -z ${CSGNOCOLOR} ]]; then
@@ -78,7 +82,7 @@ show_callstack() { #show the current callstack
   else
     space=""
   fi
-  [[ $0 = "bash" ]] || echo "${space}${0} - linenumber ${BASH_LINENO[ $(( ${#FUNCNAME[@]} -2 ))]}"
+  [[ $0 = *"bash" ]] || echo "${space}${0} - linenumber ${BASH_LINENO[ $(( ${#FUNCNAME[@]} -2 ))]}"
   for ((c=${#FUNCNAME[*]}-1;c>0;c--)); do
     [[ ${FUNCNAME[$c]} = main ]] && continue #main is useless as the info was printed 2 lines above
     space+="    "
@@ -158,7 +162,7 @@ do_external() { #takes two tags, find the according script and excute it
   #print this message to stderr to allow $(do_external ) and do_external XX > 
   [[ $quiet = "no" ]] && echo "Running subscript '${script##*/}${3:+ }${@:3}' (from tags $tags) dir ${script%/*}" >&2
   if [[ -n $CSGDEBUG ]] && [[ $1 = "function" || -n "$(sed -n '1s@bash@XXX@p' "${script/ *}")" ]]; then
-    CSG_CALLSTACK="$(show_callstack)" bash -x $script "${@:3}"
+    CSG_CALLSTACK="$(show_callstack)" "${BASH}" -x $script "${@:3}"
   elif [[ -n $CSGDEBUG && -n "$(sed -n '1s@perl@XXX@p' "${script/ *}")" ]]; then
     local perl_debug="$(mktemp perl_debug.XXX)" ret
     PERLDB_OPTS="NonStop=1 AutoTrace=1 frame=2 LineInfo=$perl_debug" perl -dS $script "${@:3}"
@@ -184,7 +188,7 @@ critical() { #executes arguments as command and calls die if not succesful
 export -f critical
 
 for_all (){ #do something for all interactions (1st argument)
-  local bondtypes type name interactions quiet="no"
+  local bondtype ibondtype rbondtype bondtypes name interactions quiet="no"
   [[ $1 = "-q" ]] && quiet="yes" && shift
   [[ -z $1 || -z $2 ]] && die "${FUNCNAME[0]}: need at least two arguments"
   bondtypes="$1"
@@ -195,19 +199,26 @@ for_all (){ #do something for all interactions (1st argument)
   name=$(has_duplicate "${interactions[@]}") && die "${FUNCNAME[0]}: interaction name $name appears twice"
   for bondtype in $bondtypes; do
     #check that type is bonded or non-bonded
-    [[ $bondtype = "non-bonded" || $bondtype = "bonded" ]] || die  "for_all: Argument 1 is not non-bonded or bonded"
+    is_part "$bondtype" "non-bonded bonded angle bond dihedral" || die  "for_all: Argument 1 needs to be non-bonded, bonded, angle, bond or dihedral"
     [[ $quiet = "no" ]] && echo "For all $bondtype" >&2
-    interactions=( $(csg_get_property --allow-empty cg.$bondtype.name) ) #filter me away
+    #internal bondtype
+    is_part "$bondtype" "angle bond dihedral bonded" && ibondtype="bonded" || ibondtype="non-bonded"
+    interactions=( $(csg_get_property --allow-empty cg.$ibondtype.name) ) #filter me away
     for name in "${interactions[@]}"; do
+      #check if interaction is actually angle, bond or dihedral
+      if is_part "$bondtype" "angle bond dihedral"; then
+	rbondtype=$(bondtype="$ibondtype" bondname="$name" csg_get_interaction_property bondtype)
+	[[ $rbondtype = $bondtype ]] || continue
+      fi
       #print this message to stderr to avoid problem with $(for_all something)
-      [[ $quiet = no ]] && echo "for_all: run '$*'" >&2
+      [[ $quiet = no ]] && echo "for_all: run '$*' for interaction named '$name'" >&2
       #we need to use bash -c here to allow things like $(csg_get_interaction_property name) in arguments
       #write variable defines in the front is better, that export
       #no need to run unset afterwards
-      bondtype="$bondtype" \
+      bondtype="$ibondtype" \
       bondname="$name" \
       CSG_CALLSTACK="$(show_callstack)" \
-      bash -c "$*" || die "${FUNCNAME[0]}: bash -c '$*' failed for bondname '$name'"
+      "${BASH}" -c "$*" || die "${FUNCNAME[0]}: ${BASH} -c '$*' failed for interaction named '$name'"
     done
   done
 }
@@ -291,14 +302,17 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
   ret="$(csg_property --file $CSGXMLFILE --short --path cg.${xmltype} --filter name=$bondname --print $1 | trim_all)"
   #overwrite with function call value
   [[ -z $ret && -n $2 ]] && ret="$2"
+  [[ -z $ret ]] && echo "${FUNCNAME[0]}: No value for '$1' found in $CSGXMLFILE, trying $VOTCASHARE/xml/csg_defaults.xml" >&2
   # if still empty fetch it from defaults file
   if [[ -z $ret && -f $VOTCASHARE/xml/csg_defaults.xml ]]; then
     ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --short --path cg.${xmltype}.$1 --print . | trim_all)"
     [[ $allow_empty = "yes" && -n "$res" ]] && msg "WARNING: '${FUNCNAME[0]} $1' was called with --allow-empty, but a default was found in '$VOTCASHARE/xml/csg_defaults.xml'"
     #from time to time the default is only given in the non-bonded section
     [[ -z $ret ]] && ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --short --path cg.non-bonded.$1 --print . | trim_all)"
+    [[ -n $ret ]] && echo "${FUNCNAME[0]}: value for '$1' from $VOTCASHARE/xml/csg_defaults.xml: $ret" >&2
   fi
   [[ $allow_empty = "no" && -z $ret ]] && die "${FUNCNAME[0]}: Could not get '$1' for interaction with name '$bondname' from ${CSGXMLFILE} and no default was found in $VOTCASHARE/xml/csg_defaults.xml"
+  [[ -z $ret ]] && echo "${FUNCNAME[0]}: returning emtpy value for '$1'" >&2
   echo "${ret}"
 }
 export -f csg_get_interaction_property
@@ -319,18 +333,23 @@ csg_get_property () { #get an property from the xml file
   ret="$(critical -q csg_property --file $CSGXMLFILE --path ${1} --short --print . | trim_all)"
   #overwrite with function call value
   [[ -z $ret && -n $2 ]] && ret="$2"
+  [[ -z $ret ]] && echo "${FUNCNAME[0]}: No value for '$1' found in $CSGXMLFILE, trying $VOTCASHARE/xml/csg_defaults.xml" >&2
   #if still empty fetch it from defaults file
   if [[ -z $ret && -f $VOTCASHARE/xml/csg_defaults.xml ]]; then
     ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --path "${1}" --short --print . | trim_all)"
     [[ $allow_empty = "yes" && -n "$res" ]] && msg "WARNING: '${FUNCNAME[0]} $1' was called with --allow-empty, but a default was found in '$VOTCASHARE/xml/csg_defaults.xml'"
-    local sim_prog="$(csg_get_property cg.inverse.program)" #no problem to call recursively as sim_prog has a default
+    #avoid endless recursion
+    [[ $1 = cg.inverse.program && -n $ret ]] || sim_prog="$ret" \
+      sim_prog="$(csg_get_property cg.inverse.program)" #no problem to call recursively as sim_prog has a default
     if [[ -z $ret ]] && [[ $1 = *${sim_prog}* ]]; then
       local path=${1/${sim_prog}/sim_prog}
       ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --path "${path}" --short --print . | trim_all)"
     fi
+    [[ -n $ret ]] && echo "${FUNCNAME[0]}: value for '$1' from $VOTCASHARE/xml/csg_defaults.xml: $ret" >&2
     [[ $allow_empty = "yes" && -n "$res" ]] && msg "WARNING: '${FUNCNAME[0]} $1' was called with --allow-empty, but a default was found in '$VOTCASHARE/xml/csg_defaults.xml'"
   fi
   [[ $allow_empty = "no" && -z $ret ]] && die "${FUNCNAME[0]}: Could not get '$1' from ${CSGXMLFILE} and no default was found in $VOTCASHARE/xml/csg_defaults.xml"
+  [[ -z $ret ]] && echo "${FUNCNAME[0]}: returning emtpy value for '$1'" >&2
   echo "${ret}"
 }
 export -f csg_get_property
@@ -487,19 +506,17 @@ get_step_nr() { #print the number of a certain step directory (1st argument)
 export -f get_step_nr
 
 cp_from_main_dir() { #copy something from the main directory
+  critical pushd "$(get_main_dir)"
   if [[ $1 = "--rename" ]]; then
     shift
     [[ $# -eq 2 && -n $1 && -n $2 ]] || die "${FUNCNAME[0]}: with --rename option has to be called with exactly 2 (non-empty) arguments"
     echo "cp_from_main_dir: '$1' to '$2'"
-    critical pushd "$(get_main_dir)"
     critical cp $1 "$(dirs -l +1)/$2"
-    critical popd
   else
     echo "cp_from_main_dir: '$@'"
-    critical pushd "$(get_main_dir)"
     critical cp $@ "$(dirs -l +1)"
-    critical popd
   fi
+  critical popd
 }
 export -f cp_from_main_dir
 
@@ -562,7 +579,7 @@ export -f get_table_comment
 csg_inverse_clean() { #clean out the main directory 
   local i files log t
   [[ -n $1 ]] && t="$1" || t="30"
-  log="$(csg_get_property cg.inverse.log_file)"
+  log="$(csg_get_property cg.inverse.log_file 2>/dev/null)"
   echo -e "So, you want to clean?\n"
   echo "I will remove:"
   files="$(ls -d done ${log} $(get_stepname --trunc)* *~ 2>/dev/null)"
@@ -804,7 +821,7 @@ fi
 enable_logging() { #enables the logging to a certain file (1st argument) or the logfile taken from the xml file
   local log
   if [[ -z $1 ]]; then
-    log="$(csg_get_property cg.inverse.log_file)"
+    log="$(csg_get_property cg.inverse.log_file 2>/dev/null)"
   else
     log="$1"
   fi

@@ -15,19 +15,38 @@
  *
  */
 
-#ifndef _ESPTRAJECTORYREADER_H
-#define	_ESPTRAJECTORYREADER_H
+#ifndef _VOTCA_CSG_GROREADER_H
+#define	_VOTCA_CSG_GROREADER_H
 
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <votca/csg/topologyreader.h>
 #include <votca/csg/trajectoryreader.h>
 
 namespace votca { namespace csg {
+using namespace votca::tools;
 
 using namespace std;
+    
+/**
+    \brief reader for gro files
 
-class ESPTrajectoryReader : public TrajectoryReader
+    This class provides the TrajectoryReader + Topology reader interface
+    for gro files
+
+*/
+class GROReader :
+    public TrajectoryReader, public TopologyReader
 {
-    public:        
-        /// open a trajectory file
+    public:
+        GROReader() {}
+        ~GROReader() {}
+
+        /// open a topology file
+        bool ReadTopology(string file, Topology &top);
+
+        /// open a trejectory file
         bool Open(const string &file);
         /// read in the first frame
         bool FirstFrame(Topology &top);
@@ -35,15 +54,13 @@ class ESPTrajectoryReader : public TrajectoryReader
         bool NextFrame(Topology &top);
 
         void Close();
-        
-        TrajectoryReader *Clone() { return dynamic_cast<TrajectoryReader*>(new ESPTrajectoryReader()); }
 
     private:
-        string _fl;
-				string _temp_nextframe;				
+        ifstream _fl;
+        bool _topology;
 };
 
 }}
 
-#endif	/* _ESPTRAJECTORYREADER_H */
+#endif	/* _VOTCA_CSG_GROREADER_H */
 

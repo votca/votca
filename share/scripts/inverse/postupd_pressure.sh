@@ -41,7 +41,7 @@ max=$(csg_get_interaction_property max)
 step=$(csg_get_interaction_property step)
 
 p_file="${name}.pressure"
-do_external pressure "$sim_prog" "$p_file" 
+do_external pressure "$sim_prog" "$p_file"
 p_now="$(sed -n 's/^Pressure=\(.*\)/\1/p' "$p_file")" || die "${0##*/}: sed of Pressure failed"
 [[ -z $p_now ]] && die "${0##*/}: Could not get pressure from simulation"
 echo "New pressure $p_now"

@@ -22,14 +22,11 @@ postadd convergence script, calcs norm of error (\${name}.DIST.BASE-\${name}.DIS
 and saves it to \${name}.conv.
 DIST stands for 'dist', but can be changed by onvergence.what option
 
-usage: ${0##*/} infile outfile
+usage: ${0##*/}
 EOF
    exit 0
 fi
 
-[[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
-
-do_external postadd dummy "$1" "$2"
 if [[ $(csg_get_property cg.inverse.method) = "optimizer" ]]; then
   msg "WARNING: postadd convergency make no sense for method optimizer as convergency is calculated anyway - skipping"
   exit 0

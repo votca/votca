@@ -16,6 +16,9 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
   #Release comes with -O3 by default
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
+if(CMAKE_BUILD_TYPE STREQUAL Debug)
+  add_definitions(-DDEBUG)
+endif(CMAKE_BUILD_TYPE STREQUAL Debug)
 
 enable_language(CXX)
 
@@ -58,11 +61,14 @@ else (BUILD_MANPAGES)
   set(TXT2TAGS_FOUND)
 endif (BUILD_MANPAGES)
 
-find_package(Boost 1.39.0 REQUIRED COMPONENTS program_options )
+find_package(Boost 1.42.0 REQUIRED COMPONENTS program_options)
 include_directories(${Boost_INCLUDE_DIRS})
-set (BOOST_LIBRARIES ${Boost_PROGRAM_OPTIONS_LIBRARY})
 set (BOOST_CFLAGS_PKG "-I${Boost_INCLUDE_DIRS}")
-string(REGEX REPLACE "^(.*)/lib([^/]*)\\.[^.]*$" "-L\\1 -l\\2" BOOST_LIBS_PKG ${BOOST_LIBRARIES})
+set(BOOST_LIBS_PKG "-L${Boost_LIBRARY_DIRS}")
+foreach(_blib ${Boost_LIBRARIES})
+  string(REGEX REPLACE ".*/lib([^/]*)\\.[^.]*$" "-l\\1" _blib ${_blib})
+  set(BOOST_LIBS_PKG "${BOOST_LIBS_PKG} ${_blib}")
+endforeach(_blib)
 
 find_package(VOTCA_TOOLS REQUIRED)
 include_directories(${VOTCA_TOOLS_INCLUDE_DIRS})

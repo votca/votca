@@ -95,6 +95,13 @@ if [[ $(csg_get_property cg.inverse.gromacs.pre_simulation) = "yes" && $1 != "--
   msg "Doing main simulation"
 fi
 
+#support for older mdp file, cutoff-scheme = Verlet is default for Gromacs 5.0, but does not work with tabulated interactions
+#XXX is returned if cutoff-scheme is not in mdp file
+if [[ $(critical $grompp -h 2>&1) = *"VERSION 5.0"* && $(get_simulation_setting cutoff-scheme XXX) = XXX ]]; then
+  echo "cutoff-scheme = Group" >> $mdp
+  msg --color blue --to-stderr "Automatically added 'cutoff-scheme = Group' to $mdp, tabulated interactions only work with Group cutoff-scheme!"
+fi
+
 #see can run grompp again as checksum of tpr does not appear in the checkpoint
 critical $grompp -n "${index}" -f "${mdp}" -p "$topol_in" -o "$tpr" -c "${conf}" ${grompp_opts} 2>&1 | gromacs_log "$grompp -n "${index}" -f "${mdp}" -p "$topol_in" -o "$tpr" -c "${conf}" ${grompp_opts}"
 [[ -f $tpr ]] || die "${0##*/}: gromacs tpr file '$tpr' not found after runing grompp"

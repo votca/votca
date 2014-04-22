@@ -49,6 +49,28 @@ int main(int argc, char** argv)
 bool CsgDumpApp::EvaluateTopology(Topology *top, Topology *top_ref)
 {
     if(!OptionsMap().count("excl")) {
+        cout << "Boundary Condition: ";
+	if(top->getBoxType()==BoundaryCondition::typeAuto) {
+	  cout << "auto";
+	} else if (top->getBoxType()==BoundaryCondition::typeTriclinic) {
+	  cout << "triclinic";
+	} else if (top->getBoxType()==BoundaryCondition::typeOrthorhombic) {
+	  cout << "orthorhombic";
+	} else if (top->getBoxType()==BoundaryCondition::typeOpen) {
+	  cout << "open";
+	}
+	cout << endl;
+	if (top->getBoxType()!=BoundaryCondition::typeOpen) {
+	  cout << " Box matix:";
+	  matrix box=top->getBox();
+	  for (int i=0;i<3;i++){
+	    for (int j=0;j<3;j++){
+	      cout << " " << box[i][j];
+	    }
+	    cout << endl << "           ";
+	  }
+	}
+
         cout << "\nList of molecules:\n";
         MoleculeContainer::iterator mol;
         for (mol = top->Molecules().begin(); mol != top->Molecules().end(); ++mol) {

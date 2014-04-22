@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2013 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef __VOTCA_CSG_XYZREADER_H
-#define	__VOTCA_CSG_XYZREADER_H
+#ifndef __VOTCA_CSG_PDBREADER_H
+#define	__VOTCA_CSG_PDBREADER_H
 
 #include <string>
 #include <iostream>
@@ -30,18 +30,18 @@ using namespace votca::tools;
 using namespace std;
 
 /**
-    \brief class for reading xyz files
+    \brief class for reading pdb files
 
     This class provides the TrajectoryReader + Topology reader interface
-    for xyz files
+    for pdb files
 
 */
-class XYZReader :
+class PDBReader :
     public TrajectoryReader, public TopologyReader
 {
     public:
-        XYZReader() {}
-        ~XYZReader() {}
+        PDBReader() {}
+        ~PDBReader() {}
 
         /// open a topology file
         bool ReadTopology(string file, Topology &top);
@@ -58,12 +58,8 @@ class XYZReader :
     private:
         ifstream _fl;
         bool _topology;
-        int _natoms;
-
-        int _line;
 };
 
 }}
 
-#endif
-
+#endif // __VOTCA_CSG_PDBREADER_H

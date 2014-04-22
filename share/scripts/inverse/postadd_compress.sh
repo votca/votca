@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2014 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,17 +18,19 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-postadd dummy script (cp infile to outfile), useful to overwrite default by nothing
+postadd compress script, compresses files
 
-Usage: ${0##*/} infile outfile
+Usage: ${0##*/}
 EOF
    exit 0
 fi
 
-[[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
-
-[[ -f $2 ]] && die "${0##*/}: $2 is already there"
-
-critical cp $1 $2
-
-exit 0
+packer=$(csg_get_interaction_property inverse.post_add_options.compress.program)
+[[ -n "$(type -p $packer)" ]] || die "${0##*/}: packer binary '$packer' not found"
+opts=$(csg_get_interaction_property --allow-empty inverse.post_add_options.compress.program_opts)
+filelist=$(csg_get_interaction_property inverse.post_add_options.compress.filelist)
+for i in $filelist; do
+  [[ -f $i ]] || die "${0##*/}: $i don't exist"
+  echo "${0##*/}: compressing $i"
+  critical "${packer}" ${opts} "${i}"
+done

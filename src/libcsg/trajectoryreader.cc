@@ -20,27 +20,30 @@
 #endif
 
 #include <votca/csg/trajectoryreader.h>
-#include "modules/io/esptrajectoryreader.h"
 #include "modules/io/lammpsreader.h"
 #include "modules/io/xyzreader.h"
 
 #ifdef GMX
 #include "modules/io/gmxtrajectoryreader.h"
 #endif
+#include "modules/io/groreader.h"
+#include "modules/io/pdbreader.h"
+#include "modules/io/dlpolytrajectoryreader.h"
 
 namespace votca { namespace csg {
 
 void TrajectoryReader::RegisterPlugins(void)
 {
-    TrjReaderFactory().Register<ESPTrajectoryReader>("esp");
     TrjReaderFactory().Register<LAMMPSReader>("dump");
     TrjReaderFactory().Register<XYZReader>("xyz");
 #ifdef GMX
     TrjReaderFactory().Register<GMXTrajectoryReader>("trr");
     TrjReaderFactory().Register<GMXTrajectoryReader>("xtc");
-    TrjReaderFactory().Register<GMXTrajectoryReader>("gro");
-    TrjReaderFactory().Register<GMXTrajectoryReader>("pdb");
 #endif
+    TrjReaderFactory().Register<GROReader>("gro");
+    TrjReaderFactory().Register<PDBReader>("pdb");
+    TrjReaderFactory().Register<DLPOLYTrajectoryReader>("dlph");
+    TrjReaderFactory().Register<DLPOLYTrajectoryReader>("dlpc");
 }
 
 }}

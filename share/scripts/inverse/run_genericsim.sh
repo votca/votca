@@ -36,16 +36,13 @@ opts=$(csg_get_property --allow-empty cg.inverse.$sim_prog.opts)
 #expand ${script} in there
 opts="$(eval echo $opts)"
 
-# trajectory file
-traj="$(csg_get_property cg.inverse.$sim_prog.traj)"
-
 if [[ -n $CSGENDING ]]; then
   echo "${0##*/}: $sim_prog does not support wallclock time yet (go here and implement it). Per step wallclock time check is still performed!"
 fi
 
 method="$(csg_get_property cg.inverse.method)"
 shopt -s extglob
-[[ $method = @(ibi|imc|optimizer|re) ]] || die "${0##*/}: ${sim_prog} does not support method $method yet!"
+is_part "$method" "ibi imc optimizer re" || die "${0##*/}: ${sim_prog} does not support method $method yet!"
 
 critical $cmd ${opts}
 

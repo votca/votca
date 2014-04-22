@@ -25,7 +25,7 @@ Usage: ${0##*/} [OPTIONS] --options settings.xml [clean]
 
 Allowed options:
 -h, --help                    show this help
--N, --do-iterations N         only do N iterations
+-N, --do-iterations N         only do N iterations (ignoring settings.xml)
     --wall-time SEK           Set wall clock time
     --options FILE            Specify the options xml file to use
     --debug                   enable debug mode with a lot of information
@@ -118,18 +118,6 @@ sim_prog="$(csg_get_property cg.inverse.program)"
 echo "We are using Sim Program: $sim_prog"
 source_function $sim_prog
 
-iterations_max="$(csg_get_property cg.inverse.iterations_max)"
-is_int "$iterations_max" || die "inverse.sh: cg.inverse.iterations_max needs to be a number, but I got $iterations_max"
-echo "We are doing $iterations_max iterations (0=inf)."
-convergence_check="$(csg_get_property cg.inverse.convergence_check.type)"
-[[ $convergence_check = none ]] || echo "After every iteration we will do the following check: $convergence_check"
-
-filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
-[[ -z $filelist ]] || echo "We extra cp '$filelist' to every step to run the simulation"
-
-cleanlist="$(csg_get_property --allow-empty cg.inverse.cleanlist)"
-[[ -z $cleanlist ]] || echo "We extra clean '$cleanlist' after a step is done"
-
 scriptpath="$(csg_get_property --allow-empty cg.inverse.scriptpath)"
 [[ -n $scriptpath ]] && echo "Adding $scriptpath to csgshare" && add_to_csgshare "$scriptpath"
 
@@ -160,8 +148,9 @@ else
   if is_done "Prepare"; then
     msg "Prepare of potentials already done"
   else
+    filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
     #get need files (leave the " " unglob happens inside the function)
-    cp_from_main_dir "$filelist"
+    [[ -n ${filelist} ]] && cp_from_main_dir "$filelist"
 
     do_external prepare $method
     mark_done "Prepare"
@@ -189,9 +178,15 @@ unset nr trunc
 
 avg_steptime=0
 steps_done=0
-[[ $iterations_max -eq 0 ]] && iterations=$begin || iterations=$iterations_max
-for ((i=$begin;i<$iterations+1;i++)); do
-  [[ $iterations_max -eq 0 ]] && ((iterations++))
+i="$(( $begin - 1 ))"
+while true; do
+  ((i++))
+  if [[ -z ${do_iterations} ]]; then
+    iterations_max="$(csg_get_property cg.inverse.iterations_max)"
+    is_int "$iterations_max" || die "inverse.sh: cg.inverse.iterations_max needs to be a number, but I got $iterations_max"
+    echo "We are doing $i of $iterations_max iterations (0=inf)."
+    [[ $iterations_max -ne 0 && $i -gt $iterations_max ]] && break
+  fi
   step_starttime="$(get_time)"
   update_stepnames $i
   last_dir=$(get_last_step_dir)
@@ -215,6 +210,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
   cd $this_dir || die "cd $this_dir failed"
   mark_done "stepdir"
 
+  filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
   if is_done "Filecopy"; then
     echo "Filecopy already done"
     for f in $filelist; do
@@ -222,11 +218,11 @@ for ((i=$begin;i<$iterations+1;i++)); do
       echo Comparing "$(get_main_dir)/$f" "$f"
       [[ -z $(type -p cmp) ]] && echo "program 'cmp' not found, comparision skipped" && continue
       cmp "$(get_main_dir)/$f" "$f" && echo "Unchanged" || \
-	msg --color blue --to-stderr "WARNING: file '$f' in the main dir was changed since the last execution, this will have no effect on current iteration, to take effect remove the current iteration ('${this_dir##*/}')"
+	msg --color blue --to-stderr "WARNING: file '$f' in the main dir was changed since the last execution, this will have no effect on the current iteration, to take effect remove the current iteration ('${this_dir##*/}')"
     done
   else
     #get need files (leave the " " unglob happens inside the function)
-    cp_from_main_dir "$filelist"
+    [[ -n ${filelist} ]] && cp_from_main_dir "$filelist"
 
     mark_done "Filecopy"
   fi
@@ -272,10 +268,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
   msg "Post add"
   do_external post add
 
-  if [[ -n ${cleanlist} ]]; then
-    msg "Clean up"
-    rm -f ${cleanlist}
-  fi
+  do_external clean $sim_prog
 
   step_time="$(( $(get_time) - $step_starttime ))"
   msg "\nstep $i done, needed $step_time secs"
@@ -283,6 +276,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
 
   touch "done"
 
+  convergence_check="$(csg_get_property cg.inverse.convergence_check.type)"
   if [[ $convergence_check = none ]]; then
     echo "No convergence check to be done"
   else
@@ -309,7 +303,7 @@ for ((i=$begin;i<$iterations+1;i++)); do
   fi
 
   if [[ -n $do_iterations ]]; then
-    if [[ $do_iterations -ge $steps_done ]] ; then
+    if [[ $do_iterations -eq $steps_done ]] ; then
       msg "Stopping at step $i, user requested to take some rest after this amount of iterations"
       exit 0
     else

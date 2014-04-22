@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2014 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,19 +16,18 @@
 #
 
 if [ "$1" = "--help" ]; then
-cat <<EOF
+    cat <<EOF
 ${0##*/}, version %version%
-postadd dummy script (cp infile to outfile), useful to overwrite default by nothing
+This script cleans up after a simulation step
 
-Usage: ${0##*/} infile outfile
+Usage: ${0##*/}
 EOF
-   exit 0
+    exit 0
 fi
 
-[[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
-
-[[ -f $2 ]] && die "${0##*/}: $2 is already there"
-
-critical cp $1 $2
-
-exit 0
+cleanlist="$(csg_get_property --allow-empty cg.inverse.cleanlist)"
+if [[ -n ${cleanlist} ]]; then
+  msg "Clean up files: $cleanlist"
+  #no quote to allow globbing
+  rm -f ${cleanlist}
+fi

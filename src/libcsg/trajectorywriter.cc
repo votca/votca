@@ -23,11 +23,13 @@
 #include <votca/csg/trajectorywriter.h>
 #include "modules/io/pdbwriter.h"
 #include "modules/io/xyzwriter.h"
+#include "modules/io/dlpolytrajectorywriter.h"
 
 #ifdef GMX
 #include "modules/io/gmxtrajectorywriter.h"
 #include "modules/io/growriter.h"
 #endif
+#include "modules/io/dlpolytrajectorywriter.h"
 
 namespace votca { namespace csg {
 
@@ -37,6 +39,8 @@ void TrajectoryWriter::RegisterPlugins()
 {
     TrjWriterFactory().Register<PDBWriter>("pdb");
     TrjWriterFactory().Register<XYZWriter>("xyz");
+    TrjWriterFactory().Register<DLPOLYTrajectoryWriter>("dlph");
+    TrjWriterFactory().Register<DLPOLYTrajectoryWriter>("dlpc");
 #ifdef GMX
     TrjWriterFactory().Register<GMXTrajectoryWriter>("trr");
     TrjWriterFactory().Register<GMXTrajectoryWriter>("xtc");

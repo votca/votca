@@ -39,9 +39,14 @@ for task in $tasklist shift; do
 
   #save the current one
   critical mv "${name}.dpot.new" "${name}.dpot.${i}"
-  
+
   #perform postupd task
   do_external postupd "$task" "${name}.dpot.${i}" "${name}.dpot.new"
+
+  if [[ ! -f ${name}.dpot.new ]]; then
+    echo "$task didn't create an output (${name}.dpot.new), running dummy update"
+    do_external postupd dummy "${name}.dpot.${i}" "${name}.dpot.new"
+  fi
 
   ((i++))
 done

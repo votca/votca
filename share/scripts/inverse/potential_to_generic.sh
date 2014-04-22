@@ -56,6 +56,9 @@ else
   input="${extrapolate}"
 fi
 
+#enable shift whenever bonded interaction are supported here
+#do_external potential shift --type "$bondtype" "${extrapolate}" "${tshift}"
+
 smooth="$(critical mktemp ${trunc}.pot.smooth.XXXXX)"
 deriv="$(critical mktemp ${trunc}.pot.deriv.XXXXX)"
 critical csg_resample --in ${input} --out "${smooth}" --der "${deriv}" --grid "${table_begin}:${bin_size}:${r_cut}" --comment "$comment"

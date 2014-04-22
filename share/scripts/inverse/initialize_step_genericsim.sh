@@ -41,10 +41,10 @@ elif [[ $from = "maindir" || $(get_current_step_nr) -eq 1 ]]; then
   fi
 elif [[ $from = "laststep" ]]; then
   [[ -z $conf ]] && die "${0##*/}: for initial_configuration '$from' option cg.inverse.$sim_prog.conf is needed!"
-  confout="$(csg_get_property --allow-empty cg.inverse.$sim_prog.conf_out)"
-  [[ -z $confout ]] && die "${0##*/}: for initial_configuration '$from' option cg.inverse.$sim_prog.confout is needed!"
-  #avoid overwriting $confout
-  cp_from_last_step --rename "${confout}" "${conf}"
+  conf_out="$(csg_get_property --allow-empty cg.inverse.$sim_prog.conf_out)"
+  [[ -z $conf_out ]] && die "${0##*/}: for initial_configuration '$from' option cg.inverse.$sim_prog.conf_out is needed!"
+  #avoid overwriting $conf_out
+  cp_from_last_step --rename "${conf_out}" "${conf}"
 else
   die "${0##*/}: initial_configuration '$from' not implemented"
 fi

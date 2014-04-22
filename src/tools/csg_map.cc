@@ -31,9 +31,15 @@ class CsgMapApp
 public:
     string ProgramName() { return "csg_map"; }
     void HelpText(ostream &out) {
-        out << "Map a reference trajectory to a coarse-grained trajectory.\n"
-            "This program can be used to map a whole trajectory or to\n"
-            "create an initial configuration for a coarse-grained run only.";
+      out << "Convert a reference atomistic trajectory or configuration into a coarse-grained one \n"
+          << "based on a mapping xml-file. The mapping can be applied to either an entire trajectory \n"
+          << "or a selected set of frames only (see options).\n"
+	  << "Examples:\n"
+	  << "* csg_map --top FA-topol.tpr --trj FA-traj.trr --out CG-traj.xtc --cg cg-map.xml\n"
+	  << "* csg_map --top FA-topol.tpr --trj FA-conf.gro --out CG-conf.gro --cg cg-map.xml\n"
+	  << "* csg_map --top FA-topol.tpr --trj FA-traj.xtc --out FA-history.dlph --no-map\n"
+	  << "* csg_map --top FA-field.dlpf --trj FA-history.dlph --out CG-history.dlph --cg cg-map.xml\n"
+	  << "* csg_map --top .dlpf --trj .dlph --out .dlph --cg cg-map.xml  convert HISTORY to HISTORY_CGV\n";
     }
 
     bool DoTrajectory() { return true;}
@@ -42,10 +48,9 @@ public:
     void Initialize() {
         CsgApplication::Initialize();
         AddProgramOptions()
-            ("out", boost::program_options::value<string>(),
-                "  output file for coarse-grained trajectory")
-                ("vel", "Write mapped velocities (if available)")
-                ("hybrid", "Create hybrid trajectory containing both atomistic and coarse-grained");
+	  ("out", boost::program_options::value<string>(),"  output file for coarse-grained trajectory")
+	  ("vel", "  Write mapped velocities (if available)")
+	  ("hybrid", "  Create hybrid trajectory containing both atomistic and coarse-grained");
     }
 
     bool EvaluateOptions() {
@@ -58,11 +63,11 @@ public:
     void BeginEvaluate(Topology *top, Topology *top_ref);
 void EvalConfiguration(Topology *top, Topology *top_ref) {
         if (!_do_hybrid) {
-            // simply write the topology mapped by csgapplication classe
+            // simply write the topology mapped by csgapplication class
             if (_do_vel) top->SetHasVel(true);
             _writer->Write(top);
         } else {
-            // we want to combinge atomistic and coarse-grained into one topology
+            // we want to combine atomistic and coarse-grained into one topology
             Topology *hybtol = new Topology();
 
             BeadContainer::iterator it_bead;
