@@ -68,7 +68,7 @@ double Vssmgroup::Timestep(votca::tools::Random2 *RandomVariable){
         rand_u = 1-RandomVariable->rand_uniform();
     }
        
-    timestep = -1/tot_probsum*log(rand_u);
+    timestep = (-1.0/tot_probsum)*log(rand_u);
     return timestep;
     
 }
@@ -76,8 +76,18 @@ double Vssmgroup::Timestep(votca::tools::Random2 *RandomVariable){
 void Vssmgroup::Recompute_device(Bsumtree* non_injection_rates, Bsumtree* left_injection_rates, Bsumtree* right_injection_rates){
 
     non_inject_probsum = non_injection_rates->compute_sum();
-    left_inject_probsum = left_injection_rates->compute_sum();       
-    right_inject_probsum = right_injection_rates->compute_sum();       
+    if(left_injection_rates->getnrrates() != 0) {
+        left_inject_probsum = left_injection_rates->compute_sum();
+    }
+    else {
+        left_inject_probsum = 0.0;
+    }
+    if(right_injection_rates->getnrrates() != 0) {
+        right_inject_probsum = right_injection_rates->compute_sum();
+    }
+    else {
+        right_inject_probsum = 0.0;
+    }
     tot_probsum = non_inject_probsum + left_inject_probsum + right_inject_probsum;
 }
 

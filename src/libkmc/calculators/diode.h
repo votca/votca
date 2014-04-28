@@ -93,26 +93,39 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     
     graph = new GraphDevice();
     graph->Initialize(filename);
+    std::cout << "number of nodes: " << graph->Numberofnodes() << endl;
     // form a histogram of the site energies
     
-    graph->Setup_device_graph(eventdata->left_electrode_distance, eventdata->right_electrode_distance, true, eventdata);
-    
-//    std::cout << "min " << graph->min_hole_node_energy() << " max " << graph->max_hole_node_energy() << " av " << graph->Av_hole_node_energy() << endl;
-    
-    eventdata->Graph_Parameters(graph->hopdist(), graph->mindist(), graph->simboxsize(), graph->maxpairdegree(),graph->Av_hole_node_energy(), graph->Av_electron_node_energy());
-    eventdata->Set_field(); // convert voltage to electric field
+    if(eventdata->device > 0){
+        graph->Setup_device_graph(eventdata->left_electrode_distance, eventdata->right_electrode_distance, eventdata->resize, eventdata);
+    }
+    else {
+        graph->Setup_bulk_graph(eventdata->resize, eventdata);
+    }    
+   
+    eventdata->Graph_Parameters(graph->hopdist(), graph->mindist(), graph->simboxsize(), graph->maxpairdegree(),graph->Average_hole_node_energy(), graph->Average_electron_node_energy());
+//    eventdata->Set_field(eventdata->voltage* (eventdata->simboxsize.x()/(eventdata->simboxsize.x() + eventdata->left_oxide_thickness + eventdata->right_oxide_thickness))); // convert voltage to electric field
+    if(eventdata->device > 0) eventdata->Set_field(eventdata->voltage); // convert voltage to electric field
 
+    
     std::cout << "graph initialized" << endl;
     std::cout << "max pair degree: " << graph->maxpairdegree() << endl;
     std::cout << "hopping distance: " << graph->hopdist() << endl;
     std::cout << "simulation box size: " << graph->simboxsize() << endl;
-    std::cout << "number of left electrode injector nodes " << graph->left()->links().size() << endl;
-    std::cout << "number of right electrode injector nodes " << graph->right()->links().size() << endl;
+    if(eventdata->device > 0) {
+        std::cout << "number of left electrode injector nodes " << graph->left()->links().size() << endl;
+        std::cout << "number of right electrode injector nodes " << graph->right()->links().size() << endl;
+    }
     std::cout << "number of nodes " << graph->Numberofnodes() << endl;    
     
-    longrange = new Longrange(graph,eventdata);
-    if(eventdata->longrange_slab) longrange->Initialize_slab(graph,eventdata);
-    else longrange->Initialize(eventdata);
+    if(eventdata->device >0) {    
+        longrange = new Longrange(graph,eventdata);
+        if(eventdata->longrange_slab) longrange->Initialize_slab(graph,eventdata);
+        else longrange->Initialize(eventdata);
+    }
+    else {
+        longrange = new Longrange();
+    }
     
     std::cout << "longrange profile initialized" << endl;
 
@@ -122,11 +135,11 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     site_inject_probs = new Bsumtree();
     site_inject_probs->initialize(graph->Numberofnodes()); // take care of electrode nodes
     
-    // Random charge distribution (assume homogeneous distributed over device)
+    //Random charge distribution (assume homogeneous distributed over device)
     double density = (eventdata->voltage)/(2*Pi*eventdata->coulomb_strength*eventdata->simboxsize.x()*eventdata->simboxsize.x());
     std::cout << "initial density: " << density << endl; 
-    state->Random_init_injection((int) Hole, density, site_inject_probs, graph, eventdata, RandomVariable);
-    std::cout << "charges injected" << endl; 
+    state->Random_init_injection((int) Hole, density*graph->Numberofnodes(), site_inject_probs, graph, eventdata, RandomVariable);
+    std::cout << "charges injected" << endl;
     
     if(state->ReservoirEmpty()) state->Grow(eventdata->growsize, eventdata->maxpairdegree);
     
@@ -142,7 +155,7 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     events->Init_non_injection_meshes(eventdata);
     events->Initialize_eventvector(graph,state,longrange,eventdata);
     events->Initialize_rates(non_injection_rates, left_injection_rates, right_injection_rates,eventdata);
-    events->Init_injection_meshes(state, eventdata);
+    if(eventdata->device>0) events->Init_injection_meshes(state, eventdata);
     events->Initialize_after_charge_placement(graph,state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventdata);
 
     std::cout << "event vectors and meshes initialized" << endl;
@@ -194,18 +207,38 @@ void Diode::RunKMC() {
 
     int numcharges_distrib;
     
-    for(int it= 0; it< eventdata->number_layers; it++ ){
-        std::cout << longrange->number_of_nodes(it) << " ";
+    if(eventdata->device >0) {
+        for(int it= 0; it< eventdata->number_layers; it++ ){
+            std::cout << longrange->number_of_nodes(it) << " ";
+        }
+        std::cout << endl;
     }
-    std::cout << endl;
     
-    std::cout << "total link x distance : " << graph->totdistancex() << endl;
+    std::cout << "total link x distance : " << graph->total_link_distance_x() << endl;
+    std::cout << "average hole energy : " << eventdata->avholeenergy << endl;
     
+/*    ofstream trajstore;
+    char trajfile[100];
+    strcpy(trajfile, eventdata->traj_filename.c_str());
+
+    votca::tools::vec traject;*/
+
+/*    vector<votca::tools::vec> trajectories;
+    trajectories.clear();
+    if(eventdata->traj_store) {
+        for (int i = 0; i<state->GetCarrierSize(); i++) {
+            if(state->GetCarrier(i)->inbox()) {
+                trajectories.push_back(votca::tools::vec(0.0,0.0,0.0));
+            }
+        }
+    } */
+    //ofstream trajstore;
+    //trajstore.open("trajectories");
+   
     sim_time = 0.0;
     for (long it = 0; it < 2*eventdata->nr_equilsteps + eventdata->nr_timesteps; it++) {
+//    for (long it = 0; it < 100; it++) {
 
-        if(ldiv(it,100).rem == 0) std::cout << it << endl; 
-        
         if(eventdata->device == 2) {
             // make sure the number of carriers on the left equals
             left_chargegroup->Recompute_injection(left_injection_rates);
@@ -236,28 +269,55 @@ void Diode::RunKMC() {
             }
         }
 
-        if(ldiv(it, eventdata->steps_update_longrange).rem == 0 && it>0){
-            if(eventdata->longrange_slab) longrange->Update_cache_slab(graph,eventdata);
-            else                          longrange->Update_cache(eventdata);
-            events->Recompute_all_events(state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventdata);
+        if(eventdata->device>0) {
+            if(ldiv(it, eventdata->steps_update_longrange).rem == 0 && it>0){
+                if(eventdata->longrange_slab) longrange->Update_cache_slab(graph,eventdata);
+                else                          longrange->Update_cache(eventdata);
+
+    //            double left_oxide_drop = longrange->Calculate_left_oxide_layer(eventdata);
+    //            double right_oxide_drop = longrange->Calculate_right_oxide_layer(eventdata);
+    //            double in_organic_voltage = eventdata->voltage - left_oxide_drop - right_oxide_drop;
+    //            std::cout << "APPLIED VOLTAGE: " << eventdata->voltage << ", VOLTAGE AFTER OXIDE DROP " << in_organic_voltage << endl;
+
+    //            eventdata->Set_field(in_organic_voltage);
+
+                // update extrapolation of potential drop
+
+
+                events->Recompute_all_events(state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventdata);
+            }
         }
-        
+        if(eventdata->device == 0) vssmgroup->Recompute_bulk(non_injection_rates);
         if(eventdata->device == 1) vssmgroup->Recompute_device(non_injection_rates, left_injection_rates, right_injection_rates);
         if(eventdata->device == 2) vssmgroup->Recompute_bulk(non_injection_rates);
-        
+
         double timestep = vssmgroup->Timestep(RandomVariable);
         sim_time += timestep;
         
         Event* chosenevent;
+        if(eventdata->device == 0) chosenevent = vssmgroup->Choose_event_bulk(events, non_injection_rates, RandomVariable);
         if(eventdata->device == 1) chosenevent = vssmgroup->Choose_event_device(events, non_injection_rates, left_injection_rates, right_injection_rates, RandomVariable);
         if(eventdata->device == 2) chosenevent = vssmgroup->Choose_event_bulk(events, non_injection_rates, RandomVariable);
-       
+
+        /*if(it==0) {
+            traject = votca::tools::vec(0.0,0.0,0.0);
+        }*/        
+        
         numoutput->Update(chosenevent, sim_time, timestep); 
 
         events->On_execute(chosenevent, graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventdata);
 
-        // check for direct repeats
+//        trajstore << it << endl;
+        /*if(eventdata->traj_store) {
+            votca::tools::vec traj_hop = chosenevent->link()->r12();
+            traject = traject+traj_hop;
+        }
         
+        if(eventdata->traj_store && ldiv(it,1).rem == 0) {
+            trajstore << sim_time << "\t" << traject.x() << "\t" << traject.y() << "\t" << traject.z() << endl;
+        }*/
+        
+        // check for direct repeats        
         int goto_node_id = chosenevent->link()->node2()->id();
         int from_node_id = chosenevent->link()->node1()->id();
         if(goto_node_id == old_from_node_id && from_node_id == old_to_node_id) repeat_counter++;
@@ -272,7 +332,6 @@ void Diode::RunKMC() {
             numoutput->Initialize_equilibrate();
             sim_time = 0.0;
         }
-    
         // convergence checking
         
         if(ldiv(it,10000).rem==0 && it> 2*eventdata->nr_equilsteps) numoutput->Convergence_check(sim_time, eventdata);

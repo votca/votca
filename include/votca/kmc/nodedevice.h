@@ -32,6 +32,7 @@ public:
     /// Set layer index of node (defined by profile object)
     void setLayer(int layer){_layer = layer;}
 
+    /// Set indices of first and last layers which are contributing to the long-range potential double counting algorithm 
     void setfirstcontriblayer(int layer){_firstcontriblayer = layer;}
     void setfinalcontriblayer(int layer){_finalcontriblayer = layer;}  
     
@@ -62,7 +63,7 @@ public:
     void disc_coul_set(double val) {disc_coul_contrib.push_back(val); }
     int disc_coul_size() {return disc_coul_contrib.size();}
     
-    void SetInjectable(bool injectable) { _injectable = injectable;}
+    void Set_injectable(bool injectable) { _injectable = injectable;}
     
 private:
 

@@ -19,6 +19,7 @@
 #define	_VOTCA_KMC_NODE_H
 
 #include <votca/tools/vec.h>
+#include <votca/kmc/link.h>
 
 namespace votca { namespace kmc {
 class Node
@@ -74,7 +75,7 @@ public:
     void Add_vely(int dis) { _vel_y += dis;}
     void Add_velz(int dis) { _vel_z += dis;}
     
-    void Init_vals() {_vel_x = 0; _vel_y = 0; _vel_z = 0;}    
+    void Initialize_output_values() {_vel_x = 0; _vel_y = 0; _vel_z = 0;}    
     
 protected:
 

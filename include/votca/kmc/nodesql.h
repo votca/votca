@@ -18,7 +18,6 @@
 #ifndef _VOTCA_KMC_NODESQL_H
 #define	_VOTCA_KMC_NODESQL_H
 
-#include <votca/kmc/linksql.h>
 #include <votca/kmc/node.h>
 
 namespace votca { namespace kmc {
@@ -48,7 +47,6 @@ public:
         _UcCnNh = UcCnNh;
     }
 
-    //Debugging
     const double &UnCnNe() const { return _UnCnNe; }     
     const double &UnCnNh() const { return _UnCnNh; }   
     const double &UcNcCe() const { return _UcNcCe; }   
@@ -74,8 +72,6 @@ private:
 
     double _UcCnNe;
     double _UcCnNh;
-
-    ;
     
 };
 

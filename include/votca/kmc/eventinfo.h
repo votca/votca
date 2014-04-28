@@ -30,6 +30,11 @@ public:
     
     void Read(Property *options){ 
     
+        nr_charges                  = options->get("options.bulk.nr_charges").as<int>();
+        nr_reportsteps              = options->get("options.bulk.nr_reportsteps").as<int>();
+        traj_store                  = options->get("options.bulk.traj_store").as<bool>();
+        traj_filename               = options->get("options.bulk.traj_filename").as<string>();
+        
         seed                        = options->get("options.diode.seed").as<int>();
         nr_equilsteps               = options->get("options.diode.nr_equilsteps").as<int>();
         nr_timesteps                = options->get("options.diode.nr_timesteps").as<int>();
@@ -44,6 +49,7 @@ public:
         size_x                      = options->get("options.diode.size_x").as<double>();
         size_y                      = options->get("options.diode.size_y").as<double>();
         size_z                      = options->get("options.diode.size_z").as<double>();
+        resize                      = options->get("options.diode.resize").as<bool>();
         lattice_constant            = options->get("options.diode.lattice_constant").as<double>();
         left_electrode_distance     = options->get("options.diode.left_electrode_distance").as<double>();
         right_electrode_distance    = options->get("options.diode.right_electrode_distance").as<double>();
@@ -89,6 +95,9 @@ public:
         interpolate_longrange       = options->get("options.diode.interpolate_longrange").as<bool>();
         longrange_slab              = options->get("options.diode.longrange_slab").as<bool>();
         
+        left_oxide_thickness        = options->get("options.diode.left_oxide_thickness").as<double>();
+        right_oxide_thickness       = options->get("options.diode.right_oxide_thickness").as<double>();
+        
     }
     
     void Graph_Parameters(double graph_hopdist, double graph_mindist, votca::tools::vec graph_simboxsize, int graph_maxpairdegree, double av_ho_energy, double av_elect_energy) {
@@ -100,14 +109,15 @@ public:
         avelectronenergy = av_elect_energy;
     }
     
-    void Set_field(){
+    void Set_field(double in_device_voltage){
         efield_x = voltage/(simboxsize.x());
     }
 
+    int nr_charges; int nr_reportsteps; bool traj_store; string traj_filename;
     int seed; int nr_equilsteps; int nr_timesteps; int steps_update_longrange;
     int number_direct_conv_iv; int number_direct_conv_reco;
     int nx; int ny; int nz; int growsize;
-    double size_x; double size_y; double size_z;
+    double size_x; double size_y; double size_z; bool resize;
     double lattice_constant; double left_electrode_distance; double right_electrode_distance; 
     double alpha; double temperature; double el_density; double ho_density;
     double efield_x; double efield_y; double efield_z; double voltage;
@@ -118,6 +128,7 @@ public:
     double hopdist; double mindist; votca::tools::vec simboxsize; int maxpairdegree; double avholeenergy; double avelectronenergy;
     double coulomb_strength; double coulcut; double self_image_prefactor; int nr_sr_images; long nr_lr_images;
     bool interpolate_longrange; bool longrange_slab;
+    double left_oxide_thickness; double right_oxide_thickness;
 
 };
 

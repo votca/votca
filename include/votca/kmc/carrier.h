@@ -47,6 +47,7 @@ public:
     void SetCarrierNode(Node* carnode) { _carrier_node = carnode; }
     /// set travelled distance
     void SetDistance(votca::tools::vec distance) { _carrier_distance = distance; }
+    void IncDistance(votca::tools::vec distance) { _carrier_distance += distance; }
     /// set "inbox/outbox" status
     void SetInBox(bool in_sim_box) {_in_sim_box = in_sim_box;}
     /// set carrier type

@@ -35,6 +35,8 @@ public:
         Calculate_positional_average(eventinfo);
         Calculate_layer_boundaries(eventinfo);
     }
+    
+    Profile() {}
      
     ~Profile(){}     
     

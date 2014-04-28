@@ -286,7 +286,7 @@ void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* 
         double selfimpot_to;
         double lr_coulomb_from;
         double lr_coulomb_to;
-        
+      
         if(eventinfo->device > 0) {
             selfimpot_from = Determine_self_coulomb(node1, eventinfo);
             selfimpot_to = Determine_self_coulomb(node2, eventinfo);   
@@ -380,20 +380,19 @@ void Event::Determine_ohmic_rate(StateDevice* state, Longrange* longrange, Event
 }
 
 void Event::Set_event(Link* link,int carrier_type, StateDevice* state, Longrange* longrange, Eventinfo* eventinfo) {
-    
+   
     _link = link;
     Node* node1 = link->node1();
     Node* node2 = link->node2();
     
     _carrier_type = carrier_type;
     _init_type = Determine_init_event_type(node1);
-    
     if (node2->occ() == -1) {_final_type = Determine_final_event_type(node1, node2);}
     else                    {_final_type = Determine_final_event_type(carrier_type, state->GetCarrier(node2->occ())->type(), node1, node2);}    
 
     _action_node1 = Determine_action_flag_node1();
     _action_node2 = Determine_action_flag_node2(eventinfo);
-    
+
     if(_init_type == (int) Injection && eventinfo->device == 2) {Determine_ohmic_rate(state,longrange,eventinfo); }
     else                                                        {Determine_rate( state, longrange, eventinfo);    }
  

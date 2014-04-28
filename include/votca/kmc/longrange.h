@@ -33,7 +33,9 @@ class Longrange : public Profile
 public:
 
     Longrange(GraphDevice* graph, Eventinfo* eventinfo) : Profile(graph, eventinfo){
-    };    
+    };
+
+    Longrange() : Profile(){};    
 
     /// Initialize longrange profile after state is read in
     void Init_Load_State(StateDevice* state, Eventinfo* eventinfo);    
@@ -67,7 +69,10 @@ public:
     ///precalculate the coulombic contributions from the cut-out discs
     inline double Calculate_disc_contrib(int calculate_layer, int contrib_layer, Eventinfo* eventinfo);
     inline double Calculate_disc_contrib_slab_node(NodeDevice* node, int contrib_layer, Eventinfo* eventinfo);
-    
+
+    double Calculate_left_oxide_layer(Eventinfo* eventinfo);
+    double Calculate_right_oxide_layer(Eventinfo* eventinfo);
+
 private:
 
     vector<double> _layercharge;
@@ -484,6 +489,35 @@ double Longrange::Calculate_longrange(int layer, bool cut_out_discs,Eventinfo* e
     if (!cut_out_discs) { disc_contrib = 0.0; }
     
     return 4.0*Pi*(plate_contrib1*(1-layerpos/eventinfo->simboxsize.x()) + plate_contrib2*(layerpos/eventinfo->simboxsize.x()) + 0.5*disc_contrib);
+}
+
+double Longrange::Calculate_left_oxide_layer(Eventinfo* eventinfo) {
+    
+    double left_ox = 0.0;
+    const double Pi = 3.14159265358979323846264338327950288419716939937510;       
+
+    
+    for(int i=0; i < eventinfo->number_layers; i++){
+        double charge_i = 1.0*_layercharge[i]/(this->number_of_nodes(i));
+        double position_i = (1.0-1.0*this->position(i)/eventinfo->simboxsize.x());
+        left_ox += 2*Pi*eventinfo->coulomb_strength*charge_i*position_i*eventinfo->left_oxide_thickness;        
+    }
+    
+    return left_ox;
+}
+
+double Longrange::Calculate_right_oxide_layer(Eventinfo* eventinfo) {
+    
+    double right_ox = 0.0;
+    const double Pi = 3.14159265358979323846264338327950288419716939937510;       
+
+    for(int i=0; i < eventinfo->number_layers; i++){
+        double charge_i = 1.0*_layercharge[i]/(this->number_of_nodes(i));
+        double position_i = (1.0*this->position(i)/eventinfo->simboxsize.x());
+        right_ox += 2*Pi*eventinfo->coulomb_strength*charge_i*position_i*eventinfo->right_oxide_thickness;        
+    }
+    
+    return right_ox;
 }
 
 }}

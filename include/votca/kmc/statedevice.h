@@ -69,12 +69,12 @@ public:
     void Random_init_double_injection(Bsumtree* ho_site_inject_probs, Bsumtree* el_site_inject_probs,  GraphDevice* graph, Eventinfo* eventinfo, votca::tools::Random2 *RandomVariable);
     
     /// Random injection of charges (one carrier type))
-    void Random_init_injection(int carrier_type, double density, Bsumtree* site_inject_probs, GraphDevice* graph, Eventinfo* eventinfo, votca::tools::Random2 *RandomVariable);
+    void Random_init_injection(int carrier_type, int nr_charges, Bsumtree* site_inject_probs, GraphDevice* graph, Eventinfo* eventinfo, votca::tools::Random2 *RandomVariable);
   
 private:
 
     /// Random injection of one carrier type
-    void Random_injection_one_type(double density, int carrier_type, Bsumtree* site_inject_probs, GraphDevice* graph, Eventinfo* eventinfo, votca::tools::Random2 *RandomVariable);
+    void Random_injection_one_type(int nr_charges, int carrier_type, Bsumtree* site_inject_probs, GraphDevice* graph, Eventinfo* eventinfo, votca::tools::Random2 *RandomVariable);
     
     /// Add carrier of given carrier type to chosen node
     void Add_carrier_to_chosen_node(NodeDevice* chosen_node, int carrier_type, Eventinfo* eventinfo);    
@@ -154,14 +154,14 @@ void StateDevice::PrintDevice(std::ostream& out) {
     std::cout << endl;
 }
 
-void StateDevice::Random_init_injection(int carrier_type, double density, Bsumtree* site_inject_probs, GraphDevice* graph, Eventinfo* eventinfo, votca::tools::Random2* RandomVariable){
+void StateDevice::Random_init_injection(int carrier_type, int nr_charges, Bsumtree* site_inject_probs, GraphDevice* graph, Eventinfo* eventinfo, votca::tools::Random2* RandomVariable){
    
 //    double density;
     
 //    if(carrier_type == (int) Hole)          {density = eventinfo->ho_density;}
 //    else if(carrier_type == (int) Electron) {density = eventinfo->el_density;}
     
-    this->Random_injection_one_type(density,carrier_type, site_inject_probs,graph,eventinfo,RandomVariable);
+    this->Random_injection_one_type(nr_charges,carrier_type, site_inject_probs,graph,eventinfo,RandomVariable);
     
 }
 
@@ -175,9 +175,7 @@ void StateDevice::Random_init_double_injection(Bsumtree* ho_site_inject_probs, B
     
 }
 
-void StateDevice::Random_injection_one_type(double density, int carrier_type, Bsumtree* site_inject_probs, GraphDevice* graph, Eventinfo* eventinfo, votca::tools::Random2 *RandomVariable){
-    
-    int number_of_carriers = density*graph->Numberofnodes();
+void StateDevice::Random_injection_one_type(int nr_charges, int carrier_type, Bsumtree* site_inject_probs, GraphDevice* graph, Eventinfo* eventinfo, votca::tools::Random2 *RandomVariable){
     
     for (int it = 0; it < graph->Numberofnodes() ; it++) {
         if(graph->GetNode(it)->occ() == -1) {
@@ -191,7 +189,7 @@ void StateDevice::Random_injection_one_type(double density, int carrier_type, Bs
     double tot_probsum;
     int carcounter = 0;
     
-    while(carcounter!=number_of_carriers){    
+    while(carcounter!=nr_charges){    
         
         tot_probsum = site_inject_probs->compute_sum();
         

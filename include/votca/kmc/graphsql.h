@@ -37,15 +37,15 @@ public:
 };
 
 template<class TNode, class TLink>    
-inline void GraphSQL<TNode,TLink>::Initialize(string filename){
-    
+inline void GraphSQL<TNode,TLink>::Initialize(string filename)
+{   
     // Load Nodes
     votca::tools::Database db;
     db.Open( filename );
     votca::tools::Statement *stmt = db.Prepare("SELECT _id-1, posX, posY, posZ, UnCnNe, UnCnNh, UcNcCe, UcNcCh, eAnion, eNeutral, eCation, UcCnNe, UcCnNh FROM segments;");
 
-    while (stmt->Step() != SQLITE_DONE) {    
-      
+    while (stmt->Step() != SQLITE_DONE) 
+    {    
         int id = stmt->Column<double>(0);
         double posX = stmt->Column<double>(1);
         double posY = stmt->Column<double>(2);
@@ -67,7 +67,6 @@ inline void GraphSQL<TNode,TLink>::Initialize(string filename){
         newTNode->setU(UnCnNe, UnCnNh, UcNcCe, UcNcCh);
         newTNode->setE(eAnion, eNeutral, eCation);
         newTNode->setu(UcCnNe, UcCnNh);
-        
     }
     
     delete stmt;
@@ -77,10 +76,8 @@ inline void GraphSQL<TNode,TLink>::Initialize(string filename){
     stmt = db.Prepare("SELECT seg1-1 AS 'segment1', seg2-1 AS 'segment2', drX, drY, drZ, rate12e, rate12h, rate21e, rate21h, Jeff2e, Jeff2h, lOe, lOh  FROM pairs UNION SELECT seg2-1 AS 'segment1', seg1-1 AS 'segment2', -drX AS 'drX', -drY AS 'drY', -drZ AS 'drZ', rate21e AS 'rate12e', rate21h AS 'rate12h', rate12e AS 'rate21e', rate12h AS 'rate21h',Jeff2e, Jeff2h, lOe, lOh  FROM pairs ORDER BY segment1;");
     
     long id = 0;
-    while (stmt->Step() != SQLITE_DONE) {
-        
-//        int id = stmt->Column<int>(0);
-        
+    while (stmt->Step() != SQLITE_DONE) 
+    {
         int node1_id = stmt->Column<int>(0);
         int node2_id = stmt->Column<int>(1);
         TNode* node1 = this->GetNode(node1_id);
@@ -107,7 +104,6 @@ inline void GraphSQL<TNode,TLink>::Initialize(string filename){
         newTLink->setJeff2(Jeff2e,Jeff2h);
         newTLink->setlO(lOe,lOh);
         id++;
-       
     }
         
     delete stmt;

@@ -28,16 +28,17 @@ template<class TNode, class TLink>
 class Graph {
 
 public:
-     Graph() {
-     }
+     Graph() {}
      
-    ~Graph() {
+    ~Graph() 
+    {
         typename std::vector<TNode*>::iterator it;
         for (it = _nodes.begin(); it != _nodes.end(); it++ ) delete *it;
     } 
     
     /// Add a node to the Graph
-    TNode* AddNode(int id, votca::tools::vec &position) { 
+    TNode* AddNode(int id, votca::tools::vec &position) 
+    { 
         TNode* node = new TNode(id, position);
         _nodes.push_back(node); 
         return node;
@@ -55,7 +56,8 @@ public:
     int Numberofnodes() {return _nodes.size();}
 
     /// Add a node to the Graph
-    TLink* AddLink( long id, TNode* node1, TNode* node2, votca::tools::vec r12) { 
+    TLink* AddLink( long id, TNode* node1, TNode* node2, votca::tools::vec r12) 
+    { 
         TLink* link = new TLink(id, node1, node2, r12);
         _links.push_back(link); 
         return link;
@@ -72,9 +74,9 @@ public:
     int Numberoflinks() {return _links.size();}
     
     /// Print node information
-    void PrintNodes(std::ostream& out){
+    void PrintNodes(std::ostream& out)
+    {
         typename std::vector<TNode*>::iterator it;
-//          for (it = _nodes.begin(); it != _nodes.end(); it++ ) (*it)->Print(out);    
         for (it = _nodes.begin(); it != _nodes.end(); it++ ) out << (*it)->id() << " " << (*it)->position() << " " <<
                (*it)->UnCnNe() << " " << (*it)->UnCnNh() << " " << (*it)->UcNcCe() << " " << (*it)->UcNcCh() << " " <<
                (*it)->eAnion() << " " << (*it)->eNeutral() << " " << (*it)->eCation() << " " <<
@@ -82,9 +84,9 @@ public:
     }
 
     /// Print link information    
-    void PrintLinks(std::ostream& out){
+    void PrintLinks(std::ostream& out)
+    {
         typename std::vector<TLink*>::iterator it;
-//          for (it = _nodes.begin(); it != _nodes.end(); it++ ) (*it)->Print(out);    
         for (it = _links.begin(); it != _links.end(); it++ ) out << (*it)->id() << " " << 
                (*it)->r12() << " " << (*it)->rate12e() << " " << (*it)->rate12h() << " " << (*it)->rate21e() << " " << (*it)->rate21h() << " " <<
                (*it)->Jeff2e() << " " << (*it)->Jeff2h() << " " << (*it)->lOe() << " " << (*it)->lOh() << endl;    
@@ -94,9 +96,11 @@ public:
     virtual void Initialize(string filename){;};
 
     /// Clear occupation
-    void Clear() {
+    void Clear() 
+    {
         typename std::vector<TNode*>::iterator it;      
-        for(it = _nodes.begin(); it != _nodes.end(); it++) {
+        for(it = _nodes.begin(); it != _nodes.end(); it++) 
+        {
             (*it)->RemoveCarrier();
         }   
     }
