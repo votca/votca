@@ -1,4 +1,4 @@
-#include "ffoplsaa.itp"
+#include "oplsaa.ff/forcefield.itp"
 #include "methanol_opls.itp"
 
 [ system ]

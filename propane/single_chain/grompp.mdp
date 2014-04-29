@@ -66,6 +66,7 @@ xtc-grps                 =
 ; Selection of energy groups
 energygrps               = 
 
+CutOff-Scheme            = Group
 ; NEIGHBORSEARCHING PARAMETERS
 ; nblist update frequency
 nstlist                  = 5
