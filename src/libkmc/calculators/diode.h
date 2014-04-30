@@ -136,9 +136,12 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     site_inject_probs->initialize(graph->Numberofnodes()); // take care of electrode nodes
     
     //Random charge distribution (assume homogeneous distributed over device)
-    double density = (eventdata->voltage)/(2*Pi*eventdata->coulomb_strength*eventdata->simboxsize.x()*eventdata->simboxsize.x());
-    std::cout << "initial density: " << density << endl; 
-    state->Random_init_injection((int) Hole, density*graph->Numberofnodes(), site_inject_probs, graph, eventdata, RandomVariable);
+    int nrcharges;
+    if(eventdata->device>0) nrcharges = (eventdata->voltage)/(2*Pi*eventdata->coulomb_strength*eventdata->simboxsize.x()*eventdata->simboxsize.x())*graph->Numberofnodes();
+    if(eventdata->device==0) nrcharges = eventdata->ho_density*graph->Numberofnodes();
+    if(eventdata->traj_store) nrcharges = eventdata->nr_charges;
+    std::cout << "initial nrcharges: " << nrcharges << endl; 
+    state->Random_init_injection((int) Hole, nrcharges, site_inject_probs, graph, eventdata, RandomVariable);
     std::cout << "charges injected" << endl;
     
     if(state->ReservoirEmpty()) state->Grow(eventdata->growsize, eventdata->maxpairdegree);
@@ -216,12 +219,14 @@ void Diode::RunKMC() {
     
     std::cout << "total link x distance : " << graph->total_link_distance_x() << endl;
     std::cout << "average hole energy : " << eventdata->avholeenergy << endl;
+    std::cout << "disorder strength: " << graph->stddev_hole_node_energy() << endl;
     
-/*    ofstream trajstore;
+    ofstream trajstore;
     char trajfile[100];
     strcpy(trajfile, eventdata->traj_filename.c_str());
+    trajstore.open(trajfile);
 
-    votca::tools::vec traject;*/
+    votca::tools::vec traject;
 
 /*    vector<votca::tools::vec> trajectories;
     trajectories.clear();
@@ -231,14 +236,12 @@ void Diode::RunKMC() {
                 trajectories.push_back(votca::tools::vec(0.0,0.0,0.0));
             }
         }
-    } */
-    //ofstream trajstore;
-    //trajstore.open("trajectories");
-   
-    sim_time = 0.0;
+    }*/
+    
+   sim_time = 0.0;
     for (long it = 0; it < 2*eventdata->nr_equilsteps + eventdata->nr_timesteps; it++) {
 //    for (long it = 0; it < 100; it++) {
-
+        
         if(eventdata->device == 2) {
             // make sure the number of carriers on the left equals
             left_chargegroup->Recompute_injection(left_injection_rates);
@@ -304,18 +307,16 @@ void Diode::RunKMC() {
         }*/        
         
         numoutput->Update(chosenevent, sim_time, timestep); 
-
         events->On_execute(chosenevent, graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventdata);
-
-//        trajstore << it << endl;
-        /*if(eventdata->traj_store) {
+        
+        if(eventdata->traj_store) {
             votca::tools::vec traj_hop = chosenevent->link()->r12();
             traject = traject+traj_hop;
         }
         
-        if(eventdata->traj_store && ldiv(it,1).rem == 0) {
+        if(eventdata->traj_store && ldiv(it,eventdata->nr_reportsteps).rem == 0) {
             trajstore << sim_time << "\t" << traject.x() << "\t" << traject.y() << "\t" << traject.z() << endl;
-        }*/
+        }
         
         // check for direct repeats        
         int goto_node_id = chosenevent->link()->node2()->id();
@@ -324,20 +325,21 @@ void Diode::RunKMC() {
         old_from_node_id = from_node_id;
         old_to_node_id = goto_node_id;
 
-        if(it == eventdata->nr_equilsteps || it == 2*eventdata->nr_equilsteps) numoutput->Init_convergence_check(sim_time);
+        
+         if(!eventdata->traj_store &&(it == eventdata->nr_equilsteps || it == 2*eventdata->nr_equilsteps)) numoutput->Init_convergence_check(sim_time);
         
         // equilibration
    
-        if(it == eventdata->nr_equilsteps || it == 2*eventdata->nr_equilsteps) {
+        if(!eventdata->traj_store &&(it == eventdata->nr_equilsteps || it == 2*eventdata->nr_equilsteps)) {
             numoutput->Initialize_equilibrate();
             sim_time = 0.0;
         }
         // convergence checking
         
-        if(ldiv(it,10000).rem==0 && it> 2*eventdata->nr_equilsteps) numoutput->Convergence_check(sim_time, eventdata);
+        if(!eventdata->traj_store && (ldiv(it,10000).rem==0 && it> 2*eventdata->nr_equilsteps)) numoutput->Convergence_check(sim_time, eventdata);
 
         // direct output
-        if(ldiv(it,10000).rem==0){
+        if(!eventdata->traj_store && ldiv(it,10000).rem==0){
             std::cout << it << " " << repeat_counter << " " << 
                          numoutput->iv_conv() << " " << numoutput->iv_count() << " " << 
                          numoutput->reco_conv() << " " << numoutput->reco_count() <<  " " << 
@@ -351,13 +353,15 @@ void Diode::RunKMC() {
 //            }
 //            
 //            std::cout << endl;
-            std::cout << "charge" << endl;
+            if(eventdata->device>0) {
+                std::cout << "charge" << endl;
            
-            for(int i =0; i< eventdata->number_layers; i++) {
-                std::cout << longrange->Get_cached_density(i, eventdata) << " ";
-            }
+                for(int i =0; i< eventdata->number_layers; i++) {
+                    std::cout << longrange->Get_cached_density(i, eventdata) << " ";
+                }
             
-            std::cout << endl;
+                std::cout << endl;
+            }
 //            std::cout << "pot" << endl;
 //           
 //            for(int i =0; i< eventdata->number_layers; i++) {
@@ -366,8 +370,13 @@ void Diode::RunKMC() {
 //            std::cout << endl;
         }
         
+        if(eventdata->traj_store && ldiv(it,10000).rem==0){
+            std::cout << "step " << it << " of " << 2*eventdata->nr_equilsteps + eventdata->nr_timesteps << " timesteps" << endl;
+        }        
+        
         // break out of loop
-        if(numoutput->iv_conv() && numoutput->reco_conv()) {break;}
+//        if(numoutput->iv_conv() && numoutput->reco_conv()) {break;}
+        if(!eventdata->traj_store && numoutput->iv_conv()) {break;}
         
     }
 

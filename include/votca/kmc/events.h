@@ -115,6 +115,7 @@ private:
     vector<Event*> _non_injection_events;
     vector<Event*> _injection_events;
  
+    int _total_non_injection_events;
     int _total_left_injection_events;
     int _total_right_injection_events;    
     
@@ -643,6 +644,7 @@ void Events::Initialize_eventvector(GraphDevice* graph, StateDevice* state, Long
     _non_injection_events.clear();
     Grow_non_injection_eventvector(state, longrange, eventinfo);
     
+    _total_non_injection_events = 0;
     _total_left_injection_events = 0;
     _total_right_injection_events = 0;
     

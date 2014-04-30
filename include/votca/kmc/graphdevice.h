@@ -62,6 +62,9 @@ public:
     /// average hole node energy
     double Average_hole_node_energy();
     
+    /// variance hole node energy
+    double stddev_hole_node_energy();
+    
     /// average electron node energy
     double Average_electron_node_energy();
     
@@ -846,6 +849,22 @@ double GraphDevice::Average_hole_node_energy()
     
     av_ho_energy = ho_energy/this->Numberofnodes();
     return av_ho_energy;
+}
+
+double GraphDevice::stddev_hole_node_energy() 
+{
+    double temp_energy = 0.0;
+    double stddev_energy = 0.0;
+    double av_ho_energy = this->Average_hole_node_energy();
+    
+    typename std::vector<NodeDevice*>:: iterator it;
+    for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) 
+    {
+        temp_energy += ((*it)->eAnion() + (*it)->UcCnNh()-av_ho_energy)*((*it)->eAnion() + (*it)->UcCnNh()-av_ho_energy);
+    }
+    
+    stddev_energy = sqrt(temp_energy/this->Numberofnodes());
+    return stddev_energy;
 }
 
 double GraphDevice::Average_electron_node_energy() 

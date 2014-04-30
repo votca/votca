@@ -103,6 +103,7 @@ inline void GraphSQL<TNode,TLink>::Initialize(string filename)
         newTLink->setRate(rate12e,rate12h,rate21e,rate21h);
         newTLink->setJeff2(Jeff2e,Jeff2h);
         newTLink->setlO(lOe,lOh);
+        newTLink->setcount(0);
         id++;
     }
         
