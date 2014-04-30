@@ -185,7 +185,7 @@ void EImport::StochasticEnergies(Topology *top, string &filename, int state) {
     
      // Initialise random number generator
     if(votca::tools::globals::verbose) { cout << endl << "Initialising random number generator" << endl; }
-    srand(123456); 
+    srand(12345); 
     votca::tools::Random2 *RandomVariable = new votca::tools::Random2();
     RandomVariable->init(rand(), rand(), rand(), rand());
     
@@ -349,7 +349,7 @@ void EImport::StochasticEnergies(Topology *top, string &filename, int state) {
             vec r2 = (*seg2)->getPos();
             double distance = abs( top->PbShortestConnect(r1, r2));
             for(int nit=0; nit<bcoeff.size(); nit++){
-                if(distance<=distances[nit+1]/2 && distance>0) { // r=0 included ????? include only once?
+                if(distance<=distances[nit] && distance>0) {
                     molsinrange[nit] += 1;
                     randompart[nit]  += X[molB][nit];
                     
@@ -358,7 +358,7 @@ void EImport::StochasticEnergies(Topology *top, string &filename, int state) {
             
         }
         
-        double energy = sqrt(acoeff) * X[molA][bcoeff.size()];
+        double energy = sqrt(acoeff) * X[molA][bcoeff.size()+1];
         for(int i =0; i<bcoeff.size(); i++){
             if(molsinrange[i] > 0){
                 energy += sqrt(bcoeff[i]/molsinrange[i]) * randompart[i];
