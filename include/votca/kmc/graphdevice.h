@@ -767,6 +767,7 @@ void GraphDevice::LinkSort()
     typename std::vector<LinkDevice*>::iterator it;
     for (it = this->_links.begin(); it != this->_links.end(); it++ ) 
     {
+        (*it)->setcount(0);
         NodeDevice* node1 = dynamic_cast<NodeDevice*>((*it)->node1());
         if(node1->type() == NormalNode) node1->AddLink((*it));
     }

@@ -30,7 +30,8 @@ public:
     
     void Read(Property *options){ 
     
-        nr_charges                  = options->get("options.bulk.nr_charges").as<int>();
+        nr_electrons                = options->get("options.bulk.nr_electrons").as<int>();
+        nr_holes                    = options->get("options.bulk.nr_holes").as<int>();
         nr_reportsteps              = options->get("options.bulk.nr_reportsteps").as<int>();
         traj_store                  = options->get("options.bulk.traj_store").as<bool>();
         traj_filename               = options->get("options.bulk.traj_filename").as<string>();
@@ -113,7 +114,7 @@ public:
         efield_x = voltage/(simboxsize.x());
     }
 
-    int nr_charges; int nr_reportsteps; bool traj_store; string traj_filename;
+    int nr_holes; int nr_electrons; int nr_reportsteps; bool traj_store; string traj_filename;
     int seed; int nr_equilsteps; int nr_timesteps; int steps_update_longrange;
     int number_direct_conv_iv; int number_direct_conv_reco;
     int nx; int ny; int nz; int growsize;
