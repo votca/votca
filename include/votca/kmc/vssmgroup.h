@@ -103,7 +103,11 @@ void Vssmgroup::Recompute_injection(Bsumtree* injection_rates){
 
 Event* Vssmgroup::Choose_event_device(Events* events, Bsumtree* non_injection_rates, Bsumtree* left_injection_rates, Bsumtree* right_injection_rates, votca::tools::Random2 *RandomVariable){
 
-    double randn = tot_probsum*RandomVariable->rand_uniform();
+    double randn = 0.0;
+    while(randn == 0.0) {
+        randn = tot_probsum*RandomVariable->rand_uniform();
+    }
+    
     long event_ID;
     Event* chosenevent;
     if(randn<left_inject_probsum) { // injection event
@@ -127,8 +131,13 @@ Event* Vssmgroup::Choose_event_device(Events* events, Bsumtree* non_injection_ra
 
 Event* Vssmgroup::Choose_event_bulk(Events* events, Bsumtree* non_injection_rates,votca::tools::Random2 *RandomVariable){
 
-    double randn = tot_probsum*RandomVariable->rand_uniform();
+    double randn = 0.0;
+    while(randn == 0.0) {
+        randn = tot_probsum*RandomVariable->rand_uniform();
+    }
+    
     long event_ID;
+
     Event* chosenevent;
     event_ID = non_injection_rates->search(randn);
     chosenevent = events->get_non_injection_event(event_ID);       
@@ -138,7 +147,10 @@ Event* Vssmgroup::Choose_event_bulk(Events* events, Bsumtree* non_injection_rate
 
 Event* Vssmgroup::Choose_injection_event(Events* events,  int electrodeID, Bsumtree* injection_rates,votca::tools::Random2 *RandomVariable){
 
-    double randn = tot_probsum*RandomVariable->rand_uniform();
+    double randn = 0.0;
+    while(randn == 0.0) {
+        randn = tot_probsum*RandomVariable->rand_uniform();
+    }
     long event_ID;
     Event* chosenevent;
     event_ID = injection_rates->search(randn);

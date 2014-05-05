@@ -145,6 +145,7 @@ long Bsumtree::search(double searchkey) { // Returns index to element
     return i;
 }
 
+
 void Bsumtree::resize(int newsize) { // Resize arrays. Expensive, so use with care!
     /*
      *  When newsize >= oldsize: all elements are copied, new elements are 0.
