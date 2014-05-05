@@ -201,6 +201,78 @@ void PEwald3D3D::GenerateKVectors(vector<PolarSeg*> &ps1, vector<PolarSeg*> &ps2
 }
 
 
+void PEwald3D3D::ScanCutoff() {
+    double sum = 0.0;
+    double sum_ppuu = 0.0;
+    
+    LOG(logDEBUG,*_log) << flush 
+        << "Scan cutoff (long-range check)" << flush;
+    
+    vector<PolarSeg*>::iterator sit1; 
+    vector<APolarSite*> ::iterator pit1;
+    vector<PolarSeg*>::iterator sit2; 
+    vector<APolarSite*> ::iterator pit2;
+    vector<PolarNb*>::iterator nit;
+    vector< vector<PolarSeg*> > ::iterator vsit;
+    
+    double dR_shell = 0.5;
+    double R_overhead = 1.1;
+    double R_add = 3;
+    double R_max = _R_co*R_overhead+R_add;
+    double R_max_shell = R_max+2*_polar_cutoff+_max_int_dist_qm0;
+    this->SetupMidground(R_max);
+
+    // FOR EACH FOREGROUND SEGMENT (FGC) ...
+    for (sit1 = _fg_C.begin(); sit1 != _fg_C.end(); ++sit1) {
+
+        // Bin midground into shells
+        vector< vector<PolarSeg*> > shelled_mg_N;
+        int N_shells = int(R_max_shell/dR_shell)+1;
+        shelled_mg_N.resize(N_shells);
+
+        for (sit2 = _mg_N.begin(); sit2 != _mg_N.end(); ++sit2) {
+            double R = votca::tools::abs((*sit1)->getPos()-(*sit2)->getPos());
+            int shell_idx = int(R/dR_shell);
+            shelled_mg_N[shell_idx].push_back(*sit2);
+        }
+
+        // Sum over consecutive shells
+        for (int sidx = 0; sidx < N_shells; ++sidx) {
+            // Shell rms trackers
+            double shell_sum = 0.0;
+            double shell_term = 0.0;
+            double shell_rms = 0.0;
+            int shell_count = 0;
+            // Interact with shell
+            vector<PolarSeg*> &shell_mg = shelled_mg_N[sidx];            
+            double shell_R = (sidx+1)*dR_shell;            
+            if (shell_mg.size() < 1) continue;            
+            EWD::triple<double> ppuu(0,0,0);
+            for (sit2 = shell_mg.begin(); sit2 < shell_mg.end(); ++sit2) {
+                for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+                    for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
+                        _actor.BiasIndu(*(*pit1), *(*pit2));
+                        double ef = _actor.E_f(*(*pit1), *(*pit2));
+                        sum_ppuu += ef;
+                        shell_term = ef;
+                        shell_sum += shell_term;
+                        shell_rms += shell_term*shell_term;
+                        shell_count += 1;
+                    }
+                }
+            }
+            shell_rms = sqrt(shell_rms/shell_count)*EWD::int2eV;
+            sum += shell_sum;
+            LOG(logDEBUG,*_log)
+                << (format("  o ID = %5$-4d Rc = %1$+02.7f   |MGN| = %3$5d   ER = %2$+1.7f eV   dER2(sum) = %4$+1.3e eV") 
+                % shell_R % (sum*EWD::int2eV) % shell_mg.size() % (shell_rms*shell_count) % (*sit1)->getId()).str() << flush;
+        }
+    }
+    
+    return;
+}
+
+
 EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum() {
     
     double sum = 0.0;
@@ -500,7 +572,7 @@ EWD::triple<> PEwald3D3D::CalculateShapeCorrection() {
         << "  o Shape-correction to energy, using '" << _shape << "'" << flush;
     
     EWD::triple<double> ppuu = _ewdactor.U12_ShapeTerm(_fg_C, _bg_P,
-        _shape, _LxLyLz);
+        _shape, _LxLyLz, _log);
     double sum_pp = ppuu._pp;
     double sum_pu = ppuu._pu;
     double sum_uu = ppuu._uu;

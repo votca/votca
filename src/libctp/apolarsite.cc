@@ -119,7 +119,7 @@ void APolarSite::Rotate(const matrix &rot, const vec &refPos) {
                               vec(Qxz,Qyz,Qzz));
 
             matrix Q_Global  = R * Q * R_T;
-
+            
             /* if (this->getId() == 1) {
                 cout << endl;
                 cout << "  " << Q_Global.get(0,0);
@@ -942,7 +942,8 @@ map<string,double> POLAR_TABLE() {
     polar_table["O"] = 0.837e-3;
     polar_table["S"] = 2.926e-3;
     polar_table["F"] = 0.440e-3;
-    polar_table["Si"] = 3.700e-3; // TODO Check this
+    polar_table["Si"] = 3.962e-3;   // B3LYP/6-311+g(2d,2p)
+    polar_table["Zn"] = 5.962e-3;   // B3LYP/6-311+g(2d,2p)
     return polar_table;
 }
 

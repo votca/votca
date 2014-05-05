@@ -358,6 +358,39 @@ void PolarBackground::Polarize(int n_threads = 1) {
         }
     }
         
+    if (tools::globals::verbose) {
+        std::ofstream ofs;
+        ofs.open("indu_state", ofstream::out);
+        for (vector<PolarSeg*>::iterator sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
+            PolarSeg *pseg = *sit1;
+            Segment *seg = _top->getSegment(pseg->getId());
+            for (PolarSeg::iterator pit1 = pseg->begin(); pit1 < pseg->end(); ++pit1) {
+                vec fp = (*pit1)->getFieldP();
+                vec fu = (*pit1)->getFieldU();
+                vec u1 = (*pit1)->getU1();
+                vec pos = (*pit1)->getPos();
+                ofs << (format("SEGID2 %1$4d   ") % (pseg->getId()));
+                ofs << (format("XYZ6 %1$+1.7e %2$+1.7e %3$+1.7e    ") 
+                        % (pos.getX())
+                        % (pos.getY()) 
+                        % (pos.getZ())).str();
+                ofs << (format("FP10 %1$+1.7e %2$+1.7e %3$+1.7e    ") 
+                        % (fp.getX()*EWD::int2V_m)
+                        % (fp.getY()*EWD::int2V_m) 
+                        % (fp.getZ()*EWD::int2V_m)).str();
+                ofs << (format("FU14 %1$+1.7e %2$+1.7e %3$+1.7e    ") 
+                        % (fu.getX()*EWD::int2V_m)
+                        % (fu.getY()*EWD::int2V_m) 
+                        % (fu.getZ()*EWD::int2V_m)).str();
+                ofs << (format("U118 %1$+1.7e %2$+1.7e %3$+1.7e   ") 
+                        % (u1.getX())
+                        % (u1.getY()) 
+                        % (u1.getZ())).str() << endl;
+            }
+        }
+        ofs.close();
+    }
+    
     return;
 }
 

@@ -67,6 +67,8 @@ public:
     virtual void Field_ConvergeReciprocalSpaceSum() { ; }
     virtual void Field_CalculateForegroundCorrection() { ; }
     virtual void Field_CalculateShapeCorrection() { ; }
+    // METHOD ANALYSIS
+    virtual void ScanCutoff() { ; }
     // GENERALIZED POISSON METHODS
     
 
@@ -166,6 +168,7 @@ protected:
     bool _task_evaluate_energy;
     bool _task_apply_radial;
     bool _task_solve_poisson;
+    bool _task_scan_cutoff;
 
     // CONVERGENCE
     // Part I - Ewald

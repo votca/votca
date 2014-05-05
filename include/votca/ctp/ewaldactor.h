@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <votca/tools/vec.h>
+#include <votca/ctp/logger.h>
 #include <votca/ctp/topology.h>
 #include <votca/ctp/polartop.h>
 #include <votca/ctp/ewdspace.h>
@@ -105,7 +106,7 @@ public:
     // Reciprocal-space double-counting correction term P1 <> P2
     inline EWD::triple<double> U12_ERF(APolarSite &p1, APolarSite &p2);    
     // Reciprocal-space K=0 shape correction term P1 <> P2
-    EWD::triple<double> U12_ShapeTerm(vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, string shape, double volume);
+    EWD::triple<double> U12_ShapeTerm(vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, string shape, double volume, Logger *log=NULL);
     
     // ========================== RECIPROCAL SPACE ========================== //    
     inline void   ApplyBiasK(const vec &k);
@@ -270,6 +271,7 @@ inline void EwdInteractor::ApplyBiasPolar(APolarSite& p1, APolarSite& p2) {
                 lp3 = lp5 = lp7 = lp9 = 1.;
         }
         else {
+//            lp3 = lp5 = lp7 = lp9 = 1.;
             lp3 = l3;
             lp5 = l5;
             lp7 = l7;
@@ -360,6 +362,7 @@ inline void EwdInteractor::ApplyBiasPolar(APolarSite& p1, APolarSite& p2, vec &s
                 lp3 = lp5 = lp7 = lp9 = 1.;
         }
         else {
+//            lp3 = lp5 = lp7 = lp9 = 1.;
             lp3 = l3;
             lp5 = l5;
             lp7 = l7;
@@ -445,7 +448,7 @@ inline void EwdInteractor::UpdateAllGls(APolarSite& p1, APolarSite& p2) {
                                                +   p1.Qzz*rzz);
             Q1_rx = p1.Qxx*rx + p1.Qxy*ry + p1.Qxz*rz;
             Q1_ry = p1.Qxy*rx + p1.Qyy*ry + p1.Qyz*rz;
-            Q1_rz = p1.Qxz*rx * p1.Qyz*ry + p1.Qzz*rz;
+            Q1_rz = p1.Qxz*rx + p1.Qyz*ry + p1.Qzz*rz;
         }
     }
     

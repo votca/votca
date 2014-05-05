@@ -148,6 +148,12 @@ private:
     inline void setpLambda7() { plambda7 = 1 - (1 + a*u3 + 0.6*a*a*u3*u3) * exp( -a*u3); }
     inline void setpLambda9() { plambda9 = 1 - (1 + a*u3 + (18*a*a*u3*u3 + 9*a*a*a*u3*u3*u3)/35) * exp( -a*u3); }
     
+//    inline void setpLambda3() { plambda3 = 1; }
+//    inline void setpLambda5() { plambda5 = 1; }
+//    inline void setpLambda7() { plambda7 = 1; }
+//    inline void setpLambda9() { plambda9 = 1; }
+    
+    
     inline double T00_00() { return R; }
 
     inline double T1x_00() { return R2 * rax; }
@@ -2726,6 +2732,7 @@ inline void XInteractor::BiasStat(APolarSite &pol1, APolarSite &pol2) {
             plambda3 = plambda5 = plambda7 = plambda9 = 1.;
         }
         else {
+//            plambda3 = plambda5 = plambda7 = plambda9 = 1.;
             plambda3 = lambda3;
             plambda5 = lambda5;
             plambda7 = lambda7;
@@ -2794,6 +2801,7 @@ inline void XInteractor::BiasIndu(APolarSite &pol1, APolarSite &pol2) {
             plambda3 = plambda5 = plambda7 = plambda9 = 1.;
         }
         else {
+//            plambda3 = plambda5 = plambda7 = plambda9 = 1.;
             plambda3 = lambda3;
             plambda5 = lambda5;
             plambda7 = lambda7;
