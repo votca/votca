@@ -273,11 +273,19 @@ void Event::Determine_rate(StateDevice* state, Longrange* longrange, Eventinfo* 
         double from_event_energy = 0.0;
         double to_event_energy = 0.0;
 
-        if(_init_type == Injection)           { from_event_energy -= eventinfo->injection_barrier; prefactor *= eventinfo->injection_prefactor;    } // injection
+        if(_init_type == Injection)           { 
+            if(node1->type() == (int) LeftElectrodeNode) {from_event_energy -= eventinfo->left_injection_barrier;}
+            else if(node1->type() == (int) RightElectrodeNode) {from_event_energy -= eventinfo->right_injection_barrier;}
+            prefactor *= eventinfo->injection_prefactor;    
+        } // injection
         else if(_init_type == TransferFrom)   {                                                                                                    } // transfer
 
         if(_final_type == TransferTo)         {                                                                                                    } // transfer
-        else if(_final_type == Collection)    { to_event_energy   -= eventinfo->injection_barrier; prefactor *= eventinfo->collection_prefactor;   } // collection
+        else if(_final_type == Collection)    { 
+            if(node2->type() == (int) LeftElectrodeNode) {to_event_energy -= eventinfo->left_injection_barrier;}
+            else if(node2->type() == (int) RightElectrodeNode) {to_event_energy -= eventinfo->right_injection_barrier;}
+            prefactor *= eventinfo->collection_prefactor;               
+        } // collection
         else if(_final_type == Recombination) { to_event_energy   -= eventinfo->binding_energy;    prefactor *= eventinfo->recombination_prefactor;} // recombination
 
         double sr_coulomb_from = Determine_from_sr_coulomb(node1, state, eventinfo);
@@ -363,12 +371,13 @@ void Event::Determine_ohmic_rate(StateDevice* state, Longrange* longrange, Event
             static_electrode_energy = eventinfo->avholeenergy;
         }    
 
-        double inject_bar = 1.0*eventinfo->injection_barrier;
+//        double inject_bar = 1.0*eventinfo->injection_barrier;
         double sr_coulomb = Determine_to_sr_coulomb(electrode, state, eventinfo);
         double lr_coulomb = charge*Determine_lr_coulomb(node, longrange, eventinfo);
         double selfimpot = Determine_self_coulomb(node, eventinfo);     
 
-        double node_energy = static_node_energy + selfimpot + inject_bar + sr_coulomb + lr_coulomb;
+//        double node_energy = static_node_energy + selfimpot + inject_bar + sr_coulomb + lr_coulomb;
+        double node_energy = static_node_energy + selfimpot + sr_coulomb + lr_coulomb;
 
         double energybarrier = node_energy - static_electrode_energy -charge*(eventinfo->efield_x*distancevector.x());
 

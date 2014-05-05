@@ -61,7 +61,10 @@ public:
         efield_y                    = options->get("options.diode.efield_y").as<double>();
         efield_z                    = options->get("options.diode.efield_z").as<double>();
         voltage                     = options->get("options.diode.voltage").as<double>();
-        injection_barrier           = options->get("options.diode.injection_barrier").as<double>();
+        
+        left_injection_barrier      = options->get("options.diode.left_injection_barrier").as<double>();
+        right_injection_barrier     = options->get("options.diode.right_injection_barrier").as<double>();
+
         binding_energy              = options->get("options.diode.binding_energy").as<double>();
         formalism                   = options->get("options.diode.formalism").as<string>();
         
@@ -123,7 +126,7 @@ public:
     double alpha; double temperature; double el_density; double ho_density;
     double efield_x; double efield_y; double efield_z; double voltage;
     double electron_prefactor; double hole_prefactor; double injection_prefactor; double recombination_prefactor; double collection_prefactor;
-    string formalism; double injection_barrier; double binding_energy;
+    string formalism; double left_injection_barrier; double right_injection_barrier; double binding_energy;
     bool left_electron_injection; bool left_hole_injection; bool right_electron_injection; bool right_hole_injection; int device;
     int mesh_x; int mesh_y; int mesh_z; int number_layers;
     double hopdist; double mindist; votca::tools::vec simboxsize; int maxpairdegree; double avholeenergy; double avelectronenergy;
