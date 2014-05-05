@@ -139,23 +139,25 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     int nrcharges;
     if(eventdata->device>0) nrcharges = (eventdata->voltage)/(2*Pi*eventdata->coulomb_strength*eventdata->simboxsize.x()*eventdata->simboxsize.x())*graph->Numberofnodes();
     if(eventdata->device==0) nrcharges = eventdata->ho_density*graph->Numberofnodes();
-    std::cout << "initial nrcharges: " << nrcharges << endl;
     if(eventdata->traj_store) {
         int nrelectrons = eventdata->nr_electrons;
         int nrholes = eventdata->nr_holes;
         if(nrholes != 0) {
             nrcharges = nrholes;
+            std::cout << nrcharges << endl;
             state->Random_init_injection((int) Hole, nrcharges, site_inject_probs, graph, eventdata, RandomVariable);
         }
         else if(nrelectrons != 0) {
             nrcharges = nrelectrons;
+            std::cout << nrcharges << endl;
             state->Random_init_injection((int) Electron, nrcharges, site_inject_probs, graph, eventdata, RandomVariable);
         }
     }
     else {
         state->Random_init_injection((int) Hole, nrcharges, site_inject_probs, graph, eventdata, RandomVariable);
     }
-
+    std::cout << "initial nrcharges: " << nrcharges << endl;
+    
     std::cout << "charges injected" << endl;
     
     if(state->ReservoirEmpty()) state->Grow(eventdata->growsize, eventdata->maxpairdegree);
