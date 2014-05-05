@@ -34,6 +34,11 @@ public:
     /// Reads node information from filename
     void Initialize(string filename);
     
+    bool &el_reorg() { return _el_reorg_fault; }    
+    bool &ho_reorg() { return _ho_reorg_fault; }    
+
+    bool _el_reorg_fault;
+    bool _ho_reorg_fault;
 };
 
 template<class TNode, class TLink>    
@@ -74,6 +79,8 @@ inline void GraphSQL<TNode,TLink>::Initialize(string filename)
     // Load Node Pairs
 
     stmt = db.Prepare("SELECT seg1-1 AS 'segment1', seg2-1 AS 'segment2', drX, drY, drZ, rate12e, rate12h, rate21e, rate21h, Jeff2e, Jeff2h, lOe, lOh  FROM pairs UNION SELECT seg2-1 AS 'segment1', seg1-1 AS 'segment2', -drX AS 'drX', -drY AS 'drY', -drZ AS 'drZ', rate21e AS 'rate12e', rate21h AS 'rate12h', rate12e AS 'rate21e', rate12h AS 'rate21h',Jeff2e, Jeff2h, lOe, lOh  FROM pairs ORDER BY segment1;");
+    _el_reorg_fault = false;
+    _ho_reorg_fault = false;
     
     long id = 0;
     while (stmt->Step() != SQLITE_DONE) 
@@ -103,7 +110,9 @@ inline void GraphSQL<TNode,TLink>::Initialize(string filename)
         newTLink->setRate(rate12e,rate12h,rate21e,rate21h);
         newTLink->setJeff2(Jeff2e,Jeff2h);
         newTLink->setlO(lOe,lOh);
-//        newTLink->setcount(0);
+        if(node1->UnCnNe() + node2->UcNcCe() + lOe == 0.0) { _el_reorg_fault = true;}
+        if(node1->UnCnNh() + node2->UcNcCh() + lOh == 0.0) { _ho_reorg_fault = true;}
+        //        newTLink->setcount(0);
         id++;
     }
         

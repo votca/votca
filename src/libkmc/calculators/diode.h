@@ -94,7 +94,9 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     graph = new GraphDevice();
     graph->Initialize(filename);
     std::cout << "number of nodes: " << graph->Numberofnodes() << endl;
-    // form a histogram of the site energies
+    if(graph->el_reorg()) { std::cout << "WARNING: zero electron reorganization energy" << endl;}
+    if(graph->ho_reorg()) { std::cout << "WARNING: zero hole reorganization energy" << endl;}
+    
     
     if(eventdata->device > 0){
         graph->Setup_device_graph(eventdata->left_electrode_distance, eventdata->right_electrode_distance, eventdata->resize, eventdata);
@@ -144,12 +146,10 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
         int nrholes = eventdata->nr_holes;
         if(nrholes != 0) {
             nrcharges = nrholes;
-            std::cout << nrcharges << endl;
             state->Random_init_injection((int) Hole, nrcharges, site_inject_probs, graph, eventdata, RandomVariable);
         }
         else if(nrelectrons != 0) {
             nrcharges = nrelectrons;
-            std::cout << nrcharges << endl;
             state->Random_init_injection((int) Electron, nrcharges, site_inject_probs, graph, eventdata, RandomVariable);
         }
     }
