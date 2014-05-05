@@ -28,6 +28,8 @@
 #include <votca/ctp/qmpackagefactory.h>
 #include <votca/ctp/atom.h>
 #include <votca/ctp/segment.h>
+// Overload of uBLAS prod function with MKL/GSL implementations
+#include <votca/ctp/votca_ctp_config.h>
 
 namespace votca { namespace ctp {
     using namespace std;
@@ -99,7 +101,14 @@ private:
     void Orbitals2Segment(Segment* _segment, Orbitals* _orbitals);
     void Coord2Segment(Segment* _segment );
     double GetTotalEnergy( Orbitals* _orbitals, string _spintype, int _opt_state );
-      
+
+    void PrepareGuess(         Orbitals *_orbitalsA, 
+                               Orbitals *_orbitalsB, 
+                               Orbitals *_orbitalsAB);
+
+    void OrthonormalizeGuess ( Segment* _segment, Orbitals* _orbitals );
+    
+    
     void BFGSStep( int& _iteration, bool& _update_hessian,  ub::matrix<double>& _force, ub::matrix<double>& _force_old,  ub::matrix<double>& _current_xyz, ub::matrix<double>&  _old_xyz, ub::matrix<double>& _hessian ,ub::matrix<double>& _xyz_shift ,ub::matrix<double>& _trial_xyz  );
     void ReloadState();
     void NumForceForward(double energy, vector <Atom* > _atoms, ub::matrix<double>& _force, QMPackage* _qmpackage,vector <Segment* > _segments, Orbitals* _orbitals );
@@ -1026,7 +1035,36 @@ void Exciton::ExcitationEnergies(QMPackage* _qmpackage, vector<Segment*> _segmen
 
 
   if ( _do_dft_input ){
-          _qmpackage->WriteInputFile( _segments );
+                Orbitals *_orbitalsAB = NULL;        
+        if ( _qmpackage->GuessRequested() ) { // do not want to do an SCF loop for a dimer
+            cout << "Guess requested, reading molecular orbitals" << endl;
+            
+            string orbFileA  = "monomer1.orb";
+            string orbFileB  = "monomer2.orb";
+            Orbitals _orbitalsA, _orbitalsB;   
+            _orbitalsAB = new Orbitals();
+            // load the corresponding monomer orbitals and prepare the dimer guess 
+            
+            // failed to load; wrap-up and finish current job
+            if ( !_orbitalsA.Load( orbFileA ) ) {
+               cout << "Do input: failed loading orbitals from " << orbFileA << endl;
+            }
+            
+            if ( !_orbitalsB.Load( orbFileB ) ) {
+               cout << "Do input: failed loading orbitals from " << orbFileB << endl; 
+               
+            }
+            
+
+            PrepareGuess(&_orbitalsA, &_orbitalsB, _orbitalsAB);
+            OrthonormalizeGuess( _segments.front(), _orbitalsAB );
+            cout << " after Prep? " << endl;
+        }
+          
+                
+                
+                
+          _qmpackage->WriteInputFile( _segments, _orbitalsAB );
        }
        if ( _do_dft_run ){
           _qmpackage->Run();
@@ -1216,6 +1254,176 @@ void Exciton::Orbitals2Segment(Segment* _segment, Orbitals* _orbitals){
 
 
 }
+  
+  
+  
+  
+  
+  void Exciton::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _orbitalsAB ) 
+{
+    
+    cout << "Constructing the guess for dimer orbitals" << endl;   
+   
+    // constructing the direct product orbA x orbB
+    int _basisA = _orbitalsA->getBasisSetSize();
+    int _basisB = _orbitalsB->getBasisSetSize();
+       
+    cout << "basis size " << _basisA << " : " << _basisB << endl;
+    
+    int _levelsA = _orbitalsA->getNumberOfLevels();
+    int _levelsB = _orbitalsB->getNumberOfLevels();
+
+    cout << "levels " << _levelsA << " : " << _levelsB << endl;
+
+    
+    int _electronsA = _orbitalsA->getNumberOfElectrons();
+    int _electronsB = _orbitalsB->getNumberOfElectrons();
+
+    cout << "electrons " << _electronsA << " : " << _electronsB << endl;
+
+    
+    ub::zero_matrix<double> zeroB( _levelsA, _basisB ) ;
+    ub::zero_matrix<double> zeroA( _levelsB, _basisA ) ;
+    
+    ub::matrix<double>* _mo_coefficients = _orbitalsAB->getOrbitals();    
+    cout << "MO coefficients " << *_mo_coefficients << endl;
+    
+    // AxB = | A 0 |  //   A = [EA, EB]  //
+    //       | 0 B |  //                 //
+    _mo_coefficients->resize( _levelsA + _levelsB, _basisA + _basisB  );
+    _orbitalsAB->setBasisSetSize( _basisA + _basisB );
+    _orbitalsAB->setNumberOfLevels( _electronsA - _electronsB , 
+                                    _levelsA + _levelsB - _electronsA - _electronsB );
+    _orbitalsAB->setNumberOfElectrons( _electronsA + _electronsB );
+    
+    ub::project( *_mo_coefficients, ub::range (0, _levelsA ), ub::range ( _basisA, _basisA +_basisB ) ) = zeroB;
+    ub::project( *_mo_coefficients, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( 0, _basisA ) ) = zeroA;    
+    ub::project( *_mo_coefficients, ub::range (0, _levelsA ), ub::range ( 0, _basisA ) ) = *_orbitalsA->getOrbitals();
+    ub::project( *_mo_coefficients, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( _basisA, _basisA + _basisB ) ) = *_orbitalsB->getOrbitals();   
+
+    //cout << "MO coefficients " << *_mo_coefficients << endl;
+    
+    ub::vector<double>* _energies = _orbitalsAB->getEnergies();
+    _energies->resize( _levelsA + _levelsB );
+     
+    ub::project( *_energies, ub::range (0, _levelsA ) ) = *_orbitalsA->getEnergies();
+    ub::project( *_energies, ub::range (_levelsA, _levelsA + _levelsB ) ) = *_orbitalsB->getEnergies();
+
+   
+
+
+    
+    //cout << "MO energies " << *_energies << endl;
+    
+    ///"... ... Have now " >> _energies->size() >> " energies\n" >> *opThread;
+
+}   
+
+  
+  void Exciton::OrthonormalizeGuess(Segment* _segment, Orbitals* _orbitals){
+      
+    // Lowdin orthogonalize guess
+     // get atoms from segments
+      std::vector<Atom*> _segatoms = _segment->Atoms();
+      std::vector<QMAtom*> _atoms = _orbitals->QMAtoms();
+
+      vector< Atom* > ::iterator segait;
+      vector< QMAtom* > ::iterator ait;
+
+      _atoms = _orbitals->QMAtoms();
+
+            
+      string type;
+      int id = 1;
+      for (segait = _segatoms.begin(); segait < _segatoms.end(); ++segait) {
+                
+                // Atom *pAtom = new Atom(id++, type);
+                
+                type    = (*segait)->getElement();
+                vec pos = (*segait)->getQMPos();
+                QMAtom *pAtom = new QMAtom();
+                pAtom->type = type;
+                pAtom->x = pos.getX()*10.0;
+                pAtom->y = pos.getY()*10.0;
+                pAtom->z = pos.getZ()*10.0;
+                _atoms.push_back(pAtom);
+
+            }
+
+            // load DFT basis set (element-wise information) from xml file
+            BasisSet dftbs;
+            dftbs.LoadBasisSet("ubecp");
+            _orbitals->setDFTbasis( "ubecp" );
+            cout << TimeStamp() << " Loaded DFT Basis Set " << endl;
+
+            // fill DFT AO basis by going through all atoms 
+            AOBasis dftbasis;
+            dftbasis.AOBasisFill(&dftbs, _atoms);
+            cout << TimeStamp() << " Filled DFT Basis of size " << dftbasis._AOBasisSize << endl;
+            
+            // calculate overlap of dimer AOs
+            
+            AOOverlap _AOoverlap;
+            // initialize overlap matrix
+            _AOoverlap.Initialize(dftbasis._AOBasisSize);
+            // Fill overlap
+            _AOoverlap.Fill(&dftbasis);
+            cout << TimeStamp() << " Filled AO Overlap matrix of dimension: " << _AOoverlap._aomatrix.size1() << endl;
+
+	    //for ( int i =0; i<_AOoverlap._aomatrix.size1(); i++){
+	    //for ( int j =0; j<_AOoverlap._aomatrix.size1(); j++){
+
+	      //cout << " S(" << i << "," << j << "): " << _AOoverlap._aomatrix(i,j) << endl; 
+	    //}
+
+
+	    //}
+    
+            // calculate overlap of guess MOs, needs overlap of AOs
+            
+            ub::matrix<double> &_orbs = _orbitals->MOCoefficients();
+
+	    //            vector<int> neworder;
+            //string _pack = "gaussian";
+            //dftbasis.getReorderVector(_pack, neworder);
+            // and reorder rows of _orbitals->_mo_coefficients() accordingly
+
+	    //            AOBasis::ReorderMOs(_orbs, neworder);
+            ub::matrix<double> _check = ub::prod(_AOoverlap._aomatrix,ub::trans(_orbs));
+            ub::matrix<double> _MOoverlap = ub::prod( _orbs,_check);
+            
+
+/*            for ( int i =0; i<_AOoverlap._aomatrix.size1(); i++){
+	    for ( int j =0; j<_AOoverlap._aomatrix.size1(); j++){
+            cout << " ON(" << i << "," << j << "): "<< _check2(i,j)  << endl;
+            }
+            } */
+            ub::matrix<double> _MOoverlap_backup = _MOoverlap;
+            // find EVs of MOoverlap
+            ub::vector<double> _MOoverlap_eigenvalues; 
+            linalg_eigenvalues( _MOoverlap_eigenvalues, _MOoverlap);
+
+            ub::matrix<double> _diagS = ub::zero_matrix<double>( _AOoverlap._aomatrix.size1(), _AOoverlap._aomatrix.size1());
+            for ( int _i =0; _i <  _AOoverlap._aomatrix.size1(); _i++){
+                _diagS(_i,_i) = 1.0/sqrt(_MOoverlap_eigenvalues[_i]);
+            }
+            ub::matrix<double> _transform = ub::prod( _MOoverlap, ub::prod( _diagS, ub::trans(_MOoverlap) )  );
+     // final coupling elements
+      ub::matrix<double> _J = ub::prod( _transform, ub::prod(_MOoverlap_backup, _transform));
+                for ( int i =0; i<_AOoverlap._aomatrix.size1(); i++){
+	    for ( int j =0; j<_AOoverlap._aomatrix.size1(); j++){
+            cout << " ON(" << i << "," << j << "): "<< _MOoverlap_backup(i,j)  << "    " << _J(i,j) << endl;
+            }
+            } 
+            
+            exit(0);
+
+    // transform
+    // write...
+      
+      
+  }
+  
   
 
 }}

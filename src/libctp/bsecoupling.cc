@@ -25,6 +25,7 @@
 #include <votca/ctp/bsecoupling.h>
 #include <votca/tools/linalg.h>
 
+#include <boost/format.hpp>
 #include <boost/numeric/ublas/operation.hpp>
 #include <boost/numeric/ublas/banded.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
@@ -32,6 +33,8 @@
 #include <boost/numeric/ublas/symmetric.hpp>
 
 #include <boost/progress.hpp>
+
+using boost::format;
 
 namespace votca { namespace ctp {
 
@@ -557,6 +560,48 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
         if ( _singlets ) {
             LOG(logDEBUG,*_pLog)  << "   calculated singlet couplings " << flush;
         }
+        
+        // diagonalize the effective Hamiltonian?
+        ub::vector<float> _coupled_energies;
+        ub::matrix<float> _coupled_coefficients;
+	std::vector< std::vector<double> >& _free_dipolesA = _orbitalsA->TransitionDipoles();
+	std::vector< std::vector<double> >& _free_dipolesB = _orbitalsB->TransitionDipoles();
+        linalg_eigenvalues(*_JAB_singlet, _coupled_energies, _coupled_coefficients,_JAB_singlet->size1() );
+        LOG(logDEBUG,*_pLog)  << "   calculated EVs of coupling matrix " << flush;
+	cout << "\n" << endl;
+        for ( int i =0 ; i< _JAB_singlet->size1(); i++){
+            
+            
+	    std::vector<double> tdipole(3,0.0);
+            for ( int j = 0; j < 50; j++){
+	      tdipole[0] += _coupled_coefficients(j,i)*_free_dipolesA[j][0] + _coupled_coefficients(j+50,i)*_free_dipolesB[j][0];
+	      tdipole[1] += _coupled_coefficients(j,i)*_free_dipolesA[j][1] + _coupled_coefficients(j+50,i)*_free_dipolesB[j][1];
+	      tdipole[2] += _coupled_coefficients(j,i)*_free_dipolesA[j][2] + _coupled_coefficients(j+50,i)*_free_dipolesB[j][2];
+	    }
+	    double tdipole_strength = tdipole[0]*tdipole[0] + tdipole[1]*tdipole[1] + tdipole[2]*tdipole[2];
+            double oscillator_strength = tdipole_strength * _coupled_energies(i) /3.0;
+
+	    LOG(logINFO, *_pLog) << (format("  S = %1$4d Omega = %2$+1.4f eV  lamdba = %3$+3.2f nm ") % (i + 1) % (13.6058 * _coupled_energies(i)) % (1240.0/(13.6058 * _coupled_energies(i))) ).str() << flush;
+	    LOG(logINFO, *_pLog) << (format("           TrDipole length gauge   dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f") % (tdipole[0]) % (tdipole[1]) % (tdipole[2]) % (tdipole_strength) % (oscillator_strength)).str() << flush;
+	    for (int _i_bse = 0; _i_bse < _JAB_singlet->size1(); _i_bse++) {
+	      // if contribution is larger than 0.2, print
+	      double _weight = pow(_coupled_coefficients(_i_bse, i), 2);
+	      if (_weight > 0.2) {
+                if ( _i_bse < 50) {
+		LOG(logINFO, *_pLog) << (format("           EXCITON A %1$-3d : %2$3.1f%%") % _i_bse % (100.0 * _weight)).str() << flush;
+		} else
+		  {
+		    LOG(logINFO, *_pLog) << (format("           EXCITON B %1$-3d : %2$3.1f%%") % (_i_bse-50) % (100.0 * _weight)).str() << flush;
+		  }
+	      }
+	    }
+	    LOG(logINFO, *_pLog) << (format("   ")).str() << flush;
+
+
+
+
+            cout << " E" << i << " : " << _coupled_energies(i)*13.605 << " TD " << tdipole[0] << " " << tdipole[1] << " " << tdipole[2] << endl;          
+	}
         //LOG(logDEBUG,*_pLog)  << " singlet coupling: " << _JAB_singlet->at_element(0,_bseA_singlet_exc)*13.6058 << " and " <<  _JAB_singlet->at_element(_bseA_singlet_exc, 0) * 13.6058 << endl; 
     }
     

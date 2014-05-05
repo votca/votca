@@ -61,9 +61,12 @@ private:
     double _lower; // in eV
     double _upper; // in eV
     int _n_pt;
+
+    int _minexc; // in eV
+    int _maxexc; // in eV
     
     double _fwhm; // in eV
-
+    double _shiftby; 
     const double _rydtoev = 13.6058;  
     
     string _spectrum_type;
@@ -94,7 +97,9 @@ void Spectrum::Initialize(Property* options) {
            _upper  = options->get(key + ".upper").as<double> ();
            _fwhm  = options->get(key + ".fwhm").as<double>();
            _spectrum_type = options->get(key + ".type").as<string> ();
-           
+           _minexc  = options->get(key + ".minexc").as<int> ();
+	   _maxexc  = options->get(key + ".maxexc").as<int> ();
+           _shiftby = options->get(key + ".shift").as<double> ();
     
   
     // get the path to the shared folders with xml files
@@ -148,10 +153,17 @@ bool Spectrum::Evaluate() {
     const std::vector<float>& BSESingletEnergies = _orbitals.BSESingletEnergies();
     const std::vector<std::vector<double> >& TransitionDipoles = _orbitals.TransitionDipoles();
     
-    int _n_exc = TransitionDipoles.size();
+
+    //int _n_exc = TransitionDipoles.size();
+    int _n_exc = _maxexc - _minexc +1;
+
+    if ( _maxexc > TransitionDipoles.size() ) {
+      LOG(logDEBUG, _log) << " Transition dipoles for some excitations missing! " << flush;
+      exit(1);
+    }
  
   
-    LOG(logDEBUG, _log) << " Considering " << _n_exc << " excitation with max energy " << BSESingletEnergies[_n_exc-1] * _rydtoev << " eV / min wave length " <<  evtonm(BSESingletEnergies[_n_exc-1] * _rydtoev) << " nm" << flush;
+    LOG(logDEBUG, _log) << " Considering " << _n_exc << " excitation with max energy " << BSESingletEnergies[_maxexc] * _rydtoev << " eV / min wave length " <<  evtonm(BSESingletEnergies[_maxexc-1] * _rydtoev) << " nm" << flush;
     
     /*
      * 
@@ -189,7 +201,7 @@ bool Spectrum::Evaluate() {
     // get averaged oscillator strength for each excitation
     // f = 1/3 * Omega(Ryd) * |td|^2
     std::vector<double> _osc;
-    for ( int _i_exc = 0 ; _i_exc < _n_exc; _i_exc++ ){
+    for ( int _i_exc = _minexc ; _i_exc <= _maxexc; _i_exc++ ){
         _osc.push_back(  BSESingletEnergies[_i_exc ] * (TransitionDipoles[_i_exc][0] * TransitionDipoles[_i_exc][0] + TransitionDipoles[_i_exc][1] * TransitionDipoles[_i_exc][1] + TransitionDipoles[_i_exc][2] * TransitionDipoles[_i_exc][2]) / 3.0  );
     }
     
@@ -212,20 +224,20 @@ bool Spectrum::Evaluate() {
            double _eps_TruncLorentzian   = 0.0;
            double _imeps_TruncLorentzian = 0.0;
            
-           for ( int _i_exc = 0 ; _i_exc < _n_exc ; _i_exc++){
-              _eps_Gaussian     +=  _osc[_i_exc] * Gaussian(_e, BSESingletEnergies[_i_exc], _fwhm);
-              _imeps_Gaussian   +=  _osc[_i_exc] *  BSESingletEnergies[_i_exc ] * Gaussian(_e, BSESingletEnergies[_i_exc], _fwhm);
-              _eps_Lorentzian   +=  _osc[_i_exc] * Lorentzian(_e, BSESingletEnergies[_i_exc], _fwhm);
-              _imeps_Lorentzian +=  _osc[_i_exc] *  BSESingletEnergies[_i_exc ] * Lorentzian(_e, BSESingletEnergies[_i_exc], _fwhm);
-              _eps_TruncLorentzian   +=  _osc[_i_exc] * TruncatedLorentzian(_e, BSESingletEnergies[_i_exc], _fwhm);
-              _imeps_TruncLorentzian +=  _osc[_i_exc] *  BSESingletEnergies[_i_exc ] * TruncatedLorentzian(_e, BSESingletEnergies[_i_exc], _fwhm);
+           for ( int _i_exc = _minexc ; _i_exc <= _maxexc ; _i_exc++){
+              _eps_Gaussian     +=  _osc[_i_exc-_minexc] * Gaussian(_e, BSESingletEnergies[_i_exc]+_shiftby/_rydtoev, _fwhm);
+              _imeps_Gaussian   +=  _osc[_i_exc-_minexc] *  BSESingletEnergies[_i_exc ] * Gaussian(_e, BSESingletEnergies[_i_exc], _fwhm);
+              _eps_Lorentzian   +=  _osc[_i_exc-_minexc] * Lorentzian(_e, BSESingletEnergies[_i_exc], _fwhm);
+              _imeps_Lorentzian +=  _osc[_i_exc-_minexc] *  BSESingletEnergies[_i_exc ] * Lorentzian(_e, BSESingletEnergies[_i_exc], _fwhm);
+              _eps_TruncLorentzian   +=  _osc[_i_exc-_minexc] * TruncatedLorentzian(_e, BSESingletEnergies[_i_exc], _fwhm);
+              _imeps_TruncLorentzian +=  _osc[_i_exc-_minexc] *  BSESingletEnergies[_i_exc ] * TruncatedLorentzian(_e, BSESingletEnergies[_i_exc], _fwhm);
            }
         
            ofs << _e*_rydtoev << "    " << _eps_Gaussian << "   " << _imeps_Gaussian << "   " << _eps_Lorentzian << "   " << _imeps_Lorentzian << "  " << _eps_TruncLorentzian << "   " << _imeps_TruncLorentzian  << endl;
     
        }
         
-        LOG(logDEBUG, _log) << " Spectrum in energy range from  " << _lower << " to " << _upper << " eV and with broadening of FWHM " << _fwhm << " eV written to file  " << _output_file << flush;
+        LOG(logDEBUG, _log) << " Spectrum in energy range from  " << _lower << " to " << _upper << " eV and with broadening of FWHM " << _fwhm*_rydtoev << " eV written to file  " << _output_file << flush;
     }
     
     if ( _spectrum_type == "wavelength"){
@@ -244,15 +256,15 @@ bool Spectrum::Evaluate() {
             double _eps_TruncLorentzian   = 0.0;
             double _imeps_TruncLorentzian = 0.0;
             
-            for ( int _i_exc = 0 ; _i_exc < _n_exc ; _i_exc++){
+            for ( int _i_exc = _minexc ; _i_exc <= _maxexc ; _i_exc++){
                 //cout << BSESingletEnergies[_i_exc]*_rydtoev << "  " << nmtoev(BSESingletEnergies[_i_exc]*_rydtoev) << endl;
-              double _exc_lambda = nmtoev(BSESingletEnergies[_i_exc]*_rydtoev);
-              _eps_Gaussian     +=  _osc[_i_exc] * Gaussian(_lambda, _exc_lambda, _fwhm);
-              _imeps_Gaussian   +=  _osc[_i_exc] *  _exc_lambda * Gaussian(_lambda, _exc_lambda, _fwhm);
-              _eps_Lorentzian   +=  _osc[_i_exc] * Lorentzian(_lambda, _exc_lambda, _fwhm);
-              _imeps_Lorentzian +=  _osc[_i_exc] *  _exc_lambda * Lorentzian(_lambda, _exc_lambda, _fwhm);
-              _eps_TruncLorentzian   +=  _osc[_i_exc] * TruncatedLorentzian(_lambda, _exc_lambda, _fwhm);
-              _imeps_TruncLorentzian +=  _osc[_i_exc] *  BSESingletEnergies[_i_exc ] * TruncatedLorentzian(_lambda, _exc_lambda, _fwhm);
+              double _exc_lambda = nmtoev(BSESingletEnergies[_i_exc]*_rydtoev + _shiftby);
+              _eps_Gaussian     +=  _osc[_i_exc-_minexc] * Gaussian(_lambda, _exc_lambda, _fwhm);
+              _imeps_Gaussian   +=  _osc[_i_exc-_minexc] *  _exc_lambda * Gaussian(_lambda, _exc_lambda, _fwhm);
+              _eps_Lorentzian   +=  _osc[_i_exc-_minexc] * Lorentzian(_lambda, _exc_lambda, _fwhm);
+              _imeps_Lorentzian +=  _osc[_i_exc-_minexc] *  _exc_lambda * Lorentzian(_lambda, _exc_lambda, _fwhm);
+              _eps_TruncLorentzian   +=  _osc[_i_exc-_minexc] * TruncatedLorentzian(_lambda, _exc_lambda, _fwhm);
+              _imeps_TruncLorentzian +=  _osc[_i_exc-_minexc] *  BSESingletEnergies[_i_exc ] * TruncatedLorentzian(_lambda, _exc_lambda, _fwhm);
             }
 
             ofs << _lambda << "    " << _eps_Gaussian << "   " << _imeps_Gaussian << "   " << _eps_Lorentzian << "   " << _imeps_Lorentzian << "   " << _eps_TruncLorentzian << "   " << _imeps_TruncLorentzian << endl;
