@@ -241,6 +241,10 @@ void Diode::RunKMC() {
     char trajfile[100];
     strcpy(trajfile, eventdata->traj_filename.c_str());
     trajstore.open(trajfile);
+    
+    ofstream vizstore;
+    vizstore.open("vizstore");
+    
 
     votca::tools::vec traject;
 
@@ -254,7 +258,50 @@ void Diode::RunKMC() {
         }
     }*/
     
-   sim_time = 0.0;
+    vector< vector< vector <double> > > viz_mesh;
+    vector< vector< vector <int> > > num_mesh;
+    vector<double> layer_cur;
+    
+    int viz_meshnr_x = eventdata->nx; 
+    int viz_meshnr_y = eventdata->ny; 
+    int viz_meshnr_z = eventdata->nz;
+    
+    double viz_size_x = eventdata->simboxsize.x()/viz_meshnr_x;
+    double viz_size_y = eventdata->simboxsize.y()/viz_meshnr_y;
+    double viz_size_z = eventdata->simboxsize.z()/viz_meshnr_z;
+    
+    if(eventdata->viz_store) { 
+        layer_cur.resize(viz_meshnr_x);
+        for(int i=0;i<viz_meshnr_x;i++){
+            layer_cur[i]=0.0;
+        }
+
+        viz_mesh.resize(viz_meshnr_x);
+        num_mesh.resize(viz_meshnr_x);
+        for(int i = 0;i<viz_meshnr_x;i++) {
+            viz_mesh[i].resize(viz_meshnr_y);
+            num_mesh[i].resize(viz_meshnr_y);
+            for(int j = 0;j<viz_meshnr_y;j++) {
+                viz_mesh[i][j].resize(viz_meshnr_z);
+                num_mesh[i][j].resize(viz_meshnr_z);
+                for(int k = 0; k<viz_meshnr_z;k++) {
+                    viz_mesh[i][j][k]=0.0;
+                    num_mesh[i][j][k]=0;
+                }
+            }
+        }
+
+        for(int it = 0; it != graph->Numberofnodes(); it++) 
+        {
+            votca::tools::vec position = graph->GetNode(it)->position();
+            int mesh_pos_x = floor(position.x()/viz_size_x);
+            int mesh_pos_y = floor(position.y()/viz_size_y);
+            int mesh_pos_z = floor(position.z()/viz_size_z);
+            num_mesh[mesh_pos_x][mesh_pos_y][mesh_pos_z]++;
+        }
+    }
+    
+    sim_time = 0.0;
     for (long it = 0; it < 2*eventdata->nr_equilsteps + eventdata->nr_timesteps; it++) {
 //    for (long it = 0; it < 100; it++) {
         
@@ -321,6 +368,38 @@ void Diode::RunKMC() {
         /*if(it==0) {
             traject = votca::tools::vec(0.0,0.0,0.0);
         }*/        
+
+        if(eventdata->viz_store) {
+            Link* viz_link = chosenevent->link();
+            Node* node1 = viz_link->node1();
+            Node* node2 = viz_link->node2();
+            votca::tools::vec node1_pos = node1->position();
+            votca::tools::vec node2_pos = node2->position();
+
+            if(node1->type() == (int) NormalNode) {
+                if(node1_pos.x() < node2_pos.x()) {
+                    int mesh_pos_x = floor(node1_pos.x()/viz_size_x);
+                    int mesh_pos_y = floor(node1_pos.y()/viz_size_y);
+                    int mesh_pos_z = floor(node1_pos.z()/viz_size_z);                
+                    viz_mesh[mesh_pos_x][mesh_pos_y][mesh_pos_z]+=1.0;
+
+                    layer_cur[mesh_pos_x] += 1.0;
+                    if(layer_cur[mesh_pos_x] <= viz_mesh[mesh_pos_x][mesh_pos_y][mesh_pos_z]) std::cout << viz_mesh[mesh_pos_x][mesh_pos_y][mesh_pos_z] << " " << layer_cur[mesh_pos_x] << endl;
+                }
+            }
+
+            if(it==88888) {
+                for(int ix = 0; ix < viz_meshnr_x; ix++) {
+                    for(int iy=0; iy < viz_meshnr_y; iy++) {
+                        for(int iz=0; iz < viz_meshnr_z; iz++) {
+                           double value;
+                           value  = viz_mesh[ix][iy][iz]/(1.0*layer_cur[ix]*num_mesh[ix][iy][iz]);
+                           vizstore << ix << " " << iy << " " << iz << " " << value << endl;
+                        }
+                    }
+                } 
+            }            
+        }
         
         numoutput->Update(chosenevent, sim_time, timestep); 
         events->On_execute(chosenevent, graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventdata);

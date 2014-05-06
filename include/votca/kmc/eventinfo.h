@@ -44,6 +44,8 @@ public:
         number_direct_conv_iv       = options->get("options.diode.number_direct_conv_iv").as<int>();
         number_direct_conv_iv       = options->get("options.diode.number_direct_conv_iv").as<int>();
         
+        rate_calculate              = options->get("options.diode.rate_calculate").as<bool>();
+        viz_store                   = options->get("options.diode.viz_store").as<bool>();
         nx                          = options->get("options.diode.nx").as<int>();
         ny                          = options->get("options.diode.ny").as<int>();
         nz                          = options->get("options.diode.nz").as<int>();
@@ -133,6 +135,7 @@ public:
     double coulomb_strength; double coulcut; double self_image_prefactor; int nr_sr_images; long nr_lr_images;
     bool interpolate_longrange; bool longrange_slab;
     double left_oxide_thickness; double right_oxide_thickness;
+    bool rate_calculate; bool viz_store;
 
 };
 

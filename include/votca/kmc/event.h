@@ -403,8 +403,8 @@ void Event::Set_event(Link* link,int carrier_type, StateDevice* state, Longrange
     _action_node2 = Determine_action_flag_node2(eventinfo);
 
     if(_init_type == (int) Injection && eventinfo->device == 2) {Determine_ohmic_rate(state,longrange,eventinfo); }
-    else                                                        {Determine_rate( state, longrange, eventinfo);    }
- 
+    else if(eventinfo->rate_calculate)                          {Determine_rate( state, longrange, eventinfo);    }
+    else                                                        {_rate = dynamic_cast<LinkSQL*>(_link)->rate12h(); }
 }
 
 }} 
