@@ -271,11 +271,11 @@ inline void EwdInteractor::ApplyBiasPolar(APolarSite& p1, APolarSite& p2) {
                 lp3 = lp5 = lp7 = lp9 = 1.;
         }
         else {
-//            lp3 = lp5 = lp7 = lp9 = 1.;
-            lp3 = l3;
-            lp5 = l5;
-            lp7 = l7;
-            lp9 = l9;
+            lp3 = lp5 = lp7 = lp9 = 1.;
+//            lp3 = l3;
+//            lp5 = l5;
+//            lp7 = l7;
+//            lp9 = l9;
         }
     }
     else {
@@ -362,11 +362,11 @@ inline void EwdInteractor::ApplyBiasPolar(APolarSite& p1, APolarSite& p2, vec &s
                 lp3 = lp5 = lp7 = lp9 = 1.;
         }
         else {
-//            lp3 = lp5 = lp7 = lp9 = 1.;
-            lp3 = l3;
-            lp5 = l5;
-            lp7 = l7;
-            lp9 = l9;
+            lp3 = lp5 = lp7 = lp9 = 1.;
+//            lp3 = l3;
+//            lp5 = l5;
+//            lp7 = l7;
+//            lp9 = l9;
         }
     }
     else {

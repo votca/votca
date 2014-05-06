@@ -143,15 +143,15 @@ private:
     inline void setLambda5() { lambda5 = 1 - (1 + a*u3) * exp( -a*u3); }
     inline void setLambda7() { lambda7 = 1 - (1 + a*u3 + 0.6*a*a*u3*u3) * exp( -a*u3); }
     inline void setLambda9() { lambda9 = 1 - (1 + a*u3 + (18*a*a*u3*u3 + 9*a*a*a*u3*u3*u3)/35) * exp( -a*u3); }
-    inline void setpLambda3() { plambda3 = 1 - exp( -a*u3); }
-    inline void setpLambda5() { plambda5 = 1 - (1 + a*u3) * exp( -a*u3); }
-    inline void setpLambda7() { plambda7 = 1 - (1 + a*u3 + 0.6*a*a*u3*u3) * exp( -a*u3); }
-    inline void setpLambda9() { plambda9 = 1 - (1 + a*u3 + (18*a*a*u3*u3 + 9*a*a*a*u3*u3*u3)/35) * exp( -a*u3); }
+//    inline void setpLambda3() { plambda3 = 1 - exp( -a*u3); }
+//    inline void setpLambda5() { plambda5 = 1 - (1 + a*u3) * exp( -a*u3); }
+//    inline void setpLambda7() { plambda7 = 1 - (1 + a*u3 + 0.6*a*a*u3*u3) * exp( -a*u3); }
+//    inline void setpLambda9() { plambda9 = 1 - (1 + a*u3 + (18*a*a*u3*u3 + 9*a*a*a*u3*u3*u3)/35) * exp( -a*u3); }
     
-//    inline void setpLambda3() { plambda3 = 1; }
-//    inline void setpLambda5() { plambda5 = 1; }
-//    inline void setpLambda7() { plambda7 = 1; }
-//    inline void setpLambda9() { plambda9 = 1; }
+    inline void setpLambda3() { plambda3 = 1; }
+    inline void setpLambda5() { plambda5 = 1; }
+    inline void setpLambda7() { plambda7 = 1; }
+    inline void setpLambda9() { plambda9 = 1; }
     
     
     inline double T00_00() { return R; }
@@ -2732,11 +2732,11 @@ inline void XInteractor::BiasStat(APolarSite &pol1, APolarSite &pol2) {
             plambda3 = plambda5 = plambda7 = plambda9 = 1.;
         }
         else {
-//            plambda3 = plambda5 = plambda7 = plambda9 = 1.;
-            plambda3 = lambda3;
-            plambda5 = lambda5;
-            plambda7 = lambda7;
-            plambda9 = lambda9;
+            plambda3 = plambda5 = plambda7 = plambda9 = 1.;
+//            plambda3 = lambda3;
+//            plambda5 = lambda5;
+//            plambda7 = lambda7;
+//            plambda9 = lambda9;
         }
     }
     else {
@@ -2801,11 +2801,11 @@ inline void XInteractor::BiasIndu(APolarSite &pol1, APolarSite &pol2) {
             plambda3 = plambda5 = plambda7 = plambda9 = 1.;
         }
         else {
-//            plambda3 = plambda5 = plambda7 = plambda9 = 1.;
-            plambda3 = lambda3;
-            plambda5 = lambda5;
-            plambda7 = lambda7;
-            plambda9 = lambda9;
+            plambda3 = plambda5 = plambda7 = plambda9 = 1.;
+//            plambda3 = lambda3;
+//            plambda5 = lambda5;
+//            plambda7 = lambda7;
+//            plambda9 = lambda9;
         }
     }
     else {
