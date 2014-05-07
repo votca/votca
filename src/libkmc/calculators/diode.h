@@ -47,8 +47,6 @@ public:
     StateDevice* state;
     Events* events;
     Vssmgroup* vssmgroup;
-    Vssmgroup* left_chargegroup;
-    Vssmgroup* right_chargegroup;
     Eventinfo* eventdata;
     Longrange* longrange;
     Bsumtree* non_injection_rates;
@@ -139,7 +137,7 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     
     //Random charge distribution (assume homogeneous distributed over device)
     int nrcharges;
-//    if(eventdata->device>0) nrcharges = (eventdata->voltage)/(2*Pi*eventdata->coulomb_strength*eventdata->simboxsize.x()*eventdata->simboxsize.x())*graph->Numberofnodes();
+    if(eventdata->device>0) nrcharges = (eventdata->voltage)/(2*Pi*eventdata->coulomb_strength*eventdata->simboxsize.x()*eventdata->simboxsize.x())*graph->Numberofnodes();
     if(eventdata->device==0) nrcharges = eventdata->ho_density*graph->Numberofnodes();
     if(eventdata->traj_store) {
         int nrelectrons = eventdata->nr_electrons;
@@ -154,9 +152,9 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
         }
     }
     else {
-//        state->Random_init_injection((int) Hole, nrcharges, site_inject_probs, graph, eventdata, RandomVariable);
+        state->Random_init_injection((int) Hole, nrcharges, site_inject_probs, graph, eventdata, RandomVariable);
     }
-//    std::cout << "initial nrcharges: " << nrcharges << endl;
+    std::cout << "initial nrcharges: " << nrcharges << endl;
     
     std::cout << "charges injected" << endl;
     
@@ -169,19 +167,17 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     right_injection_rates = new Bsumtree();
 
     std::cout << "binary tree structures initialized" << endl;
-
+    
     events = new Events();
     events->Init_non_injection_meshes(eventdata);
     events->Initialize_eventvector(graph,state,longrange,eventdata);
     events->Initialize_rates(non_injection_rates, left_injection_rates, right_injection_rates,eventdata);
     if(eventdata->device>0) events->Init_injection_meshes(state, eventdata);
     events->Initialize_after_charge_placement(graph,state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventdata);
-
+    
     std::cout << "event vectors and meshes initialized" << endl;
 
     vssmgroup = new Vssmgroup();
-    left_chargegroup = new Vssmgroup();
-    right_chargegroup = new Vssmgroup();
 
     numoutput = new Numoutput();
     numoutput->Initialize();
@@ -201,8 +197,6 @@ bool Diode::EvaluateFrame() {
     delete eventdata;
     delete longrange;
     delete vssmgroup;
-    delete left_chargegroup;
-    delete right_chargegroup;
     delete non_injection_rates;
     delete left_injection_rates;
     delete right_injection_rates;
@@ -312,36 +306,6 @@ void Diode::RunKMC() {
     for (long it = 0; it < 2*eventdata->nr_equilsteps + eventdata->nr_timesteps; it++) {
 //    for (long it = 0; it < 100; it++) {
         
-        if(eventdata->device == 2) {
-            // make sure the number of carriers on the left equals
-            left_chargegroup->Recompute_injection(left_injection_rates);
-            numcharges_distrib = floor(left_chargegroup->totprobsum()+0.5);
-            if(numcharges_distrib == 0 && numoutput->holes() == 0) { numcharges_distrib = 1;} // at least one charge per time in the device
-            
-            while(numcharges_distrib > 0) { // need to fill nodes
-                Event* chosencharge = left_chargegroup->Choose_injection_event(events, 0, left_injection_rates, RandomVariable);
-                numoutput->Update_ohmic(chosencharge);
-                events->On_execute(chosencharge, graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventdata);
-                left_chargegroup->Recompute_injection(left_injection_rates);
-                numcharges_distrib = floor(left_chargegroup->totprobsum()+0.5);
-
-            }
-
-            // make sure the number of carriers on the left equals
-            right_chargegroup->Recompute_injection(right_injection_rates);
-            numcharges_distrib = floor(right_chargegroup->totprobsum()+0.5);
-
-            // preference given to the major injecting electrode
-            while(numcharges_distrib > 0) { // need to fill nodes
-                Event* chosencharge = right_chargegroup->Choose_injection_event(events, 1, right_injection_rates, RandomVariable);
-                numoutput->Update_ohmic(chosencharge);
-                events->On_execute(chosencharge, graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventdata);
-                right_chargegroup->Recompute_injection(right_injection_rates);
-                numcharges_distrib = floor(right_chargegroup->totprobsum()+0.5);
-
-            }
-        }
-
         if(eventdata->device>0) {
             if(ldiv(it, eventdata->steps_update_longrange).rem == 0 && it>0){
                 if(eventdata->longrange_slab) longrange->Update_cache_slab(graph,eventdata);
@@ -362,7 +326,6 @@ void Diode::RunKMC() {
         }
         if(eventdata->device == 0) vssmgroup->Recompute_bulk(non_injection_rates);
         if(eventdata->device == 1) vssmgroup->Recompute_device(non_injection_rates, left_injection_rates, right_injection_rates);
-        if(eventdata->device == 2) vssmgroup->Recompute_bulk(non_injection_rates);
 
         double timestep = vssmgroup->Timestep(RandomVariable);
         sim_time += timestep;
@@ -370,7 +333,6 @@ void Diode::RunKMC() {
         Event* chosenevent;
         if(eventdata->device == 0) chosenevent = vssmgroup->Choose_event_bulk(events, non_injection_rates, RandomVariable);
         if(eventdata->device == 1) chosenevent = vssmgroup->Choose_event_device(events, non_injection_rates, left_injection_rates, right_injection_rates, RandomVariable);
-        if(eventdata->device == 2) chosenevent = vssmgroup->Choose_event_bulk(events, non_injection_rates, RandomVariable);
 
         if(it==0) {
             traject = votca::tools::vec(0.0,0.0,0.0);
