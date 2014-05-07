@@ -139,7 +139,7 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
     
     //Random charge distribution (assume homogeneous distributed over device)
     int nrcharges;
-    if(eventdata->device>0) nrcharges = (eventdata->voltage)/(2*Pi*eventdata->coulomb_strength*eventdata->simboxsize.x()*eventdata->simboxsize.x())*graph->Numberofnodes();
+//    if(eventdata->device>0) nrcharges = (eventdata->voltage)/(2*Pi*eventdata->coulomb_strength*eventdata->simboxsize.x()*eventdata->simboxsize.x())*graph->Numberofnodes();
     if(eventdata->device==0) nrcharges = eventdata->ho_density*graph->Numberofnodes();
     if(eventdata->traj_store) {
         int nrelectrons = eventdata->nr_electrons;
@@ -154,9 +154,9 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
         }
     }
     else {
-        state->Random_init_injection((int) Hole, nrcharges, site_inject_probs, graph, eventdata, RandomVariable);
+//        state->Random_init_injection((int) Hole, nrcharges, site_inject_probs, graph, eventdata, RandomVariable);
     }
-    std::cout << "initial nrcharges: " << nrcharges << endl;
+//    std::cout << "initial nrcharges: " << nrcharges << endl;
     
     std::cout << "charges injected" << endl;
     
@@ -261,6 +261,7 @@ void Diode::RunKMC() {
     vector< vector< vector <double> > > viz_mesh;
     vector< vector< vector <int> > > num_mesh;
     vector<double> layer_cur;
+    vector<int> layer_num;
     
     int viz_meshnr_x = eventdata->nx; 
     int viz_meshnr_y = eventdata->ny; 
@@ -272,8 +273,10 @@ void Diode::RunKMC() {
     
     if(eventdata->viz_store) { 
         layer_cur.resize(viz_meshnr_x);
+        layer_num.resize(viz_meshnr_x);
         for(int i=0;i<viz_meshnr_x;i++){
             layer_cur[i]=0.0;
+            layer_num[i]=0;
         }
 
         viz_mesh.resize(viz_meshnr_x);
@@ -293,14 +296,18 @@ void Diode::RunKMC() {
 
         for(int it = 0; it != graph->Numberofnodes(); it++) 
         {
-            votca::tools::vec position = graph->GetNode(it)->position();
-            int mesh_pos_x = floor(position.x()/viz_size_x);
-            int mesh_pos_y = floor(position.y()/viz_size_y);
-            int mesh_pos_z = floor(position.z()/viz_size_z);
-            num_mesh[mesh_pos_x][mesh_pos_y][mesh_pos_z]++;
+            Node* node = graph->GetNode(it);
+            votca::tools::vec position = node->position();
+            if(node->type() == (int) NormalNode) {
+                int mesh_pos_x = floor(position.x()/viz_size_x);
+                int mesh_pos_y = floor(position.y()/viz_size_y);
+                int mesh_pos_z = floor(position.z()/viz_size_z);
+                num_mesh[mesh_pos_x][mesh_pos_y][mesh_pos_z]++;
+                layer_num[mesh_pos_x]++;
+            }
         }
     }
-    
+
     sim_time = 0.0;
     for (long it = 0; it < 2*eventdata->nr_equilsteps + eventdata->nr_timesteps; it++) {
 //    for (long it = 0; it < 100; it++) {
@@ -365,9 +372,9 @@ void Diode::RunKMC() {
         if(eventdata->device == 1) chosenevent = vssmgroup->Choose_event_device(events, non_injection_rates, left_injection_rates, right_injection_rates, RandomVariable);
         if(eventdata->device == 2) chosenevent = vssmgroup->Choose_event_bulk(events, non_injection_rates, RandomVariable);
 
-        /*if(it==0) {
+        if(it==0) {
             traject = votca::tools::vec(0.0,0.0,0.0);
-        }*/        
+        }        
 
         if(eventdata->viz_store) {
             Link* viz_link = chosenevent->link();
@@ -376,34 +383,53 @@ void Diode::RunKMC() {
             votca::tools::vec node1_pos = node1->position();
             votca::tools::vec node2_pos = node2->position();
 
-            if(node1->type() == (int) NormalNode) {
+            if(node1->type() == (int) NormalNode && node2->type() == (int) NormalNode) {
+                int mesh1_pos_x = floor(node1_pos.x()/viz_size_x);
+                int mesh1_pos_y = floor(node1_pos.y()/viz_size_y);
+                int mesh1_pos_z = floor(node1_pos.z()/viz_size_z);
+                int mesh2_pos_x = floor(node2_pos.x()/viz_size_x);
+                int mesh2_pos_y = floor(node2_pos.y()/viz_size_y);
+                int mesh2_pos_z = floor(node2_pos.z()/viz_size_z);
+                
                 if(node1_pos.x() < node2_pos.x()) {
-                    int mesh_pos_x = floor(node1_pos.x()/viz_size_x);
-                    int mesh_pos_y = floor(node1_pos.y()/viz_size_y);
-                    int mesh_pos_z = floor(node1_pos.z()/viz_size_z);                
-                    viz_mesh[mesh_pos_x][mesh_pos_y][mesh_pos_z]+=1.0;
 
-                    layer_cur[mesh_pos_x] += 1.0;
-                    if(layer_cur[mesh_pos_x] <= viz_mesh[mesh_pos_x][mesh_pos_y][mesh_pos_z]) std::cout << viz_mesh[mesh_pos_x][mesh_pos_y][mesh_pos_z] << " " << layer_cur[mesh_pos_x] << endl;
+                    if(!(((mesh1_pos_x == mesh2_pos_x)&&(mesh1_pos_y == mesh2_pos_y))&&(mesh1_pos_z == mesh2_pos_z))) {
+                        viz_mesh[mesh1_pos_x][mesh1_pos_y][mesh1_pos_z]+=1.0;
+                        viz_mesh[mesh2_pos_x][mesh2_pos_y][mesh2_pos_z]+=1.0;
+                        layer_cur[mesh1_pos_x] += 1.0;
+                        layer_cur[mesh2_pos_x] += 1.0;
+                    }
+//                    if(layer_cur[mesh_pos_x] <= viz_mesh[mesh_pos_x][mesh_pos_y][mesh_pos_z]) std::cout << viz_mesh[mesh_pos_x][mesh_pos_y][mesh_pos_z] << " " << layer_cur[mesh_pos_x] << endl;
+                }
+                if(node1_pos.x() > node2_pos.x()) {
+                    if(!(((mesh1_pos_x == mesh2_pos_x)&&(mesh1_pos_y == mesh2_pos_y))&&(mesh1_pos_z == mesh2_pos_z))) {
+                        viz_mesh[mesh1_pos_x][mesh1_pos_y][mesh1_pos_z]-=1.0;
+                        viz_mesh[mesh2_pos_x][mesh2_pos_y][mesh2_pos_z]-=1.0;
+                        layer_cur[mesh1_pos_x] -= 1.0;
+                        layer_cur[mesh2_pos_x] -= 1.0;
+                    }
+ //                   if(layer_cur[mesh_pos_x] <= viz_mesh[mesh_pos_x][mesh_pos_y][mesh_pos_z]) std::cout << viz_mesh[mesh_pos_x][mesh_pos_y][mesh_pos_z] << " " << layer_cur[mesh_pos_x] << endl;
                 }
             }
-
-            if(it==88888) {
+            if(it==888888) {
                 for(int ix = 0; ix < viz_meshnr_x; ix++) {
                     for(int iy=0; iy < viz_meshnr_y; iy++) {
                         for(int iz=0; iz < viz_meshnr_z; iz++) {
                            double value;
-                           value  = viz_mesh[ix][iy][iz]/(1.0*layer_cur[ix]*num_mesh[ix][iy][iz]);
-                           vizstore << ix << " " << iy << " " << iz << " " << value << endl;
+                           double layer_value;
+                           if(num_mesh[ix][iy][iz]==0) num_mesh[ix][iy][iz] = 1;
+                           value  = viz_mesh[ix][iy][iz]/(1.0*num_mesh[ix][iy][iz]);
+                           layer_value = layer_cur[ix]/(1.0*layer_num[ix]);
+                           double current = value/layer_value;
+                           vizstore << ix << " " << iy << " " << iz << " " << current << endl;
+                           std::cout << viz_mesh[ix][iy][iz] << " " << layer_cur[ix] << " " << num_mesh[ix][iy][iz] << endl;
                         }
                     }
                 } 
+                vizstore.flush();
             }            
         }
-        
-        numoutput->Update(chosenevent, sim_time, timestep); 
-        events->On_execute(chosenevent, graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventdata);
-        
+
         if(eventdata->traj_store) {
             votca::tools::vec traj_hop = chosenevent->link()->r12();
             traject = traject+traj_hop;
@@ -412,6 +438,9 @@ void Diode::RunKMC() {
         if(eventdata->traj_store && ldiv(it,eventdata->nr_reportsteps).rem == 0) {
             trajstore << sim_time << "\t" << traject.x() << "\t" << traject.y() << "\t" << traject.z() << endl;
         }
+        
+        numoutput->Update(chosenevent, sim_time, timestep); 
+        events->On_execute(chosenevent, graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventdata);
         
         // check for direct repeats        
         int goto_node_id = chosenevent->link()->node2()->id();
