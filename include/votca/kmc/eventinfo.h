@@ -46,9 +46,12 @@ public:
         
         rate_calculate              = options->get("options.diode.rate_calculate").as<bool>();
         viz_store                   = options->get("options.diode.viz_store").as<bool>();
-        nx                          = options->get("options.diode.nx").as<int>();
-        ny                          = options->get("options.diode.ny").as<int>();
-        nz                          = options->get("options.diode.nz").as<int>();
+        viz_filename                = options->get("options.diode.viz_filename").as<string>();
+        viz_nr_timesteps            = options->get("options.diode.viz_nr_timesteps").as<int>();
+        
+        viz_nx                      = options->get("options.diode.viz_nx").as<int>();
+        viz_ny                      = options->get("options.diode.viz_ny").as<int>();
+        viz_nz                      = options->get("options.diode.viz_nz").as<int>();
         size_x                      = options->get("options.diode.size_x").as<double>();
         size_y                      = options->get("options.diode.size_y").as<double>();
         size_z                      = options->get("options.diode.size_z").as<double>();
@@ -122,7 +125,7 @@ public:
     int nr_holes; int nr_electrons; int nr_reportsteps; bool traj_store; string traj_filename;
     int seed; int nr_equilsteps; int nr_timesteps; int steps_update_longrange;
     int number_direct_conv_iv; int number_direct_conv_reco;
-    int nx; int ny; int nz; int growsize;
+    int viz_nx; int viz_ny; int viz_nz; int growsize;
     double size_x; double size_y; double size_z; bool resize;
     double lattice_constant; double left_electrode_distance; double right_electrode_distance; 
     double alpha; double temperature; double el_density; double ho_density;
@@ -135,7 +138,7 @@ public:
     double coulomb_strength; double coulcut; double self_image_prefactor; int nr_sr_images; long nr_lr_images;
     bool interpolate_longrange; bool longrange_slab;
     double left_oxide_thickness; double right_oxide_thickness;
-    bool rate_calculate; bool viz_store;
+    bool rate_calculate; bool viz_store; string viz_filename; int viz_nr_timesteps;
 
 };
 

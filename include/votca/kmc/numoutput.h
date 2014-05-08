@@ -19,6 +19,9 @@
 #define	_VOTCA_KMC_NUMOUTPUT_H
 
 #include <votca/kmc/event.h>
+#include <votca/kmc/graph.h>
+#include <votca/kmc/trajectories.h>
+#include <votca/kmc/visualisation.h>
 
 namespace votca { namespace kmc {
 
@@ -27,6 +30,16 @@ class Numoutput
 
 public:
     
+    Numoutput(bool trajstore, bool vizstore) {
+        if(trajstore) trajectories = new Trajectories();
+        if(vizstore) visualisation = new Visualisation();
+    }
+    
+    ~Numoutput() {
+        delete trajectories;
+        delete visualisation;
+    }
+    
     void Initialize();
     void Initialize_equilibrate();
     void Init_convergence_check(double simtime);
@@ -34,6 +47,14 @@ public:
     void Update(Event* event, double simtime, double timestep);
     void Update_ohmic(Event* event);
     void Write(double simtime);
+    
+    void Init_trajectory(string filename) {trajectories->Init_trajectory(filename);}
+    void Update_trajectory(Event* event) {trajectories->Update_trajectory(event);}
+    void Print_trajectory(double simtime) {trajectories->Print_trajectory(simtime);}
+    
+    void Init_visualisation(GraphDevice* graph, Eventinfo* eventinfo) {visualisation->Init_visualisation(graph, eventinfo);}
+    void Update_visualisation(Event* event) {visualisation->Update_visualisation(event);}
+    void Print_visualisation() {visualisation->Print_visualisation();}
     
     const bool &iv_conv() const {return _direct_iv_convergence;}
     const bool &reco_conv() const {return _direct_reco_convergence;}
@@ -44,6 +65,9 @@ public:
     const int &holes() const {return _nholes;}
     
 private:
+    
+    Trajectories* trajectories;
+    Visualisation* visualisation;
     
     int _nelectrons;
     int _nholes;
@@ -226,65 +250,6 @@ void Numoutput::Update(Event* event, double simtime, double timestep) {
 //    }
     
 }
-
-/*void Numoutput::Prepare_Filament_viz
-       Link* count_link = chosenevent->link();
-        int node1_id = count_link->node1()->id();
-        Node* node1 = count_link->node1();
-        Node* node2 = count_link->node2();
-        votca::tools::vec node1_pos = node1->position();
-        votca::tools::vec node2_pos = node2->position();
-
-        if(node1->type() == (int) NormalNode) {
-            if(node1_pos.x() < node2_pos.x()) {
-                votca::tools::vec travelvec = chosenevent->link()->r12();
-                count_link->incval(1.0);
-                layercurrent[dynamic_cast<NodeDevice*>(node1)->layer()] += 1.0;
-                if(layercurrent[dynamic_cast<NodeDevice*>(node1)->layer()] <= count_link->count()) std::cout << count_link->count() << " " << layercurrent[dynamic_cast<NodeDevice*>(node1)->layer()] << endl;
-            }
-            else {
-    //            for (int j = 0; j < node2->links().size(); j++ ) {
-    //                if(node2->links()[j]->node2()->id() == node1_id) {
-    //                    node2->links()[j]->deccount();    
-    //                }
-    //            }
-            }
-        }
-        
-        double maxcount = 0.0;
-
-//        if(it == 2*eventdata->nr_equilsteps + 1500000) {
-        if(it == 88888) {
-
-            ofstream curstore;
-//            curstore.open("curdens"); 
-            
-//            curstore << "{";
-            for(int i = 0; i<graph->Numberofnodes(); i++) {
-                if(graph->GetNode(i)->type() == (int) NormalNode){ 
-                    for (int j = 0; j < graph->GetNode(i)->links().size(); j++ ) {  
-                        votca::tools::vec n1pos = graph->GetNode(i)->links()[j]->node1()->position();
-                        votca::tools::vec n2pos = graph->GetNode(i)->links()[j]->node2()->position();
-                        double count =  graph->GetNode(i)->links()[j]->count()/layercurrent[dynamic_cast<NodeDevice*>(node1)->layer()];
-                        if(count!=0) {
-//                           std::cout << i << " " << j << " " << n1pos << " " << n2pos << " " << graph->GetNode(i)->links()[j]->count() << " " << layercurrent[dynamic_cast<NodeDevice*>(node1)->layer()] << endl; 
-                           if(graph->GetNode(i)->type() != NormalNode) {
-//                                curstore << "Cylinder[{{" << n1pos.x() << "," << n2pos.y() << "," << n2pos.z() << "},{" << n2pos.x() << "," << n2pos.y() << "," << n2pos.z() << "}}," << count+0.5 << "/C],";                    
-                            }
-                            else if(graph->GetNode(i)->links()[j]->node2()->type() != NormalNode) {
-//                                curstore << "Tube[{{" << n1pos.x() << "," << n1pos.y() << "," << n1pos.z() << "},{" << n2pos.x() << "," << n1pos.y() << "," << n1pos.z() << "}}," << count << "/C],";                    
-                            }
-                            else {
-//                                curstore << "Tube[{{" << n1pos.x() << "," << n1pos.y() << "," << n1pos.z() << "},{" << n2pos.x() << "," << n2pos.y() << "," << n2pos.z() << "}}," << count << "/C],";                    
-                                if(maxcount<count) maxcount = count;
-                            }
-                        }
-                    }
-                }
-            }         
-//            curstore << "maxcount " << maxcount << endl;
-        }
- */
  
 void Numoutput::Write(double simtime) {
     std::cout << " el " << _nelectrons << " ho " << _nholes  << " ca " << _ncarriers << 

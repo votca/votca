@@ -86,6 +86,8 @@ public:
     void Effect_potential_and_rates(int action, CarrierDevice* carrier, Node* node, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* left_injection_rates, Bsumtree* right_injection_rates, Eventinfo* eventinfo);    
     /// Effect of adding/removing carrier to/from box on the coulomb potential and event rates (non-injection)
     void Effect_potential_and_non_injection_rates(int action, CarrierDevice* carrier1, Node* node, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, Eventinfo* eventinfo);
+    
+    void Effect_non_injection_rates(int action, CarrierDevice* carrier, Node* node, StateDevice* state, Bsumtree* non_injection_rates, Eventinfo* eventinfo);
     /// Effect of adding/removing carrier to/from box on the coulomb potential and event rates (injection)
     void Effect_injection_rates(int action, CarrierDevice* carrier, Node* node, Node* electrode, double dist_to_electrode, StateDevice* state, Longrange* longrange, Bsumtree* injection_rates,  Eventinfo* eventinfo);
     
@@ -124,63 +126,6 @@ private:
     vector< vector< vector <list<int> > > > _left_injection_events_mesh;
     vector< vector< vector <list<int> > > > _right_injection_events_mesh;
 };
-
-double Events::av_inject_energyfactor(int electrode) {
-    double av_energyfactor = 0.0;
-    if(electrode == 0) {
-        for(int ievent = 0; ievent < _total_left_injection_events ; ievent++) {
-            av_energyfactor += _injection_events[ievent]->energyfactor();
-        }
-//        av_energyfactor /= _total_left_injection_events;
-    }
-    else {
-        for(int ievent = _total_left_injection_events; ievent < _total_left_injection_events + _total_right_injection_events ; ievent++) {
-            av_energyfactor += _injection_events[ievent]->energyfactor();
-        }        
-//        av_energyfactor /= _total_right_injection_events;
-    }
-    
-    return av_energyfactor;
-}
-
-double Events::av_rate(int electrode) {
-    double av_rate = 0.0;
-    if(electrode == 0) {
-        for(int ievent = 0; ievent < _total_left_injection_events ; ievent++) {
-            av_rate += _injection_events[ievent]->rate();
-        }
-        av_rate /= _total_left_injection_events;
-    }
-    else {
-        for(int ievent = _total_left_injection_events; ievent < _total_left_injection_events + _total_right_injection_events ; ievent++) {
-            av_rate += _injection_events[ievent]->rate();
-        }        
-        av_rate /= _total_right_injection_events;
-    }
-    
-    return av_rate;
-}
-
-double Events::av_inject_transferfactor(int electrode) {
-    double av_transferfactor = 0.0;
-//    std::cout << "electrode " << electrode << endl;
-    if(electrode == 0) {
-        for(int ievent = 0; ievent < _total_left_injection_events ; ievent++) {
-            av_transferfactor += _injection_events[ievent]->transferfactor();
-//            std::cout << "left " << _injection_events[ievent]->rate() << " " << _injection_events[ievent]->link()->node2()->id() << " " << _injection_events[ievent]->link()->r12() << " " << _injection_events[ievent]->transferfactor() << endl;
-        }
-//        av_transferfactor /= _total_left_injection_events;
-    }
-    else {
-        for(int ievent = _total_left_injection_events; ievent < _total_left_injection_events + _total_right_injection_events ; ievent++) {
-            av_transferfactor += _injection_events[ievent]->transferfactor();
-//            std::cout << "right " << _injection_events[ievent]->rate() << " " << _injection_events[ievent]->link()->node2()->id() << " " << _injection_events[ievent]->link()->r12() << " " <<   _injection_events[ievent]->transferfactor() << endl;
-
-        }        
-//        av_transferfactor /= _total_right_injection_events;
-    }
-    return av_transferfactor;
-}
 
 void Events::On_execute(Event* event, GraphDevice* graph, StateDevice* state, Longrange* longrange, Bsumtree* non_injection_rates, 
                           Bsumtree* left_injection_rates, Bsumtree* right_injection_rates, Eventinfo* eventinfo) {
@@ -838,6 +783,63 @@ void Events::Remove_from_mesh(int ID, votca::tools::vec position, Eventinfo* eve
     if(iposz == eventinfo->mesh_z) {iposz--;}
          
     _non_injection_events_mesh[iposx][iposy][iposz].remove(ID);
+}
+
+double Events::av_inject_energyfactor(int electrode) {
+    double av_energyfactor = 0.0;
+    if(electrode == 0) {
+        for(int ievent = 0; ievent < _total_left_injection_events ; ievent++) {
+            av_energyfactor += _injection_events[ievent]->energyfactor();
+        }
+//        av_energyfactor /= _total_left_injection_events;
+    }
+    else {
+        for(int ievent = _total_left_injection_events; ievent < _total_left_injection_events + _total_right_injection_events ; ievent++) {
+            av_energyfactor += _injection_events[ievent]->energyfactor();
+        }        
+//        av_energyfactor /= _total_right_injection_events;
+    }
+    
+    return av_energyfactor;
+}
+
+double Events::av_rate(int electrode) {
+    double av_rate = 0.0;
+    if(electrode == 0) {
+        for(int ievent = 0; ievent < _total_left_injection_events ; ievent++) {
+            av_rate += _injection_events[ievent]->rate();
+        }
+        av_rate /= _total_left_injection_events;
+    }
+    else {
+        for(int ievent = _total_left_injection_events; ievent < _total_left_injection_events + _total_right_injection_events ; ievent++) {
+            av_rate += _injection_events[ievent]->rate();
+        }        
+        av_rate /= _total_right_injection_events;
+    }
+    
+    return av_rate;
+}
+
+double Events::av_inject_transferfactor(int electrode) {
+    double av_transferfactor = 0.0;
+//    std::cout << "electrode " << electrode << endl;
+    if(electrode == 0) {
+        for(int ievent = 0; ievent < _total_left_injection_events ; ievent++) {
+            av_transferfactor += _injection_events[ievent]->transferfactor();
+//            std::cout << "left " << _injection_events[ievent]->rate() << " " << _injection_events[ievent]->link()->node2()->id() << " " << _injection_events[ievent]->link()->r12() << " " << _injection_events[ievent]->transferfactor() << endl;
+        }
+//        av_transferfactor /= _total_left_injection_events;
+    }
+    else {
+        for(int ievent = _total_left_injection_events; ievent < _total_left_injection_events + _total_right_injection_events ; ievent++) {
+            av_transferfactor += _injection_events[ievent]->transferfactor();
+//            std::cout << "right " << _injection_events[ievent]->rate() << " " << _injection_events[ievent]->link()->node2()->id() << " " << _injection_events[ievent]->link()->r12() << " " <<   _injection_events[ievent]->transferfactor() << endl;
+
+        }        
+//        av_transferfactor /= _total_right_injection_events;
+    }
+    return av_transferfactor;
 }
 
 }} 
