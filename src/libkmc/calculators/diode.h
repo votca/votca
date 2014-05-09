@@ -179,7 +179,7 @@ void Diode::Initialize(const char *filename, Property *options, const char *outp
 
     vssmgroup = new Vssmgroup();
 
-    numoutput = new Numoutput(eventdata->traj_store, eventdata->viz_store);
+    numoutput = new Numoutput();
     numoutput->Initialize();
 
 }
@@ -265,7 +265,7 @@ void Diode::RunKMC() {
         Event* chosenevent;
         if(eventdata->device == 0) chosenevent = vssmgroup->Choose_event_bulk(events, non_injection_rates, RandomVariable);
         if(eventdata->device == 1) chosenevent = vssmgroup->Choose_event_device(events, non_injection_rates, left_injection_rates, right_injection_rates, RandomVariable);
-
+        
         if(eventdata->viz_store && it <= eventdata->viz_nr_timesteps) numoutput->Update_visualisation(chosenevent);
         if(eventdata->viz_store && it == eventdata->viz_nr_timesteps) numoutput->Print_visualisation();
 
