@@ -263,7 +263,7 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierBulk* c
             int event_ID2;
             CarrierBulk* carrier2;
             int reverse_ID;
-            if(occ_node != -1) {
+            if(occ_node != -1 && !eventinfo->no_blocking) {
                 carrier2 = state->GetCarrier(occ_node);
                 reverse_ID = node->links()[it]->reverse_id();
                 event_ID2 = carrier2->id()*eventinfo->maxpairdegree+reverse_ID;
@@ -277,7 +277,7 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierBulk* c
                 _non_injection_events[event_ID1]->Set_not_in_box_event();
                 non_injection_rates->setrate(event_ID1, 0.0);
             }
-            if(neighbour) {
+            if(neighbour && !eventinfo->no_blocking) {
                 _non_injection_events[event_ID2]->Set_event(node2->links()[reverse_ID], carrier2->type(), state, longrange, eventinfo);
                 non_injection_rates->setrate(event_ID2, _non_injection_events[event_ID2]->rate());                
             }

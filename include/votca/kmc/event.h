@@ -84,7 +84,7 @@ public:
     /// Determine initial event type
     inline int Determine_init_event_type(Node* node1);
     /// Determine non injection event type in case two carriers are on linking nodes
-    inline int Determine_final_event_type(int carrier_type1, int carrier_type2, Node* node1, Node* node2);
+    inline int Determine_final_event_type(int carrier_type1, int carrier_type2, Node* node1, Node* node2, Eventinfo* eventinfo);
     /// Determine non injection event type in case only one carrier is on a link
     inline int Determine_final_event_type(Node* node1, Node* node2);
     /// Determine action flag for node 1
@@ -134,9 +134,13 @@ inline int Event::Determine_final_event_type(Node* node1, Node* node2) {
     else if (node2->type() == (int) LeftElectrodeNode || node2->type() == (int) RightElectrodeNode){         return (int) Collection;} // Collection at electrode
 }
 
-inline int Event::Determine_final_event_type(int carrier_type1, int carrier_type2, Node* node1, Node* node2) {
-    if (((carrier_type1 == (int) Electron) && (carrier_type2 == (int) Electron)) || ((carrier_type1 == (int) Hole) && (carrier_type2 == (int) Hole))){          return (int) Blocking;     } // Blocking
-    else if (((carrier_type1 == (int) Electron) && (carrier_type2 == (int) Hole))     || ((carrier_type1 == (int) Hole) && (carrier_type2 == (int) Electron))){ return (int) Recombination;} // Recombination
+inline int Event::Determine_final_event_type(int carrier_type1, int carrier_type2, Node* node1, Node* node2, Eventinfo* eventinfo) {
+    if (((carrier_type1 == (int) Electron) && (carrier_type2 == (int) Electron)) || ((carrier_type1 == (int) Hole) && (carrier_type2 == (int) Hole))){
+        if(!eventinfo->no_blocking) {return (int) Blocking;} else { return (int) TransferTo;} // Blocking
+    }
+    else if (((carrier_type1 == (int) Electron) && (carrier_type2 == (int) Hole))|| ((carrier_type1 == (int) Hole) && (carrier_type2 == (int) Electron))){ 
+        return (int) Recombination; // Recombination
+    }
 }
 
 inline int Event::Determine_init_event_type(Node* node1) {
@@ -357,7 +361,7 @@ void Event::Set_event(Link* link,int carrier_type, StateReservoir* state, Longra
     _carrier_type = carrier_type;
     _init_type = Determine_init_event_type(node1);
     if (node2->occ() == -1) {_final_type = Determine_final_event_type(node1, node2);}
-    else                    {_final_type = Determine_final_event_type(carrier_type, state->GetCarrier(node2->occ())->type(), node1, node2);}    
+    else                    {_final_type = Determine_final_event_type(carrier_type, state->GetCarrier(node2->occ())->type(), node1, node2, eventinfo);}    
 
     _action_pair = Determine_action_flag_pair();
     if(_action_pair != (int) Transfer) {

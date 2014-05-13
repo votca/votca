@@ -82,7 +82,8 @@ public:
         coulomb_strength            = options->get("options.general.coulomb_strength").as<double>();
         coulcut                     = options->get("options.general.coulcut").as<double>();
         
-        device                      = options->get("options.general.device").as<bool>();      
+        device                      = options->get("options.general.device").as<bool>();
+        no_blocking                 = options->get("options.general.no_blocking").as<bool>();
 
     }
     
@@ -149,6 +150,7 @@ public:
     bool lr_adaptive; double lr_images_accuracy;
     bool int_charge_readout; int nr_traj_reportsteps; bool repeat_counting;
     double hole_inject_reorg; double electron_inject_reorg;
+    bool no_blocking;
 
 };
 
