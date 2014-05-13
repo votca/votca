@@ -44,7 +44,7 @@ public:
     void Convergence_check(double simtime, Eventinfo* eventinfo);
     void Update(Event* event, double simtime, double timestep);
     void Update_ohmic(Event* event);
-    void Write(double simtime);
+    void Write(int it, double simtime, double timestep, Eventinfo* eventinfo);
     
     void Repeat_count_init();
     void Repeat_count_update(Event* chosenevent);
@@ -65,6 +65,11 @@ public:
 private:
     
     Visualisation* visualisation;
+    
+    void Write_header_one(Eventinfo* eventinfo);
+    void Write_header_two();
+    void Write_header_three();
+    void Write_header_four(Eventinfo* eventinfo);
     
     int _nelectrons;
     int _nholes;
@@ -224,45 +229,121 @@ void Numoutput::Update(Event* event, double simtime, double timestep) {
     votca::tools::vec travelvec = event->link()->r12();
     double direction;
     double dirx; double diry; double dirz;
-//    if(node1->type() == (int) NormalNode) {
-        if(event->carrier_type() == (int) Electron) { direction = -1.0; } else { direction = 1.0;}
-        if(travelvec.x() > 0) {dirx = 1.0;} else {if(travelvec.x() == 0) {dirx = 0.0;} else {dirx = -1.0;}}
-        if(travelvec.y() > 0) {diry = 1.0;} else {if(travelvec.y() == 0) {diry = 0.0;} else {diry = -1.0;}}
-        if(travelvec.z() > 0) {dirz = 1.0;} else {if(travelvec.z() == 0) {dirz = 0.0;} else {dirz = -1.0;}}
 
-/*        _vel_x += direction*dirx;
-        _vel_y += direction*diry;
-        _vel_z += direction*dirz;*/
-        
-        _vel_x += direction*travelvec.x();
-        _vel_y += direction*travelvec.y();
-        _vel_z += direction*travelvec.z();
+    if(event->carrier_type() == (int) Electron) { direction = -1.0; } else { direction = 1.0;}
+    if(travelvec.x() > 0) {dirx = 1.0;} else {if(travelvec.x() == 0) {dirx = 0.0;} else {dirx = -1.0;}}
+    if(travelvec.y() > 0) {diry = 1.0;} else {if(travelvec.y() == 0) {diry = 0.0;} else {diry = -1.0;}}
+    if(travelvec.z() > 0) {dirz = 1.0;} else {if(travelvec.z() == 0) {dirz = 0.0;} else {dirz = -1.0;}}
 
-        if(event->carrier_type() == (int) Electron) {
-            _electron_vel_x += direction*travelvec.x();
-            _electron_vel_y += direction*travelvec.y();
-            _electron_vel_z += direction*travelvec.z();        
-        }
+    _vel_x += direction*travelvec.x();
+    _vel_y += direction*travelvec.y();
+    _vel_z += direction*travelvec.z();
 
-        if(event->carrier_type() == (int) Hole) {
-            _hole_vel_x += direction*travelvec.x();
-            _hole_vel_y += direction*travelvec.y();
-            _hole_vel_z += direction*travelvec.z();        
-        }
-//    }
+    if(event->carrier_type() == (int) Electron) {
+        _electron_vel_x += direction*travelvec.x();
+        _electron_vel_y += direction*travelvec.y();
+        _electron_vel_z += direction*travelvec.z();        
+    }
+
+    if(event->carrier_type() == (int) Hole) {
+        _hole_vel_x += direction*travelvec.x();
+        _hole_vel_y += direction*travelvec.y();
+        _hole_vel_z += direction*travelvec.z();        
+    }
     
 }
  
-void Numoutput::Write(double simtime) {
-    std::cout << " el " << _nelectrons << " ho " << _nholes  << " ca " << _ncarriers << 
-            " tr " << _nplaintransfer << " rec " << _nrecombinations << " irec " << _ninject_to_recombination <<
-            " in " << _ninjections << " co " << _ncollections <<
-            " lin " << _nleftinjections << " rin " << _nrightinjections << " lco " << _nleftcollections << " rco " << _nrightcollections <<
-            " ira " << _ninjectionrate << " cra " << _ncollectionrate << " rra " << _nrecombinationrate << 
-            " vx " << _vel_x/simtime << " vy " << _vel_y/simtime << " vz " << _vel_z/simtime <<
-//            " evx " << _electron_vel_x << " evy " << _electron_vel_y << " evz " << _electron_vel_z <<
-//            " hvx " << _hole_vel_x << " hvy " << _hole_vel_y << " hvz " << _hole_vel_z << 
-            endl;
+void Numoutput::Write(int it, double simtime, double timestep, Eventinfo* eventinfo) {
+    
+    this->Write_header_one(eventinfo);
+    std::cout << setw(15) << it;
+    if(eventinfo->repeat_counting) std::cout << setw(15) << this->nr_repeats();
+    std::cout << setw(15) << this->iv_conv();
+    std::cout << setw(15) << this->iv_count();
+    std::cout << setw(15) << this->reco_conv();
+    std::cout << setw(15) << this->reco_count();
+    std::cout << setw(20) << simtime;
+    std::cout << setw(20) << timestep;
+    std::cout << endl;
+    std::cout << endl;
+
+    this->Write_header_two();
+    std::cout << setw(15) << _nelectrons;
+    std::cout << setw(15) << _nholes;    
+    std::cout << setw(15) << _ncarriers;
+    std::cout << setw(15) << _nplaintransfer;
+    std::cout << setw(15) << _nrecombinations;
+    std::cout << setw(15) << _nrecombinationrate;
+    std::cout << endl;
+    std::cout << endl;
+    
+    if(eventinfo->device){
+        this->Write_header_three();
+        std::cout << setw(20) << _ninject_to_recombination;
+        std::cout << setw(15) << _ninjections;
+        std::cout << setw(15) << _ncollections;
+        std::cout << setw(20) << _nleftinjections;
+        std::cout << setw(20) << _nleftcollections;
+        std::cout << setw(20) << _nrightinjections;
+        std::cout << setw(20) << _nrightcollections;
+        std::cout << endl;
+        std::cout << endl;
+    }
+    
+    this->Write_header_four(eventinfo);
+    if(eventinfo->device) {
+        std::cout << setw(15) << _ninjectionrate;
+        std::cout << setw(15) << _ncollectionrate;
+    }
+    std::cout << setw(15) << _vel_x/simtime;
+    std::cout << setw(15) << _vel_y/simtime;
+    std::cout << setw(15) << _vel_z/simtime;
+    std::cout << endl;      
+    std::cout << endl;
+}
+
+void Numoutput::Write_header_one(Eventinfo* eventinfo) {
+    std::cout << setw(15) << "event nr";
+    if(eventinfo->repeat_counting) std::cout << setw(15) << "nr repeats";
+    std::cout << setw(15) << "iv conv";
+    std::cout << setw(15) << "iv count";
+    std::cout << setw(15) << "reco conv";
+    std::cout << setw(15) << "reco count";
+    std::cout << setw(20) << "sim_time";
+    std::cout << setw(20) << "timestep";
+    std::cout << endl;
+}
+
+void Numoutput::Write_header_two() {
+    std::cout << setw(15) << "nr electrons";
+    std::cout << setw(15) << "nr holes";    
+    std::cout << setw(15) << "nr carriers";
+    std::cout << setw(15) << "nr transfers";
+    std::cout << setw(15) << "nr recombins";
+    std::cout << setw(15) << "rec rate";
+    std::cout << endl;
+}
+
+void Numoutput::Write_header_three() {
+    std::cout << setw(20) << "nr_rec_to_inject";
+    std::cout << setw(15) << "nr injects";
+    std::cout << setw(15) << "nr collects";
+    std::cout << setw(20) << "nr left injects";
+    std::cout << setw(20) << "nr left collects";
+    std::cout << setw(20) << "nr right injects";
+    std::cout << setw(20) << "nr right collects";
+    std::cout << endl;
+}
+
+void Numoutput::Write_header_four(Eventinfo* eventinfo) {
+    if(eventinfo->device) {
+        std::cout << setw(15) << "inject rate";
+        std::cout << setw(15) << "collect rate";
+    }
+    std::cout << setw(15) << "av vel x";
+    std::cout << setw(15) << "av vel y";
+    std::cout << setw(15) << "av vel z";
+    std::cout << endl;        
 }
 
 void Numoutput::Repeat_count_init(){

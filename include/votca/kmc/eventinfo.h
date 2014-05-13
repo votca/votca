@@ -32,6 +32,7 @@ public:
 
         seed                        = options->get("options.general.seed").as<int>();
         
+        init_charges                = options->get("options.general.init_charges").as<bool>();
         int_charge_readout          = options->get("options.general.int_charge_readout").as<bool>();
         nr_electrons                = options->get("options.general.nr_electrons").as<int>();
         nr_holes                    = options->get("options.general.nr_holes").as<int>();
@@ -82,15 +83,14 @@ public:
         coulomb_strength            = options->get("options.general.coulomb_strength").as<double>();
         coulcut                     = options->get("options.general.coulcut").as<double>();
         
-        device                      = options->get("options.general.device").as<bool>();
         no_blocking                 = options->get("options.general.no_blocking").as<bool>();
+        device                      = options->get("options.device.device").as<bool>();        
 
     }
     
     void Read_device(Property *options) {
         
         this->Read_bulk(options);
-        
         voltage                     = options->get("options.device.voltage").as<double>();
         injection_prefactor         = options->get("options.device.injection_prefactor").as<double>();
         collection_prefactor        = options->get("options.device.collection_prefactor").as<double>();
@@ -116,6 +116,8 @@ public:
         interpolate_longrange       = options->get("options.device.interpolate_longrange").as<bool>();
         longrange_slab              = options->get("options.device.longrange_slab").as<bool>();
         steps_update_longrange      = options->get("options.device.steps_update_longrange").as<int>();
+        write_charge_profile        = options->get("options.device.write_charge_profile").as<bool>();
+        write_pot_profile           = options->get("options.device.write_pot_profile").as<bool>();
     }
     
     void Graph_Parameters(double graph_hopdist, double graph_mindist, votca::tools::vec graph_simboxsize, int graph_maxpairdegree, double av_ho_energy, double av_elect_energy) {
@@ -150,7 +152,7 @@ public:
     bool lr_adaptive; double lr_images_accuracy;
     bool int_charge_readout; int nr_traj_reportsteps; bool repeat_counting;
     double hole_inject_reorg; double electron_inject_reorg;
-    bool no_blocking;
+    bool no_blocking; bool init_charges; bool write_charge_profile; bool write_pot_profile;
 
 };
 

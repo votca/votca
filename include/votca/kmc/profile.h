@@ -110,7 +110,6 @@ inline void Profile::Calculate_positional_average(Eventinfo* eventinfo){
     for(int i = 0; i<eventinfo->number_layers;i++){
         double position = eventinfo->left_electrode_distance + (0.5+1.0*i)*_layersize; 
         _positional_average.push_back(position);
-        std::cout << position << " " << eventinfo->simboxsize.x() << endl;
         if(_number_of_nodes[i] != 0) _empty_layer.push_back(false);
         else _empty_layer.push_back(true);
     }

@@ -75,10 +75,13 @@ private:
 void Jbulk::Initialize(const char *filename, Property *options, const char *outputfile) 
 {
 
-    cout << "Initializing" << endl;
+    std::cout << "===================================================" << endl;
+    std::cout << "= Initialization phase                            =" << endl;
+    std::cout << "===================================================" << endl;
     
     eventinfo = new Eventinfo();
     eventinfo->Read_bulk(options);
+    if(eventinfo->device) {std::cout << "WARNING: device flag set incorrectly, set to false" << endl; eventinfo->device = false;}
 
     //Setup random number generator
     srand(eventinfo->seed); // srand expects any integer in order to initialise the random number generator
@@ -200,14 +203,18 @@ void Jbulk::RunKMC() {
     std::cout << "total link x distance : " << graph->total_link_distance_x() << endl;
     std::cout << "average hole site energy : " << eventinfo->avholeenergy << endl;
     std::cout << "average electron site energy : " << eventinfo->avelectronenergy << endl; 
-    std::cout << "standard deviation of hole site energies: " << graph->stddev_hole_node_energy() << endl;
-    std::cout << "standard deviation of electron site energies: " << graph->stddev_electron_node_energy() << endl;
+    std::cout << "standard deviation (disorder strength) of hole site energies: " << graph->stddev_hole_node_energy() << endl;
+    std::cout << "standard deviation (disorder strength) of electron site energies: " << graph->stddev_electron_node_energy() << endl;
+    std::cout << endl;
+    std::cout << "===================================================" << endl;
+    std::cout << "= Start of bulk simulation                        =" << endl;
+    std::cout << "===================================================" << endl;
+    std::cout << endl;
     
     if(eventinfo->viz_store)  numoutput->Init_visualisation(graph, eventinfo);
     
     sim_time = 0.0;
     for (long it = 0; it < 2*eventinfo->nr_equilsteps + eventinfo->nr_timesteps; it++) {
- 
     
         vssmgroup->Recompute_bulk(non_injection_rates);
 
@@ -227,12 +234,11 @@ void Jbulk::RunKMC() {
       
         numoutput->Update(chosenevent, sim_time, timestep); 
         events->On_execute(chosenevent, graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);
-      
-        if(it == eventinfo->nr_equilsteps || it == 2*eventinfo->nr_equilsteps) numoutput->Init_convergence_check(sim_time);
         
         // equilibration
    
         if(!eventinfo->traj_store &&(it == eventinfo->nr_equilsteps || it == 2*eventinfo->nr_equilsteps)) {
+            numoutput->Init_convergence_check(sim_time);
             numoutput->Initialize_equilibrate();
             sim_time = 0.0;
         }
@@ -240,14 +246,13 @@ void Jbulk::RunKMC() {
         
         if(!eventinfo->traj_store && (ldiv(it,eventinfo->nr_reportsteps).rem==0 && it> 2*eventinfo->nr_equilsteps)) numoutput->Convergence_check(sim_time, eventinfo);
 
+        if(ldiv(it,eventinfo->nr_reportsteps).rem==0) {
+
+            
+        }
         // direct output
         if(!eventinfo->traj_store && ldiv(it,eventinfo->nr_reportsteps).rem==0){
-            std::cout << it << " ";
-            if(eventinfo->repeat_counting) std::cout << numoutput->nr_repeats() << " "; 
-            std::cout << numoutput->iv_conv() << " " << numoutput->iv_count() << " " << 
-                         numoutput->reco_conv() << " " << numoutput->reco_count() <<  " " << 
-                         sim_time << " " << timestep << " " << vssmgroup->totprobsum() << " "  << vssmgroup->noninjectprobsum() << " "  << vssmgroup->leftinjectprobsum() << " "  << vssmgroup->rightinjectprobsum() << " " ;
-            numoutput->Write(sim_time);
+            numoutput->Write(it, sim_time, timestep, eventinfo);
             std::cout << endl;
         }
         

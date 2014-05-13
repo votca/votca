@@ -770,7 +770,6 @@ void Events::Init_injection_meshes(StateReservoir* state, Eventinfo* eventinfo) 
     _left_injection_events_mesh = Resize_mesh(_inject_meshnr_x,eventinfo->mesh_y,eventinfo->mesh_z);
     _right_injection_events_mesh = Resize_mesh(_inject_meshnr_x,eventinfo->mesh_y,eventinfo->mesh_z);    
     
-    
     typename std::vector<Event*>::iterator it;
     for (it = _injection_events.begin(); it != _injection_events.end(); it++ ) {
         if((*it)->link()->node1()->type()==LeftElectrodeNode) {

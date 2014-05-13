@@ -42,7 +42,7 @@ class Jdevice : public KMCCalculator
 {
 public:
     
-    votca::tools::Random2 *RandomVariable;
+    votca::tools::Random2 *randomvariable;
     GraphKMC* graph;
     StateReservoir* state;
     Events* events;
@@ -53,7 +53,6 @@ public:
     Bsumtree* left_injection_rates;
     Bsumtree* right_injection_rates;
     Bsumtree* site_inject_probs;
-
     Numoutput* numoutput;
     
     Jdevice() {};
@@ -79,36 +78,33 @@ private:
 
 void Jdevice::Initialize(const char *filename, Property *options, const char *outputfile) {
 
-    //Setup random number generator
-    srand(eventinfo->seed); // srand expects any integer in order to initialise the random number generator
-    RandomVariable = new votca::tools::Random2();
-    RandomVariable->init(rand(), rand(), rand(), rand());     
-    
-    cout << "Initializing" << endl;
+    std::cout << "===================================================" << endl;
+    std::cout << "= Initialization phase                            =" << endl;
+    std::cout << "===================================================" << endl;
     
     eventinfo = new Eventinfo();
     eventinfo->Read_device(options);
+    if(!eventinfo->device) {std::cout << "WARNING: device flag set incorrectly, set to true" << endl; eventinfo->device = true;}
+
+    //Setup random number generator
+    srand(eventinfo->seed); // srand expects any integer in order to initialise the random number generator
+    randomvariable = new votca::tools::Random2();
+    randomvariable->init(rand(), rand(), rand(), rand());  
     
     graph = new GraphKMC();
     graph->Initialize(filename);
-    std::cout << "number of nodes: " << graph->Numberofnodes() << endl;
+    std::cout << "number of nodes before graph manipulations: " << graph->Numberofnodes() << endl;
+    std::cout << "simulation box size before graph manipulations: " << graph->Determine_Sim_Box_Size() << endl;
+    
     if(graph->el_reorg()) { std::cout << "WARNING: zero electron reorganization energy" << endl;}
     if(graph->ho_reorg()) { std::cout << "WARNING: zero hole reorganization energy" << endl;}
     
-    
-    if(eventinfo->device > 0){
-        graph->Setup_device_graph(eventinfo->left_electrode_distance, eventinfo->right_electrode_distance, eventinfo->resize, eventinfo);
-    }
-    else {
-        graph->Setup_bulk_graph(eventinfo->resize, eventinfo);
-    }    
+    graph->Setup_device_graph(eventinfo->left_electrode_distance, eventinfo->right_electrode_distance, eventinfo->resize, eventinfo);
    
     eventinfo->Graph_Parameters(graph->hopdist(), graph->mindist(), graph->simboxsize(), graph->maxpairdegree(),graph->Average_hole_node_energy(), graph->Average_electron_node_energy());
-//    eventinfo->Set_field(eventinfo->voltage* (eventinfo->simboxsize.x()/(eventinfo->simboxsize.x() + eventinfo->left_oxide_thickness + eventinfo->right_oxide_thickness))); // convert voltage to electric field
-    if(eventinfo->device > 0) eventinfo->Set_field(eventinfo->voltage); // convert voltage to electric field
-
+    eventinfo->Set_field(eventinfo->voltage); 
     
-    std::cout << "graph initialized" << endl;
+    std::cout << "graph object initialized" << endl;
     std::cout << "max pair degree: " << graph->maxpairdegree() << endl;
     std::cout << "hopping distance: " << graph->hopdist() << endl;
     std::cout << "simulation box size: " << graph->simboxsize() << endl;
@@ -116,71 +112,82 @@ void Jdevice::Initialize(const char *filename, Property *options, const char *ou
         std::cout << "number of left electrode injector nodes " << graph->left()->links().size() << endl;
         std::cout << "number of right electrode injector nodes " << graph->right()->links().size() << endl;
     }
-    std::cout << "number of nodes " << graph->Numberofnodes() << endl;    
+    std::cout << "number of nodes " << graph->Numberofnodes() << endl;
+    std::cout << "set potential bias is " << eventinfo->voltage << " resulting in a linear electric field of " << eventinfo->efield_x << "V/nm" << endl;
     
-    if(eventinfo->device >0) {    
-        longrange = new Longrange(graph,eventinfo);
-        if(eventinfo->longrange_slab) longrange->Initialize_slab(graph,eventinfo);
-        else longrange->Initialize(eventinfo);
-    }
-    else {
-        longrange = new Longrange();
-    }
-    
+    longrange = new Longrange(graph,eventinfo);
+    if(eventinfo->longrange_slab) longrange->Initialize_slab(graph,eventinfo);
+    else longrange->Initialize(eventinfo);
+   
     std::cout << "longrange profile initialized" << endl;
+    std::cout << "used calculation method for longrange potential: ";
+    if(eventinfo->longrange_slab) { std::cout << "slab-based" << endl;} else { std::cout << "plane-based" << endl;}    
 
+    std::cout << endl;
+    std::cout << "number of nodes per layer" << endl;
+    for(int it= 0; it< eventinfo->number_layers; it++ ){
+        std::cout << longrange->number_of_nodes(it) << " ";
+    }
+    std::cout << endl;    
+    
     state = new StateReservoir();
     state->InitStateReservoir();
+    std::cout << "state reservoir object initialized" << endl;
     
     site_inject_probs = new Bsumtree();
-    site_inject_probs->initialize(graph->Numberofnodes()); // take care of electrode nodes
+    site_inject_probs->initialize(graph->Numberofnodes());
+    std::cout << "Random node injector tree initialized" << endl;
+
+    //Random charge distribution
+    int nrholes = 0;
+    int nrelectrons = 0;
     
-    //Random charge distribution (assume homogeneous distributed over device)
-    int nrcharges;
-    if(eventinfo->device>0) nrcharges = (eventinfo->voltage)/(2*Pi*eventinfo->coulomb_strength*eventinfo->simboxsize.x()*eventinfo->simboxsize.x())*graph->Numberofnodes();
-    if(eventinfo->device==0) nrcharges = eventinfo->ho_density*graph->Numberofnodes();
-    if(eventinfo->traj_store) {
-        int nrelectrons = eventinfo->nr_electrons;
-        int nrholes = eventinfo->nr_holes;
-        if(nrholes != 0) {
-            nrcharges = nrholes;
-            state->Random_init_injection((int) Hole, nrcharges, site_inject_probs, graph, eventinfo, RandomVariable);
-        }
-        else if(nrelectrons != 0) {
-            nrcharges = nrelectrons;
-            state->Random_init_injection((int) Electron, nrcharges, site_inject_probs, graph, eventinfo, RandomVariable);
-        }
+    if(eventinfo->init_charges) {
+        if(eventinfo->int_charge_readout) {nrholes = eventinfo->nr_holes; nrelectrons = eventinfo->nr_electrons;}
+        else {nrholes = eventinfo->ho_density*graph->Numberofnodes(); nrelectrons = eventinfo->el_density*graph->Numberofnodes();}
+
+        if(nrholes!=0 && nrelectrons != 0) { std::cout << "Double carrier simulation" << endl;} 
+        else { std::cout << "Single carrier simulation" << endl;} 
+        if(nrholes+nrelectrons>graph->Numberofnodes()){ std::cout<< "WARNING: number of electrons and holes is larger than the number of available nodes" << endl;}
+        if(nrholes+nrelectrons == 0) { std::cout << "No charges are initialized";}    
+    
+        state->Random_init_injection(nrelectrons, nrholes, site_inject_probs, graph, eventinfo, randomvariable);
+        std::cout << "randomly placed : " << nrelectrons + nrholes << " charges of which " << nrelectrons << " electrons and " << nrholes << " holes" << endl;
     }
     else {
-        state->Random_init_injection((int) Hole, nrcharges, site_inject_probs, graph, eventinfo, RandomVariable);
+        std::cout << "no charges injected" << endl;
     }
-    std::cout << "initial nrcharges: " << nrcharges << endl;
-    
-    std::cout << "charges injected" << endl;
     
     if(state->ReservoirEmpty()) state->Grow(eventinfo->growsize, eventinfo->maxpairdegree);
-    
-    std::cout << "state initialized" << endl;
+    std::cout << "state grown after random charge injection" << endl;
     
     non_injection_rates = new Bsumtree();
     left_injection_rates = new Bsumtree();
     right_injection_rates = new Bsumtree();
-
-    std::cout << "binary tree structures initialized" << endl;
+    std::cout << "rate binary tree initialized" << endl;
     
     events = new Events();
-    events->Init_non_injection_meshes(eventinfo);
+    if(eventinfo->coulomb_strength > 0.0) {
+        events->Init_non_injection_meshes(eventinfo);
+        std::cout << "mesh structure for Coulomb interaction calculations initialized" << endl;
+    }
     events->Initialize_device_eventvector(graph,state,longrange,eventinfo);
-    events->Initialize_rates(non_injection_rates, left_injection_rates, right_injection_rates,eventinfo);
-    if(eventinfo->device>0) events->Init_injection_meshes(state, eventinfo);
+    std::cout << "Initialize (device) eventvector" << endl;
+    events->Initialize_rates(non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);
+    std::cout << "Fill rate binary trees" << endl;
+    if(eventinfo->coulomb_strength > 0.0) {
+        events->Init_injection_meshes(state, eventinfo);
+        std::cout << "mesh structure for injection potential calculations initialized" << endl;
+    }
     events->Initialize_after_charge_placement(graph,state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);
+    std::cout << "Initialize event and rates object after initial placement of charges" << endl;
     
-    std::cout << "event vectors and meshes initialized" << endl;
-
     vssmgroup = new Vssmgroup();
+    std::cout << "vssm group initialized" << endl;
 
     numoutput = new Numoutput();
     numoutput->Initialize();
+    std::cout << "output object initialized" << endl;
 
 }
 
@@ -190,7 +197,7 @@ bool Jdevice::EvaluateFrame() {
     // EventFactory::RegisterAll(); 
         
     RunKMC();
-    delete RandomVariable;
+    delete randomvariable;
     delete state;
     delete events;
     delete graph;
@@ -208,9 +215,7 @@ bool Jdevice::EvaluateFrame() {
 void Jdevice::RunKMC() {
     
     // to check whether anti repeating methods are useful
-    int repeat_counter = 0; 
-    int old_from_node_id = -10;
-    int old_to_node_id = -10;
+    if(eventinfo->repeat_counting) numoutput->Repeat_count_init();
     
     // convergence criteria
     bool direct_iv_convergence = false;
@@ -218,115 +223,78 @@ void Jdevice::RunKMC() {
     int direct_iv_counter = 0; //if the convergence criterium is counted ten times in a row, result is converged
     int direct_reco_counter = 0;
 
-    int numcharges_distrib;
-    
-    if(eventinfo->device >0) {
-        for(int it= 0; it< eventinfo->number_layers; it++ ){
-            std::cout << longrange->number_of_nodes(it) << " ";
-        }
-        std::cout << endl;
-    }
-    
     std::cout << "total link x distance : " << graph->total_link_distance_x() << endl;
-    std::cout << "average hole energy : " << eventinfo->avholeenergy << endl;
-    std::cout << "disorder strength: " << graph->stddev_hole_node_energy() << endl;
+    std::cout << "average hole site energy : " << eventinfo->avholeenergy << endl;
+    std::cout << "average electron site energy : " << eventinfo->avelectronenergy << endl; 
+    std::cout << "standard deviation of hole site energies: " << graph->stddev_hole_node_energy() << endl;
+    std::cout << "standard deviation of electron site energies: " << graph->stddev_electron_node_energy() << endl;
+    std::cout << endl;
+    std::cout << "===================================================" << endl;
+    std::cout << "= Start of device simulation                      =" << endl;
+    std::cout << "===================================================" << endl;
+    std::cout << endl;
     
     if(eventinfo->viz_store)  numoutput->Init_visualisation(graph, eventinfo);
-
     
     sim_time = 0.0;
     for (long it = 0; it < 2*eventinfo->nr_equilsteps + eventinfo->nr_timesteps; it++) {
-        //    for (long it = 0; it < 100; it++) {
         
-        if(eventinfo->device>0) {
-            if(ldiv(it, eventinfo->steps_update_longrange).rem == 0 && it>0){
-                if(eventinfo->longrange_slab) longrange->Update_cache_slab(graph,eventinfo);
-                else                          longrange->Update_cache(eventinfo);
+        if(ldiv(it, eventinfo->steps_update_longrange).rem == 0 && it>0){
+            if(eventinfo->longrange_slab) longrange->Update_cache_slab(graph,eventinfo);
+            else                          longrange->Update_cache(eventinfo);
 
-    //            double left_oxide_drop = longrange->Calculate_left_oxide_layer(eventinfo);
-    //            double right_oxide_drop = longrange->Calculate_right_oxide_layer(eventinfo);
-    //            double in_organic_voltage = eventinfo->voltage - left_oxide_drop - right_oxide_drop;
-    //            std::cout << "APPLIED VOLTAGE: " << eventinfo->voltage << ", VOLTAGE AFTER OXIDE DROP " << in_organic_voltage << endl;
-
-    //            eventinfo->Set_field(in_organic_voltage);
-
-                // update extrapolation of potential drop
-
-
-                events->Recompute_all_events(state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);
-            }
+            events->Recompute_all_events(state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);
         }
-        if(eventinfo->device == 0) vssmgroup->Recompute_bulk(non_injection_rates);
-        if(eventinfo->device == 1) vssmgroup->Recompute_device(non_injection_rates, left_injection_rates, right_injection_rates);
 
-        double timestep = vssmgroup->Timestep(RandomVariable);
+        vssmgroup->Recompute_device(non_injection_rates, left_injection_rates, right_injection_rates);
+
+        double timestep = vssmgroup->Timestep(randomvariable);
         sim_time += timestep;
         
         Event* chosenevent;
-        if(eventinfo->device == 0) chosenevent = vssmgroup->Choose_event_bulk(events, non_injection_rates, RandomVariable);
-        if(eventinfo->device == 1) chosenevent = vssmgroup->Choose_event_device(events, non_injection_rates, left_injection_rates, right_injection_rates, RandomVariable);
+        chosenevent = vssmgroup->Choose_event_device(events, non_injection_rates, left_injection_rates, right_injection_rates, randomvariable);
         
         if(eventinfo->viz_store && it <= eventinfo->viz_nr_timesteps) numoutput->Update_visualisation(chosenevent);
         if(eventinfo->viz_store && it == eventinfo->viz_nr_timesteps) numoutput->Print_visualisation();
+
+        // check for direct repeats
+        if(eventinfo->repeat_counting) numoutput->Repeat_count_update(chosenevent);
         
         numoutput->Update(chosenevent, sim_time, timestep); 
         events->On_execute(chosenevent, graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);
 
-        
-        // check for direct repeats        
-        int goto_node_id = chosenevent->link()->node2()->id();
-        int from_node_id = chosenevent->link()->node1()->id();
-        if(goto_node_id == old_from_node_id && from_node_id == old_to_node_id) repeat_counter++;
-        old_from_node_id = from_node_id;
-        old_to_node_id = goto_node_id;
-
-        
-         if(it == eventinfo->nr_equilsteps || it == 2*eventinfo->nr_equilsteps) numoutput->Init_convergence_check(sim_time);
-        
         // equilibration
    
-        if(it == eventinfo->nr_equilsteps || it == 2*eventinfo->nr_equilsteps) {
+        if(it == eventinfo->nr_equilsteps || it == 2*eventinfo->nr_equilsteps) 
+        {
+            numoutput->Init_convergence_check(sim_time); 
             numoutput->Initialize_equilibrate();
             sim_time = 0.0;
         }
+        
         // convergence checking
         
-        if(ldiv(it,10000).rem==0 && it> 2*eventinfo->nr_equilsteps) numoutput->Convergence_check(sim_time, eventinfo);
+        if(ldiv(it,eventinfo->nr_reportsteps).rem==0 && it> 2*eventinfo->nr_equilsteps) numoutput->Convergence_check(sim_time, eventinfo);
 
         // direct output
-        if(ldiv(it,10000).rem==0){
-            std::cout << it << " " << repeat_counter << " " << 
-                         numoutput->iv_conv() << " " << numoutput->iv_count() << " " << 
-                         numoutput->reco_conv() << " " << numoutput->reco_count() <<  " " << 
-                         sim_time << " " << timestep << " " << vssmgroup->totprobsum() << " "  << vssmgroup->noninjectprobsum() << " "  << vssmgroup->leftinjectprobsum() << " "  << vssmgroup->rightinjectprobsum() << " " ;
-            numoutput->Write(sim_time);
+        
+        if(ldiv(it,eventinfo->nr_reportsteps).rem==0){
+            numoutput->Write(it, sim_time, timestep, eventinfo);
             std::cout << endl;
-//            std::cout << "position" << endl;
-//           
-//            for(int i =0; i< eventinfo->number_layers; i++) {
-//                std::cout << longrange->position(i) << " ";
-//            }
-//            
-//            std::cout << endl;
-            if(eventinfo->device>0) {
-                std::cout << "charge" << endl;
-           
+            
+            if(eventinfo->write_charge_profile) 
+            {
+                std::cout << "charge profile (it = " << it << " )" << endl;
+            
                 for(int i =0; i< eventinfo->number_layers; i++) {
                     std::cout << longrange->Get_cached_density(i, eventinfo) << " ";
                 }
-            
+                std::cout << endl;
                 std::cout << endl;
             }
-//            std::cout << "pot" << endl;
-//           
-//            for(int i =0; i< eventinfo->number_layers; i++) {
-//                std::cout << longrange->Get_cached_longrange(i) << " ";
-//            }            
-//            std::cout << endl;
         }
         
         // break out of loop
-//        if(numoutput->iv_conv() && numoutput->reco_conv()) {break;}
         if(numoutput->iv_conv()) {break;}
         
     }
