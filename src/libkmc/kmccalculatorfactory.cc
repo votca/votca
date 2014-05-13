@@ -24,7 +24,8 @@
 
 #include "calculators/kmcmultiple.h"
 #include "calculators/kmcparallel.h"
-#include "calculators/diode.h"
+#include "calculators/jdevice.h"
+#include "calculators/jbulk.h"
 
 namespace votca { namespace kmc {
 
@@ -40,8 +41,8 @@ void KMCCalculatorFactory::RegisterAll(void)
     Calculators().Register<KMCParallel>("kmcparallel");
     
     // diode-type calculator (2D PBC with a source and sink)
-    Calculators().Register<Diode>("diode");
-
+    Calculators().Register<Jdevice>("jdevice");
+    Calculators().Register<Jbulk>("jbulk");
 }
 
 }}
