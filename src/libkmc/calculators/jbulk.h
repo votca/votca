@@ -150,6 +150,8 @@ void Jbulk::Initialize(const char *filename, Property *options, const char *outp
     events->Initialize_after_charge_placement(graph,state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);
     std::cout << "Initialize event and rates object after initial placement of charges" << endl;
     
+    if(eventinfo->traj_store) {state->Init_trajectory(eventinfo->traj_filename); std::cout << "Trajectory file initialized" << endl;}
+    
     vssmgroup = new Vssmgroup();
     std::cout << "vssm group initialized" << endl;
 
@@ -201,7 +203,6 @@ void Jbulk::RunKMC() {
     std::cout << "standard deviation of hole site energies: " << graph->stddev_hole_node_energy() << endl;
     std::cout << "standard deviation of electron site energies: " << graph->stddev_electron_node_energy() << endl;
     
-    if(eventinfo->traj_store) numoutput->Init_trajectory(eventinfo->traj_filename);
     if(eventinfo->viz_store)  numoutput->Init_visualisation(graph, eventinfo);
     
     sim_time = 0.0;
@@ -215,13 +216,11 @@ void Jbulk::RunKMC() {
 
         Event* chosenevent;
         chosenevent = vssmgroup->Choose_event_bulk(events, non_injection_rates, randomvariable);
-//        std::cout << chosenevent->link()->node1()->id() << " " << chosenevent->link()->node1()->position() << " " << chosenevent->link()->node2()->id() << " " << chosenevent->link()->node2()->position() << endl;
         
         if(eventinfo->viz_store && it <= eventinfo->viz_nr_timesteps) numoutput->Update_visualisation(chosenevent);
         if(eventinfo->viz_store && it == eventinfo->viz_nr_timesteps) numoutput->Print_visualisation();
 
-        if(eventinfo->traj_store) numoutput->Update_trajectory(chosenevent);
-        if(eventinfo->traj_store && ldiv(it,eventinfo->nr_traj_reportsteps).rem == 0) numoutput->Print_trajectory(sim_time);
+        if(eventinfo->traj_store && ldiv(it,eventinfo->nr_traj_reportsteps).rem == 0) state->Print_trajectory(sim_time);
 
         // check for direct repeats
         if(eventinfo->repeat_counting) numoutput->Repeat_count_update(chosenevent);
@@ -229,7 +228,7 @@ void Jbulk::RunKMC() {
         numoutput->Update(chosenevent, sim_time, timestep); 
         events->On_execute(chosenevent, graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);
       
-        if(!eventinfo->traj_store &&(it == eventinfo->nr_equilsteps || it == 2*eventinfo->nr_equilsteps)) numoutput->Init_convergence_check(sim_time);
+        if(it == eventinfo->nr_equilsteps || it == 2*eventinfo->nr_equilsteps) numoutput->Init_convergence_check(sim_time);
         
         // equilibration
    

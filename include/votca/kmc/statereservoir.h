@@ -64,6 +64,10 @@ public:
     
     /// Random injection of charges (both carrier types)
     void Random_init_injection(int nrelectrons, int nrholes, Bsumtree* site_inject_probs, GraphKMC* graph, Eventinfo* eventinfo, votca::tools::Random2 *RandomVariable);
+    
+    void Init_trajectory(string filename);
+    
+    void Print_trajectory(double simtime);
   
 private:
 
@@ -72,8 +76,13 @@ private:
     
     /// Add carrier of given carrier type to chosen node
     void Add_carrier_to_chosen_node(NodeDevice* chosen_node, int carrier_type, Eventinfo* eventinfo);    
+
+    void Print_header();
     
     vector<int> carrier_reservoir;
+    
+    ofstream traj_stream;
+    char traj_file[100];
 };
 
 void StateReservoir::InitStateReservoir(){
@@ -208,6 +217,26 @@ void StateReservoir::Add_carrier_to_chosen_node(NodeDevice* chosen_node, int car
     //initialize coulomb interactions
     newcarrier->Init_to_Coulomb(eventinfo->maxpairdegree);
     newcarrier->Set_from_Coulomb(0.0);
+}
+
+void StateReservoir::Init_trajectory(string filename){
+    strcpy(traj_file, filename.c_str());
+    traj_stream.open(traj_file);
+    traj_stream << "time[s]" << "\t" << "x[nm]" << "\t" << "y[nm]" << "\t" << "z[nm] ( " << this->GetCarrierSize()-carrier_reservoir.size() << " charges )" << endl;
+}
+
+void StateReservoir::Print_trajectory(double simtime){
+    traj_stream << simtime << "\t";
+    for(int i = 0; i< this->GetCarrierSize(); i++) {
+        CarrierBulk* traj_carrier = GetCarrier(i);
+        if(In_sim_box(traj_carrier)) {
+            votca::tools::vec cardistance = traj_carrier->distance();
+            traj_stream << cardistance.x() << "\t";
+            traj_stream << cardistance.y() << "\t";
+            traj_stream << cardistance.z() << "\t";
+        }
+    }
+    traj_stream << endl;
 }
 
 }} 

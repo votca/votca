@@ -31,6 +31,7 @@ using namespace std;
 enum Final_Event_Type {TransferTo, Collection, CollectiontoNode, Recombination, Blocking, Notinbox};
 enum Init_Event_Type {Injection, InjectionfromNode, TransferFrom, Notinboxfrom};
 enum Action{Add, Remove, None };
+enum Action_pair{Transfer, Other };
 
 class Event {
     
@@ -57,6 +58,7 @@ public:
     int &carrier_type() { return _carrier_type;}
     int &action_node1() { return _action_node1;}
     int &action_node2() { return _action_node2;}
+    int &action_pair()  { return _action_pair; }
     double &transferfactor() { return _transferfactor;}
     double &energyfactor() { return _energyfactor;}
     
@@ -89,6 +91,8 @@ public:
     inline int Determine_action_flag_node1();
     /// Determine action flag for node 2
     inline int Determine_action_flag_node2(Eventinfo* eventinfo);
+    
+    inline int Determine_action_flag_pair();
 
     /// Determine short range coulomb potential at node from which hop occur
     inline double Determine_from_sr_coulomb(Node* node, StateReservoir* state, Eventinfo* eventinfo); 
@@ -116,6 +120,7 @@ private:
     
     int _action_node1;
     int _action_node2;
+    int _action_pair;
     
     int _layer_node1;
     int _layer_node2;
@@ -139,6 +144,13 @@ inline int Event::Determine_init_event_type(Node* node1) {
     else if((node1->type() == (int) LeftElectrodeNode) || (node1->type() == (int) RightElectrodeNode)){      return (int) Injection;   }
 }
 
+inline int Event::Determine_action_flag_pair() {
+    int action_pair;
+    if(_init_type == TransferFrom && _final_type == TransferTo) {action_pair = (int) Transfer; }
+    else                                                        {action_pair = (int) Other;    }
+    return action_pair;
+}
+
 inline int Event::Determine_action_flag_node1() {
     int action_node1;
     if(_init_type == Injection)           {action_node1 = (int) None;   } // injection
@@ -149,9 +161,9 @@ inline int Event::Determine_action_flag_node1() {
 inline int Event::Determine_action_flag_node2(Eventinfo* eventinfo) {
     int action_node2;
     Node* node2 = _link->node2();
-    if(_final_type == TransferTo)                                                        {action_node2 = (int) Add;    } // transfer
-    else if(_final_type == Collection)                                                        {action_node2 = (int) None;   } // collection
-    else if(_final_type == Recombination)                                                     {action_node2 = (int) Remove; } // recombination
+    if(_final_type == TransferTo)            {action_node2 = (int) Add;    } // transfer
+    else if(_final_type == Collection)       {action_node2 = (int) None;   } // collection
+    else if(_final_type == Recombination)    {action_node2 = (int) Remove; } // recombination
     return action_node2;    
 }
 
@@ -213,6 +225,8 @@ void Event::Determine_rate(StateReservoir* state, Longrange* longrange, Eventinf
         prefactor = prefactor*(eventinfo->electron_prefactor);
         static_node_energy_from = dynamic_cast<NodeSQL*>(node1)->eCation() + dynamic_cast<NodeSQL*>(node1)->UcCnNe();
         static_node_energy_to = dynamic_cast<NodeSQL*>(node2)->eCation() + dynamic_cast<NodeSQL*>(node2)->UcCnNe();
+        if(_init_type == Injection) static_node_energy_from = eventinfo->avelectronenergy;
+        if(_final_type == Collection) static_node_energy_to = eventinfo->avelectronenergy;
     }
     else if(_carrier_type == (int) Hole) {
         charge = 1.0;
@@ -241,11 +255,10 @@ void Event::Determine_rate(StateReservoir* state, Longrange* longrange, Eventinf
 
         // take Reorg equal to inside organic material (obviously not true))
         if(_carrier_type == (int) Electron) {
-            Reorg = dynamic_cast<NodeSQL*>(node1)->UnCnNe() + dynamic_cast<NodeSQL*>(node2)->UcNcCe() + dynamic_cast<LinkSQL*>(_link)->lOe();
+            Reorg = eventinfo->electron_inject_reorg;
         }
         if(_carrier_type == (int) Hole) {
-//                Reorg = dynamic_cast<NodeSQL*>(node1)->UnCnNh() + dynamic_cast<NodeSQL*>(node2)->UcNcCh() + dynamic_cast<LinkSQL*>(_link)->lOh();
-            Reorg = 0.1345;
+            Reorg = eventinfo->hole_inject_reorg;
         }
         _transferfactor = (2*Pi/hbar)*(Jeff2/sqrt(4*Pi*Reorg*kB*eventinfo->temperature));
     }
@@ -257,10 +270,8 @@ void Event::Determine_rate(StateReservoir* state, Longrange* longrange, Eventinf
         if(_carrier_type == (int) Hole) {
             Jeff2 = dynamic_cast<LinkSQL*>(_link)->Jeff2h();
             Reorg = dynamic_cast<NodeSQL*>(node1)->UnCnNh() + dynamic_cast<NodeSQL*>(node2)->UcNcCh() + dynamic_cast<LinkSQL*>(_link)->lOh();
-//          std::cout << Jeff2
         }
         _transferfactor = (2*Pi/hbar)*(Jeff2/sqrt(4*Pi*Reorg*kB*eventinfo->temperature));
-//        std::cout << "transfer " << _transferfactor << " " << Jeff2 << " " << Reorg << " " << eventinfo->temperature << endl;
     }
 
     //second, calculate boltzmann factor
@@ -305,7 +316,6 @@ void Event::Determine_rate(StateReservoir* state, Longrange* longrange, Eventinf
     else {
         init_energy = static_node_energy_from + from_event_energy + sr_coulomb_from;
         final_energy = static_node_energy_to + to_event_energy + sr_coulomb_to;
-//        std::cout << "init " << init_energy << " final " << final_energy << " init_event " << from_event_energy << " final event " << to_event_energy << " static from " << static_node_energy_from << " static to " << static_node_energy_to << " sr from " << sr_coulomb_from << " sr to " << sr_coulomb_to << endl;
     }
 
     double energycontrib = 0.0;
@@ -335,7 +345,6 @@ void Event::Determine_rate(StateReservoir* state, Longrange* longrange, Eventinf
     }
 
     _rate = prefactor*_transferfactor*_energyfactor;
-//    std::cout << "rate " <<  _rate << " " << prefactor << " " << _transferfactor << " " << _energyfactor << " " << final_energy << " " << init_energy << " " << energycontrib << " " << (energycontrib+Reorg)*(energycontrib+Reorg)/(4*Reorg*kB*eventinfo->temperature) << endl;
 
 }
 
@@ -350,11 +359,13 @@ void Event::Set_event(Link* link,int carrier_type, StateReservoir* state, Longra
     if (node2->occ() == -1) {_final_type = Determine_final_event_type(node1, node2);}
     else                    {_final_type = Determine_final_event_type(carrier_type, state->GetCarrier(node2->occ())->type(), node1, node2);}    
 
-    _action_node1 = Determine_action_flag_node1();
-    _action_node2 = Determine_action_flag_node2(eventinfo);
+    _action_pair = Determine_action_flag_pair();
+    if(_action_pair != (int) Transfer) {
+        _action_node1 = Determine_action_flag_node1();
+        _action_node2 = Determine_action_flag_node2(eventinfo);
+    }
 
-    if(eventinfo->rate_calculate)                          {Determine_rate(state, longrange, eventinfo);   }
-    else                                                   {_rate = dynamic_cast<LinkSQL*>(_link)->rate12h();      }
+    Determine_rate(state, longrange, eventinfo);
 }
 
 }} 

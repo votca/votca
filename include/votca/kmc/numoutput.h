@@ -31,12 +31,10 @@ class Numoutput
 public:
     
     Numoutput() {
-        trajectories = new Trajectories();
         visualisation = new Visualisation();
     }
     
     ~Numoutput() {
-        delete trajectories;
         delete visualisation;
     }
     
@@ -50,10 +48,6 @@ public:
     
     void Repeat_count_init();
     void Repeat_count_update(Event* chosenevent);
-    
-    void Init_trajectory(string filename) {trajectories->Init_trajectory(filename);}
-    void Update_trajectory(Event* event) {trajectories->Update_trajectory(event);}
-    void Print_trajectory(double simtime) {trajectories->Print_trajectory(simtime);}
     
     void Init_visualisation(GraphKMC* graph, Eventinfo* eventinfo) {visualisation->Init_visualisation(graph, eventinfo);}
     void Update_visualisation(Event* event) {visualisation->Update_visualisation(event);}
@@ -70,7 +64,6 @@ public:
     
 private:
     
-    Trajectories* trajectories;
     Visualisation* visualisation;
     
     int _nelectrons;

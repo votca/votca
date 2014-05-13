@@ -231,7 +231,6 @@ void Jdevice::RunKMC() {
     std::cout << "average hole energy : " << eventinfo->avholeenergy << endl;
     std::cout << "disorder strength: " << graph->stddev_hole_node_energy() << endl;
     
-    if(eventinfo->traj_store) numoutput->Init_trajectory(eventinfo->traj_filename);
     if(eventinfo->viz_store)  numoutput->Init_visualisation(graph, eventinfo);
 
     
@@ -269,9 +268,6 @@ void Jdevice::RunKMC() {
         
         if(eventinfo->viz_store && it <= eventinfo->viz_nr_timesteps) numoutput->Update_visualisation(chosenevent);
         if(eventinfo->viz_store && it == eventinfo->viz_nr_timesteps) numoutput->Print_visualisation();
-
-        if(eventinfo->traj_store) numoutput->Update_trajectory(chosenevent);
-        if(eventinfo->traj_store && ldiv(it,eventinfo->nr_reportsteps).rem == 0) numoutput->Print_trajectory(sim_time);
         
         numoutput->Update(chosenevent, sim_time, timestep); 
         events->On_execute(chosenevent, graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);
@@ -285,20 +281,20 @@ void Jdevice::RunKMC() {
         old_to_node_id = goto_node_id;
 
         
-         if(!eventinfo->traj_store &&(it == eventinfo->nr_equilsteps || it == 2*eventinfo->nr_equilsteps)) numoutput->Init_convergence_check(sim_time);
+         if(it == eventinfo->nr_equilsteps || it == 2*eventinfo->nr_equilsteps) numoutput->Init_convergence_check(sim_time);
         
         // equilibration
    
-        if(!eventinfo->traj_store &&(it == eventinfo->nr_equilsteps || it == 2*eventinfo->nr_equilsteps)) {
+        if(it == eventinfo->nr_equilsteps || it == 2*eventinfo->nr_equilsteps) {
             numoutput->Initialize_equilibrate();
             sim_time = 0.0;
         }
         // convergence checking
         
-        if(!eventinfo->traj_store && (ldiv(it,10000).rem==0 && it> 2*eventinfo->nr_equilsteps)) numoutput->Convergence_check(sim_time, eventinfo);
+        if(ldiv(it,10000).rem==0 && it> 2*eventinfo->nr_equilsteps) numoutput->Convergence_check(sim_time, eventinfo);
 
         // direct output
-        if(!eventinfo->traj_store && ldiv(it,10000).rem==0){
+        if(ldiv(it,10000).rem==0){
             std::cout << it << " " << repeat_counter << " " << 
                          numoutput->iv_conv() << " " << numoutput->iv_count() << " " << 
                          numoutput->reco_conv() << " " << numoutput->reco_count() <<  " " << 
@@ -329,13 +325,9 @@ void Jdevice::RunKMC() {
 //            std::cout << endl;
         }
         
-        if(eventinfo->traj_store && ldiv(it,10000).rem==0){
-            std::cout << "step " << it << " of " << 2*eventinfo->nr_equilsteps + eventinfo->nr_timesteps << " timesteps" << endl;
-        }        
-        
         // break out of loop
 //        if(numoutput->iv_conv() && numoutput->reco_conv()) {break;}
-        if(!eventinfo->traj_store && numoutput->iv_conv()) {break;}
+        if(numoutput->iv_conv()) {break;}
         
     }
 

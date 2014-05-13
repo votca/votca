@@ -103,6 +103,9 @@ public:
         left_electrode_distance     = options->get("options.device.left_electrode_distance").as<double>();
         right_electrode_distance    = options->get("options.device.right_electrode_distance").as<double>();
         
+        hole_inject_reorg           = options->get("options.device.hole_inject_reorg").as<double>();
+        electron_inject_reorg        = options->get("options.device.electron_inject_reorg").as<double>();
+        
         number_layers               = options->get("options.device.number_layers").as<int>();
         nr_sr_images                = options->get("options.device.nr_sr_images").as<int>();
         self_image_prefactor        = options->get("options.device.self_image_prefactor").as<double>();
@@ -145,6 +148,7 @@ public:
     bool rate_calculate; bool viz_store; string viz_filename; int viz_nr_timesteps;
     bool lr_adaptive; double lr_images_accuracy;
     bool int_charge_readout; int nr_traj_reportsteps; bool repeat_counting;
+    double hole_inject_reorg; double electron_inject_reorg;
 
 };
 

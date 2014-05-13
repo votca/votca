@@ -46,7 +46,9 @@ public:
     void On_execute(Event* event, GraphKMC* graph, StateReservoir* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* left_injection_rates, Bsumtree* right_injection_rates, Eventinfo* eventinfo);
     /// On execute method node wise
     void On_execute_node(Node* node, int action, int carrier_type, GraphKMC* graph, StateReservoir* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* left_injection_rates, Bsumtree* right_injection_rates, Eventinfo* eventinfo);
-
+    /// On execute method pair wise
+    void On_execute_pair(Link* link, int carrier_type, GraphKMC* graph, StateReservoir* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* left_injection_rates, Bsumtree* right_injection_rates, Eventinfo* eventinfo);
+    
     /// Execute method in case carrier is added on node
     void Add_carrier(Node* node, int carrier_type, GraphKMC* graph, StateReservoir* state, Longrange* longrange, Bsumtree* non_injection_rates, Bsumtree* left_injection_rates, Bsumtree* right_injection_rates, Eventinfo* eventinfo);
 
@@ -136,13 +138,37 @@ private:
 void Events::On_execute(Event* event, GraphKMC* graph, StateReservoir* state, Longrange* longrange, Bsumtree* non_injection_rates, 
                           Bsumtree* left_injection_rates, Bsumtree* right_injection_rates, Eventinfo* eventinfo) {
     
-    Node* node1 = event->link()->node1();
-    Node* node2 = event->link()->node2();
-//    std::cout << node1->id() << " " << node2->id() << " " << event->init_type() << " " << event->final_type() << " " << event->action_node1() << " " << event->action_node2() << " " << node1->occ() << " " << node2->occ() << endl;   
-    On_execute_node(node1, event->action_node1(), event->carrier_type(), graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);
-    On_execute_node(node2, event->action_node2(), event->carrier_type(), graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);
+    if(event->action_pair() == (int) Transfer) {
+        On_execute_pair(event->link(),event->carrier_type(), graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);
+    }
+    else {
+        Node* node1 = event->link()->node1();
+        Node* node2 = event->link()->node2();
+
+        On_execute_node(node1, event->action_node1(), event->carrier_type(), graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);
+        On_execute_node(node2, event->action_node2(), event->carrier_type(), graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);
+    }
 }
 
+void Events::On_execute_pair(Link* link, int carrier_type, GraphKMC* graph, StateReservoir* state, Longrange* longrange, Bsumtree* non_injection_rates, 
+                              Bsumtree* left_injection_rates, Bsumtree* right_injection_rates, Eventinfo* eventinfo) {
+        
+    Node* node1 = link->node1();
+    Node* node2 = link->node2();
+
+    //remove from graph
+    CarrierBulk* transfer_carrier = state->GetCarrier(node1->occ());
+    transfer_carrier->IncDistance(link->r12());
+    node1->RemoveCarrier();    
+    Effect_potential_and_rates((int) Remove, transfer_carrier, node1, graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);    
+    if(eventinfo->coulomb_strength>0.0) Remove_from_mesh(transfer_carrier->id(), node1->position(), eventinfo);        
+
+    //place the carrier at the new position in the graph
+    transfer_carrier->SetCarrierNode(node2);
+    node2->AddCarrier(transfer_carrier->id());
+    if(eventinfo->coulomb_strength>0.0) Add_to_mesh(transfer_carrier->id(),node2->position(), eventinfo);
+    Effect_potential_and_rates((int) Add, transfer_carrier, node2, graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);    
+}
 
 void Events::On_execute_node(Node* node, int action, int carrier_type, GraphKMC* graph, StateReservoir* state, Longrange* longrange, Bsumtree* non_injection_rates, 
                               Bsumtree* left_injection_rates, Bsumtree* right_injection_rates, Eventinfo* eventinfo) {
