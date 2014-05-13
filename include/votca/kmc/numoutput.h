@@ -30,9 +30,9 @@ class Numoutput
 
 public:
     
-    Numoutput() {
-        trajectories = new Trajectories();
-        visualisation = new Visualisation();
+    Numoutput(bool trajstore, bool vizstore) {
+        if(trajstore) trajectories = new Trajectories();
+        if(vizstore) visualisation = new Visualisation();
     }
     
     ~Numoutput() {
