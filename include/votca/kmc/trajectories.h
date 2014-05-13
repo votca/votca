@@ -68,7 +68,6 @@ void Trajectories::Print_trajectory(double simtime){
     traj_stream << trajectory.y() << "\t";
     traj_stream << trajectory.z() << "\t";
     traj_stream << endl;
-    traj_stream.flush();
 }
   
 }}

@@ -19,7 +19,7 @@
 #define __VOTCA_KMC_PROFILE_H_
 
 #include <votca/tools/vec.h>
-#include <votca/kmc/graphdevice.h>
+#include <votca/kmc/graphkmc.h>
 #include <votca/kmc/eventinfo.h>
 
 namespace votca { namespace kmc {
@@ -29,7 +29,7 @@ using namespace std;
 class Profile {
 
 public:
-    Profile(GraphDevice* graph, Eventinfo* eventinfo) {
+    Profile(GraphKMC* graph, Eventinfo* eventinfo) {
         Initialize_storage_arrays(eventinfo);
         Add_nodes_to_profile(graph);
         Calculate_positional_average(eventinfo);
@@ -55,7 +55,7 @@ public:
     inline void Initialize_storage_arrays(Eventinfo* eventinfo);
     
     /// Read out positions of nodes from graph object
-    inline void Add_nodes_to_profile(GraphDevice* graph);
+    inline void Add_nodes_to_profile(GraphKMC* graph);
     
     /// Read out positions per layer
     inline void Add_node_to_layer(double posx, int layer);
@@ -88,7 +88,7 @@ inline void Profile::Initialize_storage_arrays(Eventinfo* eventinfo) {
 
 }
 
-inline void Profile::Add_nodes_to_profile(GraphDevice* graph){
+inline void Profile::Add_nodes_to_profile(GraphKMC* graph){
     for(int i =0; i<graph->Numberofnodes(); i++){
         NodeDevice* node = graph->GetNode(i);
         if(node->type() == (int) NormalNode) {

@@ -20,8 +20,6 @@
 
 
 #include <votca/kmc/events.h>
-#include <votca/kmc/graphdevice.h>
-#include <votca/kmc/statedevice.h>
 #include <votca/kmc/eventinfo.h>
 
 namespace votca { namespace kmc {

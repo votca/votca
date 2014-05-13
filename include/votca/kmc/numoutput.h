@@ -30,9 +30,9 @@ class Numoutput
 
 public:
     
-    Numoutput(bool trajstore, bool vizstore) {
-        if(trajstore) trajectories = new Trajectories();
-        if(vizstore) visualisation = new Visualisation();
+    Numoutput() {
+        trajectories = new Trajectories();
+        visualisation = new Visualisation();
     }
     
     ~Numoutput() {
@@ -48,11 +48,14 @@ public:
     void Update_ohmic(Event* event);
     void Write(double simtime);
     
+    void Repeat_count_init();
+    void Repeat_count_update(Event* chosenevent);
+    
     void Init_trajectory(string filename) {trajectories->Init_trajectory(filename);}
     void Update_trajectory(Event* event) {trajectories->Update_trajectory(event);}
     void Print_trajectory(double simtime) {trajectories->Print_trajectory(simtime);}
     
-    void Init_visualisation(GraphDevice* graph, Eventinfo* eventinfo) {visualisation->Init_visualisation(graph, eventinfo);}
+    void Init_visualisation(GraphKMC* graph, Eventinfo* eventinfo) {visualisation->Init_visualisation(graph, eventinfo);}
     void Update_visualisation(Event* event) {visualisation->Update_visualisation(event);}
     void Print_visualisation() {visualisation->Print_visualisation();}
     
@@ -63,6 +66,7 @@ public:
     const int &reco_count() const {return _direct_reco_counter;}
     
     const int &holes() const {return _nholes;}
+    const int &nr_repeats() const {return _repeat_counter;}
     
 private:
     
@@ -108,6 +112,11 @@ private:
     
     bool _direct_iv_convergence;
     bool _direct_reco_convergence;
+    
+    int _repeat_counter; 
+    int _old_from_node_id;
+    int _old_to_node_id;    
+    
 };
 
 void Numoutput::Initialize() {
@@ -261,6 +270,20 @@ void Numoutput::Write(double simtime) {
 //            " evx " << _electron_vel_x << " evy " << _electron_vel_y << " evz " << _electron_vel_z <<
 //            " hvx " << _hole_vel_x << " hvy " << _hole_vel_y << " hvz " << _hole_vel_z << 
             endl;
+}
+
+void Numoutput::Repeat_count_init(){
+    _repeat_counter = 0; 
+    _old_from_node_id = -10;
+    _old_to_node_id = 10;          
+}
+
+void Numoutput::Repeat_count_update(Event* chosenevent){
+    int goto_node_id = chosenevent->link()->node2()->id();
+    int from_node_id = chosenevent->link()->node1()->id();
+    if(goto_node_id == _old_from_node_id && from_node_id == _old_to_node_id) _repeat_counter++;
+    _old_from_node_id = from_node_id;
+    _old_to_node_id = goto_node_id;
 }
 
 }} 

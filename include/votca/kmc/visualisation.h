@@ -33,7 +33,7 @@ class Visualisation {
     
 public:
     
-    void Init_visualisation(GraphDevice* graph, Eventinfo* eventinfo);
+    void Init_visualisation(GraphKMC* graph, Eventinfo* eventinfo);
     void Update_visualisation(Event* event);
     void Print_visualisation(); 
  
@@ -41,7 +41,7 @@ private:
     
     void Init_layers();
     void Init_meshes();
-    void Init_node_numbers(GraphDevice* graph);
+    void Init_node_numbers(GraphKMC* graph);
     
     ofstream viz_stream;
     char viz_file[100];
@@ -56,7 +56,7 @@ private:
     
 };
 
-void Visualisation::Init_visualisation(GraphDevice* graph, Eventinfo* eventinfo)
+void Visualisation::Init_visualisation(GraphKMC* graph, Eventinfo* eventinfo)
 {
 
     strcpy(viz_file, eventinfo->viz_filename.c_str());    
@@ -65,15 +65,9 @@ void Visualisation::Init_visualisation(GraphDevice* graph, Eventinfo* eventinfo)
     viz_meshnr_x = eventinfo->viz_nx; viz_meshnr_y = eventinfo->viz_ny; viz_meshnr_z = eventinfo->viz_nz;
     viz_size_x = eventinfo->simboxsize.x()/viz_meshnr_x; viz_size_y = eventinfo->simboxsize.y()/viz_meshnr_y; viz_size_z = eventinfo->simboxsize.z()/viz_meshnr_z;
     
-    std::cout << "here?" << endl;
     this->Init_layers();
-    std::cout << "here?" << endl;
-
     this->Init_meshes();
-    std::cout << "here?" << endl;
-
     this->Init_node_numbers(graph);
-    std::cout << "here?" << endl;
 
 }
 
@@ -157,7 +151,7 @@ void Visualisation::Init_meshes()
     }    
 }
 
-void Visualisation::Init_node_numbers(GraphDevice* graph)
+void Visualisation::Init_node_numbers(GraphKMC* graph)
 {
     for(int it = 0; it != graph->Numberofnodes(); it++) 
     {

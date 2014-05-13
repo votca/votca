@@ -44,6 +44,8 @@ public:
     /// link ID
     const long &id() const { return _id; }
     
+    const long &reverse_id() const {return _reverse_id; }
+    
     /// r2 - r1
     const votca::tools::vec &r12() const { return _r12; }    
     
@@ -58,6 +60,7 @@ public:
     
     /// (re)set ID
     void SetID(long id) { _id = id; } 
+    void SetReverseID(long reverse_id) { _reverse_id = reverse_id; }
     
     // print Link info
     virtual void Print(std::ostream &out) {
@@ -74,6 +77,7 @@ public:
 private:
     
     long _id;
+    long _reverse_id;
     
     Node *_node1;
     Node *_node2;

@@ -19,7 +19,6 @@
 #define __VOTCA_KMC_LONGRANGE_H_
 
 #include <votca/tools/vec.h>
-#include <votca/kmc/graphlattice.h>
 #include <votca/kmc/eventinfo.h>
 #include <votca/kmc/profile.h>
 
@@ -32,20 +31,19 @@ class Longrange : public Profile
     
 public:
 
-    Longrange(GraphDevice* graph, Eventinfo* eventinfo) : Profile(graph, eventinfo){
-    };
+    Longrange(GraphKMC* graph, Eventinfo* eventinfo) : Profile(graph, eventinfo){};
 
     Longrange() : Profile(){};    
 
     /// Initialize longrange profile after state is read in
-    void Init_Load_State(StateDevice* state, Eventinfo* eventinfo);    
+    void Init_Load_State(StateReservoir* state, Eventinfo* eventinfo);    
     
     /// Add charge to longrange object
     void Add_charge(double charge, int layer) {_layercharge[layer] += charge;}
 
     /// Update longrange coulomb potential cache
     void Update_cache(Eventinfo* eventinfo);
-    void Update_cache_slab(GraphDevice* graph, Eventinfo* eventinfo);
+    void Update_cache_slab(GraphKMC* graph, Eventinfo* eventinfo);
     
     /// Get longrange coulomb potential cache
     double Get_cached_longrange(int layer);
@@ -54,12 +52,12 @@ public:
     
     /// Reser longrange coulomb potential cache
     void Reset(Eventinfo* eventinfo);
-    void Reset_slab(GraphDevice* graph, Eventinfo* eventinfo); 
+    void Reset_slab(GraphKMC* graph, Eventinfo* eventinfo); 
     
     /// Initialize the longrange class: -determine which layers are contributing to which layers -precalculate all cut-out disc contributions
     void Initialize(Eventinfo* eventinfo);
     void Initialize_slab_node(NodeDevice* node, Eventinfo* eventinfo);
-    void Initialize_slab(GraphDevice* graph, Eventinfo* eventinfo);
+    void Initialize_slab(GraphKMC* graph, Eventinfo* eventinfo);
     
     //note that the number of images for the calculation of the long range potential should be considerably larger 
     //than the number for the short range potential
@@ -69,9 +67,6 @@ public:
     ///precalculate the coulombic contributions from the cut-out discs
     inline double Calculate_disc_contrib(int calculate_layer, int contrib_layer, Eventinfo* eventinfo);
     inline double Calculate_disc_contrib_slab_node(NodeDevice* node, int contrib_layer, Eventinfo* eventinfo);
-
-    double Calculate_left_oxide_layer(Eventinfo* eventinfo);
-    double Calculate_right_oxide_layer(Eventinfo* eventinfo);
 
 private:
 
@@ -85,9 +80,9 @@ private:
   
 };
 
-void Longrange::Init_Load_State(StateDevice* state, Eventinfo* eventinfo) {
+void Longrange::Init_Load_State(StateReservoir* state, Eventinfo* eventinfo) {
     for(int icar =0; icar<state->GetCarrierSize(); icar++) {
-        CarrierDevice* carrier = state->GetCarrier(icar);
+        CarrierBulk* carrier = state->GetCarrier(icar);
         Node* node = carrier->node();
         if(carrier->type() == (int) Electron) {
             Add_charge(-1.0,dynamic_cast<NodeDevice*>(node)->layer());
@@ -105,7 +100,7 @@ void Longrange::Update_cache(Eventinfo* eventinfo) {
     }
 }
 
-void Longrange::Update_cache_slab(GraphDevice* graph, Eventinfo* eventinfo) {
+void Longrange::Update_cache_slab(GraphKMC* graph, Eventinfo* eventinfo) {
     for (int i=0; i<graph->Numberofnodes(); i++) {
         Node* node = graph->GetNode(i);
         votca::tools::vec node_pos = node->position();
@@ -134,7 +129,7 @@ void Longrange::Reset(Eventinfo* eventinfo) {
     }
 }
 
-void Longrange::Reset_slab(GraphDevice* graph, Eventinfo* eventinfo) {
+void Longrange::Reset_slab(GraphKMC* graph, Eventinfo* eventinfo) {
     for (int i=0; i<eventinfo->number_layers; i++) {
         _layercharge[i] = 0.0;
     }
@@ -205,7 +200,7 @@ void Longrange::Initialize (Eventinfo* eventinfo) {
  
 }
 
-void Longrange::Initialize_slab (GraphDevice* graph, Eventinfo* eventinfo) {
+void Longrange::Initialize_slab (GraphKMC* graph, Eventinfo* eventinfo) {
 
     for(int it = 0; it < graph->Numberofnodes(); it++) {
         if(graph->GetNode(it)->type() == (int) NormalNode) {
@@ -489,35 +484,6 @@ double Longrange::Calculate_longrange(int layer, bool cut_out_discs,Eventinfo* e
     if (!cut_out_discs) { disc_contrib = 0.0; }
     
     return 4.0*Pi*(plate_contrib1*(1-layerpos/eventinfo->simboxsize.x()) + plate_contrib2*(layerpos/eventinfo->simboxsize.x()) + 0.5*disc_contrib);
-}
-
-double Longrange::Calculate_left_oxide_layer(Eventinfo* eventinfo) {
-    
-    double left_ox = 0.0;
-    const double Pi = 3.14159265358979323846264338327950288419716939937510;       
-
-    
-    for(int i=0; i < eventinfo->number_layers; i++){
-        double charge_i = 1.0*_layercharge[i]/(this->number_of_nodes(i));
-        double position_i = (1.0-1.0*this->position(i)/eventinfo->simboxsize.x());
-        left_ox += 2*Pi*eventinfo->coulomb_strength*charge_i*position_i*eventinfo->left_oxide_thickness;        
-    }
-    
-    return left_ox;
-}
-
-double Longrange::Calculate_right_oxide_layer(Eventinfo* eventinfo) {
-    
-    double right_ox = 0.0;
-    const double Pi = 3.14159265358979323846264338327950288419716939937510;       
-
-    for(int i=0; i < eventinfo->number_layers; i++){
-        double charge_i = 1.0*_layercharge[i]/(this->number_of_nodes(i));
-        double position_i = (1.0*this->position(i)/eventinfo->simboxsize.x());
-        right_ox += 2*Pi*eventinfo->coulomb_strength*charge_i*position_i*eventinfo->right_oxide_thickness;        
-    }
-    
-    return right_ox;
 }
 
 }}
