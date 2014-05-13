@@ -147,14 +147,14 @@ void StateReservoir::Grow(unsigned int nr_new_carriers, int maxpairdegree) {
 void StateReservoir::PrintDevice(std::ostream& out) {
     
     this->Print(out);
-    std::cout << endl;
+    std::cout << "\n";
     std::cout << "reservoir indices: ";
     typename std::vector<int>::iterator it;   
     for(it = carrier_reservoir.begin(); it != carrier_reservoir.end(); it++) { 
 
         std::cout << (*it) << " ";
     }
-    std::cout << endl;
+    std::cout << "\n";
 }
 
 void StateReservoir::Random_init_injection(int nr_electrons, int nr_holes, Bsumtree* site_inject_probs, GraphKMC* graph, Eventinfo* eventinfo, votca::tools::Random2 *RandomVariable){
@@ -222,7 +222,7 @@ void StateReservoir::Add_carrier_to_chosen_node(NodeDevice* chosen_node, int car
 void StateReservoir::Init_trajectory(string filename){
     strcpy(traj_file, filename.c_str());
     traj_stream.open(traj_file);
-    traj_stream << "time[s]" << "\t" << "x[nm]" << "\t" << "y[nm]" << "\t" << "z[nm] ( " << this->GetCarrierSize()-carrier_reservoir.size() << " charges )" << endl;
+    traj_stream << "time[s]" << "\t" << "x[nm]" << "\t" << "y[nm]" << "\t" << "z[nm] ( " << this->GetCarrierSize()-carrier_reservoir.size() << " charges )" << "\n";
 }
 
 void StateReservoir::Print_trajectory(double simtime){

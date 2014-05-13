@@ -116,7 +116,7 @@ void Visualisation::Print_visualisation()
                layer_value = layer_cur[ix]/(1.0*layer_num[ix]);
                
                double current = value/layer_value;
-               viz_stream << ix << " " << iy << " " << iz << " " << current << endl;
+               viz_stream << ix << " " << iy << " " << iz << " " << current << "\n";
             }
         }
     } 

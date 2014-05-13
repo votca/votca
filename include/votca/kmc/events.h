@@ -884,18 +884,18 @@ double Events::av_rate(int electrode) {
 
 double Events::av_inject_transferfactor(int electrode) {
     double av_transferfactor = 0.0;
-//    std::cout << "electrode " << electrode << endl;
+//    std::cout << "electrode " << electrode << "\n";
     if(electrode == 0) {
         for(int ievent = 0; ievent < _total_left_injection_events ; ievent++) {
             av_transferfactor += _injection_events[ievent]->transferfactor();
-//            std::cout << "left " << _injection_events[ievent]->rate() << " " << _injection_events[ievent]->link()->node2()->id() << " " << _injection_events[ievent]->link()->r12() << " " << _injection_events[ievent]->transferfactor() << endl;
+//            std::cout << "left " << _injection_events[ievent]->rate() << " " << _injection_events[ievent]->link()->node2()->id() << " " << _injection_events[ievent]->link()->r12() << " " << _injection_events[ievent]->transferfactor() << "\n";
         }
 //        av_transferfactor /= _total_left_injection_events;
     }
     else {
         for(int ievent = _total_left_injection_events; ievent < _total_left_injection_events + _total_right_injection_events ; ievent++) {
             av_transferfactor += _injection_events[ievent]->transferfactor();
-//            std::cout << "right " << _injection_events[ievent]->rate() << " " << _injection_events[ievent]->link()->node2()->id() << " " << _injection_events[ievent]->link()->r12() << " " <<   _injection_events[ievent]->transferfactor() << endl;
+//            std::cout << "right " << _injection_events[ievent]->rate() << " " << _injection_events[ievent]->link()->node2()->id() << " " << _injection_events[ievent]->link()->r12() << " " <<   _injection_events[ievent]->transferfactor() << "\n";
 
         }        
 //        av_transferfactor /= _total_right_injection_events;

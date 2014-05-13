@@ -75,13 +75,13 @@ private:
 void Jbulk::Initialize(const char *filename, Property *options, const char *outputfile) 
 {
 
-    std::cout << "===================================================" << endl;
-    std::cout << "= Initialization phase                            =" << endl;
-    std::cout << "===================================================" << endl;
+    std::cout << "===================================================" << "\n";
+    std::cout << "= Initialization phase                            =" << "\n";
+    std::cout << "===================================================" << "\n";
     
     eventinfo = new Eventinfo();
     eventinfo->Read_bulk(options);
-    if(eventinfo->device) {std::cout << "WARNING: device flag set incorrectly, set to false" << endl; eventinfo->device = false;}
+    if(eventinfo->device) {std::cout << "WARNING: device flag set incorrectly, set to false" << "\n"; eventinfo->device = false;}
 
     //Setup random number generator
     srand(eventinfo->seed); // srand expects any integer in order to initialise the random number generator
@@ -90,29 +90,29 @@ void Jbulk::Initialize(const char *filename, Property *options, const char *outp
     
     graph = new GraphKMC();
     graph->Initialize(filename);
-    std::cout << "number of nodes before graph manipulations: " << graph->Numberofnodes() << endl;
-    std::cout << "simulation box size before graph manipulations: " << graph->Determine_Sim_Box_Size() << endl;
+    std::cout << "number of nodes before graph manipulations: " << graph->Numberofnodes() << "\n";
+    std::cout << "simulation box size before graph manipulations: " << graph->Determine_Sim_Box_Size() << "\n";
     
-    if(graph->el_reorg()) { std::cout << "WARNING: zero electron reorganization energy" << endl;}
-    if(graph->ho_reorg()) { std::cout << "WARNING: zero hole reorganization energy" << endl;}
+    if(graph->el_reorg()) { std::cout << "WARNING: zero electron reorganization energy" << "\n";}
+    if(graph->ho_reorg()) { std::cout << "WARNING: zero hole reorganization energy" << "\n";}
     
     graph->Setup_bulk_graph(eventinfo->resize, eventinfo);
    
     eventinfo->Graph_Parameters(graph->hopdist(), graph->mindist(), graph->simboxsize(), graph->maxpairdegree(),graph->Average_hole_node_energy(), graph->Average_electron_node_energy());
     
-    std::cout << "graph object initialized" << endl;
-    std::cout << "max pair degree: " << graph->maxpairdegree() << endl;
-    std::cout << "hopping distance: " << graph->hopdist() << endl;
-    std::cout << "simulation box size: " << graph->simboxsize() << endl;
-    std::cout << "number of nodes " << graph->Numberofnodes() << endl;    
+    std::cout << "graph object initialized" << "\n";
+    std::cout << "max pair degree: " << graph->maxpairdegree() << "\n";
+    std::cout << "hopping distance: " << graph->hopdist() << "\n";
+    std::cout << "simulation box size: " << graph->simboxsize() << "\n";
+    std::cout << "number of nodes " << graph->Numberofnodes() << "\n";    
     
     state = new StateReservoir();
     state->InitStateReservoir();
-    std::cout << "state reservoir object initialized" << endl;
+    std::cout << "state reservoir object initialized" << "\n";
     
     site_inject_probs = new Bsumtree();
     site_inject_probs->initialize(graph->Numberofnodes());
-    std::cout << "Random node injector tree initialized" << endl;
+    std::cout << "Random node injector tree initialized" << "\n";
         
     //Random charge distribution
     int nrholes = 0;
@@ -121,46 +121,46 @@ void Jbulk::Initialize(const char *filename, Property *options, const char *outp
     if(eventinfo->int_charge_readout) {nrholes = eventinfo->nr_holes; nrelectrons = eventinfo->nr_electrons;}
     else {nrholes = eventinfo->ho_density*graph->Numberofnodes(); nrelectrons = eventinfo->el_density*graph->Numberofnodes();}
         
-    if(nrholes!=0 && nrelectrons != 0) { std::cout << "Double carrier simulation" << endl;} 
-    else { std::cout << "Single carrier simulation" << endl;} 
-    if(nrholes+nrelectrons>graph->Numberofnodes()){ std::cout<< "WARNING: number of electrons and holes is larger than the number of available nodes" << endl;}
+    if(nrholes!=0 && nrelectrons != 0) { std::cout << "Double carrier simulation" << "\n";} 
+    else { std::cout << "Single carrier simulation" << "\n";} 
+    if(nrholes+nrelectrons>graph->Numberofnodes()){ std::cout<< "WARNING: number of electrons and holes is larger than the number of available nodes" << "\n";}
     if(nrholes+nrelectrons == 0) { std::cout << "WARNING: without electrons and/or holes nothing happens";}    
     
     state->Random_init_injection(nrelectrons, nrholes, site_inject_probs, graph, eventinfo, randomvariable);
-    std::cout << "randomly placed : " << nrelectrons + nrholes << " charges of which " << nrelectrons << " electrons and " << nrholes << " holes" << endl;
+    std::cout << "randomly placed : " << nrelectrons + nrholes << " charges of which " << nrelectrons << " electrons and " << nrholes << " holes" << "\n";
    
     
     if(state->ReservoirEmpty()) state->Grow(eventinfo->growsize, eventinfo->maxpairdegree);
-    std::cout << "state grown after random charge injection" << endl;
+    std::cout << "state grown after random charge injection" << "\n";
     
     
     non_injection_rates = new Bsumtree();
     left_injection_rates = new Bsumtree();
     right_injection_rates = new Bsumtree();
-    std::cout << "rate binary tree initialized" << endl;
+    std::cout << "rate binary tree initialized" << "\n";
 
     longrange = new Longrange();    
     
     events = new Events();
     if(eventinfo->coulomb_strength > 0.0) {
         events->Init_non_injection_meshes(eventinfo);
-        std::cout << "mesh structure for Coulomb interaction calculations initialized" << endl;
+        std::cout << "mesh structure for Coulomb interaction calculations initialized" << "\n";
     }
     events->Initialize_bulk_eventvector(graph,state,eventinfo);
-    std::cout << "Initialize (bulk) eventvector (setting number of injection events to zero)" << endl;
+    std::cout << "Initialize (bulk) eventvector (setting number of injection events to zero)" << "\n";
     events->Initialize_rates(non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);
-    std::cout << "Fill rate binary trees" << endl;
+    std::cout << "Fill rate binary trees" << "\n";
     events->Initialize_after_charge_placement(graph,state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);
-    std::cout << "Initialize event and rates object after initial placement of charges" << endl;
+    std::cout << "Initialize event and rates object after initial placement of charges" << "\n";
     
-    if(eventinfo->traj_store) {state->Init_trajectory(eventinfo->traj_filename); std::cout << "Trajectory file initialized" << endl;}
+    if(eventinfo->traj_store) {state->Init_trajectory(eventinfo->traj_filename); std::cout << "Trajectory file initialized" << "\n";}
     
     vssmgroup = new Vssmgroup();
-    std::cout << "vssm group initialized" << endl;
+    std::cout << "vssm group initialized" << "\n";
 
     numoutput = new Numoutput();
     numoutput->Initialize();
-    std::cout << "output object initialized" << endl;
+    std::cout << "output object initialized" << "\n";
 
 
 }
@@ -200,16 +200,16 @@ void Jbulk::RunKMC() {
     int direct_iv_counter = 0; //if the convergence criterium is counted ten times in a row, result is converged
     int direct_reco_counter = 0;
 
-    std::cout << "total link x distance : " << graph->total_link_distance_x() << endl;
-    std::cout << "average hole site energy : " << eventinfo->avholeenergy << endl;
-    std::cout << "average electron site energy : " << eventinfo->avelectronenergy << endl; 
-    std::cout << "standard deviation (disorder strength) of hole site energies: " << graph->stddev_hole_node_energy() << endl;
-    std::cout << "standard deviation (disorder strength) of electron site energies: " << graph->stddev_electron_node_energy() << endl;
-    std::cout << endl;
-    std::cout << "===================================================" << endl;
-    std::cout << "= Start of bulk simulation                        =" << endl;
-    std::cout << "===================================================" << endl;
-    std::cout << endl;
+    std::cout << "total link x distance : " << graph->total_link_distance_x() << "\n";
+    std::cout << "average hole site energy : " << eventinfo->avholeenergy << "\n";
+    std::cout << "average electron site energy : " << eventinfo->avelectronenergy << "\n"; 
+    std::cout << "standard deviation (disorder strength) of hole site energies: " << graph->stddev_hole_node_energy() << "\n";
+    std::cout << "standard deviation (disorder strength) of electron site energies: " << graph->stddev_electron_node_energy() << "\n";
+    std::cout << "\n";
+    std::cout << "===================================================" << "\n";
+    std::cout << "= Start of bulk simulation                        =" << "\n";
+    std::cout << "===================================================" << "\n";
+    std::cout << "\n";
     
     if(eventinfo->viz_store)  numoutput->Init_visualisation(graph, eventinfo);
     
@@ -253,11 +253,11 @@ void Jbulk::RunKMC() {
         // direct output
         if(!eventinfo->traj_store && ldiv(it,eventinfo->nr_reportsteps).rem==0){
             numoutput->Write(it, sim_time, timestep, eventinfo);
-            std::cout << endl;
+            std::cout << "\n";
         }
         
         if(eventinfo->traj_store && ldiv(it,eventinfo->nr_reportsteps).rem==0){
-            std::cout << "step " << it << " of " << 2*eventinfo->nr_equilsteps + eventinfo->nr_timesteps << " timesteps" << endl;
+            std::cout << "step " << it << " of " << 2*eventinfo->nr_equilsteps + eventinfo->nr_timesteps << " timesteps" << "\n";
         }        
         
         // break out of loop

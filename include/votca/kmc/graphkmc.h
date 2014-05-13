@@ -205,7 +205,6 @@ void GraphKMC::Setup_device_graph(double left_distance, double right_distance, b
     
     // Determine simulation box size
     _sim_box_size = this->Determine_Sim_Box_Size();
-    std::cout << "pre graph modification sim box size: " << _sim_box_size << endl;
   
     // Translate the graph due to the spatial location of the electrodes and update system box size accordingly, putting the left electrode at x = 0
     // left_electrode_distance is the distance of the left electrode to the node with minimum x-coordinate

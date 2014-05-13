@@ -20,7 +20,6 @@
 
 #include <votca/kmc/event.h>
 #include <votca/kmc/graph.h>
-#include <votca/kmc/trajectories.h>
 #include <votca/kmc/visualisation.h>
 
 namespace votca { namespace kmc {
@@ -264,8 +263,8 @@ void Numoutput::Write(int it, double simtime, double timestep, Eventinfo* eventi
     std::cout << setw(15) << this->reco_count();
     std::cout << setw(20) << simtime;
     std::cout << setw(20) << timestep;
-    std::cout << endl;
-    std::cout << endl;
+    std::cout << "\n";
+    std::cout << "\n";
 
     this->Write_header_two();
     std::cout << setw(15) << _nelectrons;
@@ -274,8 +273,8 @@ void Numoutput::Write(int it, double simtime, double timestep, Eventinfo* eventi
     std::cout << setw(15) << _nplaintransfer;
     std::cout << setw(15) << _nrecombinations;
     std::cout << setw(15) << _nrecombinationrate;
-    std::cout << endl;
-    std::cout << endl;
+    std::cout << "\n";
+    std::cout << "\n";
     
     if(eventinfo->device){
         this->Write_header_three();
@@ -286,8 +285,8 @@ void Numoutput::Write(int it, double simtime, double timestep, Eventinfo* eventi
         std::cout << setw(20) << _nleftcollections;
         std::cout << setw(20) << _nrightinjections;
         std::cout << setw(20) << _nrightcollections;
-        std::cout << endl;
-        std::cout << endl;
+        std::cout << "\n";
+        std::cout << "\n";
     }
     
     this->Write_header_four(eventinfo);
@@ -298,8 +297,8 @@ void Numoutput::Write(int it, double simtime, double timestep, Eventinfo* eventi
     std::cout << setw(15) << _vel_x/simtime;
     std::cout << setw(15) << _vel_y/simtime;
     std::cout << setw(15) << _vel_z/simtime;
-    std::cout << endl;      
-    std::cout << endl;
+    std::cout << "\n";      
+    std::cout << "\n";
 }
 
 void Numoutput::Write_header_one(Eventinfo* eventinfo) {
@@ -311,7 +310,7 @@ void Numoutput::Write_header_one(Eventinfo* eventinfo) {
     std::cout << setw(15) << "reco count";
     std::cout << setw(20) << "sim_time";
     std::cout << setw(20) << "timestep";
-    std::cout << endl;
+    std::cout << "\n";
 }
 
 void Numoutput::Write_header_two() {
@@ -321,7 +320,7 @@ void Numoutput::Write_header_two() {
     std::cout << setw(15) << "nr transfers";
     std::cout << setw(15) << "nr recombins";
     std::cout << setw(15) << "rec rate";
-    std::cout << endl;
+    std::cout << "\n";
 }
 
 void Numoutput::Write_header_three() {
@@ -332,7 +331,7 @@ void Numoutput::Write_header_three() {
     std::cout << setw(20) << "nr left collects";
     std::cout << setw(20) << "nr right injects";
     std::cout << setw(20) << "nr right collects";
-    std::cout << endl;
+    std::cout << "\n";
 }
 
 void Numoutput::Write_header_four(Eventinfo* eventinfo) {
@@ -343,7 +342,7 @@ void Numoutput::Write_header_four(Eventinfo* eventinfo) {
     std::cout << setw(15) << "av vel x";
     std::cout << setw(15) << "av vel y";
     std::cout << setw(15) << "av vel z";
-    std::cout << endl;        
+    std::cout << "\n";        
 }
 
 void Numoutput::Repeat_count_init(){

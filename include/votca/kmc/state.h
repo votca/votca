@@ -80,12 +80,12 @@ void State<TGraph, TCarrier>::Save(const char* filename){
         for (it = _carriers.begin(); it != _carriers.end(); it++ ) {
             if(In_sim_box((*it))) {
                 votca::tools::vec c_distance = (*it)->distance();
-                statestore << (*it)->node()->id() << " " << (*it)->type() << " " << c_distance.x() << " " << c_distance.y() << " " << c_distance.z() << endl;
+                statestore << (*it)->node()->id() << " " << (*it)->type() << " " << c_distance.x() << " " << c_distance.y() << " " << c_distance.z() << "\n";
             }
         }
     }
     else {
-        std::cout << "WARNING: Can't open state store file" << endl;
+        std::cout << "WARNING: Can't open state store file" << "\n";
     }
     
     statestore.close();
@@ -129,7 +129,7 @@ void State<TGraph,TCarrier>::Load(const char* filename, TGraph* graph){
         }
     }
     else {
-        std::cout << "WARNING: Can't open state store file" << endl;
+        std::cout << "WARNING: Can't open state store file" << "\n";
     }
 
     statestore.close();    
@@ -140,7 +140,7 @@ void State<TGraph,TCarrier>::Print(std::ostream& out) {
     
     typename std::vector<TCarrier*>::iterator it;    
     for(it = _carriers.begin(); it != _carriers.end(); it++)  out << (*it)->id() << " " << (*it)->node()->position() << " " << 
-            (*it)->type() << " " << (*it)->distance() << " " << (*it)->inbox() << endl;
+            (*it)->type() << " " << (*it)->distance() << " " << (*it)->inbox() << "\n";
 }
 
 }} 
