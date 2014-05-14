@@ -200,6 +200,9 @@ void Jbulk::RunKMC() {
     int direct_iv_counter = 0; //if the convergence criterium is counted ten times in a row, result is converged
     int direct_reco_counter = 0;
 
+    if(eventinfo->viz_store)  numoutput->Init_visualisation(graph, eventinfo);
+    if(eventinfo->traj_store) eventinfo->nr_equilsteps = 0;    
+    
     std::cout << "total link x distance : " << graph->total_link_distance_x() << "\n";
     std::cout << "average hole site energy : " << eventinfo->avholeenergy << "\n";
     std::cout << "average electron site energy : " << eventinfo->avelectronenergy << "\n"; 
@@ -210,8 +213,6 @@ void Jbulk::RunKMC() {
     std::cout << "= Start of bulk simulation                        =" << "\n";
     std::cout << "===================================================" << "\n";
     std::cout << "\n";
-    
-    if(eventinfo->viz_store)  numoutput->Init_visualisation(graph, eventinfo);
     
     sim_time = 0.0;
     for (long it = 0; it < 2*eventinfo->nr_equilsteps + eventinfo->nr_timesteps; it++) {
@@ -232,7 +233,7 @@ void Jbulk::RunKMC() {
         // check for direct repeats
         if(eventinfo->repeat_counting) numoutput->Repeat_count_update(chosenevent);
       
-        numoutput->Update(chosenevent, sim_time, timestep); 
+        if(!eventinfo->traj_store) numoutput->Update(chosenevent, sim_time, timestep); 
         events->On_execute(chosenevent, graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);
         
         // equilibration
@@ -246,10 +247,6 @@ void Jbulk::RunKMC() {
         
         if(!eventinfo->traj_store && (ldiv(it,eventinfo->nr_reportsteps).rem==0 && it> 2*eventinfo->nr_equilsteps)) numoutput->Convergence_check(sim_time, eventinfo);
 
-        if(ldiv(it,eventinfo->nr_reportsteps).rem==0) {
-
-            
-        }
         // direct output
         if(!eventinfo->traj_store && ldiv(it,eventinfo->nr_reportsteps).rem==0){
             numoutput->Write(it, sim_time, timestep, eventinfo);
