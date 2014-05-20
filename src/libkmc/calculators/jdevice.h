@@ -150,7 +150,8 @@ void Jdevice::Initialize(const char *filename, Property *options, const char *ou
         else { std::cout << "Single carrier simulation" << "\n";} 
         if(nrholes+nrelectrons>graph->Numberofnodes()){ std::cout<< "WARNING: number of electrons and holes is larger than the number of available nodes" << "\n";}
         if(nrholes+nrelectrons == 0) { std::cout << "No charges are initialized";}    
-    
+        if(eventinfo->fixed_car) {std::cout << "Carriers are fixed";}
+        
         state->Random_init_injection(nrelectrons, nrholes, site_inject_probs, graph, eventinfo, randomvariable);
         std::cout << "randomly placed : " << nrelectrons + nrholes << " charges of which " << nrelectrons << " electrons and " << nrholes << " holes" << "\n";
     }

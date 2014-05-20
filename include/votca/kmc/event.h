@@ -70,6 +70,8 @@ public:
     double sr_coulomb2(StateReservoir* state, Eventinfo* eventinfo) { return Determine_to_sr_coulomb(_link->node1(), state, eventinfo);}
     
     void Set_event(Link* link, int carrier_type, StateReservoir* state, Longrange* longrange, Eventinfo* eventinfo);
+    void Set_Fixed_event(Link* link, int carrier_type, StateReservoir* state, Longrange* longrange, Eventinfo* eventinfo);
+
     /// Determine rate
     void Determine_rate(StateReservoir* state, Longrange* longrange, Eventinfo* eventinfo);
     /// Set rate to value
@@ -126,6 +128,8 @@ private:
     int _layer_node2;
     
     double _injection_potential;
+    
+    bool _fixed;
     
 };
 
@@ -348,12 +352,14 @@ void Event::Determine_rate(StateReservoir* state, Longrange* longrange, Eventinf
         }       
     }
 
-    _rate = prefactor*_transferfactor*_energyfactor;
+    if(!_fixed) _rate = prefactor*_transferfactor*_energyfactor;
+    else _rate = 0.0;
 
 }
 
 void Event::Set_event(Link* link,int carrier_type, StateReservoir* state, Longrange* longrange, Eventinfo* eventinfo) {
    
+    _fixed = false;
     _link = link;
     Node* node1 = link->node1();
     Node* node2 = link->node2();
@@ -372,6 +378,28 @@ void Event::Set_event(Link* link,int carrier_type, StateReservoir* state, Longra
     Determine_rate(state, longrange, eventinfo);
 }
 
+void Event::Set_Fixed_event(Link* link,int carrier_type, StateReservoir* state, Longrange* longrange, Eventinfo* eventinfo){
+    
+    _fixed = true;
+    _link = link;
+    Node* node1 = link->node1();
+    Node* node2 = link->node2();
+    
+    _carrier_type = carrier_type;
+    _init_type = Determine_init_event_type(node1);
+    if (node2->occ() == -1) {_final_type = Determine_final_event_type(node1, node2);}
+    else                    {_final_type = Determine_final_event_type(carrier_type, state->GetCarrier(node2->occ())->type(), node1, node2, eventinfo);}    
+
+    _action_pair = Determine_action_flag_pair();
+    if(_action_pair != (int) Transfer) {
+        _action_node1 = Determine_action_flag_node1();
+        _action_node2 = Determine_action_flag_node2(eventinfo);
+    }
+
+    Determine_rate(state, longrange, eventinfo);
+}
+
+    
 }} 
 
 #endif

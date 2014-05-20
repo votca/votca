@@ -46,12 +46,16 @@ public:
     void Add_to_Coulomb(double coulomb, int linkID) {_to_coulomb[linkID] += coulomb;}
     void Set_to_Coulomb(double coulomb, int linkID) {_to_coulomb[linkID] = coulomb;}
     
+    void Set_fixed() {_fixed = true;}
+    const bool &fixed() const { return _fixed; }
+    
 private:
     
     bool _in_sim_box;
     double _from_coulomb;
     vector<double> _to_coulomb;
     double _on_node;
+    bool _fixed;
 };
 
 }} 

@@ -84,7 +84,9 @@ public:
         coulcut                     = options->get("options.general.coulcut").as<double>();
         
         no_blocking                 = options->get("options.general.no_blocking").as<bool>();
-        device                      = options->get("options.device.device").as<bool>();        
+        device                      = options->get("options.device.device").as<bool>();
+
+        fixed_car                   = options->get("options.general.fixed_car").as<bool>();        
 
     }
     
@@ -152,7 +154,7 @@ public:
     bool lr_adaptive; double lr_images_accuracy;
     bool int_charge_readout; int nr_traj_reportsteps; bool repeat_counting;
     double hole_inject_reorg; double electron_inject_reorg;
-    bool no_blocking; bool init_charges; bool write_charge_profile; bool write_pot_profile;
+    bool no_blocking; bool init_charges; bool write_charge_profile; bool write_pot_profile; bool fixed_car;
 
 };
 

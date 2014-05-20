@@ -446,13 +446,20 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierBulk* c
         for (int it = 0; it < node->links().size(); it++) {
             int event_ID = carrier1->id()*eventinfo->maxpairdegree+it;
 
-            if(action == (int) Add) {
-                _non_injection_events[event_ID]->Set_event(node->links()[it], carrier1->type(), state, longrange, eventinfo);
-                non_injection_rates->setrate(event_ID, _non_injection_events[event_ID]->rate());
+            if(!carrier1->fixed())
+            {
+                if(action == (int) Add) {
+                    _non_injection_events[event_ID]->Set_event(node->links()[it], carrier1->type(), state, longrange, eventinfo);
+                    non_injection_rates->setrate(event_ID, _non_injection_events[event_ID]->rate());
+                }
+                else {
+                    _non_injection_events[event_ID]->Set_not_in_box_event();
+                    non_injection_rates->setrate(event_ID, 0.0);
+                }
             }
-            else {
-                _non_injection_events[event_ID]->Set_not_in_box_event();
-                non_injection_rates->setrate(event_ID, 0.0);
+            else {// carriers are fixed so they are added
+                _non_injection_events[event_ID]->Set_Fixed_event(node->links()[it], carrier1->type(), state, longrange, eventinfo);
+                non_injection_rates->setrate(event_ID, 0.0);                
             }
         }
     }
