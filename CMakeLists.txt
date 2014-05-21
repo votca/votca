@@ -54,7 +54,7 @@ find_package(Mercurial)
 find_package(Threads REQUIRED)
 set(THREAD_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
 
-find_package(Boost 1.39.0 REQUIRED COMPONENTS program_options filesystem )
+find_package(Boost 1.39.0 REQUIRED COMPONENTS program_options filesystem system )
 include_directories(${Boost_INCLUDE_DIRS})
 set (BOOST_CFLAGS_PKG "-I${Boost_INCLUDE_DIRS}")
 set(BOOST_LIBS_PKG "-L${Boost_LIBRARY_DIRS}")
