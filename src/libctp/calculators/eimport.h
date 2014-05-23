@@ -32,6 +32,9 @@ private:
     double      _sigma_e;
     double      _cutoff;
     bool        _stochastic;
+    int         _seed;
+    int         _optimizationsteps;
+    double      _optimizationfactor;
 
 
 };
@@ -84,6 +87,20 @@ void EImport::Initialize(Property *options) {
     else{
         _cutoff = 0;
     }
+    _seed = 1;
+    if (options->exists(key + ".seed")) {
+         _seed = options->get(key + ".seed").as< int >();
+    }
+    _optimizationsteps = 10000;
+    if (options->exists(key + ".optimizationsteps")) {
+         _optimizationsteps = options->get(key + ".optimizationsteps").as< int >();
+    }
+    _optimizationfactor = 0.98;
+    if (options->exists(key + ".optimizationfactor")) {
+         _optimizationfactor = options->get(key + ".optimizationfactor").as< double >();
+    }
+    
+
 
     
 
@@ -119,8 +136,7 @@ double EImport::SphereIntersection(double radius, double distance){
 
 double EImport::Correlation(double distance, vector<double> distances, vector<double>bcoeff, double sigma){
         double correlation = 0;
-        int Nkappa = distances.size()-1;
-        for(int j=0; j<=Nkappa; j++){
+        for(int j=0; j<bcoeff.size(); j++){
             correlation += SphereIntersection(distances[j+1]/2.,distance) * bcoeff[j] ;
         }
         correlation /=  (sigma*sigma);
@@ -184,8 +200,9 @@ void EImport::StochasticEnergies(Topology *top, string &filename, int state) {
     
     
      // Initialise random number generator
-    if(votca::tools::globals::verbose) { cout << endl << "Initialising random number generator" << endl; }
-    srand(123456); 
+    if(votca::tools::globals::verbose) { cout << endl << "Initialising random number generator with seed: " << _seed << endl; }
+    cout << endl << "Initialising random number generator with seed: " << _seed << endl;
+    srand(_seed); 
     votca::tools::Random2 *RandomVariable = new votca::tools::Random2();
     RandomVariable->init(rand(), rand(), rand(), rand());
     
@@ -194,12 +211,14 @@ void EImport::StochasticEnergies(Topology *top, string &filename, int state) {
     vector<double> bcoeff;
     bcoeff.resize(Nkappa+1);
     distances.push_back(2*distances[Nkappa]-distances[Nkappa-1]);
+    cout << "distances[0]=" << distances[0] << ", distances[1]=" << distances[1] << endl;
             
     bcoeff[Nkappa] = sigma*sigma / SphereIntersection(distances[Nkappa+1]/2,distances[Nkappa]) * kappas[Nkappa];
     // cout << "        b[" << Nkappa+1 << "] = " << bcoeff[Nkappa] << endl;
     
     bool interpolatable = true;
     for(int nit = Nkappa-1; nit >=0; nit--){
+        cout << "\r... ...       b[" << nit+1 << "] ..." << flush;
         // cout << endl << endl << "b[" << nit+1 << "] (distance " << distances[nit] << ")"<< endl; 
         double sum = 0;
 
@@ -216,7 +235,7 @@ void EImport::StochasticEnergies(Topology *top, string &filename, int state) {
                 if(std::abs(bcoeff[k]) < 1E-5) {bcoeff[k] = 0;}
                 if(bcoeff[k] == 0){break;}
                 else{
-                    bcoeff[k] *= 0.99;
+                    bcoeff[k] *= _optimizationfactor;
                     if(std::abs(bcoeff[k]) < 1E-5) {bcoeff[k] = 0;}
                     // cout << "changing b[" << k+1 << "] = " << bcoeff[k] << endl;
                     double sum = 0;
@@ -238,23 +257,24 @@ void EImport::StochasticEnergies(Topology *top, string &filename, int state) {
         for(int j = 0; j<distances.size(); j++){
             mse += pow(Correlation(distances[j], distances, bcoeff, sigma) - kappas[j], 2);
         }
-        cout << "        NOTE: The given correlation data could not exactly be reproduced with the intersecting sphere model." << endl;
+        cout << "\n        NOTE: The given correlation data could not exactly be reproduced with the intersecting sphere model." << endl;
         cout << "              An approximative solution will be calculated. Check the expected correlation function" << endl;
         cout << "              against the result. If the approximation is bad it might help to choose less interpolation" << endl;
         cout << "              points, i.e., choose a larger spatial resolution in eanalyze." << endl;
         cout << "              If the long range part is not reproduced well it might help to remove the first point," << endl;
         cout << "              since this algorithm focuses on a good reproduction of the short range part." << endl << endl;
         cout << "... ...       initial mean square error: " << mse  << endl;
-        cout << "... ...       iterative approximation. " << endl;
-        for(int iteration = 0; iteration < 1000; iteration ++){
-            cout << "\r... ...       " << int(double(iteration+1)/1000.*100.) << " % done" << flush;
+        cout << "... ...       optimizing result..." << endl;
+        
+        
+        for(int iteration = 0; iteration < _optimizationsteps; iteration ++){
+            cout << "\r... ...       " << int(double(iteration+1)/double(_optimizationsteps)*100.) << " % done" << flush;
             // which coefficient to change
             int nit = rand() % Nkappa;
-            // cout << "changing b[" << nit << "]" << endl;
             vector<double>btry = bcoeff;
             
             for(double i = -100; i<=100; i++){
-                double diff = i*std::abs(bcoeff[nit])/1000;
+                double diff = double(i)*std::abs(bcoeff[nit])/1000.;
                 btry[nit] = bcoeff[nit] + diff*bcoeff[nit];
                 double thismse = 0;
                 for(int j = 0; j<distances.size(); j++){
@@ -272,7 +292,7 @@ void EImport::StochasticEnergies(Topology *top, string &filename, int state) {
     
     
     double sum =0;
-    for(int i=0; i<=Nkappa; i++){sum += bcoeff[i];}
+    for(int i=0; i<bcoeff.size(); i++){sum += bcoeff[i];}
     double acoeff = sigma*sigma-sum;
     cout << "        a = " << acoeff << endl << endl;
     
@@ -322,12 +342,12 @@ void EImport::StochasticEnergies(Topology *top, string &filename, int state) {
     
     int Nmolecules = segments.size();
     // calculate random numbers
-    cout << endl << "... ... generating "  << (Nkappa+1)*Nmolecules << " random numbers ...";
+    cout << endl << "... ... generating "  << (Nkappa+1+1)*Nmolecules << " random numbers ...";
     vector< vector<double> > X;
     for(int A = 0; A<Nmolecules; A++){
         vector<double> dummy;
         X.push_back(dummy);
-        for(int i = 0; i<Nkappa+1; i++){
+        for(int i = 0; i<bcoeff.size()+1; i++){
             X[A].push_back( RandomVariable->rand_gaussian(1.0) );
         }
     }
@@ -349,7 +369,7 @@ void EImport::StochasticEnergies(Topology *top, string &filename, int state) {
             vec r2 = (*seg2)->getPos();
             double distance = abs( top->PbShortestConnect(r1, r2));
             for(int nit=0; nit<bcoeff.size(); nit++){
-                if(distance<=distances[nit+1]/2 && distance>0) { // r=0 included ????? include only once?
+                if(distance<=distances[nit+1]/2 ) { // r=0 included ?????
                     molsinrange[nit] += 1;
                     randompart[nit]  += X[molB][nit];
                     
@@ -362,6 +382,9 @@ void EImport::StochasticEnergies(Topology *top, string &filename, int state) {
         for(int i =0; i<bcoeff.size(); i++){
             if(molsinrange[i] > 0){
                 energy += sqrt(bcoeff[i]/molsinrange[i]) * randompart[i];
+            }
+            else {
+                cout << "NOTHING IN RANGE FOR RADIUS " << distances[i] << " for molecule " << molA+1 << endl;
             }
         }
         if(molA >= 3990){ cout << endl << "energy[" << molA+1 << "] = " << energy << endl;}

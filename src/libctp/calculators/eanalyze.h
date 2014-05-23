@@ -27,6 +27,7 @@ private:
     double _resolution_pairs;
     double _resolution_sites;
     double _resolution_space;
+    string _distancemode;
 
     vector<int> _states;
 
@@ -70,6 +71,18 @@ void EAnalyze::Initialize( Property *opt ) {
     }
     else {
         _do_atomic_xyze = false;
+    }
+    
+    if (opt->exists(key+".distancemode")) {
+        // distancemode = segment / centreofmass
+        _distancemode = opt->get(key+".distancemode").as< string >();
+    }
+    else{
+         _distancemode = "segment";
+    }
+    if(_distancemode != "segment" && _distancemode != "centreofmass"){
+        cout << "WARNING: distancemode has to be set to either 'segment' or to 'centreofmass'. Setting it to 'segment' now." << endl;
+        _distancemode = "segment";
     }
     
     _skip_corr = opt->exists(key+".skip_correlation");
@@ -359,20 +372,21 @@ void EAnalyze::SiteCorr(Topology *top, int state) {
         double R = abs(top->PbShortestConnect((*sit1)->getPos(),
                                               (*sit2)->getPos()));
 
-        for (fit1 = (*sit1)->Fragments().begin();
-             fit1 < (*sit1)->Fragments().end();
-             ++fit1) {
-        for (fit2 = (*sit2)->Fragments().begin();
-             fit2 < (*sit2)->Fragments().end();
-             ++fit2) {
+        if(_distancemode == "segment"){
+            for (fit1 = (*sit1)->Fragments().begin();
+                 fit1 < (*sit1)->Fragments().end();
+                 ++fit1) {
+             for (fit2 = (*sit2)->Fragments().begin();
+                 fit2 < (*sit2)->Fragments().end();
+                 ++fit2) {
+ 
+                double R_FF = abs(top->PbShortestConnect((*fit1)->getPos(),
+                                                         (*fit2)->getPos()));
 
-            double R_FF = abs(top->PbShortestConnect((*fit1)->getPos(),
-                                                     (*fit2)->getPos()));
-
-            if (R_FF < R) { R = R_FF; }
-
-        }}
-
+                if (R_FF < R) { R = R_FF; }
+            }}
+        }
+    
 
         MIN = (R < MIN) ? R : MIN;
         MAX = (R > MAX) ? R : MAX;
