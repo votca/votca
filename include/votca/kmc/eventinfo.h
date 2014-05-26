@@ -114,7 +114,8 @@ public:
         self_image_prefactor        = options->get("options.device.self_image_prefactor").as<double>();
         lr_adaptive                 = options->get("options.device.lr_adaptive").as<bool>();
         nr_lr_images                = options->get("options.device.nr_lr_images").as<int>();
-        lr_images_accuracy          = options->get("options.device.lr_images_accuracy").as<double>();        
+        lr_images_accuracy          = options->get("options.device.lr_images_accuracy").as<double>();
+        lr_density                  = options->get("options.device.lr_density").as<double>();
         interpolate_longrange       = options->get("options.device.interpolate_longrange").as<bool>();
         longrange_slab              = options->get("options.device.longrange_slab").as<bool>();
         steps_update_longrange      = options->get("options.device.steps_update_longrange").as<int>();
@@ -149,7 +150,7 @@ public:
     int mesh_x; int mesh_y; int mesh_z; int number_layers;
     double hopdist; double mindist; votca::tools::vec simboxsize; int maxpairdegree; double avholeenergy; double avelectronenergy;
     double coulomb_strength; double coulcut; double self_image_prefactor; int nr_sr_images; long nr_lr_images;
-    bool interpolate_longrange; bool longrange_slab;
+    bool interpolate_longrange; bool longrange_slab; double lr_density;
     bool rate_calculate; bool viz_store; string viz_filename; int viz_nr_timesteps;
     bool lr_adaptive; double lr_images_accuracy;
     bool int_charge_readout; int nr_traj_reportsteps; bool repeat_counting;

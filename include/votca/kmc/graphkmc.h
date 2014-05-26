@@ -872,7 +872,7 @@ double GraphKMC::Average_hole_node_energy()
     typename std::vector<NodeDevice*>:: iterator it;
     for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) 
     {
-        ho_energy += (*it)->eAnion() + (*it)->UcCnNh();
+        ho_energy += (*it)->eCation() + (*it)->UcCnNh();
     }
     
     av_ho_energy = ho_energy/this->Numberofnodes();
@@ -888,7 +888,7 @@ double GraphKMC::stddev_hole_node_energy()
     typename std::vector<NodeDevice*>:: iterator it;
     for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) 
     {
-        temp_energy += ((*it)->eAnion() + (*it)->UcCnNh()-av_ho_energy)*((*it)->eAnion() + (*it)->UcCnNh()-av_ho_energy);
+        temp_energy += ((*it)->eCation() + (*it)->UcCnNh()-av_ho_energy)*((*it)->eCation() + (*it)->UcCnNh()-av_ho_energy);
     }
     
     stddev_energy = sqrt(temp_energy/this->Numberofnodes());
@@ -904,7 +904,7 @@ double GraphKMC::Average_electron_node_energy()
     typename std::vector<NodeDevice*>:: iterator it;
     for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) 
     {
-        elect_energy += (*it)->eCation() + (*it)->UcCnNe();
+        elect_energy += (*it)->eAnion() + (*it)->UcCnNe();
     }
     
     av_elect_energy = elect_energy/this->Numberofnodes();
@@ -920,7 +920,7 @@ double GraphKMC::stddev_electron_node_energy()
     typename std::vector<NodeDevice*>:: iterator it;
     for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) 
     {
-        temp_energy += ((*it)->eCation() + (*it)->UcCnNe()-av_el_energy)*((*it)->eCation() + (*it)->UcCnNe()-av_el_energy);
+        temp_energy += ((*it)->eAnion() + (*it)->UcCnNe()-av_el_energy)*((*it)->eAnion() + (*it)->UcCnNe()-av_el_energy);
     }
     
     stddev_energy = sqrt(temp_energy/this->Numberofnodes());

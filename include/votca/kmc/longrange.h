@@ -388,7 +388,7 @@ double Longrange::Calculate_longrange_slab(Node* node, double left_node_distance
     
     for(int i=0; i<layer; i++) {
         if(!this->emptylayer(i)) {
-            double charge_i = 1.0*_layercharge[i]/(this->number_of_nodes(i));
+            double charge_i = 1.0*(_layercharge[i])/(this->number_of_nodes(i)) + eventinfo->lr_density;
             double position_i = 1.0*this->position(i);
             slab_contrib1 += position_i*charge_i*this->layersize(); // potential of a charged plate between two electrodes
 
@@ -404,7 +404,7 @@ double Longrange::Calculate_longrange_slab(Node* node, double left_node_distance
     
     for(int i=layer+1; i<eventinfo->number_layers; i++) {
         if(!this->emptylayer(i)) {
-            double charge_i = 1.0*_layercharge[i]/(this->number_of_nodes(i));
+            double charge_i = 1.0*_layercharge[i]/(this->number_of_nodes(i)) + eventinfo->lr_density;
             double rel_position_i = 1.0*(eventinfo->simboxsize.x()-this->position(i));
             slab_contrib2 += rel_position_i*charge_i*this->layersize(); // potential of a charged plate between two electrodes
 
@@ -418,7 +418,7 @@ double Longrange::Calculate_longrange_slab(Node* node, double left_node_distance
     }
     
     double slab_contrib3 = 0.0;
-    double charge_i = 1.0*_layercharge[layer]/(this->number_of_nodes(layer));
+    double charge_i = 1.0*_layercharge[layer]/(this->number_of_nodes(layer)) + eventinfo->lr_density;
     double position_i = 1.0*this->position(layer);
     slab_contrib3 += 0.5*position_i*charge_i*this->layersize(); // potential of a charged plate between two electrodes
 
@@ -433,9 +433,11 @@ double Longrange::Calculate_longrange_slab(Node* node, double left_node_distance
     //note that local positioning in the slab itself is calculated on the fly
     longrangeslab += 4.0*Pi*(slab_contrib1*(right_node_distance/eventinfo->simboxsize.x()) + slab_contrib2*(left_node_distance/eventinfo->simboxsize.x()));
     longrangeslab += 4.0*Pi*(slab_contrib3*(right_node_distance/eventinfo->simboxsize.x()) + slab_contrib4*(left_node_distance/eventinfo->simboxsize.x()));
-    longrangeslab += -2.0*Pi*_layercharge[layer]*(left_node_distance - this->position(layer))*(left_node_distance - this->position(layer));
-    longrangeslab += -2.0*Pi*_layercharge[layer]*0.25*this->layersize()*this->layersize(); // d = 0.5 layersize, therefore the 0.25
+    longrangeslab += -2.0*Pi*charge_i*(left_node_distance - this->position(layer))*(left_node_distance - this->position(layer));
+    longrangeslab += -2.0*Pi*charge_i*0.25*this->layersize()*this->layersize(); // d = 0.5 layersize, therefore the 0.25
     longrangeslab += -2.0*Pi*cut_out_contrib;
+    
+    return longrangeslab;
 
 }
 
@@ -449,7 +451,7 @@ double Longrange::Calculate_longrange(int layer, bool cut_out_discs,Eventinfo* e
     
     for(int i=0; i<layer; i++) {
         if(!this->emptylayer(i)) {
-            double charge_i = 1.0*_layercharge[i]/(this->number_of_nodes(i));
+            double charge_i = 1.0*_layercharge[i]/(this->number_of_nodes(i))+ eventinfo->lr_density;
             double position_i = 1.0*this->position(i);
             plate_contrib1 += position_i*charge_i; // potential of a charged plate between two electrodes
 
@@ -467,7 +469,7 @@ double Longrange::Calculate_longrange(int layer, bool cut_out_discs,Eventinfo* e
     
     for(int i=layer; i<eventinfo->number_layers; i++) {
         if(!this->emptylayer(i)) {
-            double charge_i = 1.0*_layercharge[i]/(this->number_of_nodes(i));
+            double charge_i = 1.0*_layercharge[i]/(this->number_of_nodes(i))+ eventinfo->lr_density;
             double rel_position_i = 1.0*(eventinfo->simboxsize.x()-this->position(i));
             plate_contrib2 += rel_position_i*charge_i; // potential of a charged plate between two electrodes
 
