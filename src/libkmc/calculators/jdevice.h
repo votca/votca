@@ -246,22 +246,22 @@ void Jdevice::RunKMC() {
 
             events->Recompute_all_events(state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);
         }
-
         vssmgroup->Recompute_device(non_injection_rates, left_injection_rates, right_injection_rates);
 
         double timestep = vssmgroup->Timestep(randomvariable);
         sim_time += timestep;
-        
+       
         Event* chosenevent;
         chosenevent = vssmgroup->Choose_event_device(events, non_injection_rates, left_injection_rates, right_injection_rates, randomvariable);
-        
+       
         if(eventinfo->viz_store && it <= eventinfo->viz_nr_timesteps) numoutput->Update_visualisation(chosenevent);
         if(eventinfo->viz_store && it == eventinfo->viz_nr_timesteps) numoutput->Print_visualisation();
 
         // check for direct repeats
         if(eventinfo->repeat_counting) numoutput->Repeat_count_update(chosenevent);
-        
+     
         numoutput->Update(chosenevent, sim_time, timestep); 
+
         events->On_execute(chosenevent, graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);
 
         // equilibration

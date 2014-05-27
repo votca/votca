@@ -305,7 +305,9 @@ inline double Longrange::Calculate_disc_contrib_slab_node(NodeDevice* node, int 
     
     double L = eventinfo->simboxsize.x();
     double mirror_contrib = 0.0;
-    for (long i=0; i<eventinfo->nr_lr_images; i++) {
+   
+//    for (long i=0; i<eventinfo->nr_lr_images; i++) {
+    for (long i=0; i<10; i++) {
         
         // Calculate contribution from images
         double dist1;
@@ -329,15 +331,51 @@ inline double Longrange::Calculate_disc_contrib_slab_node(NodeDevice* node, int 
         }
         mirror_contrib += sign*(pow((RC*RC + 2.0*dist1*mirror1_secondrdist+dist1*dist1),(3.0/2.0))/(3.0*dist1)
                                -pow((RC*RC + 2.0*dist1*mirror1_firstrdist+dist1*dist1),(3.0/2.0))/(3.0*dist1)
-             -(mirror1_secondrdist*(mirror1_secondrdist+2*dist1)*sqrt((mirror1_secondrdist+dist1)*(mirror1_secondrdist+dist1)))/(2.0*(mirror1_secondrdist + dist1))
-             +(mirror1_firstrdist*(mirror1_firstrdist+2*dist1)*sqrt((mirror1_firstrdist+dist1)*(mirror1_firstrdist+dist1)))/(2.0*(mirror1_firstrdist + dist1)));
-
+                                - 0.5*(mirror1_secondrdist*mirror1_secondrdist) - dist1*mirror1_secondrdist 
+                                + 0.5*(mirror1_firstrdist*mirror1_firstrdist)   + dist1*mirror1_firstrdist);
+//             -(mirror1_secondrdist*(mirror1_secondrdist+2*dist1)*sqrt((mirror1_secondrdist+dist1)*(mirror1_secondrdist+dist1)))/(2.0*(mirror1_secondrdist + dist1))
+//             +(mirror1_firstrdist*(mirror1_firstrdist+2*dist1)*sqrt((mirror1_firstrdist+dist1)*(mirror1_firstrdist+dist1)))/(2.0*(mirror1_firstrdist + dist1)));
+ //       std::cout << "woei " <<  -(mirror1_secondrdist*(mirror1_secondrdist+2*dist1)*sqrt((mirror1_secondrdist+dist1)*(mirror1_secondrdist+dist1)))/(2.0*(mirror1_secondrdist + dist1))
+ //            +(mirror1_firstrdist*(mirror1_firstrdist+2*dist1)*sqrt((mirror1_firstrdist+dist1)*(mirror1_firstrdist+dist1)))/(2.0*(mirror1_firstrdist + dist1)) << endl;
+ //       std::cout << "wie " << - 0.5*(mirror1_secondrdist*mirror1_secondrdist) - dist1*mirror1_secondrdist  + 0.5*(mirror1_firstrdist*mirror1_firstrdist)   + dist1*mirror1_firstrdist << endl;
         mirror_contrib += sign*(pow((RC*RC + 2.0*dist2*mirror2_secondrdist+dist2*dist2),(3.0/2.0))/(3.0*dist2)
                                -pow((RC*RC + 2.0*dist2*mirror2_firstrdist+dist2*dist2),(3.0/2.0))/(3.0*dist2)
-             -(mirror2_secondrdist*(mirror2_secondrdist+2*dist2)*sqrt((mirror2_secondrdist+dist2)*(mirror2_secondrdist+dist2)))/(2.0*(mirror2_secondrdist + dist2))
-             +(mirror2_firstrdist*(mirror2_firstrdist+2*dist2)*sqrt((mirror2_firstrdist+dist2)*(mirror2_firstrdist+dist2)))/(2.0*(mirror2_firstrdist + dist2)));
+                                - 0.5*(mirror2_secondrdist*mirror2_secondrdist) - dist2*mirror2_secondrdist 
+                                + 0.5*(mirror2_firstrdist*mirror2_firstrdist)   + dist2*mirror2_firstrdist);
+//             -(mirror2_secondrdist*(mirror2_secondrdist+2*dist2)*sqrt((mirror2_secondrdist+dist2)*(mirror2_secondrdist+dist2)))/(2.0*(mirror2_secondrdist + dist2))
+//             +(mirror2_firstrdist*(mirror2_firstrdist+2*dist2)*sqrt((mirror2_firstrdist+dist2)*(mirror2_firstrdist+dist2)))/(2.0*(mirror2_firstrdist + dist2)));
+//        std::cout << "woei 2 " <<   -(mirror2_secondrdist*(mirror2_secondrdist+2*dist2)*sqrt((mirror2_secondrdist+dist2)*(mirror2_secondrdist+dist2)))/(2.0*(mirror2_secondrdist + dist2))
+//             +(mirror2_firstrdist*(mirror2_firstrdist+2*dist2)*sqrt((mirror2_firstrdist+dist2)*(mirror2_firstrdist+dist2)))/(2.0*(mirror2_firstrdist + dist2)) << endl;        
+        
+/*        if (ldiv(i,2).rem==0) { // even generation (x-position of image charges is -p.x + 2*j*L, j=...,-1,0,1,...)
+            sign = -1;
+            dist1 = 1.0*i*L + 2.0*calcpos;         mirror1_firstrdist = -1.0*secondrdist; mirror1_secondrdist = -1.0*firstrdist;
+            dist2 = 1.0*i*L + 2.0*L - 2.0*calcpos; mirror2_firstrdist = -1.0*secondrdist; mirror2_secondrdist = -1.0*firstrdist;
+        }
+        else { // odd generation (x-position of image charges is -p.x + 2*j*L, j=...,-1,0,1,...)
+            sign = 1; 
+            dist1 = (i+1)*L;  mirror1_firstrdist = firstrdist;       mirror1_secondrdist = secondrdist;
+            dist2 = (i+1)*L;  mirror2_firstrdist = firstrdist;       mirror1_secondrdist = secondrdist;
+        }
+        mirror_contrib -= sign*( pow((RC*RC - 2.0*dist1*mirror1_secondrdist+dist1*dist1),(3.0/2.0))/(3.0*dist1)
+                                -pow((RC*RC - 2.0*dist1*mirror1_firstrdist +dist1*dist1),(3.0/2.0))/(3.0*dist1)
+                                + 0.5*(mirror1_secondrdist*mirror1_secondrdist) - dist1*mirror1_secondrdist 
+                                - 0.5*(mirror1_firstrdist*mirror1_firstrdist)   + dist1*mirror1_firstrdist);
+      
+        mirror_contrib += sign*( pow((RC*RC + 2.0*dist2*mirror2_secondrdist+dist2*dist2),(3.0/2.0))/(3.0*dist2)
+                                -pow((RC*RC + 2.0*dist2*mirror2_firstrdist +dist2*dist2),(3.0/2.0))/(3.0*dist2)
+                                - 0.5*(mirror1_secondrdist*mirror1_secondrdist) - dist2*mirror1_secondrdist 
+                                + 0.5*(mirror1_firstrdist*mirror1_firstrdist)   + dist2*mirror1_firstrdist);*/                
+//        std::cout << mirror_contrib << endl;
+//        if(i==10) { std::cout << "10 " << mirror_contrib << endl; }
+//        if(i==200) { std::cout << "200 " << mirror_contrib << endl; }
+//        if(i==2000) { std::cout << "2000 " << mirror_contrib << endl; }
+//        if(i==20000) { std::cout << "20000 " << mirror_contrib << endl; }
+//        if(i==40000) { std::cout << "40000 " << mirror_contrib << endl; }
+
     }
     double contrib = direct_contrib + mirror_contrib;
+//    std::cout << contrib_layer << " " << direct_contrib << " " << mirror_contrib <<  " " << contrib << endl;
     return contrib;
 }
 
@@ -399,7 +437,7 @@ double Longrange::Calculate_longrange_slab(Node* node, double left_node_distance
             }
         }
     }
-    
+
     double slab_contrib2 = 0.0;
     
     for(int i=layer+1; i<eventinfo->number_layers; i++) {
@@ -426,8 +464,7 @@ double Longrange::Calculate_longrange_slab(Node* node, double left_node_distance
     double rel_position_i = 1.0*(eventinfo->simboxsize.x()-this->position(layer));
     slab_contrib4 += 0.5*rel_position_i*charge_i*this->layersize(); // potential of a charged plate between two electrodes
     
-    cut_out_contrib -= charge_i*dynamic_cast<NodeDevice*>(node)->contrib(layer-start_index);    
-    
+    cut_out_contrib += charge_i*dynamic_cast<NodeDevice*>(node)->contrib(layer-start_index);    
     if (!cut_out_discs) { cut_out_contrib = 0.0; }    
     
     //note that local positioning in the slab itself is calculated on the fly
@@ -485,7 +522,8 @@ double Longrange::Calculate_longrange(int layer, bool cut_out_discs,Eventinfo* e
     }
     if (!cut_out_discs) { disc_contrib = 0.0; }
     
-    return 4.0*Pi*(plate_contrib1*(1-layerpos/eventinfo->simboxsize.x()) + plate_contrib2*(layerpos/eventinfo->simboxsize.x()) + 0.5*disc_contrib);
+    return 4.0*Pi*(plate_contrib1*(1-layerpos/eventinfo->simboxsize.x()) + plate_contrib2*(layerpos/eventinfo->simboxsize.x())) + 2.0*Pi*disc_contrib;
+
 }
 
 }}

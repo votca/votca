@@ -92,7 +92,7 @@ public:
     /// Determine action flag for node 1
     inline int Determine_action_flag_node1();
     /// Determine action flag for node 2
-    inline int Determine_action_flag_node2(Eventinfo* eventinfo);
+    inline int Determine_action_flag_node2();
     
     inline int Determine_action_flag_pair();
 
@@ -166,7 +166,7 @@ inline int Event::Determine_action_flag_node1() {
     return action_node1;    
 }
 
-inline int Event::Determine_action_flag_node2(Eventinfo* eventinfo) {
+inline int Event::Determine_action_flag_node2() {
     int action_node2;
     Node* node2 = _link->node2();
     if(_final_type == TransferTo)            {action_node2 = (int) Add;    } // transfer
@@ -373,12 +373,16 @@ void Event::Set_event(Link* link,int carrier_type, StateReservoir* state, Longra
     if (node2->occ() == -1) {_final_type = Determine_final_event_type(node1, node2);}
     else                    {_final_type = Determine_final_event_type(carrier_type, state->GetCarrier(node2->occ())->type(), node1, node2, eventinfo);}    
 
-    _action_pair = Determine_action_flag_pair();
-    if(_action_pair != (int) Transfer) {
+//    _action_pair = Determine_action_flag_pair();
+//    if(_action_pair != (int) Transfer) {
         _action_node1 = Determine_action_flag_node1();
-        _action_node2 = Determine_action_flag_node2(eventinfo);
-    }
-
+        _action_node2 = Determine_action_flag_node2();
+//    }
+//    else {
+//        _action_node1 = (int) None;
+//        _action_node2 = (int) None;
+//    }    
+    
     Determine_rate(state, longrange, eventinfo);
 }
 
@@ -397,7 +401,11 @@ void Event::Set_Fixed_event(Link* link,int carrier_type, StateReservoir* state, 
     _action_pair = Determine_action_flag_pair();
     if(_action_pair != (int) Transfer) {
         _action_node1 = Determine_action_flag_node1();
-        _action_node2 = Determine_action_flag_node2(eventinfo);
+        _action_node2 = Determine_action_flag_node2();
+    }
+    else {
+        _action_node1 = (int) None;
+        _action_node2 = (int) None;
     }
 
     Determine_rate(state, longrange, eventinfo);
