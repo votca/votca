@@ -939,9 +939,13 @@ double GraphKMC::Electron_inject_reorg()
     typename std::vector<LinkDevice*>:: iterator it;
     for(it = this->_links.begin(); it != this->_links.end(); it++) 
     {
-        temp_reorg = dynamic_cast<NodeSQL*>((*it)->node1())->UnCnNe() + dynamic_cast<NodeSQL*>((*it)->node2())->UcNcCe() + (*it)->lOe();
-        electron_reorg += temp_reorg;
-        link_count++;
+        Node* node1 = (*it)->node1();
+        Node* node2 = (*it)->node2();
+        if(node1->type() == (int) NormalNode && node2->type() == (int) NormalNode) {
+            temp_reorg = dynamic_cast<NodeSQL*>((*it)->node1())->UnCnNe() + dynamic_cast<NodeSQL*>((*it)->node2())->UcNcCe() + (*it)->lOe();
+            electron_reorg += temp_reorg;
+            link_count++;
+        }
     }
 
     return (electron_reorg/link_count);    
@@ -956,9 +960,13 @@ double GraphKMC::Hole_inject_reorg()
     typename std::vector<LinkDevice*>:: iterator it;
     for(it = this->_links.begin(); it != this->_links.end(); it++) 
     {
-        temp_reorg = dynamic_cast<NodeSQL*>((*it)->node1())->UnCnNh() + dynamic_cast<NodeSQL*>((*it)->node2())->UcNcCh() + (*it)->lOh();
-        hole_reorg += temp_reorg;
-        link_count++;
+        Node* node1 = (*it)->node1();
+        Node* node2 = (*it)->node2();
+        if(node1->type() == (int) NormalNode && node2->type() == (int) NormalNode) {
+            temp_reorg = dynamic_cast<NodeSQL*>((*it)->node1())->UnCnNh() + dynamic_cast<NodeSQL*>((*it)->node2())->UcNcCh() + (*it)->lOh();
+            hole_reorg += temp_reorg;
+            link_count++;
+        }
     }
 
     return (hole_reorg/link_count);    

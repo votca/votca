@@ -227,8 +227,8 @@ void Device::RunKMC() {
     std::cout << "average electron site energy : " << eventinfo->avelectronenergy << "\n"; 
     std::cout << "standard deviation of hole site energies: " << graph->stddev_hole_node_energy() << "\n";
     std::cout << "standard deviation of electron site energies: " << graph->stddev_electron_node_energy() << "\n";
-    std::cout << "electron reorganization energy used for injection: " << eventinfo->electron_injection_reorg << "\n";
     std::cout << "hole reorganization energy used for injection: " << eventinfo->hole_injection_reorg << "\n";
+    std::cout << "electron reorganization energy used for injection: " << eventinfo->electron_injection_reorg << "\n";
     std::cout << "\n";
     std::cout << "===================================================" << "\n";
     std::cout << "= Start of device simulation                      =" << "\n";
@@ -239,7 +239,7 @@ void Device::RunKMC() {
     
     sim_time = 0.0;
     for (long it = 0; it < 2*eventinfo->number_of_equilibration_steps + eventinfo->number_of_steps; it++) {
-        
+
         if(ldiv(it, eventinfo->timesteps_update_longrange).rem == 0 && it>0){
             if(eventinfo->longrange_slab) longrange->Update_cache_slab(graph,eventinfo);
             else                          longrange->Update_cache(eventinfo);
@@ -259,11 +259,8 @@ void Device::RunKMC() {
 
         // check for direct repeats
         if(eventinfo->repeat_counting) numoutput->Repeat_count_update(chosenevent);
-     
         numoutput->Update(chosenevent, sim_time, timestep); 
-
         events->On_execute(chosenevent, graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);
-
         // equilibration
    
         if(it == eventinfo->number_of_equilibration_steps || it == 2*eventinfo->number_of_equilibration_steps) 
@@ -279,7 +276,7 @@ void Device::RunKMC() {
 
         // direct output
         
-        if(ldiv(it,eventinfo->number_of_report_steps ).rem==0){
+        if(ldiv(it,eventinfo->number_of_report_steps ).rem==0 && it>0){
             numoutput->Write(it, sim_time, timestep, eventinfo);
             std::cout << "\n";
             

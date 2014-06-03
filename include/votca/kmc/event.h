@@ -365,15 +365,15 @@ void Event::Set_event(Link* link,int carrier_type, StateReservoir* state, Longra
     if (node2->occ() == -1) {_final_type = Determine_final_event_type(node1, node2);}
     else                    {_final_type = Determine_final_event_type(carrier_type, state->GetCarrier(node2->occ())->type(), node1, node2, eventinfo);}    
 
-//    _action_pair = Determine_action_flag_pair();
-//    if(_action_pair != (int) Transfer) {
+    _action_pair = Determine_action_flag_pair();
+    if(_action_pair != (int) Transfer) {
         _action_node1 = Determine_action_flag_node1();
         _action_node2 = Determine_action_flag_node2();
-//    }
-//    else {
-//        _action_node1 = (int) None;
-//        _action_node2 = (int) None;
-//    }    
+    }
+    else {
+        _action_node1 = (int) None;
+        _action_node2 = (int) None;
+    }    
     
     Determine_rate(state, longrange, eventinfo);
 }

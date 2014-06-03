@@ -137,19 +137,17 @@ private:
 
 void Events::On_execute(Event* event, GraphKMC* graph, StateReservoir* state, Longrange* longrange, Bsumtree* non_injection_rates, 
                           Bsumtree* left_injection_rates, Bsumtree* right_injection_rates, Eventinfo* eventinfo) {
-    
-//    std::cout << event->link()->node1()->id() << " " << event->link()->node2()->id() << " " << event->init_type() << " " << event->final_type() << " " << event->action_pair() << " " << event->action_node1() << " " << event->action_node2() << endl;
-   
-//    if(event->action_pair() == (int) Transfer) {
-//        On_execute_pair(event->link(),event->carrier_type(), graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);
-//    }
-//    else {
-        Node* node1 = event->link()->node1();
-        Node* node2 = event->link()->node2();
 
-        On_execute_node(node1, event->action_node1(), event->carrier_type(), graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);
-        On_execute_node(node2, event->action_node2(), event->carrier_type(), graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);
-//    }
+    if(event->action_pair() == (int) Transfer) {
+        On_execute_pair(event->link(),event->carrier_type(), graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);
+    }
+    else {    
+      Node* node1 = event->link()->node1();
+      Node* node2 = event->link()->node2();
+
+      On_execute_node(node1, event->action_node1(), event->carrier_type(), graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);
+      On_execute_node(node2, event->action_node2(), event->carrier_type(), graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);
+    }
 }
 
 void Events::On_execute_pair(Link* link, int carrier_type, GraphKMC* graph, StateReservoir* state, Longrange* longrange, Bsumtree* non_injection_rates, 
@@ -224,6 +222,7 @@ void Events:: Add_carrier(Node* node, int carrier_type, GraphKMC* graph, StateRe
 
 void Events:: Remove_carrier(Node* node, GraphKMC* graph, StateReservoir* state, Longrange* longrange, Bsumtree* non_injection_rates,
                               Bsumtree* left_injection_rates, Bsumtree* right_injection_rates, Eventinfo* eventinfo) {
+
     CarrierBulk* removed_carrier = state->GetCarrier(node->occ());
 
     //remove from graph
@@ -237,14 +236,12 @@ void Events:: Remove_carrier(Node* node, GraphKMC* graph, StateReservoir* state,
 
     //push back to reservoir
     state->Sell(removed_carrier->id());    
-
 }
 
 inline void Events::Effect_potential_and_rates(int action, CarrierBulk* carrier, Node* node, GraphKMC* graph, StateReservoir* state, Longrange* longrange, 
                                    Bsumtree* non_injection_rates, Bsumtree* left_injection_rates, Bsumtree* right_injection_rates, Eventinfo* eventinfo) {
     
     Effect_potential_and_non_injection_rates(action, carrier, node, state, longrange, non_injection_rates, eventinfo);
- 
 
     if(eventinfo->device){
         votca::tools::vec nodeposition = node->position();

@@ -41,12 +41,7 @@ public:
 
         random_seed                           = options->get("options.general.random_seed").as<int>();
         
-        if(advanced || device) {
-            init_charges                      = options->get("options.general.init_charges").as<bool>();
-        }
-        else {
-            init_charges                      = true;
-        }
+        init_charges                      = options->get("options.general.init_charges").as<bool>();
         
         integer_number_of_charges             = options->get("options.general.integer_number_of_charges").as<bool>();
         number_of_electrons                   = options->get("options.general.number_of_electrons").as<int>();
@@ -97,16 +92,16 @@ public:
 
             growsize                          = options->get("options.general.growsize").as<int>();
 
-            visualisation_number_x            = options->get("options.general.visualisation_nx").as<int>();
-            visualisation_number_y            = options->get("options.general.visualisation_ny").as<int>();
-            visualisation_number_z            = options->get("options.general.visualisation_nz").as<int>();
+            visualisation_number_x            = options->get("options.general.visualisation_number_x").as<int>();
+            visualisation_number_y            = options->get("options.general.visualisation_number_y").as<int>();
+            visualisation_number_z            = options->get("options.general.visualisation_number_z").as<int>();
 
             number_direct_conv_iv             = options->get("options.general.number_direct_conv_iv").as<int>();
             number_direct_conv_reco           = options->get("options.general.number_direct_conv_reco").as<int>();
         }
         else {
             repeat_counting                   = true;
-            no_blocking                       = true;
+            no_blocking                       = false;
 
             mesh_size_x                       = floor(size_x/coulomb_cut_off_radius);
             mesh_size_y                       = floor(size_y/coulomb_cut_off_radius);
