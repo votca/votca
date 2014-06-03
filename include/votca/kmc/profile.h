@@ -81,10 +81,10 @@ private:
 
 inline void Profile::Initialize_storage_arrays(Eventinfo* eventinfo) {
     
-    _layersize = (eventinfo->simboxsize.x()-eventinfo->left_electrode_distance - eventinfo->right_electrode_distance)/eventinfo->number_layers;
+    _layersize = (eventinfo->simboxsize.x()-eventinfo->left_electrode_distance - eventinfo->right_electrode_distance)/eventinfo->number_of_layers;
  
-    _positional_sum.resize(eventinfo->number_layers);
-    _number_of_nodes.resize(eventinfo->number_layers); 
+    _positional_sum.resize(eventinfo->number_of_layers);
+    _number_of_nodes.resize(eventinfo->number_of_layers); 
 
 }
 
@@ -107,7 +107,7 @@ inline void Profile::Calculate_positional_average(Eventinfo* eventinfo){
 
     _positional_average.clear();
     
-    for(int i = 0; i<eventinfo->number_layers;i++){
+    for(int i = 0; i<eventinfo->number_of_layers;i++){
         double position = eventinfo->left_electrode_distance + (0.5+1.0*i)*_layersize; 
         _positional_average.push_back(position);
         if(_number_of_nodes[i] != 0) _empty_layer.push_back(false);
@@ -117,7 +117,7 @@ inline void Profile::Calculate_positional_average(Eventinfo* eventinfo){
 
 inline void Profile::Calculate_layer_boundaries(Eventinfo* eventinfo){
     double boundary = 0.0;
-    for(int i = 0;i<eventinfo->number_layers;i++) {
+    for(int i = 0;i<eventinfo->number_of_layers;i++) {
         _layer_boundaries.push_back(boundary);
         boundary += _layersize;
     }

@@ -248,11 +248,11 @@ inline void Events::Effect_potential_and_rates(int action, CarrierBulk* carrier,
 
     if(eventinfo->device){
         votca::tools::vec nodeposition = node->position();
-        if(nodeposition.x()<eventinfo->coulcut) {
+        if(nodeposition.x()<eventinfo->coulomb_cut_off_radius) {
             double dist_to_electrode = nodeposition.x();
             Effect_injection_rates(action, carrier, node, graph->left(), dist_to_electrode, state, longrange, left_injection_rates, eventinfo);
         }
-        else if(eventinfo->simboxsize.x()-nodeposition.x() < eventinfo->coulcut) {
+        else if(eventinfo->simboxsize.x()-nodeposition.x() < eventinfo->coulomb_cut_off_radius) {
             double dist_to_electrode = eventinfo->simboxsize.x()-nodeposition.x();
             Effect_injection_rates(action, carrier, node, graph->right(), dist_to_electrode, state, longrange, right_injection_rates, eventinfo);
         }
@@ -302,16 +302,16 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierBulk* c
         if(carrier1->type() == (int) Electron) {interact_sign *= -1;}
         if(carrier1->type() == (int) Hole)     {interact_sign *=  1;}
 
-        double RCSQR = eventinfo->coulcut*eventinfo->coulcut;
+        double RCSQR = eventinfo->coulomb_cut_off_radius*eventinfo->coulomb_cut_off_radius;
 
         if(eventinfo->device) longrange->Add_charge(interact_sign, dynamic_cast<NodeDevice*>(node)->layer());
 
         votca::tools::vec carrier1_pos = node->position();
 
         // Define cubic boundaries in non-periodic coordinates
-        double ix1 = carrier1_pos.x()-eventinfo->coulcut-eventinfo->hopdist; double ix2 = carrier1_pos.x()+eventinfo->coulcut+eventinfo->hopdist;
-        double iy1 = carrier1_pos.y()-eventinfo->coulcut-eventinfo->hopdist; double iy2 = carrier1_pos.y()+eventinfo->coulcut+eventinfo->hopdist;
-        double iz1 = carrier1_pos.z()-eventinfo->coulcut-eventinfo->hopdist; double iz2 = carrier1_pos.z()+eventinfo->coulcut+eventinfo->hopdist;
+        double ix1 = carrier1_pos.x()-eventinfo->coulomb_cut_off_radius-eventinfo->hopdist; double ix2 = carrier1_pos.x()+eventinfo->coulomb_cut_off_radius+eventinfo->hopdist;
+        double iy1 = carrier1_pos.y()-eventinfo->coulomb_cut_off_radius-eventinfo->hopdist; double iy2 = carrier1_pos.y()+eventinfo->coulomb_cut_off_radius+eventinfo->hopdist;
+        double iz1 = carrier1_pos.z()-eventinfo->coulomb_cut_off_radius-eventinfo->hopdist; double iz2 = carrier1_pos.z()+eventinfo->coulomb_cut_off_radius+eventinfo->hopdist;
 
         // Break periodicity in x-direction
         if(eventinfo->device) {
@@ -321,29 +321,29 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierBulk* c
         // Translate cubic boundaries to sublattice boundaries in non-periodic coordinates
         int sx1 = floor(ix1/_meshsize_x);
         int sx2 = floor(ix2/_meshsize_x);
-        if (ix2 == eventinfo->simboxsize.x()) {sx2 = eventinfo->mesh_x;}
+        if (ix2 == eventinfo->simboxsize.x()) {sx2 = eventinfo->mesh_size_x;}
 
         int sy1 = floor(iy1/_meshsize_y);
         int sy2 = floor(iy2/_meshsize_y);
-        if (iy2 == eventinfo->simboxsize.y()) {sy2 = eventinfo->mesh_y;}
+        if (iy2 == eventinfo->simboxsize.y()) {sy2 = eventinfo->mesh_size_y;}
 
         int sz1 = floor(iz1/_meshsize_z);
         int sz2 = floor(iz2/_meshsize_z);
-        if (iz2 == eventinfo->simboxsize.z()) {sz2 = eventinfo->mesh_z;}
+        if (iz2 == eventinfo->simboxsize.z()) {sz2 = eventinfo->mesh_size_z;}
 
         // Now visit all relevant sublattices
         for (int isz=sz1; isz<=sz2; isz++) {
             int r_isz = isz;
-            while (r_isz < 0) r_isz += eventinfo->mesh_z;
-            while (r_isz >= eventinfo->mesh_z) r_isz -= eventinfo->mesh_z;
+            while (r_isz < 0) r_isz += eventinfo->mesh_size_z;
+            while (r_isz >= eventinfo->mesh_size_z) r_isz -= eventinfo->mesh_size_z;
             for (int isy=sy1; isy<=sy2; isy++) {
                 int r_isy = isy;
-                while (r_isy < 0) r_isy += eventinfo->mesh_y;
-                while (r_isy >= eventinfo->mesh_y) r_isy -= eventinfo->mesh_y;
+                while (r_isy < 0) r_isy += eventinfo->mesh_size_y;
+                while (r_isy >= eventinfo->mesh_size_y) r_isy -= eventinfo->mesh_size_y;
                 for (int isx=sx1; isx<=sx2; isx++) {
                     int r_isx = isx;
-                    while (r_isx < 0) r_isx += eventinfo->mesh_x;
-                    while (r_isx >= eventinfo->mesh_x) r_isx -= eventinfo->mesh_x;
+                    while (r_isx < 0) r_isx += eventinfo->mesh_size_x;
+                    while (r_isx >= eventinfo->mesh_size_x) r_isx -= eventinfo->mesh_size_x;
 
                     // Ask a list of all charges in this sublattice
                     list<int>::iterator li1,li2,li3;
@@ -452,24 +452,17 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierBulk* c
             }   
         }  
 
-          // update event rates for carrier 1 , done after all carriers within radius coulcut are checked
+          // update event rates for carrier 1 , done after all carriers within radius coulomb_cut_off_radius are checked
         for (int it = 0; it < node->links().size(); it++) {
             int event_ID = carrier1->id()*eventinfo->maxpairdegree+it;
 
-            if(!carrier1->fixed())
-            {
-                if(action == (int) Add) {
-                    _non_injection_events[event_ID]->Set_event(node->links()[it], carrier1->type(), state, longrange, eventinfo);
-                    non_injection_rates->setrate(event_ID, _non_injection_events[event_ID]->rate());
-                }
-                else {
-                    _non_injection_events[event_ID]->Set_not_in_box_event();
-                    non_injection_rates->setrate(event_ID, 0.0);
-                }
+            if(action == (int) Add) {
+                _non_injection_events[event_ID]->Set_event(node->links()[it], carrier1->type(), state, longrange, eventinfo);
+                non_injection_rates->setrate(event_ID, _non_injection_events[event_ID]->rate());
             }
-            else {// carriers are fixed so they are added
-                _non_injection_events[event_ID]->Set_Fixed_event(node->links()[it], carrier1->type(), state, longrange, eventinfo);
-                non_injection_rates->setrate(event_ID, 0.0);                
+            else {
+                _non_injection_events[event_ID]->Set_not_in_box_event();
+                non_injection_rates->setrate(event_ID, 0.0);
             }
         }
     }
@@ -490,12 +483,12 @@ void Events:: Effect_injection_rates(int action, CarrierBulk* carrier, Node* nod
 //    votca::tools::vec flipped_pos;
 //    if(electrode->type() == LeftElectrodeNode) {flipped_pos = carrier1_pos;}
 //    else {flipped_pos = votca::tools::vec(eventinfo->simboxsize.x()-carrier1_pos.x(),carrier1_pos.y(),carrier1_pos.z());}
-    double RCSQR = eventinfo->coulcut*eventinfo->coulcut;
+    double RCSQR = eventinfo->coulomb_cut_off_radius*eventinfo->coulomb_cut_off_radius;
 
     // typically one wants hopdist to be smaller than RC
-    double bound = eventinfo->coulcut;
+    double bound = eventinfo->coulomb_cut_off_radius;
 //    if (flipped_pos.x()>eventinfo->hopdist)       bound = sqrt(double(RCSQR - (dist_to_electrode-eventinfo->hopdist)*(dist_to_electrode-eventinfo->hopdist)));
-//    else if (flipped_pos.x()<=eventinfo->hopdist) bound = eventinfo->coulcut;
+//    else if (flipped_pos.x()<=eventinfo->hopdist) bound = eventinfo->coulomb_cut_off_radius;
 
     // Define cubic boundaries in non-periodic coordinates
     double ix1 = 0.0;                                       double ix2 = eventinfo->hopdist;
@@ -508,22 +501,22 @@ void Events:: Effect_injection_rates(int action, CarrierBulk* carrier, Node* nod
     int sy1 = floor(iy1/_meshsize_y); int sy2 = floor(iy2/_meshsize_y);
     int sz1 = floor(iz1/_meshsize_z); int sz2 = floor(iz2/_meshsize_z);
 
-    if (iy2 == eventinfo->simboxsize.y()) {sy2 = eventinfo->mesh_y;}    
-    if (iz2 == eventinfo->simboxsize.z()) {sz2 = eventinfo->mesh_z;}    
+    if (iy2 == eventinfo->simboxsize.y()) {sy2 = eventinfo->mesh_size_y;}    
+    if (iz2 == eventinfo->simboxsize.z()) {sz2 = eventinfo->mesh_size_z;}    
 
     
-//    if(sy2 == eventinfo->mesh_y) {sy2--;}
-//    if(sz2 == eventinfo->mesh_z) {sz2--;}    
+//    if(sy2 == eventinfo->mesh_size_y) {sy2--;}
+//    if(sz2 == eventinfo->mesh_size_z) {sz2--;}    
    
     // Now visit all relevant sublattices
     for (int isz=sz1; isz<=sz2; isz++) {
         int r_isz = isz;
-        while (r_isz < 0) r_isz += eventinfo->mesh_z;
-        while (r_isz >= eventinfo->mesh_z) r_isz -= eventinfo->mesh_z;
+        while (r_isz < 0) r_isz += eventinfo->mesh_size_z;
+        while (r_isz >= eventinfo->mesh_size_z) r_isz -= eventinfo->mesh_size_z;
         for (int isy=sy1; isy<=sy2; isy++) {
             int r_isy = isy;
-            while (r_isy < 0) r_isy += eventinfo->mesh_y;
-            while (r_isy >= eventinfo->mesh_y) r_isy -= eventinfo->mesh_y;
+            while (r_isy < 0) r_isy += eventinfo->mesh_size_y;
+            while (r_isy >= eventinfo->mesh_size_y) r_isy -= eventinfo->mesh_size_y;
             for (int isx = sx1; isx<=sx2; isx++) {
                 int r_isx = isx;
 
@@ -580,7 +573,7 @@ void Events:: Effect_injection_rates(int action, CarrierBulk* carrier, Node* nod
 
 double Events::Compute_Coulomb_potential(double startx, votca::tools::vec dif, bool direct, votca::tools::vec simboxsize, Eventinfo* eventinfo) {
 
-    double RC = eventinfo->coulcut;
+    double RC = eventinfo->coulomb_cut_off_radius;
     double RCSQR = RC*RC;
     double coulpot;
     
@@ -604,7 +597,7 @@ double Events::Compute_Coulomb_potential(double startx, votca::tools::vec dif, b
         bool outside_cut_off1 = false;
         bool outside_cut_off2 = false;
       
-        for (int i=0;i<eventinfo->nr_sr_images; i++) {
+        for (int i=0;i<eventinfo->number_short_range_images; i++) {
             if (div(i,2).rem==0) { // even generation
                 sign = -1.0;
                 distx_1 = i*L + 2*startx + dif.x();
@@ -772,11 +765,11 @@ void Events::Init_non_injection_meshes(Eventinfo* eventinfo) {
     // determine the dimensions of the meshes
   
     votca::tools::vec simboxsize = eventinfo->simboxsize;
-    _meshsize_x = simboxsize.x()/eventinfo->mesh_x; 
-    _meshsize_y = simboxsize.y()/eventinfo->mesh_y; 
-    _meshsize_z = simboxsize.z()/eventinfo->mesh_z;
+    _meshsize_x = simboxsize.x()/eventinfo->mesh_size_x; 
+    _meshsize_y = simboxsize.y()/eventinfo->mesh_size_y; 
+    _meshsize_z = simboxsize.z()/eventinfo->mesh_size_z;
 
-    _non_injection_events_mesh = Resize_mesh(eventinfo->mesh_x,eventinfo->mesh_y,eventinfo->mesh_z);
+    _non_injection_events_mesh = Resize_mesh(eventinfo->mesh_size_x,eventinfo->mesh_size_y,eventinfo->mesh_size_z);
 
 }
 
@@ -784,8 +777,8 @@ void Events::Init_injection_meshes(StateReservoir* state, Eventinfo* eventinfo) 
 
     _inject_meshnr_x = floor(eventinfo->hopdist/_meshsize_x)+1;
 
-    _left_injection_events_mesh = Resize_mesh(_inject_meshnr_x,eventinfo->mesh_y,eventinfo->mesh_z);
-    _right_injection_events_mesh = Resize_mesh(_inject_meshnr_x,eventinfo->mesh_y,eventinfo->mesh_z);    
+    _left_injection_events_mesh = Resize_mesh(_inject_meshnr_x,eventinfo->mesh_size_y,eventinfo->mesh_size_z);
+    _right_injection_events_mesh = Resize_mesh(_inject_meshnr_x,eventinfo->mesh_size_y,eventinfo->mesh_size_z);    
     
     typename std::vector<Event*>::iterator it;
     for (it = _injection_events.begin(); it != _injection_events.end(); it++ ) {
@@ -796,8 +789,8 @@ void Events::Init_injection_meshes(StateReservoir* state, Eventinfo* eventinfo) 
             double posy = position.y(); int iposy = floor(posy/_meshsize_y);
             double posz = position.z(); int iposz = floor(posz/_meshsize_z);
 
-            if(iposy == eventinfo->mesh_y) {iposy--;}
-            if(iposz == eventinfo->mesh_z) {iposz--;}           
+            if(iposy == eventinfo->mesh_size_y) {iposy--;}
+            if(iposz == eventinfo->mesh_size_z) {iposz--;}           
             _left_injection_events_mesh[iposx][iposy][iposz].push_back((*it)->id());
         }
         
@@ -813,8 +806,8 @@ void Events::Init_injection_meshes(StateReservoir* state, Eventinfo* eventinfo) 
             double posy = position.y(); int iposy = floor(posy/_meshsize_y);
             double posz = position.z(); int iposz = floor(posz/_meshsize_z);
 
-            if(iposy == eventinfo->mesh_y) {iposy--;}
-            if(iposz == eventinfo->mesh_z) {iposz--;}
+            if(iposy == eventinfo->mesh_size_y) {iposy--;}
+            if(iposz == eventinfo->mesh_size_z) {iposz--;}
             _right_injection_events_mesh[iposx][iposy][iposz].push_back((*it)->id()); 
         }
     }
@@ -843,9 +836,9 @@ void Events::Add_to_mesh(int ID, votca::tools::vec position, Eventinfo* eventinf
     double posy = position.y(); int iposy = floor(posy/_meshsize_y);
     double posz = position.z(); int iposz = floor(posz/_meshsize_z);
 
-    if(iposx == eventinfo->mesh_x) {iposx--;}
-    if(iposy == eventinfo->mesh_y) {iposy--;}
-    if(iposz == eventinfo->mesh_z) {iposz--;}
+    if(iposx == eventinfo->mesh_size_x) {iposx--;}
+    if(iposy == eventinfo->mesh_size_y) {iposy--;}
+    if(iposz == eventinfo->mesh_size_z) {iposz--;}
     
     _non_injection_events_mesh[iposx][iposy][iposz].push_back(ID);
 };
@@ -856,9 +849,9 @@ void Events::Remove_from_mesh(int ID, votca::tools::vec position, Eventinfo* eve
     double posy = position.y(); int iposy = floor(posy/_meshsize_y);
     double posz = position.z(); int iposz = floor(posz/_meshsize_z);
 
-    if(iposx == eventinfo->mesh_x) {iposx--;}
-    if(iposy == eventinfo->mesh_y) {iposy--;}
-    if(iposz == eventinfo->mesh_z) {iposz--;}
+    if(iposx == eventinfo->mesh_size_x) {iposx--;}
+    if(iposy == eventinfo->mesh_size_y) {iposy--;}
+    if(iposz == eventinfo->mesh_size_z) {iposz--;}
          
     _non_injection_events_mesh[iposx][iposy][iposz].remove(ID);
 }

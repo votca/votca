@@ -33,10 +33,10 @@ class GraphKMC : public GraphSQL<NodeDevice,LinkDevice> {
 public:
 
     ///setup graph for bulk simulations
-    void Setup_bulk_graph(bool resize, Eventinfo* eventinfo);
+    void Setup_bulk_graph(Eventinfo* eventinfo);
     
     ///setup graph for device simulations, define electrode nodes and form links between those nodes and neighbouring nodes and set maxpairdegree/hopping_distance/sim_box_size
-    void Setup_device_graph(double left_distance, double right_distance, bool resize, Eventinfo* eventinfo);       
+    void Setup_device_graph(Eventinfo* eventinfo);       
   
     /// max_pair_degree
     const int &maxpairdegree() const { return _max_pair_degree; }
@@ -74,8 +74,8 @@ public:
     /// initialize output values (current for example)
     void Initialize_output_values();
 
-    bool el_reorg();  
-    bool ho_reorg();
+    double Electron_inject_reorg();
+    double Hole_inject_reorg();
 
     ///calculate the simulation box size (also determines crossing types of links)
     votca::tools::vec Determine_Sim_Box_Size();     
@@ -147,7 +147,7 @@ private:
     
 };
 
-void GraphKMC::Setup_bulk_graph( bool resize, Eventinfo* eventinfo)
+void GraphKMC::Setup_bulk_graph( Eventinfo* eventinfo)
 {
 
     // Determine hopping distance
@@ -167,7 +167,11 @@ void GraphKMC::Setup_bulk_graph( bool resize, Eventinfo* eventinfo)
     this->Determine_cross_types();    
 
     // Resize by copying the box (crossing types are changed by this operation, so re-evaluate)    
-    if(resize) {this->Resize(eventinfo->size_x, false, eventinfo->size_y, false, eventinfo->size_z, false); this->Determine_cross_types(); _sim_box_size = this->Determine_Sim_Box_Size();}
+    if(eventinfo->resize_morphology) {
+        this->Resize(eventinfo->size_x, false, eventinfo->size_y, false, eventinfo->size_z, false); 
+        this->Determine_cross_types(); 
+        _sim_box_size = this->Determine_Sim_Box_Size();
+    }
     
     //set node types for existing nodes as Normal
     this->Initialize_node_types();
@@ -194,18 +198,17 @@ void GraphKMC::Setup_bulk_graph( bool resize, Eventinfo* eventinfo)
     this->Renumber_id();   
 }    
 
-void GraphKMC::Setup_device_graph(double left_distance, double right_distance, bool resize, Eventinfo* eventinfo)
+void GraphKMC::Setup_device_graph(Eventinfo* eventinfo)
 {
     // Determine hopping distance before breaking periodicity
     _hop_distance = this->Determine_Hopping_Distance();
     
     // Make sure injection hops are possible
-    if(left_distance > _hop_distance) {_hop_distance = left_distance;}
-    if(right_distance > _hop_distance) {_hop_distance = right_distance;}
+    if(eventinfo->left_electrode_distance > _hop_distance) {_hop_distance = eventinfo->left_electrode_distance;}
+    if(eventinfo->right_electrode_distance > _hop_distance) {_hop_distance = eventinfo->right_electrode_distance;}
     
     // Determine simulation box size
     _sim_box_size = this->Determine_Sim_Box_Size();
-  
     // Translate the graph due to the spatial location of the electrodes and update system box size accordingly, putting the left electrode at x = 0
     // left_electrode_distance is the distance of the left electrode to the node with minimum x-coordinate
     // distance by which the graph should be translated is left_electrode_distance - minX
@@ -215,27 +218,27 @@ void GraphKMC::Setup_device_graph(double left_distance, double right_distance, b
     // Push nodes back in box (crossing types are changed by this operation, so re-evaluate)
     this->Push_in_box();
     this->Determine_cross_types();
-  
+
     // Resize by copying the box (crossing types are changed by this operation, so re-evaluate, which is done during determination of simulation box size)
-    if(resize) 
+    if(eventinfo->resize_morphology) 
     {
-        this->Resize(eventinfo->size_x-left_distance - right_distance,true, eventinfo->size_y,false, eventinfo->size_z, false); 
+        this->Resize(eventinfo->size_x-eventinfo->left_electrode_distance - eventinfo->right_electrode_distance,true, eventinfo->size_y,false, eventinfo->size_z, false); 
     }
     else
     {
         this->Break_periodicity(true,false,false);
     }
-   
+
     // Recalculate simulation box size after periodicity breaking
     _sim_box_size = this->Determine_Sim_Box_Size();
 
     // Translate graph to accomodate for device geometry
-    this->Translate_graph(left_distance, 0.0, 0.0);    
+    this->Translate_graph(eventinfo->left_electrode_distance, 0.0, 0.0);    
 
     // adjust simulation box size accordingly to given electrode distances
-    
+   
     votca::tools::vec old_sim_box_size = _sim_box_size;
-    double new_sim_box_sizeX = old_sim_box_size.x() + left_distance + right_distance;
+    double new_sim_box_sizeX = old_sim_box_size.x() + eventinfo->left_electrode_distance + eventinfo->right_electrode_distance;
      _sim_box_size =  votca::tools::vec(new_sim_box_sizeX, old_sim_box_size.y(), old_sim_box_size.z());
 
     // set node types for existing nodes as Normal
@@ -805,9 +808,9 @@ void GraphKMC::Set_Layer_indices(Eventinfo* eventinfo)
         votca::tools::vec pos = (*it)->position();
         double posx = pos.x();
         
-        double layersize = (_sim_box_size.x()-eventinfo->left_electrode_distance - eventinfo->right_electrode_distance)/eventinfo->number_layers;
+        double layersize = (_sim_box_size.x()-eventinfo->left_electrode_distance - eventinfo->right_electrode_distance)/eventinfo->number_of_layers;
         int iposx = floor((posx-eventinfo->left_electrode_distance)/layersize);
-        if(iposx == eventinfo->number_layers) iposx = eventinfo->number_layers - 1;
+        if(iposx == eventinfo->number_of_layers) iposx = eventinfo->number_of_layers - 1;
         
         (*it)->setLayer(iposx);
     }
@@ -927,31 +930,40 @@ double GraphKMC::stddev_electron_node_energy()
     return stddev_energy;
 }
 
-bool GraphKMC::el_reorg() 
+double GraphKMC::Electron_inject_reorg()
 {
-    bool el_reorg = false;
+    double electron_reorg = 0.0;
+    double temp_reorg;
+    int link_count = 0;
     
     typename std::vector<LinkDevice*>:: iterator it;
     for(it = this->_links.begin(); it != this->_links.end(); it++) 
     {
-        if(dynamic_cast<NodeSQL*>((*it)->node1())->UnCnNe() + dynamic_cast<NodeSQL*>((*it)->node2())->UcNcCe() + (*it)->lOe() == 0.0) { el_reorg = true;}
+        temp_reorg = dynamic_cast<NodeSQL*>((*it)->node1())->UnCnNe() + dynamic_cast<NodeSQL*>((*it)->node2())->UcNcCe() + (*it)->lOe();
+        electron_reorg += temp_reorg;
+        link_count++;
     }
-    
-    return el_reorg;
+
+    return (electron_reorg/link_count);    
 }
 
-bool GraphKMC::ho_reorg() 
+double GraphKMC::Hole_inject_reorg()
 {
-    bool ho_reorg = false;
+    double hole_reorg = 0.0;
+    double temp_reorg;
+    int link_count = 0;
     
     typename std::vector<LinkDevice*>:: iterator it;
     for(it = this->_links.begin(); it != this->_links.end(); it++) 
     {
-        if(dynamic_cast<NodeSQL*>((*it)->node1())->UnCnNh() + dynamic_cast<NodeSQL*>((*it)->node2())->UcNcCh() + (*it)->lOh() == 0.0) { ho_reorg = true;}
+        temp_reorg = dynamic_cast<NodeSQL*>((*it)->node1())->UnCnNh() + dynamic_cast<NodeSQL*>((*it)->node2())->UcNcCh() + (*it)->lOh();
+        hole_reorg += temp_reorg;
+        link_count++;
     }
-    
-    return ho_reorg;
+
+    return (hole_reorg/link_count);    
 }
+
 }}
 
 #endif

@@ -217,7 +217,6 @@ void StateReservoir::Add_carrier_to_chosen_node(NodeDevice* chosen_node, int car
     //initialize coulomb interactions
     newcarrier->Init_to_Coulomb(eventinfo->maxpairdegree);
     newcarrier->Set_from_Coulomb(0.0);
-    if(eventinfo->fixed_car) {newcarrier->Set_fixed();}
 }
 
 void StateReservoir::Init_trajectory(string filename){

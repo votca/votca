@@ -59,10 +59,10 @@ private:
 void Visualisation::Init_visualisation(GraphKMC* graph, Eventinfo* eventinfo)
 {
 
-    strcpy(viz_file, eventinfo->viz_filename.c_str());    
+    strcpy(viz_file, eventinfo->visualisation_filename.c_str());    
     viz_stream.open(viz_file);
     
-    viz_meshnr_x = eventinfo->viz_nx; viz_meshnr_y = eventinfo->viz_ny; viz_meshnr_z = eventinfo->viz_nz;
+    viz_meshnr_x = eventinfo->visualisation_number_x; viz_meshnr_y = eventinfo->visualisation_number_y; viz_meshnr_z = eventinfo->visualisation_number_z;
     viz_size_x = eventinfo->simboxsize.x()/viz_meshnr_x; viz_size_y = eventinfo->simboxsize.y()/viz_meshnr_y; viz_size_z = eventinfo->simboxsize.z()/viz_meshnr_z;
     
     this->Init_layers();

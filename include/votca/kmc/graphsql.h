@@ -69,6 +69,8 @@ inline void GraphSQL<TNode,TLink>::Initialize(string filename)
         newTNode->setu(UcCnNe, UcCnNh);
     }
     
+    std::cout << "nodes read" << endl;
+    
     delete stmt;
 
     // Load Node Pairs
@@ -105,6 +107,8 @@ inline void GraphSQL<TNode,TLink>::Initialize(string filename)
         newTLink->setlO(lOe,lOh);
         id++;
     }
+        
+    std::cout << "links read" << endl;
         
     delete stmt;
     stmt = NULL;

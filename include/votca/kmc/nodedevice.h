@@ -91,7 +91,7 @@ void NodeDevice::Compute_Self_Image_Coulomb_Potential(double startx, double devi
     double distx_1;
     double distx_2;
       
-    for (int i=0;i<eventinfo->nr_sr_images; i++) {
+    for (int i=0;i<eventinfo->number_short_range_images; i++) {
         if (div(i,2).rem==0) { // even generation
             sign = -1.0;
             distx_1 = i*L + 2*startx;
