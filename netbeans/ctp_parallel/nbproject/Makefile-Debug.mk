@@ -72,8 +72,8 @@ LDLIBSOPTIONS=../libctp/dist/Debug/GNU-Linux-x86/liblibctp.a ../../../csg/netbea
 
 ${OBJECTDIR}/_ext/715944016/ctp_parallel.o: ../../src/tools/ctp_parallel.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../moo/include -I../../../csg/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/715944016/ctp_parallel.o ../../src/tools/ctp_parallel.cc
+	${RM} $@.d
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../moo/include -I../../../csg/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/ctp_parallel.o ../../src/tools/ctp_parallel.cc
 
 # Subprojects
 .build-subprojects:

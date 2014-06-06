@@ -76,6 +76,7 @@ void IAnalyze::IHist(Topology *top, int state) {
 
     QMNBList &nblist = top->NBList();
     QMNBList::iterator nit;
+   
 
     double MIN = log10(nblist.front()->getJeff2(state));
     double MAX = log10(nblist.front()->getJeff2(state));
@@ -83,19 +84,32 @@ void IAnalyze::IHist(Topology *top, int state) {
     // Collect J2s from pairs
     vector< double > J2s;
     J2s.reserve(nblist.size());
-
+   
     for (nit = nblist.begin(); nit != nblist.end(); ++nit) {
-        double J2 = log10((*nit)->getJeff2(state));
+        double test = (*nit)->getJeff2(state);
+        double J2;
+   // Check if coupling constant is zero, if yes it is skipped from the histogramm.     
+        if (test==0.0){
+            J2=-300;
+            int id=(*nit)->getId();
+            cout <<"\r\n....Jeff2 of pair " <<id << " is zero, skipping it."<<endl;
+            
+        }
+        else{
+            J2=log10(test);
+        
+            MIN = (J2 < MIN) ? J2 : MIN;
+            MAX = (J2 > MAX) ? J2 : MAX;
 
-        MIN = (J2 < MIN) ? J2 : MIN;
-        MAX = (J2 > MAX) ? J2 : MAX;
-
-        J2s.push_back(J2);
+            J2s.push_back(J2);
+        }
     }
 
     // Prepare bins
     int BIN = ( (MAX-MIN)/_resolution_logJ2 + 0.5 ) + 1;
+
     vector< vector<double> > histJ2;
+
     histJ2.resize(BIN);
 
     // Execute binning

@@ -64,8 +64,8 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ctp_run: ${OBJECTFILES}
 
 ${OBJECTDIR}/_ext/715944016/ctp_run.o: nbproject/Makefile-${CND_CONF}.mk ../../src/tools/ctp_run.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
-	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/715944016/ctp_run.o ../../src/tools/ctp_run.cc
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/ctp_run.o ../../src/tools/ctp_run.cc
 
 # Subprojects
 .build-subprojects:
