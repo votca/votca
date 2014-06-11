@@ -100,9 +100,9 @@ public:
     void Effect_injection_rates(int action, CarrierBulk* carrier, Node* node, Node* electrode, double dist_to_electrode, StateReservoir* state, Longrange* longrange, Bsumtree* injection_rates,  Eventinfo* eventinfo);
     
     /// Calculate shortrange coulomb potential
-    /// startx is x-coordinate of carrier of which we want to calculate the coulomb potential
-    /// dif is startx - x coordinate of node on which we want to know the coulomb potential
-    double Compute_Coulomb_potential(double startx, votca::tools::vec dif, bool direct, votca::tools::vec sim_box_size, Eventinfo* eventinfo);
+    /// startz is z-coordinate of carrier of which we want to calculate the coulomb potential
+    /// dif is startz - z coordinate of node on which we want to know the coulomb potential
+    double Compute_Coulomb_potential(double startz, votca::tools::vec dif, bool direct, votca::tools::vec sim_box_size, Eventinfo* eventinfo);
 
     /// Obtain non-injection event with id eventID
     Event* get_non_injection_event(int eventID) {return _non_injection_events[eventID];}
@@ -129,7 +129,7 @@ private:
     int _total_left_injection_events;
     int _total_right_injection_events;    
     
-    double _meshsize_x; int _inject_meshnr_x; double _meshsize_y; double _meshsize_z; 
+    double _meshsize_x; double _meshsize_y; double _meshsize_z; int _inject_meshnr_z;
     vector< vector< vector <list<int> > > > _non_injection_events_mesh;
     vector< vector< vector <list<int> > > > _left_injection_events_mesh;
     vector< vector< vector <list<int> > > > _right_injection_events_mesh;
@@ -240,17 +240,16 @@ void Events:: Remove_carrier(Node* node, GraphKMC* graph, StateReservoir* state,
 
 inline void Events::Effect_potential_and_rates(int action, CarrierBulk* carrier, Node* node, GraphKMC* graph, StateReservoir* state, Longrange* longrange, 
                                    Bsumtree* non_injection_rates, Bsumtree* left_injection_rates, Bsumtree* right_injection_rates, Eventinfo* eventinfo) {
-    
     Effect_potential_and_non_injection_rates(action, carrier, node, state, longrange, non_injection_rates, eventinfo);
 
     if(eventinfo->device){
         votca::tools::vec nodeposition = node->position();
-        if(nodeposition.x()<eventinfo->coulomb_cut_off_radius) {
-            double dist_to_electrode = nodeposition.x();
+        if(nodeposition.z()<eventinfo->coulomb_cut_off_radius) {
+            double dist_to_electrode = nodeposition.z();
             Effect_injection_rates(action, carrier, node, graph->left(), dist_to_electrode, state, longrange, left_injection_rates, eventinfo);
         }
-        else if(eventinfo->simboxsize.x()-nodeposition.x() < eventinfo->coulomb_cut_off_radius) {
-            double dist_to_electrode = eventinfo->simboxsize.x()-nodeposition.x();
+        else if(eventinfo->simboxsize.z()-nodeposition.z() < eventinfo->coulomb_cut_off_radius) {
+            double dist_to_electrode = eventinfo->simboxsize.z()-nodeposition.z();
             Effect_injection_rates(action, carrier, node, graph->right(), dist_to_electrode, state, longrange, right_injection_rates, eventinfo);
         }
     }
@@ -261,7 +260,7 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierBulk* c
 
     if(eventinfo->coulomb_strength == 0.0)
     {
-        // update event rates for carrier 1 in the case that no coulomb interactions are taken into account
+/*        // update event rates for carrier 1 in the case that no coulomb interactions are taken into account
         for (int it = 0; it < node->links().size(); it++) {
             int event_ID1 = carrier1->id()*eventinfo->maxpairdegree+it;
             Node* node2 = node->links()[it]->node2();
@@ -288,7 +287,7 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierBulk* c
                 _non_injection_events[event_ID2]->Set_event(node2->links()[reverse_ID], carrier2->type(), state, longrange, eventinfo);
                 non_injection_rates->setrate(event_ID2, _non_injection_events[event_ID2]->rate());                
             }
-        }
+        }*/
     }
     else {
     
@@ -312,8 +311,8 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierBulk* c
 
         // Break periodicity in x-direction
         if(eventinfo->device) {
-            if (ix1<0.0) ix1 = 0.0;
-            if (ix2>eventinfo->simboxsize.x()) ix2 = eventinfo->simboxsize.x()-0.5*eventinfo->mindist;
+            if (iz1<0.0) iz1 = 0.0;
+            if (iz2>eventinfo->simboxsize.z()) iz2 = eventinfo->simboxsize.z()-0.5*eventinfo->mindist;
         }
         // Translate cubic boundaries to sublattice boundaries in non-periodic coordinates
         int sx1 = floor(ix1/_meshsize_x);
@@ -379,8 +378,8 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierBulk* c
                                 // Charge interacting with its own images, taken care off in graph.h
 
                                 //First we take the direct sr interactions into account
-                                if (action == (int) Add) carrier1->Add_from_Coulomb(interact_sign*Compute_Coulomb_potential(np_carrier2_pos.x(),-1.0*distance, true, eventinfo->simboxsize,eventinfo));
-                                carrier2->Add_from_Coulomb(interact_sign*Compute_Coulomb_potential(carrier1_pos.x(),distance, true, eventinfo->simboxsize,eventinfo));
+                                if (action == (int) Add) carrier1->Add_from_Coulomb(interact_sign*Compute_Coulomb_potential(np_carrier2_pos.z(),-1.0*distance, true, eventinfo->simboxsize,eventinfo));
+                                carrier2->Add_from_Coulomb(interact_sign*Compute_Coulomb_potential(carrier1_pos.z(),distance, true, eventinfo->simboxsize,eventinfo));
 
                                 // This makes sure that charges in the band Rc < x < Rc + hopdist are taken into account correctly (not here)
                             }
@@ -395,15 +394,15 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierBulk* c
 
                                     if(distancejumpsqr <= RCSQR && distancesqr <= RCSQR) { // makes sure the charge and hopped to charge are in the sphere
                                         if (node->links()[it]->node2()->id() != carrier2_node->id()) { // coulomb interaction on equal nodes lead to zero distance vector (fixed by exciton binding energy)
-                                            carrier1->Add_to_Coulomb(interact_sign*Compute_Coulomb_potential(np_carrier2_pos.x(),-1.0*jumpdistance, true, eventinfo->simboxsize, eventinfo),it);
+                                            carrier1->Add_to_Coulomb(interact_sign*Compute_Coulomb_potential(np_carrier2_pos.z(),-1.0*jumpdistance, true, eventinfo->simboxsize, eventinfo),it);
                                         }
                                         else {
-                                            carrier1->Add_to_Coulomb(interact_sign*Compute_Coulomb_potential(np_carrier2_pos.x(),-1.0*jumpdistance, false, eventinfo->simboxsize, eventinfo),it);
+                                            carrier1->Add_to_Coulomb(interact_sign*Compute_Coulomb_potential(np_carrier2_pos.z(),-1.0*jumpdistance, false, eventinfo->simboxsize, eventinfo),it);
                                         }
                                     }
                                     else if(distancejumpsqr <=RCSQR) { // RC correction
-                                        double RC_to = Compute_Coulomb_potential(np_carrier2_pos.x(),-1.0*jumpdistance, true, eventinfo->simboxsize, eventinfo);
-                                        double RC_from = Compute_Coulomb_potential(np_carrier2_pos.x(),-1.0*distance, true, eventinfo->simboxsize,eventinfo);
+                                        double RC_to = Compute_Coulomb_potential(np_carrier2_pos.z(),-1.0*jumpdistance, true, eventinfo->simboxsize, eventinfo);
+                                        double RC_from = Compute_Coulomb_potential(np_carrier2_pos.z(),-1.0*distance, true, eventinfo->simboxsize,eventinfo);
                                         carrier1->Add_to_Coulomb(interact_sign*(RC_to-RC_from),it);
                                     }
                                 }
@@ -420,17 +419,17 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierBulk* c
                                     int event_ID = carrier2->id()*eventinfo->maxpairdegree + it;
                                     if(distancesqr <= RCSQR) {
                                         if(carrier2_node->links()[it]->node2()->id() == node->id()) {
-                                            carrier2->Add_to_Coulomb(interact_sign*Compute_Coulomb_potential(carrier1_pos.x(),jumpdistance,false,eventinfo->simboxsize, eventinfo), it);
+                                            carrier2->Add_to_Coulomb(interact_sign*Compute_Coulomb_potential(carrier1_pos.z(),jumpdistance,false,eventinfo->simboxsize, eventinfo), it);
                                             _non_injection_events[event_ID]->Set_event(carrier2_node->links()[it], carrier2_type, state, longrange, eventinfo); // if carrier2 is actually linking with carrier1
                                         }
                                         else {
-                                            carrier2->Add_to_Coulomb(interact_sign*Compute_Coulomb_potential(carrier1_pos.x(),jumpdistance,true,eventinfo->simboxsize, eventinfo), it);
+                                            carrier2->Add_to_Coulomb(interact_sign*Compute_Coulomb_potential(carrier1_pos.z(),jumpdistance,true,eventinfo->simboxsize, eventinfo), it);
                                             _non_injection_events[event_ID]->Determine_rate(state, longrange, eventinfo);
                                         }
                                     }
                                     else {
-                                        double RC_to = Compute_Coulomb_potential(carrier1_pos.x(),jumpdistance,true,eventinfo->simboxsize, eventinfo);
-                                        double RC_from = Compute_Coulomb_potential(carrier1_pos.x(),distance, true, eventinfo->simboxsize,eventinfo);
+                                        double RC_to = Compute_Coulomb_potential(carrier1_pos.z(),jumpdistance,true,eventinfo->simboxsize, eventinfo);
+                                        double RC_from = Compute_Coulomb_potential(carrier1_pos.z(),distance, true, eventinfo->simboxsize,eventinfo);
                                         carrier2->Add_to_Coulomb(interact_sign*(RC_to-RC_from),it);                                    
                                         _non_injection_events[event_ID]->Determine_rate(state, longrange, eventinfo);
                                     }
@@ -469,7 +468,7 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierBulk* c
 void Events:: Effect_injection_rates(int action, CarrierBulk* carrier, Node* node, Node* electrode, double dist_to_electrode, StateReservoir* state, Longrange* longrange, Bsumtree* injection_rates, Eventinfo* eventinfo){
 
     int interact_sign;
-    int x_mesh;
+    int z_mesh;
     
     if(action == (int) Add) {interact_sign = 1;}
     if(action == (int) Remove) {interact_sign = -1;}
@@ -488,34 +487,34 @@ void Events:: Effect_injection_rates(int action, CarrierBulk* carrier, Node* nod
 //    else if (flipped_pos.x()<=eventinfo->hopdist) bound = eventinfo->coulomb_cut_off_radius;
 
     // Define cubic boundaries in non-periodic coordinates
-    double ix1 = 0.0;                                       double ix2 = eventinfo->hopdist;
+    double ix1 = carrier1_pos.x()-bound-eventinfo->hopdist; double ix2 = carrier1_pos.x()+bound+eventinfo->hopdist;
     double iy1 = carrier1_pos.y()-bound-eventinfo->hopdist; double iy2 = carrier1_pos.y()+bound+eventinfo->hopdist;
-    double iz1 = carrier1_pos.z()-bound-eventinfo->hopdist; double iz2 = carrier1_pos.z()+bound+eventinfo->hopdist;
-
+    double iz1 = 0.0;                                       double iz2 = eventinfo->hopdist;
+    
     // Translate cubic boundaries to sublattice boundaries in non-periodic coordinates
     
     int sx1 = floor(ix1/_meshsize_x); int sx2 = floor(ix2/_meshsize_x);
     int sy1 = floor(iy1/_meshsize_y); int sy2 = floor(iy2/_meshsize_y);
     int sz1 = floor(iz1/_meshsize_z); int sz2 = floor(iz2/_meshsize_z);
 
+    if (ix2 == eventinfo->simboxsize.x()) {sx2 = eventinfo->mesh_size_x;}    
     if (iy2 == eventinfo->simboxsize.y()) {sy2 = eventinfo->mesh_size_y;}    
-    if (iz2 == eventinfo->simboxsize.z()) {sz2 = eventinfo->mesh_size_z;}    
 
     
 //    if(sy2 == eventinfo->mesh_size_y) {sy2--;}
 //    if(sz2 == eventinfo->mesh_size_z) {sz2--;}    
    
     // Now visit all relevant sublattices
-    for (int isz=sz1; isz<=sz2; isz++) {
-        int r_isz = isz;
-        while (r_isz < 0) r_isz += eventinfo->mesh_size_z;
-        while (r_isz >= eventinfo->mesh_size_z) r_isz -= eventinfo->mesh_size_z;
+    for (int isx=sx1; isx<=sx2; isx++) {
+        int r_isx = isx;
+        while (r_isx < 0) r_isx += eventinfo->mesh_size_x;
+        while (r_isx >= eventinfo->mesh_size_x) r_isx -= eventinfo->mesh_size_x;
         for (int isy=sy1; isy<=sy2; isy++) {
             int r_isy = isy;
             while (r_isy < 0) r_isy += eventinfo->mesh_size_y;
             while (r_isy >= eventinfo->mesh_size_y) r_isy -= eventinfo->mesh_size_y;
-            for (int isx = sx1; isx<=sx2; isx++) {
-                int r_isx = isx;
+            for (int isz = sz1; isz<=sz2; isz++) {
+                int r_isz = isz;
 
                 // Ask a list of all nodes in this sublattice
                 list<int>::iterator li1,li2,li3;
@@ -542,7 +541,7 @@ void Events:: Effect_injection_rates(int action, CarrierBulk* carrier, Node* nod
          
                     // Compute coordinates in non-periodic lattice
           
-                    votca::tools::vec periodic_convert = votca::tools::vec(0.0,(isy-r_isy)*_meshsize_y,(isz-r_isz)*_meshsize_z);
+                    votca::tools::vec periodic_convert = votca::tools::vec((isx-r_isx)*_meshsize_x,(isy-r_isy)*_meshsize_y,0.0);
                     votca::tools::vec np_probepos = probepos + periodic_convert;
                     votca::tools::vec distance = np_probepos-carrier1_pos;
 
@@ -552,12 +551,12 @@ void Events:: Effect_injection_rates(int action, CarrierBulk* carrier, Node* nod
                         if(inject_event->carrier_type() == (int) Electron) {interact_sign *= -1;}
                     
                         if (probenode->id()!=node->id()) {
-                            inject_event->Add_injection_potential(interact_sign*Compute_Coulomb_potential(carrier1_pos.x(),distance,true,eventinfo->simboxsize,eventinfo));                    
+                            inject_event->Add_injection_potential(interact_sign*Compute_Coulomb_potential(carrier1_pos.z(),distance,true,eventinfo->simboxsize,eventinfo));                    
                             _injection_events[eventID]->Determine_rate(state, longrange, eventinfo);
                             injection_rates->setrate(eventID - IDelectrodeswitch, _injection_events[eventID]->rate());
                         }
                         else {
-                            inject_event->Add_injection_potential(interact_sign*Compute_Coulomb_potential(carrier1_pos.x(),distance,false,eventinfo->simboxsize,eventinfo));                    
+                            inject_event->Add_injection_potential(interact_sign*Compute_Coulomb_potential(carrier1_pos.z(),distance,false,eventinfo->simboxsize,eventinfo));                    
                             _injection_events[eventID]->Set_event(inject_event->link(), inject_event->carrier_type(),state, longrange, eventinfo);
                             injection_rates->setrate(eventID - IDelectrodeswitch, _injection_events[eventID]->rate());
                         }
@@ -568,7 +567,7 @@ void Events:: Effect_injection_rates(int action, CarrierBulk* carrier, Node* nod
     }  
 }
 
-double Events::Compute_Coulomb_potential(double startx, votca::tools::vec dif, bool direct, votca::tools::vec simboxsize, Eventinfo* eventinfo) {
+double Events::Compute_Coulomb_potential(double startz, votca::tools::vec dif, bool direct, votca::tools::vec simboxsize, Eventinfo* eventinfo) {
 
     double RC = eventinfo->coulomb_cut_off_radius;
     double RCSQR = RC*RC;
@@ -583,12 +582,12 @@ double Events::Compute_Coulomb_potential(double startx, votca::tools::vec dif, b
     
     if(eventinfo->device) {
         
-        double L = simboxsize.x();
+        double L = simboxsize.z();
         double distsqr_planar = dif.y()*dif.y() + dif.z()*dif.z();
       
         double sign;
-        double distx_1;
-        double distx_2;
+        double distz_1;
+        double distz_2;
         double distancesqr_1;
         double distancesqr_2;
         bool outside_cut_off1 = false;
@@ -597,17 +596,17 @@ double Events::Compute_Coulomb_potential(double startx, votca::tools::vec dif, b
         for (int i=0;i<eventinfo->number_short_range_images; i++) {
             if (div(i,2).rem==0) { // even generation
                 sign = -1.0;
-                distx_1 = i*L + 2*startx + dif.x();
-                distx_2 = (i+2)*L - 2*startx - dif.x(); 
+                distz_1 = i*L + 2*startz + dif.z();
+                distz_2 = (i+2)*L - 2*startz - dif.z(); 
             }
             else {
                 sign = 1.0;
-                distx_1 = (i+1)*L + dif.x();
-                distx_2 = (i+1)*L - dif.x();
+                distz_1 = (i+1)*L + dif.z();
+                distz_2 = (i+1)*L - dif.z();
             }
-            distancesqr_1 = distx_1*distx_1 + distsqr_planar;
+            distancesqr_1 = distz_1*distz_1 + distsqr_planar;
             coulpot += sign*(1.0/sqrt(distancesqr_1));
-            distancesqr_2 = distx_2*distx_2 + distsqr_planar;
+            distancesqr_2 = distz_2*distz_2 + distsqr_planar;
             coulpot += sign*(1.0/sqrt(distancesqr_2));
         }
 
@@ -772,10 +771,10 @@ void Events::Init_non_injection_meshes(Eventinfo* eventinfo) {
 
 void Events::Init_injection_meshes(StateReservoir* state, Eventinfo* eventinfo) {
 
-    _inject_meshnr_x = floor(eventinfo->hopdist/_meshsize_x)+1;
+    _inject_meshnr_z = floor(eventinfo->hopdist/_meshsize_z)+1;
 
-    _left_injection_events_mesh = Resize_mesh(_inject_meshnr_x,eventinfo->mesh_size_y,eventinfo->mesh_size_z);
-    _right_injection_events_mesh = Resize_mesh(_inject_meshnr_x,eventinfo->mesh_size_y,eventinfo->mesh_size_z);    
+    _left_injection_events_mesh = Resize_mesh(eventinfo->mesh_size_x,eventinfo->mesh_size_y,_inject_meshnr_z);
+    _right_injection_events_mesh = Resize_mesh(eventinfo->mesh_size_x,eventinfo->mesh_size_y,_inject_meshnr_z);    
     
     typename std::vector<Event*>::iterator it;
     for (it = _injection_events.begin(); it != _injection_events.end(); it++ ) {
@@ -786,8 +785,8 @@ void Events::Init_injection_meshes(StateReservoir* state, Eventinfo* eventinfo) 
             double posy = position.y(); int iposy = floor(posy/_meshsize_y);
             double posz = position.z(); int iposz = floor(posz/_meshsize_z);
 
-            if(iposy == eventinfo->mesh_size_y) {iposy--;}
-            if(iposz == eventinfo->mesh_size_z) {iposz--;}           
+            if(iposx == eventinfo->mesh_size_x) {iposx--;}
+            if(iposy == eventinfo->mesh_size_y) {iposy--;}           
             _left_injection_events_mesh[iposx][iposy][iposz].push_back((*it)->id());
         }
         
@@ -797,14 +796,14 @@ void Events::Init_injection_meshes(StateReservoir* state, Eventinfo* eventinfo) 
 
             votca::tools::vec simboxsize = eventinfo->simboxsize;
             votca::tools::vec unflipped_position = (*it)->link()->node2()->position();
-            votca::tools::vec position = votca::tools::vec(simboxsize.x() - unflipped_position.x(),unflipped_position.y(),unflipped_position.z());
+            votca::tools::vec position = votca::tools::vec(unflipped_position.x(),unflipped_position.y(),simboxsize.z() -unflipped_position.z());
 
             double posx = position.x(); int iposx = floor(posx/_meshsize_x);
             double posy = position.y(); int iposy = floor(posy/_meshsize_y);
             double posz = position.z(); int iposz = floor(posz/_meshsize_z);
 
+            if(iposx == eventinfo->mesh_size_x) {iposx--;}
             if(iposy == eventinfo->mesh_size_y) {iposy--;}
-            if(iposz == eventinfo->mesh_size_z) {iposz--;}
             _right_injection_events_mesh[iposx][iposy][iposz].push_back((*it)->id()); 
         }
     }

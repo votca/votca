@@ -42,7 +42,6 @@ public:
     void Init_convergence_check(double simtime);
     void Convergence_check(double simtime, Eventinfo* eventinfo);
     void Update(Event* event, double simtime, double timestep);
-    void Update_ohmic(Event* event);
     void Write(int it, double simtime, double timestep, Eventinfo* eventinfo);
     
     void Repeat_count_init();
@@ -101,7 +100,7 @@ private:
     double _hole_vel_y;
     double _hole_vel_z;
     
-    double _vx_old;
+    double _vz_old;
     double _reco_old;
     
     int _direct_iv_counter;
@@ -143,32 +142,20 @@ void Numoutput::Initialize_equilibrate() {
 }
 
 void Numoutput::Init_convergence_check(double simtime) {
-    _vx_old = _vel_x/simtime;
+    _vz_old = _vel_z/simtime;
     _reco_old = _nrecombinations/simtime;
 }
 
 void Numoutput::Convergence_check(double simtime, Eventinfo* eventinfo) {
     
-    if (fabs(_vel_x/simtime-_vx_old)/_vx_old < 0.05)               { _direct_iv_counter++;  } else { _direct_iv_counter = 0;  }
+    if (fabs(_vel_z/simtime-_vz_old)/_vz_old < 0.05)               { _direct_iv_counter++;  } else { _direct_iv_counter = 0;  }
     if (fabs(_nrecombinations/simtime-_reco_old)/_reco_old < 0.05) { _direct_reco_counter++;} else { _direct_reco_counter = 0;}
 
     if(_direct_iv_counter >= eventinfo->number_direct_conv_iv) {_direct_iv_convergence = true;}
     if(_direct_reco_counter >= eventinfo->number_direct_conv_reco) {_direct_reco_convergence = true;}
 
-    _vx_old   = _vel_x/simtime;
+    _vz_old   = _vel_z/simtime;
     _reco_old = _nrecombinations/simtime;
-}
-
-void Numoutput::Update_ohmic(Event* event) {
-    if(event->init_type() == (int) Injection)   { // Injection events    
-        _ninjections++;
-        if(event->link()->node1()->type() == LeftElectrodeNode) { _nleftinjections++; } else { _nrightinjections++; }
-    
-        if(event->final_type() == (int) TransferTo) {
-            _ncarriers++;
-            if(event->carrier_type() == (int) Electron) { _nelectrons++; } else { _nholes++;}
-        }
-    }
 }
 
 void Numoutput::Update(Event* event, double simtime, double timestep) {

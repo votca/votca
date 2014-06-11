@@ -57,7 +57,7 @@ public:
     NodeDevice* &right() { return _right_electrode; }
 
     /// total sum of r12.x
-    const double &total_link_distance_x() const {return _total_link_distance_x;}    
+    const double &total_link_distance_z() const {return _total_link_distance_z;}    
     
     /// average hole node energy
     double Average_hole_node_energy();
@@ -92,7 +92,7 @@ private:
     int Determine_Max_Pair_Degree();
 
     ///gives the total sum of r12.x() for all links (including injection and collection links)
-    double Sum_of_link_distances_x();
+    double Sum_of_link_distances_z();
     
     ///determine the crossing types of the links    
     void Determine_cross_types();    
@@ -143,7 +143,7 @@ private:
     NodeDevice* _left_electrode;
     NodeDevice* _right_electrode;
     
-    double _total_link_distance_x;
+    double _total_link_distance_z;
     
 };
 
@@ -180,7 +180,7 @@ void GraphKMC::Setup_bulk_graph( Eventinfo* eventinfo)
     _min_distance = this->Determine_Minimum_Distance();
 
     // determine sum of r12.x    
-    _total_link_distance_x = this->Sum_of_link_distances_x();
+    _total_link_distance_z = this->Sum_of_link_distances_z();
     
     // associate links in links vector with the corresponding nodes
     this->LinkSort();
@@ -222,25 +222,25 @@ void GraphKMC::Setup_device_graph(Eventinfo* eventinfo)
     // Resize by copying the box (crossing types are changed by this operation, so re-evaluate, which is done during determination of simulation box size)
     if(eventinfo->resize_morphology) 
     {
-        this->Resize(eventinfo->size_x-eventinfo->left_electrode_distance - eventinfo->right_electrode_distance,true, eventinfo->size_y,false, eventinfo->size_z, false); 
+        this->Resize(eventinfo->size_x,false, eventinfo->size_y,false, eventinfo->size_z-eventinfo->left_electrode_distance - eventinfo->right_electrode_distance, true); 
     }
     else
     {
-        this->Break_periodicity(true,false,false);
+        this->Break_periodicity(false,false,true);
     }
 
     // Recalculate simulation box size after periodicity breaking
     _sim_box_size = this->Determine_Sim_Box_Size();
-
+    
     // Translate graph to accomodate for device geometry
-    this->Translate_graph(eventinfo->left_electrode_distance, 0.0, 0.0);    
+    this->Translate_graph(0.0, 0.0, eventinfo->left_electrode_distance);    
 
     // adjust simulation box size accordingly to given electrode distances
-   
+ 
     votca::tools::vec old_sim_box_size = _sim_box_size;
-    double new_sim_box_sizeX = old_sim_box_size.x() + eventinfo->left_electrode_distance + eventinfo->right_electrode_distance;
-     _sim_box_size =  votca::tools::vec(new_sim_box_sizeX, old_sim_box_size.y(), old_sim_box_size.z());
-
+    double new_sim_box_sizeZ = old_sim_box_size.z() + eventinfo->left_electrode_distance + eventinfo->right_electrode_distance;
+     _sim_box_size =  votca::tools::vec(old_sim_box_size.x(), old_sim_box_size.y(), new_sim_box_sizeZ);
+     
     // set node types for existing nodes as Normal
     this->Initialize_node_types();
  
@@ -251,16 +251,16 @@ void GraphKMC::Setup_device_graph(Eventinfo* eventinfo)
     _min_distance = this->Determine_Minimum_Distance();
     
     // determine sum of r12.x
-    _total_link_distance_x = this->Sum_of_link_distances_x();
+    _total_link_distance_z = this->Sum_of_link_distances_z();
     
     // associate links in links vector with the corresponding nodes
     this->LinkSort();
-    
+  
     // determine maximum degree of graph
     _max_pair_degree = this->Determine_Max_Pair_Degree();
-   
+  
     // Set the self-image coulomb potential on every node
-    this->Set_Self_Image_Coulomb_Potential(_sim_box_size.x(), eventinfo);
+    this->Set_Self_Image_Coulomb_Potential(_sim_box_size.z(), eventinfo);
 
     // Set the layer indices on every node
     this->Set_Layer_indices(eventinfo);
@@ -270,6 +270,7 @@ void GraphKMC::Setup_device_graph(Eventinfo* eventinfo)
 
     // renumber link id's
     this->Renumber_id(); 
+
 }
 
 double GraphKMC::Determine_Hopping_Distance()
@@ -400,18 +401,18 @@ void GraphKMC::Determine_cross_types()
     }
 }
 
-double GraphKMC::Sum_of_link_distances_x()
+double GraphKMC::Sum_of_link_distances_z()
 {
-    double totdistx = 0.0;
+    double totdistz = 0.0;
     
     typename std::vector<LinkDevice*>::iterator it;
     for (it = this->_links.begin(); it != this->_links.end(); it++ )
     {
         votca::tools::vec distvec = (*it)->r12();
-        if(distvec.x() > 0.0) { totdistx += distvec.x();}
+        if(distvec.z() > 0.0) { totdistz += distvec.z();}
     }
     
-    return totdistx;
+    return totdistz;
 }
 
 void GraphKMC::Translate_graph(double translate_x, double translate_y, double translate_z) 
@@ -724,7 +725,7 @@ void GraphKMC::Add_electrodes()
     //introduce the electrode nodes (might make a special electrode node header file for this)
 
     _left_electrode = new NodeDevice(-1, tools::vec(0.0,0.0,0.0));
-    _right_electrode = new NodeDevice(-2, tools::vec(_sim_box_size.x(),0.0,0.0));
+    _right_electrode = new NodeDevice(-2, tools::vec(0.0,0.0,_sim_box_size.z()));
     _left_electrode->SetType((int) LeftElectrodeNode);
     _right_electrode->SetType((int) RightElectrodeNode);
 
@@ -736,14 +737,14 @@ void GraphKMC::Add_electrodes()
     for(it  = this->_nodes.begin(); it != this->_nodes.end(); it++) 
     { 
         votca::tools::vec nodepos = (*it)->position();
-        double left_distance = nodepos.x();
+        double left_distance = nodepos.z();
         (*it)->Set_injectable(false);
 
         // check nodes for left electrode
         
         if(left_distance <= _hop_distance) 
         {
-            votca::tools::vec dr = votca::tools::vec(-1.0*left_distance,0.0,0.0);   
+            votca::tools::vec dr = votca::tools::vec(0.0,0.0,-1.0*left_distance);   
 
             LinkSQL* newLinkCollect = this->AddLink(linkID,(*it), _left_electrode, dr); 
             linkID++;
@@ -756,10 +757,10 @@ void GraphKMC::Add_electrodes()
       
         // check nodes for right electrode
         
-        double right_distance = _sim_box_size.x() - nodepos.x();
+        double right_distance = _sim_box_size.z() - nodepos.z();
         if(right_distance <= _hop_distance) 
         {
-            votca::tools::vec dr = votca::tools::vec(right_distance,0.0,0.0);   
+            votca::tools::vec dr = votca::tools::vec(0.0,0.0,right_distance);   
 
             LinkSQL* newLinkCollect = this->AddLink(linkID,(*it), _right_electrode, dr); 
             linkID++;
@@ -793,7 +794,7 @@ void GraphKMC::Set_Self_Image_Coulomb_Potential(double device_length, Eventinfo*
     typename std::vector<NodeDevice*>::iterator it;    
     for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) {
         votca::tools::vec node_pos = (*it)->position();
-        (*it)->Compute_Self_Image_Coulomb_Potential(node_pos.x(),device_length,eventinfo);
+        (*it)->Compute_Self_Image_Coulomb_Potential(node_pos.z(),device_length,eventinfo);
     }
     
     _left_electrode->setSelfImage(0.0);
@@ -806,13 +807,13 @@ void GraphKMC::Set_Layer_indices(Eventinfo* eventinfo)
     for (it = this->_nodes.begin(); it != this->_nodes.end(); it++) 
     {
         votca::tools::vec pos = (*it)->position();
-        double posx = pos.x();
+        double posz = pos.z();
         
-        double layersize = (_sim_box_size.x()-eventinfo->left_electrode_distance - eventinfo->right_electrode_distance)/eventinfo->number_of_layers;
-        int iposx = floor((posx-eventinfo->left_electrode_distance)/layersize);
-        if(iposx == eventinfo->number_of_layers) iposx = eventinfo->number_of_layers - 1;
+        double layersize = (_sim_box_size.z()-eventinfo->left_electrode_distance - eventinfo->right_electrode_distance)/eventinfo->number_of_layers;
+        int iposz = floor((posz-eventinfo->left_electrode_distance)/layersize);
+        if(iposz == eventinfo->number_of_layers) iposz = eventinfo->number_of_layers - 1;
         
-        (*it)->setLayer(iposx);
+        (*it)->setLayer(iposz);
     }
 }
 
@@ -828,7 +829,7 @@ void GraphKMC::Renumber_id()
         }        
     }
     
-    for (it = this->_nodes.begin(); it != this->_nodes.end(); it++) 
+ /*   for (it = this->_nodes.begin(); it != this->_nodes.end(); it++) 
     {
         int node_id = (*it)->id();
         for (int ilink = 0 ; ilink < (*it)->links().size(); ilink++) 
@@ -840,7 +841,7 @@ void GraphKMC::Renumber_id()
                 if(probe_link->node2()->id()==node_id) (*it)->links()[ilink]->SetReverseID(ireverse);
             }
         }        
-    }    
+    }    */
     
 }
 
@@ -875,7 +876,9 @@ double GraphKMC::Average_hole_node_energy()
     typename std::vector<NodeDevice*>:: iterator it;
     for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) 
     {
-        ho_energy += (*it)->eCation() + (*it)->UcCnNh();
+        if((*it)->type() == (int) NormalNode){
+            ho_energy += (*it)->eCation() + (*it)->UcCnNh();
+        }
     }
     
     av_ho_energy = ho_energy/this->Numberofnodes();
@@ -891,7 +894,9 @@ double GraphKMC::stddev_hole_node_energy()
     typename std::vector<NodeDevice*>:: iterator it;
     for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) 
     {
-        temp_energy += ((*it)->eCation() + (*it)->UcCnNh()-av_ho_energy)*((*it)->eCation() + (*it)->UcCnNh()-av_ho_energy);
+        if((*it)->type() == (int) NormalNode){
+            temp_energy += ((*it)->eCation() + (*it)->UcCnNh()-av_ho_energy)*((*it)->eCation() + (*it)->UcCnNh()-av_ho_energy);
+        }
     }
     
     stddev_energy = sqrt(temp_energy/this->Numberofnodes());
@@ -907,7 +912,9 @@ double GraphKMC::Average_electron_node_energy()
     typename std::vector<NodeDevice*>:: iterator it;
     for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) 
     {
-        elect_energy += (*it)->eAnion() + (*it)->UcCnNe();
+        if((*it)->type() == (int) NormalNode){
+            elect_energy += (*it)->eAnion() + (*it)->UcCnNe();
+        }
     }
     
     av_elect_energy = elect_energy/this->Numberofnodes();
@@ -923,7 +930,9 @@ double GraphKMC::stddev_electron_node_energy()
     typename std::vector<NodeDevice*>:: iterator it;
     for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) 
     {
-        temp_energy += ((*it)->eAnion() + (*it)->UcCnNe()-av_el_energy)*((*it)->eAnion() + (*it)->UcCnNe()-av_el_energy);
+        if((*it)->type() == (int) NormalNode){
+            temp_energy += ((*it)->eAnion() + (*it)->UcCnNe()-av_el_energy)*((*it)->eAnion() + (*it)->UcCnNe()-av_el_energy);
+        }
     }
     
     stddev_energy = sqrt(temp_energy/this->Numberofnodes());

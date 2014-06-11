@@ -81,20 +81,20 @@ void Visualisation::Update_visualisation(Event* event)
         int mesh1_pos_x = floor(node1_pos.x()/viz_size_x); int mesh1_pos_y = floor(node1_pos.y()/viz_size_y); int mesh1_pos_z = floor(node1_pos.z()/viz_size_z);
         int mesh2_pos_x = floor(node2_pos.x()/viz_size_x); int mesh2_pos_y = floor(node2_pos.y()/viz_size_y); int mesh2_pos_z = floor(node2_pos.z()/viz_size_z);
 
-        if(node1_pos.x() < node2_pos.x()) {
+        if(node1_pos.z() < node2_pos.z()) {
             if(!(((mesh1_pos_x == mesh2_pos_x)&&(mesh1_pos_y == mesh2_pos_y))&&(mesh1_pos_z == mesh2_pos_z))) {
                 viz_mesh[mesh1_pos_x][mesh1_pos_y][mesh1_pos_z]+=1.0;
                 viz_mesh[mesh2_pos_x][mesh2_pos_y][mesh2_pos_z]+=1.0;
-                layer_cur[mesh1_pos_x] += 1.0;
-                layer_cur[mesh2_pos_x] += 1.0;
+                layer_cur[mesh1_pos_z] += 1.0;
+                layer_cur[mesh2_pos_z] += 1.0;
             }
         }
-        if(node1_pos.x() > node2_pos.x()) {
+        if(node1_pos.z() > node2_pos.z()) {
             if(!(((mesh1_pos_x == mesh2_pos_x)&&(mesh1_pos_y == mesh2_pos_y))&&(mesh1_pos_z == mesh2_pos_z))) {
                 viz_mesh[mesh1_pos_x][mesh1_pos_y][mesh1_pos_z]-=1.0;
                 viz_mesh[mesh2_pos_x][mesh2_pos_y][mesh2_pos_z]-=1.0;
-                layer_cur[mesh1_pos_x] -= 1.0;
-                layer_cur[mesh2_pos_x] -= 1.0;
+                layer_cur[mesh1_pos_z] -= 1.0;
+                layer_cur[mesh2_pos_z] -= 1.0;
             }
         }
     }
@@ -107,13 +107,13 @@ void Visualisation::Print_visualisation()
             for(int iz=0; iz < viz_meshnr_z; iz++) {
                
                if(num_mesh[ix][iy][iz] == 0) num_mesh[ix][iy][iz] = 1;
-               if(layer_num[ix] == 0) layer_num[ix] = 1;
+               if(layer_num[iz] == 0) layer_num[iz] = 1;
                
                double value;
                double layer_value;
 
                value = viz_mesh[ix][iy][iz]/(1.0*num_mesh[ix][iy][iz]);
-               layer_value = layer_cur[ix]/(1.0*layer_num[ix]);
+               layer_value = layer_cur[iz]/(1.0*layer_num[iz]);
                
                double current = value/layer_value;
                viz_stream << ix << " " << iy << " " << iz << " " << current << "\n";
@@ -125,9 +125,9 @@ void Visualisation::Print_visualisation()
 
 void Visualisation::Init_layers()
 {
-    layer_cur.resize(viz_meshnr_x);
-    layer_num.resize(viz_meshnr_x);
-    for(int i=0;i<viz_meshnr_x;i++){
+    layer_cur.resize(viz_meshnr_z);
+    layer_num.resize(viz_meshnr_z);
+    for(int i=0;i<viz_meshnr_z;i++){
         layer_cur[i]=0.0;
         layer_num[i]=0;
     }    
@@ -162,7 +162,7 @@ void Visualisation::Init_node_numbers(GraphKMC* graph)
             int mesh_pos_y = floor(position.y()/viz_size_y);
             int mesh_pos_z = floor(position.z()/viz_size_z);
             num_mesh[mesh_pos_x][mesh_pos_y][mesh_pos_z]++;
-            layer_num[mesh_pos_x]++;
+            layer_num[mesh_pos_z]++;
         }
     }   
 }

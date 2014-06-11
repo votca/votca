@@ -82,28 +82,28 @@ private:
     
 };
 
-void NodeDevice::Compute_Self_Image_Coulomb_Potential(double startx, double device_length, Eventinfo* eventinfo) {
+void NodeDevice::Compute_Self_Image_Coulomb_Potential(double startz, double device_length, Eventinfo* eventinfo) {
 
     double coulpot = 0.0;
     double L = device_length;
       
     double sign;
-    double distx_1;
-    double distx_2;
+    double distz_1;
+    double distz_2;
       
     for (int i=0;i<eventinfo->number_short_range_images; i++) {
         if (div(i,2).rem==0) { // even generation
             sign = -1.0;
-            distx_1 = i*L + 2*startx;
-            distx_2 = (i+2)*L - 2*startx; 
+            distz_1 = i*L + 2*startz;
+            distz_2 = (i+2)*L - 2*startz; 
         }
         else { // odd generation
             sign = 1.0;
-            distx_1 = (i+1)*L;
-            distx_2 = (i+1)*L;
+            distz_1 = (i+1)*L;
+            distz_2 = (i+1)*L;
         }
-        coulpot += sign*1.0/distx_1;
-        coulpot += sign*1.0/distx_2;
+        coulpot += sign*1.0/distz_1;
+        coulpot += sign*1.0/distz_2;
     }
     _self_image = coulpot;    
 }

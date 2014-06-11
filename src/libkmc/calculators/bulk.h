@@ -201,7 +201,7 @@ void Bulk::RunKMC() {
     if(eventinfo->filament_visualisation)  numoutput->Init_visualisation(graph, eventinfo);
     if(eventinfo->carrier_trajectory) eventinfo->number_of_equilibration_steps = 0;    
     
-    std::cout << "total link x distance : " << graph->total_link_distance_x() << "\n";
+    std::cout << "total link z distance : " << graph->total_link_distance_z() << "\n";
     std::cout << "average hole site energy : " << eventinfo->avholeenergy << "\n";
     std::cout << "average electron site energy : " << eventinfo->avelectronenergy << "\n"; 
     std::cout << "standard deviation (disorder strength) of hole site energies: " << graph->stddev_hole_node_energy() << "\n";

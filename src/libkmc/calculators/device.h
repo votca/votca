@@ -99,10 +99,10 @@ void Device::Initialize(const char *filename, Property *options, const char *out
     std::cout << "simulation box size before graph manipulations: " << graph->Determine_Sim_Box_Size() << "\n";
     
     graph->Setup_device_graph(eventinfo);
-   
+      
     eventinfo->Graph_Parameters(graph->hopdist(), graph->mindist(), graph->simboxsize(), graph->maxpairdegree(),graph->Average_hole_node_energy(), graph->Average_electron_node_energy(), graph-> Hole_inject_reorg(), graph->Electron_inject_reorg());
-    eventinfo->Set_field(eventinfo->voltage); 
-    
+    eventinfo->Set_field(); 
+
     std::cout << "graph object initialized" << "\n";
     std::cout << "max pair degree: " << graph->maxpairdegree() << "\n";
     std::cout << "hopping distance: " << graph->hopdist() << "\n";
@@ -112,7 +112,7 @@ void Device::Initialize(const char *filename, Property *options, const char *out
         std::cout << "number of right electrode injector nodes " << graph->right()->links().size() << "\n";
     }
     std::cout << "number of nodes " << graph->Numberofnodes() << "\n";
-    std::cout << "set potential bias is " << eventinfo->voltage << " resulting in a linear electric field of " << eventinfo->efield_x << "V/nm" << "\n";
+    std::cout << "set potential bias is " << eventinfo->voltage << " resulting in a linear electric field of " << eventinfo->efield_z << "V/nm" << "\n";
     
     longrange = new Longrange(graph,eventinfo);
     if(eventinfo->longrange_slab) longrange->Initialize_slab(graph,eventinfo);
@@ -222,7 +222,7 @@ void Device::RunKMC() {
     int direct_iv_counter = 0; //if the convergence criterium is counted ten times in a row, result is converged
     int direct_reco_counter = 0;
 
-    std::cout << "total link x distance : " << graph->total_link_distance_x() << "\n";
+    std::cout << "total link z distance : " << graph->total_link_distance_z() << "\n";
     std::cout << "average hole site energy : " << eventinfo->avholeenergy << "\n";
     std::cout << "average electron site energy : " << eventinfo->avelectronenergy << "\n"; 
     std::cout << "standard deviation of hole site energies: " << graph->stddev_hole_node_energy() << "\n";
