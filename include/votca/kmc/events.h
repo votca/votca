@@ -300,7 +300,7 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierBulk* c
 
         double RCSQR = eventinfo->coulomb_cut_off_radius*eventinfo->coulomb_cut_off_radius;
 
-        if(eventinfo->device) longrange->Add_charge(interact_sign, dynamic_cast<NodeDevice*>(node)->layer());
+        if(eventinfo->device) longrange->Add_charge(1.0*interact_sign, dynamic_cast<NodeDevice*>(node)->layer());
 
         votca::tools::vec carrier1_pos = node->position();
 

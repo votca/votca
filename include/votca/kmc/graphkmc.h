@@ -219,6 +219,8 @@ void GraphKMC::Setup_device_graph(Eventinfo* eventinfo)
     this->Push_in_box();
     this->Determine_cross_types();
 
+    _sim_box_size = this->Determine_Sim_Box_Size();
+    
     // Resize by copying the box (crossing types are changed by this operation, so re-evaluate, which is done during determination of simulation box size)
     if(eventinfo->resize_morphology) 
     {
@@ -236,11 +238,10 @@ void GraphKMC::Setup_device_graph(Eventinfo* eventinfo)
     this->Translate_graph(0.0, 0.0, eventinfo->left_electrode_distance);    
 
     // adjust simulation box size accordingly to given electrode distances
- 
     votca::tools::vec old_sim_box_size = _sim_box_size;
     double new_sim_box_sizeZ = old_sim_box_size.z() + eventinfo->left_electrode_distance + eventinfo->right_electrode_distance;
      _sim_box_size =  votca::tools::vec(old_sim_box_size.x(), old_sim_box_size.y(), new_sim_box_sizeZ);
-     
+   
     // set node types for existing nodes as Normal
     this->Initialize_node_types();
  
@@ -249,16 +250,16 @@ void GraphKMC::Setup_device_graph(Eventinfo* eventinfo)
 
     // determine minimum hopping distance
     _min_distance = this->Determine_Minimum_Distance();
-    
+   
     // determine sum of r12.x
     _total_link_distance_z = this->Sum_of_link_distances_z();
-    
+  
     // associate links in links vector with the corresponding nodes
     this->LinkSort();
   
     // determine maximum degree of graph
     _max_pair_degree = this->Determine_Max_Pair_Degree();
-  
+ 
     // Set the self-image coulomb potential on every node
     this->Set_Self_Image_Coulomb_Potential(_sim_box_size.z(), eventinfo);
 
@@ -366,7 +367,7 @@ votca::tools::vec GraphKMC::Determine_Sim_Box_Size()
     }
     
     //for the possible outcome that none of the pairs are crossing the simulation box boundary
-    if(!pairXfound) {simX = maxX-minX;}
+    if(!pairXfound) {simX = maxX-minX; std::cout << "non-periodic in x direction" << endl;}
     if(!pairYfound) {simY = maxY-minY;}
     if(!pairZfound) {simZ = maxZ-minZ;}
 
@@ -481,7 +482,12 @@ void GraphKMC::Resize(double dimX, bool breakX, double dimY, bool breakY, double
     int repeatX = ceil(dimX/_sim_box_size.x());
     int repeatY = ceil(dimY/_sim_box_size.y());
     int repeatZ = ceil(dimZ/_sim_box_size.z());
- 
+    
+    if(dimX == _sim_box_size.x()) repeatX = 1;
+    if(dimY == _sim_box_size.y()) repeatY = 1;
+    if(dimZ == _sim_box_size.z()) repeatZ = 1;
+    
+    
     int number_of_nodes = this->Numberofnodes();
 
     // repeat nodes
@@ -530,7 +536,6 @@ void GraphKMC::Resize(double dimX, bool breakX, double dimY, bool breakY, double
     // repeat links
     
     long number_of_links = this->Numberoflinks();
-    
     for(long ilink = number_of_links - 1; ilink >= 0; ilink--) 
     {
         LinkDevice* probelink = this->GetLink(ilink);
@@ -539,7 +544,7 @@ void GraphKMC::Resize(double dimX, bool breakX, double dimY, bool breakY, double
         int node2_id = probelink->node2()->id();
         NodeDevice* node1 = this->GetNode(node1_id);
         NodeDevice* node2 = this->GetNode(node2_id);
-
+ 
         votca::tools::vec link_r12 = probelink->r12();
 
         int lx; int ly; int lz;
@@ -630,7 +635,7 @@ void GraphKMC::Resize(double dimX, bool breakX, double dimY, bool breakY, double
         if(crossztype == (int) NozCross)  { lz = 0;                                                                   }
         if(crossztype == (int) PoszCross) { lz = 1;         if(repeatZ == 1) {lz = 0; if(breakZ) {break_link = true;}}}
         if(crossztype == (int) NegzCross) { lz = repeatY-1; if(repeatZ == 1) {lz = 0;} if(breakZ) {break_link = true;}}
-        
+     
         votca::tools::vec pos1 = node1->position();
         double xpos1 = pos1.x(); double ypos1 = pos1.y(); double zpos1 = pos1.z();       
 
@@ -638,24 +643,24 @@ void GraphKMC::Resize(double dimX, bool breakX, double dimY, bool breakY, double
         double xpos2 = pos2.x(); double ypos2 = pos2.y(); double zpos2 = pos2.z();
         
         if(breakX && (xpos1 > dimX || xpos2 > dimX) ) { break_link = true; }
-        if(breakY && (ypos1 > dimY || xpos2 > dimX) ) { break_link = true; }
-        if(breakZ && (zpos1 > dimZ || xpos2 > dimX) ) { break_link = true; }           
+        if(breakY && (ypos1 > dimY || ypos2 > dimY) ) { break_link = true; }
+        if(breakZ && (zpos1 > dimZ || zpos2 > dimZ) ) { break_link = true; }           
 
         int new_node1_id = node1_id;       
         int new_node2_id = node2_id + (lz+ly*repeatZ+lx*repeatY*repeatZ)*number_of_nodes;
-        
-        NodeDevice* new_node1 = this->GetNode(new_node1_id);
-        NodeDevice* new_node2 = this->GetNode(new_node2_id);
+
+        Node* new_node1 = this->GetNode(new_node1_id);
+        Node* new_node2 = this->GetNode(new_node2_id);
 
         votca::tools::vec newpos1 = new_node1->position();
         double newxpos1 = newpos1.x(); double newypos1 = newpos1.y(); double newzpos1 = newpos1.z();       
 
         votca::tools::vec newpos2 = new_node2->position();
         double newxpos2 = newpos2.x(); double newypos2 = newpos2.y(); double newzpos2 = newpos2.z();
-        
+
         if(breakX && (newxpos1 > dimX || newxpos2 > dimX) ) { break_link = true; }
-        if(breakY && (newypos1 > dimY || newxpos2 > dimX) ) { break_link = true; }
-        if(breakZ && (newzpos1 > dimZ || newxpos2 > dimX) ) { break_link = true; } 
+        if(breakY && (newypos1 > dimY || newypos2 > dimY) ) { break_link = true; }
+        if(breakZ && (newzpos1 > dimZ || newzpos2 > dimZ) ) { break_link = true; } 
         
         if(!break_link) 
         {
@@ -667,7 +672,7 @@ void GraphKMC::Resize(double dimX, bool breakX, double dimY, bool breakY, double
             this->RemoveLink(ilink);            
         }
     }
-    
+   
     // remove nodes which fall outside of the simulation box
     
     for(int it = this->_nodes.size()-1; it >= 0; it--) 
@@ -688,7 +693,8 @@ void GraphKMC::Resize(double dimX, bool breakX, double dimY, bool breakY, double
             this->RemoveNode(it);
             delete inode;
         }
-   }        
+   }  
+
 }
 
 void GraphKMC::Break_periodicity(bool break_x, bool break_y, bool break_z)
@@ -971,6 +977,7 @@ double GraphKMC::Hole_inject_reorg()
     {
         Node* node1 = (*it)->node1();
         Node* node2 = (*it)->node2();
+
         if(node1->type() == (int) NormalNode && node2->type() == (int) NormalNode) {
             temp_reorg = dynamic_cast<NodeSQL*>((*it)->node1())->UnCnNh() + dynamic_cast<NodeSQL*>((*it)->node2())->UcNcCh() + (*it)->lOh();
             hole_reorg += temp_reorg;

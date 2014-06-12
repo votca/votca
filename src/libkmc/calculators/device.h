@@ -99,7 +99,7 @@ void Device::Initialize(const char *filename, Property *options, const char *out
     std::cout << "simulation box size before graph manipulations: " << graph->Determine_Sim_Box_Size() << "\n";
     
     graph->Setup_device_graph(eventinfo);
-      
+    
     eventinfo->Graph_Parameters(graph->hopdist(), graph->mindist(), graph->simboxsize(), graph->maxpairdegree(),graph->Average_hole_node_energy(), graph->Average_electron_node_energy(), graph-> Hole_inject_reorg(), graph->Electron_inject_reorg());
     eventinfo->Set_field(); 
 
@@ -285,7 +285,7 @@ void Device::RunKMC() {
                 std::cout << "charge profile (it = " << it << " )" << "\n";
             
                 for(int i =0; i< eventinfo->number_of_layers; i++) {
-                    std::cout << longrange->Get_cached_density(i) << " ";
+                    std::cout << longrange->Get_cached_density(i, eventinfo) << " ";
                 }
                 std::cout << "\n";
                 std::cout << "\n";
