@@ -186,32 +186,18 @@ public:
         }
     }
     
-    void Graph_Parameters(double graph_hopdist, double graph_mindist, votca::tools::vec graph_simboxsize, int graph_maxpairdegree, double av_ho_energy, double av_elect_energy, double hole_inject_reorg, double electron_inject_reorg) 
+    void Graph_Parameters(double graph_hopdist, double av_dist, double graph_mindist, votca::tools::vec graph_simboxsize, int graph_maxpairdegree, double av_ho_energy, double av_elect_energy, double hole_inject_reorg, double electron_inject_reorg) 
     {
-        std::cout << "deze?" << endl;
+        left_electrode_distance = av_dist;
+        right_electrode_distance = av_dist;
         hopdist = graph_hopdist;
-          std::cout << "deze?" << endl;
-
         mindist = graph_mindist;
-                std::cout << "deze?" << endl;
-
         simboxsize = graph_simboxsize;
-                std::cout << "deze?" << endl;
-
         maxpairdegree = graph_maxpairdegree;
-                std::cout << "deze?" << endl;
-
         avholeenergy = av_ho_energy;
-                std::cout << "deze?" << endl;
-
         avelectronenergy = av_elect_energy;
-                std::cout << "deze?" << endl;
-
         hole_injection_reorg = hole_inject_reorg;
-                std::cout << "deze?" << endl;
-
         electron_injection_reorg = electron_inject_reorg;
-            std::cout << "deze?" << endl;
 
     }
     

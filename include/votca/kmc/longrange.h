@@ -476,7 +476,7 @@ double Longrange::Calculate_longrange(int layer, bool cut_out_discs,Eventinfo* e
     
     for(int i=0; i<layer; i++) {
         if(!this->emptylayer(i)) {
-            double charge_i = 1.0*_layercharge[i]/(this->number_of_nodes(i));
+            double charge_i = 1.0*_layercharge[i]/(eventinfo->simboxsize.x()*eventinfo->simboxsize.y());
             double position_i = 1.0*this->position(i);
             plate_contrib1 += position_i*charge_i; // potential of a charged plate between two electrodes
 
@@ -494,7 +494,7 @@ double Longrange::Calculate_longrange(int layer, bool cut_out_discs,Eventinfo* e
     
     for(int i=layer; i<eventinfo->number_of_layers; i++) {
         if(!this->emptylayer(i)) {
-            double charge_i = 1.0*_layercharge[i]/(this->number_of_nodes(i));
+            double charge_i = 1.0*_layercharge[i]/(eventinfo->simboxsize.x()*eventinfo->simboxsize.y());
             double rel_position_i = 1.0*(eventinfo->simboxsize.z()-this->position(i));
             plate_contrib2 += rel_position_i*charge_i; // potential of a charged plate between two electrodes
 

@@ -392,18 +392,13 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierBulk* c
                                     votca::tools::vec jumpdistance = np_carrier2_pos-jump_from_carrier1_pos;
                                     double distancejumpsqr = abs(jumpdistance)*abs(jumpdistance);
 
-                                    if(distancejumpsqr <= RCSQR && distancesqr <= RCSQR) { // makes sure the charge and hopped to charge are in the sphere
+                                    if(distancejumpsqr <= RCSQR) { // makes sure the charge and hopped to charge are in the sphere
                                         if (node->links()[it]->node2()->id() != carrier2_node->id()) { // coulomb interaction on equal nodes lead to zero distance vector (fixed by exciton binding energy)
                                             carrier1->Add_to_Coulomb(interact_sign*Compute_Coulomb_potential(np_carrier2_pos.z(),-1.0*jumpdistance, true, eventinfo->simboxsize, eventinfo),it);
                                         }
                                         else {
                                             carrier1->Add_to_Coulomb(interact_sign*Compute_Coulomb_potential(np_carrier2_pos.z(),-1.0*jumpdistance, false, eventinfo->simboxsize, eventinfo),it);
                                         }
-                                    }
-                                    else if(distancejumpsqr <=RCSQR) { // RC correction
-                                        double RC_to = Compute_Coulomb_potential(np_carrier2_pos.z(),-1.0*jumpdistance, true, eventinfo->simboxsize, eventinfo);
-                                        double RC_from = Compute_Coulomb_potential(np_carrier2_pos.z(),-1.0*distance, true, eventinfo->simboxsize,eventinfo);
-                                        carrier1->Add_to_Coulomb(interact_sign*(RC_to-RC_from),it);
                                     }
                                 }
                             }
@@ -417,20 +412,12 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierBulk* c
                                 if(distancejumpsqr <= RCSQR) {
 
                                     int event_ID = carrier2->id()*eventinfo->maxpairdegree + it;
-                                    if(distancesqr <= RCSQR) {
-                                        if(carrier2_node->links()[it]->node2()->id() == node->id()) {
-                                            carrier2->Add_to_Coulomb(interact_sign*Compute_Coulomb_potential(carrier1_pos.z(),jumpdistance,false,eventinfo->simboxsize, eventinfo), it);
-                                            _non_injection_events[event_ID]->Set_event(carrier2_node->links()[it], carrier2_type, state, longrange, eventinfo); // if carrier2 is actually linking with carrier1
-                                        }
-                                        else {
-                                            carrier2->Add_to_Coulomb(interact_sign*Compute_Coulomb_potential(carrier1_pos.z(),jumpdistance,true,eventinfo->simboxsize, eventinfo), it);
-                                            _non_injection_events[event_ID]->Determine_rate(state, longrange, eventinfo);
-                                        }
+                                    if(carrier2_node->links()[it]->node2()->id() == node->id()) {
+                                        carrier2->Add_to_Coulomb(interact_sign*Compute_Coulomb_potential(carrier1_pos.z(),jumpdistance,false,eventinfo->simboxsize, eventinfo), it);
+                                        _non_injection_events[event_ID]->Set_event(carrier2_node->links()[it], carrier2_type, state, longrange, eventinfo); // if carrier2 is actually linking with carrier1
                                     }
                                     else {
-                                        double RC_to = Compute_Coulomb_potential(carrier1_pos.z(),jumpdistance,true,eventinfo->simboxsize, eventinfo);
-                                        double RC_from = Compute_Coulomb_potential(carrier1_pos.z(),distance, true, eventinfo->simboxsize,eventinfo);
-                                        carrier2->Add_to_Coulomb(interact_sign*(RC_to-RC_from),it);                                    
+                                        carrier2->Add_to_Coulomb(interact_sign*Compute_Coulomb_potential(carrier1_pos.z(),jumpdistance,true,eventinfo->simboxsize, eventinfo), it);
                                         _non_injection_events[event_ID]->Determine_rate(state, longrange, eventinfo);
                                     }
                                     non_injection_rates->setrate(event_ID,_non_injection_events[event_ID]->rate());

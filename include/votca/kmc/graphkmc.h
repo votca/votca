@@ -44,6 +44,8 @@ public:
     /// hopping distance
     const double &hopdist() const { return _hop_distance; }
     
+    const double &avdist() const { return _av_distance; }
+    
     /// minimum distance
     const double &mindist() const { return _min_distance; }
 
@@ -84,6 +86,9 @@ private:
 
     ///calculate hopping_distance (maximum distance between a pair of nodes) ... needed for injection and coulomb potential calculations
     double Determine_Hopping_Distance();    
+    
+    ///calculate average distance
+    double Determine_Average_Distance(Eventinfo* eventinfo);
  
     ///calculate minimum distance (minimum distance between a pair of nodes)
     double Determine_Minimum_Distance();    
@@ -136,6 +141,7 @@ private:
     int _max_pair_degree;
     
     double _hop_distance;
+    double _av_distance;
     double _min_distance;
     
     votca::tools::vec _sim_box_size;
@@ -152,9 +158,14 @@ void GraphKMC::Setup_bulk_graph( Eventinfo* eventinfo)
 
     // Determine hopping distance
     _hop_distance = this->Determine_Hopping_Distance();
-    
+ 
     // Detemine simulation box size
-    _sim_box_size = this->Determine_Sim_Box_Size();            
+    _sim_box_size = this->Determine_Sim_Box_Size();    
+    
+//    _av_distance = this->Determine_Minimum_Distance();
+    _av_distance = eventinfo->left_electrode_distance;
+    
+        
 
     // Translate the graph due to the spatial location of the electrodes and update system box size accordingly, putting the left electrode at x = 0
     // left_electrode_distance is the distance of the left electrode to the node with minimum x-coordinate
@@ -202,10 +213,18 @@ void GraphKMC::Setup_device_graph(Eventinfo* eventinfo)
 {
     // Determine hopping distance before breaking periodicity
     _hop_distance = this->Determine_Hopping_Distance();
+
+    // Detemine simulation box size
+    _sim_box_size = this->Determine_Sim_Box_Size();    
+    
+//    _av_distance = this->Determine_Minimum_Distance();
+    _av_distance = eventinfo->left_electrode_distance;
+    std::cout << "average distance is: " << _av_distance << endl;
+    
     
     // Make sure injection hops are possible
-    if(eventinfo->left_electrode_distance > _hop_distance) {_hop_distance = eventinfo->left_electrode_distance;}
-    if(eventinfo->right_electrode_distance > _hop_distance) {_hop_distance = eventinfo->right_electrode_distance;}
+    if(_av_distance > _hop_distance) {_hop_distance = _av_distance;}
+    if(_av_distance > _hop_distance) {_hop_distance = _av_distance;}
     
     // Determine simulation box size
     _sim_box_size = this->Determine_Sim_Box_Size();
@@ -224,7 +243,7 @@ void GraphKMC::Setup_device_graph(Eventinfo* eventinfo)
     // Resize by copying the box (crossing types are changed by this operation, so re-evaluate, which is done during determination of simulation box size)
     if(eventinfo->resize_morphology) 
     {
-        this->Resize(eventinfo->size_x,false, eventinfo->size_y,false, eventinfo->size_z-eventinfo->left_electrode_distance - eventinfo->right_electrode_distance, true); 
+        this->Resize(eventinfo->size_x,false, eventinfo->size_y,false, eventinfo->size_z-2*_av_distance, true); 
     }
     else
     {
@@ -235,11 +254,11 @@ void GraphKMC::Setup_device_graph(Eventinfo* eventinfo)
     _sim_box_size = this->Determine_Sim_Box_Size();
     
     // Translate graph to accomodate for device geometry
-    this->Translate_graph(0.0, 0.0, eventinfo->left_electrode_distance);    
+    this->Translate_graph(0.0, 0.0, _av_distance);    
 
     // adjust simulation box size accordingly to given electrode distances
     votca::tools::vec old_sim_box_size = _sim_box_size;
-    double new_sim_box_sizeZ = old_sim_box_size.z() + eventinfo->left_electrode_distance + eventinfo->right_electrode_distance;
+    double new_sim_box_sizeZ = old_sim_box_size.z() + 2*_av_distance;
      _sim_box_size =  votca::tools::vec(old_sim_box_size.x(), old_sim_box_size.y(), new_sim_box_sizeZ);
    
     // set node types for existing nodes as Normal
@@ -287,6 +306,27 @@ double GraphKMC::Determine_Hopping_Distance()
     }
     
     return hop_distance;
+}
+
+double GraphKMC::Determine_Average_Distance(Eventinfo* eventinfo)
+{
+    double av_distance = 0.0;
+    int linkcount = 0;
+    double average;
+    
+    typename std::vector<LinkDevice*>::iterator it;    
+    for(it = this->_links.begin(); it != this->_links.end(); it++) 
+    {
+        if((*it)->Jeff2h() != 0.0) {
+            double logjeff = log10((*it)->Jeff2h());
+            std::cout << logjeff << " " << (*it)->Jeff2h() << endl;
+            av_distance += -1.0*logjeff/(2.0*eventinfo->alpha);
+            linkcount++;
+        }
+    }
+    
+    average = av_distance/linkcount;
+    return average;
 }
 
 double GraphKMC::Determine_Minimum_Distance()
@@ -815,8 +855,8 @@ void GraphKMC::Set_Layer_indices(Eventinfo* eventinfo)
         votca::tools::vec pos = (*it)->position();
         double posz = pos.z();
         
-        double layersize = (_sim_box_size.z()-eventinfo->left_electrode_distance - eventinfo->right_electrode_distance)/eventinfo->number_of_layers;
-        int iposz = floor((posz-eventinfo->left_electrode_distance)/layersize);
+        double layersize = (_sim_box_size.z()-2*_av_distance)/eventinfo->number_of_layers;
+        int iposz = floor((posz-_av_distance)/layersize);
         if(iposz == eventinfo->number_of_layers) iposz = eventinfo->number_of_layers - 1;
         
         (*it)->setLayer(iposz);

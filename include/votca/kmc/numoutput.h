@@ -148,7 +148,7 @@ void Numoutput::Init_convergence_check(double simtime) {
 
 void Numoutput::Convergence_check(double simtime, Eventinfo* eventinfo) {
     
-    if (fabs(_vel_z/simtime-_vz_old)/_vz_old < 0.05)               { _direct_iv_counter++;  } else { _direct_iv_counter = 0;  }
+    if (fabs(_vel_z/simtime-_vz_old)/_vz_old < 0.05 && _vel_z > 0.0)               { _direct_iv_counter++;  } else { _direct_iv_counter = 0;  }
     if (fabs(_nrecombinations/simtime-_reco_old)/_reco_old < 0.05) { _direct_reco_counter++;} else { _direct_reco_counter = 0;}
 
     if(_direct_iv_counter >= eventinfo->number_direct_conv_iv) {_direct_iv_convergence = true;}

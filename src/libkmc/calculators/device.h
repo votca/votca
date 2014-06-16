@@ -100,12 +100,14 @@ void Device::Initialize(const char *filename, Property *options, const char *out
     
     graph->Setup_device_graph(eventinfo);
     
-    eventinfo->Graph_Parameters(graph->hopdist(), graph->mindist(), graph->simboxsize(), graph->maxpairdegree(),graph->Average_hole_node_energy(), graph->Average_electron_node_energy(), graph-> Hole_inject_reorg(), graph->Electron_inject_reorg());
+    eventinfo->Graph_Parameters(graph->hopdist(), graph->avdist(), graph->mindist(), graph->simboxsize(), graph->maxpairdegree(),graph->Average_hole_node_energy(), graph->Average_electron_node_energy(), graph-> Hole_inject_reorg(), graph->Electron_inject_reorg());
     eventinfo->Set_field(); 
 
     std::cout << "graph object initialized" << "\n";
     std::cout << "max pair degree: " << graph->maxpairdegree() << "\n";
     std::cout << "hopping distance: " << graph->hopdist() << "\n";
+    std::cout << "electrode distance: " << eventinfo->left_electrode_distance << "\n";
+    std::cout << "minimum distance: " << graph->mindist() << "\n";
     std::cout << "simulation box size: " << graph->simboxsize() << "\n";
     if(eventinfo->device > 0) {
         std::cout << "number of left electrode injector nodes " << graph->left()->links().size() << "\n";
@@ -239,7 +241,7 @@ void Device::RunKMC() {
     
     sim_time = 0.0;
     for (long it = 0; it < 2*eventinfo->number_of_equilibration_steps + eventinfo->number_of_steps; it++) {
-
+        
         if(ldiv(it, eventinfo->timesteps_update_longrange).rem == 0 && it>0){
             if(eventinfo->longrange_slab) longrange->Update_cache_slab(graph,eventinfo);
             else                          longrange->Update_cache(eventinfo);
@@ -293,13 +295,13 @@ void Device::RunKMC() {
             
             if(eventinfo->write_potential_profile)
             {
-                std::cout << "(average) potential profile (it = " << it << " )" << "\n";
+             /*   std::cout << "(average) potential profile (it = " << it << " )" << "\n";
                 
                 for(int i =0; i< eventinfo->number_of_layers; i++) {
                     std::cout << longrange->Get_layer_averaged_cached_longrange_slab(i) << " ";
                 }
                 std::cout << "\n";
-                std::cout << "\n";
+                std::cout << "\n";*/
             }
         }
         

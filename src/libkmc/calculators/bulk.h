@@ -96,7 +96,7 @@ void Bulk::Initialize(const char *filename, Property *options, const char *outpu
     
     graph->Setup_bulk_graph(eventinfo);
    
-    eventinfo->Graph_Parameters(graph->hopdist(), graph->mindist(), graph->simboxsize(), graph->maxpairdegree(),graph->Average_hole_node_energy(), graph->Average_electron_node_energy(), graph-> Hole_inject_reorg(), graph->Electron_inject_reorg());
+    eventinfo->Graph_Parameters(graph->hopdist(), graph->mindist(), graph->mindist(), graph->simboxsize(), graph->maxpairdegree(),graph->Average_hole_node_energy(), graph->Average_electron_node_energy(), graph-> Hole_inject_reorg(), graph->Electron_inject_reorg());
     
     std::cout << "graph object initialized" << "\n";
     std::cout << "max pair degree: " << graph->maxpairdegree() << "\n";
