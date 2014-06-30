@@ -142,7 +142,9 @@ private:
     
     double _hop_distance;
     double _av_distance;
+    double _av_alpha;
     double _min_distance;
+    double _av_el_distance;
     
     votca::tools::vec _sim_box_size;
 
@@ -164,8 +166,9 @@ void GraphKMC::Setup_bulk_graph( Eventinfo* eventinfo)
     
 //    _av_distance = this->Determine_Minimum_Distance();
     _av_distance = eventinfo->left_electrode_distance;
-    
-        
+    _av_alpha = this->Determine_Average_Distance(eventinfo);
+    std::cout << "alpha " << _av_alpha << endl;
+//    eventinfo->setalpha(_av_alpha);        
 
     // Translate the graph due to the spatial location of the electrodes and update system box size accordingly, putting the left electrode at x = 0
     // left_electrode_distance is the distance of the left electrode to the node with minimum x-coordinate
@@ -219,7 +222,7 @@ void GraphKMC::Setup_device_graph(Eventinfo* eventinfo)
     
 //    _av_distance = this->Determine_Minimum_Distance();
     _av_distance = eventinfo->left_electrode_distance;
-    std::cout << "average distance is: " << _av_distance << endl;
+ 
     
     
     // Make sure injection hops are possible
@@ -228,6 +231,7 @@ void GraphKMC::Setup_device_graph(Eventinfo* eventinfo)
     
     // Determine simulation box size
     _sim_box_size = this->Determine_Sim_Box_Size();
+    std::cout << _sim_box_size << endl;
     // Translate the graph due to the spatial location of the electrodes and update system box size accordingly, putting the left electrode at x = 0
     // left_electrode_distance is the distance of the left electrode to the node with minimum x-coordinate
     // distance by which the graph should be translated is left_electrode_distance - minX
@@ -272,7 +276,11 @@ void GraphKMC::Setup_device_graph(Eventinfo* eventinfo)
    
     // determine sum of r12.x
     _total_link_distance_z = this->Sum_of_link_distances_z();
-  
+
+    _av_alpha = this->Determine_Average_Distance(eventinfo);
+    std::cout << "alpha " << _av_alpha << endl;
+//    eventinfo->setalpha(_av_alpha);        
+    
     // associate links in links vector with the corresponding nodes
     this->LinkSort();
   
@@ -290,7 +298,7 @@ void GraphKMC::Setup_device_graph(Eventinfo* eventinfo)
 
     // renumber link id's
     this->Renumber_id(); 
-
+   
 }
 
 double GraphKMC::Determine_Hopping_Distance()
@@ -317,15 +325,18 @@ double GraphKMC::Determine_Average_Distance(Eventinfo* eventinfo)
     typename std::vector<LinkDevice*>::iterator it;    
     for(it = this->_links.begin(); it != this->_links.end(); it++) 
     {
-        if((*it)->Jeff2h() != 0.0) {
-            double logjeff = log10((*it)->Jeff2h());
-            std::cout << logjeff << " " << (*it)->Jeff2h() << endl;
-            av_distance += -1.0*logjeff/(2.0*eventinfo->alpha);
-            linkcount++;
+        if((*it)->node1()->type() == (int) NormalNode && (*it)->node2()->type() == (int) NormalNode) {
+            if((*it)->Jeff2h() != 0.0) {
+                double logjeff = log((*it)->Jeff2h());
+                double dist = abs((*it)->r12());
+                av_distance += -1.0*logjeff/_av_el_distance;
+                linkcount++;
+            }
         }
     }
     
     average = av_distance/linkcount;
+    std::cout << "av " << average << endl;
     return average;
 }
 
@@ -490,6 +501,7 @@ void GraphKMC::Put_at_zero_graph()
     double ytranslate = -1.0*minY;
     double ztranslate = -1.0*minZ;
 
+    std::cout << "transl " << xtranslate << " " << ytranslate << " " << ztranslate << endl; 
     this->Translate_graph(xtranslate,ytranslate,ztranslate);
 }
 
@@ -505,12 +517,12 @@ void GraphKMC::Push_in_box()
         
         double newxpos = pos.x(); double newypos = pos.y(); double newzpos = pos.z();
         
-        while(newxpos>_sim_box_size.x()) { newxpos -= _sim_box_size.x(); }
-        while(newxpos<0.0)               { newxpos += _sim_box_size.x(); }
-        while(newypos>_sim_box_size.y()) { newypos -= _sim_box_size.y(); }
-        while(newypos<0.0)               { newypos += _sim_box_size.y(); }
-        while(newzpos>_sim_box_size.z()) { newzpos -= _sim_box_size.z(); }        
-        while(newzpos<0.0)               { newzpos += _sim_box_size.z(); }
+        while(newxpos>_sim_box_size.x()) { newxpos -= _sim_box_size.x(); std::cout << "pushed min" << endl;}
+        while(newxpos<0.0)               { newxpos += _sim_box_size.x(); std::cout << "pushed plus" << endl;}
+        while(newypos>_sim_box_size.y()) { newypos -= _sim_box_size.y();}
+        while(newypos<0.0)               { newypos += _sim_box_size.y();}
+        while(newzpos>_sim_box_size.z()) { newzpos -= _sim_box_size.z();}        
+        while(newzpos<0.0)               { newzpos += _sim_box_size.z();}
         
         votca::tools::vec newpos = votca::tools::vec(newxpos,newypos,newzpos);
         (*it)->SetPosition(newpos);
@@ -527,6 +539,7 @@ void GraphKMC::Resize(double dimX, bool breakX, double dimY, bool breakY, double
     if(dimY == _sim_box_size.y()) repeatY = 1;
     if(dimZ == _sim_box_size.z()) repeatZ = 1;
     
+    std::cout << repeatX << " " << repeatY << " " << repeatZ << endl;
     
     int number_of_nodes = this->Numberofnodes();
 
@@ -561,7 +574,6 @@ void GraphKMC::Resize(double dimX, bool breakX, double dimY, bool breakY, double
                         // add node to nodes vector
 
                         NodeDevice* newNodeDevice = this->AddNode(new_node_id,new_node_pos);
-
                         // copy data to the periodically repeated nodes
 
                         newNodeDevice->setU(probenode->UnCnNe(), probenode->UnCnNh(),   probenode->UcNcCe(), probenode->UcNcCh());
@@ -661,26 +673,29 @@ void GraphKMC::Resize(double dimX, bool breakX, double dimY, bool breakY, double
         // check for link breaking conditions, those links will be removed
         
         bool break_link = false;
-        
+                                
+
         // correctly reconnect the original links (split up)
         
         if(crossxtype == (int) NoxCross)  { lx = 0;                                                                   }
         if(crossxtype == (int) PosxCross) { lx = 1;         if(repeatX == 1) {lx = 0; if(breakX) {break_link = true;}}}
-        if(crossxtype == (int) NegxCross) { lx = repeatX-1; if(repeatX == 1) {lx = 0;} if(breakX) {break_link = true;}} 
+        if(crossxtype == (int) NegxCross) { lx = repeatX-1; if(breakX) {break_link = true;}} 
 
         if(crossytype == (int) NoyCross)  { ly = 0;                                                                   }
-        if(crossytype == (int) PosyCross) { ly = 1;         if(repeatY == 1) {ly = 0; if(breakY) {break_link = true;}}}
-        if(crossytype == (int) NegyCross) { ly = repeatY-1; if(repeatY == 1) {ly = 0;} if(breakY) {break_link = true;}}
+        if(crossytype == (int) PosyCross) { ly = 1;         if(repeatY == 1) {ly = 0; if(breakY) {break_link = true; }}}
+        if(crossytype == (int) NegyCross) { ly = repeatY-1; if(breakY) {break_link = true; }}
 
         if(crossztype == (int) NozCross)  { lz = 0;                                                                   }
         if(crossztype == (int) PoszCross) { lz = 1;         if(repeatZ == 1) {lz = 0; if(breakZ) {break_link = true;}}}
-        if(crossztype == (int) NegzCross) { lz = repeatY-1; if(repeatZ == 1) {lz = 0;} if(breakZ) {break_link = true;}}
+        if(crossztype == (int) NegzCross) { lz = repeatZ-1; if(breakZ) {break_link = true;}}
      
         votca::tools::vec pos1 = node1->position();
         double xpos1 = pos1.x(); double ypos1 = pos1.y(); double zpos1 = pos1.z();       
 
         votca::tools::vec pos2 = node2->position();
         double xpos2 = pos2.x(); double ypos2 = pos2.y(); double zpos2 = pos2.z();
+        
+        
         
         if(breakX && (xpos1 > dimX || xpos2 > dimX) ) { break_link = true; }
         if(breakY && (ypos1 > dimY || ypos2 > dimY) ) { break_link = true; }
@@ -704,7 +719,7 @@ void GraphKMC::Resize(double dimX, bool breakX, double dimY, bool breakY, double
         
         if(!break_link) 
         {
-            // nodes which are paired in link are remapped
+            // nodes which are paired in link are remapped, not necessary when no copies are into play
             probelink->SetNodes(new_node1, new_node2);
         }
         else 
@@ -729,7 +744,6 @@ void GraphKMC::Resize(double dimX, bool breakX, double dimY, bool breakY, double
  
         if(remove_flag) 
         {
-
             this->RemoveNode(it);
             delete inode;
         }
@@ -775,6 +789,10 @@ void GraphKMC::Add_electrodes()
     _left_electrode->SetType((int) LeftElectrodeNode);
     _right_electrode->SetType((int) RightElectrodeNode);
 
+    int linkcount = 0;
+    double av_left = 0.0;
+    double av_right = 0.0;
+    
     int linkID = this->Numberoflinks();
     
     //determine the nodes which are injectable from the left electrode and the nodes which are injectable from the right electrode
@@ -799,6 +817,9 @@ void GraphKMC::Add_electrodes()
             _left_electrode->AddLink(newLinkInject);
 
             (*it)->Set_injectable(true);
+            
+            av_left += fabs(left_distance);
+            linkcount++;
         }
       
         // check nodes for right electrode
@@ -815,9 +836,15 @@ void GraphKMC::Add_electrodes()
             _right_electrode->AddLink(newLinkInject);
 
             (*it)->Set_injectable(true);
+
+            av_right += fabs(right_distance);
+            linkcount++;            
         }
     }
 
+    _av_el_distance = (av_left+av_right)/(1.0*linkcount);
+    std::cout << "average electrode distance " << _av_el_distance << endl;
+    
     this->AddNode(_left_electrode); //in this way the electrode nodes are caught by graph destructor
     this->AddNode(_right_electrode);
     _left_electrode->RemoveCarrier();

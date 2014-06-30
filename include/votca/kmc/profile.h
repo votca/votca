@@ -48,6 +48,9 @@ public:
     
     /// positional average of the nodes in the layer
     const double &position(int i) const {return _positional_average[i]; }
+
+    /// left boundary of slab i (number_of_layers is right boundary of last slab)
+    const double &boundary(int i) const {return _layer_boundaries[i]; }
     
     const bool emptylayer(int i) const {return _empty_layer[i]; }
     
@@ -116,12 +119,11 @@ inline void Profile::Calculate_positional_average(Eventinfo* eventinfo){
 }
 
 inline void Profile::Calculate_layer_boundaries(Eventinfo* eventinfo){
-    double boundary = 0.0;
-    for(int i = 0;i<eventinfo->number_of_layers;i++) {
+    double boundary = eventinfo->left_electrode_distance;
+    for(int i = 0;i<eventinfo->number_of_layers+1;i++) { // one more boundary then there are slabs
         _layer_boundaries.push_back(boundary);
         boundary += _layersize;
     }
-    _layer_boundaries.push_back(eventinfo->simboxsize.z());
 }
 
 }}

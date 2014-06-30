@@ -450,18 +450,47 @@ double Longrange::Calculate_longrange_slab(Node* node, double left_node_distance
     double slab_contrib4 = 0.0;
     double rel_position_i = 1.0*(eventinfo->simboxsize.z()-this->position(layer));
     slab_contrib4 += 0.5*rel_position_i*charge_i*this->layersize(); // potential of a charged plate between two electrodes
+
+    // we have a double counting here, solve this by substracting layer contributions of -(p1+p2)/2 on boundaries
+
+    double plate_correct1 = 0.0;
+
+    if(layer != 0) {    
+        for(int i=1; i<layer+1; i++) { // till left boundary of the layer we are interested in, crossing of left most layer is not interesting
+            if(!this->emptylayer(i-1) && !this->emptylayer(i)) {
+                double charge_i = -1.0*(_layercharge[i-1] + _layercharge[i])/(2.0*this->layersize()*eventinfo->simboxsize.x()*eventinfo->simboxsize.y());
+                double position_i = 1.0*this->boundary(i);
+                plate_correct1 += position_i*charge_i; // potential of a charged plate between two electrodes
+            }
+        }
+    }
+    
+    double plate_correct2 = 0.0;
+ 
+    if(layer != eventinfo->number_of_layers-1) {     
+        for(int i=layer+1; i<eventinfo->number_of_layers; i++) {
+            if(!this->emptylayer(i-1) && !this->emptylayer(i)) {
+                double charge_i = -1.0*(_layercharge[i-1] + _layercharge[i])/(2.0*this->layersize()*eventinfo->simboxsize.x()*eventinfo->simboxsize.y());
+                double rel_position_i = 1.0*(eventinfo->simboxsize.z()-this->boundary(i));
+                plate_correct2 += rel_position_i*charge_i; // potential of a charged plate between two electrodes
+            }
+        }
+    }    
     
     cut_out_contrib += charge_i*dynamic_cast<NodeDevice*>(node)->contrib(layer-start_index);    
-    if (!cut_out_discs) { cut_out_contrib = 0.0; }    
+//    if (!cut_out_discs) { cut_out_contrib = 0.0; } 
+    if(eventinfo->norc) cut_out_contrib = 0.0;
+//    cut_out_contrib = 0.0;
     
     //note that local positioning in the slab itself is calculated on the fly
    
     longrangeslab += 4.0*Pi*(slab_contrib1*(right_node_distance/eventinfo->simboxsize.z()) + slab_contrib2*(left_node_distance/eventinfo->simboxsize.z()));
     longrangeslab += 4.0*Pi*(slab_contrib3*(right_node_distance/eventinfo->simboxsize.z()) + slab_contrib4*(left_node_distance/eventinfo->simboxsize.z()));
-    longrangeslab += -2.0*Pi*charge_i*(left_node_distance - this->position(layer))*(left_node_distance - this->position(layer));
-    longrangeslab += -2.0*Pi*charge_i*0.25*this->layersize()*this->layersize(); // d = 0.5 layersize, therefore the 0.25
+    longrangeslab -= 2.0*Pi*charge_i*(left_node_distance - this->position(layer))*(left_node_distance - this->position(layer));
+    longrangeslab -= 2.0*Pi*charge_i*0.25*this->layersize()*this->layersize(); // d = 0.5 layersize, therefore the 0.25
     longrangeslab += -2.0*Pi*cut_out_contrib;
-    
+    longrangeslab += 4.0*Pi*(plate_correct1*(right_node_distance/eventinfo->simboxsize.z()) + plate_correct2*(left_node_distance/eventinfo->simboxsize.z()));
+            
     return longrangeslab;
 
 }

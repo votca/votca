@@ -168,7 +168,7 @@ void Device::Initialize(const char *filename, Property *options, const char *out
     std::cout << "rate binary tree initialized" << "\n";
     
     events = new Events();
-    if(eventinfo->coulomb_strength > 0.0) {
+    if(eventinfo->coulomb_strength > -1.0) {
         events->Init_non_injection_meshes(eventinfo);
         std::cout << "mesh structure for Coulomb interaction calculations initialized" << "\n";
     }
@@ -176,7 +176,7 @@ void Device::Initialize(const char *filename, Property *options, const char *out
     std::cout << "Initialize (device) eventvector" << "\n";
     events->Initialize_rates(non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);
     std::cout << "Fill rate binary trees" << "\n";
-    if(eventinfo->coulomb_strength > 0.0) {
+    if(eventinfo->coulomb_strength > -1.0) {
         events->Init_injection_meshes(state, eventinfo);
         std::cout << "mesh structure for injection potential calculations initialized" << "\n";
     }
@@ -240,8 +240,9 @@ void Device::RunKMC() {
     if(eventinfo->filament_visualisation)  numoutput->Init_visualisation(graph, eventinfo);
     
     sim_time = 0.0;
+    std::cout << eventinfo->timesteps_update_longrange << endl;
     for (long it = 0; it < 2*eventinfo->number_of_equilibration_steps + eventinfo->number_of_steps; it++) {
-        
+
         if(ldiv(it, eventinfo->timesteps_update_longrange).rem == 0 && it>0){
             if(eventinfo->longrange_slab) longrange->Update_cache_slab(graph,eventinfo);
             else                          longrange->Update_cache(eventinfo);
@@ -252,15 +253,12 @@ void Device::RunKMC() {
 
         double timestep = vssmgroup->Timestep(randomvariable);
         sim_time += timestep;
-       
         Event* chosenevent;
         chosenevent = vssmgroup->Choose_event_device(events, non_injection_rates, left_injection_rates, right_injection_rates, randomvariable);
-       
         if(eventinfo->filament_visualisation && it <= eventinfo->visualisation_at_nr_steps) numoutput->Update_visualisation(chosenevent);
         if(eventinfo->filament_visualisation && it == eventinfo->visualisation_at_nr_steps) numoutput->Print_visualisation();
-
         // check for direct repeats
-        if(eventinfo->repeat_counting) numoutput->Repeat_count_update(chosenevent);
+//        if(eventinfo->repeat_counting) numoutput->Repeat_count_update(chosenevent);
         numoutput->Update(chosenevent, sim_time, timestep); 
         events->On_execute(chosenevent, graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);
         // equilibration
@@ -295,13 +293,13 @@ void Device::RunKMC() {
             
             if(eventinfo->write_potential_profile)
             {
-             /*   std::cout << "(average) potential profile (it = " << it << " )" << "\n";
+                std::cout << "(average) potential profile (it = " << it << " )" << "\n";
                 
                 for(int i =0; i< eventinfo->number_of_layers; i++) {
                     std::cout << longrange->Get_layer_averaged_cached_longrange_slab(i) << " ";
                 }
                 std::cout << "\n";
-                std::cout << "\n";*/
+                std::cout << "\n";
             }
         }
         

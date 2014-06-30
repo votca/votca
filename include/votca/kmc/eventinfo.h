@@ -50,7 +50,9 @@ public:
         hole_density                          = options->get("options.general.hole_density").as<double>();
 
         number_of_steps                       = options->get("options.general.number_of_steps").as<int>();
-        number_of_equilibration_steps         = options->get("options.general.number_of_equilibration_steps").as<int>();
+//        number_of_equilibration_steps         = options->get("options.general.number_of_equilibration_steps").as<int>();
+        number_of_equilibration_steps         = 200000;
+
         number_of_report_steps                = options->get("options.general.number_of_report_steps").as<int>();
         
         carrier_trajectory                    = options->get("options.general.carrier_trajectory").as<bool>();
@@ -75,8 +77,14 @@ public:
         efield_z                              = options->get("options.general.efield_z").as<double>();
 
         coulomb_strength                      = options->get("options.general.coulomb_strength").as<double>();
-        coulomb_cut_off_radius                = options->get("options.general.coulomb_cut_off_radius").as<double>();
+        lr_coulomb_strength                   = options->get("options.general.lr_coulomb_strength").as<double>();
+
+//        coulomb_cut_off_radius                = options->get("options.general.coulomb_cut_off_radius").as<double>();
+        coulomb_cut_off_radius                = 5.0;
+
         binding_energy                        = options->get("options.general.binding_energy").as<double>();
+        
+        norc                                  = options->get("options.general.norc").as<bool>();
         
         if(advanced) {
             repeat_counting                   = options->get("options.general.repeat_counting").as<bool>();
@@ -139,8 +147,8 @@ public:
         left_electrode_distance               = options->get("options.device.left_electrode_distance").as<double>();
         right_electrode_distance              = options->get("options.device.right_electrode_distance").as<double>();
 
-        timesteps_update_longrange            = options->get("options.device.timesteps_update_longrange").as<int>();
-
+//        timesteps_update_longrange            = options->get("options.device.timesteps_update_longrange").as<int>();
+        timesteps_update_longrange            = 20000;
         
         if(advanced) {
             // default value is equal to 1
@@ -205,6 +213,10 @@ public:
     void Set_field(){
         efield_z = voltage/(simboxsize.z());
     }
+    
+    void setalpha(double alph){
+        alpha = alph;
+    }
    
     
     bool advanced; bool device;   
@@ -219,7 +231,7 @@ public:
     string formalism;
     double alpha; double temperature; double efield_x; double efield_y; double efield_z;
 
-    double coulomb_strength; double coulomb_cut_off_radius; double binding_energy;    
+    double coulomb_strength; double coulomb_cut_off_radius; double binding_energy; double lr_coulomb_strength;  
     
     int repeat_counting; bool no_blocking;
     int mesh_size_x; int mesh_size_y; int mesh_size_z;
@@ -245,6 +257,8 @@ public:
            
     double hopdist; double mindist; votca::tools::vec simboxsize; int maxpairdegree; double avholeenergy; double avelectronenergy;
     double hole_injection_reorg; double electron_injection_reorg;
+    
+    bool norc;
 
 
 };

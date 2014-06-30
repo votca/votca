@@ -195,10 +195,10 @@ inline double Event::Determine_lr_coulomb(Node* node, Longrange* longrange, Even
 
     if(node->type() == (int) NormalNode) {
         if(!eventinfo->longrange_slab) {
-            lr_coulomb = eventinfo->coulomb_strength*longrange->Get_cached_longrange(dynamic_cast<NodeDevice*>(node)->layer());
+            lr_coulomb = eventinfo->lr_coulomb_strength*longrange->Get_cached_longrange(dynamic_cast<NodeDevice*>(node)->layer());
         }
         else {
-            lr_coulomb = eventinfo->coulomb_strength*longrange->Get_cached_longrange_slab(node->id());
+            lr_coulomb = eventinfo->lr_coulomb_strength*longrange->Get_cached_longrange_slab(node->id());
         }
     }
     else {lr_coulomb = 0.0;} //potential at electrodes = 0.0;
@@ -302,8 +302,16 @@ void Event::Determine_rate(StateReservoir* state, Longrange* longrange, Eventinf
     } // collection
     else if(_final_type == Recombination) { to_event_energy   -= eventinfo->binding_energy;    prefactor *= eventinfo->recombination_prefactor;} // recombination
 
-    double sr_coulomb_from = Determine_from_sr_coulomb(node1, state, eventinfo);
-    double sr_coulomb_to = Determine_to_sr_coulomb(node1, state, eventinfo);
+    double sr_coulomb_from;
+    double sr_coulomb_to;
+    if(!eventinfo->norc) {
+        sr_coulomb_from = Determine_from_sr_coulomb(node1, state, eventinfo);
+        sr_coulomb_to = Determine_to_sr_coulomb(node1, state, eventinfo);
+    }
+    else {
+        sr_coulomb_from = 0.0;
+        sr_coulomb_to = 0.0;
+    }
     double selfimpot_from;
     double selfimpot_to;
     double lr_coulomb_from;
@@ -331,7 +339,7 @@ void Event::Determine_rate(StateReservoir* state, Longrange* longrange, Eventinf
             _energyfactor = 0.0; // Keep this here for eventual simulation of bipolaron formation for example
         }
         else {
-            energycontrib = final_energy - init_energy -charge*(eventinfo->efield_x*distancevector.x()+eventinfo->efield_y*distancevector.y()+eventinfo->efield_z*distancevector.z());
+            energycontrib = final_energy - init_energy - charge*(eventinfo->efield_x*distancevector.x()+eventinfo->efield_y*distancevector.y()+eventinfo->efield_z*distancevector.z());
             if (energycontrib>0.0) {
                 _energyfactor = exp(-1.0*energycontrib/(kB*eventinfo->temperature));
             }
@@ -345,7 +353,7 @@ void Event::Determine_rate(StateReservoir* state, Longrange* longrange, Eventinf
             _energyfactor = 0.0; // Keep this here for eventual simulation of bipolaron formation for example
         }
         else {
-            energycontrib = final_energy - init_energy -charge*(eventinfo->efield_x*distancevector.x()+eventinfo->efield_y*distancevector.y()+eventinfo->efield_z*distancevector.z());
+            energycontrib = final_energy - init_energy - charge*(eventinfo->efield_x*distancevector.x()+eventinfo->efield_y*distancevector.y()+eventinfo->efield_z*distancevector.z());
             _energyfactor = exp(-1.0*(energycontrib+Reorg)*(energycontrib+Reorg)/(4*Reorg*kB*eventinfo->temperature));
         }       
     }
