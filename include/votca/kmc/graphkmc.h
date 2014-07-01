@@ -326,6 +326,29 @@ double GraphKMC::Determine_Average_Distance(Eventinfo* eventinfo)
     for(it = this->_links.begin(); it != this->_links.end(); it++) 
     {
         if((*it)->node1()->type() == (int) NormalNode && (*it)->node2()->type() == (int) NormalNode) {
+            double r12 = abs((*it)->r12());
+            av_distance += r12;
+            linkcount++;
+        }
+    }
+    
+    average = av_distance/linkcount;
+    std::cout << "average distance " << average << endl;
+    return average;
+}
+
+
+
+/*double GraphKMC::Determine_Average_Distance(Eventinfo* eventinfo)
+{
+    double av_distance = 0.0;
+    int linkcount = 0;
+    double average;
+    
+    typename std::vector<LinkDevice*>::iterator it;    
+    for(it = this->_links.begin(); it != this->_links.end(); it++) 
+    {
+        if((*it)->node1()->type() == (int) NormalNode && (*it)->node2()->type() == (int) NormalNode) {
             if((*it)->Jeff2h() != 0.0) {
                 double logjeff = log((*it)->Jeff2h());
                 double dist = abs((*it)->r12());
@@ -338,7 +361,7 @@ double GraphKMC::Determine_Average_Distance(Eventinfo* eventinfo)
     average = av_distance/linkcount;
     std::cout << "av " << average << endl;
     return average;
-}
+}*/
 
 double GraphKMC::Determine_Minimum_Distance()
 {
@@ -590,6 +613,7 @@ void GraphKMC::Resize(double dimX, bool breakX, double dimY, bool breakY, double
     long number_of_links = this->Numberoflinks();
     for(long ilink = number_of_links - 1; ilink >= 0; ilink--) 
     {
+        std::cout << ilink << endl;
         LinkDevice* probelink = this->GetLink(ilink);
         long link_id = ilink;
         int node1_id = probelink->node1()->id();
@@ -689,17 +713,17 @@ void GraphKMC::Resize(double dimX, bool breakX, double dimY, bool breakY, double
         if(crossztype == (int) PoszCross) { lz = 1;         if(repeatZ == 1) {lz = 0; if(breakZ) {break_link = true;}}}
         if(crossztype == (int) NegzCross) { lz = repeatZ-1; if(breakZ) {break_link = true;}}
      
-        votca::tools::vec pos1 = node1->position();
-        double xpos1 = pos1.x(); double ypos1 = pos1.y(); double zpos1 = pos1.z();       
+        if(!break_link){
+            votca::tools::vec pos1 = node1->position();
+            double xpos1 = pos1.x(); double ypos1 = pos1.y(); double zpos1 = pos1.z();       
 
-        votca::tools::vec pos2 = node2->position();
-        double xpos2 = pos2.x(); double ypos2 = pos2.y(); double zpos2 = pos2.z();
+            votca::tools::vec pos2 = node2->position();
+            double xpos2 = pos2.x(); double ypos2 = pos2.y(); double zpos2 = pos2.z();
         
-        
-        
-        if(breakX && (xpos1 > dimX || xpos2 > dimX) ) { break_link = true; }
-        if(breakY && (ypos1 > dimY || ypos2 > dimY) ) { break_link = true; }
-        if(breakZ && (zpos1 > dimZ || zpos2 > dimZ) ) { break_link = true; }           
+            if(breakX && (xpos1 > dimX || xpos2 > dimX) ) { break_link = true; }
+            if(breakY && (ypos1 > dimY || ypos2 > dimY) ) { break_link = true; }
+            if(breakZ && (zpos1 > dimZ || zpos2 > dimZ) ) { break_link = true; }
+        }
 
         int new_node1_id = node1_id;       
         int new_node2_id = node2_id + (lz+ly*repeatZ+lx*repeatY*repeatZ)*number_of_nodes;
@@ -707,27 +731,49 @@ void GraphKMC::Resize(double dimX, bool breakX, double dimY, bool breakY, double
         Node* new_node1 = this->GetNode(new_node1_id);
         Node* new_node2 = this->GetNode(new_node2_id);
 
-        votca::tools::vec newpos1 = new_node1->position();
-        double newxpos1 = newpos1.x(); double newypos1 = newpos1.y(); double newzpos1 = newpos1.z();       
+        if(!break_link){
+            votca::tools::vec newpos1 = new_node1->position();
+            double newxpos1 = newpos1.x(); double newypos1 = newpos1.y(); double newzpos1 = newpos1.z();       
 
-        votca::tools::vec newpos2 = new_node2->position();
-        double newxpos2 = newpos2.x(); double newypos2 = newpos2.y(); double newzpos2 = newpos2.z();
+            votca::tools::vec newpos2 = new_node2->position();
+            double newxpos2 = newpos2.x(); double newypos2 = newpos2.y(); double newzpos2 = newpos2.z();
 
-        if(breakX && (newxpos1 > dimX || newxpos2 > dimX) ) { break_link = true; }
-        if(breakY && (newypos1 > dimY || newypos2 > dimY) ) { break_link = true; }
-        if(breakZ && (newzpos1 > dimZ || newzpos2 > dimZ) ) { break_link = true; } 
+            if(breakX && (newxpos1 > dimX || newxpos2 > dimX) ) { break_link = true; }
+            if(breakY && (newypos1 > dimY || newypos2 > dimY) ) { break_link = true; }
+            if(breakZ && (newzpos1 > dimZ || newzpos2 > dimZ) ) { break_link = true; } 
+        }
         
         if(!break_link) 
         {
             // nodes which are paired in link are remapped, not necessary when no copies are into play
             probelink->SetNodes(new_node1, new_node2);
+            probelink->setRemove(false);
         }
         else 
         {
-            this->RemoveLink(ilink);            
+            //this->RemoveLink(ilink);  
+            probelink->setRemove(true);
         }
     }
-   
+    
+    std::vector<LinkDevice*> temp_links;
+    
+    temp_links.clear();
+    typename std::vector<LinkDevice*>::iterator it;    
+    for(it = this->_links.begin(); it != this->_links.end(); it++) {
+        if(!((*it)->remove())) {
+            temp_links.push_back((*it));
+        }
+    }
+    
+    this->ClearLinks();
+    
+    for(it = temp_links.begin(); it != temp_links.end(); it++) {
+        this->PushLink((*it));
+    }
+
+    temp_links.clear();    
+            
     // remove nodes which fall outside of the simulation box
     
     for(int it = this->_nodes.size()-1; it >= 0; it--) 

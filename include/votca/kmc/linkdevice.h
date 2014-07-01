@@ -48,19 +48,26 @@ public:
     void setCrossyType(int ytype) {_crossytype = ytype;}
     void setCrosszType(int ztype) {_crossztype = ztype;}
     
+    void setRemove(bool remove) {_to_be_removed = remove;}
+    
     /// self image coulomb potential (potential of image charges  of a charge on the charge itself)
     const double &self_image() const { return _self_image; }
+    
+    const bool &remove() const { return _to_be_removed; }
     
     const int &crossxtype() const { return _crossxtype; }
     const int &crossytype() const { return _crossytype; }
     const int &crossztype() const { return _crossztype; }
 
+    
 
 private:
     double _self_image;
     int _crossxtype;
     int _crossytype;
     int _crossztype;
+    
+    bool _to_be_removed;
     
    
 };

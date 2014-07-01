@@ -44,6 +44,7 @@ public:
     const double &self_image() const { return _self_image; }     
     
     const bool &injectable() const { return _injectable; }
+
     /// Layer index
     const int &layer() const {return _layer;}
 

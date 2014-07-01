@@ -69,6 +69,9 @@ public:
     
     /// Remove link    
     void RemoveLink(long linknr) {_links.erase(_links.begin()+linknr);}
+
+    void ClearLinks() {_links.clear();}
+    void PushLink(TLink* link) {_links.push_back(link);} 
     
     /// Get number of links
     int Numberoflinks() {return _links.size();}

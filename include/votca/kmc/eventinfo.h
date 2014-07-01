@@ -148,7 +148,7 @@ public:
         right_electrode_distance              = options->get("options.device.right_electrode_distance").as<double>();
 
 //        timesteps_update_longrange            = options->get("options.device.timesteps_update_longrange").as<int>();
-        timesteps_update_longrange            = 20000;
+        timesteps_update_longrange            = 5000;
         
         if(advanced) {
             // default value is equal to 1
