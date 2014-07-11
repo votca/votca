@@ -439,15 +439,15 @@ void Rates::CalculateRate(Topology *top, QMPair *qmpair, int state) {
     // equation 6 
     // ++++++++++++ //
 
-    } else if (_rateType == "weissdorsey") {
+    } else if (_rateType == "weissdorsey") {//not yet fully checked
         
         _kondo = _kondo/2+1; // going from alpha to alpha'
 
         reorg12 = reorg12 + lOut;
         reorg21 = reorg21 + lOut;
         
-        double characfreq12 = reorg12 /2 /_kondo;
-        double characfreq21 = reorg21 /2 /_kondo;
+        double characfreq12 = reorg12 /2 /_kondo/hbar_eV;
+        double characfreq21 = reorg21 /2 /_kondo/hbar_eV;
         
         complex<double> M_I = (0,1);
         
@@ -456,7 +456,7 @@ void Rates::CalculateRate(Topology *top, QMPair *qmpair, int state) {
                 * pow((hbar_eV*characfreq12/2/M_PI/_kT), (1-2*_kondo))
                 * pow(std::abs(cgamma(_kondo+M_I*(+dG/2/M_PI/_kT))),2)
                 * pow(gsl_sf_gamma(2*_kondo), -1) * exp(+dG/2/_kT)
-                * exp(-std::abs(dG)/hbar_eV/characfreq12); // due to this factor rates will always be zero
+                * exp(-std::abs(dG)/hbar_eV/characfreq12); 
 
         rate21 = J2/pow(hbar_eV,2)/characfreq21
                 * pow((hbar_eV*characfreq21/2/M_PI/_kT), (1-2*_kondo))

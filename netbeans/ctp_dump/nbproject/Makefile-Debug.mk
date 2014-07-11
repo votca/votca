@@ -64,8 +64,8 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ctp_dump: ${OBJECTFILES}
 
 ${OBJECTDIR}/_ext/715944016/ctp_dump.o: ../../src/tools/ctp_dump.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/715944016/ctp_dump.o ../../src/tools/ctp_dump.cc
+	${RM} $@.d
+	$(COMPILE.cc) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/ctp_dump.o ../../src/tools/ctp_dump.cc
 
 # Subprojects
 .build-subprojects:

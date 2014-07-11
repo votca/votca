@@ -63,8 +63,8 @@ void Profile::Initialize(Property *options) {
     _auto_bin       = (autobin == 1) ? true : false;
    // min and max for manual binning 
     if (!_auto_bin) {
-        _min            = options->get(key+".min").as< double >();
-        _max            = options->get(key+".max").as< double >();
+        _min            = options->get(key+"axis.min").as< double >();
+        _max            = options->get(key+"axis.max").as< double >();
     }
     // Normalize axis
     _axis           = _axis / sqrt(_axis*_axis);
