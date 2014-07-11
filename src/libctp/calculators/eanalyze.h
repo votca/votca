@@ -349,6 +349,8 @@ void EAnalyze::SiteCorr(Topology *top, int state) {
 
         VAR += ((*eit) - AVG)*((*eit) - AVG) / top->Segments().size();
     }
+    
+    STD = sqrt(VAR);
 
     // Collect inter-site distances, correlation product
     vector< double > Rs;
@@ -423,15 +425,19 @@ void EAnalyze::SiteCorr(Topology *top, int state) {
             corr += histCs[bin][i] / VAR;
             //corr2 += (histCs[bin][i] / VAR)*(histCs[bin][i] / VAR);
         }
+
         corr  = corr / histCs[bin].size();
         //corr2 = corr2 / histCs[bin].size();
 
         for (int i = 0; i < histCs[bin].size(); ++i) {
-            dcorr2 += (histCs[bin][i]/VAR - corr)*(histCs[bin][i]/VAR - corr);
+            dcorr2 += (histCs[bin][i]/VAR/histCs[bin].size() - corr)*(histCs[bin][i]/VAR/histCs[bin].size() - corr);
         }
-        dcorr2 = dcorr2 / histCs[bin].size();
-        
+
+
         histC[bin] = corr;
+        
+        // error on mean value
+        dcorr2 = dcorr2 / histCs[bin].size() / (histCs[bin].size()-1);
         histC_error[bin] = sqrt(dcorr2);
     }
 
