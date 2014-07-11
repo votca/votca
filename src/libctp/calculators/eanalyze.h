@@ -440,8 +440,8 @@ void EAnalyze::SiteCorr(Topology *top, int state) {
     out = fopen(tag.c_str(), "w");
 
     fprintf(out, "# EANALYZE: SPATIAL SITE-ENERGY CORRELATION \n");
-    fprintf(out, "# AVG %4.7f VAR %4.7f MIN_R %4.7f MAX_R %4.7f \n",
-                    AVG,      VAR,      MIN,      MAX);
+    fprintf(out, "# AVG %4.7f STD %4.7f MIN_R %4.7f MAX_R %4.7f \n",
+                    AVG,      STD,      MIN,      MAX);
 
     for (int bin = 0; bin < BIN; ++bin) {
         double R = MIN + bin*_resolution_space;
