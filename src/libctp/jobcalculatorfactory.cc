@@ -28,8 +28,7 @@
 #include "jobcalculators/qmmm.h"
 #include "jobcalculators/ewald.h"
 #include "jobcalculators/gwbse.h"
-
-
+#include "jobcalculators/dma.h"
 
 
 namespace votca { namespace ctp {
@@ -44,6 +43,7 @@ void JobCalculatorfactory::RegisterAll(void)
         JobCalculators().Register< Ewald<Ewald3D3D> >  ("ewald3d");
         JobCalculators().Register< Ewald<PEwald3D3D> > ("pewald3d");
         JobCalculators().Register< GWBSE >             ("gwbse");
+        JobCalculators().Register< DMA >               ("dma");
 }
 
 }}
