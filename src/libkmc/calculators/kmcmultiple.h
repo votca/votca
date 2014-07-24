@@ -1319,7 +1319,7 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
             average_mobility += (velocity*_field) /absolute_field/absolute_field;
         }
         average_mobility /= numberofcharges;
-        cout << std::scientific << "  Overall average mobility in field direction <mu>=" << average_mobility << " (= " << average_mobility*1E4 << "cm^2/Vs)" << endl;
+        cout << std::scientific << "  Overall average mobility in field direction <mu>=" << average_mobility << " m^2/Vs (= " << average_mobility*1E4 << "cm^2/Vs)" << endl;
       }
     cout << endl;
     
@@ -1343,7 +1343,7 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
     cout << "The following value is calculated using the Einstein relation and assuming an isotropic medium" << endl;
     double avgD  = 1./3. * (diff_tensor_eigensystem.eigenvalues[0] + diff_tensor_eigensystem.eigenvalues[1] + diff_tensor_eigensystem.eigenvalues[2] );
     average_mobility = std::abs(avgD / kB / _temperature);
-    cout << std::scientific << "  Overall average mobility <mu>=" << average_mobility << " (= " << average_mobility*1E4 << "cm^2/Vs)\n\n" << endl;
+    cout << std::scientific << "  Overall average mobility <mu>=" << average_mobility << " m^2/Vs (= " << average_mobility*1E4 << "cm^2/Vs)\n\n" << endl;
     
     
     // check if Einstein relation is fulfilled
