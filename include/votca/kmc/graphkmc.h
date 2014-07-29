@@ -64,8 +64,14 @@ public:
     /// average hole node energy
     double Average_hole_node_energy();
     
+    double Average_hole_left_electrode_energy(); 
+    double Average_hole_right_electrode_energy(); 
+    
     /// variance hole node energy
     double stddev_hole_node_energy();
+    
+    double stddev_hole_left_electrode_energy();
+    double stddev_hole_right_electrode_energy();
     
     /// average electron node energy
     double Average_electron_node_energy();
@@ -89,6 +95,8 @@ private:
     
     ///calculate average distance
     double Determine_Average_Distance(Eventinfo* eventinfo);
+    
+    void Determine_Average_Jeff(Eventinfo* eventinfo);
  
     ///calculate minimum distance (minimum distance between a pair of nodes)
     double Determine_Minimum_Distance();    
@@ -279,7 +287,9 @@ void GraphKMC::Setup_device_graph(Eventinfo* eventinfo)
 
     _av_alpha = this->Determine_Average_Distance(eventinfo);
     std::cout << "alpha " << _av_alpha << endl;
-//    eventinfo->setalpha(_av_alpha);        
+//    eventinfo->setalpha(_av_alpha); 
+    
+    this->Determine_Average_Jeff(eventinfo);
     
     // associate links in links vector with the corresponding nodes
     this->LinkSort();
@@ -319,7 +329,7 @@ double GraphKMC::Determine_Hopping_Distance()
 double GraphKMC::Determine_Average_Distance(Eventinfo* eventinfo)
 {
     double av_distance = 0.0;
-    int linkcount = 0;
+    double linkcount = 0.0;
     double average;
     
     typename std::vector<LinkDevice*>::iterator it;    
@@ -334,15 +344,32 @@ double GraphKMC::Determine_Average_Distance(Eventinfo* eventinfo)
     
     average = av_distance/linkcount;
     std::cout << "average distance " << average << endl;
+
+    av_distance= 0.0;
+    linkcount = 0;
+    average = 0.0;    
+    
+    for(it = this->_links.begin(); it != this->_links.end(); it++) 
+    {
+        if((*it)->node1()->type() != (int) NormalNode || (*it)->node2()->type() != (int) NormalNode) {
+            double r12 = exp(-2.0*eventinfo->alpha*abs((*it)->r12()))*abs((*it)->r12());
+            av_distance += r12;
+            linkcount += exp(-2.0*eventinfo->alpha*abs((*it)->r12()));
+        }
+    }    
+
+    average = av_distance/linkcount;
+    std::cout << "average electrode distance " << average << " input " << eventinfo->left_electrode_distance << endl;
     return average;
+
 }
 
 
 
-/*double GraphKMC::Determine_Average_Distance(Eventinfo* eventinfo)
+void GraphKMC::Determine_Average_Jeff(Eventinfo* eventinfo)
 {
-    double av_distance = 0.0;
-    int linkcount = 0;
+    double av_jeff = 0.0;
+    double linkcount = 0;
     double average;
     
     typename std::vector<LinkDevice*>::iterator it;    
@@ -350,18 +377,33 @@ double GraphKMC::Determine_Average_Distance(Eventinfo* eventinfo)
     {
         if((*it)->node1()->type() == (int) NormalNode && (*it)->node2()->type() == (int) NormalNode) {
             if((*it)->Jeff2h() != 0.0) {
-                double logjeff = log((*it)->Jeff2h());
-                double dist = abs((*it)->r12());
-                av_distance += -1.0*logjeff/_av_el_distance;
-                linkcount++;
+                double logjeff = (*it)->Jeff2h();
+                av_jeff += logjeff;
+                linkcount ++;
             }
         }
     }
     
-    average = av_distance/linkcount;
-    std::cout << "av " << average << endl;
-    return average;
-}*/
+    average = av_jeff/linkcount;
+    std::cout << "av non " << average << endl;
+
+    av_jeff = 0.0;
+    linkcount = 0.0;
+    average = 0.0;    
+    
+    for(it = this->_links.begin(); it != this->_links.end(); it++) 
+    {
+        if((*it)->node1()->type() == (int) NormalNode && (*it)->node2()->type() == (int) NormalNode) {
+            double logjeff = exp(-2.0*eventinfo->alpha*abs((*it)->r12()));
+            av_jeff += logjeff;
+            linkcount ++;
+        }
+    }
+
+    average = av_jeff/linkcount;
+    std::cout << "av non alpha " << average << endl;    
+    
+}
 
 double GraphKMC::Determine_Minimum_Distance()
 {
@@ -540,8 +582,8 @@ void GraphKMC::Push_in_box()
         
         double newxpos = pos.x(); double newypos = pos.y(); double newzpos = pos.z();
         
-        while(newxpos>_sim_box_size.x()) { newxpos -= _sim_box_size.x(); std::cout << "pushed min" << endl;}
-        while(newxpos<0.0)               { newxpos += _sim_box_size.x(); std::cout << "pushed plus" << endl;}
+        while(newxpos>_sim_box_size.x()) { newxpos -= _sim_box_size.x();}
+        while(newxpos<0.0)               { newxpos += _sim_box_size.x();}
         while(newypos>_sim_box_size.y()) { newypos -= _sim_box_size.y();}
         while(newypos<0.0)               { newypos += _sim_box_size.y();}
         while(newzpos>_sim_box_size.z()) { newzpos -= _sim_box_size.z();}        
@@ -558,11 +600,9 @@ void GraphKMC::Resize(double dimX, bool breakX, double dimY, bool breakY, double
     int repeatY = ceil(dimY/_sim_box_size.y());
     int repeatZ = ceil(dimZ/_sim_box_size.z());
     
-    if(dimX == _sim_box_size.x()) repeatX = 1;
-    if(dimY == _sim_box_size.y()) repeatY = 1;
-    if(dimZ == _sim_box_size.z()) repeatZ = 1;
-    
-    std::cout << repeatX << " " << repeatY << " " << repeatZ << endl;
+    std::cout << dimX/_sim_box_size.x() << " " << repeatX << endl;
+    std::cout << dimY/_sim_box_size.y() << " " << repeatY << endl;
+    std::cout << dimZ/_sim_box_size.z() << " " << repeatZ << endl;
     
     int number_of_nodes = this->Numberofnodes();
 
@@ -613,7 +653,6 @@ void GraphKMC::Resize(double dimX, bool breakX, double dimY, bool breakY, double
     long number_of_links = this->Numberoflinks();
     for(long ilink = number_of_links - 1; ilink >= 0; ilink--) 
     {
-        std::cout << ilink << endl;
         LinkDevice* probelink = this->GetLink(ilink);
         long link_id = ilink;
         int node1_id = probelink->node1()->id();
@@ -702,7 +741,7 @@ void GraphKMC::Resize(double dimX, bool breakX, double dimY, bool breakY, double
         // correctly reconnect the original links (split up)
         
         if(crossxtype == (int) NoxCross)  { lx = 0;                                                                   }
-        if(crossxtype == (int) PosxCross) { lx = 1;         if(repeatX == 1) {lx = 0; if(breakX) {break_link = true;}}}
+        if(crossxtype == (int) PosxCross) { lx = 1;         if(repeatX == 1) {lx = 0; if(breakX) {break_link = true; }}}
         if(crossxtype == (int) NegxCross) { lx = repeatX-1; if(breakX) {break_link = true;}} 
 
         if(crossytype == (int) NoyCross)  { ly = 0;                                                                   }
@@ -711,7 +750,7 @@ void GraphKMC::Resize(double dimX, bool breakX, double dimY, bool breakY, double
 
         if(crossztype == (int) NozCross)  { lz = 0;                                                                   }
         if(crossztype == (int) PoszCross) { lz = 1;         if(repeatZ == 1) {lz = 0; if(breakZ) {break_link = true;}}}
-        if(crossztype == (int) NegzCross) { lz = repeatZ-1; if(breakZ) {break_link = true;}}
+        if(crossztype == (int) NegzCross) { lz = repeatZ-1; if(breakZ) {break_link = true; }}
      
         if(!break_link){
             votca::tools::vec pos1 = node1->position();
@@ -772,7 +811,7 @@ void GraphKMC::Resize(double dimX, bool breakX, double dimY, bool breakY, double
         this->PushLink((*it));
     }
 
-    temp_links.clear();    
+    temp_links.clear();
             
     // remove nodes which fall outside of the simulation box
     
@@ -1004,6 +1043,38 @@ double GraphKMC::Average_hole_node_energy()
     return av_ho_energy;
 }
 
+double GraphKMC::Average_hole_left_electrode_energy() 
+{
+    double ho_energy = 0.0;
+    double av_ho_energy = 0.0;
+    int linker = 0;
+    
+    for(int ilink = 0; ilink < _left_electrode->links().size(); ilink++)    {
+        Node* probe_node = _left_electrode->links()[ilink]->node2();
+        ho_energy +=  dynamic_cast<NodeDevice*>(probe_node)->eCation() +  dynamic_cast<NodeDevice*>(probe_node)->UcCnNh();
+        linker++;
+    }
+    
+    av_ho_energy = ho_energy/linker;
+    return av_ho_energy;
+}
+
+double GraphKMC::Average_hole_right_electrode_energy() 
+{
+    double ho_energy = 0.0;
+    double av_ho_energy = 0.0;
+    int linker = 0;
+    
+    for(int ilink = 0; ilink < _right_electrode->links().size(); ilink++)    {
+        Node* probe_node = _right_electrode->links()[ilink]->node2();
+        ho_energy +=  dynamic_cast<NodeDevice*>(probe_node)->eCation() +  dynamic_cast<NodeDevice*>(probe_node)->UcCnNh();
+        linker++;
+    }
+    
+    av_ho_energy = ho_energy/linker;
+    return av_ho_energy;
+}
+
 double GraphKMC::stddev_hole_node_energy() 
 {
     double temp_energy = 0.0;
@@ -1019,6 +1090,40 @@ double GraphKMC::stddev_hole_node_energy()
     }
     
     stddev_energy = sqrt(temp_energy/this->Numberofnodes());
+    return stddev_energy;
+}
+
+double GraphKMC::stddev_hole_left_electrode_energy() 
+{
+    double temp_energy = 0.0;
+    double stddev_energy = 0.0;
+    double av_ho_energy = this->Average_hole_left_electrode_energy();
+    int linker = 0;
+    
+    for(int ilink = 0; ilink < _left_electrode->links().size(); ilink++)    {
+        Node* probe_node = _left_electrode->links()[ilink]->node2();
+        temp_energy +=  (dynamic_cast<NodeDevice*>(probe_node)->eCation() +  dynamic_cast<NodeDevice*>(probe_node)->UcCnNh() - av_ho_energy)*(dynamic_cast<NodeDevice*>(probe_node)->eCation() +  dynamic_cast<NodeDevice*>(probe_node)->UcCnNh() - av_ho_energy);
+        linker++;
+    }
+    
+    stddev_energy = sqrt(temp_energy/linker);
+    return stddev_energy;
+}
+
+double GraphKMC::stddev_hole_right_electrode_energy() 
+{
+    double temp_energy = 0.0;
+    double stddev_energy = 0.0;
+    double av_ho_energy = this->Average_hole_right_electrode_energy();
+    int linker = 0;
+    
+    for(int ilink = 0; ilink < _right_electrode->links().size(); ilink++)    {
+        Node* probe_node = _right_electrode->links()[ilink]->node2();
+        temp_energy +=  (dynamic_cast<NodeDevice*>(probe_node)->eCation() +  dynamic_cast<NodeDevice*>(probe_node)->UcCnNh() - av_ho_energy)*(dynamic_cast<NodeDevice*>(probe_node)->eCation() +  dynamic_cast<NodeDevice*>(probe_node)->UcCnNh() - av_ho_energy);
+        linker++;
+    }
+    
+    stddev_energy = sqrt(temp_energy/linker);
     return stddev_energy;
 }
 

@@ -568,7 +568,7 @@ double Events::Compute_Coulomb_potential(double startz, votca::tools::vec dif, b
     double coulpot;
     
     if(direct){
-        coulpot = 1.0/abs(dif);
+        coulpot = 1.0/abs(dif) - 1.0/sqrt(RCSQR);
     }
     else {
         coulpot = 0.0;
@@ -587,7 +587,8 @@ double Events::Compute_Coulomb_potential(double startz, votca::tools::vec dif, b
         bool outside_cut_off1 = false;
         bool outside_cut_off2 = false;
       
-        for (int i=0;i<eventinfo->number_short_range_images; i++) {
+//        for (int i=0;i<eventinfo->number_short_range_images; i++) {
+        for (int i=0;i<2; i++) {
             if (div(i,2).rem==0) { // even generation
                 sign = -1.0;
                 distz_1 = i*L + 2*startz + dif.z();
@@ -599,9 +600,9 @@ double Events::Compute_Coulomb_potential(double startz, votca::tools::vec dif, b
                 distz_2 = (i+1)*L - dif.z();
             }
             distancesqr_1 = distz_1*distz_1 + distsqr_planar;
-            coulpot += sign*(1.0/sqrt(distancesqr_1));
+            if(distancesqr_1 <= RCSQR) coulpot += sign*(1.0/sqrt(distancesqr_1) - 1.0/sqrt(RCSQR));
             distancesqr_2 = distz_2*distz_2 + distsqr_planar;
-            coulpot += sign*(1.0/sqrt(distancesqr_2));
+            if(distancesqr_2 <= RCSQR) coulpot += sign*(1.0/sqrt(distancesqr_2) - 1.0/sqrt(RCSQR));
         }
 
     }

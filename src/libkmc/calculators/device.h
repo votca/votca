@@ -100,7 +100,7 @@ void Device::Initialize(const char *filename, Property *options, const char *out
     
     graph->Setup_device_graph(eventinfo);
     
-    eventinfo->Graph_Parameters(graph->hopdist(), graph->avdist(), graph->mindist(), graph->simboxsize(), graph->maxpairdegree(),graph->Average_hole_node_energy(), graph->Average_electron_node_energy(), graph-> Hole_inject_reorg(), graph->Electron_inject_reorg());
+    eventinfo->Graph_Parameters(graph->hopdist(), graph->avdist(), graph->mindist(), graph->simboxsize(), graph->maxpairdegree(),graph->Average_hole_node_energy(), graph->stddev_hole_node_energy(), graph->Average_electron_node_energy(), graph-> Hole_inject_reorg(), graph->Electron_inject_reorg());
     eventinfo->Set_field(); 
 
     std::cout << "graph object initialized" << "\n";
@@ -187,7 +187,7 @@ void Device::Initialize(const char *filename, Property *options, const char *out
     std::cout << "vssm group initialized" << "\n";
 
     numoutput = new Numoutput();
-    numoutput->Initialize();
+    numoutput->Initialize(eventinfo);
     std::cout << "output object initialized" << "\n";
 
 }
@@ -226,6 +226,8 @@ void Device::RunKMC() {
 
     std::cout << "total link z distance : " << graph->total_link_distance_z() << "\n";
     std::cout << "average hole site energy : " << eventinfo->avholeenergy << "\n";
+    std::cout << graph->Average_hole_left_electrode_energy() << " " << graph->Average_hole_right_electrode_energy() << "\n";
+    std::cout << graph->stddev_hole_left_electrode_energy() << " " << graph->stddev_hole_right_electrode_energy() << "\n";
     std::cout << "average electron site energy : " << eventinfo->avelectronenergy << "\n"; 
     std::cout << "standard deviation of hole site energies: " << graph->stddev_hole_node_energy() << "\n";
     std::cout << "standard deviation of electron site energies: " << graph->stddev_electron_node_energy() << "\n";
@@ -242,7 +244,7 @@ void Device::RunKMC() {
     sim_time = 0.0;
     std::cout << eventinfo->timesteps_update_longrange << endl;
     for (long it = 0; it < 2*eventinfo->number_of_equilibration_steps + eventinfo->number_of_steps; it++) {
-
+//        std::cout << it << endl;
         if(ldiv(it, eventinfo->timesteps_update_longrange).rem == 0 && it>0){
             if(eventinfo->longrange_slab) longrange->Update_cache_slab(graph,eventinfo);
             else                          longrange->Update_cache(eventinfo);
@@ -254,22 +256,29 @@ void Device::RunKMC() {
         double timestep = vssmgroup->Timestep(randomvariable);
         sim_time += timestep;
         Event* chosenevent;
+
         chosenevent = vssmgroup->Choose_event_device(events, non_injection_rates, left_injection_rates, right_injection_rates, randomvariable);
         if(eventinfo->filament_visualisation && it <= eventinfo->visualisation_at_nr_steps) numoutput->Update_visualisation(chosenevent);
         if(eventinfo->filament_visualisation && it == eventinfo->visualisation_at_nr_steps) numoutput->Print_visualisation();
         // check for direct repeats
 //        if(eventinfo->repeat_counting) numoutput->Repeat_count_update(chosenevent);
+//                std::cout << it << " time" << " " << sim_time << " " << timestep << " " << chosenevent->id() << endl;
+
         numoutput->Update(chosenevent, sim_time, timestep); 
+//                std::cout << it << " time" << endl;
+
         events->On_execute(chosenevent, graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);
         // equilibration
-   
+//           std::cout << it << " time" << endl;
+
         if(it == eventinfo->number_of_equilibration_steps || it == 2*eventinfo->number_of_equilibration_steps) 
         {
             numoutput->Init_convergence_check(sim_time); 
-            numoutput->Initialize_equilibrate();
+            numoutput->Initialize_equilibrate(eventinfo);
             sim_time = 0.0;
         }
-        
+ //               std::cout << it << " time" << endl;
+
         // convergence checking
         
         if(ldiv(it,eventinfo->number_of_report_steps ).rem==0 && it> 2*eventinfo->number_of_equilibration_steps) numoutput->Convergence_check(sim_time, eventinfo);
@@ -304,7 +313,7 @@ void Device::RunKMC() {
         }
         
         // break out of loop
-        if(numoutput->iv_conv()) {break;}
+        if(numoutput->iv_conv() && it > eventinfo->visualisation_at_nr_steps) {break;}
         
     }
 

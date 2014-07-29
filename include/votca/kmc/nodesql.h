@@ -46,6 +46,10 @@ public:
         _UcCnNe = UcCnNe;
         _UcCnNh = UcCnNh;
     }
+    
+    void seteCation(double eCation) {
+        _eCation = eCation;
+    }
 
     const double &UnCnNe() const { return _UnCnNe; }     
     const double &UnCnNh() const { return _UnCnNh; }   

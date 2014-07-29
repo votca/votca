@@ -35,6 +35,9 @@ public:
     /// Set indices of first and last layers which are contributing to the long-range potential double counting algorithm 
     void setfirstcontriblayer(int layer){_firstcontriblayer = layer;}
     void setfinalcontriblayer(int layer){_finalcontriblayer = layer;}  
+
+    void setfirstcontribboundary(int boundary){_firstcontribboundary = boundary;}
+    void setfinalcontribboundary(int boundary){_finalcontribboundary = boundary;} 
     
     /// Compute and set self image coulomb potential (potential of image charges  of a charge on the charge itself)
     void Compute_Self_Image_Coulomb_Potential(double startx, double device_length, Eventinfo* eventinfo);
@@ -51,6 +54,10 @@ public:
     const int &firstcontriblayer() const {return _firstcontriblayer;}
     const int &finalcontriblayer() const {return _finalcontriblayer;} 
     double &contrib(int layer) {return disc_coul_contrib[layer];}
+
+    const int &firstcontribboundary() const {return _firstcontribboundary;}
+    const int &finalcontribboundary() const {return _finalcontribboundary;}
+    double &correct(int boundary) {return disc_coul_correct[boundary];}
     
     const int &reco() const {return _reco_rate;}
     const double &hole_occ() const {return _hole_occ;}
@@ -63,6 +70,10 @@ public:
     void disc_coul_clear() {disc_coul_contrib.clear();}
     void disc_coul_set(double val) {disc_coul_contrib.push_back(val); }
     int disc_coul_size() {return disc_coul_contrib.size();}
+
+    void disc_correct_clear() {disc_coul_correct.clear();}
+    void disc_correct_set(double val) {disc_coul_correct.push_back(val); }
+    int disc_correct_size() {return disc_coul_correct.size();}
     
     void Set_injectable(bool injectable) { _injectable = injectable;}
     
@@ -78,8 +89,12 @@ private:
 
     int _firstcontriblayer;
     int _finalcontriblayer;
+
+    int _firstcontribboundary;
+    int _finalcontribboundary;
     
     vector<double> disc_coul_contrib;
+    vector<double> disc_coul_correct;
     
 };
 

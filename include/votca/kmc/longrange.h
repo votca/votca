@@ -66,7 +66,7 @@ public:
     double Calculate_longrange_slab(Node* node, double left_node_distance, double right_node_distance, bool cut_out_discs,Eventinfo* eventinfo);
 
     ///precalculate the coulombic contributions from the cut-out discs
-    inline double Calculate_disc_contrib(int calculate_layer, int contrib_layer, Eventinfo* eventinfo);
+    inline double Calculate_disc_contrib(double calcpos, int contrib_layer, Eventinfo* eventinfo);
     inline double Calculate_disc_contrib_slab_node(NodeDevice* node, int contrib_layer, Eventinfo* eventinfo);
 
 private:
@@ -212,7 +212,7 @@ void Longrange::Initialize (Eventinfo* eventinfo) {
 
             for (int j=first_layer; j<=final_layer; j++) {
                 if(this->emptylayer(j)) { _precalculate_disc_contrib[ilayer][j-first_layer] = 0.0;} // no nodes in this layer
-                else {_precalculate_disc_contrib[ilayer][j-first_layer] = Calculate_disc_contrib(ilayer,j,eventinfo);}
+                else {_precalculate_disc_contrib[ilayer][j-first_layer] = Calculate_disc_contrib(this->position(ilayer),j,eventinfo);}
             }
         }
     }
@@ -225,6 +225,9 @@ void Longrange::Initialize_slab (GraphKMC* graph, Eventinfo* eventinfo) {
         if(graph->GetNode(it)->type() == (int) NormalNode) {
             this->Initialize_slab_node(graph->GetNode(it),eventinfo);
         }
+        //if(it==0 || it==100 || it == 78004) {
+        //    std::cout << it << " " <<  dynamic_cast<NodeDevice*>(graph->GetNode(it))->contrib(0) << " " << dynamic_cast<NodeDevice*>(graph->GetNode(it))->contrib(1) << " " << dynamic_cast<NodeDevice*>(graph->GetNode(it))->correct(0) << " " << dynamic_cast<NodeDevice*>(graph->GetNode(it))->correct(1) << endl;
+        //}
         _longrange_cache.push_back(0.0);
     }    
 
@@ -295,6 +298,41 @@ void Longrange::Initialize_slab_node (NodeDevice* node, Eventinfo* eventinfo) {
         }
     }
 
+    // the correction factor on the double counting correction can also be precalculated    
+    
+    start_index = 0;
+    bool startfound = false;
+    while (!startfound) {
+        double start_layerbound = this->boundary(start_index);
+        if((nodeposz-start_layerbound)<=eventinfo->coulomb_cut_off_radius) {
+            startfound = true;
+            node->setfirstcontribboundary(start_index);
+        }
+        else {
+            start_index++;
+        }
+    }
+    
+    final_index = eventinfo->number_of_layers;
+    bool finalfound = false;
+    while (!finalfound) {
+        double final_layerbound = this->boundary(final_index);
+        if((final_layerbound-nodeposz)<=eventinfo->coulomb_cut_off_radius) {
+            finalfound = true;
+            node->setfinalcontribboundary(final_index);
+        }
+        else {
+            final_index--;
+        }
+    }    
+
+    node->disc_correct_clear();
+
+    for (int j=start_index; j<=final_index; j++) {
+        double disc_correct = Calculate_disc_contrib(nodeposz,j,eventinfo);
+        node->disc_correct_set(disc_correct);
+    }
+    
 }
 
 inline double Longrange::Calculate_disc_contrib_slab_node(NodeDevice* node, int contrib_layer, Eventinfo* eventinfo) {
@@ -362,9 +400,8 @@ inline double Longrange::Calculate_disc_contrib_slab_node(NodeDevice* node, int 
     return contrib;
 }
 
-inline double Longrange::Calculate_disc_contrib(int calculate_layer, int contrib_layer, Eventinfo* eventinfo) {
+inline double Longrange::Calculate_disc_contrib(double calcpos, int contrib_layer, Eventinfo* eventinfo) {
  
-    double calcpos = this->position(calculate_layer);
     double contribpos = this->position(contrib_layer);
     double rdist = contribpos-calcpos;
   
@@ -402,24 +439,26 @@ double Longrange::Calculate_longrange_slab(Node* node, double left_node_distance
 
     double slab_contrib1 = 0.0;
     double cut_out_contrib = 0.0;
+    double cut_out_correct = 0.0;
     double longrangeslab = 0;
 
-    int start_index = dynamic_cast<NodeDevice*>(node)->firstcontriblayer();     
     int layer = dynamic_cast<NodeDevice*>(node)->layer();
     
     for(int i=0; i<layer; i++) {
         if(!this->emptylayer(i)) {
 //            double charge_i = 1.0*(_layercharge[i])/(this->number_of_nodes(i));
             double charge_i = 1.0*(_layercharge[i])/(this->layersize()*eventinfo->simboxsize.x()*eventinfo->simboxsize.y());
-
             double position_i = 1.0*this->position(i);
             slab_contrib1 += position_i*charge_i*this->layersize(); // potential of a charged plate between two electrodes
 
+            int start_index = dynamic_cast<NodeDevice*>(node)->firstcontriblayer();     
+            
             // calculation of contribution of disc
             if (i>=start_index) {
                 // Cut out short-range sphere (relative to first contributing layer)
                 cut_out_contrib += charge_i*dynamic_cast<NodeDevice*>(node)->contrib(i-start_index);
             }
+
         }
     }
 
@@ -432,12 +471,14 @@ double Longrange::Calculate_longrange_slab(Node* node, double left_node_distance
             double rel_position_i = 1.0*(eventinfo->simboxsize.z()-this->position(i));
             slab_contrib2 += rel_position_i*charge_i*this->layersize(); // potential of a charged plate between two electrodes
 
+            int start_index = dynamic_cast<NodeDevice*>(node)->firstcontriblayer();     
             int final_index = dynamic_cast<NodeDevice*>(node)->finalcontriblayer();
             
             if (final_index >= i) {
                 // Cut out short-range sphere (relative to first contributing layer)
                 cut_out_contrib += charge_i*dynamic_cast<NodeDevice*>(node)->contrib(i-start_index);
             }
+
         }
     }
     
@@ -455,41 +496,81 @@ double Longrange::Calculate_longrange_slab(Node* node, double left_node_distance
 
     double plate_correct1 = 0.0;
 
-    if(layer != 0) {    
-        for(int i=1; i<layer+1; i++) { // till left boundary of the layer we are interested in, crossing of left most layer is not interesting
-            if(!this->emptylayer(i-1) && !this->emptylayer(i)) {
-                double charge_i = -1.0*(_layercharge[i-1] + _layercharge[i])/(2.0*this->layersize()*eventinfo->simboxsize.x()*eventinfo->simboxsize.y());
+//    if(layer != 0) {    
+        for(int i=0; i<layer+1; i++) { // till left boundary of the layer we are interested in, crossing of left most layer is not interesting
+           // if(!this->emptylayer(i-1) && !this->emptylayer(i)) {
+                
+                double charge_i;
+                if(i==0) {charge_i = 0.0; }  //charge_i = 1.0*(_layercharge[i])/(2.0*eventinfo->simboxsize.x()*eventinfo->simboxsize.y());}
+                else {double mincharge;
+                    if(_layercharge[i-1]<_layercharge[i]) mincharge = _layercharge[i-1];
+                    else mincharge = _layercharge [i];
+                    charge_i = 1.0*(mincharge)/(this->layersize()*eventinfo->simboxsize.x()*eventinfo->simboxsize.y());
+                    //charge_i = 1.0*(_layercharge[i-1] + _layercharge[i])/(this->number_of_nodes(i-1) + this->number_of_nodes(i));   
+                    
+                }
                 double position_i = 1.0*this->boundary(i);
                 plate_correct1 += position_i*charge_i; // potential of a charged plate between two electrodes
-            }
+
+                int start_index = dynamic_cast<NodeDevice*>(node)->firstcontribboundary(); 
+
+                if (i>=start_index && i != 0) {
+                    // Cut out short-range sphere (relative to first contributing layer)
+                    //double pre_charge_i = 1.0*(_layercharge[i])/(this->layersize()*eventinfo->simboxsize.x()*eventinfo->simboxsize.y());
+                    cut_out_correct += charge_i*dynamic_cast<NodeDevice*>(node)->correct(i-start_index);
+                }  
+           // }
         }
-    }
+//    }
     
     double plate_correct2 = 0.0;
  
-    if(layer != eventinfo->number_of_layers-1) {     
-        for(int i=layer+1; i<eventinfo->number_of_layers; i++) {
-            if(!this->emptylayer(i-1) && !this->emptylayer(i)) {
-                double charge_i = -1.0*(_layercharge[i-1] + _layercharge[i])/(2.0*this->layersize()*eventinfo->simboxsize.x()*eventinfo->simboxsize.y());
+//    if(layer != eventinfo->number_of_layers-1) {     
+        for(int i=layer+1; i<eventinfo->number_of_layers+1; i++) {
+            //if(!this->emptylayer(i-1) && !this->emptylayer(i)) {
+                double charge_i;
+                if(i == eventinfo->number_of_layers) { charge_i = 0.0;} // charge_i = 1.0*(_layercharge[i-1])/(2.0*eventinfo->simboxsize.x()*eventinfo->simboxsize.y());}
+                else {
+                    double mincharge;
+                    if(_layercharge[i-1]<_layercharge[i]) mincharge = _layercharge[i-1];
+                    else mincharge = _layercharge [i];
+                    charge_i = 1.0*(mincharge)/(this->layersize()*eventinfo->simboxsize.x()*eventinfo->simboxsize.y());
+                }
                 double rel_position_i = 1.0*(eventinfo->simboxsize.z()-this->boundary(i));
                 plate_correct2 += rel_position_i*charge_i; // potential of a charged plate between two electrodes
-            }
+
+                int start_index = dynamic_cast<NodeDevice*>(node)->firstcontribboundary(); 
+                int final_index = dynamic_cast<NodeDevice*>(node)->finalcontribboundary();
+
+                if (final_index >= i) { // final boundary of device is not important
+                    // Cut out short-range sphere (relative to first contributing layer)
+                    //double pre_charge_i = 1.0*(_layercharge[i])/(this->layersize()*eventinfo->simboxsize.x()*eventinfo->simboxsize.y());
+                    cut_out_correct += charge_i*dynamic_cast<NodeDevice*>(node)->correct(i-start_index);
+                }                   
+
+           // }
         }
-    }    
-    
+//    }    
+
+    int start_index = dynamic_cast<NodeDevice*>(node)->firstcontriblayer();     
     cut_out_contrib += charge_i*dynamic_cast<NodeDevice*>(node)->contrib(layer-start_index);    
-//    if (!cut_out_discs) { cut_out_contrib = 0.0; } 
-    if(eventinfo->norc) cut_out_contrib = 0.0;
+
+    /*start_index = dynamic_cast<NodeDevice*>(node)->firstcontribboundary(); 
+    double pre_charge_i = 1.0*_layercharge[layer-1]/(this->layersize()*eventinfo->simboxsize.x()*eventinfo->simboxsize.y());
+    cut_out_correct += 0.5*(charge_i+pre_charge_i)*dynamic_cast<NodeDevice*>(node)->correct(layer-start_index);*/     
+
+    if(eventinfo->norc) {cut_out_contrib = 0.0; cut_out_correct = 0.0;}
 //    cut_out_contrib = 0.0;
     
     //note that local positioning in the slab itself is calculated on the fly
    
     longrangeslab += 4.0*Pi*(slab_contrib1*(right_node_distance/eventinfo->simboxsize.z()) + slab_contrib2*(left_node_distance/eventinfo->simboxsize.z()));
     longrangeslab += 4.0*Pi*(slab_contrib3*(right_node_distance/eventinfo->simboxsize.z()) + slab_contrib4*(left_node_distance/eventinfo->simboxsize.z()));
-    longrangeslab -= 2.0*Pi*charge_i*(left_node_distance - this->position(layer))*(left_node_distance - this->position(layer));
-    longrangeslab -= 2.0*Pi*charge_i*0.25*this->layersize()*this->layersize(); // d = 0.5 layersize, therefore the 0.25
+    longrangeslab += -2.0*Pi*charge_i*(left_node_distance - this->position(layer))*(left_node_distance - this->position(layer));
+    longrangeslab += -2.0*Pi*charge_i*0.25*this->layersize()*this->layersize(); // d = 0.5 layersize, therefore the 0.25
     longrangeslab += -2.0*Pi*cut_out_contrib;
-    longrangeslab += 4.0*Pi*(plate_correct1*(right_node_distance/eventinfo->simboxsize.z()) + plate_correct2*(left_node_distance/eventinfo->simboxsize.z()));
+    longrangeslab += 2.0*Pi*cut_out_correct;
+    longrangeslab += -4.0*Pi*(plate_correct1*(right_node_distance/eventinfo->simboxsize.z()) + plate_correct2*(left_node_distance/eventinfo->simboxsize.z()));
             
     return longrangeslab;
 

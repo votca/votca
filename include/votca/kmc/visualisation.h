@@ -58,16 +58,23 @@ private:
 
 void Visualisation::Init_visualisation(GraphKMC* graph, Eventinfo* eventinfo)
 {
-
+    std::cout << "here" << endl;
     strcpy(viz_file, eventinfo->visualisation_filename.c_str());    
     viz_stream.open(viz_file);
-    
+      std::cout << "here" << endl;
+  
     viz_meshnr_x = eventinfo->visualisation_number_x; viz_meshnr_y = eventinfo->visualisation_number_y; viz_meshnr_z = eventinfo->visualisation_number_z;
     viz_size_x = eventinfo->simboxsize.x()/viz_meshnr_x; viz_size_y = eventinfo->simboxsize.y()/viz_meshnr_y; viz_size_z = eventinfo->simboxsize.z()/viz_meshnr_z;
-    
+     std::cout << "here" << endl;
+   
     this->Init_layers();
+      std::cout << "here" << endl;
+
     this->Init_meshes();
+        std::cout << "here" << endl;
+
     this->Init_node_numbers(graph);
+    std::cout << "here" << endl;
 
 }
 
@@ -114,6 +121,7 @@ void Visualisation::Print_visualisation()
 
                value = viz_mesh[ix][iy][iz]/(1.0*num_mesh[ix][iy][iz]);
                layer_value = layer_cur[iz]/(1.0*layer_num[iz]);
+               if(layer_value == 0) layer_value = 1;
                
                double current = value/layer_value;
                viz_stream << ix << " " << iy << " " << iz << " " << current << "\n";
@@ -161,6 +169,10 @@ void Visualisation::Init_node_numbers(GraphKMC* graph)
             int mesh_pos_x = floor(position.x()/viz_size_x);
             int mesh_pos_y = floor(position.y()/viz_size_y);
             int mesh_pos_z = floor(position.z()/viz_size_z);
+            if (mesh_pos_x == viz_meshnr_x) mesh_pos_x--; 
+            if (mesh_pos_y == viz_meshnr_y) mesh_pos_y--; 
+            if (mesh_pos_z == viz_meshnr_z) mesh_pos_z--; 
+            
             num_mesh[mesh_pos_x][mesh_pos_y][mesh_pos_z]++;
             layer_num[mesh_pos_z]++;
         }

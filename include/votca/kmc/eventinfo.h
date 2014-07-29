@@ -41,7 +41,7 @@ public:
 
         random_seed                           = options->get("options.general.random_seed").as<int>();
         
-        init_charges                      = options->get("options.general.init_charges").as<bool>();
+        init_charges                          = options->get("options.general.init_charges").as<bool>();
         
         integer_number_of_charges             = options->get("options.general.integer_number_of_charges").as<bool>();
         number_of_electrons                   = options->get("options.general.number_of_electrons").as<int>();
@@ -71,20 +71,24 @@ public:
         formalism                             = options->get("options.general.formalism").as<string>();        
 
         alpha                                 = options->get("options.general.alpha").as<double>();
+        // alpha = 20.0;
         temperature                           = options->get("options.general.temperature").as<double>();
         efield_x                              = options->get("options.general.efield_x").as<double>();
         efield_y                              = options->get("options.general.efield_y").as<double>();
         efield_z                              = options->get("options.general.efield_z").as<double>();
 
+        novikov = true;
+        
         coulomb_strength                      = options->get("options.general.coulomb_strength").as<double>();
         lr_coulomb_strength                   = options->get("options.general.lr_coulomb_strength").as<double>();
 
-//        coulomb_cut_off_radius                = options->get("options.general.coulomb_cut_off_radius").as<double>();
-        coulomb_cut_off_radius                = 5.0;
+        //coulomb_cut_off_radius                = options->get("options.general.coulomb_cut_off_radius").as<double>();
+        coulomb_cut_off_radius                = 10.0;
 
         binding_energy                        = options->get("options.general.binding_energy").as<double>();
         
-        norc                                  = options->get("options.general.norc").as<bool>();
+        //norc                                  = options->get("options.general.norc").as<bool>();
+        norc = false;
         
         if(advanced) {
             repeat_counting                   = options->get("options.general.repeat_counting").as<bool>();
@@ -98,13 +102,15 @@ public:
             hole_transport_prefactor          = options->get("options.general.hole_prefactor").as<double>();
             recombination_prefactor           = options->get("options.general.recombination_prefactor").as<double>();
 
-            growsize                          = options->get("options.general.growsize").as<int>();
-
+            //growsize                          = options->get("options.general.growsize").as<int>();
+            growsize                          = 10;
+            
             visualisation_number_x            = options->get("options.general.visualisation_number_x").as<int>();
             visualisation_number_y            = options->get("options.general.visualisation_number_y").as<int>();
             visualisation_number_z            = options->get("options.general.visualisation_number_z").as<int>();
 
-            number_direct_conv_iv             = options->get("options.general.number_direct_conv_iv").as<int>();
+            //number_direct_conv_iv             = options->get("options.general.number_direct_conv_iv").as<int>();
+            number_direct_conv_iv             = 5;
             number_direct_conv_reco           = options->get("options.general.number_direct_conv_reco").as<int>();
         }
         else {
@@ -142,7 +148,9 @@ public:
         right_hole_injection                  = options->get("options.device.right_hole_injection").as<bool>();
 
         left_injection_barrier                = options->get("options.device.left_injection_barrier").as<double>();
+        //left_injection_barrier = 0.45;
         right_injection_barrier               = options->get("options.device.right_injection_barrier").as<double>();
+        //right_injection_barrier = 0.45;
         
         left_electrode_distance               = options->get("options.device.left_electrode_distance").as<double>();
         right_electrode_distance              = options->get("options.device.right_electrode_distance").as<double>();
@@ -194,7 +202,7 @@ public:
         }
     }
     
-    void Graph_Parameters(double graph_hopdist, double av_dist, double graph_mindist, votca::tools::vec graph_simboxsize, int graph_maxpairdegree, double av_ho_energy, double av_elect_energy, double hole_inject_reorg, double electron_inject_reorg) 
+    void Graph_Parameters(double graph_hopdist, double av_dist, double graph_mindist, votca::tools::vec graph_simboxsize, int graph_maxpairdegree, double av_ho_energy, double stdevhoenergy, double av_elect_energy, double hole_inject_reorg, double electron_inject_reorg) 
     {
         left_electrode_distance = av_dist;
         right_electrode_distance = av_dist;
@@ -203,6 +211,7 @@ public:
         simboxsize = graph_simboxsize;
         maxpairdegree = graph_maxpairdegree;
         avholeenergy = av_ho_energy;
+        stddev_hole_energy = stdevhoenergy;
         avelectronenergy = av_elect_energy;
         hole_injection_reorg = hole_inject_reorg;
         electron_injection_reorg = electron_inject_reorg;
@@ -256,9 +265,12 @@ public:
     bool write_charge_profile; bool write_potential_profile;
            
     double hopdist; double mindist; votca::tools::vec simboxsize; int maxpairdegree; double avholeenergy; double avelectronenergy;
+    double stddev_hole_energy;
     double hole_injection_reorg; double electron_injection_reorg;
     
     bool norc;
+    
+    bool novikov;
 
 
 };

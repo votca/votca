@@ -37,8 +37,8 @@ public:
         delete visualisation;
     }
     
-    void Initialize();
-    void Initialize_equilibrate();
+    void Initialize(Eventinfo* eventinfo);
+    void Initialize_equilibrate(Eventinfo* eventinfo);
     void Init_convergence_check(double simtime);
     void Convergence_check(double simtime, Eventinfo* eventinfo);
     void Update(Event* event, double simtime, double timestep);
@@ -68,6 +68,8 @@ private:
     void Write_header_two();
     void Write_header_three();
     void Write_header_four(Eventinfo* eventinfo);
+
+    vector<double> layercurrent;
     
     int _nelectrons;
     int _nholes;
@@ -92,6 +94,10 @@ private:
     double _vel_y;
     double _vel_z;
     
+    double _intvel_x;
+    double _intvel_y;
+    double _intvel_z;
+    
     double _electron_vel_x;
     double _electron_vel_y;
     double _electron_vel_z;
@@ -115,7 +121,7 @@ private:
     
 };
 
-void Numoutput::Initialize() {
+void Numoutput::Initialize(Eventinfo* eventinfo) {
     _nelectrons = 0; _nholes = 0; _ncarriers = 0;
     
     _direct_iv_counter = 0;
@@ -123,11 +129,13 @@ void Numoutput::Initialize() {
     
     _direct_iv_convergence = false;
     _direct_reco_convergence = false;
+
+
     
-    Initialize_equilibrate();
+    Initialize_equilibrate(eventinfo);
 }
 
-void Numoutput::Initialize_equilibrate() {
+void Numoutput::Initialize_equilibrate(Eventinfo* eventinfo) {
     
     _ninjections = 0; _ncollections = 0; 
     _nleftinjections = 0; _nrightinjections = 0;
@@ -137,8 +145,15 @@ void Numoutput::Initialize_equilibrate() {
     _ninjectionrate = 0.0; _ncollectionrate = 0.0; _nrecombinationrate = 0.0;
     
     _vel_x = 0.0; _vel_y = 0.0; _vel_z = 0.0;
+    _intvel_x = 0.0; _intvel_y = 0.0; _intvel_z = 0.0;
     _electron_vel_x = 0.0; _electron_vel_y = 0.0; _electron_vel_z = 0.0;
     _hole_vel_x = 0.0; _hole_vel_y = 0.0; _hole_vel_z = 0.0;
+
+    layercurrent.clear();
+    for (int i =0; i < eventinfo->number_of_layers; i++) {
+        layercurrent.push_back(0.0);
+    }    
+
 }
 
 void Numoutput::Init_convergence_check(double simtime) {
@@ -148,8 +163,8 @@ void Numoutput::Init_convergence_check(double simtime) {
 
 void Numoutput::Convergence_check(double simtime, Eventinfo* eventinfo) {
     
-    if (fabs(_vel_z/simtime-_vz_old)/_vz_old < 0.05 && _vel_z > 0.0)               { _direct_iv_counter++;  } else { _direct_iv_counter = 0;  }
-    if (fabs(_nrecombinations/simtime-_reco_old)/_reco_old < 0.05) { _direct_reco_counter++;} else { _direct_reco_counter = 0;}
+    if (fabs(_vel_z/simtime-_vz_old)/_vz_old < 0.08 && _vel_z > 0.0)               { _direct_iv_counter++;  } else { _direct_iv_counter = 0;  }
+    if (fabs(_nrecombinations/simtime-_reco_old)/_reco_old < 0.08) { _direct_reco_counter++;} else { _direct_reco_counter = 0;}
 
     if(_direct_iv_counter >= eventinfo->number_direct_conv_iv) {_direct_iv_convergence = true;}
     if(_direct_reco_counter >= eventinfo->number_direct_conv_reco) {_direct_reco_convergence = true;}
@@ -212,6 +227,11 @@ void Numoutput::Update(Event* event, double simtime, double timestep) {
     
     Node* node1 = event->link()->node1();
     Node* node2 = event->link()->node2();
+    votca::tools::vec nodepos1 = node1->position();
+    votca::tools::vec nodepos2 = node2->position();
+    int node1_layer = dynamic_cast<NodeDevice*>(node1)->layer();
+    int node2_layer = dynamic_cast<NodeDevice*>(node2)->layer();
+    
     votca::tools::vec travelvec = event->link()->r12();
     double direction;
     double dirx; double diry; double dirz;
@@ -220,7 +240,21 @@ void Numoutput::Update(Event* event, double simtime, double timestep) {
     if(travelvec.x() > 0) {dirx = 1.0;} else {if(travelvec.x() == 0) {dirx = 0.0;} else {dirx = -1.0;}}
     if(travelvec.y() > 0) {diry = 1.0;} else {if(travelvec.y() == 0) {diry = 0.0;} else {diry = -1.0;}}
     if(travelvec.z() > 0) {dirz = 1.0;} else {if(travelvec.z() == 0) {dirz = 0.0;} else {dirz = -1.0;}}
-
+    
+    if(node1->type() == (int) NormalNode) {
+        if(node1_layer != node2_layer) layercurrent[node1_layer] += 0.5*dirz;
+        _intvel_x += 0.5*dirx;        
+        _intvel_y += 0.5*diry;
+        _intvel_z += 0.5*dirz;              
+    }
+    
+    if(node2->type() == (int) NormalNode) {
+        if(node1_layer != node2_layer) layercurrent[node2_layer] += 0.5*dirz;
+        _intvel_x += 0.5*dirx;        
+        _intvel_y += 0.5*diry;
+        _intvel_z += 0.5*dirz;              
+    }    
+    
     _vel_x += direction*travelvec.x();
     _vel_y += direction*travelvec.y();
     _vel_z += direction*travelvec.z();
@@ -281,9 +315,18 @@ void Numoutput::Write(int it, double simtime, double timestep, Eventinfo* eventi
         std::cout << setw(15) << _ninjectionrate;
         std::cout << setw(15) << _ncollectionrate;
     }
-    std::cout << setw(15) << _vel_x/simtime;
+    double layercur = 0.0;
+    for (int i = 0; i<eventinfo->number_of_layers; i++) {
+        layercur += layercurrent[i];
+    }
+    layercur /= eventinfo->number_of_layers;
+     std::cout << setw(15) << _vel_x/simtime;
     std::cout << setw(15) << _vel_y/simtime;
     std::cout << setw(15) << _vel_z/simtime;
+    std::cout << setw(15) << _intvel_x/simtime;
+    std::cout << setw(15) << _intvel_y/simtime;
+    std::cout << setw(15) << _intvel_z/simtime;
+    std::cout << setw(15) << layercur/simtime;
     std::cout << "\n";      
     std::cout << "\n";
 }

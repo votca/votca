@@ -215,8 +215,14 @@ inline double Event::Determine_self_coulomb(Node* node, Eventinfo* eventinfo){
 void Event::Determine_rate(StateReservoir* state, Longrange* longrange, Eventinfo* eventinfo) {
 
     Node* node1 = _link->node1();
+    votca::tools::vec node1vec = node1->position();
+    double leftnode1pos = node1vec.z();
+    double rightnode1pos = eventinfo->simboxsize.z() - leftnode1pos;
     Node* node2 = _link->node2();
-
+    votca::tools::vec node2vec = node2->position();
+    double leftnode2pos = node2vec.z();
+    double rightnode2pos = eventinfo->simboxsize.z() - leftnode2pos;
+    
     double prefactor = 1.0; // total prefactor
     double charge;
     double static_node_energy_from;
@@ -231,16 +237,28 @@ void Event::Determine_rate(StateReservoir* state, Longrange* longrange, Eventinf
         prefactor = prefactor*(eventinfo->electron_transport_prefactor);
         static_node_energy_from = dynamic_cast<NodeSQL*>(node1)->eAnion() + dynamic_cast<NodeSQL*>(node1)->UcCnNe();
         static_node_energy_to = dynamic_cast<NodeSQL*>(node2)->eAnion() + dynamic_cast<NodeSQL*>(node2)->UcCnNe();
-        if(_init_type == Injection) static_node_energy_from = eventinfo->avelectronenergy;
+        if(_init_type == Injection) static_node_energy_from = eventinfo->avelectronenergy; 
         if(_final_type == Collection) static_node_energy_to = eventinfo->avelectronenergy;
     }
     else if(_carrier_type == (int) Hole) {
         charge = 1.0;
+        double conversion1 = 1.0/sqrt(1.0);
+        double conversion2 = 1.0/sqrt(1.0);
+        if(eventinfo->novikov) {
+            conversion1 = (1.0 - (0.9/(2.0*leftnode1pos))*(1.0 - exp(-2.0*leftnode1pos/0.9)))*(1.0 - (0.9/(2.0*rightnode1pos))*(1.0 - exp(-2.0*rightnode1pos/0.9)));
+            conversion2 = (1.0 - (0.9/(2.0*leftnode2pos))*(1.0 - exp(-2.0*leftnode2pos/0.9)))*(1.0 - (0.9/(2.0*rightnode2pos))*(1.0 - exp(-2.0*rightnode2pos/0.9)));
+        }
         prefactor = prefactor*(eventinfo->hole_transport_prefactor);
-        static_node_energy_from = dynamic_cast<NodeSQL*>(node1)->eCation() + dynamic_cast<NodeSQL*>(node1)->UcCnNh();
-        static_node_energy_to = dynamic_cast<NodeSQL*>(node2)->eCation() + dynamic_cast<NodeSQL*>(node2)->UcCnNh();
-        if(_init_type == Injection) static_node_energy_from = eventinfo->avholeenergy;
-        if(_final_type == Collection) static_node_energy_to = eventinfo->avholeenergy;
+        double temp_static_node_energy_from = dynamic_cast<NodeSQL*>(node1)->eCation() + dynamic_cast<NodeSQL*>(node1)->UcCnNh();
+        static_node_energy_from = conversion1*(temp_static_node_energy_from - eventinfo->avholeenergy) + eventinfo->avholeenergy;
+        double temp_static_node_energy_to = dynamic_cast<NodeSQL*>(node2)->eCation() + dynamic_cast<NodeSQL*>(node2)->UcCnNh();
+        static_node_energy_to = conversion2*(temp_static_node_energy_to - eventinfo->avholeenergy) + eventinfo->avholeenergy;
+        if(_init_type == Injection) {
+            static_node_energy_from = eventinfo->avholeenergy; 
+        }
+        if(_final_type == Collection) {
+            static_node_energy_to = eventinfo->avholeenergy;
+        }
     }
 
     //first transfer integrals
@@ -358,7 +376,9 @@ void Event::Determine_rate(StateReservoir* state, Longrange* longrange, Eventinf
         }       
     }
     _rate = prefactor*_transferfactor*_energyfactor;
-//    std::cout << _rate << endl;
+    //if(node1->type() == (int) LeftElectrodeNode) std::cout << _rate << " " << _energyfactor << " " << final_energy << " " << static_node_energy_to << " " << _transferfactor << " " << distancevector << " " << (2*Pi/hbar)*(1.0/sqrt(4*Pi*Reorg*kB*eventinfo->temperature)) << " " << node1->position() << " " << node2->position() << " " << endl;
+
+    //if(node1->type() == (int) RightElectrodeNode && _rate > 1.0) std::cout << _rate << " " << _energyfactor << " " << final_energy << " " << static_node_energy_to << " " << _transferfactor << " " << distancevector << " " << (2*Pi/hbar)*(1.0/sqrt(4*Pi*Reorg*kB*eventinfo->temperature)) << " " << node1->position() << " " << node2->position() << " " << endl;
 
 }
 

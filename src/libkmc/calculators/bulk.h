@@ -96,7 +96,7 @@ void Bulk::Initialize(const char *filename, Property *options, const char *outpu
     
     graph->Setup_bulk_graph(eventinfo);
    
-    eventinfo->Graph_Parameters(graph->hopdist(), graph->mindist(), graph->mindist(), graph->simboxsize(), graph->maxpairdegree(),graph->Average_hole_node_energy(), graph->Average_electron_node_energy(), graph-> Hole_inject_reorg(), graph->Electron_inject_reorg());
+    eventinfo->Graph_Parameters(graph->hopdist(), graph->mindist(), graph->mindist(), graph->simboxsize(), graph->maxpairdegree(),graph->Average_hole_node_energy(), graph->stddev_hole_node_energy(), graph->Average_electron_node_energy(), graph-> Hole_inject_reorg(), graph->Electron_inject_reorg());
     
     std::cout << "graph object initialized" << "\n";
     std::cout << "max pair degree: " << graph->maxpairdegree() << "\n";
@@ -157,7 +157,7 @@ void Bulk::Initialize(const char *filename, Property *options, const char *outpu
     std::cout << "vssm group initialized" << "\n";
 
     numoutput = new Numoutput();
-    numoutput->Initialize();
+    numoutput->Initialize(eventinfo);
     std::cout << "output object initialized" << "\n";
 
 
@@ -238,7 +238,7 @@ void Bulk::RunKMC() {
    
         if(!eventinfo->carrier_trajectory &&(it == eventinfo->number_of_equilibration_steps || it == 2*eventinfo->number_of_equilibration_steps)) {
             numoutput->Init_convergence_check(sim_time);
-            numoutput->Initialize_equilibrate();
+            numoutput->Initialize_equilibrate(eventinfo);
             sim_time = 0.0;
         }
         // convergence checking

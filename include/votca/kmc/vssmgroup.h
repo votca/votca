@@ -87,6 +87,7 @@ void Vssmgroup::Recompute_device(Bsumtree* non_injection_rates, Bsumtree* left_i
         right_inject_probsum = 0.0;
     }
     tot_probsum = non_inject_probsum + left_inject_probsum + right_inject_probsum;
+//   std::cout << "non " << non_inject_probsum << " left " << left_inject_probsum << " right " << right_inject_probsum << endl;
 }
 
 void Vssmgroup::Recompute_bulk(Bsumtree* non_injection_rates){
