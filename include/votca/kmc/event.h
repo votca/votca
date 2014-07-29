@@ -245,8 +245,8 @@ void Event::Determine_rate(StateReservoir* state, Longrange* longrange, Eventinf
         double conversion1 = 1.0/sqrt(1.0);
         double conversion2 = 1.0/sqrt(1.0);
         if(eventinfo->novikov) {
-            conversion1 = (1.0 - (0.9/(2.0*leftnode1pos))*(1.0 - exp(-2.0*leftnode1pos/0.9)))*(1.0 - (0.9/(2.0*rightnode1pos))*(1.0 - exp(-2.0*rightnode1pos/0.9)));
-            conversion2 = (1.0 - (0.9/(2.0*leftnode2pos))*(1.0 - exp(-2.0*leftnode2pos/0.9)))*(1.0 - (0.9/(2.0*rightnode2pos))*(1.0 - exp(-2.0*rightnode2pos/0.9)));
+            conversion1 = (1.0 - (1.0/(2.0*leftnode1pos))*(1.0 - exp(-2.0*leftnode1pos/1.0)))*(1.0 - (1.0/(2.0*rightnode1pos))*(1.0 - exp(-2.0*rightnode1pos/1.0)));
+            conversion2 = (1.0 - (1.0/(2.0*leftnode2pos))*(1.0 - exp(-2.0*leftnode2pos/1.0)))*(1.0 - (1.0/(2.0*rightnode2pos))*(1.0 - exp(-2.0*rightnode2pos/1.0)));
         }
         prefactor = prefactor*(eventinfo->hole_transport_prefactor);
         double temp_static_node_energy_from = dynamic_cast<NodeSQL*>(node1)->eCation() + dynamic_cast<NodeSQL*>(node1)->UcCnNh();
