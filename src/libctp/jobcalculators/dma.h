@@ -66,12 +66,19 @@ private:
     bool                _do_orbitals;
     bool                _do_dma;
 
+    string _executable;
     string _jobFile;
     string _chkFile;
             
     string _package;
     Property _package_options;   
-
+    
+    // dma input file options
+    string _density;
+    int _limit;
+    double _radius;
+    int _switch;
+    string _outFile;
 };
 
 }}
