@@ -271,6 +271,8 @@ public:
     bool norc;
     
     bool novikov;
+    
+    double conversion;
 
 
 };
