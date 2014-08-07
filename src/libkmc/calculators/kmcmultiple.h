@@ -140,6 +140,7 @@ protected:
             string _injectionmethod;
             int _injectionfree;
             double _runtime;
+            double _maxrealtime;
             int _seed;
             int _numberofcharges;
             int _allowparallel;
@@ -173,6 +174,12 @@ void KMCMultiple::Initialize(const char *filename, Property *options, const char
 	}
 	else {
 	    throw runtime_error("Error in kmcmultiple: total run time is not provided");
+        }
+    	if (options->exists("options.kmcmultiple.maxrealtime")) {
+	    _maxrealtime = options->get("options.kmcmultiple.maxrealtime").as<double>();
+	}
+        else{
+            _maxrealtime = 1E10; // maximal real time in hours
         }
     	if (options->exists("options.kmcmultiple.seed")) {
 	    _seed = options->get("options.kmcmultiple.seed").as<int>();
@@ -989,6 +996,11 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
     vector<int> forbiddendests;
     while((stopcondition == "runtime" && simtime < runtime) || (stopcondition == "steps" && step < maxsteps))
     {
+        if((time(NULL) - realtime_start) > _maxrealtime*60.*60.)
+        {
+            cout  << endl << "Real time limit of " << _maxrealtime << " hours (" << int(_maxrealtime*60*60 +0.5) <<" seconds) has been reached. Stopping here." << endl << endl;
+            break;
+        }
         double cumulated_rate = 0;
         if(_explicitcoulomb >= 1)
         {
