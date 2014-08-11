@@ -994,7 +994,9 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
     progressbar(0.);
     vector<int> forbiddennodes;
     vector<int> forbiddendests;
-    while((stopcondition == "runtime" && simtime < runtime) || (stopcondition == "steps" && step < maxsteps))
+    
+    bool timeout = false;
+    while(((stopcondition == "runtime" && simtime < runtime) || (stopcondition == "steps" && step < maxsteps)) && timeout == false)
     {
         if((time(NULL) - realtime_start) > _maxrealtime*60.*60.)
         {
@@ -1035,9 +1037,17 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
         
         ResetForbidden(forbiddennodes);
         int level1step = 0;
-        while(level1step == 0)
+        while(level1step == 0 && timeout == false)
         // LEVEL 1
         {
+            
+            if((time(NULL) - realtime_start) > _maxrealtime*60.*60.)
+            {
+                cout  << endl << "Real time limit of " << _maxrealtime << " hours (" << int(_maxrealtime*60*60 +0.5) <<" seconds) has been reached while searching escape node (level 1). Stopping here." << endl << endl;
+                timeout = true;
+                break;
+            }
+
             
             // determine which electron will escape
             Node* do_oldnode;
@@ -1066,10 +1076,18 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
             
             // determine where it will jump to
             ResetForbidden(forbiddendests);
-            while(true)
+            while(timeout == false)
             {
             // LEVEL 2
                 if(votca::tools::globals::verbose) {cout << "There are " << do_oldnode->event.size() << " possible jumps for this charge:"; }
+                
+                if((time(NULL) - realtime_start) > _maxrealtime*60.*60.)
+                {
+                    cout  << endl << "Real time limit of " << _maxrealtime << " hours (" << int(_maxrealtime*60*60 +0.5) <<" seconds) has been reached while searching destination node (level 2). Stopping here." << endl << endl;
+                    timeout = true;
+                    break;
+                }
+
 
                 do_newnode = NULL;
                 u = 1 - RandomVariable->rand_uniform();
@@ -1175,7 +1193,8 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
             }
         // END LEVEL 1
         }    
-
+        
+        
         if(step > nextdiffstep)       
         {
             nextdiffstep += diffusion_stepsize;
