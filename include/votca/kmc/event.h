@@ -242,19 +242,23 @@ void Event::Determine_rate(StateReservoir* state, Longrange* longrange, Eventinf
     }
     else if(_carrier_type == (int) Hole) {
         charge = 1.0;
-
+        double conversion1 = 0.57;
+        double conversion2 = 0.57;
+        //if(eventinfo->novikov) {
+        //    conversion1 = (1.0 - (0.9/(2.0*leftnode1pos))*(1.0 - exp(-2.0*leftnode1pos/0.9)))*(1.0 - (0.9/(2.0*rightnode1pos))*(1.0 - exp(-2.0*rightnode1pos/0.9)));
+        //    conversion2 = (1.0 - (0.9/(2.0*leftnode2pos))*(1.0 - exp(-2.0*leftnode2pos/0.9)))*(1.0 - (0.9/(2.0*rightnode2pos))*(1.0 - exp(-2.0*rightnode2pos/0.9)));
+        //}
         prefactor = prefactor*(eventinfo->hole_transport_prefactor);
         double temp_static_node_energy_from = dynamic_cast<NodeSQL*>(node1)->eCation() + dynamic_cast<NodeSQL*>(node1)->UcCnNh();
         static_node_energy_from = temp_static_node_energy_from;
         double temp_static_node_energy_to = dynamic_cast<NodeSQL*>(node2)->eCation() + dynamic_cast<NodeSQL*>(node2)->UcCnNh();
         static_node_energy_to = temp_static_node_energy_to;
         if(_init_type == Injection) {
-            static_node_energy_from = eventinfo->avholeenergy;
-            static_node_energy_to = eventinfo->conversion*(temp_static_node_energy_to - eventinfo->avholeenergy) + eventinfo->avholeenergy;
-
+            static_node_energy_from = eventinfo->avholeenergy; 
+            static_node_energy_to = conversion2*(temp_static_node_energy_to - eventinfo->avholeenergy) + eventinfo->avholeenergy;
         }
         if(_final_type == Collection) {
-            static_node_energy_from = eventinfo->conversion*(temp_static_node_energy_from - eventinfo->avholeenergy) + eventinfo->avholeenergy;
+            static_node_energy_from = conversion1*(temp_static_node_energy_from - eventinfo->avholeenergy) + eventinfo->avholeenergy;
             static_node_energy_to = eventinfo->avholeenergy;
         }
     }
@@ -336,10 +340,10 @@ void Event::Determine_rate(StateReservoir* state, Longrange* longrange, Eventinf
     if(eventinfo->device) {
         selfimpot_from = Determine_self_coulomb(node1, eventinfo);
         selfimpot_to = Determine_self_coulomb(node2, eventinfo);   
-
+        
         lr_coulomb_from = charge*Determine_lr_coulomb(node1, longrange, eventinfo);
         lr_coulomb_to = charge*Determine_lr_coulomb(node2, longrange, eventinfo);
-
+        
         init_energy = static_node_energy_from + selfimpot_from + from_event_energy + sr_coulomb_from + lr_coulomb_from;
         final_energy = static_node_energy_to + selfimpot_to + to_event_energy + sr_coulomb_to + lr_coulomb_to;
     }

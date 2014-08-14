@@ -90,7 +90,7 @@ void Bulk::Initialize(const char *filename, Property *options, const char *outpu
     randomvariable->init(rand(), rand(), rand(), rand());     
     
     graph = new GraphKMC();
-    graph->Initialize(filename);
+    graph->Initialize_sql(filename);
     std::cout << "number of nodes before graph manipulations: " << graph->Numberofnodes() << "\n";
     std::cout << "simulation box size before graph manipulations: " << graph->Determine_Sim_Box_Size() << "\n";
     

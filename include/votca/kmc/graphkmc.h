@@ -348,16 +348,15 @@ double GraphKMC::Determine_Average_Distance(Eventinfo* eventinfo)
     av_distance= 0.0;
     linkcount = 0;
     average = 0.0;    
-    
-    for(it = this->_links.begin(); it != this->_links.end(); it++) 
-    {
-        if((*it)->node1()->type() != (int) NormalNode || (*it)->node2()->type() != (int) NormalNode) {
-            double r12 = exp(-2.0*eventinfo->alpha*abs((*it)->r12()))*abs((*it)->r12());
-            av_distance += r12;
-            linkcount += exp(-2.0*eventinfo->alpha*abs((*it)->r12()));
-        }
-    }    
 
+    for(int ilink = 0; ilink < _left_electrode->links().size(); ilink++) 
+    {
+        Link* link = _left_electrode->links()[ilink];
+        double r12 = abs(link->r12());
+        av_distance += r12;
+        linkcount++;
+    }
+    
     average = av_distance/linkcount;
     std::cout << "average electrode distance " << average << " input " << eventinfo->left_electrode_distance << endl;
     return average;
@@ -377,31 +376,30 @@ void GraphKMC::Determine_Average_Jeff(Eventinfo* eventinfo)
     {
         if((*it)->node1()->type() == (int) NormalNode && (*it)->node2()->type() == (int) NormalNode) {
             if((*it)->Jeff2h() != 0.0) {
-                double logjeff = (*it)->Jeff2h();
+                double logjeff = log((*it)->Jeff2h());
                 av_jeff += logjeff;
-                linkcount ++;
+                linkcount++;
             }
         }
     }
     
     average = av_jeff/linkcount;
-    std::cout << "av non " << average << endl;
+    std::cout << "av non " << exp(average) << endl;
 
     av_jeff = 0.0;
     linkcount = 0.0;
     average = 0.0;    
     
-    for(it = this->_links.begin(); it != this->_links.end(); it++) 
+    for(int ilink = 0; ilink < _left_electrode->links().size(); ilink++) 
     {
-        if((*it)->node1()->type() == (int) NormalNode && (*it)->node2()->type() == (int) NormalNode) {
-            double logjeff = exp(-2.0*eventinfo->alpha*abs((*it)->r12()));
-            av_jeff += logjeff;
-            linkcount ++;
-        }
+        Link* link = _left_electrode->links()[ilink];
+        double logjeff = -2.0*eventinfo->alpha*abs(link->r12());
+        av_jeff += logjeff;
+        linkcount++;
     }
-
+    std::cout << av_jeff << " " << linkcount << endl;
     average = av_jeff/linkcount;
-    std::cout << "av non alpha " << average << endl;    
+    std::cout << "av non alpha " << exp(average) << endl;    
     
 }
 

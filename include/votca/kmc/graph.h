@@ -21,6 +21,9 @@
 #include <vector>
 #include <votca/kmc/nodesql.h>
 #include <votca/kmc/linksql.h>
+#include <votca/kmc/eventinfo.h>
+#include <votca/tools/random2.h>
+
 
 namespace votca { namespace kmc {
 
@@ -96,7 +99,8 @@ public:
     }
     
     /// initialize nodes and links
-    virtual void Initialize(string filename){;};
+    virtual void Initialize_sql(string filename){;};
+    virtual void Initialize_cubic(Eventinfo* eventinfo, votca::tools::Random2 *RandomVariable){;};
 
     /// Clear occupation
     void Clear() 

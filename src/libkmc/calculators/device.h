@@ -36,7 +36,6 @@ namespace votca { namespace kmc {
     
 //typedef votca::tools::vec myvec;
 
-// LUMO level substracted!!!
    
 class Device : public KMCCalculator 
 {
@@ -94,7 +93,8 @@ void Device::Initialize(const char *filename, Property *options, const char *out
     randomvariable->init(rand(), rand(), rand(), rand());  
     
     graph = new GraphKMC();
-    graph->Initialize(filename);
+    eventinfo->Read_cubic(options);
+    graph->Initialize_cubic(eventinfo,randomvariable);
     std::cout << "number of nodes before graph manipulations: " << graph->Numberofnodes() << "\n";
     std::cout << "simulation box size before graph manipulations: " << graph->Determine_Sim_Box_Size() << "\n";
     
@@ -194,9 +194,6 @@ void Device::Initialize(const char *filename, Property *options, const char *out
 
 bool Device::EvaluateFrame() {
     
-    // register all QM packages (Gaussian, turbomole, etc))
-    // EventFactory::RegisterAll(); 
-        
     RunKMC();
     delete randomvariable;
     delete state;
@@ -244,7 +241,7 @@ void Device::RunKMC() {
     sim_time = 0.0;
     std::cout << eventinfo->timesteps_update_longrange << endl;
     for (long it = 0; it < 2*eventinfo->number_of_equilibration_steps + eventinfo->number_of_steps; it++) {
-//        std::cout << it << endl;
+
         if(ldiv(it, eventinfo->timesteps_update_longrange).rem == 0 && it>0){
             if(eventinfo->longrange_slab) longrange->Update_cache_slab(graph,eventinfo);
             else                          longrange->Update_cache(eventinfo);
@@ -261,15 +258,13 @@ void Device::RunKMC() {
         if(eventinfo->filament_visualisation && it <= eventinfo->visualisation_at_nr_steps) numoutput->Update_visualisation(chosenevent);
         if(eventinfo->filament_visualisation && it == eventinfo->visualisation_at_nr_steps) numoutput->Print_visualisation();
         // check for direct repeats
-//        if(eventinfo->repeat_counting) numoutput->Repeat_count_update(chosenevent);
-//                std::cout << it << " time" << " " << sim_time << " " << timestep << " " << chosenevent->id() << endl;
+        if(eventinfo->repeat_counting) numoutput->Repeat_count_update(chosenevent);
+
 
         numoutput->Update(chosenevent, sim_time, timestep); 
-//                std::cout << it << " time" << endl;
 
         events->On_execute(chosenevent, graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);
         // equilibration
-//           std::cout << it << " time" << endl;
 
         if(it == eventinfo->number_of_equilibration_steps || it == 2*eventinfo->number_of_equilibration_steps) 
         {
@@ -277,7 +272,6 @@ void Device::RunKMC() {
             numoutput->Initialize_equilibrate(eventinfo);
             sim_time = 0.0;
         }
- //               std::cout << it << " time" << endl;
 
         // convergence checking
         

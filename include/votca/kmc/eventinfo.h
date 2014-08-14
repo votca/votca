@@ -202,6 +202,23 @@ public:
         }
     }
     
+    void Read_cubic(Property *options) {
+        NX                                    = options->get("options.cubic.NX").as<int>();
+        NY                                    = options->get("options.cubic.NY").as<int>();
+        NZ                                    = options->get("options.cubic.NZ").as<int>();
+        lat_const                             = options->get("options.cubic.lat_const").as<double>();
+        hop_distance                          = options->get("options.cubic.hop_distance").as<double>();
+        
+        el_disorder                           = options->get("options.cubic.el_disorder").as<double>();
+        ho_disorder                           = options->get("options.cubic.ho_disorder").as<double>();
+        el_ho_correlation                     = options->get("options.cubic.el_ho_correlation").as<int>();
+        
+        lumo                                  = options->get("options.cubic.lumo").as<double>();
+        homo                                  = options->get("options.cubic.homo").as<double>();
+
+        
+    }
+    
     void Graph_Parameters(double graph_hopdist, double av_dist, double graph_mindist, votca::tools::vec graph_simboxsize, int graph_maxpairdegree, double av_ho_energy, double stdevhoenergy, double av_elect_energy, double hole_inject_reorg, double electron_inject_reorg) 
     {
         left_electrode_distance = av_dist;
@@ -271,10 +288,10 @@ public:
     bool norc;
     
     bool novikov;
-    
-    double conversion;
 
-
+    int NX; int NY; int NZ; double lat_const; double hop_distance;
+    double el_disorder; double ho_disorder; int el_ho_correlation;
+    double lumo; double homo;
 };
 
 }} 

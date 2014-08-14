@@ -225,9 +225,6 @@ void Longrange::Initialize_slab (GraphKMC* graph, Eventinfo* eventinfo) {
         if(graph->GetNode(it)->type() == (int) NormalNode) {
             this->Initialize_slab_node(graph->GetNode(it),eventinfo);
         }
-        //if(it==0 || it==100 || it == 78004) {
-        //    std::cout << it << " " <<  dynamic_cast<NodeDevice*>(graph->GetNode(it))->contrib(0) << " " << dynamic_cast<NodeDevice*>(graph->GetNode(it))->contrib(1) << " " << dynamic_cast<NodeDevice*>(graph->GetNode(it))->correct(0) << " " << dynamic_cast<NodeDevice*>(graph->GetNode(it))->correct(1) << endl;
-        //}
         _longrange_cache.push_back(0.0);
     }    
 

@@ -587,8 +587,7 @@ double Events::Compute_Coulomb_potential(double startz, votca::tools::vec dif, b
         bool outside_cut_off1 = false;
         bool outside_cut_off2 = false;
       
-//        for (int i=0;i<eventinfo->number_short_range_images; i++) {
-        for (int i=0;i<2; i++) {
+        for (int i=0;i<eventinfo->number_short_range_images; i++) {
             if (div(i,2).rem==0) { // even generation
                 sign = -1.0;
                 distz_1 = i*L + 2*startz + dif.z();
@@ -853,13 +852,11 @@ double Events::av_inject_energyfactor(int electrode) {
         for(int ievent = 0; ievent < _total_left_injection_events ; ievent++) {
             av_energyfactor += _injection_events[ievent]->energyfactor();
         }
-//        av_energyfactor /= _total_left_injection_events;
     }
     else {
         for(int ievent = _total_left_injection_events; ievent < _total_left_injection_events + _total_right_injection_events ; ievent++) {
             av_energyfactor += _injection_events[ievent]->energyfactor();
         }        
-//        av_energyfactor /= _total_right_injection_events;
     }
     
     return av_energyfactor;
@@ -885,21 +882,15 @@ double Events::av_rate(int electrode) {
 
 double Events::av_inject_transferfactor(int electrode) {
     double av_transferfactor = 0.0;
-//    std::cout << "electrode " << electrode << "\n";
     if(electrode == 0) {
         for(int ievent = 0; ievent < _total_left_injection_events ; ievent++) {
             av_transferfactor += _injection_events[ievent]->transferfactor();
-//            std::cout << "left " << _injection_events[ievent]->rate() << " " << _injection_events[ievent]->link()->node2()->id() << " " << _injection_events[ievent]->link()->r12() << " " << _injection_events[ievent]->transferfactor() << "\n";
         }
-//        av_transferfactor /= _total_left_injection_events;
     }
     else {
         for(int ievent = _total_left_injection_events; ievent < _total_left_injection_events + _total_right_injection_events ; ievent++) {
             av_transferfactor += _injection_events[ievent]->transferfactor();
-//            std::cout << "right " << _injection_events[ievent]->rate() << " " << _injection_events[ievent]->link()->node2()->id() << " " << _injection_events[ievent]->link()->r12() << " " <<   _injection_events[ievent]->transferfactor() << "\n";
-
         }        
-//        av_transferfactor /= _total_right_injection_events;
     }
     return av_transferfactor;
 }

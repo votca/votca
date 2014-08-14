@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef __VOTCA_KMC_GRAPHSQL_H_
-#define __VOTCA_KMC_GRAPHSQL_H_
+#ifndef __VOTCA_KMC_GRAPH_INITIALIZE_H_
+#define __VOTCA_KMC_GRAPH_INITIALIZE_H_
 
 #include <vector>
 #include <fstream>
@@ -30,11 +30,11 @@
 namespace votca { namespace kmc {
 
 template<class TNode, class TLink>    
-class GraphSQL : public Graph<TNode, TLink> {
+class Graph_Initialize : public Graph<TNode, TLink> {
 
 public:
    
-    /// Reads node information from SQL file
+    /// Reads node information from filename
     void Initialize_sql(string filename);
     
     /// Create a cubic morphology
@@ -43,7 +43,7 @@ public:
 };
 
 template<class TNode, class TLink>    
-inline void GraphSQL<TNode,TLink>::Initialize_sql(string filename)
+inline void Graph_Initialize<TNode,TLink>::Initialize_sql(string filename)
 {   
     // Load Nodes
     votca::tools::Database db;
@@ -121,12 +121,11 @@ inline void GraphSQL<TNode,TLink>::Initialize_sql(string filename)
 }
 
 template<class TNode, class TLink> 
-inline void GraphSQL<TNode,TLink>::Initialize_cubic(Eventinfo* eventinfo, votca::tools::Random2 *RandomVariable) 
+inline void Graph_Initialize<TNode,TLink>::Initialize_cubic(Eventinfo* eventinfo, votca::tools::Random2 *RandomVariable) 
 {
     int NX = eventinfo->NX;
     int NY = eventinfo->NY;
     int NZ = eventinfo->NZ;
-    double lat_const = eventinfo->lat_const;
     
     int node_index = 0;
     
@@ -160,13 +159,11 @@ inline void GraphSQL<TNode,TLink>::Initialize_cubic(Eventinfo* eventinfo, votca:
                 double eCation = eventinfo->homo; //homo
 
                 newTNode->setE(eAnion, eNeutral, eCation);
-                newTNode->setu(UcCnNe, UcCnNh);
+                newTNode->setu(UcCnNe, UcCnNh);                
                 
             }
         }
     }
-    
-    std::cout << "nodes created" << endl;
     
     node_index = 0;
     int hopd = ceil(eventinfo->hop_distance);
@@ -211,9 +208,20 @@ inline void GraphSQL<TNode,TLink>::Initialize_cubic(Eventinfo* eventinfo, votca:
                 node_index++;
             }
         }
-    }
+    }    
     
-    std::cout << "links created" << endl;    
+    int node1_id = stmt->Column<int>(0);
+    int node2_id = stmt->Column<int>(1);
+    TNode* node1 = this->GetNode(node1_id);
+    TNode* node2 = this->GetNode(node2_id);
+
+    double drX = stmt->Column<double>(2);
+    double drY = stmt->Column<double>(3);
+    double drZ = stmt->Column<double>(4);
+    votca::tools::vec r12(drX,drY,drZ);
+        
+    TLink* newTLink = this->AddLink(id,node1, node2, r12);
+    link_id++;
 }
 
 }}

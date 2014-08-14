@@ -30,6 +30,7 @@
       <itemPath>../../include/votca/kmc/node.h</itemPath>
       <itemPath>../../include/votca/kmc/nodesql.h</itemPath>
       <itemPath>../../include/votca/kmc/state.h</itemPath>
+      <itemPath>../../include/votca/kmc/statereservoir.h</itemPath>
       <itemPath>../../include/votca/kmc/version.h</itemPath>
       <itemPath>../../include/votca/kmc/vssmgroup.h</itemPath>
     </logicalFolder>
@@ -158,6 +159,11 @@
       <item path="../../include/votca/kmc/nodesql.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/kmc/state.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/statereservoir.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/kmc/version.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -293,6 +299,11 @@
       <item path="../../include/votca/kmc/nodesql.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/kmc/state.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/statereservoir.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/kmc/version.h" ex="false" tool="3" flavor2="0">
       </item>
