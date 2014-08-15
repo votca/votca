@@ -142,6 +142,7 @@ public:
         this->Read_bulk(options);
         voltage                               = options->get("options.device.voltage").as<double>();
         
+        conversion                            = options->get("options.device.conversion").as<double>();
         left_electron_injection               = options->get("options.device.left_electron_injection").as<bool>();
         left_hole_injection                   = options->get("options.device.left_hole_injection").as<bool>();
         right_electron_injection              = options->get("options.device.right_electron_injection").as<bool>();
@@ -291,7 +292,7 @@ public:
 
     int NX; int NY; int NZ; double lat_const; double hop_distance;
     double el_disorder; double ho_disorder; int el_ho_correlation;
-    double lumo; double homo;
+    double lumo; double homo; double conversion;
 };
 
 }} 
