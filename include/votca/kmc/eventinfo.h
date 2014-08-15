@@ -78,6 +78,7 @@ public:
         efield_z                              = options->get("options.general.efield_z").as<double>();
 
         novikov = true;
+        conversion                            = options->get("options.general.conversion").as<double>();
         
         coulomb_strength                      = options->get("options.general.coulomb_strength").as<double>();
         lr_coulomb_strength                   = options->get("options.general.lr_coulomb_strength").as<double>();
@@ -141,7 +142,6 @@ public:
         this->Read_bulk(options);
         voltage                               = options->get("options.device.voltage").as<double>();
         
-        conversion                            = options->get("options.device.conversion").as<double>();
         left_electron_injection               = options->get("options.device.left_electron_injection").as<bool>();
         left_hole_injection                   = options->get("options.device.left_hole_injection").as<bool>();
         right_electron_injection              = options->get("options.device.right_electron_injection").as<bool>();
