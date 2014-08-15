@@ -82,9 +82,8 @@ public:
         coulomb_strength                      = options->get("options.general.coulomb_strength").as<double>();
         lr_coulomb_strength                   = options->get("options.general.lr_coulomb_strength").as<double>();
 
-        //coulomb_cut_off_radius                = options->get("options.general.coulomb_cut_off_radius").as<double>();
-        coulomb_cut_off_radius                = 10.0;
-
+        coulomb_cut_off_radius                = options->get("options.general.coulomb_cut_off_radius").as<double>();
+        
         binding_energy                        = options->get("options.general.binding_energy").as<double>();
         
         //norc                                  = options->get("options.general.norc").as<bool>();
