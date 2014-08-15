@@ -242,8 +242,8 @@ void Event::Determine_rate(StateReservoir* state, Longrange* longrange, Eventinf
     }
     else if(_carrier_type == (int) Hole) {
         charge = 1.0;
-        double conversion1 = 0.57;
-        double conversion2 = 0.57;
+        double conversion1 = eventinfo->conversion;
+        double conversion2 = eventinfo->conversion;
         //if(eventinfo->novikov) {
         //    conversion1 = (1.0 - (0.9/(2.0*leftnode1pos))*(1.0 - exp(-2.0*leftnode1pos/0.9)))*(1.0 - (0.9/(2.0*rightnode1pos))*(1.0 - exp(-2.0*rightnode1pos/0.9)));
         //    conversion2 = (1.0 - (0.9/(2.0*leftnode2pos))*(1.0 - exp(-2.0*leftnode2pos/0.9)))*(1.0 - (0.9/(2.0*rightnode2pos))*(1.0 - exp(-2.0*rightnode2pos/0.9)));

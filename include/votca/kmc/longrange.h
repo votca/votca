@@ -138,7 +138,9 @@ double Longrange::Get_layer_averaged_cached_longrange_slab(int layer) {
 
 double Longrange::Get_cached_density(int layer, Eventinfo* eventinfo) {
 //    return _layercharge[layer]/(this->number_of_nodes(layer));
-      return _layercharge[layer]/(this->layersize()*eventinfo->simboxsize.x()*eventinfo->simboxsize.y());
+//      return _layercharge[layer]/(this->layersize()*eventinfo->simboxsize.x()*eventinfo->simboxsize.y());
+      return _layercharge[layer]/(eventinfo->simboxsize.x()*eventinfo->simboxsize.y());
+
 }
 
 void Longrange::Reset(Eventinfo* eventinfo) {

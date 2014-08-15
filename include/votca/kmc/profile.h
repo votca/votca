@@ -111,7 +111,7 @@ inline void Profile::Calculate_positional_average(Eventinfo* eventinfo){
     _positional_average.clear();
     
     for(int i = 0; i<eventinfo->number_of_layers;i++){
-        double position = eventinfo->left_electrode_distance + (0.5+1.0*i)*_layersize; 
+        double position = eventinfo->left_electrode_distance + 1.0*i*eventinfo->lat_const; 
         _positional_average.push_back(position);
         if(_number_of_nodes[i] != 0) _empty_layer.push_back(false);
         else _empty_layer.push_back(true);

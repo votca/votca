@@ -965,8 +965,8 @@ void GraphKMC::Set_Layer_indices(Eventinfo* eventinfo)
         votca::tools::vec pos = (*it)->position();
         double posz = pos.z();
         
-        double layersize = (_sim_box_size.z()-2*_av_distance)/eventinfo->number_of_layers;
-        int iposz = floor((posz-_av_distance)/layersize);
+        double layersize = (_sim_box_size.z()-eventinfo->left_electrode_distance - eventinfo->right_electrode_distance)/eventinfo->number_of_layers;
+        int iposz = floor((posz-eventinfo->left_electrode_distance)/layersize);
         if(iposz == eventinfo->number_of_layers) iposz = eventinfo->number_of_layers - 1;
         
         (*it)->setLayer(iposz);

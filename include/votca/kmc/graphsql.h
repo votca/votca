@@ -197,9 +197,9 @@ inline void GraphSQL<TNode,TLink>::Initialize_cubic(Eventinfo* eventinfo, votca:
                                 int node2_id = new_iz + new_iy*NZ + new_ix*NZ*NY;
                                 TNode* node2 = this->GetNode(node2_id);
                                 
-                                double drX = 1.0*dx;
-                                double drY = 1.0*dy;
-                                double drZ = 1.0*dz;
+                                double drX = 1.0*eventinfo->lat_const*dx;
+                                double drY = 1.0*eventinfo->lat_const*dy;
+                                double drZ = 1.0*eventinfo->lat_const*dz;
                                 votca::tools::vec r12(drX,drY,drZ);                               
                                 TLink* newTLink = this->AddLink(link_index,node1, node2, r12);
                                 link_index++;

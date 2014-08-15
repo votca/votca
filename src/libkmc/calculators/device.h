@@ -35,7 +35,6 @@ using namespace std;
 namespace votca { namespace kmc {
     
 //typedef votca::tools::vec myvec;
-
    
 class Device : public KMCCalculator 
 {
@@ -281,7 +280,7 @@ void Device::RunKMC() {
         
         if(ldiv(it,eventinfo->number_of_report_steps ).rem==0 && it>0){
             numoutput->Write(it, sim_time, timestep, eventinfo);
-            std::cout << "\n";
+            std::cout << endl;
             
             if(eventinfo->write_charge_profile) 
             {
