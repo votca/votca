@@ -1,4 +1,5 @@
 #include <votca/ctp/ewaldactor.h>
+#include <boost/format.hpp>
 
 
 namespace votca {
@@ -733,7 +734,7 @@ EWD::triple<EWD::cmplx> EwdInteractor::S1S2(const vec &k,
 
 
 EWD::triple<double> EwdInteractor::U12_ShapeTerm(vector<PolarSeg*> &s1,
-    vector<PolarSeg*> &s2, string shape, double V) {
+    vector<PolarSeg*> &s2, string shape, double V, Logger *log) {
     
     // NOTE : WITH PREFACTOR = -4*PI/V (xylab) v -4*PI/3V (cube, sphere)
     vector<PolarSeg*>::iterator sit;
@@ -819,7 +820,53 @@ EWD::triple<double> EwdInteractor::U12_ShapeTerm(vector<PolarSeg*> &s1,
     double TrQ2_S1 = Q2_S1.get(0,0)+Q2_S1.get(1,1)+Q2_S1.get(2,2);
     double TrU2_S1 = U2_S1.get(0,0)+U2_S1.get(1,1)+U2_S1.get(2,2);    
     double TrQ2_S2 = Q2_S2.get(0,0)+Q2_S2.get(1,1)+Q2_S2.get(2,2);
-    double TrU2_S2 = U2_S2.get(0,0)+U2_S2.get(1,1)+U2_S2.get(2,2);
+    double TrU2_S2 = U2_S2.get(0,0)+U2_S2.get(1,1)+U2_S2.get(2,2);    
+    
+    if (log != NULL) {
+        LOG(logDEBUG, *log) << "S1 moments: " << flush;
+        LOG(logDEBUG, *log) << "  Q0   = " 
+            << (boost::format("%1$+1.7e") % Q0_S1) << flush;
+        LOG(logDEBUG, *log) << "  Q1   = " 
+            << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e") 
+                % Q1_S1.getX() % Q1_S1.getY() % Q1_S1.getZ()) << flush;
+        LOG(logDEBUG, *log) << "  U1   = " 
+            << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e") 
+                % U1_S1.getX() % U1_S1.getY() % U1_S1.getZ()) << flush;
+        LOG(logDEBUG, *log) << "  Q2   = "
+            << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e | %4$+1.7e %5$+1.7e %6$+1.7e | %7$+1.7e %8$+1.7e %9$+1.7e") 
+                % Q2_S1.get(0,0) % Q2_S1.get(0,1) % Q2_S1.get(0,2)
+                % Q2_S1.get(1,0) % Q2_S1.get(1,1) % Q2_S1.get(1,2)
+                % Q2_S1.get(2,0) % Q2_S1.get(2,1) % Q2_S1.get(2,2)) << flush;
+        LOG(logDEBUG, *log) << "  U2   = "
+            << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e | %4$+1.7e %5$+1.7e %6$+1.7e | %7$+1.7e %8$+1.7e %9$+1.7e") 
+                % U2_S1.get(0,0) % U2_S1.get(0,1) % U2_S1.get(0,2)
+                % U2_S1.get(1,0) % U2_S1.get(1,1) % U2_S1.get(1,2)
+                % U2_S1.get(2,0) % U2_S1.get(2,1) % U2_S1.get(2,2)) << flush;
+        LOG(logDEBUG, *log) << "  TrQ2 = " << TrQ2_S1 << flush;
+        LOG(logDEBUG, *log) << "  TrU2 = " << TrU2_S1 << flush;
+        
+        LOG(logDEBUG, *log) << "S2 moments: " << flush;
+        LOG(logDEBUG, *log) << "  Q0   = " 
+            << (boost::format("%1$+1.7e") % Q0_S2) << flush;
+        LOG(logDEBUG, *log) << "  Q1   = " 
+            << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e") 
+                % Q1_S2.getX() % Q1_S2.getY() % Q1_S2.getZ()) << flush;
+        LOG(logDEBUG, *log) << "  U1   = " 
+            << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e") 
+                % U1_S2.getX() % U1_S2.getY() % U1_S2.getZ()) << flush;
+        LOG(logDEBUG, *log) << "  Q2   = "
+            << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e | %4$+1.7e %5$+1.7e %6$+1.7e | %7$+1.7e %8$+1.7e %9$+1.7e") 
+                % Q2_S2.get(0,0) % Q2_S2.get(0,1) % Q2_S2.get(0,2)
+                % Q2_S2.get(1,0) % Q2_S2.get(1,1) % Q2_S2.get(1,2)
+                % Q2_S2.get(2,0) % Q2_S2.get(2,1) % Q2_S2.get(2,2)) << flush;
+        LOG(logDEBUG, *log) << "  U2   = "
+            << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e | %4$+1.7e %5$+1.7e %6$+1.7e | %7$+1.7e %8$+1.7e %9$+1.7e") 
+                % U2_S2.get(0,0) % U2_S2.get(0,1) % U2_S2.get(0,2)
+                % U2_S2.get(1,0) % U2_S2.get(1,1) % U2_S2.get(1,2)
+                % U2_S2.get(2,0) % U2_S2.get(2,1) % U2_S2.get(2,2)) << flush;
+        LOG(logDEBUG, *log) << "  TrQ2 = " << TrQ2_S2 << flush;
+        LOG(logDEBUG, *log) << "  TrU2 = " << TrU2_S2 << flush;
+    }
     
     // Shape-dependent energies
     double pp = 0.0;
