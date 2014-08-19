@@ -119,7 +119,7 @@ void APolarSite::Rotate(const matrix &rot, const vec &refPos) {
                               vec(Qxz,Qyz,Qzz));
 
             matrix Q_Global  = R * Q * R_T;
-
+            
             /* if (this->getId() == 1) {
                 cout << endl;
                 cout << "  " << Q_Global.get(0,0);
@@ -304,11 +304,49 @@ double APolarSite::getProjP(vec &dir) {
 }
 
 void APolarSite::Induce(double wSOR) {
+    // SUCCESSIVE OVERRELAXATION
     U1_Hist.push_back( vec(U1x,U1y,U1z) );
     U1x = (1 - wSOR) * U1x + wSOR * ( - Pxx * (FPx + FUx) - Pxy * (FPy + FUy) - Pxz * (FPz + FUz) );
     U1y = (1 - wSOR) * U1y + wSOR * ( - Pxy * (FPx + FUx) - Pyy * (FPy + FUy) - Pyz * (FPz + FUz) );
     U1z = (1 - wSOR) * U1z + wSOR * ( - Pxz * (FPx + FUx) - Pyz * (FPy + FUy) - Pzz * (FPz + FUz) );
     return;
+    
+    /*
+    // ANDERSON + SUCCESSIVE OVERRELAXATION
+    U1_Hist.push_back( vec(U1x,U1y,U1z) );
+    
+    // Back up U(N,i)
+    U1_i.push_back(vec(U1x, U1y, U1z));    
+    // Compute U(N,o)
+    U1x = - Pxx * (FPx + FUx) - Pxy * (FPy + FUy) - Pxz * (FPz + FUz);
+    U1y = - Pxy * (FPx + FUx) - Pyy * (FPy + FUy) - Pyz * (FPz + FUz);
+    U1z = - Pxz * (FPx + FUx) - Pyz * (FPy + FUy) - Pzz * (FPz + FUz);
+    // Back up U(N,o)
+    U1_o.push_back(vec(U1x, U1y, U1z));
+    
+    // Compile Anderson in/out values from U1 record
+    vec U1_i_mix = vec(0,0,0);
+    vec U1_o_mix = vec(0,0,0);    
+    if (U1_i.size() > 2 && U1_o.size() > 2) {
+        // Compute Anderson mixing factor from minimal rms deviation
+        vec D_N   = U1_o[U1_o.size()-1] - U1_i[U1_i.size()-1];
+        vec D_N_1 = U1_o[U1_o.size()-2] - U1_i[U1_i.size()-2];
+        vec D_N_N_1 = D_N - D_N_1;        
+        double wAND = - D_N_1*D_N_N_1/(D_N_N_1*D_N_N_1);        
+        // Mingle new and old via wAND ...
+        U1_i_mix = wAND*U1_i[U1_i.size()-1] + (1-wAND)*U1_i[U1_i.size()-2];
+        U1_o_mix = wAND*U1_o[U1_o.size()-1] + (1-wAND)*U1_o[U1_o.size()-2];
+    }
+    else {
+        U1_i_mix = U1_i.back();
+        U1_o_mix = U1_o.back();
+    }
+    
+    // Apply SOR
+    vec U1 = (1-wSOR)*U1_i_mix + wSOR*U1_o_mix;
+    U1x = U1.getX(); U1y = U1.getY(); U1z = U1.getZ();
+    return;
+    */
 }
 
 void APolarSite::InduceDirect() {
@@ -320,8 +358,27 @@ void APolarSite::InduceDirect() {
 }
 
 double APolarSite::HistdU() {
-    vec dU = vec(U1x, U1y, U1z) - U1_Hist.back();
-    return abs(dU)/abs(U1_Hist.back());
+    vec U0 = U1_Hist.back();
+    vec U1 = vec(U1x, U1y, U1z);
+    vec dU = U1 - U0;
+    
+    double abs_U0 = votca::tools::abs(U0);
+    double abs_U1 = votca::tools::abs(U1);
+    double abs_dU = votca::tools::abs(dU);
+    double small = 1e-10; // in e*nm
+    double abs_U = (abs_U1 > abs_U0 && small > abs_U0) ? abs_U1 : abs_U0;
+    
+    double dU_U = 1.;
+    if (small > abs_U) dU_U = abs_U; // i.e.: U1, U0 << 1 enm    
+    else dU_U = abs_dU / abs_U;
+    return dU_U;
+}
+
+double APolarSite::HistdU2() {
+    vec U0 = U1_Hist.back();
+    vec U1 = vec(U1x, U1y, U1z);
+    double dU2 = (U1-U0)*(U1-U0);
+    return dU2;
 }
 
 void APolarSite::Depolarize() {
@@ -885,6 +942,8 @@ map<string,double> POLAR_TABLE() {
     polar_table["O"] = 0.837e-3;
     polar_table["S"] = 2.926e-3;
     polar_table["F"] = 0.440e-3;
+    polar_table["Si"] = 3.962e-3;   // B3LYP/6-311+g(2d,2p)
+    polar_table["Zn"] = 5.962e-3;   // B3LYP/6-311+g(2d,2p)
     return polar_table;
 }
 

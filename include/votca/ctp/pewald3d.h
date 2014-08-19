@@ -44,7 +44,9 @@ namespace votca { namespace ctp {
         void Field_ConvergeReciprocalSpaceSum();
         void Field_CalculateForegroundCorrection();
         void Field_CalculateShapeCorrection();
-    
+        
+        void ScanCutoff();
+        
     private:
         
     };

@@ -226,7 +226,7 @@ void PolarSeg::Coarsegrain(bool cg_anisotropic) {
             // Shift moments
             DMA::RegularSphericalHarmonics uClm(-shift);
             vector<DMA::cmplx> uXlm_shifted = mshift.Shift(uXlm, uClm);
-            // Convet complex to real moments & add to base
+            // Convert complex to real moments & add to base
             DMA::RealSphericalMoments uQlm_shifted(uXlm_shifted);
             uQlm_shifted.AddToVector(uQCG);
         }

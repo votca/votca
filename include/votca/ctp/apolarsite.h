@@ -134,7 +134,8 @@ public:
     void            ResetU1()     { U1x = U1y = U1z = 0.0; }
     void            ResetU1Hist() { U1_Hist.clear(); }
     void            Depolarize();
-    double          HistdU();    
+    double          HistdU();
+    double          HistdU2();
     
     // PRINT FUNCTS & OUTPUT TO FORMAT
     void            PrintInfo(std::ostream &out);
@@ -229,7 +230,10 @@ private:
     double FPx, FPy, FPz;                   // Electric field (due to permanent)
     double FUx, FUy, FUz;                   // Electric field (due to induced)
     vector< vec > U1_Hist;                  // Ind. u history
-
+    
+    // Required for SOR+Anderson
+    //vector<vec> U1_i; // in
+    //vector<vec> U1_o; // out
 
 
 

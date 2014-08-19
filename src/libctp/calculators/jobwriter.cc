@@ -74,11 +74,13 @@ void JobWriter::mps_chrg(Topology *top) {
     vector<Segment*>::iterator sit1;
     
     // DEFINE PAIR CHARGE STATES
-    vector<string > states;
+    vector<string> states;
     vector<string> ::iterator vit;
-    states.push_back("n");
-    states.push_back("e");
-    states.push_back("h");
+
+    string str_states = _options->get("options.jobwriter.states").as<string>();
+    Tokenizer tok_states(str_states, " ,\t\n");
+    tok_states.ToVector(states);
+	
 
     
     // CREATE JOBS FOR ALL SEGMENTS AND STATES
@@ -280,9 +282,9 @@ void JobWriter::mps_single(Topology *top) {
     // DEFINE PAIR CHARGE STATES
     vector<string > states;
     vector<string> ::iterator vit;
-    states.push_back("n");
-    states.push_back("e");
-    states.push_back("h");
+    string str_states = _options->get("options.jobwriter.states").as<string>();
+    Tokenizer tok_states(str_states, " ,\t\n");
+    tok_states.ToVector(states);
     
     // CREATE JOBS FOR ALL SEGMENTS AND STATES
     int single_id = _options->get("options.jobwriter.single_id").as<int>();

@@ -22,6 +22,7 @@
         <itemPath>../../src/libctp/calculators/sandbox.h</itemPath>
         <itemPath>../../src/libctp/calculators/stateserver.h</itemPath>
         <itemPath>../../src/libctp/calculators/tdump.h</itemPath>
+        <itemPath>../../src/libctp/calculators/vaverage.h</itemPath>
         <itemPath>../../src/libctp/calculators/zmultipole.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f5" displayName="Extractors" projectFiles="true">
@@ -74,6 +75,7 @@
       <itemPath>../../include/votca/ctp/calculator.h</itemPath>
       <itemPath>../../include/votca/ctp/calculatorfactory.h</itemPath>
       <itemPath>../../include/votca/ctp/ctpapplication.h</itemPath>
+      <itemPath>../../include/votca/ctp/dmaspace.h</itemPath>
       <itemPath>../../include/votca/ctp/ewald2d.h</itemPath>
       <itemPath>../../include/votca/ctp/ewald3d.h</itemPath>
       <itemPath>../../include/votca/ctp/ewaldactor.h</itemPath>
@@ -88,6 +90,7 @@
       <itemPath>../../include/votca/ctp/logger.h</itemPath>
       <itemPath>../../include/votca/ctp/mkl_boost_ublas_matrix_prod.h</itemPath>
       <itemPath>../../include/votca/ctp/molecule.h</itemPath>
+      <itemPath>../../include/votca/ctp/molpolengine.h</itemPath>
       <itemPath>../../include/votca/ctp/orbitals.h</itemPath>
       <itemPath>../../include/votca/ctp/overlap.h</itemPath>
       <itemPath>../../include/votca/ctp/paircalculator.h</itemPath>
@@ -95,6 +98,7 @@
       <itemPath>../../include/votca/ctp/parallelsitecalc.h</itemPath>
       <itemPath>../../include/votca/ctp/parallelxjobcalc.h</itemPath>
       <itemPath>../../include/votca/ctp/pewald3d.h</itemPath>
+      <itemPath>../../include/votca/ctp/poissongrid.h</itemPath>
       <itemPath>../../include/votca/ctp/polarbackground.h</itemPath>
       <itemPath>../../include/votca/ctp/polarseg.h</itemPath>
       <itemPath>../../include/votca/ctp/polarsite.h</itemPath>
@@ -173,13 +177,15 @@
       <itemPath>../../src/libctp/gsl_boost_ublas_matrix_prod.cc</itemPath>
       <itemPath>../../src/libctp/hgversion.h</itemPath>
       <itemPath>../../src/libctp/job.cc</itemPath>
-      <itemPath>../../src/libctp/mbgft/mbgft.cc</itemPath>
+      <itemPath>../../src/libctp/molpolengine.cc</itemPath>
       <itemPath>../../src/libctp/orbitals.cc</itemPath>
       <itemPath>../../src/libctp/overlap.cc</itemPath>
       <itemPath>../../src/libctp/parallelpaircalc.cc</itemPath>
       <itemPath>../../src/libctp/parallelxjobcalc.cc</itemPath>
       <itemPath>../../src/libctp/pewald3d.cc</itemPath>
+      <itemPath>../../src/libctp/poissongrid.cc</itemPath>
       <itemPath>../../src/libctp/polarbackground.cc</itemPath>
+      <itemPath>../../src/libctp/polarfrag.cc</itemPath>
       <itemPath>../../src/libctp/polarseg.cc</itemPath>
       <itemPath>../../src/libctp/polarsite.cc</itemPath>
       <itemPath>../../src/libctp/polartop.cc</itemPath>
@@ -254,6 +260,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/ctp/dmaspace.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/ewdspace.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/extractorfactory.h"
@@ -289,6 +297,11 @@
       </item>
       <item path="../../include/votca/ctp/molecule.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/ctp/molpolengine.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/orbitals.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/overlap.h" ex="false" tool="3" flavor2="0">
@@ -309,6 +322,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/parallelxjobcalc.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/poissongrid.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -542,6 +560,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libctp/calculators/vaverage.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/calculators/velocity.h"
             ex="false"
             tool="3"
@@ -668,6 +691,8 @@
       </item>
       <item path="../../src/libctp/molecule.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libctp/molpolengine.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libctp/orbitals.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/overlap.cc" ex="false" tool="1" flavor2="0">
@@ -682,10 +707,14 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libctp/poissongrid.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libctp/polarbackground.cc"
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/libctp/polarfrag.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/polarseg.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -857,6 +886,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/ctp/dmaspace.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/ewdspace.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/extractorfactory.h"
@@ -892,6 +923,11 @@
       </item>
       <item path="../../include/votca/ctp/molecule.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/ctp/molpolengine.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/orbitals.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/overlap.h" ex="false" tool="3" flavor2="0">
@@ -912,6 +948,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/parallelxjobcalc.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/poissongrid.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1145,6 +1186,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libctp/calculators/vaverage.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/calculators/velocity.h"
             ex="false"
             tool="3"
@@ -1271,6 +1317,8 @@
       </item>
       <item path="../../src/libctp/molecule.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libctp/molpolengine.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libctp/orbitals.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/overlap.cc" ex="false" tool="1" flavor2="0">
@@ -1285,10 +1333,14 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libctp/poissongrid.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libctp/polarbackground.cc"
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/libctp/polarfrag.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/polarseg.cc" ex="false" tool="1" flavor2="0">
       </item>
