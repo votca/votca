@@ -13,6 +13,12 @@ PolarBackground::PolarBackground(Topology *top, PolarTop *ptop, Property *opt,
     
     // EVALUATE OPTIONS
     string pfx = "options.ewdbgpol";
+    // Preprocessing
+    if (opt->exists(pfx+".coulombmethod.dipole_corr"))
+        _do_compensate_net_dipole = 
+            opt->get(pfx+".coulombmethod.dipole_corr").as<bool>();
+    else
+        _do_compensate_net_dipole = false;
     // Ewald parameters
     _shape = opt->get(pfx+".coulombmethod.shape").as<string>();
     _R_co = opt->get(pfx+".coulombmethod.cutoff").as<double>();
@@ -98,6 +104,45 @@ PolarBackground::PolarBackground(Topology *top, PolarTop *ptop, Property *opt,
         cout << endl;
     }
     
+    
+    // APPLY SYSTEM DIPOLE COMPENSATION
+    if (_do_compensate_net_dipole) {
+        vec system_dpl(0,0,0);
+        int charged_count = 0;
+        for (sit = _bg_P.begin(); sit < _bg_P.end(); ++sit) {
+            PolarSeg* pseg = *sit;
+            if (!pseg->IsCharged()) continue;
+            for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
+                charged_count += 1;
+                system_dpl += (*pit)->getPos() * (*pit)->getQ00();
+                if ((*pit)->getRank() > 0) {
+                    system_dpl += (*pit)->getQ1();
+                }
+            }
+        }
+        LOG(logINFO,*_log) << "  o System Q1 compensation: " << system_dpl 
+            << "  (apply to " << charged_count << " polar sites)" << flush;
+        vec atomic_compensation_dpl = - system_dpl/charged_count;
+        cout << endl << system_dpl << " " << charged_count << " " << atomic_compensation_dpl << flush;
+        int compensation_count = 0;
+        for (sit = _bg_P.begin(); sit < _bg_P.end(); ++sit) {
+            PolarSeg* pseg = *sit;
+            if (!pseg->IsCharged()) continue;
+            for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
+                compensation_count += 1;
+                if ((*pit)->getRank() < 1) {
+                    (*pit)->setQ1(atomic_compensation_dpl);
+                    (*pit)->setRank(1);
+                }
+                else {
+                    vec new_dpl = (*pit)->getQ1()+atomic_compensation_dpl;
+                    (*pit)->setQ1(new_dpl);
+                }
+            }
+        }
+        assert(compensation_count == charged_count);
+    }
+    
     // CHARGE APPROPRIATELY & DEPOLARIZE
     for (sit = _bg_P.begin(); sit < _bg_P.end(); ++sit) {        
         PolarSeg* pseg = *sit;        
@@ -113,6 +158,8 @@ PolarBackground::PolarBackground(Topology *top, PolarTop *ptop, Property *opt,
         PolarSeg* pseg = *sit;        
         for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
             netdpl_bgP += (*pit)->getPos() * (*pit)->getQ00();
+            if ((*pit)->getRank() > 0)
+                netdpl_bgP += (*pit)->getQ1();
             qzz_bgP += (*pit)->getQ00() * ((*pit)->getPos().getZ() * (*pit)->getPos().getZ());
         }
     }

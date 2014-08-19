@@ -208,6 +208,13 @@ void PEwald3D3D::ScanCutoff() {
     LOG(logDEBUG,*_log) << flush 
         << "Scan cutoff (long-range check)" << flush;
     
+    std::ofstream ofs;
+    string scan_file = "scan_cut_"
+        + boost::lexical_cast<string>(_polar_qm0[0]->getId())
+        + "_" + _jobType + ".tab";
+    ofs.open(scan_file.c_str(), ofstream::out);
+    
+    
     vector<PolarSeg*>::iterator sit1; 
     vector<APolarSite*> ::iterator pit1;
     vector<PolarSeg*>::iterator sit2; 
@@ -222,6 +229,38 @@ void PEwald3D3D::ScanCutoff() {
     double R_max_shell = R_max+2*_polar_cutoff+_max_int_dist_qm0;
     this->SetupMidground(R_max);
 
+    
+    
+//    for (int N = 0; N < 10; ++N) {
+//        for (int na=-N; na<N+1; ++na) {
+//        for (int nb=-N; nb<N+1; ++nb) {
+//        for (int nc=-N; nc<N+1; ++nc) {
+//            if ( std::abs(na) != N && std::abs(nb) != N && std::abs(nc) != N ) continue;
+//            vec L = na*_a + nb*_b + nc*_c;
+//            
+//            for (sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
+//                PolarSeg *pseg = *sit1;
+//                
+//                // Skip if N==0 and ID match
+//                // Shift
+//                // Interact
+//                // Shift back
+//                
+//                
+//            }
+//        }}}
+//    }
+    
+    
+    
+    
+//    double ax = _a.getX();
+//    double by = _b.getY();
+//    double cz = _c.getZ();
+//    vec ax_by_cz = vec(1./ax,1./by,1./cz);
+//    double norm = 1./maxnorm(ax_by_cz);
+//    LOG(logDEBUG,*_log) << ax << " " << by << " " << cz << " " << norm << flush;
+    
     // FOR EACH FOREGROUND SEGMENT (FGC) ...
     for (sit1 = _fg_C.begin(); sit1 != _fg_C.end(); ++sit1) {
 
@@ -232,6 +271,10 @@ void PEwald3D3D::ScanCutoff() {
 
         for (sit2 = _mg_N.begin(); sit2 != _mg_N.end(); ++sit2) {
             double R = votca::tools::abs((*sit1)->getPos()-(*sit2)->getPos());
+//            vec dr = (*sit1)->getPos()-(*sit2)->getPos();
+//            dr = norm*vec(dr.getX()/ax, dr.getY()/by, dr.getZ()/cz);
+//            double R = votca::tools::maxnorm(dr);
+            
             int shell_idx = int(R/dR_shell);
             shelled_mg_N[shell_idx].push_back(*sit2);
         }
@@ -266,8 +309,13 @@ void PEwald3D3D::ScanCutoff() {
             LOG(logDEBUG,*_log)
                 << (format("  o ID = %5$-4d Rc = %1$+02.7f   |MGN| = %3$5d   ER = %2$+1.7f eV   dER2(sum) = %4$+1.3e eV") 
                 % shell_R % (sum*EWD::int2eV) % shell_mg.size() % (shell_rms*shell_count) % (*sit1)->getId()).str() << flush;
+            ofs
+                << (format("MST DBG ...  o ID = %5$-4d Rc = %1$+02.7f   |MGN| = %3$5d   ER = %2$+1.7f eV   dER2(sum) = %4$+1.3e eV") 
+                % shell_R % (sum*EWD::int2eV) % shell_mg.size() % (shell_rms*shell_count) % (*sit1)->getId()).str() << endl;
         }
     }
+    
+    ofs.close();
     
     return;
 }

@@ -12,6 +12,7 @@
 #include <votca/ctp/pewald3d.h>
 #include <votca/ctp/logger.h>
 #include <boost/format.hpp>
+#include <boost/timer/timer.hpp>
 
 
 using boost::format;
@@ -214,6 +215,10 @@ template<class EwaldMethod>
 Job::JobResult Ewald<EwaldMethod>::EvalJob(Topology *top, Job *job,
     QMThread *thread) {
     
+    boost::timer::cpu_timer cpu_t;
+    cpu_t.start();
+    boost::timer::cpu_times t_in = cpu_t.elapsed();
+    
     Logger *log = thread->getLogger();    
     LOG(logINFO,*log)
         << "Job input = " << job->getInput().as<string>() << flush;
@@ -253,6 +258,11 @@ Job::JobResult Ewald<EwaldMethod>::EvalJob(Topology *top, Job *job,
         jres.setError(ewaldnd.GenerateErrorString());
         LOG(logERROR,*log) << ewaldnd.GenerateErrorString() << flush;
     }
+    
+    boost::timer::cpu_times t_out = cpu_t.elapsed();
+    double t_run = (t_out.wall-t_in.wall)/1e9/60.;
+    LOG(logINFO,*log)
+        << "Job runtime was " << t_run << " min" << flush;
     
     return jres;
 }

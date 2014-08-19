@@ -37,6 +37,14 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
     
     // EVALUATE OPTIONS
     string pfx = "options.ewald";
+    // Multipoles: started from archive?
+    if (opt->exists(pfx+".multipoles.polar_bg")) {
+        string ptop_file = opt->get(pfx+".multipoles.polar_bg").as<string>();
+        if (ptop_file != "") _started_from_archived_indu_state = true;
+        else _started_from_archived_indu_state = false;
+    }
+    else
+        _started_from_archived_indu_state = false;
     // Ewald parameters
     string cmethod = opt->get(pfx+".coulombmethod.method").as<string>();
     assert(cmethod == "ewald" && "<::Ewald3DnD> CMETHOD NOT IMPLEMENTED");
@@ -55,6 +63,12 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
     }
     else
         _save_nblist = true;
+    // Preprocessing
+    if (opt->exists(pfx+".coulombmethod.dipole_corr"))
+        _do_compensate_net_dipole = 
+            opt->get(pfx+".coulombmethod.dipole_corr").as<bool>();
+    else
+        _do_compensate_net_dipole = false;
     // Convergence
     if (opt->exists(pfx+".convergence.energy")) {
         _crit_dE = opt->get(pfx+".convergence.energy").as<double>();
@@ -205,7 +219,48 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
     
     // Construct periodic neutral background
     _bg_P.insert(_bg_P.end(), _fg_N.begin(), _fg_N.end());
-    _bg_P.insert(_bg_P.end(), _bg_N.begin(), _bg_N.end());    
+    _bg_P.insert(_bg_P.end(), _bg_N.begin(), _bg_N.end());
+    // Apply system net dipole compensation if desired
+    if (_do_compensate_net_dipole) {
+        vector<PolarSeg*>::iterator sit; 
+        vector<APolarSite*> ::iterator pit;
+        for (sit = _bg_P.begin(); sit < _bg_P.end(); ++sit) {
+            (*sit)->CalcIsCharged();
+        }
+        vec system_dpl(0,0,0);
+        int charged_count = 0;
+        for (sit = _bg_P.begin(); sit < _bg_P.end(); ++sit) {
+            PolarSeg* pseg = *sit;
+            if (!pseg->IsCharged()) continue;
+            for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
+                charged_count += 1;
+                system_dpl += (*pit)->getPos() * (*pit)->getQ00();
+                if ((*pit)->getRank() > 0) {
+                    system_dpl += (*pit)->getQ1();
+                }
+            }
+        }
+        LOG(logINFO,*_log) << "  o System Q1 compensation: " << system_dpl 
+            << "  (apply to " << charged_count << " polar sites)" << flush;
+        vec atomic_compensation_dpl = - system_dpl/charged_count;
+        int compensation_count = 0;
+        for (sit = _bg_P.begin(); sit < _bg_P.end(); ++sit) {
+            PolarSeg* pseg = *sit;
+            if (!pseg->IsCharged()) continue;
+            for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
+                compensation_count += 1;
+                if ((*pit)->getRank() < 1) {
+                    (*pit)->setQ1(atomic_compensation_dpl);
+                    (*pit)->setRank(1);
+                }
+                else {
+                    vec new_dpl = (*pit)->getQ1()+atomic_compensation_dpl;
+                    (*pit)->setQ1(new_dpl);
+                }
+            }
+        }
+        assert(compensation_count == charged_count);
+    }
     // Grow foreground according to induction cut-off
     this->ExpandForegroundReduceBackground(_polar_cutoff);
     // Coarse-grain as demanded by input
@@ -345,6 +400,7 @@ void Ewald3DnD::ExpandForegroundReduceBackground(double polar_R_co) {
     
     vector<PolarSeg*>::iterator sit1;
     vector<PolarSeg*>::iterator sit2;
+    vector<PolarSeg*>::iterator sit3;
     
     assert(_polar_mm1.size() == 0 
         && _polar_qm0.size() == 0 
@@ -402,7 +458,9 @@ void Ewald3DnD::ExpandForegroundReduceBackground(double polar_R_co) {
             bool identical = false;
             bool within_range = false;
             
-            for (sit2 = _fg_C.begin(); sit2 < _fg_C.end(); ++sit2) {
+            for (sit2 = _fg_C.begin(), sit3 = _fg_N.begin(); 
+                 sit2 < _fg_C.end(); 
+                 ++sit2, ++sit3) {
                 PolarSeg *seg_fg = *sit2;
                 // Identical ?
                 if (in_central_cell && seg_bg->getId() == seg_fg->getId()) {
@@ -418,8 +476,11 @@ void Ewald3DnD::ExpandForegroundReduceBackground(double polar_R_co) {
                 // Note that abs(dR_L-polar_R_co) < 1e-xy won't do here,
                 // since we then to a large degree still rely on machine 
                 // precision.
+                // NOTE Calculate distance with respect to NEUTRAL segment
+                // to achieve consistency between threads in case neutral
+                // and charged geometries differ slightly
                 double dR_L = votca::tools::abs(
-                    seg_bg->getPos() + L - seg_fg->getPos());
+                    seg_bg->getPos() + L - (*sit3)->getPos());
                 // Compare up to 3 decimal places (= 1e-3 nm)
                 if (int(dR_L*1e3+0.5) <= int(polar_R_co*1e3+0.5)) {
                     within_range = true;
@@ -612,7 +673,10 @@ void Ewald3DnD::SetupMidground(double R_co) {
             if (!is_in_fg) {
                 bool is_within_range = false;
                 // Within range ?
-                for (sit2 = _fg_C.begin(); sit2 < _fg_C.end(); ++sit2) {
+                // NOTE Calculate distance with respect to NEUTRAL foreground
+                // to achieve consistency between threads in case neutral
+                // and charged geometries differ slightly
+                for (sit2 = _fg_N.begin(); sit2 < _fg_N.end(); ++sit2) {
                     vec pos_L = pseg->getPos() + L;
                     double dR_L = abs((*sit2)->getPos()-pos_L);
                     if (dR_L <= R_co) {
@@ -869,7 +933,7 @@ void Ewald3DnD::Evaluate() {
     LOG(logDEBUG,*_log) << "  o Evaluate energy:           " << ((_task_evaluate_energy) ? "yes" : "no") << flush;
         
     // TEASER OUTPUT PERMANENT FIELDS
-    LOG(logDEBUG,*_log) << flush << "Background fields (BGP):" << flush;
+    LOG(logDEBUG,*_log) << flush << "Background fields (FGN):" << flush;
     int fieldCount = 0;
     //for (vector<PolarSeg*>::iterator sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
     for (vector<PolarSeg*>::iterator sit1 = _fg_N.begin(); sit1 < _fg_N.end(); ++sit1) {
@@ -920,7 +984,7 @@ void Ewald3DnD::Evaluate() {
     _t_radial    = (t4.wall-t3.wall)/1e9/60.;
     
     // TEASER OUTPUT PERMANENT FIELDS
-    LOG(logDEBUG,*_log) << flush << "Background fields (BGP):" << flush;
+    LOG(logDEBUG,*_log) << flush << "Foreground fields (FGC):" << flush;
     fieldCount = 0;
     //for (vector<PolarSeg*>::iterator sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
     for (vector<PolarSeg*>::iterator sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
@@ -1027,56 +1091,59 @@ void Ewald3DnD::Evaluate() {
         sit1 != _fg_C.end(); ++sit1) {
         (*sit1)->ClearPolarNbs();
     }    
-   	/* 
+   	
     // Field effect
-    std::ofstream ofs;
-    ofs.open("field_effect", ofstream::out);
-    vector<PolarSeg*>::iterator sit1, sit2;
-    PolarSeg::iterator pit1, pit2;
-    for (sit1 = _fg_C.begin(), sit2 = _fg_N.begin(); 
-        sit1 < _fg_C.end();
-        ++sit1, ++sit2) {
-        PolarSeg *pseg_h = *sit1;
-        PolarSeg *pseg_n = *sit2;
-        
-        vec dr = pseg_h->getPos() - _polar_qm0[0]->getPos();
-        double dR = votca::tools::abs(dr);
-        
-        assert(pseg_h->getId() == pseg_n->getId());
-        assert(pseg_h->size() == pseg_n->size());
-        
-        for (pit1 = pseg_h->begin(), pit2 = pseg_n->begin(); 
-            pit1 < pseg_h->end(); 
-            ++pit1, ++pit2) {
-            
-            vec fp_h = (*pit1)->getFieldP();
-            vec fu_h = (*pit1)->getFieldU();
-            vec ft_h = fp_h+fu_h;
-            
-            vec fp_n = (*pit2)->getFieldP();
-            vec fu_n = (*pit2)->getFieldU();
-            vec ft_n = fp_n+fu_n;
-            
-            vec dfp = fp_h - fp_n;
-            vec dfu = fu_h - fu_n;
-            vec dft = ft_h - ft_n;
-            
-            double frac_prj_dfp = dfp*dr/dR / votca::tools::abs(dfp);
-            double frac_prj_dfu = dfu*dr/dR / votca::tools::abs(dfu);
-            double frac_prj_dft = dft*dr/dR / votca::tools::abs(dft);
-            
-            ofs << (format("dR2 %1$+1.7f fput456 %2$+1.7e %3$+1.7e %4$+1.7e "
-                    "fprjput8910 %5$+1.7e %6$+1.7e %7$+1.7e\n")
-                % dR % (votca::tools::abs(dfp)*EWD::int2V_m) % (votca::tools::abs(dfu)*EWD::int2V_m) % (votca::tools::abs(dft)*EWD::int2V_m)
-                % frac_prj_dfp % frac_prj_dfu % frac_prj_dft);
-        }
+    if (false && tools::globals::verbose) {
+        string tabfile = "polarized_"
+            + boost::lexical_cast<string>(_polar_qm0[0]->getId())
+            + "_" + _jobType + ".tab";
+        std::ofstream ofs;
+        ofs.open(tabfile.c_str(), ofstream::out);
+        vector<PolarSeg*>::iterator sit1, sit2;
+        PolarSeg::iterator pit1, pit2;
+        for (sit1 = _fg_C.begin(), sit2 = _fg_N.begin(); 
+            sit1 < _fg_C.end();
+            ++sit1, ++sit2) {
+            PolarSeg *pseg_h = *sit1;
+            PolarSeg *pseg_n = *sit2;
 
+            vec dr = pseg_h->getPos() - _polar_qm0[0]->getPos();
+            double dR = votca::tools::abs(dr);
+
+            assert(pseg_h->getId() == pseg_n->getId());
+            assert(pseg_h->size() == pseg_n->size());
+
+            for (pit1 = pseg_h->begin(), pit2 = pseg_n->begin(); 
+                pit1 < pseg_h->end(); 
+                ++pit1, ++pit2) {
+
+                vec fp_h = (*pit1)->getFieldP();
+                vec fu_h = (*pit1)->getFieldU();
+                vec ft_h = fp_h+fu_h;
+
+                vec fp_n = (*pit2)->getFieldP();
+                vec fu_n = (*pit2)->getFieldU();
+                vec ft_n = fp_n+fu_n;
+
+                vec dfp = fp_h - fp_n;
+                vec dfu = fu_h - fu_n;
+                vec dft = ft_h - ft_n;
+
+                double frac_prj_dfp = dfp*dr/dR / votca::tools::abs(dfp);
+                double frac_prj_dfu = dfu*dr/dR / votca::tools::abs(dfu);
+                double frac_prj_dft = dft*dr/dR / votca::tools::abs(dft);
+
+                ofs << (format("dR2 %1$+1.7f fput456 %2$+1.7e %3$+1.7e %4$+1.7e "
+                        "fprjput8910 %5$+1.7e %6$+1.7e %7$+1.7e\n")
+                    % dR % (votca::tools::abs(dfp)*EWD::int2V_m) % (votca::tools::abs(dfu)*EWD::int2V_m) % (votca::tools::abs(dft)*EWD::int2V_m)
+                    % frac_prj_dfp % frac_prj_dfu % frac_prj_dft);
+            }
+
+        }
+        ofs.close();
     }
     
-    ofs.close();
-	*/
-    
-    if (tools::globals::verbose) {
+    if (false && tools::globals::verbose) {
         std::ofstream ofs;
         ofs.open("indu_state", ofstream::out);
         for (vector<PolarSeg*>::iterator sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
@@ -1133,6 +1200,87 @@ void Ewald3DnD::Evaluate() {
                         % (u1.getZ())).str() << endl;
             }
         }
+        ofs.close();
+    }
+    
+    if (tools::globals::verbose) {
+        string tabfile = "polarized_"
+            + boost::lexical_cast<string>(_polar_qm0[0]->getId())
+            + "_" + _jobType + ".tab";
+        std::ofstream ofs;
+        ofs.open(tabfile.c_str(), ofstream::out);
+        vector<PolarSeg*>::iterator sit, sit1, sit2;
+        PolarSeg::iterator pit, pit1, pit2;
+        for (sit = _bg_P.begin(); sit < _bg_P.end(); ++sit) {
+            PolarSeg *pseg = *sit;
+            // Periodic images
+            for (int na = -_na_max; na < _na_max+1; ++na) {
+            for (int nb = -_nb_max; nb < _nb_max+1; ++nb) {
+            for (int nc = -_nc_max; nc < _nc_max+1; ++nc) {
+                vec L = na*_a + nb*_b + nc*_c;
+                // In foreground ?
+                bool is_in_fg = _fg_table->IsInForeground(pseg->getId(),na,nb,nc);            
+                if (!is_in_fg) {
+                    for (PolarSeg::iterator pit1 = pseg->begin(); pit1 < pseg->end(); ++pit1) {
+                        vec pos = (*pit1)->getPos() + L;
+                        vec u1_c = (*pit1)->getU1();
+                        vec u1_n = (*pit1)->getU1();
+                        ofs << (format("ID %1$4d   ") % (pseg->getId()));
+                        ofs << (format("XYZ %1$+1.7e %2$+1.7e %3$+1.7e    ") 
+                                % (pos.getX())
+                                % (pos.getY()) 
+                                % (pos.getZ())).str();
+                        ofs << (format("U1n %1$+1.7e %2$+1.7e %3$+1.7e   ") 
+                                % (u1_n.getX())
+                                % (u1_n.getY()) 
+                                % (u1_n.getZ())).str();
+                        ofs << (format("U1c %1$+1.7e %2$+1.7e %3$+1.7e   ") 
+                                % (u1_c.getX())
+                                % (u1_c.getY()) 
+                                % (u1_c.getZ())).str();
+                        ofs << "BG" << endl;
+                    }
+                }
+                else ;
+            }}} // Loop over na, nb, nc
+        } // Loop over BGP
+        for (sit1 = _fg_C.begin(), sit2 = _fg_N.begin(); 
+            sit1 < _fg_C.end();
+            ++sit1, ++sit2) {
+            PolarSeg *pseg_h = *sit1;
+            PolarSeg *pseg_n = *sit2;
+
+            vec dr = pseg_h->getPos() - _polar_qm0[0]->getPos();
+            double dR = votca::tools::abs(dr);
+
+            assert(pseg_h->getId() == pseg_n->getId());
+            assert(pseg_h->size() == pseg_n->size());
+
+            for (pit1 = pseg_h->begin(), pit2 = pseg_n->begin(); 
+                pit1 < pseg_h->end(); 
+                ++pit1, ++pit2) {
+                
+                vec pos = (*pit2)->getPos();
+                vec u1_n = (*pit2)->getU1();
+                vec u1_c = (*pit1)->getU1();
+                
+                ofs << (format("ID %1$4d   ") % (pseg_n->getId()));
+                ofs << (format("XYZ %1$+1.7e %2$+1.7e %3$+1.7e    ") 
+                        % (pos.getX())
+                        % (pos.getY()) 
+                        % (pos.getZ())).str();
+                ofs << (format("U1n %1$+1.7e %2$+1.7e %3$+1.7e   ") 
+                        % (u1_n.getX())
+                        % (u1_n.getY()) 
+                        % (u1_n.getZ())).str();
+                ofs << (format("U1c %1$+1.7e %2$+1.7e %3$+1.7e   ") 
+                        % (u1_c.getX())
+                        % (u1_c.getY()) 
+                        % (u1_c.getZ())).str();
+                ofs << "FG" << endl;
+            }
+
+        } // Loop over (FGC, FGN)
         ofs.close();
     }
     
@@ -1205,6 +1353,29 @@ void Ewald3DnD::EvaluateInduction() {
     LOG(logDEBUG,*_log) << (format("  o Tolerance (dU/U):          %1$1.3e") % _polar_epstol).str() << flush;
     LOG(logDEBUG,*_log) << (format("  o Induce within QM0:         yes")).str() << flush;
     LOG(logDEBUG,*_log) << (format("  o Subthreads:                single")).str() << flush;
+    LOG(logDEBUG,*_log) << (format("  o Started from archive:      %1$s") % ((_started_from_archived_indu_state) ? "yes" : "no")) << flush;
+    
+    
+    if (_started_from_archived_indu_state) {
+        LOG(logDEBUG,*_log) << "Reusing induction state from archive." << flush;
+        vector<PolarSeg*>::iterator sit1, sit2;
+        PolarSeg::iterator pit1, pit2;
+        for (sit1 = _fg_C.begin(), sit2 = _fg_N.begin(); 
+            sit1 < _fg_C.end();
+            ++sit1, ++sit2) {
+            PolarSeg *pseg_c = *sit1;
+            PolarSeg *pseg_n = *sit2;
+            assert(pseg_c->getId() == pseg_n->getId());
+            assert(pseg_c->size() == pseg_n->size());
+            for (pit1 = pseg_c->begin(), pit2 = pseg_n->begin(); 
+                pit1 < pseg_c->end(); 
+                ++pit1, ++pit2) {
+                vec U1_n = (*pit2)->getU1();
+                (*pit1)->setU1(U1_n);
+            }
+        }
+    }
+    
     
     // Forge XJob object to comply with XInductor interface
     bool polar_has_permanent_fields = true;

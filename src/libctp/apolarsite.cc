@@ -305,7 +305,8 @@ double APolarSite::getProjP(vec &dir) {
 
 void APolarSite::Induce(double wSOR) {
     // SUCCESSIVE OVERRELAXATION
-    U1_Hist.push_back( vec(U1x,U1y,U1z) );
+    U1_Hist.push_back( vec(U1x,U1y,U1z) ); // Remember all previous moments
+    //U1_Hist[0] = vec(U1x,U1y,U1z);           // Remember previous moment
     U1x = (1 - wSOR) * U1x + wSOR * ( - Pxx * (FPx + FUx) - Pxy * (FPy + FUy) - Pxz * (FPz + FUz) );
     U1y = (1 - wSOR) * U1y + wSOR * ( - Pxy * (FPx + FUx) - Pyy * (FPy + FUy) - Pyz * (FPz + FUz) );
     U1z = (1 - wSOR) * U1z + wSOR * ( - Pxz * (FPx + FUx) - Pyz * (FPy + FUy) - Pzz * (FPz + FUz) );

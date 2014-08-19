@@ -135,11 +135,12 @@ protected:
     EwdInteractor _ewdactor;
     XInteractor _actor;
     Logger *_log;
-
+    bool _started_from_archived_indu_state;
+    
     // PERIODIC BOUNDARY
     Topology *_top;
     vec _center;
-
+    
     // POLAR SEGMENTS
     // Part I - Ewald
     PolarTop *_ptop;
@@ -150,6 +151,7 @@ protected:
     vector< PolarSeg* > _fg_C;         // Charged foreground
     ForegroundTable *_fg_table;
     string _jobType;                   // Calculated from FGC charges
+    bool _do_compensate_net_dipole;
     // Part II - Thole
     vector< PolarSeg* > _polar_qm0;
     vector< PolarSeg* > _polar_mm1;

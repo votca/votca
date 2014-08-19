@@ -109,7 +109,7 @@ EWD::triple<> Ewald3D2D::ConvergeReciprocalSpaceSum() {
 //        }
 //        cout << flush;
         
-        if (dEKK_rms*2*M_PI/_LxLy*_actor.int2eV <= _crit_dE && N_K_proc > 2) {
+        if (dEKK_rms*2*M_PI/_LxLy*_actor.int2eV <= _crit_dE && N_K_proc > 10) {
         //if (dEKK_rms*2*M_PI/LxLy*_actor.int2eV <= dEKK_rms_crit) {
             _converged_K = true;
             LOG(logDEBUG,*_log)  

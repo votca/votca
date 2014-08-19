@@ -159,7 +159,8 @@ private:
     // Part I - Ewald
     PolarTop *_ptop;
     vector< PolarSeg* > _bg_P;      // Period. density = _bg_N v _fg_N
-
+    bool _do_compensate_net_dipole;
+    
     // CONVERGENCE
     // Part I - Ewald
     double _alpha;                  // _a = 1/(sqrt(2)*sigma)

@@ -893,6 +893,24 @@ EWD::triple<double> EwdInteractor::U12_ShapeTerm(vector<PolarSeg*> &s1,
         pp *= -4*M_PI/(3*V);
         pu *= -4*M_PI/(3*V);
         uu *= -4*M_PI/(3*V);
+        
+        if (log != NULL) {
+            double pp_qQ = Q0_S1*TrQ2_S2 + Q0_S2*TrQ2_S1;
+            double pp_dd =  - Q1_S1*Q1_S2;
+            double pu_qQ = Q0_S1*TrU2_S2 + Q0_S2*TrU2_S1;
+            double pu_dd =  - Q1_S1*U1_S2 - Q1_S2*U1_S1;
+            double uu_dd = - U1_S1*U1_S2;
+            pp_qQ *= -4*M_PI/(3*V)*EWD::int2eV;
+            pp_dd *= -4*M_PI/(3*V)*EWD::int2eV;
+            pu_qQ *= -4*M_PI/(3*V)*EWD::int2eV;
+            pu_dd *= -4*M_PI/(3*V)*EWD::int2eV;
+            uu_dd *= -4*M_PI/(3*V)*EWD::int2eV;
+            LOG(logDEBUG, *log) << (boost::format("qQ (pp) = %1$+1.7e") % pp_qQ) << flush;
+            LOG(logDEBUG, *log) << (boost::format("dd (pp) = %1$+1.7e") % pp_dd) << flush;
+            LOG(logDEBUG, *log) << (boost::format("qQ (pu) = %1$+1.7e") % pu_qQ) << flush;
+            LOG(logDEBUG, *log) << (boost::format("dd (pu) = %1$+1.7e") % pu_dd) << flush;
+            LOG(logDEBUG, *log) << (boost::format("dd (uu) = %1$+1.7e") % uu_dd) << flush;
+        }
     }
     else {
         cout << endl;
