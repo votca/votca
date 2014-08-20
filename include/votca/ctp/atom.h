@@ -100,7 +100,7 @@ public:
     inline void setQMPart(const int &qmid, vec qmPos);
     inline void setQMPos(const vec &qmPos) { _qmPos = qmPos; }
     inline void setElement(const string &element) { _element = element; }
-    inline void TranslateBy(const vec &shift) { _pos = _pos + shift; _qmPos = _qmPos + shift; }
+    inline void TranslateBy(const vec &shift) { _pos = _pos + shift;  }
     
     inline const int    &getResnr() { return _resnr; }
     inline const string &getResname() { return _resname; }
