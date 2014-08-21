@@ -238,6 +238,9 @@ Job::JobResult Ewald<EwaldMethod>::EvalJob(Topology *top, Job *job,
     if (_pdb_check)
         ewaldnd.WriteDensitiesPDB(xjob.getTag()+".densities.pdb");
     ewaldnd.Evaluate();
+    if (_pdb_check)
+        ewaldnd.WriteDensitiesPtop(xjob.getTag()+".fg.ptop", 
+            xjob.getTag()+".mg.ptop", xjob.getTag()+".bg.ptop");
     
     // GENERATE OUTPUT AND FORWARD TO PROGRESS OBSERVER (RETURN)
     Property output = ewaldnd.GenerateOutputString();

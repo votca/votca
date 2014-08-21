@@ -706,7 +706,11 @@ void PolarBackground::FX_RealSpace(string mode, bool do_setup_nbs) {
         total_nbs_count += (*sit1)->PolarNbs().size();
     LOG(logDEBUG,*_log) << "    - Real-space nb-list set: <nbs/seg> = " 
         << (double)total_nbs_count/_bg_P.size() << flush;
-    _bg_P[288]->PrintPolarNbPDB("seg289.pdb");
+    if (_bg_P.size() > 288+1)
+        _bg_P[288]->PrintPolarNbPDB("seg289.pdb");
+    else {
+        _bg_P[0]->PrintPolarNbPDB("seg1.pdb");
+    }
     
     return;
 }

@@ -25,6 +25,7 @@
 #include "tools/coupling.h"
 #include "tools/log2mps.h"
 #include "tools/ptopreader.h"
+#include "tools/pdb2top.h>
 #include "tools/exciton.h"
 #include "tools/qmanalyze.h"
 #include "tools/qmsandbox.h"
@@ -47,6 +48,7 @@ void QMToolFactory::RegisterAll(void)
         QMTools().Register<Spectrum>           ("spectrum");
         QMTools().Register<ExcitonCoupling>    ("excitoncoupling");
         QMTools().Register<Orb2IsoGWA>         ("orb2isogwa"); 
+        QMTools().Register<PDB2Top>            ("pdb2top");
 }
 
 }}

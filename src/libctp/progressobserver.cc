@@ -26,7 +26,7 @@ pJob ProgObserver<JobContainer,pJob,rJob>::RequestNextJob(QMThread *thread) {
     
     LOG(logDEBUG,*(thread->getLogger())) 
         << "Requesting next job" << flush;
-    
+
     // NEED NEW CHUNK?
     if (_nextjit == _jobsToProc.end() && _moreJobsAvailable) {
         SyncWithProgFile(thread);
@@ -40,8 +40,15 @@ pJob ProgObserver<JobContainer,pJob,rJob>::RequestNextJob(QMThread *thread) {
     
     // JOBS EATEN ALL UP?
     if (_nextjit == _jobsToProc.end()) {
-        LOG(logDEBUG,*(thread->getLogger())) 
-            << "Next job: ID = - (none available)" << flush;
+        if (_maxJobs == _startJobsCount) {
+            LOG(logDEBUG,*(thread->getLogger()))
+                << "Next job: ID = - (reached maximum for this process)" 
+                << flush;
+        }
+        else {
+            LOG(logDEBUG,*(thread->getLogger())) 
+                << "Next job: ID = - (none available)" << flush;
+        }
         jobToProc = NULL;
     }
     // TAKE A BITE
@@ -144,7 +151,7 @@ void ProgObserver<JobContainer,pJob,rJob>::SyncWithProgFile(QMThread *thread) {
     
     int cacheSize = _cacheSize;
     while (_jobsToProc.size() < cacheSize) {
-        if (_metajit == _jobs.end()) break;
+        if (_metajit == _jobs.end() || _startJobsCount == _maxJobs) break;
         
         bool startJob = false;
         
@@ -160,6 +167,7 @@ void ProgObserver<JobContainer,pJob,rJob>::SyncWithProgFile(QMThread *thread) {
             (*_metajit)->setHost(GenerateHost(thread));
             (*_metajit)->setTime(GenerateTime());
             _jobsToProc.push_back(*_metajit);
+            _startJobsCount += 1;
         }
 
         ++_metajit;
@@ -205,6 +213,7 @@ void ProgObserver<JobContainer,pJob,rJob>
     
     _lockFile = optsMap["file"].as<string>();
     _cacheSize = optsMap["cache"].as<int>();
+    _maxJobs = optsMap["maxjobs"].as<int>();
     string restartPattern = optsMap["restart"].as<string>();
     
     // restartPattern = e.g. host(pckr124:1234) stat(FAILED)    

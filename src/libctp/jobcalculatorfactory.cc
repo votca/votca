@@ -30,8 +30,6 @@
 #include "jobcalculators/egwbse.h"
 #include "jobcalculators/igwbse.h"
 
-
-
 namespace votca { namespace ctp {
 
 void JobCalculatorfactory::RegisterAll(void)

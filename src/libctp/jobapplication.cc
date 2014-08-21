@@ -38,7 +38,7 @@ void JobApplication::Initialize(void) {
     namespace propt = boost::program_options;
 
     AddProgramOptions() ("file,f", propt::value<string>(),
-        "  sqlight state file, *.sql");
+        "  sqlite state file, *.sql");
     AddProgramOptions() ("first-frame,i", propt::value<int>()->default_value(1),
         "  start from this frame");
     AddProgramOptions() ("nframes,n", propt::value<int>()->default_value(1),
@@ -53,6 +53,8 @@ void JobApplication::Initialize(void) {
         "  assigns jobs in blocks of this size");
     AddProgramOptions() ("jobs,j", propt::value<string>()->default_value("run"),
         "  task(s) to perform: input, run, import");
+    AddProgramOptions() ("maxjobs,m", propt::value<int>()->default_value(-1),
+        "  maximum number of jobs to process (-1 = inf)");
 }
 
 

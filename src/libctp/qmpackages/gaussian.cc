@@ -1042,23 +1042,26 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
          * Coordinates of the final configuration
          * stored in the archive at the end of the file
          */
-         std::string::size_type coordinates_pos = _line.find("Test job not archived");
+        int cpn = 0; // marker appearence marker
+        std::string::size_type coordinates_pos = _line.find("\\");
         
-        if (coordinates_pos != std::string::npos) {
+        if (coordinates_pos != std::string::npos && cpn == 0) {
+            ++cpn; // updates but ignores
             LOG(logDEBUG,*_pLog) << "Getting the coordinates" << flush;
             _has_coordinates = true;
-            string archive;
+            boost::trim(_line);
+            string archive = _line;
             while ( _line.size() != 0 ) {
                 getline(_input_file, _line);
                 boost::trim(_line);
-                archive += _line;                
+                archive += _line;
             }
                             
             bool _has_atoms = _orbitals->hasQMAtoms();
             std::list<std::string> stringList;
             vector<string> results;
             boost::iter_split( stringList, archive, boost::first_finder("\\\\") );
-             
+            
             list<string>::iterator coord_block = stringList.begin();
             advance(coord_block, 3);
             

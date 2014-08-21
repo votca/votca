@@ -23,6 +23,14 @@
 
 #include <votca/ctp/paircalculator.h>
 #include <math.h>
+#include <cmath>
+#include <complex>
+//#include <boost/math/special_functions/gamma.hpp>
+
+#ifndef NOGSL
+#include <gsl/gsl_sf_gamma.h>
+#include <gsl/gsl_complex.h>
+#endif
 
 namespace votca { namespace ctp {
 
@@ -60,12 +68,23 @@ private:
     double _kT;
     double _omegaVib;
     int    _nMaxVib;
+    double _kondo;
 
     int Factorial(int i);
 
 };
 
-
+complex <double> cgamma (complex <double> argument)
+{   // complex result of Gamma(z) with complex z
+    gsl_sf_result result_logradius;
+    gsl_sf_result result_phi;
+    gsl_sf_lngamma_complex_e(real(argument),imag(argument), &result_logradius, &result_phi);
+    double radius = result_logradius.val;
+    radius = exp(radius);
+    double phi = result_phi.val;
+    complex<double> result  = polar(radius,phi);
+    return result;
+}
 
 
 void Rates::Initialize(Property *options) {
@@ -107,7 +126,7 @@ void Rates::Initialize(Property *options) {
              << endl;
         throw std::runtime_error("Missing input in options file.");
     }
-    if (_rateType != "marcus" && _rateType != "jortner" && _rateType != "sven") {
+    if (_rateType != "marcus" && _rateType != "jortner" && _rateType != "weissdorsey" && _rateType != "sven") {
         cout << endl
              << "... ... ERROR: Unknown rate type '" << _rateType << "' "
              << endl;
@@ -134,6 +153,18 @@ void Rates::Initialize(Property *options) {
             _omegaVib = 0.2;
             cout << endl << "... ... WARNING: No QM vibration frequency provided, "
                             "using default 0.2eV.";
+        }
+    }
+
+    
+    if (_rateType == "weissdorsey") {
+    // Kondo parameter
+    if (options->exists(key+".kondo")) {
+            _kondo = options->get(key+".kondo").as<double> ();
+        }
+        else {
+            _kondo = 4.0;
+            cout << endl << "... ... WARNING: No Kondo parameter provided. Using default 4.0.";
         }
     }
 
@@ -401,6 +432,38 @@ void Rates::CalculateRate(Topology *top, QMPair *qmpair, int state) {
 
         rate21 = J2 / hbar_eV * sqrt( M_PI / (reorg21*_kT) )
                 * exp( - (-dG + reorg21)*(-dG + reorg21) / (4*_kT*reorg21) );
+        
+    // ++++++++++++ //
+    // WEISS DORSEY RATES //
+    // See Asadi et al. Nature Comm. 2708 (DOI: 10.1038/ncomms2708)
+    // equation 6 
+    // ++++++++++++ //
+
+    } else if (_rateType == "weissdorsey") {//not yet fully checked
+        
+        _kondo = _kondo/2+1; // going from alpha to alpha'
+
+        reorg12 = reorg12 + lOut;
+        reorg21 = reorg21 + lOut;
+        
+        double characfreq12 = reorg12 /2 /_kondo/hbar_eV;
+        double characfreq21 = reorg21 /2 /_kondo/hbar_eV;
+        
+        complex<double> M_I = (0,1);
+        
+
+        rate12 = J2/pow(hbar_eV,2)/characfreq12
+                * pow((hbar_eV*characfreq12/2/M_PI/_kT), (1-2*_kondo))
+                * pow(std::abs(cgamma(_kondo+M_I*(+dG/2/M_PI/_kT))),2)
+                * pow(gsl_sf_gamma(2*_kondo), -1) * exp(+dG/2/_kT)
+                * exp(-std::abs(dG)/hbar_eV/characfreq12); 
+
+        rate21 = J2/pow(hbar_eV,2)/characfreq21
+                * pow((hbar_eV*characfreq21/2/M_PI/_kT), (1-2*_kondo))
+                * pow(std::abs(cgamma(_kondo+M_I*(-dG/2/M_PI/_kT))),2)
+                * pow(gsl_sf_gamma(2*_kondo), -1) * exp(-dG/2/_kT)
+                * exp(-std::abs(dG)/hbar_eV/characfreq12);
+
         
     // ++++++++++++ //
     // SYMMETRIC RATES //

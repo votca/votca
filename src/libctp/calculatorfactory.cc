@@ -44,6 +44,7 @@
 #include "calculators/jobwriter.h"
 #include "calculators/ewdbgpol.h"
 #include "calculators/cgpolar.h"
+#include "calculators/vaverage.h"
 
 
 
@@ -74,6 +75,7 @@ void Calculatorfactory::RegisterAll(void)
         Calculators().Register<JobWriter>           ("jobwriter");
         Calculators().Register<EwaldBgPolarizer>    ("ewdbgpol");
         Calculators().Register<CgPolar>             ("cgpolar");
+        Calculators().Register<VAverage>            ("vaverage");
 }
 
 }}
