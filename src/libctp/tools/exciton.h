@@ -79,7 +79,7 @@ private:
     double _norm_delta_pos;
     string _spintype;
     string _forces; 
-    
+    string _opt_type;    
     
     int _natoms;
     int _iteration;
@@ -196,6 +196,7 @@ void Exciton::Initialize(Property* options) {
                   _spintype = options->get(key + ".optimize.spintype").as<string> ();
                   _trust_radius = options->get(key + ".optimize.trust").as<double> ();
                   _forces = options->get(key + ".optimize.forces").as<string> ();
+                  _opt_type = options->get(key + ".optimize.type").as<string> ();
                   string _restart_string = options->get(key + ".optimize.restart").as<string> ();
                   if ( _restart_string == "restart" ) _restart_opt = true;
                   if ( _restart_opt  && ! boost::filesystem::exists("restart.opt")) {
@@ -346,7 +347,7 @@ bool Exciton::Evaluate() {
            // calculate numerical forces
            if ( _forces == "forward" ) NumForceForward( energy, _atoms, _force, _qmpackage, _molecule, &_orbitals );
            if ( _forces == "central" ) NumForceCentral( energy, _atoms, _force, _qmpackage, _molecule, &_orbitals );
-
+           
            
            // writing current coordinates and forces
            FILE *out;
@@ -362,7 +363,7 @@ bool Exciton::Evaluate() {
            }
               
            fclose(out);
-           
+           if ( _opt_type != "md" ){
            
            _step_accepted = false; // at every iteration
            
@@ -511,6 +512,9 @@ bool Exciton::Evaluate() {
            
            _iteration++;
 	   // exit(0);
+	   } else {
+             _converged = true;
+	   }
        } // optimization while loop
        
    }// if optimization

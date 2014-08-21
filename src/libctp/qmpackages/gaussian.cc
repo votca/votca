@@ -204,7 +204,7 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
         }
     }
 
-    if (_write_basis_set) {
+    if (_write_basis_set && !_write_charges ) {
 
         _com_file << endl;
         list<string> elements;
@@ -264,7 +264,7 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
     }
 
 
-    if (_write_pseudopotentials) {
+    if (_write_pseudopotentials && !_write_charges) {
         string pseudopotential_name("ecp");
         
          _com_file << endl;
@@ -315,7 +315,9 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
                 }
             }
         }
-        
+    }
+    
+    if ( _write_pseudopotentials ){
         /* This is not very nice. We assume that pseudopotentials are only 
          * needed for GW-BSE runs. Therefore, when we ask for writing the 
          * ECP info to the Gaussian com-file, it automatically means 
@@ -339,6 +341,7 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
         boost::algorithm::replace_all(_options_vxc, "punch=mo", "guess=read");  
         boost::algorithm::replace_all(_options_vxc, "guess=tcheck", "");  
         boost::algorithm::replace_all(_options_vxc, "guess=huckel", "");  
+        boost::algorithm::replace_all(_options_vxc, "charge", "charge=check");
         if ( _options_vxc.size() ) _com_file2 <<  _options_vxc << endl ;
 
         // # pop=minimal pbepbe/gen pseudo=read scf=tight punch=mo
@@ -370,11 +373,122 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
         
         _com_file << endl;
         
+        // if we need to write basis sets, do it now
+        if ( _write_basis_set ) {
+
+        list<string> elements;
+        BasisSet bs;
+        // string basis_name(_basis);
+        
+        bs.LoadBasisSet( _basisset_name );
+        LOG(logDEBUG,*_pLog) << "Loaded Basis Set " << _basisset_name << flush;
+
+            for (it = qmatoms->begin(); it < qmatoms->end(); it++) {
+
+                string element_name = (*it)->type;
+                
+                list<string>::iterator ite;
+                ite = find(elements.begin(), elements.end(), element_name);
+                
+                if (ite == elements.end()) {
+                    elements.push_back(element_name);
+                  
+                    Element* element = bs.getElement(element_name);
+                    /* Alternative is to write each basis set to a element_name.gbs file
+                     * and include the gbs file in the com-file via Gaussian's @ function
+                     * Advantage: *gbs files can be reused by isogwa later
+                     */
+                    ofstream _el_file;
+                    string _el_file_name = _run_dir + "/" + element_name + ".gbs";
+                    _el_file.open ( _el_file_name.c_str() );
+                    // element name, [possibly indeces of centers], zero to indicate the end
+                    //_com_file << element_name << " 0" << endl;
+                    _com_file << "@" << element_name << ".gbs" << endl;
+                    _el_file << element_name << " 0" << endl;
+                    for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+                        
+                        Shell* shell = (*its);
+                        // shell type, number primitives, scale factor
+                        //_com_file << shell->getType() << " " << shell->getSize() << " " << shell->getScale() << endl;
+                        _el_file << shell->getType() << " " << shell->getSize() << " " << FortranFormat( shell->getScale() ) << endl;
+                        for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
+                            GaussianPrimitive* gaussian = *itg;
+                            //_com_file << gaussian->decay << " " << gaussian->contraction << endl;
+                            _el_file << FortranFormat( gaussian->decay )<< " " << FortranFormat( gaussian->contraction ) << endl;
+                        }
+                    }
+                    
+                    //_com_file << "****\n";
+                    _el_file << "****\n";
+                    _el_file.close();
+
+                }
+            }
+
+        }
+        
+        if (_write_pseudopotentials ) {
+        string pseudopotential_name("ecp");
+        
+         _com_file << endl;
+        list<string> elements;
+        
+        elements.push_back("H");
+        elements.push_back("He");
+        
+        BasisSet ecp;
+        ecp.LoadPseudopotentialSet( pseudopotential_name );
+        
+        LOG(logDEBUG,*_pLog) << "Loaded Pseudopotentials " << pseudopotential_name << flush;
+
+        //for (sit = segments.begin(); sit != segments.end(); ++sit) {
+            
+          //  vector< Atom* > atoms = (*sit)-> Atoms();
+           // vector< Atom* >::iterator it;
+            
+            for (it = qmatoms->begin(); it < qmatoms->end(); it++) {
+
+                string element_name = (*it)->type;
+                
+                list<string>::iterator ite;
+                ite = find(elements.begin(), elements.end(), element_name);
+                
+                if (ite == elements.end()) {
+                    elements.push_back(element_name);
+                  
+                    Element* element = ecp.getElement(element_name);
+                    
+                    // element name, [possibly indeces of centers], zero to indicate the end
+                    _com_file << element_name << " 0\n" 
+                              << pseudopotential_name << " " 
+                              << element->getLmax() << " " << element->getNcore() << endl;
+
+                    for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+                        
+                        Shell* shell = (*its);
+                        // shell type, number primitives, scale factor
+                        _com_file << shell->getType() << endl;
+                        _com_file << shell->getSize() << endl;
+                        
+                        for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
+                            GaussianPrimitive* gaussian = *itg;
+                            _com_file <<  gaussian->power << " " <<  FortranFormat(gaussian->decay) << " " <<  FortranFormat(gaussian->contraction) << endl;
+                        }
+                    }
+                }
+            }
+        // }
+         _com_file << endl;
+    }
+        
+        
+        
+        
         for (it = qmatoms->begin(); it < qmatoms->end(); it++ ) {
             if ( (*it)->from_environment ) {
                 boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
                 fmt % (*it)->x % (*it)->y % (*it)->z % (*it)->charge;
-                _com_file << fmt << endl;
+                if ((*it)->charge != 0.0 ) _com_file << fmt << endl;
             }
         }
         
@@ -646,7 +760,7 @@ bool Gaussian::CheckLogFile() {
         
     std::string::size_type self_energy_pos = _line.find("Normal termination of Gaussian");
     if (self_energy_pos == std::string::npos) {
-            LOG(logERROR,*_pLog) << "GAUSSAIN: " << _full_name  <<  " is incomplete" << flush;
+            LOG(logERROR,*_pLog) << "GAUSSIAN: " << _full_name  <<  " is incomplete" << flush;
             return false;      
     } else {
             //LOG(logDEBUG,*_pLog) << "Gaussian LOG is complete" << flush;

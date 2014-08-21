@@ -140,7 +140,7 @@ bool Coupling::Evaluate() {
     LOG(logDEBUG,_log) << "Trimming virtual orbitals B:" 
                     << _orbitalsB.getNumberOfLevels() - _orbitalsB.getNumberOfElectrons() << "->" 
                     << _orbitalsB.getNumberOfElectrons()*(_trimB-1) << std::flush;      
-    _orbitalsB.Trim(_trimB);
+    _orbitalsB.Trim(_trimB); 
     
      Overlap _overlap; 
     _overlap.setLogger(&_log);
