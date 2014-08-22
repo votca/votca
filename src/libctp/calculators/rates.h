@@ -76,13 +76,16 @@ private:
 
 complex <double> cgamma (complex <double> argument)
 {   // complex result of Gamma(z) with complex z
-    gsl_sf_result result_logradius;
+    complex<double> result;
+    /* gsl_sf_result result_logradius;
     gsl_sf_result result_phi;
     gsl_sf_lngamma_complex_e(real(argument),imag(argument), &result_logradius, &result_phi);
     double radius = result_logradius.val;
     radius = exp(radius);
     double phi = result_phi.val;
-    complex<double> result  = polar(radius,phi);
+    complex<double> result  = polar(radius,phi);*/
+    cout << "Complex Gamma functions not supported by MKL " << endl;
+    exit(1);
     return result;
 }
 
@@ -452,7 +455,7 @@ void Rates::CalculateRate(Topology *top, QMPair *qmpair, int state) {
         complex<double> M_I = (0,1);
         
 
-        rate12 = J2/pow(hbar_eV,2)/characfreq12
+       /* rate12 = J2/pow(hbar_eV,2)/characfreq12
                 * pow((hbar_eV*characfreq12/2/M_PI/_kT), (1-2*_kondo))
                 * pow(std::abs(cgamma(_kondo+M_I*(+dG/2/M_PI/_kT))),2)
                 * pow(gsl_sf_gamma(2*_kondo), -1) * exp(+dG/2/_kT)
@@ -464,6 +467,10 @@ void Rates::CalculateRate(Topology *top, QMPair *qmpair, int state) {
                 * pow(gsl_sf_gamma(2*_kondo), -1) * exp(-dG/2/_kT)
                 * exp(-std::abs(dG)/hbar_eV/characfreq12);
 
+        */
+        
+        cout << "WEISS DORSEY RATES not supported in this version! " << endl;
+        exit(1);
         
     // ++++++++++++ //
     // SYMMETRIC RATES //

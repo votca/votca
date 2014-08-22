@@ -25,7 +25,7 @@
 #include "tools/coupling.h"
 #include "tools/log2mps.h"
 #include "tools/ptopreader.h"
-#include "tools/pdb2top.h>
+#include "tools/pdb2top.h"
 #include "tools/exciton.h"
 #include "tools/qmanalyze.h"
 #include "tools/qmsandbox.h"
