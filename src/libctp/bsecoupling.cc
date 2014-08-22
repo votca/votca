@@ -658,10 +658,17 @@ bool BSECoupling::ProjectExcitons(ub::matrix<float>& _kap, ub::matrix<float>& _k
      for ( int _i =0; _i < _bseA_exc + _bseB_exc ; _i++){
          _diagS(_i,_i) = 1.0/sqrt(_S_eigenvalues[_i]);
      }
-     ub::matrix<float> _transform = ub::prod( _S_dimer, ub::prod( _diagS, ub::trans(_S_dimer) )  );
-     // final coupling elements
-     _J = ub::prod( _transform, ub::prod(_J_dimer, _transform));
-    
+
+     //ub::matrix<float> _transform = ub::prod( _S_dimer, ub::prod( _diagS, ub::trans(_S_dimer) )  );
+
+     ub::matrix<float> _transtemp = ub::prod( _diagS, ub::trans(_S_dimer));
+     ub::matrix<float> _transform = ub::prod( _S_dimer,_transtemp );
+
+     ub::matrix<float> _J_temp = ub::prod(_J_dimer, _transform);
+     
+             // final coupling elements
+     // _J = ub::prod( _transform, ub::prod(_J_dimer, _transform));
+    _J = ub::prod( _transform, _J_temp);
      return true;
     
     

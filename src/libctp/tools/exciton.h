@@ -1411,15 +1411,15 @@ void Exciton::Orbitals2Segment(Segment* _segment, Orbitals* _orbitals){
             for ( int _i =0; _i <  _AOoverlap._aomatrix.size1(); _i++){
                 _diagS(_i,_i) = 1.0/sqrt(_MOoverlap_eigenvalues[_i]);
             }
-            ub::matrix<double> _transform = ub::prod( _MOoverlap, ub::prod( _diagS, ub::trans(_MOoverlap) )  );
+            // ub::matrix<double> _transform = ub::prod( _MOoverlap, ub::prod( _diagS, ub::trans(_MOoverlap) )  );
      // final coupling elements
-      ub::matrix<double> _J = ub::prod( _transform, ub::prod(_MOoverlap_backup, _transform));
+   /*   ub::matrix<double> _J = ub::prod( _transform, ub::prod(_MOoverlap_backup, _transform));
                 for ( int i =0; i<_AOoverlap._aomatrix.size1(); i++){
 	    for ( int j =0; j<_AOoverlap._aomatrix.size1(); j++){
             cout << " ON(" << i << "," << j << "): "<< _MOoverlap_backup(i,j)  << "    " << _J(i,j) << endl;
             }
             } 
-            
+     */       
             exit(0);
 
     // transform

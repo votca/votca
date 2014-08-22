@@ -27,11 +27,6 @@
 #include <complex>
 //#include <boost/math/special_functions/gamma.hpp>
 
-#ifndef NOGSL
-#include <gsl/gsl_sf_gamma.h>
-#include <gsl/gsl_complex.h>
-#endif
-
 namespace votca { namespace ctp {
 
 class Rates : public PairCalculator2
@@ -74,49 +69,22 @@ private:
 
 };
 
-complex <double> cgamma (complex <double> argument)
+/* complex <double> cgamma (complex <double> argument)
 {   // complex result of Gamma(z) with complex z
+
+    // calc log(Gamma(z)) then exp^()
     complex<double> result;
-    
-     // complec Gamma function of complex argument from Lanczos approximation
-    static const int g=7;
-    static const double pi =
-        3.1415926535897932384626433832795028841972 ;
-    static const double p[g+2] = {0.99999999999980993, 676.5203681218851,
-      -1259.1392167224028, 771.32342877765313, -176.61502916214059,
-      12.507343278686905, -0.13857109526572012, 9.9843695780195716e-6,
-      1.5056327351493116e-7};
-
-    if ( real(argument)<0.5 ) {
-       result = pi / (sin(pi*argument)*cgamma(1.0-argument));
-    } else {
-       argument -= 1.0;
-       complex<double> x = p[0];
-       for (int i=1; i<g+2; i++) {
-          x += p[i]/(argument+complex<double>(i,0));
-       }
-       complex<double> t = argument + (g + 0.5);
-       result = sqrt(2*pi) * pow(t,argument+0.5) * exp(-t) * x;
-    }
-
-     
-     
-     
-     
-     
-    
-    
-    /* gsl_sf_result result_logradius;
+    gsl_sf_result result_logradius;
     gsl_sf_result result_phi;
     gsl_sf_lngamma_complex_e(real(argument),imag(argument), &result_logradius, &result_phi);
     double radius = result_logradius.val;
     radius = exp(radius);
     double phi = result_phi.val;
-    complex<double> result  = polar(radius,phi);*/
+    result  = polar(radius,phi);
     // cout << "Complex Gamma functions not supported by MKL " << endl;
     // exit(1);
     return result;
-}
+} */
 
 
 
@@ -561,24 +529,24 @@ void Rates::CalculateRate(Topology *top, QMPair *qmpair, int state) {
         double characfreq21 = reorg21 /2 /_kondo/hbar_eV;
         
         complex<double> M_I = (0,1);
+       /* cout << endl;
+       cout << "  CGAMMA via GSL: " << gsl_sf_gamma(2*_kondo) << " native: " << ccgamma(2*_kondo,0).real() << endl;
+       cout << " LCGAMMA via GSL: " << cgamma(_kondo+M_I*(+dG/2/M_PI/_kT)) << " native: " << ccgamma(_kondo+M_I*(+dG/2/M_PI/_kT),0) << endl;
+      */
         
-
-       /* rate12 = J2/pow(hbar_eV,2)/characfreq12
+       rate12 = J2/pow(hbar_eV,2)/characfreq12
                 * pow((hbar_eV*characfreq12/2/M_PI/_kT), (1-2*_kondo))
-                * pow(std::abs(cgamma(_kondo+M_I*(+dG/2/M_PI/_kT))),2)
-                * pow(gsl_sf_gamma(2*_kondo), -1) * exp(+dG/2/_kT)
+                * pow(std::abs(ccgamma(_kondo+M_I*(+dG/2/M_PI/_kT),1)),2)
+                * pow(ccgamma(2*_kondo,0).real(), -1) * exp(+dG/2/_kT)
                 * exp(-std::abs(dG)/hbar_eV/characfreq12); 
 
         rate21 = J2/pow(hbar_eV,2)/characfreq21
                 * pow((hbar_eV*characfreq21/2/M_PI/_kT), (1-2*_kondo))
-                * pow(std::abs(cgamma(_kondo+M_I*(-dG/2/M_PI/_kT))),2)
-                * pow(gsl_sf_gamma(2*_kondo), -1) * exp(-dG/2/_kT)
+                * pow(std::abs(ccgamma(_kondo+M_I*(-dG/2/M_PI/_kT),1)),2)
+                * pow(ccgamma(2*_kondo,0).real(), -1) * exp(-dG/2/_kT)
                 * exp(-std::abs(dG)/hbar_eV/characfreq12);
 
-        */
         
-        cout << "WEISS DORSEY RATES not supported in this version! " << endl;
-        exit(1);
         
     // ++++++++++++ //
     // SYMMETRIC RATES //
