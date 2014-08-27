@@ -50,8 +50,7 @@ public:
         hole_density                          = options->get("options.general.hole_density").as<double>();
 
         number_of_steps                       = options->get("options.general.number_of_steps").as<int>();
-//        number_of_equilibration_steps         = options->get("options.general.number_of_equilibration_steps").as<int>();
-        number_of_equilibration_steps         = 200000;
+        number_of_equilibration_steps         = options->get("options.general.number_of_equilibration_steps").as<int>();
 
         number_of_report_steps                = options->get("options.general.number_of_report_steps").as<int>();
         
@@ -71,7 +70,6 @@ public:
         formalism                             = options->get("options.general.formalism").as<string>();        
 
         alpha                                 = options->get("options.general.alpha").as<double>();
-        // alpha = 20.0;
         temperature                           = options->get("options.general.temperature").as<double>();
         efield_x                              = options->get("options.general.efield_x").as<double>();
         efield_y                              = options->get("options.general.efield_y").as<double>();
@@ -87,8 +85,7 @@ public:
         
         binding_energy                        = options->get("options.general.binding_energy").as<double>();
         
-        //norc                                  = options->get("options.general.norc").as<bool>();
-        norc = false;
+        norc                                  = options->get("options.general.norc").as<bool>();
         
         if(advanced) {
             repeat_counting                   = options->get("options.general.repeat_counting").as<bool>();
@@ -102,15 +99,13 @@ public:
             hole_transport_prefactor          = options->get("options.general.hole_prefactor").as<double>();
             recombination_prefactor           = options->get("options.general.recombination_prefactor").as<double>();
 
-            //growsize                          = options->get("options.general.growsize").as<int>();
-            growsize                          = 10;
+            growsize                          = options->get("options.general.growsize").as<int>();
             
             visualisation_number_x            = options->get("options.general.visualisation_number_x").as<int>();
             visualisation_number_y            = options->get("options.general.visualisation_number_y").as<int>();
             visualisation_number_z            = options->get("options.general.visualisation_number_z").as<int>();
 
-            //number_direct_conv_iv             = options->get("options.general.number_direct_conv_iv").as<int>();
-            number_direct_conv_iv             = 5;
+            number_direct_conv_iv             = options->get("options.general.number_direct_conv_iv").as<int>();
             number_direct_conv_reco           = options->get("options.general.number_direct_conv_reco").as<int>();
         }
         else {
@@ -148,15 +143,14 @@ public:
         right_hole_injection                  = options->get("options.device.right_hole_injection").as<bool>();
 
         left_injection_barrier                = options->get("options.device.left_injection_barrier").as<double>();
-        //left_injection_barrier = 0.45;
         right_injection_barrier               = options->get("options.device.right_injection_barrier").as<double>();
-        //right_injection_barrier = 0.45;
         
         left_electrode_distance               = options->get("options.device.left_electrode_distance").as<double>();
         right_electrode_distance              = options->get("options.device.right_electrode_distance").as<double>();
 
-//        timesteps_update_longrange            = options->get("options.device.timesteps_update_longrange").as<int>();
-        timesteps_update_longrange            = 5000;
+        
+        
+        timesteps_update_longrange            = options->get("options.device.timesteps_update_longrange").as<int>();
         
         if(advanced) {
             // default value is equal to 1
@@ -168,7 +162,7 @@ public:
             
             // default value is integer floor of size of device
             number_of_layers                  = options->get("options.device.number_of_layers").as<int>();
-
+            
             // default value is 10 images
             number_short_range_images         = options->get("options.device.number_short_range_images").as<int>();            
             number_long_range_images          = options->get("options.device.number_long_range_images").as<int>();
@@ -189,7 +183,7 @@ public:
             
             self_image_prefactor              = 0.5;
             
-            number_of_layers                     = floor(size_x);
+            number_of_layers                  = floor(size_x);
             
             number_short_range_images         = 10;
             number_long_range_images          = 10;
@@ -207,6 +201,7 @@ public:
         NY                                    = options->get("options.cubic.NY").as<int>();
         NZ                                    = options->get("options.cubic.NZ").as<int>();
         lat_const                             = options->get("options.cubic.lat_const").as<double>();
+
         hop_distance                          = options->get("options.cubic.hop_distance").as<double>();
         
         el_disorder                           = options->get("options.cubic.el_disorder").as<double>();
