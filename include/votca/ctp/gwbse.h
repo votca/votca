@@ -171,6 +171,9 @@ public:
     double get_shift() {return _shift ;}
     void set_shift( double inp ) { _shift = inp; }
     
+    void set_fragA( int n ) { _fragA = n; }
+    void set_fragB( int n ) { _fragB = n; }
+    
     private:
 
     Logger *_pLog;
@@ -197,6 +200,10 @@ public:
     bool                                _shift_converged;
     
     int                                 _openmp_threads;
+    
+    // fragment definitions
+    int                                 _fragA;
+    int                                 _fragB;
     
     string _outParent;
     string _outMonDir;

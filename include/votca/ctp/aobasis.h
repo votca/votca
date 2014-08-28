@@ -140,25 +140,48 @@ class AOBasis
 {   
 public:
        
-       template< class T >
-       static void ReorderMOs(ub::matrix<T> &v, vector<int> const &order )  { 
+       // template< class T >
+       //static void ReorderMOs(ub::matrix<T> &v, vector<int> const &order )  {
+       //static void ReorderMOs(ub::matrix<T> &v, string start, string target )  { 
+       void ReorderMOs(ub::matrix<double> &v, string start, string target )  { 
+       
+          // cout << " Reordering MOs from " << start << " to " << target << endl;
+           
+          // get reordering vector _start -> target 
+          vector<int> order;
+          this->getReorderVector( start, target, order);
+           
           // Sanity check
           if ( v.size2() != order.size() ) {
               cerr << "Size mismatch in ReorderMOs" << v.size2() << ":" << order.size() << endl;
               throw std::runtime_error( "Abort!");
-              
           }
-           for ( int _i_orbital = 0; _i_orbital < v.size1(); _i_orbital++ ){
-        
+           
+          // actual swapping of coefficients
+          for ( int _i_orbital = 0; _i_orbital < v.size1(); _i_orbital++ ){
                 for ( int s = 1, d; s < order.size(); ++ s ) {
                     for ( d = order[s]; d < s; d = order[d] ) ;
                           if ( d == s ) while ( d = order[d], d != s ) swap( v(_i_orbital,s), v(_i_orbital,d) );
                 }
-           }
+          }
+           
+          // NWChem has some strange minus in d-functions
+          if ( start == "nwchem" || target == "nwchem" ){
+              
+              // get vector with multipliers, e.g. NWChem -> Votca (bloody sign for d_xz)
+              vector<int> multiplier;
+              this->getMultiplierVector(start, target, multiplier);
+              // and reorder rows of _orbitals->_mo_coefficients() accordingly
+              this->MultiplyMOs( v , multiplier);
+              
+          }
+           
+           
+           
        }
        
-      template< class T >   
-      static void MultiplyMOs(ub::matrix<T> &v, vector<int> const &multiplier )  { 
+      //template< class T >   
+      void MultiplyMOs(ub::matrix<double> &v, vector<int> const &multiplier )  { 
           // Sanity check
           if ( v.size2() != multiplier.size() ) {
               cerr << "Size mismatch in MultiplyMOs" << v.size2() << ":" << multiplier.size() << endl;
@@ -180,7 +203,7 @@ public:
       
       
     // void AOBasisFill( BasisSet* bs , vector<Segment* > segments);
-    void AOBasisFill( BasisSet* bs , vector<QMAtom* > segments);
+    void AOBasisFill( BasisSet* bs , vector<QMAtom* > segments, int fragbreak = -1);
     int NumFuncShell( string shell );
     int NumFuncShell_cartesian( string shell );
     int OffsetFuncShell( string shell );
@@ -215,15 +238,22 @@ public:
    }    
    
    int _AOBasisSize;
+   int _AOBasisFragA;
+   int _AOBasisFragB;
    
    bool _is_stable;
    
     vector<AOShell*> _aoshells;
 
-    void getReorderVector( string& package, vector<int>& neworder );
-    void addReorderShell( string& package, string& shell, vector<int>& neworder );
-    void getMultiplierVector( string& package, vector<int>& multiplier );
-    void addMultiplierShell( string& package, string& shell, vector<int>& multiplier );  
+    // void getReorderVector( string& package, vector<int>& neworder );
+    void getReorderVector( string& start, string& target, vector<int>& neworder );
+    //void addReorderShell( string& package, string& shell, vector<int>& neworder );
+    void addReorderShell( string& start, string& target, string& shell, vector<int>& neworder );
+    //void getMultiplierVector( string& package, vector<int>& multiplier );
+    void getMultiplierVector( string& start, string& target, vector<int>& multiplier );
+    //void addMultiplierShell( string& package, string& shell, vector<int>& multiplier );  
+    void addMultiplierShell( string& start, string& target, string& shell, vector<int>& multiplier );  
+    
     
     void getTransformationCartToSpherical( string& package, ub::matrix<double>& _trafomatrix );
     void addTrafoCartShell(  AOShell* shell , ub::matrix_range< ub::matrix<double> >& _submatrix );
@@ -382,13 +412,13 @@ inline int AOBasis::getMaxFunctions () {
 }
 
 
-inline void AOBasis::getMultiplierVector( string& package, vector<int>& multiplier){
+inline void AOBasis::getMultiplierVector( string& start, string& target, vector<int>& multiplier){
 
     // go through basisset
     for (vector< AOShell* >::iterator _is = this->firstShell(); _is != this->lastShell() ; _is++ ) {
         AOShell* _shell = this->getShell( _is );
         string _type =  _shell->getType();
-        this->addMultiplierShell(  package, _type, multiplier );
+        this->addMultiplierShell(  start, target, _type, multiplier );
     }
     
 }
@@ -396,8 +426,10 @@ inline void AOBasis::getMultiplierVector( string& package, vector<int>& multipli
 
 
 
-inline void AOBasis::addMultiplierShell( string& package,  string& shell_type, vector<int>& multiplier ) {
+inline void AOBasis::addMultiplierShell( string& start, string& target,  string& shell_type, vector<int>& multiplier ) {
     
+    
+    if ( target == "votca ") {
     // current length of vector
     int _cur_pos = multiplier.size() -1 ;
     
@@ -413,14 +445,14 @@ inline void AOBasis::addMultiplierShell( string& package,  string& shell_type, v
            multiplier.push_back( 1 );
        }
        if ( shell_type == "D" ){ 
-           if ( package == "nwchem") {
+           if ( start == "nwchem") {
                multiplier.push_back( -1  ); 
                multiplier.push_back( 1 );
                multiplier.push_back( 1 );
                multiplier.push_back( 1 ); 
                multiplier.push_back( 1 );               
            } else {
-               cerr << "Tried to get multipliers d-functions from package " << package << ".";
+               cerr << "Tried to get multipliers d-functions from package " << start << ".";
                throw std::runtime_error( "Multiplication not implemented yet!");
            }
        }
@@ -437,30 +469,38 @@ inline void AOBasis::addMultiplierShell( string& package,  string& shell_type, v
         //_nbf = 0;
         for( int i = 0; i < shell_type.length(); ++i) {
            string local_shell =    string( shell_type, i, 1 );
-           this->addMultiplierShell( package, local_shell, multiplier  );
+           this->addMultiplierShell( start,target, local_shell, multiplier  );
         }
     }
-    
+    } else {
+        
+        cerr << "Tried to reorder functions from " << start << " to " << target << endl;
+        throw std::runtime_error( "Reordering not implemented yet!");
+        
+        
+    }
     
 }
 
 
-inline void AOBasis::getReorderVector( string& package, vector<int>& neworder){
+inline void AOBasis::getReorderVector( string& start, string& target, vector<int>& neworder){
 
     // go through basisset
     for (vector< AOShell* >::iterator _is = this->firstShell(); _is != this->lastShell() ; _is++ ) {
         AOShell* _shell = this->getShell( _is );
         string _type =  _shell->getType();
-        this->addReorderShell( package,  _type, neworder );
+        this->addReorderShell( start, target, _type, neworder );
     }
     
 }
 
 
-inline void AOBasis::addReorderShell( string& package,  string& shell_type, vector<int>& neworder ) {
+inline void AOBasis::addReorderShell( string& start, string& target,  string& shell_type, vector<int>& neworder ) {
     
     // current length of vector
     int _cur_pos = neworder.size() -1 ;
+    
+    if ( target == "votca" ){
     
     // single type shells defined here
     if ( shell_type.length() == 1 ){
@@ -474,20 +514,21 @@ inline void AOBasis::addReorderShell( string& package,  string& shell_type, vect
            neworder.push_back( _cur_pos + 3 );
        }
        if ( shell_type == "D" ){ 
-           if ( package == "gaussian"){
+           if ( start == "gaussian"){
                neworder.push_back( _cur_pos + 4 );
                neworder.push_back( _cur_pos + 1 );
                neworder.push_back( _cur_pos + 2 );
                neworder.push_back( _cur_pos + 5 );
                neworder.push_back( _cur_pos + 3 );
-           } else if ( package == "nwchem") {
+           } else if ( start == "nwchem") {
                neworder.push_back( _cur_pos + 3  ); 
                neworder.push_back( _cur_pos + 2 );
                neworder.push_back( _cur_pos + 4 );
-               neworder.push_back( -(_cur_pos + 1) ); // bloody inverted sign
+               //neworder.push_back( -(_cur_pos + 1) ); // bloody inverted sign // BUG!!!!!!!
+               neworder.push_back( _cur_pos + 1 ); 
                neworder.push_back( _cur_pos + 5 );               
            } else {
-               cerr << "Tried to reorder d-functions from package " << package << ".";
+               cerr << "Tried to reorder d-functions from package " << start << ".";
                throw std::runtime_error( "Reordering not implemented yet!");
            }
        }
@@ -504,79 +545,70 @@ inline void AOBasis::addReorderShell( string& package,  string& shell_type, vect
         //_nbf = 0;
         for( int i = 0; i < shell_type.length(); ++i) {
            string local_shell =    string( shell_type, i, 1 );
-           this->addReorderShell( package, local_shell, neworder  );
+           this->addReorderShell( start, target, local_shell, neworder  );
         }
     }
-    
+    } else {
+        
+        cerr << "Tried to reorder functions from " << start << " to " << target << endl;
+        throw std::runtime_error( "Reordering not implemented yet!");
+        
+    } 
     
 }
 
 
 
 
-inline void AOBasis::AOBasisFill(BasisSet* bs , vector<QMAtom* > _atoms) {
+inline void AOBasis::AOBasisFill(BasisSet* bs , vector<QMAtom* > _atoms, int _fragbreak  ) {
     
-        // cout << "\n Filling AO basis:" << endl;
-        
-//        vector< Atom* > _atoms;
         vector< QMAtom* > :: iterator ait;
- //       vector< Segment* >::iterator sit;
+        std::vector < QMAtom* > :: iterator atom;
 
-        
-        
-
-            std::vector < QMAtom* > :: iterator atom;
-/*        
-//             cout << _atoms->begin()
-    int id = 0;
-    
-    for (atom = _atoms->begin(); atom < _atoms->end(); ++atom){
-         id++;      
-         string resname = ( (*atom)->from_environment ) ? "MM" : "QM";
-         int resnr = 1;
-         
-         cout << id << " " << (*atom)->type << " " << (*atom)->x << endl;
-    } */
-     
-        
        _AOBasisSize = 0;
        _is_stable = true; // _is_stable = true corresponds to gwa_basis%S_ev_stable = .false. 
-        
-        // loop over segments
-        // for (sit = segments.begin() ; sit != segments.end(); ++sit) {
-        
-            // _atoms = (*sit)-> Atoms();
-            // loop over atoms in segment
-            for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
-                // get coordinates of this atom and convert from Angstrom to Bohr
-                //vec     pos = (*ait)->getQMPos() * 1.8897259886;
-                vec pos;
-                pos.setX( (*ait)->x * 1.8897259886  );
-                pos.setY( (*ait)->y * 1.8897259886  );
-                pos.setZ( (*ait)->z * 1.8897259886  );
-                // get element type of the atom
-                string  name = (*ait)->type;
-                // get the basis set entry for this element
-                Element* element = bs->getElement(name);
-                // and loop over all shells
-                for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
-                    Shell* shell = (*its);
-                    // we don't like contracted basis sets yet
-                    if ( shell->getSize() > 1 ) {
-                        cerr << "No contracted basis sets!" << flush;
-                    } else {
-                        AOShell* aoshell = addShell( shell->getType(), shell->getScale(), NumFuncShell( shell->getType() ), _AOBasisSize, OffsetFuncShell( shell->getType() ), pos );
-                        _AOBasisSize += NumFuncShell( shell->getType() );
-                        for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
-                           GaussianPrimitive* gaussian = *itg;
-                           aoshell->addGaussian(gaussian->decay, gaussian->contraction);
-                        }
-                    }
-                }
-            }
-       //  }
-         //cout << "Atomic orbitals basis set size: " << _AOBasisSize << endl;
-    
+       
+       int _atomidx = 0;
+       
+       // loop over atoms
+       for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
+          // get coordinates of this atom and convert from Angstrom to Bohr
+          vec pos;
+          pos.setX( (*ait)->x * 1.8897259886  );
+          pos.setY( (*ait)->y * 1.8897259886  );
+          pos.setZ( (*ait)->z * 1.8897259886  );
+          // get element type of the atom
+          string  name = (*ait)->type;
+          // get the basis set entry for this element
+          Element* element = bs->getElement(name);
+          // and loop over all shells
+          for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+               Shell* shell = (*its);
+               // we don't like contracted basis sets yet
+               if ( shell->getSize() > 1 ) {
+                   cerr << "No contracted basis sets!" << flush;
+               } else {
+                   AOShell* aoshell = addShell( shell->getType(), shell->getScale(), NumFuncShell( shell->getType() ), _AOBasisSize, OffsetFuncShell( shell->getType() ), pos );
+                   _AOBasisSize += NumFuncShell( shell->getType() );
+                   for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
+                      GaussianPrimitive* gaussian = *itg;
+                      aoshell->addGaussian(gaussian->decay, gaussian->contraction);
+                   }
+               }
+          }
+          
+          if ( _atomidx < _fragbreak ) _AOBasisFragA = _AOBasisSize;
+          
+          _atomidx++;
+      }
+       
+       if ( _fragbreak < 0 ) {
+           _AOBasisFragA = _AOBasisSize;
+           _AOBasisFragB = 0;
+       } else {
+           _AOBasisFragB = _AOBasisSize - _AOBasisFragA;
+       }
+           
     
 }
 

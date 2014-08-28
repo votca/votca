@@ -384,9 +384,11 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
         LOG(logDEBUG,*_pLog) << "Loaded Basis Set " << _basisset_name << flush;
 
             for (it = qmatoms->begin(); it < qmatoms->end(); it++) {
-
+	      if ( !(*it)->from_environment ) {
                 string element_name = (*it)->type;
                 
+		cout << "looking up basis set for element " << element_name << endl;
+
                 list<string>::iterator ite;
                 ite = find(elements.begin(), elements.end(), element_name);
                 
@@ -423,6 +425,7 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
                     _el_file.close();
 
                 }
+	      }
             }
 
         }
@@ -447,7 +450,7 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
            // vector< Atom* >::iterator it;
             
             for (it = qmatoms->begin(); it < qmatoms->end(); it++) {
-
+	      if ( !(*it)->from_environment ) {
                 string element_name = (*it)->type;
                 
                 list<string>::iterator ite;
@@ -476,6 +479,7 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
                         }
                     }
                 }
+	      }
             }
         // }
          _com_file << endl;

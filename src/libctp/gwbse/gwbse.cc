@@ -91,7 +91,13 @@ namespace votca {
 
             _bse_nmax = options->get(key + ".exctotal").as<int> ();
 	    _bse_nprint = options->get(key + ".print").as<int> ();
-
+            
+            if ( options->exists( key + ".fragment") ) {
+                _fragA = options->get(key + ".fragment" ).as< int >();
+            } else {
+                _fragA = -1;
+            }
+            
             // get OpenMP thread number
             _openmp_threads = options->get(key + ".openmp").as<int> ();
             
@@ -188,10 +194,13 @@ namespace votca {
 
             // fill DFT AO basis by going through all atoms 
             AOBasis dftbasis;
-            dftbasis.AOBasisFill(&dftbs, _atoms);
+            dftbasis.AOBasisFill(&dftbs, _atoms, _fragA );
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Basis of size " << dftbasis._AOBasisSize << flush;
-
-
+            if ( dftbasis._AOBasisFragB > 0 ) {
+               LOG(logDEBUG, *_pLog) << TimeStamp() << " FragmentA size " << dftbasis._AOBasisFragA << flush;
+               LOG(logDEBUG, *_pLog) << TimeStamp() << " FragmentB size " << dftbasis._AOBasisFragB << flush;
+            }
+            
             /* Preparation of calculation parameters:
              *  - number of electrons -> index of HOMO
              *  - number of levels 
@@ -296,22 +305,13 @@ namespace votca {
                   
             // b) reorder MO coefficients depending on the QM package used to obtain the DFT data
             if (_dft_package != "votca") {
-                // get reordering vector _dft_package -> Votca 
-                vector<int> neworder;
-                dftbasis.getReorderVector(_dft_package, neworder);
-                // and reorder rows of _orbitals->_mo_coefficients() accordingly
-                AOBasis::ReorderMOs(_dft_orbitals, neworder);
-                // NWChem inverted sign for xz d-orbital
-                if (_dft_package == "nwchem") {
-                    // get vector with multipliers, e.g. NWChem -> Votca (bloody sign for d_xz)
-                    vector<int> multiplier;
-                    dftbasis.getMultiplierVector(_dft_package, multiplier);
-                    // and reorder rows of _orbitals->_mo_coefficients() accordingly
-                    AOBasis::MultiplyMOs(_dft_orbitals, multiplier);
-                }
+                dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "votca" );
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Converted DFT orbital coefficient order from " << _dft_package << " to VOTCA" <<  flush;
             }
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Converted DFT orbital coefficient order " << flush;
+            
 
+            
+         
             
             
             /// ------- actual calculation begins here -------
@@ -705,6 +705,76 @@ namespace votca {
 
                     }
 
+                    
+                          
+            
+                    std::vector<double> _popHA;
+                    std::vector<double> _popHB;
+                    std::vector<double> _popEA;
+                    std::vector<double> _popEB;
+                    
+                    double &_popA = _orbitals->FragmentAChargesGS();
+                    double &_popB = _orbitals->FragmentBChargesGS();           
+                    
+                    // excitation populations
+                    std::vector<double> &_CrgsA = _orbitals->FragmentAChargesEXC();
+                    std::vector<double> &_CrgsB = _orbitals->FragmentBChargesEXC();
+                               
+                    
+                    // Mulliken fragment population analysis
+                    if ( _fragA > -2 ) {
+
+                        // get overlap matrix for DFT basisset
+                        AOOverlap _dftoverlap;
+                        // initialize overlap matrix
+                        _dftoverlap.Initialize(dftbasis._AOBasisSize);
+                        // Fill overlap
+                        _dftoverlap.Fill(&dftbasis);
+                        LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftoverlap._aomatrix.size1() << flush;
+                        LOG(logDEBUG, *_pLog) << TimeStamp() << " Running Excitation fragment population analysis " << flush;
+                        // ground state populations
+                        ub::matrix<double> &DMAT = _orbitals->DensityMatrixGroundState( _dft_orbitals );
+                        double nucA;
+                        double nucB;
+                        _orbitals->FragmentNuclearCharges( _fragA , nucA, nucB );
+                        _orbitals->MullikenPopulation( DMAT, _dftoverlap._aomatrix , dftbasis._AOBasisFragA, _popA, _popB );
+                        // population to electron charges and add nuclear charges
+                        _popA = nucA - _popA;
+                        _popB = nucB - _popB;
+                        
+                        for (int _i_state = 0; _i_state < _bse_nprint; _i_state++) {
+                        
+                            // checking Density Matrices
+                            std::vector<ub::matrix<double> > &DMAT = _orbitals->DensityMatrixExcitedState(_dft_orbitals , _bse_singlet_coefficients, _i_state );
+          
+                            double _totalA;
+                            double _totalB;
+           
+                           // hole part
+                           _orbitals->MullikenPopulation( DMAT[0], _dftoverlap._aomatrix , dftbasis._AOBasisFragA, _totalA, _totalB );
+                           
+                           _popHA.push_back( std::abs(_totalA) );
+                           _popHB.push_back( std::abs(_totalB) );
+
+                           // electron part
+                           _orbitals->MullikenPopulation( DMAT[1], _dftoverlap._aomatrix , dftbasis._AOBasisFragA, _totalA, _totalB );
+                           _popEA.push_back( _totalA );
+                           _popEB.push_back( _totalB );
+
+                           // update effective charges
+                           _CrgsA.push_back( _popHA[_i_state] - _popEA[_i_state]   ); 
+                           _CrgsB.push_back( _popHB[_i_state] - _popEB[_i_state]   ); 
+                           
+                        }
+
+                    LOG(logDEBUG, *_pLog) << TimeStamp() << " --- complete! " << flush;
+           
+                }
+         
+                    
+                    
+                    
+                    
                     // for transition dipole moments
 
 
@@ -768,6 +838,11 @@ namespace votca {
                             if (_weight > 0.2) {
                                 LOG(logINFO, *_pLog) << (format("           HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%") % (_homo - _index2v[_i_bse]) % (_index2c[_i_bse] - _homo - 1) % (100.0 * _weight)).str() << flush;
                             }
+                        }
+                        // results of fragment population analysis 
+                        if ( _fragA > -2 ){
+                            LOG(logINFO, *_pLog) << (format("           Fragment A -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f") % (100.0 * _popHA[_i]) % (100.0 * _popEA[_i]) % (_CrgsA[_i]) % ( _CrgsA[_i] + _popA ) ).str() << flush;
+                            LOG(logINFO, *_pLog) << (format("           Fragment B -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f") % (100.0 * _popHB[_i]) % (100.0 * _popEB[_i]) % (_CrgsB[_i]) % ( _CrgsB[_i] + _popB ) ).str() << flush;
                         }
                         LOG(logINFO, *_pLog) << (format("   ")).str() << flush;
                     }

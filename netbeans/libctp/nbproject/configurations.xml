@@ -35,11 +35,15 @@
       </logicalFolder>
       <logicalFolder name="f1" displayName="JobCalculators" projectFiles="true">
         <itemPath>../../src/libctp/jobcalculators/edft.h</itemPath>
+        <itemPath>../../src/libctp/jobcalculators/egwbse.cc</itemPath>
+        <itemPath>../../src/libctp/jobcalculators/egwbse.h</itemPath>
         <itemPath>../../src/libctp/jobcalculators/ewald.h</itemPath>
         <itemPath>../../src/libctp/jobcalculators/gwbse.cc</itemPath>
         <itemPath>../../src/libctp/jobcalculators/gwbse.h</itemPath>
         <itemPath>../../src/libctp/jobcalculators/idft.cc</itemPath>
         <itemPath>../../src/libctp/jobcalculators/idft.h</itemPath>
+        <itemPath>../../src/libctp/jobcalculators/igwbse.cc</itemPath>
+        <itemPath>../../src/libctp/jobcalculators/igwbse.h</itemPath>
         <itemPath>../../src/libctp/jobcalculators/qmmm.h</itemPath>
         <itemPath>../../src/libctp/jobcalculators/xqmultipole.h</itemPath>
       </logicalFolder>
@@ -149,6 +153,12 @@
         <itemPath>../../src/libctp/qmpackagefactory.cc</itemPath>
         <itemPath>../../src/libctp/toolfactory.cc</itemPath>
       </logicalFolder>
+      <logicalFolder name="f4" displayName="mbgft" projectFiles="true">
+        <itemPath>../../src/libctp/gwbse/bse.cc</itemPath>
+        <itemPath>../../src/libctp/gwbse/gwa.cc</itemPath>
+        <itemPath>../../src/libctp/gwbse/gwbse.cc</itemPath>
+        <itemPath>../../src/libctp/gwbse/rpa.cc</itemPath>
+      </logicalFolder>
       <logicalFolder name="f3" displayName="Topology" projectFiles="true">
         <itemPath>../../src/libctp/fragment.cc</itemPath>
         <itemPath>../../src/libctp/molecule.cc</itemPath>
@@ -159,7 +169,6 @@
         <itemPath>../../src/libctp/topology.cc</itemPath>
       </logicalFolder>
       <itemPath>../../src/libctp/aomatrix.cc</itemPath>
-      <itemPath>/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/aomatrix.cc</itemPath>
       <itemPath>../../src/libctp/aomatrices/aomatrix.cc</itemPath>
       <itemPath>../../src/libctp/aomatrices/aooverlap.cc</itemPath>
       <itemPath>../../src/libctp/apolarsite.cc</itemPath>
@@ -188,7 +197,6 @@
       <itemPath>../../src/libctp/qmtool.cc</itemPath>
       <itemPath>../../src/libctp/statesaversqlite.cc</itemPath>
       <itemPath>../../src/libctp/threecenters.cc</itemPath>
-      <itemPath>/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/threecenters.cc</itemPath>
       <itemPath>../../src/libctp/version.cc</itemPath>
       <itemPath>../../src/libctp/version_nb.cc</itemPath>
       <itemPath>../../src/libctp/votca_config.h</itemPath>
@@ -613,6 +621,14 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libctp/gwbse/bse.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/gwbse/gwa.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/gwbse/gwbse.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/gwbse/rpa.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libctp/hgversion.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/job.cc" ex="false" tool="1" flavor2="0">
@@ -625,6 +641,16 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/jobcalculators/edft.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/jobcalculators/egwbse.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/jobcalculators/egwbse.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -650,6 +676,16 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/jobcalculators/idft.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/jobcalculators/igwbse.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/jobcalculators/igwbse.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -797,16 +833,6 @@
       <item path="/data/isilon/baumeier/votca_devel/src/ctp/include/votca/ctp/aobasis.h"
             ex="false"
             tool="3"
-            flavor2="0">
-      </item>
-      <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/aomatrix.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/threecenters.cc"
-            ex="false"
-            tool="1"
             flavor2="0">
       </item>
     </conf>
@@ -1211,6 +1237,14 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libctp/gwbse/bse.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/gwbse/gwa.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/gwbse/gwbse.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/gwbse/rpa.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libctp/hgversion.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/job.cc" ex="false" tool="1" flavor2="0">
@@ -1223,6 +1257,16 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/jobcalculators/edft.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/jobcalculators/egwbse.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/jobcalculators/egwbse.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1248,6 +1292,16 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/jobcalculators/idft.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/jobcalculators/igwbse.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/jobcalculators/igwbse.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1395,16 +1449,6 @@
       <item path="/data/isilon/baumeier/votca_devel/src/ctp/include/votca/ctp/aobasis.h"
             ex="false"
             tool="3"
-            flavor2="0">
-      </item>
-      <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/aomatrix.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/threecenters.cc"
-            ex="false"
-            tool="1"
             flavor2="0">
       </item>
     </conf>

@@ -19,6 +19,8 @@
 
 #ifndef __VOTCA_CTP_ORBITALS_H
 #define	__VOTCA_CTP_ORBITALS_H
+// Overload of uBLAS prod function with MKL/GSL implementations
+#include <votca/ctp/votca_ctp_config.h>
 
 #include <votca/ctp/basisset.h>
 #include <votca/ctp/aobasis.h>
@@ -31,6 +33,8 @@
 #include <votca/tools/globals.h>
 #include <votca/tools/property.h>
 #include <votca/tools/vec.h>
+
+#include <votca/ctp/logger.h>
 
 // Text archive that defines boost::archive::text_oarchive
 // and boost::archive::text_iarchive
@@ -277,6 +281,31 @@ public:
     void           setCoupledExcitonsB( const int &excitons ) { _couplingsB = excitons;}
 
     
+    // functions for calculating density matrices
+    ub::matrix<double> &DensityMatrixGroundState( ub::matrix<double>& _MOs ) ;
+    std::vector<ub::matrix<double> > &DensityMatrixExcitedState( ub::matrix<double>& _MOs , ub::matrix<float>& _BSECoefs, int state = 0 ) ;
+
+    // functions for analyzing fragment charges via Mulliken populations
+    void MullikenPopulation( const ub::matrix<double>& _densitymatrix, const ub::matrix<double>& _overlapmatrix, int _frag, double& _PopA, double& _PopB  );
+    // access to fragment charges of excitations
+    bool hasFragmentAChargesEXC() {return (_Dq_fragA.size() > 0 ) ? true : false ;}
+    bool hasFragmentBChargesEXC() {return (_Dq_fragB.size() > 0 ) ? true : false ;}
+    const std::vector<double> &FragmentAChargesEXC() const { return _Dq_fragA; }
+    std::vector<double> &FragmentAChargesEXC()  { return _Dq_fragA; }
+    const std::vector<double> &FragmentBChargesEXC() const { return _Dq_fragB; }
+    std::vector<double> &FragmentBChargesEXC()  { return _Dq_fragB; }
+
+    // access to fragment charges in ground state
+    bool hasFragmentAChargesGS() {return (_GSq_fragA > -1000.0 ) ? true : false ;}
+    bool hasFragmentBChargesGS() {return (_GSq_fragB > -1000.0 ) ? true : false ;}
+    const double &FragmentAChargesGS() const { return _GSq_fragA; }
+    double &FragmentAChargesGS()  { return _GSq_fragA; }
+    const double &FragmentBChargesGS() const { return _GSq_fragB; }
+    double &FragmentBChargesGS()  { return _GSq_fragB; }
+    void FragmentNuclearCharges( int _frag , double& _nucCrgA, double& _nucCrgB );
+    int ElementToCharge( string element );
+    
+    
     /* ===
      *    OLD ACCESS FUNCTIONS
      */    
@@ -399,6 +428,13 @@ private:
     int                                    _couplingsA;
     int                                    _couplingsB;
     
+    ub::matrix<double>                     _dmatGS;
+    std::vector< ub::matrix<double> >      _dmatEX;
+    
+    std::vector<double>                    _Dq_fragA; // fragment charge changes in exciton
+    std::vector<double>                    _Dq_fragB;
+    double                                 _GSq_fragA = -1000.0; // ground state effective fragment charges
+    double                                 _GSq_fragB = -1000.0;
 
 private:
 

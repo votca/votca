@@ -1081,6 +1081,11 @@ void Exciton::ExcitationEnergies(QMPackage* _qmpackage, vector<Segment*> _segmen
         int _parse_orbitals_status = _qmpackage->ParseOrbitalsFile( _orbitals );
         _qmpackage->setLogFileName( _logfile );
         int _parse_log_status = _qmpackage->ParseLogFile( _orbitals );
+        
+ 
+        
+        
+        
      }
 
      // if no parsing of DFT data is requested, reload serialized orbitals object
