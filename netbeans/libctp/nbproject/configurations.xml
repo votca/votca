@@ -84,6 +84,7 @@
       <itemPath>../../include/votca/ctp/extractorfactory.h</itemPath>
       <itemPath>../../include/votca/ctp/fragment.h</itemPath>
       <itemPath>../../include/votca/ctp/gsl_boost_ublas_matrix_prod.h</itemPath>
+      <itemPath>../../include/votca/ctp/gwbse.h</itemPath>
       <itemPath>../../include/votca/ctp/job.h</itemPath>
       <itemPath>../../include/votca/ctp/jobapplication.h</itemPath>
       <itemPath>../../include/votca/ctp/jobcalculator.h</itemPath>
@@ -144,7 +145,9 @@
       <logicalFolder name="f5" displayName="aomatrices" projectFiles="true">
         <itemPath>../../src/libctp/aomatrices/aocoulomb.cc</itemPath>
         <itemPath>../../src/libctp/aomatrices/aodipole.cc</itemPath>
+        <itemPath>../../src/libctp/aomatrices/aomatrix.cc</itemPath>
         <itemPath>../../src/libctp/aomatrices/aomomentum.cc</itemPath>
+        <itemPath>../../src/libctp/aomatrices/aooverlap.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f2" displayName="Applications" projectFiles="true">
         <itemPath>../../src/libctp/ctpapplication.cc</itemPath>
@@ -173,8 +176,6 @@
         <itemPath>../../src/libctp/segmenttype.cc</itemPath>
         <itemPath>../../src/libctp/topology.cc</itemPath>
       </logicalFolder>
-      <itemPath>../../src/libctp/aomatrices/aomatrix.cc</itemPath>
-      <itemPath>../../src/libctp/aomatrices/aooverlap.cc</itemPath>
       <itemPath>../../src/libctp/apolarsite.cc</itemPath>
       <itemPath>../../src/libctp/bsecoupling.cc</itemPath>
       <itemPath>../../src/libctp/ewald2d.cc</itemPath>
@@ -282,6 +283,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/gwbse.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/job.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -911,6 +914,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/gwbse.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/job.h" ex="false" tool="3" flavor2="0">
       </item>

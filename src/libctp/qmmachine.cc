@@ -273,7 +273,22 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
         }
         
         // calculate density matrix for this excited state
-        
+        ub::matrix<double> &_dft_orbitals = orb_iter_output.MOCoefficients();
+        // load DFT basis set (element-wise information) from xml file
+        BasisSet dftbs;
+        dftbs.LoadBasisSet( orb_iter_output.getDFTbasis() );
+        LOG(logDEBUG, *_log) << TimeStamp() << " Loaded DFT Basis Set " <<  orb_iter_output.getDFTbasis()  << flush;
+
+        // fill DFT AO basis by going through all atoms 
+        AOBasis dftbasis;
+        dftbasis.AOBasisFill(&dftbs, orb_iter_output.QMAtoms() );
+        dftbasis.ReorderMOs(_dft_orbitals, orb_iter_output.getQMpackage(), "votca" );
+        // TBD: Need to switch between singlets and triplets depending on _type
+        ub::matrix<float>& BSECoefs = orb_iter_output.BSESingletCoefficients();
+        std::vector<ub::matrix<double> > &DMAT = orb_iter_output.DensityMatrixExcitedState( _dft_orbitals , BSECoefs, _state_index[_state-1]);
+
+        // setup ESP real space grid
+        // calculate ESP at each grid point
         // ESP (or GDMA) fit for this density matrix 
         
         // save updates multipoles 
