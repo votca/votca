@@ -67,7 +67,7 @@ namespace votca { namespace ctp {
             this->_aomatrix = ub::zero_matrix<double>(size,size);
         }
         
-        void Fill( AOBasis* aobasis );
+        void Fill( AOBasis* aobasis, ub::vector<double> r = ub::zero_vector<double>(3) );
         
         // matrix print 
         void Print( string _ident);
