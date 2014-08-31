@@ -52,7 +52,7 @@ if (VOTCA_CSG_FOUND)
   include(CheckLibraryExists)
   check_library_exists("${VOTCA_CSG_LIBRARY};${VOTCA_CSG_DEP_LIBRARIES}" VotcaCsgFromC "" FOUND_VOTCA_CSG_VERSION)
   if(NOT FOUND_VOTCA_CSG_VERSION)
-    message(FATAL_ERROR "Could not find VotcaCsgFromC in ${VOTCA_CSG_LIBRARY};${VOTCA_CSG_DEP_LIBRARIES}, take look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. If you don't have pkg-config installed you will most likely have to set VOTCA_CSG_LIBRARY and VOTCA_CSG_DEP_LIBRARIES by hand, which set votca_csg lib  it's depencies (i.e. -DVOTCA_CSG_LIBRARY='/path/to/libvotca_csg.so" -VOTCA_CSG_DEP_LIBRARIES="/path/to/libgsl.so;/path/to/libm.so') !")
+    message(FATAL_ERROR "Could not find VotcaCsgFromC in ${VOTCA_CSG_LIBRARY};${VOTCA_CSG_DEP_LIBRARIES}, take look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. If you don't have pkg-config installed you will most likely have to set VOTCA_CSG_LIBRARY and VOTCA_CSG_DEP_LIBRARIES by hand, which set votca_csg lib  it's depencies (i.e. -DVOTCA_CSG_LIBRARY='/path/to/libvotca_csg.so' -VOTCA_CSG_DEP_LIBRARIES='/path/to/libgsl.so;/path/to/libm.so') !")
   endif(NOT FOUND_VOTCA_CSG_VERSION)
 endif (VOTCA_CSG_FOUND)
 

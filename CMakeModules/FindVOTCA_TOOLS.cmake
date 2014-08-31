@@ -27,14 +27,6 @@ pkg_check_modules(PC_VOTCA_TOOLS libvotca_tools)
 find_path(VOTCA_TOOLS_INCLUDE_DIR votca/tools/version.h HINTS ${PC_VOTCA_TOOLS_INCLUDE_DIRS})
 
 find_path(VOTCA_TOOLS_HAS_SQLITE3 votca/tools/database.h HINTS ${PC_VOTCA_TOOLS_INCLUDE_DIRS})
-if (VOTCA_TOOLS_HAS_SQLITE3)
-  #due to include <sqlite3.h> in database.h
-  find_package(SQLITE3 REQUIRED)
-  set(VOTCA_TOOLS_INCLUDE_DIRS "${VOTCA_TOOLS_INCLUDE_DIR};${SQLITE3_INCLUDE_DIR}" )
-else(VOTCA_TOOLS_HAS_SQLITE3)
-  set(VOTCA_TOOLS_INCLUDE_DIRS "${VOTCA_TOOLS_INCLUDE_DIR}" )
-endif (VOTCA_TOOLS_HAS_SQLITE3)
-
 
 find_library(VOTCA_TOOLS_LIBRARY NAMES votca_tools HINTS ${PC_VOTCA_TOOLS_LIBRARY_DIRS} )
 
@@ -51,6 +43,7 @@ if("${VOTCA_TOOLS_LIBRARY}" MATCHES "libvotca_tools[^;]*\\.a")
 endif("${VOTCA_TOOLS_LIBRARY}" MATCHES "libvotca_tools[^;]*\\.a")
 
 set(VOTCA_TOOLS_LIBRARIES "${VOTCA_TOOLS_LIBRARY};${VOTCA_TOOLS_DEP_LIBRARIES}" )
+set(VOTCA_TOOLS_INCLUDE_DIRS "${VOTCA_TOOLS_INCLUDE_DIR}" )
 
 include(FindPackageHandleStandardArgs)
 # handle the QUIETLY and REQUIRED arguments and set VOTCA_TOOLS_FOUND to TRUE
@@ -61,7 +54,7 @@ if (VOTCA_TOOLS_FOUND)
   include(CheckLibraryExists)
   check_library_exists("${VOTCA_TOOLS_LIBRARY};${VOTCA_TOOLS_DEP_LIBRARIES}" VotcaToolsFromC "" FOUND_VOTCA_TOOLS_VERSION)
   if(NOT FOUND_VOTCA_TOOLS_VERSION)
-    message(FATAL_ERROR "Could not find VotcaToolsFromC in ${VOTCA_TOOLS_LIBRARY};${VOTCA_TOOLS_DEP_LIBRARIES}, take look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. If you don't have pkg-config installed you will most likely have to set VOTCA_TOOLS_LIBRARY and VOTCA_TOOLS_DEP_LIBRARIES by hand, which set votca_tools lib  it's depencies (i.e. -DVOTCA_TOOLS_LIBRARY='/path/to/libvotca_tools.so" -VOTCA_TOOLS_DEP_LIBRARIES="/path/to/libgsl.so;/path/to/libm.so') !")
+    message(FATAL_ERROR "Could not find VotcaToolsFromC in ${VOTCA_TOOLS_LIBRARY};${VOTCA_TOOLS_DEP_LIBRARIES}, take look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. If you don't have pkg-config installed you will most likely have to set VOTCA_TOOLS_LIBRARY and VOTCA_TOOLS_DEP_LIBRARIES by hand, which set votca_tools lib  it's depencies (i.e. -DVOTCA_TOOLS_LIBRARY='/path/to/libvotca_tools.so' -DVOTCA_TOOLS_DEP_LIBRARIES='/path/to/libgsl.so;/path/to/libm.so') !")
   endif(NOT FOUND_VOTCA_TOOLS_VERSION)
 endif (VOTCA_TOOLS_FOUND)
 
