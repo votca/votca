@@ -5,7 +5,7 @@
 
 import sys
 import espresso
-import MPI
+import mpi4py.MPI as MPI
 
 from espresso.tools import decomp
 
