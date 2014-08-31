@@ -23,14 +23,9 @@
 #include "pdbtopologyreader.h"
 
 #if GMX == 50
-        #include <gromacs/legacyheaders/statutil.h>
-        #include <gromacs/legacyheaders/typedefs.h>
-        #include <gromacs/legacyheaders/smalloc.h>
-        #include <gromacs/legacyheaders/confio.h>
-        #include <gromacs/legacyheaders/vec.h>
-        #include <gromacs/legacyheaders/copyrite.h>
-        #include <gromacs/legacyheaders/statutil.h>
-        #include <gromacs/legacyheaders/tpxio.h>
+        #include <gromacs/fileio/trxio.h>
+        #include <gromacs/fileio/confio.h>
+        #include <gromacs/utility/smalloc.h>
 #elif GMX == 45
         #include <gromacs/statutil.h>
         #include <gromacs/typedefs.h>
@@ -70,7 +65,9 @@ bool PDBTopologyReader::ReadTopology(string file, Topology &top)
     ::matrix box;
     int ePBC;
     t_atoms atoms;
+#if GMX != 50 
     set_program_name("VOTCA");
+#endif
 
     //snew(atoms,1);
     get_stx_coordnum((char*)file.c_str(),&(atoms.nr));
