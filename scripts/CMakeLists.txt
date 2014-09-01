@@ -9,8 +9,8 @@ set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES help2t2t)
 foreach(SCRIPT csg_call csg_inverse multi_g_rdf)
   configure_file(${SCRIPT}.in ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.out @ONLY)
   #only needed for cmake 2.6
-  #add_custom_command(OUTPUT ${SCRIPT} DEPENDS ${SCRIPT})
-  add_custom_target(${SCRIPT} ALL COMMAND ${CMAKE_COMMAND}
+  add_custom_target(${SCRIPT} DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT})
+  add_custom_command(OUTPUT ${SCRIPT} COMMAND ${CMAKE_COMMAND}
     -DINPUT="${SCRIPT}.out" -DOUTPUT="${SCRIPT}"
     -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}" -P ${CMAKE_MODULE_PATH}/hgscript.cmake
     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.out)
