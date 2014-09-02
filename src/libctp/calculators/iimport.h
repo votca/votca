@@ -98,7 +98,7 @@ void IImport::Initialize(Property *options) {
         _probabilityfile_h = "";
     }
     if (options->exists(key + ".probabilityfile_e")) {
-        _probabilityfile_h = options->get(key+".probabilityfile_e").as< string >();
+        _probabilityfile_e = options->get(key+".probabilityfile_e").as< string >();
         _stochastic = true;
     }
     else{

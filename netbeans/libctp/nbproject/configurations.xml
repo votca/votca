@@ -60,6 +60,7 @@
         <itemPath>../../src/libctp/tools/molpol.cc</itemPath>
         <itemPath>../../src/libctp/tools/molpol.h</itemPath>
         <itemPath>../../src/libctp/tools/pdb2map.h</itemPath>
+        <itemPath>../../src/libctp/tools/pdb2top.h</itemPath>
         <itemPath>../../src/libctp/tools/qmanalyze.h</itemPath>
       </logicalFolder>
     </logicalFolder>
@@ -71,7 +72,6 @@
       <itemPath>../../include/votca/ctp/apolarsite.h</itemPath>
       <itemPath>../../include/votca/ctp/atom.h</itemPath>
       <itemPath>../../include/votca/ctp/basisset.h</itemPath>
-      <itemPath>../../include/votca/ctp/calculator.h</itemPath>
       <itemPath>../../include/votca/ctp/calculatorfactory.h</itemPath>
       <itemPath>../../include/votca/ctp/ctpapplication.h</itemPath>
       <itemPath>../../include/votca/ctp/ewald2d.h</itemPath>
@@ -160,7 +160,6 @@
         <itemPath>../../src/libctp/segmenttype.cc</itemPath>
         <itemPath>../../src/libctp/topology.cc</itemPath>
       </logicalFolder>
-      <itemPath>../../src/libctp/aomatrices/aocoulomb.cc</itemPath>
       <itemPath>../../src/libctp/aomatrix.cc</itemPath>
       <itemPath>/data/isilon/baumeier/votca_devel/src/ctp/src/libctp/aomatrix.cc</itemPath>
       <itemPath>../../src/libctp/aomatrices/aomatrix.cc</itemPath>
@@ -402,11 +401,6 @@
       <item path="../../include/votca/ctp/xjob.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/xmapper.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../src/libctp/aomatrices/aocoulomb.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
       </item>
       <item path="../../src/libctp/aomatrices/aomatrix.cc"
             ex="false"
@@ -781,6 +775,8 @@
       </item>
       <item path="../../src/libctp/tools/pdb2map.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../src/libctp/tools/pdb2top.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../src/libctp/tools/qmanalyze.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/topology.cc" ex="false" tool="1" flavor2="0">
@@ -1005,11 +1001,6 @@
       <item path="../../include/votca/ctp/xjob.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/xmapper.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../src/libctp/aomatrices/aocoulomb.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
       </item>
       <item path="../../src/libctp/aomatrices/aomatrix.cc"
             ex="false"
@@ -1383,6 +1374,8 @@
       <item path="../../src/libctp/tools/molpol.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/pdb2map.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libctp/tools/pdb2top.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/qmanalyze.h" ex="false" tool="3" flavor2="0">
       </item>
