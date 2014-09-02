@@ -93,9 +93,9 @@ void IAnalyze::IHist(Topology *top, int state) {
         double test = (*nit)->getJeff2(state);
         double J2;
  
-        if(J2 <= 0) {break;} // avoid -inf in output
-    
+        if(test <= 0) {continue;} // avoid -inf in output
         J2=log10(test);
+    
         
         MIN = (J2 < MIN) ? J2 : MIN;
         MAX = (J2 > MAX) ? J2 : MAX;
