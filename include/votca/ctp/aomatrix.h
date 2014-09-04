@@ -140,7 +140,16 @@ namespace votca { namespace ctp {
     };
     
     
-    
+    // derived class for atomic orbital nuclear potential
+    class AOESP : public AOMatrix{
+    public:
+        //block fill for overlap, implementation in aoesp.cc
+        void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, bool _raw = false );
+        //void Print();
+        
+        ~AOESP();
+        
+    };
     
     
     // derived class for atomic orbital overlap

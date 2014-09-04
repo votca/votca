@@ -76,6 +76,7 @@
       <itemPath>../../include/votca/ctp/bsecoupling.h</itemPath>
       <itemPath>../../include/votca/ctp/calculatorfactory.h</itemPath>
       <itemPath>../../include/votca/ctp/ctpapplication.h</itemPath>
+      <itemPath>../../include/votca/ctp/elements.h</itemPath>
       <itemPath>../../include/votca/ctp/ewald2d.h</itemPath>
       <itemPath>../../include/votca/ctp/ewald3d.h</itemPath>
       <itemPath>../../include/votca/ctp/ewaldactor.h</itemPath>
@@ -145,6 +146,7 @@
       <logicalFolder name="f5" displayName="aomatrices" projectFiles="true">
         <itemPath>../../src/libctp/aomatrices/aocoulomb.cc</itemPath>
         <itemPath>../../src/libctp/aomatrices/aodipole.cc</itemPath>
+        <itemPath>../../src/libctp/aomatrices/aoesp.cc</itemPath>
         <itemPath>../../src/libctp/aomatrices/aomatrix.cc</itemPath>
         <itemPath>../../src/libctp/aomatrices/aomomentum.cc</itemPath>
         <itemPath>../../src/libctp/aomatrices/aooverlap.cc</itemPath>
@@ -269,6 +271,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/elements.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/ewdspace.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -427,6 +431,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/aomatrices/aodipole.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/aomatrices/aoesp.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -901,6 +910,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/ctp/elements.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/ewdspace.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/extractorfactory.h"
@@ -1058,6 +1069,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/aomatrices/aodipole.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/aomatrices/aoesp.cc"
             ex="false"
             tool="1"
             flavor2="0">
