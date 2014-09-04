@@ -387,9 +387,7 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
 	      if ( !(*it)->from_environment ) {
                 string element_name = (*it)->type;
                 
-		//cout << "looking up basis set for element " << element_name << endl;
-
-                list<string>::iterator ite;
+		list<string>::iterator ite;
                 ite = find(elements.begin(), elements.end(), element_name);
                 
                 if (ite == elements.end()) {

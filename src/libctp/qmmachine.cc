@@ -3,7 +3,6 @@
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <votca/ctp/logger.h>
-#include <votca/ctp/elements.h>
 
 using boost::format;
 
@@ -192,125 +191,12 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     //string cpstr = "cp e_1_n.log " + path_logFile;
     //int sig = system(cpstr.c_str());
     //_qmpack->setLogFileName(path_logFile);
-    
-    //Commented out for test Jens 
-    //_qmpack->Run();
+    _qmpack->Run();
     
     // EXTRACT LOG-FILE INFOS TO ORBITALS   
     Orbitals orb_iter_output;
     _qmpack->ParseLogFile(&orb_iter_output);
 
-    
-    // SHIT GETS REAL HERE
-    Elements _elements;
-    cout << "VdW-Radius"<< _elements.getVdWChelpG("H") << endl; 
-    const vector< QMAtom* >& Atomlist= orb_iter_output.QMAtoms();
-    std::vector< ub::vector<double> > Positionlist;
-    
-    double padding=2.8; // Additional distance from molecule to set up grid according to CHELPG paper [Journal of Computational Chemistry 11, 361, 1990]
-    double gridspacing=0.3; // Grid spacing according to same paper 
-    double cutoff=2.8;
-    // rewrite QMAtoms coordinates to vector of ub::vector
-    double xmin=1000;
-    double ymin=1000;
-    double zmin=1000;
-    
-    double xmax=-1000;
-    double ymax=-1000;
-    double zmax=-1000;
-    double xtemp,ytemp,ztemp;
-    for (vector<QMAtom* >::const_iterator atom = Atomlist.begin(); atom != Atomlist.end(); ++atom ) {
-        xtemp=(*atom)->x;
-        ytemp=(*atom)->y;
-        ztemp=(*atom)->z;
-        if (xtemp<xmin)
-            xmin=xtemp;
-        if (xtemp>xmax)
-            xmax=xtemp;
-         if (ytemp<ymin)
-            ymin=ytemp;
-        if (ytemp>ymax)
-            ymax=ytemp;
-         if (ztemp<zmin)
-            zmin=ztemp;
-        if (ztemp>zmax)
-            zmax=ztemp;
-      
-    }    
-           cout << xmin << "::" << xmax<<endl;
-
-                cout << ymin << "::" << ymax<<endl;
-
-        cout << zmin << ":: " <<zmax<<endl;
-        double boxdimx=xmax-xmin+2*padding;
-        std::vector< ub::vector<double> > Gridpoints;
-        
-        double x=xmin-padding;
-        
-        
-        ub::vector<double> temppos= ub::zero_vector<double>(3);
-        while(x< xmax+padding){
-           double y=ymin-padding;
-           while(y< ymax+padding){
-                double z=zmin-padding;
-                while(z< zmax+padding){
-                    bool _is_valid = false;
-                        for (vector<QMAtom* >::const_iterator atom = Atomlist.begin(); atom != Atomlist.end(); ++atom ) {
-                            //cout << "Punkt " << x <<":"<< y << ":"<<z << endl;
-                            xtemp=(*atom)->x;
-                            ytemp=(*atom)->y;
-                            ztemp=(*atom)->z;
-                            double distance2=pow((x-xtemp),2)+pow((y-ytemp),2)+pow((z-ztemp),2);
-                            double VdW=_elements.getVdWChelpG((*atom)->type);
-                            //cout << "Punkt " << x <<":"<< y << ":"<<z << ":"<< distance2 << ":"<< (*atom)->type <<":"<<pow(VdW,2)<< endl;
-                            if (distance2<pow(VdW,2)){
-                                //cout << "Punkt" << x <<":"<< y << ":"<<z << "rejected" << endl;
-                                    
-                                _is_valid = false;
-                                break;
-                                }
-                            else if (distance2<pow(cutoff,2)){
-                                //cout << "hier" << endl;
-                                _is_valid = true;
-                            }
-                            
-                            
-    
-                        }
-                    if (_is_valid){
-                        temppos(0)=x;
-                        temppos(1)=y;        
-                        temppos(2)=z;
-                        Gridpoints.push_back(temppos);
-                    }
-                    z+=gridspacing; 
-                }
-                y+=gridspacing;
-             //cout << "Punkt " << x  <<":"<<  xmax+padding <<":"<< y << ":"<<z << endl;
-            }
-          x+=gridspacing;
-          //cout << (x<xmax+padding) << endl;     
-        }
-        cout << " Done setting up grid with " << Gridpoints.size() << " points " << endl;
-    // check if 
-    
-    ofstream points;
-    points.open("gridpoints.xyz", ofstream::out);
-    points << Gridpoints.size() << endl;
-    points << endl;
-    for ( int i = 0 ; i < Gridpoints.size(); i++){
-        points << "X " << Gridpoints[i](0) << " " << Gridpoints[i](1) << " " << Gridpoints[i](2) << endl;
-        
-    }
-    points.close();
-    //Hallelujah
-    ub::matrix<double> &_dft_orbitals_GS = orb_iter_output.MOCoefficients();
-    int _parse_orbitals_status_GS = _qmpack->ParseOrbitalsFile( &orb_iter_output );
-    ub::matrix<double> &DMATGS=orb_iter_output.DensityMatrixGroundState(_dft_orbitals_GS);
-
-
-    
-    exit(0);
     // GW-BSE starts here
     bool _do_gwbse = true; // needs to be set by options!!!
     double energy___ex = 0.0;
@@ -385,9 +271,9 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
         } else if ( _type == "triplet" ) {
             energy___ex = orb_iter_output.BSETripletEnergies()[_state_index[_state-1]]*13.6058; // to eV
         }
-   
         
         
+        /*
         // calculate density matrix for this excited state
         ub::matrix<double> &_dft_orbitals = orb_iter_output.MOCoefficients();
         // load DFT basis set (element-wise information) from xml file
@@ -395,10 +281,6 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
         dftbs.LoadBasisSet( orb_iter_output.getDFTbasis() );
         LOG(logDEBUG, *_log) << TimeStamp() << " Loaded DFT Basis Set " <<  orb_iter_output.getDFTbasis()  << flush;
 
-    
-    
-    
-    
         // fill DFT AO basis by going through all atoms 
         AOBasis dftbasis;
         dftbasis.AOBasisFill(&dftbs, orb_iter_output.QMAtoms() );
@@ -407,36 +289,16 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
         ub::matrix<float>& BSECoefs = orb_iter_output.BSESingletCoefficients();
         std::vector<ub::matrix<double> > &DMAT = orb_iter_output.DensityMatrixExcitedState( _dft_orbitals , BSECoefs, _state_index[_state-1]);
 
-    
-     
-    
-    
-    
-    
         // setup ESP real space grid
-    
-    
-    
-    
         // calculate ESP at each grid point
-        // ESP matrix at vecR
-        
-        // get overlap matrix for DFT basisset
-         //               AOESP _espmatrix;
-                        // initialize overlap matrix
-         //               _espmatrix.Initialize(dftbasis._AOBasisSize);
-                        // Fill overlap
-        // ub::vector<double> vecR = ub::zero_vector<double>(3);
-         //               _espmatrix.Fill(&dftbasis  );
-        // ub::prod( DMAT, _espmatrix);
-        // V = Tr(DMAT,_espmatrix)
-        
         // ESP (or GDMA) fit for this density matrix 
         
         // save updates multipoles 
         
         
-       // LOG(logDEBUG,*_log) << " ... done. " << flush;
+        LOG(logDEBUG,*_log) << " ... done. " << flush;
+         * 
+         * */
 
     }
     
