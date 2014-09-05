@@ -54,7 +54,7 @@ namespace votca { namespace ctp {
 
           //      cout << aobasis->_aoshells.size();
 
-        
+        _gridpoint = r;
         // loop row
         #pragma omp parallel for
         for ( int _row = 0; _row <  aobasis->_aoshells.size() ; _row++ ){

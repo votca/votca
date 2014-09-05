@@ -36,6 +36,12 @@
 using namespace std;
 using namespace votca::tools;
 
+namespace Cartesian {
+        enum Index {
+                s, x, y, z,  xy, xz, yz, xx, yy, zz
+                };
+}
+
 namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
     
@@ -62,6 +68,7 @@ namespace votca { namespace ctp {
     class AOMatrix : public AOSuperMatrix {
     public:
         ub::matrix<double> _aomatrix; 
+        ub::vector<double> _gridpoint;
         
         void Initialize( int size ) {
             this->_aomatrix = ub::zero_matrix<double>(size,size);
@@ -147,7 +154,8 @@ namespace votca { namespace ctp {
         void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, bool _raw = false );
         //void Print();
         
-        ~AOESP();
+        // ~AOESP();
+        void XIntegrate( vector<double>& _FmT, const double& _T );
         
     };
     

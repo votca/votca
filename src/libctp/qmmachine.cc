@@ -304,12 +304,47 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     }
     points.close();
     //Hallelujah
+    
+    
+    
+    
+   
+    
+    // Ground state density matrix
     ub::matrix<double> &_dft_orbitals_GS = orb_iter_output.MOCoefficients();
     int _parse_orbitals_status_GS = _qmpack->ParseOrbitalsFile( &orb_iter_output );
     ub::matrix<double> &DMATGS=orb_iter_output.DensityMatrixGroundState(_dft_orbitals_GS);
 
-
     
+    
+    // AOESP matrix test
+    // load DFT basis set (element-wise information) from xml file
+    BasisSet dftbs;
+    //dftbs.LoadBasisSet( orb_iter_output.getDFTbasis() );
+    dftbs.LoadBasisSet( "ubecppol" );
+    //LOG(logDEBUG, *_log) << TimeStamp() << " Loaded DFT Basis Set " <<  orb_iter_output.getDFTbasis()  << flush;
+    
+    // fill DFT AO basis by going through all atoms 
+    AOBasis dftbasis;
+    dftbasis.AOBasisFill(&dftbs, orb_iter_output.QMAtoms() );
+
+    // AOESP matrix
+    AOESP _aoesp;
+    _aoesp.Initialize(dftbasis._AOBasisSize);
+    
+    cout << endl;
+    for ( int i = 0 ; i < Gridpoints.size(); i++){
+        _aoesp.Fill(&dftbasis, Gridpoints[i]);
+    
+        ub::matrix<double> _DI = ub::prod(DMATGS, _aoesp._aomatrix);
+    
+        double ESP = 0.0;
+        for ( int _i =0; _i < dftbasis._AOBasisSize; _i++ ){
+            ESP=+_DI(_i,_i);
+        }
+
+        cout << " ESP at " << _aoesp._gridpoint[0] << ":" << _aoesp._gridpoint[1] << ":" << _aoesp._gridpoint[2] << " == " << ESP << endl; 
+    }
     exit(0);
     // GW-BSE starts here
     bool _do_gwbse = true; // needs to be set by options!!!
