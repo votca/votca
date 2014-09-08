@@ -367,7 +367,14 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
         // NULL in the QMMachine and the QM region is also printed here
         for (it = qmatoms->begin(); it < qmatoms->end(); it++ ) {
             if ( !(*it)->from_environment ) {
-            _com_file << (*it)->type << " " <<  (*it)->x << " " << (*it)->y << " " << (*it)->z << endl;
+                _com_file << setw(3) << (*it)->type.c_str() 
+                      << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->x
+                      << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->y
+                      << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->z
+                      << endl;
+                
+                
+            //_com_file << (*it)->type << " " <<  (*it)->x << " " << (*it)->y << " " << (*it)->z << endl;
             }
         }
         
