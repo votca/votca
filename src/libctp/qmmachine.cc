@@ -203,7 +203,6 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     
     // SHIT GETS REAL HERE
     Elements _elements;
-    cout << "VdW-Radius"<< _elements.getVdWChelpG("H") << endl; 
     const vector< QMAtom* >& Atomlist= orb_iter_output.QMAtoms();
     std::vector< ub::vector<double> > Positionlist;
     
@@ -237,11 +236,7 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
             zmax=ztemp;
       
     }    
-           cout << xmin << "::" << xmax<<endl;
 
-                cout << ymin << "::" << ymax<<endl;
-
-        cout << zmin << ":: " <<zmax<<endl;
         double boxdimx=xmax-xmin+2*padding;
         std::vector< ub::vector<double> > Gridpoints;
         
@@ -334,23 +329,25 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     AOESP _aoesp;
     _aoesp.Initialize(dftbasis._AOBasisSize);
     
-    cout << endl;
+    LOG(logDEBUG, *_log) << TimeStamp() << " Calculating ESP at CHELPG grid points"  << flush;  
     for ( int i = 0 ; i < Gridpoints.size(); i++){
         
         // _aoesp needs positions in Bohr
         _aoesp.Fill(&dftbasis, Gridpoints[i]*1.8897259886);
+        
         //_aoesp.Print("AOESP");
         //exit(0);
         ub::matrix<double> _DI = ub::prod(DMATGS, _aoesp._aomatrix);
-    
+        
         double ESP = 0.0;
         for ( int _i =0; _i < dftbasis._AOBasisSize; _i++ ){
             ESP -= _DI(_i,_i);
         }
 
-        cout << " ESP at " << _aoesp._gridpoint[0] << ":" << _aoesp._gridpoint[1] << ":" << _aoesp._gridpoint[2] << " == " << ESP << endl; 
+        // cout << " ESP at " << _aoesp._gridpoint[0] << ":" << _aoesp._gridpoint[1] << ":" << _aoesp._gridpoint[2] << " == " << ESP << endl; 
 
     }
+    LOG(logDEBUG, *_log) << TimeStamp() << "  ...done!"  << flush; 
         exit(0);
     // GW-BSE starts here
     bool _do_gwbse = true; // needs to be set by options!!!

@@ -116,7 +116,7 @@ namespace votca { namespace ctp {
         vector<double> _FmU(5, 0.0); // that size needs to be checked!
         XIntegrate(_FmU,_U );
         // (s-s element normiert )
-        nuc(Cartesian::s,Cartesian::s)   = 2*sqrt(zeta/pi)*pow(4.0*_decay_row*_decay_col,0.75) * pow(_fak2,1.5)*exp(-_fak2 * _decay_row * _decay_col *_distsq)*_FmU[0];
+        nuc(Cartesian::s,Cartesian::s)   = 2*sqrt(1.0/pi)*pow(4.0*_decay_row*_decay_col,0.75) * _fak2 * exp(-_fak2 * _decay_row * _decay_col *_distsq)*_FmU[0];
         nucm1(Cartesian::s,Cartesian::s) = 2*sqrt(zeta/pi)*pow(4.0*_decay_row*_decay_col,0.75) * pow(_fak2,1.5)*exp(-_fak2 * _decay_row * _decay_col *_distsq)*_FmU[1];
         nucm2(Cartesian::s,Cartesian::s) = 2*sqrt(zeta/pi)*pow(4.0*_decay_row*_decay_col,0.75) * pow(_fak2,1.5)*exp(-_fak2 * _decay_row * _decay_col *_distsq)*_FmU[2];
         nucm3(Cartesian::s,Cartesian::s) = 2*sqrt(zeta/pi)*pow(4.0*_decay_row*_decay_col,0.75) * pow(_fak2,1.5)*exp(-_fak2 * _decay_row * _decay_col *_distsq)*_FmU[3];
