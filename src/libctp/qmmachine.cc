@@ -371,15 +371,21 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 
     ub::vector<double> DMATGSasarray=DMATGS.data();
     LOG(logDEBUG, *_log) << TimeStamp() << " Calculating ESP at CHELPG grid points"  << flush;  
-    #pragma omp parallel for
+    // #pragma omp parallel for
     for ( int i = 0 ; i < Gridpoints.size(); i++){
-         // AOESP matrix
+
+        
+       /* AOOverlap _aooverlap;
+        _aooverlap.Initialize(dftbasis._AOBasisSize);
+        _aooverlap.Fill(&dftbasis);
+        exit(0);*/
+        // AOESP matrix
          AOESP _aoesp;
          _aoesp.Initialize(dftbasis._AOBasisSize);
          // _aoesp needs positions in Bohr
-        _aoesp.Fill(&dftbasis, Gridpoints[i]*1.8897259886);
-       // _aoesp.Print("AOESP");
-       // exit(0);
+         _aoesp.Fill(&dftbasis, Gridpoints[i]*1.8897259886);
+         _aoesp.Print("AOESP");
+        exit(0);
         ub::vector<double> AOESPasarray=_aoesp._aomatrix.data();
       
         for ( int _i =0; _i < DMATGSasarray.size(); _i++ ){

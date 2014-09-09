@@ -86,14 +86,26 @@ namespace votca { namespace ctp {
             }
         }
         
+        
+        
+        
+        // check symmetry
+        bool _is_symmetric = true;
+        
         // Copy stuff to fill lower triangular part
-        /* for ( int _i=0; _i < this->_aomatrix.size1(); _i++){
+         for ( int _i=0; _i < this->_aomatrix.size1(); _i++){
             for ( int _j=0; _j <= _i; _j++){
-                
-                this->_aomatrix(_j,_i) = this->_aomatrix(_i,_j);
+         
+                if ( std::abs(this->_aomatrix(_i,_j) - this->_aomatrix(_j,_i) ) > 1e-4 ) {
+                    
+                    cerr << _i << ":" << _j << " == " << this->_aomatrix(_i,_j) << " vs " <<  this->_aomatrix(_j,_i) << endl;
+                    _is_symmetric = false;
+                }
                 
             }
-        }*/
+        }
+        if ( !_is_symmetric) {cerr << " Error: AOMatrix is not symmetric! "; exit(1);}
+        
         
         
     }
