@@ -53,18 +53,19 @@ public:
 
     const double     &getVdWChelpG(string name ) const { return _VdWChelpG.at(name); }
     const double     &getVdWMK(string name ) const { return _VdWMK.at(name); }
-
+    const double     &getNucCrgECP(string name) const {return _NucCrgECP.at(name); }
 
 private:
 
     std::map<std::string, double> _VdWChelpG;
     std::map<std::string, double> _VdWMK;
+    std::map<std::string, double> _NucCrgECP;
     
     inline void FillMaps(){
         
         FillVdWChelpG();
         FillVdWMK();
-        // FillNucCrg();
+        FillNucCrgECP();
         
     }
 
@@ -91,6 +92,29 @@ private:
         _VdWChelpG["Ar"] = 2.0;
     };
 
+
+    inline void FillNucCrgECP(){
+    
+        // Effective Core Potential Nuclear Charges
+        _NucCrgECP["H"]  = 1.00; 
+        _NucCrgECP["He"] = 2.00;
+        _NucCrgECP["Li"] = 1.00;
+        _NucCrgECP["Be"] = 2.00;
+        _NucCrgECP["B"]  = 3.00;
+        _NucCrgECP["C"]  = 4.00;
+        _NucCrgECP["N"]  = 5.00;
+        _NucCrgECP["O"]  = 6.00;
+        _NucCrgECP["F"]  = 7.00;
+        _NucCrgECP["Ne"] = 8.00;
+        _NucCrgECP["Na"] = 1.00;
+        _NucCrgECP["Mg"] = 2.00;
+        _NucCrgECP["Al"] = 3.00;
+        _NucCrgECP["Si"] = 4.00;
+        _NucCrgECP["P"]  = 5.00;
+        _NucCrgECP["S"]  = 6.00;
+        _NucCrgECP["Cl"] = 7.00;
+        _NucCrgECP["Ar"] = 8.00;
+    };
     
     
     inline void FillVdWMK(){

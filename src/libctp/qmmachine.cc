@@ -1,9 +1,13 @@
+// Overload of uBLAS prod function with MKL/GSL implementations
+#include <votca/ctp/votca_ctp_config.h>
+
 #include <votca/ctp/qmmachine.h>
 #include <sys/stat.h>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <votca/ctp/logger.h>
 #include <votca/ctp/elements.h>
+#include <votca/tools/linalg.h>
 
 using boost::format;
 
@@ -207,7 +211,7 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     std::vector< ub::vector<double> > Positionlist;
     
     double padding=2.8; // Additional distance from molecule to set up grid according to CHELPG paper [Journal of Computational Chemistry 11, 361, 1990]
-    double gridspacing=0.3; // Grid spacing according to same paper 
+    double gridspacing=1.0; // Grid spacing according to same paper 
     double cutoff=2.8;
     // rewrite QMAtoms coordinates to vector of ub::vector
     double xmin=1000;
@@ -286,7 +290,7 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
           x+=gridspacing;
           //cout << (x<xmax+padding) << endl;     
         }
-        cout << " Done setting up grid with " << Gridpoints.size() << " points " << endl;
+    LOG(logDEBUG, *_log) << TimeStamp() <<  " Done setting up CHELPG grid with " << Gridpoints.size() << " points " << endl;
     // check if 
     
     ofstream points;
@@ -325,29 +329,176 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     dftbasis.ReorderMOs(_dft_orbitals_GS, orb_iter_output.getQMpackage(), "votca" );
     ub::matrix<double> &DMATGS=orb_iter_output.DensityMatrixGroundState(_dft_orbitals_GS);
     
-    // AOESP matrix
-    AOESP _aoesp;
-    _aoesp.Initialize(dftbasis._AOBasisSize);
-    
-    LOG(logDEBUG, *_log) << TimeStamp() << " Calculating ESP at CHELPG grid points"  << flush;  
-    for ( int i = 0 ; i < Gridpoints.size(); i++){
-        
-        // _aoesp needs positions in Bohr
-        _aoesp.Fill(&dftbasis, Gridpoints[i]*1.8897259886);
-        
-        //_aoesp.Print("AOESP");
-        //exit(0);
-        ub::matrix<double> _DI = ub::prod(DMATGS, _aoesp._aomatrix);
-        
-        double ESP = 0.0;
-        for ( int _i =0; _i < dftbasis._AOBasisSize; _i++ ){
-            ESP -= _DI(_i,_i);
-        }
 
-        // cout << " ESP at " << _aoesp._gridpoint[0] << ":" << _aoesp._gridpoint[1] << ":" << _aoesp._gridpoint[2] << " == " << ESP << endl; 
+    
+    
+    ub::vector<double> _ESPatGrid = ub::zero_vector<double>(Gridpoints.size());
+    ub::vector<double> _NucPatGrid = ub::zero_vector<double>(Gridpoints.size());
+    
+    LOG(logDEBUG, *_log) << TimeStamp() << " Calculating ESP of nuclei at CHELPG grid points"  << flush;  
+    for ( int i = 0 ; i < Gridpoints.size(); i++){
+      double x_k = Gridpoints[i](0);
+      double y_k = Gridpoints[i](1);
+      double z_k = Gridpoints[i](2);
+
+
+      for ( int j = 0; j < Atomlist.size(); j++){
+
+            double x_j = Atomlist[j]->x;
+            double y_j = Atomlist[j]->y;
+            double z_j = Atomlist[j]->z;
+	    double Znuc = _elements.getNucCrgECP(Atomlist[j]->type);  
+
+            double dist_j = sqrt( (x_j - x_k)*(x_j - x_k) +  (y_j - y_k)*(y_j - y_k) + (z_j - z_k)*(z_j - z_k)     )*1.8897259886;
+
+	    _NucPatGrid(i) += Znuc/dist_j;
+
+      }
 
     }
+
+    double Ztot = 0.0;
+      for ( int j = 0; j < Atomlist.size(); j++){
+
+	     Ztot += _elements.getNucCrgECP(Atomlist[j]->type);  
+
+	    
+
+      }
+    LOG(logDEBUG, *_log) << TimeStamp() << " Total nuclear charge " << Ztot << flush;
+
+    
+
+    ub::vector<double> DMATGSasarray=DMATGS.data();
+    LOG(logDEBUG, *_log) << TimeStamp() << " Calculating ESP at CHELPG grid points"  << flush;  
+    #pragma omp parallel for
+    for ( int i = 0 ; i < Gridpoints.size(); i++){
+         // AOESP matrix
+         AOESP _aoesp;
+         _aoesp.Initialize(dftbasis._AOBasisSize);
+         // _aoesp needs positions in Bohr
+        _aoesp.Fill(&dftbasis, Gridpoints[i]*1.8897259886);
+       // _aoesp.Print("AOESP");
+       // exit(0);
+        ub::vector<double> AOESPasarray=_aoesp._aomatrix.data();
+      
+        for ( int _i =0; _i < DMATGSasarray.size(); _i++ ){
+            _ESPatGrid(i) -= DMATGSasarray(_i)*AOESPasarray(_i);
+        }
+        
+    }
     LOG(logDEBUG, *_log) << TimeStamp() << "  ...done!"  << flush; 
+    
+    // Add nuclear contribution
+    _ESPatGrid += _NucPatGrid;
+
+    // Fitting atomic partial charges
+    ub::matrix<double> _Amat = ub::zero_matrix<double>(Atomlist.size()+1,Atomlist.size()+1);
+    ub::matrix<double> _Bvec = ub::zero_matrix<double>(Atomlist.size()+1);    
+    
+    // setting up _Amat
+    LOG(logDEBUG, *_log) << TimeStamp() << "  Setting up Amat of size "  << _Amat.size1() << " by " << _Amat.size2() << flush; 
+    for ( int _i =0 ; _i < _Amat.size1()-1; _i++){
+        double x_i = Atomlist[_i]->x;
+        double y_i = Atomlist[_i]->y;
+        double z_i = Atomlist[_i]->z;
+        
+        for ( int _j=_i; _j<_Amat.size2()-1; _j++){
+            double x_j = Atomlist[_j]->x;
+            double y_j = Atomlist[_j]->y;
+            double z_j = Atomlist[_j]->z;
+            for ( int _k=0; _k < Gridpoints.size(); _k++){
+            
+                double x_k = Gridpoints[_k](0);
+                double y_k = Gridpoints[_k](1);
+                double z_k = Gridpoints[_k](2);
+                
+                double dist_i = sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     )*1.8897259886;
+                double dist_j = sqrt( (x_j - x_k)*(x_j - x_k) +  (y_j - y_k)*(y_j - y_k) + (z_j - z_k)*(z_j - z_k)     )*1.8897259886;
+                
+                 _Amat(_i,_j) += 1.0/dist_i/dist_j; 
+                
+            }
+            _Amat(_j,_i) = _Amat(_i,_j);
+        }
+        
+    }
+    
+    for ( int _i =0 ; _i < _Amat.size1(); _i++){
+      _Amat(_i,_Amat.size1()-1) = 1.0;
+      _Amat(_Amat.size1()-1,_i) = 1.0;
+    }
+    _Amat(_Amat.size1()-1,_Amat.size1()-1) = 0.0;
+
+    
+
+    // setting up Bvec
+      LOG(logDEBUG, *_log) << TimeStamp() << "  Setting up Bvec"  << flush; 
+    for ( int _i =0 ; _i < _Bvec.size1()-1; _i++){
+        double x_i = Atomlist[_i]->x;
+        double y_i = Atomlist[_i]->y;
+        double z_i = Atomlist[_i]->z;
+        for ( int _k=0; _k < Gridpoints.size(); _k++){
+            
+                double x_k = Gridpoints[_k](0);
+                double y_k = Gridpoints[_k](1);
+                double z_k = Gridpoints[_k](2);
+                
+                double dist_i = sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     )*1.8897259886;
+                _Bvec(_i,0) += _ESPatGrid(_k)/dist_i;
+                
+        }
+        
+        
+        
+       }
+    
+    _Bvec(_Bvec.size1()-1,0) = 0.0; //netcharge!!!!
+    
+    // invert _Amat
+     LOG(logDEBUG, *_log) << TimeStamp() << "  Inverting _Amat"  << flush; 
+    ub::matrix<double> _Amat_inverse = ub::zero_matrix<double>(Atomlist.size()+1,Atomlist.size()+1);
+    linalg_invert( _Amat , _Amat_inverse);
+    //_Amat.resize(0,0);
+    LOG(logDEBUG, *_log) << TimeStamp() << "  Calculating CHELPG charges"  << flush; 
+    ub::matrix<double> _charges = ub::prod(_Amat_inverse,_Bvec);
+    
+    double _sumcrg = 0.0;
+    for ( int _i =0 ; _i < _Bvec.size1()-1; _i++){
+        
+        LOG(logDEBUG, *_log) << " Atom " << _i << " Type " << Atomlist[_i]->type << " Charge: " << _charges(_i,0) << flush;
+        _sumcrg += _charges(_i,0);
+        
+    }
+    
+    LOG(logDEBUG, *_log) << " Sum of partial charges: " << _sumcrg << flush;
+    
+    // get RMSE
+    double _rmse = 0.0;
+    double _totalESPsq = 0.0;
+    for ( int _k=0 ; _k < Gridpoints.size(); _k++ ){
+        double x_k = Gridpoints[_k](0);
+        double y_k = Gridpoints[_k](1);
+        double z_k = Gridpoints[_k](2);
+        double temp = 0.0;
+        for ( int _i=0; _i < Atomlist.size(); _i++ ){
+            double x_i = Atomlist[_i]->x;
+            double y_i = Atomlist[_i]->y;
+            double z_i = Atomlist[_i]->z;
+            
+            double dist =  sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     )*1.8897259886;
+            temp += _charges(_i,0)/dist;
+        }
+        _rmse += (_ESPatGrid(_k) - temp)*(_ESPatGrid(_k) - temp);
+        _totalESPsq += _ESPatGrid(_k)*_ESPatGrid(_k);
+        
+    }
+    LOG(logDEBUG, *_log) << " RMSE of fit:  " << sqrt(_rmse/Gridpoints.size()) << flush;
+    LOG(logDEBUG, *_log) << " RRMSE of fit: " << sqrt(_rmse/_totalESPsq) << flush;
+    
+   
+    
+    
         exit(0);
     // GW-BSE starts here
     bool _do_gwbse = true; // needs to be set by options!!!

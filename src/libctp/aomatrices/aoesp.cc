@@ -76,24 +76,28 @@ namespace votca { namespace ctp {
         // get decay constants (this all is still valid only for uncontracted functions)
         const double& _decay_row = (*_shell_row->firstGaussian())->decay;
         const double& _decay_col = (*_shell_col->firstGaussian())->decay;
-
+        const double _fak  = 0.5/(_decay_row + _decay_col);
+        const double _fak2 = 2.0 * _fak;
+        
         // get shell positions
         const vec& _pos_row = _shell_row->getPos();
         const vec& _pos_col = _shell_col->getPos();
         const vec  _diff    = _pos_row - _pos_col;
+        
+        double _distsq = (_diff.getX()*_diff.getX()) + (_diff.getY()*_diff.getY()) + (_diff.getZ()*_diff.getZ()); 
+        double _exparg = _fak2 * _decay_row * _decay_col *_distsq;
+        
+        // no need to calculate anything if distance between shells is > 14 Bohr
+        // if ( _distsq > 196.0 ) { return; }
+        if ( _exparg > 30.0 ) { return; }
         
         // some helpers
         vector<double> PmA (3,0.0);
         vector<double> PmB (3,0.0);
         vector<double> PmC (3,0.0);
 
-        double _distsq = 0.0;
-        const double zeta = _decay_row + _decay_col;
-        const double _fak  = 0.5/(_decay_row + _decay_col);
-        const double _fak2 = 2.0 * _fak;
-        const double _fak3 = 3.0 * _fak;
-        const double _fak4 = 4.0 * _fak;
 
+        const double zeta = _decay_row + _decay_col;
 
         PmA[0] = _fak2*( _decay_row * _pos_row.getX() + _decay_col * _pos_col.getX() ) - _pos_row.getX();
         PmA[1] = _fak2*( _decay_row * _pos_row.getY() + _decay_col * _pos_col.getY() ) - _pos_row.getY();
@@ -109,24 +113,22 @@ namespace votca { namespace ctp {
         
         
         const double _U = zeta*(PmC[0]*PmC[0]+PmC[1]*PmC[1]+PmC[2]*PmC[2]);
-        _distsq = (_diff.getX()*_diff.getX()) + (_diff.getY()*_diff.getY()) + (_diff.getZ()*_diff.getZ()); 
         
-        
-    
         vector<double> _FmU(5, 0.0); // that size needs to be checked!
         XIntegrate(_FmU,_U );
+        
         // (s-s element normiert )
-        nuc(Cartesian::s,Cartesian::s)   = 2*sqrt(1.0/pi)*pow(4.0*_decay_row*_decay_col,0.75) * _fak2 * exp(-_fak2 * _decay_row * _decay_col *_distsq)*_FmU[0];
-        nucm1(Cartesian::s,Cartesian::s) = 2*sqrt(zeta/pi)*pow(4.0*_decay_row*_decay_col,0.75) * pow(_fak2,1.5)*exp(-_fak2 * _decay_row * _decay_col *_distsq)*_FmU[1];
-        nucm2(Cartesian::s,Cartesian::s) = 2*sqrt(zeta/pi)*pow(4.0*_decay_row*_decay_col,0.75) * pow(_fak2,1.5)*exp(-_fak2 * _decay_row * _decay_col *_distsq)*_FmU[2];
-        nucm3(Cartesian::s,Cartesian::s) = 2*sqrt(zeta/pi)*pow(4.0*_decay_row*_decay_col,0.75) * pow(_fak2,1.5)*exp(-_fak2 * _decay_row * _decay_col *_distsq)*_FmU[3];
-        nucm4(Cartesian::s,Cartesian::s) = 2*sqrt(zeta/pi)*pow(4.0*_decay_row*_decay_col,0.75) * pow(_fak2,1.5)*exp(-_fak2 * _decay_row * _decay_col *_distsq)*_FmU[4];
+        double _prefactor = 2*sqrt(1.0/pi)*pow(4.0*_decay_row*_decay_col,0.75) * _fak2 * exp(-_exparg);
+        nuc(Cartesian::s,Cartesian::s)   = _prefactor * _FmU[0];
+        nucm1(Cartesian::s,Cartesian::s) = _prefactor*_FmU[1];
+        nucm2(Cartesian::s,Cartesian::s) = _prefactor*_FmU[2];
+        nucm3(Cartesian::s,Cartesian::s) = _prefactor*_FmU[3];
+        nucm4(Cartesian::s,Cartesian::s) = _prefactor*_FmU[4];
         
         
      
 
-        // no need to calculate anything if distance between shells is > 14 Bohr
-        // if ( _distsq > 196.0 ) { return; }
+
         // s-p-0
         if ( _lmax_col > 0 ) {
                 nuc(Cartesian::s,Cartesian::y) =PmB[1]*nuc(Cartesian::s,Cartesian::s)-PmC[1]*nucm1(Cartesian::s,Cartesian::s);

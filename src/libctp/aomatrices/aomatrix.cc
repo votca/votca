@@ -67,12 +67,17 @@ namespace votca { namespace ctp {
             // cout << _row << " " << _row_start << " " << _row_end << endl; 
             
             // loop column
-            for (vector< AOShell* >::iterator _col = aobasis->firstShell(); _col != aobasis->lastShell() ; _col++ ) {
+            //for (vector< AOShell* >::iterator _col = aobasis->firstShell(); _col != aobasis->lastShell() ; _col++ ) {
+            for ( int _col = 0; _col <  aobasis->_aoshells.size() ; _col++ ){
+
+            //for ( int _col = 0; _col <= _row ; _col++ ){
+
                 AOShell* _shell_col = aobasis->getShell( _col );
                 
                 // figure out the submatrix
                 int _col_start = _shell_col->getStartIndex();
                 int _col_end   = _col_start + _shell_col->getNumFunc();
+                //cout << _row << ":" << _row_start << ":" << _row_end << "/" << _col << ":" <<  _col_start << ":" << _col_end << endl;
                 ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange(this->_aomatrix, _row_start, _row_end, _col_start, _col_end);
 
                 // Fill block
@@ -80,6 +85,17 @@ namespace votca { namespace ctp {
 
             }
         }
+        
+        // Copy stuff to fill lower triangular part
+        /* for ( int _i=0; _i < this->_aomatrix.size1(); _i++){
+            for ( int _j=0; _j <= _i; _j++){
+                
+                this->_aomatrix(_j,_i) = this->_aomatrix(_i,_j);
+                
+            }
+        }*/
+        
+        
     }
     
     
