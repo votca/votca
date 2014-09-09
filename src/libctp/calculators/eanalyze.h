@@ -323,6 +323,7 @@ void EAnalyze::PairHist(Topology *top, int state) {
 void EAnalyze::SiteCorr(Topology *top, int state) {
 
     double AVG = 0.0;
+    double AVGESTATIC = 0.0;
     double VAR = 0.0;
     double STD = 0.0;
 
@@ -339,10 +340,12 @@ void EAnalyze::SiteCorr(Topology *top, int state) {
 
         double E = (*sit)->getSiteEnergy(state);
         AVG += E / top->Segments().size();
+        
+        AVGESTATIC += (*sit)->getEMpoles(state) / top->Segments().size();
 
         Es.push_back(E);
     }
-
+    
     // Calculate variance
     vector< double > ::iterator eit;
     for (eit = Es.begin(); eit < Es.end(); ++eit) {
@@ -446,8 +449,8 @@ void EAnalyze::SiteCorr(Topology *top, int state) {
     out = fopen(tag.c_str(), "w");
 
     fprintf(out, "# EANALYZE: SPATIAL SITE-ENERGY CORRELATION \n");
-    fprintf(out, "# AVG %4.7f STD %4.7f MIN_R %4.7f MAX_R %4.7f \n",
-                    AVG,      STD,      MIN,      MAX);
+    fprintf(out, "# AVG %4.7f STD %4.7f MIN_R %4.7f MAX_R %4.7f  AVGESTATIC %4.7f\n",
+                    AVG,      STD,      MIN,      MAX,      AVGESTATIC);
 
     for (int bin = 0; bin < BIN; ++bin) {
         double R = MIN + bin*_resolution_space;

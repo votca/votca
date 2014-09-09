@@ -30,6 +30,8 @@ private:
     string      _probabilityfile_e;
     double      _sigma_h;
     double      _sigma_e;
+    double      _avgestatic_h;
+    double      _avgestatic_e;
     double      _cutoff;
     bool        _stochastic;
     int         _seed;
@@ -60,7 +62,7 @@ void EImport::Initialize(Property *options) {
         _probabilityfile_h = "";
     }
     if (options->exists(key + ".probabilityfile_e")) {
-        _probabilityfile_h = options->get(key+".probabilityfile_e").as< string >();
+        _probabilityfile_e = options->get(key+".probabilityfile_e").as< string >();
         _stochastic = true;
     }
     else{
@@ -81,6 +83,18 @@ void EImport::Initialize(Property *options) {
     else{
         _sigma_e = 1;
     }
+    if (options->exists(key + ".avgestatic_h")) {
+        _avgestatic_h = options->get(key+".avgestatic_h").as< double >();
+    }
+    else{
+        _avgestatic_h = 0;
+    }
+    if (options->exists(key + ".avgestatic_e")) {
+        _avgestatic_e = options->get(key+".avgestatic_e").as< double >();
+    }
+    else{
+        _avgestatic_e = 0;
+    }
     if (options->exists(key + ".cutoff")) {
         _cutoff = options->get(key+".cutoff").as< double >();
     }
@@ -95,7 +109,7 @@ void EImport::Initialize(Property *options) {
     if (options->exists(key + ".optimizationsteps")) {
          _optimizationsteps = options->get(key + ".optimizationsteps").as< int >();
     }
-    _optimizationfactor = 0.98;
+    _optimizationfactor = 0.97;
     if (options->exists(key + ".optimizationfactor")) {
          _optimizationfactor = options->get(key + ".optimizationfactor").as< double >();
     }
@@ -146,14 +160,17 @@ double EImport::Correlation(double distance, vector<double> distances, vector<do
 
 void EImport::StochasticEnergies(Topology *top, string &filename, int state) {
     double sigma = 1;
+    double avgestatic = 0;
     if(state == 1){
         cout << endl << "... ... calculating stochastic hole-type energies." << endl;
         sigma = _sigma_h;
+        avgestatic = _avgestatic_h;
         cout << endl << "... ... sigma = " << sigma << " eV" << endl;
     }
     else if(state == -1){
         cout << endl << "... ... calculating stochastic electron-type energies." << endl;
         sigma = _sigma_e;
+        avgestatic = _avgestatic_e;
         cout << endl << "... ... sigma = " << sigma << " eV" << endl;
     }
     // read in probability function
@@ -172,6 +189,7 @@ void EImport::StochasticEnergies(Topology *top, string &filename, int state) {
         while ( intt.good() ) {
 
             std::getline(intt, line);
+            
             if (linenumber > 1){
                 vector<string> split;
                 Tokenizer toker(line, " \t");
@@ -208,10 +226,12 @@ void EImport::StochasticEnergies(Topology *top, string &filename, int state) {
     
      // calculate b_i coefficients    
     cout << "... ... calculating b coefficients" << endl;
+    cout << "... ... If the program freezes please set 'optimizationfactor' to a smaller value in your options file." << endl;
+
     vector<double> bcoeff;
     bcoeff.resize(Nkappa+1);
     distances.push_back(2*distances[Nkappa]-distances[Nkappa-1]);
-    cout << "distances[0]=" << distances[0] << ", distances[1]=" << distances[1] << endl;
+    // cout << "distances[0]=" << distances[0] << ", distances[1]=" << distances[1] << endl;
             
     bcoeff[Nkappa] = sigma*sigma / SphereIntersection(distances[Nkappa+1]/2,distances[Nkappa]) * kappas[Nkappa];
     // cout << "        b[" << Nkappa+1 << "] = " << bcoeff[Nkappa] << endl;
@@ -294,6 +314,10 @@ void EImport::StochasticEnergies(Topology *top, string &filename, int state) {
     double sum =0;
     for(int i=0; i<bcoeff.size(); i++){sum += bcoeff[i];}
     double acoeff = sigma*sigma-sum;
+    if(acoeff<0){
+        acoeff = 0;
+        cout << "        WARNING: a was smaller than 0. It has now been set to 0, the energetic disorder will probably be wrong." << endl;
+    }
     cout << "        a = " << acoeff << endl << endl;
     
     for(int nit = 0; nit <=Nkappa; nit++){
@@ -355,6 +379,9 @@ void EImport::StochasticEnergies(Topology *top, string &filename, int state) {
 
     
     
+    double AVG = 0.0;
+    int countE = 0;
+    vector<double> energies;
     for (seg1 = segments.begin(); seg1!= segments.end(); seg1++){
         cout << "\r... ... ..." << " calculating energy for segment ID = "
              << (*seg1)->getId() << flush;
@@ -387,9 +414,38 @@ void EImport::StochasticEnergies(Topology *top, string &filename, int state) {
                 cout << "NOTHING IN RANGE FOR RADIUS " << distances[i] << " for molecule " << molA+1 << endl;
             }
         }
-        if(molA >= 3990){ cout << endl << "energy[" << molA+1 << "] = " << energy << endl;}
-        (*seg1)->setEMpoles(state, energy);
+        if(molA <= 5 || molA >= Nmolecules-5){ cout << "   energy[" << molA+1 << "] = " << energy << endl;}
+        if(molA == 5 ){ cout << "......" << endl;}
+        AVG += energy;
+        energies.push_back(energy);
+        countE += 1;
     }
+    if(countE > 0){
+    AVG /= countE;
+    }
+
+    double VAR = 0.0;
+    double STD = 0.0;
+    // Calculate variance
+    vector< double > ::iterator eit;
+    for (eit = energies.begin(); eit < energies.end(); ++eit) {
+        VAR += ((*eit) - AVG)*((*eit) - AVG) / countE;
+    }
+   
+    STD = sqrt(VAR);
+    
+    cout << "\r... ... ..." << " uncorrected mean:  " << AVG << endl;
+    cout << "\r... ... ..." << " uncorrected sigma: " << STD << endl;
+    
+    // Write corrected energies
+    cout << "\r... ... ..." << " Setting energies to adjusted standard deviation." << endl;
+    countE = 0;
+    for (seg1 = segments.begin(); seg1!= segments.end(); seg1++){
+        (*seg1)->setEMpoles(state, (energies[countE]*sqrt(sigma/STD)-AVG+avgestatic));
+        countE ++;
+    }
+
+
     cout << "done." << endl;
 }
 
