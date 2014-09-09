@@ -1,4 +1,5 @@
 configure_file(help2t2t.in ${CMAKE_CURRENT_BINARY_DIR}/help2t2t.out @ONLY)
+add_custom_target(help2t2t_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/help2t2t)
 add_custom_command(OUTPUT help2t2t ALL COMMAND ${CMAKE_COMMAND}
     -DINPUT="help2t2t.out" -DOUTPUT="help2t2t"
     -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}" -P ${CMAKE_MODULE_PATH}/hgscript.cmake
@@ -18,7 +19,7 @@ foreach(SCRIPT csg_call csg_inverse multi_g_rdf)
       COMMAND VOTCASHARE=${CMAKE_SOURCE_DIR}/share ${BASH} ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT} --help > ${SCRIPT}.help
       COMMAND ${BASH} ${CMAKE_CURRENT_BINARY_DIR}/help2t2t ${SCRIPT}.help > ${SCRIPT}.t2t 
       COMMAND ${TXT2TAGS_EXECUTABLE} -q -t man -i ${SCRIPT}.t2t -o ${SCRIPT}.man
-      DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT} ${CMAKE_CURRENT_BINARY_DIR}/help2t2t)
+      DEPENDS help2t2t_build ${SCRIPT})
     add_custom_target(${SCRIPT}_manpage DEPENDS ${SCRIPT}.man)
     add_dependencies(manpages ${SCRIPT}_manpage)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.man DESTINATION ${MAN}/man1 RENAME ${SCRIPT}.1)
