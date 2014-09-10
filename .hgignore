@@ -9,6 +9,10 @@ libvotca*.a
 libvotca*.so
 libvotca*.so.*
 Makefile
+rules.ninja
+build.ninja
+.ninja_*
+build
 scripts/csg_call
 scripts/csg_inverse
 scripts/help2t2t
