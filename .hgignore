@@ -3,6 +3,10 @@ syntax:glob
 *~
 .*swp
 Makefile
+rules.ninja
+build.ninja
+.ninja_*
+build
 .project
 .cproject
 CMakeFiles/*
