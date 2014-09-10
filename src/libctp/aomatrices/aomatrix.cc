@@ -53,7 +53,7 @@ namespace votca { namespace ctp {
         // cout << "I'm supposed to fill out the AO overlap matrix" << endl;
 
           //      cout << aobasis->_aoshells.size();
-
+      
         _gridpoint = r;
         // loop row
         #pragma omp parallel for
@@ -63,14 +63,9 @@ namespace votca { namespace ctp {
             AOShell* _shell_row = aobasis->getShell( _row );
             int _row_start = _shell_row->getStartIndex();
             int _row_end   = _row_start + _shell_row->getNumFunc();
-
-            // cout << _row << " " << _row_start << " " << _row_end << endl; 
-            
-            // loop column
-            //for (vector< AOShell* >::iterator _col = aobasis->firstShell(); _col != aobasis->lastShell() ; _col++ ) {
-            for ( int _col = 0; _col <  aobasis->_aoshells.size() ; _col++ ){
-
-            //for ( int _col = 0; _col <= _row ; _col++ ){
+           
+            // AOMatrix is symmetric, restrict explicit calculation to triangular matrix
+            for ( int _col = 0; _col <= _row ; _col++ ){
 
                 AOShell* _shell_col = aobasis->getShell( _col );
                 
@@ -86,9 +81,17 @@ namespace votca { namespace ctp {
             }
         }
         
-        
-        
-        
+        // Fill whole matrix by copying
+        for ( int _i=0; _i < _aomatrix.size1(); _i++){
+            for ( int _j=0; _j < _i; _j++){
+               _aomatrix(_j,_i) = _aomatrix(_i,_j); 
+                       
+            }
+        }
+     
+ 
+        /*
+      
         // check symmetry
         bool _is_symmetric = true;
         
@@ -106,7 +109,7 @@ namespace votca { namespace ctp {
         }
         if ( !_is_symmetric) {cerr << " Error: AOMatrix is not symmetric! "; exit(1);}
         
-        
+       */
         
     }
     

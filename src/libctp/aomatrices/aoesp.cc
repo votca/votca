@@ -32,6 +32,7 @@
 #include <boost/multi_array.hpp>
 #include <votca/ctp/logger.h>
 #include <votca/tools/linalg.h>
+//#include <boost/timer/timer.hpp>
 
 using namespace std;
 using namespace votca::tools;
@@ -60,13 +61,13 @@ namespace votca { namespace ctp {
         int _ncols = this->getBlockSize( _lmax_col ); 
     
         // initialize local matrix block for unnormalized cartesians
-        ub::matrix<double> nuc = ub::zero_matrix<double>(_nrows,_ncols);
+        ub::matrix<double> nuc   = ub::zero_matrix<double>(_nrows,_ncols);
         ub::matrix<double> nucm1 = ub::zero_matrix<double>(_nrows,_ncols);
         ub::matrix<double> nucm2 = ub::zero_matrix<double>(_nrows,_ncols);
         ub::matrix<double> nucm3 = ub::zero_matrix<double>(_nrows,_ncols);
         ub::matrix<double> nucm4 = ub::zero_matrix<double>(_nrows,_ncols);
 
-        //cout << _nuc.size1() << ":" << _nuc.size2() << endl;
+        //cout << nuc.size1() << ":" << nuc.size2() << endl;
         
         /* FOR CONTRACTED FUNCTIONS, ADD LOOP OVER ALL DECAYS IN CONTRACTION
          * MULTIPLY THE TRANSFORMATION MATRICES BY APPROPRIATE CONTRACTION 
@@ -120,14 +121,17 @@ namespace votca { namespace ctp {
         // (s-s element normiert )
         double _prefactor = 2*sqrt(1.0/pi)*pow(4.0*_decay_row*_decay_col,0.75) * _fak2 * exp(-_exparg);
         nuc(Cartesian::s,Cartesian::s)   = _prefactor * _FmU[0];
-        nucm1(Cartesian::s,Cartesian::s) = _prefactor*_FmU[1];
-        nucm2(Cartesian::s,Cartesian::s) = _prefactor*_FmU[2];
-        nucm3(Cartesian::s,Cartesian::s) = _prefactor*_FmU[3];
-        nucm4(Cartesian::s,Cartesian::s) = _prefactor*_FmU[4];
+        nucm1(Cartesian::s,Cartesian::s) = _prefactor * _FmU[1];
+        nucm2(Cartesian::s,Cartesian::s) = _prefactor * _FmU[2];
+        nucm3(Cartesian::s,Cartesian::s) = _prefactor * _FmU[3];
+        nucm4(Cartesian::s,Cartesian::s) = _prefactor * _FmU[4];
+        double _lsum=_lmax_row + _lmax_col;
         
+        if (_lmax_col >2 || _lmax_row >2){
+            cerr << "Orbitals higher than d are not yet implemented. This should not have happened!" << flush;
+             exit(1);
+        }
         
-     
-
 
         // s-p-0
         if ( _lmax_col > 0 ) {
@@ -149,24 +153,29 @@ namespace votca { namespace ctp {
 
         }
         
-        // p-p
-        if ( _lmax_row > 0 && _lmax_col > 0 ) {
-           //cout << "\t setting p-p" << endl; 
+
+        if ( _lsum > 1 ) {
+          // cout << "\t setting p-p" << endl; 
             
             //m=1
             //s-p-1
+           if (_lmax_col>0){
             
                 nucm1(Cartesian::s,Cartesian::y) =PmB[1]*nucm1(Cartesian::s,Cartesian::s)-PmC[1]*nucm2(Cartesian::s,Cartesian::s);
                 nucm1(Cartesian::s,Cartesian::x) =PmB[0]*nucm1(Cartesian::s,Cartesian::s)-PmC[0]*nucm2(Cartesian::s,Cartesian::s);
                 nucm1(Cartesian::s,Cartesian::z) =PmB[2]*nucm1(Cartesian::s,Cartesian::s)-PmC[2]*nucm2(Cartesian::s,Cartesian::s);
-
+           }
               
             // p-s-1
-                
+             if (_lmax_row>0){   
                 nucm1(Cartesian::y,Cartesian::s) =PmA[1]*nucm1(Cartesian::s,Cartesian::s)-PmC[1]*nucm2(Cartesian::s,Cartesian::s);
                 nucm1(Cartesian::x,Cartesian::s) =PmA[0]*nucm1(Cartesian::s,Cartesian::s)-PmC[0]*nucm2(Cartesian::s,Cartesian::s);
                 nucm1(Cartesian::z,Cartesian::s) =PmA[2]*nucm1(Cartesian::s,Cartesian::s)-PmC[2]*nucm2(Cartesian::s,Cartesian::s);
-            
+            }      
+        }
+                
+        if ( _lmax_row > 0 && _lmax_col > 0 ) {
+           //cout << "\t setting p-p" << endl; 
             
             // p-p-0 
                 nuc(Cartesian::y,Cartesian::y) =PmA[1]*nuc(Cartesian::s,Cartesian::y)-PmC[1]*nucm1(Cartesian::s,Cartesian::y)+_fak*(nuc(Cartesian::s,Cartesian::s)-nucm1(Cartesian::s,Cartesian::s));
@@ -195,17 +204,37 @@ namespace votca { namespace ctp {
             
         }
         
-         //p-d
-        if ( _lmax_row > 0 && _lmax_col > 1){
+        
+         // d-s
+        if ( _lmax_row > 1){
+           //cout << "\t setting d-s" << endl;
+                nuc(Cartesian::yy,Cartesian::s) =PmA[1]*nuc(Cartesian::y,Cartesian::s)-PmC[1]*nucm1(Cartesian::y,Cartesian::s)+_fak*(nuc(Cartesian::s,Cartesian::s)-nucm1(Cartesian::s,Cartesian::s));
+                nuc(Cartesian::xy,Cartesian::s) =PmA[0]*nuc(Cartesian::y,Cartesian::s)-PmC[0]*nucm1(Cartesian::y,Cartesian::s);
+                nuc(Cartesian::yz,Cartesian::s) =PmA[1]*nuc(Cartesian::z,Cartesian::s)-PmC[1]*nucm1(Cartesian::z,Cartesian::s);
+                nuc(Cartesian::xx,Cartesian::s) =PmA[0]*nuc(Cartesian::x,Cartesian::s)-PmC[0]*nucm1(Cartesian::x,Cartesian::s)+_fak*(nuc(Cartesian::s,Cartesian::s)-nucm1(Cartesian::s,Cartesian::s));
+                nuc(Cartesian::xz,Cartesian::s) =PmA[0]*nuc(Cartesian::z,Cartesian::s)-PmC[0]*nucm1(Cartesian::z,Cartesian::s);
+                nuc(Cartesian::zz,Cartesian::s) =PmA[2]*nuc(Cartesian::z,Cartesian::s)-PmC[2]*nucm1(Cartesian::z,Cartesian::s)+_fak*(nuc(Cartesian::s,Cartesian::s)-nucm1(Cartesian::s,Cartesian::s));
+
+         
+        }
+        
+        
+        if ( _lsum > 2 ){
             //cout << "\t setting p-d" << endl;
-            
+            if ( _lmax_col > 0){
             //s-p-2
                 nucm2(Cartesian::s,Cartesian::y) =PmB[1]*nucm2(Cartesian::s,Cartesian::s)-PmC[1]*nucm3(Cartesian::s,Cartesian::s);
                 nucm2(Cartesian::s,Cartesian::x) =PmB[0]*nucm2(Cartesian::s,Cartesian::s)-PmC[0]*nucm3(Cartesian::s,Cartesian::s);
                 nucm2(Cartesian::s,Cartesian::z) =PmB[2]*nucm2(Cartesian::s,Cartesian::s)-PmC[2]*nucm3(Cartesian::s,Cartesian::s);
-           
+            }
+            if ( _lmax_row > 0){    
+            //p-s-2
+                nucm2(Cartesian::y,Cartesian::s) =PmA[1]*nucm2(Cartesian::s,Cartesian::s)-PmC[1]*nucm3(Cartesian::s,Cartesian::s);
+                nucm2(Cartesian::x,Cartesian::s) =PmA[0]*nucm2(Cartesian::s,Cartesian::s)-PmC[0]*nucm3(Cartesian::s,Cartesian::s);
+                nucm2(Cartesian::z,Cartesian::s) =PmA[2]*nucm2(Cartesian::s,Cartesian::s)-PmC[2]*nucm3(Cartesian::s,Cartesian::s);
+            }
 
-
+            if ( _lmax_row > 0 && _lmax_col > 0 ) {
             //p-p-1
                 nucm1(Cartesian::y,Cartesian::y) =PmA[1]*nucm1(Cartesian::s,Cartesian::y)-PmC[1]*nucm2(Cartesian::s,Cartesian::y)+_fak*(nucm1(Cartesian::s,Cartesian::s)-nucm2(Cartesian::s,Cartesian::s));
                 nucm1(Cartesian::y,Cartesian::x) =PmA[1]*nucm1(Cartesian::s,Cartesian::x)-PmC[1]*nucm2(Cartesian::s,Cartesian::x);
@@ -216,7 +245,17 @@ namespace votca { namespace ctp {
                 nucm1(Cartesian::z,Cartesian::y) =PmA[2]*nucm1(Cartesian::s,Cartesian::y)-PmC[2]*nucm2(Cartesian::s,Cartesian::y);
                 nucm1(Cartesian::z,Cartesian::x) =PmA[2]*nucm1(Cartesian::s,Cartesian::x)-PmC[2]*nucm2(Cartesian::s,Cartesian::x);
                 nucm1(Cartesian::z,Cartesian::z) =PmA[2]*nucm1(Cartesian::s,Cartesian::z)-PmC[2]*nucm2(Cartesian::s,Cartesian::z)+_fak*(nucm1(Cartesian::s,Cartesian::s)-nucm2(Cartesian::s,Cartesian::s));
-
+        }
+        }
+        
+        
+        
+        
+         //p-d
+        if ( _lmax_row > 0 && _lmax_col > 1){
+            //cout << "\t setting p-d" << endl;
+            
+        
             // p-d-0
                 nuc(Cartesian::y,Cartesian::yy) =PmB[1]*nuc(Cartesian::y,Cartesian::y)-PmC[1]*nucm1(Cartesian::y,Cartesian::y)+_fak*(nuc(Cartesian::y,Cartesian::s)-nucm1(Cartesian::y,Cartesian::s))+_fak*(nuc(Cartesian::s,Cartesian::y)-nucm1(Cartesian::s,Cartesian::y));
                 nuc(Cartesian::y,Cartesian::xy) =PmB[0]*nuc(Cartesian::y,Cartesian::y)-PmC[0]*nucm1(Cartesian::y,Cartesian::y);
@@ -240,18 +279,7 @@ namespace votca { namespace ctp {
          
         }
 
-        // d-s
-        if ( _lmax_row > 1){
-           //cout << "\t setting d-s" << endl;
-                nuc(Cartesian::yy,Cartesian::s) =PmA[1]*nuc(Cartesian::y,Cartesian::s)-PmC[1]*nucm1(Cartesian::y,Cartesian::s)+_fak*(nuc(Cartesian::s,Cartesian::s)-nucm1(Cartesian::s,Cartesian::s));
-                nuc(Cartesian::xy,Cartesian::s) =PmA[0]*nuc(Cartesian::y,Cartesian::s)-PmC[0]*nucm1(Cartesian::y,Cartesian::s);
-                nuc(Cartesian::yz,Cartesian::s) =PmA[1]*nuc(Cartesian::z,Cartesian::s)-PmC[1]*nucm1(Cartesian::z,Cartesian::s);
-                nuc(Cartesian::xx,Cartesian::s) =PmA[0]*nuc(Cartesian::x,Cartesian::s)-PmC[0]*nucm1(Cartesian::x,Cartesian::s)+_fak*(nuc(Cartesian::s,Cartesian::s)-nucm1(Cartesian::s,Cartesian::s));
-                nuc(Cartesian::xz,Cartesian::s) =PmA[0]*nuc(Cartesian::z,Cartesian::s)-PmC[0]*nucm1(Cartesian::z,Cartesian::s);
-                nuc(Cartesian::zz,Cartesian::s) =PmA[2]*nuc(Cartesian::z,Cartesian::s)-PmC[2]*nucm1(Cartesian::z,Cartesian::s)+_fak*(nuc(Cartesian::s,Cartesian::s)-nucm1(Cartesian::s,Cartesian::s));
-
-         
-        }
+       
         
         
         // d-p
@@ -280,24 +308,19 @@ namespace votca { namespace ctp {
 
         }
         
-        // d-d
-        if ( _lmax_row > 1 && _lmax_col > 1 ){
-             // cout << "\t setting d-d" << endl;
+         
+        if ( _lsum > 2 && _lmax_col>1 && _lmax_row>1){
             
             
-            //p-s-2
-            nucm2(Cartesian::y,Cartesian::s) =PmA[1]*nucm2(Cartesian::s,Cartesian::s)-PmC[1]*nucm3(Cartesian::s,Cartesian::s);
-            nucm2(Cartesian::x,Cartesian::s) =PmA[0]*nucm2(Cartesian::s,Cartesian::s)-PmC[0]*nucm3(Cartesian::s,Cartesian::s);
-            nucm2(Cartesian::z,Cartesian::s) =PmA[2]*nucm2(Cartesian::s,Cartesian::s)-PmC[2]*nucm3(Cartesian::s,Cartesian::s);
-
+           if (  _lmax_col > 0){
             //s-p-3
             
             nucm3(Cartesian::s, Cartesian::y) = PmB[1] * nucm3(Cartesian::s, Cartesian::s) - PmC[1] * nucm4(Cartesian::s, Cartesian::s);
             nucm3(Cartesian::s, Cartesian::x) = PmB[0] * nucm3(Cartesian::s, Cartesian::s) - PmC[0] * nucm4(Cartesian::s, Cartesian::s);
             nucm3(Cartesian::s, Cartesian::z) = PmB[2] * nucm3(Cartesian::s, Cartesian::s) - PmC[2] * nucm4(Cartesian::s, Cartesian::s);
-
+            }
             
-            
+             if ( _lmax_row > 0 && _lmax_col > 0 ) {
             //p-p-2
             
             nucm2(Cartesian::y,Cartesian::y) =PmA[1]*nucm2(Cartesian::s,Cartesian::y)-PmC[1]*nucm3(Cartesian::s,Cartesian::y)+_fak*(nucm2(Cartesian::s,Cartesian::s)-nucm3(Cartesian::s,Cartesian::s));
@@ -309,8 +332,21 @@ namespace votca { namespace ctp {
             nucm2(Cartesian::z,Cartesian::y) =PmA[2]*nucm2(Cartesian::s,Cartesian::y)-PmC[2]*nucm3(Cartesian::s,Cartesian::y);
             nucm2(Cartesian::z,Cartesian::x) =PmA[2]*nucm2(Cartesian::s,Cartesian::x)-PmC[2]*nucm3(Cartesian::s,Cartesian::x);
             nucm2(Cartesian::z,Cartesian::z) =PmA[2]*nucm2(Cartesian::s,Cartesian::z)-PmC[2]*nucm3(Cartesian::s,Cartesian::z)+_fak*(nucm2(Cartesian::s,Cartesian::s)-nucm3(Cartesian::s,Cartesian::s));
-
+             }
             
+            
+              if ( _lmax_row > 0 && _lmax_col > 1){
+                  //s-d-1
+             
+            nucm1(Cartesian::s,Cartesian::yy) =PmB[1]*nucm1(Cartesian::s,Cartesian::y)-PmC[1]*nucm2(Cartesian::s,Cartesian::y)+_fak*(nucm1(Cartesian::s,Cartesian::s)-nucm2(Cartesian::s,Cartesian::s));
+            nucm1(Cartesian::s,Cartesian::xy) =PmB[0]*nucm1(Cartesian::s,Cartesian::y)-PmC[0]*nucm2(Cartesian::s,Cartesian::y);
+            nucm1(Cartesian::s,Cartesian::yz) =PmB[1]*nucm1(Cartesian::s,Cartesian::z)-PmC[1]*nucm2(Cartesian::s,Cartesian::z);
+            nucm1(Cartesian::s,Cartesian::xx) =PmB[0]*nucm1(Cartesian::s,Cartesian::x)-PmC[0]*nucm2(Cartesian::s,Cartesian::x)+_fak*(nucm1(Cartesian::s,Cartesian::s)-nucm2(Cartesian::s,Cartesian::s));
+            nucm1(Cartesian::s,Cartesian::xz) =PmB[0]*nucm1(Cartesian::s,Cartesian::z)-PmC[0]*nucm2(Cartesian::s,Cartesian::z);
+            nucm1(Cartesian::s,Cartesian::zz) =PmB[2]*nucm1(Cartesian::s,Cartesian::z)-PmC[2]*nucm2(Cartesian::s,Cartesian::z)+_fak*(nucm1(Cartesian::s,Cartesian::s)-nucm2(Cartesian::s,Cartesian::s));
+        }
+            
+             if ( _lmax_row > 0 && _lmax_col > 1){
             //p-d-1
             nucm1(Cartesian::y,Cartesian::yy) =PmB[1]*nucm1(Cartesian::y,Cartesian::y)-PmC[1]*nucm2(Cartesian::y,Cartesian::y)+_fak*(nucm1(Cartesian::y,Cartesian::s)-nucm2(Cartesian::y,Cartesian::s))+_fak*(nucm1(Cartesian::s,Cartesian::y)-nucm2(Cartesian::s,Cartesian::y));
             nucm1(Cartesian::y,Cartesian::xy) =PmB[0]*nucm1(Cartesian::y,Cartesian::y)-PmC[0]*nucm2(Cartesian::y,Cartesian::y);
@@ -330,16 +366,22 @@ namespace votca { namespace ctp {
             nucm1(Cartesian::z,Cartesian::xx) =PmB[0]*nucm1(Cartesian::z,Cartesian::x)-PmC[0]*nucm2(Cartesian::z,Cartesian::x)+_fak*(nucm1(Cartesian::z,Cartesian::s)-nucm2(Cartesian::z,Cartesian::s));
             nucm1(Cartesian::z,Cartesian::xz) =PmB[0]*nucm1(Cartesian::z,Cartesian::z)-PmC[0]*nucm2(Cartesian::z,Cartesian::z);
             nucm1(Cartesian::z,Cartesian::zz) =PmB[2]*nucm1(Cartesian::z,Cartesian::z)-PmC[2]*nucm2(Cartesian::z,Cartesian::z)+_fak*(nucm1(Cartesian::z,Cartesian::s)-nucm2(Cartesian::z,Cartesian::s))+_fak*(nucm1(Cartesian::s,Cartesian::z)-nucm2(Cartesian::s,Cartesian::z));
-
-            //s-d-1
+             }
             
-            nucm1(Cartesian::s,Cartesian::yy) =PmB[1]*nucm1(Cartesian::s,Cartesian::y)-PmC[1]*nucm2(Cartesian::s,Cartesian::y)+_fak*(nucm1(Cartesian::s,Cartesian::s)-nucm2(Cartesian::s,Cartesian::s));
-            nucm1(Cartesian::s,Cartesian::xy) =PmB[0]*nucm1(Cartesian::s,Cartesian::y)-PmC[0]*nucm2(Cartesian::s,Cartesian::y);
-            nucm1(Cartesian::s,Cartesian::yz) =PmB[1]*nucm1(Cartesian::s,Cartesian::z)-PmC[1]*nucm2(Cartesian::s,Cartesian::z);
-            nucm1(Cartesian::s,Cartesian::xx) =PmB[0]*nucm1(Cartesian::s,Cartesian::x)-PmC[0]*nucm2(Cartesian::s,Cartesian::x)+_fak*(nucm1(Cartesian::s,Cartesian::s)-nucm2(Cartesian::s,Cartesian::s));
-            nucm1(Cartesian::s,Cartesian::xz) =PmB[0]*nucm1(Cartesian::s,Cartesian::z)-PmC[0]*nucm2(Cartesian::s,Cartesian::z);
-            nucm1(Cartesian::s,Cartesian::zz) =PmB[2]*nucm1(Cartesian::s,Cartesian::z)-PmC[2]*nucm2(Cartesian::s,Cartesian::z)+_fak*(nucm1(Cartesian::s,Cartesian::s)-nucm2(Cartesian::s,Cartesian::s));
-
+        }
+     
+            
+            
+            
+            
+            
+            
+        
+        
+        // d-d
+        if ( _lmax_row > 1 && _lmax_col > 1 ){
+             // cout << "\t setting d-d" << endl;
+ 
             
             //d-d-0
             nuc(Cartesian::yy,Cartesian::yy) =PmA[1]*nuc(Cartesian::y,Cartesian::yy)-PmC[1]*nucm1(Cartesian::y,Cartesian::yy)+_fak*(nuc(Cartesian::s,Cartesian::yy)-nucm1(Cartesian::s,Cartesian::yy))+_fak2*(nuc(Cartesian::y,Cartesian::y)-nucm1(Cartesian::y,Cartesian::y));
@@ -383,7 +425,7 @@ namespace votca { namespace ctp {
             
         }
         
- 
+       // boost::timer::cpu_times t11 = cpu_t.elapsed();
         
         //cout << "Done with unnormalized matrix " << endl;
         
@@ -407,13 +449,17 @@ namespace votca { namespace ctp {
         ub::matrix<double> _trafo_col_tposed = ub::trans( _trafo_col );
         ub::matrix<double> _nuc_sph = ub::prod( _nuc_tmp, _trafo_col_tposed );
         // save to _matrix
+        if (_lmax_row > 1 || _lmax_col > 1 ){
+        _matrix = ub::project(_nuc_sph, ub::range(_shell_row->getOffset(), _matrix.size1() + 1), ub::range(_shell_col->getOffset(), _matrix.size2()));
+        }
+        else {
         for ( int i = 0; i< _matrix.size1(); i++ ) {
             for (int j = 0; j < _matrix.size2(); j++){
                 _matrix(i,j) = _nuc_sph(i+_shell_row->getOffset(),j+_shell_col->getOffset());
             }
         }
         
-        
+        }
         nuc.clear();
     }
     
