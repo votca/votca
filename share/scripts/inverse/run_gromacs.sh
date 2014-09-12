@@ -103,10 +103,9 @@ if [[ $(critical $grompp -h 2>&1) = *"VERSION 5.0"* && $(get_simulation_setting 
 fi
 
 #mdrun <4.6 does not have -nsteps options, remove this block whenever we drop support for <4.6
-if [[ $(critical $grompp -h 2>&1) = *"VERSION 4.[05]"* && ${CSG_MDRUN_STEPS} ]]; then
+if [[ $(critical $grompp -h 2>&1) = *"VERSION 4."[05]* && ${CSG_MDRUN_STEPS} ]]; then
   nsteps=$(get_simulation_setting nsteps)
   critical sed -i "/^nsteps/s/=.*/=${CSG_MDRUN_STEPS}/" $mdp
-  echo "cutoff-scheme = Group" >> $mdp
   msg --color blue --to-stderr "Automatically replace nsteps (=$nsteps) to be ${CSG_MDRUN_STEPS}"
 fi
 
