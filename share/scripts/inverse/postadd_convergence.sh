@@ -73,7 +73,14 @@ for ((i=0;i<${#what_to_do_list[@]};i++)); do
     fi
   fi
 
-  [[ -f ${name}.${dist}.new ]] || die "${0##*/}: file '${name}.${dist}.new' was not found, add a postadd routine of interaction $name to calculate it."
+  if [[ ! -f ${name}.${dist}.new ]]; then
+    #pot.new won't there yet as postadd dummy is called after postadd task automatically in post_add_single.sh
+    if [[ ${dist} = pot ]]; then
+      do_external postadd dummy "$1" "$2"
+    else
+      die "${0##*/}: file '${name}.${dist}.new' was not found, add a postadd routine of interaction $name to calculate it."
+    fi
+  fi
   #resample this, as density dist maybe has the wrong grid
   if [[ ! ${base} = "cur" ]]; then
       critical csg_resample --in ${name}.${dist}.new --out $tmp1 --grid "$min:$step:$max"
