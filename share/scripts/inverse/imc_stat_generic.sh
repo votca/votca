@@ -35,6 +35,11 @@ traj=$(csg_get_property cg.inverse.$sim_prog.traj)
 [[ -f $traj ]] || die "${0##*/}: traj file '$traj' not found"
 
 equi_time="$(csg_get_property cg.inverse.$sim_prog.equi_time)"
+if [[ ${CSG_RUNTEST} ]] && csg_calc "$equi_time" ">" "0"; then
+  msg --color blue --to-stderr "Automatically setting equi_time to 0, because CSG_RUNTEST was set"
+  equi_time=0
+fi
+
 first_frame="$(csg_get_property cg.inverse.$sim_prog.first_frame)"
 
 tasks=$(get_number_tasks)
