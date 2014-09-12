@@ -84,6 +84,7 @@
       <itemPath>../../include/votca/ctp/ewdspace.h</itemPath>
       <itemPath>../../include/votca/ctp/extractorfactory.h</itemPath>
       <itemPath>../../include/votca/ctp/fragment.h</itemPath>
+      <itemPath>../../include/votca/ctp/grid.h</itemPath>
       <itemPath>../../include/votca/ctp/gsl_boost_ublas_matrix_prod.h</itemPath>
       <itemPath>../../include/votca/ctp/gwbse.h</itemPath>
       <itemPath>../../include/votca/ctp/job.h</itemPath>
@@ -282,6 +283,8 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/fragment.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/grid.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/gsl_boost_ublas_matrix_prod.h"
             ex="false"
@@ -920,6 +923,8 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/fragment.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/grid.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/gsl_boost_ublas_matrix_prod.h"
             ex="false"

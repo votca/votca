@@ -8,6 +8,7 @@
 #include <votca/ctp/logger.h>
 #include <votca/ctp/elements.h>
 #include <votca/tools/linalg.h>
+#include <votca/ctp/grid.h>
 
 using boost::format;
 
@@ -208,6 +209,12 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     // SHIT GETS REAL HERE
     Elements _elements;
     const vector< QMAtom* >& Atomlist= orb_iter_output.QMAtoms();
+    
+    Grid _grid;
+    _grid.setupCHELPgrid(Atomlist);
+     LOG(logDEBUG, *_log) << TimeStamp() <<  " Done setting up CHELPG grid with " << _grid._gridpoints.size() << " points " << endl;
+    _grid.printGridtofile("grid.xyz");
+   /* 
     std::vector< ub::vector<double> > Positionlist;
     
     double padding=2.8; // Additional distance from molecule to set up grid according to CHELPG paper [Journal of Computational Chemistry 11, 361, 1990]
@@ -242,7 +249,7 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     }    
 
         double boxdimx=xmax-xmin+2*padding;
-        std::vector< ub::vector<double> > Gridpoints;
+        std::vector< ub::vector<double> > _gridpoints;
         
         double x=xmin-padding;
         
@@ -280,7 +287,7 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
                         temppos(0)=x;
                         temppos(1)=y;        
                         temppos(2)=z;
-                        Gridpoints.push_back(temppos);
+                        _gridpoints.push_back(temppos);
                     }
                     z+=gridspacing; 
                 }
@@ -290,21 +297,21 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
           x+=gridspacing;
           //cout << (x<xmax+padding) << endl;     
         }
-    LOG(logDEBUG, *_log) << TimeStamp() <<  " Done setting up CHELPG grid with " << Gridpoints.size() << " points " << endl;
+    LOG(logDEBUG, *_log) << TimeStamp() <<  " Done setting up CHELPG grid with " << _gridpoints.size() << " points " << endl;
     // check if 
     
     ofstream points;
     points.open("gridpoints.xyz", ofstream::out);
-    points << Gridpoints.size() << endl;
+    points << _gridpoints.size() << endl;
     points << endl;
-    for ( int i = 0 ; i < Gridpoints.size(); i++){
-        points << "X " << Gridpoints[i](0) << " " << Gridpoints[i](1) << " " << Gridpoints[i](2) << endl;
+    for ( int i = 0 ; i < _gridpoints.size(); i++){
+        points << "X " << _gridpoints[i](0) << " " << _gridpoints[i](1) << " " << _gridpoints[i](2) << endl;
         
     }
     points.close();
     //Hallelujah
     
-    
+  */  
     
     
    
@@ -332,14 +339,14 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 
     
     
-    ub::vector<double> _ESPatGrid = ub::zero_vector<double>(Gridpoints.size());
-    ub::vector<double> _NucPatGrid = ub::zero_vector<double>(Gridpoints.size());
+    ub::vector<double> _ESPatGrid = ub::zero_vector<double>(_grid._gridpoints.size());
+    ub::vector<double> _NucPatGrid = ub::zero_vector<double>(_grid._gridpoints.size());
     
     LOG(logDEBUG, *_log) << TimeStamp() << " Calculating ESP of nuclei at CHELPG grid points"  << flush;  
-    for ( int i = 0 ; i < Gridpoints.size(); i++){
-      double x_k = Gridpoints[i](0);
-      double y_k = Gridpoints[i](1);
-      double z_k = Gridpoints[i](2);
+    for ( int i = 0 ; i < _grid._gridpoints.size(); i++){
+      double x_k = _grid._gridpoints[i](0);
+      double y_k = _grid._gridpoints[i](1);
+      double z_k = _grid._gridpoints[i](2);
 
 
       for ( int j = 0; j < Atomlist.size(); j++){
@@ -372,11 +379,11 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     ub::vector<double> DMATGSasarray=DMATGS.data();
     LOG(logDEBUG, *_log) << TimeStamp() << " Calculating ESP at CHELPG grid points"  << flush;  
     #pragma omp parallel for
-    for ( int i = 0 ; i < Gridpoints.size(); i++){
+    for ( int i = 0 ; i < _grid._gridpoints.size(); i++){
         // AOESP matrix
          AOESP _aoesp;
          _aoesp.Initialize(dftbasis._AOBasisSize);
-         _aoesp.Fill(&dftbasis, Gridpoints[i]*1.8897259886);
+         _aoesp.Fill(&dftbasis, _grid._gridpoints[i]*1.8897259886);
         ub::vector<double> AOESPasarray=_aoesp._aomatrix.data();
       
         for ( int _i =0; _i < DMATGSasarray.size(); _i++ ){
@@ -404,11 +411,11 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
             double x_j = Atomlist[_j]->x;
             double y_j = Atomlist[_j]->y;
             double z_j = Atomlist[_j]->z;
-            for ( int _k=0; _k < Gridpoints.size(); _k++){
+            for ( int _k=0; _k < _grid._gridpoints.size(); _k++){
             
-                double x_k = Gridpoints[_k](0);
-                double y_k = Gridpoints[_k](1);
-                double z_k = Gridpoints[_k](2);
+                double x_k = _grid._gridpoints[_k](0);
+                double y_k = _grid._gridpoints[_k](1);
+                double z_k = _grid._gridpoints[_k](2);
                 
                 double dist_i = sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     )*1.8897259886;
                 double dist_j = sqrt( (x_j - x_k)*(x_j - x_k) +  (y_j - y_k)*(y_j - y_k) + (z_j - z_k)*(z_j - z_k)     )*1.8897259886;
@@ -435,11 +442,11 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
         double x_i = Atomlist[_i]->x;
         double y_i = Atomlist[_i]->y;
         double z_i = Atomlist[_i]->z;
-        for ( int _k=0; _k < Gridpoints.size(); _k++){
+        for ( int _k=0; _k < _grid._gridpoints.size(); _k++){
             
-                double x_k = Gridpoints[_k](0);
-                double y_k = Gridpoints[_k](1);
-                double z_k = Gridpoints[_k](2);
+                double x_k = _grid._gridpoints[_k](0);
+                double y_k = _grid._gridpoints[_k](1);
+                double z_k = _grid._gridpoints[_k](2);
                 
                 double dist_i = sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     )*1.8897259886;
                 _Bvec(_i,0) += _ESPatGrid(_k)/dist_i;
@@ -473,10 +480,10 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     // get RMSE
     double _rmse = 0.0;
     double _totalESPsq = 0.0;
-    for ( int _k=0 ; _k < Gridpoints.size(); _k++ ){
-        double x_k = Gridpoints[_k](0);
-        double y_k = Gridpoints[_k](1);
-        double z_k = Gridpoints[_k](2);
+    for ( int _k=0 ; _k < _grid._gridpoints.size(); _k++ ){
+        double x_k = _grid._gridpoints[_k](0);
+        double y_k = _grid._gridpoints[_k](1);
+        double z_k = _grid._gridpoints[_k](2);
         double temp = 0.0;
         for ( int _i=0; _i < Atomlist.size(); _i++ ){
             double x_i = Atomlist[_i]->x;
@@ -490,7 +497,7 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
         _totalESPsq += _ESPatGrid(_k)*_ESPatGrid(_k);
         
     }
-    LOG(logDEBUG, *_log) << " RMSE of fit:  " << sqrt(_rmse/Gridpoints.size()) << flush;
+    LOG(logDEBUG, *_log) << " RMSE of fit:  " << sqrt(_rmse/_grid._gridpoints.size()) << flush;
     LOG(logDEBUG, *_log) << " RRMSE of fit: " << sqrt(_rmse/_totalESPsq) << flush;
     
    
