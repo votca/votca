@@ -212,107 +212,10 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     
     Grid _grid;
     _grid.setupCHELPgrid(Atomlist);
-     LOG(logDEBUG, *_log) << TimeStamp() <<  " Done setting up CHELPG grid with " << _grid._gridpoints.size() << " points " << endl;
+    std::vector< ub::vector<double> > &_gridpoints=_grid.getGrid();
+     LOG(logDEBUG, *_log) << TimeStamp() <<  " Done setting up CHELPG grid with " << _gridpoints.size() << " points " << endl;
     _grid.printGridtofile("grid.xyz");
-   /* 
-    std::vector< ub::vector<double> > Positionlist;
-    
-    double padding=2.8; // Additional distance from molecule to set up grid according to CHELPG paper [Journal of Computational Chemistry 11, 361, 1990]
-    double gridspacing=0.3; // Grid spacing according to same paper 
-    double cutoff=2.8;
-    // rewrite QMAtoms coordinates to vector of ub::vector
-    double xmin=1000;
-    double ymin=1000;
-    double zmin=1000;
-    
-    double xmax=-1000;
-    double ymax=-1000;
-    double zmax=-1000;
-    double xtemp,ytemp,ztemp;
-    for (vector<QMAtom* >::const_iterator atom = Atomlist.begin(); atom != Atomlist.end(); ++atom ) {
-        xtemp=(*atom)->x;
-        ytemp=(*atom)->y;
-        ztemp=(*atom)->z;
-        if (xtemp<xmin)
-            xmin=xtemp;
-        if (xtemp>xmax)
-            xmax=xtemp;
-         if (ytemp<ymin)
-            ymin=ytemp;
-        if (ytemp>ymax)
-            ymax=ytemp;
-         if (ztemp<zmin)
-            zmin=ztemp;
-        if (ztemp>zmax)
-            zmax=ztemp;
-      
-    }    
 
-        double boxdimx=xmax-xmin+2*padding;
-        std::vector< ub::vector<double> > _gridpoints;
-        
-        double x=xmin-padding;
-        
-        
-        ub::vector<double> temppos= ub::zero_vector<double>(3);
-        while(x< xmax+padding){
-           double y=ymin-padding;
-           while(y< ymax+padding){
-                double z=zmin-padding;
-                while(z< zmax+padding){
-                    bool _is_valid = false;
-                        for (vector<QMAtom* >::const_iterator atom = Atomlist.begin(); atom != Atomlist.end(); ++atom ) {
-                            //cout << "Punkt " << x <<":"<< y << ":"<<z << endl;
-                            xtemp=(*atom)->x;
-                            ytemp=(*atom)->y;
-                            ztemp=(*atom)->z;
-                            double distance2=pow((x-xtemp),2)+pow((y-ytemp),2)+pow((z-ztemp),2);
-                            double VdW=_elements.getVdWChelpG((*atom)->type);
-                            //cout << "Punkt " << x <<":"<< y << ":"<<z << ":"<< distance2 << ":"<< (*atom)->type <<":"<<pow(VdW,2)<< endl;
-                            if (distance2<pow(VdW,2)){
-                                //cout << "Punkt" << x <<":"<< y << ":"<<z << "rejected" << endl;
-                                    
-                                _is_valid = false;
-                                break;
-                                }
-                            else if (distance2<pow(cutoff,2)){
-                                //cout << "hier" << endl;
-                                _is_valid = true;
-                            }
-                            
-                            
-    
-                        }
-                    if (_is_valid){
-                        temppos(0)=x;
-                        temppos(1)=y;        
-                        temppos(2)=z;
-                        _gridpoints.push_back(temppos);
-                    }
-                    z+=gridspacing; 
-                }
-                y+=gridspacing;
-             //cout << "Punkt " << x  <<":"<<  xmax+padding <<":"<< y << ":"<<z << endl;
-            }
-          x+=gridspacing;
-          //cout << (x<xmax+padding) << endl;     
-        }
-    LOG(logDEBUG, *_log) << TimeStamp() <<  " Done setting up CHELPG grid with " << _gridpoints.size() << " points " << endl;
-    // check if 
-    
-    ofstream points;
-    points.open("gridpoints.xyz", ofstream::out);
-    points << _gridpoints.size() << endl;
-    points << endl;
-    for ( int i = 0 ; i < _gridpoints.size(); i++){
-        points << "X " << _gridpoints[i](0) << " " << _gridpoints[i](1) << " " << _gridpoints[i](2) << endl;
-        
-    }
-    points.close();
-    //Hallelujah
-    
-  */  
-    
     
    
     
@@ -336,17 +239,18 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     dftbasis.ReorderMOs(_dft_orbitals_GS, orb_iter_output.getQMpackage(), "votca" );
     ub::matrix<double> &DMATGS=orb_iter_output.DensityMatrixGroundState(_dft_orbitals_GS);
     
+    
 
     
     
-    ub::vector<double> _ESPatGrid = ub::zero_vector<double>(_grid._gridpoints.size());
-    ub::vector<double> _NucPatGrid = ub::zero_vector<double>(_grid._gridpoints.size());
+    ub::vector<double> _ESPatGrid = ub::zero_vector<double>(_gridpoints.size());
+    ub::vector<double> _NucPatGrid = ub::zero_vector<double>(_gridpoints.size());
     
     LOG(logDEBUG, *_log) << TimeStamp() << " Calculating ESP of nuclei at CHELPG grid points"  << flush;  
-    for ( int i = 0 ; i < _grid._gridpoints.size(); i++){
-      double x_k = _grid._gridpoints[i](0);
-      double y_k = _grid._gridpoints[i](1);
-      double z_k = _grid._gridpoints[i](2);
+    for ( int i = 0 ; i < _gridpoints.size(); i++){
+      double x_k = _gridpoints[i](0);
+      double y_k = _gridpoints[i](1);
+      double z_k = _gridpoints[i](2);
 
 
       for ( int j = 0; j < Atomlist.size(); j++){
@@ -379,11 +283,11 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     ub::vector<double> DMATGSasarray=DMATGS.data();
     LOG(logDEBUG, *_log) << TimeStamp() << " Calculating ESP at CHELPG grid points"  << flush;  
     #pragma omp parallel for
-    for ( int i = 0 ; i < _grid._gridpoints.size(); i++){
+    for ( int i = 0 ; i < _gridpoints.size(); i++){
         // AOESP matrix
          AOESP _aoesp;
          _aoesp.Initialize(dftbasis._AOBasisSize);
-         _aoesp.Fill(&dftbasis, _grid._gridpoints[i]*1.8897259886);
+         _aoesp.Fill(&dftbasis, _gridpoints[i]*1.8897259886);
         ub::vector<double> AOESPasarray=_aoesp._aomatrix.data();
       
         for ( int _i =0; _i < DMATGSasarray.size(); _i++ ){
@@ -411,11 +315,11 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
             double x_j = Atomlist[_j]->x;
             double y_j = Atomlist[_j]->y;
             double z_j = Atomlist[_j]->z;
-            for ( int _k=0; _k < _grid._gridpoints.size(); _k++){
+            for ( int _k=0; _k < _gridpoints.size(); _k++){
             
-                double x_k = _grid._gridpoints[_k](0);
-                double y_k = _grid._gridpoints[_k](1);
-                double z_k = _grid._gridpoints[_k](2);
+                double x_k = _gridpoints[_k](0);
+                double y_k = _gridpoints[_k](1);
+                double z_k = _gridpoints[_k](2);
                 
                 double dist_i = sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     )*1.8897259886;
                 double dist_j = sqrt( (x_j - x_k)*(x_j - x_k) +  (y_j - y_k)*(y_j - y_k) + (z_j - z_k)*(z_j - z_k)     )*1.8897259886;
@@ -442,11 +346,11 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
         double x_i = Atomlist[_i]->x;
         double y_i = Atomlist[_i]->y;
         double z_i = Atomlist[_i]->z;
-        for ( int _k=0; _k < _grid._gridpoints.size(); _k++){
+        for ( int _k=0; _k < _gridpoints.size(); _k++){
             
-                double x_k = _grid._gridpoints[_k](0);
-                double y_k = _grid._gridpoints[_k](1);
-                double z_k = _grid._gridpoints[_k](2);
+                double x_k = _gridpoints[_k](0);
+                double y_k = _gridpoints[_k](1);
+                double z_k = _gridpoints[_k](2);
                 
                 double dist_i = sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     )*1.8897259886;
                 _Bvec(_i,0) += _ESPatGrid(_k)/dist_i;
@@ -480,10 +384,10 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     // get RMSE
     double _rmse = 0.0;
     double _totalESPsq = 0.0;
-    for ( int _k=0 ; _k < _grid._gridpoints.size(); _k++ ){
-        double x_k = _grid._gridpoints[_k](0);
-        double y_k = _grid._gridpoints[_k](1);
-        double z_k = _grid._gridpoints[_k](2);
+    for ( int _k=0 ; _k < _gridpoints.size(); _k++ ){
+        double x_k = _gridpoints[_k](0);
+        double y_k = _gridpoints[_k](1);
+        double z_k = _gridpoints[_k](2);
         double temp = 0.0;
         for ( int _i=0; _i < Atomlist.size(); _i++ ){
             double x_i = Atomlist[_i]->x;
@@ -497,7 +401,7 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
         _totalESPsq += _ESPatGrid(_k)*_ESPatGrid(_k);
         
     }
-    LOG(logDEBUG, *_log) << " RMSE of fit:  " << sqrt(_rmse/_grid._gridpoints.size()) << flush;
+    LOG(logDEBUG, *_log) << " RMSE of fit:  " << sqrt(_rmse/_gridpoints.size()) << flush;
     LOG(logDEBUG, *_log) << " RRMSE of fit: " << sqrt(_rmse/_totalESPsq) << flush;
     
    

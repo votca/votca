@@ -10,6 +10,7 @@
 #include <votca/ctp/gwbse.h>
 #include <votca/ctp/qmpackagefactory.h>
 #include <votca/ctp/orbitals.h>
+#include <votca/ctp/grid.h>
 
 
 namespace votca { namespace ctp {

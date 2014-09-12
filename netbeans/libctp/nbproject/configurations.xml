@@ -77,6 +77,7 @@
       <itemPath>../../include/votca/ctp/calculatorfactory.h</itemPath>
       <itemPath>../../include/votca/ctp/ctpapplication.h</itemPath>
       <itemPath>../../include/votca/ctp/elements.h</itemPath>
+      <itemPath>../../include/votca/ctp/espfit.h</itemPath>
       <itemPath>../../include/votca/ctp/ewald2d.h</itemPath>
       <itemPath>../../include/votca/ctp/ewald3d.h</itemPath>
       <itemPath>../../include/votca/ctp/ewaldactor.h</itemPath>
@@ -274,6 +275,8 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/elements.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/espfit.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/ewdspace.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -914,6 +917,8 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/elements.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/espfit.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/ewdspace.h" ex="false" tool="3" flavor2="0">
       </item>

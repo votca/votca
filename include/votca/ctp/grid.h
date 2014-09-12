@@ -42,9 +42,15 @@ namespace votca { namespace ctp {
     
   class Grid{
     public:
-        Grid();
-        ~Grid();
-        std::vector< ub::vector<double> > _gridpoints;
+        
+        
+        Grid() {};
+        
+        ~Grid() {};
+        
+        std::vector< ub::vector<double> > &getGrid() {return _gridpoints;}
+        
+        int getsize(){ return _gridpoints.size(); }
         
         void printGridtofile(const char* _filename){
             ofstream points;
@@ -58,6 +64,8 @@ namespace votca { namespace ctp {
             points.close();
         }
         
+        
+       
         void setupCHELPgrid(const vector< QMAtom* >& Atomlist ){
             Elements _elements;
 
@@ -150,7 +158,8 @@ namespace votca { namespace ctp {
         
         
         }
-        
+  private:
+      std::vector< ub::vector<double> > _gridpoints;
         
     };   
     
