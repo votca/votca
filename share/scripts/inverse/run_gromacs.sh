@@ -102,6 +102,14 @@ if [[ $(critical $grompp -h 2>&1) = *"VERSION 5.0"* && $(get_simulation_setting 
   msg --color blue --to-stderr "Automatically added 'cutoff-scheme = Group' to $mdp, tabulated interactions only work with Group cutoff-scheme!"
 fi
 
+#mdrun <4.6 does not have -nsteps options, remove this block whenever we drop support for <4.6
+if [[ $(critical $grompp -h 2>&1) = *"VERSION 4.[05]"* && ${CSG_MDRUN_STEPS} ]]; then
+  nsteps=$(get_simulation_setting nsteps)
+  critical sed -i "/^nsteps/s/=.*/=${CSG_MDRUN_STEPS}/" $mdp
+  echo "cutoff-scheme = Group" >> $mdp
+  msg --color blue --to-stderr "Automatically replace nsteps (=$nsteps) to be ${CSG_MDRUN_STEPS}"
+fi
+
 #see can run grompp again as checksum of tpr does not appear in the checkpoint
 critical $grompp -n "${index}" -f "${mdp}" -p "$topol_in" -o "$tpr" -c "${conf}" ${grompp_opts} 2>&1 | gromacs_log "$grompp -n "${index}" -f "${mdp}" -p "$topol_in" -o "$tpr" -c "${conf}" ${grompp_opts}"
 [[ -f $tpr ]] || die "${0##*/}: gromacs tpr file '$tpr' not found after runing grompp"
