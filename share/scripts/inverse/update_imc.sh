@@ -31,10 +31,10 @@ sim_prog="$(csg_get_property cg.inverse.program)"
 do_external imc_stat $sim_prog
 
 imc_groups=$(csg_get_interaction_property --all inverse.imc.group)
-imc_groups=$(echo "$imc_groups" | sort -u)
+imc_groups=$(remove_duplicate $imc_groups)
 for group in $imc_groups; do
   # currently this is a hack! need to create combined array
-  msg "solving linear equations for $group"
+  msg "solving linear equations for imc group '$group'"
   critical csg_imcrepack --in ${group} --out ${group}.packed
   do_external imcsolver $solver ${group}.packed ${group}.packed.sol
   critical csg_imcrepack --in ${group}.packed --unpack ${group}.packed.sol
