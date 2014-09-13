@@ -32,6 +32,7 @@ do_external imc_stat $sim_prog
 
 imc_groups=$(csg_get_interaction_property --all inverse.imc.group)
 imc_groups=$(remove_duplicate $imc_groups)
+[[ -z ${imc_groups} ]] && die "${0##*/}: No imc groups defined"
 for group in $imc_groups; do
   # currently this is a hack! need to create combined array
   msg "solving linear equations for imc group '$group'"
