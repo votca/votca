@@ -409,7 +409,7 @@ has_duplicate() { #check if one of the arguments is double
   local i j
   [[ -z $1 ]] && die "${FUNCNAME[0]}: Missing argument"
   for ((i=1;i<$#;i++)); do
-    for ((j=i+1;j<$#;j++)); do
+    for ((j=i+1;j<=$#;j++)); do
       [[ ${!i} = ${!j} ]] && echo ${!i} && return 0
     done
   done
@@ -420,7 +420,7 @@ export -f has_duplicate
 remove_duplicate() { #remove duplicates list of arguments
   local i j out=() c
   [[ -z $1 ]] && die "${FUNCNAME[0]}: Missing argument"
-  for ((i=1;i<$#;i++)); do
+  for ((i=1;i<=$#;i++)); do
     c=0
     for ((j=0;j<${#out[@]};j++)); do
       [[ ${!i} = ${out[j]} ]] && ((c++))
