@@ -98,7 +98,7 @@ template<class parent, class T> parent* create_policy_new()
 template<typename key_t, typename T>
 inline void ObjectFactory<key_t, T>::Register(const key_t &key, creator_t creator)
 {
-    _objects.insert(typename assoc_map::value_type(key, creator)).second;
+    (void)_objects.insert(typename assoc_map::value_type(key, creator)).second;
 }
 
 template<typename key_t, typename T>
