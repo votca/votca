@@ -250,7 +250,7 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
                         for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                             GaussianPrimitive* gaussian = *itg;
                             //_com_file << gaussian->decay << " " << gaussian->contraction << endl;
-                            _el_file << FortranFormat( gaussian->decay )<< " " << FortranFormat( gaussian->contraction ) << endl;
+                            _el_file << FortranFormat( gaussian->decay )<< " " << FortranFormat( gaussian->contraction[0] ) << endl;
                         }
                     }
                     
@@ -309,7 +309,7 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
                         
                         for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                             GaussianPrimitive* gaussian = *itg;
-                            _com_file << gaussian->power << " " << gaussian->decay << " " << gaussian->contraction << endl;
+                            _com_file << gaussian->power << " " << gaussian->decay << " " << gaussian->contraction[0] << endl;
                         }
                     }
                 }
@@ -423,7 +423,7 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
                         for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                             GaussianPrimitive* gaussian = *itg;
                             //_com_file << gaussian->decay << " " << gaussian->contraction << endl;
-                            _el_file << FortranFormat( gaussian->decay )<< " " << FortranFormat( gaussian->contraction ) << endl;
+                            _el_file << FortranFormat( gaussian->decay )<< " " << FortranFormat( gaussian->contraction [0]) << endl;
                         }
                     }
                     
@@ -482,7 +482,7 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
                         
                         for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                             GaussianPrimitive* gaussian = *itg;
-                            _com_file <<  gaussian->power << " " <<  FortranFormat(gaussian->decay) << " " <<  FortranFormat(gaussian->contraction) << endl;
+                            _com_file <<  gaussian->power << " " <<  FortranFormat(gaussian->decay) << " " <<  FortranFormat(gaussian->contraction[0]) << endl;
                         }
                     }
                 }

@@ -372,8 +372,11 @@ namespace votca {
             _gwoverlap.Initialize(gwbasis._AOBasisSize);
             // Fill overlap
             _gwoverlap.Fill(&gwbasis);
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled GW Overlap matrix of dimension: " << _gwoverlap._aomatrix.size1() << flush;
             
+            _gwoverlap.Print("AOOL");
+            
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled GW Overlap matrix of dimension: " << _gwoverlap._aomatrix.size1() << flush;
+            exit(0);
             // check eigenvalues of overlap matrix, if too small basis might have linear dependencies
             ub::vector<double> _eigenvalues;
             ub::matrix<double> _eigenvectors;
