@@ -35,8 +35,6 @@
 
 namespace votca { namespace tools {
 
-using namespace std;
-
 /**
   \brief MARSAGLIA pseudo random number generator
 

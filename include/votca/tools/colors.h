@@ -90,6 +90,7 @@ public:
     virtual const char *Magenta() const = 0;
     virtual const char *Cyan() const = 0;
     virtual const char *White() const = 0;
+    virtual ~ColorSchemeBase(){};
 };
 
 template <typename TColorScheme>
