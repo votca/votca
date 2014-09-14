@@ -36,9 +36,8 @@ double PotentialFunctionLJG::CalculateDF(const int i, const double r) const {
         exp( -1.0*_lam(3)*(r-_lam(4))*(r-_lam(4)) );
     }
 
-  } else
-    return 0.0;
-
+  }
+  return 0.0;
 }
 
 // calculate second derivative w.r.t. ith parameter
@@ -104,7 +103,6 @@ double PotentialFunctionLJG::CalculateD2F(const int i, const int j,
           exp( -1.0*_lam(3)*(r-_lam(4))*(r-_lam(4)) );
       }
     }
-  } else
-    return 0.0;
-
+  }
+  return 0.0;
 }

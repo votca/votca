@@ -26,9 +26,8 @@ double PotentialFunctionLJ126::CalculateDF(const int i, const double r) const {
       return -1.0/pow(r,6);
     }
 
-  } else
-    return 0.0;
-
+  }
+  return 0.0;
 }
 
 // calculate second derivative w.r.t. ith and jth parameters
