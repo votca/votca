@@ -44,7 +44,7 @@ namespace votca { namespace ctp {
         /*cout << "\nAO block: "<< endl;
         cout << "\t row: " << _shell_row->getType() << " at " << _shell_row->getPos() << endl;
         cout << "\t col: " << _shell_col->getType() << " at " << _shell_col->getPos() << endl;*/
-
+       
         // shell info, only lmax tells how far to go
         int _lmax_row = _shell_row->getLmax();
         int _lmax_col = _shell_col->getLmax();
@@ -63,7 +63,10 @@ namespace votca { namespace ctp {
         const vec& _pos_row = _shell_row->getPos();
         const vec& _pos_col = _shell_col->getPos();
         const vec  _diff    = _pos_row - _pos_col;
-        
+        vector<double> _pma (3,0.0);
+        vector<double> _pmb (3,0.0);
+          
+        double _distsq = (_diff.getX()*_diff.getX()) + (_diff.getY()*_diff.getY()) + (_diff.getZ()*_diff.getZ());    
 
        // cout << "row shell is " << _shell_row->getSize() << " -fold contracted!" << endl;
         //cout << "col shell is " << _shell_col->getSize() << " -fold contracted!" << endl;
@@ -72,21 +75,27 @@ namespace votca { namespace ctp {
         // iterate over Gaussians in this _shell_row
         for ( GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr){
             // iterate over Gaussians in this _shell_col
-            for ( GaussianIterator itc = _shell_col->firstGaussian(); itc != _shell_col->lastGaussian(); ++itc){
-
-            // initialize local matrix block for unnormalized cartesians
-            ub::matrix<double> _ol = ub::zero_matrix<double>(_nrows,_ncols);
-
-            // get decay constants (this all is still valid only for uncontracted functions)
             const double& _decay_row = (*itr)->decay;
-            const double& _decay_col = (*itc)->decay;
+            
+            for ( GaussianIterator itc = _shell_col->firstGaussian(); itc != _shell_col->lastGaussian(); ++itc){
+           
+            
+           
 
+            // get decay constants 
+            const double& _decay_col = (*itc)->decay;
+            
             // some helpers
-            vector<double> _pma (3,0.0);
-            vector<double> _pmb (3,0.0);
-            double _distsq = 0.0;
             const double _fak  = 0.5/(_decay_row + _decay_col);
             const double _fak2 = 2.0 * _fak;
+            
+            // check if distance between postions is big, then skip step   
+            double _exparg = _fak2 * _decay_row * _decay_col *_distsq;
+            if ( _exparg > 30.0 ) { continue; }
+             // initialize local matrix block for unnormalized cartesians
+            ub::matrix<double> _ol = ub::zero_matrix<double>(_nrows,_ncols);
+        
+            // some helpers
             const double _fak3 = 3.0 * _fak;
             const double _fak4 = 4.0 * _fak;
 
@@ -98,10 +107,8 @@ namespace votca { namespace ctp {
             _pmb[1] = _fak2*( _decay_row * _pos_row.getY() + _decay_col * _pos_col.getY() ) - _pos_col.getY();
             _pmb[2] = _fak2*( _decay_row * _pos_row.getZ() + _decay_col * _pos_col.getZ() ) - _pos_col.getZ();
         
-            _distsq = (_diff.getX()*_diff.getX()) + (_diff.getY()*_diff.getY()) + (_diff.getZ()*_diff.getZ()); 
+            
 
-        // no need to calculate anything if distance between shells is > 14 Bohr
-        // if ( _distsq > 196.0 ) { return; }
         
         // calculate matrix elements
         _ol(0,0) = pow(4.0*_decay_row*_decay_col,0.75) * pow(_fak2,1.5)*exp(-_fak2 * _decay_row * _decay_col *_distsq); // s-s element

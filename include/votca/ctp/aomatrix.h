@@ -79,7 +79,8 @@ namespace votca { namespace ctp {
         
         // matrix print 
         void Print( string _ident);
-        
+        // integrate F
+        void XIntegrate( vector<double>& _FmT, const double& _T );
         // block fill prototype
         virtual void FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, bool _raw = false) {} ;
 
@@ -156,7 +157,7 @@ namespace votca { namespace ctp {
         //void Print();
         
         // ~AOESP();
-        void XIntegrate( vector<double>& _FmT, const double& _T );
+        
         
     };
     
@@ -184,7 +185,6 @@ namespace votca { namespace ctp {
     public:
         int getExtraBlockSize( int lmax_row, int lmax_col  );
         void FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, bool _raw = false);
-        void XIntegrate( vector<double>& _FmT, const double& _T );
         void Symmetrize( AOOverlap& _overlap , AOBasis& _basis, AOOverlap& _overlap_inverse , AOOverlap& _gwoverlap_cholesky_inverse );
         
   

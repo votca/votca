@@ -467,7 +467,50 @@ namespace votca { namespace ctp {
         
     }
 
-    
+    void AOMatrix::XIntegrate(vector<double>& _FmT, const double& _T  ){
+        
+        const int _mm = _FmT.size() - 1;
+        const double pi = boost::math::constants::pi<double>();
+        if ( _mm < 0 || _mm > 10){
+            cerr << "mm is: " << _mm << " This should not have happened!" << flush;
+            exit(1);
+        }
+        
+        if ( _T < 0.0 ) {
+            cerr << "T is: " << _T << " This should not have happened!" << flush;
+            exit(1);
+        }
+  
+        if ( _T >= 10.0 ) {
+            // forward iteration
+            _FmT[0]=0.50*sqrt(pi/_T)* erf(sqrt(_T));
+
+            for (int m = 1; m < _FmT.size(); m++ ){
+                _FmT[m] = (2*m-1) * _FmT[m-1]/(2.0*_T) - exp(-_T)/(2.0*_T) ;
+            }
+        }
+
+        if ( _T < 1e-10 ){
+           for ( int m=0; m < _FmT.size(); m++){
+               _FmT[m] = 1.0/(2.0*m+1.0) - _T/(2.0*m+3.0); 
+           }
+        }
+
+        
+        if ( _T >= 1e-10 && _T < 10.0 ){
+            // backward iteration
+            double fm = 0.0;
+            for ( int m = 60; m >= _mm; m--){
+                fm = (2.0*_T)/(2.0*m+1.0) * ( fm + exp(-_T)/(2.0*_T));
+            } 
+            _FmT[_mm] = fm;
+            for (int m = _mm-1 ; m >= 0; m--){
+                _FmT[m] = (2.0*_T)/(2.0*m+1.0) * (_FmT[m+1] + exp(-_T)/(2.0*_T));
+            }
+        }
+        
+
+    }
     
     
     int AOSuperMatrix::getBlockSize(int _lmax){

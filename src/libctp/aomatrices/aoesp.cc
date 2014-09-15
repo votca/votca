@@ -50,6 +50,7 @@ namespace votca { namespace ctp {
         cout << "\t row: " << _shell_row->getType() << " at " << _shell_row->getPos() << endl;
         cout << "\t col: " << _shell_col->getType() << " at " << _shell_col->getPos() << endl;*/
         const double pi = boost::math::constants::pi<double>();
+       
         
         // cout << _gridpoint << endl;
         // shell info, only lmax tells how far to go
@@ -74,28 +75,43 @@ namespace votca { namespace ctp {
          * COEFFICIENTS, AND ADD TO matrix(i,j)
          */
         
-        // get decay constants (this all is still valid only for uncontracted functions)
-        const double& _decay_row = (*_shell_row->firstGaussian())->decay;
-        const double& _decay_col = (*_shell_col->firstGaussian())->decay;
-        const double _fak  = 0.5/(_decay_row + _decay_col);
-        const double _fak2 = 2.0 * _fak;
+      
+       
+      
         
         // get shell positions
         const vec& _pos_row = _shell_row->getPos();
         const vec& _pos_col = _shell_col->getPos();
         const vec  _diff    = _pos_row - _pos_col;
-        
-        double _distsq = (_diff.getX()*_diff.getX()) + (_diff.getY()*_diff.getY()) + (_diff.getZ()*_diff.getZ()); 
-        double _exparg = _fak2 * _decay_row * _decay_col *_distsq;
-        
-        // no need to calculate anything if distance between shells is > 14 Bohr
-        // if ( _distsq > 196.0 ) { return; }
-        if ( _exparg > 30.0 ) { return; }
-        
-        // some helpers
+        // initialize some helper
         vector<double> PmA (3,0.0);
         vector<double> PmB (3,0.0);
         vector<double> PmC (3,0.0);
+        
+        
+         typedef vector< AOGaussianPrimitive* >::iterator GaussianIterator;
+        // iterate over Gaussians in this _shell_row
+        for ( GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr){
+            // iterate over Gaussians in this _shell_col
+            // get decay constant
+            const double& _decay_row = (*itr)->decay;
+            
+            for ( GaussianIterator itc = _shell_col->firstGaussian(); itc != _shell_col->lastGaussian(); ++itc){
+                //get decay constant
+                const double& _decay_col = (*itc)->decay;
+        
+                const double _fak  = 0.5/(_decay_row + _decay_col);
+                const double _fak2 = 2.0 * _fak;
+                
+                double _distsq = (_diff.getX()*_diff.getX()) + (_diff.getY()*_diff.getY()) + (_diff.getZ()*_diff.getZ()); 
+                double _exparg = _fak2 * _decay_row * _decay_col *_distsq;
+        
+       /// check if distance between postions is big, then skip step   
+       
+                if ( _exparg > 30.0 ) { continue; }
+        
+        // some helpers
+       
 
 
         const double zeta = _decay_row + _decay_col;
@@ -117,7 +133,6 @@ namespace votca { namespace ctp {
         
         vector<double> _FmU(5, 0.0); // that size needs to be checked!
         XIntegrate(_FmU,_U );
-        
         // (s-s element normiert )
         double _prefactor = 2*sqrt(1.0/pi)*pow(4.0*_decay_row*_decay_col,0.75) * _fak2 * exp(-_exparg);
         nuc(Cartesian::s,Cartesian::s)   = _prefactor * _FmU[0];
@@ -438,9 +453,11 @@ namespace votca { namespace ctp {
         ub::matrix<double> _trafo_row = ub::zero_matrix<double>(_ntrafo_row,_nrows);
         ub::matrix<double> _trafo_col = ub::zero_matrix<double>(_ntrafo_col,_ncols);
 
-        // get transformation matrices
-        this->getTrafo( _trafo_row, _lmax_row, _decay_row);
-        this->getTrafo( _trafo_col, _lmax_col, _decay_col);
+        // get transformation matrices including contraction coefficients
+        std::vector<double> _contractions_row = (*itr)->contraction;
+        std::vector<double> _contractions_col = (*itc)->contraction;
+        this->getTrafo( _trafo_row, _lmax_row, _decay_row, _contractions_row);
+        this->getTrafo( _trafo_col, _lmax_col, _decay_col, _contractions_col);
         
 
         // cartesian -> spherical
@@ -455,59 +472,18 @@ namespace votca { namespace ctp {
         else {
         for ( int i = 0; i< _matrix.size1(); i++ ) {
             for (int j = 0; j < _matrix.size2(); j++){
-                _matrix(i,j) = _nuc_sph(i+_shell_row->getOffset(),j+_shell_col->getOffset());
+                _matrix(i,j) += _nuc_sph(i+_shell_row->getOffset(),j+_shell_col->getOffset());
             }
         }
         
         }
         nuc.clear();
+            }// _shell_col Gaussians
+        }// _shell_row Gaussians
     }
     
   
-        void AOESP::XIntegrate(vector<double>& _FmT, const double& _T  ){
         
-        const int _mm = _FmT.size() - 1;
-        const double pi = boost::math::constants::pi<double>();
-        if ( _mm < 0 || _mm > 10){
-            cerr << "mm is: " << _mm << " This should not have happened!" << flush;
-            exit(1);
-        }
-        
-        if ( _T < 0.0 ) {
-            cerr << "T is: " << _T << " This should not have happened!" << flush;
-            exit(1);
-        }
-  
-        if ( _T >= 10.0 ) {
-            // forward iteration
-            _FmT[0]=0.50*sqrt(pi/_T)* erf(sqrt(_T));
-
-            for (int m = 1; m < _FmT.size(); m++ ){
-                _FmT[m] = (2*m-1) * _FmT[m-1]/(2.0*_T) - exp(-_T)/(2.0*_T) ;
-            }
-        }
-
-        if ( _T < 1e-10 ){
-           for ( int m=0; m < _FmT.size(); m++){
-               _FmT[m] = 1.0/(2.0*m+1.0) - _T/(2.0*m+3.0); 
-           }
-        }
-
-        
-        if ( _T >= 1e-10 && _T < 10.0 ){
-            // backward iteration
-            double fm = 0.0;
-            for ( int m = 60; m >= _mm; m--){
-                fm = (2.0*_T)/(2.0*m+1.0) * ( fm + exp(-_T)/(2.0*_T));
-            } 
-            _FmT[_mm] = fm;
-            for (int m = _mm-1 ; m >= 0; m--){
-                _FmT[m] = (2.0*_T)/(2.0*m+1.0) * (_FmT[m+1] + exp(-_T)/(2.0*_T));
-            }
-        }
-        
-
-        }
     
 }}
 
