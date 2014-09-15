@@ -57,6 +57,7 @@ namespace votca { namespace ctp {
         int getBlockSize( int size );
         
         void getTrafo( ub::matrix<double>& _trafo, int _lmax, const double& _decay );
+        void getTrafo( ub::matrix<double>& _trafo, int _lmax, const double& _decay , std::vector<double> contractions);
         
         void PrintIndexToFunction( AOBasis* aobasis);
         

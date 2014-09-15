@@ -32,6 +32,11 @@
 #include <boost/math/constants/constants.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <votca/tools/linalg.h>
+
+// testing numerical grids
+#include <votca/ctp/sphere_lebedev_rule.h>
+
+
 #include <omp.h>
 
 using boost::format;
@@ -185,6 +190,35 @@ namespace votca {
             // get atoms from orbitals object
             //std::vector<QMAtom*>* _atoms = _orbitals->getAtoms();
             std::vector<QMAtom*> _atoms = _orbitals->QMAtoms();
+
+
+      /*     // try getting a Lebedev Grid
+            LebedevGrid _lebedevgrid;
+           
+            std::vector<double> _theta;
+            std::vector<double> _phi;
+            std::vector<double> _weight;
+ 
+            _lebedevgrid.getUnitSphereGrid("C","medium", _theta, _phi, _weight);
+            
+            
+            cout << endl;
+            double _wsum =0.0;
+            for ( int _i =0; _i < _theta.size() ; _i++ ){
+                 // _lebedevgrid.xyz_to_tp(x[_i],y[_i],z[_i],&_theta,&_phi);
+                cout << _i << ":(" <<  _theta[_i]  << "," << _phi[_i] << ") = = " << _weight[_i] << endl;
+                _wsum += _weight[_i];
+            }
+
+            cout << _wsum << endl;
+            exit(0);*/
+
+
+
+
+
+
+
             
             // load DFT basis set (element-wise information) from xml file
             BasisSet dftbs;
@@ -338,8 +372,11 @@ namespace votca {
             _gwoverlap.Initialize(gwbasis._AOBasisSize);
             // Fill overlap
             _gwoverlap.Fill(&gwbasis);
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled GW Overlap matrix of dimension: " << _gwoverlap._aomatrix.size1() << flush;
             
+            _gwoverlap.Print("AOOL");
+            
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled GW Overlap matrix of dimension: " << _gwoverlap._aomatrix.size1() << flush;
+            exit(0);
             // check eigenvalues of overlap matrix, if too small basis might have linear dependencies
             ub::vector<double> _eigenvalues;
             ub::matrix<double> _eigenvectors;

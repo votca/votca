@@ -44,15 +44,15 @@ class AOGaussianPrimitive
     friend class AOShell;
 public:
     double decay;
-    double contraction;
+    std::vector<double> contraction;
     int power; // used in pseudopotenials only
     AOShell* aoshell;
 private:
     // private constructor, only a shell can create a primitive
-    AOGaussianPrimitive( double _decay, double _contraction, AOShell *_aoshell = NULL ) 
+    AOGaussianPrimitive( double _decay, std::vector<double> _contraction, AOShell *_aoshell = NULL ) 
     : decay(_decay), contraction(_contraction), aoshell(_aoshell) { ; }
 
-    AOGaussianPrimitive( int _power, double _decay, double _contraction, AOShell *_aoshell = NULL ) 
+    AOGaussianPrimitive( int _power, double _decay, std::vector<double> _contraction, AOShell *_aoshell = NULL ) 
     : power(_power), decay(_decay), contraction(_contraction), aoshell(_aoshell) { ; }
 };      
     
@@ -69,7 +69,6 @@ public:
     int    getNumFunc() { return _numFunc ;}
     int    getStartIndex() { return _startIndex ;}
     int    getOffset() { return _offset ;}
-    
     
     int getLmax(  ) { return detlmax( _type );}
     /*
@@ -96,7 +95,7 @@ public:
     GaussianIterator lastGaussian(){ return _gaussians.end(); }
    
     // adds a Gaussian 
-    AOGaussianPrimitive*  addGaussian( double decay, double contraction ) 
+    AOGaussianPrimitive*  addGaussian( double decay, std::vector<double> contraction ) 
     {
         AOGaussianPrimitive* gaussian = new AOGaussianPrimitive(decay, contraction, this);
         _gaussians.push_back( gaussian );
@@ -585,15 +584,15 @@ inline void AOBasis::AOBasisFill(BasisSet* bs , vector<QMAtom* > _atoms, int _fr
           for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
                Shell* shell = (*its);
                // we don't like contracted basis sets yet
-               if ( shell->getSize() > 1 ) {
-                   cerr << "No contracted basis sets!" << flush;
-               } else {
+               //if ( shell->getSize() > 1 ) {
+               //    cerr << "We have a contracted basis set!" << flush;
+               //} else {
                    AOShell* aoshell = addShell( shell->getType(), shell->getScale(), NumFuncShell( shell->getType() ), _AOBasisSize, OffsetFuncShell( shell->getType() ), pos );
                    _AOBasisSize += NumFuncShell( shell->getType() );
                    for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                       GaussianPrimitive* gaussian = *itg;
                       aoshell->addGaussian(gaussian->decay, gaussian->contraction);
-                   }
+                //   }
                }
           }
           
