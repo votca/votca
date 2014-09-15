@@ -87,7 +87,7 @@ namespace votca { namespace ctp {
         vector<double> PmA (3,0.0);
         vector<double> PmB (3,0.0);
         vector<double> PmC (3,0.0);
-        
+        double _distsq = (_diff.getX()*_diff.getX()) + (_diff.getY()*_diff.getY()) + (_diff.getZ()*_diff.getZ()); 
         
          typedef vector< AOGaussianPrimitive* >::iterator GaussianIterator;
         // iterate over Gaussians in this _shell_row
@@ -103,10 +103,10 @@ namespace votca { namespace ctp {
                 const double _fak  = 0.5/(_decay_row + _decay_col);
                 const double _fak2 = 2.0 * _fak;
                 
-                double _distsq = (_diff.getX()*_diff.getX()) + (_diff.getY()*_diff.getY()) + (_diff.getZ()*_diff.getZ()); 
+                
                 double _exparg = _fak2 * _decay_row * _decay_col *_distsq;
         
-       /// check if distance between postions is big, then skip step   
+       // check if distance between postions is big, then skip step   
        
                 if ( _exparg > 30.0 ) { continue; }
         
