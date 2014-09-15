@@ -42,8 +42,8 @@ namespace votca { namespace ctp {
     
 class ESPFIT{
 public:
-    Espfit(){};
-    ~Espfit(){};
+    Espfit(const vector< QMAtom* >& Atomlist, ub::matrix<double> &DMATGS ){};
+   ~Espfit(){};
     
     
     
