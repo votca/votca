@@ -243,26 +243,20 @@ inline void BasisSet::LoadBasisSet ( string name )
             for (list<Property*> ::iterator  itc = constProps.begin(); itc != constProps.end(); ++itc) 
             {
                 double decay = (*itc)->getAttribute<double>("decay");
-                //double contraction = (*itc)->getAttribute<double>("contraction");
                 std::vector<double> contraction;
                 contraction.resize(shell->getLmax()+1); 
-                // just testing here with single value 
-                
                 list<Property*> contrProps = (*itc)->Select("contractions");
                 for (list<Property*> ::iterator itcont = contrProps.begin(); itcont != contrProps.end(); ++itcont)
                 {
                     string contrType = (*itcont)->getAttribute<string>("type");
                     double contrFactor = (*itcont)->getAttribute<double>("factor");
-                    // some sanity checks
                     if ( contrType == "S" ) contraction[0] = contrFactor;
                     if ( contrType == "P" ) contraction[1] = contrFactor;
                     if ( contrType == "D" ) contraction[2] = contrFactor;
+                    if ( contrType == "F" ) contraction[3] = contrFactor;
+                    if ( contrType == "G" ) contraction[4] = contrFactor;
                 }    
-                
-                
-                // contraction.push_back((*itc)->getAttribute<double>("contraction"));
                 shell->addGaussian(decay, contraction);
-                //cout << "\n\t\t" << decay << " " << contraction << endl;
             }
             
         }
