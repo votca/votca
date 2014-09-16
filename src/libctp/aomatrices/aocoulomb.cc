@@ -88,7 +88,7 @@ namespace votca { namespace ctp {
                         double _fakac2 = 2.0 * _fakac;
                         // check if distance between postions is big, then skip step   
                         double _exparg = _fakac2 * _decay_row * _decay_col *_distsq;
-                        if ( _exparg > 30.0 ) { continue; }
+                        // if ( _exparg > 30.0 ) { continue; } //!!!!!CUTOFF not applicable to AOCoulomb (at least not like this...)
                     
                                     // get a multi dimensional array
                          typedef boost::multi_array<double, 3> ma_type;

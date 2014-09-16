@@ -90,10 +90,10 @@ namespace votca { namespace ctp {
         }
      
  
-        /*
+        
       
         // check symmetry
-        bool _is_symmetric = true;
+        /* bool _is_symmetric = true;
         
         // Copy stuff to fill lower triangular part
          for ( int _i=0; _i < this->_aomatrix.size1(); _i++){
@@ -108,8 +108,8 @@ namespace votca { namespace ctp {
             }
         }
         if ( !_is_symmetric) {cerr << " Error: AOMatrix is not symmetric! "; exit(1);}
-        
-       */
+        */
+       
         
     }
     

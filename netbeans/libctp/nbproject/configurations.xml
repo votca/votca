@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="95">
+<configurationDescriptor version="90">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <logicalFolder name="f2" displayName="Calculators" projectFiles="true">
@@ -210,6 +210,7 @@
       <itemPath>../../src/libctp/qmtool.cc</itemPath>
       <itemPath>../../src/libctp/statesaversqlite.cc</itemPath>
       <itemPath>../../src/libctp/threecenters.cc</itemPath>
+      <itemPath>../../src/libctp/threecenters_tools.cc</itemPath>
       <itemPath>../../src/libctp/version.cc</itemPath>
       <itemPath>../../src/libctp/version_nb.cc</itemPath>
       <itemPath>../../src/libctp/votca_config.h</itemPath>
@@ -848,6 +849,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/threecenters.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/threecenters_tools.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libctp/toolfactory.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1497,6 +1503,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/threecenters.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/threecenters_tools.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libctp/toolfactory.cc" ex="false" tool="1" flavor2="0">
       </item>

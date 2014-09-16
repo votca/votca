@@ -32,7 +32,12 @@
 #include <boost/multi_array.hpp>
 #include <votca/ctp/qmatom.h>
 #include <votca/ctp/logger.h>
-
+/**
+* \brief Takes a list of atoms, and creates different grids for it. Right now only CHELPG grid.
+*
+* 
+* 
+*/
 using namespace std;
 using namespace votca::tools;
 

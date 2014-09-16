@@ -99,7 +99,7 @@ namespace votca { namespace ctp {
         vector<double> _pma (3,0.0);
         vector<double> _pmb (3,0.0);
         double _distsq = (_diff.getX()*_diff.getX()) + (_diff.getY()*_diff.getY()) + (_diff.getZ()*_diff.getZ()); 
-    
+     typedef vector< AOGaussianPrimitive* >::iterator GaussianIterator;
        // iterate over Gaussians in this _shell_row   
         for ( GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr){
             // iterate over Gaussians in this _shell_col

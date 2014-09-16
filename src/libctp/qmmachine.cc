@@ -8,7 +8,7 @@
 #include <votca/ctp/logger.h>
 #include <votca/ctp/elements.h>
 #include <votca/tools/linalg.h>
-#include <votca/ctp/grid.h>
+#include <votca/ctp/espfit.h>
 
 using boost::format;
 
@@ -204,8 +204,39 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     // EXTRACT LOG-FILE INFOS TO ORBITALS   
     Orbitals orb_iter_output;
     _qmpack->ParseLogFile(&orb_iter_output);
+    
+    
+    
+     // Ground state density matrix
+    ub::matrix<double> &_dft_orbitals_GS = orb_iter_output.MOCoefficients();
+    int _parse_orbitals_status_GS = _qmpack->ParseOrbitalsFile( &orb_iter_output );
+
 
     
+    
+    // AOESP matrix test
+    // load DFT basis set (element-wise information) from xml file
+    BasisSet dftbs;
+    //dftbs.LoadBasisSet( orb_iter_output.getDFTbasis() );
+    dftbs.LoadBasisSet( "ubecppol" );
+    //LOG(logDEBUG, *_log) << TimeStamp() << " Loaded DFT Basis Set " <<  orb_iter_output.getDFTbasis()  << flush;
+    
+    // fill DFT AO basis by going through all atoms 
+    AOBasis dftbasis;
+    dftbasis.AOBasisFill(&dftbs, orb_iter_output.QMAtoms() );
+    dftbasis.ReorderMOs(_dft_orbitals_GS, orb_iter_output.getQMpackage(), "votca" );
+    ub::matrix<double> &DMATGS=orb_iter_output.DensityMatrixGroundState(_dft_orbitals_GS);
+    vector< QMAtom* >& Atomlist= orb_iter_output.QMAtoms();
+    
+    Espfit esp;
+    // Espfit esp
+    //Espfit esp(vector< QMAtom* >& Atomlist, ub::matrix<double> &DMATGS, AOBasis &dftbasis);
+    esp.setLog(_log);
+    esp.FittoDensity(Atomlist, DMATGS, dftbasis);
+  
+    
+
+ /*   
     // SHIT GETS REAL HERE
     Elements _elements;
     const vector< QMAtom* >& Atomlist= orb_iter_output.QMAtoms();
@@ -404,7 +435,8 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     LOG(logDEBUG, *_log) << " RMSE of fit:  " << sqrt(_rmse/_gridpoints.size()) << flush;
     LOG(logDEBUG, *_log) << " RRMSE of fit: " << sqrt(_rmse/_totalESPsq) << flush;
     
-   
+   */    
+    
     
     
         exit(0);

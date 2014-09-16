@@ -111,38 +111,38 @@ namespace votca { namespace ctp {
 
         
         // calculate matrix elements
-        _ol(Cartesian::s,Cartesian::s) = pow(4.0*_decay_row*_decay_col,0.75) * pow(_fak2,1.5)*exp(-_fak2 * _decay_row * _decay_col *_distsq); // s-s element
-        //cout << "\t setting s-s: " << _ol(Cartesian::s,Cartesian::s) << endl;
+        _ol(0,0) = pow(4.0*_decay_row*_decay_col,0.75) * pow(_fak2,1.5)*exp(-_fak2 * _decay_row * _decay_col *_distsq); // s-s element
+        //cout << "\t setting s-s: " << _ol(0,0) << endl;
         
         // s-p
         if ( _lmax_col > 0 ) {
           // cout << "\t setting s-p" << flush;
-           _ol(Cartesian::s,Cartesian::x) = _pmb[0]*_ol(Cartesian::s,Cartesian::s); // s-px
-           _ol(Cartesian::s,Cartesian::y) = _pmb[1]*_ol(Cartesian::s,Cartesian::s); // s-py
-           _ol(Cartesian::s,Cartesian::z) = _pmb[2]*_ol(Cartesian::s,Cartesian::s); // s-pz
+           _ol(0,1) = _pmb[0]*_ol(0,0); // s-px
+           _ol(0,2) = _pmb[1]*_ol(0,0); // s-py
+           _ol(0,3) = _pmb[2]*_ol(0,0); // s-pz
         }
         
         // p-s
         if ( _lmax_row > 0 ) {
            //cout << "\t setting p-s" << flush;
 
-           _ol(Cartesian::p,Cartesian::s) = _pma[0]*_ol(Cartesian::s,Cartesian::s); // px-s
-           _ol(Cartesian::y,Cartesian::s) = _pma[1]*_ol(Cartesian::s,Cartesian::s); // py-s
-           _ol(Cartesian::z,Cartesian::s) = _pma[2]*_ol(Cartesian::s,Cartesian::s); // pz-s
+           _ol(1,0) = _pma[0]*_ol(0,0); // px-s
+           _ol(2,0) = _pma[1]*_ol(0,0); // py-s
+           _ol(3,0) = _pma[2]*_ol(0,0); // pz-s
         }
         
         // p-p
         if ( _lmax_row > 0 && _lmax_col > 0 ) {
            //cout << "\t setting p-p" << endl;            
-           _ol(Cartesian::x,Cartesian::x) = _pma[0]*_ol(Cartesian::s,Cartesian::x) + _fak * _ol(Cartesian::s,Cartesian::s); // px-px
-           _ol(Cartesian::x,Cartesian::y) = _pma[0]*_ol(Cartesian::s,Cartesian::y); // px-py
-           _ol(Cartesian::x,Cartesian::z) = _pma[0]*_ol(Cartesian::s,Cartesian::z); // px-pz
-           _ol(Cartesian::y,Cartesian::x) = _pma[1]*_ol(Cartesian::s,Cartesian::x); // py-px
-           _ol(Cartesian::y,Cartesian::y) = _pma[1]*_ol(Cartesian::s,Cartesian::y) + _fak * _ol(Cartesian::s,Cartesian::s); // py-py
-           _ol(Cartesian::y,Cartesian::z) = _pma[1]*_ol(Cartesian::s,Cartesian::z); // py-pz
-           _ol(Cartesian::z,Cartesian::x) = _pma[2]*_ol(Cartesian::s,Cartesian::x); // pz-px
-           _ol(Cartesian::z,Cartesian::y) = _pma[2]*_ol(Cartesian::s,Cartesian::y); // pz-py
-           _ol(Cartesian::z,Cartesian::z) = _pma[2]*_ol(Cartesian::s,Cartesian::z) + _fak * _ol(Cartesian::s,Cartesian::s); // pz-pz
+           _ol(1,1) = _pma[0]*_ol(0,1) + _fak * _ol(0,0); // px-px
+           _ol(1,2) = _pma[0]*_ol(0,2); // px-py
+           _ol(1,3) = _pma[0]*_ol(0,3); // px-pz
+           _ol(2,1) = _pma[1]*_ol(0,1); // py-px
+           _ol(2,2) = _pma[1]*_ol(0,2) + _fak * _ol(0,0); // py-py
+           _ol(2,3) = _pma[1]*_ol(0,3); // py-pz
+           _ol(3,1) = _pma[2]*_ol(0,1); // pz-px
+           _ol(3,2) = _pma[2]*_ol(0,2); // pz-py
+           _ol(3,3) = _pma[2]*_ol(0,3) + _fak * _ol(0,0); // pz-pz
         }
         /* 
          * d-function elements are six cartesians, in order 
@@ -153,49 +153,49 @@ namespace votca { namespace ctp {
         // s-d
         if ( _lmax_col > 1){
             //cout << "\t setting s-d" << endl;
-            _ol(Cartesian::s,Cartesian::xy) = _pmb[1]*_ol(Cartesian::s,Cartesian::x); // s-dxy
-            _ol(Cartesian::s,Cartesian::xz) = _pmb[2]*_ol(Cartesian::s,Cartesian::x); // s-dxz
-            _ol(Cartesian::s,Cartesian::yz) = _pmb[2]*_ol(Cartesian::s,Cartesian::y); // s-dyz
-            _ol(Cartesian::s,Cartesian::xx) = _pmb[0]*_ol(Cartesian::s,Cartesian::x) + _fak*_ol(Cartesian::s,Cartesian::s); // s-dxx
-            _ol(Cartesian::s,Cartesian::yy) = _pmb[1]*_ol(Cartesian::s,Cartesian::y) + _fak*_ol(Cartesian::s,Cartesian::s); // s-dyy
-            _ol(Cartesian::s,Cartesian::zz) = _pmb[2]*_ol(Cartesian::s,Cartesian::z) + _fak*_ol(Cartesian::s,Cartesian::s); // s-dzz
+            _ol(0,4) = _pmb[1]*_ol(0,1); // s-dxy
+            _ol(0,5) = _pmb[2]*_ol(0,1); // s-dxz
+            _ol(0,6) = _pmb[2]*_ol(0,2); // s-dyz
+            _ol(0,7) = _pmb[0]*_ol(0,1) + _fak*_ol(0,0); // s-dxx
+            _ol(0,8) = _pmb[1]*_ol(0,2) + _fak*_ol(0,0); // s-dyy
+            _ol(0,9) = _pmb[2]*_ol(0,3) + _fak*_ol(0,0); // s-dzz
         }
         
         // p-d
         if ( _lmax_row > 0 && _lmax_col > 1){
             //cout << "\t setting p-d" << endl;
             
-            _ol(Cartesian::x,Cartesian::xy) = _pma[0]*_ol(Cartesian::s,Cartesian::xy) + _fak * _ol(Cartesian::s,Cartesian::y);
-            _ol(Cartesian::x,Cartesian::xz) = _pma[0]*_ol(Cartesian::s,Cartesian::xz) + _fak * _ol(Cartesian::s,Cartesian::z);
-            _ol(Cartesian::x,Cartesian::yz) = _pma[0]*_ol(Cartesian::s,Cartesian::yz);
-            _ol(Cartesian::x,Cartesian::xx) = _pma[0]*_ol(Cartesian::s,Cartesian::xx) + _fak2 * _ol(Cartesian::s,Cartesian::x);
-            _ol(Cartesian::x,Cartesian::yy) = _pma[0]*_ol(Cartesian::s,Cartesian::yy);
-            _ol(Cartesian::x,Cartesian::zz) = _pma[0]*_ol(Cartesian::s,Cartesian::zz);
+            _ol(1,4) = _pma[0]*_ol(0,4) + _fak * _ol(0,2);
+            _ol(1,5) = _pma[0]*_ol(0,5) + _fak * _ol(0,3);
+            _ol(1,6) = _pma[0]*_ol(0,6);
+            _ol(1,7) = _pma[0]*_ol(0,7) + _fak2 * _ol(0,1);
+            _ol(1,8) = _pma[0]*_ol(0,8);
+            _ol(1,9) = _pma[0]*_ol(0,9);
  
-            _ol(Cartesian::y,Cartesian::xy) = _pma[1]*_ol(Cartesian::s,Cartesian::xy) + _fak * _ol(Cartesian::s,Cartesian::x);
-            _ol(Cartesian::y,Cartesian::xz) = _pma[1]*_ol(Cartesian::s,Cartesian::xz);
-            _ol(Cartesian::y,Cartesian::yz) = _pma[1]*_ol(Cartesian::s,Cartesian::yz) + _fak * _ol(Cartesian::s,Cartesian::z);
-            _ol(Cartesian::y,Cartesian::xx) = _pma[1]*_ol(Cartesian::s,Cartesian::xx);
-            _ol(Cartesian::y,Cartesian::yy) = _pma[1]*_ol(Cartesian::s,Cartesian::yy) + _fak2 * _ol(Cartesian::s,Cartesian::y);
-            _ol(Cartesian::y,Cartesian::zz) = _pma[1]*_ol(Cartesian::s,Cartesian::zz);
+            _ol(2,4) = _pma[1]*_ol(0,4) + _fak * _ol(0,1);
+            _ol(2,5) = _pma[1]*_ol(0,5);
+            _ol(2,6) = _pma[1]*_ol(0,6) + _fak * _ol(0,3);
+            _ol(2,7) = _pma[1]*_ol(0,7);
+            _ol(2,8) = _pma[1]*_ol(0,8) + _fak2 * _ol(0,2);
+            _ol(2,9) = _pma[1]*_ol(0,9);
 
-            _ol(Cartesian::z,Cartesian::xy) = _pma[2]*_ol(Cartesian::s,Cartesian::xy);
-            _ol(Cartesian::z,Cartesian::xz) = _pma[2]*_ol(Cartesian::s,Cartesian::xz) + _fak * _ol(Cartesian::s,Cartesian::x);
-            _ol(Cartesian::z,Cartesian::yz) = _pma[2]*_ol(Cartesian::s,Cartesian::yz) + _fak * _ol(Cartesian::s,Cartesian::y);
-            _ol(Cartesian::z,Cartesian::xx) = _pma[2]*_ol(Cartesian::s,Cartesian::xx);
-            _ol(Cartesian::z,Cartesian::yy) = _pma[2]*_ol(Cartesian::s,Cartesian::yy);
-            _ol(Cartesian::z,Cartesian::zz) = _pma[2]*_ol(Cartesian::s,Cartesian::zz) + _fak2 * _ol(Cartesian::s,Cartesian::z);
+            _ol(3,4) = _pma[2]*_ol(0,4);
+            _ol(3,5) = _pma[2]*_ol(0,5) + _fak * _ol(0,1);
+            _ol(3,6) = _pma[2]*_ol(0,6) + _fak * _ol(0,2);
+            _ol(3,7) = _pma[2]*_ol(0,7);
+            _ol(3,8) = _pma[2]*_ol(0,8);
+            _ol(3,9) = _pma[2]*_ol(0,9) + _fak2 * _ol(0,3);
         }
 
         // d-s
         if ( _lmax_row > 1){
            //cout << "\t setting d-s" << endl;
-            _ol(Cartesian::xy,Cartesian::s) = _pma[1]*_ol(Cartesian::p,Cartesian::s); // dxy-s
-            _ol(Cartesian::xy,Cartesian::s) = _pma[2]*_ol(Cartesian::p,Cartesian::s); // dxz-s
-            _ol(Cartesian::yz,Cartesian::s) = _pma[2]*_ol(Cartesian::y,Cartesian::s); // dyz-s
-            _ol(Cartesian::xx,Cartesian::s) = _pma[0]*_ol(Cartesian::p,Cartesian::s) + _fak * _ol(Cartesian::s,Cartesian::s); // dxx-s
-            _ol(Cartesian::yy,Cartesian::s) = _pma[1]*_ol(Cartesian::y,Cartesian::s) + _fak * _ol(Cartesian::s,Cartesian::s); // dyy-s
-            _ol(Cartesian::zz,Cartesian::s) = _pma[2]*_ol(Cartesian::z,Cartesian::s) + _fak * _ol(Cartesian::s,Cartesian::s); // dzz-s
+            _ol(4,0) = _pma[1]*_ol(1,0); // dxy-s
+            _ol(5,0) = _pma[2]*_ol(1,0); // dxz-s
+            _ol(6,0) = _pma[2]*_ol(2,0); // dyz-s
+            _ol(7,0) = _pma[0]*_ol(1,0) + _fak * _ol(0,0); // dxx-s
+            _ol(8,0) = _pma[1]*_ol(2,0) + _fak * _ol(0,0); // dyy-s
+            _ol(9,0) = _pma[2]*_ol(3,0) + _fak * _ol(0,0); // dzz-s
         }
         
         
@@ -203,28 +203,28 @@ namespace votca { namespace ctp {
         if ( _lmax_row >1 && _lmax_col > 0){
            //cout << "\t setting d-p" << endl;
 
-             _ol(Cartesian::xy,Cartesian::x) = _pma[1]*_ol(Cartesian::x,Cartesian::x);
-             _ol(Cartesian::xy,Cartesian::x) = _pma[2]*_ol(Cartesian::x,Cartesian::x);
-             _ol(Cartesian::yz,Cartesian::x) = _pma[2]*_ol(Cartesian::y,Cartesian::x);
+             _ol(4,1) = _pma[1]*_ol(1,1);
+             _ol(5,1) = _pma[2]*_ol(1,1);
+             _ol(6,1) = _pma[2]*_ol(2,1);
              
-             _ol(Cartesian::xx,Cartesian::x) = _pma[0]*_ol(Cartesian::x,Cartesian::x) + _fak  * ( _ol(Cartesian::s,Cartesian::x) + _ol(Cartesian::p,Cartesian::s) );
-             _ol(Cartesian::yy,Cartesian::x) = _pma[1]*_ol(Cartesian::y,Cartesian::x) + _fak  * _ol(Cartesian::s,Cartesian::x);
-             _ol(Cartesian::zz,Cartesian::x) = _pma[2]*_ol(Cartesian::z,Cartesian::x) + _fak  * _ol(Cartesian::s,Cartesian::x);
+             _ol(7,1) = _pma[0]*_ol(1,1) + _fak  * ( _ol(0,1) + _ol(1,0) );
+             _ol(8,1) = _pma[1]*_ol(2,1) + _fak  * _ol(0,1);
+             _ol(9,1) = _pma[2]*_ol(3,1) + _fak  * _ol(0,1);
 
-             _ol(Cartesian::xy,Cartesian::y) = _pma[1]*_ol(Cartesian::x,Cartesian::y) + _fak  * _ol(Cartesian::p,Cartesian::s);
-             _ol(Cartesian::xy,Cartesian::y) = _pma[2]*_ol(Cartesian::x,Cartesian::y);
-             _ol(Cartesian::yz,Cartesian::y) = _pma[2]*_ol(Cartesian::y,Cartesian::y);
+             _ol(4,2) = _pma[1]*_ol(1,2) + _fak  * _ol(1,0);
+             _ol(5,2) = _pma[2]*_ol(1,2);
+             _ol(6,2) = _pma[2]*_ol(2,2);
              
-             _ol(Cartesian::xx,Cartesian::y) = _pma[0]*_ol(Cartesian::x,Cartesian::y) + _fak  * _ol(Cartesian::s,Cartesian::y);
-             _ol(Cartesian::yy,Cartesian::y) = _pma[1]*_ol(Cartesian::y,Cartesian::y) + _fak  * ( _ol(Cartesian::s,Cartesian::y) + _ol (2,Cartesian::s) );
-             _ol(Cartesian::zz,Cartesian::y) = _pma[2]*_ol(Cartesian::z,Cartesian::y) + _fak  * _ol(Cartesian::s,Cartesian::y);
+             _ol(7,2) = _pma[0]*_ol(1,2) + _fak  * _ol(0,2);
+             _ol(8,2) = _pma[1]*_ol(2,2) + _fak  * ( _ol(0,2) + _ol (2,0) );
+             _ol(9,2) = _pma[2]*_ol(3,2) + _fak  * _ol(0,2);
 
-             _ol(Cartesian::xy,Cartesian::z) = _pma[1]*_ol(Cartesian::x,Cartesian::z);
-             _ol(Cartesian::xy,Cartesian::z) = _pma[2]*_ol(Cartesian::x,Cartesian::z) + _fak  * _ol(Cartesian::p,Cartesian::s);
-             _ol(Cartesian::yz,Cartesian::z) = _pma[2]*_ol(Cartesian::y,Cartesian::z) + _fak  * _ol(Cartesian::y,Cartesian::s);
-             _ol(Cartesian::xx,Cartesian::z) = _pma[0]*_ol(Cartesian::x,Cartesian::z) + _fak  * _ol(Cartesian::s,Cartesian::z);
-             _ol(Cartesian::yy,Cartesian::z) = _pma[1]*_ol(Cartesian::y,Cartesian::z) + _fak  * _ol(Cartesian::s,Cartesian::z);
-             _ol(Cartesian::zz,Cartesian::z) = _pma[2]*_ol(Cartesian::z,Cartesian::z) + _fak  * ( _ol(Cartesian::s,Cartesian::z) + _ol(Cartesian::z,Cartesian::s) );
+             _ol(4,3) = _pma[1]*_ol(1,3);
+             _ol(5,3) = _pma[2]*_ol(1,3) + _fak  * _ol(1,0);
+             _ol(6,3) = _pma[2]*_ol(2,3) + _fak  * _ol(2,0);
+             _ol(7,3) = _pma[0]*_ol(1,3) + _fak  * _ol(0,3);
+             _ol(8,3) = _pma[1]*_ol(2,3) + _fak  * _ol(0,3);
+             _ol(9,3) = _pma[2]*_ol(3,3) + _fak  * ( _ol(0,3) + _ol(3,0) );
            
         }
         
@@ -232,77 +232,77 @@ namespace votca { namespace ctp {
         if ( _lmax_row > 1 && _lmax_col > 1 ){
              // cout << "\t setting d-d" << endl;
             
-             _ol(Cartesian::xy,Cartesian::xy) = _pma[1]*_ol(Cartesian::x,Cartesian::xy) + _fak * _ol(Cartesian::x,Cartesian::x);
-             _ol(Cartesian::xy,Cartesian::xy) = _pma[2]*_ol(Cartesian::x,Cartesian::xy);
-             _ol(Cartesian::yz,Cartesian::xy) = _pma[2]*_ol(Cartesian::y,Cartesian::xy);
-             _ol(Cartesian::xx,Cartesian::xy) = _pma[0]*_ol(Cartesian::x,Cartesian::xy) + _fak * (_ol(Cartesian::s,Cartesian::xy) + _ol(Cartesian::x,Cartesian::y) );
-             _ol(Cartesian::yy,Cartesian::xy) = _pma[1]*_ol(Cartesian::y,Cartesian::xy) + _fak * (_ol(Cartesian::s,Cartesian::xy) + _ol(Cartesian::y,Cartesian::x) );
-             _ol(Cartesian::zz,Cartesian::xy) = _pma[2]*_ol(Cartesian::z,Cartesian::xy) + _fak * _ol(Cartesian::s,Cartesian::xy);
+             _ol(4,4) = _pma[1]*_ol(1,4) + _fak * _ol(1,1);
+             _ol(5,4) = _pma[2]*_ol(1,4);
+             _ol(6,4) = _pma[2]*_ol(2,4);
+             _ol(7,4) = _pma[0]*_ol(1,4) + _fak * (_ol(0,4) + _ol(1,2) );
+             _ol(8,4) = _pma[1]*_ol(2,4) + _fak * (_ol(0,4) + _ol(2,1) );
+             _ol(9,4) = _pma[2]*_ol(3,4) + _fak * _ol(0,4);
 
-             _ol(Cartesian::xy,Cartesian::xz) = _pma[1]*_ol(Cartesian::x,Cartesian::xz);
-             _ol(Cartesian::xy,Cartesian::xz) = _pma[2]*_ol(Cartesian::x,Cartesian::xz) + _fak * _ol(Cartesian::x,Cartesian::x);
-             _ol(Cartesian::yz,Cartesian::xz) = _pma[2]*_ol(Cartesian::y,Cartesian::xz) + _fak * _ol(Cartesian::y,Cartesian::x);
-             _ol(Cartesian::xx,Cartesian::xz) = _pma[0]*_ol(Cartesian::x,Cartesian::xz) + _fak * (_ol(Cartesian::s,Cartesian::xz) + _ol(Cartesian::x,Cartesian::z) );
-             _ol(Cartesian::yy,Cartesian::xz) = _pma[1]*_ol(Cartesian::y,Cartesian::xz) + _fak * _ol(Cartesian::s,Cartesian::xz);
-             _ol(Cartesian::zz,Cartesian::xz) = _pma[2]*_ol(Cartesian::z,Cartesian::xz) + _fak * (_ol(Cartesian::s,Cartesian::xz) + _ol(Cartesian::z,Cartesian::x) );
+             _ol(4,5) = _pma[1]*_ol(1,5);
+             _ol(5,5) = _pma[2]*_ol(1,5) + _fak * _ol(1,1);
+             _ol(6,5) = _pma[2]*_ol(2,5) + _fak * _ol(2,1);
+             _ol(7,5) = _pma[0]*_ol(1,5) + _fak * (_ol(0,5) + _ol(1,3) );
+             _ol(8,5) = _pma[1]*_ol(2,5) + _fak * _ol(0,5);
+             _ol(9,5) = _pma[2]*_ol(3,5) + _fak * (_ol(0,5) + _ol(3,1) );
 
-             _ol(Cartesian::xy,Cartesian::yz) = _pma[1]*_ol(Cartesian::x,Cartesian::yz) + _fak * _ol(Cartesian::x,Cartesian::z);
-             _ol(Cartesian::xy,Cartesian::yz) = _pma[2]*_ol(Cartesian::x,Cartesian::yz) + _fak * _ol(Cartesian::x,Cartesian::y);
-             _ol(Cartesian::yz,Cartesian::yz) = _pma[2]*_ol(Cartesian::y,Cartesian::yz) + _fak * _ol(Cartesian::y,Cartesian::y);
-             _ol(Cartesian::xx,Cartesian::yz) = _pma[0]*_ol(Cartesian::x,Cartesian::yz) + _fak * _ol(Cartesian::s,Cartesian::yz);
-             _ol(Cartesian::yy,Cartesian::yz) = _pma[1]*_ol(Cartesian::y,Cartesian::yz) + _fak * (_ol(Cartesian::s,Cartesian::yz) + _ol(Cartesian::y,Cartesian::z) );
-             _ol(Cartesian::zz,Cartesian::yz) = _pma[2]*_ol(Cartesian::z,Cartesian::yz) + _fak * (_ol(Cartesian::s,Cartesian::yz) + _ol(Cartesian::z,Cartesian::y) );
+             _ol(4,6) = _pma[1]*_ol(1,6) + _fak * _ol(1,3);
+             _ol(5,6) = _pma[2]*_ol(1,6) + _fak * _ol(1,2);
+             _ol(6,6) = _pma[2]*_ol(2,6) + _fak * _ol(2,2);
+             _ol(7,6) = _pma[0]*_ol(1,6) + _fak * _ol(0,6);
+             _ol(8,6) = _pma[1]*_ol(2,6) + _fak * (_ol(0,6) + _ol(2,3) );
+             _ol(9,6) = _pma[2]*_ol(3,6) + _fak * (_ol(0,6) + _ol(3,2) );
 
-             _ol(Cartesian::xy,Cartesian::xx) = _pma[1]*_ol(Cartesian::x,Cartesian::xx);
-             _ol(Cartesian::xy,Cartesian::xx) = _pma[2]*_ol(Cartesian::x,Cartesian::xx);
-             _ol(Cartesian::yz,Cartesian::xx) = _pma[2]*_ol(Cartesian::y,Cartesian::xx);
-             _ol(Cartesian::xx,Cartesian::xx) = _pma[0]*_ol(Cartesian::x,Cartesian::xx) + _fak * (_ol(Cartesian::s,Cartesian::xx) + 2.0*_ol(Cartesian::x,Cartesian::x) );
-             _ol(Cartesian::yy,Cartesian::xx) = _pma[1]*_ol(Cartesian::y,Cartesian::xx) + _fak * _ol(Cartesian::s,Cartesian::xx);
-             _ol(Cartesian::zz,Cartesian::xx) = _pma[2]*_ol(Cartesian::z,Cartesian::xx) + _fak * _ol(Cartesian::s,Cartesian::xx);
+             _ol(4,7) = _pma[1]*_ol(1,7);
+             _ol(5,7) = _pma[2]*_ol(1,7);
+             _ol(6,7) = _pma[2]*_ol(2,7);
+             _ol(7,7) = _pma[0]*_ol(1,7) + _fak * (_ol(0,7) + 2.0*_ol(1,1) );
+             _ol(8,7) = _pma[1]*_ol(2,7) + _fak * _ol(0,7);
+             _ol(9,7) = _pma[2]*_ol(3,7) + _fak * _ol(0,7);
 
-             _ol(Cartesian::xy,Cartesian::yy) = _pma[1]*_ol(Cartesian::x,Cartesian::yy) + _fak2 * _ol(Cartesian::x,Cartesian::y);
-             _ol(Cartesian::xy,Cartesian::yy) = _pma[2]*_ol(Cartesian::x,Cartesian::yy);
-             _ol(Cartesian::yz,Cartesian::yy) = _pma[2]*_ol(Cartesian::y,Cartesian::yy);
-             _ol(Cartesian::xx,Cartesian::yy) = _pma[0]*_ol(Cartesian::x,Cartesian::yy) + _fak * _ol(Cartesian::s,Cartesian::yy);
-             _ol(Cartesian::yy,Cartesian::yy) = _pma[1]*_ol(Cartesian::y,Cartesian::yy) + _fak * (_ol(Cartesian::s,Cartesian::yy) + 2.0*_ol(Cartesian::y,Cartesian::y) );
-             _ol(Cartesian::zz,Cartesian::yy) = _pma[2]*_ol(Cartesian::z,Cartesian::yy) + _fak * _ol(Cartesian::s,Cartesian::yy);
+             _ol(4,8) = _pma[1]*_ol(1,8) + _fak2 * _ol(1,2);
+             _ol(5,8) = _pma[2]*_ol(1,8);
+             _ol(6,8) = _pma[2]*_ol(2,8);
+             _ol(7,8) = _pma[0]*_ol(1,8) + _fak * _ol(0,8);
+             _ol(8,8) = _pma[1]*_ol(2,8) + _fak * (_ol(0,8) + 2.0*_ol(2,2) );
+             _ol(9,8) = _pma[2]*_ol(3,8) + _fak * _ol(0,8);
 
-             _ol(Cartesian::xy,Cartesian::zz) = _pma[1]*_ol(Cartesian::x,Cartesian::zz);
-             _ol(Cartesian::xy,Cartesian::zz) = _pma[2]*_ol(Cartesian::x,Cartesian::zz) + _fak2 * _ol(Cartesian::x,Cartesian::z);
-             _ol(Cartesian::yz,Cartesian::zz) = _pma[2]*_ol(Cartesian::y,Cartesian::zz) + _fak2 * _ol(Cartesian::y,Cartesian::z);
-             _ol(Cartesian::xx,Cartesian::zz) = _pma[0]*_ol(Cartesian::x,Cartesian::zz) + _fak * _ol( 0,Cartesian::zz);
-             _ol(Cartesian::yy,Cartesian::zz) = _pma[1]*_ol(Cartesian::y,Cartesian::zz) + _fak * _ol(Cartesian::s,Cartesian::zz);
-             _ol(Cartesian::zz,Cartesian::zz) = _pma[2]*_ol(Cartesian::z,Cartesian::zz) + _fak * (_ol(Cartesian::s,Cartesian::zz) + 2.0*_ol(Cartesian::z,Cartesian::z) );
+             _ol(4,9) = _pma[1]*_ol(1,9);
+             _ol(5,9) = _pma[2]*_ol(1,9) + _fak2 * _ol(1,3);
+             _ol(6,9) = _pma[2]*_ol(2,9) + _fak2 * _ol(2,3);
+             _ol(7,9) = _pma[0]*_ol(1,9) + _fak * _ol( 0,9);
+             _ol(8,9) = _pma[1]*_ol(2,9) + _fak * _ol(0,9);
+             _ol(9,9) = _pma[2]*_ol(3,9) + _fak * (_ol(0,9) + 2.0*_ol(3,3) );
             
             
         }
 
         // s-f 
         if ( _lmax_col > 2 ){
-             _ol(Cartesian::s,10) = _pmb[0]*_ol(Cartesian::s,Cartesian::xx) + _fak2* _ol(Cartesian::s,Cartesian::x);
-             _ol(Cartesian::s,11) = _pmb[1]*_ol(Cartesian::s,Cartesian::yy) + _fak2* _ol(Cartesian::s,Cartesian::y);
-             _ol(Cartesian::s,12) = _pmb[2]*_ol(Cartesian::s,Cartesian::zz) + _fak2* _ol(Cartesian::s,Cartesian::z);
-             _ol(Cartesian::s,13) = _pmb[0]*_ol(Cartesian::s,Cartesian::xy) + _fak * _ol(Cartesian::s,Cartesian::y);
-             _ol(Cartesian::s,14) = _pmb[1]*_ol(Cartesian::s,Cartesian::xy) + _fak * _ol(Cartesian::s,Cartesian::x);
-             _ol(Cartesian::s,15) = _pmb[0]*_ol(Cartesian::s,Cartesian::xz) + _fak * _ol(Cartesian::s,Cartesian::z);
-             _ol(Cartesian::s,16) = _pmb[2]*_ol(Cartesian::s,Cartesian::xz) + _fak * _ol(Cartesian::s,Cartesian::x);
-             _ol(Cartesian::s,17) = _pmb[1]*_ol(Cartesian::s,Cartesian::yz) + _fak * _ol(Cartesian::s,Cartesian::z);
-             _ol(Cartesian::s,18) = _pmb[2]*_ol(Cartesian::s,Cartesian::yz) + _fak * _ol(Cartesian::s,Cartesian::y);
-             _ol(Cartesian::s,19) = _pmb[2]*_ol(Cartesian::s,Cartesian::xy);
+             _ol(0,10) = _pmb[0]*_ol(0,7) + _fak2* _ol(0,1);
+             _ol(0,11) = _pmb[1]*_ol(0,8) + _fak2* _ol(0,2);
+             _ol(0,12) = _pmb[2]*_ol(0,9) + _fak2* _ol(0,3);
+             _ol(0,13) = _pmb[0]*_ol(0,4) + _fak * _ol(0,2);
+             _ol(0,14) = _pmb[1]*_ol(0,4) + _fak * _ol(0,1);
+             _ol(0,15) = _pmb[0]*_ol(0,5) + _fak * _ol(0,3);
+             _ol(0,16) = _pmb[2]*_ol(0,5) + _fak * _ol(0,1);
+             _ol(0,17) = _pmb[1]*_ol(0,6) + _fak * _ol(0,3);
+             _ol(0,18) = _pmb[2]*_ol(0,6) + _fak * _ol(0,2);
+             _ol(0,19) = _pmb[2]*_ol(0,4);
         }
 
         // f-s
         if ( _lmax_row > 2){
-             _ol(10,Cartesian::s) = _pma[0]*_ol(Cartesian::xx,Cartesian::s) + _fak2* _ol( 1,Cartesian::s);
-             _ol(11,Cartesian::s) = _pma[1]*_ol(Cartesian::yy,Cartesian::s) + _fak2* _ol( 2,Cartesian::s);
-             _ol(12,Cartesian::s) = _pma[2]*_ol(Cartesian::zz,Cartesian::s) + _fak2* _ol( 3,Cartesian::s);
-             _ol(13,Cartesian::s) = _pma[0]*_ol(Cartesian::xy,Cartesian::s) + _fak * _ol( 2,Cartesian::s);
-             _ol(14,Cartesian::s) = _pma[1]*_ol(Cartesian::xy,Cartesian::s) + _fak * _ol( 1,Cartesian::s);
-             _ol(15,Cartesian::s) = _pma[0]*_ol(Cartesian::xy,Cartesian::s) + _fak * _ol( 3,Cartesian::s);
-             _ol(16,Cartesian::s) = _pma[2]*_ol(Cartesian::xy,Cartesian::s) + _fak * _ol( 1,Cartesian::s);
-             _ol(17,Cartesian::s) = _pma[1]*_ol(Cartesian::yz,Cartesian::s) + _fak * _ol( 3,Cartesian::s);
-             _ol(18,Cartesian::s) = _pma[2]*_ol(Cartesian::yz,Cartesian::s) + _fak * _ol( 2,Cartesian::s);
-             _ol(19,Cartesian::s) = _pma[2]*_ol(Cartesian::xy,Cartesian::s);
+             _ol(10,0) = _pma[0]*_ol(7,0) + _fak2* _ol( 1,0);
+             _ol(11,0) = _pma[1]*_ol(8,0) + _fak2* _ol( 2,0);
+             _ol(12,0) = _pma[2]*_ol(9,0) + _fak2* _ol( 3,0);
+             _ol(13,0) = _pma[0]*_ol(4,0) + _fak * _ol( 2,0);
+             _ol(14,0) = _pma[1]*_ol(4,0) + _fak * _ol( 1,0);
+             _ol(15,0) = _pma[0]*_ol(5,0) + _fak * _ol( 3,0);
+             _ol(16,0) = _pma[2]*_ol(5,0) + _fak * _ol( 1,0);
+             _ol(17,0) = _pma[1]*_ol(6,0) + _fak * _ol( 3,0);
+             _ol(18,0) = _pma[2]*_ol(6,0) + _fak * _ol( 2,0);
+             _ol(19,0) = _pma[2]*_ol(4,0);
         }
         
         // p-f
@@ -315,7 +315,7 @@ namespace votca { namespace ctp {
              _ol( 3,11) = _pma[2]*_ol( 0,11);
              _ol( 1,12) = _pma[0]*_ol( 0,12);
              _ol( 2,12) = _pma[1]*_ol( 0,12);
-             _ol( 3,12) = _pma[2]*_ol( 0,12) + _fak3* _ol( 0,Cartesian::zz);
+             _ol( 3,12) = _pma[2]*_ol( 0,12) + _fak3* _ol( 0,9);
              _ol( 1,13) = _pma[0]*_ol( 0,13) + _fak2* _ol( 0, 4);
              _ol( 2,13) = _pma[1]*_ol( 0,13) + _fak * _ol( 0, 7);
              _ol( 3,13) = _pma[2]*_ol( 0,13);
@@ -325,14 +325,14 @@ namespace votca { namespace ctp {
              _ol( 1,15) = _pma[0]*_ol( 0,15) + _fak2* _ol( 0, 5);
              _ol( 2,15) = _pma[1]*_ol( 0,15);
              _ol( 3,15) = _pma[2]*_ol( 0,15) + _fak * _ol( 0, 7);
-             _ol( 1,16) = _pma[0]*_ol( 0,16) + _fak * _ol( 0,Cartesian::zz);
+             _ol( 1,16) = _pma[0]*_ol( 0,16) + _fak * _ol( 0,9);
              _ol( 2,16) = _pma[1]*_ol( 0,16);
              _ol( 3,16) = _pma[2]*_ol( 0,16) + _fak2* _ol( 0, 5);
              _ol( 1,17) = _pma[0]*_ol( 0,17);
              _ol( 2,17) = _pma[1]*_ol( 0,17) + _fak2* _ol( 0, 6);
              _ol( 3,17) = _pma[2]*_ol( 0,17) + _fak * _ol( 0, 8);
              _ol( 1,18) = _pma[0]*_ol( 0,18);
-             _ol( 2,18) = _pma[1]*_ol( 0,18) + _fak * _ol( 0,Cartesian::zz);
+             _ol( 2,18) = _pma[1]*_ol( 0,18) + _fak * _ol( 0,9);
              _ol( 3,18) = _pma[2]*_ol( 0,18) + _fak2* _ol( 0, 6);
              _ol( 1,19) = _pma[0]*_ol( 0,19) + _fak * _ol( 0, 6);
              _ol( 2,19) = _pma[1]*_ol( 0,19) + _fak * _ol( 0, 5);
@@ -370,7 +370,7 @@ namespace votca { namespace ctp {
              _ol(11, 3) = _pma[1]*_ol( 8, 3) + _fak2* _ol( 2, 3);
              _ol(12, 1) = _pma[2]*_ol( 9, 1) + _fak2* _ol( 3, 1);
              _ol(12, 2) = _pma[2]*_ol( 9, 2) + _fak2* _ol( 3, 2);
-             _ol(12, 3) = _pma[2]*_ol( 9, 3) + _fak * (2.0*_ol( 3, 3) + _ol(Cartesian::zz, 0) );            
+             _ol(12, 3) = _pma[2]*_ol( 9, 3) + _fak * (2.0*_ol( 3, 3) + _ol(9, 0) );            
         }
         
         // d-f
@@ -378,12 +378,12 @@ namespace votca { namespace ctp {
              _ol( 7,10) = _pma[0]*_ol( 1,10) + _fak * (_ol( 0,10) + 3.0*_ol( 1, 7) );
              _ol( 4,10) = _pma[1]*_ol( 1,10);
              _ol( 5,10) = _pma[2]*_ol( 1,10);
-             _ol( 7,11) = _pma[0]*_ol( 1,11) + _fak * _ol( 0,Cartesian::x);
+             _ol( 7,11) = _pma[0]*_ol( 1,11) + _fak * _ol( 0,1);
              _ol( 4,11) = _pma[1]*_ol( 1,11) + _fak3* _ol( 1, 8);
              _ol( 5,11) = _pma[2]*_ol( 1,11);
              _ol( 7,12) = _pma[0]*_ol( 1,12) + _fak * _ol( 0,12);
              _ol( 4,12) = _pma[1]*_ol( 1,12);
-             _ol( 5,12) = _pma[2]*_ol( 1,12) + _fak3* _ol( 1,Cartesian::zz);
+             _ol( 5,12) = _pma[2]*_ol( 1,12) + _fak3* _ol( 1,9);
              _ol( 7,13) = _pma[0]*_ol( 1,13) + _fak * (_ol( 0,13) + 2.0*_ol( 1, 4) );
              _ol( 4,13) = _pma[1]*_ol( 1,13) + _fak * _ol( 1, 7);
              _ol( 5,13) = _pma[2]*_ol( 1,13);
@@ -393,14 +393,14 @@ namespace votca { namespace ctp {
              _ol( 7,15) = _pma[0]*_ol( 1,15) + _fak * (_ol( 0,15) + 2.0*_ol( 1, 5) );
              _ol( 4,15) = _pma[1]*_ol( 1,15);
              _ol( 5,15) = _pma[2]*_ol( 1,15) + _fak * _ol( 1, 7);
-             _ol( 7,16) = _pma[0]*_ol( 1,16) + _fak * (_ol( 0,16) + _ol( 1,Cartesian::zz) );
+             _ol( 7,16) = _pma[0]*_ol( 1,16) + _fak * (_ol( 0,16) + _ol( 1,9) );
              _ol( 4,16) = _pma[1]*_ol( 1,16);
              _ol( 5,16) = _pma[2]*_ol( 1,16) + _fak2* _ol( 1, 5);
              _ol( 7,17) = _pma[0]*_ol( 1,17) + _fak * _ol( 0,17);
              _ol( 4,17) = _pma[1]*_ol( 1,17) + _fak2* _ol( 1, 6);
              _ol( 5,17) = _pma[2]*_ol( 1,17) + _fak * _ol( 1, 8);
              _ol( 7,18) = _pma[0]*_ol( 1,18) + _fak * _ol( 0,18);
-             _ol( 4,18) = _pma[1]*_ol( 1,18) + _fak * _ol( 1,Cartesian::zz);
+             _ol( 4,18) = _pma[1]*_ol( 1,18) + _fak * _ol( 1,9);
              _ol( 5,18) = _pma[2]*_ol( 1,18) + _fak2* _ol( 1, 6);
              _ol( 7,19) = _pma[0]*_ol( 1,19) + _fak * (_ol( 0,19) + _ol( 1, 6) );
              _ol( 4,19) = _pma[1]*_ol( 1,19) + _fak * _ol( 1, 5);
@@ -410,7 +410,7 @@ namespace votca { namespace ctp {
              _ol( 8,11) = _pma[1]*_ol( 2,11) + _fak * (_ol( 0,11) + 3.0*_ol( 2, 8) );
              _ol( 6,11) = _pma[2]*_ol( 2,11);
              _ol( 8,12) = _pma[1]*_ol( 2,12) + _fak * _ol( 0,12);
-             _ol( 6,12) = _pma[2]*_ol( 2,12) + _fak3* _ol( 2,Cartesian::zz);
+             _ol( 6,12) = _pma[2]*_ol( 2,12) + _fak3* _ol( 2,9);
              _ol( 8,13) = _pma[1]*_ol( 2,13) + _fak * (_ol( 0,13) + _ol( 2, 7) );
              _ol( 6,13) = _pma[2]*_ol( 2,13);
              _ol( 8,14) = _pma[1]*_ol( 2,14) + _fak * (_ol( 0,14) + 2.0*_ol( 2, 4) );
@@ -421,20 +421,20 @@ namespace votca { namespace ctp {
              _ol( 6,16) = _pma[2]*_ol( 2,16) + _fak2* _ol( 2, 5);
              _ol( 8,17) = _pma[1]*_ol( 2,17) + _fak * (_ol( 0,17) + 2.0*_ol( 2, 6) );
              _ol( 6,17) = _pma[2]*_ol( 2,17) + _fak * _ol( 2, 8);
-             _ol( 8,18) = _pma[1]*_ol( 2,18) + _fak * (_ol( 0,18) + _ol( 2,Cartesian::zz) );
+             _ol( 8,18) = _pma[1]*_ol( 2,18) + _fak * (_ol( 0,18) + _ol( 2,9) );
              _ol( 6,18) = _pma[2]*_ol( 2,18) + _fak2* _ol( 2, 6);
              _ol( 8,19) = _pma[1]*_ol( 2,19) + _fak * (_ol( 0,19) + _ol( 2, 5) );
              _ol( 6,19) = _pma[2]*_ol( 2,19) + _fak * _ol( 2, 4);
-             _ol(Cartesian::zz,10) = _pma[2]*_ol( 3,10) + _fak * _ol( 0,10);
-             _ol(Cartesian::zz,11) = _pma[2]*_ol( 3,11) + _fak * _ol( 0,11);
-             _ol(Cartesian::zz,12) = _pma[2]*_ol( 3,12) + _fak * (_ol( 0,12) + 3.0*_ol( 3,Cartesian::zz) );
-             _ol(Cartesian::zz,13) = _pma[2]*_ol( 3,13) + _fak * _ol( 0,13);
-             _ol(Cartesian::zz,14) = _pma[2]*_ol( 3,14) + _fak * _ol( 0,14);
-             _ol(Cartesian::zz,15) = _pma[2]*_ol( 3,15) + _fak * (_ol( 0,15) + _ol( 3, 7) );
-             _ol(Cartesian::zz,16) = _pma[2]*_ol( 3,16) + _fak * (_ol( 0,16) + 2.0*_ol( 3, 5) );
-             _ol(Cartesian::zz,17) = _pma[2]*_ol( 3,17) + _fak * (_ol( 0,17) + _ol( 3, 8) );
-             _ol(Cartesian::zz,18) = _pma[2]*_ol( 3,18) + _fak * (_ol( 0,18) + 2.0*_ol( 3, 5) );
-             _ol(Cartesian::zz,19) = _pma[2]*_ol( 3,19) + _fak * (_ol( 0,19) + _ol( 3, 4) );
+             _ol(9,10) = _pma[2]*_ol( 3,10) + _fak * _ol( 0,10);
+             _ol(9,11) = _pma[2]*_ol( 3,11) + _fak * _ol( 0,11);
+             _ol(9,12) = _pma[2]*_ol( 3,12) + _fak * (_ol( 0,12) + 3.0*_ol( 3,9) );
+             _ol(9,13) = _pma[2]*_ol( 3,13) + _fak * _ol( 0,13);
+             _ol(9,14) = _pma[2]*_ol( 3,14) + _fak * _ol( 0,14);
+             _ol(9,15) = _pma[2]*_ol( 3,15) + _fak * (_ol( 0,15) + _ol( 3, 7) );
+             _ol(9,16) = _pma[2]*_ol( 3,16) + _fak * (_ol( 0,16) + 2.0*_ol( 3, 5) );
+             _ol(9,17) = _pma[2]*_ol( 3,17) + _fak * (_ol( 0,17) + _ol( 3, 8) );
+             _ol(9,18) = _pma[2]*_ol( 3,18) + _fak * (_ol( 0,18) + 2.0*_ol( 3, 5) );
+             _ol(9,19) = _pma[2]*_ol( 3,19) + _fak * (_ol( 0,19) + _ol( 3, 4) );
         }
         // f-d
         if ( _lmax_row > 2 && _lmax_col > 1 ){
@@ -453,9 +453,9 @@ namespace votca { namespace ctp {
              _ol(13, 8) = _pma[0]*_ol( 4, 8) + _fak * _ol( 2, 8);
              _ol(14, 8) = _pma[1]*_ol( 4, 8) + _fak * (_ol( 1, 8) + 2.0*_ol( 4, 2) );
              _ol(19, 8) = _pma[2]*_ol( 4, 8);
-             _ol(13,Cartesian::zz) = _pma[0]*_ol( 4,Cartesian::zz) + _fak * _ol( 2,Cartesian::zz);
-             _ol(14,Cartesian::zz) = _pma[1]*_ol( 4,Cartesian::zz) + _fak * _ol( 1,Cartesian::zz);
-             _ol(19,Cartesian::zz) = _pma[2]*_ol( 4,Cartesian::zz) + _fak2* _ol( 4, 3);
+             _ol(13,9) = _pma[0]*_ol( 4,9) + _fak * _ol( 2,9);
+             _ol(14,9) = _pma[1]*_ol( 4,9) + _fak * _ol( 1,9);
+             _ol(19,9) = _pma[2]*_ol( 4,9) + _fak2* _ol( 4, 3);
              _ol(15, 4) = _pma[0]*_ol( 5, 4) + _fak * (_ol( 3, 4) + _ol( 5, 2) );
              _ol(16, 4) = _pma[2]*_ol( 5, 4) + _fak * _ol( 1, 4);
              _ol(15, 5) = _pma[0]*_ol( 5, 5) + _fak * (_ol( 3, 5) + _ol( 5, 3) );
@@ -466,8 +466,8 @@ namespace votca { namespace ctp {
              _ol(16, 7) = _pma[2]*_ol( 5, 7) + _fak * _ol( 1, 7);
              _ol(15, 8) = _pma[0]*_ol( 5, 8) + _fak * _ol( 3, 8);
              _ol(16, 8) = _pma[2]*_ol( 5, 8) + _fak * _ol( 1, 8);
-             _ol(15,Cartesian::zz) = _pma[0]*_ol( 5,Cartesian::zz) + _fak * _ol( 3,Cartesian::zz);
-             _ol(16,Cartesian::zz) = _pma[2]*_ol( 5,Cartesian::zz) + _fak * (_ol( 1,Cartesian::zz) + 2.0*_ol( 5, 3) );
+             _ol(15,9) = _pma[0]*_ol( 5,9) + _fak * _ol( 3,9);
+             _ol(16,9) = _pma[2]*_ol( 5,9) + _fak * (_ol( 1,9) + 2.0*_ol( 5, 3) );
              _ol(17, 4) = _pma[1]*_ol( 6, 4) + _fak * (_ol( 3, 4) + _ol( 6, 1) );
              _ol(18, 4) = _pma[2]*_ol( 6, 4) + _fak * _ol( 2, 4);
              _ol(17, 5) = _pma[1]*_ol( 6, 5) + _fak * _ol( 3, 5);
@@ -478,26 +478,26 @@ namespace votca { namespace ctp {
              _ol(18, 7) = _pma[2]*_ol( 6, 7) + _fak * _ol( 2, 7);
              _ol(17, 8) = _pma[1]*_ol( 6, 8) + _fak * (_ol( 3, 8) + 2.0*_ol( 6, 2) );
              _ol(18, 8) = _pma[2]*_ol( 6, 8) + _fak * _ol( 2, 8);
-             _ol(17,Cartesian::zz) = _pma[1]*_ol( 6,Cartesian::zz) + _fak * _ol( 3,Cartesian::zz);
-             _ol(18,Cartesian::zz) = _pma[2]*_ol( 6,Cartesian::zz) + _fak * (_ol( 2,Cartesian::zz) + 2.0*_ol( 6, 3) );
+             _ol(17,9) = _pma[1]*_ol( 6,9) + _fak * _ol( 3,9);
+             _ol(18,9) = _pma[2]*_ol( 6,9) + _fak * (_ol( 2,9) + 2.0*_ol( 6, 3) );
              _ol(10, 4) = _pma[0]*_ol( 7, 4) + _fak * (2.0*_ol( 1, 4) + _ol( 7, 2) );
              _ol(10, 5) = _pma[0]*_ol( 7, 5) + _fak * (2.0*_ol( 1, 5) + _ol( 7, 3) );
              _ol(10, 6) = _pma[0]*_ol( 7, 6) + _fak2* _ol( 1, 6);
              _ol(10, 7) = _pma[0]*_ol( 7, 7) + _fak * (2.0*_ol( 1, 7) + 2.0*_ol( 7, 1));
              _ol(10, 8) = _pma[0]*_ol( 7, 8) + _fak2* _ol( 1, 8);
-             _ol(10,Cartesian::zz) = _pma[0]*_ol( 7,Cartesian::zz) + _fak2* _ol( 1,Cartesian::zz);
+             _ol(10,9) = _pma[0]*_ol( 7,9) + _fak2* _ol( 1,9);
              _ol(11, 4) = _pma[1]*_ol( 8, 4) + _fak * (2.0*_ol( 2, 4) + _ol( 8, 1) );
              _ol(11, 5) = _pma[1]*_ol( 8, 5) + _fak2* _ol( 2, 5);
              _ol(11, 6) = _pma[1]*_ol( 8, 6) + _fak * (2.0*_ol( 2, 6) + _ol( 8, 3) );
              _ol(11, 7) = _pma[1]*_ol( 8, 7) + _fak2* _ol( 2, 7);
              _ol(11, 8) = _pma[1]*_ol( 8, 8) + _fak * (2.0*_ol( 2, 8) + 2.0*_ol( 8, 2));
-             _ol(11,Cartesian::zz) = _pma[1]*_ol( 8,Cartesian::zz) + _fak2* _ol( 2,Cartesian::zz);
-             _ol(12, 4) = _pma[2]*_ol(Cartesian::zz, 4) + _fak2* _ol( 3, 4);
-             _ol(12, 5) = _pma[2]*_ol(Cartesian::zz, 5) + _fak * (2.0*_ol( 3, 5) + _ol(Cartesian::zz, 1) );
-             _ol(12, 6) = _pma[2]*_ol(Cartesian::zz, 6) + _fak * (2.0*_ol( 3, 6) + _ol(Cartesian::zz, 2) );
-             _ol(12, 7) = _pma[2]*_ol(Cartesian::zz, 7) + _fak2* _ol( 3, 7);
-             _ol(12, 8) = _pma[2]*_ol(Cartesian::zz, 8) + _fak2* _ol( 3, 8);
-             _ol(12,Cartesian::zz) = _pma[2]*_ol(Cartesian::zz,Cartesian::zz) + _fak * (2.0*_ol( 3,Cartesian::zz) + 2.0*_ol(Cartesian::zz, 3));
+             _ol(11,9) = _pma[1]*_ol( 8,9) + _fak2* _ol( 2,9);
+             _ol(12, 4) = _pma[2]*_ol(9, 4) + _fak2* _ol( 3, 4);
+             _ol(12, 5) = _pma[2]*_ol(9, 5) + _fak * (2.0*_ol( 3, 5) + _ol(9, 1) );
+             _ol(12, 6) = _pma[2]*_ol(9, 6) + _fak * (2.0*_ol( 3, 6) + _ol(9, 2) );
+             _ol(12, 7) = _pma[2]*_ol(9, 7) + _fak2* _ol( 3, 7);
+             _ol(12, 8) = _pma[2]*_ol(9, 8) + _fak2* _ol( 3, 8);
+             _ol(12,9) = _pma[2]*_ol(9,9) + _fak * (2.0*_ol( 3,9) + 2.0*_ol(9, 3));
         }
         // f-f
         if ( _lmax_row > 2 && _lmax_col > 2 ){
@@ -509,8 +509,8 @@ namespace votca { namespace ctp {
              _ol(19,11) = _pma[2]*_ol( 4,11);
              _ol(13,12) = _pma[0]*_ol( 4,12) + _fak * _ol( 2,12);
              _ol(14,12) = _pma[1]*_ol( 4,12) + _fak * _ol( 1,12);
-             _ol(19,12) = _pma[2]*_ol( 4,12) + _fak3* _ol( 4,Cartesian::zz);
-             _ol(13,13) = _pma[0]*_ol( 4,13) + _fak * (_ol( 2,13) + 2.0*_ol( 4,Cartesian::xy) );
+             _ol(19,12) = _pma[2]*_ol( 4,12) + _fak3* _ol( 4,9);
+             _ol(13,13) = _pma[0]*_ol( 4,13) + _fak * (_ol( 2,13) + 2.0*_ol( 4,4) );
              _ol(14,13) = _pma[1]*_ol( 4,13) + _fak * (_ol( 1,13) + _ol( 4, 7) );
              _ol(19,13) = _pma[2]*_ol( 4,13);
              _ol(13,14) = _pma[0]*_ol( 4,14) + _fak * (_ol( 2,14) + _ol( 4, 8) );
@@ -519,14 +519,14 @@ namespace votca { namespace ctp {
              _ol(13,15) = _pma[0]*_ol( 4,15) + _fak * (_ol( 2,15) + 2.0*_ol( 4, 5) );
              _ol(14,15) = _pma[1]*_ol( 4,15) + _fak * _ol( 1,15);
              _ol(19,15) = _pma[2]*_ol( 4,15) + _fak * _ol( 4, 7);
-             _ol(13,16) = _pma[0]*_ol( 4,16) + _fak * (_ol( 2,16) + _ol( 4,Cartesian::zz) );
+             _ol(13,16) = _pma[0]*_ol( 4,16) + _fak * (_ol( 2,16) + _ol( 4,9) );
              _ol(14,16) = _pma[1]*_ol( 4,16) + _fak * _ol( 1,16);
              _ol(19,16) = _pma[2]*_ol( 4,16) + _fak2* _ol( 4, 5);
              _ol(13,17) = _pma[0]*_ol( 4,17) + _fak * _ol( 2,17);
              _ol(14,17) = _pma[1]*_ol( 4,17) + _fak * (_ol( 1,17) + 2.0*_ol( 4, 6) );
              _ol(19,17) = _pma[2]*_ol( 4,17) + _fak * _ol( 4, 8);
              _ol(13,18) = _pma[0]*_ol( 4,18) + _fak * _ol( 2,18);
-             _ol(14,18) = _pma[1]*_ol( 4,18) + _fak * (_ol( 1,18) + _ol( 4,Cartesian::zz) );
+             _ol(14,18) = _pma[1]*_ol( 4,18) + _fak * (_ol( 1,18) + _ol( 4,9) );
              _ol(19,18) = _pma[2]*_ol( 4,18) + _fak2* _ol( 4, 6);
              _ol(13,19) = _pma[0]*_ol( 4,19) + _fak * (_ol( 2,19) + _ol( 4, 6) );
              _ol(14,19) = _pma[1]*_ol( 4,19) + _fak * (_ol( 1,19) + _ol( 4, 5) );
@@ -536,14 +536,14 @@ namespace votca { namespace ctp {
              _ol(15,11) = _pma[0]*_ol( 5,11) + _fak * _ol( 3,11);
              _ol(16,11) = _pma[2]*_ol( 5,11) + _fak * _ol( 1,11);
              _ol(15,12) = _pma[0]*_ol( 5,12) + _fak * _ol( 3,12);
-             _ol(16,12) = _pma[2]*_ol( 5,12) + _fak * (_ol( 1,12) + 3.0*_ol( 5,Cartesian::zz) );
+             _ol(16,12) = _pma[2]*_ol( 5,12) + _fak * (_ol( 1,12) + 3.0*_ol( 5,9) );
              _ol(15,13) = _pma[0]*_ol( 5,13) + _fak * (_ol( 3,13) + 2.0*_ol( 5, 4) );
              _ol(16,13) = _pma[2]*_ol( 5,13) + _fak * _ol( 1,13);
              _ol(15,14) = _pma[0]*_ol( 5,14) + _fak * (_ol( 3,14) + _ol( 5, 8) );
              _ol(16,14) = _pma[2]*_ol( 5,14) + _fak * _ol( 1,14);
              _ol(15,15) = _pma[0]*_ol( 5,15) + _fak * (_ol( 3,15) + 2.0*_ol( 5, 5) );
              _ol(16,15) = _pma[2]*_ol( 5,15) + _fak * (_ol( 1,15) + _ol( 5, 7) );
-             _ol(15,16) = _pma[0]*_ol( 5,16) + _fak * (_ol( 3,16) + _ol( 5,Cartesian::zz) );
+             _ol(15,16) = _pma[0]*_ol( 5,16) + _fak * (_ol( 3,16) + _ol( 5,9) );
              _ol(16,16) = _pma[2]*_ol( 5,16) + _fak * (_ol( 1,16) + 2.0*_ol( 5, 5) );
              _ol(15,17) = _pma[0]*_ol( 5,17) + _fak * _ol( 3,17);
              _ol(16,17) = _pma[2]*_ol( 5,17) + _fak * (_ol( 1,17) + _ol( 5, 8) );
@@ -556,7 +556,7 @@ namespace votca { namespace ctp {
              _ol(17,11) = _pma[1]*_ol( 6,11) + _fak * (_ol( 3,11) + 3.0*_ol( 6, 8) );
              _ol(18,11) = _pma[2]*_ol( 6,11) + _fak * _ol( 2,11);
              _ol(17,12) = _pma[1]*_ol( 6,12) + _fak * _ol( 3,12);
-             _ol(18,12) = _pma[2]*_ol( 6,12) + _fak * (_ol( 2,12) + 3.0*_ol( 6,Cartesian::zz) );
+             _ol(18,12) = _pma[2]*_ol( 6,12) + _fak * (_ol( 2,12) + 3.0*_ol( 6,9) );
              _ol(17,13) = _pma[1]*_ol( 6,13) + _fak * (_ol( 3,13) + _ol( 6, 7) );
              _ol(18,13) = _pma[2]*_ol( 6,13) + _fak * _ol( 2,13);
              _ol(17,14) = _pma[1]*_ol( 6,14) + _fak * (_ol( 3,14) + 2.0*_ol( 6, 4) );
@@ -567,7 +567,7 @@ namespace votca { namespace ctp {
              _ol(18,16) = _pma[2]*_ol( 6,16) + _fak * (_ol( 2,16) + 2.0*_ol( 6, 5) );
              _ol(17,17) = _pma[1]*_ol( 6,17) + _fak * (_ol( 3,17) + 2.0*_ol( 6, 6) );
              _ol(18,17) = _pma[2]*_ol( 6,17) + _fak * (_ol( 2,17) + _ol( 6, 8) );
-             _ol(17,18) = _pma[1]*_ol( 6,18) + _fak * (_ol( 3,18) + _ol( 6,Cartesian::zz) );
+             _ol(17,18) = _pma[1]*_ol( 6,18) + _fak * (_ol( 3,18) + _ol( 6,9) );
              _ol(18,18) = _pma[2]*_ol( 6,18) + _fak * (_ol( 2,18) + 2.0*_ol( 6, 6) );
              _ol(17,19) = _pma[1]*_ol( 6,19) + _fak * (_ol( 3,19) + _ol( 6, 5) );
              _ol(18,19) = _pma[2]*_ol( 6,19) + _fak * (_ol( 2,19) + _ol( 6, 4) );
@@ -577,7 +577,7 @@ namespace votca { namespace ctp {
              _ol(10,13) = _pma[0]*_ol( 7,13) + _fak * (2.0*_ol( 1,13) + 2.0*_ol( 7, 4));
              _ol(10,14) = _pma[0]*_ol( 7,14) + _fak * (2.0*_ol( 1,14) + _ol( 7, 8) );
              _ol(10,15) = _pma[0]*_ol( 7,15) + _fak * (2.0*_ol( 1,15) + 2.0*_ol( 7, 5));
-             _ol(10,16) = _pma[0]*_ol( 7,16) + _fak * (2.0*_ol( 1,16) + _ol( 7,Cartesian::zz) );
+             _ol(10,16) = _pma[0]*_ol( 7,16) + _fak * (2.0*_ol( 1,16) + _ol( 7,9) );
              _ol(10,17) = _pma[0]*_ol( 7,17) + _fak2* _ol( 1,17);
              _ol(10,18) = _pma[0]*_ol( 7,18) + _fak2* _ol( 1,18);
              _ol(10,19) = _pma[0]*_ol( 7,19) + _fak * (2.0*_ol( 1,19) + _ol( 7, 6) );
@@ -589,18 +589,18 @@ namespace votca { namespace ctp {
              _ol(11,15) = _pma[1]*_ol( 8,15) + _fak2* _ol( 2,15);
              _ol(11,16) = _pma[1]*_ol( 8,16) + _fak2* _ol( 2,16);
              _ol(11,17) = _pma[1]*_ol( 8,17) + _fak * (2.0*_ol( 2,17) + 2.0*_ol( 8, 6));
-             _ol(11,18) = _pma[1]*_ol( 8,18) + _fak * (2.0*_ol( 2,18) + _ol( 8,Cartesian::zz) );
+             _ol(11,18) = _pma[1]*_ol( 8,18) + _fak * (2.0*_ol( 2,18) + _ol( 8,9) );
              _ol(11,19) = _pma[1]*_ol( 8,19) + _fak * (2.0*_ol( 2,19) + _ol( 8, 5) );
-             _ol(12,10) = _pma[2]*_ol(Cartesian::zz,10) + _fak2* _ol( 3,10);
-             _ol(12,11) = _pma[2]*_ol(Cartesian::zz,11) + _fak2* _ol( 3,11);
-             _ol(12,12) = _pma[2]*_ol(Cartesian::zz,12) + _fak * (2.0*_ol( 3,12) + 3.0*_ol(Cartesian::zz,Cartesian::zz));
-             _ol(12,13) = _pma[2]*_ol(Cartesian::zz,13) + _fak2* _ol( 3,13);
-             _ol(12,14) = _pma[2]*_ol(Cartesian::zz,14) + _fak2* _ol( 3,14);
-             _ol(12,15) = _pma[2]*_ol(Cartesian::zz,15) + _fak * (2.0*_ol( 3,15) + _ol(Cartesian::zz, 7) );
-             _ol(12,16) = _pma[2]*_ol(Cartesian::zz,16) + _fak * (2.0*_ol( 3,16) + 2.0*_ol(Cartesian::zz, 5));
-             _ol(12,17) = _pma[2]*_ol(Cartesian::zz,17) + _fak * (2.0*_ol( 3,17) + _ol(Cartesian::zz, 8) );
-             _ol(12,18) = _pma[2]*_ol(Cartesian::zz,18) + _fak * (2.0*_ol( 3,18) + 2.0*_ol(Cartesian::zz, 6));
-             _ol(12,19) = _pma[2]*_ol(Cartesian::zz,19) + _fak * (2.0*_ol( 3,19) + _ol(Cartesian::zz, 4) );
+             _ol(12,10) = _pma[2]*_ol(9,10) + _fak2* _ol( 3,10);
+             _ol(12,11) = _pma[2]*_ol(9,11) + _fak2* _ol( 3,11);
+             _ol(12,12) = _pma[2]*_ol(9,12) + _fak * (2.0*_ol( 3,12) + 3.0*_ol(9,9));
+             _ol(12,13) = _pma[2]*_ol(9,13) + _fak2* _ol( 3,13);
+             _ol(12,14) = _pma[2]*_ol(9,14) + _fak2* _ol( 3,14);
+             _ol(12,15) = _pma[2]*_ol(9,15) + _fak * (2.0*_ol( 3,15) + _ol(9, 7) );
+             _ol(12,16) = _pma[2]*_ol(9,16) + _fak * (2.0*_ol( 3,16) + 2.0*_ol(9, 5));
+             _ol(12,17) = _pma[2]*_ol(9,17) + _fak * (2.0*_ol( 3,17) + _ol(9, 8) );
+             _ol(12,18) = _pma[2]*_ol(9,18) + _fak * (2.0*_ol( 3,18) + 2.0*_ol(9, 6));
+             _ol(12,19) = _pma[2]*_ol(9,19) + _fak * (2.0*_ol( 3,19) + _ol(9, 4) );
         }
         // s-g
         // g-s
