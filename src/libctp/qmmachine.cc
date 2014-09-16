@@ -236,210 +236,10 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
   
     
 
- /*   
-    // SHIT GETS REAL HERE
-    Elements _elements;
-    const vector< QMAtom* >& Atomlist= orb_iter_output.QMAtoms();
-    
-    Grid _grid;
-    _grid.setupCHELPgrid(Atomlist);
-    std::vector< ub::vector<double> > &_gridpoints=_grid.getGrid();
-     LOG(logDEBUG, *_log) << TimeStamp() <<  " Done setting up CHELPG grid with " << _gridpoints.size() << " points " << endl;
-    _grid.printGridtofile("grid.xyz");
-
-    
-   
-    
-    // Ground state density matrix
-    ub::matrix<double> &_dft_orbitals_GS = orb_iter_output.MOCoefficients();
-    int _parse_orbitals_status_GS = _qmpack->ParseOrbitalsFile( &orb_iter_output );
-
-
-    
-    
-    // AOESP matrix test
-    // load DFT basis set (element-wise information) from xml file
-    BasisSet dftbs;
-    //dftbs.LoadBasisSet( orb_iter_output.getDFTbasis() );
-    dftbs.LoadBasisSet( "ubecppol" );
-    //LOG(logDEBUG, *_log) << TimeStamp() << " Loaded DFT Basis Set " <<  orb_iter_output.getDFTbasis()  << flush;
-    
-    // fill DFT AO basis by going through all atoms 
-    AOBasis dftbasis;
-    dftbasis.AOBasisFill(&dftbs, orb_iter_output.QMAtoms() );
-    dftbasis.ReorderMOs(_dft_orbitals_GS, orb_iter_output.getQMpackage(), "votca" );
-    ub::matrix<double> &DMATGS=orb_iter_output.DensityMatrixGroundState(_dft_orbitals_GS);
+ 
     
     
 
-    
-    
-    ub::vector<double> _ESPatGrid = ub::zero_vector<double>(_gridpoints.size());
-    ub::vector<double> _NucPatGrid = ub::zero_vector<double>(_gridpoints.size());
-    
-    LOG(logDEBUG, *_log) << TimeStamp() << " Calculating ESP of nuclei at CHELPG grid points"  << flush;  
-    for ( int i = 0 ; i < _gridpoints.size(); i++){
-      double x_k = _gridpoints[i](0);
-      double y_k = _gridpoints[i](1);
-      double z_k = _gridpoints[i](2);
-
-
-      for ( int j = 0; j < Atomlist.size(); j++){
-
-            double x_j = Atomlist[j]->x;
-            double y_j = Atomlist[j]->y;
-            double z_j = Atomlist[j]->z;
-	    double Znuc = _elements.getNucCrgECP(Atomlist[j]->type);  
-
-            double dist_j = sqrt( (x_j - x_k)*(x_j - x_k) +  (y_j - y_k)*(y_j - y_k) + (z_j - z_k)*(z_j - z_k)     )*1.8897259886;
-
-	    _NucPatGrid(i) += Znuc/dist_j;
-
-      }
-
-    }
-
-    double Ztot = 0.0;
-      for ( int j = 0; j < Atomlist.size(); j++){
-
-	     Ztot += _elements.getNucCrgECP(Atomlist[j]->type);  
-
-	    
-
-      }
-    LOG(logDEBUG, *_log) << TimeStamp() << " Total nuclear charge " << Ztot << flush;
-
-    
-
-    ub::vector<double> DMATGSasarray=DMATGS.data();
-    LOG(logDEBUG, *_log) << TimeStamp() << " Calculating ESP at CHELPG grid points"  << flush;  
-    #pragma omp parallel for
-    for ( int i = 0 ; i < _gridpoints.size(); i++){
-        // AOESP matrix
-         AOESP _aoesp;
-         _aoesp.Initialize(dftbasis._AOBasisSize);
-         _aoesp.Fill(&dftbasis, _gridpoints[i]*1.8897259886);
-        ub::vector<double> AOESPasarray=_aoesp._aomatrix.data();
-      
-        for ( int _i =0; _i < DMATGSasarray.size(); _i++ ){
-            _ESPatGrid(i) -= DMATGSasarray(_i)*AOESPasarray(_i);
-        }
-        
-    }
-    LOG(logDEBUG, *_log) << TimeStamp() << "  ...done!"  << flush; 
-    
-    // Add nuclear contribution
-    _ESPatGrid += _NucPatGrid;
-
-    // Fitting atomic partial charges
-    ub::matrix<double> _Amat = ub::zero_matrix<double>(Atomlist.size()+1,Atomlist.size()+1);
-    ub::matrix<double> _Bvec = ub::zero_matrix<double>(Atomlist.size()+1);    
-    
-    // setting up _Amat
-    LOG(logDEBUG, *_log) << TimeStamp() << "  Setting up Amat of size "  << _Amat.size1() << " by " << _Amat.size2() << flush; 
-    for ( int _i =0 ; _i < _Amat.size1()-1; _i++){
-        double x_i = Atomlist[_i]->x;
-        double y_i = Atomlist[_i]->y;
-        double z_i = Atomlist[_i]->z;
-        
-        for ( int _j=_i; _j<_Amat.size2()-1; _j++){
-            double x_j = Atomlist[_j]->x;
-            double y_j = Atomlist[_j]->y;
-            double z_j = Atomlist[_j]->z;
-            for ( int _k=0; _k < _gridpoints.size(); _k++){
-            
-                double x_k = _gridpoints[_k](0);
-                double y_k = _gridpoints[_k](1);
-                double z_k = _gridpoints[_k](2);
-                
-                double dist_i = sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     )*1.8897259886;
-                double dist_j = sqrt( (x_j - x_k)*(x_j - x_k) +  (y_j - y_k)*(y_j - y_k) + (z_j - z_k)*(z_j - z_k)     )*1.8897259886;
-                
-                 _Amat(_i,_j) += 1.0/dist_i/dist_j; 
-                
-            }
-            _Amat(_j,_i) = _Amat(_i,_j);
-        }
-        
-    }
-    
-    for ( int _i =0 ; _i < _Amat.size1(); _i++){
-      _Amat(_i,_Amat.size1()-1) = 1.0;
-      _Amat(_Amat.size1()-1,_i) = 1.0;
-    }
-    _Amat(_Amat.size1()-1,_Amat.size1()-1) = 0.0;
-
-    
-
-    // setting up Bvec
-      LOG(logDEBUG, *_log) << TimeStamp() << "  Setting up Bvec"  << flush; 
-    for ( int _i =0 ; _i < _Bvec.size1()-1; _i++){
-        double x_i = Atomlist[_i]->x;
-        double y_i = Atomlist[_i]->y;
-        double z_i = Atomlist[_i]->z;
-        for ( int _k=0; _k < _gridpoints.size(); _k++){
-            
-                double x_k = _gridpoints[_k](0);
-                double y_k = _gridpoints[_k](1);
-                double z_k = _gridpoints[_k](2);
-                
-                double dist_i = sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     )*1.8897259886;
-                _Bvec(_i,0) += _ESPatGrid(_k)/dist_i;
-                
-        }
-        
-        
-        
-       }
-    
-    _Bvec(_Bvec.size1()-1,0) = 0.0; //netcharge!!!!
-    
-    // invert _Amat
-     LOG(logDEBUG, *_log) << TimeStamp() << "  Inverting _Amat"  << flush; 
-    ub::matrix<double> _Amat_inverse = ub::zero_matrix<double>(Atomlist.size()+1,Atomlist.size()+1);
-    linalg_invert( _Amat , _Amat_inverse);
-    //_Amat.resize(0,0);
-    LOG(logDEBUG, *_log) << TimeStamp() << "  Calculating CHELPG charges"  << flush; 
-    ub::matrix<double> _charges = ub::prod(_Amat_inverse,_Bvec);
-    
-    double _sumcrg = 0.0;
-    for ( int _i =0 ; _i < _Bvec.size1()-1; _i++){
-        
-        LOG(logDEBUG, *_log) << " Atom " << _i << " Type " << Atomlist[_i]->type << " Charge: " << _charges(_i,0) << flush;
-        _sumcrg += _charges(_i,0);
-        
-    }
-    
-    LOG(logDEBUG, *_log) << " Sum of partial charges: " << _sumcrg << flush;
-    
-    // get RMSE
-    double _rmse = 0.0;
-    double _totalESPsq = 0.0;
-    for ( int _k=0 ; _k < _gridpoints.size(); _k++ ){
-        double x_k = _gridpoints[_k](0);
-        double y_k = _gridpoints[_k](1);
-        double z_k = _gridpoints[_k](2);
-        double temp = 0.0;
-        for ( int _i=0; _i < Atomlist.size(); _i++ ){
-            double x_i = Atomlist[_i]->x;
-            double y_i = Atomlist[_i]->y;
-            double z_i = Atomlist[_i]->z;
-            
-            double dist =  sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     )*1.8897259886;
-            temp += _charges(_i,0)/dist;
-        }
-        _rmse += (_ESPatGrid(_k) - temp)*(_ESPatGrid(_k) - temp);
-        _totalESPsq += _ESPatGrid(_k)*_ESPatGrid(_k);
-        
-    }
-    LOG(logDEBUG, *_log) << " RMSE of fit:  " << sqrt(_rmse/_gridpoints.size()) << flush;
-    LOG(logDEBUG, *_log) << " RRMSE of fit: " << sqrt(_rmse/_totalESPsq) << flush;
-    
-   */    
-    
-    
-    
-        exit(0);
     // GW-BSE starts here
     bool _do_gwbse = true; // needs to be set by options!!!
     double energy___ex = 0.0;
@@ -537,35 +337,24 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
         std::vector<ub::matrix<double> > &DMAT = orb_iter_output.DensityMatrixExcitedState( _dft_orbitals , BSECoefs, _state_index[_state-1]);
 
     
-     
-    
-    
-    
-    
-        // setup ESP real space grid
-    
-    
-    
-    
-        // calculate ESP at each grid point
-        // ESP matrix at vecR
+        // fill DFT AO basis by going through all atoms 
+   
+  
+  
+        ub::matrix<double> &DMATGS=orb_iter_output.DensityMatrixGroundState(_dft_orbitals_GS);
+        vector< QMAtom* >& Atomlist= orb_iter_output.QMAtoms();
         
-        // get overlap matrix for DFT basisset
-         //               AOESP _espmatrix;
-                        // initialize overlap matrix
-         //               _espmatrix.Initialize(dftbasis._AOBasisSize);
-                        // Fill overlap
-        // ub::vector<double> vecR = ub::zero_vector<double>(3);
-         //               _espmatrix.Fill(&dftbasis  );
-        // ub::prod( DMAT, _espmatrix);
-        // V = Tr(DMAT,_espmatrix)
+        ub::matrix<double> DMAT_tot=DMATGS+DMAT[0]+DMAT[1];
         
-        // ESP (or GDMA) fit for this density matrix 
-        
-        // save updates multipoles 
-        
-        
-       // LOG(logDEBUG,*_log) << " ... done. " << flush;
+        Espfit esp;
+    
+        esp.setLog(_log);
+        esp.FittoDensity(Atomlist, DMAT_tot, dftbasis);
+    
+    
+    
+    
+       
 
     }
     

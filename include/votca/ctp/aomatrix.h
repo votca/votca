@@ -156,6 +156,18 @@ namespace votca { namespace ctp {
         void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, bool _raw = false );
         //void Print();
         
+        // ~AOKinetic();
+        
+        
+    };
+    
+    // derived class for kinetic energy
+    class AOKinetic : public AOMatrix{
+    public:
+        //block fill for overlap, implementation in aokinetic.cc
+        void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, bool _raw = false );
+        //void Print();
+        
         // ~AOESP();
         
         
