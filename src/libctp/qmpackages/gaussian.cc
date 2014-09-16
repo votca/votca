@@ -250,7 +250,13 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
                         for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                             GaussianPrimitive* gaussian = *itg;
                             //_com_file << gaussian->decay << " " << gaussian->contraction << endl;
-                            _el_file << FortranFormat( gaussian->decay )<< " " << FortranFormat( gaussian->contraction[0] ) << endl;
+                            _el_file << FortranFormat( gaussian->decay ) ;
+                            for ( int _icontr = 0 ; _icontr < gaussian->contraction.size(); _icontr++){
+                                if ( gaussian->contraction[_icontr] != 0.0 ){
+                                   _el_file << " " << FortranFormat( gaussian->contraction[_icontr] ) ;
+                                }
+                            }
+                            _el_file << endl;
                         }
                     }
                     
@@ -423,7 +429,13 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
                         for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                             GaussianPrimitive* gaussian = *itg;
                             //_com_file << gaussian->decay << " " << gaussian->contraction << endl;
-                            _el_file << FortranFormat( gaussian->decay )<< " " << FortranFormat( gaussian->contraction [0]) << endl;
+                                                        _el_file << FortranFormat( gaussian->decay ) ;
+                            for ( int _icontr = 0 ; _icontr < gaussian->contraction.size(); _icontr++){
+                                if ( gaussian->contraction[_icontr] != 0.0 ){
+                                   _el_file << " " << FortranFormat( gaussian->contraction[_icontr] ) ;
+                                }
+                            }
+                            _el_file << endl;
                         }
                     }
                     

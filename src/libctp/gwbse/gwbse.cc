@@ -35,7 +35,7 @@
 
 // testing numerical grids
 #include <votca/ctp/sphere_lebedev_rule.h>
-
+#include <votca/ctp/radial_euler_maclaurin_rule.h>
 
 #include <omp.h>
 
@@ -225,6 +225,18 @@ namespace votca {
             dftbs.LoadBasisSet(_dftbasis_name);
             _orbitals->setDFTbasis( _dftbasis_name );
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Loaded DFT Basis Set " << _dftbasis_name << flush;
+            
+            
+            
+            
+            EulerMaclaurinGrid _radialgrid;
+                     
+            std::vector<double> _r_point;
+            std::vector<double> _weight_radial;
+            
+            
+            _radialgrid.getRadialGrid(&dftbs,"C","medium",_r_point,_weight_radial);
+            exit(0);
 
             // fill DFT AO basis by going through all atoms 
             AOBasis dftbasis;
