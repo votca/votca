@@ -22,9 +22,6 @@
 
 
 #include <votca/ctp/elements.h>
-#include <string>
-#include <map>
-#include <vector>
 #include <votca/tools/property.h>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/lu.hpp>
@@ -64,7 +61,7 @@ public:
     
 
     
-    void FittoDensity(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_dftbasis) {
+    void FittoDensity(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_dftbasis, double _netcharge=0.0) {
         
     
    
@@ -188,7 +185,7 @@ public:
         
        }
     
-    _Bvec(_Bvec.size1()-1,0) = 0.0; //netcharge!!!!
+    _Bvec(_Bvec.size1()-1,0) = _netcharge; //netcharge!!!!
     
     // invert _Amat
      LOG(logDEBUG, *_log) << TimeStamp() << "  Inverting _Amat"  << flush; 
@@ -198,10 +195,19 @@ public:
     LOG(logDEBUG, *_log) << TimeStamp() << "  Calculating CHELPG charges"  << flush; 
     ub::matrix<double> _charges = ub::prod(_Amat_inverse,_Bvec);
     
-    double _sumcrg = 0.0;
+   
+    
+    
+    //Write charges to qmatoms
+        for ( int _i =0 ; _i < _Bvec.size1()-1; _i++){
+            _atomlist[_i]->charge=_charges(_i,0);
+        }
+    
+    
+     double _sumcrg = 0.0;
     for ( int _i =0 ; _i < _Bvec.size1()-1; _i++){
         
-        LOG(logDEBUG, *_log) << " Atom " << _i << " Type " << _atomlist[_i]->type << " Charge: " << _charges(_i,0) << flush;
+        LOG(logDEBUG, *_log) << " Atom " << _i << " Type " << _atomlist[_i]->type << " Charge: " << _charges(_i,0) <<":" <<_atomlist[_i]->charge << flush;
         _sumcrg += _charges(_i,0);
         
     }
