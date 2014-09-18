@@ -117,7 +117,6 @@
       <itemPath>../../include/votca/ctp/qmpair.h</itemPath>
       <itemPath>../../include/votca/ctp/qmthread.h</itemPath>
       <itemPath>../../include/votca/ctp/qmtool.h</itemPath>
-      <itemPath>../../include/votca/ctp/radial_euler_maclaurin_rule.h</itemPath>
       <itemPath>../../include/votca/ctp/segment.h</itemPath>
       <itemPath>../../include/votca/ctp/segmenttype.h</itemPath>
       <itemPath>../../include/votca/ctp/sphere_lebedev_rule.h</itemPath>
@@ -177,7 +176,6 @@
       </logicalFolder>
       <logicalFolder name="f6" displayName="NumInt" projectFiles="true">
         <itemPath>../../src/libctp/numerical_integration/numerical_integrations.cc</itemPath>
-        <itemPath>../../src/libctp/numerical_integration/radial_euler_maclaurin_rule.cc</itemPath>
         <itemPath>../../src/libctp/numerical_integration/sphere_lebedev_rule.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f3" displayName="Topology" projectFiles="true">
@@ -375,6 +373,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/ctp/qmatom.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/qmcalculator.h"
             ex="false"
             tool="3"
@@ -402,11 +402,6 @@
       <item path="../../include/votca/ctp/qmthread.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/qmtool.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/radial_euler_maclaurin_rule.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../include/votca/ctp/segment.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -469,6 +464,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/aomatrices/aoesp.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/aomatrices/aokinetic.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -767,11 +767,6 @@
       <item path="../../src/libctp/molecule.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/numerical_integration/numerical_integrations.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/numerical_integration/radial_euler_maclaurin_rule.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -1054,6 +1049,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/ctp/qmatom.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/qmcalculator.h"
             ex="false"
             tool="3"
@@ -1081,11 +1078,6 @@
       <item path="../../include/votca/ctp/qmthread.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/qmtool.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/radial_euler_maclaurin_rule.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../include/votca/ctp/segment.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1148,6 +1140,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/aomatrices/aoesp.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/aomatrices/aokinetic.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -1446,11 +1443,6 @@
       <item path="../../src/libctp/molecule.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/numerical_integration/numerical_integrations.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/numerical_integration/radial_euler_maclaurin_rule.cc"
             ex="false"
             tool="1"
             flavor2="0">
