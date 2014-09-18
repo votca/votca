@@ -89,9 +89,9 @@ namespace votca { namespace ctp {
             if ( _exparg > 30.0 ) { continue; }
         
             // matrix for kinetic energies
-            ub::matrix<double> kin = ub::zero_matrix<double>(_ntrafo_row,_nrows);
+            ub::matrix<double> kin   = ub::zero_matrix<double>(_nrows,_ncols);
             //matrix for unnormalized overlap integrals
-            ub::matrix<double> ol = ub::zero_matrix<double>(_ntrafo_row,_nrows);
+            ub::matrix<double> ol   = ub::zero_matrix<double>(_nrows,_ncols);
         
             
             

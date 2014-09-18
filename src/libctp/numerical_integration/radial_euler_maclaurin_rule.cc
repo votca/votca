@@ -18,9 +18,9 @@
  */
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/ctp/votca_ctp_config.h>
-
 #include <boost/math/constants/constants.hpp>
-# include "votca/ctp/radial_euler_maclaurin_rule.h"
+#include <votca/ctp/radial_euler_maclaurin_rule.h>
+#include <votca/ctp/qmatom.h>
 
 using namespace std;
 
@@ -96,14 +96,14 @@ void EulerMaclaurinGrid::getRadialCutoffs(vector<QMAtom* > _atoms, BasisSet* bs,
         
             int order = getGrid(element, type);
  
-            
+       /*  
             // determine radial cutoff for this (_decaymin,_lvalue) combination
             cout << " For " << element << " decay min is " << _decaymin << " of type " << _lvalue << endl;
 
             double eps = 1.e-6;
             double cutoff = DetermineCutoff( _decaymin, _lvalue, eps);
             cout << " And a cutoff would be " << cutoff << "for eps= " << eps << endl;
-            
+        */    
                                          
               
               

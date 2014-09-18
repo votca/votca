@@ -34,8 +34,8 @@
 #include <votca/tools/linalg.h>
 
 // testing numerical grids
-#include <votca/ctp/sphere_lebedev_rule.h>
-#include <votca/ctp/radial_euler_maclaurin_rule.h>
+//#include <votca/ctp/sphere_lebedev_rule.h>
+//#include <votca/ctp/radial_euler_maclaurin_rule.h>
 
 #include <omp.h>
 
@@ -227,7 +227,7 @@ namespace votca {
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Loaded DFT Basis Set " << _dftbasis_name << flush;
             
             
-            
+           /*
             
             EulerMaclaurinGrid _radialgrid;
                      
@@ -237,7 +237,7 @@ namespace votca {
             
             _radialgrid.getRadialGrid(&dftbs,"C","medium",_r_point,_weight_radial);
             exit(0);
-
+*/
             // fill DFT AO basis by going through all atoms 
             AOBasis dftbasis;
             dftbasis.AOBasisFill(&dftbs, _atoms, _fragA );
@@ -502,8 +502,8 @@ namespace votca {
                 }
             
                 // _gwoverlap is not needed further, if no shift iteration
-                if ( ! _iterate_shift) _gwoverlap.~AOOverlap();
-            
+                //if ( ! _iterate_shift) _gwoverlap.~AOOverlap;
+                if ( ! _iterate_shift) _gwoverlap._aomatrix.resize(0,0);
                 // determine epsilon from RPA
                 RPA_calculate_epsilon( _Mmn_RPA, _screening_freq, _shift, _dft_energies );
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculated epsilon via RPA  " << flush;
@@ -545,7 +545,8 @@ namespace votca {
             
             // free unused variable if shift is iterated
             if ( _iterate_shift ){
-                _gwoverlap.~AOOverlap();
+               // _gwoverlap.~AOOverlap();
+                _gwoverlap._aomatrix.resize(0,0);
                 _Mmn_RPA.Cleanup();
                 _Mmn_backup.Cleanup();
             }
@@ -755,7 +756,7 @@ namespace votca {
                     }
 
                     
-                          
+                        
             
                     std::vector<double> _popHA;
                     std::vector<double> _popHB;
@@ -771,7 +772,7 @@ namespace votca {
                                
                     
                     // Mulliken fragment population analysis
-                    if ( _fragA > -2 ) {
+                    if ( _fragA > 0 ) {
 
                         // get overlap matrix for DFT basisset
                         AOOverlap _dftoverlap;
@@ -889,7 +890,7 @@ namespace votca {
                             }
                         }
                         // results of fragment population analysis 
-                        if ( _fragA > -2 ){
+                        if ( _fragA > 0 ){
                             LOG(logINFO, *_pLog) << (format("           Fragment A -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f") % (100.0 * _popHA[_i]) % (100.0 * _popEA[_i]) % (_CrgsA[_i]) % ( _CrgsA[_i] + _popA ) ).str() << flush;
                             LOG(logINFO, *_pLog) << (format("           Fragment B -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f") % (100.0 * _popHB[_i]) % (100.0 * _popEB[_i]) % (_CrgsB[_i]) % ( _CrgsB[_i] + _popB ) ).str() << flush;
                         }
@@ -898,6 +899,7 @@ namespace votca {
 
                      // storage to orbitals object
                     if ( _store_bse_singlets ) {
+
                         std::vector<float>& _bse_singlet_energies_store = _orbitals->BSESingletEnergies();
                         ub::matrix<float>& _bse_singlet_coefficients_store = _orbitals->BSESingletCoefficients();
                         std::vector< std::vector<double> >& _transition_dipoles_store = _orbitals->TransitionDipoles();
@@ -915,8 +917,8 @@ namespace votca {
                            }
                            
                         }
-                        
-                    } // _store_bse_triplets
+
+                    } // _store_bse_singlets
                                        
                     
                     
@@ -927,7 +929,6 @@ namespace votca {
             }
             
 
-            
             return true;
         }
 

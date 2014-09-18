@@ -199,7 +199,7 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     //_qmpack->setLogFileName(path_logFile);
     
     //Commented out for test Jens 
-    //_qmpack->Run();
+    _qmpack->Run();
     
     // EXTRACT LOG-FILE INFOS TO ORBITALS   
     Orbitals orb_iter_output;
@@ -208,13 +208,13 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     
     
      // Ground state density matrix
-    ub::matrix<double> &_dft_orbitals_GS = orb_iter_output.MOCoefficients();
-    int _parse_orbitals_status_GS = _qmpack->ParseOrbitalsFile( &orb_iter_output );
+    // ub::matrix<double> &_dft_orbitals_GS = orb_iter_output.MOCoefficients();
+    // int _parse_orbitals_status_GS = _qmpack->ParseOrbitalsFile( &orb_iter_output );
 
 
     
     
-    // AOESP matrix test
+    /* // AOESP matrix test
     // load DFT basis set (element-wise information) from xml file
     BasisSet dftbs;
     //dftbs.LoadBasisSet( orb_iter_output.getDFTbasis() );
@@ -232,7 +232,7 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     // Espfit esp
     //Espfit esp(vector< QMAtom* >& Atomlist, ub::matrix<double> &DMATGS, AOBasis &dftbasis);
     esp.setLog(_log);
-    esp.FittoDensity(Atomlist, DMATGS, dftbasis);
+    esp.FittoDensity(Atomlist, DMATGS, dftbasis); */
   
     
 
@@ -265,6 +265,7 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
         _gwbse.Initialize( &_gwbse_options );
         bool _evaluate = _gwbse.Evaluate( &orb_iter_output );
         
+       
         // write logger to log file
         ofstream ofs;
         string gwbse_logfile = runFolder + "/gwbse.log";
@@ -315,7 +316,9 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
             energy___ex = orb_iter_output.BSETripletEnergies()[_state_index[_state-1]]*13.6058; // to eV
         }
    
-        
+        // ub::matrix<double> &_dft_orbitals_GS = orb_iter_output.MOCoefficients();
+        // int _parse_orbitals_status_GS = _qmpack->ParseOrbitalsFile( &orb_iter_output );
+
         
         // calculate density matrix for this excited state
         ub::matrix<double> &_dft_orbitals = orb_iter_output.MOCoefficients();
@@ -341,10 +344,10 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
    
   
   
-        ub::matrix<double> &DMATGS=orb_iter_output.DensityMatrixGroundState(_dft_orbitals_GS);
+        ub::matrix<double> &DMATGS=orb_iter_output.DensityMatrixGroundState(_dft_orbitals);
         vector< QMAtom* >& Atomlist= orb_iter_output.QMAtoms();
         
-        ub::matrix<double> DMAT_tot=DMATGS+DMAT[0]+DMAT[1];
+        ub::matrix<double> DMAT_tot=DMATGS-DMAT[0]+DMAT[1]; // Ground state + hole_contribution + electron contribution
         
         Espfit esp;
     
