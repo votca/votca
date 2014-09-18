@@ -738,7 +738,7 @@ namespace votca {
                                
                     
                     // Mulliken fragment population analysis
-                    if ( _fragA > -2 ) {
+                    if ( _fragA > 0 ) {
 
                         // get overlap matrix for DFT basisset
                         AOOverlap _dftoverlap;
@@ -856,7 +856,7 @@ namespace votca {
                             }
                         }
                         // results of fragment population analysis 
-                        if ( _fragA > -2 ){
+                        if ( _fragA > 0 ){
                             LOG(logINFO, *_pLog) << (format("           Fragment A -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f") % (100.0 * _popHA[_i]) % (100.0 * _popEA[_i]) % (_CrgsA[_i]) % ( _CrgsA[_i] + _popA ) ).str() << flush;
                             LOG(logINFO, *_pLog) << (format("           Fragment B -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f") % (100.0 * _popHB[_i]) % (100.0 * _popEB[_i]) % (_CrgsB[_i]) % ( _CrgsB[_i] + _popB ) ).str() << flush;
                         }

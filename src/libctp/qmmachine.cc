@@ -244,13 +244,18 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     bool _do_gwbse = true; // needs to be set by options!!!
     double energy___ex = 0.0;
     if ( _do_gwbse ){
+
+
+        // for GW-BSE, we also need to parse the orbitals file
+        int _parse_orbitals_status = _qmpack->ParseOrbitalsFile( &orb_iter_output );
+        std::vector<int> _state_index;
+
+      if ( _state > 0 ){
         LOG(logDEBUG,*_log) << "Excited state via GWBSE: " <<  flush;
         LOG(logDEBUG,*_log) << "  --- type:              " << _type << flush;
         LOG(logDEBUG,*_log) << "  --- state:             " << _state << flush;
         if ( _has_osc_filter) LOG(logDEBUG,*_log) << "  --- filter: osc.str. > " << _osc_threshold << flush;
         
-        // for GW-BSE, we also need to parse the orbitals file
-        int _parse_orbitals_status = _qmpack->ParseOrbitalsFile( &orb_iter_output );
         
         // define own logger for GW-BSE that is written into a runFolder logfile
         Logger gwbse_logger(logDEBUG);
@@ -279,7 +284,7 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
         // PROCESSING the GW-BSE result
         // - find the excited state of interest
         // oscillator strength filter
-        std::vector<int> _state_index;
+
         
         if ( _has_osc_filter ){
             
@@ -319,6 +324,7 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
         // ub::matrix<double> &_dft_orbitals_GS = orb_iter_output.MOCoefficients();
         // int _parse_orbitals_status_GS = _qmpack->ParseOrbitalsFile( &orb_iter_output );
 
+      } // only if state >0
         
         // calculate density matrix for this excited state
         ub::matrix<double> &_dft_orbitals = orb_iter_output.MOCoefficients();
@@ -336,18 +342,20 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
         dftbasis.AOBasisFill(&dftbs, orb_iter_output.QMAtoms() );
         dftbasis.ReorderMOs(_dft_orbitals, orb_iter_output.getQMpackage(), "votca" );
         // TBD: Need to switch between singlets and triplets depending on _type
-        ub::matrix<float>& BSECoefs = orb_iter_output.BSESingletCoefficients();
-        std::vector<ub::matrix<double> > &DMAT = orb_iter_output.DensityMatrixExcitedState( _dft_orbitals , BSECoefs, _state_index[_state-1]);
+        ub::matrix<double> &DMATGS=orb_iter_output.DensityMatrixGroundState(_dft_orbitals);
 
+        ub::matrix<double> DMAT_tot=DMATGS; // Ground state + hole_contribution + electron contribution
+
+	if ( _state > 0 ){ 
+	  ub::matrix<float>& BSECoefs = orb_iter_output.BSESingletCoefficients();
+	  std::vector<ub::matrix<double> > &DMAT = orb_iter_output.DensityMatrixExcitedState( _dft_orbitals , BSECoefs, _state_index[_state-1]);
+	  DMAT_tot=DMAT_tot-DMAT[0]+DMAT[1]; // Ground state + hole_contribution + electron contribution
+	}
     
         // fill DFT AO basis by going through all atoms 
-   
-  
-  
-        ub::matrix<double> &DMATGS=orb_iter_output.DensityMatrixGroundState(_dft_orbitals);
         vector< QMAtom* >& Atomlist= orb_iter_output.QMAtoms();
         
-        ub::matrix<double> DMAT_tot=DMATGS-DMAT[0]+DMAT[1]; // Ground state + hole_contribution + electron contribution
+
         
         Espfit esp;
     
