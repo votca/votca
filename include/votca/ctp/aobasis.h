@@ -69,6 +69,8 @@ public:
     int    getNumFunc() { return _numFunc ;}
     int    getStartIndex() { return _startIndex ;}
     int    getOffset() { return _offset ;}
+    int    getIndex() { return _atomindex;}
+    string getName() { return _atomname;}
     
     int getLmax(  ) { return detlmax( _type );}
     /*

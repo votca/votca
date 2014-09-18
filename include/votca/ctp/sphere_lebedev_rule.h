@@ -22,6 +22,7 @@
 
 
 #include <votca/tools/property.h>
+#include <votca/ctp/grid_containers.h>
 using namespace std;
 
 
@@ -33,7 +34,7 @@ namespace votca { namespace ctp {
             
             LebedevGrid() { FillOrders(); };
             
-            
+            void getSphericalGrid( vector<QMAtom* > _atoms , string type, GridContainers& _grids );
             void getUnitSphereGrid( string element, string type, std::vector<double>& _theta, std::vector<double>& _phi, std::vector<double>& _weight );
 
 

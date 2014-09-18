@@ -23,6 +23,8 @@
 
 #include <votca/tools/property.h>
 #include <votca/ctp/basisset.h>
+#include <votca/ctp/qmatom.h>
+#include <votca/ctp/grid_containers.h>
 using namespace std;
 
 
@@ -34,8 +36,7 @@ namespace votca { namespace ctp {
             
             EulerMaclaurinGrid() { FillGrids(); };
             
-            void getRadialCutoffs( vector<QMAtom* > _atoms ,  BasisSet* bs ,string gridtype );
-            void getRadialGrid( BasisSet* bs , string element, string type, std::vector<double>& _r,  std::vector<double>& _weight );
+            void getRadialGrid( BasisSet* bs , vector<QMAtom* > _atoms , string type, GridContainers& _grids );
 
 
 
@@ -46,14 +47,23 @@ namespace votca { namespace ctp {
                 int l;
                 double range;
             };
+            
+            struct grid_element {
+                std::vector<double> gridpoint;
+                std::vector<double> weight;
+            };
        
             map<string,min_exp> _element_ranges;
+            map<string,grid_element> _element_grids;
             
             int getGrid(string element, string type);
             
             double DetermineCutoff( double alpha, int l, double eps );
             double getNeglected( double alpha, int l, double cutoff);
             double RadialIntegral(double alpha, int l, double cutoff);
+            
+            void getRadialCutoffs( vector<QMAtom* > _atoms ,  BasisSet* bs ,string gridtype );
+            void setGrid(int numberofpoints, double cutoff, std::vector<double>& point, std::vector<double>& weight );
             
             std::map<std::string, int>    MediumGrid;
             std::map<std::string, double> Accuracy;

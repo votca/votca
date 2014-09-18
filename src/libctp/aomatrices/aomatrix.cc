@@ -164,11 +164,11 @@ namespace votca { namespace ctp {
     
     
     
-    AOMatrix::~AOMatrix() {
-    
-    _aomatrix.clear();
-    _aomatrix.resize(0,0);
-};
+    //    AOMatrix::~AOMatrix() {
+    // ;
+      //_aomatrix.clear();
+    //    _aomatrix.resize(0,0);
+    // };
     
     
     void AOMatrix::Print( string _ident){

@@ -86,6 +86,7 @@
       <itemPath>../../include/votca/ctp/extractorfactory.h</itemPath>
       <itemPath>../../include/votca/ctp/fragment.h</itemPath>
       <itemPath>../../include/votca/ctp/grid.h</itemPath>
+      <itemPath>/people/thnfs/homes/baumeier/isilon/votca_gsl/src/ctp/include/votca/ctp/grid_containers.h</itemPath>
       <itemPath>../../include/votca/ctp/gsl_boost_ublas_matrix_prod.h</itemPath>
       <itemPath>../../include/votca/ctp/gwbse.h</itemPath>
       <itemPath>../../include/votca/ctp/job.h</itemPath>
@@ -94,6 +95,7 @@
       <itemPath>../../include/votca/ctp/logger.h</itemPath>
       <itemPath>../../include/votca/ctp/mkl_boost_ublas_matrix_prod.h</itemPath>
       <itemPath>../../include/votca/ctp/molecule.h</itemPath>
+      <itemPath>../../include/votca/ctp/numerical_integrations.h</itemPath>
       <itemPath>../../include/votca/ctp/orbitals.h</itemPath>
       <itemPath>../../include/votca/ctp/overlap.h</itemPath>
       <itemPath>../../include/votca/ctp/paircalculator.h</itemPath>
@@ -174,6 +176,7 @@
         <itemPath>../../src/libctp/gwbse/rpa.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f6" displayName="NumInt" projectFiles="true">
+        <itemPath>../../src/libctp/numerical_integration/numerical_integrations.cc</itemPath>
         <itemPath>../../src/libctp/numerical_integration/radial_euler_maclaurin_rule.cc</itemPath>
         <itemPath>../../src/libctp/numerical_integration/sphere_lebedev_rule.cc</itemPath>
       </logicalFolder>
@@ -326,6 +329,11 @@
       </item>
       <item path="../../include/votca/ctp/molecule.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/ctp/numerical_integrations.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/orbitals.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/overlap.h" ex="false" tool="3" flavor2="0">
@@ -757,6 +765,11 @@
       <item path="../../src/libctp/mbgft/mbgft.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/molecule.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/numerical_integration/numerical_integrations.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libctp/numerical_integration/radial_euler_maclaurin_rule.cc"
             ex="false"
@@ -899,6 +912,11 @@
       </item>
       <item path="../../src/libctp/xmapper.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="/people/thnfs/homes/baumeier/isilon/votca_gsl/src/ctp/include/votca/ctp/grid_containers.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
     </conf>
     <conf name="Release" type="3">
       <toolsSet>
@@ -989,6 +1007,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/molecule.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/numerical_integrations.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/ctp/orbitals.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1421,6 +1444,11 @@
       <item path="../../src/libctp/mbgft/mbgft.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/molecule.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/numerical_integration/numerical_integrations.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libctp/numerical_integration/radial_euler_maclaurin_rule.cc"
             ex="false"
@@ -1562,6 +1590,11 @@
       <item path="../../src/libctp/xjob.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/xmapper.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="/people/thnfs/homes/baumeier/isilon/votca_gsl/src/ctp/include/votca/ctp/grid_containers.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
     </conf>
   </confs>

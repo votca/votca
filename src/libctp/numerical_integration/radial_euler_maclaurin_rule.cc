@@ -20,7 +20,9 @@
 #include <votca/ctp/votca_ctp_config.h>
 
 #include <boost/math/constants/constants.hpp>
-# include "votca/ctp/radial_euler_maclaurin_rule.h"
+#include "votca/ctp/radial_euler_maclaurin_rule.h"
+#include "votca/ctp/aobasis.h"
+#include <votca/ctp/aomatrix.h>
 
 using namespace std;
 
@@ -30,9 +32,12 @@ void EulerMaclaurinGrid::getRadialCutoffs(vector<QMAtom* > _atoms, BasisSet* bs,
 
             map<string, min_exp>::iterator it;
             vector< QMAtom* > ::iterator ait;
+            vector< QMAtom* > ::iterator bit;
             
             double eps = Accuracy[gridtype];
-            
+            double _decaymin;
+            int _lvalue;
+            cout << endl << " Setting cutoffs for grid type " << gridtype << " eps = " << eps << endl;
             // 1) is only element based
             // loop over atoms
             for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
@@ -42,13 +47,16 @@ void EulerMaclaurinGrid::getRadialCutoffs(vector<QMAtom* > _atoms, BasisSet* bs,
                 it = _element_ranges.find(name);
                 // only proceed, if element data does not exist yet
                 if (it == _element_ranges.end()) {
+                    // get first range estimate and add to map
+                    min_exp this_atom;
+                    double range_max = 0.0;
                     // get the basis set entry for this element
                     Element* _element = bs->getElement(name);
                     // and loop over all shells to figure out minimum decay constant and angular momentum of this function
-                    double _decaymin = 1e7;
-                    int _lvalue = 0;
                     for (Element::ShellIterator its = _element->firstShell(); its != _element->lastShell(); its++) {
                         Shell* shell = (*its);
+                        _decaymin = 1e7;
+                        _lvalue = 0;
                         int _lmax = shell->getLmax();
                         for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                             GaussianPrimitive* gaussian = *itg;
@@ -58,20 +66,161 @@ void EulerMaclaurinGrid::getRadialCutoffs(vector<QMAtom* > _atoms, BasisSet* bs,
                                 _lvalue = _lmax;
                             }
                         }
-
+                        double range = DetermineCutoff( 2*_decaymin, 2*_lvalue+2, eps);
+                        if ( range > range_max ){
+                            this_atom.alpha = _decaymin;
+                            this_atom.l     = _lvalue;
+                            this_atom.range = range;
+                            range_max = range;
+                        }
                     } // shells
 
-                    // get first range estimate and add to map
-                    min_exp this_atom;
-                    this_atom.alpha = _decaymin;
-                    this_atom.l     = _lvalue;
-                    this_atom.range = DetermineCutoff( _decaymin, _lvalue, eps);;
-                    
+                    cout << "Element " << name << " alpha " << this_atom.alpha << " l " << this_atom.l << " Rcut " << this_atom.range << endl;
                     _element_ranges[name] = this_atom;
                 } // new element
             } // atoms
 
+         //   exit(0);
 
+            // calculate overlap matrix
+            AOBasis aobasis;
+            aobasis.AOBasisFill(bs, _atoms);
+            AOOverlap _overlap;
+            // initialize overlap matrix
+            _overlap.Initialize(aobasis._AOBasisSize);
+            // Fill overlap
+            _overlap.Fill(&aobasis);
+            
+            
+            
+            // refining by going through all atom combinations
+            // get collapsed index list
+            int atidx = 0;
+            std::vector<int> idxstart;
+            std::vector<int> idxstop;
+            int start = 0;
+            int end = 0;
+            for (vector< AOShell* >::iterator _row = aobasis.firstShell(); _row != aobasis.lastShell() ; _row++ ) {
+                
+                 AOShell* _shell_row = aobasis.getShell( _row );
+                 
+                 if ( _shell_row->getIndex() == atidx ){
+
+                     end   += _shell_row->getNumFunc();
+                 } else {
+                  
+                     idxstart.push_back(start);
+                     idxstop.push_back(end);
+                     atidx++;
+                     start = end;
+                     end   += _shell_row->getNumFunc();
+                 }
+            }
+
+            idxstart.push_back(start);
+            idxstop.push_back(end);
+                     
+            int aidx=0;
+            
+            for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
+
+                int _a_start = idxstart[aidx];
+                int _a_stop  = idxstop[aidx];
+                
+                double range_max = 0.0;
+                double shiftm_2g = 0.0;
+                
+                
+                // get preset values for this atom type
+                double exp_iat = _element_ranges.at((*ait)->type).alpha;
+                int    l_iat   = _element_ranges.at((*ait)->type).l;
+                
+                double x_a = (*ait)->x * 1.8897259886 ;
+                double y_a = (*ait)->y * 1.8897259886 ;
+                double z_a = (*ait)->z * 1.8897259886 ;
+                
+                int iat_diff;
+                string type_diff;
+                int bidx = 0;
+                for (bit = _atoms.begin(); bit < _atoms.end(); ++bit) {
+                
+                      int _b_start = idxstart[bidx];
+                      int _b_stop  = idxstop[bidx];
+                      double x_b = (*bit)->x * 1.8897259886 ;
+                      double y_b = (*bit)->y * 1.8897259886 ;
+                      double z_b = (*bit)->z * 1.8897259886 ;
+                      // now do some overlap gymnastics
+                      double s_max = 10.0;
+                      if ( aidx != bidx ){
+                          
+                          // find overlap block of these two atoms
+                          ub::matrix<double> _overlapblock = ub::project( _overlap._aomatrix ,  ub::range( _a_start , _a_stop ), ub::range(_b_start, _b_stop ) );
+                          // determine abs max of this block
+                          s_max = 0.0;
+                          for ( int i = 0 ; i < _overlapblock.size1(); i++ ){
+                          for ( int j = 0 ; j < _overlapblock.size2(); j++ ){
+                              s_max = std::max(s_max,std::abs(_overlapblock(i,j)));
+                          }
+                          }
+                      }
+                          
+                          if ( s_max > 1e-5 ) {
+                              // cout << " Atom " << aidx << " neighbor " << bidx << " s-max " << s_max << " exponents " << exp_iat << " and " << _element_ranges.at((*bit)->type).alpha << endl;
+                              double range = DetermineCutoff( exp_iat + _element_ranges.at((*bit)->type).alpha, l_iat + _element_ranges.at((*bit)->type).l +2 , eps);
+                              // now do some update trickery from Gaussian product formula
+                              double dist = sqrt( (x_a - x_b)*(x_a-x_b) + (y_a - y_b)*(y_a-y_b) + (z_a - z_b)*(z_a-z_b)   );
+                              double shift_2g = dist*exp_iat/(exp_iat + _element_ranges.at((*bit)->type).alpha );
+                              range += shift_2g;
+                              
+                      
+                              if ( aidx != bidx ) range += dist;
+                              
+                              if ( range > range_max ){
+                                  shiftm_2g = shift_2g;
+                                  range_max = range;
+                                  iat_diff = bidx;
+                                  type_diff = (*bit)->type;
+                              }
+                              
+             
+                              
+                          }
+                      
+
+                      bidx++;
+                }
+                
+                
+                                      
+                          
+                      // cout << "after atoms :" << endl;
+                      //cout << " zmins:     " << exp_iat  << " ---- " << _element_ranges.at(type_diff).alpha << endl;
+                      //cout << " lprod:     " << l_iat + _element_ranges.at(type_diff).l << endl;
+                      //cout << " range:     " << range_max << endl;
+                      //cout << " shiftm_2g: " << shiftm_2g << endl << endl;
+                      //exit(0);
+                      
+                      
+                    
+                
+                if ( round(range_max) > _element_ranges.at((*ait)->type).range ){
+                    _element_ranges.at((*ait)->type).range = round(range_max) ;
+                    
+                }
+                
+                
+                
+                aidx++;
+            }
+            
+            
+            
+            for ( it = _element_ranges.begin() ; it != _element_ranges.end() ; ++it){
+                
+                cout << "Element " << it->first << " alpha " << it->second.alpha << " l " << it->second.l << " Rcut " << it->second.range <<  " Rcut (Ang) " <<  it->second.range  * 0.529177249 << endl;
+                
+            }
+            
         } // getRadialCutoffs
     
     
@@ -79,34 +228,57 @@ void EulerMaclaurinGrid::getRadialCutoffs(vector<QMAtom* > _atoms, BasisSet* bs,
     
     
     
-    void EulerMaclaurinGrid::getRadialGrid(BasisSet* bs , string element, string type, std::vector<double>& _r, std::vector<double>& _weight) {
+    void EulerMaclaurinGrid::getRadialGrid(BasisSet* bs , vector<QMAtom* > _atoms, string type, GridContainers& _grid) {
 
         
-            /* apparently, the procedure is like this
-             *
-             * 1) get all atom coordinates
-             * 2) determine overlap matrix
-             * 3) set accuracy
-             * 4) for each atom type, get min_exp, l(min_exp) and start Rcut estimate
-             * 5) for each atom, refine Rcut taking the overlap matrix with other atoms into account, update Rcut for atom type!!
-             * 
-             */
-        
-        
-        
-            int order = getGrid(element, type);
- 
+            map<string, min_exp>::iterator it;
+            getRadialCutoffs(_atoms,bs,type);
             
-            // determine radial cutoff for this (_decaymin,_lvalue) combination
-            cout << " For " << element << " decay min is " << _decaymin << " of type " << _lvalue << endl;
-
-            double eps = 1.e-6;
-            double cutoff = DetermineCutoff( _decaymin, _lvalue, eps);
-            cout << " And a cutoff would be " << cutoff << "for eps= " << eps << endl;
+            // go through all elements
+            for ( it = _element_ranges.begin() ; it != _element_ranges.end() ; ++it){
+                
+                 // cout << "Element " << it->first << " alpha " << it->second.alpha << " l " << it->second.l << " Rcut " << it->second.range <<  " Rcut (Ang) " <<  it->second.range  * 0.529177249 << endl;
+                
+                std::vector<double> points;
+                std::vector<double> weights;
+                int numberofpoints = getGrid(it->first, type);
+                cout << " Setting grid for element " << it->first <<  " with " << numberofpoints << " points " <<  endl ;
+                setGrid( numberofpoints, it->second.range, points, weights );
+                
+                //grid_element this_element;
+                //this_element.gridpoint = points;
+                //this_element.weight = weights;
+                
+                //_element_grids[it->first] = this_element;
+                
+                _grid._radial_grids[it->first].radius = points; 
+                _grid._radial_grids[it->first].weight = weights;
+                
+            }
+              
+    }
+    
+    
+    void EulerMaclaurinGrid::setGrid(int np, double cutoff, std::vector<double>& point, std::vector<double>& weight ){
+        
+        double alpha = -cutoff/(log(1.0 - pow(  (1.0 + double(np))/(2.0 + double(np)),3)) );
+        
+        
+        double factor = 3.0/(1.0+double(np));
+        
+        for ( int i = 0; i < np; i++){
+            double q = double(i+1)/(double(np)+1.0);
+            double r = -alpha*log(1.0-pow(q,3));
+            double w = factor * alpha * r*r/( 1.0 - pow(q,3) ) * pow(q,2);
             
-                                         
-              
-              
+            point.push_back(r);
+            weight.push_back(w);
+            
+        }
+        
+        
+        
+        
     }
     
     
@@ -127,7 +299,8 @@ void EulerMaclaurinGrid::getRadialCutoffs(vector<QMAtom* > _atoms, BasisSet* bs,
         double _increment = 0.5; // increment
 
             while (_increment > 0.01) {
-                double _neglected = getNeglected(2 * l + 2, 2.0 * alpha, _cutoff);
+                double _neglected = getNeglected(alpha,l ,  _cutoff);
+                // cout << "neglected is " << _neglected << endl;
                 if (_neglected > eps) {
                     _cutoff += _increment;
                 } else {
@@ -147,7 +320,7 @@ void EulerMaclaurinGrid::getRadialCutoffs(vector<QMAtom* > _atoms, BasisSet* bs,
     
     double EulerMaclaurinGrid::getNeglected(double alpha, int l, double cutoff){
         
-        return RadialIntegral(l+2,alpha,cutoff) / RadialIntegral(l+2,alpha, 0.0); 
+        return RadialIntegral(alpha,l+2,cutoff) / RadialIntegral(alpha,l+2, 0.0); 
         
         
     }
