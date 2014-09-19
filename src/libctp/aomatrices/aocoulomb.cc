@@ -57,56 +57,73 @@ namespace votca { namespace ctp {
             int _nextra = this->getExtraBlockSize(_lmax_row, _lmax_col);
             int _l_sum = _lmax_row + _lmax_col;
             int _ma_dim = this->getBlockSize(_l_sum);
-
-            // get decay constants (this all is still valid only for uncontracted functions)
-            const double& _decay_row = (*_shell_row->firstGaussian())->decay;
-            const double& _decay_col = (*_shell_col->firstGaussian())->decay;
-
+            
             // get shell positions
             const vec& _pos_row = _shell_row->getPos();
             const vec& _pos_col = _shell_col->getPos();
             const vec _diff = _pos_row - _pos_col;
-
-            // some helpers
+            double _distsq = (_diff.getX() * _diff.getX()) + (_diff.getY() * _diff.getY()) + (_diff.getZ() * _diff.getZ());
+            const double pi = boost::math::constants::pi<double>();
+             // some helpers
             vector<double> _wmp;
             vector<double> _wmq;
-            double _distsq;
+            
+            
+         
 
-            double _faka;
-            double _faka2;
-            double _faka3;
-            double _fakaca;
-            double _fakaac;
-            double _fakac;
-            double _fakac2;
-            double _fakac3;
-            double _fakac4;
-            double _fakc;
-            double _fakc2;
-            double _fakc3;
-            double _fakca;
-            double _fakca2;
-            double _fakca3;
-            double _fakca4;
+           
+            
+            typedef vector< AOGaussianPrimitive* >::iterator GaussianIterator;
+        // iterate over Gaussians in this _shell_row
+            for ( GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr){
+            // iterate over Gaussians in this _shell_col
+                const double& _decay_row = (*itr)->decay;
+            
+                for ( GaussianIterator itc = _shell_col->firstGaussian(); itc != _shell_col->lastGaussian(); ++itc){
+                    
+                     // get decay constants 
+                        const double& _decay_col = (*itc)->decay;
 
+                        double _fakac = 0.5 / (_decay_row + _decay_col);
+                        double _fakac2 = 2.0 * _fakac;
+                        // check if distance between postions is big, then skip step   
+                        double _exparg = _fakac2 * _decay_row * _decay_col *_distsq;
+                        // if ( _exparg > 30.0 ) { continue; } //!!!!!CUTOFF not applicable to AOCoulomb (at least not like this...)
+                    
+                                    // get a multi dimensional array
+                         typedef boost::multi_array<double, 3> ma_type;
+                         //ma_type _cou(boost::extents[_nrows][_ncols][_nextra]);
+                         ma_type _cou(boost::extents[_ma_dim][_ma_dim][_nextra]);
+                         typedef ma_type::index index;
+                                    // initialize to zero_cou[0][0][i] 
+                           //       for(index i = 0; i != _nrows; ++i) {
+                           //  for(index j = 0; j != _ncols; ++j){
+                           for (index i = 0; i != _ma_dim; ++i) {
+                               for (index j = 0; j != _ma_dim; ++j) {
+                                   for (index k = 0; k != _nextra; ++k) {
+                                       _cou[i][j][k] = 0.0;
+                                   }
+                               }
+                           }
+
+                       
 
             // some helpers
-            _faka = 0.5 / _decay_row;
-            _faka2 = 2.0 * _faka;
-            _faka3 = 3.0 * _faka;
-            _fakaca = _decay_row / (_decay_row + _decay_col);
-            _fakaac = _decay_row / (_decay_row + _decay_col);
-            _fakac = 0.5 / (_decay_row + _decay_col);
-            _fakac2 = 2.0 * _fakac;
-            _fakac3 = 3.0 * _fakac;
-            _fakac4 = 4.0 * _fakac;
-            _fakc = 0.5 / _decay_col;
-            _fakc2 = 2.0 * _fakc;
-            _fakc3 = 3.0 * _fakc;
-            _fakca = _fakac;
-            _fakca2 = _fakac2;
-            _fakca3 = _fakac3;
-            _fakca4 = _fakac4;
+            const double _faka = 0.5 / _decay_row;
+            const double _faka2 = 2.0 * _faka;
+            const double _faka3 = 3.0 * _faka;
+            const double _fakaca = _decay_row / (_decay_row + _decay_col);
+            const double _fakaac = _decay_row / (_decay_row + _decay_col);
+            
+            const double _fakac3 = 3.0 * _fakac;
+            const double _fakac4 = 4.0 * _fakac;
+            const double _fakc = 0.5 / _decay_col;
+            const double _fakc2 = 2.0 * _fakc;
+            const double _fakc3 = 3.0 * _fakc;
+            const double _fakca = _fakac;
+            const double _fakca2 = _fakac2;
+            const double _fakca3 = _fakac3;
+            const double _fakca4 = _fakac4;
 
             _wmp.resize(3);
             _wmq.resize(3);
@@ -118,13 +135,11 @@ namespace votca { namespace ctp {
             _wmq[1] = _fakac2 * (_decay_row * _pos_row.getY() + _decay_col * _pos_col.getY()) - _pos_col.getY();
             _wmq[2] = _fakac2 * (_decay_row * _pos_row.getZ() + _decay_col * _pos_col.getZ()) - _pos_col.getZ();
 
-            _distsq = (_diff.getX() * _diff.getX()) + (_diff.getY() * _diff.getY()) + (_diff.getZ() * _diff.getZ());
             const double _T = _fakaca * _decay_col * _distsq;
 
-            // no need to calculate anything if distance between shells is > 14 Bohr
-            // if ( _distsq > 196.0 ) { return; }
+        
 
-            const double pi = boost::math::constants::pi<double>();
+            
 
             double _fak = 2.0 * pow(pi, 2.5) / (_decay_row * _decay_col * sqrt(_decay_row + _decay_col));
             _fak = _fak * pow(4.0 * _decay_row * _decay_col / (pi * pi), 0.75);
@@ -133,22 +148,7 @@ namespace votca { namespace ctp {
             // call xint01(FmT,8,T,u_lower)
             XIntegrate(_FmT, _T);
 
-            // get a multi dimensional array
-            typedef boost::multi_array<double, 3> ma_type;
-            //ma_type _cou(boost::extents[_nrows][_ncols][_nextra]);
-            ma_type _cou(boost::extents[_ma_dim][_ma_dim][_nextra]);
-            typedef ma_type::index index;
-
-            // initialize to zero_cou[0][0][i] 
-            //       for(index i = 0; i != _nrows; ++i) {
-            //  for(index j = 0; j != _ncols; ++j){
-            for (index i = 0; i != _ma_dim; ++i) {
-                for (index j = 0; j != _ma_dim; ++j) {
-                    for (index k = 0; k != _nextra; ++k) {
-                        _cou[i][j][k] = 0.0;
-                    }
-                }
-            }
+            
 
             // get initial data from _FmT -> s-s element
             for (index i = 0; i != _nextra; ++i) {
@@ -5697,9 +5697,12 @@ namespace votca { namespace ctp {
             ub::matrix<double> _trafo_row = ub::zero_matrix<double>(_ntrafo_row, _nrows);
             ub::matrix<double> _trafo_col = ub::zero_matrix<double>(_ntrafo_col, _ncols);
 
-            // get transformation matrices
-            this->getTrafo(_trafo_row, _lmax_row, _decay_row);
-            this->getTrafo(_trafo_col, _lmax_col, _decay_col);
+            // get transformation matrices including contraction coefficients
+          std::vector<double> _contractions_row = (*itr)->contraction;
+          std::vector<double> _contractions_col = (*itc)->contraction;
+
+          this->getTrafo( _trafo_row, _lmax_row, _decay_row, _contractions_row);
+          this->getTrafo( _trafo_col, _lmax_col, _decay_col, _contractions_col);
 
             // put _cou[i][j][0] into ublas matrix
             ub::matrix<double> _coumat = ub::zero_matrix<double>(_nrows, _ncols);
@@ -5715,60 +5718,19 @@ namespace votca { namespace ctp {
             // save to _matrix
             for (int i = 0; i < _matrix.size1(); i++) {
                 for (int j = 0; j < _matrix.size2(); j++) {
-                    _matrix(i, j) = _cou_sph(i + _shell_row->getOffset(), j + _shell_col->getOffset());
+                    _matrix(i, j) += _cou_sph(i + _shell_row->getOffset(), j + _shell_col->getOffset());
                 }
             }
 
 
             //_ol.clear();
 
-
+                } // _shell_col Gaussians
+            } // _shell_row Gaussians
+            
         }    
     
-    void AOCoulomb::XIntegrate(vector<double>& _FmT, const double& _T  ){
-        
-        const int _mm = _FmT.size() - 1;
-        const double pi = boost::math::constants::pi<double>();
-        if ( _mm < 0 || _mm > 10){
-            cerr << "mm is: " << _mm << " This should not have happened!" << flush;
-            exit(1);
-        }
-        
-        if ( _T < 0.0 ) {
-            cerr << "T is: " << _T << " This should not have happened!" << flush;
-            exit(1);
-        }
-  
-        if ( _T >= 10.0 ) {
-            // forward iteration
-            _FmT[0]=0.50*sqrt(pi/_T)* erf(sqrt(_T));
-
-            for (int m = 1; m < _FmT.size(); m++ ){
-                _FmT[m] = (2*m-1) * _FmT[m-1]/(2.0*_T) - exp(-_T)/(2.0*_T) ;
-            }
-        }
-
-        if ( _T < 1e-10 ){
-           for ( int m=0; m < _FmT.size(); m++){
-               _FmT[m] = 1.0/(2.0*m+1.0) - _T/(2.0*m+3.0); 
-           }
-        }
-
-        
-        if ( _T >= 1e-10 && _T < 10.0 ){
-            // backward iteration
-            double fm = 0.0;
-            for ( int m = 60; m >= _mm; m--){
-                fm = (2.0*_T)/(2.0*m+1.0) * ( fm + exp(-_T)/(2.0*_T));
-            } 
-            _FmT[_mm] = fm;
-            for (int m = _mm-1 ; m >= 0; m--){
-                _FmT[m] = (2.0*_T)/(2.0*m+1.0) * (_FmT[m+1] + exp(-_T)/(2.0*_T));
-            }
-        }
-        
-
-    }
+    
     
    
     

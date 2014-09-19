@@ -68,7 +68,7 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
-      <itemPath>/data/isilon/baumeier/votca_devel/src/ctp/include/votca/ctp/aobasis.h</itemPath>
+      <itemPath>../../include/votca/ctp/aobasis.h</itemPath>
       <itemPath>../../include/votca/ctp/aomatrix.h</itemPath>
       <itemPath>../../include/votca/ctp/apolarsite.h</itemPath>
       <itemPath>../../include/votca/ctp/atom.h</itemPath>
@@ -77,6 +77,7 @@
       <itemPath>../../include/votca/ctp/calculatorfactory.h</itemPath>
       <itemPath>../../include/votca/ctp/ctpapplication.h</itemPath>
       <itemPath>../../include/votca/ctp/elements.h</itemPath>
+      <itemPath>../../include/votca/ctp/espfit.h</itemPath>
       <itemPath>../../include/votca/ctp/ewald2d.h</itemPath>
       <itemPath>../../include/votca/ctp/ewald3d.h</itemPath>
       <itemPath>../../include/votca/ctp/ewaldactor.h</itemPath>
@@ -84,6 +85,8 @@
       <itemPath>../../include/votca/ctp/ewdspace.h</itemPath>
       <itemPath>../../include/votca/ctp/extractorfactory.h</itemPath>
       <itemPath>../../include/votca/ctp/fragment.h</itemPath>
+      <itemPath>../../include/votca/ctp/grid.h</itemPath>
+      <itemPath>/people/thnfs/homes/baumeier/isilon/votca_gsl/src/ctp/include/votca/ctp/grid_containers.h</itemPath>
       <itemPath>../../include/votca/ctp/gsl_boost_ublas_matrix_prod.h</itemPath>
       <itemPath>../../include/votca/ctp/gwbse.h</itemPath>
       <itemPath>../../include/votca/ctp/job.h</itemPath>
@@ -92,6 +95,7 @@
       <itemPath>../../include/votca/ctp/logger.h</itemPath>
       <itemPath>../../include/votca/ctp/mkl_boost_ublas_matrix_prod.h</itemPath>
       <itemPath>../../include/votca/ctp/molecule.h</itemPath>
+      <itemPath>../../include/votca/ctp/numerical_integrations.h</itemPath>
       <itemPath>../../include/votca/ctp/orbitals.h</itemPath>
       <itemPath>../../include/votca/ctp/overlap.h</itemPath>
       <itemPath>../../include/votca/ctp/paircalculator.h</itemPath>
@@ -115,6 +119,7 @@
       <itemPath>../../include/votca/ctp/qmtool.h</itemPath>
       <itemPath>../../include/votca/ctp/segment.h</itemPath>
       <itemPath>../../include/votca/ctp/segmenttype.h</itemPath>
+      <itemPath>../../include/votca/ctp/sphere_lebedev_rule.h</itemPath>
       <itemPath>../../include/votca/ctp/sqlapplication.h</itemPath>
       <itemPath>../../include/votca/ctp/statesaversqlite.h</itemPath>
       <itemPath>../../include/votca/ctp/threecenters.h</itemPath>
@@ -169,6 +174,10 @@
         <itemPath>../../src/libctp/gwbse/gwbse.cc</itemPath>
         <itemPath>../../src/libctp/gwbse/rpa.cc</itemPath>
       </logicalFolder>
+      <logicalFolder name="f6" displayName="NumInt" projectFiles="true">
+        <itemPath>../../src/libctp/numerical_integration/numerical_integrations.cc</itemPath>
+        <itemPath>../../src/libctp/numerical_integration/sphere_lebedev_rule.cc</itemPath>
+      </logicalFolder>
       <logicalFolder name="f3" displayName="Topology" projectFiles="true">
         <itemPath>../../src/libctp/fragment.cc</itemPath>
         <itemPath>../../src/libctp/molecule.cc</itemPath>
@@ -204,6 +213,7 @@
       <itemPath>../../src/libctp/qmtool.cc</itemPath>
       <itemPath>../../src/libctp/statesaversqlite.cc</itemPath>
       <itemPath>../../src/libctp/threecenters.cc</itemPath>
+      <itemPath>../../src/libctp/threecenters_tools.cc</itemPath>
       <itemPath>../../src/libctp/version.cc</itemPath>
       <itemPath>../../src/libctp/version_nb.cc</itemPath>
       <itemPath>../../src/libctp/votca_config.h</itemPath>
@@ -246,6 +256,8 @@
           <output>../../src/libctp/libctp.a</output>
         </archiverTool>
       </compileType>
+      <item path="../../include/votca/ctp/aobasis.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/aomatrix.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/apolarsite.h"
@@ -274,6 +286,8 @@
       </item>
       <item path="../../include/votca/ctp/elements.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/ctp/espfit.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/ewdspace.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/extractorfactory.h"
@@ -282,6 +296,8 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/fragment.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/grid.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/gsl_boost_ublas_matrix_prod.h"
             ex="false"
@@ -310,6 +326,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/molecule.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/numerical_integrations.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/ctp/orbitals.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -352,6 +373,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/ctp/qmatom.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/qmcalculator.h"
             ex="false"
             tool="3"
@@ -383,6 +406,11 @@
       <item path="../../include/votca/ctp/segment.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/segmenttype.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/sphere_lebedev_rule.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -436,6 +464,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/aomatrices/aoesp.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/aomatrices/aokinetic.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -732,6 +765,16 @@
       <item path="../../src/libctp/mbgft/mbgft.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/molecule.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/numerical_integration/numerical_integrations.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/numerical_integration/sphere_lebedev_rule.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libctp/orbitals.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -827,6 +870,11 @@
       </item>
       <item path="../../src/libctp/threecenters.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libctp/threecenters_tools.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/toolfactory.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/coupling.h" ex="false" tool="3" flavor2="0">
@@ -859,7 +907,7 @@
       </item>
       <item path="../../src/libctp/xmapper.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="/data/isilon/baumeier/votca_devel/src/ctp/include/votca/ctp/aobasis.h"
+      <item path="/people/thnfs/homes/baumeier/isilon/votca_gsl/src/ctp/include/votca/ctp/grid_containers.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -884,6 +932,8 @@
         <archiverTool>
         </archiverTool>
       </compileType>
+      <item path="../../include/votca/ctp/aobasis.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/aomatrix.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/apolarsite.h"
@@ -912,6 +962,8 @@
       </item>
       <item path="../../include/votca/ctp/elements.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/ctp/espfit.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/ewdspace.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/extractorfactory.h"
@@ -920,6 +972,8 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/fragment.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/grid.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/gsl_boost_ublas_matrix_prod.h"
             ex="false"
@@ -948,6 +1002,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/molecule.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/numerical_integrations.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/ctp/orbitals.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -990,6 +1049,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/ctp/qmatom.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/qmcalculator.h"
             ex="false"
             tool="3"
@@ -1021,6 +1082,11 @@
       <item path="../../include/votca/ctp/segment.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/segmenttype.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/sphere_lebedev_rule.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1074,6 +1140,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/aomatrices/aoesp.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/aomatrices/aokinetic.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -1370,6 +1441,16 @@
       <item path="../../src/libctp/mbgft/mbgft.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/molecule.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/numerical_integration/numerical_integrations.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/numerical_integration/sphere_lebedev_rule.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libctp/orbitals.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1465,6 +1546,11 @@
       </item>
       <item path="../../src/libctp/threecenters.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libctp/threecenters_tools.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/toolfactory.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/coupling.h" ex="false" tool="3" flavor2="0">
@@ -1497,7 +1583,7 @@
       </item>
       <item path="../../src/libctp/xmapper.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="/data/isilon/baumeier/votca_devel/src/ctp/include/votca/ctp/aobasis.h"
+      <item path="/people/thnfs/homes/baumeier/isilon/votca_gsl/src/ctp/include/votca/ctp/grid_containers.h"
             ex="false"
             tool="3"
             flavor2="0">

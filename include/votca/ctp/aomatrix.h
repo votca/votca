@@ -36,6 +36,12 @@
 using namespace std;
 using namespace votca::tools;
 
+namespace Cartesian {
+        enum Index {
+                s, x, y, z,  xy, xz, yz, xx, yy, zz
+                };
+}
+
 namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
     
@@ -51,6 +57,7 @@ namespace votca { namespace ctp {
         int getBlockSize( int size );
         
         void getTrafo( ub::matrix<double>& _trafo, int _lmax, const double& _decay );
+        void getTrafo( ub::matrix<double>& _trafo, int _lmax, const double& _decay , std::vector<double> contractions);
         
         void PrintIndexToFunction( AOBasis* aobasis);
         
@@ -62,6 +69,7 @@ namespace votca { namespace ctp {
     class AOMatrix : public AOSuperMatrix {
     public:
         ub::matrix<double> _aomatrix; 
+        ub::vector<double> _gridpoint;
         
         void Initialize( int size ) {
             this->_aomatrix = ub::zero_matrix<double>(size,size);
@@ -71,11 +79,12 @@ namespace votca { namespace ctp {
         
         // matrix print 
         void Print( string _ident);
-        
+        // integrate F
+        void XIntegrate( vector<double>& _FmT, const double& _T );
         // block fill prototype
         virtual void FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, bool _raw = false) {} ;
 
-        ~AOMatrix();
+        // ~AOMatrix(){};
 
     };
     
@@ -147,7 +156,20 @@ namespace votca { namespace ctp {
         void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, bool _raw = false );
         //void Print();
         
-        ~AOESP();
+        // ~AOKinetic();
+        
+        
+    };
+    
+    // derived class for kinetic energy
+    class AOKinetic : public AOMatrix{
+    public:
+        //block fill for overlap, implementation in aokinetic.cc
+        void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, bool _raw = false );
+        //void Print();
+        
+        // ~AOESP();
+        
         
     };
     
@@ -159,23 +181,22 @@ namespace votca { namespace ctp {
         void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, bool _raw = false );
         //void Print();
         
-        ~AOOverlap();
+	//        ~AOOverlap();
         
     };
     
-    inline AOOverlap::~AOOverlap(){
+    // inline AOOverlap::~AOOverlap(){
         
-    _aomatrix.clear();
-    _aomatrix.resize(0,0);
+    //_aomatrix.clear();
+    //_aomatrix.resize(0,0);
         
-    }
+    //}
     
     //derived class for atomic orbital Coulomb interaction
     class AOCoulomb : public AOMatrix{
     public:
         int getExtraBlockSize( int lmax_row, int lmax_col  );
         void FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, bool _raw = false);
-        void XIntegrate( vector<double>& _FmT, const double& _T );
         void Symmetrize( AOOverlap& _overlap , AOBasis& _basis, AOOverlap& _overlap_inverse , AOOverlap& _gwoverlap_cholesky_inverse );
         
   

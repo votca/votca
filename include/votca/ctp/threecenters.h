@@ -128,7 +128,7 @@ namespace votca { namespace ctp {
         
         int getBlockSize( int size );
         
-        void getTrafo( ub::matrix<double>& _trafo, int _lmax, const double& _decay );
+        void getTrafo(ub::matrix<double>& _trafo, int _lmax, const double& _decay,std::vector<double> contractions);
         
         // void FillBlock(ub::vector_range< ub::vector< ub::matrix<double> > >& _matrix,  AOShell* _shell, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals ) ;
         

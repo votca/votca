@@ -250,7 +250,13 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
                         for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                             GaussianPrimitive* gaussian = *itg;
                             //_com_file << gaussian->decay << " " << gaussian->contraction << endl;
-                            _el_file << FortranFormat( gaussian->decay )<< " " << FortranFormat( gaussian->contraction ) << endl;
+                            _el_file << FortranFormat( gaussian->decay ) ;
+                            for ( int _icontr = 0 ; _icontr < gaussian->contraction.size(); _icontr++){
+                                if ( gaussian->contraction[_icontr] != 0.0 ){
+                                   _el_file << " " << FortranFormat( gaussian->contraction[_icontr] ) ;
+                                }
+                            }
+                            _el_file << endl;
                         }
                     }
                     
@@ -309,7 +315,7 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
                         
                         for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                             GaussianPrimitive* gaussian = *itg;
-                            _com_file << gaussian->power << " " << gaussian->decay << " " << gaussian->contraction << endl;
+                            _com_file << gaussian->power << " " << gaussian->decay << " " << gaussian->contraction[0] << endl;
                         }
                     }
                 }
@@ -367,7 +373,14 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
         // NULL in the QMMachine and the QM region is also printed here
         for (it = qmatoms->begin(); it < qmatoms->end(); it++ ) {
             if ( !(*it)->from_environment ) {
-            _com_file << (*it)->type << " " <<  (*it)->x << " " << (*it)->y << " " << (*it)->z << endl;
+                _com_file << setw(3) << (*it)->type.c_str() 
+                      << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->x
+                      << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->y
+                      << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->z
+                      << endl;
+                
+                
+            //_com_file << (*it)->type << " " <<  (*it)->x << " " << (*it)->y << " " << (*it)->z << endl;
             }
         }
         
@@ -387,7 +400,9 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
 	      if ( !(*it)->from_environment ) {
                 string element_name = (*it)->type;
                 
-		list<string>::iterator ite;
+		//cout << "looking up basis set for element " << element_name << endl;
+
+                list<string>::iterator ite;
                 ite = find(elements.begin(), elements.end(), element_name);
                 
                 if (ite == elements.end()) {
@@ -414,7 +429,13 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
                         for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                             GaussianPrimitive* gaussian = *itg;
                             //_com_file << gaussian->decay << " " << gaussian->contraction << endl;
-                            _el_file << FortranFormat( gaussian->decay )<< " " << FortranFormat( gaussian->contraction ) << endl;
+                                                        _el_file << FortranFormat( gaussian->decay ) ;
+                            for ( int _icontr = 0 ; _icontr < gaussian->contraction.size(); _icontr++){
+                                if ( gaussian->contraction[_icontr] != 0.0 ){
+                                   _el_file << " " << FortranFormat( gaussian->contraction[_icontr] ) ;
+                                }
+                            }
+                            _el_file << endl;
                         }
                     }
                     
@@ -473,7 +494,7 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
                         
                         for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                             GaussianPrimitive* gaussian = *itg;
-                            _com_file <<  gaussian->power << " " <<  FortranFormat(gaussian->decay) << " " <<  FortranFormat(gaussian->contraction) << endl;
+                            _com_file <<  gaussian->power << " " <<  FortranFormat(gaussian->decay) << " " <<  FortranFormat(gaussian->contraction[0]) << endl;
                         }
                     }
                 }

@@ -72,27 +72,42 @@ namespace votca { namespace ctp {
         
         ub::matrix<double> _ol = ub::zero_matrix<double>(_nrows,_ncols);
         
-        
-        /* FOR CONTRACTED FUNCTIONS, ADD LOOP OVER ALL DECAYS IN CONTRACTION
-         * MULTIPLY THE TRANSFORMATION MATRICES BY APPROPRIATE CONTRACTION 
-         * COEFFICIENTS, AND ADD TO matrix(i,j)
-         */
-        
-        // get decay constants (this all is still valid only for uncontracted functions)
-        const double& _decay_row = (*_shell_row->firstGaussian())->decay;
-        const double& _decay_col = (*_shell_col->firstGaussian())->decay;
-
-        // get shell positions
+         // get shell positions
         const vec& _pos_row = _shell_row->getPos();
         const vec& _pos_col = _shell_col->getPos();
         const vec  _diff    = _pos_row - _pos_col;
+        double _distsq = (_diff.getX()*_diff.getX()) + (_diff.getY()*_diff.getY()) + (_diff.getZ()*_diff.getZ()); 
+         
+        
         
         // some helpers
+       
         vector<double> _pma (3,0.0);
         vector<double> _pmb (3,0.0);
-        double _distsq = 0.0;
-        const double _fak  = 0.5/(_decay_row + _decay_col);
-        const double _fak2 = 2.0 * _fak;
+        // definition of a center around which the moment should be calculated
+        vector<double> _center(3,0.0); // here: origin, can be changed later
+        vector<double> _pmc(3,0.0);
+        
+        typedef vector< AOGaussianPrimitive* >::iterator GaussianIterator;
+        // iterate over Gaussians in this _shell_row
+        for ( GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr){
+            // iterate over Gaussians in this _shell_col
+            // get decay constant
+            const double& _decay_row = (*itr)->decay;
+            
+            for ( GaussianIterator itc = _shell_col->firstGaussian(); itc != _shell_col->lastGaussian(); ++itc){
+                //get decay constant
+                const double& _decay_col = (*itc)->decay;
+        
+       
+                const double _fak  = 0.5/(_decay_row + _decay_col);
+                const double _fak2 = 2.0 * _fak;
+
+                double _exparg = _fak2 * _decay_row * _decay_col *_distsq;
+                // check if distance between postions is big, then skip step   
+       
+                if ( _exparg > 30.0 ) { continue; }
+        
         const double _fak3 = 3.0 * _fak;
         const double _fak4 = 4.0 * _fak;
 
@@ -104,18 +119,16 @@ namespace votca { namespace ctp {
         _pmb[1] = _fak2*( _decay_row * _pos_row.getY() + _decay_col * _pos_col.getY() ) - _pos_col.getY();
         _pmb[2] = _fak2*( _decay_row * _pos_row.getZ() + _decay_col * _pos_col.getZ() ) - _pos_col.getZ();
         
-        // definition of a center around which the moment should be calculated
-        vector<double> _center(3,0.0); // here: origin, can be changed later
-        vector<double> _pmc(3,0.0);
+        
+        
         _pmc[0] = _fak2*( _decay_row * _pos_row.getX() + _decay_col * _pos_col.getX() ) - _center[0];
         _pmc[1] = _fak2*( _decay_row * _pos_row.getY() + _decay_col * _pos_col.getY() ) - _center[1];
         _pmc[2] = _fak2*( _decay_row * _pos_row.getZ() + _decay_col * _pos_col.getZ() ) - _center[2];
         
         
-        _distsq = (_diff.getX()*_diff.getX()) + (_diff.getY()*_diff.getY()) + (_diff.getZ()*_diff.getZ()); 
+        
 
-        // no need to calculate anything if distance between shells is > 14 Bohr
-        // if ( _distsq > 196.0 ) { return; }
+        
         
         // calculate s-s- overlap matrix element
         _ol(0,0) = pow(4.0*_decay_row*_decay_col,0.75) * pow(_fak2,1.5)*exp(-_fak2 * _decay_row * _decay_col *_distsq); // s-s element
@@ -1053,8 +1066,12 @@ namespace votca { namespace ctp {
         ub::matrix<double> _trafo_col = ub::zero_matrix<double>(_ntrafo_col,_ncols);
 
         // get transformation matrices
-        this->getTrafo( _trafo_row, _lmax_row, _decay_row);
-        this->getTrafo( _trafo_col, _lmax_col, _decay_col);
+           // get transformation matrices including contraction coefficients
+        std::vector<double> _contractions_row = (*itr)->contraction;
+        std::vector<double> _contractions_col = (*itc)->contraction;
+        
+        this->getTrafo( _trafo_row, _lmax_row, _decay_row, _contractions_row);
+        this->getTrafo( _trafo_col, _lmax_col, _decay_col, _contractions_col);
         ub::matrix<double> _trafo_col_tposed = ub::trans( _trafo_col );
 
         // cartesian -> spherical
@@ -1068,13 +1085,14 @@ namespace votca { namespace ctp {
             // save to _matrix
             for ( int i = 0; i< _matrix[0].size1(); i++ ) {
                 for (int j = 0; j < _matrix[0].size2(); j++){
-                    _matrix[ _i_comp ](i,j) = _dip_sph(i+_shell_row->getOffset(),j+_shell_col->getOffset());
+                    _matrix[ _i_comp ](i,j) += _dip_sph(i+_shell_row->getOffset(),j+_shell_col->getOffset());
                 }
             }
         }
         
         _ol.clear();
-        
+            }// _shell_col Gaussians
+        }// _shell_row Gaussians
     }
     
   

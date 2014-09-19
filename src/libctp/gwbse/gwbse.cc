@@ -32,7 +32,14 @@
 #include <boost/math/constants/constants.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <votca/tools/linalg.h>
+
+// testing numerical grids
+#include <votca/ctp/sphere_lebedev_rule.h>
+#include <votca/ctp/radial_euler_maclaurin_rule.h>
+
 #include <omp.h>
+
+#include "votca/ctp/numerical_integrations.h"
 
 using boost::format;
 using namespace boost::filesystem;
@@ -182,15 +189,21 @@ namespace votca {
             string _dft_package = _orbitals->getQMpackage();
             LOG(logDEBUG, *_pLog) << TimeStamp() << " DFT data was created by " << _dft_package << flush;
 
-            // get atoms from orbitals object
-            //std::vector<QMAtom*>* _atoms = _orbitals->getAtoms();
             std::vector<QMAtom*> _atoms = _orbitals->QMAtoms();
-            
+
             // load DFT basis set (element-wise information) from xml file
             BasisSet dftbs;
             dftbs.LoadBasisSet(_dftbasis_name);
             _orbitals->setDFTbasis( _dftbasis_name );
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Loaded DFT Basis Set " << _dftbasis_name << flush;
+            
+            
+/*            
+            NumericalIntegration _numint;
+            _numint.GridSetup("medium",&dftbs,_atoms);
+            
+
+	                exit(0); */
 
             // fill DFT AO basis by going through all atoms 
             AOBasis dftbasis;
@@ -338,8 +351,11 @@ namespace votca {
             _gwoverlap.Initialize(gwbasis._AOBasisSize);
             // Fill overlap
             _gwoverlap.Fill(&gwbasis);
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled GW Overlap matrix of dimension: " << _gwoverlap._aomatrix.size1() << flush;
             
+            //_gwoverlap.Print("AOOL");
+            
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled GW Overlap matrix of dimension: " << _gwoverlap._aomatrix.size1() << flush;
+            // exit(0);
             // check eigenvalues of overlap matrix, if too small basis might have linear dependencies
             ub::vector<double> _eigenvalues;
             ub::matrix<double> _eigenvectors;
@@ -453,7 +469,7 @@ namespace votca {
                 }
             
                 // _gwoverlap is not needed further, if no shift iteration
-                if ( ! _iterate_shift) _gwoverlap.~AOOverlap();
+                if ( ! _iterate_shift) _gwoverlap._aomatrix.resize(0,0);
             
                 // determine epsilon from RPA
                 RPA_calculate_epsilon( _Mmn_RPA, _screening_freq, _shift, _dft_energies );
@@ -496,7 +512,7 @@ namespace votca {
             
             // free unused variable if shift is iterated
             if ( _iterate_shift ){
-                _gwoverlap.~AOOverlap();
+	      _gwoverlap._aomatrix.resize(0,0);
                 _Mmn_RPA.Cleanup();
                 _Mmn_backup.Cleanup();
             }
@@ -722,7 +738,7 @@ namespace votca {
                                
                     
                     // Mulliken fragment population analysis
-                    if ( _fragA > -2 ) {
+                    if ( _fragA > 0 ) {
 
                         // get overlap matrix for DFT basisset
                         AOOverlap _dftoverlap;
@@ -840,7 +856,7 @@ namespace votca {
                             }
                         }
                         // results of fragment population analysis 
-                        if ( _fragA > -2 ){
+                        if ( _fragA > 0 ){
                             LOG(logINFO, *_pLog) << (format("           Fragment A -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f") % (100.0 * _popHA[_i]) % (100.0 * _popEA[_i]) % (_CrgsA[_i]) % ( _CrgsA[_i] + _popA ) ).str() << flush;
                             LOG(logINFO, *_pLog) << (format("           Fragment B -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f") % (100.0 * _popHB[_i]) % (100.0 * _popEB[_i]) % (_CrgsB[_i]) % ( _CrgsB[_i] + _popB ) ).str() << flush;
                         }

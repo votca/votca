@@ -44,15 +44,15 @@ class AOGaussianPrimitive
     friend class AOShell;
 public:
     double decay;
-    double contraction;
+    std::vector<double> contraction;
     int power; // used in pseudopotenials only
     AOShell* aoshell;
 private:
     // private constructor, only a shell can create a primitive
-    AOGaussianPrimitive( double _decay, double _contraction, AOShell *_aoshell = NULL ) 
+    AOGaussianPrimitive( double _decay, std::vector<double> _contraction, AOShell *_aoshell = NULL ) 
     : decay(_decay), contraction(_contraction), aoshell(_aoshell) { ; }
 
-    AOGaussianPrimitive( int _power, double _decay, double _contraction, AOShell *_aoshell = NULL ) 
+    AOGaussianPrimitive( int _power, double _decay, std::vector<double> _contraction, AOShell *_aoshell = NULL ) 
     : power(_power), decay(_decay), contraction(_contraction), aoshell(_aoshell) { ; }
 };      
     
@@ -69,7 +69,8 @@ public:
     int    getNumFunc() { return _numFunc ;}
     int    getStartIndex() { return _startIndex ;}
     int    getOffset() { return _offset ;}
-    
+    int    getIndex() { return _atomindex;}
+    string getName() { return _atomname;}
     
     int getLmax(  ) { return detlmax( _type );}
     /*
@@ -96,7 +97,7 @@ public:
     GaussianIterator lastGaussian(){ return _gaussians.end(); }
    
     // adds a Gaussian 
-    AOGaussianPrimitive*  addGaussian( double decay, double contraction ) 
+    AOGaussianPrimitive*  addGaussian( double decay, std::vector<double> contraction ) 
     {
         AOGaussianPrimitive* gaussian = new AOGaussianPrimitive(decay, contraction, this);
         _gaussians.push_back( gaussian );
@@ -107,7 +108,7 @@ public:
 private:   
 
     // only class Element can construct shells    
-    AOShell( string type, double scale, int numFunc, int startIndex, int offset, vec pos, AOBasis* aobasis = NULL ) : _type(type), _scale(scale), _numFunc(numFunc), _startIndex(startIndex), _offset(offset), _pos(pos) { ; }
+    AOShell( string type, double scale, int numFunc, int startIndex, int offset, vec pos, string atomname, int atomindex, AOBasis* aobasis = NULL ) : _type(type), _scale(scale), _numFunc(numFunc), _startIndex(startIndex), _offset(offset), _pos(pos) , _atomname(atomname), _atomindex(atomindex) { ; }
     
     // only class Element can destruct shells
    ~AOShell() 
@@ -125,6 +126,8 @@ private:
     int _startIndex;
     vec _pos;
     int _offset;
+    string _atomname;
+    int _atomindex;
      
     AOBasis* _aobasis;
     int detlmax( string shell );
@@ -221,9 +224,9 @@ public:
     
     AOShell* getShell( int idx ){ return _aoshells[idx] ;}
     
-    AOShell* addShell( string shellType, double shellScale, int shellFunc, int startIndex, int offset, vec pos ) 
+    AOShell* addShell( string shellType, double shellScale, int shellFunc, int startIndex, int offset, vec pos, string name, int index ) 
     { 
-        AOShell* aoshell = new AOShell( shellType, shellScale, shellFunc, startIndex, offset, pos, this );
+        AOShell* aoshell = new AOShell( shellType, shellScale, shellFunc, startIndex, offset, pos, name, index, this );
         _aoshells.push_back(aoshell); 
         return aoshell;
     }
@@ -585,15 +588,15 @@ inline void AOBasis::AOBasisFill(BasisSet* bs , vector<QMAtom* > _atoms, int _fr
           for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
                Shell* shell = (*its);
                // we don't like contracted basis sets yet
-               if ( shell->getSize() > 1 ) {
-                   cerr << "No contracted basis sets!" << flush;
-               } else {
-                   AOShell* aoshell = addShell( shell->getType(), shell->getScale(), NumFuncShell( shell->getType() ), _AOBasisSize, OffsetFuncShell( shell->getType() ), pos );
+               //if ( shell->getSize() > 1 ) {
+               //    cerr << "We have a contracted basis set!" << flush;
+               //} else {
+                   AOShell* aoshell = addShell( shell->getType(), shell->getScale(), NumFuncShell( shell->getType() ), _AOBasisSize, OffsetFuncShell( shell->getType() ), pos, name, _atomidx );
                    _AOBasisSize += NumFuncShell( shell->getType() );
                    for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                       GaussianPrimitive* gaussian = *itg;
                       aoshell->addGaussian(gaussian->decay, gaussian->contraction);
-                   }
+                //   }
                }
           }
           

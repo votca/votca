@@ -52,13 +52,8 @@ namespace votca {
          */
         bool TCMatrix::FillThreeCenterOLBlock(ub::matrix<double>& _subvector, AOShell* _shell_gw, AOShell* _shell_alpha, AOShell* _shell_gamma) {
 	  //bool TCMatrix::FillThreeCenterOLBlock(ub::matrix<float>& _subvector, AOShell* _shell_gw, AOShell* _shell_alpha, AOShell* _shell_gamma) {
-
-            // get decay constants (this all is still valid only for uncontracted functions)
-            const double& _decay_gw = (*_shell_gw->firstGaussian())->decay;
-            const double& _decay_alpha = (*_shell_alpha->firstGaussian())->decay;
-            const double& _decay_gamma = (*_shell_gamma->firstGaussian())->decay;
-
-            // get shell positions
+            
+              // get shell positions
             const vec& _pos_gw = _shell_gw->getPos();
             const vec& _pos_alpha = _shell_alpha->getPos();
             const vec& _pos_gamma = _shell_gamma->getPos();
@@ -72,25 +67,42 @@ namespace votca {
             int _ngw = this->getBlockSize(_lmax_gw);
             int _nalpha = this->getBlockSize(_lmax_alpha);
             int _ngamma = this->getBlockSize(_lmax_gamma);
-
             // definition of cutoff for contribution
+            
             const double gwaccuracy = 1.e-9; // should become an OPTION
+            
+            bool _does_contribute = false;
+            
+             typedef vector< AOGaussianPrimitive* >::iterator GaussianIterator;
+                // iterate over Gaussians in this _shell_row
+            for ( GaussianIterator italpha = _shell_alpha->firstGaussian(); italpha != _shell_alpha->lastGaussian(); ++italpha){
+            // iterate over Gaussians in this _shell_col
+                const double& _decay_alpha = (*italpha)->decay;
+            
+                for ( GaussianIterator itgamma = _shell_gamma->firstGaussian(); itgamma != _shell_gamma->lastGaussian(); ++itgamma){
+                    const double& _decay_gamma = (*itgamma)->decay;
+                    
+                    for ( GaussianIterator itgw = _shell_gw->firstGaussian(); itgw != _shell_gw->lastGaussian(); ++itgw){
+            // get decay constants (this all is still valid only for uncontracted functions)
+                        const double& _decay_gw = (*itgw)->decay;
+            
+ 
             double threshold = -(_decay_alpha + _decay_gamma + _decay_gw) * log(gwaccuracy);
 
             // check first threshold
             vec _diff = _pos_alpha - _pos_gw;
             double test = _decay_alpha * _decay_gw * _diff*_diff;
-            if (test > threshold) return false;
+            if (test > threshold) { continue; }
 
             // check second threshold
             _diff = _pos_gamma - _pos_gw;
             test += _decay_gamma * _decay_gw * _diff*_diff;
-            if (test > threshold) return false;
+            if (test > threshold) { continue; }
 
             // check third threshold
             _diff = _pos_alpha - _pos_gamma;
             test += _decay_alpha * _decay_gamma * _diff*_diff;
-            if (test > threshold) return false;
+            if (test > threshold) { continue; }
 
             // if all threshold test are passed, start evaluating
 
@@ -128,8 +140,9 @@ namespace votca {
             double value = prefak * exp(-fak2 * expo);
 
             // check if it contributes
-            if (value < gwaccuracy) return false;
+            if (value < gwaccuracy) { continue; }
 
+            _does_contribute = true;
             // if it does, go on and create multiarray
             typedef boost::multi_array<double, 3> ma_type;
             typedef boost::multi_array_types::extent_range range;
@@ -2301,10 +2314,15 @@ namespace votca {
             ub::matrix<double> _trafo_alpha = ub::zero_matrix<double>(_ntrafo_alpha, _nalpha);
             ub::matrix<double> _trafo_gamma = ub::zero_matrix<double>(_ntrafo_gamma, _ngamma);
 
+            
+            std::vector<double> _contractions_alpha = (*italpha)->contraction;
+            std::vector<double> _contractions_gamma = (*itgamma)->contraction;
+            std::vector<double> _contractions_gw    = (*itgw)->contraction;
+            
             // get transformation matrices
-            this->getTrafo(_trafo_gw, _lmax_gw, _decay_gw);
-            this->getTrafo(_trafo_alpha, _lmax_alpha, _decay_alpha);
-            this->getTrafo(_trafo_gamma, _lmax_gamma, _decay_gamma);
+            this->getTrafo(_trafo_gw, _lmax_gw, _decay_gw, _contractions_gw);
+            this->getTrafo(_trafo_alpha, _lmax_alpha, _decay_alpha, _contractions_alpha);
+            this->getTrafo(_trafo_gamma, _lmax_gamma, _decay_gamma, _contractions_gamma);
 
             // transform from unnormalized cartesians to normalized sphericals
             // container with indices starting at zero
@@ -2340,14 +2358,17 @@ namespace votca {
 
                         int _i_index = _shell_gamma->getNumFunc() * _i_gw + _i_gamma;
 
-                        _subvector(_i_alpha, _i_index) = S_sph[ _offset_alpha + _i_alpha ][ _offset_gw + _i_gw ][ _offset_gamma + _i_gamma ];
+                        _subvector(_i_alpha, _i_index) += S_sph[ _offset_alpha + _i_alpha ][ _offset_gw + _i_gw ][ _offset_gamma + _i_gamma ];
 
                     }
                 }
             }
 
+                    }
+                }
+            }
 
-            return true;
+            return _does_contribute;
 
 
         }
@@ -2363,142 +2384,142 @@ namespace votca {
             }
         }
 
-        void TCMatrix::getTrafo(ub::matrix<double>& _trafo, int _lmax, const double& _decay) {
-            // s-functions
-            _trafo(0, 0) = 1.0; // s
+        void TCMatrix::getTrafo(ub::matrix<double>& _trafo, int _lmax, const double& _decay,std::vector<double> contractions) {
+        // s-functions
+        _trafo(0,0) = 1.0*contractions[0]; // s
+       
+        // p-functions
+        if ( _lmax > 0 ){
+            //cout << _trafo_row.size1() << ":" << _trafo_row.size2() << endl;
+            _trafo(1,1) = 2.0*sqrt(_decay)*contractions[1];
+            _trafo(2,2) = 2.0*sqrt(_decay)*contractions[1];
+            _trafo(3,3) = 2.0*sqrt(_decay)*contractions[1];
+        }
 
-            // p-functions
-            if (_lmax > 0) {
-                //cout << _trafo_row.size1() << ":" << _trafo_row.size2() << endl;
-                _trafo(1, 1) = 2.0 * sqrt(_decay);
-                _trafo(2, 2) = 2.0 * sqrt(_decay);
-                _trafo(3, 3) = 2.0 * sqrt(_decay);
-            }
+        // d-functions
+        if ( _lmax > 1 ){
+            _trafo(4,5) = 4.0*_decay*contractions[2];             // dxz
+            _trafo(5,6) = _trafo(4,5);            // dyz
+            _trafo(6,4) = _trafo(4,5);            // dxy
+            _trafo(7,7) = -2.0*_decay/sqrt(3.0)*contractions[2];  // d3z2-r2 (dxx)
+            _trafo(7,8) = _trafo(7,7);            // d3z2-r2 (dyy)
+            _trafo(7,9) = -2.0*_trafo(7,7);       // d3z2-r2 (dzz)
+            _trafo(8,7) = 2.0*_decay*contractions[2];             // dx2-y2 (dxx)
+            _trafo(8,8) = -_trafo(8,7);           // dx2-y2 (dzz)
+        }
+        
+        // f-functions
+        if ( _lmax > 2 ){
+            _trafo(9,12) = 4.0 * 2.0 *pow(_decay,1.5)/sqrt(15.)*contractions[3]; // f1 (f??)
+            _trafo(9,15) = -1.5 * _trafo(9,12);        // f1 (f??)
+            _trafo(9,17) = _trafo(9,15);               // f1 (f??)
+            
+            _trafo(10,16) = 4.0 * 2.0 * sqrt(2.0)/sqrt(5.0) * pow(_decay,1.5)*contractions[3]; // f2 (f??)
+            _trafo(10,10) = -0.25 * _trafo(10,16);                             // f2 f(??)
+            _trafo(10,14) = _trafo(10,10);                                     // f2 f(??)
+            
+            _trafo(11,18) = _trafo(10,16);                                     // f3 (f??)
+            _trafo(11,13) = -0.25 * _trafo(11,18);                             // f3 f(??)
+            _trafo(11,11) = _trafo(11,13);                                     // f3 f(??)            
+                   
+            _trafo(12,13) = 3.0 * 2.0 * sqrt(2.0)/sqrt(3.0) * pow(_decay,1.5)*contractions[3]; // f4 (f??)
+            _trafo(12,11) = -_trafo(12,13)/3.0;                                // f4 (f??)
+            
+            _trafo(13,10) = -_trafo(12,11);                                    // f5 (f??)
+            _trafo(13,14) = -_trafo(12,13);                                    // f5 (f??)
+            
+            _trafo(14,19) = 8.0 * pow(_decay,1.5)*contractions[3];                             // f6 (f??)
+            
+            _trafo(15,15) = 0.5 * _trafo(14,19);                               // f7 (f??)
+            _trafo(15,17) = -_trafo(15,15);                                    // f7 (f??)
+        }
+        
+        // g-functions
+        if ( _lmax > 3 ){
+            _trafo(16,22) = 8.0 * 2.0/sqrt(105.0) * pow(_decay,2.0)*contractions[4];
+            _trafo(16,21) = 3.0 * 2.0/sqrt(105.0) * pow(_decay,2.0)*contractions[4];
+            _trafo(16,20) = _trafo(16,21);
+            _trafo(16,29) = -3.0 * _trafo(16,22);
+            _trafo(16,31) = 2.0 * _trafo(16,21);
+            _trafo(16,30) = _trafo(16,29);
+            _trafo(16,5)  = _trafo(16,31);
+            
+             /* vv(17,:) =  (/   23,  22, 21, 30, 32, 31,   6 /) ! g
+                cc(17,:) =  (/    8,  3, 3, -24, 6, -24,    6 /)
+                normConst(17,:) = (/ 2.d0/sqrt(105.d0) ,2.d0  /)
+              */
+            _trafo(17,26) = 4.0 * 4.0*sqrt(2.0)/sqrt(21.0) * pow(_decay,2.0)*contractions[4];
+            _trafo(17,25) = -0.75 * _trafo(17,26);
+            _trafo(17,33) = _trafo(17,25);
+             
+             /* vv(18,:) =  (/   27,  26, 34,  0,  0,  0,   3 /) ! g
+                cc(18,:) =  (/    4,  -3, -3,  0,  0,  0,   3 /)
+                normConst(18,:) = (/ 4.d0*sqrt(2.d0)/sqrt(21.d0) ,2.d0  /)
+              */
+            
+            _trafo(18,28) = _trafo(17,26);
+            _trafo(18,32) = _trafo(17,25);
+            _trafo(18,27) = _trafo(17,25);
+             
+            /* vv(19,:) =  (/   29,  33, 28,  0,  0,  0,   3 /) ! g 
+               cc(19,:) =  (/    4,  -3, -3,  0,  0,  0,   3 /)
+               normConst(19,:) = (/ 4.d0*sqrt(2.d0)/sqrt(21.d0) ,2.d0  /)
+             */
+     
+            _trafo(19,34) = 6.0 * 8.0/sqrt(21.0) * pow(_decay,2.0)*contractions[4];
+            _trafo(19,23) = -_trafo(19,34)/6.0;
+            _trafo(19,24) = _trafo(19,23);
+             
+            /* vv(20,:) =  (/   35,  24, 25,  0,  0,  0,   3 /) ! g
+               cc(20,:) =  (/    6,  -1, -1,  0,  0,  0,   3 /)
+               normConst(20,:) = (/ 8.d0/sqrt(21.d0) ,2.d0  /)
+             */
+    
+            _trafo(20,29) = 6.0 * 4.0/sqrt(21.0) * pow(_decay,2.0)*contractions[4];
+            _trafo(20,20) = -_trafo(20,29)/6.0;
+            _trafo(20,30) = -_trafo(20,29);
+            _trafo(20,21) = -_trafo(20,20);
 
-            // d-functions
-            if (_lmax > 1) {
-                _trafo(4, 5) = 4.0 * _decay; // dxz
-                _trafo(5, 6) = _trafo(4, 5); // dyz
-                _trafo(6, 4) = _trafo(4, 5); // dxy
-                _trafo(7, 7) = -2.0 * _decay / sqrt(3.0); // d3z2-r2 (dxx)
-                _trafo(7, 8) = _trafo(7, 7); // d3z2-r2 (dyy)
-                _trafo(7, 9) = -2.0 * _trafo(7, 7); // d3z2-r2 (dzz)
-                _trafo(8, 7) = 2.0 * _decay; // dx2-y2 (dxx)
-                _trafo(8, 8) = -_trafo(8, 7); // dx2-y2 (dzz)
-            }
-
-            // f-functions
-            if (_lmax > 2) {
-                _trafo(9, 12) = 4.0 * 2.0 * pow(_decay, 1.5); // f1 (f??)
-                _trafo(9, 15) = -1.5 * _trafo(9, 12); // f1 (f??)
-                _trafo(9, 17) = _trafo(9, 15); // f1 (f??)
-
-                _trafo(10, 16) = 4.0 * 2.0 * sqrt(2.0) / sqrt(5.0) * pow(_decay, 1.5); // f2 (f??)
-                _trafo(10, 10) = -0.25 * _trafo(10, 16); // f2 f(??)
-                _trafo(10, 14) = _trafo(10, 10); // f2 f(??)
-
-                _trafo(11, 18) = _trafo(10, 16); // f3 (f??)
-                _trafo(11, 13) = -0.25 * _trafo(11, 18); // f3 f(??)
-                _trafo(11, 11) = _trafo(11, 13); // f3 f(??)            
-
-                _trafo(12, 13) = 3.0 * 2.0 * sqrt(2.0) / sqrt(3.0) * pow(_decay, 1.5); // f4 (f??)
-                _trafo(12, 11) = -_trafo(12, 13) / 3.0; // f4 (f??)
-
-                _trafo(13, 10) = -_trafo(12, 11); // f5 (f??)
-                _trafo(13, 14) = -_trafo(12, 13); // f5 (f??)
-
-                _trafo(14, 19) = 8.0 * pow(_decay, 1.5); // f6 (f??)
-
-                _trafo(15, 15) = 0.5 * _trafo(14, 19); // f7 (f??)
-                _trafo(15, 17) = -_trafo(15, 15); // f7 (f??)
-            }
-
-            // g-functions
-            if (_lmax > 3) {
-                _trafo(16, 22) = 8.0 * 2.0 / sqrt(105.0) * pow(_decay, 2.0);
-                _trafo(16, 21) = 3.0 * 2.0 / sqrt(105.0) * pow(_decay, 2.0);
-                _trafo(16, 20) = _trafo(16, 21);
-                _trafo(16, 29) = -3.0 * _trafo(16, 22);
-                _trafo(16, 31) = 2.0 * _trafo(16, 21);
-                _trafo(16, 30) = _trafo(16, 29);
-                _trafo(16, 5) = _trafo(16, 31);
-
-                /* vv(17,:) =  (/   23,  22, 21, 30, 32, 31,   6 /) ! g
-                   cc(17,:) =  (/    8,  3, 3, -24, 6, -24,    6 /)
-                   normConst(17,:) = (/ 2.d0/sqrt(105.d0) ,2.d0  /)
-                 */
-                _trafo(17, 26) = 4.0 * 4.0 * sqrt(2.0) / sqrt(21.0) * pow(_decay, 2.0);
-                _trafo(17, 25) = -0.75 * _trafo(17, 26);
-                _trafo(17, 33) = _trafo(17, 25);
-
-                /* vv(18,:) =  (/   27,  26, 34,  0,  0,  0,   3 /) ! g
-                   cc(18,:) =  (/    4,  -3, -3,  0,  0,  0,   3 /)
-                   normConst(18,:) = (/ 4.d0*sqrt(2.d0)/sqrt(21.d0) ,2.d0  /)
-                 */
-
-                _trafo(18, 28) = _trafo(17, 26);
-                _trafo(18, 32) = _trafo(17, 25);
-                _trafo(18, 27) = _trafo(17, 25);
-
-                /* vv(19,:) =  (/   29,  33, 28,  0,  0,  0,   3 /) ! g 
-                   cc(19,:) =  (/    4,  -3, -3,  0,  0,  0,   3 /)
-                   normConst(19,:) = (/ 4.d0*sqrt(2.d0)/sqrt(21.d0) ,2.d0  /)
-                 */
-
-                _trafo(19, 34) = 6.0 * 8.0 / sqrt(21.0) * pow(_decay, 2.0);
-                _trafo(19, 23) = -_trafo(19, 34) / 6.0;
-                _trafo(19, 24) = _trafo(19, 23);
-
-                /* vv(20,:) =  (/   35,  24, 25,  0,  0,  0,   3 /) ! g
-                   cc(20,:) =  (/    6,  -1, -1,  0,  0,  0,   3 /)
-                   normConst(20,:) = (/ 8.d0/sqrt(21.d0) ,2.d0  /)
-                 */
-
-                _trafo(20, 29) = 6.0 * 4.0 / sqrt(21.0) * pow(_decay, 2.0);
-                _trafo(20, 20) = -_trafo(20, 29) / 6.0;
-                _trafo(20, 30) = -_trafo(20, 29);
-                _trafo(20, 21) = -_trafo(20, 20);
-
-                /* vv(21,:) =  (/   30,  21, 31, 22,  0,  0,   4 /) ! g
-                   cc(21,:) =  (/    6,  -1, -6, 1,  0,  0,    4 /)
-                   normConst(21,:) = (/ 4.d0/sqrt(21.d0) ,2.d0  /)
-                 */
-
-                _trafo(21, 25) = 4.0 * sqrt(2.0) / sqrt(3.0) * pow(_decay, 2.0);
-                _trafo(21, 33) = -3.0 * _trafo(21, 25);
-
-                /* vv(22,:) =  (/   26,  34,  0,  0,  0,  0,   2 /) ! g
-                   cc(22,:) =  (/    1,  -3,  0,  0,  0,  0,   2 /)
-                   normConst(22,:) = (/ 4.d0*sqrt(2.d0)/sqrt(3.d0) ,2.d0  /)
-                 */
-
-                _trafo(22, 32) = -_trafo(21, 33);
-                _trafo(22, 27) = -_trafo(21, 25);
-
-                /* vv(23,:) =  (/   33,  28,  0,  0,  0,  0,   2 /) ! g
-                   cc(23,:) =  (/    3,  -1,  0,  0,  0,  0,   2 /)
-                   normConst(23,:) = (/ 4.d0*sqrt(2.d0)/sqrt(3.d0) ,2.d0  /)
-                 */
-
-                _trafo(23, 23) = 8.0 / sqrt(3.0) * pow(_decay, 2.0);
-                _trafo(23, 24) = -_trafo(23, 23);
-
-                /* vv(24,:) =  (/   24,  25,  0,  0,  0,  0,   2 /) ! g 
-                   cc(24,:) =  (/    1,  -1,  0,  0,  0,  0,   2 /)
-                   normConst(24,:) = (/ 8.d0/sqrt(3.d0) ,2.d0  /)
-                 */
-
-                _trafo(24, 20) = 2.0 / sqrt(3.0) * pow(_decay, 2.0);
-                _trafo(24, 21) = _trafo(24, 20);
-                _trafo(24, 31) = -6.0 * _trafo(24, 20);
-
-                /* vv(25,:) =  (/   21,  22, 32,  0,  0,  0,   3 /) ! g
-                   cc(25,:) =  (/    1,  1, -6,  0,  0,  0,   3  /)
-                   normConst(25,:) = (/ 2.d0/sqrt(3.d0) ,2.d0  /)
-                 */
-
-            }
-
+            /* vv(21,:) =  (/   30,  21, 31, 22,  0,  0,   4 /) ! g
+               cc(21,:) =  (/    6,  -1, -6, 1,  0,  0,    4 /)
+               normConst(21,:) = (/ 4.d0/sqrt(21.d0) ,2.d0  /)
+             */
+    
+            _trafo(21,25) = 4.0 * sqrt(2.0)/sqrt(3.0) * pow(_decay,2.0)*contractions[4];
+            _trafo(21,33) = -3.0 * _trafo(21,25);
+             
+            /* vv(22,:) =  (/   26,  34,  0,  0,  0,  0,   2 /) ! g
+               cc(22,:) =  (/    1,  -3,  0,  0,  0,  0,   2 /)
+               normConst(22,:) = (/ 4.d0*sqrt(2.d0)/sqrt(3.d0) ,2.d0  /)
+             */
+    
+            _trafo(22,32) = -_trafo(21,33);
+            _trafo(22,27) = -_trafo(21,25);
+            
+            /* vv(23,:) =  (/   33,  28,  0,  0,  0,  0,   2 /) ! g
+               cc(23,:) =  (/    3,  -1,  0,  0,  0,  0,   2 /)
+               normConst(23,:) = (/ 4.d0*sqrt(2.d0)/sqrt(3.d0) ,2.d0  /)
+             */
+    
+            _trafo(23,23) = 8.0/sqrt(3.0) * pow(_decay,2.0)*contractions[4];
+            _trafo(23,24) = -_trafo(23,23);
+             
+            /* vv(24,:) =  (/   24,  25,  0,  0,  0,  0,   2 /) ! g 
+               cc(24,:) =  (/    1,  -1,  0,  0,  0,  0,   2 /)
+               normConst(24,:) = (/ 8.d0/sqrt(3.d0) ,2.d0  /)
+             */
+    
+            _trafo(24,20) = 2.0/sqrt(3.0) * pow(_decay,2.0)*contractions[4];
+            _trafo(24,21) = _trafo(24,20);
+            _trafo(24,31) = -6.0 * _trafo(24,20);
+             
+            /* vv(25,:) =  (/   21,  22, 32,  0,  0,  0,   3 /) ! g
+               cc(25,:) =  (/    1,  1, -6,  0,  0,  0,   3  /)
+               normConst(25,:) = (/ 2.d0/sqrt(3.d0) ,2.d0  /)
+             */
+           
+       
+       }
 
         }
 

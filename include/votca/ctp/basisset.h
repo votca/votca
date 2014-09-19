@@ -40,15 +40,15 @@ class GaussianPrimitive
     friend class Shell;
 public:
     double decay;
-    double contraction;
+    std::vector<double> contraction;
     int power; // used in pseudopotenials only
     Shell* shell;
 private:
     // private constructor, only a shell can create a primitive
-    GaussianPrimitive( double _decay, double _contraction, Shell *_shell = NULL ) 
+    GaussianPrimitive( double _decay, std::vector<double> _contraction, Shell *_shell = NULL ) 
     : decay(_decay), contraction(_contraction), shell(_shell) { ; }
 
-    GaussianPrimitive( int _power, double _decay, double _contraction, Shell *_shell = NULL ) 
+    GaussianPrimitive( int _power, double _decay, std::vector<double> _contraction, Shell *_shell = NULL ) 
     : power(_power), decay(_decay), contraction(_contraction), shell(_shell) { ; }
 };      
     
@@ -83,7 +83,7 @@ public:
     GaussianIterator lastGaussian(){ return _gaussians.end(); }
    
     // adds a Gaussian 
-    GaussianPrimitive*  addGaussian( double decay, double contraction ) 
+    GaussianPrimitive*  addGaussian( double decay, std::vector<double> contraction ) 
     {
         GaussianPrimitive* gaussian = new GaussianPrimitive(decay, contraction, this);
         _gaussians.push_back( gaussian );
@@ -91,7 +91,7 @@ public:
     }
 
     // adds a Gaussian of a pseudopotential
-    GaussianPrimitive*  addGaussian( int power, double decay, double contraction ) 
+    GaussianPrimitive*  addGaussian( int power, double decay, std::vector<double> contraction ) 
     {
         GaussianPrimitive* gaussian = new GaussianPrimitive(power, decay, contraction, this);
         _gaussians.push_back( gaussian );
@@ -243,9 +243,20 @@ inline void BasisSet::LoadBasisSet ( string name )
             for (list<Property*> ::iterator  itc = constProps.begin(); itc != constProps.end(); ++itc) 
             {
                 double decay = (*itc)->getAttribute<double>("decay");
-                double contraction = (*itc)->getAttribute<double>("contraction");
+                std::vector<double> contraction;
+                contraction.resize(shell->getLmax()+1); 
+                list<Property*> contrProps = (*itc)->Select("contractions");
+                for (list<Property*> ::iterator itcont = contrProps.begin(); itcont != contrProps.end(); ++itcont)
+                {
+                    string contrType = (*itcont)->getAttribute<string>("type");
+                    double contrFactor = (*itcont)->getAttribute<double>("factor");
+                    if ( contrType == "S" ) contraction[0] = contrFactor;
+                    if ( contrType == "P" ) contraction[1] = contrFactor;
+                    if ( contrType == "D" ) contraction[2] = contrFactor;
+                    if ( contrType == "F" ) contraction[3] = contrFactor;
+                    if ( contrType == "G" ) contraction[4] = contrFactor;
+                }    
                 shell->addGaussian(decay, contraction);
-                //cout << "\n\t\t" << decay << " " << contraction << endl;
             }
             
         }
@@ -293,7 +304,11 @@ inline void BasisSet::LoadPseudopotentialSet ( string name )
             {
                 int power = (*itc)->getAttribute<int>("power");
                 double decay = (*itc)->getAttribute<double>("decay");
-                double contraction = (*itc)->getAttribute<double>("contraction");
+                //double contraction = (*itc)->getAttribute<double>("contraction");
+                std::vector<double> contraction;
+                // just testing here with single value 
+                contraction.push_back((*itc)->getAttribute<double>("contraction"));
+                //shell->addGaussian(decay, contraction);
                 shell->addGaussian(power, decay, contraction);
                 //cout << "\n\t\t" << decay << " " << contraction << endl;
             }

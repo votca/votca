@@ -1,6 +1,8 @@
 #ifndef __QMMACHINE__H
 #define	__QMMACHINE__H
 
+// Overload of uBLAS prod function with MKL/GSL implementations
+#include <votca/ctp/votca_ctp_config.h>
 
 #include <votca/ctp/xjob.h>
 #include <votca/ctp/xinductor.h>
@@ -8,6 +10,8 @@
 #include <votca/ctp/gwbse.h>
 #include <votca/ctp/qmpackagefactory.h>
 #include <votca/ctp/orbitals.h>
+#include <votca/ctp/espfit.h>
+
 
 
 namespace votca { namespace ctp {
