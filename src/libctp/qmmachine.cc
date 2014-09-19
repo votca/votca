@@ -243,13 +243,14 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     // GW-BSE starts here
     bool _do_gwbse = true; // needs to be set by options!!!
     double energy___ex = 0.0;
+    
     if ( _do_gwbse ){
 
 
         // for GW-BSE, we also need to parse the orbitals file
         int _parse_orbitals_status = _qmpack->ParseOrbitalsFile( &orb_iter_output );
         std::vector<int> _state_index;
-
+       _gwbse.Initialize( &_gwbse_options );
       if ( _state > 0 ){
         LOG(logDEBUG,*_log) << "Excited state via GWBSE: " <<  flush;
         LOG(logDEBUG,*_log) << "  --- type:              " << _type << flush;
@@ -267,7 +268,7 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
         gwbse_logger.setPreface(logDEBUG,   (format("\nGWBSE DBG ...") ).str());
         
         // actual GW-BSE run
-        _gwbse.Initialize( &_gwbse_options );
+
         bool _evaluate = _gwbse.Evaluate( &orb_iter_output );
         
        
@@ -330,8 +331,13 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
         ub::matrix<double> &_dft_orbitals = orb_iter_output.MOCoefficients();
         // load DFT basis set (element-wise information) from xml file
         BasisSet dftbs;
-        dftbs.LoadBasisSet( orb_iter_output.getDFTbasis() );
-        LOG(logDEBUG, *_log) << TimeStamp() << " Loaded DFT Basis Set " <<  orb_iter_output.getDFTbasis()  << flush;
+        if ( orb_iter_output.getDFTbasis() != "" ) {
+          dftbs.LoadBasisSet( orb_iter_output.getDFTbasis() );
+	} else{
+	  dftbs.LoadBasisSet( _gwbse.get_dftbasis_name() );
+
+	}  
+      LOG(logDEBUG, *_log) << TimeStamp() << " Loaded DFT Basis Set " <<  orb_iter_output.getDFTbasis()  << flush;
 
     
     
