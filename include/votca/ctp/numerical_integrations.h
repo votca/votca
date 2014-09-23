@@ -40,8 +40,11 @@ namespace votca { namespace ctp {
 
             void GridSetup(string type, BasisSet* bs , vector<QMAtom* > _atoms  );
 
+        private:
             
-        
+            std::vector<double> SSWpartition( int ngrid, int igrid, int ncenters , double ass );
+            std::vector<double> Rij;
+            std::vector< std::vector<double> > rq;
             
 
         };

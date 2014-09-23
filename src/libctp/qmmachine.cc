@@ -363,7 +363,7 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 	  dftbs.LoadBasisSet( _gwbse.get_dftbasis_name() );
 
 	}  
-      LOG(logDEBUG, *_log) << TimeStamp() << " Loaded DFT Basis Set " <<  orb_iter_output.getDFTbasis()  << flush;
+       LOG(logDEBUG, *_log) << TimeStamp() << " Loaded DFT Basis Set " <<  orb_iter_output.getDFTbasis()  << flush;
 
     
     

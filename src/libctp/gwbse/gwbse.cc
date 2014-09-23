@@ -198,12 +198,12 @@ namespace votca {
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Loaded DFT Basis Set " << _dftbasis_name << flush;
             
             
-/*            
+            
             NumericalIntegration _numint;
             _numint.GridSetup("medium",&dftbs,_atoms);
             
 
-	                exit(0); */
+	                exit(0); 
 
             // fill DFT AO basis by going through all atoms 
             AOBasis dftbasis;
