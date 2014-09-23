@@ -36,14 +36,15 @@ topol=$(csg_get_property --allow-empty cg.inverse.$sim_prog.rdf.topol)
 traj=$(csg_get_property cg.inverse.$sim_prog.traj)
 [[ -f $traj ]] || die "${0##*/}: traj file '$traj' not found"
 
+maps=
 if [[ -n $(csg_get_property --allow-empty cg.bonded.name) ]]; then
   mapping="$(csg_get_property --allow-empty cg.inverse.$sim_prog.rdf.map)"
   [[ -z $mapping ]] && mapping="$(csg_get_property --allow-empty cg.inverse.map)"
   [[ -z $mapping ]] && die "Mapping file for bonded interaction needed"
-  [[ -f "$(get_main_dir)/$mapping" ]] || die "${0##*/}: Mapping file '$mapping' for bonded interaction not found in maindir"
-  mapping="--cg $(get_main_dir)/$mapping"
-else
-  mapping=""
+  for map in ${mapping}; do
+    [[ -f "$(get_main_dir)/$map" ]] || die "${0##*/}: Mapping file '$map' for bonded interaction not found in maindir"
+    maps+="$(get_main_dir)/$map;"
+  done
 fi
 
 equi_time="$(csg_get_property cg.inverse.$sim_prog.equi_time)"
@@ -69,7 +70,7 @@ if is_done "rdf_calculation${suffix}"; then
   echo "rdf calculation is already done"
 else
   msg "Calculating rdfs with csg_stat using $tasks tasks"
-  critical csg_stat --nt $tasks --options "$CSGXMLFILE" --top "$topol" --trj "$traj" --begin $equi_time --first-frame $first_frame ${error_opts} ${mapping}
+  critical csg_stat --nt $tasks --options "$CSGXMLFILE" --top "$topol" --trj "$traj" --begin $equi_time --first-frame $first_frame ${error_opts} ${maps:+--cg ${maps}}
   mark_done "rdf_calculation${suffix}"
 fi
 
