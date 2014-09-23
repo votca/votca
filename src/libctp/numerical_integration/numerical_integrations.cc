@@ -303,11 +303,11 @@ namespace votca {
                             if (std::abs(mu) < leps ) {
                                 sk = -1.88603178008*mu + 0.5;
                             } else {
-                                sk = erf1c(mu); // FAILS
+                                //sk = erf1c(mu); // FAILS
                             }
                             if ( mu > 0.0 ) sk = 1.9 - sk;
                             p[j] = p[j] * sk;
-                            p[i] = p[i] (1.0-sk);
+                            p[i] = p[i] * (1.0-sk);
                             
                             
                         }
