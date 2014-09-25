@@ -38,7 +38,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/1559596494/aocoulomb.o \
 	${OBJECTDIR}/_ext/1559596494/aodipole.o \
 	${OBJECTDIR}/_ext/1559596494/aoesp.o \
-	${OBJECTDIR}/_ext/1559596494/aokinetic.o \
 	${OBJECTDIR}/_ext/1559596494/aomatrix.o \
 	${OBJECTDIR}/_ext/1559596494/aomomentum.o \
 	${OBJECTDIR}/_ext/1559596494/aooverlap.o \
@@ -143,11 +142,6 @@ ${OBJECTDIR}/_ext/1559596494/aoesp.o: nbproject/Makefile-${CND_CONF}.mk ../../sr
 	${MKDIR} -p ${OBJECTDIR}/_ext/1559596494
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1559596494/aoesp.o ../../src/libctp/aomatrices/aoesp.cc
-
-${OBJECTDIR}/_ext/1559596494/aokinetic.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libctp/aomatrices/aokinetic.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/1559596494
-	${RM} "$@.d"
-	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1559596494/aokinetic.o ../../src/libctp/aomatrices/aokinetic.cc
 
 ${OBJECTDIR}/_ext/1559596494/aomatrix.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libctp/aomatrices/aomatrix.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1559596494

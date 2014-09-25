@@ -433,8 +433,8 @@ private:
     
     std::vector<double>                    _Dq_fragA; // fragment charge changes in exciton
     std::vector<double>                    _Dq_fragB;
-    double                                 _GSq_fragA = -1000.0; // ground state effective fragment charges
-    double                                 _GSq_fragB = -1000.0;
+    double                                 _GSq_fragA; // ground state effective fragment charges
+    double                                 _GSq_fragB;
 
 private:
 

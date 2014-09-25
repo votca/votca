@@ -21,12 +21,44 @@
 
 
 # include "votca/ctp/sphere_lebedev_rule.h"
+#include "votca/ctp/grid_containers.h"
 
 using namespace std;
 
 
 namespace votca { namespace ctp { 
 
+    
+    
+    void LebedevGrid::getSphericalGrid(vector<QMAtom*> _atoms, string type, GridContainers& _grids){
+
+            vector< QMAtom* > ::iterator ait;
+            map<string,GridContainers::spherical_grid>::iterator it;
+
+
+            for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
+
+                 string name = (*ait)->type;
+                 // is this element already in map?
+                 it = _grids._spherical_grids.find(name);
+                  // only proceed, if element data does not exist yet
+                 if (it == _grids._spherical_grids.end()) {              
+
+                     std::vector<double> theta;
+                     std::vector<double> phi;
+                     std::vector<double> weight;
+                     getUnitSphereGrid(name,type,theta,phi,weight);
+                     
+                     // update map
+                     _grids._spherical_grids[name].theta = theta; 
+                     _grids._spherical_grids[name].phi = phi; 
+                     _grids._spherical_grids[name].weight = weight; 
+                     
+                     
+                 }
+            }
+    }
+    
     
     void LebedevGrid::getUnitSphereGrid(string element, string type, std::vector<double>& _theta, std::vector<double>& _phi, std::vector<double>& _weight){
 

@@ -39,6 +39,8 @@
 
 #include <omp.h>
 
+#include "votca/ctp/numerical_integrations.h"
+
 using boost::format;
 using namespace boost::filesystem;
 
@@ -187,39 +189,8 @@ namespace votca {
             string _dft_package = _orbitals->getQMpackage();
             LOG(logDEBUG, *_pLog) << TimeStamp() << " DFT data was created by " << _dft_package << flush;
 
-            // get atoms from orbitals object
-            //std::vector<QMAtom*>* _atoms = _orbitals->getAtoms();
             std::vector<QMAtom*> _atoms = _orbitals->QMAtoms();
 
-
-      /*     // try getting a Lebedev Grid
-            LebedevGrid _lebedevgrid;
-           
-            std::vector<double> _theta;
-            std::vector<double> _phi;
-            std::vector<double> _weight;
- 
-            _lebedevgrid.getUnitSphereGrid("C","medium", _theta, _phi, _weight);
-            
-            
-            cout << endl;
-            double _wsum =0.0;
-            for ( int _i =0; _i < _theta.size() ; _i++ ){
-                 // _lebedevgrid.xyz_to_tp(x[_i],y[_i],z[_i],&_theta,&_phi);
-                cout << _i << ":(" <<  _theta[_i]  << "," << _phi[_i] << ") = = " << _weight[_i] << endl;
-                _wsum += _weight[_i];
-            }
-
-            cout << _wsum << endl;
-            exit(0);*/
-
-
-
-
-
-
-
-            
             // load DFT basis set (element-wise information) from xml file
             BasisSet dftbs;
             dftbs.LoadBasisSet(_dftbasis_name);
@@ -227,16 +198,12 @@ namespace votca {
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Loaded DFT Basis Set " << _dftbasis_name << flush;
             
             
+/*            
+            NumericalIntegration _numint;
+            _numint.GridSetup("medium",&dftbs,_atoms);
             
-            
-            EulerMaclaurinGrid _radialgrid;
-                     
-            std::vector<double> _r_point;
-            std::vector<double> _weight_radial;
-            
-            
-            _radialgrid.getRadialGrid(&dftbs,"C","medium",_r_point,_weight_radial);
-            exit(0);
+
+	                exit(0); */
 
             // fill DFT AO basis by going through all atoms 
             AOBasis dftbasis;
@@ -502,7 +469,7 @@ namespace votca {
                 }
             
                 // _gwoverlap is not needed further, if no shift iteration
-                if ( ! _iterate_shift) _gwoverlap.~AOOverlap();
+                if ( ! _iterate_shift) _gwoverlap._aomatrix.resize(0,0);
             
                 // determine epsilon from RPA
                 RPA_calculate_epsilon( _Mmn_RPA, _screening_freq, _shift, _dft_energies );
@@ -545,7 +512,7 @@ namespace votca {
             
             // free unused variable if shift is iterated
             if ( _iterate_shift ){
-                _gwoverlap.~AOOverlap();
+	      _gwoverlap._aomatrix.resize(0,0);
                 _Mmn_RPA.Cleanup();
                 _Mmn_backup.Cleanup();
             }
@@ -771,7 +738,7 @@ namespace votca {
                                
                     
                     // Mulliken fragment population analysis
-                    if ( _fragA > -2 ) {
+                    if ( _fragA > 0 ) {
 
                         // get overlap matrix for DFT basisset
                         AOOverlap _dftoverlap;
@@ -889,7 +856,7 @@ namespace votca {
                             }
                         }
                         // results of fragment population analysis 
-                        if ( _fragA > -2 ){
+                        if ( _fragA > 0 ){
                             LOG(logINFO, *_pLog) << (format("           Fragment A -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f") % (100.0 * _popHA[_i]) % (100.0 * _popEA[_i]) % (_CrgsA[_i]) % ( _CrgsA[_i] + _popA ) ).str() << flush;
                             LOG(logINFO, *_pLog) << (format("           Fragment B -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f") % (100.0 * _popHB[_i]) % (100.0 * _popEB[_i]) % (_CrgsB[_i]) % ( _CrgsB[_i] + _popB ) ).str() << flush;
                         }
