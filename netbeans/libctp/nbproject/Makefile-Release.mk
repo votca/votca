@@ -65,7 +65,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/700762242/igwbse.o \
 	${OBJECTDIR}/_ext/1069846742/mbgft.o \
 	${OBJECTDIR}/_ext/484457893/molecule.o \
-	${OBJECTDIR}/_ext/1966063395/radial_euler_maclaurin_rule.o \
 	${OBJECTDIR}/_ext/1966063395/sphere_lebedev_rule.o \
 	${OBJECTDIR}/_ext/484457893/orbitals.o \
 	${OBJECTDIR}/_ext/484457893/overlap.o \
@@ -279,11 +278,6 @@ ${OBJECTDIR}/_ext/484457893/molecule.o: nbproject/Makefile-${CND_CONF}.mk ../../
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484457893/molecule.o ../../src/libctp/molecule.cc
-
-${OBJECTDIR}/_ext/1966063395/radial_euler_maclaurin_rule.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libctp/numerical_integration/radial_euler_maclaurin_rule.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/1966063395
-	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1966063395/radial_euler_maclaurin_rule.o ../../src/libctp/numerical_integration/radial_euler_maclaurin_rule.cc
 
 ${OBJECTDIR}/_ext/1966063395/sphere_lebedev_rule.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libctp/numerical_integration/sphere_lebedev_rule.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1966063395
