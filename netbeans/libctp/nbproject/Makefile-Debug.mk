@@ -64,7 +64,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/700762242/igwbse.o \
 	${OBJECTDIR}/_ext/1069846742/mbgft.o \
 	${OBJECTDIR}/_ext/484457893/molecule.o \
-	${OBJECTDIR}/_ext/1966063395/numerical_integrations.o \
 	${OBJECTDIR}/_ext/1966063395/sphere_lebedev_rule.o \
 	${OBJECTDIR}/_ext/484457893/orbitals.o \
 	${OBJECTDIR}/_ext/484457893/overlap.o \
@@ -142,9 +141,7 @@ ${OBJECTDIR}/_ext/1559596494/aodipole.o: ../../src/libctp/aomatrices/aodipole.cc
 
 ${OBJECTDIR}/_ext/1559596494/aoesp.o: ../../src/libctp/aomatrices/aoesp.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1559596494
-	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1559596494/aoesp.o ../../src/libctp/aomatrices/aoesp.cc
-
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1559596494/aokinetic.o ../../src/libctp/aomatrices/aokinetic.cc
 ${OBJECTDIR}/_ext/1559596494/aomatrix.o: ../../src/libctp/aomatrices/aomatrix.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1559596494
 	${RM} $@.d
@@ -275,11 +272,8 @@ ${OBJECTDIR}/_ext/484457893/molecule.o: ../../src/libctp/molecule.cc
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/molecule.o ../../src/libctp/molecule.cc
 
-${OBJECTDIR}/_ext/1966063395/numerical_integrations.o: ../../src/libctp/numerical_integration/numerical_integrations.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/1966063395
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1966063395/numerical_integrations.o ../../src/libctp/numerical_integration/numerical_integrations.cc
-
 ${OBJECTDIR}/_ext/1966063395/sphere_lebedev_rule.o: ../../src/libctp/numerical_integration/sphere_lebedev_rule.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1966063395
 	${RM} $@.d
