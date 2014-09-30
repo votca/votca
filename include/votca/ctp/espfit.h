@@ -106,7 +106,7 @@ public:
            Ztot += _elements.getNucCrgECP(_atomlist[j]->type);  
     }
     
-    ub::vector<double> DMATGSasarray=_dmat.data();
+    ub::vector<double> DMATasarray=_dmat.data();
     LOG(logDEBUG, *_log) << TimeStamp() << " Calculating ESP at CHELPG grid points"  << flush;  
     #pragma omp parallel for
     for ( int i = 0 ; i < _gridpoints.size(); i++){
@@ -116,8 +116,8 @@ public:
          _aoesp.Fill(&_dftbasis, _gridpoints[i]*1.8897259886);
         ub::vector<double> AOESPasarray=_aoesp._aomatrix.data();
       
-        for ( int _i =0; _i < DMATGSasarray.size(); _i++ ){
-            _ESPatGrid(i) -= DMATGSasarray(_i)*AOESPasarray(_i);
+        for ( int _i =0; _i < DMATasarray.size(); _i++ ){
+            _ESPatGrid(i) -= DMATasarray(_i)*AOESPasarray(_i);
         }   
     }
     
@@ -129,7 +129,7 @@ public:
     ub::matrix<double> _Bvec = ub::zero_matrix<double>(_atomlist.size()+1);    
     
     // setting up _Amat
-    LOG(logDEBUG, *_log) << TimeStamp() << "  Setting up Amat of size "  << _Amat.size1() << " by " << _Amat.size2() << flush; 
+    //LOG(logDEBUG, *_log) << TimeStamp() << "  Setting up Amat of size "  << _Amat.size1() << " by " << _Amat.size2() << flush; 
     for ( int _i =0 ; _i < _Amat.size1()-1; _i++){
         double x_i = _atomlist[_i]->x;
         double y_i = _atomlist[_i]->y;
@@ -165,7 +165,7 @@ public:
     
 
     // setting up Bvec
-      LOG(logDEBUG, *_log) << TimeStamp() << "  Setting up Bvec"  << flush; 
+     // LOG(logDEBUG, *_log) << TimeStamp() << "  Setting up Bvec"  << flush; 
     for ( int _i =0 ; _i < _Bvec.size1()-1; _i++){
         double x_i = _atomlist[_i]->x;
         double y_i = _atomlist[_i]->y;
@@ -188,7 +188,7 @@ public:
     _Bvec(_Bvec.size1()-1,0) = _netcharge; //netcharge!!!!
     
     // invert _Amat
-     LOG(logDEBUG, *_log) << TimeStamp() << "  Inverting _Amat"  << flush; 
+   //  LOG(logDEBUG, *_log) << TimeStamp() << "  Inverting _Amat"  << flush; 
     ub::matrix<double> _Amat_inverse = ub::zero_matrix<double>(_atomlist.size()+1,_atomlist.size()+1);
     linalg_invert( _Amat , _Amat_inverse);
     //_Amat.resize(0,0);
@@ -207,7 +207,7 @@ public:
      double _sumcrg = 0.0;
     for ( int _i =0 ; _i < _Bvec.size1()-1; _i++){
         
-        LOG(logDEBUG, *_log) << " Atom " << _i << " Type " << _atomlist[_i]->type << " Charge: " << _charges(_i,0) <<":" <<_atomlist[_i]->charge << flush;
+        LOG(logDEBUG, *_log) << " Atom " << _i << " Type " << _atomlist[_i]->type << " Charge: " <<_atomlist[_i]->charge << flush;
         _sumcrg += _charges(_i,0);
         
     }

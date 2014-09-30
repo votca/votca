@@ -213,6 +213,7 @@
       <itemPath>../../src/libctp/qmtool.cc</itemPath>
       <itemPath>../../src/libctp/statesaversqlite.cc</itemPath>
       <itemPath>../../src/libctp/threecenters.cc</itemPath>
+      <itemPath>../../src/libctp/threecenters_dft.cc</itemPath>
       <itemPath>../../src/libctp/threecenters_tools.cc</itemPath>
       <itemPath>../../src/libctp/version.cc</itemPath>
       <itemPath>../../src/libctp/version_nb.cc</itemPath>
@@ -373,8 +374,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/ctp/qmatom.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/ctp/qmcalculator.h"
             ex="false"
             tool="3"
@@ -464,11 +463,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/aomatrices/aoesp.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/aomatrices/aokinetic.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -634,7 +628,13 @@
       </item>
       <item path="../../src/libctp/ctpapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libctp/ewald2d.cc" ex="true" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/ewald3d.cc" ex="true" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libctp/ewaldactor.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/ewaldnd.cc" ex="true" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/extractorfactory.cc"
             ex="false"
@@ -790,6 +790,8 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libctp/pewald3d.cc" ex="true" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libctp/polarbackground.cc"
             ex="false"
             tool="1"
@@ -869,6 +871,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/threecenters.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/threecenters_dft.cc"
+            ex="false"
+            tool="0"
+            flavor2="0">
       </item>
       <item path="../../src/libctp/threecenters_tools.cc"
             ex="false"
@@ -1049,8 +1056,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/ctp/qmatom.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/ctp/qmcalculator.h"
             ex="false"
             tool="3"
@@ -1140,11 +1145,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/aomatrices/aoesp.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/aomatrices/aokinetic.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -1545,6 +1545,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/threecenters.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/threecenters_dft.cc"
+            ex="false"
+            tool="0"
+            flavor2="0">
       </item>
       <item path="../../src/libctp/threecenters_tools.cc"
             ex="false"
