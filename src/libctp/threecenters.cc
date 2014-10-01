@@ -50,8 +50,8 @@ namespace votca {
          *      S,P,D,F functions in GW  basis
          * 
          */
-        bool TCMatrix::FillThreeCenterOLBlock(ub::matrix<double>& _subvector, AOShell* _shell_gw, AOShell* _shell_alpha, AOShell* _shell_gamma) {
-	  //bool TCMatrix::FillThreeCenterOLBlock(ub::matrix<float>& _subvector, AOShell* _shell_gw, AOShell* _shell_alpha, AOShell* _shell_gamma) {
+        bool TCrawMatrix::FillThreeCenterOLBlock(ub::matrix<double>& _subvector, AOShell* _shell_gw, AOShell* _shell_alpha, AOShell* _shell_gamma) {
+	  //bool TCrawMatrix::FillThreeCenterOLBlock(ub::matrix<float>& _subvector, AOShell* _shell_gw, AOShell* _shell_alpha, AOShell* _shell_gamma) {
             
               // get shell positions
             const vec& _pos_gw = _shell_gw->getPos();
@@ -2373,7 +2373,7 @@ namespace votca {
 
         }
 
-        void TCMatrix::Print(string _ident) {
+        void TCrawMatrix::Print(string _ident) {
 	  //cout << "\n" << endl;
             for (int k = 0; k < this->mtotal; k++) {
                 for (int i = 0; i < _matrix[1].size1(); i++) {
@@ -2384,7 +2384,7 @@ namespace votca {
             }
         }
 
-        void TCMatrix::getTrafo(ub::matrix<double>& _trafo, int _lmax, const double& _decay,std::vector<double> contractions) {
+        void TCrawMatrix::getTrafo(ub::matrix<double>& _trafo, int _lmax, const double& _decay,std::vector<double> contractions) {
         // s-functions
         _trafo(0,0) = 1.0*contractions[0]; // s
        
@@ -2523,7 +2523,7 @@ namespace votca {
 
         }
 
-        int TCMatrix::getBlockSize(int _lmax) {
+        int TCrawMatrix::getBlockSize(int _lmax) {
             int _block_size;
             if (_lmax == 0) {
                 _block_size = 1;

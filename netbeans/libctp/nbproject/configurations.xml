@@ -123,6 +123,7 @@
       <itemPath>../../include/votca/ctp/sqlapplication.h</itemPath>
       <itemPath>../../include/votca/ctp/statesaversqlite.h</itemPath>
       <itemPath>../../include/votca/ctp/threecenters.h</itemPath>
+      <itemPath>../../include/votca/ctp/threecenters_dft.h</itemPath>
       <itemPath>../../include/votca/ctp/topology.h</itemPath>
       <itemPath>../../include/votca/ctp/version.h</itemPath>
       <itemPath>../../include/votca/ctp/votca_ctp_config.h</itemPath>
@@ -425,6 +426,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/threecenters.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/threecenters_dft.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1107,6 +1113,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/threecenters.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/threecenters_dft.h"
             ex="false"
             tool="3"
             flavor2="0">
