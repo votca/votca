@@ -7,7 +7,7 @@
  * You may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *              http://www.apache.org/licenses/LICEN_olE-2.0
+ *              http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -2373,16 +2373,7 @@ namespace votca {
 
         }
 
-        void TCrawMatrix::Print(string _ident) {
-	  //cout << "\n" << endl;
-            for (int k = 0; k < this->mtotal; k++) {
-                for (int i = 0; i < _matrix[1].size1(); i++) {
-                    for (int j = 0; j< this->ntotal; j++) {
-                        cout << _ident << "[" << i + 1 << ":" << k + 1 << ":" << j + 1 << "] " << this->_matrix[k](i, j) << endl;
-                    }
-                }
-            }
-        }
+     
 
         void TCrawMatrix::getTrafo(ub::matrix<double>& _trafo, int _lmax, const double& _decay,std::vector<double> contractions) {
         // s-functions

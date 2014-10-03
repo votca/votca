@@ -50,7 +50,7 @@ namespace votca { namespace ctp {
     
     int getBlockSize( int size );
     
-    void Print( string _ident);
+   
     };
     
     
@@ -102,7 +102,7 @@ namespace votca { namespace ctp {
         void set_mtot( int i ) { this->mtotal = i ;}
         void set_ntot( int i ) { this->ntotal = i ;}
         
-        
+
         void Initialize ( int _basissize, int mmin, int mmax, int nmin, int nmax){
 
             // here as storage indices starting from zero
@@ -129,7 +129,7 @@ namespace votca { namespace ctp {
         
         void Prune ( int _basissize, int min, int max);
         
-        
+        void Print( string _ident);       
         
        
         void Fill( AOBasis& gwbasis, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals );

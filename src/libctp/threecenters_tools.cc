@@ -64,6 +64,17 @@ namespace votca {
             }
 
         } // TCMatrix::Symmetrize
+        
+           void TCMatrix::Print(string _ident) {
+	  //cout << "\n" << endl;
+            for (int k = 0; k < this->mtotal; k++) {
+                for (int i = 0; i < _matrix[1].size1(); i++) {
+                    for (int j = 0; j< this->ntotal; j++) {
+                        cout << _ident << "[" << i + 1 << ":" << k + 1 << ":" << j + 1 << "] " << this->_matrix[k](i, j) << endl;
+                    }
+                }
+            }
+        }
 
         
         /*
