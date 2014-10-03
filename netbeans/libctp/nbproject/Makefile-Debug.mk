@@ -35,6 +35,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
+	${OBJECTDIR}/_ext/484457893/ERIs.o \
 	${OBJECTDIR}/_ext/1559596494/aocoulomb.o \
 	${OBJECTDIR}/_ext/1559596494/aodipole.o \
 	${OBJECTDIR}/_ext/1559596494/aoesp.o \
@@ -129,6 +130,11 @@ LDLIBSOPTIONS=
 	${RM} ../../src/libctp/libctp.a
 	${AR} -rv ../../src/libctp/libctp.a ${OBJECTFILES} 
 	$(RANLIB) ../../src/libctp/libctp.a
+
+${OBJECTDIR}/_ext/484457893/ERIs.o: ../../src/libctp/ERIs.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
+	${RM} "$@.d"
+	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484457893/ERIs.o ../../src/libctp/ERIs.cc
 
 ${OBJECTDIR}/_ext/1559596494/aocoulomb.o: ../../src/libctp/aomatrices/aocoulomb.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1559596494

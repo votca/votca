@@ -68,6 +68,7 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <itemPath>../../include/votca/ctp/ERIs.h</itemPath>
       <itemPath>../../include/votca/ctp/aobasis.h</itemPath>
       <itemPath>../../include/votca/ctp/aomatrix.h</itemPath>
       <itemPath>../../include/votca/ctp/apolarsite.h</itemPath>
@@ -187,6 +188,7 @@
         <itemPath>../../src/libctp/segmenttype.cc</itemPath>
         <itemPath>../../src/libctp/topology.cc</itemPath>
       </logicalFolder>
+      <itemPath>../../src/libctp/ERIs.cc</itemPath>
       <itemPath>../../src/libctp/apolarsite.cc</itemPath>
       <itemPath>../../src/libctp/bsecoupling.cc</itemPath>
       <itemPath>../../src/libctp/ewald2d.cc</itemPath>
@@ -257,6 +259,8 @@
           <output>../../src/libctp/libctp.a</output>
         </archiverTool>
       </compileType>
+      <item path="../../include/votca/ctp/ERIs.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/aobasis.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/aomatrix.h" ex="false" tool="3" flavor2="0">
@@ -451,6 +455,8 @@
       <item path="../../include/votca/ctp/xjob.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/xmapper.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libctp/ERIs.cc" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../src/libctp/aomatrices/aocoulomb.cc"
             ex="false"
@@ -939,6 +945,8 @@
         <archiverTool>
         </archiverTool>
       </compileType>
+      <item path="../../include/votca/ctp/ERIs.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/aobasis.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/aomatrix.h" ex="false" tool="3" flavor2="0">
@@ -1133,6 +1141,8 @@
       <item path="../../include/votca/ctp/xjob.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/xmapper.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libctp/ERIs.cc" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../src/libctp/aomatrices/aocoulomb.cc"
             ex="false"

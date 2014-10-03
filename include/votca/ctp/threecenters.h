@@ -35,7 +35,12 @@
 
 using namespace std;
 using namespace votca::tools;
-
+/**
+* \brief Calculates three electron overlap integrals for GW and DFT.
+*
+* 
+* 
+*/
 namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
     // due to different requirements for the data format for DFT and GW we have two different classes TCMatrix and TCMatrix_dft which inherit from TCrawMatrix
