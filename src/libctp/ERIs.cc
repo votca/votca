@@ -39,15 +39,22 @@ namespace votca {
     namespace ctp {
         namespace ub = boost::numeric::ublas;
         
-        ERIs::~ERIs () { ; }
-        
-        ERIs::ERIs( AOBasis &dftbasis, AOBasis &auxbasis)
-                :ERIs( &dftbasis, &auxbasis ) {}
         
         
-        void Initialize (){
+        void Initialize (AOBasis &dftbasis, AOBasis &auxbasis){
         
-            AOOverlap Overlap;
+            AOOverlap overlap;
+            overlap.Fill(&auxbasis);
+            ub::matrix<double> overlapasmatrix=overlap._aomatrix.data();
+            AOEsp rterm;
+            rterm.Fill(&auxbasis);
+            ub::matrix<double> rtermasmatrix=rterm._aomatrix.data();
+            
+            ub::matrix<double> inverse_overlap=ub::zero_matrix<double>(overlapasmatrix.size);
+           
+            TC_matrix_dft threecenter;
+            threecenter.Fill( &auxbasis, &dftbasis );
+            
             
         
         
@@ -59,7 +66,9 @@ namespace votca {
         }
         
         
-        
+        void CalculateERIs (ub::matrix<double> &DMAT){
+            
+        }
         
         
         

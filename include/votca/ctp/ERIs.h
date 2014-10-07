@@ -50,13 +50,13 @@ namespace votca { namespace ctp {
     class ERIs{    
         
     public:
-        ERIs(AOBasis &dftbasis, AOBasis &auxbasis);
+        ERIs();
         
         ~ERIs();
         
         
         
-        void Initialize();
+        void Initialize(AOBasis &dftbasis, AOBasis &auxbasis);
         
         
         
