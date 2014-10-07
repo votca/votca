@@ -70,7 +70,12 @@ namespace votca { namespace ctp {
     public:
         ub::matrix<double> _aomatrix; 
         ub::vector<double> _gridpoint;
-        
+
+	// Access functions
+	const int Dimension(){ return _aomatrix.size1();};
+	ub::matrix<double> &Matrix(){ return _aomatrix ;};
+
+
         void Initialize( int size ) {
             this->_aomatrix = ub::zero_matrix<double>(size,size);
         }

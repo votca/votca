@@ -32,6 +32,7 @@
 #include "tools/spectrum.h"
 #include "tools/excitoncoupling.h"
 #include "tools/orb2isogwa.h"
+#include "tools/dft.h"
 
 namespace votca { namespace ctp {
 
@@ -49,6 +50,7 @@ void QMToolFactory::RegisterAll(void)
         QMTools().Register<ExcitonCoupling>    ("excitoncoupling");
         QMTools().Register<Orb2IsoGWA>         ("orb2isogwa"); 
         QMTools().Register<PDB2Top>            ("pdb2top");
+        QMTools().Register<DFT>                ("dft");
 }
 
 }}
