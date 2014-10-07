@@ -286,6 +286,11 @@ ${OBJECTDIR}/_ext/1966063395/numerical_integrations.o: nbproject/Makefile-${CND_
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1966063395/numerical_integrations.o ../../src/libctp/numerical_integration/numerical_integrations.cc
 
+${OBJECTDIR}/_ext/1966063395/numerical_integrations.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libctp/numerical_integration/numerical_integrations.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1966063395
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1966063395/numerical_integrations.o ../../src/libctp/numerical_integration/numerical_integrations.cc
+
 ${OBJECTDIR}/_ext/1966063395/sphere_lebedev_rule.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libctp/numerical_integration/sphere_lebedev_rule.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1966063395
 	${RM} "$@.d"

@@ -84,6 +84,7 @@
       <itemPath>../../include/votca/ctp/ewaldactor.h</itemPath>
       <itemPath>../../include/votca/ctp/ewaldnd.h</itemPath>
       <itemPath>../../include/votca/ctp/ewdspace.h</itemPath>
+      <itemPath>../../include/votca/ctp/exchange_correlation.h</itemPath>
       <itemPath>../../include/votca/ctp/extractorfactory.h</itemPath>
       <itemPath>../../include/votca/ctp/fragment.h</itemPath>
       <itemPath>../../include/votca/ctp/grid.h</itemPath>
@@ -118,6 +119,7 @@
       <itemPath>../../include/votca/ctp/qmpair.h</itemPath>
       <itemPath>../../include/votca/ctp/qmthread.h</itemPath>
       <itemPath>../../include/votca/ctp/qmtool.h</itemPath>
+      <itemPath>../../include/votca/ctp/radial_euler_maclaurin_rule.h</itemPath>
       <itemPath>../../include/votca/ctp/segment.h</itemPath>
       <itemPath>../../include/votca/ctp/segmenttype.h</itemPath>
       <itemPath>../../include/votca/ctp/sphere_lebedev_rule.h</itemPath>
@@ -177,6 +179,7 @@
       </logicalFolder>
       <logicalFolder name="f6" displayName="NumInt" projectFiles="true">
         <itemPath>../../src/libctp/numerical_integration/numerical_integrations.cc</itemPath>
+        <itemPath>../../src/libctp/numerical_integration/radial_euler_maclaurin_rule.cc</itemPath>
         <itemPath>../../src/libctp/numerical_integration/sphere_lebedev_rule.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f3" displayName="Topology" projectFiles="true">
@@ -295,6 +298,11 @@
       </item>
       <item path="../../include/votca/ctp/ewdspace.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/ctp/exchange_correlation.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/extractorfactory.h"
             ex="false"
             tool="3"
@@ -405,6 +413,11 @@
       <item path="../../include/votca/ctp/qmthread.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/qmtool.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/radial_euler_maclaurin_rule.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/ctp/segment.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -777,6 +790,11 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libctp/numerical_integration/radial_euler_maclaurin_rule.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/numerical_integration/sphere_lebedev_rule.cc"
             ex="false"
             tool="1"
@@ -981,6 +999,11 @@
       </item>
       <item path="../../include/votca/ctp/ewdspace.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/ctp/exchange_correlation.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/extractorfactory.h"
             ex="false"
             tool="3"
@@ -1091,6 +1114,11 @@
       <item path="../../include/votca/ctp/qmthread.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/qmtool.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/radial_euler_maclaurin_rule.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/ctp/segment.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1453,6 +1481,11 @@
       <item path="../../src/libctp/molecule.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/numerical_integration/numerical_integrations.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/numerical_integration/radial_euler_maclaurin_rule.cc"
             ex="false"
             tool="1"
             flavor2="0">

@@ -186,7 +186,8 @@ private:
     string   _type;
     bool     _has_osc_filter;
     double   _osc_threshold;
-    
+    bool     _has_dQ_filter;
+    double   _dQ_threshold;   
     
     double _crit_dR;
     double _crit_dQ;

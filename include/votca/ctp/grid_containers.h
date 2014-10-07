@@ -55,6 +55,14 @@ namespace votca { namespace ctp {
             };
             
             map<string,spherical_grid> _spherical_grids;
+            
+            // container for cartesian grid points and weights
+            struct integration_grid {
+                double grid_x;
+                double grid_y;
+                double grid_z;
+                double grid_weight;
+            };
 
         };
 

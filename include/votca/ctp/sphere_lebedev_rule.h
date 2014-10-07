@@ -23,24 +23,27 @@
 
 #include <votca/tools/property.h>
 #include <votca/ctp/grid_containers.h>
+#include <boost/math/constants/constants.hpp>
 using namespace std;
 
 
-namespace votca { namespace ctp {
-
+namespace votca {
+    namespace ctp {
 
         class LebedevGrid {
-        public: 
-            
-            LebedevGrid() { FillOrders(); };
-            
-            void getSphericalGrid( vector<QMAtom* > _atoms , string type, GridContainers& _grids );
-            void getUnitSphereGrid( string element, string type, std::vector<double>& _theta, std::vector<double>& _phi, std::vector<double>& _weight );
+        public:
+
+            LebedevGrid() {
+                FillOrders();
+            };
+
+            void getSphericalGrid(vector<QMAtom* > _atoms, string type, GridContainers& _grids);
+            void getUnitSphereGrid(string element, string type, std::vector<double>& _theta, std::vector<double>& _phi, std::vector<double>& _weight);
 
 
 
         private:
-            
+            const double pi = boost::math::constants::pi<double>();
             int available_table(int rule);
             int gen_oh(int code, double a, double b, double v, double *x,
                     double *y, double *z, double *w);
@@ -81,72 +84,73 @@ namespace votca { namespace ctp {
             int precision_table(int rule);
             void timestamp();
             void xyz_to_tp(double x, double y, double z, double *t, double *p);
-            
+
             int getOrder(string element, string type);
-            
-            
-            
+
+
+
             std::map<std::string, int> MediumOrder;
-            
-                inline void FillOrders(){
-        
-        FillMediumOrder();
-        
-    }
 
-    inline void FillMediumOrder(){
-        
-        // order for H, He (not given in NWChem, assuming same as 1st row)
-            MediumOrder["H"] = 434;
-            MediumOrder["He"] = 434;
-        
-        // orders for 1st row elements taken from NWChem
-            MediumOrder["Li"] = 434;
-            MediumOrder["Be"] = 434;
-            MediumOrder["B"] = 434;
-            MediumOrder["C"] = 434;
-            MediumOrder["N"] = 434;
-            MediumOrder["O"] = 434;
-            MediumOrder["F"] = 434;
-            MediumOrder["Ne"] = 434;
+            inline void FillOrders() {
 
-        // orders for 2nd row elements taken from NWChem
-            MediumOrder["Na"] = 434;
-            MediumOrder["Mg"] = 434;
-            MediumOrder["Al"] = 434;
-            MediumOrder["Si"] = 434;
-            MediumOrder["P"] = 434;
-            MediumOrder["S"] = 434;
-            MediumOrder["Cl"] = 434;
-            MediumOrder["Ar"] = 434;
-            
-           
-        // orders for 3rd row elements taken from NWChem
-            MediumOrder["K"] = 590;
-            MediumOrder["Ca"] = 590;
-            MediumOrder["Sc"] = 590;
-            MediumOrder["Ti"] = 590;
-            MediumOrder["V"] = 590;
-            MediumOrder["Cr"] = 590;
-            MediumOrder["Mn"] = 590;
-            MediumOrder["Fe"] = 590;
-            MediumOrder["Co"] = 590;
-            MediumOrder["Ni"] = 590;
-            MediumOrder["Cu"] = 590;
-            MediumOrder["Zn"] = 590;
-            MediumOrder["Ga"] = 590;
-            MediumOrder["Ge"] = 590;
-            MediumOrder["As"] = 590;
-            MediumOrder["Se"] = 590;
-            MediumOrder["Br"] = 590;
-            MediumOrder["Kr"] = 590;
-            
-            
-    }            
-            
-            
+                FillMediumOrder();
+
+            }
+
+            inline void FillMediumOrder() {
+
+                // order for H, He (not given in NWChem, assuming same as 1st row)
+                MediumOrder["H"] = 434;
+                MediumOrder["He"] = 434;
+
+                // orders for 1st row elements taken from NWChem
+                MediumOrder["Li"] = 434;
+                MediumOrder["Be"] = 434;
+                MediumOrder["B"] = 434;
+                MediumOrder["C"] = 434;
+                MediumOrder["N"] = 434;
+                MediumOrder["O"] = 434;
+                MediumOrder["F"] = 434;
+                MediumOrder["Ne"] = 434;
+
+                // orders for 2nd row elements taken from NWChem
+                MediumOrder["Na"] = 434;
+                MediumOrder["Mg"] = 434;
+                MediumOrder["Al"] = 434;
+                MediumOrder["Si"] = 434;
+                MediumOrder["P"] = 434;
+                MediumOrder["S"] = 434;
+                MediumOrder["Cl"] = 434;
+                MediumOrder["Ar"] = 434;
+
+
+                // orders for 3rd row elements taken from NWChem
+                MediumOrder["K"] = 590;
+                MediumOrder["Ca"] = 590;
+                MediumOrder["Sc"] = 590;
+                MediumOrder["Ti"] = 590;
+                MediumOrder["V"] = 590;
+                MediumOrder["Cr"] = 590;
+                MediumOrder["Mn"] = 590;
+                MediumOrder["Fe"] = 590;
+                MediumOrder["Co"] = 590;
+                MediumOrder["Ni"] = 590;
+                MediumOrder["Cu"] = 590;
+                MediumOrder["Zn"] = 590;
+                MediumOrder["Ga"] = 590;
+                MediumOrder["Ge"] = 590;
+                MediumOrder["As"] = 590;
+                MediumOrder["Se"] = 590;
+                MediumOrder["Br"] = 590;
+                MediumOrder["Kr"] = 590;
+
+
+            }
+
+
 
         };
 
-    }}
+    }
+}
 #endif	/* LEBEDEV_H */

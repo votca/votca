@@ -197,14 +197,6 @@ namespace votca {
             _orbitals->setDFTbasis( _dftbasis_name );
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Loaded DFT Basis Set " << _dftbasis_name << flush;
             
-            
-/*            
-            NumericalIntegration _numint;
-            _numint.GridSetup("medium",&dftbs,_atoms);
-            
-
-	                exit(0); */
-
             // fill DFT AO basis by going through all atoms 
             AOBasis dftbasis;
             dftbasis.AOBasisFill(&dftbs, _atoms, _fragA );
@@ -308,7 +300,8 @@ namespace votca {
             } else {
                 _vxc_ao = _orbitals->AOVxc(); 
             }
-
+            
+            
             // now get expectation values but only for those in _qpmin:_qpmax range
             ub::matrix<double> _mos = ub::project( _dft_orbitals ,  ub::range( _qpmin , _qpmax +1 ), ub::range(0, dftbasis._AOBasisSize ) );
             ub::matrix<double> _temp  = ub::prod( _vxc_ao, ub::trans( _mos ) ) ;

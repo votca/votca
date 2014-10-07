@@ -46,6 +46,14 @@ option(BUILD_MANPAGES "Build manpages (might lead to problem on system without r
 #define this target here, so that individual man pages can append to it.
 add_custom_target(manpages ALL)
 
+########################################################################
+# TEMPORARY HACK FOR XCLIB
+########################################################################
+include_directories("/people/thnfs/homes/baumeier/usr/libxc/include")
+set (XC_LIBRARIES "/people/thnfs/homes/baumeier/usr/libxc/lib/libxc.so")
+
+
+
 #message(STATUS "BOOST_LIBRARIES='${BOOST_LIBRARIES}'")
 
 find_package(VOTCA_TOOLS REQUIRED)

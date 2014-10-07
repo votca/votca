@@ -85,7 +85,12 @@ QMMachine<QMPackage>::QMMachine(XJob *job, XInductor *xind, QMPackage *qmpack,
         _has_osc_filter = false;
     }
         
-
+    if (opt->exists(key + ".charge_transfer")  ){
+        _has_dQ_filter = true;
+        _dQ_threshold  =  opt->get(key + ".charge_transfer").as<double> ();
+    } else {
+        _has_dQ_filter = false;
+    }
 
 
 }
@@ -256,7 +261,11 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
         LOG(logDEBUG,*_log) << "  --- type:              " << _type << flush;
         LOG(logDEBUG,*_log) << "  --- state:             " << _state << flush;
         if ( _has_osc_filter) LOG(logDEBUG,*_log) << "  --- filter: osc.str. > " << _osc_threshold << flush;
+        if ( _has_dQ_filter)  LOG(logDEBUG,*_log) << "  --- filter: crg.trs. > " << _dQ_threshold << flush;
         
+        if ( _has_osc_filter && _has_dQ_filter ){
+            LOG(logDEBUG,*_log) << "  --- WARNING: filtering for optically active CT transition - might not make sense... "  << flush;
+        }
         
         // define own logger for GW-BSE that is written into a runFolder logfile
         Logger gwbse_logger(logDEBUG);
@@ -297,6 +306,8 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
                 if ( osc > _osc_threshold ) _state_index.push_back(_i);
             } 
             
+      
+            
         } else {
             
             if ( _type == "singlet" ){
@@ -309,6 +320,21 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
                }
             }
         }
+
+
+        // filter according to charge transfer, go through list of excitations in _state_index
+         if  (_has_dQ_filter ) {
+            std::vector<int> _state_index_copy;
+             // go through list of singlets
+            const std::vector<double>& dQ_fragA = orb_iter_output.FragmentAChargesEXC();
+            const std::vector<double>& dQ_fragB = orb_iter_output.FragmentBChargesEXC();
+            for (int _i=0; _i < _state_index.size(); _i++ ) {
+                if ( std::abs(dQ_fragA[_i]) > _dQ_threshold ) {
+                    _state_index_copy.push_back(_state_index[_i]);
+                }
+            } 
+            _state_index = _state_index_copy;
+         }
         
         
         if ( _state_index.size() < 1 ){
@@ -337,7 +363,7 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 	  dftbs.LoadBasisSet( _gwbse.get_dftbasis_name() );
 
 	}  
-      LOG(logDEBUG, *_log) << TimeStamp() << " Loaded DFT Basis Set " <<  orb_iter_output.getDFTbasis()  << flush;
+       LOG(logDEBUG, *_log) << TimeStamp() << " Loaded DFT Basis Set " <<  orb_iter_output.getDFTbasis()  << flush;
 
     
     

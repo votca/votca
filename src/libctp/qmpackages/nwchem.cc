@@ -408,10 +408,10 @@ bool NWChem::ParseOrbitalsFile( Orbitals* _orbitals )
     std::ifstream _input_file( _orb_file_name_full.c_str() );
     
     if (_input_file.fail()) {
-        LOG( logERROR, *_pLog ) << "File " << _orb_file_name << " with molecular orbitals is not found " << flush;
+        LOG( logERROR, *_pLog ) << "File " << _orb_file_name_full << " with molecular orbitals is not found " << flush;
         return false;
     } else {
-        LOG(logDEBUG, *_pLog) << "Reading MOs from " << _orb_file_name << flush;
+        LOG(logDEBUG, *_pLog) << "Reading MOs from " << _orb_file_name_full << flush;
     }
     
     // the first 12 lines are garbage info

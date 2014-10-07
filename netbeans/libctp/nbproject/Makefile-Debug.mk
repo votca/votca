@@ -286,6 +286,11 @@ ${OBJECTDIR}/_ext/1966063395/numerical_integrations.o: ../../src/libctp/numerica
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1966063395/numerical_integrations.o ../../src/libctp/numerical_integration/numerical_integrations.cc
 
+${OBJECTDIR}/_ext/1966063395/numerical_integrations.o: ../../src/libctp/numerical_integration/numerical_integrations.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1966063395
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1966063395/numerical_integrations.o ../../src/libctp/numerical_integration/numerical_integrations.cc
+
 ${OBJECTDIR}/_ext/1966063395/sphere_lebedev_rule.o: ../../src/libctp/numerical_integration/sphere_lebedev_rule.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1966063395
 	${RM} "$@.d"
