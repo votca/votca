@@ -65,6 +65,9 @@
         <itemPath>../../src/libctp/tools/qmanalyze.h</itemPath>
       </logicalFolder>
     </logicalFolder>
+    <logicalFolder name="dftengine" displayName="dftengine" projectFiles="true">
+      <itemPath>../../src/libctp/dftengine/dftengine.cc</itemPath>
+    </logicalFolder>
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
@@ -238,6 +241,7 @@
   <sourceRootList>
     <Elem>../../include</Elem>
     <Elem>../../../../include</Elem>
+    <Elem>../../src/libctp/dftengine</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -646,6 +650,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/ctpapplication.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/dftengine/dftengine.cc"
+            ex="false"
+            tool="0"
+            flavor2="0">
       </item>
       <item path="../../src/libctp/ewald2d.cc" ex="true" tool="1" flavor2="0">
       </item>
@@ -1347,6 +1356,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/ctpapplication.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/dftengine/dftengine.cc"
+            ex="false"
+            tool="0"
+            flavor2="0">
       </item>
       <item path="../../src/libctp/ewaldactor.cc" ex="false" tool="1" flavor2="0">
       </item>
