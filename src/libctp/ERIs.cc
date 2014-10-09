@@ -59,7 +59,6 @@ namespace votca {
         
         
         void ERIs::CalculateERIs (ub::matrix<double> &DMAT){
-           for ( int i=0,i < _three) 
             
             
         }

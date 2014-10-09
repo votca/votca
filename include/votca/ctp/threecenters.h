@@ -67,7 +67,7 @@ namespace votca { namespace ctp {
     
     void Cleanup();
     
-    void getSize(){return _matrix.size();};
+    int getSize(){return _matrix.size();};
     
     private:
         std::vector< ub::matrix<double> > _matrix;
