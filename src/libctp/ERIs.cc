@@ -19,18 +19,15 @@
 
 #include <votca/ctp/aomatrix.h>
 #include <votca/ctp/aobasis.h>
-#include <votca/ctp/segment.h>
 #include <votca/ctp/threecenters.h>
+#include <votca/ctp/ERIs.h>
 #include <string>
-#include <map>
 #include <vector>
-#include <votca/tools/property.h>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/lu.hpp>
 #include <boost/numeric/ublas/io.hpp>
-#include <boost/multi_array.hpp>
+#include <votca/tools/linalg.h>
 #include <omp.h>
-#include <votca/ctp/ERIs.h>
 
 using namespace std;
 using namespace votca::tools;
@@ -41,20 +38,15 @@ namespace votca {
         
         
         
-        void Initialize (AOBasis &dftbasis, AOBasis &auxbasis){
-        
-            AOOverlap overlap;
-            overlap.Fill(&auxbasis);
-            ub::matrix<double> overlapasmatrix=overlap._aomatrix.data();
-            AOEsp rterm;
-            rterm.Fill(&auxbasis);
-            ub::matrix<double> rtermasmatrix=rterm._aomatrix.data();
-            
-            ub::matrix<double> inverse_overlap=ub::zero_matrix<double>(overlapasmatrix.size);
+        void ERIs::Initialize (AOBasis &_dftbasis, AOBasis &_auxbasis,  AOOverlap &_auxAOverlap, AOCoulomb &_auxAOcoulomb){
+
            
-            TC_matrix_dft threecenter;
-            threecenter.Fill( &auxbasis, &dftbasis );
-            
+           
+            _threecenter.Fill( _auxbasis, _dftbasis );
+            ub::matrix<double> _inverse=ub::zero_matrix<double>( _auxAOverlap.Dimension(), _auxAOverlap.Dimension());
+            linalg_invert( _auxAOverlap.Matrix() , _inverse);
+            ub::matrix<double> _temp=ub::prod(_auxAOcoulomb.Matrix(),_inverse);
+            _Vcoulomb=ub::prod(_inverse,_temp);
             
         
         
@@ -66,7 +58,9 @@ namespace votca {
         }
         
         
-        void CalculateERIs (ub::matrix<double> &DMAT){
+        void ERIs::CalculateERIs (ub::matrix<double> &DMAT){
+           for ( int i=0,i < _three) 
+            
             
         }
         

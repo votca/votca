@@ -17,22 +17,19 @@
  *
  */
 
-#ifndef __CTP_ERIS__H
-#define	__CTP_ERIS__H
+#ifndef _VOTCA_CTP_ERIS_H
+#define	_VOTCA_CTP_ERIS_H
 
 
 #include <votca/ctp/aomatrix.h>
 #include <votca/ctp/aobasis.h>
-#include <votca/ctp/segment.h>
 #include <votca/ctp/threecenters.h>
 #include <string>
-#include <map>
 #include <vector>
-#include <votca/tools/property.h>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/lu.hpp>
 #include <boost/numeric/ublas/io.hpp>
-#include <boost/multi_array.hpp>
+#include <votca/tools/linalg.h>
 #include <omp.h>
 
 
@@ -56,7 +53,7 @@ namespace votca { namespace ctp {
         
         
         
-        void Initialize(AOBasis &dftbasis, AOBasis &auxbasis);
+        void Initialize(AOBasis &_dftbasis, AOBasis &_auxbasis, AOOverlap &_auxAOoverlap, AOCoulomb &_auxAOcoulomb);
         
         
         
@@ -64,8 +61,10 @@ namespace votca { namespace ctp {
         
     private:
         
-       
-   
+        TCMatrix_dft _threecenter;
+        ub::matrix<double> _Vcoulomb; //resolution of the 1/r operator in aux basis functions
+            
+        
     };
     
     

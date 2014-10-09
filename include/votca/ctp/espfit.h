@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __CTP_ESPFIT__H
-#define	__CTP_ESPFIT__H
+#ifndef _VOTCA_CTP_ESPFIT__H
+#define	_VOTCA_CTP_ESPFIT__H
 
 
 #include <votca/ctp/elements.h>

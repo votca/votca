@@ -180,7 +180,10 @@ namespace votca {
             _auxAOcoulomb.Initialize(_auxbasis.AOBasisSize());
             _auxAOcoulomb.Fill(&_auxbasis);
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled AUX Coulomb matrix of dimension: " << _auxAOcoulomb.Dimension() << flush;
-
+            
+            // prepare invariant part of electron repulsion integrals
+            _ERIs.Initialize(_dftbasis, _auxbasis, _auxAOoverlap, _auxAOcoulomb);
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup invariant parts of Electron Repuslion integrals " << flush;
 
       }
 
