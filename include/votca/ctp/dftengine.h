@@ -129,6 +129,7 @@ public:
     AOOverlap                           _auxAOoverlap;
     AOCoulomb                           _dftAOcoulomb;
     AOCoulomb                           _auxAOcoulomb;
+    AOKinetic                           _dftAOkinetic;
     
     //Electron repulsion integrals
     ERIs                                _ERIs;

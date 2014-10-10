@@ -43,24 +43,45 @@ namespace votca {
            
            
             _threecenter.Fill( _auxbasis, _dftbasis );
+            
             ub::matrix<double> _inverse=ub::zero_matrix<double>( _auxAOverlap.Dimension(), _auxAOverlap.Dimension());
             linalg_invert( _auxAOverlap.Matrix() , _inverse);
             ub::matrix<double> _temp=ub::prod(_auxAOcoulomb.Matrix(),_inverse);
             _Vcoulomb=ub::prod(_inverse,_temp);
-            
-        
-        
-        
-        
-        
+            //cout << endl;
+            //cout << _Vcoulomb.size1() << "x" << _Vcoulomb.size2()<<"Vsize"<< endl;
+            //cout << _auxbasis.AOBasisSize() << " aobasissize"<<endl;
+            _ERIs.resize(_dftbasis.AOBasisSize(),_dftbasis.AOBasisSize(),false);
+
         
         
         }
         
         
         void ERIs::CalculateERIs (ub::matrix<double> &DMAT){
+            ub::vector<double> dmatasarray=DMAT.data();
+            ub::vector<double> Itilde=ub::zero_vector<double>(_threecenter.getSize());
+            //cout << _threecenter.getSize() << " Size-Threecenter"<<endl;
+            for ( int _i=0; _i<_threecenter.getSize();_i++){
+                ub::vector<double>threecenterasarray=(_threecenter.getDatamatrix(_i)).data();
+                //cout << _threecenter.getDatamatrix(_i).size1() << "x"<< _threecenter.getDatamatrix(_i).size2() <<" Size-Threecenter,matrix"<<endl;
+                for ( int _j=0; _j<threecenterasarray.size();_j++){
+                    Itilde[_i]+=dmatasarray[_j]*threecenterasarray[_j];
+                }
+            }
             
-            
+            ub::vector<double>K=ub::prod(_Vcoulomb,Itilde);
+            for ( int _i=0; _i<K.size(); _i++){
+            _ERIs+=_threecenter.getDatamatrix(_i)*K(_i);    
+            }
+        }
+        
+        void ERIs::printERIs(){
+          for (int i=0; i< _ERIs.size1(); i++){
+                for (int j=0; j< _ERIs.size2();j++){
+                    //cout << "[" << i<<":"<<j<<"]="<<_ERIs(i,j)<<endl;
+                }
+            }
         }
         
         

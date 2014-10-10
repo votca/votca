@@ -158,6 +158,7 @@
         <itemPath>../../src/libctp/aomatrices/aocoulomb.cc</itemPath>
         <itemPath>../../src/libctp/aomatrices/aodipole.cc</itemPath>
         <itemPath>../../src/libctp/aomatrices/aoesp.cc</itemPath>
+        <itemPath>../../src/libctp/aomatrices/aokinetic.cc</itemPath>
         <itemPath>../../src/libctp/aomatrices/aomatrix.cc</itemPath>
         <itemPath>../../src/libctp/aomatrices/aomomentum.cc</itemPath>
         <itemPath>../../src/libctp/aomatrices/aooverlap.cc</itemPath>
@@ -202,9 +203,7 @@
       <itemPath>../../src/libctp/ewaldactor.cc</itemPath>
       <itemPath>../../src/libctp/ewaldnd.cc</itemPath>
       <itemPath>../../src/libctp/gsl_boost_ublas_matrix_prod.cc</itemPath>
-      <itemPath>../../src/libctp/hgversion.h</itemPath>
       <itemPath>../../src/libctp/job.cc</itemPath>
-      <itemPath>../../src/libctp/mbgft/mbgft.cc</itemPath>
       <itemPath>../../src/libctp/orbitals.cc</itemPath>
       <itemPath>../../src/libctp/overlap.cc</itemPath>
       <itemPath>../../src/libctp/parallelpaircalc.cc</itemPath>
@@ -490,6 +489,11 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libctp/aomatrices/aokinetic.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/aomatrices/aomatrix.cc"
             ex="false"
             tool="1"
@@ -656,13 +660,7 @@
             tool="0"
             flavor2="0">
       </item>
-      <item path="../../src/libctp/ewald2d.cc" ex="true" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/ewald3d.cc" ex="true" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libctp/ewaldactor.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/ewaldnd.cc" ex="true" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/extractorfactory.cc"
             ex="false"
@@ -718,8 +716,6 @@
       <item path="../../src/libctp/gwbse/gwbse.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/gwbse/rpa.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/hgversion.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/job.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -790,8 +786,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libctp/mbgft/mbgft.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libctp/molecule.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/numerical_integration/numerical_integrations.cc"
@@ -822,8 +816,6 @@
             ex="false"
             tool="1"
             flavor2="0">
-      </item>
-      <item path="../../src/libctp/pewald3d.cc" ex="true" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/polarbackground.cc"
             ex="false"
@@ -1196,6 +1188,11 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libctp/aomatrices/aokinetic.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/aomatrices/aomatrix.cc"
             ex="false"
             tool="1"
@@ -1419,8 +1416,6 @@
       </item>
       <item path="../../src/libctp/gwbse/rpa.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libctp/hgversion.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../src/libctp/job.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/jobapplication.cc" ex="false" tool="1" flavor2="0">
@@ -1489,8 +1484,6 @@
             ex="false"
             tool="3"
             flavor2="0">
-      </item>
-      <item path="../../src/libctp/mbgft/mbgft.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/molecule.cc" ex="false" tool="1" flavor2="0">
       </item>

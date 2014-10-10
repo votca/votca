@@ -47,23 +47,23 @@ namespace votca { namespace ctp {
     class ERIs{    
         
     public:
-        ERIs();
-        
-        ~ERIs();
+      
         
         
         
         void Initialize(AOBasis &_dftbasis, AOBasis &_auxbasis, AOOverlap &_auxAOoverlap, AOCoulomb &_auxAOcoulomb);
         
-        
+        ub::matrix<double>& getERIs(){return _ERIs;}
         
         void CalculateERIs(ub::matrix<double> &DMAT);
+        
+        void printERIs();
         
     private:
         
         TCMatrix_dft _threecenter;
         ub::matrix<double> _Vcoulomb; //resolution of the 1/r operator in aux basis functions
-            
+        ub::matrix<double> _ERIs;    
         
     };
     

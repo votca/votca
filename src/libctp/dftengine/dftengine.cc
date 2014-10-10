@@ -103,45 +103,13 @@ namespace votca {
 	    SetupInvariantMatrices();
 
 
-
-
-       
-            /* STUPID TEST
+	    
+           
+            ub::matrix<double> DMAT = ub::identity_matrix<double>(_dftbasis._AOBasisSize);
+            _ERIs.CalculateERIs(DMAT);
+            ub::matrix<double> _eris=_ERIs.getERIs();
             
-            
-            // test numerical integration for AOoverlap
-            ub::matrix<double> OLTEST = _numint.numAOoverlap(&ddftbasis);
-            
-            // test total number of electrons
-            ub::matrix<double> _ddft_orbitals = *(_orbitals->getOrbitals()); 
-            ddftbasis.ReorderMOs(_ddft_orbitals, "gaussian", "votca" );
-            ub::matrix<double> &DMAT = _orbitals->DensityMatrixGroundState( _ddft_orbitals );
-            double Nelectrons = _numint.IntegrateDensity(DMAT,&ddftbasis);
-            cout << " Number of electrons: " << Nelectrons << endl;
-
-            // test AOxcmatrix
-            ub::matrix<double> AOXC = _numint.IntegrateVXC(DMAT,&ddftbasis); 
-            for ( int i = 0 ; i < AOXC.size1(); i++ ){
-                //for ( int j = 0 ; j < AOXC.size2(); j++ ){
-                    
-                    cout << i << " : " << i << " aoxc " << AOXC(i,i) << endl;
-                    
-               // }
-                
-            }
-
-
-            
-            // get integration grid as matrix (needed?)
-            ub::matrix<double> _intgrid;
-            _numint.getGridpoints( _intgrid );
-            
-            //_gwoverlap.Print("AOOL");
-            
-
-	    */
-            
-            
+          
             return true;
         }
 
@@ -166,6 +134,11 @@ namespace votca {
             linalg_eigenvalues(_dftAOoverlap.Matrix(), _eigenvalues, _eigenvectors);
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Smallest eigenvalue of DFT Overlap matrix : " << _eigenvalues[0] << flush;
 
+
+            _dftAOkinetic.Initialize(_dftbasis.AOBasisSize());
+            _dftAOkinetic.Fill(&_dftbasis);
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Kinetic energy matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
+            
 	    // AUX AOoverlap
             _auxAOoverlap.Initialize(_auxbasis.AOBasisSize());
             _auxAOoverlap.Fill(&_auxbasis);
@@ -181,9 +154,10 @@ namespace votca {
             _auxAOcoulomb.Fill(&_auxbasis);
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled AUX Coulomb matrix of dimension: " << _auxAOcoulomb.Dimension() << flush;
             
+            
             // prepare invariant part of electron repulsion integrals
             _ERIs.Initialize(_dftbasis, _auxbasis, _auxAOoverlap, _auxAOcoulomb);
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup invariant parts of Electron Repuslion integrals " << flush;
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup invariant parts of Electron Repulsion integrals " << flush;
 
       }
 
