@@ -7,7 +7,7 @@
     <type1>CG</type1>
     <type2>CG</type2>
     <!-- dimension + grid spacing of tables for calculations -->
-    <min>0.0</min>
+    <min>0.25</min>
     <max>0.9</max>
     <step>0.01</step>
     <inverse>
