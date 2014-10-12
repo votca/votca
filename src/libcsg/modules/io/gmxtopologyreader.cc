@@ -132,17 +132,17 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
 
                 BeadType *type = top.GetOrCreateBeadType(*(atoms->atomtype[iatom]));
 #if GMX == 50
-                Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resind, a->m, a->q);
+                Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resind + res_offset, a->m, a->q);
 #elif GMX == 45
-                Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resind, a->m, a->q);
+                Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resind + res_offset, a->m, a->q);
 #elif GMX == 40
-                Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resnr, a->m, a->q);
+                Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resnr + res_offset, a->m, a->q);
 #else
 #error Unsupported GMX version
 #endif
 
                 stringstream nm;
-                nm << bead->getResnr() + 1 << ":" <<  top.getResidue(res_offset + bead->getResnr())->getName() << ":" << bead->getName();
+                nm << bead->getResnr() + 1 - res_offset << ":" <<  top.getResidue(bead->getResnr())->getName() << ":" << bead->getName();
                 mi->AddBead(bead, nm.str());
             }
             ifirstatom+=mtop.molblock[iblock].natoms_mol;
