@@ -115,30 +115,34 @@ bool linalg_eigenvalues( ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<
 #ifdef NOGSL
     throw std::runtime_error("linalg_eigenvalues is not compiled-in due to disabling of GSL - recompile Votca Tools with GSL support");
 #else
-    throw std::runtime_error("linalg_eigenvalues is not implemented with float precision, switch to MKL");
-    return -1;
-    /*
+    //throw std::runtime_error("linalg_eigenvalues is not implemented with float precision, switch to MKL");
+    //return -1;
+    
 	gsl_error_handler_t *handler = gsl_set_error_handler_off();
 	const size_t N = A.size1();
         
-        // gsl does not handle conversion of a symmetric_matrix 
-        ub::matrix<float> _A( N,N );
+        // gsl does not handle symmetric_matrix and floats, so this is super stupid
+        ub::matrix<double> _A( N,N );
         _A = A;
-        
-	E.resize(N, false);
-	V.resize(N, N, false);
-	gsl_matrix_float_view A_view = gsl_matrix_float_view_array(&_A(0,0), N, N);
-	gsl_vector_float_view E_view = gsl_vector_float_view_array(&E(0), N);
-	gsl_matrix_float_view V_view = gsl_matrix_float_view_array(&V(0,0), N, N);
+        ub::vector<double> _E(N);
+        ub::matrix<double> _V(N,N);
+	gsl_matrix_view A_view = gsl_matrix_view_array(&_A(0,0), N, N);
+	gsl_vector_view E_view = gsl_vector_view_array(&_E(0), N);
+	gsl_matrix_view V_view = gsl_matrix_view_array(&_V(0,0), N, N);
 	gsl_eigen_symmv_workspace *w = gsl_eigen_symmv_alloc(N);
 
 	int status = gsl_eigen_symmv(&A_view.matrix, &E_view.vector, &V_view.matrix, w);
 	gsl_eigen_symmv_sort(&E_view.vector, &V_view.matrix, GSL_EIGEN_SORT_VAL_ASC);
 	gsl_eigen_symmv_free(w);
 	gsl_set_error_handler(handler);
+
+	//E.resize(N, false);
+	//V.resize(N, N, false);
+        E = _E;
+        V = _V;
         
 	return (status != 0);
-     */
+     
 #endif
 };
 
@@ -147,30 +151,21 @@ bool linalg_eigenvalues(  ub::vector<float> &E, ub::matrix<float> &V)
 #ifdef NOGSL
     throw std::runtime_error("linalg_eigenvalues is not compiled-in due to disabling of GSL - recompile Votca Tools with GSL support");
 #else
-    throw std::runtime_error("linalg_eigenvalues is not implemented with float precision, switch to MKL");
-    return -1;
-    /*
-	gsl_error_handler_t *handler = gsl_set_error_handler_off();
-	const size_t N = A.size1();
-        
-        // gsl does not handle conversion of a symmetric_matrix 
-        ub::matrix<float> _A( N,N );
-        _A = A;
-        
-	E.resize(N, false);
-	V.resize(N, N, false);
-	gsl_matrix_float_view A_view = gsl_matrix_float_view_array(&_A(0,0), N, N);
-	gsl_vector_float_view E_view = gsl_vector_float_view_array(&E(0), N);
-	gsl_matrix_float_view V_view = gsl_matrix_float_view_array(&V(0,0), N, N);
-	gsl_eigen_symmv_workspace *w = gsl_eigen_symmv_alloc(N);
-
-	int status = gsl_eigen_symmv(&A_view.matrix, &E_view.vector, &V_view.matrix, w);
-	gsl_eigen_symmv_sort(&E_view.vector, &V_view.matrix, GSL_EIGEN_SORT_VAL_ASC);
-	gsl_eigen_symmv_free(w);
-	gsl_set_error_handler(handler);
-        
+    //throw std::runtime_error("linalg_eigenvalues is not implemented with float precision, switch to MKL");
+    //return -1;
+    
+        /* on input V is the matrix that shall be diagonalized
+         * GSL does not provide an in-place routine, so we wrap 
+         * gsl_eigen_symmv for compatibility
+         */
+    
+         // make a copy of E
+         ub::matrix<float> A = V;
+    
+         // now call wrapper for gsl_eigen_symmv
+         bool status = linalg_eigenvalues( A , E, V );
 	return (status != 0);
-     */
+     
 #endif
 };
 
