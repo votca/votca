@@ -29,7 +29,6 @@
 #include <votca/kmc/events.h>
 #include <votca/kmc/profile.h>
 #include <votca/kmc/numoutput.h>
-#include <votca/kmc/longrange_slab.h>
 
 using namespace std;
 
@@ -47,7 +46,7 @@ public:
     Events* events;
     Vssmgroup* vssmgroup;
     Eventinfo* eventinfo;
-    Longrange_slab* longrange;
+    Longrange* longrange;
     Bsumtree* non_injection_rates;
     Bsumtree* left_injection_rates;
     Bsumtree* right_injection_rates;
@@ -93,7 +92,6 @@ void Device::Initialize(const char *filename, Property *options, const char *out
     randomvariable->init(rand(), rand(), rand(), rand());  
     
     graph = new GraphKMC();
-    //eventinfo->Read_cubic(options);
     graph->Initialize_sql(filename);
     std::cout << "number of nodes before graph manipulations: " << graph->Numberofnodes() << "\n";
     std::cout << "simulation box size before graph manipulations: " << graph->Determine_Sim_Box_Size() << "\n";
@@ -116,8 +114,9 @@ void Device::Initialize(const char *filename, Property *options, const char *out
     std::cout << "number of nodes " << graph->Numberofnodes() << "\n";
     std::cout << "set potential bias is " << eventinfo->voltage << " resulting in a linear electric field of " << eventinfo->efield_z << "V/nm" << "\n";
     
-    longrange = new Longrange_slab(graph,eventinfo);
-    longrange->Initialize(graph,eventinfo);
+    longrange = new Longrange(graph,eventinfo);
+    if(eventinfo->longrange_slab) longrange->Initialize_slab(graph,eventinfo);
+    else longrange->Initialize(eventinfo);
    
     std::cout << "longrange profile initialized" << "\n";
     std::cout << "used calculation method for longrange potential: ";

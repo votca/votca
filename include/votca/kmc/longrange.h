@@ -56,10 +56,9 @@ public:
     void Reset_slab(GraphKMC* graph, Eventinfo* eventinfo); 
     
     /// Initialize the longrange class: -determine which layers are contributing to which layers -precalculate all cut-out disc contributions
-    virtual void Initialize();
-    
-    //void Initialize_slab_node(NodeDevice* node, Eventinfo* eventinfo);
-    //void Initialize_slab(GraphKMC* graph, Eventinfo* eventinfo);
+    void Initialize(Eventinfo* eventinfo);
+    void Initialize_slab_node(NodeDevice* node, Eventinfo* eventinfo);
+    void Initialize_slab(GraphKMC* graph, Eventinfo* eventinfo);
     
     //note that the number of images for the calculation of the long range potential should be considerably larger 
     //than the number for the short range potential
@@ -70,7 +69,7 @@ public:
     inline double Calculate_disc_contrib(double calcpos, int contrib_layer, Eventinfo* eventinfo);
     inline double Calculate_disc_contrib_slab_node(NodeDevice* node, int contrib_layer, Eventinfo* eventinfo);
 
-protected:
+private:
 
     vector<double> _layercharge;
     vector<double> _longrange_cache;
@@ -158,6 +157,181 @@ void Longrange::Reset_slab(GraphKMC* graph, Eventinfo* eventinfo) {
     for (int i=0; i<graph->Numberofnodes(); i++){
         _longrange_cache[i] = 0.0;
     }
+}
+
+void Longrange::Initialize (Eventinfo* eventinfo) {
+
+    // the properties of the profile object are initialized in the constructor of the profile object itself
+    
+    _first_contributing_layer.clear();
+    _final_contributing_layer.clear();
+    
+    
+    for (int ilayer=0;ilayer<eventinfo->number_of_layers;ilayer++) {
+
+        // define for every layer, how many other layers are within the coulomb cut off radius from this layer
+        double define_layerpos = this->position(ilayer);
+
+        int start_index = 0;
+        bool startfound = false;
+        while (!startfound) {
+            while(this->emptylayer(start_index)) start_index++;
+            double start_layerpos = this->position(start_index);
+            if((define_layerpos-start_layerpos)<=eventinfo->coulomb_cut_off_radius) {
+                startfound = true;
+                _first_contributing_layer.push_back(start_index);
+            }
+            start_index++;
+        }
+
+        int final_index = eventinfo->number_of_layers-1;
+        bool finalfound = false;
+        while (!finalfound) {
+            while(this->emptylayer(final_index)) final_index--;
+            double final_layerpos = this->position(final_index);
+            if((final_layerpos-define_layerpos)<=eventinfo->coulomb_cut_off_radius) {
+                finalfound = true;
+                _final_contributing_layer.push_back(final_index);
+            }
+            final_index--;
+        }
+
+    }
+
+    _precalculate_disc_contrib.resize(eventinfo->number_of_layers);
+
+    for(int ilayer=0; ilayer<eventinfo->number_of_layers; ilayer++) {
+        _layercharge.push_back(0.0);
+        _longrange_cache.push_back(0.0);   
+
+        if(this->emptylayer(ilayer)) {_precalculate_disc_contrib[ilayer].clear(); }
+        else {
+            int first_layer = _first_contributing_layer[ilayer];
+            int final_layer = _final_contributing_layer[ilayer];
+
+            int number_of_contributing_layers = final_layer - first_layer + 1;        
+            _precalculate_disc_contrib[ilayer].resize(number_of_contributing_layers);
+
+            for (int j=first_layer; j<=final_layer; j++) {
+                if(this->emptylayer(j)) { _precalculate_disc_contrib[ilayer][j-first_layer] = 0.0;} // no nodes in this layer
+                else {_precalculate_disc_contrib[ilayer][j-first_layer] = Calculate_disc_contrib(this->position(ilayer),j,eventinfo);}
+            }
+        }
+    }
+ 
+}
+
+void Longrange::Initialize_slab (GraphKMC* graph, Eventinfo* eventinfo) {
+
+    for(int it = 0; it < graph->Numberofnodes(); it++) {
+        if(graph->GetNode(it)->type() == (int) NormalNode) {
+            this->Initialize_slab_node(graph->GetNode(it),eventinfo);
+        }
+        _longrange_cache.push_back(0.0);
+    }    
+
+    for(int ilayer=0; ilayer<eventinfo->number_of_layers; ilayer++) {
+        _layercharge.push_back(0.0);
+        _average_longrange_cache.push_back(0.0);
+    }
+    
+}
+
+void Longrange::Initialize_slab_node (NodeDevice* node, Eventinfo* eventinfo) {
+
+    // the properties of the profile object are initialized in the constructor of the profile object itself
+    
+    // define for every layer, how many other layers are within the coulomb cut off radius from this layer
+    votca::tools::vec define_nodepos = node->position();
+    double nodeposz = define_nodepos.z();
+    int start_index;
+    int final_index;
+    
+    if(node->layer() == 0) {
+       node->setfirstcontriblayer(0.0);
+       start_index = 0;
+    }
+    else {   
+        start_index = 0;
+        bool startfound = false;
+        while (!startfound) {
+            while(this->emptylayer(start_index)) start_index++;
+            double start_layerpos = this->position(start_index) + 0.5*this->layersize();
+            if((nodeposz-start_layerpos)<=eventinfo->coulomb_cut_off_radius) {
+                startfound = true;
+                node->setfirstcontriblayer(start_index);
+            }
+            else {
+                start_index++;
+            }
+        }
+    }
+
+    if(node->layer() == eventinfo->number_of_layers-1) {
+       node->setfinalcontriblayer(eventinfo->number_of_layers-1);
+       final_index = eventinfo->number_of_layers-1;
+    }
+    else {   
+        final_index = eventinfo->number_of_layers-1;
+        bool finalfound = false;
+        while (!finalfound) {
+            while(this->emptylayer(final_index)) final_index--;
+            double final_layerpos = this->position(final_index)-0.5*this->layersize();
+            if((final_layerpos-nodeposz)<=eventinfo->coulomb_cut_off_radius) {
+                finalfound = true;
+                node->setfinalcontriblayer(final_index);
+            }
+            else {
+                final_index--;
+            }
+        }
+    }
+
+    node->disc_coul_clear();
+    
+    for (int j=start_index; j<=final_index; j++) {
+        if(this->emptylayer(j)) {node->disc_coul_set(0.0);} // no nodes in this layer
+        else {
+            double disc_contrib = Calculate_disc_contrib_slab_node(node,j,eventinfo);
+            node->disc_coul_set(disc_contrib);
+        }
+    }
+
+    // the correction factor on the double counting correction can also be precalculated    
+    
+    start_index = 0;
+    bool startfound = false;
+    while (!startfound) {
+        double start_layerbound = this->boundary(start_index);
+        if((nodeposz-start_layerbound)<=eventinfo->coulomb_cut_off_radius) {
+            startfound = true;
+            node->setfirstcontribboundary(start_index);
+        }
+        else {
+            start_index++;
+        }
+    }
+    
+    final_index = eventinfo->number_of_layers;
+    bool finalfound = false;
+    while (!finalfound) {
+        double final_layerbound = this->boundary(final_index);
+        if((final_layerbound-nodeposz)<=eventinfo->coulomb_cut_off_radius) {
+            finalfound = true;
+            node->setfinalcontribboundary(final_index);
+        }
+        else {
+            final_index--;
+        }
+    }    
+
+    node->disc_correct_clear();
+
+    for (int j=start_index; j<=final_index; j++) {
+        double disc_correct = Calculate_disc_contrib(nodeposz,j,eventinfo);
+        node->disc_correct_set(disc_correct);
+    }
+    
 }
 
 inline double Longrange::Calculate_disc_contrib_slab_node(NodeDevice* node, int contrib_layer, Eventinfo* eventinfo) {
