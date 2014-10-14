@@ -41,7 +41,7 @@ public:
     void Initialize_cubic(Eventinfo* eventinfo, votca::tools::Random2 *RandomVariable);
     
     /// Reads information about Coulomb interactions from SQL file
-    //void Initialize_coulomb();
+    void Initialize_coulomb();
     
 };
 
@@ -219,7 +219,7 @@ inline void GraphSQL<TNode,TLink>::Initialize_cubic(Eventinfo* eventinfo, votca:
     std::cout << "links created" << endl;    
 }
 
-/*template<class TNode, class TLink> 
+template<class TNode, class TLink> 
 inline void GraphSQL<TNode,TLink>::Initialize_coulomb(Eventinfo* eventinfo) 
 {
 
@@ -248,7 +248,7 @@ inline void GraphSQL<TNode,TLink>::Initialize_coulomb(Eventinfo* eventinfo)
         
     delete stmt;
     stmt = NULL;    
-}*/
+}
 
 
 

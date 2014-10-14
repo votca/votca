@@ -175,6 +175,8 @@ public:
             write_charge_profile              = options->get("options.device.write_charge_profile").as<bool>();
             write_potential_profile           = options->get("options.device.write_potential_profile").as<bool>();            
             
+            // TO CHECK
+            interpolate_longrange             = options->get("options.device.interpolate_longrange").as<bool>();            
         }
         else {
             injection_prefactor               = 1.0;
