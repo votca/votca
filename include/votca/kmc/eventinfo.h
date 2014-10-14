@@ -80,6 +80,7 @@ public:
         
         coulomb_strength                      = options->get("options.general.coulomb_strength").as<double>();
         lr_coulomb_strength                   = options->get("options.general.lr_coulomb_strength").as<double>();
+        explicit_coulomb                      = options->get("options.general.explicit_coulomb").as<bool>();
 
         coulomb_cut_off_radius                = options->get("options.general.coulomb_cut_off_radius").as<double>();
         
@@ -174,8 +175,6 @@ public:
             write_charge_profile              = options->get("options.device.write_charge_profile").as<bool>();
             write_potential_profile           = options->get("options.device.write_potential_profile").as<bool>();            
             
-            // TO CHECK
-            interpolate_longrange             = options->get("options.device.interpolate_longrange").as<bool>();            
         }
         else {
             injection_prefactor               = 1.0;
@@ -242,7 +241,8 @@ public:
     
     bool advanced; bool device;   
     int random_seed;
-    bool init_charges; bool integer_number_of_charges; int number_of_holes; int number_of_electrons; double hole_density; double electron_density;   
+    bool init_charges; bool integer_number_of_charges; int number_of_holes; int number_of_electrons; double hole_density; double electron_density;
+    bool explicit_coulomb;
 
     int number_of_steps; int number_of_equilibration_steps; int number_of_report_steps;
     bool carrier_trajectory; string trajectory_filename; int number_of_trajectory_report_steps;

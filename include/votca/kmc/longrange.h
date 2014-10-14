@@ -445,7 +445,6 @@ double Longrange::Calculate_longrange_slab(Node* node, double left_node_distance
     
     for(int i=0; i<layer; i++) {
         if(!this->emptylayer(i)) {
-//            double charge_i = 1.0*(_layercharge[i])/(this->number_of_nodes(i));
             double charge_i = 1.0*(_layercharge[i])/(this->layersize()*eventinfo->simboxsize.x()*eventinfo->simboxsize.y());
             double position_i = 1.0*this->position(i);
             slab_contrib1 += position_i*charge_i*this->layersize(); // potential of a charged plate between two electrodes
@@ -465,7 +464,6 @@ double Longrange::Calculate_longrange_slab(Node* node, double left_node_distance
     
     for(int i=layer+1; i<eventinfo->number_of_layers; i++) {
         if(!this->emptylayer(i)) {
-//            double charge_i = 1.0*_layercharge[i]/(this->number_of_nodes(i));
             double charge_i = 1.0*_layercharge[i]/(this->layersize()*eventinfo->simboxsize.x()*eventinfo->simboxsize.y());
             double rel_position_i = 1.0*(eventinfo->simboxsize.z()-this->position(i));
             slab_contrib2 += rel_position_i*charge_i*this->layersize(); // potential of a charged plate between two electrodes
@@ -482,7 +480,6 @@ double Longrange::Calculate_longrange_slab(Node* node, double left_node_distance
     }
     
     double slab_contrib3 = 0.0;
-//    double charge_i = 1.0*_layercharge[layer]/(this->number_of_nodes(layer));
     double charge_i = 1.0*_layercharge[layer]/(this->layersize()*eventinfo->simboxsize.x()*eventinfo->simboxsize.y());
     double position_i = 1.0*this->position(layer);
     slab_contrib3 += 0.5*position_i*charge_i*this->layersize(); // potential of a charged plate between two electrodes
@@ -495,71 +492,52 @@ double Longrange::Calculate_longrange_slab(Node* node, double left_node_distance
 
     double plate_correct1 = 0.0;
 
-//    if(layer != 0) {    
-        for(int i=0; i<layer+1; i++) { // till left boundary of the layer we are interested in, crossing of left most layer is not interesting
-           // if(!this->emptylayer(i-1) && !this->emptylayer(i)) {
-                
-                double charge_i;
-                if(i==0) {charge_i = 0.0; }  //charge_i = 1.0*(_layercharge[i])/(2.0*eventinfo->simboxsize.x()*eventinfo->simboxsize.y());}
-                else {double mincharge;
-                    if(_layercharge[i-1]<_layercharge[i]) mincharge = _layercharge[i-1];
-                    else mincharge = _layercharge [i];
-                    charge_i = 1.0*(mincharge)/(this->layersize()*eventinfo->simboxsize.x()*eventinfo->simboxsize.y());
-                    //charge_i = 1.0*(_layercharge[i-1] + _layercharge[i])/(this->number_of_nodes(i-1) + this->number_of_nodes(i));   
-                    
-                }
-                double position_i = 1.0*this->boundary(i);
-                plate_correct1 += position_i*charge_i; // potential of a charged plate between two electrodes
-
-                int start_index = dynamic_cast<NodeDevice*>(node)->firstcontribboundary(); 
-
-                if (i>=start_index && i != 0) {
-                    // Cut out short-range sphere (relative to first contributing layer)
-                    //double pre_charge_i = 1.0*(_layercharge[i])/(this->layersize()*eventinfo->simboxsize.x()*eventinfo->simboxsize.y());
-                    cut_out_correct += charge_i*dynamic_cast<NodeDevice*>(node)->correct(i-start_index);
-                }  
-           // }
+    for(int i=0; i<layer+1; i++) { // till left boundary of the layer we are interested in, crossing of left most layer is not interesting
+        double charge_i;
+        if(i==0) {charge_i = 0.0; }  //charge_i = 1.0*(_layercharge[i])/(2.0*eventinfo->simboxsize.x()*eventinfo->simboxsize.y());}
+        else {double mincharge;
+            if(_layercharge[i-1]<_layercharge[i]) mincharge = _layercharge[i-1];
+            else mincharge = _layercharge [i];
+            charge_i = 1.0*(mincharge)/(this->layersize()*eventinfo->simboxsize.x()*eventinfo->simboxsize.y());
         }
-//    }
+        double position_i = 1.0*this->boundary(i);
+        plate_correct1 += position_i*charge_i; // potential of a charged plate between two electrodes
+
+        int start_index = dynamic_cast<NodeDevice*>(node)->firstcontribboundary(); 
+
+        if (i>=start_index && i != 0) {
+        // Cut out short-range sphere (relative to first contributing layer)
+            cut_out_correct += charge_i*dynamic_cast<NodeDevice*>(node)->correct(i-start_index);
+        }  
+    }
     
     double plate_correct2 = 0.0;
  
-//    if(layer != eventinfo->number_of_layers-1) {     
-        for(int i=layer+1; i<eventinfo->number_of_layers+1; i++) {
-            //if(!this->emptylayer(i-1) && !this->emptylayer(i)) {
-                double charge_i;
-                if(i == eventinfo->number_of_layers) { charge_i = 0.0;} // charge_i = 1.0*(_layercharge[i-1])/(2.0*eventinfo->simboxsize.x()*eventinfo->simboxsize.y());}
-                else {
-                    double mincharge;
-                    if(_layercharge[i-1]<_layercharge[i]) mincharge = _layercharge[i-1];
-                    else mincharge = _layercharge [i];
-                    charge_i = 1.0*(mincharge)/(this->layersize()*eventinfo->simboxsize.x()*eventinfo->simboxsize.y());
-                }
-                double rel_position_i = 1.0*(eventinfo->simboxsize.z()-this->boundary(i));
-                plate_correct2 += rel_position_i*charge_i; // potential of a charged plate between two electrodes
-
-                int start_index = dynamic_cast<NodeDevice*>(node)->firstcontribboundary(); 
-                int final_index = dynamic_cast<NodeDevice*>(node)->finalcontribboundary();
-
-                if (final_index >= i) { // final boundary of device is not important
-                    // Cut out short-range sphere (relative to first contributing layer)
-                    //double pre_charge_i = 1.0*(_layercharge[i])/(this->layersize()*eventinfo->simboxsize.x()*eventinfo->simboxsize.y());
-                    cut_out_correct += charge_i*dynamic_cast<NodeDevice*>(node)->correct(i-start_index);
-                }                   
-
-           // }
+    for(int i=layer+1; i<eventinfo->number_of_layers+1; i++) {
+        double charge_i;
+        if(i == eventinfo->number_of_layers) { charge_i = 0.0;} // charge_i = 1.0*(_layercharge[i-1])/(2.0*eventinfo->simboxsize.x()*eventinfo->simboxsize.y());}
+        else {
+            double mincharge;
+            if(_layercharge[i-1]<_layercharge[i]) mincharge = _layercharge[i-1];
+            else mincharge = _layercharge [i];
+            charge_i = 1.0*(mincharge)/(this->layersize()*eventinfo->simboxsize.x()*eventinfo->simboxsize.y());
         }
-//    }    
+        double rel_position_i = 1.0*(eventinfo->simboxsize.z()-this->boundary(i));
+        plate_correct2 += rel_position_i*charge_i; // potential of a charged plate between two electrodes
+
+        int start_index = dynamic_cast<NodeDevice*>(node)->firstcontribboundary(); 
+        int final_index = dynamic_cast<NodeDevice*>(node)->finalcontribboundary();
+
+        if (final_index >= i) { // final boundary of device is not important
+        // Cut out short-range sphere (relative to first contributing layer)
+            cut_out_correct += charge_i*dynamic_cast<NodeDevice*>(node)->correct(i-start_index);
+        }                   
+    }
 
     int start_index = dynamic_cast<NodeDevice*>(node)->firstcontriblayer();     
     cut_out_contrib += charge_i*dynamic_cast<NodeDevice*>(node)->contrib(layer-start_index);    
 
-    /*start_index = dynamic_cast<NodeDevice*>(node)->firstcontribboundary(); 
-    double pre_charge_i = 1.0*_layercharge[layer-1]/(this->layersize()*eventinfo->simboxsize.x()*eventinfo->simboxsize.y());
-    cut_out_correct += 0.5*(charge_i+pre_charge_i)*dynamic_cast<NodeDevice*>(node)->correct(layer-start_index);*/     
-
     if(eventinfo->norc) {cut_out_contrib = 0.0; cut_out_correct = 0.0;}
-//    cut_out_contrib = 0.0;
     
     //note that local positioning in the slab itself is calculated on the fly
    

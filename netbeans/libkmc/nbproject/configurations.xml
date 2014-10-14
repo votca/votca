@@ -2,6 +2,7 @@
 <configurationDescriptor version="90">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="calculators" displayName="Calculators" projectFiles="true">
+      <itemPath>../../src/libkmc/calculators/bulk.h</itemPath>
       <itemPath>../../src/libkmc/calculators/diffusion.h</itemPath>
       <itemPath>../../src/libkmc/calculators/diode.h</itemPath>
       <itemPath>../../src/libkmc/calculators/kmclight.h</itemPath>
@@ -184,6 +185,11 @@
       </item>
       <item path="../../share/xml/kmcsingle.xml" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../src/libkmc/calculators/bulk.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libkmc/calculators/diffusion.h"
             ex="false"
             tool="3"
@@ -323,6 +329,11 @@
       <item path="../../share/xml/kmcparallel.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../share/xml/kmcsingle.xml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libkmc/calculators/bulk.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../src/libkmc/calculators/diffusion.h"
             ex="false"

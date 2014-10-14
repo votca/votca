@@ -91,6 +91,7 @@ void Bulk::Initialize(const char *filename, Property *options, const char *outpu
     
     graph = new GraphKMC();
     graph->Initialize_sql(filename);
+    //if(eventinfo->explicit_coulomb) graph->Initialize_coulomb();
     std::cout << "number of nodes before graph manipulations: " << graph->Numberofnodes() << "\n";
     std::cout << "simulation box size before graph manipulations: " << graph->Determine_Sim_Box_Size() << "\n";
     
@@ -213,7 +214,7 @@ void Bulk::RunKMC() {
     std::cout << "\n";
     
     sim_time = 0.0;
-    for (long it = 0; it < 2*eventinfo->number_of_equilibration_steps + eventinfo->number_of_steps; it++) {
+    for (long it = 0; it < eventinfo->number_of_equilibration_steps + eventinfo->number_of_steps; it++) {
     
         vssmgroup->Recompute_bulk(non_injection_rates);
 
@@ -236,14 +237,14 @@ void Bulk::RunKMC() {
         
         // equilibration
    
-        if(!eventinfo->carrier_trajectory &&(it == eventinfo->number_of_equilibration_steps || it == 2*eventinfo->number_of_equilibration_steps)) {
+        if(!eventinfo->carrier_trajectory &&(it == eventinfo->number_of_equilibration_steps || it == eventinfo->number_of_equilibration_steps)) {
             numoutput->Init_convergence_check(sim_time);
             numoutput->Initialize_equilibrate(eventinfo);
             sim_time = 0.0;
         }
         // convergence checking
         
-        if(!eventinfo->carrier_trajectory && (ldiv(it,eventinfo->number_of_report_steps ).rem==0 && it> 2*eventinfo->number_of_equilibration_steps)) numoutput->Convergence_check(sim_time, eventinfo);
+        if(!eventinfo->carrier_trajectory && (ldiv(it,eventinfo->number_of_report_steps ).rem==0 && it> eventinfo->number_of_equilibration_steps)) numoutput->Convergence_check(sim_time, eventinfo);
 
         // direct output
         if(!eventinfo->carrier_trajectory && ldiv(it,eventinfo->number_of_report_steps ).rem==0){
@@ -252,7 +253,7 @@ void Bulk::RunKMC() {
         }
         
         if(eventinfo->carrier_trajectory && ldiv(it,eventinfo->number_of_report_steps ).rem==0){
-            std::cout << "step " << it << " of " << 2*eventinfo->number_of_equilibration_steps + eventinfo->number_of_steps << " timesteps" << "\n";
+            std::cout << "step " << it << " of " << eventinfo->number_of_equilibration_steps + eventinfo->number_of_steps << " timesteps" << "\n";
         }        
         
         // break out of loop

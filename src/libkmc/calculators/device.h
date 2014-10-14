@@ -92,8 +92,8 @@ void Device::Initialize(const char *filename, Property *options, const char *out
     randomvariable->init(rand(), rand(), rand(), rand());  
     
     graph = new GraphKMC();
-    eventinfo->Read_cubic(options);
-    graph->Initialize_cubic(eventinfo,randomvariable);
+    //eventinfo->Read_cubic(options);
+    graph->Initialize_sql(filename);
     std::cout << "number of nodes before graph manipulations: " << graph->Numberofnodes() << "\n";
     std::cout << "simulation box size before graph manipulations: " << graph->Determine_Sim_Box_Size() << "\n";
     
@@ -239,7 +239,7 @@ void Device::RunKMC() {
     
     sim_time = 0.0;
     std::cout << eventinfo->timesteps_update_longrange << endl;
-    for (long it = 0; it < 2*eventinfo->number_of_equilibration_steps + eventinfo->number_of_steps; it++) {
+    for (long it = 0; it < eventinfo->number_of_equilibration_steps + eventinfo->number_of_steps; it++) {
 
         if(ldiv(it, eventinfo->timesteps_update_longrange).rem == 0 && it>0){
             if(eventinfo->longrange_slab) longrange->Update_cache_slab(graph,eventinfo);
@@ -265,7 +265,7 @@ void Device::RunKMC() {
         events->On_execute(chosenevent, graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);
         // equilibration
 
-        if(it == eventinfo->number_of_equilibration_steps || it == 2*eventinfo->number_of_equilibration_steps) 
+        if(it == eventinfo->number_of_equilibration_steps || it == eventinfo->number_of_equilibration_steps) 
         {
             numoutput->Init_convergence_check(sim_time); 
             numoutput->Initialize_equilibrate(eventinfo);
@@ -274,7 +274,7 @@ void Device::RunKMC() {
 
         // convergence checking
         
-        if(ldiv(it,eventinfo->number_of_report_steps ).rem==0 && it> 2*eventinfo->number_of_equilibration_steps) numoutput->Convergence_check(sim_time, eventinfo);
+        if(ldiv(it,eventinfo->number_of_report_steps ).rem==0 && it> eventinfo->number_of_equilibration_steps) numoutput->Convergence_check(sim_time, eventinfo);
 
         // direct output
         

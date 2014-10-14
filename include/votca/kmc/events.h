@@ -599,9 +599,9 @@ double Events::Compute_Coulomb_potential(double startz, votca::tools::vec dif, b
                 distz_2 = (i+1)*L - dif.z();
             }
             distancesqr_1 = distz_1*distz_1 + distsqr_planar;
-            if(distancesqr_1 <= RCSQR) coulpot += sign*(1.0/sqrt(distancesqr_1) - 1.0/sqrt(RCSQR));
+            //if(distancesqr_1 <= RCSQR) coulpot += sign*(1.0/sqrt(distancesqr_1) - 1.0/sqrt(RCSQR));
             distancesqr_2 = distz_2*distz_2 + distsqr_planar;
-            if(distancesqr_2 <= RCSQR) coulpot += sign*(1.0/sqrt(distancesqr_2) - 1.0/sqrt(RCSQR));
+            //if(distancesqr_2 <= RCSQR) coulpot += sign*(1.0/sqrt(distancesqr_2) - 1.0/sqrt(RCSQR));
         }
 
     }
