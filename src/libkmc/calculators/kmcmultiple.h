@@ -423,12 +423,20 @@ vector<Node*> KMCMultiple::LoadGraph()
 
 CoulombMap KMCMultiple::LoadCoulomb(int numberofnodes)
 {
-    // Load Coulomb energies
-    CoulombMap coulomb;
+    // Load minimum coulomb energy
     votca::tools::Database db;
     db.Open( _filename );
+    votca::tools::Statement *stmt1 = db.Prepare("SELECT MIN(coulomb_"+_carriertype+_carriertype+") FROM coulomb;");
+    stmt1->Step();
+    double mincoulomb = stmt1->Column<double>(0);
+    
+    cout << "Minimum Coulomb energy of " << mincoulomb << " eV chosen as offset." << endl;
+    
+    
+    // Load Coulomb energies
+    CoulombMap coulomb;
     cout << "Loading Coulomb energies from database file " << _filename << endl;
-    votca::tools::Statement *stmt = db.Prepare("SELECT seg1-1 AS 'segment1', seg2-1 AS 'segment2', coulombenergy FROM coulomb UNION SELECT seg2-1 AS 'segment1', seg1-1 AS 'segment2', coulombenergy FROM coulomb ORDER BY segment1;");
+    votca::tools::Statement *stmt = db.Prepare("SELECT seg1-1 AS 'segment1', seg2-1 AS 'segment2', coulomb_"+_carriertype+_carriertype+" FROM coulomb UNION SELECT seg2-1 AS 'segment1', seg1-1 AS 'segment2', coulomb_"+_carriertype+_carriertype+" FROM coulomb ORDER BY segment1;");
 
     int numberofinteractions = 0;
     while (stmt->Step() != SQLITE_DONE)
@@ -436,7 +444,7 @@ CoulombMap KMCMultiple::LoadCoulomb(int numberofnodes)
         
         int seg1 = stmt->Column<int>(0);
         int seg2 = stmt->Column<int>(1);
-        double coulombenergy = stmt->Column<double>(2);
+        double coulombenergy = stmt->Column<double>(2) - mincoulomb;
         coulomb[seg1+numberofnodes*seg2] = coulombenergy;
         numberofinteractions ++;
     }
