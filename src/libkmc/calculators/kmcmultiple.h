@@ -164,6 +164,7 @@ protected:
             int    _tof;
             double _toflength;
             string _tofdirection;
+            double _coulomboffset;
 };
 
 
@@ -550,14 +551,23 @@ void KMCMultiple::InitBoxSize(vector<Node*> node)
             if(node[i]->event[j].dr.x() < mindX && node[i]->event[j].dr.x() > 0) mindX = node[i]->event[j].dr.x();
             if(node[i]->event[j].dr.y() < mindY && node[i]->event[j].dr.y() > 0) mindY = node[i]->event[j].dr.y();
             if(node[i]->event[j].dr.z() < mindZ && node[i]->event[j].dr.z() > 0) mindZ = node[i]->event[j].dr.z();
-        }
+        }   
     }
     _boxsizeX = maxX-minX + mindX;
     _boxsizeY = maxY-minY + mindY;
     _boxsizeZ = maxZ-minZ + mindZ;
-    cout << "lattice constants (X,Y,Z): " << mindX << ", " << mindY << ", " << mindZ << endl;
-    cout << "cell dimensions: " << _boxsizeX << " x " << _boxsizeY << " x " << _boxsizeZ << endl;
+    
+    double maxdist = _boxsizeX;
+    if(_boxsizeY > maxdist) maxdist = _boxsizeY;
+    if(_boxsizeZ > maxdist) maxdist = _boxsizeZ;
+    maxdist = maxdist /2;
+    
+    // cout << "lattice constants (X,Y,Z): " << mindX << ", " << mindY << ", " << mindZ << endl;
+    cout << "cell dimensions: " << _boxsizeX*1E9 << " x " << _boxsizeY*1E9 << " x " << _boxsizeZ*1E9 << "nm^3" << endl;
     cout << "spatial electron density: " << _numberofcharges/_boxsizeX/_boxsizeY/_boxsizeZ << " m^-3" << endl;
+    _coulomboffset = 1.4399644850445791e-09 / maxdist; 
+    cout << "Coulomb energy offset: " << _coulomboffset << " eV (for the maximal distance " << maxdist*1E9 << " nm)." << endl;
+    
 }
 
 void KMCMultiple::InitialRates(vector<Node*> node)
@@ -668,7 +678,7 @@ void KMCMultiple::RateUpdateCoulomb(vector<Node*> &node,  vector< Chargecarrier*
                         {
                             // - E_ik
                             myvec distancevec = carrier[ncindex]->node->position - node_i->position;
-                            double epsR = 3;
+                            double epsR = 1;
                             double dX = std::abs(distancevec.x());
                             double dY = std::abs(distancevec.y());
                             double dZ = std::abs(distancevec.z());
@@ -685,7 +695,7 @@ void KMCMultiple::RateUpdateCoulomb(vector<Node*> &node,  vector< Chargecarrier*
                                 dZ = _boxsizeZ - dZ;
                             }
                             double distance = sqrt(dX*dX+dY*dY+dZ*dZ);
-                            double rawcoulombcontribution = 1.4399644850445791e-09 / epsR / distance;
+                            double rawcoulombcontribution = 1.4399644850445791e-09 / epsR / distance - _coulomboffset;
                             coulombsum -= rawcoulombcontribution;
                         
                             // + E_jk
@@ -706,7 +716,7 @@ void KMCMultiple::RateUpdateCoulomb(vector<Node*> &node,  vector< Chargecarrier*
                                 dZ = _boxsizeZ - dZ;
                             }
                             distance = sqrt(dX*dX+dY*dY+dZ*dZ);
-                            rawcoulombcontribution = 1.4399644850445791e-09 / epsR / distance;
+                            rawcoulombcontribution = 1.4399644850445791e-09 / epsR / distance - _coulomboffset;
                             coulombsum += rawcoulombcontribution;
                         }
                     }
@@ -729,6 +739,7 @@ void KMCMultiple::RateUpdateCoulomb(vector<Node*> &node,  vector< Chargecarrier*
                             if( coul_iterator != coulomb.end() )
                             {
                                 // if there is an entry, add it to the Coulomb sum
+                                //cout << "substracted " << coul_iterator->second << endl;
                                 contribution -= coul_iterator->second;
                                 substractionmade = 1;
                             }
@@ -736,13 +747,12 @@ void KMCMultiple::RateUpdateCoulomb(vector<Node*> &node,  vector< Chargecarrier*
                             // + E_jk
                             key = node_j->id + dimension * carrier[ncindex]->node->id;
                             coul_iterator = coulomb.find(key);
-                            if( coul_iterator != coulomb.end() && additionmade == 1)
+                            if( coul_iterator != coulomb.end() && substractionmade == 1)
                             {
                                 // if there is an entry, add it to the Coulomb sum
+                                //cout << "added " << coul_iterator->second << endl;
                                 contribution += coul_iterator->second;
                                 // cout << " - "<< coul_iterator->second;
-
-
                                 additionmade = 1;
                             }
                             if(additionmade == 1 && substractionmade == 1)
@@ -763,8 +773,10 @@ void KMCMultiple::RateUpdateCoulomb(vector<Node*> &node,  vector< Chargecarrier*
                 double dG_Site = node_j->siteenergy - node_i->siteenergy;
                 double dG = dG_Site - dG_Field;
                 double coulombfactor = exp(-(2*(dG_Site+reorg) * coulombsum + coulombsum*coulombsum) / (4*reorg*kB*_temperature) );
-                // cout << coulombfactor << endl;
-                // double coulombfactor = 1.0;
+                //if (coulombsum != 0) {
+                //cout << "coulombsum = " << coulombsum << endl;
+                //cout << "coulombfactor = " << coulombfactor << endl;
+                //}
             
                 // multiply rates by coulomb factor
                 double newrate = node_i->event[destindex].initialrate * coulombfactor;
@@ -776,6 +788,7 @@ void KMCMultiple::RateUpdateCoulomb(vector<Node*> &node,  vector< Chargecarrier*
                 // cout << "coulombfactor: " << coulombfactor << endl;
                 // cout << "distance: " << sqrt(dX*dX+dY*dY+dZ*dZ) << endl;
                 // cout << "full Coulomb rate: " << newrate << endl << endl;
+                // cout << "changed from " << node_i->event[destindex].rate << " to " << newrate << endl;
                 node_i->event[destindex].rate = newrate;
             
                 escaperate += newrate;
@@ -1015,6 +1028,7 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
         if(_explicitcoulomb >= 1)
         {
             KMCMultiple::RateUpdateCoulomb(node,carrier,coulomb);
+            // cout << "rate11: " << node[0]->event[0].rate << endl;
         }
         for(unsigned int i=0; i<numberofcharges; i++)
         {
