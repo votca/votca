@@ -71,6 +71,8 @@ public:
    
    void doGetCharges(bool do_get_charges) { _get_charges = do_get_charges; }
    
+   string getBasisSetName(){return _basisset_name;}
+   
 protected:
 
     int                                 _charge;
