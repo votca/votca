@@ -58,11 +58,16 @@
       </logicalFolder>
       <logicalFolder name="f3" displayName="Tools" projectFiles="true">
         <itemPath>../../src/libctp/tools/coupling.h</itemPath>
+        <itemPath>../../src/libctp/tools/dft.h</itemPath>
         <itemPath>../../src/libctp/tools/exciton.h</itemPath>
+        <itemPath>../../src/libctp/tools/excitoncoupling.h</itemPath>
+        <itemPath>../../src/libctp/tools/gencube.h</itemPath>
         <itemPath>../../src/libctp/tools/molpol.cc</itemPath>
         <itemPath>../../src/libctp/tools/molpol.h</itemPath>
+        <itemPath>../../src/libctp/tools/orb2isogwa.h</itemPath>
         <itemPath>../../src/libctp/tools/pdb2map.h</itemPath>
         <itemPath>../../src/libctp/tools/qmanalyze.h</itemPath>
+        <itemPath>../../src/libctp/tools/spectrum.h</itemPath>
       </logicalFolder>
     </logicalFolder>
     <logicalFolder name="HeaderFiles"
@@ -890,15 +895,31 @@
       </item>
       <item path="../../src/libctp/tools/coupling.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../src/libctp/tools/dft.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../src/libctp/tools/exciton.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libctp/tools/excitoncoupling.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/tools/gencube.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/molpol.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/molpol.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../src/libctp/tools/orb2isogwa.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/tools/pdb2map.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/qmanalyze.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libctp/tools/spectrum.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/topology.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1574,15 +1595,31 @@
       </item>
       <item path="../../src/libctp/tools/coupling.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../src/libctp/tools/dft.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../src/libctp/tools/exciton.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libctp/tools/excitoncoupling.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/tools/gencube.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/molpol.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/molpol.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../src/libctp/tools/orb2isogwa.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/tools/pdb2map.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/qmanalyze.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libctp/tools/spectrum.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/topology.cc" ex="false" tool="1" flavor2="0">
       </item>
