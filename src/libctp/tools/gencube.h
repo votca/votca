@@ -236,7 +236,7 @@ namespace votca {
                 // load DFT basis set (element-wise information) from xml file
                 BasisSet dftbs;
                 dftbs.LoadBasisSet(_orbitals.getDFTbasis());
-                LOG(logDEBUG, _log) << TimeStamp() << " Loaded DFT Basis Set " << _orbitals.getDFTbasis() << flush;
+                LOG(logDEBUG, _log) << " Loaded DFT Basis Set " << _orbitals.getDFTbasis() << flush;
 
                 // fill DFT AO basis by going through all atoms 
                 AOBasis dftbasis;
@@ -255,6 +255,7 @@ namespace votca {
                     if ( _do_groundstate ) {
                         ub::matrix<double> &DMATGS = _orbitals.DensityMatrixGroundState(_dft_orbitals);
                         DMAT_tot = DMATGS; // Ground state + hole_contribution + electron contribution
+                        LOG(logDEBUG, _log) << " Calculated ground state density matrix " << flush;
                     }
 
                     // excited state if requested
@@ -262,8 +263,15 @@ namespace votca {
                         ub::matrix<float>& BSECoefs = _orbitals.BSESingletCoefficients();
                         std::vector<ub::matrix<double> > &DMAT = _orbitals.DensityMatrixExcitedState(_dft_orbitals, BSECoefs, _state - 1);
                         DMAT_tot = DMAT_tot - DMAT[0] + DMAT[1]; // Ground state + hole_contribution + electron contribution
+                        LOG(logDEBUG, _log) << " Calculated excited state density matrix " << flush;
                     }
 
+                    
+   
+                    
+                    LOG(logDEBUG, _log) << " Calculating cube data ... \n" << flush;
+                    _log.setPreface(logDEBUG,   (format(" ... ...") ).str());
+                    float progress = 0.0;
                     const ub::vector<double> DMAT_array = DMAT_tot.data();
                     // eval density at cube grid points
                     for (int _ix = 0; _ix <= _xsteps; _ix++) {
@@ -298,14 +306,29 @@ namespace votca {
                                     Nrecord = 0;
                                 } else {
                                     fprintf(out, "%E ", density_at_grid);
-                                }
-                            }// z-component
+                            }
+                        }// z-component
+
+
+                        progress += 1.0/((_xsteps+1)*(_ysteps+1));
+                        int barWidth = 70;
+                        LOG(logDEBUG, _log) << "[";
+                        int pos = barWidth * progress;
+                        for (int i = 0; i < barWidth; ++i) {
+                            if (i < pos) LOG(logDEBUG, _log) << "=";
+                            else if (i == pos) LOG(logDEBUG, _log) << ">";
+                            else LOG(logDEBUG, _log) << " ";
+                        }
+                        int percent = progress * 100.0;
+                        LOG(logDEBUG, _log) << "] " << percent << " %\r";
+                        LOG(logDEBUG, _log) << flush;
+                            
                         }// y-component
                     } // x-component
 
 
                 } // ground or excited state
-                
+                _log.setPreface(logDEBUG,   (format("\n ... ...") ).str());
                 
                 // diagonalized QP, if requested
                 if ( _do_qp && _state > 0 ){
