@@ -885,6 +885,21 @@ EWD::triple<double> EwdInteractor::U12_ShapeTerm(vector<PolarSeg*> &s1,
         pp *= -4*M_PI/V;
         pu *= -4*M_PI/V;
         uu *= -4*M_PI/V;
+        
+        double dd = - Q1_S1.getZ()*Q1_S2.getZ() 
+                    - Q1_S1.getZ()*U1_S2.getZ() 
+                    - Q1_S2.getZ()*U1_S1.getZ();
+        double qQ =   Q0_S1*Q2_S2.get(2,2) 
+                    + Q0_S2*Q2_S1.get(2,2)
+                    + Q0_S1*U2_S2.get(2,2)
+                    + Q0_S2*U2_S1.get(2,2);
+        
+        dd *= -4*M_PI/V * EWD::int2eV;
+        qQ *= -4*M_PI/V * EWD::int2eV;
+        
+        LOG(logDEBUG, *log) << (boost::format("  DD %1$+1.7e eV qQ %2$+1.7e eV")
+                % dd % qQ) << flush;
+                
     }
     else if (shape == "cube" || shape == "sphere") {
         pp = Q0_S1*TrQ2_S2 + Q0_S2*TrQ2_S1 - Q1_S1*Q1_S2;

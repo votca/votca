@@ -971,6 +971,7 @@ void Ewald3DnD::Evaluate() {
     if (_task_calculate_fields) EvaluateFields();
     boost::timer::cpu_times t1 = cpu_t.elapsed();
     if (_task_polarize_fg) EvaluateInduction();
+    else _polar_converged = true;
     boost::timer::cpu_times t2 = cpu_t.elapsed();
     if (_task_evaluate_energy) EvaluateEnergy();
     boost::timer::cpu_times t3 = cpu_t.elapsed();
@@ -1436,10 +1437,10 @@ void Ewald3DnD::EvaluateEnergy() {
     EWD::triple<> EJ_fgC_bgP = CalculateShapeCorrection();    
     
     // REAL-SPACE HIGHER-RANK CORRECTION (3D2D && 3D3D)
-    EWD::triple<> EDQ_fgC_mgN = CalculateHigherRankCorrection();
+    EWD::triple<> EDQ_fgC_mgN = CalculateHigherRankCorrection(); // ! OBSOLETE !
     
     // FOREGROUND CORRECTION (3D2D && 3D3D)
-    EWD::triple<> EPP_fgC_fgN = CalculateForegroundCorrection();    
+    EWD::triple<> EPP_fgC_fgN = CalculateForegroundCorrection();
     
     double int2eV = EWD::int2eV;
     _ER  = EPP_fgC_mgN * int2eV;

@@ -201,7 +201,10 @@ void PEwald3D3D::GenerateKVectors(vector<PolarSeg*> &ps1, vector<PolarSeg*> &ps2
 }
 
 
+
+
 void PEwald3D3D::ScanCutoff() {
+    /*
     double sum = 0.0;
     double sum_ppuu = 0.0;
     
@@ -228,7 +231,150 @@ void PEwald3D3D::ScanCutoff() {
     double R_max = _R_co*R_overhead+R_add;
     double R_max_shell = R_max+2*_polar_cutoff+_max_int_dist_qm0;
     this->SetupMidground(R_max);
+    */
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    
+    double sum = 0.0;
+    double sum_ppuu = 0.0;
+    
+    LOG(logDEBUG,*_log) << flush 
+        << "Scan cutoff (long-range check)" << flush;
+    
+    std::ofstream ofs;
+    string scan_file = "scan_cut_"
+        + boost::lexical_cast<string>(_polar_qm0[0]->getId())
+        + "_" + _jobType + ".tab";
+    ofs.open(scan_file.c_str(), ofstream::out);
+    
+    
+    vector<PolarSeg*>::iterator sit;
+    vector<PolarSeg*>::iterator sit1; 
+    vector<APolarSite*> ::iterator pit1;
+    vector<PolarSeg*>::iterator sit2; 
+    vector<APolarSite*> ::iterator pit2;
+    vector<PolarNb*>::iterator nit;
+    vector< vector<PolarSeg*> > ::iterator vsit;
+    
+    double R_factor = 1.;
+    double dR_shell = 0.5;
+    double R_overhead = 1.1;
+    double R_add = 3;
+    double R_max = R_factor*_R_co*R_overhead+R_add;
+    double R_max_shell = R_max+2*_polar_cutoff+_max_int_dist_qm0;
 
+	R_max = 64;
+	R_max_shell = 70;
+    
+    vector<TinyNeighbour*> nbs;
+    vector<TinyNeighbour*>::iterator tnit;
+    nbs.reserve(1000000);
+    
+    int scan_na_max = ceil((R_max_shell)/maxnorm(_a)-0.5)+1;
+    int scan_nb_max = ceil((R_max_shell)/maxnorm(_b)-0.5)+1;
+    int scan_nc_max = 0; //ceil((R_max_shell)/maxnorm(_c)-0.5)+1;
+    
+    // loop, create images, bin, interact
+    for (sit = _bg_P.begin(); sit < _bg_P.end(); ++sit) {
+        PolarSeg *pseg = *sit;
+        // Periodic images
+        for (int na = -scan_na_max; na < scan_na_max+1; ++na) {
+        for (int nb = -scan_nb_max; nb < scan_nb_max+1; ++nb) {
+        for (int nc = -scan_nc_max; nc < scan_nc_max+1; ++nc) {
+            vec L = na*_a + nb*_b + nc*_c;
+            // In foreground ?
+            bool is_in_fg = _fg_table->IsInForeground(pseg->getId(),na,nb,nc);            
+            if (!is_in_fg) {
+                bool is_within_range = false;
+                // Within range ?
+                // NOTE Calculate distance with respect to NEUTRAL foreground
+                // to achieve consistency between threads in case neutral
+                // and charged geometries differ slightly
+                for (sit2 = _fg_N.begin(); sit2 < _fg_N.end(); ++sit2) {
+                    vec pos_L = pseg->getPos() + L;
+                    double dR_L = abs((*sit2)->getPos()-pos_L);
+                    if (dR_L <= R_max_shell) {
+                        is_within_range = true;
+                    }
+                }
+                // Add if appropriate, depolarize = false
+                if (is_within_range) {
+                    TinyNeighbour *newNb = new TinyNeighbour(pseg, L);
+                    nbs.push_back(newNb);
+                }
+            }
+            else ;
+        }}} // Loop over na, nb, nc
+    } // Loop over BGP
+    
+    for (sit1 = _fg_C.begin(); sit1 != _fg_C.end(); ++sit1) {
+
+        // Bin midground into shells
+        vector< vector<TinyNeighbour*> > shelled_nbs;
+        int N_shells = int(R_max_shell/dR_shell)+1;
+        shelled_nbs.resize(N_shells);
+
+        for (tnit = nbs.begin(); tnit != nbs.end(); ++tnit) {
+            PolarSeg* nb = (*tnit)->_nb;
+            double R = votca::tools::abs((*sit1)->getPos()-nb->getPos()-(*tnit)->_L);            
+            int shell_idx = int(R/dR_shell);
+            shelled_nbs[shell_idx].push_back(*tnit);
+        }
+        
+        // Sum over consecutive shells
+        for (int sidx = 0; sidx < N_shells; ++sidx) {
+            // Shell rms trackers
+            double shell_sum = 0.0;
+            double shell_term = 0.0;
+            double shell_rms = 0.0;
+            int shell_count = 0;
+            // Interact with shell
+            vector<TinyNeighbour*> &nb_shell = shelled_nbs[sidx];            
+            double shell_R = (sidx+1)*dR_shell;            
+            if (nb_shell.size() < 1) continue;            
+            EWD::triple<double> ppuu(0,0,0);
+            for (tnit = nb_shell.begin(); tnit < nb_shell.end(); ++tnit) {
+                PolarSeg *nb = (*tnit)->_nb;
+                vec L = (*tnit)->_L;
+                nb->Translate(L);
+                for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+                    for (pit2 = nb->begin(); pit2 < nb->end(); ++pit2) {
+    //                    ppuu = _ewdactor.U12_ERFC(*(*pit1), *(*pit2));
+   //                     sum_ppuu += ppuu._pp;
+     //                   shell_term = ppuu._pp;
+      //                  shell_sum += shell_term;
+       //                 shell_rms += shell_term*shell_term;
+        //                shell_count += 1;
+                        _actor.BiasIndu(*(*pit1), *(*pit2));
+                        double ef = _actor.E_f(*(*pit1), *(*pit2));
+                        sum_ppuu += ef;
+                        shell_term = ef;
+                        shell_sum += shell_term;
+                        shell_rms += shell_term*shell_term;
+                        shell_count += 1;
+                    }
+                }
+                nb->Translate(-L);
+            }
+            shell_rms = sqrt(shell_rms/shell_count)*EWD::int2eV;
+            sum += shell_sum;
+            LOG(logDEBUG,*_log)
+                << (format("  o ID = %5$-4d Rc = %1$+02.7f   |MGN| = %3$5d   ER = %2$+1.7f eV   dER2(sum) = %4$+1.3e eV") 
+                % shell_R % (sum*EWD::int2eV) % nb_shell.size() % (shell_rms*shell_count) % (*sit1)->getId()).str() << flush;
+            ofs
+                << (format("MST DBG ...  o ID = %5$-4d Rc = %1$+02.7f   |MGN| = %3$5d   ER = %2$+1.7f eV   dER2(sum) = %4$+1.3e eV") 
+                % shell_R % (sum*EWD::int2eV) % nb_shell.size() % (shell_rms*shell_count) % (*sit1)->getId()).str() << endl;
+        }
+    }
+    
+    ofs.close();
+    return;
+    
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
     
     
 //    for (int N = 0; N < 10; ++N) {
@@ -261,6 +407,7 @@ void PEwald3D3D::ScanCutoff() {
 //    double norm = 1./maxnorm(ax_by_cz);
 //    LOG(logDEBUG,*_log) << ax << " " << by << " " << cz << " " << norm << flush;
     
+    /*
     // FOR EACH FOREGROUND SEGMENT (FGC) ...
     for (sit1 = _fg_C.begin(); sit1 != _fg_C.end(); ++sit1) {
 
@@ -316,7 +463,7 @@ void PEwald3D3D::ScanCutoff() {
     }
     
     ofs.close();
-    
+    */
     return;
 }
 

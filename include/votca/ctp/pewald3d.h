@@ -50,6 +50,13 @@ namespace votca { namespace ctp {
     private:
         
     };
+    
+    struct TinyNeighbour
+    {
+        TinyNeighbour(PolarSeg *seg, vec L) : _nb(seg), _L(L) { ; }
+        PolarSeg *_nb;
+        vec _L;
+    };
 
 }}
 
