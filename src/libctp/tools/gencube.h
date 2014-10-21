@@ -223,7 +223,7 @@ namespace votca {
                     int atnum = element2number(element);
                     double crg = element2core_ECP(element);
 
-                    fprintf(out, "%d %f %f %f %f\n", atnum, crg, x, z, y);
+                    fprintf(out, "%d %f %f %f %f\n", atnum, crg, x, y, z);
 
 
                 }
@@ -510,7 +510,7 @@ namespace votca {
                     
                     
                     
-                    fprintf(out, "%d %f %f %f %f\n", atnum, crg, x, z, y);
+                    fprintf(out, "%d %f %f %f %f\n", atnum, crg, x, y, z);
 
 
                 }
@@ -591,8 +591,12 @@ bool GenCube::Evaluate() {
                 return 2;
             } else if (element == "C") {
                 return 6;
+            } else if (element == "N") {
+                return 7;               
             } else if (element == "O") {
                 return 8;
+            } else if (element == "S") {
+                return 16;
             }
 
 
@@ -609,7 +613,11 @@ bool GenCube::Evaluate() {
                 return 2.0;
             } else if (element == "C") {
                 return 4.0;
+            } else if (element == "N") {
+                return 5.0;
             } else if (element == "O") {
+                return 6.0;
+            } else if (element == "S") {
                 return 6.0;
             }
             

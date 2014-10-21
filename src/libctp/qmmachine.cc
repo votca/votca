@@ -392,7 +392,7 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
         Espfit esp;
     
         esp.setLog(_log);
-        esp.FittoDensity(Atomlist, DMAT_tot, dftbasis);
+        esp.Fit2Density(Atomlist, DMAT_tot, dftbasis);
     
     
     
