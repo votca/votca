@@ -32,7 +32,7 @@
 #include <boost/multi_array.hpp>
 #include <votca/ctp/logger.h>
 #include <votca/tools/linalg.h>
-#include <omp.h>
+// #include <omp.h>
 
 using namespace std;
 using namespace votca::tools;

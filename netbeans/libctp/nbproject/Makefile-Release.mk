@@ -47,6 +47,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/238600121/eoutersphere.o \
 	${OBJECTDIR}/_ext/238600121/jobwriter.o \
 	${OBJECTDIR}/_ext/484457893/ctpapplication.o \
+	${OBJECTDIR}/_ext/843511542/dftengine.o \
 	${OBJECTDIR}/_ext/484457893/ewaldactor.o \
 	${OBJECTDIR}/_ext/484457893/extractorfactory.o \
 	${OBJECTDIR}/_ext/484457893/fragment.o \
@@ -189,6 +190,11 @@ ${OBJECTDIR}/_ext/484457893/ctpapplication.o: nbproject/Makefile-${CND_CONF}.mk 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484457893/ctpapplication.o ../../src/libctp/ctpapplication.cc
+
+${OBJECTDIR}/_ext/843511542/dftengine.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libctp/dftengine/dftengine.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/843511542
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/843511542/dftengine.o ../../src/libctp/dftengine/dftengine.cc
 
 ${OBJECTDIR}/_ext/484457893/ewaldactor.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libctp/ewaldactor.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893

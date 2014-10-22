@@ -197,6 +197,7 @@
       </logicalFolder>
       <itemPath>../../src/libctp/apolarsite.cc</itemPath>
       <itemPath>../../src/libctp/bsecoupling.cc</itemPath>
+      <itemPath>../../src/libctp/dftengine/dftengine.cc</itemPath>
       <itemPath>../../src/libctp/ewald2d.cc</itemPath>
       <itemPath>../../src/libctp/ewald3d.cc</itemPath>
       <itemPath>../../src/libctp/ewaldactor.cc</itemPath>
@@ -644,6 +645,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/ctpapplication.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/dftengine/dftengine.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libctp/ewaldactor.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1344,6 +1350,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/ctpapplication.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/dftengine/dftengine.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libctp/ewaldactor.cc" ex="false" tool="1" flavor2="0">
       </item>
