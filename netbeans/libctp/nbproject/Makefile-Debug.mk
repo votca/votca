@@ -208,6 +208,11 @@ ${OBJECTDIR}/_ext/843511542/dftengine.o: ../../src/libctp/dftengine/dftengine.cc
 	${RM} $@.d
 	$(COMPILE.c) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/843511542/dftengine.o ../../src/libctp/dftengine/dftengine.cc
 
+${OBJECTDIR}/_ext/843511542/dftengine.o: ../../src/libctp/dftengine/dftengine.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/843511542
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/843511542/dftengine.o ../../src/libctp/dftengine/dftengine.cc
+
 ${OBJECTDIR}/_ext/484457893/ewaldactor.o: ../../src/libctp/ewaldactor.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
 	${RM} $@.d

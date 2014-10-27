@@ -1,0 +1,21 @@
+<options>
+
+<gencube>
+
+
+
+
+        <output>test_own.cube</output>
+        <input>system.orb</input>
+        <padding>2.0</padding>
+        <xsteps>10</xsteps>
+        <ysteps>10</ysteps>
+        <zsteps>10</zsteps>
+        <state>0</state>
+        <spin>singlet</spin>
+
+</gencube>
+
+</options>
+
+

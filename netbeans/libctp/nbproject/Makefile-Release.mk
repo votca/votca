@@ -208,6 +208,11 @@ ${OBJECTDIR}/_ext/843511542/dftengine.o: nbproject/Makefile-${CND_CONF}.mk ../..
 	${RM} $@.d
 	$(COMPILE.c) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/843511542/dftengine.o ../../src/libctp/dftengine/dftengine.cc
 
+${OBJECTDIR}/_ext/843511542/dftengine.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libctp/dftengine/dftengine.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/843511542
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/843511542/dftengine.o ../../src/libctp/dftengine/dftengine.cc
+
 ${OBJECTDIR}/_ext/484457893/ewaldactor.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libctp/ewaldactor.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
 	${RM} $@.d

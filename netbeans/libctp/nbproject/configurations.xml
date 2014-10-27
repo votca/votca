@@ -58,20 +58,21 @@
       </logicalFolder>
       <logicalFolder name="f3" displayName="Tools" projectFiles="true">
         <itemPath>../../src/libctp/tools/coupling.h</itemPath>
+        <itemPath>../../src/libctp/tools/dft.h</itemPath>
         <itemPath>../../src/libctp/tools/exciton.h</itemPath>
+        <itemPath>../../src/libctp/tools/excitoncoupling.h</itemPath>
+        <itemPath>../../src/libctp/tools/gencube.h</itemPath>
         <itemPath>../../src/libctp/tools/molpol.cc</itemPath>
         <itemPath>../../src/libctp/tools/molpol.h</itemPath>
+        <itemPath>../../src/libctp/tools/orb2isogwa.h</itemPath>
         <itemPath>../../src/libctp/tools/pdb2map.h</itemPath>
         <itemPath>../../src/libctp/tools/qmanalyze.h</itemPath>
+        <itemPath>../../src/libctp/tools/spectrum.h</itemPath>
       </logicalFolder>
-    </logicalFolder>
-    <logicalFolder name="dftengine" displayName="dftengine" projectFiles="true">
-      <itemPath>../../src/libctp/dftengine/dftengine.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
-      <itemPath>../../include/votca/ctp/ERIs.h</itemPath>
       <itemPath>../../include/votca/ctp/aobasis.h</itemPath>
       <itemPath>../../include/votca/ctp/aomatrix.h</itemPath>
       <itemPath>../../include/votca/ctp/apolarsite.h</itemPath>
@@ -158,7 +159,6 @@
         <itemPath>../../src/libctp/aomatrices/aocoulomb.cc</itemPath>
         <itemPath>../../src/libctp/aomatrices/aodipole.cc</itemPath>
         <itemPath>../../src/libctp/aomatrices/aoesp.cc</itemPath>
-        <itemPath>../../src/libctp/aomatrices/aokinetic.cc</itemPath>
         <itemPath>../../src/libctp/aomatrices/aomatrix.cc</itemPath>
         <itemPath>../../src/libctp/aomatrices/aomomentum.cc</itemPath>
         <itemPath>../../src/libctp/aomatrices/aooverlap.cc</itemPath>
@@ -195,15 +195,17 @@
         <itemPath>../../src/libctp/segmenttype.cc</itemPath>
         <itemPath>../../src/libctp/topology.cc</itemPath>
       </logicalFolder>
-      <itemPath>../../src/libctp/ERIs.cc</itemPath>
       <itemPath>../../src/libctp/apolarsite.cc</itemPath>
       <itemPath>../../src/libctp/bsecoupling.cc</itemPath>
+      <itemPath>../../src/libctp/dftengine/dftengine.cc</itemPath>
       <itemPath>../../src/libctp/ewald2d.cc</itemPath>
       <itemPath>../../src/libctp/ewald3d.cc</itemPath>
       <itemPath>../../src/libctp/ewaldactor.cc</itemPath>
       <itemPath>../../src/libctp/ewaldnd.cc</itemPath>
       <itemPath>../../src/libctp/gsl_boost_ublas_matrix_prod.cc</itemPath>
+      <itemPath>../../src/libctp/hgversion.h</itemPath>
       <itemPath>../../src/libctp/job.cc</itemPath>
+      <itemPath>../../src/libctp/mbgft/mbgft.cc</itemPath>
       <itemPath>../../src/libctp/orbitals.cc</itemPath>
       <itemPath>../../src/libctp/overlap.cc</itemPath>
       <itemPath>../../src/libctp/parallelpaircalc.cc</itemPath>
@@ -220,7 +222,6 @@
       <itemPath>../../src/libctp/qmtool.cc</itemPath>
       <itemPath>../../src/libctp/statesaversqlite.cc</itemPath>
       <itemPath>../../src/libctp/threecenters.cc</itemPath>
-      <itemPath>../../src/libctp/threecenters_dft.cc</itemPath>
       <itemPath>../../src/libctp/threecenters_tools.cc</itemPath>
       <itemPath>../../src/libctp/version.cc</itemPath>
       <itemPath>../../src/libctp/version_nb.cc</itemPath>
@@ -240,7 +241,6 @@
   <sourceRootList>
     <Elem>../../include</Elem>
     <Elem>../../../../include</Elem>
-    <Elem>../../src/libctp/dftengine</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -265,8 +265,6 @@
           <output>../../src/libctp/libctp.a</output>
         </archiverTool>
       </compileType>
-      <item path="../../include/votca/ctp/ERIs.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/ctp/aobasis.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/aomatrix.h" ex="false" tool="3" flavor2="0">
@@ -472,8 +470,6 @@
       </item>
       <item path="../../include/votca/ctp/xmapper.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../src/libctp/ERIs.cc" ex="false" tool="0" flavor2="0">
-      </item>
       <item path="../../src/libctp/aomatrices/aocoulomb.cc"
             ex="false"
             tool="1"
@@ -485,11 +481,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/aomatrices/aoesp.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/aomatrices/aokinetic.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -657,7 +648,7 @@
       </item>
       <item path="../../src/libctp/dftengine/dftengine.cc"
             ex="false"
-            tool="0"
+            tool="1"
             flavor2="0">
       </item>
       <item path="../../src/libctp/ewaldactor.cc" ex="false" tool="1" flavor2="0">
@@ -716,6 +707,8 @@
       <item path="../../src/libctp/gwbse/gwbse.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/gwbse/rpa.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/hgversion.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/job.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -785,6 +778,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../src/libctp/mbgft/mbgft.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/molecule.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -897,11 +892,6 @@
       </item>
       <item path="../../src/libctp/threecenters.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libctp/threecenters_dft.cc"
-            ex="false"
-            tool="0"
-            flavor2="0">
-      </item>
       <item path="../../src/libctp/threecenters_tools.cc"
             ex="false"
             tool="1"
@@ -911,15 +901,31 @@
       </item>
       <item path="../../src/libctp/tools/coupling.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../src/libctp/tools/dft.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../src/libctp/tools/exciton.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libctp/tools/excitoncoupling.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/tools/gencube.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/molpol.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/molpol.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../src/libctp/tools/orb2isogwa.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/tools/pdb2map.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/qmanalyze.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libctp/tools/spectrum.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/topology.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -964,8 +970,6 @@
         <archiverTool>
         </archiverTool>
       </compileType>
-      <item path="../../include/votca/ctp/ERIs.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/ctp/aobasis.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/aomatrix.h" ex="false" tool="3" flavor2="0">
@@ -1171,8 +1175,6 @@
       </item>
       <item path="../../include/votca/ctp/xmapper.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../src/libctp/ERIs.cc" ex="false" tool="0" flavor2="0">
-      </item>
       <item path="../../src/libctp/aomatrices/aocoulomb.cc"
             ex="false"
             tool="1"
@@ -1184,11 +1186,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/aomatrices/aoesp.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/aomatrices/aokinetic.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -1356,7 +1353,7 @@
       </item>
       <item path="../../src/libctp/dftengine/dftengine.cc"
             ex="false"
-            tool="0"
+            tool="1"
             flavor2="0">
       </item>
       <item path="../../src/libctp/ewaldactor.cc" ex="false" tool="1" flavor2="0">
@@ -1415,6 +1412,8 @@
       <item path="../../src/libctp/gwbse/gwbse.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/gwbse/rpa.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/hgversion.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/job.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1484,6 +1483,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../src/libctp/mbgft/mbgft.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/molecule.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1596,11 +1597,6 @@
       </item>
       <item path="../../src/libctp/threecenters.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libctp/threecenters_dft.cc"
-            ex="false"
-            tool="0"
-            flavor2="0">
-      </item>
       <item path="../../src/libctp/threecenters_tools.cc"
             ex="false"
             tool="1"
@@ -1610,15 +1606,31 @@
       </item>
       <item path="../../src/libctp/tools/coupling.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../src/libctp/tools/dft.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../src/libctp/tools/exciton.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libctp/tools/excitoncoupling.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/tools/gencube.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/molpol.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/molpol.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../src/libctp/tools/orb2isogwa.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/tools/pdb2map.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/qmanalyze.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libctp/tools/spectrum.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/topology.cc" ex="false" tool="1" flavor2="0">
       </item>

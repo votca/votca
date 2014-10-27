@@ -380,7 +380,25 @@ bool Orbitals::Load(string file_name) {
      int _vmax = this->_bse_vmax;
      int _cmin = this->_bse_cmin;
      int _cmax = this->_bse_cmax;
+     
+     if ( _bse_size == 0 ) {
+         _bse_vtotal = _bse_vmax - _bse_vmin +1 ;
+         _bse_ctotal = _bse_cmax - _bse_cmin +1 ;
+         _bse_size   = _bse_vtotal * _bse_ctotal;
+           // indexing info BSE vector index to occupied/virtual orbital
+           for ( int _v = 0; _v < _bse_vtotal; _v++ ){
+               for ( int _c = 0; _c < _bse_ctotal ; _c++){
+                   _index2v.push_back( _bse_vmin + _v );
+                   _index2c.push_back( _bse_cmin + _c );
+               }
+           }
+     }
+     
      int _bse_total = this->_bse_size;
+     
+     
+     
+     
      
      // electron assist matrix A_{cc'}
      ub::matrix<float> _Acc = ub::zero_matrix<float>( this->_bse_ctotal , this->_bse_ctotal );

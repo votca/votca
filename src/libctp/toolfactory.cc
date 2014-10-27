@@ -33,6 +33,7 @@
 #include "tools/excitoncoupling.h"
 #include "tools/orb2isogwa.h"
 #include "tools/dft.h"
+#include "tools/gencube.h"
 
 namespace votca { namespace ctp {
 
@@ -51,6 +52,8 @@ void QMToolFactory::RegisterAll(void)
         QMTools().Register<Orb2IsoGWA>         ("orb2isogwa"); 
         QMTools().Register<PDB2Top>            ("pdb2top");
         QMTools().Register<DFT>                ("dft");
+        QMTools().Register<GenCube>            ("gencube");
+        
 }
 
 }}
