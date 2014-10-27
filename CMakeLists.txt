@@ -24,9 +24,19 @@ if (OPENMP_FOUND)
     set ( OMP TRUE )
 endif()
 
+
 ########################################################################
 # User input options                                                   #
 ########################################################################
+
+
+find_package(LIBXC)
+include_directories(${LIBXC_INCLUDE_DIRS})
+if (LIBXC_FOUND)
+	set (LIBXC TRUE )
+endif()
+
+
 option(BUILD_SHARED_LIBS "Build shared libs" ON)
 if (NOT DEFINED LIB)
   set(LIB "lib")
@@ -53,11 +63,6 @@ option(BUILD_MANPAGES "Build manpages (might lead to problem on system without r
 #define this target here, so that individual man pages can append to it.
 add_custom_target(manpages ALL)
 
-########################################################################
-# TEMPORARY HACK FOR XCLIB
-########################################################################
-include_directories("/people/thnfs/homes/baumeier/usr/libxc/include")
-set (XC_LIBRARIES "/people/thnfs/homes/baumeier/usr/libxc/lib/libxc.so")
 
 
 

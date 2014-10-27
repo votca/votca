@@ -8,6 +8,12 @@
    #define OMP
 #endif
 
+/* LIBXC */
+#cmakedefine LIBXC
+#if defined(LIBXC)
+   #include <xc.h>
+   #define LIBXC
+#endif
 
 /* Linear algebra packages */
 #cmakedefine EIGEN

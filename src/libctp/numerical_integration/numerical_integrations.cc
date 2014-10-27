@@ -26,7 +26,7 @@
 #include <votca/ctp/sphere_lebedev_rule.h>
 #include <votca/ctp/exchange_correlation.h>
 #include <fstream>
-#include <xc.h>
+// #include <xc.h>
 using namespace std;
 
 
