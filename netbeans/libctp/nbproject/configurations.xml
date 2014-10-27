@@ -81,6 +81,7 @@
       <itemPath>../../include/votca/ctp/bsecoupling.h</itemPath>
       <itemPath>../../include/votca/ctp/calculatorfactory.h</itemPath>
       <itemPath>../../include/votca/ctp/ctpapplication.h</itemPath>
+      <itemPath>../../include/votca/ctp/dftengine.h</itemPath>
       <itemPath>../../include/votca/ctp/elements.h</itemPath>
       <itemPath>../../include/votca/ctp/espfit.h</itemPath>
       <itemPath>../../include/votca/ctp/ewald2d.h</itemPath>
@@ -167,6 +168,8 @@
         <itemPath>../../src/libctp/ctpapplication.cc</itemPath>
         <itemPath>../../src/libctp/jobapplication.cc</itemPath>
         <itemPath>../../src/libctp/sqlapplication.cc</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f7" displayName="dftengine" projectFiles="true">
       </logicalFolder>
       <logicalFolder name="f1" displayName="Factories" projectFiles="true">
         <itemPath>../../src/libctp/calculatorfactory.cc</itemPath>
@@ -289,6 +292,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/ctpapplication.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/dftengine.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -994,6 +1002,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/ctpapplication.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/dftengine.h"
             ex="false"
             tool="3"
             flavor2="0">
