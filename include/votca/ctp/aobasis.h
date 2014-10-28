@@ -93,11 +93,14 @@ public:
     int getSize() { return _gaussians.size(); }
     
     
-    vector<double> evalAOspace( double x, double y, double z , string type = "");
-    void EvalAOspace( ub::matrix_range<ub::matrix<double> >& AOvalues, double x, double y, double z , string type = "");
+    //vector<double> evalAOspace( double x, double y, double z , string type = "");
+    //void EvalAOspace( ub::matrix_range<ub::matrix<double> >& AOvalues, double x, double y, double z , string type = "");
+    void EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, double x, double y, double z , string type = "");
     
-    vector< vector<double> > evalAOGradspace( double x, double y, double z , string type = "");
-    void EvalAOGradspace( ub::matrix_range<ub::matrix<double> >& AODerXvalues,ub::matrix_range<ub::matrix<double> >& AODerYvalues,ub::matrix_range<ub::matrix<double> >& AODerZvalues, double x, double y, double z , string type = "");
+    
+    //vector< vector<double> > evalAOGradspace( double x, double y, double z , string type = "");
+    //void EvalAOGradspace( ub::matrix_range<ub::matrix<double> >& AODerXvalues,ub::matrix_range<ub::matrix<double> >& AODerYvalues,ub::matrix_range<ub::matrix<double> >& AODerZvalues, double x, double y, double z , string type = "");
+    void EvalAOGradspace( ub::matrix_range<ub::matrix<double> >& AODervalues, double x, double y, double z , string type = "");
     
     // iterator over pairs (decay constant; contraction coefficient)
     typedef vector< AOGaussianPrimitive* >::iterator GaussianIterator;
@@ -717,43 +720,9 @@ inline void AOBasis::AOBasisFill(BasisSet* bs , vector<QMAtom* > _atoms, int _fr
     return _nbf;
         }
 
-    
-   inline void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, double x, double y, double z, string type ){
-        
-          std::vector<double> AOvalues_temp = this->evalAOspace(x,y,z);
-          //ub::matrix<double> AOvalues_out(AOvalues.size(),1);
-          
-            for ( int j =0; j < AOvalues_temp.size(); j++){
-                AOvalues(j,0) = AOvalues_temp[j]; 
-            
-            }
-          
-          //return AOvalues_out;
-          
-        
-    
-    }
    
-   
-   inline void AOShell::EvalAOGradspace(ub::matrix_range<ub::matrix<double> >& AODerXvalues,ub::matrix_range<ub::matrix<double> >& AODerYvalues,ub::matrix_range<ub::matrix<double> >& AODerZvalues, double x, double y, double z, string type ){
-        
-          std::vector< std::vector<double> > AOGradvalues_temp = this->evalAOGradspace(x,y,z);
-          //ub::matrix<double> AOvalues_out(AOvalues.size(),1);
-          
-            for ( int j =0; j < AOGradvalues_temp[0].size(); j++){
-                AODerXvalues(j,0) = AOGradvalues_temp[0][j]; 
-                AODerYvalues(j,0) = AOGradvalues_temp[1][j]; 
-                AODerZvalues(j,0) = AOGradvalues_temp[2][j]; 
-            
-            }
-          
-          //return AOvalues_out;
-          
-        
     
-    }
-   
-      inline std::vector< std::vector<double> > AOShell::evalAOGradspace(double x, double y, double z, string type ) {
+       inline void AOShell::EvalAOGradspace(ub::matrix_range<ub::matrix<double> >& gradAOvalues, double x, double y, double z, string type ){
 
             // need type of shell
             string shell_type = this->_type;
@@ -770,93 +739,93 @@ inline void AOBasis::AOBasisFill(BasisSet* bs , vector<QMAtom* > _atoms, int _fr
             double _expofactor = pow(2.0*alpha/pi,0.75) * exp( -alpha * distsq );
             
             std::vector< std::vector<double> > _AOGradevaluated(3);
-
-            // single type shells
-            if (shell_type.length() == 1) {
-                if (shell_type == "S") {
-                    _AOGradevaluated[0].push_back(-2.0*alpha*center_x*_expofactor); // x gradient of s-function
-                    _AOGradevaluated[1].push_back(-2.0*alpha*center_y*_expofactor); // y gradient of s-function
-                    _AOGradevaluated[2].push_back(-2.0*alpha*center_z*_expofactor); // z gradient of s-function
+         
+            // split combined shells
+            int _i_func = -1;
+            int i_act;
+            for (int i = 0; i < shell_type.length(); ++i) {
+                string single_shell = string(shell_type, i, 1);
+                // single type shells
+                if ( single_shell == "S") {
+                    i_act = _i_func+1;
+                    gradAOvalues(i_act,0) =-2.0*alpha*center_x*_expofactor; // x gradient of s-function
+                    gradAOvalues(i_act,1) =-2.0*alpha*center_y*_expofactor; // y gradient of s-function
+                    gradAOvalues(i_act,2) =-2.0*alpha*center_z*_expofactor; // z gradient of s-function
+                    _i_func = i_act;
                 }
-                if (shell_type == "P") {
+                if ( single_shell == "P") {
                     
                     // px -functions
-                    _AOGradevaluated[0].push_back(2.0*sqrt(alpha) * (1.0 - 2.0*alpha*center_x*center_x)*_expofactor); // x gradient 
-                    _AOGradevaluated[1].push_back(-2.0*sqrt(alpha) * 2.0*alpha*center_x*center_y*_expofactor); // y gradient 
-                    _AOGradevaluated[2].push_back(-2.0*sqrt(alpha) * 2.0*alpha*center_x*center_z*_expofactor); // z gradient 
+                    i_act = _i_func+1;
+                    gradAOvalues(i_act,0) =2.0*sqrt(alpha) * (1.0 - 2.0*alpha*center_x*center_x)*_expofactor; // x gradient 
+                    gradAOvalues(i_act,1) =-2.0*sqrt(alpha) * 2.0*alpha*center_x*center_y*_expofactor; // y gradient 
+                    gradAOvalues(i_act,2) =-2.0*sqrt(alpha) * 2.0*alpha*center_x*center_z*_expofactor; // z gradient 
                     
                     // py -functions
-                    _AOGradevaluated[0].push_back(-2.0*sqrt(alpha) * 2.0*alpha*center_x*center_y*_expofactor); // x gradient 
-                    _AOGradevaluated[1].push_back(2.0*sqrt(alpha) * (1.0 - 2.0*alpha*center_y*center_y) *_expofactor); // y gradient 
-                    _AOGradevaluated[2].push_back(-2.0*sqrt(alpha) * 2.0*alpha*center_y*center_z*_expofactor); // z gradient 
+                    i_act = _i_func +2;
+                    gradAOvalues(i_act,0) =-2.0*sqrt(alpha) * 2.0*alpha*center_x*center_y*_expofactor; // x gradient 
+                    gradAOvalues(i_act,1) =2.0*sqrt(alpha) * (1.0 - 2.0*alpha*center_y*center_y) *_expofactor; // y gradient 
+                    gradAOvalues(i_act,2) =-2.0*sqrt(alpha) * 2.0*alpha*center_y*center_z*_expofactor; // z gradient 
                     
                      // pz -functions
-                    _AOGradevaluated[0].push_back(-2.0*sqrt(alpha) * 2.0*alpha*center_x*center_z*_expofactor); // x gradient 
-                    _AOGradevaluated[1].push_back(-2.0*sqrt(alpha) * 2.0*alpha*center_y*center_z *_expofactor); // y gradient 
-                    _AOGradevaluated[2].push_back(2.0*sqrt(alpha) * (1.0 - 2.0*alpha*center_z*center_z)*_expofactor); // z gradient                    
-                    
+                    i_act = _i_func +3;
+                    gradAOvalues(i_act,0) =-2.0*sqrt(alpha) * 2.0*alpha*center_x*center_z*_expofactor; // x gradient 
+                    gradAOvalues(i_act,1) =-2.0*sqrt(alpha) * 2.0*alpha*center_y*center_z *_expofactor; // y gradient 
+                    gradAOvalues(i_act,2) =2.0*sqrt(alpha) * (1.0 - 2.0*alpha*center_z*center_z)*_expofactor; // z gradient                    
+                    _i_func = i_act;
 
                 }
-                if (shell_type == "D") {
+                if ( single_shell == "D") {
                              // dxz, dyz, dxy, d3z2-r2, dx2-y2
                     // dxz function
-                    _AOGradevaluated[0].push_back( 4.0*alpha * (center_z - 2.0*alpha*center_x*center_x*center_z)*_expofactor); // x gradient 
-                    _AOGradevaluated[1].push_back(-8.0*alpha*alpha *center_x*center_y*center_z*_expofactor); // y gradient 
-                    _AOGradevaluated[2].push_back( 4.0*alpha * (center_x - 2.0*alpha*center_x*center_z*center_z)*_expofactor); // z gradient 
+                    i_act = _i_func+1;
+                    gradAOvalues(i_act,0) = 4.0*alpha * (center_z - 2.0*alpha*center_x*center_x*center_z)*_expofactor; // x gradient 
+                    gradAOvalues(i_act,1) =-8.0*alpha*alpha *center_x*center_y*center_z*_expofactor; // y gradient 
+                    gradAOvalues(i_act,2) = 4.0*alpha * (center_x - 2.0*alpha*center_x*center_z*center_z)*_expofactor; // z gradient 
 
                     // dyz function
-                    _AOGradevaluated[0].push_back(-8.0*alpha*alpha * center_x*center_y*center_z*_expofactor); // x gradient 
-                    _AOGradevaluated[1].push_back( 4.0*alpha * (center_z - 2.0*alpha*center_y*center_y*center_z)*_expofactor); // y gradient 
-                    _AOGradevaluated[2].push_back( 4.0*alpha * (center_y - 2.0*alpha*center_y*center_z*center_z)*_expofactor); // z gradient 
+                    i_act = _i_func+2;                    
+                    gradAOvalues(i_act,0) =-8.0*alpha*alpha * center_x*center_y*center_z*_expofactor; // x gradient 
+                    gradAOvalues(i_act,1) = 4.0*alpha * (center_z - 2.0*alpha*center_y*center_y*center_z)*_expofactor; // y gradient 
+                    gradAOvalues(i_act,2) = 4.0*alpha * (center_y - 2.0*alpha*center_y*center_z*center_z)*_expofactor; // z gradient 
 
                     // dxy function
-                    _AOGradevaluated[0].push_back( 4.0*alpha * (center_y - 2.0*alpha*center_x*center_x*center_y)*_expofactor); // x gradient 
-                    _AOGradevaluated[1].push_back( 4.0*alpha * (center_x - 2.0*alpha*center_x*center_y*center_y)*_expofactor); // y gradient 
-                    _AOGradevaluated[2].push_back(-8.0*alpha*alpha *center_x*center_y*center_z*_expofactor); // z gradient 
+                    i_act = _i_func+3;                    
+                    gradAOvalues(i_act,0) = 4.0*alpha * (center_y - 2.0*alpha*center_x*center_x*center_y)*_expofactor; // x gradient 
+                    gradAOvalues(i_act,1) = 4.0*alpha * (center_x - 2.0*alpha*center_x*center_y*center_y)*_expofactor; // y gradient 
+                    gradAOvalues(i_act,2) =-8.0*alpha*alpha *center_x*center_y*center_z*_expofactor; // z gradient 
 
                     // d3z2-r2-function
-                    _AOGradevaluated[0].push_back(-4.0*alpha/sqrt(3.0) * center_x * (1.0 + alpha *(3.0*center_z*center_z - distsq) ) * _expofactor );
-                    _AOGradevaluated[1].push_back(-4.0*alpha/sqrt(3.0) * center_y * (1.0 + alpha *(3.0*center_z*center_z - distsq) ) * _expofactor );
-                    _AOGradevaluated[2].push_back( 4.0*alpha/sqrt(3.0) * center_z * (2.0 - alpha *(3.0*center_z*center_z - distsq) ) * _expofactor );
+                    i_act = _i_func+4;                    
+                    gradAOvalues(i_act,0) =-4.0*alpha/sqrt(3.0) * center_x * (1.0 + alpha *(3.0*center_z*center_z - distsq) ) * _expofactor;
+                    gradAOvalues(i_act,1) =-4.0*alpha/sqrt(3.0) * center_y * (1.0 + alpha *(3.0*center_z*center_z - distsq) ) * _expofactor;
+                    gradAOvalues(i_act,2) = 4.0*alpha/sqrt(3.0) * center_z * (2.0 - alpha *(3.0*center_z*center_z - distsq) ) * _expofactor;
                     
                     // dx2-y2-function
-                    _AOGradevaluated[0].push_back( 4.0*alpha * center_x * (1.0 - alpha*(center_x*center_x - center_y*center_y)) * _expofactor );
-                    _AOGradevaluated[1].push_back(-4.0*alpha * center_y * (1.0 + alpha*(center_x*center_x - center_y*center_y)) * _expofactor );
-                    _AOGradevaluated[2].push_back(-4.0*alpha*alpha * center_z * (center_x*center_x - center_y*center_y) * _expofactor );
+                    i_act = _i_func+5;                    
+                    gradAOvalues(i_act,0) = 4.0*alpha * center_x * (1.0 - alpha*(center_x*center_x - center_y*center_y)) * _expofactor;
+                    gradAOvalues(i_act,1) =-4.0*alpha * center_y * (1.0 + alpha*(center_x*center_x - center_y*center_y)) * _expofactor;
+                    gradAOvalues(i_act,2) =-4.0*alpha*alpha * center_z * (center_x*center_x - center_y*center_y) * _expofactor;
 
 
                 }
-                if (shell_type == "F") {
+                if ( single_shell == "F") {
                     cerr << " F functions not implemented in AOGradeval at the moment!" << endl;
                     exit(1);
                 }
-                if (shell_type == "G") {
+                if ( single_shell == "G") {
                     cerr << " G functions not implemented in AOGradeval at the moment!" << endl;
                     exit(1);
                 }
-            } else {
-                // for combined shells, go over all contributions and append
-                
-                for (int i = 0; i < shell_type.length(); ++i) {
-                    string local_shell = string(shell_type, i, 1);
-                    std::vector< std::vector<double> > _tempvec = this->evalAOGradspace(x,y,z,local_shell);
-                    _AOGradevaluated[0].insert(_AOGradevaluated[0].end(), _tempvec[0].begin(), _tempvec[0].end());
-                    _AOGradevaluated[1].insert(_AOGradevaluated[1].end(), _tempvec[1].begin(), _tempvec[1].end());
-                    _AOGradevaluated[2].insert(_AOGradevaluated[2].end(), _tempvec[2].begin(), _tempvec[2].end());
-                    
-                }
             }
-            return _AOGradevaluated;
-
 
 
 
         }
     
     
-    
-    
-        inline std::vector<double> AOShell::evalAOspace(double x, double y, double z, string type ) {
+        
+           inline void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, double x, double y, double z, string type ){
 
             // need type of shell
             string shell_type = this->_type;
@@ -872,51 +841,46 @@ inline void AOBasis::AOBasisFill(BasisSet* bs , vector<QMAtom* > _atoms, int _fr
 
             double _expofactor = pow(2.0*alpha/pi,0.75) * exp( -alpha * distsq );
             
-            std::vector<double> _AOevaluated;
-
-            // single type shells
-            if (shell_type.length() == 1) {
-                if (shell_type == "S") {
-                    _AOevaluated.push_back(_expofactor); // s-function
+            // split combined shells
+            int _i_func = -1;
+            for (int i = 0; i < shell_type.length(); ++i) {
+                string single_shell = string(shell_type, i, 1);
+                // single type shells
+                if ( single_shell == "S") {
+                    AOvalues(_i_func +1 ,0) = _expofactor; // s-function
+                    _i_func++;
                 }
-                if (shell_type == "P") {
-                    _AOevaluated.push_back(2.0*sqrt(alpha)*center_x*_expofactor); // px-function
-                    _AOevaluated.push_back(2.0*sqrt(alpha)*center_y*_expofactor); // py-function
-                    _AOevaluated.push_back(2.0*sqrt(alpha)*center_z*_expofactor); // pz-function
+                if ( single_shell == "P") {
+                    AOvalues(_i_func +1,0) = 2.0*sqrt(alpha)*center_x*_expofactor; // px-function
+                    AOvalues(_i_func +2,0) = 2.0*sqrt(alpha)*center_y*_expofactor; // py-function
+                    AOvalues(_i_func +3,0) = 2.0*sqrt(alpha)*center_z*_expofactor; // pz-function
+                    _i_func += 3;
                 }
-                if (shell_type == "D") {
-                             // dxz, dyz, dxy, d3z2-r2, dx2-y2
-                    _AOevaluated.push_back(4.0*alpha*center_x*center_z*_expofactor); // dxz-function
-                    _AOevaluated.push_back(4.0*alpha*center_y*center_z*_expofactor); // dyz-function
-                    _AOevaluated.push_back(4.0*alpha*center_x*center_y*_expofactor); // dxy-function
-                    _AOevaluated.push_back(2.0*alpha/sqrt(3.0)*(3.0*center_z*center_z - distsq)*_expofactor); // d3z2-r2-function
-                    _AOevaluated.push_back(2.0*alpha*(center_x*center_x - center_y*center_y)*_expofactor); // dx2-y2-function
+                if ( single_shell == "D") {
+                    // dxz, dyz, dxy, d3z2-r2, dx2-y2
+                    AOvalues(_i_func +1,0) = 4.0*alpha*center_x*center_z*_expofactor; // dxz-function
+                    AOvalues(_i_func +2,0) = 4.0*alpha*center_y*center_z*_expofactor; // dyz-function
+                    AOvalues(_i_func +3,0) = 4.0*alpha*center_x*center_y*_expofactor; // dxy-function
+                    AOvalues(_i_func +4,0) = 2.0*alpha/sqrt(3.0)*(3.0*center_z*center_z - distsq)*_expofactor; // d3z2-r2-function
+                    AOvalues(_i_func +5,0) = 2.0*alpha*(center_x*center_x - center_y*center_y)*_expofactor; // dx2-y2-function
+                    _i_func += 5;
                 }
-                if (shell_type == "F") {
+                if ( single_shell == "F") {
                     cerr << " F functions not implemented in AOeval at the moment!" << endl;
                     exit(1);
                 }
-                if (shell_type == "G") {
+                if ( single_shell == "G") {
                     cerr << " G functions not implemented in AOeval at the moment!" << endl;
                     exit(1);
                 }
-            } else {
-                // for combined shells, go over all contributions and append
-                
-                for (int i = 0; i < shell_type.length(); ++i) {
-                    string local_shell = string(shell_type, i, 1);
-                    std::vector<double> _tempvec = this->evalAOspace(x,y,z,local_shell);
-                    _AOevaluated.insert(_AOevaluated.end(), _tempvec.begin(), _tempvec.end());
-                    
-                }
-            }
-            return _AOevaluated;
-
-
+            }   
 
 
         }
-    
+        
+        
+        
+        
     
     
 }}

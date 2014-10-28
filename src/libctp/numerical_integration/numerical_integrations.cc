@@ -108,15 +108,13 @@ namespace votca {
                     for (vector< AOShell* >::iterator _row = basis->firstShell(); _row != basis->lastShell(); _row++) {
 
                         // for density, fill sub-part of AOatgrid
-                        ub::matrix_range< ub::matrix<double> > _AOgridsub = ub::subrange(AOgrid, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc()+1, 0, 1);
+                        ub::matrix_range< ub::matrix<double> > _AOgridsub = ub::subrange(AOgrid, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc(), 0, 1);
                         (*_row)->EvalAOspace(_AOgridsub, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
 
                         // for density gradient, fill sub-part of AODerJatgrid
-                        ub::matrix_range< ub::matrix<double> > _gradAO_x = ub::subrange(gradAOgrid, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc()+1, 0, 1);
-                        ub::matrix_range< ub::matrix<double> > _gradAO_y = ub::subrange(gradAOgrid, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc()+1, 1, 2);
-                        ub::matrix_range< ub::matrix<double> > _gradAO_z = ub::subrange(gradAOgrid, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc()+1, 2, 3);
 
-                        (*_row)->EvalAOGradspace(_gradAO_x, _gradAO_y, _gradAO_z, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
+                        ub::matrix_range< ub::matrix<double> > _gradAO = ub::subrange(gradAOgrid, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc(), 0, 3);
+                        (*_row)->EvalAOGradspace(_gradAO, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
 
 
                     }
@@ -231,7 +229,7 @@ namespace votca {
         }
 
         
-        
+ /*       
                 
         // numerically integrate the elements of the AOXC matrix
         ub::matrix<double> NumericalIntegration::StupidIntegrateVXC(ub::matrix<double>& _density_matrix, AOBasis* basis){
@@ -380,7 +378,7 @@ namespace votca {
 
             return XCMAT;
 
-        }
+        } */
 
         
         
