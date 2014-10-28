@@ -48,7 +48,7 @@ namespace votca {
             // TODO: switch XC functionals implementation from LIBXC to base own calculation
             #ifdef LIBXC
             xc_func_type xfunc; // handle for exchange functional
-            xc_func_type cfunc; // handle for correleation functions
+            xc_func_type cfunc; // handle for correlation functional
 
             // define PBE here (should be some optional setting))
             int xfunc_id = XC_GGA_X_PBE;
@@ -74,30 +74,29 @@ namespace votca {
 
            
             ub::matrix<double> XCMAT = ub::zero_matrix<double>(basis->_AOBasisSize, basis->_AOBasisSize);
-            const ub::vector<double> DMAT_array = _density_matrix.data();
             // for every atom
             for (int i = 0; i < _grid.size(); i++) {
 	      // for each point in atom grid
                 for (int j = 0; j < _grid[i].size(); j++) {
-                    // get value of orbitals at each gridpoint
-                    ub::matrix<double> AOatgrid = ub::zero_matrix<double>(basis->_AOBasisSize, 1);
+                    // get value of orbitals at each gridpoint (vector as 1D boost matrix object -> prod )
+                    ub::matrix<double> AOgrid = ub::zero_matrix<double>(basis->_AOBasisSize, 1);
 
 		    // get value of density gradient at each gridpoint
-                    ub::matrix<double> AODeratgrid = ub::zero_matrix<double>(basis->_AOBasisSize, 3); // for Gradients of AOs
+                    ub::matrix<double> gradAOgrid = ub::zero_matrix<double>(basis->_AOBasisSize, 3); // for Gradients of AOs
 
 		    // evaluate AO Functions for all shells
                     for (vector< AOShell* >::iterator _row = basis->firstShell(); _row != basis->lastShell(); _row++) {
 
                         // for density, fill sub-part of AOatgrid
-                        ub::matrix_range< ub::matrix<double> > _AOatgridsub = ub::subrange(AOatgrid, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc()+1, 0, 1);
-                        (*_row)->EvalAOspace(_AOatgridsub, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
+                        ub::matrix_range< ub::matrix<double> > _AOgridsub = ub::subrange(AOgrid, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc()+1, 0, 1);
+                        (*_row)->EvalAOspace(_AOgridsub, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
 
                         // for density gradient, fill sub-part of AODerJatgrid
-                        ub::matrix_range< ub::matrix<double> > _AODerXatgridsub = ub::subrange(AODeratgrid, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc()+1, 0, 1);
-                        ub::matrix_range< ub::matrix<double> > _AODerYatgridsub = ub::subrange(AODeratgrid, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc()+1, 1, 2);
-                        ub::matrix_range< ub::matrix<double> > _AODerZatgridsub = ub::subrange(AODeratgrid, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc()+1, 2, 3);
+                        ub::matrix_range< ub::matrix<double> > _gradAO_x = ub::subrange(gradAOgrid, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc()+1, 0, 1);
+                        ub::matrix_range< ub::matrix<double> > _gradAO_y = ub::subrange(gradAOgrid, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc()+1, 1, 2);
+                        ub::matrix_range< ub::matrix<double> > _gradAO_z = ub::subrange(gradAOgrid, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc()+1, 2, 3);
 
-                        (*_row)->EvalAOGradspace(_AODerXatgridsub, _AODerYatgridsub, _AODerZatgridsub, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
+                        (*_row)->EvalAOGradspace(_gradAO_x, _gradAO_y, _gradAO_z, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
 
 
                     }
@@ -106,14 +105,14 @@ namespace votca {
                     
 		    // rho(r) = trans(AOatgrid) * DMAT * AOatgrid ?
 		    // rho(r) = sum_{ab}{X_a * D_{ab} * X_b} =sum_a{ X_a * sum_b{D_{ab}*X_b}}
-		    ub::matrix<double> _tempmat = ub::prod(_density_matrix,AOatgrid); // tempmat can be reused for density gradient
-		    double density_at_grid = ub::prod(ub::trans(AOatgrid),_tempmat)(0,0);
+		    ub::matrix<double> _tempmat = ub::prod(_density_matrix,AOgrid); // tempmat can be reused for density gradient
+		    double rho = ub::prod(ub::trans(AOgrid),_tempmat)(0,0);
 
                     // density gradient as grad(n) = sum_{ab}[D_{ab} (X_b grad(X_a) + X_a grad(X_b)]
 		    // grad(r) = sum_{ab}{X_b grad(X_a)*D_{ab} } + sum_{ab}{X_a grad(X_b)*D_{ab}}
 		    //         = sum_{ab}{grad(X_a) * D_{ab} * X_b} + sum_{ab}{grad(X_b) * D_{ab} * X_a}
 		    //         = 2.0 * sum_{ab}{grad(X_a) * D_{ab}*X_b}
-		    ub::matrix<double> densityDer_at_grid = 2.0 * ub::prod(ub::trans(AODeratgrid),_tempmat);
+		    ub::matrix<double> grad_rho = 2.0 * ub::prod(ub::trans(gradAOgrid),_tempmat);
 
                     // get XC for this density_at_grid
                     double f_xc;      // E_xc[n] = int{n(r)*eps_xc[n(r)] d3r} = int{ f_xc(r) d3r }
@@ -125,54 +124,54 @@ namespace votca {
 
                     // evaluate via LIBXC, if compiled, otherwise, go via own implementation
 #ifdef LIBXC
-		    double sigma_at_grid = ub::prod(ub::trans(densityDer_at_grid),densityDer_at_grid)(0,0);
+		    double sigma = ub::prod(ub::trans(grad_rho),grad_rho)(0,0);
 
                     double vsigma[1]; // libxc 
                     double vrho[1]; // libxc df/drho
                     switch (xfunc.info->family) {
                         case XC_FAMILY_LDA:
-                            xc_lda_vxc(&xfunc, 1, &density_at_grid, vrho);
+                            xc_lda_vxc(&xfunc, 1, &rho, vrho);
                             break;
                         case XC_FAMILY_GGA:
                         case XC_FAMILY_HYB_GGA:
-                            xc_gga_vxc(&xfunc, 1, &density_at_grid, &sigma_at_grid, vrho, vsigma);
+                            xc_gga_vxc(&xfunc, 1, &rho, &sigma, vrho, vsigma);
                             break;
                     }
-                    df_drho = vrho[0];
+                    df_drho   = vrho[0];
                     df_dsigma = vsigma[0];
 
                     // via libxc correlation part only
                     switch (cfunc.info->family) {
                         case XC_FAMILY_LDA:
-                            xc_lda_vxc(&cfunc, 1, &density_at_grid, vrho);
+                            xc_lda_vxc(&cfunc, 1, &rho, vrho);
                             break;
                         case XC_FAMILY_GGA:
                         case XC_FAMILY_HYB_GGA:
-                            xc_gga_vxc(&cfunc, 1, &density_at_grid, &sigma_at_grid, vrho, vsigma);
+                            xc_gga_vxc(&cfunc, 1, &rho, &sigma, vrho, vsigma);
                             break;
                     }
 
-                    df_drho += vrho[0];
+                    df_drho   += vrho[0];
                     df_dsigma += vsigma[0];
 
 #else
-                    _xc.getXC("PBE", density_at_grid, densityDerX_at_grid, densityDerY_at_grid, densityDerZ_at_grid, f_xc, df_drho, df_dsigma);
+                    _xc.getXC("PBE", rho, grad_rho(0,0), grad_rho(1,0), grad_rho(2,0), f_xc, df_drho, df_dsigma);
 #endif
 
 
 		    // density part
-		    ub::matrix<double> _addXC = df_drho * AOatgrid;
+		    ub::matrix<double> _addXC = df_drho * AOgrid;
 
 		    // gradient part
-		    int size = AODeratgrid.size1();
-                    ub::matrix_range< ub::matrix<double> > _AODerXatgrid = ub::subrange(AODeratgrid, 0, size , 0, 1);
-                    ub::matrix_range< ub::matrix<double> > _AODerYatgrid = ub::subrange(AODeratgrid, 0, size , 1, 2);
-                    ub::matrix_range< ub::matrix<double> > _AODerZatgrid = ub::subrange(AODeratgrid, 0, size , 2, 3);
-		    _addXC += 4.0*df_dsigma *(densityDer_at_grid(0,0) * _AODerXatgrid +densityDer_at_grid(1,0) * _AODerYatgrid + densityDer_at_grid(2,0) * _AODerZatgrid );
+		    int size = gradAOgrid.size1();
+                    ub::matrix_range< ub::matrix<double> > _gradAO_x = ub::subrange(gradAOgrid, 0, size , 0, 1);
+                    ub::matrix_range< ub::matrix<double> > _gradAO_y = ub::subrange(gradAOgrid, 0, size , 1, 2);
+                    ub::matrix_range< ub::matrix<double> > _gradAO_z = ub::subrange(gradAOgrid, 0, size , 2, 3);
+		    _addXC += 4.0*df_dsigma *(grad_rho(0,0) * _gradAO_x + grad_rho(1,0) * _gradAO_y + grad_rho(2,0) * _gradAO_z );
 
 
 		    // finally combine
-		    XCMAT += _grid[i][j].grid_weight * ub::prod(_addXC,ub::trans(AOatgrid));
+		    XCMAT += _grid[i][j].grid_weight * ub::prod(_addXC,ub::trans(AOgrid));
 
                 } // j: for each point in atom grid
             } // i: for each atom grid
