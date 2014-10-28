@@ -320,6 +320,8 @@
       </item>
       <item path="../../include/votca/ctp/gwbse.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/ctp/hueckel.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/job.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/jobapplication.h"
@@ -709,6 +711,8 @@
       <item path="../../src/libctp/gwbse/rpa.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/hgversion.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libctp/hueckel.cc" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../src/libctp/job.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1025,6 +1029,8 @@
       </item>
       <item path="../../include/votca/ctp/gwbse.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/ctp/hueckel.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/job.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/jobapplication.h"
@@ -1414,6 +1420,8 @@
       <item path="../../src/libctp/gwbse/rpa.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/hgversion.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libctp/hueckel.cc" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../src/libctp/job.cc" ex="false" tool="1" flavor2="0">
       </item>
