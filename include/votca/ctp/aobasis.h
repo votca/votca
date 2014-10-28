@@ -800,18 +800,18 @@ inline void AOBasis::AOBasisFill(BasisSet* bs , vector<QMAtom* > _atoms, int _fr
                 if (shell_type == "D") {
                              // dxz, dyz, dxy, d3z2-r2, dx2-y2
                     // dxz function
-                    _AOGradevaluated[0].push_back(4.0*alpha * (center_z - 2.0*alpha*center_x*center_x*center_z)*_expofactor); // x gradient 
+                    _AOGradevaluated[0].push_back( 4.0*alpha * (center_z - 2.0*alpha*center_x*center_x*center_z)*_expofactor); // x gradient 
                     _AOGradevaluated[1].push_back(-8.0*alpha*alpha *center_x*center_y*center_z*_expofactor); // y gradient 
-                    _AOGradevaluated[2].push_back(4.0*alpha * (center_z - 2.0*alpha*center_x*center_z*center_z)*_expofactor); // z gradient 
+                    _AOGradevaluated[2].push_back( 4.0*alpha * (center_x - 2.0*alpha*center_x*center_z*center_z)*_expofactor); // z gradient 
 
                     // dyz function
                     _AOGradevaluated[0].push_back(-8.0*alpha*alpha * center_x*center_y*center_z*_expofactor); // x gradient 
-                    _AOGradevaluated[1].push_back(4.0*alpha * (center_z - 2.0*alpha*center_y*center_y*center_z)*_expofactor); // y gradient 
-                    _AOGradevaluated[2].push_back(4.0*alpha * (center_y - 2.0*alpha*center_y*center_z*center_z)*_expofactor); // z gradient 
+                    _AOGradevaluated[1].push_back( 4.0*alpha * (center_z - 2.0*alpha*center_y*center_y*center_z)*_expofactor); // y gradient 
+                    _AOGradevaluated[2].push_back( 4.0*alpha * (center_y - 2.0*alpha*center_y*center_z*center_z)*_expofactor); // z gradient 
 
                     // dxy function
-                    _AOGradevaluated[0].push_back(4.0*alpha * (center_y - 2.0*alpha*center_x*center_x*center_y)*_expofactor); // x gradient 
-                    _AOGradevaluated[1].push_back(4.0*alpha * (center_x - 2.0*alpha*center_x*center_y*center_y)*_expofactor); // y gradient 
+                    _AOGradevaluated[0].push_back( 4.0*alpha * (center_y - 2.0*alpha*center_x*center_x*center_y)*_expofactor); // x gradient 
+                    _AOGradevaluated[1].push_back( 4.0*alpha * (center_x - 2.0*alpha*center_x*center_y*center_y)*_expofactor); // y gradient 
                     _AOGradevaluated[2].push_back(-8.0*alpha*alpha *center_x*center_y*center_z*_expofactor); // z gradient 
 
                     // d3z2-r2-function
@@ -820,7 +820,7 @@ inline void AOBasis::AOBasisFill(BasisSet* bs , vector<QMAtom* > _atoms, int _fr
                     _AOGradevaluated[2].push_back( 4.0*alpha/sqrt(3.0) * center_z * (2.0 - alpha *(3.0*center_z*center_z - distsq) ) * _expofactor );
                     
                     // dx2-y2-function
-                    _AOGradevaluated[0].push_back(4.0*alpha * center_x * (1.0 - alpha*(center_x*center_x - center_y*center_y)) * _expofactor );
+                    _AOGradevaluated[0].push_back( 4.0*alpha * center_x * (1.0 - alpha*(center_x*center_x - center_y*center_y)) * _expofactor );
                     _AOGradevaluated[1].push_back(-4.0*alpha * center_y * (1.0 + alpha*(center_x*center_x - center_y*center_y)) * _expofactor );
                     _AOGradevaluated[2].push_back(-4.0*alpha*alpha * center_z * (center_x*center_x - center_y*center_y) * _expofactor );
 
