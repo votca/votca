@@ -31,6 +31,8 @@
 
 #include <votca/ctp/exchange_correlation.h>
 #include <fstream>
+#include <boost/timer/timer.hpp>
+
 // #include <xc.h>
 using namespace std;
 
@@ -73,17 +75,35 @@ namespace votca {
             // xc_func_end(&xfunc);
 
            
+            // timers for testing
+            boost::timer::cpu_timer cpu_t;
+            cpu_t.start();
+
+            double _t_AOgrid = 0.0;
+            double _t_rho = 0.0;
+            double _t_grad_rho = 0.0;
+            double _t_vxc =0.0;
+            double _t_AOxc_rho=0.0;
+            double _t_AOxc_grad=0.0;
+            double _t_sum = 0.0;
+             
             ub::matrix<double> XCMAT = ub::zero_matrix<double>(basis->_AOBasisSize, basis->_AOBasisSize);
             // for every atom
             for (int i = 0; i < _grid.size(); i++) {
 	      // for each point in atom grid
                 for (int j = 0; j < _grid[i].size(); j++) {
+
+
+                   boost::timer::cpu_times t0 = cpu_t.elapsed();
+
+
                     // get value of orbitals at each gridpoint (vector as 1D boost matrix object -> prod )
                     ub::matrix<double> AOgrid = ub::zero_matrix<double>(basis->_AOBasisSize, 1);
 
 		    // get value of density gradient at each gridpoint
                     ub::matrix<double> gradAOgrid = ub::zero_matrix<double>(basis->_AOBasisSize, 3); // for Gradients of AOs
 
+                    
 		    // evaluate AO Functions for all shells
                     for (vector< AOShell* >::iterator _row = basis->firstShell(); _row != basis->lastShell(); _row++) {
 
@@ -101,19 +121,28 @@ namespace votca {
 
                     }
 
-
+                    boost::timer::cpu_times t1 = cpu_t.elapsed();
+                    _t_AOgrid += (t1.wall-t0.wall)/1e9;
                     
 		    // rho(r) = trans(AOatgrid) * DMAT * AOatgrid ?
 		    // rho(r) = sum_{ab}{X_a * D_{ab} * X_b} =sum_a{ X_a * sum_b{D_{ab}*X_b}}
 		    ub::matrix<double> _tempmat = ub::prod(_density_matrix,AOgrid); // tempmat can be reused for density gradient
 		    double rho = ub::prod(ub::trans(AOgrid),_tempmat)(0,0);
 
+                    boost::timer::cpu_times t2 = cpu_t.elapsed();
+                    _t_rho += (t2.wall-t1.wall)/1e9;
+                    
+                    
                     // density gradient as grad(n) = sum_{ab}[D_{ab} (X_b grad(X_a) + X_a grad(X_b)]
 		    // grad(r) = sum_{ab}{X_b grad(X_a)*D_{ab} } + sum_{ab}{X_a grad(X_b)*D_{ab}}
 		    //         = sum_{ab}{grad(X_a) * D_{ab} * X_b} + sum_{ab}{grad(X_b) * D_{ab} * X_a}
 		    //         = 2.0 * sum_{ab}{grad(X_a) * D_{ab}*X_b}
 		    ub::matrix<double> grad_rho = 2.0 * ub::prod(ub::trans(gradAOgrid),_tempmat);
 
+                    
+                    boost::timer::cpu_times t3 = cpu_t.elapsed();
+                    _t_grad_rho += (t3.wall-t2.wall)/1e9;
+                    
                     // get XC for this density_at_grid
                     double f_xc;      // E_xc[n] = int{n(r)*eps_xc[n(r)] d3r} = int{ f_xc(r) d3r }
                     double df_drho;   // v_xc_rho(r) = df/drho
@@ -158,10 +187,16 @@ namespace votca {
                     _xc.getXC("PBE", rho, grad_rho(0,0), grad_rho(1,0), grad_rho(2,0), f_xc, df_drho, df_dsigma);
 #endif
 
-
+                    boost::timer::cpu_times t4 = cpu_t.elapsed();
+                    _t_vxc += (t4.wall-t3.wall)/1e9;
+                    
 		    // density part
 		    ub::matrix<double> _addXC = df_drho * AOgrid;
 
+                    boost::timer::cpu_times t5 = cpu_t.elapsed();
+                    _t_AOxc_rho += (t5.wall-t4.wall)/1e9;
+                    
+                    
 		    // gradient part
 		    int size = gradAOgrid.size1();
                     ub::matrix_range< ub::matrix<double> > _gradAO_x = ub::subrange(gradAOgrid, 0, size , 0, 1);
@@ -169,13 +204,28 @@ namespace votca {
                     ub::matrix_range< ub::matrix<double> > _gradAO_z = ub::subrange(gradAOgrid, 0, size , 2, 3);
 		    _addXC += 4.0*df_dsigma *(grad_rho(0,0) * _gradAO_x + grad_rho(1,0) * _gradAO_y + grad_rho(2,0) * _gradAO_z );
 
+                    boost::timer::cpu_times t6 = cpu_t.elapsed();
+                    _t_AOxc_grad += (t6.wall-t5.wall)/1e9;
 
 		    // finally combine
 		    XCMAT += _grid[i][j].grid_weight * ub::prod(_addXC,ub::trans(AOgrid));
 
+                    boost::timer::cpu_times t7 = cpu_t.elapsed();
+                    _t_sum += (t7.wall-t6.wall)/1e9;
+                    
+                    
                 } // j: for each point in atom grid
             } // i: for each atom grid
 
+            
+            cout << " Time AO functions: " << _t_AOgrid << endl;
+            cout << " Time rho         : " << _t_rho << endl;
+            cout << " Time grad rho    : " << _t_grad_rho << endl;
+            cout << " Time Vxc         : " << _t_vxc << endl;
+            cout << " Time AOxc rho    : " << _t_AOxc_rho << endl;
+            cout << " Time AOxc grad   : " << _t_AOxc_grad << endl;
+            cout << " Time AOxc sum    : " << _t_sum << endl;
+            
             return XCMAT;
 
         }
