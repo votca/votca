@@ -191,7 +191,7 @@ namespace votca {
                     _t_vxc += (t4.wall-t3.wall)/1e9;
                     
 		    // density part
-		    ub::matrix<double> _addXC = df_drho * AOgrid;
+		    ub::matrix<double> _addXC = _grid[i][j].grid_weight * df_drho * AOgrid;
 
                     boost::timer::cpu_times t5 = cpu_t.elapsed();
                     _t_AOxc_rho += (t5.wall-t4.wall)/1e9;
@@ -202,13 +202,13 @@ namespace votca {
                     ub::matrix_range< ub::matrix<double> > _gradAO_x = ub::subrange(gradAOgrid, 0, size , 0, 1);
                     ub::matrix_range< ub::matrix<double> > _gradAO_y = ub::subrange(gradAOgrid, 0, size , 1, 2);
                     ub::matrix_range< ub::matrix<double> > _gradAO_z = ub::subrange(gradAOgrid, 0, size , 2, 3);
-		    _addXC += 4.0*df_dsigma *(grad_rho(0,0) * _gradAO_x + grad_rho(1,0) * _gradAO_y + grad_rho(2,0) * _gradAO_z );
+		    _addXC += 4.0*df_dsigma * _grid[i][j].grid_weight *(grad_rho(0,0) * _gradAO_x + grad_rho(1,0) * _gradAO_y + grad_rho(2,0) * _gradAO_z );
 
                     boost::timer::cpu_times t6 = cpu_t.elapsed();
                     _t_AOxc_grad += (t6.wall-t5.wall)/1e9;
 
 		    // finally combine
-		    XCMAT += _grid[i][j].grid_weight * ub::prod(_addXC,ub::trans(AOgrid));
+		    XCMAT +=  ub::prod(_addXC,ub::trans(AOgrid));
 
                     boost::timer::cpu_times t7 = cpu_t.elapsed();
                     _t_sum += (t7.wall-t6.wall)/1e9;
