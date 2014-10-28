@@ -103,7 +103,9 @@ namespace votca {
 	    /**** Density-independent matrices ****/
 	    SetupInvariantMatrices();
 
-
+            /**** Initial guess = one-electron Hamiltonian without interactions ****/
+            
+            /**** Construct initial density  ****/
 
 
        
