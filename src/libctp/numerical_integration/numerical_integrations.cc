@@ -111,8 +111,7 @@ namespace votca {
                         ub::matrix_range< ub::matrix<double> > _AOgridsub = ub::subrange(AOgrid, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc(), 0, 1);
                         (*_row)->EvalAOspace(_AOgridsub, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
 
-                        // for density gradient, fill sub-part of AODerJatgrid
-
+                        // for density gradient, fill sub-part of gradAOgrid
                         ub::matrix_range< ub::matrix<double> > _gradAO = ub::subrange(gradAOgrid, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc(), 0, 3);
                         (*_row)->EvalAOGradspace(_gradAO, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
 
@@ -126,6 +125,8 @@ namespace votca {
 		    // rho(r) = sum_{ab}{X_a * D_{ab} * X_b} =sum_a{ X_a * sum_b{D_{ab}*X_b}}
 		    ub::matrix<double> _tempmat = ub::prod(_density_matrix,AOgrid); // tempmat can be reused for density gradient
 		    double rho = ub::prod(ub::trans(AOgrid),_tempmat)(0,0);
+
+		    if ( rho < 1.e-15 ) continue; // skip the rest, if density is very small
 
                     boost::timer::cpu_times t2 = cpu_t.elapsed();
                     _t_rho += (t2.wall-t1.wall)/1e9;
