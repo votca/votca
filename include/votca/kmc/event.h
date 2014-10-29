@@ -242,12 +242,7 @@ void Event::Determine_rate(StateReservoir* state, Longrange* longrange, Eventinf
     }
     else if(_carrier_type == (int) Hole) {
         charge = 1.0;
-        double conversion1 = eventinfo->conversion;
-        double conversion2 = eventinfo->conversion;
-        //if(eventinfo->novikov) {
-        //    conversion1 = (1.0 - (0.9/(2.0*leftnode1pos))*(1.0 - exp(-2.0*leftnode1pos/0.9)))*(1.0 - (0.9/(2.0*rightnode1pos))*(1.0 - exp(-2.0*rightnode1pos/0.9)));
-        //    conversion2 = (1.0 - (0.9/(2.0*leftnode2pos))*(1.0 - exp(-2.0*leftnode2pos/0.9)))*(1.0 - (0.9/(2.0*rightnode2pos))*(1.0 - exp(-2.0*rightnode2pos/0.9)));
-        //}
+        double gamma = eventinfo->gamma;
         prefactor = prefactor*(eventinfo->hole_transport_prefactor);
         double temp_static_node_energy_from = dynamic_cast<NodeSQL*>(node1)->eCation() + dynamic_cast<NodeSQL*>(node1)->UcCnNh();
         static_node_energy_from = temp_static_node_energy_from;
@@ -255,10 +250,10 @@ void Event::Determine_rate(StateReservoir* state, Longrange* longrange, Eventinf
         static_node_energy_to = temp_static_node_energy_to;
         if(_init_type == Injection) {
             static_node_energy_from = eventinfo->avholeenergy; 
-            static_node_energy_to = conversion2*(temp_static_node_energy_to - eventinfo->avholeenergy) + eventinfo->avholeenergy;
+            static_node_energy_to = gamma*(temp_static_node_energy_to - eventinfo->avholeenergy) + eventinfo->avholeenergy;
         }
         if(_final_type == Collection) {
-            static_node_energy_from = conversion1*(temp_static_node_energy_from - eventinfo->avholeenergy) + eventinfo->avholeenergy;
+            static_node_energy_from = gamma*(temp_static_node_energy_from - eventinfo->avholeenergy) + eventinfo->avholeenergy;
             static_node_energy_to = eventinfo->avholeenergy;
         }
     }
@@ -378,10 +373,6 @@ void Event::Determine_rate(StateReservoir* state, Longrange* longrange, Eventinf
         }       
     }
     _rate = prefactor*_transferfactor*_energyfactor;
-    //if(node1->type() == (int) LeftElectrodeNode) std::cout << _rate << " " << _energyfactor << " " << final_energy << " " << static_node_energy_to << " " << _transferfactor << " " << distancevector << " " << (2*Pi/hbar)*(1.0/sqrt(4*Pi*Reorg*kB*eventinfo->temperature)) << " " << node1->position() << " " << node2->position() << " " << endl;
-
-    //if(node1->type() == (int) RightElectrodeNode && _rate > 1.0) std::cout << _rate << " " << _energyfactor << " " << final_energy << " " << static_node_energy_to << " " << _transferfactor << " " << distancevector << " " << (2*Pi/hbar)*(1.0/sqrt(4*Pi*Reorg*kB*eventinfo->temperature)) << " " << node1->position() << " " << node2->position() << " " << endl;
-
 }
 
 void Event::Set_event(Link* link,int carrier_type, StateReservoir* state, Longrange* longrange, Eventinfo* eventinfo) {
@@ -396,14 +387,8 @@ void Event::Set_event(Link* link,int carrier_type, StateReservoir* state, Longra
     else                    {_final_type = Determine_final_event_type(carrier_type, state->GetCarrier(node2->occ())->type(), node1, node2, eventinfo);}    
 
     _action_pair = (int) Other;
-//    if(_action_pair != (int) Transfer) {
-        _action_node1 = Determine_action_flag_node1();
-        _action_node2 = Determine_action_flag_node2();
-//    }
-//    else {
-//        _action_node1 = (int) None;
-//        _action_node2 = (int) None;
-//    }    
+    _action_node1 = Determine_action_flag_node1();
+    _action_node2 = Determine_action_flag_node2();
     
     Determine_rate(state, longrange, eventinfo);
 }

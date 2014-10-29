@@ -77,14 +77,7 @@ public:
     
     void Initialize_output_values() {_vel_x = 0; _vel_y = 0; _vel_z = 0;}
 
-    void Clear_coul_structs() {_Coul_hash.clear(); _Coul_ee.clear(); _Coul_eh.clear(); _Coul_he.clear(); _Coul_hh.clear(); }
-    void Add_coul_struct(int node_id, double coul_ee, double coul_hh, double coul_eh, double coul_he, double cut_off, double coul_strength) {
-        _Coul_hash.push_back(node_id);
-        _Coul_ee.push_back(coul_ee - coul_strength*cut_off);
-        _Coul_hh.push_back(coul_hh - coul_strength*cut_off);
-        _Coul_eh.push_back(coul_eh + coul_strength*cut_off);
-        _Coul_he.push_back(coul_he + coul_strength*cut_off);
-    }
+       
     
 protected:
 
@@ -100,11 +93,6 @@ protected:
     
     vector< Link* > _links;
     
-    vector< int > _Coul_hash;
-    vector< double > _Coul_ee;
-    vector< double > _Coul_eh;
-    vector< double > _Coul_he;
-    vector< double > _Coul_hh;
 };
 
 

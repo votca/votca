@@ -41,7 +41,7 @@ public:
     void Initialize_cubic(Eventinfo* eventinfo, votca::tools::Random2 *RandomVariable);
     
     /// Reads information about Coulomb interactions from SQL file
-    void Initialize_coulomb();
+    //void Initialize_coulomb(string filename, Eventinfo* eventinfo);
     
 };
 
@@ -220,15 +220,17 @@ inline void GraphSQL<TNode,TLink>::Initialize_cubic(Eventinfo* eventinfo, votca:
 }
 
 /*template<class TNode, class TLink> 
-inline void GraphSQL<TNode,TLink>::Initialize_coulomb(Eventinfo* eventinfo) 
+inline void GraphSQL<TNode,TLink>::Initialize_coulomb(string filename, Eventinfo* eventinfo) 
 {
 
     typename std::vector<TNode*>::iterator it;
-    for (it = _nodes.begin(); it != _nodes.end(); it++ ) (*it)->Clear_coul_structs();
+    for (it = this->_nodes.begin(); it != this->_nodes.end(); it++ ) (*it)->Clear_coul_structs();
 
     // Load partial charges
 
-    stmt = db.Prepare("SELECT seg1-1 AS 'segment1', seg2-1 AS 'segment2', coulomb_ee, coulomb_hh, coulomb_eh, coulomb_he FROM coulomb UNION SELECT seg2-1 AS 'segment1', seg1-1 AS 'segment2', coulomb_ee, coulomb_hh, coulomb_eh, coulomb_he FROM coulomb ORDER BY segment1;");
+    votca::tools::Database db;
+    db.Open( filename );
+    votca::tools::Statement *stmt = db.Prepare("SELECT seg1-1 AS 'segment1', seg2-1 AS 'segment2', coulomb_ee, coulomb_hh, coulomb_eh, coulomb_he FROM coulomb UNION SELECT seg2-1 AS 'segment1', seg1-1 AS 'segment2', coulomb_ee, coulomb_hh, coulomb_eh, coulomb_he FROM coulomb ORDER BY segment1;");
     
     while (stmt->Step() != SQLITE_DONE) 
     {
@@ -241,7 +243,7 @@ inline void GraphSQL<TNode,TLink>::Initialize_coulomb(Eventinfo* eventinfo)
         double coul_eh = stmt->Column<double>(4);
         double coul_he = stmt->Column<double>(5);
         
-        node1->Add_coul_struct(ndoe2_id,coul_ee,coul_hh,coul_eh,coul_he, eventinfo->coulomb_cut_off_radius, eventinfo->coulomb_strength);
+        node1->Add_coul_struct(node2_id,coul_ee,coul_hh,coul_eh,coul_he, eventinfo->coulomb_cut_off_radius, eventinfo->coulomb_strength);
     }
         
     std::cout << "coulomb data read" << endl;

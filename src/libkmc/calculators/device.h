@@ -82,7 +82,6 @@ void Device::Initialize(const char *filename, Property *options, const char *out
     
     eventinfo = new Eventinfo();
     eventinfo->device = true;
-    eventinfo->Read_options_mode(options);
     eventinfo->Read_device(options);
     
     
@@ -98,13 +97,14 @@ void Device::Initialize(const char *filename, Property *options, const char *out
     
     graph->Setup_device_graph(eventinfo);
     
-    eventinfo->Graph_Parameters(graph->hopdist(), graph->avdist(), graph->mindist(), graph->simboxsize(), graph->maxpairdegree(),graph->Average_hole_node_energy(), graph->stddev_hole_node_energy(), graph->Average_electron_node_energy(), graph-> Hole_inject_reorg(), graph->Electron_inject_reorg());
+    eventinfo->Graph_Parameters(graph->hopdist(), graph->mindist(), graph->simboxsize(), graph->maxpairdegree(),graph->Average_hole_node_energy(), graph->stddev_hole_node_energy(), graph->Average_electron_node_energy(), graph-> Hole_inject_reorg(), graph->Electron_inject_reorg());
     eventinfo->Set_field(); 
 
     std::cout << "graph object initialized" << "\n";
     std::cout << "max pair degree: " << graph->maxpairdegree() << "\n";
     std::cout << "hopping distance: " << graph->hopdist() << "\n";
-    std::cout << "electrode distance: " << eventinfo->left_electrode_distance << "\n";
+    std::cout << "left electrode distance: " << eventinfo->left_electrode_distance << "\n";
+    std::cout << "right electrode distance: " << eventinfo->right_electrode_distance << "\n";
     std::cout << "minimum distance: " << graph->mindist() << "\n";
     std::cout << "simulation box size: " << graph->simboxsize() << "\n";
     if(eventinfo->device > 0) {
@@ -142,8 +142,8 @@ void Device::Initialize(const char *filename, Property *options, const char *out
     int nrelectrons = 0;
     
     if(eventinfo->init_charges) {
-        if(eventinfo->integer_number_of_charges) {nrholes = eventinfo->number_of_holes; nrelectrons = eventinfo->number_of_electrons;}
-        else {nrholes = eventinfo->hole_density*graph->Numberofnodes(); nrelectrons = eventinfo->electron_density*graph->Numberofnodes();}
+        nrholes = ceil(eventinfo->hole_density*graph->Numberofnodes()); 
+        nrelectrons = ceil(eventinfo->electron_density*graph->Numberofnodes());
 
         if(nrholes!=0 && nrelectrons != 0) { std::cout << "Double carrier simulation" << "\n";} 
         else { std::cout << "Single carrier simulation" << "\n";} 
@@ -264,7 +264,7 @@ void Device::RunKMC() {
         events->On_execute(chosenevent, graph, state, longrange, non_injection_rates, left_injection_rates, right_injection_rates, eventinfo);
         // equilibration
 
-        if(it == eventinfo->number_of_equilibration_steps || it == eventinfo->number_of_equilibration_steps) 
+        if(it == eventinfo->number_of_equilibration_steps) 
         {
             numoutput->Init_convergence_check(sim_time); 
             numoutput->Initialize_equilibrate(eventinfo);

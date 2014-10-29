@@ -387,7 +387,6 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierBulk* c
                             if (action== (int) Add) {
                                 // Adjust Coulomb potential for neighbours of the added carrier
                                 for (int it = 0 ; it < node->links().size(); it++) {
-
                                     votca::tools::vec jumpdistancevector = node->links()[it]->r12();
                                     votca::tools::vec jump_from_carrier1_pos = carrier1_pos + jumpdistancevector;
                                     votca::tools::vec jumpdistance = np_carrier2_pos-jump_from_carrier1_pos;

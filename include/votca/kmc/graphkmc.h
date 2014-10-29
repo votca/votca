@@ -44,8 +44,6 @@ public:
     /// hopping distance
     const double &hopdist() const { return _hop_distance; }
     
-    const double &avdist() const { return _av_distance; }
-    
     /// minimum distance
     const double &mindist() const { return _min_distance; }
 
@@ -93,11 +91,6 @@ private:
     ///calculate hopping_distance (maximum distance between a pair of nodes) ... needed for injection and coulomb potential calculations
     double Determine_Hopping_Distance();    
     
-    ///calculate average distance
-    double Determine_Average_Distance(Eventinfo* eventinfo);
-    
-    void Determine_Average_Jeff(Eventinfo* eventinfo);
- 
     ///calculate minimum distance (minimum distance between a pair of nodes)
     double Determine_Minimum_Distance();    
 
@@ -149,8 +142,6 @@ private:
     int _max_pair_degree;
     
     double _hop_distance;
-    double _av_distance;
-    double _av_alpha;
     double _min_distance;
     double _av_el_distance;
     
@@ -172,12 +163,6 @@ void GraphKMC::Setup_bulk_graph( Eventinfo* eventinfo)
     // Detemine simulation box size
     _sim_box_size = this->Determine_Sim_Box_Size();    
     
-//    _av_distance = this->Determine_Minimum_Distance();
-    _av_distance = eventinfo->left_electrode_distance;
-    _av_alpha = this->Determine_Average_Distance(eventinfo);
-    std::cout << "alpha " << _av_alpha << endl;
-//    eventinfo->setalpha(_av_alpha);        
-
     // Translate the graph due to the spatial location of the electrodes and update system box size accordingly, putting the left electrode at x = 0
     // left_electrode_distance is the distance of the left electrode to the node with minimum x-coordinate
     // distance by which the graph should be translated is left_electrode_distance - minX
@@ -228,14 +213,12 @@ void GraphKMC::Setup_device_graph(Eventinfo* eventinfo)
     // Detemine simulation box size
     _sim_box_size = this->Determine_Sim_Box_Size();    
     
-//    _av_distance = this->Determine_Minimum_Distance();
-    _av_distance = eventinfo->left_electrode_distance;
  
     
     
     // Make sure injection hops are possible
-    if(_av_distance > _hop_distance) {_hop_distance = _av_distance;}
-    if(_av_distance > _hop_distance) {_hop_distance = _av_distance;}
+    if(eventinfo->left_electrode_distance > _hop_distance) {_hop_distance = eventinfo->left_electrode_distance;}
+    if(eventinfo->right_electrode_distance > _hop_distance) {_hop_distance = eventinfo->right_electrode_distance;}
     
     // Determine simulation box size
     _sim_box_size = this->Determine_Sim_Box_Size();
@@ -255,7 +238,7 @@ void GraphKMC::Setup_device_graph(Eventinfo* eventinfo)
     // Resize by copying the box (crossing types are changed by this operation, so re-evaluate, which is done during determination of simulation box size)
     if(eventinfo->resize_morphology) 
     {
-        this->Resize(eventinfo->size_x,false, eventinfo->size_y,false, eventinfo->size_z-2*_av_distance, true); 
+        this->Resize(eventinfo->size_x,false, eventinfo->size_y,false, eventinfo->size_z-eventinfo->left_electrode_distance - eventinfo->right_electrode_distance, true); 
     }
     else
     {
@@ -266,11 +249,11 @@ void GraphKMC::Setup_device_graph(Eventinfo* eventinfo)
     _sim_box_size = this->Determine_Sim_Box_Size();
     
     // Translate graph to accomodate for device geometry
-    this->Translate_graph(0.0, 0.0, _av_distance);    
+    this->Translate_graph(0.0, 0.0, eventinfo->left_electrode_distance);    
 
     // adjust simulation box size accordingly to given electrode distances
     votca::tools::vec old_sim_box_size = _sim_box_size;
-    double new_sim_box_sizeZ = old_sim_box_size.z() + 2*_av_distance;
+    double new_sim_box_sizeZ = old_sim_box_size.z() + eventinfo->left_electrode_distance + eventinfo->right_electrode_distance;
      _sim_box_size =  votca::tools::vec(old_sim_box_size.x(), old_sim_box_size.y(), new_sim_box_sizeZ);
    
     // set node types for existing nodes as Normal
@@ -285,12 +268,6 @@ void GraphKMC::Setup_device_graph(Eventinfo* eventinfo)
     // determine sum of r12.x
     _total_link_distance_z = this->Sum_of_link_distances_z();
 
-    _av_alpha = this->Determine_Average_Distance(eventinfo);
-    std::cout << "alpha " << _av_alpha << endl;
-//    eventinfo->setalpha(_av_alpha); 
-    
-    this->Determine_Average_Jeff(eventinfo);
-    
     // associate links in links vector with the corresponding nodes
     this->LinkSort();
   
@@ -324,83 +301,6 @@ double GraphKMC::Determine_Hopping_Distance()
     }
     
     return hop_distance;
-}
-
-double GraphKMC::Determine_Average_Distance(Eventinfo* eventinfo)
-{
-    double av_distance = 0.0;
-    double linkcount = 0.0;
-    double average;
-    
-    typename std::vector<LinkDevice*>::iterator it;    
-    for(it = this->_links.begin(); it != this->_links.end(); it++) 
-    {
-        if((*it)->node1()->type() == (int) NormalNode && (*it)->node2()->type() == (int) NormalNode) {
-            double r12 = abs((*it)->r12());
-            av_distance += r12;
-            linkcount++;
-        }
-    }
-    
-    average = av_distance/linkcount;
-    std::cout << "average distance " << average << endl;
-
-    av_distance= 0.0;
-    linkcount = 0;
-    average = 0.0;    
-
-    for(int ilink = 0; ilink < _left_electrode->links().size(); ilink++) 
-    {
-        Link* link = _left_electrode->links()[ilink];
-        double r12 = abs(link->r12());
-        av_distance += r12;
-        linkcount++;
-    }
-    
-    average = av_distance/linkcount;
-    std::cout << "average electrode distance " << average << " input " << eventinfo->left_electrode_distance << endl;
-    return average;
-
-}
-
-
-
-void GraphKMC::Determine_Average_Jeff(Eventinfo* eventinfo)
-{
-    double av_jeff = 0.0;
-    double linkcount = 0;
-    double average;
-    
-    typename std::vector<LinkDevice*>::iterator it;    
-    for(it = this->_links.begin(); it != this->_links.end(); it++) 
-    {
-        if((*it)->node1()->type() == (int) NormalNode && (*it)->node2()->type() == (int) NormalNode) {
-            if((*it)->Jeff2h() != 0.0) {
-                double logjeff = log((*it)->Jeff2h());
-                av_jeff += logjeff;
-                linkcount++;
-            }
-        }
-    }
-    
-    average = av_jeff/linkcount;
-    std::cout << "av non " << exp(average) << endl;
-
-    av_jeff = 0.0;
-    linkcount = 0.0;
-    average = 0.0;    
-    
-    for(int ilink = 0; ilink < _left_electrode->links().size(); ilink++) 
-    {
-        Link* link = _left_electrode->links()[ilink];
-        double logjeff = -2.0*eventinfo->alpha*abs(link->r12());
-        av_jeff += logjeff;
-        linkcount++;
-    }
-    std::cout << av_jeff << " " << linkcount << endl;
-    average = av_jeff/linkcount;
-    std::cout << "av non alpha " << exp(average) << endl;    
-    
 }
 
 double GraphKMC::Determine_Minimum_Distance()

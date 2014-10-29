@@ -28,24 +28,11 @@ public:
     
     Eventinfo(){};
     
-    void Read_options_mode(Property *options){
-        if (options->exists("options.general.advanced")) {
-            advanced                          = options->get("options.general.advanced").as<bool>();
-        }
-        else {
-            advanced                          = false;
-        }
-    }
-    
     void Read_bulk(Property *options){ 
 
         random_seed                           = options->get("options.general.random_seed").as<int>();
+        const int growsize                    = 2;
         
-        init_charges                          = options->get("options.general.init_charges").as<bool>();
-        
-        integer_number_of_charges             = options->get("options.general.integer_number_of_charges").as<bool>();
-        number_of_electrons                   = options->get("options.general.number_of_electrons").as<int>();
-        number_of_holes                       = options->get("options.general.number_of_holes").as<int>();
         electron_density                      = options->get("options.general.electron_density").as<double>();
         hole_density                          = options->get("options.general.hole_density").as<double>();
 
@@ -75,8 +62,7 @@ public:
         efield_y                              = options->get("options.general.efield_y").as<double>();
         efield_z                              = options->get("options.general.efield_z").as<double>();
 
-        novikov = true;
-        conversion                            = options->get("options.general.conversion").as<double>();
+        gamma                                 = options->get("options.general.gamma").as<double>();
         
         coulomb_strength                      = options->get("options.general.coulomb_strength").as<double>();
         lr_coulomb_strength                   = options->get("options.general.lr_coulomb_strength").as<double>();
@@ -100,8 +86,6 @@ public:
             hole_transport_prefactor          = options->get("options.general.hole_prefactor").as<double>();
             recombination_prefactor           = options->get("options.general.recombination_prefactor").as<double>();
 
-            growsize                          = options->get("options.general.growsize").as<int>();
-            
             visualisation_number_x            = options->get("options.general.visualisation_number_x").as<int>();
             visualisation_number_y            = options->get("options.general.visualisation_number_y").as<int>();
             visualisation_number_z            = options->get("options.general.visualisation_number_z").as<int>();
@@ -121,8 +105,6 @@ public:
             hole_transport_prefactor          = 1.0;
             recombination_prefactor           = 1.0;
 
-            growsize                          = 2;
-
             visualisation_number_x            = floor(size_x);
             visualisation_number_y            = floor(size_y);
             visualisation_number_z            = floor(size_z);
@@ -137,6 +119,8 @@ public:
         
         this->Read_bulk(options);
         voltage                               = options->get("options.device.voltage").as<double>();
+
+        init_charges                          = options->get("options.device.init_charges").as<bool>();
         
         left_electron_injection               = options->get("options.device.left_electron_injection").as<bool>();
         left_hole_injection                   = options->get("options.device.left_hole_injection").as<bool>();
@@ -174,9 +158,7 @@ public:
             // default is to write profiles (true))
             write_charge_profile              = options->get("options.device.write_charge_profile").as<bool>();
             write_potential_profile           = options->get("options.device.write_potential_profile").as<bool>();            
-            
-            // TO CHECK
-            interpolate_longrange             = options->get("options.device.interpolate_longrange").as<bool>();            
+           
         }
         else {
             injection_prefactor               = 1.0;
@@ -189,7 +171,6 @@ public:
             number_short_range_images         = 10;
             number_long_range_images          = 10;
             
-            interpolate_longrange             = false;
             longrange_slab                    = true;
 
             write_charge_profile              = true;
@@ -215,10 +196,8 @@ public:
         
     }
     
-    void Graph_Parameters(double graph_hopdist, double av_dist, double graph_mindist, votca::tools::vec graph_simboxsize, int graph_maxpairdegree, double av_ho_energy, double stdevhoenergy, double av_elect_energy, double hole_inject_reorg, double electron_inject_reorg) 
+    void Graph_Parameters(double graph_hopdist, double graph_mindist, votca::tools::vec graph_simboxsize, int graph_maxpairdegree, double av_ho_energy, double stdevhoenergy, double av_elect_energy, double hole_inject_reorg, double electron_inject_reorg) 
     {
-        left_electrode_distance = av_dist;
-        right_electrode_distance = av_dist;
         hopdist = graph_hopdist;
         mindist = graph_mindist;
         simboxsize = graph_simboxsize;
@@ -236,14 +215,9 @@ public:
         efield_z = voltage/(simboxsize.z());
     }
     
-    void setalpha(double alph){
-        alpha = alph;
-    }
-   
-    
     bool advanced; bool device;   
     int random_seed;
-    bool init_charges; bool integer_number_of_charges; int number_of_holes; int number_of_electrons; double hole_density; double electron_density;
+    bool init_charges; double hole_density; double electron_density;
     bool explicit_coulomb;
 
     int number_of_steps; int number_of_equilibration_steps; int number_of_report_steps;
@@ -275,7 +249,7 @@ public:
     double self_image_prefactor;   
     int number_of_layers;
     int number_short_range_images; int number_long_range_images;
-    bool interpolate_longrange; bool longrange_slab;
+    bool longrange_slab;
     bool write_charge_profile; bool write_potential_profile;
            
     double hopdist; double mindist; votca::tools::vec simboxsize; int maxpairdegree; double avholeenergy; double avelectronenergy;
@@ -284,11 +258,9 @@ public:
     
     bool norc;
     
-    bool novikov;
-
     int NX; int NY; int NZ; double lat_const; double hop_distance;
     double el_disorder; double ho_disorder; int el_ho_correlation;
-    double lumo; double homo; double conversion;
+    double lumo; double homo; double gamma;
 };
 
 }} 

@@ -80,7 +80,6 @@ void Bulk::Initialize(const char *filename, Property *options, const char *outpu
     std::cout << "===================================================" << "\n";
     
     eventinfo = new Eventinfo();
-    eventinfo->Read_options_mode(options);
     eventinfo->device = false;
     eventinfo->Read_bulk(options);
     
@@ -91,13 +90,12 @@ void Bulk::Initialize(const char *filename, Property *options, const char *outpu
     
     graph = new GraphKMC();
     graph->Initialize_sql(filename);
-    //if(eventinfo->explicit_coulomb) graph->Initialize_coulomb();
     std::cout << "number of nodes before graph manipulations: " << graph->Numberofnodes() << "\n";
     std::cout << "simulation box size before graph manipulations: " << graph->Determine_Sim_Box_Size() << "\n";
     
     graph->Setup_bulk_graph(eventinfo);
    
-    eventinfo->Graph_Parameters(graph->hopdist(), graph->mindist(), graph->mindist(), graph->simboxsize(), graph->maxpairdegree(),graph->Average_hole_node_energy(), graph->stddev_hole_node_energy(), graph->Average_electron_node_energy(), graph-> Hole_inject_reorg(), graph->Electron_inject_reorg());
+    eventinfo->Graph_Parameters(graph->hopdist(), graph->mindist(), graph->simboxsize(), graph->maxpairdegree(),graph->Average_hole_node_energy(), graph->stddev_hole_node_energy(), graph->Average_electron_node_energy(), graph-> Hole_inject_reorg(), graph->Electron_inject_reorg());
     
     std::cout << "graph object initialized" << "\n";
     std::cout << "max pair degree: " << graph->maxpairdegree() << "\n";
@@ -117,8 +115,8 @@ void Bulk::Initialize(const char *filename, Property *options, const char *outpu
     int nrholes = 0;
     int nrelectrons = 0;
     
-    if(eventinfo->integer_number_of_charges) {nrholes = eventinfo->number_of_holes; nrelectrons = eventinfo->number_of_electrons;}
-    else {nrholes = eventinfo->hole_density*graph->Numberofnodes(); nrelectrons = eventinfo->electron_density*graph->Numberofnodes();}
+    nrholes = ceil(eventinfo->hole_density*graph->Numberofnodes()); 
+    nrelectrons = ceil(eventinfo->electron_density*graph->Numberofnodes());
         
     if(nrholes!=0 && nrelectrons != 0) { std::cout << "Double carrier simulation" << "\n";} 
     else { std::cout << "Single carrier simulation" << "\n";} 
@@ -237,7 +235,7 @@ void Bulk::RunKMC() {
         
         // equilibration
    
-        if(!eventinfo->carrier_trajectory &&(it == eventinfo->number_of_equilibration_steps || it == eventinfo->number_of_equilibration_steps)) {
+        if(!eventinfo->carrier_trajectory && it == eventinfo->number_of_equilibration_steps) {
             numoutput->Init_convergence_check(sim_time);
             numoutput->Initialize_equilibrate(eventinfo);
             sim_time = 0.0;
