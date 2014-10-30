@@ -327,6 +327,7 @@ namespace votca {
 
             // test AOxcmatrix
             ub::matrix<double> AOXC = _numint.IntegrateVXC(DMAT,&dftbasis); 
+            ub::matrix<double> AOXC_block = _numint.IntegrateVXC_block(DMAT,&dftbasis); 
             for ( int i = 0 ; i < AOXC.size1(); i++ ){
                 //for ( int j = 0 ; j < AOXC.size2(); j++ ){
                     

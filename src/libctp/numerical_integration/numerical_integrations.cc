@@ -42,6 +42,249 @@ namespace votca {
         namespace ub = boost::numeric::ublas;
 
         
+             ub::matrix<double> NumericalIntegration::IntegrateVXC_block(ub::matrix<double>& _density_matrix, AOBasis* basis){
+            
+            // TODO: switch XC functionals implementation from LIBXC to base own calculation
+            #ifdef LIBXC
+            xc_func_type xfunc; // handle for exchange functional
+            xc_func_type cfunc; // handle for correlation functional
+
+            // define PBE here (should be some optional setting))
+            int xfunc_id = XC_GGA_X_PBE;
+            int cfunc_id = XC_GGA_C_PBE;
+            
+            if(xc_func_init(&xfunc, xfunc_id, XC_UNPOLARIZED) != 0){
+               fprintf(stderr, "Functional '%d' not found\n", xfunc_id);
+               exit(1);
+            }
+            
+            if(xc_func_init(&cfunc, cfunc_id, XC_UNPOLARIZED) != 0){
+               fprintf(stderr, "Functional '%d' not found\n", cfunc_id);
+               exit(1);
+            }
+#else
+             ExchangeCorrelation _xc;
+#endif
+            
+            //printf("The exchange functional '%s' is defined in the reference(s):\n%s\n", xfunc.info->name, xfunc.info->refs);
+            //printf("The correlation functional '%s' is defined in the reference(s):\n%s\n", cfunc.info->name, cfunc.info->refs);
+
+            // xc_func_end(&xfunc);
+
+           
+            // timers for testing
+            boost::timer::cpu_timer cpu_t;
+            cpu_t.start();
+
+            double _t_AOgrid = 0.0;
+            double _t_AOcol = 0.0;
+            double _t_AOrow = 0.0;
+            double _t_dmat = 0.0;
+            double _t_rho = 0.0;
+            double _t_grad_rho = 0.0;
+            double _t_vxc =0.0;
+            double _t_AOxc_rho=0.0;
+            double _t_AOxc_grad=0.0;
+            double _t_sum = 0.0;
+             
+            ub::matrix<double> XCMAT = ub::zero_matrix<double>(basis->_AOBasisSize, basis->_AOBasisSize);
+            // for every atom
+            for (int i = 0; i < _grid.size(); i++) {
+	      // for each point in atom grid
+                for (int j = 0; j < _grid[i].size(); j++) {
+
+
+                   boost::timer::cpu_times t0 = cpu_t.elapsed();
+
+
+                    // get value of orbitals at each gridpoint (vector as 1D boost matrix object -> prod )
+                    ub::matrix<double> AOgrid = ub::zero_matrix<double>(basis->_AOBasisSize, 1);
+
+		    // get value of density gradient at each gridpoint
+                    ub::matrix<double> gradAOgrid = ub::zero_matrix<double>(basis->_AOBasisSize, 3); // for Gradients of AOs
+
+                    double rho = 0.0;
+                    ub::matrix<double> grad_rho = ub::zero_matrix<double>(3,1);
+                    
+		    // evaluate AO Functions for all shells, NOW BLOCKWISE
+                    for (vector< AOShell* >::iterator _row = basis->firstShell(); _row != basis->lastShell(); _row++) {
+
+                         boost::timer::cpu_times tstartAOrow  = cpu_t.elapsed();
+                        // for density, fill sub-part of AOatgrid
+                        ub::matrix_range< ub::matrix<double> > _AOgridsub = ub::subrange(AOgrid, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc(), 0, 1);
+                        
+                        //ub::matrix<double> small((*_row)->getNumFunc(),1);
+                        //ub::matrix<double> gradsmall((*_row)->getNumFunc(),3);
+                        
+                        (*_row)->EvalAOspace(_AOgridsub, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
+                        // (*_row)->EvalAOspace(small, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
+
+                        // for density gradient, fill sub-part of gradAOgrid
+                        ub::matrix_range< ub::matrix<double> > _gradAO = ub::subrange(gradAOgrid, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc(), 0, 3);
+                        (*_row)->EvalAOGradspace(_gradAO, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
+
+                        //(*_row)->EvalAOGradspace(gradsmall, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
+
+                        boost::timer::cpu_times tstopAOrow = cpu_t.elapsed();
+                        _t_AOrow += (tstopAOrow.wall-tstartAOrow.wall)/1e9;
+
+                        ub::matrix_range< ub::matrix<double> > _DMAT_here = ub::subrange(_density_matrix,(*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc(), (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc());
+                        ub::matrix<double> _temp = 0.5* ub::prod(_DMAT_here,_AOgridsub);
+                        
+                        // now do the same for _col shell, only lower triangle blocks, we can access 
+                        for (vector< AOShell* >::iterator _col = basis->firstShell() ; _col != _row; _col++) {
+
+                             boost::timer::cpu_times tstartAOcol  = cpu_t.elapsed();
+           
+                            // for density, fill sub-part of AOatgrid
+                            ub::matrix_range< ub::matrix<double> > _AOgridcol = ub::subrange(AOgrid, (*_col)->getStartIndex(), (*_col)->getStartIndex()+(*_col)->getNumFunc(), 0, 1);
+                             boost::timer::cpu_times tstopAOcol = cpu_t.elapsed();
+                            _t_AOcol += (tstopAOcol.wall-tstartAOcol.wall)/1e9;
+                            //(*_col)->EvalAOspace(_AOgridcol, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
+
+                            /* explicit evaluation of AOvalues is not required -> is already there anyway...
+                            ub::matrix<double> small2((*_col)->getNumFunc(),1);
+                            (*_col)->EvalAOspace(small2, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
+                           
+                            */
+                            
+                             
+                             
+                             
+                             
+                             
+                             
+                            
+                            // for density gradient, fill sub-part of gradAOgrid
+                            //ub::matrix_range< ub::matrix<double> > _gradAOcol = ub::subrange(gradAOgrid, (*_col)->getStartIndex(), (*_col)->getStartIndex()+(*_col)->getNumFunc(), 0, 3);
+                            //(*_col)->EvalAOGradspace(_gradAOcol, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
+                            // get subblock of full density matrix
+                            boost::timer::cpu_times tstartDMAT  = cpu_t.elapsed();
+                            ub::matrix_range< ub::matrix<double> > _DMAT_block = ub::subrange(_density_matrix,(*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc(), (*_col)->getStartIndex(), (*_col)->getStartIndex()+(*_col)->getNumFunc());
+                            boost::timer::cpu_times tstopDMAT = cpu_t.elapsed();
+                            _t_dmat += (tstopDMAT.wall-tstartDMAT.wall)/1e9;
+
+                            // update _temp
+                                _temp += ub::prod(_DMAT_block,_AOgridcol);
+                            boost::timer::cpu_times t2 = cpu_t.elapsed();
+                            _t_rho += (t2.wall-tstopDMAT.wall)/1e9;
+                    
+                                            
+                    boost::timer::cpu_times t3 = cpu_t.elapsed();
+                    _t_grad_rho += (t3.wall-t2.wall)/1e9;
+
+                        } //col shells
+                        
+                        rho += ub::prod(ub::trans(_AOgridsub),_temp)(0,0);
+                        grad_rho += ub::prod(ub::trans(_gradAO),_temp);
+                        
+                        
+                        
+                    } // row shells
+                    
+		    if ( rho < 1.e-15 ) continue; // skip the rest, if density is very small
+                    grad_rho = 2.0 * grad_rho;
+                    rho = 2.0 * rho;
+                    
+                    //cout << "rho " << rho << endl;
+                    //exit(0);
+                    
+                    
+                    
+                    if ( 0 == 0 ){
+                    
+                    
+                    // get XC for this density_at_grid
+                    double f_xc;      // E_xc[n] = int{n(r)*eps_xc[n(r)] d3r} = int{ f_xc(r) d3r }
+                    double df_drho;   // v_xc_rho(r) = df/drho
+                    double df_dsigma; // df/dsigma ( df/dgrad(rho) = df/dsigma * dsigma/dgrad(rho) = df/dsigma * 2*grad(rho))
+
+
+
+boost::timer::cpu_times t3 = cpu_t.elapsed();
+                    // evaluate via LIBXC, if compiled, otherwise, go via own implementation
+#ifdef LIBXC
+		    double sigma = ub::prod(ub::trans(grad_rho),grad_rho)(0,0);
+
+                    double vsigma[1]; // libxc 
+                    double vrho[1]; // libxc df/drho
+                    switch (xfunc.info->family) {
+                        case XC_FAMILY_LDA:
+                            xc_lda_vxc(&xfunc, 1, &rho, vrho);
+                            break;
+                        case XC_FAMILY_GGA:
+                        case XC_FAMILY_HYB_GGA:
+                            xc_gga_vxc(&xfunc, 1, &rho, &sigma, vrho, vsigma);
+                            break;
+                    }
+                    df_drho   = vrho[0];
+                    df_dsigma = vsigma[0];
+
+                    // via libxc correlation part only
+                    switch (cfunc.info->family) {
+                        case XC_FAMILY_LDA:
+                            xc_lda_vxc(&cfunc, 1, &rho, vrho);
+                            break;
+                        case XC_FAMILY_GGA:
+                        case XC_FAMILY_HYB_GGA:
+                            xc_gga_vxc(&cfunc, 1, &rho, &sigma, vrho, vsigma);
+                            break;
+                    }
+
+                    df_drho   += vrho[0];
+                    df_dsigma += vsigma[0];
+
+#else
+                    _xc.getXC("PBE", rho, grad_rho(0,0), grad_rho(1,0), grad_rho(2,0), f_xc, df_drho, df_dsigma);
+#endif
+
+                    boost::timer::cpu_times t4 = cpu_t.elapsed();
+                    _t_vxc += (t4.wall-t3.wall)/1e9;
+                    
+		    // density part
+		    ub::matrix<double> _addXC = _grid[i][j].grid_weight * df_drho * AOgrid;
+
+                    boost::timer::cpu_times t5 = cpu_t.elapsed();
+                    _t_AOxc_rho += (t5.wall-t4.wall)/1e9;
+                    
+                    
+		    // gradient part
+		    int size = gradAOgrid.size1();
+                    ub::matrix_range< ub::matrix<double> > _gradAO_x = ub::subrange(gradAOgrid, 0, size , 0, 1);
+                    ub::matrix_range< ub::matrix<double> > _gradAO_y = ub::subrange(gradAOgrid, 0, size , 1, 2);
+                    ub::matrix_range< ub::matrix<double> > _gradAO_z = ub::subrange(gradAOgrid, 0, size , 2, 3);
+		    _addXC += 4.0*df_dsigma * _grid[i][j].grid_weight *(grad_rho(0,0) * _gradAO_x + grad_rho(1,0) * _gradAO_y + grad_rho(2,0) * _gradAO_z );
+
+                    boost::timer::cpu_times t6 = cpu_t.elapsed();
+                    _t_AOxc_grad += (t6.wall-t5.wall)/1e9;
+
+		    // finally combine
+		    XCMAT +=  ub::prod(_addXC,ub::trans(AOgrid));
+
+                    boost::timer::cpu_times t7 = cpu_t.elapsed();
+                    _t_sum += (t7.wall-t6.wall)/1e9;
+                    
+                    } // switch off
+                } // j: for each point in atom grid
+            } // i: for each atom grid
+
+
+            cout << " BLOCK Time AO (row)    : " << _t_AOrow << endl;
+            cout << " BLOCK Time AO (col)    : " << _t_AOcol << endl;
+            cout << " BLOCK Time AO (tot)    : " << _t_AOgrid << endl;
+            cout << " BLOCK Time DMAT        : " << _t_dmat << endl;
+
+            cout << " BLOCK Time rho         : " << _t_rho << endl;
+            cout << " BLOCK Time grad rho    : " << _t_grad_rho << endl;
+            cout << " BLOCK Time Vxc         : " << _t_vxc << endl;
+            cout << " BLOCK Time AOxc rho    : " << _t_AOxc_rho << endl;
+            cout << " BLOCK Time AOxc grad   : " << _t_AOxc_grad << endl;
+            cout << " BLOCK Time AOxc sum    : " << _t_sum << endl;
+            
+            return XCMAT;
+
+        }
+        
         
         
         // numerically integrate the elements of the AOXC matrix
