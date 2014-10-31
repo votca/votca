@@ -78,6 +78,7 @@
       <itemPath>../../include/votca/ctp/apolarsite.h</itemPath>
       <itemPath>../../include/votca/ctp/atom.h</itemPath>
       <itemPath>../../include/votca/ctp/basisset.h</itemPath>
+      <itemPath>../../include/votca/ctp/blockAOmatrix.h</itemPath>
       <itemPath>../../include/votca/ctp/bsecoupling.h</itemPath>
       <itemPath>../../include/votca/ctp/calculatorfactory.h</itemPath>
       <itemPath>../../include/votca/ctp/ctpapplication.h</itemPath>
@@ -280,6 +281,11 @@
       <item path="../../include/votca/ctp/atom.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/basisset.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/blockAOmatrix.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/ctp/bsecoupling.h"
             ex="false"
@@ -990,6 +996,11 @@
       <item path="../../include/votca/ctp/atom.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/basisset.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/blockAOmatrix.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/ctp/bsecoupling.h"
             ex="false"
