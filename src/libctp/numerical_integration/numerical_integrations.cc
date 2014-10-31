@@ -198,11 +198,11 @@ namespace votca {
             _minimal_decay.push_back(_decaymin);
             _positions.push_back( _localpos );
              
-             for ( int i =0; i < _minimal_decay.size(); i++){
+            /* for ( int i =0; i < _minimal_decay.size(); i++){
                  
                  cout << "Atom " << i << " min decay " << _minimal_decay[i] <<  " at " << _positions[i] << endl; 
                  
-             }
+             } */
              
              
              // for each gridpoint, check the value of exp(-a*(r-R)^2) < 1e-10
@@ -267,6 +267,27 @@ namespace votca {
              //exit(0);
             
             
+            int total_grid =0;
+            int significant_grid = 0;
+            for ( int i = 0; i < _significant_atoms.size(); i++ ){
+                
+                total_grid += _grid[i].size(); 
+                
+                for ( int j = 0; j < _significant_atoms[i].size(); j++ ){
+                    
+                    int gridpointsize = _significant_atoms[i][j].size();
+                    significant_grid += gridpointsize*(gridpointsize+1);
+                    
+                }
+                
+                
+                
+            }
+            int natoms = _grid.size();
+            
+            total_grid = total_grid * ( natoms*(natoms+1) ) / 2;
+            
+            cout << "Total number of atom blocks " << total_grid << " after removal of insignificant blocks " << significant_grid/2 << endl;
             
             
             
