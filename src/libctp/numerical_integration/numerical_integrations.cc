@@ -431,27 +431,27 @@ namespace votca {
                             // for gradient, get sub-part of gradAOgrid
                             ub::matrix_range< ub::matrix<double> > _gradAOgridcol = ub::subrange(gradAOgrid,(*_col)->getStartIndex(), (*_col)->getStartIndex()+(*_col)->getNumFunc() , 0, 3);
                             
-                            ub::matrix_range< ub::matrix<double> > _DMAThere = ub::subrange(_density_matrix,(*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc(), (*_col)->getStartIndex(), (*_col)->getStartIndex()+(*_col)->getNumFunc());
+                            // ub::matrix_range< ub::matrix<double> > _DMAThere = ub::subrange(_density_matrix,(*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc(), (*_col)->getStartIndex(), (*_col)->getStartIndex()+(*_col)->getNumFunc());
                             
                             
                             // update _temp, careful if diagonal!
-                            /* _temp     += ub::prod(_DMATblocks[iterblock],    _AOgridcol);
+                            _temp     += ub::prod(_DMATblocks[iterblock],    _AOgridcol);
                             _tempgrad += ub::prod(_DMATblocks[iterblock],_gradAOgridcol);
-                            iterblock++; */
-                            _temp     += ub::prod(_DMAThere,    _AOgridcol);
-                            _tempgrad += ub::prod(_DMAThere,_gradAOgridcol);
+                            iterblock++; 
+                            //_temp     += ub::prod(_DMAThere,    _AOgridcol);
+                            //_tempgrad += ub::prod(_DMAThere,_gradAOgridcol);
                             
  
                         } //col shells
                           
                         // "diagonal shell"   needs to be added
-                        /* _temp     += 0.5 * ub::prod(_DMATblocks[iterblock],_AOgridsub);
+                        _temp     += 0.5 * ub::prod(_DMATblocks[iterblock],_AOgridsub);
                         _tempgrad += 0.5 * ub::prod(_DMATblocks[iterblock],_gradAO);
-                        iterblock++; */
+                        iterblock++; 
                         
-                        ub::matrix_range< ub::matrix<double> > _DMAThere = ub::subrange(_density_matrix,(*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc(), (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc());
+                       /* ub::matrix_range< ub::matrix<double> > _DMAThere = ub::subrange(_density_matrix,(*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc(), (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc());
                             _temp     += 0.5 * ub::prod(_DMAThere,    _AOgridsub);
-                            _tempgrad += 0.5 * ub::prod(_DMAThere,_gradAO);
+                            _tempgrad += 0.5 * ub::prod(_DMAThere,_gradAO);*/
                             
                         rho_mat  += ub::prod(ub::trans(_AOgridsub),_temp);
                         grad_rho += ub::prod(ub::trans(_gradAO),_temp) +  ub::prod(ub::trans(_tempgrad),_AOgridsub) ;
