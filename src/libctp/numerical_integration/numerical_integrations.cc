@@ -287,8 +287,8 @@ namespace votca {
             
             total_grid = total_grid * ( natoms*(natoms+1) ) / 2;
             
-            cout << "Total number of atom blocks " << total_grid << " after removal of insignificant blocks " << significant_grid/2 << endl;
-            
+            // cout << "Total number of atom blocks " << total_grid << " after removal of insignificant blocks " << significant_grid/2 << endl;
+            cout << "# Atom blocks by removal of insignificant blocks reduced to " << 50*double(significant_grid)/double(total_grid) << "%" << endl;
             
             
             
