@@ -290,17 +290,6 @@ namespace votca {
             // cout << "Total number of atom blocks " << total_grid << " after removal of insignificant blocks " << significant_grid/2 << endl;
             cout << "# Atom blocks by removal of insignificant blocks reduced to " << 50*double(significant_grid)/double(total_grid) << "%" << endl;
             
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-             
             ub::matrix<double> XCMAT = ub::zero_matrix<double>(basis->_AOBasisSize, basis->_AOBasisSize);
             // for every atom
             for (int i = 0; i < _grid.size(); i++) {
