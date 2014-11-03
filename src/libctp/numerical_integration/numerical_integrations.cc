@@ -455,18 +455,51 @@ namespace votca {
                     
                     
 		    // gradient part
-		    int size = gradAOgrid.size1();
-                    ub::matrix_range< ub::matrix<double> > _gradAO_x = ub::subrange(gradAOgrid, 0, size , 0, 1);
-                    ub::matrix_range< ub::matrix<double> > _gradAO_y = ub::subrange(gradAOgrid, 0, size , 1, 2);
-                    ub::matrix_range< ub::matrix<double> > _gradAO_z = ub::subrange(gradAOgrid, 0, size , 2, 3);
-		    _addXC += 4.0*df_dsigma * _grid[i][j].grid_weight *(grad_rho(0,0) * _gradAO_x + grad_rho(1,0) * _gradAO_y + grad_rho(2,0) * _gradAO_z );
-
+                    _addXC+=  4.0*df_dsigma * _grid[i][j].grid_weight * ub::prod(gradAOgrid,grad_rho);
                     boost::timer::cpu_times t6 = cpu_t.elapsed();
                     _t_AOxc_grad += (t6.wall-t5.wall)/1e9;
 
-		    // finally combine
-		    XCMAT +=  ub::prod(_addXC,ub::trans(AOgrid));
+		    // finally combine (super-slow...)
+                    // XCMAT +=  ub::prod(_addXC,ub::trans(AOgrid));
 
+                    
+                    // combine/sum atom-block wise, only trigonal part, symmetrize later
+
+                    // for each significant atom for this grid point
+                    for (int sigrow = 0; sigrow < _significant_atoms[i][j].size(); sigrow++) {
+                        
+                        // this atom
+                        int rowatom = _significant_atoms[i][j][sigrow];
+                        // line reference of _addXC
+                        ub::matrix_range< ub::matrix<double> > _rowXC = ub::subrange( _addXC, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom], 0, 1);
+                            
+
+                        for (int sigcol = 0; sigcol < _significant_atoms[i][j].size(); sigcol++) {
+                            int colatom = _significant_atoms[i][j][sigcol];
+                            if (colatom > rowatom) break;
+
+                            // line reference of AOgrid (transposed))
+                            ub::matrix_range< ub::matrix<double> > _AOcol = ub::subrange( AOgrid,  _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom], 0, 1);
+                            
+                            
+                            // update block reference of XCMAT
+                            ub::matrix_range<ub::matrix<double> > _XCmatblock = ub::subrange( XCMAT,_startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom], _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom] );
+
+                            //ub::matrix<double> _temoprod = ub::prod( _rowXC, _AOcol  );
+
+                            _XCmatblock += ub::prod( _rowXC, ub::trans(_AOcol)  );
+                            
+                            // _XCmatblock += _temoprod;
+                            
+                            
+                            
+                            
+                        } // significant col
+
+                    } // significant row
+                    
+                    
+                    
                     boost::timer::cpu_times t7 = cpu_t.elapsed();
                     _t_sum += (t7.wall-t6.wall)/1e9;
                     
