@@ -460,13 +460,13 @@ namespace votca {
                     _t_AOxc_grad += (t6.wall-t5.wall)/1e9;
 
 		    // finally combine (super-slow...)
-                     XCMAT +=  ub::prod(_addXC,ub::trans(AOgrid));
+                    // XCMAT +=  ub::prod(_addXC,ub::trans(AOgrid));
 
                     
                     // combine/sum atom-block wise, only trigonal part, symmetrize later
 
                     // for each significant atom for this grid point
-                 /*   for (int sigrow = 0; sigrow < _significant_atoms[i][j].size(); sigrow++) {
+                    for (int sigrow = 0; sigrow < _significant_atoms[i][j].size(); sigrow++) {
                         
                         // this atom
                         int rowatom = _significant_atoms[i][j][sigrow];
@@ -485,18 +485,18 @@ namespace votca {
                             // update block reference of XCMAT
                             ub::matrix_range<ub::matrix<double> > _XCmatblock = ub::subrange( XCMAT,_startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom], _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom] );
 
-                            //ub::matrix<double> _temoprod = ub::prod( _rowXC, _AOcol  );
+                            ub::matrix<double> _tempprod = ub::prod( _rowXC, ub::trans(_AOcol)  );
 
-                            _XCmatblock += ub::prod( _rowXC, ub::trans(_AOcol)  );
+                            //_XCmatblock += ub::prod( _rowXC, ub::trans(_AOcol)  );
                             
-                            // _XCmatblock += _temoprod;
+                             _XCmatblock += _tempprod;
                             
                             
                             
                             
                         } // significant col
 
-                    } // significant row */
+                    } // significant row 
                     
                     
                     
@@ -507,6 +507,14 @@ namespace votca {
                 } // j: for each point in atom grid
             } // i: for each atom grid
 
+            
+
+            // symmetrize 
+            for (int _i = 0; _i < XCMAT.size1(); _i++) {
+                for (int _j = 0; _j < _i; _j++) {
+                    XCMAT(_j, _i) = XCMAT(_i, _j);
+                }
+            }
 
 
             cout << " ATBLOCK Time rho         : " << _t_rho << endl;
