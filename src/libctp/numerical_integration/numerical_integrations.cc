@@ -464,8 +464,8 @@ namespace votca {
 
                     
                     // combine/sum atom-block wise, only trigonal part, symmetrize later
-
                     // for each significant atom for this grid point
+                    #pragma omp parallel for
                     for (int sigrow = 0; sigrow < _significant_atoms[i][j].size(); sigrow++) {
                         
                         // this atom
@@ -478,24 +478,16 @@ namespace votca {
                             int colatom = _significant_atoms[i][j][sigcol];
                             if (colatom > rowatom) break;
 
-                            // line reference of AOgrid (transposed))
+                            // line reference of AOgrid 
                             ub::matrix_range< ub::matrix<double> > _AOcol = ub::subrange( AOgrid,  _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom], 0, 1);
                             
                             
                             // update block reference of XCMAT
                             ub::matrix_range<ub::matrix<double> > _XCmatblock = ub::subrange( XCMAT,_startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom], _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom] );
-
-                            //ub::matrix<double> _tempprod = ub::prod( _rowXC, ub::trans(_AOcol)  );
-
                             _XCmatblock += ub::prod( _rowXC, ub::trans(_AOcol)  );
-                            
-                            // _XCmatblock += _tempprod;
-                            
-                            
                             
                             
                         } // significant col
-
                     } // significant row 
                     
                     
@@ -510,6 +502,7 @@ namespace votca {
             
 
             // symmetrize 
+            #pragma omp parallel for
             for (int _i = 0; _i < XCMAT.size1(); _i++) {
                 for (int _j = 0; _j < _i; _j++) {
                     XCMAT(_j, _i) = XCMAT(_i, _j);
