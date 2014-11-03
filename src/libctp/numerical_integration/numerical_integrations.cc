@@ -460,13 +460,13 @@ namespace votca {
                     _t_AOxc_grad += (t6.wall-t5.wall)/1e9;
 
 		    // finally combine (super-slow...)
-                    // XCMAT +=  ub::prod(_addXC,ub::trans(AOgrid));
+                     XCMAT +=  ub::prod(_addXC,ub::trans(AOgrid));
 
                     
                     // combine/sum atom-block wise, only trigonal part, symmetrize later
 
                     // for each significant atom for this grid point
-                    for (int sigrow = 0; sigrow < _significant_atoms[i][j].size(); sigrow++) {
+                 /*   for (int sigrow = 0; sigrow < _significant_atoms[i][j].size(); sigrow++) {
                         
                         // this atom
                         int rowatom = _significant_atoms[i][j][sigrow];
@@ -496,7 +496,7 @@ namespace votca {
                             
                         } // significant col
 
-                    } // significant row
+                    } // significant row */
                     
                     
                     
