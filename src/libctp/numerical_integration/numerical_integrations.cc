@@ -485,11 +485,11 @@ namespace votca {
                             // update block reference of XCMAT
                             ub::matrix_range<ub::matrix<double> > _XCmatblock = ub::subrange( XCMAT,_startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom], _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom] );
 
-                            ub::matrix<double> _tempprod = ub::prod( _rowXC, ub::trans(_AOcol)  );
+                            //ub::matrix<double> _tempprod = ub::prod( _rowXC, ub::trans(_AOcol)  );
 
-                            //_XCmatblock += ub::prod( _rowXC, ub::trans(_AOcol)  );
+                            _XCmatblock += ub::prod( _rowXC, ub::trans(_AOcol)  );
                             
-                             _XCmatblock += _tempprod;
+                            // _XCmatblock += _tempprod;
                             
                             
                             
