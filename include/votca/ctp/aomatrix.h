@@ -162,7 +162,7 @@ namespace votca { namespace ctp {
         //void Print();
         void Fillnucpotential( AOBasis* aobasis, std::vector<QMAtom*>& _atoms );
         
-        
+        ub::matrix<double> _nuclearpotential;
         // ~AOESP();
         
         

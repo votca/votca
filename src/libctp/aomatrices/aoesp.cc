@@ -482,10 +482,10 @@ namespace votca { namespace ctp {
         }// _shell_row Gaussians
     }
     
-  
+  // Calculates the electrostatic potential matrix element between two basis functions, for an array of atomcores.
     void AOESP::Fillnucpotential( AOBasis* aobasis, std::vector<QMAtom*>& _atoms){
     
-    ub::matrix<double> _nuclearpotential=ub::zero_matrix<double>(aobasis->AOBasisSize(),aobasis->AOBasisSize());
+    _nuclearpotential=ub::zero_matrix<double>(aobasis->AOBasisSize(),aobasis->AOBasisSize());
     ub::vector<double> positionofatom=ub::zero_vector<double>(3);
    for ( int j = 0; j < _atoms.size(); j++){
 
@@ -499,7 +499,6 @@ namespace votca { namespace ctp {
     
     }
     
-    _aomatrix=_nuclearpotential;
     }    
     
 }}
