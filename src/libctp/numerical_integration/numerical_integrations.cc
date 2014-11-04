@@ -79,7 +79,7 @@ namespace votca {
             // timers for testing
             boost::timer::cpu_timer cpu_t;
             cpu_t.start();
-
+            double _t_AOvals = 0.0;
             double _t_rho = 0.0;
             double _t_grad_rho = 0.0;
             double _t_vxc =0.0;
@@ -310,9 +310,6 @@ namespace votca {
                     ub::matrix<double> grad_rho = ub::zero_matrix<double>(3,1);
                     
 		    // evaluate AO Functions for all shells, NOW BLOCKWISE
-                    int iterblock = 0;
-                    // for each atom
-                    // for ( int rowatom = 0; rowatom < _atomshells.size() ; rowatom++){
 
                     // for each significant atom for this grid point
                     for ( int sigrow = 0; sigrow < _significant_atoms[i][j].size() ; sigrow++){
@@ -324,7 +321,7 @@ namespace votca {
                     
                         // for each shell in this atom
                         for ( int ishell = 0 ; ishell < _atomshells[rowatom].size() ; ishell++ ){
-                            
+                            boost::timer::cpu_times tstartshells = cpu_t.elapsed();
                             AOShellIterator _row = _atomshells[rowatom][ishell];
                             // for density, fill sub-part of AOatgrid
                             ub::matrix_range< ub::matrix<double> > _AOgridsub = ub::subrange(AOgrid, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc(), 0, 1);
@@ -333,21 +330,19 @@ namespace votca {
                             // gradient of density
                             ub::matrix_range< ub::matrix<double> > _gradAO = ub::subrange(gradAOgrid, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc(), 0, 3);
                             (*_row)->EvalAOGradspace(_gradAO, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
+                            boost::timer::cpu_times tendshells = cpu_t.elapsed();
+                            
+                             _t_AOvals +=  (tendshells.wall-tstartshells.wall)/1e9;
 
                         }  // shell in atom
                         
                         ub::matrix<double> _temp     = ub::zero_matrix<double>(_blocksize[rowatom],1);
                         ub::matrix<double> _tempgrad = ub::zero_matrix<double>(_blocksize[rowatom],3);
-                        //ub::matrix<double> _temp = ub::zero_matrix<double>((*_row)->getNumFunc(),1);
-                        //ub::matrix<double> _tempgrad = ub::zero_matrix<double>((*_row)->getNumFunc(),3);
-                        
-                        
                         
                         ub::matrix_range< ub::matrix<double> > _AOgridrow     = ub::subrange(    AOgrid, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom], 0, 1);
 
 
                         // for each atom
-                        //for ( int colatom = 0; colatom <= rowatom ; colatom++){
                         // for all significant atoms of triangular matrix
                         for ( int sigcol = 0; sigcol < _significant_atoms[i][j].size() ; sigcol++){
                             int colatom = _significant_atoms[i][j][sigcol];
@@ -363,20 +358,14 @@ namespace votca {
                             
                             // update _temp, careful if diagonal!
                             if ( colatom == rowatom ){
-                                //_temp     += 0.5 * ub::prod(_DMATblocks[iterblock],_AOgridcol);
-                                //_tempgrad += 0.5 * ub::prod(_DMATblocks[iterblock],_gradAOgridcol);
                                 _temp     += 0.5 * ub::prod( DMAT_here,_AOgridcol);
                                 _tempgrad += 0.5 * ub::prod( DMAT_here,_gradAOgridcol);
                             } else {
                                 
-                                //_temp     += ub::prod(_DMATblocks[iterblock],    _AOgridcol);
-                                //_tempgrad += ub::prod(_DMATblocks[iterblock],_gradAOgridcol);
                                 _temp     += ub::prod( DMAT_here,    _AOgridcol);
                                 _tempgrad += ub::prod( DMAT_here,_gradAOgridcol);
 
                             }
-                            
-                            iterblock++;
 
                         } //col shells
                         
@@ -389,7 +378,8 @@ namespace votca {
                         
                         
                         
-                    } // row shells
+                    } // row shells 
+
 
                     double rho      = 2.0 * rho_mat(0,0);
                     boost::timer::cpu_times t3 = cpu_t.elapsed();
@@ -465,6 +455,7 @@ namespace votca {
                     
                     // combine/sum atom-block wise, only trigonal part, symmetrize later
                     // for each significant atom for this grid point
+                    // parallelization only accesses atomblock information (_addXC, AOgrid -> XCmatblock), so no trouble with shared memory access )
                     #pragma omp parallel for
                     for (int sigrow = 0; sigrow < _significant_atoms[i][j].size(); sigrow++) {
                         
@@ -509,7 +500,7 @@ namespace votca {
                 }
             }
 
-
+            cout << " ATBLOCK Time AOVals      : " << _t_AOvals << endl;
             cout << " ATBLOCK Time rho         : " << _t_rho << endl;
             cout << " ATBLOCK Time grad rho    : " << _t_grad_rho << endl;
             cout << " ATBLOCK Time Vxc         : " << _t_vxc << endl;
