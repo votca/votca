@@ -1314,9 +1314,9 @@ namespace votca {
                     // for each (theta,phi)
                     for (int _i_sph = 0; _i_sph < _spherical_grid.phi.size(); _i_sph++) {
 
-                        double p = _spherical_grid.phi[_i_sph] * pi / 180.0; // back to rad
-                        double t = _spherical_grid.theta[_i_sph] * pi / 180.0; // back to rad
-                        double ws = _spherical_grid.weight[_i_sph];
+                        double p   = _spherical_grid.phi[_i_sph] * pi / 180.0; // back to rad
+                        double t   = _spherical_grid.theta[_i_sph] * pi / 180.0; // back to rad
+                        double ws  = _spherical_grid.weight[_i_sph];
 
                         double x_s = sin(p) * cos(t);
                         double y_s = sin(p) * sin(t);

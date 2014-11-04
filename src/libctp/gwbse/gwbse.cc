@@ -316,7 +316,10 @@ namespace votca {
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Converted DFT orbital coefficient order from " << _dft_package << " to VOTCA" <<  flush;
             }
             
-  // test total number of electrons
+            
+            /******* TESTING VXC 
+            
+            // test total number of electrons
             //ub::matrix<double> _ddft_orbitals = *(_orbitals->getOrbitals()); 
             //ddftbasis.ReorderMOs(_ddft_orbitals, "gaussian", "votca" );
             ub::matrix<double> &DMAT = _orbitals->DensityMatrixGroundState( _dft_orbitals );
@@ -328,15 +331,6 @@ namespace votca {
             // test AOxcmatrix
             //ub::matrix<double> AOXC = _numint.IntegrateVXC(DMAT,&dftbasis); 
             ub::matrix<double> AOXC_atomblock = _numint.IntegrateVXC_Atomblock(DMAT,&dftbasis); 
-            //ub::matrix<double> AOXC_block = _numint.IntegrateVXC_block(DMAT,&dftbasis); 
-            /*for ( int i = 0 ; i < AOXC.size1(); i++ ){
-                //for ( int j = 0 ; j < AOXC.size2(); j++ ){
-                    
-                    cout << i << " : " << i << " aoxc " << AOXC(i,i) << " atomblock " << AOXC_atomblock(i,i) << " shell blocks " << AOXC_block(i,i) <<  endl;
-                    
-               // }
-                
-            }*/
             
             for ( int i = 0 ; i < AOXC_atomblock.size1(); i++ ){
                 //for ( int j = 0 ; j < AOXC.size2(); j++ ){
@@ -348,7 +342,7 @@ namespace votca {
             }
             
             exit(0);
-            
+            ****************/
          
             
             

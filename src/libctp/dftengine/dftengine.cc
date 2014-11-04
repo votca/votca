@@ -90,9 +90,10 @@ namespace votca {
 
             
             // set the parallelization 
-#ifdef OMP
+            #ifdef OMP
             if ( _openmp_threads > 0 ) omp_set_num_threads(_openmp_threads);
-#endif
+            #endif
+
             _atoms = _orbitals->QMAtoms();
 
 
