@@ -171,6 +171,7 @@
         <itemPath>../../src/libctp/sqlapplication.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f7" displayName="dftengine" projectFiles="true">
+        <itemPath>../../src/libctp/dftengine/dftengine.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="Factories" projectFiles="true">
         <itemPath>../../src/libctp/calculatorfactory.cc</itemPath>
@@ -201,7 +202,6 @@
       </logicalFolder>
       <itemPath>../../src/libctp/apolarsite.cc</itemPath>
       <itemPath>../../src/libctp/bsecoupling.cc</itemPath>
-      <itemPath>../../src/libctp/dftengine/dftengine.cc</itemPath>
       <itemPath>../../src/libctp/ewald2d.cc</itemPath>
       <itemPath>../../src/libctp/ewald3d.cc</itemPath>
       <itemPath>../../src/libctp/ewaldactor.cc</itemPath>
