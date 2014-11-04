@@ -7,12 +7,12 @@
  * You may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *              http://www.apache.org/licenses/LICEN_olE-2.0
+ *              http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "A_ol I_ol" BA_olI_ol,
- * WITHOUT WARRANTIE_ol OR CONDITION_ol OF ANY KIND, either express or implied.
- * _olee the License for the specific language governing permissions and
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
  *
  */
@@ -50,8 +50,8 @@ namespace votca {
          *      S,P,D,F functions in GW  basis
          * 
          */
-        bool TCMatrix::FillThreeCenterOLBlock(ub::matrix<double>& _subvector, AOShell* _shell_gw, AOShell* _shell_alpha, AOShell* _shell_gamma) {
-	  //bool TCMatrix::FillThreeCenterOLBlock(ub::matrix<float>& _subvector, AOShell* _shell_gw, AOShell* _shell_alpha, AOShell* _shell_gamma) {
+        bool TCrawMatrix::FillThreeCenterOLBlock(ub::matrix<double>& _subvector, AOShell* _shell_gw, AOShell* _shell_alpha, AOShell* _shell_gamma) {
+	  //bool TCrawMatrix::FillThreeCenterOLBlock(ub::matrix<float>& _subvector, AOShell* _shell_gw, AOShell* _shell_alpha, AOShell* _shell_gamma) {
             
               // get shell positions
             const vec& _pos_gw = _shell_gw->getPos();
@@ -2373,18 +2373,9 @@ namespace votca {
 
         }
 
-        void TCMatrix::Print(string _ident) {
-	  //cout << "\n" << endl;
-            for (int k = 0; k < this->mtotal; k++) {
-                for (int i = 0; i < _matrix[1].size1(); i++) {
-                    for (int j = 0; j< this->ntotal; j++) {
-                        cout << _ident << "[" << i + 1 << ":" << k + 1 << ":" << j + 1 << "] " << this->_matrix[k](i, j) << endl;
-                    }
-                }
-            }
-        }
+     
 
-        void TCMatrix::getTrafo(ub::matrix<double>& _trafo, int _lmax, const double& _decay,std::vector<double> contractions) {
+        void TCrawMatrix::getTrafo(ub::matrix<double>& _trafo, int _lmax, const double& _decay,std::vector<double> contractions) {
         // s-functions
         _trafo(0,0) = 1.0*contractions[0]; // s
        
@@ -2523,7 +2514,7 @@ namespace votca {
 
         }
 
-        int TCMatrix::getBlockSize(int _lmax) {
+        int TCrawMatrix::getBlockSize(int _lmax) {
             int _block_size;
             if (_lmax == 0) {
                 _block_size = 1;

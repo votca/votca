@@ -41,7 +41,7 @@
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/filesystem.hpp>
 #include <votca/tools/linalg.h>
-
+#include <votca/ctp/ERIs.h>
 #include <boost/numeric/ublas/operation.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
@@ -127,8 +127,12 @@ public:
     // AO Matrices
     AOOverlap                           _dftAOoverlap;
     AOOverlap                           _auxAOoverlap;
-    AOCoulomb                           _dftAOCoulomb;
+    AOCoulomb                           _dftAOcoulomb;
     AOCoulomb                           _auxAOcoulomb;
+    AOKinetic                           _dftAOkinetic;
+    
+    //Electron repulsion integrals
+    ERIs                                _ERIs;
     
     // exchange and correlation
     string                              _x_functional_name;

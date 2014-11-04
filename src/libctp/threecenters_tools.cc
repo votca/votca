@@ -9,10 +9,10 @@
  *
  *              http://www.apache.org/licenses/LICEN_olE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "A_ol I_ol" BA_olI_ol,
- * WITHOUT WARRANTIE_ol OR CONDITION_ol OF ANY KIND, either express or implied.
- * _olee the License for the specific language governing permissions and
+ *Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
  *
  */
@@ -64,6 +64,17 @@ namespace votca {
             }
 
         } // TCMatrix::Symmetrize
+        
+           void TCMatrix::Print(string _ident) {
+	  //cout << "\n" << endl;
+            for (int k = 0; k < this->mtotal; k++) {
+                for (int i = 0; i < _matrix[1].size1(); i++) {
+                    for (int j = 0; j< this->ntotal; j++) {
+                        cout << _ident << "[" << i + 1 << ":" << k + 1 << ":" << j + 1 << "] " << this->_matrix[k](i, j) << endl;
+                    }
+                }
+            }
+        }
 
         
         /*

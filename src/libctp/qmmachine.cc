@@ -442,7 +442,7 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     LOG(logINFO,*_log)
         << format("... RMS(dR)  = %1$+4.9e") % thisIter->getRMSdR() << flush;
     LOG(logINFO,*_log)
-        << format("... MS(dQ)   = %1$+4.9e") % thisIter->getRMSdQ() << flush;
+        << format("... RMS(dQ)  = %1$+4.9e") % thisIter->getRMSdQ() << flush;
     LOG(logINFO,*_log)
         << format("... SUM(dQ)  = %1$+4.9e") % thisIter->getSUMdQ() << flush;
     
