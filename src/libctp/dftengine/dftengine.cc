@@ -90,9 +90,10 @@ namespace votca {
 
             
             // set the parallelization 
-#ifdef OMP
+            #ifdef OMP
             if ( _openmp_threads > 0 ) omp_set_num_threads(_openmp_threads);
-#endif
+            #endif
+
             _atoms = _orbitals->QMAtoms();
 
 
@@ -103,7 +104,9 @@ namespace votca {
 	    /**** Density-independent matrices ****/
 	    SetupInvariantMatrices();
 
-
+            /**** Initial guess = one-electron Hamiltonian without interactions ****/
+            
+            /**** Construct initial density  ****/
 	    
            
             ub::matrix<double> DMAT = ub::identity_matrix<double>(_dftbasis._AOBasisSize);

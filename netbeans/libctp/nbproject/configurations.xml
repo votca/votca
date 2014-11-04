@@ -78,9 +78,11 @@
       <itemPath>../../include/votca/ctp/apolarsite.h</itemPath>
       <itemPath>../../include/votca/ctp/atom.h</itemPath>
       <itemPath>../../include/votca/ctp/basisset.h</itemPath>
+      <itemPath>../../include/votca/ctp/blockAOmatrix.h</itemPath>
       <itemPath>../../include/votca/ctp/bsecoupling.h</itemPath>
       <itemPath>../../include/votca/ctp/calculatorfactory.h</itemPath>
       <itemPath>../../include/votca/ctp/ctpapplication.h</itemPath>
+      <itemPath>../../include/votca/ctp/dftengine.h</itemPath>
       <itemPath>../../include/votca/ctp/elements.h</itemPath>
       <itemPath>../../include/votca/ctp/espfit.h</itemPath>
       <itemPath>../../include/votca/ctp/ewald2d.h</itemPath>
@@ -168,6 +170,9 @@
         <itemPath>../../src/libctp/jobapplication.cc</itemPath>
         <itemPath>../../src/libctp/sqlapplication.cc</itemPath>
       </logicalFolder>
+      <logicalFolder name="f7" displayName="dftengine" projectFiles="true">
+        <itemPath>../../src/libctp/dftengine/dftengine.cc</itemPath>
+      </logicalFolder>
       <logicalFolder name="f1" displayName="Factories" projectFiles="true">
         <itemPath>../../src/libctp/calculatorfactory.cc</itemPath>
         <itemPath>../../src/libctp/extractorfactory.cc</itemPath>
@@ -197,7 +202,6 @@
       </logicalFolder>
       <itemPath>../../src/libctp/apolarsite.cc</itemPath>
       <itemPath>../../src/libctp/bsecoupling.cc</itemPath>
-      <itemPath>../../src/libctp/dftengine/dftengine.cc</itemPath>
       <itemPath>../../src/libctp/ewald2d.cc</itemPath>
       <itemPath>../../src/libctp/ewald3d.cc</itemPath>
       <itemPath>../../src/libctp/ewaldactor.cc</itemPath>
@@ -278,6 +282,11 @@
       </item>
       <item path="../../include/votca/ctp/basisset.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/ctp/blockAOmatrix.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/bsecoupling.h"
             ex="false"
             tool="3"
@@ -289,6 +298,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/ctpapplication.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/dftengine.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -987,6 +1001,11 @@
       </item>
       <item path="../../include/votca/ctp/basisset.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/ctp/blockAOmatrix.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/bsecoupling.h"
             ex="false"
             tool="3"
@@ -998,6 +1017,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/ctpapplication.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/dftengine.h"
             ex="false"
             tool="3"
             flavor2="0">

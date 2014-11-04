@@ -34,7 +34,7 @@ namespace votca {
             ExchangeCorrelation() {
             };
 
-            void getXC(string type, const double& rho, const double& drho_dX, const double& drho_dY, const double& drho_dZ, double& f, double& df_drho, double& df_drho_dX, double& df_drho_dY, double& df_drho_dZ);
+            void getXC(string type, const double& rho, const double& drho_dX, const double& drho_dY, const double& drho_dZ, double& f, double& df_drho, double& df_dsigma);
 
 
 
@@ -42,7 +42,7 @@ namespace votca {
 
             void set_rs(const double& rho, double& rs, double& drs_dr);
             void set_fzeta(const double& zeta, double& fzeta, double& dfzeta_dzeta);
-            void set_s(const double& density, double& gradNorm, double& s, double& ds_drho, double ds_dnrho);
+            void set_s(const double& density, double& gradNorm, double& s, double& ds_drho, double& ds_dnrho);
             void setNormGradient(const double& drho_dX, const double& drho_dY, const double& drho_dZ, double& norm, double& drho_dX_normal, double& drho_dY_normal, double& drho_dZ_normal);
             void set_gphi(const double& zeta, double& gphi, double& dgphi_dzeta);
             void set_t(const double& rho, double& gphi, double& nrho, double& t, double& dt_drho, double& dt_dgphi, double& dt_dnrho  );
@@ -58,7 +58,8 @@ namespace votca {
             void evalPW91_correlation_G( const double& rs, double& G, double& dG_drs, const double& A, const double& alpha1, const double& beta1, const double& beta2, const double& beta3, const double& beta4, const double& p);
             void evalPW91_correlation_int( const double& rho, const double& zeta, double& ec, double& dec_drho, double& dec_dzeta );
 
-            void evalPBE(const double& rho, const double& drho_dX, const double& drho_dY, const double& drho_dZ, double& f, double& df_drho, double& df_drho_dX, double& df_drho_dY, double& df_drho_dZ);
+            //void evalPBE(const double& rho, const double& drho_dX, const double& drho_dY, const double& drho_dZ, double& f, double& df_drho, double& df_drho_dX, double& df_drho_dY, double& df_drho_dZ);
+            void evalPBE(const double& rho, const double& drho_dX, const double& drho_dY, const double& drho_dZ, double& f, double& df_drho, double& df_dsigma);
             void evalPBE_exchange(const double& rho, const double& drho_dX, const double& drho_dY, const double& drho_dZ, double& fx, double& dfx_drho, double& dfx_drho_dX, double& dfx_drho_dY, double& dfx_drho_dZ);
             void evalPBE_correlation(const double& rho, const double& drho_dX, const double& drho_dY, const double& drho_dZ, double& fc, double& dfc_drho, double& dfc_drho_dX,double& dfc_drho_dY,double& dfc_drho_dZ);
             void evalPBE_correlation_H(const double& rho,  double& zeta,  double& nrho,  double& eps,  double& deps_drho,  double& deps_dzeta, double& H, double& dH_drho, double& dH_dzeta, double& dH_dnrho);
@@ -68,17 +69,17 @@ namespace votca {
 
         // Main interface function to calculate XC potential and it's gradient, depending on local rho and gradient of rho        
 
-        inline void ExchangeCorrelation::getXC(string type, const double& rho, const double& drho_dX, const double& drho_dY, const double& drho_dZ, double& f, double& df_drho, double& df_drho_dX, double& df_drho_dY, double& df_drho_dZ) {
+        inline void ExchangeCorrelation::getXC(string type, const double& rho, const double& drho_dX, const double& drho_dY, const double& drho_dZ, double& f, double& df_drho, double& df_dsigma) {
 
             if (type == "LDA") evalLDA(rho, f, df_drho);
-            if (type == "PBE") evalPBE(rho, drho_dX, drho_dY, drho_dZ, f, df_drho, df_drho_dX, df_drho_dY, df_drho_dZ );
+            if (type == "PBE") evalPBE(rho, drho_dX, drho_dY, drho_dZ, f, df_drho, df_dsigma );
 
 
         }
 
         /* ======= GGA PBE ======== */
 
-        inline void ExchangeCorrelation::evalPBE(const double& rho, const double& drho_dX, const double& drho_dY, const double& drho_dZ, double& f, double& df_drho, double& df_drho_dX, double& df_drho_dY, double& df_drho_dZ) {
+        inline void ExchangeCorrelation::evalPBE(const double& rho, const double& drho_dX, const double& drho_dY, const double& drho_dZ, double& f, double& df_drho, double& df_dsigma) {
 
             double fx = 0.0;
             double dfx_drho = 0.0;
@@ -87,7 +88,8 @@ namespace votca {
             double dfx_drho_dZ = 0.0;
             evalPBE_exchange(rho, drho_dX, drho_dY, drho_dZ, fx, dfx_drho, dfx_drho_dX, dfx_drho_dY, dfx_drho_dZ);
 
-	    cout  <<  " x " << dfx_drho << endl;
+	    // cout  <<  " VOTCA exchange vrho " << dfx_drho << " v_grad_x " << dfx_drho_dX << " v_grad_y " << dfx_drho_dY  << " v_grad_z " << dfx_drho_dZ << endl;
+            // cout  <<  " VOTCA exchange vrho " << dfx_drho << " v_sigma " << dfx_drho_dX/drho_dX/2 << endl;
             
             double fc = 0.0;
             double dfc_drho = 0.0;
@@ -96,14 +98,15 @@ namespace votca {
             double dfc_drho_dZ = 0.0;
             evalPBE_correlation(rho, drho_dX, drho_dY, drho_dZ, fc, dfc_drho, dfc_drho_dX, dfc_drho_dY, dfc_drho_dZ);
 
-	    cout  <<  " c " << dfc_drho << endl;
-
+	    //cout  <<  " VOTCA correlation vrho " << dfc_drho << " v_grad_x " << dfc_drho_dX << " v_grad_y " << dfc_drho_dY  << " v_grad_z " << dfc_drho_dZ << endl ;
+            // cout  <<  " VOTCA correlation vrho " << dfc_drho << " v_sigma_x " << dfc_drho_dX/drho_dX/2 << endl;
             
             f          = fx          + fc;
             df_drho    = dfx_drho    + dfc_drho;
-            df_drho_dX = dfx_drho_dX + dfc_drho_dX;
-            df_drho_dY = dfx_drho_dY + dfc_drho_dY;
-            df_drho_dZ = dfx_drho_dZ + dfc_drho_dZ;
+            df_dsigma  = 0.5/drho_dX * ( dfx_drho_dX + dfc_drho_dX ) ;
+            //df_drho_dX = dfx_drho_dX + dfc_drho_dX;
+            //df_drho_dY = dfx_drho_dY + dfc_drho_dY;
+            //df_drho_dZ = dfx_drho_dZ + dfc_drho_dZ;
             
             
         }
@@ -140,9 +143,10 @@ namespace votca {
                 // prep norm of gradient and gradient normal vector
                 setNormGradient(drho_dX, drho_dY, drho_dZ, norm, drho_dX_normal, drho_dY_normal, drho_dZ_normal);
                 set_s(rho, norm, s, ds_dr, ds_dnrho);
-
+                
+                
                 if (std::abs(s) < 1.e-10) {
-
+                    
                     fx = fx_LDA;
                     dfx_drho = dfx_drho_LDA;
 
@@ -151,7 +155,9 @@ namespace votca {
                     double F_denom = 1.0 + mu * s * s / kappa;
                     double F = 1.0 + kappa - kappa / F_denom;
                     double dF_ds = 2.0 * mu * s / (F_denom * F_denom);
-
+                    
+                   // cout << "F_denom " << F_denom << " F " << F << " dF_ds " << dF_ds << endl;
+                    
                     fx          = F * fx_LDA;
                     dfx_drho    = dfx_drho_LDA * F + fx_LDA * dF_ds * ds_dr;
                     dfx_drho_dX = fx_LDA * dF_ds * ds_dnrho * drho_dX_normal;
@@ -183,9 +189,6 @@ namespace votca {
             double deps_drho = 0.0;
             double deps_dzeta = 0.0;
             evalPW91_correlation_int(rho,zeta,eps,deps_drho,deps_dzeta);
-            
-            //cout << "eps " << eps << " deps_drho " << deps_drho << "deps_dzeta " << deps_dzeta << endl;
-            
             
             // and H
             double H        = 0.0;
@@ -222,7 +225,7 @@ namespace votca {
             double gphi;
             double dgphi_dzeta;
             set_gphi(zeta,gphi,dgphi_dzeta);
-            
+          
             
             double t;
             double dt_drho;
@@ -305,11 +308,11 @@ namespace votca {
             
                  const double f0_second = 1.709920934161365447;
 
-                 // get zeta derived values
-                 double fzeta;
-                 double dfzeta_dzeta;
-                 set_fzeta(zeta,fzeta,dfzeta_dzeta);
-                
+                 // get zeta derived values ( all 0 for PBE )
+                 double fzeta = 0.0 ;
+                 double dfzeta_dzeta = 0.0 ;
+                 if ( zeta != 0.0 ) set_fzeta(zeta,fzeta,dfzeta_dzeta);
+                 
                  // get rs
                  double rs;
                  double drs_drho;
@@ -322,6 +325,8 @@ namespace votca {
                  evalPW91_correlation_G1(rs,ec0,dec0_drs,p);
                  double dec0_drho = dec0_drs * drs_drho;
 
+                 if ( zeta != 0.0 ){
+                 
                  // second evaluation of PW91 G function
                  double ec1;
                  double dec1_drs;
@@ -331,6 +336,7 @@ namespace votca {
                  // third evaluation of PW91 G function
                  double eca;
                  double deca_drs;
+                 evalPW91_correlation_G3(rs,eca,deca_drs,p);
                  eca = - eca; 
                  deca_drs = - deca_drs;
                  double deca_drho = deca_drs * drs_drho;
@@ -345,7 +351,15 @@ namespace votca {
                  dec_drho = dec0_drho + deca_drho*afac + (dec1_drho - dec0_drho)*pfac;
                  dec_dzeta = eca*dafac_dzeta + (ec1 - ec0)*dpfac_dzeta;
 
-
+                 } else {
+                     
+                     ec = ec0;
+                     dec_drho = dec0_drho;
+                     dec_dzeta = 0.0;
+                     
+                     
+                 }
+                 
 
         } 
 
@@ -551,12 +565,10 @@ namespace votca {
             const double t_cf = 1.007715881368979474 / 4.0 ;
             const double c7_6 = 7.0/6.0;
             
-            t = t_cf / pow(rho,c7_6) / gphi;
+            t = t_cf * nrho / pow(rho,c7_6) / gphi;
             dt_drho = -c7_6 * t / rho;
             dt_dgphi = -t / gphi;
             dt_dnrho = t / nrho;
-            
-            // cout << " rho " << rho << " gphi " << gphi << " t " << t << " dt_drho " << dt_drho << " dt_dgphi " << dt_dgphi << " dt_dnrho " << dt_dnrho << endl;
             
             
         }
@@ -594,7 +606,7 @@ namespace votca {
 
         }
 
-        inline void ExchangeCorrelation::set_s(const double& density, double& gradNorm, double& s, double& ds_drho, double ds_dnrho) {
+        inline void ExchangeCorrelation::set_s(const double& density, double& gradNorm, double& s, double& ds_drho, double& ds_dnrho) {
 
             const double pisq3_cubroot = 3.093667726280135977;
             s = 0.0;

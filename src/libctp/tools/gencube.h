@@ -291,7 +291,11 @@ namespace votca {
                                     ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange(tmat, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc(), 0, 0);
                                     (*_row)->EvalAOspace(_submatrix, _x, _y, _z);
                                 }
-
+                                
+                                
+             		    ub::matrix<double> _tempmat = ub::prod( DMAT_tot,tmat); // tempmat can be reused for density gradient
+		            double density_at_grid = ub::prod(ub::trans(tmat),_tempmat)(0,0);
+                            /* inefficient 
                                 ub::matrix<double> _AOmatrix_at_grid = ub::prod(tmat, ub::trans(tmat));
 
                                 // density at grid point is sum of element-wise product of density matrix x _AOmatrix
@@ -301,6 +305,7 @@ namespace votca {
                                     density_at_grid += DMAT_array(_i) * _AO_array(_i);
                                 }
 
+                             */
                                 if (Nrecord == 6 || _iz == _zsteps) {
                                     fprintf(out, "%E \n", density_at_grid);
                                     Nrecord = 0;
@@ -310,7 +315,11 @@ namespace votca {
                         }// z-component
 
 
-                        progress += 1.0/((_xsteps+1)*(_ysteps+1));
+                            
+                        }// y-component
+                        
+                        
+                        progress += 1.0/((_xsteps+1));
                         int barWidth = 70;
                         LOG(logDEBUG, _log) << "[";
                         int pos = barWidth * progress;
@@ -322,8 +331,7 @@ namespace votca {
                         int percent = progress * 100.0;
                         LOG(logDEBUG, _log) << "] " << percent << " %\r";
                         LOG(logDEBUG, _log) << flush;
-                            
-                        }// y-component
+                        
                     } // x-component
 
 

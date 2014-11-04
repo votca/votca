@@ -53,6 +53,10 @@ namespace votca { namespace ctp {
             ub::matrix<double> numAOoverlap ( AOBasis* basis  );
             double IntegrateDensity(ub::matrix<double>& _density_matrix, AOBasis* basis);
             ub::matrix<double> IntegrateVXC ( ub::matrix<double>& _density_matrix, AOBasis* basis  );
+            ub::matrix<double> IntegrateVXC_block ( ub::matrix<double>& _density_matrix, AOBasis* basis  );
+            ub::matrix<double> IntegrateVXC_Atomblock ( ub::matrix<double>& _density_matrix, AOBasis* basis  );
+
+            //ub::matrix<double> StupidIntegrateVXC ( ub::matrix<double>& _density_matrix, AOBasis* basis  );
             
         private:
             
