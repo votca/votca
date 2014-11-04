@@ -63,6 +63,7 @@ bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matri
     double * pE = const_cast<double*>(&E.data()[0]);
     
     // call LAPACK via C interface
+    info1= LAPACKE_dsygst()
     info = LAPACKE_dsyev( LAPACK_ROW_MAJOR, 'V', 'U', n, pV , lda, pE );
 
     if( info > 0 ) {
@@ -320,6 +321,51 @@ bool linalg_eigenvalues( ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<
 
 
 
+/* calculate the eigenvalues and vectors of the generalized eigenvalue problem */
+bool linalg_eigenvalues_general( ub::matrix<double> &A,ub::matrix<double> &B, ub::vector<double> &E, ub::matrix<double> &V)
+{
+#ifdef NOMKL
+    throw std::runtime_error("linalg_eigenvalues is not compiled-in due to disabling of MKL - recompile Votca Tools with MKL support");
+#else
+    
+    // cout << " \n I'm really using MKL! " << endl;
+    
+    int n = A.size1();
+    int lda = n ;
+    int ldb =B.size1();
+    if (lda!=ldb){
+        cout >> "Matrices A and B have not the same size">> endl;
+        exit(1)
+    }
+    // make sure that containers for eigenvalues and eigenvectors are of correct size
+    E.resize(n);
+    V.resize(n, n);
+    // Query and allocate the optimal workspace 
+    double wkopt;
+    double* work;
+    int info;
+    int lwork;
+    lwork = -1;
+
+    // MKL is different to GSL because it overwrites the input matrix
+    V = A; // make a copy (might actually be unnecessary in most cases!)
+
+    // make a pointer to the ublas matrix so that LAPACK understands it 
+    double * pB = const_cast<float*>(&B.data().begin()[0]);  
+    double * pV = const_cast<double*>(&V.data().begin()[0]);
+    double * pE = const_cast<double*>(&E.data()[0]);
+    
+    // call LAPACK via C interface
+    info = LAPACKE_dsygv( LAPACK_ROW_MAJOR,1,'V', 'U', n, pV , lda,pB,ldb, pE );
+
+    if( info > 0 ) {
+        return false;
+    } else {
+        return true;
+    }
+
+#endif
+};
 
 
 }}
