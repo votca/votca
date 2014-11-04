@@ -329,7 +329,7 @@ bool linalg_eigenvalues_general( ub::matrix<double> &A,ub::matrix<double> &B, ub
 #else
     
     // cout << " \n I'm really using MKL! " << endl;
-    
+    //check to see if matrices have same size
     int n = A.size1();
     int lda = n ;
     int ldb =B.size1();
