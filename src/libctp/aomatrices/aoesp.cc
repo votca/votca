@@ -495,7 +495,7 @@ namespace votca { namespace ctp {
             positionofatom(2) = _atoms[j]->z;
 	    double Znuc = _atoms[j]->charge;
             Fill(aobasis,positionofatom);
-            _nuclearpotential+=Znuc*_aomatrix;
+            _nuclearpotential+=(-1)*Znuc*_aomatrix;
     
     }
     
