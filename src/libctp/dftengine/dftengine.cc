@@ -143,6 +143,10 @@ namespace votca {
             _dftAOkinetic.Fill(&_dftbasis);
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Kinetic energy matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
             
+            _dftAOESP.Initialize(_dftbasis.AOBasisSize());
+            _dftAOESP.Fillnucpotential(&_dftbasis, _atoms);
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT nuclear potential matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
+            
 	    // AUX AOoverlap
             _auxAOoverlap.Initialize(_auxbasis.AOBasisSize());
             _auxAOoverlap.Fill(&_auxbasis);

@@ -130,6 +130,7 @@ public:
     AOCoulomb                           _dftAOcoulomb;
     AOCoulomb                           _auxAOcoulomb;
     AOKinetic                           _dftAOkinetic;
+    AOESP                               _dftAOESP;
     
     //Electron repulsion integrals
     ERIs                                _ERIs;

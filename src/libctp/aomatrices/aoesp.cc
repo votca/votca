@@ -483,7 +483,24 @@ namespace votca { namespace ctp {
     }
     
   
-        
+    void AOESP::Fillnucpotential( AOBasis* aobasis, std::vector<QMAtom*>& _atoms){
+    
+    ub::matrix<double> _nuclearpotential=ub::zero_matrix<double>(aobasis->AOBasisSize(),aobasis->AOBasisSize());
+    ub::vector<double> positionofatom=ub::zero_vector<double>(3);
+   for ( int j = 0; j < _atoms.size(); j++){
+
+            
+            positionofatom(0) = _atoms[j]->x;
+            positionofatom(1) = _atoms[j]->y;
+            positionofatom(2) = _atoms[j]->z;
+	    double Znuc = _atoms[j]->charge;
+            Fill(aobasis,positionofatom);
+            _nuclearpotential+=Znuc*_aomatrix;
+    
+    }
+    
+    _aomatrix=_nuclearpotential;
+    }    
     
 }}
 
