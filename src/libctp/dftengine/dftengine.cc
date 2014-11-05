@@ -75,6 +75,38 @@ namespace votca {
 	    _x_functional_name = options->get(key + ".exchange_functional").as<string>();
 	    _c_functional_name = options->get(key + ".correlation_functional").as<string>();
             
+            /*TEST for mkl and stuff*/
+            ub::matrix<double> a=ub::zero_matrix<double>(3,3);
+            ub::matrix<double> b=ub::zero_matrix<double>(3,3);
+            ub::vector<double> E=ub::zero_vector<double>(3);
+            ub::matrix<double> v=ub::zero_matrix<double>(3,3);
+            a(0,0)=0;
+            a(0,1)=2;
+            a(0,2)=4;
+            a(1,0)=2;
+            a(2,0)=4;
+            a(1,1)=4;
+            a(2,1)=6;
+            a(1,2)=6;
+            a(2,2)=8;
+            b(0,0)=3;
+            b(0,1)=1;
+            b(0,2)=1;
+            b(1,0)=1;
+            b(2,0)=1;
+            b(1,1)=3;
+            b(2,1)=1;
+            b(1,2)=1;
+            b(2,2)=3;
+            linalg_eigenvalues_general(a,b,E,v);
+            for (int i=0;i<3;i++){
+                cout << "E("<< i << ")=" << E(i)<<endl;
+                for (int j=0;j<3;j++){
+                cout <<"v("<< j << ":"<< i <<")= " <<v(j,i)<< endl;
+                }}
+            exit(0);
+            
+            
         }
         
         
