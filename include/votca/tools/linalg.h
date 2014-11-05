@@ -147,6 +147,20 @@ namespace votca { namespace tools {
      */
     bool linalg_eigenvalues( ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<float> &V , int nmax );
     
+     /**
+     * \brief eigenvalues of a symmetric matrix A*x=E*B*x double precision
+     * @param E vector of eigenvalues
+     * @param A input: matrix to diagonalize
+     * @param B input: overlap matrix
+     * @param V output: eigenvectors      
+     * 
+     * This function wrapps eigen_gensymmv / dsygv
+     * 
+     */
+    bool linalg_eigenvalues_general( ub::matrix<double> &A,ub::matrix<double> &B, ub::vector<double> &E, ub::matrix<double> &V);
+    
+    
+    
 }}
 
 
