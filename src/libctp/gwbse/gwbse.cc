@@ -317,7 +317,7 @@ namespace votca {
             }
             
             
-            /******* TESTING VXC 
+            //******* TESTING VXC 
             
             // test total number of electrons
             //ub::matrix<double> _ddft_orbitals = *(_orbitals->getOrbitals()); 
@@ -325,8 +325,8 @@ namespace votca {
             ub::matrix<double> &DMAT = _orbitals->DensityMatrixGroundState( _dft_orbitals );
             NumericalIntegration                _numint;
             _numint.GridSetup("medium",&dftbs,_atoms);
-            //double Nelectrons = _numint.IntegrateDensity(DMAT,&dftbasis);
-            //cout << " Number of electrons: " << Nelectrons << endl;
+            double Nelectrons = _numint.IntegrateDensity(DMAT,&dftbasis);
+            cout << " Number of electrons: " << Nelectrons << endl;
 
             // test AOxcmatrix
             //ub::matrix<double> AOXC = _numint.IntegrateVXC(DMAT,&dftbasis); 
@@ -342,7 +342,7 @@ namespace votca {
             }
             
             exit(0);
-            ****************/
+            //****************/
          
             
             

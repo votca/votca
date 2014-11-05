@@ -35,12 +35,18 @@ namespace votca {
 
             LebedevGrid() {
                 FillOrders();
+                FillOrder2Index();
+                FillIndex2Order();
             };
 
             void getSphericalGrid(vector<QMAtom* > _atoms, string type, GridContainers& _grids);
             void getUnitSphereGrid(string element, string type, std::vector<double>& _theta, std::vector<double>& _phi, std::vector<double>& _weight);
+            void getUnitSphereGrid(int order, std::vector<double>& _theta, std::vector<double>& _phi, std::vector<double>& _weight);
 
-
+            int Type2MaxOrder( string element, string type );
+            int getIndexFromOrder( int order ) { return Order2Index.at(order); }
+            int getOrderFromIndex( int index ) { return Index2Order.at(index); }
+            
 
         private:
             const double pi = boost::math::constants::pi<double>();
@@ -90,7 +96,85 @@ namespace votca {
 
 
             std::map<std::string, int> MediumOrder;
+            std::map<int,int>          Order2Index;
+            std::map<int,int>          Index2Order;
 
+            
+            inline void FillOrder2Index(){
+                
+                Order2Index[38] = 1;
+                Order2Index[50] = 2;
+                Order2Index[74] = 3;
+                Order2Index[86] = 4;
+                Order2Index[110] = 5;
+                Order2Index[146] = 6;
+                Order2Index[170] = 7;
+                Order2Index[194] = 8;
+                Order2Index[230] = 9;
+                Order2Index[266] = 10;
+                Order2Index[302] = 11;
+                Order2Index[350] = 12;
+                Order2Index[434] = 13;
+                Order2Index[590] = 14;
+                Order2Index[770] = 15;
+                Order2Index[974] = 16;
+                Order2Index[1202] = 17;
+                Order2Index[1454] = 18;
+                Order2Index[1730] = 19;
+                Order2Index[2030] = 20;
+                Order2Index[2354] = 21;
+                Order2Index[2702] = 22;
+                Order2Index[3074] = 23;
+                Order2Index[3470] = 24;
+                Order2Index[3890] = 25;
+                Order2Index[4334] = 26;
+                Order2Index[4802] = 27;
+                Order2Index[5294] = 28;
+                Order2Index[5810] = 29;
+                
+            }
+            
+            inline void FillIndex2Order(){
+                
+                Index2Order[1] = 38;
+                Index2Order[2] = 50;
+                Index2Order[3] = 74;
+                Index2Order[4] = 86;
+                Index2Order[5] = 110;
+                Index2Order[6] = 146;
+                Index2Order[7] = 170;
+                Index2Order[8] = 194;
+                Index2Order[9] = 230;
+                Index2Order[10] = 266;
+                Index2Order[11] = 302;
+                Index2Order[12] = 350;
+                Index2Order[13] = 434;
+                Index2Order[14] = 590;
+                Index2Order[15] = 770;
+                Index2Order[16] = 974;
+                Index2Order[17] = 1202;
+                Index2Order[18] = 1454;
+                Index2Order[19] = 1730;
+                Index2Order[20] = 2030;
+                Index2Order[21] = 2354;
+                Index2Order[22] = 2702;
+                Index2Order[23] = 3074;
+                Index2Order[24] = 3470;
+                Index2Order[25] = 3890;
+                Index2Order[26] = 4334;
+                Index2Order[27] = 4802;
+                Index2Order[28] = 5294;
+                Index2Order[29] = 5810;
+                
+            }
+            
+            
+            
+            
+            
+            
+            
+            
             inline void FillOrders() {
 
                 FillMediumOrder();
