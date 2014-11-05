@@ -63,7 +63,6 @@ bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matri
     double * pE = const_cast<double*>(&E.data()[0]);
     
     // call LAPACK via C interface
-    info1= LAPACKE_dsygst()
     info = LAPACKE_dsyev( LAPACK_ROW_MAJOR, 'V', 'U', n, pV , lda, pE );
 
     if( info > 0 ) {
@@ -334,8 +333,8 @@ bool linalg_eigenvalues_general( ub::matrix<double> &A,ub::matrix<double> &B, ub
     int lda = n ;
     int ldb =B.size1();
     if (lda!=ldb){
-        cout >> "Matrices A and B have not the same size">> endl;
-        exit(1)
+        cout << "Matrices A and B have not the same size"<< endl;
+        exit(1);
     }
     // make sure that containers for eigenvalues and eigenvectors are of correct size
     E.resize(n);
@@ -351,7 +350,7 @@ bool linalg_eigenvalues_general( ub::matrix<double> &A,ub::matrix<double> &B, ub
     V = A; // make a copy (might actually be unnecessary in most cases!)
 
     // make a pointer to the ublas matrix so that LAPACK understands it 
-    double * pB = const_cast<float*>(&B.data().begin()[0]);  
+    double * pB = const_cast<double*>(&B.data().begin()[0]);  
     double * pV = const_cast<double*>(&V.data().begin()[0]);
     double * pE = const_cast<double*>(&E.data()[0]);
     
