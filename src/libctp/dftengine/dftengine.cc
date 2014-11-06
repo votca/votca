@@ -103,6 +103,7 @@ namespace votca {
                 cout << "E("<< i << ")=" << E(i)<<endl;
                 for (int j=0;j<3;j++){
                 cout <<"v("<< j << ":"<< i <<")= " <<v(j,i)<< endl;
+              //  cout <<"a("<< j << ":"<< i <<")= " <<a(j,i)<< endl;
                 }}
             exit(0);
             
