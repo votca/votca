@@ -18,7 +18,8 @@
 #include <votca/tools/linalg.h>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <votca/tools/votca_config.h>
-
+#include <boost/numeric/ublas/matrix.hpp>
+#include <math.h>       /* sqrt */
 #ifndef NOGSL
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_errno.h>
@@ -29,7 +30,6 @@
 namespace votca { namespace tools {
 
 using namespace std;
-
  
 /**
 *
@@ -242,14 +242,17 @@ bool linalg_eigenvalues_general( ub::matrix<double> &A,ub::matrix<double> &B, ub
 	gsl_error_handler_t *handler = gsl_set_error_handler_off();
 	const size_t N = A.size1();
         
-        // gsl does not handle conversion of a symmetric_matrix 
+        // gsl destroys A so use copy
         ub::matrix<double> _A( N,N );
         _A = A;
+        
+        ub::matrix<double> _B( N,N );
+        _B=B;
         
 	E.resize(N, false);
 	V.resize(N, N, false);
 	gsl_matrix_view A_view = gsl_matrix_view_array(&_A(0,0), N, N);
-        gsl_matrix_view B_view = gsl_matrix_view_array(&B(0,0), N, N);
+        gsl_matrix_view B_view = gsl_matrix_view_array(&_B(0,0), N, N);
 	gsl_vector_view E_view = gsl_vector_view_array(&E(0), N);
 	gsl_matrix_view V_view = gsl_matrix_view_array(&V(0,0), N, N);
 	gsl_eigen_gensymmv_workspace *w = gsl_eigen_gensymmv_alloc(N);
@@ -259,6 +262,33 @@ bool linalg_eigenvalues_general( ub::matrix<double> &A,ub::matrix<double> &B, ub
 	gsl_eigen_gensymmv_free(w);
 	gsl_set_error_handler(handler);
         
+      
+
+    
+        ub::matrix<double> _temp= ub::prod(B,V);
+        ub::matrix<double> n=ub::prod(ub::trans(V),_temp);
+      /*  
+        for (int i=0;i<n.size1();i++){
+          
+                for (int j=0;j<n.size2();j++){
+                cout <<"n("<< i << ":"<< j <<")= " <<n(i,j)<< endl;      
+                }}
+        
+       */ 
+        
+        for (int i=0;i<n.size1();i++){
+            ub::matrix_range<ub::matrix<double> > column=ub::subrange( V, 0, V.size2(),i, i+1 );
+            cout <<"n("<< i << ":"<< i <<")= " <<n(i,i) <<":" <<sqrt(n(i,i))<< endl; 
+            for (int j=0;j<column.size1();j++){
+                
+           
+            cout <<"V("<<i<<":"<<j<<")="<<column(j,0)<< endl;
+                    
+              }
+            column=column/sqrt(n(i,i));
+  
+        }
+    
 	return (status != 0);
 #endif
 };
