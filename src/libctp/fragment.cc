@@ -117,7 +117,10 @@ void Fragment::calcPos(string tag) {
             pos += _atoms[i]->getPos() * _atoms[i]->getWeight();
         }
         else if (tag == "QM") {
-            pos += _atoms[i]->getQMPos() * _atoms[i]->getWeight();
+            if (_atoms[i]->HasQMPart())
+                 pos += _atoms[i]->getQMPos() * _atoms[i]->getWeight();
+             else
+                 assert(_atoms[i]->getWeight() < 1e-6);
         }
         totWeight += _atoms[i]->getWeight();
     }
