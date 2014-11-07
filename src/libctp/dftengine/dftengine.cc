@@ -76,7 +76,8 @@ namespace votca {
 	    // exchange and correlation as in libXC
 	    _x_functional_name = options->get(key + ".exchange_functional").as<string>();
 	    _c_functional_name = options->get(key + ".correlation_functional").as<string>();
-            
+            _numofelectrons =0;
+            _mixingparameter=0.4;
             /*TEST for mkl and stuff
             ub::matrix<double> a=ub::zero_matrix<double>(3,3);
             ub::matrix<double> b=ub::zero_matrix<double>(3,3);
@@ -132,6 +133,7 @@ namespace votca {
             _atoms = _orbitals->QMAtoms();
             AOBasis* basis = &_dftbasis;
             int numofiterations=10;
+           
 	    /**** PREPARATION (atoms, basis sets, numerical integrations) ****/
 	    Prepare( _orbitals );
             /**** END OF PREPARATION ****/
@@ -146,18 +148,20 @@ namespace votca {
             
             ub::matrix<double> H0=_dftAOESP._aomatrix+_dftAOkinetic._aomatrix;
             linalg_eigenvalues_general( H0,_dftAOoverlap._aomatrix, MOEnergies, MOCoeff);
-	    DensityMatrixGroundState( MOCoeff, (_orbitals->getNumberOfElectrons())/2 ) ;
+	    DensityMatrixGroundState( MOCoeff, _numofelectrons/2 ) ;
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup Initial Guess "<< flush;
            
             
             for (int i=0;i<numofiterations;i++){
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Iteration "<< i+1 <<" of "<<numofiterations<< flush;
-            _ERIs.CalculateERIs(_dftAOdmat);
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Electron repuslion matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2()<< flush;
-            ub::matrix<double> H=_dftAOESP._aomatrix+_dftAOkinetic._aomatrix+_ERIs.getERIs()+_gridIntegration.IntegrateVXC(_dftAOdmat,  basis);
-        
-            linalg_eigenvalues_general( H,_dftAOoverlap._aomatrix, MOEnergies, MOCoeff);
-            DensityMatrixGroundState( MOCoeff, (_orbitals->getNumberOfElectrons())/2 ) ;
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Iteration "<< i+1 <<" of "<<numofiterations<< flush;
+                _ERIs.CalculateERIs(_dftAOdmat);
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Electron repuslion matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2()<< flush<<flush;
+                ub::matrix<double> H=_dftAOESP._aomatrix+_dftAOkinetic._aomatrix+_ERIs.getERIs()+_gridIntegration.IntegrateVXC_block(_dftAOdmat,  basis);
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Vxc matrix "<<flush;
+                linalg_eigenvalues_general( H,_dftAOoverlap._aomatrix, MOEnergies, MOCoeff);
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Solved general eigenproblem "<<flush;
+                EvolveDensityMatrix( MOCoeff, _numofelectrons/2 ) ;
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Updated Density Matrix "<<flush;
             }
           
             return true;
@@ -240,13 +244,13 @@ namespace votca {
            Elements _elements; 
             //set number of electrons and such
            _orbitals->setBasisSetSize(_dftbasis.AOBasisSize());
-           int Numofelectrons=0;
+           
            for (int i=0;i<_atoms.size();i++){
-               Numofelectrons+=_elements.getNucCrg(_atoms[i]->type);
+               _numofelectrons+=_elements.getNucCrg(_atoms[i]->type);
            }
-           LOG(logDEBUG, *_pLog) << TimeStamp() << " Total number of electrons: " << Numofelectrons << flush;
-           _orbitals->setNumberOfElectrons(Numofelectrons);
-           _orbitals->setNumberOfLevels(Numofelectrons/2,_dftbasis.AOBasisSize()-Numofelectrons/2);
+           LOG(logDEBUG, *_pLog) << TimeStamp() << " Total number of electrons: " << _numofelectrons << flush;
+           _orbitals->setNumberOfElectrons(_numofelectrons);
+           _orbitals->setNumberOfLevels(_numofelectrons/2,_dftbasis.AOBasisSize()-_numofelectrons/2);
            
            
 
@@ -271,20 +275,17 @@ namespace votca {
     }
       
       
-      void DFTENGINE::EvolveDensityMatrix(){
+      void DFTENGINE::EvolveDensityMatrix(ub::matrix<double>& MOCoeff, int occulevels){
+          
+      ub::matrix<double> dftdmat_old=_dftAOdmat;
+      DensityMatrixGroundState(MOCoeff, occulevels);
+      _dftAOdmat=_mixingparameter*_dftAOdmat+(1.0-_mixingparameter)*dftdmat_old;
       
       /*DIIS or mixing can be implemented here*/
-          
-      
-      
-      
       
       }
       
-      void DFTENGINE::SetupHamiltonian(){
-      
-      
-      }
+
       
     
     }

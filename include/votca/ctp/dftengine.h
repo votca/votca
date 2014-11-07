@@ -93,9 +93,8 @@ public:
     
     void DensityMatrixGroundState( ub::matrix<double>& _MOs, int occulevels ) ;
     
-    void SetupDensitydependentMatrices();
-    void SetupHamiltonian();
-    void EvolveDensityMatrix();
+
+    void EvolveDensityMatrix(ub::matrix<double>& MOCoeff, int occulevels);
     
     //bool   _maverick;
     
@@ -139,6 +138,8 @@ public:
     AOESP                               _dftAOESP;
     
     //
+    double                              _mixingparameter;
+    int                                 _numofelectrons;
     ub::matrix<double>                  _dftAOdmat;
     std::vector< ub::matrix<double> >   _dftdmathist;
     //Electron repulsion integrals
