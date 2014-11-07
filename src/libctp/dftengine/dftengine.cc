@@ -142,25 +142,49 @@ namespace votca {
 	    SetupInvariantMatrices();
 
             /**** Initial guess = one-electron Hamiltonian without interactions ****/
-            ub::vector<double> MOEnergies=_orbitals->MOEnergies();
-            ub::matrix<double> MOCoeff=_orbitals->MOCoefficients();
+            ub::vector<double>& MOEnergies=_orbitals->MOEnergies();
+            ub::matrix<double>& MOCoeff=_orbitals->MOCoefficients();
             /**** Construct initial density  ****/
             
             ub::matrix<double> H0=_dftAOESP._aomatrix+_dftAOkinetic._aomatrix;
             linalg_eigenvalues_general( H0,_dftAOoverlap._aomatrix, MOEnergies, MOCoeff);
+        
+            /*
+            // cout << MOEnergies[0] << " " << MOEnergies[_numofelectrons/2] << endl;
+            cout << "\n";
+            for ( int i =0; i < _dftbasis.AOBasisSize(); i++){
+            ub::matrix_range< ub::matrix<double> > _MO = ub::subrange(MOCoeff, 0, _dftbasis.AOBasisSize(), i, i+1 );
+            
+            ub::matrix<double> _temp = ub::prod(_dftAOoverlap._aomatrix, _MO);
+            for ( int j =0; j < _dftbasis.AOBasisSize(); j++){
+                ub::matrix_range< ub::matrix<double> > _MO2 = ub::subrange(MOCoeff, 0, _dftbasis.AOBasisSize(), j, j+1 );
+            ub::matrix<double> norm = ub::prod(ub::trans(_MO2), _temp);
+            if (std::abs(norm(0,0)) > 1e-5 ){
+            cout << " Norm of MO " << i << " " << j << " " << norm(0,0) << endl;
+            }}}
+            exit(0);
+            
+            */
+            
+            
+            
+            
+            
+            
 	    DensityMatrixGroundState( MOCoeff, _numofelectrons/2 ) ;
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup Initial Guess "<< flush;
-           
+           LOG(logDEBUG, *_pLog) << TimeStamp() << " Num of electrons "<< _gridIntegration.IntegrateDensity(_dftAOdmat, basis) << flush;
             
             for (int i=0;i<numofiterations;i++){
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Iteration "<< i+1 <<" of "<<numofiterations<< flush;
                 _ERIs.CalculateERIs(_dftAOdmat);
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Electron repuslion matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2()<< flush<<flush;
-                ub::matrix<double> H=_dftAOESP._aomatrix+_dftAOkinetic._aomatrix+_ERIs.getERIs()+_gridIntegration.IntegrateVXC_block(_dftAOdmat,  basis);
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Electron repulsion matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2()<< flush<<flush;
+                ub::matrix<double> H=_dftAOESP._aomatrix+_dftAOkinetic._aomatrix+_ERIs.getERIs()+_gridIntegration.IntegrateVXC(_dftAOdmat,  basis);
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Vxc matrix "<<flush;
                 linalg_eigenvalues_general( H,_dftAOoverlap._aomatrix, MOEnergies, MOCoeff);
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Solved general eigenproblem "<<flush;
                 EvolveDensityMatrix( MOCoeff, _numofelectrons/2 ) ;
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Num of electrons "<< _gridIntegration.IntegrateDensity(_dftAOdmat, basis) << flush;
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Updated Density Matrix "<<flush;
             }
           
@@ -261,12 +285,14 @@ namespace votca {
      // first fill Density matrix, if required
     //  if ( _dmatGS.size1() != _basis_set_size ) {
           int size=max(_MOs.size1(),_MOs.size2());
+          // cout << "Size " << size << " occ levels " << occulevels << endl;
         _dftAOdmat = ub::zero_matrix<double>(size,size);
         for ( int _i=0; _i < size; _i++ ){
             for ( int _j=0; _j < size; _j++ ){
                 for ( int _level=0; _level < occulevels ; _level++ ){
                  
-                    _dftAOdmat(_i,_j) += 2.0 * _MOs( _level , _i ) * _MOs( _level , _j );
+                    //_dftAOdmat(_i,_j) += 2.0 * _MOs( _level , _i ) * _MOs( _level , _j );
+                    _dftAOdmat(_i,_j) += 2.0 * _MOs(  _i , _level) * _MOs(  _j, _level );
                  
                 }
             }
