@@ -1271,9 +1271,7 @@ namespace votca {
 
 
                     Rij_mat(i,j) = 1.0 / sqrt((x_a - x_b)*(x_a - x_b) + (y_a - y_b)*(y_a - y_b) + (z_a - z_b)*(z_a - z_b));
-
-                    cout << i << " " << j << " : " << Rij_mat(i,j) << endl;
-                    
+                                        
                     j++;
                 } // atoms
                 Rij.push_back(0.0); // self-distance again
@@ -1299,24 +1297,79 @@ namespace votca {
                 // get radial grid information for this atom type
                 GridContainers::radial_grid _radial_grid = _grids._radial_grids.at(name);
 
-                // cout << " Loaded radial grid of atom " << i_atom << endl;
-
                 
                 // get spherical grid information for this atom type
                 GridContainers::spherical_grid _spherical_grid = _grids._spherical_grids.at(name);
 
-                // cout << " Loaded spherical grid of atom " << i_atom << endl;
-            
+                // maximum order (= number of points) in spherical integration grid
+                int maxorder = _sphericalgrid.Type2MaxOrder(name,"medium");
+                int maxindex = _sphericalgrid.getIndexFromOrder(maxorder);
+
+                // for pruning of integration grid, get interval boundaries for this element
+                std::vector<double> PruningIntervals = _radialgrid.getPruningIntervals( name );
+                cout << " Pruning Intervals: " << PruningIntervals[0] << " " << PruningIntervals[1] << " " << PruningIntervals[2] << " " << PruningIntervals[3] << endl;
+                
+                int current_order = 0;
+                // get spherical grid
+                std::vector<double> _theta;
+                std::vector<double> _phi;
+                std::vector<double> _weight;
 
                 // for each radial value
                 for (int _i_rad = 0; _i_rad < _radial_grid.radius.size(); _i_rad++) {
                     double r = _radial_grid.radius[_i_rad];
-                    // for each (theta,phi)
-                    for (int _i_sph = 0; _i_sph < _spherical_grid.phi.size(); _i_sph++) {
+                    int order;
+                    // which Lebedev order for this point?
+                    if ( maxindex == 1 ) {
+                        // smallest possible grid anyway, nothing to do
+                        order = maxorder;
+                    } else if ( maxindex == 2 ) {
+                        // only three intervals
+                        if ( r < PruningIntervals[0] ) {
+                            order = _sphericalgrid.getOrderFromIndex(1);//1;
+                        } else if ( ( r >= PruningIntervals[0] ) && ( r < PruningIntervals[3] )   ){
+                            order = _sphericalgrid.getOrderFromIndex(2);
+                        } else {
+                            order = _sphericalgrid.getOrderFromIndex(1);
+                        } // maxorder == 2
+                    } else {
+                        // five intervals
+                        if ( r < PruningIntervals[0] ) {
+                            order = _sphericalgrid.getOrderFromIndex(int(2));
+                        } else if ( ( r >= PruningIntervals[0]) && ( r < PruningIntervals[1] ) ) {
+                            order = _sphericalgrid.getOrderFromIndex(4);
+                        } else if ( ( r >= PruningIntervals[1]) && ( r < PruningIntervals[2] ) ) {
+                            order = _sphericalgrid.getOrderFromIndex(max(maxindex-1, 4));
+                        } else if ( (r >= PruningIntervals[2]) && ( r < PruningIntervals[3] ) ) {
+                            order = maxorder;
+                        } else {
+                            order = _sphericalgrid.getOrderFromIndex(max(maxindex-1,1));
+                        }
+                    }                        
 
-                        double p   = _spherical_grid.phi[_i_sph] * pi / 180.0; // back to rad
+
+                    
+                    // get new spherical grid, if order changed
+                    if ( order != current_order ){
+                        _theta.clear();
+                        _phi.clear();
+                        _weight.clear();
+                        
+                        _sphericalgrid.getUnitSphereGrid(order,_theta,_phi,_weight);
+                        current_order = order;
+                    }
+                    
+                    // for each (theta,phi)
+                    // for (int _i_sph = 0; _i_sph < _spherical_grid.phi.size(); _i_sph++) {
+
+                    for (int _i_sph = 0; _i_sph < _phi.size(); _i_sph++) {
+                        /* double p   = _spherical_grid.phi[_i_sph] * pi / 180.0; // back to rad
                         double t   = _spherical_grid.theta[_i_sph] * pi / 180.0; // back to rad
                         double ws  = _spherical_grid.weight[_i_sph];
+                         */
+                        double p   = _phi[_i_sph] * pi / 180.0; // back to rad
+                        double t   = _theta[_i_sph] * pi / 180.0; // back to rad
+                        double ws  = _weight[_i_sph];
 
                         double x_s = sin(p) * cos(t);
                         double y_s = sin(p) * sin(t);

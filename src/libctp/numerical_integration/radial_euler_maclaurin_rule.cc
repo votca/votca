@@ -28,6 +28,71 @@ using namespace std;
 
 
 namespace votca { namespace ctp { 
+    
+    
+    std::vector<double> EulerMaclaurinGrid::getPruningIntervals(string element){
+        
+        std::vector<double> _r;
+        
+        // get Bragg-Slater Radius for this element
+        double BSradius = _BraggSlaterRadii.at(element);
+        
+        // row type of element
+        int RowType = _period_row.at(element);
+        
+        if ( RowType == 1 ){
+            
+            
+            _r.push_back( 0.25 * BSradius );
+            _r.push_back( 0.5 * BSradius );
+            _r.push_back( 1.0 * BSradius );
+            _r.push_back( 4.5 * BSradius );
+            
+        } else if ( RowType == 2 ){
+            
+            _r.push_back( 0.1667 * BSradius );
+            _r.push_back( 0.5 * BSradius );
+            _r.push_back( 0.9 * BSradius );
+            _r.push_back( 3.5 * BSradius );            
+            
+            
+        } else if ( RowType == 3 ) {
+            
+            _r.push_back( 0.1 * BSradius );
+            _r.push_back( 0.4 * BSradius );
+            _r.push_back( 0.8 * BSradius );
+            _r.push_back( 2.5 * BSradius );
+            
+        } else {
+            
+            cerr << "Pruning unsupported for RowType " << RowType << endl;
+            exit(1);
+        }
+
+        return _r;
+        
+        
+        /*
+         
+         
+               Data asg1/0.25  , 0.5, 1.0, 4.5,
+     &          0.1667, 0.5, 0.9, 3.5,
+     &          0.1   , 0.4, 0.8, 2.5/
+         
+         */
+        
+        
+        
+        
+        
+    }
+    
+    
+    
+    
+    
+    
+    
 void EulerMaclaurinGrid::getRadialCutoffs(vector<QMAtom* > _atoms, BasisSet* bs, string gridtype) {
 
             map<string, min_exp>::iterator it;

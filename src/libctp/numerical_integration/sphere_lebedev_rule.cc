@@ -91,6 +91,45 @@ namespace votca { namespace ctp {
     }
     
     
+        void LebedevGrid::getUnitSphereGrid(int order, std::vector<double>& _theta, std::vector<double>& _phi, std::vector<double>& _weight){
+
+              double *w;
+              double *x;
+              double *y;
+              double *z;
+//               int order = getOrder(element,type);
+              w = new double[order];
+              x = new double[order];
+              y = new double[order];
+              z = new double[order];
+              ld_by_order(order, x,y,z,w);
+              for ( int _i=0 ; _i < order ; _i++){
+                  
+                  double t;
+                  double p;
+                  xyz_to_tp(x[_i],y[_i],z[_i],&t,&p);
+                  _theta.push_back(t);
+                  _phi.push_back(p);
+                  _weight.push_back(4.0*pi*w[_i]);
+                  
+              }               
+    
+  
+              
+              
+              
+              
+    }
+    
+    
+        int LebedevGrid::Type2MaxOrder(string element, string type){
+            
+           return  this->getOrder(element, type);
+            
+            
+        }
+    
+    
     int LebedevGrid::getOrder(string element, string type){
         
         if ( type == "medium"){
