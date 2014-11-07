@@ -57,6 +57,9 @@ namespace votca { namespace ctp {
         
         void CalculateERIs(ub::matrix<double> &DMAT);
         
+        int getSize1(){return _ERIs.size1();}
+        int getSize2(){return _ERIs.size2();}
+        
         void printERIs();
         
     private:

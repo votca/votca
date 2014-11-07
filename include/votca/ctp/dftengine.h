@@ -91,6 +91,12 @@ public:
     void Prepare( Orbitals* _orbitals );
     void SetupInvariantMatrices();
     
+    void DensityMatrixGroundState( ub::matrix<double>& _MOs, int occulevels ) ;
+    
+    void SetupDensitydependentMatrices();
+    void SetupHamiltonian();
+    void EvolveDensityMatrix();
+    
     //bool   _maverick;
     
     // program tasks
@@ -132,6 +138,9 @@ public:
     AOKinetic                           _dftAOkinetic;
     AOESP                               _dftAOESP;
     
+    //
+    ub::matrix<double>                  _dftAOdmat;
+    std::vector< ub::matrix<double> >   _dftdmathist;
     //Electron repulsion integrals
     ERIs                                _ERIs;
     

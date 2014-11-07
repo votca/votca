@@ -33,6 +33,8 @@
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <votca/tools/linalg.h>
 
+#include "votca/ctp/elements.h"
+
 // #include <omp.h>
 
 
@@ -75,7 +77,7 @@ namespace votca {
 	    _x_functional_name = options->get(key + ".exchange_functional").as<string>();
 	    _c_functional_name = options->get(key + ".correlation_functional").as<string>();
             
-            /*TEST for mkl and stuff*/
+            /*TEST for mkl and stuff
             ub::matrix<double> a=ub::zero_matrix<double>(3,3);
             ub::matrix<double> b=ub::zero_matrix<double>(3,3);
             ub::vector<double> E=ub::zero_vector<double>(3);
@@ -106,7 +108,7 @@ namespace votca {
               //  cout <<"a("<< j << ":"<< i <<")= " <<a(j,i)<< endl;
                 }}
             exit(0);
-            
+            */
             
         }
         
@@ -128,8 +130,8 @@ namespace votca {
             #endif
 
             _atoms = _orbitals->QMAtoms();
-
-
+            AOBasis* basis = &_dftbasis;
+            int numofiterations=10;
 	    /**** PREPARATION (atoms, basis sets, numerical integrations) ****/
 	    Prepare( _orbitals );
             /**** END OF PREPARATION ****/
@@ -138,19 +140,30 @@ namespace votca {
 	    SetupInvariantMatrices();
 
             /**** Initial guess = one-electron Hamiltonian without interactions ****/
-            
+            ub::vector<double> MOEnergies=_orbitals->MOEnergies();
+            ub::matrix<double> MOCoeff=_orbitals->MOCoefficients();
             /**** Construct initial density  ****/
-	    
-           
-            ub::matrix<double> DMAT = ub::identity_matrix<double>(_dftbasis._AOBasisSize);
-            _ERIs.CalculateERIs(DMAT);
-            ub::matrix<double> _eris=_ERIs.getERIs();
             
+            ub::matrix<double> H0=_dftAOESP._aomatrix+_dftAOkinetic._aomatrix;
+            linalg_eigenvalues_general( H0,_dftAOoverlap._aomatrix, MOEnergies, MOCoeff);
+	    DensityMatrixGroundState( MOCoeff, (_orbitals->getNumberOfElectrons())/2 ) ;
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup Initial Guess "<< flush;
+           
+            
+            for (int i=0;i<numofiterations;i++){
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " Iteration "<< i+1 <<" of "<<numofiterations<< flush;
+            _ERIs.CalculateERIs(_dftAOdmat);
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Electron repuslion matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2()<< flush;
+            ub::matrix<double> H=_dftAOESP._aomatrix+_dftAOkinetic._aomatrix+_ERIs.getERIs()+_gridIntegration.IntegrateVXC(_dftAOdmat,  basis);
+        
+            linalg_eigenvalues_general( H,_dftAOoverlap._aomatrix, MOEnergies, MOCoeff);
+            DensityMatrixGroundState( MOCoeff, (_orbitals->getNumberOfElectrons())/2 ) ;
+            }
           
             return true;
         }
 
-
+      
 
       // SETUP INVARIANT AOMatrices
       void DFTENGINE::SetupInvariantMatrices(){
@@ -224,11 +237,55 @@ namespace votca {
             _gridIntegration.GridSetup(_grid_name,&_dftbasisset,_atoms);
 	    LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup numerical integration grid " << _grid_name << flush;
 	
+           Elements _elements; 
+            //set number of electrons and such
+           _orbitals->setBasisSetSize(_dftbasis.AOBasisSize());
+           int Numofelectrons=0;
+           for (int i=0;i<_atoms.size();i++){
+               Numofelectrons+=_elements.getNucCrg(_atoms[i]->type);
+           }
+           LOG(logDEBUG, *_pLog) << TimeStamp() << " Total number of electrons: " << Numofelectrons << flush;
+           _orbitals->setNumberOfElectrons(Numofelectrons);
+           _orbitals->setNumberOfLevels(Numofelectrons/2,_dftbasis.AOBasisSize()-Numofelectrons/2);
+           
+           
 
       }
-
-
+      
+      void DFTENGINE::DensityMatrixGroundState( ub::matrix<double>& _MOs, int occulevels ) {
+     
+     // first fill Density matrix, if required
+    //  if ( _dmatGS.size1() != _basis_set_size ) {
+          int size=max(_MOs.size1(),_MOs.size2());
+        _dftAOdmat = ub::zero_matrix<double>(size,size);
+        for ( int _i=0; _i < size; _i++ ){
+            for ( int _j=0; _j < size; _j++ ){
+                for ( int _level=0; _level < occulevels ; _level++ ){
+                 
+                    _dftAOdmat(_i,_j) += 2.0 * _MOs( _level , _i ) * _MOs( _level , _j );
+                 
+                }
+            }
+         }
+     //}
     }
+      
+      
+      void DFTENGINE::EvolveDensityMatrix(){
+      
+      /*DIIS or mixing can be implemented here*/
+          
+      
+      
+      
+      
+      }
+      
+      void DFTENGINE::SetupHamiltonian(){
+      
+      
+      }
+      
     
- 
+    }
 };
