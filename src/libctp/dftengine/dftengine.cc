@@ -188,6 +188,8 @@ namespace votca {
 	    LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup numerical integration grid " << _grid_name << flush;
 	
 
+            // _orbitals->setBasisSetSize(_dftbasis.AOBasisSize());
+            
       }
 
 
