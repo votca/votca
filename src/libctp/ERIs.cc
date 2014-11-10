@@ -84,9 +84,10 @@ namespace votca {
         
         // This is simply Trace(prod(ERIs*Dmat))=Totenergy
         void ERIs::CalculateEnergy(ub::vector<double> &dmatasarray){
+            _ERIsenergy=0;
             ub::vector<double> ERIsasarray=_ERIs.data();
             for ( int _i=0;_i<ERIsasarray.size();_i++){
-                _ERISenergy+=dmatasarray[_i]*ERIsasarray[_i];
+                _ERIsenergy+=dmatasarray[_i]*ERIsasarray[_i];
                 
             }
             

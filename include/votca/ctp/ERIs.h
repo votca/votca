@@ -69,7 +69,7 @@ namespace votca { namespace ctp {
         TCMatrix_dft _threecenter;
         ub::matrix<double> _Vcoulomb; //resolution of the 1/r operator in aux basis functions
         ub::matrix<double> _ERIs;   
-        double _ERISenergy;
+        double _ERIsenergy;
         void CalculateEnergy(ub::vector<double> &dmatasarray);
     };
     

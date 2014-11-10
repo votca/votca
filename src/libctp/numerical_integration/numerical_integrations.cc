@@ -46,13 +46,13 @@ namespace votca {
         
         
         
-        ub::matrix<double> NumericalIntegration::IntegrateVXC_Atomblock(ub::matrix<double>& _density_matrix, AOBasis* basis, double& EXC){
-            
+        ub::matrix<double> NumericalIntegration::IntegrateVXC_Atomblock(ub::matrix<double>& _density_matrix, AOBasis* basis){
+            EXC=0;
             // TODO: switch XC functionals implementation from LIBXC to base own calculation
             #ifdef LIBXC
             xc_func_type xfunc; // handle for exchange functional
             xc_func_type cfunc; // handle for correlation functional
-
+            
             // define PBE here (should be some optional setting))
             int xfunc_id = XC_GGA_X_PBE;
             int cfunc_id = XC_GGA_C_PBE;
@@ -555,8 +555,8 @@ namespace votca {
         }
         
         
-             ub::matrix<double> NumericalIntegration::IntegrateVXC_block(ub::matrix<double>& _density_matrix, AOBasis* basis, double& EXC){
-            
+             ub::matrix<double> NumericalIntegration::IntegrateVXC_block(ub::matrix<double>& _density_matrix, AOBasis* basis){
+            EXC=0;
             // TODO: switch XC functionals implementation from LIBXC to base own calculation
             #ifdef LIBXC
             xc_func_type xfunc; // handle for exchange functional
@@ -798,8 +798,8 @@ namespace votca {
         
         
         // numerically integrate the elements of the AOXC matrix
-        ub::matrix<double> NumericalIntegration::IntegrateVXC(ub::matrix<double>& _density_matrix, AOBasis* basis, double& EXC){
-            
+        ub::matrix<double> NumericalIntegration::IntegrateVXC(ub::matrix<double>& _density_matrix, AOBasis* basis){
+                EXC=0;    
             // TODO: switch XC functionals implementation from LIBXC to base own calculation
             #ifdef LIBXC
             xc_func_type xfunc; // handle for exchange functional
