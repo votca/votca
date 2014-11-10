@@ -278,6 +278,8 @@ namespace votca {
            
            
 
+            // _orbitals->setBasisSetSize(_dftbasis.AOBasisSize());
+            
       }
       
       void DFTENGINE::DensityMatrixGroundState( ub::matrix<double>& _MOs, int occulevels ) {

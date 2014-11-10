@@ -46,7 +46,7 @@ namespace votca {
         
         
         
-        ub::matrix<double> NumericalIntegration::IntegrateVXC_Atomblock(ub::matrix<double>& _density_matrix, AOBasis* basis){
+        ub::matrix<double> NumericalIntegration::IntegrateVXC_Atomblock(ub::matrix<double>& _density_matrix, AOBasis* basis, double& EXC){
             
             // TODO: switch XC functionals implementation from LIBXC to base own calculation
             #ifdef LIBXC
@@ -85,6 +85,8 @@ namespace votca {
             double _t_vxc =0.0;
             double _t_AOxc_rho=0.0;
             double _t_AOxc_grad=0.0;
+            double _t_EXC1=0.0;
+            double _t_EXC2=0.0;
             double _t_sum = 0.0;
             double _t_total = 0.0;
              boost::timer::cpu_times tenter = cpu_t.elapsed();
@@ -402,31 +404,34 @@ namespace votca {
 #ifdef LIBXC
 		    double sigma = ub::prod(ub::trans(grad_rho),grad_rho)(0,0);
 
+                    double exc[1];
                     double vsigma[1]; // libxc 
                     double vrho[1]; // libxc df/drho
                     switch (xfunc.info->family) {
                         case XC_FAMILY_LDA:
-                            xc_lda_vxc(&xfunc, 1, &rho, vrho);
+                            xc_lda_exc_vxc(&xfunc, 1, &rho, exc, vrho);
                             break;
                         case XC_FAMILY_GGA:
                         case XC_FAMILY_HYB_GGA:
-                            xc_gga_vxc(&xfunc, 1, &rho, &sigma, vrho, vsigma);
+                            xc_gga_exc_vxc(&xfunc, 1, &rho, &sigma, exc, vrho, vsigma);
                             break;
                     }
+                    f_xc      = exc[0];
                     df_drho   = vrho[0];
                     df_dsigma = vsigma[0];
 
                     // via libxc correlation part only
                     switch (cfunc.info->family) {
                         case XC_FAMILY_LDA:
-                            xc_lda_vxc(&cfunc, 1, &rho, vrho);
+                            xc_lda_exc_vxc(&cfunc, 1, &rho, exc, vrho);
                             break;
                         case XC_FAMILY_GGA:
                         case XC_FAMILY_HYB_GGA:
-                            xc_gga_vxc(&cfunc, 1, &rho, &sigma, vrho, vsigma);
+                            xc_gga_exc_vxc(&cfunc, 1, &rho, &sigma, exc, vrho, vsigma);
                             break;
                     }
 
+                    f_xc      += exc[0];
                     df_drho   += vrho[0];
                     df_dsigma += vsigma[0];
 
@@ -452,6 +457,11 @@ namespace votca {
 		    // finally combine (super-slow...)
                     // XCMAT +=  ub::prod(_addXC,ub::trans(AOgrid));
 
+                    
+                    // Exchange correlation energy
+                    EXC += _grid[i][j].grid_weight * rho * f_xc;
+                    boost::timer::cpu_times t6a = cpu_t.elapsed();
+                    _t_EXC1 += (t6a.wall-t6.wall)/1e9;
                     
                     // combine/sum atom-block wise, only trigonal part, symmetrize later
                     // for each significant atom for this grid point
@@ -484,7 +494,7 @@ namespace votca {
                     
                     
                     boost::timer::cpu_times t7 = cpu_t.elapsed();
-                    _t_sum += (t7.wall-t6.wall)/1e9;
+                    _t_sum += (t7.wall-t6a.wall)/1e9;
                     
 
                 } // j: for each point in atom grid
@@ -499,6 +509,25 @@ namespace votca {
                     XCMAT(_j, _i) = XCMAT(_i, _j);
                 }
             }
+            
+            
+            boost::timer::cpu_times t8 = cpu_t.elapsed();
+          
+                    
+            //double VXCtemp = 0.0;
+            const ub::vector<double> DMAT_array = _density_matrix.data();
+            const ub::vector<double> XCMAT_array = XCMAT.data();
+            
+            for ( int i = 0; i < DMAT_array.size(); i++ ){
+            
+                EXC -= DMAT_array[i] * XCMAT_array[i];
+                
+            }
+
+            boost::timer::cpu_times t9 = cpu_t.elapsed();
+            _t_EXC2 += (t9.wall-t8.wall)/1e9;
+                    
+            
 
             cout << " ATBLOCK Time AOVals      : " << _t_AOvals << endl;
             cout << " ATBLOCK Time rho         : " << _t_rho << endl;
@@ -507,6 +536,9 @@ namespace votca {
             cout << " ATBLOCK Time AOxc rho    : " << _t_AOxc_rho << endl;
             cout << " ATBLOCK Time AOxc grad   : " << _t_AOxc_grad << endl;
             cout << " ATBLOCK Time AOxc sum    : " << _t_sum << endl;
+            cout << " ATBLOCK Time Exc1        : " << _t_EXC1 << endl;
+            cout << " ATBLOCK Time Exc2        : " << _t_EXC2 << endl;
+            
                          boost::timer::cpu_times texit = cpu_t.elapsed();
                                 _t_total = (texit.wall-tenter.wall)/1e9;
                     
@@ -514,12 +546,16 @@ namespace votca {
                                  
             cout << " ATBLOCK TOTAL            : " << _t_total << endl;
             
+         
+            
+            
+            
             return XCMAT;
 
         }
         
         
-             ub::matrix<double> NumericalIntegration::IntegrateVXC_block(ub::matrix<double>& _density_matrix, AOBasis* basis){
+             ub::matrix<double> NumericalIntegration::IntegrateVXC_block(ub::matrix<double>& _density_matrix, AOBasis* basis, double& EXC){
             
             // TODO: switch XC functionals implementation from LIBXC to base own calculation
             #ifdef LIBXC
@@ -662,31 +698,34 @@ namespace votca {
 #ifdef LIBXC
 		    double sigma = ub::prod(ub::trans(grad_rho),grad_rho)(0,0);
 
+                    double exc[1];
                     double vsigma[1]; // libxc 
                     double vrho[1]; // libxc df/drho
                     switch (xfunc.info->family) {
                         case XC_FAMILY_LDA:
-                            xc_lda_vxc(&xfunc, 1, &rho, vrho);
+                            xc_lda_exc_vxc(&xfunc, 1, &rho, exc, vrho);
                             break;
                         case XC_FAMILY_GGA:
                         case XC_FAMILY_HYB_GGA:
-                            xc_gga_vxc(&xfunc, 1, &rho, &sigma, vrho, vsigma);
+                            xc_gga_exc_vxc(&xfunc, 1, &rho, &sigma, exc, vrho, vsigma);
                             break;
                     }
+                    f_xc      = exc[0];
                     df_drho   = vrho[0];
                     df_dsigma = vsigma[0];
 
                     // via libxc correlation part only
                     switch (cfunc.info->family) {
                         case XC_FAMILY_LDA:
-                            xc_lda_vxc(&cfunc, 1, &rho, vrho);
+                            xc_lda_exc_vxc(&cfunc, 1, &rho, exc, vrho);
                             break;
                         case XC_FAMILY_GGA:
                         case XC_FAMILY_HYB_GGA:
-                            xc_gga_vxc(&cfunc, 1, &rho, &sigma, vrho, vsigma);
+                            xc_gga_exc_vxc(&cfunc, 1, &rho, &sigma, exc, vrho, vsigma);
                             break;
                     }
 
+                    f_xc      += exc[0];
                     df_drho   += vrho[0];
                     df_dsigma += vsigma[0];
 
@@ -699,7 +738,7 @@ namespace votca {
                     
 		    // density part
 		    ub::matrix<double> _addXC = _grid[i][j].grid_weight * df_drho * AOgrid;
-
+                    EXC += _grid[i][j].grid_weight * rho * f_xc;
                     boost::timer::cpu_times t5 = cpu_t.elapsed();
                     _t_AOxc_rho += (t5.wall-t4.wall)/1e9;
                     
@@ -723,6 +762,19 @@ namespace votca {
                 } // j: for each point in atom grid
             } // i: for each atom grid
 
+            
+            const ub::vector<double> DMAT_array = _density_matrix.data();
+            const ub::vector<double> XCMAT_array = XCMAT.data();
+            
+            for ( int i = 0; i < DMAT_array.size(); i++ ){
+            
+                EXC -= DMAT_array[i] * XCMAT_array[i];
+                
+            }
+            
+            
+            
+            
 
             cout << " BLOCK Time rho         : " << _t_rho << endl;
             cout << " BLOCK Time grad rho    : " << _t_grad_rho << endl;
@@ -746,7 +798,7 @@ namespace votca {
         
         
         // numerically integrate the elements of the AOXC matrix
-        ub::matrix<double> NumericalIntegration::IntegrateVXC(ub::matrix<double>& _density_matrix, AOBasis* basis){
+        ub::matrix<double> NumericalIntegration::IntegrateVXC(ub::matrix<double>& _density_matrix, AOBasis* basis, double& EXC){
             
             // TODO: switch XC functionals implementation from LIBXC to base own calculation
             #ifdef LIBXC
@@ -854,29 +906,30 @@ namespace votca {
                     // evaluate via LIBXC, if compiled, otherwise, go via own implementation
 #ifdef LIBXC
 		    double sigma = ub::prod(ub::trans(grad_rho),grad_rho)(0,0);
-
+                    double exc[1];
                     double vsigma[1]; // libxc 
                     double vrho[1]; // libxc df/drho
                     switch (xfunc.info->family) {
                         case XC_FAMILY_LDA:
-                            xc_lda_vxc(&xfunc, 1, &rho, vrho);
+                            xc_lda_exc_vxc(&xfunc, 1, &rho, exc, vrho);
                             break;
                         case XC_FAMILY_GGA:
                         case XC_FAMILY_HYB_GGA:
-                            xc_gga_vxc(&xfunc, 1, &rho, &sigma, vrho, vsigma);
+                            xc_gga_exc_vxc(&xfunc, 1, &rho, &sigma, exc, vrho, vsigma);
                             break;
                     }
+                    f_xc      = exc[0];
                     df_drho   = vrho[0];
                     df_dsigma = vsigma[0];
 
                     // via libxc correlation part only
                     switch (cfunc.info->family) {
                         case XC_FAMILY_LDA:
-                            xc_lda_vxc(&cfunc, 1, &rho, vrho);
+                            xc_lda_exc_vxc(&cfunc, 1, &rho, exc, vrho);
                             break;
                         case XC_FAMILY_GGA:
                         case XC_FAMILY_HYB_GGA:
-                            xc_gga_vxc(&cfunc, 1, &rho, &sigma, vrho, vsigma);
+                            xc_gga_exc_vxc(&cfunc, 1, &rho, &sigma, exc, vrho, vsigma);
                             break;
                     }
 
@@ -892,7 +945,8 @@ namespace votca {
                     
 		    // density part
 		    ub::matrix<double> _addXC = _grid[i][j].grid_weight * df_drho * AOgrid;
-
+                    // Exchange correlation energy
+                    EXC += _grid[i][j].grid_weight * rho * f_xc;
                     boost::timer::cpu_times t5 = cpu_t.elapsed();
                     _t_AOxc_rho += (t5.wall-t4.wall)/1e9;
                     
@@ -917,6 +971,15 @@ namespace votca {
                 } // j: for each point in atom grid
             } // i: for each atom grid
 
+            
+            
+            const ub::vector<double> DMAT_array = _density_matrix.data();
+            const ub::vector<double> XCMAT_array = XCMAT.data();
+            for ( int i = 0; i < DMAT_array.size(); i++ ){
+            
+                EXC -= DMAT_array[i] * XCMAT_array[i];
+                
+            }
             
             cout << " Time AO functions: " << _t_AOgrid << endl;
             cout << " Time rho         : " << _t_rho << endl;
