@@ -330,8 +330,9 @@ namespace votca {
 
             // test AOxcmatrix
             //ub::matrix<double> AOXC = _numint.IntegrateVXC(DMAT,&dftbasis); 
-            ub::matrix<double> AOXC_atomblock = _numint.IntegrateVXC_Atomblock(DMAT,&dftbasis); 
-            
+            double EXC = 0.0;
+            ub::matrix<double> AOXC_atomblock = _numint.IntegrateVXC_Atomblock(DMAT,&dftbasis,EXC); 
+            cout << "EXC " << EXC << endl;
             for ( int i = 0 ; i < AOXC_atomblock.size1(); i++ ){
                 //for ( int j = 0 ; j < AOXC.size2(); j++ ){
                     
