@@ -13,7 +13,6 @@
             <sourceRootList>
                 <sourceRootElem>../../include</sourceRootElem>
                 <sourceRootElem>../../../../include</sourceRootElem>
-                <sourceRootElem>../../src/libctp/dftengine</sourceRootElem>
             </sourceRootList>
             <confList>
                 <confElem>

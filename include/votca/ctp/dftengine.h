@@ -91,6 +91,11 @@ public:
     void Prepare( Orbitals* _orbitals );
     void SetupInvariantMatrices();
     
+    void DensityMatrixGroundState( ub::matrix<double>& _MOs, int occulevels ) ;
+    
+
+    void EvolveDensityMatrix(ub::matrix<double>& MOCoeff, int occulevels);
+    
     //bool   _maverick;
     
     // program tasks
@@ -130,7 +135,13 @@ public:
     AOCoulomb                           _dftAOcoulomb;
     AOCoulomb                           _auxAOcoulomb;
     AOKinetic                           _dftAOkinetic;
+    AOESP                               _dftAOESP;
     
+    //
+    double                              _mixingparameter;
+    int                                 _numofelectrons;
+    ub::matrix<double>                  _dftAOdmat;
+    std::vector< ub::matrix<double> >   _dftdmathist;
     //Electron repulsion integrals
     ERIs                                _ERIs;
     

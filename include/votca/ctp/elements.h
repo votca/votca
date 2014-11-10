@@ -54,18 +54,21 @@ public:
     const double     &getVdWChelpG(string name ) const { return _VdWChelpG.at(name); }
     const double     &getVdWMK(string name ) const { return _VdWMK.at(name); }
     const double     &getNucCrgECP(string name) const {return _NucCrgECP.at(name); }
+    const double     &getNucCrg(string name) const {return _NucCrg.at(name); }
 
 private:
 
     std::map<std::string, double> _VdWChelpG;
     std::map<std::string, double> _VdWMK;
     std::map<std::string, double> _NucCrgECP;
+    std::map<std::string, double> _NucCrg;
     
     inline void FillMaps(){
         
         FillVdWChelpG();
         FillVdWMK();
         FillNucCrgECP();
+        FillNucCrg();
         
     }
 
@@ -114,6 +117,29 @@ private:
         _NucCrgECP["S"]  = 6.00;
         _NucCrgECP["Cl"] = 7.00;
         _NucCrgECP["Ar"] = 8.00;
+    };
+    
+      inline void FillNucCrg(){
+    
+        // Nuclear Charges
+        _NucCrg["H"]  = 1.00; 
+        _NucCrg["He"] = 2.00;
+        _NucCrg["Li"] = 3.00;
+        _NucCrg["Be"] = 4.00;
+        _NucCrg["B"]  = 5.00;
+        _NucCrg["C"]  = 6.00;
+        _NucCrg["N"]  = 7.00;
+        _NucCrg["O"]  = 8.00;
+        _NucCrg["F"]  = 9.00;
+        _NucCrg["Ne"] = 10.00;
+        _NucCrg["Na"] = 11.00;
+        _NucCrg["Mg"] = 12.00;
+        _NucCrg["Al"] = 13.00;
+        _NucCrg["Si"] = 14.00;
+        _NucCrg["P"]  = 15.00;
+        _NucCrg["S"]  = 16.00;
+        _NucCrg["Cl"] = 17.00;
+        _NucCrg["Ar"] = 18.00;
     };
     
     

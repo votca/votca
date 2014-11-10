@@ -38,8 +38,6 @@
         <itemPath>../../src/libctp/jobcalculators/egwbse.cc</itemPath>
         <itemPath>../../src/libctp/jobcalculators/egwbse.h</itemPath>
         <itemPath>../../src/libctp/jobcalculators/ewald.h</itemPath>
-        <itemPath>../../src/libctp/jobcalculators/gwbse.cc</itemPath>
-        <itemPath>../../src/libctp/jobcalculators/gwbse.h</itemPath>
         <itemPath>../../src/libctp/jobcalculators/idft.cc</itemPath>
         <itemPath>../../src/libctp/jobcalculators/idft.h</itemPath>
         <itemPath>../../src/libctp/jobcalculators/igwbse.cc</itemPath>
@@ -334,8 +332,6 @@
       </item>
       <item path="../../include/votca/ctp/gwbse.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/ctp/hueckel.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/ctp/job.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/jobapplication.h"
@@ -726,8 +722,6 @@
       </item>
       <item path="../../src/libctp/hgversion.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../src/libctp/hueckel.cc" ex="false" tool="0" flavor2="0">
-      </item>
       <item path="../../src/libctp/job.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/jobapplication.cc" ex="false" tool="1" flavor2="0">
@@ -753,16 +747,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/jobcalculators/ewald.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/jobcalculators/gwbse.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/jobcalculators/gwbse.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1053,8 +1037,6 @@
       </item>
       <item path="../../include/votca/ctp/gwbse.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/ctp/hueckel.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/ctp/job.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/jobapplication.h"
@@ -1445,8 +1427,6 @@
       </item>
       <item path="../../src/libctp/hgversion.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../src/libctp/hueckel.cc" ex="false" tool="0" flavor2="0">
-      </item>
       <item path="../../src/libctp/job.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/jobapplication.cc" ex="false" tool="1" flavor2="0">
@@ -1472,16 +1452,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/jobcalculators/ewald.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/jobcalculators/gwbse.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/jobcalculators/gwbse.h"
             ex="false"
             tool="3"
             flavor2="0">

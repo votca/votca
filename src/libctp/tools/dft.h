@@ -207,7 +207,7 @@ bool DFT::Evaluate() {
     // Create new orbitals object and fill with atom coordinates
     Orbitals _orbitals;
     XYZ2Orbitals( &_orbitals, _xyzfile );
-    cout << "here" << endl;
+    //cout << "here" << endl;
     // get the corresponding object from the QMPackageFactory
     /*    QMPackage *_qmpackage =  QMPackages().Create( _package );
     _qmpackage->setLog( &_log );       

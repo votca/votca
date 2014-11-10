@@ -160,8 +160,10 @@ namespace votca { namespace ctp {
         //block fill for overlap, implementation in aoesp.cc
         void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, bool _raw = false );
         //void Print();
+        void Fillnucpotential( AOBasis* aobasis, std::vector<QMAtom*>& _atoms );
         
-        // ~AOKinetic();
+        ub::matrix<double> _nuclearpotential;
+        // ~AOESP();
         
         
     };
@@ -173,7 +175,7 @@ namespace votca { namespace ctp {
         void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, bool _raw = false );
         //void Print();
         
-        // ~AOESP();
+        // ~AOKinetic();
         
         
     };
