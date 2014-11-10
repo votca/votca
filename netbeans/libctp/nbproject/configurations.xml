@@ -198,6 +198,7 @@
         <itemPath>../../src/libctp/segmenttype.cc</itemPath>
         <itemPath>../../src/libctp/topology.cc</itemPath>
       </logicalFolder>
+      <itemPath>../../src/libctp/ERIs.cc</itemPath>
       <itemPath>../../src/libctp/apolarsite.cc</itemPath>
       <itemPath>../../src/libctp/bsecoupling.cc</itemPath>
       <itemPath>../../src/libctp/ewald2d.cc</itemPath>
@@ -224,6 +225,7 @@
       <itemPath>../../src/libctp/qmtool.cc</itemPath>
       <itemPath>../../src/libctp/statesaversqlite.cc</itemPath>
       <itemPath>../../src/libctp/threecenters.cc</itemPath>
+      <itemPath>../../src/libctp/threecenters_dft.cc</itemPath>
       <itemPath>../../src/libctp/threecenters_tools.cc</itemPath>
       <itemPath>../../src/libctp/version.cc</itemPath>
       <itemPath>../../src/libctp/version_nb.cc</itemPath>
@@ -481,6 +483,8 @@
       <item path="../../include/votca/ctp/xjob.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/xmapper.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libctp/ERIs.cc" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../src/libctp/aomatrices/aocoulomb.cc"
             ex="false"
@@ -894,6 +898,11 @@
       </item>
       <item path="../../src/libctp/threecenters.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libctp/threecenters_dft.cc"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/threecenters_tools.cc"
             ex="false"
             tool="1"
@@ -1186,6 +1195,8 @@
       <item path="../../include/votca/ctp/xjob.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/xmapper.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libctp/ERIs.cc" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../src/libctp/aomatrices/aocoulomb.cc"
             ex="false"
@@ -1598,6 +1609,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/threecenters.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/threecenters_dft.cc"
+            ex="false"
+            tool="0"
+            flavor2="0">
       </item>
       <item path="../../src/libctp/threecenters_tools.cc"
             ex="false"

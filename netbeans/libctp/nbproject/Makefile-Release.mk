@@ -35,6 +35,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
+	${OBJECTDIR}/_ext/484457893/ERIs.o \
 	${OBJECTDIR}/_ext/1559596494/aocoulomb.o \
 	${OBJECTDIR}/_ext/1559596494/aodipole.o \
 	${OBJECTDIR}/_ext/1559596494/aoesp.o \
@@ -92,6 +93,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484457893/sqlapplication.o \
 	${OBJECTDIR}/_ext/484457893/statesaversqlite.o \
 	${OBJECTDIR}/_ext/484457893/threecenters.o \
+	${OBJECTDIR}/_ext/484457893/threecenters_dft.o \
 	${OBJECTDIR}/_ext/484457893/threecenters_tools.o \
 	${OBJECTDIR}/_ext/484457893/toolfactory.o \
 	${OBJECTDIR}/_ext/1076706545/molpol.o \
@@ -129,6 +131,11 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liblibctp.a: ${OBJECTFILES}
 	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liblibctp.a
 	${AR} -rv ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liblibctp.a ${OBJECTFILES} 
 	$(RANLIB) ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liblibctp.a
+
+${OBJECTDIR}/_ext/484457893/ERIs.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libctp/ERIs.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
+	${RM} $@.d
+	$(COMPILE.c) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/ERIs.o ../../src/libctp/ERIs.cc
 
 ${OBJECTDIR}/_ext/1559596494/aocoulomb.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libctp/aomatrices/aocoulomb.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1559596494
@@ -414,6 +421,11 @@ ${OBJECTDIR}/_ext/484457893/threecenters.o: nbproject/Makefile-${CND_CONF}.mk ..
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/threecenters.o ../../src/libctp/threecenters.cc
+
+${OBJECTDIR}/_ext/484457893/threecenters_dft.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libctp/threecenters_dft.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
+	${RM} $@.d
+	$(COMPILE.c) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/threecenters_dft.o ../../src/libctp/threecenters_dft.cc
 
 ${OBJECTDIR}/_ext/484457893/threecenters_tools.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libctp/threecenters_tools.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
