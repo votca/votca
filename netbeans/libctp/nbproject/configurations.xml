@@ -159,6 +159,7 @@
         <itemPath>../../src/libctp/aomatrices/aocoulomb.cc</itemPath>
         <itemPath>../../src/libctp/aomatrices/aodipole.cc</itemPath>
         <itemPath>../../src/libctp/aomatrices/aoesp.cc</itemPath>
+        <itemPath>../../src/libctp/aomatrices/aokinetic.cc</itemPath>
         <itemPath>../../src/libctp/aomatrices/aomatrix.cc</itemPath>
         <itemPath>../../src/libctp/aomatrices/aomomentum.cc</itemPath>
         <itemPath>../../src/libctp/aomatrices/aooverlap.cc</itemPath>
@@ -499,6 +500,11 @@
       <item path="../../src/libctp/aomatrices/aoesp.cc"
             ex="false"
             tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/aomatrices/aokinetic.cc"
+            ex="false"
+            tool="0"
             flavor2="0">
       </item>
       <item path="../../src/libctp/aomatrices/aomatrix.cc"
@@ -1211,6 +1217,11 @@
       <item path="../../src/libctp/aomatrices/aoesp.cc"
             ex="false"
             tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/aomatrices/aokinetic.cc"
+            ex="false"
+            tool="0"
             flavor2="0">
       </item>
       <item path="../../src/libctp/aomatrices/aomatrix.cc"

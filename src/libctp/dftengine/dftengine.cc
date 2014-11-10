@@ -140,15 +140,24 @@ namespace votca {
             
 	    /**** Density-independent matrices ****/
 	    SetupInvariantMatrices();
-
+            //_dftAOkinetic.Print("TMAT");
+            //exit(0);
             /**** Initial guess = one-electron Hamiltonian without interactions ****/
             ub::vector<double>& MOEnergies=_orbitals->MOEnergies();
             ub::matrix<double>& MOCoeff=_orbitals->MOCoefficients();
             /**** Construct initial density  ****/
             
-            ub::matrix<double> H0=_dftAOESP._aomatrix+_dftAOkinetic._aomatrix;
+            ub::matrix<double> H0=_dftAOESP._nuclearpotential+_dftAOkinetic._aomatrix;
             linalg_eigenvalues_general( H0,_dftAOoverlap._aomatrix, MOEnergies, MOCoeff);
-        
+         double totinit=0;
+         cout << endl;
+                for (int i=0;i<(_numofelectrons/2);i++){
+                    cout << MOEnergies(i) << "eigenwert " << i << endl;
+                    totinit+=2*MOEnergies(i);
+                }
+                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Total KS orbital Energy "<<totinit<<flush;
+                 
+                // exit(0);
             /*
             // cout << MOEnergies[0] << " " << MOEnergies[_numofelectrons/2] << endl;
             cout << "\n";
@@ -179,9 +188,21 @@ namespace votca {
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Iteration "<< i+1 <<" of "<<numofiterations<< flush;
                 _ERIs.CalculateERIs(_dftAOdmat);
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Electron repulsion matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2()<< flush<<flush;
-                ub::matrix<double> H=_dftAOESP._aomatrix+_dftAOkinetic._aomatrix+_ERIs.getERIs()+_gridIntegration.IntegrateVXC(_dftAOdmat,  basis);
+                ub::matrix<double> H=_dftAOESP._nuclearpotential+_dftAOkinetic._aomatrix+_ERIs.getERIs()+_gridIntegration.IntegrateVXC(_dftAOdmat,  basis);
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Vxc matrix "<<flush;
                 linalg_eigenvalues_general( H,_dftAOoverlap._aomatrix, MOEnergies, MOCoeff);
+                double totenergy=0;
+                cout << endl;
+                for (int i=0;i<_numofelectrons/2;i++){
+                    cout << MOEnergies(i) << "eigenwert " << i << endl;
+                    totenergy+=2*MOEnergies(i);
+                }
+                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Total KS orbital Energy "<<totenergy<<flush;
+                totenergy+=_gridIntegration.getTotEcontribution()-0.5*_ERIs.getERIsenergy();
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Exc contribution "<<_gridIntegration.getTotEcontribution()<<flush;
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " E_H contribution "<<-0.5*_ERIs.getERIsenergy()<<flush;
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Total Energy "<<totenergy<<flush;
+                
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Solved general eigenproblem "<<flush;
                 EvolveDensityMatrix( MOCoeff, _numofelectrons/2 ) ;
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Num of electrons "<< _gridIntegration.IntegrateDensity(_dftAOdmat, basis) << flush;
