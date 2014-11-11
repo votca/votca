@@ -52,10 +52,12 @@ namespace votca { namespace ctp {
             
             ub::matrix<double> numAOoverlap ( AOBasis* basis  );
             double IntegrateDensity(ub::matrix<double>& _density_matrix, AOBasis* basis);
-            ub::matrix<double> IntegrateVXC ( ub::matrix<double>& _density_matrix, AOBasis* basis ,  double& EXC );
-            ub::matrix<double> IntegrateVXC_block ( ub::matrix<double>& _density_matrix, AOBasis* basis , double& EXC  );
-            ub::matrix<double> IntegrateVXC_Atomblock ( ub::matrix<double>& _density_matrix, AOBasis* basis, double& EXC  );
-
+            ub::matrix<double> IntegrateVXC ( ub::matrix<double>& _density_matrix, AOBasis* basis  );
+            ub::matrix<double> IntegrateVXC_block ( ub::matrix<double>& _density_matrix, AOBasis* basis   );
+            ub::matrix<double> IntegrateVXC_Atomblock ( ub::matrix<double>& _density_matrix, AOBasis* basis );
+            
+            // this gives int (e_xc-V_xc)*rho d3r
+            double& getTotEcontribution(){return EXC;}
             //ub::matrix<double> StupidIntegrateVXC ( ub::matrix<double>& _density_matrix, AOBasis* basis  );
             
         private:
@@ -69,7 +71,7 @@ namespace votca { namespace ctp {
             double erf1c(double x);
             double erfcc(double x);
             std::vector< std::vector< GridContainers::integration_grid > > _grid;
-            
+            double EXC;
 
         };
 

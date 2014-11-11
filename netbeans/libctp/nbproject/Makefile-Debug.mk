@@ -62,9 +62,9 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484457893/jobapplication.o \
 	${OBJECTDIR}/_ext/484457893/jobcalculatorfactory.o \
 	${OBJECTDIR}/_ext/700762242/egwbse.o \
-	${OBJECTDIR}/_ext/700762242/gwbse.o \
 	${OBJECTDIR}/_ext/700762242/idft.o \
 	${OBJECTDIR}/_ext/700762242/igwbse.o \
+	${OBJECTDIR}/_ext/1069846742/mbgft.o \
 	${OBJECTDIR}/_ext/484457893/molecule.o \
 	${OBJECTDIR}/_ext/1966063395/numerical_integrations.o \
 	${OBJECTDIR}/_ext/1966063395/radial_euler_maclaurin_rule.o \
@@ -156,7 +156,7 @@ ${OBJECTDIR}/_ext/1559596494/aoesp.o: ../../src/libctp/aomatrices/aoesp.cc
 ${OBJECTDIR}/_ext/1559596494/aokinetic.o: ../../src/libctp/aomatrices/aokinetic.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1559596494
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1559596494/aokinetic.o ../../src/libctp/aomatrices/aokinetic.cc
+	$(COMPILE.c) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1559596494/aokinetic.o ../../src/libctp/aomatrices/aokinetic.cc
 
 ${OBJECTDIR}/_ext/1559596494/aomatrix.o: ../../src/libctp/aomatrices/aomatrix.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1559596494
@@ -206,12 +206,7 @@ ${OBJECTDIR}/_ext/484457893/ctpapplication.o: ../../src/libctp/ctpapplication.cc
 ${OBJECTDIR}/_ext/843511542/dftengine.o: ../../src/libctp/dftengine/dftengine.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/843511542
 	${RM} $@.d
-	$(COMPILE.c) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/843511542/dftengine.o ../../src/libctp/dftengine/dftengine.cc
-
-${OBJECTDIR}/_ext/843511542/dftengine.o: ../../src/libctp/dftengine/dftengine.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/843511542
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/843511542/dftengine.o ../../src/libctp/dftengine/dftengine.cc
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/843511542/dftengine.o ../../src/libctp/dftengine/dftengine.cc
 
 ${OBJECTDIR}/_ext/484457893/ewaldactor.o: ../../src/libctp/ewaldactor.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
@@ -273,11 +268,6 @@ ${OBJECTDIR}/_ext/700762242/egwbse.o: ../../src/libctp/jobcalculators/egwbse.cc
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/700762242/egwbse.o ../../src/libctp/jobcalculators/egwbse.cc
 
-${OBJECTDIR}/_ext/700762242/gwbse.o: ../../src/libctp/jobcalculators/gwbse.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/700762242
-	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/700762242/gwbse.o ../../src/libctp/jobcalculators/gwbse.cc
-
 ${OBJECTDIR}/_ext/700762242/idft.o: ../../src/libctp/jobcalculators/idft.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/700762242
 	${RM} $@.d
@@ -287,6 +277,11 @@ ${OBJECTDIR}/_ext/700762242/igwbse.o: ../../src/libctp/jobcalculators/igwbse.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/700762242
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/700762242/igwbse.o ../../src/libctp/jobcalculators/igwbse.cc
+
+${OBJECTDIR}/_ext/1069846742/mbgft.o: ../../src/libctp/mbgft/mbgft.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1069846742
+	${RM} $@.d
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1069846742/mbgft.o ../../src/libctp/mbgft/mbgft.cc
 
 ${OBJECTDIR}/_ext/484457893/molecule.o: ../../src/libctp/molecule.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893

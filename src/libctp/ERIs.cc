@@ -74,15 +74,38 @@ namespace votca {
             for ( int _i=0; _i<K.size(); _i++){
             _ERIs+=_threecenter.getDatamatrix(_i)*K(_i);    
             }
+            
+            CalculateEnergy(dmatasarray);
         }
+        
+        
+        
+        
+        
+        // This is simply Trace(prod(ERIs*Dmat))=Totenergy
+        void ERIs::CalculateEnergy(ub::vector<double> &dmatasarray){
+            _ERIsenergy=0;
+            ub::vector<double> ERIsasarray=_ERIs.data();
+            for ( int _i=0;_i<ERIsasarray.size();_i++){
+                _ERIsenergy+=dmatasarray[_i]*ERIsasarray[_i];
+                
+            }
+            
+            
+            
+            
+        }
+        
         
         void ERIs::printERIs(){
           for (int i=0; i< _ERIs.size1(); i++){
                 for (int j=0; j< _ERIs.size2();j++){
-                    //cout << "[" << i<<":"<<j<<"]="<<_ERIs(i,j)<<endl;
+                    cout << "ERIs [" << i<<":"<<j<<"]="<<_ERIs(i,j)<<endl;
                 }
             }
         }
+        
+        
         
         
         
