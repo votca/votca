@@ -250,7 +250,7 @@ int XInductor::Induce(XJob *job) {
 
     // Direct induction. Could also be restored from file (in the case of
     // iterative QM/MM being performed)
-    if (!job->StartFromCPT()) {
+    if (true || !job->StartFromCPT()) {
         for (sit1 = _qmm.begin(); sit1 < _qmm.end(); ++sit1) {
             for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
                 (*pit1)->InduceDirect();

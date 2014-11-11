@@ -1853,6 +1853,12 @@ bool ZMultipole::EvaluateFrame(Topology *top) {
         for (sit = top->Segments().begin();
              sit < top->Segments().end();
              ++sit) {
+            // Charge: neutral ground state (for output only)
+            vector< APolarSite* > poles = (*sit)->APolarSites();
+            vector< APolarSite* > ::iterator pit;
+            for (pit = poles.begin(); pit < poles.end(); ++pit) {
+                (*pit)->Charge(0);
+            }            
             (*sit)->WritePDB(mpPDB, "Multipoles", "Charges");
         }
         fclose(mpPDB);

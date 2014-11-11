@@ -2,6 +2,7 @@
 #include <votca/ctp/job.h>
 #include <fstream>
 #include <boost/format.hpp>
+#include <votca/tools/tokenizer.h>
 
 using boost::format;
 namespace votca { namespace ctp {
@@ -78,6 +79,10 @@ void JobWriter::mps_chrg(Topology *top) {
     vector<string> ::iterator vit;
 
     string str_states = _options->get("options.jobwriter.states").as<string>();
+    string seg_pattern = "*";
+    if (_options->exists("options.jobwriter.pattern")) {
+        seg_pattern = _options->get("options.jobwriter.pattern").as<string>();
+    }
     Tokenizer tok_states(str_states, " ,\t\n");
     tok_states.ToVector(states);
 	
@@ -90,6 +95,8 @@ void JobWriter::mps_chrg(Topology *top) {
 
         int id1 = seg1->getId();
         string name1 = seg1->getName();
+        
+        if (!votca::tools::wildcmp(seg_pattern.c_str(), name1.c_str())) continue;
         
         for (vit = states.begin(); vit != states.end(); ++vit) {
             int id = ++jobCount;

@@ -1144,7 +1144,7 @@ void Ewald3DnD::Evaluate() {
         ofs.close();
     }
     
-    if (false && tools::globals::verbose) {
+    if (true && tools::globals::verbose) {
         std::ofstream ofs;
         ofs.open("indu_state", ofstream::out);
         for (vector<PolarSeg*>::iterator sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
@@ -1204,7 +1204,7 @@ void Ewald3DnD::Evaluate() {
         ofs.close();
     }
     
-    if (tools::globals::verbose) {
+    if (false && tools::globals::verbose) {
         string tabfile = "polarized_"
             + boost::lexical_cast<string>(_polar_qm0[0]->getId())
             + "_" + _jobType + ".tab";

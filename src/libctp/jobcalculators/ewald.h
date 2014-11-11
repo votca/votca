@@ -49,6 +49,7 @@ private:
     string                         _polar_bg_arch;
     XMpsMap                        _mps_mapper;
     bool                           _pdb_check;
+    bool                           _ptop_check;
 };
 
 
@@ -95,6 +96,10 @@ void Ewald<EwaldMethod>::Initialize(Property *opt) {
             _pdb_check = opt->get(key+".pdb_check").as<bool>();
         }
         else { _pdb_check = false; }
+        if (opt->exists(key+".ptop_check")) {
+            _ptop_check = opt->get(key+".ptop_check").as<bool>();
+        }
+        else { _ptop_check = false; }
     
     return;
 }
@@ -243,7 +248,7 @@ Job::JobResult Ewald<EwaldMethod>::EvalJob(Topology *top, Job *job,
     if (_pdb_check)
         ewaldnd.WriteDensitiesPDB(xjob.getTag()+".densities.pdb");
     ewaldnd.Evaluate();
-    if (_pdb_check)
+    if (_ptop_check)
         ewaldnd.WriteDensitiesPtop(xjob.getTag()+".fg.ptop", 
             xjob.getTag()+".mg.ptop", xjob.getTag()+".bg.ptop");
     

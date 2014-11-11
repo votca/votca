@@ -13,12 +13,22 @@ PolarBackground::PolarBackground(Topology *top, PolarTop *ptop, Property *opt,
     
     // EVALUATE OPTIONS
     string pfx = "options.ewdbgpol";
-    // Preprocessing
+    // Dipole compensation options
     if (opt->exists(pfx+".coulombmethod.dipole_corr"))
         _do_compensate_net_dipole = 
             opt->get(pfx+".coulombmethod.dipole_corr").as<bool>();
     else
         _do_compensate_net_dipole = false;
+    if (opt->exists(pfx+".coulombmethod.dipole_corr_type"))
+        _dipole_compensation_type = 
+            opt->get(pfx+".coulombmethod.dipole_corr_type").as<string>();
+    else
+        _dipole_compensation_type = "system";
+    if (opt->exists(pfx+".coulombmethod.dipole_corr_direction"))
+        _dipole_compensation_direction = 
+            opt->get(pfx+".coulombmethod.dipole_corr_direction").as<string>();
+    else
+        _dipole_compensation_direction = "xyz";
     // Ewald parameters
     _shape = opt->get(pfx+".coulombmethod.shape").as<string>();
     _R_co = opt->get(pfx+".coulombmethod.cutoff").as<double>();
@@ -31,7 +41,11 @@ PolarBackground::PolarBackground(Topology *top, PolarTop *ptop, Property *opt,
         _rfactor = opt->get(pfx+".convergence.rfactor").as<double>();
     else
         _rfactor = 6.;
-    // Polar parameters    
+    // Polar parameters
+    if (opt->exists(pfx+".polarmethod.use_cutoff"))
+        _do_use_cutoff = opt->get(pfx+".polarmethod.use_cutoff").as<bool>();
+    else
+        _do_use_cutoff = false;
     if (opt->exists(pfx+".polarmethod.cutoff")) 
         _polar_cutoff = opt->get(pfx+".polarmethod.cutoff").as<double>();
     else
@@ -49,6 +63,7 @@ PolarBackground::PolarBackground(Topology *top, PolarTop *ptop, Property *opt,
     _K_co = _kfactor/_R_co;
     _alpha = _rfactor/_R_co;
     _ewdactor = EwdInteractor(_alpha, _polar_aDamp);
+    _actor = XInteractor(NULL, _polar_aDamp);
     
     // SET-UP REAL & RECIPROCAL SPACE
     _a = _top->getBox().getCol(0);
@@ -107,6 +122,9 @@ PolarBackground::PolarBackground(Topology *top, PolarTop *ptop, Property *opt,
     
     // APPLY SYSTEM DIPOLE COMPENSATION
     if (_do_compensate_net_dipole) {
+        LOG(logINFO,*_log) << (format("  o Dpl. compensation: type '%1$s', "
+                "direction '%2$s' ") % _dipole_compensation_type 
+                % _dipole_compensation_direction) << flush;
         vec system_dpl(0,0,0);
         int charged_count = 0;
         for (sit = _bg_P.begin(); sit < _bg_P.end(); ++sit) {
@@ -120,14 +138,29 @@ PolarBackground::PolarBackground(Topology *top, PolarTop *ptop, Property *opt,
                 }
             }
         }
-        LOG(logINFO,*_log) << "  o System Q1 compensation: " << system_dpl 
+        LOG(logINFO,*_log) << "    - System Q1: " << - system_dpl 
             << "  (apply to " << charged_count << " polar sites)" << flush;
-        vec atomic_compensation_dpl = - system_dpl/charged_count;
-        cout << endl << system_dpl << " " << charged_count << " " << atomic_compensation_dpl << flush;
+        vec atomic_compensation_dpl_system = - system_dpl/charged_count;
         int compensation_count = 0;
         for (sit = _bg_P.begin(); sit < _bg_P.end(); ++sit) {
             PolarSeg* pseg = *sit;
             if (!pseg->IsCharged()) continue;
+            // Dipole compensation type
+            vec atomic_compensation_dpl = vec(0,0,0);
+            if (_dipole_compensation_type == "system")
+                atomic_compensation_dpl = atomic_compensation_dpl_system;
+            else if (_dipole_compensation_type == "segment") {
+                vec pseg_dpl = pseg->CalcTotD();
+                atomic_compensation_dpl = - pseg_dpl/pseg->size();
+            }
+            else assert(false); // Compensation type not implemented
+            // Dipole compensation direction
+            if (_dipole_compensation_direction == "xyz") ;
+            else if (_dipole_compensation_direction == "z") {
+                atomic_compensation_dpl = vec(0.,0., atomic_compensation_dpl.getZ());
+            }
+            else assert(false); // Compensation direction not implemented
+            // Apply dipolar compensation
             for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
                 compensation_count += 1;
                 if ((*pit)->getRank() < 1) {
@@ -236,31 +269,34 @@ void PolarBackground::Polarize(int n_threads = 1) {
     Extract (or serialize) induction state to hard-drive
     */
     
+    double rms = 0.0;
+    int rms_count = 0;
+    
     // I GENERATE PERMANENT FIELDS (FP)
     LOG(dbg,log) << flush;
     LOG(dbg,log) << "Generate permanent fields (FP)" << flush;
     // I.A Intermolecular real-space contribution
     LOG(dbg,log) << "  o Real-space, intermolecular" << flush;
     this->FX_RealSpace("FP_MODE", true);
-    // I.B Reciprocal-space contribution
-    LOG(dbg,log) << "  o Reciprocal-space" << flush;
-    this->FX_ReciprocalSpace("SP_MODE", "FP_MODE", true);
-    // I.C Shape fields
-    LOG(dbg,log) << "  o Shape fields ('" << _shape << "')" << flush;
-    _ewdactor.FP12_ShapeField_At_By(_bg_P, _bg_P, _shape, _LxLyLz);
-    // I.D Molecular ERF self-interaction correction
-    LOG(dbg,log) << "  o Molecular SI correction" << flush;
-    double rms = 0.0;
-    int rms_count = 0;
-    for (sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
-        for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
-            for (pit2 = (*sit1)->begin(); pit2 < (*sit1)->end(); ++pit2) {
-                rms += _ewdactor.FP12_ERF_At_By(*(*pit1), *(*pit2));
-                rms_count += 1;
+    if (!_do_use_cutoff) {
+        // I.B Reciprocal-space contribution
+        LOG(dbg,log) << "  o Reciprocal-space" << flush;
+        this->FX_ReciprocalSpace("SP_MODE", "FP_MODE", true);
+        // I.C Shape fields
+        LOG(dbg,log) << "  o Shape fields ('" << _shape << "')" << flush;
+        _ewdactor.FP12_ShapeField_At_By(_bg_P, _bg_P, _shape, _LxLyLz);
+        // I.D Molecular ERF self-interaction correction
+        LOG(dbg,log) << "  o Molecular SI correction" << flush;
+        for (sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
+            for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+                for (pit2 = (*sit1)->begin(); pit2 < (*sit1)->end(); ++pit2) {
+                    rms += _ewdactor.FP12_ERF_At_By(*(*pit1), *(*pit2));
+                    rms_count += 1;
+                }
             }
         }
+        rms = sqrt(rms/rms_count)*EWD::int2V_m;
     }
-    rms = sqrt(rms/rms_count)*EWD::int2V_m;
     
     // TEASER OUTPUT PERMANENT FIELDS
     LOG(logDEBUG,*_log) << flush << "Foreground fields:" << flush;
@@ -319,29 +355,33 @@ void PolarBackground::Polarize(int n_threads = 1) {
                 for (pit2 = pit1+1; pit2 < (*sit1)->end(); ++pit2) {
                     _ewdactor.FU12_ERFC_At_By(*(*pit1), *(*pit2));
                     _ewdactor.FU12_ERFC_At_By(*(*pit2), *(*pit1));
+                    //_actor.BiasIndu(*(*pit1),*(*pit2));
+                    //_actor.FieldIndu(*(*pit1),*(*pit2));
                 }
             }
         }
         // (2) Real-space intermolecular contribution
         bool do_setup_nbs = (iter == 0) ? true : false;
         this->FX_RealSpace("FU_MODE", do_setup_nbs);
-        // (3) Reciprocal-space contribution
-        LOG(dbg,log) << "  o Reciprocal-space" << flush;
-        this->FX_ReciprocalSpace("SU_MODE", "FU_MODE", false);
-        // (4) Calculate shape fields
-        LOG(dbg,log) << "  o Shape fields ('" << _shape << "')" << flush;
-        _ewdactor.FU12_ShapeField_At_By(_bg_P, _bg_P, _shape, _LxLyLz);
-        // (5) Apply atomic ERF self-interaction correction
-        LOG(dbg,log) << "  o Atomic SI correction" << flush;
-        rms = 0.0;
-        rms_count = 0;
-        for (sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
-            for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
-                rms += _ewdactor.FU12_ERF_At_By(*(*pit1), *(*pit1));
-                rms_count += 1;
+        if (!_do_use_cutoff) {
+            // (3) Reciprocal-space contribution
+            LOG(dbg,log) << "  o Reciprocal-space" << flush;
+            this->FX_ReciprocalSpace("SU_MODE", "FU_MODE", false);
+            // (4) Calculate shape fields
+            LOG(dbg,log) << "  o Shape fields ('" << _shape << "')" << flush;
+            _ewdactor.FU12_ShapeField_At_By(_bg_P, _bg_P, _shape, _LxLyLz);
+            // (5) Apply atomic ERF self-interaction correction
+            LOG(dbg,log) << "  o Atomic SI correction" << flush;
+            rms = 0.0;
+            rms_count = 0;
+            for (sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
+                for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+                    rms += _ewdactor.FU12_ERF_At_By(*(*pit1), *(*pit1));
+                    rms_count += 1;
+                }
             }
+            rms = sqrt(rms/rms_count)*EWD::int2V_m;
         }
-        rms = sqrt(rms/rms_count)*EWD::int2V_m;
         
         
         // TEASER OUTPUT INDUCTION FIELDS   
@@ -511,50 +551,80 @@ void PolarBackground::RThread::FP_FieldCalc() {
             }}}
         }
         
-        // SUM OVER CONSECUTIVE SHELLS & STORE NBS FOR REUSE
-        bool converged = false;
-        int charged_nbs_count = 0;
         int shell_idx = 0;
-        double shell_R = 0;
-        for (int sidx = 0; sidx < N_shells; ++sidx) {
-            // Figure out shell parameters
-            shell_idx = sidx;
-            shell_R = (sidx+1)*dR_shell;
-            vector<PolarNb*> &nb_shell = shelled_nbs[sidx];
-            if (nb_shell.size() < 1) continue;
-            double shell_rms = 0.0;
-            int shell_rms_count = 0;
-            // Interact ...
-            for (nit = nb_shell.begin(); nit < nb_shell.end(); ++nit) {
-                PolarSeg *pseg2 = (*nit)->getNb();
-                // Add neighbour for later use
-                pseg1->AddPolarNb(*nit);
-                if (!pseg2->IsCharged()) continue;
-                charged_nbs_count += 1;
-                if (votca::tools::abs((*nit)->getR()) > R_co_max) assert(false);
-                // Interact taking into account shift
-                for (pit1 = pseg1->begin(); pit1 < pseg1->end(); ++pit1) {
-                    for (pit2 = pseg2->begin(); pit2 < pseg2->end(); ++pit2) {
-                        shell_rms += _ewdactor.FP12_ERFC_At_By(*(*pit1), *(*pit2), (*nit)->getS());
-                        shell_rms_count += 1;
+        double shell_R = 0.;
+        // LONG-RANGE TREATMENT: REAL-SPACE SUM
+        if (!_master->_do_use_cutoff) {
+            // SUM OVER CONSECUTIVE SHELLS & STORE NBS FOR REUSE
+            bool converged = false;
+            int charged_nbs_count = 0;
+            for (int sidx = 0; sidx < N_shells; ++sidx) {
+                // Figure out shell parameters
+                shell_idx = sidx;
+                shell_R = (sidx+1)*dR_shell;
+                vector<PolarNb*> &nb_shell = shelled_nbs[sidx];
+                if (nb_shell.size() < 1) continue;
+                double shell_rms = 0.0;
+                int shell_rms_count = 0;
+                // Interact ...
+                for (nit = nb_shell.begin(); nit < nb_shell.end(); ++nit) {
+                    PolarSeg *pseg2 = (*nit)->getNb();
+                    // Add neighbour for later use
+                    pseg1->AddPolarNb(*nit);
+                    if (!pseg2->IsCharged()) continue;
+                    charged_nbs_count += 1;
+                    if (votca::tools::abs((*nit)->getR()) > R_co_max) assert(false);
+                    // Interact taking into account shift
+                    for (pit1 = pseg1->begin(); pit1 < pseg1->end(); ++pit1) {
+                        for (pit2 = pseg2->begin(); pit2 < pseg2->end(); ++pit2) {
+                            shell_rms += _ewdactor.FP12_ERFC_At_By(*(*pit1), *(*pit2), (*nit)->getS());
+                            shell_rms_count += 1;
+                        }
+                    }
+                }
+                // Determine convergence - measure is the energy of a dipole
+                // of size 0.1*e*nm summed over the shell in an rms manner
+                shell_rms = sqrt(shell_rms/shell_rms_count)*EWD::int2V_m;
+                double e_measure = shell_rms*1e-10*shell_rms_count; 
+                if (shell_rms_count > 0 && e_measure <= _master->_crit_dE && shell_R >= _master->_R_co) {
+                    converged = true;
+                    break;
+                }
+            }
+            if (!converged && charged_nbs_count > 0) {
+                _not_converged_count += 1;
+            }
+            if (charged_nbs_count > 0) {
+                R_co_sum += shell_R;
+                R_co_sum_count += 1;
+            }
+        }
+        // CUTOFF TREATMENT: STANDARD REAL-SPACE SUM
+        else {
+            double epsilon = 1.;
+            for (int sidx = 0; sidx < N_shells; ++sidx) {
+                // Still in cutoff sphere?
+                if ((sidx+1)*dR_shell > _master->_R_co) break;
+                // Figure out shell parameters
+                shell_idx = sidx;
+                shell_R = (sidx+1)*dR_shell;
+                vector<PolarNb*> &nb_shell = shelled_nbs[sidx];
+                if (nb_shell.size() < 1) continue;
+                for (nit = nb_shell.begin(); nit < nb_shell.end(); ++nit) {
+                    PolarSeg *pseg2 = (*nit)->getNb();
+                    // Add neighbour for later use
+                    pseg1->AddPolarNb(*nit);
+                    if (!pseg2->IsCharged()) continue;
+                    if (votca::tools::abs((*nit)->getR()) > R_co_max) assert(false);
+                    // Interact taking into account shift
+                    for (pit1 = pseg1->begin(); pit1 < pseg1->end(); ++pit1) {
+                        for (pit2 = pseg2->begin(); pit2 < pseg2->end(); ++pit2) {
+                            _actor.BiasStat(*(*pit1), *(*pit2), (*nit)->getS());
+                            _actor.FieldPerm_At_By(*(*pit1), *(*pit2), epsilon);
+                        }
                     }
                 }
             }
-            // Determine convergence - measure is the energy of a dipole
-            // of size 0.1*e*nm summed over the shell in an rms manner
-            shell_rms = sqrt(shell_rms/shell_rms_count)*EWD::int2V_m;
-            double e_measure = shell_rms*1e-10*shell_rms_count; 
-            if (shell_rms_count > 0 && e_measure <= _master->_crit_dE && shell_R >= _master->_R_co) {
-                converged = true;
-                break;
-            }
-        }
-        if (!converged && charged_nbs_count > 0) {
-            _not_converged_count += 1;
-        }
-        if (charged_nbs_count > 0) {
-            R_co_sum += shell_R;
-            R_co_sum_count += 1;
         }
         
         // DELETE ALL NEIGHBOURS THAT WERE NOT NEEDED TO CONVERGE SUM
@@ -636,51 +706,81 @@ void PolarBackground::RThread::FU_FieldCalc() {
                     allocated_count += 1;
                 }}}
             }
-
-            // SUM OVER CONSECUTIVE SHELLS & STORE NBS FOR REUSE
-            bool converged = false;
-            int polarizable_nbs_count = 0;
+            
             int shell_idx = 0;
-            double shell_R = 0;
-            for (int sidx = 0; sidx < N_shells; ++sidx) {
-                // Figure out shell parameters
-                shell_idx = sidx;
-                shell_R = (sidx+1)*dR_shell;
-                vector<PolarNb*> &nb_shell = shelled_nbs[sidx];
-                if (nb_shell.size() < 1) continue;
-                double shell_rms = 0.0;
-                int shell_rms_count = 0;
-                // Interact ...
-                for (nit = nb_shell.begin(); nit < nb_shell.end(); ++nit) {
-                    PolarSeg *pseg2 = (*nit)->getNb();
-                    // Add neighbour for later use
-                    pseg1->AddPolarNb(*nit);
-                    if (!pseg2->IsPolarizable()) continue;
-                    polarizable_nbs_count += 1;
-                    if (votca::tools::abs((*nit)->getR()) > R_co_max) assert(false);
-                    // Interact taking into account shift
-                    for (pit1 = pseg1->begin(); pit1 < pseg1->end(); ++pit1) {
-                        for (pit2 = pseg2->begin(); pit2 < pseg2->end(); ++pit2) {
-                            shell_rms += _ewdactor.FU12_ERFC_At_By(*(*pit1), *(*pit2), (*nit)->getS());
-                            shell_rms_count += 1;
+            double shell_R = 0.;
+            // LONG-RANGE TREATMENT: REAL-SPACE SUM
+            if (!_master->_do_use_cutoff) {
+                // SUM OVER CONSECUTIVE SHELLS & STORE NBS FOR REUSE
+                bool converged = false;
+                int polarizable_nbs_count = 0;
+                for (int sidx = 0; sidx < N_shells; ++sidx) {
+                    // Figure out shell parameters
+                    shell_idx = sidx;
+                    shell_R = (sidx+1)*dR_shell;
+                    vector<PolarNb*> &nb_shell = shelled_nbs[sidx];
+                    if (nb_shell.size() < 1) continue;
+                    double shell_rms = 0.0;
+                    int shell_rms_count = 0;
+                    // Interact ...
+                    for (nit = nb_shell.begin(); nit < nb_shell.end(); ++nit) {
+                        PolarSeg *pseg2 = (*nit)->getNb();
+                        // Add neighbour for later use
+                        pseg1->AddPolarNb(*nit);
+                        if (!pseg2->IsPolarizable()) continue;
+                        polarizable_nbs_count += 1;
+                        if (votca::tools::abs((*nit)->getR()) > R_co_max) assert(false);
+                        // Interact taking into account shift
+                        for (pit1 = pseg1->begin(); pit1 < pseg1->end(); ++pit1) {
+                            for (pit2 = pseg2->begin(); pit2 < pseg2->end(); ++pit2) {
+                                shell_rms += _ewdactor.FU12_ERFC_At_By(*(*pit1), *(*pit2), (*nit)->getS());
+                                shell_rms_count += 1;
+                            }
+                        }
+                    }
+                    // Determine convergence - measure is the energy of a dipole
+                    // of size 0.1*e*nm summed over the shell in an rms manner
+                    shell_rms = sqrt(shell_rms/shell_rms_count)*EWD::int2V_m;
+                    double e_measure = shell_rms*1e-10*shell_rms_count; 
+                    if (shell_rms_count > 0 && e_measure <= _master->_crit_dE  && shell_R >= _master->_R_co) {
+                        converged = true;
+                        break;
+                    }
+                }
+                if (!converged && polarizable_nbs_count > 0) {
+                    _not_converged_count += 1;
+                }
+                if (polarizable_nbs_count > 0) {
+                    R_co_sum += shell_R;
+                    R_co_sum_count += 1;
+                }
+            }
+            // CUTOFF TREATMENT: STANDARD REAL-SPACE SUM
+            else {
+                double epsilon = 1.;
+                for (int sidx = 0; sidx < N_shells; ++sidx) {
+                    // Still in cutoff sphere?
+                    if ((sidx+1)*dR_shell > _master->_R_co) break;
+                    // Figure out shell parameters
+                    shell_idx = sidx;
+                    shell_R = (sidx+1)*dR_shell;
+                    vector<PolarNb*> &nb_shell = shelled_nbs[sidx];
+                    if (nb_shell.size() < 1) continue;
+                    for (nit = nb_shell.begin(); nit < nb_shell.end(); ++nit) {
+                        PolarSeg *pseg2 = (*nit)->getNb();
+                        // Add neighbour for later use
+                        pseg1->AddPolarNb(*nit);
+                        if (!pseg2->IsPolarizable()) continue;                        
+                        if (votca::tools::abs((*nit)->getR()) > R_co_max) assert(false);
+                        // Interact taking into account shift
+                        for (pit1 = pseg1->begin(); pit1 < pseg1->end(); ++pit1) {
+                            for (pit2 = pseg2->begin(); pit2 < pseg2->end(); ++pit2) {
+                                _actor.BiasIndu(*(*pit1), *(*pit2), (*nit)->getS());
+                                _actor.FieldIndu_At_By(*(*pit1), *(*pit2), epsilon);
+                            }
                         }
                     }
                 }
-                // Determine convergence - measure is the energy of a dipole
-                // of size 0.1*e*nm summed over the shell in an rms manner
-                shell_rms = sqrt(shell_rms/shell_rms_count)*EWD::int2V_m;
-                double e_measure = shell_rms*1e-10*shell_rms_count; 
-                if (shell_rms_count > 0 && e_measure <= _master->_crit_dE  && shell_R >= _master->_R_co) {
-                    converged = true;
-                    break;
-                }
-            }
-            if (!converged && polarizable_nbs_count > 0) {
-                _not_converged_count += 1;
-            }
-            if (polarizable_nbs_count > 0) {
-                R_co_sum += shell_R;
-                R_co_sum_count += 1;
             }
 
             // DELETE ALL NEIGHBOURS THAT WERE NOT NEEDED TO CONVERGE SUM
@@ -707,19 +807,37 @@ void PolarBackground::RThread::FU_FieldCalc() {
                 LOG(logDEBUG,*(_master->_log))
                     << "\rMST DBG     - Progress " << pseg1->getId() 
                     << "/" << _full_bg_P.size() << flush;
-            for (nit = pseg1->PolarNbs().begin(); nit < pseg1->PolarNbs().end(); ++nit) {
-                PolarSeg *pseg2 = (*nit)->getNb();
-                if (!pseg2->IsPolarizable()) continue;
-                // Interact taking into account shift
-                for (pit1 = pseg1->begin(); pit1 < pseg1->end(); ++pit1) {
-                    for (pit2 = pseg2->begin(); pit2 < pseg2->end(); ++pit2) {
-                        rms += _ewdactor.FU12_ERFC_At_By(*(*pit1), *(*pit2), (*nit)->getS());
-                        rms_count += 1;
+            // LONG-RANGE TREATMENT: REAL-SPACE SUM
+            if (!_master->_do_use_cutoff) {
+                for (nit = pseg1->PolarNbs().begin(); nit < pseg1->PolarNbs().end(); ++nit) {
+                    PolarSeg *pseg2 = (*nit)->getNb();
+                    if (!pseg2->IsPolarizable()) continue;
+                    // Interact taking into account shift
+                    for (pit1 = pseg1->begin(); pit1 < pseg1->end(); ++pit1) {
+                        for (pit2 = pseg2->begin(); pit2 < pseg2->end(); ++pit2) {
+                            rms += _ewdactor.FU12_ERFC_At_By(*(*pit1), *(*pit2), (*nit)->getS());
+                            rms_count += 1;
+                        }
+                    }
+                }
+            }
+            // CUTOFF TREATMENT: STANDARD REAL-SPACE SUM
+            else {
+                double epsilon = 1.;
+                for (nit = pseg1->PolarNbs().begin(); nit < pseg1->PolarNbs().end(); ++nit) {
+                    PolarSeg *pseg2 = (*nit)->getNb();
+                    if (!pseg2->IsPolarizable()) continue;
+                    // Interact taking into account shift
+                    for (pit1 = pseg1->begin(); pit1 < pseg1->end(); ++pit1) {
+                        for (pit2 = pseg2->begin(); pit2 < pseg2->end(); ++pit2) {
+                            _actor.BiasIndu(*(*pit1), *(*pit2), (*nit)->getS());
+                            _actor.FieldIndu_At_By(*(*pit1), *(*pit2), epsilon);
+                        }
                     }
                 }
             }
         }
-        rms = sqrt(rms/rms_count)*EWD::int2V_m;
+        if (rms_count > 0) rms = sqrt(rms/rms_count)*EWD::int2V_m;
     }
     return;
 }
