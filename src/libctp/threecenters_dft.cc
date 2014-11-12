@@ -53,16 +53,24 @@ namespace votca {
             for (int i=0; i< _auxbasis._AOBasisSize; i++){
                 _matrix.push_back(ub::zero_matrix<double>(_dftbasis._AOBasisSize, _dftbasis._AOBasisSize));        
             }
-           
+           /*
             std::vector< int > _limits;
             int _temp=0;
             for (vector< AOShell* >::iterator _is = _auxbasis.firstShell(); _is != _auxbasis.lastShell(); _is++) {
                 _limits.push_back(_temp);
+                 
                 _temp+=(*_is)->getNumFunc();
-                
+               
+                cout << " StartIndex " << (*_is)->getStartIndex() << endl;
             }
+            
+            for ( int i=0;i<_limits.size();i++){
+                cout <<"grenze " << _limits[i]<< endl;
+            }
+            exit(0);
+            */ 
             // loop over all shells in the GW basis and get _Mmn for that shell
-            #pragma omp parallel for //private(_block)
+            //#pragma omp parallel for //private(_block)
             for ( int _is= 0; _is <  _auxbasis._aoshells.size() ; _is++ ){
             // for (vector< AOShell* >::iterator _is = _gwbasis.firstShell(); _is != _gwbasis.lastShell(); _is++) {
                 //cout << " act threads: " << omp_get_thread_num( ) << " total threads " << omp_get_num_threads( ) << " max threads " << omp_get_max_threads( ) <<endl;
@@ -70,7 +78,7 @@ namespace votca {
                
               
                 // Fill block for this shell (3-center overlap with _dft_basis )
-                FillBlock(_matrix, _shell, _dftbasis,_limits[_is]);
+                FillBlock(_matrix, _shell, _dftbasis);
 
             } // shells of aux basis set
 
@@ -84,12 +92,12 @@ namespace votca {
          * aux shell with ALL functions in the DFT basis set (FillThreeCenterOLBlock)
          */
         
-        void TCMatrix_dft::FillBlock(std::vector< ub::matrix<double> >& _block, AOShell* _shell, AOBasis& dftbasis, int& _start) {
+        void TCMatrix_dft::FillBlock(std::vector< ub::matrix<double> >& _block, AOShell* _shell, AOBasis& dftbasis) {
 	  //void TCMatrix_dft::FillBlock(std::vector< ub::matrix<float> >& _block, AOShell* _shell, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals) {
 
 
 
-
+           int _start=_shell->getStartIndex();
             // alpha-loop over the "left" DFT basis function
             for (vector< AOShell* >::iterator _row = dftbasis.firstShell(); _row != dftbasis.lastShell(); _row++) {
                 AOShell* _shell_row = dftbasis.getShell(_row);
@@ -110,21 +118,24 @@ namespace votca {
                     // if this contributes, multiply _subvector with _dft_orbitals and place in _imstore
                     if (nonzero) {
 
-            // and put it into the block it belongs to
-                        
-            for (int _aux = 0; _aux < _shell->getNumFunc(); _aux++) {
-                for (int _col = 0; _col < _shell_col->getNumFunc(); _col++) {
-                    int _index=_shell_col->getNumFunc() * _aux+_col;
+                        // and put it into the block it belongs to
+                        // functions in ONE AUXshell
+                        for (int _aux = 0; _aux < _shell->getNumFunc(); _aux++) {
+                                // column in ONE DFTshell
+                                for (int _col = 0; _col < _shell_col->getNumFunc(); _col++) {
+
+                                    int _index=_shell_col->getNumFunc() * _aux+_col;
                 
-                    for (int _row = 0; _row < _shell_row->getNumFunc(); _row++) {
+                                             for (int _row = 0; _row < _shell_row->getNumFunc(); _row++) {
                     
-                        _block[_aux+_start](_row, _col) = _subvector(_row, _index);
-                    } // n-level
-                } // GW basis function in shell
-            } // m-level
-        } 
-        }
-        }
+                                                _block[_start+_aux](_row, _col) = _subvector(_row, _index);
+                                                
+                                                } // ROW copy
+                                } // COL copy
+                        } // AUX copy
+                   } // if contributes 
+                } // DFT col
+            } // DFT row
         } // TCMatrix_dft::FillBlock
 
       

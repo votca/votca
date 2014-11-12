@@ -151,13 +151,13 @@ namespace votca {
             linalg_eigenvalues_general( H0,_dftAOoverlap._aomatrix, MOEnergies, MOCoeff);
          double totinit=0;
          cout << endl;
-                for (int i=0;i<(_numofelectrons/2);i++){
-                    cout << MOEnergies(i) << "eigenwert " << i << endl;
+                for (int i=0;i<(_numofelectrons);i++){
+                    cout << MOEnergies(i) << " eigenwert " << i << endl;
                     totinit+=2*MOEnergies(i);
                 }
                  LOG(logDEBUG, *_pLog) << TimeStamp() << " Total KS orbital Energy "<<totinit<<flush;
                  
-                // exit(0);
+
             /*
             // cout << MOEnergies[0] << " " << MOEnergies[_numofelectrons/2] << endl;
             cout << "\n";
@@ -188,7 +188,7 @@ namespace votca {
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Iteration "<< i+1 <<" of "<<numofiterations<< flush;
                 _ERIs.CalculateERIs(_dftAOdmat);
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Electron repulsion matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2()<< flush<<flush;
-                ub::matrix<double> H=_dftAOESP._nuclearpotential+_dftAOkinetic._aomatrix+_ERIs.getERIs()+_gridIntegration.IntegrateVXC(_dftAOdmat,  basis);
+                ub::matrix<double> H=H0+_ERIs.getERIs()+_gridIntegration.IntegrateVXC(_dftAOdmat,  basis);
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Vxc matrix "<<flush;
                 linalg_eigenvalues_general( H,_dftAOoverlap._aomatrix, MOEnergies, MOCoeff);
                 double totenergy=0;
