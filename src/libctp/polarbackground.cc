@@ -13,6 +13,12 @@ PolarBackground::PolarBackground(Topology *top, PolarTop *ptop, Property *opt,
     
     // EVALUATE OPTIONS
     string pfx = "options.ewdbgpol";
+    // Coulomb method
+    string method = opt->get(pfx+".coulombmethod.method").as<string>();
+    if (method == "ewald") _do_use_cutoff = false;
+    else if (method == "cutoff") _do_use_cutoff = true;
+    else throw std::runtime_error("Invalid parameter in options.ewdbgpol."
+        "coulombmethod.method");
     // Dipole compensation options
     if (opt->exists(pfx+".coulombmethod.dipole_corr"))
         _do_compensate_net_dipole = 
@@ -42,10 +48,6 @@ PolarBackground::PolarBackground(Topology *top, PolarTop *ptop, Property *opt,
     else
         _rfactor = 6.;
     // Polar parameters
-    if (opt->exists(pfx+".polarmethod.use_cutoff"))
-        _do_use_cutoff = opt->get(pfx+".polarmethod.use_cutoff").as<bool>();
-    else
-        _do_use_cutoff = false;
     if (opt->exists(pfx+".polarmethod.cutoff")) 
         _polar_cutoff = opt->get(pfx+".polarmethod.cutoff").as<double>();
     else
@@ -447,7 +449,7 @@ void PolarBackground::Polarize(int n_threads = 1) {
         
     if (tools::globals::verbose) {
         std::ofstream ofs;
-        ofs.open("indu_state", ofstream::out);
+        ofs.open("ewdbgpol.indu_state.tab", ofstream::out);
         for (vector<PolarSeg*>::iterator sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
             PolarSeg *pseg = *sit1;
             Segment *seg = _top->getSegment(pseg->getId());
@@ -838,6 +840,7 @@ void PolarBackground::RThread::FU_FieldCalc() {
             }
         }
         if (rms_count > 0) rms = sqrt(rms/rms_count)*EWD::int2V_m;
+        _avg_R_co = 0.0; // not available, since reusing NB container
     }
     return;
 }

@@ -1146,7 +1146,10 @@ void Ewald3DnD::Evaluate() {
     
     if (true && tools::globals::verbose) {
         std::ofstream ofs;
-        ofs.open("indu_state", ofstream::out);
+        string tabfile = this->IdentifyMethod() + ".indu_state_"
+            + boost::lexical_cast<string>(_polar_qm0[0]->getId())
+            + "_" + _jobType + ".tab";
+        ofs.open(tabfile.c_str(), ofstream::out);
         for (vector<PolarSeg*>::iterator sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
             PolarSeg *pseg = *sit1;
             Segment *seg = _top->getSegment(pseg->getId());

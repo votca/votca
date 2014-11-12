@@ -817,7 +817,7 @@ vector<APolarSite*> APS_FROM_MPS(string filename, int state, QMThread *thread) {
                     pyy = 1e-3 * boost::lexical_cast<double>(split[4]);
                     pyz = 1e-3 * boost::lexical_cast<double>(split[5]);
                     pzz = 1e-3 * boost::lexical_cast<double>(split[6]);
-                    P1 = matrix(vec(pxx,pxy,pyy),
+                    P1 = matrix(vec(pxx,pxy,pxz),
                                 vec(pxy,pyy,pyz),
                                 vec(pxz,pyz,pzz));
                 }
