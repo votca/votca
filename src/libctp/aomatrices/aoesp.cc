@@ -133,7 +133,11 @@ namespace votca { namespace ctp {
         const double _U = zeta*(PmC[0]*PmC[0]+PmC[1]*PmC[1]+PmC[2]*PmC[2]);
         
         vector<double> _FmU(5, 0.0); // that size needs to be checked!
+
         XIntegrate(_FmU,_U );
+        //cout << endl;
+        
+        
         // (s-s element normiert )
         double _prefactor = 2*sqrt(1.0/pi)*pow(4.0*_decay_row*_decay_col,0.75) * _fak2 * exp(-_exparg);
         nuc(Cartesian::s,Cartesian::s)   = _prefactor * _FmU[0];
@@ -478,7 +482,7 @@ namespace votca { namespace ctp {
         }
         
         //}
-        nuc.clear();
+        //nuc.clear();
             }// _shell_col Gaussians
         }// _shell_row Gaussians
     }
@@ -499,7 +503,9 @@ namespace votca { namespace ctp {
             cout << "NUCLEAR CHARGE" << Znuc << endl;
             _aomatrix = ub::zero_matrix<double>( aobasis->AOBasisSize(),aobasis->AOBasisSize() );
             Fill(aobasis,positionofatom);
+            //Print("TMAT");
             _nuclearpotential+=(-1)*Znuc*_aomatrix;
+            cout << "nucpotential(0,0) " << _nuclearpotential(0,0)<< endl;
     
     }
     
