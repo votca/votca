@@ -124,7 +124,7 @@ void XMLTopologyReader::ParseBeadTypes(const string &el, map<string, string> &at
         string name = attr["name"];
         string svalue = attr["value"];
         if (name == "" || svalue == "")
-            throw runtime_error("invalid rename tag");
+            throw runtime_error("invalid mass tag");
 	double value = boost::lexical_cast<double>(svalue);
         _top->SetBeadTypeMass(name, value);
         _parser.IgnoreChilds();
