@@ -139,7 +139,7 @@ namespace votca {
                                 for (int _col = 0; _col < _shell_col->getNumFunc(); _col++) {
 
                                     int _index=_shell_col->getNumFunc() * _aux+_col;
-                
+                                    
                                              for (int _row = 0; _row < _shell_row->getNumFunc(); _row++) {
                     
                                                 _matrix[_start+_aux](_row_start + _row, _col_start + _col) = _subvector(_row, _index);
@@ -150,9 +150,11 @@ namespace votca {
                    }
                 } // DFT col
             } // DFT row
+           
+            //       exit(0);
         } // TCMatrix_dft::FillBlock
 
-      
+
         
  
 

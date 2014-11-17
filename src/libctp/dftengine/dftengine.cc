@@ -147,7 +147,8 @@ namespace votca {
             ub::matrix<double>& MOCoeff=_orbitals->MOCoefficients();
             /**** Construct initial density  ****/
             
-            ub::matrix<double> H0=_dftAOESP._nuclearpotential+_dftAOkinetic._aomatrix;
+           ub::matrix<double> H0=_dftAOkinetic._aomatrix+_dftAOESP._nuclearpotential;
+
             linalg_eigenvalues_general( H0,_dftAOoverlap._aomatrix, MOEnergies, MOCoeff);
             
             double totinit=0;
