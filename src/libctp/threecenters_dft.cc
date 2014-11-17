@@ -78,10 +78,14 @@ namespace votca {
                
               
                 // Fill block for this shell (3-center overlap with _dft_basis )
-                FillBlock(_matrix, _shell, _dftbasis);
-
+                FillBlock(_shell, _dftbasis);
+               
+                
             } // shells of aux basis set
-
+            //for (int i=0;i<_matrix.size();i++){
+                  //  cout<< "Matrix(" << i<<"):\n"<<_matrix[i]<< endl;
+                
+                //}
         } // TCMatrix_dft::Fill
 
 
@@ -92,7 +96,7 @@ namespace votca {
          * aux shell with ALL functions in the DFT basis set (FillThreeCenterOLBlock)
          */
         
-        void TCMatrix_dft::FillBlock(std::vector< ub::matrix<double> >& _block, AOShell* _shell, AOBasis& dftbasis) {
+        void TCMatrix_dft::FillBlock(AOShell* _shell, AOBasis& dftbasis) {
 	  //void TCMatrix_dft::FillBlock(std::vector< ub::matrix<float> >& _block, AOShell* _shell, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals) {
 
 
@@ -113,9 +117,19 @@ namespace votca {
                     // get 3-center overlap directly as _subvector
                     ub::matrix<double> _subvector = ub::zero_matrix<double>(_shell_row->getNumFunc(), _shell->getNumFunc() * _shell_col->getNumFunc());
                     //ub::matrix<float> _subvector = ub::zero_matrix<float>(_shell_row->getNumFunc(), _shell->getNumFunc() * _shell_col->getNumFunc());
+                    
                     bool nonzero = FillThreeCenterOLBlock(_subvector, _shell, _shell_row, _shell_col);
-
-                    // if this contributes, multiply _subvector with _dft_orbitals and place in _imstore
+                    
+                    //cout << "subvector " <<_subvector<< endl;
+                    /* test 
+                    for (int j=0;j<_subvector.size1();j++){
+                    for (int i=0;i<_subvector.size1();i++){
+                        
+                        _subvector(i,_shell->getNumFunc()*j+i)=1;
+                        
+                    }}
+                    */
+                    
                     if (nonzero) {
 
                         // and put it into the block it belongs to
@@ -128,12 +142,12 @@ namespace votca {
                 
                                              for (int _row = 0; _row < _shell_row->getNumFunc(); _row++) {
                     
-                                                _block[_start+_aux](_row, _col) = _subvector(_row, _index);
+                                                _matrix[_start+_aux](_row_start + _row, _col_start + _col) = _subvector(_row, _index);
                                                 
                                                 } // ROW copy
                                 } // COL copy
                         } // AUX copy
-                   } // if contributes 
+                   }
                 } // DFT col
             } // DFT row
         } // TCMatrix_dft::FillBlock
