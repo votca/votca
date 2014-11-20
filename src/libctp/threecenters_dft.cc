@@ -76,7 +76,10 @@ namespace votca {
                 //cout << " act threads: " << omp_get_thread_num( ) << " total threads " << omp_get_num_threads( ) << " max threads " << omp_get_max_threads( ) <<endl;
                 AOShell* _shell = _auxbasis.getShell(_is);
                
-              
+
+                cout << _is << " shell " << _shell->getType() << " from " << _shell->getStartIndex() << " to " << _shell->getStartIndex() + _shell->getNumFunc() << endl;
+                
+                
                 // Fill block for this shell (3-center overlap with _dft_basis )
                 FillBlock(_shell, _dftbasis);
                
