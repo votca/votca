@@ -243,6 +243,7 @@ inline void BasisSet::LoadBasisSet ( string name )
             for (list<Property*> ::iterator  itc = constProps.begin(); itc != constProps.end(); ++itc) 
             {
                 double decay = (*itc)->getAttribute<double>("decay");
+                // << " decay "<<decay<<endl;
                 std::vector<double> contraction;
                 contraction.resize(shell->getLmax()+1); 
                 list<Property*> contrProps = (*itc)->Select("contractions");
@@ -250,6 +251,7 @@ inline void BasisSet::LoadBasisSet ( string name )
                 {
                     string contrType = (*itcont)->getAttribute<string>("type");
                     double contrFactor = (*itcont)->getAttribute<double>("factor");
+                    //cout << " factor " << contrFactor << endl;
                     if ( contrType == "S" ) contraction[0] = contrFactor;
                     if ( contrType == "P" ) contraction[1] = contrFactor;
                     if ( contrType == "D" ) contraction[2] = contrFactor;

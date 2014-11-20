@@ -91,6 +91,7 @@ namespace votca {
 
             // check first threshold
             vec _diff = _pos_alpha - _pos_gw;
+            
             double test = _decay_alpha * _decay_gw * _diff*_diff;
             if (test > threshold) { continue; }
 
