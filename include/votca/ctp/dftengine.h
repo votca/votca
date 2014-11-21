@@ -149,6 +149,11 @@ public:
     string                              _x_functional_name;
     string                              _c_functional_name;
 
+    
+   typedef boost::multi_array<double, 4> fourdim;
+   //fourdim  fourcenter(boost::extents[size4c][size4c][size4c][size4c]);
+    //fourdim  fourcenter;
+    
 };
 
 

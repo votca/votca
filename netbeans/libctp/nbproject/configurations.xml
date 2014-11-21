@@ -485,7 +485,7 @@
       </item>
       <item path="../../include/votca/ctp/xmapper.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../src/libctp/ERIs.cc" ex="false" tool="0" flavor2="0">
+      <item path="../../src/libctp/ERIs.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/aomatrices/aocoulomb.cc"
             ex="false"
@@ -504,7 +504,7 @@
       </item>
       <item path="../../src/libctp/aomatrices/aokinetic.cc"
             ex="false"
-            tool="0"
+            tool="1"
             flavor2="0">
       </item>
       <item path="../../src/libctp/aomatrices/aomatrix.cc"

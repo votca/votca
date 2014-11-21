@@ -48,16 +48,20 @@ namespace votca {
             
             ub::matrix<double> _inverse=ub::zero_matrix<double>( _auxAOverlap.Dimension(), _auxAOverlap.Dimension());
             
-            AOOverlap _auxoverlap_inverse;               
+            /* AOOverlap _auxoverlap_inverse;               
             AOOverlap _auxoverlap_cholesky_inverse;      
             _auxoverlap_inverse.Initialize( _auxbasis._AOBasisSize);
             _auxAOcoulomb.Symmetrize(_auxAOverlap , _auxbasis, _auxoverlap_inverse , _auxoverlap_cholesky_inverse);
-            
+            */
             linalg_invert( _auxAOverlap.Matrix() , _inverse);
             ub::matrix<double> _temp=ub::prod(_auxAOcoulomb.Matrix(),_inverse);
             _Vcoulomb=ub::prod(_inverse,_temp);
             
             //cout << "Vcoulomb"<< _Vcoulomb<< endl;
+
+
+            /* awesome shit
+
             int size4c=_dftbasis.AOBasisSize();
             
             typedef boost::multi_array<double, 4> fourdim;
@@ -78,11 +82,11 @@ namespace votca {
                                     }}
                                     
 
-            cout << "4c("<<alpha+1<<":"<<beta+1<<":"<<mu+1<<":"<<nu+1<<")="<< fourcenter[alpha][beta][mu][nu]<< endl;
+            //cout << "4c("<<alpha+1<<":"<<beta+1<<":"<<mu+1<<":"<<nu+1<<")="<< fourcenter[alpha][beta][mu][nu]<< endl;
             }}
-            }exit(0);}
+            }}//exit(0);
             
-            
+            */
             
             
           /*
@@ -134,6 +138,57 @@ namespace votca {
         
         
         void ERIs::CalculateERIs (ub::matrix<double> &DMAT){
+            
+            
+            
+            /***** TEST VIA RECONSTRUCTED 4center ERIs ***************/
+            
+
+         /*   int size4c=DMAT.size1(); // _dftbasis.AOBasisSize();
+            int auxsize = _Vcoulomb.size1();
+            
+            typedef boost::multi_array<double, 4> fourdim;
+            fourdim  fourcenter(boost::extents[size4c][size4c][size4c][size4c]);
+            cout <<endl;
+       
+           
+            for (int alpha=0;alpha<size4c;alpha++){
+                    for (int beta=0;beta<size4c;beta++){
+                       for (int mu=0;mu<size4c;mu++){
+                            for (int nu=0;nu<size4c;nu++){
+                        fourcenter[alpha][beta][mu][nu]=0.0;
+
+                        
+                        for (int k=0;k<auxsize;k++){
+                                    for (int l=0;l<auxsize;l++){
+                                                 //cout<<_threecenter.getDatamatrix(k)(alpha,beta)<<"  "<<_threecenter.getDatamatrix(l)(mu,nu)<<"  "<<_Vcoulomb(k,l)<<endl;
+            fourcenter[alpha][beta][mu][nu]+=_Vcoulomb(k,l)*_threecenter.getDatamatrix(k)(alpha,beta)*_threecenter.getDatamatrix(l)(mu,nu);
+             //cout<<   fourcenter[alpha][beta][mu][nu]<< endl;                            
+                                    }}
+                                    
+
+            //cout << "4c("<<alpha+1<<":"<<beta+1<<":"<<mu+1<<":"<<nu+1<<")="<< fourcenter[alpha][beta][mu][nu]<< endl;
+            }}
+            }}
+            
+            
+
+            */
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
             _ERIs=ub::zero_matrix<double>(DMAT.size1(),DMAT.size2());
             ub::vector<double> dmatasarray=DMAT.data();
             ub::matrix<double> Itilde=ub::zero_matrix<double>(_threecenter.getSize(),1);
@@ -156,6 +211,33 @@ namespace votca {
             //cout << "I " << _threecenter.getDatamatrix(_i) << endl;
             //cout<< "ERIs " <<_ERIs<< endl;
             }
+            
+            
+            
+                           
+        /*    for (int alpha=0;alpha<size4c;alpha++){
+                    for (int beta=0;beta<size4c;beta++){
+
+                        double localERI = 0.0;
+                        
+                        for (int mu=0;mu<size4c;mu++){
+                            for (int nu=0;nu<size4c;nu++){
+                                
+                                localERI += DMAT(mu,nu) * fourcenter[alpha][beta][mu][nu];
+                                
+                         }
+                    }
+                        
+                        
+                        cout << alpha+1<<":"<<beta+1<< " : " << localERI << " vs " << _ERIs(alpha,beta) << endl;
+                        
+                 }
+            }
+            
+            exit(0); */
+            
+            
+            
             
            
             CalculateEnergy(dmatasarray);

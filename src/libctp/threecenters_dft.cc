@@ -77,7 +77,7 @@ namespace votca {
                 AOShell* _shell = _auxbasis.getShell(_is);
                
 
-                cout << _is << " shell " << _shell->getType() << " from " << _shell->getStartIndex() << " to " << _shell->getStartIndex() + _shell->getNumFunc() << endl;
+                //cout << _is << " shell " << _shell->getType() << " from " << _shell->getStartIndex() << " to " << _shell->getStartIndex() + _shell->getNumFunc() << endl;
                 
                 
                 // Fill block for this shell (3-center overlap with _dft_basis )
@@ -105,6 +105,7 @@ namespace votca {
 
 
            int _start=_shell->getStartIndex();
+           //cout << " FB start " << _start << endl;
             // alpha-loop over the "left" DFT basis function
             for (vector< AOShell* >::iterator _row = dftbasis.firstShell(); _row != dftbasis.lastShell(); _row++) {
                 AOShell* _shell_row = dftbasis.getShell(_row);
@@ -134,17 +135,19 @@ namespace votca {
                     */
                     
                     if (nonzero) {
-
                         // and put it into the block it belongs to
                         // functions in ONE AUXshell
                         for (int _aux = 0; _aux < _shell->getNumFunc(); _aux++) {
                                 // column in ONE DFTshell
-                                for (int _col = 0; _col < _shell_col->getNumFunc(); _col++) {
-
-                                    int _index=_shell_col->getNumFunc() * _aux+_col;
+                                //for (int _i_col = 0; _i_col < _shell_col->getNumFunc(); _i_col++) {
+                for (int _col = 0; _col < _shell_col->getNumFunc(); _col++) {
+                                    //int _index=_shell_col->getNumFunc() * _aux + _i_col;
+                                    int _index=_shell_col->getNumFunc() * _aux + _col;
                                     
-                                             for (int _row = 0; _row < _shell_row->getNumFunc(); _row++) {
-                    
+                                             //for (int _i_row = 0; _i_row < _shell_row->getNumFunc(); _i_row++) {
+                    for (int _row = 0; _row < _shell_row->getNumFunc(); _row++) {
+                                                 
+                                                //cout << "MAGIC " << _start+_aux << " : " << _row_start + _i_row << " : " << _col_start + _i_col << endl;
                                                 _matrix[_start+_aux](_row_start + _row, _col_start + _col) = _subvector(_row, _index);
                                                 
                                                 } // ROW copy

@@ -54,6 +54,8 @@ private:
     string      _orbfile;
     string      _xyzfile;
 
+    string      _logfile;
+
     string      _package;
     Property    _package_options;
     Property    _dftengine_options;
@@ -152,7 +154,20 @@ void DFT::Initialize(Property* options) {
             string key = "options." + Identify();
             _output_file = options->get(key + ".archive").as<string>();
             _reporting =  options->get(key + ".reporting").as<string> ();
+
+            // options for dft package
+            string _package_xml = options->get(key + ".package").as<string> ();
+            //cout << endl << "... ... Parsing " << _package_xml << endl ;
+            load_property_from_xml(_package_options, _package_xml.c_str());
+            key = "package";
+            _package = _package_options.get(key + ".name").as<string> ();
+
+    
+
             // options for GWBSE package
+key = "options." + Identify();
+        _logfile = options->get(key + ".molecule.log").as<string> ();
+        _orbfile = options->get(key + ".molecule.orbitals").as<string> ();
             string _dftengine_xml = options->get(key + ".dftengine").as<string> ();
             //cout << endl << "... ... Parsing " << _package_xml << endl ;
             load_property_from_xml(_dftengine_options, _dftengine_xml.c_str());
@@ -207,13 +222,74 @@ bool DFT::Evaluate() {
     // Create new orbitals object and fill with atom coordinates
     Orbitals _orbitals;
     XYZ2Orbitals( &_orbitals, _xyzfile );
+
+    vector <Segment* > _segments;
+    // Create a new segment
+    Segment _segment(0, "mol");
+                
+    //    if (_do_dft_input) {
+    //       ReadXYZ( &_segment, _xyzfile );
+
+                ifstream in;
+                double x, y, z;
+                int natoms, id;
+                string label, type;
+                vec pos;
+
+                LOG(logDEBUG,_log) << " Reading molecular coordinates from " << _xyzfile << flush;
+                in.open(_xyzfile.c_str(), ios::in);
+                if (!in) throw runtime_error(string("Error reading coordinates from: ")
+                        + _xyzfile);
+
+                id = 1;
+                while (in.good()) { // keep reading until end-of-file
+                    in >> type;
+                    in >> x;
+                    in >> y;
+                    in >> z;
+                    if (in.eof()) break;
+                    // cout << type << ":" << x << ":" << y << ":" << z << endl;
+
+                    // creating atoms and adding them to the molecule
+                    Atom *pAtom = new Atom(id++, type);
+                    vec position(x / 10, y / 10, z / 10); // xyz has Angstrom, votca stores nm
+                    pAtom->setPos(position);
+                    pAtom->setQMPart(id, position);
+                    pAtom->setElement(type);
+                    _segment.AddAtom(pAtom);
+
+                }
+                in.close();
+
+
+
+       _segments.push_back(&_segment);
+       //}
+
+
     //cout << "here" << endl;
     // get the corresponding object from the QMPackageFactory
-    /*    QMPackage *_qmpackage =  QMPackages().Create( _package );
+        QMPackage *_qmpackage =  QMPackages().Create( _package );
     _qmpackage->setLog( &_log );       
     _qmpackage->Initialize( &_package_options );
     // set the run dir 
-    _qmpackage->setRunDir(".");*/
+    _qmpackage->setRunDir(".");
+          _qmpackage->WriteInputFile( _segments, &_orbitals );
+
+	  //       if ( _do_dft_run ){
+          _qmpackage->Run();
+	  //}
+
+      // parse DFT data, if required
+      //if ( _do_dft_parse ){
+        LOG(logDEBUG,_log) << "Parsing DFT data " << _output_file << flush;
+        _qmpackage->setOrbitalsFileName( _orbfile );
+        int _parse_orbitals_status = _qmpackage->ParseOrbitalsFile( &_orbitals );
+        _qmpackage->setLogFileName( _logfile );
+        int _parse_log_status = _qmpackage->ParseLogFile( &_orbitals );
+        _orbitals.setDFTbasis(_qmpackage->getBasisSetName());
+ 
+        
 
 
 

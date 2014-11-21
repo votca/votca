@@ -136,7 +136,7 @@ LDLIBSOPTIONS=
 ${OBJECTDIR}/_ext/484457893/ERIs.o: ../../src/libctp/ERIs.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
 	${RM} "$@.d"
-	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484457893/ERIs.o ../../src/libctp/ERIs.cc
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484457893/ERIs.o ../../src/libctp/ERIs.cc
 
 ${OBJECTDIR}/_ext/1559596494/aocoulomb.o: ../../src/libctp/aomatrices/aocoulomb.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1559596494
@@ -156,7 +156,7 @@ ${OBJECTDIR}/_ext/1559596494/aoesp.o: ../../src/libctp/aomatrices/aoesp.cc
 ${OBJECTDIR}/_ext/1559596494/aokinetic.o: ../../src/libctp/aomatrices/aokinetic.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1559596494
 	${RM} "$@.d"
-	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1559596494/aokinetic.o ../../src/libctp/aomatrices/aokinetic.cc
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1559596494/aokinetic.o ../../src/libctp/aomatrices/aokinetic.cc
 
 ${OBJECTDIR}/_ext/1559596494/aomatrix.o: ../../src/libctp/aomatrices/aomatrix.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1559596494

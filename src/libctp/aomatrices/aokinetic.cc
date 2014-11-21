@@ -98,7 +98,7 @@ namespace votca { namespace ctp {
             
             // check if distance between postions is big, then skip step   
             double _exparg = xi *_distsq;
-            if ( _exparg > 30.0 ) { continue; }
+	    if ( _exparg > 30.0 ) { continue; }
             
     
             
@@ -121,7 +121,7 @@ namespace votca { namespace ctp {
             kin(Cartesian::s,Cartesian::s)= ol(Cartesian::s,Cartesian::s)*xi*(3-2*xi*_distsq);
             
           //s-p
-            if ( _lmax_col>1 ){
+            if ( _lmax_col>0 ){
             //std::cout << "\t setting s-p|" << std::flush;      
             ol(Cartesian::s,Cartesian::y) = PmB[1]*ol(Cartesian::s,Cartesian::s);
             ol(Cartesian::s,Cartesian::x) = PmB[0]*ol(Cartesian::s,Cartesian::s);
@@ -133,7 +133,7 @@ namespace votca { namespace ctp {
             }
             
             //p-s
-            if ( _lmax_row>1 ){
+            if ( _lmax_row>0 ){
             //std::cout << "\t setting p-s|" << std::flush;
             ol(Cartesian::y,Cartesian::s) = PmA[1]*ol(Cartesian::s,Cartesian::s);
             ol(Cartesian::x,Cartesian::s) = PmA[0]*ol(Cartesian::s,Cartesian::s);
@@ -145,7 +145,7 @@ namespace votca { namespace ctp {
             }
             
             //p-p
-            if ( _lmax_row>1 && _lmax_col>1 ){
+            if ( _lmax_row>0 && _lmax_col>0 ){
             ol(Cartesian::y,Cartesian::y) = PmA[1]*ol(Cartesian::s,Cartesian::y)+1*_fak*ol(Cartesian::s,Cartesian::s);
             ol(Cartesian::y,Cartesian::x) = PmA[1]*ol(Cartesian::s,Cartesian::x);
             ol(Cartesian::y,Cartesian::z) = PmA[1]*ol(Cartesian::s,Cartesian::z);
@@ -169,7 +169,7 @@ namespace votca { namespace ctp {
             }
             
             //s-d
-            if ( _lmax_col>2 ){
+            if ( _lmax_col>1 ){
             ol(Cartesian::s,Cartesian::yy) = PmB[1]*ol(Cartesian::s,Cartesian::y)+1*_fak*ol(Cartesian::s,Cartesian::s);
             ol(Cartesian::s,Cartesian::xy) = PmB[0]*ol(Cartesian::s,Cartesian::y);
             ol(Cartesian::s,Cartesian::yz) = PmB[1]*ol(Cartesian::s,Cartesian::z);
@@ -187,7 +187,7 @@ namespace votca { namespace ctp {
             }
 
             //d-s
-            if ( _lmax_row>2 ){
+            if ( _lmax_row>1 ){
             //std::cout << "\t setting d-s|" << std::flush;
             ol(Cartesian::yy,Cartesian::s) = PmA[1]*ol(Cartesian::y,Cartesian::s)+1*_fak*ol(Cartesian::s,Cartesian::s);
             ol(Cartesian::xy,Cartesian::s) = PmA[0]*ol(Cartesian::y,Cartesian::s);
@@ -205,7 +205,7 @@ namespace votca { namespace ctp {
             }
             
             //p-d
-            if ( _lmax_row>1 && _lmax_col>2 ){
+            if ( _lmax_row>0 && _lmax_col>1 ){
             //std::cout << "\t setting p-d|" << std::flush;
             ol(Cartesian::y,Cartesian::yy) = PmB[1]*ol(Cartesian::y,Cartesian::y)+1*_fak*ol(Cartesian::y,Cartesian::s)+1*_fak*ol(Cartesian::s,Cartesian::y);
             ol(Cartesian::y,Cartesian::xy) = PmB[0]*ol(Cartesian::y,Cartesian::y);
@@ -247,7 +247,7 @@ namespace votca { namespace ctp {
             }
             
             //d-p
-            if ( _lmax_row>2 && _lmax_col>1 ){
+            if ( _lmax_row>1 && _lmax_col>0 ){
             //std::cout << "\t setting d-p|" << std::flush;
             ol(Cartesian::yy,Cartesian::y) = PmA[1]*ol(Cartesian::y,Cartesian::y)+1*_fak*ol(Cartesian::s,Cartesian::y)+1*_fak*ol(Cartesian::y,Cartesian::s);
             ol(Cartesian::yy,Cartesian::x) = PmA[1]*ol(Cartesian::y,Cartesian::x)+1*_fak*ol(Cartesian::s,Cartesian::x);
@@ -289,7 +289,7 @@ namespace votca { namespace ctp {
             }
 
             //d-d
-            if ( _lmax_row>2 && _lmax_col>2 ){
+            if ( _lmax_row>1 && _lmax_col>1 ){
             //std::cout << "\t setting d-d|" << std::flush;
             ol(Cartesian::yy,Cartesian::yy) = PmA[1]*ol(Cartesian::y,Cartesian::yy)+1*_fak*ol(Cartesian::s,Cartesian::yy)+2*_fak*ol(Cartesian::y,Cartesian::y);
             ol(Cartesian::yy,Cartesian::xy) = PmA[1]*ol(Cartesian::y,Cartesian::xy)+1*_fak*ol(Cartesian::s,Cartesian::xy)+1*_fak*ol(Cartesian::y,Cartesian::x);

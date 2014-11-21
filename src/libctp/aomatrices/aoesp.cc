@@ -500,12 +500,12 @@ namespace votca { namespace ctp {
             positionofatom(2) = _atoms[j]->z*1.8897259886;
             // cout << "NUC POS" << positionofatom(0) << " " << positionofatom(1) << " " << positionofatom(2) << " " << endl;
 	    double Znuc = _elements.getNucCrg(_atoms[j]->type);
-            cout << "NUCLEAR CHARGE" << Znuc << endl;
+            //cout << "NUCLEAR CHARGE" << Znuc << endl;
             _aomatrix = ub::zero_matrix<double>( aobasis->AOBasisSize(),aobasis->AOBasisSize() );
             Fill(aobasis,positionofatom);
             //Print("TMAT");
             _nuclearpotential+=(-1)*Znuc*_aomatrix;
-            cout << "nucpotential(0,0) " << _nuclearpotential(0,0)<< endl;
+            //cout << "nucpotential(0,0) " << _nuclearpotential(0,0)<< endl;
     
     }
     
