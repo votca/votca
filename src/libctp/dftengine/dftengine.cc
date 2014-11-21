@@ -285,7 +285,7 @@ namespace votca {
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Iteration "<< i+1 <<" of "<<numofiterations<< flush;
 
 
-                // _ERIs.CalculateERIs(_dftAOdmat);
+                _ERIs.CalculateERIs(_dftAOdmat);
                 // LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Electron repulsion matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2()<< flush<<flush;
 
 
@@ -308,15 +308,28 @@ namespace votca {
                 
                 
 		ub::matrix<double> VXC=_gridIntegration.IntegrateVXC_Atomblock(_dftAOdmat,  basis);
-		 for ( int iout=0; iout<_dftAOdmat.size1();iout++){
+                 ub::matrix<double> VXC2=_gridIntegration.IntegrateVXC(_dftAOdmat,  basis);
+/*		 for ( int iout=0; iout<_dftAOdmat.size1();iout++){
 		for ( int jout=0; jout<_dftAOdmat.size1();jout++){
 
 		  cout.precision(10);
-		  cout << "VXC " << std::setprecision(10)  << iout+1 << " " << jout+1 << " " << VXC(iout,jout) << endl;
+		  cout << "VXC " << std::setprecision(10)  << iout+1 << " " << jout+1 << " " << VXC(iout,jout) <<  " " << VXC2(iout,jout) <<endl;
 
 		}
-		} 
+		} */
+
+
                 
+		for ( int iout=0; iout<_dftAOdmat.size1();iout++){
+		for ( int jout=0; jout<_dftAOdmat.size1();jout++){
+
+		  cout.precision(10);
+		  cout << "HAM "  << iout+1 << " " << jout+1 << " " << _dftAOkinetic._aomatrix(iout,jout) << " " << _dftAOESP._nuclearpotential(iout,jout) << " " << _ERIs.getERIs()(iout,jout) << " " << ERI4c(iout,jout) << " " << VXC(iout,jout) << " " << VXC2(iout,jout) << " " << _dftAOoverlap._aomatrix(iout,jout) << endl;
+
+		}
+		}
+
+                exit(0);
                 
                 
                 //ub::matrix<double> H=H0+_ERIs.getERIs()+VXC;
