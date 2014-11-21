@@ -310,7 +310,7 @@ namespace votca {
 		ub::matrix<double> VXC=_gridIntegration.IntegrateVXC(_dftAOdmat,  basis);
                 //ub::matrix<double> H=H0+_ERIs.getERIs()+VXC;
 
-                ub::matrix<double> H=H0+ERI4c+VXC;
+                ub::matrix<double> H=H0+ERI4c;//+VXC;
                 
                 /*
 		for ( int iout=0; iout<_dftAOdmat.size1();iout++){
