@@ -346,10 +346,12 @@ namespace votca {
                 double totenergy=0;
                 cout << endl;
 
-                for (int i=0;i<_numofelectrons/2;i++){
-                    cout << MOEnergies(i) << "eigenwert " << i << endl;
+                for (int i=0;i<_numofelectrons;i++){
+                    cout << MOEnergies(i) << " eigenwert " << i << endl;
                     totenergy+=2*MOEnergies(i);
                 }
+                cout << " GAP " << MOEnergies(7)-MOEnergies(6) << endl;
+                
                  LOG(logDEBUG, *_pLog) << TimeStamp() << " Total KS orbital Energy "<<totenergy<<flush;
                 totenergy+=_gridIntegration.getTotEcontribution()-0.5*_ERIs.getERIsenergy();
 
