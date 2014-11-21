@@ -132,7 +132,7 @@ namespace votca {
 
             _atoms = _orbitals->QMAtoms();
             AOBasis* basis = &_dftbasis;
-            int numofiterations=10;
+            int numofiterations=1;
            
 	    /**** PREPARATION (atoms, basis sets, numerical integrations) ****/
 	    Prepare( _orbitals );
