@@ -308,6 +308,17 @@ namespace votca {
                 
                 
 		ub::matrix<double> VXC=_gridIntegration.IntegrateVXC_Atomblock(_dftAOdmat,  basis);
+		 for ( int iout=0; iout<_dftAOdmat.size1();iout++){
+		for ( int jout=0; jout<_dftAOdmat.size1();jout++){
+
+		  cout.precision(10);
+		  cout << "VXC " << std::setprecision(10)  << iout+1 << " " << jout+1 << " " << VXC(iout,jout) << endl;
+
+		}
+		} 
+                
+                
+                
                 //ub::matrix<double> H=H0+_ERIs.getERIs()+VXC;
 
                 ub::matrix<double> H=H0+ERI4c+VXC;
