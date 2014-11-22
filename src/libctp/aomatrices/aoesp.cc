@@ -32,6 +32,7 @@
 #include <boost/multi_array.hpp>
 #include <votca/ctp/logger.h>
 #include <votca/tools/linalg.h>
+#include <votca/ctp/elements.h>
 //#include <boost/timer/timer.hpp>
 
 using namespace std;
@@ -132,7 +133,11 @@ namespace votca { namespace ctp {
         const double _U = zeta*(PmC[0]*PmC[0]+PmC[1]*PmC[1]+PmC[2]*PmC[2]);
         
         vector<double> _FmU(5, 0.0); // that size needs to be checked!
+
         XIntegrate(_FmU,_U );
+        //cout << endl;
+        
+        
         // (s-s element normiert )
         double _prefactor = 2*sqrt(1.0/pi)*pow(4.0*_decay_row*_decay_col,0.75) * _fak2 * exp(-_exparg);
         nuc(Cartesian::s,Cartesian::s)   = _prefactor * _FmU[0];
@@ -466,24 +471,45 @@ namespace votca { namespace ctp {
         ub::matrix<double> _trafo_col_tposed = ub::trans( _trafo_col );
         ub::matrix<double> _nuc_sph = ub::prod( _nuc_tmp, _trafo_col_tposed );
         // save to _matrix
-        if (_lmax_row > 1 || _lmax_col > 1 ){
-        _matrix = ub::project(_nuc_sph, ub::range(_shell_row->getOffset(), _matrix.size1() + 1), ub::range(_shell_col->getOffset(), _matrix.size2()));
-        }
-        else {
+        // if (_lmax_row > 1 || _lmax_col > 1 ){
+        //_matrix = ub::project(_nuc_sph, ub::range(_shell_row->getOffset(), _matrix.size1() + 1), ub::range(_shell_col->getOffset(), _matrix.size2()));
+        //}
+        //else {
         for ( int i = 0; i< _matrix.size1(); i++ ) {
             for (int j = 0; j < _matrix.size2(); j++){
                 _matrix(i,j) += _nuc_sph(i+_shell_row->getOffset(),j+_shell_col->getOffset());
             }
         }
         
-        }
-        nuc.clear();
+        //}
+        //nuc.clear();
             }// _shell_col Gaussians
         }// _shell_row Gaussians
     }
     
-  
-        
+  // Calculates the electrostatic potential matrix element between two basis functions, for an array of atomcores.
+    void AOESP::Fillnucpotential( AOBasis* aobasis, std::vector<QMAtom*>& _atoms){
+    Elements _elements;
+    _nuclearpotential=ub::zero_matrix<double>(aobasis->AOBasisSize(),aobasis->AOBasisSize());
+    ub::vector<double> positionofatom=ub::zero_vector<double>(3);
+   for ( int j = 0; j < _atoms.size(); j++){
+
+            
+            positionofatom(0) = _atoms[j]->x*1.8897259886;
+            positionofatom(1) = _atoms[j]->y*1.8897259886;
+            positionofatom(2) = _atoms[j]->z*1.8897259886;
+            // cout << "NUC POS" << positionofatom(0) << " " << positionofatom(1) << " " << positionofatom(2) << " " << endl;
+	    double Znuc = _elements.getNucCrg(_atoms[j]->type);
+            cout << "NUCLEAR CHARGE" << Znuc << endl;
+            _aomatrix = ub::zero_matrix<double>( aobasis->AOBasisSize(),aobasis->AOBasisSize() );
+            Fill(aobasis,positionofatom);
+            //Print("TMAT");
+            _nuclearpotential+=(-1)*Znuc*_aomatrix;
+            cout << "nucpotential(0,0) " << _nuclearpotential(0,0)<< endl;
+    
+    }
+    
+    }    
     
 }}
 

@@ -47,12 +47,12 @@ namespace votca {
         
         
         ub::matrix<double> NumericalIntegration::IntegrateVXC_Atomblock(ub::matrix<double>& _density_matrix, AOBasis* basis){
-            
+            EXC=0;
             // TODO: switch XC functionals implementation from LIBXC to base own calculation
             #ifdef LIBXC
             xc_func_type xfunc; // handle for exchange functional
             xc_func_type cfunc; // handle for correlation functional
-
+            
             // define PBE here (should be some optional setting))
             int xfunc_id = XC_GGA_X_PBE;
             int cfunc_id = XC_GGA_C_PBE;
@@ -85,6 +85,8 @@ namespace votca {
             double _t_vxc =0.0;
             double _t_AOxc_rho=0.0;
             double _t_AOxc_grad=0.0;
+            double _t_EXC1=0.0;
+            double _t_EXC2=0.0;
             double _t_sum = 0.0;
             double _t_total = 0.0;
              boost::timer::cpu_times tenter = cpu_t.elapsed();
@@ -291,24 +293,74 @@ namespace votca {
             cout << "# Atom blocks by removal of insignificant blocks reduced to " << 50*double(significant_grid)/double(total_grid) << "%" << endl;
             
             ub::matrix<double> XCMAT = ub::zero_matrix<double>(basis->_AOBasisSize, basis->_AOBasisSize);
+            
+            // parallelization: distribute over threads inside one atom
+            int nthreads = 1;
+            #ifdef OMP
+               nthreads = omp_get_max_threads();
+            #endif
+            
+               
+               
+            // separate storage for each thread
+            std::vector< ub::matrix<double> > XCMAT_thread;
+            std::vector<double> EXC_thread;
+            for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){
+                
+                XCMAT_thread.push_back( ub::zero_matrix<double>(basis->_AOBasisSize, basis->_AOBasisSize) );
+                EXC_thread.push_back(0.0);
+            }
+            
+            
+            
             // for every atom
             for (int i = 0; i < _grid.size(); i++) {
 	      // for each point in atom grid
-                for (int j = 0; j < _grid[i].size(); j++) {
+                
+                // number of points in this atomgrid
+                int atom_points = _grid[i].size();
+                // divide among threads
+                int atom_points_per_thread = atom_points/nthreads;
+                std::vector<int> _thread_start;
+                std::vector<int> _thread_stop;
+                for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){
+                    _thread_start.push_back( i_thread * atom_points_per_thread );
+                    _thread_stop.push_back( (i_thread + 1) * atom_points_per_thread );
+                }
+                // final stop must be size
+                _thread_stop[nthreads-1] = atom_points;
+                
+                
+                
+                for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){
+                    
+                    cout << "Thread " << i_thread << " start " << _thread_start[i_thread] << " stop " << _thread_stop[i_thread] << endl; 
+                    
+                }
+                
+                #pragma omp parallel for
+                for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){
+                for (int j = _thread_start[i_thread]; j < _thread_stop[i_thread]; j++) {
 
 
                    boost::timer::cpu_times t0 = cpu_t.elapsed();
 
 
                     // get value of orbitals at each gridpoint (vector as 1D boost matrix object -> prod )
-                    ub::matrix<double> AOgrid = ub::zero_matrix<double>(basis->_AOBasisSize, 1);
+                    //ub::matrix<double> AOgrid = ub::zero_matrix<double>(basis->_AOBasisSize, 1);
 
+                   ub::matrix<double> AOgrid = ub::zero_matrix<double>(1, basis->_AOBasisSize); // TRY MORE USEFUL DATA
+                   
+                   
 		    // get value of density gradient at each gridpoint
-                    ub::matrix<double> gradAOgrid = ub::zero_matrix<double>(basis->_AOBasisSize, 3); // for Gradients of AOs
+                    //ub::matrix<double> gradAOgrid = ub::zero_matrix<double>(basis->_AOBasisSize, 3); // for Gradients of AOs
 
-                    ub::matrix<double>  rho_mat = ub::zero_matrix<double>(1,1);
-                    ub::matrix<double> grad_rho = ub::zero_matrix<double>(3,1);
+                   ub::matrix<double> gradAOgrid = ub::zero_matrix<double>(3, basis->_AOBasisSize); // for Gradients of AOs
                     
+                   ub::matrix<double>  rho_mat = ub::zero_matrix<double>(1,1);
+                   //ub::matrix<double> grad_rho = ub::zero_matrix<double>(3,1);
+                    
+                   ub::matrix<double> grad_rho = ub::zero_matrix<double>(1,3);
 		    // evaluate AO Functions for all shells, NOW BLOCKWISE
 
                     // for each significant atom for this grid point
@@ -324,22 +376,33 @@ namespace votca {
                             boost::timer::cpu_times tstartshells = cpu_t.elapsed();
                             AOShellIterator _row = _atomshells[rowatom][ishell];
                             // for density, fill sub-part of AOatgrid
-                            ub::matrix_range< ub::matrix<double> > _AOgridsub = ub::subrange(AOgrid, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc(), 0, 1);
-                            (*_row)->EvalAOspace(_AOgridsub, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
+                            //ub::matrix_range< ub::matrix<double> > _AOgridsub = ub::subrange(AOgrid, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc(), 0, 1);
+                            ub::matrix_range< ub::matrix<double> > _AOgridsub = ub::subrange(AOgrid, 0, 1, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc());
+                            // (*_row)->EvalAOspace(_AOgridsub, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
 
                             // gradient of density
-                            ub::matrix_range< ub::matrix<double> > _gradAO = ub::subrange(gradAOgrid, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc(), 0, 3);
-                            (*_row)->EvalAOGradspace(_gradAO, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
+                            //ub::matrix_range< ub::matrix<double> > _gradAO = ub::subrange(gradAOgrid, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc(), 0, 3);
+                            ub::matrix_range< ub::matrix<double> > _gradAO = ub::subrange(gradAOgrid, 0, 3, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc());
+                            //(*_row)->EvalAOGradspace(_gradAO, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
+                            (*_row)->EvalAOspace(_AOgridsub, _gradAO , _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
                             boost::timer::cpu_times tendshells = cpu_t.elapsed();
                             
                              _t_AOvals +=  (tendshells.wall-tstartshells.wall)/1e9;
 
                         }  // shell in atom
                         
-                        ub::matrix<double> _temp     = ub::zero_matrix<double>(_blocksize[rowatom],1);
+                        /* ub::matrix<double> _temp     = ub::zero_matrix<double>(_blocksize[rowatom],1);
                         ub::matrix<double> _tempgrad = ub::zero_matrix<double>(_blocksize[rowatom],3);
                         
                         ub::matrix_range< ub::matrix<double> > _AOgridrow     = ub::subrange(    AOgrid, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom], 0, 1);
+
+                         * 
+                         */
+                        
+                        ub::matrix<double> _temp     = ub::zero_matrix<double>(1,_blocksize[rowatom]);
+                        ub::matrix<double> _tempgrad = ub::zero_matrix<double>(3,_blocksize[rowatom]);
+                        
+                        ub::matrix_range< ub::matrix<double> > _AOgridrow     = ub::subrange(    AOgrid, 0,1, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom]);
 
 
                         // for each atom
@@ -349,15 +412,19 @@ namespace votca {
                             if ( colatom > rowatom ) break;
                             
                             // get the already calculated AO values
-                            ub::matrix_range< ub::matrix<double> >     _AOgridcol = ub::subrange(    AOgrid, _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom], 0, 1);
-                            ub::matrix_range< ub::matrix<double> > _gradAOgridcol = ub::subrange(gradAOgrid, _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom], 0, 3);
+                            //ub::matrix_range< ub::matrix<double> >     _AOgridcol = ub::subrange(    AOgrid, _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom], 0, 1);
+                            //ub::matrix_range< ub::matrix<double> > _gradAOgridcol = ub::subrange(gradAOgrid, _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom], 0, 3);
+
+                            ub::matrix_range< ub::matrix<double> >     _AOgridcol = ub::subrange(    AOgrid, 0, 1, _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom]);
+                            ub::matrix_range< ub::matrix<double> > _gradAOgridcol = ub::subrange(gradAOgrid, 0, 3, _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom]);
+
 
                             
-                            ub::matrix_range< ub::matrix<double> > DMAT_here = ub::subrange( _density_matrix, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom], _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom]);
-                            
+                            //ub::matrix_range< ub::matrix<double> > DMAT_here = ub::subrange( _density_matrix, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom], _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom]);
+                            ub::matrix_range< ub::matrix<double> > DMAT_here = ub::subrange( _density_matrix, _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom], _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom]);
                             
                             // update _temp, careful if diagonal!
-                            if ( colatom == rowatom ){
+                         /*   if ( colatom == rowatom ){
                                 _temp     += 0.5 * ub::prod( DMAT_here,_AOgridcol);
                                 _tempgrad += 0.5 * ub::prod( DMAT_here,_gradAOgridcol);
                             } else {
@@ -365,16 +432,32 @@ namespace votca {
                                 _temp     += ub::prod( DMAT_here,    _AOgridcol);
                                 _tempgrad += ub::prod( DMAT_here,_gradAOgridcol);
 
+                            } */
+                            
+                            
+                            
+                             if ( colatom == rowatom ){
+                                _temp     += 0.5 * ub::prod( _AOgridcol, DMAT_here);
+                                _tempgrad += 0.5 * ub::prod( _gradAOgridcol, DMAT_here);
+                            } else {
+                                
+                                _temp     += ub::prod(  _AOgridcol, DMAT_here);
+                                _tempgrad += ub::prod( _gradAOgridcol, DMAT_here);
+
                             }
 
                         } //col shells
                         
                         
-                        ub::matrix_range< ub::matrix<double> > _gradAOgridrow = ub::subrange(gradAOgrid, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom], 0, 3);
+                        //ub::matrix_range< ub::matrix<double> > _gradAOgridrow = ub::subrange(gradAOgrid, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom], 0, 3);
+                        ub::matrix_range< ub::matrix<double> > _gradAOgridrow = ub::subrange(gradAOgrid, 0,3, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom]);
                         
-                        
-                        rho_mat  += ub::prod(ub::trans(    _AOgridrow),_temp);
-                        grad_rho += ub::prod(ub::trans(_gradAOgridrow),_temp) +  ub::prod(ub::trans(_tempgrad),_AOgridrow) ;
+                        //rho_mat  += ub::prod(ub::trans(    _AOgridrow),_temp);
+                        //grad_rho += ub::prod(ub::trans(_gradAOgridrow),_temp) +  ub::prod(ub::trans(_tempgrad),_AOgridrow) ;
+
+                        rho_mat  += ub::prod(_temp, ub::trans( _AOgridrow) );
+                        grad_rho += ub::prod(_temp, ub::trans(_gradAOgridrow)) +  ub::prod(_AOgridrow,ub::trans(_tempgrad)) ;
+
                         
                         
                         
@@ -388,9 +471,11 @@ namespace votca {
 
 		    if ( rho < 1.e-15 ) continue; // skip the rest, if density is very small
                     grad_rho = 2.0 * grad_rho;
-                    
-                    //cout << "rho ABLK" << rho << " " << grad_rho(0,0) << " "  << grad_rho(1,0) << " "  << grad_rho(2,0)  << endl;
-                    //exit(0);
+                                     
+
+               //     cout << " size1 grad" << grad_rho.size1() << " size2 " << grad_rho.size2() << endl;
+                //    cout << "rho ABLK" << rho << " " << grad_rho(0,0) << " "  << grad_rho(0,1) << " "  << grad_rho(0,2)  << endl;
+                 //   exit(0);
                     
                     
                     // get XC for this density_at_grid
@@ -400,38 +485,44 @@ namespace votca {
 
                     // evaluate via LIBXC, if compiled, otherwise, go via own implementation
 #ifdef LIBXC
-		    double sigma = ub::prod(ub::trans(grad_rho),grad_rho)(0,0);
+		    //double sigma = ub::prod(ub::trans(grad_rho),grad_rho)(0,0);
 
+                    double sigma = ub::prod(grad_rho,ub::trans(grad_rho))(0,0);
+                    
+                    double exc[1];
                     double vsigma[1]; // libxc 
                     double vrho[1]; // libxc df/drho
                     switch (xfunc.info->family) {
                         case XC_FAMILY_LDA:
-                            xc_lda_vxc(&xfunc, 1, &rho, vrho);
+                            xc_lda_exc_vxc(&xfunc, 1, &rho, exc, vrho);
                             break;
                         case XC_FAMILY_GGA:
                         case XC_FAMILY_HYB_GGA:
-                            xc_gga_vxc(&xfunc, 1, &rho, &sigma, vrho, vsigma);
+                            xc_gga_exc_vxc(&xfunc, 1, &rho, &sigma, exc, vrho, vsigma);
                             break;
                     }
+                    f_xc      = exc[0];
                     df_drho   = vrho[0];
                     df_dsigma = vsigma[0];
 
                     // via libxc correlation part only
                     switch (cfunc.info->family) {
                         case XC_FAMILY_LDA:
-                            xc_lda_vxc(&cfunc, 1, &rho, vrho);
+                            xc_lda_exc_vxc(&cfunc, 1, &rho, exc, vrho);
                             break;
                         case XC_FAMILY_GGA:
                         case XC_FAMILY_HYB_GGA:
-                            xc_gga_vxc(&cfunc, 1, &rho, &sigma, vrho, vsigma);
+                            xc_gga_exc_vxc(&cfunc, 1, &rho, &sigma, exc, vrho, vsigma);
                             break;
                     }
 
+                    f_xc      += exc[0];
                     df_drho   += vrho[0];
                     df_dsigma += vsigma[0];
 
 #else
-                    _xc.getXC("PBE", rho, grad_rho(0,0), grad_rho(1,0), grad_rho(2,0), f_xc, df_drho, df_dsigma);
+                    //_xc.getXC("PBE", rho, grad_rho(0,0), grad_rho(1,0), grad_rho(2,0), f_xc, df_drho, df_dsigma);
+                    _xc.getXC("PBE", rho, grad_rho(0,0), grad_rho(0,1), grad_rho(0,2), f_xc, df_drho, df_dsigma);
 #endif
 
                     boost::timer::cpu_times t4 = cpu_t.elapsed();
@@ -445,7 +536,8 @@ namespace votca {
                     
                     
 		    // gradient part
-                    _addXC+=  4.0*df_dsigma * _grid[i][j].grid_weight * ub::prod(gradAOgrid,grad_rho);
+                    //_addXC+=  4.0*df_dsigma * _grid[i][j].grid_weight * ub::prod(gradAOgrid,grad_rho);
+                    _addXC+=  4.0*df_dsigma * _grid[i][j].grid_weight * ub::prod(grad_rho,gradAOgrid);
                     boost::timer::cpu_times t6 = cpu_t.elapsed();
                     _t_AOxc_grad += (t6.wall-t5.wall)/1e9;
 
@@ -453,30 +545,35 @@ namespace votca {
                     // XCMAT +=  ub::prod(_addXC,ub::trans(AOgrid));
 
                     
+                    // Exchange correlation energy
+                    EXC_thread[i_thread] += _grid[i][j].grid_weight * rho * f_xc;
+                    boost::timer::cpu_times t6a = cpu_t.elapsed();
+                    _t_EXC1 += (t6a.wall-t6.wall)/1e9;
+                    
                     // combine/sum atom-block wise, only trigonal part, symmetrize later
                     // for each significant atom for this grid point
                     // parallelization only accesses atomblock information (_addXC, AOgrid -> XCmatblock), so no trouble with shared memory access )
-                    #pragma omp parallel for
+                    // #pragma omp parallel for
                     for (int sigrow = 0; sigrow < _significant_atoms[i][j].size(); sigrow++) {
                         
                         // this atom
                         int rowatom = _significant_atoms[i][j][sigrow];
                         // line reference of _addXC
-                        ub::matrix_range< ub::matrix<double> > _rowXC = ub::subrange( _addXC, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom], 0, 1);
-                            
+                        //ub::matrix_range< ub::matrix<double> > _rowXC = ub::subrange( _addXC, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom], 0, 1);
+                        ub::matrix_range< ub::matrix<double> > _rowXC = ub::subrange( _addXC, 0 , 1, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom]);    
 
                         for (int sigcol = 0; sigcol < _significant_atoms[i][j].size(); sigcol++) {
                             int colatom = _significant_atoms[i][j][sigcol];
                             if (colatom > rowatom) break;
 
                             // line reference of AOgrid 
-                            ub::matrix_range< ub::matrix<double> > _AOcol = ub::subrange( AOgrid,  _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom], 0, 1);
-                            
+                            //ub::matrix_range< ub::matrix<double> > _AOcol = ub::subrange( AOgrid,  _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom], 0, 1);
+                            ub::matrix_range< ub::matrix<double> > _AOcol = ub::subrange( AOgrid, 0,1,  _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom]);
                             
                             // update block reference of XCMAT
-                            ub::matrix_range<ub::matrix<double> > _XCmatblock = ub::subrange( XCMAT,_startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom], _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom] );
-                            _XCmatblock += ub::prod( _rowXC, ub::trans(_AOcol)  );
-                            
+                            ub::matrix_range<ub::matrix<double> > _XCmatblock = ub::subrange( XCMAT_thread[i_thread],_startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom], _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom] );
+                            //_XCmatblock += ub::prod( _rowXC, ub::trans(_AOcol)  );
+                            _XCmatblock += ub::prod( ub::trans(_rowXC), _AOcol  );
                             
                         } // significant col
                     } // significant row 
@@ -484,14 +581,25 @@ namespace votca {
                     
                     
                     boost::timer::cpu_times t7 = cpu_t.elapsed();
-                    _t_sum += (t7.wall-t6.wall)/1e9;
+                    _t_sum += (t7.wall-t6a.wall)/1e9;
                     
 
                 } // j: for each point in atom grid
+                }// each thread
             } // i: for each atom grid
 
             
-
+            // sum thread matrices
+            for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){
+                EXC += EXC_thread[i_thread];
+                #pragma omp parallel for
+                for (int _i = 0; _i < XCMAT.size1(); _i++) {
+                    for (int _j = 0; _j <= _i; _j++) {
+                    XCMAT( _i, _j ) += XCMAT_thread[i_thread](_i, _j);
+                    }
+                }
+            }
+            
             // symmetrize 
             #pragma omp parallel for
             for (int _i = 0; _i < XCMAT.size1(); _i++) {
@@ -500,6 +608,23 @@ namespace votca {
                 }
             }
 
+
+            
+            
+            boost::timer::cpu_times t8 = cpu_t.elapsed();
+                    
+            const ub::vector<double> DMAT_array = _density_matrix.data();
+            const ub::vector<double> XCMAT_array = XCMAT.data();
+            
+            for ( int i = 0; i < DMAT_array.size(); i++ ){
+                EXC -= DMAT_array[i] * XCMAT_array[i];
+            }
+
+            boost::timer::cpu_times t9 = cpu_t.elapsed();
+            _t_EXC2 += (t9.wall-t8.wall)/1e9;
+                    
+            
+
             cout << " ATBLOCK Time AOVals      : " << _t_AOvals << endl;
             cout << " ATBLOCK Time rho         : " << _t_rho << endl;
             cout << " ATBLOCK Time grad rho    : " << _t_grad_rho << endl;
@@ -507,6 +632,9 @@ namespace votca {
             cout << " ATBLOCK Time AOxc rho    : " << _t_AOxc_rho << endl;
             cout << " ATBLOCK Time AOxc grad   : " << _t_AOxc_grad << endl;
             cout << " ATBLOCK Time AOxc sum    : " << _t_sum << endl;
+            cout << " ATBLOCK Time Exc1        : " << _t_EXC1 << endl;
+            cout << " ATBLOCK Time Exc2        : " << _t_EXC2 << endl;
+            
                          boost::timer::cpu_times texit = cpu_t.elapsed();
                                 _t_total = (texit.wall-tenter.wall)/1e9;
                     
@@ -514,13 +642,17 @@ namespace votca {
                                  
             cout << " ATBLOCK TOTAL            : " << _t_total << endl;
             
+         
+            
+            
+            
             return XCMAT;
 
         }
         
         
              ub::matrix<double> NumericalIntegration::IntegrateVXC_block(ub::matrix<double>& _density_matrix, AOBasis* basis){
-            
+            EXC=0;
             // TODO: switch XC functionals implementation from LIBXC to base own calculation
             #ifdef LIBXC
             xc_func_type xfunc; // handle for exchange functional
@@ -650,6 +782,8 @@ namespace votca {
                     
                     
                     
+                    
+                    
                     // get XC for this density_at_grid
                     double f_xc;      // E_xc[n] = int{n(r)*eps_xc[n(r)] d3r} = int{ f_xc(r) d3r }
                     double df_drho;   // v_xc_rho(r) = df/drho
@@ -662,31 +796,34 @@ namespace votca {
 #ifdef LIBXC
 		    double sigma = ub::prod(ub::trans(grad_rho),grad_rho)(0,0);
 
+                    double exc[1];
                     double vsigma[1]; // libxc 
                     double vrho[1]; // libxc df/drho
                     switch (xfunc.info->family) {
                         case XC_FAMILY_LDA:
-                            xc_lda_vxc(&xfunc, 1, &rho, vrho);
+                            xc_lda_exc_vxc(&xfunc, 1, &rho, exc, vrho);
                             break;
                         case XC_FAMILY_GGA:
                         case XC_FAMILY_HYB_GGA:
-                            xc_gga_vxc(&xfunc, 1, &rho, &sigma, vrho, vsigma);
+                            xc_gga_exc_vxc(&xfunc, 1, &rho, &sigma, exc, vrho, vsigma);
                             break;
                     }
+                    f_xc      = exc[0];
                     df_drho   = vrho[0];
                     df_dsigma = vsigma[0];
 
                     // via libxc correlation part only
                     switch (cfunc.info->family) {
                         case XC_FAMILY_LDA:
-                            xc_lda_vxc(&cfunc, 1, &rho, vrho);
+                            xc_lda_exc_vxc(&cfunc, 1, &rho, exc, vrho);
                             break;
                         case XC_FAMILY_GGA:
                         case XC_FAMILY_HYB_GGA:
-                            xc_gga_vxc(&cfunc, 1, &rho, &sigma, vrho, vsigma);
+                            xc_gga_exc_vxc(&cfunc, 1, &rho, &sigma, exc, vrho, vsigma);
                             break;
                     }
 
+                    f_xc      += exc[0];
                     df_drho   += vrho[0];
                     df_dsigma += vsigma[0];
 
@@ -699,7 +836,7 @@ namespace votca {
                     
 		    // density part
 		    ub::matrix<double> _addXC = _grid[i][j].grid_weight * df_drho * AOgrid;
-
+                    EXC += _grid[i][j].grid_weight * rho * f_xc;
                     boost::timer::cpu_times t5 = cpu_t.elapsed();
                     _t_AOxc_rho += (t5.wall-t4.wall)/1e9;
                     
@@ -723,6 +860,19 @@ namespace votca {
                 } // j: for each point in atom grid
             } // i: for each atom grid
 
+            
+            const ub::vector<double> DMAT_array = _density_matrix.data();
+            const ub::vector<double> XCMAT_array = XCMAT.data();
+            
+            for ( int i = 0; i < DMAT_array.size(); i++ ){
+            
+                EXC -= DMAT_array[i] * XCMAT_array[i];
+                
+            }
+            
+            
+            
+            
 
             cout << " BLOCK Time rho         : " << _t_rho << endl;
             cout << " BLOCK Time grad rho    : " << _t_grad_rho << endl;
@@ -747,7 +897,7 @@ namespace votca {
         
         // numerically integrate the elements of the AOXC matrix
         ub::matrix<double> NumericalIntegration::IntegrateVXC(ub::matrix<double>& _density_matrix, AOBasis* basis){
-            
+                EXC=0;    
             // TODO: switch XC functionals implementation from LIBXC to base own calculation
             #ifdef LIBXC
             xc_func_type xfunc; // handle for exchange functional
@@ -840,9 +990,13 @@ namespace votca {
 		    //         = 2.0 * sum_{ab}{grad(X_a) * D_{ab}*X_b}
 		    ub::matrix<double> grad_rho = 2.0 * ub::prod(ub::trans(gradAOgrid),_tempmat);
 
+                    //                    cout << rho << " " << grad_rho(0,0) << " " << grad_rho(1,0) << " " << grad_rho(0,1) << endl;
+                    //exit(0);
+                    
                     boost::timer::cpu_times t3 = cpu_t.elapsed();
                     _t_grad_rho += (t3.wall-t2.wall)/1e9;
                     
+   
                     // get XC for this density_at_grid
                     double f_xc;      // E_xc[n] = int{n(r)*eps_xc[n(r)] d3r} = int{ f_xc(r) d3r }
                     double df_drho;   // v_xc_rho(r) = df/drho
@@ -854,29 +1008,30 @@ namespace votca {
                     // evaluate via LIBXC, if compiled, otherwise, go via own implementation
 #ifdef LIBXC
 		    double sigma = ub::prod(ub::trans(grad_rho),grad_rho)(0,0);
-
+                    double exc[1];
                     double vsigma[1]; // libxc 
                     double vrho[1]; // libxc df/drho
                     switch (xfunc.info->family) {
                         case XC_FAMILY_LDA:
-                            xc_lda_vxc(&xfunc, 1, &rho, vrho);
+                            xc_lda_exc_vxc(&xfunc, 1, &rho, exc, vrho);
                             break;
                         case XC_FAMILY_GGA:
                         case XC_FAMILY_HYB_GGA:
-                            xc_gga_vxc(&xfunc, 1, &rho, &sigma, vrho, vsigma);
+                            xc_gga_exc_vxc(&xfunc, 1, &rho, &sigma, exc, vrho, vsigma);
                             break;
                     }
+                    f_xc      = exc[0];
                     df_drho   = vrho[0];
                     df_dsigma = vsigma[0];
 
                     // via libxc correlation part only
                     switch (cfunc.info->family) {
                         case XC_FAMILY_LDA:
-                            xc_lda_vxc(&cfunc, 1, &rho, vrho);
+                            xc_lda_exc_vxc(&cfunc, 1, &rho, exc, vrho);
                             break;
                         case XC_FAMILY_GGA:
                         case XC_FAMILY_HYB_GGA:
-                            xc_gga_vxc(&cfunc, 1, &rho, &sigma, vrho, vsigma);
+                            xc_gga_exc_vxc(&cfunc, 1, &rho, &sigma, exc, vrho, vsigma);
                             break;
                     }
 
@@ -892,7 +1047,8 @@ namespace votca {
                     
 		    // density part
 		    ub::matrix<double> _addXC = _grid[i][j].grid_weight * df_drho * AOgrid;
-
+                    // Exchange correlation energy
+                    EXC += _grid[i][j].grid_weight * rho * f_xc;
                     boost::timer::cpu_times t5 = cpu_t.elapsed();
                     _t_AOxc_rho += (t5.wall-t4.wall)/1e9;
                     
@@ -917,6 +1073,15 @@ namespace votca {
                 } // j: for each point in atom grid
             } // i: for each atom grid
 
+            
+            
+            const ub::vector<double> DMAT_array = _density_matrix.data();
+            const ub::vector<double> XCMAT_array = XCMAT.data();
+            for ( int i = 0; i < DMAT_array.size(); i++ ){
+            
+                EXC -= DMAT_array[i] * XCMAT_array[i];
+                
+            }
             
             cout << " Time AO functions: " << _t_AOgrid << endl;
             cout << " Time rho         : " << _t_rho << endl;

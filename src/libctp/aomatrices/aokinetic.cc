@@ -116,7 +116,7 @@ namespace votca { namespace ctp {
             ub::matrix<double> ol = ub::zero_matrix<double>(_nrows,_ncols);
         
             // s-s overlap integral
-            ol(Cartesian::s,Cartesian::s) = 2*sqrt(1.0/pi)*pow(4.0*_decay_row*_decay_col,0.75) * rzeta * exp(-_exparg);
+            ol(Cartesian::s,Cartesian::s) = pow(rzeta,1.5)*pow(4.0*_decay_row*_decay_col,0.75) * exp(-_exparg);
             // s-s- kinetic energy integral
             kin(Cartesian::s,Cartesian::s)= ol(Cartesian::s,Cartesian::s)*xi*(3-2*xi*_distsq);
             

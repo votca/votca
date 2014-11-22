@@ -33,6 +33,8 @@
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <votca/tools/linalg.h>
 
+#include "votca/ctp/elements.h"
+
 // #include <omp.h>
 
 
@@ -74,6 +76,40 @@ namespace votca {
 	    // exchange and correlation as in libXC
 	    _x_functional_name = options->get(key + ".exchange_functional").as<string>();
 	    _c_functional_name = options->get(key + ".correlation_functional").as<string>();
+            _numofelectrons =0;
+            _mixingparameter=0.4;
+            /*TEST for mkl and stuff
+            ub::matrix<double> a=ub::zero_matrix<double>(3,3);
+            ub::matrix<double> b=ub::zero_matrix<double>(3,3);
+            ub::vector<double> E=ub::zero_vector<double>(3);
+            ub::matrix<double> v=ub::zero_matrix<double>(3,3);
+            a(0,0)=0;
+            a(0,1)=2;
+            a(0,2)=4;
+            a(1,0)=2;
+            a(2,0)=4;
+            a(1,1)=4;
+            a(2,1)=6;
+            a(1,2)=6;
+            a(2,2)=8;
+            b(0,0)=3;
+            b(0,1)=1;
+            b(0,2)=1;
+            b(1,0)=1;
+            b(2,0)=1;
+            b(1,1)=3;
+            b(2,1)=1;
+            b(1,2)=1;
+            b(2,2)=3;
+            linalg_eigenvalues_general(a,b,E,v);
+            for (int i=0;i<3;i++){
+                cout << "E("<< i << ")=" << E(i)<<endl;
+                for (int j=0;j<3;j++){
+                cout <<"v("<< j << ":"<< i <<")= " <<v(j,i)<< endl;
+              //  cout <<"a("<< j << ":"<< i <<")= " <<a(j,i)<< endl;
+                }}
+            exit(0);
+            */
             
         }
         
@@ -95,29 +131,89 @@ namespace votca {
             #endif
 
             _atoms = _orbitals->QMAtoms();
-
-
+            AOBasis* basis = &_dftbasis;
+            int numofiterations=10;
+           
 	    /**** PREPARATION (atoms, basis sets, numerical integrations) ****/
 	    Prepare( _orbitals );
             /**** END OF PREPARATION ****/
             
 	    /**** Density-independent matrices ****/
 	    SetupInvariantMatrices();
-
+            //_dftAOkinetic.Print("TMAT");
+            //exit(0);
             /**** Initial guess = one-electron Hamiltonian without interactions ****/
-            
+            ub::vector<double>& MOEnergies=_orbitals->MOEnergies();
+            ub::matrix<double>& MOCoeff=_orbitals->MOCoefficients();
             /**** Construct initial density  ****/
-	    
-           
-            ub::matrix<double> DMAT = ub::identity_matrix<double>(_dftbasis._AOBasisSize);
-            _ERIs.CalculateERIs(DMAT);
-            ub::matrix<double> _eris=_ERIs.getERIs();
             
+           ub::matrix<double> H0=_dftAOkinetic._aomatrix+_dftAOESP._nuclearpotential;
+
+            linalg_eigenvalues_general( H0,_dftAOoverlap._aomatrix, MOEnergies, MOCoeff);
+         double totinit=0;
+         cout << endl;
+                for (int i=0;i<(_numofelectrons/2);i++){
+                    cout << MOEnergies(i) << " eigenwert " << i << endl;
+                    totinit+=2*MOEnergies(i);
+                }
+                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Total KS orbital Energy "<<totinit<<flush;
+                 
+
+            /*
+            // cout << MOEnergies[0] << " " << MOEnergies[_numofelectrons/2] << endl;
+            cout << "\n";
+            for ( int i =0; i < _dftbasis.AOBasisSize(); i++){
+            ub::matrix_range< ub::matrix<double> > _MO = ub::subrange(MOCoeff, 0, _dftbasis.AOBasisSize(), i, i+1 );
+            
+            ub::matrix<double> _temp = ub::prod(_dftAOoverlap._aomatrix, _MO);
+            for ( int j =0; j < _dftbasis.AOBasisSize(); j++){
+                ub::matrix_range< ub::matrix<double> > _MO2 = ub::subrange(MOCoeff, 0, _dftbasis.AOBasisSize(), j, j+1 );
+            ub::matrix<double> norm = ub::prod(ub::trans(_MO2), _temp);
+            if (std::abs(norm(0,0)) > 1e-5 ){
+            cout << " Norm of MO " << i << " " << j << " " << norm(0,0) << endl;
+            }}}
+            exit(0);
+            
+            */
+            
+            
+            
+            
+            
+            
+	    DensityMatrixGroundState( MOCoeff, _numofelectrons/2 ) ;
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup Initial Guess "<< flush;
+           LOG(logDEBUG, *_pLog) << TimeStamp() << " Num of electrons "<< _gridIntegration.IntegrateDensity(_dftAOdmat, basis) << flush;
+            
+            for (int i=0;i<numofiterations;i++){
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Iteration "<< i+1 <<" of "<<numofiterations<< flush;
+                _ERIs.CalculateERIs(_dftAOdmat);
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Electron repulsion matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2()<< flush<<flush;
+                ub::matrix<double> H=H0+_ERIs.getERIs()+_gridIntegration.IntegrateVXC(_dftAOdmat,  basis);
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Vxc matrix "<<flush;
+                linalg_eigenvalues_general( H,_dftAOoverlap._aomatrix, MOEnergies, MOCoeff);
+                double totenergy=0;
+                cout << endl;
+                for (int i=0;i<_numofelectrons/2;i++){
+                    cout << MOEnergies(i) << "eigenwert " << i << endl;
+                    totenergy+=2*MOEnergies(i);
+                }
+                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Total KS orbital Energy "<<totenergy<<flush;
+                totenergy+=_gridIntegration.getTotEcontribution()-0.5*_ERIs.getERIsenergy();
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Exc contribution "<<_gridIntegration.getTotEcontribution()<<flush;
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " E_H contribution "<<-0.5*_ERIs.getERIsenergy()<<flush;
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Total Energy "<<totenergy<<flush;
+                
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Solved general eigenproblem "<<flush;
+                EvolveDensityMatrix( MOCoeff, _numofelectrons/2 ) ;
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Num of electrons "<< _gridIntegration.IntegrateDensity(_dftAOdmat, basis) << flush;
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Updated Density Matrix "<<flush;
+            }
           
             return true;
         }
 
-
+      
 
       // SETUP INVARIANT AOMatrices
       void DFTENGINE::SetupInvariantMatrices(){
@@ -142,6 +238,10 @@ namespace votca {
             _dftAOkinetic.Initialize(_dftbasis.AOBasisSize());
             _dftAOkinetic.Fill(&_dftbasis);
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Kinetic energy matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
+            
+            _dftAOESP.Initialize(_dftbasis.AOBasisSize());
+            _dftAOESP.Fillnucpotential(&_dftbasis, _atoms);
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT nuclear potential matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
             
 	    // AUX AOoverlap
             _auxAOoverlap.Initialize(_auxbasis.AOBasisSize());
@@ -187,11 +287,56 @@ namespace votca {
             _gridIntegration.GridSetup(_grid_name,&_dftbasisset,_atoms);
 	    LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup numerical integration grid " << _grid_name << flush;
 	
+           Elements _elements; 
+            //set number of electrons and such
+           _orbitals->setBasisSetSize(_dftbasis.AOBasisSize());
+           
+           for (int i=0;i<_atoms.size();i++){
+               _numofelectrons+=_elements.getNucCrg(_atoms[i]->type);
+           }
+           LOG(logDEBUG, *_pLog) << TimeStamp() << " Total number of electrons: " << _numofelectrons << flush;
+           _orbitals->setNumberOfElectrons(_numofelectrons);
+           _orbitals->setNumberOfLevels(_numofelectrons/2,_dftbasis.AOBasisSize()-_numofelectrons/2);
+           
+           
 
+            // _orbitals->setBasisSetSize(_dftbasis.AOBasisSize());
+            
       }
-
-
+      
+      void DFTENGINE::DensityMatrixGroundState( ub::matrix<double>& _MOs, int occulevels ) {
+     
+     // first fill Density matrix, if required
+    //  if ( _dmatGS.size1() != _basis_set_size ) {
+          int size=max(_MOs.size1(),_MOs.size2());
+          // cout << "Size " << size << " occ levels " << occulevels << endl;
+        _dftAOdmat = ub::zero_matrix<double>(size,size);
+        for ( int _i=0; _i < size; _i++ ){
+            for ( int _j=0; _j < size; _j++ ){
+                for ( int _level=0; _level < occulevels ; _level++ ){
+                 
+                    //_dftAOdmat(_i,_j) += 2.0 * _MOs( _level , _i ) * _MOs( _level , _j );
+                    _dftAOdmat(_i,_j) += 2.0 * _MOs(  _i , _level) * _MOs(  _j, _level );
+                 
+                }
+            }
+         }
+     //}
     }
+      
+      
+      void DFTENGINE::EvolveDensityMatrix(ub::matrix<double>& MOCoeff, int occulevels){
+          
+      ub::matrix<double> dftdmat_old=_dftAOdmat;
+      DensityMatrixGroundState(MOCoeff, occulevels);
+      _dftAOdmat=_mixingparameter*_dftAOdmat+(1.0-_mixingparameter)*dftdmat_old;
+      
+      /*DIIS or mixing can be implemented here*/
+      
+      }
+      
+
+      
     
- 
+    }
 };

@@ -111,7 +111,7 @@ namespace votca { namespace ctp {
 
         
         // calculate matrix elements
-        _ol(0,0) = pow(4.0*_decay_row*_decay_col,0.75) * pow(_fak2,1.5)*exp(-_fak2 * _decay_row * _decay_col *_distsq); // s-s element
+        _ol(0,0) = pow(4.0*_decay_row*_decay_col,0.75) * pow(_fak2,1.5)*exp(-_exparg); // s-s element
         //cout << "\t setting s-s: " << _ol(0,0) << endl;
         
         // s-p

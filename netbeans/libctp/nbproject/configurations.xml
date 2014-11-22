@@ -38,8 +38,6 @@
         <itemPath>../../src/libctp/jobcalculators/egwbse.cc</itemPath>
         <itemPath>../../src/libctp/jobcalculators/egwbse.h</itemPath>
         <itemPath>../../src/libctp/jobcalculators/ewald.h</itemPath>
-        <itemPath>../../src/libctp/jobcalculators/gwbse.cc</itemPath>
-        <itemPath>../../src/libctp/jobcalculators/gwbse.h</itemPath>
         <itemPath>../../src/libctp/jobcalculators/idft.cc</itemPath>
         <itemPath>../../src/libctp/jobcalculators/idft.h</itemPath>
         <itemPath>../../src/libctp/jobcalculators/igwbse.cc</itemPath>
@@ -161,6 +159,7 @@
         <itemPath>../../src/libctp/aomatrices/aocoulomb.cc</itemPath>
         <itemPath>../../src/libctp/aomatrices/aodipole.cc</itemPath>
         <itemPath>../../src/libctp/aomatrices/aoesp.cc</itemPath>
+        <itemPath>../../src/libctp/aomatrices/aokinetic.cc</itemPath>
         <itemPath>../../src/libctp/aomatrices/aomatrix.cc</itemPath>
         <itemPath>../../src/libctp/aomatrices/aomomentum.cc</itemPath>
         <itemPath>../../src/libctp/aomatrices/aooverlap.cc</itemPath>
@@ -200,6 +199,7 @@
         <itemPath>../../src/libctp/segmenttype.cc</itemPath>
         <itemPath>../../src/libctp/topology.cc</itemPath>
       </logicalFolder>
+      <itemPath>../../src/libctp/ERIs.cc</itemPath>
       <itemPath>../../src/libctp/apolarsite.cc</itemPath>
       <itemPath>../../src/libctp/bsecoupling.cc</itemPath>
       <itemPath>../../src/libctp/ewald2d.cc</itemPath>
@@ -226,6 +226,7 @@
       <itemPath>../../src/libctp/qmtool.cc</itemPath>
       <itemPath>../../src/libctp/statesaversqlite.cc</itemPath>
       <itemPath>../../src/libctp/threecenters.cc</itemPath>
+      <itemPath>../../src/libctp/threecenters_dft.cc</itemPath>
       <itemPath>../../src/libctp/threecenters_tools.cc</itemPath>
       <itemPath>../../src/libctp/version.cc</itemPath>
       <itemPath>../../src/libctp/version_nb.cc</itemPath>
@@ -333,8 +334,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/gwbse.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/hueckel.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/job.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -486,6 +485,8 @@
       </item>
       <item path="../../include/votca/ctp/xmapper.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../src/libctp/ERIs.cc" ex="false" tool="0" flavor2="0">
+      </item>
       <item path="../../src/libctp/aomatrices/aocoulomb.cc"
             ex="false"
             tool="1"
@@ -499,6 +500,11 @@
       <item path="../../src/libctp/aomatrices/aoesp.cc"
             ex="false"
             tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/aomatrices/aokinetic.cc"
+            ex="false"
+            tool="0"
             flavor2="0">
       </item>
       <item path="../../src/libctp/aomatrices/aomatrix.cc"
@@ -726,8 +732,6 @@
       </item>
       <item path="../../src/libctp/hgversion.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../src/libctp/hueckel.cc" ex="false" tool="0" flavor2="0">
-      </item>
       <item path="../../src/libctp/job.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/jobapplication.cc" ex="false" tool="1" flavor2="0">
@@ -753,16 +757,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/jobcalculators/ewald.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/jobcalculators/gwbse.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/jobcalculators/gwbse.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -910,6 +904,11 @@
       </item>
       <item path="../../src/libctp/threecenters.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libctp/threecenters_dft.cc"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/threecenters_tools.cc"
             ex="false"
             tool="1"
@@ -1052,8 +1051,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/gwbse.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/hueckel.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/job.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1205,6 +1202,8 @@
       </item>
       <item path="../../include/votca/ctp/xmapper.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../src/libctp/ERIs.cc" ex="false" tool="0" flavor2="0">
+      </item>
       <item path="../../src/libctp/aomatrices/aocoulomb.cc"
             ex="false"
             tool="1"
@@ -1218,6 +1217,11 @@
       <item path="../../src/libctp/aomatrices/aoesp.cc"
             ex="false"
             tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/aomatrices/aokinetic.cc"
+            ex="false"
+            tool="0"
             flavor2="0">
       </item>
       <item path="../../src/libctp/aomatrices/aomatrix.cc"
@@ -1445,8 +1449,6 @@
       </item>
       <item path="../../src/libctp/hgversion.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../src/libctp/hueckel.cc" ex="false" tool="0" flavor2="0">
-      </item>
       <item path="../../src/libctp/job.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/jobapplication.cc" ex="false" tool="1" flavor2="0">
@@ -1472,16 +1474,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/jobcalculators/ewald.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/jobcalculators/gwbse.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/jobcalculators/gwbse.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1628,6 +1620,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/threecenters.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/threecenters_dft.cc"
+            ex="false"
+            tool="0"
+            flavor2="0">
       </item>
       <item path="../../src/libctp/threecenters_tools.cc"
             ex="false"
