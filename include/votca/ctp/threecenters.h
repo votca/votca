@@ -75,7 +75,7 @@ namespace votca { namespace ctp {
     private:
         std::vector< ub::matrix<double> > _matrix;
     
-        void FillBlock(std::vector< ub::matrix<double> >& _matrix,  AOShell* _shell, AOBasis& dftbasis) ; 
+        void FillBlock(AOShell* _shell, AOBasis& dftbasis) ; 
         
     };
     

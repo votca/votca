@@ -53,7 +53,7 @@ namespace votca { namespace ctp {
         
         void Initialize(AOBasis &_dftbasis, AOBasis &_auxbasis, AOOverlap &_auxAOoverlap, AOCoulomb &_auxAOcoulomb);
         
-        ub::matrix<double>& getERIs(){return _ERIs;}
+        ub::matrix<double> getERIs(){return _ERIs;}
         double& getERIsenergy(){return _ERIsenergy;}
         
         void CalculateERIs(ub::matrix<double> &DMAT);

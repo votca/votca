@@ -66,7 +66,8 @@ namespace votca { namespace ctp {
         vector<double> _pma (3,0.0);
         vector<double> _pmb (3,0.0);
           
-        double _distsq = (_diff.getX()*_diff.getX()) + (_diff.getY()*_diff.getY()) + (_diff.getZ()*_diff.getZ());    
+        double _distsq = (_diff.getX()*_diff.getX()) + (_diff.getY()*_diff.getY()) + (_diff.getZ()*_diff.getZ());   
+
 
        // cout << "row shell is " << _shell_row->getSize() << " -fold contracted!" << endl;
         //cout << "col shell is " << _shell_col->getSize() << " -fold contracted!" << endl;

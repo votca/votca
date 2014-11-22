@@ -28,6 +28,7 @@
 #include <boost/numeric/ublas/io.hpp>
 #include <votca/tools/linalg.h>
 #include <omp.h>
+#include <boost/multi_array.hpp>
 
 using namespace std;
 using namespace votca::tools;
@@ -44,14 +45,92 @@ namespace votca {
            
             _threecenter.Fill( _auxbasis, _dftbasis );
             
+            
             ub::matrix<double> _inverse=ub::zero_matrix<double>( _auxAOverlap.Dimension(), _auxAOverlap.Dimension());
+            
+            /* AOOverlap _auxoverlap_inverse;               
+            AOOverlap _auxoverlap_cholesky_inverse;      
+            _auxoverlap_inverse.Initialize( _auxbasis._AOBasisSize);
+            _auxAOcoulomb.Symmetrize(_auxAOverlap , _auxbasis, _auxoverlap_inverse , _auxoverlap_cholesky_inverse);
+            */
             linalg_invert( _auxAOverlap.Matrix() , _inverse);
             ub::matrix<double> _temp=ub::prod(_auxAOcoulomb.Matrix(),_inverse);
             _Vcoulomb=ub::prod(_inverse,_temp);
-            //cout << endl;
-            //cout << _Vcoulomb.size1() << "x" << _Vcoulomb.size2()<<"Vsize"<< endl;
-            //cout << _auxbasis.AOBasisSize() << " aobasissize"<<endl;
-            _ERIs.resize(_dftbasis.AOBasisSize(),_dftbasis.AOBasisSize(),false);
+            
+            //cout << "Vcoulomb"<< _Vcoulomb<< endl;
+
+
+            /* awesome shit
+
+            int size4c=_dftbasis.AOBasisSize();
+            
+            typedef boost::multi_array<double, 4> fourdim;
+            fourdim  fourcenter(boost::extents[size4c][size4c][size4c][size4c]);
+            cout <<endl;
+       
+           
+            for (int alpha=0;alpha<size4c;alpha++){
+                    for (int beta=0;beta<size4c;beta++){
+                       for (int mu=0;mu<size4c;mu++){
+                            for (int nu=0;nu<size4c;nu++){
+                        fourcenter[alpha][beta][mu][nu]=0.0;
+                           for (int k=0;k<_auxbasis._AOBasisSize;k++){
+                                    for (int l=0;l<_auxbasis._AOBasisSize;l++){
+                                                 //cout<<_threecenter.getDatamatrix(k)(alpha,beta)<<"  "<<_threecenter.getDatamatrix(l)(mu,nu)<<"  "<<_Vcoulomb(k,l)<<endl;
+            fourcenter[alpha][beta][mu][nu]+=_Vcoulomb(k,l)*_threecenter.getDatamatrix(k)(alpha,beta)*_threecenter.getDatamatrix(l)(mu,nu);
+             //cout<<   fourcenter[alpha][beta][mu][nu]<< endl;                            
+                                    }}
+                                    
+
+            //cout << "4c("<<alpha+1<<":"<<beta+1<<":"<<mu+1<<":"<<nu+1<<")="<< fourcenter[alpha][beta][mu][nu]<< endl;
+            }}
+            }}//exit(0);
+            
+            */
+            
+            
+          /*
+            AOOverlap _auxoverlap_inverse;               // will also be needed in PPM itself
+            AOOverlap _auxoverlap_cholesky_inverse;      // will also be needed in PPM itself
+            _auxoverlap_inverse.Initialize( _auxbasis._AOBasisSize);
+            _auxAOcoulomb.Symmetrize(_auxAOverlap , _auxbasis, _auxoverlap_inverse , _auxoverlap_cholesky_inverse);
+
+            std::vector< ub::matrix<double> > I_times_sqrtV;
+            for (int i=0; i< _auxbasis._AOBasisSize; i++){
+                 I_times_sqrtV.push_back(ub::zero_matrix<double>(_dftbasis._AOBasisSize, _dftbasis._AOBasisSize));        
+            }
+            
+            cout <<"Coulomb symm"<< _auxAOcoulomb.Matrix() <<endl;
+            
+            for (int m=0;m<_auxbasis._AOBasisSize; m++){
+                for (int l=0;l<_auxbasis._AOBasisSize; l++){
+                    I_times_sqrtV[m]+=_auxAOcoulomb.Matrix()(m,l)*_threecenter.getDatamatrix(l);
+                }
+            }
+            
+            
+            int size4c=_dftbasis.AOBasisSize();
+            typedef boost::multi_array<double, 4> fourdim;
+            fourdim  fourcenter(boost::extents[size4c][size4c][size4c][size4c]);
+            
+            for (int alpha=0;alpha<size4c;alpha++){
+                for (int beta=0;beta<size4c;beta++){
+                   for (int mu=0;mu<size4c;mu++){
+                        for (int nu=0;nu<size4c;nu++){
+                    fourcenter[alpha][beta][mu][nu]=0.0;
+                    for (int m=0;m<_auxbasis._AOBasisSize;m++){
+                        fourcenter[alpha][beta][mu][nu]+= I_times_sqrtV[m](alpha,beta)*I_times_sqrtV[m](mu,nu);
+                    }
+                    cout << "4c("<<alpha+1<<":"<<beta+1<<":"<<mu+1<<":"<<nu+1<<")="<< fourcenter[alpha][beta][mu][nu]<< endl;
+                    
+                        }}}exit(0);}
+                    
+          
+            */
+            
+            
+            
+         
 
         
         
@@ -59,22 +138,108 @@ namespace votca {
         
         
         void ERIs::CalculateERIs (ub::matrix<double> &DMAT){
+            
+            
+            
+            /***** TEST VIA RECONSTRUCTED 4center ERIs ***************/
+            
+
+         /*   int size4c=DMAT.size1(); // _dftbasis.AOBasisSize();
+            int auxsize = _Vcoulomb.size1();
+            
+            typedef boost::multi_array<double, 4> fourdim;
+            fourdim  fourcenter(boost::extents[size4c][size4c][size4c][size4c]);
+            cout <<endl;
+       
+           
+            for (int alpha=0;alpha<size4c;alpha++){
+                    for (int beta=0;beta<size4c;beta++){
+                       for (int mu=0;mu<size4c;mu++){
+                            for (int nu=0;nu<size4c;nu++){
+                        fourcenter[alpha][beta][mu][nu]=0.0;
+
+                        
+                        for (int k=0;k<auxsize;k++){
+                                    for (int l=0;l<auxsize;l++){
+                                                 //cout<<_threecenter.getDatamatrix(k)(alpha,beta)<<"  "<<_threecenter.getDatamatrix(l)(mu,nu)<<"  "<<_Vcoulomb(k,l)<<endl;
+            fourcenter[alpha][beta][mu][nu]+=_Vcoulomb(k,l)*_threecenter.getDatamatrix(k)(alpha,beta)*_threecenter.getDatamatrix(l)(mu,nu);
+             //cout<<   fourcenter[alpha][beta][mu][nu]<< endl;                            
+                                    }}
+                                    
+
+            //cout << "4c("<<alpha+1<<":"<<beta+1<<":"<<mu+1<<":"<<nu+1<<")="<< fourcenter[alpha][beta][mu][nu]<< endl;
+            }}
+            }}
+            
+            
+
+            */
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            _ERIs=ub::zero_matrix<double>(DMAT.size1(),DMAT.size2());
             ub::vector<double> dmatasarray=DMAT.data();
-            ub::vector<double> Itilde=ub::zero_vector<double>(_threecenter.getSize());
+            ub::matrix<double> Itilde=ub::zero_matrix<double>(_threecenter.getSize(),1);
             //cout << _threecenter.getSize() << " Size-Threecenter"<<endl;
+            //check Efficiency !!!! someday 
             for ( int _i=0; _i<_threecenter.getSize();_i++){
                 ub::vector<double>threecenterasarray=(_threecenter.getDatamatrix(_i)).data();
                 //cout << _threecenter.getDatamatrix(_i).size1() << "x"<< _threecenter.getDatamatrix(_i).size2() <<" Size-Threecenter,matrix"<<endl;
+                // Trace over prod::DMAT,I(l)=componentwise product over 
                 for ( int _j=0; _j<threecenterasarray.size();_j++){
-                    Itilde[_i]+=dmatasarray[_j]*threecenterasarray[_j];
+                    Itilde(_i,0)+=dmatasarray[_j]*threecenterasarray[_j];
                 }
             }
-            
-            ub::vector<double>K=ub::prod(_Vcoulomb,Itilde);
-            for ( int _i=0; _i<K.size(); _i++){
-            _ERIs+=_threecenter.getDatamatrix(_i)*K(_i);    
+            //cout << "Itilde " <<Itilde << endl;
+            ub::matrix<double>K=ub::prod(_Vcoulomb,Itilde);
+            //cout << "K " << K << endl;
+            for ( int _i=0; _i<K.size1(); _i++){
+                
+            _ERIs+=_threecenter.getDatamatrix(_i)*K(_i,0);    
+            //cout << "I " << _threecenter.getDatamatrix(_i) << endl;
+            //cout<< "ERIs " <<_ERIs<< endl;
             }
             
+            
+            
+                           
+        /*    for (int alpha=0;alpha<size4c;alpha++){
+                    for (int beta=0;beta<size4c;beta++){
+
+                        double localERI = 0.0;
+                        
+                        for (int mu=0;mu<size4c;mu++){
+                            for (int nu=0;nu<size4c;nu++){
+                                
+                                localERI += DMAT(mu,nu) * fourcenter[alpha][beta][mu][nu];
+                                
+                         }
+                    }
+                        
+                        
+                        cout << alpha+1<<":"<<beta+1<< " : " << localERI << " vs " << _ERIs(alpha,beta) << endl;
+                        
+                 }
+            }
+            
+            exit(0); */
+            
+            
+            
+            
+           
             CalculateEnergy(dmatasarray);
         }
         

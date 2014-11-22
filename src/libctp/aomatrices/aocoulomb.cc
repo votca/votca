@@ -63,6 +63,7 @@ namespace votca { namespace ctp {
             const vec& _pos_col = _shell_col->getPos();
             const vec _diff = _pos_row - _pos_col;
             double _distsq = (_diff.getX() * _diff.getX()) + (_diff.getY() * _diff.getY()) + (_diff.getZ() * _diff.getZ());
+            
             const double pi = boost::math::constants::pi<double>();
              // some helpers
             vector<double> _wmp;
