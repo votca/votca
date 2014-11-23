@@ -77,7 +77,8 @@ namespace votca {
 	    _x_functional_name = options->get(key + ".exchange_functional").as<string>();
 	    _c_functional_name = options->get(key + ".correlation_functional").as<string>();
             _numofelectrons =0;
-            _mixingparameter=0.2;
+            _mixingparameter = options->get(key + ".density-mixing").as<double>();
+	    _max_iter = options->get(key + ".max_iterations").as<int>();
             /*TEST for mkl and stuff
             ub::matrix<double> a=ub::zero_matrix<double>(3,3);
             ub::matrix<double> b=ub::zero_matrix<double>(3,3);
@@ -132,7 +133,7 @@ namespace votca {
 
             _atoms = _orbitals->QMAtoms();
             AOBasis* basis = &_dftbasis;
-            int numofiterations=10;
+            
            
 	    /**** PREPARATION (atoms, basis sets, numerical integrations) ****/
 	    Prepare( _orbitals );
@@ -141,7 +142,7 @@ namespace votca {
 	    /**** Density-independent matrices ****/
 	    SetupInvariantMatrices();
             
-           /* int size4c=_dftbasis.AOBasisSize();
+	    /*            int size4c=_dftbasis.AOBasisSize();
             fourdim fourcenter(boost::extents[size4c][size4c][size4c][size4c]);
             for ( int i = 0; i < size4c; i++ ){
                 for ( int j = 0; j < size4c; j++ ){
@@ -191,7 +192,7 @@ namespace votca {
                        
                        LOG(logDEBUG, *_pLog) << TimeStamp() << "Read 4cs from file "<< flush;
                        
-            */
+	    */
             // _dftAOkinetic.Print("TMAT");
             //exit(0);
             
@@ -234,17 +235,43 @@ namespace votca {
             
             
             
-		     //  ub::matrix<double> initMOCoeff= ub::trans(_orbitals->MOCoefficients());
+	     ub::matrix<double> initMOCoeff= ub::trans(_orbitals->MOCoefficients());
             
-	    DensityMatrixGroundState( MOCoeff, _numofelectrons/2 ) ;
+	    DensityMatrixGroundState( initMOCoeff, _numofelectrons/2 ) ;
 	    cout << endl;
+
+	    /*
+            for (int alpha=0;alpha<size4c;alpha++){
+                    for (int beta=0;beta<size4c;beta++){
+
+                        double localERI = 0.0;
+                        
+                        for (int mu=0;mu<size4c;mu++){
+                            for (int nu=0;nu<size4c;nu++){
+                                
+                                localERI += _dftAOdmat(mu,nu) * fourcenter[alpha][beta][mu][nu];
+                                
+                         }
+                    }
+                        
+                        
+                        cout << "ExactVH " << alpha+1<<" : "<<beta+1<< " = " << localERI << endl;
+                        
+                 }
+            }
+            
+            exit(0); 
+	    */
+
+
+
 
 
            LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup Initial Guess "<< flush;
            LOG(logDEBUG, *_pLog) << TimeStamp() << " Num of electrons "<< _gridIntegration.IntegrateDensity(_dftAOdmat, basis) << flush;
 	   
-            for (int i=0;i<numofiterations;i++){
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Iteration "<< i+1 <<" of "<<numofiterations<< flush;
+            for ( _this_iter=0; _this_iter<_max_iter; _this_iter++){
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Iteration "<< _this_iter+1 <<" of "<< _max_iter << flush;
 
 
                 _ERIs.CalculateERIs(_dftAOdmat);
@@ -405,6 +432,7 @@ namespace votca {
             
             
             // prepare invariant part of electron repulsion integrals
+            _ERIs.Initialize_Symmetric(_dftbasis, _auxbasis, _auxAOoverlap, _auxAOcoulomb);
             _ERIs.Initialize(_dftbasis, _auxbasis, _auxAOoverlap, _auxAOcoulomb);
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup invariant parts of Electron Repulsion integrals " << flush;
 
@@ -474,7 +502,7 @@ namespace votca {
           
       ub::matrix<double> dftdmat_old=_dftAOdmat;
       DensityMatrixGroundState(MOCoeff, occulevels);
-      _dftAOdmat=_mixingparameter*_dftAOdmat+(1.0-_mixingparameter)*dftdmat_old;
+      if (_this_iter > 0) _dftAOdmat=_mixingparameter*_dftAOdmat+(1.0-_mixingparameter)*dftdmat_old;
       
       /*DIIS or mixing can be implemented here*/
       

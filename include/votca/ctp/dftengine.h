@@ -140,6 +140,8 @@ public:
     //
     double                              _mixingparameter;
     int                                 _numofelectrons;
+    int                                 _max_iter;
+    int                                 _this_iter;
     ub::matrix<double>                  _dftAOdmat;
     std::vector< ub::matrix<double> >   _dftdmathist;
     //Electron repulsion integrals

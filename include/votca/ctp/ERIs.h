@@ -52,6 +52,7 @@ namespace votca { namespace ctp {
         
         
         void Initialize(AOBasis &_dftbasis, AOBasis &_auxbasis, AOOverlap &_auxAOoverlap, AOCoulomb &_auxAOcoulomb);
+        void Initialize_Symmetric(AOBasis &_dftbasis, AOBasis &_auxbasis, AOOverlap &_auxAOoverlap, AOCoulomb &_auxAOcoulomb);
         
         ub::matrix<double> getERIs(){return _ERIs;}
         double& getERIsenergy(){return _ERIsenergy;}
@@ -68,7 +69,8 @@ namespace votca { namespace ctp {
         
         TCMatrix_dft _threecenter;
         ub::matrix<double> _Vcoulomb; //resolution of the 1/r operator in aux basis functions
-        ub::matrix<double> _ERIs;   
+        ub::matrix<double> _ERIs;
+        ub::matrix<double> _ERIs_Symmetric;
         double _ERIsenergy;
         void CalculateEnergy(ub::vector<double> &dmatasarray);
     };

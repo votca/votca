@@ -60,7 +60,8 @@ namespace votca {
             //cout << "Vcoulomb"<< _Vcoulomb<< endl;
 
 
-            /* awesome shit
+            // reconstructing 4center-integrals
+	    /*
 
             int size4c=_dftbasis.AOBasisSize();
             
@@ -69,24 +70,26 @@ namespace votca {
             cout <<endl;
        
            
-            for (int alpha=0;alpha<size4c;alpha++){
-                    for (int beta=0;beta<size4c;beta++){
-                       for (int mu=0;mu<size4c;mu++){
-                            for (int nu=0;nu<size4c;nu++){
-                        fourcenter[alpha][beta][mu][nu]=0.0;
-                           for (int k=0;k<_auxbasis._AOBasisSize;k++){
-                                    for (int l=0;l<_auxbasis._AOBasisSize;l++){
+            for (int alpha=0; alpha<size4c; alpha++){
+                    for (int beta=0; beta<size4c ;beta++){
+                       for (int mu=0; mu<size4c ;mu++){
+                            for (int nu=0; nu<size4c; nu++){
+			      fourcenter[alpha][beta][mu][nu]=0.0;
+			      for (int k=0; k<_auxbasis._AOBasisSize; k++){
+				for (int l=0; l<_auxbasis._AOBasisSize; l++){
                                                  //cout<<_threecenter.getDatamatrix(k)(alpha,beta)<<"  "<<_threecenter.getDatamatrix(l)(mu,nu)<<"  "<<_Vcoulomb(k,l)<<endl;
             fourcenter[alpha][beta][mu][nu]+=_Vcoulomb(k,l)*_threecenter.getDatamatrix(k)(alpha,beta)*_threecenter.getDatamatrix(l)(mu,nu);
              //cout<<   fourcenter[alpha][beta][mu][nu]<< endl;                            
                                     }}
                                     
 
-            //cout << "4c("<<alpha+1<<":"<<beta+1<<":"<<mu+1<<":"<<nu+1<<")="<< fourcenter[alpha][beta][mu][nu]<< endl;
+            cout << "4c("<<alpha+1<<":"<<beta+1<<":"<<mu+1<<":"<<nu+1<<") = "<< fourcenter[alpha][beta][mu][nu]<< endl;
             }}
-            }}//exit(0);
+            }}
+
+exit(0);
+	    */
             
-            */
             
             
           /*
@@ -137,6 +140,82 @@ namespace votca {
         }
         
         
+        
+        
+        
+        void ERIs::Initialize_Symmetric (AOBasis &_dftbasis, AOBasis &_auxbasis,  AOOverlap &_auxAOverlap, AOCoulomb &_auxAOcoulomb){
+
+           
+           
+            _threecenter.Fill( _auxbasis, _dftbasis );
+            
+            
+            ub::matrix<double> _inverse=ub::zero_matrix<double>( _auxAOverlap.Dimension(), _auxAOverlap.Dimension());
+            
+            AOOverlap _auxoverlap_inverse;               
+            AOOverlap _auxoverlap_cholesky_inverse;      
+            _auxoverlap_inverse.Initialize( _auxbasis._AOBasisSize);
+            _auxAOcoulomb.Symmetrize_DFT(_auxAOverlap , _auxbasis, _auxoverlap_inverse , _auxoverlap_cholesky_inverse);
+            
+           // linalg_invert( _auxAOverlap.Matrix() , _inverse);
+           // ub::matrix<double> _temp=ub::prod(_auxAOcoulomb.Matrix(),_inverse);
+           // _Vcoulomb=ub::prod(_inverse,_temp);
+            
+            //cout << "Vcoulomb"<< _Vcoulomb<< endl;
+
+
+          // multiply each element of _threecenters with symmetrized Coulomb
+          // K(l';a,b) = sum_l{ sqrt{V}(l',l) I(l;a,b) }
+            
+            std::vector< ub::matrix<double> > K ;
+            for (int i=0; i< _auxbasis._AOBasisSize; i++){
+                 K.push_back(ub::zero_matrix<double>(_dftbasis._AOBasisSize, _dftbasis._AOBasisSize));        
+            }
+
+            for (int m=0;m<_auxbasis._AOBasisSize; m++){
+                for (int l=0;l<_auxbasis._AOBasisSize; l++){
+                    K[m]+=_auxAOcoulomb.Matrix()(m,l)*_threecenter.getDatamatrix(l);
+                }
+            }
+            
+            // update _threecenters
+            
+            for (int m=0;m<_auxbasis._AOBasisSize; m++){
+                    _threecenter.getDatamatrix(m)=K[m];
+            }
+            
+            
+          
+            int size4c=_dftbasis.AOBasisSize();
+            typedef boost::multi_array<double, 4> fourdim;
+            fourdim  fourcenter(boost::extents[size4c][size4c][size4c][size4c]);
+            
+            for (int alpha=0; alpha<size4c; alpha++){
+                for (int beta=0; beta<size4c; beta++){
+                   for (int mu=0; mu<size4c; mu++){
+                        for (int nu=0; nu<size4c; nu++){
+                    fourcenter[alpha][beta][mu][nu]=0.0;
+                    for (int m=0;m<_auxbasis._AOBasisSize;m++){
+                        fourcenter[alpha][beta][mu][nu]+= K[m](alpha,beta)*K[m](mu,nu);
+                    }
+                    cout << "4c("<<alpha+1<<":"<<beta+1<<":"<<mu+1<<":"<<nu+1<<")="<< fourcenter[alpha][beta][mu][nu]<< endl;
+                    
+                        }}}}
+            
+            exit(0);
+                    
+          
+            
+            
+            
+            
+         
+
+        
+        
+        }
+        
+        
         void ERIs::CalculateERIs (ub::matrix<double> &DMAT){
             
             
@@ -144,7 +223,7 @@ namespace votca {
             /***** TEST VIA RECONSTRUCTED 4center ERIs ***************/
             
 
-         /*   int size4c=DMAT.size1(); // _dftbasis.AOBasisSize();
+            int size4c=DMAT.size1(); // _dftbasis.AOBasisSize();
             int auxsize = _Vcoulomb.size1();
             
             typedef boost::multi_array<double, 4> fourdim;
@@ -167,13 +246,13 @@ namespace votca {
                                     }}
                                     
 
-            //cout << "4c("<<alpha+1<<":"<<beta+1<<":"<<mu+1<<":"<<nu+1<<")="<< fourcenter[alpha][beta][mu][nu]<< endl;
+            cout << "4c("<<alpha+1<<":"<<beta+1<<":"<<mu+1<<":"<<nu+1<<")="<< fourcenter[alpha][beta][mu][nu]<< endl;
             }}
             }}
             
             
 
-            */
+            
             
             
             
@@ -215,7 +294,7 @@ namespace votca {
             
             
                            
-        /*    for (int alpha=0;alpha<size4c;alpha++){
+            for (int alpha=0;alpha<size4c;alpha++){
                     for (int beta=0;beta<size4c;beta++){
 
                         double localERI = 0.0;
@@ -234,7 +313,7 @@ namespace votca {
                  }
             }
             
-            exit(0); */
+            exit(0); 
             
             
             
