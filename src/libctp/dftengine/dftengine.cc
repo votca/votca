@@ -69,7 +69,14 @@ namespace votca {
             // basis sets
 	    _dftbasis_name = options->get(key + ".dftbasis").as<string>();
 	    _auxbasis_name = options->get(key + ".auxbasis").as<string>();
-
+             if ( options->exists(key+".ecp")) {
+               _ecp_name = options->get(key+".ecp").as<string>();
+               _with_ecp = true;
+             } else {
+                 _with_ecp = false;
+             }
+            
+            
 	    // numerical integrations
 	    _grid_name = options->get(key + ".integration_grid").as<string>();
 
@@ -79,38 +86,7 @@ namespace votca {
             _numofelectrons =0;
             _mixingparameter = options->get(key + ".density-mixing").as<double>();
 	    _max_iter = options->get(key + ".max_iterations").as<int>();
-            /*TEST for mkl and stuff
-            ub::matrix<double> a=ub::zero_matrix<double>(3,3);
-            ub::matrix<double> b=ub::zero_matrix<double>(3,3);
-            ub::vector<double> E=ub::zero_vector<double>(3);
-            ub::matrix<double> v=ub::zero_matrix<double>(3,3);
-            a(0,0)=0;
-            a(0,1)=2;
-            a(0,2)=4;
-            a(1,0)=2;
-            a(2,0)=4;
-            a(1,1)=4;
-            a(2,1)=6;
-            a(1,2)=6;
-            a(2,2)=8;
-            b(0,0)=3;
-            b(0,1)=1;
-            b(0,2)=1;
-            b(1,0)=1;
-            b(2,0)=1;
-            b(1,1)=3;
-            b(2,1)=1;
-            b(1,2)=1;
-            b(2,2)=3;
-            linalg_eigenvalues_general(a,b,E,v);
-            for (int i=0;i<3;i++){
-                cout << "E("<< i << ")=" << E(i)<<endl;
-                for (int j=0;j<3;j++){
-                cout <<"v("<< j << ":"<< i <<")= " <<v(j,i)<< endl;
-              //  cout <<"a("<< j << ":"<< i <<")= " <<a(j,i)<< endl;
-                }}
-            exit(0);
-            */
+            
             
         }
         
@@ -128,7 +104,9 @@ namespace votca {
             
             // set the parallelization 
             #ifdef OMP
-            if ( _openmp_threads > 0 ) omp_set_num_threads(_openmp_threads);
+            if ( _openmp_threads > 0 ) {
+                omp_set_num_threads(_openmp_threads);
+            }
             #endif
 
             _atoms = _orbitals->QMAtoms();
@@ -142,7 +120,7 @@ namespace votca {
 	    /**** Density-independent matrices ****/
 	    SetupInvariantMatrices();
             
-	    /*            int size4c=_dftbasis.AOBasisSize();
+	                int size4c=_dftbasis.AOBasisSize();
             fourdim fourcenter(boost::extents[size4c][size4c][size4c][size4c]);
             for ( int i = 0; i < size4c; i++ ){
                 for ( int j = 0; j < size4c; j++ ){
@@ -192,7 +170,7 @@ namespace votca {
                        
                        LOG(logDEBUG, *_pLog) << TimeStamp() << "Read 4cs from file "<< flush;
                        
-	    */
+	    
             // _dftAOkinetic.Print("TMAT");
             //exit(0);
             
@@ -201,19 +179,19 @@ namespace votca {
             ub::matrix<double>& MOCoeff=_orbitals->MOCoefficients();
 
             /**** Construct initial density  ****/
-            
-	               ub::matrix<double> H0=_dftAOkinetic._aomatrix+_dftAOESP._nuclearpotential;
 
-		       linalg_eigenvalues_general( H0,_dftAOoverlap._aomatrix, MOEnergies, MOCoeff);
-            
-		        double totinit=0;
-         cout << endl;
-                for (int i=0;i<(_numofelectrons/2);i++){
-                    cout << MOEnergies(i) << " eigenwert " << i << endl;
-                    totinit+=2*MOEnergies(i);
-                }
-                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Total KS orbital Energy "<<totinit<<flush;
-                 
+            ub::matrix<double> H0 = _dftAOkinetic._aomatrix + _dftAOESP._nuclearpotential; // +_dftAOECP.Matrix();
+/*
+            linalg_eigenvalues_general(H0, _dftAOoverlap._aomatrix, MOEnergies, MOCoeff);
+
+            double totinit = 0;
+
+            for (int i = 0; i < (_numofelectrons / 2); i++) {
+                cout << MOEnergies(i) << " eigenwert " << i << endl;
+                totinit += 2 * MOEnergies(i);
+            }
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " Total KS orbital Energy " << totinit << flush;
+  */               
 		       
             /*
             // cout << MOEnergies[0] << " " << MOEnergies[_numofelectrons/2] << endl;
@@ -235,7 +213,7 @@ namespace votca {
             
             
             
-	     ub::matrix<double> initMOCoeff= ub::trans(_orbitals->MOCoefficients());
+	    ub::matrix<double> initMOCoeff= ub::trans(_orbitals->MOCoefficients());
             
 	    DensityMatrixGroundState( initMOCoeff, _numofelectrons/2 ) ;
 	    cout << endl;
@@ -274,12 +252,12 @@ namespace votca {
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Iteration "<< _this_iter+1 <<" of "<< _max_iter << flush;
 
 
-                _ERIs.CalculateERIs(_dftAOdmat);
+                _ERIs.CalculateERIs(_dftAOdmat, _auxAOoverlap);
                 // LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Electron repulsion matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2()<< flush<<flush;
 
 
                 /* ERI from 4cs*/
-                /* ub::matrix<double> ERI4c = ub::zero_matrix<double>(size4c,size4c);
+                 ub::matrix<double> ERI4c = ub::zero_matrix<double>(size4c,size4c);
                 for ( int ii=0; ii< size4c; ii++){
                     for ( int jj=0; jj< size4c; jj++){
                         for ( int kk=0; kk< size4c; kk++){
@@ -293,7 +271,7 @@ namespace votca {
                             }
                         }
                     }
-                }*/
+                }
                 
                 
 		ub::matrix<double> VXC=_gridIntegration.IntegrateVXC_Atomblock(_dftAOdmat,  basis);
@@ -360,10 +338,15 @@ namespace votca {
                 cout << endl;
 
                 for (int i=0;i<_numofelectrons;i++){
-                    cout << MOEnergies(i) << " eigenwert " << i << endl;
-                    if ( i <= _numofelectrons/2) totenergy+=2*MOEnergies(i);
+                    if ( i <= _numofelectrons/2-1) {
+                        cout <<  i <<  " occ " << MOEnergies(i)  << endl;
+                        totenergy+=2*MOEnergies(i);
+                    } else {
+                        cout <<  i <<  " vir " << MOEnergies(i)  << endl;
+                        
+                    }
                 }
-                cout << " GAP " << MOEnergies(7)-MOEnergies(6) << endl;
+                cout << " GAP " << MOEnergies(_numofelectrons/2)-MOEnergies(_numofelectrons/2-1) << endl;
                 
                  LOG(logDEBUG, *_pLog) << TimeStamp() << " Total KS orbital Energy "<<totenergy<<flush;
                 totenergy+=_gridIntegration.getTotEcontribution()-0.5*_ERIs.getERIsenergy();
@@ -410,10 +393,23 @@ namespace votca {
             _dftAOkinetic.Initialize(_dftbasis.AOBasisSize());
             _dftAOkinetic.Fill(&_dftbasis);
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Kinetic energy matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
+
             
             _dftAOESP.Initialize(_dftbasis.AOBasisSize());
             _dftAOESP.Fillnucpotential(&_dftbasis, _atoms);
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT nuclear potential matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
+            //_dftAOESP.Print("NUC");
+
+            if (_with_ecp) {
+                _dftAOECP.Initialize(_dftbasis.AOBasisSize());
+                _dftAOECP.Fill(&_dftbasis, ub::zero_vector<double>(3), &_ecp);
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT ECP matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
+                //_dftAOECP.Print("ECP");
+
+                _dftAOESP._nuclearpotential += _dftAOECP.Matrix();
+                
+            }
+            // exit(0);
             
 	    // AUX AOoverlap
             _auxAOoverlap.Initialize(_auxbasis.AOBasisSize());
@@ -432,7 +428,7 @@ namespace votca {
             
             
             // prepare invariant part of electron repulsion integrals
-            _ERIs.Initialize_Symmetric(_dftbasis, _auxbasis, _auxAOoverlap, _auxAOcoulomb);
+            // _ERIs.Initialize_Symmetric(_dftbasis, _auxbasis, _auxAOoverlap, _auxAOcoulomb);
             _ERIs.Initialize(_dftbasis, _auxbasis, _auxAOoverlap, _auxAOcoulomb);
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup invariant parts of Electron Repulsion integrals " << flush;
 
@@ -455,7 +451,17 @@ namespace votca {
             //_orbitals->setDFTbasis( _dftbasis_name );
 	    _auxbasis.AOBasisFill( &_auxbasisset, _atoms);
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Loaded AUX Basis Set " << _auxbasis_name << flush;
-	    
+
+
+            // load ECP (element-wise information) from xml file
+            _ecpbasisset.LoadPseudopotentialSet("ecp");
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " Loaded ECP library " << "ecp" << flush;
+
+            // fill auxiliary ECP basis by going through all atoms
+            _ecp.ECPFill(&_ecpbasisset, _atoms);
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled ECP Basis of size " << _ecp._aoshells.size() << flush;
+
+            
 	    // setup numerical integration grid
             _gridIntegration.GridSetup(_grid_name,&_dftbasisset,_atoms);
 	    LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup numerical integration grid " << _grid_name << flush;
@@ -467,6 +473,15 @@ namespace votca {
            for (int i=0;i<_atoms.size();i++){
                _numofelectrons+=_elements.getNucCrg(_atoms[i]->type);
            }
+
+            // if ECP
+            if (_with_ecp) {
+                for (int i = 0; i < _atoms.size(); i++) {
+                    _numofelectrons-= _ecpbasisset.getElement(_atoms[i]->type)->getNcore() ;
+                }
+            }
+           
+           
            LOG(logDEBUG, *_pLog) << TimeStamp() << " Total number of electrons: " << _numofelectrons << flush;
            _orbitals->setNumberOfElectrons(_numofelectrons);
            _orbitals->setNumberOfLevels(_numofelectrons/2,_dftbasis.AOBasisSize()-_numofelectrons/2);

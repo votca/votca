@@ -223,6 +223,8 @@ public:
       
     // void AOBasisFill( BasisSet* bs , vector<Segment* > segments);
     void AOBasisFill( BasisSet* bs , vector<QMAtom* > segments, int fragbreak = -1);
+    void ECPFill( BasisSet* bs , vector<QMAtom* > segments); 
+    
     int NumFuncShell( string shell );
     int NumFuncShell_cartesian( string shell );
     int OffsetFuncShell( string shell );
@@ -600,7 +602,7 @@ inline void AOBasis::AOBasisFill(BasisSet* bs , vector<QMAtom* > _atoms, int _fr
           string  name = (*ait)->type;
           // get the basis set entry for this element
           Element* element = bs->getElement(name);
-          // and loop over all shells
+                    // and loop over all shells
           for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
                Shell* shell = (*its);
                // we don't like contracted basis sets yet
@@ -630,6 +632,69 @@ inline void AOBasis::AOBasisFill(BasisSet* bs , vector<QMAtom* > _atoms, int _fr
            
     
 }
+
+
+
+inline void AOBasis::ECPFill(BasisSet* bs , vector<QMAtom* > _atoms  ) {
+    
+        vector< QMAtom* > :: iterator ait;
+        std::vector < QMAtom* > :: iterator atom;
+
+       _AOBasisSize = 0;
+       _is_stable = true; // _is_stable = true corresponds to gwa_basis%S_ev_stable = .false. 
+       
+       int _atomidx = 0;
+       
+       // loop over atoms
+       for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
+          // get coordinates of this atom and convert from Angstrom to Bohr
+          vec pos;
+          pos.setX( (*ait)->x * 1.8897259886  );
+          pos.setY( (*ait)->y * 1.8897259886  );
+          pos.setZ( (*ait)->z * 1.8897259886  );
+          // get element type of the atom
+          string  name = (*ait)->type;
+          // get the basis set entry for this element
+          Element* element = bs->getElement(name);
+          // cout << " Name " << name << endl;
+          // and loop over all shells
+          
+          int lmax;
+          for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+               Shell* shell = (*its);
+               //cout << " Shell " << shell->getType() << endl;
+               // we don't like contracted basis sets yet
+               //if ( shell->getSize() > 1 ) {
+               //    cerr << "We have a contracted basis set!" << flush;
+               //} else {
+               string local_shell =    string( shell->getType(), 0, 1 );
+               int l;
+               if ( local_shell == "S" ) l =0;
+               if ( local_shell == "P" ) l =1;
+               if ( local_shell == "D" ) l =2;
+               if ( local_shell == "F" ) l =3;
+               if (its == element->firstShell()) lmax = l;
+               // first shell is local component, identification my negative angular momentum
+               
+               
+                   AOShell* aoshell = addShell( shell->getType(), shell->getScale(), lmax, l, l, pos, name, _atomidx );
+                   _AOBasisSize += NumFuncShell( shell->getType() );
+                   for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
+                      GaussianPrimitive* gaussian = *itg;
+                      aoshell->addGaussian( gaussian->decay, gaussian->contraction);
+                //   }
+               }
+          }
+          
+        
+          
+          _atomidx++;
+      }
+       
+           
+    
+}
+
 
    
     inline int AOBasis::NumFuncShell( string shell_type ) {

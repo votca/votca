@@ -80,14 +80,14 @@ namespace votca { namespace ctp {
             this->_aomatrix = ub::zero_matrix<double>(size,size);
         }
         
-        void Fill( AOBasis* aobasis, ub::vector<double> r = ub::zero_vector<double>(3) );
+        void Fill( AOBasis* aobasis, ub::vector<double> r = ub::zero_vector<double>(3) , AOBasis* ecp = NULL );
         
         // matrix print 
         void Print( string _ident);
         // integrate F
         void XIntegrate( vector<double>& _FmT, const double& _T );
         // block fill prototype
-        virtual void FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, bool _raw = false) {} ;
+        virtual void FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col,  AOBasis* ecp = NULL) {} ;
 
         // ~AOMatrix(){};
 
@@ -118,7 +118,7 @@ namespace votca { namespace ctp {
         void Fill( AOBasis* aobasis );
 
         // block fill prototype
-        virtual void FillBlock(std::vector< ub::matrix_range< ub::matrix<double> > >& _matrix, AOShell* _shell_row, AOShell* _shell_col, bool _raw = false) {} ;
+        virtual void FillBlock(std::vector< ub::matrix_range< ub::matrix<double> > >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp = NULL) {} ;
 
         
         void Cleanup();
@@ -135,7 +135,7 @@ namespace votca { namespace ctp {
     class AOMomentum : public AOMatrix3D { 
         
         //block fill for gradient/momentum operator, implementation in aomomentum.cc
-        void FillBlock( std::vector< ub::matrix_range< ub::matrix<double> > >& _matrix, AOShell* _shell_row, AOShell* _shell_col , bool _raw = false);
+        void FillBlock( std::vector< ub::matrix_range< ub::matrix<double> > >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp);
         
         
     };
@@ -148,7 +148,7 @@ namespace votca { namespace ctp {
     class AODipole : public AOMatrix3D { 
         
         //block fill for gradient/momentum operator, implementation in aomomentum.cc
-        void FillBlock( std::vector< ub::matrix_range< ub::matrix<double> > >& _matrix, AOShell* _shell_row, AOShell* _shell_col , bool _raw = false);
+        void FillBlock( std::vector< ub::matrix_range< ub::matrix<double> > >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp);
         
         
     };
@@ -158,7 +158,7 @@ namespace votca { namespace ctp {
     class AOESP : public AOMatrix{
     public:
         //block fill for overlap, implementation in aoesp.cc
-        void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, bool _raw = false );
+        void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp);
         //void Print();
         void Fillnucpotential( AOBasis* aobasis, std::vector<QMAtom*>& _atoms );
         
@@ -168,11 +168,34 @@ namespace votca { namespace ctp {
         
     };
     
+    
+    
+    // derived class for Effective Core Potentials
+    class AOECP : public AOMatrix{
+    public:
+        //block fill for overlap, implementation in aoesp.cc
+        void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp);
+        //void Print();
+        //void Fillnucpotential( AOBasis* aobasis, std::vector<QMAtom*>& _atoms );
+        
+        ub::matrix<double> calcVNLmatrix(  const vec& posA, const vec& posB, const vec& posC, const double& alpha, const double& beta, ub::matrix<double>& _gamma_ecp, ub::matrix<double>& _pref_ecp   );
+        typedef boost::multi_array<double, 3> type_3D;
+        
+        void getBLMCOF( const vec& pos, type_3D& BLC, type_3D& C  );
+        void getNorms( std::vector<double>& Norms, const double& decay);
+    };
+    
+    
+    
+    
+    
+    
+    
     // derived class for kinetic energy
     class AOKinetic : public AOMatrix{
     public:
         //block fill for overlap, implementation in aokinetic.cc
-        void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, bool _raw = false );
+        void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col , AOBasis* ecp);
         //void Print();
         
         // ~AOKinetic();
@@ -185,7 +208,7 @@ namespace votca { namespace ctp {
     class AOOverlap : public AOMatrix{
     public:
         //block fill for overlap, implementation in aooverlap.cc
-        void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, bool _raw = false );
+        void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp);
         //void Print();
         
 	//        ~AOOverlap();
@@ -203,7 +226,7 @@ namespace votca { namespace ctp {
     class AOCoulomb : public AOMatrix{
     public:
         int getExtraBlockSize( int lmax_row, int lmax_col  );
-        void FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, bool _raw = false);
+        void FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp);
         void Symmetrize( AOOverlap& _overlap , AOBasis& _basis, AOOverlap& _overlap_inverse , AOOverlap& _gwoverlap_cholesky_inverse );
         void Symmetrize_DFT( AOOverlap& _overlap , AOBasis& _basis, AOOverlap& _overlap_inverse , AOOverlap& _gwoverlap_cholesky_inverse );
         

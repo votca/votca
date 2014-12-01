@@ -31,9 +31,8 @@ endif()
 
 
 find_package(LIBXC)
-set(LIBXC_LIBRARIES "")
+include_directories(${LIBXC_INCLUDE_DIRS})
 if (LIBXC_FOUND)
-        include_directories(${LIBXC_INCLUDE_DIRS})
 	set (LIBXC TRUE )
 endif()
 

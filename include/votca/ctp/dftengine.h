@@ -120,11 +120,16 @@ public:
     // basis sets
     string                              _auxbasis_name;
     string                              _dftbasis_name;
+    string                              _ecp_name;
     BasisSet                            _dftbasisset;
     BasisSet                            _auxbasisset;
+    BasisSet                            _ecpbasisset;
     AOBasis                             _dftbasis;
     AOBasis                             _auxbasis;
-
+    AOBasis                             _ecp;
+    
+    bool                                _with_ecp;
+    
     // numerical integration 
     string                              _grid_name;
     NumericalIntegration                _gridIntegration;
@@ -136,6 +141,7 @@ public:
     AOCoulomb                           _auxAOcoulomb;
     AOKinetic                           _dftAOkinetic;
     AOESP                               _dftAOESP;
+    AOECP                               _dftAOECP;
     
     //
     double                              _mixingparameter;
