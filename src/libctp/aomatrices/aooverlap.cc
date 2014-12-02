@@ -100,6 +100,9 @@ namespace votca { namespace ctp {
             const double _fak3 = 3.0 * _fak;
             const double _fak4 = 4.0 * _fak;
 
+            
+            if ( sqrt(_distsq) > 0.01  ){
+            
             _pma[0] = _fak2*( _decay_row * _pos_row.getX() + _decay_col * _pos_col.getX() ) - _pos_row.getX();
             _pma[1] = _fak2*( _decay_row * _pos_row.getY() + _decay_col * _pos_col.getY() ) - _pos_row.getY();
             _pma[2] = _fak2*( _decay_row * _pos_row.getZ() + _decay_col * _pos_col.getZ() ) - _pos_row.getZ();
@@ -107,7 +110,17 @@ namespace votca { namespace ctp {
             _pmb[0] = _fak2*( _decay_row * _pos_row.getX() + _decay_col * _pos_col.getX() ) - _pos_col.getX();
             _pmb[1] = _fak2*( _decay_row * _pos_row.getY() + _decay_col * _pos_col.getY() ) - _pos_col.getY();
             _pmb[2] = _fak2*( _decay_row * _pos_row.getZ() + _decay_col * _pos_col.getZ() ) - _pos_col.getZ();
-        
+            }else{
+                _pma[0] = 0.0;
+                _pma[1] = 0.0;
+                _pma[2] = 0.0;
+                
+                _pmb[0] = 0.0;
+                _pmb[1] = 0.0;
+                _pmb[2] = 0.0;
+                
+                
+            }
             
 
         

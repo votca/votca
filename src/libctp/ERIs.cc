@@ -89,7 +89,7 @@ namespace votca {
 				for (int l=0; l<_auxbasis._AOBasisSize; l++){
                                  
                                     
-                                    cout << " VCOU " << k << " " << l << " " << _Vcoulomb(k,l) << " vs " << _Vcoulomb(l,k) << endl; 
+                                    cout << " VCOU " << k << " " << l << " " << scientific << _Vcoulomb(k,l) << " vs " << _Vcoulomb(l,k) << endl; 
                                     
                                 }
                                 }
