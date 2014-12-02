@@ -99,7 +99,7 @@ public:
     void EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues,ub::matrix_range<ub::matrix<double> >& AODervalues, double x, double y, double z );
     //void EvalAOspace(ub::matrix<double>& AOvalues, double x, double y, double z , string type = "");
     
-    
+    void EvalAOIntegral(ub::matrix_range<ub::matrix<double> >& AOvalues);
     //vector< vector<double> > evalAOGradspace( double x, double y, double z , string type = "");
     //void EvalAOGradspace( ub::matrix_range<ub::matrix<double> >& AODerXvalues,ub::matrix_range<ub::matrix<double> >& AODerYvalues,ub::matrix_range<ub::matrix<double> >& AODerZvalues, double x, double y, double z , string type = "");
     void EvalAOGradspace( ub::matrix_range<ub::matrix<double> >& AODervalues, double x, double y, double z , string type = "");
@@ -997,6 +997,49 @@ inline void AOBasis::ECPFill(BasisSet* bs , vector<QMAtom* > _atoms  ) {
         } */
     
         
+       
+       inline void AOShell::EvalAOIntegral(ub::matrix_range<ub::matrix<double> >& AOvalues){
+
+            // need type of shell
+            string shell_type = this->_type;
+            // need position of shell
+      //      double center_x = x - this->_pos.getX();
+    //        double center_y = y - this->_pos.getY();
+  //          double center_z = z - this->_pos.getZ();
+            // need decay constant
+            
+//            double distsq = center_x*center_x + center_y*center_y +  center_z*center_z;
+            const double pi = boost::math::constants::pi<double>();
+
+
+            
+            
+            typedef vector< AOGaussianPrimitive* >::iterator GaussianIterator;
+            // iterate over Gaussians in this shell
+            for (GaussianIterator itr = firstGaussian(); itr != lastGaussian(); ++itr) {
+
+                const double& alpha = (*itr)->decay;
+                std::vector<double> _contractions = (*itr)->contraction;
+
+                double _factor = pow(2.0 * pi / alpha, 0.75) ;
+
+                // split combined shells
+                int _i_func = -1;
+                int i_act;
+                for (int i = 0; i < shell_type.length(); ++i) {
+                    string single_shell = string(shell_type, i, 1);
+                    // single type shells
+                    if (single_shell == "S") {
+                        AOvalues(0, _i_func + 1) += _contractions[0] * _factor; // s-function
+                        _i_func++;
+                    }
+                }
+            } // contractions
+
+        }
+       
+       
+       
            inline void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, ub::matrix_range<ub::matrix<double> >& gradAOvalues, double x, double y, double z ){
 
             // need type of shell

@@ -134,6 +134,18 @@ namespace votca {
                     }}
                     */
                     
+                    
+                  /*  for (int i = 0; i < _subvector.size1(); i++){
+                        for (int j = 0; j < _subvector.size2(); j++){
+                            
+                            
+                            cout << "SV " << _subvector(i,j) << endl;
+                            
+                        }
+                        
+                        
+                    } */
+                    
                     if (nonzero) {
                         // and put it into the block it belongs to
                         // functions in ONE AUXshell

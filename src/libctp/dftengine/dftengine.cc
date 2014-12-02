@@ -252,7 +252,7 @@ namespace votca {
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Iteration "<< _this_iter+1 <<" of "<< _max_iter << flush;
 
 
-                _ERIs.CalculateERIs(_dftAOdmat, _auxAOoverlap);
+                _ERIs.CalculateERIs(_dftAOdmat, _auxAOoverlap, _AOIntegrals);
                 // LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Electron repulsion matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2()<< flush<<flush;
 
 
@@ -416,20 +416,44 @@ namespace votca {
             _auxAOoverlap.Fill(&_auxbasis);
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled AUX Overlap matrix of dimension: " << _auxAOoverlap.Dimension() << flush;
  
+            //exit(0);
 	    // check AUX basis for linear dependence
             linalg_eigenvalues(_auxAOoverlap.Matrix(), _eigenvalues, _eigenvectors);
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Smallest eigenvalue of AUX Overlap matrix : " << _eigenvalues[0] << flush;
+ 
+            // checking integrals of AOfunctions !!!! not NORM !!!!
+            _AOIntegrals = ub::zero_matrix<double>(1, _auxbasis._AOBasisSize); // TRY MORE USEFUL DATA
 
+            for (vector< AOShell* >::iterator _row = _auxbasis.firstShell(); _row != _auxbasis.lastShell(); _row++) {
+            
+            
+            ub::matrix_range< ub::matrix<double> > _AOgridsub = ub::subrange(_AOIntegrals, 0, 1, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc());
+                         
+                            (*_row)->EvalAOIntegral(_AOgridsub );
+            }
+            
+            /*
+            for (int i = 0; i < _AOIntegrals.size2(); i++){
+                
+                cout << i << " " << _AOIntegrals(0,i) << endl;
+            }*/
+            
+            
+            
             
             // AUX AOcoulomb matrix
             _auxAOcoulomb.Initialize(_auxbasis.AOBasisSize());
             _auxAOcoulomb.Fill(&_auxbasis);
+            // _auxAOcoulomb.Print("COU");
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled AUX Coulomb matrix of dimension: " << _auxAOcoulomb.Dimension() << flush;
-            
-            
+            //exit(0);
+       
             // prepare invariant part of electron repulsion integrals
             // _ERIs.Initialize_Symmetric(_dftbasis, _auxbasis, _auxAOoverlap, _auxAOcoulomb);
             _ERIs.Initialize(_dftbasis, _auxbasis, _auxAOoverlap, _auxAOcoulomb);
+          
+            
+            
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup invariant parts of Electron Repulsion integrals " << flush;
 
       }

@@ -437,7 +437,7 @@ ${OBJECTDIR}/_ext/484457893/threecenters.o: ../../src/libctp/threecenters.cc
 ${OBJECTDIR}/_ext/484457893/threecenters_dft.o: ../../src/libctp/threecenters_dft.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
 	${RM} "$@.d"
-	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484457893/threecenters_dft.o ../../src/libctp/threecenters_dft.cc
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484457893/threecenters_dft.o ../../src/libctp/threecenters_dft.cc
 
 ${OBJECTDIR}/_ext/484457893/threecenters_tools.o: ../../src/libctp/threecenters_tools.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893

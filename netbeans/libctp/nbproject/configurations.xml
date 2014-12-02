@@ -912,7 +912,7 @@
       </item>
       <item path="../../src/libctp/threecenters_dft.cc"
             ex="false"
-            tool="0"
+            tool="1"
             flavor2="0">
       </item>
       <item path="../../src/libctp/threecenters_tools.cc"

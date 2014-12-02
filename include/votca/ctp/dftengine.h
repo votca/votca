@@ -153,6 +153,10 @@ public:
     //Electron repulsion integrals
     ERIs                                _ERIs;
     
+     ub::matrix<double>                 _AOIntegrals ; // TRY MORE USEFUL DATA
+    
+    
+    
     // exchange and correlation
     string                              _x_functional_name;
     string                              _c_functional_name;

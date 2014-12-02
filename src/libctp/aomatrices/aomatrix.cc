@@ -173,9 +173,10 @@ namespace votca { namespace ctp {
     
     void AOMatrix::Print( string _ident){
         cout << "\n" << endl;
+        std::cout.precision(12);
         for ( int i =0; i< this->_aomatrix.size1(); i++){
             for ( int j =0; j< this->_aomatrix.size2(); j++){
-                cout << _ident << "[" << i+1 << ":" << j+1 << "] " <<  this->_aomatrix(i,j) << endl;
+                cout << _ident << "[" << i+1 << ":" << j+1 << "] " << scientific << this->_aomatrix(i,j) << endl;
             }
         }
     }
