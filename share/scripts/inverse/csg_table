@@ -236,7 +236,7 @@ convert_potentials espresso potentials_to_generic.sh
 functions espresso functions_genericsim.sh
 
 # lammps scripts
-convert_potential lammps potential_to_generic.sh
+convert_potential lammps potential_to_lammps.sh
 convert_potentials lammps potentials_to_generic.sh
 
 # interface to lammps
