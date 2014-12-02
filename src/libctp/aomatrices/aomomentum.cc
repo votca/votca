@@ -40,7 +40,7 @@ namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
 
     
-    void AOMomentum::FillBlock( std::vector< ub::matrix_range< ub::matrix<double> > >& _matrix, AOShell* _shell_row, AOShell* _shell_col , bool _raw) {
+    void AOMomentum::FillBlock( std::vector< ub::matrix_range< ub::matrix<double> > >& _matrix, AOShell* _shell_row, AOShell* _shell_col , AOBasis* ecp) {
 
         
         /* Calculating the AO matrix of the gradient operator requires 

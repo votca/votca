@@ -46,7 +46,7 @@ namespace votca { namespace ctp {
     
 
     
-    void AOESP::FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col , bool _raw) {
+    void AOESP::FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col , AOBasis* ecp) {
         /*cout << "\nAO block: "<< endl;
         cout << "\t row: " << _shell_row->getType() << " at " << _shell_row->getPos() << endl;
         cout << "\t col: " << _shell_col->getType() << " at " << _shell_col->getPos() << endl;*/
@@ -498,14 +498,16 @@ namespace votca { namespace ctp {
             positionofatom(0) = _atoms[j]->x*1.8897259886;
             positionofatom(1) = _atoms[j]->y*1.8897259886;
             positionofatom(2) = _atoms[j]->z*1.8897259886;
-            // cout << "NUC POS" << positionofatom(0) << " " << positionofatom(1) << " " << positionofatom(2) << " " << endl;
+             //cout << "NUC POS" << positionofatom(0) << " " << positionofatom(1) << " " << positionofatom(2) << " " << endl;
 	    double Znuc = _elements.getNucCrg(_atoms[j]->type);
             //cout << "NUCLEAR CHARGE" << Znuc << endl;
             _aomatrix = ub::zero_matrix<double>( aobasis->AOBasisSize(),aobasis->AOBasisSize() );
             Fill(aobasis,positionofatom);
             //Print("TMAT");
-            _nuclearpotential+=(-1)*Znuc*_aomatrix;
-            //cout << "nucpotential(0,0) " << _nuclearpotential(0,0)<< endl;
+            double Zecp =2 ;
+            cout << " Warning, Zecp set to " << Zecp << endl;
+            _nuclearpotential+=(-1)*(Znuc-Zecp)*_aomatrix;
+           // cout << "nucpotential(0,0) " << _nuclearpotential(0,0)<< endl;
     
     }
     

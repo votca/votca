@@ -49,7 +49,7 @@ namespace votca { namespace ctp {
         }
     }
     
-    void AOMatrix::Fill( AOBasis* aobasis, ub::vector<double> r ) {
+    void AOMatrix::Fill( AOBasis* aobasis, ub::vector<double> r, AOBasis* ecp ) {
         // cout << "I'm supposed to fill out the AO overlap matrix" << endl;
 
           //      cout << aobasis->_aoshells.size();
@@ -76,7 +76,7 @@ namespace votca { namespace ctp {
                 ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange(this->_aomatrix, _row_start, _row_end, _col_start, _col_end);
 
                 // Fill block
-                FillBlock( _submatrix, _shell_row, _shell_col);
+                FillBlock( _submatrix, _shell_row, _shell_col, ecp );
 
             }
         }
@@ -93,7 +93,7 @@ namespace votca { namespace ctp {
         
       
         // check symmetry
-        /* bool _is_symmetric = true;
+         bool _is_symmetric = true;
         
         // Copy stuff to fill lower triangular part
          for ( int _i=0; _i < this->_aomatrix.size1(); _i++){
@@ -108,7 +108,7 @@ namespace votca { namespace ctp {
             }
         }
         if ( !_is_symmetric) {cerr << " Error: AOMatrix is not symmetric! "; exit(1);}
-        */
+        
        
         
     }
@@ -173,9 +173,10 @@ namespace votca { namespace ctp {
     
     void AOMatrix::Print( string _ident){
         cout << "\n" << endl;
+        std::cout.precision(12);
         for ( int i =0; i< this->_aomatrix.size1(); i++){
             for ( int j =0; j< this->_aomatrix.size2(); j++){
-                cout << _ident << "[" << i+1 << ":" << j+1 << "] " <<  this->_aomatrix(i,j) << endl;
+                cout << _ident << "[" << i+1 << ":" << j+1 << "] " << scientific << this->_aomatrix(i,j) << endl;
             }
         }
     }

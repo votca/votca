@@ -44,7 +44,12 @@ namespace votca {
            
            
             _threecenter.Fill( _auxbasis, _dftbasis );
-            
+            /* cout << "\n" << endl;
+             for (int k=0; k<_auxbasis._AOBasisSize; k++){
+                cout << " s-s " << _threecenter.getDatamatrix(k)(0,0) << "  s-px  " << _threecenter.getDatamatrix(k)(0,4) << " sym " << _threecenter.getDatamatrix(k)(4,0) << endl;
+                       
+             }
+            exit(0); */
             
             ub::matrix<double> _inverse=ub::zero_matrix<double>( _auxAOverlap.Dimension(), _auxAOverlap.Dimension());
             
@@ -58,20 +63,55 @@ namespace votca {
             _Vcoulomb=ub::prod(_inverse,_temp);
             
             //cout << "Vcoulomb"<< _Vcoulomb<< endl;
-
+ 
+            int size4c=_dftbasis.AOBasisSize();
 
             // reconstructing 4center-integrals
-	    /*
+	    
+            for (int k=0; k<_auxbasis._AOBasisSize; k++){
+                
+                ub::matrix<double> shit = _threecenter.getDatamatrix(k);
+                
+               for (int alpha=0; alpha<size4c; alpha++){
+                    for (int beta=0; beta<size4c ;beta++){
+                        
+                        if ( std::abs(shit(alpha,beta) - shit(beta,alpha)) > 1.e-8 ){
+                        
+                        cout << "SHIT " << k << " " <<  alpha << " " << beta << " " << shit(alpha,beta) << " vs " << shit(beta,alpha) << endl;
+                        
+                        }
+                    }
+               }
+                
+            }
+            
+             for (int k=0; k<_auxbasis._AOBasisSize; k++){
+				for (int l=0; l<_auxbasis._AOBasisSize; l++){
+                                 
+                                    
+                                    cout << " VCOU " << k << " " << l << " " << scientific << _Vcoulomb(k,l) << " vs " << _Vcoulomb(l,k) << endl; 
+                                    
+                                }
+                                }
+            
+            
+            
+            
+            exit(0);
+            
+            
+            
+            
 
-            int size4c=_dftbasis.AOBasisSize();
+           
             
             typedef boost::multi_array<double, 4> fourdim;
             fourdim  fourcenter(boost::extents[size4c][size4c][size4c][size4c]);
             cout <<endl;
        
-           
-            for (int alpha=0; alpha<size4c; alpha++){
+                          for (int alpha=0; alpha<size4c; alpha++){
                     for (int beta=0; beta<size4c ;beta++){
+           
                        for (int mu=0; mu<size4c ;mu++){
                             for (int nu=0; nu<size4c; nu++){
 			      fourcenter[alpha][beta][mu][nu]=0.0;
@@ -88,7 +128,7 @@ namespace votca {
             }}
 
 exit(0);
-	    */
+	    
             
             
             
@@ -216,13 +256,13 @@ exit(0);
         }
         
         
-        void ERIs::CalculateERIs (ub::matrix<double> &DMAT){
+        void ERIs::CalculateERIs (ub::matrix<double> &DMAT, AOOverlap &_auxAOverlap, ub::matrix<double>& _AOIntegrals ){
             
             
             
             /***** TEST VIA RECONSTRUCTED 4center ERIs ***************/
             
-
+/*
             int size4c=DMAT.size1(); // _dftbasis.AOBasisSize();
             int auxsize = _Vcoulomb.size1();
             
@@ -246,30 +286,89 @@ exit(0);
                                     }}
                                     
 
-            cout << "4c("<<alpha+1<<":"<<beta+1<<":"<<mu+1<<":"<<nu+1<<")="<< fourcenter[alpha][beta][mu][nu]<< endl;
+            //cout << "4c("<<alpha+1<<":"<<beta+1<<":"<<mu+1<<":"<<nu+1<<")="<< fourcenter[alpha][beta][mu][nu]<< endl;
             }}
             }}
             
             
 
+            */
+            
+            
+            
+            // TEST Number of fitted electrons
+            ub::matrix<double> _FITMAT = ub::zero_matrix<double>(DMAT.size1(),DMAT.size2());
+            ub::matrix<double> _inverse=ub::zero_matrix<double>( _auxAOverlap.Dimension(), _auxAOverlap.Dimension());
+            
+           //_auxAOverlap.Print("AUX-OL");
+            linalg_invert( _auxAOverlap._aomatrix , _inverse);
+            
+         /*  ub:: matrix<double> _testS = ub::prod(_auxAOverlap._aomatrix , _inverse);
+                      for (int _i = 0; _i < _threecenter.getSize(); _i++) {
+                for (int _j = 0; _j < _threecenter.getSize(); _j++) {
+                    cout << " S*S-1(" << _i << "," << _j << ") " << setprecision (9) << _testS(_i,_j) << endl; 
+                      }
+        }*/
+           
+            
+            //cout <<  "3c size " << _threecenter.getSize() << " _auxAODim " << _auxAOverlap.Dimension() << " DMAT1 " << DMAT.size1() << " DMAT2 " << DMAT.size2() << endl;
+            
+            
+            //cout << _inverse << endl;
+            
+            cout << " 3C size " << _threecenter.getSize() << endl;
+            
+            for (int _i = 0; _i < _threecenter.getSize(); _i++) {
+                for (int _j = 0; _j < _threecenter.getSize(); _j++) {
+
+                //cout << " S-1(" << _i << "," << _j << ") " << setprecision (9) << _inverse(_i,_j) << endl; 
+                
+                    ub::matrix<double>& _3c = _threecenter.getDatamatrix(_j);
+
+                    for ( int alpha = 0 ; alpha < DMAT.size1(); alpha++ ){
+                        for ( int beta = 0 ; beta < DMAT.size2(); beta++ ){
+                        
+                            _FITMAT(alpha,beta) += _inverse(_i,_j)*_3c(alpha,beta)*_AOIntegrals(0,_i);
+                            cout << " inV " << _inverse(_i,_j) << " 3C " << _3c(alpha,beta) << endl;
+                            
+                        }
+                    }
+                    
+                    
+                }
+            }
+            
+            
+  
             
             
             
             
+//            ub::vector<double> Fitarray=_FITMAT.data();
+
+            double _Nfit = 0.0;
+            
+            for ( int alpha = 0 ; alpha < DMAT.size1(); alpha++ ){
+                        for ( int beta = 0 ; beta < DMAT.size1(); beta++ ){
+                    
+                        cout << alpha << "  " << beta << "  " << _FITMAT(alpha,beta) << endl;  
+                        
+                        _Nfit += DMAT(alpha,beta) * _FITMAT(alpha,beta);
+                }
+                }
+            
+
             
             
+            cout << " \nNumber of electrons in Density Fit  " << _Nfit << endl;
             
             
-            
-            
-            
-            
-            
-            
+            exit(0);
             
             
             _ERIs=ub::zero_matrix<double>(DMAT.size1(),DMAT.size2());
             ub::vector<double> dmatasarray=DMAT.data();
+            
             ub::matrix<double> Itilde=ub::zero_matrix<double>(_threecenter.getSize(),1);
             //cout << _threecenter.getSize() << " Size-Threecenter"<<endl;
             //check Efficiency !!!! someday 
@@ -293,7 +392,7 @@ exit(0);
             
             
             
-                           
+            /*               
             for (int alpha=0;alpha<size4c;alpha++){
                     for (int beta=0;beta<size4c;beta++){
 
@@ -313,7 +412,7 @@ exit(0);
                  }
             }
             
-            exit(0); 
+            exit(0); */
             
             
             

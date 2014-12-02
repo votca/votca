@@ -45,7 +45,7 @@ namespace votca { namespace ctp {
         return _block_size;
     }
 
-        void AOCoulomb::FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, bool _raw) {
+        void AOCoulomb::FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp) {
 
             // shell info, only lmax tells how far to go
             int _lmax_row = _shell_row->getLmax();
@@ -86,7 +86,7 @@ namespace votca { namespace ctp {
                         const double& _decay_col = (*itc)->decay;
 
                         double _fakac = 0.5 / (_decay_row + _decay_col);
-                        double _fakac2 = 2.0 * _fakac;
+                        double _fakac2 = 1. / (_decay_row + _decay_col);
                         // check if distance between postions is big, then skip step   
                         double _exparg = _fakac2 * _decay_row * _decay_col *_distsq;
                         // if ( _exparg > 30.0 ) { continue; } //!!!!!CUTOFF not applicable to AOCoulomb (at least not like this...)
@@ -128,6 +128,11 @@ namespace votca { namespace ctp {
 
             _wmp.resize(3);
             _wmq.resize(3);
+            //bool ident;
+            
+            //if ( )
+            
+            if (sqrt(_distsq) > 0.01 ){
             _wmp[0] = _fakac2 * (_decay_row * _pos_row.getX() + _decay_col * _pos_col.getX()) - _pos_row.getX();
             _wmp[1] = _fakac2 * (_decay_row * _pos_row.getY() + _decay_col * _pos_col.getY()) - _pos_row.getY();
             _wmp[2] = _fakac2 * (_decay_row * _pos_row.getZ() + _decay_col * _pos_col.getZ()) - _pos_row.getZ();
@@ -136,6 +141,17 @@ namespace votca { namespace ctp {
             _wmq[1] = _fakac2 * (_decay_row * _pos_row.getY() + _decay_col * _pos_col.getY()) - _pos_col.getY();
             _wmq[2] = _fakac2 * (_decay_row * _pos_row.getZ() + _decay_col * _pos_col.getZ()) - _pos_col.getZ();
 
+            } else {
+            _wmp[0] = 0.0;
+            _wmp[1] = 0.0;
+            _wmp[2] = 0.0;
+
+            _wmq[0] = 0.0;
+            _wmq[1] = 0.0;
+            _wmq[2] = 0.0;
+                
+
+            }
             const double _T = _fakaca * _decay_col * _distsq;
 
         
@@ -148,8 +164,6 @@ namespace votca { namespace ctp {
             vector<double> _FmT(_nextra, 0.0); // that size needs to be checked!
             // call xint01(FmT,8,T,u_lower)
             XIntegrate(_FmT, _T);
-
-            
 
             // get initial data from _FmT -> s-s element
             for (index i = 0; i != _nextra; ++i) {

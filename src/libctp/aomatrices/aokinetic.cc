@@ -40,7 +40,7 @@ namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
 
     
-    void AOKinetic::FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col , bool _raw) {
+    void AOKinetic::FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp) {
         const double pi = boost::math::constants::pi<double>();
             /*cout << "\nAO block: "<< endl;
         cout << "\t row: " << _shell_row->getType() << " at " << _shell_row->getPos() << endl;

@@ -317,7 +317,7 @@ namespace votca {
             }
             
             
-            //******* TESTING VXC 
+            /******* TESTING VXC 
             
             // test total number of electrons
             //ub::matrix<double> _ddft_orbitals = *(_orbitals->getOrbitals()); 

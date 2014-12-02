@@ -53,7 +53,7 @@
             </shell>                 
             <shell type="P" scale="1.00">
                      <constant decay="1.9710183160" >
-                             <contractions type="P" factor=".221986005E-01"></contractions>
+                             <contractions type="P" factor="1.0"></contractions>
                      </constant> 
             </shell>            
             <shell type="D" scale="1.00">

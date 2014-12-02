@@ -57,7 +57,7 @@ namespace votca { namespace ctp {
         ub::matrix<double> getERIs(){return _ERIs;}
         double& getERIsenergy(){return _ERIsenergy;}
         
-        void CalculateERIs(ub::matrix<double> &DMAT);
+        void CalculateERIs(ub::matrix<double> &DMAT, AOOverlap &_auxAOoverlap, ub::matrix<double>& _AOIntegrals);
         
         
         int getSize1(){return _ERIs.size1();}
