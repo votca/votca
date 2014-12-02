@@ -36,7 +36,7 @@
 using namespace std;
 using namespace votca::tools;
 
-namespace Cartesian {
+namespace Cart {
         enum Index {
                 s, x, y, z,  xy, xz, yz, xx, yy, zz
                 };

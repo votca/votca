@@ -225,6 +225,7 @@
       <itemPath>../../src/libctp/qmmachine.cc</itemPath>
       <itemPath>../../src/libctp/qmtool.cc</itemPath>
       <itemPath>../../src/libctp/statesaversqlite.cc</itemPath>
+      <itemPath>../../src/libctp/threecenter_rep.cc</itemPath>
       <itemPath>../../src/libctp/threecenters.cc</itemPath>
       <itemPath>../../src/libctp/threecenters_dft.cc</itemPath>
       <itemPath>../../src/libctp/threecenters_tools.cc</itemPath>
@@ -485,7 +486,7 @@
       </item>
       <item path="../../include/votca/ctp/xmapper.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../src/libctp/ERIs.cc" ex="false" tool="1" flavor2="0">
+      <item path="../../src/libctp/ERIs.cc" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../src/libctp/aomatrices/aocoulomb.cc"
             ex="false"
@@ -504,7 +505,7 @@
       </item>
       <item path="../../src/libctp/aomatrices/aokinetic.cc"
             ex="false"
-            tool="1"
+            tool="0"
             flavor2="0">
       </item>
       <item path="../../src/libctp/aomatrices/aomatrix.cc"
@@ -673,7 +674,13 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libctp/ewald2d.cc" ex="true" tool="0" flavor2="0">
+      </item>
+      <item path="../../src/libctp/ewald3d.cc" ex="true" tool="0" flavor2="0">
+      </item>
       <item path="../../src/libctp/ewaldactor.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/ewaldnd.cc" ex="true" tool="0" flavor2="0">
       </item>
       <item path="../../src/libctp/extractorfactory.cc"
             ex="false"
@@ -824,6 +831,8 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libctp/pewald3d.cc" ex="true" tool="0" flavor2="0">
+      </item>
       <item path="../../src/libctp/polarbackground.cc"
             ex="false"
             tool="1"
@@ -900,6 +909,11 @@
       <item path="../../src/libctp/statesaversqlite.cc"
             ex="false"
             tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/threecenter_rep.cc"
+            ex="false"
+            tool="0"
             flavor2="0">
       </item>
       <item path="../../src/libctp/threecenters.cc" ex="false" tool="1" flavor2="0">
@@ -1390,7 +1404,13 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libctp/ewald2d.cc" ex="true" tool="0" flavor2="0">
+      </item>
+      <item path="../../src/libctp/ewald3d.cc" ex="true" tool="0" flavor2="0">
+      </item>
       <item path="../../src/libctp/ewaldactor.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/ewaldnd.cc" ex="true" tool="0" flavor2="0">
       </item>
       <item path="../../src/libctp/extractorfactory.cc"
             ex="false"
@@ -1541,6 +1561,8 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libctp/pewald3d.cc" ex="true" tool="0" flavor2="0">
+      </item>
       <item path="../../src/libctp/polarbackground.cc"
             ex="false"
             tool="1"
@@ -1617,6 +1639,11 @@
       <item path="../../src/libctp/statesaversqlite.cc"
             ex="false"
             tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/threecenter_rep.cc"
+            ex="false"
+            tool="0"
             flavor2="0">
       </item>
       <item path="../../src/libctp/threecenters.cc" ex="false" tool="1" flavor2="0">

@@ -116,254 +116,254 @@ namespace votca { namespace ctp {
             ub::matrix<double> ol = ub::zero_matrix<double>(_nrows,_ncols);
         
             // s-s overlap integral
-            ol(Cartesian::s,Cartesian::s) = pow(rzeta,1.5)*pow(4.0*_decay_row*_decay_col,0.75) * exp(-_exparg);
+            ol(Cart::s,Cart::s) = pow(rzeta,1.5)*pow(4.0*_decay_row*_decay_col,0.75) * exp(-_exparg);
             // s-s- kinetic energy integral
-            kin(Cartesian::s,Cartesian::s)= ol(Cartesian::s,Cartesian::s)*xi*(3-2*xi*_distsq);
+            kin(Cart::s,Cart::s)= ol(Cart::s,Cart::s)*xi*(3-2*xi*_distsq);
             
           //s-p
             if ( _lmax_col>0 ){
             //std::cout << "\t setting s-p|" << std::flush;      
-            ol(Cartesian::s,Cartesian::y) = PmB[1]*ol(Cartesian::s,Cartesian::s);
-            ol(Cartesian::s,Cartesian::x) = PmB[0]*ol(Cartesian::s,Cartesian::s);
-            ol(Cartesian::s,Cartesian::z) = PmB[2]*ol(Cartesian::s,Cartesian::s);
+            ol(Cart::s,Cart::y) = PmB[1]*ol(Cart::s,Cart::s);
+            ol(Cart::s,Cart::x) = PmB[0]*ol(Cart::s,Cart::s);
+            ol(Cart::s,Cart::z) = PmB[2]*ol(Cart::s,Cart::s);
             
-            kin(Cartesian::s,Cartesian::y) = PmB[1]*kin(Cartesian::s,Cartesian::s)+2*xi*(ol(Cartesian::s,Cartesian::y));
-            kin(Cartesian::s,Cartesian::x) = PmB[0]*kin(Cartesian::s,Cartesian::s)+2*xi*(ol(Cartesian::s,Cartesian::x));
-            kin(Cartesian::s,Cartesian::z) = PmB[2]*kin(Cartesian::s,Cartesian::s)+2*xi*(ol(Cartesian::s,Cartesian::z));
+            kin(Cart::s,Cart::y) = PmB[1]*kin(Cart::s,Cart::s)+2*xi*(ol(Cart::s,Cart::y));
+            kin(Cart::s,Cart::x) = PmB[0]*kin(Cart::s,Cart::s)+2*xi*(ol(Cart::s,Cart::x));
+            kin(Cart::s,Cart::z) = PmB[2]*kin(Cart::s,Cart::s)+2*xi*(ol(Cart::s,Cart::z));
             }
             
             //p-s
             if ( _lmax_row>0 ){
             //std::cout << "\t setting p-s|" << std::flush;
-            ol(Cartesian::y,Cartesian::s) = PmA[1]*ol(Cartesian::s,Cartesian::s);
-            ol(Cartesian::x,Cartesian::s) = PmA[0]*ol(Cartesian::s,Cartesian::s);
-            ol(Cartesian::z,Cartesian::s) = PmA[2]*ol(Cartesian::s,Cartesian::s);
+            ol(Cart::y,Cart::s) = PmA[1]*ol(Cart::s,Cart::s);
+            ol(Cart::x,Cart::s) = PmA[0]*ol(Cart::s,Cart::s);
+            ol(Cart::z,Cart::s) = PmA[2]*ol(Cart::s,Cart::s);
        
-            kin(Cartesian::y,Cartesian::s) = PmA[1]*kin(Cartesian::s,Cartesian::s)+2*xi*(ol(Cartesian::y,Cartesian::s));
-            kin(Cartesian::x,Cartesian::s) = PmA[0]*kin(Cartesian::s,Cartesian::s)+2*xi*(ol(Cartesian::x,Cartesian::s));
-            kin(Cartesian::z,Cartesian::s) = PmA[2]*kin(Cartesian::s,Cartesian::s)+2*xi*(ol(Cartesian::z,Cartesian::s));
+            kin(Cart::y,Cart::s) = PmA[1]*kin(Cart::s,Cart::s)+2*xi*(ol(Cart::y,Cart::s));
+            kin(Cart::x,Cart::s) = PmA[0]*kin(Cart::s,Cart::s)+2*xi*(ol(Cart::x,Cart::s));
+            kin(Cart::z,Cart::s) = PmA[2]*kin(Cart::s,Cart::s)+2*xi*(ol(Cart::z,Cart::s));
             }
             
             //p-p
             if ( _lmax_row>0 && _lmax_col>0 ){
-            ol(Cartesian::y,Cartesian::y) = PmA[1]*ol(Cartesian::s,Cartesian::y)+1*_fak*ol(Cartesian::s,Cartesian::s);
-            ol(Cartesian::y,Cartesian::x) = PmA[1]*ol(Cartesian::s,Cartesian::x);
-            ol(Cartesian::y,Cartesian::z) = PmA[1]*ol(Cartesian::s,Cartesian::z);
-            ol(Cartesian::x,Cartesian::y) = PmA[0]*ol(Cartesian::s,Cartesian::y);
-            ol(Cartesian::x,Cartesian::x) = PmA[0]*ol(Cartesian::s,Cartesian::x)+1*_fak*ol(Cartesian::s,Cartesian::s);
-            ol(Cartesian::x,Cartesian::z) = PmA[0]*ol(Cartesian::s,Cartesian::z);
-            ol(Cartesian::z,Cartesian::y) = PmA[2]*ol(Cartesian::s,Cartesian::y);
-            ol(Cartesian::z,Cartesian::x) = PmA[2]*ol(Cartesian::s,Cartesian::x);
-            ol(Cartesian::z,Cartesian::z) = PmA[2]*ol(Cartesian::s,Cartesian::z)+1*_fak*ol(Cartesian::s,Cartesian::s);
+            ol(Cart::y,Cart::y) = PmA[1]*ol(Cart::s,Cart::y)+1*_fak*ol(Cart::s,Cart::s);
+            ol(Cart::y,Cart::x) = PmA[1]*ol(Cart::s,Cart::x);
+            ol(Cart::y,Cart::z) = PmA[1]*ol(Cart::s,Cart::z);
+            ol(Cart::x,Cart::y) = PmA[0]*ol(Cart::s,Cart::y);
+            ol(Cart::x,Cart::x) = PmA[0]*ol(Cart::s,Cart::x)+1*_fak*ol(Cart::s,Cart::s);
+            ol(Cart::x,Cart::z) = PmA[0]*ol(Cart::s,Cart::z);
+            ol(Cart::z,Cart::y) = PmA[2]*ol(Cart::s,Cart::y);
+            ol(Cart::z,Cart::x) = PmA[2]*ol(Cart::s,Cart::x);
+            ol(Cart::z,Cart::z) = PmA[2]*ol(Cart::s,Cart::z)+1*_fak*ol(Cart::s,Cart::s);
      
             //std::cout << "\t setting p-p|" << std::flush;
-            kin(Cartesian::y,Cartesian::y) = PmA[1]*kin(Cartesian::s,Cartesian::y)+1*_fak*kin(Cartesian::s,Cartesian::s)+2*xi*(ol(Cartesian::y,Cartesian::y));
-            kin(Cartesian::y,Cartesian::x) = PmA[1]*kin(Cartesian::s,Cartesian::x)+2*xi*(ol(Cartesian::y,Cartesian::x));
-            kin(Cartesian::y,Cartesian::z) = PmA[1]*kin(Cartesian::s,Cartesian::z)+2*xi*(ol(Cartesian::y,Cartesian::z));
-            kin(Cartesian::x,Cartesian::y) = PmA[0]*kin(Cartesian::s,Cartesian::y)+2*xi*(ol(Cartesian::x,Cartesian::y));
-            kin(Cartesian::x,Cartesian::x) = PmA[0]*kin(Cartesian::s,Cartesian::x)+1*_fak*kin(Cartesian::s,Cartesian::s)+2*xi*(ol(Cartesian::x,Cartesian::x));
-            kin(Cartesian::x,Cartesian::z) = PmA[0]*kin(Cartesian::s,Cartesian::z)+2*xi*(ol(Cartesian::x,Cartesian::z));
-            kin(Cartesian::z,Cartesian::y) = PmA[2]*kin(Cartesian::s,Cartesian::y)+2*xi*(ol(Cartesian::z,Cartesian::y));
-            kin(Cartesian::z,Cartesian::x) = PmA[2]*kin(Cartesian::s,Cartesian::x)+2*xi*(ol(Cartesian::z,Cartesian::x));
-            kin(Cartesian::z,Cartesian::z) = PmA[2]*kin(Cartesian::s,Cartesian::z)+1*_fak*kin(Cartesian::s,Cartesian::s)+2*xi*(ol(Cartesian::z,Cartesian::z));
+            kin(Cart::y,Cart::y) = PmA[1]*kin(Cart::s,Cart::y)+1*_fak*kin(Cart::s,Cart::s)+2*xi*(ol(Cart::y,Cart::y));
+            kin(Cart::y,Cart::x) = PmA[1]*kin(Cart::s,Cart::x)+2*xi*(ol(Cart::y,Cart::x));
+            kin(Cart::y,Cart::z) = PmA[1]*kin(Cart::s,Cart::z)+2*xi*(ol(Cart::y,Cart::z));
+            kin(Cart::x,Cart::y) = PmA[0]*kin(Cart::s,Cart::y)+2*xi*(ol(Cart::x,Cart::y));
+            kin(Cart::x,Cart::x) = PmA[0]*kin(Cart::s,Cart::x)+1*_fak*kin(Cart::s,Cart::s)+2*xi*(ol(Cart::x,Cart::x));
+            kin(Cart::x,Cart::z) = PmA[0]*kin(Cart::s,Cart::z)+2*xi*(ol(Cart::x,Cart::z));
+            kin(Cart::z,Cart::y) = PmA[2]*kin(Cart::s,Cart::y)+2*xi*(ol(Cart::z,Cart::y));
+            kin(Cart::z,Cart::x) = PmA[2]*kin(Cart::s,Cart::x)+2*xi*(ol(Cart::z,Cart::x));
+            kin(Cart::z,Cart::z) = PmA[2]*kin(Cart::s,Cart::z)+1*_fak*kin(Cart::s,Cart::s)+2*xi*(ol(Cart::z,Cart::z));
             }
             
             //s-d
             if ( _lmax_col>1 ){
-            ol(Cartesian::s,Cartesian::yy) = PmB[1]*ol(Cartesian::s,Cartesian::y)+1*_fak*ol(Cartesian::s,Cartesian::s);
-            ol(Cartesian::s,Cartesian::xy) = PmB[0]*ol(Cartesian::s,Cartesian::y);
-            ol(Cartesian::s,Cartesian::yz) = PmB[1]*ol(Cartesian::s,Cartesian::z);
-            ol(Cartesian::s,Cartesian::xx) = PmB[0]*ol(Cartesian::s,Cartesian::x)+1*_fak*ol(Cartesian::s,Cartesian::s);
-            ol(Cartesian::s,Cartesian::xz) = PmB[0]*ol(Cartesian::s,Cartesian::z);
-            ol(Cartesian::s,Cartesian::zz) = PmB[2]*ol(Cartesian::s,Cartesian::z)+1*_fak*ol(Cartesian::s,Cartesian::s);    
+            ol(Cart::s,Cart::yy) = PmB[1]*ol(Cart::s,Cart::y)+1*_fak*ol(Cart::s,Cart::s);
+            ol(Cart::s,Cart::xy) = PmB[0]*ol(Cart::s,Cart::y);
+            ol(Cart::s,Cart::yz) = PmB[1]*ol(Cart::s,Cart::z);
+            ol(Cart::s,Cart::xx) = PmB[0]*ol(Cart::s,Cart::x)+1*_fak*ol(Cart::s,Cart::s);
+            ol(Cart::s,Cart::xz) = PmB[0]*ol(Cart::s,Cart::z);
+            ol(Cart::s,Cart::zz) = PmB[2]*ol(Cart::s,Cart::z)+1*_fak*ol(Cart::s,Cart::s);    
                 
             //std::cout << "\t setting s-d|" << std::flush;
-            kin(Cartesian::s,Cartesian::yy) = PmB[1]*kin(Cartesian::s,Cartesian::y)+1*_fak*kin(Cartesian::s,Cartesian::s)+2*xi*(ol(Cartesian::s,Cartesian::yy)-0.5*rzetaB*ol(Cartesian::s,Cartesian::s));
-            kin(Cartesian::s,Cartesian::xy) = PmB[0]*kin(Cartesian::s,Cartesian::y)+2*xi*(ol(Cartesian::s,Cartesian::xy));
-            kin(Cartesian::s,Cartesian::yz) = PmB[1]*kin(Cartesian::s,Cartesian::z)+2*xi*(ol(Cartesian::s,Cartesian::yz));
-            kin(Cartesian::s,Cartesian::xx) = PmB[0]*kin(Cartesian::s,Cartesian::x)+1*_fak*kin(Cartesian::s,Cartesian::s)+2*xi*(ol(Cartesian::s,Cartesian::xx)-0.5*rzetaB*ol(Cartesian::s,Cartesian::s));
-            kin(Cartesian::s,Cartesian::xz) = PmB[0]*kin(Cartesian::s,Cartesian::z)+2*xi*(ol(Cartesian::s,Cartesian::xz));
-            kin(Cartesian::s,Cartesian::zz) = PmB[2]*kin(Cartesian::s,Cartesian::z)+1*_fak*kin(Cartesian::s,Cartesian::s)+2*xi*(ol(Cartesian::s,Cartesian::zz)-0.5*rzetaB*ol(Cartesian::s,Cartesian::s));            
+            kin(Cart::s,Cart::yy) = PmB[1]*kin(Cart::s,Cart::y)+1*_fak*kin(Cart::s,Cart::s)+2*xi*(ol(Cart::s,Cart::yy)-0.5*rzetaB*ol(Cart::s,Cart::s));
+            kin(Cart::s,Cart::xy) = PmB[0]*kin(Cart::s,Cart::y)+2*xi*(ol(Cart::s,Cart::xy));
+            kin(Cart::s,Cart::yz) = PmB[1]*kin(Cart::s,Cart::z)+2*xi*(ol(Cart::s,Cart::yz));
+            kin(Cart::s,Cart::xx) = PmB[0]*kin(Cart::s,Cart::x)+1*_fak*kin(Cart::s,Cart::s)+2*xi*(ol(Cart::s,Cart::xx)-0.5*rzetaB*ol(Cart::s,Cart::s));
+            kin(Cart::s,Cart::xz) = PmB[0]*kin(Cart::s,Cart::z)+2*xi*(ol(Cart::s,Cart::xz));
+            kin(Cart::s,Cart::zz) = PmB[2]*kin(Cart::s,Cart::z)+1*_fak*kin(Cart::s,Cart::s)+2*xi*(ol(Cart::s,Cart::zz)-0.5*rzetaB*ol(Cart::s,Cart::s));            
             }
 
             //d-s
             if ( _lmax_row>1 ){
             //std::cout << "\t setting d-s|" << std::flush;
-            ol(Cartesian::yy,Cartesian::s) = PmA[1]*ol(Cartesian::y,Cartesian::s)+1*_fak*ol(Cartesian::s,Cartesian::s);
-            ol(Cartesian::xy,Cartesian::s) = PmA[0]*ol(Cartesian::y,Cartesian::s);
-            ol(Cartesian::yz,Cartesian::s) = PmA[1]*ol(Cartesian::z,Cartesian::s);
-            ol(Cartesian::xx,Cartesian::s) = PmA[0]*ol(Cartesian::x,Cartesian::s)+1*_fak*ol(Cartesian::s,Cartesian::s);
-            ol(Cartesian::xz,Cartesian::s) = PmA[0]*ol(Cartesian::z,Cartesian::s);
-            ol(Cartesian::zz,Cartesian::s) = PmA[2]*ol(Cartesian::z,Cartesian::s)+1*_fak*ol(Cartesian::s,Cartesian::s);
+            ol(Cart::yy,Cart::s) = PmA[1]*ol(Cart::y,Cart::s)+1*_fak*ol(Cart::s,Cart::s);
+            ol(Cart::xy,Cart::s) = PmA[0]*ol(Cart::y,Cart::s);
+            ol(Cart::yz,Cart::s) = PmA[1]*ol(Cart::z,Cart::s);
+            ol(Cart::xx,Cart::s) = PmA[0]*ol(Cart::x,Cart::s)+1*_fak*ol(Cart::s,Cart::s);
+            ol(Cart::xz,Cart::s) = PmA[0]*ol(Cart::z,Cart::s);
+            ol(Cart::zz,Cart::s) = PmA[2]*ol(Cart::z,Cart::s)+1*_fak*ol(Cart::s,Cart::s);
             
-            kin(Cartesian::yy,Cartesian::s) = PmA[1]*kin(Cartesian::y,Cartesian::s)+1*_fak*kin(Cartesian::s,Cartesian::s)+2*xi*(ol(Cartesian::yy,Cartesian::s)-0.5*rzetaA*ol(Cartesian::s,Cartesian::s));
-            kin(Cartesian::xy,Cartesian::s) = PmA[0]*kin(Cartesian::y,Cartesian::s)+2*xi*(ol(Cartesian::xy,Cartesian::s));
-            kin(Cartesian::yz,Cartesian::s) = PmA[1]*kin(Cartesian::z,Cartesian::s)+2*xi*(ol(Cartesian::yz,Cartesian::s));
-            kin(Cartesian::xx,Cartesian::s) = PmA[0]*kin(Cartesian::x,Cartesian::s)+1*_fak*kin(Cartesian::s,Cartesian::s)+2*xi*(ol(Cartesian::xx,Cartesian::s)-0.5*rzetaA*ol(Cartesian::s,Cartesian::s));
-            kin(Cartesian::xz,Cartesian::s) = PmA[0]*kin(Cartesian::z,Cartesian::s)+2*xi*(ol(Cartesian::xz,Cartesian::s));
-            kin(Cartesian::zz,Cartesian::s) = PmA[2]*kin(Cartesian::z,Cartesian::s)+1*_fak*kin(Cartesian::s,Cartesian::s)+2*xi*(ol(Cartesian::zz,Cartesian::s)-0.5*rzetaA*ol(Cartesian::s,Cartesian::s));
+            kin(Cart::yy,Cart::s) = PmA[1]*kin(Cart::y,Cart::s)+1*_fak*kin(Cart::s,Cart::s)+2*xi*(ol(Cart::yy,Cart::s)-0.5*rzetaA*ol(Cart::s,Cart::s));
+            kin(Cart::xy,Cart::s) = PmA[0]*kin(Cart::y,Cart::s)+2*xi*(ol(Cart::xy,Cart::s));
+            kin(Cart::yz,Cart::s) = PmA[1]*kin(Cart::z,Cart::s)+2*xi*(ol(Cart::yz,Cart::s));
+            kin(Cart::xx,Cart::s) = PmA[0]*kin(Cart::x,Cart::s)+1*_fak*kin(Cart::s,Cart::s)+2*xi*(ol(Cart::xx,Cart::s)-0.5*rzetaA*ol(Cart::s,Cart::s));
+            kin(Cart::xz,Cart::s) = PmA[0]*kin(Cart::z,Cart::s)+2*xi*(ol(Cart::xz,Cart::s));
+            kin(Cart::zz,Cart::s) = PmA[2]*kin(Cart::z,Cart::s)+1*_fak*kin(Cart::s,Cart::s)+2*xi*(ol(Cart::zz,Cart::s)-0.5*rzetaA*ol(Cart::s,Cart::s));
             }
             
             //p-d
             if ( _lmax_row>0 && _lmax_col>1 ){
             //std::cout << "\t setting p-d|" << std::flush;
-            ol(Cartesian::y,Cartesian::yy) = PmB[1]*ol(Cartesian::y,Cartesian::y)+1*_fak*ol(Cartesian::y,Cartesian::s)+1*_fak*ol(Cartesian::s,Cartesian::y);
-            ol(Cartesian::y,Cartesian::xy) = PmB[0]*ol(Cartesian::y,Cartesian::y);
-            ol(Cartesian::y,Cartesian::yz) = PmB[1]*ol(Cartesian::y,Cartesian::z)+1*_fak*ol(Cartesian::s,Cartesian::z);
-            ol(Cartesian::y,Cartesian::xx) = PmB[0]*ol(Cartesian::y,Cartesian::x)+1*_fak*ol(Cartesian::y,Cartesian::s);
-            ol(Cartesian::y,Cartesian::xz) = PmB[0]*ol(Cartesian::y,Cartesian::z);
-            ol(Cartesian::y,Cartesian::zz) = PmB[2]*ol(Cartesian::y,Cartesian::z)+1*_fak*ol(Cartesian::y,Cartesian::s);
-            ol(Cartesian::x,Cartesian::yy) = PmB[1]*ol(Cartesian::x,Cartesian::y)+1*_fak*ol(Cartesian::x,Cartesian::s);
-            ol(Cartesian::x,Cartesian::xy) = PmB[0]*ol(Cartesian::x,Cartesian::y)+1*_fak*ol(Cartesian::s,Cartesian::y);
-            ol(Cartesian::x,Cartesian::yz) = PmB[1]*ol(Cartesian::x,Cartesian::z);
-            ol(Cartesian::x,Cartesian::xx) = PmB[0]*ol(Cartesian::x,Cartesian::x)+1*_fak*ol(Cartesian::x,Cartesian::s)+1*_fak*ol(Cartesian::s,Cartesian::x);
-            ol(Cartesian::x,Cartesian::xz) = PmB[0]*ol(Cartesian::x,Cartesian::z)+1*_fak*ol(Cartesian::s,Cartesian::z);
-            ol(Cartesian::x,Cartesian::zz) = PmB[2]*ol(Cartesian::x,Cartesian::z)+1*_fak*ol(Cartesian::x,Cartesian::s);
-            ol(Cartesian::z,Cartesian::yy) = PmB[1]*ol(Cartesian::z,Cartesian::y)+1*_fak*ol(Cartesian::z,Cartesian::s);
-            ol(Cartesian::z,Cartesian::xy) = PmB[0]*ol(Cartesian::z,Cartesian::y);
-            ol(Cartesian::z,Cartesian::yz) = PmB[1]*ol(Cartesian::z,Cartesian::z);
-            ol(Cartesian::z,Cartesian::xx) = PmB[0]*ol(Cartesian::z,Cartesian::x)+1*_fak*ol(Cartesian::z,Cartesian::s);
-            ol(Cartesian::z,Cartesian::xz) = PmB[0]*ol(Cartesian::z,Cartesian::z);
-            ol(Cartesian::z,Cartesian::zz) = PmB[2]*ol(Cartesian::z,Cartesian::z)+1*_fak*ol(Cartesian::z,Cartesian::s)+1*_fak*ol(Cartesian::s,Cartesian::z);
+            ol(Cart::y,Cart::yy) = PmB[1]*ol(Cart::y,Cart::y)+1*_fak*ol(Cart::y,Cart::s)+1*_fak*ol(Cart::s,Cart::y);
+            ol(Cart::y,Cart::xy) = PmB[0]*ol(Cart::y,Cart::y);
+            ol(Cart::y,Cart::yz) = PmB[1]*ol(Cart::y,Cart::z)+1*_fak*ol(Cart::s,Cart::z);
+            ol(Cart::y,Cart::xx) = PmB[0]*ol(Cart::y,Cart::x)+1*_fak*ol(Cart::y,Cart::s);
+            ol(Cart::y,Cart::xz) = PmB[0]*ol(Cart::y,Cart::z);
+            ol(Cart::y,Cart::zz) = PmB[2]*ol(Cart::y,Cart::z)+1*_fak*ol(Cart::y,Cart::s);
+            ol(Cart::x,Cart::yy) = PmB[1]*ol(Cart::x,Cart::y)+1*_fak*ol(Cart::x,Cart::s);
+            ol(Cart::x,Cart::xy) = PmB[0]*ol(Cart::x,Cart::y)+1*_fak*ol(Cart::s,Cart::y);
+            ol(Cart::x,Cart::yz) = PmB[1]*ol(Cart::x,Cart::z);
+            ol(Cart::x,Cart::xx) = PmB[0]*ol(Cart::x,Cart::x)+1*_fak*ol(Cart::x,Cart::s)+1*_fak*ol(Cart::s,Cart::x);
+            ol(Cart::x,Cart::xz) = PmB[0]*ol(Cart::x,Cart::z)+1*_fak*ol(Cart::s,Cart::z);
+            ol(Cart::x,Cart::zz) = PmB[2]*ol(Cart::x,Cart::z)+1*_fak*ol(Cart::x,Cart::s);
+            ol(Cart::z,Cart::yy) = PmB[1]*ol(Cart::z,Cart::y)+1*_fak*ol(Cart::z,Cart::s);
+            ol(Cart::z,Cart::xy) = PmB[0]*ol(Cart::z,Cart::y);
+            ol(Cart::z,Cart::yz) = PmB[1]*ol(Cart::z,Cart::z);
+            ol(Cart::z,Cart::xx) = PmB[0]*ol(Cart::z,Cart::x)+1*_fak*ol(Cart::z,Cart::s);
+            ol(Cart::z,Cart::xz) = PmB[0]*ol(Cart::z,Cart::z);
+            ol(Cart::z,Cart::zz) = PmB[2]*ol(Cart::z,Cart::z)+1*_fak*ol(Cart::z,Cart::s)+1*_fak*ol(Cart::s,Cart::z);
             
-            kin(Cartesian::y,Cartesian::yy) = PmB[1]*kin(Cartesian::y,Cartesian::y)+1*_fak*kin(Cartesian::y,Cartesian::s)+1*_fak*kin(Cartesian::s,Cartesian::y)+2*xi*(ol(Cartesian::y,Cartesian::yy)-0.5*rzetaB*ol(Cartesian::y,Cartesian::s));
-            kin(Cartesian::y,Cartesian::xy) = PmB[0]*kin(Cartesian::y,Cartesian::y)+2*xi*(ol(Cartesian::y,Cartesian::xy));
-            kin(Cartesian::y,Cartesian::yz) = PmB[1]*kin(Cartesian::y,Cartesian::z)+1*_fak*kin(Cartesian::s,Cartesian::z)+2*xi*(ol(Cartesian::y,Cartesian::yz));
-            kin(Cartesian::y,Cartesian::xx) = PmB[0]*kin(Cartesian::y,Cartesian::x)+1*_fak*kin(Cartesian::y,Cartesian::s)+2*xi*(ol(Cartesian::y,Cartesian::xx)-0.5*rzetaB*ol(Cartesian::y,Cartesian::s));
-            kin(Cartesian::y,Cartesian::xz) = PmB[0]*kin(Cartesian::y,Cartesian::z)+2*xi*(ol(Cartesian::y,Cartesian::xz));
-            kin(Cartesian::y,Cartesian::zz) = PmB[2]*kin(Cartesian::y,Cartesian::z)+1*_fak*kin(Cartesian::y,Cartesian::s)+2*xi*(ol(Cartesian::y,Cartesian::zz)-0.5*rzetaB*ol(Cartesian::y,Cartesian::s));
-            kin(Cartesian::x,Cartesian::yy) = PmB[1]*kin(Cartesian::x,Cartesian::y)+1*_fak*kin(Cartesian::x,Cartesian::s)+2*xi*(ol(Cartesian::x,Cartesian::yy)-0.5*rzetaB*ol(Cartesian::x,Cartesian::s));
-            kin(Cartesian::x,Cartesian::xy) = PmB[0]*kin(Cartesian::x,Cartesian::y)+1*_fak*kin(Cartesian::s,Cartesian::y)+2*xi*(ol(Cartesian::x,Cartesian::xy));
-            kin(Cartesian::x,Cartesian::yz) = PmB[1]*kin(Cartesian::x,Cartesian::z)+2*xi*(ol(Cartesian::x,Cartesian::yz));
-            kin(Cartesian::x,Cartesian::xx) = PmB[0]*kin(Cartesian::x,Cartesian::x)+1*_fak*kin(Cartesian::x,Cartesian::s)+1*_fak*kin(Cartesian::s,Cartesian::x)+2*xi*(ol(Cartesian::x,Cartesian::xx)-0.5*rzetaB*ol(Cartesian::x,Cartesian::s));
-            kin(Cartesian::x,Cartesian::xz) = PmB[0]*kin(Cartesian::x,Cartesian::z)+1*_fak*kin(Cartesian::s,Cartesian::z)+2*xi*(ol(Cartesian::x,Cartesian::xz));
-            kin(Cartesian::x,Cartesian::zz) = PmB[2]*kin(Cartesian::x,Cartesian::z)+1*_fak*kin(Cartesian::x,Cartesian::s)+2*xi*(ol(Cartesian::x,Cartesian::zz)-0.5*rzetaB*ol(Cartesian::x,Cartesian::s));
-            kin(Cartesian::z,Cartesian::yy) = PmB[1]*kin(Cartesian::z,Cartesian::y)+1*_fak*kin(Cartesian::z,Cartesian::s)+2*xi*(ol(Cartesian::z,Cartesian::yy)-0.5*rzetaB*ol(Cartesian::z,Cartesian::s));
-            kin(Cartesian::z,Cartesian::xy) = PmB[0]*kin(Cartesian::z,Cartesian::y)+2*xi*(ol(Cartesian::z,Cartesian::xy));
-            kin(Cartesian::z,Cartesian::yz) = PmB[1]*kin(Cartesian::z,Cartesian::z)+2*xi*(ol(Cartesian::z,Cartesian::yz));
-            kin(Cartesian::z,Cartesian::xx) = PmB[0]*kin(Cartesian::z,Cartesian::x)+1*_fak*kin(Cartesian::z,Cartesian::s)+2*xi*(ol(Cartesian::z,Cartesian::xx)-0.5*rzetaB*ol(Cartesian::z,Cartesian::s));
-            kin(Cartesian::z,Cartesian::xz) = PmB[0]*kin(Cartesian::z,Cartesian::z)+2*xi*(ol(Cartesian::z,Cartesian::xz));
-            kin(Cartesian::z,Cartesian::zz) = PmB[2]*kin(Cartesian::z,Cartesian::z)+1*_fak*kin(Cartesian::z,Cartesian::s)+1*_fak*kin(Cartesian::s,Cartesian::z)+2*xi*(ol(Cartesian::z,Cartesian::zz)-0.5*rzetaB*ol(Cartesian::z,Cartesian::s));
+            kin(Cart::y,Cart::yy) = PmB[1]*kin(Cart::y,Cart::y)+1*_fak*kin(Cart::y,Cart::s)+1*_fak*kin(Cart::s,Cart::y)+2*xi*(ol(Cart::y,Cart::yy)-0.5*rzetaB*ol(Cart::y,Cart::s));
+            kin(Cart::y,Cart::xy) = PmB[0]*kin(Cart::y,Cart::y)+2*xi*(ol(Cart::y,Cart::xy));
+            kin(Cart::y,Cart::yz) = PmB[1]*kin(Cart::y,Cart::z)+1*_fak*kin(Cart::s,Cart::z)+2*xi*(ol(Cart::y,Cart::yz));
+            kin(Cart::y,Cart::xx) = PmB[0]*kin(Cart::y,Cart::x)+1*_fak*kin(Cart::y,Cart::s)+2*xi*(ol(Cart::y,Cart::xx)-0.5*rzetaB*ol(Cart::y,Cart::s));
+            kin(Cart::y,Cart::xz) = PmB[0]*kin(Cart::y,Cart::z)+2*xi*(ol(Cart::y,Cart::xz));
+            kin(Cart::y,Cart::zz) = PmB[2]*kin(Cart::y,Cart::z)+1*_fak*kin(Cart::y,Cart::s)+2*xi*(ol(Cart::y,Cart::zz)-0.5*rzetaB*ol(Cart::y,Cart::s));
+            kin(Cart::x,Cart::yy) = PmB[1]*kin(Cart::x,Cart::y)+1*_fak*kin(Cart::x,Cart::s)+2*xi*(ol(Cart::x,Cart::yy)-0.5*rzetaB*ol(Cart::x,Cart::s));
+            kin(Cart::x,Cart::xy) = PmB[0]*kin(Cart::x,Cart::y)+1*_fak*kin(Cart::s,Cart::y)+2*xi*(ol(Cart::x,Cart::xy));
+            kin(Cart::x,Cart::yz) = PmB[1]*kin(Cart::x,Cart::z)+2*xi*(ol(Cart::x,Cart::yz));
+            kin(Cart::x,Cart::xx) = PmB[0]*kin(Cart::x,Cart::x)+1*_fak*kin(Cart::x,Cart::s)+1*_fak*kin(Cart::s,Cart::x)+2*xi*(ol(Cart::x,Cart::xx)-0.5*rzetaB*ol(Cart::x,Cart::s));
+            kin(Cart::x,Cart::xz) = PmB[0]*kin(Cart::x,Cart::z)+1*_fak*kin(Cart::s,Cart::z)+2*xi*(ol(Cart::x,Cart::xz));
+            kin(Cart::x,Cart::zz) = PmB[2]*kin(Cart::x,Cart::z)+1*_fak*kin(Cart::x,Cart::s)+2*xi*(ol(Cart::x,Cart::zz)-0.5*rzetaB*ol(Cart::x,Cart::s));
+            kin(Cart::z,Cart::yy) = PmB[1]*kin(Cart::z,Cart::y)+1*_fak*kin(Cart::z,Cart::s)+2*xi*(ol(Cart::z,Cart::yy)-0.5*rzetaB*ol(Cart::z,Cart::s));
+            kin(Cart::z,Cart::xy) = PmB[0]*kin(Cart::z,Cart::y)+2*xi*(ol(Cart::z,Cart::xy));
+            kin(Cart::z,Cart::yz) = PmB[1]*kin(Cart::z,Cart::z)+2*xi*(ol(Cart::z,Cart::yz));
+            kin(Cart::z,Cart::xx) = PmB[0]*kin(Cart::z,Cart::x)+1*_fak*kin(Cart::z,Cart::s)+2*xi*(ol(Cart::z,Cart::xx)-0.5*rzetaB*ol(Cart::z,Cart::s));
+            kin(Cart::z,Cart::xz) = PmB[0]*kin(Cart::z,Cart::z)+2*xi*(ol(Cart::z,Cart::xz));
+            kin(Cart::z,Cart::zz) = PmB[2]*kin(Cart::z,Cart::z)+1*_fak*kin(Cart::z,Cart::s)+1*_fak*kin(Cart::s,Cart::z)+2*xi*(ol(Cart::z,Cart::zz)-0.5*rzetaB*ol(Cart::z,Cart::s));
             }
             
             //d-p
             if ( _lmax_row>1 && _lmax_col>0 ){
             //std::cout << "\t setting d-p|" << std::flush;
-            ol(Cartesian::yy,Cartesian::y) = PmA[1]*ol(Cartesian::y,Cartesian::y)+1*_fak*ol(Cartesian::s,Cartesian::y)+1*_fak*ol(Cartesian::y,Cartesian::s);
-            ol(Cartesian::yy,Cartesian::x) = PmA[1]*ol(Cartesian::y,Cartesian::x)+1*_fak*ol(Cartesian::s,Cartesian::x);
-            ol(Cartesian::yy,Cartesian::z) = PmA[1]*ol(Cartesian::y,Cartesian::z)+1*_fak*ol(Cartesian::s,Cartesian::z);
-            ol(Cartesian::xy,Cartesian::y) = PmA[0]*ol(Cartesian::y,Cartesian::y);
-            ol(Cartesian::xy,Cartesian::x) = PmA[0]*ol(Cartesian::y,Cartesian::x)+1*_fak*ol(Cartesian::y,Cartesian::s);
-            ol(Cartesian::xy,Cartesian::z) = PmA[0]*ol(Cartesian::y,Cartesian::z);
-            ol(Cartesian::yz,Cartesian::y) = PmA[1]*ol(Cartesian::z,Cartesian::y)+1*_fak*ol(Cartesian::z,Cartesian::s);
-            ol(Cartesian::yz,Cartesian::x) = PmA[1]*ol(Cartesian::z,Cartesian::x);
-            ol(Cartesian::yz,Cartesian::z) = PmA[1]*ol(Cartesian::z,Cartesian::z);
-            ol(Cartesian::xx,Cartesian::y) = PmA[0]*ol(Cartesian::x,Cartesian::y)+1*_fak*ol(Cartesian::s,Cartesian::y);
-            ol(Cartesian::xx,Cartesian::x) = PmA[0]*ol(Cartesian::x,Cartesian::x)+1*_fak*ol(Cartesian::s,Cartesian::x)+1*_fak*ol(Cartesian::x,Cartesian::s);
-            ol(Cartesian::xx,Cartesian::z) = PmA[0]*ol(Cartesian::x,Cartesian::z)+1*_fak*ol(Cartesian::s,Cartesian::z);
-            ol(Cartesian::xz,Cartesian::y) = PmA[0]*ol(Cartesian::z,Cartesian::y);
-            ol(Cartesian::xz,Cartesian::x) = PmA[0]*ol(Cartesian::z,Cartesian::x)+1*_fak*ol(Cartesian::z,Cartesian::s);
-            ol(Cartesian::xz,Cartesian::z) = PmA[0]*ol(Cartesian::z,Cartesian::z);
-            ol(Cartesian::zz,Cartesian::y) = PmA[2]*ol(Cartesian::z,Cartesian::y)+1*_fak*ol(Cartesian::s,Cartesian::y);
-            ol(Cartesian::zz,Cartesian::x) = PmA[2]*ol(Cartesian::z,Cartesian::x)+1*_fak*ol(Cartesian::s,Cartesian::x);
-            ol(Cartesian::zz,Cartesian::z) = PmA[2]*ol(Cartesian::z,Cartesian::z)+1*_fak*ol(Cartesian::s,Cartesian::z)+1*_fak*ol(Cartesian::z,Cartesian::s);
+            ol(Cart::yy,Cart::y) = PmA[1]*ol(Cart::y,Cart::y)+1*_fak*ol(Cart::s,Cart::y)+1*_fak*ol(Cart::y,Cart::s);
+            ol(Cart::yy,Cart::x) = PmA[1]*ol(Cart::y,Cart::x)+1*_fak*ol(Cart::s,Cart::x);
+            ol(Cart::yy,Cart::z) = PmA[1]*ol(Cart::y,Cart::z)+1*_fak*ol(Cart::s,Cart::z);
+            ol(Cart::xy,Cart::y) = PmA[0]*ol(Cart::y,Cart::y);
+            ol(Cart::xy,Cart::x) = PmA[0]*ol(Cart::y,Cart::x)+1*_fak*ol(Cart::y,Cart::s);
+            ol(Cart::xy,Cart::z) = PmA[0]*ol(Cart::y,Cart::z);
+            ol(Cart::yz,Cart::y) = PmA[1]*ol(Cart::z,Cart::y)+1*_fak*ol(Cart::z,Cart::s);
+            ol(Cart::yz,Cart::x) = PmA[1]*ol(Cart::z,Cart::x);
+            ol(Cart::yz,Cart::z) = PmA[1]*ol(Cart::z,Cart::z);
+            ol(Cart::xx,Cart::y) = PmA[0]*ol(Cart::x,Cart::y)+1*_fak*ol(Cart::s,Cart::y);
+            ol(Cart::xx,Cart::x) = PmA[0]*ol(Cart::x,Cart::x)+1*_fak*ol(Cart::s,Cart::x)+1*_fak*ol(Cart::x,Cart::s);
+            ol(Cart::xx,Cart::z) = PmA[0]*ol(Cart::x,Cart::z)+1*_fak*ol(Cart::s,Cart::z);
+            ol(Cart::xz,Cart::y) = PmA[0]*ol(Cart::z,Cart::y);
+            ol(Cart::xz,Cart::x) = PmA[0]*ol(Cart::z,Cart::x)+1*_fak*ol(Cart::z,Cart::s);
+            ol(Cart::xz,Cart::z) = PmA[0]*ol(Cart::z,Cart::z);
+            ol(Cart::zz,Cart::y) = PmA[2]*ol(Cart::z,Cart::y)+1*_fak*ol(Cart::s,Cart::y);
+            ol(Cart::zz,Cart::x) = PmA[2]*ol(Cart::z,Cart::x)+1*_fak*ol(Cart::s,Cart::x);
+            ol(Cart::zz,Cart::z) = PmA[2]*ol(Cart::z,Cart::z)+1*_fak*ol(Cart::s,Cart::z)+1*_fak*ol(Cart::z,Cart::s);
             
-            kin(Cartesian::yy,Cartesian::y) = PmA[1]*kin(Cartesian::y,Cartesian::y)+1*_fak*kin(Cartesian::s,Cartesian::y)+1*_fak*kin(Cartesian::y,Cartesian::s)+2*xi*(ol(Cartesian::yy,Cartesian::y)-0.5*rzetaA*ol(Cartesian::s,Cartesian::y));
-            kin(Cartesian::yy,Cartesian::x) = PmA[1]*kin(Cartesian::y,Cartesian::x)+1*_fak*kin(Cartesian::s,Cartesian::x)+2*xi*(ol(Cartesian::yy,Cartesian::x)-0.5*rzetaA*ol(Cartesian::s,Cartesian::x));
-            kin(Cartesian::yy,Cartesian::z) = PmA[1]*kin(Cartesian::y,Cartesian::z)+1*_fak*kin(Cartesian::s,Cartesian::z)+2*xi*(ol(Cartesian::yy,Cartesian::z)-0.5*rzetaA*ol(Cartesian::s,Cartesian::z));
-            kin(Cartesian::xy,Cartesian::y) = PmA[0]*kin(Cartesian::y,Cartesian::y)+2*xi*(ol(Cartesian::xy,Cartesian::y));
-            kin(Cartesian::xy,Cartesian::x) = PmA[0]*kin(Cartesian::y,Cartesian::x)+1*_fak*kin(Cartesian::y,Cartesian::s)+2*xi*(ol(Cartesian::xy,Cartesian::x));
-            kin(Cartesian::xy,Cartesian::z) = PmA[0]*kin(Cartesian::y,Cartesian::z)+2*xi*(ol(Cartesian::xy,Cartesian::z));
-            kin(Cartesian::yz,Cartesian::y) = PmA[1]*kin(Cartesian::z,Cartesian::y)+1*_fak*kin(Cartesian::z,Cartesian::s)+2*xi*(ol(Cartesian::yz,Cartesian::y));
-            kin(Cartesian::yz,Cartesian::x) = PmA[1]*kin(Cartesian::z,Cartesian::x)+2*xi*(ol(Cartesian::yz,Cartesian::x));
-            kin(Cartesian::yz,Cartesian::z) = PmA[1]*kin(Cartesian::z,Cartesian::z)+2*xi*(ol(Cartesian::yz,Cartesian::z));
-            kin(Cartesian::xx,Cartesian::y) = PmA[0]*kin(Cartesian::x,Cartesian::y)+1*_fak*kin(Cartesian::s,Cartesian::y)+2*xi*(ol(Cartesian::xx,Cartesian::y)-0.5*rzetaA*ol(Cartesian::s,Cartesian::y));
-            kin(Cartesian::xx,Cartesian::x) = PmA[0]*kin(Cartesian::x,Cartesian::x)+1*_fak*kin(Cartesian::s,Cartesian::x)+1*_fak*kin(Cartesian::x,Cartesian::s)+2*xi*(ol(Cartesian::xx,Cartesian::x)-0.5*rzetaA*ol(Cartesian::s,Cartesian::x));
-            kin(Cartesian::xx,Cartesian::z) = PmA[0]*kin(Cartesian::x,Cartesian::z)+1*_fak*kin(Cartesian::s,Cartesian::z)+2*xi*(ol(Cartesian::xx,Cartesian::z)-0.5*rzetaA*ol(Cartesian::s,Cartesian::z));
-            kin(Cartesian::xz,Cartesian::y) = PmA[0]*kin(Cartesian::z,Cartesian::y)+2*xi*(ol(Cartesian::xz,Cartesian::y));
-            kin(Cartesian::xz,Cartesian::x) = PmA[0]*kin(Cartesian::z,Cartesian::x)+1*_fak*kin(Cartesian::z,Cartesian::s)+2*xi*(ol(Cartesian::xz,Cartesian::x));
-            kin(Cartesian::xz,Cartesian::z) = PmA[0]*kin(Cartesian::z,Cartesian::z)+2*xi*(ol(Cartesian::xz,Cartesian::z));
-            kin(Cartesian::zz,Cartesian::y) = PmA[2]*kin(Cartesian::z,Cartesian::y)+1*_fak*kin(Cartesian::s,Cartesian::y)+2*xi*(ol(Cartesian::zz,Cartesian::y)-0.5*rzetaA*ol(Cartesian::s,Cartesian::y));
-            kin(Cartesian::zz,Cartesian::x) = PmA[2]*kin(Cartesian::z,Cartesian::x)+1*_fak*kin(Cartesian::s,Cartesian::x)+2*xi*(ol(Cartesian::zz,Cartesian::x)-0.5*rzetaA*ol(Cartesian::s,Cartesian::x));
-            kin(Cartesian::zz,Cartesian::z) = PmA[2]*kin(Cartesian::z,Cartesian::z)+1*_fak*kin(Cartesian::s,Cartesian::z)+1*_fak*kin(Cartesian::z,Cartesian::s)+2*xi*(ol(Cartesian::zz,Cartesian::z)-0.5*rzetaA*ol(Cartesian::s,Cartesian::z));
+            kin(Cart::yy,Cart::y) = PmA[1]*kin(Cart::y,Cart::y)+1*_fak*kin(Cart::s,Cart::y)+1*_fak*kin(Cart::y,Cart::s)+2*xi*(ol(Cart::yy,Cart::y)-0.5*rzetaA*ol(Cart::s,Cart::y));
+            kin(Cart::yy,Cart::x) = PmA[1]*kin(Cart::y,Cart::x)+1*_fak*kin(Cart::s,Cart::x)+2*xi*(ol(Cart::yy,Cart::x)-0.5*rzetaA*ol(Cart::s,Cart::x));
+            kin(Cart::yy,Cart::z) = PmA[1]*kin(Cart::y,Cart::z)+1*_fak*kin(Cart::s,Cart::z)+2*xi*(ol(Cart::yy,Cart::z)-0.5*rzetaA*ol(Cart::s,Cart::z));
+            kin(Cart::xy,Cart::y) = PmA[0]*kin(Cart::y,Cart::y)+2*xi*(ol(Cart::xy,Cart::y));
+            kin(Cart::xy,Cart::x) = PmA[0]*kin(Cart::y,Cart::x)+1*_fak*kin(Cart::y,Cart::s)+2*xi*(ol(Cart::xy,Cart::x));
+            kin(Cart::xy,Cart::z) = PmA[0]*kin(Cart::y,Cart::z)+2*xi*(ol(Cart::xy,Cart::z));
+            kin(Cart::yz,Cart::y) = PmA[1]*kin(Cart::z,Cart::y)+1*_fak*kin(Cart::z,Cart::s)+2*xi*(ol(Cart::yz,Cart::y));
+            kin(Cart::yz,Cart::x) = PmA[1]*kin(Cart::z,Cart::x)+2*xi*(ol(Cart::yz,Cart::x));
+            kin(Cart::yz,Cart::z) = PmA[1]*kin(Cart::z,Cart::z)+2*xi*(ol(Cart::yz,Cart::z));
+            kin(Cart::xx,Cart::y) = PmA[0]*kin(Cart::x,Cart::y)+1*_fak*kin(Cart::s,Cart::y)+2*xi*(ol(Cart::xx,Cart::y)-0.5*rzetaA*ol(Cart::s,Cart::y));
+            kin(Cart::xx,Cart::x) = PmA[0]*kin(Cart::x,Cart::x)+1*_fak*kin(Cart::s,Cart::x)+1*_fak*kin(Cart::x,Cart::s)+2*xi*(ol(Cart::xx,Cart::x)-0.5*rzetaA*ol(Cart::s,Cart::x));
+            kin(Cart::xx,Cart::z) = PmA[0]*kin(Cart::x,Cart::z)+1*_fak*kin(Cart::s,Cart::z)+2*xi*(ol(Cart::xx,Cart::z)-0.5*rzetaA*ol(Cart::s,Cart::z));
+            kin(Cart::xz,Cart::y) = PmA[0]*kin(Cart::z,Cart::y)+2*xi*(ol(Cart::xz,Cart::y));
+            kin(Cart::xz,Cart::x) = PmA[0]*kin(Cart::z,Cart::x)+1*_fak*kin(Cart::z,Cart::s)+2*xi*(ol(Cart::xz,Cart::x));
+            kin(Cart::xz,Cart::z) = PmA[0]*kin(Cart::z,Cart::z)+2*xi*(ol(Cart::xz,Cart::z));
+            kin(Cart::zz,Cart::y) = PmA[2]*kin(Cart::z,Cart::y)+1*_fak*kin(Cart::s,Cart::y)+2*xi*(ol(Cart::zz,Cart::y)-0.5*rzetaA*ol(Cart::s,Cart::y));
+            kin(Cart::zz,Cart::x) = PmA[2]*kin(Cart::z,Cart::x)+1*_fak*kin(Cart::s,Cart::x)+2*xi*(ol(Cart::zz,Cart::x)-0.5*rzetaA*ol(Cart::s,Cart::x));
+            kin(Cart::zz,Cart::z) = PmA[2]*kin(Cart::z,Cart::z)+1*_fak*kin(Cart::s,Cart::z)+1*_fak*kin(Cart::z,Cart::s)+2*xi*(ol(Cart::zz,Cart::z)-0.5*rzetaA*ol(Cart::s,Cart::z));
             }
 
             //d-d
             if ( _lmax_row>1 && _lmax_col>1 ){
             //std::cout << "\t setting d-d|" << std::flush;
-            ol(Cartesian::yy,Cartesian::yy) = PmA[1]*ol(Cartesian::y,Cartesian::yy)+1*_fak*ol(Cartesian::s,Cartesian::yy)+2*_fak*ol(Cartesian::y,Cartesian::y);
-            ol(Cartesian::yy,Cartesian::xy) = PmA[1]*ol(Cartesian::y,Cartesian::xy)+1*_fak*ol(Cartesian::s,Cartesian::xy)+1*_fak*ol(Cartesian::y,Cartesian::x);
-            ol(Cartesian::yy,Cartesian::yz) = PmA[1]*ol(Cartesian::y,Cartesian::yz)+1*_fak*ol(Cartesian::s,Cartesian::yz)+1*_fak*ol(Cartesian::y,Cartesian::z);
-            ol(Cartesian::yy,Cartesian::xx) = PmA[1]*ol(Cartesian::y,Cartesian::xx)+1*_fak*ol(Cartesian::s,Cartesian::xx);
-            ol(Cartesian::yy,Cartesian::xz) = PmA[1]*ol(Cartesian::y,Cartesian::xz)+1*_fak*ol(Cartesian::s,Cartesian::xz);
-            ol(Cartesian::yy,Cartesian::zz) = PmA[1]*ol(Cartesian::y,Cartesian::zz)+1*_fak*ol(Cartesian::s,Cartesian::zz);
-            ol(Cartesian::xy,Cartesian::yy) = PmA[0]*ol(Cartesian::y,Cartesian::yy);
-            ol(Cartesian::xy,Cartesian::xy) = PmA[0]*ol(Cartesian::y,Cartesian::xy)+1*_fak*ol(Cartesian::y,Cartesian::y);
-            ol(Cartesian::xy,Cartesian::yz) = PmA[0]*ol(Cartesian::y,Cartesian::yz);
-            ol(Cartesian::xy,Cartesian::xx) = PmA[0]*ol(Cartesian::y,Cartesian::xx)+2*_fak*ol(Cartesian::y,Cartesian::x);
-            ol(Cartesian::xy,Cartesian::xz) = PmA[0]*ol(Cartesian::y,Cartesian::xz)+1*_fak*ol(Cartesian::y,Cartesian::z);
-            ol(Cartesian::xy,Cartesian::zz) = PmA[0]*ol(Cartesian::y,Cartesian::zz);
-            ol(Cartesian::yz,Cartesian::yy) = PmA[1]*ol(Cartesian::z,Cartesian::yy)+2*_fak*ol(Cartesian::z,Cartesian::y);
-            ol(Cartesian::yz,Cartesian::xy) = PmA[1]*ol(Cartesian::z,Cartesian::xy)+1*_fak*ol(Cartesian::z,Cartesian::x);
-            ol(Cartesian::yz,Cartesian::yz) = PmA[1]*ol(Cartesian::z,Cartesian::yz)+1*_fak*ol(Cartesian::z,Cartesian::z);
-            ol(Cartesian::yz,Cartesian::xx) = PmA[1]*ol(Cartesian::z,Cartesian::xx);
-            ol(Cartesian::yz,Cartesian::xz) = PmA[1]*ol(Cartesian::z,Cartesian::xz);
-            ol(Cartesian::yz,Cartesian::zz) = PmA[1]*ol(Cartesian::z,Cartesian::zz);
-            ol(Cartesian::xx,Cartesian::yy) = PmA[0]*ol(Cartesian::x,Cartesian::yy)+1*_fak*ol(Cartesian::s,Cartesian::yy);
-            ol(Cartesian::xx,Cartesian::xy) = PmA[0]*ol(Cartesian::x,Cartesian::xy)+1*_fak*ol(Cartesian::s,Cartesian::xy)+1*_fak*ol(Cartesian::x,Cartesian::y);
-            ol(Cartesian::xx,Cartesian::yz) = PmA[0]*ol(Cartesian::x,Cartesian::yz)+1*_fak*ol(Cartesian::s,Cartesian::yz);
-            ol(Cartesian::xx,Cartesian::xx) = PmA[0]*ol(Cartesian::x,Cartesian::xx)+1*_fak*ol(Cartesian::s,Cartesian::xx)+2*_fak*ol(Cartesian::x,Cartesian::x);
-            ol(Cartesian::xx,Cartesian::xz) = PmA[0]*ol(Cartesian::x,Cartesian::xz)+1*_fak*ol(Cartesian::s,Cartesian::xz)+1*_fak*ol(Cartesian::x,Cartesian::z);
-            ol(Cartesian::xx,Cartesian::zz) = PmA[0]*ol(Cartesian::x,Cartesian::zz)+1*_fak*ol(Cartesian::s,Cartesian::zz);
-            ol(Cartesian::xz,Cartesian::yy) = PmA[0]*ol(Cartesian::z,Cartesian::yy);
-            ol(Cartesian::xz,Cartesian::xy) = PmA[0]*ol(Cartesian::z,Cartesian::xy)+1*_fak*ol(Cartesian::z,Cartesian::y);
-            ol(Cartesian::xz,Cartesian::yz) = PmA[0]*ol(Cartesian::z,Cartesian::yz);
-            ol(Cartesian::xz,Cartesian::xx) = PmA[0]*ol(Cartesian::z,Cartesian::xx)+2*_fak*ol(Cartesian::z,Cartesian::x);
-            ol(Cartesian::xz,Cartesian::xz) = PmA[0]*ol(Cartesian::z,Cartesian::xz)+1*_fak*ol(Cartesian::z,Cartesian::z);
-            ol(Cartesian::xz,Cartesian::zz) = PmA[0]*ol(Cartesian::z,Cartesian::zz);
-            ol(Cartesian::zz,Cartesian::yy) = PmA[2]*ol(Cartesian::z,Cartesian::yy)+1*_fak*ol(Cartesian::s,Cartesian::yy);
-            ol(Cartesian::zz,Cartesian::xy) = PmA[2]*ol(Cartesian::z,Cartesian::xy)+1*_fak*ol(Cartesian::s,Cartesian::xy);
-            ol(Cartesian::zz,Cartesian::yz) = PmA[2]*ol(Cartesian::z,Cartesian::yz)+1*_fak*ol(Cartesian::s,Cartesian::yz)+1*_fak*ol(Cartesian::z,Cartesian::y);
-            ol(Cartesian::zz,Cartesian::xx) = PmA[2]*ol(Cartesian::z,Cartesian::xx)+1*_fak*ol(Cartesian::s,Cartesian::xx);
-            ol(Cartesian::zz,Cartesian::xz) = PmA[2]*ol(Cartesian::z,Cartesian::xz)+1*_fak*ol(Cartesian::s,Cartesian::xz)+1*_fak*ol(Cartesian::z,Cartesian::x);
-            ol(Cartesian::zz,Cartesian::zz) = PmA[2]*ol(Cartesian::z,Cartesian::zz)+1*_fak*ol(Cartesian::s,Cartesian::zz)+2*_fak*ol(Cartesian::z,Cartesian::z);
+            ol(Cart::yy,Cart::yy) = PmA[1]*ol(Cart::y,Cart::yy)+1*_fak*ol(Cart::s,Cart::yy)+2*_fak*ol(Cart::y,Cart::y);
+            ol(Cart::yy,Cart::xy) = PmA[1]*ol(Cart::y,Cart::xy)+1*_fak*ol(Cart::s,Cart::xy)+1*_fak*ol(Cart::y,Cart::x);
+            ol(Cart::yy,Cart::yz) = PmA[1]*ol(Cart::y,Cart::yz)+1*_fak*ol(Cart::s,Cart::yz)+1*_fak*ol(Cart::y,Cart::z);
+            ol(Cart::yy,Cart::xx) = PmA[1]*ol(Cart::y,Cart::xx)+1*_fak*ol(Cart::s,Cart::xx);
+            ol(Cart::yy,Cart::xz) = PmA[1]*ol(Cart::y,Cart::xz)+1*_fak*ol(Cart::s,Cart::xz);
+            ol(Cart::yy,Cart::zz) = PmA[1]*ol(Cart::y,Cart::zz)+1*_fak*ol(Cart::s,Cart::zz);
+            ol(Cart::xy,Cart::yy) = PmA[0]*ol(Cart::y,Cart::yy);
+            ol(Cart::xy,Cart::xy) = PmA[0]*ol(Cart::y,Cart::xy)+1*_fak*ol(Cart::y,Cart::y);
+            ol(Cart::xy,Cart::yz) = PmA[0]*ol(Cart::y,Cart::yz);
+            ol(Cart::xy,Cart::xx) = PmA[0]*ol(Cart::y,Cart::xx)+2*_fak*ol(Cart::y,Cart::x);
+            ol(Cart::xy,Cart::xz) = PmA[0]*ol(Cart::y,Cart::xz)+1*_fak*ol(Cart::y,Cart::z);
+            ol(Cart::xy,Cart::zz) = PmA[0]*ol(Cart::y,Cart::zz);
+            ol(Cart::yz,Cart::yy) = PmA[1]*ol(Cart::z,Cart::yy)+2*_fak*ol(Cart::z,Cart::y);
+            ol(Cart::yz,Cart::xy) = PmA[1]*ol(Cart::z,Cart::xy)+1*_fak*ol(Cart::z,Cart::x);
+            ol(Cart::yz,Cart::yz) = PmA[1]*ol(Cart::z,Cart::yz)+1*_fak*ol(Cart::z,Cart::z);
+            ol(Cart::yz,Cart::xx) = PmA[1]*ol(Cart::z,Cart::xx);
+            ol(Cart::yz,Cart::xz) = PmA[1]*ol(Cart::z,Cart::xz);
+            ol(Cart::yz,Cart::zz) = PmA[1]*ol(Cart::z,Cart::zz);
+            ol(Cart::xx,Cart::yy) = PmA[0]*ol(Cart::x,Cart::yy)+1*_fak*ol(Cart::s,Cart::yy);
+            ol(Cart::xx,Cart::xy) = PmA[0]*ol(Cart::x,Cart::xy)+1*_fak*ol(Cart::s,Cart::xy)+1*_fak*ol(Cart::x,Cart::y);
+            ol(Cart::xx,Cart::yz) = PmA[0]*ol(Cart::x,Cart::yz)+1*_fak*ol(Cart::s,Cart::yz);
+            ol(Cart::xx,Cart::xx) = PmA[0]*ol(Cart::x,Cart::xx)+1*_fak*ol(Cart::s,Cart::xx)+2*_fak*ol(Cart::x,Cart::x);
+            ol(Cart::xx,Cart::xz) = PmA[0]*ol(Cart::x,Cart::xz)+1*_fak*ol(Cart::s,Cart::xz)+1*_fak*ol(Cart::x,Cart::z);
+            ol(Cart::xx,Cart::zz) = PmA[0]*ol(Cart::x,Cart::zz)+1*_fak*ol(Cart::s,Cart::zz);
+            ol(Cart::xz,Cart::yy) = PmA[0]*ol(Cart::z,Cart::yy);
+            ol(Cart::xz,Cart::xy) = PmA[0]*ol(Cart::z,Cart::xy)+1*_fak*ol(Cart::z,Cart::y);
+            ol(Cart::xz,Cart::yz) = PmA[0]*ol(Cart::z,Cart::yz);
+            ol(Cart::xz,Cart::xx) = PmA[0]*ol(Cart::z,Cart::xx)+2*_fak*ol(Cart::z,Cart::x);
+            ol(Cart::xz,Cart::xz) = PmA[0]*ol(Cart::z,Cart::xz)+1*_fak*ol(Cart::z,Cart::z);
+            ol(Cart::xz,Cart::zz) = PmA[0]*ol(Cart::z,Cart::zz);
+            ol(Cart::zz,Cart::yy) = PmA[2]*ol(Cart::z,Cart::yy)+1*_fak*ol(Cart::s,Cart::yy);
+            ol(Cart::zz,Cart::xy) = PmA[2]*ol(Cart::z,Cart::xy)+1*_fak*ol(Cart::s,Cart::xy);
+            ol(Cart::zz,Cart::yz) = PmA[2]*ol(Cart::z,Cart::yz)+1*_fak*ol(Cart::s,Cart::yz)+1*_fak*ol(Cart::z,Cart::y);
+            ol(Cart::zz,Cart::xx) = PmA[2]*ol(Cart::z,Cart::xx)+1*_fak*ol(Cart::s,Cart::xx);
+            ol(Cart::zz,Cart::xz) = PmA[2]*ol(Cart::z,Cart::xz)+1*_fak*ol(Cart::s,Cart::xz)+1*_fak*ol(Cart::z,Cart::x);
+            ol(Cart::zz,Cart::zz) = PmA[2]*ol(Cart::z,Cart::zz)+1*_fak*ol(Cart::s,Cart::zz)+2*_fak*ol(Cart::z,Cart::z);
 
-            kin(Cartesian::yy,Cartesian::yy) = PmA[1]*kin(Cartesian::y,Cartesian::yy)+1*_fak*kin(Cartesian::s,Cartesian::yy)+2*_fak*kin(Cartesian::y,Cartesian::y)+2*xi*(ol(Cartesian::yy,Cartesian::yy)-0.5*rzetaA*ol(Cartesian::s,Cartesian::yy));
-            kin(Cartesian::yy,Cartesian::xy) = PmA[1]*kin(Cartesian::y,Cartesian::xy)+1*_fak*kin(Cartesian::s,Cartesian::xy)+1*_fak*kin(Cartesian::y,Cartesian::x)+2*xi*(ol(Cartesian::yy,Cartesian::xy)-0.5*rzetaA*ol(Cartesian::s,Cartesian::xy));
-            kin(Cartesian::yy,Cartesian::yz) = PmA[1]*kin(Cartesian::y,Cartesian::yz)+1*_fak*kin(Cartesian::s,Cartesian::yz)+1*_fak*kin(Cartesian::y,Cartesian::z)+2*xi*(ol(Cartesian::yy,Cartesian::yz)-0.5*rzetaA*ol(Cartesian::s,Cartesian::yz));
-            kin(Cartesian::yy,Cartesian::xx) = PmA[1]*kin(Cartesian::y,Cartesian::xx)+1*_fak*kin(Cartesian::s,Cartesian::xx)+2*xi*(ol(Cartesian::yy,Cartesian::xx)-0.5*rzetaA*ol(Cartesian::s,Cartesian::xx));
-            kin(Cartesian::yy,Cartesian::xz) = PmA[1]*kin(Cartesian::y,Cartesian::xz)+1*_fak*kin(Cartesian::s,Cartesian::xz)+2*xi*(ol(Cartesian::yy,Cartesian::xz)-0.5*rzetaA*ol(Cartesian::s,Cartesian::xz));
-            kin(Cartesian::yy,Cartesian::zz) = PmA[1]*kin(Cartesian::y,Cartesian::zz)+1*_fak*kin(Cartesian::s,Cartesian::zz)+2*xi*(ol(Cartesian::yy,Cartesian::zz)-0.5*rzetaA*ol(Cartesian::s,Cartesian::zz));
-            kin(Cartesian::xy,Cartesian::yy) = PmA[0]*kin(Cartesian::y,Cartesian::yy)+2*xi*(ol(Cartesian::xy,Cartesian::yy));
-            kin(Cartesian::xy,Cartesian::xy) = PmA[0]*kin(Cartesian::y,Cartesian::xy)+1*_fak*kin(Cartesian::y,Cartesian::y)+2*xi*(ol(Cartesian::xy,Cartesian::xy));
-            kin(Cartesian::xy,Cartesian::yz) = PmA[0]*kin(Cartesian::y,Cartesian::yz)+2*xi*(ol(Cartesian::xy,Cartesian::yz));
-            kin(Cartesian::xy,Cartesian::xx) = PmA[0]*kin(Cartesian::y,Cartesian::xx)+2*_fak*kin(Cartesian::y,Cartesian::x)+2*xi*(ol(Cartesian::xy,Cartesian::xx));
-            kin(Cartesian::xy,Cartesian::xz) = PmA[0]*kin(Cartesian::y,Cartesian::xz)+1*_fak*kin(Cartesian::y,Cartesian::z)+2*xi*(ol(Cartesian::xy,Cartesian::xz));
-            kin(Cartesian::xy,Cartesian::zz) = PmA[0]*kin(Cartesian::y,Cartesian::zz)+2*xi*(ol(Cartesian::xy,Cartesian::zz));
-            kin(Cartesian::yz,Cartesian::yy) = PmA[1]*kin(Cartesian::z,Cartesian::yy)+2*_fak*kin(Cartesian::z,Cartesian::y)+2*xi*(ol(Cartesian::yz,Cartesian::yy));
-            kin(Cartesian::yz,Cartesian::xy) = PmA[1]*kin(Cartesian::z,Cartesian::xy)+1*_fak*kin(Cartesian::z,Cartesian::x)+2*xi*(ol(Cartesian::yz,Cartesian::xy));
-            kin(Cartesian::yz,Cartesian::yz) = PmA[1]*kin(Cartesian::z,Cartesian::yz)+1*_fak*kin(Cartesian::z,Cartesian::z)+2*xi*(ol(Cartesian::yz,Cartesian::yz));
-            kin(Cartesian::yz,Cartesian::xx) = PmA[1]*kin(Cartesian::z,Cartesian::xx)+2*xi*(ol(Cartesian::yz,Cartesian::xx));
-            kin(Cartesian::yz,Cartesian::xz) = PmA[1]*kin(Cartesian::z,Cartesian::xz)+2*xi*(ol(Cartesian::yz,Cartesian::xz));
-            kin(Cartesian::yz,Cartesian::zz) = PmA[1]*kin(Cartesian::z,Cartesian::zz)+2*xi*(ol(Cartesian::yz,Cartesian::zz));
-            kin(Cartesian::xx,Cartesian::yy) = PmA[0]*kin(Cartesian::x,Cartesian::yy)+1*_fak*kin(Cartesian::s,Cartesian::yy)+2*xi*(ol(Cartesian::xx,Cartesian::yy)-0.5*rzetaA*ol(Cartesian::s,Cartesian::yy));
-            kin(Cartesian::xx,Cartesian::xy) = PmA[0]*kin(Cartesian::x,Cartesian::xy)+1*_fak*kin(Cartesian::s,Cartesian::xy)+1*_fak*kin(Cartesian::x,Cartesian::y)+2*xi*(ol(Cartesian::xx,Cartesian::xy)-0.5*rzetaA*ol(Cartesian::s,Cartesian::xy));
-            kin(Cartesian::xx,Cartesian::yz) = PmA[0]*kin(Cartesian::x,Cartesian::yz)+1*_fak*kin(Cartesian::s,Cartesian::yz)+2*xi*(ol(Cartesian::xx,Cartesian::yz)-0.5*rzetaA*ol(Cartesian::s,Cartesian::yz));
-            kin(Cartesian::xx,Cartesian::xx) = PmA[0]*kin(Cartesian::x,Cartesian::xx)+1*_fak*kin(Cartesian::s,Cartesian::xx)+2*_fak*kin(Cartesian::x,Cartesian::x)+2*xi*(ol(Cartesian::xx,Cartesian::xx)-0.5*rzetaA*ol(Cartesian::s,Cartesian::xx));
-            kin(Cartesian::xx,Cartesian::xz) = PmA[0]*kin(Cartesian::x,Cartesian::xz)+1*_fak*kin(Cartesian::s,Cartesian::xz)+1*_fak*kin(Cartesian::x,Cartesian::z)+2*xi*(ol(Cartesian::xx,Cartesian::xz)-0.5*rzetaA*ol(Cartesian::s,Cartesian::xz));
-            kin(Cartesian::xx,Cartesian::zz) = PmA[0]*kin(Cartesian::x,Cartesian::zz)+1*_fak*kin(Cartesian::s,Cartesian::zz)+2*xi*(ol(Cartesian::xx,Cartesian::zz)-0.5*rzetaA*ol(Cartesian::s,Cartesian::zz));
-            kin(Cartesian::xz,Cartesian::yy) = PmA[0]*kin(Cartesian::z,Cartesian::yy)+2*xi*(ol(Cartesian::xz,Cartesian::yy));
-            kin(Cartesian::xz,Cartesian::xy) = PmA[0]*kin(Cartesian::z,Cartesian::xy)+1*_fak*kin(Cartesian::z,Cartesian::y)+2*xi*(ol(Cartesian::xz,Cartesian::xy));
-            kin(Cartesian::xz,Cartesian::yz) = PmA[0]*kin(Cartesian::z,Cartesian::yz)+2*xi*(ol(Cartesian::xz,Cartesian::yz));
-            kin(Cartesian::xz,Cartesian::xx) = PmA[0]*kin(Cartesian::z,Cartesian::xx)+2*_fak*kin(Cartesian::z,Cartesian::x)+2*xi*(ol(Cartesian::xz,Cartesian::xx));
-            kin(Cartesian::xz,Cartesian::xz) = PmA[0]*kin(Cartesian::z,Cartesian::xz)+1*_fak*kin(Cartesian::z,Cartesian::z)+2*xi*(ol(Cartesian::xz,Cartesian::xz));
-            kin(Cartesian::xz,Cartesian::zz) = PmA[0]*kin(Cartesian::z,Cartesian::zz)+2*xi*(ol(Cartesian::xz,Cartesian::zz));
-            kin(Cartesian::zz,Cartesian::yy) = PmA[2]*kin(Cartesian::z,Cartesian::yy)+1*_fak*kin(Cartesian::s,Cartesian::yy)+2*xi*(ol(Cartesian::zz,Cartesian::yy)-0.5*rzetaA*ol(Cartesian::s,Cartesian::yy));
-            kin(Cartesian::zz,Cartesian::xy) = PmA[2]*kin(Cartesian::z,Cartesian::xy)+1*_fak*kin(Cartesian::s,Cartesian::xy)+2*xi*(ol(Cartesian::zz,Cartesian::xy)-0.5*rzetaA*ol(Cartesian::s,Cartesian::xy));
-            kin(Cartesian::zz,Cartesian::yz) = PmA[2]*kin(Cartesian::z,Cartesian::yz)+1*_fak*kin(Cartesian::s,Cartesian::yz)+1*_fak*kin(Cartesian::z,Cartesian::y)+2*xi*(ol(Cartesian::zz,Cartesian::yz)-0.5*rzetaA*ol(Cartesian::s,Cartesian::yz));
-            kin(Cartesian::zz,Cartesian::xx) = PmA[2]*kin(Cartesian::z,Cartesian::xx)+1*_fak*kin(Cartesian::s,Cartesian::xx)+2*xi*(ol(Cartesian::zz,Cartesian::xx)-0.5*rzetaA*ol(Cartesian::s,Cartesian::xx));
-            kin(Cartesian::zz,Cartesian::xz) = PmA[2]*kin(Cartesian::z,Cartesian::xz)+1*_fak*kin(Cartesian::s,Cartesian::xz)+1*_fak*kin(Cartesian::z,Cartesian::x)+2*xi*(ol(Cartesian::zz,Cartesian::xz)-0.5*rzetaA*ol(Cartesian::s,Cartesian::xz));
-            kin(Cartesian::zz,Cartesian::zz) = PmA[2]*kin(Cartesian::z,Cartesian::zz)+1*_fak*kin(Cartesian::s,Cartesian::zz)+2*_fak*kin(Cartesian::z,Cartesian::z)+2*xi*(ol(Cartesian::zz,Cartesian::zz)-0.5*rzetaA*ol(Cartesian::s,Cartesian::zz));
+            kin(Cart::yy,Cart::yy) = PmA[1]*kin(Cart::y,Cart::yy)+1*_fak*kin(Cart::s,Cart::yy)+2*_fak*kin(Cart::y,Cart::y)+2*xi*(ol(Cart::yy,Cart::yy)-0.5*rzetaA*ol(Cart::s,Cart::yy));
+            kin(Cart::yy,Cart::xy) = PmA[1]*kin(Cart::y,Cart::xy)+1*_fak*kin(Cart::s,Cart::xy)+1*_fak*kin(Cart::y,Cart::x)+2*xi*(ol(Cart::yy,Cart::xy)-0.5*rzetaA*ol(Cart::s,Cart::xy));
+            kin(Cart::yy,Cart::yz) = PmA[1]*kin(Cart::y,Cart::yz)+1*_fak*kin(Cart::s,Cart::yz)+1*_fak*kin(Cart::y,Cart::z)+2*xi*(ol(Cart::yy,Cart::yz)-0.5*rzetaA*ol(Cart::s,Cart::yz));
+            kin(Cart::yy,Cart::xx) = PmA[1]*kin(Cart::y,Cart::xx)+1*_fak*kin(Cart::s,Cart::xx)+2*xi*(ol(Cart::yy,Cart::xx)-0.5*rzetaA*ol(Cart::s,Cart::xx));
+            kin(Cart::yy,Cart::xz) = PmA[1]*kin(Cart::y,Cart::xz)+1*_fak*kin(Cart::s,Cart::xz)+2*xi*(ol(Cart::yy,Cart::xz)-0.5*rzetaA*ol(Cart::s,Cart::xz));
+            kin(Cart::yy,Cart::zz) = PmA[1]*kin(Cart::y,Cart::zz)+1*_fak*kin(Cart::s,Cart::zz)+2*xi*(ol(Cart::yy,Cart::zz)-0.5*rzetaA*ol(Cart::s,Cart::zz));
+            kin(Cart::xy,Cart::yy) = PmA[0]*kin(Cart::y,Cart::yy)+2*xi*(ol(Cart::xy,Cart::yy));
+            kin(Cart::xy,Cart::xy) = PmA[0]*kin(Cart::y,Cart::xy)+1*_fak*kin(Cart::y,Cart::y)+2*xi*(ol(Cart::xy,Cart::xy));
+            kin(Cart::xy,Cart::yz) = PmA[0]*kin(Cart::y,Cart::yz)+2*xi*(ol(Cart::xy,Cart::yz));
+            kin(Cart::xy,Cart::xx) = PmA[0]*kin(Cart::y,Cart::xx)+2*_fak*kin(Cart::y,Cart::x)+2*xi*(ol(Cart::xy,Cart::xx));
+            kin(Cart::xy,Cart::xz) = PmA[0]*kin(Cart::y,Cart::xz)+1*_fak*kin(Cart::y,Cart::z)+2*xi*(ol(Cart::xy,Cart::xz));
+            kin(Cart::xy,Cart::zz) = PmA[0]*kin(Cart::y,Cart::zz)+2*xi*(ol(Cart::xy,Cart::zz));
+            kin(Cart::yz,Cart::yy) = PmA[1]*kin(Cart::z,Cart::yy)+2*_fak*kin(Cart::z,Cart::y)+2*xi*(ol(Cart::yz,Cart::yy));
+            kin(Cart::yz,Cart::xy) = PmA[1]*kin(Cart::z,Cart::xy)+1*_fak*kin(Cart::z,Cart::x)+2*xi*(ol(Cart::yz,Cart::xy));
+            kin(Cart::yz,Cart::yz) = PmA[1]*kin(Cart::z,Cart::yz)+1*_fak*kin(Cart::z,Cart::z)+2*xi*(ol(Cart::yz,Cart::yz));
+            kin(Cart::yz,Cart::xx) = PmA[1]*kin(Cart::z,Cart::xx)+2*xi*(ol(Cart::yz,Cart::xx));
+            kin(Cart::yz,Cart::xz) = PmA[1]*kin(Cart::z,Cart::xz)+2*xi*(ol(Cart::yz,Cart::xz));
+            kin(Cart::yz,Cart::zz) = PmA[1]*kin(Cart::z,Cart::zz)+2*xi*(ol(Cart::yz,Cart::zz));
+            kin(Cart::xx,Cart::yy) = PmA[0]*kin(Cart::x,Cart::yy)+1*_fak*kin(Cart::s,Cart::yy)+2*xi*(ol(Cart::xx,Cart::yy)-0.5*rzetaA*ol(Cart::s,Cart::yy));
+            kin(Cart::xx,Cart::xy) = PmA[0]*kin(Cart::x,Cart::xy)+1*_fak*kin(Cart::s,Cart::xy)+1*_fak*kin(Cart::x,Cart::y)+2*xi*(ol(Cart::xx,Cart::xy)-0.5*rzetaA*ol(Cart::s,Cart::xy));
+            kin(Cart::xx,Cart::yz) = PmA[0]*kin(Cart::x,Cart::yz)+1*_fak*kin(Cart::s,Cart::yz)+2*xi*(ol(Cart::xx,Cart::yz)-0.5*rzetaA*ol(Cart::s,Cart::yz));
+            kin(Cart::xx,Cart::xx) = PmA[0]*kin(Cart::x,Cart::xx)+1*_fak*kin(Cart::s,Cart::xx)+2*_fak*kin(Cart::x,Cart::x)+2*xi*(ol(Cart::xx,Cart::xx)-0.5*rzetaA*ol(Cart::s,Cart::xx));
+            kin(Cart::xx,Cart::xz) = PmA[0]*kin(Cart::x,Cart::xz)+1*_fak*kin(Cart::s,Cart::xz)+1*_fak*kin(Cart::x,Cart::z)+2*xi*(ol(Cart::xx,Cart::xz)-0.5*rzetaA*ol(Cart::s,Cart::xz));
+            kin(Cart::xx,Cart::zz) = PmA[0]*kin(Cart::x,Cart::zz)+1*_fak*kin(Cart::s,Cart::zz)+2*xi*(ol(Cart::xx,Cart::zz)-0.5*rzetaA*ol(Cart::s,Cart::zz));
+            kin(Cart::xz,Cart::yy) = PmA[0]*kin(Cart::z,Cart::yy)+2*xi*(ol(Cart::xz,Cart::yy));
+            kin(Cart::xz,Cart::xy) = PmA[0]*kin(Cart::z,Cart::xy)+1*_fak*kin(Cart::z,Cart::y)+2*xi*(ol(Cart::xz,Cart::xy));
+            kin(Cart::xz,Cart::yz) = PmA[0]*kin(Cart::z,Cart::yz)+2*xi*(ol(Cart::xz,Cart::yz));
+            kin(Cart::xz,Cart::xx) = PmA[0]*kin(Cart::z,Cart::xx)+2*_fak*kin(Cart::z,Cart::x)+2*xi*(ol(Cart::xz,Cart::xx));
+            kin(Cart::xz,Cart::xz) = PmA[0]*kin(Cart::z,Cart::xz)+1*_fak*kin(Cart::z,Cart::z)+2*xi*(ol(Cart::xz,Cart::xz));
+            kin(Cart::xz,Cart::zz) = PmA[0]*kin(Cart::z,Cart::zz)+2*xi*(ol(Cart::xz,Cart::zz));
+            kin(Cart::zz,Cart::yy) = PmA[2]*kin(Cart::z,Cart::yy)+1*_fak*kin(Cart::s,Cart::yy)+2*xi*(ol(Cart::zz,Cart::yy)-0.5*rzetaA*ol(Cart::s,Cart::yy));
+            kin(Cart::zz,Cart::xy) = PmA[2]*kin(Cart::z,Cart::xy)+1*_fak*kin(Cart::s,Cart::xy)+2*xi*(ol(Cart::zz,Cart::xy)-0.5*rzetaA*ol(Cart::s,Cart::xy));
+            kin(Cart::zz,Cart::yz) = PmA[2]*kin(Cart::z,Cart::yz)+1*_fak*kin(Cart::s,Cart::yz)+1*_fak*kin(Cart::z,Cart::y)+2*xi*(ol(Cart::zz,Cart::yz)-0.5*rzetaA*ol(Cart::s,Cart::yz));
+            kin(Cart::zz,Cart::xx) = PmA[2]*kin(Cart::z,Cart::xx)+1*_fak*kin(Cart::s,Cart::xx)+2*xi*(ol(Cart::zz,Cart::xx)-0.5*rzetaA*ol(Cart::s,Cart::xx));
+            kin(Cart::zz,Cart::xz) = PmA[2]*kin(Cart::z,Cart::xz)+1*_fak*kin(Cart::s,Cart::xz)+1*_fak*kin(Cart::z,Cart::x)+2*xi*(ol(Cart::zz,Cart::xz)-0.5*rzetaA*ol(Cart::s,Cart::xz));
+            kin(Cart::zz,Cart::zz) = PmA[2]*kin(Cart::z,Cart::zz)+1*_fak*kin(Cart::s,Cart::zz)+2*_fak*kin(Cart::z,Cart::z)+2*xi*(ol(Cart::zz,Cart::zz)-0.5*rzetaA*ol(Cart::s,Cart::zz));
             }
 
                 // normalization and cartesian -> spherical factors

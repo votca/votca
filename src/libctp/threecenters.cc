@@ -112,6 +112,24 @@ namespace votca {
             double fak2 = 2.0 * fak;
             double fak3 = 3.0 * fak;
 
+            double _dist1=(_pos_alpha - _pos_gamma)*(_pos_alpha - _pos_gamma);
+            double _dist2=(_pos_gamma - _pos_gw) * (_pos_gamma - _pos_gw);
+            double _dist3=(_pos_alpha - _pos_gw) * (_pos_alpha - _pos_gw);
+            
+            if (_dist1<0.01 && _dist2<0.01 && _dist3<0.01){
+            double gma0 = 0.0;
+            double gmb0 = 0.0;
+            double gmc0 = 0.0;
+
+            double gma1 = 0.0;
+            double gmb1 = 0.0;
+            double gmc1 = 0.0;
+
+            double gma2 = 0.0;
+            double gmb2 = 0.0;
+            double gmc2 = 0.0;
+            }
+            else{
             vec gvv = fak2 * (_decay_alpha * _pos_alpha + _decay_gw * _pos_gw + _decay_gamma * _pos_gamma);
             vec gma = gvv - _pos_alpha;
             vec gmb = gvv - _pos_gamma;
@@ -129,7 +147,7 @@ namespace votca {
             double gmb2 = gmb.getZ();
             double gmc2 = gmc.getZ();
 
-
+            }
             // get s-s-s element
             double expo = _decay_alpha * _decay_gamma * (_pos_alpha - _pos_gamma)*(_pos_alpha - _pos_gamma)
                     + _decay_gamma * _decay_gw * (_pos_gamma - _pos_gw) * (_pos_gamma - _pos_gw)
