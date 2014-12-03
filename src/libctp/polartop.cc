@@ -4,6 +4,7 @@
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
+#include <boost/serialization/version.hpp>
 
 namespace votca { namespace ctp {
 
@@ -11,12 +12,14 @@ namespace votca { namespace ctp {
 PolarTop::PolarTop() : _top(NULL), _center(vec(0,0,0)) {
     _clean_qm0 = _clean_mm1 = _clean_mm2 = true;
     _clean_bgN = _clean_fgN = _clean_fgC = true;
+    _polarization_iter = -1; _polarization_converged = false;
 };
 
 
 PolarTop::PolarTop(Topology *top) : _top(top), _center(vec(0,0,0)) {
     _clean_qm0 = _clean_mm1 = _clean_mm2 = true;
     _clean_bgN = _clean_fgN = _clean_fgC = true;
+    _polarization_iter = -1; _polarization_converged = false;
 };
     
     
@@ -293,4 +296,10 @@ void PolarTop::LoadFromDrive(string archfile) {
 }
 
 
+
+
+
 }}
+
+// Version 0 -> Version 1: Added _polarization_iter, _polarization_converged
+BOOST_CLASS_VERSION(votca::ctp::PolarTop, 1)

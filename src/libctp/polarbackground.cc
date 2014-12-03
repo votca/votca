@@ -8,8 +8,7 @@ namespace EWD {
 using boost::format;
     
 PolarBackground::PolarBackground(Topology *top, PolarTop *ptop, Property *opt, 
-    Logger *log) : _top(top), _ptop(ptop), _log(log), 
-    _n_threads(1) {
+    Logger *log) : _top(top), _ptop(ptop), _log(log), _n_threads(1) {
     
     // EVALUATE OPTIONS
     string pfx = "options.ewdbgpol";
@@ -60,6 +59,11 @@ PolarBackground::PolarBackground(Topology *top, PolarTop *ptop, Property *opt,
         _polar_aDamp = opt->get(pfx+".polarmethod.aDamp").as<double>();
     else
         _polar_aDamp = 0.390;
+    // Checkpointing
+    if (opt->exists(pfx+".control.checkpointing"))
+        _do_checkpointing = opt->get(pfx+".control.checkpointing").as<bool>();
+    else
+        _do_checkpointing = false;
     
     // EWALD INTERACTION PARAMETERS (GUESS ONLY)
     _K_co = _kfactor/_R_co;
@@ -89,6 +93,14 @@ PolarBackground::PolarBackground(Topology *top, PolarTop *ptop, Property *opt,
     // SET-UP POLAR GROUNDS (FORE-, MID-, BACK-)
     _bg_P.clear();
     _bg_P = ptop->BGN();
+    
+    // RESTART OPTIONS
+    _restart_from_iter = ptop->getPolarizationIter();
+    if (_restart_from_iter > -1) {
+        LOG(logINFO,*_log) << "Restarting from iteration " 
+           << _restart_from_iter << flush << flush;
+        _do_restart = true;
+    }
     
     // CALCULATE COG POSITIONS, NET CHARGE
     vector<PolarSeg*>::iterator sit; 
@@ -179,10 +191,16 @@ PolarBackground::PolarBackground(Topology *top, PolarTop *ptop, Property *opt,
     }
     
     // CHARGE APPROPRIATELY & DEPOLARIZE
-    for (sit = _bg_P.begin(); sit < _bg_P.end(); ++sit) {        
-        PolarSeg* pseg = *sit;        
-        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
-            (*pit)->Depolarize();
+    if (_do_restart) {
+        // Restarting from previous iteration, hence no depolarization
+        ;
+    }
+    else {
+        for (sit = _bg_P.begin(); sit < _bg_P.end(); ++sit) {        
+            PolarSeg* pseg = *sit;        
+            for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
+                (*pit)->Depolarize();
+            }
         }
     }
     
@@ -222,6 +240,15 @@ PolarBackground::~PolarBackground() {
     _kvecs_2_0.clear();
     _kvecs_1_0.clear();
     _kvecs_0_0.clear();
+}
+
+
+void PolarBackground::Checkpoint(int iter, bool converged) {
+    LOG(logDEBUG,*_log) << "  o Checkpointing (iteration " << iter << ") ... ";
+    _ptop->setPolarizationIter(iter, converged);
+    _ptop->SaveToDrive("bgp_check.ptop");
+    LOG(logDEBUG,*_log) << "done." << flush;
+    return;
 }
 
 
@@ -272,72 +299,91 @@ void PolarBackground::Polarize(int n_threads = 1) {
     */
     
     double rms = 0.0;
-    int rms_count = 0;
+    int rms_count = 0;    
     
-    // I GENERATE PERMANENT FIELDS (FP)
-    LOG(dbg,log) << flush;
-    LOG(dbg,log) << "Generate permanent fields (FP)" << flush;
-    // I.A Intermolecular real-space contribution
-    LOG(dbg,log) << "  o Real-space, intermolecular" << flush;
-    this->FX_RealSpace("FP_MODE", true);
-    if (!_do_use_cutoff) {
-        // I.B Reciprocal-space contribution
-        LOG(dbg,log) << "  o Reciprocal-space" << flush;
-        this->FX_ReciprocalSpace("SP_MODE", "FP_MODE", true);
-        // I.C Shape fields
-        LOG(dbg,log) << "  o Shape fields ('" << _shape << "')" << flush;
-        _ewdactor.FP12_ShapeField_At_By(_bg_P, _bg_P, _shape, _LxLyLz);
-        // I.D Molecular ERF self-interaction correction
-        LOG(dbg,log) << "  o Molecular SI correction" << flush;
-        for (sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
-            for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
-                for (pit2 = (*sit1)->begin(); pit2 < (*sit1)->end(); ++pit2) {
-                    rms += _ewdactor.FP12_ERF_At_By(*(*pit1), *(*pit2));
-                    rms_count += 1;
+    if (!_do_restart) {
+        // I GENERATE PERMANENT FIELDS (FP)
+        LOG(dbg,log) << flush;
+        LOG(dbg,log) << "Generate permanent fields (FP)" << flush;
+        // I.A Intermolecular real-space contribution
+        LOG(dbg,log) << "  o Real-space, intermolecular" << flush;
+        this->FX_RealSpace("FP_MODE", true);
+        if (!_do_use_cutoff) {
+            // I.B Reciprocal-space contribution
+            LOG(dbg,log) << "  o Reciprocal-space" << flush;
+            this->FX_ReciprocalSpace("SP_MODE", "FP_MODE", true);
+            // I.C Shape fields
+            LOG(dbg,log) << "  o Shape fields ('" << _shape << "')" << flush;
+            _ewdactor.FP12_ShapeField_At_By(_bg_P, _bg_P, _shape, _LxLyLz);
+            // I.D Molecular ERF self-interaction correction
+            LOG(dbg,log) << "  o Molecular SI correction" << flush;
+            for (sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
+                for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+                    for (pit2 = (*sit1)->begin(); pit2 < (*sit1)->end(); ++pit2) {
+                        rms += _ewdactor.FP12_ERF_At_By(*(*pit1), *(*pit2));
+                        rms_count += 1;
+                    }
                 }
             }
+            rms = sqrt(rms/rms_count)*EWD::int2V_m;
         }
-        rms = sqrt(rms/rms_count)*EWD::int2V_m;
-    }
-    
-    // TEASER OUTPUT PERMANENT FIELDS
-    LOG(logDEBUG,*_log) << flush << "Foreground fields:" << flush;
-    int fieldCount = 0;
-    for (sit1 = _bg_P.begin()+16; sit1 < _bg_P.end(); ++sit1) {
-        PolarSeg *pseg = *sit1;
-        Segment *seg = _top->getSegment(pseg->getId());
-        LOG(logDEBUG,*_log) << "ID = " << pseg->getId() << " (" << seg->getName() << ") " << flush;
-        for (pit1 = pseg->begin(); pit1 < pseg->end(); ++pit1) {
-            vec fp = (*pit1)->getFieldP();
-            LOG(logDEBUG,*_log)
-               << (format("FP = (%1$+1.7e %2$+1.7e %3$+1.7e) V/m") 
-                    % (fp.getX()*EWD::int2V_m)
-                    % (fp.getY()*EWD::int2V_m) 
-                    % (fp.getZ()*EWD::int2V_m)).str() << flush;
-            fieldCount += 1;
-            if (fieldCount > 10) {
+
+        // TEASER OUTPUT PERMANENT FIELDS
+        LOG(logDEBUG,*_log) << flush << "Foreground fields:" << flush;
+        int fieldCount = 0;
+        for (sit1 = _bg_P.begin()+16; sit1 < _bg_P.end(); ++sit1) {
+            PolarSeg *pseg = *sit1;
+            Segment *seg = _top->getSegment(pseg->getId());
+            LOG(logDEBUG,*_log) << "ID = " << pseg->getId() << " (" << seg->getName() << ") " << flush;
+            for (pit1 = pseg->begin(); pit1 < pseg->end(); ++pit1) {
+                vec fp = (*pit1)->getFieldP();
                 LOG(logDEBUG,*_log)
-                    << "FP = ... ... ..." << flush;
-                break;
+                   << (format("FP = (%1$+1.7e %2$+1.7e %3$+1.7e) V/m") 
+                        % (fp.getX()*EWD::int2V_m)
+                        % (fp.getY()*EWD::int2V_m) 
+                        % (fp.getZ()*EWD::int2V_m)).str() << flush;
+                fieldCount += 1;
+                if (fieldCount > 10) {
+                    LOG(logDEBUG,*_log)
+                        << "FP = ... ... ..." << flush;
+                    break;
+                }
+            }
+            if (fieldCount > 10) break;
+        }
+
+        // II INDUCE TO 1ST ORDER
+        LOG(dbg,log) << flush << "Induce to first order" << flush;
+        for (sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
+            for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+                (*pit1)->InduceDirect();
             }
         }
-        if (fieldCount > 10) break;
+
+        // Checkpointing for potential restart
+        if (_do_checkpointing) this->Checkpoint(0, false);
     }
-    
-    
-    // II INDUCE TO 1ST ORDER
-    LOG(dbg,log) << flush << "Induce to first order" << flush;
-    for (sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
-        for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
-            (*pit1)->InduceDirect();
-        }
+    else {
+        LOG(dbg,log) << flush;
+        LOG(dbg,log) << "Restarting from checkpoint => "
+            << "Permanent fields already generated." << flush;
     }
     
     // III CONVERGE INDUCTION FIELDS (FU)
-    int iter = 0;
+    // NOTE Real-space neighbours should always be regenerated during first 
+    //      induction iteration
+    // NOTE Reciprocal-space vectors need only be regenerated if not already 
+    //      done on permanent level
+    int iter = (_do_restart) ? _restart_from_iter+1 : 1;    
+    int setup_nbs_iter = (_do_restart) ? _restart_from_iter+1 : 1;    
+    int generate_kvecs_iter = (_do_restart) ? _restart_from_iter+1 : -1;
+    
+    LOG(dbg,log) << "  o Setup real-space neighbours at iteration " << setup_nbs_iter << flush;
+    LOG(dbg,log) << "  o Generate k-vectors at iteration " << generate_kvecs_iter << flush;
+    
     int max_iter = 512;
     double epstol = 1e-3;
-    for ( ; iter < max_iter; ++iter) {
+    for ( ; iter < max_iter+1; ++iter) {
         LOG(dbg,log) << flush;
         LOG(dbg,log) << "Iter " << iter << " started" << flush;
         
@@ -363,12 +409,13 @@ void PolarBackground::Polarize(int n_threads = 1) {
             }
         }
         // (2) Real-space intermolecular contribution
-        bool do_setup_nbs = (iter == 0) ? true : false;
+        bool do_setup_nbs = (iter == setup_nbs_iter) ? true : false;
+        bool generate_kvecs = (iter == generate_kvecs_iter) ? true : false;
         this->FX_RealSpace("FU_MODE", do_setup_nbs);
         if (!_do_use_cutoff) {
             // (3) Reciprocal-space contribution
             LOG(dbg,log) << "  o Reciprocal-space" << flush;
-            this->FX_ReciprocalSpace("SU_MODE", "FU_MODE", false);
+            this->FX_ReciprocalSpace("SU_MODE", "FU_MODE", generate_kvecs);
             // (4) Calculate shape fields
             LOG(dbg,log) << "  o Shape fields ('" << _shape << "')" << flush;
             _ewdactor.FU12_ShapeField_At_By(_bg_P, _bg_P, _shape, _LxLyLz);
@@ -436,12 +483,13 @@ void PolarBackground::Polarize(int n_threads = 1) {
         }
         avgdU /= baseN;
         if (avgdU < epstol*0.1) { converged = true; }
+        if (_do_checkpointing) this->Checkpoint(iter, converged);
         if (converged) {
             LOG(dbg,log) << flush;
             LOG(dbg,log) << ":: Converged induction fields" << flush;
             break;
         }
-        else if (iter == max_iter-1) {
+        else if (iter == max_iter) {
             throw std::runtime_error("Not converged.");
             break;
         }

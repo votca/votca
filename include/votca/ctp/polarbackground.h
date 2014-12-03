@@ -21,6 +21,7 @@ public:
    
     void Threaded(int n_threads) { _n_threads = n_threads; }
     void Polarize(int n_threads);
+    void Checkpoint(int iter, bool converged);
     
     void FX_RealSpace(string mode, bool do_setup_nbs);    
     void FX_ReciprocalSpace(string S_mode, string F_mode, bool gen_kvecs);    
@@ -155,6 +156,11 @@ private:
     Logger *_log;
     int _n_threads;
 
+    // CHECKPOINTING & RESTART OPTIONS
+    bool _do_checkpointing;
+    bool _do_restart;
+    int _restart_from_iter;    
+    
     // PERIODIC BOUNDARY
     Topology *_top;
     string _shape;
