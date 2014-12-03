@@ -35,7 +35,8 @@
 #if defined (BOOST_VERSION) && (BOOST_VERSION >= 103401)
 
 #include <boost/numeric/ublas/matrix.hpp>
-
+#include <omp.h>
+#include <mkl.h>
 #include "mkl_boost_ublas_gemm.hpp"
 
 namespace boost { namespace numeric { namespace ublas {
@@ -47,7 +48,7 @@ namespace boost { namespace numeric { namespace ublas {
          const matrix<T,F,A> &m2)
     {
         matrix<T,F,A> temporary(m1.size1(),m2.size2());
-        mkl::gemm(CblasNoTrans, CblasNoTrans, m1, m2, temporary);
+	mkl::gemm(CblasNoTrans, CblasNoTrans, m1, m2, temporary);
         return temporary;
     }
     template<class T, class F, class A>

@@ -38,7 +38,13 @@ class QMNBList : public CSG::PairList< Segment*, QMPair >
 {
 public:
     
-    // container for records of type Donor-Bridge1-Bridge2-...-Acceptor
+    /**
+     * \brief Container for records of type Donor-Bridge1-Bridge2-...-Acceptor
+     * 
+     * Every SuperExchangeType record contains a pair donor, acceptor
+     * and a list of bridges (all specified by segment types, i.e. strings)
+     * 
+     */ 
     class SuperExchangeType {
       public:
         
@@ -101,13 +107,27 @@ public:
        }
    }
     
+   /**
+    * \brief Adds SuperExchange pairs to the neighbor list 
+    *
+    * SuperExchange pairs are those pairs which have one or more bridging molecules specified 
+    * in the input file via a record [Donor Bridge1 Bridge2 ... Acceptor] 
+    * Every pair gets a flag, identifying if a QMPair is of type
+    * Hopping, SuperExchange, SuperExchangeAndHopping. This is stored to the state file
+    * The BRIDGED pairs are stored but BRIDGING pairs have to be regenerated every time 
+    * we need them (edft job writer, idft job writer and importer)
+    * 
+    */
     void GenerateSuperExchange();
     
+    /**
+     * @param type Adds a SuperExchangeType based on this string (Donor Bridge1 Bridge2 ... Acceptor)
+     */
     void AddSuperExchangeType(string type) { _superexchange.push_back(new SuperExchangeType(type)); }
     
     void setSuperExchangeTypes(list<SuperExchangeType*> types) { _superexchange = types; }
     
-    list<SuperExchangeType*> &getSuperExchangeTypes() { return _superexchange; }
+    const list<SuperExchangeType*> &getSuperExchangeTypes() const { return _superexchange; }
 
     void    setCutoff(double cutoff) { _cutoff = cutoff; }
     double  getCutoff() { return _cutoff; }

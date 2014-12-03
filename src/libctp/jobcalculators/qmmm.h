@@ -6,6 +6,9 @@
 #include <votca/ctp/xjob.h>
 #include <votca/ctp/xinductor.h>
 #include <votca/ctp/xinteractor.h>
+// add gwbse header of excited state support
+#include <votca/ctp/gwbse.h>
+// --------
 #include <votca/ctp/qmmachine.h>
 #include <boost/format.hpp>
 
@@ -70,6 +73,11 @@ private:
     // QM Package options
     string                          _package;
     Property                        _qmpack_opt;
+    
+    // GWBSE options
+    string                          _gwbse;
+    Property                        _gwbse_opt;
+    int                             _state;
 
     // XJob logbook (file output)
     string                          _outFile;
@@ -178,7 +186,7 @@ void QMMM::Initialize(Property *opt) {
             _cutoff2 = _cutoff1;
         }
         if ( opt->exists(key+".subthreads") ) {
-            _subthreads = opt->get(key+".subthreads").as< double >();
+            _subthreads = opt->get(key+".subthreads").as< int >();
         }
         else {
             _subthreads = 1;
@@ -194,6 +202,33 @@ void QMMM::Initialize(Property *opt) {
         else {
             throw runtime_error("No QM package specified.");
         }
+    
+    
+    // GWBSE options, depending on whether it is there, decide for ground
+    // or excited state QM/MM
+    key = "options.qmmm.gwbse";
+    
+    if ( opt->exists(key)) { 
+        cout << " Excited state QM/MM " << endl;
+        
+         if ( opt->exists(key+".gwbse_options")) {
+            string gwbse_xml = opt->get(key+".gwbse_options").as< string >();
+            load_property_from_xml(_gwbse_opt, gwbse_xml.c_str());
+            // _gwbse = _gwbse_opt.get("package.name").as< string >();
+        }
+        else {
+            throw runtime_error("GWBSE options not specified.");
+        }
+        
+        _state = opt->get(key+".state").as< int >();
+        
+        
+    } else {
+        cout << " Ground state QM/MM " << endl;
+    }
+    
+
+    
     
     //cout << TXT << _options;
     

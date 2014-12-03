@@ -1,6 +1,19 @@
 #ifndef _VOTCA_CTP_CONFIG_H
 #define _VOTCA_CTP_CONFIG_H
 
+/* OpenMP */
+#cmakedefine OMP
+#if defined(OMP)
+   #include <omp.h>
+   #define OMP
+#endif
+
+/* LIBXC */
+#cmakedefine LIBXC
+#if defined(LIBXC)
+   #define LIBXC
+#endif
+
 /* Linear algebra packages */
 #cmakedefine EIGEN
 #cmakedefine MKL
@@ -8,10 +21,12 @@
 
 #define NDEBUG
 
-#if defined(MKL)
-    #include <votca/ctp/mkl_boost_ublas_matrix_prod.h>
-#elif defined(GSL)
+
+
+#if defined(GSL)
     #include <votca/ctp/gsl_boost_ublas_matrix_prod.h>
+#elif defined(MKL)
+    #include <votca/ctp/mkl_boost_ublas_matrix_prod.h>
 #endif
 
 #endif // _VOTCA_CTP_CONFIG_H

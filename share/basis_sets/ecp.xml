@@ -22,5 +22,14 @@
 		<shell type="D-F"><constant power="2" decay="4.86241400" contraction="-7.83796400"></constant></shell>
 	</element>
 
+
+        <element name="O" lmax="3" ncore="2">
+            <shell type="F-Komponente"><constant power="2" decay="1.0" contraction="0.0"></constant></shell>
+            <shell type="S-F"><constant power="2" decay="10.44567000" contraction="50.77106900"></constant></shell>
+            <shell type="P-F"><constant power="2" decay="18.04517400" contraction="-4.90355100"></constant></shell>
+            <shell type="D-F"><constant power="2" decay="8.16479800" contraction="-3.31212400"></constant></shell>
+       </element>
+
+
 </pseudopotential>
 

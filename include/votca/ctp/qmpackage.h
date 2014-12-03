@@ -11,6 +11,8 @@
 #include <votca/ctp/orbitals.h>
 #include <votca/tools/property.h>
 #include <votca/ctp/segment.h>
+#include <votca/ctp/qmpair.h>
+#include <votca/ctp/topology.h>
 
 namespace votca { namespace ctp {
 
@@ -31,7 +33,11 @@ public:
 
    virtual void Initialize( Property *options ) = 0;
    
+   /// writes a coordinate file WITHOUT taking into account PBCs
    virtual bool WriteInputFile( vector< Segment* > segments, Orbitals* orbitals = NULL) = 0;
+
+   /// writes a coordinate file of a pair WITH PBCs and the orbital guess [if needed]
+   bool WriteInputFilePBC( QMPair* pair, Orbitals* orbitals = NULL);
    
    virtual bool Run() = 0;
 
@@ -65,6 +71,8 @@ public:
    
    void doGetCharges(bool do_get_charges) { _get_charges = do_get_charges; }
    
+   string getBasisSetName(){return _basisset_name;}
+   
 protected:
 
     int                                 _charge;
@@ -81,6 +89,7 @@ protected:
     
     string                              _run_dir;
         
+    string                              _basisset_name;
     list< string >                      _cleanup_list;
     
     bool                                _get_orbitals;
@@ -96,6 +105,45 @@ protected:
     Logger*                             _pLog;
        
 };
+
+inline bool QMPackage::WriteInputFilePBC( QMPair* pair, Orbitals* orbitals) {
+    
+    //std::cout << "IDFT writes input with PBC" << std::endl;
+    
+    Segment* seg1 = pair->Seg1();
+    Segment* seg2 = pair->Seg2();
+    Segment* ghost = NULL;
+    
+    Topology* _top = seg1->getTopology();
+
+    vec r1 = seg1->getPos();
+    vec r2 = seg2->getPos();
+
+    vec _R = _top->PbShortestConnect(r1, r2); // => _R points from 1 to 2
+
+    // Check whether pair formed across periodic boundary
+    if ( abs(r2 - r1 - _R) > 1e-8 ) {
+        ghost = new Segment(seg2);
+        //ghost->TranslateBy(r1 - r2 + _R); // DO NOT USE THIS METHOD !
+	vector<Atom*>::iterator ait;
+	for (ait = ghost->Atoms().begin(); ait != ghost->Atoms().end(); ++ait) {
+		(*ait)->setQMPos((*ait)->getQMPos()+r1-r2+_R);
+	}
+    }
+ 
+    vector< Segment* > segments;
+    segments.push_back(seg1);
+    
+    if ( ghost ) {
+        segments.push_back(ghost);
+    } else {
+        segments.push_back(seg2);
+    }
+   
+    WriteInputFile( segments, orbitals);
+    
+    delete ghost;
+}   
 
 }}
 

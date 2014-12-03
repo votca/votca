@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 2.6)
-
 project(votca-ctp)
 
 set(PROJECT_VERSION "1.3-dev")
@@ -18,9 +17,26 @@ enable_language(CXX)
 
 include(CheckCXXCompilerFlag)
 
+find_package(OpenMP)
+if (OPENMP_FOUND)
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    set ( OMP TRUE )
+endif()
+
+
 ########################################################################
 # User input options                                                   #
 ########################################################################
+
+
+find_package(LIBXC)
+include_directories(${LIBXC_INCLUDE_DIRS})
+if (LIBXC_FOUND)
+	set (LIBXC TRUE )
+endif()
+
+
 option(BUILD_SHARED_LIBS "Build shared libs" ON)
 if (NOT DEFINED LIB)
   set(LIB "lib")
@@ -31,7 +47,7 @@ endif(NOT DEFINED MAN)
 if (NOT DEFINED DATA)
   set(DATA "share/votca")
 endif(NOT DEFINED DATA)
-option(WITH_DIPRO "Build mergeorbitals and DIPRO, which use fortran" ON)
+#option(WITH_DIPRO "Build mergeorbitals and DIPRO, which use fortran" ON)
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
 ########################################################################
@@ -42,6 +58,13 @@ include_directories(${Boost_INCLUDE_DIRS})
 set (BOOST_LIBRARIES ${Boost_THREAD_LIBRARY} ${Boost_PROGRAM_OPTIONS_LIBRARY} ${Boost_SERIALIZATION_LIBRARY} ${Boost_FILESYSTEM_LIBRARY} ${Boost_TIMER_LIBRARY})
 set (BOOST_CFLAGS_PKG "-I${Boost_INCLUDE_DIRS}")
 string(REGEX REPLACE "^(.*)/lib([^/]*)\\.[^.]*$" "-L\\1 -l\\2" BOOST_LIBS_PKG ${BOOST_LIBRARIES})
+
+option(BUILD_MANPAGES "Build manpages (might lead to problem on system without rpath" OFF)
+#define this target here, so that individual man pages can append to it.
+add_custom_target(manpages ALL)
+
+
+
 
 #message(STATUS "BOOST_LIBRARIES='${BOOST_LIBRARIES}'")
 
@@ -59,8 +82,7 @@ option(WITH_LINALG "Checking which BLAS libraries are installed" ON)
 if (WITH_LINALG)
 
   find_package(Eigen)
-  find_package(GSL)
-  find_package(MKL)
+
 
   if (EIGEN_FOUND) 
     message("-- EIGEN found (not used at the moment)")
@@ -71,22 +93,21 @@ if (WITH_LINALG)
     set(EIGEN FALSE) #used in votca_ctp_config.h
   endif()
 
-  if (GSL_FOUND) 
+  set(MKL FALSE)
+  set(GSL FALSE)
+
+  #find_package(GSL)
+  find_package(MKL)
+
+
+  if (MKL_FOUND AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+    message("-- MKL found, overloading uBLAS prod()")
+    set(MKL TRUE) #used in votca_ctp_config.h
+  elseif(GSL_FOUND)
     message("-- GSL found, overloading uBLAS prod()")
     include_directories(${GSL_INCLUDE_DIRS})
     set(GSL_PKG "gsl")
     set(GSL TRUE) #used in votca_ctp_config.h
-  else()
-    message(WARNING "-- GSL not found, slow uBLAS::prod()")
-    set(GSL FALSE) #used in votca_ctp_config.h
-  endif()
-
-  if (MKL_FOUND) 
-    message("-- MKL found, overloading uBLAS prod()")
-    set(MKL TRUE) #used in votca_ctp_config.h
-  else()
-    message("-- MKL not found (hopefully GSL is here)")
-    set(MKL FALSE) #used in votca_ctp_config.h
   endif()
 
 endif(WITH_LINALG)
@@ -133,3 +154,4 @@ add_subdirectory(src/tools)
 #add_subdirectory(src/dipro)
 #add_subdirectory(share/scripts/dipro) 
 add_subdirectory(share)  
+add_subdirectory(share/man)

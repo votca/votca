@@ -396,8 +396,8 @@ bool GW::ParseLogFile( Orbitals* _orbitals ) {
         std::string::size_type QPpert_pos = _line.find("GWA calculating correlation energies DONE!");
 
         if (QPpert_pos != std::string::npos) {
-            _orbitals->_has_QPpert = true;
-            _orbitals->_QP_levels_index.clear(); //make sure vector is empty
+            // _orbitals->_has_QPpert = true;
+            //_orbitals->_QP_levels_index.clear(); //make sure vector is empty
             // next line is header -> skip
             getline(_input_file, _line);
             _levels = 0;
@@ -416,7 +416,7 @@ bool GW::ParseLogFile( Orbitals* _orbitals ) {
                     boost::algorithm::token_compress_on); 
                     // get QP level index and save in orbitals
                     level = boost::lexical_cast<int>(results[2]);
-                    _orbitals->_QP_levels_index.push_back(boost::lexical_cast<int>(results[2]));
+                    //_orbitals->_QP_levels_index.push_back(boost::lexical_cast<int>(results[2]));
                     // get the five (DFT, S_x,S_c, V_xc, E_qp) energies in temporary map
                     for (size_t ite=0; ite<5; ite++) {
                         _energies[ _levels ].push_back(boost::lexical_cast<double>(results[ite+3])); // DFT energy
@@ -494,14 +494,14 @@ bool GW::ParseLogFile( Orbitals* _orbitals ) {
     LOG( logDEBUG, *_pLog ) << "BSE matrix dimension: " << _bse_matrix_dim << flush;
     // build index array
     unsigned _i_bse = 0;
-    _orbitals->_BSE_levels_indices.resize( _bse_matrix_dim, 2 );
-    for ( unsigned _i_occupied = _bse_lower; _i_occupied <= _homoindex; _i_occupied++){
-        for (unsigned _i_empty = _homoindex+1; _i_empty <= _bse_upper; _i_empty++ ){
-            _orbitals->_BSE_levels_indices( _i_bse, 0 ) = _i_occupied;
-            _orbitals->_BSE_levels_indices( _i_bse, 1 ) = _i_empty;
-            _i_bse++;
-         }
-    }
+//    _orbitals->_BSE_levels_indices.resize( _bse_matrix_dim, 2 );
+//    for ( unsigned _i_occupied = _bse_lower; _i_occupied <= _homoindex; _i_occupied++){
+//        for (unsigned _i_empty = _homoindex+1; _i_empty <= _bse_upper; _i_empty++ ){
+//            _orbitals->_BSE_levels_indices( _i_bse, 0 ) = _i_occupied;
+//            _orbitals->_BSE_levels_indices( _i_bse, 1 ) = _i_empty;
+//            _i_bse++;
+ //        }
+ //   }
 
     // some sanity checks
     LOG( logDEBUG, *_pLog ) << "QP perturbative levels: " << _levels << flush;
@@ -517,7 +517,7 @@ bool GW::ParseLogFile( Orbitals* _orbitals ) {
     } else {
         //LOG(logDEBUG, *_pLog) << "Reading diagonalized QP data from " << _diag_file_name << flush;
         //vector<string> results;
-        _orbitals->_has_QPdiag = true;
+        //_orbitals->_has_QPdiag = true;
         getline(_diag_file, _line); // first line is number of levels
         boost::trim( _line );
             
@@ -525,10 +525,10 @@ bool GW::ParseLogFile( Orbitals* _orbitals ) {
         boost::algorithm::token_compress_on); 
         _levels = boost::lexical_cast<int>(results.front());
         // sanity check
-        if ( _levels != _orbitals->_QP_levels_index.size() ){
-           LOG( logERROR, *_pLog ) << "Unmatching number of QP levels in " << _log_file_name << "\n from *.gwbse: " << _orbitals->_QP_levels_index.size() << "; from diag_QP.dat: " << _levels << flush;
-           return false;
-        }
+        //if ( _levels != _orbitals->_QP_levels_index.size() ){
+        //   LOG( logERROR, *_pLog ) << "Unmatching number of QP levels in " << _log_file_name << "\n from *.gwbse: " << _orbitals->_QP_levels_index.size() << "; from diag_QP.dat: " << _levels << flush;
+        //   return false;
+        //}
         // now loop over all levels
         _orbitals->_QPdiag_coefficients.resize(_levels, _levels);
         for (size_t _i_level=0; _i_level < _levels; _i_level++ ){
@@ -561,7 +561,7 @@ bool GW::ParseLogFile( Orbitals* _orbitals ) {
         LOG( logDEBUG, *_pLog ) << "File " << _singlet_file_name << " not found, skipping " << flush;
     } else {
         //LOG(logDEBUG, *_pLog) << "Reading singlet exciton data from " << _singlet_file_name << flush;
-        _orbitals->_has_BSE_singlets = true;
+        //_orbitals->_has_BSE_singlets = true;
         _orbitals->_BSE_singlet_energies.resize( _bse_written_states );
         _orbitals->_BSE_singlet_coefficients.resize( _bse_written_states, _bse_matrix_dim );
         for ( size_t _i_state = 0; _i_state < _bse_written_states; _i_state++ ) {
@@ -594,7 +594,7 @@ bool GW::ParseLogFile( Orbitals* _orbitals ) {
         LOG( logDEBUG, *_pLog ) << "File " << _triplet_file_name << " not found, skipping " << flush;
     } else {
         //LOG(logDEBUG, *_pLog) << "Reading triplet exciton data from " << _triplet_file_name << flush;
-        _orbitals->_has_BSE_triplets = true;
+        //_orbitals->_has_BSE_triplets = true;
         _orbitals->_BSE_triplet_energies.resize( _bse_written_states );
         _orbitals->_BSE_triplet_coefficients.resize( _bse_written_states, _bse_matrix_dim );
         for ( size_t _i_state = 0; _i_state < _bse_written_states; _i_state++ ) {

@@ -35,9 +35,9 @@ namespace votca { namespace ctp {
 /**
 * \brief Density-functional-based electronic coupling elements
 *
-* Ealuates DFT-based electronic coupling elements for all conjugated
+* Evaluates DFT-based electronic coupling elements for all conjugated
 * segments from the neighbor list. Requires molecular orbitals of two monomers
-* and a dimer in GAUSSIAN, NWCHem, or TURBOMOLE format.
+* and a dimer in GAUSSIAN, NWChem, or TURBOMOLE format.
 * 
 *  B. Baumeier, J. Kirkpatrick, D. Andrienko, 
 *  Phys. Chem. Chem. Phys., 12, 11103-11113, 2010
@@ -60,7 +60,7 @@ public:
 
     void WriteJobFile(Topology *top);
 
-    void Import( Topology *top );
+    void ReadJobFile( Topology *top );
     
 /*  
     void    EvalPair(Topology *top, QMPair *pair, int slot);

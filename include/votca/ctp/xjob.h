@@ -136,12 +136,14 @@ public:
        _EM_SPH2        = e_m_out;
    }
    
-   void setEnergy_QMMM(double energy_QM, 
+   void setEnergy_QMMM(double energy_QM,
+                       double energy_GWBSE,
                        double energy_SF, 
                        double energy_QMMM) {
        
        _E_QM = energy_QM;
        _E_SF = energy_SF;
+       _E_GWBSE = energy_GWBSE;
        _E_QMMM = energy_QMMM;
    }
 
@@ -194,6 +196,7 @@ private:
    // QM Energy (self-energy, internal)
    double               _E_QM;
    double               _E_SF;
+   double               _E_GWBSE;
    double               _E_QMMM;
    
    string               _infoLine;
