@@ -187,7 +187,211 @@ void EwdInteractor::FU12_ShapeField_At_By(vector<PolarSeg*> &at,
     return;
 }
     
+
+void EwdInteractor::PhiPU12_ShapeField_At_By(vector<PolarSeg*> &s1, 
+    vector<PolarSeg*> &s2, string shape, double V) {
+    // NOTE : WITH PREFACTOR = -4*PI/V (xyslab) v -4*PI/3V (cube, sphere)    
+    // NOTE : Similar operations in PhiPU12_..., PhiP12_..., PhiU12_...
     
+    vector<PolarSeg*>::iterator sit;
+    vector<APolarSite*>::iterator pit;
+    
+    // Charge, dipole, quadrupole for <s2>:
+    // Q... <> permanent, U... <> induced
+    double Q0_S2 = 0.0;
+    votca::tools::vec Q1_S2 = vec(0,0,0);
+    votca::tools::vec U1_S2 = vec(0,0,0);
+    votca::tools::matrix Q2_S2;
+    Q2_S2.ZeroMatrix();
+    votca::tools::matrix U2_S2;
+    U2_S2.ZeroMatrix();
+    
+    for (sit = s2.begin(); sit != s2.end(); ++sit) {
+        for (pit = (*sit)->begin(); pit != (*sit)->end(); ++pit) {
+            vec r = (*pit)->getPos();
+            double q0 = (*pit)->Q00;
+            vec    q1 = vec((*pit)->Q1x, (*pit)->Q1y, (*pit)->Q1z);
+            vec    u1 = vec((*pit)->U1x, (*pit)->U1y, (*pit)->U1z);
+            matrix q2 = matrix(
+                vec((*pit)->Qxx, (*pit)->Qxy, (*pit)->Qxz),
+                vec((*pit)->Qxy, (*pit)->Qyy, (*pit)->Qyz),
+                vec((*pit)->Qxz, (*pit)->Qyz, (*pit)->Qzz));
+            // Charge
+            Q0_S2 += q0;
+            // Dipole
+            Q1_S2 += q0*r;
+            if ((*pit)->getRank() > 0)
+                Q1_S2 += q1;
+            U1_S2 += u1;
+            // Quadrupole
+            Q2_S2 += 0.5*q0*(r|r);
+            if ((*pit)->getRank() > 0) {
+                Q2_S2 += (q1|r);
+                if ((*pit)->getRank() > 1) {
+                    Q2_S2 += q2;
+                }
+            }
+            U2_S2 += (u1|r);
+        }
+    }
+    
+    // Traces
+    double TrQ2_S2 = Q2_S2.get(0,0)+Q2_S2.get(1,1)+Q2_S2.get(2,2);
+    double TrU2_S2 = U2_S2.get(0,0)+U2_S2.get(1,1)+U2_S2.get(2,2);
+    
+    
+    // Increment potentials
+    if (shape == "xyslab") {
+        double prefac = -4*M_PI/V;
+        for (sit = s1.begin(); sit != s1.end(); ++sit) {
+            for (pit = (*sit)->begin(); pit != (*sit)->end(); ++pit) {           
+                (*pit)->PhiP += prefac*(Q2_S2.get(2,2) - (*pit)->getPos().getZ()*Q1_S2.getZ());
+                (*pit)->PhiU += prefac*(U2_S2.get(2,2) - (*pit)->getPos().getZ()*U1_S2.getZ());  
+            }
+        }
+    }
+    else if (shape == "cube" || shape == "sphere") {
+        double prefac = -4*M_PI/(3*V);
+        for (sit = s1.begin(); sit != s1.end(); ++sit) {
+            for (pit = (*sit)->begin(); pit != (*sit)->end(); ++pit) {
+                (*pit)->PhiP += prefac*(TrQ2_S2 - (*pit)->getPos()*Q1_S2);
+                (*pit)->PhiU += prefac*(TrU2_S2 - (*pit)->getPos()*U1_S2);
+            }
+        }
+    }
+    else {
+        cout << endl;
+        throw std::runtime_error("Shape '" + shape + "' not implemented");
+    }
+    
+    return;
+}
+
+
+void EwdInteractor::PhiP12_ShapeField_At_By(vector<PolarSeg*> &s1, 
+    vector<PolarSeg*> &s2, string shape, double V) {
+    // NOTE : WITH PREFACTOR = -4*PI/V (xyslab) v -4*PI/3V (cube, sphere)
+    // NOTE : Similar operations in PhiPU12_..., PhiP12_..., PhiU12_...
+    
+    vector<PolarSeg*>::iterator sit;
+    vector<APolarSite*>::iterator pit;
+    
+    // Charge, dipole, quadrupole for <s2>:
+    // Q... <> permanent, U... <> induced
+    double Q0_S2 = 0.0;
+    votca::tools::vec Q1_S2 = vec(0,0,0);
+    votca::tools::matrix Q2_S2;
+    Q2_S2.ZeroMatrix();
+    
+    for (sit = s2.begin(); sit != s2.end(); ++sit) {
+        for (pit = (*sit)->begin(); pit != (*sit)->end(); ++pit) {
+            vec r = (*pit)->getPos();
+            double q0 = (*pit)->Q00;
+            vec    q1 = vec((*pit)->Q1x, (*pit)->Q1y, (*pit)->Q1z);
+            matrix q2 = matrix(
+                vec((*pit)->Qxx, (*pit)->Qxy, (*pit)->Qxz),
+                vec((*pit)->Qxy, (*pit)->Qyy, (*pit)->Qyz),
+                vec((*pit)->Qxz, (*pit)->Qyz, (*pit)->Qzz));
+            // Charge
+            Q0_S2 += q0;
+            // Dipole
+            Q1_S2 += q0*r;
+            if ((*pit)->getRank() > 0)
+                Q1_S2 += q1;
+            // Quadrupole
+            Q2_S2 += 0.5*q0*(r|r);
+            if ((*pit)->getRank() > 0) {
+                Q2_S2 += (q1|r);
+                if ((*pit)->getRank() > 1) {
+                    Q2_S2 += q2;
+                }
+            }
+        }
+    }
+    
+    // Traces
+    double TrQ2_S2 = Q2_S2.get(0,0)+Q2_S2.get(1,1)+Q2_S2.get(2,2);    
+    
+    // Increment potentials
+    if (shape == "xyslab") {
+        double prefac = -4*M_PI/V;
+        for (sit = s1.begin(); sit != s1.end(); ++sit) {
+            for (pit = (*sit)->begin(); pit != (*sit)->end(); ++pit) {           
+                (*pit)->PhiP += prefac*(Q2_S2.get(2,2) - (*pit)->getPos().getZ()*Q1_S2.getZ());
+            }
+        }
+    }
+    else if (shape == "cube" || shape == "sphere") {
+        double prefac = -4*M_PI/(3*V);
+        for (sit = s1.begin(); sit != s1.end(); ++sit) {
+            for (pit = (*sit)->begin(); pit != (*sit)->end(); ++pit) {
+                (*pit)->PhiP += prefac*(TrQ2_S2 - (*pit)->getPos()*Q1_S2);
+            }
+        }
+    }
+    else {
+        cout << endl;
+        throw std::runtime_error("Shape '" + shape + "' not implemented");
+    }
+    
+    return;
+}
+
+
+void EwdInteractor::PhiU12_ShapeField_At_By(vector<PolarSeg*> &s1, 
+    vector<PolarSeg*> &s2, string shape, double V) {
+    // NOTE : WITH PREFACTOR = -4*PI/V (xyslab) v -4*PI/3V (cube, sphere)
+    // NOTE : Similar operations in PhiPU12_..., PhiP12_..., PhiU12_...
+    
+    vector<PolarSeg*>::iterator sit;
+    vector<APolarSite*>::iterator pit;
+    
+    // Charge, dipole, quadrupole for <s2>:
+    // Q... <> permanent, U... <> induced
+    votca::tools::vec U1_S2 = vec(0,0,0);
+    votca::tools::matrix U2_S2;
+    U2_S2.ZeroMatrix();
+    
+    for (sit = s2.begin(); sit != s2.end(); ++sit) {
+        for (pit = (*sit)->begin(); pit != (*sit)->end(); ++pit) {
+            vec r = (*pit)->getPos();
+            vec    u1 = vec((*pit)->U1x, (*pit)->U1y, (*pit)->U1z);
+            // Dipole
+            U1_S2 += u1;
+            // Quadrupole
+            U2_S2 += (u1|r);
+        }
+    }
+    
+    // Traces
+    double TrU2_S2 = U2_S2.get(0,0)+U2_S2.get(1,1)+U2_S2.get(2,2);    
+    
+    // Increment potentials
+    if (shape == "xyslab") {
+        double prefac = -4*M_PI/V;
+        for (sit = s1.begin(); sit != s1.end(); ++sit) {
+            for (pit = (*sit)->begin(); pit != (*sit)->end(); ++pit) {           
+                (*pit)->PhiU += prefac*(U2_S2.get(2,2) - (*pit)->getPos().getZ()*U1_S2.getZ());  
+            }
+        }
+    }
+    else if (shape == "cube" || shape == "sphere") {
+        double prefac = -4*M_PI/(3*V);
+        for (sit = s1.begin(); sit != s1.end(); ++sit) {
+            for (pit = (*sit)->begin(); pit != (*sit)->end(); ++pit) {
+                (*pit)->PhiU += prefac*(TrU2_S2 - (*pit)->getPos()*U1_S2);
+            }
+        }
+    }
+    else {
+        cout << endl;
+        throw std::runtime_error("Shape '" + shape + "' not implemented");
+    }
+    
+    return;
+}
+
+
 //void EwdInteractor::FPU12_XYSlab_ShapeField_At_By(vector<PolarSeg*> &at, 
 //    vector<PolarSeg*> &by, double &TwoPi_V) {
 //    // This function requires neutrality of &by but gets around
@@ -624,6 +828,165 @@ EWD::cmplx EwdInteractor::FU12_AS1S2_At_By(const vec &k,
 
 
 // ============================ RECIPROCAL SPACE ============================ //
+//                                 POTENTIALS                                 //
+
+EWD::cmplx EwdInteractor::PhiPU12_AS1S2_At_By(const vec &k, vector<PolarSeg*> &s1, 
+    vector<PolarSeg*> &s2, double &rV) {
+    // ATTENTION Increments *permanent* potential PhiP of s1 only
+    // ATTENTION Structure factors include PERMANENT & INDUCED moments of s2
+    // NOTE Analogous operations in PhiPU12_..., PhiP12_..., PhiU12_...
+    
+    ApplyBiasK(k);
+    
+    vector<PolarSeg*>::iterator sit;
+    vector<APolarSite*> ::iterator pit;
+    
+    // NOTE sum_re_phi_rms => convergence check (to be performed by caller)
+    // NOTE sum_im_phi_xyz => sanity check      (to be performed by caller)
+    double sum_re_phi_ms = 0.0;
+    double sum_im_phi = 0.0;
+    int rms_count = 0;
+        
+    // Structure amplitude S2* from s2 = B*
+    EWD::cmplx cmplx_S2 = PUStructureAmplitude(s2).Conjugate();
+    double re_S2 = cmplx_S2._re;
+    double im_S2 = cmplx_S2._im;
+    
+    // Compute k-component of potential acting on s1 = A(c)
+    for (sit = s1.begin(); sit < s1.end(); ++sit) {
+        for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {
+            kr = kx * (*pit)->getPos().getX()
+               + ky * (*pit)->getPos().getY()
+               + kz * (*pit)->getPos().getZ();
+            coskr = cos(kr);
+            sinkr = sin(kr);
+            
+            // Real component
+            double phi  = rV*AK * (coskr*re_S2 - sinkr*im_S2);
+            (*pit)->PhiP += phi;
+            
+            // Imaginary component (error check)
+            double iphi = rV*AK * (coskr*im_S2 + sinkr*re_S2);
+            
+            rms_count += 1;
+            sum_re_phi_ms += phi*phi;
+            sum_im_phi += iphi;
+        }
+    }
+    
+    sum_re_phi_ms /= rms_count;
+    
+    // NOTE sum_re_phi_rms => convergence check (to be performed by caller)
+    // NOTE sum_im_phi     => sanity check      (to be performed by caller)
+    return EWD::cmplx(sum_re_phi_ms, sum_im_phi);
+}
+
+
+EWD::cmplx EwdInteractor::PhiP12_AS1S2_At_By(const vec &k, vector<PolarSeg*> &s1, 
+    vector<PolarSeg*> &s2, double &rV) {
+    // ATTENTION Increments *permanent* potential PhiP of s1 only
+    // ATTENTION Structure factors include PERMANENT moments of s2 only
+    // NOTE Analogous operations in PhiPU12_..., PhiP12_..., PhiU12_...
+    
+    ApplyBiasK(k);
+    
+    vector<PolarSeg*>::iterator sit;
+    vector<APolarSite*> ::iterator pit;
+    
+    // NOTE sum_re_phi_rms => convergence check (to be performed by caller)
+    // NOTE sum_im_phi_xyz => sanity check      (to be performed by caller)
+    double sum_re_phi_ms = 0.0;
+    double sum_im_phi = 0.0;
+    int rms_count = 0;
+        
+    // Structure amplitude S2* from s2 = B*
+    EWD::cmplx cmplx_S2 = PStructureAmplitude(s2).Conjugate();
+    double re_S2 = cmplx_S2._re;
+    double im_S2 = cmplx_S2._im;
+    
+    // Compute k-component of potential acting on s1 = A(c)
+    for (sit = s1.begin(); sit < s1.end(); ++sit) {
+        for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {
+            kr = kx * (*pit)->getPos().getX()
+               + ky * (*pit)->getPos().getY()
+               + kz * (*pit)->getPos().getZ();
+            coskr = cos(kr);
+            sinkr = sin(kr);
+            
+            // Real component
+            double phi  = rV*AK * (coskr*re_S2 - sinkr*im_S2);
+            (*pit)->PhiP += phi;
+            
+            // Imaginary component (error check)
+            double iphi = rV*AK * (coskr*im_S2 + sinkr*re_S2);
+            
+            rms_count += 1;
+            sum_re_phi_ms += phi*phi;
+            sum_im_phi += iphi;
+        }
+    }
+    
+    sum_re_phi_ms /= rms_count;
+    
+    // NOTE sum_re_phi_rms => convergence check (to be performed by caller)
+    // NOTE sum_im_phi     => sanity check      (to be performed by caller)
+    return EWD::cmplx(sum_re_phi_ms, sum_im_phi);
+}
+
+
+EWD::cmplx EwdInteractor::PhiU12_AS1S2_At_By(const vec &k, vector<PolarSeg*> &s1, 
+    vector<PolarSeg*> &s2, double &rV) {
+    // ATTENTION Increments *permanent* potential PhiP of s1 only
+    // ATTENTION Structure factors include PERMANENT moments of s2 only
+    // NOTE Analogous operations in PhiPU12_..., PhiP12_..., PhiU12_...
+    
+    ApplyBiasK(k);
+    
+    vector<PolarSeg*>::iterator sit;
+    vector<APolarSite*> ::iterator pit;
+    
+    // NOTE sum_re_phi_rms => convergence check (to be performed by caller)
+    // NOTE sum_im_phi_xyz => sanity check      (to be performed by caller)
+    double sum_re_phi_ms = 0.0;
+    double sum_im_phi = 0.0;
+    int rms_count = 0;
+        
+    // Structure amplitude S2* from s2 = B*
+    EWD::cmplx cmplx_S2 = UStructureAmplitude(s2).Conjugate();
+    double re_S2 = cmplx_S2._re;
+    double im_S2 = cmplx_S2._im;
+    
+    // Compute k-component of potential acting on s1 = A(c)
+    for (sit = s1.begin(); sit < s1.end(); ++sit) {
+        for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {
+            kr = kx * (*pit)->getPos().getX()
+               + ky * (*pit)->getPos().getY()
+               + kz * (*pit)->getPos().getZ();
+            coskr = cos(kr);
+            sinkr = sin(kr);
+            
+            // Real component
+            double phi  = rV*AK * (coskr*re_S2 - sinkr*im_S2);
+            (*pit)->PhiU += phi;
+            
+            // Imaginary component (error check)
+            double iphi = rV*AK * (coskr*im_S2 + sinkr*re_S2);
+            
+            rms_count += 1;
+            sum_re_phi_ms += phi*phi;
+            sum_im_phi += iphi;
+        }
+    }
+    
+    sum_re_phi_ms /= rms_count;
+    
+    // NOTE sum_re_phi_rms => convergence check (to be performed by caller)
+    // NOTE sum_im_phi     => sanity check      (to be performed by caller)
+    return EWD::cmplx(sum_re_phi_ms, sum_im_phi);
+}
+
+
+// ============================ RECIPROCAL SPACE ============================ //
 //                                  ENERGIES                                  //
 
 EWD::triple<EWD::cmplx> EwdInteractor::AS1S2(const vec &k,
@@ -832,18 +1195,30 @@ EWD::triple<double> EwdInteractor::U12_ShapeTerm(vector<PolarSeg*> &s1,
         LOG(logDEBUG, *log) << "  U1   = " 
             << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e") 
                 % U1_S1.getX() % U1_S1.getY() % U1_S1.getZ()) << flush;
+        
         LOG(logDEBUG, *log) << "  Q2   = "
-            << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e | %4$+1.7e %5$+1.7e %6$+1.7e | %7$+1.7e %8$+1.7e %9$+1.7e") 
-                % Q2_S1.get(0,0) % Q2_S1.get(0,1) % Q2_S1.get(0,2)
-                % Q2_S1.get(1,0) % Q2_S1.get(1,1) % Q2_S1.get(1,2)
+            << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e") 
+                % Q2_S1.get(0,0) % Q2_S1.get(0,1) % Q2_S1.get(0,2)) << flush;
+        LOG(logDEBUG, *log) << "         "
+            << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e") 
+                % Q2_S1.get(1,0) % Q2_S1.get(1,1) % Q2_S1.get(1,2)) << flush;
+        LOG(logDEBUG, *log) << "         "
+            << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e")
                 % Q2_S1.get(2,0) % Q2_S1.get(2,1) % Q2_S1.get(2,2)) << flush;
+        
         LOG(logDEBUG, *log) << "  U2   = "
-            << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e | %4$+1.7e %5$+1.7e %6$+1.7e | %7$+1.7e %8$+1.7e %9$+1.7e") 
-                % U2_S1.get(0,0) % U2_S1.get(0,1) % U2_S1.get(0,2)
-                % U2_S1.get(1,0) % U2_S1.get(1,1) % U2_S1.get(1,2)
+            << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e") 
+                % U2_S1.get(0,0) % U2_S1.get(0,1) % U2_S1.get(0,2)) << flush;
+        LOG(logDEBUG, *log) << "         "
+            << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e") 
+                % U2_S1.get(1,0) % U2_S1.get(1,1) % U2_S1.get(1,2)) << flush;
+        LOG(logDEBUG, *log) << "         "
+            << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e") 
                 % U2_S1.get(2,0) % U2_S1.get(2,1) % U2_S1.get(2,2)) << flush;
+        
         LOG(logDEBUG, *log) << "  TrQ2 = " << TrQ2_S1 << flush;
         LOG(logDEBUG, *log) << "  TrU2 = " << TrU2_S1 << flush;
+        
         
         LOG(logDEBUG, *log) << "S2 moments: " << flush;
         LOG(logDEBUG, *log) << "  Q0   = " 
@@ -854,15 +1229,25 @@ EWD::triple<double> EwdInteractor::U12_ShapeTerm(vector<PolarSeg*> &s1,
         LOG(logDEBUG, *log) << "  U1   = " 
             << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e") 
                 % U1_S2.getX() % U1_S2.getY() % U1_S2.getZ()) << flush;
+        
         LOG(logDEBUG, *log) << "  Q2   = "
-            << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e | %4$+1.7e %5$+1.7e %6$+1.7e | %7$+1.7e %8$+1.7e %9$+1.7e") 
-                % Q2_S2.get(0,0) % Q2_S2.get(0,1) % Q2_S2.get(0,2)
-                % Q2_S2.get(1,0) % Q2_S2.get(1,1) % Q2_S2.get(1,2)
+            << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e") 
+                % Q2_S2.get(0,0) % Q2_S2.get(0,1) % Q2_S2.get(0,2)) << flush;
+        LOG(logDEBUG, *log) << "         "
+            << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e") 
+                % Q2_S2.get(1,0) % Q2_S2.get(1,1) % Q2_S2.get(1,2)) << flush;
+        LOG(logDEBUG, *log) << "         "
+            << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e")
                 % Q2_S2.get(2,0) % Q2_S2.get(2,1) % Q2_S2.get(2,2)) << flush;
+        
         LOG(logDEBUG, *log) << "  U2   = "
-            << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e | %4$+1.7e %5$+1.7e %6$+1.7e | %7$+1.7e %8$+1.7e %9$+1.7e") 
-                % U2_S2.get(0,0) % U2_S2.get(0,1) % U2_S2.get(0,2)
-                % U2_S2.get(1,0) % U2_S2.get(1,1) % U2_S2.get(1,2)
+            << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e") 
+                % U2_S2.get(0,0) % U2_S2.get(0,1) % U2_S2.get(0,2)) << flush;
+        LOG(logDEBUG, *log) << "         "
+            << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e") 
+                % U2_S2.get(1,0) % U2_S2.get(1,1) % U2_S2.get(1,2)) << flush;
+        LOG(logDEBUG, *log) << "         "
+            << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e") 
                 % U2_S2.get(2,0) % U2_S2.get(2,1) % U2_S2.get(2,2)) << flush;
         LOG(logDEBUG, *log) << "  TrQ2 = " << TrQ2_S2 << flush;
         LOG(logDEBUG, *log) << "  TrU2 = " << TrU2_S2 << flush;

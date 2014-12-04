@@ -28,7 +28,9 @@ APolarSite::APolarSite(APolarSite *templ, bool do_depolarize)
 
       U1x(templ->U1x), U1y(templ->U1y), U1z(templ->U1z),
       FPx(templ->FPx), FPy(templ->FPy), FPz(templ->FPz),
-      FUx(templ->FUx), FUy(templ->FUy), FUz(templ->FUz) {
+      FUx(templ->FUx), FUy(templ->FUy), FUz(templ->FUz),
+
+      PhiP(templ->PhiP), PhiU(templ->PhiU) {
     
     if (do_depolarize) this->Depolarize();
 }

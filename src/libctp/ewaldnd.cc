@@ -1526,6 +1526,44 @@ void Ewald3DnD::EvaluatePoisson() {
 }
 
 
+void Ewald3DnD::EvaluatePotential() {
+    
+    // RESET POTENTIALS
+    vector<PolarSeg*>::iterator sit; 
+    vector<APolarSite*> ::iterator pit;
+    for (sit = _fg_C.begin(); sit < _fg_C.end(); ++sit) {        
+        PolarSeg* pseg = *sit;
+        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
+            (*pit)->ResetPhi(true, true);
+        }
+    }
+
+    // REAL-SPACE CONTRIBUTION (3D2D && 3D3D)
+    Potential_ConvergeRealSpaceSum();    
+
+    // RECIPROCAL-SPACE CONTRIBUTION (3D2D && 3D3D)
+    Potential_ConvergeReciprocalSpaceSum();
+
+    // SHAPE-CORRECTION (3D3D)/ K0-CORRECTION (3D2D)
+    Potential_CalculateShapeCorrection();
+
+    // FOREGROUND CORRECTION (3D2D && 3D3D)
+    Potential_CalculateForegroundCorrection();
+    
+    double q_phi = 0.0;
+    for (sit = _fg_C.begin(); sit < _fg_C.end(); ++sit) {        
+        PolarSeg* pseg = *sit;
+        for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
+            q_phi += (*pit)->getQ00()*(*pit)->getPhi();
+        }
+    }
+    
+    LOG(logINFO,*_log) << flush << "Potential q*phi " << q_phi*EWD::int2eV << flush;
+    
+    return;
+}
+
+
 EWD::triple<> Ewald3DnD::ConvergeRealSpaceSum() {
     
     LOG(logDEBUG,*_log) << flush;

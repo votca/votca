@@ -123,6 +123,11 @@ public:
     vec             getFieldU() { return vec(FUx,FUy,FUz); } // Only IOP
     vec             getU1() { return vec(U1x,U1y,U1z); }     // Only IOP
     void            setU1(vec &u1) { U1x = u1.getX(); U1y = u1.getY(); U1z = u1.getZ(); }
+    // POTENTIALS
+    double          getPhiP() { return PhiP; }
+    double          getPhiU() { return PhiU; }
+    double          getPhi() { return PhiP+PhiU; }
+    void            ResetPhi(bool p, bool u) { if (p) PhiP = 0.0; if (u) PhiU = 0.0; }
     // CHARGE -1 0 +1 & DELTA
     void            Charge(int state);
     void            ChargeDelta(int state1, int state2);
@@ -181,6 +186,8 @@ public:
         arch & U1x; arch & U1y; arch & U1z;
         arch & FPx; arch & FPy; arch & FPz;
         arch & FUx; arch & FUy; arch & FUz;
+        
+        arch & PhiP; arch & PhiU;
 
         // NOT ARCHIVED
         // Topology *_top;
@@ -231,6 +238,9 @@ private:
     double FPx, FPy, FPz;                   // Electric field (due to permanent)
     double FUx, FUy, FUz;                   // Electric field (due to induced)
     vector< vec > U1_Hist;                  // Ind. u history
+    
+    double PhiP;                            // Electric potential (due to perm.)
+    double PhiU;                            // Electric potential (due to indu.)
     
     // Required for SOR+Anderson
     //vector<vec> U1_i; // in

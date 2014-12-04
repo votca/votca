@@ -201,8 +201,6 @@ void PEwald3D3D::GenerateKVectors(vector<PolarSeg*> &ps1, vector<PolarSeg*> &ps2
 }
 
 
-
-
 void PEwald3D3D::ScanCutoff() {
     /*
     double sum = 0.0;
@@ -1192,6 +1190,294 @@ void PEwald3D3D::Field_CalculateShapeCorrection() {
     
     return;
 }
+
+
+void PEwald3D3D::Potential_ConvergeRealSpaceSum() {
     
+    double sum = 0.0;
+    double sum_phi = 0.0;
+    _potential_converged_R = false;
     
+    LOG(logDEBUG,*_log) << flush 
+        << "R-space potentials via midground" << flush;
+    
+    vector<PolarSeg*>::iterator sit1; 
+    vector<APolarSite*> ::iterator pit1;
+    vector<PolarSeg*>::iterator sit2; 
+    vector<APolarSite*> ::iterator pit2;
+    vector<PolarNb*>::iterator nit;
+    vector< vector<PolarSeg*> > ::iterator vsit;
+    
+    // ENERGY - REUSE NEIGHBOURS ?
+    if (_did_field_pin_R_shell) {    
+        for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
+            vector<PolarNb*> &nbs = (*sit1)->PolarNbs();
+            for (nit = nbs.begin(); nit != nbs.end(); ++nit) {
+                PolarSeg *nb = (*nit)->getNb();
+                for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+                    for (pit2 = nb->begin(); pit2 < nb->end(); ++pit2) {
+                        double phi = _ewdactor.PhiPU12_ERFC_At_By(*(*pit1), *(*pit2));
+                        sum_phi += phi;
+                    }
+                }
+            }
+            if (tools::globals::verbose) LOG(logDEBUG,*_log)
+                << (format("  o Id = %5$-4d Rc = %1$+02.7f   |MGN| = %2$5d   dF(rms) = %3$+1.3e V/m   [1eA => %4$+1.3e eV]") 
+                % -1.0 % nbs.size() % -1.0  % -1.0 % ((*sit1)->getId())).str() << flush;
+        }
+        _potential_converged_R = true;
+    }
+    
+    // ENERGY - REGENERATE NEIGHBOURS ?
+    else {
+        double dR_shell = 0.5;
+        double R_overhead = 1.1;
+        double R_add = 3;
+        double R_max = _R_co*R_overhead+R_add;
+        double R_max_shell = R_max+2*_polar_cutoff+_max_int_dist_qm0;
+        this->SetupMidground(R_max);
+        
+        // FOR EACH FOREGROUND SEGMENT (FGC) ...
+        int energy_converged_count = 0;
+        for (sit1 = _fg_C.begin(); sit1 != _fg_C.end(); ++sit1) {        
+            (*sit1)->ClearPolarNbs();
+
+            // Bin midground into shells
+            vector< vector<PolarSeg*> > shelled_mg_N;
+            int N_shells = int(R_max_shell/dR_shell)+1;
+            shelled_mg_N.resize(N_shells);
+
+            for (sit2 = _mg_N.begin(); sit2 != _mg_N.end(); ++sit2) {
+                double R = votca::tools::abs((*sit1)->getPos()-(*sit2)->getPos());
+                int shell_idx = int(R/dR_shell);
+                shelled_mg_N[shell_idx].push_back(*sit2);
+            }
+
+            // Sum over consecutive shells
+            for (int sidx = 0; sidx < N_shells; ++sidx) {
+                // Shell rms trackers
+                double shell_sum = 0.0;
+                double shell_term = 0.0;
+                double shell_rms = 0.0;
+                int shell_count = 0;
+                // Interact with shell
+                vector<PolarSeg*> &shell_mg = shelled_mg_N[sidx];            
+                double shell_R = (sidx+1)*dR_shell;            
+                if (shell_mg.size() < 1) continue;            
+                EWD::triple<double> ppuu(0,0,0);
+                for (sit2 = shell_mg.begin(); sit2 < shell_mg.end(); ++sit2) {
+                    for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+                        for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
+                            double phi = _ewdactor.PhiPU12_ERFC_At_By(*(*pit1), *(*pit2));
+                            sum_phi += phi;
+                            shell_term = phi;
+                            shell_sum += shell_term;
+                            shell_rms += shell_term*shell_term;
+                            shell_count += 1;
+                        }
+                    }
+                }
+                shell_rms = sqrt(shell_rms/shell_count)*EWD::int2eV;
+                sum += shell_sum;
+                if (tools::globals::verbose) LOG(logDEBUG,*_log)
+                    << (format("  o ID = %5$-4d Rc = %1$+02.7f   |MGN| = %3$5d   ER = %2$+1.7f V   dER2(sum) = %4$+1.3e V") 
+                    % shell_R % (sum*EWD::int2eV) % shell_mg.size() % (shell_rms*shell_count) % (*sit1)->getId()).str() << flush;
+
+                if (shell_rms*shell_count <= _crit_dE && shell_R >= _R_co) {
+                    energy_converged_count += 1;
+                    if (tools::globals::verbose) LOG(logDEBUG,*_log)  
+                        << (format("  :: ID = %2$-4d : Converged to precision as of Rc = %1$+1.3f nm") 
+                        % shell_R % (*sit1)->getId()) << flush;
+                    break;
+                }
+            }
+        }
+        
+        if (energy_converged_count == _fg_C.size()) {
+            LOG(logDEBUG,*_log)  
+                << (format(":::: Converged to precision (%1$d items)") 
+                % energy_converged_count) << flush;
+            _potential_converged_R = true;
+        }
+        else if (energy_converged_count < _fg_C.size()) {
+            LOG(logERROR,*_log) << "ERROR Energy not converged on " 
+                << _fg_C.size() - energy_converged_count << " counts." << flush;
+            _potential_converged_R = false;
+        }
+        else {
+            assert(false);
+        }
+    }
+    
+    //boost::timer::auto_cpu_timer t0(*_log);
+    //t0.start();
+    //t0.stop();
+    //t0.report();
+    
+    return;
+}
+
+
+void PEwald3D3D::Potential_ConvergeReciprocalSpaceSum() {
+    
+    if (!_did_generate_kvectors)
+        this->GenerateKVectors(_fg_C, _bg_P);
+    vector< EWD::KVector >::iterator kvit;
+    
+    double sum_re = 0.0;
+    double sum_im = 0.0;
+    _potential_converged_K = false;
+    double rV = 1./_LxLyLz;
+    
+    // TWO COMPONENTS ZERO, ONE NON-ZERO
+    LOG(logINFO,*_log) << flush 
+        << "K-lines through origin: Checking K resonances" << flush;
+    for (kvit = _kvecs_2_0.begin(); kvit < _kvecs_2_0.end(); ++kvit) {
+        EWD::KVector kvec = *kvit;
+        EWD::cmplx f_as1s2 = _ewdactor.PhiPU12_AS1S2_At_By(kvec.getK(), _fg_C, _bg_P, rV);
+        sum_re += sqrt(f_as1s2._re);
+        sum_im += f_as1s2._im;
+    }
+    
+    LOG(logINFO,*_log)
+        << (format("  :: RE %1$+1.7e IM %2$+1.7e")
+            % (sum_re*EWD::int2eV)
+            % (sum_im*EWD::int2eV)).str() << flush;
+    
+    // ONE COMPONENT ZERO, TWO NON-ZERO
+    LOG(logINFO,*_log)
+        << "K-planes through origin: Applying K resonances" << flush;    
+    
+    double crit_grade = 1. * _kxyz_s1s2_norm;
+    bool converged12 = false;
+    kvit = _kvecs_1_0.begin();
+    while (!converged12 && kvit < _kvecs_1_0.end()) {
+        
+        double shell_rms = 0.0;
+        int rms_count = 0;
+        
+        while (kvit < _kvecs_1_0.end()) {
+            EWD::KVector kvec = *kvit;
+            if (kvec.getGrade() < crit_grade) break;
+            EWD::cmplx f_as1s2 = _ewdactor.PhiPU12_AS1S2_At_By(kvec.getK(), _fg_C, _bg_P, rV);
+            sum_re += f_as1s2._re;
+            sum_im += f_as1s2._im;
+            shell_rms += f_as1s2._re;
+            ++kvit;
+            ++rms_count;
+        }
+        shell_rms = (rms_count > 0) ? sqrt(shell_rms/rms_count)*EWD::int2eV : 0.0;
+        double e_measure = shell_rms*rms_count;
+        
+        if (rms_count > 0) LOG(logDEBUG,*_log)
+             << (format("  o M = %1$04d   G = %2$+1.3e   dPhi(rms) = %3$+1.3e V   [1e => %4$+1.3e eV]")
+             % rms_count
+             % crit_grade
+             % shell_rms
+             % e_measure).str() << flush;
+        
+        if (rms_count > 10 && e_measure <= _crit_dE) {
+            LOG(logINFO,*_log)
+                << (format("  :: RE %1$+1.7e IM %2$+1.7e") 
+                % (sqrt(sum_re)*EWD::int2eV)
+                % (sum_im*EWD::int2eV)).str() << flush;
+            converged12 = true;
+        }
+        
+        crit_grade /= 10.0;
+    }
+    
+    // ZERO COMPONENTS ZERO, THREE NON-ZERO
+    LOG(logINFO,*_log)
+        << "K-space (off-axis): Applying K resonances" << flush;
+    
+    crit_grade = 1. * _kxyz_s1s2_norm;
+    double converged03 = false;
+    kvit = _kvecs_0_0.begin();
+    while (!converged03 && kvit < _kvecs_0_0.end()) {
+        
+        double shell_rms = 0.0;
+        int rms_count = 0;
+        
+        while (kvit < _kvecs_0_0.end()) {
+            EWD::KVector kvec = *kvit;
+            if (kvec.getGrade() < crit_grade) break;
+            EWD::cmplx f_as1s2 = _ewdactor.PhiPU12_AS1S2_At_By(kvec.getK(), _fg_C, _bg_P, rV);
+            sum_re += f_as1s2._re;
+            sum_im += f_as1s2._im;
+            shell_rms += f_as1s2._re;
+            ++kvit;
+            ++rms_count;
+        }
+        shell_rms = (rms_count > 0) ? sqrt(shell_rms/rms_count)*EWD::int2eV : 0.0;
+        double e_measure = shell_rms*1e-10*rms_count;
+        
+        if (rms_count > 0) LOG(logDEBUG,*_log)
+             << (format("  o M = %1$04d   G = %2$+1.3e   dF(rms) = %3$+1.3e V   [1e => %4$+1.3e eV]")
+             % rms_count
+             % crit_grade
+             % shell_rms
+             % e_measure).str() << flush;
+        
+        if (rms_count > 10 && e_measure <= _crit_dE) {
+            LOG(logINFO,*_log)
+                << (format("  :: RE %1$+1.7e IM %2$+1.7e") 
+                % (sqrt(sum_re)*EWD::int2eV)
+                % (sum_im*EWD::int2eV)).str() << flush;
+            converged03 = true;
+        }
+        
+        crit_grade /= 10.0;
+    }
+    
+    _potential_converged_K = converged12 && converged03;
+    
+    if (_potential_converged_K)
+        LOG(logINFO,*_log)
+            << (format(":::: Converged to precision, {0-2}, {1-2}, {0-3}."))
+            << flush;
+    else ;
+
+    return;
+}
+
+
+void PEwald3D3D::Potential_CalculateForegroundCorrection() {
+    LOG(logDEBUG,*_log)
+        << "  o Foreground-correction to potentials via FGN" << flush;
+    
+    vector<PolarSeg*>::iterator sit1;
+    vector<APolarSite*> ::iterator pit1;
+    vector<PolarSeg*>::iterator sit2;
+    vector<APolarSite*> ::iterator pit2;
+    
+    double rms = 0.0;
+    int rms_count = 0;
+    for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
+        for (sit2 = _fg_N.begin(); sit2 < _fg_N.end(); ++sit2) {
+            for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+                for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
+                    rms += _ewdactor.PhiPU12_ERF_At_By(*(*pit1), *(*pit2));
+                    rms_count += 1;
+                }
+            }
+        }
+    }
+    rms = sqrt(rms/rms_count)*EWD::int2eV;
+    
+    return;
+}
+
+
+void PEwald3D3D::Potential_CalculateShapeCorrection() {
+    LOG(logDEBUG,*_log) << flush
+        << "Potential correction terms" << flush;
+    LOG(logDEBUG,*_log)
+        << "  o Shape-correction to potentials, using '" << _shape << "'" << flush;
+    
+    _ewdactor.PhiPU12_ShapeField_At_By(_fg_C, _bg_P, _shape, _LxLyLz);
+    return;
+}
+
+
 }}

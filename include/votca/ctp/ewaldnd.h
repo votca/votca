@@ -46,6 +46,7 @@ public:
     void EvaluateEnergy();
     void EvaluateRadialCorrection();
     void EvaluatePoisson();
+    void EvaluatePotential();
     // OUTPUT & ERROR COMMUNICATION
     bool Converged() { return _converged_R && _converged_K && _polar_converged; }
     Property GenerateOutputString();
@@ -67,6 +68,11 @@ public:
     virtual void Field_ConvergeReciprocalSpaceSum() { ; }
     virtual void Field_CalculateForegroundCorrection() { ; }
     virtual void Field_CalculateShapeCorrection() { ; }
+    // POTENTIAL CALCULATOR METHODS
+    virtual void Potential_ConvergeRealSpaceSum() { ; }
+    virtual void Potential_ConvergeReciprocalSpaceSum() { ; }
+    virtual void Potential_CalculateForegroundCorrection() { ; }
+    virtual void Potential_CalculateShapeCorrection() { ; }
     // METHOD ANALYSIS
     virtual void ScanCutoff() { ; }
     // GENERALIZED POISSON METHODS
@@ -184,6 +190,8 @@ protected:
     bool   _converged_K;               // Did K-space sum converge?
     bool   _field_converged_R;
     bool   _field_converged_K;
+    bool   _potential_converged_R;
+    bool   _potential_converged_K;
     bool   _did_field_pin_R_shell;
     bool   _save_nblist;
     // Part II - Thole
