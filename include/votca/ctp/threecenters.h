@@ -42,11 +42,8 @@ using namespace votca::tools;
 * 
 */
 
-namespace Cart {
-        enum Index {
-                s, x, y, z,  xy, xz, yz, xx, yy, zz
-                };
-}
+
+
 
 namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
@@ -63,10 +60,12 @@ namespace votca { namespace ctp {
     
     int getBlockSize( int size );
     
+    void XIntegrate( vector<double>& _FmT, const double& _T );
+    
    
     };
     
-    class 
+
     
     
     

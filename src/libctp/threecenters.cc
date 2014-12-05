@@ -116,7 +116,12 @@ namespace votca {
             double _dist2=(_pos_gamma - _pos_gw) * (_pos_gamma - _pos_gw);
             double _dist3=(_pos_alpha - _pos_gw) * (_pos_alpha - _pos_gw);
             
-            if (_dist1<0.01 && _dist2<0.01 && _dist3<0.01){
+                  
+            vec gvv = fak2 * (_decay_alpha * _pos_alpha + _decay_gw * _pos_gw + _decay_gamma * _pos_gamma);
+            vec gma = gvv - _pos_alpha;
+            vec gmb = gvv - _pos_gamma;
+            vec gmc = gvv - _pos_gw; 
+            
             double gma0 = 0.0;
             double gmb0 = 0.0;
             double gmc0 = 0.0;
@@ -128,24 +133,21 @@ namespace votca {
             double gma2 = 0.0;
             double gmb2 = 0.0;
             double gmc2 = 0.0;
-            }
-            else{
-            vec gvv = fak2 * (_decay_alpha * _pos_alpha + _decay_gw * _pos_gw + _decay_gamma * _pos_gamma);
-            vec gma = gvv - _pos_alpha;
-            vec gmb = gvv - _pos_gamma;
-            vec gmc = gvv - _pos_gw;
+            
+            if ((_dist1 + _dist2 + _dist3)<0.01){
+          
+           
+            gma0 = gma.getX();
+            gmb0 = gmb.getX();
+            gmc0 = gmc.getX();
 
-            double gma0 = gma.getX();
-            double gmb0 = gmb.getX();
-            double gmc0 = gmc.getX();
+            gma1 = gma.getY();
+            gmb1 = gmb.getY();
+            gmc1 = gmc.getY();
 
-            double gma1 = gma.getY();
-            double gmb1 = gmb.getY();
-            double gmc1 = gmc.getY();
-
-            double gma2 = gma.getZ();
-            double gmb2 = gmb.getZ();
-            double gmc2 = gmc.getZ();
+            gma2 = gma.getZ();
+            gmb2 = gmb.getZ();
+            gmc2 = gmc.getZ();
 
             }
             // get s-s-s element
@@ -2553,7 +2555,6 @@ namespace votca {
 
             return _block_size;
         }
-
 
 
     }

@@ -75,11 +75,11 @@ namespace votca {
                for (int alpha=0; alpha<size4c; alpha++){
                     for (int beta=0; beta<size4c ;beta++){
                         
-                        if ( std::abs(shit(alpha,beta) - shit(beta,alpha)) > 1.e-8 ){
+                        
                         
                         cout << "SHIT " << k << " " <<  alpha << " " << beta << " " << shit(alpha,beta) << " vs " << shit(beta,alpha) << endl;
                         
-                        }
+                        
                     }
                }
                 
