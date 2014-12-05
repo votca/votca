@@ -38,7 +38,10 @@ using namespace votca::tools;
 
 namespace Cart {
         enum Index {
-                s, x, y, z,  xy, xz, yz, xx, yy, zz
+                s, x, y, z,  xy, xz, yz, xx, yy, zz, xxy, xyy, xyz, xxz, xzz, yyz, yzz, xxx, yyy, zzz,
+                xxxy,xxxz,xxyy,xxyz,xxzz,xyyy,xyyz,xyzz,xzzz,yyyz,yyzz,yzzz,xxxx,yyyy,zzzz,
+                xxxxy,xxxxz,xxxyy,xxxyz,xxxzz,xxyyy,xxyyz,xxyzz,xxzzz,xyyyy,xyyyz,xyyzz,xyzzz,xzzzz,yyyyz,yyyzz,yyzzz,yzzzz,xxxxx,yyyyy,zzzzz
+                
                 };
 }
 
