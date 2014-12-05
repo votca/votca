@@ -10,7 +10,14 @@ namespace votca { namespace ctp {
 
 using boost::format;
 
-    
+// TODO Develop potential-based scheme k-vector grading
+// TODO Deprecate _save_nblist (default = false should always be applied)
+// TODO Deprecate K0 term (use shape-term for terminology instead)
+// TODO Fields should also accept <target> densities
+// TODO Fields should also accept <add_mm1> and <add_qm0> option, or not?
+//      (Currently practiced in potentials, which is inconsistent)
+// TODO Introduce damping "operator" in EwdActor
+
 
 Ewald3DnD::~Ewald3DnD() {
     vector< PolarSeg* >::iterator sit;
@@ -62,7 +69,7 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
         _save_nblist = opt->get(pfx+".coulombmethod.save_nblist").as<bool>();
     }
     else
-        _save_nblist = true;
+        _save_nblist = false;
     // Preprocessing
     if (opt->exists(pfx+".coulombmethod.dipole_corr"))
         _do_compensate_net_dipole = 
@@ -681,6 +688,7 @@ void Ewald3DnD::SetupMidground(double R_co) {
                     double dR_L = abs((*sit2)->getPos()-pos_L);
                     if (dR_L <= R_co) {
                         is_within_range = true;
+                        break;
                     }
                 }
                 // Add if appropriate, depolarize = false
@@ -973,11 +981,22 @@ void Ewald3DnD::Evaluate() {
     if (_task_polarize_fg) EvaluateInduction();
     else _polar_converged = true;
     boost::timer::cpu_times t2 = cpu_t.elapsed();
-    if (_task_evaluate_energy) EvaluateEnergy();
+    if (_task_evaluate_energy) EvaluateEnergy(_fg_C);
     boost::timer::cpu_times t3 = cpu_t.elapsed();
-    if (_task_apply_radial) EvaluateRadialCorrection();
+    if (_task_apply_radial) EvaluateRadialCorrection(_fg_C);
     boost::timer::cpu_times t4 = cpu_t.elapsed();
     if (_task_solve_poisson) EvaluatePoisson();
+    
+    
+    
+    
+    /*
+    bool add_bg = true;
+    bool add_mm1 = true;
+    bool add_qm0 = false;
+    EvaluatePotential(_polar_qm0, add_bg, add_mm1, add_qm0);
+    EvaluateEnergyQMMM();
+    */
     
     _t_fields    = (t1.wall-t0.wall)/1e9/60.;
     _t_induction = (t2.wall-t1.wall)/1e9/60.;
@@ -1425,40 +1444,131 @@ void Ewald3DnD::EvaluateInduction() {
 }
         
         
-void Ewald3DnD::EvaluateEnergy() {
+void Ewald3DnD::EvaluateEnergy(vector<PolarSeg*> &target) {
     
     // REAL-SPACE CONTRIBUTION (3D2D && 3D3D)
-    EWD::triple<> EPP_fgC_mgN = ConvergeRealSpaceSum();    
+    EWD::triple<> EPP_fgC_mgN = ConvergeRealSpaceSum(target);    
     
     // RECIPROCAL-SPACE CONTRIBUTION (3D2D && 3D3D)
-    EWD::triple<> EKK_fgC_bgP = ConvergeReciprocalSpaceSum();       
+    EWD::triple<> EKK_fgC_bgP = ConvergeReciprocalSpaceSum(target);       
     
     // K=0 TERM (FOR 3D2D)
-    EWD::triple<> EK0_fgC_bgP = CalculateK0Correction();
+    EWD::triple<> EK0_fgC_bgP = CalculateK0Correction(target);
     
     // SHAPE-CORRECTION (FOR 3D3D)
-    EWD::triple<> EJ_fgC_bgP = CalculateShapeCorrection();    
+    EWD::triple<> EJ_fgC_bgP = CalculateShapeCorrection(target);    
     
     // REAL-SPACE HIGHER-RANK CORRECTION (3D2D && 3D3D)
-    EWD::triple<> EDQ_fgC_mgN = CalculateHigherRankCorrection(); // ! OBSOLETE !
+    EWD::triple<> EDQ_fgC_mgN = CalculateHigherRankCorrection(target); // ! OBSOLETE !
     
     // FOREGROUND CORRECTION (3D2D && 3D3D)
-    EWD::triple<> EPP_fgC_fgN = CalculateForegroundCorrection();
+    EWD::triple<> EPP_fgC_fgN = CalculateForegroundCorrection(target);
     
-    double int2eV = EWD::int2eV;
-    _ER  = EPP_fgC_mgN * int2eV;
-    _EK  = EKK_fgC_bgP * int2eV;
-    _E0  = EK0_fgC_bgP * int2eV;
-    _EJ  = EJ_fgC_bgP  * int2eV;
-    _EDQ = EDQ_fgC_mgN * int2eV;
-    _EC  = EPP_fgC_fgN * int2eV;
+    _ER  = EPP_fgC_mgN * EWD::int2eV;
+    _EK  = EKK_fgC_bgP * EWD::int2eV;
+    _E0  = EK0_fgC_bgP * EWD::int2eV;
+    _EJ  = EJ_fgC_bgP  * EWD::int2eV;
+    _EDQ = EDQ_fgC_mgN * EWD::int2eV;
+    _EC  = EPP_fgC_fgN * EWD::int2eV;
+    
+    // NOTE THE (-) IN FRONT OF _EC (WHICH IS A COMPENSATION TERM)
     _ET  = _ER + _EK + _E0 + _EJ + _EDQ - _EC;
     
     return;
 }
 
 
-void Ewald3DnD::EvaluateRadialCorrection() {
+void Ewald3DnD::EvaluateEnergyQMMM() {    
+    
+    _log->setReportLevel(logERROR);
+    
+    // REAL-SPACE CONTRIBUTION (3D2D && 3D3D)
+    EWD::triple<> EPP_mm1_mgN = ConvergeRealSpaceSum(_polar_mm1);
+    EWD::triple<> EPP_qm0_mgN = ConvergeRealSpaceSum(_polar_qm0);
+    
+    if (tools::globals::verbose) {
+        LOG(logINFO,*_log) << flush;
+        LOG(logINFO,*_log) << "R(MM1) " << EPP_mm1_mgN*EWD::int2eV << flush;
+        LOG(logINFO,*_log) << "R(MM1) " << EPP_qm0_mgN*EWD::int2eV << flush;
+    }    
+    
+    // RECIPROCAL-SPACE CONTRIBUTION (3D2D && 3D3D)       
+    EWD::triple<> EKK_mm1_bgP = ConvergeReciprocalSpaceSum(_polar_mm1);       
+    EWD::triple<> EKK_qm0_bgP = ConvergeReciprocalSpaceSum(_polar_qm0);
+    
+    if (tools::globals::verbose) {
+        LOG(logINFO,*_log) << flush;
+        LOG(logINFO,*_log) << "K " << EKK_mm1_bgP*EWD::int2eV << flush;
+        LOG(logINFO,*_log) << "K " << EKK_qm0_bgP*EWD::int2eV << flush;
+    }
+    
+    // K=0 TERM (FOR 3D2D)
+    EWD::triple<> EK0_mm1_bgP = CalculateK0Correction(_polar_mm1);
+    EWD::triple<> EK0_qm0_bgP = CalculateK0Correction(_polar_qm0);
+    
+    if (tools::globals::verbose) {
+        LOG(logINFO,*_log) << flush;
+        LOG(logINFO,*_log) << "0 " << EK0_mm1_bgP*EWD::int2eV << flush;
+        LOG(logINFO,*_log) << "0 " << EK0_qm0_bgP*EWD::int2eV << flush;
+    }
+    
+    
+    // SHAPE-CORRECTION (FOR 3D3D)
+    EWD::triple<> EJ_mm1_bgP = CalculateShapeCorrection(_polar_mm1);
+    EWD::triple<> EJ_qm0_bgP = CalculateShapeCorrection(_polar_qm0);
+    
+    if (tools::globals::verbose) {
+        LOG(logINFO,*_log) << flush;
+        LOG(logINFO,*_log) << "J " << EJ_mm1_bgP*EWD::int2eV << flush;
+        LOG(logINFO,*_log) << "J " << EJ_qm0_bgP*EWD::int2eV << flush;
+    }
+    
+    
+    // FOREGROUND CORRECTION (3D2D && 3D3D)
+    EWD::triple<> EPP_mm1_fgN = CalculateForegroundCorrection(_polar_mm1);
+    EWD::triple<> EPP_qm0_fgN = CalculateForegroundCorrection(_polar_qm0);
+    
+    if (tools::globals::verbose) {
+        LOG(logINFO,*_log) << flush;
+        LOG(logINFO,*_log) << "C " << EPP_mm1_fgN*EWD::int2eV << flush;
+        LOG(logINFO,*_log) << "C " << EPP_qm0_fgN*EWD::int2eV << flush;    
+    }
+    
+    _log->setReportLevel(logDEBUG);
+    
+    // STORE ENERGIES
+    _ER_MM1  = EPP_mm1_mgN * EWD::int2eV;
+    _ER_QM0  = EPP_qm0_mgN * EWD::int2eV;
+    
+    _EK_MM1  = EKK_mm1_bgP * EWD::int2eV;
+    _EK_QM0  = EKK_qm0_bgP * EWD::int2eV;
+    
+    _E0_MM1  = EK0_mm1_bgP * EWD::int2eV;
+    _E0_QM0  = EK0_qm0_bgP * EWD::int2eV;
+    
+    _EJ_MM1  = EJ_mm1_bgP  * EWD::int2eV;
+    _EJ_QM0  = EJ_qm0_bgP  * EWD::int2eV;
+    
+    _EC_MM1  = EPP_mm1_fgN * EWD::int2eV;
+    _EC_QM0  = EPP_qm0_fgN * EWD::int2eV;
+    
+    // NOTE THE (-) IN FRONT OF _EC_... (WHICH IS A COMPENSATION TERM)
+    _ET_MM1  = _ER_MM1 + _EK_MM1 + _E0_MM1 + _EJ_MM1 - _EC_MM1;
+    _ET_QM0  = _ER_QM0 + _EK_QM0 + _E0_QM0 + _EJ_QM0 - _EC_QM0;
+    
+    if (tools::globals::verbose) {
+        LOG(logINFO,*_log) << flush;
+        LOG(logINFO,*_log) << "QM-MM splitting (eV)" << flush;
+        LOG(logINFO,*_log) << "  o E(MM1)       = " << _ET_MM1 << flush;
+        LOG(logINFO,*_log) << "  o E(QM0)       = " << _ET_QM0 << flush;
+        LOG(logINFO,*_log) << "  o E(QM0 u MM1) = " << _ET_MM1+_ET_QM0 << flush;
+    }
+    
+    return;
+}
+
+
+void Ewald3DnD::EvaluateRadialCorrection(vector<PolarSeg*> &target) {
     
     // ATTENTION This method depolarizes the midground. Do not call prematurely.
     
@@ -1526,7 +1636,8 @@ void Ewald3DnD::EvaluatePoisson() {
 }
 
 
-void Ewald3DnD::EvaluatePotential() {
+void Ewald3DnD::EvaluatePotential(vector<PolarSeg*> &target, bool add_bg, 
+    bool add_mm1, bool add_qm0) {
     
     // RESET POTENTIALS
     vector<PolarSeg*>::iterator sit; 
@@ -1537,21 +1648,66 @@ void Ewald3DnD::EvaluatePotential() {
             (*pit)->ResetPhi(true, true);
         }
     }
+    
+    // APERIODIC-PERIODIC BACKGROUND
+    if (add_bg) {
+        // REAL-SPACE CONTRIBUTION (3D2D && 3D3D)
+        Potential_ConvergeRealSpaceSum(target);    
 
-    // REAL-SPACE CONTRIBUTION (3D2D && 3D3D)
-    Potential_ConvergeRealSpaceSum();    
+        // RECIPROCAL-SPACE CONTRIBUTION (3D2D && 3D3D)
+        Potential_ConvergeReciprocalSpaceSum(target);
 
-    // RECIPROCAL-SPACE CONTRIBUTION (3D2D && 3D3D)
-    Potential_ConvergeReciprocalSpaceSum();
+        // SHAPE-CORRECTION (3D3D)/ K0-CORRECTION (3D2D)
+        Potential_CalculateShapeCorrection(target);
+        
+        // FOREGROUND CORRECTION (3D2D && 3D3D)
+        Potential_CalculateForegroundCorrection(target);
+    }
 
-    // SHAPE-CORRECTION (3D3D)/ K0-CORRECTION (3D2D)
-    Potential_CalculateShapeCorrection();
-
-    // FOREGROUND CORRECTION (3D2D && 3D3D)
-    Potential_CalculateForegroundCorrection();
+    // FOREGROUND EXCLUDING QM
+    if (add_mm1) {    
+        vector<PolarSeg*>::iterator sit1; 
+        vector<APolarSite*> ::iterator pit1;
+        vector<PolarSeg*>::iterator sit2; 
+        vector<APolarSite*> ::iterator pit2;
+        for (sit1 = _polar_mm1.begin(); sit1 != _polar_mm1.end(); ++sit1) {
+            PolarSeg *pseg1 = *sit1;
+            for (sit2 = target.begin(); sit2 != target.end(); ++sit2) {
+                PolarSeg *pseg2 = *sit2;
+                if (pseg1 == pseg2) assert(false);
+                for (pit1 = pseg1->begin(); pit1 != pseg1->end(); ++pit1) {
+                    for (pit2 = pseg2->begin(); pit2 != pseg2->end(); ++pit2) {
+                        _actor.BiasIndu(*(*pit2), *(*pit1));
+                        _actor.Potential_At_By(*(*pit2), *(*pit1));
+                    }
+                }
+            }
+        }
+    }
+    
+    // FOREGROUND EXCLUDING MM
+    if (add_qm0) {
+        vector<PolarSeg*>::iterator sit1; 
+        vector<APolarSite*> ::iterator pit1;
+        vector<PolarSeg*>::iterator sit2; 
+        vector<APolarSite*> ::iterator pit2;
+        for (sit1 = _polar_qm0.begin(); sit1 != _polar_qm0.end(); ++sit1) {
+            PolarSeg *pseg1 = *sit1;
+            for (sit2 = target.begin(); sit2 != target.end(); ++sit2) {
+                PolarSeg *pseg2 = *sit2;
+                if (pseg1 == pseg2) assert(false);
+                for (pit1 = pseg1->begin(); pit1 != pseg1->end(); ++pit1) {
+                    for (pit2 = pseg2->begin(); pit2 != pseg2->end(); ++pit2) {
+                        _actor.BiasIndu(*(*pit2), *(*pit1));
+                        _actor.Potential_At_By(*(*pit2), *(*pit1));
+                    }
+                }
+            }
+        }
+    }
     
     double q_phi = 0.0;
-    for (sit = _fg_C.begin(); sit < _fg_C.end(); ++sit) {        
+    for (sit = _polar_qm0.begin(); sit < _polar_qm0.end(); ++sit) {        
         PolarSeg* pseg = *sit;
         for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
             q_phi += (*pit)->getQ00()*(*pit)->getPhi();
@@ -1564,7 +1720,7 @@ void Ewald3DnD::EvaluatePotential() {
 }
 
 
-EWD::triple<> Ewald3DnD::ConvergeRealSpaceSum() {
+EWD::triple<> Ewald3DnD::ConvergeRealSpaceSum(vector<PolarSeg*> &target) {
     
     LOG(logDEBUG,*_log) << flush;
 
@@ -1584,7 +1740,7 @@ EWD::triple<> Ewald3DnD::ConvergeRealSpaceSum() {
         this->SetupMidground(Rc);
         // Calculate interaction energy
         this_ER = 0.;
-        for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
+        for (sit1 = target.begin(); sit1 < target.end(); ++sit1) {
             for (sit2 = _mg_N.begin(); sit2 < _mg_N.end(); ++sit2) {
                 for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
                     for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
@@ -1610,13 +1766,13 @@ EWD::triple<> Ewald3DnD::ConvergeRealSpaceSum() {
 }
 
 
-EWD::triple<> Ewald3DnD::CalculateForegroundCorrection() {
+EWD::triple<> Ewald3DnD::CalculateForegroundCorrection(vector<PolarSeg*> &target) {
     vector<PolarSeg*>::iterator sit1; 
     vector<APolarSite*> ::iterator pit1;
     vector<PolarSeg*>::iterator sit2; 
     vector<APolarSite*> ::iterator pit2;
     double EPP_fgC_fgN = 0.0;
-    for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
+    for (sit1 = target.begin(); sit1 < target.end(); ++sit1) {
         for (sit2 = _fg_N.begin(); sit2 < _fg_N.end(); ++sit2) {
             for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
                 for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
@@ -1629,13 +1785,13 @@ EWD::triple<> Ewald3DnD::CalculateForegroundCorrection() {
 }
 
 
-EWD::triple<> Ewald3DnD::CalculateHigherRankCorrection() {
+EWD::triple<> Ewald3DnD::CalculateHigherRankCorrection(vector<PolarSeg*> &target) {
     vector<PolarSeg*>::iterator sit1; 
     vector<APolarSite*> ::iterator pit1;
     vector<PolarSeg*>::iterator sit2; 
     vector<APolarSite*> ::iterator pit2;
     double EDQ_fgC_mgN = 0.0;
-    for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
+    for (sit1 = target.begin(); sit1 < target.end(); ++sit1) {
         for (sit2 = _mg_N.begin(); sit2 < _mg_N.end(); ++sit2) {
             for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
                 for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {

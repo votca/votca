@@ -1305,11 +1305,12 @@ EWD::triple<double> EwdInteractor::U12_ShapeTerm(vector<PolarSeg*> &s1,
             pu_qQ *= -4*M_PI/(3*V)*EWD::int2eV;
             pu_dd *= -4*M_PI/(3*V)*EWD::int2eV;
             uu_dd *= -4*M_PI/(3*V)*EWD::int2eV;
-            LOG(logDEBUG, *log) << (boost::format("qQ (pp) = %1$+1.7e") % pp_qQ) << flush;
-            LOG(logDEBUG, *log) << (boost::format("dd (pp) = %1$+1.7e") % pp_dd) << flush;
-            LOG(logDEBUG, *log) << (boost::format("qQ (pu) = %1$+1.7e") % pu_qQ) << flush;
-            LOG(logDEBUG, *log) << (boost::format("dd (pu) = %1$+1.7e") % pu_dd) << flush;
-            LOG(logDEBUG, *log) << (boost::format("dd (uu) = %1$+1.7e") % uu_dd) << flush;
+            LOG(logDEBUG, *log) << (boost::format("Energy-moment decomposition")) << flush;
+            LOG(logDEBUG, *log) << (boost::format("  qQ (pp) = %1$+1.7e") % pp_qQ) << flush;
+            LOG(logDEBUG, *log) << (boost::format("  dd (pp) = %1$+1.7e") % pp_dd) << flush;
+            LOG(logDEBUG, *log) << (boost::format("  qQ (pu) = %1$+1.7e") % pu_qQ) << flush;
+            LOG(logDEBUG, *log) << (boost::format("  dd (pu) = %1$+1.7e") % pu_dd) << flush;
+            LOG(logDEBUG, *log) << (boost::format("  dd (uu) = %1$+1.7e") % uu_dd) << flush;
         }
     }
     else {

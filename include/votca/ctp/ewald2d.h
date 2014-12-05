@@ -28,8 +28,8 @@ namespace votca { namespace ctp {
        ~Ewald3D2D();
        
         string IdentifyMethod() { return "3D x 2D"; }
-        EWD::triple<> ConvergeReciprocalSpaceSum();
-        EWD::triple<> CalculateK0Correction();
+        EWD::triple<> ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target);
+        EWD::triple<> CalculateK0Correction(vector<PolarSeg*> &target);
                 
     };
     

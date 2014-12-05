@@ -43,10 +43,10 @@ public:
     void Evaluate();
     void EvaluateFields();
     void EvaluateInduction();
-    void EvaluateEnergy();
-    void EvaluateRadialCorrection();
+    void EvaluateEnergy(vector<PolarSeg*> &target);
+    void EvaluateEnergyQMMM();
+    void EvaluateRadialCorrection(vector<PolarSeg*> &target);
     void EvaluatePoisson();
-    void EvaluatePotential();
     // OUTPUT & ERROR COMMUNICATION
     bool Converged() { return _converged_R && _converged_K && _polar_converged; }
     Property GenerateOutputString();
@@ -55,13 +55,13 @@ public:
     virtual void GenerateKVectors(
         vector<PolarSeg*> &ps1, vector<PolarSeg*> &ps2) { ; }
     // ENERGY CALCULATOR METHODS
-    virtual EWD::triple<> ConvergeRealSpaceSum();
-    virtual EWD::triple<> ConvergeReciprocalSpaceSum() = 0;
-    virtual EWD::triple<> CalculateForegroundCorrection();
-    virtual EWD::triple<> CalculateHigherRankCorrection();
-    virtual EWD::triple<> CalculateShapeCorrection()
+    virtual EWD::triple<> ConvergeRealSpaceSum(vector<PolarSeg*> &target);
+    virtual EWD::triple<> ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) = 0;
+    virtual EWD::triple<> CalculateForegroundCorrection(vector<PolarSeg*> &target);
+    virtual EWD::triple<> CalculateHigherRankCorrection(vector<PolarSeg*> &target);
+    virtual EWD::triple<> CalculateShapeCorrection(vector<PolarSeg*> &target)
         { return EWD::triple<>(0.0,0.0,0.0); }
-    virtual EWD::triple<> CalculateK0Correction()
+    virtual EWD::triple<> CalculateK0Correction(vector<PolarSeg*> &target)
         { return EWD::triple<>(0.0,0.0,0.0); }
     // FIELD CALCULATOR METHODS
     virtual void Field_ConvergeRealSpaceSum() { ; }
@@ -69,10 +69,11 @@ public:
     virtual void Field_CalculateForegroundCorrection() { ; }
     virtual void Field_CalculateShapeCorrection() { ; }
     // POTENTIAL CALCULATOR METHODS
-    virtual void Potential_ConvergeRealSpaceSum() { ; }
-    virtual void Potential_ConvergeReciprocalSpaceSum() { ; }
-    virtual void Potential_CalculateForegroundCorrection() { ; }
-    virtual void Potential_CalculateShapeCorrection() { ; }
+    void EvaluatePotential(vector<PolarSeg*> &target, bool add_bg, bool add_mm1, bool add_qm0);
+    virtual void Potential_ConvergeRealSpaceSum(vector<PolarSeg*> &target) { ; }
+    virtual void Potential_ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) { ; }
+    virtual void Potential_CalculateForegroundCorrection(vector<PolarSeg*> &target) { ; }
+    virtual void Potential_CalculateShapeCorrection(vector<PolarSeg*> &target) { ; }
     // METHOD ANALYSIS
     virtual void ScanCutoff() { ; }
     // GENERALIZED POISSON METHODS
@@ -224,7 +225,7 @@ protected:
     bool _did_generate_kvectors;
 
     // THOLEWALD ENERGIES
-    // Part I - Ewald
+    // Part I - Aperiodic Embedding : FGC
     EWD::triple<> _ER;                 // R-space sum
     EWD::triple<> _EC;                 // R-space correction
     EWD::triple<> _EK;                 // K-space sum
@@ -232,6 +233,13 @@ protected:
     EWD::triple<> _ET;                 // ER - EC + EK + E0
     EWD::triple<> _EDQ;                // Higher-Rank FGC->MGN correction
     EWD::triple<> _EJ;                 // Geometry-dependent correction
+    // Part I' - Aperiodic Embedding : QM/MM Splitting
+    EWD::triple<> _ER_MM1; EWD::triple<> _ER_QM0;
+    EWD::triple<> _EC_MM1; EWD::triple<> _EC_QM0;
+    EWD::triple<> _EK_MM1; EWD::triple<> _EK_QM0;
+    EWD::triple<> _EJ_MM1; EWD::triple<> _EJ_QM0;
+    EWD::triple<> _E0_MM1; EWD::triple<> _E0_QM0;
+    EWD::triple<> _ET_MM1; EWD::triple<> _ET_QM0;
     // Part II - Thole
     double _polar_ETT;
     double _polar_EPP;  double _polar_EPU;  double _polar_EUU;

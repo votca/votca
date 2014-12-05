@@ -466,7 +466,7 @@ void PEwald3D3D::ScanCutoff() {
 }
 
 
-EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum() {
+EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum(vector<PolarSeg*> &target) {
     
     double sum = 0.0;
     double sum_pp = 0.0;
@@ -485,9 +485,9 @@ EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum() {
     vector< vector<PolarSeg*> > ::iterator vsit;
     
     // ENERGY - REUSE NEIGHBOURS ?
-    if (_did_field_pin_R_shell) {    
+    if (_did_field_pin_R_shell) {
         EWD::triple<double> ppuu(0,0,0);
-        for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
+        for (sit1 = target.begin(); sit1 < target.end(); ++sit1) {
             vector<PolarNb*> &nbs = (*sit1)->PolarNbs();
             for (nit = nbs.begin(); nit != nbs.end(); ++nit) {
                 PolarSeg *nb = (*nit)->getNb();
@@ -522,7 +522,7 @@ EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum() {
         
         // FOR EACH FOREGROUND SEGMENT (FGC) ...
         int energy_converged_count = 0;
-        for (sit1 = _fg_C.begin(); sit1 != _fg_C.end(); ++sit1) {        
+        for (sit1 = target.begin(); sit1 != target.end(); ++sit1) {        
             (*sit1)->ClearPolarNbs();
 
             // Bin midground into shells
@@ -587,15 +587,15 @@ EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum() {
         
 //        cout << endl << "XINTERACTOR " << _actor.getEPP() << " " << _actor.getEPU() << " "<< _actor.getEUU() << flush;
 
-        if (energy_converged_count == _fg_C.size()) {
+        if (energy_converged_count == target.size()) {
             LOG(logDEBUG,*_log)  
                 << (format(":::: Converged to precision (%1$d items)") 
                 % energy_converged_count) << flush;
             _converged_R = true;
         }
-        else if (energy_converged_count < _fg_C.size()) {
+        else if (energy_converged_count < target.size()) {
             LOG(logERROR,*_log) << "ERROR Energy not converged on " 
-                << _fg_C.size() - energy_converged_count << " counts." << flush;
+                << target.size() - energy_converged_count << " counts." << flush;
             _converged_R = false;
         }
         else {
@@ -612,8 +612,12 @@ EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum() {
 }
 
 
-EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum() {
+EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) {
     
+    // ATTENTION K-vectors are generated based on an interaction-energy
+    //           criterion between FGC and BGP. Hence, the <target> density
+    //           should at the very least be located within the space
+    //           covered by FGC.
     if (!_did_generate_kvectors)
         this->GenerateKVectors(_fg_C, _bg_P);
     vector< EWD::KVector >::iterator kvit;
@@ -631,7 +635,7 @@ EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum() {
     for (kvit = _kvecs_2_0.begin(); kvit < _kvecs_2_0.end(); ++kvit) {
         EWD::KVector kvec = *kvit;
         double Ak = _ewdactor.Ark2Expk2(kvec.getK());
-        EWD::triple<EWD::cmplx> ppuu = _ewdactor.S1S2(kvec.getK(), _fg_C, _bg_P);        
+        EWD::triple<EWD::cmplx> ppuu = _ewdactor.S1S2(kvec.getK(), target, _bg_P);        
         sum_re_pp += Ak*ppuu._pp._re;
         sum_re_pu += Ak*ppuu._pu._re;
         sum_re_uu += Ak*ppuu._uu._re;        
@@ -659,7 +663,7 @@ EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum() {
         while (kvit < _kvecs_1_0.end()) {
             EWD::KVector kvec = *kvit;
             if (kvec.getGrade() < crit_grade) break;
-            EWD::triple<EWD::cmplx> ppuu = _ewdactor.AS1S2(kvec.getK(), _fg_C, _bg_P);
+            EWD::triple<EWD::cmplx> ppuu = _ewdactor.AS1S2(kvec.getK(), target, _bg_P);
             
             sum_re_pp += ppuu._pp._re;
             sum_re_pu += ppuu._pu._re;
@@ -710,7 +714,7 @@ EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum() {
         while (kvit < _kvecs_0_0.end()) {
             EWD::KVector kvec = *kvit;
             if (kvec.getGrade() < crit_grade) break;
-            EWD::triple<EWD::cmplx> ppuu = _ewdactor.AS1S2(kvec.getK(), _fg_C, _bg_P);
+            EWD::triple<EWD::cmplx> ppuu = _ewdactor.AS1S2(kvec.getK(), target, _bg_P);
             
             sum_re_pp += ppuu._pp._re;
             sum_re_pu += ppuu._pu._re;
@@ -757,14 +761,14 @@ EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum() {
 }
 
 
-EWD::triple<> PEwald3D3D::CalculateShapeCorrection() {
+EWD::triple<> PEwald3D3D::CalculateShapeCorrection(vector<PolarSeg*> &target) {
     
     LOG(logDEBUG,*_log) << flush
         << "Energy correction terms" << flush;
     LOG(logDEBUG,*_log)
         << "  o Shape-correction to energy, using '" << _shape << "'" << flush;
     
-    EWD::triple<double> ppuu = _ewdactor.U12_ShapeTerm(_fg_C, _bg_P,
+    EWD::triple<double> ppuu = _ewdactor.U12_ShapeTerm(target, _bg_P,
         _shape, _LxLyLz, _log);
     double sum_pp = ppuu._pp;
     double sum_pu = ppuu._pu;
@@ -826,7 +830,7 @@ EWD::triple<> PEwald3D3D::CalculateShapeCorrection() {
 }
 
 
-EWD::triple<> PEwald3D3D::CalculateForegroundCorrection() {
+EWD::triple<> PEwald3D3D::CalculateForegroundCorrection(vector<PolarSeg*> &target) {
     
     LOG(logDEBUG,*_log)
         << "  o Foreground-correction to energy via FGN" << flush;
@@ -841,7 +845,7 @@ EWD::triple<> PEwald3D3D::CalculateForegroundCorrection() {
     double sum_uu = 0.0;
     
     EWD::triple<double> ppuu(0,0,0);
-    for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
+    for (sit1 = target.begin(); sit1 < target.end(); ++sit1) {
         for (sit2 = _fg_N.begin(); sit2 < _fg_N.end(); ++sit2) {
             for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
                 for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
@@ -1192,7 +1196,7 @@ void PEwald3D3D::Field_CalculateShapeCorrection() {
 }
 
 
-void PEwald3D3D::Potential_ConvergeRealSpaceSum() {
+void PEwald3D3D::Potential_ConvergeRealSpaceSum(vector<PolarSeg*> &target) {
     
     double sum = 0.0;
     double sum_phi = 0.0;
@@ -1208,9 +1212,18 @@ void PEwald3D3D::Potential_ConvergeRealSpaceSum() {
     vector<PolarNb*>::iterator nit;
     vector< vector<PolarSeg*> > ::iterator vsit;
     
+    bool neighbours_stored = false;
+    for (sit1 = target.begin(); sit1 < target.end(); ++sit1) {
+        int nb_count = (*sit1)->PolarNbs().size();
+        if (nb_count > 0) {
+            neighbours_stored = true;
+            break;
+        }
+    }
+    
     // ENERGY - REUSE NEIGHBOURS ?
-    if (_did_field_pin_R_shell) {    
-        for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
+    if (neighbours_stored) {
+        for (sit1 = target.begin(); sit1 < target.end(); ++sit1) {
             vector<PolarNb*> &nbs = (*sit1)->PolarNbs();
             for (nit = nbs.begin(); nit != nbs.end(); ++nit) {
                 PolarSeg *nb = (*nit)->getNb();
@@ -1239,7 +1252,7 @@ void PEwald3D3D::Potential_ConvergeRealSpaceSum() {
         
         // FOR EACH FOREGROUND SEGMENT (FGC) ...
         int energy_converged_count = 0;
-        for (sit1 = _fg_C.begin(); sit1 != _fg_C.end(); ++sit1) {        
+        for (sit1 = target.begin(); sit1 != target.end(); ++sit1) {        
             (*sit1)->ClearPolarNbs();
 
             // Bin midground into shells
@@ -1293,15 +1306,15 @@ void PEwald3D3D::Potential_ConvergeRealSpaceSum() {
             }
         }
         
-        if (energy_converged_count == _fg_C.size()) {
+        if (energy_converged_count == target.size()) {
             LOG(logDEBUG,*_log)  
                 << (format(":::: Converged to precision (%1$d items)") 
                 % energy_converged_count) << flush;
             _potential_converged_R = true;
         }
-        else if (energy_converged_count < _fg_C.size()) {
+        else if (energy_converged_count < target.size()) {
             LOG(logERROR,*_log) << "ERROR Energy not converged on " 
-                << _fg_C.size() - energy_converged_count << " counts." << flush;
+                << target.size() - energy_converged_count << " counts." << flush;
             _potential_converged_R = false;
         }
         else {
@@ -1318,8 +1331,12 @@ void PEwald3D3D::Potential_ConvergeRealSpaceSum() {
 }
 
 
-void PEwald3D3D::Potential_ConvergeReciprocalSpaceSum() {
+void PEwald3D3D::Potential_ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) {
     
+    // ATTENTION K-vectors are generated based on an interaction-energy
+    //           criterion between FGC and BGP. Hence, the <target> density
+    //           should at the very least be located within the space
+    //           covered by FGC.
     if (!_did_generate_kvectors)
         this->GenerateKVectors(_fg_C, _bg_P);
     vector< EWD::KVector >::iterator kvit;
@@ -1334,7 +1351,7 @@ void PEwald3D3D::Potential_ConvergeReciprocalSpaceSum() {
         << "K-lines through origin: Checking K resonances" << flush;
     for (kvit = _kvecs_2_0.begin(); kvit < _kvecs_2_0.end(); ++kvit) {
         EWD::KVector kvec = *kvit;
-        EWD::cmplx f_as1s2 = _ewdactor.PhiPU12_AS1S2_At_By(kvec.getK(), _fg_C, _bg_P, rV);
+        EWD::cmplx f_as1s2 = _ewdactor.PhiPU12_AS1S2_At_By(kvec.getK(), target, _bg_P, rV);
         sum_re += sqrt(f_as1s2._re);
         sum_im += f_as1s2._im;
     }
@@ -1359,7 +1376,7 @@ void PEwald3D3D::Potential_ConvergeReciprocalSpaceSum() {
         while (kvit < _kvecs_1_0.end()) {
             EWD::KVector kvec = *kvit;
             if (kvec.getGrade() < crit_grade) break;
-            EWD::cmplx f_as1s2 = _ewdactor.PhiPU12_AS1S2_At_By(kvec.getK(), _fg_C, _bg_P, rV);
+            EWD::cmplx f_as1s2 = _ewdactor.PhiPU12_AS1S2_At_By(kvec.getK(), target, _bg_P, rV);
             sum_re += f_as1s2._re;
             sum_im += f_as1s2._im;
             shell_rms += f_as1s2._re;
@@ -1402,7 +1419,7 @@ void PEwald3D3D::Potential_ConvergeReciprocalSpaceSum() {
         while (kvit < _kvecs_0_0.end()) {
             EWD::KVector kvec = *kvit;
             if (kvec.getGrade() < crit_grade) break;
-            EWD::cmplx f_as1s2 = _ewdactor.PhiPU12_AS1S2_At_By(kvec.getK(), _fg_C, _bg_P, rV);
+            EWD::cmplx f_as1s2 = _ewdactor.PhiPU12_AS1S2_At_By(kvec.getK(), target, _bg_P, rV);
             sum_re += f_as1s2._re;
             sum_im += f_as1s2._im;
             shell_rms += f_as1s2._re;
@@ -1442,7 +1459,7 @@ void PEwald3D3D::Potential_ConvergeReciprocalSpaceSum() {
 }
 
 
-void PEwald3D3D::Potential_CalculateForegroundCorrection() {
+void PEwald3D3D::Potential_CalculateForegroundCorrection(vector<PolarSeg*> &target) {
     LOG(logDEBUG,*_log)
         << "  o Foreground-correction to potentials via FGN" << flush;
     
@@ -1453,7 +1470,7 @@ void PEwald3D3D::Potential_CalculateForegroundCorrection() {
     
     double rms = 0.0;
     int rms_count = 0;
-    for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
+    for (sit1 = target.begin(); sit1 < target.end(); ++sit1) {
         for (sit2 = _fg_N.begin(); sit2 < _fg_N.end(); ++sit2) {
             for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
                 for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
@@ -1469,13 +1486,13 @@ void PEwald3D3D::Potential_CalculateForegroundCorrection() {
 }
 
 
-void PEwald3D3D::Potential_CalculateShapeCorrection() {
+void PEwald3D3D::Potential_CalculateShapeCorrection(vector<PolarSeg*> &target) {
     LOG(logDEBUG,*_log) << flush
         << "Potential correction terms" << flush;
     LOG(logDEBUG,*_log)
         << "  o Shape-correction to potentials, using '" << _shape << "'" << flush;
     
-    _ewdactor.PhiPU12_ShapeField_At_By(_fg_C, _bg_P, _shape, _LxLyLz);
+    _ewdactor.PhiPU12_ShapeField_At_By(target, _bg_P, _shape, _LxLyLz);
     return;
 }
 

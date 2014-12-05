@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <votca/tools/vec.h>
+#include <boost/format.hpp>
 
 namespace votca {
 namespace ctp {
@@ -137,6 +138,11 @@ inline triple<NrTyp> operator*(const double &d, const triple<NrTyp> &tr) {
     return (triple<NrTyp>(tr)*=d);
 }
 
+template<typename NrTyp>
+inline std::ostream &operator<<(std::ostream &out, const triple<NrTyp> &tr) {
+      out << (boost::format("( %1$+1.7e %2$+1.7e %3$+1.7e )") % tr._pp % tr._pu % tr._uu);
+      return out;
+}
 
 // To sort K-vectors via std::sort using a norm functor
 template<class Norm, class V>
