@@ -921,197 +921,7 @@ void Ewald3DnD::WriteDensitiesPtop(string fg, string mg, string bg) {
 }
 
 
-void Ewald3DnD::Evaluate() {
-    
-    LOG(logDEBUG,*_log) << flush;
-    LOG(logDEBUG,*_log) << "System & Ewald parameters (" << IdentifyMethod() << ")" << flush;
-    LOG(logDEBUG,*_log) << "  o Real-space unit cell:      " << _a << " x " << _b << " x " << _c << flush;
-    LOG(logDEBUG,*_log) << "  o Real-space c/o (guess):    " << _R_co << " nm" << flush;
-    LOG(logDEBUG,*_log) << "  o na(max), nb(max), nc(max): " << _na_max << ", " << _nb_max << ", " << _nc_max << flush;
-    LOG(logDEBUG,*_log) << "  o 1st Brillouin zone:        " << _A << " x " << _B << " x " << _C << flush;
-    LOG(logDEBUG,*_log) << "  o Reciprocal-space c/o:      " << _K_co << " 1/nm" << flush;
-    LOG(logDEBUG,*_log) << "  o R-K switching param.       " << _alpha << " 1/nm" << flush;
-    LOG(logDEBUG,*_log) << "  o Unit-cell volume:          " << _LxLyLz << " nm**3" << flush;
-    LOG(logDEBUG,*_log) << "  o LxLy (for 3D2D EW):        " << _LxLy << " nm**2" << flush;
-    LOG(logDEBUG,*_log) << "  o kx(max), ky(max), kz(max): " << _NA_max << ", " << _NB_max << ", " << _NC_max << flush;
-    
-    LOG(logDEBUG,*_log) << "Tasks to perform (" << IdentifyMethod() << ")" << flush;
-    LOG(logDEBUG,*_log) << "  o Calculate fg fields:       " << ((_task_calculate_fields) ? "yes" : "no") << flush;
-    LOG(logDEBUG,*_log) << "  o Polarize foreground:       " << ((_task_polarize_fg) ? "yes" : "no") << flush;
-    LOG(logDEBUG,*_log) << "  o Evaluate energy:           " << ((_task_evaluate_energy) ? "yes" : "no") << flush;
-        
-    // TEASER OUTPUT PERMANENT FIELDS
-    LOG(logDEBUG,*_log) << flush << "Background fields (FGN):" << flush;
-    int fieldCount = 0;
-    //for (vector<PolarSeg*>::iterator sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
-    for (vector<PolarSeg*>::iterator sit1 = _fg_N.begin(); sit1 < _fg_N.end(); ++sit1) {
-        PolarSeg *pseg = *sit1;
-        Segment *seg = _top->getSegment(pseg->getId());
-        LOG(logDEBUG,*_log) << "ID = " << pseg->getId() << " (" << seg->getName() << ") " << flush;
-        for (PolarSeg::iterator pit1 = pseg->begin(); pit1 < pseg->end(); ++pit1) {
-            vec fp = (*pit1)->getFieldP();
-            vec fu = (*pit1)->getFieldU();
-            vec u1 = (*pit1)->getU1();
-            LOG(logDEBUG,*_log)
-               << (format("FPU = (%1$+1.7e %2$+1.7e %3$+1.7e) V/m    ") 
-                    % (fp.getX()*EWD::int2V_m+fu.getX()*EWD::int2V_m)
-                    % (fp.getY()*EWD::int2V_m+fu.getY()*EWD::int2V_m) 
-                    % (fp.getZ()*EWD::int2V_m+fu.getZ()*EWD::int2V_m)).str();
-            LOG(logDEBUG,*_log)
-               << (format("U1* = (%1$+1.7e %2$+1.7e %3$+1.7e) e*nm") 
-                    % (u1.getX())
-                    % (u1.getY()) 
-                    % (u1.getZ())).str() << flush;
-            fieldCount += 1;
-            if (fieldCount > 10) {
-                LOG(logDEBUG,*_log)
-                    << "FPU = ... ... ..." << flush;
-                break;
-            }
-        }
-        if (fieldCount > 10) break;
-    }
-    
-    if (_task_scan_cutoff) ScanCutoff();
-    boost::timer::cpu_timer cpu_t;
-    cpu_t.start();
-    boost::timer::cpu_times t0 = cpu_t.elapsed();
-    if (_task_calculate_fields) EvaluateFields();
-    boost::timer::cpu_times t1 = cpu_t.elapsed();
-    if (_task_polarize_fg) EvaluateInduction();
-    else _polar_converged = true;
-    boost::timer::cpu_times t2 = cpu_t.elapsed();
-    if (_task_evaluate_energy) EvaluateEnergy(_fg_C);
-    boost::timer::cpu_times t3 = cpu_t.elapsed();
-    if (_task_apply_radial) EvaluateRadialCorrection(_fg_C);
-    boost::timer::cpu_times t4 = cpu_t.elapsed();
-    if (_task_solve_poisson) EvaluatePoisson();
-    
-    
-    
-    
-    /*
-    bool add_bg = true;
-    bool add_mm1 = true;
-    bool add_qm0 = false;
-    EvaluatePotential(_polar_qm0, add_bg, add_mm1, add_qm0);
-    EvaluateEnergyQMMM();
-    */
-    
-    _t_fields    = (t1.wall-t0.wall)/1e9/60.;
-    _t_induction = (t2.wall-t1.wall)/1e9/60.;
-    _t_energy    = (t3.wall-t2.wall)/1e9/60.;
-    _t_radial    = (t4.wall-t3.wall)/1e9/60.;
-    
-    // TEASER OUTPUT PERMANENT FIELDS
-    LOG(logDEBUG,*_log) << flush << "Foreground fields (FGC):" << flush;
-    fieldCount = 0;
-    //for (vector<PolarSeg*>::iterator sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
-    for (vector<PolarSeg*>::iterator sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
-        PolarSeg *pseg = *sit1;
-        Segment *seg = _top->getSegment(pseg->getId());
-        LOG(logDEBUG,*_log) << "ID = " << pseg->getId() << " (" << seg->getName() << ") " << flush;
-        for (PolarSeg::iterator pit1 = pseg->begin(); pit1 < pseg->end(); ++pit1) {
-            vec fp = (*pit1)->getFieldP();
-            vec fu = (*pit1)->getFieldU();
-            vec u1 = (*pit1)->getU1();
-            LOG(logDEBUG,*_log)
-               << (format("FPU = (%1$+1.7e %2$+1.7e %3$+1.7e) V/m    ") 
-                    % (fp.getX()*EWD::int2V_m+fu.getX()*EWD::int2V_m)
-                    % (fp.getY()*EWD::int2V_m+fu.getY()*EWD::int2V_m) 
-                    % (fp.getZ()*EWD::int2V_m+fu.getZ()*EWD::int2V_m)).str();
-            LOG(logDEBUG,*_log)
-               << (format("U1* = (%1$+1.7e %2$+1.7e %3$+1.7e) e*nm") 
-                    % (u1.getX())
-                    % (u1.getY()) 
-                    % (u1.getZ())).str() << flush;
-            fieldCount += 1;
-            if (fieldCount > 10) {
-                LOG(logDEBUG,*_log)
-                    << "FPU = ... ... ..." << flush;
-                break;
-            }
-        }
-        if (fieldCount > 10) break;
-    }
-    
-    
-    
-    
-    double outer_epp = _ET._pp;
-    double outer_eppu = _ET._pu + _ET._uu;
-    double outer = outer_epp + outer_eppu;
-    
-    LOG(logDEBUG,*_log) << flush;
-    LOG(logINFO,*_log)
-        << (format("Interaction FGC -> ***")).str()
-        << flush << (format("  + EPP(FGC->MGN)  = %1$+1.7e = %2$+1.7e  %3$+1.7e  %4$+1.7e eV") 
-            % _ER.Sum() % _ER._pp % _ER._pu % _ER._uu).str()
-        << flush << (format("  + EKK(FGC->BGP)  = %1$+1.7e = %2$+1.7e  %3$+1.7e  %4$+1.7e eV") 
-            % _EK.Sum() % _EK._pp % _EK._pu % _EK._uu).str()       
-        << flush << (format("  - EPP(FGC->FGN)  = %1$+1.7e = %2$+1.7e  %3$+1.7e  %4$+1.7e eV") 
-            % _EC.Sum() % _EC._pp % _EC._pu % _EC._uu).str()
-        << flush << (format("  + EK0(FGC->BGP)  = %1$+1.7e = %2$+1.7e  %3$+1.7e  %4$+1.7e eV") 
-            % _E0.Sum() % _E0._pp % _E0._pu % _E0._uu).str() 
-        << flush << (format("  + EDQ(FGC->MGN)  = %1$+1.7e = %2$+1.7e  %3$+1.7e  %4$+1.7e eV") 
-            % _EDQ.Sum() % _EDQ._pp % _EDQ._pu % _EDQ._uu).str()
-        << flush << (format("  + EJ(shape-dep.) = %1$+1.7e = %2$+1.7e  %3$+1.7e  %4$+1.7e eV") 
-            % _EJ.Sum() % _EJ._pp % _EJ._pu % _EJ._uu).str()
-        << flush << (format("  = -----------------------------------------------------------------------------------")).str()
-        << flush << (format("  + SUM(E) (0,Q,J) = %1$+1.7e = %2$+1.7e  %3$+1.7e  %4$+1.7e eV") 
-            % _ET.Sum() % _ET._pp % _ET._pu % _ET._uu).str()
-        << flush;
-    
-    double inner_epp = _polar_EPP;
-    double inner_eppu = _polar_EF00+_polar_EF01+_polar_EF02+_polar_EF11+_polar_EF12 - _polar_EPP;
-    double inner_ework = _polar_EM0+_polar_EM1;
-    double inner = inner_epp+inner_eppu+inner_ework;
-    
-    LOG(logINFO,*_log)
-        << (format("Interaction FGC <> FGC")).str()
-        << flush << (format("  + EF [00 01 11]  = %1$+1.7e = %2$+1.7e  %3$+1.7e  %4$+1.7e eV") 
-            % (_polar_EF00+_polar_EF01+_polar_EF11) % _polar_EF00 % _polar_EF01 % _polar_EF11).str()
-        << flush << (format("  + EF [02 12 22]  = %1$+1.7e = *****ZERO*****  *****ZERO*****  *****ZERO***** eV") 
-            % 0.0).str()
-        << flush << (format("  + EM [0  1  2 ]  = %1$+1.7e = %2$+1.7e  %3$+1.7e  *****ZERO***** eV") 
-            % (_polar_EM0+_polar_EM1) % _polar_EM0 % _polar_EM1).str()
-        << flush << (format("  o E  [PP PU UU]  = %1$+1.7e = %2$+1.7e  %3$+1.7e  %4$+1.7e eV") 
-            % (_polar_EPP+_polar_EPU+_polar_EUU) % _polar_EPP % _polar_EPU % _polar_EUU).str()
-        << flush << (format("  = -----------------------------------------------------------------------------------")).str()
-        << flush << (format("  + SUM(E)         = %1$+1.7e = %2$+1.7e  %3$+1.7e  %4$+1.7e eV")
-            % inner % inner_epp % inner_eppu % inner_ework).str()
-        << flush;
-    
-    _Estat = outer_epp + inner_epp;
-    _Eindu = outer_eppu + inner_eppu + inner_ework;
-    _Eppuu = _Estat + _Eindu;
-    LOG(logINFO,*_log)
-            
-        << (format("Interaction FGC <> FGC(i) u ***(o)")).str()
-        << flush << (format("  + Ei [pp+pu+iw]  = %1$+1.7e = %2$+1.7e  %3$+1.7e  %4$+1.7e eV")
-            % inner % inner_epp % inner_eppu % inner_ework).str()
-        << flush << (format("  + Eo [pp+pu+iw]  = %1$+1.7e = %2$+1.7e  %3$+1.7e  ************** eV")
-            % outer % outer_epp % outer_eppu).str()
-        << flush << (format("  = ===================================================================================")).str()
-        << flush << (format("  + E  [stat+ind]  = %1$+1.7e = %2$+1.7e  %3$+1.7e eV")
-            % _Eppuu % _Estat % _Eindu).str()
-        << flush;
-    
-    
-    _t_total = _t_coarsegrain+_t_fields+_t_induction+_t_energy;
-    
-    LOG(logDEBUG,*_log) << flush << (format("Timing (T = %1$1.2f min)") % (_t_total)) << flush;
-    LOG(logDEBUG,*_log) << (format("  o Usage <Coarsegrain> = %1$2.2f%%") % (100*_t_coarsegrain/_t_total)) << flush;
-    LOG(logDEBUG,*_log) << (format("  o Usage <Fields>      = %1$2.2f%%") % (100*_t_fields/_t_total)) << flush;
-    LOG(logDEBUG,*_log) << (format("  o Usage <Induction>   = %1$2.2f%%") % (100*_t_induction/_t_total)) << flush;
-    LOG(logDEBUG,*_log) << (format("  o Usage <Energy>      = %1$2.2f%%") % (100*_t_energy/_t_total)) << flush;    
-    LOG(logDEBUG,*_log) << flush;
-    
-    for (vector<PolarSeg*>::iterator sit1 = _fg_C.begin(); 
-        sit1 != _fg_C.end(); ++sit1) {
-        (*sit1)->ClearPolarNbs();
-    }    
-   	
+void Ewald3DnD::WriteInductionStateTable() {
     // Field effect
     if (false && tools::globals::verbose) {
         string tabfile = "polarized_"
@@ -1306,6 +1116,200 @@ void Ewald3DnD::Evaluate() {
         } // Loop over (FGC, FGN)
         ofs.close();
     }
+    return;
+}
+
+
+void Ewald3DnD::ShowAgenda(Logger *log) {
+    
+    LOG(logDEBUG,*log) << flush;
+    
+    LOG(logDEBUG,*log) << "System & Ewald parameters (" << IdentifyMethod() << ")" << flush;
+    LOG(logDEBUG,*log) << "  o Real-space unit cell:      " << _a << " x " << _b << " x " << _c << flush;
+    LOG(logDEBUG,*log) << "  o Real-space c/o (guess):    " << _R_co << " nm" << flush;
+    LOG(logDEBUG,*log) << "  o na(max), nb(max), nc(max): " << _na_max << ", " << _nb_max << ", " << _nc_max << flush;
+    LOG(logDEBUG,*log) << "  o 1st Brillouin zone:        " << _A << " x " << _B << " x " << _C << flush;
+    LOG(logDEBUG,*log) << "  o Reciprocal-space c/o:      " << _K_co << " 1/nm" << flush;
+    LOG(logDEBUG,*log) << "  o R-K switching param.       " << _alpha << " 1/nm" << flush;
+    LOG(logDEBUG,*log) << "  o Unit-cell volume:          " << _LxLyLz << " nm**3" << flush;
+    LOG(logDEBUG,*log) << "  o LxLy (for 3D2D EW):        " << _LxLy << " nm**2" << flush;
+    LOG(logDEBUG,*log) << "  o kx(max), ky(max), kz(max): " << _NA_max << ", " << _NB_max << ", " << _NC_max << flush;
+    
+    LOG(logDEBUG,*log) << "Tasks to perform (" << IdentifyMethod() << ")" << flush;
+    LOG(logDEBUG,*log) << "  o Scan interaction range:    " << ((_task_scan_cutoff) ? "yes" : "no") << flush;
+    LOG(logDEBUG,*log) << "  o Calculate fg fields:       " << ((_task_calculate_fields) ? "yes" : "no") << flush;
+    LOG(logDEBUG,*log) << "  o Polarize foreground:       " << ((_task_polarize_fg) ? "yes" : "no") << flush;
+    LOG(logDEBUG,*log) << "  o Evaluate energy:           " << ((_task_evaluate_energy) ? "yes" : "no") << flush;
+    LOG(logDEBUG,*log) << "  o Apply radial correction:   " << ((_task_apply_radial) ? "yes" : "no") << flush;
+    
+    return;
+}
+
+
+void Ewald3DnD::ShowFieldsTeaser(vector<PolarSeg*> &target, Logger *log) {
+
+    int fieldCount = 0;
+    for (vector<PolarSeg*>::iterator sit1 = target.begin(); sit1 < target.end(); ++sit1) {
+        PolarSeg *pseg = *sit1;
+        Segment *seg = _top->getSegment(pseg->getId());
+        LOG(logDEBUG,*log) << "ID = " << pseg->getId() << " (" << seg->getName() << ") " << flush;
+        for (PolarSeg::iterator pit1 = pseg->begin(); pit1 < pseg->end(); ++pit1) {
+            vec fp = (*pit1)->getFieldP();
+            vec fu = (*pit1)->getFieldU();
+            vec u1 = (*pit1)->getU1();
+            LOG(logDEBUG,*log)
+               << (format("FPU = (%1$+1.7e %2$+1.7e %3$+1.7e) V/m    ") 
+                    % (fp.getX()*EWD::int2V_m+fu.getX()*EWD::int2V_m)
+                    % (fp.getY()*EWD::int2V_m+fu.getY()*EWD::int2V_m) 
+                    % (fp.getZ()*EWD::int2V_m+fu.getZ()*EWD::int2V_m)).str();
+            LOG(logDEBUG,*log)
+               << (format("U1* = (%1$+1.7e %2$+1.7e %3$+1.7e) e*nm") 
+                    % (u1.getX())
+                    % (u1.getY()) 
+                    % (u1.getZ())).str() << flush;
+            fieldCount += 1;
+            if (fieldCount > 10) {
+                LOG(logDEBUG,*log)
+                    << "FPU = ... ... ..." << flush;
+                break;
+            }
+        }
+        if (fieldCount > 10) break;
+    }
+    return;
+}
+
+
+void Ewald3DnD::ShowEnergySplitting(Logger *log) {
+    
+    LOG(logDEBUG,*_log) << flush;
+    LOG(logINFO,*_log)
+        << (format("Interaction FGC -> ***")).str()
+        << flush << (format("  + EPP(FGC->MGN)  = %1$+1.7e = %2$+1.7e  %3$+1.7e  %4$+1.7e eV") 
+            % _ER.Sum() % _ER._pp % _ER._pu % _ER._uu).str()
+        << flush << (format("  + EKK(FGC->BGP)  = %1$+1.7e = %2$+1.7e  %3$+1.7e  %4$+1.7e eV") 
+            % _EK.Sum() % _EK._pp % _EK._pu % _EK._uu).str()       
+        << flush << (format("  - EPP(FGC->FGN)  = %1$+1.7e = %2$+1.7e  %3$+1.7e  %4$+1.7e eV") 
+            % _EC.Sum() % _EC._pp % _EC._pu % _EC._uu).str()
+        << flush << (format("  + EK0(FGC->BGP)  = %1$+1.7e = %2$+1.7e  %3$+1.7e  %4$+1.7e eV") 
+            % _E0.Sum() % _E0._pp % _E0._pu % _E0._uu).str() 
+        << flush << (format("  + EDQ(FGC->MGN)  = %1$+1.7e = %2$+1.7e  %3$+1.7e  %4$+1.7e eV") 
+            % _EDQ.Sum() % _EDQ._pp % _EDQ._pu % _EDQ._uu).str()
+        << flush << (format("  + EJ(shape-dep.) = %1$+1.7e = %2$+1.7e  %3$+1.7e  %4$+1.7e eV") 
+            % _EJ.Sum() % _EJ._pp % _EJ._pu % _EJ._uu).str()
+        << flush << (format("  = -----------------------------------------------------------------------------------")).str()
+        << flush << (format("  + SUM(E) (0,Q,J) = %1$+1.7e = %2$+1.7e  %3$+1.7e  %4$+1.7e eV") 
+            % _ET.Sum() % _ET._pp % _ET._pu % _ET._uu).str()
+        << flush;
+    
+    LOG(logINFO,*_log)
+        << (format("Interaction FGC <> FGC")).str()
+        << flush << (format("  + EF [00 01 11]  = %1$+1.7e = %2$+1.7e  %3$+1.7e  %4$+1.7e eV") 
+            % (_polar_EF00+_polar_EF01+_polar_EF11) % _polar_EF00 % _polar_EF01 % _polar_EF11).str()
+        << flush << (format("  + EF [02 12 22]  = %1$+1.7e = *****ZERO*****  *****ZERO*****  *****ZERO***** eV") 
+            % 0.0).str()
+        << flush << (format("  + EM [0  1  2 ]  = %1$+1.7e = %2$+1.7e  %3$+1.7e  *****ZERO***** eV") 
+            % (_polar_EM0+_polar_EM1) % _polar_EM0 % _polar_EM1).str()
+        << flush << (format("  o E  [PP PU UU]  = %1$+1.7e = %2$+1.7e  %3$+1.7e  %4$+1.7e eV") 
+            % (_polar_EPP+_polar_EPU+_polar_EUU) % _polar_EPP % _polar_EPU % _polar_EUU).str()
+        << flush << (format("  = -----------------------------------------------------------------------------------")).str()
+        << flush << (format("  + SUM(E)         = %1$+1.7e = %2$+1.7e  %3$+1.7e  %4$+1.7e eV")
+            % _inner % _inner_epp % _inner_eppu % _inner_ework).str()
+        << flush;
+    
+    LOG(logINFO,*_log)            
+        << (format("Interaction FGC <> FGC(i) u ***(o)")).str()
+        << flush << (format("  + Ei [pp+pu+iw]  = %1$+1.7e = %2$+1.7e  %3$+1.7e  %4$+1.7e eV")
+            % _inner % _inner_epp % _inner_eppu % _inner_ework).str()
+        << flush << (format("  + Eo [pp+pu+iw]  = %1$+1.7e = %2$+1.7e  %3$+1.7e  ************** eV")
+            % _outer % _outer_epp % _outer_eppu).str()
+        << flush << (format("  = ===================================================================================")).str()
+        << flush << (format("  + E  [stat+ind]  = %1$+1.7e = %2$+1.7e  %3$+1.7e eV")
+            % _Eppuu % _Estat % _Eindu).str()
+        << flush;
+    
+    return;
+}
+
+
+void Ewald3DnD::Evaluate() {
+    
+    this->ShowAgenda(_log);
+
+    // TEASER OUTPUT PERMANENT FIELDS
+    LOG(logDEBUG,*_log) << flush << "Background fields (FGN):" << flush;
+    this->ShowFieldsTeaser(_fg_N, _log);
+
+    // PERFORM TASKS
+    if (_task_scan_cutoff) ScanCutoff();
+    boost::timer::cpu_timer cpu_t;
+    cpu_t.start();
+    boost::timer::cpu_times t0 = cpu_t.elapsed();
+    if (_task_calculate_fields) EvaluateFields();
+    boost::timer::cpu_times t1 = cpu_t.elapsed();
+    if (_task_polarize_fg) EvaluateInduction();
+    else _polar_converged = true;
+    boost::timer::cpu_times t2 = cpu_t.elapsed();
+    if (_task_evaluate_energy) EvaluateEnergy(_fg_C);
+    boost::timer::cpu_times t3 = cpu_t.elapsed();
+    if (_task_apply_radial) EvaluateRadialCorrection(_fg_C);
+    boost::timer::cpu_times t4 = cpu_t.elapsed();
+    if (_task_solve_poisson) EvaluatePoisson();
+    
+    _t_fields    = (t1.wall-t0.wall)/1e9/60.;
+    _t_induction = (t2.wall-t1.wall)/1e9/60.;
+    _t_energy    = (t3.wall-t2.wall)/1e9/60.;
+    _t_radial    = (t4.wall-t3.wall)/1e9/60.;
+    
+//    EvaluateInductionQMMM(true, true, true, true, true);
+//    EvaluateEnergyQMMM();
+    /*
+    EvaluateInductionQMMM(true, true, true, true, true);
+    EvaluateEnergyQMMM();
+    bool add_bg = true;
+    bool add_mm1 = true;
+    bool add_qm0 = false;
+    EvaluatePotential(_polar_qm0, add_bg, add_mm1, add_qm0);
+    EvaluateEnergyQMMM();
+    */
+    
+    // TEASER OUTPUT PERMANENT FIELDS
+    LOG(logDEBUG,*_log) << flush << "Foreground fields (FGC):" << flush;
+    this->ShowFieldsTeaser(_fg_C, _log);
+    
+    // COMPUTE ENERGY SPLITTING
+    _outer_epp = _ET._pp;
+    _outer_eppu = _ET._pu + _ET._uu;
+    _outer = _outer_epp + _outer_eppu;
+    
+    _inner_epp = _polar_EPP;
+    _inner_eppu = _polar_EF00+_polar_EF01+_polar_EF02+_polar_EF11+_polar_EF12 - _polar_EPP;
+    _inner_ework = _polar_EM0+_polar_EM1;
+    _inner = _inner_epp+_inner_eppu+_inner_ework;
+    
+    _Estat = _outer_epp + _inner_epp;
+    _Eindu = _outer_eppu + _inner_eppu + _inner_ework;
+    _Eppuu = _Estat + _Eindu;
+    
+    this->ShowEnergySplitting(_log);
+    
+    // ADDITIONAL OUTPUT (IF VERBOSE)
+    WriteInductionStateTable();
+    
+    // CLEAN-UP
+    for (vector<PolarSeg*>::iterator sit1 = _fg_C.begin(); 
+        sit1 != _fg_C.end(); ++sit1) {
+        (*sit1)->ClearPolarNbs();
+    }
+    
+    // TIMING
+    _t_total = _t_coarsegrain+_t_fields+_t_induction+_t_energy;    
+    LOG(logDEBUG,*_log) << flush << (format("Timing (T = %1$1.2f min)") % (_t_total)) << flush;
+    LOG(logDEBUG,*_log) << (format("  o Usage <Coarsegrain> = %1$2.2f%%") % (100*_t_coarsegrain/_t_total)) << flush;
+    LOG(logDEBUG,*_log) << (format("  o Usage <Fields>      = %1$2.2f%%") % (100*_t_fields/_t_total)) << flush;
+    LOG(logDEBUG,*_log) << (format("  o Usage <Induction>   = %1$2.2f%%") % (100*_t_induction/_t_total)) << flush;
+    LOG(logDEBUG,*_log) << (format("  o Usage <Energy>      = %1$2.2f%%") % (100*_t_energy/_t_total)) << flush;    
+    LOG(logDEBUG,*_log) << flush;
     
     return;
 }
@@ -1442,8 +1446,282 @@ void Ewald3DnD::EvaluateInduction() {
     _polar_EM2 = polar_xjob.getEM2();
     return;
 }
+
+
+bool Ewald3DnD::EvaluateInductionQMMM(
+    bool do_reset, 
+    bool do_reuse_bgp_state,
+    bool do_calc_perm_fields, 
+    bool do_calc_perm_bg_fields, 
+    bool do_calc_perm_fg_fields) {
+    
+    // TO BE TAKEN CARE OF OUTSIDE OF THIS METHOD
+    // o Make sure to retain U1 from previous iteration (if existing)
+    // o Set polarizabilities of QM0 to zero except for first QMMM iteration
+    
+    // DEFINITION OF MULTIPOLAR DENSITIES
+    //   o  X   = QM0 (excitation)
+    //   o  P   = MM1 (polarization cloud)
+    //   o  A   = FGC = QM0 u MM1
+    //   o  B*~ = BGP \ FGC
+    
+    // 1st QMMM iteration
+    // do_reset = true;
+    // do_reuse_bgp_state = true; (ptop-feed required)
+    // do_calc_perm_fields = true;
+    
+    // nth > 1st QMMM iteration
+    // do_reset = false;
+    // do_reuse_bgp_state = false;
+    // do_calc_perm_fields = true;    
+    
+    vector<PolarSeg*>::iterator sit;
+    vector<PolarSeg*>::iterator sit1;
+    vector<PolarSeg*>::iterator sit2;
+    PolarSeg::iterator pit;
+    PolarSeg::iterator pit1;
+    PolarSeg::iterator pit2;
+    
+    LOG(logDEBUG,*_log) << flush;
+    LOG(logDEBUG,*_log) << "Started MM Polarization" << flush;
+    
+    // DEPOLARIZATION STAGE
+    if (do_reset) {
+        LOG(logDEBUG,*_log) << " o Carry out complete depolarization on FGC" << flush;
+        for (sit = _fg_C.begin(); sit < _fg_C.end(); ++sit) {
+            for (pit = (*sit)->begin(); pit != (*sit)->end(); ++pit) {
+                (*pit)->Depolarize();
+            }
+        }
+    }
+    else {
+        LOG(logDEBUG,*_log) << " o Carry out partial depolarization on FGC" << flush;
+        for (sit = _fg_C.begin(); sit < _fg_C.end(); ++sit) {
+            for (pit = (*sit)->begin(); pit != (*sit)->end(); ++pit) {
+                (*pit)->ResetFieldU();
+            }
+        }
+    }
+    
+    if (do_reuse_bgp_state && _started_from_archived_indu_state) {
+        LOG(logDEBUG,*_log) << " o Reuse induction state from archive" << flush;
+        vector<PolarSeg*>::iterator sit1, sit2;
+        PolarSeg::iterator pit1, pit2;
+        for (sit1 = _fg_C.begin(), sit2 = _fg_N.begin(); sit1 < _fg_C.end();
+            ++sit1, ++sit2) {
+            PolarSeg *pseg_c = *sit1;
+            PolarSeg *pseg_n = *sit2;
+            assert(pseg_c->getId() == pseg_n->getId());
+            assert(pseg_c->size() == pseg_n->size());
+            for (pit1 = pseg_c->begin(), pit2 = pseg_n->begin(); pit1 < pseg_c->end(); 
+                ++pit1, ++pit2) {
+                vec U1_n = (*pit2)->getU1();
+                (*pit1)->setU1(U1_n);
+            }
+        }
+    }
+    
+    // BACKGROUND FIELDS (CONSTANT DURING QMMM ITERATION, STORED AS FP)
+    if (do_calc_perm_fields) {
+        LOG(logDEBUG,*_log) << flush;
+        LOG(logDEBUG,*_log) << "Compute fields for aperiodic embedding" << flush;
+        
+        if (do_calc_perm_fg_fields) {
+            // FIELDS ON 'P' GENERATED BY FOREGROUND (WITHOUT X) : FP[Ql e P] -> P
+            LOG(logDEBUG,*_log) << " o FP[Ql e P]      -> P" << flush;
+            for (sit1 = _polar_mm1.begin(); sit1 != _polar_mm1.end(); ++sit1) {
+            for (sit2 = sit1+1; sit2 != _polar_mm1.end(); ++sit2) {
+                for (pit1 = (*sit1)->begin(); pit1 != (*sit1)->end(); ++pit1) {
+                for (pit2 = (*sit2)->begin(); pit2 != (*sit2)->end(); ++pit2) {
+                    _actor.BiasStat(*(*pit1), *(*pit2));
+                    _actor.FieldPerm(*(*pit1), *(*pit2));
+                }}
+            }}
+
+            // FIELDS ON 'X' GENERATED BY FOREGROUND (WITHOUT X) : FP[Ql e P] -> X
+            LOG(logDEBUG,*_log) << " o FP[Ql e P]      -> X" << flush;
+            for (sit1 = _polar_mm1.begin(); sit1 != _polar_mm1.end(); ++sit1) {
+            for (sit2 = _polar_qm0.begin(); sit2 != _polar_qm0.end(); ++sit2) {
+                for (pit1 = (*sit1)->begin(); pit1 != (*sit1)->end(); ++pit1) {
+                for (pit2 = (*sit2)->begin(); pit2 != (*sit2)->end(); ++pit2) {
+                    _actor.BiasStat(*(*pit2), *(*pit1));
+                    _actor.FieldPermAsPerm_At_By(*(*pit2), *(*pit1));
+                }}
+            }}
+        }
+        
+        if (do_calc_perm_bg_fields) {
+            // FIELDS ON 'A' GENERATED BY APERIODIC BACKGROUND : FP[Ql,U1 e B*~] -> X u P
+            LOG(logDEBUG,*_log) << " o FP[Ql,U1 e B*~] -> X u P" << flush;
+            this->EvaluateFields();
+        }
         
         
+        
+        // FIRST-ORDER INDUCTION
+        if (!do_reuse_bgp_state) {
+            for (sit = _fg_C.begin(); sit != _fg_C.end(); ++sit) {
+                for (pit = (*sit)->begin(); pit != (*sit)->end(); ++pit) {
+                    (*pit)->InduceDirect();
+                }
+            }
+        }
+    }
+    
+    
+    // CLASSICAL SCF (ITERATE UNTIL CONVERGED)
+    LOG(logDEBUG,*_log) << flush;
+    LOG(logDEBUG,*_log) << "Start classical SCF with background fields" << flush;
+    LOG(logDEBUG,*_log) << flush;
+    _log->DisablePreface();
+    
+    // CONVERGENCE PARAMETERS
+    int n_iter   = 1;
+    int max_iter = 512;
+    bool converged = false;
+    double wSOR = _polar_wSOR_N;
+    double eTOL = _polar_epstol;
+    if (_jobType == "neutral") wSOR = _polar_wSOR_N;
+    else wSOR = _polar_wSOR_C;        
+    
+    for ( ; n_iter < max_iter+1; ++n_iter) {
+        
+        LOG(logDEBUG,*_log) << (boost::format("o %1$2d") % n_iter) << flush;
+        if (n_iter % 10 == 0) {
+            _log->EnablePreface();
+            LOG(logDEBUG,*_log) << flush;
+            _log->DisablePreface();
+        }
+        
+        // Reset induction fields
+        for (sit = _fg_C.begin(); sit != _fg_C.end(); ++sit) {
+            for (pit = (*sit)->begin(); pit != (*sit)->end(); ++pit) {
+                (*pit)->ResetFieldU();
+            }
+        }
+        
+        // QM contribution (changes during QMMM iteration) : FU(Q e X) -> P
+        for (sit1 = _polar_mm1.begin(); sit1 != _polar_mm1.end(); ++sit1) {
+        for (sit2 = _polar_qm0.begin(); sit2 != _polar_qm0.end(); ++sit2) {
+            for (pit1 = (*sit1)->begin(); pit1 != (*sit1)->end(); ++pit1) {
+            for (pit2 = (*sit2)->begin(); pit2 != (*sit2)->end(); ++pit2) {
+                _actor.BiasIndu(*(*pit1), *(*pit2));
+                _actor.FieldPermAsIndu_At_By(*(*pit1), *(*pit2));
+            }}
+        }}
+        
+        // Intramolecular contribution : FU(U1 e Ai) -> Ai
+        for (sit = _fg_C.begin(); sit != _fg_C.end(); ++sit) {
+            for (pit1 = (*sit)->begin(); pit1 != (*sit)->end(); ++pit1) {
+            for (pit2 = pit1+1; pit2 != (*sit)->end(); ++pit2) {
+                _actor.BiasIndu(*(*pit1), *(*pit2));
+                _actor.FieldIndu(*(*pit1), *(*pit2));
+            }}
+        }
+        
+        // Intermolecular contribution : FU(U1 e A) -> A
+        for (sit1 = _fg_C.begin(); sit1 != _fg_C.end(); ++sit1) {
+        for (sit2 = sit1+1; sit2 != _fg_C.end(); ++sit2) {
+            for (pit1 = (*sit1)->begin(); pit1 != (*sit1)->end(); ++pit1) {
+            for (pit2 = (*sit2)->begin(); pit2 != (*sit2)->end(); ++pit2) {
+                _actor.BiasIndu(*(*pit1), *(*pit2));
+                _actor.FieldIndu(*(*pit1), *(*pit2));
+            }}
+        }}
+        
+        // Induce again
+        for (sit = _fg_C.begin(); sit != _fg_C.end(); ++sit) {
+            for (pit = (*sit)->begin(); pit != (*sit)->end(); ++pit) {
+                (*pit)->Induce(wSOR);
+            }
+        }
+        
+        // Check for convergence
+        converged       = true;
+        double  maxdU_U = -1;
+        double  avgdU_U = 0.0;
+        double  rmsdU   = 0.0;
+        int     baseN   = 0;
+        for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
+             for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+                 double dU_U = (*pit1)->HistdU();
+                 avgdU_U += dU_U;
+                 double dU2 = (*pit1)->HistdU2();
+                 rmsdU += dU2;
+                 ++baseN;
+                 if ( dU_U > maxdU_U ) { maxdU_U = dU_U; }
+                 if ( dU_U > eTOL) { converged = false; }
+             }
+        }
+        avgdU_U /= baseN;
+        rmsdU /= baseN;
+        rmsdU = sqrt(rmsdU);
+        if (avgdU_U < eTOL/10.) { converged = true; }        
+        
+        // Break if converged
+        if (converged) { 
+            _polar_converged = true;
+            break;
+        }
+        else if (n_iter == max_iter) {
+            _polar_converged = false;
+            break;
+        }       
+    }
+    
+    _log->EnablePreface();
+    
+    // CLEAN-UP STAGE
+    for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
+        for (pit1 = (*sit1)->begin(); pit1 != (*sit1)->end(); ++pit1) {
+            (*pit1)->ResetU1Hist();
+        }
+    }
+    
+    // ENERGY EVALUATION VIA INDUCTOR    
+    // Forge XJob object to comply with XInductor interface
+    bool polar_has_permanent_fields = true;
+    XJob polar_xjob = XJob(_ptop, polar_has_permanent_fields);
+    
+    // Initialize XInductor
+    bool    polar_induce_intra_pair = true;
+    int     polar_subthreads = 1;
+    int     polar_maxIter = 512;
+    bool    polar_maverick = _log->isMaverick();
+    
+    XInductor polar_xind = XInductor(_polar_do_induce, 
+                                     polar_induce_intra_pair, 
+                                     polar_subthreads,
+                                     _polar_wSOR_N,
+                                     _polar_wSOR_C,
+                                     _polar_epstol,
+                                     polar_maxIter,
+                                     _polar_aDamp,
+                                     polar_maverick,
+                                     _top);
+    polar_xind.setLog(_log);
+    polar_xind.Configure(&polar_xjob);
+    polar_xind.Energy(&polar_xjob);
+    
+    // SAVE RESULTS
+    _polar_ETT = polar_xjob.getETOT();
+    _polar_EPP = polar_xjob.getEPP();
+    _polar_EPU = polar_xjob.getEPU();
+    _polar_EUU = polar_xjob.getEUU();
+    
+    _polar_EF00 = polar_xjob.getEF00();
+    _polar_EF01 = polar_xjob.getEF01();
+    _polar_EF02 = polar_xjob.getEF02();
+    _polar_EF11 = polar_xjob.getEF11();
+    _polar_EF12 = polar_xjob.getEF12();
+    _polar_EM0 = polar_xjob.getEM0();
+    _polar_EM1 = polar_xjob.getEM1();
+    _polar_EM2 = polar_xjob.getEM2();
+    
+    return _polar_converged;
+}
+
+
 void Ewald3DnD::EvaluateEnergy(vector<PolarSeg*> &target) {
     
     // REAL-SPACE CONTRIBUTION (3D2D && 3D3D)
@@ -1536,7 +1814,7 @@ void Ewald3DnD::EvaluateEnergyQMMM() {
     
     _log->setReportLevel(logDEBUG);
     
-    // STORE ENERGIES
+    // STORE ENERGIES RESOLVED ACCORDING TO MM1 AND QM0
     _ER_MM1  = EPP_mm1_mgN * EWD::int2eV;
     _ER_QM0  = EPP_qm0_mgN * EWD::int2eV;
     
@@ -1556,9 +1834,18 @@ void Ewald3DnD::EvaluateEnergyQMMM() {
     _ET_MM1  = _ER_MM1 + _EK_MM1 + _E0_MM1 + _EJ_MM1 - _EC_MM1;
     _ET_QM0  = _ER_QM0 + _EK_QM0 + _E0_QM0 + _EJ_QM0 - _EC_QM0;
     
+    // COMPOUND ENERGIES
+    _ER = _ER_MM1 + _ER_QM0;
+    _EK = _EK_MM1 + _EK_QM0;
+    _E0 = _E0_MM1 + _E0_QM0;
+    _EJ = _EJ_MM1 + _EJ_QM0;
+    _EC = _EC_MM1 + _EC_QM0;
+    
+    _ET = _ET_MM1 + _ET_QM0;
+    
     if (tools::globals::verbose) {
         LOG(logINFO,*_log) << flush;
-        LOG(logINFO,*_log) << "QM-MM splitting (eV)" << flush;
+        LOG(logINFO,*_log) << "QM-MM splitting for background interaction (eV)" << flush;
         LOG(logINFO,*_log) << "  o E(MM1)       = " << _ET_MM1 << flush;
         LOG(logINFO,*_log) << "  o E(QM0)       = " << _ET_QM0 << flush;
         LOG(logINFO,*_log) << "  o E(QM0 u MM1) = " << _ET_MM1+_ET_QM0 << flush;

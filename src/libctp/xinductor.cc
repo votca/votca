@@ -7,25 +7,36 @@ using boost::format;
 
 namespace votca { namespace ctp {
 
-
+    
+XInductor::~XInductor() {
+    vector<InduWorker*>::iterator wit;
+    for (wit = _indus.begin(); wit != _indus.end(); ++wit) {
+        delete *wit;
+    }
+    _indus.clear();
+}
+    
+    
 void XInductor::Evaluate(XJob *job) {    
     
-    _qm0.clear();
-    _mm1.clear();
-    _mm2.clear();
-    _qmm.clear();
+    this->Configure(job);
     
-    _job = job;
-    _isConverged = !this->_induce;
-    
-    // QMM = [ QM0 --- MM1 ] --- MM2 = [ MM2 ]    
-    _qm0 = job->getPolarTop()->QM0();
-    _mm1 = job->getPolarTop()->MM1();
-    _mm2 = job->getPolarTop()->MM2();    
-
-    _qmm.reserve(_qm0.size()+_mm1.size());
-    _qmm.insert(_qmm.end(),_qm0.begin(),_qm0.end());
-    _qmm.insert(_qmm.end(),_mm1.begin(),_mm1.end());
+//    _qm0.clear();
+//    _mm1.clear();
+//    _mm2.clear();
+//    _qmm.clear();
+//    
+//    _job = job;
+//    _isConverged = !this->_induce;
+//    
+//    // QMM = [ QM0 --- MM1 ] --- MM2 = [ MM2 ]    
+//    _qm0 = job->getPolarTop()->QM0();
+//    _mm1 = job->getPolarTop()->MM1();
+//    _mm2 = job->getPolarTop()->MM2();    
+//
+//    _qmm.reserve(_qm0.size()+_mm1.size());
+//    _qmm.insert(_qmm.end(),_qm0.begin(),_qm0.end());
+//    _qmm.insert(_qmm.end(),_mm1.begin(),_mm1.end());
 
     // ++++++++++++++++++++++++++ //
     // (De-)polarize, charge to N //
@@ -71,18 +82,18 @@ void XInductor::Evaluate(XJob *job) {
         }}
     }
     
-    // +++++++++++++++++ //
-    // Induction workers //
-    // +++++++++++++++++ //
-
-    for (int id = 0; id < this->_subthreads; ++id) {
-        InduWorker *newIndu = new InduWorker(id, _top, this);
-        _indus.push_back(newIndu);
-        newIndu->InitSpheres(&_qmm, &_mm2);
-        newIndu->SetSwitch(1);
-    }
-    
-    this->InitChunks();
+//    // +++++++++++++++++ //
+//    // Induction workers //
+//    // +++++++++++++++++ //
+//
+//    for (int id = 0; id < this->_subthreads; ++id) {
+//        InduWorker *newIndu = new InduWorker(id, _top, this);
+//        _indus.push_back(newIndu);
+//        newIndu->InitSpheres(&_qmm, &_mm2);
+//        newIndu->SetSwitch(1);
+//    }
+//    
+//    this->InitChunks();
     
     // ++++++++++++++++++++++++++ //
     // Compute state energy       //
@@ -110,6 +121,46 @@ void XInductor::Evaluate(XJob *job) {
         % (t_ener)) << flush;
 
     job->setInduIter(iter);
+    return;
+}
+
+
+void XInductor::Configure(XJob *job) {
+    // SETUP MULTIPOLAR DENSITIES
+    _qm0.clear();
+    _mm1.clear();
+    _mm2.clear();
+    _qmm.clear();
+    
+    _job = job;
+    _isConverged = !this->_induce;
+    
+    // QMM = [ QM0 --- MM1 ] --- MM2 = [ MM2 ]    
+    _qm0 = job->getPolarTop()->QM0();
+    _mm1 = job->getPolarTop()->MM1();
+    _mm2 = job->getPolarTop()->MM2();    
+
+    _qmm.reserve(_qm0.size()+_mm1.size());
+    _qmm.insert(_qmm.end(),_qm0.begin(),_qm0.end());
+    _qmm.insert(_qmm.end(),_mm1.begin(),_mm1.end());
+    
+    // INDUCTION & ENERGY WORKERS
+    // Delete previous ...
+    vector<InduWorker*>::iterator wit;
+    for (wit = _indus.begin(); wit != _indus.end(); ++wit) {
+        delete *wit;
+    }
+    _indus.clear();
+    // ... and allocate new workers.
+    for (int id = 0; id < this->_subthreads; ++id) {
+        InduWorker *newIndu = new InduWorker(id, _top, this);
+        _indus.push_back(newIndu);
+        newIndu->InitSpheres(&_qmm, &_mm2);
+        newIndu->SetSwitch(1);
+    }
+    
+    this->InitChunks();
+    
     return;
 }
 
@@ -538,7 +589,6 @@ int XInductor::Induce(XJob *job) {
 //    return iter;
 
 }
-
 
 
 double XInductor::Energy(XJob *job) {
