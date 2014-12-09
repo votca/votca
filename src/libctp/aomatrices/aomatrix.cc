@@ -520,7 +520,9 @@ namespace votca { namespace ctp {
         if ( _lmax == 1 ) { _block_size = 4  ;}  // p
         if ( _lmax == 2 ) { _block_size = 10 ;}  // d
         if ( _lmax == 3 ) { _block_size = 20 ;}  // f
-        if ( _lmax >= 4 ) { _block_size = 35 ;}  // g
+        if ( _lmax == 4 ) { _block_size = 35 ;}  // g
+        if ( _lmax == 5 ) { _block_size = 56 ;}  // h
+        if ( _lmax <= 6 ) { _block_size = 84 ;}  // i
         
         return _block_size;
     }
