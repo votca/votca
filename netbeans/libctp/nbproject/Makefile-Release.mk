@@ -152,8 +152,8 @@ ${OBJECTDIR}/_ext/1559596494/aodipole.o: nbproject/Makefile-${CND_CONF}.mk ../..
 
 ${OBJECTDIR}/_ext/1559596494/aoecp.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libctp/aomatrices/aoecp.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1559596494
-	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1559596494/aoecp.o ../../src/libctp/aomatrices/aoecp.cc
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1559596494/aoecp.o ../../src/libctp/aomatrices/aoecp.cc
 
 ${OBJECTDIR}/_ext/1559596494/aoesp.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libctp/aomatrices/aoesp.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1559596494

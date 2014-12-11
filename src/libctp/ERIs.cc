@@ -51,16 +51,16 @@ namespace votca {
              }
             exit(0); */
             
-            ub::matrix<double> _inverse=ub::zero_matrix<double>( _auxAOverlap.Dimension(), _auxAOverlap.Dimension());
+            //ub::matrix<double> _inverse=ub::zero_matrix<double>( _auxAOverlap.Dimension(), _auxAOverlap.Dimension());
             
             /* AOOverlap _auxoverlap_inverse;               
             AOOverlap _auxoverlap_cholesky_inverse;      
             _auxoverlap_inverse.Initialize( _auxbasis._AOBasisSize);
             _auxAOcoulomb.Symmetrize(_auxAOverlap , _auxbasis, _auxoverlap_inverse , _auxoverlap_cholesky_inverse);
             */
-            linalg_invert( _auxAOverlap.Matrix() , _inverse);
-            ub::matrix<double> _temp=ub::prod(_auxAOcoulomb.Matrix(),_inverse);
-            _Vcoulomb=ub::prod(_inverse,_temp);
+            //linalg_invert( _auxAOverlap.Matrix() , _inverse);
+            //ub::matrix<double> _temp=ub::prod(_auxAOcoulomb.Matrix(),_inverse);
+            _Vcoulomb=_auxAOcoulomb.Matrix();
             
             //cout << "Vcoulomb"<< _Vcoulomb<< endl;
  
@@ -97,7 +97,7 @@ namespace votca {
             
             
             
-            exit(0);
+            //exit(0);
             
             
             
@@ -127,7 +127,7 @@ namespace votca {
             }}
             }}
 
-exit(0);
+//exit(0);
 	    
             
             
