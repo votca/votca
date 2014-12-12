@@ -363,7 +363,7 @@ namespace votca {
             cout << " \nNumber of electrons in Density Fit  " << _Nfit << endl;
             
             
-            exit(0);
+            //exit(0);
             
             
             _ERIs=ub::zero_matrix<double>(DMAT.size1(),DMAT.size2());

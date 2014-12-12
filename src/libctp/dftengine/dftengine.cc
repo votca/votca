@@ -300,7 +300,7 @@ namespace votca {
                 
                 
                 ub::matrix<double> H=H0+_ERIs.getERIs()+VXC;
-
+                
                 //ub::matrix<double> H=H0+ERI4c+VXC;
                 
                 /*
