@@ -254,6 +254,7 @@ namespace votca {
                     // loop over gwbasis shells
                     for (vector< AOShell* >::iterator _is = gwbasis.firstShell(); _is != gwbasis.lastShell(); _is++) {
                         AOShell* _shell = gwbasis.getShell(_is);
+                        double decay = (*_shell->firstGaussian())->decay;
                         int _size    = _shell->getNumFunc();
                         int _start  = _shell->getStartIndex();
                         vector<double> chi( _size, 0.0 );

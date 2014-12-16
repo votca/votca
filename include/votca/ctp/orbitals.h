@@ -287,14 +287,28 @@ public:
 
     // functions for analyzing fragment charges via Mulliken populations
     void MullikenPopulation( const ub::matrix<double>& _densitymatrix, const ub::matrix<double>& _overlapmatrix, int _frag, double& _PopA, double& _PopB  );
-    // access to fragment charges of excitations
-    bool hasFragmentAChargesEXC() {return (_Dq_fragA.size() > 0 ) ? true : false ;}
-    bool hasFragmentBChargesEXC() {return (_Dq_fragB.size() > 0 ) ? true : false ;}
-    const std::vector<double> &FragmentAChargesEXC() const { return _Dq_fragA; }
-    std::vector<double> &FragmentAChargesEXC()  { return _Dq_fragA; }
-    const std::vector<double> &FragmentBChargesEXC() const { return _Dq_fragB; }
-    std::vector<double> &FragmentBChargesEXC()  { return _Dq_fragB; }
 
+    // access to fragment charges of singlet excitations
+    bool hasFragmentAChargesSingEXC() {return (_DqS_fragA.size() > 0 ) ? true : false ;}
+    bool hasFragmentBChargesSingEXC() {return (_DqS_fragB.size() > 0 ) ? true : false ;}
+    const std::vector<double> &FragmentAChargesSingEXC() const { return _DqS_fragA; }
+    std::vector<double> &FragmentAChargesSingEXC()  { return _DqS_fragA; }
+    const std::vector<double> &FragmentBChargesSingEXC() const { return _DqS_fragB; }
+    std::vector<double> &FragmentBChargesSingEXC()  { return _DqS_fragB; }
+
+    
+    // access to fragment charges of triplet excitations
+    bool hasFragmentAChargesTripEXC() {return (_DqT_fragA.size() > 0 ) ? true : false ;}
+    bool hasFragmentBChargesTripEXC() {return (_DqT_fragB.size() > 0 ) ? true : false ;}
+    const std::vector<double> &FragmentAChargesTripEXC() const { return _DqT_fragA; }
+    std::vector<double> &FragmentAChargesTripEXC()  { return _DqT_fragA; }
+    const std::vector<double> &FragmentBChargesTripEXC() const { return _DqT_fragB; }
+    std::vector<double> &FragmentBChargesTripEXC()  { return _DqT_fragB; }
+    
+    
+    
+    
+    
     // access to fragment charges in ground state
     bool hasFragmentAChargesGS() {return (_GSq_fragA > -1000.0 ) ? true : false ;}
     bool hasFragmentBChargesGS() {return (_GSq_fragB > -1000.0 ) ? true : false ;}
@@ -431,8 +445,11 @@ private:
     ub::matrix<double>                     _dmatGS;
     std::vector< ub::matrix<double> >      _dmatEX;
     
-    std::vector<double>                    _Dq_fragA; // fragment charge changes in exciton
-    std::vector<double>                    _Dq_fragB;
+    std::vector<double>                    _DqS_fragA; // fragment charge changes in exciton
+    std::vector<double>                    _DqS_fragB;
+        
+    std::vector<double>                    _DqT_fragA; // fragment charge changes in exciton
+    std::vector<double>                    _DqT_fragB;
     double                                 _GSq_fragA; // ground state effective fragment charges
     double                                 _GSq_fragB;
 

@@ -665,7 +665,7 @@ namespace votca {
                     
                     
                     
-                                        std::vector<double> _popHA;
+                    std::vector<double> _popHA;
                     std::vector<double> _popHB;
                     std::vector<double> _popEA;
                     std::vector<double> _popEB;
@@ -674,8 +674,8 @@ namespace votca {
                     double &_popB = _orbitals->FragmentBChargesGS();           
                     
                     // excitation populations
-                    std::vector<double> &_CrgsA = _orbitals->FragmentAChargesEXC();
-                    std::vector<double> &_CrgsB = _orbitals->FragmentBChargesEXC();
+                    std::vector<double> &_CrgsA = _orbitals->FragmentAChargesTripEXC();
+                    std::vector<double> &_CrgsB = _orbitals->FragmentBChargesTripEXC();
                                
                     
                     // Mulliken fragment population analysis
@@ -702,7 +702,7 @@ namespace votca {
                         for (int _i_state = 0; _i_state < _bse_nprint; _i_state++) {
                         
                             // checking Density Matrices
-                            std::vector<ub::matrix<double> > &DMAT = _orbitals->DensityMatrixExcitedState(_dft_orbitals , _bse_singlet_coefficients, _i_state );
+                            std::vector<ub::matrix<double> > &DMAT = _orbitals->DensityMatrixExcitedState(_dft_orbitals , _bse_triplet_coefficients, _i_state );
           
                             double _totalA;
                             double _totalB;
@@ -828,8 +828,8 @@ namespace votca {
                     double &_popB = _orbitals->FragmentBChargesGS();           
                     
                     // excitation populations
-                    std::vector<double> &_CrgsA = _orbitals->FragmentAChargesEXC();
-                    std::vector<double> &_CrgsB = _orbitals->FragmentBChargesEXC();
+                    std::vector<double> &_CrgsA = _orbitals->FragmentAChargesSingEXC();
+                    std::vector<double> &_CrgsB = _orbitals->FragmentBChargesSingEXC();
                                
                     
                     // Mulliken fragment population analysis
