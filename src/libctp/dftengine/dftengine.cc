@@ -174,6 +174,7 @@ namespace votca {
             // _dftAOkinetic.Print("TMAT");
             //exit(0);
             
+            
             /**** Initial guess = one-electron Hamiltonian without interactions ****/
             ub::vector<double>& MOEnergies=_orbitals->MOEnergies();
             ub::matrix<double>& MOCoeff=_orbitals->MOCoefficients();
@@ -218,7 +219,7 @@ namespace votca {
 	    DensityMatrixGroundState( initMOCoeff, _numofelectrons/2 ) ;
 	    cout << endl;
 
-	    /*
+	    
             for (int alpha=0;alpha<size4c;alpha++){
                     for (int beta=0;beta<size4c;beta++){
 
@@ -238,8 +239,8 @@ namespace votca {
                  }
             }
             
-            exit(0); 
-	    */
+           // exit(0); 
+	    
 
 
 
@@ -257,7 +258,7 @@ namespace votca {
 
 
                 /* ERI from 4cs*/
-                 ub::matrix<double> ERI4c = ub::zero_matrix<double>(size4c,size4c);
+                /* ub::matrix<double> ERI4c = ub::zero_matrix<double>(size4c,size4c);
                 for ( int ii=0; ii< size4c; ii++){
                     for ( int jj=0; jj< size4c; jj++){
                         for ( int kk=0; kk< size4c; kk++){
@@ -272,7 +273,7 @@ namespace votca {
                         }
                     }
                 }
-                
+                */
                 
 		ub::matrix<double> VXC=_gridIntegration.IntegrateVXC_Atomblock(_dftAOdmat,  basis);
                 //ub::matrix<double> VXC2=_gridIntegration.IntegrateVXC(_dftAOdmat,  basis);
@@ -314,11 +315,11 @@ namespace votca {
 		}
 		//exit(0);
              */
-		/*                for (int j=0;j<_ERIs.getSize2();j++){
+		               for (int j=0;j<_ERIs.getSize2();j++){
                         for (int i=0;i<_ERIs.getSize1();i++){
                 cout << "_ERIs ("<< i <<":"<< j<<")="<<_ERIs.getERIs()(i,j)<<endl;
-		}}*/
-            
+		}}
+                exit(0);
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Vxc matrix "<<flush;
                 linalg_eigenvalues_general( H,_dftAOoverlap._aomatrix, MOEnergies, MOCoeff);
                 

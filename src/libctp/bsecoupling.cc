@@ -561,6 +561,7 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
             LOG(logDEBUG,*_pLog)  << "   calculated singlet couplings " << flush;
         }
         
+        /*
         // diagonalize the effective Hamiltonian?
         ub::vector<float> _coupled_energies;
         ub::matrix<float> _coupled_coefficients;
@@ -603,6 +604,8 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
             cout << " E" << i << " : " << _coupled_energies(i)*13.605 << " TD " << tdipole[0] << " " << tdipole[1] << " " << tdipole[2] << endl;          
 	}
         //LOG(logDEBUG,*_pLog)  << " singlet coupling: " << _JAB_singlet->at_element(0,_bseA_singlet_exc)*13.6058 << " and " <<  _JAB_singlet->at_element(_bseA_singlet_exc, 0) * 13.6058 << endl; 
+
+         */
     }
     
     if ( _type == "triplets" || _type == "all"){

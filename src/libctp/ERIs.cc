@@ -63,7 +63,7 @@ namespace votca {
             _Vcoulomb=ub::prod(_inverse,_temp);
             
             //cout << "Vcoulomb"<< _Vcoulomb<< endl;
- 
+ /*
             int size4c=_dftbasis.AOBasisSize();
 
             // reconstructing 4center-integrals
@@ -98,12 +98,12 @@ namespace votca {
             
             
             exit(0);
-            
+            */
             
             
             
 
-           
+           /*
             
             typedef boost::multi_array<double, 4> fourdim;
             fourdim  fourcenter(boost::extents[size4c][size4c][size4c][size4c]);
@@ -127,7 +127,7 @@ namespace votca {
             }}
             }}
 
-exit(0);
+exit(0); */
 	    
             
             
@@ -295,7 +295,7 @@ exit(0);
             */
             
             
-            
+      /*      
             // TEST Number of fitted electrons
             ub::matrix<double> _FITMAT = ub::zero_matrix<double>(DMAT.size1(),DMAT.size2());
             ub::matrix<double> _inverse=ub::zero_matrix<double>( _auxAOverlap.Dimension(), _auxAOverlap.Dimension());
@@ -315,7 +315,7 @@ exit(0);
             
             
             //cout << _inverse << endl;
-            
+       /*     
             cout << " 3C size " << _threecenter.getSize() << endl;
             
             for (int _i = 0; _i < _threecenter.getSize(); _i++) {
@@ -363,7 +363,7 @@ exit(0);
             cout << " \nNumber of electrons in Density Fit  " << _Nfit << endl;
             
             
-            exit(0);
+            exit(0); */
             
             
             _ERIs=ub::zero_matrix<double>(DMAT.size1(),DMAT.size2());
