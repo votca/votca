@@ -59,7 +59,7 @@ namespace votca {
             
             bool _does_contribute=true;
             
-            
+            cout << "hallo" << endl;
             // shell info, only lmax tells how far to go
             
             int _lmax_1 = _shell_1->getLmax();
@@ -188,9 +188,9 @@ namespace votca {
             wmc2 = wmc.getZ();
             }
             
-
+            cout << "hallo2" << endl;
             ma_type R_temp;
-            R_temp.resize(extents[ range(0, _nalpha+_nbeta ) ][ range(0, _ngamma ) ][ range(0, _mmax)]);
+            R_temp.resize(extents[ range(0, _ncombined ) ][ range(0, _ngamma ) ][ range(0, _mmax)]);
             //initialize to zero
             for (index i = 0; i != _ncombined; ++i) {
                 for (index j = 0; j != _nbeta; ++j) {
@@ -213,7 +213,7 @@ namespace votca {
                                }
                            }
             
-            
+                    cout << "hallo3" << endl;    
             vector<double> _FmT(_mmax, 0.0); 
            
             XIntegrate(_FmT, _T);
@@ -225,7 +225,7 @@ namespace votca {
             }
             
 
-
+            cout << "hallo4" << endl;
 //omitting s-s-s
 //Integral s - s - p - m3
 if (_mmax >1 ){
@@ -236,7 +236,7 @@ R_temp[Cart::s][Cart::x][3]+=wmc0*R_temp[Cart::s][Cart::s][4];
 R_temp[Cart::s][Cart::z][3]+=wmc2*R_temp[Cart::s][Cart::s][4];
 }}
 //------------------------------------------------------
-
+ cout << "hallo5" << endl;
 //Integral s - s - d - m2
 if (_mmax >2 ){
 if (_lmax_gamma>1){
@@ -3643,7 +3643,7 @@ R[Cart::zz][Cart::zz][Cart::zzz]=R[Cart::zzz][Cart::z][Cart::zzz]+amb2*R[Cart::z
 //------------------------------------------------------
 
 
-
+            cout << "hallo2" << endl;
 
 
    // data is now stored in unnormalized cartesian Gaussians in the multiarray
