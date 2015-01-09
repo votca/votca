@@ -73,6 +73,10 @@ endforeach(_blib)
 find_package(VOTCA_TOOLS REQUIRED)
 include_directories(${VOTCA_TOOLS_INCLUDE_DIRS})
 
+find_package(HDF5 REQUIRED COMPONENTS "CXX")
+include_directories (${HDF5_INCLUDE_DIRS})
+set (LINK_LIBS ${LINK_LIBS} ${HDF5_LIBRARIES})
+
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
 ########################################################################
@@ -111,7 +115,7 @@ add_subdirectory(src)
 add_subdirectory(include/votca/csg)
 add_subdirectory(share)
 
-file(GLOB VOTCA_CMAKE_MODULES CMakeModules/FindVOTCA* CMakeModules/FindSQLITE3.cmake CMakeModules/FindBoost.cmake)
+file(GLOB VOTCA_CMAKE_MODULES CMakeModules/FindVOTCA* CMakeModules/FindSQLITE3.cmake CMakeModules/FindBoost.cmake CMakeModules/FindHDF5.cmake)
 install(FILES ${VOTCA_CMAKE_MODULES} DESTINATION ${DATA}/template/CMakeModules)
 
 configure_file(${CMAKE_MODULE_PATH}/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)

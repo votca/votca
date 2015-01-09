@@ -42,7 +42,7 @@ list(REMOVE_ITEM VOTCA_SOURCES ${NOT_VOTCA_SOURCES})
 add_library(votca_csg ${VOTCA_SOURCES} ${GMX_SOURCES} ${IO_SOURCES})
 add_dependencies(votca_csg hgversion)
 set_target_properties(votca_csg PROPERTIES SOVERSION ${SOVERSION})
-target_link_libraries(votca_csg ${VOTCA_TOOLS_LIBRARIES} ${GROMACS_LIBRARIES} ${Boost_LIBRARIES} ${THREAD_LIBRARIES})
+target_link_libraries(votca_csg ${VOTCA_TOOLS_LIBRARIES} ${GROMACS_LIBRARIES} ${Boost_LIBRARIES} ${THREAD_LIBRARIES} ${HDF5_LIBRARIES})
 install(TARGETS votca_csg LIBRARY DESTINATION ${LIB} ARCHIVE DESTINATION ${LIB})
 
 configure_file(libvotca_csg.pc.in ${CMAKE_CURRENT_BINARY_DIR}/libvotca_csg.pc @ONLY)

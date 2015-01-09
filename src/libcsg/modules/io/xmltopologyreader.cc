@@ -74,8 +74,10 @@ void XMLTopologyReader::ParseTopology(const string &el, map<string, string> &att
     }
     else if(el == "beadtypes") {
          _parser.NextHandler(this, &XMLTopologyReader::ParseBeadTypes);
-    }
-    else {
+    } else if (el == "h5md_particle_group") {
+        _top->setParticleGroup(attr["name"]);
+        _parser.NextHandler(this, &XMLTopologyReader::ParseTopology);
+    } else {
         throw runtime_error("unknown tag: "+ el);
     }
 }

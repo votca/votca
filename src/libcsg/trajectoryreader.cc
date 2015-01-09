@@ -29,6 +29,8 @@
 #include "modules/io/groreader.h"
 #include "modules/io/pdbreader.h"
 #include "modules/io/dlpolytrajectoryreader.h"
+#include "modules/io/h5mdtrajectoryreader.h"
+
 
 namespace votca { namespace csg {
 
@@ -44,6 +46,8 @@ void TrajectoryReader::RegisterPlugins(void)
     TrjReaderFactory().Register<PDBReader>("pdb");
     TrjReaderFactory().Register<DLPOLYTrajectoryReader>("dlph");
     TrjReaderFactory().Register<DLPOLYTrajectoryReader>("dlpc");
+
+    TrjReaderFactory().Register<H5MDTrajectoryReader>("h5");
 }
 
 }}
