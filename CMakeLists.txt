@@ -111,7 +111,7 @@ add_subdirectory(src)
 add_subdirectory(include/votca/csg)
 add_subdirectory(share)
 
-file(GLOB VOTCA_CMAKE_MODULES CMakeModules/FindVOTCA* CMakeModules/FindSQLITE3.cmake CMakeModules/FindBoost.cmake)
+file(GLOB VOTCA_CMAKE_MODULES CMakeModules/FindVOTCA* CMakeModules/FindSQLITE3.cmake)
 install(FILES ${VOTCA_CMAKE_MODULES} DESTINATION ${DATA}/template/CMakeModules)
 
 configure_file(${CMAKE_MODULE_PATH}/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
