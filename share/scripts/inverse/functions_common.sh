@@ -850,9 +850,9 @@ enable_logging() { #enables the logging to a certain file (1st argument) or the 
   export CSGLOG="$log"
   if [[ -f $CSGLOG ]]; then
     exec 3>&1 4>&2 >> "$CSGLOG" 2>&1
-    echo "\n\n#################################"
+    echo -e "\n\n#################################"
     echo "# Appending to existing logfile #"
-    echo "#################################\n\n"
+    echo -e "#################################\n\n"
     msg --color blue "Appending to existing logfile ${CSGLOG##*/}"
   else
     exec 3>&1 4>&2 >> "$CSGLOG" 2>&1
