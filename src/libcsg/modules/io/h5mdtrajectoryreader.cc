@@ -93,11 +93,18 @@ bool H5MDTrajectoryReader::FirstFrame(Topology &top) {  // NOLINT const referenc
 
     std::string *particle_group_name = new std::string(top.getParticleGroup());
     if(*particle_group_name == "")
-      throw std::ios_base::failure("Missing particle group in topology. Please set h5md_particle_group tag with name attribute set to the particle group.");
+      throw std::ios_base::failure("Missing particle group in topology. Please set h5md_particle_group tag with name \
+          attribute set to the particle group.");
 
     particle_group_ = new H5::Group(h5file_->openGroup("particles"));
-    atom_position_group_ = new H5::Group(particle_group_->openGroup(
-          *particle_group_name + "/position"));
+    try {
+      atom_position_group_ = new H5::Group(particle_group_->openGroup(
+            *particle_group_name + "/position"));
+    } catch (H5::GroupIException not_found_error) {
+      std::cout << "Error: The path '/particles/" << *particle_group_name << "/position' not found. Please check the name ";
+      std::cout << "of particle group defined in topology" << std::endl;
+      throw not_found_error;
+    }
 
     idx_frame_ = -1;
 
@@ -115,7 +122,7 @@ bool H5MDTrajectoryReader::FirstFrame(Topology &top) {  // NOLINT const referenc
     if(N_particles_ != top.BeadCount()) {
       std::cout << "Warning: The number of beads (" << N_particles_ << ")";
       std::cout << " in the trajectory is different than defined in the topology (" << top.BeadCount() << ")" << std::endl;
-      std::cout << "The number of beads from topology will be used" << std::endl;
+      std::cout << "The number of beads from topology will be used!" << std::endl;
       N_particles_ = top.BeadCount();
     }
     chunk_rows_[0] = 1;
