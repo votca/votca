@@ -19,7 +19,7 @@ env: #NINJA=1 is currently not support by Travis' cmake, enable when >=2.8.9
   - BDIR=build J=1
   - MAN=yes J=4
   - CSG_MDRUN_STEPS=500 TEST=spce/simplex J=4
-  - CSG_MDRUN_STEPS=5000 TEST=spce/imc J=4
+  - CSG_MDRUN_STEPS=10000 TEST=spce/imc J=4
   - CSG_MDRUN_STEPS=500 TEST=spce/ibi J=4
   - CSG_MDRUN_STEPS=10000 TEST=spce/re J=4
   - CSG_MDRUN_STEPS=10000 TEST=spce/cma J=4
