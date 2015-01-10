@@ -41,6 +41,7 @@ using namespace votca::tools;  // NOLINT
 */
 class H5MDTrajectoryReader : public TrajectoryReader {
  public:
+  H5MDTrajectoryReader();
   ~H5MDTrajectoryReader();
 
   /// Opens original trajectory file.
@@ -58,12 +59,12 @@ class H5MDTrajectoryReader : public TrajectoryReader {
  private:
   double* ReadData(H5::DataSet *ds, int row);
 
-  H5::H5File *h5file_ = NULL;
-  H5::Group *particle_group_ = NULL;
-  H5::Group *atom_position_group_ = NULL;
-  H5::Group *atom_force_group_ = NULL;
-  H5::Group *atom_velocity_group_ = NULL;
-  H5::Group *edges_group_ = NULL;
+  H5::H5File *h5file_;
+  H5::Group *particle_group_;
+  H5::Group *atom_position_group_;
+  H5::Group *atom_force_group_;
+  H5::Group *atom_velocity_group_;
+  H5::Group *edges_group_;
 
   H5::DataSet *ds_atom_position_;
   H5::DataSet *ds_atom_force_;
@@ -74,7 +75,7 @@ class H5MDTrajectoryReader : public TrajectoryReader {
 
   int rank_;
 
-  H5::DataSet *ds_edges_ = NULL;
+  H5::DataSet *ds_edges_;
 
   string fname_;
   bool first_frame_;
@@ -85,14 +86,15 @@ class H5MDTrajectoryReader : public TrajectoryReader {
 
   int idx_frame_;
 
-  double *time_set_ = NULL;
-  int *step_set_ = NULL;
-  int *species_ = NULL;
+  double *time_set_;
+  int *step_set_;
+  int *species_;
 
   int N_particles_;
   int variables_;
   hsize_t chunk_rows_[3];
 };
+
 }  // namespace csg
 }  // namespace votca  // NOLINT
 

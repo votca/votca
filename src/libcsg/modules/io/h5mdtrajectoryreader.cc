@@ -23,6 +23,19 @@
 namespace votca {
 namespace csg {
 
+H5MDTrajectoryReader::H5MDTrajectoryReader(){ 
+  h5file_ = NULL; 
+  particle_group_ = NULL;
+  atom_position_group_ = NULL;
+  atom_force_group_ = NULL;
+  atom_velocity_group_ = NULL;
+  edges_group_ = NULL;
+  ds_edges_ = NULL;
+  time_set_ = NULL;
+  step_set_ = NULL;
+  species_ = NULL;
+}
+
 H5MDTrajectoryReader::~H5MDTrajectoryReader() {
   delete particle_group_;
   delete atom_position_group_;
@@ -152,7 +165,7 @@ bool H5MDTrajectoryReader::FirstFrame(Topology &top) {  // NOLINT const referenc
     int dimension;
     at_box_dimension.read(at_box_dimension.getDataType(), &dimension);
     if (dimension != 3 ) {
-      throw std::ios_base::failure("Wrong dimension " + dimension);
+      throw std::ios_base::failure("Wrong dimension " + boost::lexical_cast<string>(dimension));
     }
     // TODO: check also attribute periodic
     try {
