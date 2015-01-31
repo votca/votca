@@ -99,10 +99,12 @@ void PotentialFunctionCBSPL::SaveParam(const string& filename){
   param.resize(_lam.size(), false);
 
   // write extrapolated knots with flag 'o'
-  for (int i = 0; i < _nexcl; i++)
+  // points close to rmin can also be stastically not reliable
+  // so flag 3 more points next to rmin as 'o'
+  for (int i = 0; i < _nexcl+3; i++)
     param.set(i, _rbreak(i), _lam(i), 'o');
 
-  for (int i = _nexcl; i < _lam.size() ; i++)
+  for (int i = _nexcl+3; i < _lam.size() ; i++)
     param.set(i, _rbreak(i), _lam(i), 'i');
 
   param.Save(filename);

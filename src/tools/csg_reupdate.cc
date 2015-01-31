@@ -242,9 +242,14 @@ void CsgREupdate::WriteOutFiles() {
 
       cout << "Writing file: " << file_name << endl;
 
+      // (*potiter)->ucg->SavePotTab(file_name,(*potiter)->_options->get("step").as<double>(),
+      //                             (*potiter)->_options->get("min").as<double>(),
+      //                             (*potiter)->_options->get("max").as<double>());
       (*potiter)->ucg->SavePotTab(file_name,(*potiter)->_options->get("step").as<double>(),
-                                  (*potiter)->_options->get("min").as<double>(),
-                                  (*potiter)->_options->get("max").as<double>());
+                                  (*potiter)->_options->get("re.min").as<double>(),
+                                  (*potiter)->_options->get("re.max").as<double>());
+
+      // (*potiter)->ucg->SavePotTab(file_name,(*potiter)->_options->get("step").as<double>());
 
       // for gentable with no RE update no need to write-out parameters
       if(!_gentable){
@@ -695,33 +700,33 @@ PotentialInfo::PotentialInfo(int index, bool bonded_, int vec_pos_,
 
 
     // determine minimum for B-spline from CG-MD rdf
-    double new_min = 0.0;
-    Table dist;
-    string filename = potentialName + ".dist.new";
+    // double new_min = 0.0;
+    // Table dist;
+    // string filename = potentialName + ".dist.new";
 
-    try{
+    // try{
 
-      dist.Load(filename);
-      for( int i = 0; i < dist.size(); i++){
+    //   dist.Load(filename);
+    //   for( int i = 0; i < dist.size(); i++){
 
-        if(dist.y(i) > 1.0e-3){
+    //     if(dist.y(i) > 1.0e-3){
 
-          new_min = dist.x(i);
-          break;
+    //       new_min = dist.x(i);
+    //       break;
 
-        }
+    //     }
 
-      }
+    //   }
 
-      if(new_min > rmin)
-        rmin = new_min;
+    //   if(new_min > rmin)
+    //     rmin = new_min;
 
-    }catch(std::runtime_error){
+    // }catch(std::runtime_error){
 
-      cout << "Missing file for CG rdf for the interaction "  << potentialName << endl;
-      cout << "Hence, using user specified rmin = " << rmin << endl;
+    //   cout << "Missing file for CG rdf for the interaction "  << potentialName << endl;
+    //   cout << "Hence, using user specified rmin = " << rmin << endl;
 
-    }
+    // }
 
     ucg = new PotentialFunctionCBSPL(potentialName, nlam, core, rmin, rcut);
 
