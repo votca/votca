@@ -340,6 +340,15 @@
 	<DESC> option to be given to simulation program, use ${script} in there </DESC>
       </opts>
     </sim_prog>
+    <tf>
+       <DESC> general thermodynamic force specific options </DESC>
+       <adress_reference_coords>
+         <DESC>defines the coordinates of the center of the atomistic zone in non-gromacs adress simulation</DESC>
+       </adress_reference_coords>
+       <adress_type>
+         <DESC>defines the type of adress simulation for non-gromacs simulation backend</DESC>
+       </adress_type>
+    </tf>
     <re>
       <DESC>general options for realtive entropy method</DESC>
       <csg_reupdate>

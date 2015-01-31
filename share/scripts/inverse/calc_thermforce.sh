@@ -29,20 +29,29 @@ fi
 
 name=$(csg_get_interaction_property name)
 
-mdp="$(csg_get_property cg.inverse.gromacs.mdp)"
-#this needs to done in step_000
-[ -f "$mdp" ] || cp_from_main_dir "$mdp"
+sim_prog="$(csg_get_property cg.inverse.program)"
+if [[ $sim_prog = gromacs ]]; then 
+  mdp="$(csg_get_property cg.inverse.gromacs.mdp)"
+  #this needs to done in step_000
+  [ -f "$mdp" ] || cp_from_main_dir "$mdp"
+  adress_type=$(get_simulation_setting adress_type)
+else
+  adress_type=$(csg_get_property cg.inverse.tf.adress_type)
+fi
 
 infile="${1}"
 endfile="${2}"
 
-adress_type=$(get_simulation_setting adress_type)
 if [ $adress_type = "sphere" ]; then
   #note: in the spehere case (no symmetrizing necessary) infile stays dens.${name}.xvg, so this gets used for next step
   :
 else
   outfile="${name}.sym.dens"
-  adressc="$(get_simulation_setting adress_reference_coords "0")"
+  if [[ $sim_prog = gromacs ]]; then
+    adressc="$(get_simulation_setting adress_reference_coords "0")"
+  else
+    adressc=$(csg_get_property cg.inverse.tf.adress_reference_coords)
+  fi
   ref="$(echo "$adressc" | awk '{if (NF<1) exit 1; print $1;}')" || die "${0##*/}: we need at least one number in adress_reference_coords, but got '$adressc'"
   do_external density symmetrize --infile "$infile" --outfile "$outfile" --adressc "$ref"
   infile="${outfile}"

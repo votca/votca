@@ -29,27 +29,25 @@ H5MDTrajectoryReader::H5MDTrajectoryReader(){
   atom_position_group_ = NULL;
   atom_force_group_ = NULL;
   atom_velocity_group_ = NULL;
-  edges_group_ = NULL;
   ds_edges_ = NULL;
   time_set_ = NULL;
   step_set_ = NULL;
-  species_ = NULL;
 }
 
 H5MDTrajectoryReader::~H5MDTrajectoryReader() {
   delete particle_group_;
   delete atom_position_group_;
   delete atom_force_group_;
-  delete edges_group_;
   delete ds_atom_position_;
-  delete ds_atom_force_;
-  delete ds_atom_velocity_;
+  if (has_force_)
+    delete ds_atom_force_;
+  if (has_velocity_)
+    delete ds_atom_velocity_;
   delete ds_time_;
   delete ds_step_;
   delete ds_edges_;
   delete[] time_set_;
   delete[] step_set_;
-  delete[] species_;
   delete h5file_;
 }
 
@@ -109,7 +107,7 @@ bool H5MDTrajectoryReader::FirstFrame(Topology &top) {  // NOLINT const referenc
       throw std::ios_base::failure("Missing particle group in topology. Please set h5md_particle_group tag with name \
           attribute set to the particle group.");
 
-    particle_group_ = new H5::Group(h5file_->openGroup("particles"));
+    //particle_group_ = new H5::Group(h5file_->openGroup("particles"));
     try {
       atom_position_group_ = new H5::Group(particle_group_->openGroup(
             *particle_group_name + "/position"));
@@ -169,8 +167,7 @@ bool H5MDTrajectoryReader::FirstFrame(Topology &top) {  // NOLINT const referenc
     }
     // TODO: check also attribute periodic
     try {
-      edges_group_ = new H5::Group(g_box.openGroup("edges"));
-      has_static_box_ = false;
+      H5::Group(g_box.openGroup("edges"));
       throw std::runtime_error("The box is not static during the simulation. Is it NVT ensemble?");
     } catch (H5::GroupIException not_found_error) {
       ds_edges_ = new H5::DataSet(g_box.openDataSet("edges"));

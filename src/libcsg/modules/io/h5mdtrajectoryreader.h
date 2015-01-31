@@ -64,7 +64,6 @@ class H5MDTrajectoryReader : public TrajectoryReader {
   H5::Group *atom_position_group_;
   H5::Group *atom_force_group_;
   H5::Group *atom_velocity_group_;
-  H5::Group *edges_group_;
 
   H5::DataSet *ds_atom_position_;
   H5::DataSet *ds_atom_force_;
@@ -88,7 +87,6 @@ class H5MDTrajectoryReader : public TrajectoryReader {
 
   double *time_set_;
   int *step_set_;
-  int *species_;
 
   int N_particles_;
   int variables_;
