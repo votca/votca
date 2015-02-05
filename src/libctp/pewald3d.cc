@@ -271,7 +271,9 @@ void PEwald3D3D::ScanCutoff() {
     
     int scan_na_max = ceil((R_max_shell)/maxnorm(_a)-0.5)+1;
     int scan_nb_max = ceil((R_max_shell)/maxnorm(_b)-0.5)+1;
-    int scan_nc_max = 0; //ceil((R_max_shell)/maxnorm(_c)-0.5)+1;
+    int scan_nc_max = ceil((R_max_shell)/maxnorm(_c)-0.5)+1;
+    
+    if (this->_shape == "xyslab") scan_nc_max = 0;
     
     // loop, create images, bin, interact
     for (sit = _bg_P.begin(); sit < _bg_P.end(); ++sit) {
@@ -659,10 +661,15 @@ EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) 
         
         double de_this_shell = 0.0;
         int shell_count = 0;
+        bool increment_grade = true;
         
         while (kvit < _kvecs_1_0.end()) {
             EWD::KVector kvec = *kvit;
             if (kvec.getGrade() < crit_grade) break;
+            if (shell_count > 1000) {
+                increment_grade = false;
+                break;
+            }
             EWD::triple<EWD::cmplx> ppuu = _ewdactor.AS1S2(kvec.getK(), target, _bg_P);
             
             sum_re_pp += ppuu._pp._re;
@@ -695,7 +702,7 @@ EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) 
             converged12 = true;
         }
         
-        crit_grade /= 10.0;
+        if (increment_grade) crit_grade /= 10.0;
     }
     
     
@@ -710,10 +717,15 @@ EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) 
         
         double de_this_shell = 0.0;
         int shell_count = 0;
+        bool increment_grade = true;
         
         while (kvit < _kvecs_0_0.end()) {
             EWD::KVector kvec = *kvit;
             if (kvec.getGrade() < crit_grade) break;
+            if (shell_count > 1000) {
+                increment_grade = false;
+                break;
+            }
             EWD::triple<EWD::cmplx> ppuu = _ewdactor.AS1S2(kvec.getK(), target, _bg_P);
             
             sum_re_pp += ppuu._pp._re;
@@ -746,7 +758,7 @@ EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) 
             converged03 = true;
         }
         
-        crit_grade /= 10.0;
+        if (increment_grade) crit_grade /= 10.0;
     }
     
     _converged_K = converged12 && converged03;

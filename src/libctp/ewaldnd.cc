@@ -1262,8 +1262,9 @@ void Ewald3DnD::Evaluate() {
     _t_radial    = (t4.wall-t3.wall)/1e9/60.;
     
 //    EvaluateInductionQMMM(true, true, true, true, true);
+//    EvaluateInductionQMMM(false, false, false, false, false);
 //    EvaluateEnergyQMMM();
-    /*
+    /* 
     EvaluateInductionQMMM(true, true, true, true, true);
     EvaluateEnergyQMMM();
     bool add_bg = true;
