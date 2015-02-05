@@ -18,7 +18,7 @@ Ewald3D2D::Ewald3D2D(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
 }
 
 
-EWD::triple<> Ewald3D2D::ConvergeReciprocalSpaceSum() {
+EWD::triple<> Ewald3D2D::ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) {
     
     vector<PolarSeg*>::iterator sit1; 
     vector<APolarSite*> ::iterator pit1;
@@ -72,7 +72,7 @@ EWD::triple<> Ewald3D2D::ConvergeReciprocalSpaceSum() {
         LOG(logDEBUG,*_log)  
             << (format("k = %1$+1.3f %2$+1.3f %3$+1.3f   |K| = %4$+1.3f 1/nm") 
             % (k.getX()) % (k.getY()) % (k.getZ()) % K);
-        for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
+        for (sit1 = target.begin(); sit1 < target.end(); ++sit1) {
             for (sit2 = _bg_P.begin(); sit2 < _bg_P.end(); ++sit2) {
                 for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
                     for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {                                                
@@ -109,7 +109,7 @@ EWD::triple<> Ewald3D2D::ConvergeReciprocalSpaceSum() {
 //        }
 //        cout << flush;
         
-        if (dEKK_rms*2*M_PI/_LxLy*_actor.int2eV <= _crit_dE && N_K_proc > 2) {
+        if (dEKK_rms*2*M_PI/_LxLy*_actor.int2eV <= _crit_dE && N_K_proc > 10) {
         //if (dEKK_rms*2*M_PI/LxLy*_actor.int2eV <= dEKK_rms_crit) {
             _converged_K = true;
             LOG(logDEBUG,*_log)  
@@ -125,13 +125,13 @@ EWD::triple<> Ewald3D2D::ConvergeReciprocalSpaceSum() {
 }
 
 
-EWD::triple<> Ewald3D2D::CalculateK0Correction() {
+EWD::triple<> Ewald3D2D::CalculateK0Correction(vector<PolarSeg*> &target) {
     vector<PolarSeg*>::iterator sit1; 
     vector<APolarSite*> ::iterator pit1;
     vector<PolarSeg*>::iterator sit2; 
     vector<APolarSite*> ::iterator pit2;
     double EK0_fgC_bgP = 0.0;
-    for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
+    for (sit1 = target.begin(); sit1 < target.end(); ++sit1) {
         for (sit2 = _bg_P.begin(); sit2 < _bg_P.end(); ++sit2) {
             for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
                 for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {

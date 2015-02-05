@@ -16,7 +16,7 @@ Ewald3D3D::Ewald3D3D(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
   : Ewald3DnD(top, ptop, opt, log) {}
 
 
-EWD::triple<> Ewald3D3D::ConvergeReciprocalSpaceSum() {
+EWD::triple<> Ewald3D3D::ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) {
 
     vector<PolarSeg*>::iterator sit;
     vector<APolarSite*> ::iterator pit;    
@@ -108,7 +108,7 @@ EWD::triple<> Ewald3D3D::ConvergeReciprocalSpaceSum() {
             // Calculate structure factor S(k) for FGC
             double qcos_fgC = 0.0;
             double qsin_fgC = 0.0;
-            for (sit = _fg_C.begin(); sit < _fg_C.end(); ++sit) {
+            for (sit = target.begin(); sit < target.end(); ++sit) {
                 for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {
                     qcos_fgC += (*pit)->Q00 * cos(k * (*pit)->getPos());
                     qsin_fgC += (*pit)->Q00 * sin(k * (*pit)->getPos());
@@ -176,7 +176,7 @@ EWD::triple<> Ewald3D3D::ConvergeReciprocalSpaceSum() {
 }
 
 
-EWD::triple<> Ewald3D3D::CalculateShapeCorrection() {
+EWD::triple<> Ewald3D3D::CalculateShapeCorrection(vector<PolarSeg*> &target) {
     
     vector<PolarSeg*>::iterator sit1; 
     vector<APolarSite*> ::iterator pit1;
@@ -189,7 +189,7 @@ EWD::triple<> Ewald3D3D::CalculateShapeCorrection() {
         // DIRECT CALCULATION VIA DOUBLE LOOP
         // TODO The double-loop can be avoided, but direct summation as below 
         //      appears to be more stable from a numerical point of view
-        for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
+        for (sit1 = target.begin(); sit1 < target.end(); ++sit1) {
            for (sit2 = _bg_P.begin(); sit2 < _bg_P.end(); ++sit2) {
               for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
                  for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
@@ -206,7 +206,7 @@ EWD::triple<> Ewald3D3D::CalculateShapeCorrection() {
         //    vec DA = vec(0,0,0);
         //    double QA = 0.0;
         //    double DZZBG = 0.0;
-        //    for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
+        //    for (sit1 = target.begin(); sit1 < target.end(); ++sit1) {
         //        for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
         //            DA += (*pit1)->getQ00() * (*pit1)->getPos();
         //            QA += (*pit1)->getQ00();

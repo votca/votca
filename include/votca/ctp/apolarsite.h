@@ -108,6 +108,7 @@ public:
     void            setQs(vector<double> Qs, int state) { while(Qs.size() < 9) Qs.push_back(0.0); _Qs[state+1] = Qs; }
     void            setQ00(double q, int s) { Q00 = q; if (_Qs[s+1].size() < 1) _Qs[s+1].resize(1); _Qs[s+1][0] = q; }
     double         &getQ00() { return Q00; }
+    void            setQ1(const vec &dpl) { Q1x=dpl.getX(); Q1y=dpl.getY(); Q1z=dpl.getZ(); }
     vec             getQ1() { return vec(Q1x, Q1y, Q1z); }  // Only IOP
     // POLARIZABILITIES
     bool            IsPolarizable();
@@ -122,6 +123,11 @@ public:
     vec             getFieldU() { return vec(FUx,FUy,FUz); } // Only IOP
     vec             getU1() { return vec(U1x,U1y,U1z); }     // Only IOP
     void            setU1(vec &u1) { U1x = u1.getX(); U1y = u1.getY(); U1z = u1.getZ(); }
+    // POTENTIALS
+    double          getPhiP() { return PhiP; }
+    double          getPhiU() { return PhiU; }
+    double          getPhi() { return PhiP+PhiU; }
+    void            ResetPhi(bool p, bool u) { if (p) PhiP = 0.0; if (u) PhiU = 0.0; }
     // CHARGE -1 0 +1 & DELTA
     void            Charge(int state);
     void            ChargeDelta(int state1, int state2);
@@ -134,7 +140,8 @@ public:
     void            ResetU1()     { U1x = U1y = U1z = 0.0; }
     void            ResetU1Hist() { U1_Hist.clear(); }
     void            Depolarize();
-    double          HistdU();    
+    double          HistdU();
+    double          HistdU2();
     
     // PRINT FUNCTS & OUTPUT TO FORMAT
     void            PrintInfo(std::ostream &out);
@@ -179,6 +186,8 @@ public:
         arch & U1x; arch & U1y; arch & U1z;
         arch & FPx; arch & FPy; arch & FPz;
         arch & FUx; arch & FUy; arch & FUz;
+        
+        arch & PhiP; arch & PhiU;
 
         // NOT ARCHIVED
         // Topology *_top;
@@ -229,7 +238,13 @@ private:
     double FPx, FPy, FPz;                   // Electric field (due to permanent)
     double FUx, FUy, FUz;                   // Electric field (due to induced)
     vector< vec > U1_Hist;                  // Ind. u history
-
+    
+    double PhiP;                            // Electric potential (due to perm.)
+    double PhiU;                            // Electric potential (due to indu.)
+    
+    // Required for SOR+Anderson
+    //vector<vec> U1_i; // in
+    //vector<vec> U1_o; // out
 
 
 

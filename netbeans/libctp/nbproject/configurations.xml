@@ -22,6 +22,7 @@
         <itemPath>../../src/libctp/calculators/sandbox.h</itemPath>
         <itemPath>../../src/libctp/calculators/stateserver.h</itemPath>
         <itemPath>../../src/libctp/calculators/tdump.h</itemPath>
+        <itemPath>../../src/libctp/calculators/vaverage.h</itemPath>
         <itemPath>../../src/libctp/calculators/zmultipole.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f5" displayName="Extractors" projectFiles="true">
@@ -109,6 +110,7 @@
       <itemPath>../../include/votca/ctp/parallelsitecalc.h</itemPath>
       <itemPath>../../include/votca/ctp/parallelxjobcalc.h</itemPath>
       <itemPath>../../include/votca/ctp/pewald3d.h</itemPath>
+      <itemPath>../../include/votca/ctp/poissongrid.h</itemPath>
       <itemPath>../../include/votca/ctp/polarbackground.h</itemPath>
       <itemPath>../../include/votca/ctp/polarseg.h</itemPath>
       <itemPath>../../include/votca/ctp/polarsite.h</itemPath>
@@ -216,7 +218,9 @@
       <itemPath>../../src/libctp/parallelpaircalc.cc</itemPath>
       <itemPath>../../src/libctp/parallelxjobcalc.cc</itemPath>
       <itemPath>../../src/libctp/pewald3d.cc</itemPath>
+      <itemPath>../../src/libctp/poissongrid.cc</itemPath>
       <itemPath>../../src/libctp/polarbackground.cc</itemPath>
+      <itemPath>../../src/libctp/polarfrag.cc</itemPath>
       <itemPath>../../src/libctp/polarseg.cc</itemPath>
       <itemPath>../../src/libctp/polarsite.cc</itemPath>
       <itemPath>../../src/libctp/polartop.cc</itemPath>
@@ -226,7 +230,6 @@
       <itemPath>../../src/libctp/qmmachine.cc</itemPath>
       <itemPath>../../src/libctp/qmtool.cc</itemPath>
       <itemPath>../../src/libctp/statesaversqlite.cc</itemPath>
-      <itemPath>../../src/libctp/threecenter_rep.cc</itemPath>
       <itemPath>../../src/libctp/threecenters.cc</itemPath>
       <itemPath>../../src/libctp/threecenters_dft.cc</itemPath>
       <itemPath>../../src/libctp/threecenters_tools.cc</itemPath>
@@ -387,6 +390,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/ctp/poissongrid.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/polarbackground.h"
             ex="false"
             tool="3"
@@ -487,7 +495,7 @@
       </item>
       <item path="../../include/votca/ctp/xmapper.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../src/libctp/ERIs.cc" ex="false" tool="0" flavor2="0">
+      <item path="../../src/libctp/ERIs.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/aomatrices/aocoulomb.cc"
             ex="false"
@@ -511,7 +519,7 @@
       </item>
       <item path="../../src/libctp/aomatrices/aokinetic.cc"
             ex="false"
-            tool="0"
+            tool="1"
             flavor2="0">
       </item>
       <item path="../../src/libctp/aomatrices/aomatrix.cc"
@@ -653,6 +661,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libctp/calculators/vaverage.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/calculators/velocity.h"
             ex="false"
             tool="3"
@@ -680,13 +693,7 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libctp/ewald2d.cc" ex="true" tool="0" flavor2="0">
-      </item>
-      <item path="../../src/libctp/ewald3d.cc" ex="true" tool="0" flavor2="0">
-      </item>
       <item path="../../src/libctp/ewaldactor.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/ewaldnd.cc" ex="true" tool="0" flavor2="0">
       </item>
       <item path="../../src/libctp/extractorfactory.cc"
             ex="false"
@@ -837,12 +844,14 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libctp/pewald3d.cc" ex="true" tool="0" flavor2="0">
+      <item path="../../src/libctp/poissongrid.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/polarbackground.cc"
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/libctp/polarfrag.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/polarseg.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -915,11 +924,6 @@
       <item path="../../src/libctp/statesaversqlite.cc"
             ex="false"
             tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/threecenter_rep.cc"
-            ex="false"
-            tool="0"
             flavor2="0">
       </item>
       <item path="../../src/libctp/threecenters.cc" ex="false" tool="1" flavor2="0">
@@ -1122,6 +1126,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/ctp/poissongrid.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/ctp/polarbackground.h"
             ex="false"
             tool="3"
@@ -1388,6 +1397,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libctp/calculators/vaverage.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/calculators/velocity.h"
             ex="false"
             tool="3"
@@ -1415,13 +1429,7 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libctp/ewald2d.cc" ex="true" tool="0" flavor2="0">
-      </item>
-      <item path="../../src/libctp/ewald3d.cc" ex="true" tool="0" flavor2="0">
-      </item>
       <item path="../../src/libctp/ewaldactor.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/ewaldnd.cc" ex="true" tool="0" flavor2="0">
       </item>
       <item path="../../src/libctp/extractorfactory.cc"
             ex="false"
@@ -1572,12 +1580,14 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libctp/pewald3d.cc" ex="true" tool="0" flavor2="0">
+      <item path="../../src/libctp/poissongrid.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/polarbackground.cc"
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/libctp/polarfrag.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/polarseg.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1650,11 +1660,6 @@
       <item path="../../src/libctp/statesaversqlite.cc"
             ex="false"
             tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libctp/threecenter_rep.cc"
-            ex="false"
-            tool="0"
             flavor2="0">
       </item>
       <item path="../../src/libctp/threecenters.cc" ex="false" tool="1" flavor2="0">

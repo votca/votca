@@ -12,6 +12,7 @@
 #include <votca/ctp/pewald3d.h>
 #include <votca/ctp/logger.h>
 #include <boost/format.hpp>
+#include <boost/timer/timer.hpp>
 
 
 using boost::format;
@@ -48,6 +49,7 @@ private:
     string                         _polar_bg_arch;
     XMpsMap                        _mps_mapper;
     bool                           _pdb_check;
+    bool                           _ptop_check;
 };
 
 
@@ -94,6 +96,10 @@ void Ewald<EwaldMethod>::Initialize(Property *opt) {
             _pdb_check = opt->get(key+".pdb_check").as<bool>();
         }
         else { _pdb_check = false; }
+        if (opt->exists(key+".ptop_check")) {
+            _ptop_check = opt->get(key+".ptop_check").as<bool>();
+        }
+        else { _ptop_check = false; }
     
     return;
 }
@@ -214,6 +220,10 @@ template<class EwaldMethod>
 Job::JobResult Ewald<EwaldMethod>::EvalJob(Topology *top, Job *job,
     QMThread *thread) {
     
+    boost::timer::cpu_timer cpu_t;
+    cpu_t.start();
+    boost::timer::cpu_times t_in = cpu_t.elapsed();
+    
     Logger *log = thread->getLogger();    
     LOG(logINFO,*log)
         << "Job input = " << job->getInput().as<string>() << flush;
@@ -238,7 +248,7 @@ Job::JobResult Ewald<EwaldMethod>::EvalJob(Topology *top, Job *job,
     if (_pdb_check)
         ewaldnd.WriteDensitiesPDB(xjob.getTag()+".densities.pdb");
     ewaldnd.Evaluate();
-    if (_pdb_check)
+    if (_ptop_check)
         ewaldnd.WriteDensitiesPtop(xjob.getTag()+".fg.ptop", 
             xjob.getTag()+".mg.ptop", xjob.getTag()+".bg.ptop");
     
@@ -253,6 +263,11 @@ Job::JobResult Ewald<EwaldMethod>::EvalJob(Topology *top, Job *job,
         jres.setError(ewaldnd.GenerateErrorString());
         LOG(logERROR,*log) << ewaldnd.GenerateErrorString() << flush;
     }
+    
+    boost::timer::cpu_times t_out = cpu_t.elapsed();
+    double t_run = (t_out.wall-t_in.wall)/1e9/60.;
+    LOG(logINFO,*log)
+        << "Job runtime was " << t_run << " min" << flush;
     
     return jres;
 }

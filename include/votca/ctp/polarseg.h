@@ -17,11 +17,13 @@ class PolarSeg : public vector<APolarSite*>
 public:
 
     PolarSeg() 
-        : _id(-1), _pos(vec(0,0,0)), _is_charged(true), _is_polarizable(true) {}
+        : _id(-1), _pos(vec(0,0,0)), _is_charged(true), _is_polarizable(true),
+          _indu_cg_site(NULL), _perm_cg_site(NULL) {}
     PolarSeg(int id, vector<APolarSite*> &psites);
     PolarSeg(PolarSeg *templ, bool do_depolarize);
     explicit PolarSeg(int id)
-        : _id(id), _pos(vec(0,0,0)), _is_charged(true), _is_polarizable(true) {}
+        : _id(id), _pos(vec(0,0,0)), _is_charged(true), _is_polarizable(true),
+          _indu_cg_site(NULL), _perm_cg_site(NULL) {}
    ~PolarSeg();
 
     const int &getId() { return _id; }
@@ -43,6 +45,9 @@ public:
     double CalcTotQ();
     vec CalcTotD();
     void Coarsegrain(bool cg_anisotropic);
+    void GeneratePermInduCgSite(bool do_cg_polarizabilities);
+    APolarSite *getInduCgSite() { return _indu_cg_site; }
+    APolarSite *getPermCgSite() { return _perm_cg_site; }
     // Evaluates to "true" if ANY contained polar site has charge != 0
     void CalcIsCharged();
     bool IsCharged() { return _is_charged; }
@@ -73,6 +78,8 @@ private:
     bool _is_polarizable;
     vector<PolarFrag*> _pfrags;
     vector<PolarNb*> _nbs;
+    APolarSite *_indu_cg_site;
+    APolarSite *_perm_cg_site;
 
 
 };
