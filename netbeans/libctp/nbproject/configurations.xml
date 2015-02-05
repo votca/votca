@@ -288,11 +288,6 @@
       </item>
       <item path="../../include/votca/ctp/basisset.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/ctp/blockAOmatrix.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/ctp/bsecoupling.h"
             ex="false"
             tool="3"
@@ -801,6 +796,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libctp/jobcalculators/qmape.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/jobcalculators/qmmm.h"
             ex="false"
             tool="3"
@@ -810,8 +810,6 @@
             ex="false"
             tool="3"
             flavor2="0">
-      </item>
-      <item path="../../src/libctp/mbgft/mbgft.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/molecule.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1023,11 +1021,6 @@
       <item path="../../include/votca/ctp/atom.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/basisset.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/blockAOmatrix.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../include/votca/ctp/bsecoupling.h"
             ex="false"
@@ -1537,6 +1530,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libctp/jobcalculators/qmape.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/jobcalculators/qmmm.h"
             ex="false"
             tool="3"
@@ -1546,8 +1544,6 @@
             ex="false"
             tool="3"
             flavor2="0">
-      </item>
-      <item path="../../src/libctp/mbgft/mbgft.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/molecule.cc" ex="false" tool="1" flavor2="0">
       </item>

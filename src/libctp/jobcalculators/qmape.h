@@ -16,8 +16,8 @@
  * limitations under the License.
  *
  */
-#ifndef __QMMMCALC__H
-#define	__QMMMCALC__H
+#ifndef __QMAPECALC__H
+#define	__QMAPECALC__H
 
 #include <votca/ctp/parallelxjobcalc.h>
 #include <votca/ctp/xmapper.h>
@@ -36,13 +36,13 @@ using boost::format;
 namespace votca { namespace ctp {
 
    
-class QMMM : public ParallelXJobCalc< vector<Job*>, Job*, Job::JobResult >
+class QMPAPE : public ParallelXJobCalc< vector<Job*>, Job*, Job::JobResult >
 {
 
 public:
 
-    QMMM() {};
-   ~QMMM() {};
+    QMAPE() {};
+   ~QMAPE() {};
    
     string          Identify() { return "qmmm"; }
     void            Initialize(Property *);
@@ -111,7 +111,7 @@ private:
 // ========================================================================== //
 
 
-void QMMM::Initialize(Property *opt) {
+void QMAPE::Initialize(Property *opt) {
 
     // update options with the VOTCASHARE defaults   
     UpdateWithDefaults( opt );
@@ -256,7 +256,7 @@ void QMMM::Initialize(Property *opt) {
 }
 
 
-void QMMM::PreProcess(Topology *top) {
+void QMAPE::PreProcess(Topology *top) {
 
     // INITIALIZE MPS-MAPPER (=> POLAR TOP PREP)
     cout << endl << "... ... Initialize MPS-mapper: " << flush;
@@ -264,7 +264,7 @@ void QMMM::PreProcess(Topology *top) {
 }
 
 
-void QMMM::CustomizeLogger(QMThread *thread) {
+void QMAPE::CustomizeLogger(QMThread *thread) {
     
     // CONFIGURE LOGGER
     Logger* log = thread->getLogger();
@@ -279,11 +279,11 @@ void QMMM::CustomizeLogger(QMThread *thread) {
 
 
 // ========================================================================== //
-//                            QMMM MEMBER FUNCTIONS                           //
+//                            QMAPE MEMBER FUNCTIONS                           //
 // ========================================================================== //
 
 
-XJob QMMM::ProcessInputString(Job *job, Topology *top, QMThread *thread) {
+XJob QMAPE::ProcessInputString(Job *job, Topology *top, QMThread *thread) {
     
     string input = job->getInput().as<string>();
     vector<Segment*> qmSegs;
@@ -319,7 +319,7 @@ XJob QMMM::ProcessInputString(Job *job, Topology *top, QMThread *thread) {
 }
 
 
-Job::JobResult QMMM::EvalJob(Topology *top, Job *job, QMThread *thread) {
+Job::JobResult QMAPE::EvalJob(Topology *top, Job *job, QMThread *thread) {
     
     // SILENT LOGGER FOR QMPACKAGE
     Logger* log = thread->getLogger();    
@@ -398,4 +398,4 @@ Job::JobResult QMMM::EvalJob(Topology *top, Job *job, QMThread *thread) {
     
 }}
 
-#endif /* __QMMM__H */
+#endif /* __QMAPE__H */
