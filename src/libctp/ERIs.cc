@@ -67,7 +67,7 @@ namespace votca {
             int size4c=_dftbasis.AOBasisSize();
 
             // reconstructing 4center-integrals
-	    
+	  /*  
             for (int k=0; k<_auxbasis._AOBasisSize; k++){
                 
                 ub::matrix<double> shit = _threecenter.getDatamatrix(k);
@@ -99,7 +99,7 @@ namespace votca {
             
             //exit(0);
             
-            
+            */
             
             
 
