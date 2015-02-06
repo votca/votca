@@ -27,7 +27,7 @@
 // add gwbse header of excited state support
 #include <votca/ctp/gwbse.h>
 // --------
-#include <votca/ctp/qmmachine.h>
+#include <votca/ctp/qmapemachine.h>
 #include <boost/format.hpp>
 
 
