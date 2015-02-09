@@ -53,6 +53,11 @@ void EwdInteractor::FPU12_ShapeField_At_By(vector<PolarSeg*> &at,
         fy *= 4*M_PI/(3*V);
         fz *= 4*M_PI/(3*V);
     }
+    else if (shape == "none") {
+    	fx = 0.0;
+    	fy = 0.0;
+    	fz = 0.0;
+    }
     else {
         cout << endl;
         throw std::runtime_error("Shape '" + shape + "' not implemented");
@@ -114,6 +119,11 @@ void EwdInteractor::FP12_ShapeField_At_By(vector<PolarSeg*> &at,
         fy *= 4*M_PI/(3*V);
         fz *= 4*M_PI/(3*V);
     }
+    else if (shape == "none") {
+    	fx = 0.0;
+    	fy = 0.0;
+    	fz = 0.0;
+    }
     else {
         cout << endl;
         throw std::runtime_error("Shape '" + shape + "' not implemented");
@@ -171,6 +181,11 @@ void EwdInteractor::FU12_ShapeField_At_By(vector<PolarSeg*> &at,
         fy *= 4*M_PI/(3*V);
         fz *= 4*M_PI/(3*V);
     }
+    else if (shape == "none") {
+		fx = 0.0;
+		fy = 0.0;
+		fz = 0.0;
+	}
     else {
         cout << endl;
         throw std::runtime_error("Shape '" + shape + "' not implemented");
@@ -259,6 +274,9 @@ void EwdInteractor::PhiPU12_ShapeField_At_By(vector<PolarSeg*> &s1,
             }
         }
     }
+    else if (shape == "none") {
+    	; // Nothing to do here
+    }
     else {
         cout << endl;
         throw std::runtime_error("Shape '" + shape + "' not implemented");
@@ -329,6 +347,9 @@ void EwdInteractor::PhiP12_ShapeField_At_By(vector<PolarSeg*> &s1,
             }
         }
     }
+    else if (shape == "none") {
+    	; // Nothing to do here
+    }
     else {
         cout << endl;
         throw std::runtime_error("Shape '" + shape + "' not implemented");
@@ -382,6 +403,9 @@ void EwdInteractor::PhiU12_ShapeField_At_By(vector<PolarSeg*> &s1,
                 (*pit)->PhiU += prefac*(TrU2_S2 - (*pit)->getPos()*U1_S2);
             }
         }
+    }
+    else if (shape == "none") {
+    	; // Nothing to do here
     }
     else {
         cout << endl;
@@ -1312,6 +1336,12 @@ EWD::triple<double> EwdInteractor::U12_ShapeTerm(vector<PolarSeg*> &s1,
             LOG(logDEBUG, *log) << (boost::format("  dd (pu) = %1$+1.7e") % pu_dd) << flush;
             LOG(logDEBUG, *log) << (boost::format("  dd (uu) = %1$+1.7e") % uu_dd) << flush;
         }
+    }
+    else if (shape == "none") {
+    	LOG(logDEBUG, *log) << (boost::format("Assuming isotropic limit")) << flush;
+    	pp = 0.0;
+    	pu = 0.0;
+    	uu = 0.0;
     }
     else {
         cout << endl;
