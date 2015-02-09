@@ -80,6 +80,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484457893/polarsite.o \
 	${OBJECTDIR}/_ext/484457893/polartop.o \
 	${OBJECTDIR}/_ext/484457893/progressobserver.o \
+	${OBJECTDIR}/_ext/484457893/qmapemachine.o \
 	${OBJECTDIR}/_ext/484457893/qmcalculator.o \
 	${OBJECTDIR}/_ext/484457893/qmdatabase.o \
 	${OBJECTDIR}/_ext/484457893/qmmachine.o \
@@ -359,6 +360,11 @@ ${OBJECTDIR}/_ext/484457893/progressobserver.o: nbproject/Makefile-${CND_CONF}.m
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/progressobserver.o ../../src/libctp/progressobserver.cc
+
+${OBJECTDIR}/_ext/484457893/qmapemachine.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libctp/qmapemachine.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/qmapemachine.o ../../src/libctp/qmapemachine.cc
 
 ${OBJECTDIR}/_ext/484457893/qmcalculator.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libctp/qmcalculator.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893

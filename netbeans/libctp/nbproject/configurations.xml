@@ -116,6 +116,7 @@
       <itemPath>../../include/votca/ctp/polarsite.h</itemPath>
       <itemPath>../../include/votca/ctp/polartop.h</itemPath>
       <itemPath>../../include/votca/ctp/progressobserver.h</itemPath>
+      <itemPath>../../include/votca/ctp/qmapemachine.h</itemPath>
       <itemPath>../../include/votca/ctp/qmcalculator.h</itemPath>
       <itemPath>../../include/votca/ctp/qmdatabase.h</itemPath>
       <itemPath>../../include/votca/ctp/qmmachine.h</itemPath>
@@ -225,6 +226,7 @@
       <itemPath>../../src/libctp/polarsite.cc</itemPath>
       <itemPath>../../src/libctp/polartop.cc</itemPath>
       <itemPath>../../src/libctp/progressobserver.cc</itemPath>
+      <itemPath>../../src/libctp/qmapemachine.cc</itemPath>
       <itemPath>../../src/libctp/qmcalculator.cc</itemPath>
       <itemPath>../../src/libctp/qmdatabase.cc</itemPath>
       <itemPath>../../src/libctp/qmmachine.cc</itemPath>
@@ -403,6 +405,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/progressobserver.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/qmapemachine.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -796,11 +803,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libctp/jobcalculators/qmape.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/libctp/jobcalculators/qmmm.h"
             ex="false"
             tool="3"
@@ -861,6 +863,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmapemachine.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/qmcalculator.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1137,6 +1141,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/progressobserver.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/qmapemachine.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1530,11 +1539,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libctp/jobcalculators/qmape.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/libctp/jobcalculators/qmmm.h"
             ex="false"
             tool="3"
@@ -1595,6 +1599,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmapemachine.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/qmcalculator.cc" ex="false" tool="1" flavor2="0">
       </item>

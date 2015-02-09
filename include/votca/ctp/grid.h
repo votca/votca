@@ -69,9 +69,9 @@ namespace votca { namespace ctp {
             points.close();
         }
         
-        
        
-        void setupCHELPgrid(const vector< QMAtom* >& Atomlist ){
+       
+        void setupCHELPgrid(const vector< QMAtom* >& Atomlist){
             Elements _elements;
 
             double padding=2.8; // Additional distance from molecule to set up grid according to CHELPG paper [Journal of Computational Chemistry 11, 361, 1990]

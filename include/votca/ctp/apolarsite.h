@@ -51,6 +51,7 @@ class APolarSite
     friend class QMultipole;
     friend class XInteractor;
     friend class QMMIter;
+    friend class QMAPEIter;
     friend class Ewald3D3D;
     friend class PEwald3D3D;
     friend class EwdInteractor;
