@@ -97,7 +97,7 @@ namespace votca { namespace ctp {
             double zmax=-1000;
             double xtemp,ytemp,ztemp;
             //setup one polarsite and use copy constructor later
-            APolarSite decoy;        
+         
         
          for (vector<QMAtom* >::const_iterator atom = Atomlist.begin(); atom != Atomlist.end(); ++atom ) {
                 xtemp=(*atom)->x;
@@ -160,7 +160,7 @@ namespace votca { namespace ctp {
                                 _gridpoints.push_back(temppos);
                                 if(_createpolarsites){
                                     vec temp=vec(x,y,z);
-                                    APolarSite apolarsite=decoy;
+                                    APolarSite apolarsite;
                                     apolarsite.setPos(temp);
                                     _gridsites.push_back(apolarsite);
                                 }

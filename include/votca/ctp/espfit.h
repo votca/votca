@@ -142,7 +142,7 @@ public:
           }
     
     
-    std::vector<double> _charges = FitPartialCharges(_fitcenters,_gridpoints, _ESPatGrid, _netcharge);
+    std::vector<double> _charges = FitPartialCharges(_fitcenters,_grid, _ESPatGrid, _netcharge);
     
     //Write charges to qmatoms
         for ( int _i =0 ; _i < _atomlist.size(); _i++){
@@ -200,8 +200,9 @@ private:
      
      
      // Fits partial charges to Potential on a grid, constrains net charge
-     std::vector<double> FitPartialCharges( std::vector< ub::vector<double> >& _fitcenters, std::vector< ub::vector<double> >& _gridpoints, ub::vector<double> _potential, double& _netcharge ){
-       
+     std::vector<double> FitPartialCharges( std::vector< ub::vector<double> >& _fitcenters, Grid& _grid, ub::vector<double> _potential, double& _netcharge ){
+         
+    std::vector< ub::vector<double> > _gridpoints=_grid.getGrid();   
     // Fitting atomic partial charges
     ub::matrix<double> _Amat = ub::zero_matrix<double>(_fitcenters.size()+1,_fitcenters.size()+1);
     ub::matrix<double> _Bvec = ub::zero_matrix<double>(_fitcenters.size()+1);    
