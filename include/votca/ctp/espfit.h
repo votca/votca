@@ -70,7 +70,7 @@ public:
        Grid Fittingcenters;
        double _netcharge=0.0;
        
-        std::vector<double> _charges= FitPartialCharges(  Fittingcenters,  _gridpoints, ub::vector<double> _potential, _netcharge )
+
        
    }
     
