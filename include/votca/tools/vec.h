@@ -120,9 +120,15 @@ inline vec::vec(const vec &v)
         
 inline vec::vec(const double r[3])
     : _x(r[0]), _y(r[1]), _z(r[2]) {}
-// Stupid idea
-//inline vec::vec(const boost::numeric::ublas::vector<double> &v)
-//    : _x(v(0)), _y(v(1)) , _z(v(2)) {}
+
+inline vec::vec(const boost::numeric::ublas::vector<double> &v)
+    {try
+    {_x=v(0);
+     _y=v(1);
+     _z=v(2);
+    }
+    catch(std::exception &err){throw std::length_error("Conversion from ub::vector to votca-vec failed");} 
+}
     
 inline vec::vec(const double &x, const double &y, const double &z)
         : _x(x), _y(y), _z(z) {}
