@@ -116,6 +116,7 @@
       <itemPath>../../include/votca/ctp/polarsite.h</itemPath>
       <itemPath>../../include/votca/ctp/polartop.h</itemPath>
       <itemPath>../../include/votca/ctp/progressobserver.h</itemPath>
+      <itemPath>../../include/votca/ctp/qmapemachine.h</itemPath>
       <itemPath>../../include/votca/ctp/qmcalculator.h</itemPath>
       <itemPath>../../include/votca/ctp/qmdatabase.h</itemPath>
       <itemPath>../../include/votca/ctp/qmmachine.h</itemPath>
@@ -225,6 +226,7 @@
       <itemPath>../../src/libctp/polarsite.cc</itemPath>
       <itemPath>../../src/libctp/polartop.cc</itemPath>
       <itemPath>../../src/libctp/progressobserver.cc</itemPath>
+      <itemPath>../../src/libctp/qmapemachine.cc</itemPath>
       <itemPath>../../src/libctp/qmcalculator.cc</itemPath>
       <itemPath>../../src/libctp/qmdatabase.cc</itemPath>
       <itemPath>../../src/libctp/qmmachine.cc</itemPath>
@@ -287,11 +289,6 @@
       <item path="../../include/votca/ctp/atom.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/basisset.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/blockAOmatrix.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../include/votca/ctp/bsecoupling.h"
             ex="false"
@@ -408,6 +405,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/progressobserver.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/qmapemachine.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -811,8 +813,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libctp/mbgft/mbgft.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libctp/molecule.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/numerical_integration/numerical_integrations.cc"
@@ -863,6 +863,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmapemachine.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/qmcalculator.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1024,11 +1026,6 @@
       </item>
       <item path="../../include/votca/ctp/basisset.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/ctp/blockAOmatrix.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/ctp/bsecoupling.h"
             ex="false"
             tool="3"
@@ -1144,6 +1141,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/progressobserver.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/qmapemachine.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1547,8 +1549,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libctp/mbgft/mbgft.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libctp/molecule.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/numerical_integration/numerical_integrations.cc"
@@ -1599,6 +1599,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmapemachine.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/qmcalculator.cc" ex="false" tool="1" flavor2="0">
       </item>

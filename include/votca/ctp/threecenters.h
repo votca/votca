@@ -30,6 +30,7 @@
 #include <boost/numeric/ublas/lu.hpp>
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/multi_array.hpp>
+#include <votca/ctp/aomatrix.h>
 #include <omp.h>
 
 
@@ -41,6 +42,11 @@ using namespace votca::tools;
 * 
 * 
 */
+
+
+
+
+
 namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
     // due to different requirements for the data format for DFT and GW we have two different classes TCMatrix and TCMatrix_dft which inherit from TCrawMatrix
@@ -50,13 +56,19 @@ namespace votca { namespace ctp {
     protected:
         
     bool FillThreeCenterOLBlock(  ub::matrix<double> & _subvector, AOShell* _shell, AOShell* _shell_row, AOShell* _shell_col);
+    bool FillThreeCenterRepBlock(  ub::matrix<double> & _subvector, AOShell* _shell, AOShell* _shell_row, AOShell* _shell_col);
     //bool FillThreeCenterOLBlock(  ub::matrix<float> & _subvector, AOShell* _shell, AOShell* _shell_row, AOShell* _shell_col);
     void getTrafo(ub::matrix<double>& _trafo, int _lmax, const double& _decay,std::vector<double> contractions);
     
     int getBlockSize( int size );
     
+    void XIntegrate( vector<double>& _FmT, const double& _T );
+    
    
     };
+    
+
+    
     
     
     

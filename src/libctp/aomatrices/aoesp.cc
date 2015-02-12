@@ -140,11 +140,11 @@ namespace votca { namespace ctp {
         
         // (s-s element normiert )
         double _prefactor = 2*sqrt(1.0/pi)*pow(4.0*_decay_row*_decay_col,0.75) * _fak2 * exp(-_exparg);
-        nuc(Cartesian::s,Cartesian::s)   = _prefactor * _FmU[0];
-        nucm1(Cartesian::s,Cartesian::s) = _prefactor * _FmU[1];
-        nucm2(Cartesian::s,Cartesian::s) = _prefactor * _FmU[2];
-        nucm3(Cartesian::s,Cartesian::s) = _prefactor * _FmU[3];
-        nucm4(Cartesian::s,Cartesian::s) = _prefactor * _FmU[4];
+        nuc(Cart::s,Cart::s)   = _prefactor * _FmU[0];
+        nucm1(Cart::s,Cart::s) = _prefactor * _FmU[1];
+        nucm2(Cart::s,Cart::s) = _prefactor * _FmU[2];
+        nucm3(Cart::s,Cart::s) = _prefactor * _FmU[3];
+        nucm4(Cart::s,Cart::s) = _prefactor * _FmU[4];
         double _lsum=_lmax_row + _lmax_col;
         
         if (_lmax_col >2 || _lmax_row >2){
@@ -155,9 +155,9 @@ namespace votca { namespace ctp {
 
         // s-p-0
         if ( _lmax_col > 0 ) {
-                nuc(Cartesian::s,Cartesian::y) =PmB[1]*nuc(Cartesian::s,Cartesian::s)-PmC[1]*nucm1(Cartesian::s,Cartesian::s);
-                nuc(Cartesian::s,Cartesian::x) =PmB[0]*nuc(Cartesian::s,Cartesian::s)-PmC[0]*nucm1(Cartesian::s,Cartesian::s);
-                nuc(Cartesian::s,Cartesian::z) =PmB[2]*nuc(Cartesian::s,Cartesian::s)-PmC[2]*nucm1(Cartesian::s,Cartesian::s);
+                nuc(Cart::s,Cart::y) =PmB[1]*nuc(Cart::s,Cart::s)-PmC[1]*nucm1(Cart::s,Cart::s);
+                nuc(Cart::s,Cart::x) =PmB[0]*nuc(Cart::s,Cart::s)-PmC[0]*nucm1(Cart::s,Cart::s);
+                nuc(Cart::s,Cart::z) =PmB[2]*nuc(Cart::s,Cart::s)-PmC[2]*nucm1(Cart::s,Cart::s);
 
 
           // cout << "\t setting s-p" << flush;
@@ -167,9 +167,9 @@ namespace votca { namespace ctp {
         // p-s-0
         if ( _lmax_row > 0 ) {
            //cout << "\t setting p-s" << flush;
-                nuc(Cartesian::y,Cartesian::s) =PmA[1]*nuc(Cartesian::s,Cartesian::s)-PmC[1]*nucm1(Cartesian::s,Cartesian::s);
-                nuc(Cartesian::x,Cartesian::s) =PmA[0]*nuc(Cartesian::s,Cartesian::s)-PmC[0]*nucm1(Cartesian::s,Cartesian::s);
-                nuc(Cartesian::z,Cartesian::s) =PmA[2]*nuc(Cartesian::s,Cartesian::s)-PmC[2]*nucm1(Cartesian::s,Cartesian::s);
+                nuc(Cart::y,Cart::s) =PmA[1]*nuc(Cart::s,Cart::s)-PmC[1]*nucm1(Cart::s,Cart::s);
+                nuc(Cart::x,Cart::s) =PmA[0]*nuc(Cart::s,Cart::s)-PmC[0]*nucm1(Cart::s,Cart::s);
+                nuc(Cart::z,Cart::s) =PmA[2]*nuc(Cart::s,Cart::s)-PmC[2]*nucm1(Cart::s,Cart::s);
 
         }
         
@@ -181,16 +181,16 @@ namespace votca { namespace ctp {
             //s-p-1
            if (_lmax_col>0){
             
-                nucm1(Cartesian::s,Cartesian::y) =PmB[1]*nucm1(Cartesian::s,Cartesian::s)-PmC[1]*nucm2(Cartesian::s,Cartesian::s);
-                nucm1(Cartesian::s,Cartesian::x) =PmB[0]*nucm1(Cartesian::s,Cartesian::s)-PmC[0]*nucm2(Cartesian::s,Cartesian::s);
-                nucm1(Cartesian::s,Cartesian::z) =PmB[2]*nucm1(Cartesian::s,Cartesian::s)-PmC[2]*nucm2(Cartesian::s,Cartesian::s);
+                nucm1(Cart::s,Cart::y) =PmB[1]*nucm1(Cart::s,Cart::s)-PmC[1]*nucm2(Cart::s,Cart::s);
+                nucm1(Cart::s,Cart::x) =PmB[0]*nucm1(Cart::s,Cart::s)-PmC[0]*nucm2(Cart::s,Cart::s);
+                nucm1(Cart::s,Cart::z) =PmB[2]*nucm1(Cart::s,Cart::s)-PmC[2]*nucm2(Cart::s,Cart::s);
            }
               
             // p-s-1
              if (_lmax_row>0){   
-                nucm1(Cartesian::y,Cartesian::s) =PmA[1]*nucm1(Cartesian::s,Cartesian::s)-PmC[1]*nucm2(Cartesian::s,Cartesian::s);
-                nucm1(Cartesian::x,Cartesian::s) =PmA[0]*nucm1(Cartesian::s,Cartesian::s)-PmC[0]*nucm2(Cartesian::s,Cartesian::s);
-                nucm1(Cartesian::z,Cartesian::s) =PmA[2]*nucm1(Cartesian::s,Cartesian::s)-PmC[2]*nucm2(Cartesian::s,Cartesian::s);
+                nucm1(Cart::y,Cart::s) =PmA[1]*nucm1(Cart::s,Cart::s)-PmC[1]*nucm2(Cart::s,Cart::s);
+                nucm1(Cart::x,Cart::s) =PmA[0]*nucm1(Cart::s,Cart::s)-PmC[0]*nucm2(Cart::s,Cart::s);
+                nucm1(Cart::z,Cart::s) =PmA[2]*nucm1(Cart::s,Cart::s)-PmC[2]*nucm2(Cart::s,Cart::s);
             }      
         }
                 
@@ -198,15 +198,15 @@ namespace votca { namespace ctp {
            //cout << "\t setting p-p" << endl; 
             
             // p-p-0 
-                nuc(Cartesian::y,Cartesian::y) =PmA[1]*nuc(Cartesian::s,Cartesian::y)-PmC[1]*nucm1(Cartesian::s,Cartesian::y)+_fak*(nuc(Cartesian::s,Cartesian::s)-nucm1(Cartesian::s,Cartesian::s));
-                nuc(Cartesian::y,Cartesian::x) =PmA[1]*nuc(Cartesian::s,Cartesian::x)-PmC[1]*nucm1(Cartesian::s,Cartesian::x);
-                nuc(Cartesian::y,Cartesian::z) =PmA[1]*nuc(Cartesian::s,Cartesian::z)-PmC[1]*nucm1(Cartesian::s,Cartesian::z);
-                nuc(Cartesian::x,Cartesian::y) =PmA[0]*nuc(Cartesian::s,Cartesian::y)-PmC[0]*nucm1(Cartesian::s,Cartesian::y);
-                nuc(Cartesian::x,Cartesian::x) =PmA[0]*nuc(Cartesian::s,Cartesian::x)-PmC[0]*nucm1(Cartesian::s,Cartesian::x)+_fak*(nuc(Cartesian::s,Cartesian::s)-nucm1(Cartesian::s,Cartesian::s));
-                nuc(Cartesian::x,Cartesian::z) =PmA[0]*nuc(Cartesian::s,Cartesian::z)-PmC[0]*nucm1(Cartesian::s,Cartesian::z);
-                nuc(Cartesian::z,Cartesian::y) =PmA[2]*nuc(Cartesian::s,Cartesian::y)-PmC[2]*nucm1(Cartesian::s,Cartesian::y);
-                nuc(Cartesian::z,Cartesian::x) =PmA[2]*nuc(Cartesian::s,Cartesian::x)-PmC[2]*nucm1(Cartesian::s,Cartesian::x);
-                nuc(Cartesian::z,Cartesian::z) =PmA[2]*nuc(Cartesian::s,Cartesian::z)-PmC[2]*nucm1(Cartesian::s,Cartesian::z)+_fak*(nuc(Cartesian::s,Cartesian::s)-nucm1(Cartesian::s,Cartesian::s));
+                nuc(Cart::y,Cart::y) =PmA[1]*nuc(Cart::s,Cart::y)-PmC[1]*nucm1(Cart::s,Cart::y)+_fak*(nuc(Cart::s,Cart::s)-nucm1(Cart::s,Cart::s));
+                nuc(Cart::y,Cart::x) =PmA[1]*nuc(Cart::s,Cart::x)-PmC[1]*nucm1(Cart::s,Cart::x);
+                nuc(Cart::y,Cart::z) =PmA[1]*nuc(Cart::s,Cart::z)-PmC[1]*nucm1(Cart::s,Cart::z);
+                nuc(Cart::x,Cart::y) =PmA[0]*nuc(Cart::s,Cart::y)-PmC[0]*nucm1(Cart::s,Cart::y);
+                nuc(Cart::x,Cart::x) =PmA[0]*nuc(Cart::s,Cart::x)-PmC[0]*nucm1(Cart::s,Cart::x)+_fak*(nuc(Cart::s,Cart::s)-nucm1(Cart::s,Cart::s));
+                nuc(Cart::x,Cart::z) =PmA[0]*nuc(Cart::s,Cart::z)-PmC[0]*nucm1(Cart::s,Cart::z);
+                nuc(Cart::z,Cart::y) =PmA[2]*nuc(Cart::s,Cart::y)-PmC[2]*nucm1(Cart::s,Cart::y);
+                nuc(Cart::z,Cart::x) =PmA[2]*nuc(Cart::s,Cart::x)-PmC[2]*nucm1(Cart::s,Cart::x);
+                nuc(Cart::z,Cart::z) =PmA[2]*nuc(Cart::s,Cart::z)-PmC[2]*nucm1(Cart::s,Cart::z)+_fak*(nuc(Cart::s,Cart::s)-nucm1(Cart::s,Cart::s));
 
         } 
       
@@ -214,12 +214,12 @@ namespace votca { namespace ctp {
        if ( _lmax_col > 1){
             //cout << "\t setting s-d" << endl;
           // s-d-0
-                nuc(Cartesian::s,Cartesian::yy) =PmB[1]*nuc(Cartesian::s,Cartesian::y)-PmC[1]*nucm1(Cartesian::s,Cartesian::y)+_fak*(nuc(Cartesian::s,Cartesian::s)-nucm1(Cartesian::s,Cartesian::s));
-                nuc(Cartesian::s,Cartesian::xy) =PmB[0]*nuc(Cartesian::s,Cartesian::y)-PmC[0]*nucm1(Cartesian::s,Cartesian::y);
-                nuc(Cartesian::s,Cartesian::yz) =PmB[1]*nuc(Cartesian::s,Cartesian::z)-PmC[1]*nucm1(Cartesian::s,Cartesian::z);
-                nuc(Cartesian::s,Cartesian::xx) =PmB[0]*nuc(Cartesian::s,Cartesian::x)-PmC[0]*nucm1(Cartesian::s,Cartesian::x)+_fak*(nuc(Cartesian::s,Cartesian::s)-nucm1(Cartesian::s,Cartesian::s));
-                nuc(Cartesian::s,Cartesian::xz) =PmB[0]*nuc(Cartesian::s,Cartesian::z)-PmC[0]*nucm1(Cartesian::s,Cartesian::z);
-                nuc(Cartesian::s,Cartesian::zz) =PmB[2]*nuc(Cartesian::s,Cartesian::z)-PmC[2]*nucm1(Cartesian::s,Cartesian::z)+_fak*(nuc(Cartesian::s,Cartesian::s)-nucm1(Cartesian::s,Cartesian::s));
+                nuc(Cart::s,Cart::yy) =PmB[1]*nuc(Cart::s,Cart::y)-PmC[1]*nucm1(Cart::s,Cart::y)+_fak*(nuc(Cart::s,Cart::s)-nucm1(Cart::s,Cart::s));
+                nuc(Cart::s,Cart::xy) =PmB[0]*nuc(Cart::s,Cart::y)-PmC[0]*nucm1(Cart::s,Cart::y);
+                nuc(Cart::s,Cart::yz) =PmB[1]*nuc(Cart::s,Cart::z)-PmC[1]*nucm1(Cart::s,Cart::z);
+                nuc(Cart::s,Cart::xx) =PmB[0]*nuc(Cart::s,Cart::x)-PmC[0]*nucm1(Cart::s,Cart::x)+_fak*(nuc(Cart::s,Cart::s)-nucm1(Cart::s,Cart::s));
+                nuc(Cart::s,Cart::xz) =PmB[0]*nuc(Cart::s,Cart::z)-PmC[0]*nucm1(Cart::s,Cart::z);
+                nuc(Cart::s,Cart::zz) =PmB[2]*nuc(Cart::s,Cart::z)-PmC[2]*nucm1(Cart::s,Cart::z)+_fak*(nuc(Cart::s,Cart::s)-nucm1(Cart::s,Cart::s));
 
             
         }
@@ -228,12 +228,12 @@ namespace votca { namespace ctp {
          // d-s
         if ( _lmax_row > 1){
            //cout << "\t setting d-s" << endl;
-                nuc(Cartesian::yy,Cartesian::s) =PmA[1]*nuc(Cartesian::y,Cartesian::s)-PmC[1]*nucm1(Cartesian::y,Cartesian::s)+_fak*(nuc(Cartesian::s,Cartesian::s)-nucm1(Cartesian::s,Cartesian::s));
-                nuc(Cartesian::xy,Cartesian::s) =PmA[0]*nuc(Cartesian::y,Cartesian::s)-PmC[0]*nucm1(Cartesian::y,Cartesian::s);
-                nuc(Cartesian::yz,Cartesian::s) =PmA[1]*nuc(Cartesian::z,Cartesian::s)-PmC[1]*nucm1(Cartesian::z,Cartesian::s);
-                nuc(Cartesian::xx,Cartesian::s) =PmA[0]*nuc(Cartesian::x,Cartesian::s)-PmC[0]*nucm1(Cartesian::x,Cartesian::s)+_fak*(nuc(Cartesian::s,Cartesian::s)-nucm1(Cartesian::s,Cartesian::s));
-                nuc(Cartesian::xz,Cartesian::s) =PmA[0]*nuc(Cartesian::z,Cartesian::s)-PmC[0]*nucm1(Cartesian::z,Cartesian::s);
-                nuc(Cartesian::zz,Cartesian::s) =PmA[2]*nuc(Cartesian::z,Cartesian::s)-PmC[2]*nucm1(Cartesian::z,Cartesian::s)+_fak*(nuc(Cartesian::s,Cartesian::s)-nucm1(Cartesian::s,Cartesian::s));
+                nuc(Cart::yy,Cart::s) =PmA[1]*nuc(Cart::y,Cart::s)-PmC[1]*nucm1(Cart::y,Cart::s)+_fak*(nuc(Cart::s,Cart::s)-nucm1(Cart::s,Cart::s));
+                nuc(Cart::xy,Cart::s) =PmA[0]*nuc(Cart::y,Cart::s)-PmC[0]*nucm1(Cart::y,Cart::s);
+                nuc(Cart::yz,Cart::s) =PmA[1]*nuc(Cart::z,Cart::s)-PmC[1]*nucm1(Cart::z,Cart::s);
+                nuc(Cart::xx,Cart::s) =PmA[0]*nuc(Cart::x,Cart::s)-PmC[0]*nucm1(Cart::x,Cart::s)+_fak*(nuc(Cart::s,Cart::s)-nucm1(Cart::s,Cart::s));
+                nuc(Cart::xz,Cart::s) =PmA[0]*nuc(Cart::z,Cart::s)-PmC[0]*nucm1(Cart::z,Cart::s);
+                nuc(Cart::zz,Cart::s) =PmA[2]*nuc(Cart::z,Cart::s)-PmC[2]*nucm1(Cart::z,Cart::s)+_fak*(nuc(Cart::s,Cart::s)-nucm1(Cart::s,Cart::s));
 
          
         }
@@ -243,28 +243,28 @@ namespace votca { namespace ctp {
             //cout << "\t setting p-d" << endl;
             if ( _lmax_col > 0){
             //s-p-2
-                nucm2(Cartesian::s,Cartesian::y) =PmB[1]*nucm2(Cartesian::s,Cartesian::s)-PmC[1]*nucm3(Cartesian::s,Cartesian::s);
-                nucm2(Cartesian::s,Cartesian::x) =PmB[0]*nucm2(Cartesian::s,Cartesian::s)-PmC[0]*nucm3(Cartesian::s,Cartesian::s);
-                nucm2(Cartesian::s,Cartesian::z) =PmB[2]*nucm2(Cartesian::s,Cartesian::s)-PmC[2]*nucm3(Cartesian::s,Cartesian::s);
+                nucm2(Cart::s,Cart::y) =PmB[1]*nucm2(Cart::s,Cart::s)-PmC[1]*nucm3(Cart::s,Cart::s);
+                nucm2(Cart::s,Cart::x) =PmB[0]*nucm2(Cart::s,Cart::s)-PmC[0]*nucm3(Cart::s,Cart::s);
+                nucm2(Cart::s,Cart::z) =PmB[2]*nucm2(Cart::s,Cart::s)-PmC[2]*nucm3(Cart::s,Cart::s);
             }
             if ( _lmax_row > 0){    
             //p-s-2
-                nucm2(Cartesian::y,Cartesian::s) =PmA[1]*nucm2(Cartesian::s,Cartesian::s)-PmC[1]*nucm3(Cartesian::s,Cartesian::s);
-                nucm2(Cartesian::x,Cartesian::s) =PmA[0]*nucm2(Cartesian::s,Cartesian::s)-PmC[0]*nucm3(Cartesian::s,Cartesian::s);
-                nucm2(Cartesian::z,Cartesian::s) =PmA[2]*nucm2(Cartesian::s,Cartesian::s)-PmC[2]*nucm3(Cartesian::s,Cartesian::s);
+                nucm2(Cart::y,Cart::s) =PmA[1]*nucm2(Cart::s,Cart::s)-PmC[1]*nucm3(Cart::s,Cart::s);
+                nucm2(Cart::x,Cart::s) =PmA[0]*nucm2(Cart::s,Cart::s)-PmC[0]*nucm3(Cart::s,Cart::s);
+                nucm2(Cart::z,Cart::s) =PmA[2]*nucm2(Cart::s,Cart::s)-PmC[2]*nucm3(Cart::s,Cart::s);
             }
 
             if ( _lmax_row > 0 && _lmax_col > 0 ) {
             //p-p-1
-                nucm1(Cartesian::y,Cartesian::y) =PmA[1]*nucm1(Cartesian::s,Cartesian::y)-PmC[1]*nucm2(Cartesian::s,Cartesian::y)+_fak*(nucm1(Cartesian::s,Cartesian::s)-nucm2(Cartesian::s,Cartesian::s));
-                nucm1(Cartesian::y,Cartesian::x) =PmA[1]*nucm1(Cartesian::s,Cartesian::x)-PmC[1]*nucm2(Cartesian::s,Cartesian::x);
-                nucm1(Cartesian::y,Cartesian::z) =PmA[1]*nucm1(Cartesian::s,Cartesian::z)-PmC[1]*nucm2(Cartesian::s,Cartesian::z);
-                nucm1(Cartesian::x,Cartesian::y) =PmA[0]*nucm1(Cartesian::s,Cartesian::y)-PmC[0]*nucm2(Cartesian::s,Cartesian::y);
-                nucm1(Cartesian::x,Cartesian::x) =PmA[0]*nucm1(Cartesian::s,Cartesian::x)-PmC[0]*nucm2(Cartesian::s,Cartesian::x)+_fak*(nucm1(Cartesian::s,Cartesian::s)-nucm2(Cartesian::s,Cartesian::s));
-                nucm1(Cartesian::x,Cartesian::z) =PmA[0]*nucm1(Cartesian::s,Cartesian::z)-PmC[0]*nucm2(Cartesian::s,Cartesian::z);
-                nucm1(Cartesian::z,Cartesian::y) =PmA[2]*nucm1(Cartesian::s,Cartesian::y)-PmC[2]*nucm2(Cartesian::s,Cartesian::y);
-                nucm1(Cartesian::z,Cartesian::x) =PmA[2]*nucm1(Cartesian::s,Cartesian::x)-PmC[2]*nucm2(Cartesian::s,Cartesian::x);
-                nucm1(Cartesian::z,Cartesian::z) =PmA[2]*nucm1(Cartesian::s,Cartesian::z)-PmC[2]*nucm2(Cartesian::s,Cartesian::z)+_fak*(nucm1(Cartesian::s,Cartesian::s)-nucm2(Cartesian::s,Cartesian::s));
+                nucm1(Cart::y,Cart::y) =PmA[1]*nucm1(Cart::s,Cart::y)-PmC[1]*nucm2(Cart::s,Cart::y)+_fak*(nucm1(Cart::s,Cart::s)-nucm2(Cart::s,Cart::s));
+                nucm1(Cart::y,Cart::x) =PmA[1]*nucm1(Cart::s,Cart::x)-PmC[1]*nucm2(Cart::s,Cart::x);
+                nucm1(Cart::y,Cart::z) =PmA[1]*nucm1(Cart::s,Cart::z)-PmC[1]*nucm2(Cart::s,Cart::z);
+                nucm1(Cart::x,Cart::y) =PmA[0]*nucm1(Cart::s,Cart::y)-PmC[0]*nucm2(Cart::s,Cart::y);
+                nucm1(Cart::x,Cart::x) =PmA[0]*nucm1(Cart::s,Cart::x)-PmC[0]*nucm2(Cart::s,Cart::x)+_fak*(nucm1(Cart::s,Cart::s)-nucm2(Cart::s,Cart::s));
+                nucm1(Cart::x,Cart::z) =PmA[0]*nucm1(Cart::s,Cart::z)-PmC[0]*nucm2(Cart::s,Cart::z);
+                nucm1(Cart::z,Cart::y) =PmA[2]*nucm1(Cart::s,Cart::y)-PmC[2]*nucm2(Cart::s,Cart::y);
+                nucm1(Cart::z,Cart::x) =PmA[2]*nucm1(Cart::s,Cart::x)-PmC[2]*nucm2(Cart::s,Cart::x);
+                nucm1(Cart::z,Cart::z) =PmA[2]*nucm1(Cart::s,Cart::z)-PmC[2]*nucm2(Cart::s,Cart::z)+_fak*(nucm1(Cart::s,Cart::s)-nucm2(Cart::s,Cart::s));
         }
         }
         
@@ -277,24 +277,24 @@ namespace votca { namespace ctp {
             
         
             // p-d-0
-                nuc(Cartesian::y,Cartesian::yy) =PmB[1]*nuc(Cartesian::y,Cartesian::y)-PmC[1]*nucm1(Cartesian::y,Cartesian::y)+_fak*(nuc(Cartesian::y,Cartesian::s)-nucm1(Cartesian::y,Cartesian::s))+_fak*(nuc(Cartesian::s,Cartesian::y)-nucm1(Cartesian::s,Cartesian::y));
-                nuc(Cartesian::y,Cartesian::xy) =PmB[0]*nuc(Cartesian::y,Cartesian::y)-PmC[0]*nucm1(Cartesian::y,Cartesian::y);
-                nuc(Cartesian::y,Cartesian::yz) =PmB[1]*nuc(Cartesian::y,Cartesian::z)-PmC[1]*nucm1(Cartesian::y,Cartesian::z)+_fak*(nuc(Cartesian::s,Cartesian::z)-nucm1(Cartesian::s,Cartesian::z));
-                nuc(Cartesian::y,Cartesian::xx) =PmB[0]*nuc(Cartesian::y,Cartesian::x)-PmC[0]*nucm1(Cartesian::y,Cartesian::x)+_fak*(nuc(Cartesian::y,Cartesian::s)-nucm1(Cartesian::y,Cartesian::s));
-                nuc(Cartesian::y,Cartesian::xz) =PmB[0]*nuc(Cartesian::y,Cartesian::z)-PmC[0]*nucm1(Cartesian::y,Cartesian::z);
-                nuc(Cartesian::y,Cartesian::zz) =PmB[2]*nuc(Cartesian::y,Cartesian::z)-PmC[2]*nucm1(Cartesian::y,Cartesian::z)+_fak*(nuc(Cartesian::y,Cartesian::s)-nucm1(Cartesian::y,Cartesian::s));
-                nuc(Cartesian::x,Cartesian::yy) =PmB[1]*nuc(Cartesian::x,Cartesian::y)-PmC[1]*nucm1(Cartesian::x,Cartesian::y)+_fak*(nuc(Cartesian::x,Cartesian::s)-nucm1(Cartesian::x,Cartesian::s));
-                nuc(Cartesian::x,Cartesian::xy) =PmB[0]*nuc(Cartesian::x,Cartesian::y)-PmC[0]*nucm1(Cartesian::x,Cartesian::y)+_fak*(nuc(Cartesian::s,Cartesian::y)-nucm1(Cartesian::s,Cartesian::y));
-                nuc(Cartesian::x,Cartesian::yz) =PmB[1]*nuc(Cartesian::x,Cartesian::z)-PmC[1]*nucm1(Cartesian::x,Cartesian::z);
-                nuc(Cartesian::x,Cartesian::xx) =PmB[0]*nuc(Cartesian::x,Cartesian::x)-PmC[0]*nucm1(Cartesian::x,Cartesian::x)+_fak*(nuc(Cartesian::x,Cartesian::s)-nucm1(Cartesian::x,Cartesian::s))+_fak*(nuc(Cartesian::s,Cartesian::x)-nucm1(Cartesian::s,Cartesian::x));
-                nuc(Cartesian::x,Cartesian::xz) =PmB[0]*nuc(Cartesian::x,Cartesian::z)-PmC[0]*nucm1(Cartesian::x,Cartesian::z)+_fak*(nuc(Cartesian::s,Cartesian::z)-nucm1(Cartesian::s,Cartesian::z));
-                nuc(Cartesian::x,Cartesian::zz) =PmB[2]*nuc(Cartesian::x,Cartesian::z)-PmC[2]*nucm1(Cartesian::x,Cartesian::z)+_fak*(nuc(Cartesian::x,Cartesian::s)-nucm1(Cartesian::x,Cartesian::s));
-                nuc(Cartesian::z,Cartesian::yy) =PmB[1]*nuc(Cartesian::z,Cartesian::y)-PmC[1]*nucm1(Cartesian::z,Cartesian::y)+_fak*(nuc(Cartesian::z,Cartesian::s)-nucm1(Cartesian::z,Cartesian::s));
-                nuc(Cartesian::z,Cartesian::xy) =PmB[0]*nuc(Cartesian::z,Cartesian::y)-PmC[0]*nucm1(Cartesian::z,Cartesian::y);
-                nuc(Cartesian::z,Cartesian::yz) =PmB[1]*nuc(Cartesian::z,Cartesian::z)-PmC[1]*nucm1(Cartesian::z,Cartesian::z);
-                nuc(Cartesian::z,Cartesian::xx) =PmB[0]*nuc(Cartesian::z,Cartesian::x)-PmC[0]*nucm1(Cartesian::z,Cartesian::x)+_fak*(nuc(Cartesian::z,Cartesian::s)-nucm1(Cartesian::z,Cartesian::s));
-                nuc(Cartesian::z,Cartesian::xz) =PmB[0]*nuc(Cartesian::z,Cartesian::z)-PmC[0]*nucm1(Cartesian::z,Cartesian::z);
-                nuc(Cartesian::z,Cartesian::zz) =PmB[2]*nuc(Cartesian::z,Cartesian::z)-PmC[2]*nucm1(Cartesian::z,Cartesian::z)+_fak*(nuc(Cartesian::z,Cartesian::s)-nucm1(Cartesian::z,Cartesian::s))+_fak*(nuc(Cartesian::s,Cartesian::z)-nucm1(Cartesian::s,Cartesian::z));
+                nuc(Cart::y,Cart::yy) =PmB[1]*nuc(Cart::y,Cart::y)-PmC[1]*nucm1(Cart::y,Cart::y)+_fak*(nuc(Cart::y,Cart::s)-nucm1(Cart::y,Cart::s))+_fak*(nuc(Cart::s,Cart::y)-nucm1(Cart::s,Cart::y));
+                nuc(Cart::y,Cart::xy) =PmB[0]*nuc(Cart::y,Cart::y)-PmC[0]*nucm1(Cart::y,Cart::y);
+                nuc(Cart::y,Cart::yz) =PmB[1]*nuc(Cart::y,Cart::z)-PmC[1]*nucm1(Cart::y,Cart::z)+_fak*(nuc(Cart::s,Cart::z)-nucm1(Cart::s,Cart::z));
+                nuc(Cart::y,Cart::xx) =PmB[0]*nuc(Cart::y,Cart::x)-PmC[0]*nucm1(Cart::y,Cart::x)+_fak*(nuc(Cart::y,Cart::s)-nucm1(Cart::y,Cart::s));
+                nuc(Cart::y,Cart::xz) =PmB[0]*nuc(Cart::y,Cart::z)-PmC[0]*nucm1(Cart::y,Cart::z);
+                nuc(Cart::y,Cart::zz) =PmB[2]*nuc(Cart::y,Cart::z)-PmC[2]*nucm1(Cart::y,Cart::z)+_fak*(nuc(Cart::y,Cart::s)-nucm1(Cart::y,Cart::s));
+                nuc(Cart::x,Cart::yy) =PmB[1]*nuc(Cart::x,Cart::y)-PmC[1]*nucm1(Cart::x,Cart::y)+_fak*(nuc(Cart::x,Cart::s)-nucm1(Cart::x,Cart::s));
+                nuc(Cart::x,Cart::xy) =PmB[0]*nuc(Cart::x,Cart::y)-PmC[0]*nucm1(Cart::x,Cart::y)+_fak*(nuc(Cart::s,Cart::y)-nucm1(Cart::s,Cart::y));
+                nuc(Cart::x,Cart::yz) =PmB[1]*nuc(Cart::x,Cart::z)-PmC[1]*nucm1(Cart::x,Cart::z);
+                nuc(Cart::x,Cart::xx) =PmB[0]*nuc(Cart::x,Cart::x)-PmC[0]*nucm1(Cart::x,Cart::x)+_fak*(nuc(Cart::x,Cart::s)-nucm1(Cart::x,Cart::s))+_fak*(nuc(Cart::s,Cart::x)-nucm1(Cart::s,Cart::x));
+                nuc(Cart::x,Cart::xz) =PmB[0]*nuc(Cart::x,Cart::z)-PmC[0]*nucm1(Cart::x,Cart::z)+_fak*(nuc(Cart::s,Cart::z)-nucm1(Cart::s,Cart::z));
+                nuc(Cart::x,Cart::zz) =PmB[2]*nuc(Cart::x,Cart::z)-PmC[2]*nucm1(Cart::x,Cart::z)+_fak*(nuc(Cart::x,Cart::s)-nucm1(Cart::x,Cart::s));
+                nuc(Cart::z,Cart::yy) =PmB[1]*nuc(Cart::z,Cart::y)-PmC[1]*nucm1(Cart::z,Cart::y)+_fak*(nuc(Cart::z,Cart::s)-nucm1(Cart::z,Cart::s));
+                nuc(Cart::z,Cart::xy) =PmB[0]*nuc(Cart::z,Cart::y)-PmC[0]*nucm1(Cart::z,Cart::y);
+                nuc(Cart::z,Cart::yz) =PmB[1]*nuc(Cart::z,Cart::z)-PmC[1]*nucm1(Cart::z,Cart::z);
+                nuc(Cart::z,Cart::xx) =PmB[0]*nuc(Cart::z,Cart::x)-PmC[0]*nucm1(Cart::z,Cart::x)+_fak*(nuc(Cart::z,Cart::s)-nucm1(Cart::z,Cart::s));
+                nuc(Cart::z,Cart::xz) =PmB[0]*nuc(Cart::z,Cart::z)-PmC[0]*nucm1(Cart::z,Cart::z);
+                nuc(Cart::z,Cart::zz) =PmB[2]*nuc(Cart::z,Cart::z)-PmC[2]*nucm1(Cart::z,Cart::z)+_fak*(nuc(Cart::z,Cart::s)-nucm1(Cart::z,Cart::s))+_fak*(nuc(Cart::s,Cart::z)-nucm1(Cart::s,Cart::z));
 
          
         }
@@ -306,24 +306,24 @@ namespace votca { namespace ctp {
         if ( _lmax_row >1 && _lmax_col > 0){
            //cout << "\t setting d-p" << endl;
             
-                nuc(Cartesian::yy,Cartesian::y) =PmA[1]*nuc(Cartesian::y,Cartesian::y)-PmC[1]*nucm1(Cartesian::y,Cartesian::y)+_fak*(nuc(Cartesian::s,Cartesian::y)-nucm1(Cartesian::s,Cartesian::y))+_fak*(nuc(Cartesian::y,Cartesian::s)-nucm1(Cartesian::y,Cartesian::s));
-                nuc(Cartesian::yy,Cartesian::x) =PmA[1]*nuc(Cartesian::y,Cartesian::x)-PmC[1]*nucm1(Cartesian::y,Cartesian::x)+_fak*(nuc(Cartesian::s,Cartesian::x)-nucm1(Cartesian::s,Cartesian::x));
-                nuc(Cartesian::yy,Cartesian::z) =PmA[1]*nuc(Cartesian::y,Cartesian::z)-PmC[1]*nucm1(Cartesian::y,Cartesian::z)+_fak*(nuc(Cartesian::s,Cartesian::z)-nucm1(Cartesian::s,Cartesian::z));
-                nuc(Cartesian::xy,Cartesian::y) =PmA[0]*nuc(Cartesian::y,Cartesian::y)-PmC[0]*nucm1(Cartesian::y,Cartesian::y);
-                nuc(Cartesian::xy,Cartesian::x) =PmA[0]*nuc(Cartesian::y,Cartesian::x)-PmC[0]*nucm1(Cartesian::y,Cartesian::x)+_fak*(nuc(Cartesian::y,Cartesian::s)-nucm1(Cartesian::y,Cartesian::s));
-                nuc(Cartesian::xy,Cartesian::z) =PmA[0]*nuc(Cartesian::y,Cartesian::z)-PmC[0]*nucm1(Cartesian::y,Cartesian::z);
-                nuc(Cartesian::yz,Cartesian::y) =PmA[1]*nuc(Cartesian::z,Cartesian::y)-PmC[1]*nucm1(Cartesian::z,Cartesian::y)+_fak*(nuc(Cartesian::z,Cartesian::s)-nucm1(Cartesian::z,Cartesian::s));
-                nuc(Cartesian::yz,Cartesian::x) =PmA[1]*nuc(Cartesian::z,Cartesian::x)-PmC[1]*nucm1(Cartesian::z,Cartesian::x);
-                nuc(Cartesian::yz,Cartesian::z) =PmA[1]*nuc(Cartesian::z,Cartesian::z)-PmC[1]*nucm1(Cartesian::z,Cartesian::z);
-                nuc(Cartesian::xx,Cartesian::y) =PmA[0]*nuc(Cartesian::x,Cartesian::y)-PmC[0]*nucm1(Cartesian::x,Cartesian::y)+_fak*(nuc(Cartesian::s,Cartesian::y)-nucm1(Cartesian::s,Cartesian::y));
-                nuc(Cartesian::xx,Cartesian::x) =PmA[0]*nuc(Cartesian::x,Cartesian::x)-PmC[0]*nucm1(Cartesian::x,Cartesian::x)+_fak*(nuc(Cartesian::s,Cartesian::x)-nucm1(Cartesian::s,Cartesian::x))+_fak*(nuc(Cartesian::x,Cartesian::s)-nucm1(Cartesian::x,Cartesian::s));
-                nuc(Cartesian::xx,Cartesian::z) =PmA[0]*nuc(Cartesian::x,Cartesian::z)-PmC[0]*nucm1(Cartesian::x,Cartesian::z)+_fak*(nuc(Cartesian::s,Cartesian::z)-nucm1(Cartesian::s,Cartesian::z));
-                nuc(Cartesian::xz,Cartesian::y) =PmA[0]*nuc(Cartesian::z,Cartesian::y)-PmC[0]*nucm1(Cartesian::z,Cartesian::y);
-                nuc(Cartesian::xz,Cartesian::x) =PmA[0]*nuc(Cartesian::z,Cartesian::x)-PmC[0]*nucm1(Cartesian::z,Cartesian::x)+_fak*(nuc(Cartesian::z,Cartesian::s)-nucm1(Cartesian::z,Cartesian::s));
-                nuc(Cartesian::xz,Cartesian::z) =PmA[0]*nuc(Cartesian::z,Cartesian::z)-PmC[0]*nucm1(Cartesian::z,Cartesian::z);
-                nuc(Cartesian::zz,Cartesian::y) =PmA[2]*nuc(Cartesian::z,Cartesian::y)-PmC[2]*nucm1(Cartesian::z,Cartesian::y)+_fak*(nuc(Cartesian::s,Cartesian::y)-nucm1(Cartesian::s,Cartesian::y));
-                nuc(Cartesian::zz,Cartesian::x) =PmA[2]*nuc(Cartesian::z,Cartesian::x)-PmC[2]*nucm1(Cartesian::z,Cartesian::x)+_fak*(nuc(Cartesian::s,Cartesian::x)-nucm1(Cartesian::s,Cartesian::x));
-                nuc(Cartesian::zz,Cartesian::z) =PmA[2]*nuc(Cartesian::z,Cartesian::z)-PmC[2]*nucm1(Cartesian::z,Cartesian::z)+_fak*(nuc(Cartesian::s,Cartesian::z)-nucm1(Cartesian::s,Cartesian::z))+_fak*(nuc(Cartesian::z,Cartesian::s)-nucm1(Cartesian::z,Cartesian::s));
+                nuc(Cart::yy,Cart::y) =PmA[1]*nuc(Cart::y,Cart::y)-PmC[1]*nucm1(Cart::y,Cart::y)+_fak*(nuc(Cart::s,Cart::y)-nucm1(Cart::s,Cart::y))+_fak*(nuc(Cart::y,Cart::s)-nucm1(Cart::y,Cart::s));
+                nuc(Cart::yy,Cart::x) =PmA[1]*nuc(Cart::y,Cart::x)-PmC[1]*nucm1(Cart::y,Cart::x)+_fak*(nuc(Cart::s,Cart::x)-nucm1(Cart::s,Cart::x));
+                nuc(Cart::yy,Cart::z) =PmA[1]*nuc(Cart::y,Cart::z)-PmC[1]*nucm1(Cart::y,Cart::z)+_fak*(nuc(Cart::s,Cart::z)-nucm1(Cart::s,Cart::z));
+                nuc(Cart::xy,Cart::y) =PmA[0]*nuc(Cart::y,Cart::y)-PmC[0]*nucm1(Cart::y,Cart::y);
+                nuc(Cart::xy,Cart::x) =PmA[0]*nuc(Cart::y,Cart::x)-PmC[0]*nucm1(Cart::y,Cart::x)+_fak*(nuc(Cart::y,Cart::s)-nucm1(Cart::y,Cart::s));
+                nuc(Cart::xy,Cart::z) =PmA[0]*nuc(Cart::y,Cart::z)-PmC[0]*nucm1(Cart::y,Cart::z);
+                nuc(Cart::yz,Cart::y) =PmA[1]*nuc(Cart::z,Cart::y)-PmC[1]*nucm1(Cart::z,Cart::y)+_fak*(nuc(Cart::z,Cart::s)-nucm1(Cart::z,Cart::s));
+                nuc(Cart::yz,Cart::x) =PmA[1]*nuc(Cart::z,Cart::x)-PmC[1]*nucm1(Cart::z,Cart::x);
+                nuc(Cart::yz,Cart::z) =PmA[1]*nuc(Cart::z,Cart::z)-PmC[1]*nucm1(Cart::z,Cart::z);
+                nuc(Cart::xx,Cart::y) =PmA[0]*nuc(Cart::x,Cart::y)-PmC[0]*nucm1(Cart::x,Cart::y)+_fak*(nuc(Cart::s,Cart::y)-nucm1(Cart::s,Cart::y));
+                nuc(Cart::xx,Cart::x) =PmA[0]*nuc(Cart::x,Cart::x)-PmC[0]*nucm1(Cart::x,Cart::x)+_fak*(nuc(Cart::s,Cart::x)-nucm1(Cart::s,Cart::x))+_fak*(nuc(Cart::x,Cart::s)-nucm1(Cart::x,Cart::s));
+                nuc(Cart::xx,Cart::z) =PmA[0]*nuc(Cart::x,Cart::z)-PmC[0]*nucm1(Cart::x,Cart::z)+_fak*(nuc(Cart::s,Cart::z)-nucm1(Cart::s,Cart::z));
+                nuc(Cart::xz,Cart::y) =PmA[0]*nuc(Cart::z,Cart::y)-PmC[0]*nucm1(Cart::z,Cart::y);
+                nuc(Cart::xz,Cart::x) =PmA[0]*nuc(Cart::z,Cart::x)-PmC[0]*nucm1(Cart::z,Cart::x)+_fak*(nuc(Cart::z,Cart::s)-nucm1(Cart::z,Cart::s));
+                nuc(Cart::xz,Cart::z) =PmA[0]*nuc(Cart::z,Cart::z)-PmC[0]*nucm1(Cart::z,Cart::z);
+                nuc(Cart::zz,Cart::y) =PmA[2]*nuc(Cart::z,Cart::y)-PmC[2]*nucm1(Cart::z,Cart::y)+_fak*(nuc(Cart::s,Cart::y)-nucm1(Cart::s,Cart::y));
+                nuc(Cart::zz,Cart::x) =PmA[2]*nuc(Cart::z,Cart::x)-PmC[2]*nucm1(Cart::z,Cart::x)+_fak*(nuc(Cart::s,Cart::x)-nucm1(Cart::s,Cart::x));
+                nuc(Cart::zz,Cart::z) =PmA[2]*nuc(Cart::z,Cart::z)-PmC[2]*nucm1(Cart::z,Cart::z)+_fak*(nuc(Cart::s,Cart::z)-nucm1(Cart::s,Cart::z))+_fak*(nuc(Cart::z,Cart::s)-nucm1(Cart::z,Cart::s));
 
 
         }
@@ -335,57 +335,57 @@ namespace votca { namespace ctp {
            if (  _lmax_col > 0){
             //s-p-3
             
-            nucm3(Cartesian::s, Cartesian::y) = PmB[1] * nucm3(Cartesian::s, Cartesian::s) - PmC[1] * nucm4(Cartesian::s, Cartesian::s);
-            nucm3(Cartesian::s, Cartesian::x) = PmB[0] * nucm3(Cartesian::s, Cartesian::s) - PmC[0] * nucm4(Cartesian::s, Cartesian::s);
-            nucm3(Cartesian::s, Cartesian::z) = PmB[2] * nucm3(Cartesian::s, Cartesian::s) - PmC[2] * nucm4(Cartesian::s, Cartesian::s);
+            nucm3(Cart::s, Cart::y) = PmB[1] * nucm3(Cart::s, Cart::s) - PmC[1] * nucm4(Cart::s, Cart::s);
+            nucm3(Cart::s, Cart::x) = PmB[0] * nucm3(Cart::s, Cart::s) - PmC[0] * nucm4(Cart::s, Cart::s);
+            nucm3(Cart::s, Cart::z) = PmB[2] * nucm3(Cart::s, Cart::s) - PmC[2] * nucm4(Cart::s, Cart::s);
             }
             
              if ( _lmax_row > 0 && _lmax_col > 0 ) {
             //p-p-2
             
-            nucm2(Cartesian::y,Cartesian::y) =PmA[1]*nucm2(Cartesian::s,Cartesian::y)-PmC[1]*nucm3(Cartesian::s,Cartesian::y)+_fak*(nucm2(Cartesian::s,Cartesian::s)-nucm3(Cartesian::s,Cartesian::s));
-            nucm2(Cartesian::y,Cartesian::x) =PmA[1]*nucm2(Cartesian::s,Cartesian::x)-PmC[1]*nucm3(Cartesian::s,Cartesian::x);
-            nucm2(Cartesian::y,Cartesian::z) =PmA[1]*nucm2(Cartesian::s,Cartesian::z)-PmC[1]*nucm3(Cartesian::s,Cartesian::z);
-            nucm2(Cartesian::x,Cartesian::y) =PmA[0]*nucm2(Cartesian::s,Cartesian::y)-PmC[0]*nucm3(Cartesian::s,Cartesian::y);
-            nucm2(Cartesian::x,Cartesian::x) =PmA[0]*nucm2(Cartesian::s,Cartesian::x)-PmC[0]*nucm3(Cartesian::s,Cartesian::x)+_fak*(nucm2(Cartesian::s,Cartesian::s)-nucm3(Cartesian::s,Cartesian::s));
-            nucm2(Cartesian::x,Cartesian::z) =PmA[0]*nucm2(Cartesian::s,Cartesian::z)-PmC[0]*nucm3(Cartesian::s,Cartesian::z);
-            nucm2(Cartesian::z,Cartesian::y) =PmA[2]*nucm2(Cartesian::s,Cartesian::y)-PmC[2]*nucm3(Cartesian::s,Cartesian::y);
-            nucm2(Cartesian::z,Cartesian::x) =PmA[2]*nucm2(Cartesian::s,Cartesian::x)-PmC[2]*nucm3(Cartesian::s,Cartesian::x);
-            nucm2(Cartesian::z,Cartesian::z) =PmA[2]*nucm2(Cartesian::s,Cartesian::z)-PmC[2]*nucm3(Cartesian::s,Cartesian::z)+_fak*(nucm2(Cartesian::s,Cartesian::s)-nucm3(Cartesian::s,Cartesian::s));
+            nucm2(Cart::y,Cart::y) =PmA[1]*nucm2(Cart::s,Cart::y)-PmC[1]*nucm3(Cart::s,Cart::y)+_fak*(nucm2(Cart::s,Cart::s)-nucm3(Cart::s,Cart::s));
+            nucm2(Cart::y,Cart::x) =PmA[1]*nucm2(Cart::s,Cart::x)-PmC[1]*nucm3(Cart::s,Cart::x);
+            nucm2(Cart::y,Cart::z) =PmA[1]*nucm2(Cart::s,Cart::z)-PmC[1]*nucm3(Cart::s,Cart::z);
+            nucm2(Cart::x,Cart::y) =PmA[0]*nucm2(Cart::s,Cart::y)-PmC[0]*nucm3(Cart::s,Cart::y);
+            nucm2(Cart::x,Cart::x) =PmA[0]*nucm2(Cart::s,Cart::x)-PmC[0]*nucm3(Cart::s,Cart::x)+_fak*(nucm2(Cart::s,Cart::s)-nucm3(Cart::s,Cart::s));
+            nucm2(Cart::x,Cart::z) =PmA[0]*nucm2(Cart::s,Cart::z)-PmC[0]*nucm3(Cart::s,Cart::z);
+            nucm2(Cart::z,Cart::y) =PmA[2]*nucm2(Cart::s,Cart::y)-PmC[2]*nucm3(Cart::s,Cart::y);
+            nucm2(Cart::z,Cart::x) =PmA[2]*nucm2(Cart::s,Cart::x)-PmC[2]*nucm3(Cart::s,Cart::x);
+            nucm2(Cart::z,Cart::z) =PmA[2]*nucm2(Cart::s,Cart::z)-PmC[2]*nucm3(Cart::s,Cart::z)+_fak*(nucm2(Cart::s,Cart::s)-nucm3(Cart::s,Cart::s));
              }
             
             
               if ( _lmax_row > 0 && _lmax_col > 1){
                   //s-d-1
              
-            nucm1(Cartesian::s,Cartesian::yy) =PmB[1]*nucm1(Cartesian::s,Cartesian::y)-PmC[1]*nucm2(Cartesian::s,Cartesian::y)+_fak*(nucm1(Cartesian::s,Cartesian::s)-nucm2(Cartesian::s,Cartesian::s));
-            nucm1(Cartesian::s,Cartesian::xy) =PmB[0]*nucm1(Cartesian::s,Cartesian::y)-PmC[0]*nucm2(Cartesian::s,Cartesian::y);
-            nucm1(Cartesian::s,Cartesian::yz) =PmB[1]*nucm1(Cartesian::s,Cartesian::z)-PmC[1]*nucm2(Cartesian::s,Cartesian::z);
-            nucm1(Cartesian::s,Cartesian::xx) =PmB[0]*nucm1(Cartesian::s,Cartesian::x)-PmC[0]*nucm2(Cartesian::s,Cartesian::x)+_fak*(nucm1(Cartesian::s,Cartesian::s)-nucm2(Cartesian::s,Cartesian::s));
-            nucm1(Cartesian::s,Cartesian::xz) =PmB[0]*nucm1(Cartesian::s,Cartesian::z)-PmC[0]*nucm2(Cartesian::s,Cartesian::z);
-            nucm1(Cartesian::s,Cartesian::zz) =PmB[2]*nucm1(Cartesian::s,Cartesian::z)-PmC[2]*nucm2(Cartesian::s,Cartesian::z)+_fak*(nucm1(Cartesian::s,Cartesian::s)-nucm2(Cartesian::s,Cartesian::s));
+            nucm1(Cart::s,Cart::yy) =PmB[1]*nucm1(Cart::s,Cart::y)-PmC[1]*nucm2(Cart::s,Cart::y)+_fak*(nucm1(Cart::s,Cart::s)-nucm2(Cart::s,Cart::s));
+            nucm1(Cart::s,Cart::xy) =PmB[0]*nucm1(Cart::s,Cart::y)-PmC[0]*nucm2(Cart::s,Cart::y);
+            nucm1(Cart::s,Cart::yz) =PmB[1]*nucm1(Cart::s,Cart::z)-PmC[1]*nucm2(Cart::s,Cart::z);
+            nucm1(Cart::s,Cart::xx) =PmB[0]*nucm1(Cart::s,Cart::x)-PmC[0]*nucm2(Cart::s,Cart::x)+_fak*(nucm1(Cart::s,Cart::s)-nucm2(Cart::s,Cart::s));
+            nucm1(Cart::s,Cart::xz) =PmB[0]*nucm1(Cart::s,Cart::z)-PmC[0]*nucm2(Cart::s,Cart::z);
+            nucm1(Cart::s,Cart::zz) =PmB[2]*nucm1(Cart::s,Cart::z)-PmC[2]*nucm2(Cart::s,Cart::z)+_fak*(nucm1(Cart::s,Cart::s)-nucm2(Cart::s,Cart::s));
         }
             
              if ( _lmax_row > 0 && _lmax_col > 1){
             //p-d-1
-            nucm1(Cartesian::y,Cartesian::yy) =PmB[1]*nucm1(Cartesian::y,Cartesian::y)-PmC[1]*nucm2(Cartesian::y,Cartesian::y)+_fak*(nucm1(Cartesian::y,Cartesian::s)-nucm2(Cartesian::y,Cartesian::s))+_fak*(nucm1(Cartesian::s,Cartesian::y)-nucm2(Cartesian::s,Cartesian::y));
-            nucm1(Cartesian::y,Cartesian::xy) =PmB[0]*nucm1(Cartesian::y,Cartesian::y)-PmC[0]*nucm2(Cartesian::y,Cartesian::y);
-            nucm1(Cartesian::y,Cartesian::yz) =PmB[1]*nucm1(Cartesian::y,Cartesian::z)-PmC[1]*nucm2(Cartesian::y,Cartesian::z)+_fak*(nucm1(Cartesian::s,Cartesian::z)-nucm2(Cartesian::s,Cartesian::z));
-            nucm1(Cartesian::y,Cartesian::xx) =PmB[0]*nucm1(Cartesian::y,Cartesian::x)-PmC[0]*nucm2(Cartesian::y,Cartesian::x)+_fak*(nucm1(Cartesian::y,Cartesian::s)-nucm2(Cartesian::y,Cartesian::s));
-            nucm1(Cartesian::y,Cartesian::xz) =PmB[0]*nucm1(Cartesian::y,Cartesian::z)-PmC[0]*nucm2(Cartesian::y,Cartesian::z);
-            nucm1(Cartesian::y,Cartesian::zz) =PmB[2]*nucm1(Cartesian::y,Cartesian::z)-PmC[2]*nucm2(Cartesian::y,Cartesian::z)+_fak*(nucm1(Cartesian::y,Cartesian::s)-nucm2(Cartesian::y,Cartesian::s));
-            nucm1(Cartesian::x,Cartesian::yy) =PmB[1]*nucm1(Cartesian::x,Cartesian::y)-PmC[1]*nucm2(Cartesian::x,Cartesian::y)+_fak*(nucm1(Cartesian::x,Cartesian::s)-nucm2(Cartesian::x,Cartesian::s));
-            nucm1(Cartesian::x,Cartesian::xy) =PmB[0]*nucm1(Cartesian::x,Cartesian::y)-PmC[0]*nucm2(Cartesian::x,Cartesian::y)+_fak*(nucm1(Cartesian::s,Cartesian::y)-nucm2(Cartesian::s,Cartesian::y));
-            nucm1(Cartesian::x,Cartesian::yz) =PmB[1]*nucm1(Cartesian::x,Cartesian::z)-PmC[1]*nucm2(Cartesian::x,Cartesian::z);
-            nucm1(Cartesian::x,Cartesian::xx) =PmB[0]*nucm1(Cartesian::x,Cartesian::x)-PmC[0]*nucm2(Cartesian::x,Cartesian::x)+_fak*(nucm1(Cartesian::x,Cartesian::s)-nucm2(Cartesian::x,Cartesian::s))+_fak*(nucm1(Cartesian::s,Cartesian::x)-nucm2(Cartesian::s,Cartesian::x));
-            nucm1(Cartesian::x,Cartesian::xz) =PmB[0]*nucm1(Cartesian::x,Cartesian::z)-PmC[0]*nucm2(Cartesian::x,Cartesian::z)+_fak*(nucm1(Cartesian::s,Cartesian::z)-nucm2(Cartesian::s,Cartesian::z));
-            nucm1(Cartesian::x,Cartesian::zz) =PmB[2]*nucm1(Cartesian::x,Cartesian::z)-PmC[2]*nucm2(Cartesian::x,Cartesian::z)+_fak*(nucm1(Cartesian::x,Cartesian::s)-nucm2(Cartesian::x,Cartesian::s));
-            nucm1(Cartesian::z,Cartesian::yy) =PmB[1]*nucm1(Cartesian::z,Cartesian::y)-PmC[1]*nucm2(Cartesian::z,Cartesian::y)+_fak*(nucm1(Cartesian::z,Cartesian::s)-nucm2(Cartesian::z,Cartesian::s));
-            nucm1(Cartesian::z,Cartesian::xy) =PmB[0]*nucm1(Cartesian::z,Cartesian::y)-PmC[0]*nucm2(Cartesian::z,Cartesian::y);
-            nucm1(Cartesian::z,Cartesian::yz) =PmB[1]*nucm1(Cartesian::z,Cartesian::z)-PmC[1]*nucm2(Cartesian::z,Cartesian::z);
-            nucm1(Cartesian::z,Cartesian::xx) =PmB[0]*nucm1(Cartesian::z,Cartesian::x)-PmC[0]*nucm2(Cartesian::z,Cartesian::x)+_fak*(nucm1(Cartesian::z,Cartesian::s)-nucm2(Cartesian::z,Cartesian::s));
-            nucm1(Cartesian::z,Cartesian::xz) =PmB[0]*nucm1(Cartesian::z,Cartesian::z)-PmC[0]*nucm2(Cartesian::z,Cartesian::z);
-            nucm1(Cartesian::z,Cartesian::zz) =PmB[2]*nucm1(Cartesian::z,Cartesian::z)-PmC[2]*nucm2(Cartesian::z,Cartesian::z)+_fak*(nucm1(Cartesian::z,Cartesian::s)-nucm2(Cartesian::z,Cartesian::s))+_fak*(nucm1(Cartesian::s,Cartesian::z)-nucm2(Cartesian::s,Cartesian::z));
+            nucm1(Cart::y,Cart::yy) =PmB[1]*nucm1(Cart::y,Cart::y)-PmC[1]*nucm2(Cart::y,Cart::y)+_fak*(nucm1(Cart::y,Cart::s)-nucm2(Cart::y,Cart::s))+_fak*(nucm1(Cart::s,Cart::y)-nucm2(Cart::s,Cart::y));
+            nucm1(Cart::y,Cart::xy) =PmB[0]*nucm1(Cart::y,Cart::y)-PmC[0]*nucm2(Cart::y,Cart::y);
+            nucm1(Cart::y,Cart::yz) =PmB[1]*nucm1(Cart::y,Cart::z)-PmC[1]*nucm2(Cart::y,Cart::z)+_fak*(nucm1(Cart::s,Cart::z)-nucm2(Cart::s,Cart::z));
+            nucm1(Cart::y,Cart::xx) =PmB[0]*nucm1(Cart::y,Cart::x)-PmC[0]*nucm2(Cart::y,Cart::x)+_fak*(nucm1(Cart::y,Cart::s)-nucm2(Cart::y,Cart::s));
+            nucm1(Cart::y,Cart::xz) =PmB[0]*nucm1(Cart::y,Cart::z)-PmC[0]*nucm2(Cart::y,Cart::z);
+            nucm1(Cart::y,Cart::zz) =PmB[2]*nucm1(Cart::y,Cart::z)-PmC[2]*nucm2(Cart::y,Cart::z)+_fak*(nucm1(Cart::y,Cart::s)-nucm2(Cart::y,Cart::s));
+            nucm1(Cart::x,Cart::yy) =PmB[1]*nucm1(Cart::x,Cart::y)-PmC[1]*nucm2(Cart::x,Cart::y)+_fak*(nucm1(Cart::x,Cart::s)-nucm2(Cart::x,Cart::s));
+            nucm1(Cart::x,Cart::xy) =PmB[0]*nucm1(Cart::x,Cart::y)-PmC[0]*nucm2(Cart::x,Cart::y)+_fak*(nucm1(Cart::s,Cart::y)-nucm2(Cart::s,Cart::y));
+            nucm1(Cart::x,Cart::yz) =PmB[1]*nucm1(Cart::x,Cart::z)-PmC[1]*nucm2(Cart::x,Cart::z);
+            nucm1(Cart::x,Cart::xx) =PmB[0]*nucm1(Cart::x,Cart::x)-PmC[0]*nucm2(Cart::x,Cart::x)+_fak*(nucm1(Cart::x,Cart::s)-nucm2(Cart::x,Cart::s))+_fak*(nucm1(Cart::s,Cart::x)-nucm2(Cart::s,Cart::x));
+            nucm1(Cart::x,Cart::xz) =PmB[0]*nucm1(Cart::x,Cart::z)-PmC[0]*nucm2(Cart::x,Cart::z)+_fak*(nucm1(Cart::s,Cart::z)-nucm2(Cart::s,Cart::z));
+            nucm1(Cart::x,Cart::zz) =PmB[2]*nucm1(Cart::x,Cart::z)-PmC[2]*nucm2(Cart::x,Cart::z)+_fak*(nucm1(Cart::x,Cart::s)-nucm2(Cart::x,Cart::s));
+            nucm1(Cart::z,Cart::yy) =PmB[1]*nucm1(Cart::z,Cart::y)-PmC[1]*nucm2(Cart::z,Cart::y)+_fak*(nucm1(Cart::z,Cart::s)-nucm2(Cart::z,Cart::s));
+            nucm1(Cart::z,Cart::xy) =PmB[0]*nucm1(Cart::z,Cart::y)-PmC[0]*nucm2(Cart::z,Cart::y);
+            nucm1(Cart::z,Cart::yz) =PmB[1]*nucm1(Cart::z,Cart::z)-PmC[1]*nucm2(Cart::z,Cart::z);
+            nucm1(Cart::z,Cart::xx) =PmB[0]*nucm1(Cart::z,Cart::x)-PmC[0]*nucm2(Cart::z,Cart::x)+_fak*(nucm1(Cart::z,Cart::s)-nucm2(Cart::z,Cart::s));
+            nucm1(Cart::z,Cart::xz) =PmB[0]*nucm1(Cart::z,Cart::z)-PmC[0]*nucm2(Cart::z,Cart::z);
+            nucm1(Cart::z,Cart::zz) =PmB[2]*nucm1(Cart::z,Cart::z)-PmC[2]*nucm2(Cart::z,Cart::z)+_fak*(nucm1(Cart::z,Cart::s)-nucm2(Cart::z,Cart::s))+_fak*(nucm1(Cart::s,Cart::z)-nucm2(Cart::s,Cart::z));
              }
             
         }
@@ -404,42 +404,42 @@ namespace votca { namespace ctp {
  
             
             //d-d-0
-            nuc(Cartesian::yy,Cartesian::yy) =PmA[1]*nuc(Cartesian::y,Cartesian::yy)-PmC[1]*nucm1(Cartesian::y,Cartesian::yy)+_fak*(nuc(Cartesian::s,Cartesian::yy)-nucm1(Cartesian::s,Cartesian::yy))+_fak2*(nuc(Cartesian::y,Cartesian::y)-nucm1(Cartesian::y,Cartesian::y));
-            nuc(Cartesian::yy,Cartesian::xy) =PmA[1]*nuc(Cartesian::y,Cartesian::xy)-PmC[1]*nucm1(Cartesian::y,Cartesian::xy)+_fak*(nuc(Cartesian::s,Cartesian::xy)-nucm1(Cartesian::s,Cartesian::xy))+_fak*(nuc(Cartesian::y,Cartesian::x)-nucm1(Cartesian::y,Cartesian::x));
-            nuc(Cartesian::yy,Cartesian::yz) =PmA[1]*nuc(Cartesian::y,Cartesian::yz)-PmC[1]*nucm1(Cartesian::y,Cartesian::yz)+_fak*(nuc(Cartesian::s,Cartesian::yz)-nucm1(Cartesian::s,Cartesian::yz))+_fak*(nuc(Cartesian::y,Cartesian::z)-nucm1(Cartesian::y,Cartesian::z));
-            nuc(Cartesian::yy,Cartesian::xx) =PmA[1]*nuc(Cartesian::y,Cartesian::xx)-PmC[1]*nucm1(Cartesian::y,Cartesian::xx)+_fak*(nuc(Cartesian::s,Cartesian::xx)-nucm1(Cartesian::s,Cartesian::xx));
-            nuc(Cartesian::yy,Cartesian::xz) =PmA[1]*nuc(Cartesian::y,Cartesian::xz)-PmC[1]*nucm1(Cartesian::y,Cartesian::xz)+_fak*(nuc(Cartesian::s,Cartesian::xz)-nucm1(Cartesian::s,Cartesian::xz));
-            nuc(Cartesian::yy,Cartesian::zz) =PmA[1]*nuc(Cartesian::y,Cartesian::zz)-PmC[1]*nucm1(Cartesian::y,Cartesian::zz)+_fak*(nuc(Cartesian::s,Cartesian::zz)-nucm1(Cartesian::s,Cartesian::zz));
-            nuc(Cartesian::xy,Cartesian::yy) =PmA[0]*nuc(Cartesian::y,Cartesian::yy)-PmC[0]*nucm1(Cartesian::y,Cartesian::yy);
-            nuc(Cartesian::xy,Cartesian::xy) =PmA[0]*nuc(Cartesian::y,Cartesian::xy)-PmC[0]*nucm1(Cartesian::y,Cartesian::xy)+_fak*(nuc(Cartesian::y,Cartesian::y)-nucm1(Cartesian::y,Cartesian::y));
-            nuc(Cartesian::xy,Cartesian::yz) =PmA[0]*nuc(Cartesian::y,Cartesian::yz)-PmC[0]*nucm1(Cartesian::y,Cartesian::yz);
-            nuc(Cartesian::xy,Cartesian::xx) =PmA[0]*nuc(Cartesian::y,Cartesian::xx)-PmC[0]*nucm1(Cartesian::y,Cartesian::xx)+_fak2*(nuc(Cartesian::y,Cartesian::x)-nucm1(Cartesian::y,Cartesian::x));
-            nuc(Cartesian::xy,Cartesian::xz) =PmA[0]*nuc(Cartesian::y,Cartesian::xz)-PmC[0]*nucm1(Cartesian::y,Cartesian::xz)+_fak*(nuc(Cartesian::y,Cartesian::z)-nucm1(Cartesian::y,Cartesian::z));
-            nuc(Cartesian::xy,Cartesian::zz) =PmA[0]*nuc(Cartesian::y,Cartesian::zz)-PmC[0]*nucm1(Cartesian::y,Cartesian::zz);
-            nuc(Cartesian::yz,Cartesian::yy) =PmA[1]*nuc(Cartesian::z,Cartesian::yy)-PmC[1]*nucm1(Cartesian::z,Cartesian::yy)+_fak2*(nuc(Cartesian::z,Cartesian::y)-nucm1(Cartesian::z,Cartesian::y));
-            nuc(Cartesian::yz,Cartesian::xy) =PmA[1]*nuc(Cartesian::z,Cartesian::xy)-PmC[1]*nucm1(Cartesian::z,Cartesian::xy)+_fak*(nuc(Cartesian::z,Cartesian::x)-nucm1(Cartesian::z,Cartesian::x));
-            nuc(Cartesian::yz,Cartesian::yz) =PmA[1]*nuc(Cartesian::z,Cartesian::yz)-PmC[1]*nucm1(Cartesian::z,Cartesian::yz)+_fak*(nuc(Cartesian::z,Cartesian::z)-nucm1(Cartesian::z,Cartesian::z));
-            nuc(Cartesian::yz,Cartesian::xx) =PmA[1]*nuc(Cartesian::z,Cartesian::xx)-PmC[1]*nucm1(Cartesian::z,Cartesian::xx);
-            nuc(Cartesian::yz,Cartesian::xz) =PmA[1]*nuc(Cartesian::z,Cartesian::xz)-PmC[1]*nucm1(Cartesian::z,Cartesian::xz);
-            nuc(Cartesian::yz,Cartesian::zz) =PmA[1]*nuc(Cartesian::z,Cartesian::zz)-PmC[1]*nucm1(Cartesian::z,Cartesian::zz);
-            nuc(Cartesian::xx,Cartesian::yy) =PmA[0]*nuc(Cartesian::x,Cartesian::yy)-PmC[0]*nucm1(Cartesian::x,Cartesian::yy)+_fak*(nuc(Cartesian::s,Cartesian::yy)-nucm1(Cartesian::s,Cartesian::yy));
-            nuc(Cartesian::xx,Cartesian::xy) =PmA[0]*nuc(Cartesian::x,Cartesian::xy)-PmC[0]*nucm1(Cartesian::x,Cartesian::xy)+_fak*(nuc(Cartesian::s,Cartesian::xy)-nucm1(Cartesian::s,Cartesian::xy))+_fak*(nuc(Cartesian::x,Cartesian::y)-nucm1(Cartesian::x,Cartesian::y));
-            nuc(Cartesian::xx,Cartesian::yz) =PmA[0]*nuc(Cartesian::x,Cartesian::yz)-PmC[0]*nucm1(Cartesian::x,Cartesian::yz)+_fak*(nuc(Cartesian::s,Cartesian::yz)-nucm1(Cartesian::s,Cartesian::yz));
-            nuc(Cartesian::xx,Cartesian::xx) =PmA[0]*nuc(Cartesian::x,Cartesian::xx)-PmC[0]*nucm1(Cartesian::x,Cartesian::xx)+_fak*(nuc(Cartesian::s,Cartesian::xx)-nucm1(Cartesian::s,Cartesian::xx))+_fak2*(nuc(Cartesian::x,Cartesian::x)-nucm1(Cartesian::x,Cartesian::x));
-            nuc(Cartesian::xx,Cartesian::xz) =PmA[0]*nuc(Cartesian::x,Cartesian::xz)-PmC[0]*nucm1(Cartesian::x,Cartesian::xz)+_fak*(nuc(Cartesian::s,Cartesian::xz)-nucm1(Cartesian::s,Cartesian::xz))+_fak*(nuc(Cartesian::x,Cartesian::z)-nucm1(Cartesian::x,Cartesian::z));
-            nuc(Cartesian::xx,Cartesian::zz) =PmA[0]*nuc(Cartesian::x,Cartesian::zz)-PmC[0]*nucm1(Cartesian::x,Cartesian::zz)+_fak*(nuc(Cartesian::s,Cartesian::zz)-nucm1(Cartesian::s,Cartesian::zz));
-            nuc(Cartesian::xz,Cartesian::yy) =PmA[0]*nuc(Cartesian::z,Cartesian::yy)-PmC[0]*nucm1(Cartesian::z,Cartesian::yy);
-            nuc(Cartesian::xz,Cartesian::xy) =PmA[0]*nuc(Cartesian::z,Cartesian::xy)-PmC[0]*nucm1(Cartesian::z,Cartesian::xy)+_fak*(nuc(Cartesian::z,Cartesian::y)-nucm1(Cartesian::z,Cartesian::y));
-            nuc(Cartesian::xz,Cartesian::yz) =PmA[0]*nuc(Cartesian::z,Cartesian::yz)-PmC[0]*nucm1(Cartesian::z,Cartesian::yz);
-            nuc(Cartesian::xz,Cartesian::xx) =PmA[0]*nuc(Cartesian::z,Cartesian::xx)-PmC[0]*nucm1(Cartesian::z,Cartesian::xx)+_fak2*(nuc(Cartesian::z,Cartesian::x)-nucm1(Cartesian::z,Cartesian::x));
-            nuc(Cartesian::xz,Cartesian::xz) =PmA[0]*nuc(Cartesian::z,Cartesian::xz)-PmC[0]*nucm1(Cartesian::z,Cartesian::xz)+_fak*(nuc(Cartesian::z,Cartesian::z)-nucm1(Cartesian::z,Cartesian::z));
-            nuc(Cartesian::xz,Cartesian::zz) =PmA[0]*nuc(Cartesian::z,Cartesian::zz)-PmC[0]*nucm1(Cartesian::z,Cartesian::zz);
-            nuc(Cartesian::zz,Cartesian::yy) =PmA[2]*nuc(Cartesian::z,Cartesian::yy)-PmC[2]*nucm1(Cartesian::z,Cartesian::yy)+_fak*(nuc(Cartesian::s,Cartesian::yy)-nucm1(Cartesian::s,Cartesian::yy));
-            nuc(Cartesian::zz,Cartesian::xy) =PmA[2]*nuc(Cartesian::z,Cartesian::xy)-PmC[2]*nucm1(Cartesian::z,Cartesian::xy)+_fak*(nuc(Cartesian::s,Cartesian::xy)-nucm1(Cartesian::s,Cartesian::xy));
-            nuc(Cartesian::zz,Cartesian::yz) =PmA[2]*nuc(Cartesian::z,Cartesian::yz)-PmC[2]*nucm1(Cartesian::z,Cartesian::yz)+_fak*(nuc(Cartesian::s,Cartesian::yz)-nucm1(Cartesian::s,Cartesian::yz))+_fak*(nuc(Cartesian::z,Cartesian::y)-nucm1(Cartesian::z,Cartesian::y));
-            nuc(Cartesian::zz,Cartesian::xx) =PmA[2]*nuc(Cartesian::z,Cartesian::xx)-PmC[2]*nucm1(Cartesian::z,Cartesian::xx)+_fak*(nuc(Cartesian::s,Cartesian::xx)-nucm1(Cartesian::s,Cartesian::xx));
-            nuc(Cartesian::zz,Cartesian::xz) =PmA[2]*nuc(Cartesian::z,Cartesian::xz)-PmC[2]*nucm1(Cartesian::z,Cartesian::xz)+_fak*(nuc(Cartesian::s,Cartesian::xz)-nucm1(Cartesian::s,Cartesian::xz))+_fak*(nuc(Cartesian::z,Cartesian::x)-nucm1(Cartesian::z,Cartesian::x));
-            nuc(Cartesian::zz,Cartesian::zz) =PmA[2]*nuc(Cartesian::z,Cartesian::zz)-PmC[2]*nucm1(Cartesian::z,Cartesian::zz)+_fak*(nuc(Cartesian::s,Cartesian::zz)-nucm1(Cartesian::s,Cartesian::zz))+_fak2*(nuc(Cartesian::z,Cartesian::z)-nucm1(Cartesian::z,Cartesian::z));
+            nuc(Cart::yy,Cart::yy) =PmA[1]*nuc(Cart::y,Cart::yy)-PmC[1]*nucm1(Cart::y,Cart::yy)+_fak*(nuc(Cart::s,Cart::yy)-nucm1(Cart::s,Cart::yy))+_fak2*(nuc(Cart::y,Cart::y)-nucm1(Cart::y,Cart::y));
+            nuc(Cart::yy,Cart::xy) =PmA[1]*nuc(Cart::y,Cart::xy)-PmC[1]*nucm1(Cart::y,Cart::xy)+_fak*(nuc(Cart::s,Cart::xy)-nucm1(Cart::s,Cart::xy))+_fak*(nuc(Cart::y,Cart::x)-nucm1(Cart::y,Cart::x));
+            nuc(Cart::yy,Cart::yz) =PmA[1]*nuc(Cart::y,Cart::yz)-PmC[1]*nucm1(Cart::y,Cart::yz)+_fak*(nuc(Cart::s,Cart::yz)-nucm1(Cart::s,Cart::yz))+_fak*(nuc(Cart::y,Cart::z)-nucm1(Cart::y,Cart::z));
+            nuc(Cart::yy,Cart::xx) =PmA[1]*nuc(Cart::y,Cart::xx)-PmC[1]*nucm1(Cart::y,Cart::xx)+_fak*(nuc(Cart::s,Cart::xx)-nucm1(Cart::s,Cart::xx));
+            nuc(Cart::yy,Cart::xz) =PmA[1]*nuc(Cart::y,Cart::xz)-PmC[1]*nucm1(Cart::y,Cart::xz)+_fak*(nuc(Cart::s,Cart::xz)-nucm1(Cart::s,Cart::xz));
+            nuc(Cart::yy,Cart::zz) =PmA[1]*nuc(Cart::y,Cart::zz)-PmC[1]*nucm1(Cart::y,Cart::zz)+_fak*(nuc(Cart::s,Cart::zz)-nucm1(Cart::s,Cart::zz));
+            nuc(Cart::xy,Cart::yy) =PmA[0]*nuc(Cart::y,Cart::yy)-PmC[0]*nucm1(Cart::y,Cart::yy);
+            nuc(Cart::xy,Cart::xy) =PmA[0]*nuc(Cart::y,Cart::xy)-PmC[0]*nucm1(Cart::y,Cart::xy)+_fak*(nuc(Cart::y,Cart::y)-nucm1(Cart::y,Cart::y));
+            nuc(Cart::xy,Cart::yz) =PmA[0]*nuc(Cart::y,Cart::yz)-PmC[0]*nucm1(Cart::y,Cart::yz);
+            nuc(Cart::xy,Cart::xx) =PmA[0]*nuc(Cart::y,Cart::xx)-PmC[0]*nucm1(Cart::y,Cart::xx)+_fak2*(nuc(Cart::y,Cart::x)-nucm1(Cart::y,Cart::x));
+            nuc(Cart::xy,Cart::xz) =PmA[0]*nuc(Cart::y,Cart::xz)-PmC[0]*nucm1(Cart::y,Cart::xz)+_fak*(nuc(Cart::y,Cart::z)-nucm1(Cart::y,Cart::z));
+            nuc(Cart::xy,Cart::zz) =PmA[0]*nuc(Cart::y,Cart::zz)-PmC[0]*nucm1(Cart::y,Cart::zz);
+            nuc(Cart::yz,Cart::yy) =PmA[1]*nuc(Cart::z,Cart::yy)-PmC[1]*nucm1(Cart::z,Cart::yy)+_fak2*(nuc(Cart::z,Cart::y)-nucm1(Cart::z,Cart::y));
+            nuc(Cart::yz,Cart::xy) =PmA[1]*nuc(Cart::z,Cart::xy)-PmC[1]*nucm1(Cart::z,Cart::xy)+_fak*(nuc(Cart::z,Cart::x)-nucm1(Cart::z,Cart::x));
+            nuc(Cart::yz,Cart::yz) =PmA[1]*nuc(Cart::z,Cart::yz)-PmC[1]*nucm1(Cart::z,Cart::yz)+_fak*(nuc(Cart::z,Cart::z)-nucm1(Cart::z,Cart::z));
+            nuc(Cart::yz,Cart::xx) =PmA[1]*nuc(Cart::z,Cart::xx)-PmC[1]*nucm1(Cart::z,Cart::xx);
+            nuc(Cart::yz,Cart::xz) =PmA[1]*nuc(Cart::z,Cart::xz)-PmC[1]*nucm1(Cart::z,Cart::xz);
+            nuc(Cart::yz,Cart::zz) =PmA[1]*nuc(Cart::z,Cart::zz)-PmC[1]*nucm1(Cart::z,Cart::zz);
+            nuc(Cart::xx,Cart::yy) =PmA[0]*nuc(Cart::x,Cart::yy)-PmC[0]*nucm1(Cart::x,Cart::yy)+_fak*(nuc(Cart::s,Cart::yy)-nucm1(Cart::s,Cart::yy));
+            nuc(Cart::xx,Cart::xy) =PmA[0]*nuc(Cart::x,Cart::xy)-PmC[0]*nucm1(Cart::x,Cart::xy)+_fak*(nuc(Cart::s,Cart::xy)-nucm1(Cart::s,Cart::xy))+_fak*(nuc(Cart::x,Cart::y)-nucm1(Cart::x,Cart::y));
+            nuc(Cart::xx,Cart::yz) =PmA[0]*nuc(Cart::x,Cart::yz)-PmC[0]*nucm1(Cart::x,Cart::yz)+_fak*(nuc(Cart::s,Cart::yz)-nucm1(Cart::s,Cart::yz));
+            nuc(Cart::xx,Cart::xx) =PmA[0]*nuc(Cart::x,Cart::xx)-PmC[0]*nucm1(Cart::x,Cart::xx)+_fak*(nuc(Cart::s,Cart::xx)-nucm1(Cart::s,Cart::xx))+_fak2*(nuc(Cart::x,Cart::x)-nucm1(Cart::x,Cart::x));
+            nuc(Cart::xx,Cart::xz) =PmA[0]*nuc(Cart::x,Cart::xz)-PmC[0]*nucm1(Cart::x,Cart::xz)+_fak*(nuc(Cart::s,Cart::xz)-nucm1(Cart::s,Cart::xz))+_fak*(nuc(Cart::x,Cart::z)-nucm1(Cart::x,Cart::z));
+            nuc(Cart::xx,Cart::zz) =PmA[0]*nuc(Cart::x,Cart::zz)-PmC[0]*nucm1(Cart::x,Cart::zz)+_fak*(nuc(Cart::s,Cart::zz)-nucm1(Cart::s,Cart::zz));
+            nuc(Cart::xz,Cart::yy) =PmA[0]*nuc(Cart::z,Cart::yy)-PmC[0]*nucm1(Cart::z,Cart::yy);
+            nuc(Cart::xz,Cart::xy) =PmA[0]*nuc(Cart::z,Cart::xy)-PmC[0]*nucm1(Cart::z,Cart::xy)+_fak*(nuc(Cart::z,Cart::y)-nucm1(Cart::z,Cart::y));
+            nuc(Cart::xz,Cart::yz) =PmA[0]*nuc(Cart::z,Cart::yz)-PmC[0]*nucm1(Cart::z,Cart::yz);
+            nuc(Cart::xz,Cart::xx) =PmA[0]*nuc(Cart::z,Cart::xx)-PmC[0]*nucm1(Cart::z,Cart::xx)+_fak2*(nuc(Cart::z,Cart::x)-nucm1(Cart::z,Cart::x));
+            nuc(Cart::xz,Cart::xz) =PmA[0]*nuc(Cart::z,Cart::xz)-PmC[0]*nucm1(Cart::z,Cart::xz)+_fak*(nuc(Cart::z,Cart::z)-nucm1(Cart::z,Cart::z));
+            nuc(Cart::xz,Cart::zz) =PmA[0]*nuc(Cart::z,Cart::zz)-PmC[0]*nucm1(Cart::z,Cart::zz);
+            nuc(Cart::zz,Cart::yy) =PmA[2]*nuc(Cart::z,Cart::yy)-PmC[2]*nucm1(Cart::z,Cart::yy)+_fak*(nuc(Cart::s,Cart::yy)-nucm1(Cart::s,Cart::yy));
+            nuc(Cart::zz,Cart::xy) =PmA[2]*nuc(Cart::z,Cart::xy)-PmC[2]*nucm1(Cart::z,Cart::xy)+_fak*(nuc(Cart::s,Cart::xy)-nucm1(Cart::s,Cart::xy));
+            nuc(Cart::zz,Cart::yz) =PmA[2]*nuc(Cart::z,Cart::yz)-PmC[2]*nucm1(Cart::z,Cart::yz)+_fak*(nuc(Cart::s,Cart::yz)-nucm1(Cart::s,Cart::yz))+_fak*(nuc(Cart::z,Cart::y)-nucm1(Cart::z,Cart::y));
+            nuc(Cart::zz,Cart::xx) =PmA[2]*nuc(Cart::z,Cart::xx)-PmC[2]*nucm1(Cart::z,Cart::xx)+_fak*(nuc(Cart::s,Cart::xx)-nucm1(Cart::s,Cart::xx));
+            nuc(Cart::zz,Cart::xz) =PmA[2]*nuc(Cart::z,Cart::xz)-PmC[2]*nucm1(Cart::z,Cart::xz)+_fak*(nuc(Cart::s,Cart::xz)-nucm1(Cart::s,Cart::xz))+_fak*(nuc(Cart::z,Cart::x)-nucm1(Cart::z,Cart::x));
+            nuc(Cart::zz,Cart::zz) =PmA[2]*nuc(Cart::z,Cart::zz)-PmC[2]*nucm1(Cart::z,Cart::zz)+_fak*(nuc(Cart::s,Cart::zz)-nucm1(Cart::s,Cart::zz))+_fak2*(nuc(Cart::z,Cart::z)-nucm1(Cart::z,Cart::z));
 
 
             

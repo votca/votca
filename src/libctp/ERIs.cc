@@ -51,23 +51,23 @@ namespace votca {
              }
             exit(0); */
             
-            ub::matrix<double> _inverse=ub::zero_matrix<double>( _auxAOverlap.Dimension(), _auxAOverlap.Dimension());
+            //ub::matrix<double> _inverse=ub::zero_matrix<double>( _auxAOverlap.Dimension(), _auxAOverlap.Dimension());
             
             /* AOOverlap _auxoverlap_inverse;               
             AOOverlap _auxoverlap_cholesky_inverse;      
             _auxoverlap_inverse.Initialize( _auxbasis._AOBasisSize);
             _auxAOcoulomb.Symmetrize(_auxAOverlap , _auxbasis, _auxoverlap_inverse , _auxoverlap_cholesky_inverse);
             */
-            linalg_invert( _auxAOverlap.Matrix() , _inverse);
-            ub::matrix<double> _temp=ub::prod(_auxAOcoulomb.Matrix(),_inverse);
-            _Vcoulomb=ub::prod(_inverse,_temp);
+            //linalg_invert( _auxAOverlap.Matrix() , _inverse);
+            //ub::matrix<double> _temp=ub::prod(_auxAOcoulomb.Matrix(),_inverse);
+            _Vcoulomb=_auxAOcoulomb.Matrix();
             
             //cout << "Vcoulomb"<< _Vcoulomb<< endl;
  
             int size4c=_dftbasis.AOBasisSize();
 
             // reconstructing 4center-integrals
-	    
+	  /*  
             for (int k=0; k<_auxbasis._AOBasisSize; k++){
                 
                 ub::matrix<double> shit = _threecenter.getDatamatrix(k);
@@ -75,11 +75,11 @@ namespace votca {
                for (int alpha=0; alpha<size4c; alpha++){
                     for (int beta=0; beta<size4c ;beta++){
                         
-                        if ( std::abs(shit(alpha,beta) - shit(beta,alpha)) > 1.e-8 ){
+                        
                         
                         cout << "SHIT " << k << " " <<  alpha << " " << beta << " " << shit(alpha,beta) << " vs " << shit(beta,alpha) << endl;
                         
-                        }
+                        
                     }
                }
                 
@@ -97,9 +97,9 @@ namespace votca {
             
             
             
-            exit(0);
+            //exit(0);
             
-            
+            */
             
             
 
@@ -127,7 +127,7 @@ namespace votca {
             }}
             }}
 
-exit(0);
+//exit(0);
 	    
             
             
@@ -363,7 +363,7 @@ exit(0);
             cout << " \nNumber of electrons in Density Fit  " << _Nfit << endl;
             
             
-            exit(0);
+            //exit(0);
             
             
             _ERIs=ub::zero_matrix<double>(DMAT.size1(),DMAT.size2());

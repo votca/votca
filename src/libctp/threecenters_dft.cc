@@ -122,8 +122,8 @@ namespace votca {
                     ub::matrix<double> _subvector = ub::zero_matrix<double>(_shell_row->getNumFunc(), _shell->getNumFunc() * _shell_col->getNumFunc());
                     //ub::matrix<float> _subvector = ub::zero_matrix<float>(_shell_row->getNumFunc(), _shell->getNumFunc() * _shell_col->getNumFunc());
                     
-                    bool nonzero = FillThreeCenterOLBlock(_subvector, _shell, _shell_row, _shell_col);
-                    
+                    //bool nonzero = FillThreeCenterOLBlock(_subvector, _shell, _shell_row, _shell_col);
+                    bool nonzero=FillThreeCenterRepBlock(_subvector, _shell, _shell_row, _shell_col);
                     //cout << "subvector " <<_subvector<< endl;
                     /* test 
                     for (int j=0;j<_subvector.size1();j++){

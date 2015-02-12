@@ -29,6 +29,7 @@
 #include "jobcalculators/ewald.h"
 #include "jobcalculators/egwbse.h"
 #include "jobcalculators/igwbse.h"
+#include "jobcalculators/qmape.h"
 
 namespace votca { namespace ctp {
 
@@ -43,6 +44,7 @@ void JobCalculatorfactory::RegisterAll(void)
         JobCalculators().Register< Ewald<PEwald3D3D> > ("pewald3d");
         JobCalculators().Register<EGWBSE>              ("egwbse");
         JobCalculators().Register<IGWBSE>              ("igwbse");
+        JobCalculators().Register<QMAPE>               ("qmape");
 }
 
 }}

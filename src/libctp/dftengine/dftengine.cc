@@ -119,7 +119,7 @@ namespace votca {
             
 	    /**** Density-independent matrices ****/
 	    SetupInvariantMatrices();
-            
+           /* 
 	                int size4c=_dftbasis.AOBasisSize();
             fourdim fourcenter(boost::extents[size4c][size4c][size4c][size4c]);
             for ( int i = 0; i < size4c; i++ ){
@@ -134,7 +134,7 @@ namespace votca {
                 }
             }
             
-            LOG(logDEBUG, *_pLog) << TimeStamp() << "Init 4c "<< flush;
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " Init 4c "<< flush;
             
                          ifstream in;
             string _4cfile = "test/4cints";             
@@ -169,7 +169,7 @@ namespace votca {
                        in.close();
                        
                        LOG(logDEBUG, *_pLog) << TimeStamp() << "Read 4cs from file "<< flush;
-                       
+             */          
 	    
             // _dftAOkinetic.Print("TMAT");
             //exit(0);
@@ -243,7 +243,7 @@ namespace votca {
 
 
 
-
+           int size4c=_dftbasis.AOBasisSize();
 
            LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup Initial Guess "<< flush;
            LOG(logDEBUG, *_pLog) << TimeStamp() << " Num of electrons "<< _gridIntegration.IntegrateDensity(_dftAOdmat, basis) << flush;
@@ -255,8 +255,8 @@ namespace votca {
                 _ERIs.CalculateERIs(_dftAOdmat, _auxAOoverlap, _AOIntegrals);
                 // LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Electron repulsion matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2()<< flush<<flush;
 
-
-                /* ERI from 4cs*/
+/*
+                // ERI from 4cs
                  ub::matrix<double> ERI4c = ub::zero_matrix<double>(size4c,size4c);
                 for ( int ii=0; ii< size4c; ii++){
                     for ( int jj=0; jj< size4c; jj++){
@@ -273,7 +273,7 @@ namespace votca {
                     }
                 }
                 
-                
+       */         
 		ub::matrix<double> VXC=_gridIntegration.IntegrateVXC_Atomblock(_dftAOdmat,  basis);
                 //ub::matrix<double> VXC2=_gridIntegration.IntegrateVXC(_dftAOdmat,  basis);
 /*		 for ( int iout=0; iout<_dftAOdmat.size1();iout++){
@@ -300,7 +300,7 @@ namespace votca {
                 
                 
                 ub::matrix<double> H=H0+_ERIs.getERIs()+VXC;
-
+                
                 //ub::matrix<double> H=H0+ERI4c+VXC;
                 
                 /*

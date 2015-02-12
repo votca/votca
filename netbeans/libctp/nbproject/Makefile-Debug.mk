@@ -65,7 +65,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/700762242/egwbse.o \
 	${OBJECTDIR}/_ext/700762242/idft.o \
 	${OBJECTDIR}/_ext/700762242/igwbse.o \
-	${OBJECTDIR}/_ext/1069846742/mbgft.o \
 	${OBJECTDIR}/_ext/484457893/molecule.o \
 	${OBJECTDIR}/_ext/1966063395/numerical_integrations.o \
 	${OBJECTDIR}/_ext/1966063395/radial_euler_maclaurin_rule.o \
@@ -81,6 +80,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484457893/polarsite.o \
 	${OBJECTDIR}/_ext/484457893/polartop.o \
 	${OBJECTDIR}/_ext/484457893/progressobserver.o \
+	${OBJECTDIR}/_ext/484457893/qmapemachine.o \
 	${OBJECTDIR}/_ext/484457893/qmcalculator.o \
 	${OBJECTDIR}/_ext/484457893/qmdatabase.o \
 	${OBJECTDIR}/_ext/484457893/qmmachine.o \
@@ -286,11 +286,6 @@ ${OBJECTDIR}/_ext/700762242/igwbse.o: ../../src/libctp/jobcalculators/igwbse.cc
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/700762242/igwbse.o ../../src/libctp/jobcalculators/igwbse.cc
 
-${OBJECTDIR}/_ext/1069846742/mbgft.o: ../../src/libctp/mbgft/mbgft.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/1069846742
-	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1069846742/mbgft.o ../../src/libctp/mbgft/mbgft.cc
-
 ${OBJECTDIR}/_ext/484457893/molecule.o: ../../src/libctp/molecule.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
 	${RM} $@.d
@@ -365,6 +360,11 @@ ${OBJECTDIR}/_ext/484457893/progressobserver.o: ../../src/libctp/progressobserve
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/progressobserver.o ../../src/libctp/progressobserver.cc
+
+${OBJECTDIR}/_ext/484457893/qmapemachine.o: ../../src/libctp/qmapemachine.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
+	${RM} $@.d
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/qmapemachine.o ../../src/libctp/qmapemachine.cc
 
 ${OBJECTDIR}/_ext/484457893/qmcalculator.o: ../../src/libctp/qmcalculator.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893

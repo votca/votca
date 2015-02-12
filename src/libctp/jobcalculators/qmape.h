@@ -16,8 +16,8 @@
  * limitations under the License.
  *
  */
-#ifndef __QMMMCALC__H
-#define	__QMMMCALC__H
+#ifndef __QMAPECALC__H
+#define	__QMAPECALC__H
 
 #include <votca/ctp/parallelxjobcalc.h>
 #include <votca/ctp/xmapper.h>
@@ -27,7 +27,7 @@
 // add gwbse header of excited state support
 #include <votca/ctp/gwbse.h>
 // --------
-#include <votca/ctp/qmmachine.h>
+#include <votca/ctp/qmapemachine.h>
 #include <boost/format.hpp>
 
 
@@ -36,15 +36,15 @@ using boost::format;
 namespace votca { namespace ctp {
 
    
-class QMMM : public ParallelXJobCalc< vector<Job*>, Job*, Job::JobResult >
+class QMAPE : public ParallelXJobCalc< vector<Job*>, Job*, Job::JobResult >
 {
 
 public:
 
-    QMMM() {};
-   ~QMMM() {};
+    QMAPE() {};
+   ~QMAPE() {};
    
-    string          Identify() { return "qmmm"; }
+    string          Identify() { return "qmape"; }
     void            Initialize(Property *);
 
     void            CustomizeLogger(QMThread *thread);
@@ -111,7 +111,7 @@ private:
 // ========================================================================== //
 
 
-void QMMM::Initialize(Property *opt) {
+void QMAPE::Initialize(Property *opt) {
 
     // update options with the VOTCASHARE defaults   
     UpdateWithDefaults( opt );
@@ -124,13 +124,13 @@ void QMMM::Initialize(Property *opt) {
     _maverick = (_nThreads == 1) ? true : false;
     
 
-    string key = "options.qmmm.multipoles";
+    string key = "options.qmape.multipoles";
 
         if ( opt->exists(key) ) {
             _xml_file = opt->get(key).as< string >();
         }
 
-    key = "options.qmmm.control";
+    key = "options.qmape.control";
 
         if ( opt->exists(key+".job_file")) {
             _jobfile = opt->get(key+".job_file").as<string>();
@@ -182,7 +182,7 @@ void QMMM::Initialize(Property *opt) {
         }
 
 
-    key = "options.qmmm.coulombmethod";
+    key = "options.qmape.coulombmethod";
     
         if ( opt->exists(key+".method") ) {
             _method = opt->get(key+".method").as< string >();
@@ -210,7 +210,7 @@ void QMMM::Initialize(Property *opt) {
             _subthreads = 1;
         }
     
-    key = "options.qmmm.qmpackage";
+    key = "options.qmape.qmpackage";
     
         if ( opt->exists(key+".package")) {
             string package_xml = opt->get(key+".package").as< string >();
@@ -224,7 +224,7 @@ void QMMM::Initialize(Property *opt) {
     
     // GWBSE options, depending on whether it is there, decide for ground
     // or excited state QM/MM
-    key = "options.qmmm.gwbse";
+    key = "options.qmape.gwbse";
     
     if ( opt->exists(key)) { 
         cout << " Excited state QM/MM " << endl;
@@ -256,7 +256,7 @@ void QMMM::Initialize(Property *opt) {
 }
 
 
-void QMMM::PreProcess(Topology *top) {
+void QMAPE::PreProcess(Topology *top) {
 
     // INITIALIZE MPS-MAPPER (=> POLAR TOP PREP)
     cout << endl << "... ... Initialize MPS-mapper: " << flush;
@@ -264,7 +264,7 @@ void QMMM::PreProcess(Topology *top) {
 }
 
 
-void QMMM::CustomizeLogger(QMThread *thread) {
+void QMAPE::CustomizeLogger(QMThread *thread) {
     
     // CONFIGURE LOGGER
     Logger* log = thread->getLogger();
@@ -279,11 +279,11 @@ void QMMM::CustomizeLogger(QMThread *thread) {
 
 
 // ========================================================================== //
-//                            QMMM MEMBER FUNCTIONS                           //
+//                            QMAPE MEMBER FUNCTIONS                           //
 // ========================================================================== //
 
 
-XJob QMMM::ProcessInputString(Job *job, Topology *top, QMThread *thread) {
+XJob QMAPE::ProcessInputString(Job *job, Topology *top, QMThread *thread) {
     
     string input = job->getInput().as<string>();
     vector<Segment*> qmSegs;
@@ -319,7 +319,7 @@ XJob QMMM::ProcessInputString(Job *job, Topology *top, QMThread *thread) {
 }
 
 
-Job::JobResult QMMM::EvalJob(Topology *top, Job *job, QMThread *thread) {
+Job::JobResult QMAPE::EvalJob(Topology *top, Job *job, QMThread *thread) {
     
     // SILENT LOGGER FOR QMPACKAGE
     Logger* log = thread->getLogger();    
@@ -348,7 +348,7 @@ Job::JobResult QMMM::EvalJob(Topology *top, Job *job, QMThread *thread) {
     xjob.getPolarTop()->PrintPDB(xjob.getTag()+"_QM0_MM1_MM2.pdb");
 
     // INDUCTOR, QM RUNNER, QM-MM MACHINE
-    XInductor xind = XInductor(top, &_options, "options.qmmm",
+    XInductor xind = XInductor(top, &_options, "options.qmape",
         _subthreads, _maverick);    
     xind.setLog(thread->getLogger());
     
@@ -361,8 +361,8 @@ Job::JobResult QMMM::EvalJob(Topology *top, Job *job, QMThread *thread) {
     
     qmpack->setLog(qlog);
     
-    QMMachine<QMPackage> machine = QMMachine<QMPackage>(&xjob, &xind, qmpack, 
-        &_options, "options.qmmm", _subthreads, _maverick);
+    QMAPEmachine<QMPackage> machine = QMAPEmachine<QMPackage>(&xjob, &xind, qmpack, 
+        &_options, "options.qmape", _subthreads, _maverick);
     machine.setLog(thread->getLogger());
     
     // EVALUATE: ITERATE UNTIL CONVERGED
@@ -398,4 +398,4 @@ Job::JobResult QMMM::EvalJob(Topology *top, Job *job, QMThread *thread) {
     
 }}
 
-#endif /* __QMMM__H */
+#endif /* __QMAPE__H */
