@@ -1,35 +1,15 @@
-/*
- *            Copyright 2009-2012 The VOTCA Development Team
- *                       (http://www.votca.org)
- *
- *      Licensed under the Apache License, Version 2.0 (the "License")
- *
- * You may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *              http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-#ifndef __QMAPECALC__H
-#define	__QMAPECALC__H
+#ifndef VOTCA_CTP_QMAPECALC_H
+#define	VOTCA_CTP_QMAPECALC_H
 
+#include <votca/ctp/pewald3d.h>
 #include <votca/ctp/parallelxjobcalc.h>
 #include <votca/ctp/xmapper.h>
 #include <votca/ctp/xjob.h>
 #include <votca/ctp/xinductor.h>
 #include <votca/ctp/xinteractor.h>
-// add gwbse header of excited state support
 #include <votca/ctp/gwbse.h>
-// --------
 #include <votca/ctp/qmapemachine.h>
 #include <boost/format.hpp>
-
 
 using boost::format;
 
@@ -51,28 +31,19 @@ public:
     void            PreProcess(Topology *top);
     Job::JobResult  EvalJob(Topology *top, Job *job, QMThread *thread);
     XJob            ProcessInputString(Job *job, Topology *top, QMThread *thread);
-    
 
 private:
-    
     
     // ======================================== //
     // MULTIPOLE ALLOCATION, XJOBS, ADD. OUTPUT //
     // ======================================== //
 
-    // Polar-site mapping
-    string                         _emp_file;
-    string                         _xml_file;
-    XMpsMap                        _mps_mapper;
-    
-    // Control over induction-state output
-    string                          _pdb_check;
-    bool                            _write_chk;
-    string                          _write_chk_suffix;
-    bool                            _chk_split_dpl;
-    double                          _chk_dpl_spacing;
-    string                          _chk_format;
-
+	string                         _xml_file;
+	string                         _mps_table;
+	string                         _polar_bg_arch;
+	XMpsMap                        _mps_mapper;
+	bool                           _pdb_check;
+	bool                           _ptop_check;
     
     // ======================================== //
     // INDUCTION + ENERGY EVALUATION            //
@@ -101,9 +72,7 @@ private:
     string                          _outFile;
     bool                            _energies2File;
     
-    Property                        _options;
-
-
+    Property                       *_options;
 };
 
 // ========================================================================== //
@@ -112,106 +81,54 @@ private:
 
 
 void QMAPE::Initialize(Property *opt) {
-
-    // update options with the VOTCASHARE defaults   
-    UpdateWithDefaults( opt );
-    _options = *opt;
     
+	_options = opt;
+
     cout << endl
          << "... ... Initialized with " << _nThreads << " threads. "
          << flush;
 
     _maverick = (_nThreads == 1) ? true : false;
-    
 
-    string key = "options.qmape.multipoles";
+    string key = "options.qmape.jobcontrol";
+		if ( opt->exists(key+".job_file")) {
+			_jobfile = opt->get(key+".job_file").as<string>();
+		}
+		else {
+			cout << endl;
+			throw std::runtime_error("Job-file not set. Abort.");
+		}
 
-        if ( opt->exists(key) ) {
-            _xml_file = opt->get(key).as< string >();
-        }
+	key = "options.ewald.multipoles";
+		if (opt->exists(key+".mapping")) {
+			_xml_file = opt->get(key+".mapping").as< string >();
+		}
+		else {
+			cout << endl;
+			throw std::runtime_error("Multipole mapping file not set. Abort.");
+		}
+		if ( opt->exists(key+".mps_table")) {
+			_mps_table = opt->get(key+".mps_table").as<string>();
+		}
+		else {
+			cout << endl;
+			throw std::runtime_error("Background mps table not set. Abort.");
+		}
+		if (opt->exists(key+".polar_bg")) {
+			_polar_bg_arch = opt->get(key+".polar_bg").as<string>();
+		}
+		else { _polar_bg_arch = ""; }
+		if (opt->exists(key+".pdb_check")) {
+			_pdb_check = opt->get(key+".pdb_check").as<bool>();
+		}
+		else { _pdb_check = false; }
+		if (opt->exists(key+".ptop_check")) {
+			_ptop_check = opt->get(key+".ptop_check").as<bool>();
+		}
+		else { _ptop_check = false; }
 
-    key = "options.qmape.control";
-
-        if ( opt->exists(key+".job_file")) {
-            _jobfile = opt->get(key+".job_file").as<string>();
-        }
-        else {
-            throw std::runtime_error("Job-file not set. Abort.");
-        }
-
-        if ( opt->exists(key+".emp_file")) {
-            _emp_file   = opt->get(key+".emp_file").as<string>();
-        }
-        else {
-            _emp_file   = opt->get(key+".emp_file").as<string>();
-        }
-
-        if ( opt->exists(key+".output") ) {
-            _outFile = opt->get(key+".output").as< string >();
-            _energies2File = true;
-        }
-        else { _energies2File = false; }
-
-        if ( opt->exists(key+".pdb_check")) {
-            _pdb_check = opt->get(key+".pdb_check").as<string>();
-        }
-        else { _pdb_check = ""; }
-
-        if ( opt->exists(key+".write_chk")) {
-            _write_chk_suffix = opt->get(key+".write_chk").as<string>();
-            _write_chk = true;
-        }
-        else { _write_chk = false; }
-
-        if ( opt->exists(key+".format_chk")) {
-            _chk_format = opt->get(key+".format_chk").as<string>();
-        }
-        else { _chk_format = "xyz"; }
-
-        if ( opt->exists(key+".split_dpl")) {
-            _chk_split_dpl = ( opt->get(key+".split_dpl").as<int>() == 1) ?
-                         true : false;
-        }
-        else { _chk_split_dpl = true; }
-
-        if ( opt->exists(key+".dpl_spacing")) {
-            _chk_dpl_spacing = opt->get(key+".dpl_spacing").as<double>();
-        }
-        else {
-            _chk_dpl_spacing = 1.0e-6;
-        }
-
-
-    key = "options.qmape.coulombmethod";
-    
-        if ( opt->exists(key+".method") ) {
-            _method = opt->get(key+".method").as< string >();
-            if (_method != "cut-off" && _method != "cutoff") {
-                throw runtime_error("Method " + _method + " not recognised.");
-            }
-        }
-        else {
-            _method = "cut-off";
-        }
-        if ( opt->exists(key+".cutoff1") ) {
-            _cutoff1 = opt->get(key+".cutoff1").as< double >();
-            if (_cutoff1) { _useCutoff = true; }
-        }
-        if ( opt->exists(key+".cutoff2") ) {
-            _cutoff2 = opt->get(key+".cutoff2").as< double >();
-        }
-        else {
-            _cutoff2 = _cutoff1;
-        }
-        if ( opt->exists(key+".subthreads") ) {
-            _subthreads = opt->get(key+".subthreads").as< int >();
-        }
-        else {
-            _subthreads = 1;
-        }
     
     key = "options.qmape.qmpackage";
-    
         if ( opt->exists(key+".package")) {
             string package_xml = opt->get(key+".package").as< string >();
             load_property_from_xml(_qmpack_opt, package_xml.c_str());
@@ -221,15 +138,11 @@ void QMAPE::Initialize(Property *opt) {
             throw runtime_error("No QM package specified.");
         }
     
-    
-    // GWBSE options, depending on whether it is there, decide for ground
-    // or excited state QM/MM
+
     key = "options.qmape.gwbse";
-    
     if ( opt->exists(key)) { 
-        cout << " Excited state QM/MM " << endl;
-        
-         if ( opt->exists(key+".gwbse_options")) {
+    	cout << endl << "... ... Configure for excited states (DFT+GWBSE)" << flush;
+        if ( opt->exists(key+".gwbse_options")) {
             string gwbse_xml = opt->get(key+".gwbse_options").as< string >();
             load_property_from_xml(_gwbse_opt, gwbse_xml.c_str());
             // _gwbse = _gwbse_opt.get("package.name").as< string >();
@@ -237,30 +150,21 @@ void QMAPE::Initialize(Property *opt) {
         else {
             throw runtime_error("GWBSE options not specified.");
         }
-        
         _state = opt->get(key+".state").as< int >();
-        
-        
-    } else {
-        cout << " Ground state QM/MM " << endl;
     }
-    
+    else {
+        cout << endl << "... ... Configure for ground states (DFT)" << flush;
+    }
 
-    
-    
-    //cout << TXT << _options;
-    
-    // register all QM packages (Gaussian, turbomole, etc))
     QMPackageFactory::RegisterAll();
-    
 }
 
 
 void QMAPE::PreProcess(Topology *top) {
-
     // INITIALIZE MPS-MAPPER (=> POLAR TOP PREP)
     cout << endl << "... ... Initialize MPS-mapper: " << flush;
-    _mps_mapper.GenerateMap(_xml_file, _emp_file, top);
+    _mps_mapper.GenerateMap(_xml_file, _mps_table, top);
+    return;
 }
 
 
@@ -279,12 +183,15 @@ void QMAPE::CustomizeLogger(QMThread *thread) {
 
 
 // ========================================================================== //
-//                            QMAPE MEMBER FUNCTIONS                           //
+//                            QMAPE MEMBER FUNCTIONS                          //
 // ========================================================================== //
 
 
 XJob QMAPE::ProcessInputString(Job *job, Topology *top, QMThread *thread) {
-    
+
+    // Input string looks like this:
+    // <id1>:<name1>:<mpsfile1> <id2>:<name2>: ... ... ...
+
     string input = job->getInput().as<string>();
     vector<Segment*> qmSegs;
     vector<string>   qmSegMps;
@@ -293,7 +200,7 @@ XJob QMAPE::ProcessInputString(Job *job, Topology *top, QMThread *thread) {
     toker.ToVector(split);
 
     for (int i = 0; i < split.size(); ++i) {
-                
+
         string id_seg_mps = split[i];
         vector<string> split_id_seg_mps;
         Tokenizer toker(id_seg_mps, ":");
@@ -312,9 +219,9 @@ XJob QMAPE::ProcessInputString(Job *job, Topology *top, QMThread *thread) {
         }
 
         qmSegs.push_back(seg);
-        qmSegMps.push_back(mpsFile);               
+        qmSegMps.push_back(mpsFile);
     }
-    
+
     return XJob(job->getId(), job->getTag(), qmSegs, qmSegMps, top);
 }
 
@@ -329,67 +236,53 @@ Job::JobResult QMAPE::EvalJob(Topology *top, Job *job, QMThread *thread) {
     qlog->setPreface(logINFO,    (format("\nQ%1$02d ... ...") % thread->getId()).str());
     qlog->setPreface(logERROR,   (format("\nQ%1$02d ERR ...") % thread->getId()).str());
     qlog->setPreface(logWARNING, (format("\nQ%1$02d WAR ...") % thread->getId()).str());
-    qlog->setPreface(logDEBUG,   (format("\nQ%1$02d DBG ...") % thread->getId()).str());      
-    
+    qlog->setPreface(logDEBUG,   (format("\nQ%1$02d DBG ...") % thread->getId()).str());
+
     // CREATE XJOB FROM JOB INPUT STRING
     LOG(logINFO,*log)
         << "Job input = " << job->getInput().as<string>() << flush;
     XJob xjob = this->ProcessInputString(job, top, thread);  
-    
-    // GENERATE POLAR TOPOLOGY FOR JOB
-    double co1 = _cutoff1;
-    double co2 = _cutoff2;    
-    _mps_mapper.Gen_QM_MM1_MM2(top, &xjob, co1, co2, thread);
-    
-    LOG(logINFO,*log)
-         << xjob.getPolarTop()->ShellInfoStr() << flush;
-    
-    if (tools::globals::verbose)
-    xjob.getPolarTop()->PrintPDB(xjob.getTag()+"_QM0_MM1_MM2.pdb");
 
-    // INDUCTOR, QM RUNNER, QM-MM MACHINE
-    XInductor xind = XInductor(top, &_options, "options.qmape",
-        _subthreads, _maverick);    
-    xind.setLog(thread->getLogger());
-    
-    //Gaussian qmpack = Gaussian(&_qmpack_opt);
+	// SETUP POLAR TOPOLOGY (GENERATE VS LOAD IF PREPOLARIZED)
+	if (_polar_bg_arch == "") {
+		LOG(logINFO,*log) << "Mps-Mapper: Generate FGC FGN BGN" << flush;
+		_mps_mapper.Gen_FGC_FGN_BGN(top, &xjob, thread);
+	}
+	else {
+		LOG(logINFO,*log) << "Mps-Mapper: Generate FGC, load FGN BGN from '"
+				<< _polar_bg_arch << "'" << flush;
+		_mps_mapper.Gen_FGC_Load_FGN_BGN(top, &xjob, _polar_bg_arch, thread);
+	}
+    LOG(logINFO,*log) << xjob.getPolarTop()->ShellInfoStr() << flush;
 
-    // get the corresponding object from the QMPackageFactory
-    QMPackage *qmpack =  QMPackages().Create( _package );
-    
-    qmpack->Initialize( &_qmpack_opt );
-    
+    // SETUP MM METHOD
+    PEwald3D3D cape = PEwald3D3D(top, xjob.getPolarTop(), _options,
+		thread->getLogger());
+	if (_pdb_check)
+		cape.WriteDensitiesPDB(xjob.getTag()+".densities.pdb");
+
+    // SETUP QM HANDLERS
+    QMPackage *qmpack =  QMPackages().Create(_package);
+    qmpack->Initialize(&_qmpack_opt);
     qmpack->setLog(qlog);
     
-    QMAPEmachine<QMPackage> machine = QMAPEmachine<QMPackage>(&xjob, &xind, qmpack, 
-        &_options, "options.qmape", _subthreads, _maverick);
+    // SETUP QMAPE
+    QMAPEMachine<QMPackage> machine = QMAPEMachine<QMPackage>(&xjob, &cape, qmpack,
+        _options, "options.qmape", _subthreads);
     machine.setLog(thread->getLogger());
     
     // EVALUATE: ITERATE UNTIL CONVERGED
-    machine.Evaluate(&xjob);    
-    
-    // DESTROY QMPackage
-    delete qmpack;
-    
-    // DELIVER OUTPUT & CLEAN
-    this->LockCout();
-    cout << *thread->getLogger();
-    this->UnlockCout();
+    machine.Evaluate(&xjob);
 
-    // JOT INFO STRING & CLEAN POLAR TOPOLOGY
-    xjob.setInfoLine(true,true); 
-    
     // GENERATE OUTPUT AND FORWARD TO PROGRESS OBSERVER (RETURN)
     Job::JobResult jres = Job::JobResult();
     jres.setOutput(xjob.getInfoLine());
     jres.setStatus(Job::COMPLETE);
     
-    if (!xind.hasConverged()) {
-        jres.setStatus(Job::FAILED);
-        jres.setError(xind.getError());
-        LOG(logERROR,*log) << xind.getError() << flush;
-    }
-    
+    // CLEAN-UP
+    delete qmpack;
+    delete qlog;
+
     return jres;
 }
 

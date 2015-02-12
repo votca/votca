@@ -1752,7 +1752,7 @@ void Ewald3DnD::EvaluateEnergy(vector<PolarSeg*> &target) {
     
     // NOTE THE (-) IN FRONT OF _EC (WHICH IS A COMPENSATION TERM)
     _ET  = _ER + _EK + _E0 + _EJ + _EDQ - _EC;
-    
+
     return;
 }
 
@@ -1844,7 +1844,7 @@ void Ewald3DnD::EvaluateEnergyQMMM() {
     
     _ET = _ET_MM1 + _ET_QM0;
     
-    if (tools::globals::verbose) {
+    if (true || tools::globals::verbose) {
         LOG(logINFO,*_log) << flush;
         LOG(logINFO,*_log) << "QM-MM splitting for background interaction (eV)" << flush;
         LOG(logINFO,*_log) << "  o E(MM1)       = " << _ET_MM1 << flush;
@@ -1852,6 +1852,20 @@ void Ewald3DnD::EvaluateEnergyQMMM() {
         LOG(logINFO,*_log) << "  o E(QM0 u MM1) = " << _ET_MM1+_ET_QM0 << flush;
     }
     
+    // COMPUTE ENERGY SPLITTING
+	_outer_epp = _ET._pp;
+	_outer_eppu = _ET._pu + _ET._uu;
+	_outer = _outer_epp + _outer_eppu;
+
+	_inner_epp = _polar_EPP;
+	_inner_eppu = _polar_EF00+_polar_EF01+_polar_EF02+_polar_EF11+_polar_EF12 - _polar_EPP;
+	_inner_ework = _polar_EM0+_polar_EM1;
+	_inner = _inner_epp+_inner_eppu+_inner_ework;
+
+	_Estat = _outer_epp + _inner_epp;
+	_Eindu = _outer_eppu + _inner_eppu + _inner_ework;
+	_Eppuu = _Estat + _Eindu;
+
     return;
 }
 
