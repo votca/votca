@@ -30,7 +30,7 @@ fi
 for_all non-bonded 'cp_from_main_dir --rename $(csg_get_interaction_property name).param.init $(csg_get_interaction_property name).param.new'
 
 # copy target distribution files from main dir and rename them to .dist.new
-for_all non-bonded 'cp_from_main_dir --rename $(csg_get_interaction_property inverse.target) $(csg_get_interaction_property name).dist.new'
+#for_all non-bonded 'cp_from_main_dir --rename $(csg_get_interaction_property inverse.target) $(csg_get_interaction_property name).dist.new'
 
 sim_prog="$(csg_get_property cg.inverse.program)"
 

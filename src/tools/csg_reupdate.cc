@@ -718,8 +718,11 @@ PotentialInfo::PotentialInfo(int index, bool bonded_, int vec_pos_,
 
     //   }
 
-    //   if(new_min > rmin)
-    //     rmin = new_min;
+      // if(new_min > rmin){
+      //   rmin = new_min;
+      //   cout << "For the interaction " << potentialName <<
+      //     " updated rmin based on the new RDF to " << rmin << endl;
+      // }
 
     // }catch(std::runtime_error){
 
