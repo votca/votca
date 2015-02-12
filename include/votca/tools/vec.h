@@ -22,6 +22,7 @@
 #include <cmath>
 #include <stdexcept>
 #include <string>
+#include <boost/numeric/ublas/lu.hpp>
 #include "tokenizer.h"
 
 namespace votca { namespace tools {
@@ -43,6 +44,8 @@ public:
     vec(const vec &v);
     vec(const double r[3]);
     vec(const double &x, const double &y, const double &z);
+    vec(const boost::numeric::ublas::vector<double> &v);
+    
     
     vec &operator=(const vec &v);
     vec &operator+=(const vec &v);
@@ -117,6 +120,9 @@ inline vec::vec(const vec &v)
         
 inline vec::vec(const double r[3])
     : _x(r[0]), _y(r[1]), _z(r[2]) {}
+// Stupid idea
+//inline vec::vec(const boost::numeric::ublas::vector<double> &v)
+//    : _x(v(0)), _y(v(1)) , _z(v(2)) {}
     
 inline vec::vec(const double &x, const double &y, const double &z)
         : _x(x), _y(y), _z(z) {}
@@ -259,7 +265,17 @@ inline vec &vec::normalize()
     return ((*this)*=1./abs(*this));
 }
 
-}}
 
+
+inline boost::numeric::ublas::vector<double> converttoub(const vec &v) {
+    boost::numeric::ublas::vector<double> temp=boost::numeric::ublas::zero_vector<double>(3);
+    temp(0)=v.getX();
+    temp(1)=v.getY();
+    temp(2)=v.getZ();
+    return temp;
+
+
+}
+}}
 #endif	/* _vec_H */
 

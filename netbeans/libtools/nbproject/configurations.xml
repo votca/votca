@@ -291,6 +291,8 @@
       </item>
       <item path="../../src/libtools/histogramnew.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libtools/linalg.cc" ex="true" tool="0" flavor2="0">
+      </item>
       <item path="../../src/libtools/linalg/gsl/cholesky.cc"
             ex="false"
             tool="1"
