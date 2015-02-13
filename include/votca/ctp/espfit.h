@@ -53,26 +53,7 @@ public:
     
    void setLog(Logger *log) { _log = log; }
     
-   void Fit2TholeEwald(vector< QMAtom* >& _atomlist){
-       
-       // set up grid at which to evaluate TholeEwald potential
-       // here CHELPG points but might be more useful to chose the points
-       // of the numerical integration grid for the potential
-       Grid _grid;
-       _grid.setupCHELPgrid(_atomlist);
-       std::vector< ub::vector<double> > &_gridpoints=_grid.getGrid();
-       LOG(logDEBUG, *_log) << TimeStamp() <<  " Done setting up CHELPG grid with " << _gridpoints.size() << " points " << endl;
-       
-       // evaluate TholeEwald potential at all grid points
-       ub::vector<double> _TholeEwaldatGrid = ub::zero_vector<double>(_gridpoints.size());
-       // _TholeEwaldatGrid = TholeEwald2Grid( _gridpoints );
-       
-       Grid Fittingcenters;
-       double _netcharge=0.0;
-       
-
-       
-   }
+   
     
    
    
@@ -94,15 +75,15 @@ public:
     // setting up grid    
     Grid _grid;
     _grid.setupCHELPgrid(_atomlist);
-    std::vector< ub::vector<double> > &_gridpoints=_grid.getGrid();
-    LOG(logDEBUG, *_log) << TimeStamp() <<  " Done setting up CHELPG grid with " << _gridpoints.size() << " points " << endl;
+    
+    LOG(logDEBUG, *_log) << TimeStamp() <<  " Done setting up CHELPG grid with " << _grid.getsize() << " points " << endl;
         
     // Calculating nuclear potential at gridpoints
     
-    ub::vector<double> _ESPatGrid = ub::zero_vector<double>(_gridpoints.size());
+    ub::vector<double> _ESPatGrid = ub::zero_vector<double>(_grid.getsize());
     // ub::vector<double> _NucPatGrid = ub::zero_vector<double>(_gridpoints.size());
     
-    ub::vector<double> _NucPatGrid = EvalNuclearPotential(  _atomlist,  _gridpoints );
+    ub::vector<double> _NucPatGrid = EvalNuclearPotential(  _atomlist,  _grid );
 
 
     double Ztot = 0.0;
@@ -114,11 +95,11 @@ public:
     ub::vector<double> DMATGSasarray=_dmat.data();
     LOG(logDEBUG, *_log) << TimeStamp() << " Calculating ESP at CHELPG grid points"  << flush;  
     #pragma omp parallel for
-    for ( int i = 0 ; i < _gridpoints.size(); i++){
+    for ( int i = 0 ; i < _grid.getsize(); i++){
         // AOESP matrix
          AOESP _aoesp;
          _aoesp.Initialize(_dftbasis._AOBasisSize);
-         _aoesp.Fill(&_dftbasis, _gridpoints[i]*1.8897259886);
+         _aoesp.Fill(&_dftbasis, _grid.getGrid()[i]*1.8897259886);
         ub::vector<double> AOESPasarray=_aoesp._aomatrix.data();
       
         for ( int _i =0; _i < DMATGSasarray.size(); _i++ ){
@@ -142,6 +123,8 @@ public:
           }
     
     
+    
+    
     std::vector<double> _charges = FitPartialCharges(_fitcenters,_grid, _ESPatGrid, _netcharge);
     
     //Write charges to qmatoms
@@ -160,8 +143,8 @@ private:
      
      
         
-   ub::vector<double> EvalNuclearPotential( vector< QMAtom* >& _atoms, std::vector< ub::vector<double> >& _gridpoints ){
-       
+   ub::vector<double> EvalNuclearPotential( vector< QMAtom* >& _atoms, Grid _grid ){
+    std::vector< ub::vector<double> >& _gridpoints =_grid.getGrid();   
     LOG(logDEBUG, *_log) << TimeStamp() << " Calculating ESP of nuclei at CHELPG grid points"  << flush;
     ub::vector<double> _NucPatGrid(_gridpoints.size());
     
@@ -196,13 +179,44 @@ private:
      
      
      
-     
+   void FitPartialCharges(Grid& _targetpotential,Grid& _chargepositions, double& netcharge, bool fitbackground){
+       
+
+    if(_chargepositions.getsize() >_targetpotential.getsize()){
+        throw std::runtime_error("Fit underdetermined, change grid options");
+    }
+
+    std::vector< APolarSite > _charges= _chargepositions.getSites();
+    std::vector< APolarSite > _target= _targetpotential.getSites();
+
+    std::vector< ub::vector<double> > _chargepos;
+
+    std::vector< APolarSite >::iterator sit;
+    for (sit=_charges.begin(); sit!=_charges.end(); ++sit) {
+        ub::vector<double> temp= (sit->getPos()).converttoub();
+        _chargepos.push_back(temp);    
+    }
+    
+    
+    ub::vector<double> _potential=ub::zero_vector<double>(_targetpotential.getsize());
+    for( int i=0; i<_targetpotential.getsize();i++){
+    _potential(i)=_target[i].getPhi();    
+    }
+    LOG(logDEBUG, *_log) << " Fitting APE to Chargeshell " << flush;
+    std::vector<double>_chargesfromfit=FitPartialCharges(_chargepos,_targetpotential,_potential,netcharge);
+    int state=0;
+    for (int i=0; i<_charges.size();i++) {
+        _charges[i].setQ00(_chargesfromfit[i],state);
+    }   
+
+       LOG(logDEBUG, *_log) << " Fitting completed " << flush;
+   }
      
      
      // Fits partial charges to Potential on a grid, constrains net charge
-     std::vector<double> FitPartialCharges( std::vector< ub::vector<double> >& _fitcenters, Grid& _grid, ub::vector<double> _potential, double& _netcharge ){
+     std::vector<double> FitPartialCharges( std::vector< ub::vector<double> >& _fitcenters, Grid& _grid, ub::vector<double>& _potential, double& _netcharge ){
          
-    std::vector< ub::vector<double> > _gridpoints=_grid.getGrid();   
+    std::vector< ub::vector<double> >& _gridpoints=_grid.getGrid();   
     // Fitting atomic partial charges
     ub::matrix<double> _Amat = ub::zero_matrix<double>(_fitcenters.size()+1,_fitcenters.size()+1);
     ub::matrix<double> _Bvec = ub::zero_matrix<double>(_fitcenters.size()+1);    
