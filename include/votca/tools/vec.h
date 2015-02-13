@@ -106,6 +106,8 @@ public:
      */
     vec &normalize();
     
+    boost::numeric::ublas::vector<double> converttoub();
+    
     template<class Archive>
     void serialize(Archive &arch, const unsigned int version) { arch & _x; arch & _y; arch & _z; }
     
@@ -273,11 +275,11 @@ inline vec &vec::normalize()
 
 
 
-inline boost::numeric::ublas::vector<double> converttoub(const vec &v) {
+inline boost::numeric::ublas::vector<double> vec::converttoub() {
     boost::numeric::ublas::vector<double> temp=boost::numeric::ublas::zero_vector<double>(3);
-    temp(0)=v.getX();
-    temp(1)=v.getY();
-    temp(2)=v.getZ();
+    temp(0)=_x;
+    temp(1)=_y;
+    temp(2)=_z;
     return temp;
 
 
