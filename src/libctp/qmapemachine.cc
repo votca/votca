@@ -15,89 +15,75 @@ using boost::format;
 namespace votca { namespace ctp {
 
 template<class QMPackage>
-QMAPEmachine<QMPackage>::QMAPEmachine(XJob *job, XInductor *xind, QMPackage *qmpack,
-                     Property *opt, string sfx, int nst, bool mav) 
-                   : _job(job), _xind(xind), _qmpack(qmpack), _subthreads(nst),
-                     _isConverged(false) {
+QMAPEMachine<QMPackage>::QMAPEMachine(XJob *job, Ewald3DnD *cape, QMPackage *qmpack,
+	 Property *opt, string sfx, int nst)
+   : _job(job), _cape(cape), _qmpack(qmpack), _subthreads(nst),
+	 _isConverged(false) {
     
-    string key = sfx + ".qmmmconvg";
-    if (opt->exists(key+".dR")) {
-        _crit_dR = opt->get(key+".dR").as<double>();
-    }
-    else {
-        _crit_dR = 0.01; // nm
-    }
-    if (opt->exists(key+".dQ")) {
-        _crit_dQ = opt->get(key+".dQ").as<double>();
-    }
-    else {
-        _crit_dQ = 0.01; // e
-    }
-    if (opt->exists(key+".dE_QM")) {
-        _crit_dE_QM = opt->get(key+".dE_QM").as<double>();
-    }
-    else {
-        _crit_dE_QM = 0.001; // eV
-    }
-    if (opt->exists(key+".dE_MM")) {
-        _crit_dE_MM = opt->get(key+".dE_MM").as<double>();
-    }
-    else {
-        _crit_dE_MM = _crit_dE_QM; // eV
-    }
-    if (opt->exists(key+".max_iter")) {
-        _maxIter = opt->get(key+".max_iter").as<int>();
-    }
-    else {
-        _maxIter = 32;
-    }
-    
-    key = sfx + ".control";
-    if (opt->exists(key+".split_dpl")) {
-        _split_dpl = opt->get(key+".split_dpl").as<bool>();
-    }
-    else {
-        _split_dpl = true;
-    }
-    if (opt->exists(key+".dpl_spacing")) {
-        _dpl_spacing = opt->get(key+".dpl_spacing").as<double>();
-    }
-    else {
-        _dpl_spacing = 1e-3;
-    }
-    
-    // GWBSE options
+	// CONVERGENCE THRESHOLDS
+    string key = sfx + ".convergence";
+		if (opt->exists(key+".dR")) {
+			_crit_dR = opt->get(key+".dR").as<double>();
+		}
+		else {
+			_crit_dR = 0.01; // nm
+		}
+		if (opt->exists(key+".dQ")) {
+			_crit_dQ = opt->get(key+".dQ").as<double>();
+		}
+		else {
+			_crit_dQ = 0.01; // e
+		}
+		if (opt->exists(key+".dE_QM")) {
+			_crit_dE_QM = opt->get(key+".dE_QM").as<double>();
+		}
+		else {
+			_crit_dE_QM = 0.001; // eV
+		}
+		if (opt->exists(key+".dE_MM")) {
+			_crit_dE_MM = opt->get(key+".dE_MM").as<double>();
+		}
+		else {
+			_crit_dE_MM = _crit_dE_QM; // eV
+		}
+		if (opt->exists(key+".max_iter")) {
+			_maxIter = opt->get(key+".max_iter").as<int>();
+		}
+		else {
+			_maxIter = 32;
+		}
+
+	// GWBSE CONFIG
     key = sfx + ".gwbse";
-    string _gwbse_xml = opt->get(key + ".gwbse_options").as<string> ();
-    //cout << endl << "... ... Parsing " << _package_xml << endl ;
-    load_property_from_xml(_gwbse_options, _gwbse_xml.c_str());
-    _state = opt->get(key+".state").as< int >();
-    _type  = opt->get(key+".type").as< string >();
-    if ( _type != "singlet" && _type != "triplet" ){
-        throw runtime_error(" Invalid excited state type! " + _type);
-    }
-   
-    key = sfx + ".gwbse.filter";
-    if (opt->exists(key + ".oscillator_strength") && _type != "triplet" ){
-        _has_osc_filter = true;
-        _osc_threshold  =  opt->get(key + ".oscillator_strength").as<double> ();
-    } else {
-        _has_osc_filter = false;
-    }
-        
-    if (opt->exists(key + ".charge_transfer")  ){
-        _has_dQ_filter = true;
-        _dQ_threshold  =  opt->get(key + ".charge_transfer").as<double> ();
-    } else {
-        _has_dQ_filter = false;
-    }
+		string _gwbse_xml = opt->get(key + ".gwbse_options").as<string>();
+		load_property_from_xml(_gwbse_options, _gwbse_xml.c_str());
 
+		_state = opt->get(key+".state").as<int>();
+		_type  = opt->get(key+".type").as<string>();
+		if ( _type != "singlet" && _type != "triplet") {
+			throw runtime_error(" Invalid excited state type! " + _type);
+		}
 
+		key = sfx + ".gwbse.filter";
+		if (opt->exists(key + ".oscillator_strength") && _type != "triplet") {
+			_has_osc_filter = true;
+			_osc_threshold  =  opt->get(key + ".oscillator_strength").as<double>();
+		}
+		else {
+			_has_osc_filter = false;
+		}
+		if (opt->exists(key + ".charge_transfer")) {
+			_has_dQ_filter = true;
+			_dQ_threshold  =  opt->get(key + ".charge_transfer").as<double>();
+		}
+		else {
+			_has_dQ_filter = false;
+		}
 }
 
 
 template<class QMPackage>
-QMAPEmachine<QMPackage>::~QMAPEmachine() {
+QMAPEMachine<QMPackage>::~QMAPEMachine() {
     
     vector<QMAPEIter*> ::iterator qit;
     for (qit = _iters.begin(); qit < _iters.end(); ++qit) {
@@ -108,7 +94,7 @@ QMAPEmachine<QMPackage>::~QMAPEmachine() {
 
 
 template<class QMPackage>
-void QMAPEmachine<QMPackage>::Evaluate(XJob *job) {
+void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
     
     LOG(logINFO,*_log)
        << format("... dR %1$1.4f dQ %2$1.4f QM %3$1.4f MM %4$1.4f IT %5$d")
@@ -125,19 +111,16 @@ void QMAPEmachine<QMPackage>::Evaluate(XJob *job) {
     
     
     // PREPARE JOB DIRECTORY
-    string jobFolder = "xjob_" + boost::lexical_cast<string>(_job->getId())
-                     + "_" + _job->getTag();    
+    string jobFolder = "job_" + boost::lexical_cast<string>(_job->getId())
+                     + "_" + _job->getTag();
     bool created = boost::filesystem::create_directory(jobFolder);
     if (created) 
         LOG(logINFO,*_log) << "Created directory " << jobFolder << flush;
     
     
     // SET ITERATION-TIME CONSTANTS
-    // TO ADJUST
-    
     _qmpack->setCharge(chrg);
     _qmpack->setSpin(spin);
-
     //_qmpack->setThreads(_subthreads);
     
 
@@ -159,7 +142,7 @@ void QMAPEmachine<QMPackage>::Evaluate(XJob *job) {
 
 
 template<class QMPackage>
-bool QMAPEmachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
+bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 
     // CREATE ITERATION OBJECT & SETUP RUN DIRECTORY
     QMAPEIter *thisIter = this->CreateNewIter();
@@ -172,7 +155,41 @@ bool QMAPEmachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     else
         LOG(logWARNING,*_log) << "Could not create directory " << runFolder << flush;
     
-    
+
+    // COMPUTE POLARIZATION STATE WITH QM0(0)
+    if (iterCnt == 0) {
+    	_cape->ShowAgenda(_log);
+    	_cape->EvaluateInductionQMMM(true, true, true, true, true);
+    }
+
+    // COMPUTE POTENTIALS
+    vector<PolarSeg*> &target = _job->getPolarTop()->QM0();
+    if (iterCnt == 0) {
+    	// Add BG, do not add MM1 & QM0
+    	_cape->EvaluatePotential(target, true, false, false);
+    	// TODO Grid->PushBG();
+    }
+    // Do not add BG & QM0, add MM1
+    _cape->EvaluatePotential(target, false, true, false);
+    // TODO Grid->PushMM1();
+
+    // COMPUTE WAVEFUNCTION & QM ENERGY
+    // Generate charge shell from potentials
+    // Run DFT
+    // Run GWBSE
+    // Update QM0 density: QM0(n) => QM0(n+1)
+
+    // COMPUTE POLARIZATION STATE WITH QM0(n+1)
+    _cape->EvaluateInductionQMMM(false, false, false, false, false);
+
+    // COMPUTE MM ENERGY
+    _cape->EvaluateEnergyQMMM();
+    _cape->ShowEnergySplitting(_log);
+
+    return true;
+
+
+
     // RUN CLASSICAL INDUCTION & SAVE
     _job->getPolarTop()->PrintPDB(runFolder + "/QM0_MM1_MM2.pdb");
     _xind->Evaluate(_job);
@@ -429,7 +446,7 @@ bool QMAPEmachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 
 
 template<class QMPackage>
-QMAPEIter *QMAPEmachine<QMPackage>::CreateNewIter() {
+QMAPEIter *QMAPEMachine<QMPackage>::CreateNewIter() {
     
     QMAPEIter *newIter = new QMAPEIter(_iters.size());
     this->_iters.push_back(newIter);
@@ -453,7 +470,7 @@ void QMAPEmachine<QMPackage>::WriteQMPackInputFile(string inputFile, QMPackage *
 */
 
 template<class QMPackage>
-bool QMAPEmachine<QMPackage>::hasConverged() {
+bool QMAPEMachine<QMPackage>::hasConverged() {
     
     _convg_dR = false;
     _convg_dQ = false;
@@ -683,7 +700,7 @@ double QMAPEIter::getQMMMEnergy() {
 
 
 // REGISTER QM PACKAGES
-template class QMAPEmachine<QMPackage>;
+template class QMAPEMachine<QMPackage>;
     
     
     

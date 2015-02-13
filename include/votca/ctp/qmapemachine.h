@@ -1,16 +1,15 @@
 #ifndef __QMAPEMACHINE__H
 #define	__QMAPEMACHINE__H
 
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/ctp/votca_ctp_config.h>
 
+#include <votca/ctp/votca_ctp_config.h>
 #include <votca/ctp/xjob.h>
 #include <votca/ctp/xinductor.h>
-// add gwbse header for excited state support
 #include <votca/ctp/gwbse.h>
 #include <votca/ctp/qmpackagefactory.h>
 #include <votca/ctp/orbitals.h>
 #include <votca/ctp/espfit.h>
+#include <votca/ctp/ewaldnd.h>
 
 
 
@@ -148,14 +147,14 @@ private:
 // ========================================================================== //    
     
 template< class QMPackage >
-class QMAPEmachine 
+class QMAPEMachine
 {
     
 public:
 
-    QMAPEmachine(XJob *job, XInductor *xind, QMPackage *qmpack,
-              Property *opt, string sfx, int nst, bool mav);
-   ~QMAPEmachine();
+	QMAPEMachine(XJob *job, Ewald3DnD *cape, QMPackage *qmpack,
+              Property *opt, string sfx, int nst);
+   ~QMAPEMachine();
     
     void Evaluate(XJob *job);
     //void WriteQMPackInputFile(string inputFile, QMPackage *qmpack, XJob *job);
@@ -169,15 +168,18 @@ public:
     
 private:    
     
+
+    Logger *_log;
+    int _subthreads;
+
     XJob *_job;
     XInductor *_xind;
     QMPackage *_qmpack;
-    Logger *_log;
-    int _subthreads;
-    
+    Ewald3DnD *_cape;
+
     vector<QMAPEIter*> _iters;
-    bool _isConverged;
     int _maxIter;
+    bool _isConverged;
 
     // GWBSE object
     GWBSE _gwbse;
