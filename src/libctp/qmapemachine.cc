@@ -53,10 +53,17 @@ QMAPEMachine<QMPackage>::QMAPEMachine(XJob *job, Ewald3DnD *cape, QMPackage *qmp
 			_maxIter = 32;
 		}
 
+	// TASKS
+	key = sfx + ".tasks";
+		_run_ape = opt->get(key+".run_ape").as<bool>();
+		_run_dft = opt->get(key+".run_dft").as<bool>();
+		_run_gwbse = opt->get(key+".run_gwbse").as<bool>();
+
+
 	// GWBSE CONFIG
     key = sfx + ".gwbse";
-		string _gwbse_xml = opt->get(key + ".gwbse_options").as<string>();
-		load_property_from_xml(_gwbse_options, _gwbse_xml.c_str());
+		string gwbse_xml = opt->get(key + ".gwbse_options").as<string>();
+		load_property_from_xml(_gwbse_options, gwbse_xml.c_str());
 
 		_state = opt->get(key+".state").as<int>();
 		_type  = opt->get(key+".type").as<string>();
@@ -121,8 +128,6 @@ void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
     // SET ITERATION-TIME CONSTANTS
     _qmpack->setCharge(chrg);
     _qmpack->setSpin(spin);
-    //_qmpack->setThreads(_subthreads);
-    
 
     int iterCnt = 0;
     int iterMax = _maxIter;
@@ -149,42 +154,85 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     int iter = iterCnt;
     string runFolder = jobFolder + "/iter_" + boost::lexical_cast<string>(iter);
        
+    LOG(logINFO,*_log) << flush;
     bool created = boost::filesystem::create_directory(runFolder);
     if (created) 
         LOG(logDEBUG,*_log) << "Created directory " << runFolder << flush;
     else
         LOG(logWARNING,*_log) << "Could not create directory " << runFolder << flush;
-    
 
     // COMPUTE POLARIZATION STATE WITH QM0(0)
-    if (iterCnt == 0) {
-    	_cape->ShowAgenda(_log);
-    	_cape->EvaluateInductionQMMM(true, true, true, true, true);
-    }
+    if (_run_ape) {
+		if (iterCnt == 0) {
+			_cape->ShowAgenda(_log);
+			// Reset FGC, start from BGP state, apply FP fields (BG & FG)
+			_cape->EvaluateInductionQMMM(true, true, true, true, true);
+		}
 
-    // COMPUTE POTENTIALS
-    vector<PolarSeg*> &target = _job->getPolarTop()->QM0();
-    if (iterCnt == 0) {
-    	// Add BG, do not add MM1 & QM0
-    	_cape->EvaluatePotential(target, true, false, false);
-    	// TODO Grid->PushBG();
+		// COMPUTE POTENTIALS
+		vector<PolarSeg*> &target = _job->getPolarTop()->QM0();
+		if (iterCnt == 0) {
+			// Add BG, do not add MM1 & QM0
+			_cape->EvaluatePotential(target, true, false, false);
+			// TODO Grid->PushBG();
+		}
+		// Do not add BG & QM0, add MM1
+		_cape->EvaluatePotential(target, false, true, false);
+		// TODO Grid->PushMM1();
     }
-    // Do not add BG & QM0, add MM1
-    _cape->EvaluatePotential(target, false, true, false);
-    // TODO Grid->PushMM1();
 
     // COMPUTE WAVEFUNCTION & QM ENERGY
     // Generate charge shell from potentials
+    vector<PolarSeg*> &qm =_job->getPolarTop()->QM0();
+    vector<PolarSeg*> mm_fitted;
+    // ...
+
     // Run DFT
+    Orbitals orb_iter_input;
+    vector<Segment*> empty;
+    thisIter->GenerateQMAtomsFromPolarSegs(qm, mm_fitted, orb_iter_input);
+	_qmpack->setRunDir(runFolder);
+	_qmpack->WriteInputFile(empty, &orb_iter_input);
+
+	FILE *out;
+	out = fopen((runFolder + "/system.pdb").c_str(),"w");
+	orb_iter_input.WritePDB(out);
+	fclose(out);
+
+	Orbitals orb_iter_output;
+	if (_run_dft) {
+		_qmpack->Run();
+	}
+	_qmpack->ParseLogFile(&orb_iter_output);
+
+
     // Run GWBSE
-    // Update QM0 density: QM0(n) => QM0(n+1)
+	if (_run_gwbse){
+		this->EvaluateGWBSE(orb_iter_output, runFolder);
+	}
 
-    // COMPUTE POLARIZATION STATE WITH QM0(n+1)
-    _cape->EvaluateInductionQMMM(false, false, false, false, false);
+	// COMPUTE POLARIZATION STATE WITH QM0(n+1)
+	if (_run_ape) {
+		// Update QM0 density: QM0(n) => QM0(n+1)
+		// ...
 
-    // COMPUTE MM ENERGY
-    _cape->EvaluateEnergyQMMM();
-    _cape->ShowEnergySplitting(_log);
+		// Do not reset FGC (= only reset FU), do not use BGP state, nor apply FP fields (BG & FG)
+		_cape->EvaluateInductionQMMM(false, false, false, false, false);
+
+		// COMPUTE MM ENERGY
+		_cape->EvaluateEnergyQMMM();
+		_cape->ShowEnergySplitting(_log);
+	}
+
+	// COMPILE HAMILTONIAN & CHECK FOR CONVERGENCE
+	// ...
+
+
+    // THIS IS A SHORT VERSION OF PEWALD3D WITH QM/MM ENERGY SPLITTING
+    //_cape->ShowAgenda(_log);
+    //_cape->EvaluateInductionQMMM(true, true, true, true, true);
+    //_cape->EvaluateEnergyQMMM();
+    //_cape->ShowEnergySplitting(_log);
 
     return true;
 
@@ -199,21 +247,12 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
                       _job->getEM1(),  _job->getEM2(),  _job->getETOT());
     
     // WRITE AND SET QM INPUT FILE
-    Orbitals orb_iter_input;
-    
-    vector<Segment*> empty;
-    thisIter->GenerateQMAtomsFromPolarSegs(_job->getPolarTop(), orb_iter_input, _split_dpl, _dpl_spacing);
-      
+
     _qmpack->setRunDir(runFolder);
     
     LOG(logDEBUG,*_log) << "Writing input file " << runFolder << flush;
     
     _qmpack->WriteInputFile(empty, &orb_iter_input);
- 
-    FILE *out;
-    out = fopen((runFolder + "/system.pdb").c_str(),"w");
-    orb_iter_input.WritePDB( out );
-    fclose(out);
          
     // RUN HERE (OVERRIDE - COPY EXISTING LOG-FILE)
     //string cpstr = "cp e_1_n.log " + path_logFile;
@@ -224,164 +263,15 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     _qmpack->Run();
     
     // EXTRACT LOG-FILE INFOS TO ORBITALS   
-    Orbitals orb_iter_output;
+
     _qmpack->ParseLogFile(&orb_iter_output);
     
    
     // GW-BSE starts here
     bool _do_gwbse = true; // needs to be set by options!!!
-    double energy___ex = 0.0;
     
-    if ( _do_gwbse ){
-
-
-        // for GW-BSE, we also need to parse the orbitals file
-        int _parse_orbitals_status = _qmpack->ParseOrbitalsFile( &orb_iter_output );
-        std::vector<int> _state_index;
-       _gwbse.Initialize( &_gwbse_options );
-      if ( _state > 0 ){
-        LOG(logDEBUG,*_log) << "Excited state via GWBSE: " <<  flush;
-        LOG(logDEBUG,*_log) << "  --- type:              " << _type << flush;
-        LOG(logDEBUG,*_log) << "  --- state:             " << _state << flush;
-        if ( _has_osc_filter) LOG(logDEBUG,*_log) << "  --- filter: osc.str. > " << _osc_threshold << flush;
-        if ( _has_dQ_filter)  LOG(logDEBUG,*_log) << "  --- filter: crg.trs. > " << _dQ_threshold << flush;
-        
-        if ( _has_osc_filter && _has_dQ_filter ){
-            LOG(logDEBUG,*_log) << "  --- WARNING: filtering for optically active CT transition - might not make sense... "  << flush;
-        }
-        
-        // define own logger for GW-BSE that is written into a runFolder logfile
-        Logger gwbse_logger(logDEBUG);
-        gwbse_logger.setMultithreading(false);
-        _gwbse.setLogger(&gwbse_logger);
-        gwbse_logger.setPreface(logINFO,    (format("\nGWBSE INF ...") ).str());
-        gwbse_logger.setPreface(logERROR,   (format("\nGWBSE ERR ...") ).str());
-        gwbse_logger.setPreface(logWARNING, (format("\nGWBSE WAR ...") ).str());
-        gwbse_logger.setPreface(logDEBUG,   (format("\nGWBSE DBG ...") ).str());
-        
-        // actual GW-BSE run
-
-        bool _evaluate = _gwbse.Evaluate( &orb_iter_output );
-        
-       
-        // write logger to log file
-        ofstream ofs;
-        string gwbse_logfile = runFolder + "/gwbse.log";
-        ofs.open(gwbse_logfile.c_str(), ofstream::out);
-        if (!ofs.is_open()) {
-            throw runtime_error("Bad file handle: " + gwbse_logfile);
-        }    
-        ofs << gwbse_logger << endl;
-        ofs.close();
-
-        // PROCESSING the GW-BSE result
-        // - find the excited state of interest
-        // oscillator strength filter
-
-        
-        if ( _has_osc_filter ){
-            
-            // go through list of singlets
-            const std::vector<std::vector<double> >& TDipoles = orb_iter_output.TransitionDipoles();
-            for (int _i=0; _i < TDipoles.size(); _i++ ) {
-                
-                double osc = (TDipoles[_i][0] * TDipoles[_i][0] + TDipoles[_i][1] * TDipoles[_i][1] + TDipoles[_i][2] * TDipoles[_i][2]) * 1.0 / 3.0 * (orb_iter_output.BSESingletEnergies()[_i]) ;
-                if ( osc > _osc_threshold ) _state_index.push_back(_i);
-            } 
-            
-      
-            
-        } else {
-            
-            if ( _type == "singlet" ){
-               for (int _i=0; _i < orb_iter_output.TransitionDipoles().size(); _i++ ) {
-                   _state_index.push_back(_i);
-               }
-            } else {
-               for (int _i=0; _i < orb_iter_output.BSETripletEnergies().size(); _i++ ) {
-                   _state_index.push_back(_i);
-               }
-            }
-        }
-
-
-        // filter according to charge transfer, go through list of excitations in _state_index
-         if  (_has_dQ_filter ) {
-            std::vector<int> _state_index_copy;
-             // go through list of singlets
-            const std::vector<double>& dQ_fragA = orb_iter_output.FragmentAChargesEXC();
-            const std::vector<double>& dQ_fragB = orb_iter_output.FragmentBChargesEXC();
-            for (int _i=0; _i < _state_index.size(); _i++ ) {
-                if ( std::abs(dQ_fragA[_i]) > _dQ_threshold ) {
-                    _state_index_copy.push_back(_state_index[_i]);
-                }
-            } 
-            _state_index = _state_index_copy;
-         }
-        
-        
-        if ( _state_index.size() < 1 ){
-            throw runtime_error("Excited state filter yields no states! ");
-            
-        }
-        // - output its energy
-        if ( _type == "singlet" ){
-            energy___ex = orb_iter_output.BSESingletEnergies()[_state_index[_state-1]]*13.6058; // to eV
-        } else if ( _type == "triplet" ) {
-            energy___ex = orb_iter_output.BSETripletEnergies()[_state_index[_state-1]]*13.6058; // to eV
-        }
-   
-        // ub::matrix<double> &_dft_orbitals_GS = orb_iter_output.MOCoefficients();
-        // int _parse_orbitals_status_GS = _qmpack->ParseOrbitalsFile( &orb_iter_output );
-
-      } // only if state >0
-        
-        // calculate density matrix for this excited state
-        ub::matrix<double> &_dft_orbitals = orb_iter_output.MOCoefficients();
-        // load DFT basis set (element-wise information) from xml file
-        BasisSet dftbs;
-        if ( orb_iter_output.getDFTbasis() != "" ) {
-          dftbs.LoadBasisSet( orb_iter_output.getDFTbasis() );
-	} else{
-	  dftbs.LoadBasisSet( _gwbse.get_dftbasis_name() );
-
-	}  
-       LOG(logDEBUG, *_log) << TimeStamp() << " Loaded DFT Basis Set " <<  orb_iter_output.getDFTbasis()  << flush;
-
-    
-    
-    
-    
-        // fill DFT AO basis by going through all atoms 
-        AOBasis dftbasis;
-        dftbasis.AOBasisFill(&dftbs, orb_iter_output.QMAtoms() );
-        dftbasis.ReorderMOs(_dft_orbitals, orb_iter_output.getQMpackage(), "votca" );
-        // TBD: Need to switch between singlets and triplets depending on _type
-        ub::matrix<double> &DMATGS=orb_iter_output.DensityMatrixGroundState(_dft_orbitals);
-
-        ub::matrix<double> DMAT_tot=DMATGS; // Ground state + hole_contribution + electron contribution
-
-	if ( _state > 0 ){ 
-	  ub::matrix<float>& BSECoefs = orb_iter_output.BSESingletCoefficients();
-	  std::vector<ub::matrix<double> > &DMAT = orb_iter_output.DensityMatrixExcitedState( _dft_orbitals , BSECoefs, _state_index[_state-1]);
-	  DMAT_tot=DMAT_tot-DMAT[0]+DMAT[1]; // Ground state + hole_contribution + electron contribution
-	}
-    
-        // fill DFT AO basis by going through all atoms 
-        vector< QMAtom* >& Atomlist= orb_iter_output.QMAtoms();
-        
-
-        
-        Espfit esp;
-    
-        esp.setLog(_log);
-        esp.Fit2Density(Atomlist, DMAT_tot, dftbasis);
-    
-    
-    
-    
-       
-
+    if (_do_gwbse){
+    	this->EvaluateGWBSE(orb_iter_output, runFolder);
     }
     
     
@@ -392,7 +282,7 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     
     assert(orb_iter_output.hasSelfEnergy());
     assert(orb_iter_output.hasQMEnergy());
-    
+    double energy___ex = 0.0;
     // EXTRACT & SAVE QM ENERGIES
     double energy___sf = orb_iter_output.getSelfEnergy();
     double energy_qmsf = orb_iter_output.getQMEnergy();
@@ -453,21 +343,154 @@ QMAPEIter *QMAPEMachine<QMPackage>::CreateNewIter() {
     return newIter;
 }
 
-/*
-template<class QMPackage>
-void QMAPEmachine<QMPackage>::WriteQMPackInputFile(string inputFile, QMPackage *qmpack, XJob *job) {
-    
-    // TODO _qmpack should do this entirely independently
-    FILE *out;
-    out = fopen(inputFile.c_str(), "w");
 
-    // TO ADJUST
-    //_qmpack->WriteInputHeader(out, job->getTag());
-    job->getPolarTop()->PrintInduState(out, _qmpack->getPackageName(), true, 1e-04);
-    fclose(out);
-    
+template<class QMPackage>
+bool QMAPEMachine<QMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
+
+	// for GW-BSE, we also need to parse the orbitals file
+	int _parse_orbitals_status = _qmpack->ParseOrbitalsFile(&orb);
+	std::vector<int> _state_index;
+	_gwbse.Initialize( &_gwbse_options );
+	if ( _state > 0 ){
+	LOG(logDEBUG,*_log) << "Excited state via GWBSE: " <<  flush;
+	LOG(logDEBUG,*_log) << "  --- type:              " << _type << flush;
+	LOG(logDEBUG,*_log) << "  --- state:             " << _state << flush;
+	if ( _has_osc_filter) LOG(logDEBUG,*_log) << "  --- filter: osc.str. > " << _osc_threshold << flush;
+	if ( _has_dQ_filter)  LOG(logDEBUG,*_log) << "  --- filter: crg.trs. > " << _dQ_threshold << flush;
+
+	if ( _has_osc_filter && _has_dQ_filter ){
+		LOG(logDEBUG,*_log) << "  --- WARNING: filtering for optically active CT transition - might not make sense... "  << flush;
+	}
+
+	// define own logger for GW-BSE that is written into a runFolder logfile
+	Logger gwbse_logger(logDEBUG);
+	gwbse_logger.setMultithreading(false);
+	_gwbse.setLogger(&gwbse_logger);
+	gwbse_logger.setPreface(logINFO,    (format("\nGWBSE INF ...") ).str());
+	gwbse_logger.setPreface(logERROR,   (format("\nGWBSE ERR ...") ).str());
+	gwbse_logger.setPreface(logWARNING, (format("\nGWBSE WAR ...") ).str());
+	gwbse_logger.setPreface(logDEBUG,   (format("\nGWBSE DBG ...") ).str());
+
+	// actual GW-BSE run
+
+	bool _evaluate = _gwbse.Evaluate(&orb);
+
+
+	// write logger to log file
+	ofstream ofs;
+	string gwbse_logfile = runFolder + "/gwbse.log";
+	ofs.open(gwbse_logfile.c_str(), ofstream::out);
+	if (!ofs.is_open()) {
+		throw runtime_error("Bad file handle: " + gwbse_logfile);
+	}
+	ofs << gwbse_logger << endl;
+	ofs.close();
+
+	// PROCESSING the GW-BSE result
+	// - find the excited state of interest
+	// oscillator strength filter
+
+
+	if ( _has_osc_filter ){
+
+		// go through list of singlets
+		const std::vector<std::vector<double> >& TDipoles = orb.TransitionDipoles();
+		for (int _i=0; _i < TDipoles.size(); _i++ ) {
+
+			double osc = (TDipoles[_i][0] * TDipoles[_i][0] + TDipoles[_i][1] * TDipoles[_i][1] + TDipoles[_i][2] * TDipoles[_i][2]) * 1.0 / 3.0 * (orb.BSESingletEnergies()[_i]) ;
+			if ( osc > _osc_threshold ) _state_index.push_back(_i);
+		}
+
+
+
+	} else {
+
+		if ( _type == "singlet" ){
+		   for (int _i=0; _i < orb.TransitionDipoles().size(); _i++ ) {
+			   _state_index.push_back(_i);
+		   }
+		} else {
+		   for (int _i=0; _i < orb.BSETripletEnergies().size(); _i++ ) {
+			   _state_index.push_back(_i);
+		   }
+		}
+	}
+
+
+	// filter according to charge transfer, go through list of excitations in _state_index
+	 if  (_has_dQ_filter ) {
+		std::vector<int> _state_index_copy;
+		 // go through list of singlets
+		const std::vector<double>& dQ_fragA = orb.FragmentAChargesEXC();
+		const std::vector<double>& dQ_fragB = orb.FragmentBChargesEXC();
+		for (int _i=0; _i < _state_index.size(); _i++ ) {
+			if ( std::abs(dQ_fragA[_i]) > _dQ_threshold ) {
+				_state_index_copy.push_back(_state_index[_i]);
+			}
+		}
+		_state_index = _state_index_copy;
+	 }
+
+
+	if ( _state_index.size() < 1 ){
+		throw runtime_error("Excited state filter yields no states! ");
+
+	}
+	// - output its energy
+	double energy___ex = 0.0;
+	if ( _type == "singlet" ){
+		energy___ex = orb.BSESingletEnergies()[_state_index[_state-1]]*13.6058; // to eV
+	} else if ( _type == "triplet" ) {
+		energy___ex = orb.BSETripletEnergies()[_state_index[_state-1]]*13.6058; // to eV
+	}
+
+	// ub::matrix<double> &_dft_orbitals_GS = orb_iter_output.MOCoefficients();
+	// int _parse_orbitals_status_GS = _qmpack->ParseOrbitalsFile( &orb_iter_output );
+
+	} // only if state >0
+
+	// calculate density matrix for this excited state
+	ub::matrix<double> &_dft_orbitals = orb.MOCoefficients();
+	// load DFT basis set (element-wise information) from xml file
+	BasisSet dftbs;
+	if ( orb.getDFTbasis() != "" ) {
+	  dftbs.LoadBasisSet(orb.getDFTbasis());
+	} else{
+	dftbs.LoadBasisSet( _gwbse.get_dftbasis_name() );
+
+	}
+	LOG(logDEBUG, *_log) << TimeStamp() << " Loaded DFT Basis Set " <<  orb.getDFTbasis()  << flush;
+
+
+
+
+
+	// fill DFT AO basis by going through all atoms
+	AOBasis dftbasis;
+	dftbasis.AOBasisFill(&dftbs, orb.QMAtoms() );
+	dftbasis.ReorderMOs(_dft_orbitals, orb.getQMpackage(), "votca" );
+	// TBD: Need to switch between singlets and triplets depending on _type
+	ub::matrix<double> &DMATGS=orb.DensityMatrixGroundState(_dft_orbitals);
+
+	ub::matrix<double> DMAT_tot=DMATGS; // Ground state + hole_contribution + electron contribution
+
+	if ( _state > 0 ){
+	ub::matrix<float>& BSECoefs = orb.BSESingletCoefficients();
+	std::vector<ub::matrix<double> > &DMAT = orb.DensityMatrixExcitedState( _dft_orbitals , BSECoefs, _state_index[_state-1]);
+	DMAT_tot=DMAT_tot-DMAT[0]+DMAT[1]; // Ground state + hole_contribution + electron contribution
+	}
+
+	// fill DFT AO basis by going through all atoms
+	vector< QMAtom* >& Atomlist= orb.QMAtoms();
+
+	Espfit esp;
+
+	esp.setLog(_log);
+	esp.Fit2Density(Atomlist, DMAT_tot, dftbasis);
+
+	return true;
 }
-*/
+
 
 template<class QMPackage>
 bool QMAPEMachine<QMPackage>::hasConverged() {
@@ -496,13 +519,15 @@ bool QMAPEMachine<QMPackage>::hasConverged() {
     _isConverged = ((_convg_dR && _convg_dQ) && (_convg_dE_QM && _convg_dE_MM));
     
     LOG(logINFO,*_log) 
-        << format("... Convg dR = %s") % (_convg_dR ? "true" : "false") << flush;
+        << (format("Convergence check")) << flush;
+    LOG(logINFO,*_log)
+        << format("  o Converged dR ? %s") % (_convg_dR ? "True" : "False") << flush;
     LOG(logINFO,*_log) 
-        << format("... Convg dQ = %s") % (_convg_dQ ? "true" : "false") << flush;
+        << format("  o Converged dQ ? %s") % (_convg_dQ ? "True" : "False") << flush;
     LOG(logINFO,*_log) 
-        << format("... Convg QM = %s") % (_convg_dE_QM ? "true" : "false") << flush;
+        << format("  o Converged QM ? %s") % (_convg_dE_QM ? "True" : "False") << flush;
     LOG(logINFO,*_log) 
-        << format("... Convg MM = %s") % (_convg_dE_MM ? "true" : "false") << flush;
+        << format("  o Converged MM ? %s") % (_convg_dE_MM ? "True" : "False") << flush;
     
     return _isConverged;
 }
@@ -568,80 +593,36 @@ void QMAPEIter::UpdatePosChrgFromQMAtoms(vector< QMAtom* > &qmatoms,
 }
 
 
-void QMAPEIter::GenerateQMAtomsFromPolarSegs(PolarTop *ptop, Orbitals &orb, 
-        bool split_dpl, double dpl_spacing) {
+void QMAPEIter::GenerateQMAtomsFromPolarSegs(vector<PolarSeg*> &qm,
+	vector<PolarSeg*> &mm, Orbitals &orb) {
     
     double AA_to_NM = 0.1; // Angstrom to nanometer
     
-    // INNER SHELL QM0
-    for (int i = 0; i < ptop->QM0().size(); ++i) {
-        PolarSeg *pseg = ptop->QM0()[i];
+    // QM REGION
+    for (int i = 0; i < qm.size(); ++i) {
+        vector<APolarSite*> *pseg = qm[i];
         for (int j = 0; j < pseg->size(); ++j) {
-            
             APolarSite *aps = (*pseg)[j];
-            vec pos = aps->getPos()/AA_to_NM;
-            double Q = aps->getQ00();
             string type = "qm";
-
-            orb.AddAtom(aps->getName(), pos.x(), pos.y(), pos.z(), Q, false);            
-              
+            vec pos = aps->getPos()/AA_to_NM;
+            double Q = 0.0;
+            orb.AddAtom(aps->getName(), pos.x(), pos.y(), pos.z(), Q, false);
         }
     }
     
-    // MIDDLE SHELL MM1
-    for (int i = 0; i < ptop->MM1().size(); ++i) {
-        PolarSeg *pseg = ptop->MM1()[i];
+    // MM REGION (EXPANDED VIA PARTIAL CHARGES)
+    for (int i = 0; i < mm.size(); ++i) {
+    	vector<APolarSite*> *pseg = mm[i];
         for (int j = 0; j < pseg->size(); ++j) {
-            
             APolarSite *aps = (*pseg)[j];
+            string type = "mm";
             vec pos = aps->getPos()/AA_to_NM;
             double Q = aps->getQ00();
-            string type = "mm";
-
             orb.AddAtom(aps->getName(), pos.x(), pos.y(), pos.z(), Q, true);
-            
-            if (split_dpl) {
-                vec tot_dpl = vec(aps->U1x,aps->U1y,aps->U1z);
-                if (aps->getRank() > 0)
-                    { tot_dpl += vec(aps->Q1x,aps->Q1y,aps->Q1z); }            
-                // Calculate virtual charge positions
-                double a        = dpl_spacing; // this is in nm
-                double mag_d    = abs(tot_dpl); // this is in e * nm
-                vec    dir_d_0  = tot_dpl.normalize(); 
-                vec    dir_d    = dir_d_0.normalize();
-                vec    A        = pos + 0.5 * a * dir_d /AA_to_NM; // converted to AA
-                vec    B        = pos - 0.5 * a * dir_d /AA_to_NM;
-                double qA       = mag_d / a;
-                double qB       = - qA;
-                // Zero out if magnitude small [e*nm]
-                if (aps->getIsoP() < 1e-9 || mag_d < 1e-9) {
-                    A = aps->getPos() + 0.1*a*vec(1,0,0); // != pos since self-energy may diverge
-                    B = aps->getPos() - 0.1*a*vec(1,0,0);
-                    qA = 0;
-                    qB = 0;
-                }
-                orb.AddAtom("A", A.x(), A.y(), A.z(), qA, true);
-                orb.AddAtom("B", B.x(), B.y(), B.z(), qB, true);
-            }             
         }
     }
     
-    // OUTER SHELL MM2
-    for (int i = 0; i < ptop->MM2().size(); ++i) {
-        PolarSeg *pseg = ptop->MM2()[i];
-        for (int j = 0; j < pseg->size(); ++j) {
-            
-            APolarSite *aps = (*pseg)[j];
-            vec pos = aps->getPos()/AA_to_NM;
-            double Q = aps->getQ00();
-            string type = "mm";
-
-            orb.AddAtom(aps->getName(), pos.x(), pos.y(), pos.z(), Q, true);              
-        }
-    }
     return;
-    
-    
 }
 
 

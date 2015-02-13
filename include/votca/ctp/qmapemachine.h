@@ -90,7 +90,7 @@ public:
    void ConvertPSitesToQMAtoms(vector< PolarSeg* > &, vector< QMAtom* > &);
    void ConvertQMAtomsToPSites(vector< QMAtom* > &, vector< PolarSeg* > &);
    void UpdatePosChrgFromQMAtoms(vector< QMAtom* > &, vector< PolarSeg* > &);   
-   void GenerateQMAtomsFromPolarSegs(PolarTop *ptop, Orbitals &orb, bool split_dpl, double dpl_spacing);   
+   void GenerateQMAtomsFromPolarSegs(vector<PolarSeg*> &qm, vector<PolarSeg*> &mm, Orbitals &orb);
 
    void setdRdQ(double dR_RMS, double dQ_RMS, double dQ_SUM);
    void setQMSF(double energy_QM, double energy_SF, double energy_GWBSE);
@@ -159,7 +159,8 @@ public:
     void Evaluate(XJob *job);
     //void WriteQMPackInputFile(string inputFile, QMPackage *qmpack, XJob *job);
     
-    bool Iterate(string jobFolder, int iterCnt);    
+    bool Iterate(string jobFolder, int iterCnt);
+    bool EvaluateGWBSE(Orbitals &orb, string runFolder);
     QMAPEIter *CreateNewIter();
     bool hasConverged();
     bool AssertConvergence() { return _isConverged; }
@@ -171,6 +172,10 @@ private:
 
     Logger *_log;
     int _subthreads;
+
+    bool _run_ape;
+    bool _run_dft;
+    bool _run_gwbse;
 
     XJob *_job;
     XInductor *_xind;
