@@ -47,7 +47,7 @@ public:
     
     // THOLEWALD EVALUATION
     void Evaluate();
-    void EvaluateFields();
+    void EvaluateFields(bool do_depolarize_fgc);
     void EvaluateInduction();    
     void EvaluateEnergy(vector<PolarSeg*> &target);
     void EvaluateRadialCorrection(vector<PolarSeg*> &target);

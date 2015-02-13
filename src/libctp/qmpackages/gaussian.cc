@@ -1163,7 +1163,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
          std::string::size_type self_energy_pos = _line.find("Self energy of the charges");
         
         if (self_energy_pos != std::string::npos) {
-            LOG(logDEBUG,*_pLog) << "Getting the self energy\n";  
+            //LOG(logDEBUG,*_pLog) << "Getting the self energy\n" << flush;
             vector<string> block;
             vector<string> energy;
             boost::algorithm::split(block, _line, boost::is_any_of("="), boost::algorithm::token_compress_on);
@@ -1172,7 +1172,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
             // _orbitals->_has_self_energy = true;
             _orbitals->setSelfEnergy( _conv_Hrt_eV * boost::lexical_cast<double> ( energy[1] ) );
             
-            LOG(logDEBUG, *_pLog) << "Self energy " << _orbitals->getSelfEnergy() <<  flush;
+            LOG(logDEBUG, *_pLog) << "Self energy = " << _orbitals->getSelfEnergy() <<  flush;
 
         }
         

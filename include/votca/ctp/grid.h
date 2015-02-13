@@ -87,6 +87,7 @@ namespace votca { namespace ctp {
         
         
         void setupgrid(const vector< QMAtom* >& Atomlist){
+            double AtoNm=0.1;
             Elements _elements;
             double xmin=1000;
             double ymin=1000;
@@ -159,7 +160,7 @@ namespace votca { namespace ctp {
                                 temppos(2)=z;
                                 _gridpoints.push_back(temppos);
                                 if(_createpolarsites){
-                                    vec temp=vec(x,y,z);
+                                    vec temp=AtoNm*vec(x,y,z);
                                     APolarSite apolarsite;
                                     apolarsite.setPos(temp);
                                     _gridsites.push_back(apolarsite);
