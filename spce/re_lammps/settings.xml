@@ -1,0 +1,90 @@
+<!-- options to perform relative entropy iterations -->
+<cg>
+  <!-- non-bonded interaction entry -->
+  <non-bonded>
+    <!-- name of the interaction -->
+    <name>CG-CG</name>
+    <!-- specify type of CG pair -->
+    <type1>1</type1>
+    <type2>1</type2>
+    <!-- min, max and step size distance for pot (max=cutoff) -->
+    <min>0.22</min>
+    <max>0.9</max>
+    <step>0.01</step>
+    <re>
+      <!-- function form for the potential (lj126 or ljg or cbspl)-->
+      <function>cbspl</function>
+      <cbspl>
+        <!-- no. of knots for cbspl function -->
+        <nknots>48</nknots>
+        <core>extrapolate</core>
+      </cbspl>
+      <!-- distance range for the potential -->
+      <min>0.22</min>
+      <max>0.9</max>
+    </re>
+    <inverse>
+      <!-- target distribution (rdf), just give gromas rdf.xvg -->
+      <target>CG-CG.dist.tgt</target>
+      <lammps>
+        <!-- name of the table for lammps run -->
+	<table>CG_CG.pot</table>
+	<table_begin>0.20</table_begin>
+	<table_bins>0.002</table_bins>
+      </lammps>
+      <!-- do convergence -->
+      <post_add>acc_convergence average</post_add>
+      <post_add_options>
+        <!-- convergence check options -->
+        <convergence>
+          <!-- for RE we check change in potentials/parameters (new-cur) -->
+          <what>pot</what>
+          <weight>1.0</weight>
+          <base>cur</base>
+          <norm>2</norm>
+        </convergence>
+        <average>
+          <what>param pot</what>
+        </average>
+      </post_add_options>
+   </inverse>
+  </non-bonded>
+  <inverse>
+    <!-- System T = 300*0.00831451 kBT units -->
+    <kBT>2.4942</kBT>
+    <!-- use gromacs as simulation program -->
+    <program>lammps</program>
+    <!-- lammps specific options -->
+    <lammps>
+      <!-- lammps script to run !-->
+      <script>spce.in</script>
+      <!-- topology to be used by  csg_stat !-->
+      <topol>topol.xml</topol>
+      <!-- traj file created by lammps !-->
+      <traj>traj.dump</traj>
+    </lammps>
+    <initial_configuration>maindir</initial_configuration>
+    <!-- these files are copied for each new run -->
+    <filelist>spce.data spce.in topol.xml spce.dump</filelist>
+    <!-- do so many iterations -->
+    <iterations_max>300</iterations_max>
+    <!-- ibi: inverse biltzmann imc: inverse monte carlo re: relative entropy-->
+    <method>re</method>
+    <!-- relative entropy specific options -->
+    <re>
+      <!-- relaxation parameter in Newton-Raphson update -->
+      <relax>0.7</relax>
+    </re>
+    <!-- convergence check options -->
+    <convergence_check>
+      <type>default</type>
+      <limit>0.0001</limit>
+    </convergence_check>
+    <average>
+      <steps>50</steps>
+    </average>
+    <!-- directory for user scripts -->
+    <scriptdir></scriptdir>
+  </inverse>
+</cg>
+
