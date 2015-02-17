@@ -99,7 +99,7 @@ public:
         // AOESP matrix
          AOESP _aoesp;
          _aoesp.Initialize(_dftbasis._AOBasisSize);
-         _aoesp.Fill(&_dftbasis, _grid.getGrid()[i]*1.8897259886);
+         _aoesp.Fill(&_dftbasis, _grid.getGrid()[i]*AtoBohr);
         ub::vector<double> AOESPasarray=_aoesp._aomatrix.data();
       
         for ( int _i =0; _i < DMATGSasarray.size(); _i++ ){
@@ -138,7 +138,8 @@ public:
 private:
     
      Logger *_log;
-     Elements _elements;   
+     Elements _elements; 
+     double AtoBohr=1.8897259886;
  
      
      
@@ -161,7 +162,7 @@ private:
             double z_j = _atoms[j]->z;
 	    double Znuc = _elements.getNucCrgECP(_atoms[j]->type);  
 
-            double dist_j = sqrt( (x_j - x_k)*(x_j - x_k) +  (y_j - y_k)*(y_j - y_k) + (z_j - z_k)*(z_j - z_k)     )*1.8897259886;
+            double dist_j = sqrt( (x_j - x_k)*(x_j - x_k) +  (y_j - y_k)*(y_j - y_k) + (z_j - z_k)*(z_j - z_k)     )*AtoBohr;
 
 	    _NucPatGrid(i) += Znuc/dist_j;
         }
@@ -179,8 +180,11 @@ private:
      
      
      
-   void FitPartialCharges(Grid& _targetpotential,Grid& _chargepositions, double& netcharge, bool fitbackground){
-       
+   void FitPartialCharges(Grid& _targetpotential,Grid& _chargepositions, double& netcharge){
+    double AtoNm=0.1;
+    double NmtoA=10.0;
+    double HartreetoJoule;
+    double JouletoHartree;
 
     if(_chargepositions.getsize() >_targetpotential.getsize()){
         throw std::runtime_error("Fit underdetermined, change grid options");
@@ -194,13 +198,13 @@ private:
     std::vector< APolarSite >::iterator sit;
     for (sit=_charges.begin(); sit!=_charges.end(); ++sit) {
         ub::vector<double> temp= (sit->getPos()).converttoub();
-        _chargepos.push_back(temp);    
+        _chargepos.push_back(NmtoA*temp);    
     }
     
     
     ub::vector<double> _potential=ub::zero_vector<double>(_targetpotential.getsize());
     for( int i=0; i<_targetpotential.getsize();i++){
-    _potential(i)=_target[i].getPhi();    
+    _potential(i)=JouletoHartree*_target[i].getPhi();    
     }
     LOG(logDEBUG, *_log) << " Fitting APE to Chargeshell " << flush;
     std::vector<double>_chargesfromfit=FitPartialCharges(_chargepos,_targetpotential,_potential,netcharge);
@@ -237,8 +241,8 @@ private:
                 double y_k = _gridpoints[_k](1);
                 double z_k = _gridpoints[_k](2);
                 
-                double dist_i = sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     )*1.8897259886;
-                double dist_j = sqrt( (x_j - x_k)*(x_j - x_k) +  (y_j - y_k)*(y_j - y_k) + (z_j - z_k)*(z_j - z_k)     )*1.8897259886;
+                double dist_i = sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     )*AtoBohr;
+                double dist_j = sqrt( (x_j - x_k)*(x_j - x_k) +  (y_j - y_k)*(y_j - y_k) + (z_j - z_k)*(z_j - z_k)     )*AtoBohr;
                 
                  _Amat(_i,_j) += 1.0/dist_i/dist_j; 
                 
@@ -267,7 +271,7 @@ private:
                 double y_k = _gridpoints[_k](1);
                 double z_k = _gridpoints[_k](2);
                 
-                double dist_i = sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     )*1.8897259886;
+                double dist_i = sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     )*AtoBohr;
                 _Bvec(_i,0) += _potential(_k)/dist_i;
                 
         }
@@ -315,7 +319,7 @@ private:
             double y_i = _fitcenters[_i](1);
             double z_i = _fitcenters[_i](2);
             
-            double dist =  sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     )*1.8897259886;
+            double dist =  sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     )*AtoBohr;
             temp += _result[_i]/dist;
         }
         _rmse += (_potential(_k) - temp)*(_potential(_k) - temp);

@@ -72,6 +72,7 @@ namespace votca { namespace ctp {
         int getsize(){ return _gridpoints.size(); }
         
         void printGridtofile(const char* _filename){
+            //unit is nm
             ofstream points;
             points.open(_filename, ofstream::out);
             points << _gridpoints.size() << endl;
@@ -85,7 +86,7 @@ namespace votca { namespace ctp {
         
        
         
-        
+        //setup will return a grid in nm not in A, although setupgrid internally uses A.
         void setupgrid(const vector< QMAtom* >& Atomlist){
             double AtoNm=0.1;
             Elements _elements;
@@ -155,12 +156,13 @@ namespace votca { namespace ctp {
 
                                 }
                             if (_is_valid){
-                                temppos(0)=x;
-                                temppos(1)=y;        
-                                temppos(2)=z;
+                                temppos(0)=AtoNm*x;
+                                temppos(1)=AtoNm*y;        
+                                temppos(2)=AtoNm*z;
                                 _gridpoints.push_back(temppos);
                                 if(_createpolarsites){
-                                    vec temp=AtoNm*vec(x,y,z);
+                                    // APolarSite are in nm so convert
+                                    vec temp=vec(x,y,z);
                                     APolarSite apolarsite;
                                     apolarsite.setPos(temp);
                                     _gridsites.push_back(apolarsite);

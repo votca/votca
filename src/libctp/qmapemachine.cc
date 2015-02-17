@@ -167,6 +167,7 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 			_cape->ShowAgenda(_log);
 			// Reset FGC, start from BGP state, apply FP fields (BG & FG)
 			_cape->EvaluateInductionQMMM(true, true, true, true, true);
+                        
 		}
 
 		// COMPUTE POTENTIALS
