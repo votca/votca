@@ -168,12 +168,15 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 			// Reset FGC, start from BGP state, apply FP fields (BG & FG)
 			_cape->EvaluateInductionQMMM(true, true, true, true, true);
                         
+                        
+                        
 		}
 
 		// COMPUTE POTENTIALS
 		vector<PolarSeg*> &target = _job->getPolarTop()->QM0();
 		if (iterCnt == 0) {
 			// Add BG, do not add MM1 & QM0
+                    
 			_cape->EvaluatePotential(target, true, false, false);
 			// TODO Grid->PushBG();
 		}

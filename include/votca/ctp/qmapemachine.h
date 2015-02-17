@@ -181,6 +181,9 @@ private:
     XInductor *_xind;
     QMPackage *_qmpack;
     Ewald3DnD *_cape;
+    
+    Grid _targetcenters;
+    Grid _chargesoutsite;
 
     vector<QMAPEIter*> _iters;
     int _maxIter;
