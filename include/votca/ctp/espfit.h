@@ -99,7 +99,7 @@ public:
         // AOESP matrix
          AOESP _aoesp;
          _aoesp.Initialize(_dftbasis._AOBasisSize);
-         _aoesp.Fill(&_dftbasis, _grid.getGrid()[i]*AtoBohr);
+         _aoesp.Fill(&_dftbasis, _grid.getGrid()[i]*NmtoBohr);
         ub::vector<double> AOESPasarray=_aoesp._aomatrix.data();
       
         for ( int _i =0; _i < DMATGSasarray.size(); _i++ ){
@@ -139,7 +139,8 @@ private:
     
      Logger *_log;
      Elements _elements; 
-     double AtoBohr=1.8897259886;
+     const double AtoBohr=1.8897259886;
+     const double NmtoBohr=10*AtoBohr;
  
      
      
@@ -162,7 +163,7 @@ private:
             double z_j = _atoms[j]->z;
 	    double Znuc = _elements.getNucCrgECP(_atoms[j]->type);  
 
-            double dist_j = sqrt( (x_j - x_k)*(x_j - x_k) +  (y_j - y_k)*(y_j - y_k) + (z_j - z_k)*(z_j - z_k)     )*AtoBohr;
+            double dist_j = sqrt( (x_j - x_k)*(x_j - x_k) +  (y_j - y_k)*(y_j - y_k) + (z_j - z_k)*(z_j - z_k)     )*NmtoBohr;
 
 	    _NucPatGrid(i) += Znuc/dist_j;
         }
@@ -241,8 +242,8 @@ private:
                 double y_k = _gridpoints[_k](1);
                 double z_k = _gridpoints[_k](2);
                 
-                double dist_i = sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     )*AtoBohr;
-                double dist_j = sqrt( (x_j - x_k)*(x_j - x_k) +  (y_j - y_k)*(y_j - y_k) + (z_j - z_k)*(z_j - z_k)     )*AtoBohr;
+                double dist_i = sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     )*NmtoBohr;
+                double dist_j = sqrt( (x_j - x_k)*(x_j - x_k) +  (y_j - y_k)*(y_j - y_k) + (z_j - z_k)*(z_j - z_k)     )*NmtoBohr;
                 
                  _Amat(_i,_j) += 1.0/dist_i/dist_j; 
                 
@@ -271,7 +272,7 @@ private:
                 double y_k = _gridpoints[_k](1);
                 double z_k = _gridpoints[_k](2);
                 
-                double dist_i = sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     )*AtoBohr;
+                double dist_i = sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     )*NmtoBohr;
                 _Bvec(_i,0) += _potential(_k)/dist_i;
                 
         }
@@ -319,7 +320,7 @@ private:
             double y_i = _fitcenters[_i](1);
             double z_i = _fitcenters[_i](2);
             
-            double dist =  sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     )*AtoBohr;
+            double dist =  sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     )*NmtoBohr;
             temp += _result[_i]/dist;
         }
         _rmse += (_potential(_k) - temp)*(_potential(_k) - temp);
