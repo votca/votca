@@ -103,6 +103,15 @@ QMAPEMachine<QMPackage>::~QMAPEMachine() {
 template<class QMPackage>
 void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
     
+	// PREPARE JOB DIRECTORY
+	string jobFolder = "job_" + boost::lexical_cast<string>(_job->getId())
+					 + "_" + _job->getTag();
+	bool created = boost::filesystem::create_directory(jobFolder);
+
+	LOG(logINFO,*_log) << flush;
+	if (created)
+		LOG(logINFO,*_log) << "Created directory " << jobFolder << flush;
+
     LOG(logINFO,*_log)
        << format("... dR %1$1.4f dQ %2$1.4f QM %3$1.4f MM %4$1.4f IT %5$d")
        % _crit_dR % _crit_dQ % _crit_dE_QM % _crit_dE_MM % _maxIter << flush;
@@ -115,16 +124,7 @@ void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
     int chrg = round(dQ);
     int spin = ( (chrg < 0) ? -chrg:chrg ) % 2 + 1;
     LOG(logINFO,*_log) << "... Q = " << chrg << ", 2S+1 = " << spin << flush;
-    
-    
-    // PREPARE JOB DIRECTORY
-    string jobFolder = "job_" + boost::lexical_cast<string>(_job->getId())
-                     + "_" + _job->getTag();
-    bool created = boost::filesystem::create_directory(jobFolder);
-    if (created) 
-        LOG(logINFO,*_log) << "Created directory " << jobFolder << flush;
-    
-    
+
     // SET ITERATION-TIME CONSTANTS
     _qmpack->setCharge(chrg);
     _qmpack->setSpin(spin);
