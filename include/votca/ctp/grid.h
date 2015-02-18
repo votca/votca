@@ -51,11 +51,11 @@ namespace votca { namespace ctp {
         
         
         Grid(bool outsidemolecule, bool createpolarsites)
-            :_cutoff(1),_padding(1),_gridspacing(1),_outsidemolecule(true),_createpolarsites(false) {};
+            :_cutoff(1),_padding(1),_gridspacing(1),_outsidemolecule(true),_createpolarsites(false), _sites_seg(NULL) {};
            
         
         Grid()
-            :_cutoff(1),_padding(1),_gridspacing(1),_outsidemolecule(true),_createpolarsites(false) {};
+            :_cutoff(1),_padding(1),_gridspacing(1),_outsidemolecule(true),_createpolarsites(false), _sites_seg(NULL) {};
            
         
         ~Grid() {};
@@ -179,6 +179,9 @@ namespace votca { namespace ctp {
                   x+=_gridspacing;
                   //cout << (x<xmax+padding) << endl;     
                 }
+                
+                if (_sites_seg != NULL) delete _sites_seg;
+                //_sites_seg = new PolarSeg(0, _gridsites);
            
         
         
@@ -209,12 +212,15 @@ namespace votca { namespace ctp {
   private:
       std::vector< ub::vector<double> > _gridpoints;
       std::vector< APolarSite > _gridsites;
+      PolarSeg *_sites_seg;
       
       double _gridspacing;
       double _cutoff;
       double _padding;
       bool   _outsidemolecule;
       bool   _createpolarsites;
+      
+      
       
         
     };   

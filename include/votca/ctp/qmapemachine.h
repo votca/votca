@@ -182,8 +182,9 @@ private:
     QMPackage *_qmpack;
     Ewald3DnD *_cape;
     
-    Grid _targetcenters;
-    Grid _chargesoutsite;
+    Grid _grid_fg;
+    Grid _grid_bg;
+    Grid _fitted_charges;
 
     vector<QMAPEIter*> _iters;
     int _maxIter;

@@ -129,6 +129,14 @@ void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
     _qmpack->setCharge(chrg);
     _qmpack->setSpin(spin);
 
+    // GENERATE GRIDS
+    // ... TODO ...
+    // Generate QM atoms from _job->getPolarTop()->QM0();
+    // Move Iter::GenerateQMAtomsFromPolarSegs to QMMachine
+    // Generate grids, store as member
+    _grid_bg = Grid();
+    _grid_fg = Grid();
+    
     int iterCnt = 0;
     int iterMax = _maxIter;
     for ( ; iterCnt < iterMax; ++iterCnt) {
@@ -167,29 +175,29 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 			_cape->ShowAgenda(_log);
 			// Reset FGC, start from BGP state, apply FP fields (BG & FG)
 			_cape->EvaluateInductionQMMM(true, true, true, true, true);
-                        
-                        
-                        
 		}
 
 		// COMPUTE POTENTIALS
-		vector<PolarSeg*> &target = _job->getPolarTop()->QM0();
+		vector< PolarSeg* > target_bg;
+        //target_bg.push_back(&_grid_bg.getSites());
+        
+        vector< PolarSeg* > target_fg;
+        //target_fg.push_back(&_grid_fg.getSites());
+        
 		if (iterCnt == 0) {
 			// Add BG, do not add MM1 & QM0
-                    
-			_cape->EvaluatePotential(target, true, false, false);
-			// TODO Grid->PushBG();
+			_cape->EvaluatePotential(target_bg, true, false, false);
 		}
 		// Do not add BG & QM0, add MM1
-		_cape->EvaluatePotential(target, false, true, false);
-		// TODO Grid->PushMM1();
+		_cape->EvaluatePotential(target_fg, false, true, false);
     }
 
     // COMPUTE WAVEFUNCTION & QM ENERGY
     // Generate charge shell from potentials
     vector<PolarSeg*> &qm =_job->getPolarTop()->QM0();
     vector<PolarSeg*> mm_fitted;
-    // ...
+    // ... fit fit fit ...
+    //mm_fitted.push_back(_fitted_charges.getSites());
 
     // Run DFT
     Orbitals orb_iter_input;
@@ -219,6 +227,8 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 	if (_run_ape) {
 		// Update QM0 density: QM0(n) => QM0(n+1)
 		// ...
+        thisIter->UpdatePosChrgFromQMAtoms(orb_iter_output.QMAtoms(),
+            _job->getPolarTop()->QM0());
 
 		// Do not reset FGC (= only reset FU), do not use BGP state, nor apply FP fields (BG & FG)
 		_cape->EvaluateInductionQMMM(false, false, false, false, false);
