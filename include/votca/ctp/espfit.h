@@ -217,6 +217,9 @@ private:
        LOG(logDEBUG, *_log) << " Fitting completed " << flush;
    }
      
+   
+   \
+
      
      // Fits partial charges to Potential on a grid, constrains net charge
      std::vector<double> FitPartialCharges( std::vector< ub::vector<double> >& _fitcenters, Grid& _grid, ub::vector<double>& _potential, double& _netcharge ){

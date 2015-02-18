@@ -166,7 +166,7 @@ namespace votca { namespace ctp {
                                     APolarSite apolarsite;
                                     apolarsite.setRank(0);        
                                     apolarsite.setQ00(0,0); // <- charge state 0 <> 'neutral'
-                                    apolarsite.setIsoP(0.0));
+                                    apolarsite.setIsoP(0.0);
                                     apolarsite.setPos(temp);
                                     _gridsites.push_back(apolarsite);
                                 }
