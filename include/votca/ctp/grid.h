@@ -51,11 +51,11 @@ namespace votca { namespace ctp {
         
         
         Grid(bool outsidemolecule, bool createpolarsites)
-            :_cutoff(1),_padding(1),_gridspacing(1),_outsidemolecule(true),_createpolarsites(false), _sites_seg(NULL) {};
+            :_cutoff(1),_padding(1),_gridspacing(1),_cutoff_inside(0.1),_outsidemolecule(outsidemolecule),_createpolarsites(createpolarsites), _sites_seg(NULL) {};
            
         
         Grid()
-            :_cutoff(1),_padding(1),_gridspacing(1),_outsidemolecule(true),_createpolarsites(false), _sites_seg(NULL) {};
+            :_cutoff(1),_padding(1),_gridspacing(1),_cutoff_inside(0.1),_outsidemolecule(true),_createpolarsites(false), _sites_seg(NULL) {};
            
         
         ~Grid() {};
@@ -66,6 +66,7 @@ namespace votca { namespace ctp {
         PolarSeg* getSeg(){return _sites_seg;}
         
         void setCutoff(double cutoff){_cutoff=cutoff;}
+        void setCutoff_inside(double cutoff_inside){_cutoff_inside=cutoff_inside;}
         void setSpacing(double spacing){_gridspacing=spacing;}
         void setPadding(double padding){_padding=padding;}
     
@@ -89,8 +90,18 @@ namespace votca { namespace ctp {
         
        
         
+        
+        
+        
+        
+  
+        
         //setup will return a grid in nm not in A, although setupgrid internally uses A.
         void setupgrid(const vector< QMAtom* >& Atomlist){
+            
+            if (_cutoff<_cutoff_inside && _useVdWcutoff==false){
+            throw std::runtime_error("Interior cutoff is greater than exterior cutoff");
+            }
             double AtoNm=0.1;
             Elements _elements;
             double xmin=1000;
@@ -142,18 +153,17 @@ namespace votca { namespace ctp {
                                     ytemp=(*atom)->y;
                                     ztemp=(*atom)->z;
                                     double distance2=pow((x-xtemp),2)+pow((y-ytemp),2)+pow((z-ztemp),2);
-                                    double VdW=_elements.getVdWChelpG((*atom)->type);
+                                    if(_useVdWcutoff) _cutoff_inside=_elements.getVdWChelpG((*atom)->type);
+                                    
                                     //cout << "Punkt " << x <<":"<< y << ":"<<z << ":"<< distance2 << ":"<< (*atom)->type <<":"<<pow(VdW,2)<< endl;
-                                    if ( _outsidemolecule && distance2<pow(VdW,2)){
-                                        //cout << "Punkt" << x <<":"<< y << ":"<<z << "rejected" << endl;
-
+                                    if ( _outsidemolecule && distance2<pow(_cutoff_inside,2)){
                                         _is_valid = false;
                                         break;
                                         }
-                                    else if (distance2<pow(_cutoff,2)){
-                                        //cout << "hier" << endl;
-                                        _is_valid = true;
-                                    }
+                                    else if ( _outsidemolecule && distance2<pow(_cutoff,2))  _is_valid = true;
+                                    else if ( !_outsidemolecule && distance2<pow(_cutoff_inside,2)) _is_valid =true;
+                                    
+                                    
 
 
 
@@ -185,11 +195,6 @@ namespace votca { namespace ctp {
                 
                 if (_sites_seg != NULL) delete _sites_seg;
                 _sites_seg = new PolarSeg(0, _gridsites);
-           
-        
-        
-        
-        
         }
        
         void setupCHELPgrid(const vector< QMAtom* >& Atomlist){
@@ -198,9 +203,7 @@ namespace votca { namespace ctp {
             _padding=2.8; // Additional distance from molecule to set up grid according to CHELPG paper [Journal of Computational Chemistry 11, 361, 1990]
             _gridspacing=0.3; // Grid spacing according to same paper 
             _cutoff=2.8;
-            _outsidemolecule=true;
-            _createpolarsites=false;
-            
+            _useVdWcutoff=true;
             setupgrid(Atomlist);
         }
         
@@ -219,11 +222,12 @@ namespace votca { namespace ctp {
       
       double _gridspacing;
       double _cutoff;
-      double _padding;
+      double _cutoff_inside;
+      double _padding; 
       bool   _outsidemolecule;
       bool   _createpolarsites;
-      
-      
+      bool   _useVdWcutoff;
+
       
         
     };   
