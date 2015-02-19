@@ -61,7 +61,10 @@ namespace votca { namespace ctp {
         ~Grid() {};
         
         std::vector< ub::vector<double> > &getGrid() {return _gridpoints;}
-        std::vector< APolarSite > &getSites() {return _gridsites;}
+        std::vector< APolarSite* > &Sites() {return _gridsites;}
+        std::vector< APolarSite*>* getSites() {return &_gridsites;} 
+        PolarSeg* getSeg(){return _sites_seg;}
+        
         void setCutoff(double cutoff){_cutoff=cutoff;}
         void setSpacing(double spacing){_gridspacing=spacing;}
         void setPadding(double padding){_padding=padding;}
@@ -163,11 +166,11 @@ namespace votca { namespace ctp {
                                 if(_createpolarsites){
                                     // APolarSite are in nm so convert
                                     vec temp=vec(x,y,z);
-                                    APolarSite apolarsite;
-                                    apolarsite.setRank(0);        
-                                    apolarsite.setQ00(0,0); // <- charge state 0 <> 'neutral'
-                                    apolarsite.setIsoP(0.0);
-                                    apolarsite.setPos(temp);
+                                    APolarSite *apolarsite= new APolarSite();
+                                    apolarsite->setRank(0);        
+                                    apolarsite->setQ00(0,0); // <- charge state 0 <> 'neutral'
+                                    apolarsite->setIsoP(0.0);
+                                    apolarsite->setPos(temp);
                                     _gridsites.push_back(apolarsite);
                                 }
                             }
@@ -181,7 +184,7 @@ namespace votca { namespace ctp {
                 }
                 
                 if (_sites_seg != NULL) delete _sites_seg;
-                //_sites_seg = new PolarSeg(0, _gridsites);
+                _sites_seg = new PolarSeg(0, _gridsites);
            
         
         
@@ -211,7 +214,7 @@ namespace votca { namespace ctp {
       
   private:
       std::vector< ub::vector<double> > _gridpoints;
-      std::vector< APolarSite > _gridsites;
+      std::vector< APolarSite* > _gridsites;
       PolarSeg *_sites_seg;
       
       double _gridspacing;

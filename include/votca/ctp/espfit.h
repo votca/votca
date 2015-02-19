@@ -58,7 +58,43 @@ public:
    
    
   
+    void FitPartialCharges(Grid& _targetgrid_fg, Grid& _targetgrid_bg, Grid& _chargepositions, double& netcharge){
+    const static double AtoNm=0.1;
+    const static double NmtoA=10.0;
+    const static double HartreetoJoule=1;
+    const static double JouletoHartree=1;
+
+    if(_chargepositions.getsize() >_targetgrid_fg.getsize()){
+        throw std::runtime_error("Fit underdetermined, change grid options");
+    }
+
+    std::vector< APolarSite* > _charges= _chargepositions.Sites();
+    std::vector< APolarSite* > _target_fg= _targetgrid_fg.Sites();
+    std::vector< APolarSite* > _target_bg= _targetgrid_bg.Sites();
+
+    std::vector< ub::vector<double> > _chargepos;
+
+    std::vector< APolarSite* >::iterator sit;
+    for (sit=_charges.begin(); sit!=_charges.end(); ++sit) {
+        ub::vector<double> temp= ((*sit)->getPos()).converttoub();
+        _chargepos.push_back(NmtoA*temp);    
+    }
     
+    
+    ub::vector<double> _potential=ub::zero_vector<double>(_targetgrid_fg.getsize());
+    for( int i=0; i<_targetgrid_fg.getsize();i++){
+    _potential(i)=JouletoHartree*(_target_fg[i]->getPhi()+_target_bg[i]->getPhi());    
+    }
+    LOG(logDEBUG, *_log) << " Fitting APE to Chargeshell " << flush;
+    std::vector<double>_chargesfromfit=FitPartialCharges(_chargepos,_targetgrid_fg,_potential,netcharge);
+    int state=0;
+    for (int i=0; i<_charges.size();i++) {
+        _charges[i]->setQ00(_chargesfromfit[i],state);
+    }   
+
+       LOG(logDEBUG, *_log) << " Fitting completed " << flush;
+   }
+     
 
    
    
@@ -139,8 +175,8 @@ private:
     
      Logger *_log;
      Elements _elements; 
-     const double AtoBohr=1.8897259886;
-     const double NmtoBohr=10*AtoBohr;
+     static const double AtoBohr=1.8897259886;
+     const double NmtoBohr=18.8972598860;
  
      
      
@@ -181,44 +217,9 @@ private:
      
      
      
-   void FitPartialCharges(Grid& _targetpotential,Grid& _chargepositions, double& netcharge){
-    double AtoNm=0.1;
-    double NmtoA=10.0;
-    double HartreetoJoule;
-    double JouletoHartree;
-
-    if(_chargepositions.getsize() >_targetpotential.getsize()){
-        throw std::runtime_error("Fit underdetermined, change grid options");
-    }
-
-    std::vector< APolarSite > _charges= _chargepositions.getSites();
-    std::vector< APolarSite > _target= _targetpotential.getSites();
-
-    std::vector< ub::vector<double> > _chargepos;
-
-    std::vector< APolarSite >::iterator sit;
-    for (sit=_charges.begin(); sit!=_charges.end(); ++sit) {
-        ub::vector<double> temp= (sit->getPos()).converttoub();
-        _chargepos.push_back(NmtoA*temp);    
-    }
-    
-    
-    ub::vector<double> _potential=ub::zero_vector<double>(_targetpotential.getsize());
-    for( int i=0; i<_targetpotential.getsize();i++){
-    _potential(i)=JouletoHartree*_target[i].getPhi();    
-    }
-    LOG(logDEBUG, *_log) << " Fitting APE to Chargeshell " << flush;
-    std::vector<double>_chargesfromfit=FitPartialCharges(_chargepos,_targetpotential,_potential,netcharge);
-    int state=0;
-    for (int i=0; i<_charges.size();i++) {
-        _charges[i].setQ00(_chargesfromfit[i],state);
-    }   
-
-       LOG(logDEBUG, *_log) << " Fitting completed " << flush;
-   }
-     
+  
    
-   \
+   
 
      
      // Fits partial charges to Potential on a grid, constrains net charge
