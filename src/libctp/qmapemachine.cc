@@ -145,15 +145,24 @@ void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
     
     _grid_bg.setupCHELPgrid(basisforgrid.QMAtoms());
     _grid_fg.setupCHELPgrid(basisforgrid.QMAtoms());
+    
+    LOG(logINFO,*_log) << "Created internal grid with  " << _grid_bg.getsize() <<" points."<< flush;
+    
+    _grid_bg.printGridtofile("grid.xyz");
             
     _fitted_charges = Grid(true,true);
-    _fitted_charges.setCutoff(60);
-    _fitted_charges.setPadding(60);
-    _fitted_charges.setCutoff(57);
+    _fitted_charges.setCutoff(10);
+    
+    _fitted_charges.setPadding(10);
+    _fitted_charges.setCutoff_inside(8);
     _fitted_charges.setSpacing(1);
     
     _fitted_charges.setupgrid(basisforgrid.QMAtoms());
     
+    LOG(logINFO,*_log) << "Created " << _fitted_charges.getsize() <<" charge positions."<< flush;
+    LOG(logINFO,*_log) << flush;
+    _fitted_charges.printGridtofile("grid2.xyz");
+    exit(0);
     int iterCnt = 0;
     int iterMax = _maxIter;
     for ( ; iterCnt < iterMax; ++iterCnt) {

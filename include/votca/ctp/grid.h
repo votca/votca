@@ -65,8 +65,9 @@ namespace votca { namespace ctp {
         std::vector< APolarSite*>* getSites() {return &_gridsites;} 
         PolarSeg* getSeg(){return _sites_seg;}
         
+        
         void setCutoff(double cutoff){_cutoff=cutoff;}
-        void setCutoff_inside(double cutoff_inside){_cutoff_inside=cutoff_inside;}
+        void setCutoff_inside(double cutoff_inside){_cutoff_inside=cutoff_inside; _useVdWcutoff=false;}
         void setSpacing(double spacing){_gridspacing=spacing;}
         void setPadding(double padding){_padding=padding;}
     
