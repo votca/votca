@@ -63,6 +63,8 @@ public:
     double NmtoA=10.0;
     double HartreetoEwald=1;
     double EwaldtoHartree=1;
+    
+    LOG(logDEBUG, *_log) << " UNITS OF FIT NOT CORRECT CONVERT EWALDOUTPUT TO HARTREE " << flush;
 
     if(_chargepositions.getsize() >_targetgrid_fg.getsize()){
         throw std::runtime_error("Fit underdetermined, change grid options");
