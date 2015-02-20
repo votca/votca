@@ -221,8 +221,8 @@ private:
      std::vector<double> FitPartialCharges( std::vector< ub::vector<double> >& _fitcenters, Grid& _grid, ub::vector<double>& _potential, double& _netcharge ){
          
     std::vector< ub::vector<double> >& _gridpoints=_grid.getGrid();   
-    cout << "x " << _gridpoints[0](0)<< " y " << _gridpoints[0](1)<< " z " << _gridpoints[0](1);
-    cout << "x " << _fitcenters[0](0)<< " y " << _fitcenters[0](1)<< " z " << _fitcenters[0](1);
+    //cout << "x " << _gridpoints[0](0)<< " y " << _gridpoints[0](1)<< " z " << _gridpoints[0](1);
+    //cout << "x " << _fitcenters[0](0)<< " y " << _fitcenters[0](1)<< " z " << _fitcenters[0](1);
     // Fitting atomic partial charges
     ub::matrix<double> _Amat = ub::zero_matrix<double>(_fitcenters.size()+1,_fitcenters.size()+1);
     ub::matrix<double> _Bvec = ub::zero_matrix<double>(_fitcenters.size()+1);    
