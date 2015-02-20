@@ -1946,7 +1946,7 @@ void Ewald3DnD::EvaluatePotential(vector<PolarSeg*> &target, bool add_bg,
     // RESET POTENTIALS
     vector<PolarSeg*>::iterator sit; 
     vector<APolarSite*> ::iterator pit;
-    for (sit = _fg_C.begin(); sit < _fg_C.end(); ++sit) {        
+    for (sit = target.begin(); sit < target.end(); ++sit) {        
         PolarSeg* pseg = *sit;
         for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
             (*pit)->ResetPhi(true, true);

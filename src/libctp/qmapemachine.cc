@@ -140,29 +140,35 @@ void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
     GenerateQMAtomsFromPolarSegs(_job->getPolarTop()->QM0(),dummy,basisforgrid);
     
     
-    _grid_bg = Grid(false,true);
-    _grid_fg = Grid(false,true);
+    _grid_bg = Grid(true,true,true);
+    _grid_fg = Grid(true,true,true);
     
-    _grid_bg.setupCHELPgrid(basisforgrid.QMAtoms());
-    _grid_fg.setupCHELPgrid(basisforgrid.QMAtoms());
+    _grid_bg.setCutoffshifts(1,-0.5);
+    _grid_fg.setCutoffshifts(1,-0.5);
+    _grid_fg.setSpacing(1);
+    _grid_bg.setSpacing(1);
     
-    LOG(logINFO,*_log) << "Created internal grid with  " << _grid_bg.getsize() <<" points."<< flush;
+    _grid_bg.setupgrid(basisforgrid.QMAtoms());
+    _grid_fg.setupgrid(basisforgrid.QMAtoms());
     
-    _grid_bg.printGridtofile("grid.xyz");
+    LOG(logINFO,*_log) << "Created internal grid with " << _grid_bg.getsize() <<" points."<< flush;
+    
+
             
-    _fitted_charges = Grid(true,true);
-    _fitted_charges.setCutoff(10);
-    
-    _fitted_charges.setPadding(10);
-    _fitted_charges.setCutoff_inside(8);
-    _fitted_charges.setSpacing(1);
+    _fitted_charges = Grid(true,false,false);
+    _fitted_charges.setCutoffs(10,8);
+    _fitted_charges.setSpacing(3);
     
     _fitted_charges.setupgrid(basisforgrid.QMAtoms());
     
     LOG(logINFO,*_log) << "Created " << _fitted_charges.getsize() <<" charge positions."<< flush;
     LOG(logINFO,*_log) << flush;
+    _exportgridtofile=true;
+    if (_exportgridtofile){
+    _grid_bg.printGridtofile("grid.xyz");
     _fitted_charges.printGridtofile("grid2.xyz");
-    exit(0);
+    }
+    
     int iterCnt = 0;
     int iterMax = _maxIter;
     for ( ; iterCnt < iterMax; ++iterCnt) {
@@ -204,14 +210,23 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 		}
 
 		// COMPUTE POTENTIALS
-		vector< PolarSeg* > target_bg;
+		vector< PolarSeg* > target_bg;     
         target_bg.push_back(_grid_bg.getSeg());
         
         vector< PolarSeg* > target_fg;
         target_fg.push_back(_grid_fg.getSeg());
+      /*  
+        cout << endl << "Done ... " << endl;
+        _grid_bg.getSeg()->WriteMPS("test_bg.mps", "TEST");
+        cout << endl << "Done bg. " << endl;
         
+        cout << endl << "Done ... " << endl;
+        _grid_fg.getSeg()->WriteMPS("test_fg.mps", "TEST");
+        cout << endl << "Done fg. " << endl;
+*/
 		if (iterCnt == 0) {
 			// Add BG, do not add MM1 & QM0
+            //target_bg = _job->getPolarTop()->QM0();
 			_cape->EvaluatePotential(target_bg, true, false, false);
 		}
 		// Do not add BG & QM0, add MM1
@@ -223,12 +238,11 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     vector<PolarSeg*> &qm =_job->getPolarTop()->QM0();
     vector<PolarSeg*> mm_fitted;
     Espfit fitcharges;
+    fitcharges.setLog(_log);
     double netchargefit=0.0;
     //cout << "hallo" << endl;
-    fitcharges.FitPartialCharges(_grid_bg,_grid_fg,_fitted_charges,netchargefit);
-    
+    fitcharges.FitAPECharges(_grid_bg,_grid_fg,_fitted_charges,netchargefit);
     mm_fitted.push_back(_fitted_charges.getSeg());
-
     // Run DFT
     Orbitals orb_iter_input;
     vector<Segment*> empty;

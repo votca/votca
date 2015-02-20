@@ -50,12 +50,16 @@ namespace votca { namespace ctp {
     public:
         
         
-        Grid(bool outsidemolecule, bool createpolarsites)
-            :_cutoff(1),_padding(1),_gridspacing(1),_cutoff_inside(0.1),_outsidemolecule(outsidemolecule),_createpolarsites(createpolarsites), _sites_seg(NULL) {};
+        Grid( bool createpolarsites, bool useVdWcutoff, bool useVdWcutoff_inside)
+            :_cutoff(3),_gridspacing(0.3),_cutoff_inside(1.5),_shift_cutoff(0.0),_shift_cutoff_inside(0.0),
+             _useVdWcutoff(useVdWcutoff),_useVdWcutoff_inside(useVdWcutoff_inside),
+             _createpolarsites(createpolarsites), _sites_seg(NULL) {};
            
         
         Grid()
-            :_cutoff(1),_padding(1),_gridspacing(1),_cutoff_inside(0.1),_outsidemolecule(true),_createpolarsites(false), _sites_seg(NULL) {};
+            :_cutoff(3),_gridspacing(0.3),_cutoff_inside(1.5),_shift_cutoff(0.0),_shift_cutoff_inside(0.0),
+             _useVdWcutoff(false),_useVdWcutoff_inside(false),
+             _createpolarsites(false), _sites_seg(NULL) {};
            
         
         ~Grid() {};
@@ -66,10 +70,9 @@ namespace votca { namespace ctp {
         PolarSeg* getSeg(){return _sites_seg;}
         
         
-        void setCutoff(double cutoff){_cutoff=cutoff;}
-        void setCutoff_inside(double cutoff_inside){_cutoff_inside=cutoff_inside; _useVdWcutoff=false;}
+        void setCutoffs(double cutoff, double cutoff_inside){_cutoff=cutoff;_cutoff_inside=cutoff_inside;}
+        void setCutoffshifts(double shift_cutoff, double shift_cutoff_inside){_shift_cutoff=shift_cutoff;_shift_cutoff_inside=shift_cutoff_inside;}
         void setSpacing(double spacing){_gridspacing=spacing;}
-        void setPadding(double padding){_padding=padding;}
     
       
         
@@ -78,12 +81,13 @@ namespace votca { namespace ctp {
         
         void printGridtofile(const char* _filename){
             //unit is nm
+            double A2nm=10;
             ofstream points;
             points.open(_filename, ofstream::out);
             points << _gridpoints.size() << endl;
             points << endl;
             for ( int i = 0 ; i < _gridpoints.size(); i++){
-                points << "X " << _gridpoints[i](0) << " " << _gridpoints[i](1) << " " << _gridpoints[i](2) << endl;
+                points << "X " << A2nm*_gridpoints[i](0) << " " << A2nm*_gridpoints[i](1) << " " << A2nm*_gridpoints[i](2) << endl;
 
             }
             points.close();
@@ -99,10 +103,8 @@ namespace votca { namespace ctp {
         
         //setup will return a grid in nm not in A, although setupgrid internally uses A.
         void setupgrid(const vector< QMAtom* >& Atomlist){
-            
-            if (_cutoff<_cutoff_inside && _useVdWcutoff==false){
-            throw std::runtime_error("Interior cutoff is greater than exterior cutoff");
-            }
+           
+            double _padding=0.0;
             double AtoNm=0.1;
             Elements _elements;
             double xmin=1000;
@@ -114,8 +116,16 @@ namespace votca { namespace ctp {
             double zmax=-1000;
             double xtemp,ytemp,ztemp;
             //setup one polarsite and use copy constructor later
-         
-        
+            
+            
+            if(_useVdWcutoff){
+            for (vector<QMAtom* >::const_iterator atom = Atomlist.begin(); atom != Atomlist.end(); ++atom ){
+                if(_elements.getVdWChelpG((*atom)->type)+_shift_cutoff>_padding) _padding=_elements.getVdWChelpG((*atom)->type)+_shift_cutoff; 
+            }
+        } 
+            else _padding=_cutoff;
+                
+                
          for (vector<QMAtom* >::const_iterator atom = Atomlist.begin(); atom != Atomlist.end(); ++atom ) {
                 xtemp=(*atom)->x;
                 ytemp=(*atom)->y;
@@ -154,15 +164,15 @@ namespace votca { namespace ctp {
                                     ytemp=(*atom)->y;
                                     ztemp=(*atom)->z;
                                     double distance2=pow((x-xtemp),2)+pow((y-ytemp),2)+pow((z-ztemp),2);
-                                    if(_useVdWcutoff) _cutoff_inside=_elements.getVdWChelpG((*atom)->type);
-                                    
+                                    if(_useVdWcutoff) _cutoff=_elements.getVdWChelpG((*atom)->type)+_shift_cutoff;
+                                    if(_useVdWcutoff_inside)_cutoff_inside=_elements.getVdWChelpG((*atom)->type)+_shift_cutoff_inside;
                                     //cout << "Punkt " << x <<":"<< y << ":"<<z << ":"<< distance2 << ":"<< (*atom)->type <<":"<<pow(VdW,2)<< endl;
-                                    if ( _outsidemolecule && distance2<pow(_cutoff_inside,2)){
+                                    if ( distance2<pow(_cutoff_inside,2)){
                                         _is_valid = false;
                                         break;
                                         }
-                                    else if ( _outsidemolecule && distance2<pow(_cutoff,2))  _is_valid = true;
-                                    else if ( !_outsidemolecule && distance2<pow(_cutoff_inside,2)) _is_valid =true;
+                                    else if ( distance2<pow(_cutoff,2))  _is_valid = true;
+                                   
                                     
                                     
 
@@ -176,8 +186,9 @@ namespace votca { namespace ctp {
                                 _gridpoints.push_back(temppos);
                                 if(_createpolarsites){
                                     // APolarSite are in nm so convert
-                                    vec temp=vec(x,y,z);
-                                    APolarSite *apolarsite= new APolarSite();
+                                    vec temp=vec(temppos);
+                                    string name="X";
+                                    APolarSite *apolarsite= new APolarSite(0,name);
                                     apolarsite->setRank(0);        
                                     apolarsite->setQ00(0,0); // <- charge state 0 <> 'neutral'
                                     apolarsite->setIsoP(0.0);
@@ -201,10 +212,12 @@ namespace votca { namespace ctp {
         void setupCHELPgrid(const vector< QMAtom* >& Atomlist){
             
 
-            _padding=2.8; // Additional distance from molecule to set up grid according to CHELPG paper [Journal of Computational Chemistry 11, 361, 1990]
+            //_padding=2.8; // Additional distance from molecule to set up grid according to CHELPG paper [Journal of Computational Chemistry 11, 361, 1990]
             _gridspacing=0.3; // Grid spacing according to same paper 
             _cutoff=2.8;
-            _useVdWcutoff=true;
+            _useVdWcutoff_inside=true;
+            _shift_cutoff_inside=0.0;
+            _useVdWcutoff=false;
             setupgrid(Atomlist);
         }
         
@@ -224,10 +237,11 @@ namespace votca { namespace ctp {
       double _gridspacing;
       double _cutoff;
       double _cutoff_inside;
-      double _padding; 
-      bool   _outsidemolecule;
+      double _shift_cutoff_inside;
+      double _shift_cutoff;
       bool   _createpolarsites;
       bool   _useVdWcutoff;
+      bool   _useVdWcutoff_inside;
 
       
         

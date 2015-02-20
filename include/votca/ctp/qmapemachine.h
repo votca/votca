@@ -212,6 +212,8 @@ private:
     
     bool _split_dpl;
     double _dpl_spacing;
+    
+    bool   _exportgridtofile;
 
 };
 
