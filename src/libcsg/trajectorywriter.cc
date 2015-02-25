@@ -27,8 +27,8 @@
 
 #ifdef GMX
 #include "modules/io/gmxtrajectorywriter.h"
-#include "modules/io/growriter.h"
 #endif
+#include "modules/io/growriter.h"
 #include "modules/io/dlpolytrajectorywriter.h"
 
 namespace votca { namespace csg {
@@ -44,7 +44,7 @@ void TrajectoryWriter::RegisterPlugins()
 #ifdef GMX
     TrjWriterFactory().Register<GMXTrajectoryWriter>("trr");
     TrjWriterFactory().Register<GMXTrajectoryWriter>("xtc");
-    TrjWriterFactory().Register<GROWriter>("gro");
 #endif
+    TrjWriterFactory().Register<GROWriter>("gro");
 }
 }}
