@@ -59,9 +59,7 @@ public:
    
   
     void FitAPECharges(Grid& _targetgrid_fg, Grid& _targetgrid_bg, Grid& _chargepositions, double& netcharge){
-    double Hartree2eV=27.21138505;
-    double Int2eV  = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
-    double Int2Hartree=Int2eV/Hartree2eV;
+    double Int2Hartree=Nm2Bohr;
     
 
     if(_chargepositions.getsize() >_targetgrid_fg.getsize()){
@@ -85,10 +83,10 @@ public:
     
     ub::vector<double> _potential=ub::zero_vector<double>(_targetgrid_fg.getsize());
     for( int i=0; i<_targetgrid_fg.getsize();i++){
-    _potential(i)=1/Int2Hartree*(_target_fg[i]->getPhi()+_target_bg[i]->getPhi());    
+    _potential(i)=Int2Hartree*(_target_fg[i]->getPhi()+_target_bg[i]->getPhi());    
     }
 
-    LOG(logDEBUG, *_log) << " Fitting APE to Chargeshell " << flush;
+    LOG(logDEBUG, *_log) << " Fitting APE to Chargeshell with netcharge " << netcharge <<"e."<< flush;
     std::vector<double>_chargesfromfit=FitPartialCharges(_chargepos,_targetgrid_fg,_potential,netcharge);
     int state=0;
     for (int i=0; i<_charges.size();i++) {
@@ -219,7 +217,7 @@ private:
      
      // Fits partial charges to Potential on a grid, constrains net charge
      std::vector<double> FitPartialCharges( std::vector< ub::vector<double> >& _fitcenters, Grid& _grid, ub::vector<double>& _potential, double& _netcharge ){
-         
+    LOG(logDEBUG, *_log) << TimeStamp() << " Setting up Matrices for fitting"<< flush;    
     std::vector< ub::vector<double> >& _gridpoints=_grid.getGrid();   
     //cout << "x " << _gridpoints[0](0)<< " y " << _gridpoints[0](1)<< " z " << _gridpoints[0](1);
     //cout << "x " << _fitcenters[0](0)<< " y " << _fitcenters[0](1)<< " z " << _fitcenters[0](1);
@@ -283,10 +281,12 @@ private:
        }
     
     _Bvec(_Bvec.size1()-1,0) = _netcharge; //netcharge!!!!
-    
+    LOG(logDEBUG, *_log) << TimeStamp() << "  Inverting Matrices "<< flush;      
     // invert _Amat
     ub::matrix<double> _Amat_inverse = ub::zero_matrix<double>(_fitcenters.size()+1,_fitcenters.size()+1);
     linalg_invert( _Amat , _Amat_inverse);
+    
+    LOG(logDEBUG, *_log) << TimeStamp() << " Inverting Matrices done."<< flush;    
     //_Amat.resize(0,0);
     ub::matrix<double> _charges = ub::prod(_Amat_inverse,_Bvec);
     
