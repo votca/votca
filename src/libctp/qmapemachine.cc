@@ -145,8 +145,8 @@ void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
     
     _grid_bg.setCutoffshifts(1,-0.5);
     _grid_fg.setCutoffshifts(1,-0.5);
-    _grid_fg.setSpacing(0.3);
-    _grid_bg.setSpacing(0.3);
+    _grid_fg.setSpacing(0.5);
+    _grid_bg.setSpacing(0.5);
     
     _grid_bg.setupgrid(basisforgrid.QMAtoms());
     _grid_fg.setupgrid(basisforgrid.QMAtoms());
@@ -157,7 +157,7 @@ void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
             
     _fitted_charges = Grid(true,true,true);
     _fitted_charges.setCutoffshifts(4,2);
-    _fitted_charges.setSpacing(1);
+    _fitted_charges.setSpacing(1.5);
     
     _fitted_charges.setupgrid(basisforgrid.QMAtoms());
     
@@ -209,8 +209,8 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 			//_cape->EvaluateInductionQMMM(true, true, true, true, true);
 		}
 
-        vec pos1=vec(4.425,-1.532400,-0.731342);
-        vec pos2=vec(4.925,1.84676,-0.2731);
+        vec pos1=vec(_fitted_charges.getGrid()[0]);
+        vec pos2=vec(_fitted_charges.getGrid()[1]);
         double q1=-1.0;
         double q2=1.0;
         
@@ -229,7 +229,7 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
         
         vector< PolarSeg* > target_fg;
         target_fg.push_back(_grid_fg.getSeg());
-      /*  
+        
         cout << endl << "Done ... " << endl;
         _grid_bg.getSeg()->WriteMPS("test_bg.mps", "TEST");
         cout << endl << "Done bg. " << endl;
@@ -237,7 +237,11 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
         cout << endl << "Done ... " << endl;
         _grid_fg.getSeg()->WriteMPS("test_fg.mps", "TEST");
         cout << endl << "Done fg. " << endl;
-*/
+        
+         cout << endl << "Done ... " << endl;
+        _fitted_charges.getSeg()->WriteMPS("test_charges.mps", "TEST");
+        cout << endl << "Done fg. " << endl;
+
 		if (iterCnt == 0) {
 			// Add BG, do not add MM1 & QM0
             //target_bg = _job->getPolarTop()->QM0();
@@ -257,6 +261,10 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     //cout << "hallo" << endl;
     fitcharges.FitAPECharges(_grid_bg,_grid_fg,_fitted_charges,netchargefit);
     mm_fitted.push_back(_fitted_charges.getSeg());
+    
+       
+   
+       
     
     exit(0);
     // Run DFT

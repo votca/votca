@@ -94,7 +94,13 @@ namespace votca { namespace ctp {
         }
         
        
+        void generateCubefile(const char* _filename){
         
+        
+        
+        
+        
+        }
         
         
         
@@ -107,13 +113,13 @@ namespace votca { namespace ctp {
             double _padding=0.0;
             double AtoNm=0.1;
             Elements _elements;
-            double xmin=1000;
-            double ymin=1000;
-            double zmin=1000;
+            double xmin=std::numeric_limits<double>::max();
+            double ymin=xmin;
+            double zmin=xmin;
 
-            double xmax=-1000;
-            double ymax=-1000;
-            double zmax=-1000;
+            double xmax=std::numeric_limits<double>::min();
+            double ymax=xmax;
+            double zmax=xmax;
             double xtemp,ytemp,ztemp;
             //setup one polarsite and use copy constructor later
             
@@ -187,7 +193,7 @@ namespace votca { namespace ctp {
                                 if(_createpolarsites){
                                     // APolarSite are in nm so convert
                                     vec temp=vec(temppos);
-                                    string name="X";
+                                    string name="H";
                                     APolarSite *apolarsite= new APolarSite(0,name);
                                     apolarsite->setRank(0);        
                                     apolarsite->setQ00(0,0); // <- charge state 0 <> 'neutral'
