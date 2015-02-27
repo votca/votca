@@ -101,6 +101,7 @@ namespace votca { namespace ctp {
         }
         
         void printgridtoCubefile(string filename){
+            double A2Bohr=1.8897259886;
             //Creates Cube file of Grid in Angstrom and 
             if(!_cubegrid){
                 throw std::runtime_error("Grid cannot be written to cube file as grid is not regular");
@@ -109,7 +110,9 @@ namespace votca { namespace ctp {
                 throw std::runtime_error("Grid object is empty. Setup grid first!");
             }
             vec steps=(_upperbound-_lowerbound)/_gridspacing;
-            cout << steps.getX() <<" "<< steps.getY() <<" "<< steps.getZ() << endl;
+            //cout << _upperbound*A2Bohr<<endl;
+            //cout << _lowerbound*A2Bohr<<endl;
+            //cout << steps<<endl;
             
             Elements _elements;
             FILE *out;
@@ -150,14 +153,7 @@ namespace votca { namespace ctp {
                 
             }             
         
-        
-        
-        fclose(out);
-        
-        
-        
-        
-        
+        fclose(out);        
         }
         
         
@@ -186,6 +182,7 @@ namespace votca { namespace ctp {
             
             
             if(_useVdWcutoff){
+                _padding=0.0;
             for (vector<QMAtom* >::const_iterator atom = _atomlist->begin(); atom != _atomlist->end(); ++atom ){
                 if(_elements.getVdWChelpG((*atom)->type)+_shift_cutoff>_padding) _padding=_elements.getVdWChelpG((*atom)->type)+_shift_cutoff; 
             }
@@ -302,7 +299,7 @@ namespace votca { namespace ctp {
       bool _cubegrid;
       vec _upperbound;
       vec _lowerbound;
-      double A2Bohr=1.8897259886;
+      
         
     };   
     

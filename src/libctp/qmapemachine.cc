@@ -274,7 +274,7 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     GenerateQMAtomsFromPolarSegs(_job->getPolarTop()->QM0(),dummy,basisforgrid);
         Grid visgrid_fit;
         visgrid_fit.setAtomlist(&basisforgrid.QMAtoms());
-        visgrid_fit.setPadding(3);
+        visgrid_fit.setPadding(3.0);
         visgrid_fit.setSpacing(0.75);
         visgrid_fit.generateCubegrid(); 
         
