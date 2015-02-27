@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="95">
+<configurationDescriptor version="90">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <logicalFolder name="f2" displayName="Calculators" projectFiles="true">
@@ -233,6 +233,7 @@
       <itemPath>../../src/libctp/qmmachine.cc</itemPath>
       <itemPath>../../src/libctp/qmtool.cc</itemPath>
       <itemPath>../../src/libctp/statesaversqlite.cc</itemPath>
+      <itemPath>../../src/libctp/threecenter_rep.cc</itemPath>
       <itemPath>../../src/libctp/threecenters.cc</itemPath>
       <itemPath>../../src/libctp/threecenters_dft.cc</itemPath>
       <itemPath>../../src/libctp/threecenters_tools.cc</itemPath>
@@ -930,6 +931,11 @@
       <item path="../../src/libctp/sqlapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/statesaversqlite.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/threecenter_rep.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -1671,6 +1677,11 @@
       <item path="../../src/libctp/sqlapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/statesaversqlite.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/threecenter_rep.cc"
             ex="false"
             tool="1"
             flavor2="0">

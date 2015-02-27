@@ -56,7 +56,23 @@ public:
    
     
    
-   
+    void EvaluateAPECharges(Grid& _targetgrid, Grid& _chargepositions){
+    vector<APolarSite*> charges=_chargepositions.Sites();
+    vector<APolarSite*> positions=_targetgrid.Sites();
+    vector<APolarSite*>::iterator qit;
+    vector<APolarSite*>::iterator pit;
+    for (pit=positions.begin();pit!=positions.end();++pit){
+        double potential=0.0;
+        vec pos=(*pit)->getPos();
+        for (qit=charges.begin();qit!=charges.end();++qit){
+            double dist=abs((*qit)->getPos()-pos);
+            potential+=((*qit)->getQ00())/dist;
+            
+                    
+            }
+        (*pit)->setPhi(potential,0.0);
+        }
+    }
   
     void FitAPECharges(Grid& _targetgrid_fg, Grid& _targetgrid_bg, Grid& _chargepositions, double& netcharge){
     double Int2Hartree=Nm2Bohr;
@@ -108,7 +124,8 @@ public:
  
     // setting up grid    
     Grid _grid;
-    _grid.setupCHELPgrid(_atomlist);
+    _grid.setAtomlist(&_atomlist);
+    _grid.setupCHELPgrid();
     
     LOG(logDEBUG, *_log) << TimeStamp() <<  " Done setting up CHELPG grid with " << _grid.getsize() << " points " << endl;
         

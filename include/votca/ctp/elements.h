@@ -55,6 +55,7 @@ public:
     const double     &getVdWMK(string name ) const { return _VdWMK.at(name); }
     const double     &getNucCrgECP(string name) const {return _NucCrgECP.at(name); }
     const double     &getNucCrg(string name) const {return _NucCrg.at(name); }
+    const int        &getEleNum(string name) const {return _EleNum.at(name); }
 
 private:
 
@@ -62,6 +63,7 @@ private:
     std::map<std::string, double> _VdWMK;
     std::map<std::string, double> _NucCrgECP;
     std::map<std::string, double> _NucCrg;
+    std::map<std::string, int> _EleNum;
     
     inline void FillMaps(){
         
@@ -69,6 +71,7 @@ private:
         FillVdWMK();
         FillNucCrgECP();
         FillNucCrg();
+        FillEleNum();
         
     }
 
@@ -140,6 +143,30 @@ private:
         _NucCrg["S"]  = 16.00;
         _NucCrg["Cl"] = 17.00;
         _NucCrg["Ar"] = 18.00;
+    };
+    
+    
+     inline void FillEleNum(){
+    
+        // Nuclear Charges
+        _EleNum["H"]  = 1; 
+        _EleNum["He"] = 2;
+        _EleNum["Li"] = 3;
+        _EleNum["Be"] = 4;
+        _EleNum["B"]  = 5;
+        _EleNum["C"]  = 6;
+        _EleNum["N"]  = 7;
+        _EleNum["O"]  = 8;
+        _EleNum["F"]  = 9;
+        _EleNum["Ne"] = 10;
+        _EleNum["Na"] = 11;
+        _EleNum["Mg"] = 12;
+        _EleNum["Al"] = 13;
+        _EleNum["Si"] = 14;
+        _EleNum["P"]  = 15;
+        _EleNum["S"]  = 16;
+        _EleNum["Cl"] = 17;
+        _EleNum["Ar"] = 18;
     };
     
     

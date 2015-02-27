@@ -142,24 +142,26 @@ void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
     
     _grid_bg = Grid(true,true,true);
     _grid_fg = Grid(true,true,true);
-    
+    _grid_bg.setAtomlist(&basisforgrid.QMAtoms());
+    _grid_fg.setAtomlist(&basisforgrid.QMAtoms());
     _grid_bg.setCutoffshifts(1,-0.5);
     _grid_fg.setCutoffshifts(1,-0.5);
     _grid_fg.setSpacing(0.5);
     _grid_bg.setSpacing(0.5);
     
-    _grid_bg.setupgrid(basisforgrid.QMAtoms());
-    _grid_fg.setupgrid(basisforgrid.QMAtoms());
+    _grid_bg.setupgrid();
+    _grid_fg.setupgrid();
     
     LOG(logINFO,*_log) << "Created internal grid with " << _grid_bg.getsize() <<" points."<< flush;
     
 
             
     _fitted_charges = Grid(true,true,true);
+    _fitted_charges.setAtomlist(&basisforgrid.QMAtoms());
     _fitted_charges.setCutoffshifts(4,2);
     _fitted_charges.setSpacing(1.5);
     
-    _fitted_charges.setupgrid(basisforgrid.QMAtoms());
+    _fitted_charges.setupgrid();
     
     LOG(logINFO,*_log) << "Created " << _fitted_charges.getsize() <<" charge positions."<< flush;
     LOG(logINFO,*_log) << flush;
@@ -206,7 +208,7 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 		if (iterCnt == 0) {
 			_cape->ShowAgenda(_log);
 			// Reset FGC, start from BGP state, apply FP fields (BG & FG)
-			//_cape->EvaluateInductionQMMM(true, true, true, true, true);
+			_cape->EvaluateInductionQMMM(true, true, true, true, true);
 		}
 
         vec pos1=vec(_fitted_charges.getGrid()[0]);
@@ -215,6 +217,7 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
         double q2=1.0;
         
 		// COMPUTE POTENTIALS
+        /*
         vector<APolarSite*>::iterator pit;
         for (pit=_grid_bg.Sites().begin();pit!=_grid_bg.Sites().end();++pit){
             double dist1=abs((*pit)->getPos()-pos1);
@@ -223,7 +226,7 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
             (*pit)->setPhi(potential,0.0);
                     
         }
-        
+        */
 		vector< PolarSeg* > target_bg;     
         target_bg.push_back(_grid_bg.getSeg());
         
@@ -241,14 +244,17 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
          cout << endl << "Done ... " << endl;
         _fitted_charges.getSeg()->WriteMPS("test_charges.mps", "TEST");
         cout << endl << "Done fg. " << endl;
-
+        
+        
+              
+                
 		if (iterCnt == 0) {
 			// Add BG, do not add MM1 & QM0
             //target_bg = _job->getPolarTop()->QM0();
-			//_cape->EvaluatePotential(target_bg, true, false, false);
+			_cape->EvaluatePotential(target_bg, true, false, false);
 		}
 		// Do not add BG & QM0, add MM1
-		//_cape->EvaluatePotential(target_fg, false, true, false);
+		_cape->EvaluatePotential(target_fg, false, true, false);
     }
 
     // COMPUTE WAVEFUNCTION & QM ENERGY
@@ -263,14 +269,28 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     mm_fitted.push_back(_fitted_charges.getSeg());
     
        
-   
+    vector<PolarSeg*> dummy;
+    Orbitals basisforgrid;
+    GenerateQMAtomsFromPolarSegs(_job->getPolarTop()->QM0(),dummy,basisforgrid);
+        Grid visgrid_fit;
+        visgrid_fit.setAtomlist(&basisforgrid.QMAtoms());
+        visgrid_fit.setPadding(3);
+        visgrid_fit.setSpacing(0.75);
+        visgrid_fit.generateCubegrid(); 
+        
+        fitcharges.EvaluateAPECharges(visgrid_fit,_fitted_charges);
+
+        visgrid_fit.printgridtoCubefile("cubefile.cub");
+        
+        exit(0);
        
     
-    exit(0);
+    
     // Run DFT
     Orbitals orb_iter_input;
     vector<Segment*> empty;
     GenerateQMAtomsFromPolarSegs(qm, mm_fitted, orb_iter_input);
+   
 	_qmpack->setRunDir(runFolder);
 	_qmpack->WriteInputFile(empty, &orb_iter_input);
 
