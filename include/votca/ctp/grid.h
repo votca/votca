@@ -246,7 +246,9 @@ namespace votca { namespace ctp {
                                     apolarsite->setQ00(0,0); // <- charge state 0 <> 'neutral'
                                     apolarsite->setIsoP(0.0);
                                     apolarsite->setPos(temp);
+                                    if (!_is_valid){apolarsite->setIsAsleep(true);}
                                     _gridsites.push_back(apolarsite);
+                                    
                                 }
                             }
                             z+=_gridspacing; 

@@ -63,14 +63,14 @@ public:
             : _id(id),              _name(name),         _isVirtual(false), 
               _locX(vec(1,0,0)),    _locY(vec(0,1,0)),   _locZ(vec(0,0,1)), 
               _top(0),              _seg(0),             _frag(0),
-              _resolution(atomistic),PhiP(0.0),          PhiU(0.0)
+              _resolution(atomistic),PhiP(0.0),          PhiU(0.0), _isAsleep(false)
             { _Qs.resize(3); _Ps.resize(3); this->Depolarize();
               for (int s = -1; s < 2; ++s) _Ps[s+1].ZeroMatrix(); }
     APolarSite()
             : _id(-1),              _name(""),          _isVirtual(false),  
               _locX(vec(1,0,0)),    _locY(vec(0,1,0)),  _locZ(vec(0,0,1)),  
               _top(0),              _seg(0),            _frag(0),
-              _resolution(atomistic),PhiP(0.0),          PhiU(0.0)
+              _resolution(atomistic),PhiP(0.0),          PhiU(0.0),_isAsleep(false)
             { _Qs.resize(3); _Ps.resize(3); this->Depolarize();
               for (int s = -1; s < 2; ++s) _Ps[s+1].ZeroMatrix(); }
     APolarSite(APolarSite *templ, bool do_depolarize);
@@ -91,6 +91,8 @@ public:
     Fragment       *getFragment() { return _frag; }
     bool            getIsVirtual() { return _isVirtual; }
     bool            getIsActive(bool estatics_only);
+    bool            getIsAsleep(){return _isAsleep;}
+    void            setIsAsleep(bool isAsleep){_isAsleep=isAsleep;}
 
     void            ImportFrom(APolarSite *templ, string tag = "basic");
     void            setIsVirtual(bool isVirtual) { _isVirtual = isVirtual; }
@@ -207,6 +209,7 @@ private:
     string  _name;
     bool    _isVirtual;
     res_t   _resolution;
+    bool    _isAsleep;
     vec     _pos;
     vec     _locX;
     vec     _locY;

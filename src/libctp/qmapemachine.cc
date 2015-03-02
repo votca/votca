@@ -272,11 +272,11 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     vector<PolarSeg*> dummy;
     Orbitals basisforgrid;
     GenerateQMAtomsFromPolarSegs(_job->getPolarTop()->QM0(),dummy,basisforgrid);
-        Grid visgrid_fit;
-        visgrid_fit.setAtomlist(&basisforgrid.QMAtoms());
-        visgrid_fit.setPadding(3.0);
-        visgrid_fit.setSpacing(0.75);
-        visgrid_fit.generateCubegrid(); 
+    Grid visgrid_fit=Grid(true,true,true);
+    visgrid_fit.setAtomlist(&basisforgrid.QMAtoms());
+    visgrid_fit.setCutoffshifts(1,-0.5);
+    visgrid_fit.setSpacing(0.5);
+    visgrid_fit.generateCubegrid(); 
         
         fitcharges.EvaluateAPECharges(visgrid_fit,_fitted_charges);
 

@@ -62,6 +62,7 @@ public:
     vector<APolarSite*>::iterator qit;
     vector<APolarSite*>::iterator pit;
     for (pit=positions.begin();pit!=positions.end();++pit){
+        if ((*pit)->getIsAsleep()) continue;
         double potential=0.0;
         vec pos=(*pit)->getPos();
         for (qit=charges.begin();qit!=charges.end();++qit){
