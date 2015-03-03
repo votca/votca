@@ -150,6 +150,8 @@ void LAMMPSReader::ReadAtoms(Topology &top, string itemline) {
         for(Tokenizer::iterator i=tok.begin(); i!=tok.end(); ++i,++j) {
             if(*i == "x" || *i == "y" || *i == "z")
                 pos =true;
+	    else if(*i == "xu" || *i == "yu" || *i == "zu")
+                pos =true;
 	    else if(*i == "xs" || *i == "ys" || *i == "zs")
                 pos =true;
 	    else if(*i == "vx" || *i == "vy" || *i == "vz")
@@ -188,6 +190,12 @@ void LAMMPSReader::ReadAtoms(Topology &top, string itemline) {
                 b->Pos().y() = boost::lexical_cast<double>(*itok);
             else if(fields[j] == "z")
                 b->Pos().z() = boost::lexical_cast<double>(*itok);
+            else if(fields[j] == "xu")
+                b->Pos().x() = boost::lexical_cast<double>(*itok);
+            else if(fields[j] == "yu")
+                b->Pos().y() = boost::lexical_cast<double>(*itok);
+            else if(fields[j] == "zu")
+                b->Pos().z() = boost::lexical_cast<double>(*itok);
             else if(fields[j] == "xs")
                 b->Pos().x() = boost::lexical_cast<double>(*itok)*m[0][0];
             else if(fields[j] == "ys")
@@ -210,7 +218,6 @@ void LAMMPSReader::ReadAtoms(Topology &top, string itemline) {
                 BeadType *type = top.GetOrCreateBeadType(*itok);
                 b->setType(type);
             }
-            
         }
     }
 }
