@@ -23,6 +23,7 @@
 #include <votca/tools/table.h>
 #include <boost/lexical_cast.hpp>
 #include <votca/tools/tokenizer.h>
+#include <votca/tools/getline.h>
 #include <iostream>
 #include <votca/csg/imcio.h>
 

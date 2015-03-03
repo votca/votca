@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2013 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,16 +25,18 @@ Usage: ${0##*/} [options] input output
 Allowed options:
     --help       show this help
     --clean      remove all intermediate temp files
-    --r2d        converts rad to degree (scale x axis with 180/3.1415)
+    --no-r2d     do not converts rad to degree (scale x axis with 180/3.1415)
                  for angle and dihedral
                  Note: VOTCA calcs in rad, but gromacs in degree
     --no-shift   do not shift the potential
+    --step XXX   use XXX as step for the interaction
 EOF
 }
 
-clean="no"
+clean=
 do_shift="yes"
-r2d=1
+r2d="57.2957795"
+step=
 
 ### begin parsing options
 shopt -s extglob
@@ -48,8 +50,10 @@ while [[ ${1#-} != $1 ]]; do
     fi
  fi
  case $1 in
-   --r2d)
-    r2d="57.2957795"
+   --r2d) #default now
+    shift ;;
+   --no-r2d)
+    r2d=1
     shift ;;
    --clean)
     clean="yes"
@@ -57,6 +61,9 @@ while [[ ${1#-} != $1 ]]; do
    --no-shift)
     do_shift="no"
     shift ;;
+   --step)
+    step="$2"
+    shift 2;;
    -h | --help)
     show_help
     exit 0;;
@@ -89,6 +96,9 @@ if [[ $tabtype = "non-bonded" ]]; then
     tabl=$(csg_calc "$rlist" + "$tabext")
     [[ -n $tablend  ]] &&  csg_calc "$tablend" "<" "$tabl" && \
       die "${0##*/}: Error table is shorter then what mdp file ($mdp) needs, increase cg.inverse.gromacs.table_end in setting file.\nrlist ($rlist) + tabext ($tabext) > cg.inverse.gromacs.table_end ($tablend)"
+    max="$(csg_get_interaction_property max)"
+    rvdw="$(get_simulation_setting rvdw)"
+    csg_calc "$max" ">" "$rvdw" && die "${0##*/}: rvdw ($rvdw) is smaller than max ($max)"
     [[ -z $tablend ]] && tablend=$(csg_calc "$rlist" + "$tabext")
   elif [[ -z $tablend ]]; then
     die "${0##*/}: cg.inverse.gromacs.table_end was not defined in xml seeting file"
@@ -104,41 +114,37 @@ else
   die "${0##*/}: Unknown interaction type $tabtype"
 fi
 
+[[ $step ]] || step=$(csg_get_interaction_property step)
 gromacs_bins="$(csg_get_property cg.inverse.gromacs.table_bins)"
 comment="$(get_table_comment $input)"
 
 if [[ $tabtype = "angle" || $tabtype = "dihedral" ]] && [[ $r2d != 1 ]]; then
   scale="$(critical mktemp ${trunc}.pot.scale.XXXXX)"
   do_external table linearop --on-x "${input}" "${scale}" "$r2d" "0"
+  step=$(csg_calc $r2d "*" $step)
 else
   scale="${input}"
 fi
 
+#keep the grid for now, so that extrapolate can calculate the right mean
 smooth="$(critical mktemp ${trunc}.pot.smooth.XXXXX)"
-critical csg_resample --in ${scale} --out "$smooth" --grid "${zero}:${gromacs_bins}:${tablend}" --comment "$comment"
+critical csg_resample --in ${scale} --out "$smooth" --grid "${zero}:${step}:${tablend}"
 
 extrapol="$(critical mktemp ${trunc}.pot.extrapol.XXXXX)"
-if [[ $clean = "yes" ]]; then
-  do_external potential extrapolate --clean --type "$tabtype" "${smooth}" "${extrapol}"
-else
-  do_external potential extrapolate --type "$tabtype" "${smooth}" "${extrapol}"
-fi
+do_external potential extrapolate ${clean:+--clean} --type "$tabtype" "${smooth}" "${extrapol}"
+
+interpol="$(critical mktemp ${trunc}.pot.interpol.XXXXX)"
+critical csg_resample --in "${extrapol}" --out "$interpol" --grid "${zero}:${gromacs_bins}:${tablend}" --comment "$comment"
 
 if [[ $do_shift = "yes" ]]; then
   tshift="$(critical mktemp ${trunc}.pot.shift.XXXXX)"
-  if [[ $tabtype = "non-bonded" || $tabtype = "thermforce" ]]; then
-    do_external pot shift_nonbonded "${extrapol}" "${tshift}"
-  else
-    do_external pot shift_bonded "${extrapol}" "${tshift}"
-  fi
+  do_external potential shift --type "$tabtype" "${interpol}" "${tshift}"
 else
-  tshift="$extrapol"
+  tshift="$interpol"
 fi
 
 potmax="$(csg_get_property --allow-empty cg.inverse.gromacs.pot_max)"
-[[ -n ${potmax} ]] && potmax="--max ${potmax}"
-
-do_external convert_potential xvg ${potmax} --type "${xvgtype}" "${tshift}" "${output}"
-if [[ $clean = "yes" ]]; then
-  rm -f "${smooth}" "${extrapol}" "${tshift}" "${extrapol1}"
+do_external convert_potential xvg ${potmax:+--max} ${potmax} --type "${xvgtype}" "${tshift}" "${output}"
+if [[ $clean ]]; then
+  rm -f "${smooth}" "${interpol}" "${extrapol}" "${tshift}" "${scale}"
 fi

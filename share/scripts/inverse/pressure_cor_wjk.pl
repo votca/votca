@@ -87,6 +87,9 @@ if ($temp > 0.1*$kBT){
 $pref=$pref*$scale_factor;
 print "Pressure correction factor: A=$pref\n";
 
+# my $prefile="${name}.pressure.prefactor";
+# saveto_table($prefile,$pref) || die "$progname: error at save table\n";
+
 my @r;
 my @pot;
 my @flag;

@@ -41,7 +41,7 @@ sub csg_get_property($;$){
   defined($_[0]) || die "csg_get_property: Missing argument\n";
   my $cmd="csg_get_property '$_[0]'";
   $cmd="csg_get_property $_[0]' '$_[1]'" if (defined($_[1]));
-  my $value=`bash -c "$cmd"`;
+  my $value=`$ENV{'BASH'} -c "$cmd"`;
   die "csg_get_property: error in perl from bash function csg_get_property\n" if ($? != 0);
   chomp($value);
   return $value;
@@ -51,7 +51,7 @@ sub csg_get_interaction_property($;$){
   defined($_[0]) || die "csg_get_interaction_property: Missing argument\n";
   my $cmd="csg_get_interaction_property '$_[0]'";
   $cmd="csg_get_interaction_property '$_[0]' '$_[1]'" if (defined($_[1]));
-  my $value=`bash -c "$cmd"`;
+  my $value=`$ENV{'BASH'} -c "$cmd"`;
   die "csg_get_interaction_property: error in perl from bash function csg_get_interaction_property\n" if ($? != 0);
   chomp($value);
   return $value;

@@ -226,6 +226,20 @@ public:
     void RenameMolecules(string range, string name);
 
     /**
+     *  \brief rename all the bead types
+     * \param name current rame of the bead type
+     * \param newname new name of bead type
+     */
+    void RenameBeadType(string name, string newname);
+    
+    /**
+     *  \brief set the mass of all the beads of a certain type
+     * \param name the bead type
+     * \param value mass value
+     */
+    void SetBeadTypeMass(string name, double value);
+
+    /**
      * set the simulation box
      * \param box triclinic box matrix
      */
@@ -285,6 +299,20 @@ public:
      * \return step number
      */
     int getStep() { return _step; };
+
+    /**
+     * Sets the particle group. (For the H5MD file format)
+     * \param particle_group The name of a particle group.
+     */
+    void setParticleGroup(string particle_group) { _particle_group = particle_group; };
+
+    /**
+     * Gets the particle group.
+     * \return The name of a particle group.
+     */
+    string getParticleGroup() { 
+      return _particle_group; 
+    };
 
     /**
      * \brief pbc correct distance of two beads
@@ -377,6 +405,9 @@ protected:
     int _step;
     bool _has_vel;
     bool _has_force;
+
+    /// The particle group (For H5MD file format)
+    string _particle_group;
 };
 
 inline Bead *Topology::CreateBead(byte_t symmetry, string name, BeadType *type, int resnr, double m, double q)

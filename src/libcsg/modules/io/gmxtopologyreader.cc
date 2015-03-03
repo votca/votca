@@ -23,13 +23,7 @@
 #include "gmxtopologyreader.h"
 
 #if GMX == 50
-        #include <gromacs/legacyheaders/statutil.h>
-        #include <gromacs/legacyheaders/typedefs.h>
-        #include <gromacs/legacyheaders/smalloc.h>
-        #include <gromacs/legacyheaders/vec.h>
-        #include <gromacs/legacyheaders/copyrite.h>
-        #include <gromacs/legacyheaders/statutil.h>
-        #include <gromacs/legacyheaders/tpxio.h>
+        #include <gromacs/fileio/tpxio.h>
 #elif GMX == 45
         #include <gromacs/statutil.h>
         #include <gromacs/typedefs.h>
@@ -64,7 +58,6 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
     int natoms;
     // cleanup topology to store new data
     top.Cleanup();
-    set_program_name("VOTCA");
 
 #if GMX == 50
     t_inputrec ir;
@@ -72,10 +65,14 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
 
     (void)read_tpx((char *)file.c_str(),&ir,gbox,&natoms,NULL,NULL,NULL,&mtop);
 #elif GMX == 45
+    set_program_name("VOTCA");
+
     t_inputrec ir;
     ::matrix gbox;
     (void)read_tpx((char *)file.c_str(),&ir,gbox,&natoms,NULL,NULL,NULL,&mtop);
 #elif GMX == 40
+    set_program_name("VOTCA");
+
     int sss;   // wtf is this
     ::real    ttt,lll; // wtf is this
     (void)read_tpx((char *)file.c_str(),&sss,&ttt,&lll,NULL,NULL,&natoms,NULL,NULL,NULL,&mtop);
@@ -126,17 +123,17 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
 
                 BeadType *type = top.GetOrCreateBeadType(*(atoms->atomtype[iatom]));
 #if GMX == 50
-                Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resind, a->m, a->q);
+                Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resind + res_offset, a->m, a->q);
 #elif GMX == 45
-                Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resind, a->m, a->q);
+                Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resind + res_offset, a->m, a->q);
 #elif GMX == 40
-                Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resnr, a->m, a->q);
+                Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resnr + res_offset, a->m, a->q);
 #else
 #error Unsupported GMX version
 #endif
 
                 stringstream nm;
-                nm << bead->getResnr() + 1 << ":" <<  top.getResidue(res_offset + bead->getResnr())->getName() << ":" << bead->getName();
+                nm << bead->getResnr() + 1 - res_offset << ":" <<  top.getResidue(bead->getResnr())->getName() << ":" << bead->getName();
                 mi->AddBead(bead, nm.str());
             }
 
@@ -156,6 +153,14 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
             ifirstatom+=mtop.molblock[iblock].natoms_mol;
         }
     }
+
+#if GMX != 40
+    matrix m;
+    for(int i=0; i<3; i++)
+        for(int j=0; j<3; j++)
+            m[i][j] = gbox[j][i];
+    top.setBox(m);
+#endif
 
     return true;
 }

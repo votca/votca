@@ -53,9 +53,6 @@ Allowed options:
     --scriptdir DIR  Set the user script dir
                      (Used if no options xml file is given)
                      Default: empty
-    --simprog PROG   Set the simprog
-                     (Used if no options xml file is given)
-                     Default: empty
     --options FILE   Specify the options xml file to use
     --log FILE       Specify the log file to use
                      Default: stdout
@@ -87,10 +84,10 @@ while [[ ${1#-} != $1 ]]; do
     ext_cmd="show_csg_tables"
     shift ;;
    --scriptdir)
-    scriptdir="$2"
+    die "'--scriptdir' is obsolete, please specify the script path in the xml file (cg.inverse.scriptpath)"
     shift 2;;
    --simprog)
-    simprog="$2"
+    die "'--simprog' is obsolete, please specify the simprog in the xml file (cg.inverse.program)"
     shift 2;;
    --options)
     export CSGXMLFILE="$2"
@@ -165,11 +162,11 @@ else
   die "Could not find start_framework.sh"
 fi
 
-[[ -n ${CSGXMLFILE} ]] && scriptpath="$(csg_get_property --allow-empty cg.inverse.scriptpath "$scriptdir")"
-[[ -n ${scriptpath} ]] && add_to_csgshare "$scriptpath"
+[[ -n ${CSGXMLFILE} ]] && scriptpath="$(csg_get_property --allow-empty cg.inverse.scriptpath)" > /dev/null
+[[ -n ${scriptpath} ]] && echo "Adding '$scriptpath to csgshare" && add_to_csgshare "$scriptpath"
 
 [[ -n ${CSGXMLFILE} ]] && simprog="$(csg_get_property --allow-empty cg.inverse.program "$simprog")"
-[[ -n ${simprog} ]] && source_function $simprog
+[[ -n ${simprog} ]] && echo "We are using Sim Program: $simprog" && source_function $simprog
 
 if [[ $ext_cmd = show_csg_tables ]]; then
   $ext_cmd

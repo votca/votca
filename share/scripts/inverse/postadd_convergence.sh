@@ -22,14 +22,11 @@ postadd convergence script, calcs norm of error (\${name}.DIST.BASE-\${name}.DIS
 and saves it to \${name}.conv.
 DIST stands for 'dist', but can be changed by onvergence.what option
 
-usage: ${0##*/} infile outfile
+usage: ${0##*/}
 EOF
    exit 0
 fi
 
-[[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
-
-do_external postadd dummy "$1" "$2"
 if [[ $(csg_get_property cg.inverse.method) = "optimizer" ]]; then
   msg "WARNING: postadd convergency make no sense for method optimizer as convergency is calculated anyway - skipping"
   exit 0
@@ -76,7 +73,14 @@ for ((i=0;i<${#what_to_do_list[@]};i++)); do
     fi
   fi
 
-  [[ -f ${name}.${dist}.new ]] || die "${0##*/}: file '${name}.${dist}.new' was not found, add a postadd routine of interaction $name to calculate it."
+  if [[ ! -f ${name}.${dist}.new ]]; then
+    #pot.new won't there yet as postadd dummy is called after postadd task automatically in post_add_single.sh
+    if [[ ${dist} = pot ]]; then
+      do_external postadd dummy "$1" "$2"
+    else
+      die "${0##*/}: file '${name}.${dist}.new' was not found, add a postadd routine of interaction $name to calculate it."
+    fi
+  fi
   #resample this, as density dist maybe has the wrong grid
   if [[ ! ${base} = "cur" ]]; then
       critical csg_resample --in ${name}.${dist}.new --out $tmp1 --grid "$min:$step:$max"

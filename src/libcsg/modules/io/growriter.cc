@@ -43,8 +43,8 @@ void GROWriter::Write(Topology *conf)
   fprintf (_out,"%s\n","what a nice title");
   fprintf (_out,"%5d\n",top->BeadCount());
   
-  bool v = false; // we don't write velocities!  
-  int pr = 3; // precision of writeout
+  bool v = top->HasVel();
+  int pr = 3; // precision of writeout, given by the spec
   
   /* build format string for printing, 
      something like "%8.3f" for x and "%8.4f" for v */
@@ -69,14 +69,15 @@ void GROWriter::Write(Topology *conf)
             (resnr+1)%100000,resname.c_str(),atomname.c_str(),(i+1)%100000);
     /* next fprintf uses built format string */
     vec r = conf->getBead(i)->getPos();
-    vec vv = vec(0,0,0);
     
-    if (v)
+    if (v) {
+      vec vv = conf->getBead(i)->getVel();
       fprintf(_out,format,
 	      r.getX(), r.getY(), r.getZ(), vv.getX(), vv.getY(), vv.getZ());
-    else
+    } else {
       fprintf(_out,format,
 	      r.getX(), r.getY(), r.getZ());
+    }
   }
 
   // write the boy
@@ -93,8 +94,8 @@ void GROWriter::Write(Topology *conf)
 	    l,pr,l,pr,l,pr,l,pr,l,pr,l,pr,l,pr,l,pr,l,pr);
     fprintf(_out,format,
 	    box[0][0],box[1][1],box[2][2],
-	    box[0][1],box[0][2],box[1][0],
-	    box[1][2],box[2][0],box[2][1]);
+	    box[1][0],box[2][0],box[0][1],
+	    box[2][1],box[0][2],box[1][2]);
   } else {
     sprintf(format,"%%%d.%df%%%d.%df%%%d.%df\n",l,pr,l,pr,l,pr);
     fprintf(_out,format,

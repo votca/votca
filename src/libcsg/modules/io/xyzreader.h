@@ -56,8 +56,6 @@ class XYZReader :
         void Close();
 
     private:
-        void ReadAtoms(Topology &top, string itemline);
-
         ifstream _fl;
         bool _topology;
         int _natoms;

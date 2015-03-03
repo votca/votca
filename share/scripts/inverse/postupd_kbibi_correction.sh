@@ -45,7 +45,7 @@ fi
 do_external calc kbint ${name}.dist.tgt ${name}.kbint.tgt
 if [[ $(csg_get_interaction_property inverse.post_update_options.kbibi.kbint_with_errors) = "yes" ]]; then
   sim_prog="$(csg_get_property cg.inverse.program)"
-  rdf_with_errors = $(csg_get_property cg.inverse.${sim_prog}.rdf.with_errors) #filter me away
+  rdf_with_errors = $(csg_get_property cg.inverse.$sim_prog.rdf.with_errors)
   [[ ${rdf_with_errors} != "yes" ]] && die "${0##*/}: kb integrals with errors need cg.inverse.${sim_prog}.rdf.with_errors to be yes"
   for f in ${name}_*.dist.block; do
     [[ -f $f ]] || die "${0##*/}: rdf block (${name}_*.dist.block) files not found"

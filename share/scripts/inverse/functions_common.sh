@@ -28,6 +28,10 @@ echo
 exit 0
 fi
 
+export BASH #need in CsgFunctions.pm
+
+shopt -s extglob
+
 msg() { #echos a msg on the screen and send it to the logfile if logging is enabled
   local color colors="blue cyan cyann green red purp"
   if [[ -z ${CSGNOCOLOR} ]]; then
@@ -78,7 +82,7 @@ show_callstack() { #show the current callstack
   else
     space=""
   fi
-  [[ $0 = "bash" ]] || echo "${space}${0} - linenumber ${BASH_LINENO[ $(( ${#FUNCNAME[@]} -2 ))]}"
+  [[ $0 = *"bash" ]] || echo "${space}${0} - linenumber ${BASH_LINENO[ $(( ${#FUNCNAME[@]} -2 ))]}"
   for ((c=${#FUNCNAME[*]}-1;c>0;c--)); do
     [[ ${FUNCNAME[$c]} = main ]] && continue #main is useless as the info was printed 2 lines above
     space+="    "
@@ -154,10 +158,11 @@ do_external() { #takes two tags, find the according script and excute it
   [[ $1 = "-q" ]] && quiet="yes" && shift
   script="$(source_wrapper $1 $2)" || die "${FUNCNAME[0]}: source_wrapper $1 $2 failed"
   tags="$1 $2"
+  [[ $1 != "function" && ! -x ${script/ *} ]] && die "${FUNCNAME[0]}: subscript '${script/ *}' (from tags $tags), is not executable! (Run chmod +x ${script/ *})"
   #print this message to stderr to allow $(do_external ) and do_external XX > 
   [[ $quiet = "no" ]] && echo "Running subscript '${script##*/}${3:+ }${@:3}' (from tags $tags) dir ${script%/*}" >&2
   if [[ -n $CSGDEBUG ]] && [[ $1 = "function" || -n "$(sed -n '1s@bash@XXX@p' "${script/ *}")" ]]; then
-    CSG_CALLSTACK="$(show_callstack)" bash -x $script "${@:3}"
+    CSG_CALLSTACK="$(show_callstack)" "${BASH}" -x $script "${@:3}"
   elif [[ -n $CSGDEBUG && -n "$(sed -n '1s@perl@XXX@p' "${script/ *}")" ]]; then
     local perl_debug="$(mktemp perl_debug.XXX)" ret
     PERLDB_OPTS="NonStop=1 AutoTrace=1 frame=2 LineInfo=$perl_debug" perl -dS $script "${@:3}"
@@ -168,7 +173,7 @@ do_external() { #takes two tags, find the according script and excute it
     CSG_CALLSTACK="$(show_callstack --extra "${script/ *}")" $script "${@:3}"
   else
     CSG_CALLSTACK="$(show_callstack)" $script "${@:3}"
-  fi || die "${FUNCNAME[0]}: subscript $script ${@:3} (from tags $tags) failed"
+  fi || die "${FUNCNAME[0]}: subscript" "$script ${*:3}" "(from tags $tags) failed"
 }
 export -f do_external
 
@@ -183,7 +188,7 @@ critical() { #executes arguments as command and calls die if not succesful
 export -f critical
 
 for_all (){ #do something for all interactions (1st argument)
-  local bondtypes type name interactions quiet="no"
+  local bondtype ibondtype rbondtype bondtypes name interactions quiet="no"
   [[ $1 = "-q" ]] && quiet="yes" && shift
   [[ -z $1 || -z $2 ]] && die "${FUNCNAME[0]}: need at least two arguments"
   bondtypes="$1"
@@ -194,19 +199,26 @@ for_all (){ #do something for all interactions (1st argument)
   name=$(has_duplicate "${interactions[@]}") && die "${FUNCNAME[0]}: interaction name $name appears twice"
   for bondtype in $bondtypes; do
     #check that type is bonded or non-bonded
-    [[ $bondtype = "non-bonded" || $bondtype = "bonded" ]] || die  "for_all: Argument 1 is not non-bonded or bonded"
+    is_part "$bondtype" "non-bonded bonded angle bond dihedral" || die  "for_all: Argument 1 needs to be non-bonded, bonded, angle, bond or dihedral"
     [[ $quiet = "no" ]] && echo "For all $bondtype" >&2
-    interactions=( $(csg_get_property --allow-empty cg.$bondtype.name) ) #filter me away
+    #internal bondtype
+    is_part "$bondtype" "angle bond dihedral bonded" && ibondtype="bonded" || ibondtype="non-bonded"
+    interactions=( $(csg_get_property --allow-empty cg.$ibondtype.name) ) #filter me away
     for name in "${interactions[@]}"; do
+      #check if interaction is actually angle, bond or dihedral
+      if is_part "$bondtype" "angle bond dihedral"; then
+	rbondtype=$(bondtype="$ibondtype" bondname="$name" csg_get_interaction_property bondtype)
+	[[ $rbondtype = $bondtype ]] || continue
+      fi
       #print this message to stderr to avoid problem with $(for_all something)
-      [[ $quiet = no ]] && echo "for_all: run '$*'" >&2
+      [[ $quiet = no ]] && echo "for_all: run '$*' for interaction named '$name'" >&2
       #we need to use bash -c here to allow things like $(csg_get_interaction_property name) in arguments
       #write variable defines in the front is better, that export
       #no need to run unset afterwards
-      bondtype="$bondtype" \
+      bondtype="$ibondtype" \
       bondname="$name" \
       CSG_CALLSTACK="$(show_callstack)" \
-      bash -c "$*" || die "${FUNCNAME[0]}: bash -c '$*' failed for bondname '$name'"
+      "${BASH}" -c "$*" || die "${FUNCNAME[0]}: ${BASH} -c '$*' failed for interaction named '$name'"
     done
   done
 }
@@ -249,19 +261,25 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
     [[ -z "$bondtype" ]] && die "${FUNCNAME[0]}: bondtype is undefined (when calling from csg_call set it by --ia-type option)"
     #for_all notation for any kind of bonded interaction, find the real type
     if [[ $bondtype = "bonded" ]]; then
-      mapping="$(csg_get_property --allow-empty cg.inverse.map)" #make error message more useful
-      [[ -z ${mapping} ]] && die "${FUNCNAME[0]}: bondtype 'bonded' needs a mapping file (cg.inverse.map in xml) to determine the actual bond type (when calling from csg_call better use --ia-type bond, angle or dihedral)"
-      [[ -f "$(get_main_dir)/$mapping" ]] || die "${FUNCNAME[0]}: Mapping file '$mapping' for bonded interaction not found in maindir"
       [[ -z ${bondname} ]] && die "${FUNCNAME[0]}: bondtype 'bonded' needs a bondname (when calling from csg_call set it by --ia-name option) or change type to angle, bond or dihedral"
       [[ -n "$(type -p csg_property)" ]] || die "${FUNCNAME[0]}: Could not find csg_property"
-      local names=()
-      names=$(critical -q csg_property --file "$(get_main_dir)/$mapping" --path cg_molecule.topology.cg_bonded.*.name --print . --short)
-      ret=$(has_duplicate "${names[@]}") && die "${FUNCNAME[0]}: cg_bonded name '$ret' in $mapping appears twice"
-      ret="$(critical -q csg_property --file "$(get_main_dir)/$mapping" --path cg_molecule.topology.cg_bonded.* --filter name="$bondname" --print . --with-path | trim_all)"
-      ret="$(echo "$ret" | critical sed -n 's/.*cg_bonded\.\([^[:space:]]*\) .*/\1/p')"
-      [[ -z $ret ]] && die "${FUNCNAME[0]}: Could not find a bonded definition with name '$bondname' in the mapping file '$mapping'. Make sure to use the same name in the settings file (or --ia-name when calling from csg_call) and the mapping file."
+      mapping="$(csg_get_property --allow-empty cg.inverse.map)" #make error message more useful
+      [[ -z ${mapping} ]] && die "${FUNCNAME[0]}: bondtype 'bonded' needs a mapping file (cg.inverse.map in xml) to determine the actual bond type (when calling from csg_call better use --ia-type bond, angle or dihedral)"
+      local map names=() ret= ret2 dup
+      for map in ${mapping}; do
+        [[ -f "$(get_main_dir)/$map" ]] || die "${FUNCNAME[0]}: Mapping file '$map' for bonded interaction not found in maindir"
+	names+=( $(critical -q csg_property --file "$(get_main_dir)/$map" --path cg_molecule.topology.cg_bonded.*.name --print . --short) )
+	dup=$(has_duplicate "${names[@]}") && die "${FUNCNAME[0]}: cg_bonded name '$dup' appears twice in file(s) $mapping"
+        ret2="$(critical -q csg_property --file "$(get_main_dir)/$map" --path cg_molecule.topology.cg_bonded.* --filter name="$bondname" --print . --with-path | trim_all)"
+        ret2="$(echo "$ret2" | critical sed -n 's/.*cg_bonded\.\([^[:space:]]*\) .*/\1/p')"
+	if [[ -n $ret2 ]]; then
+	  [[ -n $ret ]] && die "${FUNCNAME[0]}: Found cg_bonded type for name '$bondname' twice"
+	  ret="${ret2}"
+	fi
+      done
+      [[ -z $ret ]] && die "${FUNCNAME[0]}: Could not find a bonded definition with name '$bondname' in the mapping file(s) '$mapping'. Make sure to use the same name in the settings file (or --ia-name when calling from csg_call) and the mapping file."
       echo "$ret"
-    elif [[ $(csg_get_property --allow-empty cg.inverse.method) = "tf" ]]; then
+    elif [[ -n $CSGXMLFILE && $(csg_get_property --allow-empty cg.inverse.method) = "tf" ]]; then
       echo "thermforce"
     else
       echo "$bondtype"
@@ -271,11 +289,11 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
 
   [[ -n $CSGXMLFILE ]] || die "${FUNCNAME[0]}: CSGXMLFILE is undefined (when calling from csg_call set it by --options option)"
   [[ -n $bondtype ]] || die "${FUNCNAME[0]}: bondtype is undefined (when calling from csg_call set it by --ia-type option)"
-  [[ -n $bondname ]] || die "${FUNCNAME[0]}: bondname is undefined (when calling from csg_call set it by --ia-name option)"i
+  [[ -n $bondname ]] || die "${FUNCNAME[0]}: bondname is undefined (when calling from csg_call set it by --ia-name option)"
 
   #map bondtype back to tags in xml file (for csg_call)
   case "$bondtype" in
-    "non-bonded"|"thermoforce")
+    "non-bonded"|"thermforce")
       xmltype="non-bonded";;
     "bonded"|"bond"|"angle"|"dihedral")
       xmltype="bonded";;
@@ -290,14 +308,17 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
   ret="$(csg_property --file $CSGXMLFILE --short --path cg.${xmltype} --filter name=$bondname --print $1 | trim_all)"
   #overwrite with function call value
   [[ -z $ret && -n $2 ]] && ret="$2"
+  [[ -z $ret ]] && echo "${FUNCNAME[0]}: No value for '$1' found in $CSGXMLFILE, trying $VOTCASHARE/xml/csg_defaults.xml" >&2
   # if still empty fetch it from defaults file
   if [[ -z $ret && -f $VOTCASHARE/xml/csg_defaults.xml ]]; then
     ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --short --path cg.${xmltype}.$1 --print . | trim_all)"
     [[ $allow_empty = "yes" && -n "$res" ]] && msg "WARNING: '${FUNCNAME[0]} $1' was called with --allow-empty, but a default was found in '$VOTCASHARE/xml/csg_defaults.xml'"
     #from time to time the default is only given in the non-bonded section
     [[ -z $ret ]] && ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --short --path cg.non-bonded.$1 --print . | trim_all)"
+    [[ -n $ret ]] && echo "${FUNCNAME[0]}: value for '$1' from $VOTCASHARE/xml/csg_defaults.xml: $ret" >&2
   fi
   [[ $allow_empty = "no" && -z $ret ]] && die "${FUNCNAME[0]}: Could not get '$1' for interaction with name '$bondname' from ${CSGXMLFILE} and no default was found in $VOTCASHARE/xml/csg_defaults.xml"
+  [[ -z $ret ]] && echo "${FUNCNAME[0]}: returning emtpy value for '$1'" >&2
   echo "${ret}"
 }
 export -f csg_get_interaction_property
@@ -318,12 +339,23 @@ csg_get_property () { #get an property from the xml file
   ret="$(critical -q csg_property --file $CSGXMLFILE --path ${1} --short --print . | trim_all)"
   #overwrite with function call value
   [[ -z $ret && -n $2 ]] && ret="$2"
+  [[ -z $ret ]] && echo "${FUNCNAME[0]}: No value for '$1' found in $CSGXMLFILE, trying $VOTCASHARE/xml/csg_defaults.xml" >&2
   #if still empty fetch it from defaults file
   if [[ -z $ret && -f $VOTCASHARE/xml/csg_defaults.xml ]]; then
     ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --path "${1}" --short --print . | trim_all)"
     [[ $allow_empty = "yes" && -n "$res" ]] && msg "WARNING: '${FUNCNAME[0]} $1' was called with --allow-empty, but a default was found in '$VOTCASHARE/xml/csg_defaults.xml'"
+    #avoid endless recursion
+    [[ $1 = cg.inverse.program && -n $ret ]] || sim_prog="$ret" \
+      sim_prog="$(csg_get_property cg.inverse.program)" #no problem to call recursively as sim_prog has a default
+    if [[ -z $ret ]] && [[ $1 = *${sim_prog}* ]]; then
+      local path=${1/${sim_prog}/sim_prog}
+      ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --path "${path}" --short --print . | trim_all)"
+    fi
+    [[ -n $ret ]] && echo "${FUNCNAME[0]}: value for '$1' from $VOTCASHARE/xml/csg_defaults.xml: $ret" >&2
+    [[ $allow_empty = "yes" && -n "$res" ]] && msg "WARNING: '${FUNCNAME[0]} $1' was called with --allow-empty, but a default was found in '$VOTCASHARE/xml/csg_defaults.xml'"
   fi
   [[ $allow_empty = "no" && -z $ret ]] && die "${FUNCNAME[0]}: Could not get '$1' from ${CSGXMLFILE} and no default was found in $VOTCASHARE/xml/csg_defaults.xml"
+  [[ -z $ret ]] && echo "${FUNCNAME[0]}: returning emtpy value for '$1'" >&2
   echo "${ret}"
 }
 export -f csg_get_property
@@ -379,16 +411,31 @@ is_part() { #checks if 1st argument is part of the set given by other arguments
 }
 export -f is_part
 
-has_duplicate() { #check if one of the argument is double
+has_duplicate() { #check if one of the arguments is double
+  local i j
   [[ -z $1 ]] && die "${FUNCNAME[0]}: Missing argument"
   for ((i=1;i<$#;i++)); do
-    for ((j=i+1;j<$#;j++)); do
+    for ((j=i+1;j<=$#;j++)); do
       [[ ${!i} = ${!j} ]] && echo ${!i} && return 0
     done
   done
   return 1
 }
 export -f has_duplicate
+
+remove_duplicate() { #remove duplicates list of arguments
+  local i j out=() c
+  [[ -z $1 ]] && die "${FUNCNAME[0]}: Missing argument"
+  for ((i=1;i<=$#;i++)); do
+    c=0
+    for ((j=0;j<${#out[@]};j++)); do
+      [[ ${!i} = ${out[j]} ]] && ((c++))
+    done
+    [[ $c -eq 0 ]] && out+=( "${!i}" )
+  done
+  echo "${out[@]}"
+}
+export -f remove_duplicate
 
 is_num() { #checks if all arguments are numbers
   local i res
@@ -480,19 +527,17 @@ get_step_nr() { #print the number of a certain step directory (1st argument)
 export -f get_step_nr
 
 cp_from_main_dir() { #copy something from the main directory
+  critical pushd "$(get_main_dir)"
   if [[ $1 = "--rename" ]]; then
     shift
     [[ $# -eq 2 && -n $1 && -n $2 ]] || die "${FUNCNAME[0]}: with --rename option has to be called with exactly 2 (non-empty) arguments"
     echo "cp_from_main_dir: '$1' to '$2'"
-    critical pushd "$(get_main_dir)"
     critical cp $1 "$(dirs -l +1)/$2"
-    critical popd
   else
     echo "cp_from_main_dir: '$@'"
-    critical pushd "$(get_main_dir)"
     critical cp $@ "$(dirs -l +1)"
-    critical popd
   fi
+  critical popd
 }
 export -f cp_from_main_dir
 
@@ -555,7 +600,7 @@ export -f get_table_comment
 csg_inverse_clean() { #clean out the main directory 
   local i files log t
   [[ -n $1 ]] && t="$1" || t="30"
-  log="$(csg_get_property cg.inverse.log_file)"
+  log="$(csg_get_property cg.inverse.log_file 2>/dev/null)"
   echo -e "So, you want to clean?\n"
   echo "I will remove:"
   files="$(ls -d done ${log} $(get_stepname --trunc)* *~ 2>/dev/null)"
@@ -681,7 +726,7 @@ csg_calc() { #simple calculator, a + b, ...
   #we use awk -v because then " 1 " or "1\n" is equal to 1
   case "$2" in
     "+"|"-"|'*'|"/"|"^")
-      res="$(awk -v x="$1" -v y="$3" "BEGIN{print ( x $2 y ) }")" || die "${FUNCNAME[0]}: awk -v x='$1' -v y='$3' 'BEGIN{print ( x $2 y ) }' failed"
+       res="$(awk -v x="$1" -v y="$3" "BEGIN{print ( x $2 y ) }")" || die "${FUNCNAME[0]}: awk -v x='$1' -v y='$3' 'BEGIN{print ( x $2 y ) }' failed"
        true;;
     '>'|'<' )
        res="$(awk -v x="$1" -v y="$3" "BEGIN{print ( x $2 y )}")" || die "${FUNCNAME[0]}: awk -v x='$1' -v y='$3' 'BEGIN{print ( x $2 y )}' failed"
@@ -743,6 +788,7 @@ source_wrapper() { #print the full name of a script belonging to two tags (1st, 
   else
     cmd=$(get_command_from_csg_tables "$1" "$2") || die "${FUNCNAME[0]}: get_command_from_csg_tables '$1' '$2' failed"
     [[ -z $cmd ]] && die "${FUNCNAME[0]}: Could not get any script from tags '$1' '$2'"
+    #cmd might contain option after the script name
     script="${cmd%% *}"
     real_script="$(find_in_csgshare "$script")"
     echo "${cmd/${script}/${real_script}}"
@@ -796,7 +842,7 @@ fi
 enable_logging() { #enables the logging to a certain file (1st argument) or the logfile taken from the xml file
   local log
   if [[ -z $1 ]]; then
-    log="$(csg_get_property cg.inverse.log_file)"
+    log="$(csg_get_property cg.inverse.log_file 2>/dev/null)"
   else
     log="$1"
   fi
@@ -804,9 +850,9 @@ enable_logging() { #enables the logging to a certain file (1st argument) or the 
   export CSGLOG="$log"
   if [[ -f $CSGLOG ]]; then
     exec 3>&1 4>&2 >> "$CSGLOG" 2>&1
-    echo "\n\n#################################"
+    echo -e "\n\n#################################"
     echo "# Appending to existing logfile #"
-    echo "#################################\n\n"
+    echo -e "#################################\n\n"
     msg --color blue "Appending to existing logfile ${CSGLOG##*/}"
   else
     exec 3>&1 4>&2 >> "$CSGLOG" 2>&1
@@ -828,11 +874,16 @@ check_for_obsolete_xml_options() { #check xml file for obsolete options
   for i in cg.inverse.mpi.tasks cg.inverse.mpi.cmd cg.inverse.parallel.tasks cg.inverse.parallel.cmd \
     cg.inverse.gromacs.mdrun.bin cg.inverse.espresso.bin cg.inverse.scriptdir cg.inverse.gromacs.grompp.topol \
     cg.inverse.gromacs.grompp.index cg.inverse.gromacs.g_rdf.topol cg.inverse.convergence_check \
-    cg.inverse.convergence_check_options.name_glob cg.inverse.convergence_check_options.limit; do
+    cg.inverse.convergence_check_options.name_glob cg.inverse.convergence_check_options.limit \
+    cg.inverse.espresso.table_end cg.inverse.gromacs.traj_type cg.inverse.gromacs.topol_out \
+    cg.inverse.espresso.blockfile cg.inverse.espresso.blockfile_out cg.inverse.espresso.n_steps \
+    cg.inverse.espresso.exclusions cg.inverse.espresso.debug cg.inverse.espresso.n_snapshots \
+    cg.non-bonded.inverse.espresso.index1 cg.non-bonded.inverse.espresso.index2 cg.inverse.espresso.success \
+    cg.inverse.espresso.scriptdir \
+    ; do
     [[ -z "$(csg_get_property --allow-empty $i)" ]] && continue #filter me away
+    new=""
     case $i in
-      cg.inverse.parallel.cmd|cg.inverse.mpi.cmd)
-        new="";;
       cg.inverse.mpi.tasks|cg.inverse.parallel.tasks)
         new="cg.inverse.simulation.tasks";;
       cg.inverse.gromacs.mdrun.bin|cg.inverse.espresso.bin)
@@ -841,18 +892,18 @@ check_for_obsolete_xml_options() { #check xml file for obsolete options
         new="${i/dir/path}";;
       cg.inverse.gromacs.grompp.index)
         new="${i/.grompp}";;
-      cg.inverse.gromacs.grompp.topol|cg.inverse.gromacs.topol)
+      cg.inverse.gromacs.grompp.topol)
         new="cg.inverse.gromacs.topol_in";;
       cg.inverse.gromacs.g_rdf.topol)
         new="${i/g_}";;
+      cg.inverse.gromacs.topol_out)
+        new="${i/_out}";;
+      cg.inverse.gromacs.traj_type)
+        new="";;
       cg.inverse.convergence_check)
 	new="${i}.type";;
-      cg.inverse.convergence_check_options.name_glob)
-	new="";;
       cg.inverse.convergence_check_options.limit)
         new="cg.inverse.convergence_check.limit";;
-      *)
-        die "${FUNCNAME[0]}: Unknown new name for obsolete xml option '$i'";;
     esac
     [[ -n $new ]] && new="has been renamed to $new" || new="has been removed"
     die "${FUNCNAME[0]}: The xml option $i $new\nPlease remove the obsolete options from the xmlfile"

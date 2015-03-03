@@ -30,5 +30,10 @@ method="$(csg_get_property cg.inverse.method)"
 
 for_all "bonded non-bonded" do_external prepare_single $method
 
-#cp confout.gro and so on
-do_external prepare_generic $sim_prog
+if [[ $sim_prog != gromacs ]] ; then
+  msg --color blue "######################################################"
+  msg --color blue "# WARNING using this simulator is still experimental #"
+  msg --color blue "# If you find a problem report it under:             #"
+  msg --color blue "# http://code.google.com/p/votca/issues/list         #"
+  msg --color blue "######################################################"
+fi
