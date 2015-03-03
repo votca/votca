@@ -57,18 +57,18 @@ for ((i=0;i<${#what_to_do_list[@]};i++)); do
   else
     # store the tables from last max_steps_nr steps
     for ((step_i=0;step_i<$max_steps_nr && $step_nr>=0;step_i++)); do
-      step_dir="$(get_stepname $step_nr)"	
+      step_dir="$(get_stepname $step_nr)"
       if [[ -f $(get_main_dir)/$step_dir/${name}.${dist}.cur ]]; then
         tables[$step_i]="$(get_main_dir)/$step_dir/${name}.${dist}.cur"
       fi
       ((step_nr--))
     done
     # compute the average if more than one tables found
-    if [[ ${#tables[@]} -gt 1 ]]; then  
+    if [[ ${#tables[@]} -gt 1 ]]; then
       do_external table average --output ${name}.${dist}.avg "${tables[@]}"
     else
       # copy the single table to *.avg
-      critical cp ${tables[0]} ${name}.${dist}.avg 
+      critical cp ${tables[0]} ${name}.${dist}.avg
     fi
   fi
 done

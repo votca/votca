@@ -112,20 +112,19 @@ void PotentialFunctionCBSPL::SaveParam(const string& filename){
 }
 
 void PotentialFunctionCBSPL::SavePotTab(const string& filename,
-                                        const double step, const double rmin, const double rcut) {
+                                        const double step,
+                                        const double rmin,
+                                        const double rcut)
+{
   extrapolExclParam();
-
   PotentialFunction::SavePotTab(filename,step,rmin,rcut);
-
 }
 
 void PotentialFunctionCBSPL::SavePotTab(const string& filename,
-                                        const double step) {
-
+                                        const double step)
+{
   extrapolExclParam();
-
   PotentialFunction::SavePotTab(filename,step);
-
 }
 
 void PotentialFunctionCBSPL::extrapolExclParam(){
@@ -135,6 +134,16 @@ void PotentialFunctionCBSPL::extrapolExclParam(){
     (_rbreak(_nexcl + 1) - _rbreak(_nexcl));
   double r0 = _rbreak(_nexcl);
 
+  /* If the slope m is positive then the potential core
+   * will be attractive. So, artificially forcing core to be
+   * repulsive by setting m = -m
+   */
+  if( m > 0)
+    {
+      cout << _name << " potential's extrapolated core is attractive!" << endl;
+      cout << "Artifically enforcing repulsive core.\n" << endl;
+      m *= -1.0;
+    }
   // using linear extrapolation
   // u(r) = ar + b
   // a = m

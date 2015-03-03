@@ -227,42 +227,30 @@ void CsgREupdate::EndEvaluate(){
 
 }
 
-void CsgREupdate::WriteOutFiles() {
-
+void CsgREupdate::WriteOutFiles()
+{
     cout<< "Writing CG parameters and potential(s)\n";
-
     string file_name;
 
     PotentialContainer::iterator potiter;
     for (potiter = _potentials.begin();
-         potiter != _potentials.end(); ++potiter) {
-
-      file_name = (*potiter)->potentialName;
-      file_name = file_name + "." + _pot_out_ext;
-
-      cout << "Writing file: " << file_name << endl;
-
-      // (*potiter)->ucg->SavePotTab(file_name,(*potiter)->_options->get("step").as<double>(),
-      //                             (*potiter)->_options->get("min").as<double>(),
-      //                             (*potiter)->_options->get("max").as<double>());
-      (*potiter)->ucg->SavePotTab(file_name,(*potiter)->_options->get("step").as<double>(),
-                                  (*potiter)->_options->get("re.min").as<double>(),
-                                  (*potiter)->_options->get("re.max").as<double>());
-
-      // (*potiter)->ucg->SavePotTab(file_name,(*potiter)->_options->get("step").as<double>());
-
-      // for gentable with no RE update no need to write-out parameters
-      if(!_gentable){
-
+         potiter != _potentials.end(); ++potiter)
+      {
         file_name = (*potiter)->potentialName;
-        file_name = file_name + "." + _param_out_ext;
+        file_name = file_name + "." + _pot_out_ext;
         cout << "Writing file: " << file_name << endl;
-        (*potiter)->ucg->SaveParam(file_name);
-
+        (*potiter)->ucg->SavePotTab(file_name,(*potiter)->_options->get("step").as<double>(),
+                                    (*potiter)->_options->get("re.min").as<double>(),
+                                    (*potiter)->_options->get("re.max").as<double>());
+        // for gentable with no RE update no need to write-out parameters
+        if(!_gentable)
+          {
+            file_name = (*potiter)->potentialName;
+            file_name = file_name + "." + _param_out_ext;
+            cout << "Writing file: " << file_name << endl;
+            (*potiter)->ucg->SaveParam(file_name);
+          }
       }
-
-    }
-
 }
 
 // formulate _HS x = -_DS
@@ -672,11 +660,9 @@ PotentialInfo::PotentialInfo(int index, bool bonded_, int vec_pos_,
   vec_pos  = vec_pos_;
   _options = options;
 
-
   potentialName = _options->get("name").value();
   type1 = _options->get("type1").value();
   type2 = _options->get("type2").value();
-
   potentialFunction = _options->get("re.function").value();
 
   rmin = _options->get("re.min").as<double>();
@@ -684,65 +670,53 @@ PotentialInfo::PotentialInfo(int index, bool bonded_, int vec_pos_,
 
   // assign the user selected function form for this potential
   if( potentialFunction == "lj126")
-
     ucg = new PotentialFunctionLJ126(potentialName,rmin, rcut);
-
   else if (potentialFunction == "ljg")
-
     ucg = new PotentialFunctionLJG(potentialName,rmin, rcut);
-
-  else if (potentialFunction == "cbspl"){
-
-    // get number of B-splines coefficients which are to be optimized
-    int nlam = _options->get("re.cbspl.nknots").as<int>();
-
-    string core = _options->get("re.cbspl.core").as<string>();
-
-
-    // determine minimum for B-spline from CG-MD rdf
-    // double new_min = 0.0;
-    // Table dist;
-    // string filename = potentialName + ".dist.new";
-
-    // try{
-
-    //   dist.Load(filename);
-    //   for( int i = 0; i < dist.size(); i++){
-
-    //     if(dist.y(i) > 1.0e-3){
-
-    //       new_min = dist.x(i);
-    //       break;
-
-    //     }
-
-    //   }
-
-      // if(new_min > rmin){
-      //   rmin = new_min;
-      //   cout << "For the interaction " << potentialName <<
-      //     " updated rmin based on the new RDF to " << rmin << endl;
-      // }
-
-    // }catch(std::runtime_error){
-
-    //   cout << "Missing file for CG rdf for the interaction "  << potentialName << endl;
-    //   cout << "Hence, using user specified rmin = " << rmin << endl;
-
-    // }
-
-    ucg = new PotentialFunctionCBSPL(potentialName, nlam, core, rmin, rcut);
-
-  }
+  else if (potentialFunction == "cbspl")
+    {
+      // get number of B-splines coefficients which are to be optimized
+      int nlam = _options->get("re.cbspl.nknots").as<int>();
+      string core = _options->get("re.cbspl.core").as<string>();
+      // determine minimum for B-spline from CG-MD rdf
+      double new_min = 0.0;
+      Table dist;
+      string filename = potentialName + ".dist.new";
+      try{
+        dist.Load(filename);
+        // for( int i = 0; i < dist.size(); i++)
+        // In the highly repulsive core (<0.1 nm) at some locations
+        // an unphysical non-zero RDF value may occur,
+        // so it would be better to estimate Rmin loop
+        // through RDF values from Rcut to zero instead of zero to Rcut.
+        for( int i = dist.size()-1; i > 0; i--)
+          {
+            if(dist.y(i) < 1.0e-4)
+              {
+                new_min = dist.x(i+1);
+                break;
+              }
+          }
+        if(new_min > rmin)
+          {
+            rmin = new_min;
+            cout << "For the interaction " << potentialName <<
+              " updated rmin based on the new RDF to " << rmin << endl;
+          }
+      }catch(std::runtime_error)
+        {
+          cout << "Missing file for CG rdf for the interaction "  << potentialName << endl;
+          cout << "Hence, using user specified rmin = " << rmin << endl;
+        }
+      ucg = new PotentialFunctionCBSPL(potentialName, nlam, core, rmin, rcut);
+    }
   else
     throw std::runtime_error("Function form \""
                              + potentialFunction + "\" selected for \""
                              + potentialName + "\" is not available yet.\n"
                              + "Please specify either \"lj126, ljg, or cbspl\" "
                              + "in options file.");
-
   // initialize cg potential with old parameters
   string oldparam_file_name = potentialName + "." + param_in_ext_;
   ucg->setParam(oldparam_file_name);
-
 }
