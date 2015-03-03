@@ -102,6 +102,18 @@ if [[ $(critical $grompp -h 2>&1) = *"VERSION 5.0"* && $(get_simulation_setting 
   msg --color blue --to-stderr "Automatically added 'cutoff-scheme = Group' to $mdp, tabulated interactions only work with Group cutoff-scheme!"
 fi
 
+if [[ ${CSG_MDRUN_STEPS} ]]; then
+  #mdrun <4.6 does not have -nsteps options, remove this block whenever we drop support for <4.6
+  if [[ $(critical $grompp -h 2>&1) = *"VERSION 4."[05]* ]]; then
+    nsteps=$(get_simulation_setting nsteps)
+    critical sed -i "/^nsteps/s/=.*/=${CSG_MDRUN_STEPS}/" $mdp
+    msg --color blue --to-stderr "Replace nsteps (=$nsteps) in '$mdp' to be ${CSG_MDRUN_STEPS}"
+  else
+    msg --color blue --to-stderr "Appending -nsteps ${CSG_MDRUN_STEPS} to mdrun options"
+    mdrun_opts+=" -nsteps $CSG_MDRUN_STEPS"
+  fi
+fi
+
 #see can run grompp again as checksum of tpr does not appear in the checkpoint
 critical $grompp -n "${index}" -f "${mdp}" -p "$topol_in" -o "$tpr" -c "${conf}" ${grompp_opts} 2>&1 | gromacs_log "$grompp -n "${index}" -f "${mdp}" -p "$topol_in" -o "$tpr" -c "${conf}" ${grompp_opts}"
 [[ -f $tpr ]] || die "${0##*/}: gromacs tpr file '$tpr' not found after runing grompp"
@@ -120,7 +132,7 @@ else
   echo "${0##*/}: No walltime defined, so no time limitation given to $mdrun"
 fi
 
-critical $mdrun -s "${tpr}" -c "${confout}" -o "${traj%.*}".trr -x "${traj%.*}".xtc ${mdrun_opts} 2>&1 | gromacs_log "$mdrun -s "${tpr}" -c "${confout}" -o "${traj%.*}".trr -x "${traj%.*}".xtc ${mdrun_opts}"
+critical $mdrun -s "${tpr}" -c "${confout}" -o "${traj%.*}".trr -x "${traj%.*}".xtc ${mdrun_opts} ${CSG_RUNTEST:+-v} 2>&1 | gromacs_log "$mdrun -s "${tpr}" -c "${confout}" -o "${traj%.*}".trr -x "${traj%.*}".xtc ${mdrun_opts}"
 
 [[ -z "$(sed -n '/[nN][aA][nN]/p' ${confout})" ]] || die "${0##*/}: There is a nan in '${confout}', this seems to be wrong."
 

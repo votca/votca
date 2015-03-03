@@ -103,6 +103,7 @@ protected:
     public:
         Functor() {}
         virtual bool operator()(Bead *, Bead *, const vec &, const double dist) = 0;
+	virtual ~Functor() {};
     };
 
     /// Functor for member functions

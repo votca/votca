@@ -71,16 +71,26 @@ bool CsgDumpApp::EvaluateTopology(Topology *top, Topology *top_ref)
 	  }
 	}
 
+        cout << "\nList of residues:\n";
+	for (int i=0; i<top->ResidueCount(); i++){
+	  cout << i << " name: " << top->getResidue(i)->getName() <<
+	    " id: " << top->getResidue(i)->getId() << endl;
+	}
+
         cout << "\nList of molecules:\n";
         MoleculeContainer::iterator mol;
         for (mol = top->Molecules().begin(); mol != top->Molecules().end(); ++mol) {
             cout << "molecule: " << (*mol)->getId() + 1 << " " << (*mol)->getName()
                     << " beads: " << (*mol)->BeadCount() << endl;
             for (int i = 0; i < (*mol)->BeadCount(); ++i) {
+	        int resnr=(*mol)->getBead(i)->getResnr();
                 cout << (*mol)->getBeadId(i) << " Name " <<
                         (*mol)->getBeadName(i) << " Type " <<
 			(*mol)->getBead(i)->getType()->getName() << " Mass " <<
-			(*mol)->getBead(i)->getM() << endl;
+			(*mol)->getBead(i)->getM() << " Resnr " <<
+			resnr << " Resname " <<
+			top->getResidue(resnr)->getName() <<
+			endl;
             }
         }
     }

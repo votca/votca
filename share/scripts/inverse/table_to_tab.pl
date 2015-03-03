@@ -69,7 +69,7 @@ EOF
   }
 }
 
-die "$progname: conversion of ${type} interaction to generic tables is only implemented for dlpoly!\n" unless (($type eq "non-bonded")||($sim_prog eq "dlpoly"));
+die "$progname: conversion of ${type} interaction to generic tables is only implemented for dlpoly and lammps!\n" unless (($type eq "non-bonded")||($sim_prog eq "dlpoly")||($sim_prog eq "lammps"));
 
 die "3 parameters are necessary\n" if ($#ARGV<2);
 

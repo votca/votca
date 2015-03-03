@@ -99,10 +99,12 @@ void PotentialFunctionCBSPL::SaveParam(const string& filename){
   param.resize(_lam.size(), false);
 
   // write extrapolated knots with flag 'o'
-  for (int i = 0; i < _nexcl; i++)
+  // points close to rmin can also be stastically not reliable
+  // so flag 3 more points next to rmin as 'o'
+  for (int i = 0; i < _nexcl+3; i++)
     param.set(i, _rbreak(i), _lam(i), 'o');
 
-  for (int i = _nexcl; i < _lam.size() ; i++)
+  for (int i = _nexcl+3; i < _lam.size() ; i++)
     param.set(i, _rbreak(i), _lam(i), 'i');
 
   param.Save(filename);
@@ -110,20 +112,19 @@ void PotentialFunctionCBSPL::SaveParam(const string& filename){
 }
 
 void PotentialFunctionCBSPL::SavePotTab(const string& filename,
-                                        const double step, const double rmin, const double rcut) {
+                                        const double step,
+                                        const double rmin,
+                                        const double rcut)
+{
   extrapolExclParam();
-
   PotentialFunction::SavePotTab(filename,step,rmin,rcut);
-
 }
 
 void PotentialFunctionCBSPL::SavePotTab(const string& filename,
-                                        const double step) {
-
+                                        const double step)
+{
   extrapolExclParam();
-
   PotentialFunction::SavePotTab(filename,step);
-
 }
 
 void PotentialFunctionCBSPL::extrapolExclParam(){
@@ -133,6 +134,16 @@ void PotentialFunctionCBSPL::extrapolExclParam(){
     (_rbreak(_nexcl + 1) - _rbreak(_nexcl));
   double r0 = _rbreak(_nexcl);
 
+  /* If the slope m is positive then the potential core
+   * will be attractive. So, artificially forcing core to be
+   * repulsive by setting m = -m
+   */
+  if( m > 0)
+    {
+      cout << _name << " potential's extrapolated core is attractive!" << endl;
+      cout << "Artifically enforcing repulsive core.\n" << endl;
+      m *= -1.0;
+    }
   // using linear extrapolation
   // u(r) = ar + b
   // a = m

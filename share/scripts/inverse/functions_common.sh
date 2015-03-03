@@ -261,17 +261,23 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
     [[ -z "$bondtype" ]] && die "${FUNCNAME[0]}: bondtype is undefined (when calling from csg_call set it by --ia-type option)"
     #for_all notation for any kind of bonded interaction, find the real type
     if [[ $bondtype = "bonded" ]]; then
-      mapping="$(csg_get_property --allow-empty cg.inverse.map)" #make error message more useful
-      [[ -z ${mapping} ]] && die "${FUNCNAME[0]}: bondtype 'bonded' needs a mapping file (cg.inverse.map in xml) to determine the actual bond type (when calling from csg_call better use --ia-type bond, angle or dihedral)"
-      [[ -f "$(get_main_dir)/$mapping" ]] || die "${FUNCNAME[0]}: Mapping file '$mapping' for bonded interaction not found in maindir"
       [[ -z ${bondname} ]] && die "${FUNCNAME[0]}: bondtype 'bonded' needs a bondname (when calling from csg_call set it by --ia-name option) or change type to angle, bond or dihedral"
       [[ -n "$(type -p csg_property)" ]] || die "${FUNCNAME[0]}: Could not find csg_property"
-      local names=()
-      names=$(critical -q csg_property --file "$(get_main_dir)/$mapping" --path cg_molecule.topology.cg_bonded.*.name --print . --short)
-      ret=$(has_duplicate "${names[@]}") && die "${FUNCNAME[0]}: cg_bonded name '$ret' in $mapping appears twice"
-      ret="$(critical -q csg_property --file "$(get_main_dir)/$mapping" --path cg_molecule.topology.cg_bonded.* --filter name="$bondname" --print . --with-path | trim_all)"
-      ret="$(echo "$ret" | critical sed -n 's/.*cg_bonded\.\([^[:space:]]*\) .*/\1/p')"
-      [[ -z $ret ]] && die "${FUNCNAME[0]}: Could not find a bonded definition with name '$bondname' in the mapping file '$mapping'. Make sure to use the same name in the settings file (or --ia-name when calling from csg_call) and the mapping file."
+      mapping="$(csg_get_property --allow-empty cg.inverse.map)" #make error message more useful
+      [[ -z ${mapping} ]] && die "${FUNCNAME[0]}: bondtype 'bonded' needs a mapping file (cg.inverse.map in xml) to determine the actual bond type (when calling from csg_call better use --ia-type bond, angle or dihedral)"
+      local map names=() ret= ret2 dup
+      for map in ${mapping}; do
+        [[ -f "$(get_main_dir)/$map" ]] || die "${FUNCNAME[0]}: Mapping file '$map' for bonded interaction not found in maindir"
+	names+=( $(critical -q csg_property --file "$(get_main_dir)/$map" --path cg_molecule.topology.cg_bonded.*.name --print . --short) )
+	dup=$(has_duplicate "${names[@]}") && die "${FUNCNAME[0]}: cg_bonded name '$dup' appears twice in file(s) $mapping"
+        ret2="$(critical -q csg_property --file "$(get_main_dir)/$map" --path cg_molecule.topology.cg_bonded.* --filter name="$bondname" --print . --with-path | trim_all)"
+        ret2="$(echo "$ret2" | critical sed -n 's/.*cg_bonded\.\([^[:space:]]*\) .*/\1/p')"
+	if [[ -n $ret2 ]]; then
+	  [[ -n $ret ]] && die "${FUNCNAME[0]}: Found cg_bonded type for name '$bondname' twice"
+	  ret="${ret2}"
+	fi
+      done
+      [[ -z $ret ]] && die "${FUNCNAME[0]}: Could not find a bonded definition with name '$bondname' in the mapping file(s) '$mapping'. Make sure to use the same name in the settings file (or --ia-name when calling from csg_call) and the mapping file."
       echo "$ret"
     elif [[ -n $CSGXMLFILE && $(csg_get_property --allow-empty cg.inverse.method) = "tf" ]]; then
       echo "thermforce"
@@ -405,16 +411,31 @@ is_part() { #checks if 1st argument is part of the set given by other arguments
 }
 export -f is_part
 
-has_duplicate() { #check if one of the argument is double
+has_duplicate() { #check if one of the arguments is double
+  local i j
   [[ -z $1 ]] && die "${FUNCNAME[0]}: Missing argument"
   for ((i=1;i<$#;i++)); do
-    for ((j=i+1;j<$#;j++)); do
+    for ((j=i+1;j<=$#;j++)); do
       [[ ${!i} = ${!j} ]] && echo ${!i} && return 0
     done
   done
   return 1
 }
 export -f has_duplicate
+
+remove_duplicate() { #remove duplicates list of arguments
+  local i j out=() c
+  [[ -z $1 ]] && die "${FUNCNAME[0]}: Missing argument"
+  for ((i=1;i<=$#;i++)); do
+    c=0
+    for ((j=0;j<${#out[@]};j++)); do
+      [[ ${!i} = ${out[j]} ]] && ((c++))
+    done
+    [[ $c -eq 0 ]] && out+=( "${!i}" )
+  done
+  echo "${out[@]}"
+}
+export -f remove_duplicate
 
 is_num() { #checks if all arguments are numbers
   local i res
@@ -829,9 +850,9 @@ enable_logging() { #enables the logging to a certain file (1st argument) or the 
   export CSGLOG="$log"
   if [[ -f $CSGLOG ]]; then
     exec 3>&1 4>&2 >> "$CSGLOG" 2>&1
-    echo "\n\n#################################"
+    echo -e "\n\n#################################"
     echo "# Appending to existing logfile #"
-    echo "#################################\n\n"
+    echo -e "#################################\n\n"
     msg --color blue "Appending to existing logfile ${CSGLOG##*/}"
   else
     exec 3>&1 4>&2 >> "$CSGLOG" 2>&1

@@ -106,7 +106,12 @@ bool PDBReader::NextFrame(Topology &top)
 
             Bead *b;
             if(_topology){
-	      int resnr = boost::lexical_cast<int>(resNum);
+	      int resnr;
+	      try {
+		resnr = boost::lexical_cast<int>(resNum);
+	      } catch(bad_lexical_cast &) {
+	        throw std::runtime_error("Cannot convert resNum='"+ resNum+"' to int, that usallly means: misformated pdb file");
+	      }
               if (resnr < 1)
                 throw std::runtime_error("Misformated pdb file, resnr has to be > 0");
 	      //TODO: fix the case that resnr is not in ascending order

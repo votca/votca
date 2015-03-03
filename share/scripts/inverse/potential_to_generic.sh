@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2009-2013 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2014 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
 This script is a high class wrapper to convert a potential to the generic
-3 column tab format used by espresso and lammps
+3 column tab format used by espresso and espressopp
 
 Usage: ${0##*/}
 EOF

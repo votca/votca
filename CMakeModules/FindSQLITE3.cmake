@@ -1,5 +1,5 @@
-# - Find libgmx
-# Find the native libgmx headers and libraries.
+# - Find libsqlite3
+# Find the native libsqlite3 headers and libraries.
 #
 #  SQLITE3_INCLUDE_DIRS - where to find sqlite3.h, etc
 #  SQLITE3_LIBRARIES    - List of libraries when using sqlite3.

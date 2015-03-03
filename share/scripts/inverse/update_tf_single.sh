@@ -33,13 +33,22 @@ name=$(csg_get_interaction_property name)
 sim_prog="$(csg_get_property cg.inverse.program)"
 
 mol="$(csg_get_interaction_property inverse.tf.molname)"
-adress_type=$(get_simulation_setting adress_type)
+
+if [[ $sim_prog = gromacs ]]; then
+  adress_type=$(get_simulation_setting adress_type)
+else
+  adress_type=$(csg_get_property cg.inverse.tf.adress_type)
+fi
 step=$(csg_get_interaction_property step)
 opts=()
 if [[ $adress_type = "sphere" ]]; then
   echo "Adress type: $adress_type"
   max=$(csg_get_interaction_property inverse.tf.spline_end)
-  adressc="$(get_simulation_setting adress_reference_coords "0 0 0")"
+  if [[ $sim_prog = gromacs ]]; then
+    adressc="$(get_simulation_setting adress_reference_coords "0 0 0")"
+  else
+    adressc=$(csg_get_property cg.inverse.tf.adress_reference_coords)
+  fi
   ref="$(echo "$adressc" | awk '{if (NF<3) exit 1; printf "[%s,%s,%s]",$1,$2,$3;}')" || die "${0##*/}: we need three numbers in adress_reference_coords, but got '$adressc'"
   axis="r"
   opts=( "--rmax" "$max" "--ref" "$ref" )

@@ -301,6 +301,20 @@ public:
     int getStep() { return _step; };
 
     /**
+     * Sets the particle group. (For the H5MD file format)
+     * \param particle_group The name of a particle group.
+     */
+    void setParticleGroup(string particle_group) { _particle_group = particle_group; };
+
+    /**
+     * Gets the particle group.
+     * \return The name of a particle group.
+     */
+    string getParticleGroup() { 
+      return _particle_group; 
+    };
+
+    /**
      * \brief pbc correct distance of two beads
      * \param bead1 index of first bead
      * \param bead2 index of second bead
@@ -390,6 +404,9 @@ protected:
     int _step;
     bool _has_vel;
     bool _has_force;
+
+    /// The particle group (For H5MD file format)
+    string _particle_group;
 };
 
 inline Bead *Topology::CreateBead(byte_t symmetry, string name, BeadType *type, int resnr, double m, double q)

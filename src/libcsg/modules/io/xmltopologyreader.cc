@@ -74,8 +74,10 @@ void XMLTopologyReader::ParseTopology(const string &el, map<string, string> &att
     }
     else if(el == "beadtypes") {
          _parser.NextHandler(this, &XMLTopologyReader::ParseBeadTypes);
-    }
-    else {
+    } else if (el == "h5md_particle_group") {
+        _top->setParticleGroup(attr["name"]);
+        _parser.NextHandler(this, &XMLTopologyReader::ParseTopology);
+    } else {
         throw runtime_error("unknown tag: "+ el);
     }
 }
@@ -124,7 +126,7 @@ void XMLTopologyReader::ParseBeadTypes(const string &el, map<string, string> &at
         string name = attr["name"];
         string svalue = attr["value"];
         if (name == "" || svalue == "")
-            throw runtime_error("invalid rename tag");
+            throw runtime_error("invalid mass tag");
 	double value = boost::lexical_cast<double>(svalue);
         _top->SetBeadTypeMass(name, value);
         _parser.IgnoreChilds();

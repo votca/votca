@@ -116,7 +116,7 @@ gromacs_log() { #redirect stdin to a separate gromacs log file, 1st argument can
   local log log2
   log="$(csg_get_property --allow-empty cg.inverse.gromacs.log)"
   if [[ -z $log ]]; then
-    cat
+    [[ ${CSG_RUNTEST} ]] && tee >(cat - >&4) || cat
     return $?
   fi
   log="${log##*/}"
@@ -124,7 +124,7 @@ gromacs_log() { #redirect stdin to a separate gromacs log file, 1st argument can
   log2="${log2##*/}"
   [[ $log = $log2 ]] && die "${FUNCNAME}: cg.inverse.gromacs.log is equal cg.inverse.log_file"
   [[ -n $* ]] && echo "Sending output of '$*' to $log (also look for errors there)" || echo "Sending stdin to $log (also look for errors there)"
-  cat >> "$log"
+  [[ ${CSG_RUNTEST} ]] && tee >(cat - >&4) || cat >> "$log"
   return $?
 }
 export -f gromacs_log

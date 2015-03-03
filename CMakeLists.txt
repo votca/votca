@@ -61,7 +61,7 @@ else (BUILD_MANPAGES)
   set(TXT2TAGS_FOUND)
 endif (BUILD_MANPAGES)
 
-find_package(Boost 1.42.0 REQUIRED COMPONENTS program_options)
+find_package(Boost 1.39.0 REQUIRED COMPONENTS program_options filesystem system )
 include_directories(${Boost_INCLUDE_DIRS})
 set (BOOST_CFLAGS_PKG "-I${Boost_INCLUDE_DIRS}")
 set(BOOST_LIBS_PKG "-L${Boost_LIBRARY_DIRS}")
@@ -111,7 +111,7 @@ add_subdirectory(src)
 add_subdirectory(include/votca/csg)
 add_subdirectory(share)
 
-file(GLOB VOTCA_CMAKE_MODULES CMakeModules/FindVOTCA* CMakeModules/FindSQLITE3.cmake CMakeModules/FindBoost.cmake)
+file(GLOB VOTCA_CMAKE_MODULES CMakeModules/FindVOTCA* CMakeModules/FindSQLITE3.cmake)
 install(FILES ${VOTCA_CMAKE_MODULES} DESTINATION ${DATA}/template/CMakeModules)
 
 configure_file(${CMAKE_MODULE_PATH}/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)

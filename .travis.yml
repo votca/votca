@@ -1,0 +1,58 @@
+#the original source of this file can be found in tools repository change it ther
+# changes in tools|csg tiggered a full rebuild
+# changes in csgapps|csg-manual|csg-tutorials only trigger tools+csg+ifself
+
+language: cpp
+
+before_install:
+ - sudo apt-get update
+ - sudo apt-get install cmake gromacs-dev libfftw3-dev libgsl0-dev txt2tags libboost-program-options-dev libboost-filesystem-dev libboost-system-dev libexpat1-dev libsqlite3-dev pkg-config mercurial
+ - if [[ $MAN ]]; then sudo apt-get install pgf texlive-fonts-recommended texlive-latex-extra doxygen graphviz; fi
+ - if [[ $TEST = *cma ]]; then sudo apt-get install python-numpy gnuplot-nox; fi
+ - if [[ $TEST = *imc ]]; then sudo apt-get install octave; fi
+ - if [[ $TEST = *simplex ]]; then sudo apt-get install gnuplot-nox; fi
+
+env: #NINJA=1 is currently not support by Travis' cmake, enable when >=2.8.9
+  - WERROR=yes J=4 #J>4 triggers an internal compiler in travis' g++
+  - J=1
+  - BDIR=build J=4
+  - BDIR=build J=1
+  - MAN=yes J=4
+  - CSG_MDRUN_STEPS=500 TEST=spce/simplex J=4
+  - CSG_MDRUN_STEPS=10000 TEST=spce/imc J=4
+  - CSG_MDRUN_STEPS=500 TEST=spce/ibi J=4
+  - CSG_MDRUN_STEPS=10000 TEST=spce/re J=4
+  - CSG_MDRUN_STEPS=10000 TEST=spce/cma J=4
+  - CSG_MDRUN_STEPS=10000 TEST=propane/imc J=4
+  - CSG_MDRUN_STEPS=500 TEST=propane/ibi J=4
+  - CSG_MDRUN_STEPS=10000 TEST=methanol/imc J=4
+  - CSG_MDRUN_STEPS=500 TEST=methanol/ibi J=4
+  - CSG_MDRUN_STEPS=500 TEST=hexane/ibi_bonded J=4
+  - CSG_MDRUN_STEPS=500 TEST=hexane/ibi J=4
+  - CSG_MDRUN_STEPS=500 TEST=urea-water/ibi J=4
+
+matrix:
+  exclude:
+    - compiler: clang
+      env: J=1 #this test just tests the buildsystem
+    - compiler: clang
+      env: BDIR=build J=1 #just tests the buildsystem
+
+before_script:
+  - rm -vrf * .git
+  - wget http://votca.googlecode.com/hg/build.sh && chmod 755 build.sh
+  - if [[ $TEST = *cma ]]; then wget http://www.lri.fr/~hansen/cma.py; fi #we set PYTHONPATH="$PWD" below
+
+script:
+  - PYTHONPATH="$PWD" ./build.sh -Wdu --prefix $PWD ${MAN:+--devdoc}
+    ${TEST:+--runtest=$TEST} ${WERROR:+--warn-to-errors}
+    ${J:+-j$J} ${BDIR:+--builddir=$BDIR} ${NINJA:+--ninja} 
+    tools csg csgapps ${MAN:+csg-manual} ${TEST:+csg-tutorials}
+
+compiler:
+  - clang
+  - gcc
+
+notifications:
+  email:
+    - junghans@votca.org #https://github.com/travis-ci/travis-ci/issues/2513
