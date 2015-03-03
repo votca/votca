@@ -8,7 +8,7 @@ namespace votca { namespace ctp {
 
 
 APolarSite::APolarSite(APolarSite *templ, bool do_depolarize) 
-    : _id(templ->_id), _name(templ->_name), _isVirtual(templ->_isVirtual),  _isAsleep(templ->_isAsleep),      
+    : _id(templ->_id), _name(templ->_name), _isVirtual(templ->_isVirtual),   
       _resolution(templ->_resolution), _pos(templ->_pos),
         
       _locX(templ->_locX), _locY(templ->_locY), _locZ(templ->_locZ),

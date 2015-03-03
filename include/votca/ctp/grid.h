@@ -68,17 +68,24 @@ namespace votca { namespace ctp {
         std::vector< APolarSite* > &Sites() {return _gridsites;}
         std::vector< APolarSite*>* getSites() {return &_gridsites;} 
         PolarSeg* getSeg(){return _sites_seg;}
-        
+
         
         void setCutoffs(double cutoff, double cutoff_inside){_cutoff=cutoff;_cutoff_inside=cutoff_inside;}
         void setCutoffshifts(double shift_cutoff, double shift_cutoff_inside){_shift_cutoff=shift_cutoff;_shift_cutoff_inside=shift_cutoff_inside;}
         void setSpacing(double spacing){_gridspacing=spacing;}
         void setPadding(double padding){_padding=padding;}
+        void setCubegrid(bool cubegrid){_cubegrid=cubegrid;_createpolarsites=true;}
         void setAtomlist(vector< QMAtom* >* Atomlist){_atomlist=Atomlist;}
+        int  getTotalSize(){return _gridpoints.size();}
         
-        
-        int getsize(){ return _gridpoints.size(); }
-        
+        int getsize(){
+            int size=0.0;
+            if(_cubegrid){size=_gridsites.size();}
+            else{size=_gridpoints.size();}
+
+            return size; 
+        }
+
         void printGridtofile(const char* _filename){
             //unit is nm
             double A2nm=10;
@@ -94,11 +101,7 @@ namespace votca { namespace ctp {
         }
         
        
-        void generateCubegrid(){
-                _cubegrid=true;  
-                _createpolarsites=true;
-                setupgrid();
-        }
+        
         
         void printgridtoCubefile(string filename){
             double A2Bohr=1.8897259886;
@@ -140,8 +143,9 @@ namespace votca { namespace ctp {
                 }
             vector< APolarSite* >::iterator pit;
             int Nrecord=0.0;
-            for(pit=_gridsites.begin();pit!=_gridsites.end();++pit){
+            for(pit=_all_gridsites.begin();pit!=_all_gridsites.end();++pit){
                 Nrecord++;
+
                 double _potential=(*pit)->getPhi();
                 if (Nrecord == 6) {
                     fprintf(out, "%E \n", _potential);
@@ -235,8 +239,7 @@ namespace votca { namespace ctp {
                             if (_is_valid || _cubegrid){
                                 temppos(0)=AtoNm*x;
                                 temppos(1)=AtoNm*y;        
-                                temppos(2)=AtoNm*z;
-                                _gridpoints.push_back(temppos);
+                                temppos(2)=AtoNm*z;   
                                 if(_createpolarsites){
                                     // APolarSite are in nm so convert
                                     vec temp=vec(temppos);
@@ -246,9 +249,12 @@ namespace votca { namespace ctp {
                                     apolarsite->setQ00(0,0); // <- charge state 0 <> 'neutral'
                                     apolarsite->setIsoP(0.0);
                                     apolarsite->setPos(temp);
-                                    if (!_is_valid){apolarsite->setIsAsleep(true);}
+                                    if(_is_valid){
                                     _gridsites.push_back(apolarsite);
-                                    
+                                    _gridpoints.push_back(temppos);
+                                    }
+                                    else {apolarsite->setIsVirtual(true);}
+                                     _all_gridsites.push_back(apolarsite);
                                 }
                             }
                             z+=_gridspacing; 
@@ -259,7 +265,7 @@ namespace votca { namespace ctp {
                   x+=_gridspacing;
                   //cout << (x<xmax+padding) << endl;     
                 }
-                
+              
                 if (_sites_seg != NULL) delete _sites_seg;
                 _sites_seg = new PolarSeg(0, _gridsites);
         }
@@ -287,6 +293,7 @@ namespace votca { namespace ctp {
   private:
       std::vector< ub::vector<double> > _gridpoints;
       std::vector< APolarSite* > _gridsites;
+      std::vector< APolarSite* > _all_gridsites;
       PolarSeg *_sites_seg;
       const vector< QMAtom* >* _atomlist;
       double _gridspacing;
@@ -298,7 +305,7 @@ namespace votca { namespace ctp {
       bool   _createpolarsites;
       bool   _useVdWcutoff;
       bool   _useVdWcutoff_inside;
-      bool _cubegrid;
+      bool   _cubegrid;
       vec _upperbound;
       vec _lowerbound;
       

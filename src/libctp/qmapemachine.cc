@@ -146,8 +146,10 @@ void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
     _grid_fg.setAtomlist(&basisforgrid.QMAtoms());
     _grid_bg.setCutoffshifts(1,-0.5);
     _grid_fg.setCutoffshifts(1,-0.5);
-    _grid_fg.setSpacing(0.5);
-    _grid_bg.setSpacing(0.5);
+    _grid_fg.setSpacing(0.3);
+    _grid_bg.setSpacing(0.3);
+    _grid_fg.setCubegrid(true);
+    _grid_bg.setCubegrid(true);
     
     _grid_bg.setupgrid();
     _grid_fg.setupgrid();
@@ -210,14 +212,14 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 			// Reset FGC, start from BGP state, apply FP fields (BG & FG)
 			_cape->EvaluateInductionQMMM(true, true, true, true, true);
 		}
-
+    /*
         vec pos1=vec(_fitted_charges.getGrid()[0]);
         vec pos2=vec(_fitted_charges.getGrid()[1]);
         double q1=-1.0;
         double q2=1.0;
         
-		// COMPUTE POTENTIALS
-        /*
+		
+       
         vector<APolarSite*>::iterator pit;
         for (pit=_grid_bg.Sites().begin();pit!=_grid_bg.Sites().end();++pit){
             double dist1=abs((*pit)->getPos()-pos1);
@@ -232,7 +234,7 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
         
         vector< PolarSeg* > target_fg;
         target_fg.push_back(_grid_fg.getSeg());
-        
+        /*
         cout << endl << "Done ... " << endl;
         _grid_bg.getSeg()->WriteMPS("test_bg.mps", "TEST");
         cout << endl << "Done bg. " << endl;
@@ -244,7 +246,7 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
          cout << endl << "Done ... " << endl;
         _fitted_charges.getSeg()->WriteMPS("test_charges.mps", "TEST");
         cout << endl << "Done fg. " << endl;
-        
+        */
         
               
                 
@@ -264,24 +266,29 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     Espfit fitcharges;
     fitcharges.setLog(_log);
     double netchargefit=0.0;
-    //cout << "hallo" << endl;
+
     fitcharges.FitAPECharges(_grid_bg,_grid_fg,_fitted_charges,netchargefit);
     mm_fitted.push_back(_fitted_charges.getSeg());
-    
-       
+
+      
     vector<PolarSeg*> dummy;
     Orbitals basisforgrid;
     GenerateQMAtomsFromPolarSegs(_job->getPolarTop()->QM0(),dummy,basisforgrid);
     Grid visgrid_fit=Grid(true,true,true);
     visgrid_fit.setAtomlist(&basisforgrid.QMAtoms());
     visgrid_fit.setCutoffshifts(1,-0.5);
-    visgrid_fit.setSpacing(0.5);
-    visgrid_fit.generateCubegrid(); 
-        
-        fitcharges.EvaluateAPECharges(visgrid_fit,_fitted_charges);
+    visgrid_fit.setSpacing(0.3);
+    visgrid_fit.setCubegrid(true);
+    visgrid_fit.setupgrid();
+  
+    fitcharges.EvaluateAPECharges(visgrid_fit,_fitted_charges);
 
-        visgrid_fit.printgridtoCubefile("cubefile.cub");
-        
+    visgrid_fit.printgridtoCubefile("cubefile_fit.cub");
+
+    _grid_fg.printgridtoCubefile("cubefile_fg.cub");
+    _grid_bg.printgridtoCubefile("cubefile_bg.cub");
+
+   
         exit(0);
        
     

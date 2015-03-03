@@ -62,7 +62,6 @@ public:
     vector<APolarSite*>::iterator qit;
     vector<APolarSite*>::iterator pit;
     for (pit=positions.begin();pit!=positions.end();++pit){
-        if ((*pit)->getIsAsleep()) continue;
         double potential=0.0;
         vec pos=(*pit)->getPos();
         for (qit=charges.begin();qit!=charges.end();++qit){
@@ -97,7 +96,7 @@ public:
         _chargepos.push_back(temp);    
     }
 
-    
+
     ub::vector<double> _potential=ub::zero_vector<double>(_targetgrid_fg.getsize());
     for( int i=0; i<_targetgrid_fg.getsize();i++){
     _potential(i)=Int2Hartree*(_target_fg[i]->getPhi()+_target_bg[i]->getPhi());    
@@ -240,6 +239,8 @@ private:
     //cout << "x " << _gridpoints[0](0)<< " y " << _gridpoints[0](1)<< " z " << _gridpoints[0](1);
     //cout << "x " << _fitcenters[0](0)<< " y " << _fitcenters[0](1)<< " z " << _fitcenters[0](1);
     // Fitting atomic partial charges
+    
+    
     ub::matrix<double> _Amat = ub::zero_matrix<double>(_fitcenters.size()+1,_fitcenters.size()+1);
     ub::matrix<double> _Bvec = ub::zero_matrix<double>(_fitcenters.size()+1);    
     
