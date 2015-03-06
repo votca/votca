@@ -100,8 +100,43 @@ namespace votca { namespace ctp {
             points.close();
         }
         
-       
         
+       
+        void readgridfromFile(string filename, bool ignorezeros){
+        
+        ifstream in1;
+        LOG(logDEBUG,_log) << " Reading cube from " << filename << flush;
+        in1.open(filename.c_str(), ios::in);
+        getline(in1, s);
+        getline(in1, s);
+        int natoms;
+        double xincr,yincr,zincr;
+        double xsteps,ysteps,zsteps;
+        double tempdouble;
+        in1 >> natoms;
+        in1 >> xstart;
+        in1 >> ystart;
+        in1 >> zstart;
+        in1 >> xsteps;
+        in1 >> xincr;
+        in1 >> tempdouble;
+        in1 >> tempdouble;
+        in1 >> ysteps;
+        in1 >> tempdouble;
+        in1 >> yincr;
+        in1 >> tempdouble;
+        in1 >> zsteps;
+        in1 >> tempdouble;
+        in1 >> tempdouble;
+        in1 >> zincr;          
+        
+        
+        
+        
+        
+        
+        
+        }
         
         void printgridtoCubefile(string filename){
             double A2Bohr=1.8897259886;
