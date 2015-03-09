@@ -75,7 +75,7 @@ void Topology::CreateMoleculesByRange(string name, int first, int nbeads, int nm
    
     BeadContainer::iterator bead;
     for(bead=_beads.begin(); bead!=_beads.end(); ++bead) {
-        while(--first > 0) continue;
+        if(first-- > 0) continue;
 	//This is not 100% correct, but let's assume for now that the resnr do increase
 	if ( beadcount == 0 ) {
 	    res_offset = (*bead)->getResnr();
