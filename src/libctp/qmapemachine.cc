@@ -18,7 +18,8 @@ template<class QMPackage>
 QMAPEMachine<QMPackage>::QMAPEMachine(XJob *job, Ewald3DnD *cape, QMPackage *qmpack,
 	 Property *opt, string sfx, int nst)
    : _job(job), _cape(cape), _qmpack(qmpack), _subthreads(nst),
-	 _isConverged(false) {
+	 _isConverged(false), _grid_fg(true,true,true), _grid_bg(true,true,true), 
+     _fitted_charges(true,true,true){
     
 	// CONVERGENCE THRESHOLDS
     string key = sfx + ".convergence";
@@ -140,8 +141,8 @@ void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
     GenerateQMAtomsFromPolarSegs(_job->getPolarTop()->QM0(),dummy,basisforgrid);
     
     
-    _grid_bg = Grid(true,true,true);
-    _grid_fg = Grid(true,true,true);
+    //_grid_bg = Grid(true,true,true);
+    //_grid_fg = Grid(true,true,true);
     _grid_bg.setAtomlist(&basisforgrid.QMAtoms());
     _grid_fg.setAtomlist(&basisforgrid.QMAtoms());
     _grid_bg.setCutoffshifts(1,-0.5);
@@ -158,7 +159,7 @@ void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
     
 
             
-    _fitted_charges = Grid(true,true,true);
+    //_fitted_charges = Grid(true,true,true);
     _fitted_charges.setAtomlist(&basisforgrid.QMAtoms());
     _fitted_charges.setCutoffshifts(8,2);
     _fitted_charges.setSpacing(3);
@@ -258,6 +259,8 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 		// Do not add BG & QM0, add MM1
 		_cape->EvaluatePotential(target_fg, false, true, false);
     }
+    
+  
 
     // COMPUTE WAVEFUNCTION & QM ENERGY
     // Generate charge shell from potentials
@@ -287,7 +290,10 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 
     _grid_fg.printgridtoCubefile("cubefile_fg.cub");
     _grid_bg.printgridtoCubefile("cubefile_bg.cub");
-
+    
+      Grid check;
+    check.readgridfromCubeFile("cubefile_bg.cub",true);
+    check.printgridtoCubefile("cubefile_bg_readinout.cub");
    
         exit(0);
        

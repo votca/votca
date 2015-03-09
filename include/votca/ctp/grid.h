@@ -102,17 +102,21 @@ namespace votca { namespace ctp {
         
         
        
-        void readgridfromFile(string filename, bool ignorezeros){
-        
+        void readgridfromCubeFile(string filename, bool ignore_zeros){
+           
+        double Bohr2Nm=1.0/18.897259886; 
+        if(_gridpoints.size()<1) throw std::runtime_error("Grid object already has points.");
         ifstream in1;
-        LOG(logDEBUG,_log) << " Reading cube from " << filename << flush;
+        string s;
         in1.open(filename.c_str(), ios::in);
         getline(in1, s);
         getline(in1, s);
         int natoms;
+        double xstart,ystart,zstart;
         double xincr,yincr,zincr;
         double xsteps,ysteps,zsteps;
         double tempdouble;
+        string name="H";
         in1 >> natoms;
         in1 >> xstart;
         in1 >> ystart;
@@ -130,13 +134,39 @@ namespace votca { namespace ctp {
         in1 >> tempdouble;
         in1 >> zincr;          
         
+        double val1;
+            
+        for (int _ix = 0; _ix < xsteps; _ix++) {
+            double posx=(xstart+_ix*xincr)*Bohr2Nm;
+
+           for (int _iy = 0; _iy < ysteps; _iy++) {
+              double posy=(ystart+_iy*yincr)*Bohr2Nm;
+
+
+              for (int _iz = 0; _iz < zsteps; _iz++) {
+                double posz=(zstart+_iz*zincr)*Bohr2Nm;
+                in1 >> val1;
+                vec temp=vec(posx,posy,posz);
+                ub::vector<double> temppos=temp.converttoub();
+                APolarSite *apolarsite= new APolarSite(0,name);
+                apolarsite->setRank(0);        
+                apolarsite->setQ00(0,0); // <- charge state 0 <> 'neutral'
+                apolarsite->setIsoP(0.0);
+                apolarsite->setPos(temp);
+                if(val1!=0.0 || !ignore_zeros){
+                _gridsites.push_back(apolarsite);
+                _gridpoints.push_back(temppos);
+                }
+                else {apolarsite->setIsVirtual(true);}
+                 _all_gridsites.push_back(apolarsite);
+
+
+              }}}
+        if (_sites_seg != NULL) delete _sites_seg;
+        _sites_seg = new PolarSeg(0, _gridsites);
+
+        }         
         
-        
-        
-        
-        
-        
-        }
         
         void printgridtoCubefile(string filename){
             double A2Bohr=1.8897259886;
