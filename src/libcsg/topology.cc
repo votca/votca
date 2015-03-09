@@ -74,7 +74,7 @@ void Topology::CreateMoleculesByRange(string name, int first, int nbeads, int nm
    
     BeadContainer::iterator bead;    
     for(bead=_beads.begin(); bead!=_beads.end(); ++bead) {
-        while(--first > 0) continue;
+        if(first-- > 0) continue;
         string bname = //lexical_cast<string>(mol->getId()) + ":" 
                       //lexical_cast<string>(bead->Residue()) + ":" 
                       //+
