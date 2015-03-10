@@ -66,9 +66,26 @@ void XMLTopologyReader::ParseTopology(const string &el, map<string, string> &att
     else if(el == "box") {
         matrix m;
         m.ZeroMatrix();
-        m[0][0] = boost::lexical_cast<double>(attr["xx"]);
-        m[1][1] = boost::lexical_cast<double>(attr["yy"]);
-        m[2][2] = boost::lexical_cast<double>(attr["zz"]);
+        string xx = attr["xx"];
+        string yy = attr["yy"];
+        string zz = attr["zz"];
+        if (xx == "" || yy == "" || zz == "")
+            throw runtime_error("invalid box tag - missing xx, yy or zz");
+        try {
+           m[0][0] = boost::lexical_cast<double>(xx);
+        } catch(boost::bad_lexical_cast &) {
+           throw std::runtime_error("Cannot convert xx='"+ xx + "' to double");
+        }
+        try {
+           m[1][1] = boost::lexical_cast<double>(yy);
+        } catch(boost::bad_lexical_cast &) {
+           throw std::runtime_error("Cannot convert yy='"+ yy + "' to double");
+        }
+        try {
+           m[2][2] = boost::lexical_cast<double>(zz);
+        } catch(boost::bad_lexical_cast &) {
+           throw std::runtime_error("Cannot convert zz='"+ zz + "' to double");
+        }
         _top->setBox(m);
         _parser.NextHandler(this, &XMLTopologyReader::ParseTopology);
     }
