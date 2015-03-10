@@ -119,8 +119,8 @@ void XMLTopologyReader::ParseMolecules(const string &el, map<string, string> &at
         string first = attr["first"];
         string nbeads = attr["nbeads"];
         string nmols = attr["nmols"];
-        if (molname == "" && first == "" && nbeads == "" && nmols == "")
-            throw runtime_error("invalid define tag - missing first, nbeads or nmols");
+        if (molname == "" || first == "" || nbeads == "" || nmols == "")
+            throw runtime_error("invalid define tag - missing molname, first, nbeads or nmols");
         int first_int, nbeads_int, nmols_int;
         try {
            first_int = boost::lexical_cast<int>(first);
