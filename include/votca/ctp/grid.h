@@ -105,7 +105,7 @@ namespace votca { namespace ctp {
         void readgridfromCubeFile(string filename, bool ignore_zeros){
            
         double Bohr2Nm=1.0/18.897259886; 
-        if(_gridpoints.size()<1) throw std::runtime_error("Grid object already has points.");
+        if(_gridpoints.size()>0) throw std::runtime_error("Grid object already has points.");
         ifstream in1;
         string s;
         in1.open(filename.c_str(), ios::in);
