@@ -103,11 +103,33 @@ void XMLTopologyReader::ParseMolecules(const string &el, map<string, string> &at
         string nbeads = attr["nbeads"];
         string nmols = attr["nmols"];
         if (molname == "" && first == "" && nbeads == "" && nmols == "")
-            throw runtime_error("invalid define tag");
-        _top->CreateMoleculesByRange(molname,
-                boost::lexical_cast<int>(first),
-                boost::lexical_cast<int>(nbeads),
-                boost::lexical_cast<int>(nmols));
+            throw runtime_error("invalid define tag - missing first, nbeads or nmols");
+        int first_int, nbeads_int, nmols_int;
+        try {
+           first_int = boost::lexical_cast<int>(first);
+        } catch(boost::bad_lexical_cast &) {
+           throw std::runtime_error("Cannot convert first='"+ first + "' to int");
+        }
+        if (first_int < 1) {
+           throw std::runtime_error("Attribute first is supose to be > 0, but found " + boost::lexical_cast<string>(first_int));
+        }
+        try {
+           nbeads_int = boost::lexical_cast<int>(nbeads);
+        } catch(boost::bad_lexical_cast &) {
+           throw std::runtime_error("Cannot convert nbeads='"+ nbeads + "' to int");
+        }
+        if (nbeads_int < 1) {
+           throw std::runtime_error("Attribute nbeads is supose to be > 0, but found " + boost::lexical_cast<string>(nbeads_int));
+        }
+        try {
+           nmols_int = boost::lexical_cast<int>(nmols);
+        } catch(boost::bad_lexical_cast &) {
+           throw std::runtime_error("Cannot convert nmols='"+ nmols + "' to int");
+        }
+        if (nmols_int < 1) {
+           throw std::runtime_error("Attribute nmols is supose to be > 0, but found " + boost::lexical_cast<string>(nmols_int));
+        }
+        _top->CreateMoleculesByRange(molname,first_int, nbeads_int, nmols_int);
         _parser.IgnoreChilds();
     }
 }
