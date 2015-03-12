@@ -280,4 +280,19 @@ functions dlpoly functions_dlpoly.sh
 convert_potential dlpoly potential_to_dlpoly.sh
 convert_potentials dlpoly potentials_to_dlpoly.sh
 
+# hoomd-blue scripts
+convert_potential hoomd-blue potential_to_generic.sh
+convert_potentials hoomd-blue potentials_to_generic.sh
+
+# interface to hoomd-blue
+initstep hoomd-blue initialize_step_genericsim.sh
+run hoomd-blue run_genericsim.sh
+clean hoomd-blue clean_generic.sh
+rdf hoomd-blue calc_rdf_generic.sh
+imc_stat hoomd-blue imc_stat_generic.sh
+density hoomd-blue calc_density_generic.sh
+
+# function for hoomd-blue
+functions hoomd-blue functions_genericsim.sh
+
 # END: these scripts have to be defined for each simulation program
