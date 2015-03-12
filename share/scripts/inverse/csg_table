@@ -273,10 +273,10 @@ rdf dlpoly calc_rdf_generic.sh
 imc_stat dlpoly imc_stat_generic.sh
 density dlpoly calc_density_generic.sh
 
-# function for lammps
+# function for dlpoly
 functions dlpoly functions_dlpoly.sh
 
-# lammps scripts
+# dlpoly scripts
 convert_potential dlpoly potential_to_dlpoly.sh
 convert_potentials dlpoly potentials_to_dlpoly.sh
 
