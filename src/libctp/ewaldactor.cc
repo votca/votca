@@ -1,29 +1,68 @@
 #include <votca/ctp/ewaldactor.h>
+#include <boost/format.hpp>
 
 
 namespace votca {
 namespace ctp {
 
     
-void EwdInteractor::FPU12_XYSlab_ShapeField_At_By(vector<PolarSeg*> &at, 
-    vector<PolarSeg*> &by, double &TwoPi_V) {
-    // This function requires neutrality of &s but gets around
+void EwdInteractor::FPU12_ShapeField_At_By(vector<PolarSeg*> &at,
+    vector<PolarSeg*> &by, string shape, double V) {
+    // This function requires neutrality of &by but gets around
     // the double sum (see ::F12_XYSlab_At_By)
-    // ATTENTION Only increments FPz, not FUz
+    // ATTENTION Only increments FP, not FU
+    
+    double fx = 0.0;
+    double fy = 0.0;
     double fz = 0.0;
+    
     vector<PolarSeg*>::iterator sit;
-    vector<APolarSite*> ::iterator pit;
+    vector<APolarSite*>::iterator pit;
+    
+    // Compute net dipole moment of field-generating density (&by)
+    vec Q1 = vec(0,0,0);
+    vec U1 = vec(0,0,0);
     for (sit = by.begin(); sit < by.end(); ++sit) {
         for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {
-            fz += 2*( (*pit)->Q00*(*pit)->getPos().getX() + (*pit)->U1z);
-            if ((*pit)->_rank > 0) 
-                fz += 2*(*pit)->Q1z;
+            vec r = (*pit)->getPos();
+            double q0 = (*pit)->Q00;
+            vec q1 = vec((*pit)->Q1x, (*pit)->Q1y, (*pit)->Q1z);
+            vec u1 = vec((*pit)->U1x, (*pit)->U1y, (*pit)->U1z);
+            // Increment moments
+            Q1 += q0*r;
+            if ((*pit)->getRank() > 0)
+                Q1 += q1;
+            U1 += u1;
         }
     }
-    fz *= TwoPi_V;
-    // Increment fields
+    
+    // Shape-dependent fields
+    if (shape == "xyslab") {
+        fx = 0.0;
+        fy = 0.0;
+        fz = Q1.getZ() + U1.getZ();
+        fx *= 4*M_PI/V;
+        fy *= 4*M_PI/V;
+        fz *= 4*M_PI/V;
+    }
+    else if (shape == "cube" || shape == "sphere") {
+        fx = Q1.getX() + U1.getX();
+        fy = Q1.getY() + U1.getY();
+        fz = Q1.getZ() + U1.getZ();
+        fx *= 4*M_PI/(3*V);
+        fy *= 4*M_PI/(3*V);
+        fz *= 4*M_PI/(3*V);
+    }
+    else {
+        cout << endl;
+        throw std::runtime_error("Shape '" + shape + "' not implemented");
+    }
+    
+    // Increment fields of target density (&at)
     for (sit = at.begin(); sit < at.end(); ++sit) {
         for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {
+            (*pit)->FPx += fx;
+            (*pit)->FPy += fy;
             (*pit)->FPz += fz;
         }
     }
@@ -31,24 +70,60 @@ void EwdInteractor::FPU12_XYSlab_ShapeField_At_By(vector<PolarSeg*> &at,
 }
 
 
-void EwdInteractor::FP12_XYSlab_ShapeField_At_By(vector<PolarSeg*> &at, 
-    vector<PolarSeg*> &by, double &TwoPi_V) {
-    // This function requires neutrality of &s but gets around
+void EwdInteractor::FP12_ShapeField_At_By(vector<PolarSeg*> &at,
+    vector<PolarSeg*> &by, string shape, double V) {
+    // This function requires neutrality of &by but gets around
     // the double sum (see ::F12_XYSlab_At_By)
+    // ATTENTION Only increments FP, not FU
+    
+    double fx = 0.0;
+    double fy = 0.0;
     double fz = 0.0;
+    
     vector<PolarSeg*>::iterator sit;
-    vector<APolarSite*> ::iterator pit;
+    vector<APolarSite*>::iterator pit;
+    
+    // Compute net dipole moment of field-generating density (&by)
+    vec Q1 = vec(0,0,0);
     for (sit = by.begin(); sit < by.end(); ++sit) {
         for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {
-            fz += 2*( (*pit)->Q00*(*pit)->getPos().getX() );
-            if ((*pit)->_rank > 0) 
-                fz += 2*(*pit)->Q1z;
+            vec r = (*pit)->getPos();
+            double q0 = (*pit)->Q00;
+            vec q1 = vec((*pit)->Q1x, (*pit)->Q1y, (*pit)->Q1z);
+            // Increment moments
+            Q1 += q0*r;
+            if ((*pit)->getRank() > 0)
+                Q1 += q1;
         }
     }
-    fz *= TwoPi_V;
-    // Increment fields
+    
+    // Shape-dependent fields
+    if (shape == "xyslab") {
+        fx = 0.0;
+        fy = 0.0;
+        fz = Q1.getZ();
+        fx *= 4*M_PI/V;
+        fy *= 4*M_PI/V;
+        fz *= 4*M_PI/V;
+    }
+    else if (shape == "cube" || shape == "sphere") {
+        fx = Q1.getX();
+        fy = Q1.getY();
+        fz = Q1.getZ();
+        fx *= 4*M_PI/(3*V);
+        fy *= 4*M_PI/(3*V);
+        fz *= 4*M_PI/(3*V);
+    }
+    else {
+        cout << endl;
+        throw std::runtime_error("Shape '" + shape + "' not implemented");
+    }
+    
+    // Increment fields of target density (&at)
     for (sit = at.begin(); sit < at.end(); ++sit) {
         for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {
+            (*pit)->FPx += fx;
+            (*pit)->FPy += fy;
             (*pit)->FPz += fz;
         }
     }
@@ -56,27 +131,135 @@ void EwdInteractor::FP12_XYSlab_ShapeField_At_By(vector<PolarSeg*> &at,
 }
 
 
-void EwdInteractor::FU12_XYSlab_ShapeField_At_By(vector<PolarSeg*> &at, 
-    vector<PolarSeg*> &by, double &TwoPi_V) {
-    // This function requires neutrality of &s but gets around
+void EwdInteractor::FU12_ShapeField_At_By(vector<PolarSeg*> &at,
+    vector<PolarSeg*> &by, string shape, double V) {
+    // This function requires neutrality of &by but gets around
     // the double sum (see ::F12_XYSlab_At_By)
+    // ATTENTION Only increments FP, not FU
+    
+    double fx = 0.0;
+    double fy = 0.0;
     double fz = 0.0;
+    
     vector<PolarSeg*>::iterator sit;
-    vector<APolarSite*> ::iterator pit;
+    vector<APolarSite*>::iterator pit;
+    
+    // Compute net dipole moment of field-generating density (&by)
+    vec U1 = vec(0,0,0);
     for (sit = by.begin(); sit < by.end(); ++sit) {
         for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {
-            fz += 2*(*pit)->U1z;
+            vec u1 = vec((*pit)->U1x, (*pit)->U1y, (*pit)->U1z);
+            // Increment moments
+            U1 += u1;
         }
     }
-    fz *= TwoPi_V;
-    // Increment fields
+    
+    // Shape-dependent fields
+    if (shape == "xyslab") {
+        fx = 0.0;
+        fy = 0.0;
+        fz = U1.getZ();
+        fx *= 4*M_PI/V;
+        fy *= 4*M_PI/V;
+        fz *= 4*M_PI/V;
+    }
+    else if (shape == "cube" || shape == "sphere") {
+        fx = U1.getX();
+        fy = U1.getY();
+        fz = U1.getZ();
+        fx *= 4*M_PI/(3*V);
+        fy *= 4*M_PI/(3*V);
+        fz *= 4*M_PI/(3*V);
+    }
+    else {
+        cout << endl;
+        throw std::runtime_error("Shape '" + shape + "' not implemented");
+    }
+    
+    // Increment fields of target density (&at)
     for (sit = at.begin(); sit < at.end(); ++sit) {
         for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {
+            (*pit)->FUx += fx;
+            (*pit)->FUy += fy;
             (*pit)->FUz += fz;
         }
     }
     return;
 }
+    
+    
+//void EwdInteractor::FPU12_XYSlab_ShapeField_At_By(vector<PolarSeg*> &at, 
+//    vector<PolarSeg*> &by, double &TwoPi_V) {
+//    // This function requires neutrality of &by but gets around
+//    // the double sum (see ::F12_XYSlab_At_By)
+//    // ATTENTION Only increments FPz, not FUz
+//    double fz = 0.0;
+//    vector<PolarSeg*>::iterator sit;
+//    vector<APolarSite*> ::iterator pit;
+//    for (sit = by.begin(); sit < by.end(); ++sit) {
+//        for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {
+//            fz += 2*( (*pit)->Q00*(*pit)->getPos().getZ() + (*pit)->U1z);
+//            if ((*pit)->_rank > 0) 
+//                fz += 2*(*pit)->Q1z;
+//        }
+//    }
+//    fz *= TwoPi_V;
+//    // Increment fields
+//    for (sit = at.begin(); sit < at.end(); ++sit) {
+//        for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {
+//            (*pit)->FPz += fz;
+//        }
+//    }
+//    return;
+//}
+//
+//
+//void EwdInteractor::FP12_XYSlab_ShapeField_At_By(vector<PolarSeg*> &at, 
+//    vector<PolarSeg*> &by, double &TwoPi_V) {
+//    // This function requires neutrality of &by but gets around
+//    // the double sum (see ::F12_XYSlab_At_By)
+//    double fz = 0.0;
+//    vector<PolarSeg*>::iterator sit;
+//    vector<APolarSite*> ::iterator pit;
+//    for (sit = by.begin(); sit < by.end(); ++sit) {
+//        for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {
+//            fz += 2*( (*pit)->Q00*(*pit)->getPos().getZ() );
+//            if ((*pit)->_rank > 0) 
+//                fz += 2*(*pit)->Q1z;
+//        }
+//    }
+//    fz *= TwoPi_V;
+//    // Increment fields
+//    for (sit = at.begin(); sit < at.end(); ++sit) {
+//        for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {
+//            (*pit)->FPz += fz;
+//        }
+//    }
+//    return;
+//}
+//
+//
+//void EwdInteractor::FU12_XYSlab_ShapeField_At_By(vector<PolarSeg*> &at, 
+//    vector<PolarSeg*> &by, double &TwoPi_V) {
+//    // This function requires neutrality of &by but gets around
+//    // the double sum (see ::F12_XYSlab_At_By)
+//    double fz = 0.0;
+//    vector<PolarSeg*>::iterator sit;
+//    vector<APolarSite*> ::iterator pit;
+//    for (sit = by.begin(); sit < by.end(); ++sit) {
+//        for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {
+//            fz += 2*(*pit)->U1z;
+//        }
+//    }
+//    fz *= TwoPi_V;
+//    // Increment fields
+//    for (sit = at.begin(); sit < at.end(); ++sit) {
+//        for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {
+//            (*pit)->FUz += fz;
+//        }
+//    }
+//    return;
+//}
 
 
 
@@ -160,7 +343,7 @@ EWD::cmplx EwdInteractor::UStructureAmplitude(vector<PolarSeg*> &s, const vec &k
 
 EWD::cmplx EwdInteractor::FP12_At_ByS2(const vec &k, vector<PolarSeg*> &s1, 
     const EWD::cmplx &S2, double &rV) {
-    // ATTENTION Increment PERMANENT fields of s1
+    // ATTENTION Increments PERMANENT fields of s1
     // ATTENTION Structure factor S2 from PERM & INDU moments of s2, k    
     double re_S2 = S2._re;
     double im_S2 = - S2._im; // !! NOTE THE (-) !!
@@ -214,7 +397,7 @@ EWD::cmplx EwdInteractor::FP12_At_ByS2(const vec &k, vector<PolarSeg*> &s1,
 
 EWD::cmplx EwdInteractor::FU12_At_ByS2(const vec &k, vector<PolarSeg*> &s1, 
     const EWD::cmplx &S2, double &rV) {
-    // ATTENTION Increment PERMANENT fields of s1
+    // ATTENTION Increments PERMANENT fields of s1
     // ATTENTION Structure factor S2 from PERM & INDU moments of s2, k    
     double re_S2 = S2._re;
     double im_S2 = - S2._im; // !! NOTE THE (-) !!
@@ -268,7 +451,7 @@ EWD::cmplx EwdInteractor::FU12_At_ByS2(const vec &k, vector<PolarSeg*> &s1,
 
 EWD::cmplx EwdInteractor::FPU12_AS1S2_At_By(const vec &k,
     vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV) {
-    // ATTENTION Increment PERMANENT fields of s1
+    // ATTENTION Increments PERMANENT fields of s1
     // ATTENTION Structure factors include PERMANENT & INDUCED moments of s2    
     
     ApplyBiasK(k);    
@@ -326,7 +509,7 @@ EWD::cmplx EwdInteractor::FPU12_AS1S2_At_By(const vec &k,
 
 EWD::cmplx EwdInteractor::FP12_AS1S2_At_By(const vec &k,
     vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV) {
-    // ATTENTION Increment PERMANENT fields of s1
+    // ATTENTION Increments PERMANENT fields of s1
     // ATTENTION Structure factors include PERMANENT moments of s2    
     
     ApplyBiasK(k);    
@@ -384,7 +567,7 @@ EWD::cmplx EwdInteractor::FP12_AS1S2_At_By(const vec &k,
 
 EWD::cmplx EwdInteractor::FU12_AS1S2_At_By(const vec &k,
     vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV) {
-    // ATTENTION Increment INDUCED fields of s1
+    // ATTENTION Increments INDUCED fields of s1
     // ATTENTION Structure factors include INDUCED moments of s2    
     
     ApplyBiasK(k);    
@@ -548,9 +731,178 @@ EWD::triple<EWD::cmplx> EwdInteractor::S1S2(const vec &k,
                                    EWD::cmplx(pu_re_S1S2, pu_im_S1S2),
                                    EWD::cmplx(uu_re_S1S2, uu_im_S1S2));
 }
+
+
+EWD::triple<double> EwdInteractor::U12_ShapeTerm(vector<PolarSeg*> &s1,
+    vector<PolarSeg*> &s2, string shape, double V, Logger *log) {
     
-
-
-
+    // NOTE : WITH PREFACTOR = -4*PI/V (xylab) v -4*PI/3V (cube, sphere)
+    vector<PolarSeg*>::iterator sit;
+    vector<APolarSite*>::iterator pit;
+    
+    // Charge, dipole, quadrupole for <s1>: Q... <> permanent, U... <> induced
+    double Q0_S1 = 0.0;
+    votca::tools::vec Q1_S1 = vec(0,0,0);
+    votca::tools::vec U1_S1 = vec(0,0,0);
+    votca::tools::matrix Q2_S1;
+    Q2_S1.ZeroMatrix();
+    votca::tools::matrix U2_S1;
+    U2_S1.ZeroMatrix();
+    
+    for (sit = s1.begin(); sit != s1.end(); ++sit) {
+        for (pit = (*sit)->begin(); pit != (*sit)->end(); ++pit) {
+            vec    r  = (*pit)->getPos();
+            double q0 = (*pit)->Q00;
+            vec    q1 = vec((*pit)->Q1x, (*pit)->Q1y, (*pit)->Q1z);
+            vec    u1 = vec((*pit)->U1x, (*pit)->U1y, (*pit)->U1z);
+            matrix q2 = matrix(
+                vec((*pit)->Qxx, (*pit)->Qxy, (*pit)->Qxz),
+                vec((*pit)->Qxy, (*pit)->Qyy, (*pit)->Qyz),
+                vec((*pit)->Qxz, (*pit)->Qyz, (*pit)->Qzz));
+            // Charge
+            Q0_S1 += q0;
+            // Dipole
+            Q1_S1 += q0*r;
+            if ((*pit)->getRank() > 0)
+                Q1_S1 += q1;
+            U1_S1 += u1;
+            // Quadrupole
+            Q2_S1 += 0.5*q0*(r|r);
+            if ((*pit)->getRank() > 0) {
+                Q2_S1 += (q1|r);
+                if ((*pit)->getRank() > 1) {
+                    Q2_S1 += q2;
+                }
+            }
+            U2_S1 += (u1|r);
+        }
+    }    
+    
+    // Charge, dipole, quadrupole for <s2>: Q... <> permanent, U... <> induced
+    double Q0_S2 = 0.0;
+    votca::tools::vec Q1_S2 = vec(0,0,0);
+    votca::tools::vec U1_S2 = vec(0,0,0);
+    votca::tools::matrix Q2_S2;
+    Q2_S2.ZeroMatrix();
+    votca::tools::matrix U2_S2;
+    U2_S2.ZeroMatrix();
+    
+    for (sit = s2.begin(); sit != s2.end(); ++sit) {
+        for (pit = (*sit)->begin(); pit != (*sit)->end(); ++pit) {
+            vec r = (*pit)->getPos();
+            double q0 = (*pit)->Q00;
+            vec    q1 = vec((*pit)->Q1x, (*pit)->Q1y, (*pit)->Q1z);
+            vec    u1 = vec((*pit)->U1x, (*pit)->U1y, (*pit)->U1z);
+            matrix q2 = matrix(
+                vec((*pit)->Qxx, (*pit)->Qxy, (*pit)->Qxz),
+                vec((*pit)->Qxy, (*pit)->Qyy, (*pit)->Qyz),
+                vec((*pit)->Qxz, (*pit)->Qyz, (*pit)->Qzz));
+            // Charge
+            Q0_S2 += q0;
+            // Dipole
+            Q1_S2 += q0*r;
+            if ((*pit)->getRank() > 0)
+                Q1_S2 += q1;
+            U1_S2 += u1;
+            // Quadrupole
+            Q2_S2 += 0.5*q0*(r|r);
+            if ((*pit)->getRank() > 0) {
+                Q2_S2 += (q1|r);
+                if ((*pit)->getRank() > 1) {
+                    Q2_S2 += q2;
+                }
+            }
+            U2_S2 += (u1|r);
+        }
+    }
+    
+    // Traces
+    double TrQ2_S1 = Q2_S1.get(0,0)+Q2_S1.get(1,1)+Q2_S1.get(2,2);
+    double TrU2_S1 = U2_S1.get(0,0)+U2_S1.get(1,1)+U2_S1.get(2,2);    
+    double TrQ2_S2 = Q2_S2.get(0,0)+Q2_S2.get(1,1)+Q2_S2.get(2,2);
+    double TrU2_S2 = U2_S2.get(0,0)+U2_S2.get(1,1)+U2_S2.get(2,2);    
+    
+    if (log != NULL) {
+        LOG(logDEBUG, *log) << "S1 moments: " << flush;
+        LOG(logDEBUG, *log) << "  Q0   = " 
+            << (boost::format("%1$+1.7e") % Q0_S1) << flush;
+        LOG(logDEBUG, *log) << "  Q1   = " 
+            << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e") 
+                % Q1_S1.getX() % Q1_S1.getY() % Q1_S1.getZ()) << flush;
+        LOG(logDEBUG, *log) << "  U1   = " 
+            << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e") 
+                % U1_S1.getX() % U1_S1.getY() % U1_S1.getZ()) << flush;
+        LOG(logDEBUG, *log) << "  Q2   = "
+            << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e | %4$+1.7e %5$+1.7e %6$+1.7e | %7$+1.7e %8$+1.7e %9$+1.7e") 
+                % Q2_S1.get(0,0) % Q2_S1.get(0,1) % Q2_S1.get(0,2)
+                % Q2_S1.get(1,0) % Q2_S1.get(1,1) % Q2_S1.get(1,2)
+                % Q2_S1.get(2,0) % Q2_S1.get(2,1) % Q2_S1.get(2,2)) << flush;
+        LOG(logDEBUG, *log) << "  U2   = "
+            << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e | %4$+1.7e %5$+1.7e %6$+1.7e | %7$+1.7e %8$+1.7e %9$+1.7e") 
+                % U2_S1.get(0,0) % U2_S1.get(0,1) % U2_S1.get(0,2)
+                % U2_S1.get(1,0) % U2_S1.get(1,1) % U2_S1.get(1,2)
+                % U2_S1.get(2,0) % U2_S1.get(2,1) % U2_S1.get(2,2)) << flush;
+        LOG(logDEBUG, *log) << "  TrQ2 = " << TrQ2_S1 << flush;
+        LOG(logDEBUG, *log) << "  TrU2 = " << TrU2_S1 << flush;
+        
+        LOG(logDEBUG, *log) << "S2 moments: " << flush;
+        LOG(logDEBUG, *log) << "  Q0   = " 
+            << (boost::format("%1$+1.7e") % Q0_S2) << flush;
+        LOG(logDEBUG, *log) << "  Q1   = " 
+            << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e") 
+                % Q1_S2.getX() % Q1_S2.getY() % Q1_S2.getZ()) << flush;
+        LOG(logDEBUG, *log) << "  U1   = " 
+            << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e") 
+                % U1_S2.getX() % U1_S2.getY() % U1_S2.getZ()) << flush;
+        LOG(logDEBUG, *log) << "  Q2   = "
+            << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e | %4$+1.7e %5$+1.7e %6$+1.7e | %7$+1.7e %8$+1.7e %9$+1.7e") 
+                % Q2_S2.get(0,0) % Q2_S2.get(0,1) % Q2_S2.get(0,2)
+                % Q2_S2.get(1,0) % Q2_S2.get(1,1) % Q2_S2.get(1,2)
+                % Q2_S2.get(2,0) % Q2_S2.get(2,1) % Q2_S2.get(2,2)) << flush;
+        LOG(logDEBUG, *log) << "  U2   = "
+            << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e | %4$+1.7e %5$+1.7e %6$+1.7e | %7$+1.7e %8$+1.7e %9$+1.7e") 
+                % U2_S2.get(0,0) % U2_S2.get(0,1) % U2_S2.get(0,2)
+                % U2_S2.get(1,0) % U2_S2.get(1,1) % U2_S2.get(1,2)
+                % U2_S2.get(2,0) % U2_S2.get(2,1) % U2_S2.get(2,2)) << flush;
+        LOG(logDEBUG, *log) << "  TrQ2 = " << TrQ2_S2 << flush;
+        LOG(logDEBUG, *log) << "  TrU2 = " << TrU2_S2 << flush;
+    }
+    
+    // Shape-dependent energies
+    double pp = 0.0;
+    double pu = 0.0;
+    double uu = 0.0;
+    
+    if (shape == "xyslab") {
+        pp = Q0_S1*Q2_S2.get(2,2)
+           + Q0_S2*Q2_S1.get(2,2)
+           - Q1_S1.getZ()*Q1_S2.getZ();
+        pu = Q0_S1*U2_S2.get(2,2)
+           + Q0_S2*U2_S1.get(2,2)
+           - Q1_S1.getZ()*U1_S2.getZ()
+           - Q1_S2.getZ()*U1_S1.getZ();
+        uu = - U1_S1.getZ()*U1_S2.getZ();
+        pp *= -4*M_PI/V;
+        pu *= -4*M_PI/V;
+        uu *= -4*M_PI/V;
+    }
+    else if (shape == "cube" || shape == "sphere") {
+        pp = Q0_S1*TrQ2_S2 + Q0_S2*TrQ2_S1 - Q1_S1*Q1_S2;
+        pu = Q0_S1*TrU2_S2 + Q0_S2*TrU2_S1 - Q1_S1*U1_S2 - Q1_S2*U1_S1;
+        uu = - U1_S1*U1_S2;
+        pp *= -4*M_PI/(3*V);
+        pu *= -4*M_PI/(3*V);
+        uu *= -4*M_PI/(3*V);
+    }
+    else {
+        cout << endl;
+        throw std::runtime_error("Shape '" + shape + "' not implemented");
+    }
+    
+    //cout << endl << "S1 " << Q0_S1 << " " << Q1_S1 << " " << TrQ2_S1 << flush;
+    //cout << endl << "S2 " << Q0_S2 << " " << Q1_S2 << " " << TrQ2_S2 << flush;
+    
+    return EWD::triple<double>(pp, pu, uu);
+}
 
 }}

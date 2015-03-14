@@ -32,6 +32,7 @@ private:
     bool            _do_optimize;
     matrix          _target;
     double          _tolerance;
+    vector<string>  _scaling_pattern;
     // SCF MOLPOL OPTIONS
     double          _aDamp;
     double          _wSOR;
