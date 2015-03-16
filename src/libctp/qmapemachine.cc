@@ -216,7 +216,7 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 		if (iterCnt == 0) {
 			_cape->ShowAgenda(_log);
 			// Reset FGC, start from BGP state, apply FP fields (BG & FG)
-			_cape->EvaluateInductionQMMM(true, true, true, true, true);
+			//_cape->EvaluateInductionQMMM(true, true, true, true, true);
 		}
     /*
         vec pos1=vec(_fitted_charges.getGrid()[0]);
@@ -262,7 +262,7 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 			_cape->EvaluatePotential(target_bg, true, false, false);
 		}
 		// Do not add BG & QM0, add MM1
-		_cape->EvaluatePotential(target_fg, false, true, false);
+		//_cape->EvaluatePotential(target_fg, false, true, false);
     }
     
   
@@ -278,7 +278,7 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     fitcharges.FitAPECharges(_grid_bg,_grid_fg,_fitted_charges,netchargefit);
     mm_fitted.push_back(_fitted_charges.getSeg());
 
-   /*   
+    
     vector<PolarSeg*> dummy;
     Orbitals basisforgrid;
     GenerateQMAtomsFromPolarSegs(_job->getPolarTop()->QM0(),dummy,basisforgrid);
@@ -296,14 +296,14 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     _grid_fg.printgridtoCubefile("cubefile_fg.cub");
     _grid_bg.printgridtoCubefile("cubefile_bg.cub");
     
-      //Grid check;
-    //check.readgridfromCubeFile("cubefile_bg.cub",true);
-    //check.setAtomlist(&basisforgrid.QMAtoms());
-    //check.printgridtoCubefile("cubefile_bg_readinout.cub");
+    Grid check;
+    check.readgridfromCubeFile("cubefile_bg.cub",true);
+    check.setAtomlist(&basisforgrid.QMAtoms());
+    check.printgridtoCubefile("cubefile_bg_readinout.cub");
    
-        //exit(0);
+        exit(0);
        
-    */
+    
     
     // Run DFT
     Orbitals orb_iter_input;

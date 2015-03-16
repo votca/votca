@@ -54,6 +54,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484457893/ewaldactor.o \
 	${OBJECTDIR}/_ext/484457893/extractorfactory.o \
 	${OBJECTDIR}/_ext/484457893/fragment.o \
+	${OBJECTDIR}/_ext/484457893/grid.o \
 	${OBJECTDIR}/_ext/484457893/gsl_boost_ublas_matrix_prod.o \
 	${OBJECTDIR}/_ext/1064926810/bse.o \
 	${OBJECTDIR}/_ext/1064926810/gwa.o \
@@ -231,6 +232,11 @@ ${OBJECTDIR}/_ext/484457893/fragment.o: nbproject/Makefile-${CND_CONF}.mk ../../
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/fragment.o ../../src/libctp/fragment.cc
+
+${OBJECTDIR}/_ext/484457893/grid.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libctp/grid.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/grid.o ../../src/libctp/grid.cc
 
 ${OBJECTDIR}/_ext/484457893/gsl_boost_ublas_matrix_prod.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libctp/gsl_boost_ublas_matrix_prod.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893

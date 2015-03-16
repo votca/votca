@@ -211,6 +211,7 @@
       <itemPath>../../src/libctp/ewald3d.cc</itemPath>
       <itemPath>../../src/libctp/ewaldactor.cc</itemPath>
       <itemPath>../../src/libctp/ewaldnd.cc</itemPath>
+      <itemPath>../../src/libctp/grid.cc</itemPath>
       <itemPath>../../src/libctp/gsl_boost_ublas_matrix_prod.cc</itemPath>
       <itemPath>../../src/libctp/hgversion.h</itemPath>
       <itemPath>../../src/libctp/job.cc</itemPath>
@@ -740,6 +741,8 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/fragment.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/grid.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/gsl_boost_ublas_matrix_prod.cc"
             ex="false"
@@ -1486,6 +1489,8 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/fragment.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/grid.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/gsl_boost_ublas_matrix_prod.cc"
             ex="false"
