@@ -175,8 +175,8 @@ void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
     LOG(logINFO,*_log) << flush;
     _exportgridtofile=true;
     if (_exportgridtofile){
-    _grid_bg.printGridtofile("grid.xyz");
-    _fitted_charges.printGridtofile("grid2.xyz");
+    _grid_bg.printGridtoxyzfile("grid.xyz");
+    _fitted_charges.printGridtoxyzfile("grid2.xyz");
     }
     
     int iterCnt = 0;
@@ -298,7 +298,6 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     
     Grid check;
     check.readgridfromCubeFile("cubefile_bg.cub",true);
-    check.setAtomlist(&basisforgrid.QMAtoms());
     check.printgridtoCubefile("cubefile_bg_readinout.cub");
    
         exit(0);

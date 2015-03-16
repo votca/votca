@@ -8,15 +8,15 @@ using namespace votca::tools;
 namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
     
-void Grid::printGridtofile(const char* _filename){
-            //unit is nm
-            double A2nm=10;
+void Grid::printGridtoxyzfile(const char* _filename){
+            //unit is Angstrom in xyz file 
+            double NmtoA=10.0; 
             ofstream points;
             points.open(_filename, ofstream::out);
             points << _gridpoints.size() << endl;
             points << endl;
             for ( int i = 0 ; i < _gridpoints.size(); i++){
-                points << "X " << A2nm*_gridpoints[i](0) << " " << A2nm*_gridpoints[i](1) << " " << A2nm*_gridpoints[i](2) << endl;
+                points << "X " << _gridpoints[i](0)*NmtoA << " " << _gridpoints[i](1)*NmtoA << " " << _gridpoints[i](2)*NmtoA << endl;
 
             }
             points.close();
@@ -24,8 +24,11 @@ void Grid::printGridtofile(const char* _filename){
 
 
 void Grid::readgridfromCubeFile(string filename, bool ignore_zeros){
+        Elements _elements;
+
         _cubegrid=true;   
         double Bohr2Nm=1.0/18.897259886; 
+        double Bohr2A=1.0/1.8897259886; 
         if(_gridpoints.size()>0) throw std::runtime_error("Grid object already has points.");
         ifstream in1;
         string s;
@@ -57,6 +60,32 @@ void Grid::readgridfromCubeFile(string filename, bool ignore_zeros){
         
         if(xincr==yincr && yincr==zincr && zincr==xincr) _gridspacing==xincr*Bohr2Nm;
         else throw std::runtime_error("Gridspacing in x,y,z is different, currently not implemented, loading aborted");
+        _lowerbound=vec(xstart*Bohr2Nm,ystart*Bohr2Nm,zstart*Bohr2Nm);
+        _upperbound=_lowerbound+vec(_gridspacing*xsteps,_gridspacing*ysteps,_gridspacing*zsteps);
+        
+        _atomlist= new vector< QMAtom* >;
+        for (int iatom =0; iatom < std::abs(natoms); iatom++) {
+                 // get center coordinates in Bohr
+                 double x ;
+                 double y ;
+                 double z ;
+                 int atnum ;
+                 double crg ;
+
+                 // get from first cube
+                 in1 >> atnum;
+                 in1 >> crg;
+                 in1 >> x;
+                 in1 >> y;
+                 in1 >> z;
+                 
+                 QMAtom *qmatom=new QMAtom(_elements.getEleName(atnum),x*Bohr2A,y*Bohr2A,z*Bohr2A,crg,false);
+                 _atomlist->push_back(qmatom);
+        }
+        
+        
+        
+        
         
         
         double potential;
@@ -148,12 +177,115 @@ void Grid::printgridtoCubefile(string filename){
         
         fclose(out);        
         }    
-void Grid::setupradialgrid(int depth){}
+
+
+//Create a 12^depth geodesic grid for a sphere of a given radius/cutoff
+
+void Grid::subdivide(const vec &v1, const vec &v2, const vec &v3, std::vector<vec> &spherepoints, const int depth) {
+    if(depth == 0) {
+        spherepoints.push_back(v1);
+        spherepoints.push_back(v2);
+        spherepoints.push_back(v3);
+        return;
+    }
+    const vec v12 = (v1 + v2).normalize();
+    const vec v23 = (v2 + v3).normalize();
+    const vec v31 = (v3 + v1).normalize();
+    subdivide(v1, v12, v31, spherepoints, depth - 1);
+    subdivide(v2, v23, v12, spherepoints, depth - 1);
+    subdivide(v3, v31, v23, spherepoints, depth - 1);
+    subdivide(v12, v23, v31,spherepoints, depth - 1);
+}
+
+void Grid::initialize_sphere(std::vector<vec> &spherepoints, const int depth) {
+    const double X = 0.525731112119133606;
+    const double Z = 0.850650808352039932;
+    std::vector<vec> vdata;
+    vdata.push_back(vec(-X, 0.0, Z));
+    vdata.push_back(vec(X, 0.0, Z));
+    vdata.push_back(vec(-X, 0.0, -Z));
+    vdata.push_back(vec(X, 0.0, -Z));
+    vdata.push_back(vec(0.0, Z, X));
+    vdata.push_back(vec(0.0, Z, -X));
+    vdata.push_back(vec(0.0, -Z, X));
+    vdata.push_back(vec(0.0, -Z, -X));
+    vdata.push_back(vec(Z, X, 0.0));
+    vdata.push_back(vec(-Z, X, 0.0));
+    vdata.push_back(vec(Z, -X, 0.0));
+    vdata.push_back(vec(-Z, -X, 0.0));
+    int tindices[20][3] = {
+        {0, 4, 1}, { 0, 9, 4 }, { 9, 5, 4 }, { 4, 5, 8 }, { 4, 8, 1 },
+        { 8, 10, 1 }, { 8, 3, 10 }, { 5, 3, 8 }, { 5, 2, 3 }, { 2, 7, 3 },
+        { 7, 10, 3 }, { 7, 6, 10 }, { 7, 11, 6 }, { 11, 0, 6 }, { 0, 1, 6 },
+        { 6, 1, 10 }, { 9, 0, 11 }, { 9, 11, 2 }, { 9, 2, 5 }, { 7, 2, 11 }
+    };
+    for(int i = 0; i < 20; i++)
+        subdivide(vdata[tindices[i][0]], vdata[tindices[i][1]], vdata[tindices[i][2]], spherepoints, depth);
+}
+
+void Grid::setupradialgrid(const int depth) {
+    _cubegrid = false;
+    std::vector<vec> spherepoints;
+    initialize_sphere(spherepoints, depth);
+    double A2Nm = 0.1;
+    double x = 0.0;
+    double y = 0.0;
+    double z = 0.0;
+    vector<QMAtom* >::const_iterator ait;
+    for (ait = _atomlist->begin(); ait != _atomlist->end(); ++ait) {
+        x += (*ait)->x;
+        y += (*ait)->y;
+        z += (*ait)->z;
+    }
+
+    double numofatoms = double(_atomlist->size());
+    vec centerofmolecule = vec(x / numofatoms, y / numofatoms, z / numofatoms);
+    bool cutoff_smaller_molecule=false;
+    double temp_cutoff=_cutoff;
+    for (ait = _atomlist->begin(); ait != _atomlist->end(); ++ait) {
+        x += (*ait)->x;
+        y += (*ait)->y;
+        z += (*ait)->z;
+        
+        vec temppos=vec(x,y,z);
+        double dist=abs(centerofmolecule-temppos)+2.0; // 2.0 because that is approximately the VdW radius
+        if (dist>temp_cutoff){
+            cutoff_smaller_molecule=true;
+            temp_cutoff=dist;
+        }
+    }
+    
+    if (cutoff_smaller_molecule){        
+        cout << "Specified cutoff of "<< _cutoff<<" to small. Cutoff is set to "<< temp_cutoff <<"Angstroem."<<endl;
+        _cutoff=temp_cutoff;
+    }
+        
+    //till here everything was Angstroem
+        
+    vector<vec>::const_iterator git;
+    for (git = spherepoints.begin(); git != spherepoints.end(); ++git) {
+        vec position=((*git)*_cutoff+centerofmolecule)*A2Nm;
+        _gridpoints.push_back(position.converttoub());
+        if(_createpolarsites){                   
+            string name="H";
+            APolarSite *apolarsite= new APolarSite(0,name);
+            apolarsite->setRank(0);        
+            apolarsite->setQ00(0,0); // <- charge state 0 <> 'neutral'
+            apolarsite->setIsoP(0.0);
+            apolarsite->setPos(position);
+            _gridsites.push_back(apolarsite);
+            _all_gridsites.push_back(apolarsite);       
+        }
+    }
+    if (_sites_seg != NULL) delete _sites_seg;
+           _sites_seg = new PolarSeg(0, _gridsites);
+
+}
 
 void Grid::setupgrid(){
            
             
-            double AtoNm=0.1;
+            double A2Nm=0.1;
             Elements _elements;
             double xmin=std::numeric_limits<double>::max();
             double ymin=xmin;
@@ -218,9 +350,9 @@ void Grid::setupgrid(){
                                     else if ( distance2<pow(_cutoff,2))  _is_valid = true;
                                 }
                             if (_is_valid || _cubegrid){
-                                temppos(0)=AtoNm*x;
-                                temppos(1)=AtoNm*y;        
-                                temppos(2)=AtoNm*z;   
+                                temppos(0)=A2Nm*x;
+                                temppos(1)=A2Nm*y;        
+                                temppos(2)=A2Nm*z;   
                                 if(_createpolarsites){
                                     // APolarSite are in nm so convert
                                     vec temp=vec(temppos);
@@ -231,8 +363,8 @@ void Grid::setupgrid(){
                                     apolarsite->setIsoP(0.0);
                                     apolarsite->setPos(temp);
                                     if(_is_valid){
-                                    _gridsites.push_back(apolarsite);
-                                    _gridpoints.push_back(temppos);
+                                        _gridsites.push_back(apolarsite);
+                                        _gridpoints.push_back(temppos);
                                     }
                                     else {apolarsite->setIsVirtual(true);}
                                      _all_gridsites.push_back(apolarsite);

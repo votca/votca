@@ -33,6 +33,7 @@
 #include <votca/ctp/qmatom.h>
 #include <votca/ctp/logger.h>
 #include <votca/ctp/apolarsite.h>
+#include <votca/ctp/polarseg.h>
 /**
 * \brief Takes a list of atoms, and creates different grids for it. Right now only CHELPG grid.
 *
@@ -85,15 +86,15 @@ namespace votca { namespace ctp {
             return size; 
         }
 
-        void printGridtofile(const char* _filename)
+        void printGridtoxyzfile(const char* _filename);
         
-        void readgridfromCubeFile(string filename, bool ignore_zeros)
+        void readgridfromCubeFile(string filename, bool ignore_zeros);
        
-        void printgridtoCubefile(string filename)
+        void printgridtoCubefile(string filename);
         
-        void setupradialgrid(int depth)
+        void setupradialgrid(int depth);
         
-        void setupgrid()
+        void setupgrid();
        
         void setupCHELPgrid(){
             //_padding=2.8; // Additional distance from molecule to set up grid according to CHELPG paper [Journal of Computational Chemistry 11, 361, 1990]
@@ -111,7 +112,7 @@ namespace votca { namespace ctp {
       std::vector< APolarSite* > _gridsites;
       std::vector< APolarSite* > _all_gridsites;
       PolarSeg *_sites_seg;
-      const vector< QMAtom* >* _atomlist;
+      vector< QMAtom* >* _atomlist;
       double _gridspacing;
       double _cutoff;
       double _cutoff_inside;
@@ -124,6 +125,9 @@ namespace votca { namespace ctp {
       bool   _cubegrid;
       vec _upperbound;
       vec _lowerbound;
+      
+      void subdivide(const vec &v1, const vec &v2, const vec &v3, std::vector<vec> &spherepoints, const int depth);
+      void initialize_sphere(std::vector<vec> &spherepoints, const int depth);
  
     };   
     

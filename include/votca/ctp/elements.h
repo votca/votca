@@ -56,6 +56,7 @@ public:
     const double     &getNucCrgECP(string name) const {return _NucCrgECP.at(name); }
     const double     &getNucCrg(string name) const {return _NucCrg.at(name); }
     const int        &getEleNum(string name) const {return _EleNum.at(name); }
+    const string     &getEleName(int elenum) const {return _EleName.at(elenum); }
 
 private:
 
@@ -64,6 +65,7 @@ private:
     std::map<std::string, double> _NucCrgECP;
     std::map<std::string, double> _NucCrg;
     std::map<std::string, int> _EleNum;
+    std::map<int, std::string> _EleName;
     
     inline void FillMaps(){
         
@@ -72,6 +74,7 @@ private:
         FillNucCrgECP();
         FillNucCrg();
         FillEleNum();
+        FillEleName();
         
     }
 
@@ -167,6 +170,30 @@ private:
         _EleNum["S"]  = 16;
         _EleNum["Cl"] = 17;
         _EleNum["Ar"] = 18;
+    };
+    
+    
+     inline void FillEleName(){
+    
+        // Nuclear Charges
+        _EleName[1]  = "H"; 
+        _EleName[2] = "He";
+        _EleName[3] = "Li";
+        _EleName[4] = "Be";
+        _EleName[5]  ="B";
+        _EleName[6]  = "C";
+        _EleName[7]  = "N";
+        _EleName[8]  = "O";
+        _EleName[9]  = "F";
+        _EleName[10] = "Ne";
+        _EleName[11] = "Na";
+        _EleName[12] = "Mg";
+        _EleName[13] = "Al";
+        _EleName[14] = "Si";
+        _EleName[15]  = "P";
+        _EleName[16]  = "S";
+        _EleName[17] = "Cl";
+        _EleName[18] = "Ar";
     };
     
     
