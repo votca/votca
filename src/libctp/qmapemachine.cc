@@ -59,6 +59,11 @@ QMAPEMachine<QMPackage>::QMAPEMachine(XJob *job, Ewald3DnD *cape, QMPackage *qmp
 		_run_ape = opt->get(key+".run_ape").as<bool>();
 		_run_dft = opt->get(key+".run_dft").as<bool>();
 		_run_gwbse = opt->get(key+".run_gwbse").as<bool>();
+        
+        
+    // FITTING GRIDS
+   // key = sfx+ ".grids";    
+        
 
 
 	// GWBSE CONFIG
@@ -273,7 +278,7 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     fitcharges.FitAPECharges(_grid_bg,_grid_fg,_fitted_charges,netchargefit);
     mm_fitted.push_back(_fitted_charges.getSeg());
 
-      
+   /*   
     vector<PolarSeg*> dummy;
     Orbitals basisforgrid;
     GenerateQMAtomsFromPolarSegs(_job->getPolarTop()->QM0(),dummy,basisforgrid);
@@ -291,13 +296,14 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     _grid_fg.printgridtoCubefile("cubefile_fg.cub");
     _grid_bg.printgridtoCubefile("cubefile_bg.cub");
     
-      Grid check;
-    check.readgridfromCubeFile("cubefile_bg.cub",true);
-    check.printgridtoCubefile("cubefile_bg_readinout.cub");
+      //Grid check;
+    //check.readgridfromCubeFile("cubefile_bg.cub",true);
+    //check.setAtomlist(&basisforgrid.QMAtoms());
+    //check.printgridtoCubefile("cubefile_bg_readinout.cub");
    
-        exit(0);
+        //exit(0);
        
-    
+    */
     
     // Run DFT
     Orbitals orb_iter_input;

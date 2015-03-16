@@ -103,7 +103,7 @@ namespace votca { namespace ctp {
         
        
         void readgridfromCubeFile(string filename, bool ignore_zeros){
-           
+        _cubegrid=true;   
         double Bohr2Nm=1.0/18.897259886; 
         if(_gridpoints.size()>0) throw std::runtime_error("Grid object already has points.");
         ifstream in1;
@@ -134,7 +134,7 @@ namespace votca { namespace ctp {
         in1 >> tempdouble;
         in1 >> zincr;          
         
-        double val1;
+        double potential;
             
         for (int _ix = 0; _ix < xsteps; _ix++) {
             double posx=(xstart+_ix*xincr)*Bohr2Nm;
@@ -145,7 +145,7 @@ namespace votca { namespace ctp {
 
               for (int _iz = 0; _iz < zsteps; _iz++) {
                 double posz=(zstart+_iz*zincr)*Bohr2Nm;
-                in1 >> val1;
+                in1 >> potential;
                 vec temp=vec(posx,posy,posz);
                 ub::vector<double> temppos=temp.converttoub();
                 APolarSite *apolarsite= new APolarSite(0,name);
@@ -153,7 +153,8 @@ namespace votca { namespace ctp {
                 apolarsite->setQ00(0,0); // <- charge state 0 <> 'neutral'
                 apolarsite->setIsoP(0.0);
                 apolarsite->setPos(temp);
-                if(val1!=0.0 || !ignore_zeros){
+                apolarsite->setPhi(potential,0);
+                if(potential!=0.0 || !ignore_zeros){
                 _gridsites.push_back(apolarsite);
                 _gridpoints.push_back(temppos);
                 }
