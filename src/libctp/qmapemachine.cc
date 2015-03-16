@@ -166,8 +166,8 @@ void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
             
     //_fitted_charges = Grid(true,true,true);
     _fitted_charges.setAtomlist(&basisforgrid.QMAtoms());
-    _fitted_charges.setCutoffs(8,0);
-    _fitted_charges.setupradialgrid(4);
+    _fitted_charges.setCutoffs(15,0);
+    _fitted_charges.setupradialgrid(3);
     //_fitted_charges.setCutoffshifts(8,2);
     //_fitted_charges.setSpacing(3);
     
