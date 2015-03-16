@@ -166,10 +166,12 @@ void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
             
     //_fitted_charges = Grid(true,true,true);
     _fitted_charges.setAtomlist(&basisforgrid.QMAtoms());
-    _fitted_charges.setCutoffshifts(8,2);
-    _fitted_charges.setSpacing(3);
+    _fitted_charges.setCutoffs(8,0);
+    _fitted_charges.setupradialgrid(4);
+    //_fitted_charges.setCutoffshifts(8,2);
+    //_fitted_charges.setSpacing(3);
     
-    _fitted_charges.setupgrid();
+    //_fitted_charges.setupgrid();
     
     LOG(logINFO,*_log) << "Created " << _fitted_charges.getsize() <<" charge positions."<< flush;
     LOG(logINFO,*_log) << flush;
@@ -300,7 +302,7 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     check.readgridfromCubeFile("cubefile_bg.cub",true);
     check.printgridtoCubefile("cubefile_bg_readinout.cub");
    
-        exit(0);
+    exit(0);
        
     
     

@@ -121,6 +121,7 @@ void Grid::readgridfromCubeFile(string filename, bool ignore_zeros){
         _sites_seg = new PolarSeg(0, _gridsites);
 
         }         
+
 void Grid::printgridtoCubefile(string filename){
             double A2Bohr=1.8897259886;
             //Creates Cube file of Grid in Angstrom and 
@@ -177,7 +178,6 @@ void Grid::printgridtoCubefile(string filename){
         
         fclose(out);        
         }    
-
 
 //Create a 12^depth geodesic grid for a sphere of a given radius/cutoff
 
@@ -240,12 +240,15 @@ void Grid::setupradialgrid(const int depth) {
 
     double numofatoms = double(_atomlist->size());
     vec centerofmolecule = vec(x / numofatoms, y / numofatoms, z / numofatoms);
+    cout <<endl;
+    cout << "Center of molecule is "<< centerofmolecule<<"."<<endl;
+    
     bool cutoff_smaller_molecule=false;
     double temp_cutoff=_cutoff;
     for (ait = _atomlist->begin(); ait != _atomlist->end(); ++ait) {
-        x += (*ait)->x;
-        y += (*ait)->y;
-        z += (*ait)->z;
+        x = (*ait)->x;
+        y = (*ait)->y;
+        z = (*ait)->z;
         
         vec temppos=vec(x,y,z);
         double dist=abs(centerofmolecule-temppos)+2.0; // 2.0 because that is approximately the VdW radius
@@ -255,7 +258,8 @@ void Grid::setupradialgrid(const int depth) {
         }
     }
     
-    if (cutoff_smaller_molecule){        
+    if (cutoff_smaller_molecule){       
+        cout <<endl;
         cout << "Specified cutoff of "<< _cutoff<<" to small. Cutoff is set to "<< temp_cutoff <<"Angstroem."<<endl;
         _cutoff=temp_cutoff;
     }
