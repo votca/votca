@@ -50,7 +50,6 @@ include_directories(${CMAKE_BINARY_DIR}/include)
 ########################################################################
 #Find external packages
 ########################################################################
-find_package(Mercurial)
 find_package(Threads REQUIRED)
 set(THREAD_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
 

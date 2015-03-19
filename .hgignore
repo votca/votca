@@ -7,7 +7,7 @@ build.ninja
 .ninja_*
 build
 include/votca/tools/votca_config.h
-src/libtools/hgversion.h
+src/libtools/gitversion.h
 .project
 .cproject
 libvotca*.pc
