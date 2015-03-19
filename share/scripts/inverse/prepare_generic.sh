@@ -34,6 +34,6 @@ if [[ $sim_prog != gromacs ]] ; then
   msg --color blue "######################################################"
   msg --color blue "# WARNING using this simulator is still experimental #"
   msg --color blue "# If you find a problem report it under:             #"
-  msg --color blue "# http://code.google.com/p/votca/issues/list         #"
+  msg --color blue "# https://github.com/votca/csg                       #"
   msg --color blue "######################################################"
 fi

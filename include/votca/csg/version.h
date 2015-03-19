@@ -29,7 +29,7 @@
   \section started_sec Getting started
   To start developing custom analysis tools, a good place to start is the csgapps repository:
   
-  http://code.google.com/p/votca/source/browse/?repo=csgapps
+  https://github.com/votca/csgapps
   
   It contains several small analysis tools which were implemented based upon the VOTCA framework. We highly
   recomment to use an IDE such as Netbeans for development since it offers lots of guides to get started
