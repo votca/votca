@@ -13,7 +13,23 @@ before_install:
  - if [[ $TEST = *simplex ]]; then sudo apt-get install gnuplot-nox; fi
 
 env: #NINJA=1 is currently not support by Travis' cmake, enable when >=2.8.9
+  - WERROR=yes J=4 #J>4 triggers an internal compiler in travis' g++
+  - J=1
+  - BDIR=build J=4
+  - BDIR=build J=1
   - MAN=yes J=4
+  - CSG_MDRUN_STEPS=500 TEST=spce/simplex J=4
+  - CSG_MDRUN_STEPS=10000 TEST=spce/imc J=4
+  - CSG_MDRUN_STEPS=500 TEST=spce/ibi J=4
+  - CSG_MDRUN_STEPS=10000 TEST=spce/re J=4
+  - CSG_MDRUN_STEPS=10000 TEST=spce/cma J=4
+  - CSG_MDRUN_STEPS=10000 TEST=propane/imc J=4
+  - CSG_MDRUN_STEPS=500 TEST=propane/ibi J=4
+  - CSG_MDRUN_STEPS=10000 TEST=methanol/imc J=4
+  - CSG_MDRUN_STEPS=500 TEST=methanol/ibi J=4
+  - CSG_MDRUN_STEPS=500 TEST=hexane/ibi_bonded J=4
+  - CSG_MDRUN_STEPS=500 TEST=hexane/ibi J=4
+  - CSG_MDRUN_STEPS=500 TEST=urea-water/ibi J=4
 
 matrix:
   exclude:
@@ -24,7 +40,7 @@ matrix:
 
 before_script:
   - rm -vrf * .git
-  - wget http://votca.googlecode.com/hg/build.sh && chmod 755 build.sh
+  - wget https://raw.githubusercontent.com/votca/buildutil/master/build.sh && chmod 755 build.sh
   - if [[ $TEST = *cma ]]; then wget http://www.lri.fr/~hansen/cma.py; fi #we set PYTHONPATH="$PWD" below
 
 script:
