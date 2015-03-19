@@ -40,7 +40,7 @@ matrix:
 
 before_script:
   - rm -vrf * .git
-  - wget http://votca.googlecode.com/hg/build.sh && chmod 755 build.sh
+  - wget https://raw.githubusercontent.com/votca/buildutil/master/build.sh && chmod 755 build.sh
   - if [[ $TEST = *cma ]]; then wget http://www.lri.fr/~hansen/cma.py; fi #we set PYTHONPATH="$PWD" below
 
 script:
