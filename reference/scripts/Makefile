@@ -2,8 +2,7 @@ SHELL=/bin/bash
 
 #get the last two dirs from pwd
 DIR:=$(shell pwd | sed 's@^.*/\([^/]*/[^/]*\)$$@\1@' )
-TRUNC=$(shell hg root)
-TXT2TAGS=$(TRUNC)/scripts/txt2tags
+TXT2TAGS=../../scripts/txt2tags
 
 .PHONY: clean
 

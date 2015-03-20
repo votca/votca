@@ -1,5 +1,5 @@
 SHELL=/bin/bash
-all: check hgid.tex programs_submake scripts_submake xml_submake 
+all: check csgid.tex programs_submake scripts_submake xml_submake 
 
 upload: scripts_upload xml_upload programs_upload
 
@@ -25,12 +25,12 @@ check:
 %_subclean:
 	$(MAKE) $(MFLAGS) -C $* clean
 
-HGID:=$(shell csg_call --help | sed -n 's/.*hgid: \(.*\)/\\newcommand{\\refhgid}{\1}/p')
-hgid.tex: check dummy
-	[ -f hgid.tex ] || touch hgid.tex
-	echo '$(HGID)' | cmp -s hgid.tex - || echo '$(HGID)' > hgid.tex
+CSGID:=$(shell csg_call --help | sed -n 's/.*\(hg\|git\)id: \(.*\)/\\newcommand{\\csgid}{\2}/p')
+csgid.tex: check dummy
+	[ -f csgid.tex ] || touch csgid.tex
+	echo '$(CSGID)' | cmp -s csgid.tex - || echo '$(CSGID)' > csgid.tex
 
 dummy: ;
 
 clean: programs_subclean scripts_subclean xml_subclean
-	rm -f *~ hgid.tex
+	rm -f *~ csgid.tex

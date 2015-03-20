@@ -1,6 +1,5 @@
 SHELL=/bin/bash
-TRUNC=$(shell hg root)
-TXT2TAGS=$(TRUNC)/scripts/txt2tags
+TXT2TAGS=../../scripts/txt2tags
 
 all: 
 #this is a hack to generate Makefile.incl
