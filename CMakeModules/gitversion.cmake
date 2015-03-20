@@ -1,14 +1,7 @@
 set(CMAKE_MODULE_PATH ${TOP_SOURCE_DIR}/CMakeModules)
 
-if(IS_DIRECTORY ${TOP_SOURCE_DIR}/.hg)
-  find_package(Mercurial)
-endif(IS_DIRECTORY ${TOP_SOURCE_DIR}/.hg)
-
-if(IS_DIRECTORY ${TOP_SOURCE_DIR}/.git)
-  find_package(Git)
-endif(IS_DIRECTORY ${TOP_SOURCE_DIR}/.git)
-
-if (GIT_FOUND)
+if (GIT_EXECUTABLE)
+  #later use git describe here
   execute_process( COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
     WORKING_DIRECTORY ${TOP_SOURCE_DIR}
     OUTPUT_VARIABLE TOOLS_GIT_ID OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -20,7 +13,8 @@ if (GIT_FOUND)
   endif()
   message("Current git revision is ${TOOLS_GIT_ID}")
   set(TOOLS_GIT_ID "gitid: ${TOOLS_GIT_ID}")
-elseif (MERCURIAL_FOUND)
+elseif (MERCURIAL_EXECUTABLE)
+  find_package(Mercurial) #for MERCURIAL_HG_INFO
   MERCURIAL_HG_INFO(${TOP_SOURCE_DIR} TOOLS)
   MESSAGE("Current merurial revision is ${TOOLS_HG_ID}")
   set (TOOLS_GIT_ID "hgid: ${TOOLS_HG_ID}")

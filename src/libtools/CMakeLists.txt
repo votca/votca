@@ -92,8 +92,10 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_BINARY_DIR}/include/votca/tools)
 
 add_custom_target(gitversion COMMAND ${CMAKE_COMMAND}
-	-DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}" -P
-	${CMAKE_MODULE_PATH}/gitversion.cmake)
+  -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
+  -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"
+  -DMERCURIAL_EXECUTABLE="${MERCURIAL_EXECUTABLE}"
+  -P ${CMAKE_MODULE_PATH}/gitversion.cmake)
 set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES gitversion.h)
 
 add_library(votca_tools ${VOTCA_SOURCES} ${VOTCA_SQL_SOURCES} ${VOTCA_LINALG_SOURCES})
