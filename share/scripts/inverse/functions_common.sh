@@ -582,7 +582,7 @@ get_number_tasks() { #get the number of possible tasks from the xml file or dete
 }
 export -f get_number_tasks
 
-get_table_comment() { #get comment lines from a table and add common information, which include the hgid and other information
+get_table_comment() { #get comment lines from a table and add common information, which include the git id and other information
   local version co
   [[ -n "$(type -p csg_call)" ]] || die "${FUNCNAME[0]}: Could not find csg_call"
   version="$(csg_call --version)" || die "${FUNCNAME[0]}: csg_call --version failed"
