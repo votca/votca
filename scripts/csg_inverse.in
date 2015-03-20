@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-version='@PROJECT_VERSION@ #CSG_HG_ID#'
+version='@PROJECT_VERSION@ #CSG_GIT_ID#'
 
 if [ -n "$(type -p csg_call 2> /dev/null)" ]; then
   #in case we have an old version of csg_call without --show-share

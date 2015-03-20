@@ -48,14 +48,18 @@ endif(WITH_H5MD)
 configure_file(votca_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/votca_config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-add_custom_target(hgversion COMMAND ${CMAKE_COMMAND} -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}" -P ${CMAKE_MODULE_PATH}/hgversion.cmake)
-set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES hgversion.h)
+add_custom_target(gitversion COMMAND ${CMAKE_COMMAND}
+  -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
+  -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"
+  -DMERCURIAL_EXECUTABLE="${MERCURIAL_EXECUTABLE}"
+  -P ${CMAKE_MODULE_PATH}/gitversion.cmake)
+set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES gitversion.h)
 
 file(GLOB VOTCA_SOURCES *.cc potentialfunctions/*.cc)
 file(GLOB NOT_VOTCA_SOURCES version_nb.cc test.cc)
 list(REMOVE_ITEM VOTCA_SOURCES ${NOT_VOTCA_SOURCES})
 add_library(votca_csg ${VOTCA_SOURCES} ${GMX_SOURCES} ${H5MD_SOURCES} ${IO_SOURCES})
-add_dependencies(votca_csg hgversion)
+add_dependencies(votca_csg gitversion)
 set_target_properties(votca_csg PROPERTIES SOVERSION ${SOVERSION})
 target_link_libraries(votca_csg ${VOTCA_TOOLS_LIBRARIES} ${GROMACS_LIBRARIES} ${Boost_LIBRARIES} ${THREAD_LIBRARIES} ${HDF5_LIBRARIES})
 install(TARGETS votca_csg LIBRARY DESTINATION ${LIB} ARCHIVE DESTINATION ${LIB})

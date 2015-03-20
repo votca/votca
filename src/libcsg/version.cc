@@ -44,9 +44,9 @@ extern "C" {
 
 namespace votca { namespace csg {
 
-//defines hgversion
-#include "hgversion.h"
-static const std::string version_str = std::string(VERSION) + " " + hgversion + " (compiled " __DATE__ ", " __TIME__ ")";
+//defines gitversion
+#include "gitversion.h"
+static const std::string version_str = std::string(VERSION) + " " + gitversion + " (compiled " __DATE__ ", " __TIME__ ")";
 
 const std::string &CsgVersionStr()
 {
