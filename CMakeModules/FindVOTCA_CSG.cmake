@@ -28,19 +28,7 @@ find_path(VOTCA_CSG_INCLUDE_DIR votca/csg/version.h HINTS ${PC_VOTCA_CSG_INCLUDE
 
 find_library(VOTCA_CSG_LIBRARY NAMES votca_csg HINTS ${PC_VOTCA_CSG_LIBRARY_DIRS} )
 
-if("${VOTCA_CSG_LIBRARY}" MATCHES "libvotca_csg[^;]*\\.a")
-    if(PC_VOTCA_CSG_LIBRARIES)
-      list(REMOVE_ITEM PC_VOTCA_CSG_LIBRARIES votca_csg)
-      foreach (LIB ${PC_VOTCA_CSG_LIBRARIES})
-        find_library(VOTCA_CSG_${LIB} NAMES ${LIB} HINTS ${PC_VOTCA_CSG_LIBRARY_DIRS} )
-        list(APPEND VT_DEP_LIBRARIES ${VOTCA_CSG_${LIB}})
-        unset(VOTCA_CSG_${LIB} CACHE)
-      endforeach(LIB)
-    endif(PC_VOTCA_CSG_LIBRARIES)
-    set(VOTCA_CSG_DEP_LIBRARIES "${VT_DEP_LIBRARIES}" CACHE FILEPATH "votca csg depency libs (only needed for static (.a) libvotca_csg")
-endif("${VOTCA_CSG_LIBRARY}" MATCHES "libvotca_csg[^;]*\\.a")
-
-set(VOTCA_CSG_LIBRARIES "${VOTCA_CSG_LIBRARY};${VOTCA_CSG_DEP_LIBRARIES}" )
+set(VOTCA_CSG_LIBRARIES "${VOTCA_CSG_LIBRARY}" )
 set(VOTCA_CSG_INCLUDE_DIRS "${VOTCA_CSG_INCLUDE_DIR}" )
 
 include(FindPackageHandleStandardArgs)
@@ -50,9 +38,9 @@ find_package_handle_standard_args(VOTCA_CSG DEFAULT_MSG VOTCA_CSG_LIBRARY VOTCA_
 
 if (VOTCA_CSG_FOUND)
   include(CheckLibraryExists)
-  check_library_exists("${VOTCA_CSG_LIBRARY};${VOTCA_CSG_DEP_LIBRARIES}" VotcaCsgFromC "" FOUND_VOTCA_CSG_VERSION)
+  check_library_exists("${VOTCA_CSG_LIBRARY}" VotcaCsgFromC "" FOUND_VOTCA_CSG_VERSION)
   if(NOT FOUND_VOTCA_CSG_VERSION)
-    message(FATAL_ERROR "Could not find VotcaCsgFromC in ${VOTCA_CSG_LIBRARY};${VOTCA_CSG_DEP_LIBRARIES}, take look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. If you don't have pkg-config installed you will most likely have to set VOTCA_CSG_LIBRARY and VOTCA_CSG_DEP_LIBRARIES by hand, which set votca_csg lib  it's depencies (i.e. -DVOTCA_CSG_LIBRARY='/path/to/libvotca_csg.so" -VOTCA_CSG_DEP_LIBRARIES="/path/to/libgsl.so;/path/to/libm.so') !")
+    message(FATAL_ERROR "Could not find VotcaCsgFromC in ${VOTCA_CSG_LIBRARY}, take look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. If you don't have pkg-config installed you will most likely have to set VOTCA_CSG_LIBRARY by hand, which set votca_csg lib  it's dependencies (i.e. -DVOTCA_CSG_LIBRARY='/path/to/libvotca_csg.so;/path/to/libgsl.so;/path/to/libm.so') !")
   endif(NOT FOUND_VOTCA_CSG_VERSION)
 endif (VOTCA_CSG_FOUND)
 
