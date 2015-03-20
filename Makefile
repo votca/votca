@@ -1,7 +1,8 @@
 SHELL=/bin/bash
 #the next line is used by the buildutil !
 VER=1.3-dev
-HGID:=$(shell hg parents -R . --template "{node|short}" | sed 's/.*/\\newcommand{\\hgid}{${VER} (&)}/')
+GITID_PLAIN:=$(shell git rev-parse --short HEAD 2> /dev/null || hg parents -R . --template "{node|short}")
+GITID:=$(shell echo $(GITID_PLAIN) | sed 's/.*/\\newcommand{\\gitid}{${VER} (&)}/')
 LATEXMK=scripts/latexmk.pl
 LATEXMKOPTS=-e '$$latex=q/latex --halt-on-error %O %S/'
 
@@ -10,7 +11,7 @@ all: $(NAME).pdf
 dvi: $(NAME).dvi
 ps: $(NAME).ps
 
-$(NAME).tex: hgid.tex fig_submake functionality_submake reference_submake usage_submake
+$(NAME).tex: gitid.tex fig_submake functionality_submake reference_submake usage_submake
 
 %.dvi: %.tex dummy
 	@#rm target if latexmk failed, worked better than DELETE_ON_ERROR
@@ -36,7 +37,7 @@ install: all
 
 clean: qclean fig_subclean functionality_subclean reference_subclean usage_subclean
 	rm -f $(NAME).fdb_latexmk $(NAME).brf
-	rm -f hgid.tex
+	rm -f gitid.tex
 	rm -f *~
 
 tar: all
@@ -45,9 +46,9 @@ tar: all
 	tar cvzhf $(NAME).tar.gz $(NAME).pdf \
   	   `sed -n 's/^[[:space:]]*"\([^/][^"]*\.\(bib\|tex\|eps\|cls\)\)".*$$/\1/p' $(NAME).fdb_latexmk`
 
-hgid.tex: dummy
-	[ -f hgid.tex ] || touch hgid.tex
-	echo '$(HGID)' | cmp -s hgid.tex - || echo '$(HGID)' > hgid.tex
+gitid.tex: dummy
+	[ -f gitid.tex ] || touch gitid.tex
+	echo '$(GITID)' | cmp -s gitid.tex - || echo '$(GITID)' > gitid.tex
 
 upload-pdf: manual.pdf
 	googlesites_upload.py -d "/Documentation" -a manual.pdf
