@@ -8,6 +8,7 @@ libvotca*.a
 libvotca*.so
 
 share/doc/html
+share/doc/Doxyfile
 
 src/libctp/votca_config.h
 src/libctp/hgversion.h
