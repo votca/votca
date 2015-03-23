@@ -147,9 +147,9 @@ ub::vector<double> Espfit:: EvalNuclearPotential( vector< QMAtom* >& _atoms, Gri
     // Fitting atomic partial charges
        
     ub::matrix<double> _Amat = ub::zero_matrix<double>(_fitcenters.size()+1,_fitcenters.size()+1);
-    ub::matrix<double> _Bvec = ub::zero_matrix<double>(_fitcenters.size()+1);    
-    #pragma omp parallel for
+    ub::matrix<double> _Bvec = ub::zero_matrix<double>(_fitcenters.size()+1);
     // setting up _Amat
+    #pragma omp parallel for
     for ( int _i =0 ; _i < _Amat.size1()-1; _i++){
         double x_i = _fitcenters[_i](0);
         double y_i = _fitcenters[_i](1);
