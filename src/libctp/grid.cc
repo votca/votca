@@ -25,7 +25,6 @@ void Grid::printGridtoxyzfile(const char* _filename){
 
 void Grid::readgridfromCubeFile(string filename, bool ignore_zeros){
         Elements _elements;
-
         _cubegrid=true;   
         double Bohr2Nm=1.0/18.897259886; 
         double Bohr2A=1.0/1.8897259886; 
@@ -82,13 +81,7 @@ void Grid::readgridfromCubeFile(string filename, bool ignore_zeros){
                  QMAtom *qmatom=new QMAtom(_elements.getEleName(atnum),x*Bohr2A,y*Bohr2A,z*Bohr2A,crg,false);
                  _atomlist->push_back(qmatom);
         }
-        
-        
-        
-        
-        
-        
-        double potential;
+        double potential=0.0;
             
         for (int _ix = 0; _ix < xsteps; _ix++) {
             double posx=(xstart+_ix*xincr)*Bohr2Nm;
@@ -222,6 +215,8 @@ void Grid::initialize_sphere(std::vector<vec> &spherepoints, const int depth) {
     for(int i = 0; i < 20; i++)
         subdivide(vdata[tindices[i][0]], vdata[tindices[i][1]], vdata[tindices[i][2]], spherepoints, depth);
 }
+
+
 
 void Grid::setupradialgrid(const int depth) {
     _cubegrid = false;

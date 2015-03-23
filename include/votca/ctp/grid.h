@@ -88,7 +88,7 @@ namespace votca { namespace ctp {
 
         void printGridtoxyzfile(const char* _filename);
         
-        void readgridfromCubeFile(string filename, bool ignore_zeros);
+        void readgridfromCubeFile(string filename, bool ignore_zeros=false);
        
         void printgridtoCubefile(string filename);
         

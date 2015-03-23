@@ -243,7 +243,7 @@ private:
     
     ub::matrix<double> _Amat = ub::zero_matrix<double>(_fitcenters.size()+1,_fitcenters.size()+1);
     ub::matrix<double> _Bvec = ub::zero_matrix<double>(_fitcenters.size()+1);    
-    
+    #pragma omp parallel for
     // setting up _Amat
     for ( int _i =0 ; _i < _Amat.size1()-1; _i++){
         double x_i = _fitcenters[_i](0);
@@ -280,6 +280,7 @@ private:
     
 
     // setting up Bvec
+    #pragma omp parallel for
     for ( int _i =0 ; _i < _Bvec.size1()-1; _i++){
         double x_i = _fitcenters[_i](0);
         double y_i = _fitcenters[_i](1);

@@ -218,7 +218,7 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 		if (iterCnt == 0) {
 			_cape->ShowAgenda(_log);
 			// Reset FGC, start from BGP state, apply FP fields (BG & FG)
-			//_cape->EvaluateInductionQMMM(true, true, true, true, true);
+			_cape->EvaluateInductionQMMM(true, true, true, true, true);
 		}
     /*
         vec pos1=vec(_fitted_charges.getGrid()[0]);
@@ -299,7 +299,7 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     _grid_bg.printgridtoCubefile("cubefile_bg.cub");
     
     Grid check;
-    check.readgridfromCubeFile("cubefile_bg.cub",true);
+    check.readgridfromCubeFile("cubefile_bg.cub");
     check.printgridtoCubefile("cubefile_bg_readinout.cub");
    
     exit(0);
