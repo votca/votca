@@ -207,6 +207,7 @@
       <itemPath>../../src/libctp/ERIs.cc</itemPath>
       <itemPath>../../src/libctp/apolarsite.cc</itemPath>
       <itemPath>../../src/libctp/bsecoupling.cc</itemPath>
+      <itemPath>../../src/libctp/espfit.cc</itemPath>
       <itemPath>../../src/libctp/ewald2d.cc</itemPath>
       <itemPath>../../src/libctp/ewald3d.cc</itemPath>
       <itemPath>../../src/libctp/ewaldactor.cc</itemPath>
@@ -697,6 +698,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/libctp/espfit.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/ewaldactor.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1445,6 +1448,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/libctp/espfit.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/ewaldactor.cc" ex="false" tool="1" flavor2="0">
       </item>
