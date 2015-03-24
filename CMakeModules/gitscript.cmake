@@ -1,5 +1,3 @@
-set(CMAKE_MODULE_PATH ${TOP_SOURCE_DIR}/CMakeModules)
-find_package(Mercurial)
 if (GIT_EXECUTABLE)
   #later use git describe here
   execute_process( COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
