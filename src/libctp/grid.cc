@@ -57,9 +57,9 @@ void Grid::readgridfromCubeFile(string filename, bool ignore_zeros){
         in1 >> tempdouble;
         in1 >> zincr;          
         
-        if(xincr==yincr && yincr==zincr && zincr==xincr) _gridspacing==xincr*Bohr2Nm;
+        if(xincr==yincr && yincr==zincr && zincr==xincr) _gridspacing==xincr*Bohr2A;
         else throw std::runtime_error("Gridspacing in x,y,z is different, currently not implemented, loading aborted");
-        _lowerbound=vec(xstart*Bohr2Nm,ystart*Bohr2Nm,zstart*Bohr2Nm);
+        _lowerbound=vec(xstart*Bohr2A,ystart*Bohr2A,zstart*Bohr2A);
         _upperbound=_lowerbound+vec(_gridspacing*xsteps,_gridspacing*ysteps,_gridspacing*zsteps);
         
         _atomlist= new vector< QMAtom* >;
@@ -127,7 +127,7 @@ void Grid::printgridtoCubefile(string filename){
             vec steps=(_upperbound-_lowerbound)/_gridspacing;
             //cout << _upperbound*A2Bohr<<endl;
             //cout << _lowerbound*A2Bohr<<endl;
-            //cout << steps<<endl;
+            cout << steps<<endl;
             
             Elements _elements;
             FILE *out;
@@ -136,9 +136,9 @@ void Grid::printgridtoCubefile(string filename){
             fprintf(out, "Electrostatic potential around molecule \n" );
             fprintf(out, "Created by VOTCA-CTP \n");
             fprintf(out, "%d %f %f %f \n", _atomlist->size(), _lowerbound.getX()*A2Bohr, _lowerbound.getY()*A2Bohr,_lowerbound.getZ()*A2Bohr);
-            fprintf(out, "%d %f 0.0 0.0 \n", int(steps.getX())+1, _gridspacing*A2Bohr);
-            fprintf(out, "%d 0.0 %f 0.0 \n",  int(steps.getY())+1, _gridspacing*A2Bohr);
-            fprintf(out, "%d 0.0 0.0 %f \n", int(steps.getZ())+1, _gridspacing*A2Bohr);
+            fprintf(out, "%d %f 0.0 0.0 \n", int(steps.getX()+0.5), _gridspacing*A2Bohr); // +0.5 to convert to nearest integer
+            fprintf(out, "%d 0.0 %f 0.0 \n",  int(steps.getY()+0.5), _gridspacing*A2Bohr);
+            fprintf(out, "%d 0.0 0.0 %f \n", int(steps.getZ()+0.5), _gridspacing*A2Bohr);
             
             vector<QMAtom* >::const_iterator ait;
             for (ait=_atomlist->begin(); ait != _atomlist->end(); ++ait) {

@@ -146,14 +146,14 @@ void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
     GenerateQMAtomsFromPolarSegs(_job->getPolarTop()->QM0(),dummy,basisforgrid);
     
     
-    //_grid_bg = Grid(true,true,true);
-    //_grid_fg = Grid(true,true,true);
+    _grid_bg = Grid(true,true,true);
+    _grid_fg = Grid(true,true,true);
     _grid_bg.setAtomlist(&basisforgrid.QMAtoms());
     _grid_fg.setAtomlist(&basisforgrid.QMAtoms());
     _grid_bg.setCutoffshifts(1,-0.5);
     _grid_fg.setCutoffshifts(1,-0.5);
-    _grid_fg.setSpacing(0.3);
-    _grid_bg.setSpacing(0.3);
+    _grid_fg.setSpacing(0.5);
+    _grid_bg.setSpacing(0.5);
     _grid_fg.setCubegrid(true);
     _grid_bg.setCubegrid(true);
     
@@ -166,8 +166,8 @@ void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
             
     //_fitted_charges = Grid(true,true,true);
     _fitted_charges.setAtomlist(&basisforgrid.QMAtoms());
-    _fitted_charges.setCutoffs(15,0);
-    _fitted_charges.setupradialgrid(3);
+    _fitted_charges.setCutoffs(20,0);
+    _fitted_charges.setupradialgrid(2);
     //_fitted_charges.setCutoffshifts(8,2);
     //_fitted_charges.setSpacing(3);
     
@@ -175,7 +175,7 @@ void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
     
     LOG(logINFO,*_log) << "Created " << _fitted_charges.getsize() <<" charge positions."<< flush;
     LOG(logINFO,*_log) << flush;
-    _exportgridtofile=true;
+    _exportgridtofile=false;
     if (_exportgridtofile){
     _grid_bg.printGridtoxyzfile("grid.xyz");
     _fitted_charges.printGridtoxyzfile("grid2.xyz");
@@ -260,14 +260,17 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
                 
 		if (iterCnt == 0) {
 			// Add BG, do not add MM1 & QM0
-            //target_bg = _job->getPolarTop()->QM0();
+            target_bg = _job->getPolarTop()->QM0();
 			_cape->EvaluatePotential(target_bg, true, false, false);
 		}
 		// Do not add BG & QM0, add MM1
-		//_cape->EvaluatePotential(target_fg, false, true, false);
+		_cape->EvaluatePotential(target_fg, false, true, false);
     }
     
-  
+    //_grid_fg.readgridfromCubeFile("cubefile_fg.cub");
+    //_grid_bg.readgridfromCubeFile("cubefile_bg.cub");
+    _grid_fg.printgridtoCubefile("cubefile_fg.cub");
+    _grid_bg.printgridtoCubefile("cubefile_bg.cub");
 
     // COMPUTE WAVEFUNCTION & QM ENERGY
     // Generate charge shell from potentials
@@ -295,13 +298,9 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 
     visgrid_fit.printgridtoCubefile("cubefile_fit.cub");
 
-    _grid_fg.printgridtoCubefile("cubefile_fg.cub");
-    _grid_bg.printgridtoCubefile("cubefile_bg.cub");
+  
     
-    Grid check;
-    check.readgridfromCubeFile("cubefile_bg.cub");
-    check.printgridtoCubefile("cubefile_bg_readinout.cub");
-   
+  
     exit(0);
        
     

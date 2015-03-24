@@ -88,7 +88,7 @@ namespace votca { namespace ctp {
 
         void printGridtoxyzfile(const char* _filename);
         
-        void readgridfromCubeFile(string filename, bool ignore_zeros=false);
+        void readgridfromCubeFile(string filename, bool ignore_zeros=true);
        
         void printgridtoCubefile(string filename);
         
@@ -108,6 +108,7 @@ namespace votca { namespace ctp {
         
       
   private:
+     
       std::vector< ub::vector<double> > _gridpoints;
       std::vector< APolarSite* > _gridsites;
       std::vector< APolarSite* > _all_gridsites;

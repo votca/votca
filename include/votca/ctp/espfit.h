@@ -53,11 +53,11 @@ public:
     
    void setLog(Logger *log) { _log = log; }
     
-    void EvaluateAPECharges(Grid& _targetgrid, Grid& _chargepositions)
+    void EvaluateAPECharges(Grid& _targetgrid, Grid& _chargepositions);
   
-    void FitAPECharges(Grid& _targetgrid_fg, Grid& _targetgrid_bg, Grid& _chargepositions, double& netcharge)
+    void FitAPECharges(Grid& _targetgrid_fg, Grid& _targetgrid_bg, Grid& _chargepositions, double& netcharge);
      
-    void Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_dftbasis, double _netcharge=0.0)
+    void Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_dftbasis, double _netcharge=0.0);
     
 private:
     
@@ -68,10 +68,10 @@ private:
      double Nm2A=10.0;
      double A2nm=0.1;
  
-    ub::vector<double> EvalNuclearPotential( vector< QMAtom* >& _atoms, Grid _grid )
+    ub::vector<double> EvalNuclearPotential( vector< QMAtom* >& _atoms, Grid _grid );
    
      // Fits partial charges to Potential on a grid, constrains net charge
-    std::vector<double> FitPartialCharges( std::vector< ub::vector<double> >& _fitcenters, Grid& _grid, ub::vector<double>& _potential, double& _netcharge )
+    std::vector<double> FitPartialCharges( std::vector< ub::vector<double> >& _fitcenters, Grid& _grid, ub::vector<double>& _potential, double& _netcharge );
     
 };
 }}

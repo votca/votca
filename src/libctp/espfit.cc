@@ -1,5 +1,8 @@
 
 #include <votca/ctp/espfit.h>
+#include <votca/ctp/aomatrix.h>
+#include <votca/tools/linalg.h>
+#include <boost/progress.hpp>
 
 using namespace std;
 using namespace votca::tools;
@@ -34,6 +37,9 @@ void Espfit::FitAPECharges(Grid& _targetgrid_fg, Grid& _targetgrid_bg, Grid& _ch
     std::vector< APolarSite* > _charges= _chargepositions.Sites();
     std::vector< APolarSite* > _target_fg= _targetgrid_fg.Sites();
     std::vector< APolarSite* > _target_bg= _targetgrid_bg.Sites();
+    LOG(logDEBUG, *_log) << " Grid of size fg:" << _targetgrid_fg.getsize() << flush;
+    LOG(logDEBUG, *_log) << " Grid of size bg:" << _targetgrid_bg.getsize() << flush;
+    LOG(logDEBUG, *_log) << " Chargepositions:" << _chargepositions.getsize() << flush;
 
     std::vector< ub::vector<double> > _chargepos;
     std::vector< APolarSite* >::iterator sit;
@@ -41,7 +47,6 @@ void Espfit::FitAPECharges(Grid& _targetgrid_fg, Grid& _targetgrid_bg, Grid& _ch
         ub::vector<double> temp= ((*sit)->getPos()).converttoub();
         _chargepos.push_back(temp);    
     }
-
     ub::vector<double> _potential=ub::zero_vector<double>(_targetgrid_fg.getsize());
     for( int i=0; i<_targetgrid_fg.getsize();i++){
     _potential(i)=Int2Hartree*(_target_fg[i]->getPhi()+_target_bg[i]->getPhi());    
@@ -139,22 +144,26 @@ ub::vector<double> Espfit:: EvalNuclearPotential( vector< QMAtom* >& _atoms, Gri
     return _NucPatGrid;     
    }
 
-     std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >& _fitcenters, Grid& _grid, ub::vector<double>& _potential, double& _netcharge ){
-    LOG(logDEBUG, *_log) << TimeStamp() << " Setting up Matrices for fitting"<< flush;    
+std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >& _fitcenters, Grid& _grid, ub::vector<double>& _potential, double& _netcharge ){
+    LOG(logDEBUG, *_log) << TimeStamp() << " Setting up Matrices for fitting of size "<< _fitcenters.size()+1 <<" x " << _fitcenters.size()+1<< flush;    
+   
     std::vector< ub::vector<double> >& _gridpoints=_grid.getGrid();   
     //cout << "x " << _gridpoints[0](0)<< " y " << _gridpoints[0](1)<< " z " << _gridpoints[0](1);
     //cout << "x " << _fitcenters[0](0)<< " y " << _fitcenters[0](1)<< " z " << _fitcenters[0](1);
     // Fitting atomic partial charges
-       
+      
+     LOG(logDEBUG, *_log) << TimeStamp() << " Using "<< _fitcenters.size() <<" Fittingcenters and " << _gridpoints.size()<< " Gridpoints."<< flush;  
+    
     ub::matrix<double> _Amat = ub::zero_matrix<double>(_fitcenters.size()+1,_fitcenters.size()+1);
     ub::matrix<double> _Bvec = ub::zero_matrix<double>(_fitcenters.size()+1);
+    boost::progress_display show_progress( _fitcenters.size() );
     // setting up _Amat
     #pragma omp parallel for
     for ( int _i =0 ; _i < _Amat.size1()-1; _i++){
         double x_i = _fitcenters[_i](0);
         double y_i = _fitcenters[_i](1);
         double z_i = _fitcenters[_i](2);
-        
+        ++show_progress;
         for ( int _j=_i; _j<_Amat.size2()-1; _j++){
             double x_j = _fitcenters[_j](0);
             double y_j = _fitcenters[_j](1);
