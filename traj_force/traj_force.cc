@@ -50,6 +50,8 @@ bool TrajForce::EvaluateOptions()
   CheckRequired("trj", "no trajectory file specified");
   CheckRequired("trj-force", "no reference trajectory file specified");
   CheckRequired("out", "no output trajectory file specified");
+
+  return true;
 }
 
 void TrajForce::BeginEvaluate(Topology *top, Topology *top_atom)

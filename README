@@ -10,5 +10,5 @@ fluctuations:     calculate the number density fluctuations in subvolumes. Subvo
 orientcorr:       calculates the distance dependent orientational correlation function of a polymer melt
 part_dist:        outputs the time-averaged number of particles, listed by particle types (was a part of csg before)
 partial_rdf:      calculates the rdf in a spherical subvolume 
-
+traj_force:       add/subtracts reference forces from a given trajectory and stores in a new trajectory
 To add your own program just create a new folder and put your *.cc files in there
