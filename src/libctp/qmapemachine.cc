@@ -164,7 +164,7 @@ void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
     
 
             
-    //_fitted_charges = Grid(true,true,true);
+    _fitted_charges = Grid(true,false,false);
     _fitted_charges.setAtomlist(&basisforgrid.QMAtoms());
     _fitted_charges.setCutoffs(20,0);
     _fitted_charges.setupradialgrid(2);
@@ -218,9 +218,9 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 		if (iterCnt == 0) {
 			_cape->ShowAgenda(_log);
 			// Reset FGC, start from BGP state, apply FP fields (BG & FG)
-			_cape->EvaluateInductionQMMM(true, true, true, true, true);
+			//_cape->EvaluateInductionQMMM(true, true, true, true, true);
 		}
-    /*
+    
         vec pos1=vec(_fitted_charges.getGrid()[0]);
         vec pos2=vec(_fitted_charges.getGrid()[1]);
         double q1=-1.0;
@@ -234,16 +234,27 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
             double dist2=abs((*pit)->getPos()-pos2);
             double potential=q1/dist1+q2/dist2;  
             (*pit)->setPhi(potential,0.0);
-                    
-        }
-        */
+        }         
+        
+        
 		vector< PolarSeg* > target_bg;     
         target_bg.push_back(_grid_bg.getSeg());
         
         vector< PolarSeg* > target_fg;
         target_fg.push_back(_grid_fg.getSeg());
-        /*
-        cout << endl << "Done ... " << endl;
+        }
+       /*  
+		if (iterCnt == 0) {
+			// Add BG, do not add MM1 & QM0
+            //target_bg = _job->getPolarTop()->QM0();
+			_cape->EvaluatePotential(target_bg, true, false, false);
+		}
+		// Do not add BG & QM0, add MM1
+		_cape->EvaluatePotential(target_fg, false, true, false);
+    }
+    */
+    
+      
         _grid_bg.getSeg()->WriteMPS("test_bg.mps", "TEST");
         cout << endl << "Done bg. " << endl;
         
@@ -253,20 +264,9 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
         
          cout << endl << "Done ... " << endl;
         _fitted_charges.getSeg()->WriteMPS("test_charges.mps", "TEST");
-        cout << endl << "Done fg. " << endl;
-        */
+        cout << endl << "Done charges. " << endl;
+       
         
-              
-                
-		if (iterCnt == 0) {
-			// Add BG, do not add MM1 & QM0
-            target_bg = _job->getPolarTop()->QM0();
-			_cape->EvaluatePotential(target_bg, true, false, false);
-		}
-		// Do not add BG & QM0, add MM1
-		_cape->EvaluatePotential(target_fg, false, true, false);
-    }
-    
     //_grid_fg.readgridfromCubeFile("cubefile_fg.cub");
     //_grid_bg.readgridfromCubeFile("cubefile_bg.cub");
     _grid_fg.printgridtoCubefile("cubefile_fg.cub");

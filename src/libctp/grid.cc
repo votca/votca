@@ -368,6 +368,7 @@ void Grid::setupgrid(){
                                     else {apolarsite->setIsVirtual(true);}
                                      _all_gridsites.push_back(apolarsite);
                                 }
+                                else if(!_createpolarsites){_gridpoints.push_back(temppos);}
                             }
                             z+=_gridspacing; 
                         }

@@ -77,11 +77,11 @@ namespace votca { namespace ctp {
         void setPadding(double padding){_padding=padding;}
         void setCubegrid(bool cubegrid){_cubegrid=cubegrid;_createpolarsites=true;}
         void setAtomlist(vector< QMAtom* >* Atomlist){_atomlist=Atomlist;}
-        int  getTotalSize(){return _gridpoints.size();}
+        int  getsize(){return _gridpoints.size();}
         
-        int getsize(){
+        int getTotalSize(){
             int size=0.0;
-            if(_cubegrid){size=_gridsites.size();}
+            if(_cubegrid){size=_all_gridsites.size();}
             else{size=_gridpoints.size();}
             return size; 
         }
