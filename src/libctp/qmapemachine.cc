@@ -152,8 +152,8 @@ void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
     _grid_fg.setAtomlist(&basisforgrid.QMAtoms());
     _grid_bg.setCutoffshifts(1,-0.5);
     _grid_fg.setCutoffshifts(1,-0.5);
-    _grid_fg.setSpacing(3);
-    _grid_bg.setSpacing(3);
+    _grid_fg.setSpacing(1.5);
+    _grid_bg.setSpacing(1.5);
     _grid_fg.setCubegrid(true);
     _grid_bg.setCubegrid(true);
     
