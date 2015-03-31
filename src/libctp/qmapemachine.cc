@@ -152,8 +152,8 @@ void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
     _grid_fg.setAtomlist(&basisforgrid.QMAtoms());
     _grid_bg.setCutoffshifts(1,-0.5);
     _grid_fg.setCutoffshifts(1,-0.5);
-    _grid_fg.setSpacing(0.5);
-    _grid_bg.setSpacing(0.5);
+    _grid_fg.setSpacing(3);
+    _grid_bg.setSpacing(3);
     _grid_fg.setCubegrid(true);
     _grid_bg.setCubegrid(true);
     
@@ -166,8 +166,8 @@ void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
             
     _fitted_charges = Grid(true,false,false);
     _fitted_charges.setAtomlist(&basisforgrid.QMAtoms());
-    _fitted_charges.setCutoffs(25,0);
-    _fitted_charges.setupradialgrid(2);
+    _fitted_charges.setCutoffs(35,0);
+    _fitted_charges.setupradialgrid(1);
     //_fitted_charges.setCutoffshifts(8,2);
     //_fitted_charges.setSpacing(3);
     
@@ -175,7 +175,7 @@ void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
     
     LOG(logINFO,*_log) << "Created " << _fitted_charges.getsize() <<" charge positions."<< flush;
     LOG(logINFO,*_log) << flush;
-    _exportgridtofile=false;
+    _exportgridtofile=true;
     if (_exportgridtofile){
     _grid_bg.printGridtoxyzfile("grid.xyz");
     _fitted_charges.printGridtoxyzfile("grid2.xyz");
@@ -222,7 +222,7 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 		}
     
         vec pos1=0.5*(vec(_fitted_charges.getGrid()[0])+vec(_fitted_charges.getGrid()[1]));
-        vec pos2=0.5*(vec(_fitted_charges.getGrid()[30])+vec(_fitted_charges.getGrid()[31]));
+        vec pos2=0.5*(vec(_fitted_charges.getGrid()[10])+vec(_fitted_charges.getGrid()[11]));
         double q1=-1.0;
         double q2=1.0;
         
