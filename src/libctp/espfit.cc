@@ -210,14 +210,19 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >
     LOG(logDEBUG, *_log) << TimeStamp() << "  Inverting Matrices "<< flush;      
     // invert _Amat
     ub::matrix<double> _Amat_inverse = ub::zero_matrix<double>(_fitcenters.size()+1,_fitcenters.size()+1);
+    _Amat_inverse(0,0)=1.0;
     linalg_invert( _Amat , _Amat_inverse);
+    cout <<endl;
+    cout <<endl;
     cout <<_Amat<<endl;
     LOG(logDEBUG, *_log) << TimeStamp() << " Inverting Matrices done."<< flush;    
     //_Amat.resize(0,0);
     ub::matrix<double> _charges = ub::prod(_Amat_inverse,_Bvec);
-
-    cout << ub::prod(_Amat_inverse,_Amat) << endl;
-    
+    cout <<endl;
+    cout <<endl;
+    cout << _Amat_inverse<< endl;
+    cout <<endl;
+    cout <<endl;
     std::vector<double> _result;
     for ( int _i = 0; _i < _charges.size1(); _i++ ){       
         _result.push_back(_charges(_i,0));        

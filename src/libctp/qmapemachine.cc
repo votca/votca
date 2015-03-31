@@ -221,8 +221,8 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 			//_cape->EvaluateInductionQMMM(true, true, true, true, true);
 		}
     
-        vec pos1=vec(_fitted_charges.getGrid()[0]);
-        vec pos2=vec(_fitted_charges.getGrid()[1]);
+        vec pos1=0.5*(vec(_fitted_charges.getGrid()[0])+vec(_fitted_charges.getGrid()[1]));
+        vec pos2=0.5*(vec(_fitted_charges.getGrid()[30])+vec(_fitted_charges.getGrid()[31]));
         double q1=-1.0;
         double q2=1.0;
         
