@@ -552,15 +552,14 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
 
     // now the different spin types
     if ( _type == "singlets" || _type == "all"){
-        // get singlet BSE Hamiltonian from _orbitalsAB
-        ub::matrix<float> _Hamiltonian_AB = _eh_d + 2.0 * _eh_x;
+      // get singlet BSE Hamiltonian from _orbitalsAB
+      ub::matrix<float> _Hamiltonian_AB = _eh_d + 2.0 * _eh_x;
         ub::matrix<float>& _bseA = _orbitalsA->BSESingletCoefficients();
         ub::matrix<float>& _bseB = _orbitalsB->BSESingletCoefficients();
         bool _singlets = ProjectExcitons( _kap, _kbp, _bseA, _bseB, _Hamiltonian_AB, *_JAB_singlet);
         if ( _singlets ) {
             LOG(logDEBUG,*_pLog)  << "   calculated singlet couplings " << flush;
         }
-        
         /*
         // diagonalize the effective Hamiltonian?
         ub::vector<float> _coupled_energies;
@@ -604,8 +603,7 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
             cout << " E" << i << " : " << _coupled_energies(i)*13.605 << " TD " << tdipole[0] << " " << tdipole[1] << " " << tdipole[2] << endl;          
 	}
         //LOG(logDEBUG,*_pLog)  << " singlet coupling: " << _JAB_singlet->at_element(0,_bseA_singlet_exc)*13.6058 << " and " <<  _JAB_singlet->at_element(_bseA_singlet_exc, 0) * 13.6058 << endl; 
-
-         */
+	*/
     }
     
     if ( _type == "triplets" || _type == "all"){

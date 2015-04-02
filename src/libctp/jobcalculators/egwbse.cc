@@ -212,10 +212,32 @@ namespace votca {
                     ia >> _orbitals;
                     ifs.close();
                 }
-
+                GWBSE _gwbse; 
                 _gwbse.Initialize(&_gwbse_options);
-                _gwbse.setLogger(pLog);
+                // _gwbse.setLogger(pLog);
+                
+                
+                // define own logger for GW-BSE that is written into a runFolder logfile
+                Logger gwbse_logger(logDEBUG);
+                gwbse_logger.setMultithreading(false);
+                _gwbse.setLogger(&gwbse_logger);
+                gwbse_logger.setPreface(logINFO,    (format("\nGWBSE INF ...") ).str());
+                gwbse_logger.setPreface(logERROR,   (format("\nGWBSE ERR ...") ).str());
+                gwbse_logger.setPreface(logWARNING, (format("\nGWBSE WAR ...") ).str());
+                gwbse_logger.setPreface(logDEBUG,   (format("\nGWBSE DBG ...") ).str());
+                
+                
                 bool _evaluate = _gwbse.Evaluate(&_orbitals);
+                
+                // write logger to log file
+                ofstream ofs;
+                string gwbse_logfile = _qmpackage_work_dir + "/gwbse.log";
+                ofs.open(gwbse_logfile.c_str(), ofstream::out);
+                if (!ofs.is_open()) {
+                    throw runtime_error("Bad file handle: " + gwbse_logfile);
+                }    
+                ofs << gwbse_logger << endl;
+                ofs.close();
 
             }
 

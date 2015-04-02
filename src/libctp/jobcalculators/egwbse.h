@@ -87,7 +87,7 @@ public:
 
     
     // all GWBSE functionality is in GWBSE object
-    GWBSE _gwbse; 
+    //GWBSE _gwbse; 
     
     
     void ParseOptionsXML( Property *options);    

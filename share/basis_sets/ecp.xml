@@ -30,6 +30,12 @@
             <shell type="D-F"><constant power="2" decay="8.16479800" contraction="-3.31212400"></constant></shell>
        </element>
 
+        <element name="F" lmax="3" ncore="2">
+            <shell type="F-Komponente"><constant power="2" decay="1.0" contraction="0.0"></constant></shell>
+            <shell type="S-F"><constant power="2" decay="16.762800" contraction="96.241900"></constant></shell>
+            <shell type="P-F"><constant power="2" decay="19.857600" contraction="-4.581900"></constant></shell>
+            <shell type="D-F"><constant power="2" decay="0.0316000" contraction="-0.001500"></constant></shell>
+       </element>
 
 </pseudopotential>
 
