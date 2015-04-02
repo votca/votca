@@ -63,7 +63,9 @@ namespace votca { namespace ctp {
              _createpolarsites(false), _sites_seg(NULL) {};
            
         
-        ~Grid() {};
+        ~Grid();
+        
+        Grid(const Grid &obj);
         
         std::vector< ub::vector<double> > &getGrid() {return _gridpoints;}
         std::vector< APolarSite* > &Sites() {return _gridsites;}

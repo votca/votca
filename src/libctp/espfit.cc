@@ -210,18 +210,38 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >
     LOG(logDEBUG, *_log) << TimeStamp() << "  Inverting Matrices "<< flush;      
     // invert _Amat
     ub::matrix<double> _Amat_inverse = ub::zero_matrix<double>(_fitcenters.size()+1,_fitcenters.size()+1);
-    _Amat_inverse(0,0)=1.0;
     linalg_invert( _Amat , _Amat_inverse);
-    cout <<endl;
-    cout <<endl;
-    cout <<_Amat<<endl;
+    string filename1="_Amat.txt";
+    FILE *out1;
+    out1 = fopen(filename1.c_str(), "w");
+    
+    for( int _i=0;_i<_Amat.size1();_i++){
+         for( int _j=0;_j<_Amat.size2()-1;_j++){
+             fprintf(out1, "%E ", _Amat(_i,_j));
+    }
+            fprintf(out1, "%E\n", _Amat(_i,_Amat.size2()-1));
+    
+    }
+    fclose(out1);
+    
+      string filename2="_Amat_inv.txt";
+    FILE *out2;
+    out2 = fopen(filename2.c_str(), "w");
+    
+    for( int _i=0;_i<_Amat_inverse.size1();_i++){
+         for( int _j=0;_j<_Amat_inverse.size2()-1;_j++){
+             fprintf(out2, "%E ", _Amat_inverse(_i,_j));
+    }
+            fprintf(out2, "%E\n", _Amat_inverse(_i,_Amat.size2()-1));
+    
+    }
+    fclose(out2);
+    
     LOG(logDEBUG, *_log) << TimeStamp() << " Inverting Matrices done."<< flush;    
     //_Amat.resize(0,0);
-    cout <<endl;
-    cout <<endl;
-    cout << _Amat_inverse<< endl;
-    cout <<endl;
-    cout <<endl;
+
+    
+    
     ub::matrix<double> _charges = ub::prod(_Amat_inverse,_Bvec);
    
     std::vector<double> _result;

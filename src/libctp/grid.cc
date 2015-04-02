@@ -1,4 +1,3 @@
-
 #include <votca/ctp/grid.h>
 
 using namespace std;
@@ -8,19 +7,46 @@ using namespace votca::tools;
 namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
     
-void Grid::printGridtoxyzfile(const char* _filename){
-            //unit is Angstrom in xyz file 
-            double NmtoA=10.0; 
-            ofstream points;
-            points.open(_filename, ofstream::out);
-            points << _gridpoints.size() << endl;
-            points << endl;
-            for ( int i = 0 ; i < _gridpoints.size(); i++){
-                points << "X " << _gridpoints[i](0)*NmtoA << " " << _gridpoints[i](1)*NmtoA << " " << _gridpoints[i](2)*NmtoA << endl;
+Grid::Grid(const Grid &obj)
+    :_cutoff(obj._cutoff),_gridspacing(obj._gridspacing),_cutoff_inside(obj._cutoff_inside),_shift_cutoff(obj._shift_cutoff),_shift_cutoff_inside(obj._shift_cutoff_inside),
+             _useVdWcutoff(obj._useVdWcutoff),_useVdWcutoff_inside(obj._useVdWcutoff_inside),_cubegrid(obj._cubegrid),_padding(obj._padding),
+             _createpolarsites(obj._createpolarsites) {
+    _gridpoints=obj._gridpoints;
+    std::vector<APolarSite*>::const_iterator pit;
+    for(pit=obj._all_gridsites.begin();pit!=obj._all_gridsites.end();++pit){
+       APolarSite *apolarsite= new APolarSite(*pit,false);
+       if(!apolarsite->getIsVirtual()) _gridsites.push_back(apolarsite);
+       _all_gridsites.push_back(apolarsite);   
+    }
+     
+     _sites_seg = new PolarSeg(0, _gridsites);
+     _atomlist=obj._atomlist;
+    
+    };
+        
+        
+Grid::~Grid() {
+        std::vector<APolarSite*>::iterator pit;
+        for(pit=_all_gridsites.begin();pit!=_all_gridsites.end();++pit){
+             delete *pit;
+        }
 
-            }
-            points.close();
-        }    
+        if (_sites_seg != NULL) delete _sites_seg;
+    }
+    
+void Grid::printGridtoxyzfile(const char* _filename){
+        //unit is Angstrom in xyz file 
+        double NmtoA=10.0; 
+        ofstream points;
+        points.open(_filename, ofstream::out);
+        points << _gridpoints.size() << endl;
+        points << endl;
+        for ( int i = 0 ; i < _gridpoints.size(); i++){
+            points << "X " << _gridpoints[i](0)*NmtoA << " " << _gridpoints[i](1)*NmtoA << " " << _gridpoints[i](2)*NmtoA << endl;
+
+        }
+        points.close();
+    }    
 
 
 void Grid::readgridfromCubeFile(string filename, bool ignore_zeros){
@@ -366,7 +392,7 @@ void Grid::setupgrid(){
                                         _gridpoints.push_back(temppos);
                                     }
                                     else {apolarsite->setIsVirtual(true);}
-                                     _all_gridsites.push_back(apolarsite);
+                                    _all_gridsites.push_back(apolarsite);
                                 }
                                 else if(!_createpolarsites){_gridpoints.push_back(temppos);}
                             }
