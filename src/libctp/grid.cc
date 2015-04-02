@@ -17,8 +17,7 @@ Grid::Grid(const Grid &obj)
        APolarSite *apolarsite= new APolarSite(*pit,false);
        if(!apolarsite->getIsVirtual()) _gridsites.push_back(apolarsite);
        _all_gridsites.push_back(apolarsite);   
-    }
-     
+    }     
      _sites_seg = new PolarSeg(0, _gridsites);
      _atomlist=obj._atomlist;
     
