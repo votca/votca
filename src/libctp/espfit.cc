@@ -152,7 +152,7 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >
     //cout << "x " << _fitcenters[0](0)<< " y " << _fitcenters[0](1)<< " z " << _fitcenters[0](1);
     // Fitting atomic partial charges
       
-     LOG(logDEBUG, *_log) << TimeStamp() << " Using "<< _fitcenters.size() <<" Fittingcenters and " << _gridpoints.size()<< " Gridpoints."<< flush;  
+    LOG(logDEBUG, *_log) << TimeStamp() << " Using "<< _fitcenters.size() <<" Fittingcenters and " << _gridpoints.size()<< " Gridpoints."<< flush;  
     
     ub::matrix<double> _Amat = ub::zero_matrix<double>(_fitcenters.size()+1,_fitcenters.size()+1);
     ub::matrix<double> _Bvec = ub::zero_matrix<double>(_fitcenters.size()+1);

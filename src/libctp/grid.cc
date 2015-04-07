@@ -8,19 +8,20 @@ namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
     
 Grid::Grid(const Grid &obj)
-    :_cutoff(obj._cutoff),_gridspacing(obj._gridspacing),_cutoff_inside(obj._cutoff_inside),_shift_cutoff(obj._shift_cutoff),_shift_cutoff_inside(obj._shift_cutoff_inside),
-             _useVdWcutoff(obj._useVdWcutoff),_useVdWcutoff_inside(obj._useVdWcutoff_inside),_cubegrid(obj._cubegrid),_padding(obj._padding),
-             _createpolarsites(obj._createpolarsites) {
+    :_cutoff(obj._cutoff),_gridspacing(obj._gridspacing),_cutoff_inside(obj._cutoff_inside),_shift_cutoff(obj._shift_cutoff),
+    _shift_cutoff_inside(obj._shift_cutoff_inside),_useVdWcutoff(obj._useVdWcutoff),_useVdWcutoff_inside(obj._useVdWcutoff_inside),
+    _cubegrid(obj._cubegrid),_padding(obj._padding),_createpolarsites(obj._createpolarsites),
+    _xsteps(obj._xsteps),_ysteps(obj._ysteps),_zsteps(obj._zsteps) {
+    _lowerbound=obj._lowerbound;
     _gridpoints=obj._gridpoints;
     std::vector<APolarSite*>::const_iterator pit;
-    for(pit=obj._all_gridsites.begin();pit!=obj._all_gridsites.end();++pit){
+    for(pit=obj._all_gridsites.begin();pit<obj._all_gridsites.end();++pit){
        APolarSite *apolarsite= new APolarSite(*pit,false);
        if(!apolarsite->getIsVirtual()) _gridsites.push_back(apolarsite);
        _all_gridsites.push_back(apolarsite);   
     }     
      _sites_seg = new PolarSeg(0, _gridsites);
      _atomlist=obj._atomlist;
-    
     };
         
         
@@ -29,9 +30,36 @@ Grid::~Grid() {
         for(pit=_all_gridsites.begin();pit!=_all_gridsites.end();++pit){
              delete *pit;
         }
-
+        _all_gridsites.clear();
         if (_sites_seg != NULL) delete _sites_seg;
     }
+
+Grid &Grid::operator=(const Grid & obj){
+    _cutoff=obj._cutoff;
+    _gridspacing=obj._gridspacing;
+    _cutoff_inside=obj._cutoff_inside;
+    _shift_cutoff=obj._shift_cutoff;
+    _shift_cutoff_inside=obj._shift_cutoff_inside;
+    _useVdWcutoff=obj._useVdWcutoff;
+    _useVdWcutoff_inside=obj._useVdWcutoff_inside;
+    _cubegrid=obj._cubegrid;
+    _padding=obj._padding;
+    _createpolarsites=obj._createpolarsites;
+    _gridpoints=obj._gridpoints;
+    _lowerbound=obj._lowerbound;
+    _xsteps=obj._xsteps;
+    _ysteps=obj._ysteps;
+    _zsteps=obj._zsteps;
+    std::vector<APolarSite*>::const_iterator pit;
+    for(pit=obj._all_gridsites.begin();pit<obj._all_gridsites.end();++pit){
+       APolarSite *apolarsite= new APolarSite(*pit,false);
+       if(!apolarsite->getIsVirtual()) _gridsites.push_back(apolarsite);
+       _all_gridsites.push_back(apolarsite);   
+    }     
+     _sites_seg = new PolarSeg(0, _gridsites);
+     _atomlist=obj._atomlist;
+     return *this;
+}
     
 void Grid::printGridtoxyzfile(const char* _filename){
         //unit is Angstrom in xyz file 
@@ -62,30 +90,30 @@ void Grid::readgridfromCubeFile(string filename, bool ignore_zeros){
         int natoms;
         double xstart,ystart,zstart;
         double xincr,yincr,zincr;
-        double xsteps,ysteps,zsteps;
+
         double tempdouble;
         string name="H";
         in1 >> natoms;
         in1 >> xstart;
         in1 >> ystart;
         in1 >> zstart;
-        in1 >> xsteps;
+        in1 >> _xsteps;
         in1 >> xincr;
         in1 >> tempdouble;
         in1 >> tempdouble;
-        in1 >> ysteps;
+        in1 >> _ysteps;
         in1 >> tempdouble;
         in1 >> yincr;
         in1 >> tempdouble;
-        in1 >> zsteps;
+        in1 >> _zsteps;
         in1 >> tempdouble;
         in1 >> tempdouble;
         in1 >> zincr;          
         
-        if(xincr==yincr && yincr==zincr && zincr==xincr) _gridspacing==xincr*Bohr2A;
+        if(xincr==yincr && yincr==zincr && zincr==xincr) _gridspacing=xincr*Bohr2A;
         else throw std::runtime_error("Gridspacing in x,y,z is different, currently not implemented, loading aborted");
         _lowerbound=vec(xstart*Bohr2A,ystart*Bohr2A,zstart*Bohr2A);
-        _upperbound=_lowerbound+vec(_gridspacing*xsteps,_gridspacing*ysteps,_gridspacing*zsteps);
+        
         
         _atomlist= new vector< QMAtom* >;
         for (int iatom =0; iatom < std::abs(natoms); iatom++) {
@@ -107,15 +135,15 @@ void Grid::readgridfromCubeFile(string filename, bool ignore_zeros){
                  _atomlist->push_back(qmatom);
         }
         double potential=0.0;
-            
-        for (int _ix = 0; _ix < xsteps; _ix++) {
+        //cout << "File has " << xsteps << " : "<< ysteps << " : "<<zsteps << " gridpoints"<<endl;   
+        for (int _ix = 0; _ix < _xsteps; _ix++) {
             double posx=(xstart+_ix*xincr)*Bohr2Nm;
 
-           for (int _iy = 0; _iy < ysteps; _iy++) {
+           for (int _iy = 0; _iy < _ysteps; _iy++) {
               double posy=(ystart+_iy*yincr)*Bohr2Nm;
 
 
-              for (int _iz = 0; _iz < zsteps; _iz++) {
+              for (int _iz = 0; _iz < _zsteps; _iz++) {
                 double posz=(zstart+_iz*zincr)*Bohr2Nm;
                 in1 >> potential;
                 vec temp=vec(posx,posy,posz);
@@ -146,13 +174,12 @@ void Grid::printgridtoCubefile(string filename){
             if(!_cubegrid){
                 throw std::runtime_error("Grid cannot be written to cube file as grid is not regular");
             }
-            if(_gridpoints.size()<1){
+            if(this->getTotalSize()<1){
                 throw std::runtime_error("Grid object is empty. Setup grid first!");
             }
-            vec steps=(_upperbound-_lowerbound)/_gridspacing;
+            
             //cout << _upperbound*A2Bohr<<endl;
             //cout << _lowerbound*A2Bohr<<endl;
-            cout << steps<<endl;
             
             Elements _elements;
             FILE *out;
@@ -161,9 +188,9 @@ void Grid::printgridtoCubefile(string filename){
             fprintf(out, "Electrostatic potential around molecule \n" );
             fprintf(out, "Created by VOTCA-CTP \n");
             fprintf(out, "%d %f %f %f \n", _atomlist->size(), _lowerbound.getX()*A2Bohr, _lowerbound.getY()*A2Bohr,_lowerbound.getZ()*A2Bohr);
-            fprintf(out, "%d %f 0.0 0.0 \n", int(steps.getX()+0.5), _gridspacing*A2Bohr); // +0.5 to convert to nearest integer
-            fprintf(out, "%d 0.0 %f 0.0 \n",  int(steps.getY()+0.5), _gridspacing*A2Bohr);
-            fprintf(out, "%d 0.0 0.0 %f \n", int(steps.getZ()+0.5), _gridspacing*A2Bohr);
+            fprintf(out, "%d %f 0.0 0.0 \n", _xsteps, _gridspacing*A2Bohr); // +0.5 to convert to nearest integer
+            fprintf(out, "%d 0.0 %f 0.0 \n",  _ysteps, _gridspacing*A2Bohr);
+            fprintf(out, "%d 0.0 0.0 %f \n", _zsteps, _gridspacing*A2Bohr);
             
             vector<QMAtom* >::const_iterator ait;
             for (ait=_atomlist->begin(); ait != _atomlist->end(); ++ait) {
@@ -260,8 +287,8 @@ void Grid::setupradialgrid(const int depth) {
 
     double numofatoms = double(_atomlist->size());
     vec centerofmolecule = vec(x / numofatoms, y / numofatoms, z / numofatoms);
-    cout <<endl;
-    cout << "Center of molecule is "<< centerofmolecule<<"."<<endl;
+    //cout <<endl;
+    //cout << "Center of molecule is "<< centerofmolecule<<"."<<endl;
     
     bool cutoff_smaller_molecule=false;
     double temp_cutoff=_cutoff;
@@ -309,104 +336,95 @@ void Grid::setupradialgrid(const int depth) {
 void Grid::setupgrid(){
            
             
-            double A2Nm=0.1;
-            Elements _elements;
-            double xmin=std::numeric_limits<double>::max();
-            double ymin=xmin;
-            double zmin=xmin;
+    double A2Nm=0.1;
+    Elements _elements;
+    double xmin=std::numeric_limits<double>::max();
+    double ymin=xmin;
+    double zmin=xmin;
 
-            double xmax=std::numeric_limits<double>::min();
-            double ymax=xmax;
-            double zmax=xmax;
-            double xtemp,ytemp,ztemp;
-            //setup one polarsite and use copy constructor later
-            
-            
-            if(_useVdWcutoff){
-                _padding=0.0;
-            for (vector<QMAtom* >::const_iterator atom = _atomlist->begin(); atom != _atomlist->end(); ++atom ){
-                if(_elements.getVdWChelpG((*atom)->type)+_shift_cutoff>_padding) _padding=_elements.getVdWChelpG((*atom)->type)+_shift_cutoff; 
-            }
-        } 
-                
-                
-         for (vector<QMAtom* >::const_iterator atom = _atomlist->begin(); atom != _atomlist->end(); ++atom ) {
-                xtemp=(*atom)->x;
-                ytemp=(*atom)->y;
-                ztemp=(*atom)->z;
-                if (xtemp<xmin) xmin=xtemp;
-                if (xtemp>xmax) xmax=xtemp;
-                 if (ytemp<ymin) ymin=ytemp;
-                if (ytemp>ymax)  ymax=ytemp;
-                 if (ztemp<zmin) zmin=ztemp;
-                if (ztemp>zmax)  zmax=ztemp;
+    double xmax=std::numeric_limits<double>::min();
+    double ymax=xmax;
+    double zmax=xmax;
+    double xtemp,ytemp,ztemp;
 
-            }    
-
-                double boxdimx=xmax-xmin+2*_padding;
-               
-
-                double x=xmin-_padding;
-                _lowerbound=vec(xmin-_padding,ymin-_padding,zmin-_padding);
-                _upperbound=vec(xmax+_padding,ymax+_padding,zmax+_padding);
-                
-
-                ub::vector<double> temppos= ub::zero_vector<double>(3);
-                while(x< xmax+_padding){
-                   double y=ymin-_padding;
-                   while(y< ymax+_padding){
-                        double z=zmin-_padding;
-                        while(z< zmax+_padding){
-                            bool _is_valid = false;
-                                for (vector<QMAtom* >::const_iterator atom = _atomlist->begin(); atom != _atomlist->end(); ++atom ) {
-                                    //cout << "Punkt " << x <<":"<< y << ":"<<z << endl;
-                                    xtemp=(*atom)->x;
-                                    ytemp=(*atom)->y;
-                                    ztemp=(*atom)->z;
-                                    double distance2=pow((x-xtemp),2)+pow((y-ytemp),2)+pow((z-ztemp),2);
-                                    if(_useVdWcutoff) _cutoff=_elements.getVdWChelpG((*atom)->type)+_shift_cutoff;
-                                    if(_useVdWcutoff_inside)_cutoff_inside=_elements.getVdWChelpG((*atom)->type)+_shift_cutoff_inside;
-                                    //cout << "Punkt " << x <<":"<< y << ":"<<z << ":"<< distance2 << ":"<< (*atom)->type <<":"<<pow(VdW,2)<< endl;
-                                    if ( distance2<pow(_cutoff_inside,2)){
-                                        _is_valid = false;
-                                        break;
-                                        }
-                                    else if ( distance2<pow(_cutoff,2))  _is_valid = true;
-                                }
-                            if (_is_valid || _cubegrid){
-                                temppos(0)=A2Nm*x;
-                                temppos(1)=A2Nm*y;        
-                                temppos(2)=A2Nm*z;   
-                                if(_createpolarsites){
-                                    // APolarSite are in nm so convert
-                                    vec temp=vec(temppos);
-                                    string name="H";
-                                    APolarSite *apolarsite= new APolarSite(0,name);
-                                    apolarsite->setRank(0);        
-                                    apolarsite->setQ00(0,0); // <- charge state 0 <> 'neutral'
-                                    apolarsite->setIsoP(0.0);
-                                    apolarsite->setPos(temp);
-                                    if(_is_valid){
-                                        _gridsites.push_back(apolarsite);
-                                        _gridpoints.push_back(temppos);
-                                    }
-                                    else {apolarsite->setIsVirtual(true);}
-                                    _all_gridsites.push_back(apolarsite);
-                                }
-                                else if(!_createpolarsites){_gridpoints.push_back(temppos);}
-                            }
-                            z+=_gridspacing; 
-                        }
-                        y+=_gridspacing;
-                     //cout << "Punkt " << x  <<":"<<  xmax+padding <<":"<< y << ":"<<z << endl;
-                    }
-                  x+=_gridspacing;
-                  //cout << (x<xmax+padding) << endl;     
-                }
-              
-                if (_sites_seg != NULL) delete _sites_seg;
-                _sites_seg = new PolarSeg(0, _gridsites);
+    if(_useVdWcutoff){
+        _padding=0.0;
+        for (vector<QMAtom* >::const_iterator atom = _atomlist->begin(); atom != _atomlist->end(); ++atom ){
+            if(_elements.getVdWChelpG((*atom)->type)+_shift_cutoff>_padding) _padding=_elements.getVdWChelpG((*atom)->type)+_shift_cutoff; 
         }
+    } 
+
+
+    for (vector<QMAtom* >::const_iterator atom = _atomlist->begin(); atom != _atomlist->end(); ++atom ) {
+        xtemp=(*atom)->x;
+        ytemp=(*atom)->y;
+        ztemp=(*atom)->z;
+        if (xtemp<xmin) xmin=xtemp;
+        if (xtemp>xmax) xmax=xtemp;
+        if (ytemp<ymin) ymin=ytemp;
+        if (ytemp>ymax)  ymax=ytemp;
+        if (ztemp<zmin) zmin=ztemp;
+        if (ztemp>zmax)  zmax=ztemp;
+    }    
+
+    _lowerbound=vec(xmin-_padding,ymin-_padding,zmin-_padding);
+    vec _upperbound=vec(xmax+_padding,ymax+_padding,zmax+_padding);
+    vec steps=(_upperbound-_lowerbound)/_gridspacing;
+    _xsteps=int(steps.getX()+0.5);
+    _ysteps=int(steps.getY()+0.5);
+    _zsteps=int(steps.getZ()+0.5);
+
+    ub::vector<double> temppos= ub::zero_vector<double>(3);
+    for(int i=0;i<_xsteps;i++){
+        double x=xmin-_padding+i*_gridspacing; 
+        for(int j=0;j<_ysteps;j++){
+            double y=ymin-_padding+j*_gridspacing; 
+            for(int k=0;k<_zsteps;k++){
+                double z=zmin-_padding+k*_gridspacing; 
+                bool _is_valid = false;
+                    for (vector<QMAtom* >::const_iterator atom = _atomlist->begin(); atom != _atomlist->end(); ++atom ) {
+                        //cout << "Punkt " << x <<":"<< y << ":"<<z << endl;
+                        xtemp=(*atom)->x;
+                        ytemp=(*atom)->y;
+                        ztemp=(*atom)->z;
+                        double distance2=pow((x-xtemp),2)+pow((y-ytemp),2)+pow((z-ztemp),2);
+                        if(_useVdWcutoff) _cutoff=_elements.getVdWChelpG((*atom)->type)+_shift_cutoff;
+                        if(_useVdWcutoff_inside)_cutoff_inside=_elements.getVdWChelpG((*atom)->type)+_shift_cutoff_inside;
+                        //cout << "Punkt " << x <<":"<< y << ":"<<z << ":"<< distance2 << ":"<< (*atom)->type <<":"<<pow(VdW,2)<< endl;
+                        if ( distance2<pow(_cutoff_inside,2)){
+                            _is_valid = false;
+                            break;
+                            }
+                        else if ( distance2<pow(_cutoff,2))  _is_valid = true;
+                    }
+                    if (_is_valid || _cubegrid){
+                        temppos(0)=A2Nm*x;
+                        temppos(1)=A2Nm*y;        
+                        temppos(2)=A2Nm*z;   
+                        if(_createpolarsites){
+                            // APolarSite are in nm so convert
+                            vec temp=vec(temppos);
+                            string name="H";
+                            APolarSite *apolarsite= new APolarSite(0,name);
+                            apolarsite->setRank(0);        
+                            apolarsite->setQ00(0,0); // <- charge state 0 <> 'neutral'
+                            apolarsite->setIsoP(0.0);
+                            apolarsite->setPos(temp);
+                            if(_is_valid){
+                                _gridsites.push_back(apolarsite);
+                                _gridpoints.push_back(temppos);
+                                }
+                            else {apolarsite->setIsVirtual(true);}
+                            _all_gridsites.push_back(apolarsite);
+                            }
+                        else if(!_createpolarsites){_gridpoints.push_back(temppos);}
+                    }                    
+                }                          
+            }                  
+        }
+    if (_sites_seg != NULL) delete _sites_seg;
+    _sites_seg = new PolarSeg(0, _gridsites);
+}
     
     
 }}

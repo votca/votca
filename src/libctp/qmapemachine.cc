@@ -152,16 +152,19 @@ void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
     _grid_bg.setSpacing(0.2);   
     _grid_bg.setCubegrid(true);   
     _grid_bg.setupgrid();
-    _grid_fg=Grid(_grid_bg);
     
-    LOG(logINFO,*_log) << "Created internal grid with " << _grid_bg.getsize() <<" points."<< flush;
+    LOG(logINFO,*_log) << "Created internal background grid with " << _grid_bg.getsize() <<" points."<< flush;
+
+    _grid_fg=_grid_bg;
+    
+    LOG(logINFO,*_log) << "Created internal foreground grid with " << _grid_fg.getsize() <<" points."<< flush;
     
 
             
     _fitted_charges = Grid(true,false,false);
     _fitted_charges.setAtomlist(&basisforgrid.QMAtoms());
     _fitted_charges.setCutoffs(7,0);
-    _fitted_charges.setupradialgrid(2);
+    _fitted_charges.setupradialgrid(1);
     //_fitted_charges.setCutoffshifts(8,2);
     //_fitted_charges.setSpacing(3);
     
@@ -267,7 +270,6 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     //_grid_bg.readgridfromCubeFile("cubefile_bg.cub");
     _grid_fg.printgridtoCubefile("cubefile_fg.cub");
     _grid_bg.printgridtoCubefile("cubefile_bg.cub");
-    
     Grid test;
     test.readgridfromCubeFile("cubefile_fg.cub");
     test.printgridtoCubefile("cubefile_fg_out.cub");

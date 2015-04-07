@@ -54,18 +54,22 @@ namespace votca { namespace ctp {
         Grid( bool createpolarsites, bool useVdWcutoff, bool useVdWcutoff_inside)
             :_cutoff(3),_gridspacing(0.3),_cutoff_inside(1.5),_shift_cutoff(0.0),_shift_cutoff_inside(0.0),
              _useVdWcutoff(useVdWcutoff),_useVdWcutoff_inside(useVdWcutoff_inside),_cubegrid(false),_padding(3.0),
-             _createpolarsites(createpolarsites), _sites_seg(NULL) {};
+             _createpolarsites(createpolarsites), _sites_seg(NULL), _atomlist(NULL), 
+            _lowerbound(vec(0,0,0)), _xsteps(0),_ysteps(0),_zsteps(0) {};
            
         
         Grid()
             :_cutoff(3),_gridspacing(0.3),_cutoff_inside(1.5),_shift_cutoff(0.0),_shift_cutoff_inside(0.0),
              _useVdWcutoff(false),_useVdWcutoff_inside(false),_cubegrid(false),_padding(3.0),
-             _createpolarsites(false), _sites_seg(NULL) {};
+             _createpolarsites(false), _sites_seg(NULL), _atomlist(NULL),
+             _lowerbound(vec(0,0,0)),_xsteps(0),_ysteps(0),_zsteps(0)  {};
            
         
         ~Grid();
         
         Grid(const Grid &obj);
+        
+        Grid& operator=(const Grid &obj);
         
         std::vector< ub::vector<double> > &getGrid() {return _gridpoints;}
         std::vector< APolarSite* > &Sites() {return _gridsites;}
@@ -126,7 +130,7 @@ namespace votca { namespace ctp {
       bool   _useVdWcutoff;
       bool   _useVdWcutoff_inside;
       bool   _cubegrid;
-      vec _upperbound;
+      int _xsteps, _ysteps, _zsteps;
       vec _lowerbound;
       
       void subdivide(const vec &v1, const vec &v2, const vec &v3, std::vector<vec> &spherepoints, const int depth);
