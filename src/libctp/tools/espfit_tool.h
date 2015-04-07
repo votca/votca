@@ -23,7 +23,8 @@
 #include <stdio.h>
 #include <votca/ctp/espfit.h>
 #include <votca/ctp/logger.h>
-
+#include <boost/filesystem.hpp>
+#include <votca/ctp/qmmachine.h>
 
 namespace votca { namespace ctp {
     using namespace std;
@@ -47,11 +48,12 @@ private:
     string      _output_file;
     int         _state_no;   
     string      _state;
-    
+    bool        _use_mps;
+    bool        _use_pdb;
     
     Logger      _log;
     
-    void CheckContent(  Orbitals& _orbitals );
+    void FitESP( Orbitals& _orbitals );
 
 };
 
@@ -72,10 +74,18 @@ void ESPFit_Tool::Initialize(Property* options) {
            _state     = options->get(key + ".state").as<string> ();
            _output_file  = options->get(key + ".output").as<string> ();
            _state_no     = options->get(key + ".state number").as<int> ();
-
-            
+           data_format  = boost::filesystem::extension(_output_file);
+           
+    if (data_format=="mps"){
+        _use_mps=true; 
+        _use_pdb=false;
+    }
+    else if(data_format=="pdb"){
+       _use_mps=false; 
+        _use_pdb=true;
+    }
+    else  throw std::runtime_error("Outputfile format not recognized. Export only to .pdb and .mps");
     
-  
     // get the path to the shared folders with xml files
     char *votca_share = getenv("VOTCASHARE");    
     if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
@@ -84,11 +94,7 @@ void ESPFit_Tool::Initialize(Property* options) {
 
     // register all QM packages (Gaussian, TURBOMOLE, etc)
     // QMPackageFactory::RegisterAll();
-    
-    
-    
-    
-    
+   
 }
 
 bool ESPFit_Tool::Evaluate() {
@@ -111,14 +117,22 @@ bool ESPFit_Tool::Evaluate() {
     boost::archive::binary_iarchive ia(ifs);
     ia >> _orbitals;
     ifs.close();
+
+    FitESP(_orbitals);
+
+    if(_use_mps){
+        QMMInterface Converter;
+        PolarSeg* result=Converter.Convert(_orbitals.QMAtoms(););
+        result->WriteMPS(_output_file);
+        }
+    else if(use_pdb){
+        FILE *out;
+        out = fopen(_output_file.c_str(), "w");
+       _orbitals.WritePDB(out); 
+    }
     
- 
     
-    
-    
-    
-     LOG(logDEBUG, _log) << "Written charges to " << _output_file << flush;
-    
+    LOG(logDEBUG, _log) << "Written charges to " << _output_file << flush;
     
     return true;
 }
@@ -130,42 +144,24 @@ void ESPFit_Tool::FitESP( Orbitals& _orbitals ){
 
 
    
-    LOG(logDEBUG, _log) << "===== Converting serialized content ===== " << flush;
-    LOG(logDEBUG, _log) << "   Information about DFT:" << flush;
-    
-     
-    if ( _property == "singlets" ){
+    LOG(logDEBUG, _log) << "===== Running ESPFIT ===== " << flush;
 
-       // BSE singlet excitons
-       if ( _orbitals.hasBSESinglets()){
-           LOG(logDEBUG, _log) << "      BSE singlet excitons:   " << _orbitals.getBSESingletEnergies()->size() << flush;
-           
-           // open output file
-           
-           // dump information to restart file
+        vector< QMAtoms* >& Atomlist =_orbitals.QMAtoms();
         
-          FILE *out;
-          // string FILE = "restart.opt";
-          out = fopen(_output_file.c_str(),"w");
-
-          int _bsesize = _orbitals.BSESingletCoefficients().size1();
-          for ( int _i_exc = 0 ; _i_exc < _orbitals.BSESingletCoefficients().size2() ; _i_exc++ ){
-          
-              const ub::matrix<float>& _coefs = _orbitals.BSESingletCoefficients();
-             fprintf(out, "%d %le \n", _i_exc+1, _orbitals.BSESingletEnergies()[_i_exc] );
-             
-             for ( int _i_bse=0; _i_bse< _bsesize; _i_bse++){
-                 fprintf(out, "%d %d %le \n", _i_exc+1, _i_bse+1,_coefs(_i_bse,_i_exc)  );
-             }
-          }
-           
-       } else {
-           LOG(logDEBUG, _log) << "      BSE singlet excitons:   not stored" << flush;
-       }  
-    
-    }
-
-    
+        BasisSet dftbs;
+        dftbs.LoadBasisSet(_orbitals.getDFTbasis());
+        AOBasis basis;
+        basis.AOBasisFill(&dftbs, Atomlist );
+        basis.ReorderMOs(_orbitals.MOCoefficients(), _orbitals.getQMpackage(), "votca" );
+        ub::matrix<double> &DMATGS=_orbitals.DensityMatrixGroundState();
+        ub::matrix<double> DMAT_tot=DMATGS;
+        if ( _state > 0 ){ 
+	  std::vector<ub::matrix<double> > &DMAT = _orbitals.DensityMatrixExcitedState( _orbitals.MOCoefficients() , _orbitals.BSESingletCoefficients(), _state-1);
+	  DMAT_tot=DMAT_tot-DMAT[0]+DMAT[1]; // Ground state + hole_contribution + electron contribution
+	}
+        Espfit esp;
+        esp.setLog(_log);
+        esp.Fit2Density(Atomlist, DMAT_tot, basis);   
 }
 
 }}
