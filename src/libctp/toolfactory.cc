@@ -34,6 +34,7 @@
 #include "tools/orb2isogwa.h"
 #include "tools/dft.h"
 #include "tools/gencube.h"
+#include "tools/espfit_tool.h"
 
 
 namespace votca { namespace ctp {
@@ -54,6 +55,7 @@ void QMToolFactory::RegisterAll(void)
         QMTools().Register<PDB2Top>            ("pdb2top");
         QMTools().Register<DFT>                ("dft");
         QMTools().Register<GenCube>            ("gencube");
+        QMTools().Register<ESPFit_Tool>        ("espfit");
         
 }
 

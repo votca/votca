@@ -36,7 +36,7 @@ public:
     ESPFit_Tool () { };
    ~ESPFit_Tool () { };
 
-    string Identify() { return "ESPFit"; }
+    string Identify() { return "espfit"; }
 
     void   Initialize(Property *options);
     bool   Evaluate();
@@ -73,8 +73,8 @@ void ESPFit_Tool::Initialize(Property* options) {
            _orbfile      = options->get(key + ".input").as<string> ();
            _state     = options->get(key + ".state").as<string> ();
            _output_file  = options->get(key + ".output").as<string> ();
-           _state_no     = options->get(key + ".state number").as<int> ();
-           data_format  = boost::filesystem::extension(_output_file);
+           _state_no     = options->get(key + ".statenumber").as<int> ();
+           string data_format  = boost::filesystem::extension(_output_file);
            
     if (data_format=="mps"){
         _use_mps=true; 
@@ -122,10 +122,10 @@ bool ESPFit_Tool::Evaluate() {
 
     if(_use_mps){
         QMMInterface Converter;
-        PolarSeg* result=Converter.Convert(_orbitals.QMAtoms(););
+        PolarSeg* result=Converter.Convert(_orbitals.QMAtoms());
         result->WriteMPS(_output_file);
         }
-    else if(use_pdb){
+    else if(_use_pdb){
         FILE *out;
         out = fopen(_output_file.c_str(), "w");
        _orbitals.WritePDB(out); 
@@ -146,21 +146,30 @@ void ESPFit_Tool::FitESP( Orbitals& _orbitals ){
    
     LOG(logDEBUG, _log) << "===== Running ESPFIT ===== " << flush;
 
-        vector< QMAtoms* >& Atomlist =_orbitals.QMAtoms();
+        vector< QMAtom* > Atomlist =_orbitals.QMAtoms();
         
         BasisSet dftbs;
         dftbs.LoadBasisSet(_orbitals.getDFTbasis());
         AOBasis basis;
         basis.AOBasisFill(&dftbs, Atomlist );
-        basis.ReorderMOs(_orbitals.MOCoefficients(), _orbitals.getQMpackage(), "votca" );
-        ub::matrix<double> &DMATGS=_orbitals.DensityMatrixGroundState();
+        basis.ReorderMOs(_orbitals.MOCoefficients(), _orbitals.getQMpackage(), "votca" );        
+        ub::matrix<double> &DMATGS=_orbitals.DensityMatrixGroundState(_orbitals.MOCoefficients());
         ub::matrix<double> DMAT_tot=DMATGS;
-        if ( _state > 0 ){ 
-	  std::vector<ub::matrix<double> > &DMAT = _orbitals.DensityMatrixExcitedState( _orbitals.MOCoefficients() , _orbitals.BSESingletCoefficients(), _state-1);
-	  DMAT_tot=DMAT_tot-DMAT[0]+DMAT[1]; // Ground state + hole_contribution + electron contribution
+        if ( _state_no > 0 || _state!="groundstate"){ 
+            if (_state=="singlet"){
+                std::vector<ub::matrix<double> >& DMAT = _orbitals.DensityMatrixExcitedState( _orbitals.MOCoefficients() , _orbitals.BSESingletCoefficients(), _state_no-1);
+                DMAT_tot=DMAT_tot-DMAT[0]+DMAT[1];
+            }
+            else if (_state=="triplet"){
+                std::vector<ub::matrix<double> >& DMAT = _orbitals.DensityMatrixExcitedState( _orbitals.MOCoefficients() , _orbitals.BSETripletCoefficients(), _state_no-1);
+                DMAT_tot=DMAT_tot-DMAT[0]+DMAT[1];
+            }
+            
+          
+	   // Ground state + hole_contribution + electron contribution
 	}
         Espfit esp;
-        esp.setLog(_log);
+        esp.setLog(&_log);
         esp.Fit2Density(Atomlist, DMAT_tot, basis);   
 }
 
