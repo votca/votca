@@ -28,6 +28,10 @@ void Espfit::EvaluateAPECharges(Grid& _targetgrid, Grid& _chargepositions){
     }
 
 void Espfit::FitAPECharges(Grid& _targetgrid_fg, Grid& _targetgrid_bg, Grid& _chargepositions, double& netcharge){
+    double A2Bohr=1.8897259886;
+     double Nm2Bohr=18.8972598860;
+     double Nm2A=10.0;
+     double A2nm=0.1;
     double Int2Hartree=Nm2Bohr;
     
     if(_chargepositions.getsize() >_targetgrid_fg.getsize()){
@@ -63,12 +67,16 @@ void Espfit::FitAPECharges(Grid& _targetgrid_fg, Grid& _targetgrid_bg, Grid& _ch
        
 
 
-void Espfit::Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_dftbasis, double _netcharge) {            
+void Espfit::Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_dftbasis, double _netcharge) { 
+    double A2Bohr=1.8897259886;
+     double Nm2Bohr=18.8972598860;
+     double Nm2A=10.0;
+     double A2nm=0.1;
     // setting up grid    
     Grid _grid;
     _grid.setAtomlist(&_atomlist);
     _grid.setupCHELPgrid();
-    
+    //_grid.printGridtoxyzfile("grid.xyz");
     LOG(logDEBUG, *_log) << TimeStamp() <<  " Done setting up CHELPG grid with " << _grid.getsize() << " points " << endl;
         
     // Calculating nuclear potential at gridpoints
@@ -98,7 +106,17 @@ void Espfit::Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat
             _ESPatGrid(i) -= DMATGSasarray(_i)*AOESPasarray(_i);
         }   
     }
-        
+    
+    string filename2="_ESPATGrid.txt";
+    FILE *out2;
+    out2 = fopen(filename2.c_str(), "w");
+    
+    for( int _i=0;_i<_ESPatGrid.size();_i++){
+        fprintf(out2, "%E\n", _ESPatGrid(_i));    
+    }
+    fclose(out2);
+    
+    
     _ESPatGrid += _NucPatGrid;
 
     std::vector< ub::vector<double> > _fitcenters;
@@ -120,10 +138,14 @@ void Espfit::Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat
     } 
 
 ub::vector<double> Espfit:: EvalNuclearPotential( vector< QMAtom* >& _atoms, Grid _grid ){
+    double A2Bohr=1.8897259886;
+    double Nm2Bohr=18.8972598860;
+    double Nm2A=10.0;
+    double A2nm=0.1;
     std::vector< ub::vector<double> >& _gridpoints =_grid.getGrid();   
     LOG(logDEBUG, *_log) << TimeStamp() << " Calculating ESP of nuclei at CHELPG grid points"  << flush;
-    ub::vector<double> _NucPatGrid(_gridpoints.size());
-    
+    ub::vector<double> _NucPatGrid=ub::zero_vector<double>(_gridpoints.size());
+    cout << endl;
     for ( int i = 0 ; i < _gridpoints.size(); i++){
       double x_k = _gridpoints[i](0);
       double y_k = _gridpoints[i](1);
@@ -137,14 +159,27 @@ ub::vector<double> Espfit:: EvalNuclearPotential( vector< QMAtom* >& _atoms, Gri
 	    double Znuc = _elements.getNucCrgECP(_atoms[j]->type);  
 
             double dist_j = sqrt( (x_j - x_k)*(x_j - x_k) +  (y_j - y_k)*(y_j - y_k) + (z_j - z_k)*(z_j - z_k)     )*Nm2Bohr;
-
+           
 	    _NucPatGrid(i) += Znuc/dist_j;
         }
     }
+    
+    string filename1="_NucPatGrid.txt";
+    FILE *out1;
+    out1 = fopen(filename1.c_str(), "w");
+    
+    for( int _i=0;_i<_NucPatGrid.size();_i++){
+        fprintf(out1, "%E\n",_NucPatGrid(_i));    
+    }
+    fclose(out1);
     return _NucPatGrid;     
    }
 
 std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >& _fitcenters, Grid& _grid, ub::vector<double>& _potential, double& _netcharge ){
+    double A2Bohr=1.8897259886;
+     double Nm2Bohr=18.8972598860;
+     double Nm2A=10.0;
+     double A2nm=0.1;
     LOG(logDEBUG, *_log) << TimeStamp() << " Setting up Matrices for fitting of size "<< _fitcenters.size()+1 <<" x " << _fitcenters.size()+1<< flush;    
    
     std::vector< ub::vector<double> >& _gridpoints=_grid.getGrid();   
@@ -155,10 +190,10 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >
     LOG(logDEBUG, *_log) << TimeStamp() << " Using "<< _fitcenters.size() <<" Fittingcenters and " << _gridpoints.size()<< " Gridpoints."<< flush;  
     
     ub::matrix<double> _Amat = ub::zero_matrix<double>(_fitcenters.size()+1,_fitcenters.size()+1);
-    ub::matrix<double> _Bvec = ub::zero_matrix<double>(_fitcenters.size()+1);
+    ub::matrix<double> _Bvec = ub::zero_matrix<double>(_fitcenters.size()+1,1);
     boost::progress_display show_progress( _fitcenters.size() );
     // setting up _Amat
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for ( int _i =0 ; _i < _Amat.size1()-1; _i++){
         double x_i = _fitcenters[_i](0);
         double y_i = _fitcenters[_i](1);
@@ -190,7 +225,7 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >
     _Amat(_Amat.size1()-1,_Amat.size1()-1) = 0.0;
 
     // setting up Bvec
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for ( int _i =0 ; _i < _Bvec.size1()-1; _i++){
         double x_i = _fitcenters[_i](0);
         double y_i = _fitcenters[_i](1);
@@ -201,7 +236,7 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >
                 double y_k = _gridpoints[_k](1);
                 double z_k = _gridpoints[_k](2);
                 
-                double dist_i = sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     )*Nm2Bohr;
+                double dist_i = sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     )*Nm2Bohr;                
                 _Bvec(_i,0) += _potential(_k)/dist_i;                
         }
        }
@@ -224,15 +259,15 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >
     }
     fclose(out1);
     
-      string filename2="_Amat_inv.txt";
+      string filename2="_Bvec.txt";
     FILE *out2;
     out2 = fopen(filename2.c_str(), "w");
     
-    for( int _i=0;_i<_Amat_inverse.size1();_i++){
-         for( int _j=0;_j<_Amat_inverse.size2()-1;_j++){
-             fprintf(out2, "%E ", _Amat_inverse(_i,_j));
+    for( int _i=0;_i<_Bvec.size1();_i++){
+         for( int _j=0;_j<_Bvec.size2()-1;_j++){
+             fprintf(out2, "%E ", _Bvec(_i,_j));
     }
-            fprintf(out2, "%E\n", _Amat_inverse(_i,_Amat.size2()-1));
+            fprintf(out2, "%E\n", _Bvec(_i,_Bvec.size2()-1));
     
     }
     fclose(out2);

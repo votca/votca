@@ -76,11 +76,13 @@ void ESPFit_Tool::Initialize(Property* options) {
            _state_no     = options->get(key + ".statenumber").as<int> ();
            string data_format  = boost::filesystem::extension(_output_file);
            
-    if (data_format=="mps"){
+
+           
+    if (data_format==".mps"){
         _use_mps=true; 
         _use_pdb=false;
     }
-    else if(data_format=="pdb"){
+    else if(data_format==".pdb"){
        _use_mps=false; 
         _use_pdb=true;
     }

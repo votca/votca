@@ -63,10 +63,7 @@ private:
     
      Logger *_log;
      Elements _elements; 
-     double A2Bohr=1.8897259886;
-     double Nm2Bohr=18.8972598860;
-     double Nm2A=10.0;
-     double A2nm=0.1;
+     
  
     ub::vector<double> EvalNuclearPotential( vector< QMAtom* >& _atoms, Grid _grid );
    
