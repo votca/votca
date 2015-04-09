@@ -193,7 +193,7 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >
     ub::matrix<double> _Bvec = ub::zero_matrix<double>(_fitcenters.size()+1,1);
     boost::progress_display show_progress( _fitcenters.size() );
     // setting up _Amat
-    //#pragma omp parallel for
+    #pragma omp parallel for
     for ( int _i =0 ; _i < _Amat.size1()-1; _i++){
         double x_i = _fitcenters[_i](0);
         double y_i = _fitcenters[_i](1);
@@ -225,7 +225,7 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >
     _Amat(_Amat.size1()-1,_Amat.size1()-1) = 0.0;
 
     // setting up Bvec
-    //#pragma omp parallel for
+    #pragma omp parallel for
     for ( int _i =0 ; _i < _Bvec.size1()-1; _i++){
         double x_i = _fitcenters[_i](0);
         double y_i = _fitcenters[_i](1);
@@ -246,6 +246,8 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >
     // invert _Amat
     ub::matrix<double> _Amat_inverse = ub::zero_matrix<double>(_fitcenters.size()+1,_fitcenters.size()+1);
     linalg_invert( _Amat , _Amat_inverse);
+    
+    /*
     string filename1="_Amat.txt";
     FILE *out1;
     out1 = fopen(filename1.c_str(), "w");
@@ -271,7 +273,7 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >
     
     }
     fclose(out2);
-    
+    */
     LOG(logDEBUG, *_log) << TimeStamp() << " Inverting Matrices done."<< flush;    
     //_Amat.resize(0,0);
 
