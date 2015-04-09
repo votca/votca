@@ -284,7 +284,9 @@ public:
     // functions for calculating density matrices
     ub::matrix<double> &DensityMatrixGroundState( ub::matrix<double>& _MOs ) ;
     std::vector<ub::matrix<double> > &DensityMatrixExcitedState( ub::matrix<double>& _MOs , ub::matrix<float>& _BSECoefs, int state = 0 ) ;
-
+    ub::matrix<double > &TransitionDensityMatrix( ub::matrix<double>& _MOs , ub::matrix<float>& _BSECoefs, int state = 0);
+    
+    
     // functions for analyzing fragment charges via Mulliken populations
     void MullikenPopulation( const ub::matrix<double>& _densitymatrix, const ub::matrix<double>& _overlapmatrix, int _frag, double& _PopA, double& _PopB  );
     // access to fragment charges of excitations
@@ -430,6 +432,7 @@ private:
     
     ub::matrix<double>                     _dmatGS;
     std::vector< ub::matrix<double> >      _dmatEX;
+    ub::matrix<double>                     _dmatTS;
     
     std::vector<double>                    _Dq_fragA; // fragment charge changes in exciton
     std::vector<double>                    _Dq_fragB;

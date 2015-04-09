@@ -319,8 +319,7 @@ bool Orbitals::Load(string file_name) {
 
 
  // Determine ground state density matrix
- ub::matrix<double>& Orbitals::DensityMatrixGroundState( ub::matrix<double>& _MOs ) {
-     
+ ub::matrix<double>& Orbitals::DensityMatrixGroundState( ub::matrix<double>& _MOs ) {   
      // first fill Density matrix, if required
     //  if ( _dmatGS.size1() != _basis_set_size ) {
         _dmatGS = ub::zero_matrix<double>(_basis_set_size, _basis_set_size);
@@ -333,15 +332,52 @@ bool Orbitals::Load(string file_name) {
                 }
             }
          }
-     //}
-     
+     //}    
      // return     
-     return _dmatGS;
-     
-     
-     
+     return _dmatGS;  
  }
  
+ 
+ ub::matrix<double> & Orbitals::TransitionDensityMatrix( ub::matrix<double>& _MOs , ub::matrix<float>& _BSECoefs, int state){
+    _dmatTS=ub::zero_matrix<double>(_basis_set_size);
+    
+    /*Trying to implement D_{alpha,beta}=sum_{i}^{occ}sum_{j}^{virt}{BSEcoef(i,j)*MOcoef(alpha,i)*MOcoef(beta,j)} */
+    // c stands for conduction band and thus virtual orbitals
+    // v stand for valence band and thus occupied orbitals
+
+     int _vmin = this->_bse_vmin;
+     int _vmax = this->_bse_vmax;
+     int _cmin = this->_bse_cmin;
+     int _cmax = this->_bse_cmax;
+     
+    if ( _bse_size == 0 ) {
+        _bse_vtotal = _bse_vmax - _bse_vmin +1 ;
+        _bse_ctotal = _bse_cmax - _bse_cmin +1 ;
+        _bse_size   = _bse_vtotal * _bse_ctotal;
+          // indexing info BSE vector index to occupied/virtual orbital
+        for ( int _v = 0; _v < _bse_vtotal; _v++ ){
+            for ( int _c = 0; _c < _bse_ctotal ; _c++){
+                  _index2v.push_back( _bse_vmin + _v );
+                  _index2c.push_back( _bse_cmin + _c );
+            }
+        }
+    }
+    
+    
+    for(int a=0;a<_dmatTS.size1();a++){
+        for(int b=0;b<_dmatTS.size2();b++){
+            for(int i=0;i<_index2v.size();i++){
+                int occ=_index2v[i];
+                for(int j=0;j<_index2c.size();j++){
+                    int virt=_index2c[j];
+                    _dmatTS(a,b)+=_BSECoefs(occ,virt)*_MOs( occ , a ) * _MOs( virt , b );
+                }
+            }
+        }     
+    }
+
+    return _dmatTS;
+}
  
  
  
@@ -394,11 +430,7 @@ bool Orbitals::Load(string file_name) {
            }
      }
      
-     int _bse_total = this->_bse_size;
-     
-     
-     
-     
+
      
      // electron assist matrix A_{cc'}
      ub::matrix<float> _Acc = ub::zero_matrix<float>( this->_bse_ctotal , this->_bse_ctotal );
@@ -481,7 +513,7 @@ bool Orbitals::Load(string file_name) {
      
  }
  
- 
+
  void Orbitals::MullikenPopulation( const ub::matrix<double>& _densitymatrix, const ub::matrix<double>& _overlapmatrix, int _frag, double& _PopA, double& _PopB  ) {
      
      

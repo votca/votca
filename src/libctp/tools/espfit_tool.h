@@ -48,6 +48,7 @@ private:
     string      _output_file;
     int         _state_no;   
     string      _state;
+    string      _spin;
     bool        _use_mps;
     bool        _use_pdb;
     
@@ -74,6 +75,7 @@ void ESPFit_Tool::Initialize(Property* options) {
            _state     = options->get(key + ".state").as<string> ();
            _output_file  = options->get(key + ".output").as<string> ();
            _state_no     = options->get(key + ".statenumber").as<int> ();
+           _spin     = options->get(key + ".spin").as<string> ();
            string data_format  = boost::filesystem::extension(_output_file);
            
 
@@ -144,32 +146,45 @@ bool ESPFit_Tool::Evaluate() {
 
 void ESPFit_Tool::FitESP( Orbitals& _orbitals ){
 
-
-   
     LOG(logDEBUG, _log) << "===== Running ESPFIT ===== " << flush;
 
         vector< QMAtom* > Atomlist =_orbitals.QMAtoms();
-        
+        ub::matrix<double> DMAT_tot;
         BasisSet dftbs;
         dftbs.LoadBasisSet(_orbitals.getDFTbasis());
         AOBasis basis;
         basis.AOBasisFill(&dftbs, Atomlist );
-        basis.ReorderMOs(_orbitals.MOCoefficients(), _orbitals.getQMpackage(), "votca" );        
-        ub::matrix<double> &DMATGS=_orbitals.DensityMatrixGroundState(_orbitals.MOCoefficients());
-        ub::matrix<double> DMAT_tot=DMATGS;
-        if ( _state_no > 0 || _state!="groundstate"){ 
-            if (_state=="singlet"){
-                std::vector<ub::matrix<double> >& DMAT = _orbitals.DensityMatrixExcitedState( _orbitals.MOCoefficients() , _orbitals.BSESingletCoefficients(), _state_no-1);
-                DMAT_tot=DMAT_tot-DMAT[0]+DMAT[1];
+        basis.ReorderMOs(_orbitals.MOCoefficients(), _orbitals.getQMpackage(), "votca" );  
+        
+        if(_state=="transition"){
+            if (_spin=="singlet"){
+                DMAT_tot=_orbitals.TransitionDensityMatrix(_orbitals.MOCoefficients() , _orbitals.BSESingletCoefficients(), _state_no-1);
             }
-            else if (_state=="triplet"){
-                std::vector<ub::matrix<double> >& DMAT = _orbitals.DensityMatrixExcitedState( _orbitals.MOCoefficients() , _orbitals.BSETripletCoefficients(), _state_no-1);
-                DMAT_tot=DMAT_tot-DMAT[0]+DMAT[1];
+            else if (_spin=="triplet"){
+                DMAT_tot=_orbitals.TransitionDensityMatrix(_orbitals.MOCoefficients() , _orbitals.BSETripletCoefficients(), _state_no-1); 
             }
+            else throw std::runtime_error("Spin entry not recognized");
+        }
+        else if (_state=="ground" || _state=="excited"){
             
-          
+        
+            ub::matrix<double> &DMATGS=_orbitals.DensityMatrixGroundState(_orbitals.MOCoefficients());
+            DMAT_tot=DMATGS;
+            if ( _state_no > 0 && _state=="excited"){
+                std::vector<ub::matrix<double> > DMAT;
+                if (_spin=="singlet"){
+                    DMAT = _orbitals.DensityMatrixExcitedState( _orbitals.MOCoefficients() , _orbitals.BSESingletCoefficients(), _state_no-1);
+
+                }
+                else if (_spin=="triplet" && _state=="excited"){
+                    DMAT = _orbitals.DensityMatrixExcitedState( _orbitals.MOCoefficients() , _orbitals.BSETripletCoefficients(), _state_no-1);
+                }
+                else throw std::runtime_error("Spin entry not recognized");
+                DMAT_tot=DMAT_tot-DMAT[0]+DMAT[1];
+            }            
 	   // Ground state + hole_contribution + electron contribution
 	}
+        else throw std::runtime_error("State entry not recognized");
         Espfit esp;
         esp.setLog(&_log);
         esp.Fit2Density(Atomlist, DMAT_tot, basis);   
