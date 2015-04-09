@@ -269,8 +269,9 @@ namespace votca {
                     }
                     
                     if(_state>0){
-                        if (_spin=="singlet") ub::matrix<float>& BSECoefs = _orbitals.BSESingletCoefficients();
-                        else if (_spin =="triplet") ub::matrix<float>& BSECoefs = _orbitals.BSETripletCoefficients();
+                        ub::matrix<float> BSECoefs;
+                        if (_spin=="singlet") BSECoefs = _orbitals.BSESingletCoefficients();
+                        else if (_spin =="triplet") BSECoefs = _orbitals.BSETripletCoefficients();
                     
                         if ( _do_transition ){
                              DMAT_tot=_orbitals.TransitionDensityMatrix(_dft_orbitals, BSECoefs, _state - 1);
@@ -278,7 +279,8 @@ namespace votca {
                         }
 
                     // excited state if requested
-                        else if ( _do_bse  ) {                           
+                        else if ( _do_bse  ) {    
+                            std::vector< ub::matrix<double> > &DMAT=_orbitals.DensityMatrixExcitedState(_dft_orbitals, BSECoefs, _state - 1);
                             DMAT_tot = DMAT_tot - DMAT[0] + DMAT[1]; // Ground state + hole_contribution + electron contribution
                             LOG(logDEBUG, _log) << " Calculated excited state density matrix " << flush;
                         }

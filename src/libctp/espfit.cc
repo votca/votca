@@ -106,7 +106,18 @@ void Espfit::Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat
             _ESPatGrid(i) -= DMATGSasarray(_i)*AOESPasarray(_i);
         }   
     }
-    
+    /* check for transitionstate matrix DEBUGGING
+    double check=0.0;
+    AOOverlap _overlap;
+    _overlap.Initialize(_dftbasis._AOBasisSize);
+    _overlap.Fill(&_dftbasis);
+    ub::vector<double> AOOverlapasarray=_overlap._aomatrix.data();
+    for ( int _i =0; _i < DMATGSasarray.size(); _i++ ){
+            check -= DMATGSasarray(_i)*AOOverlapasarray(_i);
+        }   
+    cout << "WICHTIG check=" <<check<<endl; 
+    //check ende*/
+    /*
     string filename2="_ESPATGrid.txt";
     FILE *out2;
     out2 = fopen(filename2.c_str(), "w");
@@ -115,7 +126,7 @@ void Espfit::Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat
         fprintf(out2, "%E\n", _ESPatGrid(_i));    
     }
     fclose(out2);
-    
+    */
     
     _ESPatGrid += _NucPatGrid;
 
