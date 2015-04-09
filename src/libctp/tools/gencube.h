@@ -63,6 +63,7 @@ namespace votca {
             bool _do_groundstate;
             bool _do_bse;
             bool _do_qp;
+            bool _do_transition;
             
             double _padding;
             int _xsteps;
@@ -112,9 +113,14 @@ namespace votca {
             }
             
             
-            if ( _type == "total" ) _do_groundstate = true;
-            if ( _type !="qp" && (_spin == "singlet" || _spin == "triplet") ) _do_bse = true;
-            if ( _type == "qp" ) _do_qp = true;
+            if ( _type == "ground" || _state==0) _do_groundstate = true;
+            else if ( _type == "transition" ) _do_transition = true;
+            else if ( _type == "excited"){
+                _do_bse = true;
+                _do_groundstate=true;
+            }
+            else if (_type== "excited-gs") _do_bse=true;
+            else if ( _type == "qp" ) _do_qp = true;
             
             
             
@@ -192,7 +198,7 @@ namespace votca {
                 out = fopen(_output_file.c_str(), "w");
 
                 // write cube header
-                if ( _state == 0 ){
+                if ( _do_groundstate && !_do_bse ){
                    fprintf(out, "Electron density of neutral state \n" );
                 } else if ( _do_bse ){
                     if ( _do_groundstate ){
@@ -200,8 +206,12 @@ namespace votca {
                     } else {
                        fprintf(out, "Difference electron density of excited state  %i spin %s \n", _state, _spin.c_str());
                     }
-                } else if ( _do_qp ){
+                } 
+                else if ( _do_qp ){
                     fprintf(out, "Quasiparticle state %i \n", _state);
+                }
+                else if ( _do_transition ){
+                    fprintf(out, "Transition state  betwenn Groundstate and state %i \n", _state);
                 }
                 fprintf(out, "Created by VOTCA-CTP \n");
                 if ( _do_qp ){
@@ -246,7 +256,7 @@ namespace votca {
                 
                 
                 // now depending on the type of cube
-                if (_do_groundstate || _do_bse  ) {
+                if (_do_groundstate || _do_bse || _do_transition ) {
 
 
                     ub::matrix<double> DMAT_tot = ub::zero_matrix<double>(dftbasis.AOBasisSize(), dftbasis.AOBasisSize());
@@ -257,15 +267,22 @@ namespace votca {
                         DMAT_tot = DMATGS; // Ground state + hole_contribution + electron contribution
                         LOG(logDEBUG, _log) << " Calculated ground state density matrix " << flush;
                     }
+                    
+                    if(_state>0){
+                        if (_spin=="singlet") ub::matrix<float>& BSECoefs = _orbitals.BSESingletCoefficients();
+                        else if (_spin =="triplet") ub::matrix<float>& BSECoefs = _orbitals.BSETripletCoefficients();
+                    
+                        if ( _do_transition ){
+                             DMAT_tot=_orbitals.TransitionDensityMatrix(_dft_orbitals, BSECoefs, _state - 1);
+                             LOG(logDEBUG, _log) << " Calculated transition state density matrix " << flush;
+                        }
 
                     // excited state if requested
-                    if ( _do_bse && _state > 0 ) {
-                        ub::matrix<float>& BSECoefs = _orbitals.BSESingletCoefficients();
-                        std::vector<ub::matrix<double> > &DMAT = _orbitals.DensityMatrixExcitedState(_dft_orbitals, BSECoefs, _state - 1);
-                        DMAT_tot = DMAT_tot - DMAT[0] + DMAT[1]; // Ground state + hole_contribution + electron contribution
-                        LOG(logDEBUG, _log) << " Calculated excited state density matrix " << flush;
+                        else if ( _do_bse  ) {                           
+                            DMAT_tot = DMAT_tot - DMAT[0] + DMAT[1]; // Ground state + hole_contribution + electron contribution
+                            LOG(logDEBUG, _log) << " Calculated excited state density matrix " << flush;
+                        }
                     }
-
                     
    
                     
