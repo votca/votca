@@ -323,6 +323,7 @@ bool Orbitals::Load(string file_name) {
      // first fill Density matrix, if required
     //  if ( _dmatGS.size1() != _basis_set_size ) {
         _dmatGS = ub::zero_matrix<double>(_basis_set_size, _basis_set_size);
+        #pragma omp parallel for
         for ( int _i=0; _i < _basis_set_size; _i++ ){
             for ( int _j=0; _j < _basis_set_size; _j++ ){
                 for ( int _level=0; _level < _occupied_levels ; _level++ ){
@@ -363,7 +364,7 @@ bool Orbitals::Load(string file_name) {
         }
     }
     
-    
+    #pragma omp parallel for
     for(int a=0;a<_dmatTS.size1();a++){
         for(int b=0;b<_dmatTS.size2();b++){
             for(int i=0;i<_index2v.size();i++){
