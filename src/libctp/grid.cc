@@ -1,4 +1,5 @@
 #include <votca/ctp/grid.h>
+#include <math.h>       /* ceil */
 
 using namespace std;
 using namespace votca::tools;
@@ -370,17 +371,22 @@ void Grid::setupgrid(){
     _lowerbound=vec(xmin-_padding,ymin-_padding,zmin-_padding);
     vec _upperbound=vec(xmax+_padding,ymax+_padding,zmax+_padding);
     vec steps=(_upperbound-_lowerbound)/_gridspacing;
-    _xsteps=int(steps.getX()+0.5);
-    _ysteps=int(steps.getY()+0.5);
-    _zsteps=int(steps.getZ()+0.5);
+    _xsteps=int(ceil(steps.getX()));
+    _ysteps=int(ceil(steps.getY()));
+    _zsteps=int(ceil(steps.getZ()));
+    
+    // needed to symmetrize grid around molecule
+    double padding_x=(steps.getX()-_xsteps)*_gridspacing*0.5+_padding;
+    double padding_y=(steps.getY()-_ysteps)*_gridspacing*0.5+_padding;
+    double padding_z=(steps.getZ()-_zsteps)*_gridspacing*0.5+_padding;
 
     ub::vector<double> temppos= ub::zero_vector<double>(3);
-    for(int i=0;i<_xsteps;i++){
-        double x=xmin-_padding+i*_gridspacing; 
-        for(int j=0;j<_ysteps;j++){
-            double y=ymin-_padding+j*_gridspacing; 
-            for(int k=0;k<_zsteps;k++){
-                double z=zmin-_padding+k*_gridspacing; 
+    for(int i=0;i<=_xsteps;i++){
+        double x=xmin-padding_x+i*_gridspacing; 
+        for(int j=0;j<=_ysteps;j++){
+            double y=ymin-padding_y+j*_gridspacing; 
+            for(int k=0;k<=_zsteps;k++){
+                double z=zmin-padding_z+k*_gridspacing; 
                 bool _is_valid = false;
                     for (vector<QMAtom* >::const_iterator atom = _atomlist->begin(); atom != _atomlist->end(); ++atom ) {
                         //cout << "Punkt " << x <<":"<< y << ":"<<z << endl;

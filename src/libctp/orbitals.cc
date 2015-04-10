@@ -367,12 +367,10 @@ bool Orbitals::Load(string file_name) {
     #pragma omp parallel for
     for(int a=0;a<_dmatTS.size1();a++){
         for(int b=0;b<_dmatTS.size2();b++){
-            for(int i=0;i<_index2v.size();i++){
+            for(int i=0;i<_bse_size;i++){
                 int occ=_index2v[i];
-                for(int j=0;j<_index2c.size();j++){
-                    int virt=_index2c[j];
-                    _dmatTS(a,b)+=_BSECoefs(occ,virt)*_MOs( occ , a ) * _MOs( virt , b );
-                }
+                int virt=_index2c[i];
+                _dmatTS(a,b)+=_BSECoefs(i,state)*_MOs( occ , a ) * _MOs( virt , b );
             }
         }     
     }
@@ -383,7 +381,7 @@ bool Orbitals::Load(string file_name) {
  
  
  // Excited state density matrix
- std::vector<ub::matrix<double> >& Orbitals::DensityMatrixExcitedState(ub::matrix<double>& _MOs, ub::matrix<float>& _BSECoefs, int state ){
+std::vector<ub::matrix<double> >& Orbitals::DensityMatrixExcitedState(ub::matrix<double>& _MOs, ub::matrix<float>& _BSECoefs, int state ){
      
      
      /****** 
@@ -409,24 +407,24 @@ bool Orbitals::Load(string file_name) {
       *  
       */
              
-     _dmatEX.resize(2);
-     _dmatEX[0] = ub::zero_matrix<double>(_basis_set_size, _basis_set_size);
-     _dmatEX[1] = ub::zero_matrix<double>(_basis_set_size, _basis_set_size);
+    _dmatEX.resize(2);
+    _dmatEX[0] = ub::zero_matrix<double>(_basis_set_size, _basis_set_size);
+    _dmatEX[1] = ub::zero_matrix<double>(_basis_set_size, _basis_set_size);
 
-     int _vmin = this->_bse_vmin;
-     int _vmax = this->_bse_vmax;
-     int _cmin = this->_bse_cmin;
-     int _cmax = this->_bse_cmax;
+    int _vmin = this->_bse_vmin;
+    int _vmax = this->_bse_vmax;
+    int _cmin = this->_bse_cmin;
+    int _cmax = this->_bse_cmax;
      
-     if ( _bse_size == 0 ) {
-         _bse_vtotal = _bse_vmax - _bse_vmin +1 ;
-         _bse_ctotal = _bse_cmax - _bse_cmin +1 ;
-         _bse_size   = _bse_vtotal * _bse_ctotal;
-           // indexing info BSE vector index to occupied/virtual orbital
-           for ( int _v = 0; _v < _bse_vtotal; _v++ ){
-               for ( int _c = 0; _c < _bse_ctotal ; _c++){
-                   _index2v.push_back( _bse_vmin + _v );
-                   _index2c.push_back( _bse_cmin + _c );
+    if ( _bse_size == 0 ) {
+        _bse_vtotal = _bse_vmax - _bse_vmin +1 ;
+        _bse_ctotal = _bse_cmax - _bse_cmin +1 ;
+        _bse_size   = _bse_vtotal * _bse_ctotal;
+          // indexing info BSE vector index to occupied/virtual orbital
+          for ( int _v = 0; _v < _bse_vtotal; _v++ ){
+              for ( int _c = 0; _c < _bse_ctotal ; _c++){
+                  _index2v.push_back( _bse_vmin + _v );
+                  _index2c.push_back( _bse_cmin + _c );
                }
            }
      }
