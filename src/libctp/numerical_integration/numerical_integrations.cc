@@ -1310,13 +1310,14 @@ namespace votca {
             return result;
         } 
             
-            double NumericalIntegration::IntegratePotential(ub::matrix<double>& _density_matrix, AOBasis* basis, ub::vector<double> rvector){
+            double NumericalIntegration::IntegratePotential(ub::matrix<double>& _density_matrix, AOBasis* basis, ub::vector<double> rvector, bool parallel){
             
             double result = 0.0;
             
             const ub::vector<double> DMAT_array=_density_matrix.data();
              // for every gridpoint
             if(!density_set){
+            #pragma omp parallel for if (parallel)
             for (int i = 0; i < _grid.size(); i++) {
                 for (int j = 0; j < _grid[i].size(); j++) {
                     // get value of orbitals at each gridpoint

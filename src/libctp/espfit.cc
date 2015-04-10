@@ -99,9 +99,13 @@ void Espfit::Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat
     NumericalIntegration numway;
     numway.GridSetup("medium",&dftbs,_atomlist);
     boost::progress_display show_progress( _grid.getsize() );
-    #pragma omp parallel for
+    bool parallelextern=false;
+    bool parallelintern=true;
+    #pragma omp parallel for if(parallelextern)
     for ( int i = 0 ; i < _grid.getsize(); i++){
-        _ESPatGrid(i)=numway.IntegratePotential(_dmat,&_dftbasis,_grid.getGrid()[i]*Nm2Bohr);
+        parallelextern=true;
+        _ESPatGrid(i)=numway.IntegratePotential(_dmat,&_dftbasis,_grid.getGrid()[i]*Nm2Bohr,parallelintern);
+        parallelintern=false;
         ++show_progress;
     }
     _ESPatGrid += _NucPatGrid;
@@ -150,7 +154,7 @@ ub::vector<double> Espfit:: EvalNuclearPotential( vector< QMAtom* >& _atoms, Gri
 	    _NucPatGrid(i) += Znuc/dist_j;
         }
     }
-    
+    /*
     string filename1="_NucPatGrid.txt";
     FILE *out1;
     out1 = fopen(filename1.c_str(), "w");
@@ -159,6 +163,7 @@ ub::vector<double> Espfit:: EvalNuclearPotential( vector< QMAtom* >& _atoms, Gri
         fprintf(out1, "%E\n",_NucPatGrid(_i));    
     }
     fclose(out1);
+     */ 
     return _NucPatGrid;     
    }
 
