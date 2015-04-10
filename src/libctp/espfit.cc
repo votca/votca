@@ -4,6 +4,8 @@
 #include <votca/tools/linalg.h>
 #include <boost/progress.hpp>
 
+#include "votca/ctp/numerical_integrations.h"
+
 using namespace std;
 using namespace votca::tools;
 
@@ -93,7 +95,8 @@ void Espfit::Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat
     }
     
     ub::vector<double> DMATGSasarray=_dmat.data();
-    LOG(logDEBUG, *_log) << TimeStamp() << " Calculating ESP at CHELPG grid points"  << flush;  
+    LOG(logDEBUG, *_log) << TimeStamp() << " Calculating ESP at CHELPG grid points"  << flush; 
+    /*
     #pragma omp parallel for
     for ( int i = 0 ; i < _grid.getsize(); i++){
         // AOESP matrix
@@ -105,6 +108,13 @@ void Espfit::Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat
         for ( int _i =0; _i < DMATGSasarray.size(); _i++ ){
             _ESPatGrid(i) -= DMATGSasarray(_i)*AOESPasarray(_i);
         }   
+    }
+    */
+    NumericalIntegration numway;
+    numway.GridSetup("medium",&_dftbasis,_atomlist);
+    #pragma omp parallel for
+    for ( int i = 0 ; i < _grid.getsize(); i++){
+        _ESPatGrid(i)=numway.IntegratePotential(_dmat,&_dftbasis,_grid.getGrid()[i]*Nm2Bohr);
     }
     /*check for transitionstate matrix DEBUGGING
     double check=0.0;
