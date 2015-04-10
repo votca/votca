@@ -42,7 +42,7 @@ namespace votca { namespace ctp {
         class NumericalIntegration {
         public: 
             
-            NumericalIntegration() { };
+            NumericalIntegration():density_set(false) { };
 
             void GridSetup(string type, BasisSet* bs , vector<QMAtom* > _atoms  );
 
@@ -73,6 +73,7 @@ namespace votca { namespace ctp {
             double erfcc(double x);
             std::vector< std::vector< GridContainers::integration_grid > > _grid;
             double EXC;
+            bool density_set;
 
         };
 

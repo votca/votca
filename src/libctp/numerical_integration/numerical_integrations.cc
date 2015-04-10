@@ -1308,13 +1308,15 @@ namespace votca {
             
             
             return result;
-            
+        } 
             
             double NumericalIntegration::IntegratePotential(ub::matrix<double>& _density_matrix, AOBasis* basis, ub::vector<double> rvector){
             
             double result = 0.0;
+            
             const ub::vector<double> DMAT_array=_density_matrix.data();
              // for every gridpoint
+            if(!density_set){
             for (int i = 0; i < _grid.size(); i++) {
                 for (int j = 0; j < _grid[i].size(); j++) {
                     // get value of orbitals at each gridpoint
@@ -1336,19 +1338,26 @@ namespace votca {
                         density_at_grid += DMAT_array(_i)*_AO_array(_i);
                     }   
                     
-
-                    double dist=sqrt((_grid[i][j].grid_x-rvector(0))*(_grid[i][j].grid_x-rvector(0))+(_grid[i][j].grid_y-rvector(1))(_grid[i][j].grid_y-rvector(1))+(_grid[i][j].grid_z-rvector(2))(_grid[i][j].grid_z-rvector(2)));
+                    _grid[i][j].grid_density=density_at_grid;
+                
+                    double dist=sqrt((_grid[i][j].grid_x-rvector(0))*(_grid[i][j].grid_x-rvector(0))+(_grid[i][j].grid_y-rvector(1))*(_grid[i][j].grid_y-rvector(1))+(_grid[i][j].grid_z-rvector(2))*(_grid[i][j].grid_z-rvector(2)));
                     
-                    result += _grid[i][j].grid_weight * density_at_grid/dist;
+                    result -= _grid[i][j].grid_weight * _grid[i][j].grid_density/dist;
                 }
+                    
+                }
+            density_set=true;
             } // gridpoints end
+            else if(density_set){
+                for (int i = 0; i < _grid.size(); i++) {
+                for (int j = 0; j < _grid[i].size(); j++) {
+                    double dist=sqrt((_grid[i][j].grid_x-rvector(0))*(_grid[i][j].grid_x-rvector(0))+(_grid[i][j].grid_y-rvector(1))*(_grid[i][j].grid_y-rvector(1))+(_grid[i][j].grid_z-rvector(2))*(_grid[i][j].grid_z-rvector(2)));
+                    result -= _grid[i][j].grid_weight * _grid[i][j].grid_density/dist;
+                    }
+                }
+            } 
             
-            
-            return result;
-            
-            
-            
-            
+            return result;   
         }
         
         

@@ -69,7 +69,7 @@ void Espfit::FitAPECharges(Grid& _targetgrid_fg, Grid& _targetgrid_bg, Grid& _ch
        
 
 
-void Espfit::Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_dftbasis, double _netcharge) { 
+void Espfit::Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_dftbasis,BasisSet &dftbs, double _netcharge) { 
     double A2Bohr=1.8897259886;
      double Nm2Bohr=18.8972598860;
      double Nm2A=10.0;
@@ -94,50 +94,16 @@ void Espfit::Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat
            Ztot += _elements.getNucCrgECP(_atomlist[j]->type);  
     }
     
-    ub::vector<double> DMATGSasarray=_dmat.data();
     LOG(logDEBUG, *_log) << TimeStamp() << " Calculating ESP at CHELPG grid points"  << flush; 
-    /*
-    #pragma omp parallel for
-    for ( int i = 0 ; i < _grid.getsize(); i++){
-        // AOESP matrix
-         AOESP _aoesp;
-         _aoesp.Initialize(_dftbasis._AOBasisSize);
-         _aoesp.Fill(&_dftbasis, _grid.getGrid()[i]*Nm2Bohr);
-        ub::vector<double> AOESPasarray=_aoesp._aomatrix.data();
-      
-        for ( int _i =0; _i < DMATGSasarray.size(); _i++ ){
-            _ESPatGrid(i) -= DMATGSasarray(_i)*AOESPasarray(_i);
-        }   
-    }
-    */
+
     NumericalIntegration numway;
-    numway.GridSetup("medium",&_dftbasis,_atomlist);
+    numway.GridSetup("medium",&dftbs,_atomlist);
+    boost::progress_display show_progress( _grid.getsize() );
     #pragma omp parallel for
     for ( int i = 0 ; i < _grid.getsize(); i++){
         _ESPatGrid(i)=numway.IntegratePotential(_dmat,&_dftbasis,_grid.getGrid()[i]*Nm2Bohr);
+        ++show_progress;
     }
-    /*check for transitionstate matrix DEBUGGING
-    double check=0.0;
-    AOOverlap _overlap;
-    _overlap.Initialize(_dftbasis._AOBasisSize);
-    _overlap.Fill(&_dftbasis);
-    ub::vector<double> AOOverlapasarray=_overlap._aomatrix.data();
-    for ( int _i =0; _i < DMATGSasarray.size(); _i++ ){
-            check -= DMATGSasarray(_i)*AOOverlapasarray(_i);
-        }   
-    cout << "WICHTIG check=" <<check<<endl; 
-    //check ende
-    *//*
-    string filename2="_ESPATGrid.txt";
-    FILE *out2;
-    out2 = fopen(filename2.c_str(), "w");
-    
-    for( int _i=0;_i<_ESPatGrid.size();_i++){
-        fprintf(out2, "%E\n", _ESPatGrid(_i));    
-    }
-    fclose(out2);
-    */
-    
     _ESPatGrid += _NucPatGrid;
 
     std::vector< ub::vector<double> > _fitcenters;
@@ -155,7 +121,7 @@ void Espfit::Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat
     //Write charges to qmatoms
         for ( int _i =0 ; _i < _atomlist.size(); _i++){
             _atomlist[_i]->charge=_charges[_i];
-        }  
+        } 
     } 
 
 ub::vector<double> Espfit:: EvalNuclearPotential( vector< QMAtom* >& _atoms, Grid _grid ){
@@ -195,6 +161,86 @@ ub::vector<double> Espfit:: EvalNuclearPotential( vector< QMAtom* >& _atoms, Gri
     fclose(out1);
     return _NucPatGrid;     
    }
+
+void Espfit::Fit2Density_slow(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AOBasis &_dftbasis,double _netcharge) { 
+    double A2Bohr=1.8897259886;
+     double Nm2Bohr=18.8972598860;
+     double Nm2A=10.0;
+     double A2nm=0.1;
+    // setting up grid    
+    Grid _grid;
+    _grid.setAtomlist(&_atomlist);
+    _grid.setupCHELPgrid();
+    //_grid.printGridtoxyzfile("grid.xyz");
+    LOG(logDEBUG, *_log) << TimeStamp() <<  " Done setting up CHELPG grid with " << _grid.getsize() << " points " << endl;
+        
+    // Calculating nuclear potential at gridpoints
+    
+    ub::vector<double> _ESPatGrid = ub::zero_vector<double>(_grid.getsize());
+    // ub::vector<double> _NucPatGrid = ub::zero_vector<double>(_gridpoints.size());
+    
+    ub::vector<double> _NucPatGrid = EvalNuclearPotential(  _atomlist,  _grid );
+
+    double Ztot = 0.0;
+    for ( int j = 0; j < _atomlist.size(); j++){
+
+           Ztot += _elements.getNucCrgECP(_atomlist[j]->type);  
+    }
+    
+    ub::vector<double> DMATGSasarray=_dmat.data();
+    LOG(logDEBUG, *_log) << TimeStamp() << " Calculating ESP at CHELPG grid points"  << flush; 
+    #pragma omp parallel for
+    for ( int i = 0 ; i < _grid.getsize(); i++){
+        // AOESP matrix
+         AOESP _aoesp;
+         _aoesp.Initialize(_dftbasis._AOBasisSize);
+         _aoesp.Fill(&_dftbasis, _grid.getGrid()[i]*Nm2Bohr);
+        ub::vector<double> AOESPasarray=_aoesp._aomatrix.data();
+      
+        for ( int _i =0; _i < DMATGSasarray.size(); _i++ ){
+            _ESPatGrid(i) -= DMATGSasarray(_i)*AOESPasarray(_i);
+        }   
+    }
+    /*check for transitionstate matrix DEBUGGING
+    double check=0.0;
+    AOOverlap _overlap;
+    _overlap.Initialize(_dftbasis._AOBasisSize);
+    _overlap.Fill(&_dftbasis);
+    ub::vector<double> AOOverlapasarray=_overlap._aomatrix.data();
+    for ( int _i =0; _i < DMATGSasarray.size(); _i++ ){
+            check -= DMATGSasarray(_i)*AOOverlapasarray(_i);
+        }   
+    cout << "WICHTIG check=" <<check<<endl; 
+    //check ende
+    *//*
+    string filename2="_ESPATGrid.txt";
+    FILE *out2;
+    out2 = fopen(filename2.c_str(), "w");
+    
+    for( int _i=0;_i<_ESPatGrid.size();_i++){
+        fprintf(out2, "%E\n", _ESPatGrid(_i));    
+    }
+    fclose(out2);
+    */
+    
+    _ESPatGrid += _NucPatGrid;
+
+    std::vector< ub::vector<double> > _fitcenters;
+    
+          for ( int j = 0; j < _atomlist.size(); j++){
+             ub::vector<double> _pos(3);
+            _pos(0) = A2nm*_atomlist[j]->x;
+            _pos(1) = A2nm*_atomlist[j]->y;
+            _pos(2) = A2nm*_atomlist[j]->z;
+            _fitcenters.push_back(_pos);            
+          } 
+    std::vector<double> _charges = FitPartialCharges(_fitcenters,_grid, _ESPatGrid, _netcharge);
+    
+    //Write charges to qmatoms
+        for ( int _i =0 ; _i < _atomlist.size(); _i++){
+            _atomlist[_i]->charge=_charges[_i];
+        }  
+    } 
 
 std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >& _fitcenters, Grid& _grid, ub::vector<double>& _potential, double& _netcharge ){
     double A2Bohr=1.8897259886;

@@ -56,9 +56,10 @@ public:
     void EvaluateAPECharges(Grid& _targetgrid, Grid& _chargepositions);
   
     void FitAPECharges(Grid& _targetgrid_fg, Grid& _targetgrid_bg, Grid& _chargepositions, double& netcharge);
-     
-    void Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_dftbasis, double _netcharge=0.0);
-    
+    // on grid very fast
+    void Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_dftbasis,BasisSet &dftbs, double _netcharge=0.0);
+    // not so fast
+    void Fit2Density_slow(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_dftbasis, double _netcharge=0.0);
 private:
     
      Logger *_log;

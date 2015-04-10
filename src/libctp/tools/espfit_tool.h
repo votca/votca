@@ -187,7 +187,7 @@ void ESPFit_Tool::FitESP( Orbitals& _orbitals ){
         else throw std::runtime_error("State entry not recognized");
         Espfit esp;
         esp.setLog(&_log);
-        esp.Fit2Density(Atomlist, DMAT_tot, basis);   
+        esp.Fit2Density(Atomlist, DMAT_tot, basis,dftbs);  
 }
 
 }}
