@@ -95,18 +95,36 @@ void Espfit::Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat
     }
     
     LOG(logDEBUG, *_log) << TimeStamp() << " Calculating ESP at CHELPG grid points"  << flush; 
-
-    NumericalIntegration numway;
-    numway.GridSetup("medium",&dftbs,_atomlist);
-    LOG(logDEBUG, *_log) << TimeStamp() << " Calculate Densities at Numerical Grid"  << flush; 
-    _ESPatGrid(0)=numway.IntegratePotential(_dmat,&_dftbasis,_grid.getGrid()[0]*Nm2Bohr,true);
-    LOG(logDEBUG, *_log) << TimeStamp() << " Calculated Densities at Numerical Grid"  << flush; 
     boost::progress_display show_progress( _grid.getsize() );
 
-    #pragma omp parallel for
-    for ( int i = 1 ; i < _grid.getsize(); i++){
-        _ESPatGrid(i)=numway.IntegratePotential(_dmat,&_dftbasis,_grid.getGrid()[i]*Nm2Bohr);
-        ++show_progress;
+    if(_method=="analytic"){
+        ub::vector<double> DMATGSasarray=_dmat.data();
+        #pragma omp parallel for
+        for ( int i = 0 ; i < _grid.getsize(); i++){
+            
+            // AOESP matrix
+            AOESP _aoesp;
+            _aoesp.Initialize(_dftbasis._AOBasisSize);
+            _aoesp.Fill(&_dftbasis, _grid.getGrid()[i]*Nm2Bohr);
+            ub::vector<double> AOESPasarray=_aoesp._aomatrix.data();
+            for( int j=0 ; j< DMATGSasarray.size(); j++){
+                _ESPatGrid(i) -= DMATGSasarray(j)*AOESPasarray(j);
+            }
+            ++show_progress;
+        }
+    }
+    else if(_method=="numeric"){
+        NumericalIntegration numway;
+        numway.GridSetup("medium",&dftbs,_atomlist);
+        LOG(logDEBUG, *_log) << TimeStamp() << " Calculate Densities at Numerical Grid"  << flush; 
+        _ESPatGrid(0)=numway.IntegratePotential(_dmat,&_dftbasis,_grid.getGrid()[0]*Nm2Bohr,true);
+        LOG(logDEBUG, *_log) << TimeStamp() << " Calculated Densities at Numerical Grid"  << flush; 
+
+        #pragma omp parallel for
+        for ( int i = 1 ; i < _grid.getsize(); i++){
+            _ESPatGrid(i)=numway.IntegratePotential(_dmat,&_dftbasis,_grid.getGrid()[i]*Nm2Bohr);
+            ++show_progress;
+        }
     }
     LOG(logDEBUG, *_log) << TimeStamp() << " Electron contribution calculated"  << flush; 
     _ESPatGrid += _NucPatGrid;

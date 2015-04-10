@@ -7,6 +7,7 @@
         <spin help="singlet or triplet">singlet</spin>
         <statenumber help="Number of the state to be used (not needed for groundstate)">5</statenumber> 
         <input help="Serialized file" default="molecule.orb">system.orb</input>
+        <method help="How to integrate potential, etiher numeric or analytic" >numeric</method>
 </espfit>
 
 </options>

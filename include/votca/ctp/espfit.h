@@ -48,7 +48,8 @@ namespace votca { namespace ctp {
 class Espfit{
 public:
     
-    Espfit(){};
+    Espfit():_method("numeric"){};
+    Espfit(string method):_method(method){};
    ~Espfit(){};
     
    void setLog(Logger *log) { _log = log; }
@@ -64,6 +65,7 @@ private:
     
      Logger *_log;
      Elements _elements; 
+     string _method;
      
  
     ub::vector<double> EvalNuclearPotential( vector< QMAtom* >& _atoms, Grid _grid );

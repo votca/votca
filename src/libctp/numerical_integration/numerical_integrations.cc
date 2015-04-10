@@ -1317,6 +1317,7 @@ namespace votca {
             const ub::vector<double> DMAT_array=_density_matrix.data();
              // for every gridpoint
             if(!density_set){
+                
             #pragma omp parallel for if (parallel)
             for (int i = 0; i < _grid.size(); i++) {
                 for (int j = 0; j < _grid[i].size(); j++) {

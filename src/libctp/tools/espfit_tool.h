@@ -49,6 +49,7 @@ private:
     int         _state_no;   
     string      _state;
     string      _spin;
+    string      _method;
     bool        _use_mps;
     bool        _use_pdb;
     
@@ -76,6 +77,7 @@ void ESPFit_Tool::Initialize(Property* options) {
            _output_file  = options->get(key + ".output").as<string> ();
            _state_no     = options->get(key + ".statenumber").as<int> ();
            _spin     = options->get(key + ".spin").as<string> ();
+           _method     = options->get(key + ".method").as<string> ();
            string data_format  = boost::filesystem::extension(_output_file);
            
 
@@ -185,7 +187,7 @@ void ESPFit_Tool::FitESP( Orbitals& _orbitals ){
 	   // Ground state + hole_contribution + electron contribution
 	}
         else throw std::runtime_error("State entry not recognized");
-        Espfit esp;
+        Espfit esp=Espfit(_method);
         esp.setLog(&_log);
         esp.Fit2Density(Atomlist, DMAT_tot, basis,dftbs);  
 }
