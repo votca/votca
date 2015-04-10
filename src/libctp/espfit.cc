@@ -98,16 +98,17 @@ void Espfit::Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat
 
     NumericalIntegration numway;
     numway.GridSetup("medium",&dftbs,_atomlist);
+    LOG(logDEBUG, *_log) << TimeStamp() << " Calculate Densities at Numerical Grid"  << flush; 
+    _ESPatGrid(0)=numway.IntegratePotential(_dmat,&_dftbasis,_grid.getGrid()[0]*Nm2Bohr,true);
+    LOG(logDEBUG, *_log) << TimeStamp() << " Calculated Densities at Numerical Grid"  << flush; 
     boost::progress_display show_progress( _grid.getsize() );
-    bool parallelextern=false;
-    bool parallelintern=true;
-    #pragma omp parallel for if(parallelextern)
-    for ( int i = 0 ; i < _grid.getsize(); i++){
-        parallelextern=true;
-        _ESPatGrid(i)=numway.IntegratePotential(_dmat,&_dftbasis,_grid.getGrid()[i]*Nm2Bohr,parallelintern);
-        parallelintern=false;
+
+    #pragma omp parallel for
+    for ( int i = 1 ; i < _grid.getsize(); i++){
+        _ESPatGrid(i)=numway.IntegratePotential(_dmat,&_dftbasis,_grid.getGrid()[i]*Nm2Bohr);
         ++show_progress;
     }
+    LOG(logDEBUG, *_log) << TimeStamp() << " Electron contribution calculated"  << flush; 
     _ESPatGrid += _NucPatGrid;
 
     std::vector< ub::vector<double> > _fitcenters;
