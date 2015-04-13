@@ -370,7 +370,7 @@ bool Orbitals::Load(string file_name) {
             for(int i=0;i<_bse_size;i++){
                 int occ=_index2v[i];
                 int virt=_index2c[i];
-                _dmatTS(a,b)+=_BSECoefs(i,state)*_MOs( occ , a ) * _MOs( virt , b );
+                _dmatTS(a,b)+=_BSECoefs(i,state)*_MOs( occ , a ) * _MOs( virt , b ); //check factor 2??
             }
         }     
     }

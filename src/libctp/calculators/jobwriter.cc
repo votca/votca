@@ -390,6 +390,9 @@ void JobWriter::edft(Topology *top) {
     ofs.close();
     
 }
+
+
+
     
 void JobWriter::idft(Topology *top) {
 
