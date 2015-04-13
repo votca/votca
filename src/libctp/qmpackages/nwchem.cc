@@ -92,6 +92,7 @@ void NWChem::Initialize( Property *options ) {
     }
     
     // check if the guess should be prepared, if yes, append the guess later
+    _write_guess = false;
     iop_pos = _options.find("iterations 1 ");
     if (iop_pos != std::string::npos) _write_guess = true;
     iop_pos = _options.find("iterations 1\n");

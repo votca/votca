@@ -254,10 +254,13 @@ namespace votca {
                     // loop over gwbasis shells
                     for (vector< AOShell* >::iterator _is = gwbasis.firstShell(); _is != gwbasis.lastShell(); _is++) {
                         AOShell* _shell = gwbasis.getShell(_is);
+                        double decay = (*_shell->firstGaussian())->decay;
                         int _size    = _shell->getNumFunc();
                         int _start  = _shell->getStartIndex();
                         vector<double> chi( _size, 0.0 );
-                        chi[0] = 1.0;
+                        const double pi = boost::math::constants::pi<double>();
+                        double _factor = pow((2.0 *pi/decay),0.75);
+                        chi[0] = _factor;
                         // loop over all functions in shell
                         for ( int _i_gw = 0; _i_gw < _size ; _i_gw++ ){
                             double _test = _temp( _i_gw + _start, _n_level   );

@@ -278,15 +278,16 @@ Job::JobResult IGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
             } 
     } // end of the parse orbitals/log
 
-    
+    BSECoupling         _bsecoupling; 
     // do excited states calculation
     if ( _do_gwbse ){
+        GWBSE               _gwbse;
         _gwbse.setLogger(pLog);
         _gwbse.Initialize( &_gwbse_options );
         bool _evaluate = _gwbse.Evaluate( &_orbitalsAB );
         // std::cout << *pLog;
     } // end of excited state calculation, exciton data is in _orbitalsAB
-
+    // ~GWBSE _gwbse;
    
     // calculate the coupling
     ub::matrix<float> _JAB_singlet;
@@ -364,9 +365,9 @@ Job::JobResult IGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
    }
    oa << _orbitalsAB;
    ofs.close();
-   
+      Property *_job_output = &_job_summary.add("output","");
    if ( _calculate_integrals ){
-   Property *_job_output = &_job_summary.add("output","");
+
    Property *_pair_summary = &_job_output->add("pair","");
    Property *_type_summary = &_pair_summary->add("type","");
     if ( _spintype == "singlets" || _spintype == "all" ){

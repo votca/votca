@@ -662,6 +662,75 @@ namespace votca {
                     }
  
                     
+                    
+                    
+                    
+                    std::vector<double> _popHA;
+                    std::vector<double> _popHB;
+                    std::vector<double> _popEA;
+                    std::vector<double> _popEB;
+                    
+                    double &_popA = _orbitals->FragmentAChargesGS();
+                    double &_popB = _orbitals->FragmentBChargesGS();           
+                    
+                    // excitation populations
+                    std::vector<double> &_CrgsA = _orbitals->FragmentAChargesTripEXC();
+                    std::vector<double> &_CrgsB = _orbitals->FragmentBChargesTripEXC();
+                               
+                    
+                    // Mulliken fragment population analysis
+                    if ( _fragA > 0 ) {
+
+                        // get overlap matrix for DFT basisset
+                        AOOverlap _dftoverlap;
+                        // initialize overlap matrix
+                        _dftoverlap.Initialize(dftbasis._AOBasisSize);
+                        // Fill overlap
+                        _dftoverlap.Fill(&dftbasis);
+                        LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftoverlap._aomatrix.size1() << flush;
+                        LOG(logDEBUG, *_pLog) << TimeStamp() << " Running Excitation fragment population analysis " << flush;
+                        // ground state populations
+                        ub::matrix<double> &DMAT = _orbitals->DensityMatrixGroundState( _dft_orbitals );
+                        double nucA;
+                        double nucB;
+                        _orbitals->FragmentNuclearCharges( _fragA , nucA, nucB );
+                        _orbitals->MullikenPopulation( DMAT, _dftoverlap._aomatrix , dftbasis._AOBasisFragA, _popA, _popB );
+                        // population to electron charges and add nuclear charges
+                        _popA = nucA - _popA;
+                        _popB = nucB - _popB;
+                        
+                        for (int _i_state = 0; _i_state < _bse_nprint; _i_state++) {
+                        
+                            // checking Density Matrices
+                            std::vector<ub::matrix<double> > &DMAT = _orbitals->DensityMatrixExcitedState(_dft_orbitals , _bse_triplet_coefficients, _i_state );
+          
+                            double _totalA;
+                            double _totalB;
+           
+                           // hole part
+                           _orbitals->MullikenPopulation( DMAT[0], _dftoverlap._aomatrix , dftbasis._AOBasisFragA, _totalA, _totalB );
+                           
+                           _popHA.push_back( std::abs(_totalA) );
+                           _popHB.push_back( std::abs(_totalB) );
+
+                           // electron part
+                           _orbitals->MullikenPopulation( DMAT[1], _dftoverlap._aomatrix , dftbasis._AOBasisFragA, _totalA, _totalB );
+                           _popEA.push_back( _totalA );
+                           _popEB.push_back( _totalB );
+
+                           // update effective charges
+                           _CrgsA.push_back( _popHA[_i_state] - _popEA[_i_state]   ); 
+                           _CrgsB.push_back( _popHB[_i_state] - _popEB[_i_state]   ); 
+                           
+                        }
+
+                    LOG(logDEBUG, *_pLog) << TimeStamp() << " --- complete! " << flush;
+           
+                }
+         
+                    
+                    
+                    
 
 
                     LOG(logINFO, *_pLog) << (format("  ====== triplet energies (eV) ====== ")).str() << flush;
@@ -674,6 +743,11 @@ namespace votca {
                             if (_weight > 0.2) {
                                 LOG(logINFO, *_pLog) << (format("           HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%") % (_homo - _index2v[_i_bse]) % (_index2c[_i_bse] - _homo - 1) % (100.0 * _weight)).str() << flush;
                             }
+                        }
+                        // results of fragment population analysis 
+                        if ( _fragA > 0 ){
+                            LOG(logINFO, *_pLog) << (format("           Fragment A -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f") % (100.0 * _popHA[_i]) % (100.0 * _popEA[_i]) % (_CrgsA[_i]) % ( _CrgsA[_i] + _popA ) ).str() << flush;
+                            LOG(logINFO, *_pLog) << (format("           Fragment B -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f") % (100.0 * _popHB[_i]) % (100.0 * _popEB[_i]) % (_CrgsB[_i]) % ( _CrgsB[_i] + _popB ) ).str() << flush;
                         }
                         LOG(logINFO, *_pLog) << (format("   ")).str() << flush;
                     }
@@ -754,8 +828,8 @@ namespace votca {
                     double &_popB = _orbitals->FragmentBChargesGS();           
                     
                     // excitation populations
-                    std::vector<double> &_CrgsA = _orbitals->FragmentAChargesEXC();
-                    std::vector<double> &_CrgsB = _orbitals->FragmentBChargesEXC();
+                    std::vector<double> &_CrgsA = _orbitals->FragmentAChargesSingEXC();
+                    std::vector<double> &_CrgsB = _orbitals->FragmentBChargesSingEXC();
                                
                     
                     // Mulliken fragment population analysis
