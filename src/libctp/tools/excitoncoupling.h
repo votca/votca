@@ -131,7 +131,7 @@ bool ExcitonCoupling::Evaluate() {
      bool _calculate_integrals = _bsecoupling.CalculateCouplings( &_orbitalsA, &_orbitalsB, &_orbitalsAB, &_JAB_singlet, &_JAB_triplet, _spintype );   
      std::cout << _log;
  
-     
+    if ( _calculate_integrals ){ 
      // output the results
     Property _summary; 
     Property *_job_output = &_summary.add("output","");
@@ -174,7 +174,7 @@ bool ExcitonCoupling::Evaluate() {
     std::ofstream ofs (_output_file.c_str(), std::ofstream::out);
     ofs << *_job_output;    
     ofs.close();
-    
+    }
     return true;
 }
 

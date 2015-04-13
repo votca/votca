@@ -278,7 +278,8 @@ Job::JobResult IGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
             } 
     } // end of the parse orbitals/log
 
-    
+    GWBSE               _gwbse;
+    BSECoupling         _bsecoupling; 
     // do excited states calculation
     if ( _do_gwbse ){
         _gwbse.setLogger(pLog);
@@ -364,9 +365,9 @@ Job::JobResult IGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
    }
    oa << _orbitalsAB;
    ofs.close();
-   
+      Property *_job_output = &_job_summary.add("output","");
    if ( _calculate_integrals ){
-   Property *_job_output = &_job_summary.add("output","");
+
    Property *_pair_summary = &_job_output->add("pair","");
    Property *_type_summary = &_pair_summary->add("type","");
     if ( _spintype == "singlets" || _spintype == "all" ){

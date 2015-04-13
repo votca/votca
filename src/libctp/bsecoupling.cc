@@ -418,7 +418,7 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     int _bseA_ctotal      = _bseA_cmax - _bseA_cmin +1 ;
     int _bseA_size        = _bseA_vtotal * _bseA_ctotal;
     int _bseA_singlet_exc = _orbitalsA->BSESingletCoefficients().size2();
-    int _bseA_triplet_exc = _orbitalsA->BSESingletCoefficients().size2();
+    int _bseA_triplet_exc = _orbitalsA->BSETripletCoefficients().size2();
 
     LOG(logDEBUG,*_pLog)  << "   molecule A has " << _bseA_singlet_exc << " singlet excitons with dimension " << _bseA_size << flush;
     LOG(logDEBUG,*_pLog)  << "   molecule A has " << _bseA_triplet_exc << " triplet excitons with dimension " << _bseA_size << flush;
@@ -445,7 +445,7 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     int _bseB_ctotal      = _bseB_cmax - _bseB_cmin +1 ;
     int _bseB_size        = _bseB_vtotal * _bseB_ctotal;
     int _bseB_singlet_exc = _orbitalsB->BSESingletCoefficients().size2();
-    int _bseB_triplet_exc = _orbitalsB->BSESingletCoefficients().size2();
+    int _bseB_triplet_exc = _orbitalsB->BSETripletCoefficients().size2();
     
     LOG(logDEBUG,*_pLog)  << "   molecule B has " << _bseB_singlet_exc << " singlet excitons with dimension " << _bseB_size << flush;
     LOG(logDEBUG,*_pLog)  << "   molecule B has " << _bseB_triplet_exc << " triplet excitons with dimension " << _bseB_size << flush;
@@ -486,8 +486,12 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     _cnt = 0;
     for ( int _v = 0; _v < _bseAB_vtotal; _v++){
         for ( int _c = 0; _c < _bseAB_ctotal; _c++){
-            _combAB(_cnt,0) = _v;
-            _combAB(_cnt,1) = _bseAB_vtotal + _c;
+            //_combAB(_cnt,0) = _v;
+            //_combAB(_cnt,1) = _bseAB_vtotal + _c;
+            
+            _combAB(_cnt,0) = _bseAB_vmin + _v;
+            _combAB(_cnt,1) = _bseAB_vmin + _bseAB_vtotal + _c;
+            
             _cnt++;
         }
     }
@@ -529,6 +533,9 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     ub::matrix<double> _psi_AxB_dimer_basis = ub::prod( _psi_AxB, _psi_AB );  
     _psi_AB.clear();
 
+    
+    //cout << "Size of _psi_AxB_dimer_basis " << _psi_AxB_dimer_basis.size1() << " : " <<  _psi_AxB_dimer_basis.size2() << flush; 
+    
       
     // some more convenient storage
     ub::matrix<float> _kap;
@@ -540,6 +547,10 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
         }
     }
 
+    
+
+    
+    
     ub::matrix<float> _kbp;
     _kbp.resize(_bseB_size,_bseAB_size);
     for ( int _i_bseB = 0 ; _i_bseB < _bseB_size ; _i_bseB++){
@@ -547,15 +558,30 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
             _kbp(_i_bseB,_i_bseAB) = _psi_AxB_dimer_basis( _combB(_i_bseB,0), _combAB( _i_bseAB,0) ) * _psi_AxB_dimer_basis( _combB(_i_bseB,1), _combAB( _i_bseAB,1) );
         }
     }
+    
+    
+  
 
     LOG(logDEBUG,*_pLog)  << "   construct projection of product functions " << flush; 
 
+    LOG(logDEBUG,*_pLog)  << "   Evaluating " << _type << flush; 
+    
+        
+    //     cout << "Size of _kap " << _kap.size1() << " : " <<  _kap.size2() << "\n" << flush; 
+    //     cout << "Size of _kbp " << _kbp.size1() << " : " <<  _kbp.size2() << "\n" << flush; 
+    
     // now the different spin types
     if ( _type == "singlets" || _type == "all"){
       // get singlet BSE Hamiltonian from _orbitalsAB
       ub::matrix<float> _Hamiltonian_AB = _eh_d + 2.0 * _eh_x;
         ub::matrix<float>& _bseA = _orbitalsA->BSESingletCoefficients();
         ub::matrix<float>& _bseB = _orbitalsB->BSESingletCoefficients();
+        
+      //  cout << "Size of _Hamiltonian_AB " << _Hamiltonian_AB.size1() << " : " <<  _Hamiltonian_AB.size2() << flush;
+// cout << "Size of _bseA " << _bseA.size1() << " : " <<  _bseA.size2() << flush; 
+   //      cout << "Size of _bseB " << _bseB.size1() << " : " <<  _bseB.size2() << flush; 
+
+     
         bool _singlets = ProjectExcitons( _kap, _kbp, _bseA, _bseB, _Hamiltonian_AB, *_JAB_singlet);
         if ( _singlets ) {
             LOG(logDEBUG,*_pLog)  << "   calculated singlet couplings " << flush;
@@ -606,7 +632,10 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
 	*/
     }
     
+                
+        
     if ( _type == "triplets" || _type == "all"){
+        LOG(logDEBUG,*_pLog)  << "   Evaluating " << _type << flush; 
         // get triplet BSE Hamiltonian from _orbitalsAB
         ub::matrix<float> _Hamiltonian_AB = _eh_d;
         ub::matrix<float>& _bseA = _orbitalsA->BSETripletCoefficients();
@@ -630,7 +659,8 @@ bool BSECoupling::ProjectExcitons(ub::matrix<float>& _kap, ub::matrix<float>& _k
      // get projection of monomer excitons on dimer product functions
      ub::matrix<float> _proj_excA = ub::prod( ub::trans( _bseA ), _kap);
      ub::matrix<float> _proj_excB = ub::prod( ub::trans( _kbp ), _bseB);
-     
+
+      
      int _bseA_exc = _bseA.size2();
      int _bseB_exc = _bseB.size2();
      ub::matrix<float> _J_dimer = ub::zero_matrix<float>( _bseA_exc + _bseB_exc , _bseA_exc + _bseB_exc );
@@ -644,22 +674,42 @@ bool BSECoupling::ProjectExcitons(ub::matrix<float>& _kap, ub::matrix<float>& _k
      _temp = ub::prod( _H , _proj_excB );
      ub::project( _J_dimer,  ub::range (0, _bseA_exc ), ub::range ( _bseA_exc, _bseA_exc + _bseB_exc )  ) = ub::prod( _proj_excA, _temp ); // J_AB = proj_excA x H x trans(proj_excB)
      ub::project( _J_dimer,  ub::range (_bseA_exc, _bseA_exc + _bseB_exc ), ub::range ( _bseA_exc, _bseA_exc + _bseB_exc)  ) = ub::prod( ub::trans(_proj_excB), _temp ); // J_BB = proj_excB x H x trans(proj_excB)
-     
+
+
      
      // setup S
      ub::project( _S_dimer,  ub::range (0, _bseA_exc ), ub::range ( 0, _bseA_exc )  ) = ub::prod( _proj_excA, ub::trans(_proj_excA) ); // S_AA = proj_excA x trans(proj_excA)
      ub::project( _S_dimer,  ub::range (_bseA_exc, _bseA_exc + _bseB_exc ), ub::range ( 0, _bseA_exc )  ) = ub::trans( ub::prod( _proj_excA, _proj_excB)); // S_BA = proj_excB x trans(proj_excA)
      ub::project( _S_dimer,  ub::range (0, _bseA_exc ), ub::range ( _bseA_exc, _bseA_exc + _bseB_exc )  ) = ub::prod( _proj_excA, _proj_excB); // S_AB = proj_excA x H x trans(proj_excB)
      ub::project( _S_dimer,  ub::range (_bseA_exc, _bseA_exc + _bseB_exc ), ub::range ( _bseA_exc, _bseA_exc + _bseB_exc)  ) = ub::prod( ub::trans(_proj_excB),_proj_excB ); // S_BB = proj_excB x H x trans(proj_excB)
-     
+
      ub::vector<float> _S_eigenvalues; 
      linalg_eigenvalues( _S_eigenvalues, _S_dimer);
 
+
+     
+
+     if ( _S_eigenvalues[0] < 0.0 ) {
+         
+         cerr << " \n Negative eigenvalues in projected overlap. Projection quality not sufficient. Try increasing dimer basis. " << endl;
+         return false;
+         
+     }
+
+     
+     
      ub::matrix<float> _diagS = ub::zero_matrix<float>( _bseA_exc + _bseB_exc  , _bseA_exc + _bseB_exc );
      for ( int _i =0; _i < _bseA_exc + _bseB_exc ; _i++){
+
          _diagS(_i,_i) = 1.0/sqrt(_S_eigenvalues[_i]);
      }
 
+ 
+    
+     
+     
+     
+     
      //ub::matrix<float> _transform = ub::prod( _S_dimer, ub::prod( _diagS, ub::trans(_S_dimer) )  );
 
      ub::matrix<float> _transtemp = ub::prod( _diagS, ub::trans(_S_dimer));
