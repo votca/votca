@@ -540,7 +540,7 @@ bool QMAPEMachine<QMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
             const std::vector<std::vector<double> >& TDipoles = orb.TransitionDipoles();
             for (int _i=0; _i < TDipoles.size(); _i++ ) {
                 
-                double osc = (TDipoles[_i][0] * TDipoles[_i][0] + TDipoles[_i][1] * TDipoles[_i][1] + TDipoles[_i][2] * TDipoles[_i][2]) * 1.0 / 3.0 * (orb_iter_output.BSESingletEnergies()[_i]) ;
+                double osc = (TDipoles[_i][0] * TDipoles[_i][0] + TDipoles[_i][1] * TDipoles[_i][1] + TDipoles[_i][2] * TDipoles[_i][2]) * 1.0 / 3.0 * (orb.BSESingletEnergies()[_i]) ;
                 if ( osc > _osc_threshold ) _state_index.push_back(_i);
             } 
             
