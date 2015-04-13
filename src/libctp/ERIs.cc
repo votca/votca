@@ -62,6 +62,7 @@ namespace votca {
             //ub::matrix<double> _temp=ub::prod(_auxAOcoulomb.Matrix(),_inverse);
             _Vcoulomb=_auxAOcoulomb.Matrix();
             
+            
             //cout << "Vcoulomb"<< _Vcoulomb<< endl;
  /*
             int size4c=_dftbasis.AOBasisSize();
@@ -100,7 +101,7 @@ namespace votca {
             //exit(0);
             */
             
-            */
+        
             
 
            /*
@@ -174,10 +175,10 @@ exit(0);
             
             
          
-
-        
-        
         }
+        
+        
+
         
         
         
@@ -419,7 +420,7 @@ exit(0);
             
             
            
-            CalculateEnergy(dmatasarray);
+           // CalculateEnergy(dmatasarray);
         }
         
         
