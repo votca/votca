@@ -218,7 +218,7 @@ namespace votca {
             
 	    DensityMatrixGroundState( initMOCoeff, _numofelectrons/2 ) ;
 	    cout << endl;
-
+/*
 	    
             for (int alpha=0;alpha<size4c;alpha++){
                     for (int beta=0;beta<size4c;beta++){
@@ -238,7 +238,7 @@ namespace votca {
                         
                  }
             }
-            
+  */          
            // exit(0); 
 	    
 
@@ -274,7 +274,7 @@ namespace votca {
                     }
                 }
                 */
-       */         
+               
 		ub::matrix<double> VXC=_gridIntegration.IntegrateVXC_Atomblock(_dftAOdmat,  basis);
                 //ub::matrix<double> VXC2=_gridIntegration.IntegrateVXC(_dftAOdmat,  basis);
 /*		 for ( int iout=0; iout<_dftAOdmat.size1();iout++){
