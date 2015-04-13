@@ -278,16 +278,16 @@ Job::JobResult IGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
             } 
     } // end of the parse orbitals/log
 
-    GWBSE               _gwbse;
     BSECoupling         _bsecoupling; 
     // do excited states calculation
     if ( _do_gwbse ){
+        GWBSE               _gwbse;
         _gwbse.setLogger(pLog);
         _gwbse.Initialize( &_gwbse_options );
         bool _evaluate = _gwbse.Evaluate( &_orbitalsAB );
         // std::cout << *pLog;
     } // end of excited state calculation, exciton data is in _orbitalsAB
-
+    // ~GWBSE _gwbse;
    
     // calculate the coupling
     ub::matrix<float> _JAB_singlet;
