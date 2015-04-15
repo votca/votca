@@ -77,6 +77,7 @@ public:
     Property            _gwbse_options; 
     
     void    CleanUp();
+    void WriteJobFile(Topology *top);
 
     
     // what to do
