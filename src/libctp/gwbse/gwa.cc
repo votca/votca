@@ -151,6 +151,8 @@ namespace votca {
             } else {
                 _shift_converged = true;
             }
+
+	    if ( ! _iterate_shift  ) _shift_converged = true;
             
             // only if _shift is converged
             if ( _shift_converged ){
@@ -207,7 +209,6 @@ namespace votca {
 
             // band 1 loop over all GW levels
             #pragma omp parallel for
-            //for ( int _m1 = _qpmin ; _m1 <= _qpmax ; _m1++ ){
             for ( int _m1 = 0 ; _m1 < _qptotal ; _m1++ ){
                 
                 const ub::matrix<double>& M1mn =  _Mmn[ _m1 + _qpmin ];
