@@ -97,23 +97,6 @@ void Espfit::Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat
     LOG(logDEBUG, *_log) << TimeStamp() << " Calculating ESP at CHELPG grid points"  << flush; 
     boost::progress_display show_progress( _grid.getsize() );
 
-    if(_method=="analytic"){
-        ub::vector<double> DMATGSasarray=_dmat.data();
-        #pragma omp parallel for
-        for ( int i = 0 ; i < _grid.getsize(); i++){
-            
-            // AOESP matrix
-            AOESP _aoesp;
-            _aoesp.Initialize(_dftbasis._AOBasisSize);
-            _aoesp.Fill(&_dftbasis, _grid.getGrid()[i]*Nm2Bohr);
-            ub::vector<double> AOESPasarray=_aoesp._aomatrix.data();
-            for( int j=0 ; j< DMATGSasarray.size(); j++){
-                _ESPatGrid(i) -= DMATGSasarray(j)*AOESPasarray(j);
-            }
-            ++show_progress;
-        }
-    }
-    else if(_method=="numeric"){
         NumericalIntegration numway;
         numway.GridSetup("medium",&dftbs,_atomlist);
         LOG(logDEBUG, *_log) << TimeStamp() << " Calculate Densities at Numerical Grid"  << flush; 
@@ -125,7 +108,7 @@ void Espfit::Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat
             _ESPatGrid(i)=numway.IntegratePotential(_dmat,&_dftbasis,_grid.getGrid()[i]*Nm2Bohr);
             ++show_progress;
         }
-    }
+    
     LOG(logDEBUG, *_log) << TimeStamp() << " Electron contribution calculated"  << flush; 
     _ESPatGrid += _NucPatGrid;
 
@@ -186,7 +169,7 @@ ub::vector<double> Espfit:: EvalNuclearPotential( vector< QMAtom* >& _atoms, Gri
     return _NucPatGrid;     
    }
 
-void Espfit::Fit2Density_slow(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AOBasis &_dftbasis,double _netcharge) { 
+void Espfit::Fit2Density_analytic(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AOBasis &_dftbasis,double _netcharge) { 
     double A2Bohr=1.8897259886;
      double Nm2Bohr=18.8972598860;
      double Nm2A=10.0;

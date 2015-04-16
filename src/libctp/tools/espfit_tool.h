@@ -60,6 +60,9 @@ private:
 };
 
 void ESPFit_Tool::Initialize(Property* options) {
+    
+    _use_mps=false;
+    _use_pdb=false;
 
             // update options with the VOTCASHARE defaults   
     UpdateWithDefaults( options );
@@ -80,16 +83,12 @@ void ESPFit_Tool::Initialize(Property* options) {
            _method     = options->get(key + ".method").as<string> ();
            string data_format  = boost::filesystem::extension(_output_file);
            
-
+           if (!(_method=="numeric" || _method=="analytic")){
+               std::runtime_error("Method not recognized. Only numeric and analytic available");
+           }
            
-    if (data_format==".mps"){
-        _use_mps=true; 
-        _use_pdb=false;
-    }
-    else if(data_format==".pdb"){
-       _use_mps=false; 
-        _use_pdb=true;
-    }
+    if (data_format==".mps")_use_mps=true; 
+    else if(data_format==".pdb")_use_pdb=true;    
     else  throw std::runtime_error("Outputfile format not recognized. Export only to .pdb and .mps");
     
     // get the path to the shared folders with xml files
@@ -187,10 +186,11 @@ void ESPFit_Tool::FitESP( Orbitals& _orbitals ){
 	   // Ground state + hole_contribution + electron contribution
 	}
         else throw std::runtime_error("State entry not recognized");
-        Espfit esp=Espfit(_method);
+        Espfit esp;
         esp.setLog(&_log);
-        esp.Fit2Density(Atomlist, DMAT_tot, basis,dftbs);  
-}
+        if (_method=="numeric")        esp.Fit2Density(Atomlist, DMAT_tot, basis,dftbs); 
+        else if (_method=="analytic")  esp.Fit2Density_analytic(Atomlist,DMAT_tot,basis);
+}       
 
 }}
 

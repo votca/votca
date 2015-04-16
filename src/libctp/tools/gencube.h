@@ -78,6 +78,11 @@ namespace votca {
         };
 
         void GenCube::Initialize(Property* options) {
+            
+            bool _do_groundstate=false;
+            bool _do_bse=false;
+            bool _do_qp=false;
+            bool _do_transition=false;
 
             // update options with the VOTCASHARE defaults   
             UpdateWithDefaults(options);

@@ -48,8 +48,7 @@ namespace votca { namespace ctp {
 class Espfit{
 public:
     
-    Espfit():_method("numeric"){};
-    Espfit(string method):_method(method){};
+    Espfit(){};
    ~Espfit(){};
     
    void setLog(Logger *log) { _log = log; }
@@ -60,7 +59,7 @@ public:
     // on grid very fast
     void Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_dftbasis,BasisSet &dftbs, double _netcharge=0.0);
     // not so fast
-    void Fit2Density_slow(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_dftbasis, double _netcharge=0.0);
+    void Fit2Density_analytic(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_dftbasis, double _netcharge=0.0);
 private:
     
      Logger *_log;

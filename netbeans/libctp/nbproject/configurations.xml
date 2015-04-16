@@ -41,6 +41,8 @@
         <itemPath>../../src/libctp/jobcalculators/ewald.h</itemPath>
         <itemPath>../../src/libctp/jobcalculators/idft.cc</itemPath>
         <itemPath>../../src/libctp/jobcalculators/idft.h</itemPath>
+        <itemPath>../../src/libctp/jobcalculators/iexcitoncl.cc</itemPath>
+        <itemPath>../../src/libctp/jobcalculators/iexcitoncl.h</itemPath>
         <itemPath>../../src/libctp/jobcalculators/igwbse.cc</itemPath>
         <itemPath>../../src/libctp/jobcalculators/igwbse.h</itemPath>
         <itemPath>../../src/libctp/jobcalculators/qmape.h</itemPath>
@@ -79,8 +81,6 @@
       <itemPath>../../include/votca/ctp/apolarsite.h</itemPath>
       <itemPath>../../include/votca/ctp/atom.h</itemPath>
       <itemPath>../../include/votca/ctp/basisset.h</itemPath>
-      <itemPath>../../include/votca/ctp/blockAOmatrix.h</itemPath>
-      <itemPath>../../include/votca/ctp/bsecoupling.h</itemPath>
       <itemPath>../../include/votca/ctp/calculatorfactory.h</itemPath>
       <itemPath>../../include/votca/ctp/ctpapplication.h</itemPath>
       <itemPath>../../include/votca/ctp/dftengine.h</itemPath>
@@ -294,11 +294,6 @@
       <item path="../../include/votca/ctp/atom.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/basisset.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/bsecoupling.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../include/votca/ctp/calculatorfactory.h"
             ex="false"
@@ -802,6 +797,16 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libctp/jobcalculators/iexcitoncl.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/jobcalculators/iexcitoncl.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/jobcalculators/igwbse.cc"
             ex="false"
             tool="1"
@@ -1049,11 +1054,6 @@
       <item path="../../include/votca/ctp/atom.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/basisset.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/ctp/bsecoupling.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../include/votca/ctp/calculatorfactory.h"
             ex="false"
@@ -1553,6 +1553,16 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/jobcalculators/idft.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/jobcalculators/iexcitoncl.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/jobcalculators/iexcitoncl.h"
             ex="false"
             tool="3"
             flavor2="0">

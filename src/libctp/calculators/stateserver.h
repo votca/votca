@@ -51,6 +51,7 @@ public:
 
     void WriteXQM(FILE *out, Topology *top);
     void WriteEMP(FILE *out, Topology *top);
+    void WriteEXCITED(FILE *out, Topology *top);
     void WriteULM(Topology *top);
 
 private:
@@ -199,6 +200,19 @@ bool StateServer::EvaluateFrame(Topology *top) {
                 WriteEMP(out_emp, top);
 
                 fclose(out_emp);
+        }
+        
+        else if (*key == "excited_mps") {
+
+                cout << "excited state mps files ";
+
+                FILE *out_excited;
+                string excited_file = "excited_mps.tab";
+                out_excited = fopen(excited_file.c_str(), "w");
+
+                WriteEXCITED(out_excited , top);
+
+                fclose(out_excited );
         }
 
         else if (*key == "ulm") {
@@ -382,6 +396,21 @@ void StateServer::WriteEMP(FILE *out, Topology *top) {
                      ("MP_FILES/"+(*sit)->getName()+"_n.mps").c_str(),
                      ("MP_FILES/"+(*sit)->getName()+"_e.mps").c_str(),
                      ("MP_FILES/"+(*sit)->getName()+"_h.mps").c_str());
+    }
+}
+
+void StateServer::WriteEXCITED(FILE *out, Topology *top) {
+
+    fprintf(out, "# ID   TYPE    _t.mps \n");
+
+    vector< Segment* > ::iterator sit;
+    for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {        
+
+        fprintf(out, "%4d %15s %-30s \n",
+                     (*sit)->getId(),
+                     (*sit)->getName().c_str(),
+                     ("MP_FILES/"+(*sit)->getName()+"_t.mps").c_str()
+                );
     }
 }
 
