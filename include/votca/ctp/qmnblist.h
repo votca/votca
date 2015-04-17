@@ -132,7 +132,7 @@ public:
     void    setCutoff(double cutoff) { _cutoff = cutoff; }
     double  getCutoff() { return _cutoff; }
 
-    QMPair *Add(Segment* seg1, Segment* seg2);
+    QMPair *Add(Segment* seg1, Segment* seg2, int type=0);
 
     void PrintInfo(FILE *out);
 

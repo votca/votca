@@ -54,6 +54,8 @@ private:
     map< string, map<string,double> > _cutoffs;
     bool                              _useConstantCutoff;
     double                            _constantCutoff;
+    bool                              _useExcitonCutoff;
+    double                            _excitonqmCutoff;
     string                            _generate_from;
     bool                              _generate_from_file;
     bool                              _generate_unsafe;
@@ -100,6 +102,13 @@ void Neighborlist::Initialize(Property *options) {
     }
     else {
         _useConstantCutoff = false;
+    }
+    if (options->exists(key+".exciton_cutoff")) {
+        _useExcitonCutoff = true;
+        _excitonqmCutoff = options->get(key+".exciton_cutoff").as< double >();
+    }
+    else {
+        _useExcitonCutoff = false;
     }
     if (options->exists(key+".generate_from")) {
         _generate_from_file = true;
@@ -203,7 +212,13 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
                             continue;
                         }
                         else {
-                            top->NBList().Add(seg1, seg2);
+                            int type=0;           //hopping               
+                            if(_useExcitonCutoff){
+                                if( abs( top->PbShortestConnect(r1, r2) ) > _excitonqmCutoff ){
+                                    type=6; //HoppingExcitoncl
+                                }     
+                            }
+                            top->NBList().Add(seg1, seg2,type);
                             stopLoop = true;
                             break;
                         }                
