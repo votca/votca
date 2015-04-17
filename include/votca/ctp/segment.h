@@ -61,7 +61,7 @@ public:
     void             setU_cC_nN(double dU, int state);
     void             setU_nC_nN(double dU, int state);
     void             setU_cN_cC(double dU, int state);
-    void             setU_xX_nN(double dU, int state)
+    void             setU_xX_nN(double dU, int state);
     const double    &getU_cC_nN(int state);
     const double    &getU_nC_nN(int state);
     const double    &getU_cN_cC(int state);
@@ -132,7 +132,7 @@ private:
     bool   _has_t;      //Exciton Properties               DEFAULT 0
     bool   _occ_t;      // t:triplet s:singlet
     bool   _has_s;      // state 2 =. singlet
-    bool   _occ_s:      //state 3 = triplet
+    bool   _occ_s;      //state 3 = triplet
     
     double _U_xX_nN_s;
     double _U_xX_nN_t;
