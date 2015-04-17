@@ -53,7 +53,7 @@ public:
     void             setHasState(bool yesno, int state);
     bool             hasState(int state);
 
-    const double    &getOcc(int e_h_s_t);
+    const double     getOcc(int e_h_s_t);
     void             setOcc(double occ, int e_h_s_t);
 
     // state: -1 electron +1 hole +2 singlet +3 triplet

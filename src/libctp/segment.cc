@@ -142,7 +142,7 @@ void Segment::setOcc(double occ, int e_h_s_t) {
     }
 }
 
-const double &Segment::getOcc(int e_h_s_t) {
+const double Segment::getOcc(int e_h_s_t) {
     double result;
     if (e_h_s_t == -1) {
         result=_occ_e;
@@ -206,10 +206,10 @@ void Segment::setU_cN_cC(double dU, int state) {
 void Segment::setU_xX_nN(double dU, int state) {
 
     if (state == +2) {
-        _U_cN_cC_e = dU;
+        _U_xX_nN_s = dU;
     }
     else if (state == +3) {
-        _U_cN_cC_h = dU;
+        _U_xX_nN_t = dU;
     }
     else {
         throw std::runtime_error(" ERROR CODE whe__00u11d__"); //blabla?? What do I do here?
@@ -218,7 +218,7 @@ void Segment::setU_xX_nN(double dU, int state) {
 
 const double &Segment::getU_xX_nN(int state) {
 
-    return (state == +3) ? _U_cC_nN_t : _U_cC_nN_s;
+    return (state == +3) ? _U_xX_nN_t : _U_xX_nN_s;
 }
 
 
@@ -244,21 +244,21 @@ double Segment::getSiteEnergy(int state) {
     
   
     double result;
-    if (e_h_s_t == -1) {
+    if (state == -1) {
         result=getEMpoles(state) + _U_cC_nN_e;
     }
-    else if (e_h_s_t == +1) {
+    else if (state == +1) {
         result=getEMpoles(state) + _U_cC_nN_h;
     }
-     else if (e_h_s_t == +2) {
+     else if (state == +2) {
         result=getEMpoles(state) + _U_xX_nN_s;
     }
-     else if (e_h_s_t == +3) {
+     else if (state == +3) {
         result=getEMpoles(state) + _U_xX_nN_t;
     }
     else {
         throw std::runtime_error(" ERROR CODE whe__00s11o__"); // blabla what do I do here?
-   
+    }
     return result;
 }
 
