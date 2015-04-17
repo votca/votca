@@ -26,7 +26,8 @@ namespace votca { namespace ctp {
 /// Default constructor
 Segment::Segment(int id, string name)
         : _id(id),        _name(name),
-          _has_e(false),  _has_h(false) { _eMpoles.resize(3); }
+          _has_e(false),  _has_h(false),_has_s(false),  _has_t(false)
+            { _eMpoles.resize(5); }
 
 // This constructor creates a copy of the stencil segment, without
 // adding it to any containers further up in the hierarchy; i.e. the topology
@@ -36,7 +37,8 @@ Segment::Segment(Segment *stencil)
         : _id(stencil->getId()),    _name(stencil->getName()+"_ghost"),
           _typ(stencil->getType()), _top(NULL), _mol(NULL),
           _CoM(stencil->getPos()),
-          _has_e(false), _has_h(false) { _eMpoles.resize(3);
+          _has_e(false), _has_h(false),_has_s(false),  _has_t(false)
+            { _eMpoles.resize(5);
 
     vector<Fragment*> ::iterator fit;
     for (fit = stencil->Fragments().begin();
@@ -216,10 +218,47 @@ void Segment::setU_xX_nN(double dU, int state) {
     }
 }
 
+void Segment::setU_nX_nN(double dU, int state) {
+
+    if (state == +2) {
+        _U_nX_nN_s = dU;
+    }
+    else if (state == +3) {
+        _U_nX_nN_t = dU;
+    }
+    else {
+        throw std::runtime_error(" ERROR CODE whe__00u11d__"); //blabla?? What do I do here?
+    }
+}
+
+void Segment::setU_xN_xX(double dU, int state) {
+
+    if (state == +2) {
+        _U_xN_xX_s = dU;
+    }
+    else if (state == +3) {
+        _U_xN_xX_t = dU;
+    }
+    else {
+        throw std::runtime_error(" ERROR CODE whe__00u11d__"); //blabla?? What do I do here?
+    }
+}
+
 const double &Segment::getU_xX_nN(int state) {
 
     return (state == +3) ? _U_xX_nN_t : _U_xX_nN_s;
 }
+
+const double &Segment::getU_nX_nN(int state) {
+
+    return (state == +3) ? _U_nX_nN_t : _U_nX_nN_s;
+}
+
+const double &Segment::getU_xN_xX(int state) {
+
+    return (state == +3) ? _U_xN_xX_t : _U_xN_xX_s;
+}
+
 
 
 const double &Segment::getU_cC_nN(int state) {

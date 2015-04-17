@@ -62,10 +62,14 @@ public:
     void             setU_nC_nN(double dU, int state);
     void             setU_cN_cC(double dU, int state);
     void             setU_xX_nN(double dU, int state);
+    void             setU_nX_nN(double dU, int state);
+    void             setU_xN_xX(double dU, int state);
     const double    &getU_cC_nN(int state);
     const double    &getU_nC_nN(int state);
     const double    &getU_cN_cC(int state);
     const double    &getU_xX_nN(int state);
+    const double    &getU_nX_nN(int state);
+    const double    &getU_xN_xX(int state);
     double           getSiteEnergy(int state);
 
     double           getEMpoles(int state);
@@ -136,6 +140,12 @@ private:
     
     double _U_xX_nN_s;
     double _U_xX_nN_t;
+    
+    double _U_nX_nN_s;   
+    double _U_nX_nN_t;
+
+    double _U_xN_xX_s;   
+    double _U_xN_xX_t;
     
     double _ePolar_s;
     double _ePolar_t;

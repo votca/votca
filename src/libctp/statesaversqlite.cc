@@ -249,9 +249,11 @@ void StateSaverSQLite::WriteSegments(bool update) {
                            "SET "
                            "UnCnNe = ?, UnCnNh = ?, UcNcCe = ?,"
                            "UcNcCh = ?, UcCnNe = ?, UcCnNh = ?,"
-                           "UnTnNn = ?,"
-                           "eAnion = ?, eNeutral = ?, eCation = ?, eExciton = ?,"
-                           "occPe = ?, occPh = ?, occPt = ?, has_e = ?, has_h = ?, has_t = ?, "
+                           "UnXnNs = ?, UnXnNt = ?, UxNxXs = ?,"
+                           "UxNxXt = ?, UxXnNs = ?, UxXnNt = ?,"
+                           "eAnion = ?, eNeutral = ?, eCation = ?, eSinglet = ?,eTriplet = ?,"
+                           "occPe = ?, occPh = ?,occPs = ?, occPt = ?,"
+                           "has_e = ?, has_h = ?, has_s = ?,has_t = ?"
                            "WHERE top = ? AND id = ?");
     }
 
@@ -278,23 +280,35 @@ void StateSaverSQLite::WriteSegments(bool update) {
 
             int has_e = (seg->hasState(-1)) ? 1 : 0;
             int has_h = (seg->hasState(+1)) ? 1 : 0;
+            int has_s = (seg->hasState(+2)) ? 1 : 0;
+            int has_t = (seg->hasState(+3)) ? 1 : 0;
             
             stmt->Bind(1, seg->getU_nC_nN(-1));
             stmt->Bind(2, seg->getU_nC_nN(+1));
             stmt->Bind(3, seg->getU_cN_cC(-1));
             stmt->Bind(4, seg->getU_cN_cC(+1));
             stmt->Bind(5, seg->getU_cC_nN(-1));
-            stmt->Bind(6, seg->getU_cC_nN(+1));
-            stmt->Bind(7, seg->getEMpoles(-1));
-            stmt->Bind(8, seg->getEMpoles(0));
-            stmt->Bind(9, seg->getEMpoles(1));
-            stmt->Bind(10,seg->getOcc(-1));
-            stmt->Bind(11,seg->getOcc(+1));
-            stmt->Bind(12,has_e);
-            stmt->Bind(13,has_h);
+            stmt->Bind(6, seg->getU_cC_nN(+1));            
+            stmt->Bind(7, seg->getU_nX_nN(+2));
+            stmt->Bind(8, seg->getU_nX_nN(+3));
+            stmt->Bind(9, seg->getU_xN_xX(+2));
+            stmt->Bind(10, seg->getU_xN_xX(+3));          
+            stmt->Bind(11, seg->getU_xX_nN(+2));
+            stmt->Bind(12, seg->getU_xX_nN(+3));
+            stmt->Bind(13, seg->getEMpoles(-1));
+            stmt->Bind(14, seg->getEMpoles(0));
+            stmt->Bind(15, seg->getEMpoles(1));
+            stmt->Bind(16,seg->getOcc(-1));
+            stmt->Bind(17,seg->getOcc(+1));
+            stmt->Bind(18,seg->getOcc(+2));
+            stmt->Bind(19,seg->getOcc(+3));
+            stmt->Bind(20,has_e);
+            stmt->Bind(21,has_h);
+            stmt->Bind(22,has_s);
+            stmt->Bind(23,has_t);
             
-            stmt->Bind(14, _qmtop->getDatabaseId());
-            stmt->Bind(15, seg->getId());
+            stmt->Bind(24, _qmtop->getDatabaseId());
+            stmt->Bind(25, seg->getId());
         }
 
         stmt->InsertStep();
@@ -445,29 +459,32 @@ void StateSaverSQLite::WritePairs(bool update) {
                            "frame, top, id, "
                            "seg1, seg2, drX, "
                            "drY, drZ, "
-                           "has_e, has_h, "
-                           "lOe, lOh, rate12e, "
-                           "rate21e, rate12h, rate21h, "
-                           "Jeff2e,  Jeff2h, "
+                           "has_e, has_h,has_s,has_t, "
+                           "lOe, lOh, lOs, lOt,"
+                           "rate12e, rate21e, rate12h, rate21h,"
+                           "rate12s, rate21s, rate12t, rate21t,"
+                           "Jeff2e,  Jeff2h, Jeff2s, Jeff2t,"
                            "type "
                            ") VALUES ("
                            "?, ?, ?, "
                            "?, ?, ?, "
                            "?, ?, "
-                           "?, ?, "
-                           "?, ?, ?, "
-                           "?, ?, ?, "
-                           "?, ?, "
+                           "?, ?, ?, ?, "
+                           "?, ?, ?, ?, "
+                           "?, ?, ?, ?, "
+                           "?, ?, ?, ?, "
+                           "?, ?, ?, ?, "
                            "? "
                            ")");
     }
     else {
         stmt = _db.Prepare("UPDATE pairs "
                            "SET "
-                           "has_e = ?, has_h = ?, "
-                           "lOe = ?, lOh = ?, rate12e = ?, "
-                           "rate21e = ?, rate12h = ?, rate21h = ?, "
-                           "Jeff2e = ?,  Jeff2h = ?, "
+                           "has_e = ?, has_h = ?, has_s = ?, has_t = ?,"
+                           "lOe = ?, lOh = ?, lOs = ?, lOt = ?,"
+                           "rate12e = ?, rate21e = ?, rate12h = ?, rate21h = ?,"
+                           "rate12s = ?, rate21s = ?, rate12t = ?, rate21t = ?,"
+                           "Jeff2e = ?,  Jeff2h = ?,Jeff2s = ?,Jeff2t = ?, "
                            "type = ? "
                            "WHERE top = ? AND id = ?");
     }
@@ -484,6 +501,8 @@ void StateSaverSQLite::WritePairs(bool update) {
 
             int has_e = (pair->isPathCarrier(-1)) ? 1 : 0;
             int has_h = (pair->isPathCarrier(+1)) ? 1 : 0;
+            int has_s = (pair->isPathCarrier(+2)) ? 1 : 0;
+            int has_t = (pair->isPathCarrier(+3)) ? 1 : 0;
 
             stmt->Bind(1, _qmtop->getDatabaseId());
             stmt->Bind(2, pair->getTopology()->getDatabaseId());
@@ -495,15 +514,25 @@ void StateSaverSQLite::WritePairs(bool update) {
             stmt->Bind(8, pair->R().getZ());
             stmt->Bind(9, has_e);
             stmt->Bind(10, has_h);
-            stmt->Bind(11, pair->getLambdaO(-1));
-            stmt->Bind(12, pair->getLambdaO(+1));
-            stmt->Bind(13, pair->getRate12(-1));
-            stmt->Bind(14, pair->getRate21(-1));
-            stmt->Bind(15, pair->getRate12(+1));
-            stmt->Bind(16, pair->getRate21(+1));
-            stmt->Bind(17, pair->getJeff2(-1));
-            stmt->Bind(18, pair->getJeff2(+1));
-            stmt->Bind(19, (int)(pair->getType()) );
+            stmt->Bind(11, has_s);
+            stmt->Bind(12, has_t);
+            stmt->Bind(13, pair->getLambdaO(-1));
+            stmt->Bind(14, pair->getLambdaO(+1));
+            stmt->Bind(15, pair->getLambdaO(+2));
+            stmt->Bind(16, pair->getLambdaO(+3));
+            stmt->Bind(17, pair->getRate12(-1));
+            stmt->Bind(18, pair->getRate21(-1));
+            stmt->Bind(19, pair->getRate12(+1));
+            stmt->Bind(20, pair->getRate21(+1));
+            stmt->Bind(21, pair->getRate12(+2));
+            stmt->Bind(22, pair->getRate21(+2));
+            stmt->Bind(23, pair->getRate12(+3));
+            stmt->Bind(24, pair->getRate21(+3));
+            stmt->Bind(25, pair->getJeff2(-1));
+            stmt->Bind(26, pair->getJeff2(+1));
+            stmt->Bind(27, pair->getJeff2(+2));
+            stmt->Bind(28, pair->getJeff2(+3));
+            stmt->Bind(29, (int)(pair->getType()) );
         }
         
         else {
@@ -512,20 +541,32 @@ void StateSaverSQLite::WritePairs(bool update) {
 
                 int has_e = (pair->isPathCarrier(-1)) ? 1 : 0;
                 int has_h = (pair->isPathCarrier(+1)) ? 1 : 0;
+                int has_s = (pair->isPathCarrier(+2)) ? 1 : 0;
+                int has_t = (pair->isPathCarrier(+3)) ? 1 : 0;
 
                 stmt->Bind(1, has_e);
                 stmt->Bind(2, has_h);
-                stmt->Bind(3, pair->getLambdaO(-1));
-                stmt->Bind(4, pair->getLambdaO(+1));
-                stmt->Bind(5, pair->getRate12(-1));
-                stmt->Bind(6, pair->getRate21(-1));
-                stmt->Bind(7, pair->getRate12(+1));
-                stmt->Bind(8, pair->getRate21(+1));
-                stmt->Bind(9, pair->getJeff2(-1));
-                stmt->Bind(10, pair->getJeff2(+1));
-                stmt->Bind(11, (int)pair->getType());
-                stmt->Bind(12, pair->getTopology()->getDatabaseId());
-                stmt->Bind(13, pair->getId());          
+                stmt->Bind(3, has_s);
+                stmt->Bind(4, has_t);
+                stmt->Bind(5, pair->getLambdaO(-1));
+                stmt->Bind(6, pair->getLambdaO(+1));
+                stmt->Bind(7, pair->getLambdaO(+2));
+                stmt->Bind(8, pair->getLambdaO(+3));
+                stmt->Bind(9, pair->getRate12(-1));
+                stmt->Bind(10, pair->getRate21(-1));
+                stmt->Bind(11, pair->getRate12(+1));
+                stmt->Bind(12, pair->getRate21(+1));
+                stmt->Bind(13, pair->getRate12(+2));
+                stmt->Bind(14, pair->getRate21(+2));
+                stmt->Bind(15, pair->getRate12(+3));
+                stmt->Bind(16, pair->getRate21(+3));
+                stmt->Bind(17, pair->getJeff2(-1));
+                stmt->Bind(18, pair->getJeff2(+1));
+                stmt->Bind(19, pair->getJeff2(+2));
+                stmt->Bind(20, pair->getJeff2(+3));
+                stmt->Bind(21, (int)pair->getType());
+                stmt->Bind(22, pair->getTopology()->getDatabaseId());
+                stmt->Bind(23, pair->getId());          
         }
 
         stmt->InsertStep();
@@ -728,9 +769,12 @@ void StateSaverSQLite::ReadSegments(int topId) {
     Statement *stmt = _db.Prepare("SELECT name, type, mol, "
                                   "posX, posY, posZ, "
                                   "UnCnNe, UnCnNh, UcNcCe,"
-                                  "UcNcCh, UcCnNe, UcCnNh,"
-                                  "eAnion, eNeutral, eCation, "
-                                  "occPe, occPh, has_e, has_h "
+                                  "UcNcCh, UcCnNe , UcCnNh ,"
+                                  "UnXnNs, UnXnNt, UxNxXs ,"
+                                  "UxNxXt , UxXnNs , UxXnNt,"
+                                  "eAnion , eNeutral , eCation , eSinglet ,eTriplet ,"
+                                  "occPe , occPh ,occPs , occPt ,"
+                                  "has_e , has_h , has_s ,has_t "
                                   "FROM segments "
                                   "WHERE top = ?;");
     stmt->Bind(1, topId);
@@ -747,18 +791,35 @@ void StateSaverSQLite::ReadSegments(int topId) {
         double  l2   = stmt->Column<double>(7);
         double  l3   = stmt->Column<double>(8);
         double  l4   = stmt->Column<double>(9);
-        double  e1   = stmt->Column<double>(10);
-        double  e2   = stmt->Column<double>(11);
-        double  e3   = stmt->Column<double>(12);
-        double  e4   = stmt->Column<double>(13);
-        double  e5   = stmt->Column<double>(14);
-        double  o1   = stmt->Column<double>(15);
-        double  o2   = stmt->Column<double>(16);
-        int     he   = stmt->Column<int>(17);
-        int     hh   = stmt->Column<int>(18);
+        double  l5   = stmt->Column<double>(10);
+        double  l6   = stmt->Column<double>(11);
+        
+        double  x1   = stmt->Column<double>(12);
+        double  x2   = stmt->Column<double>(13);
+        double  x3   = stmt->Column<double>(14);
+        double  x4   = stmt->Column<double>(15);
+        double  x5   = stmt->Column<double>(16);
+        double  x6   = stmt->Column<double>(17);
+        
+        double  e1   = stmt->Column<double>(18);
+        double  e2   = stmt->Column<double>(19);       
+        double  e3   = stmt->Column<double>(20);
+        double  e4   = stmt->Column<double>(21);
+        double  e5   = stmt->Column<double>(22);
+        
+        double  o1   = stmt->Column<double>(23);
+        double  o2   = stmt->Column<double>(24);
+        double  o3   = stmt->Column<double>(25);
+        double  o4   = stmt->Column<double>(26);
+        int     he   = stmt->Column<int>(27);
+        int     hh   = stmt->Column<int>(28);
+        int     hs   = stmt->Column<int>(29);
+        int     ht   = stmt->Column<int>(30);
 
         bool has_e = (he == 1) ? true : false;
         bool has_h = (hh == 1) ? true : false;
+        bool has_s = (hs == 1) ? true : false;
+        bool has_t = (ht == 1) ? true : false;
 
         Segment *seg = _qmtop->AddSegment(name);
         seg->setMolecule(_qmtop->getMolecule(mId));
@@ -768,15 +829,29 @@ void StateSaverSQLite::ReadSegments(int topId) {
         seg->setU_nC_nN(l2, +1);
         seg->setU_cN_cC(l3, -1);
         seg->setU_cN_cC(l4, +1);
-        seg->setU_cC_nN(e1, -1);
-        seg->setU_cC_nN(e2, +1);
-        seg->setEMpoles(-1, e3);
-        seg->setEMpoles(0, e4);
-        seg->setEMpoles(1, e5);
+        seg->setU_cC_nN(l5, -1);
+        seg->setU_cC_nN(l6, +1);
+        
+        seg->setU_nX_nN(l1, +2);
+        seg->setU_nX_nN(l2, +3);
+        seg->setU_xN_xX(l3, +2);
+        seg->setU_xN_xX(l4, +3);
+        seg->setU_xX_nN(l5, +2);
+        seg->setU_xX_nN(l6, +3);
+                
+        seg->setEMpoles(-1, e1);
+        seg->setEMpoles(0, e2);
+        seg->setEMpoles(1, e3);
+        seg->setEMpoles(2, e4);
+        seg->setEMpoles(3, e5);
         seg->setOcc(o1, -1);
         seg->setOcc(o2, +1);
+        seg->setOcc(o3, +2);
+        seg->setOcc(o4, +3);
         seg->setHasState(has_e, -1);
         seg->setHasState(has_h, +1);
+        seg->setHasState(has_s, +2);
+        seg->setHasState(has_t, +3);
         
 
         seg->getMolecule()->AddSegment(seg);
@@ -893,9 +968,12 @@ void StateSaverSQLite::ReadPairs(int topId) {
     cout << ", pairs" << flush;
 
     Statement *stmt = _db.Prepare("SELECT "
-                                  "seg1, seg2, has_e, has_h, "
-                                  "lOe, lOh, rate12e, rate21e, "
-                                  "rate12h, rate21h, Jeff2e, Jeff2h, "
+                                  "seg1, seg2,"
+                                  "has_e, has_h,has_s,has_t,"
+                                  "lOe, lOh, lOs, lOt,"
+                                  "rate12e, rate21e, rate12h, rate21h,"
+                                  "rate12s, rate21s, rate12t, rate21t,"
+                                  "Jeff2e,  Jeff2h, Jeff2s, Jeff2t,"
                                   "type "
                                   "FROM pairs "
                                   "WHERE top = ?;");
@@ -907,32 +985,56 @@ void StateSaverSQLite::ReadPairs(int topId) {
         int     s2  = stmt->Column<int>(1);
         int     he  = stmt->Column<int>(2);
         int     hh  = stmt->Column<int>(3);
-        double  l1  = stmt->Column<double>(4);
-        double  l2  = stmt->Column<double>(5);
-        double  r1  = stmt->Column<double>(6);
-        double  r2  = stmt->Column<double>(7);
-        double  r3  = stmt->Column<double>(8);
-        double  r4  = stmt->Column<double>(9);
-        double  je  = stmt->Column<double>(10);
-        double  jh  = stmt->Column<double>(11);
-        int     tp  = stmt->Column<int>(12);
+        int     hs  = stmt->Column<int>(4);
+        int     ht  = stmt->Column<int>(5);
+        double  l1  = stmt->Column<double>(6);
+        double  l2  = stmt->Column<double>(7);
+        double  l3  = stmt->Column<double>(8);
+        double  l4  = stmt->Column<double>(9);
+        double  r1  = stmt->Column<double>(10);
+        double  r2  = stmt->Column<double>(11);
+        double  r3  = stmt->Column<double>(12);
+        double  r4  = stmt->Column<double>(13);
+        double  r5  = stmt->Column<double>(14);
+        double  r6  = stmt->Column<double>(15);
+        double  r7  = stmt->Column<double>(16);
+        double  r8  = stmt->Column<double>(17);
+        double  je  = stmt->Column<double>(18);
+        double  jh  = stmt->Column<double>(19);
+        double  js  = stmt->Column<double>(20);
+        double  jt  = stmt->Column<double>(21);
+        int     tp  = stmt->Column<int>(22);
         
         QMPair *newPair = _qmtop->NBList().Add(_qmtop->getSegment(s1),
                                                 _qmtop->getSegment(s2));
 
         bool has_e = (he == 0) ? false : true;
         bool has_h = (hh == 0) ? false : true;
+        bool has_s = (hs == 0) ? false : true;
+        bool has_t = (ht == 0) ? false : true;
 
         newPair->setIsPathCarrier(has_e, -1);
         newPair->setIsPathCarrier(has_h, +1);
+        newPair->setIsPathCarrier(has_s, +2);
+        newPair->setIsPathCarrier(has_t, +3);
+        
         newPair->setLambdaO(l1, -1);
         newPair->setLambdaO(l2, +1);
+        newPair->setLambdaO(l3, +2);
+        newPair->setLambdaO(l4, +3);
+        
         newPair->setRate12(r1, -1);
         newPair->setRate21(r2, -1);
         newPair->setRate12(r3, +1);
         newPair->setRate21(r4, +1);
+        newPair->setRate12(r5, +2);
+        newPair->setRate21(r6, +2);
+        newPair->setRate12(r7, +3);
+        newPair->setRate21(r8, +3);
         newPair->setJeff2(je, -1);
         newPair->setJeff2(jh, +1);
+        newPair->setJeff2(js, +2);
+        newPair->setJeff2(jt, +3);
         newPair->setType(tp);
 
     }
