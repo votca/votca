@@ -50,23 +50,27 @@ public:
     void             calcPos();
     void             TranslateBy(const vec &shift);
 
-    void             setHasState(bool yesno, int e_h);
-    bool             hasState(int e_h);
+    void             setHasState(bool yesno, int state);
+    bool             hasState(int state);
 
-    const double    &getOcc(int e_h);
-    void             setOcc(double occ, int e_h);
+    const double    &getOcc(int e_h_s_t);
+    void             setOcc(double occ, int e_h_s_t);
 
+    // state: -1 electron +1 hole +2 singlet +3 triplet
+    
     void             setU_cC_nN(double dU, int state);
     void             setU_nC_nN(double dU, int state);
     void             setU_cN_cC(double dU, int state);
+    void             setU_xX_nN(double dU, int state)
     const double    &getU_cC_nN(int state);
     const double    &getU_nC_nN(int state);
     const double    &getU_cN_cC(int state);
+    const double    &getU_xX_nN(int state);
     double           getSiteEnergy(int state);
 
-    double           getEMpoles(int e_h);
-    void             setEMpoles(int e_h, double energy);
-    bool             hasChrgState(int e_h) { return _hasChrgState[e_h+1]; }
+    double           getEMpoles(int state);
+    void             setEMpoles(int state, double energy);
+    bool             hasChrgState(int state) { return _hasChrgState[state+1]; }
     void             setChrgStates(vector<bool> yesno) { _hasChrgState = yesno;}
 
     inline void      setTopology(Topology *container) { _top = container; }
