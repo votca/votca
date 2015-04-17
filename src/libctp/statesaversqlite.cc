@@ -249,8 +249,9 @@ void StateSaverSQLite::WriteSegments(bool update) {
                            "SET "
                            "UnCnNe = ?, UnCnNh = ?, UcNcCe = ?,"
                            "UcNcCh = ?, UcCnNe = ?, UcCnNh = ?,"
-                           "eAnion = ?, eNeutral = ?, eCation = ?, "
-                           "occPe = ?, occPh = ?, has_e = ?, has_h = ? "
+                           "UnTnNn = ?,"
+                           "eAnion = ?, eNeutral = ?, eCation = ?, eExciton = ?,"
+                           "occPe = ?, occPh = ?, occPt = ?, has_e = ?, has_h = ?, has_t = ?, "
                            "WHERE top = ? AND id = ?");
     }
 

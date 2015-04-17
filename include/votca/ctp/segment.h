@@ -124,11 +124,24 @@ private:
 
     bool   _has_e;       // from ::EInternal     input     DEFAULT 0
     bool   _has_h;
+    
+    bool   _has_t;      //Exciton Properties               DEFAULT 0
+    bool   _occ_t;      // t:triplet s:singlet
+    bool   _has_s;      // state 2 =. singlet
+    bool   _occ_s:      //state 3 = triplet
+    
+    double _U_xX_nN_s;
+    double _U_xX_nN_t;
+    
+    double _ePolar_s;
+    double _ePolar_t;
 
 
     vector< double > _eMpoles;
     //   +1(=> h)   e.static + pol. energy E(+1) - E(0)
     //   -1(=> e)   e.static + pol. energy E(-1) - E(0)
+    //   +2(=> s)   e.static + pol. energy E(+2) - E(0)
+    //   +3(=> t)   e.static + pol. energy E(+3) - E(0)
     vector<bool> _hasChrgState;
 
     map<int, vec> _intCoords;
