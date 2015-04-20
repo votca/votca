@@ -24,6 +24,7 @@
 #include <votca/tools/globals.h>
 #include <votca/ctp/qmcalculator.h>
 #include <votca/ctp/qmpair.h>
+#include <boost/progress.hpp>
 
 
 namespace votca { namespace ctp {
@@ -150,21 +151,21 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
     else {        
 
         vector< Segment* > ::iterator segit1;
-        vector< Segment* > ::iterator segit2;
-        vector< Fragment* > ::iterator fragit1;
-        vector< Fragment* > ::iterator fragit2;
-
-        double cutoff;
-        vec r1;
-        vec r2;
-        
+      
         if (TOOLS::globals::verbose) {
             cout << endl <<  "... ..." << flush;
-        }        
-
+        }
+        boost::progress_display show_progress( top->Segments().size() );        
         for (segit1 = top->Segments().begin();
                 segit1 < top->Segments().end();
                 segit1++) {
+                ++show_progress;
+                vector< Segment* > ::iterator segit2;
+                vector< Fragment* > ::iterator fragit1;
+                vector< Fragment* > ::iterator fragit2;
+                double cutoff;
+                vec r1;
+                vec r2;
 
                 Segment *seg1 = *segit1;
                 if (TOOLS::globals::verbose) {
@@ -211,8 +212,8 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
                         if( abs( top->PbShortestConnect(r1, r2) ) > cutoff ) {
                             continue;
                         }
-                        else {   
-                            top->NBList().Add(seg1, seg2);
+                        else {                              
+                            top->NBList().Add(seg1, seg2);                          
                             stopLoop = true;
                             break;
                         }                
@@ -229,13 +230,15 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
     cout << endl << " ... ... Created " << top->NBList().size() << " direct pairs.";
     
     if(_useExcitonCutoff){
-        vec r1;
-        vec r2;
-        vector< Fragment* > ::iterator fragit1;
-        vector< Fragment* > ::iterator fragit2;
+        cout << endl << " ... ... Determining classical pairs ";
         QMNBList::iterator pit;
         QMNBList &nblist = top->NBList();
         for (pit = nblist.begin(); pit != nblist.end(); ++pit) {
+            vec r1;
+            vec r2;
+            vector< Fragment* > ::iterator fragit1;
+            vector< Fragment* > ::iterator fragit2;
+            
             
             bool stopLoop = false;
                 for (fragit1 =  (*pit)->Seg1()->Fragments().begin();
@@ -252,10 +255,11 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
                         r1 = (*fragit1)->getPos();
                         r2 = (*fragit2)->getPos();
                         if( abs( top->PbShortestConnect(r1, r2) ) > _excitonqmCutoff ) {
+                            (*pit)->setType(3);
                             continue;
                         }
                         else {   
-                            (*pit)->setType(3);
+                            (*pit)->setType(0);
                             stopLoop = true;
                             break;
                         }                
