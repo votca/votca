@@ -24,7 +24,7 @@
 
 namespace votca { namespace ctp {
 
-QMPair *QMNBList::Add(Segment* seg1, Segment* seg2, int type ) {
+QMPair *QMNBList::Add(Segment* seg1, Segment* seg2) {
 
     if (this->FindPair(seg1, seg2) != NULL) {
         throw std::runtime_error("Critical bug: pair already exists");
@@ -34,7 +34,6 @@ QMPair *QMNBList::Add(Segment* seg1, Segment* seg2, int type ) {
     int id = this->size()+1;
 
     QMPair *pair = new QMPair(id, seg1, seg2);
-    pair->setType(type);
 
     this->AddPair(pair);
 

@@ -161,7 +161,7 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
         if (TOOLS::globals::verbose) {
             cout << endl <<  "... ..." << flush;
         }        
-        
+
         for (segit1 = top->Segments().begin();
                 segit1 < top->Segments().end();
                 segit1++) {
@@ -211,14 +211,8 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
                         if( abs( top->PbShortestConnect(r1, r2) ) > cutoff ) {
                             continue;
                         }
-                        else {
-                            int type=0;           //hopping               
-                            if(_useExcitonCutoff){
-                                if( abs( top->PbShortestConnect(r1, r2) ) > _excitonqmCutoff ){
-                                    type=6; //HoppingExcitoncl
-                                }     
-                            }
-                            top->NBList().Add(seg1, seg2,type);
+                        else {   
+                            top->NBList().Add(seg1, seg2);
                             stopLoop = true;
                             break;
                         }                
@@ -233,11 +227,49 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
     }
 
     cout << endl << " ... ... Created " << top->NBList().size() << " direct pairs.";
+    
+    if(_useExcitonCutoff){
+        vec r1;
+        vec r2;
+        vector< Fragment* > ::iterator fragit1;
+        vector< Fragment* > ::iterator fragit2;
+        QMNBList::iterator pit;
+        QMNBList &nblist = top->NBList();
+        for (pit = nblist.begin(); pit != nblist.end(); ++pit) {
+            
+            bool stopLoop = false;
+                for (fragit1 =  (*pit)->Seg1()->Fragments().begin();
+                        fragit1 <  (*pit)->Seg1()->Fragments().end();
+                        fragit1 ++) {
+
+                    if (stopLoop) { break; }
+
+                    for (fragit2 =  (*pit)->Seg2()->Fragments().begin();
+                            fragit2 <  (*pit)->Seg2()->Fragments().end();
+                            fragit2++) {
+
+
+                        r1 = (*fragit1)->getPos();
+                        r2 = (*fragit2)->getPos();
+                        if( abs( top->PbShortestConnect(r1, r2) ) > _excitonqmCutoff ) {
+                            continue;
+                        }
+                        else {   
+                            (*pit)->setType(3);
+                            stopLoop = true;
+                            break;
+                        }                
+
+                    } /* exit loop frag2 */
+                } /* exit loop frag1 */          
+            } //Type 3 Exciton_classical approx
+        }        
+    
 
     // add superexchange pairs
     top->NBList().setSuperExchangeTypes(_superexchange);
     top->NBList().GenerateSuperExchange();
-  
+    
     // DEBUG output
     if (votca::tools::globals::verbose) {
 

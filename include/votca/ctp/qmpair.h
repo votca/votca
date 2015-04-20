@@ -40,10 +40,8 @@ public:
         Hopping,
         SuperExchange,
         SuperExchangeAndHopping,
-        Excitonqm,
         Excitoncl,
-        HoppingExcitonqm,
-        HoppingExcitoncl
+        
     };
 
     QMPair() : _R(0,0,0), _ghost(NULL), _top(NULL),
