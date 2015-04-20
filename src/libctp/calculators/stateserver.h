@@ -304,9 +304,10 @@ void StateServer::DownloadSegments(FILE *out, Topology *top) {
 
         Segment *seg = *segit;
         fprintf(out, "SiteID %5d %5s | xyz %8.3f %8.3f %8.3f "
-                     "| SiteE(intra) C %2.4f A %2.4f "
+                     "| SiteE(intra) C %2.4f A %2.4f S %2.4f T %2.4f "
                      "| Lambdas: NC %2.4f CN %2.4f NA %2.4f AN %2.4f "
-                     "| SiteE(pol+estat) C %2.4f N %2.4f A %2.4f     \n",
+                     "| Lambdas_ex: NS %2.4f SN %2.4f NT %2.4f TN %2.4f "
+                     "| SiteE(pol+estat) C %2.4f N %2.4f A %2.4f S %2.4f T %2.4f    \n",
                 seg->getId(),
                 seg->getName().c_str(),
                 seg->getPos().getX(),
@@ -314,13 +315,21 @@ void StateServer::DownloadSegments(FILE *out, Topology *top) {
                 seg->getPos().getZ(),
                 seg->getU_cC_nN(1),
                 seg->getU_cC_nN(-1),
+                seg->getU_xX_nN(+2),
+                seg->getU_xX_nN(+3),
                 seg->getU_nC_nN(1),
                 seg->getU_cN_cC(1),
                 seg->getU_nC_nN(-1),
                 seg->getU_cN_cC(-1),
+                seg->getU_nX_nN(+2),
+                seg->getU_xN_xX(+2),
+                seg->getU_nX_nN(+3),
+                seg->getU_xN_xX(+3),
                 seg->getEMpoles(1),
                 seg->getEMpoles(0),
-                seg->getEMpoles(-1) );
+                seg->getEMpoles(-1),
+                seg->getEMpoles(2),
+                seg->getEMpoles(3));
     }
 }
 
@@ -338,7 +347,10 @@ void StateServer::DownloadPairs(FILE *out, Topology *top) {
         fprintf(out, "ID %5d SEG1 %4d %1s SEG2 %4d %1s dR %2.4f PBC %1d "
                      "dE(-1) %4.7f dE(+1) %4.7f "
                      "L(-1) %1.4f L(+1) %1.4f J2(-1) %1.8e J2(+1) %1.8e "
-                     "R12(-1) %2.4e R12(+1) %2.4e R21(-1) %2.4e R21(-1) %2.4e\n",
+                     "R12(-1) %2.4e R12(+1) %2.4e R21(-1) %2.4e R21(-1) %2.4e "                
+                     "dE(+2) %4.7f dE(+3) %4.7f "
+                     "L(+2) %1.4f L(+3) %1.4f J2(+2) %1.8e J2(+3) %1.8e "
+                     "R12(+2) %2.4e R12(+3) %2.4e R21(+2) %2.4e R21(+3) %2.4e\n",
                 pair->getId(),
                 pair->first->getId(),
                 pair->first->getName().c_str(),
@@ -355,7 +367,18 @@ void StateServer::DownloadPairs(FILE *out, Topology *top) {
                 pair->getRate12(-1),
                 pair->getRate12(+1),
                 pair->getRate21(-1),
-                pair->getRate21(+1) );
+                pair->getRate21(+1),
+                pair->getdE12(+2),
+                pair->getdE12(+3),
+                pair->getLambdaO(+2),
+                pair->getLambdaO(+3),
+                pair->getJeff2(+2),
+                pair->getJeff2(+3),
+                pair->getRate12(+2),
+                pair->getRate12(+3),
+                pair->getRate21(+2),
+                pair->getRate21(+3)
+                );
     }
 }
 
@@ -366,12 +389,14 @@ void StateServer::DownloadIList(FILE *out, Topology *top) {
          ++nit) {
         QMPair *pair = *nit;
 
-        fprintf(out, "%5d %5d %5d e %4.7e h %4.7e dr %4.7f pbc %1d\n",
+        fprintf(out, "%5d %5d %5d e %4.7e h %4.7e s %4.7e t %4.7 edr %4.7f pbc %1d\n",
         pair->getId(), 
         pair->Seg1()->getId(),
         pair->Seg2()->getId(),
         pair->getJeff2(-1),
         pair->getJeff2(+1),
+        pair->getJeff2(+2),
+        pair->getJeff2(+3),
         pair->Dist(),
         (pair->HasGhost()) ? 1 : 0);
     }
