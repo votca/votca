@@ -56,7 +56,7 @@ public:
     Job::JobResult EvalJob(Topology *top, Job *job, QMThread *Thread);
 
     void WriteJobFile(Topology *top);
-
+    
 
     
 
@@ -75,7 +75,8 @@ private:
 
         
     void ParseOptionsXML( tools::Property *opt);    
-    
+    void PreProcess(Topology *top);
+    void CustomizeLogger(QMThread *thread);
     
     /** 
      * \brief Guess for a dimer based on monomer orbitals
