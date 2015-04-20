@@ -40,9 +40,18 @@ namespace votca { namespace ctp {
 // +++++++++++++++++++++++++++++ //
 
 void IEXCITON::Initialize(votca::tools::Property* options ) {
+    
+
+    _options = options;
+    
+    cout << endl
+         << "... ... Initialized with " << _nThreads << " threads. "
+         << flush;
+
+    _maverick = (_nThreads == 1) ? true : false;
 
 
-    _do_polar = false;
+    _induce= false;
  
     
     
@@ -54,22 +63,51 @@ void IEXCITON::Initialize(votca::tools::Property* options ) {
 
 void IEXCITON::ParseOptionsXML( votca::tools::Property *opt ) {
    
-    // Orbitals are in fort.7 file; number of electrons in .log file
     
     string key = "options." + Identify();
-    _do_polar = opt->get( key + ".polarisation" ).as< bool > ();
-    key = "options." + Identify() +".job";
-    _jobfile = opt->get(key + ".file").as<string>();    
+    if ( opt->exists(key+".job_file")) {
+        _jobfile = opt->get(key+".job_file").as<string>();
+        }
+    else {
+            throw std::runtime_error("Job-file not set. Abort.");
+        }
+    if ( opt->exists(key+".emp_file")) {
+            _emp_file   = opt->get(key+".emp_file").as<string>();
+        }
+    else {
+            _emp_file   = opt->get(key+".emp_file").as<string>();
+        }
+    if ( opt->exists(key+".induce")) {
+            _induce   = opt->get(key+".induce").as<bool>();
+        }     
+}
 
+
+
+void IEXCITON::PreProcess(Topology *top) {
+
+    // INITIALIZE MPS-MAPPER (=> POLAR TOP PREP)
+    cout << endl << "... ... Initialize MPS-mapper: " << flush;
+    _mps_mapper.GenerateMap(_xml_file, _emp_file, top);
+}
+
+
+void IEXCITON::CustomizeLogger(QMThread *thread) {
+    
+    // CONFIGURE LOGGER
+    Logger* log = thread->getLogger();
+    log->setReportLevel(logDEBUG);
+    log->setMultithreading(_maverick);
+
+    log->setPreface(logINFO,    (format("\nT%1$02d INF ...") % thread->getId()).str());
+    log->setPreface(logERROR,   (format("\nT%1$02d ERR ...") % thread->getId()).str());
+    log->setPreface(logWARNING, (format("\nT%1$02d WAR ...") % thread->getId()).str());
+    log->setPreface(logDEBUG,   (format("\nT%1$02d DBG ...") % thread->getId()).str());        
 }
 
 
 
 Job::JobResult IEXCITON::EvalJob(Topology *top, Job *job, QMThread *opThread) {
-
-  
-   
-
     
      // report back to the progress observer
     Job::JobResult jres = Job::JobResult();
@@ -117,7 +155,7 @@ Job::JobResult IEXCITON::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     cout <<  iomXML << _job_summary;
     // end of the projection loop
 
-   // cleanup whatever is not needed
+ 
    
     jres.setOutput( _job_summary );   
     jres.setStatus(Job::COMPLETE);
@@ -149,27 +187,27 @@ void IEXCITON::WriteJobFile(Topology *top) {
     string tag = "";
     
     for (pit = nblist.begin(); pit != nblist.end(); ++pit) {
+        if ((*pit)->getType()==3){
+            int id1 = (*pit)->Seg1()->getId();
+            string name1 = (*pit)->Seg1()->getName();
+            int id2 = (*pit)->Seg2()->getId();
+            string name2 = (*pit)->Seg2()->getName();   
 
-        int id1 = (*pit)->Seg1()->getId();
-        string name1 = (*pit)->Seg1()->getName();
-        int id2 = (*pit)->Seg2()->getId();
-        string name2 = (*pit)->Seg2()->getName();   
+            int id = ++jobCount;
 
-        int id = ++jobCount;
+            Property Input;
+            Property *pInput = &Input.add("input","");
+            Property *pSegment =  &pInput->add("segment" , boost::lexical_cast<string>(id1) );
+            pSegment->setAttribute<string>("type", name1 );
+            pSegment->setAttribute<int>("id", id1 );
 
-        Property Input;
-        Property *pInput = &Input.add("input","");
-        Property *pSegment =  &pInput->add("segment" , boost::lexical_cast<string>(id1) );
-        pSegment->setAttribute<string>("type", name1 );
-        pSegment->setAttribute<int>("id", id1 );
+            pSegment =  &pInput->add("segment" , boost::lexical_cast<string>(id2) );
+            pSegment->setAttribute<string>("type", name2 );
+            pSegment->setAttribute<int>("id", id2 );
 
-        pSegment =  &pInput->add("segment" , boost::lexical_cast<string>(id2) );
-        pSegment->setAttribute<string>("type", name2 );
-        pSegment->setAttribute<int>("id", id2 );
-        
-        Job job(id, tag, Input, Job::AVAILABLE );
-        job.ToStream(ofs,"xml");
-        
+            Job job(id, tag, Input, Job::AVAILABLE );
+            job.ToStream(ofs,"xml");
+        }
     }
 
     // CLOSE STREAM

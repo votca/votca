@@ -26,6 +26,8 @@
 #include <boost/numeric/ublas/io.hpp>
 #include <sys/stat.h>
 #include <boost/filesystem.hpp>
+#include <votca/ctp/xmapper.h>
+#include <votca/ctp/xjob.h>
 
 namespace votca { namespace ctp {
     
@@ -34,12 +36,10 @@ namespace votca { namespace ctp {
 *
 * Evaluates the electrostatic classical coupling between molecules in 
 * their excited states.
-* and a dimer in GAUSSIAN, NWChem, or TURBOMOLE format.
 * 
-*  B. Baumeier, J. Kirkpatrick, D. Andrienko, 
-*  Phys. Chem. Chem. Phys., 12, 11103-11113, 2010
+
 * 
-* Callname: idft
+* Callname: iexcitoncl
 */
 
 class IEXCITON : public ParallelXJobCalc< vector<Job*>, Job*, Job::JobResult >
@@ -64,10 +64,12 @@ private:
 
     
     
-    // what to do
-    bool _do_polar;
-    
-    // what to write in the storage
+   
+    XMpsMap                        _mps_mapper;
+    bool                           _induce;
+    Property                       *_options;
+    string                         _emp_file;
+    string                         _xml_file;
 
         
 
