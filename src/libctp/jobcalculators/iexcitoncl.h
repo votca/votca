@@ -74,7 +74,7 @@ private:
         
 
         
-    void ParseOptionsXML( tools::Property *opt);    
+    
     void PreProcess(Topology *top);
     void CustomizeLogger(QMThread *thread);
     

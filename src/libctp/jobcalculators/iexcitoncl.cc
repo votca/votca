@@ -24,7 +24,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
-
+#include <votca/tools/propertyiomanipulator.h>
 #include <votca/ctp/logger.h>
 
 using boost::format;
@@ -39,10 +39,10 @@ namespace votca { namespace ctp {
 // IEXCITON MEMBER FUNCTIONS         //
 // +++++++++++++++++++++++++++++ //
 
-void IEXCITON::Initialize(votca::tools::Property* options ) {
+void IEXCITON::Initialize(votca::tools::Property* opt ) {
     
 
-    _options = options;
+    _options = opt;
     
     cout << endl
          << "... ... Initialized with " << _nThreads << " threads. "
@@ -53,17 +53,6 @@ void IEXCITON::Initialize(votca::tools::Property* options ) {
 
     _induce= false;
  
-    
-    
-    // update options with the VOTCASHARE defaults   
-    UpdateWithDefaults( options );
-    ParseOptionsXML( options  );
-
-}
-
-void IEXCITON::ParseOptionsXML( votca::tools::Property *opt ) {
-   
-    
     string key = "options." + Identify();
     if ( opt->exists(key+".job_file")) {
         _jobfile = opt->get(key+".job_file").as<string>();
@@ -75,11 +64,13 @@ void IEXCITON::ParseOptionsXML( votca::tools::Property *opt ) {
             _emp_file   = opt->get(key+".emp_file").as<string>();
         }
     else {
-            _emp_file   = opt->get(key+".emp_file").as<string>();
+            throw std::runtime_error("Emp-file not set. Abort.");
         }
     if ( opt->exists(key+".induce")) {
             _induce   = opt->get(key+".induce").as<bool>();
         }     
+    
+    cout << "done"<< endl;
 }
 
 

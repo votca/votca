@@ -230,7 +230,7 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
     cout << endl << " ... ... Created " << top->NBList().size() << " direct pairs.";
     
     if(_useExcitonCutoff){
-        cout << endl << " ... ... Determining classical pairs ";
+        cout << endl << " ... ... Determining classical pairs "<<endl;
         QMNBList::iterator pit;
         QMNBList &nblist = top->NBList();
         for (pit = nblist.begin(); pit != nblist.end(); ++pit) {
