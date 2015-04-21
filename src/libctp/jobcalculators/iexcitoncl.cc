@@ -26,6 +26,8 @@
 #include <boost/numeric/ublas/vector_proxy.hpp>
 #include <votca/tools/propertyiomanipulator.h>
 #include <votca/ctp/logger.h>
+#include <votca/ctp/xmapper.h>
+#include <votca/ctp/xinteractor.h>
 
 using boost::format;
 using namespace boost::filesystem;
@@ -52,19 +54,34 @@ void IEXCITON::Initialize(votca::tools::Property* opt ) {
 
 
     _induce= false;
- 
+    _singlet=true;
     string key = "options." + Identify();
     if ( opt->exists(key+".job_file")) {
         _jobfile = opt->get(key+".job_file").as<string>();
         }
     else {
             throw std::runtime_error("Job-file not set. Abort.");
+    }
+    if ( opt->exists(key+".mapping")) {
+        _xml_file = opt->get(key+".mapping").as<string>();
+        }
+    else {
+            throw std::runtime_error("Mapping-file not set. Abort.");
         }
     if ( opt->exists(key+".emp_file")) {
             _emp_file   = opt->get(key+".emp_file").as<string>();
         }
     else {
             throw std::runtime_error("Emp-file not set. Abort.");
+        }
+    if ( opt->exists(key+".spin")) {
+            string type=opt->get(key+".spin").as<string>();
+            if (type=="singlet") _singlet=true;
+            else if (type=="triplet") _singlet=false;
+            else std::runtime_error("Spin state not known. Abort.");
+        }
+    else {
+            throw std::runtime_error("Spin not set. Abort.");
         }
     if ( opt->exists(key+".induce")) {
             _induce   = opt->get(key+".induce").as<bool>();
@@ -112,14 +129,12 @@ Job::JobResult IEXCITON::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     list<Property*> segment_list = _job_input.Select( "segment" );    
     int ID_A   = segment_list.front()->getAttribute<int>( "id" );
     string type_A = segment_list.front()->getAttribute<string>( "type" );
+    string mps_fileA = segment_list.front()->getAttribute<string>( "mps_file" );
     int ID_B   = segment_list.back()->getAttribute<int>( "id" );
     string type_B = segment_list.back()->getAttribute<string>( "type" );
+    string mps_fileB = segment_list.back()->getAttribute<string>( "mps_file" );
 
-    // set the folders 
-    string _pair_dir = ( format("%1%%2%%3%%4%%5%") % "pair" % "_" % ID_A % "_" % ID_B ).str();
-     
-    path arg_path, arg_pathA, arg_pathB, arg_pathAB;
-           
+    
   
     Segment *seg_A = top->getSegment( ID_A );   
     assert( seg_A->getName() == type_A );
@@ -128,8 +143,25 @@ Job::JobResult IEXCITON::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     assert( seg_B->getName() == type_B );
     
     LOG(logINFO,*pLog) << TimeStamp() << " Evaluating pair "  
-            << _job_ID << " ["  << ID_A << ":" << ID_B << "] out of " << 
-           (top->NBList()).size()  << flush; 
+            << _job_ID << " ["  << ID_A << ":" << ID_B << "]" << flush; 
+    
+   vector<APolarSite*> seg_A_raw=_mps_mapper.GetOrCreateRawSites(mps_fileA);
+   vector<APolarSite*> seg_B_raw=_mps_mapper.GetOrCreateRawSites(mps_fileB);
+   
+   PolarSeg* seg_A_polar=_mps_mapper.MapPolSitesToSeg(seg_A_raw,seg_A);
+   PolarSeg* seg_B_polar=_mps_mapper.MapPolSitesToSeg(seg_B_raw,seg_B);
+   
+   PolarTop cleanup;
+   vector<PolarSeg*> cleanup2;
+   cleanup2.push_back(seg_A_polar);
+   cleanup2.push_back(seg_B_polar);
+   cleanup.setMM1(cleanup2);
+  
+   
+   double JAB=EvaluatePair(top,seg_A_polar,seg_B_polar);
+   
+    
+    
     
     
    
@@ -138,8 +170,8 @@ Job::JobResult IEXCITON::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 
     Property *_job_output = &_job_summary.add("output","");
     Property *_pair_summary = &_job_output->add("pair","");
-     string nameA = seg_A->getName();
-     string nameB = seg_B->getName();
+    _pair_summary->setAttribute("jAB", JAB);
+     
 
 
     votca::tools::PropertyIOManipulator iomXML(votca::tools::PropertyIOManipulator::XML, 1, "");
@@ -154,7 +186,26 @@ Job::JobResult IEXCITON::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     return jres;
 }
 
+double IEXCITON::EvaluatePair(Topology *top,PolarSeg* Seg1,PolarSeg* Seg2){
+    double int2eV = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
+    XInteractor actor;
+    actor.ResetEnergy();
+    Seg1->CalcPos();
+    Seg2->CalcPos();
+    vec s=top->PbShortestConnect(Seg1->getPos(),Seg2->getPos())-Seg1->getPos()+Seg2->getPos();
+    PolarSeg::iterator pit1;
+    PolarSeg::iterator pit2;
+    double E=0.0;
+    for (pit1=Seg1->begin();pit1<Seg1->end();++pit1){
+        for (pit2=Seg2->begin();pit2<Seg2->end();++pit2){
+            actor.BiasIndu(*(*pit1), *(*pit2),s);
+            E += actor.E_f(*(*pit1), *(*pit2));               
+    }
+    }
 
+    
+  return E*int2eV;  
+}
 
 
 void IEXCITON::WriteJobFile(Topology *top) {
@@ -185,16 +236,26 @@ void IEXCITON::WriteJobFile(Topology *top) {
             string name2 = (*pit)->Seg2()->getName();   
 
             int id = ++jobCount;
-
+            string mps_file1="MP_FILES/"+name1;
+            string mps_file2="MP_FILES/"+name2;
+            if (_singlet){
+                mps_file1=mps_file1+"_s.mps";
+                mps_file2=mps_file2+"_s.mps";
+            }
+            else{
+                mps_file1=mps_file1+"_t.mps";
+                mps_file2=mps_file2+"_t.mps";
+            }                
             Property Input;
             Property *pInput = &Input.add("input","");
             Property *pSegment =  &pInput->add("segment" , boost::lexical_cast<string>(id1) );
             pSegment->setAttribute<string>("type", name1 );
             pSegment->setAttribute<int>("id", id1 );
-
+            pSegment->setAttribute<string>("mps_file",mps_file1);
             pSegment =  &pInput->add("segment" , boost::lexical_cast<string>(id2) );
             pSegment->setAttribute<string>("type", name2 );
             pSegment->setAttribute<int>("id", id2 );
+            pSegment->setAttribute<string>("mps_file",mps_file2);
 
             Job job(id, tag, Input, Job::AVAILABLE );
             job.ToStream(ofs,"xml");

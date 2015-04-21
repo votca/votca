@@ -434,7 +434,7 @@ void StateServer::WriteEXCITED(FILE *out, Topology *top) {
         fprintf(out, "%4d %15s %-30s \n",
                      (*sit)->getId(),
                      (*sit)->getName().c_str(),
-                     ("MP_FILES/"+(*sit)->getName()+"_t.mps").c_str()
+                     ("MP_FILES/"+(*sit)->getName()+"_n.mps").c_str()
                 );
     }
 }

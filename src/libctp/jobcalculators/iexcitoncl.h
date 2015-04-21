@@ -67,6 +67,7 @@ private:
    
     XMpsMap                        _mps_mapper;
     bool                           _induce;
+    bool                           _singlet;
     Property                       *_options;
     string                         _emp_file;
     string                         _xml_file;
@@ -77,7 +78,7 @@ private:
     
     void PreProcess(Topology *top);
     void CustomizeLogger(QMThread *thread);
-    
+    double EvaluatePair(Topology *top,PolarSeg* Seg1,PolarSeg* Seg2);
     /** 
      * \brief Guess for a dimer based on monomer orbitals
      * 
