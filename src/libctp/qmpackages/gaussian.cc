@@ -122,7 +122,8 @@ namespace votca {
             vector< Atom* > _atoms;
             vector< Atom* > ::iterator ait;
             vector< Segment* >::iterator sit;
-
+            string temp_suffix = "/id";
+            string scratch_dir_backup = _scratch_dir;
             int qmatoms = 0;
 
             ofstream _com_file;
@@ -149,7 +150,7 @@ namespace votca {
             if (!_write_charges) {
 
                 for (sit = segments.begin(); sit != segments.end(); ++sit) {
-
+                    temp_suffix = temp_suffix + "_" + boost::lexical_cast<string>((*sit)->getId());
                     _atoms = (*sit)-> Atoms();
 
                     for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
@@ -541,7 +542,17 @@ namespace votca {
             _com_file << endl;
             _com_file.close();
             // and now generate a shell script to run both jobs
+            LOG(logDEBUG, *_pLog) << "Setting the scratch dir to " << _scratch_dir + temp_suffix << flush;
+
+            _scratch_dir = scratch_dir_backup + temp_suffix;
+            
+            //boost::filesystem::create_directories(_scratch_dir + temp_suffix);
+            //string _temp("scratch_dir " + _scratch_dir + temp_suffix + "\n");
+            //_com_file << _temp;
             WriteShellScript();
+            _scratch_dir = scratch_dir_backup;
+            
+            
             return true;
         }
 
