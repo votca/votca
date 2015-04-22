@@ -95,6 +95,12 @@ double QMPair::getRate21(int state) {
     return result;
 }
 
+vec QMPair::getR() {
+
+    return _R;
+}
+
+
 void QMPair::setLambdaO(double lO, int state) {  
     if (state ==-1) _lambdaO_e = lO;
     else if (state ==+1) _lambdaO_h = lO;

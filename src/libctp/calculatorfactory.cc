@@ -32,6 +32,7 @@
 #include "calculators/emultipole.h"
 #include "calculators/emultipole_stdal.h"
 #include "calculators/eanalyze.h"
+#include "calculators/panalyze.h"
 #include "calculators/eimport.h"
 #include "calculators/pairdump.h"
 #include "calculators/iimport.h"
@@ -63,6 +64,7 @@ void Calculatorfactory::RegisterAll(void)
         Calculators().Register<EOutersphere>        ("eoutersphere");
         Calculators().Register<EMultipole>          ("emultipole");
         Calculators().Register<EAnalyze>            ("eanalyze");
+        Calculators().Register<PAnalyze>            ("panalyze");
         Calculators().Register<EImport>             ("eimport");
         Calculators().Register<PairDump>            ("pairdump");        
         Calculators().Register<IImport>             ("iimport");

@@ -36,7 +36,6 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/484457893/ERIs.o \
-	${OBJECTDIR}/_ext/1559596494/aocoulomb.o \
 	${OBJECTDIR}/_ext/1559596494/aodipole.o \
 	${OBJECTDIR}/_ext/1559596494/aoecp.o \
 	${OBJECTDIR}/_ext/1559596494/aoesp.o \
@@ -144,11 +143,6 @@ ${OBJECTDIR}/_ext/484457893/ERIs.o: ../../src/libctp/ERIs.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/484457893
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484457893/ERIs.o ../../src/libctp/ERIs.cc
-
-${OBJECTDIR}/_ext/1559596494/aocoulomb.o: ../../src/libctp/aomatrices/aocoulomb.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/1559596494
-	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/1559596494/aocoulomb.o ../../src/libctp/aomatrices/aocoulomb.cc
 
 ${OBJECTDIR}/_ext/1559596494/aodipole.o: ../../src/libctp/aomatrices/aodipole.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1559596494

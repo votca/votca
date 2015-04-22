@@ -35,11 +35,13 @@ public:
     void    Initialize(Property *options);
     bool    EvaluateFrame(Topology *top);
     void    IHist(Topology *top, int state);
+    void    IRdependence(Topology *top, int state);
 
 private:
 
     double      _resolution_logJ2;
     vector<int> _states;
+    double      _resolution_space;
 
 };
 
@@ -51,6 +53,7 @@ void IAnalyze::Initialize(Property *opt) {
     string key = "options." + Identify();
  
     _resolution_logJ2 = opt->get(key+".resolution_logJ2").as< double >();
+    _resolution_space = opt->get(key+".resolution_space").as< double >();
     _states = opt->get(key+".states").as< vector<int> >();
 }
 
@@ -66,6 +69,7 @@ bool IAnalyze::EvaluateFrame(Topology *top) {
 
     for (int i = 0; i < _states.size(); ++i) {
         this->IHist(top, _states[i]);
+        this->IRdependence(top, _states[i]);
     }
     
     return true;
@@ -80,7 +84,7 @@ void IAnalyze::IHist(Topology *top, int state) {
 
     double MIN = log10(nblist.front()->getJeff2(state));
     double MAX = log10(nblist.front()->getJeff2(state));
-
+    
     // Collect J2s from pairs
     vector< double > J2s;
     J2s.reserve(nblist.size());
@@ -88,21 +92,16 @@ void IAnalyze::IHist(Topology *top, int state) {
     for (nit = nblist.begin(); nit != nblist.end(); ++nit) {
         double test = (*nit)->getJeff2(state);
         double J2;
-   // Check if coupling constant is zero, if yes it is skipped from the histogramm.     
-        if (test==0.0){
-            J2=-300;
-            int id=(*nit)->getId();
-            cout <<"\r\n....Jeff2 of pair " <<id << " is zero, skipping it."<<endl;
-            
-        }
-        else{
-            J2=log10(test);
+ 
+        if(test <= 0) {continue;} // avoid -inf in output
+        J2=log10(test);
+    
         
-            MIN = (J2 < MIN) ? J2 : MIN;
-            MAX = (J2 > MAX) ? J2 : MAX;
+        MIN = (J2 < MIN) ? J2 : MIN;
+        MAX = (J2 > MAX) ? J2 : MAX;
 
-            J2s.push_back(J2);
-        }
+        J2s.push_back(J2);
+       
     }
 
     // Prepare bins
@@ -137,6 +136,105 @@ void IAnalyze::IHist(Topology *top, int state) {
         fprintf(out, "%4.7f %4d \n", J2, histN[bin]);
     }
     fclose(out);
+}
+
+void IAnalyze::IRdependence(Topology *top, int state) {
+    
+    QMNBList &nblist = top->NBList();
+    QMNBList::iterator nit;
+
+    double MIN  = log10(nblist.front()->getJeff2(state));
+    double MAX  = log10(nblist.front()->getJeff2(state));
+    double MINR = abs(nblist.front()->getR());
+    double MAXR = abs(nblist.front()->getR());
+    
+    // Collect J2s from pairs
+    vector< double > J2s;
+    J2s.reserve(nblist.size());
+    vector< double > distances;
+    distances.reserve(nblist.size());
+
+    for (nit = nblist.begin(); nit != nblist.end(); ++nit) {
+        double J2 = log10((*nit)->getJeff2(state));
+
+        MIN = (J2 < MIN) ? J2 : MIN;
+        MAX = (J2 > MAX) ? J2 : MAX;
+        
+        double distance = abs((*nit)->getR());
+
+        MINR = (distance < MINR) ? distance : MINR;
+        MAXR = (distance > MAXR) ? distance : MAXR;
+        
+        distances.push_back(distance);
+        J2s.push_back(J2);
+    }
+    
+    // Prepare R bins
+    int _pointsR = (MAXR-MINR)/_resolution_space;
+    vector< vector<double> > rJ2;
+    rJ2.resize(_pointsR);
+
+
+    // Loop over distance
+    for (int i = 0; i< _pointsR; ++i){
+        double thisMINR = MINR + i*_resolution_space;
+        double thisMAXR = MINR + (i+1)*_resolution_space;
+        
+        // now count Js that lie within this R range, calculate mean and sigma
+        double meanJ2 = 0;
+        double sigmaJ2 = 0;
+        int noJ2 = 0;
+        
+        vector< double > ::iterator jit;
+        int j = 0;
+        for (jit = J2s.begin(); jit < J2s.end(); ++jit) {
+            if(thisMINR < distances[j] && distances[j] < thisMAXR){
+                rJ2[i].push_back(*jit);  
+            }
+            j++;
+        }
+    }
+    
+    // make plot values
+    vector< double > avgJ2;
+    for (vector< vector<double> > ::iterator it = rJ2.begin() ; it != rJ2.end(); ++it){
+        double thisavgJ2 = 0;
+        for(int i=0; i < (*it).size(); i++){
+            thisavgJ2 += (*it)[i];
+        }
+        thisavgJ2 /= (*it).size();
+        avgJ2.push_back(thisavgJ2);
+    }
+    vector< double > errJ2;
+    int j = 0;
+    for (vector< vector<double> > ::iterator it = rJ2.begin() ; it != rJ2.end(); ++it){
+        double thiserrJ2 = 0;
+        for(int i=0; i < (*it).size(); i++){
+            thiserrJ2 += ((*it)[i]-avgJ2[j])*((*it)[i]-avgJ2[j]);
+        }
+        thiserrJ2 /= (*it).size();
+        thiserrJ2  = sqrt(thiserrJ2);
+        errJ2.push_back(thiserrJ2);
+        j++;
+    }
+    
+    
+    // print to file
+    FILE *out;
+    string tag = boost::lexical_cast<string>("ianalyze.ispatial_") + ( (state == -1) ? "e" : "h" ) + ".out";
+    out = fopen(tag.c_str(), "w");
+
+    fprintf(out, "# IANALYZE: SPATIAL DEPENDENCE OF log10(J2) [r,log10(J),error]\n");
+    fprintf(out, "# STATE %1d\n", state);
+
+    
+    for (int i = 0; i < _pointsR; ++i) {
+        double thisR = MINR + (i+0.5)*_resolution_space;
+        fprintf(out, "%4.7f %4.7f %4.7f \n", thisR, avgJ2[i],  errJ2[i]);
+    }
+    fclose(out);
+    
+
 }
 
 

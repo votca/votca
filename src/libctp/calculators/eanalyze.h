@@ -28,6 +28,7 @@ private:
     double _resolution_pairs;
     double _resolution_sites;
     double _resolution_space;
+    string _distancemode;
 
     vector<int> _states;
 
@@ -79,6 +80,18 @@ void EAnalyze::Initialize( Property *opt ) {
     }
     else {
         _do_atomic_xyze = false;
+    }
+    
+    if (opt->exists(key+".distancemode")) {
+        // distancemode = segment / centreofmass
+        _distancemode = opt->get(key+".distancemode").as< string >();
+    }
+    else{
+         _distancemode = "segment";
+    }
+    if(_distancemode != "segment" && _distancemode != "centreofmass"){
+        cout << "WARNING: distancemode has to be set to either 'segment' or to 'centreofmass'. Setting it to 'segment' now." << endl;
+        _distancemode = "segment";
     }
     
     _skip_corr = opt->exists(key+".skip_correlation");
@@ -336,6 +349,7 @@ void EAnalyze::PairHist(Topology *top, int state) {
 void EAnalyze::SiteCorr(Topology *top, int state) {
 
     double AVG = 0.0;
+    double AVGESTATIC = 0.0;
     double VAR = 0.0;
     double STD = 0.0;
 
@@ -352,16 +366,20 @@ void EAnalyze::SiteCorr(Topology *top, int state) {
 
         double E = (*sit)->getSiteEnergy(state);
         AVG += E / _seg_shortlist.size();
+        
+        AVGESTATIC += (*sit)->getEMpoles(state) / top->Segments().size();
 
         Es.push_back(E);
     }
-
+    
     // Calculate variance
     vector< double > ::iterator eit;
     for (eit = Es.begin(); eit < Es.end(); ++eit) {
 
         VAR += ((*eit) - AVG)*((*eit) - AVG) / _seg_shortlist.size();
     }
+    
+    STD = sqrt(VAR);
 
     // Collect inter-site distances, correlation product
     vector< double > Rs;
@@ -389,20 +407,21 @@ void EAnalyze::SiteCorr(Topology *top, int state) {
         double R = abs(top->PbShortestConnect((*sit1)->getPos(),
                                               (*sit2)->getPos()));
 
-        for (fit1 = (*sit1)->Fragments().begin();
-             fit1 < (*sit1)->Fragments().end();
-             ++fit1) {
-        for (fit2 = (*sit2)->Fragments().begin();
-             fit2 < (*sit2)->Fragments().end();
-             ++fit2) {
+        if(_distancemode == "segment"){
+            for (fit1 = (*sit1)->Fragments().begin();
+                 fit1 < (*sit1)->Fragments().end();
+                 ++fit1) {
+             for (fit2 = (*sit2)->Fragments().begin();
+                 fit2 < (*sit2)->Fragments().end();
+                 ++fit2) {
+ 
+                double R_FF = abs(top->PbShortestConnect((*fit1)->getPos(),
+                                                         (*fit2)->getPos()));
 
-            double R_FF = abs(top->PbShortestConnect((*fit1)->getPos(),
-                                                     (*fit2)->getPos()));
-
-            if (R_FF < R) { R = R_FF; }
-
-        }}
-
+                if (R_FF < R) { R = R_FF; }
+            }}
+        }
+    
 
         MIN = (R < MIN) ? R : MIN;
         MAX = (R > MAX) ? R : MAX;
@@ -443,15 +462,19 @@ void EAnalyze::SiteCorr(Topology *top, int state) {
             corr += histCs[bin][i] / VAR;
             //corr2 += (histCs[bin][i] / VAR)*(histCs[bin][i] / VAR);
         }
+
         corr  = corr / histCs[bin].size();
         //corr2 = corr2 / histCs[bin].size();
 
         for (int i = 0; i < histCs[bin].size(); ++i) {
-            dcorr2 += (histCs[bin][i]/VAR - corr)*(histCs[bin][i]/VAR - corr);
+            dcorr2 += (histCs[bin][i]/VAR/histCs[bin].size() - corr)*(histCs[bin][i]/VAR/histCs[bin].size() - corr);
         }
-        dcorr2 = dcorr2 / histCs[bin].size();
-        
+
+
         histC[bin] = corr;
+        
+        // error on mean value
+        dcorr2 = dcorr2 / histCs[bin].size() / (histCs[bin].size()-1);
         histC_error[bin] = sqrt(dcorr2);
     }
 
@@ -460,8 +483,8 @@ void EAnalyze::SiteCorr(Topology *top, int state) {
     out = fopen(tag.c_str(), "w");
 
     fprintf(out, "# EANALYZE: SPATIAL SITE-ENERGY CORRELATION \n");
-    fprintf(out, "# AVG %4.7f VAR %4.7f MIN_R %4.7f MAX_R %4.7f \n",
-                    AVG,      VAR,      MIN,      MAX);
+    fprintf(out, "# AVG %4.7f STD %4.7f MIN_R %4.7f MAX_R %4.7f  AVGESTATIC %4.7f\n",
+                    AVG,      STD,      MIN,      MAX,      AVGESTATIC);
 
     for (int bin = 0; bin < BIN; ++bin) {
         double R = MIN + bin*_resolution_space;

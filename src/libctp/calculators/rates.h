@@ -518,7 +518,7 @@ void Rates::CalculateRate(Topology *top, QMPair *qmpair, int state) {
     // equation 6 
     // ++++++++++++ //
 
-    } else if (_rateType == "weissdorsey") {//not yet fully checked
+    } else if (_rateType == "weissdorsey") {
         
         _kondo = _kondo/2+1; // going from alpha to alpha'
 
