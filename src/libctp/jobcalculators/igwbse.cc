@@ -227,7 +227,30 @@ Job::JobResult IGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 
             PrepareGuess(&_orbitalsA, &_orbitalsB, _orbitalsAB, pLog);
         }
-        _qmpackage->WriteInputFile(segments, _orbitalsAB);
+        
+        
+        // _qmpackage->WriteInputFile(segments, _orbitalsAB);
+        
+        
+         
+        // if a pair object is available, take into account PBC, otherwise write as is
+        QMNBList* nblist = &top->NBList();
+        QMPair* pair = nblist->FindPair(seg_A, seg_B);
+    
+        if ( pair == NULL ) {
+            vector < Segment* > segments;
+            segments.push_back( seg_A );
+            segments.push_back( seg_B );
+            LOG(logWARNING,*pLog) << "PBCs are not taken into account when writing the coordinate file!" << flush; 
+            _qmpackage->WriteInputFile(segments, _orbitalsAB);
+        } else {
+            _qmpackage->WriteInputFilePBC(pair, _orbitalsAB);
+        }
+        
+        
+        
+        
+        
         delete _orbitalsAB;
     } // end of the input
  
