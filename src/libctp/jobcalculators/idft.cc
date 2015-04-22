@@ -409,7 +409,7 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
        LoadOrbitals( orbFileB, &_orbitalsB, pLog );
        _orbitalsA.Trim(_trim_factor);
        _orbitalsB.Trim(_trim_factor);
-       _JAB = *_orbitalsAB.getIntegrals();
+       _JAB = _orbitalsAB.MOCouplings();
        HOMO_A = _orbitalsA.getNumberOfElectrons() ;
        HOMO_B = _orbitalsB.getNumberOfElectrons() ;
        LUMO_A = HOMO_A + 1;
