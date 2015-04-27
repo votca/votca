@@ -49,6 +49,14 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 ########################################################################
 #Find external packages
 ########################################################################
+if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.hg)
+  find_package(Mercurial)
+endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.hg)
+
+if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
+  find_package(Git)
+endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
+
 find_package(Threads REQUIRED)
 set(THREAD_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
 option(BUILD_MANPAGES "Build manpages" ON)

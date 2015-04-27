@@ -114,12 +114,13 @@ echo "Sim started $(date)"
 method="$(csg_get_property cg.inverse.method)"
 msg "We are doing Method: $method"
 
+scriptpath="$(csg_get_property --allow-empty cg.inverse.scriptpath)"
+[[ -n $scriptpath ]] && echo "Adding $scriptpath to csgshare" && add_to_csgshare "$scriptpath"
+
+#after scriptpath to allow overwrite
 sim_prog="$(csg_get_property cg.inverse.program)"
 echo "We are using Sim Program: $sim_prog"
 source_function $sim_prog
-
-scriptpath="$(csg_get_property --allow-empty cg.inverse.scriptpath)"
-[[ -n $scriptpath ]] && echo "Adding $scriptpath to csgshare" && add_to_csgshare "$scriptpath"
 
 show_csg_tables
 

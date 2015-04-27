@@ -247,6 +247,14 @@
 	<DESC> Gromacs trajectory file to use</DESC>
       </traj>
     </gromacs>
+    <hoomd-blue>
+      <command>hoomd
+	<DESC>Command to run hoomd-blue (name or absolute path or mpirun ..)</DESC>
+      </command>
+      <opts>${script}
+	<DESC> option to be given to hoomd-blue program, use ${script} in there </DESC>
+      </opts>
+    </hoomd-blue>
     <imc>
       <DESC> general imc specific options </DESC>
       <matlab>

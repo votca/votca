@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-version='@PROJECT_VERSION@ #CSG_HG_ID#'
+version='@PROJECT_VERSION@ #CSG_GIT_ID#'
 ext_cmd=""
 simprog=""
 log=""
