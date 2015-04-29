@@ -429,7 +429,7 @@ std::vector<ub::matrix<double> >& Orbitals::DensityMatrixExcitedState(ub::matrix
            }
      }
      
-
+    int _bse_total = this->_bse_size;
      
      // electron assist matrix A_{cc'}
      ub::matrix<float> _Acc = ub::zero_matrix<float>( this->_bse_ctotal , this->_bse_ctotal );
