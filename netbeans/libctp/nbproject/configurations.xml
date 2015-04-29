@@ -65,6 +65,7 @@
         <itemPath>../../src/libctp/tools/exciton.h</itemPath>
         <itemPath>../../src/libctp/tools/excitoncoupling.h</itemPath>
         <itemPath>../../src/libctp/tools/gencube.h</itemPath>
+        <itemPath>../../src/libctp/tools/log2mps.h</itemPath>
         <itemPath>../../src/libctp/tools/molpol.cc</itemPath>
         <itemPath>../../src/libctp/tools/molpol.h</itemPath>
         <itemPath>../../src/libctp/tools/orb2isogwa.h</itemPath>
@@ -980,6 +981,8 @@
       </item>
       <item path="../../src/libctp/tools/gencube.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../src/libctp/tools/log2mps.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../src/libctp/tools/molpol.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/molpol.h" ex="false" tool="3" flavor2="0">
@@ -1736,6 +1739,8 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/tools/gencube.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libctp/tools/log2mps.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/molpol.cc" ex="false" tool="1" flavor2="0">
       </item>

@@ -743,8 +743,9 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
         /*
          *  Partial charges from the input file
          */
-        std::string::size_type charge_pos = _line.find(" ESP ");
+        std::string::size_type charge_pos = _line.find("ESP");
         
+
         if (charge_pos != std::string::npos && _get_charges ) {        
                 LOG(logDEBUG,*_pLog) << "Getting charges" << flush;
                 _has_charges = true;
@@ -835,7 +836,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
                 if ( _has_QMAtoms == false ) {
                     _orbitals->AddAtom( _atom_type, _x, _y, _z );
                 } else {
-                                        cout << " 2 " << endl;
+                                       
                     QMAtom* pAtom = _orbitals->_atoms.at( atom_id - 1 );
                     pAtom->type = _atom_type;
                     pAtom->x = _x;
