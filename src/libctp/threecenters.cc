@@ -133,8 +133,8 @@ namespace votca {
             double gma2 = 0.0;
             double gmb2 = 0.0;
             double gmc2 = 0.0;
-            
-            if ((_dist1 + _dist2 + _dist3)<0.01){
+
+            if ((_dist1 + _dist2 + _dist3)>0.01){
           
            
             gma0 = gma.getX();
