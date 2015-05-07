@@ -72,8 +72,9 @@ void IAnalyze::Initialize(Property *opt) {
 
     }
     if ( opt->exists(key+".resolution_space")) {
-        _do_IRdependence=true;
+        
         _resolution_space = opt->get(key+".resolution_space").as< double >();
+        if (_resolution_space!=0.0) _do_IRdependence=true;
     }
    
 }

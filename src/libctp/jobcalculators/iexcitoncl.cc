@@ -44,7 +44,6 @@ namespace votca { namespace ctp {
 void IEXCITON::Initialize(votca::tools::Property* opt ) {
     
 
-    _options = opt;
     
     cout << endl
          << "... ... Initialized with " << _nThreads << " threads. "
@@ -170,7 +169,14 @@ Job::JobResult IEXCITON::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 
     Property *_job_output = &_job_summary.add("output","");
     Property *_pair_summary = &_job_output->add("pair","");
-    _pair_summary->setAttribute("jAB", JAB);
+    string nameA = seg_A->getName();
+    string nameB = seg_B->getName();
+    _pair_summary->setAttribute("idA", ID_A);
+    _pair_summary->setAttribute("idB", ID_B);
+    _pair_summary->setAttribute("typeA", nameA);
+    _pair_summary->setAttribute("typeB", nameB);
+    Property *_coupling_summary = &_pair_summary->add("Coupling",""); 
+    _coupling_summary->setAttribute("jABstatic", JAB);
      
 
 
@@ -279,23 +285,19 @@ void IEXCITON::ReadJobFile(Topology *top) {
     // gets the neighborlist from the topology
     QMNBList &nblist = top->NBList();
     int _number_of_pairs = nblist.size();
-    int _current_pairs=0.0;
+    int _current_pairs=0;
     
     // output using logger
     Logger _log;
     _log.setReportLevel(logINFO);
     
-   
 
     // load the QC results in a vector indexed by the pair ID
     load_property_from_xml(xml, _jobfile);
     list<Property*> jobProps = xml.Select("jobs.job");
-    
-    records.resize( jobProps.size() + 1  );
-    
+    records.resize( _number_of_pairs + 1  );
     // loop over all jobs = pair records in the job file
     for (list<Property*> ::iterator  it = jobProps.begin(); it != jobProps.end(); ++it) {
- 
         // if job produced an output, then continue with analysis
         if ( (*it)->exists("output") && (*it)->exists("output.pair") ) {
             _current_pairs++;
@@ -313,7 +315,7 @@ void IEXCITON::ReadJobFile(Topology *top) {
             if (qmp == NULL) { // there is no pair in the neighbor list with this name
                 LOG(logINFO, _log) << "No pair " <<  idA << ":" << idB << " found in the neighbor list. Ignoring" << flush; 
             }   else {
-                //LOG(logINFO, _log) << "Store in record: " <<  idA << ":" << idB << flush; 
+                LOG(logINFO, _log) << "Store in record: " <<  idA << ":" << idB << flush; 
                 records[qmp->getId()] = & ((*it)->get("output.pair"));
             }
         } else {
@@ -322,7 +324,7 @@ void IEXCITON::ReadJobFile(Topology *top) {
         }
     } // finished loading from the file
 
-
+    cout << "Readingdone"<<endl;
     // loop over all pairs in the neighbor list
     std::cout << "Neighborlist size " << top->NBList().size() << std::endl;
     for (QMNBList::iterator ipair = top->NBList().begin(); ipair != top->NBList().end(); ++ipair) {
@@ -331,29 +333,33 @@ void IEXCITON::ReadJobFile(Topology *top) {
         Segment* segmentA = pair->Seg1();
         Segment* segmentB = pair->Seg2();
         
-        double Jeff = 0;
-
+        double Jeff2 = 0.0;
+        double jAB=0.0;
         
-        cout << "\nProcessing pair " << segmentA->getId() << ":" << segmentB->getId() << flush;
+        //cout << "\nProcessing pair " << segmentA->getId() << ":" << segmentB->getId() << flush;
         
         QMPair::PairType _ptype = pair->getType();
+        if ( _ptype == QMPair::Excitoncl){
         Property* pair_property = records[ pair->getId() ];
  
-        double jAB = pair_property->getAttribute<double>("jAB");
-   
-        double Jeff2 = jAB*jAB;
+        list<Property*> pCoupling = pair_property->Select("Coupling");
+ 
+            for (list<Property*> ::iterator itCoupling = pCoupling.begin(); itCoupling != pCoupling.end(); ++itCoupling) {
+                jAB = (*itCoupling)->getAttribute<double>("jABstatic");
+            }
+        Jeff2 = jAB*jAB;
         
     
         if (_singlet){
             pair->setJeff2(Jeff2, 2);
-            pair->setIsPathCarrier(true, 12);
+            pair->setIsPathCarrier(true, 2);
         }   
         else{
             pair->setJeff2(Jeff2, 3);
             pair->setIsPathCarrier(true, 3);
         }
       
-
+        }
     }
                     
     LOG(logINFO, _log) << "Pairs [total:updated] " <<  _number_of_pairs << ":" << _current_pairs  << flush; 
