@@ -56,7 +56,7 @@ public:
     Job::JobResult EvalJob(Topology *top, Job *job, QMThread *Thread);
 
     void WriteJobFile(Topology *top);
-    
+    void ReadJobFile(Topology *top);
 
     
 
