@@ -124,16 +124,17 @@ bool ESPFit_Tool::Evaluate() {
     ifs.close();
 
     FitESP(_orbitals);
-
+    string tag="TOOL:"+Identify()+"_"+_state+"_"+_spin+boost::lexical_cast<string>(_state_no);
     if(_use_mps){
         QMMInterface Converter;
         PolarSeg* result=Converter.Convert(_orbitals.QMAtoms());
-        result->WriteMPS(_output_file);
+        
+        result->WriteMPS(_output_file,tag);
         }
     else if(_use_pdb){
         FILE *out;
         out = fopen(_output_file.c_str(), "w");
-       _orbitals.WritePDB(out); 
+       _orbitals.WritePDB(out, tag); 
     }
     
     

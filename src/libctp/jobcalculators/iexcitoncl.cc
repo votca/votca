@@ -239,12 +239,12 @@ void IEXCITON::WriteJobFile(Topology *top) {
             string mps_file1="MP_FILES/"+name1;
             string mps_file2="MP_FILES/"+name2;
             if (_singlet){
-                mps_file1=mps_file1+"_s.mps";
-                mps_file2=mps_file2+"_s.mps";
+                mps_file1=mps_file1+"_n2s.mps";
+                mps_file2=mps_file2+"_n2s.mps";
             }
             else{
-                mps_file1=mps_file1+"_t.mps";
-                mps_file2=mps_file2+"_t.mps";
+                mps_file1=mps_file1+"_n2t.mps";
+                mps_file2=mps_file2+"_n2t.mps";
             }                
             Property Input;
             Property *pInput = &Input.add("input","");

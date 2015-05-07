@@ -22,7 +22,7 @@
 
 #include <votca/ctp/qmcalculator.h>
 #include <math.h>
-
+#include <votca/ctp/qmpair.h>
 
 namespace votca { namespace ctp {
 
@@ -42,19 +42,40 @@ private:
     double      _resolution_logJ2;
     vector<int> _states;
     double      _resolution_space;
+    vector<QMPair::PairType> _pairtype;
+    bool        _do_pairtype;
+    bool        _do_IRdependence;
 
 };
 
 
 void IAnalyze::Initialize(Property *opt) {
-
+    _do_pairtype=false;
+    _do_IRdependence=false;
     // update options with the VOTCASHARE defaults   
     UpdateWithDefaults( opt );
     string key = "options." + Identify();
- 
-    _resolution_logJ2 = opt->get(key+".resolution_logJ2").as< double >();
-    _resolution_space = opt->get(key+".resolution_space").as< double >();
     _states = opt->get(key+".states").as< vector<int> >();
+    _resolution_logJ2 = opt->get(key+".resolution_logJ2").as< double >();
+    
+    if ( opt->exists(key+".pairtype")) {
+        _do_pairtype=true;
+        string _store_string = opt->get(key+".pairtype").as<string> ();
+        if (_store_string.find("Hopping") != std::string::npos) _pairtype.push_back(QMPair::Hopping);
+        if (_store_string.find("SuperExchange") != std::string::npos) _pairtype.push_back(QMPair::SuperExchange);
+        if (_store_string.find("SuperExchangeAndHopping") != std::string::npos) _pairtype.push_back(QMPair::SuperExchangeAndHopping);
+        if (_store_string.find("Excitoncl") != std::string::npos) _pairtype.push_back(QMPair::Excitoncl);
+        if (!_pairtype.size()){
+            cout << endl << "... ... No pairtypes recognized will output all pairs. ";
+             _do_pairtype=false;
+        }
+
+    }
+    if ( opt->exists(key+".resolution_space")) {
+        _do_IRdependence=true;
+        _resolution_space = opt->get(key+".resolution_space").as< double >();
+    }
+   
 }
 
 
@@ -66,10 +87,28 @@ bool IAnalyze::EvaluateFrame(Topology *top) {
         cout << endl << "... ... No pairs in topology. Skip...";
         return 0;
     }
+    
+    if (_do_pairtype){
+        bool pairs_exist=false;
+        QMNBList::iterator nit;
+        for (nit = nblist.begin(); nit != nblist.end(); ++nit) {
+            QMPair::PairType pairtype=(*nit)->getType();
+            if(std::find(_pairtype.begin(), _pairtype.end(), pairtype) != _pairtype.end()) {
+                pairs_exist=true;
+                break;
+            }
+        }
+        if (!pairs_exist) {
+        cout << endl << "... ... No pairs of given pairtypes in topology. Skip...";
+        return 0;
+    }
+    }
 
     for (int i = 0; i < _states.size(); ++i) {
         this->IHist(top, _states[i]);
+        if (_do_IRdependence){
         this->IRdependence(top, _states[i]);
+        }
     }
     
     return true;
@@ -82,14 +121,20 @@ void IAnalyze::IHist(Topology *top, int state) {
     QMNBList::iterator nit;
    
 
-    double MIN = log10(nblist.front()->getJeff2(state));
-    double MAX = log10(nblist.front()->getJeff2(state));
+    double MIN = std::numeric_limits<double>::max();
+    double MAX = 0.0;
     
     // Collect J2s from pairs
     vector< double > J2s;
     J2s.reserve(nblist.size());
    
     for (nit = nblist.begin(); nit != nblist.end(); ++nit) {
+        if(_do_pairtype){
+            QMPair::PairType pairtype=(*nit)->getType();
+            if(std::find(_pairtype.begin(), _pairtype.end(), pairtype) != _pairtype.end()){
+                continue;
+            }
+        }
         double test = (*nit)->getJeff2(state);
         double J2;
  
