@@ -157,7 +157,7 @@ Job::JobResult IEXCITON::EvalJob(Topology *top, Job *job, QMThread *opThread) {
    cleanup.setMM1(cleanup2);
   
    
-   double JAB=EvaluatePair(top,seg_A_polar,seg_B_polar);
+   double JAB=EvaluatePair(top,seg_A_polar,seg_B_polar, pLog);
    
     
     
@@ -192,7 +192,7 @@ Job::JobResult IEXCITON::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     return jres;
 }
 
-double IEXCITON::EvaluatePair(Topology *top,PolarSeg* Seg1,PolarSeg* Seg2){
+double IEXCITON::EvaluatePair(Topology *top,PolarSeg* Seg1,PolarSeg* Seg2, Logger* pLog ){
     double int2eV = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
     XInteractor actor;
     actor.ResetEnergy();
@@ -205,7 +205,10 @@ double IEXCITON::EvaluatePair(Topology *top,PolarSeg* Seg1,PolarSeg* Seg2){
     for (pit1=Seg1->begin();pit1<Seg1->end();++pit1){
         for (pit2=Seg2->begin();pit2<Seg2->end();++pit2){
             actor.BiasIndu(*(*pit1), *(*pit2),s);
-            E += actor.E_f(*(*pit1), *(*pit2));               
+            //double dist=abs((*pit1)->getPos()-(*pit2)->getPos());
+            //LOG(logINFO,*pLog) <<"Q1 "<< (*pit1)->getQ00() <<" Q2 "<< (*pit2)->getQ00()<<" dist " <<dist << " comulative Energy "<< E << flush; 
+            E += actor.E_f(*(*pit1), *(*pit2));                           
+            //E+=(*pit1)->getQ00()*(*pit2)->getQ00()/dist;
     }
     }
 

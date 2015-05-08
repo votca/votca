@@ -77,7 +77,7 @@ private:
     
     void PreProcess(Topology *top);
     void CustomizeLogger(QMThread *thread);
-    double EvaluatePair(Topology *top,PolarSeg* Seg1,PolarSeg* Seg2);
+    double EvaluatePair(Topology *top,PolarSeg* Seg1,PolarSeg* Seg2, Logger* pLog);
  
     
  
