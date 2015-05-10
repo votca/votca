@@ -318,7 +318,7 @@ void IEXCITON::ReadJobFile(Topology *top) {
             if (qmp == NULL) { // there is no pair in the neighbor list with this name
                 LOG(logINFO, _log) << "No pair " <<  idA << ":" << idB << " found in the neighbor list. Ignoring" << flush; 
             }   else {
-                LOG(logINFO, _log) << "Store in record: " <<  idA << ":" << idB << flush; 
+                //LOG(logINFO, _log) << "Store in record: " <<  idA << ":" << idB << flush; 
                 records[qmp->getId()] = & ((*it)->get("output.pair"));
             }
         } else {

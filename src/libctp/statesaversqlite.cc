@@ -446,14 +446,95 @@ void StateSaverSQLite::WritePairs(bool update) {
     // Find out whether pairs for this topology have already been created
     stmt = _db.Prepare("SELECT id FROM pairs WHERE top = ?;");
     stmt->Bind(1, _qmtop->getDatabaseId());
-    if (stmt->Step() == SQLITE_DONE) { 
-        update = false;        
+    if (stmt->Step() == SQLITE_DONE) {        
         cout << " (create)" << flush;
     }
-    else { update = true; }
+    else { 
+        cout << " (recreate)" << flush;        
+        stmt = _db.Prepare("DELETE FROM pairs;");
+        stmt->Step();
+        delete stmt;
+        stmt = NULL;
+        stmt = _db.Prepare("UPDATE sqlite_sequence set seq = 0 where name='pairs' ;");
+        stmt->Step();
+        
+    }
+
     delete stmt;
     stmt = NULL;
+    
+    
+     stmt = _db.Prepare("INSERT INTO pairs ("
+                           "frame, top, id, "
+                           "seg1, seg2, drX, "
+                           "drY, drZ, "
+                           "has_e, has_h,has_s,has_t, "
+                           "lOe, lOh, lOs, lOt,"
+                           "rate12e, rate21e, rate12h, rate21h,"
+                           "rate12s, rate21s, rate12t, rate21t,"
+                           "Jeff2e,  Jeff2h, Jeff2s, Jeff2t,"
+                           "type "
+                           ") VALUES ("
+                           "?, ?, ?, "
+                           "?, ?, ?, "
+                           "?, ?, "
+                           "?, ?, ?, ?, "
+                           "?, ?, ?, ?, "
+                           "?, ?, ?, ?, "
+                           "?, ?, ?, ?, "
+                           "?, ?, ?, ?, "
+                           "? "
+                           ")");
+     
+      QMNBList::iterator nit;
 
+    for (nit = _qmtop->NBList().begin();
+         nit != _qmtop->NBList().end();
+         nit++) {
+
+        QMPair *pair = *nit;
+            int has_e = (pair->isPathCarrier(-1)) ? 1 : 0;
+            int has_h = (pair->isPathCarrier(+1)) ? 1 : 0;
+            int has_s = (pair->isPathCarrier(+2)) ? 1 : 0;
+            int has_t = (pair->isPathCarrier(+3)) ? 1 : 0;
+
+            stmt->Bind(1, _qmtop->getDatabaseId());
+            stmt->Bind(2, pair->getTopology()->getDatabaseId());
+            stmt->Bind(3, pair->getId());
+            stmt->Bind(4, pair->Seg1PbCopy()->getId());
+            stmt->Bind(5, pair->Seg2PbCopy()->getId());
+            stmt->Bind(6, pair->R().getX());
+            stmt->Bind(7, pair->R().getY());
+            stmt->Bind(8, pair->R().getZ());
+            stmt->Bind(9, has_e);
+            stmt->Bind(10, has_h);
+            stmt->Bind(11, has_s);
+            stmt->Bind(12, has_t);
+            stmt->Bind(13, pair->getLambdaO(-1));
+            stmt->Bind(14, pair->getLambdaO(+1));
+            stmt->Bind(15, pair->getLambdaO(+2));
+            stmt->Bind(16, pair->getLambdaO(+3));
+            stmt->Bind(17, pair->getRate12(-1));
+            stmt->Bind(18, pair->getRate21(-1));
+            stmt->Bind(19, pair->getRate12(+1));
+            stmt->Bind(20, pair->getRate21(+1));
+            stmt->Bind(21, pair->getRate12(+2));
+            stmt->Bind(22, pair->getRate21(+2));
+            stmt->Bind(23, pair->getRate12(+3));
+            stmt->Bind(24, pair->getRate21(+3));
+            stmt->Bind(25, pair->getJeff2(-1));
+            stmt->Bind(26, pair->getJeff2(+1));
+            stmt->Bind(27, pair->getJeff2(+2));
+            stmt->Bind(28, pair->getJeff2(+3));
+            stmt->Bind(29, (int)(pair->getType()) );
+            
+            stmt->InsertStep();
+            stmt->Reset();
+        }
+    
+
+    
+    /*
     if (!update) {
         stmt = _db.Prepare("INSERT INTO pairs ("
                            "frame, top, id, "
@@ -572,7 +653,7 @@ void StateSaverSQLite::WritePairs(bool update) {
         stmt->InsertStep();
         stmt->Reset();
     }
-
+*/
     delete stmt;
     stmt = NULL;
 }
@@ -594,6 +675,10 @@ void StateSaverSQLite::WriteSuperExchange(bool update) {
     else { 
         cout << " (recreate)" << flush;        
         stmt = _db.Prepare("DELETE FROM superExchange;");
+        stmt->Step();
+        delete stmt;
+        stmt = NULL;
+        stmt = _db.Prepare("UPDATE sqlite_sequence set seq = 0 where name='pairs' ;");
         stmt->Step();
         delete stmt;
     }
