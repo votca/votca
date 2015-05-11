@@ -64,6 +64,10 @@ PolarBackground::PolarBackground(Topology *top, PolarTop *ptop, Property *opt,
         _do_checkpointing = opt->get(pfx+".control.checkpointing").as<bool>();
     else
         _do_checkpointing = false;
+    if (opt->exists(pfx+".control.max_iter"))
+    	_max_iter = opt->get(pfx+".control.max_iter").as<int>();
+    else
+    	_max_iter = -1;
     
     // EWALD INTERACTION PARAMETERS (GUESS ONLY)
     _K_co = _kfactor/_R_co;
@@ -94,14 +98,15 @@ PolarBackground::PolarBackground(Topology *top, PolarTop *ptop, Property *opt,
     _bg_P.clear();
     _bg_P = ptop->BGN();
     
-    // RESTART OPTIONS
+    // RESTART / CONVERGENCE OPTIONS
+    _converged = false;
     _restart_from_iter = ptop->getPolarizationIter();
     if (_restart_from_iter > -1) {
         LOG(logINFO,*_log) << "Restarting from iteration " 
            << _restart_from_iter << flush << flush;
         _do_restart = true;
     }
-    
+
     // CALCULATE COG POSITIONS, NET CHARGE
     vector<PolarSeg*>::iterator sit; 
     vector<APolarSite*> ::iterator pit;
@@ -381,9 +386,9 @@ void PolarBackground::Polarize(int n_threads = 1) {
     LOG(dbg,log) << "  o Setup real-space neighbours at iteration " << setup_nbs_iter << flush;
     LOG(dbg,log) << "  o Generate k-vectors at iteration " << generate_kvecs_iter << flush;
     
-    int max_iter = 512;
+    int max_iter = iter+_max_iter;
     double epstol = 1e-3;
-    for ( ; iter < max_iter+1; ++iter) {
+    for ( ; iter != max_iter; ++iter) {
         LOG(dbg,log) << flush;
         LOG(dbg,log) << "Iter " << iter << " started" << flush;
         
@@ -485,6 +490,7 @@ void PolarBackground::Polarize(int n_threads = 1) {
         if (avgdU < epstol*0.1) { converged = true; }
         if (_do_checkpointing) this->Checkpoint(iter, converged);
         if (converged) {
+        	_converged = true;
             LOG(dbg,log) << flush;
             LOG(dbg,log) << ":: Converged induction fields" << flush;
             break;
@@ -493,6 +499,11 @@ void PolarBackground::Polarize(int n_threads = 1) {
             throw std::runtime_error("Not converged.");
             break;
         }
+    }
+
+    if (iter == max_iter) {
+    	LOG(dbg,log) << flush;
+    	LOG(dbg,log) << "Reached maximum number of iterations. Stop here." << flush;
     }
         
     if (tools::globals::verbose) {
