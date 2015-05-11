@@ -652,7 +652,6 @@ void IGWBSE::ReadJobFile(Topology *top) {
     // load the QC results in a vector indexed by the pair ID
     load_property_from_xml(xml, _jobfile);
     list<Property*> jobProps = xml.Select("jobs.job");
-    
     records.resize( nblist.size() + 1  );
     
     // loop over all jobs = pair records in the job file
@@ -700,34 +699,21 @@ void IGWBSE::ReadJobFile(Topology *top) {
         QMPair::PairType _ptype = pair->getType();
         Property* pair_property = records[ pair->getId() ];
  
-        int stateA = 
-        int stateB = 
+        int stateA = 0.0;
+        int stateB = 0.0;
        
         // If a pair is of a direct type 
         if ( _ptype == QMPair::Hopping ||  _ptype == QMPair::SuperExchangeAndHopping ) {
-            cout << ":hopping" ;
+            //cout << ":hopping" ;
             list<Property*> pOverlap = pair_property->Select("overlap");
  
-            for (list<Property*> ::iterator itOverlap = pOverlap.begin(); itOverlap != pOverlap.end(); ++itOverlap) {
-
-                double overlapAB = (*itOverlap)->getAttribute<double>("jAB");
-                int orbA = (*itOverlap)->getAttribute<double>("orbA");
-                int orbB = (*itOverlap)->getAttribute<double>("orbB");
-                cout << " orbA:orbB " << orbA << ":" << orbB << flush;
-                if ( orbA == homoA && orbB == homoB ) {
-                    Jeff2_homo += overlapAB*overlapAB;
-                }
-
-                if ( orbA == homoA+1 && orbB == homoB+1 ) {
-                    Jeff2_lumo += overlapAB*overlapAB;
-                }
-            }    
+          
             
         }
         
      
             
-            cout << " homoA:homoB, orbA:orbB " << homoA << ":" << homoB << "," << orbA << ":" << orbB;
+        
 
                 
         cout << endl;
