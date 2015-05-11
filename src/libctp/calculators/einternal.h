@@ -187,9 +187,9 @@ void EInternal::ParseEnergiesXML(Property *opt) {
                  (*segit)->exists("U_nX_nN_s") &&
                  (*segit)->exists("U_xN_xX_s")    ) {
 
-                U_cC_nN_e = (*segit)->get("U_xX_nN_s").as< double > ();
-                U_nC_nN_e = (*segit)->get("U_nX_nN_s").as< double > ();
-                U_cN_cC_e = (*segit)->get("U_xN_xX_s").as< double > ();
+                U_xX_nN_s = (*segit)->get("U_xX_nN_s").as< double > ();
+                U_nX_nN_s = (*segit)->get("U_nX_nN_s").as< double > ();
+                U_xN_xX_s = (*segit)->get("U_xN_xX_s").as< double > ();
 
                 has_s = true;
             }
@@ -197,9 +197,9 @@ void EInternal::ParseEnergiesXML(Property *opt) {
                  (*segit)->exists("U_nX_nN_t") &&
                  (*segit)->exists("U_xN_xX_t")    ) {
 
-                U_cC_nN_e = (*segit)->get("U_xX_nN_t").as< double > ();
-                U_nC_nN_e = (*segit)->get("U_nX_nN_t").as< double > ();
-                U_cN_cC_e = (*segit)->get("U_xN_xX_t").as< double > ();
+                U_xX_nN_t = (*segit)->get("U_xX_nN_t").as< double > ();
+                U_xX_nN_t = (*segit)->get("U_xX_nN_t").as< double > ();
+                U_xN_xX_t = (*segit)->get("U_xN_xX_t").as< double > ();
 
                 has_t = true;
             }
