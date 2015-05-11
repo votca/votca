@@ -648,14 +648,12 @@ void IGWBSE::ReadJobFile(Topology *top) {
     Logger _log;
     _log.setReportLevel(logINFO);
     
-    // generate lists of bridges for superexchange pairs
-    nblist.GenerateSuperExchange();
 
     // load the QC results in a vector indexed by the pair ID
     load_property_from_xml(xml, _jobfile);
     list<Property*> jobProps = xml.Select("jobs.job");
     
-    records.resize( jobProps.size() + 1  );
+    records.resize( nblist.size() + 1  );
     
     // loop over all jobs = pair records in the job file
     for (list<Property*> ::iterator  it = jobProps.begin(); it != jobProps.end(); ++it) {
@@ -702,8 +700,8 @@ void IGWBSE::ReadJobFile(Topology *top) {
         QMPair::PairType _ptype = pair->getType();
         Property* pair_property = records[ pair->getId() ];
  
-        int homoA = pair_property->getAttribute<int>("homoA");
-        int homoB = pair_property->getAttribute<int>("homoB");
+        int stateA = 
+        int stateB = 
        
         // If a pair is of a direct type 
         if ( _ptype == QMPair::Hopping ||  _ptype == QMPair::SuperExchangeAndHopping ) {
@@ -727,152 +725,11 @@ void IGWBSE::ReadJobFile(Topology *top) {
             
         }
         
-        // if pair has bridges only
-        if ( _ptype == QMPair::SuperExchange  ||  _ptype == QMPair::SuperExchangeAndHopping ) {
-            cout << ":superexchange" << endl;
-            list<Property*> pOverlap = pair_property->Select("overlap");
-            
-            // this is to select HOMO_A and HOMO_B 
-            double overlapAB;
-            int orbA;
-            int orbB;
-            double energyA;
-            double energyB;
-            
-            for (list<Property*> ::iterator itOverlap = pOverlap.begin(); itOverlap != pOverlap.end(); ++itOverlap) {
-               orbA = (*itOverlap)->getAttribute<int>("orbA");
-               orbB = (*itOverlap)->getAttribute<int>("orbB");
-               if ( orbA == homoA && orbB == homoB ) {  
-                    overlapAB = (*itOverlap)->getAttribute<double>("jAB");
-                    energyA = (*itOverlap)->getAttribute<double>("eA");
-                    energyB = (*itOverlap)->getAttribute<double>("eB");
-                    break;
-                }
-            }
+     
             
             cout << " homoA:homoB, orbA:orbB " << homoA << ":" << homoB << "," << orbA << ":" << orbB;
 
-            /*QMNBList::iterator nit;
-            for (nit = nblist.begin(); nit != nblist.end(); ++nit) {
                 
-                QMPair *qmp = *nit;
-                Segment *seg1 = qmp->Seg1();
-                Segment *seg2 = qmp->Seg2();
-                
-                cout << "ID1 " << seg1->getId();
-                cout << " <> ID2 " << seg2->getId() << endl;
-                
-            }*/
-            // loop over the bridging segments
-            for ( vector< Segment* >::const_iterator itBridge = pair->getBridgingSegments().begin() ; itBridge != pair->getBridgingSegments().end(); itBridge++ ) {
-                        
-                Segment* Bridge = *itBridge;
-                int IDBridge = Bridge->getId();
-                
-                cout << " BridgeID:" << IDBridge;
-
-                // pairs from the bridge to the donor and acceptor
-                QMPair* Bridge_A = nblist.FindPair( segmentA, Bridge );
-                if( Bridge_A == NULL ) cout << "Bridge-SegmentA pair not found" << std::endl;  
-
-                QMPair* Bridge_B = nblist.FindPair( segmentB, Bridge );
-                if( Bridge_B == NULL ) cout << "Bridge-SegmentB pair not found " << segmentB->getId() << ":" << Bridge->getId()<< std::endl;
-                
-
-                cout << " IDBA:IDBB " << Bridge_A->getId() << ":" << Bridge_B->getId();
-
-                
-                Property* pBridge_A = records[ Bridge_A->getId() ];
-                Property* pBridge_B = records[ Bridge_B->getId() ];
-
-                list<Property*> pOverlapA = pBridge_A->Select("overlap");
-                list<Property*> pOverlapB = pBridge_B->Select("overlap");
-
-                // IDs of the Donor and Acceptor
-                int IdA = segmentA->getId();
-                int IdB = segmentB->getId();
-
-
-                                
-                // IDs stored in the file
-                int id1A = pBridge_A->getAttribute<int>("idA");
-                int id2A = pBridge_A->getAttribute<int>("idB");
-
-                int id1B = pBridge_B->getAttribute<int>("idA");
-                int id2B = pBridge_B->getAttribute<int>("idB");
-
-                // suffix for the donor and acceptor 
-                string suffixA = ( id1A == IDBridge ) ? "B" : "A"; // use "A" as a bridge 
-                string suffixB = ( id1B == IDBridge ) ? "B" : "A"; // use "A" as a bridge 
-                string suffixBridgeA = ( id1A == IDBridge ) ? "A" : "B";
-                string suffixBridgeB = ( id1B == IDBridge ) ? "A" : "B";
-                
-                cout << " id1A:id1B " << id1A << ":" << id1B;
-                
-                //cout << *pBridge_A << endl;
-                //cout << *pBridge_B << endl;
-               
-                //double check if the records are correct
-                int homoBridgeA = pBridge_A->getAttribute<int>("homo" + suffixBridgeA );
-                int homoBridgeB = pBridge_B->getAttribute<int>("homo" + suffixBridgeB );
-                assert( homoBridgeA == homoBridgeB );
-                int homoBridge = homoBridgeA;
-               
-                //exit(0);
-                
-                // double loop over all levels of A and B
-                for (list<Property*> ::iterator itOverlapA = pOverlapA.begin(); itOverlapA != pOverlapA.end(); ++itOverlapA) {
-                for (list<Property*> ::iterator itOverlapB = pOverlapB.begin(); itOverlapB != pOverlapB.end(); ++itOverlapB) {
-                    
-                    int orbDonor = (*itOverlapA)->getAttribute<int>( "orb" + suffixA );
-                    int orbAcceptor = (*itOverlapB)->getAttribute<int>( "orb" + suffixB );
-                    int orbBridgeA  = (*itOverlapA)->getAttribute<int>( "orb" + suffixBridgeA );
-                    int orbBridgeB = (*itOverlapB)->getAttribute<int>( "orb" + suffixBridgeB );
-                    
-                    if (  orbDonor == homoA && orbAcceptor == homoB && orbBridgeA == orbBridgeB && orbBridgeA <= homoBridge) {
-                        
-                        double jDB = (*itOverlapA)->getAttribute<double>( "jAB" );
-                        double jBA = (*itOverlapB)->getAttribute<double>( "jAB" );
-                        double eA  = (*itOverlapA)->getAttribute<double>( "e" + suffixA );
-                        double eB  = (*itOverlapB)->getAttribute<double>( "e" + suffixB );
-                        
-                        double eBridgeA  = (*itOverlapA)->getAttribute<double>( "e" + suffixBridgeA );
-                        double eBridgeB  = (*itOverlapB)->getAttribute<double>( "e" + suffixBridgeB );
-                        
-                        //assert( eBridgeA - eBridgeB < 1e-50 );
-                     
-                        cout << homoA << " " << homoB << " " << (*itOverlapA)->getAttribute<int>( "orb" + suffixBridgeA )
-                             << " JDB " << jDB 
-                             << " JBA " << jBA << endl;
-                        
-                        // This in principle violates detailed balance. Any ideas?
-                        Jeff2_homo += 0.5 * (jDB*jBA / (eA - eBridgeA) + jDB*jBA / (eB - eBridgeB));
-                        
-                                
-                    }
-
-                    if (  orbDonor == homoA+1 && orbAcceptor == homoB+1 && orbBridgeA == orbBridgeB && orbBridgeA > homoBridge) {
-                        
-                        double jDB = (*itOverlapA)->getAttribute<double>( "jAB" );
-                        double jBA = (*itOverlapB)->getAttribute<double>( "jAB" );
-                        double eA  = (*itOverlapA)->getAttribute<double>( "e" + suffixA );
-                        double eB  = (*itOverlapB)->getAttribute<double>( "e" + suffixB );
-                        
-                        double eBridgeA  = (*itOverlapA)->getAttribute<double>( "e" + suffixBridgeA );
-                        double eBridgeB  = (*itOverlapB)->getAttribute<double>( "e" + suffixBridgeB );
-                        
-                         // This in principle violates detailed balance. Any ideas?
-                        Jeff2_lumo += 0.5 * (jDB*jBA / (eA - eBridgeA) + jDB*jBA / (eB - eBridgeB));
-                        //jDB*jBA / (eB - eBridgeB);
-                                
-                    }
-                    
-                     
-                }}
-            } // end over bridges 
-          
-        } // end of if superexchange
-        
         cout << endl;
                     
         pair->setJeff2(Jeff2_homo, 1);

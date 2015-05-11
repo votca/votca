@@ -298,7 +298,7 @@ void JobWriter::mps_single(Topology *top) {
     bool proceed = true;
     if (single_id < 1 || single_id > top->Segments().size()) {
         cout << endl 
-             << "... ... ERROR Corrupt value in options.jobwriter.singel_id: "
+             << "... ... ERROR Corrupt value in options.jobwriter.single_id: "
              << "No such segment ID = " << single_id << ". Return." 
              << flush;
         ofs << "ERROR Corrupt value in options.jobwriter.single_id" << endl;
