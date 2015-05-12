@@ -79,10 +79,10 @@ namespace votca {
 
         void GenCube::Initialize(Property* options) {
             
-            bool _do_groundstate=false;
-            bool _do_bse=false;
-            bool _do_qp=false;
-            bool _do_transition=false;
+            _do_groundstate=false;
+            _do_bse=false;
+            _do_qp=false;
+            _do_transition=false;
 
             // update options with the VOTCASHARE defaults   
             UpdateWithDefaults(options);
@@ -109,6 +109,7 @@ namespace votca {
             _state = options->get(key + ".state").as<int> ();
             _spin = options->get(key + ".spin").as<string> ();
             _type = options->get(key + ".type").as<string> ();
+            
             _mode = options->get(key + ".mode").as<string> ();
 
             if ( _mode == "subtract" ){
@@ -258,7 +259,6 @@ namespace votca {
                 dftbasis.AOBasisFill(&dftbs, _orbitals.QMAtoms());
                 dftbasis.ReorderMOs(_dft_orbitals, _orbitals.getQMpackage(), "votca");
 
-                
                 
                 // now depending on the type of cube
                 if (_do_groundstate || _do_bse || _do_transition ) {
