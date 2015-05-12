@@ -178,7 +178,7 @@ void ESPFit_Tool::FitESP( Orbitals& _orbitals ){
                     DMAT = _orbitals.DensityMatrixExcitedState( _orbitals.MOCoefficients() , _orbitals.BSESingletCoefficients(), _state_no-1);
 
                 }
-                else if (_spin=="triplet" && _state=="excited"){
+                else if (_spin=="triplet"){
                     DMAT = _orbitals.DensityMatrixExcitedState( _orbitals.MOCoefficients() , _orbitals.BSETripletCoefficients(), _state_no-1);
                 }
                 else throw std::runtime_error("Spin entry not recognized");
