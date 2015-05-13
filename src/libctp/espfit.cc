@@ -69,7 +69,7 @@ void Espfit::FitAPECharges(Grid& _targetgrid_fg, Grid& _targetgrid_bg, Grid& _ch
        
 
 
-void Espfit::Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_dftbasis,BasisSet &dftbs, double _netcharge) { 
+void Espfit::Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_dftbasis,BasisSet &dftbs, bool _do_transition, double _netcharge) { 
     double A2Bohr=1.8897259886;
      double Nm2Bohr=18.8972598860;
      double Nm2A=10.0;
@@ -110,8 +110,10 @@ void Espfit::Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat
         }
     
     LOG(logDEBUG, *_log) << TimeStamp() << " Electron contribution calculated"  << flush; 
+    if (!_do_transition){
+    ub::vector<double> _NucPatGrid = EvalNuclearPotential(  _atomlist,  _grid );
     _ESPatGrid += _NucPatGrid;
-
+    }
     std::vector< ub::vector<double> > _fitcenters;
     
           for ( int j = 0; j < _atomlist.size(); j++){
@@ -169,7 +171,7 @@ ub::vector<double> Espfit:: EvalNuclearPotential( vector< QMAtom* >& _atoms, Gri
     return _NucPatGrid;     
    }
 
-void Espfit::Fit2Density_analytic(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AOBasis &_dftbasis,double _netcharge) { 
+void Espfit::Fit2Density_analytic(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AOBasis &_dftbasis,bool _do_transition, double _netcharge) { 
     double A2Bohr=1.8897259886;
      double Nm2Bohr=18.8972598860;
      double Nm2A=10.0;
@@ -186,7 +188,7 @@ void Espfit::Fit2Density_analytic(vector< QMAtom* >& _atomlist, ub::matrix<doubl
     ub::vector<double> _ESPatGrid = ub::zero_vector<double>(_grid.getsize());
     // ub::vector<double> _NucPatGrid = ub::zero_vector<double>(_gridpoints.size());
     
-    ub::vector<double> _NucPatGrid = EvalNuclearPotential(  _atomlist,  _grid );
+    
 
     double Ztot = 0.0;
     for ( int j = 0; j < _atomlist.size(); j++){
@@ -229,8 +231,11 @@ void Espfit::Fit2Density_analytic(vector< QMAtom* >& _atomlist, ub::matrix<doubl
     }
     fclose(out2);
     */
-    
+    if (!_do_transition){
+    ub::vector<double> _NucPatGrid = EvalNuclearPotential(  _atomlist,  _grid );
     _ESPatGrid += _NucPatGrid;
+    }
+    
 
     std::vector< ub::vector<double> > _fitcenters;
     

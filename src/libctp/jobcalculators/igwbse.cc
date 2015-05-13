@@ -24,7 +24,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
-
+#include <boost/algorithm/string/split.hpp>
 #include <votca/ctp/logger.h>
 #include <votca/ctp/qmpackagefactory.h>
 
@@ -58,6 +58,10 @@ void IGWBSE::Initialize(votca::tools::Property* options ) {
     _store_integrals = false;
     _store_ehint = false;
     
+    
+    _do_singlets=false;
+    _do_triplets=false;
+
     // update options with the VOTCASHARE defaults   
     UpdateWithDefaults( options );
     ParseOptionsXML( options  );
@@ -77,7 +81,15 @@ void IGWBSE::ParseOptionsXML( votca::tools::Property *opt ) {
     _number_excitons = opt->get(key+".states").as<int> ();
     // spin types for which to determine coupling
     _spintype   = opt->get(key + ".type").as<string> ();
- 
+    if (_spintype=="all"){
+        _do_singlets=true;
+        _do_triplets=true;
+    }
+    else if(_spintype=="singlets") _do_singlets=true;
+    else if(_spintype=="triplets") _do_triplets=true;
+    else{
+        throw std::runtime_error("Spin type not known. Input: singlets, triplets or all.");
+    }
     // job tasks
     string _tasks_string = opt->get(key+".tasks").as<string> ();
     if (_tasks_string.find("input")    != std::string::npos) _do_dft_input = true;
@@ -109,7 +121,36 @@ void IGWBSE::ParseOptionsXML( votca::tools::Property *opt ) {
     // job file specification
     key = "options." + Identify() +".job";
     _jobfile = opt->get(key + ".file").as<string>();    
+    
+    //options for parsing data into sql file   
+    key ="options." + Identify();
+    if ( opt->exists(key+".singlets")) {
+            string _parse_string_s = opt->get(key+".singlets").as<string> ();
+            _singlet_levels=FillParseMaps(_parse_string_s);       
+        }
+    if ( opt->exists(key+".triplets")) {
+            string _parse_string_t = opt->get(key+".triplets").as<string> ();
+            _triplet_levels=FillParseMaps(_parse_string_t);       
+        }
 
+     
+    
+
+    
+}
+
+std::map<std::string, int> IGWBSE::FillParseMaps(string Mapstring){
+    std::vector<string> strings_vec;
+    boost::algorithm::split( strings_vec, Mapstring, boost::is_any_of("\t \n"),boost::token_compress_on );
+    std::vector<string>::iterator sit;
+    std::map<std::string, int> type2level;
+    for(sit=strings_vec.begin();sit<strings_vec.end();++sit){
+        std::vector<string>temp;
+        boost::algorithm::split( temp, (*sit), boost::is_any_of(":"),boost::token_compress_on );
+        int number=boost::lexical_cast<int>(temp[1]);
+        string type=temp[0];
+        type2level[type]=number-1; // -1 because default return if key is not found is 0, so if key is not found first exited state should be used number game
+    }
     
 }
 
@@ -653,18 +694,32 @@ void IGWBSE::ReadJobFile(Topology *top) {
     load_property_from_xml(xml, _jobfile);
     list<Property*> jobProps = xml.Select("jobs.job");
     records.resize( nblist.size() + 1  );
-    
+    //to skip pairs which are not in the jobfile
+    for (int i=0;i<records.size();i++){
+        records[i]=NULL;
+    }
     // loop over all jobs = pair records in the job file
     for (list<Property*> ::iterator  it = jobProps.begin(); it != jobProps.end(); ++it) {
+        
+        int level_segA=1;
+        int level_segB=1;
  
         // if job produced an output, then continue with analysis
         if ( (*it)->exists("output") && (*it)->exists("output.pair") ) {
             
             // get the output records
             Property poutput = (*it)->get("output.pair");
-            // id's of two segments of a pair
-            int idA = poutput.getAttribute<int>("idA");
-            int idB = poutput.getAttribute<int>("idB");
+            // job file is stupid, because segment ids are only in input have to get them out l
+            list<Property*> pinput = (*it)->Select("input.segment");
+            vector<int> id;
+            for (list<Property*> ::iterator  iit = pinput.begin(); iit != pinput.end(); ++iit) {            
+                id.push_back((*iit)->getAttribute<int>("id"));
+            }
+            if (id.size()!=2) throw std::runtime_error("Getting pair ids from jobfile failed, check jobfile.");
+            
+            double idA=id[0];
+            double idB=id[1];
+                           
             // segments which correspond to these ids           
             Segment *segA = top->getSegment(idA);
             Segment *segB = top->getSegment(idB);
@@ -675,7 +730,7 @@ void IGWBSE::ReadJobFile(Topology *top) {
                 LOG(logINFO, _log) << "No pair " <<  idA << ":" << idB << " found in the neighbor list. Ignoring" << flush; 
             }   else {
                 //LOG(logINFO, _log) << "Store in record: " <<  idA << ":" << idB << flush; 
-                records[qmp->getId()] = & ((*it)->get("output.pair"));
+                records[qmp->getId()] = & ((*it)->get("output.pair.type"));
             }
         } else {
             throw runtime_error("\nERROR: Job file incomplete.\n Check your job file for FAIL, AVAILABLE, or ASSIGNED. Exiting\n");
@@ -688,41 +743,63 @@ void IGWBSE::ReadJobFile(Topology *top) {
     for (QMNBList::iterator ipair = top->NBList().begin(); ipair != top->NBList().end(); ++ipair) {
         
         QMPair *pair = *ipair;
+        if (records[ pair->getId() ]==NULL) continue; //skip pairs which are not in the jobfile
+        
         Segment* segmentA = pair->Seg1();
         Segment* segmentB = pair->Seg2();
         
-        double Jeff2_homo = 0;
-        double Jeff2_lumo = 0;
         
-        cout << "Processing pair " << segmentA->getId() << ":" << segmentB->getId() << flush;
+        
+        //cout << "Processing pair " << segmentA->getId() << ":" << segmentB->getId() << flush;
         
         QMPair::PairType _ptype = pair->getType();
         Property* pair_property = records[ pair->getId() ];
  
-        int stateA = 0.0;
-        int stateB = 0.0;
+        
        
         // If a pair is of a direct type 
         if ( _ptype == QMPair::Hopping ||  _ptype == QMPair::SuperExchangeAndHopping ) {
             //cout << ":hopping" ;
-            list<Property*> pOverlap = pair_property->Select("overlap");
- 
-          
+            
+            if(pair_property->exists("singlets")){
+                bool found=false;
+                double coupling;
+                list<Property*> singlets = pair_property->Select("singlets.coupling");
+                int stateA=_singlet_levels[segmentA->getName()]+1; // there it comes back from above if map is empty state 1 will be chosen, clever is it not?
+                int stateB=_singlet_levels[segmentB->getName()]+1;
+                for (list<Property*> ::iterator  iit = singlets.begin(); iit != singlets.end(); ++iit) {         
+                    int state1=(*iit)->getAttribute<int>("excitonA");
+                    int state2=(*iit)->getAttribute<int>("excitonB");
+                    if (state1==stateA && state2==stateB){
+                        coupling=boost::lexical_cast<double>((*iit)->value());
+                        pair->setJeff2(coupling*coupling, 2);
+                        pair->setIsPathCarrier(true, 2);
+                    }  
+                }
+            }    
+            if(pair_property->exists("triplets")){
+                bool found=false;
+                double coupling;
+                list<Property*> triplets = pair_property->Select("triplets.coupling");
+                int stateA=_triplet_levels[segmentA->getName()]+1; // there it comes back from above if map is empty state 1 will be chosen, clever is it not?
+                int stateB=_triplet_levels[segmentB->getName()]+1;
+                for (list<Property*> ::iterator  iit = triplets.begin(); iit != triplets.end(); ++iit) {         
+                    int state1=(*iit)->getAttribute<int>("excitonA");
+                    int state2=(*iit)->getAttribute<int>("excitonB");
+                    if (state1==stateA && state2==stateB){
+                        coupling=boost::lexical_cast<double>((*iit)->value());
+                        pair->setJeff2(coupling*coupling, 3);
+                        pair->setIsPathCarrier(true, 3);
+                    }  
+                }   
+            }
             
         }
-        
-     
-            
-        
-
-                
+        else{
+          cout << "WARNING Pair " << pair->getId() << " is not of any of the Hopping or SuperExchangeAndHopping type, what did you do to the jobfile?"<< flush;  
+        }
+              
         cout << endl;
-                    
-        pair->setJeff2(Jeff2_homo, 1);
-        pair->setIsPathCarrier(true, 1);
-        
-        pair->setJeff2(Jeff2_lumo, -1);
-        pair->setIsPathCarrier(true, -1);
 
     }
                     

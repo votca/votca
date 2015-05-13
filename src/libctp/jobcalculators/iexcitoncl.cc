@@ -299,6 +299,11 @@ void IEXCITON::ReadJobFile(Topology *top) {
     load_property_from_xml(xml, _jobfile);
     list<Property*> jobProps = xml.Select("jobs.job");
     records.resize( _number_of_pairs + 1  );
+    
+    //to skip pairs which are not in the jobfile
+    for (int i=0;i<records.size();i++){
+        records[i]=NULL;
+    }
     // loop over all jobs = pair records in the job file
     for (list<Property*> ::iterator  it = jobProps.begin(); it != jobProps.end(); ++it) {
         // if job produced an output, then continue with analysis
@@ -333,6 +338,9 @@ void IEXCITON::ReadJobFile(Topology *top) {
     for (QMNBList::iterator ipair = top->NBList().begin(); ipair != top->NBList().end(); ++ipair) {
         
         QMPair *pair = *ipair;
+        
+        if (records[ pair->getId() ]==NULL) continue; //skip pairs which are not in the jobfile
+        
         Segment* segmentA = pair->Seg1();
         Segment* segmentB = pair->Seg2();
         

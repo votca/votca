@@ -157,8 +157,9 @@ void ESPFit_Tool::FitESP( Orbitals& _orbitals ){
         AOBasis basis;
         basis.AOBasisFill(&dftbs, Atomlist );
         basis.ReorderMOs(_orbitals.MOCoefficients(), _orbitals.getQMpackage(), "votca" );  
-        
+        bool _do_transition=false;
         if(_state=="transition"){
+            _do_transition=true;
             if (_spin=="singlet"){
                 DMAT_tot=_orbitals.TransitionDensityMatrix(_orbitals.MOCoefficients() , _orbitals.BSESingletCoefficients(), _state_no-1);
             }
@@ -189,8 +190,8 @@ void ESPFit_Tool::FitESP( Orbitals& _orbitals ){
         else throw std::runtime_error("State entry not recognized");
         Espfit esp;
         esp.setLog(&_log);
-        if (_method=="numeric")        esp.Fit2Density(Atomlist, DMAT_tot, basis,dftbs); 
-        else if (_method=="analytic")  esp.Fit2Density_analytic(Atomlist,DMAT_tot,basis);
+        if (_method=="numeric")        esp.Fit2Density(Atomlist, DMAT_tot, basis,dftbs,_do_transition); 
+        else if (_method=="analytic")  esp.Fit2Density_analytic(Atomlist,DMAT_tot,basis,_do_transition);
 }       
 
 }}
