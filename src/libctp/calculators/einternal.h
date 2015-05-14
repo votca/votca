@@ -203,7 +203,7 @@ void EInternal::ParseEnergiesXML(Property *opt) {
 
                 has_t = true;
             }
-
+            //cout <<  U_xX_nN_s << U_nX_nN_s << U_xN_xX_s << endl;
             _seg_U_cC_nN_e[segName] = U_cC_nN_e;
             _seg_U_nC_nN_e[segName] = U_nC_nN_e;
             _seg_U_cN_cC_e[segName] = U_cN_cC_e;
@@ -217,12 +217,12 @@ void EInternal::ParseEnergiesXML(Property *opt) {
             _seg_U_xX_nN_s[segName] = U_xX_nN_s;
             _seg_U_nX_nN_s[segName] = U_nX_nN_s;
             _seg_U_xN_xX_s[segName] = U_xN_xX_s;
-            _seg_has_s[segName] = has_h;
+            _seg_has_s[segName] = has_s;
                         
             _seg_U_xX_nN_t[segName] = U_xX_nN_t;
             _seg_U_nX_nN_t[segName] = U_nX_nN_t;
             _seg_U_xN_xX_t[segName] = U_xN_xX_t;
-            _seg_has_t[segName] = has_h;
+            _seg_has_t[segName] = has_t;
             
             _has_seg[segName] = has_seg;
            
@@ -237,7 +237,7 @@ bool EInternal::EvaluateFrame(Topology *top) {
     for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
 
         string segName = (*sit)->getName();
-
+        
         try {
             bool has_seg = _has_seg.at(segName);
         }
@@ -280,7 +280,7 @@ bool EInternal::EvaluateFrame(Topology *top) {
             double l1 = _seg_U_nX_nN_s[segName];
             double l2 = _seg_U_xN_xX_s[segName];
             bool has_s = true;
-
+            //cout << u << l1 << l2<<endl;
             (*sit)->setU_xX_nN(u, +2);
             (*sit)->setU_nX_nN(l1, +2);
             (*sit)->setU_xN_xX(l2, +2);

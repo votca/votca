@@ -69,7 +69,7 @@ void IAnalyze::Initialize(Property *opt) {
             cout << endl << "... ... No pairtypes recognized will output all pairs. ";
              _do_pairtype=false;
         }
-
+        //cout <<_pairtype.size()<<endl;
     }
     if ( opt->exists(key+".resolution_space")) {
         
@@ -127,12 +127,12 @@ void IAnalyze::IHist(Topology *top, int state) {
     
     // Collect J2s from pairs
     vector< double > J2s;
-    J2s.reserve(nblist.size());
+    //J2s.reserve(nblist.size()); //does not make a difference 
    
     for (nit = nblist.begin(); nit != nblist.end(); ++nit) {
         if(_do_pairtype){
             QMPair::PairType pairtype=(*nit)->getType();
-            if(std::find(_pairtype.begin(), _pairtype.end(), pairtype) != _pairtype.end()){
+            if(!(std::find(_pairtype.begin(), _pairtype.end(), pairtype) != _pairtype.end())){
                 continue;
             }
         }
@@ -171,7 +171,12 @@ void IAnalyze::IHist(Topology *top, int state) {
         histN[bin] = histJ2[bin].size();
     }
     FILE *out;
-    string tag = boost::lexical_cast<string>("ianalyze.ihist_") + ( (state == -1) ? "e" : "h" ) + ".out";
+    string name;
+    if (state==-1) name="e";
+    else if (state==1) name="h";
+    else if (state==2) name="s";
+    else if (state==3) name="t";
+    string tag = boost::lexical_cast<string>("ianalyze.ihist_") +name + ".out";
     out = fopen(tag.c_str(), "w");
 
     fprintf(out, "# IANALYZE: PAIR-INTEGRAL J2 HISTOGRAM\n");

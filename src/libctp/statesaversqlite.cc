@@ -298,17 +298,19 @@ void StateSaverSQLite::WriteSegments(bool update) {
             stmt->Bind(13, seg->getEMpoles(-1));
             stmt->Bind(14, seg->getEMpoles(0));
             stmt->Bind(15, seg->getEMpoles(1));
-            stmt->Bind(16,seg->getOcc(-1));
-            stmt->Bind(17,seg->getOcc(+1));
-            stmt->Bind(18,seg->getOcc(+2));
-            stmt->Bind(19,seg->getOcc(+3));
-            stmt->Bind(20,has_e);
-            stmt->Bind(21,has_h);
-            stmt->Bind(22,has_s);
-            stmt->Bind(23,has_t);
-            
-            stmt->Bind(24, _qmtop->getDatabaseId());
-            stmt->Bind(25, seg->getId());
+            stmt->Bind(16, seg->getEMpoles(2));
+            stmt->Bind(17, seg->getEMpoles(3));
+            stmt->Bind(18,seg->getOcc(-1));
+            stmt->Bind(19,seg->getOcc(+1));
+            stmt->Bind(20,seg->getOcc(+2));
+            stmt->Bind(21,seg->getOcc(+3));
+            stmt->Bind(22,has_e);
+            stmt->Bind(23,has_h);
+            stmt->Bind(24,has_s);
+            stmt->Bind(25,has_t);
+            //cout << seg->getU_nX_nN(+2) << seg->getU_xN_xX(+2) << endl;
+            stmt->Bind(26, _qmtop->getDatabaseId());
+            stmt->Bind(27, seg->getId());
         }
 
         stmt->InsertStep();
