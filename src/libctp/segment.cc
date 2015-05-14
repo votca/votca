@@ -304,7 +304,7 @@ double Segment::getSiteEnergy(int state) {
 
 void Segment::setEMpoles(int state, double energy) {
 
-    _hasChrgState.resize(3);
+    _hasChrgState.resize(5);
     _hasChrgState[state+1] = true;
     _eMpoles[state+1] = energy;
 }

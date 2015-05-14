@@ -50,14 +50,30 @@ private:
 
 
 void EAnalyze::Initialize( Property *opt ) {
-
+    _skip_corr=false;
+    _skip_sites=false;
+    _skip_pairs=false;
     // update options with the VOTCASHARE defaults   
     UpdateWithDefaults( opt );
     string key = "options." + Identify();
-
+    if (opt->exists(key+".resolution_pairs")) {
     _resolution_pairs = opt->get(key+".resolution_pairs").as< double >();
+    }
+    else{
+    _skip_pairs=true;
+    }
+    if (opt->exists(key+".resolution_sites")) {
     _resolution_sites = opt->get(key+".resolution_sites").as< double >();
+    }
+    else {
+        _skip_sites=true;
+    }
+    if (opt->exists(key+".resolution_space")) {
     _resolution_space = opt->get(key+".resolution_space").as< double >();
+    }
+    else{
+        _skip_corr=true;
+    }
 
     if (opt->exists(key+".pattern")) {
         _seg_pattern = opt->get(key+".pattern").as<string>();
@@ -94,9 +110,9 @@ void EAnalyze::Initialize( Property *opt ) {
         _distancemode = "segment";
     }
     
-    _skip_corr = opt->exists(key+".skip_correlation");
-    _skip_sites = opt->exists(key+".skip_sites");
-    _skip_pairs = opt->exists(key+".skip_pairs");
+    //_skip_corr = opt->exists(key+".skip_correlation");
+    //_skip_sites = opt->exists(key+".skip_sites");
+    //_skip_pairs = opt->exists(key+".skip_pairs");
 
 }
 
@@ -222,7 +238,22 @@ void EAnalyze::SiteHist(Topology *top, int state) {
     STD = sqrt(VAR);
 
     FILE *out;
-    string tag = boost::lexical_cast<string>("eanalyze.sitehist_") + ( (state == -1) ? "e" : "h" ) + ".out";
+    string statename;
+    if (state==-1){
+        statename="e";
+    }
+    else if (state==1){
+        statename="h";
+    }
+    else if (state==2){
+        statename="s";
+    }
+    else if (state==3){
+        statename="t";
+    }
+    
+    
+    string tag = boost::lexical_cast<string>("eanalyze.sitehist_") +statename+ ".out";
     out = fopen(tag.c_str(), "w");
 
     fprintf(out, "# EANALYZE: SITE-ENERGY HISTOGRAM \n");
@@ -331,7 +362,20 @@ void EAnalyze::PairHist(Topology *top, int state) {
     STD = sqrt(VAR);
 
     FILE *out;
-    string tag = boost::lexical_cast<string>("eanalyze.pairhist_") + ( (state == -1) ? "e" : "h" ) + ".out";
+    string statename;
+    if (state==-1){
+        statename="e";
+    }
+    else if (state==1){
+        statename="h";
+    }
+    else if (state==2){
+        statename="s";
+    }
+    else if (state==3){
+        statename="t";
+    }
+    string tag = boost::lexical_cast<string>("eanalyze.pairhist_") + statename + ".out";
     out = fopen(tag.c_str(), "w");
 
     fprintf(out, "# EANALYZE: PAIR-ENERGY HISTOGRAM \n");
@@ -394,7 +438,20 @@ void EAnalyze::SiteCorr(Topology *top, int state) {
     cout << endl;
     
     FILE *corr_out;
-    string corrfile = boost::lexical_cast<string>("eanalyze.sitecorr.atomic_") + ( (state == -1) ? "e" : "h" ) + ".out";
+    string statename;
+    if (state==-1){
+        statename="e";
+    }
+    else if (state==1){
+        statename="h";
+    }
+    else if (state==2){
+        statename="s";
+    }
+    else if (state==3){
+        statename="t";
+    }
+    string corrfile = boost::lexical_cast<string>("eanalyze.sitecorr.atomic_") + statename+ ".out";
     corr_out = fopen(corrfile.c_str(), "w");
     
     for (sit1 = _seg_shortlist.begin(); sit1 < _seg_shortlist.end(); ++sit1) {

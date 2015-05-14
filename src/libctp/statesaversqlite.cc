@@ -856,7 +856,7 @@ void StateSaverSQLite::ReadSegments(int topId) {
     Statement *stmt = _db.Prepare("SELECT name, type, mol, "
                                   "posX, posY, posZ, "
                                   "UnCnNe, UnCnNh, UcNcCe,"
-                                  "UcNcCh, UcCnNe , UcCnNh ,"
+                                  "UcNcCh, UcCnNe , UcCnNh ,"            
                                   "UnXnNs, UnXnNt, UxNxXs ,"
                                   "UxNxXt , UxXnNs , UxXnNt,"
                                   "eAnion , eNeutral , eCation , eSinglet ,eTriplet ,"
@@ -874,6 +874,7 @@ void StateSaverSQLite::ReadSegments(int topId) {
         double  X    = stmt->Column<double>(3);
         double  Y    = stmt->Column<double>(4);
         double  Z    = stmt->Column<double>(5);
+        
         double  l1   = stmt->Column<double>(6);
         double  l2   = stmt->Column<double>(7);
         double  l3   = stmt->Column<double>(8);
@@ -903,6 +904,8 @@ void StateSaverSQLite::ReadSegments(int topId) {
         int     hs   = stmt->Column<int>(29);
         int     ht   = stmt->Column<int>(30);
 
+        //cout << name<<" "<< type<<" "<< mId <<" "<<X <<" "<<Y <<" "<<Z<<" L "<<l1<<" "<<l2<<" "<<l3<<" "<<l4<<" "<<l5<<" "<<l6<<" X "<<x1 << " "<<x2<< " "<<x3<<" "<<x4<<" "<<x5<<" "<<x6<<" E "<<e1<<" "<<e2 <<" "<<e3<<" "<<e4<<" "<<e5<<" "<<endl;
+        
         bool has_e = (he == 1) ? true : false;
         bool has_h = (hh == 1) ? true : false;
         bool has_s = (hs == 1) ? true : false;
@@ -919,12 +922,14 @@ void StateSaverSQLite::ReadSegments(int topId) {
         seg->setU_cC_nN(l5, -1);
         seg->setU_cC_nN(l6, +1);
         
-        seg->setU_nX_nN(l1, +2);
-        seg->setU_nX_nN(l2, +3);
-        seg->setU_xN_xX(l3, +2);
-        seg->setU_xN_xX(l4, +3);
-        seg->setU_xX_nN(l5, +2);
-        seg->setU_xX_nN(l6, +3);
+        seg->setU_nX_nN(x1, +2);
+        seg->setU_nX_nN(x2, +3);
+        seg->setU_xN_xX(x3, +2);
+        seg->setU_xN_xX(x4, +3);
+        seg->setU_xX_nN(x5, +2);
+        
+
+        seg->setU_xX_nN(x6, +3);
                 
         seg->setEMpoles(-1, e1);
         seg->setEMpoles(0, e2);
