@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2015 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,10 @@
 
 #include <votca/tools/linalg.h>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <votca/tools/votca_config.h>
 
-#ifndef NOGSL
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_eigen.h>
-#endif
-
 
 namespace votca { namespace tools {
 
@@ -32,10 +28,6 @@ using namespace std;
 
 
 void linalg_invert( ub::matrix<double> &A, ub::matrix<double> &V){
-    
-#ifdef NOGSL
-    throw std::runtime_error("linalg_invert is not compiled-in due to disabling of GSL - recompile Votca Tools with GSL support");
-#else
         // matrix inversion using gsl
         
         gsl_error_handler_t *handler = gsl_set_error_handler_off();
@@ -60,8 +52,6 @@ void linalg_invert( ub::matrix<double> &A, ub::matrix<double> &V){
         gsl_set_error_handler(handler);
         
 	// return (status != 0);
-    
-#endif   
 }
 
 }}

@@ -18,18 +18,23 @@
 #include <votca/tools/linalg.h>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 
-#include "mkl.h"
-#include "mkl_lapacke.h"
-
 namespace votca { namespace tools {
 
 using namespace std;
 
-
-bool linalg_singular_value_decomposition( ub::matrix<double> &A, ub::matrix<double> &V, ub::vector<double> &S ){
-        // matrix inversion using MKL
-    throw std::runtime_error("linalg_singular_value_decomposition is not compiled-in due to disabling of GSL - recompile Votca Tools with GSLsupport");
-    return false;
-}
+/**
+ * ublas binding to GSL  Singular Value Decomposition
+ * 
+ * A = U S V^T
+ * 
+ * @param A MxN matrix do decompose. Becomes an MxN orthogonal matrix U
+ * @param V NxN orthogonal square matrix
+ * @param E NxN diagonal matrix of singular values
+ * @return succeeded or not 
+ */
+bool linalg_singular_value_decomposition( ub::matrix<double> &A, ub::matrix<double> &V, ub::vector<double> &S )
+{
+    throw std::runtime_error("linalg_singular_value_decomposition is not compiled-in due to disabling of MKL - recompile Votca Tools with MKL support");
+};
 
 }}

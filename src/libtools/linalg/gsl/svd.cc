@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2015 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,10 @@
 
 #include <votca/tools/linalg.h>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <votca/tools/votca_config.h>
 
-#ifndef NOGSL
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_eigen.h>
-#endif
 
 
 namespace votca { namespace tools {
@@ -67,8 +64,7 @@ bool linalg_singular_value_decomposition( ub::matrix<double> &A, ub::matrix<doub
         
 	return (status != 0);
          */
-    throw std::runtime_error("Singular Value Decomposition is not implemented");
-    return false;
+    throw std::runtime_error("linalg_singular_value_decomposition is not compiled-in due to disabling of MKL - recompile Votca Tools with MKL support");
 };
 
 

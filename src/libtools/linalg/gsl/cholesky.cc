@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2015 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,24 +17,16 @@
 
 #include <votca/tools/linalg.h>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <votca/tools/votca_config.h>
 
-#ifndef NOGSL
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_eigen.h>
-#endif
-
 
 namespace votca { namespace tools {
 
 using namespace std;
 
 void linalg_cholesky_decompose( ub::matrix<double> &A){
-    
-#ifdef NOGSL
-    throw std::runtime_error("linalg_cholesky_decompose is not compiled-in due to disabling of GSL - recompile Votca Tools with GSL support");
-#else
         // Cholesky decomposition using GSL
         const size_t N = A.size1();
         
@@ -42,15 +34,9 @@ void linalg_cholesky_decompose( ub::matrix<double> &A){
         
         // get the Cholesky matrices
         int status = gsl_linalg_cholesky_decomp ( &A_view.matrix );
-        
-#endif
 }
 
 void linalg_cholesky_solve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<double> &b){
-
-#ifdef NOGSL
-    throw std::runtime_error("linalg_cholesky_solve is not compiled-in due to disabling of GSL - recompile Votca Tools with GSL support");
-#else
     /* calling program should catch the error error code GSL_EDOM
      * thrown by gsl_linalg_cholesky_decomp and take
      * necessary steps
@@ -77,7 +63,6 @@ void linalg_cholesky_solve(ub::vector<double> &x, ub::matrix<double> &A, ub::vec
         x(i) = gsl_vector_get(gsl_x, i);
 
     gsl_vector_free (gsl_x);
-#endif
 }
 
 

@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2015 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,9 @@
 
 #include <votca/tools/linalg.h>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <votca/tools/votca_config.h>
 
-#ifndef NOMKL
 #include "mkl.h"
 #include "mkl_lapacke.h"
-#endif
-
 
 namespace votca { namespace tools {
 
@@ -31,11 +27,6 @@ using namespace std;
 
 
 void linalg_invert( ub::matrix<double> &A, ub::matrix<double> &V){
-    
-#ifdef NOMKL
-    throw std::runtime_error("linalg_invert is not compiled-in due to disabling of MKL - recompile Votca Tools with MKL support");
-#else
-
     // matrix inversion using MKL
     // input matrix is destroyed, make local copy
     ub::matrix<double> work = A;
@@ -54,9 +45,6 @@ void linalg_invert( ub::matrix<double> &A, ub::matrix<double> &V){
     
     // solve
     info = LAPACKE_dgesv( LAPACK_ROW_MAJOR, n, n, pwork , n, ipiv, pV, n );
-
-    
-#endif   
 }
 
 }}

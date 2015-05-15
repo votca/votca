@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2015 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,9 @@
 
 #include <votca/tools/linalg.h>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <votca/tools/votca_config.h>
 
-#ifndef NOMKL
 #include "mkl.h"
 #include "mkl_lapacke.h"
-#endif
-
 
 namespace votca { namespace tools {
 
@@ -31,11 +27,6 @@ using namespace std;
 
 
 void linalg_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<double> &b, ub::vector<double> *residual){
-    
-#ifdef NOMKL
-    throw std::runtime_error("linalg_qrsolve is not compiled-in due to disabling of MKL - recompile Votca Tools with MKL support");
-#else
-       
     // check matrix for zero column
     int nonzero_found = 0;
     for(size_t j=0; j<A.size2(); j++) {
@@ -76,22 +67,13 @@ void linalg_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<dou
     for (size_t i = 0 ; i < b.size(); i++){
         (*residual)(i) = b(i + x.size() );
     }
-    
-#endif   
 }
 
 
 
 void linalg_constrained_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<double> &b, ub::matrix<double> &constr){
-    
-#ifdef NOMKL
-    throw std::runtime_error("linalg_constrained_qrsolve is not compiled-in due to disabling of MKL - recompile Votca Tools with MKL support");
-#else
         // matrix inversion using MKL
-   
-    throw std::runtime_error("linalg_constrained_qrsolve is not yet implemented with MKL support");
-    
-#endif   
+    throw std::runtime_error("linalg_constrained_qrsolve is not compiled-in due to disabling of GSL - recompile Votca Tools with GSLsupport");
 }
 
 }}

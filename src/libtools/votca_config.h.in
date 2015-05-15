@@ -4,15 +4,6 @@
 /* Compile without fftw and disable CrossCorrelate class */
 #cmakedefine NOFFTW
 
-/* Compile without gsl and disable linalg functions and CubicSpline class */
-#cmakedefine NOGSL
-
-/* Compile with MKL if intell libraries are installed */
-#cmakedefine MKL
-
-/* Compile with Eigen if intell libraries are installed */
-#cmakedefine EIGEN
-
 /* Version number of package */
 #define VERSION "@PROJECT_VERSION@"
 

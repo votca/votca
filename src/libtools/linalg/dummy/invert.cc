@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2015 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,25 +15,16 @@
  *
  */
 
-#include <votca/tools/version.h>
-#include <votca_config.h>
-
-extern "C" {
-   void VotcaToolsFromC(){
-     //do nothing - this just that we have a c function for autotools
-   }
-}
+#include <votca/tools/linalg.h>
+#include <boost/numeric/ublas/matrix_proxy.hpp>
 
 namespace votca { namespace tools {
 
-//defines gitversion
-#include "gitversion.h"
-static const std::string version_str = std::string(VERSION) + " " + gitversion + " (compiled " __DATE__ ", " __TIME__ ")";
+using namespace std;
 
-const std::string &ToolsVersionStr()
-{
-    return version_str;
+
+void linalg_invert( ub::matrix<double> &A, ub::matrix<double> &V){
+    throw std::runtime_error("linalg_invert is not compiled-in due to disabling of GSL and MKL - recompile Votca Tools with GSL or MKL support");
 }
 
 }}
-

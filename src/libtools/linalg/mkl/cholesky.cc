@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2015 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,9 @@
 
 #include <votca/tools/linalg.h>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <votca/tools/votca_config.h>
 
-#ifndef NOMKL
 #include "mkl.h"
 #include "mkl_lapacke.h"
-#endif
 
 
 namespace votca { namespace tools {
@@ -31,10 +28,6 @@ using namespace std;
 
 
 void linalg_cholesky_decompose( ub::matrix<double> &A){
-    
-#ifdef NOMKL
-    throw std::runtime_error("linalg_cholesky_decompose is not compiled-in due to disabling of MKL - recompile Votca Tools with MKL support");
-#else
     // Cholesky decomposition using MKL
     // input matrix A will be changed
 
@@ -48,19 +41,12 @@ void linalg_cholesky_decompose( ub::matrix<double> &A){
     info = LAPACKE_dpotrf( LAPACK_ROW_MAJOR , uplo , n, pA, n );
     if ( info != 0 )
         throw std::runtime_error("Matrix not symmetric positive definite");
-    
-#endif   
 }
 
 
 
 
 void linalg_cholesky_solve( ub::vector<double> &x, ub::matrix<double> &A, ub::vector<double> &b ){
-    
-#ifdef NOMKL
-    throw std::runtime_error("linalg_cholesky_solve is not compiled-in due to disabling of MKL - recompile Votca Tools with MKL support");
-#else
-      
     /* calling program should catch the error error code
      * thrown by LAPACKE_dpotrf and take
      * necessary steps
@@ -89,12 +75,6 @@ void linalg_cholesky_solve( ub::vector<double> &x, ub::matrix<double> &A, ub::ve
 
     // on output, b contains solution
     x = b;
-
-    
-#endif   
 }
-
-
-
 
 }}

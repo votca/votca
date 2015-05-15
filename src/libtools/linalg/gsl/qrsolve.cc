@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2015 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,10 @@
 
 #include <votca/tools/linalg.h>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <votca/tools/votca_config.h>
 
-#ifndef NOGSL
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_eigen.h>
-#endif
 
 
 namespace votca { namespace tools {
@@ -33,9 +30,6 @@ using namespace std;
 
 void linalg_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<double> &b, ub::vector<double> *residual)
 {
-#ifdef NOGSL
-    throw std::runtime_error("linalg_qrsolve is not compiled-in due to disabling of GSL - recompile Votca Tools with GSL support");
-#else
     // check matrix for zero column
     int nonzero_found = 0;
     for(size_t j=0; j<A.size2(); j++) {
@@ -74,14 +68,10 @@ void linalg_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<dou
     gsl_vector_free (gsl_x);
     gsl_vector_free (tau);
     gsl_vector_free (gsl_residual);
-#endif
 }
 
 void linalg_constrained_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<double> &b, ub::matrix<double> &constr)
 {
-#ifdef NOGSL
-    throw std::runtime_error("linalg_constrained_qrsolve is not compiled-in due to disabling of GSL - recompile Votca Tools with GSL support");
-#else
     // check matrix for zero column
     int nonzero_found = 0;
     for(size_t j=0; j<A.size2(); j++) {
@@ -185,7 +175,6 @@ void linalg_constrained_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub
     gsl_vector_free (z);
     gsl_vector_free (tau_solve);
     gsl_vector_free (residual);
-#endif
 }
 
 }}

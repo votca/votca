@@ -39,32 +39,33 @@ endif(WITH_MKL)
 #endif (WITH_EIGEN)
 
 #we can only use of of these
-set(MKL FALSE)
-set(NOGSL TRUE)
 set(GSL_PKG)
 set(EIGEN)
 set(EIGEN_PKG)
 #it seems there is a problem with gcc-4.8 and mkl
 # let force icc for now
-if (MKL_FOUND AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-  include_directories(${MKL_INCLUDE_DIRS})
-  file(GLOB VOTCA_LINALG_SOURCES linalg/mkl/*.cc)
-  set(MKL TRUE) #used in votca_config.h
-  set(LINALG_LIBRARIES ${MKL_LIBRARIES})
-elseif(GSL_FOUND)
-  include_directories(${GSL_INCLUDE_DIRS})
-  set(GSL_PKG "gsl") #used in libvotca_csg.pc
-  set(NOGSL FALSE) #used votca_config.
-  file(GLOB VOTCA_LINALG_SOURCES linalg/gsl/*.cc)
-  set(LINALG_LIBRARIES ${GSL_LIBRARIES})
-#elseif (EIGEN_FOUND)
-#  set(EIGEN TRUE) #used in votca_config.h
-#  set(EIGEN_PKG "eigen3") #used in libvotca_csg.pc
-#  include_directories(${EIGEN_INCLUDE_DIRS})
-#  file(GLOB VOTCA_LINALG_SOURCES linalg/eigen/*.cc)
-#  set(LINALG_LIBRARIES ${EIGEN_LIBRARIES})
+if(NOT WITH_MKL AND NOT WITH_GSL)
+  #explicitly disabled
+  file(GLOB VOTCA_LINALG_SOURCES linalg/dummy/*.cc)
 else()
-  message(FATAL_ERROR "NO gsl nor mkl found")
+  if (MKL_FOUND AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+    include_directories(${MKL_INCLUDE_DIRS})
+    file(GLOB VOTCA_LINALG_SOURCES linalg/mkl/*.cc)
+    set(LINALG_LIBRARIES ${MKL_LIBRARIES})
+  elseif(GSL_FOUND)
+    include_directories(${GSL_INCLUDE_DIRS})
+    set(GSL_PKG "gsl") #used in libvotca_csg.pc
+    file(GLOB VOTCA_LINALG_SOURCES linalg/gsl/*.cc)
+    set(LINALG_LIBRARIES ${GSL_LIBRARIES})
+  #elseif (EIGEN_FOUND)
+  #  set(EIGEN TRUE) #used in votca_config.h
+  #  set(EIGEN_PKG "eigen3") #used in libvotca_csg.pc
+  #  include_directories(${EIGEN_INCLUDE_DIRS})
+  #  file(GLOB VOTCA_LINALG_SOURCES linalg/eigen/*.cc)
+  #  set(LINALG_LIBRARIES ${EIGEN_LIBRARIES})
+  else()
+    message(FATAL_ERROR "NO gsl nor mkl found")
+  endif()
 endif()
 
 file(GLOB VOTCA_SOURCES *.cc)
@@ -85,11 +86,10 @@ else(WITH_SQLITE3)
   set(VOTCA_SQL_SOURCES)
 endif(WITH_SQLITE3)
 
-#for gitversion.h
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
+configure_file(votca_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/votca_config.h)
 
-#for votca_config.h
-include_directories(${CMAKE_BINARY_DIR}/include/votca/tools)
+#for gitversion.h and votca_config.h
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_custom_target(gitversion COMMAND ${CMAKE_COMMAND}
   -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}"

@@ -22,8 +22,6 @@
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
 
-#include "votca_config.h"
-
 namespace votca { namespace tools {
     namespace ub = boost::numeric::ublas;
 

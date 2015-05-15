@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2015 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,11 @@
 
 #include <votca/tools/linalg.h>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <votca/tools/votca_config.h>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <math.h>       /* sqrt */
-#ifndef NOGSL
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_eigen.h>
-#endif
 
 
 namespace votca { namespace tools {
@@ -39,10 +36,6 @@ using namespace std;
 */
 bool linalg_eigenvalues_symmetric( ub::symmetric_matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V)
 {
-#ifdef NOGSL
-    throw std::runtime_error("linalg_eigenvalues_symmetric is not compiled-in due to disabling of GSL - recompile Votca Tools with GSL support");
-#else
-    
 	gsl_error_handler_t *handler = gsl_set_error_handler_off();
 	const size_t N = A.size1();
         
@@ -63,7 +56,6 @@ bool linalg_eigenvalues_symmetric( ub::symmetric_matrix<double> &A, ub::vector<d
 	gsl_set_error_handler(handler);
         
 	return (status != 0);
-#endif
 };
 
 
@@ -76,10 +68,6 @@ bool linalg_eigenvalues_symmetric( ub::symmetric_matrix<double> &A, ub::vector<d
 */
 bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V)
 {
-#ifdef NOGSL
-    throw std::runtime_error("linalg_eigenvalues is not compiled-in due to disabling of GSL - recompile Votca Tools with GSL support");
-#else
-    
 	gsl_error_handler_t *handler = gsl_set_error_handler_off();
 	const size_t N = A.size1();
         
@@ -100,7 +88,6 @@ bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matri
 	gsl_set_error_handler(handler);
         
 	return (status != 0);
-#endif
 };
 
 /**
@@ -112,12 +99,6 @@ bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matri
 */
 bool linalg_eigenvalues( ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<float> &V)
 {
-#ifdef NOGSL
-    throw std::runtime_error("linalg_eigenvalues is not compiled-in due to disabling of GSL - recompile Votca Tools with GSL support");
-#else
-    //throw std::runtime_error("linalg_eigenvalues is not implemented with float precision, switch to MKL");
-    //return -1;
-    
 	gsl_error_handler_t *handler = gsl_set_error_handler_off();
 	const size_t N = A.size1();
         
@@ -142,18 +123,10 @@ bool linalg_eigenvalues( ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<
         V = _V;
         
 	return (status != 0);
-     
-#endif
 };
 
 bool linalg_eigenvalues(  ub::vector<float> &E, ub::matrix<float> &V)
 {
-#ifdef NOGSL
-    throw std::runtime_error("linalg_eigenvalues is not compiled-in due to disabling of GSL - recompile Votca Tools with GSL support");
-#else
-    //throw std::runtime_error("linalg_eigenvalues is not implemented with float precision, switch to MKL");
-    //return -1;
-    
         /* on input V is the matrix that shall be diagonalized
          * GSL does not provide an in-place routine, so we wrap 
          * gsl_eigen_symmv for compatibility
@@ -165,8 +138,6 @@ bool linalg_eigenvalues(  ub::vector<float> &E, ub::matrix<float> &V)
          // now call wrapper for gsl_eigen_symmv
          bool status = linalg_eigenvalues( A , E, V );
 	return (status != 0);
-     
-#endif
 };
 
 
@@ -179,10 +150,6 @@ bool linalg_eigenvalues(  ub::vector<float> &E, ub::matrix<float> &V)
 */
 bool linalg_eigenvalues( ub::vector<double> &E, ub::matrix<double> &V)
 {
-#ifdef NOGSL
-    throw std::runtime_error("linalg_eigenvalues is not compiled-in due to disabling of GSL - recompile Votca Tools with GSL support");
-#else
-    
         /* on input V is the matrix that shall be diagonalized
          * GSL does not provide an in-place routine, so we wrap 
          * gsl_eigen_symmv for compatibility
@@ -195,9 +162,6 @@ bool linalg_eigenvalues( ub::vector<double> &E, ub::matrix<double> &V)
          bool status = linalg_eigenvalues( A , E, V );
 
          return status;
-         
-         
-#endif
 };
 
 
@@ -206,11 +170,7 @@ bool linalg_eigenvalues( ub::vector<double> &E, ub::matrix<double> &V)
  */
 bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V , int nmax)
 {
-#ifdef NOGSL
-    throw std::runtime_error("Available only if intell compiler is used and MKL installed");
-#else    
-    throw std::runtime_error("Available only if intell compiler is used and MKL installed");
-#endif
+    throw std::runtime_error("linalg_eigenvalues is not compiled-in due to disabling of MKL - recompile Votca Tools with MKL support");
 }
 
 /*
@@ -218,27 +178,14 @@ bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matri
  */
 bool linalg_eigenvalues( ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<float> &V , int nmax)
 {
-#ifdef NOGSL
-    throw std::runtime_error("Available only if intell compiler is used and MKL installed");
-#else    
-    // throw std::runtime_error("Available only if intell compiler is used and MKL installed");
-
     // now call wrapper for gsl_eigen_symmv
     bool status = linalg_eigenvalues( A , E, V );
 
     return status;
-         
-
-
-#endif
 }
 
 bool linalg_eigenvalues_general( ub::matrix<double> &A,ub::matrix<double> &B, ub::vector<double> &E, ub::matrix<double> &V)
 {
-#ifdef NOGSL
-    throw std::runtime_error("linalg_eigenvalues is not compiled-in due to disabling of GSL - recompile Votca Tools with GSL support");
-#else
-    
 	gsl_error_handler_t *handler = gsl_set_error_handler_off();
 	const size_t N = A.size1();
         
@@ -290,9 +237,6 @@ bool linalg_eigenvalues_general( ub::matrix<double> &A,ub::matrix<double> &B, ub
         }
     
 	return (status != 0);
-#endif
 };
-
-
 
 }}

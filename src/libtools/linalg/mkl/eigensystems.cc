@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2015 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,9 @@
 
 #include <votca/tools/linalg.h>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <votca/tools/votca_config.h>
 
-#ifndef NOMKL
 #include "mkl.h"
 #include "mkl_lapacke.h"
-#endif
 
 
 namespace votca { namespace tools {
@@ -37,10 +34,6 @@ using namespace std;
 
 bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V)
 {
-#ifdef NOMKL
-    throw std::runtime_error("linalg_eigenvalues is not compiled-in due to disabling of MKL - recompile Votca Tools with MKL support");
-#else
-    
     // cout << " \n I'm really using MKL! " << endl;
     
     int n = A.size1();
@@ -70,8 +63,6 @@ bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matri
     } else {
         return true;
     }
-
-#endif
 };
 
 
@@ -79,10 +70,6 @@ bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matri
 
 bool linalg_eigenvalues_symmetric( ub::symmetric_matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V)
 {
-#ifdef NOMKL
-    throw std::runtime_error("linalg_eigenvalues is not compiled-in due to disabling of MKL - recompile Votca Tools with MKL support");
-#else
-    
     // cout << " \n I'm really using MKL! " << endl;
     
     int n = A.size1();
@@ -112,17 +99,11 @@ bool linalg_eigenvalues_symmetric( ub::symmetric_matrix<double> &A, ub::vector<d
     } else {
         return true;
     }
-
-#endif
 };
 
 
 bool linalg_eigenvalues(  ub::vector<double> &E, ub::matrix<double> &V)
 {
-#ifdef NOMKL
-    throw std::runtime_error("linalg_eigenvalues is not compiled-in due to disabling of MKL - recompile Votca Tools with MKL support");
-#else
-    
     // cout << " \n I'm really using MKL! " << endl;
     
     int n = V.size1();
@@ -152,18 +133,12 @@ bool linalg_eigenvalues(  ub::vector<double> &E, ub::matrix<double> &V)
     } else {
         return true;
     }
-
-#endif
 };
 
 
 
 bool linalg_eigenvalues(  ub::vector<float> &E, ub::matrix<float> &V)
 {
-#ifdef NOMKL
-    throw std::runtime_error("linalg_eigenvalues is not compiled-in due to disabling of MKL - recompile Votca Tools with MKL support");
-#else
-    
     // cout << " \n I'm really using MKL! " << endl;
     
     int n = V.size1();
@@ -193,8 +168,6 @@ bool linalg_eigenvalues(  ub::vector<float> &E, ub::matrix<float> &V)
     } else {
         return true;
     }
-
-#endif
 };
 
 
@@ -205,10 +178,6 @@ bool linalg_eigenvalues(  ub::vector<float> &E, ub::matrix<float> &V)
  */
 bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V , int nmax)
 {
-#ifdef NOMKL
-    throw std::runtime_error("linalg_eigenvalues is not compiled-in due to disabling of MKL - recompile Votca Tools with MKL support");
-#else
-    
     /*
      * INPUT:  matrix A (N,N)
      * OUTPUT: matrix V (N,NMAX)
@@ -254,8 +223,6 @@ bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matri
     } else {
         return true;
     }
-
-#endif
 };
 
 
@@ -265,10 +232,6 @@ bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matri
  */
 bool linalg_eigenvalues( ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<float> &V , int nmax)
 {
-#ifdef NOMKL
-    throw std::runtime_error("linalg_eigenvalues is not compiled-in due to disabling of MKL - recompile Votca Tools with MKL support");
-#else
-    
     /*
      * INPUT:  matrix A (N,N)
      * OUTPUT: matrix V (N,NMAX)
@@ -314,8 +277,6 @@ bool linalg_eigenvalues( ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<
     } else {
         return true;
     }
-
-#endif
 };
 
 
@@ -323,10 +284,6 @@ bool linalg_eigenvalues( ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<
 /* calculate the eigenvalues and vectors of the generalized eigenvalue problem */
 bool linalg_eigenvalues_general( ub::matrix<double> &A,ub::matrix<double> &B, ub::vector<double> &E, ub::matrix<double> &V)
 {
-#ifdef NOMKL
-    throw std::runtime_error("linalg_eigenvalues is not compiled-in due to disabling of MKL - recompile Votca Tools with MKL support");
-#else
-    
     // cout << " \n I'm really using MKL! " << endl;
     //check to see if matrices have same size
     int n = A.size1();
@@ -364,8 +321,6 @@ bool linalg_eigenvalues_general( ub::matrix<double> &A,ub::matrix<double> &B, ub
     } else {
         return true;
     }
-
-#endif
 };
 
 

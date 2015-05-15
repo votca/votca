@@ -18,18 +18,16 @@
 #include <votca/tools/linalg.h>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 
-#include "mkl.h"
-#include "mkl_lapacke.h"
-
 namespace votca { namespace tools {
 
 using namespace std;
 
+void linalg_cholesky_decompose( ub::matrix<double> &A){
+    throw std::runtime_error("linalg_cholesky_decompose is not compiled-in due to disabling of GSL and MKL - recompile Votca Tools with GSL or MKL support");
+}
 
-bool linalg_singular_value_decomposition( ub::matrix<double> &A, ub::matrix<double> &V, ub::vector<double> &S ){
-        // matrix inversion using MKL
-    throw std::runtime_error("linalg_singular_value_decomposition is not compiled-in due to disabling of GSL - recompile Votca Tools with GSLsupport");
-    return false;
+void linalg_cholesky_solve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<double> &b){
+    throw std::runtime_error("linalg_cholesky_solve is not compiled-in due to disabling of GSL and MKL - recompile Votca Tools with GSL or MKL support");
 }
 
 }}
