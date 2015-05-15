@@ -360,12 +360,16 @@ void Rates::EvaluatePair(Topology *top, QMPair *qmpair) {
 
     bool pair_has_e = false;
     bool pair_has_h = false;
+    bool pair_has_s = false;
+    bool pair_has_t = false;
 
     string segName1 = qmpair->first->getName();
     string segName2 = qmpair->second->getName();
 
     pair_has_e = qmpair->isPathCarrier(-1);
     pair_has_h = qmpair->isPathCarrier(+1);
+    pair_has_s = qmpair->isPathCarrier(+2);
+    pair_has_t = qmpair->isPathCarrier(+3);
 
 //    try {
 //        pair_has_e = _seg_has_e.at(segName1) && _seg_has_e.at(segName2);
@@ -385,6 +389,12 @@ void Rates::EvaluatePair(Topology *top, QMPair *qmpair) {
     if (pair_has_h) {
         this->CalculateRate(top, qmpair, +1);
     }
+    if (pair_has_s) {
+        this->CalculateRate(top, qmpair, +2);
+    }
+    if (pair_has_t) {
+        this->CalculateRate(top, qmpair, +3);
+    }
 }
 
 
@@ -403,19 +413,41 @@ void Rates::CalculateRate(Topology *top, QMPair *qmpair, int state) {
     double rate_symm12 = 0;
     double rate_symm21 = 0;
     double measure = 0;
+    double reorg12=0;
+    double reorg21=0;
+    double dG_Site=0;
+    double dG_Field=0;
+    
+    if (state<2){
+        reorg12  = seg1->getU_nC_nN(state)                 // 1->2
+                        + seg2->getU_cN_cC(state);
+        reorg21  = seg1->getU_cN_cC(state)                 // 2->1
+                        + seg2->getU_nC_nN(state);
+        dG_Site  = seg2->getU_cC_nN(state)                 // 1->2 == - 2->1
+                        + seg2->getEMpoles(state)
+                        - seg1->getU_cC_nN(state)
+                        - seg1->getEMpoles(state);
+        dG_Field = - state * _F * qmpair->R() * NM2M;
+    }
+    else if (state>2){
+        reorg12  = seg1->getU_nX_nN(state)                 // 1->2
+                        + seg2->getU_xN_xX(state);
+        reorg21  = seg1->getU_xN_xX(state)                 // 2->1
+                        + seg2->getU_nX_nN(state);
+        dG_Site  = seg2->getU_xX_nN(state)                 // 1->2 == - 2->1
+                        + seg2->getEMpoles(state)
+                        - seg1->getU_xX_nN(state)
+                        - seg1->getEMpoles(state);       
+    }
     
     
-    double reorg12  = seg1->getU_nC_nN(state)                 // 1->2
-                    + seg2->getU_cN_cC(state);
-    double reorg21  = seg1->getU_cN_cC(state)                 // 2->1
-                    + seg2->getU_nC_nN(state);
+    
+    
+    
     double lOut     = qmpair->getLambdaO(state);              // 1->2 == + 2->1
 
-    double dG_Site  = seg2->getU_cC_nN(state)                 // 1->2 == - 2->1
-                    + seg2->getEMpoles(state)
-                    - seg1->getU_cC_nN(state)
-                    - seg1->getEMpoles(state);
-    double dG_Field = - state * _F * qmpair->R() * NM2M;      // 1->2 == - 2->1
+    
+          // 1->2 == - 2->1
 
     double J2 = qmpair->getJeff2(state);                      // 1->2 == + 2->1
 
