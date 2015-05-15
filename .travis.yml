@@ -6,12 +6,13 @@ language: cpp
 
 before_install:
  - sudo apt-get update
- - sudo apt-get install cmake gromacs-dev libfftw3-dev libgsl0-dev txt2tags libboost-program-options-dev libboost-filesystem-dev libboost-system-dev libexpat1-dev libsqlite3-dev pkg-config mercurial
+ - sudo apt-get install cmake libfftw3-dev libgsl0-dev txt2tags libboost-program-options-dev libboost-filesystem-dev libboost-system-dev libexpat1-dev libsqlite3-dev pkg-config mercurial
  - if [[ $MAN ]]; then sudo apt-get install pgf texlive-fonts-recommended texlive-latex-extra doxygen graphviz; fi
  - if [[ $TEST = *cma ]]; then sudo apt-get install python-numpy gnuplot-nox; fi
  - if [[ $TEST = *imc ]]; then sudo apt-get install octave; fi
  - if [[ $TEST = *simplex ]]; then sudo apt-get install gnuplot-nox; fi
  - if [[ $TEST = *realtime ]]; then sudo apt-get install gnuplot-nox; fi
+ - if [[ $TEST != *tf ]]; then sudo apt-get install gromacs-dev; fi
 
 env: #NINJA=1 is currently not support by Travis' cmake, enable when >=2.8.9
   - WERROR=yes J=4 #J>4 triggers an internal compiler in travis' g++
