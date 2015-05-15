@@ -74,5 +74,5 @@ if [[ -z ${what_to_kill} ]]; then
 else
   [[ -z $(type -p killall) ]] && die "${0##*/}: could not find killall needed to kill gnuplot"
   killall $what_to_kill
-  $gnuplot $opts "$(get_main_dir)/$script"
+  $gnuplot $opts "$(get_main_dir)/$script" || true #exit code not always clear
 fi
