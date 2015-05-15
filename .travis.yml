@@ -32,7 +32,7 @@ env: #NINJA=1 is currently not support by Travis' cmake, enable when >=2.8.9
   - CSG_MDRUN_STEPS=10000 TEST=spce/realtime J=4
   - CSG_MDRUN_STEPS=10000 TEST=spce/re J=4
   - CSG_MDRUN_STEPS=500 TEST=spce/simplex J=4
-    #  - CSG_MDRUN_STEPS=500 TEST=spce/tf J=4 # enable when travis has gromacs 4.6
+  - CSG_MDRUN_STEPS=500 TEST=spce/tf J=4 GROMACS=yes
   - CSG_MDRUN_STEPS=500 TEST=urea-water/ibi J=4
 
 matrix:
@@ -51,7 +51,7 @@ script:
   - PYTHONPATH="$PWD" ./build.sh -Wdu --prefix $PWD ${MAN:+--devdoc}
     ${TEST:+--runtest=$TEST} ${WERROR:+--warn-to-errors}
     ${J:+-j$J} ${BDIR:+--builddir=$BDIR} ${NINJA:+--ninja} 
-    tools csg csgapps ${MAN:+csg-manual} ${TEST:+csg-tutorials}
+    tools ${GROMACS:+gromacs} csg csgapps ${MAN:+csg-manual} ${TEST:+csg-tutorials}
 
 compiler:
   - clang
