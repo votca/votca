@@ -43,7 +43,7 @@
 	  </convergence>
 	  <plot>
 	    <script>allplots.gp</script>
-	    <kill>gnuplot_x11</kill>
+	    <!-- <kill>gnuplot_x11</kill>re-enable if there is no mkfifo-->
 	    <gnuplot_opts>-geometry 1024x700 -persist</gnuplot_opts>
 	  </plot>
       </post_add_options>
