@@ -276,6 +276,15 @@ void KMCMultiple::Initialize(const char *filename, Property *options, const char
             _carriertype = "h";
             cout << "carrier type: holes" << endl;
             
+         }
+        else if(_carriertype == "singlet" || _carriertype == "singlets" || _carriertype == "s"){
+            _carriertype = "s";
+            cout << "carrier type: singlets" << endl;
+            
+        }
+        else if(_carriertype == "triplet" || _carriertype == "triplets" || _carriertype == "t"){
+            _carriertype = "t";
+            cout << "carrier type: triplets" << endl;
         }
         else {
             _carriertype = "e";
@@ -352,8 +361,14 @@ vector<Node*> KMCMultiple::LoadGraph()
     votca::tools::Database db;
     db.Open( _filename );
     if(votca::tools::globals::verbose) {cout << "LOADING GRAPH" << endl << "database file: " << _filename << endl; }
-    votca::tools::Statement *stmt = db.Prepare("SELECT _id-1, name, posX, posY, posZ, UnCnN"+_carriertype+", UcNcC"+_carriertype+",eAnion,eNeutral,eCation,ucCnN"+_carriertype+" FROM segments;");
-
+    votca::tools::Statement *stmt;
+    if (_carriertype=="h" || _carriertype=="e"){
+        stmt= db.Prepare("SELECT _id-1, name, posX, posY, posZ, UnCnN"+_carriertype+", UcNcC"+_carriertype+",eAnion,eNeutral,eCation,UcCnN"+_carriertype+" FROM segments;");
+    }
+    else if (_carriertype=="s" || _carriertype=="t"){
+        stmt= db.Prepare("SELECT _id-1, name, posX, posY, posZ, UnXnN"+_carriertype+", UxNxX"+_carriertype+",eSinglet,eNeutral,eTriplet,UxXnN"+_carriertype+" FROM segments;");
+    }
+        
     int i=0;
     while (stmt->Step() != SQLITE_DONE)
     {
@@ -365,21 +380,22 @@ vector<Node*> KMCMultiple::LoadGraph()
         node[i]->id = newid;
         myvec nodeposition = myvec(stmt->Column<double>(2)*1E-9, stmt->Column<double>(3)*1E-9, stmt->Column<double>(4)*1E-9); // converted from nm to m
         node[i]->position = nodeposition;
-        node[i]->reorg_intorig = stmt->Column<double>(5); // UnCnN
-        node[i]->reorg_intdest = stmt->Column<double>(6); // UcNcC
+        node[i]->reorg_intorig = stmt->Column<double>(5); // UnCnN or UnXnN
+        node[i]->reorg_intdest = stmt->Column<double>(6); // UcNcC or UxNxX
         double eAnion = stmt->Column<double>(7);
         double eNeutral = stmt->Column<double>(8);
         double eCation = stmt->Column<double>(9);
-        double internalenergy = stmt->Column<double>(10); // UcCnN
+        double internalenergy = stmt->Column<double>(10); // UcCnN or UxXnN
         double siteenergy = 0;
-        if(_carriertype == "e")
+        if(_carriertype == "e" || _carriertype=="s")
         {
             siteenergy = eAnion + internalenergy;
         }
-        else if(_carriertype == "h")
+        else if(_carriertype == "h" || _carriertype=="t")
         {
             siteenergy = eCation + internalenergy;
         }
+        
         node[i]->siteenergy = siteenergy;
         if (votca::tools::wildcmp(_injection_name.c_str(), name.c_str()))
         {
@@ -582,6 +598,14 @@ void KMCMultiple::InitialRates(vector<Node*> node)
     else if (_carriertype == "h")
     {
         _q = 1.0;
+    }
+    else if (_carriertype == "s")
+    {
+        _q = 0.0;
+    }
+    else if (_carriertype == "t")
+    {
+        _q = 0.0;
     }
     cout << "    carriertype: " << _carriertype << " (charge: " << _q << " eV)" << endl;
     int numberofsites = node.size();
