@@ -37,10 +37,12 @@ traj=$(csg_get_property cg.inverse.$sim_prog.traj)
 [[ -f $traj ]] || die "${0##*/}: traj file '$traj' not found"
 
 maps=
-if [[ -n $(csg_get_property --allow-empty cg.bonded.name) ]]; then
+#always try to find mapping files
+if : ; then
   mapping="$(csg_get_property --allow-empty cg.inverse.$sim_prog.rdf.map)"
   [[ -z $mapping ]] && mapping="$(csg_get_property --allow-empty cg.inverse.map)"
-  [[ -z $mapping ]] && die "Mapping file for bonded interaction needed"
+  #fail if we have bonded interaction, but no mapping file
+  [[ -n $(csg_get_property --allow-empty cg.bonded.name) && -z $mapping ]] && die "Mapping file for bonded interaction needed"
   for map in ${mapping}; do
     [[ -f "$(get_main_dir)/$map" ]] || die "${0##*/}: Mapping file '$map' for bonded interaction not found in maindir"
     maps+="$(get_main_dir)/$map;"
