@@ -198,13 +198,17 @@ double IEXCITON::EvaluatePair(Topology *top,PolarSeg* Seg1,PolarSeg* Seg2, Logge
     actor.ResetEnergy();
     Seg1->CalcPos();
     Seg2->CalcPos();
-    vec s=top->PbShortestConnect(Seg1->getPos(),Seg2->getPos())-Seg1->getPos()+Seg2->getPos();
+    vec s=top->PbShortestConnect(Seg1->getPos(),Seg2->getPos())+Seg1->getPos()-Seg2->getPos();
+    LOG(logINFO, *pLog) << "Evaluate pair for debugging " << Seg1->getId() << ":" <<Seg2->getId() << " Distance "<< abs(s) << flush; 
     PolarSeg::iterator pit1;
     PolarSeg::iterator pit2;
     double E=0.0;
     for (pit1=Seg1->begin();pit1<Seg1->end();++pit1){
         for (pit2=Seg2->begin();pit2<Seg2->end();++pit2){
             actor.BiasIndu(*(*pit1), *(*pit2),s);
+            (*pit1)->Depolarize();
+            (*pit2)->Depolarize();
+
             //double dist=abs((*pit1)->getPos()-(*pit2)->getPos());
             //LOG(logINFO,*pLog) <<"Q1 "<< (*pit1)->getQ00() <<" Q2 "<< (*pit2)->getQ00()<<" dist " <<dist << " comulative Energy "<< E << flush; 
             E += actor.E_f(*(*pit1), *(*pit2));                           

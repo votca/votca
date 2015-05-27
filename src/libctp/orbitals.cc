@@ -342,8 +342,9 @@ bool Orbitals::Load(string file_name) {
  
  ub::matrix<double> & Orbitals::TransitionDensityMatrix( ub::matrix<double>& _MOs , ub::matrix<float>& _BSECoefs, int state){
     _dmatTS=ub::zero_matrix<double>(_basis_set_size);
-    
-    /*Trying to implement D_{alpha,beta}=sum_{i}^{occ}sum_{j}^{virt}{BSEcoef(i,j)*MOcoef(alpha,i)*MOcoef(beta,j)} */
+    // The Transition dipole is sqrt2 bigger because of the spin, the excited state is a linear combination of 2 slater determinants, where either alpha or beta spin electron is excited
+    double sqrt2=sqrt(2.0);
+    /*Trying to implement D_{alpha,beta}= sqrt2*sum_{i}^{occ}sum_{j}^{virt}{BSEcoef(i,j)*MOcoef(alpha,i)*MOcoef(beta,j)} */
     // c stands for conduction band and thus virtual orbitals
     // v stand for valence band and thus occupied orbitals
 
@@ -371,7 +372,7 @@ bool Orbitals::Load(string file_name) {
             for(int i=0;i<_bse_size;i++){
                 int occ=_index2v[i];
                 int virt=_index2c[i];
-                _dmatTS(a,b)+=_BSECoefs(i,state)*_MOs( occ , a ) * _MOs( virt , b ); //check factor 2??
+                _dmatTS(a,b)+=sqrt2*_BSECoefs(i,state)*_MOs( occ , a ) * _MOs( virt , b ); //check factor 2??
             }
         }     
     }

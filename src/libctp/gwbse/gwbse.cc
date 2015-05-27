@@ -911,7 +911,7 @@ namespace votca {
 
 
 
-
+                    double sqrt2=sqrt(2.0);
 
                     std::vector<std::vector<double> > _transition_dipoles;
                     std::vector<double> _oscillator_strength;
@@ -925,7 +925,8 @@ namespace votca {
                                 int index_vc = _bse_ctotal * _v + _c;
 
                                 for (int _i_comp = 0; _i_comp < 3; _i_comp++) {
-                                    _tdipole[ _i_comp ] += _bse_singlet_coefficients(index_vc, _i_exc) * _interlevel_dipoles[_i_comp](_v, _c);
+                                    // The Transition dipole is sqrt2 bigger because of the spin, the excited state is a linear combination of 2 slater determinants, where either alpha or beta spin electron is excited
+                                    _tdipole[ _i_comp ] += sqrt2*_bse_singlet_coefficients(index_vc, _i_exc) * _interlevel_dipoles[_i_comp](_v, _c);
                                 }
 
                             }

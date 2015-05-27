@@ -149,7 +149,7 @@ std::map<std::string, int> IGWBSE::FillParseMaps(string Mapstring){
         boost::algorithm::split( temp, (*sit), boost::is_any_of(":"),boost::token_compress_on );
         int number=boost::lexical_cast<int>(temp[1]);
         string type=temp[0];
-        type2level[type]=number-1; // -1 because default return if key is not found is 0, so if key is not found first exited state should be used number game
+        type2level[type]=number; // -1 because default return if key is not found is 0, so if key is not found first exited state should be used number game
     }
     
 }
@@ -552,7 +552,7 @@ void IGWBSE::WriteJobFile(Topology *top) {
     string tag = "";
     
     for (pit = nblist.begin(); pit != nblist.end(); ++pit) {
-
+        //if ((*pit)->HasGhost()){ // Used to only produce jobs concerned with pbcs
         int id1 = (*pit)->Seg1()->getId();
         string name1 = (*pit)->Seg1()->getName();
         int id2 = (*pit)->Seg2()->getId();
@@ -572,7 +572,7 @@ void IGWBSE::WriteJobFile(Topology *top) {
         
         Job job(id, tag, Input, Job::AVAILABLE );
         job.ToStream(ofs,"xml");
-        
+        //}
     }
 
     // CLOSE STREAM
@@ -765,8 +765,8 @@ void IGWBSE::ReadJobFile(Topology *top) {
                 bool found=false;
                 double coupling;
                 list<Property*> singlets = pair_property->Select("singlets.coupling");
-                int stateA=_singlet_levels[segmentA->getName()]+1; // there it comes back from above if map is empty state 1 will be chosen, clever is it not?
-                int stateB=_singlet_levels[segmentB->getName()]+1;
+                int stateA=_singlet_levels[segmentA->getName()]; 
+                int stateB=_singlet_levels[segmentB->getName()];
                 for (list<Property*> ::iterator  iit = singlets.begin(); iit != singlets.end(); ++iit) {         
                     int state1=(*iit)->getAttribute<int>("excitonA");
                     int state2=(*iit)->getAttribute<int>("excitonB");
@@ -781,8 +781,8 @@ void IGWBSE::ReadJobFile(Topology *top) {
                 bool found=false;
                 double coupling;
                 list<Property*> triplets = pair_property->Select("triplets.coupling");
-                int stateA=_triplet_levels[segmentA->getName()]+1; // there it comes back from above if map is empty state 1 will be chosen, clever is it not?
-                int stateB=_triplet_levels[segmentB->getName()]+1;
+                int stateA=_triplet_levels[segmentA->getName()]; 
+                int stateB=_triplet_levels[segmentB->getName()];
                 for (list<Property*> ::iterator  iit = triplets.begin(); iit != triplets.end(); ++iit) {         
                     int state1=(*iit)->getAttribute<int>("excitonA");
                     int state2=(*iit)->getAttribute<int>("excitonB");
@@ -799,7 +799,7 @@ void IGWBSE::ReadJobFile(Topology *top) {
           cout << "WARNING Pair " << pair->getId() << " is not of any of the Hopping or SuperExchangeAndHopping type, what did you do to the jobfile?"<< flush;  
         }
               
-        cout << endl;
+        //cout << endl;
 
     }
                     
