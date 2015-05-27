@@ -199,7 +199,7 @@ double IEXCITON::EvaluatePair(Topology *top,PolarSeg* Seg1,PolarSeg* Seg2, Logge
     Seg1->CalcPos();
     Seg2->CalcPos();
     vec s=top->PbShortestConnect(Seg1->getPos(),Seg2->getPos())+Seg1->getPos()-Seg2->getPos();
-    LOG(logINFO, *pLog) << "Evaluate pair for debugging " << Seg1->getId() << ":" <<Seg2->getId() << " Distance "<< abs(s) << flush; 
+    //LOG(logINFO, *pLog) << "Evaluate pair for debugging " << Seg1->getId() << ":" <<Seg2->getId() << " Distance "<< abs(s) << flush; 
     PolarSeg::iterator pit1;
     PolarSeg::iterator pit2;
     double E=0.0;
