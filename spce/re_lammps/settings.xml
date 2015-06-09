@@ -29,7 +29,7 @@
       <lammps>
         <!-- name of the table for lammps run -->
 	<table>CG_CG.pot</table>
-	<table_begin>0.20</table_begin>
+	<table_begin>0.10</table_begin>
 	<table_bins>0.002</table_bins>
       </lammps>
       <!-- do convergence -->
