@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2015 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -40,6 +40,10 @@ g_energy="$(csg_get_property cg.inverse.gromacs.g_energy.bin)"
 opts="$(csg_get_property --allow-empty cg.inverse.gromacs.g_energy.opts)"
 
 begin="$(calc_begin_time)"
+if [[ ${CSG_RUNTEST} ]] && csg_calc "$begin" ">" "0"; then
+  msg --color blue --to-stderr "Automatically setting begin time to 0, because CSG_RUNTEST was set"
+  begin=0
+fi
 
 echo "Running ${g_energy}"
 output=$(echo Pressure | critical ${g_energy} -b "${begin}" -s "${topol}" ${opts} 2>&1)
