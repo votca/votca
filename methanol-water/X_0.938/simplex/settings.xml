@@ -1,0 +1,125 @@
+<cg>
+  <!-- non-bonded interaction entry -->
+  <non-bonded>
+    <!-- name of the interaction -->
+    <name>WT-WT</name>
+    <!-- specify type of CG pair -->
+    <type1>WT</type1>
+    <type2>WT</type2>
+    <!-- min, max and step size distance for pot (max=cutoff) -->
+    <min>0.24</min>
+    <max>1.0</max>
+    <step>0.01</step>
+    <inverse>
+      <gromacs>
+	<!-- name of the table for gromacs run -->
+        <table>table_WT_WT.xvg</table>
+      </gromacs>
+      <optimizer>
+        <target_weights>1</target_weights>
+        <function>f(x)</function>
+        <functionfile>function_CKDg_WT_WT.in</functionfile>
+        <parameters>sig1 eps1 wc1 h1 p1 s1</parameters>
+        <targets>rdf</targets>
+         <rdf>
+           <target>WT-WT.aa.rdf</target>
+         </rdf>
+      </optimizer>
+   </inverse>
+  </non-bonded>
+  <!-- non-bonded interaction entry -->
+  <non-bonded>
+    <!-- name of the interaction -->
+    <name>ME-ME</name>
+    <!-- specify type of CG pair -->
+    <type1>ME</type1>
+    <type2>ME</type2>
+    <!-- min, max and step size distance for pot (max=cutoff) -->
+    <min>0.3</min>
+    <max>1.32</max>
+    <step>0.01</step>
+    <inverse>
+      <gromacs>
+        <!-- name of the table for gromacs run -->
+        <table>table_ME_ME.xvg</table>
+      </gromacs>
+      <optimizer>
+        <target_weights>1</target_weights>
+        <function>f(x)</function>
+        <functionfile>function_CKDg_ME_ME.in</functionfile>
+        <parameters>sig2 eps2 wc2 h2 p2 s2</parameters>
+        <targets>rdf</targets>
+         <rdf>
+           <target>ME-ME.aa.rdf</target>
+         </rdf>
+      </optimizer>
+   </inverse>
+  </non-bonded>
+  <!-- non-bonded interaction entry -->
+  <non-bonded>
+    <!-- name of the interaction -->
+    <name>ME-WT</name>
+    <!-- specify type of CG pair -->
+    <type1>ME</type1>
+    <type2>WT</type2>
+    <!-- min, max and step size distance for pot (max=cutoff) -->
+    <min>0.27</min>
+    <max>1.32</max>
+    <step>0.01</step>
+    <inverse>
+      <gromacs>
+        <!-- name of the table for gromacs run -->
+        <table>table_ME_WT.xvg</table>
+      </gromacs>
+      <optimizer>
+        <target_weights>1</target_weights>
+        <function>f(x)</function>
+        <functionfile>function_CKDg_ME_WT.in</functionfile>
+        <parameters>sig3 eps3 wc3 h3 p3 s3</parameters>
+        <targets>rdf</targets>
+         <rdf>
+           <target>ME-WT.aa.rdf</target>
+         </rdf>
+      </optimizer>
+   </inverse>
+  </non-bonded>
+  <inverse>
+    <initial_configuration>maindir</initial_configuration>
+    <!-- System T = 300*0.00831451 kBT units -->
+    <kBT>2.4942</kBT>
+    <!-- use gromacs as simulation program -->
+    <program>gromacs</program>
+    <!-- gromacs specific options -->
+    <gromacs>
+      <pre_simulation>yes
+          <mdp>grompp.prep.mdp</mdp>
+      </pre_simulation>
+      <!-- trash so many frames at the beginning -->
+      <equi_time>100</equi_time>
+      <!-- grid for table*.xvg !-->
+      <table_bins>0.002</table_bins>
+      <!-- cut the potential at this value (gromacs bug) -->
+      <pot_max>1000000</pot_max>
+      <!-- extend the tables to this value -->
+      <table_end>3.7</table_end>
+      <grompp>
+        <opts>-maxwarn 1</opts>
+      </grompp>
+      <log>gromacs.log</log>
+    </gromacs>
+    <!-- these files are copied for each new run -->
+    <filelist>grompp.prep.mdp grompp.mdp topol.top table.xvg index.ndx</filelist>
+    <!-- do so many iterations -->
+    <iterations_max>900</iterations_max>
+    <!-- ibi: inverse biltzmann imc: inverse monte carlo re: relative entropy-->
+    <method>optimizer</method>
+    <optimizer>
+      <!-- put simplex or cma here -->
+      <type>simplex</type>
+      <cma>
+	<eps>0.1</eps>
+      </cma>
+    </optimizer>
+  </inverse>
+</cg>
+
