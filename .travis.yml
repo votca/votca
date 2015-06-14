@@ -8,9 +8,9 @@ before_install:
  - sudo apt-get update
  - sudo apt-get install cmake libfftw3-dev libgsl0-dev txt2tags libboost-program-options-dev libboost-filesystem-dev libboost-system-dev libexpat1-dev libsqlite3-dev pkg-config mercurial
  - if [[ $MAN ]]; then sudo apt-get install pgf texlive-fonts-recommended texlive-latex-extra doxygen graphviz; fi
- - if [[ $TEST = *cma ]]; then sudo apt-get install python-numpy gnuplot-nox; fi
+ - if [[ $TEST = *cma* ]]; then sudo apt-get install python-numpy gnuplot-nox; fi
  - if [[ $TEST = *imc ]]; then sudo apt-get install octave; fi
- - if [[ $TEST = *simplex ]]; then sudo apt-get install gnuplot-nox; fi
+ - if [[ $TEST = *simplex* ]]; then sudo apt-get install gnuplot-nox; fi
  - if [[ $TEST = *realtime ]]; then sudo apt-get install gnuplot-nox; fi
  - if [[ $TEST != *tf ]]; then sudo apt-get install gromacs-dev; fi
 
@@ -27,13 +27,15 @@ env: #NINJA=1 is currently not support by Travis' cmake, enable when >=2.8.9
   - CSG_MDRUN_STEPS=10000 TEST=methanol/imc J=4
   - CSG_MDRUN_STEPS=500 TEST=propane/ibi J=4
   - CSG_MDRUN_STEPS=10000 TEST=propane/imc J=4
-  - CSG_MDRUN_STEPS=10000 TEST=spce/cma J=4
+  - CSG_MDRUN_STEPS=500 TEST=spce/cma/density J=4
   - CSG_MDRUN_STEPS=500 TEST=spce/ibi J=4
   - CSG_MDRUN_STEPS=500 TEST=spce/ibi_pressure J=4
   - CSG_MDRUN_STEPS=10000 TEST=spce/imc J=4
   - CSG_MDRUN_STEPS=10000 TEST=spce/realtime J=4
   - CSG_MDRUN_STEPS=10000 TEST=spce/re J=4
-  - CSG_MDRUN_STEPS=500 TEST=spce/simplex J=4
+  - CSG_MDRUN_STEPS=500 TEST=spce/simplex/density J=4
+  - CSG_MDRUN_STEPS=500 TEST=spce/simplex/pressure J=4
+  - CSG_MDRUN_STEPS=500 TEST=spce/simplex/simple J=4
   - CSG_MDRUN_STEPS=500 TEST=spce/tf J=4 GROMACS=yes
   - CSG_MDRUN_STEPS=500 TEST=urea-water/ibi J=4
 
@@ -47,7 +49,7 @@ matrix:
 before_script:
   - rm -vrf * .git
   - wget https://raw.githubusercontent.com/votca/buildutil/master/build.sh && chmod 755 build.sh
-  - if [[ $TEST = *cma ]]; then wget http://www.lri.fr/~hansen/cma.py; fi #we set PYTHONPATH="$PWD" below
+  - if [[ $TEST = *cma* ]]; then wget http://www.lri.fr/~hansen/cma.py; fi #we set PYTHONPATH="$PWD" below
 
 script:
   - PYTHONPATH="$PWD" ./build.sh -Wdu --prefix $PWD ${MAN:+--devdoc}
