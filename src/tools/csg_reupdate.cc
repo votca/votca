@@ -41,6 +41,8 @@ void CsgREupdate::Initialize() {
     ("param-out-ext", boost::program_options::value<string>(&_param_out_ext)->default_value("param.new"),
      "  Extension of the output parameter tables")
     ("pot-out-ext", boost::program_options::value<string>(&_pot_out_ext)->default_value("pot.new"),
+     "  Extension of the output potential tables")
+    ("hessian-check", boost::program_options::value<bool>(&_hessian_check)->default_value(true),
      "  Extension of the output potential tables");
   AddProgramOptions()
     ("top", boost::program_options::value<string > (),
@@ -324,9 +326,28 @@ void CsgREupdate::REUpdateLamda() {
          * not implemented yet!
          */
         //if(!_dosteep){
+      if(_hessian_check)
+        {
             throw runtime_error("Hessian NOT a positive definite!\n"
                     "This can be a result of poor initial guess or "
                     "ill-suited CG potential settings or poor CG sampling.\n");
+        }
+      else
+        {
+
+          cout << "****************** WARNING *****************" << endl;
+          cout << "Hessian H NOT a positive definite!" << endl;
+          cout <<"This can be a result of poor initial guess or ill-suited CG potential settings or poor CG sampling." << endl;
+          cout << "********************************************" << endl;
+          cout << endl;
+          cout << "However, you want to proceed despite non-positive definite H." << endl;
+          cout << "Non-positive H does not gurantee relative entropy iterations to converge to minimum." << endl;
+          cout << "You can turn on Hessian check by setting command line option --hessian-check=true." <<endl;
+
+          cout << "In this case, alternative update option is steepest descent." << endl;
+          dlamda = minusDS;
+
+        }
                     //"If you are confident about settings, "
                     //"enable steepest descent by setting the option "
                     //"cg.inverse.re.do_steep to be 'true'");

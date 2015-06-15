@@ -88,7 +88,8 @@ protected:
   ub::symmetric_matrix<double, ub::upper> _HS;
   ub::vector<double> _DS;
   ub::vector<double> _dUFrame;
-  
+  bool _hessian_check;
+
   double _UavgAA;
   double _UavgCG;
   double _beta;
