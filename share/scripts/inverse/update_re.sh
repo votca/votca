@@ -42,6 +42,10 @@ fi
 
 first_frame="$(csg_get_property cg.inverse.$sim_prog.first_frame)"
 csg_reupdate_opts="$(csg_get_property --allow-empty cg.inverse.re.csg_reupdate.opts)"
+if [[ ${CSG_RUNTEST} ]] ; then
+  msg --color blue --to-stderr "Automatically adding '--hessian-check no', because CSG_RUNTEST was set"
+  csg_reupdate_opts+=" --hessian-check no"
+fi
 
 tasks=$(get_number_tasks)
 if is_done "re_update"; then
