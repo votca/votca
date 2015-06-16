@@ -134,8 +134,13 @@ namespace votca { namespace ctp {
         
         if ( type == "medium"){
             
-            return MediumOrder.at(element);            
-            
+            return MediumOrder.at(element);                        
+        }
+        else if ( type == "coarse"){
+            return CoarseOrder.at(element); 
+        }
+        else if ( type == "xcoarse"){
+            return XcoarseOrder.at(element); 
         }
         
         

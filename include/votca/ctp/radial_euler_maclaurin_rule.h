@@ -70,6 +70,8 @@ namespace votca { namespace ctp {
             void setGrid(int numberofpoints, double cutoff, std::vector<double>& point, std::vector<double>& weight );
             
             std::map<std::string, int>    MediumGrid;
+            std::map<std::string, int>    CoarseGrid;
+            std::map<std::string, int>    XcoarseGrid;
             std::map<std::string, double> Accuracy;
             
             inline void FillGrids(){
@@ -78,6 +80,9 @@ namespace votca { namespace ctp {
                 FillPeriodRow();
                 FillAccuracy();
                 FillMediumGrid();
+                FillCoarseGrid();
+                FillXcoarseGrid();
+                
         
             }
 
@@ -271,6 +276,106 @@ c                  Md   No   Lr  Unq  Unp
             MediumGrid["Se"] = 112;
             MediumGrid["Br"] = 112;
             MediumGrid["Kr"] = 112;
+            
+            
+    }            
+    
+    inline void FillCoarseGrid(){
+        
+        // order for H, He (not given in NWChem, assuming same as 1st row)
+            CoarseGrid["H"]  = 35;
+            CoarseGrid["He"] = 35;
+        
+        // orders for 1st row elements taken from NWChem
+            CoarseGrid["Li"] = 35;
+            CoarseGrid["Be"] = 35;
+            CoarseGrid["B"] = 35;
+            CoarseGrid["C"] = 35;
+            CoarseGrid["N"] = 35;
+            CoarseGrid["O"] = 35;
+            CoarseGrid["F"] = 35;
+            CoarseGrid["Ne"] = 35;
+
+        // orders for 2nd row elements taken from NWChem
+            CoarseGrid["Na"] = 70;
+            CoarseGrid["Mg"] = 70;
+            CoarseGrid["Al"] = 70;
+            CoarseGrid["Si"] = 70;
+            CoarseGrid["P"] = 70;
+            CoarseGrid["S"] = 70;
+            CoarseGrid["Cl"] = 70;
+            CoarseGrid["Ar"] = 70;
+            
+           
+        // orders for 3rd row elements taken from NWChem
+            CoarseGrid["K"] = 95;
+            CoarseGrid["Ca"] = 95;
+            CoarseGrid["Sc"] = 95;
+            CoarseGrid["Ti"] = 95;
+            CoarseGrid["V"] = 95;
+            CoarseGrid["Cr"] = 95;
+            CoarseGrid["Mn"] = 95;
+            CoarseGrid["Fe"] = 95;
+            CoarseGrid["Co"] = 95;
+            CoarseGrid["Ni"] = 95;
+            CoarseGrid["Cu"] = 95;
+            CoarseGrid["Zn"] = 95;
+            CoarseGrid["Ga"] = 95;
+            CoarseGrid["Ge"] = 95;
+            CoarseGrid["As"] = 95;
+            CoarseGrid["Se"] = 95;
+            CoarseGrid["Br"] = 95;
+            CoarseGrid["Kr"] = 95;
+            
+            
+    }          
+    
+    inline void FillXcoarseGrid(){
+        
+        // order for H, He (not given in NWChem, assuming same as 1st row)
+            XcoarseGrid["H"]  = 21;
+            XcoarseGrid["He"] = 21;
+        
+        // orders for 1st row elements taken from NWChem
+            XcoarseGrid["Li"] = 21;
+            XcoarseGrid["Be"] = 21;
+            XcoarseGrid["B"] = 21;
+            XcoarseGrid["C"] = 21;
+            XcoarseGrid["N"] = 21;
+            XcoarseGrid["O"] = 21;
+            XcoarseGrid["F"] = 21;
+            XcoarseGrid["Ne"] = 21;
+
+        // orders for 2nd row elements taken from NWChem
+            XcoarseGrid["Na"] = 42;
+            XcoarseGrid["Mg"] = 42;
+            XcoarseGrid["Al"] = 42;
+            XcoarseGrid["Si"] = 42;
+            XcoarseGrid["P"] = 42;
+            XcoarseGrid["S"] = 42;
+            XcoarseGrid["Cl"] = 42;
+            XcoarseGrid["Ar"] = 42;
+            
+           
+        // orders for 3rd row elements taken from NWChem
+            XcoarseGrid["K"] = 75;
+            XcoarseGrid["Ca"] = 75;
+            XcoarseGrid["Sc"] = 75;
+            XcoarseGrid["Ti"] = 75;
+            XcoarseGrid["V"] = 75;
+            XcoarseGrid["Cr"] = 75;
+            XcoarseGrid["Mn"] = 75;
+            XcoarseGrid["Fe"] = 75;
+            XcoarseGrid["Co"] = 75;
+            XcoarseGrid["Ni"] = 75;
+            XcoarseGrid["Cu"] = 75;
+            XcoarseGrid["Zn"] = 75;
+            XcoarseGrid["Ga"] = 75;
+            XcoarseGrid["Ge"] = 75;
+            XcoarseGrid["As"] = 75;
+            XcoarseGrid["Se"] = 75;
+            XcoarseGrid["Br"] = 75;
+            XcoarseGrid["Kr"] = 75;
             
             
     }            

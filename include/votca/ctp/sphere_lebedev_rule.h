@@ -96,6 +96,8 @@ namespace votca {
 
 
             std::map<std::string, int> MediumOrder;
+            std::map<std::string, int> CoarseOrder;
+            std::map<std::string, int> XcoarseOrder;
             std::map<int,int>          Order2Index;
             std::map<int,int>          Index2Order;
 
@@ -178,6 +180,8 @@ namespace votca {
             inline void FillOrders() {
 
                 FillMediumOrder();
+                FillCoarseOrder();
+                FillXcoarseOrder();
 
             }
 
@@ -227,6 +231,105 @@ namespace votca {
                 MediumOrder["Se"] = 590;
                 MediumOrder["Br"] = 590;
                 MediumOrder["Kr"] = 590;
+
+
+            }
+            
+            inline void FillCoarseOrder() {
+
+                // order for H, He (not given in NWChem, assuming same as 1st row)
+                CoarseOrder["H"] = 302;
+                CoarseOrder["He"] = 302;
+
+                // orders for 1st row elements taken from NWChem
+                CoarseOrder["Li"] = 302;
+                CoarseOrder["Be"] = 302;
+                CoarseOrder["B"] = 302;
+                CoarseOrder["C"] = 302;
+                CoarseOrder["N"] = 302;
+                CoarseOrder["O"] = 302;
+                CoarseOrder["F"] = 302;
+                CoarseOrder["Ne"] = 302;
+
+                // orders for 2nd row elements taken from NWChem
+                CoarseOrder["Na"] = 302;
+                CoarseOrder["Mg"] = 302;
+                CoarseOrder["Al"] = 302;
+                CoarseOrder["Si"] = 302;
+                CoarseOrder["P"] = 302;
+                CoarseOrder["S"] = 302;
+                CoarseOrder["Cl"] = 302;
+                CoarseOrder["Ar"] = 302;
+
+
+                // orders for 3rd row elements taken from NWChem
+                CoarseOrder["K"] = 302;
+                CoarseOrder["Ca"] = 302;
+                CoarseOrder["Sc"] = 302;
+                CoarseOrder["Ti"] = 302;
+                CoarseOrder["V"] = 302;
+                CoarseOrder["Cr"] = 302;
+                CoarseOrder["Mn"] = 302;
+                CoarseOrder["Fe"] = 302;
+                CoarseOrder["Co"] = 302;
+                CoarseOrder["Ni"] = 302;
+                CoarseOrder["Cu"] = 302;
+                CoarseOrder["Zn"] = 302;
+                CoarseOrder["Ga"] = 302;
+                CoarseOrder["Ge"] = 302;
+                CoarseOrder["As"] = 302;
+                CoarseOrder["Se"] = 302;
+                CoarseOrder["Br"] = 302;
+                CoarseOrder["Kr"] = 302;
+
+
+            }
+            inline void FillXcoarseOrder() {
+
+                // order for H, He (not given in NWChem, assuming same as 1st row)
+                XcoarseOrder["H"] = 194;
+                XcoarseOrder["He"] = 194;
+
+                // orders for 1st row elements taken from NWChem
+                XcoarseOrder["Li"] = 194;
+                XcoarseOrder["Be"] = 194;
+                XcoarseOrder["B"] = 194;
+                XcoarseOrder["C"] = 194;
+                XcoarseOrder["N"] = 194;
+                XcoarseOrder["O"] = 194;
+                XcoarseOrder["F"] = 194;
+                XcoarseOrder["Ne"] = 194;
+
+                // orders for 2nd row elements taken from NWChem
+                XcoarseOrder["Na"] = 194;
+                XcoarseOrder["Mg"] = 194;
+                XcoarseOrder["Al"] = 194;
+                XcoarseOrder["Si"] = 194;
+                XcoarseOrder["P"] = 194;
+                XcoarseOrder["S"] = 194;
+                XcoarseOrder["Cl"] = 194;
+                XcoarseOrder["Ar"] = 194;
+
+
+                // orders for 3rd row elements taken from NWChem
+                XcoarseOrder["K"] = 194;
+                XcoarseOrder["Ca"] = 194;
+                XcoarseOrder["Sc"] = 194;
+                XcoarseOrder["Ti"] = 194;
+                XcoarseOrder["V"] = 194;
+                XcoarseOrder["Cr"] = 194;
+                XcoarseOrder["Mn"] = 194;
+                XcoarseOrder["Fe"] = 194;
+                XcoarseOrder["Co"] = 194;
+                XcoarseOrder["Ni"] = 194;
+                XcoarseOrder["Cu"] = 194;
+                XcoarseOrder["Zn"] = 194;
+                XcoarseOrder["Ga"] = 194;
+                XcoarseOrder["Ge"] = 194;
+                XcoarseOrder["As"] = 194;
+                XcoarseOrder["Se"] = 194;
+                XcoarseOrder["Br"] = 194;
+                XcoarseOrder["Kr"] = 194;
 
 
             }

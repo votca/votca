@@ -435,6 +435,16 @@ void EulerMaclaurinGrid::getRadialCutoffs(vector<QMAtom* > _atoms, BasisSet* bs,
             return MediumGrid.at(element);            
             
         }
+        else if ( type == "coarse"){
+            
+            return CoarseGrid.at(element);            
+            
+        }
+        else if ( type == "xcoarse"){
+            
+            return XcoarseGrid.at(element);            
+            
+        }
         
         
     }

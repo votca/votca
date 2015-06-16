@@ -663,7 +663,7 @@ namespace votca {
         }
         
         
-             ub::matrix<double> NumericalIntegration::IntegrateVXC_block(ub::matrix<double>& _density_matrix, AOBasis* basis){
+        ub::matrix<double> NumericalIntegration::IntegrateVXC_block(ub::matrix<double>& _density_matrix, AOBasis* basis){
             EXC=0;
             // TODO: switch XC functionals implementation from LIBXC to base own calculation
             #ifdef LIBXC
@@ -904,9 +904,7 @@ namespace votca {
             return XCMAT;
 
         }
-        
-        
-        
+                
         // numerically integrate the elements of the AOXC matrix
         ub::matrix<double> NumericalIntegration::IntegrateVXC(ub::matrix<double>& _density_matrix, AOBasis* basis){
                 EXC=0;    
@@ -1268,16 +1266,13 @@ namespace votca {
 
         } */
 
-        
-        
-        
-        
         // numerically integrate the electron density
         double NumericalIntegration::IntegrateDensity(ub::matrix<double>& _density_matrix, AOBasis* basis){
             
             double result = 0.0;
             const ub::vector<double> DMAT_array=_density_matrix.data();
              // for every gridpoint
+            #pragma omp parallel for 
             for (int i = 0; i < _grid.size(); i++) {
                 for (int j = 0; j < _grid[i].size(); j++) {
                     // get value of orbitals at each gridpoint
@@ -1301,56 +1296,20 @@ namespace votca {
                     
 
                     
-                    
+                    _grid[i][j].grid_density=density_at_grid;
                     result += _grid[i][j].grid_weight * density_at_grid;
                 }
             } // gridpoints end
             
-            
+            density_set=true;
             return result;
         } 
             
-            double NumericalIntegration::IntegratePotential(ub::matrix<double>& _density_matrix, AOBasis* basis, ub::vector<double> rvector, bool parallel){
+        double NumericalIntegration::IntegratePotential(ub::vector<double> rvector){
             
             double result = 0.0;
-            
-            const ub::vector<double> DMAT_array=_density_matrix.data();
-             // for every gridpoint
-            if(!density_set){
-                
-            #pragma omp parallel for if (parallel)
-            for (int i = 0; i < _grid.size(); i++) {
-                for (int j = 0; j < _grid[i].size(); j++) {
-                    // get value of orbitals at each gridpoint
-                    ub::matrix<double> tmat = ub::zero_matrix<double>(basis->_AOBasisSize, 1);
-
-                    for (vector< AOShell* >::iterator _row = basis->firstShell(); _row != basis->lastShell(); _row++) {
-
-                        ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange(tmat, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc(), 0, 0);
-                        (*_row)->EvalAOspace(_submatrix, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
-                    }
-                    
-                    
-                    ub::matrix<double> _AOmatrix_at_grid = ub::prod(tmat, ub::trans(tmat));
-                    
-                    // density at grid point is sum of element-wise product of density matrix x _AOmatrix
-                    ub::vector<double> _AO_array  =_AOmatrix_at_grid.data();
-                    double density_at_grid = 0.0;
-                    for ( int _i =0; _i < DMAT_array.size(); _i++ ){
-                        density_at_grid += DMAT_array(_i)*_AO_array(_i);
-                    }   
-                    
-                    _grid[i][j].grid_density=density_at_grid;
-                
-                    double dist=sqrt((_grid[i][j].grid_x-rvector(0))*(_grid[i][j].grid_x-rvector(0))+(_grid[i][j].grid_y-rvector(1))*(_grid[i][j].grid_y-rvector(1))+(_grid[i][j].grid_z-rvector(2))*(_grid[i][j].grid_z-rvector(2)));
-                    
-                    result -= _grid[i][j].grid_weight * _grid[i][j].grid_density/dist;
-                }
-                    
-                }
-            density_set=true;
-            } // gridpoints end
-            else if(density_set){
+               
+           if(density_set){
                 for (int i = 0; i < _grid.size(); i++) {
                 for (int j = 0; j < _grid[i].size(); j++) {
                     double dist=sqrt((_grid[i][j].grid_x-rvector(0))*(_grid[i][j].grid_x-rvector(0))+(_grid[i][j].grid_y-rvector(1))*(_grid[i][j].grid_y-rvector(1))+(_grid[i][j].grid_z-rvector(2))*(_grid[i][j].grid_z-rvector(2)));
@@ -1358,14 +1317,343 @@ namespace votca {
                     }
                 }
             } 
+           else{
+               throw std::runtime_error("Density not calculated");
+           }
             
             return result;   
         }
-        
-        
-        
-        
-        
+                   
+        double NumericalIntegration::IntegrateDensity_AtomBlock(ub::matrix<double>& _density_matrix, AOBasis* basis){   
+         
+            double result=0.0;
+            // timers for testing
+            boost::timer::cpu_timer cpu_t;
+            cpu_t.start();
+            double _t_AOvals = 0.0;
+            double _t_rho = 0.0;
+            double _t_grad_rho = 0.0;
+            double _t_vxc =0.0;
+            double _t_AOxc_rho=0.0;
+            double _t_AOxc_grad=0.0;
+            double _t_EXC1=0.0;
+            double _t_EXC2=0.0;
+            double _t_sum = 0.0;
+            double _t_total = 0.0;
+            boost::timer::cpu_times tenter = cpu_t.elapsed();
+             
+            // generate a list of shells for each atom
+            typedef vector< AOShell* >::iterator AOShellIterator;
+            vector< vector< AOShellIterator > > _atomshells;
+            vector< AOShellIterator > _singleatom;
+
+            vector < int > _startIdx;
+            vector < int > _blocksize;
+
+            int _atomindex = 0;
+            int _Idx       = 0;
+            int _size      = 0;
+            
+            for (vector< AOShell* >::iterator _row = basis->firstShell(); _row != basis->lastShell(); _row++) {
+                
+                
+                if ( (*_row)->getIndex() == _atomindex ){
+                    
+                    _singleatom.push_back(_row);
+                    _size += (*_row)->getNumFunc();
+                    
+                    
+                } else {
+                    
+                    // append _singleatom to _atomshells
+                    _atomshells.push_back(_singleatom);
+                    _startIdx.push_back( _Idx );
+                    _blocksize.push_back(_size);
+                    // reset _singleatom
+                    _singleatom.clear();
+                    _size = (*_row)->getNumFunc();
+                    _Idx       = (*_row)->getStartIndex();
+                    _singleatom.push_back(_row);
+                    _atomindex = (*_row)->getIndex();
+                    
+                }
+                   
+            }
+            
+            _atomshells.push_back(_singleatom);
+            _startIdx.push_back( _Idx );
+                    _blocksize.push_back(_size);
+            cout << " Number of atoms " << _atomshells.size() << endl;
+            
+            for ( int iatom = 0 ; iatom < _atomshells.size(); iatom++ ){
+                cout << "atom " << iatom << " number of shells " << _atomshells[iatom].size() << " block start " << _startIdx[iatom] << " functions in atom " << _blocksize[iatom] << endl; 
+            }
+
+            
+            vector < ub::matrix_range< ub::matrix<double> > > _DMATblocks;
+            // get stupid index magic vector of matrix_ranges per atom block
+            for ( int rowatom = 0; rowatom < _atomshells.size(); rowatom++){
+                for ( int colatom = 0 ; colatom <= rowatom; colatom++ ){
+                    _DMATblocks.push_back(ub::subrange(_density_matrix,_startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom], _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom]));
+                }
+            }
+            
+            // setup a list of min decay constants per atom
+            // for every shell
+            _atomindex = 0;
+            double _decaymin = 1e7;
+            vector< double > _minimal_decay;
+            vector < vec > _positions;
+            vec _localpos = (*basis->firstShell())->getPos();
+            for ( vector< AOShell* >::iterator _row = basis->firstShell(); _row != basis->lastShell(); _row++   ) {
+                               
+                 if ( (*_row)->getIndex() == _atomindex ){
+                     
+                     // check all decay constants in this shell
+                     for (AOShell::GaussianIterator itg = (*_row)->firstGaussian(); itg != (*_row)->lastGaussian(); itg++) {
+                         AOGaussianPrimitive* gaussian = *itg;
+                         double _decay = gaussian->decay;
+                         if (_decay < _decaymin) {
+                             _decaymin = _decay;
+                         } // decay min check
+                     
+                     } // Gaussian Primitives 
+                     
+                 } else {  // if shell belongs to the actual atom
+                     // add to mininal_decay vector
+                     _minimal_decay.push_back(_decaymin);
+                     _positions.push_back( _localpos );
+                     // reset counters
+                     _decaymin = 1e7;
+                     _localpos = (*_row)->getPos();
+
+                     _atomindex++;
+                     
+                     // check all decay constants in this shell
+                     for (AOShell::GaussianIterator itg = (*_row)->firstGaussian(); itg != (*_row)->lastGaussian(); itg++) {
+                         AOGaussianPrimitive* gaussian = *itg;
+                         double _decay = gaussian->decay;
+                         if (_decay < _decaymin) {
+                             _decaymin = _decay;
+                         } // decay min check
+                     
+                     } // Gaussian Primitives                                       
+                 }
+            } // all shells
+                 
+            // push final atom
+            _minimal_decay.push_back(_decaymin);
+            _positions.push_back( _localpos );
+             
+            /* for ( int i =0; i < _minimal_decay.size(); i++){
+                 
+                 cout << "Atom " << i << " min decay " << _minimal_decay[i] <<  " at " << _positions[i] << endl; 
+                 
+             } */
+                          
+             // for each gridpoint, check the value of exp(-a*(r-R)^2) < 1e-10
+             //                             = alpha*(r-R)^2 >~ 20.7
+            
+            vector< vector< vector<int> > > _significant_atoms;
+            
+            // each atomic grid
+            for (int i = 0; i < _grid.size(); i++) {
+            
+                vector< vector<int> > _significant_atoms_atomgrid;
+                
+                // each point of the atomic grid
+                for (int j = 0; j < _grid[i].size(); j++) {
+
+                    vector<int> _significant_atoms_gridpoint;
+                    vec grid;
+                    grid.setX( _grid[i][j].grid_x);
+                    grid.setY( _grid[i][j].grid_y);
+                    grid.setZ( _grid[i][j].grid_z);
+                    
+                    // check all atoms
+                    for ( int iatom = 0 ; iatom < _minimal_decay.size(); iatom++){
+
+                        vec dist = grid - _positions[iatom];
+                        double distsq = dist.getX()*dist.getX() + dist.getY()*dist.getY()  + dist.getZ()*dist.getZ() ;
+                        
+                        // if contribution is smaller than -ln(1e-10), add atom to list
+                        if ( (_minimal_decay[iatom] * distsq) < 20.7 ){
+                            _significant_atoms_gridpoint.push_back(iatom);
+                        }
+                        
+                    } // check all atoms
+
+                    _significant_atoms_atomgrid.push_back(  _significant_atoms_gridpoint );
+                   
+                } // all points of this atom grid
+                
+                _significant_atoms.push_back(_significant_atoms_atomgrid);
+               
+            } // atomic grids
+              
+            /*
+            for ( int i = 0; i < _significant_atoms.size(); i++ ){
+                
+                cout << " Atomgrid: " << i << endl;
+                 for ( int j = 0; j < _significant_atoms[i].size(); j++ ){
+                     
+                     cout << " Atom: " << i << " gridpoint " << j << " significant atoms " << _significant_atoms[i][j].size() << endl;
+                     
+                 }
+                
+            }*/
+             //exit(0);           
+            
+            int total_grid =0;
+            int significant_grid = 0;
+            for ( int i = 0; i < _significant_atoms.size(); i++ ){
+                
+                total_grid += _grid[i].size(); 
+                
+                for ( int j = 0; j < _significant_atoms[i].size(); j++ ){
+                    
+                    int gridpointsize = _significant_atoms[i][j].size();
+                    significant_grid += gridpointsize*(gridpointsize+1);
+                    
+                } 
+            }
+            int natoms = _grid.size();
+            
+            total_grid = total_grid * ( natoms*(natoms+1) ) / 2;
+            
+            // cout << "Total number of atom blocks " << total_grid << " after removal of insignificant blocks " << significant_grid/2 << endl;
+            cout << "# Atom blocks by removal of insignificant blocks reduced to " << 50*double(significant_grid)/double(total_grid) << "%" << endl;
+  
+            // parallelization: distribute over threads inside one atom
+            int nthreads = 1;
+            #ifdef OMP
+               nthreads = omp_get_max_threads();
+            #endif
+
+            std::vector<double> Density_thread;
+            for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){ 
+                Density_thread.push_back(0.0);
+            }           
+            
+            // for every atom
+            for (int i = 0; i < _grid.size(); i++) {
+	      // for each point in atom grid
+                
+                // number of points in this atomgrid
+                int atom_points = _grid[i].size();
+                // divide among threads
+                int atom_points_per_thread = atom_points/nthreads;
+                std::vector<int> _thread_start;
+                std::vector<int> _thread_stop;
+                for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){
+                    _thread_start.push_back( i_thread * atom_points_per_thread );
+                    _thread_stop.push_back( (i_thread + 1) * atom_points_per_thread );
+                }
+                // final stop must be size
+                _thread_stop[nthreads-1] = atom_points;
+
+                for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){
+                    
+                    cout << "Thread " << i_thread << " start " << _thread_start[i_thread] << " stop " << _thread_stop[i_thread] << endl;                    
+                }
+                
+                #pragma omp parallel for
+                for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){
+                for (int j = _thread_start[i_thread]; j < _thread_stop[i_thread]; j++) {
+
+                   boost::timer::cpu_times t0 = cpu_t.elapsed();
+
+                    // get value of orbitals at each gridpoint (vector as 1D boost matrix object -> prod )
+                    //ub::matrix<double> AOgrid = ub::zero_matrix<double>(basis->_AOBasisSize, 1);
+
+                   ub::matrix<double> AOgrid = ub::zero_matrix<double>(1, basis->_AOBasisSize); // TRY MORE USEFUL DATA
+   
+                   ub::matrix<double>  rho_mat = ub::zero_matrix<double>(1,1);
+                   //ub::matrix<double> grad_rho = ub::zero_matrix<double>(3,1);
+                    
+		    // evaluate AO Functions for all shells, NOW BLOCKWISE
+
+                    // for each significant atom for this grid point
+                    for ( int sigrow = 0; sigrow < _significant_atoms[i][j].size() ; sigrow++){
+                    
+                        // this atom
+                        int rowatom = _significant_atoms[i][j][sigrow];
+                                           
+                    /* NOT SURE IF NEEDED
+                        // for each shell in this atom
+                        for ( int ishell = 0 ; ishell < _atomshells[rowatom].size() ; ishell++ ){
+                            boost::timer::cpu_times tstartshells = cpu_t.elapsed();
+                            AOShellIterator _row = _atomshells[rowatom][ishell];
+                            // for density, fill sub-part of AOatgrid
+                            //ub::matrix_range< ub::matrix<double> > _AOgridsub = ub::subrange(AOgrid, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc(), 0, 1);
+                            ub::matrix_range< ub::matrix<double> > _AOgridsub = ub::subrange(AOgrid, 0, 1, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc());
+                            // (*_row)->EvalAOspace(_AOgridsub, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
+
+                           
+                            //(*_row)->EvalAOGradspace(_gradAO, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
+                            (*_row)->EvalAOspace(_AOgridsub, _gradAO , _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
+                            boost::timer::cpu_times tendshells = cpu_t.elapsed();
+                            
+                             _t_AOvals +=  (tendshells.wall-tstartshells.wall)/1e9;
+
+                        }  // shell in atom
+                        */
+                        /* ub::matrix<double> _temp     = ub::zero_matrix<double>(_blocksize[rowatom],1);
+                        ub::matrix<double> _tempgrad = ub::zero_matrix<double>(_blocksize[rowatom],3);
+                        
+                        ub::matrix_range< ub::matrix<double> > _AOgridrow     = ub::subrange(    AOgrid, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom], 0, 1);
+
+                         * 
+                         */                       
+                        ub::matrix<double> _temp     = ub::zero_matrix<double>(1,_blocksize[rowatom]);
+                                          
+                        ub::matrix_range< ub::matrix<double> > _AOgridrow     = ub::subrange(    AOgrid, 0,1, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom]);
+
+                        // for each atom
+                        // for all significant atoms of triangular matrix
+                        for ( int sigcol = 0; sigcol < _significant_atoms[i][j].size() ; sigcol++){
+                            int colatom = _significant_atoms[i][j][sigcol];
+                            if ( colatom > rowatom ) break;
+                            
+                            // get the already calculated AO values
+                            //ub::matrix_range< ub::matrix<double> >     _AOgridcol = ub::subrange(    AOgrid, _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom], 0, 1);
+                            //ub::matrix_range< ub::matrix<double> > _gradAOgridcol = ub::subrange(gradAOgrid, _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom], 0, 3);
+
+                            ub::matrix_range< ub::matrix<double> >     _AOgridcol = ub::subrange(    AOgrid, 0, 1, _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom]);
+                        
+                            //ub::matrix_range< ub::matrix<double> > DMAT_here = ub::subrange( _density_matrix, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom], _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom]);
+                            ub::matrix_range< ub::matrix<double> > DMAT_here = ub::subrange( _density_matrix, _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom], _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom]);
+                             
+                             if ( colatom == rowatom )  _temp     += 0.5 * ub::prod( _AOgridcol, DMAT_here);
+                             else                       _temp     += ub::prod(  _AOgridcol, DMAT_here);
+                            
+                        } //col shells
+                        
+
+                        //ub::matrix_range< ub::matrix<double> > _gradAOgridrow = ub::subrange(gradAOgrid, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom], 0, 3);
+                        
+                        //rho_mat  += ub::prod(ub::trans(    _AOgridrow),_temp);
+                        //grad_rho += ub::prod(ub::trans(_gradAOgridrow),_temp) +  ub::prod(ub::trans(_tempgrad),_AOgridrow) ;
+
+                        rho_mat  += ub::prod(_temp, ub::trans( _AOgridrow) );
+                                               
+                    } // row shells 
+
+
+                    _grid[i][j].grid_density      = 2.0 * rho_mat(0,0);
+                    Density_thread[i_thread] += _grid[i][j].grid_weight * _grid[i][j].grid_density;
+                    boost::timer::cpu_times t3 = cpu_t.elapsed();
+                    _t_rho +=  (t3.wall-t0.wall)/1e9;
+
+                } // j: for each point in atom grid
+                }// each thread
+            } // i: for each atom grid
+
+             for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){
+                result += Density_thread[i_thread]; 
+                }
+            return result;
+         }
         
         // numerically integrate the elements of the AOOverlap matrix as check
 
@@ -1393,18 +1681,7 @@ namespace votca {
             return OLMAT;
 
         } // numAOoverlap
-
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+  
         double NumericalIntegration::StupidIntegrate(std::vector<double>& _data){
             
             
@@ -1423,9 +1700,7 @@ namespace votca {
             
             return integral;
             
-        }
-        
-        
+        }          
         
         void NumericalIntegration::getGridpoints( ub::matrix<double>& _gridpoints ){
             
@@ -1448,10 +1723,7 @@ namespace votca {
             
             
         }
-        
-        
-        
-        
+               
         void NumericalIntegration::GridSetup(string type, BasisSet* bs, vector<QMAtom*> _atoms) {
 
             const double pi = boost::math::constants::pi<double>();
@@ -1460,7 +1732,7 @@ namespace votca {
 
             // get radial grid per element
             EulerMaclaurinGrid _radialgrid;
-            _radialgrid.getRadialGrid(bs, _atoms, "medium", _grids); // this checks out 1:1 with NWChem results! AWESOME
+            _radialgrid.getRadialGrid(bs, _atoms, type, _grids); // this checks out 1:1 with NWChem results! AWESOME
 
             cout << "Radial grid summary " << endl;
             map<string, GridContainers::radial_grid>::iterator it;
@@ -1472,7 +1744,7 @@ namespace votca {
             LebedevGrid _sphericalgrid;
             cout << "Spherical grid summary " << endl;
             for (it = _grids._radial_grids.begin(); it != _grids._radial_grids.end(); ++it) {
-                _sphericalgrid.getSphericalGrid(_atoms, "medium", _grids);
+                _sphericalgrid.getSphericalGrid(_atoms, type, _grids);
                 cout << " Element " << it->first << " Number of points " << _grids._spherical_grids.at(it->first).weight.size() << endl;
 
             }
@@ -1533,7 +1805,7 @@ namespace votca {
                 GridContainers::spherical_grid _spherical_grid = _grids._spherical_grids.at(name);
 
                 // maximum order (= number of points) in spherical integration grid
-                int maxorder = _sphericalgrid.Type2MaxOrder(name,"medium");
+                int maxorder = _sphericalgrid.Type2MaxOrder(name,type);
                 int maxindex = _sphericalgrid.getIndexFromOrder(maxorder);
 
                 // for pruning of integration grid, get interval boundaries for this element
@@ -1798,9 +2070,7 @@ namespace votca {
 
 
         }
-
-        
-        
+    
         std::vector<double> NumericalIntegration::SSWpartition(int ngrid, int igrid, int ncenters, std::vector< std::vector<double> >& rq,  double ass){
             
             // initialize partition vector to 1.0
@@ -1860,16 +2130,13 @@ namespace votca {
             
         }
 
-        
-
         double NumericalIntegration::erf1c(double x){
              
             
             return 0.5*erfcc((x/(1.0-x*x))*alpha_erf1);    
             
         }
-        
-        
+              
         double NumericalIntegration::erfcc(double x){
             
             double tau = 1.0/(1.0+0.5*std::abs(x));
@@ -1881,13 +2148,5 @@ namespace votca {
             
         }
                                                                                                 
-
-        
-        
-        
-        
-
-
-
     }
 }
