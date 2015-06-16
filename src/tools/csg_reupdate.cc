@@ -348,20 +348,6 @@ void CsgREupdate::REUpdateLamda() {
           dlamda = minusDS;
 
         }
-                    //"If you are confident about settings, "
-                    //"enable steepest descent by setting the option "
-                    //"cg.inverse.re.do_steep to be 'true'");
-        /*} else {
-                ofstream out;
-                string filename = "notsympos";
-                out.open(filename.c_str());
-                if(!out)
-                throw runtime_error(string("error, cannot open file ") + filename);
-                out << "**** Hessian NOT a positive definite! ****" << endl;
-                out << "**** Taking steepest descent ****!" << endl;
-                out.close();
-                _dlamda = minusDS;
-        }*/
 
     }
 
