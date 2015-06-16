@@ -52,6 +52,17 @@ PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string& name_,const int nla
   // fixing last 4 knots to zeros is reasonable
   _ncutcoeff = 4;
 
+  // check if we have enough parameters to optimize
+  if((int(_lam.size()) - _nexcl - _ncutcoeff) < 1)
+    {
+      throw std::runtime_error("In potential "+_name+": no parameters to optimize!\n"
+                               "All the knot values fall in the range of either excluded (due to high repulsive region) or cut-off region.\n"
+                               "This issue can be resolved by one or combination of following steps:\n"
+                               "1. Make sure you are using large-enough cut-off for this CG potential.\n"
+                               "2. Make sure the CG-MD runs are sufficiently long and CG-MD RDF are statistically reliable.\n"
+                               "3. Use more knot values.\n");
+    }
+
   _M.resize(4,4,false);
   _M.clear();
   _M(0,0) =  1.0; _M(0,1) =  4.0; _M(0,2) =  1.0; _M(0,3) = 0.0;
@@ -64,7 +75,7 @@ PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string& name_,const int nla
 
 int PotentialFunctionCBSPL::getOptParamSize() const {
 
-  return _lam.size() - _nexcl - _ncutcoeff;
+  return int(_lam.size()) - _nexcl - _ncutcoeff;
 
 }
 
