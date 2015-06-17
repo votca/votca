@@ -95,7 +95,7 @@ public:
     
     //vector<double> evalAOspace( double x, double y, double z , string type = "");
     //void EvalAOspace( ub::matrix_range<ub::matrix<double> >& AOvalues, double x, double y, double z , string type = "");
-    void EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, double x, double y, double z , string type = "");
+    void EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, double x, double y, double z );
     void EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues,ub::matrix_range<ub::matrix<double> >& AODervalues, double x, double y, double z );
     //void EvalAOspace(ub::matrix<double>& AOvalues, double x, double y, double z , string type = "");
     
@@ -1163,12 +1163,10 @@ inline void AOBasis::ECPFill(BasisSet* bs , vector<QMAtom* > _atoms  ) {
             } // contractions
 
         }
-        
            
            
            
-           
-            inline void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, double x, double y, double z, string type ){
+            inline void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, double x, double y, double z ){
 
             // need type of shell
             string shell_type = this->_type;
@@ -1181,9 +1179,6 @@ inline void AOBasis::ECPFill(BasisSet* bs , vector<QMAtom* > _atoms  ) {
             double distsq = center_x*center_x + center_y*center_y +  center_z*center_z;
             const double pi = boost::math::constants::pi<double>();
 
-
-            
-            
             typedef vector< AOGaussianPrimitive* >::iterator GaussianIterator;
             // iterate over Gaussians in this shell
             for (GaussianIterator itr = firstGaussian(); itr != lastGaussian(); ++itr) {
@@ -1195,26 +1190,28 @@ inline void AOBasis::ECPFill(BasisSet* bs , vector<QMAtom* > _atoms  ) {
 
                 // split combined shells
                 int _i_func = -1;
+                
                 for (int i = 0; i < shell_type.length(); ++i) {
                     string single_shell = string(shell_type, i, 1);
                     // single type shells
                     if (single_shell == "S") {
-                        AOvalues(_i_func + 1, 0) += _contractions[0] * _expofactor; // s-function
+                        AOvalues(0, _i_func + 1) += _contractions[0] * _expofactor; // s-function        
                         _i_func++;
                     }
                     if (single_shell == "P") {
-                        AOvalues(_i_func + 1, 0) += _contractions[1] * 2.0 * sqrt(alpha) * center_x*_expofactor; // px-function
-                        AOvalues(_i_func + 2, 0) += _contractions[1] * 2.0 * sqrt(alpha) * center_y*_expofactor; // py-function
-                        AOvalues(_i_func + 3, 0) += _contractions[1] * 2.0 * sqrt(alpha) * center_z*_expofactor; // pz-function
+                        AOvalues(0, _i_func + 1) += _contractions[1] * 2.0 * sqrt(alpha) * center_x*_expofactor; // px-function
+                        AOvalues(0, _i_func + 2) += _contractions[1] * 2.0 * sqrt(alpha) * center_y*_expofactor; // py-function
+                        AOvalues(0, _i_func + 3) += _contractions[1] * 2.0 * sqrt(alpha) * center_z*_expofactor; // pz-function
+
                         _i_func += 3;
                     }
                     if (single_shell == "D") {
                         // dxz, dyz, dxy, d3z2-r2, dx2-y2
-                        AOvalues(_i_func + 1, 0) += _contractions[2] * 4.0 * alpha * center_x * center_z*_expofactor; // dxz-function
-                        AOvalues(_i_func + 2, 0) += _contractions[2] * 4.0 * alpha * center_y * center_z*_expofactor; // dyz-function
-                        AOvalues(_i_func + 3, 0) += _contractions[2] * 4.0 * alpha * center_x * center_y*_expofactor; // dxy-function
-                        AOvalues(_i_func + 4, 0) += _contractions[2] * 2.0 * alpha / sqrt(3.0)*(3.0 * center_z * center_z - distsq) * _expofactor; // d3z2-r2-function
-                        AOvalues(_i_func + 5, 0) += _contractions[2] * 2.0 * alpha * (center_x * center_x - center_y * center_y) * _expofactor; // dx2-y2-function
+                        AOvalues(0, _i_func + 1) += _contractions[2] * 4.0 * alpha * center_x * center_z*_expofactor; // dxz-function
+                        AOvalues(0, _i_func + 2) += _contractions[2] * 4.0 * alpha * center_y * center_z*_expofactor; // dyz-function
+                        AOvalues(0, _i_func + 3) += _contractions[2] * 4.0 * alpha * center_x * center_y*_expofactor; // dxy-function
+                        AOvalues(0, _i_func + 4) += _contractions[2] * 2.0 * alpha / sqrt(3.0)*(3.0 * center_z * center_z - distsq) * _expofactor; // d3z2-r2-function
+                        AOvalues(0, _i_func + 5) += _contractions[2] * 2.0 * alpha * (center_x * center_x - center_y * center_y) * _expofactor; // dx2-y2-function                             
                         _i_func += 5;
                     }
                     if (single_shell == "F") {
@@ -1229,6 +1226,10 @@ inline void AOBasis::ECPFill(BasisSet* bs , vector<QMAtom* > _atoms  ) {
             } // contractions
 
         }
+        
+           
+           
+           
         
            
         

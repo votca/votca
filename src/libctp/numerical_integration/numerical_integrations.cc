@@ -139,7 +139,7 @@ namespace votca {
                 cout << "atom " << iatom << " number of shells " << _atomshells[iatom].size() << " block start " << _startIdx[iatom] << " functions in atom " << _blocksize[iatom] << endl; 
             }
 
-            
+            /*
             vector < ub::matrix_range< ub::matrix<double> > > _DMATblocks;
             // get stupid index magic vector of matrix_ranges per atom block
             for ( int rowatom = 0; rowatom < _atomshells.size(); rowatom++){
@@ -147,7 +147,7 @@ namespace votca {
                     _DMATblocks.push_back(ub::subrange(_density_matrix,_startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom], _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom]));
                 }
             }
-            
+            */
             
             
             // setup a list of min decay constants per atom
@@ -1308,7 +1308,7 @@ namespace votca {
         double NumericalIntegration::IntegratePotential(ub::vector<double> rvector){
             
             double result = 0.0;
-               
+            
            if(density_set){
                 for (int i = 0; i < _grid.size(); i++) {
                 for (int j = 0; j < _grid[i].size(); j++) {
@@ -1324,7 +1324,7 @@ namespace votca {
             return result;   
         }
                    
-        double NumericalIntegration::IntegrateDensity_AtomBlock(ub::matrix<double>& _density_matrix, AOBasis* basis){   
+        double NumericalIntegration::IntegrateDensity_Atomblock(ub::matrix<double>& _density_matrix, AOBasis* basis){   
          
             double result=0.0;
             // timers for testing
@@ -1389,15 +1389,7 @@ namespace votca {
                 cout << "atom " << iatom << " number of shells " << _atomshells[iatom].size() << " block start " << _startIdx[iatom] << " functions in atom " << _blocksize[iatom] << endl; 
             }
 
-            
-            vector < ub::matrix_range< ub::matrix<double> > > _DMATblocks;
-            // get stupid index magic vector of matrix_ranges per atom block
-            for ( int rowatom = 0; rowatom < _atomshells.size(); rowatom++){
-                for ( int colatom = 0 ; colatom <= rowatom; colatom++ ){
-                    _DMATblocks.push_back(ub::subrange(_density_matrix,_startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom], _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom]));
-                }
-            }
-            
+           
             // setup a list of min decay constants per atom
             // for every shell
             _atomindex = 0;
@@ -1560,14 +1552,13 @@ namespace votca {
                 #pragma omp parallel for
                 for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){
                 for (int j = _thread_start[i_thread]; j < _thread_stop[i_thread]; j++) {
-
                    boost::timer::cpu_times t0 = cpu_t.elapsed();
 
                     // get value of orbitals at each gridpoint (vector as 1D boost matrix object -> prod )
                     //ub::matrix<double> AOgrid = ub::zero_matrix<double>(basis->_AOBasisSize, 1);
 
                    ub::matrix<double> AOgrid = ub::zero_matrix<double>(1, basis->_AOBasisSize); // TRY MORE USEFUL DATA
-   
+                   //ub::matrix<double> gradAOgrid = ub::zero_matrix<double>(3, basis->_AOBasisSize); 
                    ub::matrix<double>  rho_mat = ub::zero_matrix<double>(1,1);
                    //ub::matrix<double> grad_rho = ub::zero_matrix<double>(3,1);
                     
@@ -1579,7 +1570,7 @@ namespace votca {
                         // this atom
                         int rowatom = _significant_atoms[i][j][sigrow];
                                            
-                    /* NOT SURE IF NEEDED
+                     
                         // for each shell in this atom
                         for ( int ishell = 0 ; ishell < _atomshells[rowatom].size() ; ishell++ ){
                             boost::timer::cpu_times tstartshells = cpu_t.elapsed();
@@ -1589,15 +1580,14 @@ namespace votca {
                             ub::matrix_range< ub::matrix<double> > _AOgridsub = ub::subrange(AOgrid, 0, 1, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc());
                             // (*_row)->EvalAOspace(_AOgridsub, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
 
-                           
+                            //ub::matrix_range< ub::matrix<double> > _gradAO = ub::subrange(gradAOgrid, 0, 3, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc());
                             //(*_row)->EvalAOGradspace(_gradAO, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
-                            (*_row)->EvalAOspace(_AOgridsub, _gradAO , _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
+                            (*_row)->EvalAOspace(_AOgridsub, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
                             boost::timer::cpu_times tendshells = cpu_t.elapsed();
-                            
                              _t_AOvals +=  (tendshells.wall-tstartshells.wall)/1e9;
 
                         }  // shell in atom
-                        */
+                        
                         /* ub::matrix<double> _temp     = ub::zero_matrix<double>(_blocksize[rowatom],1);
                         ub::matrix<double> _tempgrad = ub::zero_matrix<double>(_blocksize[rowatom],3);
                         
@@ -1613,7 +1603,7 @@ namespace votca {
                         // for all significant atoms of triangular matrix
                         for ( int sigcol = 0; sigcol < _significant_atoms[i][j].size() ; sigcol++){
                             int colatom = _significant_atoms[i][j][sigcol];
-                            if ( colatom > rowatom ) break;
+                            
                             
                             // get the already calculated AO values
                             //ub::matrix_range< ub::matrix<double> >     _AOgridcol = ub::subrange(    AOgrid, _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom], 0, 1);
@@ -1624,8 +1614,8 @@ namespace votca {
                             //ub::matrix_range< ub::matrix<double> > DMAT_here = ub::subrange( _density_matrix, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom], _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom]);
                             ub::matrix_range< ub::matrix<double> > DMAT_here = ub::subrange( _density_matrix, _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom], _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom]);
                              
-                             if ( colatom == rowatom )  _temp     += 0.5 * ub::prod( _AOgridcol, DMAT_here);
-                             else                       _temp     += ub::prod(  _AOgridcol, DMAT_here);
+                            _temp     += ub::prod( _AOgridcol, DMAT_here);
+                            
                             
                         } //col shells
                         
@@ -1640,7 +1630,7 @@ namespace votca {
                     } // row shells 
 
 
-                    _grid[i][j].grid_density      = 2.0 * rho_mat(0,0);
+                    _grid[i][j].grid_density  =rho_mat(0,0);
                     Density_thread[i_thread] += _grid[i][j].grid_weight * _grid[i][j].grid_density;
                     boost::timer::cpu_times t3 = cpu_t.elapsed();
                     _t_rho +=  (t3.wall-t0.wall)/1e9;
@@ -1650,8 +1640,10 @@ namespace votca {
             } // i: for each atom grid
 
              for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){
+                 cout << result << endl;
                 result += Density_thread[i_thread]; 
                 }
+            density_set=true;
             return result;
          }
         
