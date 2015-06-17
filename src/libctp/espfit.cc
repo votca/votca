@@ -101,7 +101,7 @@ void Espfit::Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat
         
         numway.GridSetup(gridsize,&dftbs,_atomlist);
         LOG(logDEBUG, *_log) << TimeStamp() << " Calculate Densities at Numerical Grid"  << flush; 
-        double Numofelectrons=numway.IntegrateDensity(_dmat,&_dftbasis);
+        double Numofelectrons=numway.IntegrateDensity_AtomBlock(_dmat,&_dftbasis);
         LOG(logDEBUG, *_log) << TimeStamp() << " Calculated Densities at Numerical Grid, Number of electrons is "<< Numofelectrons << flush; 
 
         #pragma omp parallel for
