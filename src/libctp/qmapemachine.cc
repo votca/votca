@@ -642,7 +642,7 @@ bool QMAPEMachine<QMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 	Espfit esp;
 
 	esp.setLog(_log);
-	esp.Fit2Density(Atomlist, DMAT_tot, dftbasis,dftbs,false);
+	esp.Fit2Density(Atomlist, DMAT_tot, dftbasis,dftbs,"medium",false);
 
 	return true;
 }

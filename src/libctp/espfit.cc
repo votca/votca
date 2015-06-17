@@ -69,7 +69,7 @@ void Espfit::FitAPECharges(Grid& _targetgrid_fg, Grid& _targetgrid_bg, Grid& _ch
        
 
 
-void Espfit::Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_dftbasis,BasisSet &dftbs, bool _do_transition, double _netcharge) { 
+void Espfit::Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_dftbasis,BasisSet &dftbs,string gridsize, bool _do_transition, double _netcharge) { 
     double A2Bohr=1.8897259886;
      double Nm2Bohr=18.8972598860;
      double Nm2A=10.0;
@@ -98,8 +98,8 @@ void Espfit::Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat
     boost::progress_display show_progress( _grid.getsize() );
 
         NumericalIntegration numway;
-        //numway.GridSetup("medium",&dftbs,_atomlist);
-        numway.GridSetup("coarse",&dftbs,_atomlist);
+        
+        numway.GridSetup(gridsize,&dftbs,_atomlist);
         LOG(logDEBUG, *_log) << TimeStamp() << " Calculate Densities at Numerical Grid"  << flush; 
         double Numofelectrons=numway.IntegrateDensity(_dmat,&_dftbasis);
         LOG(logDEBUG, *_log) << TimeStamp() << " Calculated Densities at Numerical Grid, Number of electrons is "<< Numofelectrons << flush; 

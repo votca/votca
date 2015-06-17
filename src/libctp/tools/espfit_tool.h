@@ -50,6 +50,7 @@ private:
     string      _state;
     string      _spin;
     string      _method;
+    string      _gridsize;
     bool        _use_mps;
     bool        _use_pdb;
     
@@ -86,7 +87,11 @@ void ESPFit_Tool::Initialize(Property* options) {
            if (!(_method=="numeric" || _method=="analytic")){
                std::runtime_error("Method not recognized. Only numeric and analytic available");
            }
-           
+           if ( options->exists(key+".gridsize")) {
+                _gridsize = options->get(key+".gridsize").as<string>();
+                }
+           else _gridsize="medium";
+              
     if (data_format==".mps")_use_mps=true; 
     else if(data_format==".pdb")_use_pdb=true;    
     else  throw std::runtime_error("Outputfile format not recognized. Export only to .pdb and .mps");
@@ -190,7 +195,7 @@ void ESPFit_Tool::FitESP( Orbitals& _orbitals ){
         else throw std::runtime_error("State entry not recognized");
         Espfit esp;
         esp.setLog(&_log);
-        if (_method=="numeric")        esp.Fit2Density(Atomlist, DMAT_tot, basis,dftbs,_do_transition); 
+        if (_method=="numeric")        esp.Fit2Density(Atomlist, DMAT_tot, basis,dftbs,_gridsize,_do_transition); 
         else if (_method=="analytic")  esp.Fit2Density_analytic(Atomlist,DMAT_tot,basis,_do_transition);
 }       
 
