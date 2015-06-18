@@ -1587,20 +1587,24 @@ namespace votca {
                              _t_AOvals +=  (tendshells.wall-tstartshells.wall)/1e9;
 
                         }  // shell in atom
-                        
+                    }
                         /* ub::matrix<double> _temp     = ub::zero_matrix<double>(_blocksize[rowatom],1);
                         ub::matrix<double> _tempgrad = ub::zero_matrix<double>(_blocksize[rowatom],3);
                         
                         ub::matrix_range< ub::matrix<double> > _AOgridrow     = ub::subrange(    AOgrid, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom], 0, 1);
 
                          * 
-                         */                       
+                         */          
+                   for ( int sigrow = 0; sigrow < _significant_atoms[i][j].size() ; sigrow++){
+                    
+                        // this atom
+                        int rowatom = _significant_atoms[i][j][sigrow];
                         ub::matrix<double> _temp     = ub::zero_matrix<double>(1,_blocksize[rowatom]);
                                           
                         ub::matrix_range< ub::matrix<double> > _AOgridrow     = ub::subrange(    AOgrid, 0,1, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom]);
 
                         // for each atom
-                        // for all significant atoms of triangular matrix
+                        
                         for ( int sigcol = 0; sigcol < _significant_atoms[i][j].size() ; sigcol++){
                             int colatom = _significant_atoms[i][j][sigcol];
                             
