@@ -429,7 +429,7 @@ void Rates::CalculateRate(Topology *top, QMPair *qmpair, int state) {
                         - seg1->getEMpoles(state);
         dG_Field = - state * _F * qmpair->R() * NM2M;
     }
-    else if (state>2){
+    else if (state>=2){
         reorg12  = seg1->getU_nX_nN(state)                 // 1->2
                         + seg2->getU_xN_xX(state);
         reorg21  = seg1->getU_xN_xX(state)                 // 2->1
