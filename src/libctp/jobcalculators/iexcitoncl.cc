@@ -179,8 +179,7 @@ Job::JobResult IEXCITON::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     _coupling_summary->setAttribute("jABstatic", JAB);
      
 
-
-   
+    
  
    
     jres.setOutput( _job_summary );   
