@@ -180,10 +180,7 @@ Job::JobResult IEXCITON::EvalJob(Topology *top, Job *job, QMThread *opThread) {
      
 
 
-    votca::tools::PropertyIOManipulator iomXML(votca::tools::PropertyIOManipulator::XML, 1, "");
-    cout <<  iomXML << _job_summary;
-    // end of the projection loop
-
+   
  
    
     jres.setOutput( _job_summary );   
