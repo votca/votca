@@ -316,9 +316,14 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
         const vector<float> energies= _orbitals.BSESingletEnergies();
         for (int i=0;i<trdipoles.size();i++){
             double oscstrength=(trdipoles[i][0]*trdipoles[i][0]+trdipoles[i][1]*trdipoles[i][1]+trdipoles[i][2]*trdipoles[i][2])/3.0*energies[i];
-        
             LOG(logDEBUG, _log) << "Singlet" <<i+1<<": "<<oscstrength << flush;
         }
+        LOG(logDEBUG, _log) << "      BSE singlet transitiondipoles (length gauge)   " << flush;
+        for (int i=0;i<trdipoles.size();i++){
+            
+            LOG(logDEBUG, _log) << "Singlet" <<i+1<<" x y z : "<< trdipoles[i][0] << trdipoles[i][1] << trdipoles[i][2] << flush;
+        }
+        
         
         
         }
