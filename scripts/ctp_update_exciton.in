@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-VERSION='1.3-dev hgid: 411f82164fb0+'
+VERSION='@PROJECT_VERSION@ #CSG_HG_ID#'
 import sys
 import os
 import getpass
