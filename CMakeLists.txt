@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 2.6)
 
-set(PROJECT_VERSION "1.3-dev")
-
 project(csgapps)
+
+set(PROJECT_VERSION "1.3-dev")
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
 
@@ -37,3 +37,6 @@ foreach(DIR ${DIRS})
   install(TARGETS ${DIR} RUNTIME DESTINATION bin)
   set_target_properties(${DIR} PROPERTIES OUTPUT_NAME ${DIR}/csg_${DIR})
 endforeach(DIR)
+
+configure_file(${CMAKE_MODULE_PATH}/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
+add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
