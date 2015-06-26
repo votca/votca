@@ -5,6 +5,19 @@ syntax: glob
 */*/step_*
 *.orig
 
+Makefile
+rules.ninja
+build.ninja
+.ninja_*
+build
+.project
+.cproject
+CMakeFiles/*
+install_manifest.txt
+cmake_install.cmake
+cmake_uninstall.cmake
+CMakeCache.txt
+
 topol.tpr
 traj.trr
 traj.xtc
