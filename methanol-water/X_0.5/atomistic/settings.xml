@@ -1,0 +1,283 @@
+<!-- options to perform relative entropy iterations -->
+
+<cg>
+
+  <!-- neighbor search method "simple" or "grid" -->
+  <nbsearch>grid</nbsearch> 
+
+  <!-- non-bonded interaction entry -->
+  <non-bonded>
+
+    <!-- name of the interaction -->
+    <name>WT-WT</name>
+
+    <!-- specify type of CG pair -->
+    <type1>WT</type1>
+
+    <type2>WT</type2>
+
+    <!-- function form for the potential (LJ126 or LJG or CBSPL-->
+    <function>CBSPL</function>
+
+    <!-- no. of knots for CBSPL function -->
+    <nknots>48</nknots>
+
+    <!-- no. of knots near cut off to be set to zero for smoothness -->
+    <nknots_cutoff>4</nknots_cutoff>
+
+    <!-- min, max and step size distance for pot (max=cutoff) -->
+    <min>0.0</min>
+
+    <max>0.9</max>
+
+    <step>0.02</step>
+
+    <inverse>
+
+      <gromacs>
+	<!-- name of the table for gromacs run -->
+        <table>table_WT_WT.xvg</table>
+
+      </gromacs>
+
+      <!-- do convergence -->
+      <post_add>convergence</post_add>
+
+      <post_add_options>
+
+	<!-- convergence check options -->
+	<convergence>
+
+	  <!-- for RE we check change in potentials/parameters (new-cur) -->
+	  <what>param pot</what>
+	  <weight>1.0 1.0</weight>
+	  <base>cur cur</base>
+	  <norm>2 2</norm>
+
+	</convergence>
+
+      </post_add_options>
+
+   </inverse>
+
+  </non-bonded>
+
+  <!-- non-bonded interaction entry -->
+  <non-bonded>
+
+    <!-- name of the interaction -->
+    <name>ME-ME</name>
+
+    <!-- specify type of CG pair -->
+    <type1>ME</type1>
+
+    <type2>ME</type2>
+
+    <!-- function form for the potential (LJ126 or LJG or CBSPL-->
+    <function>CBSPL</function>
+
+    <!-- no. of knots for CBSPL function -->
+    <nknots>80</nknots>
+
+    <!-- no. of knots near cut off to be set to zero for smoothness -->
+    <nknots_cutoff>4</nknots_cutoff>
+
+    <!-- min, max and step size distance for pot (max=cutoff) -->
+    <min>0.0</min>
+
+    <max>1.54</max>
+
+    <step>0.02</step>
+
+    <inverse>
+
+      <gromacs>
+        <!-- name of the table for gromacs run -->
+        <table>table_ME_ME.xvg</table>
+
+      </gromacs>
+
+      <!-- do convergence -->
+      <post_add>convergence</post_add>
+
+      <post_add_options>
+
+        <!-- convergence check options -->
+        <convergence>
+
+          <!-- for RE we check change in potentials/parameters (new-cur) -->
+          <what>param pot</what>
+          <weight>1.0 1.0</weight>
+          <base>cur cur</base>
+          <norm>2 2</norm>
+
+        </convergence>
+
+      </post_add_options>
+
+   </inverse>
+
+  </non-bonded>
+
+  <!-- non-bonded interaction entry -->
+  <non-bonded>
+
+    <!-- name of the interaction -->
+    <name>ME-WT</name>
+
+    <!-- specify type of CG pair -->
+    <type1>ME</type1>
+
+    <type2>WT</type2>
+
+    <!-- function form for the potential (LJ126 or LJG or CBSPL-->
+    <function>CBSPL</function>
+
+    <!-- no. of knots for CBSPL function -->
+    <nknots>80</nknots>
+
+    <!-- no. of knots near cut off to be set to zero for smoothness -->
+    <nknots_cutoff>4</nknots_cutoff>
+
+    <!-- min, max and step size distance for pot (max=cutoff) -->
+    <min>0.0</min>
+
+    <max>1.54</max>
+
+    <step>0.02</step>
+
+    <inverse>
+
+      <gromacs>
+        <!-- name of the table for gromacs run -->
+        <table>table_ME_WT.xvg</table>
+
+      </gromacs>
+
+      <!-- do convergence -->
+      <post_add>convergence</post_add>
+
+      <post_add_options>
+
+        <!-- convergence check options -->
+        <convergence>
+
+          <!-- for RE we check change in potentials/parameters (new-cur) -->
+          <what>param pot</what>
+          <weight>1.0 1.0</weight>
+          <base>cur cur</base>
+          <norm>2 2</norm>
+
+        </convergence>
+
+      </post_add_options>
+
+   </inverse>
+
+  </non-bonded>
+
+
+  <inverse>
+
+    <!-- System T = 300*0.00831451 kBT units -->
+    <kBT>2.4942</kBT>
+
+    <!-- use gromacs as simulation program -->
+    <program>gromacs</program>
+
+    <!-- gromacs specific options -->
+    <gromacs>
+
+      <!-- trash so many frames at the beginning -->
+      <equi_time>0</equi_time>
+
+      <!-- grid for table*.xvg !-->
+      <table_bins>0.002</table_bins>
+
+      <!-- cut the potential at this value (gromacs bug) -->
+      <pot_max>1000000</pot_max>
+
+      <!-- extend the tables to this value -->
+      <table_end>2.5</table_end>
+
+      <!-- topology + trajectory. Be careful, do not change yet! -->
+      <index>index.ndx</index>
+
+      <topol>topol.top</topol>
+
+      <!-- other gromacs in/out files -->
+      <mdp>grompp.mdp</mdp>
+
+      <topol_out>topol.tpr</topol_out>
+
+      <traj_type>xtc</traj_type>
+
+      <conf_out>confout.gro</conf_out>
+
+      <cutoff_check>yes</cutoff_check>
+
+      <!-- grompp options -->
+      <grompp>
+
+        <opts></opts>
+
+      </grompp>
+
+      <!-- mdrun options -->
+      <mdrun>
+
+	<opts>-nt 4</opts>
+
+      </mdrun>
+
+    </gromacs>
+
+    <!-- these files are copied for each new run -->
+    <filelist>grompp.mdp topol.top table.xvg index.ndx</filelist>
+
+    <!-- do so many iterations -->
+    <iterations_max>500</iterations_max>
+
+    <!-- ibi: inverse biltzmann imc: inverse monte carlo re: relative entropy-->
+    <method>re</method>
+
+    <!-- relative entropy specific options -->
+    <re>
+
+      <!-- relative entropy program name and options-->
+      <!-- default path is votcadir/bin -->
+      <csg_reupdate>
+
+        <command>csg_reupdate</command>
+
+        <opts>--nt 8 --begin 100</opts>
+
+      </csg_reupdate>
+
+      <!-- relaxation parameter in Newton-Raphson update -->
+      <relax>0.8</relax>
+
+    </re>
+
+    <!-- convergence check options -->
+    <convergence_check>
+
+      <type>default</type>
+
+      <limit>0.0000001</limit>
+
+    </convergence_check>
+
+    <!-- directory for user scripts -->
+    <scriptdir></scriptdir>
+
+    <!-- write log to this file -->
+    <log_file>inverse.log</log_file>
+
+    <!-- write restart step to this file -->
+    <restart_file>restart_points.log</restart_file>
+
+  </inverse>
+
+</cg>
+

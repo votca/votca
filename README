@@ -68,8 +68,8 @@ hexane/ibi_bonded             iterative inverse boltzmann for bonded &
 hexane/hybrid_force_matching  hybrid force matching (with bonded interaction
                               from boltzmann inversion
 
-methanol-water                methanol-water mixture for 3 different mixtures
-hexane/atomistic              atomistic simulations
+methanol-water                methanol-water mixture for 3 different concentrations
+methanol-water/*/atomistic    atomistic simulations
 methanol-water/*/re           relative entropy method
 methanol-water/*/simplex      simplex optimizing
 

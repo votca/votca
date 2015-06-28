@@ -1,0 +1,41 @@
+<cg>
+  <!-- non-bonded interaction entry -->
+  <non-bonded>
+    <!-- name of the interaction -->
+    <name>WT-WT</name>
+    <!-- specify type of CG pair -->
+    <type1>WT</type1>
+    <type2>WT</type2>
+    <!-- min, max and step size distance for pot (max=cutoff) -->
+    <min>0.0</min>
+    <max>0.9</max>
+    <step>0.02</step>
+  </non-bonded>
+
+  <!-- non-bonded interaction entry -->
+  <non-bonded>
+    <!-- name of the interaction -->
+    <name>ME-ME</name>
+    <!-- specify type of CG pair -->
+    <type1>ME</type1>
+    <type2>ME</type2>
+    <!-- min, max and step size distance for pot (max=cutoff) -->
+    <min>0.0</min>
+    <max>1.54</max>
+    <step>0.02</step>
+  </non-bonded>
+
+  <!-- non-bonded interaction entry -->
+  <non-bonded>
+    <!-- name of the interaction -->
+    <name>ME-WT</name>
+    <!-- specify type of CG pair -->
+    <type1>ME</type1>
+    <type2>WT</type2>
+    <!-- min, max and step size distance for pot (max=cutoff) -->
+    <min>0.0</min>
+    <max>1.54</max>
+    <step>0.02</step>
+  </non-bonded>
+</cg>
+
