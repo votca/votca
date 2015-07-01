@@ -1,4 +1,4 @@
-ROOTDIR := $(shell cat ../../trunc)
+ROOTDIR := ../../scripts
 
 JPGPICS :=
 PNGPICS := 
