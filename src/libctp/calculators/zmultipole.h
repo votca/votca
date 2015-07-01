@@ -1182,7 +1182,7 @@ void ZMultipole::CalculateESP(vector< APolarSite* > &poles, FILE *out) {
 
     // Prepare cube file: Header
     double NM2BOHR = 1 / 0.0529189379;
-    fprintf(out, "%5d %3.7f %3.7f %3.7f \n",
+    fprintf(out, "%5ld %3.7f %3.7f %3.7f \n",
                   poles.size(),
                   Cxyz.getX()*NM2BOHR,
                   Cxyz.getY()*NM2BOHR,

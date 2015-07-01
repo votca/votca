@@ -922,7 +922,7 @@ void EMultipole_StdAl::CalculateESP(vector< PolarSite* > &poles, FILE *out) {
 
     // Prepare cube file: Header
     double NM2BOHR = 1 / 0.0529189379;
-    fprintf(out, "%5d %3.7f %3.7f %3.7f \n",
+    fprintf(out, "%5ld %3.7f %3.7f %3.7f \n",
                   poles.size(),
                   Cxyz.getX()*NM2BOHR,
                   Cxyz.getY()*NM2BOHR,
@@ -1830,7 +1830,7 @@ void EMultipole_StdAl::SiteOpMultipole3::CheckPolarSphere() {
     mpNAME = "chunk_coms.xyz";
     mpPDB = fopen(mpNAME.c_str(), "w");
     chunkId = 0;
-    fprintf(mpPDB, "%5d \n\n", _master->_chunkCoMs.size());
+    fprintf(mpPDB, "%5ld \n\n", _master->_chunkCoMs.size());
 
     for ( ; chunkId < _master->_chunkCoMs.size(); ++chunkId) {
         fprintf(mpPDB, "C %3.8f %3.8f %3.8f \n",

@@ -1185,7 +1185,7 @@ void QMultipole::CalculateESP(vector< APolarSite* > &poles, FILE *out) {
 
     // Prepare cube file: Header
     double NM2BOHR = 1 / 0.0529189379;
-    fprintf(out, "%5d %3.7f %3.7f %3.7f \n",
+    fprintf(out, "%5ld %3.7f %3.7f %3.7f \n",
                   poles.size(),
                   Cxyz.getX()*NM2BOHR,
                   Cxyz.getY()*NM2BOHR,
@@ -1863,7 +1863,7 @@ bool QMultipole::EvaluateFrame(Topology *top) {
         string paNAME = "pa_check.xyz";
         FILE *paXYZ = NULL;
         paXYZ = fopen(paNAME.c_str(), "w");
-        fprintf(paXYZ, "%6d\n\n", 
+        fprintf(paXYZ, "%6ld\n\n", 
                     4*top->getSegment(1)->APolarSites().size()
                    +4*top->getSegment(2)->APolarSites().size());
         vector<APolarSite*>::iterator pit;

@@ -1379,7 +1379,7 @@ void EMultipole::CalculateESPInput(Topology *top) {
                             + "_" + boost::lexical_cast<string>(state)
                             + ".xyz";
                 out = fopen(chkOutfile.c_str(),"w");
-                fprintf(out, "%1d\n\n", poles.size()*9);
+                fprintf(out, "%1lu\n\n", poles.size()*9);
                 for (pit = poles.begin(); pit < poles.end(); ++pit) {
                     vec shift = vec(0,0,0);
                     (*pit)->WriteChkLine(out, shift, true,"xyz", 0.04);
@@ -1457,7 +1457,7 @@ void EMultipole::CalculateESPRigid(Topology *top) {
                         + "_" + boost::lexical_cast<string>(state)
                         + ".xyz";
             out = fopen(chkOutfile.c_str(),"w");
-            fprintf(out, "%1d\n\n", poles.size()*9);
+            fprintf(out, "%1lu\n\n", poles.size()*9);
             for (pit = poles.begin(); pit < poles.end(); ++pit) {
                 vec shift = vec(0,0,0);
                 (*pit)->WriteChkLine(out, shift, true,"xyz", 0.04);
@@ -1510,7 +1510,7 @@ void EMultipole::CalculateESP(vector< PolarSite* > &poles, FILE *out) {
 
     // Prepare cube file: Header
     double NM2BOHR = 1 / 0.0529189379;
-    fprintf(out, "%5d %3.7f %3.7f %3.7f \n",
+    fprintf(out, "%5ld %3.7f %3.7f %3.7f \n",
                   poles.size(),
                   Cxyz.getX()*NM2BOHR,
                   Cxyz.getY()*NM2BOHR,
