@@ -1402,7 +1402,7 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
     
     // calculate diffusion tensor
     avgdiffusiontensor /= (diffusionsteps*2*simtime*numberofcharges);
-    cout<<endl<<"Diffusion tensor averaged over all carriers (m^2):" << endl << avgdiffusiontensor << endl;
+    cout<<endl<<"Diffusion tensor averaged over all carriers (m^2/s):" << endl << avgdiffusiontensor << endl;
 
     matrix::eigensystem_t diff_tensor_eigensystem;
     cout<<endl<<"Eigenvalues: "<<endl<<endl;
