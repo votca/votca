@@ -1,4 +1,5 @@
 syntax:glob
+*~
 
 CMakeCache.txt
 CMakeFiles
@@ -15,5 +16,6 @@ install_manifest.txt
 
 src/libkmc/libvotca_kmc.so
 src/libkmc/hgversion.h
+src/libkmc/votca_config.h
 src/libkmc/*.pc
 
