@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.6)
 
 project(votca-kmc)
 
-set(PROJECT_VERSION "0.5-dev")
+set(PROJECT_VERSION "1.3-dev")
 set(PROJECT_CONTACT "bugs@votca.org")
 
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
