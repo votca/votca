@@ -44,6 +44,9 @@ endif
 qclean:
 	$(LATEXMK) -C $(NAME).tex
 
+install: all
+	@echo "$(NAME).pdf is ready to use, no need to install it."
+
 clean: qclean reference_subclean fig_subclean programs_subclean theory_subclean reference_subclean input_subclean
 	rm -f $(NAME).fdb_latexmk $(NAME).brf literature_short.bib literature.bib
 	rm -f hgid.tex
