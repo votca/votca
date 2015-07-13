@@ -45,6 +45,7 @@ public:
     vec(const double r[3]);
     vec(const double &x, const double &y, const double &z);
     vec(const boost::numeric::ublas::vector<double> &v);
+    vec(const string &str);
     
     
     vec &operator=(const vec &v);
@@ -131,7 +132,28 @@ inline vec::vec(const boost::numeric::ublas::vector<double> &v)
     }
     catch(std::exception &err){throw std::length_error("Conversion from ub::vector to votca-vec failed");} 
 }
-    
+
+inline vec::vec(const string &str)
+{
+    // usage: vec(" 1  2.5  17 "); separator = spaces
+    Tokenizer tok(str, " ");
+    vector< string > values;
+    tok.ToVector(values);
+    if (values.size()!=3)
+    {
+        throw std::runtime_error("\n\n\t error, string to vec, size!=3\n\n");
+    }
+    try {
+        _x = boost::lexical_cast<double>(values[0]);
+        _y = boost::lexical_cast<double>(values[1]);
+        _z = boost::lexical_cast<double>(values[2]);
+    }
+    catch(const boost::bad_lexical_cast& e)
+    {
+        throw std::runtime_error("\n\n\t error, string to vec, can't convert string to double\n\n");
+    }
+}
+
 inline vec::vec(const double &x, const double &y, const double &z)
         : _x(x), _y(y), _z(z) {}
     
