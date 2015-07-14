@@ -62,6 +62,9 @@ The output \progopt{table\_extrapolate.pot} of the extrapolation step can now be
 Finally, the table is exported to \progopt{xvg}. The conversion procedure requires a small xml file \progopt{table.xml} as shown below:
 \begin{verbatim}
   <cg>
+    <non-bonded>
+      ...
+    </non-bonded>
     <inverse>
       <gromacs>
         <pot_max>1e8</pot_max>
@@ -75,15 +78,15 @@ where \progopt{<table\_end>} is the \gromacs \progopt{rvdw+table\_extension} and
 
 Using the \progopt{xml} file above, call
 \begin{verbatim}
-  csg_call --options table.xml --ia-type non-bonded \
+  csg_call --options table.xml --ia-type non-bonded --ia-name XXX \
     convert_potential gromacs table_extrapolate.pot table.xvg
 \end{verbatim}
 to convert the extrapolated values in \progopt{table\_extrapolate.pot} to \progopt{table.xvg} (The file will contain the \gromacs C12 parts only which are stored in the sixth und seventh column, this can be changed by adding the \progopt{--ia-type C6} option (for the fourth and fiveth column) or \progopt{--ia-type CB} option (for the second and third column) after \prog{csg_call}. Ensure compatibility with the \gromacs topology. See the \gromacs manual for further information).
 
 To obtain a bond table, run
 \begin{verbatim}
-  csg_call --ia-type bond --options table.xml convert_potential gromacs \
-           table_extrapolate.pot table.xvg
+  csg_call --ia-type bond --ia-name XXX --options table.xml \
+  convert_potential gromacs table_extrapolate.pot table.xvg
 \end{verbatim}
 It is also possible to use \texttt{angle} and \texttt{dihedral} as type as well.
 
