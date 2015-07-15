@@ -174,10 +174,8 @@ public:
     void EvalConfiguration(Topology *conf, Topology*conf_atom = 0) {
 
         vec eR;
-        int nmol;
         int nu, nv, nw;
         vec u, v, w;
-        nmol=0;
 
         if (_refmol != ""){
             for(BeadContainer::iterator iter = conf->Beads().begin();
@@ -227,8 +225,6 @@ public:
                     _nmol[rb]++;
 
                 }
-                
-                //cout << "nmol " << _nmol << endl;
         }
         
         _n++;        

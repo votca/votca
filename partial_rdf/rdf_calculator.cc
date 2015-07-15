@@ -29,7 +29,7 @@
 namespace votca { namespace csg {
 
 RDFCalculator::RDFCalculator()
-   : _write_every(0), _do_blocks(false), _processed_some_frames(false), _do_vol_corr(false)
+   : _write_every(0), _do_blocks(false), _do_vol_corr(false), _processed_some_frames(false)
 {
 }
 
