@@ -383,7 +383,7 @@ void Imc::WriteDist(const string &suffix)
         Table dist(t);
         if(!iter->second->_is_bonded) {
             // normalization is calculated using exact shell volume (difference of spheres)
-            for(int i=0; i<dist.y().size(); ++i) {
+            for(unsigned int i=0; i<dist.y().size(); ++i) {
                 double x1 = dist.x()[i] - 0.5*iter->second->_step;
                 double x2 = x1 + iter->second->_step;
                 if(x1<0) {
@@ -518,7 +518,7 @@ void Imc::CalcDeltaS(interaction_t *interaction, ub::vector_range< ub::vector<do
     target.Load(name + ".dist.tgt");
 
     if(!interaction->_is_bonded) {
-        for(int i=0; i<target.y().size(); ++i) {
+        for(unsigned int i=0; i<target.y().size(); ++i) {
             double x1 = target.x()[i] - 0.5*interaction->_step;
             double x2 = x1 + interaction->_step;
             if(x1<0)

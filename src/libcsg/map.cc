@@ -260,9 +260,9 @@ void Map_Ellipsoid::Apply()
     matrix::eigensystem_t es;
     m.SolveEigensystem(es);
     
-    vec eigenv1=es.eigenvecs[0];
-    vec eigenv2=es.eigenvecs[1];
-    vec eigenv3=es.eigenvecs[2];
+    //vec eigenv1=es.eigenvecs[0];
+    //vec eigenv2=es.eigenvecs[1];
+    //vec eigenv3=es.eigenvecs[2];
     
 /*    _out->seteigenvec1(eigenv1);
     _out->seteigenvec2(eigenv2);

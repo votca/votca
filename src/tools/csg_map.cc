@@ -121,7 +121,6 @@ void EvalConfiguration(Topology *top, Topology *top_ref) {
                         bn->setOptions(bi->Options());
                         bn->setPos(bi->getPos());
                         if (bi->HasVel()) bn->setVel(bi->getVel());
-                        int mid = bparent->getMolecule()->getId();
                         mi->AddBead(bi, bi->getName());
                     }
                 }

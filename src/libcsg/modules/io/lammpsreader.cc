@@ -132,7 +132,7 @@ void LAMMPSReader::ReadAtoms(Topology &top, string itemline) {
     if(_topology){
       top.CreateResidue("dum");
       for(int i=0; i<_natoms; ++i) {
-        Bead *b = top.CreateBead(1, "no", top.GetOrCreateBeadType("no"), 0, 0, 0);
+        (void)top.CreateBead(1, "no", top.GetOrCreateBeadType("no"), 0, 0, 0);
       }
     }
 

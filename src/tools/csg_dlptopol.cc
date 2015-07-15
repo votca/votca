@@ -143,7 +143,7 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *top_ref)
       string bead_name1 = mol->getBead(ib1)->getType()->getName();
       bead_name1 = bead_name1.substr(0,bead_name1.find_first_of("#")); // skip #index of atom from its name
 
-      for(int imt=0; imt<MolecularTypes.size(); imt++) {
+      for(unsigned int imt=0; imt<MolecularTypes.size(); imt++) {
 
 	for(int ib2=0; ib2<MolecularTypes[imt]->BeadCount(); ib2++) {
 
@@ -157,7 +157,7 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *top_ref)
 
           bool is_new_pair=true;
 
-	  for(int ibp=0; ibp<vdw_pairs.size(); ibp++) {
+	  for(unsigned int ibp=0; ibp<vdw_pairs.size(); ibp++) {
 	    if( ss_bp1.str()==vdw_pairs[ibp] || ss_bp2.str()==vdw_pairs[ibp] ) { 
 	      is_new_pair=false; 
 	      break;
@@ -186,7 +186,7 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *top_ref)
   fl << "units kJ\n";
   fl << "molecular types " << MolecularTypes.size() << endl;
 
-  for(int i=0; i<MolecularTypes.size(); i++) {
+  for(unsigned int i=0; i<MolecularTypes.size(); i++) {
     WriteMolecularType(fl, *(MolecularTypes[i]), nummols[i+1]);
   }
 
@@ -196,7 +196,7 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *top_ref)
 
     fl << "vdw "<< vdw_pairs.size() << endl;
    
-    for(int ibp=0; ibp<vdw_pairs.size(); ibp++) {
+    for(unsigned int ibp=0; ibp<vdw_pairs.size(); ibp++) {
       fl << vdw_pairs[ibp] << " tab   1.00000  0.00000\n";
     }
   }

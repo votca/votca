@@ -94,7 +94,7 @@ void PotentialFunctionCBSPL::setParam(string filename) {
   } else {
 
     // force last _ncutcoeff to zero
-    for( int i = 0; i < _lam.size() - _ncutcoeff; i++)
+    for( unsigned int i = 0; i < _lam.size() - _ncutcoeff; i++)
       _lam(i) = param.y(i);
 
   }
@@ -115,7 +115,7 @@ void PotentialFunctionCBSPL::SaveParam(const string& filename){
   for (int i = 0; i < _nexcl+3; i++)
     param.set(i, _rbreak(i), _lam(i), 'o');
 
-  for (int i = _nexcl+3; i < _lam.size() ; i++)
+  for (unsigned int i = _nexcl+3; i < _lam.size() ; i++)
     param.set(i, _rbreak(i), _lam(i), 'i');
 
   param.Save(filename);
@@ -220,8 +220,8 @@ double PotentialFunctionCBSPL::CalculateDF(const int i, const double r) const{
 
   if ( r <= _cut_off ) {
 
-    int i_opt = i + _nexcl;
-    int indx;
+    unsigned int i_opt = i + _nexcl;
+    unsigned int indx;
     double rk;
 
     if( _core == "c12" )

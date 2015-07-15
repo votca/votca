@@ -97,7 +97,7 @@ bool DLPOLYTopologyReader::_isKeyInt(const string &line, const char* wspace, con
 
   size_t i_num=string::npos;
 
-  int i=1;
+  unsigned int i=1;
   do { // find integer number in the field with the lowest index (closest to the keyword)
     i_num = fields[i++].find_first_of("0123456789");
   } while ( i_num>0 && i<fields.size() );
@@ -114,14 +114,8 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 {
   const char *WhiteSpace=" \t";
 
-    int  mavecs=0;
-    int  mpbct=0;
     int  matoms=0;
     int  natoms=0;
-    bool hasVs=false;
-    bool hasFs=false;
-
-    BoundaryCondition::eBoxtype pbc_type=BoundaryCondition::typeAuto;
 
     std::ifstream fl;
     boost::filesystem::path filepath(file.c_str());
@@ -172,7 +166,6 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 
       string mol_name;
 
-      int id=0;
       for (int nmol_type=0;nmol_type<nmol_types; nmol_type++) {
 
 	mol_name = _NextKeyline(fl,WhiteSpace);

@@ -139,8 +139,6 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
 
             // add exclusions
             for(int iatom=0; iatom<mtop.molblock[iblock].natoms_mol; iatom++) {
-                t_atom *a = &(atoms->atom[iatom]);
-
                 // read exclusions
                 t_blocka * excl = &(mol->excls);
                 // insert exclusions

@@ -111,7 +111,7 @@ void imcio_read_dS(const string &filename, ub::vector<double> &r, ub::vector<dou
     r.resize(tbl.size());
     dS.resize(tbl.size());
     
-    for(int i=0; i<tbl.size(); ++i) {
+    for(unsigned int i=0; i<tbl.size(); ++i) {
         r(i) = tbl.x(i);
         dS(i) = tbl.y(i);
     }

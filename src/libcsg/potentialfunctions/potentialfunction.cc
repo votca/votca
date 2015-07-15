@@ -25,7 +25,7 @@ void PotentialFunction::setParam(string filename) {
                              + filename + "\" \nThere should be "
                              + boost::lexical_cast<string>( _lam.size() ) + " parameters");
   } else {
-    for( int i = 0; i < _lam.size(); i++)
+    for( unsigned int i = 0; i < _lam.size(); i++)
       _lam(i) = param.y(i);
   }
 
@@ -37,7 +37,7 @@ void PotentialFunction::SaveParam(const string& filename){
   param.SetHasYErr(false);
   param.resize(_lam.size(), false);
 
-  for (int i = 0; i < _lam.size(); i++)
+  for (unsigned int i = 0; i < _lam.size(); i++)
     param.set(i, i, _lam(i), 'i');
 
   param.Save(filename);

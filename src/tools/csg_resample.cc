@@ -229,10 +229,10 @@ int main(int argc, char** argv)
     out.y() = out.y();
     out.flags() = ub::scalar_vector<double>(out.flags().size(), 'o');
 
-    int i=0;
+    unsigned int i=0;
     for(i=0; out.x(i) < in.x(0) && i<out.size(); ++i);
 
-    int j=0;
+    unsigned int j=0;
     for(;i < out.size(); ++i) {
         for(; j < in.size(); ++j)
             if(in.x(j) >= out.x(i)  || fabs(in.x(j)-out.x(i) ) < 1e-12) // fix for precison errors
