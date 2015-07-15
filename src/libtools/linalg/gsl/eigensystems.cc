@@ -223,7 +223,7 @@ bool linalg_eigenvalues_general( ub::matrix<double> &A,ub::matrix<double> &B, ub
         
        */ 
         
-        for (int i=0;i<n.size1();i++){
+        for (unsigned int i=0;i<n.size1();i++){
             ub::matrix_range<ub::matrix<double> > column=ub::subrange( V, 0, V.size2(),i, i+1 );
             //cout <<"n("<< i << ":"<< i <<")= " <<n(i,i) <<":" <<sqrt(n(i,i))<< endl; 
             //for (int j=0;j<column.size1();j++){

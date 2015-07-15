@@ -33,7 +33,7 @@ void linalg_cholesky_decompose( ub::matrix<double> &A){
         gsl_matrix_view A_view = gsl_matrix_view_array(&A(0,0), N, N);
         
         // get the Cholesky matrices
-        int status = gsl_linalg_cholesky_decomp ( &A_view.matrix );
+        (void)gsl_linalg_cholesky_decomp ( &A_view.matrix );
 }
 
 void linalg_cholesky_solve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<double> &b){

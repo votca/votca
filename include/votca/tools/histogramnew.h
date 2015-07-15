@@ -112,9 +112,9 @@ class HistogramNew
        void setPeriodic(bool periodic) { _periodic = periodic; }	
 
     private:        
-        double _weight;
         double _min, _max;
         double _step;
+        double _weight;
         bool _periodic; 
         
         int _nbins;

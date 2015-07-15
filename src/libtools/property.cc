@@ -272,12 +272,10 @@ void PrintNodeTEX(std::ostream &out, Property &p, PropertyIOManipulator *piom, i
     string _default(""); // default value if supplied
     string _unit(""); //unit, if supplied
  
-   const ColorSchemeBase *color = &DEFAULT_COLORS;
    int start_level(0);
     
     if ( piom ) {
         start_level = piom->getLevel();
-        color = piom->getColorScheme();
     }
 
     string header_format("\\subsection{%1%}\n"

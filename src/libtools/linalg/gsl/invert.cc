@@ -47,7 +47,7 @@ void linalg_invert( ub::matrix<double> &A, ub::matrix<double> &V){
 	gsl_linalg_LU_decomp (&A_view.matrix, perm, &s);
 
 	// Invert the matrix A_view
-	int status = gsl_linalg_LU_invert (&A_view.matrix, perm, &V_view.matrix);
+	(void)gsl_linalg_LU_invert (&A_view.matrix, perm, &V_view.matrix);
 
         gsl_set_error_handler(handler);
         
