@@ -51,7 +51,7 @@ public:
     void GenerateGridSpacing(double min, double max, double spacing);
 //    void resize(int N, bool preserve=true) { _x.resize(N, preserve); _y.resize(N, preserve); _flags.resize(N, preserve); }
     void resize(int N, bool preserve=true);
-    int size() const {return _x.size(); }
+    unsigned int size() const {return _x.size(); }
 
     double &x(int i) { return _x[i]; }
     double &y(int i) { return _y[i]; }
