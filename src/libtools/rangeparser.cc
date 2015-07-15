@@ -24,10 +24,10 @@
 
 namespace votca { namespace tools {
 
-RangeParser::RangeParser()
+/*RangeParser::RangeParser()
     : _has_begin(false) , _has_end(false)
 {
-}
+}*/
 
 void RangeParser::Parse(string str)
 {

@@ -82,8 +82,8 @@ private:
         
     list< block_t > _blocks;    
     
-    bool _has_begin, _has_end;
-    int _begin, _end;
+    //bool _has_begin, _has_end;
+    //int _begin, _end;
 
     friend std::ostream &operator<<(std::ostream &out, const RangeParser &rp);
     
