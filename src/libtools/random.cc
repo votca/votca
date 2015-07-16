@@ -98,6 +98,7 @@ void Random::save( char *fileName )
   	FILE *ranFP;
   	int c[2];
   	double w[3];
+	size_t t;
 
   	ranFP = fopen(fileName, "wb");
   	if (ranFP==NULL)
@@ -106,10 +107,19 @@ void Random::save( char *fileName )
 	}
   
 	c[0] = MARSi; c[1] = MARSj;
-  	(void)fwrite(c, sizeof(int), 2, ranFP);
+  	t=fwrite(c, sizeof(int), 2, ranFP);
+	if (t==0){
+	  throw runtime_error("cannot read ranFP file ");
+	}
   	w[0] = MARSc; w[1] = MARScd; w[2] = MARScm;
-  	(void)fwrite(w, sizeof(double), 3, ranFP);
-  	(void)fwrite(MARSarray, sizeof(double), MARS_FIELD_SIZE, ranFP);
+  	t=fwrite(w, sizeof(double), 3, ranFP);
+	if (t==0){
+	  throw runtime_error("cannot read ranFP file ");
+	}
+  	t=fwrite(MARSarray, sizeof(double), MARS_FIELD_SIZE, ranFP);
+	if (t==0){
+	  throw runtime_error("cannot read ranFP file ");
+	}
   	fclose(ranFP);
 }
 
@@ -118,6 +128,7 @@ void Random::restore( char *fileName )
 	FILE *ranFP;
   	double w[3];
   	int c[2];
+	size_t t;
 
   	ranFP = fopen(fileName, "rb");
   	if (ranFP==NULL)
@@ -125,11 +136,20 @@ void Random::restore( char *fileName )
 		throw runtime_error(string("error, cannot open file ") + fileName);
 	}
   
-  	(void)fread(c, sizeof(int), 2, ranFP);
+  	t=fread(c, sizeof(int), 2, ranFP);
+	if (t==0){
+	  throw runtime_error("cannot read ranFP file ");
+	}
     	MARSi = c[0]; MARSj = c[1];
-    	(void)fread(w, sizeof(double), 3, ranFP);
+    	t=fread(w, sizeof(double), 3, ranFP);
+	if (t==0){
+	  throw runtime_error("cannot read ranFP file ");
+	}
     	MARSc = w[0]; MARScd = w[1]; MARScm = w[2];
-    	(void)fread(MARSarray, sizeof(double), MARS_FIELD_SIZE, ranFP);
+    	t=fread(MARSarray, sizeof(double), MARS_FIELD_SIZE, ranFP);
+	if (t==0){
+	  throw runtime_error("cannot read ranFP file ");
+	}
     	fclose(ranFP);
 }
 
