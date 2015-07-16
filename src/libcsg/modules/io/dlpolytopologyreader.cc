@@ -254,7 +254,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 #endif
 	      sl >> line; //internal dlpoly bond/angle/dihedral function types are merely skipped (ignored)
 	      int ids[4];
-              Interaction *ic;
+              Interaction *ic=NULL;
 	      sl >> ids[0]; 
 	      sl >> ids[1];
 	      if (type == "BONDS"){
@@ -267,6 +267,8 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 		sl >> ids[2]; 
                 sl >> ids[3];
 	        ic = new IDihedral(id_map[ids[0]-1],id_map[ids[1]-1],id_map[ids[2]-1],id_map[ids[3]-1]); // -1 due to fortran vs c 
+	      } else {
+                 throw std::runtime_error("Error: type should be BONDS, ANGLES or DIHEDRALS");
 	      }
 	      // could one use bond/angle/dihedral function types for 1:1 mapping? (CG map overwrites ic->Group anyway)
               //ic->setGroup(line); 
@@ -296,7 +298,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 	  matoms+=mi->BeadCount();
 	  InteractionContainer ics=mi->Interactions();
           for(vector<Interaction *>::iterator ic=ics.begin(); ic!=ics.end(); ++ic) {
-            Interaction *ic_replica;
+            Interaction *ic_replica=NULL;
 	    int offset = mi_replica->getBead(0)->getId() - mi->getBead(0)->getId();
 	    if ((*ic)->BeadCount() == 2) {
 	      ic_replica = new IBond((*ic)->getBeadId(0)+offset,(*ic)->getBeadId(1)+offset);
@@ -304,6 +306,8 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 	      ic_replica = new IAngle((*ic)->getBeadId(0)+offset,(*ic)->getBeadId(1)+offset,(*ic)->getBeadId(2)+offset);
 	    } else if ((*ic)->BeadCount() == 4) {
 	      ic_replica = new IDihedral((*ic)->getBeadId(0)+offset,(*ic)->getBeadId(1)+offset,(*ic)->getBeadId(2)+offset,(*ic)->getBeadId(3)+offset);
+	    } else {
+              throw std::runtime_error("Error: BeadCount not equal 2, 3 or 4");
 	    }
             ic_replica->setGroup((*ic)->getGroup());
             ic_replica->setIndex((*ic)->getIndex());

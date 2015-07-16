@@ -52,7 +52,7 @@ int main(int argc, char** argv)
 {
 
     string in_file, out_file, grid, fitgrid, comment, type, boundaries;
-    Spline *spline;
+    Spline *spline=NULL;
     Table in, out, der;
     // program options
     po::options_description desc("Allowed options");            
