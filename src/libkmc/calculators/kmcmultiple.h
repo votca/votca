@@ -46,8 +46,8 @@ namespace votca { namespace kmc {
 
 static double kB   = 8.617332478E-5; // eV/K
 static double hbar = 6.5821192815E-16; // eV*s
-static double eps0 = 8.85418781762E-12/1.602176565E-19; // e**2/eV/m = 8.85418781762E-12 As/Vm
-static double epsr = 3.0; // relative material permittivity
+//static double eps0 = 8.85418781762E-12/1.602176565E-19; // e**2/eV/m = 8.85418781762E-12 As/Vm
+//static double epsr = 3.0; // relative material permittivity
 static double Pi   = 3.14159265358979323846;
 
 typedef unordered_map<unsigned long, double> CoulombMap;
@@ -311,7 +311,7 @@ vector<Node*> KMCMultiple::LoadGraph()
         node[i]->reorg_intorig = stmt->Column<double>(5); // UnCnN
         node[i]->reorg_intdest = stmt->Column<double>(6); // UcNcC
         double eAnion = stmt->Column<double>(7);
-        double eNeutral = stmt->Column<double>(8);
+        //double eNeutral = stmt->Column<double>(8);
         double eCation = stmt->Column<double>(9);
         double internalenergy = stmt->Column<double>(10); // UcCnN
         double siteenergy = 0;
@@ -454,7 +454,7 @@ void printtime(int seconds_t)
     }
     char buffer [50];
     int n = sprintf(buffer, "%d:%02d:%02d",hours,minutes,seconds);
-    printf("%s",buffer,n);
+    printf("%s %i",buffer,n);
 }
 
 
@@ -510,13 +510,13 @@ void KMCMultiple::InitialRates(vector<Node*> node)
         _q = 1.0;
     }
     cout << "    carriertype: " << _carriertype << " (charge: " << _q << " eV)" << endl;
-    int numberofsites = node.size();
+    unsigned int numberofsites = node.size();
     cout << "    Rates for "<< numberofsites << " sites are computed." << endl;
     double maxreldiff = 0;
     int totalnumberofrates = 0;
     for(unsigned int i=0; i<numberofsites; i++)
     {
-        int numberofneighbours = node[i]->event.size();
+        unsigned int numberofneighbours = node[i]->event.size();
         for(unsigned int j=0; j<numberofneighbours; j++)
         {
             double dX =  node[i]->event[j].dr.x();
@@ -650,7 +650,7 @@ void KMCMultiple::RateUpdateCoulomb(vector<Node*> &node,  vector< Chargecarrier*
                     else // _explicitcoulomb==1 (partial charges)
                     {
                         CoulombIt coul_iterator;
-                        Node *node_k = carrier[ncindex]->node;
+                        //Node *node_k = carrier[ncindex]->node;
                         if(ncindex != cindex) // charge doesn't have Coulomb interaction with itself
                         {
                             // - E_ik
@@ -691,13 +691,13 @@ void KMCMultiple::RateUpdateCoulomb(vector<Node*> &node,  vector< Chargecarrier*
                     }
 
                 }
-                double dX =  node_i->event[destindex].dr.x();
-                double dY =  node_i->event[destindex].dr.y();
-                double dZ =  node_i->event[destindex].dr.z();
-                double dG_Field = _q * (dX*_fieldX +  dY*_fieldY + dZ*_fieldZ);
+                //double dX =  node_i->event[destindex].dr.x();
+                //double dY =  node_i->event[destindex].dr.y();
+                //double dZ =  node_i->event[destindex].dr.z();
+                //double dG_Field = _q * (dX*_fieldX +  dY*_fieldY + dZ*_fieldZ);
                 double reorg = node_i->reorg_intorig + node_j->reorg_intdest + node_i->event[destindex].reorg_out;
                 double dG_Site = node_j->siteenergy - node_i->siteenergy;
-                double dG = dG_Site - dG_Field;
+                //double dG = dG_Site - dG_Field;
                 double coulombfactor = exp(-(2*(dG_Site+reorg) * coulombsum + coulombsum*coulombsum) / (4*reorg*kB*_temperature) );
                 // cout << coulombfactor << endl;
                 // double coulombfactor = 1.0;
@@ -977,8 +977,8 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
                do_affectedcarrier = carrier[i];
             }
                 
-            double maxprob = 0.;
-            double newprob = 0.;
+            //double maxprob = 0.;
+            //double newprob = 0.;
             myvec dr;
             if(votca::tools::globals::verbose) {cout << "Charge number " << do_affectedcarrier->id+1 << " which is sitting on segment " << do_oldnode->id+1 << " will escape!" << endl ;}
             if(Forbidden(do_oldnode->id, forbiddennodes) == 1) {continue;}
@@ -1011,7 +1011,7 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
                     if(votca::tools::globals::verbose) {cout << endl << "Node " << do_oldnode->id+1  << " is SURROUNDED by forbidden destinations and zero rates. Adding it to the list of forbidden nodes. After that: selection of a new escape node." << endl; }
                     AddForbidden(do_oldnode->id, forbiddennodes);
                     
-                    int nothing=0;
+                    //int nothing=0;
                     break; // select new escape node (ends level 2 but without setting level1step to 1)
                 }
                 if(votca::tools::globals::verbose) {cout << endl << "Selected jump: " << do_newnode->id+1 << endl; }
@@ -1127,7 +1127,7 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
     }
     
     // calculate mobilities
-    double absolute_field = sqrt(_fieldX*_fieldX + _fieldY*_fieldY + _fieldZ*_fieldZ);
+    //double absolute_field = sqrt(_fieldX*_fieldX + _fieldY*_fieldY + _fieldZ*_fieldZ);
     double average_mobilityZ = 0;
     if (_fieldZ != 0)
     {
@@ -1136,7 +1136,7 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
         {
             //myvec velocity = carrier[i]->dr_travelled/simtime*1e-9;
             myvec velocity = carrier[i]->dr_travelled/simtime;
-            double absolute_velocity = sqrt(velocity.x()*velocity.x() + velocity.y()*velocity.y() + velocity.z()*velocity.z());
+            //double absolute_velocity = sqrt(velocity.x()*velocity.x() + velocity.y()*velocity.y() + velocity.z()*velocity.z());
             //cout << std::scientific << "    charge " << i+1 << ": mu=" << absolute_velocity/absolute_field*1E4 << endl;
             cout << std::scientific << "    charge " << i+1 << ": muZ=" << velocity.z()/_fieldZ*1E4 << endl;
             average_mobilityZ += velocity.z()/_fieldZ*1E4;

@@ -82,7 +82,7 @@ void State::Initialize_inject_trees(Graph* graph, Inject_Type injecttype, Global
     electron_inject->initialize(graph->nodes.size());
     hole_inject->initialize(graph->nodes.size());
     
-    for (int inode = 0; inode < graph->nodes.size(); inode++) {
+    for (unsigned int inode = 0; inode < graph->nodes.size(); inode++) {
         if (injecttype == Equal) {
             electron_inject->setrate(inode, 1.0);
             hole_inject->setrate(inode, 1.0);
@@ -117,11 +117,11 @@ void State::Init_coulomb_mesh(Graph* graph, Globaleventinfo* globevent){
         }
     }
     
-    for(int ic=0;ic<electrons.size();ic++){
+    for(unsigned int ic=0;ic<electrons.size();ic++){
         Add_to_coulomb_mesh(graph, electrons[ic], globevent);
     }
 
-    for(int ic=0;ic<holes.size();ic++){
+    for(unsigned int ic=0;ic<holes.size();ic++){
         Add_to_coulomb_mesh(graph, holes[ic], globevent);
     }
 }
@@ -134,6 +134,8 @@ void State::Add_to_coulomb_mesh(Graph* graph, Carrier* carrier, Globaleventinfo*
     }
     else if(carrier->carrier_type == Hole) {
         charge = 1;
+    } else {
+        throw runtime_error("carrier->carrier_type should be Hole or Electron");
     }
     
     double posx = graph->nodes[carrier->carrier_node_ID]->node_position.x();
@@ -155,6 +157,8 @@ void State::Remove_from_coulomb_mesh(Graph* graph, Carrier* carrier, Globalevent
     }
     else if(carrier->carrier_type == Hole) {
         charge = 1;
+    } else {
+        throw runtime_error("carrier->carrier_type should be Hole or Electron");
     }
     
     double posx = graph->nodes[carrier->carrier_node_ID]->node_position.x();
@@ -183,7 +187,7 @@ void State::Save(string SQL_state_filename){
                             "?,     ?,     ?,"
                             "?,     ?)");
     
-    for(int electron_nr = 0;electron_nr<electrons.size();electron_nr++) {
+    for(unsigned int electron_nr = 0;electron_nr<electrons.size();electron_nr++) {
         if (El_in_sim_box(electron_nr)) {
             stmt->Bind(1, electrons[electron_nr]->carrier_node_ID);
             stmt->Bind(2, 0);
@@ -196,7 +200,7 @@ void State::Save(string SQL_state_filename){
         }        
     }
     
-    for(int hole_nr = 0;hole_nr<holes.size();hole_nr++) {
+    for(unsigned int hole_nr = 0;hole_nr<holes.size();hole_nr++) {
         if (Ho_in_sim_box(hole_nr)) {
             stmt->Bind(1, holes[hole_nr]->carrier_node_ID);
             stmt->Bind(2, 1);

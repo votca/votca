@@ -44,6 +44,7 @@ public:
     Diode() {};
    ~Diode() {};
 
+    using KMCCalculator::Initialize;
     void Initialize(Property *options);
     bool EvaluateFrame();
 
@@ -58,11 +59,11 @@ protected:
    void RunKMC(void); 
             
 private:
-    static const double kB   = 8.617332478E-5; // eV/K
-    static const double hbar = 6.5821192815E-16; // eV*s
-    static const double eps0 = 8.85418781762E-12/1.602176565E-19; // e**2/eV/m = 8.85418781762E-12 As/Vm
-    static const double epsr = 3.0; // relative material permittivity
-    static const double Pi   = 3.14159265358979323846;
+    //static const double kB   = 8.617332478E-5; // eV/K
+    //static const double hbar = 6.5821192815E-16; // eV*s
+    //static const double eps0 = 8.85418781762E-12/1.602176565E-19; // e**2/eV/m = 8.85418781762E-12 As/Vm
+    //static const double epsr = 3.0; // relative material permittivity
+    //static const double Pi   = 3.14159265358979323846;
    
 };
 
@@ -81,6 +82,7 @@ bool Diode::EvaluateFrame() {
     // EventFactory::RegisterAll(); 
         
     RunKMC();
+    return true;
 }
 
 void Diode::RunKMC() {

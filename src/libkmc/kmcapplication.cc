@@ -155,7 +155,6 @@ void KMCApplication::BeginEvaluate(){
 
 bool KMCApplication::EvaluateFrame(){
     list<KMCCalculator *>::iterator iter;
-    int i=0;
     for (iter = _calculators.begin(); iter != _calculators.end(); ++iter){
         (*iter)->EvaluateFrame();
     }

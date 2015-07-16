@@ -85,7 +85,7 @@ void Longrange::Initialize (Graph* graph, Globaleventinfo* globevent) {
         flagged_for_deletion.push_back(false);
     }        
         
-    for (int inode=0; inode<graph->nodes.size(); inode++) {
+    for (unsigned int inode=0; inode<graph->nodes.size(); inode++) {
         double posx = graph->nodes[inode]->node_position.x();
         int iposx = floor(posx/graph->hopdist);
         positional_sum[iposx] += posx;
