@@ -30,7 +30,7 @@ void orb::init_orbitals (string * basis, const int & N, const char * namefile ){
     psi[0] = new double [NBasis * NBasis];
     bs[0]=basis[0];
     evl.resize(NBasis);
-    for ( int i = 1 ; i < NBasis ; i ++){
+    for ( unsigned int i = 1 ; i < NBasis ; i ++){
             bs[i] = basis[i];
             psi[i] = psi[i-1] + NBasis;
     }
@@ -39,7 +39,7 @@ void orb::init_orbitals (string * basis, const int & N, const char * namefile ){
 
 void orb::reorder_for_libint(){
     /*reorder the d orbitals to agree with libint */
-    int count=0;
+    unsigned int count=0;
     while (count < NBasis ){
     	if (bs[count] == "s") count +=1;
 	else if (bs[count] == "x") count +=3;
@@ -49,7 +49,7 @@ void orb::reorder_for_libint(){
 		bs[count+3] = "yy";	
 		bs[count+4] = "yz";
 		bs[count+5] = "zz";
-		for (int j=0; j<NBasis; ++j){
+		for (unsigned int j=0; j<NBasis; ++j){
 		    double tyy = psi[j][count+1];
 		    double tzz = psi[j][count+2];
 		    double txy = psi[j][count+3];
@@ -79,7 +79,7 @@ void orb::strip_orbitals (const vector < int>& a){
     }
     for (int i=0; i<nrorbs; i++){
         evl[i] = evl[a[i]];
-        for (int j=0; j<NBasis; j++){
+        for (unsigned int j=0; j<NBasis; j++){
             psinew[i][j] = psi[a[i]][j];
         }
     }
@@ -91,14 +91,14 @@ void orb::strip_orbitals (const vector < int>& a){
         psi[i] = psi[i-1]+NBasis;
     }
     for(int i=0; i<nrorbs; i++){
-        for (int j=0; j<NBasis; j++){
+        for (unsigned int j=0; j<NBasis; j++){
             psi[i][j]=psinew[i][j];
         }
     }
     #ifdef DEBUG
     cout << "nrorbs: " << nrorbs << endl;
     cout << "psi[0][i] :" << endl;
-    for (int j=0; j<NBasis; j++){
+    for (unsigned int j=0; j<NBasis; j++){
         cout << psi[0][j] << endl;
     }
     #endif
@@ -121,7 +121,7 @@ void orb::init_orbitals_stripped(const orb& orb1, const int& nrorbs ){
     }
     for(int i = 0; i < nrorbs; i++){
         evl[i] = orb1.evl[i];
-        for ( int j = 0 ; j < NBasis ; j ++){
+        for ( unsigned int j = 0 ; j < NBasis ; j ++){
             bs[i] = orb1.bs[i];
             psi[i][j] = orb1.psi[i][j];
             //cout << "(" << i << "," << j << "): " << psi[i][j] << endl;
@@ -142,9 +142,9 @@ void orb::rot_orb(const unsigned int & orb , const double rot[3][3] ){
         matrix r(rot[0], rot[1], rot[2]);
         vector <pair <int, int> >::iterator itat=_basis_on_atom.begin();
         for ( ; itat!= _basis_on_atom.end(); ++itat){
-            int first_basis = itat->first;
-            int last_basis = first_basis + itat->second;
-            int i=first_basis;
+            unsigned int first_basis = itat->first;
+            unsigned int last_basis = first_basis + itat->second;
+            unsigned int i=first_basis;
             while (i < last_basis){
              rot_orb(orb, &i, r);
             }
@@ -152,16 +152,16 @@ void orb::rot_orb(const unsigned int & orb , const double rot[3][3] ){
 }
 
 inline void orb::rot_orb(const double rot[3][3]){
-	for (int i =0; i< NBasis;i++){
+	for (unsigned int i =0; i< NBasis;i++){
 		rot_orb( i, rot);
 	}
 }
 
-void orb::rot_orb(const unsigned int & orb, int * i, const matrix &r){
+void orb::rot_orb(const unsigned int & orb, unsigned int * i, const matrix &r){
     rot_orb(orb, i, psi[orb], r);
 }
 
-void orb::rot_orb(const unsigned int & orb , int *i, double * psi2, const matrix &r){
+void orb::rot_orb(const unsigned int & orb , unsigned int *i, double * psi2, const matrix &r){
     //cout << "BS[" << *i << "] = " << bs[*i] << endl;
     //cout << "psi[orb][i] = psi[" << orb << "][" << *i <<  "]:" << psi[orb][*i] << endl;
     
@@ -189,7 +189,7 @@ void orb::rot_orb(const unsigned int & orb , int *i, double * psi2, const matrix
                     // find what order the basis sets are  actually in
                     vector <int> external_order;
                     for (int j =0; j<6;j++){
-                        for(int k=*i;k<*i+6;k++){
+                        for(unsigned int k=*i;k<*i+6;k++){
                             if ( bs[k] == internal_order[j]){
                                 external_order.push_back(k);
                                 break;
@@ -253,9 +253,9 @@ void orb::rotate_someatoms(vector<int> atoms , matrix * M,
         //cout << "orb = " << _orb << endl;
         vector <int>::iterator it;
         for (it = atoms.begin() ; it != atoms.end(); ++it){
-            int first_basis = (_basis_on_atom[*it]).first;
-            int last_basis = first_basis + (_basis_on_atom[*it]).second;
-            int i=first_basis;
+            unsigned int first_basis = (_basis_on_atom[*it]).first;
+            unsigned int last_basis = first_basis + (_basis_on_atom[*it]).second;
+            unsigned int i=first_basis;
             while (i < last_basis){
                 rot_orb(_orb, &i, psi2, *M); 
             }
@@ -263,7 +263,7 @@ void orb::rotate_someatoms(vector<int> atoms , matrix * M,
 }
 
 void orb::rot_orb(const unsigned int & orb , const matrix &rot){
-	int i=0;
+	unsigned int i=0;
 	while (i<NBasis)
 	{
 		rot_orb(orb, &i , rot);
@@ -271,7 +271,7 @@ void orb::rot_orb(const unsigned int & orb , const matrix &rot){
 }
 
 inline void orb::rot_orb(const matrix &rot){
-	for (int i =0; i< NBasis;i++){
+	for (unsigned int i =0; i< NBasis;i++){
 		rot_orb( i, rot);
 	}
 }
@@ -288,7 +288,7 @@ int orb::read_orb_gauss( const char * nameorbs)
  string line;
  string number;
 
- int i,j;
+ unsigned int i,j;
 
  vector <string> file;
  vector <string> nrg;
@@ -348,8 +348,8 @@ int orb::read_orb_gamess( const char * nameorbs)
      in >> word;
      if ( word == "vectors" ){
         getline(in, word); //skip the rest of the line
-        int i=0;
-        int j=0;
+        unsigned int i=0;
+        unsigned int j=0;
         while ( i< NBasis){
             in >>word;
             sscanf(word.c_str(), "%lf", &psi[i][j]);
@@ -369,10 +369,10 @@ void orb::print_g03(string & name, string  mode){
 	FILE *out = fopen( name.c_str(), mode.c_str());	
 	fprintf(out, "(5E15.8)\n");
         int count=1;
-	for (int i=0;i < NBasis;i++){
+	for (unsigned int i=0;i < NBasis;i++){
 		fprintf(out, "\t%d Alpha\n", count);
 		++count;
-		for (int j=0; j< NBasis ; j++ ){
+		for (unsigned int j=0; j< NBasis ; j++ ){
 			fprintf(out, "% 15.8E", psi[i][j]);
                         if ((j+1)%5==0 || j==NBasis-1) fprintf(out,"\n");
 		}
@@ -381,7 +381,7 @@ void orb::print_g03(string & name, string  mode){
         fclose(out);
 }
 
-void orb:: print_uhf_g03( const int & nel_A, const int & nel_B, const int & NBasis_A , const int NBasis_B) {
+void orb:: print_uhf_g03( const int & nel_A, const int & nel_B, const unsigned int & NBasis_A , const unsigned int NBasis_B) {
     //check nel even and NBasis+NBasis  == NBasis
     if ( nel_A % 2 != 0 || nel_B % 2 != 0 || NBasis_A + NBasis_B != NBasis ){
 	cerr << "ERROR in input to print_uhf_g03" <<endl;
@@ -397,16 +397,16 @@ void orb:: print_uhf_g03( const int & nel_A, const int & nel_B, const int & NBas
     for(int i = 0; i< nel_A/2-2 ; ++i) {
 	fprintf(out, "\t%d Alpha", count);
 	++count;
-	for (int j=0; j< NBasis ; j++ ){
+	for (unsigned int j=0; j< NBasis ; j++ ){
 		fprintf(out, "% 15.8E\n", psi[i][j]);
 	}
     }	
 
     /*then the double occupied orbitals on B */
-    for (int i=NBasis_A; i < NBasis_A + nel_B/2-2 ; ++i){
+    for (unsigned int i=NBasis_A; i < NBasis_A + nel_B/2-2 ; ++i){
 	fprintf(out, "\t%d Alpha", count);
 	++count;
-    	for (int j=0; j< NBasis ; j++ ){
+    	for (unsigned int j=0; j< NBasis ; j++ ){
 		fprintf(out, "% 15.8E\n", psi[i][j]);
 	}
     }
@@ -414,23 +414,23 @@ void orb:: print_uhf_g03( const int & nel_A, const int & nel_B, const int & NBas
     /* then the singly occupied HOMO on A */
     fprintf(out, "\t%d Alpha", count);
     ++count;
-    for (int j=0; j< NBasis ; j++ ){
+    for (unsigned int j=0; j< NBasis ; j++ ){
 	fprintf(out, "% 15.8E\n", psi[nel_A/2 -1][j]);
     }
 
     /* now the LUMOs of A */
-    for(int i = nel_A; i< NBasis_A ; ++i) {
+    for(unsigned int i = nel_A; i< NBasis_A ; ++i) {
 	fprintf(out, "\t%d Alpha", count);
 	++count;
-	for (int j=0; j< NBasis ; j++ ){
+	for (unsigned int j=0; j< NBasis ; j++ ){
 		fprintf(out, "% 15.8E\n", psi[i][j]);
 	}
     }	
     /* and yes, the LUMOs of B*/
-    for (int i=NBasis_A+nel_B; i < NBasis ; ++i){
+    for (unsigned int i=NBasis_A+nel_B; i < NBasis ; ++i){
 	fprintf(out, "\t%d Alpha", count);
 	++count;
-    	for (int j=0; j< NBasis ; j++ ){
+    	for (unsigned int j=0; j< NBasis ; j++ ){
 		fprintf(out, "% 15.8E\n", psi[i][j]);
 	}
     }
@@ -443,16 +443,16 @@ void orb:: print_uhf_g03( const int & nel_A, const int & nel_B, const int & NBas
     for(int i = 0; i< nel_A/2-2 ; ++i) {
 	fprintf(out, "\t%d Beta", count);
 	++count;
-	for (int j=0; j< NBasis ; j++ ){
+	for (unsigned int j=0; j< NBasis ; j++ ){
 		fprintf(out, "% 15.8E\n", psi[i][j]);
 	}
     }	
 
     /*then the double occupied orbitals on B */
-    for (int i=NBasis_A; i < NBasis_A + nel_B/2-2 ; ++i){
+    for (unsigned int i=NBasis_A; i < NBasis_A + nel_B/2-2 ; ++i){
 	fprintf(out, "\t%d Beta", count);
 	++count;
-    	for (int j=0; j< NBasis ; j++ ){
+    	for (unsigned int j=0; j< NBasis ; j++ ){
 		fprintf(out, "% 15.8E\n", psi[i][j]);
 	}
     }
@@ -460,23 +460,23 @@ void orb:: print_uhf_g03( const int & nel_A, const int & nel_B, const int & NBas
     /* then the singly occupied HOMO on B */
     fprintf(out, "\t%d Beta", count);
     ++count;
-    for (int j=0; j< NBasis ; j++ ){
+    for (unsigned int j=0; j< NBasis ; j++ ){
 	fprintf(out, "% 15.8E\n", psi[NBasis_A + nel_B - 1][j]);
     }
 
     /* now the LUMOs of A */
-    for(int i = nel_A; i< NBasis_A ; ++i) {
+    for(unsigned int i = nel_A; i< NBasis_A ; ++i) {
 	fprintf(out, "\t%d Beta", count);
 	++count;
-	for (int j=0; j< NBasis ; j++ ){
+	for (unsigned int j=0; j< NBasis ; j++ ){
 		fprintf(out, "% 15.8E\n", psi[i][j]);
 	}
     }	
     /* and yes, the LUMOs of B*/
-    for (int i=NBasis_A+nel_B; i < NBasis ; ++i){
+    for (unsigned int i=NBasis_A+nel_B; i < NBasis ; ++i){
 	fprintf(out, "\t%d Beta", count);
 	++count;
-    	for (int j=0; j< NBasis ; j++ ){
+    	for (unsigned int j=0; j< NBasis ; j++ ){
 		fprintf(out, "% 15.8E\n", psi[i][j]);
 	}
     }
@@ -503,16 +503,16 @@ void orb::dimerise_orbs(const orb & A, const orb & B, const int &elA, const int 
         psi = new double* [NBasis];
         psi[0] = new double [NBasis * NBasis];
     }
-    for ( int i = 1 ; i < NBasis ; i ++){
+    for ( unsigned int i = 1 ; i < NBasis ; i ++){
             psi[i] = psi[i-1] + NBasis;
     }
 
     /* cp bs info */
-    for (int i=0; i< A.NBasis ;++i ){
+    for (unsigned int i=0; i< A.NBasis ;++i ){
         bs[i] = A.bs[i];
         evl[i] =0.;
     }
-    for (int i=0; i< B.NBasis ;++i ){
+    for (unsigned int i=0; i< B.NBasis ;++i ){
         bs[A.NBasis + i ] = B.bs[i];
         evl[A.NBasis + i ]=0.;
     }
@@ -523,20 +523,20 @@ void orb::dimerise_orbs(const orb & A, const orb & B, const int &elA, const int 
     
     /*copy orbitals  from A*/
     for (int i=0; i <occA;++i){
-        for (int j=0 ; j< A.NBasis ;++j){
+        for (unsigned int j=0 ; j< A.NBasis ;++j){
             psi[i][j] = A.psi[i][j];
         }
-        for (int j=0; j< B.NBasis ;++j){
+        for (unsigned int j=0; j< B.NBasis ;++j){
             psi[i][A.NBasis+j] =0.0;
         }
     }
 
     /*copy orbitals from B*/
     for (int i=0; i <occB ;++i){
-        for (int j=0; j< A.NBasis ;++j){
+        for (unsigned int j=0; j< A.NBasis ;++j){
             psi[occA+i][j] = 0.0;
         }
-        for (int j=0; j< B.NBasis ;++j){
+        for (unsigned int j=0; j< B.NBasis ;++j){
             psi[occA+i][A.NBasis+j] = B.psi[i][j];
         }
     }
@@ -544,21 +544,21 @@ void orb::dimerise_orbs(const orb & A, const orb & B, const int &elA, const int 
     /*now copy the empty ones*/
 
     /*copy orbitals  from A*/
-    for (int i=occA; i <A.NBasis;++i){
-        for (int j=0 ; j< A.NBasis ;++j){
+    for (unsigned int i=occA; i <A.NBasis;++i){
+        for (unsigned int j=0 ; j< A.NBasis ;++j){
             psi[occB+i][j] = A.psi[i][j];
         }
-        for (int j=0; j< B.NBasis ;++j){
+        for (unsigned int j=0; j< B.NBasis ;++j){
             psi[occB+i][A.NBasis+j] =0.0;
         }
     }
 
     /*copy orbitals from B*/
-    for (int i=occB; i <B.NBasis ;++i){
-        for (int j=0; j< A.NBasis ;++j){
+    for (unsigned int i=occB; i <B.NBasis ;++i){
+        for (unsigned int j=0; j< A.NBasis ;++j){
             psi[A.NBasis+i][j] = 0.0;
         }
-        for (int j=0; j< B.NBasis ;++j){
+        for (unsigned int j=0; j< B.NBasis ;++j){
             psi[A.NBasis+i][A.NBasis+j] = B.psi[i][j];
         }
     }

@@ -73,9 +73,9 @@ public:
 
     int GetN();
 
-    void SetPos(const int& i, const vec& pos);
-    void SetNorm(const int& i, const vec& pos);
-    void SetPlane(const int& i, const  vec& pos);
+    void SetPos(const unsigned int& i, const vec& pos);
+    void SetNorm(const unsigned int& i, const vec& pos);
+    void SetPlane(const unsigned int& i, const  vec& pos);
 
     vec GetPos(const int & i);
     vec GetNorm(const int & i);
@@ -101,8 +101,6 @@ private:
     unsigned int    _id;
     // the type
     string          _name;
-    // the molecule index
-    unsigned int    _molid;
     // vector of CoMs of monomers (stored in Bohr, returned in nm)
     vector < vec >  _positions;
     // normal vector of monomers (normalized)
@@ -111,6 +109,8 @@ private:
     vector < vec >  _planes;
     // a reference to the crgunittype
     CrgUnitType *   _type;
+    // the molecule index
+    unsigned int    _molid;
 
     vector <vec> shift_pos(const vec & a);
 };
@@ -140,7 +140,7 @@ inline int CrgUnit::GetN() {
     return _norms.size();
 }
 
-inline void CrgUnit::SetPos(const int& i, const vec& pos) {
+inline void CrgUnit::SetPos(const unsigned int& i, const vec& pos) {
     if ( i >= _positions.size() ) {
          _positions.resize(i+1);
          _norms.resize(i+1);
@@ -149,7 +149,7 @@ inline void CrgUnit::SetPos(const int& i, const vec& pos) {
     _positions[i] = unit<nm,bohr>::to(pos);
 };
 
-inline void CrgUnit::SetNorm(const int& i, const vec& pos) {
+inline void CrgUnit::SetNorm(const unsigned int& i, const vec& pos) {
     if ( i >= _norms.size() ) {
          _positions.resize(i+1);
          _norms.resize(i+1);
@@ -158,7 +158,7 @@ inline void CrgUnit::SetNorm(const int& i, const vec& pos) {
     _norms[i] = pos;
 };
 
-inline void CrgUnit::SetPlane(const int& i, const vec& pos) {
+inline void CrgUnit::SetPlane(const unsigned int& i, const vec& pos) {
     if ( i >= _planes.size() ) {
          _positions.resize(i+1);
          _norms.resize(i+1);

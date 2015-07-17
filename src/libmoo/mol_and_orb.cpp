@@ -150,7 +150,7 @@ void mol_and_orb::write_pdb(string file, string name_mol, const int & n=0 ){
     else{
         out_qm = fopen(file.c_str(), "a");
     }
-    for (int i=0 ; i < N ;i++ ){
+    for (unsigned int i=0 ; i < N ;i++ ){
         fprintf(out_qm, "ATOM  %5d %4c %3s %1s%4d    %8.3f%8.3f%8.3f%6.2f%6.2f\n", (n+i+1)%100000, (atom_labels[i]._type)[0],
 name_mol.c_str(), " ", (n+1)/N, RA*((atom_pos[i]).getX()), RA*((atom_pos[i]).getY()), RA*((atom_pos[i]).getZ()), 1.0, 20.0);
     }
@@ -203,7 +203,7 @@ int mol_and_orb::init(const char * nameinput){
 	
 	int lbl;
 	string type;
-        char chtype;
+        //char chtype;
 	atom_type a_type;
 
 	while ( in >> word){
@@ -211,7 +211,7 @@ int mol_and_orb::init(const char * nameinput){
 		if(i%4==0){
 		    if (word[0] != '#' ) {
                         type= word;
-                        chtype= word[0];
+                        //chtype= word[0];
                     }
 		    else {getline(in, word); i--;}
 		}
@@ -344,7 +344,7 @@ void mol_and_orb::setAtomLabels(vector<string> types, vector<int> labels) {
 
     assert(types.size() == labels.size());
 
-    for (int i = 0; i < types.size(); i++) {
+    for (unsigned int i = 0; i < types.size(); i++) {
         atom_type atom;
         atom._type = types[i];
         atom._lbl = labels[i];

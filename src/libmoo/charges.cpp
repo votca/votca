@@ -21,7 +21,6 @@ namespace votca { namespace moo {
 
 int multipoles::read_crg_eps(const char * namefile ){
         ifstream in(namefile);
-        int i=0;
         string word;
 	double mpl;
 

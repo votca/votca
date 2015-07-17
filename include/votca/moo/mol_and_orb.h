@@ -49,14 +49,14 @@ private:
 
     vector <atom_type> atom_labels ; // label of atoms
     vector <vec>       atom_pos;
-    int N; // the number of atoms in the molecule
+    unsigned int N; // the number of atoms in the molecule
 
-    vec centre;
     vec centre_input;
 
     orb *orbitals;
     multipoles *_crged;
     multipoles *_neutr;
+    vec centre;
     basis_set *_bs;
 
 public:
@@ -144,7 +144,7 @@ public:
     }
     
     void rot_orb(const double rot[3][3], vector <unsigned int> a ) {
-    	for (int i=0; i< a.size();i++) {
+    	for (unsigned int i=0; i< a.size();i++) {
              orbitals -> rot_orb(a[i], rot);
 	}
     }
@@ -155,7 +155,7 @@ public:
 
     
     void rot_orb( const matrix &rot, vector <unsigned int> a ) {
-    	for (int i=0; i< a.size();i++) {
+    	for (unsigned int i=0; i< a.size();i++) {
 	     orbitals -> rot_orb(a[i], rot);
 	}
     }
@@ -180,7 +180,7 @@ public:
     
     void print(ostream & out) {
 	out.setf(ios::fixed);
-     	for (int i=0; i < N ;i++ ) {
+     	for (unsigned int i=0; i < N ;i++ ) {
 	    out << atom_labels[i]._type << '\t' 
                 << unit<bohr,A>::to(atom_pos[i].getX()) << '\t'
                 << unit<bohr,A>::to(atom_pos[i].getY()) << '\t'
@@ -201,11 +201,11 @@ public:
 	return (atom_labels[i])._type;
     }
 
-    inline const int & getN() const {
+    inline const unsigned int & getN() const {
     	return N;
     }
 
-    inline const int & getNBasis() const {
+    inline const unsigned int & getNBasis() const {
     	return orbitals->getNBasis();
     }
 
@@ -261,7 +261,7 @@ public:
          vector < pair < int, int> > basis_on_atom;
          vector <atom_type>::iterator it_at_type;
          int beg = 0;
-         int nbasis;
+         //int nbasis;
          n_el = 0;
          for (it_at_type = atom_labels.begin();
               it_at_type != atom_labels.end();
@@ -310,7 +310,7 @@ public:
     double V_mpls_neutr(vec &a){ //returns V for potential
 	double V=0.0; 
 	vec dist;
-	for (int i=0;i<N;i++) {
+	for (unsigned int i=0;i<N;i++) {
 	     dist = a-atom_pos[i];
 	     double r = abs(dist);
 	     V +=  _neutr->get_mpl(i) / r;
@@ -321,7 +321,7 @@ public:
     double V_mpls_crg(vec &a){ //returns V for potential
 	double V=0.0; 
 	vec dist;
-	for (int i=0;i<N;i++) {
+	for (unsigned int i=0;i<N;i++) {
 	     dist = a-atom_pos[i];
 	     double r = abs(dist);
 	     V +=  _crged->get_mpl(i) /  ( r );
@@ -331,7 +331,7 @@ public:
     
     double V_nrg_neutr_neutr(mol_and_orb & a){
         double V=0;
-        for (int i=0; i<N;i++){
+        for (unsigned int i=0; i<N;i++){
             V += _neutr->get_mpl(i) * a.V_mpls_neutr(atom_pos[i]);
         }
         return V;
@@ -339,7 +339,7 @@ public:
     
     double V_nrg_crg_neutr(mol_and_orb & a){
         double V=0;
-        for (int i=0; i<N;i++){
+        for (unsigned int i=0; i<N;i++){
             V += _crged->get_mpl(i) * a.V_mpls_neutr(atom_pos[i]);
         }
         return V;

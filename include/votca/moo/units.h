@@ -40,7 +40,8 @@ template <bool t>
 struct ctassert {
   enum { N = 1 - 2 * int(!t) };
   /// 1 if t is true, -1 if t is false.
-  static char A[N];
+  //clang fails on
+  //static char A[N];
   /// ***NOTICE: If this error occurs you tried to use an undefined conversion.***
 };
 
@@ -53,7 +54,8 @@ public:
 
     template <typename T>
     static T to(T d){  // is only called in case of an unspecified conversion
-        ctassert<false> foo;
+        //clang fails on 
+	//ctassert<false> foo;
         return T();
     }
 };

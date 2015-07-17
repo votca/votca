@@ -341,7 +341,7 @@ int basis_set::set_bs_prim( const char * name_basis_file ){
 
 
 void basis_set::print_all_primitive_info(ostream &out){
-    for ( int j =0 ; j< _atom_shells.size(); ++j){
+    for ( unsigned int j =0 ; j< _atom_shells.size(); ++j){
 		
 		for (int k=0; k< _atom_shells[j].n_shells;++k){
 		    out << "Doing atom: " << j << " and shell: " << k <<endl;

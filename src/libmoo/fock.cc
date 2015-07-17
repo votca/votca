@@ -99,7 +99,7 @@ void fock::SetParameters(){
 void fock::CheckParameters(const mol_and_orb & A ){
     int Nat = A.getN();
     for (int i=0;i<Nat;i++){
-        int lbl = A.getlbl(i);
+        unsigned int lbl = A.getlbl(i);
         if (lbl>=Mu.size() ){
             throw runtime_error("not enough specifications for mu ");
         }

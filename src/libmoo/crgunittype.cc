@@ -287,7 +287,7 @@ void CrgUnitType::rotate_each_bead(vector < vec >::iterator it_pos,
                                     *it_pos, *it_coms, rotated_molecule);
 
         // rotating all orbitals now (hopefully)
-        for(int i=0; i<_transorbs.size(); i++){
+        for(unsigned int i=0; i<_transorbs.size(); i++){
             _orbitals.rotate_someatoms(*it_monomers, &Orient_Orb,
                                        rotated_molecule->getorb(i), i);
         }

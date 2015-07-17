@@ -64,7 +64,7 @@ void JCalc::ParseCrgUnitTypes(Property &options){
         }
         
         if((*iter)->exists("torbital")) transorbs = (*iter)->get("torbital").as<vector <int> >();
-        for(int i=0; i<transorbs.size(); ++i)
+        for(unsigned int i=0; i<transorbs.size(); ++i)
             transorbs[i]--;
         
         if(transorbs.size() > 0) nameorb = (*iter)->get("orbitals").as<string>();
@@ -85,7 +85,7 @@ void JCalc::ParseCrgUnitTypes(Property &options){
             vector <int> list_atoms;
             Tokenizer tok2(*it_mon, " ");
             tok2.ConvertToVector<int>(list_atoms);
-            for(int i=0; i<list_atoms.size(); ++i) {
+            for(unsigned int i=0; i<list_atoms.size(); ++i) {
                 if(list_atoms[i] == 0)
                     throw std::runtime_error("An atom with index=0 was specified in listcharges. Counting starts at 1!");
 
@@ -156,10 +156,10 @@ JCalc::JCalcData * JCalc::InitJCalcData(CrgUnitType * mol1, CrgUnitType *mol2)
     data->_mol2.cp_crg(mol2->GetCrgUnit());
 
     // we have stripped the orbs to the bone
-    for (int i = 0; i < data->_orblabels.first.size(); i++) {
+    for (unsigned int i = 0; i < data->_orblabels.first.size(); i++) {
         data->_orblabels.first[i] = i;
     }
-    for (int i =0;i < data->_orblabels.second.size(); i++) {
+    for (unsigned int i =0;i < data->_orblabels.second.size(); i++) {
         data->_orblabels.second[i] = i;
     }
 
@@ -212,8 +212,8 @@ vector <double> JCalc::CalcJ(CrgUnit & one, CrgUnit & two)
     vector < double > Js; // vector with all Js
     vector < pair <int, int> > _pois; // vector with all pairs of interest
     pair <int, int> poi; // pair of interest
-    for (int i = 0; i < jdata->_orblabels.first.size(); i++) {
-        for (int j = 0; j < jdata->_orblabels.first.size(); j++) {
+    for (unsigned int i = 0; i < jdata->_orblabels.first.size(); i++) {
+        for (unsigned int j = 0; j < jdata->_orblabels.first.size(); j++) {
             poi.first = jdata->_orblabels.first[i];
             poi.second = jdata->_orblabels.second[j];
             Js.push_back(jdata->_fock.calcJ(poi));

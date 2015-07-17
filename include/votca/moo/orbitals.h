@@ -42,7 +42,7 @@ private :
     
     vector<string> bs;
     double **psi;
-    int NBasis; // the number of basis sets
+    unsigned int NBasis; // the number of basis sets
     int read_orb_gauss(const char *);
     int read_orb_gamess(const char *);
     vector < pair<int, int> > _basis_on_atom;
@@ -88,7 +88,7 @@ public:
     }
 
 
-    inline const int & getNBasis() const {
+    inline const unsigned int & getNBasis() const {
     	return NBasis;
     }
 
@@ -101,15 +101,15 @@ public:
     }
 
     void cp_orb( orb const  &A){
-	for (int i=0; i < NBasis;i++) {
-		for (int j =0; j < NBasis ; j++){
+	for (unsigned int i=0; i < NBasis;i++) {
+		for (unsigned int j =0; j < NBasis ; j++){
 			psi[i][j] = A.psi[i][j];
 		}
 	}	
     }
 
     void cp_orb( orb const &A, int const & i){
-	for (int j =0; j < NBasis ; j++){
+	for (unsigned int j =0; j < NBasis ; j++){
 	    psi[i][j] = A.psi[i][j];
 	}
     }
@@ -129,11 +129,11 @@ public:
 	psi = new double* [NBasis];
 	psi[0] = new double [NBasis * NBasis];
 	bs[0]=orb1.bs[0];
-	for ( int i = 1 ; i < NBasis ; i ++){
+	for ( unsigned int i = 1 ; i < NBasis ; i ++){
 		bs[i] = orb1.bs[i];
 		psi[i] = psi[i-1] + NBasis;
 	}
-        for ( int i =0 ; i< NBasis*NBasis ; ++i) {
+        for ( unsigned int i =0 ; i< NBasis*NBasis ; ++i) {
             *(psi[0]+i) = *(orb1.psi[0]+i);
         }
         evl.resize(NBasis);
@@ -148,20 +148,20 @@ public:
     ///this function will print out an UHF guess wavefunction suitable for gaussian usage. It will print
     ///the nel_A/2-1 orbitals (doubly occupied, then the Nbasis -> NBasis+nel_B/2-1 orbitals, then the 
     ///nel_A orbital, then the NBAsis_A+nel_B orbital and finally the rest
-    void print_uhf_g03(const int & nel_A, const int & nel_B, const int & NBasis_A , const int NBasis_B);
+    void print_uhf_g03(const int & nel_A, const int & nel_B, const unsigned int & NBasis_A , const unsigned int NBasis_B);
 
     void print_g03(string & name, string mode= string ("w"));
 
 
 
-    void rot_orbs(const vector <unsigned int>& orbs, int* i, double* psi2, const matrix& rot);
+    void rot_orbs(const vector <unsigned int>& orbs, unsigned int* i, double* psi2, const matrix& rot);
     void rot_orb ( const unsigned int &, const double [3][3]);
     void rot_orb( const double [3][3]);
 
  
     void rot_orb ( const unsigned int &, const matrix &);
-    void rot_orb ( const unsigned int &, int *, const matrix &);
-    void rot_orb ( const unsigned int &, int *, double *, const matrix &);
+    void rot_orb ( const unsigned int &, unsigned int *, const matrix &);
+    void rot_orb ( const unsigned int &, unsigned int *, double *, const matrix &);
     void rot_orb( const matrix &);
     
     void rotate_someatoms(vector<int> , matrix  *, 
