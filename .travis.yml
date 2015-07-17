@@ -13,6 +13,7 @@ before_install:
  - if [[ $TEST = *simplex* ]]; then sudo apt-get install gnuplot-nox; fi
  - if [[ $TEST = *realtime ]]; then sudo apt-get install gnuplot-nox; fi
  - if [[ $GROMACS != yes ]]; then sudo apt-get install gromacs-dev; fi
+ - if [[ $CTP = yes ]]; then sudo apt-get install libboost-serialization-dev; fi
 
 env: #NINJA=1 is currently not support by Travis' cmake, enable when >=2.8.9
   - WERROR=yes J=4 #J>4 triggers an internal compiler in travis' g++
