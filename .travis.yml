@@ -5,6 +5,7 @@
 language: cpp
 
 before_install:
+ - if [[ $CTP = yes ]]; then sudo add-apt-repository -y ppa:boost-latest/ppa; fi #newer boost for libboost_timer
  - sudo apt-get update
  - sudo apt-get install cmake libfftw3-dev libgsl0-dev txt2tags libboost-program-options-dev libboost-filesystem-dev libboost-system-dev libexpat1-dev libsqlite3-dev pkg-config mercurial
  - if [[ $MAN ]]; then sudo apt-get install pgf texlive-fonts-recommended texlive-latex-extra doxygen graphviz; fi
@@ -13,7 +14,7 @@ before_install:
  - if [[ $TEST = *simplex* ]]; then sudo apt-get install gnuplot-nox; fi
  - if [[ $TEST = *realtime ]]; then sudo apt-get install gnuplot-nox; fi
  - if [[ $GROMACS != yes ]]; then sudo apt-get install gromacs-dev; fi
- - if [[ $CTP = yes ]]; then sudo apt-get install libboost-serialization-dev libboost-date-time-dev; fi
+ - if [[ $CTP = yes ]]; then sudo apt-get install libboost-serialization-dev libboost-timer-dev; fi
 
 env: #NINJA=1 is currently not support by Travis' cmake, enable when >=2.8.9
   - WERROR=yes J=4 #J>4 triggers an internal compiler in travis' g++
