@@ -76,7 +76,7 @@ public:
      * @param nThreads number of threads running this calculator
      *
      */
-    void setnThreads(int nThreads) { _nThreads = nThreads; _maverick = (_nThreads == 1) ? true : false; }    
+    void setnThreads(unsigned int nThreads) { _nThreads = nThreads; _maverick = (_nThreads == 1) ? true : false; }    
     /**
      * \brief Outputs all options of a calculator
      *  
@@ -94,7 +94,7 @@ public:
     
 protected:
 
-    int _nThreads;
+    unsigned int _nThreads;
     bool _maverick;
     
     void AddDefaults( votca::tools::Property &p, votca::tools::Property &defaults );
