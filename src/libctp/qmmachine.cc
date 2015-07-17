@@ -82,7 +82,7 @@ void QMMachine<QMPackage>::Evaluate(XJob *job) {
     
     // FIGURE OUT CHARGE + MULTIPLICITY
     double dQ = 0.0;
-    for (int i = 0; i < _job->getPolarTop()->QM0().size(); ++i) {
+    for (unsigned int i = 0; i < _job->getPolarTop()->QM0().size(); ++i) {
         dQ += _job->getPolarTop()->QM0()[i]->CalcTotQ();
     }
     int chrg = round(dQ);
@@ -94,8 +94,9 @@ void QMMachine<QMPackage>::Evaluate(XJob *job) {
     string jobFolder = "xjob_" + boost::lexical_cast<string>(_job->getId())
                      + "_" + _job->getTag();    
     bool created = boost::filesystem::create_directory(jobFolder);
-    if (created) 
+    if (created){ 
         LOG(logINFO,*_log) << "Created directory " << jobFolder << flush;
+    }
     
     
     // SET ITERATION-TIME CONSTANTS
@@ -110,7 +111,8 @@ void QMMachine<QMPackage>::Evaluate(XJob *job) {
     int iterMax = _maxIter;
     for ( ; iterCnt < iterMax; ++iterCnt) {
         
-        bool code = Iterate(jobFolder, iterCnt);
+        //bool code = 
+	(void)Iterate(jobFolder, iterCnt);
         if (hasConverged()) { break; }
     }
     
@@ -317,9 +319,9 @@ void QMMIter::UpdatePosChrgFromQMAtoms(vector< QMAtom* > &qmatoms,
     double dQ_RMS = 0.0;
     double dQ_SUM = 0.0;
     
-    for (int i = 0, qac = 0; i < psegs.size(); ++i) {
+    for (unsigned int i = 0, qac = 0; i < psegs.size(); ++i) {
         PolarSeg *pseg = psegs[i];
-        for (int j = 0; j < pseg->size(); ++j, ++qac) {
+        for (unsigned int j = 0; j < pseg->size(); ++j, ++qac) {
             
             // Retrieve info from QMAtom
             QMAtom *qmatm = qmatoms[qac];
@@ -359,9 +361,9 @@ void QMMIter::GenerateQMAtomsFromPolarSegs(PolarTop *ptop, Orbitals &orb,
     double AA_to_NM = 0.1; // Angstrom to nanometer
     
     // INNER SHELL QM0
-    for (int i = 0; i < ptop->QM0().size(); ++i) {
+    for (unsigned int i = 0; i < ptop->QM0().size(); ++i) {
         PolarSeg *pseg = ptop->QM0()[i];
-        for (int j = 0; j < pseg->size(); ++j) {
+        for (unsigned int j = 0; j < pseg->size(); ++j) {
             
             APolarSite *aps = (*pseg)[j];
             vec pos = aps->getPos()/AA_to_NM;
@@ -374,9 +376,9 @@ void QMMIter::GenerateQMAtomsFromPolarSegs(PolarTop *ptop, Orbitals &orb,
     }
     
     // MIDDLE SHELL MM1
-    for (int i = 0; i < ptop->MM1().size(); ++i) {
+    for (unsigned int i = 0; i < ptop->MM1().size(); ++i) {
         PolarSeg *pseg = ptop->MM1()[i];
-        for (int j = 0; j < pseg->size(); ++j) {
+        for (unsigned int j = 0; j < pseg->size(); ++j) {
             
             APolarSite *aps = (*pseg)[j];
             vec pos = aps->getPos()/AA_to_NM;
@@ -412,9 +414,9 @@ void QMMIter::GenerateQMAtomsFromPolarSegs(PolarTop *ptop, Orbitals &orb,
     }
     
     // OUTER SHELL MM2
-    for (int i = 0; i < ptop->MM2().size(); ++i) {
+    for (unsigned int i = 0; i < ptop->MM2().size(); ++i) {
         PolarSeg *pseg = ptop->MM2()[i];
-        for (int j = 0; j < pseg->size(); ++j) {
+        for (unsigned int j = 0; j < pseg->size(); ++j) {
             
             APolarSite *aps = (*pseg)[j];
             vec pos = aps->getPos()/AA_to_NM;

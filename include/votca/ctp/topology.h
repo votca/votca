@@ -131,10 +131,11 @@ protected:
     vector < APolarSite* >   _apolarSites;
     vector < SegmentType* > _segmentTypes;
 
-    QMNBList               _nblist;
 
-    CSG::BoundaryCondition *_bc;
+    int    _db_id;
     bool                    _hasPb;
+    CSG::BoundaryCondition *_bc;
+    QMNBList               _nblist;
 
     bool                    _canRigidify;
     bool                    _isRigid;
@@ -142,7 +143,6 @@ protected:
 
     double _time;
     int    _step;
-    int    _db_id;
 
 
     CSG::BoundaryCondition::eBoxtype

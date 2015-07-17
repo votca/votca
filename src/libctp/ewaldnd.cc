@@ -500,7 +500,7 @@ void Ewald3DnD::CoarseGrainDensities(bool cg_bg, bool cg_fg, double cg_radius) {
         
         int count_bgp = 0;
         int count_fgn = 0;
-        int count_fgc = 0;
+        //int count_fgc = 0;
         int count_bgp_id_in_fg = 0;
 
         for (vector<PolarSeg*>::iterator sit = _bg_P.begin();
@@ -1081,7 +1081,7 @@ void Ewald3DnD::Evaluate() {
         ofs.open("indu_state", ofstream::out);
         for (vector<PolarSeg*>::iterator sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
             PolarSeg *pseg = *sit1;
-            Segment *seg = _top->getSegment(pseg->getId());
+            //Segment *seg = _top->getSegment(pseg->getId());
             for (PolarSeg::iterator pit1 = pseg->begin(); pit1 < pseg->end(); ++pit1) {
                 vec fp = (*pit1)->getFieldP();
                 vec fu = (*pit1)->getFieldU();
@@ -1108,7 +1108,7 @@ void Ewald3DnD::Evaluate() {
         }
         for (vector<PolarSeg*>::iterator sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {
             PolarSeg *pseg = *sit1;
-            Segment *seg = _top->getSegment(pseg->getId());
+            //Segment *seg = _top->getSegment(pseg->getId());
             for (PolarSeg::iterator pit1 = pseg->begin(); pit1 < pseg->end(); ++pit1) {
                 vec fp = (*pit1)->getFieldP();
                 vec fu = (*pit1)->getFieldU();

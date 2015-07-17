@@ -287,7 +287,7 @@ void JobWriter::mps_single(Topology *top) {
     tok_states.ToVector(states);
     
     // CREATE JOBS FOR ALL SEGMENTS AND STATES
-    int single_id = _options->get("options.jobwriter.single_id").as<int>();
+    unsigned int single_id = _options->get("options.jobwriter.single_id").as<int>();
     bool proceed = true;
     if (single_id < 1 || single_id > top->Segments().size()) {
         cout << endl 

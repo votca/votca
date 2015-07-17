@@ -819,7 +819,7 @@ void QMultipole::EStatify(Topology *top, Property *options) {
             vector< APolarSite* > polesNeutral = map_seg_APolarSites[segName];
 
             assert(polesAnion.size() == polesNeutral.size());
-            for (int i = 0; i < polesNeutral.size(); i++) {
+            for (unsigned int i = 0; i < polesNeutral.size(); i++) {
 
                 polesNeutral[i]->setQs( polesAnion[i]->getQs(state), state );
                 polesNeutral[i]->setPs( polesAnion[i]->getPs(state), state );
@@ -845,7 +845,7 @@ void QMultipole::EStatify(Topology *top, Property *options) {
             vector< APolarSite* > polesNeutral = map_seg_APolarSites[segName];
 
             assert(polesCation.size() == polesNeutral.size());
-            for (int i = 0; i < polesNeutral.size(); i++) {
+            for (unsigned int i = 0; i < polesNeutral.size(); i++) {
 
                 polesNeutral[i]->setQs( polesCation[i]->getQs(state), state );
                 polesNeutral[i]->setPs( polesCation[i]->getPs(state), state );
@@ -1276,7 +1276,7 @@ void QMultipole::CalculateESF(Topology *top) {
 
     cout << endl << "... ... Calculating ESF";
 
-    double int2N_C = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 * 1.000e-18;
+    //double int2N_C = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 * 1.000e-18;
 
     // +++++++++++++++++++ //
     // Load grid from file //
@@ -1395,8 +1395,8 @@ void QMultipole::CalculateESF(Topology *top) {
             out = fopen(esfOutFile.c_str(), "w");
 
             assert(_esfGrid.size() == gridPointESF.size());
-            int g = 0;
-            int p = 0;
+            unsigned int g = 0;
+            unsigned int p = 0;
             for ( ; p < gridPointESF.size(); ++g, ++p) {
 
                 fprintf(out, " %3.8f %3.8f %3.8f   %3.8f %3.8f %3.8f \n",
@@ -1784,7 +1784,7 @@ void QMultipole::DistributeMpoles(Topology *top) {
             }
 
 
-            for (int i = 0; i < polesInFrag.size(); i++) {
+            for (unsigned int i = 0; i < polesInFrag.size(); i++) {
 
                 string name = namesInFrag[i];
                 int poleId = polesInFrag[i];
@@ -1983,7 +1983,7 @@ bool QMultipole::EvaluateFrame(Topology *top) {
     }
     // Evaluate energies for list of sites?
     else {
-        for (int i = 0; i < _listSegIds.size(); ++i) {
+        for (unsigned int i = 0; i < _listSegIds.size(); ++i) {
             int segId = _listSegIds[i];
             _listSegs.push_back(top->getSegment(segId));
         }
@@ -1991,24 +1991,24 @@ bool QMultipole::EvaluateFrame(Topology *top) {
     }
 
 
-    for (int id = 0; id < _nThreads; id++) {
+    for (unsigned int id = 0; id < _nThreads; id++) {
         SiteOpQMultipole *newOp = new SiteOpQMultipole(id, top, this);
         siteOps.push_back(newOp);
     }
 
-    for (int id = 0; id < _nThreads; id++) {
+    for (unsigned int id = 0; id < _nThreads; id++) {
         siteOps[id]->InitSlotData(top);
     }
 
-    for (int id = 0; id < _nThreads; id++) {
+    for (unsigned int id = 0; id < _nThreads; id++) {
         siteOps[id]->Start();
     }
 
-    for (int id = 0; id < _nThreads; id++) {
+    for (unsigned int id = 0; id < _nThreads; id++) {
         siteOps[id]->WaitDone();
     }
 
-    for (int id = 0; id < _nThreads; id++) {
+    for (unsigned int id = 0; id < _nThreads; id++) {
         delete siteOps[id];
     }
 

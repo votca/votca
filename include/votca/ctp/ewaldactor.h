@@ -159,10 +159,10 @@ private:
     double rxx, rxy, rxz, ryy, ryz, rzz;
     
     // Real-space distance powers
-    double R1, R2, R3, R4, R5;
+    double R1, R2, R3;//, R4, R5;
     
     // Real-space inverse distance powers
-    double rR1, rR2, rR3, rR4, rR5;
+    double rR1, rR2;//, rR3, rR4, rR5;
     
     // {G} function values
     double ppG0, ppG1, ppG2, ppG3, ppG4;

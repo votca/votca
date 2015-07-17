@@ -107,7 +107,7 @@ bool NWChem::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gues
     vector< Atom* > ::iterator ait;
     vector< Segment* >::iterator sit;
     vector<string> results;
-    int qmatoms = 0;
+    //int qmatoms = 0;
     string temp_suffix = "/id";
     ofstream _com_file;
     
@@ -312,7 +312,8 @@ bool NWChem::Run()
             _command  = "cd " + _run_dir + "; mpirun -np " +  boost::lexical_cast<string>(_threads) + " " + _executable + " " + _input_file_name + "> "+  _log_file_name ;
         }
         
-        int i = system ( _command.c_str() );
+        //int i = 
+	(void)system ( _command.c_str() );
         
         if ( CheckLogFile() ) {
             LOG(logDEBUG,*_pLog) << "Finished NWChem job" << flush;
@@ -385,7 +386,7 @@ bool NWChem::ParseOrbitalsFile( Orbitals* _orbitals )
     
     std::string _line;
     unsigned _levels = 0;
-    unsigned _level;
+    //unsigned _level;
     unsigned _basis_size = 0;
     int _number_of_electrons = 0;
     
@@ -473,7 +474,7 @@ bool NWChem::ParseOrbitalsFile( Orbitals* _orbitals )
 
     // Now, the same for the coefficients
     double coef;
-    for ( int _imo=0; _imo < _levels ; _imo++ ){
+    for ( unsigned int _imo=0; _imo < _levels ; _imo++ ){
         for ( i=1; i<=_n_lines; i++ ) {
             for ( int j=0; j<3; j++ ){
                 _input_file >> coef;
@@ -611,7 +612,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
 
     bool _has_overlap_matrix = false;
     bool _has_charges = false;
-    bool _has_coordinates = false;
+    //bool _has_coordinates = false;
     bool _has_qm_energy = false;
     bool _has_self_energy = false;
     bool _has_basis_set_size = false;
@@ -761,7 +762,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
                 
                 while ( nfields == 6 ) {
                     int atom_id = boost::lexical_cast< int >( _row.at(0) );
-                    int atom_number = boost::lexical_cast< int >( _row.at(0) );
+                    //int atom_number = boost::lexical_cast< int >( _row.at(0) );
                     string atom_type = _row.at(1);
                     double atom_charge = boost::lexical_cast< double >( _row.at(5) );
                     //if ( tools::globals::verbose ) cout << "... ... " << atom_id << " " << atom_type << " " << atom_charge << endl;
@@ -790,7 +791,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
         if ( _is_optimization ){
                 std::string::size_type optimize_pos = _line.find("Optimization converged");
                 if (optimize_pos != std::string::npos) {
-                        bool _found_optimization = true;
+                        //bool _found_optimization = true;
                 }
         }
         
@@ -798,7 +799,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
         
         if ( _found_optimization && coordinates_pos != std::string::npos) {
             LOG(logDEBUG,*_pLog) << "Getting the coordinates" << flush;
-            _has_coordinates = true;
+            //_has_coordinates = true;
             // three garbage lines
             getline(_input_file, _line);
             getline(_input_file, _line);
@@ -815,7 +816,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
                 
             while ( nfields == 6 ) {
                 int atom_id = boost::lexical_cast< int >( _row.at(0) );
-                int atom_number = boost::lexical_cast< int >( _row.at(0) );
+		//int atom_number = boost::lexical_cast< int >( _row.at(0) );
                 string _atom_type = _row.at(1);
                 double _x =  boost::lexical_cast<double>( _row.at(3) );
                 double _y =  boost::lexical_cast<double>( _row.at(4) );

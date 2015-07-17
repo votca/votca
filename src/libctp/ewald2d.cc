@@ -40,7 +40,7 @@ EWD::triple<> Ewald3D2D::ConvergeReciprocalSpaceSum() {
     
     vector< vec > Ks;
     vector< vec >::iterator kit;
-    int kz = 0; // This is 2D Ewald
+    //int kz = 0; // This is 2D Ewald
     int kx = 0;
     int ky = 0;
     for (ky = 1; ky < _NB_max+1; ++ky) {        
@@ -60,7 +60,7 @@ EWD::triple<> Ewald3D2D::ConvergeReciprocalSpaceSum() {
     // K=K TERM
     LOG(logDEBUG,*_log) << flush;
     double EKK_fgC_bgP = 0.0;    
-    int N_EKK_memory = int(0.5*(_NA_max+_NB_max)+0.5);
+    unsigned int N_EKK_memory = (unsigned int)(0.5*(_NA_max+_NB_max)+0.5);
     int N_K_proc = 0;
     vector< double > dEKKs;
     _converged_K = false;
@@ -92,7 +92,7 @@ EWD::triple<> Ewald3D2D::ConvergeReciprocalSpaceSum() {
         else {
             dEKKs[N_K_proc % N_EKK_memory] = dEKK;
         }
-        for (int i = 0; i < dEKKs.size(); ++i) {
+        for (unsigned int i = 0; i < dEKKs.size(); ++i) {
             dEKK_rms += dEKKs[i]*dEKKs[i];
         }
         dEKK_rms /= dEKKs.size();
@@ -100,8 +100,8 @@ EWD::triple<> Ewald3D2D::ConvergeReciprocalSpaceSum() {
         
         LOG(logDEBUG,*_log)  
             << (format("   dE = %1$+1.7f   EKK = %2$+1.7f   RMS(%4$d) = %3$+1.7f") 
-            % (dEKK*2*M_PI/_LxLy*_actor.int2eV) % (EKK_fgC_bgP*2*M_PI/_LxLy*_actor.int2eV)
-            % (dEKK_rms*2*M_PI/_LxLy*_actor.int2eV) % N_EKK_memory) << flush;
+            % (dEKK*2*M_PI/_LxLy*int2eV) % (EKK_fgC_bgP*2*M_PI/_LxLy*int2eV)
+            % (dEKK_rms*2*M_PI/_LxLy*int2eV) % N_EKK_memory) << flush;
         
 //        cout << endl;
 //        for (int i = 0; i < dEKKs.size(); ++i) {
@@ -109,7 +109,7 @@ EWD::triple<> Ewald3D2D::ConvergeReciprocalSpaceSum() {
 //        }
 //        cout << flush;
         
-        if (dEKK_rms*2*M_PI/_LxLy*_actor.int2eV <= _crit_dE && N_K_proc > 2) {
+        if (dEKK_rms*2*M_PI/_LxLy*int2eV <= _crit_dE && N_K_proc > 2) {
         //if (dEKK_rms*2*M_PI/LxLy*_actor.int2eV <= dEKK_rms_crit) {
             _converged_K = true;
             LOG(logDEBUG,*_log)  

@@ -39,9 +39,9 @@ class GaussianPrimitive
 {
     friend class Shell;
 public:
+    int power; // used in pseudopotenials only
     double decay;
     double contraction;
-    int power; // used in pseudopotenials only
     Shell* shell;
 private:
     // private constructor, only a shell can create a primitive
@@ -115,7 +115,7 @@ private:
     // scaling factor
     double _scale;
      
-    Element* _element;
+    //Element* _element;
 
     // vector of pairs of decay constants and contraction coefficients
     vector< GaussianPrimitive* > _gaussians;

@@ -342,7 +342,7 @@ private:
     map<string, bool>                    _map2md;
 
     // Thread management
-    int                         _nextSite;
+    unsigned int                         _nextSite;
     Mutex                       _nextSiteMutex;
     Mutex                       _coutMutex;
     Mutex                       _logMutex;
@@ -367,8 +367,8 @@ private:
 
     // Control options
     bool            _induce;
-    int             _firstSeg;
-    int             _lastSeg;
+    unsigned int             _firstSeg;
+    unsigned int             _lastSeg;
     string          _checkPolesPDB;
 
     // ESP
@@ -714,7 +714,7 @@ vector<PolarSite*> EMultipole_StdAl::ParseGdmaFile(string filename, int state) {
                     Q0_total += boost::lexical_cast<double>(split[0]);
                 }
 
-                for (int i = 0; i < split.size(); i++) {
+                for (unsigned int i = 0; i < split.size(); i++) {
 
                     double qXYZ = boost::lexical_cast<double>(split[i]);
 
@@ -1277,7 +1277,7 @@ void EMultipole_StdAl::DistributeMpoles(Topology *top) {
 
 
     assert (poles.size() == poles_C.size() );
-    for (int i = 0; i < poles.size(); i++) {
+    for (unsigned int i = 0; i < poles.size(); i++) {
 
         poles[i]->setQs( poles_C[i]->getQs(state), state );
         poles[i]->setPs( poles_C[i]->getPs(state), state );
@@ -1292,7 +1292,7 @@ void EMultipole_StdAl::DistributeMpoles(Topology *top) {
 
     int count = 0;
     int chunkId = -1;
-    for (int i = 0; i < poles.size(); i++) {
+    for (unsigned int i = 0; i < poles.size(); i++) {
 
         ++count;
         count = count % _period;
@@ -1305,11 +1305,11 @@ void EMultipole_StdAl::DistributeMpoles(Topology *top) {
 
     // Chunk CoMs
     vector< vec > CoMs;
-    for (int i = 0; i < chunks.size(); ++i) {
+    for (unsigned int i = 0; i < chunks.size(); ++i) {
 
         vec CoM = vec(0.,0.,0.);
         int base = 0;
-        for (int p = 0; p < chunks[i].size(); ++p) {
+        for (unsigned int p = 0; p < chunks[i].size(); ++p) {
             if (chunks[i][p]->getName() != "S") {
                 continue;
             }
@@ -1460,28 +1460,28 @@ bool EMultipole_StdAl::EvaluateFrame(Topology *top) {
 
     cout << endl << "... ... Begin with site " << _nextSite << flush;
 
-    for (int id = 0; id < _nThreads; id++) {
+    for (unsigned int id = 0; id < _nThreads; id++) {
         SiteOpMultipole3 *newOp = new SiteOpMultipole3(id, top, this);
         siteOps.push_back(newOp);
     }
 
     cout << endl << "... ... Created threads. " << flush;
 
-    for (int id = 0; id < _nThreads; id++) {
+    for (unsigned int id = 0; id < _nThreads; id++) {
         siteOps[id]->InitSlotData(top);
     }
 
     cout << endl << "... ... Init. slot data. " << flush;
 
-    for (int id = 0; id < _nThreads; id++) {
+    for (unsigned int id = 0; id < _nThreads; id++) {
         siteOps[id]->Start();
     }
 
-    for (int id = 0; id < _nThreads; id++) {
+    for (unsigned int id = 0; id < _nThreads; id++) {
         siteOps[id]->WaitDone();
     }
 
-    for (int id = 0; id < _nThreads; id++) {
+    for (unsigned int id = 0; id < _nThreads; id++) {
         delete siteOps[id];
     }
 
@@ -1504,7 +1504,7 @@ bool EMultipole_StdAl::EvaluateFrame(Topology *top) {
         map< int, double > ::iterator mit_N;
         map< int, double > ::iterator mit_C;
         for (mit_N = this->_chunkEnergiesN.begin(), mit_C = _chunkEnergiesC.begin();
-             mit_N != _chunkEnergiesN.end(), mit_C != _chunkEnergiesC.end();
+             mit_N != _chunkEnergiesN.end() && mit_C != _chunkEnergiesC.end();
              ++mit_N, ++mit_C) {
 
             assert(mit_N->first == mit_C->first);
@@ -1648,7 +1648,7 @@ void EMultipole_StdAl::SiteOpMultipole3::EvalSite(Topology *top, int seg) {
     this->_polsPolSphere.clear(); // <- Polar sites within cutoff
 
     vec thisCoM = _chunkCoMs[seg-1];
-    for (int i = 0; i < this->_chunkCoMs.size(); ++i) {
+    for (unsigned int i = 0; i < this->_chunkCoMs.size(); ++i) {
         if ( abs(_top->PbShortestConnect(thisCoM,_chunkCoMs[i]))
                 > _master->_cutoff) { continue; }
         else {
@@ -1719,7 +1719,7 @@ void EMultipole_StdAl::SiteOpMultipole3::EvalSite(Topology *top, int seg) {
 
         this->Charge(state);
         if (_master->_induce) this->Induce(state);
-        double EState = this->Energy(state);
+        //double EState = this->Energy(state);
         assert(false);
 
         /*
@@ -1787,7 +1787,7 @@ void EMultipole_StdAl::SiteOpMultipole3::CheckPolarSphere() {
     string mpNAME = "PolarSphere.pdb";
     FILE *mpPDB = NULL;
     mpPDB = fopen(mpNAME.c_str(), "w");
-    int chunkId = 0;
+    unsigned int chunkId = 0;
     vector< vector<PolarSite*> >::iterator sit;
     for (sit = _polsPolSphere.begin();
          sit < _polsPolSphere.end();

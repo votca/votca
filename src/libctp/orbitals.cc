@@ -233,8 +233,8 @@ void Orbitals::SortEnergies(  std::vector<int>* index ) {
     index->resize( _mo_energies.size() );
     int i = 0;
             for ( vector< int > ::iterator soi = index->begin(); soi != index->end(); ++soi ) {
-                index->at(i) = i++;
-                //i++;
+                index->at(i) = i;
+                i++;
                 //cout << *soi << " ";
             } 
     

@@ -127,7 +127,7 @@ bool Gaussian::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gu
     vector< Atom* > ::iterator ait;
     vector< Segment* >::iterator sit;
     
-    int qmatoms = 0;
+    //int qmatoms = 0;
 
     ofstream _com_file;
     
@@ -426,7 +426,8 @@ bool Gaussian::Run()
             _command  = "cd " + _run_dir + "; mkdir -p $GAUSS_SCRDIR; " + _executable + " " + _input_file_name;
         }
 
-        int i = system ( _command.c_str() );
+        //int i = 
+	(void)system ( _command.c_str() );
         
         if ( CheckLogFile() ) {
             LOG(logDEBUG,*_pLog) << "GAUSSIAN: finished job" << flush;
@@ -521,7 +522,7 @@ bool Gaussian::ParseOrbitalsFile( Orbitals* _orbitals )
     std::vector<string> strs;
     boost::algorithm::split(strs, _line, boost::is_any_of("(D)"));
     //clog << strs.at(1) << endl;
-    int nrecords_in_line = boost::lexical_cast<int>(strs.at(1));
+    //int nrecords_in_line = boost::lexical_cast<int>(strs.at(1));
     string format = strs.at(2);
 
     //clog << endl << "Orbital file " << filename << " has " 
@@ -663,10 +664,10 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
     bool _has_number_of_electrons = false;
     bool _has_basis_set_size = false;
     bool _has_overlap_matrix = false;
-    bool _has_vxc_matrix = false;
+    //bool _has_vxc_matrix = false;
     bool _has_charges = false;
-    bool _has_coordinates = false;
-    bool _has_qm_energy = false;
+    //bool _has_coordinates = false;
+    //bool _has_qm_energy = false;
     bool _has_self_energy = false;
     
     int _occupied_levels = 0;
@@ -873,7 +874,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
                 
                 while ( nfields == 3 ) {
                     int atom_id = boost::lexical_cast< int >( _row.at(0) );
-                    int atom_number = boost::lexical_cast< int >( _row.at(0) );
+                    //int atom_number = boost::lexical_cast< int >( _row.at(0) );
                     string atom_type = _row.at(1);
                     double atom_charge = boost::lexical_cast< double >( _row.at(2) );
                     //if ( tools::globals::verbose ) cout << "... ... " << atom_id << " " << atom_type << " " << atom_charge << endl;
@@ -905,7 +906,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
         if (coordinates_pos != std::string::npos && cpn == 0) {
             ++cpn; // updates but ignores
             LOG(logDEBUG,*_pLog) << "Getting the coordinates" << flush;
-            _has_coordinates = true;
+            //_has_coordinates = true;
             boost::trim(_line);
             string archive = _line;
             while ( _line.size() != 0 ) {
@@ -1033,7 +1034,7 @@ bool Gaussian::ParseLogFile( Orbitals* _orbitals ) {
        _orbitals->_has_vxc = true;
        (_orbitals->_vxc).resize( _cart_basis_set_size );
             
-       _has_vxc_matrix = true;
+       //_has_vxc_matrix = true;
        //cout << "Found the overlap matrix!" << endl;   
        vector<int> _j_indeces;
         
@@ -1094,7 +1095,7 @@ bool Gaussian::ConvertToGW( Orbitals* _orbitals ) {
     //int _basis_size      = _orbitals->getBasisSetSize();
     std::vector<double>::size_type _basis_size = _orbitals->getBasisSetSize();
     //int _cart_basis_size = _orbitals->_vxc.size1();
-    ub::matrix<double>::size_type _cart_basis_size = _orbitals->_vxc.size1();
+    //ub::matrix<double>::size_type _cart_basis_size = _orbitals->_vxc.size1();
     //cout << "\nSpherical basis size is " << _basis_size << endl;
     //cout << "\nCartesian basis size is " << _cart_basis_size << endl;
     
@@ -1121,7 +1122,7 @@ bool Gaussian::ConvertToGW( Orbitals* _orbitals ) {
     vector< QMAtom* >::iterator ita;
     LOG(logDEBUG,*_pLog) << "Rewriting molecular orbitals " << flush;
     // Loop over all molecular orbitals
-    for ( int _i_orbital = 0; _i_orbital < _basis_size ; _i_orbital++ ) {
+    for ( unsigned int _i_orbital = 0; _i_orbital < _basis_size ; _i_orbital++ ) {
         _orb_file << _i_orbital+1 << " " << FortranFormat(energies(_i_orbital)) << endl;
         int _i_coef_qc = 0;
         int _i_coef_gw = 0;
@@ -1413,8 +1414,8 @@ bool Gaussian::ConvertToGW( Orbitals* _orbitals ) {
     // output to file
     ofstream _vxc_file;
     _vxc_file.open ( _vxc_file_name_full.c_str() );
-    for (int _i_orbital = 0; _i_orbital < _basis_size ; _i_orbital++ ){
-        for (int _j_orbital = 0; _j_orbital < _basis_size ; _j_orbital++ ){
+    for (unsigned int _i_orbital = 0; _i_orbital < _basis_size ; _i_orbital++ ){
+        for (unsigned int _j_orbital = 0; _j_orbital < _basis_size ; _j_orbital++ ){
             _vxc_file << _i_orbital+1 << "  " << _j_orbital+1 << "  " << FortranFormat( 2.0*vxc_expect( _i_orbital , _j_orbital ) ) << endl; 
         }
     }
@@ -1450,6 +1451,8 @@ int Gaussian::NumbfGW( string shell_type ) {
         _nbf = 4;
     } else if ( shell_type == "SPD" ) {
         _nbf = 10;
+    } else {
+        throw std::runtime_error( "shell_type has to be S,P,D,SP or SPD");
     }
     return _nbf;
 }
@@ -1467,6 +1470,8 @@ int Gaussian::NumbfQC( string shell_type ) {
         _nbf = 4;
     } else if ( shell_type == "SPD" ) {
         _nbf = 9;
+    } else {
+        throw std::runtime_error( "shell_type has to be S,P,D,SP or SPD");
     }
     return _nbf;
 }
@@ -1484,6 +1489,8 @@ int Gaussian::NumbfQC_cart( string shell_type ) {
         _nbf = 4;
     } else if ( shell_type == "SPD" ) {
         _nbf = 10;
+    } else {
+        throw std::runtime_error( "shell_type has to be S,P,D,SP or SPD");
     }
     return _nbf;
 }

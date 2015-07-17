@@ -713,19 +713,19 @@ void IDFT::ReadJobFile(Topology *top) {
             list<Property*> pOverlap = pair_property->Select("overlap");
             
             // this is to select HOMO_A and HOMO_B 
-            double overlapAB;
+            //double overlapAB;
             int orbA;
             int orbB;
-            double energyA;
-            double energyB;
+            //double energyA;
+            //double energyB;
             
             for (list<Property*> ::iterator itOverlap = pOverlap.begin(); itOverlap != pOverlap.end(); ++itOverlap) {
                orbA = (*itOverlap)->getAttribute<int>("orbA");
                orbB = (*itOverlap)->getAttribute<int>("orbB");
                if ( orbA == homoA && orbB == homoB ) {  
-                    overlapAB = (*itOverlap)->getAttribute<double>("jAB");
-                    energyA = (*itOverlap)->getAttribute<double>("eA");
-                    energyB = (*itOverlap)->getAttribute<double>("eB");
+                    //overlapAB = (*itOverlap)->getAttribute<double>("jAB");
+                    //energyA = (*itOverlap)->getAttribute<double>("eA");
+                    //energyB = (*itOverlap)->getAttribute<double>("eB");
                     break;
                 }
             }
@@ -769,17 +769,17 @@ void IDFT::ReadJobFile(Topology *top) {
                 list<Property*> pOverlapB = pBridge_B->Select("overlap");
 
                 // IDs of the Donor and Acceptor
-                int IdA = segmentA->getId();
-                int IdB = segmentB->getId();
+                //int IdA = segmentA->getId();
+                //int IdB = segmentB->getId();
 
 
                                 
                 // IDs stored in the file
                 int id1A = pBridge_A->getAttribute<int>("idA");
-                int id2A = pBridge_A->getAttribute<int>("idB");
+                //int id2A = pBridge_A->getAttribute<int>("idB");
 
                 int id1B = pBridge_B->getAttribute<int>("idA");
-                int id2B = pBridge_B->getAttribute<int>("idB");
+                //int id2B = pBridge_B->getAttribute<int>("idB");
 
                 // suffix for the donor and acceptor 
                 string suffixA = ( id1A == IDBridge ) ? "B" : "A"; // use "A" as a bridge 

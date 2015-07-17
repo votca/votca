@@ -219,7 +219,7 @@ namespace votca {
             if ( _bse_vmin < _qpmin ) _qpmin = _bse_vmin;
             if ( _bse_cmax < _qpmax ) _qpmax = _bse_cmax;
             _qptotal = _qpmax - _qpmin +1 ;
-            if ( _bse_nmax > _bse_size || _bse_nmax < 0 ) _bse_nmax = _bse_size;
+            if ( _bse_nmax > (int)_bse_size || _bse_nmax < 0 ) _bse_nmax = _bse_size;
 
             
                     
@@ -377,7 +377,7 @@ namespace votca {
             _epsilon.resize( _screening_freq.size1() );
             
             // for symmetric PPM, we can initialize _epsilon with the overlap matrix!
-            for ( int _i_freq = 0 ; _i_freq < _screening_freq.size1() ; _i_freq++ ){
+            for ( unsigned int _i_freq = 0 ; _i_freq < _screening_freq.size1() ; _i_freq++ ){
                 _epsilon( _i_freq ) = _gwoverlap._aomatrix ;
             }
             // TODO: now, we can get rid of _gwoverlap
@@ -423,7 +423,7 @@ namespace votca {
             
             LOG(logINFO,*pLog) << (format("  ====== Perturbative quasiparticle energies (Rydberg) ====== ")).str() << flush;
                         
-            for ( int _i = 0 ; _i < _qptotal ; _i++ ){
+            for ( unsigned int _i = 0 ; _i < _qptotal ; _i++ ){
                 if ( (_i + _qpmin) == _homo ){
                     LOG(logINFO,*pLog) << (format("  HOMO  = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = %4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") % (_i+_qpmin+1) % _dft_energies( _i + _qpmin ) % _vxc(_i,_i) % _sigma_x(_i,_i) % _sigma_c(_i,_i) % _qp_energies(_i) ).str() << flush;
                 } else if ( (_i + _qpmin) == _homo+1 ){
@@ -440,7 +440,7 @@ namespace votca {
             if ( _do_qp_diag ) {
             LOG(logDEBUG, *pLog) << TimeStamp() << " Full quasiparticle Hamiltonian  " << flush;
             LOG(logINFO, *pLog) << (format("  ====== Diagonalized quasiparticle energies (Rydberg) ====== ")).str() << flush;
-            for (int _i = 0; _i < _qptotal; _i++) {
+            for (unsigned int _i = 0; _i < _qptotal; _i++) {
                 if ((_i + _qpmin) == _homo) {
                     LOG(logINFO, *pLog) << (format("  HOMO  = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") % (_i + _qpmin + 1) % _qp_energies(_i) % _qp_diag_energies(_i)).str() << flush;
                 } else if ((_i + _qpmin) == _homo + 1) {
@@ -581,7 +581,7 @@ namespace votca {
             }
             
             // _bse_singlet_energies.resize(_bse_singlet_coefficients.size1());
-            int nmax = 100;
+            //int nmax = 100;
             linalg_eigenvalues(_bse, _bse_singlet_energies, _bse_singlet_coefficients, _bse_nmax);
             
           //  cout << TimeStamp() << " with GSL " << endl;
@@ -709,7 +709,7 @@ namespace votca {
             // constructing full QP Hamiltonian, storage in vxc
             _vxc = -_vxc + _sigma_x + _sigma_c;
             // diagonal elements are given by _qp_energies
-            for (int _m = 0; _m < _vxc.size1(); _m++ ){
+            for (unsigned int _m = 0; _m < _vxc.size1(); _m++ ){
               _vxc( _m,_m ) = _qp_energies( _m );
             }
                    
@@ -736,9 +736,9 @@ namespace votca {
         void GWBSE::sigma_c_setup(const TCMatrix& _Mmn, const ub::vector<double>& _edft){
             
             // iterative refinement of qp energies
-            int _max_iter = 5;
-            int _bandsum = _Mmn[0].size2(); // total number of bands
-            int _gwsize  = _Mmn[0].size1(); // size of the GW basis
+            unsigned int _max_iter = 5;
+            unsigned int _bandsum = _Mmn[0].size2(); // total number of bands
+            unsigned int _gwsize  = _Mmn[0].size1(); // size of the GW basis
             const double pi = boost::math::constants::pi<double>();
             
 
@@ -746,21 +746,21 @@ namespace votca {
             _qp_energies = _edft;
 
 	    // only diagonal elements except for in final iteration
-            for ( int _i_iter = 0 ; _i_iter < _max_iter-1 ; _i_iter++ ){
+            for ( unsigned int _i_iter = 0 ; _i_iter < _max_iter-1 ; _i_iter++ ){
                 
 	      // initialize sigma_c to zero at the beginning of each iteration
 	      _sigma_c = ub::zero_matrix<double>(_qptotal,_qptotal);
 
 	      // loop over all GW levels
-	      for (int _gw_level = 0; _gw_level < _qptotal ; _gw_level++ ){
+	      for (unsigned int _gw_level = 0; _gw_level < _qptotal ; _gw_level++ ){
                   
                 const ub::matrix<double>& Mmn = _Mmn[ _gw_level ];
               
 		// loop over all functions in GW basis
-		for ( int _i_gw = 0; _i_gw < _gwsize ; _i_gw++ ){
+		for ( unsigned int _i_gw = 0; _i_gw < _gwsize ; _i_gw++ ){
                     
 		  // loop over all bands
-		  for ( int _i = 0; _i < _bandsum ; _i++ ){
+		  for ( unsigned int _i = 0; _i < _bandsum ; _i++ ){
                     
 		    double occ = 1.0;
 		    if ( _i > _homo ) occ = -1.0; // sign for empty levels
@@ -795,15 +795,15 @@ namespace votca {
 	    _sigma_c = ub::zero_matrix<double>(_qptotal,_qptotal);
 
 	      // loop over col  GW levels
-	      for (int _gw_level = 0; _gw_level < _qptotal ; _gw_level++ ){
+	      for (unsigned int _gw_level = 0; _gw_level < _qptotal ; _gw_level++ ){
               
                 const ub::matrix<double>& Mmn =  _Mmn[ _gw_level ];
 		// loop over all functions in GW basis
-		for ( int _i_gw = 0; _i_gw < _gwsize ; _i_gw++ ){
+		for ( unsigned int _i_gw = 0; _i_gw < _gwsize ; _i_gw++ ){
                     
 
 		  // loop over all bands
-		  for ( int _i = 0; _i < _bandsum ; _i++ ){
+		  for ( unsigned int _i = 0; _i < _bandsum ; _i++ ){
                     
 		    double occ = 1.0;
 		    if ( _i > _homo ) occ = -1.0; // sign for empty levels
@@ -819,7 +819,7 @@ namespace votca {
 		    double _factor = _ppm_weight( _i_gw ) * _ppm_freq( _i_gw) *   Mmn(_i_gw, _i) *_stab/_denom; // contains conversion factor 2!
 		    
 		    // loop over row GW levels
-		    for ( int _m = 0 ; _m < _qptotal ; _m++) {
+		    for ( unsigned int _m = 0 ; _m < _qptotal ; _m++) {
 
 		    
 		    // sigma_c all elements
@@ -840,19 +840,19 @@ namespace votca {
             int _size  = _Mmn[0].size1();
 
             // band 1 loop over all GW bands
-            for ( int _m1 = 0 ; _m1 < _qptotal ; _m1++ ){
+            for ( unsigned int _m1 = 0 ; _m1 < _qptotal ; _m1++ ){
                 
                 const ub::matrix<double>& M1mn =  _Mmn[ _m1 ];
                 
                 // band 2 loop over all GW bands
-                for ( int _m2 = 0 ; _m2 < _qptotal ; _m2++ ){
+                for ( unsigned int _m2 = 0 ; _m2 < _qptotal ; _m2++ ){
                     
                     const ub::matrix<double>& M2mn =  _Mmn[ _m2 ];
                     
                     // loop over all basis functions
                     for ( int _i_gw = 0 ; _i_gw < _size ; _i_gw++ ){
                         // loop over all occupied bands used in screening
-                        for ( int _i_occ = 0 ; _i_occ <= _homo ; _i_occ++ ){
+                        for ( unsigned int _i_occ = 0 ; _i_occ <= _homo ; _i_occ++ ){
                             
                             _sigma_x( _m1, _m2 ) -= 2.0 * M1mn( _i_gw , _i_occ ) * M2mn( _i_gw , _i_occ );
                             
@@ -903,7 +903,7 @@ namespace votca {
             
             // store PPM weights from eigenvalues
             _ppm_weight.resize( _eigenvalues.size() );
-            for ( int _i = 0 ; _i <  _eigenvalues.size(); _i++   ){
+            for ( unsigned int _i = 0 ; _i <  _eigenvalues.size(); _i++   ){
                 _ppm_weight(_i) = 1.0 - 1.0/_eigenvalues(_i);
             }
 
@@ -916,7 +916,7 @@ namespace votca {
             _temp = ub::zero_matrix<double>( _eigenvalues.size(),_eigenvalues.size() )  ;
             linalg_invert( _eigenvectors , _temp ); //eigenvectors is destroyed after!
             // c) PPM parameters -> diagonal elements
-            for ( int _i = 0 ; _i <  _eigenvalues.size(); _i++   ){
+            for ( unsigned int _i = 0 ; _i <  _eigenvalues.size(); _i++   ){
                 
                 double _nom  = _temp( _i, _i ) - 1.0;
                 
@@ -953,7 +953,7 @@ namespace votca {
             int _size = _Mmn_RPA[0].size1(); // size of gwbasis
             
             // loop over frequencies
-            for ( int _i_freq = 0 ; _i_freq < _screening_freq.size1() ; _i_freq++ ){
+            for ( unsigned int _i_freq = 0 ; _i_freq < _screening_freq.size1() ; _i_freq++ ){
                 // initialize epsilon for this frequency
                 // _epsilon ( _i_freq ) = ub::zero_matrix<double>(_size, _size);
                 
@@ -1025,7 +1025,7 @@ namespace votca {
                 for (vector< AOShell* >::iterator _is = gwbasis.firstShell(); _is != gwbasis.lastShell(); _is++) {
                     AOShell* _shell = gwbasis.getShell(_is);
                     double decay = (*_shell->firstGaussian())->decay;
-                    int _lmax    = _shell->getLmax();
+                    //int _lmax    = _shell->getLmax();
                     int _size    = _shell->getNumFunc();
                     int _start  = _shell->getStartIndex();
 

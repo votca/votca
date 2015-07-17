@@ -68,7 +68,7 @@ namespace ub = boost::numeric::ublas;
             for (vector< AOShell* >::iterator _is = _gwbasis.firstShell(); _is != _gwbasis.lastShell(); _is++) {
                 AOShell* _shell = _gwbasis.getShell(_is);
                 int _start = _shell->getStartIndex();
-                int _end = _start + _shell->getNumFunc();
+                //int _end = _start + _shell->getNumFunc();
 
        
                 // each element is a shell_size-by-n matrix, initialize to zero
@@ -140,7 +140,7 @@ namespace ub = boost::numeric::ublas;
                         ub::matrix<double> _temp = ub::prod(_m_orbitals, _subvector);
                          
                         // put _temp into _imstore
-                         for ( int _i_band = 0; _i_band < _temp.size1(); _i_band++ ){
+                         for ( unsigned int _i_band = 0; _i_band < _temp.size1(); _i_band++ ){
                             for ( int _i_gw = 0; _i_gw < _shell->getNumFunc() ; _i_gw++ ){
                                 int _ridx = _shell->getNumFunc() * ( _i_band - this->mmin ) + _i_gw;
                                 
@@ -234,7 +234,7 @@ namespace ub = boost::numeric::ublas;
             // some helpers
             double fak = 0.5 / (_decay_alpha + _decay_gw + _decay_gamma);
             double fak2 = 2.0 * fak;
-            double fak3 = 3.0 * fak;
+            //double fak3 = 3.0 * fak;
 
             vec gvv = fak2 * (_decay_alpha * _pos_alpha + _decay_gw * _pos_gw + _decay_gamma * _pos_gamma);
             vec gma = gvv - _pos_alpha;
@@ -272,7 +272,7 @@ namespace ub = boost::numeric::ublas;
             // if it does, go on and create multiarray
             typedef boost::multi_array<double, 3> ma_type;
             typedef boost::multi_array_types::extent_range range;
-            typedef ma_type::index index;
+            //typedef ma_type::index index;
             ma_type::extent_gen extents;
             ma_type S;
             S.resize(extents[ range(1, _nalpha + 1) ][ range(1, _ngw + 1) ][ range(1, _ngamma + 1)]);
@@ -2517,7 +2517,7 @@ namespace ub = boost::numeric::ublas;
         void TCMatrix::Print(string _ident) {
             cout << "\n" << endl;
             for (int k = 0; k < this->mtotal; k++){
-                    for (int i = 0; i< _matrix[1].size1() ; i++) {
+                    for (unsigned int i = 0; i< _matrix[1].size1() ; i++) {
                         for (int j = 0; j< this->ntotal; j++) {
                            cout << _ident << "[" << i+1 << ":" << k + 1 << ":" << j + 1 << "] " << this->_matrix[k](i, j) << endl;
                         }

@@ -75,8 +75,8 @@ namespace votca { namespace ctp {
     
     void AOMatrix::Print( string _ident){
         cout << "\n" << endl;
-        for ( int i =0; i< this->_aomatrix.size1(); i++){
-            for ( int j =0; j< this->_aomatrix.size2(); j++){
+        for ( unsigned int i =0; i< this->_aomatrix.size1(); i++){
+            for ( unsigned int j =0; j< this->_aomatrix.size2(); j++){
                 cout << _ident << "[" << i+1 << ":" << j+1 << "] " <<  this->_aomatrix(i,j) << endl;
             }
         }
@@ -260,7 +260,7 @@ namespace votca { namespace ctp {
         const double _fak  = 0.5/(_decay_row + _decay_col);
         const double _fak2 = 2.0 * _fak;
         const double _fak3 = 3.0 * _fak;
-        const double _fak4 = 4.0 * _fak;
+        //const double _fak4 = 4.0 * _fak;
 
         _pma[0] = _fak2*( _decay_row * _pos_row.getX() + _decay_col * _pos_col.getX() ) - _pos_row.getX();
         _pma[1] = _fak2*( _decay_row * _pos_row.getY() + _decay_col * _pos_col.getY() ) - _pos_row.getY();
@@ -847,8 +847,8 @@ namespace votca { namespace ctp {
         ub::matrix<double> _trafo_col_tposed = ub::trans( _trafo_col );
         ub::matrix<double> _ol_sph = ub::prod( _ol_tmp, _trafo_col_tposed );
         // save to _matrix
-        for ( int i = 0; i< _matrix.size1(); i++ ) {
-            for (int j = 0; j < _matrix.size2(); j++){
+        for ( unsigned int i = 0; i< _matrix.size1(); i++ ) {
+            for (unsigned int j = 0; j < _matrix.size2(); j++){
                 _matrix(i,j) = _ol_sph(i+_shell_row->getOffset(),j+_shell_col->getOffset());
             }
         }
@@ -6776,8 +6776,8 @@ ndif
 
         // put _cou[i][j][0] into ublas matrix
         ub::matrix<double> _coumat = ub::zero_matrix<double>(_nrows,_ncols);
-        for ( int i = 0; i< _coumat.size1(); i++){
-            for ( int j =0; j< _coumat.size2(); j++){
+        for ( unsigned int i = 0; i< _coumat.size1(); i++){
+            for ( unsigned int j =0; j< _coumat.size2(); j++){
                 _coumat(i,j) = _cou[i][j][0];
             }
         }
@@ -6786,8 +6786,8 @@ ndif
         ub::matrix<double> _trafo_col_tposed = ub::trans ( _trafo_col );
         ub::matrix<double> _cou_sph = ub::prod( _cou_tmp, _trafo_col_tposed );
         // save to _matrix
-        for ( int i = 0; i< _matrix.size1(); i++ ) {
-            for (int j = 0; j < _matrix.size2(); j++){
+        for ( unsigned int i = 0; i< _matrix.size1(); i++ ) {
+            for (unsigned int j = 0; j < _matrix.size2(); j++){
                 _matrix(i,j) = _cou_sph(i+_shell_row->getOffset(),j+_shell_col->getOffset());
             }
         }
@@ -6816,13 +6816,13 @@ ndif
             // forward iteration
             _FmT[0]=0.50*sqrt(pi/_T)* erf(sqrt(_T));
 
-            for (int m = 1; m < _FmT.size(); m++ ){
+            for (unsigned int m = 1; m < _FmT.size(); m++ ){
                 _FmT[m] = (2*m-1) * _FmT[m-1]/(2.0*_T) - exp(-_T)/(2.0*_T) ;
             }
         }
 
         if ( _T < 1e-10 ){
-           for ( int m=0; m < _FmT.size(); m++){
+           for ( unsigned int m=0; m < _FmT.size(); m++){
                _FmT[m] = 1.0/(2.0*m+1.0) - _T/(2.0*m+3.0); 
            }
         }
@@ -6868,8 +6868,8 @@ ndif
             //_gwoverlap_cholesky.Print( "ChoS" );
 
             // remove L^T from Cholesky
-            for (int i =0; i < _gwoverlap_cholesky._aomatrix.size1(); i++ ){
-                for (int j = i+1; j < _gwoverlap_cholesky._aomatrix.size1(); j++ ){
+            for (unsigned int i =0; i < _gwoverlap_cholesky._aomatrix.size1(); i++ ){
+                for (unsigned int j = i+1; j < _gwoverlap_cholesky._aomatrix.size1(); j++ ){
                     _gwoverlap_cholesky._aomatrix(i,j) = 0.0;
                 }
             }

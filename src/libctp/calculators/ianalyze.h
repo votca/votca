@@ -64,7 +64,7 @@ bool IAnalyze::EvaluateFrame(Topology *top) {
         return 0;
     }
 
-    for (int i = 0; i < _states.size(); ++i) {
+    for (unsigned int i = 0; i < _states.size(); ++i) {
         this->IHist(top, _states[i]);
     }
     

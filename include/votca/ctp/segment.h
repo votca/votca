@@ -93,17 +93,17 @@ public:
 
 private:
 
+    int         _id;
+    string      _name;
+    SegmentType *_typ;
     Topology    *_top;
     Molecule    *_mol;
-    SegmentType *_typ;
 
     vector < Fragment* >    _fragments;
     vector < Atom* >        _atoms;
     vector < PolarSite* >   _polarSites;
     vector < APolarSite* >  _apolarSites;
 
-    string      _name;
-    int         _id;
     vec         _CoM;
 
 
@@ -116,8 +116,8 @@ private:
     double _U_cN_cC_e;   // from ::EInternal     input     DEFAULT 0
     double _U_cN_cC_h;
 
-    double _ePolar_e;    // from ::EMultipole    output    DEFAULT 0
-    double _ePolar_h;
+    //double _ePolar_e;    // from ::EMultipole    output    DEFAULT 0
+    //double _ePolar_h;
 
     double _occ_e;       // from ::KMC           output    DEFAULT 0
     double _occ_h;

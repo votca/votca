@@ -57,6 +57,8 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/version.hpp>
 
+static const double                 _conv_Hrt_eV = 27.21138386;
+
 namespace ub = boost::numeric::ublas;
     
 namespace votca { namespace ctp {
@@ -181,7 +183,6 @@ public:
     
 private:
     
-    static const double                 _conv_Hrt_eV = 27.21138386;
 
     bool                                _has_basis_set_size;
     int                                     _basis_set_size;   

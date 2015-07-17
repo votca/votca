@@ -26,6 +26,7 @@
 // TODO Sharpness parameter should be initialised in constructor
 // ...  (currently hard-coded, 0.390)
 
+static const double int2eV = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
 
 namespace votca { namespace ctp {
 
@@ -37,8 +38,8 @@ class XInteractor
 {
 public:
 
-    XInteractor(Topology *top, double aDamp) : _top(top),  a(aDamp) {};
-    XInteractor() :                            _top(NULL), a(0.390) {};
+    XInteractor(Topology *top, double aDamp) : /*_top(top),*/  a(aDamp) {};
+    XInteractor() :                            /*_top(NULL),*/ a(0.390) {};
    ~XInteractor() {};
 
     // UNITS IN INPUT FILES
@@ -60,7 +61,6 @@ public:
     //
     // ... Potential (V) = Potential(int) * 1/4PiEps0(SI) * e * 1e+0.9
    
-    static const double int2eV = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
 
     inline double   EnergyInter(APolarSite &pol1, APolarSite &pol2);
     inline double   EnergyInterESP(APolarSite &pol1, APolarSite &pol2);
@@ -115,6 +115,7 @@ private:
     double EUU;
 
 
+    //Topology        *_top;
     vec    e12;      //  |
     double u3;       //  |-> NOTE: Only needed when using Thole model
     double a;        //  |         (do not forget to init. though...)
@@ -341,7 +342,6 @@ private:
     inline double T22s_21s() { return R5 * (35*rby*rbz*rax*ray + 5*rby*rax*cyz + 5*rby*ray*cxz + 5*rbz*rax*cyy + 5*rbz*ray*cxy + cxy*cyz + cyy*cxz); }
     inline double T22s_22c() { return R5 * 0.5 * (35*rbx*rbx*rax*ray - 35*rby*rby*rax*ray + 10*rbx*rax*cyx + 10*rbx*ray*cxx - 10*rby*rax*cyy - 10*rby*ray*cxy + 2*cxx*cyx - 2*cxy*cyy); }
 
-    Topology        *_top;
 
 };
 

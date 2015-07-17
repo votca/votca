@@ -122,11 +122,11 @@ public:
         }
 
     private:
-        fgtable_t _id_na_nb_nc__inFg;
-        int _n_segs_cell;
+        //int _n_segs_cell;
         int _na_max;
         int _nb_max;
         int _nc_max;
+        fgtable_t _id_na_nb_nc__inFg;
     };
 
 
@@ -134,7 +134,6 @@ protected:
 
     EwdInteractor _ewdactor;
     XInteractor _actor;
-    Logger *_log;
 
     // PERIODIC BOUNDARY
     Topology *_top;
@@ -143,6 +142,7 @@ protected:
     // POLAR SEGMENTS
     // Part I - Ewald
     PolarTop *_ptop;
+    Logger *_log;
     vector< PolarSeg* > _bg_P;         // Period. density = BGN + FGN
     vector< PolarSeg* > _bg_N;         // Neutral background
     vector< PolarSeg* > _mg_N;         // Neutral midground

@@ -310,9 +310,10 @@ EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum() {
                     }
                 }
             }
-            if (tools::globals::verbose) LOG(logDEBUG,*_log)
+            if (tools::globals::verbose){ LOG(logDEBUG,*_log)
                 << (format("  o Id = %5$-4d Rc = %1$+02.7f   |MGN| = %2$5d   dF(rms) = %3$+1.3e V/m   [1eA => %4$+1.3e eV]") 
                 % -1.0 % nbs.size() % -1.0  % -1.0 % ((*sit1)->getId())).str() << flush;
+	    }
         }
         _converged_R = true;
 //        cout << endl << "XINTERACTOR " << _actor.getEPP() << " " << _actor.getEPU() << " "<< _actor.getEUU() << flush;
@@ -328,7 +329,7 @@ EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum() {
         this->SetupMidground(R_max);
         
         // FOR EACH FOREGROUND SEGMENT (FGC) ...
-        int energy_converged_count = 0;
+        unsigned int energy_converged_count = 0;
         for (sit1 = _fg_C.begin(); sit1 != _fg_C.end(); ++sit1) {        
             (*sit1)->ClearPolarNbs();
 
@@ -378,15 +379,17 @@ EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum() {
                 }
                 shell_rms = sqrt(shell_rms/shell_count)*EWD::int2eV;
                 sum += shell_sum;
-                if (tools::globals::verbose) LOG(logDEBUG,*_log)
+                if (tools::globals::verbose){ LOG(logDEBUG,*_log)
                     << (format("  o ID = %5$-4d Rc = %1$+02.7f   |MGN| = %3$5d   ER = %2$+1.7f eV   dER2(sum) = %4$+1.3e eV") 
                     % shell_R % (sum*EWD::int2eV) % shell_mg.size() % (shell_rms*shell_count) % (*sit1)->getId()).str() << flush;
+		}
 
                 if (shell_rms*shell_count <= _crit_dE && shell_R >= _R_co) {
                     energy_converged_count += 1;
-                    if (tools::globals::verbose) LOG(logDEBUG,*_log)  
+                    if (tools::globals::verbose){ LOG(logDEBUG,*_log)  
                         << (format("  :: ID = %2$-4d : Converged to precision as of Rc = %1$+1.3f nm") 
                         % shell_R % (*sit1)->getId()) << flush;
+		    }
                     break;
                 }
             }
@@ -484,11 +487,12 @@ EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum() {
         }
         de_this_shell = (de_this_shell < 0.) ? -de_this_shell : de_this_shell;
         
-        if (shell_count > 0) LOG(logDEBUG,*_log)
+        if (shell_count > 0){ LOG(logDEBUG,*_log)
              << (format("  o M = %1$04d   G = %2$+1.3e   dE(rms) = %3$+1.3e eV")
              % shell_count
              % crit_grade
              % (de_this_shell/_LxLyLz*EWD::int2eV)).str() << flush;
+	}
         
         if (shell_count > 10 && de_this_shell/_LxLyLz*EWD::int2eV < _crit_dE) {
             LOG(logINFO,*_log)
@@ -535,11 +539,12 @@ EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum() {
         }
         de_this_shell = (de_this_shell < 0.) ? -de_this_shell : de_this_shell;
         
-        if (shell_count > 0) LOG(logDEBUG,*_log)
+        if (shell_count > 0){ LOG(logDEBUG,*_log)
              << (format("  o M = %1$04d   G = %2$+1.3e   dE(rms) = %3$+1.3e eV")
              % shell_count
              % crit_grade
              % (de_this_shell/_LxLyLz*EWD::int2eV)).str() << flush;
+	}
         
         if (shell_count > 10 && de_this_shell/_LxLyLz*EWD::int2eV < _crit_dE) {
             LOG(logINFO,*_log)
@@ -642,7 +647,7 @@ EWD::triple<> PEwald3D3D::CalculateForegroundCorrection() {
     vector<APolarSite*> ::iterator pit1;
     vector<PolarSeg*>::iterator sit2; 
     vector<APolarSite*> ::iterator pit2;
-    double EC = 0.0;
+    //double EC = 0.0;
     double sum_pp = 0.0;
     double sum_pu = 0.0;
     double sum_uu = 0.0;
@@ -661,7 +666,7 @@ EWD::triple<> PEwald3D3D::CalculateForegroundCorrection() {
         }
     }
     
-    EC = sum_pp + sum_pu + sum_uu;    
+    //EC = sum_pp + sum_pu + sum_uu;    
     return EWD::triple<>(sum_pp, sum_pu, sum_uu);
     //return EC;
 }
@@ -669,7 +674,7 @@ EWD::triple<> PEwald3D3D::CalculateForegroundCorrection() {
 
 void PEwald3D3D::Field_ConvergeRealSpaceSum() {
     
-    double sum = 0.0;
+    //double sum = 0.0;
     _field_converged_R = false;
     
     LOG(logDEBUG,*_log) << flush 
@@ -690,7 +695,7 @@ void PEwald3D3D::Field_ConvergeRealSpaceSum() {
 
     
     // FOR EACH FOREGROUND SEGMENT (FGC) ...
-    int field_converged_count = 0;
+    unsigned int field_converged_count = 0;
     for (sit1 = _fg_C.begin(); sit1 != _fg_C.end(); ++sit1) {
         (*sit1)->ClearPolarNbs();
         
@@ -735,15 +740,17 @@ void PEwald3D3D::Field_ConvergeRealSpaceSum() {
             shell_rms = sqrt(shell_rms/shell_count)*EWD::int2V_m;
             double e_measure = shell_rms*1e-10*shell_count; // 
         
-            if (tools::globals::verbose) LOG(logDEBUG,*_log)
+            if (tools::globals::verbose){ LOG(logDEBUG,*_log)
                 << (format("  o ID = %5$-4d Rc = %1$+02.7f   |MGN| = %2$5d   dF(rms) = %3$+1.3e V/m   [1eA => %4$+1.3e eV]") 
                 % shell_R % shell_mg.size() % shell_rms  % e_measure % ((*sit1)->getId())).str() << flush;
+	    }
             
             if (e_measure <= _crit_dE && shell_R >= _R_co) {
                 field_converged_count += 1;
-                if (tools::globals::verbose) LOG(logDEBUG,*_log)
+                if (tools::globals::verbose){ LOG(logDEBUG,*_log)
                     << (format("  :: ID = %2$-4d Converged to precision as of Rc = %1$+1.3f nm") 
                     % shell_R % (*sit1)->getId()) << flush;
+		}
                 break;
             }
         }
@@ -851,12 +858,13 @@ void PEwald3D3D::Field_ConvergeReciprocalSpaceSum() {
         shell_rms = (rms_count > 0) ? sqrt(shell_rms/rms_count)*EWD::int2V_m : 0.0;
         double e_measure = shell_rms*1e-10*rms_count;
         
-        if (rms_count > 0) LOG(logDEBUG,*_log)
+        if (rms_count > 0){ LOG(logDEBUG,*_log)
              << (format("  o M = %1$04d   G = %2$+1.3e   dF(rms) = %3$+1.3e V/m   [1eA => %4$+1.3e eV]")
              % rms_count
              % crit_grade
              % shell_rms
              % e_measure).str() << flush;
+	}
         
         if (rms_count > 10 && e_measure <= _crit_dE) {
             LOG(logINFO,*_log)
@@ -897,12 +905,13 @@ void PEwald3D3D::Field_ConvergeReciprocalSpaceSum() {
         shell_rms = (rms_count > 0) ? sqrt(shell_rms/rms_count)*EWD::int2V_m : 0.0;
         double e_measure = shell_rms*1e-10*rms_count;
         
-        if (rms_count > 0) LOG(logDEBUG,*_log)
+        if (rms_count > 0){ LOG(logDEBUG,*_log)
              << (format("  o M = %1$04d   G = %2$+1.3e   dF(rms) = %3$+1.3e V/m   [1eA => %4$+1.3e eV]")
              % rms_count
              % crit_grade
              % shell_rms
              % e_measure).str() << flush;
+	}
         
         if (rms_count > 10 && e_measure <= _crit_dE) {
             LOG(logINFO,*_log)

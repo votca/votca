@@ -381,15 +381,15 @@ public:
 
        int          _id;
        string       _tag;
-       string       _type;
-       int          _site_id; // only relevant if type == "site"
        int          _pairId;
+       string       _type;
        int          _seg1Id;
        int          _seg2Id;
        string       _mps1;
        string       _mps2;
 
        bool         _start_from_cpt;
+       int          _site_id; // only relevant if type == "site"
 
        QMPair      *_pair;
        Segment     *_site;
@@ -424,7 +424,7 @@ public:
       public:
 
         InduWorker(int id, Topology *top, XMP *master, JobXMP *forker)
-                    : _id(id), _top(top), _master(master), _forker(forker)
+                    : _id(id), /*_top(top),*/ _master(master), _forker(forker)
                   { _actor = XInteractor(top,_master); };
 
        ~InduWorker() {};
@@ -547,7 +547,7 @@ public:
       private:
 
           int                                   _id;
-          Topology                             *_top;
+          //Topology                             *_top;
           XMP                                  *_master;
           JobXMP                               *_forker;
           XInteractor                           _actor;
@@ -586,7 +586,7 @@ public:
     public:
 
         JobXMP(int id,     Topology *top,        XMP *master)
-                : _id(id),          _top(top),       _master(master)
+                : _id(id),          /*_top(top),*/       _master(master)
                    { _actor = XInteractor(top,_master); };
 
        ~JobXMP() {};
@@ -604,8 +604,8 @@ public:
 
 
         void        ClearTodoTable() {
-            for (int i = 0; i < _xy_done.size(); ++i) {
-            for (int j = 0; j < _xy_done[i].size(); ++j) {
+            for (unsigned int i = 0; i < _xy_done.size(); ++i) {
+            for (unsigned int j = 0; j < _xy_done[i].size(); ++j) {
                     _xy_done[i][j] = false;
             }}
         }
@@ -707,8 +707,8 @@ public:
 
             while (true) {
 
-                for (int i = 0; i < _xy_done.size(); ++i) {
-                for (int j = i; j < _xy_done[i].size(); ++j) {
+                for (unsigned int i = 0; i < _xy_done.size(); ++i) {
+                for (unsigned int j = i; j < _xy_done[i].size(); ++j) {
                     if (!_xy_done[i][j]) {
                         todo = true;
                         if (_chunks_avail[i] && _chunks_avail[j]) {
@@ -1163,7 +1163,7 @@ void XMP::Collect_XML(string xml_file, Topology *top) {
 
 void XMP::Collect_JOB(string job_file, Topology *top) {
 
-    QMNBList &nblist = top->NBList();
+    //QMNBList &nblist = top->NBList();
 
     std::string line;
     std::ifstream intt;
@@ -1204,8 +1204,8 @@ void XMP::Collect_JOB(string job_file, Topology *top) {
                 energy_site_id = boost::lexical_cast<int>(split[10]);
             }
 
-            Segment *seg1   = top->getSegment(seg1Id);
-            Segment *seg2   = top->getSegment(seg2Id);
+            //Segment *seg1   = top->getSegment(seg1Id);
+            //Segment *seg2   = top->getSegment(seg2Id);
 
             _XJobs.push_back(new XJob(jobId,  tag,    job_type, energy_site_id,
                                       pairId, seg1Id, seg2Id,   seg1mps,
@@ -1367,11 +1367,11 @@ void XMP::Create_MPOLS(Topology *top) {
         assert(pols_n.size() == pols_h.size());
         assert(pols_n.size() == pols_e.size());
 
-        for (int i = 0; i < pols_n.size(); i++) {
+        for (unsigned int i = 0; i < pols_n.size(); i++) {
             pols_n[i]->setQs( pols_h[i]->getQs(+1), +1 );
             pols_n[i]->setPs( pols_h[i]->getPs(+1), +1 );
         }
-        for (int i = 0; i < pols_n.size(); ++i) {
+        for (unsigned int i = 0; i < pols_n.size(); ++i) {
             pols_n[i]->setQs(pols_e[i]->getQs(-1), -1 );
             pols_n[i]->setPs(pols_e[i]->getPs(-1), -1 );
         }
@@ -1574,7 +1574,7 @@ void XMP::Create_MPOLS(Topology *top) {
                 
                 vec CoMP = vec(0.,0.,0.);
                 double W = 0.0;
-                for (int i = 0; i < polesInFrag.size(); ++i) {
+                for (unsigned int i = 0; i < polesInFrag.size(); ++i) {
 
                     double weight = weightsInFrag[i];
                     
@@ -1591,7 +1591,7 @@ void XMP::Create_MPOLS(Topology *top) {
             }            
 
             // Create polar sites 
-            for (int i = 0; i < polesInFrag.size(); i++) {
+            for (unsigned int i = 0; i < polesInFrag.size(); i++) {
 
                 string name             = namesInFrag[i];
                 int poleId              = polesInFrag[i];
@@ -1641,7 +1641,7 @@ vector<PolarSite*> XMP::Map_MPols_To_Seg(vector<PolarSite*> &pols_n, Segment *se
     vector<PolarSite*> return_pols;
     return_pols.reserve(pols_n.size());
 
-    int segId                   = seg->getId();
+    //int segId                   = seg->getId();
     bool map2md                 = _map2md[seg->getName()];
 
     vector<Fragment*> ::iterator fit;
@@ -1838,7 +1838,7 @@ vector<PolarSite*> XMP::Map_MPols_To_Seg(vector<PolarSite*> &pols_n, Segment *se
 
             vec CoMP = vec(0.,0.,0.);
             double W = 0.0;
-            for (int i = 0; i < polesInFrag.size(); ++i) {
+            for (unsigned int i = 0; i < polesInFrag.size(); ++i) {
 
                 double weight = weightsInFrag[i];
 
@@ -1855,7 +1855,7 @@ vector<PolarSite*> XMP::Map_MPols_To_Seg(vector<PolarSite*> &pols_n, Segment *se
         }
 
         // Create polar sites
-        for (int i = 0; i < polesInFrag.size(); i++) {
+        for (unsigned int i = 0; i < polesInFrag.size(); i++) {
 
             string name             = namesInFrag[i];
             int poleId              = polesInFrag[i];
@@ -2005,7 +2005,7 @@ vector<PolarSite*> XMP::Parse_GDMA(string filename, int state) {
                     Q0_total += boost::lexical_cast<double>(split[0]);
                 }
 
-                for (int i = 0; i < split.size(); i++) {
+                for (unsigned int i = 0; i < split.size(); i++) {
 
                     double qXYZ = boost::lexical_cast<double>(split[i]);
 
@@ -2140,24 +2140,24 @@ bool XMP::EvaluateFrame(Topology *top) {
 
     _nextXJob = _XJobs.begin();
 
-    for (int id = 0; id < _nThreads; id++) {
+    for (unsigned int id = 0; id < _nThreads; id++) {
         JobXMP *newOp = new JobXMP(id, top, this);
         jobOps.push_back(newOp);
     }
 
-    for (int id = 0; id < _nThreads; id++) {
+    for (unsigned int id = 0; id < _nThreads; id++) {
         jobOps[id]->InitSlotData(top);
     }
 
-    for (int id = 0; id < _nThreads; id++) {
+    for (unsigned int id = 0; id < _nThreads; id++) {
         jobOps[id]->Start();
     }
 
-    for (int id = 0; id < _nThreads; id++) {
+    for (unsigned int id = 0; id < _nThreads; id++) {
         jobOps[id]->WaitDone();
     }
 
-    for (int id = 0; id < _nThreads; id++) {
+    for (unsigned int id = 0; id < _nThreads; id++) {
         delete jobOps[id];
     }
 
@@ -2225,7 +2225,7 @@ void XMP::JobXMP::Run(void) {
 
 void XMP::JobXMP::EvalJob(Topology *top, XJob *job) {
 
-    double int2eV = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
+    //double int2eV = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
 
     // ++++++++++++++++++++++++++ //
     // Adapt polar sites          //
@@ -2367,13 +2367,13 @@ void XMP::JobXMP::EvalJob(Topology *top, XJob *job) {
     // Compute state energy       //
     // ++++++++++++++++++++++++++ //
 
-    double  E_state  = 0.0;
+    //double  E_state  = 0.0;
     int     iter     = 0;
     int     state    = 0;
 
     if (_master->_induce) iter      = this->Induce(state, job);
-    if (_master->_induce) E_state   = this->Energy(state, job);
-    else                  E_state   = this->EnergyStatic(state, job);
+    //if (_master->_induce) E_state   = this->Energy(state, job);
+    //else                  E_state   = this->EnergyStatic(state, job);
 
     job->setIter(iter);
 

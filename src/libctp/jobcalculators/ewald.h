@@ -183,7 +183,7 @@ XJob Ewald<EwaldMethod>::ProcessInputString(Job *job, Topology *top,
     Tokenizer toker(input, " \t\n");
     toker.ToVector(split);
 
-    for (int i = 0; i < split.size(); ++i) {
+    for (unsigned int i = 0; i < split.size(); ++i) {
                 
         string id_seg_mps = split[i];
         vector<string> split_id_seg_mps;

@@ -82,7 +82,7 @@ void QMNBList::GenerateSuperExchange() {
         cout << endl << " ... ... Processing superexchange pairs of type " << (*itDA)->asString() << "\n" << flush;
         int _bridged_pairs = 0;
         int _bridged_and_direct_pairs = 0;
-        int bridged_molecules = 0;
+        //int bridged_molecules = 0;
 
         // vector of neighboring segments of the donor/acceptor type
         map< int, Segment*> _ns;
@@ -103,7 +103,7 @@ void QMNBList::GenerateSuperExchange() {
                     map< int, Segment*> _neighbors;
                     for (itp = _partners->begin(); itp != _partners->end(); itp++) {
                         Segment *nb = itp->first;
-                        QMPair *pair = itp->second;
+                        //QMPair *pair = itp->second;
                         // check if the neighbor is of a donor or acceptor type
                         if ((*itDA)->isOfDonorAcceptor(nb->getName())) _neighbors[ nb->getId() ] = nb;
                     } // end of the loop of all partners of a segment

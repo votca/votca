@@ -42,9 +42,9 @@ class AOGaussianPrimitive
 {
     friend class AOShell;
 public:
+    int power; // used in pseudopotenials only
     double decay;
     double contraction;
-    int power; // used in pseudopotenials only
     AOShell* aoshell;
 private:
     // private constructor, only a shell can create a primitive
@@ -119,10 +119,10 @@ private:
     // number of functions in shell
     int _numFunc;
     int _startIndex;
-    vec _pos;
     int _offset;
+    vec _pos;
      
-    AOBasis* _aobasis;
+    //AOBasis* _aobasis;
 
     // vector of pairs of decay constants and contraction coefficients
     vector< AOGaussianPrimitive* > _gaussians;
@@ -144,10 +144,10 @@ public:
               throw std::runtime_error( "Abort!");
               
           }
-           for ( int _i_orbital = 0; _i_orbital < v.size1(); _i_orbital++ ){
+           for ( unsigned int _i_orbital = 0; _i_orbital < v.size1(); _i_orbital++ ){
         
-                for ( int s = 1, d; s < order.size(); ++ s ) {
-                    for ( d = order[s]; d < s; d = order[d] ) ;
+                for ( unsigned int s = 1, d; s < order.size(); ++ s ) {
+                    for ( d = order[s]; d < s; d = order[d] ) //;
                           if ( d == s ) while ( d = order[d], d != s ) swap( v(_i_orbital,s), v(_i_orbital,d) );
                 }
            }
@@ -161,9 +161,9 @@ public:
               throw std::runtime_error( "Abort!");
           }
 
-          for ( int _i_orbital = 0; _i_orbital < v.size1(); _i_orbital++ ){
+          for ( unsigned int _i_orbital = 0; _i_orbital < v.size1(); _i_orbital++ ){
 
-               for ( int _i_basis = 0; _i_basis < v.size2(); _i_basis++ ){
+               for ( unsigned int _i_basis = 0; _i_basis < v.size2(); _i_basis++ ){
         
                    v(_i_orbital, _i_basis ) = multiplier[_i_basis] * v(_i_orbital, _i_basis );
                    
@@ -365,7 +365,7 @@ inline void AOBasis::getMultiplierVector( string& package, vector<int>& multipli
 inline void AOBasis::addMultiplierShell( string& package,  string& shell_type, vector<int>& multiplier ) {
     
     // current length of vector
-    int _cur_pos = multiplier.size() -1 ;
+    //int _cur_pos = multiplier.size() -1 ;
     
     // single type shells defined here
     if ( shell_type.length() == 1 ){
@@ -401,7 +401,7 @@ inline void AOBasis::addMultiplierShell( string& package,  string& shell_type, v
     } else {
         // for combined shells, iterate over all contributions
         //_nbf = 0;
-        for( int i = 0; i < shell_type.length(); ++i) {
+        for( unsigned int i = 0; i < shell_type.length(); ++i) {
            string local_shell =    string( shell_type, i, 1 );
            this->addMultiplierShell( package, local_shell, multiplier  );
         }
@@ -468,7 +468,7 @@ inline void AOBasis::addReorderShell( string& package,  string& shell_type, vect
     } else {
         // for combined shells, iterate over all contributions
         //_nbf = 0;
-        for( int i = 0; i < shell_type.length(); ++i) {
+        for( unsigned int i = 0; i < shell_type.length(); ++i) {
            string local_shell =    string( shell_type, i, 1 );
            this->addReorderShell( package, local_shell, neworder  );
         }
@@ -538,7 +538,7 @@ inline void AOBasis::AOBasisFill(BasisSet* bs , vector<Segment* > segments) {
     } else {
         // for combined shells, sum over all contributions
         _nbf = 0;
-        for( int i = 0; i < shell_type.length(); ++i) {
+        for( unsigned int i = 0; i < shell_type.length(); ++i) {
             string local_shell =    string( shell_type, i, 1 );
             _nbf += this->NumFuncShell( local_shell  );
         }
@@ -560,7 +560,7 @@ inline void AOBasis::AOBasisFill(BasisSet* bs , vector<Segment* > segments) {
     } else {
         // for combined shells, sum over all contributions
         _nbf = 0;
-        for( int i = 0; i < shell_type.length(); ++i) {
+        for( unsigned int i = 0; i < shell_type.length(); ++i) {
             string local_shell =    string( shell_type, i, 1 );
             _nbf += this->NumFuncShell_cartesian( local_shell  );
         }
@@ -585,7 +585,7 @@ inline void AOBasis::AOBasisFill(BasisSet* bs , vector<Segment* > segments) {
     } else {
         // for combined shells, go over all contributions and find minimal offset
         _nbf = 1000;
-        for(int i = 0; i < shell_type.length(); ++i) {
+        for(unsigned int i = 0; i < shell_type.length(); ++i) {
             string local_shell = string( shell_type, i, 1 );
             int _test = this->OffsetFuncShell( local_shell  );
             if ( _test < _nbf ) { _nbf = _test;} 
@@ -607,7 +607,7 @@ inline void AOBasis::AOBasisFill(BasisSet* bs , vector<Segment* > segments) {
     } else {
         // for combined shells, go over all contributions and find minimal offset
         _nbf = 1000;
-        for(int i = 0; i < shell_type.length(); ++i) {
+        for(unsigned int i = 0; i < shell_type.length(); ++i) {
             string local_shell = string( shell_type, i, 1 );
             int _test = this->OffsetFuncShell( local_shell  );
             if ( _test < _nbf ) { _nbf = _test;} 

@@ -323,7 +323,7 @@ void Rates::CalculateRate(Topology *top, QMPair *qmpair, int state) {
 
     double rate_symm12 = 0;
     double rate_symm21 = 0;
-    double measure = 0;
+    //double measure = 0;
     
     
     double reorg12  = seg1->getU_nC_nN(state)                 // 1->2
@@ -449,7 +449,7 @@ void Rates::CalculateRate(Topology *top, QMPair *qmpair, int state) {
         double characfreq12 = reorg12 /2 /_kondo/hbar_eV;
         double characfreq21 = reorg21 /2 /_kondo/hbar_eV;
         
-        complex<double> M_I = (0,1);
+        complex<double> M_I(0,1);
         
 
         rate12 = J2/pow(hbar_eV,2)/characfreq12

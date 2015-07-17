@@ -79,7 +79,7 @@ class QMMIter
 
 public:
 
-    QMMIter(int id) : _hasdRdQ(false), _hasQM(false), _hasMM(false), _id(id) { ; }
+    QMMIter(int id) : _hasdRdQ(false), _hasQM(false), _hasMM(false) /*,_id(id)*/ { ; }
    ~QMMIter() { ; }
 
    void ConvertPSitesToQMAtoms(vector< PolarSeg* > &, vector< QMAtom* > &);
@@ -106,11 +106,11 @@ public:
 
 private:
 
-    int    _id;
 
     bool   _hasdRdQ;
     bool   _hasQM;
     bool   _hasMM;
+    //int    _id;
 
     double _dR_RMS;
     double _dQ_RMS;

@@ -11,7 +11,7 @@ namespace votca { namespace ctp {
 PolarSeg::PolarSeg(int id, vector<APolarSite*> &psites) 
     : _id(id), _is_charged(true), _is_polarizable(true) {
     PolarFrag *pfrag = this->AddFragment("NN");
-    for (int i = 0; i < psites.size(); ++i) {
+    for (unsigned int i = 0; i < psites.size(); ++i) {
         push_back(psites[i]);
         pfrag->push_back(psites[i]);
     }
@@ -21,7 +21,7 @@ PolarSeg::PolarSeg(int id, vector<APolarSite*> &psites)
 
 PolarSeg::PolarSeg(PolarSeg *templ, bool do_depolarize) {
     // NOTE Polar neighbours _nbs are not copied !
-    for (int i = 0; i < templ->_pfrags.size(); ++i) {
+    for (unsigned int i = 0; i < templ->_pfrags.size(); ++i) {
         PolarFrag *ref_frag = templ->_pfrags[i];
         PolarFrag *new_frag = this->AddFragment(ref_frag->getName());
         for (PolarFrag::iterator pit = ref_frag->begin();
@@ -72,7 +72,7 @@ PolarNb *PolarSeg::AddNewPolarNb(PolarSeg *pseg) {
 
 void PolarSeg::CalcPos() {    
     _pos = vec(0,0,0);    
-    for (int i = 0; i < this->size(); ++i) {        
+    for (unsigned int i = 0; i < this->size(); ++i) {        
         _pos += (*this)[i]->getPos();        
     }
     if (this->size() > 0)
@@ -82,7 +82,7 @@ void PolarSeg::CalcPos() {
 
 double PolarSeg::CalcTotQ() {
     double Q = 0.0;
-    for (int i = 0; i < this->size(); ++i) {
+    for (unsigned int i = 0; i < this->size(); ++i) {
         Q += (*this)[i]->getQ00();
     }
     return Q;
@@ -91,7 +91,7 @@ double PolarSeg::CalcTotQ() {
 
 vec PolarSeg::CalcTotD() {
     vec D = vec(0,0,0);
-    for (int i = 0; i < this->size(); ++i) {
+    for (unsigned int i = 0; i < this->size(); ++i) {
         if ((*this)[i]->getRank() > 0)
             D += (*this)[i]->getQ1();
         D += (*this)[i]->getQ00()* ((*this)[i]->getPos()-this->getPos());
@@ -101,7 +101,7 @@ vec PolarSeg::CalcTotD() {
 
 
 void PolarSeg::Translate(const vec &shift) {    
-    for (int i = 0; i < size(); ++i) {
+    for (unsigned int i = 0; i < size(); ++i) {
         (*this)[i]->Translate(shift);
     }
     _pos += shift;
@@ -110,7 +110,7 @@ void PolarSeg::Translate(const vec &shift) {
 
 void PolarSeg::CalcIsCharged() {
     _is_charged = false;
-    for (int i = 0; i < size(); ++i) {
+    for (unsigned int i = 0; i < size(); ++i) {
         if ((*this)[i]->IsCharged()) _is_charged = true;
     }
     return;
@@ -119,7 +119,7 @@ void PolarSeg::CalcIsCharged() {
 
 void PolarSeg::CalcIsPolarizable() {
     _is_polarizable = false;
-    for (int i = 0; i < size(); ++i) {
+    for (unsigned int i = 0; i < size(); ++i) {
         if ((*this)[i]->IsPolarizable()) _is_polarizable = true;
     }
     return;

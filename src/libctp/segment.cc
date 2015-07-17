@@ -233,7 +233,7 @@ void Segment::calcPos() {
     vec pos = vec(0,0,0);
     double totWeight = 0.0;
 
-    for (int i = 0; i< _atoms.size(); i++) {
+    for (unsigned int i = 0; i< _atoms.size(); i++) {
         pos += _atoms[i]->getPos() * _atoms[i]->getWeight();
         totWeight += _atoms[i]->getWeight();
     }

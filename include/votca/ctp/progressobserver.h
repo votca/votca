@@ -52,16 +52,16 @@ public:
    
 private:    
     
-    JobItCnt _metajit;
+    string _lockFile;
+    string _progFile;
+    int _cacheSize;
     JobContainer _jobs;
     
-    JobItVec _nextjit;
     vector<pJob> _jobsToProc;
     vector<pJob> _jobsToSync;
     
-    int _cacheSize;
-    string _progFile;
-    string _lockFile;
+    JobItVec _nextjit;
+    JobItCnt _metajit;
     Mutex _lockThread;
     boost::interprocess::file_lock *_flock;
     

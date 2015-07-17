@@ -595,7 +595,7 @@ bool StateSaverSQLite::NextFrame() {
     bool hasNextFrame = false;
     _current_frame++;
 
-    if(_current_frame < _frames.size()) {
+    if(_current_frame < (int)_frames.size()) {
         this->ReadFrame();
         _was_read=true;
         hasNextFrame = true;
@@ -672,7 +672,8 @@ void StateSaverSQLite::ReadMolecules(int topId) {
                                   "WHERE top = ?;");
     stmt->Bind(1, topId);
     while (stmt->Step() != SQLITE_DONE) {
-        Molecule *mol = _qmtop->AddMolecule(stmt->Column<string>(0));
+        //Molecule *mol = 
+	(void) _qmtop->AddMolecule(stmt->Column<string>(0));
     }
     delete stmt;
     stmt = NULL;

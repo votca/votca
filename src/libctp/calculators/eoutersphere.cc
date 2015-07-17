@@ -251,7 +251,7 @@ void EOutersphere::EStatify(Topology *top, Property *options) {
             vector< PolarSite* > polesNeutral = map_seg_polarSites[segName];
 
             assert(polesAnion.size() == polesNeutral.size());
-            for (int i = 0; i < polesNeutral.size(); i++) {
+            for (unsigned int i = 0; i < polesNeutral.size(); i++) {
 
                 polesNeutral[i]->setQs( polesAnion[i]->getQs(state), state );
                 polesNeutral[i]->setPs( polesAnion[i]->getPs(state), state );
@@ -277,7 +277,7 @@ void EOutersphere::EStatify(Topology *top, Property *options) {
             vector< PolarSite* > polesNeutral = map_seg_polarSites[segName];
 
             assert(polesCation.size() == polesNeutral.size());
-            for (int i = 0; i < polesNeutral.size(); i++) {
+            for (unsigned int i = 0; i < polesNeutral.size(); i++) {
 
                 polesNeutral[i]->setQs( polesCation[i]->getQs(state), state );
                 polesNeutral[i]->setPs( polesCation[i]->getPs(state), state );
@@ -423,7 +423,7 @@ vector<PolarSite*> EOutersphere::ParseGdmaFile(string filename, int state) {
                     Q0_total += boost::lexical_cast<double>(split[0]);
                 }
 
-                for (int i = 0; i < split.size(); i++) {
+                for (unsigned int i = 0; i < split.size(); i++) {
 
                     double qXYZ = boost::lexical_cast<double>(split[i]);
 
@@ -521,7 +521,7 @@ void EOutersphere::DistributeMpoles(Topology *top) {
             }
 
 
-            for (int i = 0; i < polesInFrag.size(); i++) {
+            for (unsigned int i = 0; i < polesInFrag.size(); i++) {
 
                 string name = namesInFrag[i];
                 int poleId = polesInFrag[i];
@@ -613,24 +613,24 @@ bool EOutersphere::EvaluateFrame(Topology *top) {
     //for ( ; (*_nextPair)->getId() != this->_firstSeg &&
     //          _nextSite < top->Segments().end(); ++_nextSite) { ; }
 
-    for (int id = 0; id < _nThreads; id++) {
+    for (unsigned int id = 0; id < _nThreads; id++) {
         PairOpOutersphere *newOp = new PairOpOutersphere(id, top, this);
         pairOps.push_back(newOp);
     }
 
-    for (int id = 0; id < _nThreads; id++) {
+    for (unsigned int id = 0; id < _nThreads; id++) {
         pairOps[id]->InitSlotData(top);
     }
 
-    for (int id = 0; id < _nThreads; id++) {
+    for (unsigned int id = 0; id < _nThreads; id++) {
         pairOps[id]->Start();
     }
 
-    for (int id = 0; id < _nThreads; id++) {
+    for (unsigned int id = 0; id < _nThreads; id++) {
         pairOps[id]->WaitDone();
     }
 
-    for (int id = 0; id < _nThreads; id++) {
+    for (unsigned int id = 0; id < _nThreads; id++) {
         delete pairOps[id];
     }
 
@@ -879,22 +879,22 @@ void EOutersphere::ConstLambda(Topology *top) {
 
 void EOutersphere::SpheresLambda(Topology *top) {
     
-    double e = 1.602176487e-19;
-    double EPS0 = 8.85418782e-12;
-    double NM = 1e-09;    
+    //double e = 1.602176487e-19;
+    //double EPS0 = 8.85418782e-12;
+    //double NM = 1e-09;    
     
     QMNBList ::iterator pit;
     for (pit = top->NBList().begin(); pit != top->NBList().end(); pit++) {
-        QMPair *pair = *pit;
+        //QMPair *pair = *pit;
 
         // TODO extract radii from input
         throw std::runtime_error(" EOutersphere -> Need to read in radii");
-        double R1 = 1;
-        double R2 = 2;
-        double lambda = _pekarFactor * e / (4.*M_PI*EPS0) *
+        //double R1 = 1;
+        //double R2 = 2;
+        /*double lambda = _pekarFactor * e / (4.*M_PI*EPS0) *
                                      (  1. / ( 2.*R1*NM )
                                       + 1. / ( 2.*R2*NM )
-                                      - 1. / ( pair->Dist()*NM ));
+                                      - 1. / ( pair->Dist()*NM ));*/
         assert (false); // TODO e, h calc. // pair->setLambdaO(lambda);
     }
 }

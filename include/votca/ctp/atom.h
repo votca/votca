@@ -56,25 +56,36 @@ public:
          bool hasQMPart,        int qm_atom_id,
          vec qmPos,             string element,
          double weight)
-       : _mol(owner),            
-         _resname(residue_name), _resnr(resnr),
-         _name(md_atom_name),    _id(md_atom_id),
-         _hasQM(hasQMPart),      _qmId(qm_atom_id),
-         _weight(weight),        _bPos(false),
-         _qmPos(qmPos),          _element(element)  { }
+       : _id(md_atom_id),
+         _name(md_atom_name),    
+	 _mol(owner),            
+	 _resnr(resnr),
+         _resname(residue_name),
+         _weight(weight),        
+	 _bPos(false),
+         _hasQM(hasQMPart),      
+	 _qmId(qm_atom_id),
+         _qmPos(qmPos),          
+	 _element(element)  { }
     
     Atom(int atom_id,   string atom_name)
        : _id(atom_id),  _name(atom_name),
          _hasQM(false), _qmId(-1) { }
 
     Atom(Atom *stencil)
-       : _id(stencil->getId()),              _top(NULL),
-         _element(stencil->getElement()),    _hasQM(stencil->HasQMPart()),
-         _weight(stencil->getWeight()),      _qmId(stencil->getQMId()),
-         _name(stencil->getName()+"_ghost"), _mol(NULL), 
-         _qmPos(stencil->getQMPos()),        _pos(stencil->getPos()),
-         _bPos(true),                        _resnr(stencil->getResnr()),
-         _resname(stencil->getResname())       { }
+       : _id(stencil->getId()),
+         _name(stencil->getName()+"_ghost"),
+	 _top(NULL),
+	 _mol(NULL), 
+	 _resnr(stencil->getResnr()),
+         _resname(stencil->getResname()),
+         _weight(stencil->getWeight()),
+	 _pos(stencil->getPos()),
+         _bPos(true),
+	 _hasQM(stencil->HasQMPart()),
+	 _qmId(stencil->getQMId()),
+         _qmPos(stencil->getQMPos()),
+         _element(stencil->getElement()) {}
 
     Atom() { };
    ~Atom() { _Q.clear(); }

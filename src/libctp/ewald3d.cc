@@ -82,7 +82,7 @@ EWD::triple<> Ewald3D3D::ConvergeReciprocalSpaceSum() {
     // K=K TERM
     LOG(logDEBUG,*_log) << flush;
     double EKK_fgC_bgP = 0.0;    
-    int N_EKK_memory = int(0.5*(_NA_max+_NB_max)+0.5);
+    unsigned int N_EKK_memory = (unsigned int)(0.5*(_NA_max+_NB_max)+0.5);
     int N_K_proc = 0;
     int N_shells_proc = 0;
     vector< double > dEKKs;
@@ -135,11 +135,11 @@ EWD::triple<> Ewald3D3D::ConvergeReciprocalSpaceSum() {
 
             LOG(logDEBUG,*_log)
                 << (format("    Re(dE) = %1$+1.7f")
-                % (re_dE/_LxLyLz*_actor.int2eV));
+                % (re_dE/_LxLyLz*int2eV));
 
             LOG(logDEBUG,*_log)
                 << (format("    Re(E) = %1$+1.7f Im(E) = %2$+1.7f")
-                % (re_E/_LxLyLz*_actor.int2eV) % (im_E/_LxLyLz*_actor.int2eV));        
+                % (re_E/_LxLyLz*int2eV) % (im_E/_LxLyLz*int2eV));        
 
             // CONVERGED?
             double dEKK = sqrt(re_dE*re_dE + im_dE*im_dE);
@@ -150,7 +150,7 @@ EWD::triple<> Ewald3D3D::ConvergeReciprocalSpaceSum() {
             else {
                 dEKKs[N_K_proc % N_EKK_memory] = dEKK;
             }
-            for (int i = 0; i < dEKKs.size(); ++i) {
+            for (unsigned int i = 0; i < dEKKs.size(); ++i) {
                 dEKK_rms += dEKKs[i]*dEKKs[i];
             }
             dEKK_rms /= dEKKs.size();
@@ -158,9 +158,9 @@ EWD::triple<> Ewald3D3D::ConvergeReciprocalSpaceSum() {
 
             LOG(logDEBUG,*_log)
                 << (format("   RMS(%2$d) = %1$+1.7f") 
-                % (dEKK_rms/_LxLyLz*_actor.int2eV) % N_EKK_memory) << flush;
+                % (dEKK_rms/_LxLyLz*int2eV) % N_EKK_memory) << flush;
 
-            if (dEKK_rms/_LxLyLz*_actor.int2eV <= _crit_dE && N_K_proc > 2 && N_shells_proc > 0) {
+            if (dEKK_rms/_LxLyLz*int2eV <= _crit_dE && N_K_proc > 2 && N_shells_proc > 0) {
                 _converged_K = true;
                 LOG(logDEBUG,*_log)
                     << (format(":::: Converged to precision as of |K| = %1$+1.3f 1/nm") 

@@ -14,7 +14,7 @@ class PolarBackground
 {
 public:
 
-    PolarBackground() : _top(NULL), _ptop(NULL), _log(NULL), _n_threads(1) {};
+    PolarBackground() : /*_top(NULL), _ptop(NULL),*/ _log(NULL), _n_threads(1) {};
     PolarBackground(Topology *, PolarTop *, Property *, Logger *);
    ~PolarBackground();
    
@@ -148,8 +148,6 @@ public:
 private:
 
     EwdInteractor _ewdactor;
-    Logger *_log;
-    int _n_threads;
 
     // PERIODIC BOUNDARY
     Topology *_top;
@@ -157,9 +155,11 @@ private:
 
     // POLAR SEGMENTS
     // Part I - Ewald
-    PolarTop *_ptop;
+    //PolarTop *_ptop;
     vector< PolarSeg* > _bg_P;      // Period. density = _bg_N v _fg_N
 
+    Logger *_log;
+    int _n_threads;
     // CONVERGENCE
     // Part I - Ewald
     double _alpha;                  // _a = 1/(sqrt(2)*sigma)
@@ -168,9 +168,9 @@ private:
     double _K_co;                   // k-space c/o
     double _R_co;                   // r-space c/o
     double _crit_dE;                // Energy convergence criterion [eV]
-    bool   _converged_R;            // Did R-space sum converge?
-    bool   _converged_K;            // Did K-space sum converge?
-    bool   _field_converged_R;
+   // bool   _converged_R;            // Did R-space sum converge?
+    //bool   _converged_K;            // Did K-space sum converge?
+    //bool   _field_converged_R;
     bool   _field_converged_K;
     // Part II - Thole
     double _polar_aDamp;

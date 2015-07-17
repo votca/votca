@@ -303,8 +303,8 @@ void IZindo::CTP2MOO2CTP(QMPair *pair, PairOperator *opThread, int state) {
     // Convert: Counting from 1 => Counting from 0
     vector<int> torbs1_from_zero;
     vector<int> torbs2_from_zero;
-    for (int i = 0; i < torbs1.size(); ++i) torbs1_from_zero.push_back(torbs1[i]-1);
-    for (int i = 0; i < torbs2.size(); ++i) torbs2_from_zero.push_back(torbs2[i]-1);
+    for (unsigned int i = 0; i < torbs1.size(); ++i) torbs1_from_zero.push_back(torbs1[i]-1);
+    for (unsigned int i = 0; i < torbs2.size(); ++i) torbs2_from_zero.push_back(torbs2[i]-1);
     
     orb1->strip_orbitals(torbs1_from_zero);
     orb2->strip_orbitals(torbs2_from_zero);
@@ -355,7 +355,7 @@ void IZindo::CTP2MOO2CTP(QMPair *pair, PairOperator *opThread, int state) {
                                  morb1);
 
         // Rotate orbitals
-        for (int i = 0; i < torbNrs1.size(); i++) {
+        for (unsigned int i = 0; i < torbNrs1.size(); i++) {
             orb1->rotate_someatoms(atmIdcs, &rotQM2MD,
                                     morb1->getorb(i), i);
         }
@@ -392,7 +392,7 @@ void IZindo::CTP2MOO2CTP(QMPair *pair, PairOperator *opThread, int state) {
                                  CoMD*NM2Bohr, CoQM*NM2Bohr,
                                  morb2);
         // Rotate orbitals
-        for (int i = 0; i < torbNrs2.size(); i++) {
+        for (unsigned int i = 0; i < torbNrs2.size(); i++) {
             orb2->rotate_someatoms(atmIdcs, &rotQM2MD,
                                     morb2->getorb(i), i);
         }
@@ -409,8 +409,8 @@ void IZindo::CTP2MOO2CTP(QMPair *pair, PairOperator *opThread, int state) {
     vector<double> Js;
     std::pair< int, int > torb2torb;
 
-    for (int i = 0; i < torbNrs1.size(); i++) {
-    for (int j = 0; j < torbNrs2.size(); j++) {
+    for (unsigned int i = 0; i < torbNrs1.size(); i++) {
+    for (unsigned int j = 0; j < torbNrs2.size(); j++) {
 
         torb2torb.first  = torbNrs1[i];
         torb2torb.second = torbNrs2[j];
@@ -482,7 +482,7 @@ void IZindo::CalculateJ(QMPair *pair) {
                                  _morb1);
 
         // Rotate orbitals
-        for (int i = 0; i < this->_torbNrs1.size(); i++) {
+        for (unsigned int i = 0; i < this->_torbNrs1.size(); i++) {
             _orb1->rotate_someatoms(atmIdcs, &rotQM2MD,
                                     _morb1->getorb(i), i);
         }
@@ -524,7 +524,7 @@ void IZindo::CalculateJ(QMPair *pair) {
                                  _morb2);
 
         // Rotate orbitals
-        for (int i = 0; i < this->_torbNrs2.size(); i++) {
+        for (unsigned int i = 0; i < this->_torbNrs2.size(); i++) {
             _orb2->rotate_someatoms(atmIdcs, &rotQM2MD,
                                     _morb2->getorb(i), i);
         }
@@ -538,8 +538,8 @@ void IZindo::CalculateJ(QMPair *pair) {
     vector<double> Js;
     std::pair< int, int > torb2torb;
 
-    for (int i = 0; i < _torbNrs1.size(); i++) {
-    for (int j = 0; j < _torbNrs2.size(); j++) {
+    for (unsigned int i = 0; i < _torbNrs1.size(); i++) {
+    for (unsigned int j = 0; j < _torbNrs2.size(); j++) {
 
         torb2torb.first  = _torbNrs1[i];
         torb2torb.second = _torbNrs2[i];

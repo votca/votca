@@ -8,7 +8,7 @@ namespace EWD {
 using boost::format;
     
 PolarBackground::PolarBackground(Topology *top, PolarTop *ptop, Property *opt, 
-    Logger *log) : _top(top), _ptop(ptop), _log(log), 
+    Logger *log) : _top(top), /*_ptop(ptop),*/ _log(log), 
     _n_threads(1) {
     
     // EVALUATE OPTIONS
@@ -158,8 +158,8 @@ void PolarBackground::Polarize(int n_threads = 1) {
     LOG(logDEBUG,*_log) << "  o kx(max), ky(max), kz(max): " << _NA_max << ", " << _NB_max << ", " << _NC_max << flush;    
     
     TLogLevel dbg = logDEBUG;
-    TLogLevel inf = logINFO;
-    TLogLevel err = logERROR;
+    //TLogLevel inf = logINFO;
+    //TLogLevel err = logERROR;
     Logger &log = *_log;
     _n_threads = n_threads;
     
@@ -363,7 +363,7 @@ void PolarBackground::Polarize(int n_threads = 1) {
         ofs.open("indu_state", ofstream::out);
         for (vector<PolarSeg*>::iterator sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
             PolarSeg *pseg = *sit1;
-            Segment *seg = _top->getSegment(pseg->getId());
+            //Segment *seg = _top->getSegment(pseg->getId());
             for (PolarSeg::iterator pit1 = pseg->begin(); pit1 < pseg->end(); ++pit1) {
                 vec fp = (*pit1)->getFieldP();
                 vec fu = (*pit1)->getFieldU();
@@ -411,9 +411,10 @@ void PolarBackground::RThread::FP_FieldCalc() {
     
     // CLEAR POLAR NEIGHBOR-LIST BEFORE SET-UP
     if (_do_setup_nbs) {
-        if (_verbose) 
+        if (_verbose){ 
             LOG(logDEBUG,*(_master->_log)) 
                 << "   - Clearing polar nb-list" << endl;
+	}
         for (sit1 = _part_bg_P.begin(); sit1 < _part_bg_P.end(); ++sit1) {
             (*sit1)->ClearPolarNbs();
         }
@@ -424,10 +425,11 @@ void PolarBackground::RThread::FP_FieldCalc() {
     
     for (sit1 = _part_bg_P.begin(); sit1 < _part_bg_P.end(); ++sit1) {
         PolarSeg *pseg1 = *sit1;
-        if (_verbose)
+        if (_verbose){
             LOG(logDEBUG,*(_master->_log))
                 << "\rMST DBG     - Progress " << pseg1->getId() 
                 << "/" << _full_bg_P.size() << flush;
+	}
         
         // GENERATE NEIGHBOUR SHELLS
         double dR_shell = 0.5;
@@ -435,8 +437,8 @@ void PolarBackground::RThread::FP_FieldCalc() {
         int N_shells = int(R_co_max/dR_shell)+1;
         vector< vector<PolarNb*> > shelled_nbs;
         shelled_nbs.resize(N_shells);
-        int allocated_count = 0;
-        int deleted_count = 0;
+        unsigned int allocated_count = 0;
+        unsigned int deleted_count = 0;
         
         for (sit2 = _full_bg_P.begin(); sit2 < _full_bg_P.end(); ++sit2) {
             PolarSeg *pseg2 = *sit2;
@@ -538,9 +540,10 @@ void PolarBackground::RThread::FU_FieldCalc() {
     if (_do_setup_nbs) {
         
         // CLEAR POLAR NEIGHBOR-LIST BEFORE SET-UP
-        if (_verbose) 
+        if (_verbose){ 
             LOG(logDEBUG,*(_master->_log)) 
                 << "   - Clearing polar nb-list" << endl;
+	}
         for (sit1 = _part_bg_P.begin(); sit1 < _part_bg_P.end(); ++sit1) {
             (*sit1)->ClearPolarNbs();
         }
@@ -550,10 +553,11 @@ void PolarBackground::RThread::FU_FieldCalc() {
 
         for (sit1 = _part_bg_P.begin(); sit1 < _part_bg_P.end(); ++sit1) {
             PolarSeg *pseg1 = *sit1;
-            if (_verbose)
+            if (_verbose){
                 LOG(logDEBUG,*(_master->_log))
                     << "\rMST DBG     - Progress " << pseg1->getId() 
                     << "/" << _full_bg_P.size() << flush;
+	    }
 
             // GENERATE NEIGHBOUR SHELLS
             double dR_shell = 0.5;
@@ -561,8 +565,8 @@ void PolarBackground::RThread::FU_FieldCalc() {
             int N_shells = int(R_co_max/dR_shell)+1;
             vector< vector<PolarNb*> > shelled_nbs;
             shelled_nbs.resize(N_shells);
-            int allocated_count = 0;
-            int deleted_count = 0;
+            unsigned int allocated_count = 0;
+            unsigned int deleted_count = 0;
 
             for (sit2 = _full_bg_P.begin(); sit2 < _full_bg_P.end(); ++sit2) {
                 PolarSeg *pseg2 = *sit2;
@@ -656,10 +660,11 @@ void PolarBackground::RThread::FU_FieldCalc() {
         int rms_count = 0;
         for (sit1 = _part_bg_P.begin(); sit1 < _part_bg_P.end(); ++sit1) {
             PolarSeg *pseg1 = *sit1;
-            if (_verbose)
+            if (_verbose){
                 LOG(logDEBUG,*(_master->_log))
                     << "\rMST DBG     - Progress " << pseg1->getId() 
                     << "/" << _full_bg_P.size() << flush;
+	    }
             for (nit = pseg1->PolarNbs().begin(); nit < pseg1->PolarNbs().end(); ++nit) {
                 PolarSeg *pseg2 = (*nit)->getNb();
                 if (!pseg2->IsPolarizable()) continue;
@@ -748,10 +753,11 @@ void PolarBackground::KThread::SP_SFactorCalc() {
         EWD::cmplx sfactor
             = _ewdactor.PStructureAmplitude(_full_bg_P, (*kit)->getK());
         (*kit)->setStructureFactor(sfactor);
-        if (_verbose)
+        if (_verbose){
             LOG(logDEBUG,*(_master->_log))
                 << "\rMST DBG     - " << _current_mode << "(SP) Progress " << kvec_count
                 << "/" << _part_kvecs.size() << flush;
+	}
     }
     
     return;
@@ -775,10 +781,11 @@ void PolarBackground::KThread::FP_KFieldCalc() {
         EWD::cmplx f_rms = _ewdactor.FP12_At_ByS2(k, _part_bg_P, S, rV);
         _rms_sum_re += f_rms._re;
         _sum_im += f_rms._im;
-        if (_verbose)
+        if (_verbose){
             LOG(logDEBUG,*(_master->_log))
                 << "\rMST DBG     - " << _current_mode << "(FP) Progress " << kvec_count
                 << "/" << _full_kvecs.size() << flush;
+	}
     }
     
     return;
@@ -795,10 +802,11 @@ void PolarBackground::KThread::SU_SFactorCalc() {
         EWD::cmplx sfactor
             = _ewdactor.UStructureAmplitude(_full_bg_P, (*kit)->getK());
         (*kit)->setStructureFactor(sfactor);
-        if (_verbose)
+        if (_verbose){
             LOG(logDEBUG,*(_master->_log))
                 << "\rMST DBG     - " << _current_mode << "(SU) Progress " << kvec_count
                 << "/" << _part_kvecs.size() << flush;
+	}
     }
     
     return;
@@ -822,10 +830,11 @@ void PolarBackground::KThread::FU_KFieldCalc() {
         EWD::cmplx f_rms = _ewdactor.FU12_At_ByS2(k, _part_bg_P, S, rV);
         _rms_sum_re += f_rms._re;
         _sum_im += f_rms._im;
-        if (_verbose)
+        if (_verbose){
             LOG(logDEBUG,*(_master->_log))
                 << "\rMST DBG     - " << _current_mode << "(FU) Progress " << kvec_count
                 << "/" << _full_kvecs.size() << flush;
+	}
     }
     
     return;
@@ -890,12 +899,13 @@ void PolarBackground::FX_ReciprocalSpace(string mode1, string mode2,
     }
     double shell_rms = sqrt(rms_sum_re/_kvecs_2_0.size())*EWD::int2V_m;
     double e_measure = shell_rms*1e-10*_kvecs_2_0.size();    
-    if (_kvecs_2_0.size() > 0) LOG(logDEBUG,*_log)
+    if (_kvecs_2_0.size() > 0){ LOG(logDEBUG,*_log)
          << (format("    - M = %1$04d   G = %2$+1.3e   dF(rms) = %3$+1.3e V/m   [1eA => %4$+1.3e eV]")
          % _kvecs_2_0.size()
          % 0.0
          % shell_rms
          % e_measure).str() << flush;
+    }
     // Clear k-vector containers
     threadforce.Reset<string>(mode1);
     threadforce.Reset<string>(mode2);
@@ -1028,10 +1038,11 @@ void PolarBackground::FX_ReciprocalSpace(string mode1, string mode2,
     
     _field_converged_K = converged10 && converged00;
     
-    if (_field_converged_K)
+    if (_field_converged_K){
         LOG(logDEBUG,*_log)
             << (format("  o Converged to precision, {2-1}, {1-2}, {0-3}."))
             << flush;
+    }
     
     return;
 }

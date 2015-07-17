@@ -92,7 +92,7 @@ void Molecule::ReadXYZ(string filename)
 {
     ifstream in;
     double x,y,z;
-    int natoms, id;
+    //int natoms, id;
     string label, type;
     vec pos;
     
@@ -101,7 +101,7 @@ void Molecule::ReadXYZ(string filename)
     if ( !in ) throw runtime_error( string("Error reading coordinates from: ") 
                                         + filename); 
     
-    id = 1;
+    //id = 1;
     while ( in.good() ) { // keep reading until end-of-file
         in >> type;
         in >> x;

@@ -310,8 +310,8 @@ void IImport::FromIDFT(Topology *top, string &_idft_jobs_file) {
                     
                     for (itOverlap = pOverlap.begin(); itOverlap != pOverlap.end(); ++itOverlap) {
 
-                        double energyA = (*itOverlap)->getAttribute<double>("eA");
-                        double energyB = (*itOverlap)->getAttribute<double>("eB");
+                        //double energyA = (*itOverlap)->getAttribute<double>("eA");
+                        //double energyB = (*itOverlap)->getAttribute<double>("eB");
                         double overlapAB = (*itOverlap)->getAttribute<double>("jAB");
                         int orbA = (*itOverlap)->getAttribute<double>("orbA");
                         int orbB = (*itOverlap)->getAttribute<double>("orbB");
@@ -432,19 +432,19 @@ void IImport::FromIDFTWithSuperExchange(Topology *top, string &_idft_jobs_file) 
             list<Property*> pOverlap = pair_property->Select("overlap");
             
             // this is to select HOMO_A and HOMO_B 
-            double overlapAB;
+            //double overlapAB;
             int orbA;
             int orbB;
-            double energyA;
-            double energyB;
+            //double energyA;
+            //double energyB;
             
             for (list<Property*> ::iterator itOverlap = pOverlap.begin(); itOverlap != pOverlap.end(); ++itOverlap) {
                 if ( orbA == homoA && orbB == homoB ) {  
-                    overlapAB = (*itOverlap)->getAttribute<double>("jAB");
+                    //overlapAB = (*itOverlap)->getAttribute<double>("jAB");
                     orbA = (*itOverlap)->getAttribute<double>("orbA");
                     orbB = (*itOverlap)->getAttribute<double>("orbB");
-                    energyA = (*itOverlap)->getAttribute<double>("eA");
-                    energyB = (*itOverlap)->getAttribute<double>("eB");
+                    //energyA = (*itOverlap)->getAttribute<double>("eA");
+                    //energyB = (*itOverlap)->getAttribute<double>("eB");
                 }
             }
             
@@ -467,15 +467,15 @@ void IImport::FromIDFTWithSuperExchange(Topology *top, string &_idft_jobs_file) 
                 list<Property*> pOverlapB = pBridge_B->Select("overlap");
 
                 // IDs of the Donor and Acceptor
-                int IdA = segmentA->getId();
-                int IdB = segmentB->getId();
+                //int IdA = segmentA->getId();
+                //int IdB = segmentB->getId();
 
                 // IDs stored in the file
                 int id1A = pBridge_A->getAttribute<int>("idA");
-                int id2A = pBridge_A->getAttribute<int>("idB");
+                //int id2A = pBridge_A->getAttribute<int>("idB");
 
                 int id1B = pBridge_B->getAttribute<int>("idA");
-                int id2B = pBridge_B->getAttribute<int>("idB");
+                //int id2B = pBridge_B->getAttribute<int>("idB");
 
                 // suffix for the donor and acceptor
                 string suffixA = ( id1A == IDBridge ) ? "B" : "A"; // use "A" as a bridge 

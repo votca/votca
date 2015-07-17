@@ -96,9 +96,10 @@ void ProgObserver<JobContainer,pJob,rJob>::ReportJobDone(pJob job, rJob *res, QM
 template<typename JobContainer, typename pJob, typename rJob>
 string ProgObserver<JobContainer,pJob,rJob>::GenerateHost(QMThread *thread) {
     char host[128];
-    int h = gethostname(host, sizeof host);
+    //int h = 
+    (void)gethostname(host, sizeof host);
     pid_t pid = getpid();
-    int tid = thread->getId(); // not used
+    //int tid = thread->getId(); // not used
     return (format("%1$s:%2$d") % host % pid).str();   
 }
 
@@ -149,7 +150,7 @@ void ProgObserver<JobContainer,pJob,rJob>::SyncWithProgFile(QMThread *thread) {
         << "Assign jobs from stack" << flush;
     _jobsToProc.clear();
     
-    int cacheSize = _cacheSize;
+    unsigned int cacheSize = _cacheSize;
     while (_jobsToProc.size() < cacheSize) {
         if (_metajit == _jobs.end() || _startJobsCount == _maxJobs) break;
         
@@ -226,7 +227,7 @@ void ProgObserver<JobContainer,pJob,rJob>
     toker.ToVector(split);
     
     string category = "";
-    for (int i = 0; i < split.size(); ++i) {
+    for (unsigned int i = 0; i < split.size(); ++i) {
         
         if (split[i] == "host" || split[i] == "stat") category = split[i];
         
