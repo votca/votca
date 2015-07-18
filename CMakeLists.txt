@@ -44,7 +44,7 @@ if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
   find_package(Git)
 endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 
-find_package(Boost 1.39.0 REQUIRED COMPONENTS program_options serialization filesystem timer)
+find_package(Boost 1.48.0 REQUIRED COMPONENTS program_options serialization filesystem timer)
 include_directories(${Boost_INCLUDE_DIRS})
 set (BOOST_LIBRARIES ${Boost_THREAD_LIBRARY} ${Boost_PROGRAM_OPTIONS_LIBRARY} ${Boost_SERIALIZATION_LIBRARY} ${Boost_FILESYSTEM_LIBRARY} ${Boost_TIMER_LIBRARY})
 set (BOOST_CFLAGS_PKG "-I${Boost_INCLUDE_DIRS}")

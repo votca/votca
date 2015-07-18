@@ -103,13 +103,13 @@ void IDFT::ParseOptionsXML( votca::tools::Property *opt ) {
 
 void IDFT::LoadOrbitals(string file_name, Orbitals* orbitals, Logger *log ) {
 
-    LOG(logDEBUG, *log) << "Loading " << file_name << flush; 
+    LOG_SAVE(logDEBUG, *log) << "Loading " << file_name << flush; 
     std::ifstream ifs( file_name.c_str() );
     boost::archive::binary_iarchive ia( ifs );
     try {
         ia >> *orbitals;
     } catch(std::exception &err) {
-        LOG(logDEBUG, *log) << "Could not load orbitals from " << file_name << flush; 
+        LOG_SAVE(logDEBUG, *log) << "Could not load orbitals from " << file_name << flush; 
         std::cerr << "An error occurred:\n" << err.what() << endl;
     } 
     ifs.close();
@@ -425,7 +425,7 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 void IDFT::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _orbitalsAB, Logger *log ) 
 {
     
-    LOG(logDEBUG,*log)  << "Constructing the guess for dimer orbitals" << flush;   
+    LOG_SAVE(logDEBUG,*log)  << "Constructing the guess for dimer orbitals" << flush;   
    
     // constructing the direct product orbA x orbB
     int _basisA = _orbitalsA->getBasisSetSize();
@@ -865,7 +865,7 @@ void IDFT::ReadJobFile(Topology *top) {
 
     }
                     
-    LOG(logINFO, _log) << "Pairs [total:updated] " <<  _number_of_pairs << ":" << _current_pairs << " Incomplete jobs: " << _incomplete_jobs << flush; 
+    LOG_SAVE(logINFO, _log) << "Pairs [total:updated] " <<  _number_of_pairs << ":" << _current_pairs << " Incomplete jobs: " << _incomplete_jobs << flush; 
     cout << _log;
 }
 
