@@ -330,11 +330,11 @@ void IImport::FromIDFT(Topology *top, string &_idft_jobs_file) {
             
         } else {
             _incomplete_jobs++;
-            LOG(logINFO, _log) << "Job " << (*it)->get( "id" ).as<string>() << " is " << (*it)->get( "status" ).as<string>() << endl;
+            LOG_SAVE(logINFO, _log) << "Job " << (*it)->get( "id" ).as<string>() << " is " << (*it)->get( "status" ).as<string>() << endl;
         }
     }
     
-    LOG(logINFO, _log) << "Pairs [total:updated] " <<  _number_of_pairs << ":" << _current_pairs << " Incomplete jobs: " << _incomplete_jobs << flush; 
+    LOG_SAVE(logINFO, _log) << "Pairs [total:updated] " <<  _number_of_pairs << ":" << _current_pairs << " Incomplete jobs: " << _incomplete_jobs << flush; 
     cout << _log;
 }
 
@@ -379,7 +379,7 @@ void IImport::FromIDFTWithSuperExchange(Topology *top, string &_idft_jobs_file) 
             if (qmp == NULL) { // there is no pair in the neighbor list with this name
                 ;//LOG(logINFO, _log) << "No pair " <<  idA << ":" << idB << " found in the neighbor list. Ignoring" << flush; 
             }   else {
-                LOG(logINFO, _log) << "Store in record: " <<  idA << ":" << idB << flush; 
+                LOG_SAVE(logINFO, _log) << "Store in record: " <<  idA << ":" << idB << flush; 
                 records[qmp->getId()] = & ((*it)->get("output.pair"));
             }
         }
@@ -551,7 +551,7 @@ void IImport::FromIDFTWithSuperExchange(Topology *top, string &_idft_jobs_file) 
         break;
     }
                     
-    LOG(logINFO, _log) << "Pairs [total:updated] " <<  _number_of_pairs << ":" << _current_pairs << " Incomplete jobs: " << _incomplete_jobs << flush; 
+    LOG_SAVE(logINFO, _log) << "Pairs [total:updated] " <<  _number_of_pairs << ":" << _current_pairs << " Incomplete jobs: " << _incomplete_jobs << flush; 
     cout << _log;
 }
     
