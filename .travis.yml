@@ -19,6 +19,7 @@ before_install:
 env: #NINJA=1 is currently not support by Travis' cmake, enable when >=2.8.9
   - WERROR=yes J=4 #J>4 triggers an internal compiler in travis' g++
   - CTP=yes WERROR=yes J=4
+  - CTP=yes WALL=yes J=4
   - J=1
   - BDIR=build J=4
   - BDIR=build J=1
@@ -64,7 +65,7 @@ before_script:
 script:
   - PYTHONPATH="$PWD" ./build.sh -Wdu --prefix $PWD ${MAN:+--devdoc}
     ${TEST:+--runtest=$TEST} ${WERROR:+--warn-to-errors} ${MINIMAL:+--minimal}
-    ${J:+-j$J} ${BDIR:+--builddir=$BDIR} ${NINJA:+--ninja} 
+    ${J:+-j$J} ${BDIR:+--builddir=$BDIR} ${NINJA:+--ninja} ${WALL:+--Wall}
     tools ${GROMACS:+gromacs} csg csgapps ${MAN:+csg-manual} ${TEST:+csg-tutorials}
     ${CTP:+kmc moo ctp}
 
