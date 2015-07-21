@@ -161,7 +161,8 @@ do_external() { #takes two tags, find the according script and excute it
   [[ $1 != "function" && ! -x ${script/ *} ]] && die "${FUNCNAME[0]}: subscript '${script/ *}' (from tags $tags), is not executable! (Run chmod +x ${script/ *})"
   #print this message to stderr to allow $(do_external ) and do_external XX > 
   [[ $quiet = "no" ]] && echo "Running subscript '${script##*/}${3:+ }${@:3}' (from tags $tags) dir ${script%/*}" >&2
-  if [[ -n $CSGDEBUG ]] && [[ $1 = "function" || -n "$(sed -n '1s@bash@XXX@p' "${script/ *}")" ]]; then
+  # in debugmode we don't need to do anything special for $1 = function as set -x is already done
+  if [[ -n $CSGDEBUG ]] && [[ -n "$(sed -n '1s@bash@XXX@p' "${script/ *}")" ]]; then
     CSG_CALLSTACK="$(show_callstack)" "${BASH}" -x $script "${@:3}"
   elif [[ -n $CSGDEBUG && -n "$(sed -n '1s@perl@XXX@p' "${script/ *}")" ]]; then
     local perl_debug="$(mktemp perl_debug.XXX)" ret
