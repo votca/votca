@@ -17,11 +17,7 @@
       <cbspl>
         <!-- no. of knots for cbspl function -->
         <nknots>48</nknots>
-        <core>extrapolate</core>
       </cbspl>
-      <!-- distance range for the potential -->
-      <min>0.22</min>
-      <max>0.9</max>
     </re>
     <inverse>
       <!-- target distribution (rdf), just give gromas rdf.xvg -->
@@ -69,11 +65,8 @@
     <iterations_max>300</iterations_max>
     <!-- ibi: inverse biltzmann imc: inverse monte carlo re: relative entropy-->
     <method>re</method>
-    <!-- relative entropy specific options -->
-    <re>
-      <!-- relaxation parameter in Newton-Raphson update -->
-      <relax>0.7</relax>
-    </re>
+    <!-- scaling parameter for the update-->
+    <scale>0.5</scale>
     <!-- convergence check options -->
     <convergence_check>
       <type>default</type>
