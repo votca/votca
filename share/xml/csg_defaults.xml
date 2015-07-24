@@ -311,6 +311,11 @@
       <first_frame>0
 	    <DESC> trash the given number of frames at the beginning of trajectory (max of this and first_frame is used)</DESC>
       </first_frame>
+      <re>
+	      <topol>
+	        <DESC>Special topology file to be used for csg_reupdate</DESC>
+	      </topol>
+      </re>
       <rdf>
 	      <block_length>
 	        <DESC>Length of the block for the error analysis</DESC>
