@@ -26,7 +26,9 @@ using namespace std;
 
 struct PotentialInfo {
   
-  PotentialInfo(int index,bool bonded_,int vec_pos_,string& param_in_ext_,Property *options);
+  PotentialInfo(int index,bool bonded_,int vec_pos_,
+                string& param_in_ext_,Property *options,
+                bool gentable = false);
 
   int potentialIndex;
   bool bonded;

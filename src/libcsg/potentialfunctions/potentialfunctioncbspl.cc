@@ -1,7 +1,7 @@
 
 #include <votca/csg/potentialfunctions/potentialfunctioncbspl.h>
 
-PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string& name_,const int nlam_,const string & core_,
+PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string& name_,const int nlam_,
                                                const double min_, const double max_) :
   PotentialFunction(name_,nlam_,min_,max_) {
 
@@ -15,19 +15,9 @@ PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string& name_,const int nla
    * extrapolated from first statistically significant knot values near rmin
    */
 
-  if( core_ != "c12" && core_ != "extrapolate" )
-    throw std::runtime_error("Repulsive core type "+core_+ "selected for potential "+_name+" "
-                             "does not exist! \n "
-                             "Choose either c12 or extrapolate. ");
-
-  _core = core_;
-
   int nknots;
 
-  if( _core == "c12" )
-    nknots = _lam.size() - 1;
-  else
-    nknots = _lam.size();
+  nknots = _lam.size();
 
   _nbreak = nknots - 2;
 
@@ -186,9 +176,6 @@ double PotentialFunctionCBSPL::CalculateF (const double r) const {
 
     double u = 0.0;
 
-    if( _core == "c12" )
-      u += _lam(_lam.size()-1)/pow(r,12);
-
     ub::vector<double> R;
     ub::vector<double> B;
     R.resize(4,false); R.clear();
@@ -223,10 +210,6 @@ double PotentialFunctionCBSPL::CalculateDF(const int i, const double r) const{
     unsigned int i_opt = i + _nexcl;
     unsigned int indx;
     double rk;
-
-    if( _core == "c12" )
-      if( i_opt == _lam.size()-1 )
-        return 1.0/pow(r,12.0);
 
     indx = min( int( ( r )/_dr ), _nbreak-2 );
     rk = indx*_dr;
