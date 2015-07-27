@@ -1,9 +1,14 @@
 \chapter{Iterative methods}
 \label{sec:iterative_methods}
 
-The following sections deal with the methods of Iterative Boltzmann Inversion (\ibi) and Inverse Monte Carlo (\imc).
+The following sections deal with the methods of Iterative Boltzmann Inversion
+(\ibi), Inverse Monte Carlo (\imc), and Relative Entropy (\re).
 
-In general, \ibi and \imc are both implemented within the same framework. Therefore, most settings and parameters of those methods are similar and thus described in a general section (see sec. \ref{sec:iterative_methods_imc}). Further information on iterative methods follows in the next chapters, in particular on the \ibi and \imc methods.
+In general, \ibi, \imc, and \re are implemented within the same
+framework. Therefore, most settings and parameters of those methods are similar
+and thus described in a general section (see
+sec. \ref{sec:iterative_methods_imc}). Further information on iterative methods
+follows in the next chapters, in particular on the \ibi, \imc, and \re methods.
 
 \begin{figure}[h]
    \centering
@@ -20,9 +25,9 @@ In general, \ibi and \imc are both implemented within the same framework. Theref
    \caption{\label{fig:flowchart}Block-scheme of the workflow control for the iterative methods. The most time-consuming parts are marked in red.}
 \end{figure}
 
-Iterative workflow control is essential for the \ibi and \imc methods.
+Iterative workflow control is essential for the \ibi, \imc, and \re methods.
 
-The general idea of iterative workflow is sketched in fig.~\ref{fig:flowchart}. During the global initialization the initial guess for the coarse-grained potential is calculated from the reference function or converted from a given potential guess into the internal format. The actual iterative step starts with an iteration initialization. It searches for possible checkpoints and copies and converts files from the previous step and the base directory. Then, the simulation run is prepared by converting potentials into the format required by the external sampling program and the actual sampling is performed. 
+The general idea of iterative workflow is sketched in fig.~\ref{fig:flowchart}. During the global initialization the initial guess for the coarse-grained potential is calculated from the reference function or converted from a given potential guess into the internal format. The actual iterative step starts with an iteration initialization. It searches for possible checkpoints and copies and converts files from the previous step and the base directory. Then, the simulation run is prepared by converting potentials into the format required by the external sampling program and the actual sampling is performed.
 
 After sampling the phasespace, the potential update is calculated. Often, the update requires postprocessing, such as smoothing, interpolation, extrapolation or fitting to an analytical form.
 
@@ -32,7 +37,10 @@ Finally, the new potential is determined and postprocessed. If the iterative pro
 
 The first thing to do is generate reference distribution functions. These might come from experiments or from atomistic simulations. To get reasonable results out of the iterative process, the reference distributions should be of good quality (little noise, etc).
 
-\votca can create initial guesses for the coarse-grained potentials by boltzmann inverting the distribution function. If a custom initial guess for an interaction shall be used instead, the table can be provided in \textit{$<$interaction$>$.pot.in}. As already mentioned, \votca automatically creates potential tables to run a simulation. However, it does not know how to run a coarse-grained simulation. Therefore, all files needed to run a coarse-grained simulation, except for the potentials that are iteratively refined, must be provided and added to the \hyperlink{\cgref{inverse.filelist}}{filelist} in the settings \xml-file. If an atomistic topology and a mapping definition are present, \votca offers tools to assist the setup of a  coarse-grained topology (see chapter \ref{sec:usage:cgrun}).
+\votca can create initial guesses for the coarse-grained
+potentials by boltzmann inverting the distribution function. If a custom initial
+guess for an interaction shall be used instead, the table can be provided in
+\textit{$<$interaction$>$.pot.in}. As already mentioned, \votca automatically creates potential tables to run a simulation. However, it does not know how to run a coarse-grained simulation. Therefore, all files needed to run a coarse-grained simulation, except for the potentials that are iteratively refined, must be provided and added to the \hyperlink{\cgref{inverse.filelist}}{filelist} in the settings \xml-file. If an atomistic topology and a mapping definition are present, \votca offers tools to assist the setup of a  coarse-grained topology (see chapter \ref{sec:usage:cgrun}).
 
 To get an overview of how input files look like, it is suggested to take a look at one of the tutorials provided on \votcaweb.
 
@@ -167,6 +175,112 @@ Unlike \ibi, \imc also takes cross-correlations of interactions into account in 
   <non-bonded>
 \end{lstlisting}
 
+% #####################################################################################################################
+% #####################################################################################################################
+
+\section{Relative Entropy}
+\label{sec:iterative_methods_re}
+In this section, additional options are described to run \re coarse
+graining. The usage of \re is similar to the one of \ibi and \imc and
+understanding the use of the scripting framework described in
+chapter~\ref{sec:iterative_workflow} is necessary.
+
+Currently, \re implementation supports optimization of two-body
+non-bonded pair interactions. Support for bonded and N-body interactions is
+possible by further extension of \re implementation.
+
+\subsection{Potential function and parameters}
+In \re, CG potentials are modeled using analytical functional forms. Therefore,
+for each CG interaction, an analytical functional must be specified in the \xml
+setting file as
+\begin{lstlisting}
+  <non-bonded>
+    <name>CG-CG</name>
+    <type1>CG</type1>
+    <type2>CG</type2>
+    ...
+    <re>
+      <function>cbspl or lj126</function>
+        <cbspl>
+          <nknots>48</nknots>
+        </cbspl>
+    </re>
+    ...
+  </non-bonded>
+\end{lstlisting}
+Currently, standard Lennard-Jones 12-6 (lj126) and uniform cubic B-splines-based
+piecewise polynomial (cbspl) functional forms are supported. For lj126, the
+parameters to optimize are the usual $C_{12}$ and $C_{6}$. The cbspl form is
+defined as
+\begin{equation}
+\label{eq:cbspl}
+u_{\text{cbspl}}(r) = \left[\begin{array}{cccc}
+    1 & t & t^2 & t^3 \end{array}\right]
+\frac{1}{6}
+\left[ \begin{array}{rrrr}
+    1 & 4 & 1 & 0 \\
+    -3 & 0 & 3 & 0 \\
+    3 & -6 & 3 & 0 \\
+    -1 & 3 & -3 & 1 \end{array}\right]
+\left[ \begin{array}{l}
+    c_{k} \\
+    c_{k+1} \\
+    c_{k+2} \\
+    c_{k+3} \end{array}\right] ,
+\end{equation}
+where $\{c_0,c_1,c_2,...,c_m\}$ are the spline knot values tabulated for $m$
+evenly spaced intervals of size $\Delta r = r_{\text{cut}}/(m-2)$ along the
+separation distance $r_{i} = i\times\Delta r$ with the cut-off $r_{\text{cut}}$,
+and $t$ is given by
+\begin{equation}
+\label{eq:cbspl_t}
+t = \frac{r-r_{k}}{\Delta r} ,
+\end{equation}
+where index $k$ is determined such that $r_{k}\leq r < r_{k+1}$. For cbspl, the
+knot values, $\{c_0,c_1,c_2,...,c_m\}$, are optimized. The number of knot values
+to use must be specified in the \xml setting file as shown in the above
+snippet. $u_{\text{cbspl}}(r)$ exhibits remarkable flexibility, and it can
+represent various complex functional characteristics of pair potentials for
+sufficiently large number of knots.
+
+\subsection{Update scaling parameter}
+Depending on the quality of the initial guess and sensitivity of the CG system
+to the CG parameters, scaling of the parameter update size may be required to
+ensure the stability and convergence of the \re minimization. The scaling
+parameter, $\chi\in(0...1)$, value can be specified in the \xml settings file.
+
+\subsection{Statistical averaging of parameters}
+Due to stochastic nature of the CG simulations, near convergence, the CG
+potential paramters may fluctuate around the mean converged values. Therefore,
+the optimal CG parameters can be estimated by averaging over the last few
+iterations. To specify averaging, the \texttt{average}, keyword should be
+specified in the \texttt{post\_update} options in the \xml settings file.
+
+\subsection{General considerations}
+To ensure the stability of the relative entropy minimization, some precautionary
+measures are taken. For the Newton-Raphson update to converge towards a minimum,
+the Hessian, $\mathbf{H}$, must be positive definite at each step. With a good
+initial guess for the CG parameters and by adjusting the value of the relaxation
+parameter, $\chi$, stability of the Newton-Raphson method can be ensured. One
+approach to initialize the CG parameters can be to fit them to PMF obtained by
+inverting the pair distributions of the CG sites obtained from the reference AA
+ensemble. For the lj126 and cbspl forms, which are linear in its parameters, the
+second derivative of $S_{\text{rel}}$ is never negative, hence the minimization
+converges to a single global minimum. However, due to locality property of the
+cbspl form, i.e., update to $c_i$ affects only the value of the potential near
+$r_i$, and the poor sampling of the very small separation distances in the high
+repulsive core, the rows of $\mathbf{H}$ corresponding to the first few spline
+knots in the repulsive core may become zero causing $\mathbf{H}$ to be a
+singular matrix. To avoid this singularity issue, we specify a minimum
+separation distance, $r_{\text{min}}$, for each CG pair interaction and remove
+the spline knots corresponding to the $r\le r_{\text{min}}$ region from the
+Newton-Raphson update. Once the remaining knot values are updated, the knot
+values in the poorly sampled region, i.e., $r\le r_{\text{min}}$, are linearly
+extrapolated. The value of $r_{\text{min}}$ at each iteration is estimated from
+the minimum distance at which the CG RDF from the CG-MD simulation is
+nonzero. Also, to ensure that the CG pair potentials and forces go smoothly to
+zero near $r_{\text{cut}}$, 2 knot values before and after $r_{\text{cut}}$,
+i.e., total 4, are fixed to zero.
 
 % #####################################################################################################################
 % #####################################################################################################################
