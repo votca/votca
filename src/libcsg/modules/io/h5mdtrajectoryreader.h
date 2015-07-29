@@ -57,31 +57,53 @@ class H5MDTrajectoryReader : public TrajectoryReader {
   void Close();
 
  private:
-  double* ReadData(H5::DataSet *ds, int row);
+  /// Reads dataset that contains vectors.
+  template <typename T1>
+  T1* ReadVectorData(H5::DataSet *ds, H5::PredType ds_data_type, int row) {
+    hsize_t offset[3] = {row, 0, 0};
+    H5::DataSpace dsp = H5::DataSpace(ds->getSpace());
+    dsp.selectHyperslab(H5S_SELECT_SET, chunk_rows_, offset);
+    H5::DataSpace mspace1(variables_, chunk_rows_);
+    T1 *data_out = new T1[N_particles_ * variables_];
+    ds->read(data_out, ds_data_type, mspace1, dsp);
+    return data_out;
+  }
+
+  /// Reads dataset with scalar values
+  template <typename T1>
+  T1* ReadScalarData(H5::DataSet *ds, H5::PredType ds_data_type, int row) {
+    hsize_t offset[2] = {row, 0};
+    hsize_t ch_rows[2] = {1, N_particles_};
+    H5::DataSpace dsp = H5::DataSpace(ds->getSpace());
+    dsp.selectHyperslab(H5S_SELECT_SET, ch_rows, offset);
+    H5::DataSpace mspace1(2, ch_rows);
+    T1 *data_out = new T1[N_particles_];
+    ds->read(data_out, ds_data_type, mspace1, dsp);
+    return data_out;
+  }
 
   H5::H5File *h5file_;
   H5::Group *particle_group_;
   H5::Group *atom_position_group_;
   H5::Group *atom_force_group_;
   H5::Group *atom_velocity_group_;
+  H5::Group *atom_id_group_;
 
   H5::DataSet *ds_atom_position_;
   H5::DataSet *ds_atom_force_;
   H5::DataSet *ds_atom_velocity_;
+  H5::DataSet *ds_atom_id_;
 
   H5::DataSet *ds_time_;
   H5::DataSet *ds_step_;
 
   int rank_;
 
-  H5::DataSet *ds_edges_;
-
   string fname_;
   bool first_frame_;
   bool has_velocity_;
   bool has_force_;
-  bool has_static_box_;
-  bool has_static_species_;
+  bool has_id_group_;
 
   int idx_frame_;
 

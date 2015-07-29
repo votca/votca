@@ -29,9 +29,12 @@ H5MDTrajectoryReader::H5MDTrajectoryReader(){
   atom_position_group_ = NULL;
   atom_force_group_ = NULL;
   atom_velocity_group_ = NULL;
-  ds_edges_ = NULL;
+  atom_id_group_ = NULL;
   time_set_ = NULL;
   step_set_ = NULL;
+  has_velocity_ = false;
+  has_force_ = false;
+  has_id_group_ = false;
 }
 
 H5MDTrajectoryReader::~H5MDTrajectoryReader() {
@@ -43,9 +46,11 @@ H5MDTrajectoryReader::~H5MDTrajectoryReader() {
     delete ds_atom_force_;
   if (has_velocity_)
     delete ds_atom_velocity_;
+  if (has_id_group_)
+    delete atom_id_group_;
+
   delete ds_time_;
   delete ds_step_;
-  delete ds_edges_;
   delete[] time_set_;
   delete[] step_set_;
   delete h5file_;
@@ -87,7 +92,6 @@ bool H5MDTrajectoryReader::Open(const string &file) {
 
   has_velocity_ = false;
   has_force_ = false;
-  has_static_box_ = true;
   first_frame_ = true;
 
   return true;
@@ -130,7 +134,7 @@ bool H5MDTrajectoryReader::FirstFrame(Topology &top) {  // NOLINT const referenc
     N_particles_ = dims[1];
     variables_ = dims[2];
 
-    if(N_particles_ != top.BeadCount()) {
+    if(!has_id_group_ && N_particles_ != top.BeadCount()) {
       std::cout << "Warning: The number of beads (" << N_particles_ << ")";
       std::cout << " in the trajectory is different than defined in the topology (" << top.BeadCount() << ")" << std::endl;
       std::cout << "The number of beads from topology will be used!" << std::endl;
@@ -165,14 +169,6 @@ bool H5MDTrajectoryReader::FirstFrame(Topology &top) {  // NOLINT const referenc
     if (dimension != 3 ) {
       throw std::ios_base::failure("Wrong dimension " + boost::lexical_cast<string>(dimension));
     }
-    // TODO: check also attribute periodic
-    try {
-      H5::Group(g_box.openGroup("edges"));
-      throw std::runtime_error("The box is not static during the simulation. Is it NVT ensemble?");
-    } catch (H5::GroupIException not_found_error) {
-      ds_edges_ = new H5::DataSet(g_box.openDataSet("edges"));
-      has_static_box_ = true;
-    }
 
     // Gets the force group.
     try {
@@ -190,20 +186,19 @@ bool H5MDTrajectoryReader::FirstFrame(Topology &top) {  // NOLINT const referenc
     } catch (H5::GroupIException not_found) {
       has_velocity_ = false;
     }
+    // Gets the id group so that the atom id is taken from this group.
+    try {
+      std::string id_group_name = *particle_group_name  + "/id";
+      atom_id_group_ = new H5::Group(particle_group_->openGroup(id_group_name));
+      ds_atom_id_ = new H5::DataSet(atom_id_group_->openDataSet("value"));
+      has_id_group_ = true;
+    } catch (H5::GroupIException not_found) {
+      has_id_group_ = false;
+    }
     delete particle_group_name;
   }
   NextFrame(top);
   return true;
-}
-
-double* H5MDTrajectoryReader::ReadData(H5::DataSet *ds, int row){
-  hsize_t offset[3] = {row, 0, 0};
-  H5::DataSpace dsp = H5::DataSpace(ds->getSpace());
-  dsp.selectHyperslab(H5S_SELECT_SET, chunk_rows_, offset);
-  H5::DataSpace mspace1(variables_, chunk_rows_);
-  double *data_out = new double[N_particles_ * variables_];
-  ds->read(data_out, H5::PredType::NATIVE_DOUBLE, mspace1, dsp);
-  return data_out;
 }
 
 /// Reading the data.
@@ -213,22 +208,26 @@ bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
   idx_frame_++;
   std::cout << '\r' << "Reading frame: " << idx_frame_;
   std::cout.flush();
-  hsize_t offset[3] = {idx_frame_, 0, 0};
   double *positions;
   try {
-    positions = ReadData(ds_atom_position_, idx_frame_);
+    positions = ReadVectorData<double>(ds_atom_position_, H5::PredType::NATIVE_DOUBLE, idx_frame_);
   } catch (H5::DataSetIException not_found) {
-      return false;
+    return false;
   }
 
   double *forces = NULL;
   double *velocities = NULL;
+  int *ids = NULL;
   if (has_velocity_) {
-    velocities = ReadData(ds_atom_velocity_, idx_frame_);
+    velocities = ReadVectorData<double>(ds_atom_velocity_, H5::PredType::NATIVE_DOUBLE, idx_frame_);
   }
 
   if (has_force_) {
-    forces = ReadData(ds_atom_force_, idx_frame_);
+    forces = ReadVectorData<double>(ds_atom_force_, H5::PredType::NATIVE_DOUBLE, idx_frame_);
+  }
+
+  if (has_id_group_) {
+    ids = ReadScalarData<int>(ds_atom_id_, H5::PredType::NATIVE_INT, idx_frame_);
   }
 
   //Process atoms.
@@ -238,9 +237,17 @@ bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
     x = positions[array_index];
     y = positions[array_index + 1];
     z = positions[array_index + 2];
+    // Set atom id, or it is an index of a row in dataset or from id dataset.
+    int atom_id = at_idx;
+    if (has_id_group_) {
+      if (ids[at_idx] == -1)  // ignore values where id == -1
+        continue;
+      atom_id = ids[at_idx] - 1;
+    }
+
     // Topology has to be defined in the xml file or in other
     // topology files. The h5md only stores the trajectory data.
-    Bead *b = top.getBead(at_idx);
+    Bead *b = top.getBead(atom_id);
     b->setPos(vec(x, y, z));
     if (has_velocity_) {
       double vx, vy, vz;
@@ -263,6 +270,7 @@ bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
   delete[] positions;
   delete[] forces;
   delete[] velocities;
+  delete[] ids;
 
   return true;
 }
