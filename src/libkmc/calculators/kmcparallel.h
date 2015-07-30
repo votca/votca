@@ -26,6 +26,7 @@ class KMCParallel : public KMCCalculator
 {
 public:
     
+    using       KMCCalculator::Initialize;
     void        Initialize(const char *filename, Property *options );    
     bool        EvaluateFrame();
     bool        RequestNextInjection(int opId);
@@ -107,8 +108,8 @@ public:
        double     Rate() { return _rate; }
        void       OnExecute() { _master->Step(_dr, _dest); }
        
-       double           _rate;
        NodeBoxed       *_dest;
+       double           _rate;
        vec              _dr;
        KMCSingleOp     *_master;
     };
@@ -282,6 +283,7 @@ bool KMCParallel::EvaluateFrame() {
     fclose(out);
     
     cout << "... ... AVG VELOCITY = " << AVGVEL << " m/s." << endl;
+    return true;
 }
 
 
@@ -532,7 +534,7 @@ inline void KMCParallel::VSSMGroupBoxed<event_t>::OnExecute() {
 template<typename event_t>
 event_t *KMCParallel::VSSMGroupBoxed<event_t>::SelectEvent_BinarySearch() {
         
-    double max = Rate();
+    //double max = Rate();
     double u = 1.-_random->rand_uniform();
     u=u*Rate();	
 

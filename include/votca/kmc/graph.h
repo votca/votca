@@ -100,7 +100,7 @@ void Graph::Init_node_mesh(myvec sim_box_size, double hopdist){
         }
     }
     
-    for(int inode=0;inode<nodes.size();inode++){
+    for(unsigned int inode=0;inode<nodes.size();inode++){
         Add_to_node_mesh(nodes[inode], hopdist);
     }
 }
@@ -264,7 +264,7 @@ void Graph::Load_graph_static_event_info(string filename) {
         
       int node_ID1 = stmt->Column<int>(0);
       int node_ID2 = stmt->Column<int>(1);
-      Node* node1 = nodes[node_ID1];
+      //Node* node1 = nodes[node_ID1];
       Node* node2 = nodes[node_ID2];
 
       double drX = stmt->Column<double>(2);
@@ -316,7 +316,7 @@ void Graph::Create_cubic_graph_nodes(int NX, int NY, int NZ, double lattice_cons
 
 void Graph::Create_static_energies(votca::tools::Random2 *RandomVariable, double disorder_strength, double disorder_ratio, CorrelationType correlation_type){
       
-    for(int inode=0;inode<nodes.size();inode++) {
+    for(unsigned int inode=0;inode<nodes.size();inode++) {
       
         double el_node_energy = RandomVariable->rand_gaussian(disorder_strength);
         double ho_node_energy;
@@ -354,7 +354,7 @@ void Graph::Setup_device_graph(vector<Node*> nodes, Node* left_electrode, Node* 
 
     double minX = nodes[0]->node_position.x();    
     
-    for(int inode=0; inode<nodes.size(); inode++) {
+    for(unsigned int inode=0; inode<nodes.size(); inode++) {
 
         if(minX>nodes[inode]->node_position.x()) {minX = nodes[inode]->node_position.x();}
 
@@ -364,7 +364,7 @@ void Graph::Setup_device_graph(vector<Node*> nodes, Node* left_electrode, Node* 
 
     double xtranslate = left_electrode_distance - minX;
 
-    for(int inode=0; inode<nodes.size(); inode++) {
+    for(unsigned int inode=0; inode<nodes.size(); inode++) {
         double oldxpos = nodes[inode]->node_position.x();
         double newxpos = oldxpos + xtranslate;
         double ypos = nodes[inode]->node_position.y();
@@ -386,7 +386,7 @@ void Graph::Setup_device_graph(vector<Node*> nodes, Node* left_electrode, Node* 
     int linjector_ID = 0;
     int rinjector_ID = 0;
 
-    for(int inode=0; inode<nodes.size(); inode++) { 
+    for(unsigned int inode=0; inode<nodes.size(); inode++) { 
       
         double left_distance = nodes[inode]->node_position.x();
      
@@ -421,7 +421,7 @@ void Graph::Setup_device_graph(vector<Node*> nodes, Node* left_electrode, Node* 
 
 void Graph::Set_all_self_image_potential(vector<Node*> nodes, myvec sim_box_size, Globaleventinfo* globevent) {
     
-    for(int inode=0; inode<nodes.size();inode++){
+    for(unsigned int inode=0; inode<nodes.size();inode++){
         myvec nodepos = nodes[inode]->node_position;
         double device_length = sim_box_size.x();
         nodes[inode]->self_image_potential = Calculate_self_image_potential(nodepos.x(),device_length,globevent);
@@ -458,13 +458,13 @@ void Graph::Break_periodicity(vector<Node*> nodes, bool x_direction, bool y_dire
 
     vector<int> remove_pairs;
     
-    for(int inode=0; inode<nodes.size();inode++){
+    for(unsigned int inode=0; inode<nodes.size();inode++){
         
         remove_pairs.clear();
         
         //  determine which pairs should be removed
         
-        for(int ipair=0;ipair<nodes[inode]->static_event_info.size();ipair++) {
+        for(unsigned int ipair=0;ipair<nodes[inode]->static_event_info.size();ipair++) {
             
             bool flagged_for_removal = false;
             
@@ -514,7 +514,7 @@ void Graph::Break_periodicity(vector<Node*> nodes, bool x_direction, bool y_dire
         }
 
         // remove pairs
-        for(int iremove = 0; iremove<remove_pairs.size();iremove++){
+        for(unsigned int iremove = 0; iremove<remove_pairs.size();iremove++){
             nodes[inode]->removePair(remove_pairs[iremove]); //removes pairs and static event info objects
         }
         
@@ -529,8 +529,8 @@ double Graph::Determine_hopping_distance(vector<Node*> nodes) {
     
     double hopdistance = 0.0;
     
-    for(int inode=0; inode < nodes.size(); inode++) {
-        for(int ipair=0;ipair<nodes[inode]->static_event_info.size();ipair++) {
+    for(unsigned int inode=0; inode < nodes.size(); inode++) {
+        for(unsigned int ipair=0;ipair<nodes[inode]->static_event_info.size();ipair++) {
             
             myvec pairdistancevec = nodes[inode]->static_event_info[ipair].distance;
             double pairdistance = abs(pairdistancevec);
@@ -565,11 +565,11 @@ myvec Graph::Determine_sim_box_size(vector<Node*> nodes) {
     double minY = nodes[0]->node_position.y();
     double minZ = nodes[0]->node_position.z();
     
-    for(int inode=0;inode<nodes.size();inode++) {
+    for(unsigned int inode=0;inode<nodes.size();inode++) {
         
         if(bndcrosspairXfound&&bndcrosspairYfound&&bndcrosspairZfound) {break;}
         
-        for(int ipair=0;ipair<nodes[inode]->static_event_info.size();ipair++) {
+        for(unsigned int ipair=0;ipair<nodes[inode]->static_event_info.size();ipair++) {
             
             if(bndcrosspairXfound&&bndcrosspairYfound&&bndcrosspairZfound) {break;}
         
@@ -626,9 +626,9 @@ int Graph::Determine_max_pair_degree(vector<Node*> nodes){
     
     //Determination of the maximum degree in the graph
     
-    int maxdegree = 0;
+    unsigned int maxdegree = 0;
     
-    for(int inode=0; inode < nodes.size(); inode++) {
+    for(unsigned int inode=0; inode < nodes.size(); inode++) {
 
         if(nodes[inode]->pairing_nodes.size()>maxdegree) {maxdegree = nodes[inode]->pairing_nodes.size();}
 
@@ -640,7 +640,7 @@ int Graph::Determine_max_pair_degree(vector<Node*> nodes){
 void Graph::Determine_graph_pairs(vector<Node*> nodes, double hopdist, int nodemeshsizeX, int nodemeshsizeY, int nodemeshsizeZ,
     vector< vector< vector <list<Node*> > > > node_mesh ) {  
   
-    for (int inode = 0; inode<nodes.size(); inode++) {
+    for (unsigned int inode = 0; inode<nodes.size(); inode++) {
       
         // Define cubic boundaries in non-periodic coordinates
         Node* initnode = nodes[inode];
@@ -679,7 +679,7 @@ void Graph::Determine_graph_pairs(vector<Node*> nodes, double hopdist, int nodem
                     li2 = nodeList->end();
                     for (li3=li1; li3!=li2; li3++) {
                         Node* probenode = *li3;
-                        if(inode!=probenode->node_ID){ 
+                        if((int)inode!=probenode->node_ID){ 
                             myvec probenodepos = probenode->node_position;
                             myvec differ = Periodicdistance(initnodepos,probenodepos,sim_box_size);
                             double distance = abs(differ);

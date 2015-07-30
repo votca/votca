@@ -144,7 +144,7 @@ double Event::Compute_event_rate(Node* fromnode, int jump_ID, CarrierType carrie
         coulomb_from = globevent->coulomb_strength*(from_shortrange+charge*from_longrange);
         coulomb_to = globevent->coulomb_strength*(to_shortrange+charge*to_longrange);
     }
-    else if(from_event_type == Injection){
+    else {// if(from_event_type == Injection){
         coulomb_from = 0.0;
         coulomb_to = charge*globevent->coulomb_strength*(jumptonode->injection_potential+to_longrange);
     }
@@ -171,6 +171,8 @@ double Event::Compute_event_rate(Node* fromnode, int jump_ID, CarrierType carrie
                 energyfactor = 1.0;
             }
         }
+    } else {
+      throw runtime_error("for globevent->formalism != Miller, energyfactor is undefined");
     }
     
     double jump_rate = prefactor*distancefactor*energyfactor;
@@ -209,7 +211,7 @@ To_step_event Event::Determine_non_injection_to_event_type(Carrier* carrier, int
             else if(jumpnode->carriers_on_node[0]->carrier_type == carrier->carrier_type) {
                 to_type = Blocking;
             }
-            else if(jumpnode->carriers_on_node[0]->carrier_type != carrier->carrier_type) {
+            else{// if(jumpnode->carriers_on_node[0]->carrier_type != carrier->carrier_type) {
                 to_type = Recombination;
             }
         }

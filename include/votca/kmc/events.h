@@ -295,7 +295,7 @@ void Events::Effect_potential_and_non_injection_rates(action AR, Carrier* carrie
                             if (AR==Add) {
               
                                 // Adjust Coulomb potential for neighbours of the added carrier
-                                for (int jump=0; jump < carnode->pairing_nodes.size(); jump++) {
+                                for (unsigned int jump=0; jump < carnode->pairing_nodes.size(); jump++) {
                                     myvec jumpdistancevector = carnode->static_event_info[jump].distance;
                                     myvec jumpcarrierpos = carnode->node_position + jumpdistancevector;
                                     myvec jumpdistance = np_probepos - jumpcarrierpos;
@@ -312,13 +312,13 @@ void Events::Effect_potential_and_non_injection_rates(action AR, Carrier* carrie
                             
                                 // Reset Coulomb potential for carrier1 and its neighbours
                                 carrier->srfrom = 0.0;
-                                for (int jump=0; jump < carnode->pairing_nodes.size(); jump++) {
+                                for (unsigned int jump=0; jump < carnode->pairing_nodes.size(); jump++) {
                                     carrier->srto[jump] = 0.0;  
                                 }                            
                             }
            
                             // Adjust Coulomb potential and event rates for neighbours of carrier2
-                            for (int jump=0; jump < probenode->pairing_nodes.size(); jump++) {
+                            for (unsigned int jump=0; jump < probenode->pairing_nodes.size(); jump++) {
                                 myvec jumpdistancevector = probenode->static_event_info[jump].distance;
                                 myvec jumpprobepos = np_probepos+jumpdistancevector;
                                 myvec jumpdistance = carpos-jumpprobepos;
@@ -369,7 +369,7 @@ void Events::Effect_potential_and_non_injection_rates(action AR, Carrier* carrie
     }  
 
     // update event rates for carrier 1 , done after all carriers within radius coulcut are checked
-    for (int jump=0; jump < carnode->pairing_nodes.size(); jump++) {
+    for (unsigned int jump=0; jump < carnode->pairing_nodes.size(); jump++) {
         int event_ID = carrier->carrier_ID*graph->max_pair_degree+jump;
     
         double fromlongrange;
@@ -543,7 +543,7 @@ double Events::Compute_Coulomb_potential(double startx, myvec dif, myvec sim_box
         
         double L = sim_box_size.x();
         double distsqr_planar = dif.y()*dif.y() + dif.z()*dif.z();
-        double distsqr = dif.x()*dif.x() + distsqr_planar;
+        //double distsqr = dif.x()*dif.x() + distsqr_planar;
       
         int sign;
         double distx_1;
@@ -590,9 +590,9 @@ void Events::Recompute_all_non_injection_events(Graph* graph, State* state, Glob
     
     int Event_map;
        
-    for (int electron_ID = 0; electron_ID<state->electrons.size(); electron_ID++) {
+    for (unsigned int electron_ID = 0; electron_ID<state->electrons.size(); electron_ID++) {
         Node* electron_node = graph->nodes[state->electrons[electron_ID]->carrier_node_ID];
-        for (int ipair = 0; ipair < electron_node->pairing_nodes.size();ipair++){
+        for (unsigned int ipair = 0; ipair < electron_node->pairing_nodes.size();ipair++){
             
             Event_map = electron_ID*graph->max_pair_degree + ipair;
             Carrier* electron = state->electrons[electron_ID];
@@ -620,9 +620,9 @@ void Events::Recompute_all_non_injection_events(Graph* graph, State* state, Glob
         }
     }
 
-    for (int hole_ID = 0; hole_ID<state->holes.size(); hole_ID++) {
+    for (unsigned int hole_ID = 0; hole_ID<state->holes.size(); hole_ID++) {
         Node* hole_node = graph->nodes[state->holes[hole_ID]->carrier_node_ID];
-        for (int ipair = 0; ipair < hole_node->pairing_nodes.size();ipair++){
+        for (unsigned int ipair = 0; ipair < hole_node->pairing_nodes.size();ipair++){
             
             Event_map = hole_ID*graph->max_pair_degree + ipair;
             Carrier* hole = state->holes[hole_ID];
@@ -655,7 +655,7 @@ void Events::Recompute_all_injection_events(Graph* graph, Globaleventinfo* globe
     
     int Event_map;
 
-    for (int inject_node = 0; inject_node<graph->left_electrode->pairing_nodes.size(); inject_node++) {
+    for (unsigned int inject_node = 0; inject_node<graph->left_electrode->pairing_nodes.size(); inject_node++) {
 
         Event_map = inject_node;
 
@@ -678,7 +678,7 @@ void Events::Recompute_all_injection_events(Graph* graph, Globaleventinfo* globe
         }        
     }
     
-    for (int inject_node = 0; inject_node<graph->right_electrode->pairing_nodes.size(); inject_node++) {
+    for (unsigned int inject_node = 0; inject_node<graph->right_electrode->pairing_nodes.size(); inject_node++) {
 
         double lrto;
         if(graph->right_electrode->pairing_nodes[inject_node]->node_type == Normal) {
@@ -729,7 +729,7 @@ void Events::Initialize_eventvector(Graph* graph, State* state, Globaleventinfo*
 
 void Events::Initialize_injection_eventvector(Node* electrode, vector<Event*> eventvector, CarrierType cartype){
 
-    for (int inject_node = 0; inject_node<electrode->pairing_nodes.size(); inject_node++) {
+    for (unsigned int inject_node = 0; inject_node<electrode->pairing_nodes.size(); inject_node++) {
 
         Event *newEvent = new Event();
         eventvector.push_back(newEvent);
