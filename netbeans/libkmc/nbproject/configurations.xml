@@ -118,11 +118,23 @@
       </item>
       <item path="../../include/votca/kmc/carrier.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/kmc/carrierbulk.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/kmc/dnode.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/kmc/event.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/kmc/eventinfo.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/kmc/events.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/glink.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/kmc/gnode.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -132,6 +144,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/graphkmc.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/kmc/graphsql.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -150,6 +164,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/kmc/linkdevice.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/kmc/linksql.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/kmc/longrange.h"
@@ -157,7 +176,19 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/kmc/nodedevice.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/kmc/nodesql.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/numoutput.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/profile.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/kmc/state.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -166,7 +197,17 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/kmc/trajectories.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/kmc/version.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/visualisation.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/kmc/vssmgroup.h"
             ex="false"
@@ -186,6 +227,11 @@
       <item path="../../share/xml/kmcsingle.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libkmc/calculators/bulk.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libkmc/calculators/device.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -263,11 +309,23 @@
       </item>
       <item path="../../include/votca/kmc/carrier.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/kmc/carrierbulk.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/kmc/dnode.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/kmc/event.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/kmc/eventinfo.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/kmc/events.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/glink.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/kmc/gnode.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -277,6 +335,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/graphkmc.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/kmc/graphsql.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -295,6 +355,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/kmc/linkdevice.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/kmc/linksql.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/kmc/longrange.h"
@@ -302,7 +367,19 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/kmc/nodedevice.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/kmc/nodesql.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/numoutput.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/profile.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/kmc/state.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -311,7 +388,17 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/kmc/trajectories.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/kmc/version.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/visualisation.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/kmc/vssmgroup.h"
             ex="false"
@@ -331,6 +418,11 @@
       <item path="../../share/xml/kmcsingle.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libkmc/calculators/bulk.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libkmc/calculators/device.h"
             ex="false"
             tool="3"
             flavor2="0">
