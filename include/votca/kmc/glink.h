@@ -6,7 +6,7 @@
  * You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,25 +15,23 @@
  *
  */
 
-#ifndef __VOTCA_KMC_ELECTRODE_H_
-#define	__VOTCA_KMC_ELECTRODE_H_
+#ifndef _VOTCA_KMC_GLINK_H
+#define	_VOTCA_KMC_GLINK_H
 
 namespace votca { namespace kmc {
-  
-using namespace std;
 
-enum Electrodetype{ _Left, _Right};
-
-class Electrode {
+struct GLink
+{
+    int destination;
+    double rate;
+    votca::tools::vec dr;
     
-    public:
-        
-        Electrodetype _electrodetype;
-        double _static_energy;
-        
+    // new stuff for Coulomb interaction
+    double Jeff2;
+    double reorg_out;
+    double initialrate;
 };
 
 }} 
 
-#endif
-
+#endif // _VOTCA_KMC_GLINK_H

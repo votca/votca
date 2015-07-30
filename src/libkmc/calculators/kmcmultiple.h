@@ -6,7 +6,7 @@
  * You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *vector<Node*> 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,10 +25,11 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-//#include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <cmath> // needed for abs(double)
+
 #include <votca/tools/vec.h>
 #include <votca/tools/matrix.h>
 #include <votca/tools/statement.h>
@@ -36,9 +37,9 @@
 #include <votca/tools/tokenizer.h>
 #include <votca/tools/globals.h>
 #include <votca/tools/random2.h>
+
 #include <tr1/unordered_map>
-#include <cmath> // needed for abs(double)
-#include "node.h"
+#include <votca/kmc/gnode.h>
 #include <math.h> // needed for fmod()
 
 using namespace std;
@@ -60,7 +61,7 @@ class Chargecarrier
     public:
         int position;
         int id;
-        Node *node;
+        GNode *node;
         myvec dr_travelled;
         double tof_travelled;
 };
@@ -127,13 +128,13 @@ public:
     bool EvaluateFrame();
 
 protected:
-	    vector<Node*>  LoadGraph();
+	    vector<GNode*>  LoadGraph();
 	    CoulombMap LoadCoulomb(int numberofnodes);
-            vector<double> RunVSSM(vector<Node*> node, double runtime, unsigned int numberofcharges, votca::tools::Random2 *RandomVariable, CoulombMap coulomb);
-            void WriteOcc(vector<double> occP, vector<Node*> node);
-            void InitialRates(vector<Node*> node);
-            void RateUpdateCoulomb(vector<Node*> &node,  vector< Chargecarrier* > &carrier, CoulombMap &coulomb);
-            void InitBoxSize(vector<Node*> node);
+            vector<double> RunVSSM(vector<GNode*> node, double runtime, unsigned int numberofcharges, votca::tools::Random2 *RandomVariable, CoulombMap coulomb);
+            void WriteOcc(vector<double> occP, vector<GNode*> node);
+            void InitialRates(vector<GNode*> node);
+            void RateUpdateCoulomb(vector<GNode*> &node,  vector< Chargecarrier* > &carrier, CoulombMap &coulomb);
+            void InitBoxSize(vector<GNode*> node);
 
 
             string _injection_name;
@@ -353,9 +354,9 @@ void KMCMultiple::Initialize(const char *filename, Property *options, const char
 
 }
 
-vector<Node*> KMCMultiple::LoadGraph()
+vector<GNode*> KMCMultiple::LoadGraph()
 {
-    vector<Node*> node;
+    vector<GNode*> node;
     
     // Load nodes
     votca::tools::Database db;
@@ -372,7 +373,7 @@ vector<Node*> KMCMultiple::LoadGraph()
     int i=0;
     while (stmt->Step() != SQLITE_DONE)
     {
-        Node *newNode = new Node();
+        GNode *newNode = new GNode();
         node.push_back(newNode);
 
         int newid = stmt->Column<int>(0);
@@ -495,7 +496,7 @@ int Forbidden(int id, vector<int> forbiddenlist)
     return forbidden;
 }
 
-int Surrounded(Node* node, vector<int> forbiddendests)
+int Surrounded(GNode* node, vector<int> forbiddendests)
 {
     int surrounded = 1;
     for(unsigned int i=0; i<node->event.size(); i++)
@@ -539,7 +540,7 @@ void printtime(int seconds_t)
 }
 
 
-void KMCMultiple::InitBoxSize(vector<Node*> node)
+void KMCMultiple::InitBoxSize(vector<GNode*> node)
 {
     cout << endl << "Analysing size of the simulation cell." << endl;
     double minX = 0;
@@ -586,7 +587,7 @@ void KMCMultiple::InitBoxSize(vector<Node*> node)
     
 }
 
-void KMCMultiple::InitialRates(vector<Node*> node)
+void KMCMultiple::InitialRates(vector<GNode*> node)
 {
     cout << endl <<"Calculating initial Marcus rates." << endl;
     cout << "    Temperature T = " << _temperature << " K." << endl;
@@ -665,7 +666,7 @@ void KMCMultiple::InitialRates(vector<Node*> node)
     }
 }
 
-void KMCMultiple::RateUpdateCoulomb(vector<Node*> &node,  vector< Chargecarrier* > &carrier, CoulombMap &coulomb)
+void KMCMultiple::RateUpdateCoulomb(vector<GNode*> &node,  vector< Chargecarrier* > &carrier, CoulombMap &coulomb)
 {
     // Calculate new rates for all possible events, i.e. for the possible hoppings of all occupied nodes
     //cout << "Updating Coulomb interaction part of rates." << endl;
@@ -673,13 +674,13 @@ void KMCMultiple::RateUpdateCoulomb(vector<Node*> &node,  vector< Chargecarrier*
     for(unsigned int cindex=0; cindex<carrier.size(); cindex++)
     {
         //cout << "  carrier no. "<< cindex+1 << endl;
-        Node *node_i = carrier[cindex]->node;
+        GNode *node_i = carrier[cindex]->node;
         double escaperate = 0;
         //#pragma omp parallel for
         for(unsigned int destindex=0; destindex<node_i->event.size(); destindex++)
         {
             int destid = node_i->event[destindex].destination;
-            Node *node_j = node[destid];
+            GNode *node_j = node[destid];
             if(node_j->occupied == 1)
             {  // in principal shouldn't be needed:
                node_i->event[destindex].rate = 0;
@@ -748,7 +749,7 @@ void KMCMultiple::RateUpdateCoulomb(vector<Node*> &node,  vector< Chargecarrier*
                     else // _explicitcoulomb==1 (partial charges)
                     {
                         CoulombIt coul_iterator;
-                        Node *node_k = carrier[ncindex]->node;
+                        GNode *node_k = carrier[ncindex]->node;
                         if(ncindex != cindex) // charge doesn't have Coulomb interaction with itself
                         {
                             // - E_ik
@@ -824,7 +825,7 @@ void KMCMultiple::RateUpdateCoulomb(vector<Node*> &node,  vector< Chargecarrier*
     }
 }
 
-vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned int numberofcharges, votca::tools::Random2 *RandomVariable, CoulombMap coulomb)
+vector<double> KMCMultiple::RunVSSM(vector<GNode*> node, double runtime, unsigned int numberofcharges, votca::tools::Random2 *RandomVariable, CoulombMap coulomb)
 {
 
     int realtime_start = time(NULL);
@@ -1096,8 +1097,8 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
 
             
             // determine which electron will escape
-            Node* do_oldnode;
-            Node* do_newnode;
+            GNode* do_oldnode;
+            GNode* do_newnode;
             Chargecarrier* do_affectedcarrier;
             
             double u = 1 - RandomVariable->rand_uniform();
@@ -1214,7 +1215,7 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
                             cout << "LAST POSITION: " << (do_affectedcarrier->dr_travelled-dr) *1E9 << ", NEW POSITION: " << do_affectedcarrier->dr_travelled *1E9 << endl ; 
 
                             // now re-inject the carrier to a new random position
-                            Node *temp_node = new Node;
+                            GNode *temp_node = new GNode;
                             temp_node = do_affectedcarrier->node;
                             do_affectedcarrier->node = node[RandomVariable->rand_uniform_int(node.size())];
                             while(do_affectedcarrier->node->occupied == 1 || do_affectedcarrier->node->injectable != 1)
@@ -1472,7 +1473,7 @@ vector<double> KMCMultiple::RunVSSM(vector<Node*> node, double runtime, unsigned
 }
 
 
-void KMCMultiple::WriteOcc(vector<double> occP, vector<Node*> node)
+void KMCMultiple::WriteOcc(vector<double> occP, vector<GNode*> node)
 {
     votca::tools::Database db;
     cout << "Opening for writing " << _filename << endl;
@@ -1502,7 +1503,7 @@ bool KMCMultiple::EvaluateFrame()
     votca::tools::Random2 *RandomVariable = new votca::tools::Random2();
     RandomVariable->init(rand(), rand(), rand(), rand());
     
-    vector<Node*> node;
+    vector<GNode*> node;
     node = KMCMultiple::LoadGraph();
     CoulombMap coulomb;
     if(_explicitcoulomb == 1)

@@ -18,27 +18,52 @@
 #ifndef __VOTCA_KMC_CARRIER_H_
 #define __VOTCA_KMC_CARRIER_H_
 
-#include <votca/tools/vec.h>
-
-typedef votca::tools::vec myvec;
+#include <votca/kmc/node.h>
 
 namespace votca { namespace kmc {
-  
-using namespace std;
 
-enum CarrierType{ Electron, Hole};
-
-class Carrier {
-
-public:
+enum CarrierType{ Reservoir, Electron, Hole, Exciton};    
     
-    CarrierType carrier_type;
-    int carrier_node_ID;
-    int carrier_ID;
-    bool is_in_sim_box;
-    myvec carrier_distance;
-    double srfrom;
-    vector<double> srto;
+class Carrier {
+public:
+
+    Carrier(int id){
+        _carrier_id = id;
+    };
+    
+    /// carrier_id
+    const int &id() const { return _carrier_id; }
+    /// carrier node
+    Node* &node() { return _carrier_node; }    
+    /// carrier type
+    int &type() { return _carrier_type; } 
+    /// travelled distance
+    const votca::tools::vec &distance() const { return _carrier_distance; } 
+    
+    /// is carrier in box or not?
+    bool &inbox() { return _in_sim_box; }
+    
+    /// set carrier node
+    void SetCarrierNode(Node* carnode) { _carrier_node = carnode; }
+    /// set travelled distance
+    void SetDistance(votca::tools::vec distance) { _carrier_distance = distance; }
+    void IncDistance(votca::tools::vec distance) { _carrier_distance += distance; }
+    /// set "inbox/outbox" status
+    void SetInBox(bool in_sim_box) {_in_sim_box = in_sim_box;}
+    /// set carrier type
+    void SetCarrierType(int carrier_type) {_carrier_type = carrier_type;}
+    
+    bool isElectron() { if(_carrier_type == Electron) {return true;} else {return false;}}
+    bool isHole() { if(_carrier_type == Hole) {return true;} else {return false;}}
+    
+private:
+    
+    int _carrier_id;
+    Node* _carrier_node;
+    int _carrier_type;
+    votca::tools::vec _carrier_distance;
+    
+    bool _in_sim_box;
 };
 
 }} 

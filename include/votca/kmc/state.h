@@ -20,278 +20,127 @@
 
 #include <vector>
 #include <list>
-#include <votca/tools/database.h>
-#include <votca/tools/statement.h>
-#include <votca/tools/vec.h>
+#include <fstream>
+#include <iostream>
 #include <votca/kmc/carrier.h>
+#include <votca/kmc/node.h>
 #include <votca/kmc/graph.h>
-#include <votca/kmc/globaleventinfo.h>
-#include <votca/kmc/bsumtree.h>
-
-typedef votca::tools::vec myvec;
 
 namespace votca { namespace kmc {
-  
-using namespace std;
 
-enum Inject_Type {Equal, Fermi};
+template <class TGraph, class TCarrier>
+class State {    
 
-class State {
-public:
+    public:
+
+    State(){}
+    ~State(){
+        typename std::vector<TCarrier*>::iterator it;
+        for (it = _carriers.begin(); it != _carriers.end(); it++ ) delete *it;        
+    }
+    
+    /// Add a node to the Graph
+    TCarrier* AddCarrier(int id) { 
+        TCarrier* carrier = new TCarrier(id);
+        _carriers.push_back(carrier); 
+        return carrier;
+    } 
+
+    void Print(std::ostream& out);
+    
+    TCarrier* GetCarrier(int id) { return _carriers[id];}
+    int GetCarrierSize() {return _carriers.size();}
+    
+    virtual void AddCarrier( TCarrier* carrier) { _carriers.push_back(carrier); }
+    
+    void InitState();
     
     // Storage and readout of the node_id's of the nodes on which the carriers are to/from a SQL database
-    void Save(string SQL_state_filename);
-    void Load(string SQL_state_filename, Graph* graph, Globaleventinfo* globevent);
-    
-    // Start with an empty state object
-    void Init();
+    void Save(const char* filename);
+    void Load(const char* filename, TGraph* graph);
 
-    // Buying/Selling of carrier numbers from the reservoir
-    unsigned int Buy(vector <Carrier*> carriers, vector <int> carrier_reservoir);
-    void Sell(vector <Carrier*> carriers, vector <int> carrier_reservoir, unsigned int remove_from_sim_box);
-    void Grow(vector <Carrier*> carriers, vector <int> carrier_reservoir, unsigned int nr_new_carriers, int max_pair_degree);
-    
-    vector<Carrier*> electrons; //change
-    vector<int> electron_reservoir;
-    vector<Carrier*> holes; //change
-    vector<int> hole_reservoir;
-
-    string SQL_state_filename;
-
-    // Creation of coulomb mesh
-    int meshsizeX; int meshsizeY; int meshsizeZ;
-    vector< vector< vector< vector <list<int> > > > > coulomb_mesh;
-    void Init_coulomb_mesh(Graph* graph, Globaleventinfo* globevent);
-    void Add_to_coulomb_mesh(Graph* graph, Carrier* carrier, Globaleventinfo* globevent);
-    void Remove_from_coulomb_mesh(Graph* graph, Carrier* carrier, Globaleventinfo* globevent);
-    
-    // Injection and removal of charges (for example in a double carrier bulk setting) (still to be done)
-    Bsumtree* electron_inject;
-    Bsumtree* hole_inject;
-    void Initialize_inject_trees(Graph* graph, Inject_Type injecttype, Globaleventinfo* globevent);
-    void Add_charge_in_box(Node* node, CarrierType carrier_type);
-    void Remove_charge_from_box(Node* node, CarrierType carrier_type);
-    
-  
+    bool In_sim_box(TCarrier* carrier) {return carrier->inbox();}    
 private:
-    bool El_in_sim_box(int electron_nr) {return electrons[electron_nr]->is_in_sim_box;}
-    bool Ho_in_sim_box(int hole_nr) {return holes[hole_nr]->is_in_sim_box;}
+    vector<TCarrier*> _carriers;
 };
 
-void State::Initialize_inject_trees(Graph* graph, Inject_Type injecttype, Globaleventinfo* globevent) {
-    electron_inject->initialize(graph->nodes.size());
-    hole_inject->initialize(graph->nodes.size());
-    
-    for (unsigned int inode = 0; inode < graph->nodes.size(); inode++) {
-        if (injecttype == Equal) {
-            electron_inject->setrate(inode, 1.0);
-            hole_inject->setrate(inode, 1.0);
-        }
-        else if(injecttype == Fermi) {
-            electron_inject->setrate(inode, exp(-1.0*globevent->beta*graph->nodes[inode]->static_electron_node_energy));
-            hole_inject->setrate(inode, exp(-1.0*globevent->beta*graph->nodes[inode]->static_hole_node_energy));
-        }
-    }
+template <class TGraph, class TCarrier>
+void State<TGraph, TCarrier>::InitState(){
+    _carriers.clear();
 }
 
-void State::Init(){
-    electrons.clear();
-    holes.clear();
-    electron_reservoir.clear();
-    hole_reservoir.clear();
-}
-
-void State::Init_coulomb_mesh(Graph* graph, Globaleventinfo* globevent){
-    meshsizeX = ceil(graph->sim_box_size.x()/globevent->coulcut);
-    meshsizeY = ceil(graph->sim_box_size.y()/globevent->coulcut);
-    meshsizeZ = ceil(graph->sim_box_size.z()/globevent->coulcut);
+template <class TGraph, class TCarrier>
+void State<TGraph, TCarrier>::Save(const char* filename){
     
-    coulomb_mesh.resize(meshsizeX);
-    for(int i = 0;i<meshsizeX;i++) {
-        coulomb_mesh[i].resize(meshsizeY);
-        for(int j = 0;j<meshsizeY;j++) {
-            coulomb_mesh[i][j].resize(meshsizeZ);
-            for(int k=0;k<meshsizeZ;k++) {
-                coulomb_mesh[i][j][k].resize(2);
+    ofstream statestore;
+    statestore.open(filename);
+    
+    if(statestore.is_open()) {
+        typename std::vector<TCarrier*>::iterator it;
+        for (it = _carriers.begin(); it != _carriers.end(); it++ ) {
+            if(In_sim_box((*it))) {
+                votca::tools::vec c_distance = (*it)->distance();
+                statestore << (*it)->node()->id() << " " << (*it)->type() << " " << c_distance.x() << " " << c_distance.y() << " " << c_distance.z() << "\n";
             }
         }
     }
+    else {
+        std::cout << "WARNING: Can't open state store file" << "\n";
+    }
     
-    for(unsigned int ic=0;ic<electrons.size();ic++){
-        Add_to_coulomb_mesh(graph, electrons[ic], globevent);
-    }
-
-    for(unsigned int ic=0;ic<holes.size();ic++){
-        Add_to_coulomb_mesh(graph, holes[ic], globevent);
-    }
+    statestore.close();
 }
 
-void State::Add_to_coulomb_mesh(Graph* graph, Carrier* carrier, Globaleventinfo* globevent){
+template <class TGraph, class TCarrier>
+void State<TGraph,TCarrier>::Load(const char* filename, TGraph* graph){
+    
+    ifstream statestore;
+    statestore.open(filename);
+    string line;
+    
+    int car_nodeID; int car_type;
+    double car_distancex; double car_distancey; double car_distancez;
+    
+    int carrier_ID = 0;
+    
+    if(statestore.is_open()) {
+        while (getline(statestore,line)) {
 
-    int charge;
-    if(carrier->carrier_type == Electron) {
-        charge = 0;
-    }
-    else if(carrier->carrier_type == Hole) {
-        charge = 1;
-    } else {
-        throw runtime_error("carrier->carrier_type should be Hole or Electron");
-    }
-    
-    double posx = graph->nodes[carrier->carrier_node_ID]->node_position.x();
-    double posy = graph->nodes[carrier->carrier_node_ID]->node_position.y();
-    double posz = graph->nodes[carrier->carrier_node_ID]->node_position.z();
-        
-    int iposx = floor(posx/globevent->coulcut); 
-    int iposy = floor(posy/globevent->coulcut); 
-    int iposz = floor(posz/globevent->coulcut);
-    
-    coulomb_mesh[iposx][iposy][iposz][charge].push_back(carrier->carrier_ID);    
-}
+            //read and parse lines
+            std::istringstream linestream(line);
+            linestream >> car_nodeID >> car_type >> car_distancex >> car_distancey >> car_distancez;
+            
+            //add carrier to node
+            TCarrier* newcarrier = AddCarrier(carrier_ID);
+            Node* carrier_node =  graph->GetNode(car_nodeID);
+            newcarrier->SetCarrierNode(carrier_node);
+            carrier_node->AddCarrier(carrier_ID);
 
-void State::Remove_from_coulomb_mesh(Graph* graph, Carrier* carrier, Globaleventinfo* globevent){
+            //set carrier type
+            newcarrier->SetCarrierType(car_type);
 
-    int charge;
-    if(carrier->carrier_type == Electron) {
-        charge = 0;
-    }
-    else if(carrier->carrier_type == Hole) {
-        charge = 1;
-    } else {
-        throw runtime_error("carrier->carrier_type should be Hole or Electron");
-    }
-    
-    double posx = graph->nodes[carrier->carrier_node_ID]->node_position.x();
-    double posy = graph->nodes[carrier->carrier_node_ID]->node_position.y();
-    double posz = graph->nodes[carrier->carrier_node_ID]->node_position.z();
-        
-    int iposx = floor(posx/globevent->coulcut); 
-    int iposy = floor(posy/globevent->coulcut); 
-    int iposz = floor(posz/globevent->coulcut);
-    
-    coulomb_mesh[iposx][iposy][iposz][charge].remove(carrier->carrier_ID);    
-}    
+            // Set distance travelled
+            votca::tools::vec carrier_distance(car_distancex,car_distancey,car_distancez);
+            newcarrier->SetDistance(carrier_distance);
 
-
-void State::Save(string SQL_state_filename){
-    
-    votca::tools::Database db;
-    db.Open( SQL_state_filename );
-    db.BeginTransaction();       
-
-    votca::tools::Statement *stmt;
-    stmt = db.Prepare( "INSERT INTO carriers ("
-                            "node_id, carrier_type,  distanceX,  "
-                            "distanceY, distanceZ)"
-                            "VALUES ("
-                            "?,     ?,     ?,"
-                            "?,     ?)");
-    
-    for(unsigned int electron_nr = 0;electron_nr<electrons.size();electron_nr++) {
-        if (El_in_sim_box(electron_nr)) {
-            stmt->Bind(1, electrons[electron_nr]->carrier_node_ID);
-            stmt->Bind(2, 0);
-            myvec carrier_distance = electrons[electron_nr]->carrier_distance;
-            stmt->Bind(3, carrier_distance.x());
-            stmt->Bind(4, carrier_distance.y()); 
-            stmt->Bind(5, carrier_distance.z());
-            stmt->InsertStep();
-            stmt->Reset();
-        }        
-    }
-    
-    for(unsigned int hole_nr = 0;hole_nr<holes.size();hole_nr++) {
-        if (Ho_in_sim_box(hole_nr)) {
-            stmt->Bind(1, holes[hole_nr]->carrier_node_ID);
-            stmt->Bind(2, 1);
-            myvec carrier_distance = holes[hole_nr]->carrier_distance;
-            stmt->Bind(3, carrier_distance.x());
-            stmt->Bind(4, carrier_distance.y()); 
-            stmt->Bind(5, carrier_distance.z());
-            stmt->InsertStep();
-            stmt->Reset();
-        }        
-    }
-    
-    delete stmt;
-    stmt = NULL;
-    
-    db.EndTransaction();
-}
-
-void State::Load(string SQL_state_filename, Graph* graph, Globaleventinfo* globevent){
-    
-    votca::tools::Database db;
-    db.Open( SQL_state_filename );
-    
-    votca::tools::Statement *stmt; 
-    stmt = db.Prepare("SELECT node_id, carrier_type, distanceX, distanceY, distanceZ FROM carriers;");
-    
-    while (stmt->Step() != SQLITE_DONE)
-    {   
-        int cartype = stmt->Column<int>(1);
-        if(cartype == 0) { // electron
-            if(electron_reservoir.empty()) {Grow(electrons,electron_reservoir,globevent->state_grow_size, graph->max_pair_degree);}
-            int electron_nr = Buy(electrons, electron_reservoir);
-            int carnode_ID = stmt->Column<int>(0);
-            electrons[electron_nr]->carrier_node_ID = carnode_ID;
-            electrons[electron_nr]->carrier_type = Electron;
-            graph->nodes[carnode_ID]->carriers_on_node.push_back(electrons[electron_nr]);
-            double distancex = stmt->Column<double>(2);
-            double distancey = stmt->Column<double>(3);
-            double distancez = stmt->Column<double>(4);
-            electrons[electron_nr]->carrier_distance = myvec(distancex,distancey,distancez);            
-        }
-        else if(cartype == 1) { // hole
-            if(hole_reservoir.empty()) {Grow(holes,hole_reservoir,globevent->state_grow_size, graph->max_pair_degree);}
-            int hole_nr = Buy(holes, hole_reservoir);
-            int carnode_ID = stmt->Column<int>(0);
-            holes[hole_nr]->carrier_node_ID = carnode_ID;
-            holes[hole_nr]->carrier_type = Hole;
-            graph->nodes[carnode_ID]->carriers_on_node.push_back(holes[hole_nr]);
-            double distancex = stmt->Column<double>(2);
-            double distancey = stmt->Column<double>(3);
-            double distancez = stmt->Column<double>(4);
-            holes[hole_nr]->carrier_distance = myvec(distancex,distancey,distancez);                
+            // New carrier is in the simulation box
+            newcarrier->SetInBox(true);
+            carrier_ID++;
         }
     }
-    delete stmt;
-    stmt = NULL;    
-}
-
-unsigned int State::Buy(vector <Carrier*> carriers, vector <int> carrier_reservoir) {
-    
-    unsigned int carriernr_to_sim_box = carrier_reservoir.back();
-    carrier_reservoir.pop_back();
-    carriers[carriernr_to_sim_box]->is_in_sim_box = true;
-    return carriernr_to_sim_box;
-}
-
-void State::Sell(vector <Carrier*> carriers, vector <int> carrier_reservoir, unsigned int remove_from_sim_box) {
-    
-    carrier_reservoir.push_back(remove_from_sim_box);
-    carriers[remove_from_sim_box]->is_in_sim_box = false;
-}
-
-void State::Grow(vector <Carrier*> carriers, vector <int> carrier_reservoir, unsigned int nr_new_carriers, int max_pair_degree) {
-    
-    unsigned int new_nr_carriers = carriers.size() + nr_new_carriers;
-    for (unsigned int i=carriers.size(); i<new_nr_carriers; i++) {
-    
-        Carrier *newCarrier = new Carrier();
-        carriers.push_back(newCarrier);
-        
-        carrier_reservoir.push_back(i);
-        newCarrier->is_in_sim_box = false;
-        newCarrier->carrier_ID = i;
-        
-        //initialize sr potential storage
-        newCarrier->srfrom = 0.0;
-        for(int i = 0; i<max_pair_degree; i++) {
-            newCarrier->srto.push_back(0.0);
-        }
-        
+    else {
+        std::cout << "WARNING: Can't open state store file" << "\n";
     }
+
+    statestore.close();    
+}
+
+template <class TGraph, class TCarrier>
+void State<TGraph,TCarrier>::Print(std::ostream& out) {
+    
+    typename std::vector<TCarrier*>::iterator it;    
+    for(it = _carriers.begin(); it != _carriers.end(); it++)  out << (*it)->id() << " " << (*it)->node()->position() << " " << 
+            (*it)->type() << " " << (*it)->distance() << " " << (*it)->inbox() << "\n";
 }
 
 }} 

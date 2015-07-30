@@ -15,13 +15,8 @@
  *
  */
 
-#include <stdlib.h>
-#include <votca/tools/propertyiomanipulator.h>
-#include <votca/kmc/kmccalculatorfactory.h>
 #include <votca/kmc/kmcapplication.h>
-#include <string>
-#include <cstdio>
-#include <iostream>
+#include <votca/kmc/kmccalculatorfactory.h>
 
 namespace votca { namespace kmc {
 
@@ -57,7 +52,7 @@ void KMCApplication::ShowHelpText(std::ostream &out)
 
     votca::kmc::HelpTextHeader(name);
     HelpText(out);
-    out << "\n\n" << OptionsDesc() << endl;
+    out << "\n\n" << VisibleOptions() << endl;
 }
 
 // check if required options are provided
