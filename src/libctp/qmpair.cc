@@ -141,11 +141,13 @@ void QMPair::setJs(const vector<double> Js, int state) {
 
     if (state == -1) {
         this->_Js_e = Js;
-        //double Jeff2 = this->calcJeff2(state);
+        //double Jeff2 =
+	(void)this->calcJeff2(state);
     }
     else if (state == +1) {
         this->_Js_h = Js;
-        //double Jeff2 = this->calcJeff2(state);
+        //double Jeff2 =
+	(void)this->calcJeff2(state);
     }
     else {
         throw std::runtime_error(" ERROR CODE whx__01x1u__");

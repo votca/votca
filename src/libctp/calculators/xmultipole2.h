@@ -2372,8 +2372,8 @@ void XMP::JobXMP::EvalJob(Topology *top, XJob *job) {
     int     state    = 0;
 
     if (_master->_induce) iter      = this->Induce(state, job);
-    //if (_master->_induce) E_state   = this->Energy(state, job);
-    //else                  E_state   = this->EnergyStatic(state, job);
+    if (_master->_induce) /*E_state   =*/ (void)this->Energy(state, job);
+    else                  /*E_state   =*/ (void)this->EnergyStatic(state, job);
 
     job->setIter(iter);
 
