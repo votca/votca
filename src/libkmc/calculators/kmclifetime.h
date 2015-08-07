@@ -81,7 +81,11 @@ protected:
             void InitBoxSize(vector<GNode*> node);
             void progressbar(double fraction);
             void ResetForbidden(vector<int> &forbiddenid);
-           
+            void AddForbidden(int id, vector<int> &forbiddenid);
+            int Forbidden(int id, vector<int> forbiddenlist);
+            int Surrounded(GNode* node, vector<int> forbiddendests);
+            void printtime(int seconds_t);
+            
             myvec _field;
 
             string _injection_name;
@@ -507,7 +511,7 @@ void KMCLifetime::InitialRates(vector<GNode*> node)
 
 
 
-vector<double> KMCLifetime::RunVSSM(vector<GNode*> node, double runtime, unsigned int numberofcharges, votca::tools::Random2 *RandomVariable, CoulombMap coulomb)
+vector<double> KMCLifetime::RunVSSM(vector<GNode*> node, double runtime, unsigned int numberofcharges, votca::tools::Random2 *RandomVariable)
 {
 
     int realtime_start = time(NULL);
@@ -708,7 +712,7 @@ vector<double> KMCLifetime::RunVSSM(vector<GNode*> node, double runtime, unsigne
     double nextoutput = outputfrequency;
     unsigned long nextstepoutput = outputstepfrequency;
     double nexttrajoutput = _outputtime;
-    int nextdiffstep = diffusion_stepsize;
+    int nextdiffstep = 0.0;
     
     progressbar(0.);
     vector<int> forbiddennodes;
@@ -723,11 +727,7 @@ vector<double> KMCLifetime::RunVSSM(vector<GNode*> node, double runtime, unsigne
             break;
         }
         double cumulated_rate = 0;
-        if(_explicitcoulomb >= 1)
-        {
-            KMCLifetime::RateUpdateCoulomb(node,carrier,coulomb);
-            // cout << "rate11: " << node[0]->event[0].rate << endl;
-        }
+        
         for(unsigned int i=0; i<numberofcharges; i++)
         {
             cumulated_rate += carrier[i]->node->EscapeRate();
@@ -865,45 +865,7 @@ vector<double> KMCLifetime::RunVSSM(vector<GNode*> node, double runtime, unsigne
                     level1step = 1;
                     if(votca::tools::globals::verbose) {cout << "Charge has jumped to segment: " << do_newnode->id+1 << "." << endl;}
                     
-                    if (_tof == 1)
-                    {   // time-of-flight experiment
-                        
-                        // keep track of travel in TOF direction
-                        double dr_tof = 0;
-                        if(_tofdirection == "x"){
-                            dr_tof = dr.getX();
-                        }
-                        else if(_tofdirection == "y"){
-                            dr_tof = dr.getY();
-                        }
-                        else {
-                            dr_tof = dr.getZ();
-                        }
-                        
-                        do_affectedcarrier->tof_travelled += dr_tof;
-                        
-                        // boundary crossing
-                        if(do_affectedcarrier->tof_travelled > _toflength){
-                            cout << "\nTOF length has been crossed in "+_tofdirection+" direction." << endl;
-                            cout << "LAST POSITION: " << (do_affectedcarrier->dr_travelled-dr) *1E9 << ", NEW POSITION: " << do_affectedcarrier->dr_travelled *1E9 << endl ; 
-
-                            // now re-inject the carrier to a new random position
-                            GNode *temp_node = new GNode;
-                            temp_node = do_affectedcarrier->node;
-                            do_affectedcarrier->node = node[RandomVariable->rand_uniform_int(node.size())];
-                            while(do_affectedcarrier->node->occupied == 1 || do_affectedcarrier->node->injectable != 1)
-                            {   // maybe already occupied? or maybe not injectable?
-                                do_affectedcarrier->node = node[RandomVariable->rand_uniform_int(node.size())];
-                            }
-                            do_affectedcarrier->node->occupied = 1;
-                            temp_node->occupied = 0;
-                            cout << "carrier " << do_affectedcarrier->id << " has been instanteneously moved from node " << temp_node->id+1 << " to node " << do_affectedcarrier->node->id+1 << endl << endl; 
-                            
-                            // reset TOF length counter
-                            do_affectedcarrier->tof_travelled -= _toflength;
-                        }
-                        
-                    }
+                    
                     
                     break; // this ends LEVEL 2 , so that the time is updated and the next MC step started
                 }
@@ -913,7 +875,7 @@ vector<double> KMCLifetime::RunVSSM(vector<GNode*> node, double runtime, unsigne
             }
         // END LEVEL 1
         }    
-
+    }
     return occP;
 }
 
