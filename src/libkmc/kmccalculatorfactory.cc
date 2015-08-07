@@ -26,6 +26,7 @@
 #include "calculators/kmcparallel.h"
 #include "calculators/device.h"
 #include "calculators/bulk.h"
+#include "calculators/kmclifetime.h"
 
 namespace votca { namespace kmc {
 
@@ -39,6 +40,7 @@ void KMCCalculatorFactory::RegisterAll(void)
     
     // single carrier threaded
     Calculators().Register<KMCParallel>("kmcparallel");
+    Calculators().Register<KMCLifetime>("kmclifetime");
     
     // diode-type calculator (2D PBC with a source and sink)
     Calculators().Register<Device>("device");

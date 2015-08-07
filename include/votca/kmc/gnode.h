@@ -24,17 +24,19 @@
 using namespace std;
 using namespace votca::kmc;
 
-typedef votca::tools::vec myvec;
 
 namespace votca { namespace kmc {
 
 class GNode
 {
     public:
+        typedef votca::tools::vec myvec;
+
         int id;
         int occupied;
         int injectable;
         double escaperate;
+        double decayrate;
         double occupationtime;
         myvec position;
         vector<GLink> event;
