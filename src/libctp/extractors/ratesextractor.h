@@ -53,13 +53,13 @@ bool RatesExtractor::EvaluateFrame(Topology *top) {
             Property &channel = pairprop.add("channel", "");
             channel.setAttribute("type","hole");
             channel.add("rate_h12", (format("%1$1.7e") % qmp->getRate12(+1)).str());
-            channel.add("rate_h21", (format("%1$1.7e") % qmp->getRate12(+1)).str());
+            channel.add("rate_h21", (format("%1$1.7e") % qmp->getRate21(+1)).str());
         }
         if (qmp->isPathCarrier(-1)) {
             Property &channel = pairprop.add("channel", "");
             channel.setAttribute("type","electron");
             channel.add("rate_e12", (format("%1$1.7e") % qmp->getRate12(-1)).str());
-            channel.add("rate_e21", (format("%1$1.7e") % qmp->getRate12(-1)).str());
+            channel.add("rate_e21", (format("%1$1.7e") % qmp->getRate21(-1)).str());
         }
     }
     
