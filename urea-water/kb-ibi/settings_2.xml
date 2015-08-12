@@ -152,7 +152,7 @@
   <!-- these files are copied for each new run -->
   <filelist>grompp.mdp topol.top table.xvg index.ndx</filelist>
   <!-- do so many iterations -->
-  <iterations_max>35</iterations_max>
+  <iterations_max>36</iterations_max>
   <!-- Try to clean a bit -->
   <cleanlist>traj.xtc</cleanlist>
   <!-- ibm: inverse biltzmann imc: inverse monte carlo -->
