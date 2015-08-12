@@ -14,7 +14,7 @@
    <!-- target distribution (rdf), just give gromas rdf.xvg -->
    <target>UR-UR.dist.tgt</target>
    <!-- update cycles -->
-   <do_potential>0</do_potential>
+   <do_potential>1</do_potential>
    <!-- additional post processing of dU before added to potential -->
    <post_update>kbibi smooth</post_update>
    <post_update_options>
@@ -59,7 +59,7 @@
    <!-- target distribution (rdf), just give gromas rdf.xvg -->
    <target>SOL-SOL.dist.tgt</target>
    <!-- update cycles -->
-   <do_potential>0</do_potential>
+   <do_potential>1</do_potential>
    <!-- additional post processing of dU before added to potential -->
    <post_update>kbibi smooth</post_update>
    <post_update_options>
@@ -103,7 +103,7 @@
    <!-- target distribution (rdf), just give gromas rdf.xvg -->
    <target>UR-SOL.dist.tgt</target>
    <!-- update cycles -->
-   <do_potential>0</do_potential>
+   <do_potential>1</do_potential>
    <!-- additional post processing of dU before added to potential -->
    <post_update>kbibi smooth</post_update>
    <post_update_options>
@@ -164,10 +164,5 @@
   <cleanlist>traj.xtc</cleanlist>
   <!-- ibm: inverse biltzmann imc: inverse monte carlo -->
   <method>ibi</method>
-  <!-- write log to this file -->
-  <log_file>inverse.log</log_file>
-  <!-- write restart step to this file -->
-  <restart_file>restart_points.log</restart_file>
-  <!-- imc specific stuff -->
  </inverse>
 </cg>
