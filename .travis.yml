@@ -5,6 +5,7 @@
 language: cpp
 
 before_install:
+ - if [[ $CTP = yes ]]; then sudo add-apt-repository -y ppa:boost-latest/ppa; fi #newer boost for libboost_timer
  - sudo apt-get update
  - sudo apt-get install cmake libfftw3-dev libgsl0-dev txt2tags libboost-program-options-dev libboost-filesystem-dev libboost-system-dev libexpat1-dev libsqlite3-dev pkg-config mercurial
  - if [[ $MAN ]]; then sudo apt-get install pgf texlive-fonts-recommended texlive-latex-extra doxygen graphviz; fi
@@ -13,9 +14,12 @@ before_install:
  - if [[ $TEST = *simplex* ]]; then sudo apt-get install gnuplot-nox; fi
  - if [[ $TEST = *realtime ]]; then sudo apt-get install gnuplot-nox; fi
  - if [[ $GROMACS != yes ]]; then sudo apt-get install gromacs-dev; fi
+ - if [[ $CTP = yes ]]; then sudo apt-get install libboost1.48-all-dev; fi
 
 env: #NINJA=1 is currently not support by Travis' cmake, enable when >=2.8.9
   - WERROR=yes J=4 #J>4 triggers an internal compiler in travis' g++
+  - CTP=yes WERROR=yes J=4
+  - CTP=yes WALL=yes J=4
   - J=1
   - BDIR=build J=4
   - BDIR=build J=1
@@ -45,6 +49,7 @@ env: #NINJA=1 is currently not support by Travis' cmake, enable when >=2.8.9
   - CSG_MDRUN_STEPS=500 TEST=spce/simplex/simple J=4
   - CSG_MDRUN_STEPS=500 TEST=spce/tf J=4 GROMACS=yes
   - CSG_MDRUN_STEPS=500 TEST=urea-water/ibi J=4
+  - CSG_MDRUN_STEPS=500 TEST=urea-water/kb-ibi J=4
 
 matrix:
   exclude:
@@ -61,8 +66,9 @@ before_script:
 script:
   - PYTHONPATH="$PWD" ./build.sh -Wdu --prefix $PWD ${MAN:+--devdoc}
     ${TEST:+--runtest=$TEST} ${WERROR:+--warn-to-errors} ${MINIMAL:+--minimal}
-    ${J:+-j$J} ${BDIR:+--builddir=$BDIR} ${NINJA:+--ninja} 
+    ${J:+-j$J} ${BDIR:+--builddir=$BDIR} ${NINJA:+--ninja} ${WALL:+--Wall}
     tools ${GROMACS:+gromacs} csg csgapps ${MAN:+csg-manual} ${TEST:+csg-tutorials}
+    ${CTP:+kmc moo ctp}
 
 compiler:
   - clang
