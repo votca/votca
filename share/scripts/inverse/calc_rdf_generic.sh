@@ -61,6 +61,10 @@ with_errors=$(csg_get_property cg.inverse.$sim_prog.rdf.with_errors)
 if [[ ${with_errors} = "yes" ]]; then
   suffix="_with_errors"
   block_length=$(csg_get_property cg.inverse.$sim_prog.rdf.block_length)
+  if [[ ${CSG_RUNTEST} ]] && csg_calc "$block_length" ">" "2"; then
+    msg --color blue --to-stderr "Automatically setting block_length to 2, because CSG_RUNTEST was set"
+    block_length=2
+  fi
   error_opts="--block-length ${block_length} --ext dist.block"
 else
   suffix=""
