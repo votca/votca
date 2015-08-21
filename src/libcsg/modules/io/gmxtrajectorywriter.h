@@ -26,7 +26,10 @@
 #include <votca/csg/trajectorywriter.h>
 #include "gmx_version_check.h"
 
-#if GMX == 50
+#if GMX == 51
+        #include <gromacs/fileio/trxio.h>
+        #include <gromacs/fileio/trx.h>
+#elif GMX == 50
         #include <gromacs/fileio/trxio.h>
 #elif GMX == 45
         #include <gromacs/statutil.h>
@@ -71,9 +74,7 @@ public:
     void Write(Topology *conf);
 
     private:
-#if GMX == 50
-       t_trxstatus* _file;
-#elif GMX == 45
+#if (GMX == 51)||(GMX == 50)||(GMX == 45)
        t_trxstatus* _file;
 #elif GMX == 40
        int _file;
