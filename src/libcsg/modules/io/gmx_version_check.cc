@@ -19,7 +19,7 @@
 #include <votca_config.h>
 #endif
 
-#if GMX == 50
+#if (GMX == 51)||(GMX == 50)
 #include <gromacs/legacyheaders/copyrite.h>
 #elif GMX == 45
 #include <gromacs/copyrite.h>

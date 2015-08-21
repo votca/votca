@@ -26,7 +26,10 @@
 #include <votca/csg/trajectoryreader.h>
 #include "gmx_version_check.h"
 
-#if GMX == 50
+#if GMX == 51
+        #include <gromacs/fileio/trx.h>
+        #include <gromacs/fileio/trxio.h>
+#elif GMX == 50
         #include <gromacs/fileio/trxio.h>
 #elif GMX == 45
         #include <gromacs/statutil.h>
@@ -84,9 +87,7 @@ class GMXTrajectoryReader : public TrajectoryReader
         string _filename;
         
         // gmx status used in read_first_frame and _read_next_frame;
-#if GMX == 50
-       t_trxstatus* _gmx_status;
-#elif GMX == 45
+#if (GMX == 51)||(GMX == 50)||(GMX == 45)
        t_trxstatus* _gmx_status;
 #elif GMX == 40
        int _gmx_status;

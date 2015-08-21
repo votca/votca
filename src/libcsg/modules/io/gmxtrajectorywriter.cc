@@ -23,7 +23,7 @@ namespace votca { namespace csg {
 
 void GMXTrajectoryWriter::Open(string file, bool bAppend)
 {
-#if GMX != 50
+#if (GMX == 40)||(GMX == 45)
     set_program_name("VOTCA");
 #endif
 
@@ -71,7 +71,7 @@ for(int i=0; i<N; ++i) {
         x[i][2] = v.getZ(); 
     }
         
-#if GMX == 50
+#if (GMX == 50)||(GMX == 51)
     write_trxframe(_file, &frame, NULL);
 #elif GMX == 45
     write_trxframe(_file, &frame, NULL);

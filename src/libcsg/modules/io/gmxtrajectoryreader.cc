@@ -37,7 +37,7 @@ void GMXTrajectoryReader::Close()
 
 bool GMXTrajectoryReader::FirstFrame(Topology &conf)
 {
-#if GMX == 50
+#if (GMX == 51)||(GMX == 50)
 
     output_env_t oenv;
     // _snew("oenv", oenv, 1);
@@ -101,7 +101,7 @@ bool GMXTrajectoryReader::FirstFrame(Topology &conf)
 
 bool GMXTrajectoryReader::NextFrame(Topology &conf)
 {
-#if GMX == 50
+#if (GMX == 51)||(GMX == 50)
     output_env_t oenv;
     //_snew("oenv", oenv, 1);
     //oenv = (output_env_t)malloc(sizeof(*oenv));
