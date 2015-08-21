@@ -67,6 +67,9 @@ if (GROMACS_LIBRARY)
     set(GMX_VERSION 51)
   endif(FOUND_GROMACS_GMX_GPU_SHARING_SUPPORTED)
   set(GROMACS_VERSION ${GMX_VERSION})
+  include(CheckCXXLibraryExists)
+  check_cxx_library_exists("${GROMACS_LIBRARY}" gmx_is_single_precision "" FOUND_GMX_IS_SINGLE_PRECISION)
+  check_cxx_library_exists("${GROMACS_LIBRARY}" gmx_is_double_precision "" FOUND_GMX_IS_DOUBLE_PRECISION)
 
   #Only set GROMACS_DEFINITIONS if GROMACS_LIBRARY was found
   if ("${GROMACS_LIBRARY}" MATCHES "lib[^/]*_d\\.[^.]*$")
