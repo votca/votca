@@ -22,7 +22,12 @@
 #include <iostream>
 #include "pdbtopologyreader.h"
 
-#if GMX == 50
+#if GMX == 51
+        #include <gromacs/topology/atoms.h>
+        #include <gromacs/fileio/trxio.h>
+        #include <gromacs/fileio/confio.h>
+        #include <gromacs/utility/smalloc.h>
+#elif GMX == 50
         #include <gromacs/fileio/trxio.h>
         #include <gromacs/fileio/confio.h>
         #include <gromacs/utility/smalloc.h>
@@ -65,7 +70,7 @@ bool PDBTopologyReader::ReadTopology(string file, Topology &top)
     ::matrix box;
     int ePBC;
     t_atoms atoms;
-#if GMX != 50 
+#if (GMX == 40)||(GMX == 45)
     set_program_name("VOTCA");
 #endif
 
