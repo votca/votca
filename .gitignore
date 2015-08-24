@@ -1,5 +1,3 @@
-syntax:glob
-
 *~
 Makefile
 rules.ninja
@@ -23,7 +21,7 @@ src/tools/votca_property
 src/tools/*.man
 netbeans/*/build
 */nbproject/private
-CMakeFiles/*
+CMakeFiles
 install_manifest.txt
 cmake_install.cmake
 cmake_uninstall.cmake
