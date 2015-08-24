@@ -1,5 +1,3 @@
-syntax: glob
-
 *~
 csg_*.man
 csg_*.t2t
@@ -57,7 +55,7 @@ Package-Debug.bash
 Package-Release.bash
 Package-profile_release.bash
 
-CMakeFiles/*
+CMakeFiles
 cmake_install.cmake
 cmake_uninstall.cmake
 CMakeCache.txt

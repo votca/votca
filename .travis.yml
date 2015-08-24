@@ -73,7 +73,3 @@ script:
 compiler:
   - clang
   - gcc
-
-notifications:
-  email:
-    - junghans@votca.org #https://github.com/travis-ci/travis-ci/issues/2513
