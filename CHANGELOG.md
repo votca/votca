@@ -53,7 +53,7 @@ For more detailed information about the changes see the history of the [reposito
 * improved cmake checks and error messages
 * fixed pkg-config file
 
-## Version 1.2 "SuperDoris" (released 17.06.11)
+## Version 1.2 _SuperDoris_ (released 17.06.11)
 
 * changed buildsystem to cmake
 * added thermforce iteration method
@@ -75,7 +75,7 @@ For more detailed information about the changes see the history of the [reposito
 * fixed bug when reading exclusions from tpr
 * end with error in csg_stat if bead type does not exist (issue 77)
 
-## Version 1.1 "SuperAnn" (released 18.02.11)
+## Version 1.1 _SuperAnn_ (released 18.02.11)
 
 * added support for gromacs 5.0
 * csg_dump: can dump exclusion
