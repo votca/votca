@@ -1,7 +1,7 @@
 SHELL=/bin/bash
 #the next line is used by the buildutil !
 VER=1.3-dev
-GITID_PLAIN:=$(shell git rev-parse --short HEAD 2> /dev/null || hg parents -R . --template "{node|short}")
+GITID_PLAIN:=$(shell git rev-parse --short HEAD 2> /dev/null)
 GITID:=$(shell echo $(GITID_PLAIN) | sed 's/.*/\\newcommand{\\gitid}{${VER} (&)}/')
 LATEXMK=scripts/latexmk.pl
 LATEXMKOPTS=-e '$$latex=q/latex --halt-on-error %O %S/'
