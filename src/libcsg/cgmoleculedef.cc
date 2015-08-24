@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,10 @@
 #include <iostream>
 #include <boost/tokenizer.hpp>
 #include <boost/lexical_cast.hpp>
-#include "topology.h"
-#include "cgmoleculedef.h"
+#include <votca/csg/topology.h>
+#include <votca/csg/cgmoleculedef.h>
 #include <votca/tools/tokenizer.h> 
-#include "interaction.h"
+#include <votca/csg/interaction.h>
 
 namespace votca { namespace csg {
 
@@ -129,7 +129,7 @@ Molecule * CGMoleculeDef::CreateMolecule(Topology & top)
         for (Tokenizer::iterator atom = tok.begin(); atom != tok.end(); ++atom) {
             int i = minfo->getBeadIdByName(*atom);
             if(i < 0)
-                runtime_error(string("error while trying to create bonded interaction, "
+                throw runtime_error(string("error while trying to create bonded interaction, "
                         "bead " + *atom + " not found"));
 
             atoms.push_back(i);
@@ -152,6 +152,7 @@ Molecule * CGMoleculeDef::CreateMolecule(Topology & top)
             ic->setIndex(index);
             ic->setMolecule(minfo->getId());
             top.AddBondedInteraction(ic);
+            minfo->AddInteraction(ic);
             index++;
         }
     }
@@ -160,7 +161,7 @@ Molecule * CGMoleculeDef::CreateMolecule(Topology & top)
 
 Map *CGMoleculeDef::CreateMap(Molecule &in, Molecule &out)
 {       
-    if(out.BeadCount() != _beads.size()) {
+    if((unsigned int)out.BeadCount() != _beads.size()) {
         throw runtime_error("number of beads for cg molecule and mapping definition do "
                 "not match, check your molecule naming.");
     }

@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,42 @@
  *
  */
 
+#ifndef HAVE_NO_CONFIG
+#include <votca_config.h>
+#endif
 
-#include "trajectoryreader.h"
+#include <votca/csg/trajectoryreader.h>
+#include "modules/io/lammpsreader.h"
+#include "modules/io/xyzreader.h"
+
+#ifdef GMX
 #include "modules/io/gmxtrajectoryreader.h"
-#include "modules/io/esptrajectoryreader.h"
+#endif
+#include "modules/io/groreader.h"
+#include "modules/io/pdbreader.h"
+#include "modules/io/dlpolytrajectoryreader.h"
+#ifdef H5MD
+#include "modules/io/h5mdtrajectoryreader.h"
+#endif
 
 
 namespace votca { namespace csg {
 
 void TrajectoryReader::RegisterPlugins(void)
 {
-    TrjReaderFactory().Register<ESPTrajectoryReader>("esp");
+    TrjReaderFactory().Register<LAMMPSReader>("dump");
+    TrjReaderFactory().Register<XYZReader>("xyz");
+#ifdef GMX
     TrjReaderFactory().Register<GMXTrajectoryReader>("trr");
     TrjReaderFactory().Register<GMXTrajectoryReader>("xtc");
-    TrjReaderFactory().Register<GMXTrajectoryReader>("gro");
-    TrjReaderFactory().Register<GMXTrajectoryReader>("pdb");
+#endif
+    TrjReaderFactory().Register<GROReader>("gro");
+    TrjReaderFactory().Register<PDBReader>("pdb");
+    TrjReaderFactory().Register<DLPOLYTrajectoryReader>("dlph");
+    TrjReaderFactory().Register<DLPOLYTrajectoryReader>("dlpc");
+#ifdef H5MD
+    TrjReaderFactory().Register<H5MDTrajectoryReader>("h5");
+#endif
 }
 
 }}

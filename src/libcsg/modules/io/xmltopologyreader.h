@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 #define	_XMLTOPOLOGYREADER_H
 
 #include <string>
-#include "topologyreader.h"
+#include <votca/csg/topologyreader.h>
 #include <stack>
 #include <votca/tools/parsexml.h>
 
@@ -50,6 +50,7 @@ private:
     void ParseRoot(const string &el, map<string, string> &attr);
     void ParseTopology(const string &el, map<string, string> &attr);
     void ParseMolecules(const string &el, map<string, string> &attr);
+    void ParseBeadTypes(const string &el, map<string, string> &attr);
     
 private:
     ParseXML _parser;

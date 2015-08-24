@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,20 @@
 #ifndef _gmxtrajectoryreader_H
 #define	_gmxtrajectoryreader_H
 
-#include <string>
-#include "trajectoryreader.h"
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
+#ifndef HAVE_NO_CONFIG
+#include <votca_config.h>
 #endif
 
-#ifdef GMX4DEV
+#include <string>
+#include <votca/csg/trajectoryreader.h>
+#include "gmx_version_check.h"
+
+#if GMX == 51
+        #include <gromacs/fileio/trx.h>
+        #include <gromacs/fileio/trxio.h>
+#elif GMX == 50
+        #include <gromacs/fileio/trxio.h>
+#elif GMX == 45
         #include <gromacs/statutil.h>
         #include <gromacs/typedefs.h>
         #include <gromacs/smalloc.h>
@@ -33,7 +39,7 @@
         #include <gromacs/copyrite.h>
         #include <gromacs/statutil.h>
         #include <gromacs/tpxio.h>
-#else
+#elif GMX == 40
    extern "C"
    {
         #include <statutil.h>
@@ -44,6 +50,8 @@
         #include <statutil.h>
         #include <tpxio.h>
     }
+#else
+#error Unsupported GMX version
 #endif
     // this one is needed because of bool is defined in one of the headers included by gmx
     #undef bool
@@ -61,7 +69,11 @@ using namespace std;
 */
 class GMXTrajectoryReader : public TrajectoryReader
 {
-    public:        
+    public:
+        GMXTrajectoryReader() {
+            gmx::CheckVersion();
+        }
+
         /// open a trejectory file
         bool Open(const string &file);
         /// read in the first frame
@@ -75,10 +87,12 @@ class GMXTrajectoryReader : public TrajectoryReader
         string _filename;
         
         // gmx status used in read_first_frame and _read_next_frame;
-#ifdef GMX4DEV
+#if (GMX == 51)||(GMX == 50)||(GMX == 45)
        t_trxstatus* _gmx_status;
-#else
+#elif GMX == 40
        int _gmx_status;
+#else
+#error Unsupported GMX version
 #endif
         /// gmx frame
         t_trxframe _gmx_frame;

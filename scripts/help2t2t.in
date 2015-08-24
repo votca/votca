@@ -1,0 +1,149 @@
+#! /bin/bash -e
+#
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+version='@PROJECT_VERSION@ #CSG_GIT_ID#'
+
+die() {
+  echo -e "$*" >&2
+  exit 1
+}
+
+assert() {
+  local x pipestatus=${PIPESTATUS[*]}
+  for x in $pipestatus; do
+      [[ $x -eq 0 ]] || die "$@"
+  done
+}
+
+[ -z "$1" ] && die "Usage: ${0##*/} helpfile"
+prog="${1%.*}"
+
+[ -f "$1" ] || die "${0##*/}: $1 not found"
+
+#trash the header
+helpmsg="$(sed -e '1,10d' $1)" || die "$prog --help failed"
+
+#first block is descprition
+desc="$(echo "$helpmsg" | sed -n '1,/^[[:space:]]*$/p')"
+assert "parse of desc failed"
+[ -z "$desc" ] && die "Failed to fetch desc"
+helpmsg="$(echo "$helpmsg" | sed '1,/^[[:space:]]*$/d')" 
+assert "cut of help msg failed"
+
+#second block can be usage line
+usage="$(echo "$helpmsg" | sed -n '1s/Usage:[[:space:]]*\(.*\)$/\1/p')" 
+assert "parse of usage failed"
+if [ -z "$usage" ]; then
+  usage="**$prog** \"\"[\"\"//OPTION//\"\"]\"\" \"\"[\"\"//OPTIONPARAMETERS//\"\"]\"\""
+else
+  usage="$(echo "$usage" | sed -e 's/^/**/' -e 's/ /** /' -e 's/\([][]\)/""\1""/g')"
+  assert "parse part 2 of usage failed"
+  helpmsg="$(echo "$helpmsg" | sed '1,/^[[:space:]]*$/d')"
+  assert "cut of help msg failed"
+fi
+
+#try to find examples block
+exam="$(echo "$helpmsg" | sed -n '/^Examples:/,/^[[:space:]]*$/p')" || die "parse of exam failed"
+if [ -n "$exam" ]; then
+  exam="$(echo "$exam" | \
+    sed -e '1d' \
+      -e '/^\* /s/\( \{2\}\|$\)/``/' \
+      -e '/^\*.*``/s/^\*[[:space:]]*/- ``/')"
+  assert "parse part 2 of exam failed"
+  helpmsg="$(echo "$helpmsg" | sed '/^Examples:/,/^[[:space:]]*$/d')"
+  assert "cut of help msg failed"
+fi
+
+#write t2t file
+cat <<EOF
+$prog
+Version: $version
+$(date)
+
+= NAME =
+
+$prog - Part of the VOTCA package
+
+= SYNOPSIS =
+
+$usage
+
+
+= DESCRIPTION =
+
+$desc
+
+Please visit the program site at __http://www.votca.org__.
+
+
+= OPTIONS =
+EOF
+#Here comes the magic:
+#-space at begining and end are removed
+#-optionlines (-[^ ]) -> - ``--option`` text
+#-usageline -> usage: ``code``
+#-extra empty line before new section to close itemize
+#-examplelines (^*) -> - ``line``
+#-remove NEEDS and OPTINAL, ... line
+#-added newline before new option block
+echo -e "$helpmsg" | sed \
+   -e 's/^[[:space:]]*//' \
+   -e 's/[[:space:]]*$//' \
+   -e '/^-[^ ]/s/ \{2,\}/**\n/' \
+   -e '/^-[^ ].*\*\*/s/^/: **/' \
+   -e '/^\* /s/\( \{2\}\|$\)/``/' \
+   -e '/^\*.*``/s/^\*[[:space:]]*/- ``/' \
+   -e '/^\(NEEDS\|OPTIONAL\|USES\|PROVIDES\)/d' \
+   -e 's/^[A-Za-z]* options:/\n&/'
+
+assert "sed of options failed"
+
+if [ -n "$exam" ]; then
+  cat <<EOF
+
+
+= EXAMPLES =
+$exam
+EOF
+fi
+cat <<EOF
+
+
+= AUTHORS =
+
+Written and maintained by the VOTCA Development Team <devs@votca.org>
+
+This Manual Page was converted from t2t format to the this format by [txt2tags http://txt2tags.org] !
+The t2t file was extracted from '$prog --help' by ${0##*/} (version $version)
+
+
+= COPYRIGHT =
+
+Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+EOF

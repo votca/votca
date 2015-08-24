@@ -1,0 +1,5 @@
+add_subdirectory(man)
+add_subdirectory(xml)
+add_subdirectory(doc)
+add_subdirectory(scripts/inverse)
+add_subdirectory(template)

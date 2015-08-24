@@ -37,7 +37,7 @@
           <developmentMode>2</developmentMode>
           <incDir>
             <pElem>../../include</pElem>
-            <pElem>../../../include</pElem>
+            <pElem>../../../tools/include</pElem>
           </incDir>
         </ccTool>
         <linkerTool>
@@ -76,6 +76,7 @@
             <linkerLibLibItem>gsl</linkerLibLibItem>
             <linkerLibLibItem>gslcblas</linkerLibLibItem>
             <linkerLibStdlibItem>Mathematics</linkerLibStdlibItem>
+            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
           </linkerLibItems>
         </linkerTool>
       </compileType>

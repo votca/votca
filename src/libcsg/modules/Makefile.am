@@ -1,4 +1,0 @@
-SUBDIRS = io
-
-CLEANFILES = *~
-

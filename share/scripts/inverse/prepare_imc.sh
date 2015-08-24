@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,21 +18,20 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script initizalizes potentials in a generic way
+This script initializes potentials for imc
 
 Usage: ${0##*/}
-
-USES: msg
-
-NEEDS:
 EOF
    exit 0
 fi
 
-check_deps "$0"
+names=( $(csg_get_interaction_property --all name) )
+if [[ ${#names[@]} -gt 1 ]]; then
+  msg --color blue "####################################################"
+  msg --color blue "# WARNING multicomponent imc is still experimental #"
+  msg --color blue "####################################################"
+fi
 
-msg "####################################################"
-msg "# WARNING multicomponent imc is still experimental #"
-msg "####################################################"
+[[ -n $(csg_get_property --allow-empty cg.bonded.name) ]] && die "IMC does not support bonded interactions, go and implement it"
 
 do_external prepare generic

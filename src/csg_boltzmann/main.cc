@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@
 #include "bondedstatistics.h"
 #include "tabulatedpotential.h"
 #include "stdanalysis.h"
-#include <csgapplication.h>
+#include <votca/csg/csgapplication.h>
 
 using namespace std;
 
@@ -41,7 +41,7 @@ public:
 
     string ProgramName() { return "csg_boltzmann"; }
     void HelpText(ostream &out) {
-        out << "Perform tasks that are needed for simple boltzmann\n"
+        out << "Performs tasks that are needed for simple boltzmann\n"
             "inversion in an interactive environment.";
     }
     bool DoTrajectory() { return true; }
@@ -97,35 +97,41 @@ bool CsgBoltzmann::EvaluateTopology(Topology *top, Topology *top_ref)
 
 ExclusionList *CsgBoltzmann::CreateExclusionList(Molecule &atomistic, Molecule &cg)
 {
-    list<int> exclude;
-   
-    ExclusionList *ex = new ExclusionList();
-    ex->ExcludeAll(atomistic.BeadCount());
-
-    // reintroduce bead internal nonbonded interaction
-    for(int i=0; i<cg.BeadCount(); ++i) {
-        exclude.clear();
-        
-        vector<int> &v = cg.getBead(i)->ParentBeads();
-        exclude.insert(exclude.begin(), v.begin(), v.end());
-        ex->Remove(exclude);
-    }
-
-    Topology *top_cg = cg.getParent();
-    InteractionContainer::iterator iter;
-    // reintroduce nonbonded interactions for bonded beads
-    for(iter = top_cg->BondedInteractions().begin();
-            iter!=top_cg->BondedInteractions().end(); ++iter) {
-        Interaction *ic = *iter;
-        exclude.clear();
-        for(size_t i=0; i<ic->BeadCount(); i++) {
-            vector<int> &v = top_cg->getBead(ic->getBeadId(i))->ParentBeads();
-            exclude.insert(exclude.end(), v.begin(), v.end());
-        }
-        ex->Remove(exclude);
-    }
-    return ex;
+	throw std::runtime_error("CsgBoltzmann::CreateExclusionList not implemented");
 }
+//	Topology *top = atomistic.getParent();
+//	list<Bead *> exclude;
+//
+//    ExclusionList *ex = new ExclusionList();
+//
+//    for(int i=0; i<atomistic.BeadCount(); ++i)
+//    	exclude.push_back(top->getBead(atomistic.getBead(i)));
+//    ex->InsertExclusion(exclude);
+//
+//    // reintroduce bead internal nonbonded interaction
+//    for(int i=0; i<cg.BeadCount(); ++i) {
+//        exclude.clear();
+//
+//        vector<int> &v = cg.getBead(i)->ParentBeads();
+//        exclude.insert(exclude.begin(), v.begin(), v.end());
+//        ex->Remove(exclude);
+//    }
+//
+//    Topology *top_cg = cg.getParent();
+//    InteractionContainer::iterator iter;
+//    // reintroduce nonbonded interactions for bonded beads
+//    for(iter = top_cg->BondedInteractions().begin();
+//            iter!=top_cg->BondedInteractions().end(); ++iter) {
+//        Interaction *ic = *iter;
+//        exclude.clear();
+//        for(int i=0; i<ic->BeadCount(); i++) {
+//            vector<int> &v = top_cg->getBead(ic->getBeadId(i))->ParentBeads();
+//            exclude.insert(exclude.end(), v.begin(), v.end());
+//        }
+//        ex->Remove(exclude);
+//    }
+//    return ex;
+//}
 
 void CsgBoltzmann::Run()
 {
@@ -160,8 +166,6 @@ void CsgBoltzmann::InteractiveMode()
         string line;
         cout << "> ";
         getline(cin, line);
-        size_t start;
-        size_t end;
 
         boost::trim(line);
         vector<string> args;

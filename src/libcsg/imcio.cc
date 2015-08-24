@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,9 @@
 #include <votca/tools/table.h>
 #include <boost/lexical_cast.hpp>
 #include <votca/tools/tokenizer.h>
+#include <votca/tools/getline.h>
 #include <iostream>
-#include "imcio.h"
+#include <votca/csg/imcio.h>
 
 namespace votca { namespace csg {
 
@@ -41,7 +42,7 @@ void imcio_write_dS(const string &file, ub::vector<double> &r, ub::vector<double
         throw runtime_error(string("error, cannot open file ") + file);
 
     if(list == NULL) {
-        for (int i = 0; i < dS.size(); ++i) {
+        for (size_t i = 0; i < dS.size(); ++i) {
             out_dS << r[i] << " " << dS[i] << endl;
         }
     }
@@ -95,7 +96,7 @@ void imcio_write_index(const string &file, vector<string> &names, vector<RangePa
     if (!out_idx)
         throw runtime_error(string("error, cannot open file ") + file);
     
-    for (int i = 0; i < names.size(); ++i)
+    for (size_t i = 0; i < names.size(); ++i)
         out_idx << names[i] << " " << ranges[i] << endl;
     
     out_idx.close();
@@ -110,7 +111,7 @@ void imcio_read_dS(const string &filename, ub::vector<double> &r, ub::vector<dou
     r.resize(tbl.size());
     dS.resize(tbl.size());
     
-    for(int i=0; i<tbl.size(); ++i) {
+    for(unsigned int i=0; i<tbl.size(); ++i) {
         r(i) = tbl.x(i);
         dS(i) = tbl.y(i);
     }
@@ -125,7 +126,7 @@ void imcio_read_matrix(const string &filename, ub::matrix<double> &gmc)
     if(!in)
         throw runtime_error(string("error, cannot open file ") + filename);
 
-    int line_count =0;
+    size_t line_count =0;
     string line;
     // read till the first data line
     while(getline(in, line)) {
@@ -147,7 +148,7 @@ void imcio_read_matrix(const string &filename, ub::matrix<double> &gmc)
         if(gmc.size1()!=tokens.size())
             throw runtime_error(string("error loading ")
                     + filename + ": size mismatchm, number of columns differ");
-        for(int i=0; i<tokens.size(); ++i)
+        for(size_t i=0; i<tokens.size(); ++i)
             gmc(line_count,i) = boost::lexical_cast<double>(tokens[i]);
         ++line_count;
     }

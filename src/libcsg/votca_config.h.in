@@ -1,0 +1,11 @@
+/* Used gromacs version */
+#cmakedefine GMX @GMX@
+
+/* Used gromacs version */
+#cmakedefine H5MD
+
+/* Version number of package */
+#define VERSION "@PROJECT_VERSION@"
+
+/* Contact address of package */
+#define PACKAGE_BUGREPORT "@PROJECT_CONTACT@"

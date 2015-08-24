@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -49,10 +49,6 @@ Allowed options:
 
 Examples:
 * $progname tmp.dpot.cur tmp.dpot.new
-
-USES: readin_table saveto_table
-
-NEEDS:
 END
 		exit;
 	}
@@ -64,7 +60,7 @@ END
     }
 	else
 	{
-		die "Unknow option '".$ARGV[0]."' !\n";
+		die "Unknown option '".$ARGV[0]."' !\n";
 	}
     shift(@ARGV);
 }

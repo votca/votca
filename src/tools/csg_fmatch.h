@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,8 @@
 #include <boost/numeric/ublas/matrix_sparse.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <votca/tools/cubicspline.h>
-#include "csgapplication.h"
+#include <votca/csg/csgapplication.h>
+#include <votca/csg/trajectoryreader.h>
 
 using namespace votca::csg;
 
@@ -46,7 +47,7 @@ public:
 
     string ProgramName() { return "csg_fmatch"; }
     void HelpText(ostream &out) {
-        out << "Perform force matching (also call multiscale coarse-graining)";
+        out << "Perform force matching (also called multiscale coarse-graining)";
     }
 
     bool DoTrajectory() {return true;}
@@ -148,6 +149,8 @@ protected:
   /// \brief Counters for lines and coloumns in _B_constr
   int _line_cntr, _col_cntr;
 
+  bool _has_existing_forces;
+  
   /// \brief Solves FM equations for one block and stores the results for further processing
   void FmatchAccumulateData();
   /// \brief Assigns smoothing conditions to matrices _A and _B_constr
@@ -158,6 +161,11 @@ protected:
   void EvalNonbonded(Topology *conf, SplineInfo *sinfo);
   /// \brief Write results to output files
   void WriteOutFiles();
+
+  void OpenForcesTrajectory();
+
+  Topology _top_force;
+  TrajectoryReader *_trjreader_force;
 };
 
 #endif	/* _CSG_FMATCH_H */

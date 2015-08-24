@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
  */
 
 #include <fstream>
-#include "cgengine.h"
+#include <votca/csg/cgengine.h>
 #include <votca/tools/tokenizer.h>
-#include "version.h"
+#include <votca/csg/version.h>
 
 namespace votca { namespace csg {
 
@@ -46,6 +46,7 @@ TopologyMap *CGEngine::CreateCGTopology(Topology &in, Topology &out)
     TopologyMap *m = new TopologyMap(&in, &out);
     for(iter=mols.begin(); iter!=mols.end(); ++iter) {
         Molecule *mol = *iter;
+        if(IsIgnored(mol->getName())) continue;
         CGMoleculeDef *def = getMoleculeDef(mol->getName());
         if(!def) {
             cout << "--------------------------------------\n"

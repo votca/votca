@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 #include <iostream>
 #include <fstream>
 #include <boost/format.hpp>
-#include <csgapplication.h>
+#include <votca/csg/csgapplication.h>
 
 using namespace votca::csg;
 using namespace std;
@@ -31,7 +31,7 @@ public:
     string ProgramName() { return "csg_gmxtopol"; }
     void HelpText(ostream &out) {
         out << "Create skeleton for gromacs topology based on atomistic topology\n"
-            "and a mapping file. Files still needs to be modified by the user.";
+            "and a mapping file. File still needs to be modified by the user.";
     }
 
     bool DoMapping(void) { return true; }

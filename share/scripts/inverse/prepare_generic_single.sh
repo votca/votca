@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,24 +15,15 @@
 # limitations under the License.
 #
 
-if [ "$1" = "--help" ]; then
+if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implemtents the function initialize
-for the Inverse Boltzmann Method
+This script implements the prepares the potential in step 0, using pot.in or by resampling the target distribution
 
 Usage: ${0##*/}
-
-USES: do_external csg_get_interaction_property log run_or_exit csg_resample log check_deps msg get_main_dir
-
-NEEDS: name min max step
-
-OPTIONAL: inverse.target
 EOF
   exit 0
 fi
-
-check_deps "$0"
 
 name=$(csg_get_interaction_property name)
 min=$(csg_get_interaction_property min )
@@ -40,16 +31,44 @@ max=$(csg_get_interaction_property max )
 step=$(csg_get_interaction_property step )
 comment="$(get_table_comment)"
 main_dir=$(get_main_dir)
+bondtype="$(csg_get_interaction_property bondtype)"
+output="${name}.pot.new"
 
-if [ -f "${main_dir}/${name}.pot.in" ]; then
+if [[ -f ${main_dir}/${name}.pot.in ]]; then
   msg "Using given table ${name}.pot.in for ${name}"
-  run_or_exit csg_resample --in "${main_dir}/${name}.pot.in" --out ${name}.pot.new --grid ${min}:${step}:${max} --comment "$comment"
+  smooth="$(critical mktemp ${name}.pot.in.smooth.XXX)"
+  echo "Converting ${main_dir}/${name}.pot.in to ${output}"
+  critical csg_resample --in "${main_dir}/${name}.pot.in" --out ${smooth} --grid ${min}:${step}:${max} --comment "$comment"
+  extrapolate="$(critical mktemp ${name}.pot.in.extrapolate.XXX)"
+  do_external potential extrapolate --type "$bondtype" "${smooth}" "${extrapolate}"
+  shifted="$(critical mktemp ${name}.pot.in.shifted.XXX)"
+  do_external potential shift --type "${bondtype}" ${extrapolate} ${shifted}
+  do_external table change_flag "${shifted}" "${output}"
 else
   target=$(csg_get_interaction_property inverse.target)
-  msg "Using intial guess from dist ${main_dir}/${target} for ${name}"
-  #copy+resample all target dist in $this_dir
-  run_or_exit csg_resample --in ${main_dir}/${target} --out ${name}.dist.tgt --grid ${min}:${step}:${max} --comment "${comment}"
-  # RDF_to_POT.pl just does log g(r) + extrapolation
-  run_or_exit do_external rdf pot ${name}.dist.tgt ${name}.pot.new
+  msg "Using initial guess from dist ${target} for ${name}"
+  if [[ $bondtype = "thermforce" ]]; then
+    #therm force is resampled later and as one want to symetrize 1d density
+    cp_from_main_dir --rename "$(csg_get_interaction_property inverse.target)" "${name}.dist.tgt" 
+    #initial guess from density
+    raw="$(critical mktemp -u ${name}.pot.new.raw.XXX)"
+    do_external calc thermforce ${name}.dist.tgt ${raw}
+    do_external table change_flag "${raw}" "${output}"
+  else
+    #resample target dist
+    do_external resample target "$(csg_get_interaction_property inverse.target)" "${name}.dist.tgt" 
+    # initial guess from rdf
+    raw="$(critical mktemp ${name}.pot.new.raw.XXX)"
+    kbt="$(csg_get_property cg.inverse.kBT)"
+    dist_min="$(csg_get_property cg.inverse.dist_min)"
+    do_external dist invert --type "${bondtype}" --kbT "${kbt}" --min "${dist_min}" ${name}.dist.tgt ${raw}
+    smooth="$(critical mktemp ${name}.pot.new.smooth.XXX)"
+    critical csg_resample --in ${raw} --out ${smooth} --grid ${min}:${step}:${max} --comment "${comment}"
+    extrapolate="$(critical mktemp ${name}.pot.new.extrapolate.XXX)"
+    do_external potential extrapolate --type "$bondtype" "${smooth}" "${extrapolate}"
+    shifted="$(critical mktemp ${name}.pot.new.shifted.XXX)"
+    do_external potential shift --type "${bondtype}" ${extrapolate} ${shifted}
+    do_external table change_flag "${shifted}" "${output}"
+  fi
 fi
 

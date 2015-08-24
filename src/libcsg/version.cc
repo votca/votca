@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,32 +15,38 @@
  *
  */
 
+#include <votca_config.h>
 #include <votca/tools/version.h>
 #include <iostream>
-#include "version.h"
+#include <votca/csg/version.h>
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#ifdef GMX4DEV
-        #include <gromacs/copyrite.h>
-#else
+#if (GMX == 51)||(GMX == 50)
+#include <gromacs/legacyheaders/copyrite.h>
+#elif GMX == 45
+#include <gromacs/copyrite.h>
+#elif GMX == 40
     extern "C"
     {
         #include <copyrite.h>
     }
 #endif
-    // this one is needed because of bool is defined in one of the headers included by gmx
-    #undef bool
+
+#ifdef GMX
+// this one is needed because of bool is defined in one of the headers included by gmx
+#undef bool
+#endif
+
+extern "C" {
+   void VotcaCsgFromC(){
+     //do nothing - this is just that we have a c function for autotools
+   }
+}
 
 namespace votca { namespace csg {
 
-#ifdef HGVERSION
-  static const std::string version_str = VERSION " " HGVERSION " (compiled " __DATE__ ", " __TIME__ ")";
-#else
-  static const std::string version_str = VERSION "(compiled " __DATE__ ", " __TIME__ ")";
-#endif
+//defines gitversion
+#include "gitversion.h"
+static const std::string version_str = std::string(VERSION) + " " + gitversion + " (compiled " __DATE__ ", " __TIME__ ")";
 
 const std::string &CsgVersionStr()
 {
@@ -55,8 +61,17 @@ void HelpTextHeader(const std::string &tool_name)
          << "==================================================\n\n"
 	 << "please submit bugs to " PACKAGE_BUGREPORT "\n\n" 
 	 << tool_name << ", version " << votca::csg::CsgVersionStr() 
-         << "\nvotca_tools, version " << votca::tools::ToolsVersionStr() 
+         << "\nvotca_tools, version " << votca::tools::ToolsVersionStr()
+#ifdef GMX
          << "\ngromacs, " << GromacsVersion()
+#ifdef GMX_DOUBLE
+	 << " (double precision)"
+#else
+	 << " (single precision)"
+#endif
+#else
+	 << "\n"
+#endif
          << "\n\n";
 }
 

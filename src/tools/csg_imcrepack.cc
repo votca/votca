@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,8 @@
 #include <votca/tools/tokenizer.h>
 #include <boost/program_options.hpp>
 #include <iostream>
-#include "imcio.h"
-#include "version.h"
+#include <votca/csg/imcio.h>
+#include <votca/csg/version.h>
 
 using namespace votca::csg;
 using namespace votca::tools;
@@ -123,7 +123,7 @@ int main(int argc, char** argv)
         while(iter_name != names.end()) {
             cur_rp = &(*iter_range);
             for(RangeParser::iterator ir=cur_rp->begin(); ir!=cur_rp->end(); ++ir) {
-                for(int i=0; i<gmc.size1(); ++i)
+                for(size_t i=0; i<gmc.size1(); ++i)
                     if(fabs(gmc(i,*ir-1)) > 1e-8) {
                         list.push_back(*ir-1);
                         end++;

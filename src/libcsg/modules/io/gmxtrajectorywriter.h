@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,20 @@
 #ifndef _GMXTRAJECTORYWRITER_H
 #define	_GMXTRAJECTORYWRITER_H
 
-#include "topology.h"
-#include "trajectorywriter.h"
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
+#ifndef HAVE_NO_CONFIG
+#include <votca_config.h>
 #endif
 
-#ifdef GMX4DEV
+#include <votca/csg/topology.h>
+#include <votca/csg/trajectorywriter.h>
+#include "gmx_version_check.h"
+
+#if GMX == 51
+        #include <gromacs/fileio/trxio.h>
+        #include <gromacs/fileio/trx.h>
+#elif GMX == 50
+        #include <gromacs/fileio/trxio.h>
+#elif GMX == 45
         #include <gromacs/statutil.h>
         #include <gromacs/typedefs.h>
         #include <gromacs/smalloc.h>
@@ -33,7 +39,7 @@
         #include <gromacs/copyrite.h>
         #include <gromacs/statutil.h>
         #include <gromacs/tpxio.h>
-#else
+#elif GMX == 40
    extern "C"
    {
         #include <statutil.h>
@@ -44,6 +50,8 @@
         #include <statutil.h>
         #include <tpxio.h>
     }
+#else
+#error Unsupported GMX version
 #endif
     // this one is needed because of bool is defined in one of the headers included by gmx
     #undef bool
@@ -57,16 +65,21 @@ class GMXTrajectoryWriter
     : public TrajectoryWriter
 {
 public:
-    
+    GMXTrajectoryWriter() {
+        gmx::CheckVersion();
+    }
+
     void Open(string file, bool bAppend = false);
     void Close();
     void Write(Topology *conf);
 
     private:
-#ifdef GMX4DEV
+#if (GMX == 51)||(GMX == 50)||(GMX == 45)
        t_trxstatus* _file;
-#else
+#elif GMX == 40
        int _file;
+#else
+#error Unsupported GMX version
 #endif
 };
 

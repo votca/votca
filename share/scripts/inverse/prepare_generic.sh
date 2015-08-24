@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,23 +18,22 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script initizalizes potentials in a generic way
+This script prepares potentials in a generic way
 
 Usage: ${0##*/}
-
-USES:  csg_get_property for_all do_external check_deps
-
-NEEDS: cg.inverse.method cg.inverse.program
 EOF
    exit 0
 fi
 
-check_deps "$0"
-
 sim_prog="$(csg_get_property cg.inverse.program)"
 method="$(csg_get_property cg.inverse.method)"
 
-for_all non-bonded do_external prepare_single $method
+for_all "bonded non-bonded" do_external prepare_single $method
 
-#cp confout.gro and so on
-do_external prepare_generic $sim_prog
+if [[ $sim_prog != gromacs ]] ; then
+  msg --color blue "######################################################"
+  msg --color blue "# WARNING using this simulator is still experimental #"
+  msg --color blue "# If you find a problem report it under:             #"
+  msg --color blue "# https://github.com/votca/csg                       #"
+  msg --color blue "######################################################"
+fi

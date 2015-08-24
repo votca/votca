@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,13 @@
  *
  */
 
-#include "map.h"
+#include <votca/csg/map.h>
+#include <votca/csg/topology.h>
 #include <iostream>
 #include <votca/tools/matrix.h>
 #include <votca/tools/tokenizer.h>
 #include <numeric>
+#include <boost/lexical_cast.hpp>
 
 namespace votca { namespace csg {
 
@@ -91,7 +93,7 @@ void Map_Sphere::Initialize(Molecule *in, Bead *out, Property *opts_bead, Proper
 
     fweights.resize(weights.size());
     // calculate force weights by d_i/w_i
-    for(int i=0; i<weights.size(); ++i) {
+    for(size_t i=0; i<weights.size(); ++i) {
         if(weights[i] == 0 && d[i]!=0) {
             throw runtime_error(
                 "A d coefficient is nonzero while weights is zero in mapping "
@@ -118,13 +120,36 @@ void Map_Sphere::Apply()
     bool bPos, bVel, bF;
     bPos=bVel=bF=false;
     _out->ParentBeads().clear();
+
+    // the following is needed for pbc treatment
+    Topology *top = _out->getParent();
+    double max_dist = 0.5*top->ShortestBoxSize();
+    vec r0 = vec(0,0,0);
+    string name0;
+    int id0;
+    if(_matrix.size() > 0) {
+        if(_matrix.front()._in->HasPos()) {
+            r0=_matrix.front()._in->getPos();
+            name0 = _matrix.front()._in->getName();
+            id0 = _matrix.front()._in->getId();
+        }
+    }
+
     double M = 0;
+
     for(iter = _matrix.begin(); iter != _matrix.end(); ++iter) {
         Bead *bead = iter->_in;
         _out->ParentBeads().push_back(bead->getId());
         M+=bead->getM();
         if(bead->HasPos()) {
-            cg += (*iter)._weight * bead->getPos();
+            vec r = top->BCShortestConnection(r0, bead->getPos());
+            if(abs(r) > max_dist) {
+                cout << r0 << " " << bead->getPos() << endl;
+                throw std::runtime_error("coarse-grained bead is bigger than half the box \n (atoms "
+                        + name0 + " (id " + boost::lexical_cast<string>(id0+1) + ")" + ", " + bead->getName() + " (id " + boost::lexical_cast<string>(bead->getId()+1) + ")" +  +" , molecule "
+                        + boost::lexical_cast<string>(bead->getMolecule()->getId()+1) + ")" );
+            }
+            cg += (*iter)._weight * (r+r0);
             bPos=true;
         }
         if(bead->HasVel()) {
@@ -153,7 +178,17 @@ void Map_Ellipsoid::Apply()
     matrix m(0.);
      bool bPos, bVel, bF;
     bPos=bVel=bF=false;
-      
+
+    // the following is needed for pbc treatment
+    Topology *top = _out->getParent();
+    double max_dist = 0.5*top->ShortestBoxSize();
+    vec r0 = vec(0,0,0);
+    if(_matrix.size() > 0) {
+        if(_matrix.front()._in->HasPos()) {            
+            r0=_matrix.front()._in->getPos();
+        }
+    }
+
     int n;
     n = 0;
     _out->ParentBeads().clear();
@@ -161,7 +196,10 @@ void Map_Ellipsoid::Apply()
        Bead *bead = iter->_in;
        _out->ParentBeads().push_back(bead->getId());
        if(bead->HasPos()) {
-            cg += (*iter)._weight * bead->getPos();
+            vec r = top->BCShortestConnection(r0, bead->getPos());
+            if(abs(r) > max_dist)
+                throw std::runtime_error("coarse-grained bead is bigger than half the box");
+            cg += (*iter)._weight * (r+r0);
             bPos=true;
         }
         if(bead->HasVel() == true) {
@@ -222,14 +260,14 @@ void Map_Ellipsoid::Apply()
     matrix::eigensystem_t es;
     m.SolveEigensystem(es);
     
-    vec eigenv1=es.eigenvecs[0];
-    vec eigenv2=es.eigenvecs[1];
-    vec eigenv3=es.eigenvecs[2];
+    //vec eigenv1=es.eigenvecs[0];
+    //vec eigenv2=es.eigenvecs[1];
+    //vec eigenv3=es.eigenvecs[2];
     
-    _out->seteigenvec1(eigenv1);
+/*    _out->seteigenvec1(eigenv1);
     _out->seteigenvec2(eigenv2);
     _out->seteigenvec3(eigenv3);
-    
+  */  
     
     vec u = es.eigenvecs[0];
     vec v = _matrix[1]._in->getPos() - _matrix[0]._in->getPos();
@@ -239,16 +277,6 @@ void Map_Ellipsoid::Apply()
     
     vec w = _matrix[2]._in->getPos() - _matrix[0]._in->getPos();
     w.normalize();
-    
-    //store the eigenvalues for the tensor of gyration
-    double eigenvalue1 = es.eigenvalues[0];
-    double eigenvalue2 = es.eigenvalues[1];
-    double eigenvalue3 = es.eigenvalues[2];
-    
-    
-    _out->setval1(eigenvalue1);
-    _out->setval2(eigenvalue2);
-    _out->setval3(eigenvalue3);
     
     if((v^w)*u < 0) u=vec(0.,0.,0.)-u;
     _out->setU(u);

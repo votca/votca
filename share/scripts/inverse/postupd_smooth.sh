@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,32 +18,26 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implemtents smoothing of the potential update (.dpot)
+This script implements smoothing of the potential update (.dpot)
 
 Usage: ${0##*/} infile outfile
-
-USES: die csg_get_interaction_property mktemp do_external cp log run_or_exit check_deps
-
-NEEDS: name inverse.post_update_options.smooth.iterations
 EOF
    exit 0
 fi
 
-check_deps "$0"
-
-[ -z "$2" ] && die "${0##*/}: Missing arguments"
+[[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
 
 [ -f "$2" ] && die "${0##*/}: $2 is already there"
 
 name=$(csg_get_interaction_property name)
-tmpfile=$(mktemp ${name}.XXX) || die "mktemp failed"
-iterations=$(csg_get_interaction_property inverse.post_update_options.smooth.iterations 1)
+tmpfile=$(critical mktemp ${name}.XXX)
+iterations=$(csg_get_interaction_property inverse.post_update_options.smooth.iterations)
 
-run_or_exit cp "$1" $tmpfile
-log "doing $iterations smoothing iterations"
+critical cp "$1" $tmpfile
+echo "doing $iterations smoothing iterations for interaction $name"
 
 for((i=0;i<$iterations;i++)); do
   do_external table smooth $tmpfile "$2"
-  run_or_exit cp "$2" $tmpfile
+  critical cp "$2" $tmpfile
 done
 

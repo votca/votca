@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,23 +15,17 @@
 # limitations under the License.
 #
 
-if [ "$1" = "--help" ]; then
+if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
 Skeleton script
 
 Usage: ${0##*/}
-
-USES:  die msg csg_get_property for_all do_external check_deps
-
-NEEDS: cg.inverse.program
 EOF
    exit 0
 fi
 
-check_deps "$0"
-
 msg "Skeleton script"
 sim_prog="$(csg_get_property cg.inverse.program)"
-for_all non-bonded do_external bla $sim_prog
+for_all "non-bonded bonded" do_external bla $sim_prog
 die "This is just a Skeleton script"

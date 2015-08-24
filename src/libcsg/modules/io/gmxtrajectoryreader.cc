@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,9 @@
  *
  */
 
-#include <malloc.h>
+#include <cstdlib>
 #include <iostream>
-#include "topology.h"
+#include <votca/csg/topology.h>
 #include "gmxtrajectoryreader.h"
 
 namespace votca { namespace csg {
@@ -37,19 +37,36 @@ void GMXTrajectoryReader::Close()
 
 bool GMXTrajectoryReader::FirstFrame(Topology &conf)
 {
-#ifdef GMX4DEV
+#if (GMX == 51)||(GMX == 50)
+
+    output_env_t oenv;
+    // _snew("oenv", oenv, 1);
+    //oenv = (output_env_t)malloc(sizeof(*oenv));
+    output_env_init_default (&oenv);
+
+    if(!read_first_frame(oenv, &_gmx_status,(char*)_filename.c_str(),&_gmx_frame,TRX_READ_X | TRX_READ_V | TRX_READ_F))
+        throw std::runtime_error(string("cannot open ") + _filename);
+    //sfree(oenv);
+    free(oenv);
+#elif GMX == 45
+    set_program_name("VOTCA");
+
     output_env_t oenv;
     // _snew("oenv", oenv, 1);
     oenv = (output_env_t)malloc(sizeof(*oenv));
     output_env_init_default (oenv);
 
-    if(!read_first_frame(oenv, &_gmx_status,(char*)_filename.c_str(),&_gmx_frame,TRX_READ_X | TRX_READ_F))
+    if(!read_first_frame(oenv, &_gmx_status,(char*)_filename.c_str(),&_gmx_frame,TRX_READ_X | TRX_READ_V | TRX_READ_F))
         throw std::runtime_error(string("cannot open ") + _filename);
     //sfree(oenv);
     free(oenv);
-#else
-    if(!read_first_frame(&_gmx_status,(char*)_filename.c_str(),&_gmx_frame,TRX_READ_X | TRX_READ_F))
+#elif GMX == 40
+    set_program_name("VOTCA");
+
+    if(!read_first_frame(&_gmx_status,(char*)_filename.c_str(),&_gmx_frame,TRX_READ_X  | TRX_READ_V | TRX_READ_F))
         throw std::runtime_error(string("cannot open ") + _filename);
+#else
+#error Unsupported GMX version
 #endif
 
     matrix m;
@@ -61,7 +78,7 @@ bool GMXTrajectoryReader::FirstFrame(Topology &conf)
     conf.setStep(_gmx_frame.step);
     cout << endl;
     
-    if(_gmx_frame.natoms != conf.Beads().size())
+    if(_gmx_frame.natoms != (int)conf.Beads().size())
         throw std::runtime_error("number of beads in trajectory do not match topology");
 
     //conf.HasPos(true);
@@ -84,7 +101,16 @@ bool GMXTrajectoryReader::FirstFrame(Topology &conf)
 
 bool GMXTrajectoryReader::NextFrame(Topology &conf)
 {
-#ifdef GMX4DEV
+#if (GMX == 51)||(GMX == 50)
+    output_env_t oenv;
+    //_snew("oenv", oenv, 1);
+    //oenv = (output_env_t)malloc(sizeof(*oenv));
+    output_env_init_default (&oenv);
+    if(!read_next_frame(oenv, _gmx_status,&_gmx_frame))
+        return false;
+    //sfree(oenv);
+    free(oenv);
+#elif GMX == 45
     output_env_t oenv;
     //_snew("oenv", oenv, 1);
     oenv = (output_env_t)malloc(sizeof(*oenv));
@@ -93,9 +119,11 @@ bool GMXTrajectoryReader::NextFrame(Topology &conf)
         return false;
     //sfree(oenv);
     free(oenv);
-#else
+#elif GMX == 40
     if(!read_next_frame(_gmx_status,&_gmx_frame))
         return false;
+#else
+#error Unsupported GMX version
 #endif
 
     matrix m;
