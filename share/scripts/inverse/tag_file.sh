@@ -28,9 +28,9 @@ fi
 [[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
 
 input="$1"
-[ -f "$input" ] || die "${0##*/}: Input file $input not found"
+[[ -f $input ]] || die "${0##*/}: Input file $input not found"
 output="$2"
-[ -f "$output" ] && die "${0##*/}: $output is already there"
+[[ -f $output ]] && die "${0##*/}: $output is already there"
 
 comment="$(get_table_comment)"
 

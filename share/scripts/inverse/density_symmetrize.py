@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 #
 # Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
@@ -43,7 +43,7 @@ This script symmetrizes the density around --adressc for thermodynamic force ite
 
 Usage: %(name)s 
 Allowed options:
-    --adressc X.X     center of the adress zone (x-value)
+    --adressc X.X     center of the AdResS zone (x-value)
     --infile FILE     input file
     --outfile FILE    output file
 """ % {'name': os.path.basename(sys.argv[0]),'ver': '%version%'}
@@ -67,16 +67,19 @@ for line in open(infile,"r").readlines():
 			firstx.append(float(values[0]))
 			firsty.append(float(values[1]))
                         if float(values[0]) == adressc:
-                            secondx.append(float(values[0]))
+                            secondx.append(float(values[0])-adressc)
                             secondy.append(float(values[1]))
                 else:
                        
                         if len(firstx)-1-len(secondx) >= 0 and (len(firstx)-1-len(secondx)) < len (firsty):
-                            secondx.append(float(values[0])) 
+                            secondx.append(float(values[0])-adressc) 
 			    secondy.append( 0.5*(firsty[len(firstx)-len(secondx)]+(float(values[1]))) )
                         else:
-                            print "Warning: symmetrize_density.pl : adressc not in center of data", line
+                            print "Warning: symmetrize_density.py: adressc not in center of data", line
                             print "index", len(firstx)-len(secondx)
+
+if len(secondx) < 4:
+  exit("symmetrize_density.py: symmetrize density has less than 4 points, that usually means the range of the input density ("+infile+") does not overlap with AdResS center ("+str(adressc)+") or it don't have enough intermidiate points (>8). Try increase and interpolate your target density.")
 
 f = open(outfile,"w")
 i=0

@@ -31,9 +31,15 @@ class CsgMapApp
 public:
     string ProgramName() { return "csg_map"; }
     void HelpText(ostream &out) {
-        out << "Map a reference trajectory to a coarse-grained trajectory.\n"
-            "This program can be used to map a whole trajectory or to\n"
-            "create an initial configuration for a coarse-grained run only.";
+      out << "Convert a reference atomistic trajectory or configuration into a coarse-grained one \n"
+          << "based on a mapping xml-file. The mapping can be applied to either an entire trajectory \n"
+          << "or a selected set of frames only (see options).\n"
+	  << "Examples:\n"
+	  << "* csg_map --top FA-topol.tpr --trj FA-traj.trr --out CG-traj.xtc --cg cg-map.xml\n"
+	  << "* csg_map --top FA-topol.tpr --trj FA-conf.gro --out CG-conf.gro --cg cg-map.xml\n"
+	  << "* csg_map --top FA-topol.tpr --trj FA-traj.xtc --out FA-history.dlph --no-map\n"
+	  << "* csg_map --top FA-field.dlpf --trj FA-history.dlph --out CG-history.dlph --cg cg-map.xml\n"
+	  << "* csg_map --top .dlpf --trj .dlph --out .dlph --cg cg-map.xml  convert HISTORY to HISTORY_CGV\n";
     }
 
     bool DoTrajectory() { return true;}
@@ -42,10 +48,10 @@ public:
     void Initialize() {
         CsgApplication::Initialize();
         AddProgramOptions()
-            ("out", boost::program_options::value<string>(),
-                "  output file for coarse-grained trajectory")
-                ("hybrid", boost::program_options::value<string>(&_hybrid_string)->default_value(""),
-                " [yes/no] Create hybrid topology containing both atomistic and coarse-grained");
+	  ("out", boost::program_options::value<string>(),"  output file for coarse-grained trajectory")
+	  ("vel", "  Write mapped velocities (if available)")
+	  ("force", "  Write mapped forces (if available)")
+	  ("hybrid", "  Create hybrid trajectory containing both atomistic and coarse-grained");
     }
 
     bool EvaluateOptions() {
@@ -58,10 +64,12 @@ public:
     void BeginEvaluate(Topology *top, Topology *top_ref);
 void EvalConfiguration(Topology *top, Topology *top_ref) {
         if (!_do_hybrid) {
-            // simply write the topology mapped by csgapplication classe
+            // simply write the topology mapped by csgapplication class
+            if (_do_vel) top->SetHasVel(true);
+            if (_do_force) top->SetHasForce(true);
             _writer->Write(top);
         } else {
-            // we want to combinge atomistic and coarse-grained into one topology
+            // we want to combine atomistic and coarse-grained into one topology
             Topology *hybtol = new Topology();
 
             BeadContainer::iterator it_bead;
@@ -95,6 +103,7 @@ void EvalConfiguration(Topology *top, Topology *top_ref) {
                     bn->setOptions(bi->Options());
                     bn->setPos(bi->getPos());
                     if (bi->HasVel()) bn->setVel(bi->getVel());
+                    if (bi->HasF()) bn->setF(bi->getF());
 
                     mi->AddBead(hybtol->Beads()[beadid], (*it_mol)->getBeadName(i));
 
@@ -112,7 +121,6 @@ void EvalConfiguration(Topology *top, Topology *top_ref) {
                         bn->setOptions(bi->Options());
                         bn->setPos(bi->getPos());
                         if (bi->HasVel()) bn->setVel(bi->getVel());
-                        int mid = bparent->getMolecule()->getId();
                         mi->AddBead(bi, bi->getName());
                     }
                 }
@@ -132,26 +140,35 @@ void EvalConfiguration(Topology *top, Topology *top_ref) {
 protected:
     TrajectoryWriter *_writer;
     bool _do_hybrid;
-    string _hybrid_string;
+    bool _do_vel;
+    bool _do_force;
 
 };
 
 void CsgMapApp::BeginEvaluate(Topology *top, Topology *top_atom) {
     string out = OptionsMap()["out"].as<string > ();
-    string hybrid = OptionsMap()["hybrid"].as<string > ();
     cout << "writing coarse-grained trajectory to " << out << endl;
     _writer = TrjWriterFactory().Create(out);
     if (_writer == NULL)
         throw runtime_error("output format not supported: " + out);
 
     _do_hybrid = false;
-    if (hybrid == "yes") {
+    if(OptionsMap().count("hybrid")){
         if (!_do_mapping)
             throw runtime_error("options hybrid and no-map not compatible");
         cout << "Doing hybrid mapping..." << endl;
         _do_hybrid = true;
     }
 
+    _do_vel = false;
+    if(OptionsMap().count("vel")){
+        _do_vel = true;
+    }
+
+    _do_force = false;
+    if(OptionsMap().count("force")){
+        _do_force = true;
+    }
 
     _writer->Open(out);
 };

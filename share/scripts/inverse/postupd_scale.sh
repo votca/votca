@@ -30,7 +30,7 @@ fi
 [[ -f $2 ]] && die "${0##*/}: $2 is already there"
 
 name=$(csg_get_interaction_property name)
-scale=$(csg_get_interaction_property inverse.post_update_options.scale 1.0)
+scale=$(csg_get_interaction_property inverse.post_update_options.scale)
 
 echo "scaling potential for $name update by factor $scale"
 

@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2015 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,22 +29,33 @@ fi
 
 [[ -z $1 ]] && die "${0##*/}: Missing argument"
 
-tpr="$(csg_get_property cg.inverse.gromacs.g_energy.topol "topol.tpr")"
-[[ -f $tpr ]] || die "${0##*/}: Gromacs tpr file '$tpr' not found"
+topol="$(csg_get_property --allow-empty cg.inverse.gromacs.g_energy.topol)"
+[[ -z $topol ]] && topol=$(csg_get_property cg.inverse.gromacs.topol)
+[[ -f $topol ]] || die "${0##*/}: Gromacs tpr file '$topol' not found"
 
-g_energy="$(csg_get_property cg.inverse.gromacs.g_energy.bin "g_energy")"
+g_energy="$(csg_get_property cg.inverse.gromacs.g_energy.bin)"
 [[ -n "$(type -p ${g_energy})" ]] || die "${0##*/}: g_energy binary '$g_energy' not found"
 
 
 opts="$(csg_get_property --allow-empty cg.inverse.gromacs.g_energy.opts)"
 
 begin="$(calc_begin_time)"
+if [[ ${CSG_RUNTEST} ]] && csg_calc "$begin" ">" "0"; then
+  msg --color blue --to-stderr "Automatically setting begin time to 0, because CSG_RUNTEST was set"
+  begin=0
+fi
 
 echo "Running ${g_energy}"
-output=$(echo Pressure | critical ${g_energy} -b "${begin}" -s "${tpr}" ${opts})
-echo "$output"
+output=$(echo Pressure | critical ${g_energy} -b "${begin}" -s "${topol}" ${opts} 2>&1)
+echo "$output" | gromacs_log "${g_energy} -b "${begin}" -s "${topol}" ${opts}"
 #the number pattern '-\?[0-9][^[:space:]]*[0-9]' is ugly, but it supports X X.X X.Xe+X Xe-X and so on
-p_now=$(echo "$output" | sed -n 's/^Pressure[^-0-9]*\(-\?[0-9][^[:space:]]*[0-9]\)[[:space:]].*$/\1/p' ) || \
-  die "${0##*/}: awk failed"
+#awk 'print $2' does not work for older version of g_energy as the format varies between
+#^Pressure XXX (bar) and ^Pressure (bar) XXX
+p_now=$(echo "$output" | sed -n 's/^Pressure[^-0-9]*\(\(-\?[0-9][^[:space:]]*[0-9]\|nan\)\)[[:space:]].*$/\1/p' ) || \
+  die "${0##*/}: sed grep of Pressure failed"
 [[ -z $p_now ]] && die "${0##*/}: Could not get pressure from simulation"
+
+[[ $p_now = nan && $(csg_get_property cg.inverse.gromacs.g_energy.pressure.allow_nan) = no ]] && \
+  die "${0##*/}: Pressure was nan, check your simulation (this usually means system has blow up -> use pre simulation)"
+
 echo "Pressure=${p_now}" > "$1"

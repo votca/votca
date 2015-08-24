@@ -33,7 +33,7 @@ fi
 cat_external solve numpy | sed -e "s/\$name_out/$2/"  -e "s/\$name/$1/" > solve_$1.sh || die "${0##*/}: sed failed"
 
 #this check is not sufficient for numpy! check for numpy package!
-py="$(csg_get_property cg.inverse.imc.numpy.bin "python")"
+py="$(csg_get_property cg.inverse.imc.numpy.bin)"
 [ -n "$(type -p $py)" ] || die "${0##*/}: python binary '$py' not found"
 
 critical $py solve_$1.sh

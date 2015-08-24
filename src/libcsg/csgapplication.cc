@@ -39,18 +39,21 @@ namespace votca {
             TrajectoryReader::RegisterPlugins();
             TopologyReader::RegisterPlugins();
 
-            AddProgramOptions()
+	    if (NeedsTopology()) {
+                AddProgramOptions()
                     ("top", boost::program_options::value<string > (), "  atomistic topology file");
+	    }
             if (DoMapping()) {
                 if (DoMappingDefault()) {
                     AddProgramOptions("Mapping options")
-                            ("cg", boost::program_options::value<string > (), "  coarse graining mapping definitions (xml-file)")
+                            ("cg", boost::program_options::value<string > (), "  coarse graining mapping and bond definitions (xml-file)")
                             ("map-ignore", boost::program_options::value<string >(), "  list of molecules to ignore separated by ;")
                             ("no-map", "  disable mapping and act on original trajectory");
                 } else {
                     AddProgramOptions("Mapping options")
-                            ("cg", boost::program_options::value<string > (), "  [OPTIONAL] coarse graining mapping definitions\n"
-                            "  (xml-file). If no file is given, program acts on original trajectory");
+                            ("cg", boost::program_options::value<string > (), "  [OPTIONAL] coarse graining mapping and bond definitions\n"
+                            "  (xml-file). If no file is given, program acts on original trajectory")
+                            ("map-ignore", boost::program_options::value<string >(), "  list of molecules to ignore if mapping is done separated by ;");
                 }
             }
 
@@ -58,7 +61,7 @@ namespace votca {
             if (DoTrajectory())
                 AddProgramOptions("Trajectory options")
                 ("trj", boost::program_options::value<string > (), "  atomistic trajectory file")
-                ("begin", boost::program_options::value<double>()->default_value(0.0), "  skip frames before this time")
+                ("begin", boost::program_options::value<double>()->default_value(0.0), "  skip frames before this time (only works for Gromacs files)")
                 ("first-frame", boost::program_options::value<int>()->default_value(0), "  start with this frame")
                 ("nframes", boost::program_options::value<int>(), "  process the given number of frames")
                 ;
@@ -75,7 +78,9 @@ namespace votca {
 
         bool CsgApplication::EvaluateOptions(void) {
             _do_mapping = false;
-            CheckRequired("top", "no topology file specified");
+	    if (NeedsTopology()) {
+                CheckRequired("top", "no topology file specified");
+	    }
 
             // check for mapping options
             if (DoMapping()) {
@@ -111,7 +116,9 @@ namespace votca {
 
             HelpTextHeader(name);
             HelpText(out);
-            out << "\n\n" << OptionsDesc() << endl;
+
+            out << "\n\n" << VisibleOptions() << endl;
+            //out << "\n\n" << OptionsDesc() << endl;
         }
 
         void CsgApplication::Worker::Run(void) {

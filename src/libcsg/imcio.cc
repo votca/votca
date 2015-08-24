@@ -23,6 +23,7 @@
 #include <votca/tools/table.h>
 #include <boost/lexical_cast.hpp>
 #include <votca/tools/tokenizer.h>
+#include <votca/tools/getline.h>
 #include <iostream>
 #include <votca/csg/imcio.h>
 
@@ -110,7 +111,7 @@ void imcio_read_dS(const string &filename, ub::vector<double> &r, ub::vector<dou
     r.resize(tbl.size());
     dS.resize(tbl.size());
     
-    for(int i=0; i<tbl.size(); ++i) {
+    for(unsigned int i=0; i<tbl.size(); ++i) {
         r(i) = tbl.x(i);
         dS(i) = tbl.y(i);
     }

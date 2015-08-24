@@ -20,13 +20,15 @@
 
 #include <votca/tools/matrix.h>
 
-using namespace std;
 namespace votca { namespace csg {
+using namespace std;
 using namespace votca::tools;
 
 class BoundaryCondition {
 
 public:
+    virtual ~BoundaryCondition() {};
+
     /**
      * set the simulation box
      * \param box triclinic box matrix

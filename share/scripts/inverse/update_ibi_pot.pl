@@ -26,12 +26,12 @@ This script calcs dU out of two rdfs with the rules of inverse boltzmann
 In addition, it does some magic tricks:
 - do not update if one of the two rdf is undefined
 
-Usage: $progname new_rdf target_rdf cur_pot outfile
+Usage: $progname target_rdf new_rdf cur_pot outfile
 EOF
   exit 0;
 }
 
-die "4 parameters are nessary\n" if ($#ARGV<3);
+die "4 parameters are necessary\n" if ($#ARGV<3);
 
 use CsgFunctions;
 
@@ -56,15 +56,17 @@ my @pot_flags_cur;
 (readin_table($cur_pot_file,@pot_r_cur,@pot_cur,@pot_flags_cur)) || die "$progname: error at readin_table\n";
 
 #should never happen due to resample, but better check
-die "Different grids \n" if (($r_aim[1]-$r_aim[0])!=($r_cur[1]-$r_cur[0]));
-die "Different start point \n" if (($r_aim[0]-$r_cur[0]) > 0.0);
+die "Different grids \n" if (($r_aim[1]-$r_aim[0]-$r_cur[1]+$r_cur[0])>0.0001);
+die "Different start potential point \n" if (($r_aim[0]-$r_cur[0]) > 0.0001);
+die "Different end potential point \n" if ( $#r_aim != $#r_cur );
 
 my $outfile="$ARGV[3]";
 my @dpot;
 my @flag;
 my $value=0.0;
 
-for (my $i=0;$i<=$#r_aim;$i++){
+#start from the end to make the begining have the last value
+for (my $i=$#r_aim;$i>=0;$i--){
   if (($rdf_aim[$i] > 1e-10) && ($rdf_cur[$i] > 1e-10)) {
     $dpot[$i]=log($rdf_cur[$i]/$rdf_aim[$i])*$pref;
     $flag[$i]="i";
@@ -81,5 +83,6 @@ for (my $i=0;$i<=$#r_aim;$i++){
   }
 }
 
-saveto_table($outfile,@r_aim,@dpot,@flag) || die "$progname: error at save table\n";
+my $comment="#progname: aim_rdf=$aim_rdf_file cur_rdf=$cur_rdf_file cur_pot=$cur_rdf_file\n";
+saveto_table($outfile,@r_aim,@dpot,@flag,$comment) || die "$progname: error at save table\n";
 

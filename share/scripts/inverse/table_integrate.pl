@@ -86,12 +86,11 @@ END
 	}
 	else
 	{
-		die "Unknow option '".$ARGV[0]."' !\n";
+		die "Unknown option '".$ARGV[0]."' !\n";
 	}
 }
 
-#Print usage
-die "no files given\n$usage\n" unless $#ARGV > 0;
+die "2 parameters are necessary\n" if ($#ARGV<1);
 
 use CsgFunctions;
 
@@ -178,7 +177,7 @@ if ("$from" eq "right") {
 }
 
 if ("$with_errors" eq "yes") {
-  saveto_table_err($outfile,@r,@pot,@pot_errors,@flag) || die "$progname: error at save table\n";
+  (saveto_table_err($outfile,@r,@pot,@pot_errors,@flag)) || die "$progname: error at save table\n";
 }else {
-  saveto_table($outfile,@r,@pot,@flag) || die "$progname: error at save table\n";
+  (saveto_table($outfile,@r,@pot,@flag)) || die "$progname: error at save table\n";
 }

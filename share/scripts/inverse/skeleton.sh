@@ -27,5 +27,5 @@ fi
 
 msg "Skeleton script"
 sim_prog="$(csg_get_property cg.inverse.program)"
-for_all non-bonded do_external bla $sim_prog
+for_all "non-bonded bonded" do_external bla $sim_prog
 die "This is just a Skeleton script"

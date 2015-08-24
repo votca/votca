@@ -1,10 +1,12 @@
-# - Find libgromacs
-# Find the native libgromacs headers and libraries.
+# - Finds parts of gromacs
+# Find the native gromacs compents headers and libraries.
 #
-#  GROMACS_INCLUDE_DIRS - where to find gromacs/tpxio.h, etc.
-#  GROMACS_LIBRARIES    - List of libraries when using libgromacs.
-#  GROMACS_FOUND        - True if libgromacs found.
-#  GROMACS_DEFINITIONS  - Extra definies needed by libgromacs
+#  GROMACS_INCLUDE_DIRS - where to find gromacs headers.
+#  GROMACS_LIBRARIES    - List of libraries when used by gromacs.
+#  GROMACS_FOUND        - True if all gromacs componets were found.
+#  GROMACS_DEFINITIONS  - Extra definies needed by gromacs
+#  GROMACS_PKG          - The name of the pkg-config package needed
+#  GROMACS_VERSION      - Gromacs lib interface version
 #
 # Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
@@ -22,46 +24,87 @@
 #
 
 find_package(PkgConfig)
+list(LENGTH GROMACS_FIND_COMPONENTS GROMACS_NUM_COMPONENTS_WANTED)
+if(${GROMACS_NUM_COMPONENTS_WANTED} LESS 1)
+  message(FATAL_ERROR "No gromacs component to search given")
+elseif(${GROMACS_NUM_COMPONENTS_WANTED} GREATER 1)
+  message(FATAL_ERROR "We only support finding one gromacs component at this point, go and implement it ;-)")
+elseif(${GROMACS_FIND_COMPONENTS} MATCHES "^lib(gmx|gromacs)(_d)?$")
+  if(NOT GROMACS_PKG_OVERWRITE)
+    set(GROMACS_PKG "${GROMACS_FIND_COMPONENTS}")
+  else()
+    set(GROMACS_PKG "${GROMACS_PKG_OVERWRITE}")
+  endif()
+  string(REGEX REPLACE "^lib(.*)" "\\1" GROMACS_LIBRARY_NAME "${GROMACS_PKG}")
+else()
+  message(FATAL_ERROR "We do not support finding ${GROMACS_FIND_COMPONENTS}, go and implement it ;-)")
+endif()
 
-pkg_check_modules(PC_GROMACS libgromacs)
-find_path(GROMACS_INCLUDE_DIR gromacs/legacyheaders/tpxio.h HINTS ${PC_GROMACS_INCLUDE_DIRS})
-find_library(GROMACS_LIBRARY NAMES gromacs HINTS ${PC_GROMACS_LIBRARY_DIRS} )
+pkg_check_modules(PC_GROMACS ${GROMACS_PKG})
 
-#add deps
-if (NOT BUILD_SHARED_LIBS AND PC_GROMACS_LIBRARIES)
-  list(REMOVE_ITEM PC_GROMACS_LIBRARIES gromacs)
-  foreach (LIB ${PC_GROMACS_LIBRARIES})
-    find_library(GROMACS_${LIB} NAMES ${LIB} HINTS ${PC_GROMACS_LIBRARY_DIRS} )
-    list(APPEND GROMACS_LIBRARY ${GROMACS_${LIB}})
-    unset(GROMACS_${LIB} CACHE)
-  endforeach(LIB)
-  set(GROMACS_LIBRARY "${GROMACS_LIBRARY}" CACHE FILEPATH "GROMACS lib and it's deps" FORCE)
-endif (NOT BUILD_SHARED_LIBS AND PC_GROMACS_LIBRARIES)
+find_library(GROMACS_LIBRARY NAMES ${GROMACS_LIBRARY_NAME} HINTS ${PC_GROMACS_LIBRARY_DIRS} )
+if (GROMACS_LIBRARY)
+  include(CheckLibraryExists)
+  check_library_exists("${GROMACS_LIBRARY}" GromacsVersion "" FOUND_GROMACS_VERSION)
+  if(NOT FOUND_GROMACS_VERSION)
+    message(FATAL_ERROR "Could not find GromacsVersion in ${GROMACS_LIBRARY}, take look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. If you don't have pkg-config installed you will most likely have to set GROMACS_LIBRARY by hand which sets the gromacs lib and it's dependencies (i.e. -DGROMACS_LIBRARY='/path/to/libgmx.so;/path/to/libblas.so;/path/to/libm.so')!")
+  endif(NOT FOUND_GROMACS_VERSION)
+  check_library_exists("${GROMACS_LIBRARY}" init_mtop "" FOUND_GROMACS_INIT_MTOP)
+  if(NOT FOUND_GROMACS_INIT_MTOP)
+    message(FATAL_ERROR "Could not find init_mtop in the gromacs library, take look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. This most likely means that your gromacs version is too old, we need at least gromacs 4.0.7.") 
+  endif(NOT FOUND_GROMACS_INIT_MTOP)
+  set(GMX_VERSION 40)
+  check_library_exists("${GROMACS_LIBRARY}" output_env_init "" FOUND_GROMACS_OUTPUT_ENV_INIT)
+  if(FOUND_GROMACS_OUTPUT_ENV_INIT)
+    set(GMX_VERSION 45)
+  endif(FOUND_GROMACS_OUTPUT_ENV_INIT)
+  check_library_exists("${GROMACS_LIBRARY}" init_domdec_vsites "" FOUND_GROMACS_INIT_DOMDEC_VSITES)
+  if(FOUND_GROMACS_INIT_DOMDEC_VSITES)
+    set(GMX_VERSION 50)
+  endif(FOUND_GROMACS_INIT_DOMDEC_VSITES)
+  check_library_exists("${GROMACS_LIBRARY}" gmx_gpu_sharing_supported "" FOUND_GROMACS_GMX_GPU_SHARING_SUPPORTED)
+  if(FOUND_GROMACS_GMX_GPU_SHARING_SUPPORTED)
+    set(GMX_VERSION 51)
+  endif(FOUND_GROMACS_GMX_GPU_SHARING_SUPPORTED)
+  set(GROMACS_VERSION ${GMX_VERSION})
+  include(CheckCXXLibraryExists)
+  check_cxx_library_exists("${GROMACS_LIBRARY}" gmx_is_single_precision "" FOUND_GMX_IS_SINGLE_PRECISION)
+  check_cxx_library_exists("${GROMACS_LIBRARY}" gmx_is_double_precision "" FOUND_GMX_IS_DOUBLE_PRECISION)
 
-set(GROMACS_DEFINITIONS "" CACHE STRING "extra GROMACS definitions")
-if (NOT GROMACS_DEFINITIONS AND PC_GROMACS_CFLAGS_OTHER)
-  foreach(DEF ${PC_GROMACS_CFLAGS_OTHER})
-    if (${DEF} MATCHES "^-D")
-      list(APPEND GROMACS_DEFINITIONS ${DEF})
-    endif (${DEF} MATCHES "^-D")
-  endforeach(DEF)
-  set(GROMACS_DEFINITIONS "${GROMACS_DEFINITIONS}" CACHE STRING "extra GROMACS definitions" FORCE)
-endif (NOT GROMACS_DEFINITIONS AND PC_GROMACS_CFLAGS_OTHER)
+  #Only set GROMACS_DEFINITIONS if GROMACS_LIBRARY was found
+  if ("${GROMACS_LIBRARY}" MATCHES "lib[^/]*_d\\.[^.]*$")
+    list(APPEND GMX_DEFS "-DGMX_DOUBLE")
+  endif ("${GROMACS_LIBRARY}" MATCHES "lib[^/]*_d\\.[^.]*$")
+  if (PC_GROMACS_CFLAGS_OTHER)
+    foreach(DEF ${PC_GROMACS_CFLAGS_OTHER})
+      if (${DEF} MATCHES "^-D")
+        list(APPEND GMX_DEFS ${DEF})
+      endif (${DEF} MATCHES "^-D")
+    endforeach(DEF)
+    list(REMOVE_DUPLICATES GMX_DEFS)
+  endif (PC_GROMACS_CFLAGS_OTHER)
+  set(GROMACS_DEFINITIONS "${GMX_DEFS}")
 
-set(GROMACS_LIBRARIES ${GROMACS_LIBRARY} )
+else(GROMACS_LIBRARY)
+  set(GMX_VERSION 45)
+endif (GROMACS_LIBRARY)
+
+if ("${GROMACS_PKG}" MATCHES "libgmx")
+  if (${GMX_VERSION} EQUAL 40)
+    find_path(GROMACS_INCLUDE_DIR tpxio.h HINTS ${PC_GROMACS_INCLUDE_DIRS})
+  else(${GMX_VERSION} EQUAL 40)
+   find_path(GROMACS_INCLUDE_DIR gromacs/tpxio.h HINTS ${PC_GROMACS_INCLUDE_DIRS})
+  endif(${GMX_VERSION} EQUAL 40)
+elseif("${GROMACS_PKG}" MATCHES "libgromacs")
+  find_path(GROMACS_INCLUDE_DIR gromacs/fileio/tpxio.h HINTS ${PC_GROMACS_INCLUDE_DIRS})
+endif("${GROMACS_PKG}" MATCHES "libgmx")
+
+set(GROMACS_LIBRARIES "${GROMACS_LIBRARY}" )
 set(GROMACS_INCLUDE_DIRS ${GROMACS_INCLUDE_DIR} )
 
 include(FindPackageHandleStandardArgs)
 # handle the QUIETLY and REQUIRED arguments and set GROMACS_FOUND to TRUE
 # if all listed variables are TRUE
-find_package_handle_standard_args(GROMACS DEFAULT_MSG GROMACS_LIBRARY GROMACS_INCLUDE_DIR )
+find_package_handle_standard_args(GROMACS DEFAULT_MSG GROMACS_LIBRARY GROMACS_INCLUDE_DIR)
 
-if (GROMACS_FOUND)
-  include(CheckLibraryExists)
-  check_library_exists("${GROMACS_LIBRARY}" GromacsVersion "" FOUND_GROMACS_VERSION)
-  if(NOT FOUND_GROMACS_VERSION)
-    message(FATAL_ERROR "Could not find GromacsVersion in ${GROMACS_LIBRARY}, take look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. If you don't have pkg-config installed you will most likely have to set GROMACS_LIBRARY by hand and include all it's deps in there (i.e. -DGROMACS_LIBRARY='/path/to/libgromacs.so;/path/to/libblas.so;/path/to/libm.so') !")
-  endif(NOT FOUND_GROMACS_VERSION)
-endif (GROMACS_FOUND)
-
-mark_as_advanced(GROMACS_INCLUDE_DIR GROMACS_LIBRARY GROMACS_DEFINITIONS )
+mark_as_advanced(GROMACS_INCLUDE_DIR GROMACS_LIBRARY GROMACS_PKG)

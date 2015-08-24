@@ -20,7 +20,7 @@
 #include <iostream>
 #include <votca/csg/version.h>
 
-#if GMX == 50
+#if (GMX == 51)||(GMX == 50)
 #include <gromacs/legacyheaders/copyrite.h>
 #elif GMX == 45
 #include <gromacs/copyrite.h>
@@ -36,11 +36,17 @@
 #undef bool
 #endif
 
+extern "C" {
+   void VotcaCsgFromC(){
+     //do nothing - this is just that we have a c function for autotools
+   }
+}
+
 namespace votca { namespace csg {
 
-//defines hgversion
-#include "hgversion.h"
-static const std::string version_str = std::string(VERSION) + " " + hgversion + " (compiled " __DATE__ ", " __TIME__ ")";
+//defines gitversion
+#include "gitversion.h"
+static const std::string version_str = std::string(VERSION) + " " + gitversion + " (compiled " __DATE__ ", " __TIME__ ")";
 
 const std::string &CsgVersionStr()
 {
