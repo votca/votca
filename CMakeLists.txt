@@ -8,7 +8,7 @@ set(PROJECT_VERSION "1.3-dev")
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/ DESTINATION share/votca/csg-tutorials
-	PATTERN ".hg*" EXCLUDE PATTERN "step_*" EXCLUDE
+	PATTERN ".git*" EXCLUDE PATTERN "step_*" EXCLUDE
 	PATTERN "CMake*" EXCLUDE PATTERN "cmake_install.cmake" EXCLUDE
 	PATTERN "install_manifest.txt" EXCLUDE PATTERN "*~" EXCLUDE
 	PATTERN "inverse.log" EXCLUDE)

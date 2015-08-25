@@ -1,5 +1,3 @@
-syntax: glob
-
 *~
 .*.swp
 */*/step_*
@@ -12,7 +10,7 @@ build.ninja
 build
 .project
 .cproject
-CMakeFiles/*
+CMakeFiles
 install_manifest.txt
 cmake_install.cmake
 cmake_uninstall.cmake
