@@ -1,6 +1,6 @@
 SHELL=/bin/bash
 DIR:=$(shell pwd | sed 's@^.*/\([^/]*/[^/]*\)$$@\1@' )
-TRUNC=$(shell hg root)
+TRUNC=$(shell git rev-parse --show-toplevel)
 TXT2TAGS=$(TRUNC)/scripts/txt2tags
 
 .PHONY: clean bootstrap

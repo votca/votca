@@ -1,6 +1,6 @@
 SHELL=/bin/bash
 VER=1.3-dev
-HGID:=$(shell hg parents -R . --template "{node|short}" | sed 's/.*/\\newcommand{\\hgid}{${VER} (&)}/')
+HGID:=$(shell git rev-parse --short HEAD 2> /dev/null | sed 's/.*/\\newcommand{\\hgid}{${VER} (&)}/')
 LATEXMK=./scripts/latexmk.pl
 LATEXMKOPTS=-e '$$latex=q/latex --halt-on-error %O %S/'
 
