@@ -1,0 +1,9 @@
+[submodule "tools"]
+	path = tools
+	url = ../tools.git
+[submodule "csg"]
+	path = csg
+	url = ../csg.git
+[submodule "csgapps"]
+	path = csgapps
+	url = ../csgapps.git
