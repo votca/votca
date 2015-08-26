@@ -44,7 +44,7 @@ if (NOT DEFINED DATA)
 endif(NOT DEFINED DATA)
 
 # this has to be the include specification!
-include_directories(${CMAKE_SOURCE_DIR}/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 ########################################################################
 #Find external packages
@@ -109,7 +109,9 @@ endforeach(FUNC)
 ######################################
 # Include the following subdirectory # 
 ######################################
-add_custom_target(manpages ALL)
+if(NOT TARGET manpages)
+  add_custom_target(manpages ALL)
+endif()
 add_subdirectory(scripts)
 add_subdirectory(src)
 add_subdirectory(include/votca/csg)
@@ -119,4 +121,8 @@ file(GLOB VOTCA_CMAKE_MODULES CMakeModules/FindVOTCA* CMakeModules/FindSQLITE3.c
 install(FILES ${VOTCA_CMAKE_MODULES} DESTINATION ${DATA}/template/CMakeModules)
 
 configure_file(${CMAKE_MODULE_PATH}/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
-add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+add_custom_target(uninstall-csg COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+if(NOT TARGET uninstall)
+  add_custom_target(uninstall)
+endif()
+add_dependencies(uninstall uninstall-csg)
