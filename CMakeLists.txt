@@ -9,7 +9,7 @@ if (NOT ${SOVERSION} MATCHES "[1-9]+")
 endif (NOT ${SOVERSION} MATCHES "[1-9]+")
 
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
-set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMakeModules)
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
   #release comes with -O3 by default
@@ -40,12 +40,8 @@ if (NOT DEFINED DATA)
   set(DATA "share/votca")
 endif(NOT DEFINED DATA)
 
-
 #this has to be the first include directive
-include_directories(${CMAKE_SOURCE_DIR}/include)
-
-#for votca_config.h
-include_directories(${CMAKE_BINARY_DIR}/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 ########################################################################
 #Find external packages
