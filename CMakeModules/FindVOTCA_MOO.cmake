@@ -48,12 +48,12 @@ include(FindPackageHandleStandardArgs)
 # if all listed variables are TRUE
 find_package_handle_standard_args(VOTCA_MOO DEFAULT_MSG VOTCA_MOO_LIBRARY VOTCA_MOO_INCLUDE_DIR )
 
-if (VOTCA_MOO_FOUND)
+if (VOTCA_MOO_FOUND AND NOT VOTCA_MOO_LIBRARY STREQUAL "votca_moo")
   include(CheckLibraryExists)
   check_library_exists("${VOTCA_MOO_LIBRARY};${VOTCA_MOO_DEP_LIBRARIES}" VotcaMooFromC "" FOUND_VOTCA_MOO_VERSION)
   if(NOT FOUND_VOTCA_MOO_VERSION)
     message(FATAL_ERROR "Could not find VotcaMooFromC in ${VOTCA_MOO_LIBRARY};${VOTCA_MOO_DEP_LIBRARIES}, take look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. If you don't have pkg-config installed you will most likely have to set VOTCA_MOO_LIBRARY and VOTCA_MOO_DEP_LIBRARIES by hand, which set votca_moo lib  it's depencies (i.e. -DVOTCA_MOO_LIBRARY='/path/to/libvotca_moo.so' -VOTCA_MOO_DEP_LIBRARIES='/path/to/libgsl.so;/path/to/libm.so') !")
   endif(NOT FOUND_VOTCA_MOO_VERSION)
-endif (VOTCA_MOO_FOUND)
+endif ()
 
 mark_as_advanced(VOTCA_MOO_INCLUDE_DIR VOTCA_MOO_LIBRARY )

@@ -32,7 +32,7 @@ if (NOT DEFINED DATA)
 endif(NOT DEFINED DATA)
 #option(WITH_DIPRO "Build mergeorbitals and DIPRO, which use fortran" ON)
 
-include_directories(${CMAKE_SOURCE_DIR}/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 ########################################################################
 #Find external packages
 ########################################################################
@@ -52,7 +52,9 @@ string(REGEX REPLACE "^(.*)/lib([^/]*)\\.[^.]*$" "-L\\1 -l\\2" BOOST_LIBS_PKG ${
 
 option(BUILD_MANPAGES "Build manpages (might lead to problem on system without rpath" OFF)
 #define this target here, so that individual man pages can append to it.
-add_custom_target(manpages ALL)
+if(NOT TARGET manpages)
+  add_custom_target(manpages ALL)
+endif()
 
 #message(STATUS "BOOST_LIBRARIES='${BOOST_LIBRARIES}'")
 
