@@ -45,12 +45,12 @@ include(FindPackageHandleStandardArgs)
 # if all listed variables are TRUE
 find_package_handle_standard_args(VOTCA_TOOLS DEFAULT_MSG VOTCA_TOOLS_LIBRARY VOTCA_TOOLS_INCLUDE_DIR )
 
-if (VOTCA_TOOLS_FOUND)
+if (VOTCA_TOOLS_FOUND AND NOT VOTCA_TOOLS_LIBRARY STREQUAL "votca_tools")
   include(CheckLibraryExists)
   check_library_exists("${VOTCA_TOOLS_LIBRARY}" VotcaToolsFromC "" FOUND_VOTCA_TOOLS_VERSION)
   if(NOT FOUND_VOTCA_TOOLS_VERSION)
     message(FATAL_ERROR "Could not find VotcaToolsFromC in ${VOTCA_TOOLS_LIBRARY}, take look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. If you don't have pkg-config installed you will most likely have to set VOTCA_TOOLS_LIBRARY by hand, which set votca_tools lib  it's dependencies (i.e. -DVOTCA_TOOLS_LIBRARY='/path/to/libvotca_tools.so;/path/to/libgsl.so;/path/to/libm.so') !")
   endif(NOT FOUND_VOTCA_TOOLS_VERSION)
-endif (VOTCA_TOOLS_FOUND)
+endif ()
 
 mark_as_advanced(VOTCA_TOOLS_INCLUDE_DIR VOTCA_TOOLS_LIBRARY )
