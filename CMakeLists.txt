@@ -15,19 +15,21 @@ option(BUILD_CTP "Build ctp" OFF)
 # Include the following subdirectory # 
 ######################################
 add_subdirectory(tools)
-set(VOTCA_TOOLS_LIBRARY votca_tools)
-set(VOTCA_TOOLS_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tools/include)
-set(PC_VOTCA_TOOLS_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/tools/include)
+set(VOTCA_TOOLS_LIBRARY votca_tools CACHE STRING "tools library name")
+set(PC_VOTCA_TOOLS_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/tools/include
+	CACHE PATH "tools include path")
 add_subdirectory(csg)
-set(VOTCA_CSG_LIBRARY votca_csg)
-set(VOTCA_CSG_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/csg/include)
+set(VOTCA_CSG_LIBRARY votca_csg CACHE STRING "csg library name")
+set(VOTCA_CSG_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/csg/include
+	CACHE PATH "csg include path")
 if(BUILD_CSGAPPS)
   add_subdirectory(csgapps)
 endif()
 if(BUILD_CTP)
   add_subdirectory(kmc)
   add_subdirectory(moo)
-  set(VOTCA_MOO_LIBRARY votca_moo)
-  set(VOTCA_MOO_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/moo/include)
+  set(VOTCA_MOO_LIBRARY votca_moo CACHE STRING "moo library name")
+  set(VOTCA_MOO_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/moo/include
+	  CACHE PATH "moo include path")
   add_subdirectory(ctp)
 endif()
