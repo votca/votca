@@ -7,3 +7,12 @@
 [submodule "csgapps"]
 	path = csgapps
 	url = ../csgapps.git
+[submodule "moo"]
+	path = moo
+	url = ../moo.git
+[submodule "kmc"]
+	path = kmc
+	url = ../kmc.git
+[submodule "ctp"]
+	path = ctp
+	url = ../ctp.git
