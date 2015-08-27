@@ -32,6 +32,8 @@ if (NOT DEFINED DATA)
 endif(NOT DEFINED DATA)
 #option(WITH_DIPRO "Build mergeorbitals and DIPRO, which use fortran" ON)
 
+#for votca_ctp_config.h
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 ########################################################################
 #Find external packages
