@@ -87,7 +87,9 @@ protected:
             void printtime(int seconds_t);
             
             myvec _field;
-
+            
+            
+            
             string _injection_name;
             string _injectionmethod;
             int _injectionfree;
@@ -352,7 +354,7 @@ vector<GNode*> KMCLifetime::LoadGraph()
     
     cout << "spatial density: " << _numberofcharges/ boxsize<< " nm^-3" << endl;
     
-    
+    //blabla
     
     // Calculate initial escape rates !!!THIS SHOULD BE MOVED SO THAT IT'S NOT DONE TWICE IN CASE OF COULOMB INTERACTION!!!
     for(unsigned int i=0; i<node.size(); i++)
