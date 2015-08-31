@@ -17,19 +17,21 @@ RANLIB=ranlib
 CC=gcc
 CCC=g++
 CXX=g++
-FC=
+FC=gfortran
 AS=as
 
 # Macros
 CND_PLATFORM=GNU-Linux-x86
+CND_DLIB_EXT=so
 CND_CONF=Debug
 CND_DISTDIR=dist
+CND_BUILDDIR=build
 
 # Include project Makefile
 include Makefile
 
 # Object Directory
-OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
+OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
@@ -54,7 +56,7 @@ LDLIBSOPTIONS=-L/people/thnfs/homes/ruehle/gmx/lib ../libcsg/../../src/libcsg/li
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-Debug.mk ../../src/tools/csg_fmatch
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ../../src/tools/csg_fmatch
 
 ../../src/tools/csg_fmatch: ../libcsg/../../src/libcsg/libcsg.a
 
@@ -62,7 +64,7 @@ LDLIBSOPTIONS=-L/people/thnfs/homes/ruehle/gmx/lib ../libcsg/../../src/libcsg/li
 
 ../../src/tools/csg_fmatch: ${OBJECTFILES}
 	${MKDIR} -p ../../src/tools
-	${LINK.cc} -o ../../src/tools/csg_fmatch ${OBJECTFILES} ${LDLIBSOPTIONS} 
+	${LINK.cc} -o ../../src/tools/csg_fmatch ${OBJECTFILES} ${LDLIBSOPTIONS}
 
 ${OBJECTDIR}/_ext/715944016/csg_fmatch.o: ../../src/tools/csg_fmatch.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
@@ -76,7 +78,7 @@ ${OBJECTDIR}/_ext/715944016/csg_fmatch.o: ../../src/tools/csg_fmatch.cc
 
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
-	${RM} -r build/Debug
+	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
 	${RM} ../../src/tools/csg_fmatch
 
 # Subprojects
