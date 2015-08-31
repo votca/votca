@@ -35,7 +35,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/715944016/csg_fmatch.o
+	${OBJECTDIR}/_ext/715944016/csg_gmxtopol.o
 
 
 # C Compiler Flags
@@ -56,16 +56,16 @@ LDLIBSOPTIONS=
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/csg_fmatch
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/csg_gmxtopol
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/csg_fmatch: ${OBJECTFILES}
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/csg_gmxtopol: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/csg_fmatch ${OBJECTFILES} ${LDLIBSOPTIONS}
+	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/csg_gmxtopol ${OBJECTFILES} ${LDLIBSOPTIONS}
 
-${OBJECTDIR}/_ext/715944016/csg_fmatch.o: ../../src/tools/csg_fmatch.cc 
+${OBJECTDIR}/_ext/715944016/csg_gmxtopol.o: ../../src/tools/csg_gmxtopol.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/csg_fmatch.o ../../src/tools/csg_fmatch.cc
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/csg_gmxtopol.o ../../src/tools/csg_gmxtopol.cc
 
 # Subprojects
 .build-subprojects:
@@ -73,7 +73,7 @@ ${OBJECTDIR}/_ext/715944016/csg_fmatch.o: ../../src/tools/csg_fmatch.cc
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
-	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/csg_fmatch
+	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/csg_gmxtopol
 
 # Subprojects
 .clean-subprojects:
