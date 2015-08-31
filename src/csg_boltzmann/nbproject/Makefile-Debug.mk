@@ -22,19 +22,21 @@ AS=as
 
 # Macros
 CND_PLATFORM=GNU-Linux-x86
+CND_DLIB_EXT=so
 CND_CONF=Debug
 CND_DISTDIR=dist
+CND_BUILDDIR=build
 
 # Include project Makefile
 include Makefile_nb
 
 # Object Directory
-OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
+OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/main.o \
 	${OBJECTDIR}/bondedstatistics.o \
+	${OBJECTDIR}/main.o \
 	${OBJECTDIR}/stdanalysis.o \
 	${OBJECTDIR}/tabulatedpotential.o
 
@@ -57,24 +59,24 @@ LDLIBSOPTIONS=-L/people/thnfs/homes/ruehle/gmx/lib ../../netbeans/libcsg/../../s
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-Debug.mk csg_boltzmann
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk csg_boltzmann
 
 csg_boltzmann: ../../netbeans/libcsg/../../src/libcsg/libcsg.a
 
 csg_boltzmann: ../../../tools/netbeans/libtools/../../src/libtools/libtools.a
 
 csg_boltzmann: ${OBJECTFILES}
-	${LINK.cc} -o csg_boltzmann ${OBJECTFILES} ${LDLIBSOPTIONS} 
-
-${OBJECTDIR}/main.o: main.cc 
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} $@.d
-	$(COMPILE.cc) -g -I/people/thnfs/homes/ruehle/gmx/install/include/gromacs -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/main.o main.cc
+	${LINK.cc} -o csg_boltzmann ${OBJECTFILES} ${LDLIBSOPTIONS}
 
 ${OBJECTDIR}/bondedstatistics.o: bondedstatistics.cc 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} $@.d
 	$(COMPILE.cc) -g -I/people/thnfs/homes/ruehle/gmx/install/include/gromacs -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/bondedstatistics.o bondedstatistics.cc
+
+${OBJECTDIR}/main.o: main.cc 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} $@.d
+	$(COMPILE.cc) -g -I/people/thnfs/homes/ruehle/gmx/install/include/gromacs -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/main.o main.cc
 
 ${OBJECTDIR}/stdanalysis.o: stdanalysis.cc 
 	${MKDIR} -p ${OBJECTDIR}
@@ -93,7 +95,7 @@ ${OBJECTDIR}/tabulatedpotential.o: tabulatedpotential.cc
 
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
-	${RM} -r build/Debug
+	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
 	${RM} csg_boltzmann
 
 # Subprojects
