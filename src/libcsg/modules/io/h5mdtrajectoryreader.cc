@@ -127,23 +127,6 @@ bool H5MDTrajectoryReader::FirstFrame(Topology &top) {  // NOLINT const referenc
     ds_step_ = new H5::DataSet(atom_position_group_->openDataSet("step"));
     ds_time_ = new H5::DataSet(atom_position_group_->openDataSet("time"));
 
-    // Gets number of particles and dimensions.
-    H5::DataSpace fs_atom_position_ = ds_atom_position_->getSpace();
-    hsize_t dims[3];
-    rank_ = fs_atom_position_.getSimpleExtentDims(dims);
-    N_particles_ = dims[1];
-    variables_ = dims[2];
-
-    if(!has_id_group_ && N_particles_ != top.BeadCount()) {
-      std::cout << "Warning: The number of beads (" << N_particles_ << ")";
-      std::cout << " in the trajectory is different than defined in the topology (" << top.BeadCount() << ")" << std::endl;
-      std::cout << "The number of beads from topology will be used!" << std::endl;
-      N_particles_ = top.BeadCount();
-    }
-    chunk_rows_[0] = 1;
-    chunk_rows_[1] = N_particles_;
-    chunk_rows_[2] = variables_;
-
     // Reads the time set and step set.
     H5::DataSet *ds_pos_step = new H5::DataSet(atom_position_group_->openDataSet("step"));
     H5::DataSet *ds_pos_time = new H5::DataSet(atom_position_group_->openDataSet("time"));
@@ -175,6 +158,8 @@ bool H5MDTrajectoryReader::FirstFrame(Topology &top) {  // NOLINT const referenc
       std::string force_group_name = *particle_group_name + "/force";
       atom_force_group_ = new H5::Group(particle_group_->openGroup(force_group_name));
       ds_atom_force_ = new H5::DataSet(atom_force_group_->openDataSet("value"));
+      has_force_ = true;
+      std::cout << "H5MD: has /force" << std::endl;
     } catch (H5::GroupIException not_found) {
       has_force_ = false;
     }
@@ -183,6 +168,8 @@ bool H5MDTrajectoryReader::FirstFrame(Topology &top) {  // NOLINT const referenc
       std::string velocity_group_name = *particle_group_name + "/velocity";
       atom_velocity_group_ = new H5::Group(particle_group_->openGroup(velocity_group_name));
       ds_atom_velocity_ = new H5::DataSet(atom_velocity_group_->openDataSet("value"));
+      has_velocity_ = true;
+      std::cout << "H5MD: has /velocity" << std::endl;
     } catch (H5::GroupIException not_found) {
       has_velocity_ = false;
     }
@@ -192,9 +179,28 @@ bool H5MDTrajectoryReader::FirstFrame(Topology &top) {  // NOLINT const referenc
       atom_id_group_ = new H5::Group(particle_group_->openGroup(id_group_name));
       ds_atom_id_ = new H5::DataSet(atom_id_group_->openDataSet("value"));
       has_id_group_ = true;
+      std::cout << "H5MD: has /id group" << std::endl;
     } catch (H5::GroupIException not_found) {
       has_id_group_ = false;
     }
+
+    // Gets number of particles and dimensions.
+    H5::DataSpace fs_atom_position_ = ds_atom_position_->getSpace();
+    hsize_t dims[3];
+    rank_ = fs_atom_position_.getSimpleExtentDims(dims);
+    N_particles_ = dims[1];
+    variables_ = dims[2];
+
+    if (!has_id_group_ && N_particles_ != top.BeadCount()) {
+      std::cout << "Warning: The number of beads (" << N_particles_ << ")";
+      std::cout << " in the trajectory is different than defined in the topology (" << top.BeadCount() << ")" << std::endl;
+      std::cout << "The number of beads from topology will be used!" << std::endl;
+      N_particles_ = top.BeadCount();
+    }
+    chunk_rows_[0] = 1;
+    chunk_rows_[1] = N_particles_;
+    chunk_rows_[2] = variables_;
+    
     delete particle_group_name;
   }
   NextFrame(top);
