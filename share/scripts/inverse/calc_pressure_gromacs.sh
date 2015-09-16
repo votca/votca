@@ -46,8 +46,11 @@ if [[ ${CSG_RUNTEST} ]] && csg_calc "$begin" ">" "0"; then
 fi
 
 echo "Running ${g_energy}"
-output=$(echo Pressure | critical ${g_energy} -b "${begin}" -s "${topol}" ${opts} 2>&1)
+#no critical here so that we can print the error
+output=$(echo Pressure | ${g_energy} -b "${begin}" -s "${topol}" ${opts} 2>&1)
+ret="$?"
 echo "$output" | gromacs_log "${g_energy} -b "${begin}" -s "${topol}" ${opts}"
+[[ $ret -eq 0 ]] || die "${0##*/}: '${g_energy} -b "${begin}" -s "${topol}" ${opts}' failed"
 #the number pattern '-\?[0-9][^[:space:]]*[0-9]' is ugly, but it supports X X.X X.Xe+X Xe-X and so on
 #awk 'print $2' does not work for older version of g_energy as the format varies between
 #^Pressure XXX (bar) and ^Pressure (bar) XXX
