@@ -13,14 +13,16 @@
     <inverse>
       <!-- target distribution (rdf), just give gromas rdf.xvg -->
       <target>CG-CG.dist.tgt</target>
+      <!-- target pressure -->
+      <p_target>1.0</p_target>
       <!-- update cycles -->
-      <do_potential>1 0</do_potential>
+      <do_potential>0 1 0</do_potential>
       <!-- additional post processing of dU before added to potential -->
       <post_update>pressure</post_update>
       <post_update_options>
         <pressure>
           <type>simple</type>
-          <do>0 1</do>
+          <do>1 0 1</do>
           <simple>
             <scale>0.0003</scale>
           </simple>
