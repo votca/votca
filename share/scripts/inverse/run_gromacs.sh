@@ -97,7 +97,7 @@ fi
 
 #support for older mdp file, cutoff-scheme = Verlet is default for Gromacs 5.0, but does not work with tabulated interactions
 #XXX is returned if cutoff-scheme is not in mdp file
-if [[ $(critical $grompp -h 2>&1) = *"VERSION 5.0"* && $(get_simulation_setting cutoff-scheme XXX) = XXX ]]; then
+if [[ $(critical $grompp -h 2>&1) = *"VERSION 5."[01]* && $(get_simulation_setting cutoff-scheme XXX) = XXX ]]; then
   echo "cutoff-scheme = Group" >> $mdp
   msg --color blue --to-stderr "Automatically added 'cutoff-scheme = Group' to $mdp, tabulated interactions only work with Group cutoff-scheme!"
 fi
