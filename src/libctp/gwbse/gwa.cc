@@ -145,7 +145,7 @@ namespace votca {
             double _QPgap = _qp_energies( _homo +1 ) - _qp_energies( _homo  );
             // cout << " QP Gap  : " << _QPgap << endl;
             double _shift_new = _QPgap - _DFTgap;
-            cout << " shift new " << _shift_new << endl;
+            //cout << " shift new " << _shift_new << endl;
             if ( std::abs( (_shift_new - _shift)*13.605698066 ) > 0.01 ) {
                 _shift = _shift_new;
             } else {

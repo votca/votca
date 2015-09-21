@@ -442,66 +442,63 @@ inline void AOBasis::getMultiplierVector( string& start, string& target, vector<
         this->addMultiplierShell(  start, target, _type, multiplier );
     }
     
-}
-
-
-
-
-inline void AOBasis::addMultiplierShell( string& start, string& target,  string& shell_type, vector<int>& multiplier ) {
-    
-    
-    if ( target == "votca ") {
-    // current length of vector
-    int _cur_pos = multiplier.size() -1 ;
-    
-    // single type shells defined here
-    if ( shell_type.length() == 1 ){
-       if ( shell_type == "S" ){ 
-           multiplier.push_back( 1 );
-       }
-       
-       if ( shell_type == "P" ){ 
-           multiplier.push_back( 1 );
-           multiplier.push_back( 1 );
-           multiplier.push_back( 1 );
-       }
-       if ( shell_type == "D" ){ 
-           if ( start == "nwchem") {
-               multiplier.push_back( -1  ); 
-               multiplier.push_back( 1 );
-               multiplier.push_back( 1 );
-               multiplier.push_back( 1 ); 
-               multiplier.push_back( 1 );               
-           } else {
-               cerr << "Tried to get multipliers d-functions from package " << start << ".";
-               throw std::runtime_error( "Multiplication not implemented yet!");
-           }
-       }
-       if ( shell_type == "F" ){ 
-           cerr << "Tried to get multipliers for f-functions . ";
-           throw std::runtime_error( "Multiplication not implemented yet!");
-       }
-       if ( shell_type == "G" ){
-           cerr << "Tried to get multipliers g-functions . ";
-           throw std::runtime_error( "Multiplication not implemented yet!");
-       } 
-    } else {
-        // for combined shells, iterate over all contributions
-        //_nbf = 0;
-        for( int i = 0; i < shell_type.length(); ++i) {
-           string local_shell =    string( shell_type, i, 1 );
-           this->addMultiplierShell( start,target, local_shell, multiplier  );
         }
-    }
-    } else {
-        
-        cerr << "Tried to reorder functions from " << start << " to " << target << endl;
-        throw std::runtime_error( "Reordering not implemented yet!");
-        
-        
-    }
-    
-}
+
+        inline void AOBasis::addMultiplierShell(string& start, string& target, string& shell_type, vector<int>& multiplier) {
+
+
+            if (target == "votca") {
+                // current length of vector
+                int _cur_pos = multiplier.size() - 1;
+
+                // single type shells defined here
+                if (shell_type.length() == 1) {
+                    if (shell_type == "S") {
+                        multiplier.push_back(1);
+                    }
+
+                    if (shell_type == "P") {
+                        multiplier.push_back(1);
+                        multiplier.push_back(1);
+                        multiplier.push_back(1);
+                    }
+                    if (shell_type == "D") {
+                        if (start == "nwchem") {
+                            multiplier.push_back(-1);
+                            multiplier.push_back(1);
+                            multiplier.push_back(1);
+                            multiplier.push_back(1);
+                            multiplier.push_back(1);
+                        } else {
+                            cerr << "Tried to get multipliers d-functions from package " << start << ".";
+                            throw std::runtime_error("Multiplication not implemented yet!");
+                        }
+                    }
+                    if (shell_type == "F") {
+                        cerr << "Tried to get multipliers for f-functions . ";
+                        throw std::runtime_error("Multiplication not implemented yet!");
+                    }
+                    if (shell_type == "G") {
+                        cerr << "Tried to get multipliers g-functions . ";
+                        throw std::runtime_error("Multiplication not implemented yet!");
+                    }
+                } else {
+                    // for combined shells, iterate over all contributions
+                    //_nbf = 0;
+                    for (int i = 0; i < shell_type.length(); ++i) {
+                        string local_shell = string(shell_type, i, 1);
+                        this->addMultiplierShell(start, target, local_shell, multiplier);
+                    }
+                }
+            } else {
+
+                cerr << "Tried to reorder functions (multiplier)  from " << start << " to " << target << endl;
+                throw std::runtime_error("Reordering not implemented yet!");
+
+
+            }
+
+        }
 
 
 inline void AOBasis::getReorderVector( string& start, string& target, vector<int>& neworder){
@@ -571,7 +568,7 @@ inline void AOBasis::addReorderShell( string& start, string& target,  string& sh
     }
     } else {
         
-        cerr << "Tried to reorder functions from " << start << " to " << target << endl;
+        cerr << "Tried to reorder functions (neworder) from " << start << " to " << target << endl;
         throw std::runtime_error( "Reordering not implemented yet!");
         
     } 
