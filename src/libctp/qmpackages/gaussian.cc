@@ -854,7 +854,7 @@ namespace votca {
 
             // save qmpackage name
             //_orbitals->_has_qm_package = true;
-            _orbitals->setQMpakckage("gaussian");
+            _orbitals->setQMpackage("gaussian");
 
 
             // Start parsing the file line by line
@@ -870,6 +870,8 @@ namespace votca {
                 std::string::size_type pseudo_pos = _line.find("pseudo=read");
                 if (pseudo_pos != std::string::npos) {
                     _read_vxc = true;
+                    // Uncomment for next version
+                    //_orbitals->setWithECP(true);
                 }
 
                 /* Check for ScaHFX = factor of HF exchange included in functional */

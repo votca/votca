@@ -106,6 +106,7 @@
       <itemPath>../../include/votca/ctp/logger.h</itemPath>
       <itemPath>../../include/votca/ctp/mkl_boost_ublas_matrix_prod.h</itemPath>
       <itemPath>../../include/votca/ctp/molecule.h</itemPath>
+      <itemPath>../../include/votca/ctp/mulliken.h</itemPath>
       <itemPath>../../include/votca/ctp/numerical_integrations.h</itemPath>
       <itemPath>../../include/votca/ctp/orbitals.h</itemPath>
       <itemPath>../../include/votca/ctp/overlap.h</itemPath>
@@ -359,6 +360,8 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/molecule.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/mulliken.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/numerical_integrations.h"
             ex="false"
@@ -1118,6 +1121,8 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/molecule.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/mulliken.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/numerical_integrations.h"
             ex="false"

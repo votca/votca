@@ -48,11 +48,16 @@ private:
     string      _output_file;
     int         _state_no;   
     string      _state;
-    string      _spin;
     string      _method;
+    string      _spin;
+    string      _integrationmethod;
     string      _gridsize;
     bool        _use_mps;
     bool        _use_pdb;
+    bool        _use_mulliken;
+    bool        _use_CHELPG;
+    bool        _use_GDMA;
+    bool        _use_CHELPG_SVD;
     
     Logger      _log;
     
@@ -64,6 +69,11 @@ void ESPFit_Tool::Initialize(Property* options) {
     
     _use_mps=false;
     _use_pdb=false;
+    
+    _use_mulliken=false;
+    _use_CHELPG=false;
+    _use_GDMA=false;
+    _use_CHELPG_SVD=false;
 
             // update options with the VOTCASHARE defaults   
     UpdateWithDefaults( options );
@@ -76,12 +86,24 @@ void ESPFit_Tool::Initialize(Property* options) {
  
        
            // orbitals file or pure DFT output
+           
            _orbfile      = options->get(key + ".input").as<string> ();
            _state     = options->get(key + ".state").as<string> ();
            _output_file  = options->get(key + ".output").as<string> ();
            _state_no     = options->get(key + ".statenumber").as<int> ();
            _spin     = options->get(key + ".spin").as<string> ();
-           _method     = options->get(key + ".method").as<string> ();
+           if ( options->exists(key+".method")) {
+                _method = options->get(key + ".method").as<string> ();
+                if (_method=="Mulliken")_use_mulliken=true; 
+                else if(_method=="mulliken")_use_mulliken=true; 
+                else if(_method=="CHELPG")_use_CHELPG=true; 
+                else if(_method=="GDMA") throw std::runtime_error("GDMA not implemented yet");
+                else if(_method=="CHELPG_SVD") throw std::runtime_error("CHELPG_SVD not implemented yet"); 
+                else  throw std::runtime_error("Method not recognized. Only Mulliken and CHELPG implemented");
+                }
+           else _use_CHELPG=true;
+           
+           _integrationmethod     = options->get(key + ".integrationmethod").as<string> ();
            string data_format  = boost::filesystem::extension(_output_file);
            
            if (!(_method=="numeric" || _method=="analytic")){
@@ -92,6 +114,8 @@ void ESPFit_Tool::Initialize(Property* options) {
                 }
            else _gridsize="medium";
               
+    
+    
     if (data_format==".mps")_use_mps=true; 
     else if(data_format==".pdb")_use_pdb=true;    
     else  throw std::runtime_error("Outputfile format not recognized. Export only to .pdb and .mps");
@@ -193,10 +217,17 @@ void ESPFit_Tool::FitESP( Orbitals& _orbitals ){
 	   // Ground state + hole_contribution + electron contribution
 	}
         else throw std::runtime_error("State entry not recognized");
-        Espfit esp;
-        esp.setLog(&_log);
-        if (_method=="numeric")        esp.Fit2Density(Atomlist, DMAT_tot, basis,dftbs,_gridsize,_do_transition); 
-        else if (_method=="analytic")  esp.Fit2Density_analytic(Atomlist,DMAT_tot,basis,_do_transition);
+        
+        if (_use_mulliken) {
+               LOG(logDEBUG, _log) << "===== Running ESPFIT ===== " << flush; 
+                
+        }
+        else if (_use_CHELPG){
+            Espfit esp;
+            esp.setLog(&_log);
+            if (_method=="numeric")        esp.Fit2Density(Atomlist, DMAT_tot, basis,dftbs,_gridsize,_do_transition); 
+            else if (_method=="analytic")  esp.Fit2Density_analytic(Atomlist,DMAT_tot,basis,_do_transition);
+        }
 }       
 
 }}

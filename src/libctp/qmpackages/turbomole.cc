@@ -512,7 +512,7 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
     if ( !CheckLogFile() ) return false;
     // save qmpackage name
     //_orbitals->_has_qm_package = true;
-    _orbitals->setQMpakckage("turbomole");
+    _orbitals->setQMpackage("turbomole");
     
     // Start parsing the file line by line
     path arg_path;

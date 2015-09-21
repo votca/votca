@@ -102,11 +102,16 @@ public:
     bool           hasNumberOfElectrons() { return ( _number_of_electrons > 0 ) ? true : false ; }
     int            getNumberOfElectrons() { return  _number_of_electrons ; } ;
     void           setNumberOfElectrons( const int &electrons ) { _number_of_electrons = electrons;}
-
+    
+    
+    /* To be uncommented in next version
+    bool           getWithECP() {return _with_ECP;};
+    void           setWithECP(const bool &value) {_with_ECP=value;};
+     */ 
     // access to QM package name, new, tested
     bool hasQMpackage() { return (!_qm_package.empty()); }
     string getQMpackage() { return _qm_package; }
-    void setQMpakckage( string qmpackage ) { _qm_package = qmpackage;}
+    void setQMpackage( string qmpackage ) { _qm_package = qmpackage;}
 
     // access to DFT AO overlap matrix, new, tested
     bool           hasAOOverlap() { return ( _overlap.size1() > 0 ) ? true : false ;}
@@ -377,7 +382,9 @@ private:
     int                                     _occupied_levels;
     int                                     _unoccupied_levels;
     int                                     _number_of_electrons;
-    
+    /* To be uncommented in next version
+    bool                                    _with_ECP;
+    */
     std::map<int, std::vector<int> >        _level_degeneracy;
     
     ub::vector<double>                      _mo_energies; 

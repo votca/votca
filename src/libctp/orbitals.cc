@@ -61,7 +61,7 @@ Orbitals::Orbitals() {
     _qm_energy = 0.0;
     _couplingsA = 0;
     _couplingsB = 0;
-    
+    _with_ECP=false;
 
     //_has_atoms = false;
 

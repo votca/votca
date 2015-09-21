@@ -630,7 +630,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
     
     // save qmpackage name
     // _orbitals->_has_qm_package = true;
-    _orbitals->setQMpakckage("nwchem");
+    _orbitals->setQMpackage("nwchem");
     
     // set _found_optimization to true if this is a run without optimization
     if ( !_is_optimization ) {
