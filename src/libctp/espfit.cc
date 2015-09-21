@@ -69,7 +69,7 @@ void Espfit::FitAPECharges(Grid& _targetgrid_fg, Grid& _targetgrid_bg, Grid& _ch
        
 
 
-void Espfit::Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_dftbasis,BasisSet &dftbs,string gridsize, bool _do_transition, double _netcharge) { 
+void Espfit::Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis,BasisSet &bs,string gridsize, bool _do_transition, double _netcharge) { 
     double A2Bohr=1.8897259886;
      double Nm2Bohr=18.8972598860;
      double Nm2A=10.0;
@@ -99,9 +99,9 @@ void Espfit::Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat
 
         NumericalIntegration numway;
         
-        numway.GridSetup(gridsize,&dftbs,_atomlist);
+        numway.GridSetup(gridsize,&bs,_atomlist);
         LOG(logDEBUG, *_log) << TimeStamp() << " Calculate Densities at Numerical Grid"  << flush; 
-        double Numofelectrons=numway.IntegrateDensity_Atomblock(_dmat,&_dftbasis);
+        double Numofelectrons=numway.IntegrateDensity_Atomblock(_dmat,&_basis);
         LOG(logDEBUG, *_log) << TimeStamp() << " Calculated Densities at Numerical Grid, Number of electrons is "<< Numofelectrons << flush; 
         
         
@@ -174,7 +174,7 @@ ub::vector<double> Espfit:: EvalNuclearPotential( vector< QMAtom* >& _atoms, Gri
     return _NucPatGrid;     
    }
 
-void Espfit::Fit2Density_analytic(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AOBasis &_dftbasis,bool _do_transition, double _netcharge) { 
+void Espfit::Fit2Density_analytic(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AOBasis &_basis,bool _do_transition, double _netcharge) { 
     double A2Bohr=1.8897259886;
      double Nm2Bohr=18.8972598860;
      double Nm2A=10.0;
@@ -205,8 +205,8 @@ void Espfit::Fit2Density_analytic(vector< QMAtom* >& _atomlist, ub::matrix<doubl
     for ( int i = 0 ; i < _grid.getsize(); i++){
         // AOESP matrix
          AOESP _aoesp;
-         _aoesp.Initialize(_dftbasis._AOBasisSize);
-         _aoesp.Fill(&_dftbasis, _grid.getGrid()[i]*Nm2Bohr);
+         _aoesp.Initialize(_basis._AOBasisSize);
+         _aoesp.Fill(&_basis, _grid.getGrid()[i]*Nm2Bohr);
         ub::vector<double> AOESPasarray=_aoesp._aomatrix.data();
       
         for ( int _i =0; _i < DMATGSasarray.size(); _i++ ){
@@ -216,8 +216,8 @@ void Espfit::Fit2Density_analytic(vector< QMAtom* >& _atomlist, ub::matrix<doubl
     /*check for transitionstate matrix DEBUGGING
     double check=0.0;
     AOOverlap _overlap;
-    _overlap.Initialize(_dftbasis._AOBasisSize);
-    _overlap.Fill(&_dftbasis);
+    _overlap.Initialize(_basis._AOBasisSize);
+    _overlap.Fill(&_basis);
     ub::vector<double> AOOverlapasarray=_overlap._aomatrix.data();
     for ( int _i =0; _i < DMATGSasarray.size(); _i++ ){
             check -= DMATGSasarray(_i)*AOOverlapasarray(_i);

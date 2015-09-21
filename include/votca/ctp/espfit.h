@@ -57,9 +57,9 @@ public:
   
     void FitAPECharges(Grid& _targetgrid_fg, Grid& _targetgrid_bg, Grid& _chargepositions, double& netcharge);
     // on grid very fast
-    void Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_dftbasis,BasisSet &dftbs,string gridsize, bool _do_transition, double _netcharge=0.0);
+    void Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis,BasisSet &bs,string gridsize, bool _do_transition, double _netcharge=0.0);
     // not so fast
-    void Fit2Density_analytic(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_dftbasis, bool _do_transition, double _netcharge=0.0);
+    void Fit2Density_analytic(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis, bool _do_transition, double _netcharge=0.0);
 private:
     
      Logger *_log;

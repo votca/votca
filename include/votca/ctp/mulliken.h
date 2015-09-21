@@ -30,9 +30,11 @@
 #include <votca/ctp/aobasis.h>
 #include <votca/ctp/qmatom.h>
 
+#include "aomatrix.h"
+
 
 /**
-* \brief Takes a list of atoms, and the corresponding density matrix and puts out a table of partial charges
+* \brief Takes a list of atoms, and the corresponding density matrix and puts out a table of mulliken partial charges
 *
 * 
 * 
@@ -51,7 +53,7 @@ public:
    ~Mulliken(){};
     
     
-    void EvaluateMulliken(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_dftbasis, bool _do_transition);
+    void EvaluateMulliken(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AOBasis &basis,BasisSet &bs,  bool _do_transition);
   
    
 private:
@@ -63,39 +65,40 @@ private:
     
 };
 
-void Mulliken::EvaluateMulliken(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &basis, bool _do_transition){
+void Mulliken::EvaluateMulliken(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AOBasis &basis,BasisSet &bs,  bool _do_transition){
     AOOverlap _overlap;
     // initialize overlap matrix
     _overlap.Initialize(basis._AOBasisSize);
     // Fill overlap
     _overlap.Fill(&basis);
     
-    ub::matrix<double> _prodmat = ub::prod( _dmat, _overlap );
+    ub::matrix<double> _prodmat = ub::prod( _dmat, _overlap._aomatrix );
     
     vector < QMAtom* > :: iterator atom;
-    int id = 0;
-    
-  
 
+    int id =0;
     for (atom = _atomlist.begin(); atom < _atomlist.end(); ++atom){
                 
-         id++;      
+    
          // get element type and determine its nuclear charge
          if (!_do_transition){
              (*atom)->charge=_elements.getNucCrgECP((*atom)->type);
          }
-         int crg = ElementToCharge((*atom)->type);
-         // add to either fragment
-         if ( id <= _frag ) {
-             _nucCrgA += crg;
-         } else {
-             _nucCrgB += crg;
+         else {
+             (*atom)->charge=0.0;
          }
-    
-    
-    
-    
+         // a little messy, have to use basis set to find out which entries in dmat belong to each atom.
+         Element* element = bs.getElement((*atom)->type);
+         int nooffunc=0;
+         for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+             Shell* shell = (*its);
+             nooffunc+=shell->getSize();
+         }
+         for ( int _i = id ; _i < id+nooffunc; _i++){
+                (*atom)->charge += _prodmat(_i,_i);
         }
+         id+=nooffunc;
+    }
 
 
 
