@@ -43,6 +43,7 @@ void NWChem::Initialize( Property *options ) {
     _xyz_file_name = fileName + ".xyz";
     _input_file_name = fileName + ".nw";
     _log_file_name = fileName + ".log"; 
+    _shell_file_name = fileName + ".sh"; 
     _orb_file_name = fileName + ".movecs" ;               
 
     string key = "package";
@@ -111,14 +112,22 @@ bool NWChem::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gues
     vector<string> results;
     int qmatoms = 0;
     string temp_suffix = "/id";
+    string scratch_dir_backup = _scratch_dir;
     ofstream _com_file;
-    
+    ofstream _crg_file;
+
     string _com_file_name_full = _run_dir + "/" + _input_file_name;
+    string _crg_file_name_full = _run_dir + "/background.crg" ;
     
     _com_file.open ( _com_file_name_full.c_str() );
     // header 
    _com_file << "geometry noautoz noautosym" << endl;
  
+   
+   
+   
+   if ( !_write_charges ) {
+   
     for (sit = segments.begin() ; sit != segments.end(); ++sit) {
         
         _atoms = (*sit)-> Atoms();
@@ -138,28 +147,51 @@ bool NWChem::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gues
                       << endl;
         }
     } 
+    
+    
+    
+   } else {
+       
+       // part of QM coordinates
+       
+                vector< QMAtom* > *qmatoms = orbitals_guess->getAtoms();
+                vector< QMAtom* >::iterator it;
+
+                // This is needed for the QM/MM scheme, since only orbitals have 
+                // updated positions of the QM region, hence vector<Segments*> is 
+                // NULL in the QMMachine and the QM region is also printed here
+                for (it = qmatoms->begin(); it < qmatoms->end(); it++) {
+                    if (!(*it)->from_environment) {
+                        _com_file << setw(3) << (*it)->type.c_str()
+                                << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->x
+                                << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->y
+                                << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->z
+                                << endl;
+
+
+                        //_com_file << (*it)->type << " " <<  (*it)->x << " " << (*it)->y << " " << (*it)->z << endl;
+                    }
+                }  
+       
+                
+                // part for the MM charge coordinates
+                _crg_file.open ( _crg_file_name_full.c_str() );
+                             for (it = qmatoms->begin(); it < qmatoms->end(); it++) {
+                    if ((*it)->from_environment) {
+                        boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
+                        fmt % (*it)->x % (*it)->y % (*it)->z % (*it)->charge;
+                        if ((*it)->charge != 0.0) _crg_file << fmt << endl;
+                    }
+                }
+
+                _crg_file << endl;
+                
+                
+                _crg_file.close();
+       
+   } // end different coordinate file data depending on QM/MM or pure QM
 
     _com_file << "end\n";
-    
-    if ( _write_charges ) {
-        vector< QMAtom* > *qmatoms = orbitals_guess->getAtoms();
-        vector< QMAtom* >::iterator it;
-        
-        _com_file << " I wanna write charges" << endl;
-        
-        for (it = qmatoms->begin(); it < qmatoms->end(); it++ ) {
-            if ( (*it)->from_environment ) {
-                boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
-                //fmt % (*it)->x % (*it)->y % (*it)->z % (*it)->charge;
-                _com_file << fmt << endl;
-            }
-        }
-        
-        _com_file << endl;
-         
-    }
-
-
     
     // write charge of the molecule
     _com_file <<  "\ncharge " << _charge << "\n" ;
@@ -169,7 +201,7 @@ bool NWChem::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gues
         
         LOG(logDEBUG,*_pLog) << "Setting the scratch dir to " << _scratch_dir + temp_suffix << flush;
 
-        boost::filesystem::create_directories( _scratch_dir + temp_suffix );
+        // boost::filesystem::create_directories( _scratch_dir + temp_suffix );
         string _temp( "scratch_dir " + _scratch_dir + temp_suffix + "\n" );
         _com_file << _temp ;
     }
@@ -266,6 +298,24 @@ bool NWChem::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gues
     _com_file << endl;
     _com_file.close();
     
+    
+    
+      // and now generate a shell script to run both jobs, if neccessary
+      LOG(logDEBUG, *_pLog) << "Setting the scratch dir to " << _scratch_dir + temp_suffix << flush;
+
+      _scratch_dir = scratch_dir_backup + temp_suffix;
+            
+            //boost::filesystem::create_directories(_scratch_dir + temp_suffix);
+            //string _temp("scratch_dir " + _scratch_dir + temp_suffix + "\n");
+            //_com_file << _temp;
+            WriteShellScript();
+            _scratch_dir = scratch_dir_backup;
+    
+    
+    
+    
+    
+    
     return true;
     
 }
@@ -277,10 +327,14 @@ bool NWChem::WriteShellScript() {
             
     _shell_file.open ( _shell_file_name_full.c_str() );
 
-    _shell_file << "#!/bin/tcsh" << endl ;
+    _shell_file << "#!/bin/bash" << endl ;
     _shell_file << "mkdir -p " << _scratch_dir << endl;
-    _shell_file << "setenv GAUSS_SCRDIR " << _scratch_dir << endl;
-    _shell_file << _executable << " " << _input_file_name << endl;    
+    
+    if ( _threads == 1 ){ 
+        _shell_file << _executable << " " << _input_file_name << " > " <<  _log_file_name  << " 2> run.error" << endl;    
+    } else {
+        _shell_file << "mpirun -np " << boost::lexical_cast<string>(_threads) << " " << _executable << " " << _input_file_name << " > " <<  _log_file_name << " 2> run.error" << endl;    
+    }
     _shell_file.close();
     
     return true;   
@@ -304,14 +358,15 @@ bool NWChem::Run()
         remove ( file_name.c_str() );
         file_name = _run_dir + "/" + _orb_file_name;
         //remove ( file_name.c_str() );
-        
-                
+               
         // if threads is provided and > 1, run mpi; 
         string _command;
         if ( _threads == 1 ) {
-            _command  = "cd " + _run_dir + "; " + _executable + " " + _input_file_name + "> " +  _log_file_name ;
+            //_command  = "cd " + _run_dir + "; mkdir -p " + _scratch_dir + "; " + _executable + " " + _input_file_name + "> " +  _log_file_name ;
+                        _command = "cd " + _run_dir + "; tcsh " + _shell_file_name;
         } else {
-            _command  = "cd " + _run_dir + "; mpirun -np " +  boost::lexical_cast<string>(_threads) + " " + _executable + " " + _input_file_name + "> "+  _log_file_name ;
+            //_command  = "cd " + _run_dir + "; mkdir -p " + _scratch_dir + ";  mpirun -np " +  boost::lexical_cast<string>(_threads) + " " + _executable + " " + _input_file_name + "> "+  _log_file_name ;
+            _command = "cd " + _run_dir + "; tcsh " + _shell_file_name;
         }
         
         int i = system ( _command.c_str() );
@@ -615,6 +670,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
     bool _has_overlap_matrix = false;
     bool _has_charges = false;
     bool _has_coordinates = false;
+    bool _has_vxc_matrix = false;
     bool _has_qm_energy = false;
     bool _has_self_energy = false;
     bool _has_basis_set_size = false;
@@ -676,6 +732,88 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
             
         }
  
+       
+       /*
+        * Vxc matrix
+        * stored after the global array: g vxc
+        */
+       
+       std::string::size_type vxc_pos = _line.find("global array: g vxc");
+       if (vxc_pos != std::string::npos ) {
+       
+       
+                // prepare the container
+                // _orbitals->_has_vxc = true;
+                ub::symmetric_matrix<double>& _vxc = _orbitals->AOVxc();
+                _vxc.resize(_basis_set_size);
+
+
+                _has_vxc_matrix = true;
+                          vector<int> _j_indeces;
+            
+           int _n_blocks = 1 + (( _basis_set_size - 1 ) / 6);
+           //cout << _n_blocks;
+            
+           for (int _block = 0; _block < _n_blocks; _block++ ) {
+                // first line is garbage
+                getline(_input_file, _line); 
+                // second line gives the j index in the matrix
+                getline(_input_file, _line); 
+                boost::tokenizer<> tok( _line );
+                
+                /// COMPILATION IS BROKEN DUE TO A BUG IN BOOST 1.53
+                std::transform( tok.begin(), tok.end(), std::back_inserter( _j_indeces ), &boost::lexical_cast<int,std::string> );
+
+                // third line is garbage again
+                getline(_input_file, _line);
+
+                // read the block of max _basis_size lines + the following header
+                for (int i = 0; i < _basis_set_size; i++ ) {
+                    getline (_input_file, _line); 
+                    
+                    // split the line on the i index and the rest
+                    vector<string> _row;
+                    boost::trim( _line );
+                    boost::algorithm::split( _row , _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on); 
+                   
+                            
+                    int _i_index = boost::lexical_cast<int>(  _row.front()  ); 
+                    _row.erase( _row.begin() );
+                    
+                    std::vector<int>::iterator _j_iter = _j_indeces.begin();
+                    
+                    for (std::vector<string>::iterator iter = _row.begin()++; iter != _row.end(); iter++) {
+                        string  _coefficient = *iter;
+                       
+                        int _j_index = *_j_iter;                                
+                        // _orbitals->_overlap( _i_index-1 , _j_index-1 ) = boost::lexical_cast<double>( _coefficient );
+                        _vxc(_i_index-1 , _j_index-1) = boost::lexical_cast<double>( _coefficient );
+                        _j_iter++;
+                        
+                    }
+ 
+                    
+                }
+                
+                // clear the index for the next block
+                _j_indeces.clear();        
+            } // end of the blocks
+            LOG(logDEBUG,*_pLog) << "Read the Vxc matrix" << flush;
+                
+       }
+       
+                       /* Check for ScaHFX = factor of HF exchange included in functional */
+                std::string::size_type HFX_pos = _line.find("Hartree-Fock (Exact) Exchange");
+                if (HFX_pos != std::string::npos) {
+                    boost::algorithm::split(results, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
+                    double _ScaHFX = boost::lexical_cast<double>(results.back());
+                    _orbitals->setScaHFX(_ScaHFX);
+                    LOG(logDEBUG, *_pLog) << "DFT with " << _ScaHFX << " of HF exchange!" << flush;
+                }
+       
+       
+       
+       
         /*
          * overlap matrix
          * stored after the global array: Temp Over line
