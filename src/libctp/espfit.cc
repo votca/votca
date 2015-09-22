@@ -3,8 +3,7 @@
 #include <votca/ctp/aomatrix.h>
 #include <votca/tools/linalg.h>
 #include <boost/progress.hpp>
-
-#include "votca/ctp/numerical_integrations.h"
+#include <votca/ctp/numerical_integrations.h>
 
 using namespace std;
 using namespace votca::tools;

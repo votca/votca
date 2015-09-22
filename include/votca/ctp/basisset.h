@@ -73,6 +73,18 @@ public:
         return _lmax;
     }; 
     
+    int getnumofFunc() {
+        int _size;
+        if ( _type == "S" ) _size = 1;
+        if ( _type == "SP" ) _size = 4;
+        if ( _type == "SPD" ) _size = 9;
+        if ( _type == "P" ) _size = 3;
+        if ( _type == "PD" ) _size = 8;
+        if ( _type == "D" ) _size = 5;
+        return _size;
+    }; 
+    
+    
     double getScale() { return _scale; }
     
     int getSize() { return _gaussians.size(); }

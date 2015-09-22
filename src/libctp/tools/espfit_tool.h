@@ -103,11 +103,12 @@ void ESPFit_Tool::Initialize(Property* options) {
                 else  throw std::runtime_error("Method not recognized. Only Mulliken and CHELPG implemented");
                 }
            else _use_CHELPG=true;
-           
-           _integrationmethod     = options->get(key + ".integrationmethod").as<string> ();
+           if (!_use_mulliken){
+                _integrationmethod     = options->get(key + ".integrationmethod").as<string> ();
+           }
            string data_format  = boost::filesystem::extension(_output_file);
            
-           if (!(_method=="numeric" || _method=="analytic")){
+           if (!(_integrationmethod=="numeric" || _integrationmethod=="analytic")){
                std::runtime_error("Method not recognized. Only numeric and analytic available");
            }
            if ( options->exists(key+".gridsize")) {

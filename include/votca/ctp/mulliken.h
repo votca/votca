@@ -22,15 +22,8 @@
 
 
 #include <votca/ctp/elements.h>
-#include <votca/tools/property.h>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/lu.hpp>
-#include <boost/numeric/ublas/io.hpp>
-#include <boost/multi_array.hpp>
 #include <votca/ctp/aobasis.h>
 #include <votca/ctp/qmatom.h>
-
-#include "aomatrix.h"
 
 
 /**
@@ -83,6 +76,7 @@ void Mulliken::EvaluateMulliken(vector< QMAtom* >& _atomlist, ub::matrix<double>
          // get element type and determine its nuclear charge
          if (!_do_transition){
              (*atom)->charge=_elements.getNucCrgECP((*atom)->type);
+             //cout << (*atom)->type << " " << (*atom)->charge << endl;
          }
          else {
              (*atom)->charge=0.0;
@@ -92,14 +86,15 @@ void Mulliken::EvaluateMulliken(vector< QMAtom* >& _atomlist, ub::matrix<double>
          int nooffunc=0;
          for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
              Shell* shell = (*its);
-             nooffunc+=shell->getSize();
+             nooffunc+=shell->getnumofFunc();
          }
+         //cout << id << " "<< id+nooffunc << endl;
          for ( int _i = id ; _i < id+nooffunc; _i++){
-                (*atom)->charge += _prodmat(_i,_i);
+                (*atom)->charge -= _prodmat(_i,_i);
         }
          id+=nooffunc;
     }
-
+    //cout << id << " " << _dmat.size1() << endl;
 
 
 }
