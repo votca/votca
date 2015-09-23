@@ -17,14 +17,6 @@ before_install:
  - if [[ $CTP = yes ]]; then sudo apt-get install libboost1.48-all-dev; fi
 
 env: #NINJA=1 is currently not support by Travis' cmake, enable when >=2.8.9
-  - WERROR=yes J=4 #J>4 triggers an internal compiler in travis' g++
-  - CTP=yes WERROR=yes J=4
-  - CTP=yes WALL=yes J=4
-  - J=1
-  - BDIR=build J=4
-  - BDIR=build J=1
-  - MAN=yes J=4
-  - MINIMAL=yes J=4
   - CSG_MDRUN_STEPS=500 TEST=hexane/ibi_bonded J=4
   - CSG_MDRUN_STEPS=500 TEST=hexane/ibi J=4
   - CSG_MDRUN_STEPS=500 TEST=methanol/ibi J=4
