@@ -1,6 +1,6 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/csg/commits/master).
 
-## Version 1.3 _SuperUzma_ (released XX.09.15)
+## Version 1.3_rc1 _SuperUzma_ (released 23.09.15)
 
 * added new iterative methods: relative entropy, simplex optimization
 * added support for using hoomd-blue, lammps, ESPResSo, ESPResSo++ and dl_poly for iterative methods
