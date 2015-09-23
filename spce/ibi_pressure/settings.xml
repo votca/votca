@@ -21,7 +21,7 @@
       <post_update>pressure</post_update>
       <post_update_options>
         <pressure>
-          <type>simple</type>
+          <type>wjk</type>
           <do>1 0 1</do>
           <simple>
             <scale>0.0003</scale>
