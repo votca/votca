@@ -9,14 +9,6 @@
     <min>1.4</min>
     <max>3.1</max>
     <step>0.01</step>
-    <!--spline:offset beyond the hyrbid zone to take into account for fitting the spline-->
-    <tf>
-      <spline_start>0.9</spline_start>
-      <spline_end>3.6</spline_end>
-      <spline_step>0.4</spline_step>
-      <molname>SOL</molname>
-      <prefactor>0.01382</prefactor> 
-    </tf>
     <inverse>
       <!-- target distribution -->
       <target>dens.SOL.xvg</target>
@@ -30,6 +22,19 @@
       <gromacs>
         <table>tabletf.xvg</table>
       </gromacs>
+      <tf>
+	<!--spline:offset beyond the hyrbid zone to take into account for fitting the spline-->
+	<spline_start>0.9</spline_start>
+	<spline_end>3.6</spline_end>
+	<spline_step>0.4</spline_step>
+	<molname>SOL</molname>
+	<!-- The CG water model has a 5x higher compressibility
+	     compared to all-atom .
+	     We are using this to calculate 
+	     the prefactor m_mol/kappa_T/rho^2 to avoid instabilities(units: nm^3/mol/u).-->
+	<prefactor>0.01382</prefactor>
+	<!-- also cg_prefactor is possible -->
+    </tf>
     </inverse>
   </non-bonded>
   
@@ -57,7 +62,7 @@
     <!-- ibi: inverse biltzmann imc: inverse monte carlo tf: thermody force -->
     <method>tf</method>
     <!-- directory for user scripts -->
-    <scriptdir></scriptdir>
+    <scriptpath></scriptpath>
     <!-- write log to this file -->
     <log_file>inverse.log</log_file>
     <!-- write restart step to this file -->

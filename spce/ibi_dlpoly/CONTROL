@@ -1,0 +1,25 @@
+# coarse-grained spce water
+
+integrator 		velocity verlet
+temperature		300.00
+pressure         	0.0000
+ensemble 		nvt langevin 5.0
+timestep 		0.002
+
+cutoff		        9.0000
+
+steps               	10000
+equilibration       	15000
+
+traj 0 50 2
+print 100
+stack 100
+stats 100
+
+job time              10000.0
+finish 
+
+
+
+
+

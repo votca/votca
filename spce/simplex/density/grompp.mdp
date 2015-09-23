@@ -1,0 +1,65 @@
+title                    = Full MD
+cpp                      = /lib/cpp
+;
+; Run control:
+;
+constraints              = all-bonds
+integrator               = md
+dt                       = 0.002 ; ps
+nsteps                   = 500 ; total 100 ps 
+;
+; Neighbor searching:
+;
+nstlist                  = 5 
+ns_type                  = grid
+rlist                    = 1.4 ; nm
+;
+; Output control:
+;
+nstcomm                  = 1
+nstxout                  = 0
+nstvout                  = 0
+nstfout                  = 0
+nstlog                   = 100
+nstenergy                = 100
+nstxtcout                = 500
+xtc-precision            = 1000
+xtc_grps                 = CG
+energygrps               = CG
+;
+; Electrostatics
+;
+coulombtype              = User
+pme_order                = 4
+fourierspacing           = 0.1 ; nm
+fourier_nx               = 0
+fourier_ny               = 0
+fourier_nz               = 0
+rcoulomb                 = 1.4 ; nm
+ewald_rtol               = 1e-5
+optimize_fft             = yes
+;
+; VdW
+;
+vdwtype                  = User
+rvdw                     = 1.4 ; nm
+table-extension          = 1
+;
+; Tables:
+;
+energygrp_table          = CG CG
+;
+; Temperature & Pressure coupling:
+;
+tcoupl                   = Berendsen
+tc-grps                  = CG
+tau_t                    = 0.1 ; ps
+ref_t                    = 300 ; K
+ 
+pcoupl                   = no ; fixed box size
+;
+; Velocity generation:
+;
+gen_vel                  = yes
+gen_temp                 = 300 ; K
+gen_seed                 = -1

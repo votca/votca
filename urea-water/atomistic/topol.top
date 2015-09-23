@@ -1,0 +1,38 @@
+; Urea in water
+
+[ defaults ]
+;  nbfunc     comb-rule      gen-pairs     fudgeLJ      fudgeQQ
+     1           1              yes           1.0        1.0
+
+[ atomtypes ]
+; name     mass        charge    ptype        c6                  c12
+    C     12.0107      0.921       A       4.788992e-03    1.374967e-05
+    H     1.00800      0.285       A       5.476276e-06    8.519772e-11
+    O     15.99940    -0.675       A       1.988008e-03    1.764365e-06
+    NT    14.0067     -0.693       A       1.809640e-03    1.637399e-06
+    OW    15.99940    -0.84760     A       2.620834e-03    2.639398e-06
+    HW    1.00800      0.4238      A            0.0              0.0 ;spc/e
+
+
+#include "Urea.itp"
+#include "water.itp"
+
+[ system ]
+Urea aqueous solution
+
+[ molecules ]
+;mol_name number
+  UR      1200
+  SOL     11111  ; the turns of these three cannot be changed
+
+
+
+
+
+
+
+
+
+
+
+

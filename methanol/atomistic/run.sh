@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /bin/bash -e
 
 grompp -v
 
@@ -14,3 +14,6 @@ csg_stat --top topol.tpr --trj traj.trr --cg methanol.xml --options settings.xml
 
 echo "Mapping confout.gro to get configuration for coarse-grained run"
 csg_map --top topol.tpr --trj confout.gro --cg methanol.xml --out conf_cg.gro 
+
+echo "Running force matching"
+csg_fmatch --top topol.tpr --trj traj.trr --begin $equi  --options fmatch.xml --cg methanol.xml

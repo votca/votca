@@ -1,4 +1,11 @@
 <cg>
+  <bonded>
+    <!-- name of the interaction -->
+    <name>angle</name>
+    <min>0.0</min>
+    <max>3.1415</max>
+    <step>0.01</step>
+  </bonded>
   <inverse>
     <gromacs>
       <pot_max>1e8</pot_max>

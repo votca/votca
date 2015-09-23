@@ -8,7 +8,7 @@
 ;	"Hold On Like Cliffhanger" (Urban Dance Squad)
 ;
 ; Include forcefield parameters
-#include "ffoplsaa.itp"
+#include "oplsaa.ff/forcefield.itp"
 
 [ moleculetype ]
 ; Name            nrexcl
@@ -110,7 +110,7 @@ Protein             3
 #endif
 
 ; Include water topology
-#include "spc.itp"
+#include "oplsaa.ff/spc.itp"
 
 #ifdef POSRES_WATER
 ; Position restraint for each water oxygen
@@ -120,7 +120,7 @@ Protein             3
 #endif
 
 ; Include generic topology for ions
-#include "ions.itp"
+#include "oplsaa.ff/ions.itp"
 
 [ system ]
 ; Name

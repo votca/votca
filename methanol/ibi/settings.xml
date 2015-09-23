@@ -43,9 +43,6 @@
       <pot_max>1000000</pot_max>
       <!-- extend the tables to this value -->
       <table_end>5.0</table_end>
-      <!-- topology + trajectory. Be careful, do not change yet! -->
-      <topol>topol.tpr</topol>
-      <traj>traj.xtc</traj>
     </gromacs>
     <!-- these files are copied for each new run -->
     <filelist>grompp.mdp topol.top table.xvg index.ndx</filelist>
@@ -54,7 +51,7 @@
     <!-- ibi: inverse biltzmann imc: inverse monte carlo -->
     <method>ibi</method>
     <!-- directory for user scripts -->
-    <scriptdir>$PWD</scriptdir>
+    <scriptpath>$PWD</scriptpath>
     <!-- write log to this file -->
     <log_file>inverse.log</log_file>
     <!-- write restart step to this file -->

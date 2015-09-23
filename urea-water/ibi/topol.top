@@ -1,0 +1,33 @@
+[ defaults ]
+; nbfunc        comb-rule       gen-pairs       fudgeLJ fudgeQQ
+  1             1               no              0.0     0.0
+
+[ atomtypes ]
+;type    mass    charge       ptype          sigma      epsilon
+ UR     60.06     0.000       A        0.000000000  1.000000000
+ SOL    18.0154   0.000       A        0.000000000  1.000000000
+
+
+[ moleculetype ]
+; Name            nrexcl
+  UR              1
+
+[ atoms ]
+;   nr       type  resnr residue  atom   cgnr     charge       mass  typeB    chargeB      massB
+     1       UR       1   UR     UR      1          0     60.06   
+[moleculetype]
+ SOL		1
+
+[atoms]
+
+     1      SOL      1    SOL    SOL      1         0     18.0154
+
+[ system ]
+; Name
+urea in water
+
+[ molecules ]
+; Compound        #mols
+UR       1200
+SOL      11111      
+

@@ -1,0 +1,23 @@
+; .itp file for SPC rigid water 
+
+[moleculetype]
+; Name   nrexcl
+  SOL       2
+
+[ atoms ]
+;   nr    type   resnr  residu    atom    cgnr   charge      mass  
+     1     OW      1     SOL       OW      1    -0.8476    15.99940
+     2     HW      1     SOL       HW1     1     0.4238    1.00800
+     3     HW      1     SOL       HW2     1     0.4238    1.00800
+
+[ settles ]
+; OW    funct     doh     dhh
+  1       1       0.1    0.16330
+
+[ exclusions ]
+1       2       3
+2       1       3
+3       1       2
+
+
+

@@ -1,0 +1,9 @@
+This is a tutorial for implementing KB-IBI in urea-water mixtures. KB-IBI should be done after few iterations of normal IBI. 
+In this example the *.pot.in files were taken after 15 iterations of normal IBI (see ../ibi).
+
+Terms related to KB-IBI (used in settings files)-
+do_ramp: whether to use KB-IBI or not; default 0.
+kkint_start/kkint_stop: we take the average value of the KB integrals between r = kkint_start and r = kkint_stop (eg. 1.0 to 1.4 nm)
+ramp_factor: scaling factor for updating the potential (total prefactor would be ramp_factor*kBT)
+
+Here we use 3 settings files for KB-IBI with decreasing ramp-factor for fine-adjustments

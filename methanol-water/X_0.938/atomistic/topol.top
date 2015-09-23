@@ -1,0 +1,10 @@
+#include "oplsaa.ff/forcefield.itp"
+#include "methanol_opls.itp"
+#include "oplsaa.ff/spce.itp"
+
+[ system ]
+Methanol-water in water
+
+[ molecules ]
+methanol 3752
+SOL      248

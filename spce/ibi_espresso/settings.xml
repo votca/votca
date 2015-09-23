@@ -1,0 +1,48 @@
+<cg>
+  <!-- example for a non-bonded interaction entry -->
+  <non-bonded>
+    <!-- name of the interaction -->
+    <name>CG-CG</name>
+    <!-- types involved in this interaction -->
+    <type1>CG</type1>
+    <type2>CG</type2>
+    <!-- dimension + grid spacing of tables for calculations -->
+    <min>0.25</min>
+    <max>0.9</max>
+    <step>0.01</step>
+    <inverse>
+      <!-- target distribution (rdf)  -->
+      <target>CG-CG.dist.tgt</target>
+      <espresso>
+        <!-- name of the table for espresso run -->
+	<table>CG_CG.tab</table>
+	<table_begin>0.20</table_begin>
+	<table_bins>0.002</table_bins>
+      </espresso>
+    </inverse>
+  </non-bonded>
+  
+  <!-- general options for inverse script -->
+  <inverse>
+    <!-- 300*0.00831451 espresso units -->
+    <kBT>2.49435</kBT>
+    <!-- use espresso as simulation program -->
+    <program>espresso</program>
+    <!-- espresso specific options -->
+    <espresso>
+      <!-- espresso script to run !-->
+      <script>spce.tcl</script>
+      <!-- topology to be used by  csg_stat !-->
+      <topol>topol.xml</topol>
+      <!-- traj file created by espresso !-->
+      <traj>traj.gro</traj>
+    </espresso>
+    <initial_configuration>maindir</initial_configuration>
+    <!-- these files are copied for each new run -->
+    <filelist>spce.tcl spce.gro topol.xml</filelist>
+    <!-- do so many iterations -->
+    <iterations_max>300</iterations_max>
+    <!-- ibi: inverse biltzmann imc: inverse monte carlo -->
+    <method>ibi</method>
+  </inverse>
+</cg>
