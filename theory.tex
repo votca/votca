@@ -211,3 +211,140 @@ Here ${\vec F}_{Il}^\text{ref}$ is the force on the bead $I$ and ${\vec F}_{Il}^
 ${\bm F}_{il}^\text{cg}$ is, in principle, a non-linear function of its parameters $\{g_i\}$. Therefore, it is useful to represent the coarse-grained force-field in such a way that equations~(\ref{eq:fmatch1}) become linear functions of $\{g_i\}$. This can be done using splines to describe the functional form of the forces~\cite{Izvekov:2005}. Implementation details are discussed in ref.~\cite{Ruehle:2009.a}.
 
 Note that an adequate sampling of the system requires a large number of snapshots $L$. Hence, the applicability of the method is often constrained by the amount of memory available. To remedy the situation, one can split the trajectory into blocks, find the coarse-grained potential for each block and then perform averaging over all blocks.
+
+\section{Relative Entropy}
+\label{sec:re}
+
+Relative entropy is a method which quantifies the extent of the configurational
+phase-space overlap between two molecular ensembles~\cite{Wu2005}. It can be
+used as a measure of the discrepancies between various properties of the CG
+system's and the target all-atom (AA) ensemble. It has been shown by Shell
+S.~\cite{Shell2008} that one can minimize the relative entropy metric between
+the model CG system and the target AA system to optimize CG potential parameters
+such that the CG ensemble would mimic the target AA ensemble.
+
+Relative entropy, $S_{\text{rel}}$, is defined as \cite{Shell2008}
+\begin{equation}
+\label{eq:srel}
+S_{\text{rel}} = \sum_{i}p_{\text{AA}}(r_i) \ln\left(
+  \frac{p_{\text{AA}}(r_i)}{p_{\text{CG}}\left(M(r_i)\right)}\right) +
+\langle S_{\text{map}} \rangle_{\text{AA}},
+\end{equation}
+where the sum is over all the configurations of the reference AA system,
+$r=\{r_i\} (i=1,2,...)$, $M$ is the mapping operation to generate a
+corresponding CG configuration, $R_I$, from a AA configuration, $r_i$, i.e.,
+$R_I = M(r_i)$, $p_\text{AA}$ and $p_\text{CG}$ are the configurational
+probabilities based on the AA and CG potentials, respectively, and $ \langle
+S_{\text{map}}\rangle_{\text{AA}}$ is the mapping entropy due to the average
+degeneracy of AA configurations mapping to the same CG configuration, given by
+\begin{equation}
+\label{eq:smap}
+S_{\text{map}}(R_I)=\ln\sum_{i}\delta_{R_I,M(r_i)} ,
+\end{equation}
+where $\delta$ is the Kronecker delta function. Physically, $S_{\text{rel}}$ can
+be interpreted as the likelihood that one test configuration of the model CG
+ensemble is representative of the target AA ensemble, and when the likelihood is
+a maximum, $S_{\text{rel}}$ is at a minimum. Hence, the numerical minimization
+of $S_{\text{rel}}$ with respect to the parameters of the CG model can be used
+to optimize the CG model.
+
+In a canonical ensemble, substituting canonical configurational probabilities
+into \eq{eq:srel}, the relative entropy simplifies to
+\begin{equation}
+\label{eq:srelcan}
+S_{\text{rel}}=\beta\langle U_{\text{CG}} - U_{\text{AA}}\rangle_{\text{AA}}
+- \beta\left( A_{\text{CG}} - A_{\text{AA}}\right)
++ \langle S_{\text{map}}\rangle_{\text{AA}} ,
+\end{equation}
+where $\beta={1}/{k_{\text{B}}T}$, $k_{\text{B}}$ is the Boltzmann constant, $T$
+is the temperature, $U_\text{CG}$ and $U_\text{AA}$ are the total potential
+energies from the CG and AA potentials, respectively, $A_\text{CG}$ and
+$A_\text{AA}$ are the configurational part of the Helmholtz free energies from
+the CG and AA potentials, respectively, and all the averages are computed in the
+reference AA ensemble.
+
+Consider a model CG system defined by the CG potentials between various CG sites
+such that the CG potentials depend on the parameters
+$\boldsymbol\lambda=\{\lambda_1,\lambda_2,...\lambda_n\}$. Then
+$\boldsymbol\lambda$ are optimized by the relative entropy minimization. We use
+the Newton-Raphson strategy for the relative entropy minimization described in
+ref.~\cite{Chaimovich2011}. In this strategy, the CG potential parameters,
+$\boldsymbol\lambda$, are refined iteratively as
+\begin{equation}
+\label{eq:newtraph}
+\boldsymbol{\lambda} ^{k+1} = \boldsymbol{\lambda} ^{k} -
+\chi \mathbf{H} ^{-1}\cdot
+\nabla_{\lambda} S_{\text{rel}} ,
+\end{equation}
+where $k$ is the iteration index, $\chi\in(0...1)$ is the scaling parameter that
+can be adjusted to ensure convergence, $\nabla_{\lambda}S_{\text{rel}}$ is the
+vector of the first derivatives of $S_{\text{rel}}$ with respect to
+$\boldsymbol\lambda$, which can be computed from \eq{eq:srelcan} as
+\begin{equation}
+\label{eq:dsrel}
+\nabla_{\lambda}S_{\text{rel}} = \beta \left\langle \frac{\partial
+  U_{\text{CG}}}{\partial\lambda}\right\rangle_{\text{AA}} - \beta\left\langle
+\frac{\partial U_{\text{CG}}}{\partial\lambda}\right\rangle_{\text{CG}} ,
+\end{equation}
+and $\mathbf{H}$ is the Hessian matrix of $S_{\text{rel}}$ given by
+\begin{eqnarray}
+\label{eq:Hsrel}
+\mathbf{H}_{ij}&=&\beta \left\langle \frac{\partial^2
+  U_{\text{CG}}}{\partial\lambda_i\partial\lambda_j}\right \rangle_{\text{AA}} -
+\beta \left\langle \frac{\partial^2
+  U_{\text{CG}}}{\partial\lambda_i\partial\lambda_j}\right \rangle_{\text{CG}}
+\nonumber\\ &&+ \beta^2 \left\langle \frac{\partial
+  U_{\text{CG}}}{\partial\lambda_i} \frac{\partial
+  U_{\text{CG}}}{\partial\lambda_j}\right\rangle_{\text{CG}} \nonumber\\ &&-
+\beta^2 \left\langle \frac{\partial
+  U_{\text{CG}}}{\partial\lambda_i}\right\rangle_{\text{CG}} \left\langle
+\frac{\partial U_{\text{CG}}}{\partial\lambda_j}\right\rangle_{\text{CG}}.
+\end{eqnarray}
+
+To compute $\nabla_{\lambda}S_{\text{rel}}$ and $\mathbf{H}$ from \eq{eq:dsrel}
+and \ref{eq:Hsrel}, we need average CG energy derivatives in the AA and CG
+ensembles. For two-body CG pair potentials, $u_{\text{CG}}$, between CG sites,
+the ensemble averages of the CG energy derivatives can be computed as
+\begin{eqnarray}
+\left\langle\left(\frac{\partial^a U_{\text{CG}}}{\partial \lambda^a}\right)^b
+\right\rangle_{\text{AA}}& =
+&\left\langle\left(\sum_{i<j}\frac{\partial^{a}u_{\text{CG}}(r_{ij})}
+{\partial \lambda^a}\right)^b\right\rangle_{\text{AA}}\nonumber \\
+\left\langle\left(\frac{\partial^a U_{\text{CG}}}{\partial \lambda^a}\right)^b
+\right\rangle_{\text{CG}}& =
+&\left\langle\left(\sum_{i<j}\frac{\partial^{a}u_{\text{CG}}(r_{ij})}
+{\partial \lambda^a}\right)^b\right\rangle_{\text{CG}}  ,
+\end{eqnarray}
+where the sum is performed over all the CG site pairs $(i,j)$, $a$ stands for
+the 1$^{\text{st}}$, 2$^{\text{nd}}$,...  derivatives and $b$ stands for the
+different powers, i.e., $b=1,2,...$. For the averages in the AA ensemble, first
+a single AA system simulation can be performed and RDFs between the CG sites in
+the AA ensemble can be saved, then the average CG energy derivatives in AA
+ensemble can be computed by processing the CG RDFs in the AA ensemble using the
+CG potentials at each iteration. For the averages in the CG ensemble, since the
+CG ensemble changes with the CG parameters, $\boldsymbol\lambda$, a short CG
+simulation is performed at each iteration to generate corresponding CG
+configurations.
+
+Comparisons between relative entropy and other coarse-graining methods are made
+in ref.~\cite{rudzinski_coarse-graining_2011}
+and~\cite{Chaimovich2011}. Chaimovich and Shell~\cite{Chaimovich2011} have shown
+that for certain CG models relative entropy minimization produces the same CG
+potentials as other methods, e.g., it is equivalent to the IBI when CG
+interactions are modeled using finely tabulated pair additive potentials, and to
+the FM when a CG model is based on $N-$body interactions, where $N$ is the
+number of degrees of freedom in the CG model. However, there are some advantages
+of using relative entropy based coarse-graining. Relative entropy method allows
+to use analytical function forms for CG potentials, which are desired in
+theoretical treatments, such as parametric study of CG potentials, whereas,
+methods, like IBI, use tabulated potentials. Recently Lyubartsev et.
+al~\cite{lyubartsev2010systematic} have shows how to use IMC with an analytical
+function form, too.  BI, IBI, and IMC methods are based on pair correlations and
+hence, they are only useful to optimize 2-body CG potentials, whereas, relative
+entropy uses more generic metric which offers more flexibility in modeling CG
+interactions and not only 2-body, but also 3-body (for example see
+ref.~\cite{lu_coarse-graining_2014}) and N-body CG potentials can be
+optimized. In addition to the CG potential optimization, the relative entropy
+metric can also be used to optimize an AA to CG mapping operator.
+
+

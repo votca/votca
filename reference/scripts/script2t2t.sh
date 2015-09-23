@@ -80,26 +80,27 @@ echo "Used xml options:"
 #1. trick to manage multiple csg_get_property per line by adding \n in the beginning
 #2. get value and possibly their defaults
 #3. rm quotes
-#4. adding itemize and link()() (see txt2tags config.t2t) and add cg.interaction to the link target for interaction properties
+#4. adding itemize and link()() (see txt2tags config.t2t) and add cg.non-bonded to the link target for interaction properties
 #5. remove duplicated
 echo -e "$helpmsg" | \
 sed 's/csg_get_/\n&/g' | \
 if [ -z "${script%%*.sh}" ]; then
   perl -n \
-    -e 'if (/csg_get_(interaction_)?property\s+--allow-empty\s+(\S+?)\s*\)/) { print "$2 (default: empty)\n"; }
+    -e 'if (/csg_get_(interaction_)?property\s+(?:--allow-empty)\s+(\S+?)\s*\)/) { print "$2 (optional)\n"; }
+        elsif (/csg_get_(interaction_)?property\s+(?:--all)\s+(\S+?)\s*\)/) { print "$2\n"; }
         elsif (/csg_get_(interaction_)?property\s+(\S+?)\s+(\S+?)\s*\)/) { print "$2 (default: $3)\n";}
         elsif (/csg_get_(interaction_)?property\s+(\S+?)\s*\)/) { print "$2\n";}
  	elsif (/csg_get_(interaction_)?property/) {die "Oho, I do NOT understand the line '$_'\n";}'
 elif [ -z "${script%%*.pl}" ]; then
   perl -n \
-    -e 'if (/csg_get_(interaction_)?property\s*\(\s*(\S+?)\s*,\s*(\S+?)\s*\)/) { print "$2 (default: $3)\n";}
+    -e 'if    (/csg_get_(interaction_)?property\s*\(\s*("--allow-empty")\s*,\s*(\S+?)\s*\)/) { print "$3 (optional)\n"; }
+        elsif (/csg_get_(interaction_)?property\s*\(\s*(\S+?)\s*,\s*(\S+?)\s*\)/) { print "$2 (default: $3)\n";}
         elsif (/csg_get_(interaction_)?property\s*\(\s*(\S+?)\s*\)/) { print "$2\n";}
  	elsif (/csg_get_(interaction_)?property/) {die "Oho, I do NOT understand the line '$_'\n";}'
 else
   die "Don't know how to handle script ${script}"
 fi | \
 sed -e 's/"//g' -e "s/'//g" | \
-perl -pe 's/^(\S+)/- link(PREFIX$1)($1)/;' -e 's/PREFIX([^c][^g])/cg.non-bonded.$1/;' -e 's/PREFIX//;' | \
+perl -pe 's/^(\S+)/- link(PREFIX$1)(PREFIX$1)/;' -e 's/PREFIX([^c][^g])/cg.non-bonded.$1/;' -e 's/PREFIX([^c][^g])/cg.{non-}bonded.$1/;' -e 's/PREFIX//g;' | \
 sort -u
-
 assert "${0##*/}: sed 3 failed"

@@ -28,9 +28,9 @@ echo -e "label($prog)"
 #-space at begining and end are removed
 #-optionlines (-[^ ]) -> - ``--option`` text
 #-usageline -> usage: ``code``
+#-examplelines (^*) -> - ``command`` descrition
+#  descrition is optional and start after >=2 spaces
 #-extra empty line before new section to close itemize
-#-examplelines (^*) -> - ``line``
-#-add cg.interaction in links
 echo -e "$helpmsg" | sed \
    -e '1,/^please submit/d' \
    -e "/^\($prog\|votca_tools\|gromacs\)/d" \
@@ -42,5 +42,5 @@ echo -e "$helpmsg" | sed \
    -e '/^\* /s/\( \{2\}\|$\)/`` /' \
    -e '/^\*.*``/s/^\*[[:space:]]*/- ``/' \
    -e 's/^\(Examples\|Usage\):/\n&/' \
-   -e 's/^\(Threading\|Allowed\|Trajectory\|Specific\) options:/\n&/'
+   -e 's/^\(Threading\|Allowed\|Trajectory\|Mapping\|Specific\) options:/\n&/'
 

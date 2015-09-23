@@ -11,7 +11,7 @@ For example, \texttt{csg\_call update imc} calls the \texttt{update} script for 
   csg_call --list
 \end{verbatim}
 
-It is advised not to change already implemented scripts. To customize a script or add a new one, copy the script to your own directory (set by \cgopt{inverse.scriptdir}) and redirect its call by creating your own \texttt{csg\_table} file in this directory which looks like this
+It is advised not to change already implemented scripts. To customize a script or add a new one, copy the script to your own directory (set by \cgopt{inverse.scriptpath}) and redirect its call by creating your own \texttt{csg\_table} file in this directory which looks like this
 \begin{verbatim}
   key1 key2 script1 options
   key3 key4 script2
@@ -62,7 +62,7 @@ Now we change the last line of \texttt{my\_run\_gromacs.sh} to:
 \begin{verbatim}
   critical mpirun -np 8 mdrun
 \end{verbatim}
-This completes the customization. Do not forget to add \texttt{SCRIPTDIR} to \cgopt{inverse.scriptdir} in the setting \xml file (see \sect{sec:ref_options}).
+This completes the customization. Do not forget to add \texttt{SCRIPTDIR} to \cgopt{inverse.scriptpath} in the setting \xml file (see \sect{sec:ref_options}).
 
 You can check the new script by running:
 \begin{verbatim}
@@ -86,6 +86,10 @@ Get it from \htmladdnormallink{www.gromacs.org}{http://www.gromacs.org}
 \label{progpack.espresso}
 Get it from \htmladdnormallink{www.espressomd.org}{http://www.espressomd.org}
 
+\subsection{DL\_POLY}
+\label{progpack.dlpoly}
+Get it from \htmladdnormallink{www.ccp5.ac.uk/DL\_POLY}{http://www.ccp5.ac.uk/DL_POLY/}
+
 \subsection{Gnuplot}
 \label{progpack.gnuplot}
 Get it from \htmladdnormallink{www.gnuplot.info}{http://www.gnuplot.info}
@@ -93,6 +97,10 @@ Get it from \htmladdnormallink{www.gnuplot.info}{http://www.gnuplot.info}
 \subsection{GNU Octave}
 \label{progpack.octave}
 Get it from \htmladdnormallink{www.gnu.org}{http://www.gnu.org/software/octave/}
+
+\subsection{LAMMPS}
+\label{progpack.lammps}
+Get it from \htmladdnormallink{lammps.sandia.gov}{http://lammps.sandia.gov/}
 
 \subsection{Matlab}
 \label{progpack.matlab}

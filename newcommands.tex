@@ -5,10 +5,13 @@
 \newcommand{\sign}{\ensuremath{\operatorname{sgn}}}
 \newcommand{\ibi}{IBI\xspace}
 \newcommand{\imc}{IMC\xspace}
+\newcommand{\re}{RE\xspace}
 \newcommand{\fm}{FM\xspace}
 \newcommand{\xml}{XML\xspace}
 \newcommand{\gromacs}{GROMACS\xspace}
 \newcommand{\espresso}{ESPResSo\xspace}
+\newcommand{\dlpoly}{DL\_POLY\xspace}
+\newcommand{\dlpolyfour}{DL\_POLY-4\xspace}
 \newcommand{\spce}{SPC/E\xspace}
 \newcommand{\grad}{\vec{\nabla}}
 \newcommand{\ddash}{{-}{-}\xspace}
@@ -29,7 +32,7 @@
 \newcommand{\cgopt}[1]{\hyperlink{\cgref{#1}}{\textit{\StrSubstitute{#1}{_}{\_}}}\xspace}
 \newcommand{\interref}[1]{cg.non-bonded.#1}
 \newcommand{\interopt}[1]{\hyperlink{\interref{#1}}{\textit{\StrSubstitute{#1}{_}{\_}}}\xspace}
-\newcommand{\mapref}[1]{mapping.#1}
+\newcommand{\mapref}[1]{cg_molecule.#1}
 \newcommand{\mapopt}[1]{\hyperlink{\mapref{#1}}{\StrSubstitute{#1}{_}{\_}}\xspace}
 
 \newcommand{\sect}[1]{sec.~\ref{#1}}
@@ -37,8 +40,8 @@
 \newcommand{\votca}{{\sc \color{blue} votca}\xspace}
 \newcommand{\votcaweb}{\htmladdnormallink{{\sc \color{blue} www.votca.org}\xspace}{http://www.votca.org}}
 
-\input{hgid}
-\input{reference/hgid}
+\input{gitid}
+\input{reference/csgid}
 
 % todo
 \newcommand{\todo}{{\marginpar{\sc \color{red} TODO}}\xspace}

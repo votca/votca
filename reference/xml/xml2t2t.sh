@@ -5,26 +5,6 @@ die () {
   exit 1
 }
 
-add_heads() {
-  local i head pattern again="no"
-  for i in $items; do
-    head=${i%.*}
-    #for main node
-    [ "$head" = "$i" ] && continue
-    pattern=${head//$/\\$}
-    #if head node is note there
-    if [ -z "$(echo -e "$items" | grep -Ee "$pattern([[:space:]]+|\$)")" ]; then
-      items="$(echo -e "$items\n$head")"
-      again="yes"
-      #echo "added $head from $i xx $pattern" >&2
-      #break here to avoid double head nodes
-      break
-    fi
-  done
-  #we have to do that because items were changed
-  [ "$again" = "yes" ] && add_heads
-}
-
 cut_heads() {
   local i new 
   [ -z "$1" ] && die "cut_heads: Missing argument"
@@ -48,16 +28,12 @@ fi
 [ -z "$(type -p csg_property)" ] && die "${0##*/}: csg_property not found"
 [ -z "$(type -p csg_call)" ] && die "${0##*/}: csg_call not found"
 
-xmlfile="$1"
-CSGSHARE="$(csg_call --show-share)"
-[ -f "${CSGSHARE}/xml/$xmlfile" ] || die "${0##*/}: Error, did not find ${CSGSHARE}/xml/$xmlfile"
-
-trunc=""
-[ "$xmlfile" = "mapping.xml" ] && trunc="mapping."
-[ "$xmlfile" = "cginteraction.xml" ] && trunc="cg.non-bonded."
+VOTCASHARE="$(csg_call --show-share)"
+xmlfile="${VOTCASHARE}/xml/$1"
+[ -f "$xmlfile" ] || die "${0##*/}: Error, did not find $xmlfile"
 
 #header lines
-echo $xmlfile 
+echo ${xmlfile##*/}
 echo ${0##*/}
 date
 echo '%!includeconf: config.t2t'
@@ -66,17 +42,26 @@ echo **Please mind that dots in xml tags have to replaced by subtags, e.g. x.y h
 echo
 
 #get all items
-items="$(csg_property --file ${CSGSHARE}/xml/$xmlfile --path tags.item --print name --short)" || die "parsing xml failed"
-#check if a head node is missing
-add_heads
+#perl does this:
+#-keep only xml tags
+#-print the xml tags tree
+#-remove leading dot
+#-delete desc tags themself
+items="$(perl -ne 'while (/<([^!].*?)>/g) {print "$1\n";}' ${xmlfile} | \
+  perl -ne 'chomp;if (/^\/(.*)/) {print "$line\n";$line =~ s/\.$1$//;}else{$line.=".$_";};' | \
+  sed -e 's/^\.//' -e '/\.DESC$/d')"
+
 #sort them
 items="$(echo -e "$items" | sort -u)"
 #echo "$items"
 for name in ${items}; do
-  #cut the first 3 heads of the item
-  cut_heads "$name"
-  echo -n "${spaces}- target(${trunc}${name})(**${item}**) "
-  desc="$(csg_property --file ${CSGSHARE}/xml/$xmlfile --path tags.item --filter "name=$name" --print desc --short)" || die "${0##*/}: Could not get desc for $name"
+  #cut the first 3 heads of the item, as maximum deepth of latex itemize is 3
+  cut_heads "$name" #returns $item and $spaces
+  desc="$(csg_property --file $xmlfile --path $name.DESC --print . --short)"
+  echo -n "${spaces}- target(${name})(**${item}**) "
+  default="$(csg_property --file $xmlfile --path $name --print . --short | \
+    sed -e '/^[[:space:]]*$/d' -e 's/^[[:space:]]*//' -e 's/[[:space:]]$//')"
+  [[ -n $default ]] && desc="$desc (default $default)"
   echo ${desc}
 done
 

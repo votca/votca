@@ -1,0 +1,58 @@
+\chapter{\dlpoly interface}
+\label{sec:usage:dlpoly}
+\textbf{WARNING: The \dlpoly interface is still experimental (in development)
+but it does support the Iterative Boltzmann Inversion and Inverse Monte Carlo schemes. 
+The Force Matching might work as well, although it has not been tested thoroughly.}
+
+\section{General remarks on using \votca with \dlpoly}
+
+The \dlpoly interface fully supports coarse-grain mapping of a full-atom system 
+previuosly simulated with any version of \dlpoly, including \dlpoly-Classic. 
+However, the full optimization of the effective potentials with the aid of iterative 
+methods will only become possible when the new release of \dlpolyfour (4.06) is made 
+public; the reason being the incapability of earlier \dlpoly versions of using 
+user-specified tabulated force-fields for intramolecular, aka "bonded", interactions:
+bonds, angles, dihedral angles (torsions). Below the coarse-graining and CG force-field 
+optimization with the aid of the latest \dlpolyfour version (4.06+) are outlined. 
+
+Running \votca with \dlpolyfour as MD simulation engine is very similar to doing so with \gromacs. 
+The three types of required input files in the case of \dlpoly are: CONTROL -- containing 
+the simulation directives and parameters (instead of \texttt{.mdp} file for \gromacs), 
+FIELD -- the topology and force-field specifications (instead of \texttt{.top} and \texttt{.tpr} 
+files), and CONFIG (instead of \texttt{.gro} file) -- the initial configuration file, 
+containing the MD cell matrix and particle coordinates (it can also include initial velocities 
+and/or forces); for details see \dlpolyfour manual. Most of the \votca tools and scripts described 
+above in the case of using \gromacs will work in the same manner, with the following conventional  
+substitutions for the (default) file names used in options for \votca scripts, as necessary: 
+\begin{verbatim}
+.dlpf = the topology read from FIELD or written to FIELD_CGV
+.dlpc = the configuration read from CONFIG or written to CONFIG_CGV
+.dlph = the trajectory read from HISTORY or written to HISTORY_CGV
+\end{verbatim}
+It is also possible to specify file names different from the standard \dlpoly convention, 
+in which case the user has to use the corresponding dot-preceded extension(s); 
+for example: FA-FIELD.dlpf instead of FIELD or CG-HISTORY.dlph instead of HISTORY\_CGV 
+(see  section \ref{sec:ref_programs}, as well as the man pages or output of \votca commands, 
+with option \progopt{---help}). 
+
+\votca follows the \dlpoly conventions for file names and formats. Thus, \texttt{csg\_dlptopol} 
+and \texttt{csg\_map} produce the CG topology (FIELD\_CGV by default), configuration (CONFIG\_CGV), 
+and/or trajectory (HISTORY\_CGV) files fully compatible with and usable by \dlpoly. 
+{\bf Note that the ability of these tools to read and write a plethora of different file formats 
+provides means to convert input and output files between the simulation packages supported 
+by \votca, e.g. \gromacs -- \dlpoly or vice versa. The user is, however, strongly advised 
+to check the resulting files for consistency before using them).}
+
+Similarly, the distribution analysis and potential/force generation utilities, such as \texttt{csg\_stat} 
+and \votca scripts, will read and write \dlpoly-formatted files; in particular, the tabulated 
+force-field files containing the potential and force/virial data: TABLE -- for short-range (VdW) 
+"non-bonded" interactions, TABBND, TABANG and TABDIH -- for "bonded" interations: bonds, bending 
+angles and dihedrals, correspondingly (for the format details see \dlpolyfour manual). Note, however, 
+that the latter three files can only be used by \dlpolyfour (4.06+). 
+
+The user is advised to search for "dlpoly" through the \texttt{csg\_defaults.xml}, \texttt{csg\_table} 
+files and in scripts located in \texttt{share/votca/scripts/inverse/} in order to find out about 
+the xml-tags and options specific for \dlpoly; see also sections~\ref{sec:ref_options} 
+and~\ref{sec:csg_table}.
+
+

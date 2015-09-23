@@ -1,4 +1,3 @@
-syntax: glob
 *~
 *.aux
 .*.swp
@@ -14,14 +13,17 @@ manual.out
 manual.pdf
 manual.toc
 manual.tar.gz
+reference/csgid.tex
 reference/programs/Makefile.incl
 reference/programs/csg_*.*
 reference/programs/multi_*.*
 reference/programs/all.tex
 reference/programs/all.wiki
+reference/programs/all.html
 reference/programs/config.t2t
 reference/scripts/Makefile.incl
 reference/scripts/csg_table.tex
+reference/scripts/csg_table.html
 reference/scripts/csg_table.t2t
 reference/scripts/config.t2t
 reference/scripts/*.pl.*
@@ -30,8 +32,9 @@ reference/scripts/*.sh.*
 reference/scripts/linsolve*
 reference/scripts/all.tex
 reference/scripts/all.wiki
+reference/scripts/all.html
 reference/xml/Makefile.incl
 reference/xml/*.xml.*
 reference/xml/config.t2t
 usage/fig/*.eps
-hgid.tex
+gitid.tex
