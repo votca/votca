@@ -32,7 +32,7 @@ before_script:
   - if [[ $TEST = *cma* ]]; then wget http://www.lri.fr/~hansen/cma.py; fi #we set PYTHONPATH="$PWD" below
 
 script:
-  - PYTHONPATH="$PWD" ./build.sh -Wdu --prefix $PWD ${MAN:+--devdoc}
+  - PYTHONPATH="$PWD" ./build.sh -Wu --prefix $PWD ${MAN:+--devdoc}
     ${TEST:+--runtest=$TEST} ${WERROR:+--warn-to-errors} ${MINIMAL:+--minimal}
     ${J:+-j$J} ${BDIR:+--builddir=$BDIR} ${NINJA:+--ninja} ${WALL:+--Wall}
     tools ${GROMACS:+gromacs} csg csgapps ${MAN:+csg-manual} ${TEST:+csg-tutorials}
