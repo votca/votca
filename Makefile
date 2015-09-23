@@ -1,6 +1,6 @@
 SHELL=/bin/bash
 #the next line is used by the buildutil !
-VER=1.3-dev
+VER=1.4-dev
 GITID_PLAIN:=$(shell git rev-parse --short HEAD 2> /dev/null)
 GITID:=$(shell echo $(GITID_PLAIN) | sed 's/.*/\\newcommand{\\gitid}{${VER} (&)}/')
 LATEXMK=scripts/latexmk.pl
