@@ -33,14 +33,20 @@ is_done "post_update-$name" && exit 0
 tasklist=$(csg_get_interaction_property --allow-empty inverse.post_update)
 [[ -n $tasklist ]] && msg "Postupd tasks for $name: $tasklist"
 i=1
+#after all other task shift dpot
 for task in $tasklist shift; do
   echo "Doing postupd task '$task' for '${name}'"
 
   #save the current one
   critical mv "${name}.dpot.new" "${name}.dpot.${i}"
-  
+
   #perform postupd task
   do_external postupd "$task" "${name}.dpot.${i}" "${name}.dpot.new"
+
+  if [[ ! -f ${name}.dpot.new ]]; then
+    echo "$task didn't create an output (${name}.dpot.new), running dummy update"
+    do_external postupd dummy "${name}.dpot.${i}" "${name}.dpot.new"
+  fi
 
   ((i++))
 done

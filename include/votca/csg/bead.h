@@ -64,10 +64,28 @@ public:
     const string &getName() const { return _name; }
     
     /**
+     * set bead name
+     * \param name bead name
+     */
+    void setName(const string &name) { _name=name; }
+
+    /**
      * get the bead type
      * \return bead type object
      */
     const BeadType *getType() const { return _type; }
+
+    /**
+     * set the bead type
+     * \param bead type object
+     */
+    void setType(BeadType *type) { _type=type; }
+
+    /**
+     * get the bead type pointer (not constant)
+     * \return bead type object
+     */
+    BeadType *Type() const { return _type; }
 
     /**
      * get the residu number of the bead
@@ -354,8 +372,7 @@ protected:
     double _m;
     double _q;
     
-    vec _pos, _vel, _f, _u, _v, _w, _eigenvec1, _eigenvec2,_eigenvec3;
-    double _val1,_val2,_val3;
+    vec _pos, _vel, _f, _u, _v, _w;
     
     bool _bPos;
     bool _bVel;
@@ -363,7 +380,6 @@ protected:
     bool _bV;
     bool _bW;
     bool _bF;
-    bool _b1,_b2,_b3;
     
     /// constructur
     Bead(Topology *owner, int id, BeadType *type, byte_t symmetry, string name, int resnr, double m, double q)
@@ -373,10 +389,7 @@ protected:
     _bU=false;
     _bV=false;
     _bW=false;
-    _bF=false;
-    _b1=false;
-    _b2=false;
-    _b3=false;}
+    _bF=false;}
 
     void *_userdata;
     

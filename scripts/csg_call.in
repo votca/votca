@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-version='@PROJECT_VERSION@ #CSG_HG_ID#'
+version='@PROJECT_VERSION@ #CSG_GIT_ID#'
 ext_cmd=""
 simprog=""
 log=""
@@ -40,19 +40,17 @@ please submit bugs to bugs@votca.org
 
 ${0##*/}, version ${version}
 
-This script calls scripts for the iterative framework
+This script calls scripts and functions for the iterative framework.
+Function can be executed or shows if key1='function'.
 
-Usage: ${0##*/} [OPTIONS] key1 key2
+Usage: ${0##*/} [OPTIONS] key1 key2 [SCRIPT OPTIONS]
 
 Allowed options:
 -l, --list           Show list of all script
     --cat            Show the content of the script
     --show           Show the path to the script
-    --show-share     Shows the used CSGSHARE dir and exits
+    --show-share     Shows the used VOTCASHARE dir and exits
     --scriptdir DIR  Set the user script dir
-                     (Used if no optins xml file is given)
-                     Default: empty
-    --simprog PROG   Set the simprog
                      (Used if no options xml file is given)
                      Default: empty
     --options FILE   Specify the options xml file to use
@@ -61,6 +59,7 @@ Allowed options:
     --ia-type type   Specify the interaction type to use
     --ia-name name   Specify the interaction name to use
     --nocolor        Disable colors
+    --sloppy-tables  Allow tables without flags
     --debug          Enable debug mode with a lot of information
 -h, --help           Show this help
 
@@ -85,15 +84,18 @@ while [[ ${1#-} != $1 ]]; do
     ext_cmd="show_csg_tables"
     shift ;;
    --scriptdir)
-    scriptdir="$2"
+    die "'--scriptdir' is obsolete, please specify the script path in the xml file (cg.inverse.scriptpath)"
     shift 2;;
    --simprog)
-    simprog="$2"
+    die "'--simprog' is obsolete, please specify the simprog in the xml file (cg.inverse.program)"
     shift 2;;
    --options)
     export CSGXMLFILE="$2"
     [ -f "$CSGXMLFILE" ] || die "options xml file '$CSGXMLFILE' not found"
     shift 2;;
+   --sloppy-tables)
+    export VOTCA_TABLES_WITHOUT_FLAG="yes"
+    shift ;;
    --log)
     log="$2"
     shift 2;;
@@ -129,42 +131,42 @@ while [[ ${1#-} != $1 ]]; do
  esac
 done
 
-if [[ -z ${CSGSHARE} ]]; then
+if [[ -z ${VOTCASHARE} ]]; then
   if [ -f "${0%/*}/../share/votca/scripts/inverse/inverse.sh" ]; then
     #transform it to a global path
-    export CSGSHARE="$(cd ${0%/*}/../share/votca;pwd)"
+    export VOTCASHARE="$(cd ${0%/*}/../share/votca;pwd)"
   elif [ -f "@CMAKE_INSTALL_PREFIX@/@DATA@/scripts/inverse/inverse.sh" ]; then
-    export CSGSHARE="@CMAKE_INSTALL_PREFIX@/@DATA@"
+    export VOTCASHARE="@CMAKE_INSTALL_PREFIX@/@DATA@"
   else
-    echo "Error: Environment value CSGSHARE is not defined and could not be guessed" >&2
-    echo "Export CSGSHARE or source VOTCARC.bash or VOTCARC.csh" >&2
+    echo "Error: Environment value VOTCASHARE is not defined and could not be guessed" >&2
+    echo "Export VOTCASHARE or source VOTCARC.bash or VOTCARC.csh" >&2
     exit 1
   fi
 else
-  if [[ ! -f ${CSGSHARE}/scripts/inverse/inverse.sh ]]; then
-    echo "Error: Environment value CSGSHARE seems to be wrong" >&2
-    echo "Could not find \${CSGSHARE}/scripts/inverse/inverse.sh" >&2
-    echo "Export CSGSHARE or source VOTCARC.bash or VOTCARC.csh" >&2
+  if [[ ! -f ${VOTCASHARE}/scripts/inverse/inverse.sh ]]; then
+    echo "Error: Environment value VOTCASHARE seems to be wrong" >&2
+    echo "Could not find \${VOTCASHARE}/scripts/inverse/inverse.sh" >&2
+    echo "Export VOTCASHARE or source VOTCARC.bash or VOTCARC.csh" >&2
     exit 1
   fi
 fi
 
 if [ "$show_share" = "yes" ]; then
-  echo "${CSGSHARE}"
+  echo "${VOTCASHARE}"
   exit 0
 fi
 
-if [[ -f ${CSGSHARE}/scripts/inverse/start_framework.sh ]]; then
-  source ${CSGSHARE}/scripts/inverse/start_framework.sh || die "Could not source start_framework.sh"
+if [[ -f ${VOTCASHARE}/scripts/inverse/start_framework.sh ]]; then
+  source ${VOTCASHARE}/scripts/inverse/start_framework.sh || die "Could not source start_framework.sh"
 else
   die "Could not find start_framework.sh"
 fi
 
-[[ -n ${CSGXMLFILE} ]] && scriptdir="$(csg_get_property --allow-empty cg.inverse.scriptdir "$scriptdir")"
-[[ -n ${scriptdir} ]] && add_to_csgshare "$scriptdir"
+[[ -n ${CSGXMLFILE} ]] && scriptpath="$(csg_get_property --allow-empty cg.inverse.scriptpath)" > /dev/null
+[[ -n ${scriptpath} ]] && echo "Adding '$scriptpath to csgshare" && add_to_csgshare "$scriptpath"
 
 [[ -n ${CSGXMLFILE} ]] && simprog="$(csg_get_property --allow-empty cg.inverse.program "$simprog")"
-[[ -n ${simprog} ]] && source_function $simprog
+[[ -n ${simprog} ]] && echo "We are using Sim Program: $simprog" && source_function $simprog
 
 if [[ $ext_cmd = show_csg_tables ]]; then
   $ext_cmd
@@ -187,8 +189,9 @@ cat <<EOF
 please submit bugs to bugs@votca.org
 
 EOF
-  do_external -q $1 $2 --help | sed "s/%version%/${version}/"
-  exit 0
+  scriptname=$(source_wrapper $1 $2)
+  do_external -q $1 $2 --help | sed -e "s/%version%/${version}/" -e "/^Usage/s@${scriptname##*/}@${0##*/} [OPTIONS] $1 $2@g"
+  exit $?
 fi
 
 [[ -n ${log} ]] && enable_logging "$log"

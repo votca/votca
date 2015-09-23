@@ -1,5 +1,18 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/csg/commits/master).
 
+## Version 1.3 _SuperUzma_ (released XX.09.15)
+
+* added new iterative methods: relative entropy, simplex optimization
+* added support for using hoomd-blue, lammps, ESPResSo, ESPResSo++ and dl_poly for iterative methods
+* added pre-simulation feature for GROMACS (e.g. for minimization)
+* added rudimentary support for IBI with bonded interaction
+* made pdb reader work with libgmx
+* added support for h5md, dl_ploy file format
+* added support for numpy in IMC
+* cmake: added BUILD_MANPAGES option, git support minor fixes
+* cmake: dropped internal boost replacement
+* many many many small bug fixes and improvements
+
 ## Version 1.2.4 (released 31.08.14)
 
 * support for Gromacs 5.0

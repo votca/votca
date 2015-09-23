@@ -37,7 +37,7 @@ void XYZWriter::Close()
 void XYZWriter::Write(Topology *conf)
 {
     Topology *top = conf;
-    fprintf(_out, "%lu\n", top->Beads().size());
+    fprintf(_out, "%d\n", (int)top->Beads().size());
     fprintf(_out, "frame: %d time: %f\n", top->getStep()+1, top->getTime());
 
     for(BeadContainer::iterator iter=conf->Beads().begin();
@@ -52,8 +52,9 @@ void XYZWriter::Write(Topology *conf)
         while(atomname.size()<3)
             atomname=" " + atomname;
         
+        //nm -> Angs
         fprintf(_out,
-                "%s%10.5f%10.5f%10.5f\n", atomname.c_str(), 10.*r.getX(), 10.*r.getY(), 10.*r.getZ()
+                "%s%10.5f%10.5f%10.5f\n", atomname.c_str(), r.getX()*10.0, r.getY()*10.0, r.getZ()*10.0
         );       
     }
     fflush(_out);

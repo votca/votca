@@ -20,28 +20,30 @@
 #endif
 
 #include <votca/csg/topologyreader.h>
-#include "modules/io/esptopologyreader.h"
 #include "modules/io/lammpsreader.h"
 #include "modules/io/xmltopologyreader.h"
-
+#include "modules/io/xyzreader.h"
+#include "modules/io/groreader.h"
 #ifdef GMX
 #include "modules/io/gmxtopologyreader.h"
-#include "modules/io/grotopologyreader.h"
-#include "modules/io/pdbtopologyreader.h"
 #endif
+#include "modules/io/pdbreader.h"
+#include "modules/io/dlpolytopologyreader.h"
+
 
 namespace votca { namespace csg {
 
 void TopologyReader::RegisterPlugins(void)
 {
-    TopReaderFactory().Register<ESPTopologyReader>("esp");		
     TopReaderFactory().Register<XMLTopologyReader>("xml");
     TopReaderFactory().Register<LAMMPSReader>("dump");
+    TopReaderFactory().Register<XYZReader>("xyz");
+    TopReaderFactory().Register<GROReader>("gro");
 #ifdef GMX
     TopReaderFactory().Register<GMXTopologyReader>("tpr");
-    TopReaderFactory().Register<GROTopologyReader>("gro");
-    TopReaderFactory().Register<PDBTopologyReader>("pdb");
 #endif
+    TopReaderFactory().Register<PDBReader>("pdb");
+    TopReaderFactory().Register<DLPOLYTopologyReader>("dlpf");
 }
 
 }}

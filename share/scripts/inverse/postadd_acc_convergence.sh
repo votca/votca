@@ -36,9 +36,7 @@ else
   touch "${name}.aconv"
 fi
 
-if [ -f "${name}.conv" ]; then
-  do_external postadd dummy "$1" "$2"
-else
+if [[ ! -f ${name}.conv ]]; then
   do_external postadd convergence "$1" "$2"
 fi
 

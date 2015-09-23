@@ -42,6 +42,8 @@ void GMXTrajectoryWriter::Write(Topology *conf)
     int N = conf->BeadCount();
     t_trxframe frame;
     rvec *x = new rvec[N];
+    rvec *v;
+    rvec *f;
     matrix box = conf->getBox();
     
     frame.natoms = N;
@@ -55,22 +57,42 @@ void GMXTrajectoryWriter::Write(Topology *conf)
     frame.bAtoms=false;
     frame.bPrec=false;
     frame.bX = true;
-    frame.bV=false;
-    frame.bF=false;
+    frame.bF=conf->HasForce();
     frame.bBox=true;
+    frame.bV=conf->HasVel();
 
     for(int i=0; i<3; i++)
         for(int j=0; j<3; j++)
             frame.box[j][i] = box[i][j];
     
-    
 for(int i=0; i<N; ++i) {
-        vec v = conf->getBead(i)->getPos();
-        x[i][0] = v.getX();
-        x[i][1] = v.getY();
-        x[i][2] = v.getZ(); 
+        vec pos = conf->getBead(i)->getPos();
+        x[i][0] = pos.getX();
+        x[i][1] = pos.getY();
+        x[i][2] = pos.getZ();
     }
-        
+
+if (frame.bV){
+    v = new rvec[N];
+    for(int i=0; i<N; ++i) {
+        frame.v = v;
+        vec vel = conf->getBead(i)->getVel();
+        v[i][0] = vel.getX();
+        v[i][1] = vel.getY();
+        v[i][2] = vel.getZ();
+    }
+}
+ if (frame.bF){
+     f = new rvec[N];
+    for(int i=0; i<N; ++i) {
+        frame.f = f;
+        vec force = conf->getBead(i)->getF();
+        f[i][0] = force.getX();
+        f[i][1] = force.getY();
+        f[i][2] = force.getZ();
+    }
+}
+     
 #if (GMX == 50)||(GMX == 51)
     write_trxframe(_file, &frame, NULL);
 #elif GMX == 45
@@ -80,9 +102,11 @@ for(int i=0; i<N; ++i) {
 #else
 #error Unsupported GMX version
 #endif
-    
+
     step++;
     delete[] x;
+    if (frame.bV) delete[] v;
+    if (frame.bF) delete[] f;
 }
 
 }}

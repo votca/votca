@@ -33,15 +33,21 @@ is_done "post_add-$name" && exit 0
 tasklist=$(csg_get_interaction_property --allow-empty inverse.post_add)
 [[ -n $tasklist ]] && msg "Postadd tasks for $name: $tasklist"
 i=1
-#after all we shift the potential to be 0 at the cutoff and tag with labels
-for task in tag $tasklist; do
+#after all we shift and tag the potential
+for task in $tasklist shift tag; do
   echo "Doing postadd task '$task' for '${name}'"
   
   #save the current one
   critical mv "${name}.pot.new" "${name}.pot.${i}"
 
   #perform postadd task
-  do_external postadd "$task" "${name}.pot.${i}" "${name}.pot.new" 
+  do_external postadd "$task" "${name}.pot.${i}" "${name}.pot.new"
+
+  if [[ ! -f ${name}.pot.new ]]; then
+    echo "$task didn't create an output (${name}.pot.new), running dummy update"
+    do_external postadd dummy "${name}.pot.${i}" "${name}.pot.new"
+  fi
+
 
   ((i++))
 done

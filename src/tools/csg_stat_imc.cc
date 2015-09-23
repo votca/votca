@@ -28,7 +28,7 @@
 namespace votca { namespace csg {
 
 Imc::Imc()
-   : _write_every(0), _do_blocks(false), _do_imc(false), _processed_some_frames(false)
+   : _block_length(0), _do_imc(false), _processed_some_frames(false)
 {
 }
 
@@ -104,6 +104,15 @@ void Imc::BeginEvaluate(Topology *top, Topology *top_atom)
         else
             i._norm = 1. / (beads1.size() * beads2.size());
     }
+
+    for (list<Property*>::iterator iter = _bonded.begin();
+            iter != _bonded.end(); ++iter) {
+        string name = (*iter)->get("name").value();
+
+        std::list<Interaction *> list = top->InteractionsInGroup(name);
+        if (list.empty() )
+            throw std::runtime_error("Bonded interaction '" + name + "' defined in options xml-file, but not in topology - check name definition in the mapping file again");
+    }
 }
 
 // create an entry for interactions
@@ -139,8 +148,9 @@ Imc::interaction_t *Imc::AddInteraction(Property *p)
 void Imc::EndEvaluate()
 {
     if(_nframes > 0) {
-        if(!_do_blocks) {
-            WriteDist();
+        if(_block_length == 0) {
+	    string suffix = string(".") + _extension;
+            WriteDist(suffix);
             if(_do_imc)
                 WriteIMCData();
         }
@@ -373,7 +383,7 @@ void Imc::WriteDist(const string &suffix)
         Table dist(t);
         if(!iter->second->_is_bonded) {
             // normalization is calculated using exact shell volume (difference of spheres)
-            for(int i=0; i<dist.y().size(); ++i) {
+            for(unsigned int i=0; i<dist.y().size(); ++i) {
                 double x1 = dist.x()[i] - 0.5*iter->second->_step;
                 double x2 = x1 + iter->second->_step;
                 if(x1<0) {
@@ -386,11 +396,15 @@ void Imc::WriteDist(const string &suffix)
             }
         }
         else {
-            dist.y() = iter->second->_norm * dist.y();
+	    // \TODO normalize bond and angle differently....
+            double norm=ub::norm_1(dist.y());
+            if ( norm > 0 ) {
+              dist.y() = iter->second->_norm * dist.y() / ( norm * iter->second->_step );
+            }
         }
         
-        dist.Save((iter->first) + suffix + ".dist.new");
-        cout << "written " << (iter->first) + suffix + ".dist.new\n";            
+        dist.Save((iter->first) + suffix);
+        cout << "written " << (iter->first) + suffix << "\n";
     }
 }
 
@@ -504,7 +518,7 @@ void Imc::CalcDeltaS(interaction_t *interaction, ub::vector_range< ub::vector<do
     target.Load(name + ".dist.tgt");
 
     if(!interaction->_is_bonded) {
-        for(int i=0; i<target.y().size(); ++i) {
+        for(unsigned int i=0; i<target.y().size(); ++i) {
             double x1 = target.x()[i] - 0.5*interaction->_step;
             double x2 = x1 + interaction->_step;
             if(x1<0)
@@ -648,15 +662,14 @@ void Imc::MergeWorker(CsgApplication::Worker* worker_)
     if(_do_imc)
         DoCorrelations(worker);
 
-    if(_write_every != 0) {
-        if((_nframes % _write_every)==0) {
+    if(_block_length != 0) {
+        if((_nframes % _block_length)==0) {
             _nblock++;
-            string suffix = string("_") + boost::lexical_cast<string>(_nblock);
+            string suffix = string("_") + boost::lexical_cast<string>(_nblock) + string(".") + _extension;
             WriteDist(suffix);
             WriteIMCData(suffix);
             WriteIMCBlock(suffix);
-            if(_do_blocks)
-                ClearAverages();
+            ClearAverages();
         }
     }
 

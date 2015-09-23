@@ -26,13 +26,9 @@ EOF
 fi
 
 sim_prog="$(csg_get_property cg.inverse.program)"
-method="$(csg_get_property cg.inverse.method)"
 
-#get new pot from last step
-for_all non-bonded 'cp_from_last_step $(csg_get_interaction_property name).pot.new'
-
-#make it current potential
-for_all non-bonded 'mv $(csg_get_interaction_property name).pot.new $(csg_get_interaction_property name).pot.cur'
+#get new pot from last step and make it current potential
+for_all "non-bonded bonded" 'cp_from_last_step --rename $(csg_get_interaction_property name).pot.new $(csg_get_interaction_property name).pot.cur'
 
 #initialize sim_prog
-do_external initstep_generic $sim_prog
+do_external initstep $sim_prog

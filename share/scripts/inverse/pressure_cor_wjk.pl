@@ -30,7 +30,7 @@ EOF
   exit 0;
 }
 
-die "2 parameters are nessary\n" if ($#ARGV<1);
+die "2 parameters are necessary\n" if ($#ARGV<1);
 
 
 use CsgFunctions;
@@ -42,7 +42,7 @@ my $delta_r=csg_get_interaction_property("step");
 
 my $partDens=csg_get_interaction_property("inverse.particle_dens");
 my $name=csg_get_interaction_property("name");
-my $scale_factor=csg_get_interaction_property("inverse.post_update_options.pressure.wjk.scale","1.0");
+my $scale_factor=csg_get_interaction_property("inverse.post_update_options.pressure.wjk.scale");
 
 my $pi= 3.14159265;
 my $bar_to_SI = 0.06022; # 1bar=0.06022 kJ/(nm mol)
@@ -86,6 +86,9 @@ if ($temp > 0.1*$kBT){
 
 $pref=$pref*$scale_factor;
 print "Pressure correction factor: A=$pref\n";
+
+# my $prefile="${name}.pressure.prefactor";
+# saveto_table($prefile,$pref) || die "$progname: error at save table\n";
 
 my @r;
 my @pot;

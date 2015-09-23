@@ -95,6 +95,7 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
                 "you're missing the files to rerun grompp,\n contact the votca mailing list for a solution.");
     }
 
+    int ifirstatom = 0;
     for(int iblock=0; iblock<mtop.nmolblock; ++iblock) {
         gmx_moltype_t *mol
                 = &(mtop.moltype[mtop.molblock[iblock].type]);
@@ -117,7 +118,6 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
 #endif
         }
 
-        int ifirstatom = 0;
         for(int imol=0; imol<mtop.molblock[iblock].nmol; ++imol) {
             Molecule *mi = top.CreateMolecule(molname);
 
@@ -125,29 +125,32 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
             for(int iatom=0; iatom<mtop.molblock[iblock].natoms_mol; iatom++) {
                 t_atom *a = &(atoms->atom[iatom]);
 
-                // read exclusions
-                t_blocka * excl = &(mol->excls);
-                // insert exclusions
-                list<int> excl_list;
-                for(int k=excl->index[iatom]; k<excl->index[iatom+1]; k++) {
-                    excl_list.push_back(excl->a[k]+ifirstatom);
-                }
-                top.InsertExclusion(iatom+ifirstatom, excl_list);
-
                 BeadType *type = top.GetOrCreateBeadType(*(atoms->atomtype[iatom]));
 #if (GMX == 50)||(GMX == 51)
-                Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resind, a->m, a->q);
+                Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resind + res_offset, a->m, a->q);
 #elif GMX == 45
-                Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resind, a->m, a->q);
+                Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resind + res_offset, a->m, a->q);
 #elif GMX == 40
-                Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resnr, a->m, a->q);
+                Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resnr + res_offset, a->m, a->q);
 #else
 #error Unsupported GMX version
 #endif
 
                 stringstream nm;
-                nm << bead->getResnr() + 1 << ":" <<  top.getResidue(res_offset + bead->getResnr())->getName() << ":" << bead->getName();
+                nm << bead->getResnr() + 1 - res_offset << ":" <<  top.getResidue(bead->getResnr())->getName() << ":" << bead->getName();
                 mi->AddBead(bead, nm.str());
+            }
+
+            // add exclusions
+            for(int iatom=0; iatom<mtop.molblock[iblock].natoms_mol; iatom++) {
+                // read exclusions
+                t_blocka * excl = &(mol->excls);
+                // insert exclusions
+                list<Bead *> excl_list;
+                for(int k=excl->index[iatom]; k<excl->index[iatom+1]; k++) {
+                	excl_list.push_back(top.getBead(excl->a[k]+ifirstatom));
+                }
+                top.InsertExclusion(top.getBead(iatom+ifirstatom), excl_list);
             }
             ifirstatom+=mtop.molblock[iblock].natoms_mol;
         }

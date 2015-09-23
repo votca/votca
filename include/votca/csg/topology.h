@@ -62,7 +62,10 @@ class Topology
 {
 public:
     /// constructor
-    Topology() {  _bc = new OpenBox(); }
+    Topology() {
+        _bc = new OpenBox();
+        _has_vel=false;
+    }
     virtual ~Topology();
     
     /**
@@ -170,6 +173,12 @@ public:
     BeadContainer &Beads() { return _beads; }
 
     /**
+     * access containter with all residues
+     * @return bead container
+     */
+    ResidueContainer &Residues() { return _residues; }
+
+    /**
      * access  containter with all molecules
      * @return molecule container
      */
@@ -215,6 +224,20 @@ public:
      * range is a string which is parsed by RangeParser,
      */
     void RenameMolecules(string range, string name);
+
+    /**
+     *  \brief rename all the bead types
+     * \param name current rame of the bead type
+     * \param newname new name of bead type
+     */
+    void RenameBeadType(string name, string newname);
+    
+    /**
+     *  \brief set the mass of all the beads of a certain type
+     * \param name the bead type
+     * \param value mass value
+     */
+    void SetBeadTypeMass(string name, double value);
 
     /**
      * set the simulation box
@@ -278,6 +301,20 @@ public:
     int getStep() { return _step; };
 
     /**
+     * Sets the particle group. (For the H5MD file format)
+     * \param particle_group The name of a particle group.
+     */
+    void setParticleGroup(string particle_group) { _particle_group = particle_group; };
+
+    /**
+     * Gets the particle group.
+     * \return The name of a particle group.
+     */
+    string getParticleGroup() { 
+      return _particle_group; 
+    };
+
+    /**
      * \brief pbc correct distance of two beads
      * \param bead1 index of first bead
      * \param bead2 index of second bead
@@ -328,7 +365,14 @@ public:
         return _bc->getBoxType();
     }
 
-    void InsertExclusion(int i, list<int> l);
+    template<typename iteratable>
+    void InsertExclusion(Bead *bead1, iteratable &l);
+
+    bool HasVel(){return _has_vel;}
+    void SetHasVel(const bool v){ _has_vel=v;}
+
+    bool HasForce(){return _has_force;}
+    void SetHasForce(const bool v){ _has_force=v;}
 
 protected:
     BoundaryCondition *_bc;
@@ -359,6 +403,11 @@ protected:
     
     double _time;
     int _step;
+    bool _has_vel;
+    bool _has_force;
+
+    /// The particle group (For H5MD file format)
+    string _particle_group;
 };
 
 inline Bead *Topology::CreateBead(byte_t symmetry, string name, BeadType *type, int resnr, double m, double q)
@@ -388,8 +437,9 @@ inline Molecule *Topology::MoleculeByIndex(int index)
     return _molecules[index];
 }
 
-inline void Topology::InsertExclusion(int i, list<int> l) {
-    _exclusions.InsertExclusion(i,l);
+template<typename iteratable>
+inline void Topology::InsertExclusion(Bead *bead1, iteratable &l) {
+    _exclusions.InsertExclusion(bead1, l);
 }
 
 }}

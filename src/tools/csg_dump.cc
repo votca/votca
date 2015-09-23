@@ -49,14 +49,48 @@ int main(int argc, char** argv)
 bool CsgDumpApp::EvaluateTopology(Topology *top, Topology *top_ref)
 {
     if(!OptionsMap().count("excl")) {
+        cout << "Boundary Condition: ";
+	if(top->getBoxType()==BoundaryCondition::typeAuto) {
+	  cout << "auto";
+	} else if (top->getBoxType()==BoundaryCondition::typeTriclinic) {
+	  cout << "triclinic";
+	} else if (top->getBoxType()==BoundaryCondition::typeOrthorhombic) {
+	  cout << "orthorhombic";
+	} else if (top->getBoxType()==BoundaryCondition::typeOpen) {
+	  cout << "open";
+	}
+	cout << endl;
+	if (top->getBoxType()!=BoundaryCondition::typeOpen) {
+	  cout << " Box matix:";
+	  matrix box=top->getBox();
+	  for (int i=0;i<3;i++){
+	    for (int j=0;j<3;j++){
+	      cout << " " << box[i][j];
+	    }
+	    cout << endl << "           ";
+	  }
+	}
+
+        cout << "\nList of residues:\n";
+	for (int i=0; i<top->ResidueCount(); i++){
+	  cout << i << " name: " << top->getResidue(i)->getName() <<
+	    " id: " << top->getResidue(i)->getId() << endl;
+	}
+
         cout << "\nList of molecules:\n";
         MoleculeContainer::iterator mol;
         for (mol = top->Molecules().begin(); mol != top->Molecules().end(); ++mol) {
             cout << "molecule: " << (*mol)->getId() + 1 << " " << (*mol)->getName()
                     << " beads: " << (*mol)->BeadCount() << endl;
             for (int i = 0; i < (*mol)->BeadCount(); ++i) {
-                cout << (*mol)->getBeadId(i) << " " <<
-                        (*mol)->getBeadName(i) << " " << (*mol)->getBead(i)->getType()->getName() << endl;
+	        int resnr=(*mol)->getBead(i)->getResnr();
+                cout << (*mol)->getBeadId(i) << " Name " <<
+                        (*mol)->getBeadName(i) << " Type " <<
+			(*mol)->getBead(i)->getType()->getName() << " Mass " <<
+			(*mol)->getBead(i)->getM() << " Resnr " <<
+			resnr << " Resname " <<
+			top->getResidue(resnr)->getName() <<
+			endl;
             }
         }
     }

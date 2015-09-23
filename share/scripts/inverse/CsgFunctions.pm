@@ -25,8 +25,8 @@ use vars qw(@ISA @EXPORT);
 
 sub csg_function_help() {
   print <<EOF;
-CsgFunctions, version %version%
-Provides useful function for perl:
+CsgSimplexFunctions, version %version%
+Provides useful function for VOTCA's iterative framework written in perl:
 csg_get_property(\$;\$):             get a value from xml file
 csg_get_interaction_property(\$;\$): get a interaction property from xmlfile
 readin_table(\$\\@\\@\\@;\\\$):           reads in csg table
@@ -38,56 +38,30 @@ EOF
 }
 
 sub csg_get_property($;$){
-  ( my $xmlfile=$ENV{'CSGXMLFILE'} ) || die "csg_get_property: ENV{'CSGXMLFILE'} was undefined\n";
   defined($_[0]) || die "csg_get_property: Missing argument\n";
-  open(CSG,"csg_property --file $xmlfile --path $_[0] --short --print . |") ||
-    die "csg_get_property: Could not open pipe\n";
-  my $value=<CSG>;
-  while(<CSG>){
-    $value.=$_;
-  }
-  $value="$_[1]" if ((not defined($value)) and defined($_[1]));
-  defined($value) || die "csg_get_property: Could not get value $_[0] and no default given\n";
-  close(CSG) || die "csg_get_property: error from csg_property\n";
-  $value =~ s/\n/ /mg;
-  $value =~ s/^\s*//;
-  $value =~ s/\s*$//;
-  return undef if ($value =~ /^\s*$/);
+  my $cmd="csg_get_property '$_[0]'";
+  $cmd="csg_get_property $_[0]' '$_[1]'" if (defined($_[1]));
+  my $value=`$ENV{'BASH'} -c "$cmd"`;
+  die "csg_get_property: error in perl from bash function csg_get_property\n" if ($? != 0);
+  chomp($value);
   return $value;
 }
 
 sub csg_get_interaction_property($;$){
-  ( my $bondname=$ENV{'bondname'} ) || die "bondname: ENV{'bondname'} was undefined\n";
-  ( my $bondtype=$ENV{'bondtype'} ) || die "bondtype: ENV{'bondtype'} was undefined\n";
-  ( my $xmlfile=$ENV{'CSGXMLFILE'} ) || die "csg_get_property: ENV{'CSGXMLFILE'} was undefined\n";
   defined($_[0]) || die "csg_get_interaction_property: Missing argument\n";
-  open(CSG,"csg_property --file $xmlfile --short --path cg.$bondtype --filter \"name=$bondname\" --print $_[0] 2>&1 |") ||
-    die "csg_get_interaction_property: Could not open pipe\n";
-  my $value=<CSG>;
-  while(<CSG>){
-    $value.=$_;
-  }
-  if (close(CSG)){
-    #we do not have a return errors
-    $value="$_[1]" if (($value =~ /^\s*$/) and (defined($_[1])));
-  } else {
-    #we do have a return errors
-    if (defined($_[1])) {
-      $value="$_[1]";
-    } else {
-      die "csg_get_interaction_property: csg_property failed on getting value $_[0] and no default given\n";
-    }
-  }
-  $value =~ s/\n/ /mg;
-  $value =~ s/^\s*//;
-  $value =~ s/\s*$//;
-  return undef if ($value =~ /^\s*$/);
+  my $cmd="csg_get_interaction_property '$_[0]'";
+  $cmd="csg_get_interaction_property '$_[0]' '$_[1]'" if (defined($_[1]));
+  my $value=`$ENV{'BASH'} -c "$cmd"`;
+  die "csg_get_interaction_property: error in perl from bash function csg_get_interaction_property\n" if ($? != 0);
+  chomp($value);
   return $value;
 }
 
 sub readin_table($\@\@\@;\$) {
   defined($_[3]) || die "readin_table: Missing argument\n";
   open(TAB,"$_[0]") || die "readin_table: could not open file $_[0]\n";
+  my $sloppy= $ENV{'VOTCA_TABLES_WITHOUT_FLAG'};
+  $sloppy="no" unless defined($sloppy);
   my $line=0;
   while (<TAB>){
     $line++;
@@ -97,20 +71,28 @@ sub readin_table($\@\@\@;\$) {
     $_ =~ s/^\s*//;
     next if /^\s*$/;
     my @parts=split(/\s+/);
-    defined($parts[2]) || die "readin_table: Not enought columns in line $line in file $_[0]\n";
-    ($parts[$#parts] =~ /[iou]/) || die "readin_table: Wrong flag($parts[$#parts]) for r=$parts[0] in file $_[0]\n";
+    if ( $sloppy eq "yes" ) {
+      defined($parts[1]) || die "readin_table: Not enought columns in line $line in file $_[0]\n";
+      $parts[$#parts+1] = "i";
+    } else {
+      defined($parts[2]) || die "readin_table: Not enought columns in line $line in file $_[0], if you don't have flags in your table add --sloppy-tables option to csg_call\n";
+      ($parts[$#parts] =~ /[iou]/) || die "readin_table: Wrong flag($parts[$#parts]) for r=$parts[0] in file $_[0], if you don't have flags in your table add --sloppy-tables option to csg_call\n";
+    }
     #very trick array dereference (@) of pointer to an array $_[.] stored in an array $_
     push(@{$_[1]},$parts[0]);
     push(@{$_[2]},$parts[1]);
     push(@{$_[3]},$parts[$#parts]);
   }
   close(TAB) || die "readin_table: could not close file $_[0]\n";
+  die "readin_table: 0 lines were read from $_[0]\n" if ($line==0);
   return $line;
 }
 
 sub readin_table_err($\@\@\@\@;\$) {
   defined($_[4]) || die "readin_table_err: Missing argument\n";
   open(TAB,"$_[0]") || die "readin_table_err: could not open file $_[0]\n";
+  my $sloppy= $ENV{'VOTCA_TABLES_WITHOUT_FLAG'};
+  $sloppy="no" unless defined($sloppy);
   my $line=0;
   while (<TAB>){
     $line++;
@@ -120,8 +102,13 @@ sub readin_table_err($\@\@\@\@;\$) {
     next if /^[#@]/;
     next if /^\s*$/;
     my @parts=split(/\s+/);
-    defined($parts[3]) || die "readin_table_err: Not enought columns in line $line in file $_[0]\n";
-    ($parts[$#parts] =~ /[iou]/) || die "readin_table_err: Wrong flag($parts[$#parts]) for r=$parts[0] in file $_[0]\n";
+    if ( $sloppy eq "yes" ) {
+      defined($parts[2]) || die "readin_table_err: Not enought columns in line $line in file $_[0]\n";
+      $parts[$#parts+1] = "i";
+    }else{
+      defined($parts[3]) || die "readin_table_err: Not enought columns in line $line in file $_[0], if you don't have flags in your table add --sloppy-tables option to csg_call\n";
+      ($parts[$#parts] =~ /[iou]/) || die "readin_table_err: Wrong flag($parts[$#parts]) for r=$parts[0] in file $_[0], if you don't have flags in your table add --sloppy-tables option to csg_call\n";
+    }
     #very trick array dereference (@) of pointer to an array $_[.] stored in an array $_
     push(@{$_[1]},$parts[0]);
     push(@{$_[2]},$parts[1]);
@@ -129,6 +116,7 @@ sub readin_table_err($\@\@\@\@;\$) {
     push(@{$_[4]},$parts[$#parts]);
   }
   close(TAB) || die "readin_table_err: could not close file $_[0]\n";
+  die "readin_table_err: 0 lines were read from $_[0]\n" if ($line==0);
   return $line;
 }
 

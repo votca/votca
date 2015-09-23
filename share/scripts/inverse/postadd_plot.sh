@@ -20,58 +20,59 @@ cat <<EOF
 ${0##*/}, version %version%
 postadd plot script, send a certain plot script to gnuplot
 
-Usage: ${0##*/} infile outfile
+Usage: ${0##*/}
 
 Used external packages: gnuplot
 EOF
    exit 0
 fi
 
-start_gnuplot_pipe() {
-  eval "exec ${fd}> gnuplot_lock"
-  if flock -n -x $fd; then
-    rm -rf gnuplot_pipe
-    mkfifo gnuplot_pipe
-    while true; do
-      if read <gnuplot_pipe; then
-        echo -e "$REPLY"
-        [ "$REPLY" = "exit" ] && break
-      fi
-    done | $gnuplot $opts
-  fi
-}
-
-[[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
-
-[[ -f $2 ]] && die "${0##*/}: $2 is already there"
-do_external postadd dummy "$1" "$2"
-
-fd=$(csg_get_interaction_property inverse.post_add_options.plot.fd "8")
-int_check "$fd" "${0##*/}: inverse.post_add_options.plot.fd should be a number"
-
-gnuplot=$(csg_get_interaction_property inverse.post_add_options.plot.gnuplot_bin "gnuplot")
+gnuplot=$(csg_get_property cg.inverse.gnuplot.bin)
 [ -n "$(type -p $gnuplot)" ] || die "${0##*/}: gnuplot binary '$gnuplot' not found"
 
 opts=$(csg_get_interaction_property --allow-empty inverse.post_add_options.plot.gnuplot_opts)
 
 script=$(csg_get_interaction_property inverse.post_add_options.plot.script)
-[ -f "$script" ] || die "${0##*/}: plot script '$script' is not there, did you forget to add it to cg.inverse.filelist?"
+[[ -f $(get_main_dir)/$script ]] || die "${0##*/}: plot script '$script' is not in maindir"
 
 what_to_kill="$(csg_get_interaction_property --allow-empty inverse.post_add_options.plot.kill)"
 
 msg "Plotting '$script' using $gnuplot"
-if [ -z "${what_to_kill}" ]; then
-  cd $(get_main_dir)
-  start_gnuplot_pipe &
-  #wait for gnuplot_pipe
-  sleep 1
-  cd - > /dev/null
+if [[ -z ${what_to_kill} ]]; then
+  [[ -z $(type -p flock) ]] && die "${0##*/}: could not find flock needed by gnuplot pipe"
+  [[ -z $(type -p mkfifo) ]] && die "${0##*/}: could not find mkfifo needed by gnuplot pipe"
+  (
+    flock -n 7 || exit 0 #see flock man page to understand this trick
+    cd $(get_main_dir)
+    rm -rf gnuplot_pipe gnuplot_pipe.log
+    msg "Creating gnuplot_pipe ..."
+    mkfifo gnuplot_pipe
+    while true; do
+      if read <gnuplot_pipe; then
+        echo -e "$REPLY"
+        echo -e "$REPLY" >> gnuplot_pipe.log
+        [[ $REPLY = "exit" ]] && break
+      fi
+    done | $gnuplot $opts &
+    while true; do
+      if [[ -z $(ps -o pid= -p "${CSG_MASTER_PID}") ]]; then
+	echo "exit" > $(get_main_dir)/gnuplot_pipe
+	rm -rf gnuplot_pipe gnuplot_pipe.log gnuplot_pipe.lock
+        exit
+      fi
+      sleep 1 #lowers the load
+    done &
+    sleep 1 #wait for gnuplot_pipe
+    cd - > /dev/null
+  ) 7> $(get_main_dir)/gnuplot_pipe.lock
 
-  #gnuplot is in laststep_dir
+  #gnuplot is in laststep, move to current one
   echo "cd '$PWD'" > $(get_main_dir)/gnuplot_pipe || die "piping to gnuplot_pipe failed"
 
-  cat $script > $(get_main_dir)/gnuplot_pipe || die "piping to gnuplot_pipe failed"
+  #name pipe accept only one command at the time, for i in $(cat ); do echo $i > pipe; done would do the same
+  echo "load '$(get_main_dir)/$script'" > $(get_main_dir)/gnuplot_pipe || die "piping to gnuplot_pipe failed"
 else
+  [[ -z $(type -p killall) ]] && die "${0##*/}: could not find killall needed to kill gnuplot"
   killall $what_to_kill
-  $gnuplot $opts $script
+  $gnuplot $opts "$(get_main_dir)/$script" || true #exit code not always clear
 fi
