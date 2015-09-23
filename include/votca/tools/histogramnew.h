@@ -15,14 +15,13 @@
  *
  */
 
-#ifndef _HISTOGRAMNEW_H
-#define	_HISTOGRAMNEW_H
+#ifndef _HistogramNew_H
+#define	_HistogramNew_H
 
 #include <iostream>
 #include <vector>
 #include <limits>
 #include <cmath>
-
 #include "table.h"
 
 namespace votca { namespace tools {
@@ -47,12 +46,12 @@ class HistogramNew
         ~HistogramNew() {};
         
         /**
-         * \brief Initialize the Histogram
+         * \brief Initialize the HistogramNew
          * @param min lower bound of interval
          * @param max upper bound of interval
          * @param nbins number of bins
          */void Initialize(double min, double max, int nbins);
-        
+
         /**
           * \brief process a data point
           * \param v value of this point
@@ -93,7 +92,7 @@ class HistogramNew
          * \brief normalize the histogram that the integral is 1
          */
         void Normalize();
-        
+
         /**
          * \brief clear all data
          */
@@ -113,9 +112,9 @@ class HistogramNew
        void setPeriodic(bool periodic) { _periodic = periodic; }	
 
     private:        
-        double _weight;
         double _min, _max;
         double _step;
+        double _weight;
         bool _periodic; 
         
         int _nbins;
@@ -141,5 +140,5 @@ inline void HistogramNew::ProcessRange(const iterator_type &begin, const iterato
 
 }}
 
-#endif	/* _HISTOGRAMNEW_H */
+#endif	/* _HistogramNew_H */
 

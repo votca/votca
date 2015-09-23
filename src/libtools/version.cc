@@ -16,7 +16,7 @@
  */
 
 #include <votca/tools/version.h>
-#include "votca_config.h"
+#include <votca_config.h>
 
 extern "C" {
    void VotcaToolsFromC(){
@@ -26,9 +26,9 @@ extern "C" {
 
 namespace votca { namespace tools {
 
-//defines hgversion
-#include "hgversion.h"
-static const std::string version_str = std::string(VERSION) + " " + hgversion + " (compiled " __DATE__ ", " __TIME__ ")";
+//defines gitversion
+#include "gitversion.h"
+static const std::string version_str = std::string(VERSION) + " " + gitversion + " (compiled " __DATE__ ", " __TIME__ ")";
 
 const std::string &ToolsVersionStr()
 {

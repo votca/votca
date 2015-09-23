@@ -19,9 +19,10 @@
 #define	_vec_H
 
 #include <iostream>
-#include <math.h>
+#include <cmath>
 #include <stdexcept>
 #include <string>
+#include <boost/numeric/ublas/lu.hpp>
 #include "tokenizer.h"
 
 namespace votca { namespace tools {
@@ -43,6 +44,9 @@ public:
     vec(const vec &v);
     vec(const double r[3]);
     vec(const double &x, const double &y, const double &z);
+    vec(const boost::numeric::ublas::vector<double> &v);
+    vec(const string &str);
+    
     
     vec &operator=(const vec &v);
     vec &operator+=(const vec &v);
@@ -103,6 +107,11 @@ public:
      */
     vec &normalize();
     
+    boost::numeric::ublas::vector<double> converttoub();
+    
+    template<class Archive>
+    void serialize(Archive &arch, const unsigned int version) { arch & _x; arch & _y; arch & _z; }
+    
     private:
         double _x, _y, _z;
 };
@@ -114,7 +123,37 @@ inline vec::vec(const vec &v)
         
 inline vec::vec(const double r[3])
     : _x(r[0]), _y(r[1]), _z(r[2]) {}
-    
+
+inline vec::vec(const boost::numeric::ublas::vector<double> &v)
+    {try
+    {_x=v(0);
+     _y=v(1);
+     _z=v(2);
+    }
+    catch(std::exception &err){throw std::length_error("Conversion from ub::vector to votca-vec failed");} 
+}
+
+inline vec::vec(const string &str)
+{
+    // usage: vec(" 1  2.5  17 "); separator = spaces
+    Tokenizer tok(str, " ");
+    vector< string > values;
+    tok.ToVector(values);
+    if (values.size()!=3)
+    {
+        throw std::runtime_error("\n\n\t error, string to vec, size!=3\n\n");
+    }
+    try {
+        _x = boost::lexical_cast<double>(values[0]);
+        _y = boost::lexical_cast<double>(values[1]);
+        _z = boost::lexical_cast<double>(values[2]);
+    }
+    catch(const boost::bad_lexical_cast& e)
+    {
+        throw std::runtime_error("\n\n\t error, string to vec, can't convert string to double\n\n");
+    }
+}
+
 inline vec::vec(const double &x, const double &y, const double &z)
         : _x(x), _y(y), _z(z) {}
     
@@ -243,12 +282,30 @@ inline double abs(const vec &v)
     return sqrt(v*v);
 }
 
+inline double maxnorm(const vec &v) {
+    return ( std::abs(v.getX()) > std::abs(v.getY()) ) ?
+         ( ( std::abs(v.getX()) > std::abs(v.getZ()) ) ? 
+             std::abs(v.getX()) : std::abs(v.getZ()) )
+      :  ( ( std::abs(v.getY()) > std::abs(v.getZ()) ) ? 
+             std::abs(v.getY()) : std::abs(v.getZ()) );
+}
+
 inline vec &vec::normalize()
 { 
     return ((*this)*=1./abs(*this));
 }
 
-}}
 
+
+inline boost::numeric::ublas::vector<double> vec::converttoub() {
+    boost::numeric::ublas::vector<double> temp=boost::numeric::ublas::zero_vector<double>(3);
+    temp(0)=_x;
+    temp(1)=_y;
+    temp(2)=_z;
+    return temp;
+
+
+}
+}}
 #endif	/* _vec_H */
 

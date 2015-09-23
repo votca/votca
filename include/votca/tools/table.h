@@ -51,7 +51,7 @@ public:
     void GenerateGridSpacing(double min, double max, double spacing);
 //    void resize(int N, bool preserve=true) { _x.resize(N, preserve); _y.resize(N, preserve); _flags.resize(N, preserve); }
     void resize(int N, bool preserve=true);
-    int size() const {return _x.size(); }
+    unsigned int size() const {return _x.size(); }
 
     double &x(int i) { return _x[i]; }
     double &y(int i) { return _y[i]; }
@@ -125,6 +125,8 @@ inline Table::Table(Table &tbl)
 
 inline ostream &operator<<(ostream &out, const Table& t)
 {
+    //TODO: use a smarter precision guess, XXX.YYYYY=8, so 10 should be enough
+    out.precision(10);
     if ( t._has_yerr ) {
         for(size_t i=0; i<t._x.size(); ++i) {
             out << t._x[i] << " " << t._y[i] << " " << t._yerr[i] << " " << t._flags[i] << endl;

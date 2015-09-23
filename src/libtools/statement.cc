@@ -17,6 +17,7 @@
 
 #include <string>
 #include <votca/tools/statement.h>
+#include <stdexcept>
 
 namespace votca { namespace tools {
 
@@ -30,13 +31,15 @@ Statement::~Statement()
 template<>
 void Statement::Bind(int col, const int &value)
 {
-	sqlite3_bind_int(_stmt, col, value);
+	if(sqlite3_bind_int(_stmt, col, value) != SQLITE_OK)
+      throw std::runtime_error("sqlite_bind failed");
 }
 
 template<>
 void Statement::Bind(int col, const double &value)
 {
-	sqlite3_bind_double(_stmt, col, value);
+	if(sqlite3_bind_double(_stmt, col, value) != SQLITE_OK)
+      throw std::runtime_error("sqlite_bind failed");
 }
 
 template<>
@@ -60,7 +63,8 @@ string Statement::Column<string>(int col)
 template<>
 void Statement::Bind(int col, const string &value)
 {
-    sqlite3_bind_text(_stmt, col, value.c_str(), -1, NULL);;
+    if(sqlite3_bind_text(_stmt, col, value.c_str(), -1, NULL) != SQLITE_OK)
+      throw std::runtime_error("sqlite_bind failed");
 }
 
 int Statement::Step()

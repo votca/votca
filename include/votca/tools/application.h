@@ -113,21 +113,58 @@ public:
      */
     boost::program_options::variables_map &OptionsMap() { return _op_vm; }
     boost::program_options::options_description &OptionsDesc() { return _op_desc; }
+    
+    /**
+     * \brief filters out the Hidden group from the options descriptions
+     * \return Option descriptions without the "Hidden" group
+     */
+    boost::program_options::options_description &VisibleOptions(){ return _visible_options; }
 
+    /**
+     * \brief call StopExecution after EvaluateOptions
+     *
+     * This is useful if the program executes an operation in EvaluateOptions
+     * and then wants to stop execution successfully. Call StopExecution and
+     * return true in EvaluateOptions.
+     */
+    void StopExecution() { _continue_execution = false; }
+
+    /// length of the output help
+    enum HelpType{ HelpShort, HelpLong };
+
+    /**
+     * \brief Print long/short descriptions of calculators
+     * 
+     * @param calculator_name name of a calculator
+     * @param help_path path in VOTCASHARE were xml file with help is stored
+     * @param helptype long or short (with options) help
+     */
+    void PrintDescription(std::ostream &out, const string &calculator_name, const string help_path, HelpType helptype );
+    
 protected:
     /// Variable map containing all program options
     boost::program_options::variables_map _op_vm;
 
     /// program options required by all applications
     boost::program_options::options_description _op_desc;
-
+                       
     std::map<string, boost::program_options::options_description> _op_groups;
     
     virtual void ShowHelpText(std::ostream &out);
+
+    void ShowManPage(std::ostream &out);
+
+    void ShowTEXPage(std::ostream &out);
+     
+    bool _continue_execution;
     
 private:
     /// get input parameters from file, location may be specified in command line
     void ParseCommandLine(int argc, char **argv);
+    
+    /// program options without the Hidden group
+    boost::program_options::options_description _visible_options;
+    
 };
 
 }}

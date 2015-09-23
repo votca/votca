@@ -18,14 +18,37 @@
 #include <votca/tools/random.h>
 #include <stdexcept>
 #include <string>
+#include <iostream>
 
 namespace votca { namespace tools {
+
+using namespace std;
 
 double  *Random::MARSarray, Random::MARSc, Random::MARScd, Random::MARScm ;
 int     Random::MARSi, Random::MARSj ;
 
 void Random::init( int nA1, int nA2, int nA3, int nB1 )
 {
+
+    nA1 = nA1 % 178 + 1;
+    nA2 = nA2 % 178 + 1;
+    nA3 = nA3 % 178 + 1;
+    nB1 = nB1 % 169;
+
+    if ((nA1 == 1) && (nA2 == 1) && (nA3 == 1)) {
+        // Should not all be unity
+        cout << "WARNING: MARSAGLIA RNG INITIALISED INCORRECTLY. "
+             << "ADAPTING SEEDS APPROPRIATELY."
+             << endl;
+        nA1 += nB1;
+    }
+
+    cout << "INITIALIZED MARSFIELD WITH "
+         << nA1 << " " << nA2 << " " << nA3 << " " << nB1
+         << endl;
+
+
+
   /*
      initializes the global data of the
      MARSAGLIA pseudo random number generator
@@ -85,9 +108,18 @@ void Random::save( char *fileName )
   
 	c[0] = MARSi; c[1] = MARSj;
   	t=fwrite(c, sizeof(int), 2, ranFP);
+	if (t==0){
+	  throw runtime_error("cannot read ranFP file ");
+	}
   	w[0] = MARSc; w[1] = MARScd; w[2] = MARScm;
   	t=fwrite(w, sizeof(double), 3, ranFP);
+	if (t==0){
+	  throw runtime_error("cannot read ranFP file ");
+	}
   	t=fwrite(MARSarray, sizeof(double), MARS_FIELD_SIZE, ranFP);
+	if (t==0){
+	  throw runtime_error("cannot read ranFP file ");
+	}
   	fclose(ranFP);
 }
 
@@ -105,10 +137,19 @@ void Random::restore( char *fileName )
 	}
   
   	t=fread(c, sizeof(int), 2, ranFP);
+	if (t==0){
+	  throw runtime_error("cannot read ranFP file ");
+	}
     	MARSi = c[0]; MARSj = c[1];
     	t=fread(w, sizeof(double), 3, ranFP);
+	if (t==0){
+	  throw runtime_error("cannot read ranFP file ");
+	}
     	MARSc = w[0]; MARScd = w[1]; MARScm = w[2];
     	t=fread(MARSarray, sizeof(double), MARS_FIELD_SIZE, ranFP);
+	if (t==0){
+	  throw runtime_error("cannot read ranFP file ");
+	}
     	fclose(ranFP);
 }
 

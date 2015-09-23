@@ -88,6 +88,7 @@ private:
     public:
         Functor() {}
         virtual void operator()(const string &, map<string, string> &) = 0;
+        virtual ~Functor() {};
     };
 
     template<typename T>

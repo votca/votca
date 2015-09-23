@@ -7,6 +7,7 @@
 
 #=============================================================================
 # Copyright 2006-2009 Kitware, Inc.
+# Copyright 2014 The VOTCA Development Team (http://www.votca.org)
 #
 # Distributed under the OSI-approved BSD License (the "License");
 # see accompanying file Copyright.txt for details.
@@ -18,11 +19,15 @@
 # (To distributed this file outside of CMake, substitute the full
 #  License text for the above reference.)
 
+find_package(PkgConfig)
+
+pkg_check_modules(PC_EXPAT expat)
+
 # Look for the header file.
-FIND_PATH(EXPAT_INCLUDE_DIR NAMES expat.h)
+FIND_PATH(EXPAT_INCLUDE_DIR NAMES expat.h HINTS ${PC_EXPAT_INCLUDE_DIRS} )
 
 # Look for the library.
-FIND_LIBRARY(EXPAT_LIBRARY NAMES expat libexpat)
+FIND_LIBRARY(EXPAT_LIBRARY NAMES expat libexpat HINTS ${PC_EXPAT_LIBRARY_DIRS} )
 
 # handle the QUIETLY and REQUIRED arguments and set EXPAT_FOUND to TRUE if 
 # all listed variables are TRUE

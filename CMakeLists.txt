@@ -2,19 +2,19 @@ cmake_minimum_required(VERSION 2.6)
 
 project(votca-tools)
 
-set(PROJECT_VERSION "1.2.4")
+set(PROJECT_VERSION "1.3-dev")
 string(REGEX REPLACE "^[1-9]+\\.([1-9]+).*$" "\\1" SOVERSION "${PROJECT_VERSION}")
 if (NOT ${SOVERSION} MATCHES "[1-9]+")
   message(FATAL_ERROR "Could not determind SOVERSION from ${PROJECT_VERSION}")
 endif (NOT ${SOVERSION} MATCHES "[1-9]+")
 
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
-set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMakeModules)
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
 
-if(NOT CMAKE_BUILD_TYPE)
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
   #release comes with -O3 by default
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
-endif(NOT CMAKE_BUILD_TYPE)
+endif(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
 
 enable_language(CXX)
 
@@ -40,17 +40,31 @@ if (NOT DEFINED DATA)
   set(DATA "share/votca")
 endif(NOT DEFINED DATA)
 
-
 #this has to be the first include directive
-include_directories(${CMAKE_SOURCE_DIR}/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 ########################################################################
 #Find external packages
 ########################################################################
-find_package(Mercurial)
+if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
+  find_package(Git)
+endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
+
 find_package(Threads REQUIRED)
 set(THREAD_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
-find_package(TXT2TAGS)
+
+find_package(Boost 1.39.0 REQUIRED COMPONENTS program_options filesystem system )
+include_directories(${Boost_INCLUDE_DIRS})
+set (BOOST_CFLAGS_PKG "-I${Boost_INCLUDE_DIRS}")
+set(BOOST_LIBS_PKG "-L${Boost_LIBRARY_DIRS}")
+foreach(_blib ${Boost_LIBRARIES})
+  string(REGEX REPLACE ".*/lib([^/]*)\\.[^.]*$" "-l\\1" _blib ${_blib})
+  set(BOOST_LIBS_PKG "${BOOST_LIBS_PKG} ${_blib}")
+endforeach(_blib)
+
+option(BUILD_MANPAGES "Build manpages (might lead to problem on system without rpath" ON)
+#define this target here, so that individual man pages can append to it.
+add_custom_target(manpages ALL)
 
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #

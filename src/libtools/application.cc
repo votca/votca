@@ -18,11 +18,17 @@
 #include <iostream>
 #include <votca/tools/application.h>
 #include <votca/tools/version.h>
+#include <votca/tools/globals.h>
+#include <votca/tools/propertyiomanipulator.h>
+
+#include <boost/format.hpp>
+#include <boost/algorithm/string/replace.hpp>
+#include <boost/filesystem.hpp>
 
 namespace votca { namespace tools {
 
 Application::Application()
-    : _op_desc("Allowed options")
+    : _op_desc("Allowed options"), _continue_execution(true)
 {
 }
 
@@ -37,8 +43,12 @@ string Application::VersionString()
 
 void Application::ShowHelpText(std::ostream &out)
 {
-    out << "\t------ VOTCA ( http://www.votca.org ) ------\n"
-        << ProgramName();
+    out << "==================================================\n";
+    out << "========   VOTCA (http://www.votca.org)   ========\n";
+    out << "==================================================\n\n";
+
+    out << "please submit bugs to bugs@votca.org\n\n";
+    out << ProgramName();
     if(VersionString() != "")
         out << ", version " << VersionString();
     out << endl
@@ -46,17 +56,85 @@ void Application::ShowHelpText(std::ostream &out)
         << "\n\n";
 
     HelpText(out);
-    out << "\n\n" << OptionsDesc() << endl;
+    
+    // remove Hidden group from the option list and print
+    out << "\n\n" << VisibleOptions() << endl;
+    
+    //out << "\n\n" << OptionsDesc() << endl;
+}
+     
+void Application::ShowManPage(std::ostream &out) {
+    
+        out << boost::format(globals::man::header) %  ProgramName() % VersionString();        
+        out << boost::format(globals::man::name) % ProgramName() % globals::url;
+        out << boost::format(globals::man::synopsis) % ProgramName();
+        std::stringstream ss;
+        HelpText(ss);
+        out << boost::format(globals::man::description) % ss.str();
+        out << boost::format(globals::man::options);
+
+        typedef std::vector<boost::shared_ptr<boost::program_options::option_description> >::const_iterator OptionsIterator;
+        OptionsIterator it = _op_desc.options().begin(), it_end = _op_desc.options().end();
+        
+        while(it < it_end) {
+            string format_name = (*it)->format_name() + " " + (*it)->format_parameter();
+            boost::replace_all(format_name, "-", "\\-");
+            out << boost::format(globals::man::option) % format_name % (*it)->description();
+            ++it;           
+        }      
+
+        out << boost::format(globals::man::authors) % globals::email;
+        out << boost::format(globals::man::copyright) % globals::url;
+    
+}
+
+void Application::ShowTEXPage(std::ostream &out) {
+    string program_name = ProgramName();
+    boost::replace_all(program_name, "_", "\\_");
+        out << boost::format(globals::tex::section) %  program_name;        
+        out << boost::format(globals::tex::label) % ProgramName();
+        std::stringstream ss, os;
+        HelpText(ss);
+        out << boost::format(globals::tex::description) % ss.str();
+
+       typedef std::vector<boost::shared_ptr<boost::program_options::option_description> >::const_iterator OptionsIterator;
+       OptionsIterator it = _op_desc.options().begin(), it_end = _op_desc.options().end();
+       while(it < it_end) {
+            string format_name = (*it)->format_name() + " " + (*it)->format_parameter();
+            boost::replace_all(format_name, "-", "{-}");
+            os << boost::format(globals::tex::option) % format_name % (*it)->description();
+            ++it;           
+        }      
+        out << boost::format(globals::tex::options) % os.str();
 }
 
 int Application::Exec(int argc, char **argv)
 {
     try {
-        AddProgramOptions()("help,h", "  produce this help message");
-        Initialize(); // initialize program-specific parameters
+        //_continue_execution = true;
+	AddProgramOptions()("help,h", "  display this help and exit");
+	AddProgramOptions()("verbose,v", "  be loud and noisy");
+	AddProgramOptions("Hidden")("man", "  output man-formatted manual pages");
+	AddProgramOptions("Hidden")("tex", "  output tex-formatted manual pages");
+	
+	Initialize(); // initialize program-specific parameters
 
         ParseCommandLine(argc, argv); // initialize general parameters & read input file
 
+        if (_op_vm.count("verbose")) {
+	  globals::verbose = true;
+        }
+        
+        if (_op_vm.count("man")) {
+            ShowManPage(cout);
+            return 0;
+        }
+        
+        if (_op_vm.count("tex")) {
+            ShowTEXPage(cout);
+            return 0;
+        }
+        
         if (_op_vm.count("help")) {
             ShowHelpText(cout);
             return 0;
@@ -66,8 +144,10 @@ int Application::Exec(int argc, char **argv)
             ShowHelpText(cout);
             return -1;
         }
-        
-        Run();
+
+        if(_continue_execution)
+            Run();
+	else cout << "nothing to be done - stopping here\n";
     }
     catch(std::exception &error) {
          cerr << "an error occurred:\n" << error.what() << endl;
@@ -101,10 +181,15 @@ void Application::ParseCommandLine(int argc, char **argv)
     namespace po = boost::program_options;
 
     std::map<string, boost::program_options::options_description>::iterator iter;
-
-    // add all cathegories to list of available options
-    for(iter=_op_groups.begin(); iter!=_op_groups.end(); ++iter)
+    
+    // default options should be added to visible (the rest is handled via a map))
+    _visible_options.add(_op_desc);
+    
+    // add all categories to list of available options
+    for(iter=_op_groups.begin(); iter!=_op_groups.end(); ++iter) {       
         _op_desc.add(iter->second);
+        if ( iter->first != "Hidden" ) _visible_options.add(iter->second);
+    }
     
     // parse the command line
     try {
@@ -124,6 +209,47 @@ void Application::CheckRequired(const string &option_name, const string &error_m
     }
 }
 
+void Application::PrintDescription(std::ostream &out, const string &calculator_name, const string help_path, HelpType help_type )
+{
+    boost::format _format("%|3t|%1% %|20t|%2% \n");
+    string help_string;
+    boost::filesystem::path arg_path;  
+    Property options;
+    string xmlFile = (arg_path / string(getenv("VOTCASHARE")) / help_path / (boost::format("%1%.%2%") % calculator_name % "xml").str()).string().c_str();
+    
+    // loading the documentation xml file from VOTCASHARE
+    char *votca_share = getenv("VOTCASHARE");
+    if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
+
+    try {
+
+                load_property_from_xml(options, xmlFile);
+                Property &calculator_options = options.get("options." + calculator_name);
+                Property::AttributeIterator atr_it = calculator_options.findAttribute("help");
+
+                if (atr_it != calculator_options.lastAttribute()) {
+                    help_string = (*atr_it).second;
+                } else {
+                    if (tools::globals::verbose) out << _format % calculator_name % "Undocumented";
+                    return;
+                }
+
+                switch (help_type) {
+                    default:
+                        break;
+                    case HelpShort: // short description of the calculator
+                        out << _format % calculator_name % help_string;
+                        break;
+                    case HelpLong:
+                        votca::tools::PropertyIOManipulator iom(votca::tools::PropertyIOManipulator::HLP, 2, "");
+                        out << iom << options;
+                        break;
+                }
+
+            } catch (std::exception &error) {
+                if (tools::globals::verbose) out << _format % calculator_name % "Undocumented";
+            }
+
+}
 
 }}
-
