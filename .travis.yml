@@ -67,6 +67,7 @@ script:
   - PYTHONPATH="$PWD" ./build.sh -Wdu --prefix $PWD ${MAN:+--devdoc}
     ${TEST:+--runtest=$TEST} ${WERROR:+--warn-to-errors} ${MINIMAL:+--minimal}
     ${J:+-j$J} ${BDIR:+--builddir=$BDIR} ${NINJA:+--ninja} ${WALL:+--Wall}
+    --gmx-release 4.6.7
     tools ${GROMACS:+gromacs} csg csgapps ${MAN:+csg-manual} ${TEST:+csg-tutorials}
     ${CTP:+kmc moo ctp}
 
