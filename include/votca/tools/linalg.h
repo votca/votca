@@ -152,7 +152,7 @@ namespace votca { namespace tools {
      * @param B input: overlap matrix
      * @param V output: eigenvectors      
      * 
-     * This function wrapps eigen_gensymmv / dsygv
+     * This function wrapps gsl_eigen_gensymmv / dsygv
      * 
      */
     bool linalg_eigenvalues_general( ub::matrix<double> &A,ub::matrix<double> &B, ub::vector<double> &E, ub::matrix<double> &V);

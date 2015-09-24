@@ -71,7 +71,6 @@
       <itemPath>../../src/libtools/datacollection.cc</itemPath>
       <itemPath>../../src/libtools/histogram.cc</itemPath>
       <itemPath>../../src/libtools/histogramnew.cc</itemPath>
-      <itemPath>../../src/libtools/linalg.cc</itemPath>
       <itemPath>../../src/libtools/linspline.cc</itemPath>
       <itemPath>../../src/libtools/matrix.cc</itemPath>
       <itemPath>../../src/libtools/mutex.cc</itemPath>
@@ -290,8 +289,6 @@
       <item path="../../src/libtools/histogram.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/histogramnew.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg.cc" ex="true" tool="0" flavor2="0">
       </item>
       <item path="../../src/libtools/linalg/gsl/cholesky.cc"
             ex="false"
