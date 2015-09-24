@@ -35,8 +35,6 @@ env:
     - CCACHE_CPP2=yes
   matrix: #NINJA=1 is currently not support by Travis' cmake, enable when >=2.8.9
     - WERROR=yes J=4 #J>4 triggers an internal compiler in travis' g++
-    - CTP=yes WERROR=yes J=4
-    - CTP=yes WALL=yes J=4
     - J=1
     - BDIR=build J=4
     - BDIR=build J=1
