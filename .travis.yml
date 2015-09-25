@@ -34,39 +34,7 @@ env:
     - GMX_MAX_THREADS=8
     - CCACHE_CPP2=yes
   matrix: #NINJA=1 is currently not support by Travis' cmake, enable when >=2.8.9
-    - WERROR=yes J=4 #J>4 triggers an internal compiler in travis' g++
-    - CTP=yes WERROR=yes J=4
-    - CTP=yes WALL=yes J=4
-    - J=1
-    - BDIR=build J=4
-    - BDIR=build J=1
     - MAN=yes J=4
-    - MINIMAL=yes J=4
-    - CSG_MDRUN_STEPS=500 TEST=hexane/ibi_bonded J=4
-    - CSG_MDRUN_STEPS=500 TEST=hexane/ibi J=4
-    - CSG_MDRUN_STEPS=500 TEST=methanol/ibi J=4
-    - CSG_MDRUN_STEPS=10000 TEST=methanol/imc J=4
-    - CSG_MDRUN_STEPS=5000 TEST=methanol-water/X_0.938/re J=4
-    - CSG_MDRUN_STEPS=500 TEST=methanol-water/X_0.938/simplex J=4
-    - CSG_MDRUN_STEPS=5000 TEST=methanol-water/X_0.062/re J=4
-    - CSG_MDRUN_STEPS=500 TEST=methanol-water/X_0.062/simplex J=4
-    - CSG_MDRUN_STEPS=5000 TEST=methanol-water/X_0.5/re J=4
-    - CSG_MDRUN_STEPS=500 TEST=methanol-water/X_0.5/simplex J=4
-    - CSG_MDRUN_STEPS=500 TEST=propane/ibi J=4
-    - CSG_MDRUN_STEPS=10000 TEST=propane/imc J=4
-    - CSG_MDRUN_STEPS=500 TEST=spce/cma/density J=4
-    - CSG_MDRUN_STEPS=500 TEST=spce/cma/simple J=4 GROMACS=yes
-    - CSG_MDRUN_STEPS=500 TEST=spce/ibi J=4
-    - CSG_MDRUN_STEPS=500 TEST=spce/ibi_pressure J=4
-    - CSG_MDRUN_STEPS=10000 TEST=spce/imc J=4
-    - CSG_MDRUN_STEPS=10000 TEST=spce/realtime J=4
-    - CSG_MDRUN_STEPS=5000 TEST=spce/re J=4
-    - CSG_MDRUN_STEPS=500 TEST=spce/simplex/density J=4
-    - CSG_MDRUN_STEPS=500 TEST=spce/simplex/pressure J=4
-    - CSG_MDRUN_STEPS=500 TEST=spce/simplex/simple J=4
-    - CSG_MDRUN_STEPS=500 TEST=spce/tf J=4 GROMACS=yes
-    - CSG_MDRUN_STEPS=500 TEST=urea-water/ibi J=4
-    - CSG_MDRUN_STEPS=500 TEST=urea-water/kb-ibi J=4
 
 before_script:
   - wget https://raw.githubusercontent.com/votca/buildutil/master/build.sh && chmod 755 build.sh
