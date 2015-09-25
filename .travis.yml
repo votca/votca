@@ -4,39 +4,88 @@
 
 language: cpp
 
-before_install:
- - if [[ $CTP = yes ]]; then sudo add-apt-repository -y ppa:boost-latest/ppa; fi #newer boost for libboost_timer
- - sudo apt-get update
- - sudo apt-get install cmake libfftw3-dev libgsl0-dev txt2tags libboost-program-options-dev libboost-filesystem-dev libboost-system-dev libexpat1-dev libsqlite3-dev pkg-config mercurial
- - if [[ $MAN ]]; then sudo apt-get install pgf texlive-fonts-recommended texlive-latex-extra doxygen graphviz; fi
- - if [[ $TEST = *cma* ]]; then sudo apt-get install python-numpy gnuplot-nox; fi
- - if [[ $TEST = *imc ]]; then sudo apt-get install octave; fi
- - if [[ $TEST = *simplex* ]]; then sudo apt-get install gnuplot-nox; fi
- - if [[ $TEST = *realtime ]]; then sudo apt-get install gnuplot-nox; fi
- - if [[ $GROMACS != yes ]]; then sudo apt-get install gromacs-dev; fi
- - if [[ $CTP = yes ]]; then sudo apt-get install libboost1.48-all-dev; fi
+sudo: false
 
-env: #NINJA=1 is currently not support by Travis' cmake, enable when >=2.8.9
-  - MAN=yes J=4
+addons:
+  apt:
+    sources: boost-latest 
+    packages:
+      - cmake
+      - ccache
+      - libfftw3-dev
+      - libgsl0-dev
+      - txt2tags
+      - libboost1.55-all-dev
+      - libexpat1-dev
+      - libsqlite3-dev
+      - pkg-config
+      - pgf
+      - texlive-fonts-recommended
+      - texlive-latex-extra
+      - doxygen
+      - graphviz
+      - python-numpy
+      - gnuplot-nox
+      - octave
+      - gromacs-dev
 
-matrix:
-  exclude:
-    - compiler: clang
-      env: J=1 #this test just tests the buildsystem
-    - compiler: clang
-      env: BDIR=build J=1 #just tests the buildsystem
+env:
+  global:
+    - GMX_MAX_THREADS=8
+    - CCACHE_CPP2=yes
+  matrix: #NINJA=1 is currently not support by Travis' cmake, enable when >=2.8.9
+    - WERROR=yes J=4 #J>4 triggers an internal compiler in travis' g++
+    - CTP=yes WERROR=yes J=4
+    - CTP=yes WALL=yes J=4
+    - J=1
+    - BDIR=build J=4
+    - BDIR=build J=1
+    - MAN=yes J=4
+    - MINIMAL=yes J=4
+    - CSG_MDRUN_STEPS=500 TEST=hexane/ibi_bonded J=4
+    - CSG_MDRUN_STEPS=500 TEST=hexane/ibi J=4
+    - CSG_MDRUN_STEPS=500 TEST=methanol/ibi J=4
+    - CSG_MDRUN_STEPS=10000 TEST=methanol/imc J=4
+    - CSG_MDRUN_STEPS=5000 TEST=methanol-water/X_0.938/re J=4
+    - CSG_MDRUN_STEPS=500 TEST=methanol-water/X_0.938/simplex J=4
+    - CSG_MDRUN_STEPS=5000 TEST=methanol-water/X_0.062/re J=4
+    - CSG_MDRUN_STEPS=500 TEST=methanol-water/X_0.062/simplex J=4
+    - CSG_MDRUN_STEPS=5000 TEST=methanol-water/X_0.5/re J=4
+    - CSG_MDRUN_STEPS=500 TEST=methanol-water/X_0.5/simplex J=4
+    - CSG_MDRUN_STEPS=500 TEST=propane/ibi J=4
+    - CSG_MDRUN_STEPS=10000 TEST=propane/imc J=4
+    - CSG_MDRUN_STEPS=500 TEST=spce/cma/density J=4
+    - CSG_MDRUN_STEPS=500 TEST=spce/cma/simple J=4 GROMACS=yes
+    - CSG_MDRUN_STEPS=500 TEST=spce/ibi J=4
+    - CSG_MDRUN_STEPS=500 TEST=spce/ibi_pressure J=4
+    - CSG_MDRUN_STEPS=10000 TEST=spce/imc J=4
+    - CSG_MDRUN_STEPS=10000 TEST=spce/realtime J=4
+    - CSG_MDRUN_STEPS=5000 TEST=spce/re J=4
+    - CSG_MDRUN_STEPS=500 TEST=spce/simplex/density J=4
+    - CSG_MDRUN_STEPS=500 TEST=spce/simplex/pressure J=4
+    - CSG_MDRUN_STEPS=500 TEST=spce/simplex/simple J=4
+    - CSG_MDRUN_STEPS=500 TEST=spce/tf J=4 GROMACS=yes
+    - CSG_MDRUN_STEPS=500 TEST=urea-water/ibi J=4
+    - CSG_MDRUN_STEPS=500 TEST=urea-water/kb-ibi J=4
 
 before_script:
-  - rm -vrf * .git
   - wget https://raw.githubusercontent.com/votca/buildutil/master/build.sh && chmod 755 build.sh
-  - if [[ $TEST = *cma* ]]; then wget http://www.lri.fr/~hansen/cma.py; fi #we set PYTHONPATH="$PWD" below
+  - mkdir -p "$HOME/votca/src" "$HOME/votca/share/votca/scripts/inverse" "$HOME/bin"
+  - wget -O "$HOME/votca/share/votca/scripts/inverse/cma.py" http://www.lri.fr/~hansen/cma.py
+  - ln -s /usr/bin/ccache "$HOME/bin/clang++"
+  - ln -s /usr/bin/ccache "$HOME/bin/clang"
 
 script:
-  - PYTHONPATH="$PWD" ./build.sh -Wdu --prefix $PWD ${MAN:+--devdoc}
+  - PATH="$HOME/bin:/usr/lib/ccache:$PATH" ./build.sh -Wu --dev --prefix "$HOME/votca" ${MAN:+--devdoc}
     ${TEST:+--runtest=$TEST} ${WERROR:+--warn-to-errors} ${MINIMAL:+--minimal}
     ${J:+-j$J} ${BDIR:+--builddir=$BDIR} ${NINJA:+--ninja} ${WALL:+--Wall}
+    --directory "$HOME/votca/src" --no-clean --depth 1 --gmx-release 4.6.7
     tools ${GROMACS:+gromacs} csg csgapps ${MAN:+csg-manual} ${TEST:+csg-tutorials}
-    ${CTP:+kmc moo ctp}
+    ${CTP:+kmc moo ctp} ${GROMACS:+-DGMX_USE_RDTSCP=OFF} ${GROMACS:+-DGROMACS_PKG_OVERWRITE=libgmx}
+
+cache:
+  directories:
+    - $HOME/.ccache
 
 compiler:
   - clang
