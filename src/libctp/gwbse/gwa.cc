@@ -79,128 +79,128 @@ namespace votca {
             
         }
         
-        
-        void GWBSE::sigma_c_setup(const TCMatrix& _Mmn, const ub::vector<double>& _edft){
-            
+        void GWBSE::sigma_c_setup(const TCMatrix& _Mmn, const ub::vector<double>& _edft) {
+
             // iterative refinement of qp energies
             int _max_iter = 5;
             int _levelsum = _Mmn[0].size2(); // total number of bands
-            int _gwsize  = _Mmn[0].size1(); // size of the GW basis
+            int _gwsize = _Mmn[0].size1(); // size of the GW basis
             const double pi = boost::math::constants::pi<double>();
-            
+
 
             // initial _qp_energies are dft energies
             _qp_energies = _edft; // RANGES!
-            double _DFTgap = _qp_energies( _homo +1 ) - _qp_energies( _homo  );
-     
+            double _DFTgap = _qp_energies(_homo + 1) - _qp_energies(_homo);
 
-	    // only diagonal elements except for in final iteration
-            for ( int _i_iter = 0 ; _i_iter < _max_iter-1 ; _i_iter++ ){
-                
-	      // initialize sigma_c to zero at the beginning of each iteration
-	      //_sigma_c = ub::zero_matrix<double>(_qptotal,_qptotal);
+            _sigma_c = ub::zero_matrix<double>(_qptotal,_qptotal);
+            // only diagonal elements except for in final iteration
+            for (int _i_iter = 0; _i_iter < _max_iter - 1; _i_iter++) {
 
-	      // loop over all GW levels
-              #pragma omp parallel for
-	      for (int _gw_level = 0; _gw_level < _qptotal ; _gw_level++ ){
-                double qp_energy=_qp_energies( _gw_level + _qpmin  );
-                double sigma_c=0.0;
+                // initialize sigma_c to zero at the beginning of each iteration
                 
-                const ub::matrix<double>& Mmn = _Mmn[ _gw_level + _qpmin ];
-              
-		// loop over all functions in GW basis
-		for ( int _i_gw = 0; _i_gw < _gwsize ; _i_gw++ ){
-                  double ppm_freq=_ppm_freq( _i_gw );
-                  double ppm_weight=_ppm_weight( _i_gw );
-                  
-                    
-		  // loop over all bands
-		  for ( int _i = 0; _i < _homo+1 ; _i++ ){
-                                                    
-		    // energy denominator
-		    double _denom = qp_energy - _qp_energies( _i ) + ppm_freq;
-                    double _stab=1.0;
-		    if ( std::abs(_denom) < 0.5 ) {
-		      _stab = 0.5 * ( 1.0 - cos(2.0 * pi * std::abs(_denom) ) );
-		    }
-		    double _factor = ppm_weight *ppm_freq * _stab/_denom; // contains conversion factor 2
-		    // sigma_c diagonal elements
-		    sigma_c+= _factor * Mmn(_i_gw, _i) *  Mmn(_i_gw, _i);  
-                            
-		  }// bands
-                  
-                   for ( int _i = _homo+1; _i < _levelsum ; _i++ ){
-                               
-		    // energy denominator
-		    double _denom = qp_energy - _qp_energies( _i ) -ppm_freq;
-                    double _stab=1.0;
-		    if ( std::abs(_denom) < 0.5 ) {
-		      _stab = 0.5 * ( 1.0 - cos(2.0 * pi * std::abs(_denom) ) );
-		    } 
-		    double _factor = ppm_weight *ppm_freq * _stab/_denom; // contains conversion factor 2
-		    // sigma_c diagonal elements
-		    sigma_c+= _factor * Mmn(_i_gw, _i) *  Mmn(_i_gw, _i);  
-                            
-		  }// bands
-                        
-		}// GW functions
-		_sigma_c( _gw_level , _gw_level )=sigma_c;
-		// update _qp_energies
-		_qp_energies( _gw_level  + _qpmin) = _edft( _gw_level + _qpmin ) + _sigma_x(_gw_level, _gw_level) + _sigma_c(_gw_level,_gw_level) - _vxc(_gw_level  ,_gw_level );
-                    
-	      }// all bands
-                
+
+                // loop over all GW levels
+#pragma omp parallel for
+                for (int _gw_level = 0; _gw_level < _qptotal; _gw_level++) {
+                    double qp_energy = _qp_energies(_gw_level + _qpmin);
+                    double sigma_c = 0.0;
+
+                    const ub::matrix<double>& Mmn = _Mmn[ _gw_level + _qpmin ];
+
+                    // loop over all functions in GW basis
+                    for (int _i_gw = 0; _i_gw < _gwsize; _i_gw++) {
+                        double ppm_freq = _ppm_freq(_i_gw);
+                        double ppm_weight = _ppm_weight(_i_gw);
+
+
+                        // loop over all bands
+                        for (int _i = 0; _i < _homo + 1; _i++) {
+
+                            // energy denominator
+                            double _denom = qp_energy - _qp_energies(_i) + ppm_freq;
+                            double _stab = 1.0;
+                            if (std::abs(_denom) < 0.5) {
+                                _stab = 0.5 * (1.0 - cos(2.0 * pi * std::abs(_denom)));
+                            }
+                            double _factor = ppm_weight * ppm_freq * _stab / _denom; // contains conversion factor 2
+                            // sigma_c diagonal elements
+                            sigma_c += _factor * Mmn(_i_gw, _i) * Mmn(_i_gw, _i);
+
+                        }// bands
+
+                        for (int _i = _homo + 1; _i < _levelsum; _i++) {
+
+                            // energy denominator
+                            double _denom = qp_energy - _qp_energies(_i) - ppm_freq;
+                            double _stab = 1.0;
+                            if (std::abs(_denom) < 0.5) {
+                                _stab = 0.5 * (1.0 - cos(2.0 * pi * std::abs(_denom)));
+                            }
+                            double _factor = ppm_weight * ppm_freq * _stab / _denom; // contains conversion factor 2
+                            // sigma_c diagonal elements
+                            sigma_c += _factor * Mmn(_i_gw, _i) * Mmn(_i_gw, _i);
+
+                        }// bands
+
+                    }// GW functions
+                    _sigma_c(_gw_level, _gw_level) = sigma_c;
+                    // update _qp_energies
+                    _qp_energies(_gw_level + _qpmin) = _edft(_gw_level + _qpmin) + _sigma_x(_gw_level, _gw_level) + _sigma_c(_gw_level, _gw_level) - _vxc(_gw_level, _gw_level);
+
+                }// all bands
+
             } // iterations
-            
+
             // check HOMO-LUMO gap shift
             // cout << " QP HOMO : " << _qp_energies( _homo  ) << endl;
             // cout << " QP LUMO : " << _qp_energies( _homo +1 ) << endl;
-            double _QPgap = _qp_energies( _homo +1 ) - _qp_energies( _homo  );
+            double _QPgap = _qp_energies(_homo + 1) - _qp_energies(_homo);
             // cout << " QP Gap  : " << _QPgap << endl;
             double _shift_new = _QPgap - _DFTgap;
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " New shift [Ryd]" << _shift_new << flush;
             //cout << " shift new " << _shift_new << endl;
-            if ( std::abs( (_shift_new - _shift)*13.605698066 ) > 0.01 ) {
+            if (std::abs((_shift_new - _shift)*13.605698066) > 0.01) {
                 _shift = _shift_new;
             } else {
                 _shift_converged = true;
             }
 
-	    if ( ! _iterate_shift  ) _shift_converged = true;
-            
+            if (!_iterate_shift) _shift_converged = true;
+
             // only if _shift is converged
-            if ( _shift_converged ){
-	    // in final step, also calc offdiagonal elements
-	    // initialize sigma_c to zero at the beginning
-	    //_sigma_c = ub::zero_matrix<double>(_qptotal,_qptotal);
-            
-            // loop over col  GW levels
-            #pragma omp parallel for
+            if (_shift_converged) {
+                // in final step, also calc offdiagonal elements
+                // initialize sigma_c to zero at the beginning
+                //_sigma_c = ub::zero_matrix<double>(_qptotal,_qptotal);
+
+                // loop over col  GW levels
+#pragma omp parallel for
                 for (int _gw_col = 0; _gw_col < _qptotal; _gw_col++) {
                     double sigma_c = 0.0;
                     const double qp_energy = _qp_energies(_gw_col + _qpmin);
-                    
+
                     const ub::matrix<double>& Mmn_col = _Mmn[ _gw_col + _qpmin ];
-                    ub::matrix<double>Mmn_colxrow=ub::zero_matrix<double>(Mmn_col.size1(),Mmn_col.size2());
-                    
-                    
+                    ub::matrix<double>Mmn_colxrow = ub::zero_matrix<double>(Mmn_col.size1(), Mmn_col.size2());
+
+
                     for (int _gw_row = 0; _gw_row < _qptotal; _gw_row++) {
                         sigma_c = 0.0;
-                        for (int _i=0;_i<_gwsize;_i++){
-                            for (int _j;_j<_levelsum;_j++){
-                                Mmn_colxrow(_i,_j)=Mmn_col(_i, _j) * _Mmn[ _gw_row + _qpmin ](_i, _j);
+                        for (int _i = 0; _i < _gwsize; _i++) {
+                            for (int _j; _j < _levelsum; _j++) {
+                                Mmn_colxrow(_i, _j) = Mmn_col(_i, _j) * _Mmn[ _gw_row + _qpmin ](_i, _j);
                             }
                         }
-                        
+
 
                         // loop over all functions in GW basis
                         for (int _i_gw = 0; _i_gw < _gwsize; _i_gw++) {
                             const double ppm_freq = _ppm_freq(_i_gw);
-                            const double ppm_freqweight = _ppm_weight(_i_gw)*ppm_freq;
-                             
+                            const double ppm_freqweight = _ppm_weight(_i_gw) * ppm_freq;
+
                             // loop over occupied screening levels                           
-                            for (int _i = 0; _i < _homo+1; _i++) {
+                            for (int _i = 0; _i < _homo + 1; _i++) {
                                 // energy denominator
-                                double _denom = qp_energy - _qp_energies(_i) +ppm_freq;
+                                double _denom = qp_energy - _qp_energies(_i) + ppm_freq;
                                 double _stab = 1.0;
                                 if (std::abs(_denom) < 0.5) {
                                     _stab = 0.5 * (1.0 - cos(2.0 * pi * std::abs(_denom)));
@@ -209,8 +209,8 @@ namespace votca {
                                 //sigma_c += ppm_freqweight * _stab / _denom * Mmn_col(_i_gw, _i) * Mmn_row(_i_gw, _i); //_submat(_i_gw,_i);            
                             }// occupied screening levels
                             // loop over unoccupied screening levels  
-                            for (int _i = _homo+1; _i < _levelsum; _i++) {
-                                double _denom = qp_energy - _qp_energies(_i) -ppm_freq;
+                            for (int _i = _homo + 1; _i < _levelsum; _i++) {
+                                double _denom = qp_energy - _qp_energies(_i) - ppm_freq;
                                 double _stab = 1.0;
                                 if (std::abs(_denom) < 0.5) {
                                     _stab = 0.5 * (1.0 - cos(2.0 * pi * std::abs(_denom)));
