@@ -155,10 +155,10 @@ namespace votca {
             if (_store_string.find("ehint") != std::string::npos) _store_eh_interaction = true;
 
             
-            LOG(logDEBUG, *_pLog) <<  " Tasks: " << _dft_package << flush;
-            if (_do_qp_diag) LOG(logDEBUG, *_pLog) <<  " qpdiag " << _dft_package << flush;
-            if (_do_bse_singlets) LOG(logDEBUG, *_pLog) <<  " singlets " << _dft_package << flush;
-            if (_do_bse_triplets) LOG(logDEBUG, *_pLog) <<  " triplets " << _dft_package << flush;
+            LOG(logDEBUG, *_pLog) <<  " Tasks: " << flush;
+            if (_do_qp_diag) LOG(logDEBUG, *_pLog) <<  " qpdiag " <<  flush;
+            if (_do_bse_singlets) LOG(logDEBUG, *_pLog) <<  " singlets " <<  flush;
+            if (_do_bse_triplets) LOG(logDEBUG, *_pLog) <<  " triplets " <<  flush;
 
 
             
