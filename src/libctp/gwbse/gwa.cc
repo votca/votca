@@ -93,12 +93,12 @@ namespace votca {
             _qp_energies = _edft; // RANGES!
             double _DFTgap = _qp_energies( _homo +1 ) - _qp_energies( _homo  );
      
-
+            _sigma_c = ub::zero_matrix<double>(_qptotal,_qptotal);
 	    // only diagonal elements except for in final iteration
             for ( int _i_iter = 0 ; _i_iter < _max_iter-1 ; _i_iter++ ){
                 
 	      // initialize sigma_c to zero at the beginning of each iteration
-	      //_sigma_c = ub::zero_matrix<double>(_qptotal,_qptotal);
+	      
 
 	      // loop over all GW levels
               #pragma omp parallel for
@@ -145,8 +145,9 @@ namespace votca {
                         
 		}// GW functions
 		_sigma_c( _gw_level , _gw_level )=sigma_c;
+               
 		// update _qp_energies
-		_qp_energies( _gw_level  + _qpmin) = _edft( _gw_level + _qpmin ) + _sigma_x(_gw_level, _gw_level) + _sigma_c(_gw_level,_gw_level) - _vxc(_gw_level  ,_gw_level );
+		_qp_energies( _gw_level  + _qpmin) = _edft( _gw_level + _qpmin ) + _sigma_x(_gw_level, _gw_level) + sigma_c - _vxc(_gw_level  ,_gw_level );
                     
 	      }// all bands
                 
@@ -186,8 +187,9 @@ namespace votca {
                     for (int _gw_row = 0; _gw_row < _qptotal; _gw_row++) {
                         sigma_c = 0.0;
                         for (int _i=0;_i<_gwsize;_i++){
-                            for (int _j;_j<_levelsum;_j++){
+                            for (int _j=0;_j<_levelsum;_j++){
                                 Mmn_colxrow(_i,_j)=Mmn_col(_i, _j) * _Mmn[ _gw_row + _qpmin ](_i, _j);
+                                //cout << Mmn_colxrow(_i,_j) << endl;
                             }
                         }
                         
@@ -220,6 +222,7 @@ namespace votca {
                             } // unoccupied screening levels
                         }// GW functions
                         _sigma_c(_gw_row, _gw_col) = sigma_c;
+                         //cout << "["<<_gw_row<< ":" <<_gw_col<<"]=" << sigma_c <<":"<< _sigma_c(_gw_row, _gw_col) <<endl;
                     }// GW row 
                     _qp_energies(_gw_col + _qpmin) = _edft(_gw_col + _qpmin) + _sigma_x(_gw_col, _gw_col) + _sigma_c(_gw_col, _gw_col) - _vxc(_gw_col, _gw_col);
                 } // GW col
