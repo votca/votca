@@ -174,13 +174,6 @@ namespace votca {
                 //_sigma_c = ub::zero_matrix<double>(_qptotal,_qptotal);
 
                 // loop over col  GW levels
-#pragma omp parallel for
-            if ( _shift_converged ){
-	    // in final step, also calc offdiagonal elements
-	    // initialize sigma_c to zero at the beginning
-	    //_sigma_c = ub::zero_matrix<double>(_qptotal,_qptotal);
-            
-            // loop over col  GW levels
             #pragma omp parallel for
                 for (int _gw_col = 0; _gw_col < _qptotal; _gw_col++) {
                     double sigma_c = 0.0;
