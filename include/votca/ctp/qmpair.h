@@ -113,21 +113,21 @@ public:
 
 protected:
 
-    int         _id;
     vec         _R;
-    Topology   *_top;
 
     Segment    *_ghost;
+    Topology   *_top;
+    int         _id;
     bool        _hasGhost;
     
-    double _lambdaO_e;   // from ::EOutersphere output    DEFAULT 0
-    double _lambdaO_h;
     double _rate12_e;    // from ::Rates        output    DEFAULT 0
-    double _rate12_h;
     double _rate21_e;    // from ::Rates        output    DEFAULT 0
+    double _rate12_h;
     double _rate21_h;
     double _has_e;       // from ::Rates        input     DEFAULT 0
     double _has_h;
+    double _lambdaO_e;   // from ::EOutersphere output    DEFAULT 0
+    double _lambdaO_h;
     
     vector <double> _Js_e;
     vector <double> _Js_h;

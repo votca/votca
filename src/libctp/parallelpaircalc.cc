@@ -37,20 +37,20 @@ bool ParallelPairCalculator::EvaluateFrame(Topology *top) {
 
     _nextPair = top->NBList().begin();
 
-    for (int id = 0; id < _nThreads; id++) {
+    for (unsigned int id = 0; id < _nThreads; id++) {
         PairOperator *newOp = new PairOperator(id, top, this);
         pairOps.push_back(newOp);
     }
 
-    for (int id = 0; id < _nThreads; id++) {
+    for (unsigned int id = 0; id < _nThreads; id++) {
         pairOps[id]->Start();
     }
 
-    for (int id = 0; id < _nThreads; id++) {
+    for (unsigned int id = 0; id < _nThreads; id++) {
         pairOps[id]->WaitDone();
     }
 
-    for (int id = 0; id < _nThreads; id++) {
+    for (unsigned int id = 0; id < _nThreads; id++) {
         delete pairOps[id];
     }
 

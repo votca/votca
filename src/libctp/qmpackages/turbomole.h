@@ -69,12 +69,12 @@ private:
 
     //static const double _conv_Hrt_eV = 27.21138386;
     
-    int                                 _charge;
-    int                                 _spin; // 2S+1
+    //int                                 _charge;
+    //int                                 _spin; // 2S+1
     string                              _options;
     
     string                              _memory;
-    int                                 _threads;
+    //int                                 _threads;
     
     string                              _scratch_dir;
         

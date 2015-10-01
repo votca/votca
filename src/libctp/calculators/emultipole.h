@@ -854,7 +854,7 @@ void EMultipole::EStatify(Topology *top, Property *options) {
             vector< PolarSite* > polesNeutral = map_seg_polarSites[segName];            
 
             assert(polesAnion.size() == polesNeutral.size());
-            for (int i = 0; i < polesNeutral.size(); i++) {
+            for (unsigned int i = 0; i < polesNeutral.size(); i++) {
 
                 polesNeutral[i]->setQs( polesAnion[i]->getQs(state), state );
                 polesNeutral[i]->setPs( polesAnion[i]->getPs(state), state );
@@ -880,7 +880,7 @@ void EMultipole::EStatify(Topology *top, Property *options) {
             vector< PolarSite* > polesNeutral = map_seg_polarSites[segName];            
 
             assert(polesCation.size() == polesNeutral.size());
-            for (int i = 0; i < polesNeutral.size(); i++) {
+            for (unsigned int i = 0; i < polesNeutral.size(); i++) {
 
                 polesNeutral[i]->setQs( polesCation[i]->getQs(state), state );
                 polesNeutral[i]->setPs( polesCation[i]->getPs(state), state );
@@ -1034,7 +1034,7 @@ vector<PolarSite*> EMultipole::ParseGdmaFile(string filename, int state) {
                     Q0_total += boost::lexical_cast<double>(split[0]);
                 }
 
-                for (int i = 0; i < split.size(); i++) {
+                for (unsigned int i = 0; i < split.size(); i++) {
 
                     double qXYZ = boost::lexical_cast<double>(split[i]);
 
@@ -1263,7 +1263,7 @@ void EMultipole::CalculateGSPInput(Topology *top) {
             }
 
             double ENM_TO_DEBYE = 10. / 0.20822678;
-            double ENM_TO_EA    = 10.;
+            //double ENM_TO_EA    = 10.;
             double NM_TO_A     = 10.;
             double D_INT_TO_EXT = ENM_TO_DEBYE;
             double Q_INT_TO_EXT = ENM_TO_DEBYE*NM_TO_A;
@@ -1280,7 +1280,7 @@ void EMultipole::CalculateGSPInput(Topology *top) {
                          "# QXX     QXY     QXZ     QYY     QYZ     QZZ    \n");
 
             double q   = 0.0;
-            double dx  = 0.0; double dy  = 0.0; double dz  = 0.0;
+            //double dx  = 0.0; double dy  = 0.0; double dz  = 0.0;
             double Qxx = 0.0; double Qxy = 0.0; double Qxz = 0.0;
                               double Qyy = 0.0; double Qyz = 0.0;
                                                 double Qzz = 0.0;
@@ -1379,7 +1379,7 @@ void EMultipole::CalculateESPInput(Topology *top) {
                             + "_" + boost::lexical_cast<string>(state)
                             + ".xyz";
                 out = fopen(chkOutfile.c_str(),"w");
-                fprintf(out, "%1d\n\n", poles.size()*9);
+                fprintf(out, "%1lu\n\n", poles.size()*9);
                 for (pit = poles.begin(); pit < poles.end(); ++pit) {
                     vec shift = vec(0,0,0);
                     (*pit)->WriteChkLine(out, shift, true,"xyz", 0.04);
@@ -1457,7 +1457,7 @@ void EMultipole::CalculateESPRigid(Topology *top) {
                         + "_" + boost::lexical_cast<string>(state)
                         + ".xyz";
             out = fopen(chkOutfile.c_str(),"w");
-            fprintf(out, "%1d\n\n", poles.size()*9);
+            fprintf(out, "%1lu\n\n", poles.size()*9);
             for (pit = poles.begin(); pit < poles.end(); ++pit) {
                 vec shift = vec(0,0,0);
                 (*pit)->WriteChkLine(out, shift, true,"xyz", 0.04);
@@ -1510,7 +1510,7 @@ void EMultipole::CalculateESP(vector< PolarSite* > &poles, FILE *out) {
 
     // Prepare cube file: Header
     double NM2BOHR = 1 / 0.0529189379;
-    fprintf(out, "%5d %3.7f %3.7f %3.7f \n",
+    fprintf(out, "%5ld %3.7f %3.7f %3.7f \n",
                   poles.size(),
                   Cxyz.getX()*NM2BOHR,
                   Cxyz.getY()*NM2BOHR,
@@ -1601,7 +1601,7 @@ void EMultipole::CalculateESF(Topology *top) {
 
     cout << endl << "... ... Calculating ESF";
 
-    double int2N_C = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 * 1.000e-18;
+    //double int2N_C = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 * 1.000e-18;
 
     // +++++++++++++++++++ //
     // Load grid from file //
@@ -1720,8 +1720,8 @@ void EMultipole::CalculateESF(Topology *top) {
             out = fopen(esfOutFile.c_str(), "w");
 
             assert(_esfGrid.size() == gridPointESF.size());
-            int g = 0;
-            int p = 0;
+            unsigned int g = 0;
+            unsigned int p = 0;
             for ( ; p < gridPointESF.size(); ++g, ++p) {
 
                 fprintf(out, " %3.8f %3.8f %3.8f   %3.8f %3.8f %3.8f \n",
@@ -2109,7 +2109,7 @@ void EMultipole::DistributeMpoles(Topology *top) {
             }
 
 
-            for (int i = 0; i < polesInFrag.size(); i++) {
+            for (unsigned int i = 0; i < polesInFrag.size(); i++) {
 
                 string name = namesInFrag[i];
                 int poleId = polesInFrag[i];
@@ -2291,7 +2291,7 @@ bool EMultipole::EvaluateFrame(Topology *top) {
         int id2     = _gsp_last;
 
         double ENM_TO_DEBYE = 10. / 0.20822678;
-        double ENM_TO_EA    = 10.;
+        //double ENM_TO_EA    = 10.;
         double NM_TO_A     = 10.;
         double D_INT_TO_EXT = ENM_TO_DEBYE;
         double Q_INT_TO_EXT = ENM_TO_DEBYE*NM_TO_A;
@@ -2308,7 +2308,7 @@ bool EMultipole::EvaluateFrame(Topology *top) {
         for (int i = id1; i < id2 + 1; ++i) {
 
             double q   = 0.0;
-            double dx  = 0.0; double dy  = 0.0; double dz  = 0.0;
+            //double dx  = 0.0; double dy  = 0.0; double dz  = 0.0;
             double Qxx = 0.0; double Qxy = 0.0; double Qxz = 0.0;
                               double Qyy = 0.0; double Qyz = 0.0;
                                                 double Qzz = 0.0;
@@ -2347,7 +2347,7 @@ bool EMultipole::EvaluateFrame(Topology *top) {
             }
 
             double prj_r = gsp_n * seg->getPos();
-            double prj_d = gsp_n * d;
+            //double prj_d = gsp_n * d;
 
             fprintf(out, "%+4.7f "
                          "%+4.7f "
@@ -2467,24 +2467,24 @@ bool EMultipole::EvaluateFrame(Topology *top) {
     for ( ; (*_nextSite)->getId() != this->_firstSeg &&
               _nextSite < top->Segments().end(); ++_nextSite) { ; }
 
-    for (int id = 0; id < _nThreads; id++) {
+    for (unsigned int id = 0; id < _nThreads; id++) {
         SiteOpMultipole *newOp = new SiteOpMultipole(id, top, this);
         siteOps.push_back(newOp);
     }
 
-    for (int id = 0; id < _nThreads; id++) {
+    for (unsigned int id = 0; id < _nThreads; id++) {
         siteOps[id]->InitSlotData(top);
     }
 
-    for (int id = 0; id < _nThreads; id++) {
+    for (unsigned int id = 0; id < _nThreads; id++) {
         siteOps[id]->Start();
     }
 
-    for (int id = 0; id < _nThreads; id++) {
+    for (unsigned int id = 0; id < _nThreads; id++) {
         siteOps[id]->WaitDone();
     }
 
-    for (int id = 0; id < _nThreads; id++) {
+    for (unsigned int id = 0; id < _nThreads; id++) {
         delete siteOps[id];
     }
 

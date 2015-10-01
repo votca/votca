@@ -143,6 +143,7 @@ inline bool QMPackage::WriteInputFilePBC( QMPair* pair, Orbitals* orbitals) {
     WriteInputFile( segments, orbitals);
     
     delete ghost;
+    return true;
 }   
 
 }}

@@ -107,6 +107,7 @@ bool PDB2Top::Evaluate() {
     
     // make actual topol.top
     top2txt();
+    return true;
 }
 
 void PDB2Top::top2txt(){
@@ -450,12 +451,12 @@ void PDB2Top::readGRO(){
             ba::trim(_z);
             
             // try cast
-            int _resNumInt(0),_atNumInt(0);
+            int _resNumInt(0);//,_atNumInt(0);
             double _xd(0),_yd(0),_zd(0);
             try
             {
                 _resNumInt = boost::lexical_cast<int>(_resNum);
-                _atNumInt  = boost::lexical_cast<int>(_atNum);
+                //_atNumInt  = boost::lexical_cast<int>(_atNum);
 
                 _xd = boost::lexical_cast<double>(_x);
                 _yd = boost::lexical_cast<double>(_y);

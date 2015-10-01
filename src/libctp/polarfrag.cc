@@ -14,7 +14,7 @@ PolarFrag::~PolarFrag()  {
     
 const votca::tools::vec &PolarFrag::CalcPosCenterOfGeom() {    
     _pos = votca::tools::vec(0,0,0);    
-    for (int i = 0; i < this->size(); ++i) {
+    for (unsigned int i = 0; i < this->size(); ++i) {
         _pos += (*this)[i]->getPos();
     }
     if (this->size() > 0) _pos /= double(this->size());
@@ -26,7 +26,7 @@ const votca::tools::vec &PolarFrag::CalcPosPolarWeights() {
     // Establish total weights
     double sum_iso_p = 0.0;
     double sum_abs_q = 0.0;
-    for (int i = 0; i < this->size(); ++i) {
+    for (unsigned int i = 0; i < this->size(); ++i) {
         sum_iso_p += (*this)[i]->getIsoP();
         sum_abs_q += std::abs((*this)[i]->getQ00());
     }
@@ -40,7 +40,7 @@ const votca::tools::vec &PolarFrag::CalcPosPolarWeights() {
     }
     // Else: return weighted 0.5*(center-of-polarity + center-of-charge)
     else {
-        for (int i = 0; i < this->size(); ++i) {
+        for (unsigned int i = 0; i < this->size(); ++i) {
             double weight = 0.0;
             if (sum_abs_q < 1e-2) {
                 assert(sum_iso_p >= 1e-2 && "<CalcPosPolarWeights> P-ERROR");

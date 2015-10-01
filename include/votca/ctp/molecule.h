@@ -68,8 +68,8 @@ private:
     vector < Fragment* >  _fragments;
     vector < Atom* >      _atoms ;
 
-    string  _name ;
     int     _id;
+    string  _name ;
 
     map<string, Atom* > _map_AtomName_Atom;
 

@@ -75,7 +75,7 @@ public:
     public:
 
         InduWorker(int id, Topology *top, XInductor *forker)
-                    : _id(id), _top(top), _forker(forker),
+                    : _id(id), /*_top(top),*/ _forker(forker),
                       _qmm(NULL), _mm2(NULL)
                     { _actor = XInteractor(top, forker->_aDamp); };
 
@@ -265,8 +265,8 @@ public:
       private:
 
           int                                   _id;
-          Topology                             *_top;
-          XJob                                 *_job;
+          //Topology                             *_top;
+          //XJob                                 *_job;
           XInductor                            *_forker;
           XInteractor                           _actor;
           
@@ -301,8 +301,8 @@ public:
     // +++++++++++++++++++++++++++ //
     
     void        ClearTodoTable() {
-        for (int i = 0; i < _xy_done.size(); ++i) {
-        for (int j = 0; j < _xy_done[i].size(); ++j) {
+        for (unsigned int i = 0; i < _xy_done.size(); ++i) {
+        for (unsigned int j = 0; j < _xy_done[i].size(); ++j) {
                 _xy_done[i][j] = false;
         }}
     }
@@ -400,8 +400,8 @@ public:
 
         while (true) {
 
-            for (int i = 0; i < _xy_done.size(); ++i) {
-            for (int j = i; j < _xy_done[i].size(); ++j) {
+            for (unsigned int i = 0; i < _xy_done.size(); ++i) {
+            for (unsigned int j = i; j < _xy_done[i].size(); ++j) {
                 if (!_xy_done[i][j]) {
                     todo = true;
                     if (_chunks_avail[i] && _chunks_avail[j]) {
@@ -481,26 +481,26 @@ public:
     
 private:    
     
-    Topology                     *_top;
     XJob                         *_job;
     Logger                       *_log;
     
     // Control options
     bool                          _induce;
     bool                          _induce_intra_pair;
-    bool                          _maverick;
+    // Convergence parameters
     int                           _subthreads;
+    float                         _wSOR_N;
+    float                         _wSOR_C;
+    double                        _epsTol;
+    int                           _maxIter;
+    bool                          _maverick;
+    Topology                     *_top;
     bool                          _isConverged;
     string                        _error;
     
     // Interaction parameters
     double                        _aDamp;
     
-    // Convergence parameters
-    float                         _wSOR_N;
-    float                         _wSOR_C;
-    double                        _epsTol;
-    int                           _maxIter;
     
     // Polar-site containers    
     vector< PolarSeg* >           _qm0;

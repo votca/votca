@@ -90,25 +90,25 @@ public:
 
 private:
 
-    Topology    *_top;
-    Molecule    *_mol;
     Segment     *_seg;
 
     vector < Atom* > _atoms;
     vector <PolarSite*> _polarSites;
     vector <APolarSite*> _apolarSites;
     vector< double > _weights;
-    int              _symmetry;
-    vector< int >    _trihedron;
 
-    string      _name;
     int         _id;
+    string      _name;
+    Topology    *_top;
+    Molecule    *_mol;
+    int              _symmetry;
 
-    vec         _CoMD;              // Center of map (MD)
+    matrix      _rotateQM2MD;       // Set via ::Rigidify()
     vec         _CoQM;              // Center of map (QM)
+    vec         _CoMD;              // Center of map (MD)
+    vector< int >    _trihedron;
     vec         _CoQM0;             // Center of map (QM) original (for IZindo)
     vec         _translateQM2MD;    // Set via ::Rigidify()
-    matrix      _rotateQM2MD;       // Set via ::Rigidify()
 
 
 };

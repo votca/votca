@@ -206,7 +206,6 @@ private:
     int     _id;
     string  _name;
     bool    _isVirtual;
-    res_t   _resolution;
     vec     _pos;
     vec     _locX;
     vec     _locY;
@@ -215,6 +214,7 @@ private:
     Topology *_top;
     Segment  *_seg;
     Fragment *_frag;
+    res_t   _resolution;
 
     vector < vector<double> > _Qs;
     int     _rank;
@@ -225,9 +225,12 @@ private:
     double      Pyy, Pyz;
     double           Pzz;
 
-    vec pax; double eigenpxx;               // Principal axes, eigenvals. of P
-    vec pay; double eigenpyy;
-    vec paz; double eigenpzz;
+    vec pax;
+    vec pay;
+    vec paz;
+    double eigenpxx;               // Principal axes, eigenvals. of P
+    double eigenpyy;
+    double eigenpzz;
 
     double eigendamp;
 

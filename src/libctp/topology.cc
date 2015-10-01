@@ -339,10 +339,10 @@ void Topology::PrintInfo(FILE *out) {
 
     fprintf(out, "\tStep number %7d \n", this->getStep());
     fprintf(out, "\tTime        %2.4f \n", this->getTime());
-    fprintf(out, "\t# Molecules %7d \n", this->Molecules().size());
-    fprintf(out, "\t# Segments  %7d \n", this->Segments().size());
-    fprintf(out, "\t# Atoms     %7d \n", this->Atoms().size());
-    fprintf(out, "\t# Pairs     %7d \n", this->NBList().size());
+    fprintf(out, "\t# Molecules %7ld \n", this->Molecules().size());
+    fprintf(out, "\t# Segments  %7ld \n", this->Segments().size());
+    fprintf(out, "\t# Atoms     %7ld \n", this->Atoms().size());
+    fprintf(out, "\t# Pairs     %7ld \n", this->NBList().size());
 
 }
 

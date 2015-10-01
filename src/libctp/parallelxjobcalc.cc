@@ -47,35 +47,35 @@ bool ParallelXJobCalc<JobContainer,pJob,rJob>::EvaluateFrame(Topology *top) {
     // CREATE + EXECUTE THREADS (XJOB HANDLERS)
     vector<JobOperator*> jobOps;
 
-    for (int id = 0; id < _nThreads; id++) {
+    for (unsigned int id = 0; id < _nThreads; id++) {
         JobOperator *newOp = new JobOperator(id, top, this);
         jobOps.push_back(newOp);
     }
     
-    for (int id = 0; id < _nThreads; ++id) {
+    for (unsigned int id = 0; id < _nThreads; ++id) {
         CustomizeLogger(jobOps[id]);
     }
 
-    for (int id = 0; id < _nThreads; id++) {
+    for (unsigned int id = 0; id < _nThreads; id++) {
         jobOps[id]->InitData(top);
     }
 
     if (!_maverick) cout << endl; // REQUIRED FOR PROGRESS BAR IN OBSERVER
     
-    for (int id = 0; id < _nThreads; id++) {
+    for (unsigned int id = 0; id < _nThreads; id++) {
         jobOps[id]->Start();
     }
 
-    for (int id = 0; id < _nThreads; id++) {
+    for (unsigned int id = 0; id < _nThreads; id++) {
         jobOps[id]->WaitDone();
     }
     
     if (!_maverick)
-    for (int id = 0; id < _nThreads; id++) {
+    for (unsigned int id = 0; id < _nThreads; id++) {
         cout << endl << *(jobOps[id]->getLogger()) << flush;
     }
 
-    for (int id = 0; id < _nThreads; id++) {
+    for (unsigned int id = 0; id < _nThreads; id++) {
         delete jobOps[id];
     }    
 

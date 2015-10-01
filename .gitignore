@@ -1,5 +1,3 @@
-syntax: glob
-
 *~
 Makefile
 
@@ -8,6 +6,7 @@ libvotca*.a
 libvotca*.so
 
 share/doc/html
+share/doc/Doxyfile
 
 src/libctp/votca_config.h
 src/libctp/hgversion.h
@@ -42,7 +41,7 @@ netbeans/ctp_map/nbproject/Package-Release.bash
 netbeans/ctp_run/nbproject/Package-Debug.bash
 netbeans/ctp_run/nbproject/Package-Release.bash
 
-CMakeFiles/*
+CMakeFiles
 cmake_install.cmake
 CMakeCache.txt
 install_manifest.txt
