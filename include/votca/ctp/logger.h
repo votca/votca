@@ -35,6 +35,10 @@ enum TLogLevel {logERROR, logWARNING, logINFO, logDEBUG};
 if ( &log != NULL && level > (log).getReportLevel() ) ; \
 else (log)(level)
 
+#define LOG_SAVE(level, log) \
+if ( level > (log).getReportLevel() ) ; \
+else (log)(level)
+
 /*
  * Custom buffer to store messages
  */

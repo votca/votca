@@ -239,7 +239,7 @@ bool EInternal::EvaluateFrame(Topology *top) {
         string segName = (*sit)->getName();
         
         try {
-            bool has_seg = _has_seg.at(segName);
+            //bool has_seg = _has_seg.at(segName);
         }
         catch (out_of_range) {
             cout << endl << "... ... WARNING: No energy information for seg ["

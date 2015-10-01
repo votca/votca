@@ -486,7 +486,7 @@ void StateServer::WriteXQM(FILE *out, Topology *top) {
                 "\t<input>%3$d:%4$s:%5$s</input>\n"
                 "\t<status>AVAILABLE</status>\n"
                 "</job>\n") % jobId % jobTag % segId % segName % mpsFile).str();
-        fprintf(out, jobStr.c_str());
+        fprintf(out, "%s", jobStr.c_str());
         
         stateStr = "e";
         jobTag = boost::lexical_cast<string>(segId) + "_" + stateStr;
@@ -499,7 +499,7 @@ void StateServer::WriteXQM(FILE *out, Topology *top) {
                 "\t<input>%3$d:%4$s:%5$s</input>\n"
                 "\t<status>AVAILABLE</status>\n"
                 "</job>\n") % jobId % jobTag % segId % segName % mpsFile).str();
-        fprintf(out, jobStr.c_str());
+        fprintf(out, "%s", jobStr.c_str());
         
         stateStr = "h";
         jobTag = boost::lexical_cast<string>(segId) + "_" + stateStr;
@@ -512,7 +512,7 @@ void StateServer::WriteXQM(FILE *out, Topology *top) {
                 "\t<input>%3$d:%4$s:%5$s</input>\n"
                 "\t<status>AVAILABLE</status>\n"
                 "</job>\n") % jobId % jobTag % segId % segName % mpsFile).str();
-        fprintf(out, jobStr.c_str());    
+        fprintf(out, "%s", jobStr.c_str());    
     }
     
     fprintf(out, "</jobs>\n");

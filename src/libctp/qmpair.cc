@@ -31,7 +31,7 @@ QMPair::~QMPair() {
 
 
 QMPair::QMPair(int id, Segment *seg1, Segment *seg2)
-        : _id(id), std::pair<Segment*, Segment*>(seg1, seg2),
+        : std::pair<Segment*, Segment*>(seg1, seg2), _id(id),
           _hasGhost(0),
           _rate12_e(0), _rate21_e(0),
           _rate12_h(0), _rate21_h(0),
@@ -148,11 +148,13 @@ void QMPair::setJs(const vector<double> Js, int state) {
 
     if (state == -1) {
         this->_Js_e = Js;
-        double Jeff2 = this->calcJeff2(state);
+        //double Jeff2 =
+	(void)this->calcJeff2(state);
     }
     else if (state == +1) {
         this->_Js_h = Js;
-        double Jeff2 = this->calcJeff2(state);
+        //double Jeff2 =
+	(void)this->calcJeff2(state);
     }
     else if (state == +2) {
         this->_Js_s = Js;

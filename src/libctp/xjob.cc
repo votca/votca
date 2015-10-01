@@ -23,8 +23,8 @@ XJob::XJob(int id, string tag, vector<Segment*> &qmSegs,
 
 
 XJob::XJob(PolarTop *ptop, bool start_from_cpt)
-        : _id(-1), _tag("__notag__"), _top(NULL),
-          _ptop(ptop), _start_from_cpt(start_from_cpt), _clean_ptop(false) {
+        : _id(-1), _tag("__notag__"), _top(NULL), _start_from_cpt(start_from_cpt),
+          _ptop(ptop), _clean_ptop(false) {
     
     _center = _ptop->getCenter();
     _isSegInCenter.clear();    
@@ -57,7 +57,7 @@ void XJob::CalcCenterPos() {
     else { refPt = _qmSegs[0]->getPos(); }
 
     // Calc. center
-    for (int i = 0; i < _qmSegs.size(); ++i) {
+    for (unsigned int i = 0; i < _qmSegs.size(); ++i) {
          
         Segment *seg = _qmSegs[i];
         vec pbc_com = refPt + _top->PbShortestConnect(refPt, seg->getPos());
@@ -259,7 +259,7 @@ vector<XJob*> XJOBS_FROM_TABLE< vector<XJob*>, XJob* >(const string &job_file, T
             int jobUserId   = boost::lexical_cast<int>(split[0]);
             string tag      = split[1];
             
-            for (int i = 2; i < split.size(); ++i) {
+            for (unsigned int i = 2; i < split.size(); ++i) {
                 
                 string id_seg_mps = split[i];
                 vector<string> split_id_seg_mps;

@@ -62,7 +62,7 @@ bool VAverage::EvaluateFrame(Topology *top) {
     
     cout << endl << "... ... Computing velocity average for all sites" << flush;
     
-    for (int i = 0; i < _carriers.size(); ++i) {
+    for (unsigned int i = 0; i < _carriers.size(); ++i) {
         int state = _carriers[i];
         if (state == 0) continue;
         cout << endl << "... ... State = " << state << flush;

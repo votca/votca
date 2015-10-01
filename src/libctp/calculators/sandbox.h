@@ -35,6 +35,7 @@ public:
 
     string  Identify() { return "Sandbox"; }
     void    Initialize(Property *options);
+    using ParallelPairCalculator::EvalPair;
     void    EvalPair(Topology *top, QMPair *qmpair, int slot);
 
 };
@@ -58,29 +59,29 @@ void Sandbox::EvalPair(Topology *top, QMPair *qmpair, int slot) {
     cout << "\r... ... Overloading pair " << qmpair->getId() << ". " << flush;
     this->UnlockCout();
 
-    int ij;
+    //int ij;
     for (int i = 0; i < 2000; i++) {
         for (int j = 0; j < 2000; j++) {
-            ij = i+j;
+            //ij = i+j;
         }
     }
 
     vector<Segment*> ::iterator sit;
     for (sit = top->Segments().begin(); sit != top->Segments().end(); sit++) {
-        Segment *seg = *sit;
+        //Segment *seg = *sit;
 
         vector<Atom*> ::iterator ait;
         for (ait= top->Atoms().begin(); ait != top->Atoms().end(); ait++) {
-            Atom *atm = *ait;
+            //Atom *atm = *ait;
 
-            int id = atm->getId();
+            //int id = atm->getId();
 
         }
 
-        Atom *atm = seg->Atoms()[1];
-        atm = seg->Atoms()[2];
-        atm = seg->Atoms()[10000];
-        atm = seg->Atoms()[14300];
+        //Atom *atm = seg->Atoms()[1];
+        //atm = seg->Atoms()[2];
+        //atm = seg->Atoms()[10000];
+        //atm = seg->Atoms()[14300];
 
     }
 

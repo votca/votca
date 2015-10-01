@@ -101,7 +101,7 @@ bool MolPolTool::Evaluate() {
     if (!_do_optimize) {
         // Output only
         pseg_input.WriteMPS(_mps_output, "MOLPOL (UNSCALED)");
-        matrix pmol = _molpolengine.CalculateMolPol(pseg_input, true);
+        //matrix pmol = _molpolengine.CalculateMolPol(pseg_input, true);
     }
     
     else {

@@ -105,7 +105,7 @@ bool IAnalyze::EvaluateFrame(Topology *top) {
     }
     }
 
-    for (int i = 0; i < _states.size(); ++i) {
+    for (unsigned int i = 0; i < _states.size(); ++i) {
         this->IHist(top, _states[i]);
         if (_do_IRdependence){
         this->IRdependence(top, _states[i]);

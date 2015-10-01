@@ -337,7 +337,8 @@ void Md2QmEngine::Md2Qm(CSG::Topology *mdtop, CTP::Topology *qmtop) {
          string nameMolQM = molQM->getName();
 
          // Generate and export
-         CTP::Molecule *product = this->ExportMolecule(molQM, qmtop);
+         //CTP::Molecule *product = 
+	 (void)this->ExportMolecule(molQM, qmtop);
     }
 }
 

@@ -159,6 +159,7 @@ bool PDB2Map::Evaluate() {
     
 //    LOG( logINFO, _log ) << "Reading from: " << _input_file << flush;    
 //    cout << _log;
+    return true;
 }
 
 void PDB2Map::setTopologies(){
@@ -509,12 +510,12 @@ void PDB2Map::readGRO(){
             ba::trim(_z);
             
             // try cast
-            int _resNumInt(0),_atNumInt(0);
+            int _resNumInt(0);//,_atNumInt(0);
             double _xd(0),_yd(0),_zd(0);
             try
             {
                 _resNumInt = boost::lexical_cast<int>(_resNum);
-                _atNumInt  = boost::lexical_cast<int>(_atNum);
+		//_atNumInt  = boost::lexical_cast<int>(_atNum);
 
                 _xd = boost::lexical_cast<double>(_x);
                 _yd = boost::lexical_cast<double>(_y);
@@ -632,7 +633,7 @@ void PDB2Map::readXYZ(){
         // first line, number of atoms in XYZ
         std::getline(_file, _line,'\n');
         ba::trim(_line);
-        int numXYZatoms = boost::lexical_cast<double>(_line);
+        //int numXYZatoms = boost::lexical_cast<double>(_line);
     }
     catch(boost::bad_lexical_cast &)
     {
@@ -791,7 +792,7 @@ void PDB2Map::topMdQm2xml(){
 
             mapName      = (*fragMdIt)->getName() ;
             
-            int localCounter = 0;
+            unsigned int localCounter = 0;
             vector < Atom * > allMdAtoms = (*fragMdIt)->Atoms();
             vector < Atom * > allQmAtoms = (*fragQmIt)->Atoms();
 

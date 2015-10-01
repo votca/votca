@@ -486,7 +486,8 @@ void Neighborlist::GenerateFromFile(Topology *top, string filename) {
                 assert(seg2->getName() == seg2name);
             }        
             
-            QMPair* pair12 = top->NBList().Add(seg1,seg2);
+            //QMPair* pair12 = 
+	    (void)top->NBList().Add(seg1,seg2);
             
     
      /*       

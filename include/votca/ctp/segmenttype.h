@@ -70,12 +70,12 @@ private:
 
     Topology*   _top;
 
-    string      _name;
     int         _id;
+    string      _name;
 
-    string          _qmCoordsFile;
     string          _basisSetName;
     string          _orbitalsFile;
+    string          _qmCoordsFile;
 
     bool            _canRigidify;
 

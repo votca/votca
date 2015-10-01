@@ -103,7 +103,7 @@ bool Profile::EvaluateFrame(Topology *top) {
 
     double MAX = -1e100;
     double MIN =  1e100;
-    double RES = _resolution;
+    //double RES = _resolution;
 
     for (sit = top->Segments().begin();
          sit < top->Segments().end();
@@ -221,7 +221,7 @@ bool Profile::EvaluateFrame(Topology *top) {
             double avg_ea = 0.0;
             double avg_ec = 0.0;
 
-            for (int entry = 0; entry < binned_ea[bin].size(); ++entry) {
+            for (unsigned int entry = 0; entry < binned_ea[bin].size(); ++entry) {
                 avg_ea += binned_ea[bin][entry];
                 avg_ec += binned_ec[bin][entry];
             }
@@ -236,7 +236,7 @@ bool Profile::EvaluateFrame(Topology *top) {
         for (int bin = 0; bin < BIN; ++bin) {
             double std_ea = 0.0;
             double std_ec = 0.0;
-            for (int entry = 0; entry < binned_ea[bin].size(); ++entry) {
+            for (unsigned int entry = 0; entry < binned_ea[bin].size(); ++entry) {
                 double avg_ea = binned_avg_ea[bin];
                 double avg_ec = binned_avg_ec[bin];
                 std_ea += (binned_ea[bin][entry] - avg_ea)

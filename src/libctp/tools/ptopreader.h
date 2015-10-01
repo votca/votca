@@ -136,6 +136,7 @@ bool PtopReader::Evaluate() {
         }        
     }
     ofs.close();
+    return true;
     
     
 }

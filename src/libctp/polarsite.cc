@@ -229,16 +229,16 @@ void PolarSite::Depolarize() {
 
 void PolarSite::WriteXyzLine(FILE *out, vec &shift, string format) {
 
-    double int2ext = 1.0;
+    //double int2ext = 1.0;
 
     vec pos = _pos + shift;
 
-    if (format == "gaussian") {
+    /*if (format == "gaussian") {
         int2ext = 10.;
     }
     else {
         int2ext = 10.;
-    }
+    }*/
 
     fprintf(out, "%-2s %+4.9f %+4.9f %+4.9f \n",
             _name.c_str(),
@@ -271,6 +271,8 @@ void PolarSite::WriteChkLine(FILE *out, vec &shift, bool split_dpl,
     }
     else if (unit == "bohr") {
         assert(false);
+    } else {
+        throw std::runtime_error( "Unit has to be nanometer, angstrom or bohr");
     }
 
     if (format == "xyz") {
@@ -394,7 +396,7 @@ void PolarSite::PrintInfo(std::ostream &out) {
 
     for (int i = -1; i < 2; ++i) {
         cout << "    STATE " << i << "   ";
-        for (int j = 0; j < this->getQs(i).size(); j++) {
+        for (unsigned int j = 0; j < this->getQs(i).size(); j++) {
             cout << " " << this->getQs(i)[j];
         }
         cout << endl;
@@ -430,7 +432,7 @@ void PolarSite::PrintInfoVisual(FILE *out) {
     vec position = this->getPos();
     fprintf(out, "MPOLE %5d %4s %3.8f %3.8f %3.8f ", id, el.c_str(), position.getX(), position.getY(), position.getZ());
 
-    for (int i = 0; i < this->U1_Hist.size(); ++i) {
+    for (unsigned int i = 0; i < this->U1_Hist.size(); ++i) {
         vec uInd = U1_Hist[i];
         fprintf(out, " %3.8f %3.8f %3.8f ", uInd.getX(), uInd.getY(), uInd.getZ() );
     }

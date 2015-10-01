@@ -138,8 +138,8 @@ public:
 
 protected:
     
-    double      _cutoff;
     Topology   *_top;
+    double      _cutoff;
     list<SuperExchangeType*> _superexchange;
 };
 

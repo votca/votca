@@ -80,7 +80,7 @@ bool Velocity::EvaluateFrame(Topology *top) {
     cout << endl << "... ... Including " << _sites.size() << " sites." << flush;
     
 
-    for (int i = 0; i < _states.size(); ++i) {
+    for (unsigned int i = 0; i < _states.size(); ++i) {
 
         int state = _states[i];
 

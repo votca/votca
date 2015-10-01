@@ -79,8 +79,8 @@ private:
     // ======================================== //
 
     // Induction, subthreading (-> base class)
-    bool                            _induce;
-    bool                            _induce_intra_pair;
+    //bool                            _induce;
+    //bool                            _induce_intra_pair;
 
     // Multipole Interaction parameters
     string                          _method;
@@ -292,7 +292,7 @@ XJob QMMM::ProcessInputString(Job *job, Topology *top, QMThread *thread) {
     Tokenizer toker(input, " \t\n");
     toker.ToVector(split);
 
-    for (int i = 0; i < split.size(); ++i) {
+    for (unsigned int i = 0; i < split.size(); ++i) {
                 
         string id_seg_mps = split[i];
         vector<string> split_id_seg_mps;
