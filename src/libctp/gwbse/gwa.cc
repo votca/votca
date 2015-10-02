@@ -232,7 +232,7 @@ namespace votca {
                                 sigma_c += ppm_freqweight * _stab / _denom * Mmn_col(_i_gw, _i)* Mmn_row(_i_gw, _i); //_submat(_i_gw,_i);
                             } // unoccupied screening levels
                         }// GW functions
-                        //_sigma_c(_gw_row, _gw_col) = sigma_c;
+                        _sigma_c(_gw_row, _gw_col) = sigma_c;
                     }// GW row 
 
                     _qp_energies(_gw_col + _qpmin) = _edft(_gw_col + _qpmin) + _sigma_x(_gw_col, _gw_col) + _sigma_c(_gw_col, _gw_col) - _vxc(_gw_col, _gw_col);
