@@ -24,6 +24,8 @@
 
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/timer/timer.hpp>
+
 #include <boost/numeric/ublas/operation.hpp>
 #include <votca/ctp/aomatrix.h>
 #include <votca/ctp/threecenters.h>
@@ -157,7 +159,7 @@ namespace votca {
             double _QPgap = _qp_energies(_homo + 1) - _qp_energies(_homo);
             // cout << " QP Gap  : " << _QPgap << endl;
             double _shift_new = _QPgap - _DFTgap;
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " New shift [Ryd]" << _shift_new << flush;
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " New shift [Ryd] : " << _shift_new << flush;
             //cout << " shift new " << _shift_new << endl;
             if (std::abs((_shift_new - _shift)*13.605698066) > 0.01) {
                 _shift = _shift_new;
@@ -174,25 +176,35 @@ namespace votca {
                 //_sigma_c = ub::zero_matrix<double>(_qptotal,_qptotal);
 
                 // loop over col  GW levels
-            #pragma omp parallel for
+                cout << endl;
+                cout << "qptotal:" << _qptotal  << " _gwsize:"<< _gwsize << " _levelsum:"<< _levelsum << endl;
+                
+                boost::timer::cpu_timer gwcol;
+                #pragma omp parallel for 
                 for (int _gw_col = 0; _gw_col < _qptotal; _gw_col++) {
+                    //ub::matrix<double>Mmn_colxrow = ub::matrix<double>(_gwsize, _levelsum);
                     double sigma_c = 0.0;
                     const double qp_energy = _qp_energies(_gw_col + _qpmin);
 
                     const ub::matrix<double>& Mmn_col = _Mmn[ _gw_col + _qpmin ];
-                    ub::matrix<double>Mmn_colxrow = ub::zero_matrix<double>(Mmn_col.size1(), Mmn_col.size2());
-
-
+                    
+                     
+                   
+                   
                     for (int _gw_row = 0; _gw_row < _qptotal; _gw_row++) {
                         sigma_c = 0.0;
+                        const ub::matrix<double>& Mmn_row= _Mmn[ _gw_row + _qpmin ];
+                        /*
                         for (int _i = 0; _i < _gwsize; _i++) {
                             for (int _j=0;_j<_levelsum;_j++){
                                 Mmn_colxrow(_i, _j) = Mmn_col(_i, _j) * _Mmn[ _gw_row + _qpmin ](_i, _j);
                             }
                         }
-
-
+                  */
+                        
+                        
                         // loop over all functions in GW basis
+                        
                         for (int _i_gw = 0; _i_gw < _gwsize; _i_gw++) {
                             const double ppm_freq = _ppm_freq(_i_gw);
                             const double ppm_freqweight = _ppm_weight(_i_gw) * ppm_freq;
@@ -205,25 +217,30 @@ namespace votca {
                                 if (std::abs(_denom) < 0.5) {
                                     _stab = 0.5 * (1.0 - cos(2.0 * pi * std::abs(_denom)));
                                 }
-                                sigma_c += ppm_freqweight * _stab / _denom * Mmn_colxrow(_i_gw, _i);
-                                //sigma_c += ppm_freqweight * _stab / _denom * Mmn_col(_i_gw, _i) * Mmn_row(_i_gw, _i); //_submat(_i_gw,_i);            
+                                //sigma_c += ppm_freqweight * _stab / _denom * Mmn_colxrow(_i_gw, _i);
+                                sigma_c += ppm_freqweight * _stab / _denom * Mmn_col(_i_gw, _i) * Mmn_row(_i_gw, _i); //_submat(_i_gw,_i);            
                             }// occupied screening levels
                             // loop over unoccupied screening levels  
+                       
                             for (int _i = _homo + 1; _i < _levelsum; _i++) {
                                 double _denom = qp_energy - _qp_energies(_i) - ppm_freq;
                                 double _stab = 1.0;
                                 if (std::abs(_denom) < 0.5) {
                                     _stab = 0.5 * (1.0 - cos(2.0 * pi * std::abs(_denom)));
                                 }
-                                sigma_c += ppm_freqweight * _stab / _denom * Mmn_colxrow(_i_gw, _i);
-                                //sigma_c += ppm_freqweight * _stab / _denom * Mmn_col(_i_gw, _i)* Mmn_row(_i_gw, _i); //_submat(_i_gw,_i);
+                                //sigma_c += ppm_freqweight * _stab / _denom * Mmn_colxrow(_i_gw, _i);
+                                sigma_c += ppm_freqweight * _stab / _denom * Mmn_col(_i_gw, _i)* Mmn_row(_i_gw, _i); //_submat(_i_gw,_i);
                             } // unoccupied screening levels
                         }// GW functions
-                        _sigma_c(_gw_row, _gw_col) = sigma_c;
+                        //_sigma_c(_gw_row, _gw_col) = sigma_c;
                     }// GW row 
+
                     _qp_energies(_gw_col + _qpmin) = _edft(_gw_col + _qpmin) + _sigma_x(_gw_col, _gw_col) + _sigma_c(_gw_col, _gw_col) - _vxc(_gw_col, _gw_col);
                 } // GW col
+                cout <<gwcol.format() << endl;
             }
+            
+            exit(0);
         } // sigma_c_setup
 
         void GWBSE::sigma_x_setup(const TCMatrix& _Mmn){
