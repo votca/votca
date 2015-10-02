@@ -1,10 +1,9 @@
-# - Find libvotca_moo
-# Find the native libvotca_moo headers and libraries.
+# - Find libxc
+# Find the native libxc headers and libraries.
 #
-#  VOTCA_MOO_INCLUDE_DIRS - where to find votca/moo/version.h, etc.
-#  VOTCA_MOO_LIBRARIES    - List of libraries when using expat.
-#  VOTCA_MOO_FOUND        - True if expat found.
-#  VOTCA_MOO_HAS_SQLITE3  - True if votca moo was build with sqlite3 support
+#  LIBXC_INCLUDE_DIRS - where to find xc.h, etc.
+#  LIBXC_LIBRARIES    - List of libraries when using expat.
+#  LIBXC_FOUND        - True if expat found.
 #
 # Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
@@ -33,7 +32,7 @@ set(LIBXC_LIBRARIES "${LIBXC_LIBRARY}" )
 set(LIBXC_INCLUDE_DIRS "${LIBXC_INCLUDE_DIR}" )
 
 #include(FindPackageHandleStandardArgs)
-# handle the QUIETLY and REQUIRED arguments and set VOTCA_MOO_FOUND to TRUE
+# handle the QUIETLY and REQUIRED arguments and set LIBXC_FOUND to TRUE
 # if all listed variables are TRUE
 find_package_handle_standard_args(LIBXC DEFAULT_MSG LIBXC_LIBRARY LIBXC_INCLUDE_DIR )
 
