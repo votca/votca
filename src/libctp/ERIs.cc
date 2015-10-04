@@ -17,20 +17,9 @@
  *
  */
 
-#include <votca/ctp/aomatrix.h>
-#include <votca/ctp/aobasis.h>
-#include <votca/ctp/threecenters.h>
+
 #include <votca/ctp/ERIs.h>
-#include <string>
-#include <vector>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/lu.hpp>
-#include <boost/numeric/ublas/io.hpp>
-#include <votca/tools/linalg.h>
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-#include <boost/multi_array.hpp>
+
 
 using namespace std;
 using namespace votca::tools;

@@ -21,17 +21,12 @@
 #define	__VOTCA_CTP_ELEMENTS_H
 
 #include <string>
-#include <assert.h>
-#include <votca/tools/types.h>
-#include <votca/tools/vec.h>
-#include <votca/tools/property.h>
-#include <votca/tools/matrix.h>
 #include <map>
 
 
 
 namespace votca { namespace ctp {
-using namespace votca::tools;
+
 
 using namespace std;
 

@@ -232,9 +232,9 @@ void IAnalyze::IRdependence(Topology *top, int state) {
         double thisMAXR = MINR + (i+1)*_resolution_space;
         
         // now count Js that lie within this R range, calculate mean and sigma
-        double meanJ2 = 0;
-        double sigmaJ2 = 0;
-        int noJ2 = 0;
+        //double meanJ2 = 0;
+        //double sigmaJ2 = 0;
+        //int noJ2 = 0;
         
         vector< double > ::iterator jit;
         int j = 0;
@@ -250,7 +250,7 @@ void IAnalyze::IRdependence(Topology *top, int state) {
     vector< double > avgJ2;
     for (vector< vector<double> > ::iterator it = rJ2.begin() ; it != rJ2.end(); ++it){
         double thisavgJ2 = 0;
-        for(int i=0; i < (*it).size(); i++){
+        for(unsigned i=0; i < (*it).size(); i++){
             thisavgJ2 += (*it)[i];
         }
         thisavgJ2 /= (*it).size();
@@ -260,7 +260,7 @@ void IAnalyze::IRdependence(Topology *top, int state) {
     int j = 0;
     for (vector< vector<double> > ::iterator it = rJ2.begin() ; it != rJ2.end(); ++it){
         double thiserrJ2 = 0;
-        for(int i=0; i < (*it).size(); i++){
+        for(unsigned i=0; i < (*it).size(); i++){
             thiserrJ2 += ((*it)[i]-avgJ2[j])*((*it)[i]-avgJ2[j]);
         }
         thiserrJ2 /= (*it).size();

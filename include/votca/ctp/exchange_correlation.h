@@ -512,7 +512,7 @@ namespace votca {
                 return;
             } else {
 
-                const double Hartree = 2.0;
+                //const double Hartree = 2.0;
                 const double ec1_p = -0.1423; // * Hartree PZ_gamma_U
                 const double ec1_sq = 1.0529; // PZ_beta1_U
                 const double ec1_lin = 0.3334; // PX_beta2_U

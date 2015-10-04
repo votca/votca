@@ -27,8 +27,6 @@
 #include <boost/timer/timer.hpp>
 
 #include <boost/numeric/ublas/operation.hpp>
-#include <votca/ctp/aomatrix.h>
-#include <votca/ctp/threecenters.h>
 // #include <votca/ctp/logger.h>
 #include <votca/ctp/qmpackagefactory.h>
 #include <boost/math/constants/constants.hpp>
@@ -54,7 +52,7 @@ namespace votca {
             // constructing full QP Hamiltonian, storage in vxc
             _vxc = -_vxc + _sigma_x + _sigma_c;
             // diagonal elements are given by _qp_energies
-            for (int _m = 0; _m < _vxc.size1(); _m++ ){
+            for (unsigned _m = 0; _m < _vxc.size1(); _m++ ){
               _vxc( _m,_m ) = _qp_energies( _m + _qpmin );
             }
 
@@ -103,7 +101,7 @@ namespace votca {
 
 	      // loop over all GW levels
               #pragma omp parallel for
-	      for (int _gw_level = 0; _gw_level < _qptotal ; _gw_level++ ){
+	      for (unsigned _gw_level = 0; _gw_level < _qptotal ; _gw_level++ ){
                 double qp_energy=_qp_energies( _gw_level + _qpmin  );
                 double sigma_c=0.0;
                 
@@ -116,7 +114,7 @@ namespace votca {
                   
                     
 		  // loop over all bands
-		  for ( int _i = 0; _i < _homo+1 ; _i++ ){
+		  for ( unsigned _i = 0; _i < _homo+1 ; _i++ ){
                                                     
 		    // energy denominator
 		    double _denom = qp_energy - _qp_energies( _i ) + ppm_freq;
@@ -181,7 +179,7 @@ namespace votca {
                 
                 boost::timer::cpu_timer gwcol;
                 #pragma omp parallel for 
-                for (int _gw_col = 0; _gw_col < _qptotal; _gw_col++) {
+                for (unsigned _gw_col = 0; _gw_col < _qptotal; _gw_col++) {
                     //ub::matrix<double>Mmn_colxrow = ub::matrix<double>(_gwsize, _levelsum);
                     double sigma_c = 0.0;
                     const double qp_energy = _qp_energies(_gw_col + _qpmin);
@@ -191,7 +189,7 @@ namespace votca {
                      
                    
                    
-                    for (int _gw_row = 0; _gw_row < _qptotal; _gw_row++) {
+                    for (unsigned _gw_row = 0; _gw_row < _qptotal; _gw_row++) {
                         sigma_c = 0.0;
                         const ub::matrix<double>& Mmn_row= _Mmn[ _gw_row + _qpmin ];
                         /*
@@ -210,7 +208,7 @@ namespace votca {
                             const double ppm_freqweight = _ppm_weight(_i_gw) * ppm_freq;
 
                             // loop over occupied screening levels                           
-                            for (int _i = 0; _i < _homo + 1; _i++) {
+                            for (unsigned _i = 0; _i < _homo + 1; _i++) {
                                 // energy denominator
                                 double _denom = qp_energy - _qp_energies(_i) + ppm_freq;
                                 double _stab = 1.0;
@@ -251,20 +249,20 @@ namespace votca {
 
             // band 1 loop over all GW levels
             #pragma omp parallel for
-            for ( int _m1 = 0 ; _m1 < _qptotal ; _m1++ ){
+            for ( unsigned _m1 = 0 ; _m1 < _qptotal ; _m1++ ){
                 
                 const ub::matrix<double>& M1mn =  _Mmn[ _m1 + _qpmin ];
                 
                 // band 2 loop over all GW levels
                 //for ( int _m2 = _qpmin ; _m2 <= _qpmax ; _m2++ ){
-                for ( int _m2 = 0 ; _m2 < _qptotal ; _m2++ ){
+                for ( unsigned _m2 = 0 ; _m2 < _qptotal ; _m2++ ){
                     
                     const ub::matrix<double>& M2mn =  _Mmn[ _m2 + _qpmin ];
                     
                     // loop over all basis functions
                     for ( int _i_gw = 0 ; _i_gw < _size ; _i_gw++ ){
                         // loop over all occupied bands used in screening
-                        for ( int _i_occ = 0 ; _i_occ <= _homo ; _i_occ++ ){
+                        for ( unsigned _i_occ = 0 ; _i_occ <= _homo ; _i_occ++ ){
                             _sigma_x( _m1, _m2 ) -= 2.0 * M1mn( _i_gw , _i_occ ) * M2mn( _i_gw , _i_occ );
                         } // occupied bands
                     } // gwbasis functions

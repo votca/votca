@@ -28,7 +28,6 @@
 #include <votca/ctp/gwbse.h> // including GWBSE functionality
 #include <votca/ctp/segment.h>
 #include <votca/ctp/orbitals.h>
-#include <votca/ctp/aobasis.h>
 #include <votca/ctp/aomatrix.h>
 #include <votca/ctp/threecenters.h>
 
@@ -45,10 +44,7 @@
 #include <votca/tools/linalg.h>
 
 #include <boost/numeric/ublas/operation.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/io.hpp>
 
 
 namespace votca { namespace ctp {

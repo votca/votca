@@ -21,7 +21,6 @@
 #include "idft.h"
 
 #include <boost/format.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
 

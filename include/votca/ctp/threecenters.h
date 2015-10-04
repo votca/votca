@@ -20,17 +20,11 @@
 #ifndef __CTP_THREECENTERS__H
 #define	__CTP_THREECENTERS__H
 
-#include <votca/ctp/aobasis.h>
-#include <votca/ctp/segment.h>
-#include <string>
-#include <map>
-#include <vector>
-#include <votca/tools/property.h>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/lu.hpp>
-#include <boost/numeric/ublas/io.hpp>
 #include <boost/multi_array.hpp>
 #include <votca/ctp/aomatrix.h>
+#include <votca/ctp/logger.h>
+#include <votca/tools/linalg.h>
+#include <votca/ctp/votca_ctp_config.h>
 #ifdef _OPENMP
 #include <omp.h>
 #endif

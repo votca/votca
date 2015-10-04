@@ -243,7 +243,7 @@ double IImport::StochasticMakeJ(double thisdistance, vector<double> distances, v
         return 0;
     }
     else{
-        for(int i = 0; i<distances.size()-2; i++){
+        for(unsigned i = 0; i<distances.size()-2; i++){
             if(distances[i] < thisdistance && thisdistance <= distances[i+1]){
                 // linear interpolations
                 thismean  = (means[i+1]-means[i])/(distances[i+1]-distances[i])*(thisdistance-distances[i])+means[i];

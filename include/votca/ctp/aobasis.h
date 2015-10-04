@@ -20,16 +20,14 @@
 #ifndef __CTP_AOBASIS__H
 #define	__CTP_AOBASIS__H
 
-#include <string>
-#include <map>
-#include <vector>
 #include <votca/tools/property.h>
 #include <votca/ctp/segment.h>
 #include <votca/ctp/qmatom.h>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/math/constants/constants.hpp>
-#include "basisset.h"
+#include <votca/ctp/basisset.h>
+
 
 using namespace std;
 using namespace votca::tools;

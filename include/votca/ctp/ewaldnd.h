@@ -140,11 +140,12 @@ public:
         }
 
     private:
-        fgtable_t _id_na_nb_nc__inFg;
+       
         int _n_segs_cell;
         int _na_max;
         int _nb_max;
         int _nc_max;
+        fgtable_t _id_na_nb_nc__inFg;
     };
 
 

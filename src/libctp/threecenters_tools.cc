@@ -22,8 +22,6 @@
 
 #include <votca/ctp/threecenters.h>
 
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/math/constants/constants.hpp>
 #include <votca/ctp/logger.h>
 #include <votca/tools/linalg.h>
 

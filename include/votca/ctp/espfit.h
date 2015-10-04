@@ -22,13 +22,8 @@
 
 
 #include <votca/ctp/elements.h>
-#include <votca/tools/property.h>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/lu.hpp>
-#include <boost/numeric/ublas/io.hpp>
 #include <votca/ctp/grid.h>
 #include <votca/ctp/aobasis.h>
-#include <votca/ctp/qmatom.h>
 
 
 /**

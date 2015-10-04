@@ -21,19 +21,16 @@
 #include <votca/ctp/votca_ctp_config.h>
 
 #include "egwbse.h"
-#include <votca/ctp/gwbse.h>
+
 
 
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/numeric/ublas/operation.hpp>
-#include <votca/ctp/aomatrix.h>
-#include <votca/ctp/threecenters.h>
 // #include <votca/ctp/logger.h>
 #include <votca/ctp/qmpackagefactory.h>
 #include <boost/math/constants/constants.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
-#include <votca/tools/linalg.h>
 
 using boost::format;
 using namespace boost::filesystem;

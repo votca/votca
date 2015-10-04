@@ -26,12 +26,9 @@
 
 #include <votca/ctp/segment.h>
 #include <votca/ctp/orbitals.h>
-#include <votca/ctp/aobasis.h>
-#include <votca/ctp/aomatrix.h>
-#include <votca/ctp/threecenters.h>
+
 #include <votca/ctp/logger.h>
-#include <votca/ctp/qmpackagefactory.h>
-#include <votca/ctp/parallelxjobcalc.h>
+
 #include <unistd.h>
 
 #include <fstream>
@@ -40,7 +37,6 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/filesystem.hpp>
-#include <votca/tools/linalg.h>
 #include <votca/ctp/ERIs.h>
 #include <boost/numeric/ublas/operation.hpp>
 #include <boost/numeric/ublas/matrix.hpp>

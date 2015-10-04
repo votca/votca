@@ -150,7 +150,7 @@ double EImport::SphereIntersection(double radius, double distance){
 
 double EImport::Correlation(double distance, vector<double> distances, vector<double>bcoeff, double sigma){
         double correlation = 0;
-        for(int j=0; j<bcoeff.size(); j++){
+        for(unsigned j=0; j<bcoeff.size(); j++){
             correlation += SphereIntersection(distances[j+1]/2.,distance) * bcoeff[j] ;
         }
         correlation /=  (sigma*sigma);
@@ -274,7 +274,7 @@ void EImport::StochasticEnergies(Topology *top, string &filename, int state) {
     if(interpolatable == false){
         // try to improve solution by slightly modifying the parameters
         double mse = 0;
-        for(int j = 0; j<distances.size(); j++){
+        for(unsigned j = 0; j<distances.size(); j++){
             mse += pow(Correlation(distances[j], distances, bcoeff, sigma) - kappas[j], 2);
         }
         cout << "\n        NOTE: The given correlation data could not exactly be reproduced with the intersecting sphere model." << endl;
@@ -297,7 +297,7 @@ void EImport::StochasticEnergies(Topology *top, string &filename, int state) {
                 double diff = double(i)*std::abs(bcoeff[nit])/1000.;
                 btry[nit] = bcoeff[nit] + diff*bcoeff[nit];
                 double thismse = 0;
-                for(int j = 0; j<distances.size(); j++){
+                for(unsigned j = 0; j<distances.size(); j++){
                     thismse += pow(Correlation(distances[j], distances, btry, sigma) - kappas[j], 2);
                 }
                 if(thismse<mse && btry[nit] >= 0){
@@ -312,7 +312,7 @@ void EImport::StochasticEnergies(Topology *top, string &filename, int state) {
     
     
     double sum =0;
-    for(int i=0; i<bcoeff.size(); i++){sum += bcoeff[i];}
+    for(unsigned i=0; i<bcoeff.size(); i++){sum += bcoeff[i];}
     double acoeff = sigma*sigma-sum;
     if(acoeff<0){
         acoeff = 0;
@@ -332,7 +332,7 @@ void EImport::StochasticEnergies(Topology *top, string &filename, int state) {
     fprintf(out, "# EIMPORT: COMPARISION OF IMPORTED AND REALISED CORRELATION.\n");
     fprintf(out, "# STATE %1d\n", state);
 
-    for (int i = 0; i < distances.size()-1; ++i) {
+    for (unsigned i = 0; i < distances.size()-1; ++i) {
         fprintf(out, "%4.7f %4.7f %4.7f\n", distances[i], kappas[i], Correlation(distances[i], distances, bcoeff, sigma));
     }
     fclose(out);
@@ -371,7 +371,7 @@ void EImport::StochasticEnergies(Topology *top, string &filename, int state) {
     for(int A = 0; A<Nmolecules; A++){
         vector<double> dummy;
         X.push_back(dummy);
-        for(int i = 0; i<bcoeff.size()+1; i++){
+        for(unsigned i = 0; i<bcoeff.size()+1; i++){
             X[A].push_back( RandomVariable->rand_gaussian(1.0) );
         }
     }
@@ -395,7 +395,7 @@ void EImport::StochasticEnergies(Topology *top, string &filename, int state) {
             vec r1 = (*seg1)->getPos();
             vec r2 = (*seg2)->getPos();
             double distance = abs( top->PbShortestConnect(r1, r2));
-            for(int nit=0; nit<bcoeff.size(); nit++){
+            for(unsigned nit=0; nit<bcoeff.size(); nit++){
                 if(distance<=distances[nit+1]/2 ) { // r=0 included ?????
                     molsinrange[nit] += 1;
                     randompart[nit]  += X[molB][nit];
@@ -406,7 +406,7 @@ void EImport::StochasticEnergies(Topology *top, string &filename, int state) {
         }
         
         double energy = sqrt(acoeff) * X[molA][bcoeff.size()];
-        for(int i =0; i<bcoeff.size(); i++){
+        for(unsigned i =0; i<bcoeff.size(); i++){
             if(molsinrange[i] > 0){
                 energy += sqrt(bcoeff[i]/molsinrange[i]) * randompart[i];
             }

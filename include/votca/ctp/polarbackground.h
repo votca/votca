@@ -15,7 +15,10 @@ class PolarBackground
 {
 public:
 
-    PolarBackground() : _top(NULL), _ptop(NULL), _log(NULL), _n_threads(1) {};
+    PolarBackground() : _top(NULL),
+            _ptop(NULL),
+            _log(NULL),
+            _n_threads(1) {};
     PolarBackground(Topology *, PolarTop *, Property *, Logger *);
    ~PolarBackground();
    

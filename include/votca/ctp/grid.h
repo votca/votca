@@ -25,11 +25,9 @@
 #include <string>
 #include <map>
 #include <vector>
-#include <votca/tools/property.h>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/lu.hpp>
 #include <boost/numeric/ublas/io.hpp>
-#include <boost/multi_array.hpp>
 #include <votca/ctp/qmatom.h>
 #include <votca/ctp/logger.h>
 #include <votca/ctp/apolarsite.h>
@@ -120,18 +118,20 @@ namespace votca { namespace ctp {
       std::vector< APolarSite* > _all_gridsites;
       PolarSeg *_sites_seg;
       vector< QMAtom* >* _atomlist;
-      double _gridspacing;
+      
       double _cutoff;
+      double _gridspacing;
       double _cutoff_inside;
-      double _shift_cutoff_inside;
       double _shift_cutoff;
-      double _padding;
-      bool   _createpolarsites;
+      double _shift_cutoff_inside;
       bool   _useVdWcutoff;
       bool   _useVdWcutoff_inside;
       bool   _cubegrid;
-      int _xsteps, _ysteps, _zsteps;
+      double _padding;
+      bool   _createpolarsites; 
       vec _lowerbound;
+      int _xsteps, _ysteps, _zsteps;
+      
       
       void subdivide(const vec &v1, const vec &v2, const vec &v3, std::vector<vec> &spherepoints, const int depth);
       void initialize_sphere(std::vector<vec> &spherepoints, const int depth);

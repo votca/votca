@@ -142,7 +142,7 @@ bool EAnalyze::EvaluateFrame(Topology *top) {
 
     QMNBList &nblist = top->NBList();
 
-    for (int i = 0; i < _states.size(); ++i) {
+    for (unsigned i = 0; i < _states.size(); ++i) {
 
         int state = _states[i];
         cout << endl << "... ... Charge state " << state << flush;
@@ -500,7 +500,7 @@ void EAnalyze::SiteCorr(Topology *top, int state) {
     vector< vector<double> > histCs;
     histCs.resize(BIN);
 
-    for (int i = 0; i < Rs.size(); ++i) {
+    for (unsigned i = 0; i < Rs.size(); ++i) {
 
         int bin = int((Rs[i] - MIN)/_resolution_space + 0.5);
         histCs[bin].push_back(Cs[i]);
@@ -515,7 +515,7 @@ void EAnalyze::SiteCorr(Topology *top, int state) {
 
         double corr = 0.0;
         double dcorr2 = 0.0;
-        for (int i = 0; i < histCs[bin].size(); ++i) {
+        for (unsigned i = 0; i < histCs[bin].size(); ++i) {
             corr += histCs[bin][i] / VAR;
             //corr2 += (histCs[bin][i] / VAR)*(histCs[bin][i] / VAR);
         }
@@ -523,7 +523,7 @@ void EAnalyze::SiteCorr(Topology *top, int state) {
         corr  = corr / histCs[bin].size();
         //corr2 = corr2 / histCs[bin].size();
 
-        for (int i = 0; i < histCs[bin].size(); ++i) {
+        for (unsigned i = 0; i < histCs[bin].size(); ++i) {
             dcorr2 += (histCs[bin][i]/VAR/histCs[bin].size() - corr)*(histCs[bin][i]/VAR/histCs[bin].size() - corr);
         }
 

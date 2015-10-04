@@ -412,7 +412,7 @@ void Rates::CalculateRate(Topology *top, QMPair *qmpair, int state) {
 
     double rate_symm12 = 0;
     double rate_symm21 = 0;
-    double measure = 0;
+    //double measure = 0;
     double reorg12=0;
     double reorg21=0;
     double dG_Site=0;
@@ -560,7 +560,7 @@ void Rates::CalculateRate(Topology *top, QMPair *qmpair, int state) {
         double characfreq12 = reorg12 /2 /_kondo/hbar_eV;
         double characfreq21 = reorg21 /2 /_kondo/hbar_eV;
         
-        complex<double> M_I = (0,1);
+        complex<double> M_I = complex<double>(0.0,1.0);
        /* cout << endl;
        cout << "  CGAMMA via GSL: " << gsl_sf_gamma(2*_kondo) << " native: " << ccgamma(2*_kondo,0).real() << endl;
        cout << " LCGAMMA via GSL: " << cgamma(_kondo+M_I*(+dG/2/M_PI/_kT)) << " native: " << ccgamma(_kondo+M_I*(+dG/2/M_PI/_kT),0) << endl;

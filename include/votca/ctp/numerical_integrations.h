@@ -23,13 +23,9 @@
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/ctp/votca_ctp_config.h>
 #include <boost/numeric/ublas/operation.hpp>
-#include <votca/tools/property.h>
 #include <votca/ctp/basisset.h>
 #include <votca/ctp/aobasis.h>
-#include <votca/ctp/qmatom.h>
 #include <votca/ctp/grid_containers.h>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
 using namespace std;
 
 

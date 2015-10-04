@@ -69,7 +69,7 @@ void Grid::printGridtoxyzfile(const char* _filename){
         points.open(_filename, ofstream::out);
         points << _gridpoints.size() << endl;
         points << endl;
-        for ( int i = 0 ; i < _gridpoints.size(); i++){
+        for ( unsigned i = 0 ; i < _gridpoints.size(); i++){
             points << "X " << _gridpoints[i](0)*NmtoA << " " << _gridpoints[i](1)*NmtoA << " " << _gridpoints[i](2)*NmtoA << endl;
 
         }
@@ -189,7 +189,7 @@ void Grid::printgridtoCubefile(string filename){
             fprintf(out, "Electrostatic potential around molecule \n" );
             fprintf(out, "Created by VOTCA-CTP \n");
             fprintf(out, "%d %f %f %f \n", _atomlist->size(), _lowerbound.getX()*A2Bohr, _lowerbound.getY()*A2Bohr,_lowerbound.getZ()*A2Bohr);
-            fprintf(out, "%d %f 0.0 0.0 \n", _xsteps, _gridspacing*A2Bohr); // +0.5 to convert to nearest integer
+            fprintf(out, "%d %f 0.0 0.0 \n", _xsteps, _gridspacing*A2Bohr); 
             fprintf(out, "%d 0.0 %f 0.0 \n",  _ysteps, _gridspacing*A2Bohr);
             fprintf(out, "%d 0.0 0.0 %f \n", _zsteps, _gridspacing*A2Bohr);
             

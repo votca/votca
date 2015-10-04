@@ -29,10 +29,10 @@ void Espfit::EvaluateAPECharges(Grid& _targetgrid, Grid& _chargepositions){
     }
 
 void Espfit::FitAPECharges(Grid& _targetgrid_fg, Grid& _targetgrid_bg, Grid& _chargepositions, double& netcharge){
-    double A2Bohr=1.8897259886;
+    //double A2Bohr=1.8897259886;
      double Nm2Bohr=18.8972598860;
-     double Nm2A=10.0;
-     double A2nm=0.1;
+     //double Nm2A=10.0;
+     //double A2nm=0.1;
     double Int2Hartree=Nm2Bohr;
     
     if(_chargepositions.getsize() >_targetgrid_fg.getsize()){
@@ -60,7 +60,7 @@ void Espfit::FitAPECharges(Grid& _targetgrid_fg, Grid& _targetgrid_bg, Grid& _ch
     LOG(logDEBUG, *_log) << " Fitting APE to Chargeshell with netcharge " << netcharge <<"e."<< flush;
     std::vector<double>_chargesfromfit=FitPartialCharges(_chargepos,_targetgrid_fg,_potential,netcharge);
     int state=0;
-    for (int i=0; i<_charges.size();i++) {
+    for (unsigned i=0; i<_charges.size();i++) {
         _charges[i]->setQ00(_chargesfromfit[i],state);
     }   
        LOG(logDEBUG, *_log) << " Fitting completed " << flush;
@@ -69,9 +69,9 @@ void Espfit::FitAPECharges(Grid& _targetgrid_fg, Grid& _targetgrid_bg, Grid& _ch
 
 
 void Espfit::Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis,BasisSet &bs,string gridsize, bool _do_transition, double _netcharge) { 
-    double A2Bohr=1.8897259886;
+    //double A2Bohr=1.8897259886;
      double Nm2Bohr=18.8972598860;
-     double Nm2A=10.0;
+     //double Nm2A=10.0;
      double A2nm=0.1;
     // setting up grid    
     Grid _grid;
@@ -88,7 +88,7 @@ void Espfit::Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat
     ub::vector<double> _NucPatGrid = EvalNuclearPotential(  _atomlist,  _grid );
 
     double Ztot = 0.0;
-    for ( int j = 0; j < _atomlist.size(); j++){
+    for ( unsigned j = 0; j < _atomlist.size(); j++){
 
            Ztot += _elements.getNucCrgECP(_atomlist[j]->type);  
     }
@@ -118,7 +118,7 @@ void Espfit::Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat
     }
     std::vector< ub::vector<double> > _fitcenters;
     
-          for ( int j = 0; j < _atomlist.size(); j++){
+          for ( unsigned j = 0; j < _atomlist.size(); j++){
              ub::vector<double> _pos(3);
             _pos(0) = A2nm*_atomlist[j]->x;
             _pos(1) = A2nm*_atomlist[j]->y;
@@ -129,15 +129,15 @@ void Espfit::Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat
     std::vector<double> _charges = FitPartialCharges(_fitcenters,_grid, _ESPatGrid, _netcharge);
     
     //Write charges to qmatoms
-        for ( int _i =0 ; _i < _atomlist.size(); _i++){
+        for ( unsigned _i =0 ; _i < _atomlist.size(); _i++){
             _atomlist[_i]->charge=_charges[_i];
         } 
     } 
 
 ub::vector<double> Espfit:: EvalNuclearPotential( vector< QMAtom* >& _atoms, Grid _grid ){
-    double A2Bohr=1.8897259886;
+    //double A2Bohr=1.8897259886;
     double Nm2Bohr=18.8972598860;
-    double Nm2A=10.0;
+    //double Nm2A=10.0;
     double A2nm=0.1;
     std::vector< ub::vector<double> >& _gridpoints =_grid.getGrid();   
     LOG(logDEBUG, *_log) << TimeStamp() << " Calculating ESP of nuclei at CHELPG grid points"  << flush;
@@ -174,9 +174,9 @@ ub::vector<double> Espfit:: EvalNuclearPotential( vector< QMAtom* >& _atoms, Gri
    }
 
 void Espfit::Fit2Density_analytic(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AOBasis &_basis,bool _do_transition, double _netcharge) { 
-    double A2Bohr=1.8897259886;
+    //double A2Bohr=1.8897259886;
      double Nm2Bohr=18.8972598860;
-     double Nm2A=10.0;
+     //double Nm2A=10.0;
      double A2nm=0.1;
     // setting up grid    
     Grid _grid;
@@ -193,7 +193,7 @@ void Espfit::Fit2Density_analytic(vector< QMAtom* >& _atomlist, ub::matrix<doubl
     
 
     double Ztot = 0.0;
-    for ( int j = 0; j < _atomlist.size(); j++){
+    for ( unsigned j = 0; j < _atomlist.size(); j++){
 
            Ztot += _elements.getNucCrgECP(_atomlist[j]->type);  
     }
@@ -208,7 +208,7 @@ void Espfit::Fit2Density_analytic(vector< QMAtom* >& _atomlist, ub::matrix<doubl
          _aoesp.Fill(&_basis, _grid.getGrid()[i]*Nm2Bohr);
         ub::vector<double> AOESPasarray=_aoesp._aomatrix.data();
       
-        for ( int _i =0; _i < DMATGSasarray.size(); _i++ ){
+        for ( unsigned _i =0; _i < DMATGSasarray.size(); _i++ ){
             _ESPatGrid(i) -= DMATGSasarray(_i)*AOESPasarray(_i);
         }   
     }
@@ -241,7 +241,7 @@ void Espfit::Fit2Density_analytic(vector< QMAtom* >& _atomlist, ub::matrix<doubl
 
     std::vector< ub::vector<double> > _fitcenters;
     
-          for ( int j = 0; j < _atomlist.size(); j++){
+          for ( unsigned j = 0; j < _atomlist.size(); j++){
              ub::vector<double> _pos(3);
             _pos(0) = A2nm*_atomlist[j]->x;
             _pos(1) = A2nm*_atomlist[j]->y;
@@ -251,16 +251,16 @@ void Espfit::Fit2Density_analytic(vector< QMAtom* >& _atomlist, ub::matrix<doubl
     std::vector<double> _charges = FitPartialCharges(_fitcenters,_grid, _ESPatGrid, _netcharge);
     
     //Write charges to qmatoms
-        for ( int _i =0 ; _i < _atomlist.size(); _i++){
+        for ( unsigned _i =0 ; _i < _atomlist.size(); _i++){
             _atomlist[_i]->charge=_charges[_i];
         }  
     } 
 
 std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >& _fitcenters, Grid& _grid, ub::vector<double>& _potential, double& _netcharge ){
-    double A2Bohr=1.8897259886;
+    //double A2Bohr=1.8897259886;
      double Nm2Bohr=18.8972598860;
-     double Nm2A=10.0;
-     double A2nm=0.1;
+     //double Nm2A=10.0;
+     //double A2nm=0.1;
     LOG(logDEBUG, *_log) << TimeStamp() << " Setting up Matrices for fitting of size "<< _fitcenters.size()+1 <<" x " << _fitcenters.size()+1<< flush;    
    
     std::vector< ub::vector<double> >& _gridpoints=_grid.getGrid();   
@@ -275,12 +275,12 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >
     boost::progress_display show_progress( _fitcenters.size() );
     // setting up _Amat
     #pragma omp parallel for
-    for ( int _i =0 ; _i < _Amat.size1()-1; _i++){
+    for ( unsigned _i =0 ; _i < _Amat.size1()-1; _i++){
         double x_i = _fitcenters[_i](0);
         double y_i = _fitcenters[_i](1);
         double z_i = _fitcenters[_i](2);
         ++show_progress;
-        for ( int _j=_i; _j<_Amat.size2()-1; _j++){
+        for ( unsigned _j=_i; _j<_Amat.size2()-1; _j++){
             double x_j = _fitcenters[_j](0);
             double y_j = _fitcenters[_j](1);
             double z_j = _fitcenters[_j](2);
@@ -299,7 +299,7 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >
         }        
     }
    
-    for ( int _i =0 ; _i < _Amat.size1(); _i++){
+    for ( unsigned _i =0 ; _i < _Amat.size1(); _i++){
       _Amat(_i,_Amat.size1()-1) = 1.0;
       _Amat(_Amat.size1()-1,_i) = 1.0;
     }
@@ -307,11 +307,11 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >
 
     // setting up Bvec
     #pragma omp parallel for
-    for ( int _i =0 ; _i < _Bvec.size1()-1; _i++){
+    for ( unsigned _i =0 ; _i < _Bvec.size1()-1; _i++){
         double x_i = _fitcenters[_i](0);
         double y_i = _fitcenters[_i](1);
         double z_i = _fitcenters[_i](2);
-        for ( int _k=0; _k < _gridpoints.size(); _k++){
+        for ( unsigned _k=0; _k < _gridpoints.size(); _k++){
             
                 double x_k = _gridpoints[_k](0);
                 double y_k = _gridpoints[_k](1);
@@ -363,12 +363,12 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >
     ub::matrix<double> _charges = ub::prod(_Amat_inverse,_Bvec);
    
     std::vector<double> _result;
-    for ( int _i = 0; _i < _charges.size1(); _i++ ){       
+    for ( unsigned _i = 0; _i < _charges.size1(); _i++ ){       
         _result.push_back(_charges(_i,0));        
     }
        
     double _sumcrg = 0.0;
-    for ( int _i =0 ; _i < _fitcenters.size(); _i++){
+    for ( unsigned _i =0 ; _i < _fitcenters.size(); _i++){
         
         LOG(logDEBUG, *_log) << " Center " << _i << " FitCharge: " << _result[_i] << flush;
         _sumcrg += _result[_i];       
@@ -379,12 +379,12 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >
     // get RMSE
     double _rmse = 0.0;
     double _totalPotSq = 0.0;
-    for ( int _k=0 ; _k < _gridpoints.size(); _k++ ){
+    for ( unsigned _k=0 ; _k < _gridpoints.size(); _k++ ){
         double x_k = _gridpoints[_k](0);
         double y_k = _gridpoints[_k](1);
         double z_k = _gridpoints[_k](2);
         double temp = 0.0;
-        for ( int _i=0; _i < _fitcenters.size(); _i++ ){
+        for ( unsigned _i=0; _i < _fitcenters.size(); _i++ ){
             double x_i = _fitcenters[_i](0);
             double y_i = _fitcenters[_i](1);
             double z_i = _fitcenters[_i](2);

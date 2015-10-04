@@ -22,10 +22,6 @@
 
 #include <votca/ctp/aobasis.h>
 #include <votca/ctp/segment.h>
-#include <string>
-#include <map>
-#include <vector>
-#include <votca/tools/property.h>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/lu.hpp>
 #include <boost/numeric/ublas/io.hpp>

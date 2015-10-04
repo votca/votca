@@ -351,9 +351,9 @@ bool Neighborlist::StochasticConnectOrNot(double thisdistance, vector<double> di
         return false;
     }
     else{
-        int numberofpoints = distances.size();
+        //int numberofpoints = distances.size();
         double thisprobability;
-        for(int i = 0; i<distances.size()-1; i++){
+        for(unsigned i = 0; i<distances.size()-1; i++){
             if(distances[i] < thisdistance && thisdistance < distances[i+1]){
                 // linear interpolations
                 thisprobability = (probabilities[i+1]-probabilities[i])/(distances[i+1]-distances[i])*(thisdistance-distances[i])+probabilities[i];
@@ -441,7 +441,8 @@ void Neighborlist::StochasticConnectivity(Topology *top, string filename) {
             bool accept = StochasticConnectOrNot(distance, distances, probabilities, RandomVariable);
             if(accept == true){
                 // add pair to neighbor list
-                QMPair* pair12 = top->NBList().Add((*seg1),(*seg2));
+                top->NBList().Add((*seg1),(*seg2));
+                //QMPair* pair12 = top->NBList().Add((*seg1),(*seg2));
                 //cout << "add" << endl;
             }
         }

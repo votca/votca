@@ -134,7 +134,7 @@ namespace votca { namespace ctp {
         
         
         const double _fak3 = 3.0 * _fak;
-        const double _fak4 = 4.0 * _fak;
+        //const double _fak4 = 4.0 * _fak;
         
         // calculate s-s- overlap matrix element
         _ol(0,0) = pow(4.0*_decay_row*_decay_col,0.75) * pow(_fak2,1.5)*exp(-_fak2 * _decay_row * _decay_col *_distsq); // s-s element
@@ -728,8 +728,8 @@ namespace votca { namespace ctp {
             ub::matrix<double> _mom_sph = ub::prod( _mom_tmp, _trafo_col_tposed );
             
             // save to _matrix
-            for ( int i = 0; i< _matrix[0].size1(); i++ ) {
-                for (int j = 0; j < _matrix[0].size2(); j++){
+            for ( unsigned i = 0; i< _matrix[0].size1(); i++ ) {
+                for (unsigned j = 0; j < _matrix[0].size2(); j++){
                     _matrix[ _i_comp ](i,j) += _mom_sph(i+_shell_row->getOffset(),j+_shell_col->getOffset());
                 }
             }

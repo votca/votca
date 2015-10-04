@@ -193,7 +193,7 @@ void EulerMaclaurinGrid::getRadialCutoffs(vector<QMAtom* > _atoms, BasisSet* bs,
                 int _a_stop  = idxstop[aidx];
                 
                 double range_max = 0.0;
-                double shiftm_2g = 0.0;
+                //double shiftm_2g = 0.0;
                 
                 
                 // get preset values for this atom type
@@ -204,7 +204,7 @@ void EulerMaclaurinGrid::getRadialCutoffs(vector<QMAtom* > _atoms, BasisSet* bs,
                 double y_a = (*ait)->y * 1.8897259886 ;
                 double z_a = (*ait)->z * 1.8897259886 ;
                 
-                int iat_diff;
+                //int iat_diff;
                 string type_diff;
                 int bidx = 0;
                 for (bit = _atoms.begin(); bit < _atoms.end(); ++bit) {
@@ -222,8 +222,8 @@ void EulerMaclaurinGrid::getRadialCutoffs(vector<QMAtom* > _atoms, BasisSet* bs,
                           ub::matrix<double> _overlapblock = ub::project( _overlap._aomatrix ,  ub::range( _a_start , _a_stop ), ub::range(_b_start, _b_stop ) );
                           // determine abs max of this block
                           s_max = 0.0;
-                          for ( int i = 0 ; i < _overlapblock.size1(); i++ ){
-                          for ( int j = 0 ; j < _overlapblock.size2(); j++ ){
+                          for ( unsigned i = 0 ; i < _overlapblock.size1(); i++ ){
+                          for ( unsigned j = 0 ; j < _overlapblock.size2(); j++ ){
                               s_max = std::max(s_max,std::abs(_overlapblock(i,j)));
                           }
                           }
@@ -241,9 +241,9 @@ void EulerMaclaurinGrid::getRadialCutoffs(vector<QMAtom* > _atoms, BasisSet* bs,
                               if ( aidx != bidx ) range += dist;
                               
                               if ( range > range_max ){
-                                  shiftm_2g = shift_2g;
+                                  //shiftm_2g = shift_2g;
                                   range_max = range;
-                                  iat_diff = bidx;
+                                  //iat_diff = bidx;
                                   type_diff = (*bit)->type;
                               }
                               
@@ -445,6 +445,8 @@ void EulerMaclaurinGrid::getRadialCutoffs(vector<QMAtom* > _atoms, BasisSet* bs,
             return XcoarseGrid.at(element);            
             
         }
+        throw std::runtime_error("Grid type is not implemented");
+        return -1;
         
         
     }
