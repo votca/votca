@@ -51,7 +51,7 @@ namespace votca { namespace ctp {
         /*cout << "\nAO block: "<< endl;
         cout << "\t row: " << _shell_row->getType() << " at " << _shell_row->getPos() << endl;
         cout << "\t col: " << _shell_col->getType() << " at " << _shell_col->getPos() << endl;*/
-        const double pi = boost::math::constants::pi<double>();
+        //const double pi = boost::math::constants::pi<double>();
        
         
         // cout << _gridpoint << endl;
@@ -60,8 +60,8 @@ namespace votca { namespace ctp {
         int _lmax_col = _shell_col->getLmax();
 
         // set size of internal block for recursion
-        int _nrows = this->getBlockSize( _lmax_row ); 
-        int _ncols = this->getBlockSize( _lmax_col ); 
+        //int _nrows = this->getBlockSize( _lmax_row ); 
+        //int _ncols = this->getBlockSize( _lmax_col ); 
         
         // get shell positions
         const vec& _pos_row = _shell_row->getPos();
@@ -154,7 +154,7 @@ namespace votca { namespace ctp {
                                 // get info for this angular momentum shell
                                 const double& _decay_ecp = (*itecp)->decay;
                                 const double& _contraction_ecp = (*itecp)->contraction[0];
-                                const int& _power_ecp = (*itecp)->power;
+                                //const int& _power_ecp = (*itecp)->power;
 
 
                                 
@@ -178,8 +178,8 @@ namespace votca { namespace ctp {
                                    
                                    // consider contractions
                                    // cut out block that is needed. sum
-                                           for ( int i = 0; i< _matrix.size1(); i++ ) {
-                                               for (int j = 0; j < _matrix.size2(); j++){
+                                           for ( unsigned i = 0; i< _matrix.size1(); i++ ) {
+                                               for (unsigned j = 0; j < _matrix.size2(); j++){
                                                 _matrix(i,j) += VNL_ECP(i+_shell_row->getOffset(),j+_shell_col->getOffset()) * _contractions_row_full[i+_shell_row->getOffset()]* _contractions_col_full[j+_shell_col->getOffset()];
                                                }
                                               }
@@ -288,7 +288,7 @@ namespace votca { namespace ctp {
                 
 
                 double DFAK = 0.5 * double(N + 3);
-                double DFAKP1 = DFAK + 1.0;
+                //double DFAKP1 = DFAK + 1.0;
 
                  //cout << np << " " << DFAK << " " << DFAKP1 << " " <<  DGAMAF << endl;
                 
@@ -681,8 +681,8 @@ namespace votca { namespace ctp {
       
       // now finally calculate matrix
 
-            for (int i = 0; i < matrix.size1(); i++) {
-                for (int j = 0; j < matrix.size2(); j++) {
+            for (unsigned i = 0; i < matrix.size1(); i++) {
+                for (unsigned j = 0; j < matrix.size2(); j++) {
 
                     for (index L = 1; L <= 3; L++) {
                         for (index L1 = 1; L1 <= 3; L1++) {
@@ -709,8 +709,8 @@ namespace votca { namespace ctp {
       
       
       
-        for (int i = 0; i < matrix.size1(); i++) {
-                for (int j = 0; j < matrix.size2(); j++) {
+        for (unsigned i = 0; i < matrix.size1(); i++) {
+                for (unsigned j = 0; j < matrix.size2(); j++) {
 
                     matrix(i,j) = matrix(i,j) * GAUSS * NormA[i] * NormB[j];
 

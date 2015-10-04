@@ -475,8 +475,8 @@ namespace votca { namespace ctp {
         //_matrix = ub::project(_nuc_sph, ub::range(_shell_row->getOffset(), _matrix.size1() + 1), ub::range(_shell_col->getOffset(), _matrix.size2()));
         //}
         //else {
-        for ( int i = 0; i< _matrix.size1(); i++ ) {
-            for (int j = 0; j < _matrix.size2(); j++){
+        for ( unsigned i = 0; i< _matrix.size1(); i++ ) {
+            for (unsigned j = 0; j < _matrix.size2(); j++){
                 _matrix(i,j) += _nuc_sph(i+_shell_row->getOffset(),j+_shell_col->getOffset());
             }
         }
@@ -492,7 +492,7 @@ namespace votca { namespace ctp {
     Elements _elements;
     _nuclearpotential=ub::zero_matrix<double>(aobasis->AOBasisSize(),aobasis->AOBasisSize());
     ub::vector<double> positionofatom=ub::zero_vector<double>(3);
-   for ( int j = 0; j < _atoms.size(); j++){
+   for ( unsigned j = 0; j < _atoms.size(); j++){
 
             
             positionofatom(0) = _atoms[j]->x*1.8897259886;

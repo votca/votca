@@ -57,7 +57,7 @@ namespace votca { namespace ctp {
         _gridpoint = r;
         // loop row
         #pragma omp parallel for
-        for ( int _row = 0; _row <  aobasis->_aoshells.size() ; _row++ ){
+        for (unsigned _row = 0; _row <  aobasis->_aoshells.size() ; _row++ ){
         //for (vector< AOShell* >::iterator _row = aobasis->firstShell(); _row != aobasis->lastShell() ; _row++ ) {
             //cout << " act threads: " << omp_get_thread_num( ) << " total threads " << omp_get_num_threads( ) << " max threads " << omp_get_max_threads( ) <<endl;
             AOShell* _shell_row = aobasis->getShell( _row );
@@ -82,8 +82,8 @@ namespace votca { namespace ctp {
         }
         
         // Fill whole matrix by copying
-        for ( int _i=0; _i < _aomatrix.size1(); _i++){
-            for ( int _j=0; _j < _i; _j++){
+        for ( unsigned _i=0; _i < _aomatrix.size1(); _i++){
+            for ( unsigned _j=0; _j < _i; _j++){
                _aomatrix(_j,_i) = _aomatrix(_i,_j); 
                        
             }
@@ -96,8 +96,8 @@ namespace votca { namespace ctp {
          bool _is_symmetric = true;
         
         // Copy stuff to fill lower triangular part
-         for ( int _i=0; _i < this->_aomatrix.size1(); _i++){
-            for ( int _j=0; _j <= _i; _j++){
+         for ( unsigned _i=0; _i < this->_aomatrix.size1(); _i++){
+            for (unsigned _j=0; _j <= _i; _j++){
          
                 if ( std::abs(this->_aomatrix(_i,_j) - this->_aomatrix(_j,_i) ) > 1e-4 ) {
                     
@@ -119,7 +119,7 @@ namespace votca { namespace ctp {
         
         // loop row
         #pragma omp parallel for
-        for ( int _row = 0; _row <  aobasis->_aoshells.size() ; _row++ ){
+        for ( unsigned _row = 0; _row <  aobasis->_aoshells.size() ; _row++ ){
         // for (vector< AOShell* >::iterator _row = aobasis->firstShell(); _row != aobasis->lastShell() ; _row++ ) {
             AOShell* _shell_row = aobasis->getShell( _row );
             int _row_start = _shell_row->getStartIndex();
@@ -174,8 +174,8 @@ namespace votca { namespace ctp {
     void AOMatrix::Print( string _ident){
         cout << "\n" << endl;
         std::cout.precision(12);
-        for ( int i =0; i< this->_aomatrix.size1(); i++){
-            for ( int j =0; j< this->_aomatrix.size2(); j++){
+        for ( unsigned i =0; i< this->_aomatrix.size1(); i++){
+            for ( unsigned j =0; j< this->_aomatrix.size2(); j++){
                 cout << _ident << "[" << i+1 << ":" << j+1 << "] " << scientific << this->_aomatrix(i,j) << endl;
             }
         }
@@ -184,8 +184,8 @@ namespace votca { namespace ctp {
     
        void AOMatrix3D::Print( string _ident){
         cout << "\n" << endl;
-        for ( int i =0; i< this->_aomatrix[0].size1(); i++){
-            for ( int j =0; j< this->_aomatrix[0].size2(); j++){
+        for ( unsigned i =0; i< this->_aomatrix[0].size1(); i++){
+            for ( unsigned j =0; j< this->_aomatrix[0].size2(); j++){
                 cout << _ident << "[" << i+1 << ":" << j+1 << "] " <<  this->_aomatrix[0](i,j) << " : " <<  this->_aomatrix[1](i,j) << " : " <<  this->_aomatrix[2](i,j)  << endl;
             }
         }
@@ -486,13 +486,13 @@ namespace votca { namespace ctp {
             // forward iteration
             _FmT[0]=0.50*sqrt(pi/_T)* erf(sqrt(_T));
 
-            for (int m = 1; m < _FmT.size(); m++ ){
+            for (unsigned m = 1; m < _FmT.size(); m++ ){
                 _FmT[m] = (2*m-1) * _FmT[m-1]/(2.0*_T) - exp(-_T)/(2.0*_T) ;
             }
         }
 
         if ( _T < 1e-10 ){
-           for ( int m=0; m < _FmT.size(); m++){
+           for ( unsigned m=0; m < _FmT.size(); m++){
                _FmT[m] = 1.0/(2.0*m+1.0) - _T/(2.0*m+3.0); 
            }
         }
