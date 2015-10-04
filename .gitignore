@@ -27,6 +27,8 @@ scripts/ctp_update
 scripts/ctp_update.out
 scripts/ctp_testsuite
 scripts/ctp_testsuite.out
+scripts/ctp_update_exciton
+scripts/ctp_update_exciton.out
 
 netbeans/*/build
 .dep.inc
