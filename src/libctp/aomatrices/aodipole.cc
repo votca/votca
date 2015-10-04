@@ -108,8 +108,8 @@ namespace votca { namespace ctp {
        
                 if ( _exparg > 30.0 ) { continue; }
         
-        const double _fak3 = 3.0 * _fak;
-        const double _fak4 = 4.0 * _fak;
+        //const double _fak3 = 3.0 * _fak;
+        //const double _fak4 = 4.0 * _fak;
 
         _pma[0] = _fak2*( _decay_row * _pos_row.getX() + _decay_col * _pos_col.getX() ) - _pos_row.getX();
         _pma[1] = _fak2*( _decay_row * _pos_row.getY() + _decay_col * _pos_col.getY() ) - _pos_row.getY();
@@ -1083,8 +1083,8 @@ namespace votca { namespace ctp {
             ub::matrix<double> _dip_sph = ub::prod( _dip_tmp, _trafo_col_tposed );
             
             // save to _matrix
-            for ( int i = 0; i< _matrix[0].size1(); i++ ) {
-                for (int j = 0; j < _matrix[0].size2(); j++){
+            for ( unsigned i = 0; i< _matrix[0].size1(); i++ ) {
+                for (unsigned j = 0; j < _matrix[0].size2(); j++){
                     _matrix[ _i_comp ](i,j) += _dip_sph(i+_shell_row->getOffset(),j+_shell_col->getOffset());
                 }
             }

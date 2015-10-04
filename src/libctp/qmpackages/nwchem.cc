@@ -110,7 +110,7 @@ bool NWChem::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gues
     vector< Atom* > ::iterator ait;
     vector< Segment* >::iterator sit;
     vector<string> results;
-    int qmatoms = 0;
+    //int qmatoms = 0;
     string temp_suffix = "/id";
     string scratch_dir_backup = _scratch_dir;
     ofstream _com_file;
@@ -369,7 +369,8 @@ bool NWChem::Run()
             _command = "cd " + _run_dir + "; tcsh " + _shell_file_name;
         }
         
-        int i = system ( _command.c_str() );
+        //int i = system ( _command.c_str() );
+        system ( _command.c_str() );
         
         if ( CheckLogFile() ) {
             LOG(logDEBUG,*_pLog) << "Finished NWChem job" << flush;
@@ -442,7 +443,7 @@ bool NWChem::ParseOrbitalsFile( Orbitals* _orbitals )
     
     std::string _line;
     unsigned _levels = 0;
-    unsigned _level;
+    //unsigned _level;
     unsigned _basis_size = 0;
     int _number_of_electrons = 0;
     
@@ -530,7 +531,7 @@ bool NWChem::ParseOrbitalsFile( Orbitals* _orbitals )
 
     // Now, the same for the coefficients
     double coef;
-    for ( int _imo=0; _imo < _levels ; _imo++ ){
+    for ( unsigned _imo=0; _imo < _levels ; _imo++ ){
         for ( i=1; i<=_n_lines; i++ ) {
             for ( int j=0; j<3; j++ ){
                 _input_file >> coef;
@@ -903,7 +904,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
                 
                 while ( nfields == 6 ) {
                     int atom_id = boost::lexical_cast< int >( _row.at(0) );
-                    int atom_number = boost::lexical_cast< int >( _row.at(0) );
+                    //int atom_number = boost::lexical_cast< int >( _row.at(0) );
                     string atom_type = _row.at(1);
                     double atom_charge = boost::lexical_cast< double >( _row.at(5) );
                     //if ( tools::globals::verbose ) cout << "... ... " << atom_id << " " << atom_type << " " << atom_charge << endl;
@@ -929,6 +930,9 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
          * Coordinates of the final configuration
          * depending on whether it is an optimization or not
          */
+        
+        // I do not get this if construct but clang does not like it
+        bool _found_optimization=false;
         if ( _is_optimization ){
                 std::string::size_type optimize_pos = _line.find("Optimization converged");
                 if (optimize_pos != std::string::npos) {

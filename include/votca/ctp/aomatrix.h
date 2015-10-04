@@ -75,7 +75,7 @@ namespace votca { namespace ctp {
         ub::vector<double> _gridpoint;
 
 	// Access functions
-	const int Dimension(){ return _aomatrix.size1();};
+	int Dimension(){ return  _aomatrix.size1();};
 	ub::matrix<double> &Matrix(){ return _aomatrix ;};
 
 

@@ -302,7 +302,7 @@ void IEXCITON::ReadJobFile(Topology *top) {
     records.resize( _number_of_pairs + 1  );
     
     //to skip pairs which are not in the jobfile
-    for (int i=0;i<records.size();i++){
+    for (unsigned i=0;i<records.size();i++){
         records[i]=NULL;
     }
     // loop over all jobs = pair records in the job file
@@ -342,8 +342,8 @@ void IEXCITON::ReadJobFile(Topology *top) {
         
         if (records[ pair->getId() ]==NULL) continue; //skip pairs which are not in the jobfile
         
-        Segment* segmentA = pair->Seg1();
-        Segment* segmentB = pair->Seg2();
+        //Segment* segmentA = pair->Seg1();
+        //Segment* segmentB = pair->Seg2();
         
         double Jeff2 = 0.0;
         double jAB=0.0;

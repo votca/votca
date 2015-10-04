@@ -46,10 +46,15 @@ public:
 private:
     // private constructor, only a shell can create a primitive
     GaussianPrimitive( double _decay, std::vector<double> _contraction, Shell *_shell = NULL ) 
-    : decay(_decay), contraction(_contraction), shell(_shell) { ; }
+    : decay(_decay),
+    contraction(_contraction),
+    shell(_shell) { ; }
 
     GaussianPrimitive( int _power, double _decay, std::vector<double> _contraction, Shell *_shell = NULL ) 
-    : power(_power), decay(_decay), contraction(_contraction), shell(_shell) { ; }
+    : power(_power),
+    decay(_decay),
+    contraction(_contraction),
+    shell(_shell) { ; }
 };      
     
 /*

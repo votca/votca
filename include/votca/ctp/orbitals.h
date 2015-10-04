@@ -214,8 +214,8 @@ public:
         _bse_vtotal = _bse_vmax - _bse_vmin +1 ;
         _bse_ctotal = _bse_cmax - _bse_cmin +1 ;
         _bse_size   = _bse_vtotal * _bse_ctotal;
-        for ( int _v = 0; _v < _bse_vtotal; _v++ ){
-            for ( int _c = 0; _c < _bse_ctotal ; _c++){
+        for ( unsigned _v = 0; _v < _bse_vtotal; _v++ ){
+            for ( unsigned _c = 0; _c < _bse_ctotal ; _c++){
                 _index2v.push_back( _bse_vmin + _v );
                 _index2c.push_back( _bse_cmin + _c );
             }

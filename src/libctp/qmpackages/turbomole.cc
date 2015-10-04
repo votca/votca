@@ -141,7 +141,8 @@ bool Turbomole::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_g
     string _input_exe = "define";
     _command  = "cd " + _run_dir + "; " + _input_exe + " <  ./" + _input_file_name + " >& " + _input_file_name + ".log" ;
     //cerr << _command << flush;
-    int i = system ( _command.c_str() );
+    //int i = system ( _command.c_str() );
+    system ( _command.c_str() );
     
     // postprocess the output of define - scratch dir
     //cout <<  "TEMP DIR: " << _scratch_dir + temp_suffix << endl;
@@ -253,7 +254,8 @@ bool Turbomole::Run()
         string _command;
         _command  = "cd " + _run_dir + "; " + _executable + " >& " + _executable + ".log ";
         
-        int i = system ( _command.c_str() );
+        //int i = system ( _command.c_str() );
+        system ( _command.c_str() );
         LOG(logDEBUG,*_pLog) << "TURBOMOLE: Finished job" << flush;
         return true;
     }
@@ -312,7 +314,7 @@ bool Turbomole::ParseOrbitalsFile( Orbitals* _orbitals )
     std::map <int, std::vector<double> > _coefficients;
     std::map <int, double> _energies;
     
-    double _conv_Hrt_eV = 27.21138386;
+    //double _conv_Hrt_eV = 27.21138386;
     
     std::string _line;
     unsigned _levels = 0;
@@ -594,7 +596,7 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
                 
                 vector<string> _row;
                 boost::algorithm::split( _row , _line, boost::is_any_of(" "), boost::algorithm::token_compress_on);   
-                int nfields =  _row.size();
+                //int nfields =  _row.size();
                 //cout << nfields << endl;
                 
                 for ( vector<string>::iterator it = _row.begin() ; it < _row.end() ; it++   ) {

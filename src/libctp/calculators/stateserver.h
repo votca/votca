@@ -389,7 +389,7 @@ void StateServer::DownloadIList(FILE *out, Topology *top) {
          ++nit) {
         QMPair *pair = *nit;
 
-        fprintf(out, "%5d %5d %5d e %4.7e h %4.7e s %4.7e t %4.7 edr %4.7f pbc %1d\n",
+        fprintf(out, "%5d %5d %5d e %4.7e h %4.7e s %4.7e t %4.7e edr %4.7f pbc %1d\n",
         pair->getId(), 
         pair->Seg1()->getId(),
         pair->Seg2()->getId(),

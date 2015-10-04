@@ -151,7 +151,7 @@ std::map<std::string, int> IGWBSE::FillParseMaps(string Mapstring){
         string type=temp[0];
         type2level[type]=number; // -1 because default return if key is not found is 0, so if key is not found first exited state should be used number game
     }
-    
+    return type2level;
 }
 
 void IGWBSE::LoadOrbitals(string file_name, Orbitals* orbitals, Logger *log ) {
@@ -348,7 +348,8 @@ Job::JobResult IGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         GWBSE               _gwbse;
         _gwbse.setLogger(pLog);
         _gwbse.Initialize( &_gwbse_options );
-        bool _evaluate = _gwbse.Evaluate( &_orbitalsAB );
+        _gwbse.Evaluate( &_orbitalsAB );
+        //bool _evaluate = _gwbse.Evaluate( &_orbitalsAB );
         // std::cout << *pLog;
     } // end of excited state calculation, exciton data is in _orbitalsAB
     // ~GWBSE _gwbse;
@@ -695,14 +696,14 @@ void IGWBSE::ReadJobFile(Topology *top) {
     list<Property*> jobProps = xml.Select("jobs.job");
     records.resize( nblist.size() + 1  );
     //to skip pairs which are not in the jobfile
-    for (int i=0;i<records.size();i++){
+    for (unsigned i=0;i<records.size();i++){
         records[i]=NULL;
     }
     // loop over all jobs = pair records in the job file
     for (list<Property*> ::iterator  it = jobProps.begin(); it != jobProps.end(); ++it) {
         
-        int level_segA=1;
-        int level_segB=1;
+        //int level_segA=1;
+        //int level_segB=1;
  
         // if job produced an output, then continue with analysis
         if ( (*it)->exists("output") && (*it)->exists("output.pair") ) {
@@ -762,7 +763,7 @@ void IGWBSE::ReadJobFile(Topology *top) {
             //cout << ":hopping" ;
             
             if(pair_property->exists("singlets")){
-                bool found=false;
+                //bool found=false;
                 double coupling;
                 list<Property*> singlets = pair_property->Select("singlets.coupling");
                 int stateA=_singlet_levels[segmentA->getName()]; 
@@ -778,7 +779,7 @@ void IGWBSE::ReadJobFile(Topology *top) {
                 }
             }    
             if(pair_property->exists("triplets")){
-                bool found=false;
+                //bool found=false;
                 double coupling;
                 list<Property*> triplets = pair_property->Select("triplets.coupling");
                 int stateA=_triplet_levels[segmentA->getName()]; 

@@ -144,7 +144,7 @@ void Segment::setOcc(double occ, int e_h_s_t) {
     }
 }
 
-const double Segment::getOcc(int e_h_s_t) {
+    double Segment::getOcc(int e_h_s_t) {
     double result;
     if (e_h_s_t == -1) {
         result=_occ_e;

@@ -754,11 +754,11 @@ void IDFT::ReadJobFile(Topology *top) {
             list<Property*> pOverlap = pair_property->Select("overlap");
             
             // this is to select HOMO_A and HOMO_B 
-            double overlapAB;
-            int orbA;
-            int orbB;
-            double energyA;
-            double energyB;
+            double overlapAB=0.0;
+            int orbA=0;
+            int orbB=0;
+            double energyA=0.0;
+            double energyB=0.0;
             
             for (list<Property*> ::iterator itOverlap = pOverlap.begin(); itOverlap != pOverlap.end(); ++itOverlap) {
                orbA = (*itOverlap)->getAttribute<int>("orbA");
@@ -810,8 +810,8 @@ void IDFT::ReadJobFile(Topology *top) {
                 list<Property*> pOverlapB = pBridge_B->Select("overlap");
 
                 // IDs of the Donor and Acceptor
-                int IdA = segmentA->getId();
-                int IdB = segmentB->getId();
+                //int IdA = segmentA->getId();
+                //int IdB = segmentB->getId();
 
 
                                 
@@ -890,7 +890,7 @@ void IDFT::ReadJobFile(Topology *top) {
                         double eBridgeB  = (*itOverlapB)->getAttribute<double>( "e" + suffixBridgeB );
                         
                          // This in principle violates detailed balance. Any ideas?
-                        double Jeff_lumo = 0.5 * (jDB*jBA / (eA - eBridgeA) + jDB*jBA / (eB - eBridgeB));
+                        //double Jeff_lumo = 0.5 * (jDB*jBA / (eA - eBridgeA) + jDB*jBA / (eB - eBridgeB));
                                 
                     }
                     

@@ -433,7 +433,7 @@ exit(0);
         void ERIs::CalculateEnergy(ub::vector<double> &dmatasarray){
             _ERIsenergy=0;
             ub::vector<double> ERIsasarray=_ERIs.data();
-            for ( int _i=0;_i<ERIsasarray.size();_i++){
+            for (unsigned _i=0;_i<ERIsasarray.size();_i++){
                 _ERIsenergy+=dmatasarray[_i]*ERIsasarray[_i];
                 
             }
@@ -445,8 +445,8 @@ exit(0);
         
         
         void ERIs::printERIs(){
-          for (int i=0; i< _ERIs.size1(); i++){
-                for (int j=0; j< _ERIs.size2();j++){
+          for (unsigned i=0; i< _ERIs.size1(); i++){
+                for (unsigned j=0; j< _ERIs.size2();j++){
                     cout << "ERIs [" << i<<":"<<j<<"]="<<_ERIs(i,j)<<endl;
                 }
             }

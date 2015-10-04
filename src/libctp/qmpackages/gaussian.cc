@@ -124,7 +124,7 @@ namespace votca {
             vector< Segment* >::iterator sit;
             string temp_suffix = "/id";
             string scratch_dir_backup = _scratch_dir;
-            int qmatoms = 0;
+            //int qmatoms = 0;
 
             ofstream _com_file;
 
@@ -219,7 +219,7 @@ namespace votca {
                                         GaussianPrimitive* gaussian = *itg;
                                         //_com_file << gaussian->decay << " " << gaussian->contraction << endl;
                                         _el_file << FortranFormat(gaussian->decay);
-                                        for (int _icontr = 0; _icontr < gaussian->contraction.size(); _icontr++) {
+                                        for (unsigned _icontr = 0; _icontr < gaussian->contraction.size(); _icontr++) {
                                             if (gaussian->contraction[_icontr] != 0.0) {
                                                 _el_file << " " << FortranFormat(gaussian->contraction[_icontr]);
                                             }
@@ -366,7 +366,7 @@ namespace votca {
                                         GaussianPrimitive* gaussian = *itg;
                                         //_com_file << gaussian->decay << " " << gaussian->contraction << endl;
                                         _el_file << FortranFormat(gaussian->decay);
-                                        for (int _icontr = 0; _icontr < gaussian->contraction.size(); _icontr++) {
+                                        for (unsigned _icontr = 0; _icontr < gaussian->contraction.size(); _icontr++) {
                                             if (gaussian->contraction[_icontr] != 0.0) {
                                                 _el_file << " " << FortranFormat(gaussian->contraction[_icontr]);
                                             }
@@ -597,8 +597,8 @@ namespace votca {
                     _command = "cd " + _run_dir + "; mkdir -p $GAUSS_SCRDIR; " + _executable + " " + _input_file_name;
                 }
 
-                int i = system(_command.c_str());
-
+                //int i = system(_command.c_str());
+                system(_command.c_str());
                 if (CheckLogFile()) {
                     LOG(logDEBUG, *_pLog) << "GAUSSIAN: finished job" << flush;
                     return true;
@@ -688,7 +688,7 @@ namespace votca {
             std::vector<string> strs;
             boost::algorithm::split(strs, _line, boost::is_any_of("(D)"));
             //clog << strs.at(1) << endl;
-            int nrecords_in_line = boost::lexical_cast<int>(strs.at(1));
+            //int nrecords_in_line = boost::lexical_cast<int>(strs.at(1));
             string format = strs.at(2);
 
             //clog << endl << "Orbital file " << filename << " has " 
@@ -1067,7 +1067,7 @@ namespace votca {
 
                     while (nfields == 3) {
                         int atom_id = boost::lexical_cast< int >(_row.at(0));
-                        int atom_number = boost::lexical_cast< int >(_row.at(0));
+                        //int atom_number = boost::lexical_cast< int >(_row.at(0));
                         string atom_type = _row.at(1);
                         double atom_charge = boost::lexical_cast< double >(_row.at(2));
                         //if ( tools::globals::verbose ) cout << "... ... " << atom_id << " " << atom_type << " " << atom_charge << endl;
@@ -1299,7 +1299,7 @@ namespace votca {
             //int _basis_size      = _orbitals->getBasisSetSize();
             std::vector<double>::size_type _basis_size = _orbitals->getBasisSetSize();
             //int _cart_basis_size = _orbitals->_vxc.size1();
-            ub::matrix<double>::size_type _cart_basis_size = _orbitals->AOVxc().size1();
+            //ub::matrix<double>::size_type _cart_basis_size = _orbitals->AOVxc().size1();
             //cout << "\nSpherical basis size is " << _basis_size << endl;
             //cout << "\nCartesian basis size is " << _cart_basis_size << endl;
 
@@ -1326,7 +1326,7 @@ namespace votca {
             vector< QMAtom* >::iterator ita;
             LOG(logDEBUG, *_pLog) << "Rewriting molecular orbitals " << flush;
             // Loop over all molecular orbitals
-            for (int _i_orbital = 0; _i_orbital < _basis_size; _i_orbital++) {
+            for (unsigned _i_orbital = 0; _i_orbital < _basis_size; _i_orbital++) {
                 _orb_file << _i_orbital + 1 << " " << FortranFormat(energies(_i_orbital)) << endl;
                 int _i_coef_qc = 0;
                 int _i_coef_gw = 0;
@@ -1618,8 +1618,8 @@ namespace votca {
             // output to file
             ofstream _vxc_file;
             _vxc_file.open(_vxc_file_name_full.c_str());
-            for (int _i_orbital = 0; _i_orbital < _basis_size; _i_orbital++) {
-                for (int _j_orbital = 0; _j_orbital < _basis_size; _j_orbital++) {
+            for (unsigned _i_orbital = 0; _i_orbital < _basis_size; _i_orbital++) {
+                for (unsigned _j_orbital = 0; _j_orbital < _basis_size; _j_orbital++) {
                     _vxc_file << _i_orbital + 1 << "  " << _j_orbital + 1 << "  " << FortranFormat(2.0 * vxc_expect(_i_orbital, _j_orbital)) << endl;
                 }
             }

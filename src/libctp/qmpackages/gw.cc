@@ -107,7 +107,7 @@ bool GW::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_guess )
     vector< Atom* > ::iterator ait;
     vector< Segment* >::iterator sit;
     
-    int qmatoms = 0;
+    //int qmatoms = 0;
 
     // preparing file stream
     ofstream _gw_file;
@@ -231,8 +231,8 @@ bool GW::Run()
             //_command  = "cd " + _run_dir + "; mpirun -np " +  boost::lexical_cast<string>(_threads) + " " + _executable + " " + _input_file_name + "> "+  _log_file_name ;
         }
         
-        int i = system ( _command.c_str() );
-        
+        //int i = system ( _command.c_str() );
+        system ( _command.c_str() );
         if ( CheckLogFile() ) {
             LOG(logDEBUG,*_pLog) << "Finished GWBSE job" << flush;
             return true;
@@ -345,7 +345,7 @@ bool GW::CheckLogFile() {
     }
     
     _input_file.close();
-    
+    return true;
 }
 
 /**
@@ -358,7 +358,7 @@ bool GW::ParseLogFile( Orbitals* _orbitals ) {
     std::string _line;
     unsigned _levels = 0;
     unsigned _level;
-    unsigned _basis_size = 0;
+    //unsigned _basis_size = 0;
     unsigned _homoindex;
     unsigned _bse_lower;
     unsigned _bse_upper;
@@ -493,7 +493,7 @@ bool GW::ParseLogFile( Orbitals* _orbitals ) {
     unsigned _bse_matrix_dim = (_homoindex - _bse_lower +1 ) * (_bse_upper - _homoindex );
     LOG( logDEBUG, *_pLog ) << "BSE matrix dimension: " << _bse_matrix_dim << flush;
     // build index array
-    unsigned _i_bse = 0;
+    //unsigned _i_bse = 0;
 //    _orbitals->_BSE_levels_indices.resize( _bse_matrix_dim, 2 );
 //    for ( unsigned _i_occupied = _bse_lower; _i_occupied <= _homoindex; _i_occupied++){
 //        for (unsigned _i_empty = _homoindex+1; _i_empty <= _bse_upper; _i_empty++ ){

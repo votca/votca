@@ -46,8 +46,10 @@ class LogBuffer : public std::stringbuf {
 
 public:
 	LogBuffer() : std::stringbuf(),
-                _errorPreface(" ERROR   "), _warnPreface(" WARNING "),
-                _infoPreface("         "), _dbgPreface(" DEBUG   "),
+                _errorPreface(" ERROR   "),
+                _warnPreface(" WARNING "),
+                _infoPreface("         "),
+                _dbgPreface(" DEBUG   "),
                 _writePreface(true) {}
         
         // sets the log level (needed for output)

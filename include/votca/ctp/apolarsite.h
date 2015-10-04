@@ -128,7 +128,7 @@ public:
     double          getPhiP() { return PhiP; }
     double          getPhiU() { return PhiU; }
     double          getPhi() { return PhiP+PhiU; }
-    double          setPhi(double _PhiU, double _PhiP) {PhiU=_PhiU;PhiP=_PhiP;}
+    void          setPhi(double _PhiU, double _PhiP) {PhiU=_PhiU;PhiP=_PhiP;}
     void            ResetPhi(bool p, bool u) { if (p) PhiP = 0.0; if (u) PhiU = 0.0; }
     // CHARGE -1 0 +1 & DELTA
     void            Charge(int state);
