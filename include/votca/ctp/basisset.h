@@ -39,9 +39,9 @@ class GaussianPrimitive
 {
     friend class Shell;
 public:
+    int power; // used in pseudopotenials only
     double decay;
     std::vector<double> contraction;
-    int power; // used in pseudopotenials only
     Shell* shell;
 private:
     // private constructor, only a shell can create a primitive

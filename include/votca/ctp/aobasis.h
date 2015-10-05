@@ -42,9 +42,9 @@ class AOGaussianPrimitive
 {
     friend class AOShell;
 public:
+    int power; // used in pseudopotenials only
     double decay;
     std::vector<double> contraction;
-    int power; // used in pseudopotenials only
     AOShell* aoshell;
 private:
     // private constructor, only a shell can create a primitive
@@ -140,8 +140,8 @@ private:
     // number of functions in shell
     int _numFunc;
     int _startIndex;
-    vec _pos;
     int _offset;
+    vec _pos;
     string _atomname;
     int _atomindex;
      
