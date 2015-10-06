@@ -56,7 +56,14 @@ public:
                          boost::numeric::ublas::matrix<float>& _J );
 
      
-    float getCouplingElement( int levelA, int levelB,  
+    float getSingletCouplingElement( int levelA, int levelB,  
+                               Orbitals* _orbitalsA,  
+                               Orbitals* _orbitalsB, 
+                               boost::numeric::ublas::matrix<float>* _JAB,
+                               double _energy_difference = 0
+                                );
+    
+    float getTripletCouplingElement( int levelA, int levelB,  
                                Orbitals* _orbitalsA,  
                                Orbitals* _orbitalsB, 
                                boost::numeric::ublas::matrix<float>* _JAB,

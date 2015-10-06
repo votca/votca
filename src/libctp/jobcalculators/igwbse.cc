@@ -439,7 +439,7 @@ Job::JobResult IGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         Property *_singlet_summary = &_type_summary->add("singlets","");
         for (int stateA = 0; stateA < _number_excitons ; ++stateA ) {
            for (int stateB = 0; stateB < _number_excitons  ; ++stateB ) {
-               float JAB = _bsecoupling.getCouplingElement( stateA , stateB, &_orbitalsA, &_orbitalsB, &_JAB_singlet, _energy_difference );
+               float JAB = _bsecoupling.getSingletCouplingElement( stateA , stateB, &_orbitalsA, &_orbitalsB, &_JAB_singlet, _energy_difference );
                Property *_coupling_summary = &_singlet_summary->add("coupling", boost::lexical_cast<string>(JAB)); 
                float energyA = _orbitalsA.BSESingletEnergies()[stateA]*27.21138386/2.0;
                float energyB = _orbitalsB.BSESingletEnergies()[stateB]*27.21138386/2.0;
@@ -454,7 +454,7 @@ Job::JobResult IGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         Property *_triplet_summary = &_type_summary->add("triplets","");
         for (int stateA = 0; stateA < _number_excitons ; ++stateA ) {
            for (int stateB = 0; stateB < _number_excitons  ; ++stateB ) {
-               float JAB = _bsecoupling.getCouplingElement( stateA , stateB, &_orbitalsA, &_orbitalsB, &_JAB_triplet, _energy_difference );
+               float JAB = _bsecoupling.getTripletCouplingElement( stateA , stateB, &_orbitalsA, &_orbitalsB, &_JAB_triplet, _energy_difference );
                Property *_coupling_summary = &_triplet_summary->add("coupling", boost::lexical_cast<string>(JAB)); 
                float energyA = _orbitalsA.BSETripletEnergies()[stateA]*27.21138386/2.0;
                float energyB = _orbitalsB.BSETripletEnergies()[stateB]*27.21138386/2.0;

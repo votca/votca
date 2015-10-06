@@ -272,6 +272,7 @@ void IAnalyze::IRdependence(Topology *top, int state) {
     
     // print to file
     FILE *out;
+    string name;
     if (state==-1) name="e";
     else if (state==1) name="h";
     else if (state==2) name="s";

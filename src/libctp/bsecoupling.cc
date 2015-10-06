@@ -74,11 +74,45 @@ void BSECoupling::SQRTOverlap(ub::symmetric_matrix<double> &S,
     
  }
 
-float BSECoupling::getCouplingElement( int levelA, int levelB,  Orbitals* _orbitalsA,
+float BSECoupling::getSingletCouplingElement( int levelA, int levelB,  Orbitals* _orbitalsA,
     Orbitals* _orbitalsB, ub::matrix<float>* _JAB, double  _energy_difference ) {
 
     const float _conv_Ryd_eV = 27.21138386/2.0;
     int _levelsA = _orbitalsA->BSESingletEnergies().size();
+    return _JAB->at_element( levelA  , levelB + _levelsA ) * _conv_Ryd_eV;
+
+
+    /*int _statesA = _orbitalsA->BSE;
+    int _statesB = _orbitalsB->getNumberOfLevels();    
+    
+    if ( _energy_difference != 0 ) {
+        std::vector<int> list_levelsA = *_orbitalsA->getDegeneracy( levelA, _energy_difference );
+        std::vector<int> list_levelsB = *_orbitalsA->getDegeneracy( levelB, _energy_difference );
+        
+        double _JAB_sq = 0; double _JAB_one_level;
+        
+        for (std::vector<int>::iterator iA = list_levelsA.begin()++; iA != list_levelsA.end(); iA++) {
+                for (std::vector<int>::iterator iB = list_levelsB.begin()++; iB != list_levelsB.end(); iB++) { 
+                    //cout << *iA << ':' << *iB << endl;
+                    _JAB_one_level = _JAB->at_element( *iA - 1  , *iB -1 + _levelsA );
+                    _JAB_sq +=  _JAB_one_level*_JAB_one_level ;
+                }
+        }
+        
+        return sqrt(_JAB_sq / ( list_levelsA.size() * list_levelsB.size() ) ) * _conv_Hrt_eV ;
+        
+    } else {
+        return _JAB->at_element( levelA  , levelB + _levelsA ) * _conv_Ryd_eV;
+    }*/
+    // the  matrix should be symmetric, could also return this element
+    // _JAB.at_element( _levelsA + levelB - 1  , levelA - 1 );
+}
+
+float BSECoupling::getTripletCouplingElement( int levelA, int levelB,  Orbitals* _orbitalsA,
+    Orbitals* _orbitalsB, ub::matrix<float>* _JAB, double  _energy_difference ) {
+
+    const float _conv_Ryd_eV = 27.21138386/2.0;
+    int _levelsA = _orbitalsA->BSETripletEnergies().size();
     return _JAB->at_element( levelA  , levelB + _levelsA ) * _conv_Ryd_eV;
 
 
