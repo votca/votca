@@ -272,7 +272,11 @@ void IAnalyze::IRdependence(Topology *top, int state) {
     
     // print to file
     FILE *out;
-    string tag = boost::lexical_cast<string>("ianalyze.ispatial_") + ( (state == -1) ? "e" : "h" ) + ".out";
+    if (state==-1) name="e";
+    else if (state==1) name="h";
+    else if (state==2) name="s";
+    else if (state==3) name="t";
+    string tag = boost::lexical_cast<string>("ianalyze.ispatial_") + name + ".out";
     out = fopen(tag.c_str(), "w");
 
     fprintf(out, "# IANALYZE: SPATIAL DEPENDENCE OF log10(J2) [r,log10(J),error]\n");
