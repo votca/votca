@@ -95,6 +95,7 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
                 "you're missing the files to rerun grompp,\n contact the votca mailing list for a solution.");
     }
 
+    int ifirstatom = 0;
     for(int iblock=0; iblock<mtop.nmolblock; ++iblock) {
         gmx_moltype_t *mol
                 = &(mtop.moltype[mtop.molblock[iblock].type]);
@@ -117,7 +118,6 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
 #endif
         }
 
-        int ifirstatom = 0;
         for(int imol=0; imol<mtop.molblock[iblock].nmol; ++imol) {
             Molecule *mi = top.CreateMolecule(molname);
 

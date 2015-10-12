@@ -33,8 +33,8 @@ topol="$(csg_get_property --allow-empty cg.inverse.gromacs.g_energy.topol)"
 [[ -z $topol ]] && topol=$(csg_get_property cg.inverse.gromacs.topol)
 [[ -f $topol ]] || die "${0##*/}: Gromacs tpr file '$topol' not found"
 
-g_energy="$(csg_get_property cg.inverse.gromacs.g_energy.bin)"
-[[ -n "$(type -p ${g_energy})" ]] || die "${0##*/}: g_energy binary '$g_energy' not found"
+g_energy=( $(csg_get_property cg.inverse.gromacs.g_energy.bin) )
+[[ -n "$(type -p ${g_energy[0]})" ]] || die "${0##*/}: g_energy binary '${g_energy[0]}' not found"
 
 
 opts="$(csg_get_property --allow-empty cg.inverse.gromacs.g_energy.opts)"
@@ -45,9 +45,12 @@ if [[ ${CSG_RUNTEST} ]] && csg_calc "$begin" ">" "0"; then
   begin=0
 fi
 
-echo "Running ${g_energy}"
-output=$(echo Pressure | critical ${g_energy} -b "${begin}" -s "${topol}" ${opts} 2>&1)
-echo "$output" | gromacs_log "${g_energy} -b "${begin}" -s "${topol}" ${opts}"
+echo "Running ${g_energy[@]}"
+#no critical here so that we can print the error
+output=$(echo Pressure | ${g_energy[@]} -b "${begin}" -s "${topol}" ${opts} 2>&1)
+ret="$?"
+echo "$output" | gromacs_log "${g_energy[@]} -b "${begin}" -s "${topol}" ${opts}"
+[[ $ret -eq 0 ]] || die "${0##*/}: '${g_energy[@]} -b "${begin}" -s "${topol}" ${opts}' failed"
 #the number pattern '-\?[0-9][^[:space:]]*[0-9]' is ugly, but it supports X X.X X.Xe+X Xe-X and so on
 #awk 'print $2' does not work for older version of g_energy as the format varies between
 #^Pressure XXX (bar) and ^Pressure (bar) XXX

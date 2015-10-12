@@ -47,8 +47,8 @@ topol_in="$(csg_get_property cg.inverse.gromacs.topol_in)"
 
 grompp_opts="$(csg_get_property --allow-empty cg.inverse.gromacs.grompp.opts)"
 
-grompp="$(csg_get_property cg.inverse.gromacs.grompp.bin)"
-[[ -n "$(type -p $grompp)" ]] || die "${0##*/}: grompp binary '$grompp' not found"
+grompp=( $(csg_get_property cg.inverse.gromacs.grompp.bin) )
+[[ -n "$(type -p ${grompp[0]})" ]] || die "${0##*/}: grompp binary '${grompp[0]}' not found"
 
 traj=$(csg_get_property cg.inverse.gromacs.traj)
 if [[ $1 != "--pre" ]]; then
@@ -97,14 +97,14 @@ fi
 
 #support for older mdp file, cutoff-scheme = Verlet is default for Gromacs 5.0, but does not work with tabulated interactions
 #XXX is returned if cutoff-scheme is not in mdp file
-if [[ $(critical $grompp -h 2>&1) = *"VERSION 5.0"* && $(get_simulation_setting cutoff-scheme XXX) = XXX ]]; then
+if [[ $(critical ${grompp[@]} -h 2>&1) = *"VERSION 5."[01]* && $(get_simulation_setting cutoff-scheme XXX) = XXX ]]; then
   echo "cutoff-scheme = Group" >> $mdp
   msg --color blue --to-stderr "Automatically added 'cutoff-scheme = Group' to $mdp, tabulated interactions only work with Group cutoff-scheme!"
 fi
 
 if [[ ${CSG_MDRUN_STEPS} ]]; then
   #mdrun <4.6 does not have -nsteps options, remove this block whenever we drop support for <4.6
-  if [[ $(critical $grompp -h 2>&1) = *"VERSION 4."[05]* ]]; then
+  if [[ $(critical ${grompp[@]} -h 2>&1) = *"VERSION 4."[05]* ]]; then
     nsteps=$(get_simulation_setting nsteps)
     critical sed -i "/^nsteps/s/=.*/=${CSG_MDRUN_STEPS}/" $mdp
     msg --color blue --to-stderr "Replace nsteps (=$nsteps) in '$mdp' to be ${CSG_MDRUN_STEPS}"
@@ -115,7 +115,7 @@ if [[ ${CSG_MDRUN_STEPS} ]]; then
 fi
 
 #see can run grompp again as checksum of tpr does not appear in the checkpoint
-critical $grompp -n "${index}" -f "${mdp}" -p "$topol_in" -o "$tpr" -c "${conf}" ${grompp_opts} 2>&1 | gromacs_log "$grompp -n "${index}" -f "${mdp}" -p "$topol_in" -o "$tpr" -c "${conf}" ${grompp_opts}"
+critical ${grompp[@]} -n "${index}" -f "${mdp}" -p "$topol_in" -o "$tpr" -c "${conf}" ${grompp_opts} 2>&1 | gromacs_log "${grompp[@]} -n "${index}" -f "${mdp}" -p "$topol_in" -o "$tpr" -c "${conf}" ${grompp_opts}"
 [[ -f $tpr ]] || die "${0##*/}: gromacs tpr file '$tpr' not found after runing grompp"
 
 mdrun="$(csg_get_property cg.inverse.gromacs.mdrun.command)"
