@@ -30,7 +30,6 @@ addons:
 env:
   global:
     - CMAKE_VERSION=3.1.3-Linux-x86_64
-    - GROMACS=5.0.4
     - GMX_MAX_THREADS=8
     - CCACHE_CPP2=yes
   matrix: #NINJA=1 is currently not support by Travis' cmake, enable when >=2.8.9
@@ -82,8 +81,8 @@ script:
   - PATH="$HOME/bin:/usr/lib/ccache:$PATH" ./build.sh -Wu --dev --prefix "$HOME/votca" ${MAN:+--devdoc}
     ${TEST:+--runtest=$TEST} ${WERROR:+--warn-to-errors} ${MINIMAL:+--minimal}
     ${J:+-j$J} ${BDIR:+--builddir=$BDIR} ${NINJA:+--ninja} ${WALL:+--Wall}
-    --directory "$HOME/votca/src" --no-clean --depth 1 --gmx-release ${GROMACS}
-    tools ${GROMACS:+gromacs} csg csgapps ${MAN:+csg-manual} ${TEST:+csg-tutorials}
+    --directory "$HOME/votca/src" --no-clean --depth 1
+    tools gromacs csg csgapps ${MAN:+csg-manual} ${TEST:+csg-tutorials}
     ${CTP:+kmc moo ctp}
 
 cache:
