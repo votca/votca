@@ -29,6 +29,7 @@ addons:
 
 env:
   global:
+    - CMAKE_VERSION=3.1.3-Linux-x86_64
     - GROMACS=5.0.4
     - GMX_MAX_THREADS=8
     - CCACHE_CPP2=yes
@@ -67,13 +68,15 @@ env:
     - CSG_MDRUN_STEPS=500 TEST=urea-water/kb-ibi J=4
 
 before_script:
-    # download cmake-2.8.8 for gmx
-  - wget -qO- http://www.cmake.org/files/v2.8/cmake-2.8.8-Linux-i386.tar.gz | tar -C /usr -xvz --strip-components=1
+  - rm -vrf * .git
   - wget https://raw.githubusercontent.com/votca/buildutil/master/build.sh && chmod 755 build.sh
   - mkdir -p "$HOME/votca/src" "$HOME/votca/share/votca/scripts/inverse" "$HOME/bin"
   - wget -O "$HOME/votca/share/votca/scripts/inverse/cma.py" http://www.lri.fr/~hansen/cma.py
   - ln -s /usr/bin/ccache "$HOME/bin/clang++"
   - ln -s /usr/bin/ccache "$HOME/bin/clang"
+# download newer cmake for gmx
+  - wget -qO- http://www.cmake.org/files/v${CMAKE_VERSION:0:3}/cmake-${CMAKE_VERSION}.tar.gz | tar -xvz
+  - ln -vs $PWD/${CMAKE_VERSION}/bin/cmake "$HOME/bin/cmake"
 
 script:
   - PATH="$HOME/bin:/usr/lib/ccache:$PATH" ./build.sh -Wu --dev --prefix "$HOME/votca" ${MAN:+--devdoc}
