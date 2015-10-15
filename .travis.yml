@@ -10,7 +10,6 @@ addons:
   apt:
     sources: boost-latest 
     packages:
-      - cmake
       - ccache
       - libfftw3-dev
       - libgsl0-dev
@@ -27,14 +26,13 @@ addons:
       - python-numpy
       - gnuplot-nox
       - octave
-      - gromacs-dev
 
 env:
   global:
+    - CMAKE_VERSION=3.1.3-Linux-x86_64
     - GMX_MAX_THREADS=8
     - CCACHE_CPP2=yes
   matrix: #NINJA=1 is currently not support by Travis' cmake, enable when >=2.8.9
-    - WERROR=yes J=4 #J>4 triggers an internal compiler in travis' g++
     - CTP=yes WERROR=yes J=4
     - CTP=yes WALL=yes J=4
     - J=1
@@ -55,7 +53,7 @@ env:
     - CSG_MDRUN_STEPS=500 TEST=propane/ibi J=4
     - CSG_MDRUN_STEPS=10000 TEST=propane/imc J=4
     - CSG_MDRUN_STEPS=500 TEST=spce/cma/density J=4
-    - CSG_MDRUN_STEPS=500 TEST=spce/cma/simple J=4 GROMACS=yes
+    - CSG_MDRUN_STEPS=500 TEST=spce/cma/simple J=4
     - CSG_MDRUN_STEPS=500 TEST=spce/ibi J=4
     - CSG_MDRUN_STEPS=500 TEST=spce/ibi_pressure J=4
     - CSG_MDRUN_STEPS=10000 TEST=spce/imc J=4
@@ -64,24 +62,28 @@ env:
     - CSG_MDRUN_STEPS=500 TEST=spce/simplex/density J=4
     - CSG_MDRUN_STEPS=500 TEST=spce/simplex/pressure J=4
     - CSG_MDRUN_STEPS=500 TEST=spce/simplex/simple J=4
-    - CSG_MDRUN_STEPS=500 TEST=spce/tf J=4 GROMACS=yes
+    - CSG_MDRUN_STEPS=500 TEST=spce/tf J=4
     - CSG_MDRUN_STEPS=500 TEST=urea-water/ibi J=4
     - CSG_MDRUN_STEPS=500 TEST=urea-water/kb-ibi J=4
 
 before_script:
+  - rm -vrf * .git
   - wget https://raw.githubusercontent.com/votca/buildutil/master/build.sh && chmod 755 build.sh
   - mkdir -p "$HOME/votca/src" "$HOME/votca/share/votca/scripts/inverse" "$HOME/bin"
   - wget -O "$HOME/votca/share/votca/scripts/inverse/cma.py" http://www.lri.fr/~hansen/cma.py
   - ln -s /usr/bin/ccache "$HOME/bin/clang++"
   - ln -s /usr/bin/ccache "$HOME/bin/clang"
+# download newer cmake for gmx
+  - wget -qO- http://www.cmake.org/files/v${CMAKE_VERSION:0:3}/cmake-${CMAKE_VERSION}.tar.gz | tar -xvz
+  - ln -vs $PWD/cmake-${CMAKE_VERSION}/bin/cmake "$HOME/bin/cmake"
 
 script:
   - PATH="$HOME/bin:/usr/lib/ccache:$PATH" ./build.sh -Wu --dev --prefix "$HOME/votca" ${MAN:+--devdoc}
     ${TEST:+--runtest=$TEST} ${WERROR:+--warn-to-errors} ${MINIMAL:+--minimal}
     ${J:+-j$J} ${BDIR:+--builddir=$BDIR} ${NINJA:+--ninja} ${WALL:+--Wall}
-    --directory "$HOME/votca/src" --no-clean --depth 1 --gmx-release 4.6.7
-    tools ${GROMACS:+gromacs} csg csgapps ${MAN:+csg-manual} ${TEST:+csg-tutorials}
-    ${CTP:+kmc moo ctp} ${GROMACS:+-DGMX_USE_RDTSCP=OFF} ${GROMACS:+-DGROMACS_PKG_OVERWRITE=libgmx}
+    --directory "$HOME/votca/src" --no-clean --depth 1
+    tools gromacs csg csgapps ${MAN:+csg-manual} ${TEST:+csg-tutorials}
+    ${CTP:+kmc moo ctp}
 
 cache:
   directories:
