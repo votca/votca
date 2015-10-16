@@ -1,18 +1,18 @@
 [submodule "tools"]
 	path = tools
-	url = ../tools.git
+	url = ../../votca/tools.git
 [submodule "csg"]
 	path = csg
-	url = ../csg.git
+	url = ../../votca/csg.git
 [submodule "csgapps"]
 	path = csgapps
-	url = ../csgapps.git
+	url = ../../votca/csgapps.git
 [submodule "moo"]
 	path = moo
-	url = ../moo.git
+	url = ../../votca/moo.git
 [submodule "kmc"]
 	path = kmc
-	url = ../kmc.git
+	url = ../../votca/kmc.git
 [submodule "ctp"]
 	path = ctp
-	url = ../ctp.git
+	url = ../../votca/ctp.git
