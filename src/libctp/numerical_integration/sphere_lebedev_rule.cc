@@ -28,7 +28,7 @@ using namespace std;
 
 namespace votca { namespace ctp { 
 
-    
+    double pi=boost::math::constants::pi<double>();
     
     void LebedevGrid::getSphericalGrid(vector<QMAtom*> _atoms, string type, GridContainers& _grids){
 
@@ -61,7 +61,7 @@ namespace votca { namespace ctp {
     
     
     void LebedevGrid::getUnitSphereGrid(string element, string type, std::vector<double>& _theta, std::vector<double>& _phi, std::vector<double>& _weight){
-       
+              
               double *w;
               double *x;
               double *y;
@@ -92,7 +92,7 @@ namespace votca { namespace ctp {
     
     
         void LebedevGrid::getUnitSphereGrid(int order, std::vector<double>& _theta, std::vector<double>& _phi, std::vector<double>& _weight){
-
+              
               double *w;
               double *x;
               double *y;
@@ -143,7 +143,7 @@ namespace votca { namespace ctp {
             return XcoarseOrder.at(element); 
         }
         
-        
+        return -1;
         
         
         

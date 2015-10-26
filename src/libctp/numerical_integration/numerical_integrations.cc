@@ -947,7 +947,7 @@ namespace votca {
             double _t_AOxc_rho=0.0;
             double _t_AOxc_grad=0.0;
             double _t_sum = 0.0;
-            double _t_total;
+            double _t_total=0.0;
                                 boost::timer::cpu_times tenter = cpu_t.elapsed();
             ub::matrix<double> XCMAT = ub::zero_matrix<double>(basis->_AOBasisSize, basis->_AOBasisSize);
             // for every atom
