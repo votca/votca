@@ -38,7 +38,7 @@ namespace votca { namespace ctp {
         class NumericalIntegration {
         public: 
             
-            NumericalIntegration():density_set(false) { };
+            NumericalIntegration():density_set(false) {};
 
             void GridSetup(string type, BasisSet* bs , vector<QMAtom* > _atoms  );
 
@@ -60,8 +60,8 @@ namespace votca { namespace ctp {
             
         private:
             
-            const static double alpha_erf1=1.0/0.30;
-            static const double ang2bohr = 1.8897259886;
+           
+            
             std::vector<double> SSWpartition( int ngrid, int igrid, int ncenters ,  std::vector< std::vector<double> >& rq, double ass );
             std::vector<double> Rij;
             ub::matrix<double> Rij_mat;

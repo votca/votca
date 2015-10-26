@@ -499,11 +499,11 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
     bool _has_overlap_matrix = false;
     bool _has_charges = false;
     bool _has_coordinates = false;
-    bool _has_qm_energy = false;
+    //bool _has_qm_energy = false;
     bool _has_self_energy = false;
     
-    int _occupied_levels = 0;
-    int _unoccupied_levels = 0;
+    //int _occupied_levels = 0;
+    //int _unoccupied_levels = 0;
     int _number_of_electrons = 0;
     int _basis_set_size = 0;
 

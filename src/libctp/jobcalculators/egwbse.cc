@@ -295,7 +295,8 @@ namespace votca {
                 gwbse_logger.setPreface(logDEBUG,   (format("\nGWBSE DBG ...") ).str());
                 
                 
-                bool _evaluate = _gwbse.Evaluate(&_orbitals);
+                //bool _evaluate = _gwbse.Evaluate(&_orbitals);
+                _gwbse.Evaluate(&_orbitals);
                 
                 // write logger to log file
                 ofstream ofs;

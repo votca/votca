@@ -244,7 +244,7 @@ namespace votca {
 
 
 
-           int size4c=_dftbasis.AOBasisSize();
+           //int size4c=_dftbasis.AOBasisSize();
 
            LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup Initial Guess "<< flush;
            LOG(logDEBUG, *_pLog) << TimeStamp() << " Num of electrons "<< _gridIntegration.IntegrateDensity(_dftAOdmat, basis) << flush;
@@ -258,7 +258,7 @@ namespace votca {
 
 /*
                 // ERI from 4cs
-                /* ub::matrix<double> ERI4c = ub::zero_matrix<double>(size4c,size4c);
+                ub::matrix<double> ERI4c = ub::zero_matrix<double>(size4c,size4c);
                 for ( int ii=0; ii< size4c; ii++){
                     for ( int jj=0; jj< size4c; jj++){
                         for ( int kk=0; kk< size4c; kk++){
@@ -273,18 +273,18 @@ namespace votca {
                         }
                     }
                 }
-                */
-               
+                
+      */         
 		ub::matrix<double> VXC=_gridIntegration.IntegrateVXC_Atomblock(_dftAOdmat,  basis);
-                //ub::matrix<double> VXC2=_gridIntegration.IntegrateVXC(_dftAOdmat,  basis);
-/*		 for ( int iout=0; iout<_dftAOdmat.size1();iout++){
+                ub::matrix<double> VXC2=_gridIntegration.IntegrateVXC(_dftAOdmat,  basis);
+		 for ( int iout=0; iout<_dftAOdmat.size1();iout++){
 		for ( int jout=0; jout<_dftAOdmat.size1();jout++){
 
 		  cout.precision(10);
 		  cout << "VXC " << std::setprecision(10)  << iout+1 << " " << jout+1 << " " << VXC(iout,jout) <<  " " << VXC2(iout,jout) <<endl;
 
 		}
-		} */
+		} 
 
 
                 /*

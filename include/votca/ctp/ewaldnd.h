@@ -141,7 +141,7 @@ public:
 
     private:
        
-        int _n_segs_cell;
+        //int _n_segs_cell;
         int _na_max;
         int _nb_max;
         int _nc_max;

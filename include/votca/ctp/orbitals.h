@@ -376,7 +376,7 @@ public:
     
 private:
     
-    static const double                      _conv_Hrt_eV = 27.21138386;
+    static const double                      _conv_Hrt_eV = 27.21138386; // want to change this but might break compability of serialization  of .orb files
 
     int                                     _basis_set_size;   
     int                                     _occupied_levels;

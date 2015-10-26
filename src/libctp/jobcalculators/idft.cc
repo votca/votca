@@ -836,8 +836,8 @@ void IDFT::ReadJobFile(Topology *top) {
                
                 //double check if the records are correct
                 int homoBridgeA = pBridge_A->getAttribute<int>("homo" + suffixBridgeA );
-                int homoBridgeB = pBridge_B->getAttribute<int>("homo" + suffixBridgeB );
-                assert( homoBridgeA == homoBridgeB );
+                //int homoBridgeB = pBridge_B->getAttribute<int>("homo" + suffixBridgeB );
+                assert( homoBridgeA == pBridge_B->getAttribute<int>("homo" + suffixBridgeB ) );
                 int homoBridge = homoBridgeA;
                 
                 // double loop over all levels of A and B
@@ -880,13 +880,13 @@ void IDFT::ReadJobFile(Topology *top) {
                     if (  orbDonor == homoA+1 && orbAcceptor == homoB+1 && orbBridgeA == orbBridgeB && orbBridgeA > homoBridge) {
                         
                         // cout << " electron transfer" << endl;
-                        double jDB = (*itOverlapA)->getAttribute<double>( "jAB" );
-                        double jBA = (*itOverlapB)->getAttribute<double>( "jAB" );
-                        double eA  = (*itOverlapA)->getAttribute<double>( "e" + suffixA );
-                        double eB  = (*itOverlapB)->getAttribute<double>( "e" + suffixB );
+                        //double jDB = (*itOverlapA)->getAttribute<double>( "jAB" );
+                        //double jBA = (*itOverlapB)->getAttribute<double>( "jAB" );
+                        //double eA  = (*itOverlapA)->getAttribute<double>( "e" + suffixA );
+                        //double eB  = (*itOverlapB)->getAttribute<double>( "e" + suffixB );
                         
-                        double eBridgeA  = (*itOverlapA)->getAttribute<double>( "e" + suffixBridgeA );
-                        double eBridgeB  = (*itOverlapB)->getAttribute<double>( "e" + suffixBridgeB );
+                        //double eBridgeA  = (*itOverlapA)->getAttribute<double>( "e" + suffixBridgeA );
+                        //double eBridgeB  = (*itOverlapB)->getAttribute<double>( "e" + suffixBridgeB );
                         
                          // This in principle violates detailed balance. Any ideas?
                         //double Jeff_lumo = 0.5 * (jDB*jBA / (eA - eBridgeA) + jDB*jBA / (eB - eBridgeB));

@@ -56,8 +56,8 @@ namespace votca { namespace ctp {
         
         // cout << _gridpoint << endl;
         // shell info, only lmax tells how far to go
-        int _lmax_row = _shell_row->getLmax();
-        int _lmax_col = _shell_col->getLmax();
+        //int _lmax_row = _shell_row->getLmax();
+        //int _lmax_col = _shell_col->getLmax();
 
         // set size of internal block for recursion
         //int _nrows = this->getBlockSize( _lmax_row ); 

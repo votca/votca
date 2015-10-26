@@ -59,7 +59,7 @@ namespace votca {
             int size4c=_dftbasis.AOBasisSize();
 
             // reconstructing 4center-integrals
-	  /*  
+	  
             for (int k=0; k<_auxbasis._AOBasisSize; k++){
                 
                 ub::matrix<double> shit = _threecenter.getDatamatrix(k);
@@ -90,12 +90,12 @@ namespace votca {
             
             
             //exit(0);
-            */
+            
             
         
             
 
-           /*
+           
             
             typedef boost::multi_array<double, 4> fourdim;
             fourdim  fourcenter(boost::extents[size4c][size4c][size4c][size4c]);
@@ -124,7 +124,7 @@ exit(0);
             
             
             
-          /*
+          
             AOOverlap _auxoverlap_inverse;               // will also be needed in PPM itself
             AOOverlap _auxoverlap_cholesky_inverse;      // will also be needed in PPM itself
             _auxoverlap_inverse.Initialize( _auxbasis._AOBasisSize);
@@ -295,14 +295,14 @@ exit(0);
            //_auxAOverlap.Print("AUX-OL");
             linalg_invert( _auxAOverlap._aomatrix , _inverse);
             
-         /*  ub:: matrix<double> _testS = ub::prod(_auxAOverlap._aomatrix , _inverse);
+           ub:: matrix<double> _testS = ub::prod(_auxAOverlap._aomatrix , _inverse);
                       for (int _i = 0; _i < _threecenter.getSize(); _i++) {
                 for (int _j = 0; _j < _threecenter.getSize(); _j++) {
                     cout << " S*S-1(" << _i << "," << _j << ") " << setprecision (9) << _testS(_i,_j) << endl; 
                       }
-        }*/
+        }
            
-            
+          */  
             //cout <<  "3c size " << _threecenter.getSize() << " _auxAODim " << _auxAOverlap.Dimension() << " DMAT1 " << DMAT.size1() << " DMAT2 " << DMAT.size2() << endl;
             
             
@@ -330,7 +330,7 @@ exit(0);
                 }
             }
             
-            
+           
   
             
             
@@ -385,7 +385,7 @@ exit(0);
             
             
             
-            /*               
+                          
             for (int alpha=0;alpha<size4c;alpha++){
                     for (int beta=0;beta<size4c;beta++){
 
@@ -405,7 +405,7 @@ exit(0);
                  }
             }
             
-            exit(0); */
+            exit(0); 
             
             
             
@@ -428,7 +428,7 @@ exit(0);
             }
             
             
-            
+          */  
             
         }
         

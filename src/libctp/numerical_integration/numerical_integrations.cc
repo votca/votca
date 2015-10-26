@@ -1721,7 +1721,7 @@ namespace votca {
         }
                
         void NumericalIntegration::GridSetup(string type, BasisSet* bs, vector<QMAtom*> _atoms) {
-
+            const static double ang2bohr= 1.8897259886;
             const double pi = boost::math::constants::pi<double>();
             // get GridContainer
             GridContainers _grids;
@@ -2128,7 +2128,7 @@ namespace votca {
 
         double NumericalIntegration::erf1c(double x){
              
-            
+            const static double alpha_erf1=1.0/0.30;
             return 0.5*erfcc((x/(1.0-x*x))*alpha_erf1);    
             
         }

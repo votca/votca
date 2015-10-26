@@ -145,7 +145,7 @@ private:
     string _atomname;
     int _atomindex;
      
-    AOBasis* _aobasis;
+    //AOBasis* _aobasis;
     int detlmax( string shell );
     // vector of pairs of decay constants and contraction coefficients
     vector< AOGaussianPrimitive* > _gaussians;
@@ -182,7 +182,9 @@ public:
           // actual swapping of coefficients
           for ( unsigned _i_orbital = 0; _i_orbital < v.size1(); _i_orbital++ ){
                 for ( unsigned s = 1, d; s < order.size(); ++ s ) {
-                    for ( d = order[s]; d < s; d = order[d] ) ;
+                    for ( d = order[s]; d < s; d = order[d] ){
+                        ;
+                    }
                           if ( d == s ) while ( d = order[d], d != s ) swap( v(_i_orbital,s), v(_i_orbital,d) );
                 }
           }

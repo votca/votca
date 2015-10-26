@@ -20,7 +20,7 @@
 #include <votca/ctp/votca_ctp_config.h>
 
 
-# include "votca/ctp/sphere_lebedev_rule.h"
+#include "votca/ctp/sphere_lebedev_rule.h"
 #include "votca/ctp/grid_containers.h"
 
 using namespace std;
@@ -61,7 +61,7 @@ namespace votca { namespace ctp {
     
     
     void LebedevGrid::getUnitSphereGrid(string element, string type, std::vector<double>& _theta, std::vector<double>& _phi, std::vector<double>& _weight){
-
+       
               double *w;
               double *x;
               double *y;

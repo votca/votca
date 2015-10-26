@@ -1643,7 +1643,7 @@ namespace votca {
         }
 
         int Gaussian::NumbfGW(string shell_type) {
-            int _nbf;
+            int _nbf=0;
             if (shell_type == "S") {
                 _nbf = 1;
             } else if (shell_type == "P") {
@@ -1659,7 +1659,7 @@ namespace votca {
         }
 
         int Gaussian::NumbfQC(string shell_type) {
-            int _nbf;
+            int _nbf=0;
             if (shell_type == "S") {
                 _nbf = 1;
             } else if (shell_type == "P") {
@@ -1675,7 +1675,7 @@ namespace votca {
         }
 
         int Gaussian::NumbfQC_cart(string shell_type) {
-            int _nbf;
+            int _nbf=0;
             if (shell_type == "S") {
                 _nbf = 1;
             } else if (shell_type == "P") {

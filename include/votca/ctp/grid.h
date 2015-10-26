@@ -116,8 +116,7 @@ namespace votca { namespace ctp {
       std::vector< ub::vector<double> > _gridpoints;
       std::vector< APolarSite* > _gridsites;
       std::vector< APolarSite* > _all_gridsites;
-      PolarSeg *_sites_seg;
-      vector< QMAtom* >* _atomlist;
+      
       
       double _cutoff;
       double _gridspacing;
@@ -129,6 +128,8 @@ namespace votca { namespace ctp {
       bool   _cubegrid;
       double _padding;
       bool   _createpolarsites; 
+      PolarSeg *_sites_seg;
+      vector< QMAtom* >* _atomlist;
       vec _lowerbound;
       int _xsteps, _ysteps, _zsteps;
       

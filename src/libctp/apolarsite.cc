@@ -9,7 +9,7 @@ namespace votca { namespace ctp {
 
 APolarSite::APolarSite(APolarSite *templ, bool do_depolarize) 
     : _id(templ->_id), _name(templ->_name), _isVirtual(templ->_isVirtual),   
-      _resolution(templ->_resolution), _pos(templ->_pos),
+       _pos(templ->_pos),
         
       _locX(templ->_locX), _locY(templ->_locY), _locZ(templ->_locZ),
         
@@ -30,7 +30,7 @@ APolarSite::APolarSite(APolarSite *templ, bool do_depolarize)
       FPx(templ->FPx), FPy(templ->FPy), FPz(templ->FPz),
       FUx(templ->FUx), FUy(templ->FUy), FUz(templ->FUz),
 
-      PhiP(templ->PhiP), PhiU(templ->PhiU) {
+     _resolution(templ->_resolution),PhiP(templ->PhiP), PhiU(templ->PhiU) {
     
     if (do_depolarize) this->Depolarize();
 }
@@ -500,7 +500,7 @@ void APolarSite::WriteChkLine(FILE *out, vec &shift, bool split_dpl,
     }
 
     // Take care of unit conversion
-    double int2ext;
+    double int2ext=0;
 
     if (unit == "nanometer") {
         int2ext = 1.;

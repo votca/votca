@@ -132,7 +132,7 @@ private:
     // scaling factor
     double _scale;
      
-    Element* _element;
+    //Element* _element;
 
     // vector of pairs of decay constants and contraction coefficients
     vector< GaussianPrimitive* > _gaussians;

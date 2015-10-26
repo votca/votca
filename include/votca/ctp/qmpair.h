@@ -150,14 +150,15 @@ protected:
     // state +2: singlet
     //state +3:triplet
     
-    double _lambdaO_s;   
-    double _lambdaO_t;
+    
     double _rate12_s;   
+    double _rate21_s; 
     double _rate12_t;
-    double _rate21_s;    
     double _rate21_t;
     double _has_s;       
     double _has_t;
+    double _lambdaO_s;   
+    double _lambdaO_t;
     
     vector <double> _Js_s;
     vector <double> _Js_t;
