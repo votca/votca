@@ -95,7 +95,7 @@ namespace votca {
                 //cout << " act threads: " << omp_get_thread_num( ) << " total threads " << omp_get_num_threads( ) << " max threads " << omp_get_max_threads( ) <<endl;
                 AOShell* _shell = _gwbasis.getShell(_is);
                 int _start = _shell->getStartIndex();
-                int _end = _start + _shell->getNumFunc();
+               // int _end = _start + _shell->getNumFunc();
 
 
                 // each element is a shell_size-by-n matrix, initialize to zero

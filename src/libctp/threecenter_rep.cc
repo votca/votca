@@ -142,7 +142,7 @@ namespace votca {
             
             double _decay=_decay_alpha + _decay_beta + _decay_gamma;
             double rzeta=0.5/(_decay_alpha+_decay_beta);
-            double fak = 0.5 / (_decay);
+            //double fak = 0.5 / (_decay);
             double gfak=_decay_gamma/_decay;
             double cfak= (_decay_alpha + _decay_beta)/_decay;         
             vec _P=(_decay_alpha*_pos_alpha+_decay_beta*_pos_beta)/(_decay_alpha+_decay_beta);

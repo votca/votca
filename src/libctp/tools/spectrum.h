@@ -28,7 +28,7 @@
 
 namespace votca { namespace ctp {
     using namespace std;
-    
+    static const double _rydtoev = 13.6058;  
 class Spectrum : public QMTool
 {
 public:
@@ -67,7 +67,7 @@ private:
     
     double _fwhm; // in eV
     double _shiftby; 
-    static const double _rydtoev = 13.6058;  
+    
     
     string _spectrum_type;
     // lineshape functions

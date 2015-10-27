@@ -34,14 +34,14 @@ QMPair::QMPair(int id, Segment *seg1, Segment *seg2)
         : std::pair<Segment*, Segment*>(seg1, seg2), _id(id),
           _hasGhost(0),
           _rate12_e(0), _rate21_e(0),
-          _rate12_h(0), _rate21_h(0),
+          _rate12_h(0), _rate21_h(0),      
+          _has_e(false), _has_h(false),
+          _lambdaO_e(0), _lambdaO_h(0),
+         _Jeff2_e(0),   _Jeff2_h(0),
           _rate12_s(0), _rate21_s(0),
           _rate12_t(0), _rate21_t(0),
-          _has_e(false), _has_h(false),
-          _has_s(false), _has_t(false),
-          _lambdaO_e(0), _lambdaO_h(0),
+          _has_s(false), _has_t(false),       
           _lambdaO_s(0), _lambdaO_t(0),
-          _Jeff2_e(0),   _Jeff2_h(0),
           _Jeff2_s(0),   _Jeff2_t(0),_pair_type( Hopping ) {
 
     _top = seg1->getTopology();
@@ -158,11 +158,11 @@ void QMPair::setJs(const vector<double> Js, int state) {
     }
     else if (state == +2) {
         this->_Js_s = Js;
-        double Jeff2 = this->calcJeff2(state);
+        (void)this->calcJeff2(state);
     }
     else if (state == +3) {
         this->_Js_t = Js;
-        double Jeff2 = this->calcJeff2(state);
+        (void)this->calcJeff2(state);
     }
     else {
         throw std::runtime_error(" ERROR CODE whx__01x1u__");

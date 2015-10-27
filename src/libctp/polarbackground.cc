@@ -8,7 +8,7 @@ namespace EWD {
 using boost::format;
     
 PolarBackground::PolarBackground(Topology *top, PolarTop *ptop, Property *opt, 
-    Logger *log) : _top(top), _ptop(ptop), _log(log), _n_threads(1) {
+    Logger *log) : _log(log), _n_threads(1), _top(top), _ptop(ptop) {
     
     // EVALUATE OPTIONS
     string pfx = "options.ewdbgpol";

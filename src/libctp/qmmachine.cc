@@ -255,15 +255,16 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 
 
         // for GW-BSE, we also need to parse the orbitals file
-        int _parse_orbitals_status = _qmpack->ParseOrbitalsFile( &orb_iter_output );
+        _qmpack->ParseOrbitalsFile( &orb_iter_output );
+        //int _parse_orbitals_status = _qmpack->ParseOrbitalsFile( &orb_iter_output );
         std::vector<int> _state_index;
        _gwbse.Initialize( &_gwbse_options );
       if ( _state > 0 ){
         LOG(logDEBUG,*_log) << "Excited state via GWBSE: " <<  flush;
         LOG(logDEBUG,*_log) << "  --- type:              " << _type << flush;
         LOG(logDEBUG,*_log) << "  --- state:             " << _state << flush;
-        if ( _has_osc_filter) LOG(logDEBUG,*_log) << "  --- filter: osc.str. > " << _osc_threshold << flush;
-        if ( _has_dQ_filter)  LOG(logDEBUG,*_log) << "  --- filter: crg.trs. > " << _dQ_threshold << flush;
+        if ( _has_osc_filter) { LOG(logDEBUG,*_log) << "  --- filter: osc.str. > " << _osc_threshold << flush;}
+        if ( _has_dQ_filter)  {LOG(logDEBUG,*_log) << "  --- filter: crg.trs. > " << _dQ_threshold << flush;}
         
         if ( _has_osc_filter && _has_dQ_filter ){
             LOG(logDEBUG,*_log) << "  --- WARNING: filtering for optically active CT transition - might not make sense... "  << flush;
@@ -279,8 +280,8 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
         gwbse_logger.setPreface(logDEBUG,   (format("\nGWBSE DBG ...") ).str());
         
         // actual GW-BSE run
-
-        bool _evaluate = _gwbse.Evaluate( &orb_iter_output );
+        _gwbse.Evaluate( &orb_iter_output );
+        //bool _evaluate = _gwbse.Evaluate( &orb_iter_output );
         
        
         // write logger to log file
@@ -330,7 +331,7 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
             if ( _type == "singlets" ){
              // go through list of singlets
             const std::vector<double>& dQ_fragA = orb_iter_output.FragmentAChargesSingEXC();
-            const std::vector<double>& dQ_fragB = orb_iter_output.FragmentBChargesSingEXC();
+            //const std::vector<double>& dQ_fragB = orb_iter_output.FragmentBChargesSingEXC();
             for (int _i=0; _i < _state_index.size(); _i++ ) {
                 if ( std::abs(dQ_fragA[_i]) > _dQ_threshold ) {
                     _state_index_copy.push_back(_state_index[_i]);
@@ -340,7 +341,7 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
             } else if ( _type == "triplets"){
               // go through list of triplets
             const std::vector<double>& dQ_fragA = orb_iter_output.FragmentAChargesTripEXC();
-            const std::vector<double>& dQ_fragB = orb_iter_output.FragmentBChargesTripEXC();
+            //const std::vector<double>& dQ_fragB = orb_iter_output.FragmentBChargesTripEXC();
             for (int _i=0; _i < _state_index.size(); _i++ ) {
                 if ( std::abs(dQ_fragA[_i]) > _dQ_threshold ) {
                     _state_index_copy.push_back(_state_index[_i]);

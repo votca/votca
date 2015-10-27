@@ -152,8 +152,8 @@ private:
     double _U_xN_xX_s;   
     double _U_xN_xX_t;
     
-    double _ePolar_s;
-    double _ePolar_t;
+    //double _ePolar_s;
+    //double _ePolar_t;
 
 
     vector< double > _eMpoles;

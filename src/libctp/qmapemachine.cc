@@ -17,9 +17,9 @@ namespace votca { namespace ctp {
 template<class QMPackage>
 QMAPEMachine<QMPackage>::QMAPEMachine(XJob *job, Ewald3DnD *cape, QMPackage *qmpack,
 	 Property *opt, string sfx, int nst)
-   : _job(job), _cape(cape), _qmpack(qmpack), _subthreads(nst),
-	 _isConverged(false), _grid_fg(true,true,true), _grid_bg(true,true,true), 
-     _fitted_charges(true,true,true){
+   : _subthreads(nst),_job(job), _cape(cape), _qmpack(qmpack), 
+	  _grid_fg(true,true,true), _grid_bg(true,true,true),
+     _fitted_charges(true,true,true),_isConverged(false) {
     
 	// CONVERGENCE THRESHOLDS
     string key = sfx + ".convergence";
@@ -115,8 +115,9 @@ void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
 	bool created = boost::filesystem::create_directory(jobFolder);
 
 	LOG(logINFO,*_log) << flush;
-	if (created)
+	if (created) {
 		LOG(logINFO,*_log) << "Created directory " << jobFolder << flush;
+        }
 
     LOG(logINFO,*_log)
        << format("... dR %1$1.4f dQ %2$1.4f QM %3$1.4f MM %4$1.4f IT %5$d")
@@ -182,7 +183,8 @@ void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
     int iterMax = _maxIter;
     for ( ; iterCnt < iterMax; ++iterCnt) {
         
-        bool code = Iterate(jobFolder, iterCnt);
+        //bool code = Iterate(jobFolder, iterCnt);
+        Iterate(jobFolder, iterCnt);
         if (hasConverged()) { break; }
     }
     
@@ -466,15 +468,16 @@ template<class QMPackage>
 bool QMAPEMachine<QMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 
 	// for GW-BSE, we also need to parse the orbitals file
-	int _parse_orbitals_status = _qmpack->ParseOrbitalsFile(&orb);
+        _qmpack->ParseOrbitalsFile(&orb);
+	//int _parse_orbitals_status = _qmpack->ParseOrbitalsFile(&orb);
 	std::vector<int> _state_index;
 	_gwbse.Initialize( &_gwbse_options );
 	if ( _state > 0 ){
 	LOG(logDEBUG,*_log) << "Excited state via GWBSE: " <<  flush;
 	LOG(logDEBUG,*_log) << "  --- type:              " << _type << flush;
 	LOG(logDEBUG,*_log) << "  --- state:             " << _state << flush;
-	if ( _has_osc_filter) LOG(logDEBUG,*_log) << "  --- filter: osc.str. > " << _osc_threshold << flush;
-	if ( _has_dQ_filter)  LOG(logDEBUG,*_log) << "  --- filter: crg.trs. > " << _dQ_threshold << flush;
+	if ( _has_osc_filter) { LOG(logDEBUG,*_log) << "  --- filter: osc.str. > " << _osc_threshold << flush; }
+	if ( _has_dQ_filter) { LOG(logDEBUG,*_log) << "  --- filter: crg.trs. > " << _dQ_threshold << flush; }
 
 	if ( _has_osc_filter && _has_dQ_filter ){
 		LOG(logDEBUG,*_log) << "  --- WARNING: filtering for optically active CT transition - might not make sense... "  << flush;
@@ -491,8 +494,8 @@ bool QMAPEMachine<QMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 
 	// actual GW-BSE run
 
-	bool _evaluate = _gwbse.Evaluate(&orb);
-
+	//bool _evaluate = _gwbse.Evaluate(&orb);
+        _gwbse.Evaluate(&orb);
 
 	// write logger to log file
 	ofstream ofs;
@@ -566,7 +569,7 @@ bool QMAPEMachine<QMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
             if ( _type == "singlets" ){
              // go through list of singlets
             const std::vector<double>& dQ_fragA = orb.FragmentAChargesSingEXC();
-            const std::vector<double>& dQ_fragB = orb.FragmentBChargesSingEXC();
+            //const std::vector<double>& dQ_fragB = orb.FragmentBChargesSingEXC();
             for (int _i=0; _i < _state_index.size(); _i++ ) {
                 if ( std::abs(dQ_fragA[_i]) > _dQ_threshold ) {
                     _state_index_copy.push_back(_state_index[_i]);
@@ -576,7 +579,7 @@ bool QMAPEMachine<QMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
             } else if ( _type == "triplets"){
               // go through list of triplets
             const std::vector<double>& dQ_fragA = orb.FragmentAChargesTripEXC();
-            const std::vector<double>& dQ_fragB = orb.FragmentBChargesTripEXC();
+            //const std::vector<double>& dQ_fragB = orb.FragmentBChargesTripEXC();
             for (int _i=0; _i < _state_index.size(); _i++ ) {
                 if ( std::abs(dQ_fragA[_i]) > _dQ_threshold ) {
                     _state_index_copy.push_back(_state_index[_i]);

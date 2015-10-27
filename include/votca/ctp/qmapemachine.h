@@ -101,6 +101,7 @@ public:
    double getRMSdR() { return _dR_RMS; }
    double getRMSdQ() { return _dQ_RMS; }
    double getSUMdQ() { return _dQ_SUM; }
+   int getId() { return _id;}
 
    double getSFEnergy() { assert(_hasQM); return _e_SF; }
    double getFMEnergy() { assert(_hasMM); return _e_fm_; }

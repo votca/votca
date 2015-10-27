@@ -583,9 +583,11 @@ EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum(vector<PolarSeg*> &target) {
 
                 if (shell_rms*shell_count <= _crit_dE && shell_R >= _R_co) {
                     energy_converged_count += 1;
-                    if (tools::globals::verbose) LOG(logDEBUG,*_log)  
+                    if (tools::globals::verbose){
+                        LOG(logDEBUG,*_log)  
                         << (format("  :: ID = %2$-4d : Converged to precision as of Rc = %1$+1.3f nm") 
                         % shell_R % (*sit1)->getId()) << flush;
+                    }
                     break;
                 }
             }
@@ -1420,12 +1422,14 @@ void PEwald3D3D::Potential_ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target)
         shell_rms = (rms_count > 0) ? sqrt(shell_rms/rms_count)*EWD::int2eV : 0.0;
         double e_measure = shell_rms*rms_count;
         
-        if (rms_count > 0) LOG(logDEBUG,*_log)
+        if (rms_count > 0) {
+            LOG(logDEBUG,*_log)
              << (format("  o M = %1$04d   G = %2$+1.3e   dPhi(rms) = %3$+1.3e V   [1e => %4$+1.3e eV]")
              % rms_count
              % crit_grade
              % shell_rms
              % e_measure).str() << flush;
+        }
         
         if (rms_count > 10 && e_measure <= _crit_dE) {
             LOG(logINFO,*_log)

@@ -28,6 +28,7 @@
 
 namespace votca {
     namespace ctp {
+        static const double ang2bohr = 1.8897259886;
         using namespace std;
         namespace ub = boost::numeric::ublas;
 
@@ -55,7 +56,7 @@ namespace votca {
             
             void calculateCube();
             void subtractCubes();
-            static const double ang2bohr = 1.8897259886;
+            
             string _orbfile;
             string _output_file;
             string _infile1;
@@ -217,7 +218,7 @@ namespace votca {
                     fprintf(out, "Quasiparticle state %i \n", _state);
                 }
                 else if ( _do_transition ){
-                    fprintf(out, "Transition state  betwenn Groundstate and state %i \n", _state);
+                    fprintf(out, "Transition state  between Groundstate and state %i \n", _state);
                 }
                 fprintf(out, "Created by VOTCA-CTP \n");
                 if ( _do_qp ){

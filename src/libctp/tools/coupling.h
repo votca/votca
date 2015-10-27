@@ -158,7 +158,8 @@ bool Coupling::Evaluate() {
     _overlap.setLogger(&_log);
           
     ub::matrix<double> _JAB;
-     bool _calculate_integrals = _overlap.CalculateIntegrals( &_orbitalsA, &_orbitalsB, &_orbitalsAB, &_JAB );   
+     //bool _calculate_integrals = _overlap.CalculateIntegrals( &_orbitalsA, &_orbitalsB, &_orbitalsAB, &_JAB ); 
+     _overlap.CalculateIntegrals( &_orbitalsA, &_orbitalsB, &_orbitalsAB, &_JAB );   
      std::cout << _log;
  
      

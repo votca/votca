@@ -217,7 +217,7 @@ bool DFT::Evaluate() {
     _log.setPreface(logWARNING, "\n... ...");
     _log.setPreface(logDEBUG,   "\n... ..."); 
 
-    TLogLevel _ReportLevel = _log.getReportLevel( ); // backup report level
+    //TLogLevel _ReportLevel = _log.getReportLevel( ); // backup report level
 
     // Create new orbitals object and fill with atom coordinates
     Orbitals _orbitals;
@@ -232,7 +232,8 @@ bool DFT::Evaluate() {
 
                 ifstream in;
                 double x, y, z;
-                int natoms, id;
+                //int natoms, id;
+                int id;
                 string label, type;
                 vec pos;
 
@@ -284,9 +285,11 @@ bool DFT::Evaluate() {
       //if ( _do_dft_parse ){
         LOG(logDEBUG,_log) << "Parsing DFT data " << _output_file << flush;
         _qmpackage->setOrbitalsFileName( _orbfile );
-        int _parse_orbitals_status = _qmpackage->ParseOrbitalsFile( &_orbitals );
+        //int _parse_orbitals_status = _qmpackage->ParseOrbitalsFile( &_orbitals );
+        _qmpackage->ParseOrbitalsFile( &_orbitals );
         _qmpackage->setLogFileName( _logfile );
-        int _parse_log_status = _qmpackage->ParseLogFile( &_orbitals );
+        _qmpackage->ParseLogFile( &_orbitals );
+        //int _parse_log_status = _qmpackage->ParseLogFile( &_orbitals );
         _orbitals.setDFTbasis(_qmpackage->getBasisSetName());
  
         
@@ -316,7 +319,8 @@ bool DFT::Evaluate() {
      
      
     Property _summary; 
-    Property *_job_output = &_summary.add("output","");
+    _summary.add("output","");
+    //Property *_job_output = &_summary.add("output","");
     votca::tools::PropertyIOManipulator iomXML(votca::tools::PropertyIOManipulator::XML, 1, "");
      
     //ofs (_output_file.c_str(), std::ofstream::out);
@@ -359,7 +363,8 @@ void DFT::XYZ2Orbitals(Orbitals* _orbitals, string filename){
                
                 ifstream in;
                 double x, y, z;
-                int natoms, id;
+                //int natoms, id;
+                int id;
                 string label, type;
                 vec pos;
 
