@@ -87,11 +87,14 @@ protected:
             void printtime(int seconds_t);
             
             myvec _field;
-
+            
+            
+            
             string _injection_name;
             string _injectionmethod;
             int _injectionfree;
             double _runtime;
+            string _lifetimefile;
             double _maxrealtime;
             int _seed;
             int _numberofcharges;
@@ -139,8 +142,13 @@ void KMCLifetime::Initialize(const char *filename, Property *options, const char
 	    _injection_name = options->get("options.kmclifetime.injection").as<string>();
 	}
         else {
-	    throw runtime_error("Error in kmclifetime: injection pattern is not provided");
+	    throw runtime_error("Error in kmclifetime: injection pattern is not provided");            
         }
+        if (options->exists("options.kmclifetime.lifetime")) {
+	    _lifetimefile= options->get("options.kmclifetime.lifetim").as<string>();
+	}
+        else {
+	    throw runtime_error("Error in kmclifetime: injection pattern is not provided");
         
         double _fieldX=0.0;
         double _fieldY=0.0;
@@ -346,7 +354,7 @@ vector<GNode*> KMCLifetime::LoadGraph()
     
     cout << "spatial density: " << _numberofcharges/ boxsize<< " nm^-3" << endl;
     
-    
+    //blabla
     
     // Calculate initial escape rates !!!THIS SHOULD BE MOVED SO THAT IT'S NOT DONE TWICE IN CASE OF COULOMB INTERACTION!!!
     for(unsigned int i=0; i<node.size(); i++)
