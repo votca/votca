@@ -106,7 +106,7 @@ namespace votca {
                     const ub::matrix<double>& Mmn = _Mmn[ _gw_level + _qpmin ];
 
                     // loop over all functions in GW basis
-                    for (int _i_gw = 0; _i_gw < _gwsize; _i_gw++) {
+                    for (unsigned _i_gw = 0; _i_gw < _gwsize; _i_gw++) {
 
                         // loop over all bands
                         for (unsigned _i = 0; _i < _levelsum; _i++) {
