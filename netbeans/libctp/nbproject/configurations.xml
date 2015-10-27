@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="90">
+<configurationDescriptor version="95">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <logicalFolder name="f2" displayName="Calculators" projectFiles="true">
+        <itemPath>../../src/libctp/calculators/cgpolar.h</itemPath>
         <itemPath>../../src/libctp/calculators/eanalyze.h</itemPath>
         <itemPath>../../src/libctp/calculators/eimport.h</itemPath>
         <itemPath>../../src/libctp/calculators/einternal.h</itemPath>
@@ -17,6 +18,7 @@
         <itemPath>../../src/libctp/calculators/jobwriter.h</itemPath>
         <itemPath>../../src/libctp/calculators/neighborlist.h</itemPath>
         <itemPath>../../src/libctp/calculators/pairdump.h</itemPath>
+        <itemPath>../../src/libctp/calculators/panalyze.h</itemPath>
         <itemPath>../../src/libctp/calculators/profile.h</itemPath>
         <itemPath>../../src/libctp/calculators/rates.h</itemPath>
         <itemPath>../../src/libctp/calculators/sandbox.h</itemPath>
@@ -548,6 +550,11 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libctp/calculators/cgpolar.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/calculators/eanalyze.h"
             ex="false"
             tool="3"
@@ -629,6 +636,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/calculators/pairdump.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/calculators/panalyze.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1309,6 +1321,11 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libctp/calculators/cgpolar.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libctp/calculators/eanalyze.h"
             ex="false"
             tool="3"
@@ -1390,6 +1407,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/calculators/pairdump.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/calculators/panalyze.h"
             ex="false"
             tool="3"
             flavor2="0">

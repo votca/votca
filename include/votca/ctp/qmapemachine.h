@@ -84,7 +84,7 @@ class QMAPEIter
 
 public:
 
-    QMAPEIter(int id) : _hasdRdQ(false), _hasQM(false), _hasMM(false), _id(id) { ; }
+    QMAPEIter(int id) : _id(id), _hasdRdQ(false), _hasQM(false), _hasMM(false) { ; }
    ~QMAPEIter() { ; }
 
    void ConvertPSitesToQMAtoms(vector< PolarSeg* > &, vector< QMAtom* > &);

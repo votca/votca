@@ -40,7 +40,7 @@ EWD::triple<> Ewald3D2D::ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) {
     
     vector< vec > Ks;
     vector< vec >::iterator kit;
-    int kz = 0; // This is 2D Ewald
+    //int kz = 0; // This is 2D Ewald
     int kx = 0;
     int ky = 0;
     for (ky = 1; ky < _NB_max+1; ++ky) {        

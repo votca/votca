@@ -15,10 +15,10 @@ class PolarBackground
 {
 public:
 
-    PolarBackground() : _top(NULL),
-            _ptop(NULL),
-            _log(NULL),
-            _n_threads(1) {};
+    PolarBackground() : _log(NULL),
+            _n_threads(1),
+            _top(NULL),
+            _ptop(NULL) {};
     PolarBackground(Topology *, PolarTop *, Property *, Logger *);
    ~PolarBackground();
    
@@ -188,9 +188,9 @@ private:
     double _K_co;                   // k-space c/o
     double _R_co;                   // r-space c/o
     double _crit_dE;                // Energy convergence criterion [eV]
-    bool   _converged_R;            // Did R-space sum converge?
-    bool   _converged_K;            // Did K-space sum converge?
-    bool   _field_converged_R;
+    //bool   _converged_R;            // Did R-space sum converge?
+    //bool   _converged_K;            // Did K-space sum converge?
+    //bool   _field_converged_R;
     bool   _field_converged_K;
     // Part II - Thole
     double _polar_aDamp;

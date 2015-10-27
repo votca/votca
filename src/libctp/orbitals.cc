@@ -19,6 +19,7 @@
 
 #include "votca/ctp/orbitals.h"
 #include "votca/tools/globals.h"
+#include "votca/ctp/elements.h"
 #include <stdio.h>
 #include <iostream>
 #include <iomanip>
@@ -533,6 +534,7 @@ std::vector<ub::matrix<double> >& Orbitals::DensityMatrixExcitedState(ub::matrix
 
 
  void Orbitals::FragmentNuclearCharges(int _frag, double& _nucCrgA, double& _nucCrgB){
+     Elements _elements;
      
      // go through atoms and count
     vector < QMAtom* > :: iterator atom;
@@ -544,7 +546,7 @@ std::vector<ub::matrix<double> >& Orbitals::DensityMatrixExcitedState(ub::matrix
     for (atom = _atoms.begin(); atom < _atoms.end(); ++atom){
          id++;      
          // get element type and determine its nuclear charge
-         int crg = ElementToCharge((*atom)->type);
+         double crg = _elements.getNucCrgECP((*atom)->type);
          // add to either fragment
          if ( id <= _frag ) {
              _nucCrgA += crg;
@@ -569,18 +571,6 @@ std::vector<ub::matrix<double> >& Orbitals::DensityMatrixExcitedState(ub::matrix
  
  
  
- int Orbitals::ElementToCharge(string element){
-     
-     if ( element == "H" ) return 1;
-     if ( element == "C" ) return 4;
-     if ( element == "Si" ) return 4;
-     if ( element == "N" ) return 5;
-     if ( element == "S" ) return 6;
-     if ( element == "O" ) return 6;
-     
-     
-     
-     
- }
+
  
 }}

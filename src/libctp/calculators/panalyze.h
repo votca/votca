@@ -213,7 +213,7 @@ void PAnalyze::SiteConnection(Topology *top) {
 
     // evaluate connection probability function
     for (int j = 0; j< _pointsR; ++j){
-        double thisMINR = MINR + j*_resolution_space;
+        //double thisMINR = MINR + j*_resolution_space;
         if(Rconnected[j] == 0) {
             Rprobability[j]=0;
         }

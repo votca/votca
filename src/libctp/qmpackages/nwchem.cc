@@ -935,9 +935,9 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
         bool _found_optimization=false;
         if ( _is_optimization ){
                 std::string::size_type optimize_pos = _line.find("Optimization converged");
-                if (optimize_pos != std::string::npos) {
-                        bool _found_optimization = true;
-                }
+               // if (optimize_pos != std::string::npos) {
+                        //bool _found_optimization = true;
+                //}
         }
         
         std::string::size_type coordinates_pos = _line.find("Output coordinates");
@@ -964,7 +964,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
                 
             while ( nfields == 6 ) {
                 int atom_id = boost::lexical_cast< int >( _row.at(0) );
-                int atom_number = boost::lexical_cast< int >( _row.at(0) );
+                //int atom_number = boost::lexical_cast< int >( _row.at(0) );
                 string _atom_type = _row.at(1);
                 double _x =  boost::lexical_cast<double>( _row.at(3) );
                 double _y =  boost::lexical_cast<double>( _row.at(4) );

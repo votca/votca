@@ -352,7 +352,7 @@ bool Neighborlist::StochasticConnectOrNot(double thisdistance, vector<double> di
     }
     else{
         //int numberofpoints = distances.size();
-        double thisprobability;
+        double thisprobability=0.0;
         for(unsigned i = 0; i<distances.size()-1; i++){
             if(distances[i] < thisdistance && thisdistance < distances[i+1]){
                 // linear interpolations

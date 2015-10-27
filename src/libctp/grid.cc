@@ -188,7 +188,7 @@ void Grid::printgridtoCubefile(string filename){
             
             fprintf(out, "Electrostatic potential around molecule \n" );
             fprintf(out, "Created by VOTCA-CTP \n");
-            fprintf(out, "%u %f %f %f \n", _atomlist->size(), _lowerbound.getX()*A2Bohr, _lowerbound.getY()*A2Bohr,_lowerbound.getZ()*A2Bohr);
+            fprintf(out, "%lu %f %f %f \n", _atomlist->size(), _lowerbound.getX()*A2Bohr, _lowerbound.getY()*A2Bohr,_lowerbound.getZ()*A2Bohr);
             fprintf(out, "%d %f 0.0 0.0 \n", _xsteps, _gridspacing*A2Bohr); 
             fprintf(out, "%d 0.0 %f 0.0 \n",  _ysteps, _gridspacing*A2Bohr);
             fprintf(out, "%d 0.0 0.0 %f \n", _zsteps, _gridspacing*A2Bohr);

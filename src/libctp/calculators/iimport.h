@@ -230,8 +230,8 @@ double IImport::StochasticMakeJ(double thisdistance, vector<double> distances, v
     thisdistance -= offset;
     double MINR = distances[0];
     double MAXR = distances[distances.size()-1];
-    double thismean;
-    double thissigma;
+    double thismean=0.0;
+    double thissigma=0.0;
     if(thisdistance <= 0){
         return 0;
     }

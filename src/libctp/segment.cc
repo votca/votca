@@ -123,6 +123,7 @@ bool Segment::hasState(int state) {
     else {
         throw std::runtime_error(" ERROR CODE whe__00s11o__");
     }
+    return result;
 }
 
 void Segment::setOcc(double occ, int e_h_s_t) {

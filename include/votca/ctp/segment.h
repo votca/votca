@@ -133,10 +133,15 @@ private:
     bool   _has_e;       // from ::EInternal     input     DEFAULT 0
     bool   _has_h;
     
-    bool   _has_t;      //Exciton Properties               DEFAULT 0
+    
+    bool   _occ_s;      //state 3 = triplet
     bool   _occ_t;      // t:triplet s:singlet
     bool   _has_s;      // state 2 =. singlet
-    bool   _occ_s;      //state 3 = triplet
+    
+    
+    bool   _has_t;      //Exciton Properties               DEFAULT 0
+   
+   
     
     double _U_xX_nN_s;
     double _U_xX_nN_t;

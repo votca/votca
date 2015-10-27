@@ -21,7 +21,7 @@
 #define _VOTCA_CTP_GENCUBE_H
 
 #include <stdio.h>
-
+#include <votca/ctp/elements.h>
 #include <votca/ctp/logger.h>
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/ctp/votca_ctp_config.h>
@@ -221,14 +221,15 @@ namespace votca {
                 }
                 fprintf(out, "Created by VOTCA-CTP \n");
                 if ( _do_qp ){
-                    fprintf(out, "-%d %f %f %f \n", _atoms.size(), xstart, ystart, zstart);
+                    fprintf(out, "-%lu %f %f %f \n", _atoms.size(), xstart, ystart, zstart);
                 } else {
-                    fprintf(out, "%d %f %f %f \n", _atoms.size(), xstart, ystart, zstart);
+                    fprintf(out, "%lu %f %f %f \n", _atoms.size(), xstart, ystart, zstart);
                 }
                     
                 fprintf(out, "%d %f 0.0 0.0 \n", _xsteps + 1, xincr);
                 fprintf(out, "%d 0.0 %f 0.0 \n", _ysteps + 1, yincr);
                 fprintf(out, "%d 0.0 0.0 %f \n", _zsteps + 1, zincr);
+                Elements _elements;
                 for (ait = _atoms.begin(); ait != _atoms.end(); ++ait) {
                     // get center coordinates in Bohr
                     double x = (*ait)->x * ang2bohr;
@@ -236,8 +237,8 @@ namespace votca {
                     double z = (*ait)->z * ang2bohr;
 
                     string element = (*ait)->type;
-                    int atnum = element2number(element);
-                    double crg = element2core_ECP(element);
+                    int atnum =_elements.getEleNum(element);
+                    double crg = _elements.getNucCrgECP(element);
 
                     fprintf(out, "%d %f %f %f %f\n", atnum, crg, x, y, z);
 
@@ -615,46 +616,6 @@ bool GenCube::Evaluate() {
     return true;
         }
 
-        int GenCube::element2number(string element) {
-
-            if (element == "H") {
-                return 1;
-            } else if (element == "He") {
-                return 2;
-            } else if (element == "C") {
-                return 6;
-            } else if (element == "N") {
-                return 7;               
-            } else if (element == "O") {
-                return 8;
-            } else if (element == "S") {
-                return 16;
-            }
-
-
-
-        }
-
-        
-        
-        double GenCube::element2core_ECP(string element){
-            
-            if (element == "H") {
-                return 1.0;
-            } else if (element == "He") {
-                return 2.0;
-            } else if (element == "C") {
-                return 4.0;
-            } else if (element == "N") {
-                return 5.0;
-            } else if (element == "O") {
-                return 6.0;
-            } else if (element == "S") {
-                return 6.0;
-            }
-            
-            
-        }
 
 
 }}

@@ -85,7 +85,7 @@ class QMMIter
 
 public:
 
-    QMMIter(int id) : _hasdRdQ(false), _hasQM(false), _hasMM(false), _id(id) { ; }
+    QMMIter(int id) : _id(id),_hasdRdQ(false), _hasQM(false), _hasMM(false)  { ; }
    ~QMMIter() { ; }
 
    void ConvertPSitesToQMAtoms(vector< PolarSeg* > &, vector< QMAtom* > &);

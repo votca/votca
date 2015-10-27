@@ -324,7 +324,6 @@ public:
     const double &FragmentBChargesGS() const { return _GSq_fragB; }
     double &FragmentBChargesGS()  { return _GSq_fragB; }
     void FragmentNuclearCharges( int _frag , double& _nucCrgA, double& _nucCrgB );
-    int ElementToCharge( string element );
     
     
     /* ===
@@ -376,7 +375,7 @@ public:
     
 private:
     
-    static const double                      _conv_Hrt_eV = 27.21138386; // want to change this but might break compability of serialization  of .orb files
+    static const double                      _conv_Hrt_eV = 27.21138386; // want to change this but might break compability of FEserialization  of .orb files
 
     int                                     _basis_set_size;   
     int                                     _occupied_levels;

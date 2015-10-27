@@ -32,7 +32,7 @@ private:
     
     string                         _ptop_file;
     bool                           _do_restart;
-    int                            _restart_from_iter;
+    //int                            _restart_from_iter;
 
 };
 

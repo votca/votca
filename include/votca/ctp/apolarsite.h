@@ -214,7 +214,7 @@ private:
     Topology *_top;
     Segment  *_seg;
     Fragment *_frag;
-    res_t   _resolution;
+    
 
     vector < vector<double> > _Qs;
     int     _rank;
@@ -243,7 +243,7 @@ private:
     double FPx, FPy, FPz;                   // Electric field (due to permanent)
     double FUx, FUy, FUz;                   // Electric field (due to induced)
     vector< vec > U1_Hist;                  // Ind. u history
-    
+    res_t   _resolution;
     double PhiP;                            // Electric potential (due to perm.)
     double PhiU;                            // Electric potential (due to indu.)
     

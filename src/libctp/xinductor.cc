@@ -936,7 +936,7 @@ double XInductor::EnergyStatic(XJob *job) {
     double E_Sph1_Sph2 = 0.0;
     // ... 1st kind
     double eu_inter = 0.0;
-    double eu_intra = 0.0;
+    //double eu_intra = 0.0;
     double e_perm   = 0.0;
     // ... 2nd kind
     double epp      = 0.0;
@@ -949,9 +949,9 @@ double XInductor::EnergyStatic(XJob *job) {
     double e_f_non_c_non_c  = 0.0;   
     double e_f_non_c_out    = 0.0;
     double e_m_c            = 0.0;
-    double e_m_c_out        = 0.0;
+    //double e_m_c_out        = 0.0;
     double e_m_non_c        = 0.0;
-    double e_m_non_c_out    = 0.0;
+    //double e_m_non_c_out    = 0.0;
     double e_m_out          = 0.0;
     // =========================================================================
 
