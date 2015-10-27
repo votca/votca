@@ -7008,7 +7008,7 @@ void LebedevGrid::timestamp ( )
   //size_t len;
   //std::time_t now;
 
-  now = std::time ( NULL );
+  //now = std::time ( NULL );
   //tm_ptr = std::localtime ( &now );
 
   //len = std::strftime ( time_buffer, TIME_SIZE, "%d %B %Y %I:%M:%S %p", tm_ptr );
