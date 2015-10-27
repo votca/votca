@@ -17,7 +17,7 @@ namespace votca { namespace ctp {
 template<class QMPackage>
 QMAPEMachine<QMPackage>::QMAPEMachine(XJob *job, Ewald3DnD *cape, QMPackage *qmpack,
 	 Property *opt, string sfx, int nst)
-   : _subthreads(nst),_job(job), _cape(cape), _qmpack(qmpack), 
+   : _subthreads(nst),_job(job), _qmpack(qmpack), _cape(cape), 
 	  _grid_fg(true,true,true), _grid_bg(true,true,true),
      _fitted_charges(true,true,true),_isConverged(false) {
     
