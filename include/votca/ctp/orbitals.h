@@ -375,7 +375,7 @@ public:
     
 private:
     
-    static const double                      _conv_Hrt_eV = 27.21138386; // want to change this but might break compability of FEserialization  of .orb files
+    const double                      _conv_Hrt_eV; // want to change this but might break compability of FEserialization  of .orb files
 
     int                                     _basis_set_size;   
     int                                     _occupied_levels;

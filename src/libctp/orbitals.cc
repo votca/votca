@@ -52,7 +52,7 @@ class vector_less
         }
 };   
     
-Orbitals::Orbitals() { 
+Orbitals::Orbitals():_conv_Hrt_eV(27.21138386) { 
     
     _basis_set_size = 0;
     _occupied_levels = 0;
