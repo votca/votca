@@ -691,7 +691,7 @@ void IDFT::ReadJobFile(Topology *top) {
             QMPair *qmp = nblist.FindPair(segA,segB);
             
             if (qmp == NULL) { // there is no pair in the neighbor list with this name
-                LOG(logINFO, _log) << "No pair " <<  idA << ":" << idB << " found in the neighbor list. Ignoring" << flush; 
+                LOG_SAVE(logINFO, _log) << "No pair " <<  idA << ":" << idB << " found in the neighbor list. Ignoring" << flush; 
             }   else {
                 //LOG(logINFO, _log) << "Store in record: " <<  idA << ":" << idB << flush; 
                 records[qmp->getId()] = & ((*it)->get("output.pair"));
@@ -751,7 +751,7 @@ void IDFT::ReadJobFile(Topology *top) {
         if ( _ptype == QMPair::SuperExchange  ||  _ptype == QMPair::SuperExchangeAndHopping ) {
             cout << ":superexchange" << endl;
             list<Property*> pOverlap = pair_property->Select("overlap");
-            
+            /*
             // this is to select HOMO_A and HOMO_B 
             double overlapAB=0.0;
             int orbA=0;
@@ -769,7 +769,7 @@ void IDFT::ReadJobFile(Topology *top) {
                     break;
                 }
             }
-            
+            */
             // cout << " homoA:homoB, orbA:orbB " << homoA << ":" << homoB << "," << orbA << ":" << orbB;
 
             /*QMNBList::iterator nit;
@@ -917,7 +917,7 @@ void IDFT::ReadJobFile(Topology *top) {
 
     }
                     
-    LOG(logINFO, _log) << "Pairs [total:updated] " <<  _number_of_pairs << ":" << _current_pairs << " Incomplete jobs: " << _incomplete_jobs << flush; 
+    LOG_SAVE(logINFO, _log) << "Pairs [total:updated] " <<  _number_of_pairs << ":" << _current_pairs << " Incomplete jobs: " << _incomplete_jobs << flush; 
     cout << _log;
 }
 

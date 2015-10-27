@@ -728,7 +728,7 @@ void IGWBSE::ReadJobFile(Topology *top) {
             QMPair *qmp = nblist.FindPair(segA,segB);
             
             if (qmp == NULL) { // there is no pair in the neighbor list with this name
-                LOG(logINFO, _log) << "No pair " <<  idA << ":" << idB << " found in the neighbor list. Ignoring" << flush; 
+                LOG_SAVE(logINFO, _log) << "No pair " <<  idA << ":" << idB << " found in the neighbor list. Ignoring" << flush; 
             }   else {
                 //LOG(logINFO, _log) << "Store in record: " <<  idA << ":" << idB << flush; 
                 records[qmp->getId()] = & ((*it)->get("output.pair.type"));
@@ -804,7 +804,7 @@ void IGWBSE::ReadJobFile(Topology *top) {
 
     }
                     
-    LOG(logINFO, _log) << "Pairs [total:updated] " <<  _number_of_pairs << ":" << _current_pairs << " Incomplete jobs: " << _incomplete_jobs << flush; 
+    LOG_SAVE(logINFO, _log) << "Pairs [total:updated] " <<  _number_of_pairs << ":" << _current_pairs << " Incomplete jobs: " << _incomplete_jobs << flush; 
     cout << _log;
 }
 

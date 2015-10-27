@@ -830,10 +830,10 @@ namespace votca {
             bool _has_number_of_electrons = false;
             bool _has_basis_set_size = false;
             bool _has_overlap_matrix = false;
-            bool _has_vxc_matrix = false;
+            //bool _has_vxc_matrix = false;
             bool _has_charges = false;
-            bool _has_coordinates = false;
-            bool _has_qm_energy = false;
+            //bool _has_coordinates = false;
+            //bool _has_qm_energy = false;
             bool _has_self_energy = false;
 
             bool _read_vxc = false;
@@ -1099,7 +1099,7 @@ namespace votca {
                 if (coordinates_pos != std::string::npos && cpn == 0) {
                     ++cpn; // updates but ignores
                     LOG(logDEBUG, *_pLog) << "Getting the coordinates" << flush;
-                    _has_coordinates = true;
+                    //_has_coordinates = true;
                     boost::trim(_line);
                     string archive = _line;
                     while (_line.size() != 0) {
@@ -1162,7 +1162,7 @@ namespace votca {
                         properties[property[0]] = property[1];
                     }
                     LOG(logDEBUG, *_pLog) << "QM energy " << _orbitals->getQMEnergy() << flush;
-                    _has_qm_energy = true;
+                    //_has_qm_energy = true;
                     //_orbitals->_has_atoms = true;
                     //_orbitals->_has_qm_energy = true;
                     if (properties.count("HF") > 0) {
@@ -1238,7 +1238,7 @@ namespace votca {
                 _vxc.resize(_cart_basis_set_size);
 
 
-                _has_vxc_matrix = true;
+               // _has_vxc_matrix = true;
                 //cout << "Found the overlap matrix!" << endl;   
                 vector<int> _j_indeces;
 
