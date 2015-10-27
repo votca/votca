@@ -935,9 +935,9 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
         bool _found_optimization=false;
         if ( _is_optimization ){
                 std::string::size_type optimize_pos = _line.find("Optimization converged");
-               // if (optimize_pos != std::string::npos) {
-                        //bool _found_optimization = true;
-                //}
+                if (optimize_pos != std::string::npos) {
+                        _found_optimization = true;
+                }
         }
         
         std::string::size_type coordinates_pos = _line.find("Output coordinates");
