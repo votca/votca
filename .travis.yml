@@ -1,0 +1,64 @@
+#the original source of this file can be found in tools repository change it ther
+# changes in tools|csg tiggered a full rebuild
+# changes in csgapps|csg-manual|csg-tutorials only trigger tools+csg+ifself
+
+language: cpp
+
+sudo: false
+
+addons:
+  apt:
+    sources: boost-latest 
+    packages:
+      - ccache
+      - libfftw3-dev
+      - libgsl0-dev
+      - txt2tags
+      - libboost1.55-all-dev
+      - libexpat1-dev
+      - libsqlite3-dev
+      - pkg-config
+      - pgf
+      - texlive-fonts-recommended
+      - texlive-latex-extra
+      - doxygen
+      - graphviz
+      - python-numpy
+      - gnuplot-nox
+      - octave
+
+env:
+  global:
+    - CMAKE_VERSION=3.1.3-Linux-x86_64
+    - GMX_MAX_THREADS=8
+    - CCACHE_CPP2=yes
+  matrix: #NINJA=1 is currently not support by Travis' cmake, enable when >=2.8.9
+    - CTP=yes WERROR=yes J=4
+    - CTP=yes WALL=yes J=4
+
+before_script:
+  - rm -vrf * .git
+  - wget https://raw.githubusercontent.com/votca/buildutil/master/build.sh && chmod 755 build.sh
+  - mkdir -p "$HOME/votca/src" "$HOME/votca/share/votca/scripts/inverse" "$HOME/bin"
+  - wget -O "$HOME/votca/share/votca/scripts/inverse/cma.py" http://www.lri.fr/~hansen/cma.py
+  - ln -s /usr/bin/ccache "$HOME/bin/clang++"
+  - ln -s /usr/bin/ccache "$HOME/bin/clang"
+# download newer cmake for gmx
+  - wget -qO- http://www.cmake.org/files/v${CMAKE_VERSION:0:3}/cmake-${CMAKE_VERSION}.tar.gz | tar -xvz
+  - ln -vs $PWD/cmake-${CMAKE_VERSION}/bin/cmake "$HOME/bin/cmake"
+
+script:
+  - PATH="$HOME/bin:/usr/lib/ccache:$PATH" ./build.sh -Wu --dev --prefix "$HOME/votca" ${MAN:+--devdoc}
+    ${TEST:+--runtest=$TEST} ${WERROR:+--warn-to-errors} ${MINIMAL:+--minimal}
+    ${J:+-j$J} ${BDIR:+--builddir=$BDIR} ${NINJA:+--ninja} ${WALL:+--Wall}
+    --directory "$HOME/votca/src" --no-clean --depth 1
+    tools gromacs csg csgapps ${MAN:+csg-manual} ${TEST:+csg-tutorials}
+    ${CTP:+kmc moo ctp}
+
+cache:
+  directories:
+    - $HOME/.ccache
+
+compiler:
+  - clang
+  - gcc
