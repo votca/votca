@@ -7006,7 +7006,7 @@ void LebedevGrid::timestamp ( )
   static char time_buffer[TIME_SIZE];
   //const struct std::tm *tm_ptr;
   //size_t len;
-  std::time_t now;
+  //std::time_t now;
 
   now = std::time ( NULL );
   //tm_ptr = std::localtime ( &now );
