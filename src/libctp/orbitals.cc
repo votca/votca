@@ -357,8 +357,8 @@ bool Orbitals::Load(string file_name) {
         _bse_ctotal = _bse_cmax - _bse_cmin +1 ;
         _bse_size   = _bse_vtotal * _bse_ctotal;
           // indexing info BSE vector index to occupied/virtual orbital
-        for ( int _v = 0; _v < _bse_vtotal; _v++ ){
-            for ( int _c = 0; _c < _bse_ctotal ; _c++){
+        for ( unsigned _v = 0; _v < _bse_vtotal; _v++ ){
+            for ( unsigned _c = 0; _c < _bse_ctotal ; _c++){
                   _index2v.push_back( _bse_vmin + _v );
                   _index2c.push_back( _bse_cmin + _c );
             }
@@ -366,9 +366,9 @@ bool Orbitals::Load(string file_name) {
     }
     
     #pragma omp parallel for
-    for(int a=0;a<_dmatTS.size1();a++){
-        for(int b=0;b<_dmatTS.size2();b++){
-            for(int i=0;i<_bse_size;i++){
+    for(unsigned a=0;a<_dmatTS.size1();a++){
+        for(unsigned b=0;b<_dmatTS.size2();b++){
+            for(unsigned i=0;i<_bse_size;i++){
                 int occ=_index2v[i];
                 int virt=_index2c[i];
                 _dmatTS(a,b)+=sqrt2*_BSECoefs(i,state)*_MOs( occ , a ) * _MOs( virt , b ); //check factor 2??
@@ -422,8 +422,8 @@ std::vector<ub::matrix<double> >& Orbitals::DensityMatrixExcitedState(ub::matrix
         _bse_ctotal = _bse_cmax - _bse_cmin +1 ;
         _bse_size   = _bse_vtotal * _bse_ctotal;
           // indexing info BSE vector index to occupied/virtual orbital
-          for ( int _v = 0; _v < _bse_vtotal; _v++ ){
-              for ( int _c = 0; _c < _bse_ctotal ; _c++){
+          for ( unsigned _v = 0; _v < _bse_vtotal; _v++ ){
+              for ( unsigned _c = 0; _c < _bse_ctotal ; _c++){
                   _index2v.push_back( _bse_vmin + _v );
                   _index2c.push_back( _bse_cmin + _c );
                }
@@ -436,7 +436,7 @@ std::vector<ub::matrix<double> >& Orbitals::DensityMatrixExcitedState(ub::matrix
      ub::matrix<float> _Acc = ub::zero_matrix<float>( this->_bse_ctotal , this->_bse_ctotal );
      ub::matrix<float> _Avv = ub::zero_matrix<float>( this->_bse_vtotal , this->_bse_vtotal );
   
-     for ( int _idx1 = 0 ; _idx1 < _bse_size ; _idx1++) {
+     for ( unsigned _idx1 = 0 ; _idx1 < _bse_size ; _idx1++) {
          
          int _v = this->_index2v[_idx1];
          int _c = this->_index2c[_idx1];
@@ -525,7 +525,7 @@ std::vector<ub::matrix<double> >& Orbitals::DensityMatrixExcitedState(ub::matrix
      for ( int _i = 0 ; _i < _frag; _i++){
         _PopA += _prodmat(_i,_i);
      }
-     for ( int _i = _frag ; _i < _overlapmatrix.size1(); _i++){
+     for ( unsigned _i = _frag ; _i < _overlapmatrix.size1(); _i++){
        _PopB += _prodmat(_i,_i);
      }
            

@@ -83,8 +83,8 @@ namespace votca {
 
             // iterative refinement of qp energies
             int _max_iter = 5;
-            int _levelsum = _Mmn[0].size2(); // total number of bands
-            int _gwsize = _Mmn[0].size1(); // size of the GW basis
+            unsigned _levelsum = _Mmn[0].size2(); // total number of bands
+            unsigned _gwsize = _Mmn[0].size1(); // size of the GW basis
             const double pi = boost::math::constants::pi<double>();
 
 
@@ -109,7 +109,7 @@ namespace votca {
                     for (int _i_gw = 0; _i_gw < _gwsize; _i_gw++) {
 
                         // loop over all bands
-                        for (int _i = 0; _i < _levelsum; _i++) {
+                        for (unsigned _i = 0; _i < _levelsum; _i++) {
 
                             double occ = 1.0;
                             if (_i > _homo) occ = -1.0; // sign for empty levels
@@ -173,11 +173,11 @@ namespace votca {
                     const ub::matrix<double>& Mmn = _Mmn[ _gw_level + _qpmin ];
 
                     // loop over all functions in GW basis
-                    for (int _i_gw = 0; _i_gw < _gwsize; _i_gw++) {
+                    for (unsigned _i_gw = 0; _i_gw < _gwsize; _i_gw++) {
 
 
                         // loop over all screening levels
-                        for (int _i = 0; _i < _levelsum; _i++) {
+                        for (unsigned _i = 0; _i < _levelsum; _i++) {
 
                             double occ = 1.0;
                             if (_i > _homo) occ = -1.0; // sign for empty levels

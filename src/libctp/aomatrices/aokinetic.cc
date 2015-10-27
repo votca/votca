@@ -389,8 +389,8 @@ namespace votca { namespace ctp {
              ub::matrix<double> _trafo_col_tposed = ub::trans( _trafo_col );
              ub::matrix<double> kin_sph = ub::prod( kin_tmp, _trafo_col_tposed );
              // save to _matrix
-             for ( int i = 0; i< _matrix.size1(); i++ ) {
-                 for (int j = 0; j < _matrix.size2(); j++){
+             for ( unsigned i = 0; i< _matrix.size1(); i++ ) {
+                 for (unsigned j = 0; j < _matrix.size2(); j++){
                      _matrix(i,j) += kin_sph(i+_shell_row->getOffset(),j+_shell_col->getOffset());
                     }
             }

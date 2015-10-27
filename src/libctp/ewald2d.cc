@@ -60,7 +60,7 @@ EWD::triple<> Ewald3D2D::ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) {
     // K=K TERM
     LOG(logDEBUG,*_log) << flush;
     double EKK_fgC_bgP = 0.0;    
-    int N_EKK_memory = int(0.5*(_NA_max+_NB_max)+0.5);
+    unsigned N_EKK_memory = unsigned(0.5*(_NA_max+_NB_max)+0.5);
     int N_K_proc = 0;
     vector< double > dEKKs;
     _converged_K = false;
@@ -92,7 +92,7 @@ EWD::triple<> Ewald3D2D::ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) {
         else {
             dEKKs[N_K_proc % N_EKK_memory] = dEKK;
         }
-        for (int i = 0; i < dEKKs.size(); ++i) {
+        for (unsigned i = 0; i < dEKKs.size(); ++i) {
             dEKK_rms += dEKKs[i]*dEKKs[i];
         }
         dEKK_rms /= dEKKs.size();

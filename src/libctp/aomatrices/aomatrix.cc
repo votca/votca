@@ -65,7 +65,7 @@ namespace votca { namespace ctp {
             int _row_end   = _row_start + _shell_row->getNumFunc();
            
             // AOMatrix is symmetric, restrict explicit calculation to triangular matrix
-            for ( int _col = 0; _col <= _row ; _col++ ){
+            for ( unsigned _col = 0; _col <= _row ; _col++ ){
 
                 AOShell* _shell_col = aobasis->getShell( _col );
                 

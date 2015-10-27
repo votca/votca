@@ -467,10 +467,10 @@ void APolarSite::WritePdbLine(FILE *out, const string &tag) {
 
 
 void APolarSite::WriteXyzLine(FILE *out, vec &shift, string format) {
-
+/*
     double int2ext = 1.0;
 
-    vec pos = _pos + shift;
+    
 
     if (format == "gaussian") {
         int2ext = 10.;
@@ -478,7 +478,8 @@ void APolarSite::WriteXyzLine(FILE *out, vec &shift, string format) {
     else {
         int2ext = 10.;
     }
-
+*/
+    vec pos = _pos + shift;
     fprintf(out, "%-2s %+4.9f %+4.9f %+4.9f \n",
             _name.c_str(),
             pos.getX()*10, pos.getY()*10, pos.getZ()*10);
@@ -682,7 +683,7 @@ void APolarSite::WriteXmlLine(std::ostream &out) {
     for (int state = -1; state < 2; ++state) {
         out << "<state>" << endl;
         out << state << endl;
-        for (int i = 0; i < _Qs[state+1].size(); ++i) {
+        for (unsigned i = 0; i < _Qs[state+1].size(); ++i) {
             out << _Qs[state+1][i] << " ";
         }
         out << endl;
@@ -847,7 +848,7 @@ vector<APolarSite*> APS_FROM_MPS(string filename, int state, QMThread *thread) {
                 if (lineRank == 0) {
                     Q0_total += boost::lexical_cast<double>(split[0]);
                 }
-                for (int i = 0; i < split.size(); i++) {
+                for (unsigned i = 0; i < split.size(); i++) {
                     double qXYZ = boost::lexical_cast<double>(split[i]);
                     // Convert e*(a_0)^k to e*(nm)^k where k = rank
                     double BOHR2NM = 0.0529189379;

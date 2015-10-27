@@ -143,12 +143,12 @@ ub::vector<double> Espfit:: EvalNuclearPotential( vector< QMAtom* >& _atoms, Gri
     LOG(logDEBUG, *_log) << TimeStamp() << " Calculating ESP of nuclei at CHELPG grid points"  << flush;
     ub::vector<double> _NucPatGrid=ub::zero_vector<double>(_gridpoints.size());
     cout << endl;
-    for ( int i = 0 ; i < _gridpoints.size(); i++){
+    for ( unsigned i = 0 ; i < _gridpoints.size(); i++){
       double x_k = _gridpoints[i](0);
       double y_k = _gridpoints[i](1);
       double z_k = _gridpoints[i](2);
 
-      for ( int j = 0; j < _atoms.size(); j++){
+      for ( unsigned j = 0; j < _atoms.size(); j++){
 
             double x_j = A2nm*_atoms[j]->x;
             double y_j = A2nm*_atoms[j]->y;
@@ -284,7 +284,7 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >
             double x_j = _fitcenters[_j](0);
             double y_j = _fitcenters[_j](1);
             double z_j = _fitcenters[_j](2);
-            for ( int _k=0; _k < _gridpoints.size(); _k++){
+            for ( unsigned _k=0; _k < _gridpoints.size(); _k++){
             
                 double x_k = _gridpoints[_k](0);
                 double y_k = _gridpoints[_k](1);

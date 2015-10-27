@@ -277,8 +277,8 @@ namespace votca {
       */         
 		ub::matrix<double> VXC=_gridIntegration.IntegrateVXC_Atomblock(_dftAOdmat,  basis);
                 ub::matrix<double> VXC2=_gridIntegration.IntegrateVXC(_dftAOdmat,  basis);
-		 for ( int iout=0; iout<_dftAOdmat.size1();iout++){
-		for ( int jout=0; jout<_dftAOdmat.size1();jout++){
+		 for ( unsigned iout=0; iout<_dftAOdmat.size1();iout++){
+		for ( unsigned jout=0; jout<_dftAOdmat.size1();jout++){
 
 		  cout.precision(10);
 		  cout << "VXC " << std::setprecision(10)  << iout+1 << " " << jout+1 << " " << VXC(iout,jout) <<  " " << VXC2(iout,jout) <<endl;
@@ -495,13 +495,13 @@ namespace votca {
             //set number of electrons and such
            _orbitals->setBasisSetSize(_dftbasis.AOBasisSize());
            
-           for (int i=0;i<_atoms.size();i++){
+           for (unsigned i=0;i<_atoms.size();i++){
                _numofelectrons+=_elements.getNucCrg(_atoms[i]->type);
            }
 
             // if ECP
             if (_with_ecp) {
-                for (int i = 0; i < _atoms.size(); i++) {
+                for (unsigned i = 0; i < _atoms.size(); i++) {
                     _numofelectrons-= _ecpbasisset.getElement(_atoms[i]->type)->getNcore() ;
                 }
             }

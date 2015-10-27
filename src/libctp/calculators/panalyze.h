@@ -121,7 +121,7 @@ void PAnalyze::CoordinationNumber(Topology *top) {
     fprintf(out, "# PANALYZE: NUMBER OF NEIGHBORS. \n");
     fprintf(out, "# AVG %4.7f STD %4.7f MIN %5d MAX %5d \n", 
                     AVG,      STD,      MIN,      MAX);
-    for (int i=0; i<frequencies.size(); i++) {
+    for (unsigned i=0; i<frequencies.size(); i++) {
         fprintf(out, "%5d %5d \n", MIN+i, frequencies[i]);
     }
     fclose(out);
@@ -192,7 +192,7 @@ void PAnalyze::SiteConnection(Topology *top) {
             if(MINR <= distance && distance <= MAXR){
                 int inpairlist = 0;
                 vector< vector<int> >::iterator thissegids;
-                for(int i = 0; i<segids.size(); i++){
+                for(unsigned i = 0; i<segids.size(); i++){
                     if(((*seg1)->getId()==segids[i][0] && (*seg2)->getId() == segids[i][1]) || ((*seg1)->getId()==segids[i][1] && (*seg2)->getId() == segids[i][2])){
                         inpairlist = 1;
                         break;

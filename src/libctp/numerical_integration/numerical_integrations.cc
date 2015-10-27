@@ -2057,8 +2057,8 @@ namespace votca {
             points.open("molgrid.xyz", ofstream::out);
             points << _totalgridsize << endl;
             points << endl;
-            for ( int i = 0 ; i < _grid.size(); i++){
-                for ( int j = 0 ; j < _grid[i].size(); j++){
+            for ( unsigned i = 0 ; i < _grid.size(); i++){
+                for ( unsigned j = 0 ; j < _grid[i].size(); j++){
                 points << "X " << _grid[i][j].grid_x/ang2bohr << " " << _grid[i][j].grid_y/ang2bohr << " " << _grid[i][j].grid_z/ang2bohr << " "  << _grid[i][j].grid_weight << endl;
                 }
             }
