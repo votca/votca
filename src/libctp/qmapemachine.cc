@@ -125,7 +125,7 @@ void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
     
     // FIGURE OUT CHARGE + MULTIPLICITY
     double dQ = 0.0;
-    for (int i = 0; i < _job->getPolarTop()->QM0().size(); ++i) {
+    for (unsigned i = 0; i < _job->getPolarTop()->QM0().size(); ++i) {
         dQ += _job->getPolarTop()->QM0()[i]->CalcTotQ();
     }
     int chrg = round(dQ);
@@ -516,7 +516,7 @@ bool QMAPEMachine<QMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 
 		// go through list of singlets
 		const std::vector<std::vector<double> >& TDipoles = orb.TransitionDipoles();
-		for (int _i=0; _i < TDipoles.size(); _i++ ) {
+		for (unsigned _i=0; _i < TDipoles.size(); _i++ ) {
 
 			double osc = (TDipoles[_i][0] * TDipoles[_i][0] + TDipoles[_i][1] * TDipoles[_i][1] + TDipoles[_i][2] * TDipoles[_i][2]) * 1.0 / 3.0 * (orb.BSESingletEnergies()[_i]) ;
 			if ( osc > _osc_threshold ) _state_index.push_back(_i);
@@ -527,11 +527,11 @@ bool QMAPEMachine<QMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 	} else {
 
 		if ( _type == "singlet" ){
-		   for (int _i=0; _i < orb.TransitionDipoles().size(); _i++ ) {
+		   for (unsigned _i=0; _i < orb.TransitionDipoles().size(); _i++ ) {
 			   _state_index.push_back(_i);
 		   }
 		} else {
-		   for (int _i=0; _i < orb.BSETripletEnergies().size(); _i++ ) {
+		   for (unsigned _i=0; _i < orb.BSETripletEnergies().size(); _i++ ) {
 			   _state_index.push_back(_i);
 		   }
 		}
@@ -541,7 +541,7 @@ bool QMAPEMachine<QMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
             
             // go through list of singlets
             const std::vector<std::vector<double> >& TDipoles = orb.TransitionDipoles();
-            for (int _i=0; _i < TDipoles.size(); _i++ ) {
+            for (unsigned _i=0; _i < TDipoles.size(); _i++ ) {
                 
                 double osc = (TDipoles[_i][0] * TDipoles[_i][0] + TDipoles[_i][1] * TDipoles[_i][1] + TDipoles[_i][2] * TDipoles[_i][2]) * 1.0 / 3.0 * (orb.BSESingletEnergies()[_i]) ;
                 if ( osc > _osc_threshold ) _state_index.push_back(_i);
@@ -552,11 +552,11 @@ bool QMAPEMachine<QMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
         } else {
             
             if ( _type == "singlet" ){
-               for (int _i=0; _i < orb.TransitionDipoles().size(); _i++ ) {
+               for (unsigned _i=0; _i < orb.TransitionDipoles().size(); _i++ ) {
                    _state_index.push_back(_i);
                }
             } else {
-               for (int _i=0; _i < orb.BSETripletEnergies().size(); _i++ ) {
+               for (unsigned _i=0; _i < orb.BSETripletEnergies().size(); _i++ ) {
                    _state_index.push_back(_i);
                }
             }
@@ -570,7 +570,7 @@ bool QMAPEMachine<QMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
              // go through list of singlets
             const std::vector<double>& dQ_fragA = orb.FragmentAChargesSingEXC();
             //const std::vector<double>& dQ_fragB = orb.FragmentBChargesSingEXC();
-            for (int _i=0; _i < _state_index.size(); _i++ ) {
+            for (unsigned _i=0; _i < _state_index.size(); _i++ ) {
                 if ( std::abs(dQ_fragA[_i]) > _dQ_threshold ) {
                     _state_index_copy.push_back(_state_index[_i]);
                 }
@@ -580,7 +580,7 @@ bool QMAPEMachine<QMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
               // go through list of triplets
             const std::vector<double>& dQ_fragA = orb.FragmentAChargesTripEXC();
             //const std::vector<double>& dQ_fragB = orb.FragmentBChargesTripEXC();
-            for (int _i=0; _i < _state_index.size(); _i++ ) {
+            for (unsigned _i=0; _i < _state_index.size(); _i++ ) {
                 if ( std::abs(dQ_fragA[_i]) > _dQ_threshold ) {
                     _state_index_copy.push_back(_state_index[_i]);
                 }
@@ -596,13 +596,14 @@ bool QMAPEMachine<QMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 
 	}
 	// - output its energy
+        /*
 	double energy___ex = 0.0;
 	if ( _type == "singlet" ){
 		energy___ex = orb.BSESingletEnergies()[_state_index[_state-1]]*13.6058; // to eV
 	} else if ( _type == "triplet" ) {
 		energy___ex = orb.BSETripletEnergies()[_state_index[_state-1]]*13.6058; // to eV
 	}
-
+*/
 	// ub::matrix<double> &_dft_orbitals_GS = orb_iter_output.MOCoefficients();
 	// int _parse_orbitals_status_GS = _qmpack->ParseOrbitalsFile( &orb_iter_output );
 
@@ -716,9 +717,9 @@ void QMAPEIter::UpdatePosChrgFromQMAtoms(vector< QMAtom* > &qmatoms,
     double dQ_RMS = 0.0;
     double dQ_SUM = 0.0;
     
-    for (int i = 0, qac = 0; i < psegs.size(); ++i) {
+    for (unsigned i = 0, qac = 0; i < psegs.size(); ++i) {
         PolarSeg *pseg = psegs[i];
-        for (int j = 0; j < pseg->size(); ++j, ++qac) {
+        for (unsigned j = 0; j < pseg->size(); ++j, ++qac) {
             
             // Retrieve info from QMAtom
             QMAtom *qmatm = qmatoms[qac];
@@ -758,9 +759,9 @@ void QMAPEMachine<QMPackage>::GenerateQMAtomsFromPolarSegs(vector<PolarSeg*> &qm
     double AA_to_NM = 0.1; // Angstrom to nanometer
     
     // QM REGION
-    for (int i = 0; i < qm.size(); ++i) {
+    for (unsigned i = 0; i < qm.size(); ++i) {
         vector<APolarSite*> *pseg = qm[i];
-        for (int j = 0; j < pseg->size(); ++j) {
+        for (unsigned j = 0; j < pseg->size(); ++j) {
             APolarSite *aps = (*pseg)[j];
             string type = "qm";
             vec pos = aps->getPos()/AA_to_NM;
@@ -770,9 +771,9 @@ void QMAPEMachine<QMPackage>::GenerateQMAtomsFromPolarSegs(vector<PolarSeg*> &qm
     }
     
     // MM REGION (EXPANDED VIA PARTIAL CHARGES)
-    for (int i = 0; i < mm.size(); ++i) {
+    for (unsigned i = 0; i < mm.size(); ++i) {
     	vector<APolarSite*> *pseg = mm[i];
-        for (int j = 0; j < pseg->size(); ++j) {
+        for (unsigned j = 0; j < pseg->size(); ++j) {
             APolarSite *aps = (*pseg)[j];
             string type = "mm";
             vec pos = aps->getPos()/AA_to_NM;

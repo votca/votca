@@ -306,7 +306,7 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
             LOG(logDEBUG, _log) << "      BSE singlet excitons energies:   " << flush;
             const double Ryd2eV =13.605692;
             const vector<float> energies= _orbitals.BSESingletEnergies();
-            for (int i=0;i<energies.size();i++){
+            for (unsigned i=0;i<energies.size();i++){
                 LOG(logDEBUG, _log) << "Singlet" <<i+1<<"[eV]: "<<energies[i]*Ryd2eV << flush;
             }
         }    
@@ -314,12 +314,12 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
             LOG(logDEBUG, _log) << "      BSE singlet oscillatorstrengths   " << flush;
             const std::vector<std::vector<double> > trdipoles=_orbitals.TransitionDipoles();
             const vector<float> energies= _orbitals.BSESingletEnergies();
-            for (int i=0;i<trdipoles.size();i++){
+            for (unsigned i=0;i<trdipoles.size();i++){
                 double oscstrength=(trdipoles[i][0]*trdipoles[i][0]+trdipoles[i][1]*trdipoles[i][1]+trdipoles[i][2]*trdipoles[i][2])/3.0*energies[i];
                 LOG(logDEBUG, _log) << "Singlet" <<i+1<<": "<<oscstrength << flush;
             }
             LOG(logDEBUG, _log) << "      BSE singlet transitiondipoles (length gauge)   " << flush;
-            for (int i=0;i<trdipoles.size();i++){
+            for (unsigned i=0;i<trdipoles.size();i++){
 
                 LOG(logDEBUG, _log) << "Singlet" <<i+1<<" x y z : "<< trdipoles[i][0] <<" "<< trdipoles[i][1] <<" "<< trdipoles[i][2] << flush;
             }

@@ -157,7 +157,7 @@ bool Spectrum::Evaluate() {
     //int _n_exc = TransitionDipoles.size();
     int _n_exc = _maxexc - _minexc +1;
 
-    if ( _maxexc > TransitionDipoles.size() ) {
+    if ( _maxexc > int(TransitionDipoles.size()) ) {
       LOG(logDEBUG, _log) << " Transition dipoles for some excitations missing! " << flush;
       exit(1);
     }

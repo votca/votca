@@ -37,7 +37,7 @@ namespace votca {
          */
         void TCMatrix::Cleanup() {
 
-            for (int _i = 0; _i < _matrix.size(); _i++) {
+            for (unsigned _i = 0; _i < _matrix.size(); _i++) {
                 _matrix[ _i ].resize(0, 0, false);
             }
             _matrix.clear();
@@ -66,7 +66,7 @@ namespace votca {
            void TCMatrix::Print(string _ident) {
 	  //cout << "\n" << endl;
             for (int k = 0; k < this->mtotal; k++) {
-                for (int i = 0; i < _matrix[1].size1(); i++) {
+                for (unsigned i = 0; i < _matrix[1].size1(); i++) {
                     for (int j = 0; j< this->ntotal; j++) {
                         cout << _ident << "[" << i + 1 << ":" << k + 1 << ":" << j + 1 << "] " << this->_matrix[k](i, j) << endl;
                     }
@@ -90,7 +90,7 @@ namespace votca {
 
             // loop over all shells in the GW basis and get _Mmn for that shell
             #pragma omp parallel for //private(_block)
-            for ( int _is= 0; _is <  _gwbasis._aoshells.size() ; _is++ ){
+            for ( unsigned _is= 0; _is <  _gwbasis._aoshells.size() ; _is++ ){
             // for (vector< AOShell* >::iterator _is = _gwbasis.firstShell(); _is != _gwbasis.lastShell(); _is++) {
                 //cout << " act threads: " << omp_get_thread_num( ) << " total threads " << omp_get_num_threads( ) << " max threads " << omp_get_max_threads( ) <<endl;
                 AOShell* _shell = _gwbasis.getShell(_is);
@@ -164,7 +164,7 @@ namespace votca {
                         //ub::matrix<float> _temp = ub::prod(_m_orbitals, _subvector);
 
                         // put _temp into _imstore
-                        for (int _m_level = 0; _m_level < _temp.size1(); _m_level++) {
+                        for (unsigned _m_level = 0; _m_level < _temp.size1(); _m_level++) {
                             for (int _i_gw = 0; _i_gw < _shell->getNumFunc(); _i_gw++) {
                                 int _ridx = _shell->getNumFunc() * (_m_level - this->mmin) + _i_gw;
 
@@ -214,7 +214,7 @@ namespace votca {
                 _matrix[i].resize(0,0,false);
             }
 
-            for ( int i=min; i < _matrix.size(); i++){
+            for ( unsigned i=min; i < _matrix.size(); i++){
                 _matrix[i].resize(size1,max+1);
             }
 

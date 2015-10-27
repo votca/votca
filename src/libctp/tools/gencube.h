@@ -391,7 +391,7 @@ namespace votca {
                                 }
 
                                 double QP_at_grid = 0.0;
-                                for (int _i = 0; _i < Ftemp.size1(); _i++) {
+                                for (unsigned _i = 0; _i < Ftemp.size1(); _i++) {
                                     QP_at_grid += Ftemp(_i,0) * tmat(_i,0);
                                 }
 

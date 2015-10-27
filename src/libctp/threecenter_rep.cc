@@ -5404,13 +5404,13 @@ R[Cart::zz][Cart::zz][Cart::zzz]=R[Cart::zzz][Cart::z][Cart::zzz]+amb2*R[Cart::z
             // forward iteration
             _FmT[0]=0.50*sqrt(pi/_T)* erf(sqrt(_T));
 
-            for (int m = 1; m < _FmT.size(); m++ ){
+            for (unsigned m = 1; m < _FmT.size(); m++ ){
                 _FmT[m] = (2*m-1) * _FmT[m-1]/(2.0*_T) - exp(-_T)/(2.0*_T) ;
             }
         }
 
         if ( _T < 1e-10 ){
-           for ( int m=0; m < _FmT.size(); m++){
+           for ( unsigned m=0; m < _FmT.size(); m++){
                _FmT[m] = 1.0/(2.0*m+1.0) - _T/(2.0*m+3.0); 
            }
         }

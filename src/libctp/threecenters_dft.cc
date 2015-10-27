@@ -35,7 +35,7 @@ namespace votca {
          */
         void TCMatrix_dft::Cleanup() {
 
-            for (int _i = 0; _i < _matrix.size(); _i++) {
+            for (unsigned _i = 0; _i < _matrix.size(); _i++) {
                 _matrix[ _i ].resize(0, 0, false);
             }
             _matrix.clear();
@@ -67,7 +67,7 @@ namespace votca {
             */ 
             // loop over all shells in the GW basis and get _Mmn for that shell
             //#pragma omp parallel for //private(_block)
-            for ( int _is= 0; _is <  _auxbasis._aoshells.size() ; _is++ ){
+            for ( unsigned _is= 0; _is <  _auxbasis._aoshells.size() ; _is++ ){
             // for (vector< AOShell* >::iterator _is = _gwbasis.firstShell(); _is != _gwbasis.lastShell(); _is++) {
                 //cout << " act threads: " << omp_get_thread_num( ) << " total threads " << omp_get_num_threads( ) << " max threads " << omp_get_max_threads( ) <<endl;
                 AOShell* _shell = _auxbasis.getShell(_is);

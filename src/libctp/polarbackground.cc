@@ -584,8 +584,8 @@ void PolarBackground::RThread::FP_FieldCalc() {
         int N_shells = int(R_co_max/dR_shell)+1;
         vector< vector<PolarNb*> > shelled_nbs;
         shelled_nbs.resize(N_shells);
-        int allocated_count = 0;
-        int deleted_count = 0;
+        unsigned allocated_count = 0;
+        unsigned deleted_count = 0;
         
         for (sit2 = _full_bg_P.begin(); sit2 < _full_bg_P.end(); ++sit2) {
             PolarSeg *pseg2 = *sit2;
@@ -741,8 +741,8 @@ void PolarBackground::RThread::FU_FieldCalc() {
             int N_shells = int(R_co_max/dR_shell)+1;
             vector< vector<PolarNb*> > shelled_nbs;
             shelled_nbs.resize(N_shells);
-            int allocated_count = 0;
-            int deleted_count = 0;
+            unsigned allocated_count = 0;
+            unsigned deleted_count = 0;
 
             for (sit2 = _full_bg_P.begin(); sit2 < _full_bg_P.end(); ++sit2) {
                 PolarSeg *pseg2 = *sit2;

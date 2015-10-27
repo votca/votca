@@ -364,7 +364,6 @@ void DFT::XYZ2Orbitals(Orbitals* _orbitals, string filename){
                 ifstream in;
                 double x, y, z;
                 //int natoms, id;
-                int id;
                 string label, type;
                 vec pos;
 
@@ -373,7 +372,7 @@ void DFT::XYZ2Orbitals(Orbitals* _orbitals, string filename){
                 if (!in) throw runtime_error(string("Error reading coordinates from: ")
                         + _xyzfile);
 
-                id = 1;
+                //id = 1;
                 while (in.good()) { // keep reading until end-of-file
                     in >> type;
                     in >> x;

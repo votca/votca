@@ -525,7 +525,7 @@ EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum(vector<PolarSeg*> &target) {
         this->SetupMidground(R_max);
         
         // FOR EACH FOREGROUND SEGMENT (FGC) ...
-        int energy_converged_count = 0;
+        unsigned energy_converged_count = 0;
         for (sit1 = target.begin(); sit1 != target.end(); ++sit1) {        
             (*sit1)->ClearPolarNbs();
 
@@ -860,7 +860,7 @@ EWD::triple<> PEwald3D3D::CalculateForegroundCorrection(vector<PolarSeg*> &targe
     vector<APolarSite*> ::iterator pit1;
     vector<PolarSeg*>::iterator sit2; 
     vector<APolarSite*> ::iterator pit2;
-    double EC = 0.0;
+    //double EC = 0.0;
     double sum_pp = 0.0;
     double sum_pu = 0.0;
     double sum_uu = 0.0;
@@ -879,7 +879,7 @@ EWD::triple<> PEwald3D3D::CalculateForegroundCorrection(vector<PolarSeg*> &targe
         }
     }
     
-    EC = sum_pp + sum_pu + sum_uu;    
+    //EC = sum_pp + sum_pu + sum_uu;    
     return EWD::triple<>(sum_pp, sum_pu, sum_uu);
     //return EC;
 }
@@ -908,7 +908,7 @@ void PEwald3D3D::Field_ConvergeRealSpaceSum() {
 
     
     // FOR EACH FOREGROUND SEGMENT (FGC) ...
-    int field_converged_count = 0;
+    unsigned field_converged_count = 0;
     for (sit1 = _fg_C.begin(); sit1 != _fg_C.end(); ++sit1) {
         (*sit1)->ClearPolarNbs();
         
@@ -1283,7 +1283,7 @@ void PEwald3D3D::Potential_ConvergeRealSpaceSum(vector<PolarSeg*> &target) {
         this->SetupMidground(R_max);
         
         // FOR EACH FOREGROUND SEGMENT (FGC) ...
-        int energy_converged_count = 0;
+        unsigned energy_converged_count = 0;
         for (sit1 = target.begin(); sit1 != target.end(); ++sit1) {        
             (*sit1)->ClearPolarNbs();
 
