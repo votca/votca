@@ -23,6 +23,7 @@
 #include "qmpackages/gaussian.h"
 #include "qmpackages/turbomole.h"
 #include "qmpackages/nwchem.h"
+#include "qmpackages/orca.h"
 #include "qmpackages/gw.h"
 
 namespace votca { namespace ctp {
@@ -32,6 +33,7 @@ void QMPackageFactory::RegisterAll(void)
         QMPackages().Register<Gaussian>         ("gaussian");
         QMPackages().Register<Turbomole>        ("turbomole");
         QMPackages().Register<NWChem>           ("nwchem");
+        QMPackages().Register<Orca>             ("orca");
         QMPackages().Register<GW>               ("gw");}
 
 }}

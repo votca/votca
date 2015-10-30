@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="90">
+<configurationDescriptor version="95">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <logicalFolder name="f2" displayName="Calculators" projectFiles="true">
@@ -146,6 +146,8 @@
       <itemPath>../../src/libctp/qmpackages/gw.h</itemPath>
       <itemPath>../../src/libctp/qmpackages/nwchem.cc</itemPath>
       <itemPath>../../src/libctp/qmpackages/nwchem.h</itemPath>
+      <itemPath>../../src/libctp/qmpackages/orca.cc</itemPath>
+      <itemPath>../../src/libctp/qmpackages/orca.h</itemPath>
       <itemPath>../../src/libctp/qmpackages/turbomole.cc</itemPath>
       <itemPath>../../src/libctp/qmpackages/turbomole.h</itemPath>
     </logicalFolder>
@@ -884,6 +886,13 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libctp/qmpackages/orca.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/orca.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../src/libctp/qmpackages/turbomole.cc"
             ex="false"
             tool="1"
@@ -1607,6 +1616,13 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/orca.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/qmpackages/orca.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/qmpackages/turbomole.cc"
             ex="false"

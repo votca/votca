@@ -87,6 +87,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/648834637/gaussian.o \
 	${OBJECTDIR}/_ext/648834637/gw.o \
 	${OBJECTDIR}/_ext/648834637/nwchem.o \
+	${OBJECTDIR}/_ext/648834637/orca.o \
 	${OBJECTDIR}/_ext/648834637/turbomole.o \
 	${OBJECTDIR}/_ext/484457893/qmpair.o \
 	${OBJECTDIR}/_ext/484457893/qmtool.o \
@@ -393,6 +394,11 @@ ${OBJECTDIR}/_ext/648834637/nwchem.o: nbproject/Makefile-${CND_CONF}.mk ../../sr
 	${MKDIR} -p ${OBJECTDIR}/_ext/648834637
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/648834637/nwchem.o ../../src/libctp/qmpackages/nwchem.cc
+
+${OBJECTDIR}/_ext/648834637/orca.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libctp/qmpackages/orca.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/648834637
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/648834637/orca.o ../../src/libctp/qmpackages/orca.cc
 
 ${OBJECTDIR}/_ext/648834637/turbomole.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libctp/qmpackages/turbomole.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/648834637
