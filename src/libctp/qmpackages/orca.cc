@@ -36,6 +36,8 @@ namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
     
 void Orca::Initialize( Property *options ) {
+    
+    //good luck
 
      // Orca file names
     string fileName = "system";
