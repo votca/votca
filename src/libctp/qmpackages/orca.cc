@@ -110,7 +110,7 @@ bool Orca::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_guess 
     vector< Atom* > ::iterator ait;
     vector< Segment* >::iterator sit;
     vector<string> results;
-    int qmatoms = 0;
+   // int qmatoms = 0;
     string temp_suffix = "/id";
     string scratch_dir_backup = _scratch_dir;
     ofstream _com_file;
@@ -368,8 +368,8 @@ bool Orca::Run()
             //_command  = "cd " + _run_dir + "; mkdir -p " + _scratch_dir + ";  mpirun -np " +  boost::lexical_cast<string>(_threads) + " " + _executable + " " + _input_file_name + "> "+  _log_file_name ;
             _command = "cd " + _run_dir + "; sh " + _shell_file_name;
         }
-        
-        int i = system ( _command.c_str() );
+        system ( _command.c_str() );
+        //int i = system ( _command.c_str() );
         
         if ( CheckLogFile() ) {
             LOG(logDEBUG,*_pLog) << "Finished Orca job" << flush;
@@ -442,7 +442,7 @@ bool Orca::ParseOrbitalsFile( Orbitals* _orbitals )
     
     std::string _line;
     unsigned _levels = 0;
-    unsigned _level;
+    //unsigned _level;
     unsigned _basis_size = 0;
     int _number_of_electrons = 0;
     
@@ -903,7 +903,7 @@ bool Orca::ParseLogFile( Orbitals* _orbitals ) {
                 
                 while ( nfields == 6 ) {
                     int atom_id = boost::lexical_cast< int >( _row.at(0) );
-                    int atom_number = boost::lexical_cast< int >( _row.at(0) );
+                    //int atom_number = boost::lexical_cast< int >( _row.at(0) );
                     string atom_type = _row.at(1);
                     double atom_charge = boost::lexical_cast< double >( _row.at(5) );
                     //if ( tools::globals::verbose ) cout << "... ... " << atom_id << " " << atom_type << " " << atom_charge << endl;
@@ -932,7 +932,7 @@ bool Orca::ParseLogFile( Orbitals* _orbitals ) {
         if ( _is_optimization ){
                 std::string::size_type optimize_pos = _line.find("Optimization converged");
                 if (optimize_pos != std::string::npos) {
-                        bool _found_optimization = true;
+                        _found_optimization = true;
                 }
         }
         
@@ -960,7 +960,7 @@ bool Orca::ParseLogFile( Orbitals* _orbitals ) {
                 
             while ( nfields == 6 ) {
                 int atom_id = boost::lexical_cast< int >( _row.at(0) );
-                int atom_number = boost::lexical_cast< int >( _row.at(0) );
+                //int atom_number = boost::lexical_cast< int >( _row.at(0) );
                 string _atom_type = _row.at(1);
                 double _x =  boost::lexical_cast<double>( _row.at(3) );
                 double _y =  boost::lexical_cast<double>( _row.at(4) );
