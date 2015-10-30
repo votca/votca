@@ -17,7 +17,7 @@
  *
  */
 
-#include "nwchem.h"
+#include "orca.h"
 #include "votca/ctp/segment.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
@@ -35,9 +35,9 @@ using namespace std;
 namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
     
-void NWChem::Initialize( Property *options ) {
+void Orca::Initialize( Property *options ) {
 
-     // NWChem file names
+     // Orca file names
     string fileName = "system";
 
     _xyz_file_name = fileName + ".xyz";
@@ -104,13 +104,13 @@ void NWChem::Initialize( Property *options ) {
  * Prepares the *.nw file from a vector of segments
  * Appends a guess constructed from monomer orbitals if supplied
  */
-bool NWChem::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_guess )
+bool Orca::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_guess )
 {
     vector< Atom* > _atoms;
     vector< Atom* > ::iterator ait;
     vector< Segment* >::iterator sit;
     vector<string> results;
-    //int qmatoms = 0;
+    int qmatoms = 0;
     string temp_suffix = "/id";
     string scratch_dir_backup = _scratch_dir;
     ofstream _com_file;
@@ -320,7 +320,7 @@ bool NWChem::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gues
     
 }
 
-bool NWChem::WriteShellScript() {
+bool Orca::WriteShellScript() {
     ofstream _shell_file;
     
     string _shell_file_name_full = _run_dir + "/" + _shell_file_name;
@@ -341,16 +341,16 @@ bool NWChem::WriteShellScript() {
 }
 
 /**
- * Runs the NWChem job. 
+ * Runs the Orca job. 
  */
-bool NWChem::Run()
+bool Orca::Run()
 {
 
-    LOG(logDEBUG,*_pLog) << "Running NWChem job" << flush;
+    LOG(logDEBUG,*_pLog) << "Running Orca job" << flush;
     
     if (system(NULL)) {
         
-        // NWChem overrides input information, if *.db and *.movecs files are present
+        // Orca overrides input information, if *.db and *.movecs files are present
         // better trash the old version
         string file_name = _run_dir + "/system.db";
         remove ( file_name.c_str() );
@@ -369,14 +369,13 @@ bool NWChem::Run()
             _command = "cd " + _run_dir + "; sh " + _shell_file_name;
         }
         
-        //int i = system ( _command.c_str() );
-        system ( _command.c_str() );
+        int i = system ( _command.c_str() );
         
         if ( CheckLogFile() ) {
-            LOG(logDEBUG,*_pLog) << "Finished NWChem job" << flush;
+            LOG(logDEBUG,*_pLog) << "Finished Orca job" << flush;
             return true;
         } else {
-            LOG(logDEBUG,*_pLog) << "NWChem job failed" << flush;
+            LOG(logDEBUG,*_pLog) << "Orca job failed" << flush;
         }
     }
     else {
@@ -388,9 +387,9 @@ bool NWChem::Run()
 }
 
 /**
- * Cleans up after the NWChem job
+ * Cleans up after the Orca job
  */
-void NWChem::CleanUp() {
+void Orca::CleanUp() {
     
     // cleaning up the generated files
     if ( _cleanup.size() != 0 ) {
@@ -433,9 +432,9 @@ void NWChem::CleanUp() {
 
 
 /**
- * Reads in the MO coefficients from a NWChem movecs file
+ * Reads in the MO coefficients from a Orca movecs file
  */
-bool NWChem::ParseOrbitalsFile( Orbitals* _orbitals )
+bool Orca::ParseOrbitalsFile( Orbitals* _orbitals )
 {
     std::map <int, std::vector<double> > _coefficients;
     std::map <int, double> _energies;
@@ -443,7 +442,7 @@ bool NWChem::ParseOrbitalsFile( Orbitals* _orbitals )
     
     std::string _line;
     unsigned _levels = 0;
-    //unsigned _level;
+    unsigned _level;
     unsigned _basis_size = 0;
     int _number_of_electrons = 0;
     
@@ -531,7 +530,7 @@ bool NWChem::ParseOrbitalsFile( Orbitals* _orbitals )
 
     // Now, the same for the coefficients
     double coef;
-    for ( unsigned _imo=0; _imo < _levels ; _imo++ ){
+    for ( int _imo=0; _imo < _levels ; _imo++ ){
         for ( i=1; i<=_n_lines; i++ ) {
             for ( int j=0; j<3; j++ ){
                 _input_file >> coef;
@@ -601,19 +600,19 @@ bool NWChem::ParseOrbitalsFile( Orbitals* _orbitals )
    return true;
 }
 
-bool NWChem::CheckLogFile() {
+bool Orca::CheckLogFile() {
     
     // check if the log file exists
     char ch;
     ifstream _input_file((_run_dir + "/" + _log_file_name).c_str());
     
     if (_input_file.fail()) {
-        LOG(logERROR,*_pLog) << "NWChem LOG is not found" << flush;
+        LOG(logERROR,*_pLog) << "Orca LOG is not found" << flush;
         return false;
     };
 
     
-    /* Checking the log file is a pain in the *** since NWChem throws an error
+    /* Checking the log file is a pain in the *** since Orca throws an error
      * for our 'iterations 1'  runs (even though it outputs the required data
      * correctly. The only way that works for both scf and noscf runs is to
      * check for "Total DFT energy" near the end of the log file. 
@@ -640,7 +639,7 @@ bool NWChem::CheckLogFile() {
        if (total_energy_pos != std::string::npos) {
           return true;
        } else if (diis_pos != std::string::npos) {
-           LOG(logERROR,*_pLog) << "NWChem LOG is incomplete" << flush;
+           LOG(logERROR,*_pLog) << "Orca LOG is incomplete" << flush;
            return false;
        } else {
            // go to previous line
@@ -661,7 +660,7 @@ bool NWChem::CheckLogFile() {
 /**
  * Parses the Gaussian Log file and stores data in the Orbitals object 
  */
-bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
+bool Orca::ParseLogFile( Orbitals* _orbitals ) {
 
     static const double _conv_Hrt_eV = 27.21138386;
 
@@ -670,8 +669,8 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
 
     bool _has_overlap_matrix = false;
     bool _has_charges = false;
-    //bool _has_coordinates = false;
-    //bool _has_vxc_matrix = false;
+    bool _has_coordinates = false;
+    bool _has_vxc_matrix = false;
     bool _has_qm_energy = false;
     bool _has_self_energy = false;
     bool _has_basis_set_size = false;
@@ -749,7 +748,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
                 _vxc.resize(_basis_set_size);
 
 
-                //_has_vxc_matrix = true;
+                _has_vxc_matrix = true;
                           vector<int> _j_indeces;
             
            int _n_blocks = 1 + (( _basis_set_size - 1 ) / 6);
@@ -904,7 +903,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
                 
                 while ( nfields == 6 ) {
                     int atom_id = boost::lexical_cast< int >( _row.at(0) );
-                    //int atom_number = boost::lexical_cast< int >( _row.at(0) );
+                    int atom_number = boost::lexical_cast< int >( _row.at(0) );
                     string atom_type = _row.at(1);
                     double atom_charge = boost::lexical_cast< double >( _row.at(5) );
                     //if ( tools::globals::verbose ) cout << "... ... " << atom_id << " " << atom_type << " " << atom_charge << endl;
@@ -930,12 +929,10 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
          * Coordinates of the final configuration
          * depending on whether it is an optimization or not
          */
-        
-        
         if ( _is_optimization ){
                 std::string::size_type optimize_pos = _line.find("Optimization converged");
                 if (optimize_pos != std::string::npos) {
-                        _found_optimization = true;
+                        bool _found_optimization = true;
                 }
         }
         
@@ -944,7 +941,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
         if ( _found_optimization && coordinates_pos != std::string::npos) {
             LOG(logDEBUG,*_pLog) << "Getting the coordinates" << flush;
             
-            //_has_coordinates = true;
+            _has_coordinates = true;
             bool _has_QMAtoms = _orbitals->hasQMAtoms();
 
             // three garbage lines
@@ -963,7 +960,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
                 
             while ( nfields == 6 ) {
                 int atom_id = boost::lexical_cast< int >( _row.at(0) );
-                //int atom_number = boost::lexical_cast< int >( _row.at(0) );
+                int atom_number = boost::lexical_cast< int >( _row.at(0) );
                 string _atom_type = _row.at(1);
                 double _x =  boost::lexical_cast<double>( _row.at(3) );
                 double _y =  boost::lexical_cast<double>( _row.at(4) );
@@ -1027,15 +1024,15 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
 
 
 /**
- * Converts the NWChem data stored in the Orbitals object to GW input format
+ * Converts the Orca data stored in the Orbitals object to GW input format
  */
-bool NWChem::ConvertToGW( Orbitals* _orbitals ) {
-    cerr << "Tried to convert to GW from NWChem package. ";
+bool Orca::ConvertToGW( Orbitals* _orbitals ) {
+    cerr << "Tried to convert to GW from Orca package. ";
     throw std::runtime_error( "Conversion not implemented yet!");
 }
 
 
-string NWChem::FortranFormat( const double &number ) {
+string Orca::FortranFormat( const double &number ) {
     stringstream _ssnumber;
     if ( number >= 0) {
         _ssnumber << "    ";

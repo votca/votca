@@ -91,6 +91,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/648834637/gaussian.o \
 	${OBJECTDIR}/_ext/648834637/gw.o \
 	${OBJECTDIR}/_ext/648834637/nwchem.o \
+	${OBJECTDIR}/_ext/648834637/orca.o \
 	${OBJECTDIR}/_ext/648834637/turbomole.o \
 	${OBJECTDIR}/_ext/484457893/qmpair.o \
 	${OBJECTDIR}/_ext/484457893/qmtool.o \
@@ -418,6 +419,11 @@ ${OBJECTDIR}/_ext/648834637/nwchem.o: ../../src/libctp/qmpackages/nwchem.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/648834637
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/648834637/nwchem.o ../../src/libctp/qmpackages/nwchem.cc
+
+${OBJECTDIR}/_ext/648834637/orca.o: ../../src/libctp/qmpackages/orca.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/648834637
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/648834637/orca.o ../../src/libctp/qmpackages/orca.cc
 
 ${OBJECTDIR}/_ext/648834637/turbomole.o: ../../src/libctp/qmpackages/turbomole.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/648834637

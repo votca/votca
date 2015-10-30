@@ -477,6 +477,7 @@ private:
     friend class Gaussian;
     friend class Turbomole;
     friend class NWChem;
+    friend class Orca;
     friend class GW;
     
     // serialization itself (template implementation stays in the header)
