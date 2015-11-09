@@ -30,28 +30,43 @@ namespace votca { namespace kmc {
 class GNode
 {
     public:
-        typedef votca::tools::vec myvec;
+        GNode(){};
+        ~GNode(){};
 
         int id;
         int occupied;
         int injectable;
         double escaperate;
-        double decayrate;
         double occupationtime;
-        myvec position;
+        vec position;
         vector<GLink> event;
         // stuff for Coulomb interaction:
         double siteenergy;
         double reorg_intorig; // UnCnN
         double reorg_intdest; // UcNcC
     
-        double EscapeRate();
-        void AddEvent(int seg2, double rate12, myvec dr, double Jeff2, double reorg_out);
+        double getEscapeRate() const { return escaperate;}
+        void AddEvent(int seg2, double rate12, vec dr, double Jeff2, double reorg_out);
         void InitEscapeRate();
+        void AddDecayEvent(double _decayrate);
 };
 
 
-void GNode::AddEvent(int seg2, double rate12, myvec dr, double Jeff2, double reorg_out)
+
+void GNode::AddDecayEvent(double _decayrate)
+{
+    GLink newEvent;
+    newEvent.destination = -1;
+    newEvent.rate = _decayrate;
+    newEvent.initialrate = _decayrate;
+    newEvent.dr = vec(0,0,0);
+    newEvent.Jeff2 = 0.0;
+    newEvent.decayevent=true;
+    newEvent.reorg_out = 0.0;
+    this->event.push_back(newEvent);
+}
+
+void GNode::AddEvent(int seg2, double rate12, vec dr, double Jeff2, double reorg_out)
 {
     GLink newEvent;
     newEvent.destination = seg2;
@@ -59,6 +74,7 @@ void GNode::AddEvent(int seg2, double rate12, myvec dr, double Jeff2, double reo
     newEvent.initialrate = rate12;
     newEvent.dr = dr;
     newEvent.Jeff2 = Jeff2;
+    newEvent.decayevent=false;
     newEvent.reorg_out = reorg_out;
     this->event.push_back(newEvent);
 }
@@ -66,7 +82,7 @@ void GNode::AddEvent(int seg2, double rate12, myvec dr, double Jeff2, double reo
 
 void GNode::InitEscapeRate()
 {
-    double newEscapeRate = 0;
+    double newEscapeRate = 0.0;
     for(unsigned int i=0; i<this->event.size();i++)
     {
         newEscapeRate += this->event[i].rate;
@@ -75,11 +91,6 @@ void GNode::InitEscapeRate()
     // cout << "Escape rate for segment " << this->id << " was set to " << newEscapeRate << endl;
 }
 
-
-double GNode::EscapeRate()
-{
-    return escaperate;
-}
 
 
 }}

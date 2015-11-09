@@ -91,7 +91,7 @@ public:
 
     void Initialize(const char *filename, Property *options, const char *outputfile );
     bool EvaluateFrame();
-    typedef votca::tools::vec myvec;
+
 
 
 protected:
@@ -107,7 +107,7 @@ protected:
                     int position;
                     int id;
                     GNode *node;
-                    myvec dr_travelled;
+                    vec dr_travelled;
                     double tof_travelled;
             };
             typedef std::tr1::unordered_map<unsigned long, double> CoulombMap;
@@ -125,7 +125,7 @@ protected:
 
             string _injection_name;
             string _injectionmethod;
-            int _injectionfree;
+            //int _injectionfree;
             double _runtime;
             double _maxrealtime;
             int _seed;
@@ -134,7 +134,7 @@ protected:
             double _fieldX;
             double _fieldY;
             double _fieldZ;
-            myvec _field;
+            vec _field;
             double _outputtime;
             string _trajectoryfile;
             string _timefile;
@@ -224,7 +224,7 @@ void KMCMultiple::Initialize(const char *filename, Property *options, const char
         else {
             _fieldZ = 0;
         }
-        _field = myvec(_fieldX,_fieldY,_fieldZ);
+        _field = vec(_fieldX,_fieldY,_fieldZ);
         if (options->exists("options.kmcmultiple.outputtime")) {
 	    _outputtime = options->get("options.kmcmultiple.outputtime").as<double>();
 	}
@@ -391,7 +391,7 @@ vector<GNode*> KMCMultiple::LoadGraph()
         int newid = stmt->Column<int>(0);
         string name = stmt->Column<string>(1);
         node[i]->id = newid;
-        myvec nodeposition = myvec(stmt->Column<double>(2)*1E-9, stmt->Column<double>(3)*1E-9, stmt->Column<double>(4)*1E-9); // converted from nm to m
+        vec nodeposition = vec(stmt->Column<double>(2)*1E-9, stmt->Column<double>(3)*1E-9, stmt->Column<double>(4)*1E-9); // converted from nm to m
         node[i]->position = nodeposition;
         node[i]->reorg_intorig = stmt->Column<double>(5); // UnCnN or UnXnN
         node[i]->reorg_intdest = stmt->Column<double>(6); // UcNcC or UxNxX
@@ -433,7 +433,7 @@ vector<GNode*> KMCMultiple::LoadGraph()
 
         double rate12 = stmt->Column<double>(2);
 
-        myvec dr = myvec(stmt->Column<double>(3)*1E-9, stmt->Column<double>(4)*1E-9, stmt->Column<double>(5)*1E-9); // converted from nm to m
+        vec dr = vec(stmt->Column<double>(3)*1E-9, stmt->Column<double>(4)*1E-9, stmt->Column<double>(5)*1E-9); // converted from nm to m
         double Jeff2 = stmt->Column<double>(6);
         double reorg_out = stmt->Column<double>(7); 
         node[seg1]->AddEvent(seg2,rate12,dr,Jeff2,reorg_out);
@@ -714,7 +714,7 @@ void KMCMultiple::RateUpdateCoulomb(vector<GNode*> &node,  vector< Chargecarrier
                         if(ncindex != cindex)
                         {
                             // - E_ik
-                            myvec distancevec = carrier[ncindex]->node->position - node_i->position;
+                            vec distancevec = carrier[ncindex]->node->position - node_i->position;
                             double epsR = 1;
                             double dX = std::abs(distancevec.x());
                             double dY = std::abs(distancevec.y());
@@ -976,7 +976,7 @@ vector<double> KMCMultiple::RunVSSM(vector<GNode*> node, double runtime, unsigne
         
     }
     vector< Chargecarrier* > carrier;
-    vector<myvec> startposition(numberofcharges,myvec(0,0,0));
+    vector<vec> startposition(numberofcharges,vec(0,0,0));
     cout << "looking for injectable nodes..." << endl;
     for (unsigned int i = 0; i < numberofcharges; i++)
     {
@@ -999,7 +999,7 @@ vector<double> KMCMultiple::RunVSSM(vector<GNode*> node, double runtime, unsigne
         }
         // cout << "selected segment " << newCharge->node->id+1 << " which has energy " << newCharge->node->siteenergy << " within the interval [" << energypercarrier-0*deltaE << ", " << energypercarrier+2*deltaE << "]" << endl;
         newCharge->node->occupied = 1;
-        newCharge->dr_travelled = myvec(0,0,0);
+        newCharge->dr_travelled = vec(0,0,0);
         newCharge->tof_travelled = 0;
         startposition[i] = newCharge->node->position;
         cout << "starting position for charge " << i+1 << ": segment " << newCharge->node->id+1 << endl;
@@ -1069,7 +1069,7 @@ vector<double> KMCMultiple::RunVSSM(vector<GNode*> node, double runtime, unsigne
         }
         for(unsigned int i=0; i<numberofcharges; i++)
         {
-            cumulated_rate += carrier[i]->node->EscapeRate();
+            cumulated_rate += carrier[i]->node->getEscapeRate();
         }
         if(cumulated_rate == 0)
         {   // this should not happen: no possible jumps defined for a node
@@ -1116,7 +1116,7 @@ vector<double> KMCMultiple::RunVSSM(vector<GNode*> node, double runtime, unsigne
             double u = 1 - RandomVariable->rand_uniform();
             for(unsigned int i=0; i<numberofcharges; i++)
             {
-                u -= carrier[i]->node->EscapeRate()/cumulated_rate;
+                u -= carrier[i]->node->getEscapeRate()/cumulated_rate;
                 if(u <= 0)
                 {
                     do_oldnode = carrier[i]->node;
@@ -1129,7 +1129,7 @@ vector<double> KMCMultiple::RunVSSM(vector<GNode*> node, double runtime, unsigne
                 
             double maxprob = 0.;
             double newprob = 0.;
-            myvec dr;
+            vec dr;
             if(votca::tools::globals::verbose) {cout << "Charge number " << do_affectedcarrier->id+1 << " which is sitting on segment " << do_oldnode->id+1 << " will escape!" << endl ;}
             if(Forbidden(do_oldnode->id, forbiddennodes) == 1) {continue;}
             
@@ -1153,7 +1153,7 @@ vector<double> KMCMultiple::RunVSSM(vector<GNode*> node, double runtime, unsigne
                 for(unsigned int j=0; j<do_oldnode->event.size(); j++)
                 {
                     if(votca::tools::globals::verbose) { cout << " " << do_oldnode->event[j].destination+1 ; }
-                    u -= do_oldnode->event[j].rate/do_oldnode->EscapeRate();
+                    u -= do_oldnode->event[j].rate/do_oldnode->getEscapeRate();
                     if(u <= 0)
                     {
                         do_newnode = node[do_oldnode->event[j].destination];
@@ -1289,10 +1289,10 @@ vector<double> KMCMultiple::RunVSSM(vector<GNode*> node, double runtime, unsigne
             double currentenergy = 0;
             // b) mobility
             double currentmobility = 0;
-            myvec dr_travelled_current = myvec (0,0,0);
+            vec dr_travelled_current = vec (0,0,0);
             if(absolute_field != 0)
             {
-                myvec avgvelocity_current = myvec(0,0,0);
+                vec avgvelocity_current = vec(0,0,0);
                 for(unsigned int i=0; i<numberofcharges; i++)
                 {
                     dr_travelled_current += carrier[i]->dr_travelled;
@@ -1375,8 +1375,8 @@ vector<double> KMCMultiple::RunVSSM(vector<GNode*> node, double runtime, unsigne
     cout << "runtime: ";
     printtime(time(NULL) - realtime_start); 
     cout << endl << endl;
-    myvec dr_travelled = myvec (0,0,0);
-    myvec avgvelocity = myvec(0,0,0);
+    vec dr_travelled = vec (0,0,0);
+    vec avgvelocity = vec(0,0,0);
     for(unsigned int i=0; i<numberofcharges; i++)
     {
         //cout << std::scientific << "    charge " << i+1 << ": " << carrier[i]->dr_travelled/simtime*1e-9 << endl;
@@ -1401,8 +1401,8 @@ vector<double> KMCMultiple::RunVSSM(vector<GNode*> node, double runtime, unsigne
         cout << endl << "Mobilities (m^2/Vs): " << endl;
         for(unsigned int i=0; i<numberofcharges; i++)
         {
-            //myvec velocity = carrier[i]->dr_travelled/simtime*1e-9;
-            myvec velocity = carrier[i]->dr_travelled/simtime;
+            //vec velocity = carrier[i]->dr_travelled/simtime*1e-9;
+            vec velocity = carrier[i]->dr_travelled/simtime;
             double absolute_velocity = sqrt(velocity.x()*velocity.x() + velocity.y()*velocity.y() + velocity.z()*velocity.z());
             //cout << std::scientific << "    charge " << i+1 << ": mu=" << absolute_velocity/absolute_field*1E4 << endl;
             cout << std::scientific << "    charge " << i+1 << ": mu=" << (velocity*_field)/absolute_field/absolute_field << endl;

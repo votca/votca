@@ -22,7 +22,7 @@
 
 namespace votca { namespace kmc {
 
-enum CarrierType{ Reservoir, Electron, Hole, Exciton};    
+enum CarrierType{ Reservoir, Electron, Hole, Singlet, Triplet};    
     
 class Carrier {
 public:
@@ -55,6 +55,8 @@ public:
     
     bool isElectron() { if(_carrier_type == Electron) {return true;} else {return false;}}
     bool isHole() { if(_carrier_type == Hole) {return true;} else {return false;}}
+    bool isSinglet() { if(_carrier_type == Singlet) {return true;} else {return false;}}
+    bool isTriplet() { if(_carrier_type == Triplet) {return true;} else {return false;}}
     
 private:
     

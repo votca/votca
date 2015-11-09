@@ -25,7 +25,7 @@ struct GLink
     int destination;
     double rate;
     votca::tools::vec dr;
-    
+    bool decayevent;
     // new stuff for Coulomb interaction
     double Jeff2;
     double reorg_out;
