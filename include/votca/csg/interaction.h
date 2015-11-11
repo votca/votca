@@ -125,7 +125,7 @@ public:
         { _beads.resize(4); for(int i=0; i<4; ++i) { _beads[i] = beads.front(); beads.pop_front(); }}
    
     double EvaluateVar(const Topology &top);
-    vec Grad(const Topology &top, int bead) { assert(false); return vec(0,0,0); } // not implemented
+    vec Grad(const Topology &top, int bead);
 
 private:
 };
@@ -193,6 +193,72 @@ inline double IDihedral::EvaluateVar(const Topology &top)
     return sign*acos(n1*n2/sqrt((n1*n1) * (n2*n2)));
     //return sign*acos(n1*n2/sqrt((n1*n1) * (n2*n2))) + 1;
     //return pow(acos(n1*n2/sqrt((n1*n1) * (n2*n2))), 2);
+}
+
+inline vec IDihedral::Grad(const Topology &top, int bead)
+{
+    vec v1(top.getDist(_beads[0], _beads[1]));
+    vec v2(top.getDist(_beads[1], _beads[2]));
+    vec v3(top.getDist(_beads[2], _beads[3]));
+    vec n1, n2;
+    //cout << "v1: " << v1 << " , v2: " << v2 <<  " , v3: " << v3 <<endl;
+    //cout << "n1: " << n1 << " , n2: " << n2 << endl;
+    n1 = v1^v2; // calculate the normal vector
+    n2 = v2^v3; // calculate the normal vector
+    double sign = (v1*n2 < 0) ? -1 : 1;
+    vec returnvec; //vector to return
+    double returnvec0,returnvec1,returnvec2; //components of the return vector    
+    vec e0(1,0,0); //unit vector pointing in x-direction
+    vec e1(0,1,0); //unit vector pointing in y-direction
+    vec e2(0,0,1); //unit vector pointing in z-direction
+    
+    
+    double acos_prime = ( - 1.0 / (sqrt(1 - (n1*n2) * (n1*n2)/( abs(n1) * abs(n2) * abs(n1) * abs(n2) ) )) ) * sign;
+    switch (bead) {
+        case (0): { //
+                    returnvec0 = acos_prime * ( ( n2*(v2^e0) )/( abs(n1)*abs(n2) ) - ( (n1*n2)*( n1*(v2^e0) ) )/( abs(n1)*abs(n1)*abs(n1)*abs(n2) ) );
+                    returnvec1 = acos_prime * ( ( n2*(v2^e1) )/( abs(n1)*abs(n2) ) - ( (n1*n2)*( n1*(v2^e1) ) )/( abs(n1)*abs(n1)*abs(n1)*abs(n2) ) );
+                    returnvec2 = acos_prime * ( ( n2*(v2^e2) )/( abs(n1)*abs(n2) ) - ( (n1*n2)*( n1*(v2^e2) ) )/( abs(n1)*abs(n1)*abs(n1)*abs(n2) ) );
+                    returnvec.setX(returnvec0);
+                    returnvec.setY(returnvec1);
+                    returnvec.setZ(returnvec2);
+                    return returnvec;
+                    break;
+        }             
+        case (1): { //
+                    returnvec0 = acos_prime * ( ( n1*(v3^e0)+n2*(e0^v1+e0^v2) )/( abs(n1)*abs(n2) ) - ( (n1*n2)* ( ( n1*(e0^v1+e0^v2) )/( abs(n1)*abs(n1)*abs(n1)*abs(n2) ) + ( n2*(v3^e0) )/( abs(n1)*abs(n2)*abs(n2)*abs(n2) ) ) ) );
+                    returnvec1 = acos_prime * ( ( n1*(v3^e1)+n2*(e1^v1+e1^v2) )/( abs(n1)*abs(n2) ) - ( (n1*n2)* ( ( n1*(e1^v1+e1^v2) )/( abs(n1)*abs(n1)*abs(n1)*abs(n2) ) + ( n2*(v3^e1) )/( abs(n1)*abs(n2)*abs(n2)*abs(n2) ) ) ) );
+                    returnvec2 = acos_prime * ( ( n1*(v3^e2)+n2*(e2^v1+e2^v2) )/( abs(n1)*abs(n2) ) - ( (n1*n2)* ( ( n1*(e2^v1+e2^v2) )/( abs(n1)*abs(n1)*abs(n1)*abs(n2) ) + ( n2*(v3^e2) )/( abs(n1)*abs(n2)*abs(n2)*abs(n2) ) ) ) );
+                    returnvec.setX(returnvec0);
+                    returnvec.setY(returnvec1);
+                    returnvec.setZ(returnvec2);
+                    return returnvec;
+                    break;
+        } ;
+        case (2): { //
+                    returnvec0 = acos_prime * ( ( n1*(e0^v2+e0^v3)+n2*(v1^e0) )/( abs(n1)*abs(n2) ) - ( (n1*n2)* ( ( n1*(v1^e0) )/( abs(n1)*abs(n1)*abs(n1)*abs(n2) ) + ( n2*(e0^v2+e0^v3) )/( abs(n1)*abs(n2)*abs(n2)*abs(n2) ) ) ) );
+                    returnvec1 = acos_prime * ( ( n1*(e1^v2+e1^v3)+n2*(v1^e1) )/( abs(n1)*abs(n2) ) - ( (n1*n2)* ( ( n1*(v1^e1) )/( abs(n1)*abs(n1)*abs(n1)*abs(n2) ) + ( n2*(e1^v2+e1^v3) )/( abs(n1)*abs(n2)*abs(n2)*abs(n2) ) ) ) );
+                    returnvec2 = acos_prime * ( ( n1*(e2^v2+e2^v3)+n2*(v1^e2) )/( abs(n1)*abs(n2) ) - ( (n1*n2)* ( ( n1*(v1^e2) )/( abs(n1)*abs(n1)*abs(n1)*abs(n2) ) + ( n2*(e2^v2+e2^v3) )/( abs(n1)*abs(n2)*abs(n2)*abs(n2) ) ) ) );
+                    returnvec.setX(returnvec0);
+                    returnvec.setY(returnvec1);
+                    returnvec.setZ(returnvec2);
+                    return returnvec;
+                    break;
+        } ;
+        case (3): { //
+                    returnvec0 = acos_prime * ( ( n1*(v2^e0) )/( abs(n1)*abs(n2) ) - ( (n1*n2)*( n2*(v2^e0) ) )/( abs(n1)*abs(n2)*abs(n2)*abs(n2) ) );
+                    returnvec1 = acos_prime * ( ( n1*(v2^e1) )/( abs(n1)*abs(n2) ) - ( (n1*n2)*( n2*(v2^e1) ) )/( abs(n1)*abs(n2)*abs(n2)*abs(n2) ) );
+                    returnvec2 = acos_prime * ( ( n1*(v2^e2) )/( abs(n1)*abs(n2) ) - ( (n1*n2)*( n2*(v2^e2) ) )/( abs(n1)*abs(n2)*abs(n2)*abs(n2) ) );
+                    returnvec.setX(returnvec0);
+                    returnvec.setY(returnvec1);
+                    returnvec.setZ(returnvec2);
+                    return returnvec;
+                    break;
+        } ;
+    }
+    // should never reach this
+    assert(false);
+    return vec(0,0,0);
 }
 
 }}
