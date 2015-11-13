@@ -19,10 +19,12 @@
 #define SRC_LIBCSG_MODULES_IO_H5MDTRAJECTORYREADER_H_
 
 #include <votca/csg/trajectoryreader.h>
+#include <votca/csg/topologyreader.h>
 
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <cstdio>
 
 #include "hdf5.h"
 
@@ -36,15 +38,19 @@ using namespace votca::tools;  // NOLINT
     This class implements the H5MD trajectory reading function. The format of the H5MD
     file is defined in
     Pierre de Buyl, Peter H. Colberg, Felix Höfling, H5MD: A structured, efficient, and portable file
-    format for molecular data, http://dx.doi.org/10.1016/j.cpc.2014.01.018    The current reference is available here: http://nongnu.org/h5md/
+    format for molecular data, http://dx.doi.org/10.1016/j.cpc.2014.01.018
+    The current reference is available here: http://nongnu.org/h5md/
 */
-class H5MDTrajectoryReader : public TrajectoryReader {
+class H5MDTrajectoryReader : public TrajectoryReader, public TopologyReader {
  public:
   H5MDTrajectoryReader();
   ~H5MDTrajectoryReader();
 
   /// Opens original trajectory file.
   bool Open(const string &file);
+
+  /// Initialize data structures.
+  void Initialize(Topology &top);
 
   /// Reads in the first frame.
   bool FirstFrame(Topology &conf);  // NOLINT
@@ -55,36 +61,55 @@ class H5MDTrajectoryReader : public TrajectoryReader {
   /// close original trajectory file.
   void Close();
 
+  /// Reads topology.
+  bool ReadTopology(string file,  Topology &top);
+
  private:
   /// Reads dataset that contains vectors.
   template <typename T1>
   T1* ReadVectorData(hid_t ds, hid_t ds_data_type, int row) {
     hsize_t offset[3] = {row, 0, 0};
     hid_t dsp = H5Dget_space(ds);
-    H5Sselect_hyperslab(dsp, H5S_SELECT_SET, chunk_rows_, offset, NULL, NULL);
+    H5Sselect_hyperslab(dsp, H5S_SELECT_SET, offset, NULL, chunk_rows_, NULL);
     hid_t mspace1 = H5Screate_simple(vec_components_, chunk_rows_, NULL);
     T1 *data_out = new T1[N_particles_ * vec_components_];
     herr_t status = H5Dread(ds, ds_data_type, mspace1, dsp, H5P_DEFAULT, data_out);
-    if (status > 0)
+    if (status < 0) {
+      H5Eprint(H5E_DEFAULT, stderr);
+      throw std::runtime_error("Error ReadVectorData: " + status);
+    } else
       return data_out;
-    else
-      throw std::runtime_error("Error");
   }
 
-  /// Reads dataset with scalar values
+  /// Reads dataset with scalar values.
   template <typename T1>
   T1* ReadScalarData(hid_t ds, hid_t ds_data_type, int row) {
     hsize_t offset[2] = {row, 0};
     hsize_t ch_rows[2] = {1, N_particles_};
     hid_t dsp = H5Dget_space(ds);
-    H5Sselect_hyperslab(dsp, H5S_SELECT_SET, ch_rows, offset, NULL, NULL);
+    H5Sselect_hyperslab(dsp, H5S_SELECT_SET, offset, NULL, ch_rows, NULL);
     hid_t mspace1 = H5Screate_simple(2, ch_rows, NULL);
     T1 *data_out = new T1[N_particles_];
     herr_t status = H5Dread(ds, ds_data_type, mspace1, dsp, H5P_DEFAULT, data_out);
-    if (status > 0)
+    if (status < 0) {
+      H5Eprint(H5E_DEFAULT, stderr);
+      throw std::runtime_error("Error ReadScalarData: " + status);
+    } else {
       return data_out;
-    else
-      throw std::runtime_error("Error");
+    }
+  }
+
+  template<typename T1>
+  void ReadStaticData(hid_t ds, hid_t ds_data_type, T1 &outbuf) {
+    herr_t status = H5Dread(
+        ds,
+        ds_data_type,
+        H5S_ALL,
+        H5S_ALL,
+        H5P_DEFAULT, outbuf);
+    if (status < 0) {
+      H5Eprint(H5E_DEFAULT, stderr);
+    }
   }
 
   hid_t file_id_;
@@ -92,12 +117,14 @@ class H5MDTrajectoryReader : public TrajectoryReader {
   hid_t ds_atom_force_;
   hid_t ds_atom_velocity_;
   hid_t ds_atom_id_;
+  hid_t ds_edges_group_;
 
   hid_t particle_group_;
   hid_t atom_position_group_;
   hid_t atom_force_group_;
   hid_t atom_velocity_group_;
   hid_t atom_id_group_;
+  hid_t edges_group_;
 
   int rank_;
 
@@ -106,20 +133,31 @@ class H5MDTrajectoryReader : public TrajectoryReader {
   bool has_velocity_;
   bool has_force_;
   bool has_id_group_;
+  bool has_box_;
+  bool file_opened_;
 
   int idx_frame_;
-
-  double *time_set_;
-  int *step_set_;
 
   int N_particles_;
   int vec_components_;
   hsize_t chunk_rows_[3];
+
+  bool topology_;
+  matrix m;
+
   void CheckError(hid_t hid, std::string error_message) {
     if (hid < 0) {
-      std::cout << error_message << std::endl;
+      H5Eprint(H5E_DEFAULT, stderr);
       throw std::runtime_error(error_message);
     }
+  }
+
+  bool GroupExists(hid_t file_id, std::string path) {
+    H5G_stat_t info;
+    herr_t status = H5Gget_objinfo (file_id, path.c_str(), 0, &info);
+    if (status < 0)
+      return false;
+    return info.type == H5G_GROUP;
   }
 };
 
