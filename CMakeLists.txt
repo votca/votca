@@ -77,6 +77,11 @@ endforeach(_blib)
 find_package(VOTCA_TOOLS REQUIRED)
 include_directories(${VOTCA_TOOLS_INCLUDE_DIRS})
 
+option(WITH_GMX "Build gromacs reader/writer, disabling leads to reduced functionality!" ON)
+if (WITH_GMX)
+  find_package(GROMACS REQUIRED)
+endif(WITH_GMX) 
+
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
 ########################################################################

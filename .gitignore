@@ -14,10 +14,6 @@ build
 scripts/csg_call
 scripts/csg_inverse
 scripts/help2t2t
-scripts/multi_g_rdf
-scripts/multi_g_*.man
-scripts/multi_g_*.help
-scripts/multi_g_*.t2t
 scripts/csg_inverse.t2t
 scripts/*.out
 share/scripts/inverse/cma.py*
@@ -26,6 +22,7 @@ share/doc/html/*
 share/man/*.man
 share/template/template_serial
 share/template/template_threaded
+share/xml/csg_defaults.xml
 src/csg_boltzmann/csg_boltzmann
 src/libcsg/version.cc
 src/libcsg/gmx_print_version

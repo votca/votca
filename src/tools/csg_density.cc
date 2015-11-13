@@ -57,6 +57,7 @@ class CsgDensityApp
 protected:
     string _filter, _out;
     HistogramNew _dist;
+    string _dens_type;
     double _rmax;
     int _nbin;
     double _scale;
@@ -158,7 +159,11 @@ void CsgDensityApp::EvalConfiguration(Topology *top, Topology *top_ref)
                 } else {
                     r = b->getPos() *  _axis;
                 }
-                _dist.Process(r, b->getM());
+                if (_dens_type=="mass") {
+                  _dist.Process(r, b->getM());
+                } else {
+                  _dist.Process(r, 1.0);
+                }
                 did_something = true;
             }
     }
@@ -199,6 +204,7 @@ void CsgDensityApp::Initialize()
     CsgApplication::Initialize();
     // add program option to pick molecule
     AddProgramOptions("Specific options:")
+             ("type", boost::program_options::value<string>(&_dens_type)->default_value("mass"), "density type: mass or number")
              ("axis", boost::program_options::value<string>(&_axisname)->default_value("r"), "[x|y|z|r] density axis (r=spherical)")
              ("step", boost::program_options::value<double>(&_step)->default_value(0.01), "spacing of density")
              ("block-length", boost::program_options::value<int>(), "  write blocks of this length, the averages are cleared after every write")
