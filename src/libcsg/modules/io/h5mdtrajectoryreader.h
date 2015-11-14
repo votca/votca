@@ -58,7 +58,7 @@ class H5MDTrajectoryReader : public TrajectoryReader {
   /// Reads in the next frame.
   bool NextFrame(Topology &conf);  // NOLINT
 
-  /// close original trajectory file.
+  /// Closes original trajectory file.
   void Close();
 
  private:
@@ -67,14 +67,14 @@ class H5MDTrajectoryReader : public TrajectoryReader {
   /// Reads dataset that contains vectors.
   template <typename T1>
   T1* ReadVectorData(hid_t ds, hid_t ds_data_type, int row) {
-    hsize_t offset[3] = {row, 0, 0};
+    hsize_t offset[3]; offset[0] = row; offset[1] = 0; offset[2] = 0;
+    hsize_t chunk_rows[3]; chunk_rows[0] = 1; chunk_rows[1] = N_particles_; chunk_rows[2] = vec_components_;
     hid_t dsp = H5Dget_space(ds);
-    H5Sselect_hyperslab(dsp, H5S_SELECT_SET, offset, NULL, chunk_rows_, NULL);
-    hid_t mspace1 = H5Screate_simple(vec_components_, chunk_rows_, NULL);
+    H5Sselect_hyperslab(dsp, H5S_SELECT_SET, offset, NULL, chunk_rows, NULL);
+    hid_t mspace1 = H5Screate_simple(vec_components_, chunk_rows, NULL);
     T1 *data_out = new T1[N_particles_ * vec_components_];
     herr_t status = H5Dread(ds, ds_data_type, mspace1, dsp, H5P_DEFAULT, data_out);
     if (status < 0) {
-      H5Eprint(H5E_DEFAULT, stderr);
       throw std::runtime_error("Error ReadVectorData: " + status);
     } else
       return data_out;
@@ -83,15 +83,14 @@ class H5MDTrajectoryReader : public TrajectoryReader {
   /// Reads dataset with scalar values.
   template <typename T1>
   T1* ReadScalarData(hid_t ds, hid_t ds_data_type, int row) {
-    hsize_t offset[2] = {row, 0};
-    hsize_t ch_rows[2] = {1, N_particles_};
+    hsize_t offset[2]; offset[0] = row; offset[1] = 0;
+    hsize_t ch_rows[2]; ch_rows[0] = 1; ch_rows[1] = N_particles_;
     hid_t dsp = H5Dget_space(ds);
     H5Sselect_hyperslab(dsp, H5S_SELECT_SET, offset, NULL, ch_rows, NULL);
     hid_t mspace1 = H5Screate_simple(2, ch_rows, NULL);
     T1 *data_out = new T1[N_particles_];
     herr_t status = H5Dread(ds, ds_data_type, mspace1, dsp, H5P_DEFAULT, data_out);
     if (status < 0) {
-      H5Eprint(H5E_DEFAULT, stderr);
       throw std::runtime_error("Error ReadScalarData: " + status);
     } else {
       return data_out;
@@ -113,7 +112,7 @@ class H5MDTrajectoryReader : public TrajectoryReader {
 
   void CheckError(hid_t hid, std::string error_message) {
     if (hid < 0) {
-      H5Eprint(H5E_DEFAULT, stderr);
+      //H5Eprint(H5E_DEFAULT, stderr);
       throw std::runtime_error(error_message);
     }
   }
@@ -157,11 +156,12 @@ class H5MDTrajectoryReader : public TrajectoryReader {
 
   // Current frame indicator.
   int idx_frame_;
+  int max_idx_frame_;
 
   // Number of particles. This is static among time.
   int N_particles_;
+  //
   int vec_components_;
-  hsize_t chunk_rows_[3];
 
   // Box matrix.
   matrix m;
