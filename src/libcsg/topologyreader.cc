@@ -24,7 +24,6 @@
 #include "modules/io/xmltopologyreader.h"
 #include "modules/io/xyzreader.h"
 #include "modules/io/groreader.h"
-#include "modules/io/h5mdtrajectoryreader.h"
 #ifdef GMX
 #include "modules/io/gmxtopologyreader.h"
 #endif
@@ -45,7 +44,6 @@ void TopologyReader::RegisterPlugins(void)
 #endif
     TopReaderFactory().Register<PDBReader>("pdb");
     TopReaderFactory().Register<DLPOLYTopologyReader>("dlpf");
-    TopReaderFactory().Register<H5MDTrajectoryReader>("h5");
 }
 
 }}

@@ -41,7 +41,7 @@ using namespace votca::tools;  // NOLINT
     format for molecular data, http://dx.doi.org/10.1016/j.cpc.2014.01.018
     The current reference is available here: http://nongnu.org/h5md/
 */
-class H5MDTrajectoryReader : public TrajectoryReader, public TopologyReader {
+class H5MDTrajectoryReader : public TrajectoryReader {
  public:
   H5MDTrajectoryReader();
   ~H5MDTrajectoryReader();
@@ -61,10 +61,9 @@ class H5MDTrajectoryReader : public TrajectoryReader, public TopologyReader {
   /// close original trajectory file.
   void Close();
 
-  /// Reads topology.
-  bool ReadTopology(string file,  Topology &top);
-
  private:
+  enum DatasetState { NONE, STATIC, TIMEDEPENDENT };
+
   /// Reads dataset that contains vectors.
   template <typename T1>
   T1* ReadVectorData(hid_t ds, hid_t ds_data_type, int row) {
@@ -112,39 +111,6 @@ class H5MDTrajectoryReader : public TrajectoryReader, public TopologyReader {
     }
   }
 
-  hid_t file_id_;
-  hid_t ds_atom_position_;
-  hid_t ds_atom_force_;
-  hid_t ds_atom_velocity_;
-  hid_t ds_atom_id_;
-  hid_t ds_edges_group_;
-
-  hid_t particle_group_;
-  hid_t atom_position_group_;
-  hid_t atom_force_group_;
-  hid_t atom_velocity_group_;
-  hid_t atom_id_group_;
-  hid_t edges_group_;
-
-  int rank_;
-
-  string fname_;
-  bool first_frame_;
-  bool has_velocity_;
-  bool has_force_;
-  bool has_id_group_;
-  bool has_box_;
-  bool file_opened_;
-
-  int idx_frame_;
-
-  int N_particles_;
-  int vec_components_;
-  hsize_t chunk_rows_[3];
-
-  bool topology_;
-  matrix m;
-
   void CheckError(hid_t hid, std::string error_message) {
     if (hid < 0) {
       H5Eprint(H5E_DEFAULT, stderr);
@@ -159,6 +125,46 @@ class H5MDTrajectoryReader : public TrajectoryReader, public TopologyReader {
       return false;
     return info.type == H5G_GROUP;
   }
+
+  hid_t file_id_;
+  hid_t ds_atom_position_;
+  hid_t ds_atom_force_;
+  hid_t ds_atom_velocity_;
+  hid_t ds_atom_id_;
+  hid_t ds_atom_species_;
+  hid_t ds_edges_group_;
+
+  hid_t particle_group_;
+  hid_t atom_position_group_;
+  hid_t atom_force_group_;
+  hid_t atom_velocity_group_;
+  hid_t atom_id_group_;
+  hid_t atom_species_group_;
+  hid_t edges_group_;
+
+  int rank_;
+
+  string fname_;
+  bool first_frame_;
+
+  // Flags about datasets.
+  DatasetState has_velocity_;
+  DatasetState has_force_;
+  DatasetState has_id_group_;
+  DatasetState has_box_;
+
+  bool file_opened_;
+
+  // Current frame indicator.
+  int idx_frame_;
+
+  // Number of particles. This is static among time.
+  int N_particles_;
+  int vec_components_;
+  hsize_t chunk_rows_[3];
+
+  // Box matrix.
+  matrix m;
 };
 
 }  // namespace csg
