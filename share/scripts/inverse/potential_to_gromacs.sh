@@ -103,7 +103,7 @@ if [[ $tabtype = "non-bonded" ]]; then
   elif [[ -z $tablend ]]; then
     die "${0##*/}: cg.inverse.gromacs.table_end was not defined in xml seeting file"
   fi
-elif [[ $tabtype = "bond" || $tabtype = "thermforce" ]]; then
+elif [[ $tabtype = "bond" ]]; then
   tablend="$(csg_get_property cg.inverse.gromacs.table_end)"
 elif [[ $tabtype = "angle" ]]; then
   tablend=180
