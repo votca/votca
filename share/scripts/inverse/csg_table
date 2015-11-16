@@ -150,9 +150,6 @@ pressure_cor wjk pressure_cor_wjk.pl
 kbibi ramp_correction kbibi_ramp_correction.pl
 calc kbint calc_kbint.sh
 
-#density correction
-density symmetrize density_symmetrize.py 
-
 # generic table manipulation
 table add add_POT.pl
 table integrate table_integrate.pl
