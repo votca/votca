@@ -17,6 +17,7 @@ addons:
       - libboost1.55-all-dev
       - libexpat1-dev
       - libsqlite3-dev
+      - libhdf5-serial-dev
       - pkg-config
       - pgf
       - texlive-fonts-recommended
@@ -40,6 +41,7 @@ env:
     - BDIR=build J=1
     - MAN=yes J=4
     - MINIMAL=yes J=4
+    - H5MD=yes J=4
     - CSG_MDRUN_STEPS=500 TEST=hexane/ibi_bonded J=4
     - CSG_MDRUN_STEPS=500 TEST=hexane/ibi J=4
     - CSG_MDRUN_STEPS=500 TEST=methanol/ibi J=4
@@ -81,7 +83,7 @@ script:
   - PATH="$HOME/bin:/usr/lib/ccache:$PATH" ./build.sh -Wu --dev --prefix "$HOME/votca" ${MAN:+--devdoc}
     ${TEST:+--runtest=$TEST} ${WERROR:+--warn-to-errors} ${MINIMAL:+--minimal}
     ${J:+-j$J} ${BDIR:+--builddir=$BDIR} ${NINJA:+--ninja} ${WALL:+--Wall}
-    --directory "$HOME/votca/src" --no-clean --depth 1
+    --directory "$HOME/votca/src" --no-clean --depth 1 ${H5MD:+-DWITH_H5MD=ON}
     tools gromacs csg csgapps ${MAN:+csg-manual} ${TEST:+csg-tutorials}
     ${CTP:+kmc moo ctp}
 
