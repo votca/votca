@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.6)
 
 project(votca-csg)
 
-set(PROJECT_VERSION "1.3_rc1")
+set(PROJECT_VERSION "1.4-dev")
 set(PROJECT_CONTACT "bugs@votca.org")
 string(REGEX REPLACE "^[1-9]+\\.([1-9]+).*$" "\\1" SOVERSION "${PROJECT_VERSION}")
 if (NOT ${SOVERSION} MATCHES "[1-9]+")
@@ -79,12 +79,7 @@ include_directories(${VOTCA_TOOLS_INCLUDE_DIRS})
 
 option(WITH_GMX "Build gromacs reader/writer, disabling leads to reduced functionality!" ON)
 if (WITH_GMX)
-  foreach(LIBGMX libgmx_d libgmx libgromacs_d libgromacs)
-    find_package(GROMACS COMPONENTS "${LIBGMX}")
-    if (GROMACS_FOUND)
-      break()
-    endif(GROMACS_FOUND)
-  endforeach(LIBGMX)
+  find_package(GROMACS REQUIRED)
 endif(WITH_GMX) 
 
 ########################################################################

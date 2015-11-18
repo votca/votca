@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2015 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,18 +18,8 @@
 #include <iostream>
 #include <votca_config.h>
 
-#if (GMX == 50)||(GMX == 51)
-#include <gromacs/legacyheaders/copyrite.h>
-#elif GMX == 45
-#include <gromacs/copyrite.h>
-#elif GMX == 40
-    extern "C"
-    {
-        #include <copyrite.h>
-    }
-#endif
-
 #ifdef GMX
+#include <gromacs/legacyheaders/copyrite.h>
 // this one is needed because of bool is defined in one of the headers included by gmx
 #undef bool
 #endif

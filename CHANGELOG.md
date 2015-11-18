@@ -1,5 +1,10 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/csg/commits/master).
 
+## Version 1.4-dev
+ * dropped support for gromacs-4 and clean up
+ * dropped multi_g_rdf script
+ * dropped thermforce iteration method
+
 ## Version 1.3_rc1 _SuperUzma_ (released 23.09.15)
 
 * added new iterative methods: relative entropy, simplex optimization
