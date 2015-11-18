@@ -43,15 +43,15 @@ void Orca::Initialize( Property *options ) {
     string fileName = "system";
 
     _xyz_file_name = fileName + ".xyz";
-    _input_file_name = fileName + ".nw";
+    _input_file_name = fileName + ".inp";
     _log_file_name = fileName + ".log"; 
     _shell_file_name = fileName + ".sh"; 
-    _orb_file_name = fileName + ".movecs" ;               
+           
 
     string key = "package";
     string _name = options->get(key+".name").as<string> ();
     
-    if ( _name != "nwchem" ) {
+    if ( _name != "orca" ) {
         cerr << "Tried to use " << _name << " package. ";
         throw std::runtime_error( "Wrong options file");
     }
@@ -64,9 +64,9 @@ void Orca::Initialize( Property *options ) {
     _threads =          options->get(key + ".threads").as<int> ();
     _scratch_dir =      options->get(key + ".scratch").as<string> ();
     _cleanup =          options->get(key + ".cleanup").as<string> ();
-    
+  
     // check if the optimize keyword is present, if yes, read updated coords
-    std::string::size_type iop_pos = _options.find(" optimize");
+    std::string::size_type iop_pos = _options.find(" Opt"); /*optimization word in orca*/
     if (iop_pos != std::string::npos) {
         _is_optimization = true;
     } else
@@ -75,7 +75,7 @@ void Orca::Initialize( Property *options ) {
     }
 
     // check if the esp keyword is present, if yes, get the charges and save them
-    iop_pos = _options.find(" esp");
+    iop_pos = _options.find(" esp");  /*electrostatic potential related to partial atomic charges I guess is chelpg in orca but check */
     if (iop_pos != std::string::npos) {
         _get_charges = true;
     } else
@@ -84,7 +84,7 @@ void Orca::Initialize( Property *options ) {
     }
 
     // check if the charge keyword is present, if yes, get the self energy and save it
-    iop_pos = _options.find("set bq background");
+    iop_pos = _options.find("set bq background");  /*??*/
     if (iop_pos != std::string::npos) {
         _get_self_energy = true;
         _write_charges = true;
@@ -103,7 +103,7 @@ void Orca::Initialize( Property *options ) {
 }    
 
 /**
- * Prepares the *.nw file from a vector of segments
+ * Prepares the *.inp file from a vector of segments
  * Appends a guess constructed from monomer orbitals if supplied
  */
 bool Orca::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_guess )
@@ -123,12 +123,12 @@ bool Orca::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_guess 
     
     _com_file.open ( _com_file_name_full.c_str() );
     // header 
-   _com_file << "geometry noautoz noautosym" << endl;
+   _com_file << "* xyzfile  "  <<  _charge << " " << _spin << " " << _xyz_file_name << "\n" << endl;
  
+   _com_file << "%pal\n "  <<  "nprocs " <<  _threads  << "\nend" << "\n" << endl;
    
    
-   
-   if ( !_write_charges ) {
+   /*if ( !_write_charges ) {
    
     for (sit = segments.begin() ; sit != segments.end(); ++sit) {
         
@@ -191,12 +191,12 @@ bool Orca::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_guess 
                 
                 _crg_file.close();
        
-   } // end different coordinate file data depending on QM/MM or pure QM
+   }*/ // end different coordinate file data depending on QM/MM or pure QM
 
-    _com_file << "end\n";
+    //_com_file << "end\n";
     
     // write charge of the molecule
-    _com_file <<  "\ncharge " << _charge << "\n" ;
+    //_com_file <<  "\ncharge " << _charge << "\n" ;
      
     // writing scratch_dir info
     if ( _scratch_dir != "" ) {
@@ -205,7 +205,7 @@ bool Orca::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_guess 
 
         // boost::filesystem::create_directories( _scratch_dir + temp_suffix );
         string _temp( "scratch_dir " + _scratch_dir + temp_suffix + "\n" );
-        _com_file << _temp ;
+        //_com_file << _temp ;
     }
 
     _com_file << _options << "\n";
@@ -335,7 +335,7 @@ bool Orca::WriteShellScript() {
     if ( _threads == 1 ){ 
         _shell_file << _executable << " " << _input_file_name << " > " <<  _log_file_name  << " 2> run.error" << endl;    
     } else {
-        _shell_file << "mpirun -np " << boost::lexical_cast<string>(_threads) << " " << _executable << " " << _input_file_name << " > " <<  _log_file_name << " 2> run.error" << endl;    
+        _shell_file << "/home/bbagheri/Sourcecode/ORCA/orca_3_0_3_linux_x86-64/" << _executable << " "<< _input_file_name << " > " <<  _log_file_name << " 2> run.error" << endl;    
     }
     _shell_file.close();
     
@@ -402,7 +402,7 @@ void Orca::CleanUp() {
         vector<string> ::iterator it;
                
         for (it = _cleanup_info.begin(); it != _cleanup_info.end(); ++it) {
-            if ( *it == "nw" ) {
+            if ( *it == "orca" ) {
                 string file_name = _run_dir + "/" + _input_file_name;
                 remove ( file_name.c_str() );
             }
@@ -434,7 +434,7 @@ void Orca::CleanUp() {
 
 
 /**
- * Reads in the MO coefficients from a Orca movecs file
+ * Reads in the MO coefficients from a Orca Log file
  */
 bool Orca::ParseOrbitalsFile( Orbitals* _orbitals )
 {
@@ -447,22 +447,13 @@ bool Orca::ParseOrbitalsFile( Orbitals* _orbitals )
     //unsigned _level;
     unsigned _basis_size = 0;
     int _number_of_electrons = 0;
+    bool _has_basis_dim = false;
+    vector<string> results;    
     
-    /* maybe we DO need to convert from fortran binary to ASCII first to avoid
-     compiler-dependent issues */
-    string _orb_file_name_bin = _run_dir + "/" + _orb_file_name;
-    string _command;
-    _command = "cd "  + _run_dir + "; mov2asc 10000 system.movecs system.mos > convert.log";
-    int i = system ( _command.c_str() );
-    if ( i == 0 ) {
-        LOG(logDEBUG, *_pLog) << "Converted MO file from binary to ascii"<< flush;
-    } else  {
-        LOG( logERROR, *_pLog ) << "Conversion of binary MO file to ascii failed. " << flush;
-        return false;
-    }
-        
-    // opening the ascii MO file   
-    string _orb_file_name_full = _run_dir + "/" + "system.mos" ;
+    // For Orca we can read the MOs from the Log file
+    //string _orb_file_name_full = _run_dir + "/" +  _log_file_name ; 
+    string _orb_file_name_full = _run_dir + "/" +  _log_file_name ;
+    
     std::ifstream _input_file( _orb_file_name_full.c_str() );
     
     if (_input_file.fail()) {
@@ -472,86 +463,222 @@ bool Orca::ParseOrbitalsFile( Orbitals* _orbitals )
         LOG(logDEBUG, *_pLog) << "Reading MOs from " << _orb_file_name_full << flush;
     }
     
-    // the first 12 lines are garbage info
-    for ( i=1; i<13; i++) {
-       getline(_input_file, _line);
-    }
-    // next line has basis set size
-    _input_file >> _basis_size ;
-    LOG( logDEBUG, *_pLog ) << "Basis set size: " << _basis_size << flush;
-
-
-    // next line has number of stored MOs
-    _input_file >> _levels ;
-    LOG( logDEBUG, *_pLog ) << "Energy levels: " << _levels << flush;
-
-    /* next lines contain information about occupation of the MOs
-     *  - each line has 3 numbers 
-     *  - from _occ we can determine the number of electrons/2 */
-    int _n_lines = (( _levels - 1 ) / 3);
-    int _n_rest  = _levels - 3*_n_lines;
-    // read in the data
-    int _imo = 0;
-    for ( i=1; i<=_n_lines; i++ ) {
-        for ( int j=0; j<3; j++ ){
-            _input_file >> _occ[ _imo ];
-            if ( _occ[ _imo ] == 2.0 ) {
-                _number_of_electrons++;
-            }
-            _imo++;
+    
+    
+    int _emo=0;
+    int _omo=0;
+    //     int _cmo=0;
+        
+        
+    while (_input_file) {
+        getline(_input_file,_line);
+        boost::trim(_line);
+     
+    //Finding Basis Dimension, the number of energy levels
+        std::string::size_type dim_pos = _line.find("Basis Dimension");
+        if (dim_pos != std::string::npos) {
+                
+            boost::algorithm::split(results, _line, boost::is_any_of(" "), boost::algorithm::token_compress_on);
+            _has_basis_dim = true;
+            string _dim = results[4];  //The 4th element of results vector is the Basis Dim
+            boost::trim( _dim );
+            _levels = boost::lexical_cast<int>(_dim);
+            //cout <<  boost::lexical_cast<int>(_dim) << endl;
+            
+              LOG(logDEBUG,*_pLog) << "Basis Dimension: " << _levels << flush;
+              LOG( logDEBUG, *_pLog ) << "Energy levels: " << _levels << flush;
         }
-    }
-    if ( _n_rest != 0 ) {
-        for ( i=0; i<_n_rest; i++ ){
-             _input_file >> _occ[ _imo ];
-            _imo++;
-        }
-    }
+        /********************************************************/
+        int _n_lines = (( _levels - 1 ) / 6); //each row contains 6 levels
+        int _n_rest  = _levels - 6*_n_lines;  //the last remaining columns 
+        
+        /*Finding Line for the start of MOLECULAR ORBITAL DATA*/ 
+        std::string::size_type MO_pos = _line.find("MOLECULAR ORBITALS");
+        if (MO_pos != std::string::npos) {
+                       
+            getline(_input_file,_line);  //Trash this line
+                              
+            for (int i=0; i<_n_lines ; i++){ 
+           
+            getline(_input_file,_line);  //Trash this line
+            
+            /*Reading MO Energies ....*/
+            getline(_input_file,_line);  //energy levels
+            
+            boost::algorithm::split(results, _line, boost::is_any_of(" "), boost::algorithm::token_compress_on);
+                for (size_t l = 1; l < results.size(); l++){
+                      string _en = results[l];
+                      boost::trim( _en );
+                      try
+                           {
+                            _energies [_emo] = boost::lexical_cast<double>(_en) ;
+                           }
+                     catch(boost::bad_lexical_cast const& e)
+                           {
+                           }
+                     _emo++ ;
+                            }
+            /*Done with reading MO energies ....*/
+            
+             /*Reading OCC numbers*/
+            getline(_input_file,_line);  //occ line
+                        
+            boost::algorithm::split(results, _line, boost::is_any_of(" "), boost::algorithm::token_compress_on);
+            for (size_t l = 1; l < results.size(); l++){
+                      string _oc = results[l];
+                      boost::trim( _oc );
+                      /*lexical_cast gives error if I don't catch the segmentation fault!! */
+                      try
+                           {
+                            _occ [_omo] = boost::lexical_cast<double>(_oc) ;
+                           }
+                      catch(boost::bad_lexical_cast const& e)
+                           {
+                           } 
+                     
+                      if ( _occ[ _omo ] == 2.0 ) {
+                                                  _number_of_electrons++;
+                                                 }
+                      _omo++ ;
+                               }
+            /*Done with reading the OCC numbers ....*/
+                        
+             getline(_input_file,_line);  //Trash this line again
+             
+             /*Reading MO coefficients ...*/
+             for(int j=0; j< _levels; j++){
+             getline(_input_file,_line);  //MO coefficients 
+             /*Erasing the first part*/
+             string _coe;
+             _coe.assign(_line, 0, 16);
+              boost::trim(_coe);
+             _line.erase(0, 16);
+             
+             for(int l=0; l<6;l++){  //l is the number of blocks in each line we want to save
+                        string _coe;
+                        _coe.assign(_line, 0, 10);
+                        boost::trim(_coe);
+                        /*if I don't catch the segmentation fault here...*/
+                        try
+                           {
+                            double coe = boost::lexical_cast<double>(_coe);
+              
+                            _coefficients[ j ].push_back(coe);  //j is the number of levels index
+                           }
+                        catch(boost::bad_lexical_cast const& e)
+                           {
+                           }
+                        _line.erase(0, 10);
+                       }
+             }
+            } /*for(int i=0; i<_n_lines;i++)*/
+            
+            
+            
+            
+              /*Mainly doing the same thing for the remaining columns at the end*/    
+            if ( _n_rest != 0 ) {
+             
+            getline(_input_file,_line);  //Trash this line
+                              
+            getline(_input_file,_line);  //energy levels
+                  
+            boost::algorithm::split(results, _line, boost::is_any_of(" "), boost::algorithm::token_compress_on);
+            for (size_t l = 1; l < results.size(); l++){
+                    string _en = results[l];
+                    boost::trim( _en );
+                    try
+                           {
+                            _energies [_emo] = boost::lexical_cast<double>(_en) ;
+                           }
+                    catch(boost::bad_lexical_cast const& e)
+                           {
+                           }
+                    _emo++ ;
+                }
+             
+
+            getline(_input_file,_line);  //occ levels
+                    
+            boost::algorithm::split(results, _line, boost::is_any_of(" "), boost::algorithm::token_compress_on);
+            for (size_t l = 1; l < results.size(); l++){
+                      string _oc = results[l];
+                      boost::trim( _oc );
+                      try
+                           {
+                            _occ [_omo] = boost::lexical_cast<double>(_oc) ;
+                           }
+                     catch(boost::bad_lexical_cast const& e)
+                           {
+                           } 
+                  
+                      if ( _occ[ _omo ] == 2.0 ) {
+                                                  _number_of_electrons++;
+                                                 }
+                      _omo++ ;
+                }
+
+                       
+            getline(_input_file,_line);  //Trash this line again
+    
+            for(int j=0; j< _levels; j++){
+             
+                 getline(_input_file,_line);  //MO coefficients 
+                  
+                 string _coe;
+                 _coe.assign(_line, 0, 16);
+                 boost::trim(_coe);
+                 _line.erase(0, 16);
+          
+                 for(int l=0; l<6;l++){
+                    string _coe;
+                    _coe.assign(_line, 0, 10);
+                    boost::trim(_coe);
+                 try
+                   {
+                    double coe = boost::lexical_cast<double>(_coe);
+                     _coefficients[ j ].push_back(coe);
+                   }
+                  catch(boost::bad_lexical_cast const& e)
+                          {
+                          }
+                 _line.erase(0, 10);
+                  }
+            }  /*for(j=0;j<_levels;j++)*/
+ 
+            }/*if (_n_rest !=0)*/
+
+            
+        } /*if(MO_pos !=std::string::npos)*/
+              
+    } /*while(_input_file)*/ 
+    
+  //  for (size_t l = 0; l < _energies.size(); l++){
+  //      cout << "\n" << _energies[l]<<endl;
+        //                                        }
+  //  for (size_t l = 0; l < _occ.size(); l++){
+  //      cout << "\n" << _occ[l]<<endl;
+                        //                    }
+//            cout << _energies.size() << endl;
+//            cout << _occ.size() << endl;
+
+    
+    
+    //for(int i=0 ; i< _levels ; i++)
+      //  cout << "\n" << _coefficients[i][92]<< endl;
+    
     LOG(logDEBUG,*_pLog) << "Alpha electrons: " << _number_of_electrons << flush ;
-
     int _occupied_levels = _number_of_electrons;
     int _unoccupied_levels = _levels - _occupied_levels;
     LOG(logDEBUG,*_pLog) << "Occupied levels: " << _occupied_levels << flush;
     LOG(logDEBUG,*_pLog) << "Unoccupied levels: " << _unoccupied_levels << flush;  
-    
-    // reset index and read MO energies the same way
-    _imo = 0;
-    for ( i=1; i<=_n_lines; i++ ) {
-        for ( int j=0; j<3; j++ ){
-            _input_file >> _energies[ _imo ];
-            _imo++;
-        }
-    }
-    if ( _n_rest != 0 ) {
-        for ( i=0; i<_n_rest; i++ ){
-             _input_file >> _energies[ _imo ];
-            _imo++;
-        }
-    }
-
-
-    // Now, the same for the coefficients
-    double coef;
-    for ( unsigned _imo=0; _imo < _levels ; _imo++ ){
-        for ( i=1; i<=_n_lines; i++ ) {
-            for ( int j=0; j<3; j++ ){
-                _input_file >> coef;
-                _coefficients[ _imo ].push_back( coef );
-            }
-        }
-        if ( _n_rest != 0 ) {
-           for ( i=0; i<_n_rest; i++ ){
-                _input_file >> coef;
-                _coefficients[ _imo ].push_back( coef );
-           }
-        }
-    }
-    
-                   
-
-  
+   
+        
+   /************************************************************/
+ 
     // copying information to the orbitals object
-    _orbitals->setBasisSetSize(  _basis_size );
+   /* _orbitals->setBasisSetSize(  _basis_size );*/
+    _orbitals->setBasisSetSize(  _levels );
     //_orbitals->_has_basis_set_size = true;
     _orbitals->setNumberOfElectrons( _number_of_electrons );
     // _orbitals->_has_number_of_electrons = true;
@@ -568,7 +695,7 @@ bool Orca::ParseOrbitalsFile( Orbitals* _orbitals )
    //_level = 1;
    for(size_t i=0; i < _orbitals->_mo_energies.size(); i++) {
          _orbitals->_mo_energies[i] = _energies[ i ];
-   }
+    }
 
    
    // copying orbitals to the matrix
@@ -576,31 +703,24 @@ bool Orca::ParseOrbitalsFile( Orbitals* _orbitals )
    for(size_t i = 0; i < _orbitals->_mo_coefficients.size1(); i++) {
       for(size_t j = 0 ; j < _orbitals->_mo_coefficients.size2(); j++) {
          _orbitals->_mo_coefficients(i,j) = _coefficients[i][j];
+         cout <<  _coefficients[i][j] << endl;
          //cout << i << " " << j << endl;
-      }
-   }
+        }
+    }
 
-   
-  
-    
    //cout << _mo_energies << endl;   
-   //cout << _mo_coefficients << endl; 
+   // cout << _mo_coefficients << endl; 
    
    // cleanup
    _coefficients.clear();
    _energies.clear();
    _occ.clear();
    
-   // when all is done, we can trash the ascii file
-   string file_name = _run_dir + "/system.mos";
-   remove ( file_name.c_str() );
-   
-   
    
    LOG(logDEBUG, *_pLog) << "Done reading MOs" << flush;
 
    return true;
-}
+}//ParseOrbitalFile(Orbital* _orbital)
 
 bool Orca::CheckLogFile() {
     
@@ -635,7 +755,7 @@ bool Orca::CheckLogFile() {
        string _line;            
        getline(_input_file,_line);                      // Read the current line
        // cout << "\nResult: " << _line << '\n';     // Display it
-       total_energy_pos = _line.find("Total DFT energy");
+       total_energy_pos = _line.find("Total Energy");
        diis_pos = _line.find("diis");
        // whatever is found first, determines the completeness of the file
        if (total_energy_pos != std::string::npos) {
@@ -688,7 +808,7 @@ bool Orca::ParseLogFile( Orbitals* _orbitals ) {
     
     // save qmpackage name
     // _orbitals->_has_qm_package = true;
-    _orbitals->setQMpackage("nwchem");
+    _orbitals->setQMpackage("orca");
     
     // set _found_optimization to true if this is a run without optimization
     if ( !_is_optimization ) {
@@ -706,10 +826,26 @@ bool Orca::ParseLogFile( Orbitals* _orbitals ) {
          * basis set size (is only required for overlap matrix reading, rest is
          * in orbitals file and could be skipped
          */
-        std::string::size_type basis_pos = _line.find("number of functions");
+        /****************************************/
+        
+        std::string::size_type dim_pos = _line.find("Basis Dimension");
+        if (dim_pos != std::string::npos) {
+                
+            boost::algorithm::split(results, _line, boost::is_any_of(" "), boost::algorithm::token_compress_on);
+            _has_basis_set_size = true;
+            string _bf = results[4];  //The 4th element of results vector is the Basis Dim
+            boost::trim( _bf );
+             _basis_set_size = boost::lexical_cast<int>(_bf);
+            //cout <<  boost::lexical_cast<int>(_dim) << endl;
+            _orbitals->setBasisSetSize( _basis_set_size );
+            LOG(logDEBUG,*_pLog) << "Basis functions: " << _basis_set_size << flush;              
+        }
+        
+        /****************************************/
+       /* std::string::size_type basis_pos = _line.find("Number of auxiliary basis functions");
         if (basis_pos != std::string::npos) {
-            //cout << _line << endl;
-            boost::algorithm::split(results, _line, boost::is_any_of(":"), boost::algorithm::token_compress_on);
+            cout << _line << endl;
+            boost::algorithm::split(results, _line, boost::is_any_of("...."), boost::algorithm::token_compress_on);
             _has_basis_set_size = true;
             string _bf = results.back();
             boost::trim( _bf );
@@ -717,25 +853,24 @@ bool Orca::ParseLogFile( Orbitals* _orbitals ) {
             _orbitals->setBasisSetSize( _basis_set_size );
             LOG(logDEBUG,*_pLog) << "Basis functions: " << _basis_set_size << flush;
         }
-
+        */
       /*
        * Total DFT energy
        */
-       std::string::size_type energy_pos = _line.find("Total DFT energy");
+       std::string::size_type energy_pos = _line.find("Total Energy");
        if (energy_pos != std::string::npos) {
             //cout << _line << endl;
-            boost::algorithm::split(results, _line, boost::is_any_of("="), boost::algorithm::token_compress_on);
-            string _energy = results.back();
+            boost::algorithm::split(results, _line, boost::is_any_of(" "), boost::algorithm::token_compress_on);
+            string _energy = results[3];
             boost::trim( _energy );
+            //cout << _energy << endl; 
             _orbitals->setQMEnergy ( _conv_Hrt_eV * boost::lexical_cast<double>(_energy) );
             LOG(logDEBUG, *_pLog) << "QM energy " << _orbitals->getQMEnergy() <<  flush;
             _has_qm_energy = true;
             // _orbitals->_has_qm_energy = true;
-            
-        }
- 
+            }
        
-       /*
+         /*
         * Vxc matrix
         * stored after the global array: g vxc
         */
@@ -878,7 +1013,7 @@ bool Orca::ParseLogFile( Orbitals* _orbitals ) {
             } // end of the blocks
             LOG(logDEBUG,*_pLog) << "Read the overlap matrix" << flush;
         } // end of the if "Overlap" found   
-
+          
         
         /*
          *  Partial charges from the input file
@@ -926,8 +1061,10 @@ bool Orca::ParseLogFile( Orbitals* _orbitals ) {
                 //_orbitals->_has_atoms = true;
         }
         
-
-         /*
+       
+       
+   
+       /*
          * Coordinates of the final configuration
          * depending on whether it is an optimization or not
          */
@@ -989,7 +1126,11 @@ bool Orca::ParseLogFile( Orbitals* _orbitals ) {
             // _orbitals->_has_atoms = true;
 
         }
-        
+       
+       
+       
+       
+       
          /*
          * TODO Self-energy of external charges
          */
@@ -1005,10 +1146,15 @@ bool Orca::ParseLogFile( Orbitals* _orbitals ) {
             // _orbitals->_has_self_energy = true;
             _orbitals->setSelfEnergy( _conv_Hrt_eV * boost::lexical_cast<double> ( energy[1] ) );
             
-            LOG(logDEBUG, *_pLog) << "Self energy " << _orbitals->getSelfEnergy() <<  flush;
-
+           LOG(logDEBUG, *_pLog) << "Self energy " << _orbitals->getSelfEnergy() <<  flush;
+          
         }
-        
+       
+         
+       
+         
+         
+         
         // check if all information has been accumulated and quit 
         if ( _has_basis_set_size && 
              _has_overlap_matrix &&
