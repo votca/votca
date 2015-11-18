@@ -22,6 +22,7 @@ AS=as
 
 # Macros
 CND_PLATFORM=GNU-Linux-x86
+CND_DLIB_EXT=so
 CND_CONF=profile_release
 CND_DISTDIR=dist
 CND_BUILDDIR=build
@@ -34,8 +35,8 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/715944016/csg_stat_imc.o \
-	${OBJECTDIR}/_ext/715944016/csg_stat.o
+	${OBJECTDIR}/_ext/715944016/csg_stat.o \
+	${OBJECTDIR}/_ext/715944016/csg_stat_imc.o
 
 
 # C Compiler Flags
@@ -64,17 +65,17 @@ LDLIBSOPTIONS=../libcsg/../../src/libcsg/libcsg.a ../../../tools/netbeans/libtoo
 
 ../../src/tools/csg_stat: ${OBJECTFILES}
 	${MKDIR} -p ../../src/tools
-	${LINK.cc} -pg -o ../../src/tools/csg_stat ${OBJECTFILES} ${LDLIBSOPTIONS} 
-
-${OBJECTDIR}/_ext/715944016/csg_stat_imc.o: ../../src/tools/csg_stat_imc.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
-	${RM} $@.d
-	$(COMPILE.cc) -g -O -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/csg_stat_imc.o ../../src/tools/csg_stat_imc.cc
+	${LINK.cc} -o ../../src/tools/csg_stat ${OBJECTFILES} ${LDLIBSOPTIONS} -pg
 
 ${OBJECTDIR}/_ext/715944016/csg_stat.o: ../../src/tools/csg_stat.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
 	${RM} $@.d
 	$(COMPILE.cc) -g -O -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/csg_stat.o ../../src/tools/csg_stat.cc
+
+${OBJECTDIR}/_ext/715944016/csg_stat_imc.o: ../../src/tools/csg_stat_imc.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
+	${RM} $@.d
+	$(COMPILE.cc) -g -O -I../../include -I../../../include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/csg_stat_imc.o ../../src/tools/csg_stat_imc.cc
 
 # Subprojects
 .build-subprojects:
