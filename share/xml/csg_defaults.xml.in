@@ -214,7 +214,7 @@
 	        <DESC>Length of the block for the error analysis</DESC>
 	      </block_length>
 	      <map>
-	        <DESC>Special mapping file(s) for rdf calculations needed for bonded interactions</DESC>
+	        <DESC>Space separated list of special mapping file(s) for rdf calculations needed for bonded interactions</DESC>
 	      </map>
 	      <topol>
 	        <DESC> Gromacs binary topol (tpr) file to be used for csg_stat</DESC>
@@ -321,7 +321,7 @@
 	        <DESC>Length of the block for the error analysis</DESC>
 	      </block_length>
 	      <map>
-	        <DESC>Special mapping file(s) for rdf calculations needed for bonded interactions</DESC>
+	        <DESC>Space separated list of special mapping file(s) for rdf calculations needed for bonded interactions</DESC>
 	      </map>
 	      <topol>
 	        <DESC> Special topology file to be used for csg_stat</DESC>
