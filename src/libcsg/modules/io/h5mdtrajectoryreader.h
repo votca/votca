@@ -75,7 +75,7 @@ class H5MDTrajectoryReader : public TrajectoryReader {
     T1 *data_out = new T1[N_particles_ * vec_components_];
     herr_t status = H5Dread(ds, ds_data_type, mspace1, dsp, H5P_DEFAULT, data_out);
     if (status < 0) {
-      throw std::runtime_error("Error ReadVectorData: " + status);
+      throw std::runtime_error("Error ReadVectorData: " + boost::lexical_cast<string>(status));
     } else
       return data_out;
   }
@@ -91,7 +91,7 @@ class H5MDTrajectoryReader : public TrajectoryReader {
     T1 *data_out = new T1[N_particles_];
     herr_t status = H5Dread(ds, ds_data_type, mspace1, dsp, H5P_DEFAULT, data_out);
     if (status < 0) {
-      throw std::runtime_error("Error ReadScalarData: " + status);
+      throw std::runtime_error("Error ReadScalarData: " + boost::lexical_cast<string>(status));
     } else {
       return data_out;
     }
@@ -130,7 +130,6 @@ class H5MDTrajectoryReader : public TrajectoryReader {
   hid_t ds_atom_force_;
   hid_t ds_atom_velocity_;
   hid_t ds_atom_id_;
-  hid_t ds_atom_species_;
   hid_t ds_edges_group_;
 
   hid_t particle_group_;
@@ -138,7 +137,6 @@ class H5MDTrajectoryReader : public TrajectoryReader {
   hid_t atom_force_group_;
   hid_t atom_velocity_group_;
   hid_t atom_id_group_;
-  hid_t atom_species_group_;
   hid_t edges_group_;
 
   int rank_;

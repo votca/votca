@@ -185,7 +185,7 @@ void H5MDTrajectoryReader::Initialize(Topology &top) {
 
   // TODO: reads mass, charge and particle type.
 
-  if (!has_id_group_ != NONE && top.BeadCount() > 0 && N_particles_ != top.BeadCount()) {
+  if (!(has_id_group_ != NONE) && top.BeadCount() > 0 && N_particles_ != top.BeadCount()) {
     cout << "Warning: The number of beads (" << N_particles_ << ")";
     cout << " in the trajectory is different than defined in the topology ("
         << top.BeadCount() << ")" << endl;
@@ -260,7 +260,7 @@ bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
     // topology files. The h5md only stores the trajectory data.
     Bead *b = top.getBead(atom_id);
     if (b == NULL)
-      throw runtime_error("Bead not found: " + atom_id);
+      throw runtime_error("Bead not found: " + boost::lexical_cast<string>(atom_id));
 
     b->setPos(vec(x, y, z));
     if (has_velocity_ == H5MDTrajectoryReader::TIMEDEPENDENT) {
