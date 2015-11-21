@@ -185,7 +185,7 @@ void H5MDTrajectoryReader::Initialize(Topology &top) {
 
   // TODO: reads mass, charge and particle type.
 
-  if (!(has_id_group_ != NONE) && top.BeadCount() > 0 && N_particles_ != top.BeadCount()) {
+  if (has_id_group_ == H5MDTrajectoryReader::NONE && top.BeadCount() > 0 && N_particles_ != top.BeadCount()) {
     cout << "Warning: The number of beads (" << N_particles_ << ")";
     cout << " in the trajectory is different than defined in the topology ("
         << top.BeadCount() << ")" << endl;
