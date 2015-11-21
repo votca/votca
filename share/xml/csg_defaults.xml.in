@@ -214,7 +214,7 @@
 	        <DESC>Length of the block for the error analysis</DESC>
 	      </block_length>
 	      <map>
-	        <DESC>Special mapping file(s) for rdf calculations needed for bonded interactions</DESC>
+	        <DESC>Space separated list of special mapping file(s) for rdf calculations needed for bonded interactions</DESC>
 	      </map>
 	      <topol>
 	        <DESC> Gromacs binary topol (tpr) file to be used for csg_stat</DESC>
@@ -321,7 +321,7 @@
 	        <DESC>Length of the block for the error analysis</DESC>
 	      </block_length>
 	      <map>
-	        <DESC>Special mapping file(s) for rdf calculations needed for bonded interactions</DESC>
+	        <DESC>Space separated list of special mapping file(s) for rdf calculations needed for bonded interactions</DESC>
 	      </map>
 	      <topol>
 	        <DESC> Special topology file to be used for csg_stat</DESC>
@@ -343,15 +343,6 @@
 	      <DESC> option to be given to simulation program, use ${script} in there </DESC>
       </opts>
     </sim_prog>
-    <tf>
-      <DESC> general thermodynamic force specific options </DESC>
-      <adress_reference_coords>
-        <DESC>defines the coordinates of the center of the atomistic zone in non-gromacs adress simulation</DESC>
-      </adress_reference_coords>
-      <adress_type>
-        <DESC>defines the type of adress simulation for non-gromacs simulation backend</DESC>
-      </adress_type>
-    </tf>
     <re>
       <DESC>general options for realtive entropy method</DESC>
       <csg_reupdate>
@@ -738,27 +729,6 @@
 	      <DESC>Weight of the targets, amount has to be the same as of targets</DESC>
 	      </target_weights>
       </optimizer>
-      <tf>
-	      <DESC>Contains all information relevant to thermoforce iteration</DESC>
-	      <spline_start>
-	        <DESC>Start of the spline used to smooth the density</DESC>
-	      </spline_start>
-	      <spline_end>
-	        <DESC>End of the spline used to smooth the density</DESC>
-	      </spline_end>
-	      <spline_step>
-	        <DESC>Grid of the spline used to smooth the density</DESC>
-	      </spline_step>
-	      <molname>*
-	      <DESC>Molecule name of this interaction used in gromacs topology</DESC>
-	      </molname>
-	      <prefactor>
-	        <DESC>Prefactor for the thermoforce (f=-prefactor * grad density)</DESC>
-	      </prefactor>
-	      <cg_prefactor>
-	        <DESC>Prefactor for the thermoforce will be linear interpolated with tf.prefactor</DESC>
-	      </cg_prefactor>
-      </tf>
     </inverse>
   </non-bonded>
 </cg>

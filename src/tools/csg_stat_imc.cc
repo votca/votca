@@ -376,6 +376,7 @@ void Imc::WriteDist(const string &suffix)
 {
     map<string, interaction_t *>::iterator iter;
 
+    cout << std::endl;  // Cosmetic, put \n before printing names of distribution files.
     // for all interactions
     for (iter = _interactions.begin(); iter != _interactions.end(); ++iter) {            
         // calculate the rdf

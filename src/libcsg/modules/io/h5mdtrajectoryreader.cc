@@ -23,185 +23,187 @@
 namespace votca {
 namespace csg {
 
-H5MDTrajectoryReader::H5MDTrajectoryReader(){ 
-  h5file_ = NULL; 
-  particle_group_ = NULL;
-  atom_position_group_ = NULL;
-  atom_force_group_ = NULL;
-  atom_velocity_group_ = NULL;
-  atom_id_group_ = NULL;
-  time_set_ = NULL;
-  step_set_ = NULL;
-  has_velocity_ = false;
-  has_force_ = false;
-  has_id_group_ = false;
+H5MDTrajectoryReader::H5MDTrajectoryReader(){
+  has_velocity_ = H5MDTrajectoryReader::NONE;
+  has_force_ = H5MDTrajectoryReader::NONE;
+  has_id_group_ = H5MDTrajectoryReader::NONE;
+  has_box_ = H5MDTrajectoryReader::NONE;
 }
 
 H5MDTrajectoryReader::~H5MDTrajectoryReader() {
-  delete particle_group_;
-  delete atom_position_group_;
-  delete atom_force_group_;
-  delete ds_atom_position_;
-  if (has_force_)
-    delete ds_atom_force_;
-  if (has_velocity_)
-    delete ds_atom_velocity_;
-  if (has_id_group_)
-    delete atom_id_group_;
-
-  delete ds_time_;
-  delete ds_step_;
-  delete[] time_set_;
-  delete[] step_set_;
-  delete h5file_;
+  if (file_opened_) {
+    H5Fclose(file_id_);
+    file_opened_ = false;
+  }
 }
 
 bool H5MDTrajectoryReader::Open(const string &file) {
-  // Turn on exceptions instead of various messages.
-  H5::Exception::dontPrint();
-
   // Checks if we deal with hdf5 file.
-  if (! H5::H5File::isHdf5(file) )
-    throw std::ios_base::failure("Error on open trajectory file: " + file);
-
-  h5file_ = new H5::H5File(file, H5F_ACC_RDONLY);
+  if (!H5Fis_hdf5(file.c_str())) {
+    cout << file << " is not recognise as HDF5 file format" << endl;
+    return false;
+  }
+  file_id_ = H5Fopen(file.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
+  file_opened_ = true;
 
   // Check the version of the file.
-  H5::Group *g_h5md = new H5::Group(h5file_->openGroup("h5md"));
-  H5::Attribute *at_version = new H5::Attribute(g_h5md->openAttribute("version"));
+  hid_t g_h5md = H5Gopen(file_id_, "h5md", H5P_DEFAULT);
+  CheckError(g_h5md, "Unable to open /h5md group.");
+
+  hid_t at_version = H5Aopen(g_h5md, "version", H5P_DEFAULT);
+  CheckError(at_version, "Unable to read version attribute.");
   int version[2];
-  at_version->read(at_version->getDataType(), &version);
+  H5Aread(at_version, H5Aget_type(at_version), &version);
   if (version[0] != 1 || (version[0] == 1 && version[1] > 0)) {
-    h5file_->close();
-    std::cout << "Major version " << version[0] << std::endl;
-    std::cout << "Minor version " << version[1] << std::endl;
-    throw std::ios_base::failure("Wrong version of H5MD file.");
+    cout << "Major version " << version[0] << endl;
+    cout << "Minor version " << version[1] << endl;
+    throw ios_base::failure("Wrong version of H5MD file.");
   }
 
   // Clean up.
-  g_h5md->close();
-  delete at_version;
-  delete g_h5md;
+  H5Aclose(at_version);
+  H5Gclose(g_h5md);
 
   // Checks if the particles group exists and what is the number of members.
-  particle_group_ = new H5::Group(h5file_->openGroup("particles"));
-  if (particle_group_->getNumObjs() == 0) {
-    h5file_->close();
-    throw std::ios_base::failure("The particles group is empty.");
+  particle_group_ = H5Gopen(file_id_, "particles", H5P_DEFAULT);
+  CheckError(particle_group_, "Unable to open /particles group.");
+  hsize_t num_obj = 0;
+  H5Gget_num_objs(particle_group_, &num_obj);
+  if (num_obj == 0) {
+    throw ios_base::failure("The particles group is empty.");
   }
 
-  has_velocity_ = false;
-  has_force_ = false;
   first_frame_ = true;
+
+  // Handle errors by internal check up.
+  H5Eset_auto2(H5E_DEFAULT, NULL, NULL);
 
   return true;
 }
 
 void H5MDTrajectoryReader::Close() {
-  h5file_->close();
+  if (file_opened_) {
+    H5Fclose(file_id_);
+    file_opened_ = false;
+  }
+}
+
+void H5MDTrajectoryReader::Initialize(Topology &top) {
+  string *particle_group_name_ = new string(top.getParticleGroup());
+  if(*particle_group_name_ == "")
+    throw ios_base::failure(
+        "Missing particle group in topology. Please set `h5md_particle_group` tag with `name` attribute set to the particle group.");
+  string *position_group_name = new string(*particle_group_name_ + "/position");
+  atom_position_group_ = H5Gopen(particle_group_, position_group_name->c_str(), H5P_DEFAULT);
+  CheckError(atom_position_group_, "Unable to open " + *position_group_name + " group");
+
+  idx_frame_ = -1;
+  ds_atom_position_ = H5Dopen(atom_position_group_, "value", H5P_DEFAULT);
+  CheckError(ds_atom_position_, "Unable to open " + *position_group_name + "/value dataset");
+
+  // Reads the box information.
+  string *box_gr_name = new string(*particle_group_name_ + "/box");
+  hid_t g_box = H5Gopen(particle_group_, box_gr_name->c_str(), H5P_DEFAULT);
+  CheckError(g_box, "Unable to open " + *box_gr_name + " group");
+  hid_t at_box_dimension = H5Aopen(g_box, "dimension", H5P_DEFAULT);
+  CheckError(at_box_dimension, "Unable to open dimension attribute.");
+  int dimension;
+  H5Aread(at_box_dimension, H5Aget_type(at_box_dimension), &dimension);
+  if (dimension != 3 ) {
+    throw ios_base::failure(
+        "Wrong dimension " + boost::lexical_cast<string>(dimension));
+  }
+  // TODO: check if boundary is periodic.
+  string *box_edges_name = new string(*particle_group_name_ + "/box/edges");
+  if (GroupExists(particle_group_, *box_edges_name)) {
+    g_box = H5Gopen(particle_group_, box_gr_name->c_str(), H5P_DEFAULT);
+    edges_group_ = H5Gopen(g_box, "edges", H5P_DEFAULT);
+    ds_edges_group_ = H5Dopen(edges_group_, "value", H5P_DEFAULT);
+    cout << "H5MD: has /box/edges" << endl;
+    has_box_ = H5MDTrajectoryReader::TIMEDEPENDENT;
+  } else {
+    cout << "H5MD: static box" << endl;
+    hid_t ds_edges = H5Dopen(g_box, "edges", H5P_DEFAULT);
+    CheckError(ds_edges, "Unable to open /box/edges");
+    double *box = new double[3];
+    ReadStaticData(ds_edges, H5T_NATIVE_DOUBLE, box);
+    cout << "H5MD: Found box " << box[0] << " x " << box[1] <<
+        " x " << box[2] << endl;
+    // Sets box size.
+    m.ZeroMatrix();
+    m[0][0] = box[0];
+    m[1][1] = box[1];
+    m[2][2] = box[2];
+    top.setBox(m);
+    has_box_ = H5MDTrajectoryReader::STATIC;
+  }
+  H5Gclose(g_box);
+
+  // Gets the force group.
+  string *force_group_name = new string(*particle_group_name_ + "/force");
+  if (GroupExists(particle_group_, *force_group_name)) {
+    atom_force_group_ = H5Gopen(particle_group_, force_group_name->c_str(), H5P_DEFAULT);
+    ds_atom_force_ = H5Dopen(atom_force_group_, "value", H5P_DEFAULT);
+    has_force_ = H5MDTrajectoryReader::TIMEDEPENDENT;
+    cout << "H5MD: has /force" << endl;
+  } else {
+    has_force_ = H5MDTrajectoryReader::NONE;
+  }
+
+  // Gets the velocity group.
+  string *velocity_group_name = new string(*particle_group_name_ + "/velocity");
+  if (GroupExists(particle_group_, *velocity_group_name)) {
+    atom_velocity_group_ = H5Gopen(particle_group_,
+                                   velocity_group_name->c_str(),
+                                   H5P_DEFAULT);
+    ds_atom_velocity_ = H5Dopen(atom_velocity_group_, "value", H5P_DEFAULT);
+    has_velocity_ = H5MDTrajectoryReader::TIMEDEPENDENT;
+    cout << "H5MD: has /velocity" << endl;
+  } else {
+    has_velocity_ = H5MDTrajectoryReader::NONE;
+  }
+
+  // Gets the id group so that the atom id is taken from this group.
+  string *id_group_name = new string(*particle_group_name_  + "/id");
+  if (GroupExists(particle_group_, *id_group_name)) {
+    atom_id_group_ = H5Gopen(particle_group_, id_group_name->c_str(), H5P_DEFAULT);
+    ds_atom_id_ = H5Dopen(atom_id_group_, "value", H5P_DEFAULT);
+    has_id_group_ = H5MDTrajectoryReader::TIMEDEPENDENT;
+    cout << "H5MD: has /id group" << endl;
+  } else {
+    has_id_group_ = H5MDTrajectoryReader::NONE;
+  }
+
+  // Gets number of particles and dimensions.
+  hid_t fs_atom_position_ = H5Dget_space(ds_atom_position_);
+  CheckError(fs_atom_position_, "Unable to open atom position space.");
+  hsize_t dims[3];
+  rank_ = H5Sget_simple_extent_dims(fs_atom_position_, dims, NULL);
+  N_particles_ = dims[1];
+  vec_components_ = dims[2];
+  max_idx_frame_ = dims[0] - 1;
+
+  // TODO: reads mass, charge and particle type.
+
+  if (!(has_id_group_ != NONE) && top.BeadCount() > 0 && N_particles_ != top.BeadCount()) {
+    cout << "Warning: The number of beads (" << N_particles_ << ")";
+    cout << " in the trajectory is different than defined in the topology ("
+        << top.BeadCount() << ")" << endl;
+    cout << "The number of beads from topology will be used!" << endl;
+    N_particles_ = top.BeadCount();
+  }
+
+  delete id_group_name;
+  delete velocity_group_name;
+  delete force_group_name;
+  delete box_edges_name;
+  delete particle_group_name_;
 }
 
 bool H5MDTrajectoryReader::FirstFrame(Topology &top) {  // NOLINT const reference
-  // First frame has access to topology so here we will check if the particle_group exists.
   if (first_frame_) {
     first_frame_ = false;
-
-    std::string *particle_group_name = new std::string(top.getParticleGroup());
-    if(*particle_group_name == "")
-      throw std::ios_base::failure("Missing particle group in topology. Please set h5md_particle_group tag with name \
-          attribute set to the particle group.");
-
-    //particle_group_ = new H5::Group(h5file_->openGroup("particles"));
-    try {
-      atom_position_group_ = new H5::Group(particle_group_->openGroup(
-            *particle_group_name + "/position"));
-    } catch (H5::GroupIException not_found_error) {
-      std::cout << "Error: The path '/particles/" << *particle_group_name << "/position' not found. Please check the name ";
-      std::cout << "of particle group defined in topology" << std::endl;
-      throw not_found_error;
-    }
-
-    idx_frame_ = -1;
-
-    ds_atom_position_ = new H5::DataSet(atom_position_group_->openDataSet("value"));
-    ds_step_ = new H5::DataSet(atom_position_group_->openDataSet("step"));
-    ds_time_ = new H5::DataSet(atom_position_group_->openDataSet("time"));
-
-    // Reads the time set and step set.
-    H5::DataSet *ds_pos_step = new H5::DataSet(atom_position_group_->openDataSet("step"));
-    H5::DataSet *ds_pos_time = new H5::DataSet(atom_position_group_->openDataSet("time"));
-    H5::DataSpace dsp_step = H5::DataSpace(ds_pos_step->getSpace());
-    H5::DataSpace dsp_time = H5::DataSpace(ds_pos_time->getSpace());
-    hsize_t step_dims[3];
-    dsp_step.getSimpleExtentDims(step_dims);
-    time_set_ = new double[step_dims[0]];
-    step_set_ = new int[step_dims[0]];
-    ds_pos_step->read(step_set_, H5::PredType::NATIVE_INT, dsp_step, dsp_step);
-    ds_pos_time->read(time_set_, H5::PredType::NATIVE_DOUBLE, dsp_time, dsp_time);
-
-    delete ds_pos_step;
-    delete ds_pos_time;
-
-    // Reads the box information.
-    H5::Group g_box = H5::Group(particle_group_->openGroup(
-        *particle_group_name + "/box"));
-
-    H5::Attribute at_box_dimension = H5::Attribute(g_box.openAttribute("dimension"));
-    int dimension;
-    at_box_dimension.read(at_box_dimension.getDataType(), &dimension);
-    if (dimension != 3 ) {
-      throw std::ios_base::failure("Wrong dimension " + boost::lexical_cast<string>(dimension));
-    }
-
-    // Gets the force group.
-    try {
-      std::string force_group_name = *particle_group_name + "/force";
-      atom_force_group_ = new H5::Group(particle_group_->openGroup(force_group_name));
-      ds_atom_force_ = new H5::DataSet(atom_force_group_->openDataSet("value"));
-      has_force_ = true;
-      std::cout << "H5MD: has /force" << std::endl;
-    } catch (H5::GroupIException not_found) {
-      has_force_ = false;
-    }
-    // Gets the velocity group.
-    try {
-      std::string velocity_group_name = *particle_group_name + "/velocity";
-      atom_velocity_group_ = new H5::Group(particle_group_->openGroup(velocity_group_name));
-      ds_atom_velocity_ = new H5::DataSet(atom_velocity_group_->openDataSet("value"));
-      has_velocity_ = true;
-      std::cout << "H5MD: has /velocity" << std::endl;
-    } catch (H5::GroupIException not_found) {
-      has_velocity_ = false;
-    }
-    // Gets the id group so that the atom id is taken from this group.
-    try {
-      std::string id_group_name = *particle_group_name  + "/id";
-      atom_id_group_ = new H5::Group(particle_group_->openGroup(id_group_name));
-      ds_atom_id_ = new H5::DataSet(atom_id_group_->openDataSet("value"));
-      has_id_group_ = true;
-      std::cout << "H5MD: has /id group" << std::endl;
-    } catch (H5::GroupIException not_found) {
-      has_id_group_ = false;
-    }
-
-    // Gets number of particles and dimensions.
-    H5::DataSpace fs_atom_position_ = ds_atom_position_->getSpace();
-    hsize_t dims[3];
-    rank_ = fs_atom_position_.getSimpleExtentDims(dims);
-    N_particles_ = dims[1];
-    variables_ = dims[2];
-
-    if (!has_id_group_ && N_particles_ != top.BeadCount()) {
-      std::cout << "Warning: The number of beads (" << N_particles_ << ")";
-      std::cout << " in the trajectory is different than defined in the topology (" << top.BeadCount() << ")" << std::endl;
-      std::cout << "The number of beads from topology will be used!" << std::endl;
-      N_particles_ = top.BeadCount();
-    }
-    chunk_rows_[0] = 1;
-    chunk_rows_[1] = N_particles_;
-    chunk_rows_[2] = variables_;
-    
-    delete particle_group_name;
+    Initialize(top);
   }
   NextFrame(top);
   return true;
@@ -210,42 +212,45 @@ bool H5MDTrajectoryReader::FirstFrame(Topology &top) {  // NOLINT const referenc
 /// Reading the data.
 bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
   // Reads the position row.
-  H5::Exception::dontPrint();
   idx_frame_++;
-  std::cout << '\r' << "Reading frame: " << idx_frame_;
-  std::cout.flush();
-  double *positions;
-  try {
-    positions = ReadVectorData<double>(ds_atom_position_, H5::PredType::NATIVE_DOUBLE, idx_frame_);
-  } catch (H5::DataSetIException not_found) {
+  if (idx_frame_ > max_idx_frame_)
     return false;
-  }
 
+  cout << '\r' << "Reading frame: " << idx_frame_;
+  cout.flush();
+  double *positions;
   double *forces = NULL;
   double *velocities = NULL;
   int *ids = NULL;
-  if (has_velocity_) {
-    velocities = ReadVectorData<double>(ds_atom_velocity_, H5::PredType::NATIVE_DOUBLE, idx_frame_);
+
+  try {
+    positions = ReadVectorData<double>(ds_atom_position_, H5T_NATIVE_DOUBLE, idx_frame_);
+  } catch (const runtime_error &e) {
+    return false;
   }
 
-  if (has_force_) {
-    forces = ReadVectorData<double>(ds_atom_force_, H5::PredType::NATIVE_DOUBLE, idx_frame_);
+  if (has_velocity_ != H5MDTrajectoryReader::NONE) {
+    velocities = ReadVectorData<double>(ds_atom_velocity_, H5T_NATIVE_DOUBLE, idx_frame_);
   }
 
-  if (has_id_group_) {
-    ids = ReadScalarData<int>(ds_atom_id_, H5::PredType::NATIVE_INT, idx_frame_);
+  if (has_force_ != H5MDTrajectoryReader::NONE) {
+    forces = ReadVectorData<double>(ds_atom_force_, H5T_NATIVE_DOUBLE, idx_frame_);
+  }
+
+  if (has_id_group_ != H5MDTrajectoryReader::NONE) {
+    ids = ReadScalarData<int>(ds_atom_id_, H5T_NATIVE_INT, idx_frame_);
   }
 
   //Process atoms.
   for (int at_idx = 0; at_idx < N_particles_; at_idx++) {
     double x, y, z;
-    int array_index = at_idx*variables_;
+    int array_index = at_idx*vec_components_;
     x = positions[array_index];
     y = positions[array_index + 1];
     z = positions[array_index + 2];
     // Set atom id, or it is an index of a row in dataset or from id dataset.
     int atom_id = at_idx;
-    if (has_id_group_) {
+    if (has_id_group_ != H5MDTrajectoryReader::NONE) {
       if (ids[at_idx] == -1)  // ignore values where id == -1
         continue;
       atom_id = ids[at_idx] - 1;
@@ -254,8 +259,11 @@ bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
     // Topology has to be defined in the xml file or in other
     // topology files. The h5md only stores the trajectory data.
     Bead *b = top.getBead(atom_id);
+    if (b == NULL)
+      throw runtime_error("Bead not found: " + boost::lexical_cast<string>(atom_id));
+
     b->setPos(vec(x, y, z));
-    if (has_velocity_) {
+    if (has_velocity_ == H5MDTrajectoryReader::TIMEDEPENDENT) {
       double vx, vy, vz;
       vx = velocities[array_index];
       vy = velocities[array_index + 1];
@@ -263,7 +271,7 @@ bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
       b->setVel(vec(vx, vy, vz));
     }
 
-    if (has_force_) {
+    if (has_force_ == H5MDTrajectoryReader::TIMEDEPENDENT) {
       double fx, fy, fz;
       fx = forces[array_index];
       fy = forces[array_index + 1];
@@ -274,9 +282,12 @@ bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
 
   // Clean up pointers.
   delete[] positions;
-  delete[] forces;
-  delete[] velocities;
-  delete[] ids;
+  if (has_force_ == H5MDTrajectoryReader::TIMEDEPENDENT)
+    delete[] forces;
+  if (has_velocity_ == H5MDTrajectoryReader::TIMEDEPENDENT)
+    delete[] velocities;
+  if (has_id_group_ == H5MDTrajectoryReader::TIMEDEPENDENT)
+    delete[] ids;
 
   return true;
 }

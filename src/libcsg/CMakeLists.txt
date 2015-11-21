@@ -26,7 +26,7 @@ endif(WITH_GMX)
 
 option(WITH_H5MD "Build H5MD reader!" OFF)
 if(WITH_H5MD)
-  find_package(HDF5 REQUIRED COMPONENTS "CXX")
+    find_package(HDF5 REQUIRED COMPONENTS "C")
   set(H5MD true)
   include_directories (${HDF5_INCLUDE_DIRS})
 else(WITH_H5MD)
