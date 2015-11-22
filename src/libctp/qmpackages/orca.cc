@@ -447,7 +447,7 @@ bool Orca::ParseOrbitalsFile( Orbitals* _orbitals )
     //unsigned _level;
     unsigned _basis_size = 0;
     int _number_of_electrons = 0;
-    bool _has_basis_dim = false;
+    //bool _has_basis_dim = false;
     vector<string> results;    
     
     // For Orca we can read the MOs from the Log file
@@ -479,7 +479,7 @@ bool Orca::ParseOrbitalsFile( Orbitals* _orbitals )
         if (dim_pos != std::string::npos) {
                 
             boost::algorithm::split(results, _line, boost::is_any_of(" "), boost::algorithm::token_compress_on);
-            _has_basis_dim = true;
+            //_has_basis_dim = true;
             string _dim = results[4];  //The 4th element of results vector is the Basis Dim
             boost::trim( _dim );
             _levels = boost::lexical_cast<int>(_dim);
