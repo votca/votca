@@ -447,7 +447,7 @@ bool Orca::ParseOrbitalsFile( Orbitals* _orbitals )
     //unsigned _level;
     unsigned _basis_size = 0;
     int _number_of_electrons = 0;
-    bool _has_basis_dim = false;
+    //bool _has_basis_dim = false;
     vector<string> results;    
     
     // For Orca we can read the MOs from the Log file
@@ -546,7 +546,7 @@ bool Orca::ParseOrbitalsFile( Orbitals* _orbitals )
              getline(_input_file,_line);  //Trash this line again
              
              /*Reading MO coefficients ...*/
-             for(int j=0; j< _levels; j++){
+             for(unsigned j=0; j< _levels; j++){
              getline(_input_file,_line);  //MO coefficients 
              /*Erasing the first part*/
              string _coe;
@@ -621,7 +621,7 @@ bool Orca::ParseOrbitalsFile( Orbitals* _orbitals )
                        
             getline(_input_file,_line);  //Trash this line again
     
-            for(int j=0; j< _levels; j++){
+            for(unsigned j=0; j< _levels; j++){
              
                  getline(_input_file,_line);  //MO coefficients 
                   
