@@ -447,7 +447,7 @@ bool Orca::ParseOrbitalsFile( Orbitals* _orbitals )
     //unsigned _level;
     unsigned _basis_size = 0;
     int _number_of_electrons = 0;
-    //bool _has_basis_dim = false;
+    bool _has_basis_dim = false;
     vector<string> results;    
     
     // For Orca we can read the MOs from the Log file
