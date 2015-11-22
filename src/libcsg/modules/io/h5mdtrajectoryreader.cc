@@ -216,6 +216,9 @@ bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
   if (idx_frame_ > max_idx_frame_)
     return false;
 
+  // Set volume of box because top on workers somehow does not have this information.
+  top.setBox(m);
+
   cout << '\r' << "Reading frame: " << idx_frame_;
   cout.flush();
   double *positions;
