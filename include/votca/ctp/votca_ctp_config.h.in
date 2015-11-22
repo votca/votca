@@ -2,14 +2,9 @@
 #define _VOTCA_CTP_CONFIG_H
 
 /* OpenMP */
-<<<<<<< HEAD
-#ifdef _OPENMP
-   #include <omp.h>
-=======
+
 #if defined(_OPENMP)
    #include <omp.h>
-
->>>>>>> orca_interface
 #endif
 
 /* LIBXC */
