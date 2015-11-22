@@ -47,7 +47,8 @@ private:
     
     string      _orbfile;
     string      _output_file;
-    int         _state_no;   
+    int         _state_no;  
+    int         _openmp_threads;
     string      _state;
     string      _method;
     string      _spin;
@@ -115,6 +116,10 @@ void ESPFit_Tool::Initialize(Property* options) {
                 _gridsize = options->get(key+".gridsize").as<string>();
                 }
            else _gridsize="medium";
+           if ( options->exists(key+".openmp")) {
+                _openmp_threads = options->get(key+".openmp").as<int>();
+                }
+           else _openmp_threads=0;
               
     
     
@@ -134,6 +139,7 @@ void ESPFit_Tool::Initialize(Property* options) {
 }
 
 bool ESPFit_Tool::Evaluate() {
+    
 
     _log.setReportLevel( logDEBUG );
     _log.setMultithreading( true );
@@ -178,8 +184,12 @@ bool ESPFit_Tool::Evaluate() {
 
 
 void ESPFit_Tool::FitESP( Orbitals& _orbitals ){
-
-    LOG(logDEBUG, _log) << "===== Running ESPFIT ===== " << flush;
+    int threads=1;
+#ifdef _OPENMP
+            if ( _openmp_threads > 0 ) omp_set_num_threads(_openmp_threads); 
+            threads=omp_get_max_threads();
+#endif
+   LOG(logDEBUG, _log) << "===== Running ESPFIT on "<< threads << " threads ===== " << flush;
 
         vector< QMAtom* > Atomlist =_orbitals.QMAtoms();
         ub::matrix<double> DMAT_tot;
@@ -220,16 +230,19 @@ void ESPFit_Tool::FitESP( Orbitals& _orbitals ){
 	}
         else throw std::runtime_error("State entry not recognized");
         
+        
         if (_use_mulliken) {
             Mulliken mulliken;
             mulliken.EvaluateMulliken(Atomlist, DMAT_tot, basis, bs, _do_transition);
                 
         }
-        else if (_use_CHELPG){
+        else if (_use_CHELPG){         
             Espfit esp;
             esp.setLog(&_log);
-            if (_method=="numeric")        esp.Fit2Density(Atomlist, DMAT_tot, basis,bs,_gridsize,_do_transition); 
-            else if (_method=="analytic")  esp.Fit2Density_analytic(Atomlist,DMAT_tot,basis,_do_transition);
+            if (_integrationmethod=="numeric")  {
+                esp.Fit2Density(Atomlist, DMAT_tot, basis,bs,_gridsize,_do_transition); 
+            }
+            else if (_integrationmethod=="analytic")  esp.Fit2Density_analytic(Atomlist,DMAT_tot,basis,_do_transition);
         }
 }       
 

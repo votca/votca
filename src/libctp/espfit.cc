@@ -69,6 +69,7 @@ void Espfit::FitAPECharges(Grid& _targetgrid_fg, Grid& _targetgrid_bg, Grid& _ch
 
 
 void Espfit::Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis,BasisSet &bs,string gridsize, bool _do_transition, double _netcharge) { 
+   
     //double A2Bohr=1.8897259886;
      double Nm2Bohr=18.8972598860;
      //double Nm2A=10.0;
