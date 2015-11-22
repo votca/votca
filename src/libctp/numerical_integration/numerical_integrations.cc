@@ -296,7 +296,7 @@ namespace votca {
             
             // parallelization: distribute over threads inside one atom
             int nthreads = 1;
-            #ifdef OMP
+            #ifdef _OPENMP
                nthreads = omp_get_max_threads();
             #endif
             
@@ -1518,7 +1518,7 @@ namespace votca {
   
             // parallelization: distribute over threads inside one atom
             int nthreads = 1;
-            #ifdef OMP
+            #ifdef _OPENMP
                nthreads = omp_get_max_threads();
             #endif
 
