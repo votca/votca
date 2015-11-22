@@ -2,10 +2,9 @@
 #define _VOTCA_CTP_CONFIG_H
 
 /* OpenMP */
-#cmakedefine OMP
-#if defined(OMP)
+#if defined(_OPENMP)
    #include <omp.h>
-   #define OMP
+
 #endif
 
 /* LIBXC */
