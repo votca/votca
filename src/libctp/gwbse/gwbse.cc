@@ -183,9 +183,10 @@ namespace votca {
 
             
             // set the parallelization 
-            #ifdef OMP
-            if ( _openmp_threads > 0 ) omp_set_num_threads(_openmp_threads);
-#endif
+            #ifdef _OPENMP
+            if ( _openmp_threads > 0 ) omp_set_num_threads(_openmp_threads);           
+            #endif
+
             /* check which QC program was used for the DFT run 
              * -> implicit info about MO coefficient storage order 
              */
