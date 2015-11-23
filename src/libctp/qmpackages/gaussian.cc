@@ -269,22 +269,40 @@ namespace votca {
                                 elements.push_back(element_name);
 
                                 Element* element = ecp.getElement(element_name);
-
+                                   
                                 // element name, [possibly indeces of centers], zero to indicate the end
                                 _com_file << element_name << " 0\n"
                                         << pseudopotential_name << " "
                                         << element->getLmax() << " " << element->getNcore() << endl;
-
+                                //write local component
                                 for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
 
                                     Shell* shell = (*its);
                                     // shell type, number primitives, scale factor
-                                    _com_file << shell->getType() << endl;
-                                    _com_file << shell->getSize() << endl;
+                                    if (shell->getLmax() == element->getLmax()) {
+                                        _com_file << shell->getType() << endl;
+                                        _com_file << shell->getSize() << endl;
 
-                                    for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
-                                        GaussianPrimitive* gaussian = *itg;
-                                        _com_file << gaussian->power << " " << gaussian->decay << " " << gaussian->contraction[0] << endl;
+                                        for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
+                                            GaussianPrimitive* gaussian = *itg;
+                                            _com_file << gaussian->power << " " << gaussian->decay << " " << gaussian->contraction[0] << endl;
+                                        }
+                                    }
+                                }
+                                // write remaining shells in ascending order s,p,d...
+                                for (int i = 0; i < element->getLmax(); i++) {
+                                    for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+                                        Shell* shell = (*its);
+                                        if (shell->getLmax() == i) {
+                                            // shell type, number primitives, scale factor
+                                            _com_file << shell->getType() << endl;
+                                            _com_file << shell->getSize() << endl;
+
+                                            for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
+                                                GaussianPrimitive* gaussian = *itg;
+                                                _com_file << gaussian->power << " " << gaussian->decay << " " << gaussian->contraction[0] << endl;
+                                            }
+                                        }
                                     }
                                 }
                             }

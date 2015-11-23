@@ -75,6 +75,7 @@ public:
         if ( _type == "P" ) _lmax = 1;
         if ( _type == "PD" ) _lmax = 2;
         if ( _type == "D" ) _lmax = 2;
+        if ( _type == "F" ) _lmax = 3;
         return _lmax;
     }; 
     
@@ -86,6 +87,7 @@ public:
         if ( _type == "P" ) _size = 3;
         if ( _type == "PD" ) _size = 8;
         if ( _type == "D" ) _size = 5;
+        if ( _type == "F" ) _size = 7;
         return _size;
     }; 
     
