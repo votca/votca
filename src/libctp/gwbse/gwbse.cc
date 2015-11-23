@@ -303,18 +303,38 @@ namespace votca {
             // process the DFT data
             // a) form the expectation value of the XC functional in MOs
             ub::matrix<double> _dft_orbitals = *(_orbitals->getOrbitals()); //
-            // we have to do some cartesian -> spherical transformation for Gaussian
+            
+            {
             ub::matrix<double> _vxc_ao;
-            if ( _dft_package == "gaussian" ){
+            if (!_doVxc) {
 
-                const ub::matrix<double>& vxc_cart = _orbitals->AOVxc(); 
-                ub::matrix<double> _carttrafo;
-                dftbasis.getTransformationCartToSpherical(_dft_package , _carttrafo );
-                ub::matrix<double> _temp = ub::prod( _carttrafo, vxc_cart  );
-                _vxc_ao = ub::prod( _temp, ub::trans( _carttrafo) );
+                if (_orbitals->hasAOVxc()) {
+                    
+                    
+                    if (_dft_package == "gaussian") {
+                        // we have to do some cartesian -> spherical transformation for Gaussian
+                        const ub::matrix<double>& vxc_cart = _orbitals->AOVxc();
+                        ub::matrix<double> _carttrafo;
+                        dftbasis.getTransformationCartToSpherical(_dft_package, _carttrafo);
+                        ub::matrix<double> _temp = ub::prod(_carttrafo, vxc_cart);
+                        _vxc_ao = ub::prod(_temp, ub::trans(_carttrafo));
 
-            } else {
-                _vxc_ao = _orbitals->AOVxc(); 
+                    } else {
+                        _vxc_ao = _orbitals->AOVxc();
+                    }
+                }
+                else{
+                     throw std::runtime_error( "So your DFT data contains no Vxc and I am not supposed to calculate Vxc? Where should I get it from? I propose a break to let you think!");
+                }
+            }
+            else if (_doVxc) {
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculating Vxc in VOTCA with " << flush;
+                NumericalIntegration _numint;
+                _numint.GridSetup(_grid,&dftbs,_atoms);
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculating Vxc in VOTCA with gridsize: "<< _grid << flush;
+                ub::matrix<double> &DMAT = _orbitals->DensityMatrixGroundState( _dft_orbitals );
+                _vxc_ao = _numint.IntegrateVXC_Atomblock(DMAT,&dftbasis); 
+                dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "votca" );
             }
             
             
@@ -326,11 +346,11 @@ namespace votca {
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculated exchange-correlation expectation values " << flush;
                   
             // b) reorder MO coefficients depending on the QM package used to obtain the DFT data
-            if (_dft_package != "votca") {
-                dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "votca" );
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Converted DFT orbital coefficient order from " << _dft_package << " to VOTCA" <<  flush;
+            if (_dft_package != "votca" || _doVxc) {
+                    dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "votca");
+                    LOG(logDEBUG, *_pLog) << TimeStamp() << " Converted DFT orbital coefficient order from " << _dft_package << " to VOTCA" << flush;
+                }
             }
-            
             
             /******* TESTING VXC 
             
@@ -346,7 +366,7 @@ namespace votca {
             // test AOxcmatrix
             //ub::matrix<double> AOXC = _numint.IntegrateVXC(DMAT,&dftbasis); 
             double EXC = 0.0;
-            ub::matrix<double> AOXC_atomblock = _numint.IntegrateVXC_Atomblock(DMAT,&dftbasis); 
+            
             //ub::matrix<double> AOXC_atomblock = _numint.IntegrateVXC(DMAT,&dftbasis); 
             cout << "EXC " << EXC << endl;
             for ( int i = 0 ; i < AOXC_atomblock.size1(); i++ ){
@@ -912,7 +932,7 @@ namespace votca {
                     AODipole _dft_dipole;
                     _dft_dipole.Initialize(dftbasis._AOBasisSize);
                     _dft_dipole.Fill(&dftbasis);
-
+                    ub::matrix<double> _temp;
                     // now transition dipole elements for free interlevel transitions
                     _interlevel_dipoles.resize(3);
                     for (int _i_comp = 0; _i_comp < 3; _i_comp++) {

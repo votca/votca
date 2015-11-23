@@ -75,18 +75,18 @@ void NWChem::Initialize( Property *options ) {
         }
         else{
             cout << "=== So you do not want to output Vxc but still put it in the options string? I will assume that you want to output Vxc, be more consistent next time. "<< endl;
-            _options=_options+"\n\ndft\nprint "intermediate tXC matrix"""\nvectors input system.movecs\nnoscf\nend\ntask dft";
+            _options=_options+"\n\ndft\nprint ""intermediate tXC matrix""\nvectors input system.movecs\nnoscf\nend\ntask dft";
         }
         _output_Vxc = true;   
     } 
     else if (_output_Vxc==true){
-         _options=_options+"\n\ndft\nprint "intermediate tXC matrix"""\nvectors input system.movecs\nnoscf\nend\ntask dft";
+         _options=_options+"\n\ndft\nprint ""intermediate tXC matrix""\nvectors input system.movecs\nnoscf\nend\ntask dft";
     }
     
     
     
     // check if the optimize keyword is present, if yes, read updated coords
-    std::string::size_type iop_pos = _options.find(" optimize");
+    iop_pos = _options.find(" optimize");
     if (iop_pos != std::string::npos) {
         _is_optimization = true;
     } else
