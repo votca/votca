@@ -46,7 +46,8 @@ void Orca::Initialize( Property *options ) {
     _input_file_name = fileName + ".inp";
     _log_file_name = fileName + ".log"; 
     _shell_file_name = fileName + ".sh"; 
-           
+    
+     
 
     string key = "package";
     string _name = options->get(key+".name").as<string> ();
@@ -64,6 +65,15 @@ void Orca::Initialize( Property *options ) {
     _threads =          options->get(key + ".threads").as<int> ();
     _scratch_dir =      options->get(key + ".scratch").as<string> ();
     _cleanup =          options->get(key + ".cleanup").as<string> ();
+    
+    
+    if (options->exists(key + ".outputVX")) {
+                _output_Vxc = options->get(key + "outputVX").as<bool> ();   
+            }
+             else _output_Vxc=false;
+    if (_output_Vxc){
+        throw std::runtime_error( "Sorry "+_name+" does not support Vxc output");
+    }
   
     // check if the optimize keyword is present, if yes, read updated coords
     std::string::size_type iop_pos = _options.find(" Opt"); /*optimization word in orca*/

@@ -67,6 +67,9 @@ namespace votca {
             _store_eh_interaction = false;
             _openmp_threads = 0; // take all available
             _iterate_shift = false;
+            _doVxc=false;
+            _functional="";
+            _grid="";
             
             string key =  Identify();
     
@@ -105,8 +108,13 @@ namespace votca {
             
             // get OpenMP thread number
             _openmp_threads = options->get(key + ".openmp").as<int> ();
-            
-            
+            if (options->exists(key + ".vxc")) {
+                _doVxc = options->get(key + ".vxc.dovxc").as<bool> ();
+                if (_doVxc) {
+                    _functional = options->get(key + ".vxc.functional").as<string> ();
+                    _grid = options->get(key + ".vxc.grid").as<string> ();
+                }
+            }
             _gwbasis_name = options->get(key + ".gwbasis").as<string> ();
             _dftbasis_name = options->get(key + ".dftbasis").as<string> ();
             _shift = options->get(key + ".shift").as<double> ();
@@ -197,6 +205,10 @@ namespace votca {
 
             // load DFT basis set (element-wise information) from xml file
             BasisSet dftbs;
+            
+            if (_dftbasis_name!=_orbitals->getDFTbasis()){
+                throw std::runtime_error("Name of the Basisset from .orb file: "+_orbitals->getDFTbasis()+" and from GWBSE optionfile "+_dftbasis_name+" do not agree. To avoid further noise we stop here. Save the planet and avoid unnecessary calculations.");
+            }
             dftbs.LoadBasisSet(_dftbasis_name);
             _orbitals->setDFTbasis( _dftbasis_name );
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Loaded DFT Basis Set " << _dftbasis_name << flush;

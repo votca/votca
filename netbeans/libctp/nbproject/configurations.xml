@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="95">
+<configurationDescriptor version="97">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <logicalFolder name="f2" displayName="Calculators" projectFiles="true">
@@ -152,8 +152,6 @@
     <logicalFolder name="f2" displayName="QMPackages" projectFiles="true">
       <itemPath>../../src/libctp/qmpackages/gaussian.cc</itemPath>
       <itemPath>../../src/libctp/qmpackages/gaussian.h</itemPath>
-      <itemPath>../../src/libctp/qmpackages/gw.cc</itemPath>
-      <itemPath>../../src/libctp/qmpackages/gw.h</itemPath>
       <itemPath>../../src/libctp/qmpackages/nwchem.cc</itemPath>
       <itemPath>../../src/libctp/qmpackages/nwchem.h</itemPath>
       <itemPath>../../src/libctp/qmpackages/orca.cc</itemPath>
@@ -225,7 +223,6 @@
       <itemPath>../../src/libctp/gsl_boost_ublas_matrix_prod.cc</itemPath>
       <itemPath>../../src/libctp/hgversion.h</itemPath>
       <itemPath>../../src/libctp/job.cc</itemPath>
-      <itemPath>../../src/libctp/mbgft/mbgft.cc</itemPath>
       <itemPath>../../src/libctp/orbitals.cc</itemPath>
       <itemPath>../../src/libctp/overlap.cc</itemPath>
       <itemPath>../../src/libctp/parallelpaircalc.cc</itemPath>
@@ -922,10 +919,6 @@
             ex="false"
             tool="3"
             flavor2="0">
-      </item>
-      <item path="../../src/libctp/qmpackages/gw.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/qmpackages/gw.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/qmpackages/nwchem.cc"
             ex="false"
@@ -1702,10 +1695,6 @@
             ex="false"
             tool="3"
             flavor2="0">
-      </item>
-      <item path="../../src/libctp/qmpackages/gw.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libctp/qmpackages/gw.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/qmpackages/nwchem.cc"
             ex="false"

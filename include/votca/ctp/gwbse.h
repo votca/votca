@@ -194,6 +194,11 @@ public:
     bool                                _iterate_shift;
     bool                                _shift_converged;
     
+    // options for own Vxc calculation
+    bool                                _doVxc;
+    string                              _functional;
+    string                              _grid;
+    
     int                                 _openmp_threads;
     
     // fragment definitions

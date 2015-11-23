@@ -61,6 +61,14 @@ void Turbomole::Initialize( Property *opt ) {
     _get_charges = false;
     _get_self_energy = false;
     _write_guess = false;
+    
+     if (options->exists(key + ".outputVX")) {
+                _output_Vxc = options->get(key + "outputVX").as<bool> ();   
+            }
+             else _output_Vxc=false;
+    if (_output_Vxc){
+        throw std::runtime_error( "Sorry "+_name+" does not support Vxc output");
+    }
 
     // check if the guess keyword is present, if yes, append the guess later
     std::string::size_type iop_pos1 = _options.find("iter\n1 "); // for 1 + space

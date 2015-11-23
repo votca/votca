@@ -68,6 +68,11 @@ namespace votca {
             _chk_file_name = options->get(key + ".checkpoint").as<string> ();
             _scratch_dir = options->get(key + ".scratch").as<string> ();
             _cleanup = options->get(key + ".cleanup").as<string> ();
+            
+             if (options->exists(key + ".outputVX")) {
+                _output_Vxc = options->get(key + "outputVX").as<bool> ();   
+            }
+             else _output_Vxc=false;
 
             // check if the guess keyword is present, if yes, append the guess later
             std::string::size_type iop_pos = _options.find("cards");
@@ -513,12 +518,8 @@ namespace votca {
 
 
 
-            if (_write_pseudopotentials) {
-                /* This is not very nice. We assume that pseudopotentials are only 
-                 * needed for GW-BSE runs. Therefore, when we ask for writing the 
-                 * ECP info to the Gaussian com-file, it automatically means 
-                 * writing the input file for the <a|Vxc|b> matrix output run as well. 
-                 */
+            if (_output_Vxc) {
+             
 
                 ofstream _com_file2;
 
@@ -585,7 +586,7 @@ namespace votca {
             _shell_file << "mkdir -p " << _scratch_dir << endl;
             _shell_file << "setenv GAUSS_SCRDIR " << _scratch_dir << endl;
             _shell_file << _executable << " " << _input_file_name << endl;
-            if (_write_pseudopotentials) {
+            if (_output_Vxc) {
                 _shell_file << "rm fort.22" << endl;
                 _shell_file << "setenv DoPrtXC YES" << endl;
                 _shell_file << _executable << " " << _input_vxc_file_name << " >& /dev/null " << endl;
@@ -608,7 +609,7 @@ namespace votca {
                 // if scratch is provided, run the shell script; 
                 // otherwise run gaussian directly and rely on global variables 
                 string _command;
-                if (_scratch_dir.size() != 0 || _write_pseudopotentials) {
+                if (_scratch_dir.size() != 0 || _output_Vxc) {
                     _command = "cd " + _run_dir + "; tcsh " + _shell_file_name;
                     //            _command  = "cd " + _run_dir + "; mkdir -p " + _scratch_dir +"; " + _executable + " " + _input_file_name;
                 } else {
