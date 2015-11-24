@@ -156,8 +156,17 @@ namespace votca { namespace tools {
      * 
      */
     bool linalg_eigenvalues_general( ub::matrix<double> &A,ub::matrix<double> &B, ub::vector<double> &E, ub::matrix<double> &V);
-    
-    
+    /**
+     * \brief computes Singular value decomposition A = U S V^T double precision
+     * @param S vector of singular values
+     * @param A input: matrix for SVD, is oerwritten with U
+     * @param B input: overlap matrix
+     * @param V output: eigenvectors      
+     * 
+     * This function wrapps eigen_gensymmv / dsygv
+     * 
+     */
+   // bool linalg_singular_value_decomposition(ub::matrix<double> &A, ub::matrix<double> &VT, ub::vector<double> &S )
     
 }}
 
