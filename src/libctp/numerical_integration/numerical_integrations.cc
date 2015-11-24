@@ -538,11 +538,13 @@ namespace votca {
                     double df_drho;   // v_xc_rho(r) = df/drho
                     double df_dsigma; // df/dsigma ( df/dgrad(rho) = df/dsigma * dsigma/dgrad(rho) = df/dsigma * 2*grad(rho))
 
-                    
+ #ifdef LIBXC                   
                     if (_use_votca) {
+#endif
                         _xc.getXC(xfunc_id, rho, grad_rho(0, 0), grad_rho(0, 1), grad_rho(0, 2), f_xc, df_drho, df_dsigma);
-                    }                        // evaluate via LIBXC, if compiled, otherwise, go via own implementation
 #ifdef LIBXC
+                    }                        // evaluate via LIBXC, if compiled, otherwise, go via own implementation
+
                     else {
                         //double sigma = ub::prod(ub::trans(grad_rho),grad_rho)(0,0);
 
@@ -1443,11 +1445,11 @@ namespace votca {
             _atomshells.push_back(_singleatom);
             _startIdx.push_back( _Idx );
                     _blocksize.push_back(_size);
-            cout << " Number of atoms " << _atomshells.size() << endl;
+            //cout << " Number of atoms " << _atomshells.size() << endl;
             
-            for ( unsigned iatom = 0 ; iatom < _atomshells.size(); iatom++ ){
-                cout << "atom " << iatom << " number of shells " << _atomshells[iatom].size() << " block start " << _startIdx[iatom] << " functions in atom " << _blocksize[iatom] << endl; 
-            }
+            //for ( unsigned iatom = 0 ; iatom < _atomshells.size(); iatom++ ){
+            //    cout << "atom " << iatom << " number of shells " << _atomshells[iatom].size() << " block start " << _startIdx[iatom] << " functions in atom " << _blocksize[iatom] << endl; 
+            //}
 
            
             // setup a list of min decay constants per atom
@@ -1574,7 +1576,7 @@ namespace votca {
             total_grid = total_grid * ( natoms*(natoms+1) ) / 2;
             
             // cout << "Total number of atom blocks " << total_grid << " after removal of insignificant blocks " << significant_grid/2 << endl;
-            cout << "# Atom blocks by removal of insignificant blocks reduced to " << 50*double(significant_grid)/double(total_grid) << "%" << endl;
+          //  cout << "# Atom blocks by removal of insignificant blocks reduced to " << 50*double(significant_grid)/double(total_grid) << "%" << endl;
   
             // parallelization: distribute over threads inside one atom
             int nthreads = 1;
@@ -1604,10 +1606,10 @@ namespace votca {
                 // final stop must be size
                 _thread_stop[nthreads-1] = atom_points;
 
-                for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){
+              //  for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){
                     
-                    cout << "Thread " << i_thread << " start " << _thread_start[i_thread] << " stop " << _thread_stop[i_thread] << endl;                    
-                }
+               //     cout << "Thread " << i_thread << " start " << _thread_start[i_thread] << " stop " << _thread_stop[i_thread] << endl;                    
+               // }
                 
                 #pragma omp parallel for
                 for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){
@@ -1790,20 +1792,20 @@ namespace votca {
             EulerMaclaurinGrid _radialgrid;
             _radialgrid.getRadialGrid(bs, _atoms, type, _grids); // this checks out 1:1 with NWChem results! AWESOME
 
-            cout << "Radial grid summary " << endl;
+            //cout << "Radial grid summary " << endl;
             map<string, GridContainers::radial_grid>::iterator it;
-            for (it = _grids._radial_grids.begin(); it != _grids._radial_grids.end(); ++it) {
-                cout << " Element " << it->first << " Number of points " << it->second.radius.size() << endl;
-            }
+           // for (it = _grids._radial_grids.begin(); it != _grids._radial_grids.end(); ++it) {
+           //     cout << " Element " << it->first << " Number of points " << it->second.radius.size() << endl;
+           // }
 
             // get angular grid per element
             LebedevGrid _sphericalgrid;
-            cout << "Spherical grid summary " << endl;
-            for (it = _grids._radial_grids.begin(); it != _grids._radial_grids.end(); ++it) {
-                _sphericalgrid.getSphericalGrid(_atoms, type, _grids);
-                cout << " Element " << it->first << " Number of points " << _grids._spherical_grids.at(it->first).weight.size() << endl;
+            //cout << "Spherical grid summary " << endl;
+            //for (it = _grids._radial_grids.begin(); it != _grids._radial_grids.end(); ++it) {
+             //   _sphericalgrid.getSphericalGrid(_atoms, type, _grids);
+             //   cout << " Element " << it->first << " Number of points " << _grids._spherical_grids.at(it->first).weight.size() << endl;
 
-            }
+            //}
 
             
             // for the partitioning, we need all inter-center distances later, stored in one-directional list
@@ -1866,7 +1868,7 @@ namespace votca {
 
                 // for pruning of integration grid, get interval boundaries for this element
                 std::vector<double> PruningIntervals = _radialgrid.getPruningIntervals( name );
-                cout << " Pruning Intervals: " << PruningIntervals[0] << " " << PruningIntervals[1] << " " << PruningIntervals[2] << " " << PruningIntervals[3] << endl;
+              //  cout << " Pruning Intervals: " << PruningIntervals[0] << " " << PruningIntervals[1] << " " << PruningIntervals[2] << " " << PruningIntervals[3] << endl;
                 
                 int current_order = 0;
                 // get spherical grid
@@ -2104,7 +2106,7 @@ namespace votca {
                 
                 } // 1 == 0
                 
-                cout << " Total size of integration grid for atom: " << i_atom << " : " << _atomgrid.size() << " from " << fullsize << endl;
+               // cout << " Total size of integration grid for atom: " << i_atom << " : " << _atomgrid.size() << " from " << fullsize << endl;
 
                 _totalgridsize += _atomgrid.size() ;
                 _grid.push_back(_atomgrid);
