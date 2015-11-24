@@ -445,7 +445,18 @@ void EulerMaclaurinGrid::getRadialCutoffs(vector<QMAtom* > _atoms, BasisSet* bs,
             return XcoarseGrid.at(element);            
             
         }
-        throw std::runtime_error("Grid type is not implemented");
+        else if ( type == "fine"){
+            
+            return FineGrid.at(element);            
+            
+        }
+        else if ( type == "xfine"){
+            
+            return XfineGrid.at(element);            
+            
+        }
+
+        throw std::runtime_error("Grid type "+type+" is not implemented");
         return -1;
         
         

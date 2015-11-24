@@ -337,7 +337,7 @@ namespace votca {
                 _numint.GridSetup(_grid,&dftbs,_atoms);
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculating Vxc in VOTCA with gridsize: "<< _grid << flush;
                 ub::matrix<double> &DMAT = _orbitals->DensityMatrixGroundState( _dft_orbitals );
-                _vxc_ao = _numint.IntegrateVXC_Atomblock(DMAT,&dftbasis); 
+                _vxc_ao = _numint.IntegrateVXC_Atomblock(DMAT,&dftbasis,_functional); 
                 dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "votca" );
             }
             

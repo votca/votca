@@ -65,7 +65,7 @@ private:
         
     }
 
-    inline void FillstringtoID();{
+    inline void FillstringtoID(){
     
         _stringtoID["LDA_VOTCA"]  = -1; 
         _stringtoID["PBE_VOTCA"]  = -2; 

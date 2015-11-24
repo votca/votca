@@ -142,7 +142,13 @@ namespace votca { namespace ctp {
         else if ( type == "xcoarse"){
             return XcoarseOrder.at(element); 
         }
-        
+        else if ( type == "fine"){
+            return FineOrder.at(element); 
+        }
+        else if ( type == "xfine"){
+            return XfineOrder.at(element); 
+        }
+        throw std::runtime_error("Grid type "+type+" is not implemented");
         return -1;
         
         

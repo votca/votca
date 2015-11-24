@@ -275,7 +275,7 @@ namespace votca {
                 }
                 
       */         
-		ub::matrix<double> VXC=_gridIntegration.IntegrateVXC_Atomblock(_dftAOdmat,  basis);
+		ub::matrix<double> VXC=_gridIntegration.IntegrateVXC_Atomblock(_dftAOdmat,  basis,"PBE_VOTCA");
                 ub::matrix<double> VXC2=_gridIntegration.IntegrateVXC(_dftAOdmat,  basis);
 		 for ( unsigned iout=0; iout<_dftAOdmat.size1();iout++){
 		for ( unsigned jout=0; jout<_dftAOdmat.size1();jout++){

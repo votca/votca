@@ -98,6 +98,8 @@ namespace votca {
             std::map<std::string, int> MediumOrder;
             std::map<std::string, int> CoarseOrder;
             std::map<std::string, int> XcoarseOrder;
+            std::map<std::string, int> FineOrder;
+            std::map<std::string, int> XfineOrder;
             std::map<int,int>          Order2Index;
             std::map<int,int>          Index2Order;
 
@@ -182,6 +184,8 @@ namespace votca {
                 FillMediumOrder();
                 FillCoarseOrder();
                 FillXcoarseOrder();
+                FillFineOrder();
+                FillXfineOrder();
 
             }
 
@@ -231,6 +235,105 @@ namespace votca {
                 MediumOrder["Se"] = 590;
                 MediumOrder["Br"] = 590;
                 MediumOrder["Kr"] = 590;
+
+
+            }
+            
+            inline void FillFineOrder() {
+
+                // order for H, He (not given in NWChem, assuming same as 1st row)
+                FineOrder["H"] = 590;
+                FineOrder["He"] = 590;
+
+                // orders for 1st row elements taken from NWChem
+                FineOrder["Li"] = 590;
+                FineOrder["Be"] = 590;
+                FineOrder["B"] = 590;
+                FineOrder["C"] = 590;
+                FineOrder["N"] = 590;
+                FineOrder["O"] = 590;
+                FineOrder["F"] = 590;
+                FineOrder["Ne"] = 590;
+
+                // orders for 2nd row elements taken from NWChem
+                FineOrder["Na"] = 770;
+                FineOrder["Mg"] = 770;
+                FineOrder["Al"] = 770;
+                FineOrder["Si"] = 770;
+                FineOrder["P"] = 770;
+                FineOrder["S"] = 770;
+                FineOrder["Cl"] = 770;
+                FineOrder["Ar"] = 770;
+
+
+                // orders for 3rd row elements taken from NWChem
+                FineOrder["K"] = 974;
+                FineOrder["Ca"] = 974;
+                FineOrder["Sc"] = 974;
+                FineOrder["Ti"] = 974;
+                FineOrder["V"] = 974;
+                FineOrder["Cr"] = 974;
+                FineOrder["Mn"] = 974;
+                FineOrder["Fe"] = 974;
+                FineOrder["Co"] = 974;
+                FineOrder["Ni"] = 974;
+                FineOrder["Cu"] = 974;
+                FineOrder["Zn"] = 974;
+                FineOrder["Ga"] = 974;
+                FineOrder["Ge"] = 974;
+                FineOrder["As"] = 974;
+                FineOrder["Se"] = 974;
+                FineOrder["Br"] = 974;
+                FineOrder["Kr"] = 974;
+
+
+            }
+            inline void FillXfineOrder() {
+
+                // order for H, He (not given in NWChem, assuming same as 1st row)
+                XfineOrder["H"] = 1202;
+                XfineOrder["He"] = 1202;
+
+                // orders for 1st row elements taken from NWChem
+                XfineOrder["Li"] = 1202;
+                XfineOrder["Be"] = 1202;
+                XfineOrder["B"] = 1202;
+                XfineOrder["C"] = 1202;
+                XfineOrder["N"] = 1202;
+                XfineOrder["O"] = 1202;
+                XfineOrder["F"] = 1202;
+                XfineOrder["Ne"] = 1202;
+
+                // orders for 2nd row elements taken from NWChem
+                XfineOrder["Na"] = 1454 ;
+                XfineOrder["Mg"] = 1454 ;
+                XfineOrder["Al"] = 1454 ;
+                XfineOrder["Si"] = 1454 ;
+                XfineOrder["P"] = 1454 ;
+                XfineOrder["S"] = 1454 ;
+                XfineOrder["Cl"] = 1454 ;
+                XfineOrder["Ar"] = 1454 ;
+
+
+                // orders for 3rd row elements taken from NWChem
+                XfineOrder["K"] = 1454;
+                XfineOrder["Ca"] = 1454;
+                XfineOrder["Sc"] = 1454;
+                XfineOrder["Ti"] = 1454;
+                XfineOrder["V"] = 1454;
+                XfineOrder["Cr"] = 1454;
+                XfineOrder["Mn"] = 1454;
+                XfineOrder["Fe"] = 1454;
+                XfineOrder["Co"] = 1454;
+                XfineOrder["Ni"] = 1454;
+                XfineOrder["Cu"] = 1454;
+                XfineOrder["Zn"] = 1454;
+                XfineOrder["Ga"] = 1454;
+                XfineOrder["Ge"] = 1454;
+                XfineOrder["As"] = 1454;
+                XfineOrder["Se"] = 1454;
+                XfineOrder["Br"] = 1454;
+                XfineOrder["Kr"] = 1454;
 
 
             }

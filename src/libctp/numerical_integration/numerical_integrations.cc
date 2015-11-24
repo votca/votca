@@ -32,6 +32,7 @@
 #include <votca/ctp/exchange_correlation.h>
 #include <fstream>
 #include <boost/timer/timer.hpp>
+#include <boost/algorithm/string.hpp>
 #include <votca/ctp/vxc_functionals.h>
 #include <iterator>
 #include <string>
@@ -47,42 +48,74 @@ namespace votca {
         
         
         ub::matrix<double> NumericalIntegration::IntegrateVXC_Atomblock(ub::matrix<double>& _density_matrix, AOBasis* basis, string _functional){
-            EXC=0;
+            EXC = 0;
             // TODO: switch XC functionals implementation from LIBXC to base own calculation
             ExchangeCorrelation _xc;
-            bool _use_votca=false;
-            bool _use_separate=false;
-            
+            Vxc_Functionals map;
+            bool _use_votca = false;
+            bool _use_separate = false;
+            int cfunc_id = 0;
+            int xfunc_id = 0;
             std::vector<string> strs;
-            boost::algorithm::split(strs, _functional, boost::is_any_of(" "));
-            int xfunc_id=0;
-            int cfunc_id=0;
+            boost::split(strs, _functional, boost::is_any_of(" "));
+
+
+
+
+
+
+            if (strs.size() == 1) {
+                xfunc_id = map.getID(strs[0]);
+                if (xfunc_id < 0) _use_votca = true;
+
+            }
+#ifdef LIBXC
+            else if (strs.size() == 2) {
+                cfunc_id = map.getID(strs[0]);
+                xfunc_id = map.getID(strs[1]);
+                _use_separate = true;
+
+            }
+#endif
+            else {
+                throw std::runtime_error("Please specify one or (two  if compiled with libxc support) functionals");
+
+            }
+
             
-           
+
+
+
+#ifdef LIBXC
             
-            #ifdef LIBXC
+
             xc_func_type xfunc; // handle for exchange functional
             xc_func_type cfunc; // handle for correlation functional
             
-            // define PBE here (should be some optional setting))
-            int xfunc_id = XC_GGA_X_PBE;
-            int cfunc_id = XC_GGA_C_PBE;
-            
-            if(xc_func_init(&xfunc, xfunc_id, XC_UNPOLARIZED) != 0){
-               fprintf(stderr, "Functional '%d' not found\n", xfunc_id);
-               exit(1);
+            if (xc_func_init(&xfunc, xfunc_id, XC_UNPOLARIZED) != 0) {
+                fprintf(stderr, "Functional '%d' not found\n", xfunc_id);
+                exit(1);
+            }
+            xc_func_init(&xfunc, xfunc_id, XC_UNPOLARIZED);
+            if (xfunc.info->kind!=2){
+                throw std::runtime_error("Your functional misses either correlation of exchange, please specify another functional, separated by whitespace");
             }
             
-            if(xc_func_init(&cfunc, cfunc_id, XC_UNPOLARIZED) != 0){
-               fprintf(stderr, "Functional '%d' not found\n", cfunc_id);
-               exit(1);
+            if (_use_separate) {
+                if (xc_func_init(&cfunc, cfunc_id, XC_UNPOLARIZED) != 0) {
+                    fprintf(stderr, "Functional '%d' not found\n", cfunc_id);
+                    exit(1);
+                }
+                xc_func_init(&cfunc, cfunc_id, XC_UNPOLARIZED);
+                xc_func_init(&xfunc, xfunc_id, XC_UNPOLARIZED);
+                if ((xfunc.info->kind+cfunc.info->kind)!=1){
+                    throw std::runtime_error("Your functionals are not one exchange and one correlation");
+                }
             }
-#else
-            fprintf(stderr, "LIBXC not compiled so functional you choose is not available");
-            exit(1);           
+
 #endif
-            
-            }
+
+        
             
             //printf("The exchange functional '%s' is defined in the reference(s):\n%s\n", xfunc.info->name, xfunc.info->refs);
             //printf("The correlation functional '%s' is defined in the reference(s):\n%s\n", cfunc.info->name, cfunc.info->refs);
@@ -497,47 +530,52 @@ namespace votca {
                     double df_drho;   // v_xc_rho(r) = df/drho
                     double df_dsigma; // df/dsigma ( df/dgrad(rho) = df/dsigma * dsigma/dgrad(rho) = df/dsigma * 2*grad(rho))
 
-                    // evaluate via LIBXC, if compiled, otherwise, go via own implementation
-#ifdef LIBXC
-		    //double sigma = ub::prod(ub::trans(grad_rho),grad_rho)(0,0);
-
-                    double sigma = ub::prod(grad_rho,ub::trans(grad_rho))(0,0);
                     
-                    double exc[1];
-                    double vsigma[1]; // libxc 
-                    double vrho[1]; // libxc df/drho
-                    switch (xfunc.info->family) {
-                        case XC_FAMILY_LDA:
-                            xc_lda_exc_vxc(&xfunc, 1, &rho, exc, vrho);
-                            break;
-                        case XC_FAMILY_GGA:
-                        case XC_FAMILY_HYB_GGA:
-                            xc_gga_exc_vxc(&xfunc, 1, &rho, &sigma, exc, vrho, vsigma);
-                            break;
+                    if (_use_votca) {
+                        _xc.getXC("PBE", rho, grad_rho(0, 0), grad_rho(0, 1), grad_rho(0, 2), f_xc, df_drho, df_dsigma);
+                    }                        // evaluate via LIBXC, if compiled, otherwise, go via own implementation
+#ifdef LIBXC
+                    else {
+                        //double sigma = ub::prod(ub::trans(grad_rho),grad_rho)(0,0);
+
+                        double sigma = ub::prod(grad_rho, ub::trans(grad_rho))(0, 0);
+
+                        double exc[1];
+                        double vsigma[1]; // libxc 
+                        double vrho[1]; // libxc df/drho
+                        switch (xfunc.info->family) {
+                            case XC_FAMILY_LDA:
+                                xc_lda_exc_vxc(&xfunc, 1, &rho, exc, vrho);
+                                break;
+                            case XC_FAMILY_GGA:
+                            case XC_FAMILY_HYB_GGA:
+                                xc_gga_exc_vxc(&xfunc, 1, &rho, &sigma, exc, vrho, vsigma);
+                                break;
+                        }
+                        f_xc = exc[0];
+                        df_drho = vrho[0];
+                        df_dsigma = vsigma[0];
+                        if (!_use_separate) {
+                            // via libxc correlation part only
+                            switch (cfunc.info->family) {
+                                case XC_FAMILY_LDA:
+                                    xc_lda_exc_vxc(&cfunc, 1, &rho, exc, vrho);
+                                    break;
+                                case XC_FAMILY_GGA:
+                                case XC_FAMILY_HYB_GGA:
+                                    xc_gga_exc_vxc(&cfunc, 1, &rho, &sigma, exc, vrho, vsigma);
+                                    break;
+                            }
+
+                            f_xc += exc[0];
+                            df_drho += vrho[0];
+                            df_dsigma += vsigma[0];
+                        }
                     }
-                    f_xc      = exc[0];
-                    df_drho   = vrho[0];
-                    df_dsigma = vsigma[0];
-
-                    // via libxc correlation part only
-                    switch (cfunc.info->family) {
-                        case XC_FAMILY_LDA:
-                            xc_lda_exc_vxc(&cfunc, 1, &rho, exc, vrho);
-                            break;
-                        case XC_FAMILY_GGA:
-                        case XC_FAMILY_HYB_GGA:
-                            xc_gga_exc_vxc(&cfunc, 1, &rho, &sigma, exc, vrho, vsigma);
-                            break;
-                    }
-
-                    f_xc      += exc[0];
-                    df_drho   += vrho[0];
-                    df_dsigma += vsigma[0];
-
-#else
-                    //_xc.getXC("PBE", rho, grad_rho(0,0), grad_rho(1,0), grad_rho(2,0), f_xc, df_drho, df_dsigma);
-                    _xc.getXC("PBE", rho, grad_rho(0,0), grad_rho(0,1), grad_rho(0,2), f_xc, df_drho, df_dsigma);
 #endif
+                    
+                    
+
 
                     boost::timer::cpu_times t4 = cpu_t.elapsed();
                     _t_vxc += (t4.wall-t3.wall)/1e9;
