@@ -53,12 +53,19 @@ namespace votca {
             ExchangeCorrelation _xc;
             Vxc_Functionals map;
             bool _use_votca = false;
+            
+#ifdef LIBXC
             bool _use_separate = false;
+            
+            
             int cfunc_id = 0;
+#endif
             int xfunc_id = 0;
             std::vector<string> strs;
+            
             boost::split(strs, _functional, boost::is_any_of(" "));
-
+            
+            
 
 
 
@@ -88,17 +95,18 @@ namespace votca {
 
 #ifdef LIBXC
             
-
+            
             xc_func_type xfunc; // handle for exchange functional
             xc_func_type cfunc; // handle for correlation functional
-            
+            if (!_use_votca){
             if (xc_func_init(&xfunc, xfunc_id, XC_UNPOLARIZED) != 0) {
                 fprintf(stderr, "Functional '%d' not found\n", xfunc_id);
                 exit(1);
             }
+            
             xc_func_init(&xfunc, xfunc_id, XC_UNPOLARIZED);
-            if (xfunc.info->kind!=2){
-                throw std::runtime_error("Your functional misses either correlation of exchange, please specify another functional, separated by whitespace");
+            if (xfunc.info->kind!=2 && !_use_separate){
+                throw std::runtime_error("Your functional misses either correlation or exchange, please specify another functional, separated by whitespace");
             }
             
             if (_use_separate) {
@@ -112,7 +120,7 @@ namespace votca {
                     throw std::runtime_error("Your functionals are not one exchange and one correlation");
                 }
             }
-
+            }
 #endif
 
         
@@ -532,7 +540,7 @@ namespace votca {
 
                     
                     if (_use_votca) {
-                        _xc.getXC("PBE", rho, grad_rho(0, 0), grad_rho(0, 1), grad_rho(0, 2), f_xc, df_drho, df_dsigma);
+                        _xc.getXC(xfunc_id, rho, grad_rho(0, 0), grad_rho(0, 1), grad_rho(0, 2), f_xc, df_drho, df_dsigma);
                     }                        // evaluate via LIBXC, if compiled, otherwise, go via own implementation
 #ifdef LIBXC
                     else {
@@ -555,7 +563,7 @@ namespace votca {
                         f_xc = exc[0];
                         df_drho = vrho[0];
                         df_dsigma = vsigma[0];
-                        if (!_use_separate) {
+                        if (_use_separate) {
                             // via libxc correlation part only
                             switch (cfunc.info->family) {
                                 case XC_FAMILY_LDA:

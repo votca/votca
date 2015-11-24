@@ -34,7 +34,7 @@ namespace votca {
             ExchangeCorrelation() {
             };
 
-            void getXC(string type, const double& rho, const double& drho_dX, const double& drho_dY, const double& drho_dZ, double& f, double& df_drho, double& df_dsigma);
+            void getXC(int type, const double& rho, const double& drho_dX, const double& drho_dY, const double& drho_dZ, double& f, double& df_drho, double& df_dsigma);
 
 
 
@@ -69,10 +69,10 @@ namespace votca {
 
         // Main interface function to calculate XC potential and it's gradient, depending on local rho and gradient of rho        
 
-        inline void ExchangeCorrelation::getXC(string type, const double& rho, const double& drho_dX, const double& drho_dY, const double& drho_dZ, double& f, double& df_drho, double& df_dsigma) {
+        inline void ExchangeCorrelation::getXC(int type, const double& rho, const double& drho_dX, const double& drho_dY, const double& drho_dZ, double& f, double& df_drho, double& df_dsigma) {
 
-            if (type == "LDA") evalLDA(rho, f, df_drho);
-            if (type == "PBE") evalPBE(rho, drho_dX, drho_dY, drho_dZ, f, df_drho, df_dsigma );
+            if (type == -1) evalLDA(rho, f, df_drho);
+            else if (type == -2) evalPBE(rho, drho_dX, drho_dY, drho_dZ, f, df_drho, df_dsigma );
 
 
         }

@@ -210,9 +210,10 @@ namespace votca {
             // load DFT basis set (element-wise information) from xml file
             BasisSet dftbs;
             
-            if (_dftbasis_name!=_orbitals->getDFTbasis()){
+            /*if (_dftbasis_name!=_orbitals->getDFTbasis()){
                 throw std::runtime_error("Name of the Basisset from .orb file: "+_orbitals->getDFTbasis()+" and from GWBSE optionfile "+_dftbasis_name+" do not agree. To avoid further noise we stop here. Save the planet and avoid unnecessary calculations.");
             }
+             */
             dftbs.LoadBasisSet(_dftbasis_name);
             _orbitals->setDFTbasis( _dftbasis_name );
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Loaded DFT Basis Set " << _dftbasis_name << flush;
@@ -332,13 +333,13 @@ namespace votca {
                 }
             }
             else if (_doVxc) {
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculating Vxc in VOTCA with " << flush;
                 NumericalIntegration _numint;
                 _numint.GridSetup(_grid,&dftbs,_atoms);
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculating Vxc in VOTCA with gridsize: "<< _grid << flush;
+                dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "votca" );
                 ub::matrix<double> &DMAT = _orbitals->DensityMatrixGroundState( _dft_orbitals );
                 _vxc_ao = _numint.IntegrateVXC_Atomblock(DMAT,&dftbasis,_functional); 
-                dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "votca" );
+                
             }
             
             
@@ -350,7 +351,7 @@ namespace votca {
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculated exchange-correlation expectation values " << flush;
                   
             // b) reorder MO coefficients depending on the QM package used to obtain the DFT data
-            if (_dft_package != "votca" || _doVxc) {
+            if (_dft_package != "votca" && !_doVxc) {
                     dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "votca");
                     LOG(logDEBUG, *_pLog) << TimeStamp() << " Converted DFT orbital coefficient order from " << _dft_package << " to VOTCA" << flush;
                 }

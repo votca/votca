@@ -63,8 +63,8 @@ void NWChem::Initialize( Property *options ) {
     _scratch_dir =      options->get(key + ".scratch").as<string> ();
     _cleanup =          options->get(key + ".cleanup").as<string> ();
     
-     if (options->exists(key + ".outputVX")) {
-                _output_Vxc = options->get(key + "outputVX").as<bool> ();   
+     if (options->exists(key + ".outputVxc")) {
+                _output_Vxc = options->get(key + ".outputVxc").as<bool> ();   
             }
              else _output_Vxc=false;
     // check whether options string contains vxc output, the _outputVxc is set to true
@@ -75,12 +75,12 @@ void NWChem::Initialize( Property *options ) {
         }
         else{
             cout << "=== So you do not want to output Vxc but still put it in the options string? I will assume that you want to output Vxc, be more consistent next time. "<< endl;
-            _options=_options+"\n\ndft\nprint ""intermediate tXC matrix""\nvectors input system.movecs\nnoscf\nend\ntask dft";
+            _options=_options+"\n\ndft\nprint \"intermediate tXC matrix\"\nvectors input system.movecs\nnoscf\nend\ntask dft";
         }
         _output_Vxc = true;   
     } 
     else if (_output_Vxc==true){
-         _options=_options+"\n\ndft\nprint ""intermediate tXC matrix""\nvectors input system.movecs\nnoscf\nend\ntask dft";
+         _options=_options+"\n\ndft\nprint \"intermediate tXC matrix\"\nvectors input system.movecs\nnoscf\nend\ntask dft";
     }
     
     
