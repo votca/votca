@@ -900,7 +900,7 @@ namespace votca {
                     df_dsigma += vsigma[0];
 
 #else
-                    _xc.getXC("PBE", rho, grad_rho(0,0), grad_rho(1,0), grad_rho(2,0), f_xc, df_drho, df_dsigma);
+                    _xc.getXC(-2, rho, grad_rho(0,0), grad_rho(1,0), grad_rho(2,0), f_xc, df_drho, df_dsigma);
 #endif
 
                     boost::timer::cpu_times t4 = cpu_t.elapsed();
@@ -1109,7 +1109,7 @@ namespace votca {
                     df_dsigma += vsigma[0];
 
 #else
-                    _xc.getXC("PBE", rho, grad_rho(0,0), grad_rho(1,0), grad_rho(2,0), f_xc, df_drho, df_dsigma);
+                    _xc.getXC(-2, rho, grad_rho(0,0), grad_rho(1,0), grad_rho(2,0), f_xc, df_drho, df_dsigma);
 #endif
 
                     boost::timer::cpu_times t4 = cpu_t.elapsed();
