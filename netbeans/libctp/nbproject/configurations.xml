@@ -144,6 +144,7 @@
       <itemPath>../../include/votca/ctp/topology.h</itemPath>
       <itemPath>../../include/votca/ctp/version.h</itemPath>
       <itemPath>../../include/votca/ctp/votca_ctp_config.h</itemPath>
+      <itemPath>../../include/votca/ctp/vxc_functionals.h</itemPath>
       <itemPath>../../include/votca/ctp/xinductor.h</itemPath>
       <itemPath>../../include/votca/ctp/xinteractor.h</itemPath>
       <itemPath>../../include/votca/ctp/xjob.h</itemPath>
@@ -486,6 +487,11 @@
       <item path="../../include/votca/ctp/version.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/votca_ctp_config.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/vxc_functionals.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1262,6 +1268,11 @@
       <item path="../../include/votca/ctp/version.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/votca_ctp_config.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/vxc_functionals.h"
             ex="false"
             tool="3"
             flavor2="0">

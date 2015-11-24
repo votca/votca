@@ -112,7 +112,11 @@ namespace votca {
                 _doVxc = options->get(key + ".vxc.dovxc").as<bool> ();
                 if (_doVxc) {
                     _functional = options->get(key + ".vxc.functional").as<string> ();
-                    _grid = options->get(key + ".vxc.grid").as<string> ();
+                    
+                    if (options->exists(key + ".vxc.grid")) {
+                        _grid = options->get(key + ".vxc.grid").as<string> ();
+                    }
+                    else _grid="medium";
                 }
             }
             _gwbasis_name = options->get(key + ".gwbasis").as<string> ();
@@ -304,7 +308,7 @@ namespace votca {
             // a) form the expectation value of the XC functional in MOs
             ub::matrix<double> _dft_orbitals = *(_orbitals->getOrbitals()); //
             
-            {
+            {// this bracket is there so that _vx_ao falls out of scope, like it more than resize
             ub::matrix<double> _vxc_ao;
             if (!_doVxc) {
 

@@ -32,9 +32,9 @@
 #include <votca/ctp/exchange_correlation.h>
 #include <fstream>
 #include <boost/timer/timer.hpp>
-
+#include <votca/ctp/vxc_functionals.h>
 #include <iterator>
-
+#include <string>
 // #include <xc.h>
 using namespace std;
 
@@ -46,9 +46,20 @@ namespace votca {
         
         
         
-        ub::matrix<double> NumericalIntegration::IntegrateVXC_Atomblock(ub::matrix<double>& _density_matrix, AOBasis* basis){
+        ub::matrix<double> NumericalIntegration::IntegrateVXC_Atomblock(ub::matrix<double>& _density_matrix, AOBasis* basis, string _functional){
             EXC=0;
             // TODO: switch XC functionals implementation from LIBXC to base own calculation
+            ExchangeCorrelation _xc;
+            bool _use_votca=false;
+            bool _use_separate=false;
+            
+            std::vector<string> strs;
+            boost::algorithm::split(strs, _functional, boost::is_any_of(" "));
+            int xfunc_id=0;
+            int cfunc_id=0;
+            
+           
+            
             #ifdef LIBXC
             xc_func_type xfunc; // handle for exchange functional
             xc_func_type cfunc; // handle for correlation functional
@@ -67,8 +78,11 @@ namespace votca {
                exit(1);
             }
 #else
-             ExchangeCorrelation _xc;
+            fprintf(stderr, "LIBXC not compiled so functional you choose is not available");
+            exit(1);           
 #endif
+            
+            }
             
             //printf("The exchange functional '%s' is defined in the reference(s):\n%s\n", xfunc.info->name, xfunc.info->refs);
             //printf("The correlation functional '%s' is defined in the reference(s):\n%s\n", cfunc.info->name, cfunc.info->refs);
