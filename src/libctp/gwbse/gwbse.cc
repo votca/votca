@@ -335,6 +335,9 @@ namespace votca {
                 }
             }
             else if (_doVxc) {
+                if (_orbitals->hasAOVxc()) {
+                    LOG(logDEBUG, *_pLog) << TimeStamp() << "There is already a Vxc matrix in the orbitals object, did you may run a DFT code mit outputVxc?"<< flush;
+                }
                 NumericalIntegration _numint;
                 double ScaHFX_temp=_numint.getExactExchange(_functional);
                 if (ScaHFX_temp!=_ScaHFX){

@@ -75,7 +75,6 @@ void NWChem::Initialize( Property *options ) {
         }
         else{
             cout << "=== So you do not want to output Vxc but still put it in the options string? I will assume that you want to output Vxc, be more consistent next time. "<< endl;
-            _options=_options+"\n\ndft\nprint \"intermediate tXC matrix\"\nvectors input system.movecs\nnoscf\nend\ntask dft";
         }
         _output_Vxc = true;   
     } 
