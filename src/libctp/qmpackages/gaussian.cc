@@ -69,8 +69,8 @@ namespace votca {
             _scratch_dir = options->get(key + ".scratch").as<string> ();
             _cleanup = options->get(key + ".cleanup").as<string> ();
             
-             if (options->exists(key + ".outputVX")) {
-                _output_Vxc = options->get(key + "outputVX").as<bool> ();   
+             if (options->exists(key + ".outputVxc")) {
+                _output_Vxc = options->get(key + "outputVxc").as<bool> ();   
             }
              else _output_Vxc=false;
 
