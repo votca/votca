@@ -102,7 +102,7 @@ void EulerMaclaurinGrid::getRadialCutoffs(vector<QMAtom* > _atoms, BasisSet* bs,
             double eps = Accuracy[gridtype];
             double _decaymin;
             int _lvalue;
-            cout << endl << " Setting cutoffs for grid type " << gridtype << " eps = " << eps << endl;
+          //  cout << endl << " Setting cutoffs for grid type " << gridtype << " eps = " << eps << endl;
             // 1) is only element based
             // loop over atoms
             for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
@@ -140,7 +140,7 @@ void EulerMaclaurinGrid::getRadialCutoffs(vector<QMAtom* > _atoms, BasisSet* bs,
                         }
                     } // shells
 
-                    cout << "Element " << name << " alpha " << this_atom.alpha << " l " << this_atom.l << " Rcut " << this_atom.range << endl;
+                 //   cout << "Element " << name << " alpha " << this_atom.alpha << " l " << this_atom.l << " Rcut " << this_atom.range << endl;
                     _element_ranges[name] = this_atom;
                 } // new element
             } // atoms
@@ -282,7 +282,7 @@ void EulerMaclaurinGrid::getRadialCutoffs(vector<QMAtom* > _atoms, BasisSet* bs,
             
             for ( it = _element_ranges.begin() ; it != _element_ranges.end() ; ++it){
                 
-                cout << "Element " << it->first << " alpha " << it->second.alpha << " l " << it->second.l << " Rcut " << it->second.range <<  " Rcut (Ang) " <<  it->second.range  * 0.529177249 << endl;
+            //    cout << "Element " << it->first << " alpha " << it->second.alpha << " l " << it->second.l << " Rcut " << it->second.range <<  " Rcut (Ang) " <<  it->second.range  * 0.529177249 << endl;
                 
             }
             
@@ -307,7 +307,7 @@ void EulerMaclaurinGrid::getRadialCutoffs(vector<QMAtom* > _atoms, BasisSet* bs,
                 std::vector<double> points;
                 std::vector<double> weights;
                 int numberofpoints = getGrid(it->first, type);
-                cout << " Setting grid for element " << it->first <<  " with " << numberofpoints << " points " <<  endl ;
+                //cout << " Setting grid for element " << it->first <<  " with " << numberofpoints << " points " <<  endl ;
                 setGrid( numberofpoints, it->second.range, points, weights );
                 
                 //grid_element this_element;

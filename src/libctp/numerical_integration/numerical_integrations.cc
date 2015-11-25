@@ -44,10 +44,51 @@ namespace votca {
     namespace ctp {
         namespace ub = boost::numeric::ublas;
 
+        double NumericalIntegration::getExactExchange(const string _functional){
+#ifdef LIBXC            
+        
+            double exactexchange=0.0;
+            Vxc_Functionals map;
+            std::vector<string> strs;
+            
+            boost::split(strs, _functional, boost::is_any_of(" "));
+            if (strs.size()>2 ) {
+                throw std::runtime_error("Too many functional names");
+            }
+            else if (strs.size()<1 ) {
+                throw std::runtime_error("Specify at least one funcitonal");
+            }
+            
+            for (unsigned i=0;i<strs.size();i++){
+                //cout << strs[i] << endl;
+                int func_id = map.getID(strs[i]); 
+                if (func_id<0){
+                    exactexchange=0.0;
+                    break;
+                }
+                xc_func_type func;
+                if (xc_func_init(&func, func_id, XC_UNPOLARIZED) != 0) {
+                    fprintf(stderr, "Functional '%d' not found\n", func_id);
+                    exit(1);
+                }
+                if (exactexchange>0 && func.cam_alpha>0){
+                    throw std::runtime_error("You have specified two functionals with exact exchange");
+                }
+                exactexchange+=func.cam_alpha;
+            
+                
+            
+            }
+            return exactexchange;
+            
+#else
+            return 0.0;
+#endif
+            
+        }
         
         
-        
-        ub::matrix<double> NumericalIntegration::IntegrateVXC_Atomblock(ub::matrix<double>& _density_matrix, AOBasis* basis, string _functional){
+        ub::matrix<double> NumericalIntegration::IntegrateVXC_Atomblock(ub::matrix<double>& _density_matrix, AOBasis* basis,const string _functional){
             EXC = 0;
             // TODO: switch XC functionals implementation from LIBXC to base own calculation
             ExchangeCorrelation _xc;
@@ -61,27 +102,17 @@ namespace votca {
             int cfunc_id = 0;
 #endif
             int xfunc_id = 0;
-            std::vector<string> strs;
-            
+            std::vector<string> strs;           
             boost::split(strs, _functional, boost::is_any_of(" "));
-            
-            
-
-
-
-
-
             if (strs.size() == 1) {
                 xfunc_id = map.getID(strs[0]);
                 if (xfunc_id < 0) _use_votca = true;
-
             }
 #ifdef LIBXC
             else if (strs.size() == 2) {
                 cfunc_id = map.getID(strs[0]);
                 xfunc_id = map.getID(strs[1]);
                 _use_separate = true;
-
             }
 #endif
             else {
@@ -89,13 +120,7 @@ namespace votca {
 
             }
 
-            
-
-
-
 #ifdef LIBXC
-            
-            
             xc_func_type xfunc; // handle for exchange functional
             xc_func_type cfunc; // handle for correlation functional
             if (!_use_votca){
@@ -188,12 +213,12 @@ namespace votca {
             _atomshells.push_back(_singleatom);
             _startIdx.push_back( _Idx );
                     _blocksize.push_back(_size);
-            cout << " Number of atoms " << _atomshells.size() << endl;
-            
+           // cout << " Number of atoms " << _atomshells.size() << endl;
+            /*
             for ( unsigned iatom = 0 ; iatom < _atomshells.size(); iatom++ ){
                 cout << "atom " << iatom << " number of shells " << _atomshells[iatom].size() << " block start " << _startIdx[iatom] << " functions in atom " << _blocksize[iatom] << endl; 
             }
-
+*/
             /*
             vector < ub::matrix_range< ub::matrix<double> > > _DMATblocks;
             // get stupid index magic vector of matrix_ranges per atom block
@@ -345,7 +370,7 @@ namespace votca {
             total_grid = total_grid * ( natoms*(natoms+1) ) / 2;
             
             // cout << "Total number of atom blocks " << total_grid << " after removal of insignificant blocks " << significant_grid/2 << endl;
-            cout << "# Atom blocks by removal of insignificant blocks reduced to " << 50*double(significant_grid)/double(total_grid) << "%" << endl;
+            //cout << "# Atom blocks by removal of insignificant blocks reduced to " << 50*double(significant_grid)/double(total_grid) << "%" << endl;
             
             ub::matrix<double> XCMAT = ub::zero_matrix<double>(basis->_AOBasisSize, basis->_AOBasisSize);
             
@@ -385,14 +410,14 @@ namespace votca {
                 // final stop must be size
                 _thread_stop[nthreads-1] = atom_points;
                 
+               /*
                 
-                
-                for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){
+               for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){
                     
                     cout << "Thread " << i_thread << " start " << _thread_start[i_thread] << " stop " << _thread_stop[i_thread] << endl; 
                     
                 }
-                
+                */ 
                 #pragma omp parallel for
                 for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){
                 for (int j = _thread_start[i_thread]; j < _thread_stop[i_thread]; j++) {
@@ -698,7 +723,7 @@ namespace votca {
             _t_EXC2 += (t9.wall-t8.wall)/1e9;
                     
             
-
+/*
             cout << " ATBLOCK Time AOVals      : " << _t_AOvals << endl;
             cout << " ATBLOCK Time rho         : " << _t_rho << endl;
             cout << " ATBLOCK Time grad rho    : " << _t_grad_rho << endl;
@@ -708,13 +733,13 @@ namespace votca {
             cout << " ATBLOCK Time AOxc sum    : " << _t_sum << endl;
             cout << " ATBLOCK Time Exc1        : " << _t_EXC1 << endl;
             cout << " ATBLOCK Time Exc2        : " << _t_EXC2 << endl;
-            
+ */           
                          boost::timer::cpu_times texit = cpu_t.elapsed();
                                 _t_total = (texit.wall-tenter.wall)/1e9;
                     
                                  
                                  
-            cout << " ATBLOCK TOTAL            : " << _t_total << endl;
+       //     cout << " ATBLOCK TOTAL            : " << _t_total << endl;
             
          
             
@@ -724,7 +749,7 @@ namespace votca {
 
         }
         
-        
+        // not used anymore as atomblock is faster
         ub::matrix<double> NumericalIntegration::IntegrateVXC_block(ub::matrix<double>& _density_matrix, AOBasis* basis){
             EXC=0;
             // TODO: switch XC functionals implementation from LIBXC to base own calculation
@@ -1792,20 +1817,20 @@ namespace votca {
             EulerMaclaurinGrid _radialgrid;
             _radialgrid.getRadialGrid(bs, _atoms, type, _grids); // this checks out 1:1 with NWChem results! AWESOME
 
-            //cout << "Radial grid summary " << endl;
-            map<string, GridContainers::radial_grid>::iterator it;
-           // for (it = _grids._radial_grids.begin(); it != _grids._radial_grids.end(); ++it) {
-           //     cout << " Element " << it->first << " Number of points " << it->second.radius.size() << endl;
-           // }
+         //   cout << "Radial grid summary " << endl;
+           map<string, GridContainers::radial_grid>::iterator it;
+         //   for (it = _grids._radial_grids.begin(); it != _grids._radial_grids.end(); ++it) {
+         //       cout << " Element " << it->first << " Number of points " << it->second.radius.size() << endl;
+         //  }
 
             // get angular grid per element
             LebedevGrid _sphericalgrid;
-            //cout << "Spherical grid summary " << endl;
-            //for (it = _grids._radial_grids.begin(); it != _grids._radial_grids.end(); ++it) {
-             //   _sphericalgrid.getSphericalGrid(_atoms, type, _grids);
-             //   cout << " Element " << it->first << " Number of points " << _grids._spherical_grids.at(it->first).weight.size() << endl;
+           // cout << "Spherical grid summary " << endl;
+            for (it = _grids._radial_grids.begin(); it != _grids._radial_grids.end(); ++it) {
+               _sphericalgrid.getSphericalGrid(_atoms, type, _grids);
+          //     cout << " Element " << it->first << " Number of points " << _grids._spherical_grids.at(it->first).weight.size() << endl;
 
-            //}
+            }
 
             
             // for the partitioning, we need all inter-center distances later, stored in one-directional list

@@ -298,21 +298,23 @@ namespace votca {
             _orbitals->setBSEindices( _bse_vmin, _bse_vmax, _bse_cmin, _bse_cmax, _bse_nmax);
             
 	    // information for hybrid DFT
-	    _ScaHFX = _orbitals->getScaHFX();
+            
+            _ScaHFX=-1;
+	    
                     
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Set RPA level range [" << _rpamin +1 << ":" << _rpamax +1 << "]" << flush;
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Set QP  level range [" << _qpmin +1 << ":" << _qpmax +1 << "]" << flush;
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Set BSE level range occ[" << _bse_vmin +1 << ":" << _bse_vmax +1 << "]  virt[" << _bse_cmin +1 << ":" << _bse_cmax +1 << "]" << flush;
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Set hybrid exchange factor: " << _ScaHFX << flush;
+            
             
             // process the DFT data
             // a) form the expectation value of the XC functional in MOs
             ub::matrix<double> _dft_orbitals = *(_orbitals->getOrbitals()); //
-            
+            _ScaHFX = _orbitals->getScaHFX();
             {// this bracket is there so that _vx_ao falls out of scope, like it more than resize
             ub::matrix<double> _vxc_ao;
             if (!_doVxc) {
-
+                
                 if (_orbitals->hasAOVxc()) {
                     
                     
@@ -334,14 +336,21 @@ namespace votca {
             }
             else if (_doVxc) {
                 NumericalIntegration _numint;
+                double ScaHFX_temp=_numint.getExactExchange(_functional);
+                if (ScaHFX_temp!=_ScaHFX){
+                    throw std::runtime_error( (boost::format("GWBSE exact exchange a=%s differs from qmpackage exact exchange a=%s, probably your functionals are inconsistent") % ScaHFX_temp % _ScaHFX).str());
+                                         }
                 _numint.GridSetup(_grid,&dftbs,_atoms);
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculating Vxc in VOTCA with gridsize: "<< _grid << flush;
+                
                 dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "votca" );
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Converted DFT orbital coefficient order from " << _dft_package << " to VOTCA" << flush;
                 ub::matrix<double> &DMAT = _orbitals->DensityMatrixGroundState( _dft_orbitals );
                 _vxc_ao = _numint.IntegrateVXC_Atomblock(DMAT,&dftbasis,_functional); 
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculated Vxc in VOTCA with gridsize: "<< _grid << " and functional " << _functional<<flush;
                 
             }
+            
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " Set hybrid exchange factor: " << _ScaHFX << flush;
             
             
             // now get expectation values but only for those in _qpmin:_qpmax range

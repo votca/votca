@@ -163,7 +163,7 @@ namespace votca {
                 // loop over col  GW levels
                
 
-                boost::timer::auto_cpu_timer gwcol;
+                //boost::timer::auto_cpu_timer gwcol;
                 _sigma_c = ub::zero_matrix<double>(_qptotal, _qptotal);
 
                 // loop over col  GW levels

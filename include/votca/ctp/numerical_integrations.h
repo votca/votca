@@ -50,9 +50,11 @@ namespace votca { namespace ctp {
             double IntegrateDensity(ub::matrix<double>& _density_matrix, AOBasis* basis);
             double IntegrateDensity_Atomblock(ub::matrix<double>& _density_matrix, AOBasis* basis);
             double IntegratePotential(ub::vector<double> rvector);
+            
+            double getExactExchange(const string _functional);
             ub::matrix<double> IntegrateVXC ( ub::matrix<double>& _density_matrix, AOBasis* basis  );
             ub::matrix<double> IntegrateVXC_block ( ub::matrix<double>& _density_matrix, AOBasis* basis   );
-            ub::matrix<double> IntegrateVXC_Atomblock ( ub::matrix<double>& _density_matrix, AOBasis* basis, string _functional);
+            ub::matrix<double> IntegrateVXC_Atomblock ( ub::matrix<double>& _density_matrix, AOBasis* basis,const string _functional);
             
             // this gives int (e_xc-V_xc)*rho d3r
             double& getTotEcontribution(){return EXC;}
