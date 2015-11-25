@@ -93,9 +93,10 @@ namespace votca {
             // TODO: switch XC functionals implementation from LIBXC to base own calculation
             ExchangeCorrelation _xc;
             Vxc_Functionals map;
-            bool _use_votca = false;
+            
             
 #ifdef LIBXC
+            bool _use_votca = false;
             bool _use_separate = false;
             
             
@@ -160,15 +161,15 @@ namespace votca {
             boost::timer::cpu_timer cpu_t;
             cpu_t.start();
             double _t_AOvals = 0.0;
-            double _t_rho = 0.0;
-            double _t_grad_rho = 0.0;
+            //double _t_rho = 0.0;
+            //double _t_grad_rho = 0.0;
             double _t_vxc =0.0;
             double _t_AOxc_rho=0.0;
             double _t_AOxc_grad=0.0;
             double _t_EXC1=0.0;
             double _t_EXC2=0.0;
             double _t_sum = 0.0;
-            double _t_total = 0.0;
+            //double _t_total = 0.0;
              boost::timer::cpu_times tenter = cpu_t.elapsed();
              
             // generate a list of shells for each atom
@@ -546,7 +547,7 @@ namespace votca {
 
                     double rho      = 2.0 * rho_mat(0,0);
                     boost::timer::cpu_times t3 = cpu_t.elapsed();
-                    _t_rho +=  (t3.wall-t0.wall)/1e9;
+                    // +=  (t3.wall-t0.wall)/1e9;
                     
 
 		    if ( rho < 1.e-15 ) continue; // skip the rest, if density is very small
@@ -1977,7 +1978,7 @@ namespace votca {
 
                 // cout << " Constructed full grid of atom " << i_atom << " of size " << _atomgrid.size() <<  endl;
                 
-                int fullsize = _atomgrid.size();
+                //int fullsize = _atomgrid.size();
                 
                 
                 if ( 0 == 0 ){
