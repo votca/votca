@@ -93,35 +93,29 @@ namespace votca {
             // TODO: switch XC functionals implementation from LIBXC to base own calculation
             ExchangeCorrelation _xc;
             Vxc_Functionals map;
-            
+            std::vector<string> strs;           
+            boost::split(strs, _functional, boost::is_any_of(" "));
+            int xfunc_id = 0;
             
 #ifdef LIBXC
             bool _use_votca = false;
             bool _use_separate = false;
-            
-            
             int cfunc_id = 0;
-#endif
-            int xfunc_id = 0;
-            std::vector<string> strs;           
-            boost::split(strs, _functional, boost::is_any_of(" "));
+
             if (strs.size() == 1) {
                 xfunc_id = map.getID(strs[0]);
                 if (xfunc_id < 0) _use_votca = true;
             }
-#ifdef LIBXC
+
             else if (strs.size() == 2) {
                 cfunc_id = map.getID(strs[0]);
                 xfunc_id = map.getID(strs[1]);
                 _use_separate = true;
             }
-#endif
             else {
-                throw std::runtime_error("Please specify one or (two  if compiled with libxc support) functionals");
+                throw std::runtime_error("Please specify one combined or an exchange and a correlation functionals");
 
             }
-
-#ifdef LIBXC
             xc_func_type xfunc; // handle for exchange functional
             xc_func_type cfunc; // handle for correlation functional
             if (!_use_votca){
@@ -147,6 +141,13 @@ namespace votca {
                 }
             }
             }
+#else
+         if (strs.size() == 1) {
+                xfunc_id = map.getID(strs[0]);
+            }   
+         else {
+                throw std::runtime_error("Please specify one combined or an exchange and a correlation functionals");
+         }
 #endif
 
         
