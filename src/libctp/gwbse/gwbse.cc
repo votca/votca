@@ -313,11 +313,10 @@ namespace votca {
             _ScaHFX = _orbitals->getScaHFX();
             {// this bracket is there so that _vx_ao falls out of scope, like it more than resize
             ub::matrix<double> _vxc_ao;
-            if (!_doVxc) {
-                
-                if (_orbitals->hasAOVxc()) {
-                    
-                    
+            if (_orbitals->hasAOVxc()) {
+                    if (_doVxc) {
+                        LOG(logDEBUG, *_pLog) << TimeStamp() << "There is already a Vxc matrix loaded from DFT, did you maybe run a DFT code with outputVxc?\n I will take " << flush;
+                    }
                     if (_dft_package == "gaussian") {
                         // we have to do some cartesian -> spherical transformation for Gaussian
                         const ub::matrix<double>& vxc_cart = _orbitals->AOVxc();
@@ -330,28 +329,25 @@ namespace votca {
                         _vxc_ao = _orbitals->AOVxc();
                     }
                 }
-                else{
-                     throw std::runtime_error( "So your DFT data contains no Vxc and I am not supposed to calculate Vxc? Where should I get it from? I propose a break to let you think!");
+
+                else if (_doVxc) {
+
+                    NumericalIntegration _numint;
+                    double ScaHFX_temp = _numint.getExactExchange(_functional);
+                    if (ScaHFX_temp != _ScaHFX) {
+                        throw std::runtime_error((boost::format("GWBSE exact exchange a=%s differs from qmpackage exact exchange a=%s, probably your functionals are inconsistent") % ScaHFX_temp % _ScaHFX).str());
+                    }
+                    _numint.GridSetup(_grid, &dftbs, _atoms);
+
+                    dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "votca");
+                    LOG(logDEBUG, *_pLog) << TimeStamp() << " Converted DFT orbital coefficient order from " << _dft_package << " to VOTCA" << flush;
+                    ub::matrix<double> &DMAT = _orbitals->DensityMatrixGroundState(_dft_orbitals);
+                    _vxc_ao = _numint.IntegrateVXC_Atomblock(DMAT, &dftbasis, _functional);
+                    LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculated Vxc in VOTCA with gridsize: " << _grid << " and functional " << _functional << flush;
+
+                } else {
+                    throw std::runtime_error("So your DFT data contains no Vxc and I am not supposed to calculate Vxc? Where should I get it from? I propose a break to let you think!");
                 }
-            }
-            else if (_doVxc) {
-                if (_orbitals->hasAOVxc()) {
-                    LOG(logDEBUG, *_pLog) << TimeStamp() << "There is already a Vxc matrix in the orbitals object, did you may run a DFT code mit outputVxc?"<< flush;
-                }
-                NumericalIntegration _numint;
-                double ScaHFX_temp=_numint.getExactExchange(_functional);
-                if (ScaHFX_temp!=_ScaHFX){
-                    throw std::runtime_error( (boost::format("GWBSE exact exchange a=%s differs from qmpackage exact exchange a=%s, probably your functionals are inconsistent") % ScaHFX_temp % _ScaHFX).str());
-                                         }
-                _numint.GridSetup(_grid,&dftbs,_atoms);
-                
-                dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "votca" );
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Converted DFT orbital coefficient order from " << _dft_package << " to VOTCA" << flush;
-                ub::matrix<double> &DMAT = _orbitals->DensityMatrixGroundState( _dft_orbitals );
-                _vxc_ao = _numint.IntegrateVXC_Atomblock(DMAT,&dftbasis,_functional); 
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculated Vxc in VOTCA with gridsize: "<< _grid << " and functional " << _functional<<flush;
-                
-            }
             
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Set hybrid exchange factor: " << _ScaHFX << flush;
             
