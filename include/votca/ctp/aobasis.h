@@ -529,13 +529,20 @@ inline void AOBasis::addReorderShell( string& start, string& target,  string& sh
     if ( shell_type.length() == 1 ){
        if ( shell_type == "S" ){ 
            neworder.push_back( _cur_pos + 1 );
-       }
+       }//for S
        
-       if ( shell_type == "P" ){ 
+       if ( shell_type == "P" ){
+           if( start == "orca" ){
+           neworder.push_back( _cur_pos + 3 );
+           neworder.push_back( _cur_pos + 1 );
+           neworder.push_back( _cur_pos + 2 );
+        }else {
            neworder.push_back( _cur_pos + 1 );
            neworder.push_back( _cur_pos + 2 );
            neworder.push_back( _cur_pos + 3 );
-       }
+       
+           }
+       }   //for P
        if ( shell_type == "D" ){ 
            if ( start == "gaussian"){
                neworder.push_back( _cur_pos + 4 );
@@ -550,7 +557,14 @@ inline void AOBasis::addReorderShell( string& start, string& target,  string& sh
                //neworder.push_back( -(_cur_pos + 1) ); // bloody inverted sign // BUG!!!!!!!
                neworder.push_back( _cur_pos + 1 ); 
                neworder.push_back( _cur_pos + 5 );               
-           } else {
+           }else if ( start == "orca") {
+               neworder.push_back( _cur_pos + 4  ); 
+               neworder.push_back( _cur_pos + 1 );
+               neworder.push_back( _cur_pos + 2 );
+               //neworder.push_back( -(_cur_pos + 1) ); // bloody inverted sign // BUG!!!!!!!
+               neworder.push_back( _cur_pos + 5 ); 
+               neworder.push_back( _cur_pos + 3 );               
+            } else {
                cerr << "Tried to reorder d-functions from package " << start << ".";
                throw std::runtime_error( "Reordering not implemented yet!");
            }

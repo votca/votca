@@ -52,7 +52,9 @@ public:
     const double     &getNucCrg(string name) const {return _NucCrg.at(name); }
     const int        &getEleNum(string name) const {return _EleNum.at(name); }
     const string     &getEleName(int elenum) const {return _EleName.at(elenum); }
-
+    const string     &getEleShort(string elefull) const {return _EleShort.at(elefull); }
+    const string     &getEleFull(string eleshort) const {return _EleFull.at(eleshort); }
+    
 private:
 
     std::map<std::string, double> _VdWChelpG;
@@ -62,6 +64,9 @@ private:
     std::map<std::string, int> _EleNum;
     std::map<int, std::string> _EleName;
     
+    std::map<std::string, std::string> _EleShort;
+    std::map<std::string, std::string> _EleFull;
+    
     inline void FillMaps(){
         
         FillVdWChelpG();
@@ -70,6 +75,9 @@ private:
         FillNucCrg();
         FillEleNum();
         FillEleName();
+        
+        FillEleShort();
+        FillEleFull();
         
     }
 
@@ -191,6 +199,54 @@ private:
         _EleName[18] = "Ar";
     };
     
+    inline void FillEleShort(){
+    
+        // VdW radii in Angstrom as used in MK Gaussian
+        _EleShort["HYDROGEN"]  = "H"; 
+        _EleShort["HELIUM"] = "He";
+        _EleShort["LITHIUM"] = "Li";
+        _EleShort["BERYLLIUM"] = "Be";
+        _EleShort["BORON"]  = "B";
+        _EleShort["CARBON"]  = "C";
+        _EleShort["NITROGEN"]  = "Ni";
+        _EleShort["OXYGEN"]  = "O";
+        _EleShort["FLUORINE"]  = "Fl";
+        _EleShort["NEON"] = "Ne";
+        _EleShort["SODIUM"] = "Na";
+        _EleShort["MAGNESIUM"] = "Mg";
+        _EleShort["ALUMINUM"] = "Al";
+        _EleShort["SILICON"] = "Si";
+        _EleShort["PHOSPHORUS"]  = "Ph";
+        _EleShort["SULFUR"]  = "S";
+        _EleShort["CLORINE"] = "Cl";
+        _EleShort["ARGON"] = "Ar";
+    };
+    
+ inline void FillEleFull(){
+    
+        // VdW radii in Angstrom as used in MK Gaussian
+        _EleFull["H"]  = "HYDROGEN"; 
+        _EleFull["He"] = "HELIUM";
+        _EleFull["Li"] = "LITHIUM";
+        _EleFull["Be"] = "BERYLLIUM";
+        _EleFull["B"]  = "BORON";
+        _EleFull["C"]  = "CARBON";
+        _EleFull["N"]  = "NITROGEN";
+        _EleFull["O"]  = "OXYGEN";
+        _EleFull["F"]  = "FLUORINE";
+        _EleFull["Ne"] = "NEON";
+        _EleFull["Na"] = "SODIUM";
+        _EleFull["Mg"] = "MAGNESIUM";
+        _EleFull["Al"] = "ALUMINUM";
+        _EleFull["Si"] = "SILICON";
+        _EleFull["P"]  = "PHOSPHORUS";
+        _EleFull["S"]  = "SULFUR";
+        _EleFull["Cl"] = "CHLORINE";
+        _EleFull["Ar"] = "ARGON";
+    };
+   
+
+    
     
     inline void FillVdWMK(){
     
@@ -215,10 +271,6 @@ private:
         // _VdWChelpG["Ar"] = 2.0;
     };
 };
-
-
-
-
 }}
 
 #endif	/* __VOTCA_CTP_ATOM_H */
