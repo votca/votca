@@ -40,32 +40,32 @@ using namespace std;
  * @param E NxN diagonal matrix of singular values
  * @return succeeded or not 
  */
-bool linalg_singular_value_decomposition( ub::matrix<double> &A, ub::matrix<double> &V, ub::vector<double> &S )
+/*
+bool linalg_singular_value_decomposition(ub::matrix<double> &A, ub::matrix<double> &VT, ub::vector<double> &S )
 {
-	/*
+	
         gsl_error_handler_t *handler = gsl_set_error_handler_off();
-	const size_t N = A.size1();
-        
+	const size_t M = A.size1();
+        const size_t N = A.size2();
         // gsl does not handle conversion of a symmetric_matrix 
-        ub::matrix<double> _A( N,N );
-        _A = A;
         
-	E.resize(N, false);
-	V.resize(N, N, false);
-	gsl_matrix_view A_view = gsl_matrix_view_array(&_A(0,0), N, N);
-	gsl_vector_view E_view = gsl_vector_view_array(&E(0), N);
-	gsl_matrix_view V_view = gsl_matrix_view_array(&V(0,0), N, N);
-	gsl_eigen_symmv_workspace *w = gsl_eigen_symmv_alloc(N);
+        
+	S.resize(N, false);
+	VT.resize(M, N, false);
+        
+	gsl_matrix_view A_view = gsl_matrix_view_array(&A(0,0), M, N);
+	gsl_vector_view S_view = gsl_vector_view_array(&S(0), N);
+	gsl_matrix_view V_view = gsl_matrix_view_array(&V(0,0), M, N);
+	gsl_vector * work = gsl_vector_alloc(N);
 
-	int status = gsl_eigen_symmv(&A_view.matrix, &E_view.vector, &V_view.matrix, w);
+        int status = gsl_linalg_SV_decomp (gsl_matrix * A, gsl_matrix * V, gsl_vector * S, gsl_vector * work)
 	//gsl_eigen_symmv_sort(&E_view.vector, &V_view.matrix, GSL_EIGEN_SORT_ABS_ASC);
-	gsl_eigen_symmv_free(w);
 	gsl_set_error_handler(handler);
-        
+        gsl_vector_free (work);
 	return (status != 0);
-         */
-    throw std::runtime_error("linalg_singular_value_decomposition is not compiled-in due to disabling of MKL - recompile Votca Tools with MKL support");
+         
+    
 };
-
+*/
 
 }}
