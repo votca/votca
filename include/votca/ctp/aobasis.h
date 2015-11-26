@@ -558,12 +558,11 @@ inline void AOBasis::addReorderShell( string& start, string& target,  string& sh
                neworder.push_back( _cur_pos + 1 ); 
                neworder.push_back( _cur_pos + 5 );               
            }else if ( start == "orca") {
-               neworder.push_back( _cur_pos + 4  ); 
-               neworder.push_back( _cur_pos + 1 );
+               neworder.push_back( _cur_pos + 1 ); 
                neworder.push_back( _cur_pos + 2 );
-               //neworder.push_back( -(_cur_pos + 1) ); // bloody inverted sign // BUG!!!!!!!
-               neworder.push_back( _cur_pos + 5 ); 
-               neworder.push_back( _cur_pos + 3 );               
+               neworder.push_back( _cur_pos + 3 );
+               neworder.push_back( _cur_pos + 4 ); 
+               neworder.push_back( _cur_pos + 5 );               
             } else {
                cerr << "Tried to reorder d-functions from package " << start << ".";
                throw std::runtime_error( "Reordering not implemented yet!");
