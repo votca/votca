@@ -68,6 +68,11 @@ namespace votca {
             _chk_file_name = options->get(key + ".checkpoint").as<string> ();
             _scratch_dir = options->get(key + ".scratch").as<string> ();
             _cleanup = options->get(key + ".cleanup").as<string> ();
+            
+             if (options->exists(key + ".outputVxc")) {
+                _output_Vxc = options->get(key + "outputVxc").as<bool> ();   
+            }
+             else _output_Vxc=false;
 
             // check if the guess keyword is present, if yes, append the guess later
             std::string::size_type iop_pos = _options.find("cards");
@@ -124,7 +129,7 @@ namespace votca {
             vector< Segment* >::iterator sit;
             string temp_suffix = "/id";
             string scratch_dir_backup = _scratch_dir;
-            int qmatoms = 0;
+            //int qmatoms = 0;
 
             ofstream _com_file;
 
@@ -219,7 +224,7 @@ namespace votca {
                                         GaussianPrimitive* gaussian = *itg;
                                         //_com_file << gaussian->decay << " " << gaussian->contraction << endl;
                                         _el_file << FortranFormat(gaussian->decay);
-                                        for (int _icontr = 0; _icontr < gaussian->contraction.size(); _icontr++) {
+                                        for (unsigned _icontr = 0; _icontr < gaussian->contraction.size(); _icontr++) {
                                             if (gaussian->contraction[_icontr] != 0.0) {
                                                 _el_file << " " << FortranFormat(gaussian->contraction[_icontr]);
                                             }
@@ -269,22 +274,40 @@ namespace votca {
                                 elements.push_back(element_name);
 
                                 Element* element = ecp.getElement(element_name);
-
+                                   
                                 // element name, [possibly indeces of centers], zero to indicate the end
                                 _com_file << element_name << " 0\n"
                                         << pseudopotential_name << " "
                                         << element->getLmax() << " " << element->getNcore() << endl;
-
+                                //write local component
                                 for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
 
                                     Shell* shell = (*its);
                                     // shell type, number primitives, scale factor
-                                    _com_file << shell->getType() << endl;
-                                    _com_file << shell->getSize() << endl;
+                                    if (shell->getLmax() == element->getLmax()) {
+                                        _com_file << shell->getType() << endl;
+                                        _com_file << shell->getSize() << endl;
 
-                                    for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
-                                        GaussianPrimitive* gaussian = *itg;
-                                        _com_file << gaussian->power << " " << gaussian->decay << " " << gaussian->contraction[0] << endl;
+                                        for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
+                                            GaussianPrimitive* gaussian = *itg;
+                                            _com_file << gaussian->power << " " << gaussian->decay << " " << gaussian->contraction[0] << endl;
+                                        }
+                                    }
+                                }
+                                // write remaining shells in ascending order s,p,d...
+                                for (int i = 0; i < element->getLmax(); i++) {
+                                    for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+                                        Shell* shell = (*its);
+                                        if (shell->getLmax() == i) {
+                                            // shell type, number primitives, scale factor
+                                            _com_file << shell->getType() << endl;
+                                            _com_file << shell->getSize() << endl;
+
+                                            for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
+                                                GaussianPrimitive* gaussian = *itg;
+                                                _com_file << gaussian->power << " " << gaussian->decay << " " << gaussian->contraction[0] << endl;
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -366,7 +389,7 @@ namespace votca {
                                         GaussianPrimitive* gaussian = *itg;
                                         //_com_file << gaussian->decay << " " << gaussian->contraction << endl;
                                         _el_file << FortranFormat(gaussian->decay);
-                                        for (int _icontr = 0; _icontr < gaussian->contraction.size(); _icontr++) {
+                                        for (unsigned _icontr = 0; _icontr < gaussian->contraction.size(); _icontr++) {
                                             if (gaussian->contraction[_icontr] != 0.0) {
                                                 _el_file << " " << FortranFormat(gaussian->contraction[_icontr]);
                                             }
@@ -495,12 +518,8 @@ namespace votca {
 
 
 
-            if (_write_pseudopotentials) {
-                /* This is not very nice. We assume that pseudopotentials are only 
-                 * needed for GW-BSE runs. Therefore, when we ask for writing the 
-                 * ECP info to the Gaussian com-file, it automatically means 
-                 * writing the input file for the <a|Vxc|b> matrix output run as well. 
-                 */
+            if (_output_Vxc) {
+             
 
                 ofstream _com_file2;
 
@@ -567,7 +586,7 @@ namespace votca {
             _shell_file << "mkdir -p " << _scratch_dir << endl;
             _shell_file << "setenv GAUSS_SCRDIR " << _scratch_dir << endl;
             _shell_file << _executable << " " << _input_file_name << endl;
-            if (_write_pseudopotentials) {
+            if (_output_Vxc) {
                 _shell_file << "rm fort.22" << endl;
                 _shell_file << "setenv DoPrtXC YES" << endl;
                 _shell_file << _executable << " " << _input_vxc_file_name << " >& /dev/null " << endl;
@@ -590,15 +609,15 @@ namespace votca {
                 // if scratch is provided, run the shell script; 
                 // otherwise run gaussian directly and rely on global variables 
                 string _command;
-                if (_scratch_dir.size() != 0 || _write_pseudopotentials) {
+                if (_scratch_dir.size() != 0 || _output_Vxc) {
                     _command = "cd " + _run_dir + "; tcsh " + _shell_file_name;
                     //            _command  = "cd " + _run_dir + "; mkdir -p " + _scratch_dir +"; " + _executable + " " + _input_file_name;
                 } else {
                     _command = "cd " + _run_dir + "; mkdir -p $GAUSS_SCRDIR; " + _executable + " " + _input_file_name;
                 }
 
-                int i = system(_command.c_str());
-
+                //int i = system(_command.c_str());
+                system(_command.c_str());
                 if (CheckLogFile()) {
                     LOG(logDEBUG, *_pLog) << "GAUSSIAN: finished job" << flush;
                     return true;
@@ -688,7 +707,7 @@ namespace votca {
             std::vector<string> strs;
             boost::algorithm::split(strs, _line, boost::is_any_of("(D)"));
             //clog << strs.at(1) << endl;
-            int nrecords_in_line = boost::lexical_cast<int>(strs.at(1));
+            //int nrecords_in_line = boost::lexical_cast<int>(strs.at(1));
             string format = strs.at(2);
 
             //clog << endl << "Orbital file " << filename << " has " 
@@ -830,10 +849,10 @@ namespace votca {
             bool _has_number_of_electrons = false;
             bool _has_basis_set_size = false;
             bool _has_overlap_matrix = false;
-            bool _has_vxc_matrix = false;
+            //bool _has_vxc_matrix = false;
             bool _has_charges = false;
-            bool _has_coordinates = false;
-            bool _has_qm_energy = false;
+            //bool _has_coordinates = false;
+            //bool _has_qm_energy = false;
             bool _has_self_energy = false;
 
             bool _read_vxc = false;
@@ -854,7 +873,7 @@ namespace votca {
 
             // save qmpackage name
             //_orbitals->_has_qm_package = true;
-            _orbitals->setQMpakckage("gaussian");
+            _orbitals->setQMpackage("gaussian");
 
 
             // Start parsing the file line by line
@@ -870,6 +889,8 @@ namespace votca {
                 std::string::size_type pseudo_pos = _line.find("pseudo=read");
                 if (pseudo_pos != std::string::npos) {
                     _read_vxc = true;
+                    // Uncomment for next version
+                    //_orbitals->setWithECP(true);
                 }
 
                 /* Check for ScaHFX = factor of HF exchange included in functional */
@@ -1065,7 +1086,7 @@ namespace votca {
 
                     while (nfields == 3) {
                         int atom_id = boost::lexical_cast< int >(_row.at(0));
-                        int atom_number = boost::lexical_cast< int >(_row.at(0));
+                        //int atom_number = boost::lexical_cast< int >(_row.at(0));
                         string atom_type = _row.at(1);
                         double atom_charge = boost::lexical_cast< double >(_row.at(2));
                         //if ( tools::globals::verbose ) cout << "... ... " << atom_id << " " << atom_type << " " << atom_charge << endl;
@@ -1097,7 +1118,7 @@ namespace votca {
                 if (coordinates_pos != std::string::npos && cpn == 0) {
                     ++cpn; // updates but ignores
                     LOG(logDEBUG, *_pLog) << "Getting the coordinates" << flush;
-                    _has_coordinates = true;
+                    //_has_coordinates = true;
                     boost::trim(_line);
                     string archive = _line;
                     while (_line.size() != 0) {
@@ -1160,7 +1181,7 @@ namespace votca {
                         properties[property[0]] = property[1];
                     }
                     LOG(logDEBUG, *_pLog) << "QM energy " << _orbitals->getQMEnergy() << flush;
-                    _has_qm_energy = true;
+                    //_has_qm_energy = true;
                     //_orbitals->_has_atoms = true;
                     //_orbitals->_has_qm_energy = true;
                     if (properties.count("HF") > 0) {
@@ -1236,7 +1257,7 @@ namespace votca {
                 _vxc.resize(_cart_basis_set_size);
 
 
-                _has_vxc_matrix = true;
+               // _has_vxc_matrix = true;
                 //cout << "Found the overlap matrix!" << endl;   
                 vector<int> _j_indeces;
 
@@ -1297,7 +1318,7 @@ namespace votca {
             //int _basis_size      = _orbitals->getBasisSetSize();
             std::vector<double>::size_type _basis_size = _orbitals->getBasisSetSize();
             //int _cart_basis_size = _orbitals->_vxc.size1();
-            ub::matrix<double>::size_type _cart_basis_size = _orbitals->AOVxc().size1();
+            //ub::matrix<double>::size_type _cart_basis_size = _orbitals->AOVxc().size1();
             //cout << "\nSpherical basis size is " << _basis_size << endl;
             //cout << "\nCartesian basis size is " << _cart_basis_size << endl;
 
@@ -1324,7 +1345,7 @@ namespace votca {
             vector< QMAtom* >::iterator ita;
             LOG(logDEBUG, *_pLog) << "Rewriting molecular orbitals " << flush;
             // Loop over all molecular orbitals
-            for (int _i_orbital = 0; _i_orbital < _basis_size; _i_orbital++) {
+            for (unsigned _i_orbital = 0; _i_orbital < _basis_size; _i_orbital++) {
                 _orb_file << _i_orbital + 1 << " " << FortranFormat(energies(_i_orbital)) << endl;
                 int _i_coef_qc = 0;
                 int _i_coef_gw = 0;
@@ -1616,8 +1637,8 @@ namespace votca {
             // output to file
             ofstream _vxc_file;
             _vxc_file.open(_vxc_file_name_full.c_str());
-            for (int _i_orbital = 0; _i_orbital < _basis_size; _i_orbital++) {
-                for (int _j_orbital = 0; _j_orbital < _basis_size; _j_orbital++) {
+            for (unsigned _i_orbital = 0; _i_orbital < _basis_size; _i_orbital++) {
+                for (unsigned _j_orbital = 0; _j_orbital < _basis_size; _j_orbital++) {
                     _vxc_file << _i_orbital + 1 << "  " << _j_orbital + 1 << "  " << FortranFormat(2.0 * vxc_expect(_i_orbital, _j_orbital)) << endl;
                 }
             }
@@ -1641,7 +1662,7 @@ namespace votca {
         }
 
         int Gaussian::NumbfGW(string shell_type) {
-            int _nbf;
+            int _nbf=0;
             if (shell_type == "S") {
                 _nbf = 1;
             } else if (shell_type == "P") {
@@ -1657,7 +1678,7 @@ namespace votca {
         }
 
         int Gaussian::NumbfQC(string shell_type) {
-            int _nbf;
+            int _nbf=0;
             if (shell_type == "S") {
                 _nbf = 1;
             } else if (shell_type == "P") {
@@ -1673,7 +1694,7 @@ namespace votca {
         }
 
         int Gaussian::NumbfQC_cart(string shell_type) {
-            int _nbf;
+            int _nbf=0;
             if (shell_type == "S") {
                 _nbf = 1;
             } else if (shell_type == "P") {

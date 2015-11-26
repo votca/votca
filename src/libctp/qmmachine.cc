@@ -116,7 +116,7 @@ void QMMachine<QMPackage>::Evaluate(XJob *job) {
     
     // FIGURE OUT CHARGE + MULTIPLICITY
     double dQ = 0.0;
-    for (int i = 0; i < _job->getPolarTop()->QM0().size(); ++i) {
+    for (unsigned int i = 0; i < _job->getPolarTop()->QM0().size(); ++i) {
         dQ += _job->getPolarTop()->QM0()[i]->CalcTotQ();
     }
     int chrg = round(dQ);
@@ -128,8 +128,9 @@ void QMMachine<QMPackage>::Evaluate(XJob *job) {
     string jobFolder = "xjob_" + boost::lexical_cast<string>(_job->getId())
                      + "_" + _job->getTag();    
     bool created = boost::filesystem::create_directory(jobFolder);
-    if (created) 
+    if (created){ 
         LOG(logINFO,*_log) << "Created directory " << jobFolder << flush;
+    }
     
     
     // SET ITERATION-TIME CONSTANTS
@@ -145,7 +146,8 @@ void QMMachine<QMPackage>::Evaluate(XJob *job) {
     int iterMax = _maxIter;
     for ( ; iterCnt < iterMax; ++iterCnt) {
         
-        bool code = Iterate(jobFolder, iterCnt);
+        //bool code = 
+	(void)Iterate(jobFolder, iterCnt);
         if (hasConverged()) { break; }
     }
     
@@ -253,15 +255,16 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 
 
         // for GW-BSE, we also need to parse the orbitals file
-        int _parse_orbitals_status = _qmpack->ParseOrbitalsFile( &orb_iter_output );
+        _qmpack->ParseOrbitalsFile( &orb_iter_output );
+        //int _parse_orbitals_status = _qmpack->ParseOrbitalsFile( &orb_iter_output );
         std::vector<int> _state_index;
        _gwbse.Initialize( &_gwbse_options );
       if ( _state > 0 ){
         LOG(logDEBUG,*_log) << "Excited state via GWBSE: " <<  flush;
         LOG(logDEBUG,*_log) << "  --- type:              " << _type << flush;
         LOG(logDEBUG,*_log) << "  --- state:             " << _state << flush;
-        if ( _has_osc_filter) LOG(logDEBUG,*_log) << "  --- filter: osc.str. > " << _osc_threshold << flush;
-        if ( _has_dQ_filter)  LOG(logDEBUG,*_log) << "  --- filter: crg.trs. > " << _dQ_threshold << flush;
+        if ( _has_osc_filter) { LOG(logDEBUG,*_log) << "  --- filter: osc.str. > " << _osc_threshold << flush;}
+        if ( _has_dQ_filter)  {LOG(logDEBUG,*_log) << "  --- filter: crg.trs. > " << _dQ_threshold << flush;}
         
         if ( _has_osc_filter && _has_dQ_filter ){
             LOG(logDEBUG,*_log) << "  --- WARNING: filtering for optically active CT transition - might not make sense... "  << flush;
@@ -277,8 +280,8 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
         gwbse_logger.setPreface(logDEBUG,   (format("\nGWBSE DBG ...") ).str());
         
         // actual GW-BSE run
-
-        bool _evaluate = _gwbse.Evaluate( &orb_iter_output );
+        _gwbse.Evaluate( &orb_iter_output );
+        //bool _evaluate = _gwbse.Evaluate( &orb_iter_output );
         
        
         // write logger to log file
@@ -300,7 +303,7 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
             
             // go through list of singlets
             const std::vector<std::vector<double> >& TDipoles = orb_iter_output.TransitionDipoles();
-            for (int _i=0; _i < TDipoles.size(); _i++ ) {
+            for (unsigned _i=0; _i < TDipoles.size(); _i++ ) {
                 
                 double osc = (TDipoles[_i][0] * TDipoles[_i][0] + TDipoles[_i][1] * TDipoles[_i][1] + TDipoles[_i][2] * TDipoles[_i][2]) * 1.0 / 3.0 * (orb_iter_output.BSESingletEnergies()[_i]) ;
                 if ( osc > _osc_threshold ) _state_index.push_back(_i);
@@ -311,11 +314,11 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
         } else {
             
             if ( _type == "singlet" ){
-               for (int _i=0; _i < orb_iter_output.TransitionDipoles().size(); _i++ ) {
+               for (unsigned _i=0; _i < orb_iter_output.TransitionDipoles().size(); _i++ ) {
                    _state_index.push_back(_i);
                }
             } else {
-               for (int _i=0; _i < orb_iter_output.BSETripletEnergies().size(); _i++ ) {
+               for (unsigned _i=0; _i < orb_iter_output.BSETripletEnergies().size(); _i++ ) {
                    _state_index.push_back(_i);
                }
             }
@@ -328,8 +331,8 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
             if ( _type == "singlets" ){
              // go through list of singlets
             const std::vector<double>& dQ_fragA = orb_iter_output.FragmentAChargesSingEXC();
-            const std::vector<double>& dQ_fragB = orb_iter_output.FragmentBChargesSingEXC();
-            for (int _i=0; _i < _state_index.size(); _i++ ) {
+            //const std::vector<double>& dQ_fragB = orb_iter_output.FragmentBChargesSingEXC();
+            for (unsigned _i=0; _i < _state_index.size(); _i++ ) {
                 if ( std::abs(dQ_fragA[_i]) > _dQ_threshold ) {
                     _state_index_copy.push_back(_state_index[_i]);
                 }
@@ -338,8 +341,8 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
             } else if ( _type == "triplets"){
               // go through list of triplets
             const std::vector<double>& dQ_fragA = orb_iter_output.FragmentAChargesTripEXC();
-            const std::vector<double>& dQ_fragB = orb_iter_output.FragmentBChargesTripEXC();
-            for (int _i=0; _i < _state_index.size(); _i++ ) {
+            //const std::vector<double>& dQ_fragB = orb_iter_output.FragmentBChargesTripEXC();
+            for (unsigned _i=0; _i < _state_index.size(); _i++ ) {
                 if ( std::abs(dQ_fragA[_i]) > _dQ_threshold ) {
                     _state_index_copy.push_back(_state_index[_i]);
                 }
@@ -406,7 +409,7 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
         Espfit esp;
     
         esp.setLog(_log);
-        esp.Fit2Density(Atomlist, DMAT_tot, dftbasis);
+        esp.Fit2Density(Atomlist, DMAT_tot, dftbasis,dftbs,"medium",false);
     
     
     
@@ -563,9 +566,9 @@ void QMMIter::UpdatePosChrgFromQMAtoms(vector< QMAtom* > &qmatoms,
     double dQ_RMS = 0.0;
     double dQ_SUM = 0.0;
     
-    for (int i = 0, qac = 0; i < psegs.size(); ++i) {
+    for (unsigned int i = 0, qac = 0; i < psegs.size(); ++i) {
         PolarSeg *pseg = psegs[i];
-        for (int j = 0; j < pseg->size(); ++j, ++qac) {
+        for (unsigned int j = 0; j < pseg->size(); ++j, ++qac) {
             
             // Retrieve info from QMAtom
             QMAtom *qmatm = qmatoms[qac];
@@ -605,9 +608,9 @@ void QMMIter::GenerateQMAtomsFromPolarSegs(PolarTop *ptop, Orbitals &orb,
     double AA_to_NM = 0.1; // Angstrom to nanometer
     
     // INNER SHELL QM0
-    for (int i = 0; i < ptop->QM0().size(); ++i) {
+    for (unsigned int i = 0; i < ptop->QM0().size(); ++i) {
         PolarSeg *pseg = ptop->QM0()[i];
-        for (int j = 0; j < pseg->size(); ++j) {
+        for (unsigned int j = 0; j < pseg->size(); ++j) {
             
             APolarSite *aps = (*pseg)[j];
             vec pos = aps->getPos()/AA_to_NM;
@@ -620,9 +623,9 @@ void QMMIter::GenerateQMAtomsFromPolarSegs(PolarTop *ptop, Orbitals &orb,
     }
     
     // MIDDLE SHELL MM1
-    for (int i = 0; i < ptop->MM1().size(); ++i) {
+    for (unsigned int i = 0; i < ptop->MM1().size(); ++i) {
         PolarSeg *pseg = ptop->MM1()[i];
-        for (int j = 0; j < pseg->size(); ++j) {
+        for (unsigned int j = 0; j < pseg->size(); ++j) {
             
             APolarSite *aps = (*pseg)[j];
             vec pos = aps->getPos()/AA_to_NM;
@@ -658,9 +661,9 @@ void QMMIter::GenerateQMAtomsFromPolarSegs(PolarTop *ptop, Orbitals &orb,
     }
     
     // OUTER SHELL MM2
-    for (int i = 0; i < ptop->MM2().size(); ++i) {
+    for (unsigned int i = 0; i < ptop->MM2().size(); ++i) {
         PolarSeg *pseg = ptop->MM2()[i];
-        for (int j = 0; j < pseg->size(); ++j) {
+        for (unsigned int j = 0; j < pseg->size(); ++j) {
             
             APolarSite *aps = (*pseg)[j];
             vec pos = aps->getPos()/AA_to_NM;

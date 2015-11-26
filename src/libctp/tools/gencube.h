@@ -21,13 +21,14 @@
 #define _VOTCA_CTP_GENCUBE_H
 
 #include <stdio.h>
-
+#include <votca/ctp/elements.h>
 #include <votca/ctp/logger.h>
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/ctp/votca_ctp_config.h>
 
 namespace votca {
     namespace ctp {
+        static const double ang2bohr = 1.8897259886;
         using namespace std;
         namespace ub = boost::numeric::ublas;
 
@@ -55,7 +56,7 @@ namespace votca {
             
             void calculateCube();
             void subtractCubes();
-            static const double ang2bohr = 1.8897259886;
+            
             string _orbfile;
             string _output_file;
             string _infile1;
@@ -63,6 +64,7 @@ namespace votca {
             bool _do_groundstate;
             bool _do_bse;
             bool _do_qp;
+            bool _do_transition;
             
             double _padding;
             int _xsteps;
@@ -77,6 +79,11 @@ namespace votca {
         };
 
         void GenCube::Initialize(Property* options) {
+            
+            _do_groundstate=false;
+            _do_bse=false;
+            _do_qp=false;
+            _do_transition=false;
 
             // update options with the VOTCASHARE defaults   
             UpdateWithDefaults(options);
@@ -103,6 +110,7 @@ namespace votca {
             _state = options->get(key + ".state").as<int> ();
             _spin = options->get(key + ".spin").as<string> ();
             _type = options->get(key + ".type").as<string> ();
+            
             _mode = options->get(key + ".mode").as<string> ();
 
             if ( _mode == "subtract" ){
@@ -112,9 +120,14 @@ namespace votca {
             }
             
             
-            if ( _type == "total" ) _do_groundstate = true;
-            if ( _type !="qp" && (_spin == "singlet" || _spin == "triplet") ) _do_bse = true;
-            if ( _type == "qp" ) _do_qp = true;
+            if ( _type == "ground" || _state==0) _do_groundstate = true;
+            else if ( _type == "transition" ) _do_transition = true;
+            else if ( _type == "excited"){
+                _do_bse = true;
+                _do_groundstate=true;
+            }
+            else if (_type== "excited-gs") _do_bse=true;
+            else if ( _type == "qp" ) _do_qp = true;
             
             
             
@@ -192,7 +205,7 @@ namespace votca {
                 out = fopen(_output_file.c_str(), "w");
 
                 // write cube header
-                if ( _state == 0 ){
+                if ( _do_groundstate && !_do_bse ){
                    fprintf(out, "Electron density of neutral state \n" );
                 } else if ( _do_bse ){
                     if ( _do_groundstate ){
@@ -200,19 +213,24 @@ namespace votca {
                     } else {
                        fprintf(out, "Difference electron density of excited state  %i spin %s \n", _state, _spin.c_str());
                     }
-                } else if ( _do_qp ){
+                } 
+                else if ( _do_qp ){
                     fprintf(out, "Quasiparticle state %i \n", _state);
+                }
+                else if ( _do_transition ){
+                    fprintf(out, "Transition state  between Groundstate and state %i \n", _state);
                 }
                 fprintf(out, "Created by VOTCA-CTP \n");
                 if ( _do_qp ){
-                    fprintf(out, "-%d %f %f %f \n", _atoms.size(), xstart, ystart, zstart);
+                    fprintf(out, "-%lu %f %f %f \n", _atoms.size(), xstart, ystart, zstart);
                 } else {
-                    fprintf(out, "%d %f %f %f \n", _atoms.size(), xstart, ystart, zstart);
+                    fprintf(out, "%lu %f %f %f \n", _atoms.size(), xstart, ystart, zstart);
                 }
                     
                 fprintf(out, "%d %f 0.0 0.0 \n", _xsteps + 1, xincr);
                 fprintf(out, "%d 0.0 %f 0.0 \n", _ysteps + 1, yincr);
                 fprintf(out, "%d 0.0 0.0 %f \n", _zsteps + 1, zincr);
+                Elements _elements;
                 for (ait = _atoms.begin(); ait != _atoms.end(); ++ait) {
                     // get center coordinates in Bohr
                     double x = (*ait)->x * ang2bohr;
@@ -220,8 +238,8 @@ namespace votca {
                     double z = (*ait)->z * ang2bohr;
 
                     string element = (*ait)->type;
-                    int atnum = element2number(element);
-                    double crg = element2core_ECP(element);
+                    int atnum =_elements.getEleNum(element);
+                    double crg = _elements.getNucCrgECP(element);
 
                     fprintf(out, "%d %f %f %f %f\n", atnum, crg, x, y, z);
 
@@ -244,9 +262,8 @@ namespace votca {
                 dftbasis.ReorderMOs(_dft_orbitals, _orbitals.getQMpackage(), "votca");
 
                 
-                
                 // now depending on the type of cube
-                if (_do_groundstate || _do_bse  ) {
+                if (_do_groundstate || _do_bse || _do_transition ) {
 
 
                     ub::matrix<double> DMAT_tot = ub::zero_matrix<double>(dftbasis.AOBasisSize(), dftbasis.AOBasisSize());
@@ -257,15 +274,24 @@ namespace votca {
                         DMAT_tot = DMATGS; // Ground state + hole_contribution + electron contribution
                         LOG(logDEBUG, _log) << " Calculated ground state density matrix " << flush;
                     }
+                    
+                    if(_state>0){
+                        ub::matrix<float> BSECoefs;
+                        if (_spin=="singlet") BSECoefs = _orbitals.BSESingletCoefficients();
+                        else if (_spin =="triplet") BSECoefs = _orbitals.BSETripletCoefficients();
+                    
+                        if ( _do_transition ){
+                             DMAT_tot=_orbitals.TransitionDensityMatrix(_dft_orbitals, BSECoefs, _state - 1);
+                             LOG(logDEBUG, _log) << " Calculated transition state density matrix " << flush;
+                        }
 
                     // excited state if requested
-                    if ( _do_bse && _state > 0 ) {
-                        ub::matrix<float>& BSECoefs = _orbitals.BSESingletCoefficients();
-                        std::vector<ub::matrix<double> > &DMAT = _orbitals.DensityMatrixExcitedState(_dft_orbitals, BSECoefs, _state - 1);
-                        DMAT_tot = DMAT_tot - DMAT[0] + DMAT[1]; // Ground state + hole_contribution + electron contribution
-                        LOG(logDEBUG, _log) << " Calculated excited state density matrix " << flush;
+                        else if ( _do_bse  ) {    
+                            std::vector< ub::matrix<double> > &DMAT=_orbitals.DensityMatrixExcitedState(_dft_orbitals, BSECoefs, _state - 1);
+                            DMAT_tot = DMAT_tot - DMAT[0] + DMAT[1]; // Ground state + hole_contribution + electron contribution
+                            LOG(logDEBUG, _log) << " Calculated excited state density matrix " << flush;
+                        }
                     }
-
                     
    
                     
@@ -365,7 +391,7 @@ namespace votca {
                                 }
 
                                 double QP_at_grid = 0.0;
-                                for (int _i = 0; _i < Ftemp.size1(); _i++) {
+                                for (unsigned _i = 0; _i < Ftemp.size1(); _i++) {
                                     QP_at_grid += Ftemp(_i,0) * tmat(_i,0);
                                 }
 
@@ -591,46 +617,6 @@ bool GenCube::Evaluate() {
     return true;
         }
 
-        int GenCube::element2number(string element) {
-
-            if (element == "H") {
-                return 1;
-            } else if (element == "He") {
-                return 2;
-            } else if (element == "C") {
-                return 6;
-            } else if (element == "N") {
-                return 7;               
-            } else if (element == "O") {
-                return 8;
-            } else if (element == "S") {
-                return 16;
-            }
-
-
-
-        }
-
-        
-        
-        double GenCube::element2core_ECP(string element){
-            
-            if (element == "H") {
-                return 1.0;
-            } else if (element == "He") {
-                return 2.0;
-            } else if (element == "C") {
-                return 4.0;
-            } else if (element == "N") {
-                return 5.0;
-            } else if (element == "O") {
-                return 6.0;
-            } else if (element == "S") {
-                return 6.0;
-            }
-            
-            
-        }
 
 
 }}

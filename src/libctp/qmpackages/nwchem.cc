@@ -63,8 +63,29 @@ void NWChem::Initialize( Property *options ) {
     _scratch_dir =      options->get(key + ".scratch").as<string> ();
     _cleanup =          options->get(key + ".cleanup").as<string> ();
     
+     if (options->exists(key + ".outputVxc")) {
+                _output_Vxc = options->get(key + ".outputVxc").as<bool> ();   
+            }
+             else _output_Vxc=false;
+    // check whether options string contains vxc output, the _outputVxc is set to true
+    std::string::size_type iop_pos = _options.find(" intermediate tXC matrix");
+    if (iop_pos != std::string::npos) {
+        if (_output_Vxc){
+            cout << "=== You do not have to specify outputting Vxc twice. Next time remove the print ""intermediate tXC matrix"" part from your options string. Please continue"<< endl;
+        }
+        else{
+            cout << "=== So you do not want to output Vxc but still put it in the options string? I will assume that you want to output Vxc, be more consistent next time. "<< endl;
+        }
+        _output_Vxc = true;   
+    } 
+    else if (_output_Vxc==true){
+         _options=_options+"\n\ndft\nprint \"intermediate tXC matrix\"\nvectors input system.movecs\nnoscf\nend\ntask dft";
+    }
+    
+    
+    
     // check if the optimize keyword is present, if yes, read updated coords
-    std::string::size_type iop_pos = _options.find(" optimize");
+    iop_pos = _options.find(" optimize");
     if (iop_pos != std::string::npos) {
         _is_optimization = true;
     } else
@@ -110,7 +131,7 @@ bool NWChem::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gues
     vector< Atom* > ::iterator ait;
     vector< Segment* >::iterator sit;
     vector<string> results;
-    int qmatoms = 0;
+    //int qmatoms = 0;
     string temp_suffix = "/id";
     string scratch_dir_backup = _scratch_dir;
     ofstream _com_file;
@@ -369,7 +390,8 @@ bool NWChem::Run()
             _command = "cd " + _run_dir + "; sh " + _shell_file_name;
         }
         
-        int i = system ( _command.c_str() );
+        //int i = system ( _command.c_str() );
+        system ( _command.c_str() );
         
         if ( CheckLogFile() ) {
             LOG(logDEBUG,*_pLog) << "Finished NWChem job" << flush;
@@ -442,7 +464,7 @@ bool NWChem::ParseOrbitalsFile( Orbitals* _orbitals )
     
     std::string _line;
     unsigned _levels = 0;
-    unsigned _level;
+    //unsigned _level;
     unsigned _basis_size = 0;
     int _number_of_electrons = 0;
     
@@ -530,7 +552,7 @@ bool NWChem::ParseOrbitalsFile( Orbitals* _orbitals )
 
     // Now, the same for the coefficients
     double coef;
-    for ( int _imo=0; _imo < _levels ; _imo++ ){
+    for ( unsigned _imo=0; _imo < _levels ; _imo++ ){
         for ( i=1; i<=_n_lines; i++ ) {
             for ( int j=0; j<3; j++ ){
                 _input_file >> coef;
@@ -669,8 +691,8 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
 
     bool _has_overlap_matrix = false;
     bool _has_charges = false;
-    bool _has_coordinates = false;
-    bool _has_vxc_matrix = false;
+    //bool _has_coordinates = false;
+    //bool _has_vxc_matrix = false;
     bool _has_qm_energy = false;
     bool _has_self_energy = false;
     bool _has_basis_set_size = false;
@@ -686,7 +708,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
     
     // save qmpackage name
     // _orbitals->_has_qm_package = true;
-    _orbitals->setQMpakckage("nwchem");
+    _orbitals->setQMpackage("nwchem");
     
     // set _found_optimization to true if this is a run without optimization
     if ( !_is_optimization ) {
@@ -748,7 +770,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
                 _vxc.resize(_basis_set_size);
 
 
-                _has_vxc_matrix = true;
+                //_has_vxc_matrix = true;
                           vector<int> _j_indeces;
             
            int _n_blocks = 1 + (( _basis_set_size - 1 ) / 6);
@@ -903,7 +925,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
                 
                 while ( nfields == 6 ) {
                     int atom_id = boost::lexical_cast< int >( _row.at(0) );
-                    int atom_number = boost::lexical_cast< int >( _row.at(0) );
+                    //int atom_number = boost::lexical_cast< int >( _row.at(0) );
                     string atom_type = _row.at(1);
                     double atom_charge = boost::lexical_cast< double >( _row.at(5) );
                     //if ( tools::globals::verbose ) cout << "... ... " << atom_id << " " << atom_type << " " << atom_charge << endl;
@@ -929,10 +951,12 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
          * Coordinates of the final configuration
          * depending on whether it is an optimization or not
          */
+        
+        
         if ( _is_optimization ){
                 std::string::size_type optimize_pos = _line.find("Optimization converged");
                 if (optimize_pos != std::string::npos) {
-                        bool _found_optimization = true;
+                        _found_optimization = true;
                 }
         }
         
@@ -941,7 +965,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
         if ( _found_optimization && coordinates_pos != std::string::npos) {
             LOG(logDEBUG,*_pLog) << "Getting the coordinates" << flush;
             
-            _has_coordinates = true;
+            //_has_coordinates = true;
             bool _has_QMAtoms = _orbitals->hasQMAtoms();
 
             // three garbage lines
@@ -960,7 +984,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
                 
             while ( nfields == 6 ) {
                 int atom_id = boost::lexical_cast< int >( _row.at(0) );
-                int atom_number = boost::lexical_cast< int >( _row.at(0) );
+                //int atom_number = boost::lexical_cast< int >( _row.at(0) );
                 string _atom_type = _row.at(1);
                 double _x =  boost::lexical_cast<double>( _row.at(3) );
                 double _y =  boost::lexical_cast<double>( _row.at(4) );

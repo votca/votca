@@ -21,16 +21,9 @@
 #define	_VOTCA_CTP_ERIS_H
 
 
-#include <votca/ctp/aomatrix.h>
-#include <votca/ctp/aobasis.h>
+
 #include <votca/ctp/threecenters.h>
-#include <string>
-#include <vector>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/lu.hpp>
-#include <boost/numeric/ublas/io.hpp>
 #include <votca/tools/linalg.h>
-#include <omp.h>
 
 
 using namespace std;

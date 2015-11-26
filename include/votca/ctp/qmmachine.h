@@ -85,7 +85,7 @@ class QMMIter
 
 public:
 
-    QMMIter(int id) : _hasdRdQ(false), _hasQM(false), _hasMM(false), _id(id) { ; }
+    QMMIter(int id) : _id(id), _hasdRdQ(false), _hasQM(false), _hasMM(false)  { ; }
    ~QMMIter() { ; }
 
    void ConvertPSitesToQMAtoms(vector< PolarSeg* > &, vector< QMAtom* > &);
@@ -102,6 +102,7 @@ public:
    double getRMSdR() { return _dR_RMS; }
    double getRMSdQ() { return _dQ_RMS; }
    double getSUMdQ() { return _dQ_SUM; }
+   int getId() { return _id;}
 
    double getSFEnergy() { assert(_hasQM); return _e_SF; }
    double getFMEnergy() { assert(_hasMM); return _e_fm_; }

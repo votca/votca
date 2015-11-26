@@ -103,7 +103,7 @@ namespace votca {
 
             
             // set the parallelization 
-            #ifdef OMP
+            #ifdef _OPENMP
             if ( _openmp_threads > 0 ) {
                 omp_set_num_threads(_openmp_threads);
             }
@@ -119,7 +119,7 @@ namespace votca {
             
 	    /**** Density-independent matrices ****/
 	    SetupInvariantMatrices();
-            
+           /* 
 	                int size4c=_dftbasis.AOBasisSize();
             fourdim fourcenter(boost::extents[size4c][size4c][size4c][size4c]);
             for ( int i = 0; i < size4c; i++ ){
@@ -134,7 +134,7 @@ namespace votca {
                 }
             }
             
-            LOG(logDEBUG, *_pLog) << TimeStamp() << "Init 4c "<< flush;
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " Init 4c "<< flush;
             
                          ifstream in;
             string _4cfile = "test/4cints";             
@@ -169,7 +169,7 @@ namespace votca {
                        in.close();
                        
                        LOG(logDEBUG, *_pLog) << TimeStamp() << "Read 4cs from file "<< flush;
-                       
+             */          
 	    
             // _dftAOkinetic.Print("TMAT");
             //exit(0);
@@ -218,7 +218,7 @@ namespace votca {
             
 	    DensityMatrixGroundState( initMOCoeff, _numofelectrons/2 ) ;
 	    cout << endl;
-
+/*
 	    
             for (int alpha=0;alpha<size4c;alpha++){
                     for (int beta=0;beta<size4c;beta++){
@@ -238,13 +238,13 @@ namespace votca {
                         
                  }
             }
-            
+  */          
            // exit(0); 
 	    
 
 
 
-
+           //int size4c=_dftbasis.AOBasisSize();
 
            LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup Initial Guess "<< flush;
            LOG(logDEBUG, *_pLog) << TimeStamp() << " Num of electrons "<< _gridIntegration.IntegrateDensity(_dftAOdmat, basis) << flush;
@@ -256,9 +256,9 @@ namespace votca {
                 _ERIs.CalculateERIs(_dftAOdmat, _auxAOoverlap, _AOIntegrals);
                 // LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Electron repulsion matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2()<< flush<<flush;
 
-
-                /* ERI from 4cs*/
-                /* ub::matrix<double> ERI4c = ub::zero_matrix<double>(size4c,size4c);
+/*
+                // ERI from 4cs
+                ub::matrix<double> ERI4c = ub::zero_matrix<double>(size4c,size4c);
                 for ( int ii=0; ii< size4c; ii++){
                     for ( int jj=0; jj< size4c; jj++){
                         for ( int kk=0; kk< size4c; kk++){
@@ -273,18 +273,18 @@ namespace votca {
                         }
                     }
                 }
-                */
                 
-		ub::matrix<double> VXC=_gridIntegration.IntegrateVXC_Atomblock(_dftAOdmat,  basis);
-                //ub::matrix<double> VXC2=_gridIntegration.IntegrateVXC(_dftAOdmat,  basis);
-/*		 for ( int iout=0; iout<_dftAOdmat.size1();iout++){
-		for ( int jout=0; jout<_dftAOdmat.size1();jout++){
+      */         
+		ub::matrix<double> VXC=_gridIntegration.IntegrateVXC_Atomblock(_dftAOdmat,  basis,"PBE_VOTCA");
+                ub::matrix<double> VXC2=_gridIntegration.IntegrateVXC(_dftAOdmat,  basis);
+		 for ( unsigned iout=0; iout<_dftAOdmat.size1();iout++){
+		for ( unsigned jout=0; jout<_dftAOdmat.size1();jout++){
 
 		  cout.precision(10);
 		  cout << "VXC " << std::setprecision(10)  << iout+1 << " " << jout+1 << " " << VXC(iout,jout) <<  " " << VXC2(iout,jout) <<endl;
 
 		}
-		} */
+		} 
 
 
                 /*
@@ -301,7 +301,7 @@ namespace votca {
                 
                 
                 ub::matrix<double> H=H0+_ERIs.getERIs()+VXC;
-
+                
                 //ub::matrix<double> H=H0+ERI4c+VXC;
                 
                 /*
@@ -495,13 +495,13 @@ namespace votca {
             //set number of electrons and such
            _orbitals->setBasisSetSize(_dftbasis.AOBasisSize());
            
-           for (int i=0;i<_atoms.size();i++){
+           for (unsigned i=0;i<_atoms.size();i++){
                _numofelectrons+=_elements.getNucCrg(_atoms[i]->type);
            }
 
             // if ECP
             if (_with_ecp) {
-                for (int i = 0; i < _atoms.size(); i++) {
+                for (unsigned i = 0; i < _atoms.size(); i++) {
                     _numofelectrons-= _ecpbasisset.getElement(_atoms[i]->type)->getNcore() ;
                 }
             }

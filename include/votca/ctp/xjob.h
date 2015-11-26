@@ -56,6 +56,7 @@ public:
    inline bool          isWithinDist(const vec &pt, double dist, Topology *top);
    bool                 StartFromCPT()  { return _start_from_cpt; }
    void                 WriteInfoLine(FILE *out);
+   Property             GenerateOutputProperty();
 
    
    
@@ -153,13 +154,13 @@ private:
    string               _tag;
    Topology            *_top;   
    
-   vector<string>       _qmSegMps;
+   bool                 _start_from_cpt;
    vector<Segment*>     _qmSegs;
+   vector<string>       _qmSegMps;
    vec                  _center;
    map<int,bool>        _isSegInCenter;
-   bool                 _start_from_cpt;
-   bool                 _clean_ptop;
    PolarTop            *_ptop;
+   bool                 _clean_ptop;
 
    // Inductor facts
    int                  _qm0_size;
@@ -221,7 +222,7 @@ inline bool XJob::isWithinDist(const vec &pt, double dist, Topology *top) {
     
     bool inCenter = false;
     
-    for (int i = 0; i < _qmSegs.size(); ++i) {         
+    for (unsigned int i = 0; i < _qmSegs.size(); ++i) {         
         Segment *seg = _qmSegs[i];
         double dR = abs(top->PbShortestConnect(seg->getPos(), pt));
         if (dR <= dist) { inCenter = true; break; }

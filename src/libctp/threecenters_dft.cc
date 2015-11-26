@@ -17,15 +17,11 @@
  *
  */
 
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/ctp/votca_ctp_config.h>
+
 
 #include <votca/ctp/threecenters.h>
 
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/math/constants/constants.hpp>
-#include <votca/ctp/logger.h>
-#include <votca/tools/linalg.h>
+
 
 using namespace std;
 using namespace votca::tools;
@@ -39,7 +35,7 @@ namespace votca {
          */
         void TCMatrix_dft::Cleanup() {
 
-            for (int _i = 0; _i < _matrix.size(); _i++) {
+            for (unsigned _i = 0; _i < _matrix.size(); _i++) {
                 _matrix[ _i ].resize(0, 0, false);
             }
             _matrix.clear();
@@ -71,7 +67,7 @@ namespace votca {
             */ 
             // loop over all shells in the GW basis and get _Mmn for that shell
             //#pragma omp parallel for //private(_block)
-            for ( int _is= 0; _is <  _auxbasis._aoshells.size() ; _is++ ){
+            for ( unsigned _is= 0; _is <  _auxbasis._aoshells.size() ; _is++ ){
             // for (vector< AOShell* >::iterator _is = _gwbasis.firstShell(); _is != _gwbasis.lastShell(); _is++) {
                 //cout << " act threads: " << omp_get_thread_num( ) << " total threads " << omp_get_num_threads( ) << " max threads " << omp_get_max_threads( ) <<endl;
                 AOShell* _shell = _auxbasis.getShell(_is);
@@ -110,20 +106,20 @@ namespace votca {
             for (vector< AOShell* >::iterator _row = dftbasis.firstShell(); _row != dftbasis.lastShell(); _row++) {
                 AOShell* _shell_row = dftbasis.getShell(_row);
                 int _row_start = _shell_row->getStartIndex();
-                int _row_end = _row_start + _shell_row->getNumFunc();
+                //int _row_end = _row_start + _shell_row->getNumFunc();
 
                 // gamma-loop over the "right" DFT basis function
                 for (vector< AOShell* >::iterator _col = dftbasis.firstShell(); _col != dftbasis.lastShell(); _col++) {
                     AOShell* _shell_col = dftbasis.getShell(_col);
                     int _col_start = _shell_col->getStartIndex();
-                    int _col_end = _col_start + _shell_col->getNumFunc();
+                    //int _col_end = _col_start + _shell_col->getNumFunc();
 
                     // get 3-center overlap directly as _subvector
                     ub::matrix<double> _subvector = ub::zero_matrix<double>(_shell_row->getNumFunc(), _shell->getNumFunc() * _shell_col->getNumFunc());
                     //ub::matrix<float> _subvector = ub::zero_matrix<float>(_shell_row->getNumFunc(), _shell->getNumFunc() * _shell_col->getNumFunc());
                     
-                    bool nonzero = FillThreeCenterOLBlock(_subvector, _shell, _shell_row, _shell_col);
-                    
+                    //bool nonzero = FillThreeCenterOLBlock(_subvector, _shell, _shell_row, _shell_col);
+                    bool nonzero=FillThreeCenterRepBlock(_subvector, _shell, _shell_row, _shell_col);
                     //cout << "subvector " <<_subvector<< endl;
                     /* test 
                     for (int j=0;j<_subvector.size1();j++){

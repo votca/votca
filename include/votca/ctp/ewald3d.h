@@ -31,8 +31,8 @@ public:
    ~Ewald3D3D();
 
     string IdentifyMethod() { return "3D x 3D"; }
-    EWD::triple<> ConvergeReciprocalSpaceSum();
-    EWD::triple<> CalculateShapeCorrection();
+    EWD::triple<> ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target);
+    EWD::triple<> CalculateShapeCorrection(vector<PolarSeg*> &target);
     double CalculateSq2(vec &k);
 
 private:

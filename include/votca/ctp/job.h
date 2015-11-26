@@ -100,7 +100,6 @@ protected:
      int _attemptsCount;
      Property _input;
      string _sqlcmd;
-     bool   _has_sqlcmd;
     
      // Generated during runtime
      string _host;
@@ -108,9 +107,10 @@ protected:
      string _time;
      bool   _has_time;
      Property _output;
+     bool   _has_error;
      bool   _has_output;
      string _error;
-     bool   _has_error;
+     bool   _has_sqlcmd;
 };
 
 

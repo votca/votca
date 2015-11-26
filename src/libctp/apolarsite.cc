@@ -8,8 +8,8 @@ namespace votca { namespace ctp {
 
 
 APolarSite::APolarSite(APolarSite *templ, bool do_depolarize) 
-    : _id(templ->_id), _name(templ->_name), _isVirtual(templ->_isVirtual),        
-      _resolution(templ->_resolution), _pos(templ->_pos),
+    : _id(templ->_id), _name(templ->_name), _isVirtual(templ->_isVirtual),   
+       _pos(templ->_pos),
         
       _locX(templ->_locX), _locY(templ->_locY), _locZ(templ->_locZ),
         
@@ -28,7 +28,9 @@ APolarSite::APolarSite(APolarSite *templ, bool do_depolarize)
 
       U1x(templ->U1x), U1y(templ->U1y), U1z(templ->U1z),
       FPx(templ->FPx), FPy(templ->FPy), FPz(templ->FPz),
-      FUx(templ->FUx), FUy(templ->FUy), FUz(templ->FUz) {
+      FUx(templ->FUx), FUy(templ->FUy), FUz(templ->FUz),
+
+     _resolution(templ->_resolution),PhiP(templ->PhiP), PhiU(templ->PhiU) {
     
     if (do_depolarize) this->Depolarize();
 }
@@ -119,7 +121,7 @@ void APolarSite::Rotate(const matrix &rot, const vec &refPos) {
                               vec(Qxz,Qyz,Qzz));
 
             matrix Q_Global  = R * Q * R_T;
-
+            
             /* if (this->getId() == 1) {
                 cout << endl;
                 cout << "  " << Q_Global.get(0,0);
@@ -304,11 +306,50 @@ double APolarSite::getProjP(vec &dir) {
 }
 
 void APolarSite::Induce(double wSOR) {
-    U1_Hist.push_back( vec(U1x,U1y,U1z) );
+    // SUCCESSIVE OVERRELAXATION
+    U1_Hist.push_back( vec(U1x,U1y,U1z) ); // Remember all previous moments
+    //U1_Hist[0] = vec(U1x,U1y,U1z);           // Remember previous moment
     U1x = (1 - wSOR) * U1x + wSOR * ( - Pxx * (FPx + FUx) - Pxy * (FPy + FUy) - Pxz * (FPz + FUz) );
     U1y = (1 - wSOR) * U1y + wSOR * ( - Pxy * (FPx + FUx) - Pyy * (FPy + FUy) - Pyz * (FPz + FUz) );
     U1z = (1 - wSOR) * U1z + wSOR * ( - Pxz * (FPx + FUx) - Pyz * (FPy + FUy) - Pzz * (FPz + FUz) );
     return;
+    
+    /*
+    // ANDERSON + SUCCESSIVE OVERRELAXATION
+    U1_Hist.push_back( vec(U1x,U1y,U1z) );
+    
+    // Back up U(N,i)
+    U1_i.push_back(vec(U1x, U1y, U1z));    
+    // Compute U(N,o)
+    U1x = - Pxx * (FPx + FUx) - Pxy * (FPy + FUy) - Pxz * (FPz + FUz);
+    U1y = - Pxy * (FPx + FUx) - Pyy * (FPy + FUy) - Pyz * (FPz + FUz);
+    U1z = - Pxz * (FPx + FUx) - Pyz * (FPy + FUy) - Pzz * (FPz + FUz);
+    // Back up U(N,o)
+    U1_o.push_back(vec(U1x, U1y, U1z));
+    
+    // Compile Anderson in/out values from U1 record
+    vec U1_i_mix = vec(0,0,0);
+    vec U1_o_mix = vec(0,0,0);    
+    if (U1_i.size() > 2 && U1_o.size() > 2) {
+        // Compute Anderson mixing factor from minimal rms deviation
+        vec D_N   = U1_o[U1_o.size()-1] - U1_i[U1_i.size()-1];
+        vec D_N_1 = U1_o[U1_o.size()-2] - U1_i[U1_i.size()-2];
+        vec D_N_N_1 = D_N - D_N_1;        
+        double wAND = - D_N_1*D_N_N_1/(D_N_N_1*D_N_N_1);        
+        // Mingle new and old via wAND ...
+        U1_i_mix = wAND*U1_i[U1_i.size()-1] + (1-wAND)*U1_i[U1_i.size()-2];
+        U1_o_mix = wAND*U1_o[U1_o.size()-1] + (1-wAND)*U1_o[U1_o.size()-2];
+    }
+    else {
+        U1_i_mix = U1_i.back();
+        U1_o_mix = U1_o.back();
+    }
+    
+    // Apply SOR
+    vec U1 = (1-wSOR)*U1_i_mix + wSOR*U1_o_mix;
+    U1x = U1.getX(); U1y = U1.getY(); U1z = U1.getZ();
+    return;
+    */
 }
 
 void APolarSite::InduceDirect() {
@@ -320,8 +361,27 @@ void APolarSite::InduceDirect() {
 }
 
 double APolarSite::HistdU() {
-    vec dU = vec(U1x, U1y, U1z) - U1_Hist.back();
-    return abs(dU)/abs(U1_Hist.back());
+    vec U0 = U1_Hist.back();
+    vec U1 = vec(U1x, U1y, U1z);
+    vec dU = U1 - U0;
+    
+    double abs_U0 = votca::tools::abs(U0);
+    double abs_U1 = votca::tools::abs(U1);
+    double abs_dU = votca::tools::abs(dU);
+    double small = 1e-10; // in e*nm
+    double abs_U = (abs_U1 > abs_U0 && small > abs_U0) ? abs_U1 : abs_U0;
+    
+    double dU_U = 1.;
+    if (small > abs_U) dU_U = abs_U; // i.e.: U1, U0 << 1 enm    
+    else dU_U = abs_dU / abs_U;
+    return dU_U;
+}
+
+double APolarSite::HistdU2() {
+    vec U0 = U1_Hist.back();
+    vec U1 = vec(U1x, U1y, U1z);
+    double dU2 = (U1-U0)*(U1-U0);
+    return dU2;
 }
 
 void APolarSite::Depolarize() {
@@ -407,10 +467,10 @@ void APolarSite::WritePdbLine(FILE *out, const string &tag) {
 
 
 void APolarSite::WriteXyzLine(FILE *out, vec &shift, string format) {
-
+/*
     double int2ext = 1.0;
 
-    vec pos = _pos + shift;
+    
 
     if (format == "gaussian") {
         int2ext = 10.;
@@ -418,7 +478,8 @@ void APolarSite::WriteXyzLine(FILE *out, vec &shift, string format) {
     else {
         int2ext = 10.;
     }
-
+*/
+    vec pos = _pos + shift;
     fprintf(out, "%-2s %+4.9f %+4.9f %+4.9f \n",
             _name.c_str(),
             pos.getX()*10, pos.getY()*10, pos.getZ()*10);
@@ -440,7 +501,7 @@ void APolarSite::WriteChkLine(FILE *out, vec &shift, bool split_dpl,
     }
 
     // Take care of unit conversion
-    double int2ext;
+    double int2ext=0;
 
     if (unit == "nanometer") {
         int2ext = 1.;
@@ -622,7 +683,7 @@ void APolarSite::WriteXmlLine(std::ostream &out) {
     for (int state = -1; state < 2; ++state) {
         out << "<state>" << endl;
         out << state << endl;
-        for (int i = 0; i < _Qs[state+1].size(); ++i) {
+        for (unsigned i = 0; i < _Qs[state+1].size(); ++i) {
             out << _Qs[state+1][i] << " ";
         }
         out << endl;
@@ -759,7 +820,7 @@ vector<APolarSite*> APS_FROM_MPS(string filename, int state, QMThread *thread) {
                     pyy = 1e-3 * boost::lexical_cast<double>(split[4]);
                     pyz = 1e-3 * boost::lexical_cast<double>(split[5]);
                     pzz = 1e-3 * boost::lexical_cast<double>(split[6]);
-                    P1 = matrix(vec(pxx,pxy,pyy),
+                    P1 = matrix(vec(pxx,pxy,pxz),
                                 vec(pxy,pyy,pyz),
                                 vec(pxz,pyz,pzz));
                 }
@@ -787,7 +848,7 @@ vector<APolarSite*> APS_FROM_MPS(string filename, int state, QMThread *thread) {
                 if (lineRank == 0) {
                     Q0_total += boost::lexical_cast<double>(split[0]);
                 }
-                for (int i = 0; i < split.size(); i++) {
+                for (unsigned i = 0; i < split.size(); i++) {
                     double qXYZ = boost::lexical_cast<double>(split[i]);
                     // Convert e*(a_0)^k to e*(nm)^k where k = rank
                     double BOHR2NM = 0.0529189379;
@@ -885,6 +946,8 @@ map<string,double> POLAR_TABLE() {
     polar_table["O"] = 0.837e-3;
     polar_table["S"] = 2.926e-3;
     polar_table["F"] = 0.440e-3;
+    polar_table["Si"] = 3.962e-3;   // B3LYP/6-311+g(2d,2p)
+    polar_table["Zn"] = 5.962e-3;   // B3LYP/6-311+g(2d,2p)
     return polar_table;
 }
 

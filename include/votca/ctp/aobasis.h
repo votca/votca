@@ -20,16 +20,14 @@
 #ifndef __CTP_AOBASIS__H
 #define	__CTP_AOBASIS__H
 
-#include <string>
-#include <map>
-#include <vector>
 #include <votca/tools/property.h>
 #include <votca/ctp/segment.h>
 #include <votca/ctp/qmatom.h>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/math/constants/constants.hpp>
-#include "basisset.h"
+#include <votca/ctp/basisset.h>
+
 
 using namespace std;
 using namespace votca::tools;
@@ -44,17 +42,22 @@ class AOGaussianPrimitive
 {
     friend class AOShell;
 public:
+    int power; // used in pseudopotenials only
     double decay;
     std::vector<double> contraction;
-    int power; // used in pseudopotenials only
     AOShell* aoshell;
 private:
     // private constructor, only a shell can create a primitive
     AOGaussianPrimitive( double _decay, std::vector<double> _contraction, AOShell *_aoshell = NULL ) 
-    : decay(_decay), contraction(_contraction), aoshell(_aoshell) { ; }
+    : decay(_decay),
+            contraction(_contraction),
+            aoshell(_aoshell) { ; }
 
     AOGaussianPrimitive( int _power, double _decay, std::vector<double> _contraction, AOShell *_aoshell = NULL ) 
-    : power(_power), decay(_decay), contraction(_contraction), aoshell(_aoshell) { ; }
+    : power(_power),
+    decay(_decay),
+    contraction(_contraction),
+    aoshell(_aoshell) { ; }
 };      
     
 /*
@@ -95,7 +98,7 @@ public:
     
     //vector<double> evalAOspace( double x, double y, double z , string type = "");
     //void EvalAOspace( ub::matrix_range<ub::matrix<double> >& AOvalues, double x, double y, double z , string type = "");
-    void EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, double x, double y, double z , string type = "");
+    void EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, double x, double y, double z );
     void EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues,ub::matrix_range<ub::matrix<double> >& AODervalues, double x, double y, double z );
     //void EvalAOspace(ub::matrix<double>& AOvalues, double x, double y, double z , string type = "");
     
@@ -137,12 +140,12 @@ private:
     // number of functions in shell
     int _numFunc;
     int _startIndex;
-    vec _pos;
     int _offset;
+    vec _pos;
     string _atomname;
     int _atomindex;
      
-    AOBasis* _aobasis;
+    //AOBasis* _aobasis;
     int detlmax( string shell );
     // vector of pairs of decay constants and contraction coefficients
     vector< AOGaussianPrimitive* > _gaussians;
@@ -177,9 +180,11 @@ public:
           }
            
           // actual swapping of coefficients
-          for ( int _i_orbital = 0; _i_orbital < v.size1(); _i_orbital++ ){
-                for ( int s = 1, d; s < order.size(); ++ s ) {
-                    for ( d = order[s]; d < s; d = order[d] ) ;
+          for ( unsigned _i_orbital = 0; _i_orbital < v.size1(); _i_orbital++ ){
+                for ( unsigned s = 1, d; s < order.size(); ++ s ) {
+                    for ( d = order[s]; d < s; d = order[d] ){
+                        ;
+                    }
                           if ( d == s ) while ( d = order[d], d != s ) swap( v(_i_orbital,s), v(_i_orbital,d) );
                 }
           }
@@ -207,9 +212,9 @@ public:
               throw std::runtime_error( "Abort!");
           }
 
-          for ( int _i_orbital = 0; _i_orbital < v.size1(); _i_orbital++ ){
+          for ( unsigned _i_orbital = 0; _i_orbital < v.size1(); _i_orbital++ ){
 
-               for ( int _i_basis = 0; _i_basis < v.size2(); _i_basis++ ){
+               for ( unsigned _i_basis = 0; _i_basis < v.size2(); _i_basis++ ){
         
                    v(_i_orbital, _i_basis ) = multiplier[_i_basis] * v(_i_orbital, _i_basis );
                    
@@ -344,7 +349,7 @@ inline int AOShell::detlmax( string shell_type ) {
     } else {
         // for combined shells check all contributions
         _lmax = 0;
-        for( int i = 0; i < shell_type.length(); ++i) {
+        for( unsigned i = 0; i < shell_type.length(); ++i) {
             string local_shell =    string( shell_type, i, 1 );
             int _test = this->detlmax( local_shell  );
             if ( _test > _lmax ) { _lmax = _test;} 
@@ -449,7 +454,7 @@ inline void AOBasis::getMultiplierVector( string& start, string& target, vector<
 
             if (target == "votca") {
                 // current length of vector
-                int _cur_pos = multiplier.size() - 1;
+                //int _cur_pos = multiplier.size() - 1;
 
                 // single type shells defined here
                 if (shell_type.length() == 1) {
@@ -485,7 +490,7 @@ inline void AOBasis::getMultiplierVector( string& start, string& target, vector<
                 } else {
                     // for combined shells, iterate over all contributions
                     //_nbf = 0;
-                    for (int i = 0; i < shell_type.length(); ++i) {
+                    for (unsigned i = 0; i < shell_type.length(); ++i) {
                         string local_shell = string(shell_type, i, 1);
                         this->addMultiplierShell(start, target, local_shell, multiplier);
                     }
@@ -524,13 +529,20 @@ inline void AOBasis::addReorderShell( string& start, string& target,  string& sh
     if ( shell_type.length() == 1 ){
        if ( shell_type == "S" ){ 
            neworder.push_back( _cur_pos + 1 );
-       }
+       }//for S
        
-       if ( shell_type == "P" ){ 
+       if ( shell_type == "P" ){
+           if( start == "orca" ){
+           neworder.push_back( _cur_pos + 3 );
+           neworder.push_back( _cur_pos + 1 );
+           neworder.push_back( _cur_pos + 2 );
+        }else {
            neworder.push_back( _cur_pos + 1 );
            neworder.push_back( _cur_pos + 2 );
            neworder.push_back( _cur_pos + 3 );
-       }
+       
+           }
+       }   //for P
        if ( shell_type == "D" ){ 
            if ( start == "gaussian"){
                neworder.push_back( _cur_pos + 4 );
@@ -545,7 +557,13 @@ inline void AOBasis::addReorderShell( string& start, string& target,  string& sh
                //neworder.push_back( -(_cur_pos + 1) ); // bloody inverted sign // BUG!!!!!!!
                neworder.push_back( _cur_pos + 1 ); 
                neworder.push_back( _cur_pos + 5 );               
-           } else {
+           }else if ( start == "orca") {
+               neworder.push_back( _cur_pos + 1 ); 
+               neworder.push_back( _cur_pos + 2 );
+               neworder.push_back( _cur_pos + 3 );
+               neworder.push_back( _cur_pos + 4 ); 
+               neworder.push_back( _cur_pos + 5 );               
+            } else {
                cerr << "Tried to reorder d-functions from package " << start << ".";
                throw std::runtime_error( "Reordering not implemented yet!");
            }
@@ -561,7 +579,7 @@ inline void AOBasis::addReorderShell( string& start, string& target,  string& sh
     } else {
         // for combined shells, iterate over all contributions
         //_nbf = 0;
-        for( int i = 0; i < shell_type.length(); ++i) {
+        for( unsigned i = 0; i < shell_type.length(); ++i) {
            string local_shell =    string( shell_type, i, 1 );
            this->addReorderShell( start, target, local_shell, neworder  );
         }
@@ -706,7 +724,7 @@ inline void AOBasis::ECPFill(BasisSet* bs , vector<QMAtom* > _atoms  ) {
     } else {
         // for combined shells, sum over all contributions
         _nbf = 0;
-        for( int i = 0; i < shell_type.length(); ++i) {
+        for( unsigned i = 0; i < shell_type.length(); ++i) {
             string local_shell =    string( shell_type, i, 1 );
             _nbf += this->NumFuncShell( local_shell  );
         }
@@ -728,7 +746,7 @@ inline void AOBasis::ECPFill(BasisSet* bs , vector<QMAtom* > _atoms  ) {
     } else {
         // for combined shells, sum over all contributions
         _nbf = 0;
-        for( int i = 0; i < shell_type.length(); ++i) {
+        for( unsigned i = 0; i < shell_type.length(); ++i) {
             string local_shell =    string( shell_type, i, 1 );
             _nbf += this->NumFuncShell_cartesian( local_shell  );
         }
@@ -753,7 +771,7 @@ inline void AOBasis::ECPFill(BasisSet* bs , vector<QMAtom* > _atoms  ) {
     } else {
         // for combined shells, go over all contributions and find minimal offset
         _nbf = 1000;
-        for(int i = 0; i < shell_type.length(); ++i) {
+        for(unsigned i = 0; i < shell_type.length(); ++i) {
             string local_shell = string( shell_type, i, 1 );
             int _test = this->OffsetFuncShell_cartesian( local_shell  );
             if ( _test < _nbf ) { _nbf = _test;} 
@@ -775,7 +793,7 @@ inline void AOBasis::ECPFill(BasisSet* bs , vector<QMAtom* > _atoms  ) {
     } else {
         // for combined shells, go over all contributions and find minimal offset
         _nbf = 1000;
-        for(int i = 0; i < shell_type.length(); ++i) {
+        for(unsigned i = 0; i < shell_type.length(); ++i) {
             string local_shell = string( shell_type, i, 1 );
             int _test = this->OffsetFuncShell( local_shell  );
             if ( _test < _nbf ) { _nbf = _test;} 
@@ -812,7 +830,7 @@ inline void AOBasis::ECPFill(BasisSet* bs , vector<QMAtom* > _atoms  ) {
             // split combined shells
             int _i_func = -1;
             int i_act;
-            for (int i = 0; i < shell_type.length(); ++i) {
+            for (unsigned i = 0; i < shell_type.length(); ++i) {
                 string single_shell = string(shell_type, i, 1);
                 // single type shells
                 if ( single_shell == "S") {
@@ -1022,8 +1040,8 @@ inline void AOBasis::ECPFill(BasisSet* bs , vector<QMAtom* > _atoms  ) {
 
                 // split combined shells
                 int _i_func = -1;
-                int i_act;
-                for (int i = 0; i < shell_type.length(); ++i) {
+                //int i_act;
+                for (unsigned i = 0; i < shell_type.length(); ++i) {
                     string single_shell = string(shell_type, i, 1);
                     // single type shells
                     if (single_shell == "S") {
@@ -1065,7 +1083,7 @@ inline void AOBasis::ECPFill(BasisSet* bs , vector<QMAtom* > _atoms  ) {
                 // split combined shells
                 int _i_func = -1;
                 int i_act;
-                for (int i = 0; i < shell_type.length(); ++i) {
+                for (unsigned i = 0; i < shell_type.length(); ++i) {
                     string single_shell = string(shell_type, i, 1);
                     // single type shells
                     if (single_shell == "S") {
@@ -1160,12 +1178,10 @@ inline void AOBasis::ECPFill(BasisSet* bs , vector<QMAtom* > _atoms  ) {
             } // contractions
 
         }
-        
            
            
            
-           
-            inline void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, double x, double y, double z, string type ){
+            inline void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, double x, double y, double z ){
 
             // need type of shell
             string shell_type = this->_type;
@@ -1178,9 +1194,6 @@ inline void AOBasis::ECPFill(BasisSet* bs , vector<QMAtom* > _atoms  ) {
             double distsq = center_x*center_x + center_y*center_y +  center_z*center_z;
             const double pi = boost::math::constants::pi<double>();
 
-
-            
-            
             typedef vector< AOGaussianPrimitive* >::iterator GaussianIterator;
             // iterate over Gaussians in this shell
             for (GaussianIterator itr = firstGaussian(); itr != lastGaussian(); ++itr) {
@@ -1192,26 +1205,28 @@ inline void AOBasis::ECPFill(BasisSet* bs , vector<QMAtom* > _atoms  ) {
 
                 // split combined shells
                 int _i_func = -1;
-                for (int i = 0; i < shell_type.length(); ++i) {
+                
+                for (unsigned i = 0; i < shell_type.length(); ++i) {
                     string single_shell = string(shell_type, i, 1);
                     // single type shells
                     if (single_shell == "S") {
-                        AOvalues(_i_func + 1, 0) += _contractions[0] * _expofactor; // s-function
+                        AOvalues(0, _i_func + 1) += _contractions[0] * _expofactor; // s-function        
                         _i_func++;
                     }
                     if (single_shell == "P") {
-                        AOvalues(_i_func + 1, 0) += _contractions[1] * 2.0 * sqrt(alpha) * center_x*_expofactor; // px-function
-                        AOvalues(_i_func + 2, 0) += _contractions[1] * 2.0 * sqrt(alpha) * center_y*_expofactor; // py-function
-                        AOvalues(_i_func + 3, 0) += _contractions[1] * 2.0 * sqrt(alpha) * center_z*_expofactor; // pz-function
+                        AOvalues(0, _i_func + 1) += _contractions[1] * 2.0 * sqrt(alpha) * center_x*_expofactor; // px-function
+                        AOvalues(0, _i_func + 2) += _contractions[1] * 2.0 * sqrt(alpha) * center_y*_expofactor; // py-function
+                        AOvalues(0, _i_func + 3) += _contractions[1] * 2.0 * sqrt(alpha) * center_z*_expofactor; // pz-function
+
                         _i_func += 3;
                     }
                     if (single_shell == "D") {
                         // dxz, dyz, dxy, d3z2-r2, dx2-y2
-                        AOvalues(_i_func + 1, 0) += _contractions[2] * 4.0 * alpha * center_x * center_z*_expofactor; // dxz-function
-                        AOvalues(_i_func + 2, 0) += _contractions[2] * 4.0 * alpha * center_y * center_z*_expofactor; // dyz-function
-                        AOvalues(_i_func + 3, 0) += _contractions[2] * 4.0 * alpha * center_x * center_y*_expofactor; // dxy-function
-                        AOvalues(_i_func + 4, 0) += _contractions[2] * 2.0 * alpha / sqrt(3.0)*(3.0 * center_z * center_z - distsq) * _expofactor; // d3z2-r2-function
-                        AOvalues(_i_func + 5, 0) += _contractions[2] * 2.0 * alpha * (center_x * center_x - center_y * center_y) * _expofactor; // dx2-y2-function
+                        AOvalues(0, _i_func + 1) += _contractions[2] * 4.0 * alpha * center_x * center_z*_expofactor; // dxz-function
+                        AOvalues(0, _i_func + 2) += _contractions[2] * 4.0 * alpha * center_y * center_z*_expofactor; // dyz-function
+                        AOvalues(0, _i_func + 3) += _contractions[2] * 4.0 * alpha * center_x * center_y*_expofactor; // dxy-function
+                        AOvalues(0, _i_func + 4) += _contractions[2] * 2.0 * alpha / sqrt(3.0)*(3.0 * center_z * center_z - distsq) * _expofactor; // d3z2-r2-function
+                        AOvalues(0, _i_func + 5) += _contractions[2] * 2.0 * alpha * (center_x * center_x - center_y * center_y) * _expofactor; // dx2-y2-function                             
                         _i_func += 5;
                     }
                     if (single_shell == "F") {
@@ -1226,6 +1241,10 @@ inline void AOBasis::ECPFill(BasisSet* bs , vector<QMAtom* > _atoms  ) {
             } // contractions
 
         }
+        
+           
+           
+           
         
            
         

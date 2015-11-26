@@ -25,8 +25,6 @@
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/numeric/ublas/operation.hpp>
-#include <votca/ctp/aomatrix.h>
-#include <votca/ctp/threecenters.h>
 // #include <votca/ctp/logger.h>
 #include <votca/ctp/qmpackagefactory.h>
 #include <boost/math/constants/constants.hpp>
@@ -69,6 +67,9 @@ namespace votca {
             _store_eh_interaction = false;
             _openmp_threads = 0; // take all available
             _iterate_shift = false;
+            _doVxc=false;
+            _functional="";
+            _grid="";
             
             string key =  Identify();
     
@@ -107,8 +108,17 @@ namespace votca {
             
             // get OpenMP thread number
             _openmp_threads = options->get(key + ".openmp").as<int> ();
-            
-            
+            if (options->exists(key + ".vxc")) {
+                _doVxc = options->get(key + ".vxc.dovxc").as<bool> ();
+                if (_doVxc) {
+                    _functional = options->get(key + ".vxc.functional").as<string> ();
+                    
+                    if (options->exists(key + ".vxc.grid")) {
+                        _grid = options->get(key + ".vxc.grid").as<string> ();
+                    }
+                    else _grid="medium";
+                }
+            }
             _gwbasis_name = options->get(key + ".gwbasis").as<string> ();
             _dftbasis_name = options->get(key + ".dftbasis").as<string> ();
             _shift = options->get(key + ".shift").as<double> ();
@@ -138,6 +148,7 @@ namespace votca {
             }
             
             
+            
             // possible storage 
             // qpPert, qpdiag_energies, qp_diag_coefficients, bse_singlet_energies, bse_triplet_energies, bse_singlet_coefficients, bse_triplet_coefficients
 
@@ -154,7 +165,10 @@ namespace votca {
             if (_store_string.find("ehint") != std::string::npos) _store_eh_interaction = true;
 
             
-
+            LOG(logDEBUG, *_pLog) <<  " Tasks: " << flush;
+            if (_do_qp_diag){ LOG(logDEBUG, *_pLog) <<  " qpdiag " <<  flush;}
+            if (_do_bse_singlets){ LOG(logDEBUG, *_pLog) <<  " singlets " <<  flush;}
+            if (_do_bse_triplets){ LOG(logDEBUG, *_pLog) <<  " triplets " <<  flush;}
 
 
             
@@ -181,9 +195,10 @@ namespace votca {
 
             
             // set the parallelization 
-            #ifdef OMP
-            if ( _openmp_threads > 0 ) omp_set_num_threads(_openmp_threads);
-#endif
+            #ifdef _OPENMP
+            if ( _openmp_threads > 0 ) omp_set_num_threads(_openmp_threads);           
+            #endif
+
             /* check which QC program was used for the DFT run 
              * -> implicit info about MO coefficient storage order 
              */
@@ -194,6 +209,11 @@ namespace votca {
 
             // load DFT basis set (element-wise information) from xml file
             BasisSet dftbs;
+            
+            /*if (_dftbasis_name!=_orbitals->getDFTbasis()){
+                throw std::runtime_error("Name of the Basisset from .orb file: "+_orbitals->getDFTbasis()+" and from GWBSE optionfile "+_dftbasis_name+" do not agree. To avoid further noise we stop here. Save the planet and avoid unnecessary calculations.");
+            }
+             */
             dftbs.LoadBasisSet(_dftbasis_name);
             _orbitals->setDFTbasis( _dftbasis_name );
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Loaded DFT Basis Set " << _dftbasis_name << flush;
@@ -258,8 +278,8 @@ namespace votca {
            _bse_size   = _bse_vtotal * _bse_ctotal;
             
            // indexing info BSE vector index to occupied/virtual orbital
-           for ( int _v = 0; _v < _bse_vtotal; _v++ ){
-               for ( int _c = 0; _c < _bse_ctotal ; _c++){
+           for ( unsigned _v = 0; _v < _bse_vtotal; _v++ ){
+               for ( unsigned _c = 0; _c < _bse_ctotal ; _c++){
                    _index2v.push_back( _bse_vmin + _v );
                    _index2c.push_back( _bse_cmin + _c );
                }
@@ -269,7 +289,7 @@ namespace votca {
             if ( _bse_vmin < _qpmin ) _qpmin = _bse_vmin;
             if ( _bse_cmax < _qpmax ) _qpmax = _bse_cmax;
             _qptotal = _qpmax - _qpmin +1 ;
-            if ( _bse_nmax > _bse_size || _bse_nmax < 0 ) _bse_nmax = _bse_size;
+            if ( _bse_nmax > int(_bse_size) || _bse_nmax < 0 ) _bse_nmax = int(_bse_size);
 	    if ( _bse_nprint > _bse_nmax ) _bse_nprint = _bse_nmax;
 
             // store information in _orbitals for later use
@@ -278,29 +298,90 @@ namespace votca {
             _orbitals->setBSEindices( _bse_vmin, _bse_vmax, _bse_cmin, _bse_cmax, _bse_nmax);
             
 	    // information for hybrid DFT
-	    _ScaHFX = _orbitals->getScaHFX();
+            
+            _ScaHFX=-1;
+	    
                     
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Set RPA level range [" << _rpamin +1 << ":" << _rpamax +1 << "]" << flush;
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Set QP  level range [" << _qpmin +1 << ":" << _qpmax +1 << "]" << flush;
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Set BSE level range occ[" << _bse_vmin +1 << ":" << _bse_vmax +1 << "]  virt[" << _bse_cmin +1 << ":" << _bse_cmax +1 << "]" << flush;
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Set hybrid exchange factor: " << _ScaHFX << flush;
+            
             
             // process the DFT data
             // a) form the expectation value of the XC functional in MOs
             ub::matrix<double> _dft_orbitals = *(_orbitals->getOrbitals()); //
-            // we have to do some cartesian -> spherical transformation for Gaussian
+            
+            //LOG(logDEBUG, *_pLog) << TimeStamp() << " size of DFT orbitals [" << _dft_orbitals.size1() << ":" << _dft_orbitals.size2() << "]" << flush;
+            
+            
+            _ScaHFX = _orbitals->getScaHFX();
+            {// this bracket is there so that _vx_ao falls out of scope, like it more than resize
             ub::matrix<double> _vxc_ao;
-            if ( _dft_package == "gaussian" ){
+            if (_orbitals->hasAOVxc()) {
+                    if (_doVxc) {
+                        LOG(logDEBUG, *_pLog) << TimeStamp() << "There is already a Vxc matrix loaded from DFT, did you maybe run a DFT code with outputVxc?\n I will take " << flush;
+                    }
+                    if (_dft_package == "gaussian") {
+                        // we have to do some cartesian -> spherical transformation for Gaussian
+                        const ub::matrix<double>& vxc_cart = _orbitals->AOVxc();
+                        ub::matrix<double> _carttrafo;
+                        dftbasis.getTransformationCartToSpherical(_dft_package, _carttrafo);
+                        ub::matrix<double> _temp = ub::prod(_carttrafo, vxc_cart);
+                        _vxc_ao = ub::prod(_temp, ub::trans(_carttrafo));
 
-                const ub::matrix<double>& vxc_cart = _orbitals->AOVxc(); 
-                ub::matrix<double> _carttrafo;
-                dftbasis.getTransformationCartToSpherical(_dft_package , _carttrafo );
-                ub::matrix<double> _temp = ub::prod( _carttrafo, vxc_cart  );
-                _vxc_ao = ub::prod( _temp, ub::trans( _carttrafo) );
+                    } else {
+                        _vxc_ao = _orbitals->AOVxc();
+                    }
+                }
 
-            } else {
-                _vxc_ao = _orbitals->AOVxc(); 
+                else if (_doVxc) {
+
+                    NumericalIntegration _numint;
+                    double ScaHFX_temp = _numint.getExactExchange(_functional);
+                    if (ScaHFX_temp != _ScaHFX) {
+                        throw std::runtime_error((boost::format("GWBSE exact exchange a=%s differs from qmpackage exact exchange a=%s, probably your functionals are inconsistent") % ScaHFX_temp % _ScaHFX).str());
+                    }
+                    _numint.GridSetup(_grid, &dftbs, _atoms);
+                // LOG(logDEBUG, *_pLog) << TimeStamp() << " Trying DFT orbital coefficient order from " << _dft_package << " to VOTCA" << flush;
+                    dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "votca");
+                cout << endl;
+                
+                /***test for printing reordered MOs******/
+                /*for ( int i = 0 ; i < _dft_orbitals.size2() ; i++ ){
+                    
+                    cout << " Reordered MO " << i << " : " << _dft_orbitals(0,i) << endl;
+                    
+                }*/
+                
+                
+                    LOG(logDEBUG, *_pLog) << TimeStamp() << " Converted DFT orbital coefficient order from " << _dft_package << " to VOTCA" << flush;
+                    ub::matrix<double> &DMAT = _orbitals->DensityMatrixGroundState(_dft_orbitals);
+                    _vxc_ao = _numint.IntegrateVXC_Atomblock(DMAT, &dftbasis, _functional);
+                    LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculated Vxc in VOTCA with gridsize: " << _grid << " and functional " << _functional << flush;
+
+                } else {
+                    throw std::runtime_error("So your DFT data contains no Vxc and I am not supposed to calculate Vxc? Where should I get it from? I propose a break to let you think!");
+                }
+            /*******test for printing the MO overlaps to check if it is correct*/
+            /*AOOverlap overlap;
+            overlap.Initialize(dftbasis._AOBasisSize);
+            overlap.Fill(&dftbasis);
+            cout << "AO overlap size: "<< overlap._aomatrix.size1() << " : " << overlap._aomatrix.size2()<< endl;
+            cout << "MO AO size: "<< _dft_orbitals.size1() << " : " << _dft_orbitals.size2()<< endl;
+            ub::matrix<double> _temp5=ub::prod(overlap._aomatrix,ub::trans(_dft_orbitals));
+            ub::matrix<double> results=ub::prod(_dft_orbitals,_temp5);
+            cout << "MO overlap size: "<< results.size1() << " : " << results.size2()<< endl;
+             
+            for (unsigned i=0;i<results.size1();i++){
+                for (unsigned j=0;j<=i;j++){
+                    
+                
+                cout << "MO overlap ["<<i<<":"<<j <<"] : "<< "["<<j<<":"<<i <<"] :"<< results(i,j) << " : " << results(j,i)<< endl;
+                }
             }
+           */
+            
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " Set hybrid exchange factor: " << _ScaHFX << flush;
             
             
             // now get expectation values but only for those in _qpmin:_qpmax range
@@ -311,11 +392,11 @@ namespace votca {
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculated exchange-correlation expectation values " << flush;
                   
             // b) reorder MO coefficients depending on the QM package used to obtain the DFT data
-            if (_dft_package != "votca") {
-                dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "votca" );
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Converted DFT orbital coefficient order from " << _dft_package << " to VOTCA" <<  flush;
+            if (_dft_package != "votca" && !_doVxc) {
+                    dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "votca");
+                    LOG(logDEBUG, *_pLog) << TimeStamp() << " Converted DFT orbital coefficient order from " << _dft_package << " to VOTCA" << flush;
+                }
             }
-            
             
             /******* TESTING VXC 
             
@@ -331,7 +412,7 @@ namespace votca {
             // test AOxcmatrix
             //ub::matrix<double> AOXC = _numint.IntegrateVXC(DMAT,&dftbasis); 
             double EXC = 0.0;
-            ub::matrix<double> AOXC_atomblock = _numint.IntegrateVXC_Atomblock(DMAT,&dftbasis); 
+            
             //ub::matrix<double> AOXC_atomblock = _numint.IntegrateVXC(DMAT,&dftbasis); 
             cout << "EXC " << EXC << endl;
             for ( int i = 0 ; i < AOXC_atomblock.size1(); i++ ){
@@ -344,7 +425,11 @@ namespace votca {
             }
             
             exit(0);
-            //****************/
+             */
+            
+            
+            
+            /****************/
          
             
             
@@ -485,7 +570,7 @@ namespace votca {
             while ( ! _shift_converged ){
                 
                 // for symmetric PPM, we can initialize _epsilon with the overlap matrix!
-                for ( int _i_freq = 0 ; _i_freq < _screening_freq.size1() ; _i_freq++ ){
+                for ( unsigned _i_freq = 0 ; _i_freq < _screening_freq.size1() ; _i_freq++ ){
                     _epsilon[ _i_freq ] = _gwoverlap._aomatrix ;
                 }
             
@@ -548,7 +633,7 @@ namespace votca {
             
             LOG(logINFO,*_pLog) << (format("  ====== Perturbative quasiparticle energies (Rydberg) ====== ")).str() << flush;
             LOG(logINFO,*_pLog) << (format("   DeltaHLGap = %1$+1.4f Ryd") % _shift ).str()  <<  flush;
-            for ( int _i = 0 ; _i < _qptotal ; _i++ ){
+            for ( unsigned _i = 0 ; _i < _qptotal ; _i++ ){
                 if ( (_i + _qpmin) == _homo ){
                     LOG(logINFO,*_pLog) << (format("  HOMO  = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = %4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") % (_i+_qpmin+1) % _dft_energies( _i + _qpmin ) % _vxc(_i,_i) % _sigma_x(_i,_i) % _sigma_c(_i,_i) % _qp_energies(_i + _qpmin ) ).str() << flush;
                 } else if ( (_i + _qpmin) == _homo+1 ){
@@ -566,7 +651,7 @@ namespace votca {
             if ( _store_qp_pert ){
                 ub::matrix<double>& _qp_energies_store = _orbitals->QPpertEnergies();
                 _qp_energies_store.resize(_qptotal,5);
-                for ( int _i = 0 ; _i < _qptotal ; _i++ ){
+                for ( unsigned _i = 0 ; _i < _qptotal ; _i++ ){
                     _qp_energies_store( _i, 0 ) = _dft_energies( _i + _qpmin );
                     _qp_energies_store( _i, 1 ) = _sigma_x(_i,_i);
                     _qp_energies_store( _i, 2 ) = _sigma_c(_i,_i);
@@ -582,7 +667,7 @@ namespace votca {
                 if (_do_qp_diag) {
                     LOG(logDEBUG, *_pLog) << TimeStamp() << " Full quasiparticle Hamiltonian  " << flush;
                     LOG(logINFO, *_pLog) << (format("  ====== Diagonalized quasiparticle energies (Rydberg) ====== ")).str() << flush;
-                    for (int _i = 0; _i < _qptotal; _i++) {
+                    for (unsigned _i = 0; _i < _qptotal; _i++) {
                         if ((_i + _qpmin) == _homo) {
                             LOG(logINFO, *_pLog) << (format("  HOMO  = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") % (_i + _qpmin + 1) % _qp_energies(_i + _qpmin ) % _qp_diag_energies(_i)).str() << flush;
                         } else if ((_i + _qpmin) == _homo + 1) {
@@ -599,9 +684,9 @@ namespace votca {
                         ub::matrix<double>& _qp_diag_coefficients_store = _orbitals->QPdiagCoefficients();
                         _qp_diag_energies_store.resize( _qptotal );
                         _qp_diag_coefficients_store.resize( _qptotal, _qptotal);
-                        for  (int _i = 0; _i < _qptotal; _i++) {
+                        for  (unsigned _i = 0; _i < _qptotal; _i++) {
                            _qp_diag_energies_store[_i] = _qp_diag_energies( _i );
-                           for  (int _j = 0; _j < _qptotal; _j++) {
+                           for  (unsigned _j = 0; _j < _qptotal; _j++) {
                                _qp_diag_coefficients_store( _i, _j ) = _qp_diag_coefficients(_i,_j);
                            }
                         }
@@ -740,7 +825,7 @@ namespace votca {
                     for (int _i = 0; _i < _bse_nprint; _i++) {
                         LOG(logINFO, *_pLog) << (format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_x> = %5$+1.4f <K_d> = %6$+1.4f") % (_i + 1) % (13.6058 * _bse_triplet_energies(_i)) % (1240.0/(13.6058 * _bse_triplet_energies(_i))) % (13.6058 * _contrib_qp[_i]) % (13.6058 * _contrib_x[_i]) % (13.6058 * _contrib_d[ _i ])).str() << flush;
                         
-                        for (int _i_bse = 0; _i_bse < _bse_size; _i_bse++) {
+                        for (unsigned _i_bse = 0; _i_bse < _bse_size; _i_bse++) {
                             // if contribution is larger than 0.2, print
                             float _weight = pow(_bse_triplet_coefficients(_i_bse, _i), 2);
                             if (_weight > 0.2) {
@@ -763,7 +848,7 @@ namespace votca {
                         _bse_triplet_coefficients_store.resize( _bse_size, _bse_nmax);
                         for  (int _i_exc = 0; _i_exc < _bse_nmax; _i_exc++) {
                            _bse_triplet_energies_store[_i_exc] = _bse_triplet_energies( _i_exc );
-                           for  (int _i_bse = 0; _i_bse < _bse_size; _i_bse++) {
+                           for  (unsigned _i_bse = 0; _i_bse < _bse_size; _i_bse++) {
                                _bse_triplet_coefficients_store( _i_bse, _i_exc ) = _bse_triplet_coefficients(_i_bse,_i_exc);
                            }
                         }
@@ -899,7 +984,7 @@ namespace votca {
                     AODipole _dft_dipole;
                     _dft_dipole.Initialize(dftbasis._AOBasisSize);
                     _dft_dipole.Fill(&dftbasis);
-
+                    ub::matrix<double> _temp;
                     // now transition dipole elements for free interlevel transitions
                     _interlevel_dipoles.resize(3);
                     for (int _i_comp = 0; _i_comp < 3; _i_comp++) {
@@ -917,7 +1002,7 @@ namespace votca {
 
 
 
-
+                    double sqrt2=sqrt(2.0);
 
                     std::vector<std::vector<double> > _transition_dipoles;
                     std::vector<double> _oscillator_strength;
@@ -925,13 +1010,14 @@ namespace votca {
                     for (int _i_exc = 0; _i_exc < _bse_nprint; _i_exc++) {
                         std::vector<double> _tdipole(3, 0.0);
 
-                        for (int _v = 0; _v < _bse_vtotal; _v++) {
-                            for (int _c = 0; _c < _bse_ctotal; _c++) {
+                        for (unsigned _v = 0; _v < _bse_vtotal; _v++) {
+                            for (unsigned _c = 0; _c < _bse_ctotal; _c++) {
 
                                 int index_vc = _bse_ctotal * _v + _c;
 
                                 for (int _i_comp = 0; _i_comp < 3; _i_comp++) {
-                                    _tdipole[ _i_comp ] += _bse_singlet_coefficients(index_vc, _i_exc) * _interlevel_dipoles[_i_comp](_v, _c);
+                                    // The Transition dipole is sqrt2 bigger because of the spin, the excited state is a linear combination of 2 slater determinants, where either alpha or beta spin electron is excited
+                                    _tdipole[ _i_comp ] += sqrt2*_bse_singlet_coefficients(index_vc, _i_exc) * _interlevel_dipoles[_i_comp](_v, _c);
                                 }
 
                             }
@@ -949,7 +1035,7 @@ namespace votca {
 
                         LOG(logINFO, *_pLog) << (format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_x> = %5$+1.4f <K_d> = %6$+1.4f") % (_i + 1) % (13.6058 * _bse_singlet_energies(_i)) % (1240.0/(13.6058 * _bse_singlet_energies(_i))) % (13.6058 * _contrib_qp[_i]) % (13.6058 * _contrib_x[_i]) % (13.6058 * _contrib_d[ _i ])).str() << flush;
                         LOG(logINFO, *_pLog) << (format("           TrDipole length gauge   dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f") % (_transition_dipoles[_i][0]) % (_transition_dipoles[_i][1]) % (_transition_dipoles[_i][2]) % (_transition_dipole_strength[_i]) % (_oscillator_strength[_i])).str() << flush;
-                        for (int _i_bse = 0; _i_bse < _bse_size; _i_bse++) {
+                        for (unsigned _i_bse = 0; _i_bse < _bse_size; _i_bse++) {
                             // if contribution is larger than 0.2, print
                             double _weight = pow(_bse_singlet_coefficients(_i_bse, _i), 2);
                             if (_weight > 0.2) {
@@ -974,7 +1060,7 @@ namespace votca {
                         _transition_dipoles_store.resize( _bse_nprint );
                         for  (int _i_exc = 0; _i_exc < _bse_nmax; _i_exc++) {
                            _bse_singlet_energies_store[_i_exc] = _bse_singlet_energies( _i_exc );
-                           for  (int _i_bse = 0; _i_bse < _bse_size; _i_bse++) {
+                           for  (unsigned _i_bse = 0; _i_bse < _bse_size; _i_bse++) {
                                _bse_singlet_coefficients_store( _i_bse, _i_exc ) = _bse_singlet_coefficients(_i_bse,_i_exc);
                            }
 

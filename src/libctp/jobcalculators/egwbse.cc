@@ -21,19 +21,16 @@
 #include <votca/ctp/votca_ctp_config.h>
 
 #include "egwbse.h"
-#include <votca/ctp/gwbse.h>
+
 
 
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/numeric/ublas/operation.hpp>
-#include <votca/ctp/aomatrix.h>
-#include <votca/ctp/threecenters.h>
 // #include <votca/ctp/logger.h>
 #include <votca/ctp/qmpackagefactory.h>
 #include <boost/math/constants/constants.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
-#include <votca/tools/linalg.h>
 
 using boost::format;
 using namespace boost::filesystem;
@@ -103,6 +100,77 @@ namespace votca {
 
 
         }
+        
+        
+        void EGWBSE::WriteJobFile(Topology *top) {
+
+    cout << endl << "... ... Writing job file: " << flush;
+    ofstream ofs;
+    ofs.open(_jobfile.c_str(), ofstream::out);
+    if (!ofs.is_open()) throw runtime_error("\nERROR: bad file handle: " + _jobfile);
+ 
+    ofs << "<jobs>" << endl;   
+
+    QMNBList::iterator pit;
+    QMNBList &nblist = top->NBList();    
+    
+            
+    int jobCount = 0;
+    if (nblist.size() == 0) {
+        cout << endl << "... ... No pairs in neighbor list, skip." << flush;
+        return;
+    } 
+
+    // regenerate the list of bridging segments for every pair 
+    // (Donor - Bridge1 - Bridge2 - ... - Acceptor) type
+    nblist.GenerateSuperExchange();
+    
+    map< int,Segment* > segments;
+    map< int,Segment* >::iterator sit;
+
+    for (pit = nblist.begin(); pit != nblist.end(); ++pit) {
+        
+        int id1 = (*pit)->Seg1()->getId();
+        int id2 = (*pit)->Seg2()->getId();
+	segments[id1] = (*pit)->Seg1();
+        segments[id2] = (*pit)->Seg2();
+        
+        /* loop over bridging segments if any and add them to the map
+           this in principle is not needed since all pairs between 
+           donors, acceptors, and bridges are already in the list 
+         */
+        vector<Segment*> bridges = (*pit)->getBridgingSegments();
+        for ( vector<Segment*>::const_iterator bsit = bridges.begin(); bsit != bridges.end(); bsit++ ) {
+            //cout << "Bridging segment " << (*bsit)->getId() << " : " <<  (*bsit)->getName() << endl;
+            segments[ (*bsit)->getId() ] = (*bsit);
+        }
+
+    }
+    
+
+    
+    for (sit = segments.begin(); sit != segments.end(); ++sit) {
+    
+        int id = ++jobCount;
+        string tag = "";
+
+        Property Input;
+        Property *pInput = &Input.add("input","");
+        Property *pSegment =  &pInput->add("segment" , (format("%1$s") % sit->first).str() );
+        pSegment->setAttribute<string>("type", sit->second->getName() );
+        pSegment->setAttribute<int>("id", sit->second->getId() );
+        Job job(id, tag, Input, Job::AVAILABLE );
+        job.ToStream(ofs,"xml");
+    }
+     
+
+    // CLOSE STREAM
+    ofs << "</jobs>" << endl;    
+    ofs.close();
+    
+    cout << jobCount << " jobs" << flush;
+    
+}
 
         Job::JobResult EGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 
@@ -227,7 +295,8 @@ namespace votca {
                 gwbse_logger.setPreface(logDEBUG,   (format("\nGWBSE DBG ...") ).str());
                 
                 
-                bool _evaluate = _gwbse.Evaluate(&_orbitals);
+                //bool _evaluate = _gwbse.Evaluate(&_orbitals);
+                _gwbse.Evaluate(&_orbitals);
                 
                 // write logger to log file
                 ofstream ofs;

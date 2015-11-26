@@ -23,8 +23,8 @@ XJob::XJob(int id, string tag, vector<Segment*> &qmSegs,
 
 
 XJob::XJob(PolarTop *ptop, bool start_from_cpt)
-        : _id(-1), _tag("__notag__"), _top(NULL),
-          _ptop(ptop), _start_from_cpt(start_from_cpt), _clean_ptop(false) {
+        : _id(-1), _tag("__notag__"), _top(NULL), _start_from_cpt(start_from_cpt),
+          _ptop(ptop), _clean_ptop(false) {
     
     _center = _ptop->getCenter();
     _isSegInCenter.clear();    
@@ -57,7 +57,7 @@ void XJob::CalcCenterPos() {
     else { refPt = _qmSegs[0]->getPos(); }
 
     // Calc. center
-    for (int i = 0; i < _qmSegs.size(); ++i) {
+    for (unsigned int i = 0; i < _qmSegs.size(); ++i) {
          
         Segment *seg = _qmSegs[i];
         vec pbc_com = refPt + _top->PbShortestConnect(refPt, seg->getPos());
@@ -120,6 +120,49 @@ void XJob::WriteInfoLine(FILE *out) {
                 _E_INDU );
    fprintf(out, "\n");
 
+}
+
+
+Property XJob::GenerateOutputProperty() {
+    
+    Property prop;
+    Property &out = prop.add("output","");
+    Property *next = NULL;
+    
+    next = &out.add("summary", "");
+    next->add("type", _tag);
+    next->add("xyz", (format("%1$+1.7f %2$+1.7f %3$+1.7f") 
+        % _center.getX() % _center.getY() % _center.getZ()).str())
+        .setAttribute("unit","nm");
+    next->add("total_scf", (format("%1$+1.7f") 
+        % (_EF_PAIR_PAIR+_EF_PAIR_SPH1+_EF_PAIR_SPH2+_EF_SPH1_SPH1
+          +_EF_SPH1_SPH2+_EM_PAIR+_EM_SPH1+_EM_SPH2)).str())
+        .setAttribute("unit","eV");
+    next->add("total", (format("%1$+1.7f") 
+        % _E_Tot).str())
+        .setAttribute("unit","eV");
+    next->add("estat", (format("%1$+1.7f") 
+        % _EPP).str())
+        .setAttribute("unit","eV");
+    next->add("eindu", (format("%1$+1.7f") 
+        % _EPU).str())
+        .setAttribute("unit","eV");
+    
+    next = &out.add("terms_i", "");
+    next->add("F-00-01-02", (format("%1$+1.5e %2$+1.5e %3$+1.5e") % _EF_PAIR_PAIR % _EF_PAIR_SPH1 % _EF_PAIR_SPH2).str());
+    next->add("F-11-12---", (format("%1$+1.5e %2$+1.5e") % _EF_SPH1_SPH1 % _EF_SPH1_SPH2).str());
+    next->add("M-00-11-22", (format("%1$+1.5e %2$+1.5e %3$+1.5e") % _EM_PAIR % _EM_SPH1 % _EM_SPH2).str());
+    next->add("E-PP-PU-UU", (format("%1$+1.5e %2$+1.5e %3$+1.5e") % _EPP % _EPU % _EUU).str());
+    
+    next = &out.add("shells", "");
+    next->add("QM0", (format("%1$d") % _qm0_size).str());
+    next->add("MM1", (format("%1$d") % _mm1_size).str());
+    next->add("MM2", (format("%1$d") % _mm2_size).str());
+    
+    next = &out.add("convg", "");
+    next->add("iter", (format("%1$d") % _iter).str());
+        
+    return prop;
 }
 
 
@@ -216,7 +259,7 @@ vector<XJob*> XJOBS_FROM_TABLE< vector<XJob*>, XJob* >(const string &job_file, T
             int jobUserId   = boost::lexical_cast<int>(split[0]);
             string tag      = split[1];
             
-            for (int i = 2; i < split.size(); ++i) {
+            for (unsigned int i = 2; i < split.size(); ++i) {
                 
                 string id_seg_mps = split[i];
                 vector<string> split_id_seg_mps;

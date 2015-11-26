@@ -148,7 +148,7 @@ void Orb2IsoGWA::CheckContent( Orbitals& _orbitals ){
           out = fopen(_output_file.c_str(),"w");
 
           int _bsesize = _orbitals.BSESingletCoefficients().size1();
-          for ( int _i_exc = 0 ; _i_exc < _orbitals.BSESingletCoefficients().size2() ; _i_exc++ ){
+          for ( unsigned _i_exc = 0 ; _i_exc < _orbitals.BSESingletCoefficients().size2() ; _i_exc++ ){
           
               const ub::matrix<float>& _coefs = _orbitals.BSESingletCoefficients();
              fprintf(out, "%d %le \n", _i_exc+1, _orbitals.BSESingletEnergies()[_i_exc] );

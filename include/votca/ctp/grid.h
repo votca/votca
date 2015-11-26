@@ -25,13 +25,13 @@
 #include <string>
 #include <map>
 #include <vector>
-#include <votca/tools/property.h>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/lu.hpp>
 #include <boost/numeric/ublas/io.hpp>
-#include <boost/multi_array.hpp>
 #include <votca/ctp/qmatom.h>
 #include <votca/ctp/logger.h>
+#include <votca/ctp/apolarsite.h>
+#include <votca/ctp/polarseg.h>
 /**
 * \brief Takes a list of atoms, and creates different grids for it. Right now only CHELPG grid.
 *
@@ -49,123 +49,94 @@ namespace votca { namespace ctp {
     public:
         
         
-        Grid() {};
+        Grid( bool createpolarsites, bool useVdWcutoff, bool useVdWcutoff_inside)
+            :_cutoff(3),_gridspacing(0.3),_cutoff_inside(1.5),_shift_cutoff(0.0),_shift_cutoff_inside(0.0),
+             _useVdWcutoff(useVdWcutoff),_useVdWcutoff_inside(useVdWcutoff_inside),_cubegrid(false),_padding(3.0),
+             _createpolarsites(createpolarsites), _sites_seg(NULL), _atomlist(NULL), 
+            _lowerbound(vec(0,0,0)), _xsteps(0),_ysteps(0),_zsteps(0) {};
+           
         
-        ~Grid() {};
+        Grid()
+            :_cutoff(3),_gridspacing(0.3),_cutoff_inside(1.5),_shift_cutoff(0.0),_shift_cutoff_inside(0.0),
+             _useVdWcutoff(false),_useVdWcutoff_inside(false),_cubegrid(false),_padding(3.0),
+             _createpolarsites(false), _sites_seg(NULL), _atomlist(NULL),
+             _lowerbound(vec(0,0,0)),_xsteps(0),_ysteps(0),_zsteps(0)  {};
+           
+        
+        ~Grid();
+        
+        Grid(const Grid &obj);
+        
+        Grid& operator=(const Grid &obj);
         
         std::vector< ub::vector<double> > &getGrid() {return _gridpoints;}
-        
-        int getsize(){ return _gridpoints.size(); }
-        
-        void printGridtofile(const char* _filename){
-            ofstream points;
-            points.open(_filename, ofstream::out);
-            points << _gridpoints.size() << endl;
-            points << endl;
-            for ( int i = 0 ; i < _gridpoints.size(); i++){
-                points << "X " << _gridpoints[i](0) << " " << _gridpoints[i](1) << " " << _gridpoints[i](2) << endl;
+        std::vector< APolarSite* > &Sites() {return _gridsites;}
+        std::vector< APolarSite*>* getSites() {return &_gridsites;} 
+        PolarSeg* getSeg(){return _sites_seg;}
 
-            }
-            points.close();
+        
+        void setCutoffs(double cutoff, double cutoff_inside){_cutoff=cutoff;_cutoff_inside=cutoff_inside;}
+        void setCutoffshifts(double shift_cutoff, double shift_cutoff_inside){_shift_cutoff=shift_cutoff;_shift_cutoff_inside=shift_cutoff_inside;}
+        void setSpacing(double spacing){_gridspacing=spacing;}
+        void setPadding(double padding){_padding=padding;}
+        void setCubegrid(bool cubegrid){_cubegrid=cubegrid;_createpolarsites=true;}
+        void setAtomlist(vector< QMAtom* >* Atomlist){_atomlist=Atomlist;}
+        int  getsize(){return _gridpoints.size();}
+        
+        int getTotalSize(){
+            int size=0.0;
+            if(_cubegrid){size=_all_gridsites.size();}
+            else{size=_gridpoints.size();}
+            return size; 
         }
+
+        void printGridtoxyzfile(const char* _filename);
         
-        
+        void readgridfromCubeFile(string filename, bool ignore_zeros=true);
        
-        void setupCHELPgrid(const vector< QMAtom* >& Atomlist ){
-            Elements _elements;
-
-            double padding=2.8; // Additional distance from molecule to set up grid according to CHELPG paper [Journal of Computational Chemistry 11, 361, 1990]
-            double gridspacing=0.3; // Grid spacing according to same paper 
-            double cutoff=2.8;
-            // rewrite QMAtoms coordinates to vector of ub::vector
-            double xmin=1000;
-            double ymin=1000;
-            double zmin=1000;
-
-            double xmax=-1000;
-            double ymax=-1000;
-            double zmax=-1000;
-            double xtemp,ytemp,ztemp;
-            for (vector<QMAtom* >::const_iterator atom = Atomlist.begin(); atom != Atomlist.end(); ++atom ) {
-                xtemp=(*atom)->x;
-                ytemp=(*atom)->y;
-                ztemp=(*atom)->z;
-                if (xtemp<xmin)
-                    xmin=xtemp;
-                if (xtemp>xmax)
-                    xmax=xtemp;
-                 if (ytemp<ymin)
-                    ymin=ytemp;
-                if (ytemp>ymax)
-                    ymax=ytemp;
-                 if (ztemp<zmin)
-                    zmin=ztemp;
-                if (ztemp>zmax)
-                    zmax=ztemp;
-
-            }    
-
-                double boxdimx=xmax-xmin+2*padding;
-               
-
-                double x=xmin-padding;
-
-
-                ub::vector<double> temppos= ub::zero_vector<double>(3);
-                while(x< xmax+padding){
-                   double y=ymin-padding;
-                   while(y< ymax+padding){
-                        double z=zmin-padding;
-                        while(z< zmax+padding){
-                            bool _is_valid = false;
-                                for (vector<QMAtom* >::const_iterator atom = Atomlist.begin(); atom != Atomlist.end(); ++atom ) {
-                                    //cout << "Punkt " << x <<":"<< y << ":"<<z << endl;
-                                    xtemp=(*atom)->x;
-                                    ytemp=(*atom)->y;
-                                    ztemp=(*atom)->z;
-                                    double distance2=pow((x-xtemp),2)+pow((y-ytemp),2)+pow((z-ztemp),2);
-                                    double VdW=_elements.getVdWChelpG((*atom)->type);
-                                    //cout << "Punkt " << x <<":"<< y << ":"<<z << ":"<< distance2 << ":"<< (*atom)->type <<":"<<pow(VdW,2)<< endl;
-                                    if (distance2<pow(VdW,2)){
-                                        //cout << "Punkt" << x <<":"<< y << ":"<<z << "rejected" << endl;
-
-                                        _is_valid = false;
-                                        break;
-                                        }
-                                    else if (distance2<pow(cutoff,2)){
-                                        //cout << "hier" << endl;
-                                        _is_valid = true;
-                                    }
-
-
-
-                                }
-                            if (_is_valid){
-                                temppos(0)=x;
-                                temppos(1)=y;        
-                                temppos(2)=z;
-                                _gridpoints.push_back(temppos);
-                            }
-                            z+=gridspacing; 
-                        }
-                        y+=gridspacing;
-                     //cout << "Punkt " << x  <<":"<<  xmax+padding <<":"<< y << ":"<<z << endl;
-                    }
-                  x+=gridspacing;
-                  //cout << (x<xmax+padding) << endl;     
-                }
-           
-            // check if 
-
-               
-                        
-                        
+        void printgridtoCubefile(string filename);
         
+        void setupradialgrid(int depth);
         
+        void setupgrid();
+       
+        void setupCHELPgrid(){
+            //_padding=2.8; // Additional distance from molecule to set up grid according to CHELPG paper [Journal of Computational Chemistry 11, 361, 1990]
+            _gridspacing=0.3; // Grid spacing according to same paper 
+            _cutoff=2.8;
+            _useVdWcutoff_inside=true;
+            _shift_cutoff_inside=0.0;
+            _useVdWcutoff=false;
+            setupgrid();
         }
-  private:
-      std::vector< ub::vector<double> > _gridpoints;
         
+      
+  private:
+     
+      std::vector< ub::vector<double> > _gridpoints;
+      std::vector< APolarSite* > _gridsites;
+      std::vector< APolarSite* > _all_gridsites;
+      
+      
+      double _cutoff;
+      double _gridspacing;
+      double _cutoff_inside;
+      double _shift_cutoff;
+      double _shift_cutoff_inside;
+      bool   _useVdWcutoff;
+      bool   _useVdWcutoff_inside;
+      bool   _cubegrid;
+      double _padding;
+      bool   _createpolarsites; 
+      PolarSeg *_sites_seg;
+      vector< QMAtom* >* _atomlist;
+      vec _lowerbound;
+      int _xsteps, _ysteps, _zsteps;
+      
+      
+      void subdivide(const vec &v1, const vec &v2, const vec &v3, std::vector<vec> &spherepoints, const int depth);
+      void initialize_sphere(std::vector<vec> &spherepoints, const int depth);
+ 
     };   
     
  

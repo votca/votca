@@ -138,13 +138,13 @@ void XMpsMap::CollectMapFromXML(string xml_file) {
                          << flush;
                     vector<int> isVirtual_ints = (*fragit)->get("virtual_mps")
                                         .as< vector<int> >();
-                    for (int i = 0; i < isVirtual_ints.size(); ++i) {
+                    for (unsigned int i = 0; i < isVirtual_ints.size(); ++i) {
                         bool isVirtual = (isVirtual_ints[i] == 0) ? false:true;
                         isVirtualMp.push_back(isVirtual);
                     }
                 }
                 else {
-                    for (int i = 0; i < weights_mps.size(); ++i) {
+                    for (unsigned int i = 0; i < weights_mps.size(); ++i) {
                         isVirtualMp.push_back(false);
                     }
                 }
@@ -333,11 +333,11 @@ void XMpsMap::EquipWithPolSites(Topology *top) {
         assert(pols_n.size() == pols_h.size());
         assert(pols_n.size() == pols_e.size());
 
-        for (int i = 0; i < pols_n.size(); i++) {
+        for (unsigned int i = 0; i < pols_n.size(); i++) {
             pols_n[i]->setQs( pols_h[i]->getQs(+1), +1 );
             pols_n[i]->setPs( pols_h[i]->getPs(+1), +1 );
         }
-        for (int i = 0; i < pols_n.size(); ++i) {
+        for (unsigned int i = 0; i < pols_n.size(); ++i) {
             pols_n[i]->setQs(pols_e[i]->getQs(-1), -1 );
             pols_n[i]->setPs(pols_e[i]->getPs(-1), -1 );
         }
@@ -541,7 +541,7 @@ void XMpsMap::EquipWithPolSites(Topology *top) {
                 
                 vec CoMP = vec(0.,0.,0.);
                 double W = 0.0;
-                for (int i = 0; i < polesInFrag.size(); ++i) {
+                for (unsigned int i = 0; i < polesInFrag.size(); ++i) {
 
                     double weight = weightsInFrag[i];
                     
@@ -558,7 +558,7 @@ void XMpsMap::EquipWithPolSites(Topology *top) {
             }            
 
             // Create polar sites 
-            for (int i = 0; i < polesInFrag.size(); i++) {
+            for (unsigned int i = 0; i < polesInFrag.size(); i++) {
 
                 string name             = namesInFrag[i];
                 int poleId              = polesInFrag[i];
@@ -803,7 +803,7 @@ PolarSeg *XMpsMap::MapPolSitesToSeg(const vector<APolarSite*> &pols_n,
             // Transform fragment
             vec CoMP = vec(0.,0.,0.);
             double W = 0.0;
-            for (int i = 0; i < polesInFrag.size(); ++i) {
+            for (unsigned int i = 0; i < polesInFrag.size(); ++i) {
                 double weight = weightsInFrag[i];
                 vec pos = pols_n[polesInFrag[i]-1]->getPos();
                 CoMP += weight*pos;
@@ -814,7 +814,7 @@ PolarSeg *XMpsMap::MapPolSitesToSeg(const vector<APolarSite*> &pols_n,
         }
 
         // Create polar sites
-        for (int i = 0; i < polesInFrag.size(); i++) {
+        for (unsigned int i = 0; i < polesInFrag.size(); i++) {
             string name = namesInFrag[i];
             int poleId = polesInFrag[i];
             APolarSite *templ = pols_n[poleId-1];
@@ -891,7 +891,7 @@ void XMpsMap::Gen_BGN(Topology *top, PolarTop *new_ptop, QMThread *thread) {
     
     // CREATE POLAR SITES FOR FOREGROUND + BACKGROUND
     // Background
-    bool only_active_sites = true;
+    //bool only_active_sites = true;
     bgN.reserve(segs_bgN.size());
     for (sit = segs_bgN.begin(); sit < segs_bgN.end(); ++sit) {
         Segment *seg = *sit;
@@ -949,7 +949,7 @@ void XMpsMap::Gen_FGC_FGN_BGN(Topology *top, XJob *job, QMThread *thread) {
     bool only_active_sites = false;
     fgC.reserve(segs_fgC.size());
     fgN.reserve(segs_fgN.size());
-    for (int i = 0; i < job->getSegments().size(); ++i) {        
+    for (unsigned int i = 0; i < job->getSegments().size(); ++i) {        
         Segment *seg = job->getSegments()[i];
         // Charged => mps-file from job
         string mps_C = job->getSegMps()[i];
@@ -1043,7 +1043,7 @@ void XMpsMap::Gen_FGC_Load_FGN_BGN(Topology *top, XJob *job, string archfile,
     // CREATE POLAR SITES FOR FGC
     bool only_active_sites = false;
     fgC.reserve(segs_fgC.size());
-    for (int i = 0; i < job->getSegments().size(); ++i) {        
+    for (unsigned int i = 0; i < job->getSegments().size(); ++i) {        
         Segment *seg = job->getSegments()[i];
         // Charged => mps-file from job
         string mps_C = job->getSegMps()[i];
@@ -1142,7 +1142,7 @@ void XMpsMap::Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2, Q
     // ... QM0 SHELL
     bool only_active_sites = false;
     qm0.reserve(segs_qm0.size());
-    for (int i = 0; i < job->getSegments().size(); ++i) {        
+    for (unsigned int i = 0; i < job->getSegments().size(); ++i) {        
         Segment *seg = job->getSegments()[i];
         vector<APolarSite*> psites_raw 
                 = this->GetOrCreateRawSites(job->getSegMps()[i],thread);

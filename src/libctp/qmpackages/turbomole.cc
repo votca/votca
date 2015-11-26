@@ -61,6 +61,14 @@ void Turbomole::Initialize( Property *opt ) {
     _get_charges = false;
     _get_self_energy = false;
     _write_guess = false;
+    
+     if (opt->exists(key + ".outputVxc")) {
+                _output_Vxc = opt->get(key + "outputVxc").as<bool> ();   
+            }
+             else _output_Vxc=false;
+    if (_output_Vxc){
+        throw std::runtime_error( "Sorry "+_name+" does not support Vxc output");
+    }
 
     // check if the guess keyword is present, if yes, append the guess later
     std::string::size_type iop_pos1 = _options.find("iter\n1 "); // for 1 + space
@@ -141,7 +149,8 @@ bool Turbomole::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_g
     string _input_exe = "define";
     _command  = "cd " + _run_dir + "; " + _input_exe + " <  ./" + _input_file_name + " >& " + _input_file_name + ".log" ;
     //cerr << _command << flush;
-    int i = system ( _command.c_str() );
+    //int i = system ( _command.c_str() );
+    system ( _command.c_str() );
     
     // postprocess the output of define - scratch dir
     //cout <<  "TEMP DIR: " << _scratch_dir + temp_suffix << endl;
@@ -253,7 +262,8 @@ bool Turbomole::Run()
         string _command;
         _command  = "cd " + _run_dir + "; " + _executable + " >& " + _executable + ".log ";
         
-        int i = system ( _command.c_str() );
+        //int i = system ( _command.c_str() );
+        system ( _command.c_str() );
         LOG(logDEBUG,*_pLog) << "TURBOMOLE: Finished job" << flush;
         return true;
     }
@@ -312,7 +322,7 @@ bool Turbomole::ParseOrbitalsFile( Orbitals* _orbitals )
     std::map <int, std::vector<double> > _coefficients;
     std::map <int, double> _energies;
     
-    double _conv_Hrt_eV = 27.21138386;
+    //double _conv_Hrt_eV = 27.21138386;
     
     std::string _line;
     unsigned _levels = 0;
@@ -496,12 +506,12 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
     bool _has_basis_set_size = false;
     bool _has_overlap_matrix = false;
     bool _has_charges = false;
-    bool _has_coordinates = false;
-    bool _has_qm_energy = false;
+    //bool _has_coordinates = false;
+    //bool _has_qm_energy = false;
     bool _has_self_energy = false;
     
-    int _occupied_levels = 0;
-    int _unoccupied_levels = 0;
+    //int _occupied_levels = 0;
+    //int _unoccupied_levels = 0;
     int _number_of_electrons = 0;
     int _basis_set_size = 0;
 
@@ -512,7 +522,7 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
     if ( !CheckLogFile() ) return false;
     // save qmpackage name
     //_orbitals->_has_qm_package = true;
-    _orbitals->setQMpakckage("turbomole");
+    _orbitals->setQMpackage("turbomole");
     
     // Start parsing the file line by line
     path arg_path;
@@ -594,7 +604,7 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
                 
                 vector<string> _row;
                 boost::algorithm::split( _row , _line, boost::is_any_of(" "), boost::algorithm::token_compress_on);   
-                int nfields =  _row.size();
+                //int nfields =  _row.size();
                 //cout << nfields << endl;
                 
                 for ( vector<string>::iterator it = _row.begin() ; it < _row.end() ; it++   ) {
@@ -642,7 +652,7 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
         
         if (coordinates_pos != std::string::npos) {
             LOG(logDEBUG,*_pLog) << "Getting the coordinates" << flush;
-            _has_coordinates = true;
+            //_has_coordinates = true;
             LOG(logDEBUG, *_pLog) << "QM energy " << _orbitals->getQMEnergy() <<  flush;
                     
             //_orbitals->_has_atoms = true;

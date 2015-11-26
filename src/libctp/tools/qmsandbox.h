@@ -114,8 +114,8 @@ bool QMSandbox::Evaluate() {
     QMPackage *_qmpackage =  QMPackages().Create( _package );
    _qmpackage->setLog( &_log );     
     _qmpackage->setLogFileName( _logfile );
-    int _parse_log_status = _qmpackage->ParseLogFile( &_orbitals );
-   
+    //int _parse_log_status = _qmpackage->ParseLogFile( &_orbitals );
+   _qmpackage->ParseLogFile( &_orbitals );
    //_qmpackage->Initialize( &_package_options );
 
     //_qmpackage->setOrbitalsFileName( _orbfile );

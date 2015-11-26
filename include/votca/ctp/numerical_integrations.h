@@ -23,13 +23,9 @@
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/ctp/votca_ctp_config.h>
 #include <boost/numeric/ublas/operation.hpp>
-#include <votca/tools/property.h>
 #include <votca/ctp/basisset.h>
 #include <votca/ctp/aobasis.h>
-#include <votca/ctp/qmatom.h>
 #include <votca/ctp/grid_containers.h>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
 using namespace std;
 
 
@@ -42,7 +38,7 @@ namespace votca { namespace ctp {
         class NumericalIntegration {
         public: 
             
-            NumericalIntegration() { };
+            NumericalIntegration():density_set(false) {};
 
             void GridSetup(string type, BasisSet* bs , vector<QMAtom* > _atoms  );
 
@@ -52,9 +48,13 @@ namespace votca { namespace ctp {
             
             ub::matrix<double> numAOoverlap ( AOBasis* basis  );
             double IntegrateDensity(ub::matrix<double>& _density_matrix, AOBasis* basis);
+            double IntegrateDensity_Atomblock(ub::matrix<double>& _density_matrix, AOBasis* basis);
+            double IntegratePotential(ub::vector<double> rvector);
+            
+            double getExactExchange(const string _functional);
             ub::matrix<double> IntegrateVXC ( ub::matrix<double>& _density_matrix, AOBasis* basis  );
             ub::matrix<double> IntegrateVXC_block ( ub::matrix<double>& _density_matrix, AOBasis* basis   );
-            ub::matrix<double> IntegrateVXC_Atomblock ( ub::matrix<double>& _density_matrix, AOBasis* basis );
+            ub::matrix<double> IntegrateVXC_Atomblock ( ub::matrix<double>& _density_matrix, AOBasis* basis,const string _functional);
             
             // this gives int (e_xc-V_xc)*rho d3r
             double& getTotEcontribution(){return EXC;}
@@ -62,8 +62,8 @@ namespace votca { namespace ctp {
             
         private:
             
-            const static double alpha_erf1=1.0/0.30;
-            static const double ang2bohr = 1.8897259886;
+           
+            
             std::vector<double> SSWpartition( int ngrid, int igrid, int ncenters ,  std::vector< std::vector<double> >& rq, double ass );
             std::vector<double> Rij;
             ub::matrix<double> Rij_mat;
@@ -72,6 +72,7 @@ namespace votca { namespace ctp {
             double erfcc(double x);
             std::vector< std::vector< GridContainers::integration_grid > > _grid;
             double EXC;
+            bool density_set;
 
         };
 

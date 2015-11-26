@@ -39,17 +39,22 @@ class GaussianPrimitive
 {
     friend class Shell;
 public:
+    int power; // used in pseudopotenials only
     double decay;
     std::vector<double> contraction;
-    int power; // used in pseudopotenials only
     Shell* shell;
 private:
     // private constructor, only a shell can create a primitive
     GaussianPrimitive( double _decay, std::vector<double> _contraction, Shell *_shell = NULL ) 
-    : decay(_decay), contraction(_contraction), shell(_shell) { ; }
+    : decay(_decay),
+    contraction(_contraction),
+    shell(_shell) { ; }
 
     GaussianPrimitive( int _power, double _decay, std::vector<double> _contraction, Shell *_shell = NULL ) 
-    : power(_power), decay(_decay), contraction(_contraction), shell(_shell) { ; }
+    : power(_power),
+    decay(_decay),
+    contraction(_contraction),
+    shell(_shell) { ; }
 };      
     
 /*
@@ -70,8 +75,22 @@ public:
         if ( _type == "P" ) _lmax = 1;
         if ( _type == "PD" ) _lmax = 2;
         if ( _type == "D" ) _lmax = 2;
+        if ( _type == "F" ) _lmax = 3;
         return _lmax;
     }; 
+    
+    int getnumofFunc() {
+        int _size;
+        if ( _type == "S" ) _size = 1;
+        if ( _type == "SP" ) _size = 4;
+        if ( _type == "SPD" ) _size = 9;
+        if ( _type == "P" ) _size = 3;
+        if ( _type == "PD" ) _size = 8;
+        if ( _type == "D" ) _size = 5;
+        if ( _type == "F" ) _size = 7;
+        return _size;
+    }; 
+    
     
     double getScale() { return _scale; }
     
@@ -115,7 +134,7 @@ private:
     // scaling factor
     double _scale;
      
-    Element* _element;
+    //Element* _element;
 
     // vector of pairs of decay constants and contraction coefficients
     vector< GaussianPrimitive* > _gaussians;

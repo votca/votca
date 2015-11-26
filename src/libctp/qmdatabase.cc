@@ -70,15 +70,27 @@ void QMDatabase::onCreate()
         "UcNcCh     REAL DEFAULT 0,"
         "UcCnNe     REAL DEFAULT 0,"
         "UcCnNh     REAL DEFAULT 0,"
+        "UnXnNs     REAL DEFAULT 0,"
+        "UnXnNt     REAL DEFAULT 0,"
+        "UxNxXs     REAL DEFAULT 0,"
+        "UxNxXt     REAL DEFAULT 0,"
+        "UxXnNs     REAL DEFAULT 0,"
+        "UxXnNt     REAL DEFAULT 0,"
         "eAnion     REAL DEFAULT 0,"
         "eNeutral   REAL DEFAULT 0,"
         "eCation    REAL DEFAULT 0,"
+        "eSinglet     REAL DEFAULT 0,"
+        "eTriplet     REAL DEFAULT 0,"
 
         "has_e      INT  DEFAULT 0,"
         "has_h      INT  DEFAULT 0,"
+        "has_s      INT  DEFAULT 0,"
+        "has_t      INT  DEFAULT 0,"
 
         "occPe      REAL DEFAULT -1,"
-        "occPh      REAL DEFAULT -1)");
+        "occPh      REAL DEFAULT -1,"
+        "occPs      REAL DEFAULT -1,"
+        "occPt      REAL DEFAULT -1)");
 
     // Table format segment types
     Exec("CREATE TABLE segmentTypes ("
@@ -154,15 +166,25 @@ void QMDatabase::onCreate()
 
         "lOe        REAL DEFAULT 0,"
         "lOh        REAL DEFAULT 0,"
+        "lOs        REAL DEFAULT 0,"
+        "lOt        REAL DEFAULT 0,"
 
         "has_e      INT  DEFAULT 0,"
         "has_h      INT  DEFAULT 0,"
+        "has_s      INT  DEFAULT 0,"
+        "has_t      INT  DEFAULT 0,"
         "rate12e    REAL DEFAULT 0,"
         "rate21e    REAL DEFAULT 0,"
         "rate12h    REAL DEFAULT 0,"
         "rate21h    REAL DEFAULT 0,"
+        "rate12s    REAL DEFAULT 0,"
+        "rate21s    REAL DEFAULT 0,"
+        "rate12t    REAL DEFAULT 0,"
+        "rate21t    REAL DEFAULT 0,"
         "Jeff2e     REAL DEFAULT 0,"
         "Jeff2h     REAL DEFAULT 0,"
+        "Jeff2s     REAL DEFAULT 0,"
+        "Jeff2t     REAL DEFAULT 0,"
         "type       INT  DEFAULT 0)");
     
     

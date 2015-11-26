@@ -130,7 +130,7 @@ Job::JobResult DMA::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     string output;
     
     bool _orbitals_status;
-    bool _formchk_status;
+    //bool _formchk_status;
     bool _dma_status;
 
     Job::JobResult jres = Job::JobResult();

@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <votca/tools/vec.h>
+#include <votca/ctp/logger.h>
 #include <votca/ctp/topology.h>
 #include <votca/ctp/polartop.h>
 #include <votca/ctp/ewdspace.h>
@@ -62,6 +63,11 @@ public:
     inline void ApplyBiasPolar(APolarSite &p1, APolarSite &p2);
     inline void ApplyBias(APolarSite &p1, APolarSite &p2, vec &s);
     inline void ApplyBiasPolar(APolarSite &p1, APolarSite &p2, vec &s);
+    
+    // =============================== //
+    // ISOTROPIC & ANISOTROPIC KERNELS //
+    // =============================== //
+    
     // Make sure to set R1, R2, ... and rR1, rR2, ... before using {gB0, ...}
     inline void UpdateAllBls();
     inline double gB0() { return erfc(a1*R1)*rR1; }
@@ -84,6 +90,10 @@ public:
     inline double gG3(APolarSite &p1, APolarSite &p2);
     inline double gG4(APolarSite &p1, APolarSite &p2);
     
+    // ====== //
+    // FIELDS //
+    // ====== //    
+    
     // Real-space term contribution P1 <> P2
     inline double FPU12_ERFC_At_By(APolarSite &p1, APolarSite &p2);
     inline double FP12_ERFC_At_By(APolarSite &p1, APolarSite &p2);
@@ -96,17 +106,37 @@ public:
     inline double FP12_ERF_At_By(APolarSite &p1, APolarSite &p2);
     inline double FU12_ERF_At_By(APolarSite &p1, APolarSite &p2);
     // Reciprocal-space K=0 shape correction term P1 <> P2
-    inline double F12_XYSlab_At_By(APolarSite &p1, APolarSite &p2, double &TwoPi_V);
-    void FPU12_XYSlab_ShapeField_At_By(vector<PolarSeg*> &at, vector<PolarSeg*> &by, double &TwoPi_V);
-    void FP12_XYSlab_ShapeField_At_By(vector<PolarSeg*> &at, vector<PolarSeg*> &by, double &TwoPi_V);
-    void FU12_XYSlab_ShapeField_At_By(vector<PolarSeg*> &at, vector<PolarSeg*> &by, double &TwoPi_V);
+    void FPU12_ShapeField_At_By(vector<PolarSeg*> &at, vector<PolarSeg*> &by, string shape, double volume);
+    void FP12_ShapeField_At_By(vector<PolarSeg*> &at, vector<PolarSeg*> &by, string shape, double volume);
+    void FU12_ShapeField_At_By(vector<PolarSeg*> &at, vector<PolarSeg*> &by, string shape, double volume);    
+    
+    // ========== //
+    // POTENTIALS //
+    // ========== //
+    
+    // Real-space term contribution P1 <> P2
+    inline double PhiPU12_ERFC_At_By(APolarSite &p1, APolarSite &p2);
+    inline double PhiP12_ERFC_At_By(APolarSite &p1, APolarSite &p2);
+    inline double PhiU12_ERFC_At_By(APolarSite &p1, APolarSite &p2);
+    // Reciprocal-space self-interaction term P1 <> P2
+    inline double PhiPU12_ERF_At_By(APolarSite &p1, APolarSite &p2);
+    inline double PhiP12_ERF_At_By(APolarSite &p1, APolarSite &p2);
+    inline double PhiU12_ERF_At_By(APolarSite &p1, APolarSite &p2);
+    // Reciprocal-space K=0 shape correction term P1 <> P2
+    void PhiPU12_ShapeField_At_By(vector<PolarSeg*> &at, vector<PolarSeg*> &by, string shape, double volume);
+    void PhiP12_ShapeField_At_By(vector<PolarSeg*> &at, vector<PolarSeg*> &by, string shape, double volume);
+    void PhiU12_ShapeField_At_By(vector<PolarSeg*> &at, vector<PolarSeg*> &by, string shape, double volume);
+    
+    // ======== //
+    // ENERGIES //
+    // ======== //
     
     // Real-space term contribution P1 <> P2
     inline EWD::triple<double> U12_ERFC(APolarSite &p1, APolarSite &p2);    
     // Reciprocal-space double-counting correction term P1 <> P2
     inline EWD::triple<double> U12_ERF(APolarSite &p1, APolarSite &p2);    
     // Reciprocal-space K=0 shape correction term P1 <> P2
-    inline EWD::triple<double> U12_XYSlab(APolarSite &p1, APolarSite &p2);
+    EWD::triple<double> U12_ShapeTerm(vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, string shape, double volume, Logger *log=NULL);
     
     // ========================== RECIPROCAL SPACE ========================== //    
     inline void   ApplyBiasK(const vec &k);
@@ -116,7 +146,7 @@ public:
     inline void PApplyBiasK(APolarSite &p);
     inline void UApplyBiasK(APolarSite &p);
     
-    // Structure amplitudes
+    // Structure amplitudes //
     EWD::cmplx PUStructureAmplitude(vector<PolarSeg*> &s);
     EWD::cmplx PStructureAmplitude(vector<PolarSeg*> &s);
     EWD::cmplx UStructureAmplitude(vector<PolarSeg*> &s);    
@@ -131,6 +161,11 @@ public:
 
     EWD::cmplx FP12_At_ByS2(const vec &k, vector<PolarSeg*> &s1, const EWD::cmplx &S2, double &rV);
     EWD::cmplx FU12_At_ByS2(const vec &k, vector<PolarSeg*> &s1, const EWD::cmplx &S2, double &rV);
+    
+    // Potentials
+    EWD::cmplx PhiPU12_AS1S2_At_By(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV);
+    EWD::cmplx PhiP12_AS1S2_At_By(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV);
+    EWD::cmplx PhiU12_AS1S2_At_By(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV);
     
     // Energies
     EWD::triple<EWD::cmplx> AS1S2(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2);
@@ -159,10 +194,10 @@ private:
     double rxx, rxy, rxz, ryy, ryz, rzz;
     
     // Real-space distance powers
-    double R1, R2, R3, R4, R5;
+    double R1, R2, R3;//, R4, R5;
     
     // Real-space inverse distance powers
-    double rR1, rR2, rR3, rR4, rR5;
+    double rR1, rR2;//, rR3, rR4, rR5;
     
     // {G} function values
     double ppG0, ppG1, ppG2, ppG3, ppG4;
@@ -271,10 +306,11 @@ inline void EwdInteractor::ApplyBiasPolar(APolarSite& p1, APolarSite& p2) {
                 lp3 = lp5 = lp7 = lp9 = 1.;
         }
         else {
-            lp3 = l3;
-            lp5 = l5;
-            lp7 = l7;
-            lp9 = l9;
+            lp3 = lp5 = lp7 = lp9 = 1.;
+//            lp3 = l3;
+//            lp5 = l5;
+//            lp7 = l7;
+//            lp9 = l9;
         }
     }
     else {
@@ -343,6 +379,12 @@ inline void EwdInteractor::ApplyBiasPolar(APolarSite& p1, APolarSite& p2, vec &s
     //rR4 = 1./R4;
     //rR5 = 1./R5;
     
+    // Thole damping initialization
+    tu3   = R3 / sqrt(
+        1./3.*(p1.Pxx*p2.Pxx + p1.Pxy*p2.Pxy + p1.Pxz*p2.Pxz
+             + p1.Pxy*p2.Pxy + p1.Pyy*p2.Pyy + p1.Pyz*p2.Pyz
+             + p1.Pxz*p2.Pxz + p1.Pyz*p2.Pyz + p1.Pzz*p2.Pzz) );
+    
     // Thole damping functions
     if (ta1*tu3 < 40) {
         l3 = L3(); 
@@ -355,10 +397,11 @@ inline void EwdInteractor::ApplyBiasPolar(APolarSite& p1, APolarSite& p2, vec &s
                 lp3 = lp5 = lp7 = lp9 = 1.;
         }
         else {
-            lp3 = l3;
-            lp5 = l5;
-            lp7 = l7;
-            lp9 = l9;
+            lp3 = lp5 = lp7 = lp9 = 1.;
+//            lp3 = l3;
+//            lp5 = l5;
+//            lp7 = l7;
+//            lp9 = l9;
         }
     }
     else {
@@ -440,7 +483,7 @@ inline void EwdInteractor::UpdateAllGls(APolarSite& p1, APolarSite& p2) {
                                                +   p1.Qzz*rzz);
             Q1_rx = p1.Qxx*rx + p1.Qxy*ry + p1.Qxz*rz;
             Q1_ry = p1.Qxy*rx + p1.Qyy*ry + p1.Qyz*rz;
-            Q1_rz = p1.Qxz*rx * p1.Qyz*ry + p1.Qzz*rz;
+            Q1_rz = p1.Qxz*rx + p1.Qyz*ry + p1.Qzz*rz;
         }
     }
     
@@ -1031,28 +1074,215 @@ inline double EwdInteractor::FU12_ERF_At_By(APolarSite &p1, APolarSite &p2) {
 }
 
 
-inline double EwdInteractor::F12_XYSlab_At_By(APolarSite &p1, APolarSite &p2, 
-    double &TwoPi_V) {
-    assert(false); // This function is correct, but not necessarily efficient,
-                   // since an (external) double sum is not avoided
-    // NOTE Field points from (-) to (+) => XInductor, XInteractor compatible
-    ApplyBias(p1, p2);
+//inline double EwdInteractor::F12_XYSlab_At_By(APolarSite &p1, APolarSite &p2, 
+//    double &TwoPi_V) {
+//    assert(false); // This function is correct, but not necessarily efficient,
+//                   // since an (external) double sum is not avoided
+//    // NOTE Field points from (-) to (+) => XInductor, XInteractor compatible
+//    ApplyBias(p1, p2);
+//
+//    double fz = 0.0;
+//    
+//    // Charge
+//    fz += - 2*p2.Q00*rz;
+//    if (p2._rank > 0) {
+//        // Dipole
+//        fz += 2*p2.Q1z;
+//    }
+//    
+//    // Field generated by induced moments
+//    fz += 2*p2.U1z;
+//    
+//    // Increment field, use prefactor 2*PI/V
+//    p1.FPz += TwoPi_V*fz;    
+//    return fz*fz;
+//}
 
-    double fz = 0.0;
+
+
+
+// =============================== REAL SPACE =============================== //
+//                                 POTENTIALS                                 //
+
+
+inline double EwdInteractor::PhiPU12_ERFC_At_By(APolarSite &p1, APolarSite &p2) {
+    // ATTENTION Potentials are currently not damped
+    // NOTE Analogous operations in PhiPU12_..., PhiP12_..., PhiU12_...
+    ApplyBiasPolar(p1, p2);
+    UpdateAllBls();
     
-    // Charge
-    fz += - 2*p2.Q00*rz;
+    double phi_p = 0.0;
+    double phi_u = 0.0;
+    
+    // Dot product µ * r
+    double mu2_r = 0.0;
+    // Dot product µ(ind) * r
+    double u_mu2_r = 0.0;
+    // Dyadic product Q : R
+    double Q2__R = 0.0;
+    
+    u_mu2_r = (p2.U1x*rx + p2.U1y*ry + p2.U1z*rz);
     if (p2._rank > 0) {
-        // Dipole
-        fz += 2*p2.Q1z;
+        mu2_r = (p2.Q1x*rx + p2.Q1y*ry + p2.Q1z*rz);
+        if (p2._rank > 1) {
+            Q2__R = (p2.Qxx*rxx + 2*p2.Qxy*rxy + 2*p2.Qxz*rxz
+                                +   p2.Qyy*ryy + 2*p2.Qyz*ryz
+                                               +   p2.Qzz*rzz);
+        }
     }
     
-    // Field generated by induced moments
-    fz += 2*p2.U1z;
+    phi_p = p2.Q00*B0 + mu2_r*B1 + Q2__R*B2;
+    phi_u = u_mu2_r*B1;    
+    p1.PhiP += phi_p;
+    p1.PhiU += phi_u;    
+    return phi_p + phi_u;
+}
+
+
+inline double EwdInteractor::PhiP12_ERFC_At_By(APolarSite &p1, APolarSite &p2) {
+    // ATTENTION Potentials are currently not damped
+    // NOTE Analogous operations in PhiPU12_..., PhiP12_..., PhiU12_...
+    ApplyBiasPolar(p1, p2);
+    UpdateAllBls();
     
-    // Increment field, use prefactor 2*PI/V
-    p1.FPz += TwoPi_V*fz;    
-    return fz*fz;
+    double phi_p = 0.0;
+    
+    // Dot product µ * r
+    double mu2_r = 0.0;
+    // Dyadic product Q : R
+    double Q2__R = 0.0;
+
+    if (p2._rank > 0) {
+        mu2_r = (p2.Q1x*rx + p2.Q1y*ry + p2.Q1z*rz);
+        if (p2._rank > 1) {
+            Q2__R = (p2.Qxx*rxx + 2*p2.Qxy*rxy + 2*p2.Qxz*rxz
+                                +   p2.Qyy*ryy + 2*p2.Qyz*ryz
+                                               +   p2.Qzz*rzz);
+        }
+    }
+    
+    phi_p = p2.Q00*B0 + mu2_r*B1 + Q2__R*B2;    
+    p1.PhiP += phi_p;    
+    return phi_p;
+}
+
+
+inline double EwdInteractor::PhiU12_ERFC_At_By(APolarSite &p1, APolarSite &p2) {
+    // ATTENTION Potentials are currently not damped
+    // NOTE Analogous operations in PhiPU12_..., PhiP12_..., PhiU12_...
+    ApplyBiasPolar(p1, p2);
+    UpdateAllBls();
+    
+    double phi_u = 0.0;
+    
+    // Dot product µ(ind) * r
+    double u_mu2_r = 0.0;
+    
+    u_mu2_r = (p2.U1x*rx + p2.U1y*ry + p2.U1z*rz);
+    
+    phi_u = u_mu2_r*B1;
+    p1.PhiU += phi_u;
+    return phi_u;
+}
+
+
+inline double EwdInteractor::PhiPU12_ERF_At_By(APolarSite &p1, APolarSite &p2) {
+    // NOTE Analogous operations in PhiPU12_..., PhiP12_..., PhiU12_...
+    ApplyBiasPolar(p1, p2);
+    UpdateAllCls();
+    
+    double phi_p = 0.0;
+    double phi_u = 0.0;
+    
+    if (R1 < 1e-2) {
+        phi_p += 2.   *a1*EWD::rSqrtPi * (p2.Q00);
+        phi_u += 0.0;
+    }
+    else {
+        // Dot product µ * r
+        double mu2_r = 0.0;
+        // Dot product µ(ind) * r
+        double u_mu2_r = 0.0;
+        // Dyadic product Q : R
+        double Q2__R = 0.0;
+
+        u_mu2_r = (p2.U1x*rx + p2.U1y*ry + p2.U1z*rz);
+        if (p2._rank > 0) {
+            mu2_r = (p2.Q1x*rx + p2.Q1y*ry + p2.Q1z*rz);
+            if (p2._rank > 1) {
+                Q2__R = (p2.Qxx*rxx + 2*p2.Qxy*rxy + 2*p2.Qxz*rxz
+                                    +   p2.Qyy*ryy + 2*p2.Qyz*ryz
+                                                   +   p2.Qzz*rzz);
+            }
+        }
+
+        phi_p = p2.Q00*C0 + mu2_r*C1 + Q2__R*C2;
+        phi_u = u_mu2_r*C1;    
+    }
+    
+    // Note the (-): This is a compensation term.
+    p1.PhiP -= phi_p;
+    p1.PhiU -= phi_u;    
+    return phi_p + phi_u;
+}
+
+
+inline double EwdInteractor::PhiP12_ERF_At_By(APolarSite &p1, APolarSite &p2) {
+    // NOTE Analogous operations in PhiPU12_..., PhiP12_..., PhiU12_...
+    ApplyBiasPolar(p1, p2);
+    UpdateAllCls();
+    
+    double phi_p = 0.0;
+    
+    if (R1 < 1e-2) {
+        phi_p += 2.   *a1*EWD::rSqrtPi * (p2.Q00);
+    }
+    else {
+        // Dot product µ * r
+        double mu2_r = 0.0;
+        // Dyadic product Q : R
+        double Q2__R = 0.0;
+
+        if (p2._rank > 0) {
+            mu2_r = (p2.Q1x*rx + p2.Q1y*ry + p2.Q1z*rz);
+            if (p2._rank > 1) {
+                Q2__R = (p2.Qxx*rxx + 2*p2.Qxy*rxy + 2*p2.Qxz*rxz
+                                    +   p2.Qyy*ryy + 2*p2.Qyz*ryz
+                                                   +   p2.Qzz*rzz);
+            }
+        }
+
+        phi_p = p2.Q00*C0 + mu2_r*C1 + Q2__R*C2;
+    }
+    
+    // Note the (-): This is a compensation term.
+    p1.PhiP -= phi_p;
+    return phi_p;
+}
+
+
+inline double EwdInteractor::PhiU12_ERF_At_By(APolarSite &p1, APolarSite &p2) {
+    // NOTE Analogous operations in PhiPU12_..., PhiP12_..., PhiU12_...
+    ApplyBiasPolar(p1, p2);
+    UpdateAllCls();
+    
+    double phi_u = 0.0;
+    
+    if (R1 < 1e-2) {
+        phi_u += 0.0;
+    }
+    else {
+        // Dot product µ(ind) * r
+        double u_mu2_r = 0.0;
+
+        u_mu2_r = (p2.U1x*rx + p2.U1y*ry + p2.U1z*rz);
+
+        phi_u = u_mu2_r*C1;
+    }
+    
+    // Note the (-): This is a compensation term.
+    p1.PhiU -= phi_u;    
+    return phi_u;
 }
 
 
@@ -1085,6 +1315,8 @@ inline EWD::triple<double> EwdInteractor::U12_ERFC(APolarSite &p1,
 
 inline EWD::triple<double> EwdInteractor::U12_ERF(APolarSite &p1, 
     APolarSite &p2) {
+    // NOTE This is a compensation term, it will later be *subtracted* from
+    //      the total energy
     
     ApplyBias(p1, p2);
     
@@ -1131,47 +1363,47 @@ inline EWD::triple<double> EwdInteractor::U12_ERF(APolarSite &p1,
 }
 
 
-inline EWD::triple<double> EwdInteractor::U12_XYSlab(APolarSite& p1, 
-    APolarSite& p2) {
-    // NOTE : w/o prefactor -2PI/V
-    
-    ApplyBias(p1, p2);    
-    double pp = 0.0;
-    double pu = 0.0;
-    double uu = 0.0;
-    
-    // 1 q <> 2 q
-    pp += p1.Q00*p2.Q00*rz*rz;
-    pu +=  2 * p2.Q00 * p1.U1z * rz;
-    pu += -2 * p1.Q00 * p2.U1z * rz;
-    uu += -2 * p1.U1z * p2.U1z;
-    // 1 d <> 2 q
-    if (p1._rank > 0) {
-        pp += 2 * p2.Q00 * p1.Q1z * rz;
-        pu += -2 * p1.Q1z * p2.U1z;
-        // 1 d <> 2 d
-        if (p2._rank > 0) {
-            pp += -2 * p1.Q1z * p2.Q1z;
-        }
-        // 1 Q <> 2 q
-        if (p1._rank > 1) {
-            pp += 2 * p2.Q00 * p1.Qzz;
-        }
-    }    
-    // 2 d <> 1 q
-    if (p2._rank > 0) {
-        pp += -2 * p1.Q00 * p2.Q1z * rz;
-        pu += -2 * p1.U1z * p2.Q1z;
-        // 2 d <> 1 d
-        // ... covered above.        
-        // 2 Q <> 1 q
-        if (p2._rank > 1) {
-            pp += 2 * p1.Q00 * p2.Qzz;
-        }
-    }
-    
-    return EWD::triple<double>(pp,pu,uu);
-}
+//inline EWD::triple<double> EwdInteractor::U12_XYSlab(APolarSite& p1, 
+//    APolarSite& p2) {
+//    // NOTE : w/o prefactor -2PI/V
+//    
+//    ApplyBias(p1, p2);    
+//    double pp = 0.0;
+//    double pu = 0.0;
+//    double uu = 0.0;
+//    
+//    // 1 q <> 2 q
+//    pp += p1.Q00*p2.Q00*rz*rz;
+//    pu +=  2 * p2.Q00 * p1.U1z * rz;
+//    pu += -2 * p1.Q00 * p2.U1z * rz;
+//    uu += -2 * p1.U1z * p2.U1z;
+//    // 1 d <> 2 q
+//    if (p1._rank > 0) {
+//        pp += 2 * p2.Q00 * p1.Q1z * rz;
+//        pu += -2 * p1.Q1z * p2.U1z;
+//        // 1 d <> 2 d
+//        if (p2._rank > 0) {
+//            pp += -2 * p1.Q1z * p2.Q1z;
+//        }
+//        // 1 Q <> 2 q
+//        if (p1._rank > 1) {
+//            pp += 2 * p2.Q00 * p1.Qzz;
+//        }
+//    }    
+//    // 2 d <> 1 q
+//    if (p2._rank > 0) {
+//        pp += -2 * p1.Q00 * p2.Q1z * rz;
+//        pu += -2 * p1.U1z * p2.Q1z;
+//        // 2 d <> 1 d
+//        // ... covered above.        
+//        // 2 Q <> 1 q
+//        if (p2._rank > 1) {
+//            pp += 2 * p1.Q00 * p2.Qzz;
+//        }
+//    }
+//    
+//    return EWD::triple<double>(pp,pu,uu);
+//}
 
 
 inline double EwdInteractor::gG0(APolarSite& p1, APolarSite& p2) {

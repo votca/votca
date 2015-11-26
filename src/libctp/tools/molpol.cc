@@ -71,6 +71,16 @@ void MolPolTool::Initialize(Property *options) {
     else {
         _do_optimize = false;
     }
+    if (options->exists(key+"target.pattern")) {
+        string tmp = options->get(key+"target.pattern").as<string>();
+        Tokenizer toker(tmp, " ,\t\n");
+        toker.ToVector(_scaling_pattern);
+        cout << endl << "... ... Using scaling pattern (length " 
+            << _scaling_pattern.size() << ")" << flush;
+    }
+    else {
+        ;
+    }
     if (options->exists(key+"target.tolerance")) {
         _tolerance = options->get(key+"target.tolerance").as<double>();
     }
@@ -91,10 +101,23 @@ bool MolPolTool::Evaluate() {
     if (!_do_optimize) {
         // Output only
         pseg_input.WriteMPS(_mps_output, "MOLPOL (UNSCALED)");
-        matrix pmol = _molpolengine.CalculateMolPol(pseg_input, true);
+        //matrix pmol = _molpolengine.CalculateMolPol(pseg_input, true);
     }
     
-    else {        
+    else {
+        // Setup scaling pattern (Y = full scale, H = half scale, N = zero scale)
+        if (_scaling_pattern.size() == 0) {
+            for (PolarSeg::iterator pit = pseg_input.begin();
+                pit < pseg_input.end(); ++pit) {
+                _scaling_pattern.push_back("Y");
+            }
+        }
+        else {
+            assert(_scaling_pattern.size() == pseg_input.size() &&
+                "<molpol> Scaling pattern from input does not match size of"
+                "polar segment");
+        }
+        
         // Refine until converged
         double scale = 1.0;
         double omega = 1.0;
@@ -108,14 +131,25 @@ bool MolPolTool::Evaluate() {
             
             if (tools::globals::verbose)
                 cout << endl << "Relative scale s = " << scale << flush;
+            vector<string>::iterator strit = _scaling_pattern.begin();
             for (PolarSeg::iterator pit = pseg_inter.begin();
-                    pit < pseg_inter.end(); ++pit) {
-                (*pit)->Pxx = omega*(*pit)->Pxx*scale + (1-omega)*(*pit)->Pxx;
-                (*pit)->Pxy = omega*(*pit)->Pxy*scale + (1-omega)*(*pit)->Pxy;
-                (*pit)->Pxz = omega*(*pit)->Pxz*scale + (1-omega)*(*pit)->Pxz;
-                (*pit)->Pyy = omega*(*pit)->Pyy*scale + (1-omega)*(*pit)->Pyy;
-                (*pit)->Pyz = omega*(*pit)->Pyz*scale + (1-omega)*(*pit)->Pyz;
-                (*pit)->Pzz = omega*(*pit)->Pzz*scale + (1-omega)*(*pit)->Pzz;
+                    pit < pseg_inter.end(); ++pit, ++strit) {
+                double local_scale = 0.;
+                if ((*strit) == "Y")
+                    local_scale = scale;
+                else if ((*strit) == "H") {
+                    local_scale = 1+(scale-1.)*0.5;
+                }
+                else if ((*strit) == "N")
+                    local_scale = 1.;
+                else
+                    assert(false && "<molpol> Unsupported scaling instruction");
+                (*pit)->Pxx = omega*(*pit)->Pxx*local_scale + (1-omega)*(*pit)->Pxx;
+                (*pit)->Pxy = omega*(*pit)->Pxy*local_scale + (1-omega)*(*pit)->Pxy;
+                (*pit)->Pxz = omega*(*pit)->Pxz*local_scale + (1-omega)*(*pit)->Pxz;
+                (*pit)->Pyy = omega*(*pit)->Pyy*local_scale + (1-omega)*(*pit)->Pyy;
+                (*pit)->Pyz = omega*(*pit)->Pyz*local_scale + (1-omega)*(*pit)->Pyz;
+                (*pit)->Pzz = omega*(*pit)->Pzz*local_scale + (1-omega)*(*pit)->Pzz;
             }
             
             // Polarizability tensor "inter"
@@ -153,6 +187,7 @@ bool MolPolTool::Evaluate() {
             loop_count += 1;
             if (std::abs(1-pvol_target/pvol_inter) < _tolerance) {
                 cout << endl << "... ... Iterative refinement : *CONVERGED*" << flush;
+                cout << endl << "... ... Scaling coefficient  : " << scale << flush;
                 converged = true;
                 pseg_output = new PolarSeg(&pseg_inter, true);
                 break;

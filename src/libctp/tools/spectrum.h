@@ -28,7 +28,7 @@
 
 namespace votca { namespace ctp {
     using namespace std;
-    
+    static const double _rydtoev = 13.6058;  
 class Spectrum : public QMTool
 {
 public:
@@ -67,7 +67,7 @@ private:
     
     double _fwhm; // in eV
     double _shiftby; 
-    const double _rydtoev = 13.6058;  
+    
     
     string _spectrum_type;
     // lineshape functions
@@ -157,7 +157,7 @@ bool Spectrum::Evaluate() {
     //int _n_exc = TransitionDipoles.size();
     int _n_exc = _maxexc - _minexc +1;
 
-    if ( _maxexc > TransitionDipoles.size() ) {
+    if ( _maxexc > int(TransitionDipoles.size()) ) {
       LOG(logDEBUG, _log) << " Transition dipoles for some excitations missing! " << flush;
       exit(1);
     }

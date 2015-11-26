@@ -1,3 +1,21 @@
+/*
+ *            Copyright 2009-2012 The VOTCA Development Team
+ *                       (http://www.votca.org)
+ *
+ *      Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *              http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
 #ifndef __QMMMCALC__H
 #define	__QMMMCALC__H
 
@@ -61,8 +79,8 @@ private:
     // ======================================== //
 
     // Induction, subthreading (-> base class)
-    bool                            _induce;
-    bool                            _induce_intra_pair;
+    //bool                            _induce;
+    //bool                            _induce_intra_pair;
 
     // Multipole Interaction parameters
     string                          _method;
@@ -274,7 +292,7 @@ XJob QMMM::ProcessInputString(Job *job, Topology *top, QMThread *thread) {
     Tokenizer toker(input, " \t\n");
     toker.ToVector(split);
 
-    for (int i = 0; i < split.size(); ++i) {
+    for (unsigned int i = 0; i < split.size(); ++i) {
                 
         string id_seg_mps = split[i];
         vector<string> split_id_seg_mps;

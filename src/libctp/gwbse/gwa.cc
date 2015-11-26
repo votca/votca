@@ -24,9 +24,9 @@
 
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/timer/timer.hpp>
+
 #include <boost/numeric/ublas/operation.hpp>
-#include <votca/ctp/aomatrix.h>
-#include <votca/ctp/threecenters.h>
 // #include <votca/ctp/logger.h>
 #include <votca/ctp/qmpackagefactory.h>
 #include <boost/math/constants/constants.hpp>
@@ -53,7 +53,7 @@ namespace votca {
             // constructing full QP Hamiltonian, storage in vxc
             _vxc = -_vxc + _sigma_x + _sigma_c;
             // diagonal elements are given by _qp_energies
-            for (int _m = 0; _m < _vxc.size1(); _m++ ){
+            for (unsigned _m = 0; _m < _vxc.size1(); _m++ ){
               _vxc( _m,_m ) = _qp_energies( _m + _qpmin );
             }
 
@@ -79,21 +79,19 @@ namespace votca {
             }
             
         }
-        
-        
-        void GWBSE::sigma_c_setup(const TCMatrix& _Mmn, const ub::vector<double>& _edft){
-            
+
+        void GWBSE::sigma_c_setup(const TCMatrix& _Mmn, const ub::vector<double>& _edft) {
+
             // iterative refinement of qp energies
             int _max_iter = 5;
-            int _levelsum = _Mmn[0].size2(); // total number of bands
-            int _gwsize  = _Mmn[0].size1(); // size of the GW basis
+            unsigned _levelsum = _Mmn[0].size2(); // total number of bands
+            unsigned _gwsize = _Mmn[0].size1(); // size of the GW basis
             const double pi = boost::math::constants::pi<double>();
-            
+
 
             // initial _qp_energies are dft energies
             _qp_energies = _edft; // RANGES!
-            double _DFTgap = _qp_energies( _homo +1 ) - _qp_energies( _homo  );
-     
+            double _DFTgap = _qp_energies(_homo + 1) - _qp_energies(_homo);
 
 	    // only diagonal elements except for in final iteration
             for ( int _i_iter = 0 ; _i_iter < _max_iter-1 ; _i_iter++ ){
@@ -139,41 +137,27 @@ namespace votca {
 	      }// all bands
               cout << " end of qp refinement step (diagonal) " << _i_iter << "\n" << endl;
             } // iterations
-            
-            // check HOMO-LUMO gap shift
-            // cout << " QP HOMO : " << _qp_energies( _homo  ) << endl;
-            // cout << " QP LUMO : " << _qp_energies( _homo +1 ) << endl;
-            double _QPgap = _qp_energies( _homo +1 ) - _qp_energies( _homo  );
-            // cout << " QP Gap  : " << _QPgap << endl;
-            double _shift_new = _QPgap - _DFTgap;
-            cout << " shift new " << _shift_new << "\n" << endl;
-            if ( std::abs( (_shift_new - _shift)*13.605698066 ) > 0.01 ) {
+
+             double _QPgap = _qp_energies( _homo +1 ) - _qp_energies( _homo  );
+             double _shift_new = _QPgap - _DFTgap;
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " New shift [Ryd] : " << _shift_new << flush;
+            //cout << " shift new " << _shift_new << endl;
+            if (std::abs((_shift_new - _shift)*13.605698066) > 0.01) {
                 _shift = _shift_new;
             } else {
                 _shift_converged = true;
             }
 
-	    if ( ! _iterate_shift  ) _shift_converged = true;
-            
-           /* cout << " Shift is converged " << _shift_converged << "\n" << endl;
-            cout << " I am iterating " << _iterate_shift << "\n" << endl;*/
-            
-            // only if _shift is converged
-            if ( _shift_converged ){
-	    // in final step, also calc offdiagonal elements
-	    // initialize sigma_c to zero at the beginning
-	    _sigma_c = ub::zero_matrix<double>(_qptotal,_qptotal);
 
-            // loop over col  GW levels
-            
-            
-          /*  cout << " I have " << _qptotal   << " GW levels " << endl; 
-            cout << " I have " << _gwsize    << " GW functions " << endl; 
-            cout << " I have " << _levelsum  << " screening levels " << endl; 
-            cout << " I have " << _homo  << " as HOMO levels " << endl; 
-            cout << " I have " << _qpmin  << " as _qpmin " << endl;        */
-            
-            
+	    if ( ! _iterate_shift  ) _shift_converged = true;
+
+
+            // only if _shift is converged
+            if (_shift_converged) {
+                // in final step, also calc offdiagonal elements
+                // initialize sigma_c to zero at the beginning
+                //_sigma_c = ub::zero_matrix<double>(_qptotal,_qptotal);
+
             #pragma omp parallel for
 	    for (int _gw_level = 0; _gw_level < _qptotal ; _gw_level++ ){
               
@@ -216,6 +200,7 @@ namespace votca {
             } 
          } // sigma_c_setup
 
+
         void GWBSE::sigma_x_setup(const TCMatrix& _Mmn){
         
             // initialize sigma_x
@@ -224,20 +209,20 @@ namespace votca {
 
             // band 1 loop over all GW levels
             #pragma omp parallel for
-            for ( int _m1 = 0 ; _m1 < _qptotal ; _m1++ ){
+            for ( unsigned _m1 = 0 ; _m1 < _qptotal ; _m1++ ){
                 
                 const ub::matrix<double>& M1mn =  _Mmn[ _m1 + _qpmin ];
                 
                 // band 2 loop over all GW levels
                 //for ( int _m2 = _qpmin ; _m2 <= _qpmax ; _m2++ ){
-                for ( int _m2 = 0 ; _m2 < _qptotal ; _m2++ ){
+                for ( unsigned _m2 = 0 ; _m2 < _qptotal ; _m2++ ){
                     
                     const ub::matrix<double>& M2mn =  _Mmn[ _m2 + _qpmin ];
                     
                     // loop over all basis functions
                     for ( int _i_gw = 0 ; _i_gw < _size ; _i_gw++ ){
                         // loop over all occupied bands used in screening
-                        for ( int _i_occ = 0 ; _i_occ <= _homo ; _i_occ++ ){
+                        for ( unsigned _i_occ = 0 ; _i_occ <= _homo ; _i_occ++ ){
                             _sigma_x( _m1, _m2 ) -= 2.0 * M1mn( _i_gw , _i_occ ) * M2mn( _i_gw , _i_occ );
                         } // occupied bands
                     } // gwbasis functions

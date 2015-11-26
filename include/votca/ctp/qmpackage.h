@@ -62,6 +62,8 @@ public:
    bool GuessRequested( ) { return _write_guess; }
    
    bool ECPRequested( ) { return _write_pseudopotentials; }
+   
+   bool VXCRequested() { return _output_Vxc; }
 
    void setCharge(const int charge) { _charge = charge; }
    
@@ -101,6 +103,8 @@ protected:
     bool                                _write_charges;
     bool                                _write_basis_set;
     bool                                _write_pseudopotentials;
+    
+    bool                                _output_Vxc;
     
     Logger*                             _pLog;
        
@@ -143,6 +147,7 @@ inline bool QMPackage::WriteInputFilePBC( QMPair* pair, Orbitals* orbitals) {
     WriteInputFile( segments, orbitals);
     
     delete ghost;
+    return true;
 }   
 
 }}

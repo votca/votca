@@ -102,11 +102,16 @@ public:
     bool           hasNumberOfElectrons() { return ( _number_of_electrons > 0 ) ? true : false ; }
     int            getNumberOfElectrons() { return  _number_of_electrons ; } ;
     void           setNumberOfElectrons( const int &electrons ) { _number_of_electrons = electrons;}
-
+    
+    
+    /* To be uncommented in next version
+    bool           getWithECP() {return _with_ECP;};
+    void           setWithECP(const bool &value) {_with_ECP=value;};
+     */ 
     // access to QM package name, new, tested
     bool hasQMpackage() { return (!_qm_package.empty()); }
     string getQMpackage() { return _qm_package; }
-    void setQMpakckage( string qmpackage ) { _qm_package = qmpackage;}
+    void setQMpackage( string qmpackage ) { _qm_package = qmpackage;}
 
     // access to DFT AO overlap matrix, new, tested
     bool           hasAOOverlap() { return ( _overlap.size1() > 0 ) ? true : false ;}
@@ -209,8 +214,8 @@ public:
         _bse_vtotal = _bse_vmax - _bse_vmin +1 ;
         _bse_ctotal = _bse_cmax - _bse_cmin +1 ;
         _bse_size   = _bse_vtotal * _bse_ctotal;
-        for ( int _v = 0; _v < _bse_vtotal; _v++ ){
-            for ( int _c = 0; _c < _bse_ctotal ; _c++){
+        for ( unsigned _v = 0; _v < _bse_vtotal; _v++ ){
+            for ( unsigned _c = 0; _c < _bse_ctotal ; _c++){
                 _index2v.push_back( _bse_vmin + _v );
                 _index2c.push_back( _bse_cmin + _c );
             }
@@ -284,7 +289,9 @@ public:
     // functions for calculating density matrices
     ub::matrix<double> &DensityMatrixGroundState( ub::matrix<double>& _MOs ) ;
     std::vector<ub::matrix<double> > &DensityMatrixExcitedState( ub::matrix<double>& _MOs , ub::matrix<float>& _BSECoefs, int state = 0 ) ;
-
+    ub::matrix<double > &TransitionDensityMatrix( ub::matrix<double>& _MOs , ub::matrix<float>& _BSECoefs, int state = 0);
+    
+    
     // functions for analyzing fragment charges via Mulliken populations
     void MullikenPopulation( const ub::matrix<double>& _densitymatrix, const ub::matrix<double>& _overlapmatrix, int _frag, double& _PopA, double& _PopB  );
 
@@ -317,7 +324,6 @@ public:
     const double &FragmentBChargesGS() const { return _GSq_fragB; }
     double &FragmentBChargesGS()  { return _GSq_fragB; }
     void FragmentNuclearCharges( int _frag , double& _nucCrgA, double& _nucCrgB );
-    int ElementToCharge( string element );
     
     
     /* ===
@@ -356,7 +362,7 @@ public:
         ;
     } 
         
-    void WritePDB( FILE *out );
+    void WritePDB( FILE *out, string tag="" );
     
     // reduces number of virtual orbitals to factor*number_of_occupied_orbitals
     void Trim( int factor );
@@ -369,13 +375,15 @@ public:
     
 private:
     
-    static const double                      _conv_Hrt_eV = 27.21138386;
+    const double                      _conv_Hrt_eV; // want to change this but might break compability of FEserialization  of .orb files
 
     int                                     _basis_set_size;   
     int                                     _occupied_levels;
     int                                     _unoccupied_levels;
     int                                     _number_of_electrons;
-    
+    /* To be uncommented in next version
+    bool                                    _with_ECP;
+    */
     std::map<int, std::vector<int> >        _level_degeneracy;
     
     ub::vector<double>                      _mo_energies; 
@@ -444,6 +452,7 @@ private:
     
     ub::matrix<double>                     _dmatGS;
     std::vector< ub::matrix<double> >      _dmatEX;
+    ub::matrix<double>                     _dmatTS;
     
     std::vector<double>                    _DqS_fragA; // fragment charge changes in exciton
     std::vector<double>                    _DqS_fragB;
@@ -468,6 +477,7 @@ private:
     friend class Gaussian;
     friend class Turbomole;
     friend class NWChem;
+    friend class Orca;
     friend class GW;
     
     // serialization itself (template implementation stays in the header)

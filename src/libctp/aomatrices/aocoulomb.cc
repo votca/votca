@@ -88,7 +88,7 @@ namespace votca { namespace ctp {
                         double _fakac = 0.5 / (_decay_row + _decay_col);
                         double _fakac2 = 1. / (_decay_row + _decay_col);
                         // check if distance between postions is big, then skip step   
-                        double _exparg = _fakac2 * _decay_row * _decay_col *_distsq;
+                        //double _exparg = _fakac2 * _decay_row * _decay_col *_distsq;
                         // if ( _exparg > 30.0 ) { continue; } //!!!!!CUTOFF not applicable to AOCoulomb (at least not like this...)
                     
                                     // get a multi dimensional array
@@ -112,19 +112,19 @@ namespace votca { namespace ctp {
             // some helpers
             const double _faka = 0.5 / _decay_row;
             const double _faka2 = 2.0 * _faka;
-            const double _faka3 = 3.0 * _faka;
+            //const double _faka3 = 3.0 * _faka;
             const double _fakaca = _decay_row / (_decay_row + _decay_col);
             const double _fakaac = _decay_row / (_decay_row + _decay_col);
             
             const double _fakac3 = 3.0 * _fakac;
-            const double _fakac4 = 4.0 * _fakac;
+            //const double _fakac4 = 4.0 * _fakac;
             const double _fakc = 0.5 / _decay_col;
             const double _fakc2 = 2.0 * _fakc;
-            const double _fakc3 = 3.0 * _fakc;
-            const double _fakca = _fakac;
-            const double _fakca2 = _fakac2;
-            const double _fakca3 = _fakac3;
-            const double _fakca4 = _fakac4;
+            //const double _fakc3 = 3.0 * _fakc;
+            //const double _fakca = _fakac;
+            //const double _fakca2 = _fakac2;
+            //const double _fakca3 = _fakac3;
+            //const double _fakca4 = _fakac4;
 
             _wmp.resize(3);
             _wmq.resize(3);
@@ -5721,8 +5721,8 @@ namespace votca { namespace ctp {
 
             // put _cou[i][j][0] into ublas matrix
             ub::matrix<double> _coumat = ub::zero_matrix<double>(_nrows, _ncols);
-            for (int i = 0; i < _coumat.size1(); i++) {
-                for (int j = 0; j < _coumat.size2(); j++) {
+            for (unsigned i = 0; i < _coumat.size1(); i++) {
+                for (unsigned j = 0; j < _coumat.size2(); j++) {
                     _coumat(i, j) = _cou[i][j][0];
                 }
             }
@@ -5731,8 +5731,8 @@ namespace votca { namespace ctp {
             ub::matrix<double> _trafo_col_tposed = ub::trans(_trafo_col);
             ub::matrix<double> _cou_sph = ub::prod(_cou_tmp, _trafo_col_tposed);
             // save to _matrix
-            for (int i = 0; i < _matrix.size1(); i++) {
-                for (int j = 0; j < _matrix.size2(); j++) {
+            for (unsigned i = 0; i < _matrix.size1(); i++) {
+                for (unsigned j = 0; j < _matrix.size2(); j++) {
                     _matrix(i, j) += _cou_sph(i + _shell_row->getOffset(), j + _shell_col->getOffset());
                 }
             }
@@ -5772,8 +5772,8 @@ namespace votca { namespace ctp {
             //_gwoverlap_cholesky.Print( "ChoS" );
 
             // remove L^T from Cholesky
-            for (int i =0; i < _gwoverlap_cholesky._aomatrix.size1(); i++ ){
-                for (int j = i+1; j < _gwoverlap_cholesky._aomatrix.size1(); j++ ){
+            for (unsigned i =0; i < _gwoverlap_cholesky._aomatrix.size1(); i++ ){
+                for (unsigned j = i+1; j < _gwoverlap_cholesky._aomatrix.size1(); j++ ){
                     _gwoverlap_cholesky._aomatrix(i,j) = 0.0;
                 }
             }

@@ -47,8 +47,8 @@ private:
     string _outPDBmd;
     string _outPDBqm;
 
-    int    _framesWritten;
     int    _framesToWrite;
+    int    _framesWritten;
 
     
 };

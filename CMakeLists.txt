@@ -21,7 +21,6 @@ find_package(OpenMP)
 if (OPENMP_FOUND)
     set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-    set ( OMP TRUE )
 endif()
 
 
@@ -31,9 +30,11 @@ endif()
 
 
 find_package(LIBXC)
-include_directories(${LIBXC_INCLUDE_DIRS})
 if (LIBXC_FOUND)
+	include_directories(${LIBXC_INCLUDE_DIRS})
 	set (LIBXC TRUE )
+else()
+	set(LIBXC_LIBRARIES)
 endif()
 
 
@@ -49,11 +50,21 @@ if (NOT DEFINED DATA)
 endif(NOT DEFINED DATA)
 #option(WITH_DIPRO "Build mergeorbitals and DIPRO, which use fortran" ON)
 
-include_directories(${CMAKE_SOURCE_DIR}/include)
+#for votca_ctp_config.h
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 ########################################################################
 #Find external packages
 ########################################################################
-find_package(Boost 1.39.0 REQUIRED COMPONENTS program_options serialization filesystem timer)
+if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.hg)
+  find_package(Mercurial)
+endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.hg)
+
+if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
+  find_package(Git)
+endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
+
+find_package(Boost 1.48.0 REQUIRED COMPONENTS program_options serialization filesystem timer)
 include_directories(${Boost_INCLUDE_DIRS})
 set (BOOST_LIBRARIES ${Boost_THREAD_LIBRARY} ${Boost_PROGRAM_OPTIONS_LIBRARY} ${Boost_SERIALIZATION_LIBRARY} ${Boost_FILESYSTEM_LIBRARY} ${Boost_TIMER_LIBRARY})
 set (BOOST_CFLAGS_PKG "-I${Boost_INCLUDE_DIRS}")
@@ -61,7 +72,9 @@ string(REGEX REPLACE "^(.*)/lib([^/]*)\\.[^.]*$" "-L\\1 -l\\2" BOOST_LIBS_PKG ${
 
 option(BUILD_MANPAGES "Build manpages (might lead to problem on system without rpath" OFF)
 #define this target here, so that individual man pages can append to it.
-add_custom_target(manpages ALL)
+if(NOT TARGET manpages)
+  add_custom_target(manpages ALL)
+endif()
 
 
 

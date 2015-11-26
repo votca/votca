@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <votca/tools/vec.h>
+#include <boost/format.hpp>
 
 namespace votca {
 namespace ctp {
@@ -22,6 +23,7 @@ namespace EWD {
 // "static" not really required here
 static const double int2eV = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
 static const double int2V_m = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-18;
+static const double int2V = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
 static const double rSqrtPi = 0.564189583547756279280349644977832;
 
 struct cmplx
@@ -137,6 +139,11 @@ inline triple<NrTyp> operator*(const double &d, const triple<NrTyp> &tr) {
     return (triple<NrTyp>(tr)*=d);
 }
 
+template<typename NrTyp>
+inline std::ostream &operator<<(std::ostream &out, const triple<NrTyp> &tr) {
+      out << (boost::format("( %1$+1.7e %2$+1.7e %3$+1.7e )") % tr._pp % tr._pu % tr._uu);
+      return out;
+}
 
 // To sort K-vectors via std::sort using a norm functor
 template<class Norm, class V>

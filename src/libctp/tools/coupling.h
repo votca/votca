@@ -115,22 +115,28 @@ bool Coupling::Evaluate() {
      Orbitals _orbitalsA, _orbitalsB, _orbitalsAB;
   
     _qmpackage->setOrbitalsFileName( _orbA );
-    int _parse_orbitalsA_status = _qmpackage->ParseOrbitalsFile( &_orbitalsA );
+    //int _parse_orbitalsA_status = _qmpackage->ParseOrbitalsFile( &_orbitalsA );
+    _qmpackage->ParseOrbitalsFile( &_orbitalsA );
 
     _qmpackage->setOrbitalsFileName( _orbB );   
-    int _parse_orbitalsB_status = _qmpackage->ParseOrbitalsFile( &_orbitalsB );
+    //int _parse_orbitalsB_status = _qmpackage->ParseOrbitalsFile( &_orbitalsB );
+    _qmpackage->ParseOrbitalsFile( &_orbitalsB );
     
     _qmpackage->setOrbitalsFileName( _orbAB );   
-    int _parse_orbitalsAB_status = _qmpackage->ParseOrbitalsFile( &_orbitalsAB );
+    //int _parse_orbitalsAB_status = _qmpackage->ParseOrbitalsFile( &_orbitalsAB );
+    _qmpackage->ParseOrbitalsFile( &_orbitalsAB );
     
     _qmpackage->setLogFileName( _logA );
-    int _parse_logA_status = _qmpackage->ParseLogFile( &_orbitalsA );
+    //int _parse_logA_status = _qmpackage->ParseLogFile( &_orbitalsA );
+    _qmpackage->ParseLogFile( &_orbitalsA );
     
     _qmpackage->setLogFileName( _logB );
-    int _parse_logB_status = _qmpackage->ParseLogFile( &_orbitalsB );
+    //int _parse_logB_status = _qmpackage->ParseLogFile( &_orbitalsB );
+    _qmpackage->ParseLogFile( &_orbitalsB );
     
     _qmpackage->setLogFileName( _logAB );
-    int _parse_logAB_status = _qmpackage->ParseLogFile( &_orbitalsAB );
+    //int _parse_logAB_status = _qmpackage->ParseLogFile( &_orbitalsAB );
+    _qmpackage->ParseLogFile( &_orbitalsAB );
 
     if ( _orbitalsA.getNumberOfElectrons()*(_trimA-1) <   _orbitalsA.getNumberOfLevels() - _orbitalsA.getNumberOfElectrons() ){
 
@@ -152,7 +158,8 @@ bool Coupling::Evaluate() {
     _overlap.setLogger(&_log);
           
     ub::matrix<double> _JAB;
-     bool _calculate_integrals = _overlap.CalculateIntegrals( &_orbitalsA, &_orbitalsB, &_orbitalsAB, &_JAB );   
+     //bool _calculate_integrals = _overlap.CalculateIntegrals( &_orbitalsA, &_orbitalsB, &_orbitalsAB, &_JAB ); 
+     _overlap.CalculateIntegrals( &_orbitalsA, &_orbitalsB, &_orbitalsAB, &_JAB );   
      std::cout << _log;
  
      

@@ -46,6 +46,8 @@ private:
     
     string      _orbfile;
     string      _output_file;
+    bool _print_BSE_singlets;
+    bool _print_oscstrength;
     
     Logger      _log;
     
@@ -54,22 +56,34 @@ private:
 };
 
 void QMAnalyze::Initialize(Property* options) {
-
+            
+    
+    _print_BSE_singlets=false;
+    _print_oscstrength=false;
             // update options with the VOTCASHARE defaults   
     UpdateWithDefaults( options );
  
 
-            string key = "options." + Identify();
-            // _jobfile = options->get(key + ".file").as<string>();
+    string key = "options." + Identify();
+    // _jobfile = options->get(key + ".file").as<string>();
 
-            // key = "options." + Identify();
- 
-       
-           // orbitals file or pure DFT output
-           _orbfile      = options->get(key + ".input").as<string> ();
-           _output_file  = options->get(key + ".output").as<string> ();
+    // key = "options." + Identify();
 
-            
+
+   // orbitals file or pure DFT output
+   _orbfile      = options->get(key + ".input").as<string> ();
+   _output_file  = options->get(key + ".output").as<string> ();
+
+   if ( options->exists(key+".BSE")) {
+        
+        string _store_string = options->get(key+".BSE").as<string> ();
+        if (_store_string.find("energies") != std::string::npos) _print_BSE_singlets=true;
+        if (_store_string.find("oscillatorstrength") != std::string::npos) _print_oscstrength=true;
+        
+    }
+   
+   
+   
     
   
     // get the path to the shared folders with xml files
@@ -287,9 +301,37 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
     // BSE singlet excitons
     if ( _orbitals.hasBSESinglets()){
         LOG(logDEBUG, _log) << "      BSE singlet excitons:   " << _orbitals.getBSESingletEnergies()->size() << flush;
+        
+        if (_print_BSE_singlets){
+            LOG(logDEBUG, _log) << "      BSE singlet excitons energies:   " << flush;
+            const double Ryd2eV =13.605692;
+            const vector<float> energies= _orbitals.BSESingletEnergies();
+            for (unsigned i=0;i<energies.size();i++){
+                LOG(logDEBUG, _log) << "Singlet" <<i+1<<"[eV]: "<<energies[i]*Ryd2eV << flush;
+            }
+        }    
+        if (_print_oscstrength){
+            LOG(logDEBUG, _log) << "      BSE singlet oscillatorstrengths   " << flush;
+            const std::vector<std::vector<double> > trdipoles=_orbitals.TransitionDipoles();
+            const vector<float> energies= _orbitals.BSESingletEnergies();
+            for (unsigned i=0;i<trdipoles.size();i++){
+                double oscstrength=(trdipoles[i][0]*trdipoles[i][0]+trdipoles[i][1]*trdipoles[i][1]+trdipoles[i][2]*trdipoles[i][2])/3.0*energies[i];
+                LOG(logDEBUG, _log) << "Singlet" <<i+1<<": "<<oscstrength << flush;
+            }
+            LOG(logDEBUG, _log) << "      BSE singlet transitiondipoles (length gauge)   " << flush;
+            for (unsigned i=0;i<trdipoles.size();i++){
+
+                LOG(logDEBUG, _log) << "Singlet" <<i+1<<" x y z : "<< trdipoles[i][0] <<" "<< trdipoles[i][1] <<" "<< trdipoles[i][2] << flush;
+            }
+        
+        
+        
+        }
     } else {
         LOG(logDEBUG, _log) << "      BSE singlet excitons:   not stored" << flush;
     }  
+    
+    
     
     // Transition dipole moments
     if ( _orbitals.hasTransitionDipoles()){
@@ -322,6 +364,8 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
     } else {
         LOG(logDEBUG, _log) << "      BSE triplet couplings:  not stored" << flush;
     }  
+    
+   
     
     
     

@@ -2,6 +2,7 @@
 #include <votca/ctp/job.h>
 #include <fstream>
 #include <boost/format.hpp>
+#include <votca/tools/tokenizer.h>
 
 using boost::format;
 namespace votca { namespace ctp {
@@ -74,11 +75,17 @@ void JobWriter::mps_chrg(Topology *top) {
     vector<Segment*>::iterator sit1;
     
     // DEFINE PAIR CHARGE STATES
-    vector<string > states;
+    vector<string> states;
     vector<string> ::iterator vit;
-    states.push_back("n");
-    states.push_back("e");
-    states.push_back("h");
+
+    string str_states = _options->get("options.jobwriter.states").as<string>();
+    string seg_pattern = "*";
+    if (_options->exists("options.jobwriter.pattern")) {
+        seg_pattern = _options->get("options.jobwriter.pattern").as<string>();
+    }
+    Tokenizer tok_states(str_states, " ,\t\n");
+    tok_states.ToVector(states);
+	
 
     
     // CREATE JOBS FOR ALL SEGMENTS AND STATES
@@ -88,6 +95,8 @@ void JobWriter::mps_chrg(Topology *top) {
 
         int id1 = seg1->getId();
         string name1 = seg1->getName();
+        
+        if (!votca::tools::wildcmp(seg_pattern.c_str(), name1.c_str())) continue;
         
         for (vit = states.begin(); vit != states.end(); ++vit) {
             int id = ++jobCount;
@@ -280,16 +289,16 @@ void JobWriter::mps_single(Topology *top) {
     // DEFINE PAIR CHARGE STATES
     vector<string > states;
     vector<string> ::iterator vit;
-    states.push_back("n");
-    states.push_back("e");
-    states.push_back("h");
+    string str_states = _options->get("options.jobwriter.states").as<string>();
+    Tokenizer tok_states(str_states, " ,\t\n");
+    tok_states.ToVector(states);
     
     // CREATE JOBS FOR ALL SEGMENTS AND STATES
-    int single_id = _options->get("options.jobwriter.single_id").as<int>();
+    unsigned int single_id = _options->get("options.jobwriter.single_id").as<int>();
     bool proceed = true;
     if (single_id < 1 || single_id > top->Segments().size()) {
         cout << endl 
-             << "... ... ERROR Corrupt value in options.jobwriter.singel_id: "
+             << "... ... ERROR Corrupt value in options.jobwriter.single_id: "
              << "No such segment ID = " << single_id << ". Return." 
              << flush;
         ofs << "ERROR Corrupt value in options.jobwriter.single_id" << endl;
@@ -381,6 +390,9 @@ void JobWriter::edft(Topology *top) {
     ofs.close();
     
 }
+
+
+
     
 void JobWriter::idft(Topology *top) {
 

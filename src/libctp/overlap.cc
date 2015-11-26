@@ -79,7 +79,7 @@ double Overlap::getCouplingElement( int levelA, int levelB,  Orbitals* _orbitals
     const double _conv_Hrt_eV = 27.21138386;   
 
             int _levelsA = _orbitalsA->getNumberOfLevels();
-    int _levelsB = _orbitalsB->getNumberOfLevels();    
+    //int _levelsB = _orbitalsB->getNumberOfLevels();    
     
     if ( _energy_difference != 0 ) {
         std::vector<int> list_levelsA = *_orbitalsA->getDegeneracy( levelA, _energy_difference );

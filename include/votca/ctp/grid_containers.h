@@ -36,8 +36,7 @@ namespace votca { namespace ctp {
         class GridContainers {
         public: 
             
-            GridContainers() { };
-
+            GridContainers(){};
             // containers for radial grids per element
             struct radial_grid {
                 std::vector<double> radius;
@@ -62,6 +61,7 @@ namespace votca { namespace ctp {
                 double grid_y;
                 double grid_z;
                 double grid_weight;
+                double grid_density;
             };
 
         };

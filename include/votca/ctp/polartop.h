@@ -4,6 +4,7 @@
 #include <votca/ctp/polarseg.h>
 #include <votca/ctp/topology.h>
 #include <boost/serialization/vector.hpp>
+#include <boost/serialization/version.hpp>
 
 namespace votca { namespace ctp {
 
@@ -54,6 +55,11 @@ public:
    void   PrintInduState(string out, string format, bool split, double space);
    void   PrintInduState(FILE *out,  string format, bool split, double space);
    
+   // POLARIZATION STATE
+   void   setPolarizationIter(int iter, bool converged) { 
+       _polarization_iter = iter; _polarization_converged = converged; }
+   int    getPolarizationIter() { return _polarization_iter; }
+   
    template<class Archive>
    void serialize(Archive &arch, const unsigned int version) {
        arch & _center;       
@@ -63,6 +69,10 @@ public:
        arch & _bgN;
        arch & _fgN;
        arch & _fgC;
+       if (version > 0) {
+           arch & _polarization_iter;
+           arch & _polarization_converged;
+       }
        return;
    }
    
@@ -100,9 +110,11 @@ private:
    bool _clean_bgN;
    bool _clean_fgN;
    bool _clean_fgC;
+   
+   int _polarization_iter;
+   bool _polarization_converged;
 
 };
-
 
 }}
 

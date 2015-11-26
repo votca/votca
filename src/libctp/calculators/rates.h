@@ -93,7 +93,8 @@ complex<double> ccgamma(complex<double> z,int OPT)
     complex<double> g,z0,z1;
     double x0,q1,q2,x,y,th,th1,th2,g0,gr,gi,gr1,gi1;
     double na,t,x1,y1,sr,si;
-    int i,j,k;
+    //int i,j,k;
+    int j,k;
 
     static double a[] = {
         8.333333333333333e-02,
@@ -360,12 +361,16 @@ void Rates::EvaluatePair(Topology *top, QMPair *qmpair) {
 
     bool pair_has_e = false;
     bool pair_has_h = false;
+    bool pair_has_s = false;
+    bool pair_has_t = false;
 
     string segName1 = qmpair->first->getName();
     string segName2 = qmpair->second->getName();
 
     pair_has_e = qmpair->isPathCarrier(-1);
     pair_has_h = qmpair->isPathCarrier(+1);
+    pair_has_s = qmpair->isPathCarrier(+2);
+    pair_has_t = qmpair->isPathCarrier(+3);
 
 //    try {
 //        pair_has_e = _seg_has_e.at(segName1) && _seg_has_e.at(segName2);
@@ -385,6 +390,12 @@ void Rates::EvaluatePair(Topology *top, QMPair *qmpair) {
     if (pair_has_h) {
         this->CalculateRate(top, qmpair, +1);
     }
+    if (pair_has_s) {
+        this->CalculateRate(top, qmpair, +2);
+    }
+    if (pair_has_t) {
+        this->CalculateRate(top, qmpair, +3);
+    }
 }
 
 
@@ -402,20 +413,42 @@ void Rates::CalculateRate(Topology *top, QMPair *qmpair, int state) {
 
     double rate_symm12 = 0;
     double rate_symm21 = 0;
-    double measure = 0;
+    //double measure = 0;
+    double reorg12=0;
+    double reorg21=0;
+    double dG_Site=0;
+    double dG_Field=0;
+    
+    if (state<2){
+        reorg12  = seg1->getU_nC_nN(state)                 // 1->2
+                        + seg2->getU_cN_cC(state);
+        reorg21  = seg1->getU_cN_cC(state)                 // 2->1
+                        + seg2->getU_nC_nN(state);
+        dG_Site  = seg2->getU_cC_nN(state)                 // 1->2 == - 2->1
+                        + seg2->getEMpoles(state)
+                        - seg1->getU_cC_nN(state)
+                        - seg1->getEMpoles(state);
+        dG_Field = - state * _F * qmpair->R() * NM2M;
+    }
+    else if (state>=2){
+        reorg12  = seg1->getU_nX_nN(state)                 // 1->2
+                        + seg2->getU_xN_xX(state);
+        reorg21  = seg1->getU_xN_xX(state)                 // 2->1
+                        + seg2->getU_nX_nN(state);
+        dG_Site  = seg2->getU_xX_nN(state)                 // 1->2 == - 2->1
+                        + seg2->getEMpoles(state)
+                        - seg1->getU_xX_nN(state)
+                        - seg1->getEMpoles(state);       
+    }
     
     
-    double reorg12  = seg1->getU_nC_nN(state)                 // 1->2
-                    + seg2->getU_cN_cC(state);
-    double reorg21  = seg1->getU_cN_cC(state)                 // 2->1
-                    + seg2->getU_nC_nN(state);
+    
+    
+    
     double lOut     = qmpair->getLambdaO(state);              // 1->2 == + 2->1
 
-    double dG_Site  = seg2->getU_cC_nN(state)                 // 1->2 == - 2->1
-                    + seg2->getEMpoles(state)
-                    - seg1->getU_cC_nN(state)
-                    - seg1->getEMpoles(state);
-    double dG_Field = - state * _F * qmpair->R() * NM2M;      // 1->2 == - 2->1
+    
+          // 1->2 == - 2->1
 
     double J2 = qmpair->getJeff2(state);                      // 1->2 == + 2->1
 
@@ -518,7 +551,7 @@ void Rates::CalculateRate(Topology *top, QMPair *qmpair, int state) {
     // equation 6 
     // ++++++++++++ //
 
-    } else if (_rateType == "weissdorsey") {//not yet fully checked
+    } else if (_rateType == "weissdorsey") {
         
         _kondo = _kondo/2+1; // going from alpha to alpha'
 
@@ -528,7 +561,7 @@ void Rates::CalculateRate(Topology *top, QMPair *qmpair, int state) {
         double characfreq12 = reorg12 /2 /_kondo/hbar_eV;
         double characfreq21 = reorg21 /2 /_kondo/hbar_eV;
         
-        complex<double> M_I = (0,1);
+        complex<double> M_I = complex<double>(0.0,1.0);
        /* cout << endl;
        cout << "  CGAMMA via GSL: " << gsl_sf_gamma(2*_kondo) << " native: " << ccgamma(2*_kondo,0).real() << endl;
        cout << " LCGAMMA via GSL: " << cgamma(_kondo+M_I*(+dG/2/M_PI/_kT)) << " native: " << ccgamma(_kondo+M_I*(+dG/2/M_PI/_kT),0) << endl;

@@ -26,7 +26,7 @@ private:
     string _outDimDir;
 
     string _outFormat;
-    bool   _subFolder;
+    //bool   _subFolder;
     bool   _useQMPos;
 };
 

@@ -98,7 +98,7 @@ namespace votca { namespace ctp {
         
             // some helpers
             const double _fak3 = 3.0 * _fak;
-            const double _fak4 = 4.0 * _fak;
+            //const double _fak4 = 4.0 * _fak;
 
             
             if ( sqrt(_distsq) > 0.01  ){
@@ -651,8 +651,8 @@ namespace votca { namespace ctp {
         ub::matrix<double> _trafo_col_tposed = ub::trans( _trafo_col );
         ub::matrix<double> _ol_sph = ub::prod( _ol_tmp, _trafo_col_tposed );
         // save to _matrix
-        for ( int i = 0; i< _matrix.size1(); i++ ) {
-            for (int j = 0; j < _matrix.size2(); j++){
+        for ( unsigned i = 0; i< _matrix.size1(); i++ ) {
+            for (unsigned j = 0; j < _matrix.size2(); j++){
                 _matrix(i,j) += _ol_sph(i+_shell_row->getOffset(),j+_shell_col->getOffset());
             }
         }

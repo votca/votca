@@ -26,10 +26,7 @@
 
 #include <votca/ctp/segment.h>
 #include <votca/ctp/orbitals.h>
-#include <votca/ctp/aobasis.h>
-#include <votca/ctp/aomatrix.h>
 #include <votca/ctp/threecenters.h>
-#include <votca/ctp/logger.h>
 #include <votca/ctp/qmpackagefactory.h>
 #include <votca/ctp/parallelxjobcalc.h>
 #include <unistd.h>
@@ -43,10 +40,8 @@
 #include <votca/tools/linalg.h>
 
 #include <boost/numeric/ublas/operation.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/io.hpp>
 // #include <gsl/gsl_eigen.h>
 // #include <gsl/gsl_linalg.h>
 // #include <gsl/gsl_cblas.h>
@@ -198,6 +193,11 @@ public:
     // automatic scissors iteration
     bool                                _iterate_shift;
     bool                                _shift_converged;
+    
+    // options for own Vxc calculation
+    bool                                _doVxc;
+    string                              _functional;
+    string                              _grid;
     
     int                                 _openmp_threads;
     

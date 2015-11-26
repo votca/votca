@@ -302,7 +302,7 @@ bool Exciton::Evaluate() {
          _log.setReportLevel( _ReportLevel ); // go silent again during numerical force calculation, if requested
       
       }
-      double energy_new;
+      //double energy_new;
       // now iterate
       while ( ! _converged ){ 
            _geoopt_preface = "\n... ... GEOOPT " + boost::lexical_cast<std::string>(_iteration+1);
@@ -483,8 +483,8 @@ bool Exciton::Evaluate() {
         }
         // output Hessian
         fprintf(restart, "Hessian \n");
-        for ( int _i = 0; _i < _hessian.size1() ; _i++){
-            for ( int _j = 0; _j < _hessian.size2() ; _j++){
+        for ( unsigned _i = 0; _i < _hessian.size1() ; _i++){
+            for ( unsigned _j = 0; _j < _hessian.size2() ; _j++){
                 
                 fprintf(restart, "%d %d %le \n", _i,_j,_hessian(_i,_j)); 
                 
@@ -535,7 +535,8 @@ bool Exciton::Evaluate() {
      
      
     Property _summary; 
-    Property *_job_output = &_summary.add("output","");
+    _summary.add("output","");
+    //Property *_job_output = &_summary.add("output","");
     votca::tools::PropertyIOManipulator iomXML(votca::tools::PropertyIOManipulator::XML, 1, "");
      
     //ofs (_output_file.c_str(), std::ofstream::out);
@@ -1021,16 +1022,16 @@ void Exciton::BFGSStep(int& _iteration, bool& _update_hessian, ub::matrix<double
             _total_shift(_i_cart) += _delta_pos(_idx);
         }
     }
-    
+   /* 
     // make sure there is no CoM movement
        for ( int _i_atom = 0; _i_atom < _natoms; _i_atom++){
         for ( int _i_cart = 0; _i_cart < 3; _i_cart++ ){
-             int _idx = 3*_i_atom + _i_cart;
+             //int _idx = 3*_i_atom + _i_cart;
             //_current_xyz(_i_atom,_i_cart) -= _total_shift(_i_cart)/_natoms;
             // _trial_xyz(_i_atom,_i_cart) -= _total_shift(_i_cart)/_natoms;
         }
     }
-    
+    */
     
 }
 
@@ -1078,9 +1079,11 @@ void Exciton::ExcitationEnergies(QMPackage* _qmpackage, vector<Segment*> _segmen
       if ( _do_dft_parse ){
         LOG(logDEBUG,_log) << "Parsing DFT data " << _output_file << flush;
         _qmpackage->setOrbitalsFileName( _orbfile );
-        int _parse_orbitals_status = _qmpackage->ParseOrbitalsFile( _orbitals );
+        _qmpackage->ParseOrbitalsFile( _orbitals );
+       //int _parse_orbitals_status = _qmpackage->ParseOrbitalsFile( _orbitals );
         _qmpackage->setLogFileName( _logfile );
-        int _parse_log_status = _qmpackage->ParseLogFile( _orbitals );
+        _qmpackage->ParseLogFile( _orbitals );
+        //int _parse_log_status = _qmpackage->ParseLogFile( _orbitals );
         _orbitals->setDFTbasis(_qmpackage->getBasisSetName());
  
         
@@ -1097,7 +1100,8 @@ void Exciton::ExcitationEnergies(QMPackage* _qmpackage, vector<Segment*> _segmen
      if ( _do_gwbse ){
         _gwbse.setLogger(&_log);
         _gwbse.Initialize( &_gwbse_options );
-        bool _evaluate = _gwbse.Evaluate( _orbitals );
+        _gwbse.Evaluate( _orbitals );
+        //bool _evaluate = _gwbse.Evaluate( _orbitals );
         // std::cout << _log;
      }
      
@@ -1112,7 +1116,7 @@ double Exciton::GetTotalEnergy(Orbitals* _orbitals, string _spintype, int _opt_s
     
     // total energy of the excited state
     double _total_energy ;
-    double _omega;
+    double _omega=0.0;
     
     double _dft_energy = _orbitals->getQMEnergy();
     
@@ -1137,7 +1141,8 @@ void Exciton::ReadXYZ(Segment* _segment, string filename){
                
                 ifstream in;
                 double x, y, z;
-                int natoms, id;
+                //int natoms, id;
+                int id;
                 string label, type;
                 vec pos;
 
@@ -1199,8 +1204,8 @@ void Exciton::Orbitals2Segment(Segment* _segment, Orbitals* _orbitals){
 
    double _maximum = 0.0;
 
-   for ( int _i = 0; _i < _matrix.size1(); _i++ ){
-     for ( int _j = 0; _j < _matrix.size2(); _j++ ){
+   for ( unsigned _i = 0; _i < _matrix.size1(); _i++ ){
+     for ( unsigned _j = 0; _j < _matrix.size2(); _j++ ){
        if ( std::abs(_matrix(_i,_j)) > _maximum ) {
 	 _maximum = std::abs(_matrix(_i,_j));
        }				   
@@ -1216,8 +1221,8 @@ void Exciton::Orbitals2Segment(Segment* _segment, Orbitals* _orbitals){
    double _rms = 0.0;
    int _n = 0;
 
-   for ( int _i = 0; _i < _matrix.size1(); _i++ ){
-     for ( int _j = 0; _j < _matrix.size2(); _j++ ){
+   for ( unsigned _i = 0; _i < _matrix.size1(); _i++ ){
+     for ( unsigned _j = 0; _j < _matrix.size2(); _j++ ){
        _rms += _matrix(_i,_j) * _matrix(_i,_j);
        _n++;
      }
@@ -1343,7 +1348,7 @@ void Exciton::Orbitals2Segment(Segment* _segment, Orbitals* _orbitals){
 
             
       string type;
-      int id = 1;
+      //int id = 1;
       for (segait = _segatoms.begin(); segait < _segatoms.end(); ++segait) {
                 
                 // Atom *pAtom = new Atom(id++, type);
@@ -1413,7 +1418,7 @@ void Exciton::Orbitals2Segment(Segment* _segment, Orbitals* _orbitals){
             linalg_eigenvalues( _MOoverlap_eigenvalues, _MOoverlap);
 
             ub::matrix<double> _diagS = ub::zero_matrix<double>( _AOoverlap._aomatrix.size1(), _AOoverlap._aomatrix.size1());
-            for ( int _i =0; _i <  _AOoverlap._aomatrix.size1(); _i++){
+            for ( unsigned _i =0; _i <  _AOoverlap._aomatrix.size1(); _i++){
                 _diagS(_i,_i) = 1.0/sqrt(_MOoverlap_eigenvalues[_i]);
             }
             // ub::matrix<double> _transform = ub::prod( _MOoverlap, ub::prod( _diagS, ub::trans(_MOoverlap) )  );

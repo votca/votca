@@ -22,10 +22,6 @@
 
 #include <votca/ctp/aobasis.h>
 #include <votca/ctp/segment.h>
-#include <string>
-#include <map>
-#include <vector>
-#include <votca/tools/property.h>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/lu.hpp>
 #include <boost/numeric/ublas/io.hpp>
@@ -36,9 +32,12 @@
 using namespace std;
 using namespace votca::tools;
 
-namespace Cartesian {
+namespace Cart {
         enum Index {
-                s, x, y, z,  xy, xz, yz, xx, yy, zz
+                s, x, y, z,  xy, xz, yz, xx, yy, zz, xxy, xyy, xyz, xxz, xzz, yyz, yzz, xxx, yyy, zzz,
+                xxxy,xxxz,xxyy,xxyz,xxzz,xyyy,xyyz,xyzz,xzzz,yyyz,yyzz,yzzz,xxxx,yyyy,zzzz,
+                xxxxy,xxxxz,xxxyy,xxxyz,xxxzz,xxyyy,xxyyz,xxyzz,xxzzz,xyyyy,xyyyz,xyyzz,xyzzz,xzzzz,yyyyz,yyyzz,yyzzz,yzzzz,xxxxx,yyyyy,zzzzz
+                
                 };
 }
 
@@ -72,7 +71,7 @@ namespace votca { namespace ctp {
         ub::vector<double> _gridpoint;
 
 	// Access functions
-	const int Dimension(){ return _aomatrix.size1();};
+	int Dimension(){ return  _aomatrix.size1();};
 	ub::matrix<double> &Matrix(){ return _aomatrix ;};
 
 

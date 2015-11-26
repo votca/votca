@@ -17,18 +17,9 @@
  *
  */
 
-#include <votca/ctp/aomatrix.h>
-#include <votca/ctp/aobasis.h>
-#include <votca/ctp/threecenters.h>
+
 #include <votca/ctp/ERIs.h>
-#include <string>
-#include <vector>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/lu.hpp>
-#include <boost/numeric/ublas/io.hpp>
-#include <votca/tools/linalg.h>
-#include <omp.h>
-#include <boost/multi_array.hpp>
+
 
 using namespace std;
 using namespace votca::tools;
@@ -51,23 +42,24 @@ namespace votca {
              }
             exit(0); */
             
-            ub::matrix<double> _inverse=ub::zero_matrix<double>( _auxAOverlap.Dimension(), _auxAOverlap.Dimension());
+            //ub::matrix<double> _inverse=ub::zero_matrix<double>( _auxAOverlap.Dimension(), _auxAOverlap.Dimension());
             
             /* AOOverlap _auxoverlap_inverse;               
             AOOverlap _auxoverlap_cholesky_inverse;      
             _auxoverlap_inverse.Initialize( _auxbasis._AOBasisSize);
             _auxAOcoulomb.Symmetrize(_auxAOverlap , _auxbasis, _auxoverlap_inverse , _auxoverlap_cholesky_inverse);
             */
-            linalg_invert( _auxAOverlap.Matrix() , _inverse);
-            ub::matrix<double> _temp=ub::prod(_auxAOcoulomb.Matrix(),_inverse);
-            _Vcoulomb=ub::prod(_inverse,_temp);
+            //linalg_invert( _auxAOverlap.Matrix() , _inverse);
+            //ub::matrix<double> _temp=ub::prod(_auxAOcoulomb.Matrix(),_inverse);
+            _Vcoulomb=_auxAOcoulomb.Matrix();
+            
             
             //cout << "Vcoulomb"<< _Vcoulomb<< endl;
  /*
             int size4c=_dftbasis.AOBasisSize();
 
             // reconstructing 4center-integrals
-	    
+	  
             for (int k=0; k<_auxbasis._AOBasisSize; k++){
                 
                 ub::matrix<double> shit = _threecenter.getDatamatrix(k);
@@ -75,11 +67,11 @@ namespace votca {
                for (int alpha=0; alpha<size4c; alpha++){
                     for (int beta=0; beta<size4c ;beta++){
                         
-                        if ( std::abs(shit(alpha,beta) - shit(beta,alpha)) > 1.e-8 ){
+                        
                         
                         cout << "SHIT " << k << " " <<  alpha << " " << beta << " " << shit(alpha,beta) << " vs " << shit(beta,alpha) << endl;
                         
-                        }
+                        
                     }
                }
                 
@@ -97,13 +89,13 @@ namespace votca {
             
             
             
-            exit(0);
-            */
+            //exit(0);
             
             
+        
             
 
-           /*
+           
             
             typedef boost::multi_array<double, 4> fourdim;
             fourdim  fourcenter(boost::extents[size4c][size4c][size4c][size4c]);
@@ -127,12 +119,12 @@ namespace votca {
             }}
             }}
 
-exit(0); */
+exit(0);
 	    
             
             
             
-          /*
+          
             AOOverlap _auxoverlap_inverse;               // will also be needed in PPM itself
             AOOverlap _auxoverlap_cholesky_inverse;      // will also be needed in PPM itself
             _auxoverlap_inverse.Initialize( _auxbasis._AOBasisSize);
@@ -174,10 +166,10 @@ exit(0); */
             
             
          
-
-        
-        
         }
+        
+        
+
         
         
         
@@ -303,14 +295,14 @@ exit(0); */
            //_auxAOverlap.Print("AUX-OL");
             linalg_invert( _auxAOverlap._aomatrix , _inverse);
             
-         /*  ub:: matrix<double> _testS = ub::prod(_auxAOverlap._aomatrix , _inverse);
+           ub:: matrix<double> _testS = ub::prod(_auxAOverlap._aomatrix , _inverse);
                       for (int _i = 0; _i < _threecenter.getSize(); _i++) {
                 for (int _j = 0; _j < _threecenter.getSize(); _j++) {
                     cout << " S*S-1(" << _i << "," << _j << ") " << setprecision (9) << _testS(_i,_j) << endl; 
                       }
-        }*/
+        }
            
-            
+          */  
             //cout <<  "3c size " << _threecenter.getSize() << " _auxAODim " << _auxAOverlap.Dimension() << " DMAT1 " << DMAT.size1() << " DMAT2 " << DMAT.size2() << endl;
             
             
@@ -338,7 +330,7 @@ exit(0); */
                 }
             }
             
-            
+           
   
             
             
@@ -363,7 +355,8 @@ exit(0); */
             cout << " \nNumber of electrons in Density Fit  " << _Nfit << endl;
             
             
-            exit(0); */
+            //exit(0);
+            exit(0);
             
             
             _ERIs=ub::zero_matrix<double>(DMAT.size1(),DMAT.size2());
@@ -392,7 +385,7 @@ exit(0); */
             
             
             
-            /*               
+                          
             for (int alpha=0;alpha<size4c;alpha++){
                     for (int beta=0;beta<size4c;beta++){
 
@@ -412,13 +405,13 @@ exit(0); */
                  }
             }
             
-            exit(0); */
+            exit(0); 
             
             
             
             
            
-            CalculateEnergy(dmatasarray);
+           // CalculateEnergy(dmatasarray);
         }
         
         
@@ -429,20 +422,20 @@ exit(0); */
         void ERIs::CalculateEnergy(ub::vector<double> &dmatasarray){
             _ERIsenergy=0;
             ub::vector<double> ERIsasarray=_ERIs.data();
-            for ( int _i=0;_i<ERIsasarray.size();_i++){
+            for (unsigned _i=0;_i<ERIsasarray.size();_i++){
                 _ERIsenergy+=dmatasarray[_i]*ERIsasarray[_i];
                 
             }
             
             
-            
+          */  
             
         }
         
         
         void ERIs::printERIs(){
-          for (int i=0; i< _ERIs.size1(); i++){
-                for (int j=0; j< _ERIs.size2();j++){
+          for (unsigned i=0; i< _ERIs.size1(); i++){
+                for (unsigned j=0; j< _ERIs.size2();j++){
                     cout << "ERIs [" << i<<":"<<j<<"]="<<_ERIs(i,j)<<endl;
                 }
             }

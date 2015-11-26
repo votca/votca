@@ -1,0 +1,15 @@
+<options>
+
+<!-- ctp_tools -e ESPFit options.xml -->
+<espfit help="Electrostatic potentialfit tool for QM results stores in serialized file" section="sec:overlap">
+        <output help="Output file either .mps or .pdb" default="Moleculecharges.mps">molecule.mps</output>
+        <state help="ground-,excited or transitionstate (ground,excited,transition)">transition</state>
+        <spin help="singlet or triplet">singlet</spin>
+        <statenumber help="Number of the state to be used (not needed for groundstate)">5</statenumber> 
+        <input help="Serialized file" default="molecule.orb">system.orb</input>
+        <method help="How to integrate potential, etiher numeric or analytic" >numeric</method>
+</espfit>
+
+</options>
+
+

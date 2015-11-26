@@ -68,14 +68,16 @@ public:
 private:
 
     int                 _number_excitons;
-    int                 _max_unoccupied_levels;     
-    int                 _trim_factor;
+    //int                 _max_unoccupied_levels;     
+    //int                 _trim_factor;
     
     string              _package;
     Property            _package_options; 
     Property            _gwbse_options; 
     
     string              _spintype;
+    bool                _do_singlets;
+    bool                _do_triplets;
     //GWBSE               _gwbse;
     //BSECoupling         _bsecoupling; 
 
@@ -96,8 +98,15 @@ private:
     double              _energy_difference;    
         
     string              _outParent;
-        
+    
+    
+    // parsing options
+    std::map<std::string, int> _singlet_levels;
+    std::map<std::string, int> _triplet_levels;
+
     void ParseOptionsXML( tools::Property *opt);    
+    
+    std::map<std::string, int> FillParseMaps(string Mapstring);
     
     
     /** 

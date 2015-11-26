@@ -20,7 +20,7 @@
 #include <votca/ctp/votca_ctp_config.h>
 
 
-# include "votca/ctp/sphere_lebedev_rule.h"
+#include "votca/ctp/sphere_lebedev_rule.h"
 #include "votca/ctp/grid_containers.h"
 
 using namespace std;
@@ -28,7 +28,7 @@ using namespace std;
 
 namespace votca { namespace ctp { 
 
-    
+    double pi=boost::math::constants::pi<double>();
     
     void LebedevGrid::getSphericalGrid(vector<QMAtom*> _atoms, string type, GridContainers& _grids){
 
@@ -61,7 +61,7 @@ namespace votca { namespace ctp {
     
     
     void LebedevGrid::getUnitSphereGrid(string element, string type, std::vector<double>& _theta, std::vector<double>& _phi, std::vector<double>& _weight){
-
+              
               double *w;
               double *x;
               double *y;
@@ -92,7 +92,7 @@ namespace votca { namespace ctp {
     
     
         void LebedevGrid::getUnitSphereGrid(int order, std::vector<double>& _theta, std::vector<double>& _phi, std::vector<double>& _weight){
-
+              
               double *w;
               double *x;
               double *y;
@@ -134,11 +134,22 @@ namespace votca { namespace ctp {
         
         if ( type == "medium"){
             
-            return MediumOrder.at(element);            
-            
+            return MediumOrder.at(element);                        
         }
-        
-        
+        else if ( type == "coarse"){
+            return CoarseOrder.at(element); 
+        }
+        else if ( type == "xcoarse"){
+            return XcoarseOrder.at(element); 
+        }
+        else if ( type == "fine"){
+            return FineOrder.at(element); 
+        }
+        else if ( type == "xfine"){
+            return XfineOrder.at(element); 
+        }
+        throw std::runtime_error("Grid type "+type+" is not implemented");
+        return -1;
         
         
         
@@ -6999,14 +7010,14 @@ void LebedevGrid::timestamp ( )
 # define TIME_SIZE 40
 
   static char time_buffer[TIME_SIZE];
-  const struct std::tm *tm_ptr;
-  size_t len;
-  std::time_t now;
+  //const struct std::tm *tm_ptr;
+  //size_t len;
+  //std::time_t now;
 
-  now = std::time ( NULL );
-  tm_ptr = std::localtime ( &now );
+  //now = std::time ( NULL );
+  //tm_ptr = std::localtime ( &now );
 
-  len = std::strftime ( time_buffer, TIME_SIZE, "%d %B %Y %I:%M:%S %p", tm_ptr );
+  //len = std::strftime ( time_buffer, TIME_SIZE, "%d %B %Y %I:%M:%S %p", tm_ptr );
 
   std::cout << time_buffer << "\n";
 

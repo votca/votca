@@ -33,41 +33,62 @@ public:
     Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log);
     virtual ~Ewald3DnD();
     virtual string IdentifyMethod() = 0;
+    
     // POLAR SYSTEM SET-UP
     void ExpandForegroundReduceBackground(double polar_R_co);
     void CoarseGrainDensities(bool cg_bg, bool cg_fg, double cg_radius);
     void SetupMidground(double R_co);
     void WriteDensitiesPDB(string pdbfile);
     void WriteDensitiesPtop(string fg, string mg, string bg);
-    // THOLEWALD EVALUATION
-    void Evaluate();
-    void EvaluateFields();
-    void EvaluateInduction();
-    void EvaluateEnergy();
-    void EvaluatePoisson();
-    // OUTPUT & ERROR COMMUNICATION
-    bool Converged() { return _converged_R && _converged_K && _polar_converged; }
-    Property GenerateOutputString();
-    string GenerateErrorString();        
+    void WriteInductionStateTable();
     // K-VECTOR GENERATION
     virtual void GenerateKVectors(
         vector<PolarSeg*> &ps1, vector<PolarSeg*> &ps2) { ; }
+    
+    // THOLEWALD EVALUATION
+    void Evaluate();
+    void EvaluateFields(bool do_depolarize_fgc);
+    void EvaluateInduction();    
+    void EvaluateEnergy(vector<PolarSeg*> &target);
+    void EvaluateRadialCorrection(vector<PolarSeg*> &target);
+    void EvaluatePoisson();
+    // APERIODIC EMBEDDING QMMM
+    bool EvaluateInductionQMMM(bool, bool, bool, bool, bool);
+    void EvaluateEnergyQMMM();
+    
+    // OUTPUT & ERROR COMMUNICATION
+    bool Converged() { return _converged_R && _converged_K && _polar_converged; }
+    Property GenerateOutputString();
+    string GenerateErrorString();
+    void ShowAgenda(Logger *log);
+    void ShowFieldsTeaser(vector<PolarSeg*> &target, Logger *log);
+    void ShowEnergySplitting(Logger *log);
+    
     // ENERGY CALCULATOR METHODS
-    virtual EWD::triple<> ConvergeRealSpaceSum();
-    virtual EWD::triple<> ConvergeReciprocalSpaceSum() = 0;
-    virtual EWD::triple<> CalculateForegroundCorrection();
-    virtual EWD::triple<> CalculateHigherRankCorrection();
-    virtual EWD::triple<> CalculateShapeCorrection()
+    virtual EWD::triple<> ConvergeRealSpaceSum(vector<PolarSeg*> &target);
+    virtual EWD::triple<> ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) = 0;
+    virtual EWD::triple<> CalculateForegroundCorrection(vector<PolarSeg*> &target);
+    virtual EWD::triple<> CalculateHigherRankCorrection(vector<PolarSeg*> &target);
+    virtual EWD::triple<> CalculateShapeCorrection(vector<PolarSeg*> &target)
         { return EWD::triple<>(0.0,0.0,0.0); }
-    virtual EWD::triple<> CalculateK0Correction()
+    virtual EWD::triple<> CalculateK0Correction(vector<PolarSeg*> &target)
         { return EWD::triple<>(0.0,0.0,0.0); }
+    
     // FIELD CALCULATOR METHODS
     virtual void Field_ConvergeRealSpaceSum() { ; }
     virtual void Field_ConvergeReciprocalSpaceSum() { ; }
     virtual void Field_CalculateForegroundCorrection() { ; }
     virtual void Field_CalculateShapeCorrection() { ; }
-    // GENERALIZED POISSON METHODS
     
+    // POTENTIAL CALCULATOR METHODS
+    void EvaluatePotential(vector<PolarSeg*> &target, bool add_bg, bool add_mm1, bool add_qm0);
+    virtual void Potential_ConvergeRealSpaceSum(vector<PolarSeg*> &target) { ; }
+    virtual void Potential_ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) { ; }
+    virtual void Potential_CalculateForegroundCorrection(vector<PolarSeg*> &target) { ; }
+    virtual void Potential_CalculateShapeCorrection(vector<PolarSeg*> &target) { ; }
+    
+    // METHOD ANALYSIS
+    virtual void ScanCutoff() { ; }    
 
     // FOREGROUND TRACKER
     class ForegroundTable
@@ -119,11 +140,12 @@ public:
         }
 
     private:
-        fgtable_t _id_na_nb_nc__inFg;
-        int _n_segs_cell;
+       
+        //int _n_segs_cell;
         int _na_max;
         int _nb_max;
         int _nc_max;
+        fgtable_t _id_na_nb_nc__inFg;
     };
 
 
@@ -132,11 +154,12 @@ protected:
     EwdInteractor _ewdactor;
     XInteractor _actor;
     Logger *_log;
-
+    bool _started_from_archived_indu_state;
+    
     // PERIODIC BOUNDARY
     Topology *_top;
     vec _center;
-
+    
     // POLAR SEGMENTS
     // Part I - Ewald
     PolarTop *_ptop;
@@ -147,6 +170,7 @@ protected:
     vector< PolarSeg* > _fg_C;         // Charged foreground
     ForegroundTable *_fg_table;
     string _jobType;                   // Calculated from FGC charges
+    bool _do_compensate_net_dipole;
     // Part II - Thole
     vector< PolarSeg* > _polar_qm0;
     vector< PolarSeg* > _polar_mm1;
@@ -163,7 +187,9 @@ protected:
     bool _task_calculate_fields;
     bool _task_polarize_fg;
     bool _task_evaluate_energy;
+    bool _task_apply_radial;
     bool _task_solve_poisson;
+    bool _task_scan_cutoff;
 
     // CONVERGENCE
     // Part I - Ewald
@@ -177,6 +203,8 @@ protected:
     bool   _converged_K;               // Did K-space sum converge?
     bool   _field_converged_R;
     bool   _field_converged_K;
+    bool   _potential_converged_R;
+    bool   _potential_converged_K;
     bool   _did_field_pin_R_shell;
     bool   _save_nblist;
     // Part II - Thole
@@ -184,8 +212,10 @@ protected:
     double _polar_aDamp;
     double _polar_wSOR_N;
     double _polar_wSOR_C;
+    double _polar_epstol;
     double _polar_cutoff;
     double _polar_converged;
+    double _polar_radial_corr_epsilon;
 
     // LATTICE (REAL, RECIPROCAL)
     vec _a; vec _b; vec _c;            // Real-space lattice vectors
@@ -207,7 +237,7 @@ protected:
     bool _did_generate_kvectors;
 
     // THOLEWALD ENERGIES
-    // Part I - Ewald
+    // Part I - Aperiodic Embedding : FGC
     EWD::triple<> _ER;                 // R-space sum
     EWD::triple<> _EC;                 // R-space correction
     EWD::triple<> _EK;                 // K-space sum
@@ -215,6 +245,15 @@ protected:
     EWD::triple<> _ET;                 // ER - EC + EK + E0
     EWD::triple<> _EDQ;                // Higher-Rank FGC->MGN correction
     EWD::triple<> _EJ;                 // Geometry-dependent correction
+    double _outer; double _outer_epp; double _outer_eppu;
+    double _inner; double _inner_epp; double _inner_eppu; double _inner_ework;
+    // Part I' - Aperiodic Embedding : QM/MM Splitting
+    EWD::triple<> _ER_MM1; EWD::triple<> _ER_QM0;
+    EWD::triple<> _EC_MM1; EWD::triple<> _EC_QM0;
+    EWD::triple<> _EK_MM1; EWD::triple<> _EK_QM0;
+    EWD::triple<> _EJ_MM1; EWD::triple<> _EJ_QM0;
+    EWD::triple<> _E0_MM1; EWD::triple<> _E0_QM0;
+    EWD::triple<> _ET_MM1; EWD::triple<> _ET_QM0;
     // Part II - Thole
     double _polar_ETT;
     double _polar_EPP;  double _polar_EPU;  double _polar_EUU;
@@ -223,6 +262,8 @@ protected:
     double _polar_EM0;  double _polar_EM1;  double _polar_EM2;
     // Part I + Part II
     double _Estat;      double _Eindu;      double _Eppuu;
+    // Radial dielectric correction
+    double _polar_ERC;
 
     // TIMING (WALL CLOCK)
     double _t_total;
@@ -230,6 +271,7 @@ protected:
     double _t_fields;
     double _t_induction;
     double _t_energy;
+    double _t_radial;
     
 
 };

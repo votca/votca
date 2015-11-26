@@ -63,7 +63,7 @@ namespace votca {
             
             // store PPM weights from eigenvalues
             _ppm_weight.resize( _eigenvalues.size() );
-            for ( int _i = 0 ; _i <  _eigenvalues.size(); _i++   ){
+            for ( unsigned _i = 0 ; _i <  _eigenvalues.size(); _i++   ){
                 _ppm_weight(_i) = 1.0 - 1.0/_eigenvalues(_i);
             }
 
@@ -76,7 +76,7 @@ namespace votca {
             _temp = ub::zero_matrix<double>( _eigenvalues.size(),_eigenvalues.size() )  ;
             linalg_invert( _eigenvectors , _temp ); //eigenvectors is destroyed after!
             // c) PPM parameters -> diagonal elements
-            for ( int _i = 0 ; _i <  _eigenvalues.size(); _i++   ){
+            for ( unsigned _i = 0 ; _i <  _eigenvalues.size(); _i++   ){
                 
                 double _nom  = _temp( _i, _i ) - 1.0;
                 
@@ -116,7 +116,7 @@ namespace votca {
             int _size = _Mmn_RPA[0].size1(); // size of gwbasis
             
             // loop over frequencies
-            for ( int _i_freq = 0 ; _i_freq < _screening_freq.size1() ; _i_freq++ ){
+            for ( unsigned _i_freq = 0 ; _i_freq < _screening_freq.size1() ; _i_freq++ ){
                 
                 // loop over occupied levels -> vector index of _Mmn_RPA
                 // by default all variable shared, except for one defined in parallel region
@@ -203,7 +203,7 @@ namespace votca {
                 for (vector< AOShell* >::iterator _is = gwbasis.firstShell(); _is != gwbasis.lastShell(); _is++) {
                     AOShell* _shell = gwbasis.getShell(_is);
                     double decay = (*_shell->firstGaussian())->decay;
-                    int _lmax    = _shell->getLmax();
+                    //int _lmax    = _shell->getLmax();
                     int _size    = _shell->getNumFunc();
                     int _start  = _shell->getStartIndex();
 

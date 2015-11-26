@@ -24,7 +24,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
-
+#include <boost/algorithm/string/split.hpp>
 #include <votca/ctp/logger.h>
 #include <votca/ctp/qmpackagefactory.h>
 
@@ -58,6 +58,10 @@ void IGWBSE::Initialize(votca::tools::Property* options ) {
     _store_integrals = false;
     _store_ehint = false;
     
+    
+    _do_singlets=false;
+    _do_triplets=false;
+
     // update options with the VOTCASHARE defaults   
     UpdateWithDefaults( options );
     ParseOptionsXML( options  );
@@ -77,7 +81,15 @@ void IGWBSE::ParseOptionsXML( votca::tools::Property *opt ) {
     _number_excitons = opt->get(key+".states").as<int> ();
     // spin types for which to determine coupling
     _spintype   = opt->get(key + ".type").as<string> ();
- 
+    if (_spintype=="all"){
+        _do_singlets=true;
+        _do_triplets=true;
+    }
+    else if(_spintype=="singlets") _do_singlets=true;
+    else if(_spintype=="triplets") _do_triplets=true;
+    else{
+        throw std::runtime_error("Spin type not known. Input: singlets, triplets or all.");
+    }
     // job tasks
     string _tasks_string = opt->get(key+".tasks").as<string> ();
     if (_tasks_string.find("input")    != std::string::npos) _do_dft_input = true;
@@ -109,8 +121,37 @@ void IGWBSE::ParseOptionsXML( votca::tools::Property *opt ) {
     // job file specification
     key = "options." + Identify() +".job";
     _jobfile = opt->get(key + ".file").as<string>();    
+    
+    //options for parsing data into sql file   
+    key ="options." + Identify();
+    if ( opt->exists(key+".singlets")) {
+            string _parse_string_s = opt->get(key+".singlets").as<string> ();
+            _singlet_levels=FillParseMaps(_parse_string_s);       
+        }
+    if ( opt->exists(key+".triplets")) {
+            string _parse_string_t = opt->get(key+".triplets").as<string> ();
+            _triplet_levels=FillParseMaps(_parse_string_t);       
+        }
+
+     
+    
 
     
+}
+
+std::map<std::string, int> IGWBSE::FillParseMaps(string Mapstring){
+    std::vector<string> strings_vec;
+    boost::algorithm::split( strings_vec, Mapstring, boost::is_any_of("\t \n"),boost::token_compress_on );
+    std::vector<string>::iterator sit;
+    std::map<std::string, int> type2level;
+    for(sit=strings_vec.begin();sit<strings_vec.end();++sit){
+        std::vector<string>temp;
+        boost::algorithm::split( temp, (*sit), boost::is_any_of(":"),boost::token_compress_on );
+        int number=boost::lexical_cast<int>(temp[1]);
+        string type=temp[0];
+        type2level[type]=number; // -1 because default return if key is not found is 0, so if key is not found first exited state should be used number game
+    }
+    return type2level;
 }
 
 void IGWBSE::LoadOrbitals(string file_name, Orbitals* orbitals, Logger *log ) {
@@ -307,7 +348,8 @@ Job::JobResult IGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         GWBSE               _gwbse;
         _gwbse.setLogger(pLog);
         _gwbse.Initialize( &_gwbse_options );
-        bool _evaluate = _gwbse.Evaluate( &_orbitalsAB );
+        _gwbse.Evaluate( &_orbitalsAB );
+        //bool _evaluate = _gwbse.Evaluate( &_orbitalsAB );
         // std::cout << *pLog;
     } // end of excited state calculation, exciton data is in _orbitalsAB
     // ~GWBSE _gwbse;
@@ -397,7 +439,7 @@ Job::JobResult IGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         Property *_singlet_summary = &_type_summary->add("singlets","");
         for (int stateA = 0; stateA < _number_excitons ; ++stateA ) {
            for (int stateB = 0; stateB < _number_excitons  ; ++stateB ) {
-               float JAB = _bsecoupling.getCouplingElement( stateA , stateB, &_orbitalsA, &_orbitalsB, &_JAB_singlet, _energy_difference );
+               float JAB = _bsecoupling.getSingletCouplingElement( stateA , stateB, &_orbitalsA, &_orbitalsB, &_JAB_singlet, _energy_difference );
                Property *_coupling_summary = &_singlet_summary->add("coupling", boost::lexical_cast<string>(JAB)); 
                float energyA = _orbitalsA.BSESingletEnergies()[stateA]*27.21138386/2.0;
                float energyB = _orbitalsB.BSESingletEnergies()[stateB]*27.21138386/2.0;
@@ -412,7 +454,7 @@ Job::JobResult IGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         Property *_triplet_summary = &_type_summary->add("triplets","");
         for (int stateA = 0; stateA < _number_excitons ; ++stateA ) {
            for (int stateB = 0; stateB < _number_excitons  ; ++stateB ) {
-               float JAB = _bsecoupling.getCouplingElement( stateA , stateB, &_orbitalsA, &_orbitalsB, &_JAB_triplet, _energy_difference );
+               float JAB = _bsecoupling.getTripletCouplingElement( stateA , stateB, &_orbitalsA, &_orbitalsB, &_JAB_triplet, _energy_difference );
                Property *_coupling_summary = &_triplet_summary->add("coupling", boost::lexical_cast<string>(JAB)); 
                float energyA = _orbitalsA.BSETripletEnergies()[stateA]*27.21138386/2.0;
                float energyB = _orbitalsB.BSETripletEnergies()[stateB]*27.21138386/2.0;
@@ -511,7 +553,7 @@ void IGWBSE::WriteJobFile(Topology *top) {
     string tag = "";
     
     for (pit = nblist.begin(); pit != nblist.end(); ++pit) {
-
+        //if ((*pit)->HasGhost()){ // Used to only produce jobs concerned with pbcs
         int id1 = (*pit)->Seg1()->getId();
         string name1 = (*pit)->Seg1()->getName();
         int id2 = (*pit)->Seg2()->getId();
@@ -531,7 +573,7 @@ void IGWBSE::WriteJobFile(Topology *top) {
         
         Job job(id, tag, Input, Job::AVAILABLE );
         job.ToStream(ofs,"xml");
-        
+        //}
     }
 
     // CLOSE STREAM
@@ -648,26 +690,37 @@ void IGWBSE::ReadJobFile(Topology *top) {
     Logger _log;
     _log.setReportLevel(logINFO);
     
-    // generate lists of bridges for superexchange pairs
-    nblist.GenerateSuperExchange();
 
     // load the QC results in a vector indexed by the pair ID
     load_property_from_xml(xml, _jobfile);
     list<Property*> jobProps = xml.Select("jobs.job");
-    
-    records.resize( jobProps.size() + 1  );
-    
+    records.resize( nblist.size() + 1  );
+    //to skip pairs which are not in the jobfile
+    for (unsigned i=0;i<records.size();i++){
+        records[i]=NULL;
+    }
     // loop over all jobs = pair records in the job file
     for (list<Property*> ::iterator  it = jobProps.begin(); it != jobProps.end(); ++it) {
+        
+        //int level_segA=1;
+        //int level_segB=1;
  
         // if job produced an output, then continue with analysis
         if ( (*it)->exists("output") && (*it)->exists("output.pair") ) {
             
             // get the output records
             Property poutput = (*it)->get("output.pair");
-            // id's of two segments of a pair
-            int idA = poutput.getAttribute<int>("idA");
-            int idB = poutput.getAttribute<int>("idB");
+            // job file is stupid, because segment ids are only in input have to get them out l
+            list<Property*> pinput = (*it)->Select("input.segment");
+            vector<int> id;
+            for (list<Property*> ::iterator  iit = pinput.begin(); iit != pinput.end(); ++iit) {            
+                id.push_back((*iit)->getAttribute<int>("id"));
+            }
+            if (id.size()!=2) throw std::runtime_error("Getting pair ids from jobfile failed, check jobfile.");
+            
+            double idA=id[0];
+            double idB=id[1];
+                           
             // segments which correspond to these ids           
             Segment *segA = top->getSegment(idA);
             Segment *segB = top->getSegment(idB);
@@ -675,10 +728,10 @@ void IGWBSE::ReadJobFile(Topology *top) {
             QMPair *qmp = nblist.FindPair(segA,segB);
             
             if (qmp == NULL) { // there is no pair in the neighbor list with this name
-                LOG(logINFO, _log) << "No pair " <<  idA << ":" << idB << " found in the neighbor list. Ignoring" << flush; 
+                LOG_SAVE(logINFO, _log) << "No pair " <<  idA << ":" << idB << " found in the neighbor list. Ignoring" << flush; 
             }   else {
                 //LOG(logINFO, _log) << "Store in record: " <<  idA << ":" << idB << flush; 
-                records[qmp->getId()] = & ((*it)->get("output.pair"));
+                records[qmp->getId()] = & ((*it)->get("output.pair.type"));
             }
         } else {
             throw runtime_error("\nERROR: Job file incomplete.\n Check your job file for FAIL, AVAILABLE, or ASSIGNED. Exiting\n");
@@ -691,199 +744,67 @@ void IGWBSE::ReadJobFile(Topology *top) {
     for (QMNBList::iterator ipair = top->NBList().begin(); ipair != top->NBList().end(); ++ipair) {
         
         QMPair *pair = *ipair;
+        if (records[ pair->getId() ]==NULL) continue; //skip pairs which are not in the jobfile
+        
         Segment* segmentA = pair->Seg1();
         Segment* segmentB = pair->Seg2();
         
-        double Jeff2_homo = 0;
-        double Jeff2_lumo = 0;
         
-        cout << "Processing pair " << segmentA->getId() << ":" << segmentB->getId() << flush;
+        
+        //cout << "Processing pair " << segmentA->getId() << ":" << segmentB->getId() << flush;
         
         QMPair::PairType _ptype = pair->getType();
         Property* pair_property = records[ pair->getId() ];
  
-        int homoA = pair_property->getAttribute<int>("homoA");
-        int homoB = pair_property->getAttribute<int>("homoB");
+        
        
         // If a pair is of a direct type 
         if ( _ptype == QMPair::Hopping ||  _ptype == QMPair::SuperExchangeAndHopping ) {
-            cout << ":hopping" ;
-            list<Property*> pOverlap = pair_property->Select("overlap");
- 
-            for (list<Property*> ::iterator itOverlap = pOverlap.begin(); itOverlap != pOverlap.end(); ++itOverlap) {
-
-                double overlapAB = (*itOverlap)->getAttribute<double>("jAB");
-                int orbA = (*itOverlap)->getAttribute<double>("orbA");
-                int orbB = (*itOverlap)->getAttribute<double>("orbB");
-                cout << " orbA:orbB " << orbA << ":" << orbB << flush;
-                if ( orbA == homoA && orbB == homoB ) {
-                    Jeff2_homo += overlapAB*overlapAB;
-                }
-
-                if ( orbA == homoA+1 && orbB == homoB+1 ) {
-                    Jeff2_lumo += overlapAB*overlapAB;
+            //cout << ":hopping" ;
+            
+            if(pair_property->exists("singlets")){
+                //bool found=false;
+                double coupling;
+                list<Property*> singlets = pair_property->Select("singlets.coupling");
+                int stateA=_singlet_levels[segmentA->getName()]; 
+                int stateB=_singlet_levels[segmentB->getName()];
+                for (list<Property*> ::iterator  iit = singlets.begin(); iit != singlets.end(); ++iit) {         
+                    int state1=(*iit)->getAttribute<int>("excitonA");
+                    int state2=(*iit)->getAttribute<int>("excitonB");
+                    if (state1==stateA && state2==stateB){
+                        coupling=boost::lexical_cast<double>((*iit)->value());
+                        pair->setJeff2(coupling*coupling, 2);
+                        pair->setIsPathCarrier(true, 2);
+                    }  
                 }
             }    
-            
-        }
-        
-        // if pair has bridges only
-        if ( _ptype == QMPair::SuperExchange  ||  _ptype == QMPair::SuperExchangeAndHopping ) {
-            cout << ":superexchange" << endl;
-            list<Property*> pOverlap = pair_property->Select("overlap");
-            
-            // this is to select HOMO_A and HOMO_B 
-            double overlapAB;
-            int orbA;
-            int orbB;
-            double energyA;
-            double energyB;
-            
-            for (list<Property*> ::iterator itOverlap = pOverlap.begin(); itOverlap != pOverlap.end(); ++itOverlap) {
-               orbA = (*itOverlap)->getAttribute<int>("orbA");
-               orbB = (*itOverlap)->getAttribute<int>("orbB");
-               if ( orbA == homoA && orbB == homoB ) {  
-                    overlapAB = (*itOverlap)->getAttribute<double>("jAB");
-                    energyA = (*itOverlap)->getAttribute<double>("eA");
-                    energyB = (*itOverlap)->getAttribute<double>("eB");
-                    break;
-                }
+            if(pair_property->exists("triplets")){
+                //bool found=false;
+                double coupling;
+                list<Property*> triplets = pair_property->Select("triplets.coupling");
+                int stateA=_triplet_levels[segmentA->getName()]; 
+                int stateB=_triplet_levels[segmentB->getName()];
+                for (list<Property*> ::iterator  iit = triplets.begin(); iit != triplets.end(); ++iit) {         
+                    int state1=(*iit)->getAttribute<int>("excitonA");
+                    int state2=(*iit)->getAttribute<int>("excitonB");
+                    if (state1==stateA && state2==stateB){
+                        coupling=boost::lexical_cast<double>((*iit)->value());
+                        pair->setJeff2(coupling*coupling, 3);
+                        pair->setIsPathCarrier(true, 3);
+                    }  
+                }   
             }
             
-            cout << " homoA:homoB, orbA:orbB " << homoA << ":" << homoB << "," << orbA << ":" << orbB;
-
-            /*QMNBList::iterator nit;
-            for (nit = nblist.begin(); nit != nblist.end(); ++nit) {
-                
-                QMPair *qmp = *nit;
-                Segment *seg1 = qmp->Seg1();
-                Segment *seg2 = qmp->Seg2();
-                
-                cout << "ID1 " << seg1->getId();
-                cout << " <> ID2 " << seg2->getId() << endl;
-                
-            }*/
-            // loop over the bridging segments
-            for ( vector< Segment* >::const_iterator itBridge = pair->getBridgingSegments().begin() ; itBridge != pair->getBridgingSegments().end(); itBridge++ ) {
-                        
-                Segment* Bridge = *itBridge;
-                int IDBridge = Bridge->getId();
-                
-                cout << " BridgeID:" << IDBridge;
-
-                // pairs from the bridge to the donor and acceptor
-                QMPair* Bridge_A = nblist.FindPair( segmentA, Bridge );
-                if( Bridge_A == NULL ) cout << "Bridge-SegmentA pair not found" << std::endl;  
-
-                QMPair* Bridge_B = nblist.FindPair( segmentB, Bridge );
-                if( Bridge_B == NULL ) cout << "Bridge-SegmentB pair not found " << segmentB->getId() << ":" << Bridge->getId()<< std::endl;
-                
-
-                cout << " IDBA:IDBB " << Bridge_A->getId() << ":" << Bridge_B->getId();
-
-                
-                Property* pBridge_A = records[ Bridge_A->getId() ];
-                Property* pBridge_B = records[ Bridge_B->getId() ];
-
-                list<Property*> pOverlapA = pBridge_A->Select("overlap");
-                list<Property*> pOverlapB = pBridge_B->Select("overlap");
-
-                // IDs of the Donor and Acceptor
-                int IdA = segmentA->getId();
-                int IdB = segmentB->getId();
-
-
-                                
-                // IDs stored in the file
-                int id1A = pBridge_A->getAttribute<int>("idA");
-                int id2A = pBridge_A->getAttribute<int>("idB");
-
-                int id1B = pBridge_B->getAttribute<int>("idA");
-                int id2B = pBridge_B->getAttribute<int>("idB");
-
-                // suffix for the donor and acceptor 
-                string suffixA = ( id1A == IDBridge ) ? "B" : "A"; // use "A" as a bridge 
-                string suffixB = ( id1B == IDBridge ) ? "B" : "A"; // use "A" as a bridge 
-                string suffixBridgeA = ( id1A == IDBridge ) ? "A" : "B";
-                string suffixBridgeB = ( id1B == IDBridge ) ? "A" : "B";
-                
-                cout << " id1A:id1B " << id1A << ":" << id1B;
-                
-                //cout << *pBridge_A << endl;
-                //cout << *pBridge_B << endl;
-               
-                //double check if the records are correct
-                int homoBridgeA = pBridge_A->getAttribute<int>("homo" + suffixBridgeA );
-                int homoBridgeB = pBridge_B->getAttribute<int>("homo" + suffixBridgeB );
-                assert( homoBridgeA == homoBridgeB );
-                int homoBridge = homoBridgeA;
-               
-                //exit(0);
-                
-                // double loop over all levels of A and B
-                for (list<Property*> ::iterator itOverlapA = pOverlapA.begin(); itOverlapA != pOverlapA.end(); ++itOverlapA) {
-                for (list<Property*> ::iterator itOverlapB = pOverlapB.begin(); itOverlapB != pOverlapB.end(); ++itOverlapB) {
-                    
-                    int orbDonor = (*itOverlapA)->getAttribute<int>( "orb" + suffixA );
-                    int orbAcceptor = (*itOverlapB)->getAttribute<int>( "orb" + suffixB );
-                    int orbBridgeA  = (*itOverlapA)->getAttribute<int>( "orb" + suffixBridgeA );
-                    int orbBridgeB = (*itOverlapB)->getAttribute<int>( "orb" + suffixBridgeB );
-                    
-                    if (  orbDonor == homoA && orbAcceptor == homoB && orbBridgeA == orbBridgeB && orbBridgeA <= homoBridge) {
-                        
-                        double jDB = (*itOverlapA)->getAttribute<double>( "jAB" );
-                        double jBA = (*itOverlapB)->getAttribute<double>( "jAB" );
-                        double eA  = (*itOverlapA)->getAttribute<double>( "e" + suffixA );
-                        double eB  = (*itOverlapB)->getAttribute<double>( "e" + suffixB );
-                        
-                        double eBridgeA  = (*itOverlapA)->getAttribute<double>( "e" + suffixBridgeA );
-                        double eBridgeB  = (*itOverlapB)->getAttribute<double>( "e" + suffixBridgeB );
-                        
-                        //assert( eBridgeA - eBridgeB < 1e-50 );
-                     
-                        cout << homoA << " " << homoB << " " << (*itOverlapA)->getAttribute<int>( "orb" + suffixBridgeA )
-                             << " JDB " << jDB 
-                             << " JBA " << jBA << endl;
-                        
-                        // This in principle violates detailed balance. Any ideas?
-                        Jeff2_homo += 0.5 * (jDB*jBA / (eA - eBridgeA) + jDB*jBA / (eB - eBridgeB));
-                        
-                                
-                    }
-
-                    if (  orbDonor == homoA+1 && orbAcceptor == homoB+1 && orbBridgeA == orbBridgeB && orbBridgeA > homoBridge) {
-                        
-                        double jDB = (*itOverlapA)->getAttribute<double>( "jAB" );
-                        double jBA = (*itOverlapB)->getAttribute<double>( "jAB" );
-                        double eA  = (*itOverlapA)->getAttribute<double>( "e" + suffixA );
-                        double eB  = (*itOverlapB)->getAttribute<double>( "e" + suffixB );
-                        
-                        double eBridgeA  = (*itOverlapA)->getAttribute<double>( "e" + suffixBridgeA );
-                        double eBridgeB  = (*itOverlapB)->getAttribute<double>( "e" + suffixBridgeB );
-                        
-                         // This in principle violates detailed balance. Any ideas?
-                        Jeff2_lumo += 0.5 * (jDB*jBA / (eA - eBridgeA) + jDB*jBA / (eB - eBridgeB));
-                        //jDB*jBA / (eB - eBridgeB);
-                                
-                    }
-                    
-                     
-                }}
-            } // end over bridges 
-          
-        } // end of if superexchange
-        
-        cout << endl;
-                    
-        pair->setJeff2(Jeff2_homo, 1);
-        pair->setIsPathCarrier(true, 1);
-        
-        pair->setJeff2(Jeff2_lumo, -1);
-        pair->setIsPathCarrier(true, -1);
+        }
+        else{
+          cout << "WARNING Pair " << pair->getId() << " is not of any of the Hopping or SuperExchangeAndHopping type, what did you do to the jobfile?"<< flush;  
+        }
+              
+        //cout << endl;
 
     }
                     
-    LOG(logINFO, _log) << "Pairs [total:updated] " <<  _number_of_pairs << ":" << _current_pairs << " Incomplete jobs: " << _incomplete_jobs << flush; 
+    LOG_SAVE(logINFO, _log) << "Pairs [total:updated] " <<  _number_of_pairs << ":" << _current_pairs << " Incomplete jobs: " << _incomplete_jobs << flush; 
     cout << _log;
 }
 

@@ -48,7 +48,7 @@ private:
     string      _orbA, _orbB, _orbAB;
     string      _logA, _logB, _logAB;
     int         _levA, _levB;
-    int         _trimA, _trimB;
+   // int         _trimA, _trimB;
     double      _degeneracy;
 
     string      _spintype;
@@ -141,7 +141,7 @@ bool ExcitonCoupling::Evaluate() {
         Property *_singlet_summary = &_type_summary->add("singlets","");
         for (int stateA = 0; stateA < _levA ; ++stateA ) {
            for (int stateB = 0; stateB < _levB  ; ++stateB ) {
-               float JAB = _bsecoupling.getCouplingElement( stateA , stateB, &_orbitalsA, &_orbitalsB, &_JAB_singlet, _degeneracy );
+               float JAB = _bsecoupling.getSingletCouplingElement( stateA , stateB, &_orbitalsA, &_orbitalsB, &_JAB_singlet, _degeneracy );
                Property *_coupling_summary = &_singlet_summary->add("coupling", boost::lexical_cast<string>(JAB)); 
                float energyA = _orbitalsA.BSESingletEnergies()[stateA]*27.21138386/2.0;
                float energyB = _orbitalsB.BSESingletEnergies()[stateB]*27.21138386/2.0;
@@ -156,7 +156,7 @@ bool ExcitonCoupling::Evaluate() {
         Property *_triplet_summary = &_type_summary->add("triplets","");
         for (int stateA = 0; stateA < _levA ; ++stateA ) {
            for (int stateB = 0; stateB < _levB  ; ++stateB ) {
-               float JAB = _bsecoupling.getCouplingElement( stateA , stateB, &_orbitalsA, &_orbitalsB, &_JAB_triplet, _degeneracy );
+               float JAB = _bsecoupling.getTripletCouplingElement( stateA , stateB, &_orbitalsA, &_orbitalsB, &_JAB_triplet, _degeneracy );
                Property *_coupling_summary = &_triplet_summary->add("coupling", boost::lexical_cast<string>(JAB)); 
                float energyA = _orbitalsA.BSETripletEnergies()[stateA]*27.21138386/2.0;
                float energyB = _orbitalsB.BSETripletEnergies()[stateB]*27.21138386/2.0;

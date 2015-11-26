@@ -70,6 +70,10 @@ namespace votca { namespace ctp {
             void setGrid(int numberofpoints, double cutoff, std::vector<double>& point, std::vector<double>& weight );
             
             std::map<std::string, int>    MediumGrid;
+            std::map<std::string, int>    CoarseGrid;
+            std::map<std::string, int>    XcoarseGrid;
+            std::map<std::string, int>    FineGrid;
+            std::map<std::string, int>    XfineGrid;
             std::map<std::string, double> Accuracy;
             
             inline void FillGrids(){
@@ -78,6 +82,11 @@ namespace votca { namespace ctp {
                 FillPeriodRow();
                 FillAccuracy();
                 FillMediumGrid();
+                FillCoarseGrid();
+                FillXcoarseGrid();
+                FillFineGrid();
+                FillXfineGrid();
+                
         
             }
 
@@ -271,6 +280,206 @@ c                  Md   No   Lr  Unq  Unp
             MediumGrid["Se"] = 112;
             MediumGrid["Br"] = 112;
             MediumGrid["Kr"] = 112;
+            
+            
+    }            
+    
+    inline void FillFineGrid(){
+        
+        // order for H, He (not given in NWChem, assuming same as 1st row)
+            FineGrid["H"]  = 70;
+            FineGrid["He"] = 70;
+        
+        // orders for 1st row elements taken from NWChem
+            FineGrid["Li"] = 70;
+            FineGrid["Be"] = 70;
+            FineGrid["B"] = 70;
+            FineGrid["C"] = 70;
+            FineGrid["N"] = 70;
+            FineGrid["O"] = 70;
+            FineGrid["F"] = 70;
+            FineGrid["Ne"] = 70;
+
+        // orders for 2nd row elements taken from NWChem
+            FineGrid["Na"] = 123;
+            FineGrid["Mg"] = 123;
+            FineGrid["Al"] = 123;
+            FineGrid["Si"] = 123;
+            FineGrid["P"] = 123;
+            FineGrid["S"] = 123;
+            FineGrid["Cl"] = 123;
+            FineGrid["Ar"] = 123;
+            
+           
+        // orders for 3rd row elements taken from NWChem
+            FineGrid["K"] = 130;
+            FineGrid["Ca"] = 130;
+            FineGrid["Sc"] = 130;
+            FineGrid["Ti"] = 130;
+            FineGrid["V"] = 130;
+            FineGrid["Cr"] = 130;
+            FineGrid["Mn"] = 130;
+            FineGrid["Fe"] = 130;
+            FineGrid["Co"] = 130;
+            FineGrid["Ni"] = 130;
+            FineGrid["Cu"] = 130;
+            FineGrid["Zn"] = 130;
+            FineGrid["Ga"] = 130;
+            FineGrid["Ge"] = 130;
+            FineGrid["As"] = 130;
+            FineGrid["Se"] = 130;
+            FineGrid["Br"] = 130;
+            FineGrid["Kr"] = 130;
+            
+            
+    }            
+    
+    inline void FillXfineGrid(){
+        
+        // order for H, He (not given in NWChem, assuming same as 1st row)
+            XfineGrid["H"]  = 100;
+            XfineGrid["He"] = 100;
+        
+        // orders for 1st row elements taken from NWChem
+            XfineGrid["Li"] = 100;
+            XfineGrid["Be"] = 100;
+            XfineGrid["B"] = 100;
+            XfineGrid["C"] = 100;
+            XfineGrid["N"] = 100;
+            XfineGrid["O"] = 100;
+            XfineGrid["F"] = 100;
+            XfineGrid["Ne"] = 100;
+
+        // orders for 2nd row elements taken from NWChem
+            XfineGrid["Na"] = 125;
+            XfineGrid["Mg"] = 125;
+            XfineGrid["Al"] = 125;
+            XfineGrid["Si"] = 125;
+            XfineGrid["P"] = 125;
+            XfineGrid["S"] = 125;
+            XfineGrid["Cl"] = 125;
+            XfineGrid["Ar"] = 125;
+            
+           
+        // orders for 3rd row elements taken from NWChem
+            XfineGrid["K"] = 160;
+            XfineGrid["Ca"] = 160;
+            XfineGrid["Sc"] = 160;
+            XfineGrid["Ti"] = 160;
+            XfineGrid["V"] = 160;
+            XfineGrid["Cr"] = 160;
+            XfineGrid["Mn"] = 160;
+            XfineGrid["Fe"] = 160;
+            XfineGrid["Co"] = 160;
+            XfineGrid["Ni"] = 160;
+            XfineGrid["Cu"] = 160;
+            XfineGrid["Zn"] = 160;
+            XfineGrid["Ga"] = 160;
+            XfineGrid["Ge"] = 160;
+            XfineGrid["As"] = 160;
+            XfineGrid["Se"] = 160;
+            XfineGrid["Br"] = 160;
+            XfineGrid["Kr"] = 160;
+            
+            
+    }            
+    
+    inline void FillCoarseGrid(){
+        
+        // order for H, He (not given in NWChem, assuming same as 1st row)
+            CoarseGrid["H"]  = 35;
+            CoarseGrid["He"] = 35;
+        
+        // orders for 1st row elements taken from NWChem
+            CoarseGrid["Li"] = 35;
+            CoarseGrid["Be"] = 35;
+            CoarseGrid["B"] = 35;
+            CoarseGrid["C"] = 35;
+            CoarseGrid["N"] = 35;
+            CoarseGrid["O"] = 35;
+            CoarseGrid["F"] = 35;
+            CoarseGrid["Ne"] = 35;
+
+        // orders for 2nd row elements taken from NWChem
+            CoarseGrid["Na"] = 70;
+            CoarseGrid["Mg"] = 70;
+            CoarseGrid["Al"] = 70;
+            CoarseGrid["Si"] = 70;
+            CoarseGrid["P"] = 70;
+            CoarseGrid["S"] = 70;
+            CoarseGrid["Cl"] = 70;
+            CoarseGrid["Ar"] = 70;
+            
+           
+        // orders for 3rd row elements taken from NWChem
+            CoarseGrid["K"] = 95;
+            CoarseGrid["Ca"] = 95;
+            CoarseGrid["Sc"] = 95;
+            CoarseGrid["Ti"] = 95;
+            CoarseGrid["V"] = 95;
+            CoarseGrid["Cr"] = 95;
+            CoarseGrid["Mn"] = 95;
+            CoarseGrid["Fe"] = 95;
+            CoarseGrid["Co"] = 95;
+            CoarseGrid["Ni"] = 95;
+            CoarseGrid["Cu"] = 95;
+            CoarseGrid["Zn"] = 95;
+            CoarseGrid["Ga"] = 95;
+            CoarseGrid["Ge"] = 95;
+            CoarseGrid["As"] = 95;
+            CoarseGrid["Se"] = 95;
+            CoarseGrid["Br"] = 95;
+            CoarseGrid["Kr"] = 95;
+            
+            
+    }          
+    
+    inline void FillXcoarseGrid(){
+        
+        // order for H, He (not given in NWChem, assuming same as 1st row)
+            XcoarseGrid["H"]  = 21;
+            XcoarseGrid["He"] = 21;
+        
+        // orders for 1st row elements taken from NWChem
+            XcoarseGrid["Li"] = 21;
+            XcoarseGrid["Be"] = 21;
+            XcoarseGrid["B"] = 21;
+            XcoarseGrid["C"] = 21;
+            XcoarseGrid["N"] = 21;
+            XcoarseGrid["O"] = 21;
+            XcoarseGrid["F"] = 21;
+            XcoarseGrid["Ne"] = 21;
+
+        // orders for 2nd row elements taken from NWChem
+            XcoarseGrid["Na"] = 42;
+            XcoarseGrid["Mg"] = 42;
+            XcoarseGrid["Al"] = 42;
+            XcoarseGrid["Si"] = 42;
+            XcoarseGrid["P"] = 42;
+            XcoarseGrid["S"] = 42;
+            XcoarseGrid["Cl"] = 42;
+            XcoarseGrid["Ar"] = 42;
+            
+           
+        // orders for 3rd row elements taken from NWChem
+            XcoarseGrid["K"] = 75;
+            XcoarseGrid["Ca"] = 75;
+            XcoarseGrid["Sc"] = 75;
+            XcoarseGrid["Ti"] = 75;
+            XcoarseGrid["V"] = 75;
+            XcoarseGrid["Cr"] = 75;
+            XcoarseGrid["Mn"] = 75;
+            XcoarseGrid["Fe"] = 75;
+            XcoarseGrid["Co"] = 75;
+            XcoarseGrid["Ni"] = 75;
+            XcoarseGrid["Cu"] = 75;
+            XcoarseGrid["Zn"] = 75;
+            XcoarseGrid["Ga"] = 75;
+            XcoarseGrid["Ge"] = 75;
+            XcoarseGrid["As"] = 75;
+            XcoarseGrid["Se"] = 75;
+            XcoarseGrid["Br"] = 75;
+            XcoarseGrid["Kr"] = 75;
             
             
     }            

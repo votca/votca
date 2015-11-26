@@ -30,13 +30,13 @@ PoissonGrid::PoissonGrid(Topology *top, vector<PolarSeg*> &fg, vector<PolarSeg*>
     double x01 = threshold_dx0_dx1*dx0;
     double x1 = 6.;
     
-    double dy0 = 0.5;
-    double dy1 = 1.0;
-    int threshold_dy0_dy1 = 4;
+    //double dy0 = 0.5;
+    //double dy1 = 1.0;
+    //int threshold_dy0_dy1 = 4;
     
-    double dz0 = 0.5;
-    double dz1 = 0.5;
-    int threshold_dz0_dz1 = 4;
+    //double dz0 = 0.5;
+    //double dz1 = 0.5;
+    //int threshold_dz0_dz1 = 4;
     
     
     
