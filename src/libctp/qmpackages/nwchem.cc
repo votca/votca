@@ -363,10 +363,10 @@ bool NWChem::Run()
         string _command;
         if ( _threads == 1 ) {
             //_command  = "cd " + _run_dir + "; mkdir -p " + _scratch_dir + "; " + _executable + " " + _input_file_name + "> " +  _log_file_name ;
-                        _command = "cd " + _run_dir + "; tcsh " + _shell_file_name;
+                        _command = "cd " + _run_dir + "; sh " + _shell_file_name;
         } else {
             //_command  = "cd " + _run_dir + "; mkdir -p " + _scratch_dir + ";  mpirun -np " +  boost::lexical_cast<string>(_threads) + " " + _executable + " " + _input_file_name + "> "+  _log_file_name ;
-            _command = "cd " + _run_dir + "; tcsh " + _shell_file_name;
+            _command = "cd " + _run_dir + "; sh " + _shell_file_name;
         }
         
         int i = system ( _command.c_str() );

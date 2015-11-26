@@ -32,6 +32,7 @@
 #include <boost/math/constants/constants.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <votca/tools/linalg.h>
+#include "mathimf.h"
 
 using boost::format;
 using namespace boost::filesystem;
@@ -136,7 +137,7 @@ namespace votca {
 		_qp_energies( _gw_level  + _qpmin) = _edft( _gw_level + _qpmin ) + _sigma_x(_gw_level, _gw_level) + _sigma_c(_gw_level,_gw_level) - _vxc(_gw_level  ,_gw_level );
                     
 	      }// all bands
-                
+              cout << " end of qp refinement step (diagonal) " << _i_iter << "\n" << endl;
             } // iterations
             
             // check HOMO-LUMO gap shift
@@ -145,7 +146,7 @@ namespace votca {
             double _QPgap = _qp_energies( _homo +1 ) - _qp_energies( _homo  );
             // cout << " QP Gap  : " << _QPgap << endl;
             double _shift_new = _QPgap - _DFTgap;
-            //cout << " shift new " << _shift_new << endl;
+            cout << " shift new " << _shift_new << "\n" << endl;
             if ( std::abs( (_shift_new - _shift)*13.605698066 ) > 0.01 ) {
                 _shift = _shift_new;
             } else {
@@ -154,6 +155,9 @@ namespace votca {
 
 	    if ( ! _iterate_shift  ) _shift_converged = true;
             
+           /* cout << " Shift is converged " << _shift_converged << "\n" << endl;
+            cout << " I am iterating " << _iterate_shift << "\n" << endl;*/
+            
             // only if _shift is converged
             if ( _shift_converged ){
 	    // in final step, also calc offdiagonal elements
@@ -161,13 +165,22 @@ namespace votca {
 	    _sigma_c = ub::zero_matrix<double>(_qptotal,_qptotal);
 
             // loop over col  GW levels
+            
+            
+          /*  cout << " I have " << _qptotal   << " GW levels " << endl; 
+            cout << " I have " << _gwsize    << " GW functions " << endl; 
+            cout << " I have " << _levelsum  << " screening levels " << endl; 
+            cout << " I have " << _homo  << " as HOMO levels " << endl; 
+            cout << " I have " << _qpmin  << " as _qpmin " << endl;        */
+            
+            
             #pragma omp parallel for
 	    for (int _gw_level = 0; _gw_level < _qptotal ; _gw_level++ ){
               
                 const ub::matrix<double>& Mmn =  _Mmn[ _gw_level + _qpmin ];
 
 		// loop over all functions in GW basis
-		for ( int _i_gw = 0; _i_gw < _gwsize ; _i_gw++ ){
+		 for ( int _i_gw = 0; _i_gw < _gwsize ; _i_gw++ ){
                     
 
 		  // loop over all screening levels
@@ -180,26 +193,28 @@ namespace votca {
 		    double _denom = _qp_energies( _gw_level + _qpmin ) - _qp_energies( _i ) + occ*_ppm_freq( _i_gw );
                     
 		    double _stab = 1.0;
-		    if ( std::abs(_denom) < 0.5 ) {
-		      _stab = 0.5 * ( 1.0 - cos(2.0 * pi * std::abs(_denom) ) );
-		    }
+		     if ( std::abs(_denom) < 0.5 ) {
+		       _stab = 0.5 * ( 1.0 - cos(2.0 * pi * std::abs(_denom) ) );
+		     }
                     
 		    double _factor = _ppm_weight( _i_gw ) * _ppm_freq( _i_gw) *   Mmn(_i_gw, _i) *_stab/_denom; // contains conversion factor 2!
 		    
+                    double _crap = 0.0;
 		    // loop over row GW levels
 		    for ( int _m = 0 ; _m < _qptotal ; _m++) {
                     
+                       // _crap += _factor *  _Mmn[_m + _qpmin](_i_gw, _i) ; 
 		    
 		    // sigma_c all elements
 		    _sigma_c( _m  , _gw_level ) += _factor * _Mmn[_m + _qpmin](_i_gw, _i) ;  //_submat(_i_gw,_i);
 	                      
-		  }// screening levels
-		}// GW functions
+		  }// screening levels 
+		}// GW functions 
 	      }// GW row 
 	      _qp_energies( _gw_level + _qpmin ) = _edft( _gw_level + _qpmin ) + _sigma_x(_gw_level,_gw_level) + _sigma_c(_gw_level,_gw_level) - _vxc(_gw_level ,_gw_level );
-	    } // GW col
-            }
-        } // sigma_c_setup
+	    } // GW col 
+            } 
+         } // sigma_c_setup
 
         void GWBSE::sigma_x_setup(const TCMatrix& _Mmn){
         

@@ -47,6 +47,11 @@ public:
                                Orbitals* _orbitalsAB, 
                                boost::numeric::ublas::matrix<float>* _JAB_singlet, boost::numeric::ublas::matrix<float>* _JAB_triplet, string _type);  
     
+    bool CalculateCouplings_OLD(   Orbitals* _orbitalsA, 
+                               Orbitals* _orbitalsB, 
+                               Orbitals* _orbitalsAB, 
+                               boost::numeric::ublas::matrix<float>* _JAB_singlet);  
+    
     
     bool ProjectExcitons(boost::numeric::ublas::matrix<float>& _kap,
                          boost::numeric::ublas::matrix<float>& _kbp, 
