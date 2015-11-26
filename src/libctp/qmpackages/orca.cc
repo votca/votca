@@ -687,7 +687,7 @@ bool Orca::ParseOrbitalsFile( Orbitals* _orbitals )
             boost::trim( _dim );
             _levels = boost::lexical_cast<int>(_dim);
             //cout <<  boost::lexical_cast<int>(_dim) << endl;
-            
+            _basis_size = _levels;
               LOG(logDEBUG,*_pLog) << "Basis Dimension: " << _levels << flush;
               LOG( logDEBUG, *_pLog ) << "Energy levels: " << _levels << flush;
         }
@@ -902,15 +902,17 @@ bool Orca::ParseOrbitalsFile( Orbitals* _orbitals )
 
    
    // copying orbitals to the matrix
+   
    (_orbitals->_mo_coefficients).resize( _levels, _basis_size );     
    for(size_t i = 0; i < _orbitals->_mo_coefficients.size1(); i++) {
       for(size_t j = 0 ; j < _orbitals->_mo_coefficients.size2(); j++) {
-         _orbitals->_mo_coefficients(i,j) = _coefficients[i][j];
-         cout <<  _coefficients[i][j] << endl;
+         _orbitals->_mo_coefficients(i,j) = _coefficients[j][i];
+         //cout <<  _coefficients[i][j] << endl;
          //cout << i << " " << j << endl;
         }
     }
-
+   
+   
    //cout << _mo_energies << endl;   
    // cout << _mo_coefficients << endl; 
    
@@ -1143,9 +1145,9 @@ bool Orca::ParseLogFile( Orbitals* _orbitals ) {
        }
        
                        /* Check for ScaHFX = factor of HF exchange included in functional */
-                std::string::size_type HFX_pos = _line.find("Hartree-Fock (Exact) Exchange");
+                std::string::size_type HFX_pos = _line.find("Fraction HF Exchange ScalHFX");
                 if (HFX_pos != std::string::npos) {
-                    boost::algorithm::split(results, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
+                    boost::algorithm::split(results, _line, boost::is_any_of(" "), boost::algorithm::token_compress_on);
                     double _ScaHFX = boost::lexical_cast<double>(results.back());
                     _orbitals->setScaHFX(_ScaHFX);
                     LOG(logDEBUG, *_pLog) << "DFT with " << _ScaHFX << " of HF exchange!" << flush;
@@ -1278,7 +1280,7 @@ bool Orca::ParseLogFile( Orbitals* _orbitals ) {
                 }
         }
         
-        std::string::size_type coordinates_pos = _line.find("Output coordinates");
+        std::string::size_type coordinates_pos = _line.find("CARTESIAN COORDINATES (ANGSTROEM)");
         
         if ( _found_optimization && coordinates_pos != std::string::npos) {
             LOG(logDEBUG,*_pLog) << "Getting the coordinates" << flush;
@@ -1287,8 +1289,6 @@ bool Orca::ParseLogFile( Orbitals* _orbitals ) {
             bool _has_QMAtoms = _orbitals->hasQMAtoms();
 
             // three garbage lines
-            getline(_input_file, _line);
-            getline(_input_file, _line);
             getline(_input_file, _line);
             // now starts the data in format
             // _id type Qnuc x y z 
@@ -1299,14 +1299,14 @@ bool Orca::ParseLogFile( Orbitals* _orbitals ) {
             boost::algorithm::split( _row , _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on); 
             int nfields =  _row.size();
 
-                
-            while ( nfields == 6 ) {
-                int atom_id = boost::lexical_cast< int >( _row.at(0) );
+            int atom_id = 0;   
+            while ( nfields == 4 ) {
+                //int atom_id = boost::lexical_cast< int >( _row.at(0) );
                 //int atom_number = boost::lexical_cast< int >( _row.at(0) );
-                string _atom_type = _row.at(1);
-                double _x =  boost::lexical_cast<double>( _row.at(3) );
-                double _y =  boost::lexical_cast<double>( _row.at(4) );
-                double _z =  boost::lexical_cast<double>( _row.at(5) );
+                string _atom_type = _row.at(0);
+                double _x =  boost::lexical_cast<double>( _row.at(1) );
+                double _y =  boost::lexical_cast<double>( _row.at(2) );
+                double _z =  boost::lexical_cast<double>( _row.at(3) );
                 //if ( tools::globals::verbose ) cout << "... ... " << atom_id << " " << atom_type << " " << atom_charge << endl;
                 getline(_input_file, _line);
                 boost::trim( _line );
@@ -1317,11 +1317,12 @@ bool Orca::ParseLogFile( Orbitals* _orbitals ) {
                     _orbitals->AddAtom( _atom_type, _x, _y, _z );
                 } else {
                                        
-                    QMAtom* pAtom = _orbitals->_atoms.at( atom_id - 1 );
+                    QMAtom* pAtom = _orbitals->_atoms.at( atom_id  );
                     pAtom->type = _atom_type;
                     pAtom->x = _x;
                     pAtom->y = _y;
                     pAtom->z = _z;
+                    atom_id++;
                 }
                     
             }

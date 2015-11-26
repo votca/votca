@@ -310,6 +310,10 @@ namespace votca {
             // process the DFT data
             // a) form the expectation value of the XC functional in MOs
             ub::matrix<double> _dft_orbitals = *(_orbitals->getOrbitals()); //
+            
+            //LOG(logDEBUG, *_pLog) << TimeStamp() << " size of DFT orbitals [" << _dft_orbitals.size1() << ":" << _dft_orbitals.size2() << "]" << flush;
+            
+            
             _ScaHFX = _orbitals->getScaHFX();
             {// this bracket is there so that _vx_ao falls out of scope, like it more than resize
             ub::matrix<double> _vxc_ao;
@@ -341,14 +345,42 @@ namespace votca {
                     throw std::runtime_error( (boost::format("GWBSE exact exchange a=%s differs from qmpackage exact exchange a=%s, probably your functionals are inconsistent") % ScaHFX_temp % _ScaHFX).str());
                                          }
                 _numint.GridSetup(_grid,&dftbs,_atoms);
-                
+                // LOG(logDEBUG, *_pLog) << TimeStamp() << " Trying DFT orbital coefficient order from " << _dft_package << " to VOTCA" << flush;
                 dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "votca" );
+                cout << endl;
+                
+                /***test for printing reordered MOs******/
+                /*for ( int i = 0 ; i < _dft_orbitals.size2() ; i++ ){
+                    
+                    cout << " Reordered MO " << i << " : " << _dft_orbitals(0,i) << endl;
+                    
+                }*/
+                
+                
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Converted DFT orbital coefficient order from " << _dft_package << " to VOTCA" << flush;
                 ub::matrix<double> &DMAT = _orbitals->DensityMatrixGroundState( _dft_orbitals );
                 _vxc_ao = _numint.IntegrateVXC_Atomblock(DMAT,&dftbasis,_functional); 
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculated Vxc in VOTCA with gridsize: "<< _grid << " and functional " << _functional<<flush;
                 
             }
+            /*******test for printing the MO overlaps to check if it is correct*/
+            /*AOOverlap overlap;
+            overlap.Initialize(dftbasis._AOBasisSize);
+            overlap.Fill(&dftbasis);
+            cout << "AO overlap size: "<< overlap._aomatrix.size1() << " : " << overlap._aomatrix.size2()<< endl;
+            cout << "MO AO size: "<< _dft_orbitals.size1() << " : " << _dft_orbitals.size2()<< endl;
+            ub::matrix<double> _temp5=ub::prod(overlap._aomatrix,ub::trans(_dft_orbitals));
+            ub::matrix<double> results=ub::prod(_dft_orbitals,_temp5);
+            cout << "MO overlap size: "<< results.size1() << " : " << results.size2()<< endl;
+             
+            for (unsigned i=0;i<results.size1();i++){
+                for (unsigned j=0;j<=i;j++){
+                    
+                
+                cout << "MO overlap ["<<i<<":"<<j <<"] : "<< "["<<j<<":"<<i <<"] :"<< results(i,j) << " : " << results(j,i)<< endl;
+                }
+            }
+           */
             
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Set hybrid exchange factor: " << _ScaHFX << flush;
             
