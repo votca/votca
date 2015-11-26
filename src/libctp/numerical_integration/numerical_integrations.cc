@@ -93,34 +93,29 @@ namespace votca {
             // TODO: switch XC functionals implementation from LIBXC to base own calculation
             ExchangeCorrelation _xc;
             Vxc_Functionals map;
-            bool _use_votca = false;
-            
-#ifdef LIBXC
-            bool _use_separate = false;
-            
-            
-            int cfunc_id = 0;
-#endif
-            int xfunc_id = 0;
             std::vector<string> strs;           
             boost::split(strs, _functional, boost::is_any_of(" "));
+            int xfunc_id = 0;
+            
+#ifdef LIBXC
+            bool _use_votca = false;
+            bool _use_separate = false;
+            int cfunc_id = 0;
+
             if (strs.size() == 1) {
                 xfunc_id = map.getID(strs[0]);
                 if (xfunc_id < 0) _use_votca = true;
             }
-#ifdef LIBXC
+
             else if (strs.size() == 2) {
                 cfunc_id = map.getID(strs[0]);
                 xfunc_id = map.getID(strs[1]);
                 _use_separate = true;
             }
-#endif
             else {
-                throw std::runtime_error("Please specify one or (two  if compiled with libxc support) functionals");
+                throw std::runtime_error("Please specify one combined or an exchange and a correlation functionals");
 
             }
-
-#ifdef LIBXC
             xc_func_type xfunc; // handle for exchange functional
             xc_func_type cfunc; // handle for correlation functional
             if (!_use_votca){
@@ -146,6 +141,13 @@ namespace votca {
                 }
             }
             }
+#else
+         if (strs.size() == 1) {
+                xfunc_id = map.getID(strs[0]);
+            }   
+         else {
+                throw std::runtime_error("Please specify one combined or an exchange and a correlation functionals");
+         }
 #endif
 
         
@@ -157,6 +159,7 @@ namespace votca {
 
            
             // timers for testing
+            /*
             boost::timer::cpu_timer cpu_t;
             cpu_t.start();
             double _t_AOvals = 0.0;
@@ -170,7 +173,7 @@ namespace votca {
             double _t_sum = 0.0;
             double _t_total = 0.0;
              boost::timer::cpu_times tenter = cpu_t.elapsed();
-             
+             */
             // generate a list of shells for each atom
             typedef vector< AOShell* >::iterator AOShellIterator;
             vector< vector< AOShellIterator > > _atomshells;
@@ -423,7 +426,7 @@ namespace votca {
                 for (int j = _thread_start[i_thread]; j < _thread_stop[i_thread]; j++) {
 
 
-                   boost::timer::cpu_times t0 = cpu_t.elapsed();
+                 //  boost::timer::cpu_times t0 = cpu_t.elapsed();
 
 
                     // get value of orbitals at each gridpoint (vector as 1D boost matrix object -> prod )
@@ -453,7 +456,7 @@ namespace votca {
                     
                         // for each shell in this atom
                         for ( unsigned ishell = 0 ; ishell < _atomshells[rowatom].size() ; ishell++ ){
-                            boost::timer::cpu_times tstartshells = cpu_t.elapsed();
+                         //   boost::timer::cpu_times tstartshells = cpu_t.elapsed();
                             AOShellIterator _row = _atomshells[rowatom][ishell];
                             // for density, fill sub-part of AOatgrid
                             //ub::matrix_range< ub::matrix<double> > _AOgridsub = ub::subrange(AOgrid, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc(), 0, 1);
@@ -465,9 +468,9 @@ namespace votca {
                             ub::matrix_range< ub::matrix<double> > _gradAO = ub::subrange(gradAOgrid, 0, 3, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc());
                             //(*_row)->EvalAOGradspace(_gradAO, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
                             (*_row)->EvalAOspace(_AOgridsub, _gradAO , _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
-                            boost::timer::cpu_times tendshells = cpu_t.elapsed();
+                         //   boost::timer::cpu_times tendshells = cpu_t.elapsed();
                             
-                             _t_AOvals +=  (tendshells.wall-tstartshells.wall)/1e9;
+                            // _t_AOvals +=  (tendshells.wall-tstartshells.wall)/1e9;
 
                         }  // shell in atom
                         
@@ -545,8 +548,8 @@ namespace votca {
 
 
                     double rho      = 2.0 * rho_mat(0,0);
-                    boost::timer::cpu_times t3 = cpu_t.elapsed();
-                    _t_rho +=  (t3.wall-t0.wall)/1e9;
+                 //   boost::timer::cpu_times t3 = cpu_t.elapsed();
+                    // +=  (t3.wall-t0.wall)/1e9;
                     
 
 		    if ( rho < 1.e-15 ) continue; // skip the rest, if density is very small
@@ -612,22 +615,22 @@ namespace votca {
                     
 
 
-                    boost::timer::cpu_times t4 = cpu_t.elapsed();
-                    _t_vxc += (t4.wall-t3.wall)/1e9;
+                 //   boost::timer::cpu_times t4 = cpu_t.elapsed();
+                   // _t_vxc += (t4.wall-t3.wall)/1e9;
                     
 		    // density part
 		    //ub::matrix<double> _addXC = _grid[i][j].grid_weight * df_drho * AOgrid;
                     ub::matrix<double> _addXC = _grid[i][j].grid_weight * df_drho * AOgrid *0.5;
-                    boost::timer::cpu_times t5 = cpu_t.elapsed();
-                    _t_AOxc_rho += (t5.wall-t4.wall)/1e9;
+                //    boost::timer::cpu_times t5 = cpu_t.elapsed();
+                   // _t_AOxc_rho += (t5.wall-t4.wall)/1e9;
                     
                     
 		    // gradient part
                     //_addXC+=  4.0*df_dsigma * _grid[i][j].grid_weight * ub::prod(gradAOgrid,grad_rho);
                     //_addXC+=  4.0*df_dsigma * _grid[i][j].grid_weight * ub::prod(grad_rho,gradAOgrid);
                     _addXC+=  2.0*df_dsigma * _grid[i][j].grid_weight * ub::prod(grad_rho,gradAOgrid);
-                    boost::timer::cpu_times t6 = cpu_t.elapsed();
-                    _t_AOxc_grad += (t6.wall-t5.wall)/1e9;
+                //    boost::timer::cpu_times t6 = cpu_t.elapsed();
+                 //   _t_AOxc_grad += (t6.wall-t5.wall)/1e9;
 
 		    // finally combine (super-slow...)
                     // XCMAT +=  ub::prod(_addXC,ub::trans(AOgrid));
@@ -635,8 +638,8 @@ namespace votca {
                     
                     // Exchange correlation energy
                     EXC_thread[i_thread] += _grid[i][j].grid_weight * rho * f_xc;
-                    boost::timer::cpu_times t6a = cpu_t.elapsed();
-                    _t_EXC1 += (t6a.wall-t6.wall)/1e9;
+                 //   boost::timer::cpu_times t6a = cpu_t.elapsed();
+                 //   _t_EXC1 += (t6a.wall-t6.wall)/1e9;
                     
                     // combine/sum atom-block wise, only trigonal part, symmetrize later
                     // for each significant atom for this grid point
@@ -674,8 +677,8 @@ namespace votca {
                     
                     
                     
-                    boost::timer::cpu_times t7 = cpu_t.elapsed();
-                    _t_sum += (t7.wall-t6a.wall)/1e9;
+                   // boost::timer::cpu_times t7 = cpu_t.elapsed();
+                 //   _t_sum += (t7.wall-t6a.wall)/1e9;
                     
 
                 } // j: for each point in atom grid
@@ -710,7 +713,7 @@ namespace votca {
 
             
             
-            boost::timer::cpu_times t8 = cpu_t.elapsed();
+          //  boost::timer::cpu_times t8 = cpu_t.elapsed();
                     
             const ub::vector<double> DMAT_array = _density_matrix.data();
             const ub::vector<double> XCMAT_array = XCMAT.data();
@@ -719,8 +722,8 @@ namespace votca {
                 EXC -= DMAT_array[i] * XCMAT_array[i];
             }
 
-            boost::timer::cpu_times t9 = cpu_t.elapsed();
-            _t_EXC2 += (t9.wall-t8.wall)/1e9;
+         //   boost::timer::cpu_times t9 = cpu_t.elapsed();
+         //   _t_EXC2 += (t9.wall-t8.wall)/1e9;
                     
             
 /*
@@ -734,8 +737,8 @@ namespace votca {
             cout << " ATBLOCK Time Exc1        : " << _t_EXC1 << endl;
             cout << " ATBLOCK Time Exc2        : " << _t_EXC2 << endl;
  */           
-                         boost::timer::cpu_times texit = cpu_t.elapsed();
-                                _t_total = (texit.wall-tenter.wall)/1e9;
+                        // boost::timer::cpu_times texit = cpu_t.elapsed();
+                              //  _t_total = (texit.wall-tenter.wall)/1e9;
                     
                                  
                                  
@@ -1977,7 +1980,7 @@ namespace votca {
 
                 // cout << " Constructed full grid of atom " << i_atom << " of size " << _atomgrid.size() <<  endl;
                 
-                int fullsize = _atomgrid.size();
+                //int fullsize = _atomgrid.size();
                 
                 
                 if ( 0 == 0 ){

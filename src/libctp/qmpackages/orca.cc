@@ -106,8 +106,8 @@ void Orca::Initialize( Property *options ) {
 
     
     
-    if (options->exists(key + ".outputVX")) {
-                _output_Vxc = options->get(key + "outputVX").as<bool> ();   
+    if (options->exists(key + ".outputVxc")) {
+                _output_Vxc = options->get(key + "outputVxc").as<bool> ();   
             }
              else _output_Vxc=false;
     if (_output_Vxc){

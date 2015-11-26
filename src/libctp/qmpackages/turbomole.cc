@@ -62,8 +62,8 @@ void Turbomole::Initialize( Property *opt ) {
     _get_self_energy = false;
     _write_guess = false;
     
-     if (opt->exists(key + ".outputVX")) {
-                _output_Vxc = opt->get(key + "outputVX").as<bool> ();   
+     if (opt->exists(key + ".outputVxc")) {
+                _output_Vxc = opt->get(key + "outputVxc").as<bool> ();   
             }
              else _output_Vxc=false;
     if (_output_Vxc){

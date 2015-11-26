@@ -260,8 +260,22 @@
                    projectFiles="false">
       <itemPath>Makefile</itemPath>
     </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
   </logicalFolder>
   <sourceRootList>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
     <Elem>../../include</Elem>
     <Elem>../../../../include</Elem>
   </sourceRootList>
