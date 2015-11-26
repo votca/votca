@@ -36,6 +36,15 @@ void linalg_cholesky_decompose( ub::matrix<double> &A){
         (void)gsl_linalg_cholesky_decomp ( &A_view.matrix );
 }
 
+void linalg_cholesky_decompose( ub::matrix<float> &A){
+        // Cholesky decomposition using GSL
+    throw std::runtime_error("linalg_cholesky_decompose (float) is not compiled-in due to disabling of MKL - recompile Votca Tools with MKL support");
+   
+}
+
+
+
+
 void linalg_cholesky_solve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<double> &b){
     /* calling program should catch the error error code GSL_EDOM
      * thrown by gsl_linalg_cholesky_decomp and take

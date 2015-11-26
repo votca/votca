@@ -54,4 +54,13 @@ void linalg_invert( ub::matrix<double> &A, ub::matrix<double> &V){
 	// return (status != 0);
 }
 
+void linalg_invert( ub::matrix<float> &A, ub::matrix<float> &V){
+        // matrix inversion using gsl
+        
+        throw std::runtime_error("linalg_invert (float) is not compiled-in due to disabling of MKL - recompile Votca Tools with MKL support");
+}
+
+
+
+
 }}
