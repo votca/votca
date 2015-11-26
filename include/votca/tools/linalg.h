@@ -33,7 +33,7 @@ namespace votca { namespace tools {
      * This function wraps the inversion of a matrix
      */
     void linalg_invert( ub::matrix<double> &A, ub::matrix<double> &V );
-
+    void linalg_invert( ub::matrix<float> &A, ub::matrix<float> &V );
  
     /**
      * \brief determines Cholesky decomposition of matrix A
@@ -42,7 +42,7 @@ namespace votca { namespace tools {
      * This function wraps the Cholesky decomposition
      */
     void linalg_cholesky_decompose( ub::matrix<double> &A );
-    
+    void linalg_cholesky_decompose( ub::matrix<float> &A );
     /**
      * \brief solves A*x=b
      * @param x storage for x

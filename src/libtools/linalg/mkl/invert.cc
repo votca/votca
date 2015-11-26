@@ -47,4 +47,28 @@ void linalg_invert( ub::matrix<double> &A, ub::matrix<double> &V){
     info = LAPACKE_dgesv( LAPACK_ROW_MAJOR, n, n, pwork , n, ipiv, pV, n );
 }
 
+
+void linalg_invert( ub::matrix<float> &A, ub::matrix<float> &V){
+    // matrix inversion using MKL
+    // input matrix is destroyed, make local copy
+    ub::matrix<float> work = A;
+    
+    // define LAPACK variables
+    MKL_INT n = A.size1();
+    MKL_INT info;
+    MKL_INT ipiv[n];
+    
+    // initialize V
+    V = ub::identity_matrix<float>(n,n);
+
+    // pointers for LAPACK
+    float * pV = const_cast<float*>(&V.data().begin()[0]);
+    float * pwork = const_cast<float*>(&work.data().begin()[0]);
+    
+    // solve
+    info = LAPACKE_sgesv( LAPACK_ROW_MAJOR, n, n, pwork , n, ipiv, pV, n );
+}
+
+
+
 }}
