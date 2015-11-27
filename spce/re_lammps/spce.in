@@ -16,5 +16,5 @@ fix		2 all langevin 2.49 2.49 0.2 545454
 
 dump		1 all atom 50 traj.dump
 
-thermo		50
-run		2500
+thermo		100
+run		50000
