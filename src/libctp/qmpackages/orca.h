@@ -44,9 +44,8 @@ public:
 
    void Initialize( Property *options );
 
-   /* Writes Gaussian input file with coordinates of segments
-    * and a guess for the dimer (if requested) constructed from the
-    * monomer orbitals
+   /* Writes Orca input file with coordinates of segments
+  
     */
    bool WriteInputFile( vector< Segment* > segments, Orbitals* orbitals_guess = NULL);
 
@@ -69,7 +68,6 @@ public:
 private:  
 
     string                              _shell_file_name;
-    string                              _chk_file_name;
     string                              _scratch_dir;
     bool                                _is_optimization;
         

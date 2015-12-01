@@ -1078,12 +1078,12 @@ void Exciton::ExcitationEnergies(QMPackage* _qmpackage, vector<Segment*> _segmen
       // parse DFT data, if required
       if ( _do_dft_parse ){
         LOG(logDEBUG,_log) << "Parsing DFT data " << _output_file << flush;
-        _qmpackage->setOrbitalsFileName( _orbfile );
-        _qmpackage->ParseOrbitalsFile( _orbitals );
+
        //int _parse_orbitals_status = _qmpackage->ParseOrbitalsFile( _orbitals );
         _qmpackage->setLogFileName( _logfile );
         _qmpackage->ParseLogFile( _orbitals );
-        //int _parse_log_status = _qmpackage->ParseLogFile( _orbitals );
+        _qmpackage->setOrbitalsFileName( _orbfile );
+        _qmpackage->ParseOrbitalsFile( _orbitals );      //int _parse_log_status = _qmpackage->ParseLogFile( _orbitals );
         _orbitals->setDFTbasis(_qmpackage->getBasisSetName());
  
         

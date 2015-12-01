@@ -255,7 +255,7 @@ namespace votca {
                 _parse_orbitals_status = _qmpackage->ParseOrbitalsFile(&_orbitals);
 
                 if (!_parse_orbitals_status) {
-                    output += "fort7 failed; ";
+                    output += "orbfile failed; ";
                     LOG(logERROR, *pLog) << "Orbitals parsing failed" << flush;
                     cout << *pLog;
                     jres.setOutput(output);
