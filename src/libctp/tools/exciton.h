@@ -1072,7 +1072,11 @@ void Exciton::ExcitationEnergies(QMPackage* _qmpackage, vector<Segment*> _segmen
           _qmpackage->WriteInputFile( _segments, _orbitalsAB );
        }
        if ( _do_dft_run ){
-          _qmpackage->Run();
+          bool run_success = _qmpackage->Run();
+          if (!run_success) {
+             throw runtime_error(string("\n GW-BSE without DFT is difficult. Stopping!"));
+          }
+          
        }
 
       // parse DFT data, if required

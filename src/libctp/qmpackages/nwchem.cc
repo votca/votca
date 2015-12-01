@@ -398,6 +398,7 @@ bool NWChem::Run()
             return true;
         } else {
             LOG(logDEBUG,*_pLog) << "NWChem job failed" << flush;
+            return false;
         }
     }
     else {
@@ -633,6 +634,12 @@ bool NWChem::CheckLogFile() {
         return false;
     };
 
+   if (_input_file.peek() == std::ifstream::traits_type::eof()) {
+       LOG(logERROR,*_pLog) << "NWChem run failed. Check OpenMPI version!" << flush;
+       return false;
+   };
+    
+    
     
     /* Checking the log file is a pain in the *** since NWChem throws an error
      * for our 'iterations 1'  runs (even though it outputs the required data
@@ -654,7 +661,7 @@ bool NWChem::CheckLogFile() {
             
        string _line;            
        getline(_input_file,_line);                      // Read the current line
-       // cout << "\nResult: " << _line << '\n';     // Display it
+       cout << "\nResult: " << _line << '\n';     // Display it
        total_energy_pos = _line.find("Total DFT energy");
        diis_pos = _line.find("diis");
        // whatever is found first, determines the completeness of the file
