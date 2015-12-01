@@ -25,6 +25,7 @@
 #include <votca/ctp/logger.h>
 #include <votca/tools/linalg.h>
 #include <votca/ctp/votca_ctp_config.h>
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif

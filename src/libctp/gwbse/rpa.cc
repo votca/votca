@@ -32,6 +32,7 @@
 #include <boost/math/constants/constants.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <votca/tools/linalg.h>
+#include <votca/ctp/aoshell.h>
 
 using boost::format;
 using namespace boost::filesystem;

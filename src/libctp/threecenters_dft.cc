@@ -22,7 +22,6 @@
 #include <votca/ctp/threecenters.h>
 
 
-
 using namespace std;
 using namespace votca::tools;
 

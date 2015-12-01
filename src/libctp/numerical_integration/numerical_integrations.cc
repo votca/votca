@@ -24,6 +24,7 @@
 #include <boost/math/constants/constants.hpp>
 #include <votca/ctp/radial_euler_maclaurin_rule.h>
 #include <votca/ctp/sphere_lebedev_rule.h>
+#include <votca/ctp/aoshell.h>
 
 #ifdef LIBXC
 #include <xc.h>

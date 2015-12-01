@@ -21,6 +21,8 @@
 #define	__CTP_AOMATRIX__H
 
 #include <votca/ctp/aobasis.h>
+#include <votca/ctp/aoshell.h>
+
 #include <votca/ctp/segment.h>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/lu.hpp>

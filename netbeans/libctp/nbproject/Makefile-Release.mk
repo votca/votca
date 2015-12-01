@@ -36,6 +36,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/1ce03da5/ERIs.o \
+	${OBJECTDIR}/_ext/1ce03da5/aobasis.o \
 	${OBJECTDIR}/_ext/a30a7232/aodipole.o \
 	${OBJECTDIR}/_ext/a30a7232/aoecp.o \
 	${OBJECTDIR}/_ext/a30a7232/aoesp.o \
@@ -43,6 +44,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/a30a7232/aomatrix.o \
 	${OBJECTDIR}/_ext/a30a7232/aomomentum.o \
 	${OBJECTDIR}/_ext/a30a7232/aooverlap.o \
+	${OBJECTDIR}/_ext/1ce03da5/aoshell.o \
 	${OBJECTDIR}/_ext/1ce03da5/apolarsite.o \
 	${OBJECTDIR}/_ext/1ce03da5/bsecoupling.o \
 	${OBJECTDIR}/_ext/1ce03da5/calculatorfactory.o \
@@ -144,6 +146,11 @@ ${OBJECTDIR}/_ext/1ce03da5/ERIs.o: nbproject/Makefile-${CND_CONF}.mk ../../src/l
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce03da5/ERIs.o ../../src/libctp/ERIs.cc
 
+${OBJECTDIR}/_ext/1ce03da5/aobasis.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libctp/aobasis.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1ce03da5
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce03da5/aobasis.o ../../src/libctp/aobasis.cc
+
 ${OBJECTDIR}/_ext/a30a7232/aodipole.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libctp/aomatrices/aodipole.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/a30a7232
 	${RM} "$@.d"
@@ -178,6 +185,11 @@ ${OBJECTDIR}/_ext/a30a7232/aooverlap.o: nbproject/Makefile-${CND_CONF}.mk ../../
 	${MKDIR} -p ${OBJECTDIR}/_ext/a30a7232
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/a30a7232/aooverlap.o ../../src/libctp/aomatrices/aooverlap.cc
+
+${OBJECTDIR}/_ext/1ce03da5/aoshell.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libctp/aoshell.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1ce03da5
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce03da5/aoshell.o ../../src/libctp/aoshell.cc
 
 ${OBJECTDIR}/_ext/1ce03da5/apolarsite.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libctp/apolarsite.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1ce03da5

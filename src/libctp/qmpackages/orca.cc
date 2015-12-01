@@ -498,7 +498,7 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
     
     _orbitals->setQMpackage("orca");
     
-      LOG(logDEBUG,*_pLog) << "Parsing " << _log_file_name << flush;
+    LOG(logDEBUG,*_pLog) << "Parsing " << _log_file_name << flush;
       // return true;
   string _log_file_name_full =  _run_dir + "/" + _log_file_name;
    // check if LOG file is complete
@@ -516,17 +516,15 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
     //bool _has_basis_dim = false;
     vector<string> results;    
     
-    // For Orca we can read the MOs from the Log file
-    //string _orb_file_name_full = _run_dir + "/" +  _log_file_name ; 
-    string _orb_file_name_full = _run_dir + "/" +  _log_file_name ;
+
     
-    std::ifstream _input_file( _orb_file_name_full.c_str() );
+    std::ifstream _input_file( _log_file_name_full.c_str() );
     
     if (_input_file.fail()) {
-        LOG( logERROR, *_pLog ) << "File " << _orb_file_name_full << " not found " << flush;
+        LOG( logERROR, *_pLog ) << "File " << _log_file_name_full << " not found " << flush;
         return false;
     } else {
-        LOG(logDEBUG, *_pLog) << "Reading Coordinates and occupationnumbers and energies from " << _orb_file_name_full << flush;
+        LOG(logDEBUG, *_pLog) << "Reading Coordinates and occupationnumbers and energies from " << _log_file_name_full << flush;
     }
     
       
@@ -887,6 +885,8 @@ bool Orca::CheckLogFile() {
         LOG(logERROR,*_pLog) << "Orca LOG is not found" << flush;
         return false;
     };
+    
+    
     
    
 }

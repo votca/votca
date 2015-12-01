@@ -37,7 +37,7 @@
 
 // #include <omp.h>
 
-#include "votca/ctp/numerical_integrations.h"
+#include <votca/ctp/numerical_integrations.h>
 
 using boost::format;
 using namespace boost::filesystem;
