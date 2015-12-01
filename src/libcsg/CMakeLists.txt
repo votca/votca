@@ -1,6 +1,4 @@
 file(GLOB GMX_SOURCES modules/io/gmx*.cc)
-file(GLOB NOT_GMX_SOURCES modules/io/gmx_print_version.cc modules/io/gmx_version_nb.cc)
-list(REMOVE_ITEM GMX_SOURCES ${NOT_GMX_SOURCES})
 
 file(GLOB H5MD_SOURCES modules/io/h5md*.cc)
 
@@ -13,10 +11,6 @@ if (WITH_GMX)
   add_definitions(${GROMACS_DEFINITIONS})
   include_directories(${GROMACS_INCLUDE_DIRS})
   set(GMX ${GROMACS_VERSION})
-  add_executable(gmx_print_version modules/io/gmx_print_version.cc)
-  target_link_libraries(gmx_print_version ${GROMACS_LIBRARIES})
-  add_custom_command(OUTPUT gmx_libs_version.h COMMAND gmx_print_version > gmx_libs_version.h DEPENDS gmx_print_version)
-  list(APPEND GMX_SOURCES gmx_libs_version.h)
 else(WITH_GMX)
   set(GMX)
   set(GMX_SOURCES)

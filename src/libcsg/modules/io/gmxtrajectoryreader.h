@@ -24,7 +24,6 @@
 
 #include <string>
 #include <votca/csg/trajectoryreader.h>
-#include "gmx_version_check.h"
 
 #if GMX == 51
         #include <gromacs/fileio/trx.h>
@@ -51,9 +50,7 @@ using namespace std;
 class GMXTrajectoryReader : public TrajectoryReader
 {
     public:
-        GMXTrajectoryReader() {
-            gmx::CheckVersion();
-        }
+        GMXTrajectoryReader() {}
 
         /// open a trejectory file
         bool Open(const string &file);

@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2015 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@
 
 #include <string>
 #include <votca/csg/topologyreader.h>
-#include "gmx_version_check.h"
 
 namespace votca { namespace csg {
 using namespace votca::tools;
@@ -37,9 +36,7 @@ class GMXTopologyReader
     : public TopologyReader
 {
 public:
-    GMXTopologyReader() {
-        gmx::CheckVersion();
-    }
+    GMXTopologyReader() {}
 
     /// read a topology file
     bool ReadTopology(string file, Topology &top);

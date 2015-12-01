@@ -24,7 +24,6 @@
 
 #include <votca/csg/topology.h>
 #include <votca/csg/trajectorywriter.h>
-#include "gmx_version_check.h"
 
 #if GMX == 51
         #include <gromacs/fileio/trxio.h>
@@ -46,9 +45,7 @@ class GMXTrajectoryWriter
     : public TrajectoryWriter
 {
 public:
-    GMXTrajectoryWriter() {
-        gmx::CheckVersion();
-    }
+    GMXTrajectoryWriter() {}
 
     void Open(string file, bool bAppend = false);
     void Close();
