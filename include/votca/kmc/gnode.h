@@ -30,14 +30,15 @@ namespace votca { namespace kmc {
 class GNode
 {
     public:
-        GNode(){};
+        GNode():hasdecay(true){};
         ~GNode(){};
 
         int id;
         int occupied;
         int injectable;
-        double escaperate;
         double occupationtime;
+        double escaperate;
+        bool hasdecay;
         vec position;
         vector<GLink> event;
         // stuff for Coulomb interaction:
@@ -45,8 +46,8 @@ class GNode
         double reorg_intorig; // UnCnN
         double reorg_intdest; // UcNcC
     
-        double getEscapeRate() const { return escaperate;}
         void AddEvent(int seg2, double rate12, vec dr, double Jeff2, double reorg_out);
+        const double &getEscapeRate(){return escaperate;}
         void InitEscapeRate();
         void AddDecayEvent(double _decayrate);
 };
@@ -64,6 +65,7 @@ void GNode::AddDecayEvent(double _decayrate)
     newEvent.decayevent=true;
     newEvent.reorg_out = 0.0;
     this->event.push_back(newEvent);
+    hasdecay=true;
 }
 
 void GNode::AddEvent(int seg2, double rate12, vec dr, double Jeff2, double reorg_out)

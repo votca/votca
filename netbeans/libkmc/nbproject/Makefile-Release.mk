@@ -21,7 +21,7 @@ FC=gfortran
 AS=as
 
 # Macros
-CND_PLATFORM=GNU-Linux-x86
+CND_PLATFORM=GNU-Linux
 CND_DLIB_EXT=so
 CND_CONF=Release
 CND_DISTDIR=dist
@@ -35,10 +35,11 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/484465351/kmcapplication.o \
-	${OBJECTDIR}/_ext/484465351/kmccalculatorfactory.o \
-	${OBJECTDIR}/_ext/484465351/version.o \
-	${OBJECTDIR}/_ext/484465351/version_nb.o
+	${OBJECTDIR}/_ext/1ce05ac7/kmcapplication.o \
+	${OBJECTDIR}/_ext/1ce05ac7/kmccalculatorfactory.o \
+	${OBJECTDIR}/_ext/1ce05ac7/kmclifetime.o \
+	${OBJECTDIR}/_ext/1ce05ac7/version.o \
+	${OBJECTDIR}/_ext/1ce05ac7/version_nb.o
 
 
 # C Compiler Flags
@@ -67,25 +68,30 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liblibkmc.a: ${OBJECTFILES}
 	${AR} -rv ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liblibkmc.a ${OBJECTFILES} 
 	$(RANLIB) ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liblibkmc.a
 
-${OBJECTDIR}/_ext/484465351/kmcapplication.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libkmc/kmcapplication.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/484465351
+${OBJECTDIR}/_ext/1ce05ac7/kmcapplication.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libkmc/kmcapplication.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1ce05ac7
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -I../../../include -I../../include -I../../include/votca/kmc -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484465351/kmcapplication.o ../../src/libkmc/kmcapplication.cc
+	$(COMPILE.cc) -O2 -I../../../include -I../../include -I../../include/votca/kmc -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce05ac7/kmcapplication.o ../../src/libkmc/kmcapplication.cc
 
-${OBJECTDIR}/_ext/484465351/kmccalculatorfactory.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libkmc/kmccalculatorfactory.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/484465351
+${OBJECTDIR}/_ext/1ce05ac7/kmccalculatorfactory.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libkmc/kmccalculatorfactory.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1ce05ac7
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -I../../../include -I../../include -I../../include/votca/kmc -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484465351/kmccalculatorfactory.o ../../src/libkmc/kmccalculatorfactory.cc
+	$(COMPILE.cc) -O2 -I../../../include -I../../include -I../../include/votca/kmc -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce05ac7/kmccalculatorfactory.o ../../src/libkmc/kmccalculatorfactory.cc
 
-${OBJECTDIR}/_ext/484465351/version.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libkmc/version.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/484465351
+${OBJECTDIR}/_ext/1ce05ac7/kmclifetime.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libkmc/kmclifetime.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1ce05ac7
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -I../../../include -I../../include -I../../include/votca/kmc -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484465351/version.o ../../src/libkmc/version.cc
+	$(COMPILE.cc) -O2 -I../../../include -I../../include -I../../include/votca/kmc -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce05ac7/kmclifetime.o ../../src/libkmc/kmclifetime.cc
 
-${OBJECTDIR}/_ext/484465351/version_nb.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libkmc/version_nb.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/484465351
+${OBJECTDIR}/_ext/1ce05ac7/version.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libkmc/version.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1ce05ac7
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -I../../../include -I../../include -I../../include/votca/kmc -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484465351/version_nb.o ../../src/libkmc/version_nb.cc
+	$(COMPILE.cc) -O2 -I../../../include -I../../include -I../../include/votca/kmc -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce05ac7/version.o ../../src/libkmc/version.cc
+
+${OBJECTDIR}/_ext/1ce05ac7/version_nb.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libkmc/version_nb.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1ce05ac7
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -I../../../include -I../../include -I../../include/votca/kmc -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce05ac7/version_nb.o ../../src/libkmc/version_nb.cc
 
 # Subprojects
 .build-subprojects:

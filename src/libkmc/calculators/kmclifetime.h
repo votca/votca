@@ -81,10 +81,12 @@ private:
             
             
 	    vector<GNode*>  LoadGraph();
-            void RunVSSM(vector<GNode*> node, double runtime, unsigned int numberofcharges, votca::tools::Random2 *RandomVariable);
+            vector<double>  RunVSSM(vector<GNode*> node, unsigned int insertions, unsigned int numberofcharges, votca::tools::Random2 *RandomVariable);
             void InitialRates(vector<GNode*> node);
             void InitBoxSize(vector<GNode*> node);
             void progressbar(double fraction);
+            void ReadLifetimeFile( string filename,vector<GNode*> node);
+            double Promotetime(double cumulated_rate);
             void ResetForbidden(vector<int> &forbiddenid);
             void AddForbidden(int id, vector<int> &forbiddenid);
             bool Forbidden(int id, vector<int> forbiddenlist);
@@ -98,12 +100,11 @@ private:
             string _injection_name;
             string _injectionmethod;
            
-            int _insertions;
+            unsigned int _insertions;
             string _lifetimefile;
             double _maxrealtime;
             int _seed;
             int _numberofcharges;
-            double _outputtime;
             string _trajectoryfile;
             string _carriertype;
             double _temperature;

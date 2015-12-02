@@ -16,7 +16,8 @@
  */
 
 #include "calculators/kmclifetime.h"
-
+#include <votca/tools/property.h>
+#include <boost/format.hpp>
 
 using namespace std;
 
@@ -31,7 +32,7 @@ namespace votca {
 
         void KMCLifetime::Initialize(const char *filename, Property *options, const char *outputfile) {
             if (options->exists("options.kmclifetime.insertions")) {
-                _insertions = options->get("options.kmclifetime.insertions").as<double>();
+                _insertions = options->get("options.kmclifetime.insertions").as<unsigned int>();
             } else {
                 throw runtime_error("Error in kmclifetime: total number of insertions not provided");
             }
@@ -135,15 +136,10 @@ namespace votca {
             }
         }
 
-        
-        
-        
+
         vector<GNode*> KMCLifetime::LoadGraph() {
             vector<GNode*> node;
-
-            GNode *newNode = new GNode();
             
-            node.push_back(newNode);
             
             
             // Load nodes
@@ -157,6 +153,8 @@ namespace votca {
                 stmt = db.Prepare("SELECT _id-1, name, posX, posY, posZ, UnCnN" + _carriertype + ", UcNcC" + _carriertype + ",eAnion,eNeutral,eCation,UcCnN" + _carriertype + " FROM segments;");
             } else if (_carriertype == "s" || _carriertype == "t") {
                 stmt = db.Prepare("SELECT _id-1, name, posX, posY, posZ, UnXnN" + _carriertype + ", UxNxX" + _carriertype + ",eSinglet,eNeutral,eTriplet,UxXnN" + _carriertype + " FROM segments;");
+            } else{
+                throw runtime_error("Carriertype "+_carriertype+" not known.");
             }
 
             int i = 0;
@@ -191,9 +189,8 @@ namespace votca {
                 i++;
             }
             delete stmt;
-            if (votca::tools::globals::verbose) {
-                cout << "segments: " << node.size() << endl;
-            }
+            
+            ReadLifetimeFile(_lifetimefile,node);
 
             // Load pairs and rates
             int numberofpairs = 0;
@@ -237,15 +234,15 @@ namespace votca {
             return node;
         }
 
-        void KMCLifetime::ResetForbidden(vector<int> &forbiddenid) {
+        void KMCLifetime::ResetForbiddenlist(vector<int> &forbiddenid) {
             forbiddenid.clear();
         }
 
-        void KMCLifetime::AddForbidden(int id, vector<int> &forbiddenid) {
+        void KMCLifetime::AddForbiddenlist(int id, vector<int> &forbiddenid) {
             forbiddenid.push_back(id);
         }
 
-        bool KMCLifetime::Forbidden(int id, vector<int> forbiddenlist) {
+        bool KMCLifetime::CheckForbidden(int id, vector<int> forbiddenlist) {
             // cout << "forbidden list has " << forbiddenlist.size() << " entries" << endl;
             bool forbidden = false;
             for (unsigned int i = 0; i < forbiddenlist.size(); i++) {
@@ -257,7 +254,7 @@ namespace votca {
             }
             return forbidden;
         }
-/*
+
         bool KMCLifetime::Surrounded(GNode* node, vector<int> forbiddendests) {
             bool surrounded = true;
             for (unsigned int i = 0; i < node->event.size(); i++) {
@@ -275,7 +272,7 @@ namespace votca {
             }
             return surrounded;
         }
-*/
+
         void KMCLifetime::printtime(int seconds_t) {
             int seconds = seconds_t;
             int minutes = 0;
@@ -289,8 +286,39 @@ namespace votca {
                 hours += 1;
             }
             char buffer [50];
-            int n = sprintf(buffer, "%d:%02d:%02d", hours, minutes, seconds);
-            printf("%s", buffer, n);
+            sprintf(buffer, "%d:%02d:%02d", hours, minutes, seconds);
+            printf("%s", buffer);
+        }
+        
+        void KMCLifetime::ReadLifetimeFile(string filename,vector<GNode*> node){
+            Property xml;
+            load_property_from_xml(xml, filename);
+            list<Property*> jobProps = xml.Select("lifetimes.site");
+            if (jobProps.size()!=node.size()){
+                throw  runtime_error((boost::format("The number of sites in the sqlfile: %i does not match the number in the lifetimefile: %i") % node.size() % jobProps.size()).str());
+                
+            }
+            
+            for (list<Property*> ::iterator  it = jobProps.begin(); it != jobProps.end(); ++it) {
+                unsigned site_id =(*it)->getAttribute<unsigned>("id");
+                double lifetime=boost::lexical_cast<double>((*it)->value());
+                bool check=false;
+                for (unsigned i=0;i<node.size();i++){
+                    if (node[i]->id==site_id && !(node[i]->hasdecay)){
+                        node[i]->AddDecayEvent(1.0/lifetime);
+                        check=true;
+                        break;
+                    }
+                    else if(node[i]->id==site_id && node[i]->hasdecay){
+                        throw runtime_error((boost::format("Node %i appears twice in your list") %site_id).str()));
+                    } 
+                    
+                }
+                if (!check){
+                throw runtime_error((boost::format("Site from file with id: %i not found in sql") %site_id).str()));
+                }
+            }
+            
         }
 
         void KMCLifetime::InitialRates(vector<GNode*> node) {
@@ -350,8 +378,20 @@ namespace votca {
                 cout << "    WARNING: Rates differ from those in the state file up to " << maxreldiff * 100 << " %." << " If the rates in the state file are calculated for a different temperature/field or if they are not Marcus rates, this is fine. Otherwise something might be wrong here." << endl;
             }
         }
+        
+        double KMCLifetime::Promotetime(double cumulated_rate){
+            double dt = 0;
+                double rand_u = 1 - RandomVariable->rand_uniform();
+                while (rand_u == 0) {
+                    cout << "WARNING: encountered 0 as a random variable! New try." << endl;
+                    rand_u = 1 - RandomVariable->rand_uniform();
+                }
+                dt = -1 / cumulated_rate * log(rand_u);
+            return dt;
+        }
+        
 
-        void KMCLifetime::RunVSSM(vector<GNode*> node, double runtime, unsigned int numberofcharges, votca::tools::Random2 * RandomVariable) {
+        vector<double>  KMCLifetime::RunVSSM(vector<GNode*> node, double runtime, unsigned int numberofcharges, votca::tools::Random2 * RandomVariable) {
 
             int realtime_start = time(NULL);
             cout << endl << "Algorithm: VSSM for Multiple Charges" << endl;
@@ -363,26 +403,6 @@ namespace votca {
                 throw runtime_error("ERROR in kmclifetime: specified number of charges is greater than the number of nodes. This conflicts with single occupation.");
             }
 
-            fstream traj;
-            char trajfile[100];
-            strcpy(trajfile, _trajectoryfile.c_str());
-            cout << "Writing trajectory to " << trajfile << "." << endl;
-            traj.open(trajfile, fstream::out);
-            if (_outputtime != 0) {
-                traj << "'time[s]'\t";
-                for (unsigned int i = 0; i < numberofcharges; i++) {
-                    traj << "'carrier" << i + 1 << "_x'\t";
-                    traj << "'carrier" << i + 1 << "_y'\t";
-                    traj << "'carrier" << i + 1 << "_z";
-                    if (i < numberofcharges - 1) {
-                        traj << "'\t";
-                    }
-                }
-                traj << endl;
-
-              
-
-            }
             
             vector<double> occP(node.size(), 0.);
 
@@ -397,32 +417,20 @@ namespace votca {
             for (unsigned int i = 0; i < numberofcharges; i++) {
                 Chargecarrier *newCharge = new Chargecarrier;
                 newCharge->id = i;
-                newCharge->node = node[RandomVariable->rand_uniform_int(node.size())];
-                int ininterval = 1;
-               
-                while (newCharge->node->occupied == 1 || newCharge->node->injectable != 1 || ininterval != 1) { // maybe already occupied? or maybe not injectable?
+                newCharge->node = node[RandomVariable->rand_uniform_int(node.size())];             
+                while (newCharge->node->occupied == 1 || newCharge->node->injectable != 1 ) { // maybe already occupied? or maybe not injectable?
                     newCharge->node = node[RandomVariable->rand_uniform_int(node.size())];  
                 }
                 // cout << "selected segment " << newCharge->node->id+1 << " which has energy " << newCharge->node->siteenergy << " within the interval [" << energypercarrier-0*deltaE << ", " << energypercarrier+2*deltaE << "]" << endl;
                 newCharge->node->occupied = 1;
-               
-     
-                
                 cout << "starting position for charge " << i + 1 << ": segment " << newCharge->node->id + 1 << endl;
                 carrier.push_back(newCharge);
             }
 
-         
-
-            int realtime_start = time(NULL);
-
-            int insertions = 0;
+            unsigned insertions = 0;
             unsigned long step=0;
             double simtime=0.0;
 
-
-
-            progressbar(0.);
             vector<int> forbiddennodes;
             vector<int> forbiddendests;
 
@@ -441,58 +449,37 @@ namespace votca {
                     throw runtime_error("ERROR in kmclifetime: Incorrect rates in the database file. All the escape rates for the current setting are 0.");
                 }
                 // go forward in time
-                double dt = 0;
-                double rand_u = 1 - RandomVariable->rand_uniform();
-                while (rand_u == 0) {
-                    cout << "WARNING: encountered 0 as a random variable! New try." << endl;
-                    rand_u = 1 - RandomVariable->rand_uniform();
-                }
-                dt = -1 / cumulated_rate * log(rand_u);
+                double dt=Promotetime( cumulated_rate);
                 simtime += dt;
                 
                 for (unsigned int i = 0; i < carrier.size(); i++) {
-                    cumulated_rate += carrier[i]->updateLifetime(dt);
-                }
-                if (votca::tools::globals::verbose) {
-                    cout << "simtime += " << dt << endl << endl;
-                }
-                step += 1;
-
-                for (unsigned int i = 0; i < numberofcharges; i++) {
+                    carrier[i]->updateLifetime(dt);
                     carrier[i]->node->occupationtime += dt;
                 }
+                
+                step += 1;
 
 
                 ResetForbidden(forbiddennodes);
-                int level1step = 0;
-                while (level1step == 0 )
-                    // LEVEL 1
-                {
+                while (true ){
 
 
 
-                    // determine which electron will escape
+                    // determine which carrier will escape
                     GNode* do_oldnode;
                     GNode* do_newnode;
                     Chargecarrier* do_affectedcarrier;
 
                     double u = 1 - RandomVariable->rand_uniform();
                     for (unsigned int i = 0; i < numberofcharges; i++) {
-                        u -= carrier[i]->node->EscapeRate() / cumulated_rate;
-                        if (u <= 0) {
-                            do_oldnode = carrier[i]->node;
-                            do_affectedcarrier = carrier[i];
-                            break;
-                        }
+                        u -= carrier[i]->node->getEscapeRate() / cumulated_rate;
                         do_oldnode = carrier[i]->node;
                         do_affectedcarrier = carrier[i];
+                        if (u <= 0) { break;}         
                     }
 
-                  
-                    vec dr;
-                    if (votca::tools::globals::verbose) {
-                        cout << "Charge number " << do_affectedcarrier->id + 1 << " which is sitting on segment " << do_oldnode->id + 1 << " will escape!" << endl;
-                    }
+                    vec dr=vec(0,0,0);
+                   
                     if (Forbidden(do_oldnode->id, forbiddennodes) == 1) {
                         continue;
                     }
@@ -501,65 +488,39 @@ namespace votca {
                     ResetForbidden(forbiddendests);
                     while (true) {
                         // LEVEL 2
-                        if (votca::tools::globals::verbose) {
-                            cout << "There are " << do_oldnode->event.size() << " possible jumps for this charge:";
-                        }
-
-                       
-
-
+ 
                         do_newnode = NULL;
                         u = 1 - RandomVariable->rand_uniform();
                         for (unsigned int j = 0; j < do_oldnode->event.size(); j++) {
-                            if (votca::tools::globals::verbose) {
-                                cout << " " << do_oldnode->event[j].destination + 1;
-                            }
-                            u -= do_oldnode->event[j].rate / do_oldnode->EscapeRate();
-                            if (u <= 0) {
-                                do_newnode = node[do_oldnode->event[j].destination];
-                                dr = do_oldnode->event[j].dr;
-                                break;
-                            }
+                            
+                            u -= do_oldnode->event[j].rate / do_oldnode->getEscapeRate();
                             do_newnode = node[do_oldnode->event[j].destination];
                             dr = do_oldnode->event[j].dr;
+                            if (u <= 0) {break;}
+                            
                         }
 
                         if (do_newnode == NULL) {
-                            if (votca::tools::globals::verbose) {
-                                cout << endl << "Node " << do_oldnode->id + 1 << " is SURROUNDED by forbidden destinations and zero rates. Adding it to the list of forbidden nodes. After that: selection of a new escape node." << endl;
-                            }
+                            
                             AddForbidden(do_oldnode->id, forbiddennodes);
                             break; // select new escape node (ends level 2 but without setting level1step to 1)
                         }
                         
-                        if (votca::tools::globals::verbose) {
-                            cout << endl << "Selected jump: " << do_newnode->id + 1 << endl;
-                        }
+                    
 
                         // check after the event if this was allowed
                         if (Forbidden(do_newnode->id, forbiddendests) == true) {
-                            if (votca::tools::globals::verbose) {
-                                cout << "Node " << do_newnode->id + 1 << " is FORBIDDEN. Now selection new hopping destination." << endl;
-                            }
+                          
                             continue;
                         }
 
                         // if the new segment is unoccupied: jump; if not: add to forbidden list and choose new hopping destination
                         if (do_newnode->occupied == 1) {
-                            if (Surrounded(do_oldnode, forbiddendests) == true) {
-                                if (votca::tools::globals::verbose) {
-                                    cout << "Node " << do_oldnode->id + 1 << " is SURROUNDED by forbidden destinations. Adding it to the list of forbidden nodes. After that: selection of a new escape node." << endl;
-                                }
+                            if (Surrounded(do_oldnode, forbiddendests) == true) {     
                                 AddForbidden(do_oldnode->id, forbiddennodes);
                                 break; // select new escape node (ends level 2 but without setting level1step to 1)
                             }
-                            if (votca::tools::globals::verbose) {
-                                cout << "Selected segment: " << do_newnode->id + 1 << " is already OCCUPIED. Added to forbidden list." << endl << endl;
-                            }
                             AddForbidden(do_newnode->id, forbiddendests);
-                            if (votca::tools::globals::verbose) {
-                                cout << "Now choosing different hopping destination." << endl;
-                            }
                             continue; // select new destination
                         } else {
                             do_newnode->occupied = 1;
@@ -567,18 +528,11 @@ namespace votca {
                             do_affectedcarrier->node = do_newnode;
                             do_affectedcarrier->dr_travelled += dr;
                             level1step = 1;
-                            if (votca::tools::globals::verbose) {
-                                cout << "Charge has jumped to segment: " << do_newnode->id + 1 << "." << endl;
-                            }
-
-
 
                             break; // this ends LEVEL 2 , so that the time is updated and the next MC step started
                         }
 
-                        if (votca::tools::globals::verbose) {
-                            cout << "." << endl;
-                        }
+                       
                         // END LEVEL 2
                     }
                     // END LEVEL 1
@@ -609,7 +563,7 @@ namespace votca {
 
             vector<double> occP(node.size(), 0.);
 
-            RunVSSM(node, _runtime, _numberofcharges, RandomVariable);
+            RunVSSM(node, _insertions, _numberofcharges, RandomVariable);
 
         
 

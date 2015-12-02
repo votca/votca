@@ -547,8 +547,8 @@ void printtime(int seconds_t)
         hours +=  1;
     }
     char buffer [50];
-    int n = sprintf(buffer, "%d:%02d:%02d",hours,minutes,seconds);
-    printf("%s",buffer,n);
+    sprintf(buffer, "%d:%02d:%02d",hours,minutes,seconds);
+    printf("%s",buffer);
 }
 
 

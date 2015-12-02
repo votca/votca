@@ -52,7 +52,7 @@ public:
     /// left boundary of slab i (number_of_layers is right boundary of last slab)
     const double &boundary(int i) const {return _layer_boundaries[i]; }
     
-    const bool emptylayer(int i) const {return _empty_layer[i]; }
+    bool emptylayer(int i) const {return _empty_layer[i]; }
     
     /// Initialize arrays
     inline void Initialize_storage_arrays(Eventinfo* eventinfo);
