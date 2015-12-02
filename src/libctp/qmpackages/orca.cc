@@ -421,10 +421,10 @@ bool Orca::Run()
         } else {
             _command = "cd " + _run_dir + "; sh " + _shell_file_name;
         }
-        LOG(logDEBUG,*_pLog) << _command << flush;
-        //system ( _command.c_str() );
-        int i = system ( _command.c_str() );
-        LOG(logDEBUG,*_pLog) << "Orca job finished with "<<i << flush;
+        //LOG(logDEBUG,*_pLog) << _command << flush;
+        system ( _command.c_str() );
+       // int i = system ( _command.c_str() );
+        //LOG(logDEBUG,*_pLog) << "Orca job finished with "<<i << flush;
         if ( CheckLogFile() ) {
             LOG(logDEBUG,*_pLog) << "Finished Orca job" << flush;
             return true;
@@ -741,15 +741,32 @@ bool Orca::CheckLogFile() {
         return false;
     };
     
-    
-    
-   
+    std::string _line;
+    while (_input_file) {
+        getline(_input_file,_line);
+        boost::trim(_line);
+        
+
+        std::string::size_type error = _line.find("FATAL ERROR ENCOUNTERED");
+        
+        if (error != std::string::npos) {
+            LOG(logERROR,*_pLog) << "ORCA encountered a fatal error, maybe a look in the log file may help." << flush;
+            return false;
+        } 
+        error = _line.find("mpirun detected that one or more processes exited with non-zero status");
+        
+        if (error != std::string::npos) {
+            LOG(logERROR,*_pLog) << "ORCA had an mpi problem, maybe your openmpi version is not good." << flush;
+            return false;
+        } 
+    } 
+    return true;
 }
 
  // Parses the Orca gbw file and stores data in the Orbitals object 
  
 bool Orca::ParseOrbitalsFile( Orbitals* _orbitals ) {
-
+if ( !CheckLogFile() ) return false;
 std::vector<double> _coefficients;
 int _basis_size=_orbitals->getBasisSetSize();
 int _levels=_orbitals->getNumberOfLevels();
