@@ -326,6 +326,7 @@ void AOBasis::addReorderShell( string& start, string& target,  string& shell_typ
        
            }
        }   //for P
+       //votca order is dxz dyz dxy d3z2-r2 dx2-y2
        if ( shell_type == "D" ){ 
            if ( start == "gaussian"){
                neworder.push_back( _cur_pos + 4 );
@@ -334,6 +335,7 @@ void AOBasis::addReorderShell( string& start, string& target,  string& shell_typ
                neworder.push_back( _cur_pos + 5 );
                neworder.push_back( _cur_pos + 3 );
            } else if ( start == "nwchem") {
+               // nwchem order is dxy dyz d3z2-r2 -dxz dx2-y2 
                neworder.push_back( _cur_pos + 3  ); 
                neworder.push_back( _cur_pos + 2 );
                neworder.push_back( _cur_pos + 4 );
@@ -341,11 +343,12 @@ void AOBasis::addReorderShell( string& start, string& target,  string& shell_typ
                neworder.push_back( _cur_pos + 1 ); 
                neworder.push_back( _cur_pos + 5 );               
            }else if ( start == "orca") {
-               neworder.push_back( _cur_pos + 1 ); 
-               neworder.push_back( _cur_pos + 2 );
-               neworder.push_back( _cur_pos + 3 );
+               //orca order is d3z2-r2 dxz dyz dx2-y2 dxy
                neworder.push_back( _cur_pos + 4 ); 
-               neworder.push_back( _cur_pos + 5 );               
+               neworder.push_back( _cur_pos + 1 );
+               neworder.push_back( _cur_pos + 2 );
+               neworder.push_back( _cur_pos + 5 ); 
+               neworder.push_back( _cur_pos + 3 );               
             } else {
                cerr << "Tried to reorder d-functions from package " << start << ".";
                throw std::runtime_error( "Reordering not implemented yet!");

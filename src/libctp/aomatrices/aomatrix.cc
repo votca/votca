@@ -202,7 +202,7 @@ namespace votca { namespace ctp {
             _trafo(2,2) = 2.0*sqrt(_decay)*contractions[1];
             _trafo(3,3) = 2.0*sqrt(_decay)*contractions[1];
         }
-
+        //votca order is dxz dyz dxy d3z2-r2 dx2-y2
         // d-functions
         if ( _lmax > 1 ){
             _trafo(4,5) = 4.0*_decay*contractions[2];             // dxz

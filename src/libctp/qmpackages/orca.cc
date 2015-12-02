@@ -637,199 +637,54 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
         /********************************************************/
         
         
-        int _n_lines = (( _levels - 1 ) / 6); //each row contains 6 levels
-        int _n_rest  = _levels - 6*_n_lines;  //the last remaining columns 
-        
-        /*Finding Line for the start of MOLECULAR ORBITAL DATA*/ 
         
         
-        std::string::size_type MO_pos = _line.find("MOLECULAR ORBITALS");
-        if (MO_pos != std::string::npos) {
-                       
-            getline(_input_file,_line);  //Trash this line
-                              
-            for (int i=0; i<_n_lines ; i++){ 
+        
+        
+        std::string::size_type OE_pos = _line.find("ORBITAL ENERGIES");
+        if (OE_pos != std::string::npos) {
+        getline(_input_file,_line);
+        getline(_input_file,_line);
+        getline(_input_file,_line);
+        if (_line.find("E(Eh)")==std::string::npos){
+            LOG(logDEBUG,*_pLog) << "Warning: Orbital Energies not found in log file" << flush;
+        }
+        for (int i=0; i<_levels ; i++){
+            getline(_input_file,_line);
+            boost::trim( _line );
+            boost::algorithm::split(results, _line, boost::is_any_of(" "), boost::algorithm::token_compress_on);
            
-            getline(_input_file,_line);  //Trash this line
-            
-            /*Reading MO Energies ....*/
-            getline(_input_file,_line);  //energy levels
-            /*
-            boost::algorithm::split(results, _line, boost::is_any_of(" "), boost::algorithm::token_compress_on);
-                for (size_t l = 1; l < results.size(); l++){
-                      string _en = results[l];
-                      boost::trim( _en );
-                      try
-                           {
-                            _energies [_emo] = boost::lexical_cast<double>(_en) ;
-                           }
-                     catch(boost::bad_lexical_cast const& e)
-                           {
-                           }
-                     _emo++ ;
-                            }
-             */
-            //Done with reading MO energies ....
-            
-             /*Reading OCC numbers*/
-            getline(_input_file,_line);  //occ line
-                        
-            boost::algorithm::split(results, _line, boost::is_any_of(" "), boost::algorithm::token_compress_on);
-            for (size_t l = 1; l < results.size(); l++){
-                      string _oc = results[l];
-                      boost::trim( _oc );
-                      /*lexical_cast gives error if I don't catch the segmentation fault!! */
-                      try
-                           {
-                            _occ [_omo] = boost::lexical_cast<double>(_oc) ;
-                           }
-                      catch(boost::bad_lexical_cast const& e)
-                           {
-                           } 
-                     
-                      if ( _occ[ _omo ] == 2.0 ) {
-                                                  _number_of_electrons++;
-                                                 }
-                      _omo++ ;
-                               }
-            //Done with reading the OCC numbers ....
-                   
-             getline(_input_file,_line);  //Trash this line again
-             
-             //Reading MO coefficients ...
-             for(unsigned j=0; j< _levels; j++){
-             getline(_input_file,_line);  //MO coefficients 
-             /**/
-             //Erasing the first part
-             //string _coe;
-             //_coe.assign(_line, 0, 16);
-             // boost::trim(_coe);
-            // _line.erase(0, 16);
-             /*
-             for(int l=0; l<6;l++){  //l is the number of blocks in each line we want to save
-                        string _coe;
-                        _coe.assign(_line, 0, 10);
-                        boost::trim(_coe);
-                        //if I don't catch the segmentation fault here...
-                        try
-                           {
-                            double coe = boost::lexical_cast<double>(_coe);
-              
-                            _coefficients[ j ].push_back(coe);  //j is the number of levels index
-                           }
-                        catch(boost::bad_lexical_cast const& e)
-                           {
-                           }
-                        _line.erase(0, 10);
-                       }
-               */
-             }
-             
-            } //for(int i=0; i<_n_lines;i++)
-            
-            
-            
-            
-             // Mainly doing the same thing for the remaining columns at the end
-            if ( _n_rest != 0 ) {
-             
-            getline(_input_file,_line);  //Trash this line
-                              
-            getline(_input_file,_line);  //energy levels
-            /*      
-            boost::algorithm::split(results, _line, boost::is_any_of(" "), boost::algorithm::token_compress_on);
-            for (size_t l = 1; l < results.size(); l++){
-                    string _en = results[l];
-                    boost::trim( _en );
-                    try
-                           {
-                            _energies [_emo] = boost::lexical_cast<double>(_en) ;
-                           }
-                    catch(boost::bad_lexical_cast const& e)
-                           {
-                           }
-                    _emo++ ;
-                }
-             */
-
-            getline(_input_file,_line);  //occ levels
                     
-            boost::algorithm::split(results, _line, boost::is_any_of(" "), boost::algorithm::token_compress_on);
-            for (size_t l = 1; l < results.size(); l++){
-                      string _oc = results[l];
-                      boost::trim( _oc );
-                      try
-                           {
-                            _occ [_omo] = boost::lexical_cast<double>(_oc) ;
-                           }
-                     catch(boost::bad_lexical_cast const& e)
-                           {
-                           } 
-                  
-                      if ( _occ[ _omo ] == 2.0 ) {
-                            _number_of_electrons++;
-                        }
-                      _omo++ ;
-                }
-
-       /*          
-            getline(_input_file,_line);  //Trash this line again
-    
-            for(unsigned j=0; j< _levels; j++){
-             
-                 getline(_input_file,_line);  //MO coefficients 
-                  
-                 string _coe;
-                 _coe.assign(_line, 0, 16);
-                 boost::trim(_coe);
-                 _line.erase(0, 16);
-          
-                 for(int l=0; l<6;l++){
-                    string _coe;
-                    _coe.assign(_line, 0, 10);
-                    boost::trim(_coe);
-                 try
-                   {
-                    double coe = boost::lexical_cast<double>(_coe);
-                     _coefficients[ j ].push_back(coe);
-                   }
-                  catch(boost::bad_lexical_cast const& e)
-                          {
-                          }
-                 _line.erase(0, 10);
-                  }
-              
-            }  //for(j=0;j<_levels;j++)
-       */
-            }//if (_n_rest !=0)
-
-       
-        } //if(MO_pos !=std::string::npos)
+            string _no =results[0];
             
-    } //while(_input_file)
-    
-  //  for (size_t l = 0; l < _energies.size(); l++){
-  //      cout << "\n" << _energies[l]<<endl;
-        //                                        }
-  //  for (size_t l = 0; l < _occ.size(); l++){
-  //      cout << "\n" << _occ[l]<<endl;
-                        //                    }
-//            cout << _energies.size() << endl;
-//            cout << _occ.size() << endl;
+            boost::trim( _no );
+            int levelnumber= boost::lexical_cast<int>(_no);
+            if (levelnumber!=i){
+                LOG(logDEBUG,*_pLog) << "Have a look at the orbital energies something weird is going on" << flush;
+            }
+            string _oc = results[1];
+            boost::trim( _oc );
+            double occ =boost::lexical_cast<double>(_oc);
+            // We only count alpha electrons, each orbital must be empty or doubly occupied
+            if (occ==2){
+                _number_of_electrons++;
+                _occ[i]==occ;
+            }
+            else if (occ==0) {
+                _occ[i]==occ;
+            }
+            else {
+                throw runtime_error("Only empty or doubly occupied orbitals are allowed not running the right kind of DFT calculation");
+            }
+            
+            string _e = results[2];
+            boost::trim( _e );
+            _energies [i] = boost::lexical_cast<double>(_e) ;
+        }
+        }
+            
+        }
 
-    
-    
-    //for(int i=0 ; i< _levels ; i++)
-      //  cout << "\n" << _coefficients[i][92]<< endl;
-    
-    
-    
-    //Reading in MO orbitals from .gbw file
-    LOG(logDEBUG,*_pLog) << "Done reading the log file: " << flush ;
-    
-// rest of program
-    
-    
     
     LOG(logDEBUG,*_pLog) << "Alpha electrons: " << _number_of_electrons << flush ;
     int _occupied_levels = _number_of_electrons;
@@ -870,7 +725,7 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
    _occ.clear();
    
    
-   LOG(logDEBUG, *_pLog) << "Done reading MOs" << flush;
+   LOG(logDEBUG, *_pLog) << "Done reading Log file" << flush;
 
    return true;
 }//ParseOrbitalFile(Orbital* _orbital)

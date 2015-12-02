@@ -661,7 +661,7 @@ bool NWChem::CheckLogFile() {
             
        string _line;            
        getline(_input_file,_line);                      // Read the current line
-       cout << "\nResult: " << _line << '\n';     // Display it
+       //cout << "\nResult: " << _line << '\n';     // Display it
        total_energy_pos = _line.find("Total DFT energy");
        diis_pos = _line.find("diis");
        // whatever is found first, determines the completeness of the file

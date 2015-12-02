@@ -343,15 +343,10 @@ namespace votca {
                     }
                     _numint.GridSetup(_grid, &dftbs, _atoms);
                 // LOG(logDEBUG, *_pLog) << TimeStamp() << " Trying DFT orbital coefficient order from " << _dft_package << " to VOTCA" << flush;
-                    dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "votca");
-                cout << endl;
+               
                 
-                /***test for printing reordered MOs******/
-                for ( int i = 0 ; i < _dft_orbitals.size2() ; i++ ){
-                    
-                    cout << " Reordered MO " << i << " : " << _dft_orbitals(_dft_orbitals.size2()-1,i) << endl;
-                    
-                }
+                    dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "votca");
+                
                 
                 
                     LOG(logDEBUG, *_pLog) << TimeStamp() << " Converted DFT orbital coefficient order from " << _dft_package << " to VOTCA" << flush;
@@ -362,7 +357,8 @@ namespace votca {
                 } else {
                     throw std::runtime_error("So your DFT data contains no Vxc and I am not supposed to calculate Vxc? Where should I get it from? I propose a break to let you think!");
                 }
-            /*******test for printing the MO overlaps to check if it is correct*/
+            /*
+            //test for printing the MO overlaps to check if it is correct
             AOOverlap overlap;
             overlap.Initialize(dftbasis._AOBasisSize);
             overlap.Fill(&dftbasis);
@@ -379,7 +375,7 @@ namespace votca {
                 cout << "MO overlap ["<<i<<":"<<j <<"] : "<< "["<<j<<":"<<i <<"] :"<< results(i,j) << " : " << results(j,i)<< endl;
                 }
             }
-           
+           */
             
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Set hybrid exchange factor: " << _ScaHFX << flush;
             
