@@ -647,7 +647,7 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
         if (_line.find("E(Eh)")==std::string::npos){
             LOG(logDEBUG,*_pLog) << "Warning: Orbital Energies not found in log file" << flush;
         }
-        for (int i=0; i<_levels ; i++){
+        for (unsigned i=0; i<_levels ; i++){
             getline(_input_file,_line);
             boost::trim( _line );
             boost::algorithm::split(results, _line, boost::is_any_of(" "), boost::algorithm::token_compress_on);
@@ -656,7 +656,7 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
             string _no =results[0];
             
             boost::trim( _no );
-            int levelnumber= boost::lexical_cast<int>(_no);
+            unsigned levelnumber= boost::lexical_cast<unsigned>(_no);
             if (levelnumber!=i){
                 LOG(logDEBUG,*_pLog) << "Have a look at the orbital energies something weird is going on" << flush;
             }
