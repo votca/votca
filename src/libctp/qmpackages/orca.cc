@@ -511,7 +511,7 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
     std::string _line;
     unsigned _levels = 0;
     //unsigned _level;
-    unsigned _basis_size = 0;
+    //unsigned _basis_size = 0;
     int _number_of_electrons = 0;
     //bool _has_basis_dim = false;
     vector<string> results;    
@@ -628,7 +628,7 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
             boost::trim( _dim );
             _levels = boost::lexical_cast<int>(_dim);
             //cout <<  boost::lexical_cast<int>(_dim) << endl;
-            _basis_size = _levels;
+            //_basis_size = _levels;
               LOG(logDEBUG,*_pLog) << "Basis Dimension: " << _levels << flush;
               LOG( logDEBUG, *_pLog ) << "Energy levels: " << _levels << flush;
         }
