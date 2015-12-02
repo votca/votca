@@ -532,8 +532,6 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
          
 
     
-    int _emo=0;
-    int _omo=0;
         
         
     while (_input_file) {
@@ -668,10 +666,10 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
             // We only count alpha electrons, each orbital must be empty or doubly occupied
             if (occ==2){
                 _number_of_electrons++;
-                _occ[i]==occ;
+                _occ[i]=occ;
             }
             else if (occ==0) {
-                _occ[i]==occ;
+                _occ[i]=occ;
             }
             else {
                 throw runtime_error("Only empty or doubly occupied orbitals are allowed not running the right kind of DFT calculation");
@@ -733,7 +731,6 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
 bool Orca::CheckLogFile() {
     
     // check if the log file exists
-    char ch;
     ifstream _input_file((_run_dir + "/" + _log_file_name).c_str());
     
     if (_input_file.fail()) {
