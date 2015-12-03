@@ -290,7 +290,7 @@ void KMCMultiple::Initialize(const char *filename, Property *options, const char
 	}
         else {
 	    cout << "WARNING in kmcmultiple: You did not specify a temperature. If no explicit Coulomb interaction is used, this is not a problem, as the rates are read from the state file and temperature is not needed explicitly in the KMC simulation. Otherwise a default value of 300 K is used." << endl;
-            _temperature = 0;
+            _temperature = 300;
         }
         if (options->exists("options.kmcmultiple.rates")) {
 	    _rates = options->get("options.kmcmultiple.rates").as<string>();

@@ -56,7 +56,7 @@ namespace votca {
                 throw runtime_error("Error in kmclifetime: injection pattern is not provided");
             }
             if (options->exists("options.kmclifetime.lifetime")) {
-                _lifetimefile = options->get("options.kmclifetime.lifetimes").as<string>();
+                _lifetimefile = options->get("options.kmclifetime.lifetime").as<string>();
             } else {
                 throw runtime_error("Error in kmclifetime: injection pattern is not provided");
             }
@@ -99,8 +99,8 @@ namespace votca {
             if (options->exists("options.kmclifetime.temperature")) {
                 _temperature = options->get("options.kmclifetime.temperature").as<double>();
             } else {
-                cout << "WARNING in kmclifetime: You did not specify a temperature. If no explicit Coulomb interaction is used, this is not a problem, as the rates are read from the state file and temperature is not needed explicitly in the KMC simulation. Otherwise a default value of 300 K is used." << endl;
-                _temperature = 0;
+                cout << "WARNING in kmclifetime: You did not specify a temperature. A default value of 300 K is used." << endl;     
+                _temperature = 300;
             }
             if (options->exists("options.kmclifetime.rates")) {
                 _rates = options->get("options.kmclifetime.rates").as<string>();
