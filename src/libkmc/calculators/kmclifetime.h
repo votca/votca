@@ -70,7 +70,8 @@ private:
                         dr_travelled=vec(0.0,0.0,0.0);
                     }
                     void updateLifetime(double dt) { lifetime+=dt;}
-                    int position;
+                    void resetCarrier() { lifetime=0; dr_travelled=vec(0.0,0.0,0.0);}
+                    const double& getLifetime(){return lifetime;}
                     int id;
                     GNode *node;
                     vec dr_travelled;
@@ -86,11 +87,12 @@ private:
             void InitBoxSize(vector<GNode*> node);
             void progressbar(double fraction);
             void ReadLifetimeFile( string filename,vector<GNode*> node);
-            double Promotetime(double cumulated_rate);
-            void ResetForbidden(vector<int> &forbiddenid);
-            void AddForbidden(int id, vector<int> &forbiddenid);
-            bool Forbidden(int id, vector<int> forbiddenlist);
-            //bool Surrounded(GNode* node, vector<int> forbiddendests);
+            double Promotetime(double cumulated_rate,votca::tools::Random2 * RandomVariable);
+            void ResetForbiddenlist(vector<int> &forbiddenid);
+            void AddtoForbiddenlist(int id, vector<int> &forbiddenid);
+            bool CheckForbidden(int id,const vector<int> &forbiddenlist);
+            bool CheckSurrounded(GNode* node,const vector<int> &forbiddendests);
+            GLink* ChooseHoppingDest(GNode* node,votca::tools::Random2 * RandomVariable);
             void printtime(int seconds_t);
             
             //vec _field;

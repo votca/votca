@@ -44,6 +44,7 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
+      <itemPath>../../src/libkmc/gnode.cc</itemPath>
       <itemPath>../../src/libkmc/kmcapplication.cc</itemPath>
       <itemPath>../../src/libkmc/kmccalculatorfactory.cc</itemPath>
       <itemPath>../../src/libkmc/kmclifetime.cc</itemPath>
@@ -230,6 +231,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libkmc/gnode.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libkmc/kmcapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libkmc/kmccalculatorfactory.cc"
@@ -383,6 +386,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../src/libkmc/gnode.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libkmc/kmcapplication.cc" ex="false" tool="1" flavor2="0">
       </item>

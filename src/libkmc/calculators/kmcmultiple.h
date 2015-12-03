@@ -104,7 +104,6 @@ protected:
             class Chargecarrier
             {
                 public:
-                    int position;
                     int id;
                     GNode *node;
                     vec dr_travelled;
@@ -1168,8 +1167,6 @@ vector<double> KMCMultiple::RunVSSM(vector<GNode*> node, double runtime, unsigne
                 {
                     if(votca::tools::globals::verbose) {cout << endl << "Node " << do_oldnode->id+1  << " is SURROUNDED by forbidden destinations and zero rates. Adding it to the list of forbidden nodes. After that: selection of a new escape node." << endl; }
                     AddForbidden(do_oldnode->id, forbiddennodes);
-                    
-                    int nothing=0;
                     break; // select new escape node (ends level 2 but without setting level1step to 1)
                 }
                 if(votca::tools::globals::verbose) {cout << endl << "Selected jump: " << do_newnode->id+1 << endl; }

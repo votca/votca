@@ -35,6 +35,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
+	${OBJECTDIR}/_ext/1ce05ac7/gnode.o \
 	${OBJECTDIR}/_ext/1ce05ac7/kmcapplication.o \
 	${OBJECTDIR}/_ext/1ce05ac7/kmccalculatorfactory.o \
 	${OBJECTDIR}/_ext/1ce05ac7/kmclifetime.o \
@@ -67,6 +68,11 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liblibkmc.a: ${OBJECTFILES}
 	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liblibkmc.a
 	${AR} -rv ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liblibkmc.a ${OBJECTFILES} 
 	$(RANLIB) ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liblibkmc.a
+
+${OBJECTDIR}/_ext/1ce05ac7/gnode.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libkmc/gnode.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1ce05ac7
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -I../../../include -I../../include -I../../include/votca/kmc -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce05ac7/gnode.o ../../src/libkmc/gnode.cc
 
 ${OBJECTDIR}/_ext/1ce05ac7/kmcapplication.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libkmc/kmcapplication.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1ce05ac7

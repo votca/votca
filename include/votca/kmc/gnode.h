@@ -30,7 +30,7 @@ namespace votca { namespace kmc {
 class GNode
 {
     public:
-        GNode():hasdecay(true){};
+        GNode():hasdecay(false){};
         ~GNode(){};
 
         int id;
@@ -39,59 +39,20 @@ class GNode
         double occupationtime;
         double escaperate;
         bool hasdecay;
-        vec position;
+        votca::tools::vec position;
         vector<GLink> event;
         // stuff for Coulomb interaction:
         double siteenergy;
         double reorg_intorig; // UnCnN
         double reorg_intdest; // UcNcC
     
-        void AddEvent(int seg2, double rate12, vec dr, double Jeff2, double reorg_out);
+        void AddEvent(int seg2, double rate12, votca::tools::vec dr, double Jeff2, double reorg_out);
         const double &getEscapeRate(){return escaperate;}
         void InitEscapeRate();
         void AddDecayEvent(double _decayrate);
 };
 
 
-
-void GNode::AddDecayEvent(double _decayrate)
-{
-    GLink newEvent;
-    newEvent.destination = -1;
-    newEvent.rate = _decayrate;
-    newEvent.initialrate = _decayrate;
-    newEvent.dr = vec(0,0,0);
-    newEvent.Jeff2 = 0.0;
-    newEvent.decayevent=true;
-    newEvent.reorg_out = 0.0;
-    this->event.push_back(newEvent);
-    hasdecay=true;
-}
-
-void GNode::AddEvent(int seg2, double rate12, vec dr, double Jeff2, double reorg_out)
-{
-    GLink newEvent;
-    newEvent.destination = seg2;
-    newEvent.rate = rate12;
-    newEvent.initialrate = rate12;
-    newEvent.dr = dr;
-    newEvent.Jeff2 = Jeff2;
-    newEvent.decayevent=false;
-    newEvent.reorg_out = reorg_out;
-    this->event.push_back(newEvent);
-}
-
-
-void GNode::InitEscapeRate()
-{
-    double newEscapeRate = 0.0;
-    for(unsigned int i=0; i<this->event.size();i++)
-    {
-        newEscapeRate += this->event[i].rate;
-    }
-    this->escaperate = newEscapeRate;
-    // cout << "Escape rate for segment " << this->id << " was set to " << newEscapeRate << endl;
-}
 
 
 

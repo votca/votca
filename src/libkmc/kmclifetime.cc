@@ -139,15 +139,11 @@ namespace votca {
 
         vector<GNode*> KMCLifetime::LoadGraph() {
             vector<GNode*> node;
-            
-            
-            
+
             // Load nodes
             votca::tools::Database db;
             db.Open(_filename);
-            if (votca::tools::globals::verbose) {
-                cout << "LOADING GRAPH" << endl << "database file: " << _filename << endl;
-            }
+           
             votca::tools::Statement *stmt;
             if (_carriertype == "h" || _carriertype == "e") {
                 stmt = db.Prepare("SELECT _id-1, name, posX, posY, posZ, UnCnN" + _carriertype + ", UcNcC" + _carriertype + ",eAnion,eNeutral,eCation,UcCnN" + _carriertype + " FROM segments;");
@@ -225,9 +221,6 @@ namespace votca {
 
             cout << "spatial density: " << _numberofcharges / boxsize << " nm^-3" << endl;
 
-            //blabla
-
-            // Calculate initial escape rates !!!THIS SHOULD BE MOVED SO THAT IT'S NOT DONE TWICE IN CASE OF COULOMB INTERACTION!!!
             for (unsigned int i = 0; i < node.size(); i++) {
                 node[i]->InitEscapeRate();
             }
@@ -238,11 +231,11 @@ namespace votca {
             forbiddenid.clear();
         }
 
-        void KMCLifetime::AddForbiddenlist(int id, vector<int> &forbiddenid) {
+        void KMCLifetime::AddtoForbiddenlist(int id, vector<int> &forbiddenid) {
             forbiddenid.push_back(id);
         }
 
-        bool KMCLifetime::CheckForbidden(int id, vector<int> forbiddenlist) {
+        bool KMCLifetime::CheckForbidden(int id,const vector<int> &forbiddenlist) {
             // cout << "forbidden list has " << forbiddenlist.size() << " entries" << endl;
             bool forbidden = false;
             for (unsigned int i = 0; i < forbiddenlist.size(); i++) {
@@ -255,9 +248,9 @@ namespace votca {
             return forbidden;
         }
 
-        bool KMCLifetime::Surrounded(GNode* node, vector<int> forbiddendests) {
+        bool KMCLifetime::CheckSurrounded(GNode* node,const vector<int> & forbiddendests) {
             bool surrounded = true;
-            for (unsigned int i = 0; i < node->event.size(); i++) {
+            for (unsigned  i = 0; i < node->event.size(); i++) {
                 bool thisevent_possible = true;
                 for (unsigned int j = 0; j < forbiddendests.size(); j++) {
                     if (node->event[i].destination == forbiddendests[j]) {
@@ -310,12 +303,12 @@ namespace votca {
                         break;
                     }
                     else if(node[i]->id==site_id && node[i]->hasdecay){
-                        throw runtime_error((boost::format("Node %i appears twice in your list") %site_id).str()));
+                        throw runtime_error((boost::format("Node %i appears twice in your list") %site_id).str());
                     } 
                     
                 }
                 if (!check){
-                throw runtime_error((boost::format("Site from file with id: %i not found in sql") %site_id).str()));
+                throw runtime_error((boost::format("Site from file with id: %i not found in sql") %site_id).str());
                 }
             }
             
@@ -333,6 +326,10 @@ namespace votca {
             for (unsigned int i = 0; i < numberofsites; i++) {
                 int numberofneighbours = node[i]->event.size();
                 for (unsigned int j = 0; j < numberofneighbours; j++) {
+                    if(node[i]->event[j].decayevent){
+                        //if event is a decay event there is no point in calculating its rate, because it already has that from the reading in.
+                        continue;
+                    }
                     double dX = node[i]->event[j].dr.x();
                     double dY = node[i]->event[j].dr.y();
                     double dZ = node[i]->event[j].dr.z();
@@ -379,7 +376,7 @@ namespace votca {
             }
         }
         
-        double KMCLifetime::Promotetime(double cumulated_rate){
+        double KMCLifetime::Promotetime(double cumulated_rate,votca::tools::Random2 * RandomVariable){
             double dt = 0;
                 double rand_u = 1 - RandomVariable->rand_uniform();
                 while (rand_u == 0) {
@@ -390,11 +387,23 @@ namespace votca {
             return dt;
         }
         
+        GLink* KMCLifetime::ChooseHoppingDest(GNode* node,votca::tools::Random2 * RandomVariable){
+            double u = 1 - RandomVariable->rand_uniform();
+            
+            for (unsigned int j = 0; j < node->event.size(); j++) {
+                u -= node->event[j].rate / node->getEscapeRate();
+                if (u <= 0 || j==node->event.size()-1) {                   
+                    return &(node->event[j]);
+                }
+            }
+            return NULL;
+        }
+        
 
-        vector<double>  KMCLifetime::RunVSSM(vector<GNode*> node, double runtime, unsigned int numberofcharges, votca::tools::Random2 * RandomVariable) {
+        vector<double>  KMCLifetime::RunVSSM(vector<GNode*> node, unsigned int insertions, unsigned int numberofcharges, votca::tools::Random2 * RandomVariable) {
 
             int realtime_start = time(NULL);
-            cout << endl << "Algorithm: VSSM for Multiple Charges" << endl;
+            cout << endl << "Algorithm: VSSM for Multiple Charges with finite Lifetime" << endl;
             cout << "number of charges: " << numberofcharges << endl;
             cout << "number of nodes: " << node.size() << endl;
             
@@ -406,6 +415,12 @@ namespace votca {
             
             vector<double> occP(node.size(), 0.);
 
+            fstream traj;
+        
+
+            cout << "Writing trajectory to " <<  _trajectoryfile << "." << endl; 
+            traj.open ( _trajectoryfile.c_str(), fstream::out);
+            traj << "Simtime [s]\t Insertion\t Carrier ID\t Lifetime[s]\t Last Segment\t x_travelled[nm]\t y_travelled[nm]\t z_travelled[nm]"<<endl;
             
 
             // Injection
@@ -417,29 +432,31 @@ namespace votca {
             for (unsigned int i = 0; i < numberofcharges; i++) {
                 Chargecarrier *newCharge = new Chargecarrier;
                 newCharge->id = i;
-                newCharge->node = node[RandomVariable->rand_uniform_int(node.size())];             
-                while (newCharge->node->occupied == 1 || newCharge->node->injectable != 1 ) { // maybe already occupied? or maybe not injectable?
-                    newCharge->node = node[RandomVariable->rand_uniform_int(node.size())];  
+                do {
+                newCharge->node = node[RandomVariable->rand_uniform_int(node.size())];     
                 }
+                while (newCharge->node->occupied == 1 || newCharge->node->injectable != 1 ); // maybe already occupied? or maybe not injectable?
+                    
+                
                 // cout << "selected segment " << newCharge->node->id+1 << " which has energy " << newCharge->node->siteenergy << " within the interval [" << energypercarrier-0*deltaE << ", " << energypercarrier+2*deltaE << "]" << endl;
                 newCharge->node->occupied = 1;
                 cout << "starting position for charge " << i + 1 << ": segment " << newCharge->node->id + 1 << endl;
                 carrier.push_back(newCharge);
             }
 
-            unsigned insertions = 0;
+            unsigned insertioncount = 0;
             unsigned long step=0;
             double simtime=0.0;
 
             vector<int> forbiddennodes;
             vector<int> forbiddendests;
 
-            while (insertions < _insertions) {
+            while (insertioncount < insertions) {
                 if ((time(NULL) - realtime_start) > _maxrealtime * 60. * 60.) {
                     cout << endl << "Real time limit of " << _maxrealtime << " hours (" << int(_maxrealtime * 60 * 60 + 0.5) << " seconds) has been reached. Stopping here." << endl << endl;
                     break;
                 }
-                
+                step += 1;
                 double cumulated_rate = 0;
 
                 for (unsigned int i = 0; i < carrier.size(); i++) {
@@ -449,7 +466,7 @@ namespace votca {
                     throw runtime_error("ERROR in kmclifetime: Incorrect rates in the database file. All the escape rates for the current setting are 0.");
                 }
                 // go forward in time
-                double dt=Promotetime( cumulated_rate);
+                double dt=Promotetime( cumulated_rate,RandomVariable);
                 simtime += dt;
                 
                 for (unsigned int i = 0; i < carrier.size(); i++) {
@@ -457,77 +474,82 @@ namespace votca {
                     carrier[i]->node->occupationtime += dt;
                 }
                 
-                step += 1;
-
-
-                ResetForbidden(forbiddennodes);
-                while (true ){
-
+                
+                ResetForbiddenlist(forbiddennodes);
+                bool secondlevel=true;
+                while (secondlevel){
+                    
 
 
                     // determine which carrier will escape
-                    GNode* do_oldnode;
-                    GNode* do_newnode;
-                    Chargecarrier* do_affectedcarrier;
+                    GNode* oldnode;
+                    GNode* newnode;
+                    Chargecarrier* affectedcarrier;
 
                     double u = 1 - RandomVariable->rand_uniform();
                     for (unsigned int i = 0; i < numberofcharges; i++) {
                         u -= carrier[i]->node->getEscapeRate() / cumulated_rate;
-                        do_oldnode = carrier[i]->node;
-                        do_affectedcarrier = carrier[i];
-                        if (u <= 0) { break;}         
+                       
+                        if (u <= 0 || i==numberofcharges-1) {
+                            oldnode = carrier[i]->node;
+                            affectedcarrier = carrier[i];
+                            break;}  
+                       
                     }
 
-                    vec dr=vec(0,0,0);
+                    vec *dr= NULL;
                    
-                    if (Forbidden(do_oldnode->id, forbiddennodes) == 1) {
+                    if (CheckForbidden(oldnode->id, forbiddennodes)) {
                         continue;
                     }
 
                     // determine where it will jump to
-                    ResetForbidden(forbiddendests);
+                    ResetForbiddenlist(forbiddendests);
+                    
                     while (true) {
                         // LEVEL 2
  
-                        do_newnode = NULL;
-                        u = 1 - RandomVariable->rand_uniform();
-                        for (unsigned int j = 0; j < do_oldnode->event.size(); j++) {
+                        newnode = NULL;
+                        GLink* event=ChooseHoppingDest(oldnode, RandomVariable);
+                       
+                        if (event->decayevent){
+                            oldnode->occupied = 0;
+                            traj << simtime<<"\t"<<insertioncount<< "\t"<< affectedcarrier->id<<"\t"<< affectedcarrier->getLifetime()<<"\t"<< (oldnode->id)+1<<"\t"<<affectedcarrier->dr_travelled.getX()<<"\t"<<affectedcarrier->dr_travelled.getY()<<"\t"<<affectedcarrier->dr_travelled.getZ()<<endl;
                             
-                            u -= do_oldnode->event[j].rate / do_oldnode->getEscapeRate();
-                            do_newnode = node[do_oldnode->event[j].destination];
-                            dr = do_oldnode->event[j].dr;
-                            if (u <= 0) {break;}
-                            
+                            do {
+                                affectedcarrier->node = node[RandomVariable->rand_uniform_int(node.size())];     
+                            }
+                            while (affectedcarrier->node->occupied == 1 || affectedcarrier->node->injectable != 1 );
+                            affectedcarrier->node->occupied=1;
+                            affectedcarrier->resetCarrier();
+                            affectedcarrier->id=affectedcarrier->id+numberofcharges;
+                            secondlevel=false;
+                            break;
+                                }
+                        else{
+                        newnode = node[event->destination];
+                        dr = &(event->dr);
                         }
-
-                        if (do_newnode == NULL) {
-                            
-                            AddForbidden(do_oldnode->id, forbiddennodes);
-                            break; // select new escape node (ends level 2 but without setting level1step to 1)
-                        }
-                        
                     
-
                         // check after the event if this was allowed
-                        if (Forbidden(do_newnode->id, forbiddendests) == true) {
-                          
+                        if (CheckForbidden(newnode->id, forbiddendests)) {
                             continue;
                         }
 
                         // if the new segment is unoccupied: jump; if not: add to forbidden list and choose new hopping destination
-                        if (do_newnode->occupied == 1) {
-                            if (Surrounded(do_oldnode, forbiddendests) == true) {     
-                                AddForbidden(do_oldnode->id, forbiddennodes);
+                        if (newnode->occupied == 1) {
+                            if (CheckSurrounded(oldnode, forbiddendests)) {     
+                                AddtoForbiddenlist(oldnode->id, forbiddennodes);
                                 break; // select new escape node (ends level 2 but without setting level1step to 1)
                             }
-                            AddForbidden(do_newnode->id, forbiddendests);
+                            AddtoForbiddenlist(newnode->id, forbiddendests);
                             continue; // select new destination
                         } else {
-                            do_newnode->occupied = 1;
-                            do_oldnode->occupied = 0;
-                            do_affectedcarrier->node = do_newnode;
-                            do_affectedcarrier->dr_travelled += dr;
-                            level1step = 1;
+                            newnode->occupied = 1;
+                            oldnode->occupied = 0;
+                            affectedcarrier->node = newnode;
+                            affectedcarrier->dr_travelled += *(dr);
+                            secondlevel=false;
 
                             break; // this ends LEVEL 2 , so that the time is updated and the next MC step started
                         }
