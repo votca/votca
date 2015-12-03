@@ -282,6 +282,8 @@
       </item>
       <item path="../../src/libkmc/version_nb.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libkmc/votca_config.h" ex="false" tool="3" flavor2="0">
+      </item>
     </conf>
     <conf name="Release" type="3">
       <toolsSet>
@@ -437,6 +439,8 @@
       <item path="../../src/libkmc/version.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libkmc/version_nb.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libkmc/votca_config.h" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
   </confs>

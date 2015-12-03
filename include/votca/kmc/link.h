@@ -19,9 +19,9 @@
 #define	_VOTCA_KMC_LINK_H
 
 //#include <votca/kmc/node.h>
-
+ using namespace std;
 namespace votca { namespace kmc {
-
+   
 class Node;
 
 /**

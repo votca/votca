@@ -18,6 +18,8 @@
 #ifndef __VOTCA_KMC_EVENTINFO_H_
 #define __VOTCA_KMC_EVENTINFO_H_
 
+#include <votca/tools/property.h>
+
 namespace votca { namespace kmc {
   
 using namespace std;
