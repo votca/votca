@@ -30,7 +30,7 @@ public:
     
     Eventinfo(){};
     
-    void Read_bulk(Property *options){ 
+    void Read_bulk(votca::tools::Property *options){ 
 
         random_seed                           = options->get("options.general.random_seed").as<int>();
         const int growsize                    = 2;
@@ -117,7 +117,7 @@ public:
         
     }
     
-    void Read_device(Property *options) {
+    void Read_device(votca::tools::Property *options) {
         
         this->Read_bulk(options);
         voltage                               = options->get("options.device.voltage").as<double>();
@@ -180,7 +180,7 @@ public:
         }
     }
     
-    void Read_cubic(Property *options) {
+    void Read_cubic(votca::tools::Property *options) {
         NX                                    = options->get("options.cubic.NX").as<int>();
         NY                                    = options->get("options.cubic.NY").as<int>();
         NZ                                    = options->get("options.cubic.NZ").as<int>();
