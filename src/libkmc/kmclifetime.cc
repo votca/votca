@@ -36,8 +36,12 @@ namespace votca {
             } else {
                 throw runtime_error("Error in kmclifetime: total number of insertions not provided");
             }
-
-
+            if (options->exists("options.kmcmultiple.maxrealtime")) {
+	    _maxrealtime = options->get("options.kmcmultiple.maxrealtime").as<double>();
+            }
+            else{
+            _maxrealtime = 1E10; // maximal real time in hours
+            }
             if (options->exists("options.kmclifetime.seed")) {
                 _seed = options->get("options.kmclifetime.seed").as<int>();
             } else {
@@ -119,22 +123,7 @@ namespace votca {
 
         }
 
-        void KMCLifetime::progressbar(double fraction) {
-            int totalbars = 50;
-            std::cout << "\r";
-            for (double bars = 0; bars<double(totalbars); bars++) {
-                if (bars <= fraction * double(totalbars)) {
-                    std::cout << "|";
-                } else {
-                    std::cout << "-";
-                }
-            }
-            std::cout << "  " << int(fraction * 1000) / 10. << " %   ";
-            std::cout << std::flush;
-            if (fraction * 100 == 100) {
-                std::cout << std::endl;
-            }
-        }
+
 
 
         vector<GNode*> KMCLifetime::LoadGraph() {
@@ -297,7 +286,7 @@ namespace votca {
                 double lifetime=boost::lexical_cast<double>((*it)->value());
                 bool check=false;
                 for (unsigned i=0;i<node.size();i++){
-                    if (node[i]->id==site_id && !(node[i]->hasdecay)){
+                    if (node[i]->id==site_id-1 && !(node[i]->hasdecay)){
                         node[i]->AddDecayEvent(1.0/lifetime);
                         check=true;
                         break;
@@ -420,7 +409,7 @@ namespace votca {
 
             cout << "Writing trajectory to " <<  _trajectoryfile << "." << endl; 
             traj.open ( _trajectoryfile.c_str(), fstream::out);
-            traj << "Simtime [s]\t Insertion\t Carrier ID\t Lifetime[s]\t Last Segment\t x_travelled[nm]\t y_travelled[nm]\t z_travelled[nm]"<<endl;
+            traj << "Simtime [s]\t Insertion\t Carrier ID\t Lifetime[s]\tSteps\t Last Segment\t x_travelled[nm]\t y_travelled[nm]\t z_travelled[nm]"<<endl;
             
 
             // Injection
@@ -450,12 +439,22 @@ namespace votca {
 
             vector<int> forbiddennodes;
             vector<int> forbiddendests;
-
+            
+            time_t now = time(0);
+            tm* localtm = localtime(&now);
+            cout << "Run started at " << asctime(localtm) << endl;
+ 
+            double avlifetime=0.0;
+            double avdifflength=0.0;
+            unsigned steps=0;
             while (insertioncount < insertions) {
                 if ((time(NULL) - realtime_start) > _maxrealtime * 60. * 60.) {
                     cout << endl << "Real time limit of " << _maxrealtime << " hours (" << int(_maxrealtime * 60 * 60 + 0.5) << " seconds) has been reached. Stopping here." << endl << endl;
                     break;
                 }
+                
+              
+                
                 step += 1;
                 double cumulated_rate = 0;
 
@@ -468,9 +467,10 @@ namespace votca {
                 // go forward in time
                 double dt=Promotetime( cumulated_rate,RandomVariable);
                 simtime += dt;
-                
+                steps++;
                 for (unsigned int i = 0; i < carrier.size(); i++) {
                     carrier[i]->updateLifetime(dt);
+                    carrier[i]->updateSteps(1);
                     carrier[i]->node->occupationtime += dt;
                 }
                 
@@ -514,15 +514,19 @@ namespace votca {
                        
                         if (event->decayevent){
                             oldnode->occupied = 0;
-                            traj << simtime<<"\t"<<insertioncount<< "\t"<< affectedcarrier->id<<"\t"<< affectedcarrier->getLifetime()<<"\t"<< (oldnode->id)+1<<"\t"<<affectedcarrier->dr_travelled.getX()<<"\t"<<affectedcarrier->dr_travelled.getY()<<"\t"<<affectedcarrier->dr_travelled.getZ()<<endl;
-                            
+                            avlifetime+=affectedcarrier->getLifetime();
+                            avdifflength+=abs(affectedcarrier->dr_travelled);
+                            traj << simtime<<"\t"<<insertioncount<< "\t"<< affectedcarrier->id<<"\t"<< affectedcarrier->getLifetime()<<"\t"<<affectedcarrier->getSteps()<<"\t"<< (oldnode->id)+1<<"\t"<<affectedcarrier->dr_travelled.getX()<<"\t"<<affectedcarrier->dr_travelled.getY()<<"\t"<<affectedcarrier->dr_travelled.getZ()<<endl;
+                            std::cout << "\rInsertion " << insertioncount+1<<" of "<<insertions;
+                            std::cout << std::flush;
                             do {
                                 affectedcarrier->node = node[RandomVariable->rand_uniform_int(node.size())];     
                             }
                             while (affectedcarrier->node->occupied == 1 || affectedcarrier->node->injectable != 1 );
                             affectedcarrier->node->occupied=1;
                             affectedcarrier->resetCarrier();
-                            affectedcarrier->id=affectedcarrier->id+numberofcharges;
+                            insertioncount++;
+                            affectedcarrier->id=numberofcharges-1+insertioncount;
                             secondlevel=false;
                             break;
                                 }
@@ -560,6 +564,12 @@ namespace votca {
                     // END LEVEL 1
                 }
             }
+            
+            cout<<endl;
+            cout << "Total runtime was "<< simtime << " s"<< endl;
+            cout << "Total KMC steps were "<< steps << endl;
+            cout << "Average diffusion length "<<avdifflength/insertions<< " nm"<<endl;
+            cout << "Average lifetime "<<avlifetime/insertions<< " s"<<endl;
             return occP;
         }
 
@@ -567,7 +577,7 @@ namespace votca {
 
         bool KMCLifetime::EvaluateFrame() {
             std::cout << "-----------------------------------" << std::endl;
-            std::cout << "      KMCLIFETIME" << std::endl;
+            std::cout << "      KMCLIFETIME started" << std::endl;
             std::cout << "-----------------------------------" << std::endl << std::endl;
 
             // Initialise random number generator
@@ -586,7 +596,10 @@ namespace votca {
             vector<double> occP(node.size(), 0.);
 
             RunVSSM(node, _insertions, _numberofcharges, RandomVariable);
-
+            
+            
+            std::cout << "      KMCLIFETIME finished" << std::endl;
+            
         
 
             return true;

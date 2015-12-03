@@ -1,0 +1,12 @@
+<options>
+<kmclifetime help="Kinetic Monte Carlo simulations of multiple singlets or triplets in periodic boundary conditions with finite lifetime" label="calc:kmcmlifetime" section="sec:kmc">
+<insertions help="How often charges are allowed to decay">100000</insertions>
+<seed help="Integer to initialise the random number generator" unit="integer">1</seed>
+<numberofcharges help="Number of excitons in the simulation box">2</numberofcharges>
+<injection help="Name pattern that specifies on which sites injection is possible. Before injecting on a site it is checked whether the column 'name' in the table 'segments' of the state file matches this pattern. Use the wildcard '*' to inject on any site." unit="" default="*">*</injection>
+<lifetime help="xml file with the lifetime of an exciton on each segment>lifetimes.xml</lifetime>
+<carriertype help="Options: electron/hole. Specifies the carrier type of the transport under consideration.">s</carriertype>
+<temperature "Temperature in Kelvin. Will only be relevant if rates are calculated by KMC and not taken from the state file." unit="Kelvin" default="300K">300</temperature>
+<rates help="Options: statefile/calculate. statefile: use the rates for charge transfer specified in the state file; calculate: use transfer integrals, site energies and reorganisation energies specified in the state file as well as temperature specified here to calculate rates before starting the KMC simulation.>calculate</rates>
+</kmclifetime>
+</options>

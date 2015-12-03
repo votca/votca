@@ -108,6 +108,7 @@ protected:
                     GNode *node;
                     vec dr_travelled;
                     double tof_travelled;
+                    
             };
             typedef std::tr1::unordered_map<unsigned long, double> CoulombMap;
             typedef CoulombMap::const_iterator CoulombIt;

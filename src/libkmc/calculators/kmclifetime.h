@@ -65,19 +65,23 @@ private:
             class Chargecarrier
             {
                 public:
-                    Chargecarrier(): lifetime(0.0) 
+                    Chargecarrier(): lifetime(0.0),steps(0) 
                     {
                         dr_travelled=vec(0.0,0.0,0.0);
                     }
                     void updateLifetime(double dt) { lifetime+=dt;}
-                    void resetCarrier() { lifetime=0; dr_travelled=vec(0.0,0.0,0.0);}
+                    void updateSteps(unsigned t) { steps+=t;}
+                    void resetCarrier() { lifetime=0;steps=0; dr_travelled=vec(0.0,0.0,0.0);}
                     const double& getLifetime(){return lifetime;}
+                    const unsigned& getSteps(){return steps;}
+                    
                     int id;
                     GNode *node;
                     vec dr_travelled;
                     
                 private:
                     double lifetime;
+                    unsigned steps;
             };
             
             

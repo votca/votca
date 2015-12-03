@@ -12,8 +12,8 @@
 	<fieldX help="x component of the external electric field" unit="V/m" default="0">0</fieldX>
 	<fieldY help="y component of the external electric field" unit="V/m" default="0">0</fieldY>
 	<fieldZ help="z component of the external electric field" unit="V/m" default="1E6">1E6</fieldZ>
-	<carriertype help="Options: electron/hole. Specifies the carrier type of the transport under consideration." unit="" default="electron">electron</carriertype>
-	<temperature help="Temperature in Kelvin. Will only be relevant if rates are calculated by KMC and not taken from the state file." unit="Kelvin" default="">300</temperature>
+	<carriertype help="Options: electron/hole/singlet/triplet. Specifies the carrier type of the transport under consideration." unit="" default="electron">electron</carriertype>
+	<temperature help="Temperature in Kelvin. Will only be relevant if rates are calculated by KMC and not taken from the state file." unit="Kelvin" default="300K">300</temperature>
 	<!-- 0=no explit Coulomb interaction;
         	1=explicit Coulomb interaction using partial charges from SQL file
 		2=explicit "raw" Coulomb interaction using charges of +/-1. -->
