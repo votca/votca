@@ -73,6 +73,7 @@ private:
     string                              _scratch_dir;
     string                              _input_vxc_file_name;    
     string                              _cleanup;
+    string                              _vdWfooter;
 
     int NumberOfElectrons( string _line ); 
     int BasisSetSize( string _line ); 

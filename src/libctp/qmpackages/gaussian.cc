@@ -69,6 +69,13 @@ namespace votca {
             _scratch_dir = options->get(key + ".scratch").as<string> ();
             _cleanup = options->get(key + ".cleanup").as<string> ();
             
+            
+            if (options->exists(key + ".vdWRadii")) {
+                _vdWfooter = options->get(key + ".vdWRadii").as<string> ();   
+            }
+            else _vdWfooter="";
+            
+            
              if (options->exists(key + ".outputVxc")) {
                 _output_Vxc = options->get(key + "outputVxc").as<bool> ();   
             }
@@ -315,14 +322,13 @@ namespace votca {
                     }
                 }// end ECP
 
-
+                
 
 
 
 
 
             } else {
-
 
                 vector< QMAtom* > *qmatoms = orbitals_guess->getAtoms();
                 vector< QMAtom* >::iterator it;
@@ -555,7 +561,7 @@ namespace votca {
 
             }
 
-
+            _com_file << _vdWfooter << endl;
 
 
             _com_file << endl;

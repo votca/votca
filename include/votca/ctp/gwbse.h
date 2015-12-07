@@ -283,6 +283,7 @@ public:
     
     ub::matrix<float> _eh_x;
     ub::matrix<float> _eh_d;
+    ub::matrix<float> _eh_d2;
     ub::matrix<float> _eh_qp;
     
     // ub::vector<double> _bse_singlet_energies;
@@ -298,12 +299,11 @@ public:
     std::vector< ub::matrix<double> > _interlevel_dipoles_electrical;
     void BSE_x_setup( TCMatrix& _Mmn );
     void BSE_d_setup( TCMatrix& _Mmn );
+    void BSE_d2_setup( TCMatrix& _Mmn );
     void BSE_qp_setup( );
     void BSE_solve_triplets();
     void BSE_solve_singlets();
-    
-    
-    
+    void BSE_solve_singlets_BTDA();
     std::vector<int> _index2v;
     std::vector<int> _index2c;
     

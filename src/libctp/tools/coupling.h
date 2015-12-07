@@ -146,8 +146,8 @@ bool Coupling::Evaluate() {
                     << _orbitalsA.getNumberOfElectrons()*(_trimA-1) << std::flush;  
     _orbitalsA.Trim(_trimA);
     }
-    
-    if ( _orbitalsA.getNumberOfElectrons()*(_trimA-1) <   _orbitalsA.getNumberOfLevels() - _orbitalsA.getNumberOfElectrons() ){
+     LOG(logDEBUG,_log) << "DONE!" << std::flush;
+    if ( _orbitalsA.getNumberOfElectrons()*(_trimB-1) <   _orbitalsB.getNumberOfLevels() - _orbitalsB.getNumberOfElectrons() ){
 
     LOG(logDEBUG,_log) << "Trimming virtual orbitals B:" 
                     << _orbitalsB.getNumberOfLevels() - _orbitalsB.getNumberOfElectrons() << "->" 
