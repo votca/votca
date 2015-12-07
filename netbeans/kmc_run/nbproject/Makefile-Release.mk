@@ -21,7 +21,7 @@ FC=gfortran
 AS=as
 
 # Macros
-CND_PLATFORM=GNU-Linux-x86
+CND_PLATFORM=GNU-Linux
 CND_DLIB_EXT=so
 CND_CONF=Release
 CND_DISTDIR=dist
@@ -35,7 +35,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/715944016/kmc_run.o
+	${OBJECTDIR}/_ext/2aac7050/kmc_run.o
 
 
 # C Compiler Flags
@@ -62,10 +62,10 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/kmc_run: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/kmc_run ${OBJECTFILES} ${LDLIBSOPTIONS}
 
-${OBJECTDIR}/_ext/715944016/kmc_run.o: nbproject/Makefile-${CND_CONF}.mk ../../src/tools/kmc_run.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
-	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/kmc_run.o ../../src/tools/kmc_run.cc
+${OBJECTDIR}/_ext/2aac7050/kmc_run.o: nbproject/Makefile-${CND_CONF}.mk ../../src/tools/kmc_run.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/2aac7050
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/2aac7050/kmc_run.o ../../src/tools/kmc_run.cc
 
 # Subprojects
 .build-subprojects:

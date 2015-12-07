@@ -40,6 +40,8 @@ void KMCCalculatorFactory::RegisterAll(void)
     
     // single carrier threaded
     Calculators().Register<KMCParallel>("kmcparallel");
+    
+    // finite charge carrier density with decay
     Calculators().Register<KMCLifetime>("kmclifetime");
     
     // diode-type calculator (2D PBC with a source and sink)
