@@ -101,15 +101,15 @@ namespace votca {
 
 	      // loop over all GW levels
               #pragma omp parallel for
-	      for (int _gw_level = 0; _gw_level < _qptotal ; _gw_level++ ){
+	      for (unsigned _gw_level = 0; _gw_level < _qptotal ; _gw_level++ ){
                   
                 const ub::matrix<double>& Mmn = _Mmn[ _gw_level + _qpmin ];
               
 		// loop over all functions in GW basis
-		for ( int _i_gw = 0; _i_gw < _gwsize ; _i_gw++ ){
+		for ( unsigned _i_gw = 0; _i_gw < _gwsize ; _i_gw++ ){
                     
 		  // loop over all bands
-		  for ( int _i = 0; _i < _levelsum ; _i++ ){
+		  for ( unsigned _i = 0; _i < _levelsum ; _i++ ){
                     
 		    double occ = 1.0;
 		    if ( _i > _homo ) occ = -1.0; // sign for empty levels
@@ -159,16 +159,16 @@ namespace votca {
                 //_sigma_c = ub::zero_matrix<double>(_qptotal,_qptotal);
 
             #pragma omp parallel for
-	    for (int _gw_level = 0; _gw_level < _qptotal ; _gw_level++ ){
+	    for (unsigned _gw_level = 0; _gw_level < _qptotal ; _gw_level++ ){
               
                 const ub::matrix<double>& Mmn =  _Mmn[ _gw_level + _qpmin ];
 
 		// loop over all functions in GW basis
-		 for ( int _i_gw = 0; _i_gw < _gwsize ; _i_gw++ ){
+		 for ( unsigned _i_gw = 0; _i_gw < _gwsize ; _i_gw++ ){
                     
 
 		  // loop over all screening levels
-		  for ( int _i = 0; _i < _levelsum ; _i++ ){
+		  for ( unsigned _i = 0; _i < _levelsum ; _i++ ){
                     
 		    double occ = 1.0;
 		    if ( _i > _homo ) occ = -1.0; // sign for empty levels
@@ -183,9 +183,9 @@ namespace votca {
                     
 		    double _factor = _ppm_weight( _i_gw ) * _ppm_freq( _i_gw) *   Mmn(_i_gw, _i) *_stab/_denom; // contains conversion factor 2!
 		    
-                    double _crap = 0.0;
+                    //double _crap = 0.0;
 		    // loop over row GW levels
-		    for ( int _m = 0 ; _m < _qptotal ; _m++) {
+		    for ( unsigned _m = 0 ; _m < _qptotal ; _m++) {
                     
                        // _crap += _factor *  _Mmn[_m + _qpmin](_i_gw, _i) ; 
 		    
