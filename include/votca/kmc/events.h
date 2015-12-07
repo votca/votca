@@ -37,7 +37,7 @@ public:
     }
      
     ~Events() {
-        typename std::vector<Event*>::iterator it;
+        std::vector<Event*>::iterator it;
         for (it = _non_injection_events.begin(); it != _non_injection_events.end(); it++ ) delete *it;
         for (it = _injection_events.begin(); it != _injection_events.end(); it++ ) delete *it;
     } 

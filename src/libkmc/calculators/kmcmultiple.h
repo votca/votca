@@ -794,9 +794,9 @@ void KMCMultiple::RateUpdateCoulomb(vector<GNode*> &node,  vector< Chargecarrier
                     }
 
                 }
-                double dX =  node_i->event[destindex].dr.x();
-                double dY =  node_i->event[destindex].dr.y();
-                double dZ =  node_i->event[destindex].dr.z();
+                //double dX =  node_i->event[destindex].dr.x();
+                //double dY =  node_i->event[destindex].dr.y();
+                //double dZ =  node_i->event[destindex].dr.z();
                 //double dG_Field = _q * (dX*_fieldX +  dY*_fieldY + dZ*_fieldZ);
                 double reorg = node_i->reorg_intorig + node_j->reorg_intdest + node_i->event[destindex].reorg_out;
                 double dG_Site = node_j->siteenergy - node_i->siteenergy;

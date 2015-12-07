@@ -244,7 +244,7 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierBulk* c
                         Node* carrier2_node = carrier2->node();
                         votca::tools::vec carrier2_pos = carrier2_node->position();
 
-                        int carrier2_charge;
+                        int carrier2_charge=0;
                         if(carrier2_type == (int) Electron) {
                             carrier2_charge = -1;
                         }
@@ -293,7 +293,7 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierBulk* c
                                 }
                             }
                             // Adjust Coulomb potential and event rates for neighbours of carrier2
-                            typename std::vector<Link*>::iterator it;
+                            std::vector<Link*>::iterator it;
                             for (unsigned it = 0; it < carrier2_node->links().size(); it++) {
                                 votca::tools::vec jumpdistancevector = carrier2_node->links()[it]->r12();
                                 votca::tools::vec jump_from_carrier2_pos = np_carrier2_pos+jumpdistancevector;
@@ -409,6 +409,9 @@ void Events:: Effect_injection_rates(int action, CarrierBulk* carrier, Node* nod
                     eventmesh = &_right_injection_events_mesh[r_isx][r_isy][r_isz];
                     IDelectrodeswitch = _total_left_injection_events;
                 }
+                else{
+                    eventmesh=NULL;
+                }
 
                 li1 = eventmesh->begin();
                 li2 = eventmesh->end();
@@ -503,7 +506,7 @@ void Events::Recompute_all_events(StateReservoir* state, Longrange* longrange, B
 
 void Events::Recompute_all_non_injection_events(StateReservoir* state, Longrange* longrange, Bsumtree* non_injection_rates, Eventinfo* eventinfo) {
     
-    typename std::vector<Event*>::iterator it;
+    std::vector<Event*>::iterator it;
     for(it = _non_injection_events.begin(); it != _non_injection_events.end(); it++) {
         if(((*it)->final_type() != (int) Notinbox)) {
             (*it)->Determine_rate(state, longrange, eventinfo);
@@ -517,7 +520,7 @@ void Events::Recompute_all_non_injection_events(StateReservoir* state, Longrange
 
 void Events::Recompute_all_injection_events(StateReservoir* state, Longrange* longrange, Bsumtree* left_injection_rates, Bsumtree* right_injection_rates, Eventinfo* eventinfo) {
     
-    typename std::vector<Event*>::iterator it;
+    std::vector<Event*>::iterator it;
     for (it = _injection_events.begin(); it!=_injection_events.end(); it++){
         (*it)->Determine_rate(state, longrange, eventinfo);
         if((*it)->link()->node1()->type() == (int) LeftElectrodeNode) {
@@ -560,7 +563,7 @@ void Events::Initialize_device_eventvector(GraphKMC* graph, StateReservoir* stat
 
 void Events::Initialize_bulk_eventvector(GraphKMC* graph, StateReservoir* state, Eventinfo* eventinfo)
 {
-    typename std::vector<Event*>::iterator it;
+    std::vector<Event*>::iterator it;
 
     _non_injection_events.clear();
     Grow_non_injection_eventvector(state, eventinfo);
@@ -573,7 +576,7 @@ void Events::Initialize_bulk_eventvector(GraphKMC* graph, StateReservoir* state,
 void Events::Initialize_rates(Bsumtree* non_injection_rates, Bsumtree* left_injection_rates, Bsumtree* right_injection_rates, Eventinfo* eventinfo){
 
     non_injection_rates->initialize(_non_injection_events.size());
-    typename std::vector<Event*>::iterator it; 
+    std::vector<Event*>::iterator it; 
     for (it = _non_injection_events.begin(); it!=_non_injection_events.end(); it++) {non_injection_rates->setrate((*it)->id(),(*it)->rate());}
   
     if(eventinfo->device) {
@@ -656,8 +659,7 @@ void Events::Init_injection_meshes(StateReservoir* state, Eventinfo* eventinfo) 
 
     _left_injection_events_mesh = Resize_mesh(eventinfo->mesh_size_x,eventinfo->mesh_size_y,_inject_meshnr_z);
     _right_injection_events_mesh = Resize_mesh(eventinfo->mesh_size_x,eventinfo->mesh_size_y,_inject_meshnr_z);    
-    
-    typename std::vector<Event*>::iterator it;
+    std::vector<Event*>::iterator it;
     for (it = _injection_events.begin(); it != _injection_events.end(); it++ ) {
         if((*it)->link()->node1()->type()==LeftElectrodeNode) {
             votca::tools::vec position = (*it)->link()->node2()->position();

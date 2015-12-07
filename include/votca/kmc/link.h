@@ -63,7 +63,7 @@ public:
     void SetReverseID(long reverse_id) { _reverse_id = reverse_id; }
     
     // print Link info
-    virtual void Print(std::ostream &out) {
+    void Print(std::ostream &out) {
         out << _id << " " << _r12 << endl ;
     }
     
