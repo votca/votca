@@ -192,7 +192,7 @@ namespace votca {
             ub::matrix<float> _test = _AmB;
             linalg_eigenvalues(_test, _eigenvalues, _eigenvectors, dim);
             
-            for ( int _i = 0; _i < _eigenvalues.size(); _i++ ) {
+            for ( unsigned _i = 0; _i < _eigenvalues.size(); _i++ ) {
                 
                 if ( _eigenvalues(_i) < 0.0 ) {
                     LOG(logDEBUG, *_pLog) << TimeStamp() << " KAA-KAB has negative eigenvalues! : " << _i << " : " << _eigenvalues[_i] << flush;
@@ -207,8 +207,8 @@ namespace votca {
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Cholesky decomposition of KAA-KAB" << flush;
 
             // remove L^T from Cholesky
-            for (int i =0; i < _AmB.size1(); i++ ){
-                for (int j = i+1; j < _AmB.size1(); j++ ){
+            for (unsigned i =0; i < _AmB.size1(); i++ ){
+                for (unsigned j = i+1; j < _AmB.size1(); j++ ){
                     _AmB(i,j) = 0.0;
                 }
             }
@@ -225,7 +225,7 @@ namespace votca {
           LOG(logDEBUG, *_pLog) << TimeStamp() << " Solved HR_l = eps_l^2 R_l " << flush;
 
           // reconstruct real eigenvalues eps_l = sqrt(eps_l^2)
-          for ( int _i = 0; _i < _eigenvalues.size(); _i++) {
+          for ( unsigned _i = 0; _i < _eigenvalues.size(); _i++) {
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Eigenvalue: " << _eigenvalues(_i) << " : " << sqrt(_eigenvalues(_i))*13.6058 <<  flush;  
           }
           
