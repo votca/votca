@@ -110,11 +110,11 @@ double Event::Determine_self_coulomb(Node* node, Eventinfo* eventinfo){
 void Event::Determine_rate(StateReservoir* state, Longrange* longrange, Eventinfo* eventinfo) {
 
     Node* node1 = _link->node1();
-    votca::tools::vec node1vec = node1->position();
+    //votca::tools::vec node1vec = node1->position();
     //double leftnode1pos = node1vec.z();
     //double rightnode1pos = eventinfo->simboxsize.z() - leftnode1pos;
     Node* node2 = _link->node2();
-    votca::tools::vec node2vec = node2->position();
+    //votca::tools::vec node2vec = node2->position();
     //double leftnode2pos = node2vec.z();
     //double rightnode2pos = eventinfo->simboxsize.z() - leftnode2pos;
     

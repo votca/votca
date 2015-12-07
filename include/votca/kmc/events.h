@@ -114,6 +114,7 @@ public:
         else if(electrodeID == 1) {
             return _injection_events[eventID + _total_left_injection_events];
         }
+        return NULL;
     }
     
     double av_rate(int electrode);

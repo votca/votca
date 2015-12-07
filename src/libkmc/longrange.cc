@@ -280,7 +280,7 @@ double Longrange::Calculate_disc_contrib_slab_node(NodeDevice* node, int contrib
 
     votca::tools::vec nodepos = node->position();
     double calcpos = nodepos.z();
-    int node_layer = node->layer();
+    //int node_layer = node->layer();
     
     double RC = eventinfo->coulomb_cut_off_radius;
     
@@ -293,8 +293,8 @@ double Longrange::Calculate_disc_contrib_slab_node(NodeDevice* node, int contrib
  
     // determination of relative distances
     
-    bool firstleft = true;
-    bool secondleft = true;
+    //bool firstleft = true;
+    //bool secondleft = true;
     
     double firstrdist = first_contrib_pos-calcpos;
     double secondrdist = second_contrib_pos-calcpos;

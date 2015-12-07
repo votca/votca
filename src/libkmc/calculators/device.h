@@ -212,10 +212,10 @@ void Device::RunKMC() {
     if(eventinfo->repeat_counting) numoutput->Repeat_count_init();
     
     // convergence criteria
-    bool direct_iv_convergence = false;
-    bool direct_reco_convergence = false;
-    int direct_iv_counter = 0; //if the convergence criterium is counted ten times in a row, result is converged
-    int direct_reco_counter = 0;
+    //bool direct_iv_convergence = false;
+    //bool direct_reco_convergence = false;
+    //int direct_iv_counter = 0; //if the convergence criterium is counted ten times in a row, result is converged
+    //int direct_reco_counter = 0;
 
     std::cout << "total link z distance : " << graph->total_link_distance_z() << "\n";
     std::cout << "average hole site energy : " << eventinfo->avholeenergy << "\n";

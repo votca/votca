@@ -347,7 +347,7 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierBulk* c
 void Events:: Effect_injection_rates(int action, CarrierBulk* carrier, Node* node, Node* electrode, double dist_to_electrode, StateReservoir* state, Longrange* longrange, Bsumtree* injection_rates, Eventinfo* eventinfo){
 
     int interact_sign;
-    int z_mesh;
+    //int z_mesh;
     
     if(action == (int) Add) {interact_sign = 1;}
     if(action == (int) Remove) {interact_sign = -1;}
@@ -471,8 +471,8 @@ double Events::Compute_Coulomb_potential(double startz, votca::tools::vec dif, b
         double distz_2;
         double distancesqr_1;
         double distancesqr_2;
-        bool outside_cut_off1 = false;
-        bool outside_cut_off2 = false;
+       // bool outside_cut_off1 = false;
+        //bool outside_cut_off2 = false;
       
         for (int i=0;i<eventinfo->number_short_range_images; i++) {
             if (div(i,2).rem==0) { // even generation
@@ -625,7 +625,7 @@ void Events::Grow_non_injection_eventvector(StateReservoir* state, Eventinfo* ev
     }
     
     for(int carrier_ID = old_nr_carriers; carrier_ID<old_nr_carriers+growth; carrier_ID++) {
-        CarrierBulk* probecarrier = state->GetCarrier(carrier_ID);
+        //CarrierBulk* probecarrier = state->GetCarrier(carrier_ID);
         int Event_map = carrier_ID*eventinfo->maxpairdegree;
         Event *newEvent;
 

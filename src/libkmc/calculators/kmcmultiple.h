@@ -617,10 +617,10 @@ void KMCMultiple::InitialRates(vector<GNode*> node)
     cout << "    Rates for "<< numberofsites << " sites are computed." << endl;
     double maxreldiff = 0;
     int totalnumberofrates = 0;
-    for(unsigned int i=0; i<numberofsites; i++)
+    for(int i=0; i<numberofsites; i++)
     {
         int numberofneighbours = node[i]->event.size();
-        for(unsigned int j=0; j<numberofneighbours; j++)
+        for(int j=0; j<numberofneighbours; j++)
         {
             double dX =  node[i]->event[j].dr.x();
             double dY =  node[i]->event[j].dr.y();
@@ -797,7 +797,7 @@ void KMCMultiple::RateUpdateCoulomb(vector<GNode*> &node,  vector< Chargecarrier
                 double dX =  node_i->event[destindex].dr.x();
                 double dY =  node_i->event[destindex].dr.y();
                 double dZ =  node_i->event[destindex].dr.z();
-                double dG_Field = _q * (dX*_fieldX +  dY*_fieldY + dZ*_fieldZ);
+                //double dG_Field = _q * (dX*_fieldX +  dY*_fieldY + dZ*_fieldZ);
                 double reorg = node_i->reorg_intorig + node_j->reorg_intdest + node_i->event[destindex].reorg_out;
                 double dG_Site = node_j->siteenergy - node_i->siteenergy;
                 //double dG = dG_Site - dG_Field;
@@ -839,7 +839,7 @@ vector<double> KMCMultiple::RunVSSM(vector<GNode*> node, double runtime, unsigne
     string stopcondition;
     unsigned long maxsteps;
     int diffusionsteps = 0;
-    int diffusion_stepsize = 10000;
+    unsigned diffusion_stepsize = 10000;
     matrix avgdiffusiontensor;
     avgdiffusiontensor.ZeroMatrix();
     double accumulatedenergy = 0;
@@ -1039,7 +1039,7 @@ vector<double> KMCMultiple::RunVSSM(vector<GNode*> node, double runtime, unsigne
     double nextoutput = outputfrequency;
     unsigned long nextstepoutput = outputstepfrequency;
     double nexttrajoutput = _outputtime;
-    int nextdiffstep = diffusion_stepsize;
+    unsigned nextdiffstep = diffusion_stepsize;
     
     progressbar(0.);
     vector<int> forbiddennodes;

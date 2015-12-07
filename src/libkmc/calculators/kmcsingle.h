@@ -136,7 +136,7 @@ event_t *VSSMGroup<event_t>::SelectEvent_BinarySearch()
         
 	double u = 1.-Random::rand_uniform();
 	u=u*Rate();
-	double max = Rate();
+	//double max = Rate();
 	// to a binary search in accumulated events
 	int imin=0;
 	int imax=_acc_rate.size();
@@ -173,7 +173,7 @@ vec r(0,0,0);
 
 struct link_t {
 	link_t(double rate, node_t *dest, vec r)
-	: _dest(dest), _rate(rate), _r(r) {}
+	:  _rate(rate),_dest(dest), _r(r) {}
 	double Rate() {
 		return _rate;
 	}
