@@ -40,6 +40,7 @@ public:
         _node2 = node2;
         _r12 = r12;
     } 
+    virtual ~Link(){};
     
     /// link ID
     const long &id() const { return _id; }
