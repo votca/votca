@@ -68,30 +68,38 @@ QMMachine<QMPackage>::QMMachine(XJob *job, XInductor *xind, QMPackage *qmpack,
     
     // GWBSE options
     key = sfx + ".gwbse";
-    string _gwbse_xml = opt->get(key + ".gwbse_options").as<string> ();
-    //cout << endl << "... ... Parsing " << _package_xml << endl ;
-    load_property_from_xml(_gwbse_options, _gwbse_xml.c_str());
-    _state = opt->get(key+".state").as< int >();
-    _type  = opt->get(key+".type").as< string >();
-    if ( _type != "singlet" && _type != "triplet" ){
-        throw runtime_error(" Invalid excited state type! " + _type);
-    }
-   
-    key = sfx + ".gwbse.filter";
-    if (opt->exists(key + ".oscillator_strength") && _type != "triplet" ){
-        _has_osc_filter = true;
-        _osc_threshold  =  opt->get(key + ".oscillator_strength").as<double> ();
-    } else {
-        _has_osc_filter = false;
-    }
-        
-    if (opt->exists(key + ".charge_transfer")  ){
-        _has_dQ_filter = true;
-        _dQ_threshold  =  opt->get(key + ".charge_transfer").as<double> ();
-    } else {
-        _has_dQ_filter = false;
-    }
 
+            if (opt->exists(key)) {
+                _do_gwbse = true;
+                cout << " Excited state QM/MM " << endl;
+                string _gwbse_xml = opt->get(key + ".gwbse_options").as<string> ();
+                //cout << endl << "... ... Parsing " << _package_xml << endl ;
+                load_property_from_xml(_gwbse_options, _gwbse_xml.c_str());
+                _state = opt->get(key + ".state").as< int >();
+                _type = opt->get(key + ".type").as< string >();
+                if (_type != "singlet" && _type != "triplet") {
+                    throw runtime_error(" Invalid excited state type! " + _type);
+                }
+
+                key = sfx + ".gwbse.filter";
+                if (opt->exists(key + ".oscillator_strength") && _type != "triplet") {
+                    _has_osc_filter = true;
+                    _osc_threshold = opt->get(key + ".oscillator_strength").as<double> ();
+                } else {
+                    _has_osc_filter = false;
+                }
+
+                if (opt->exists(key + ".charge_transfer")) {
+                    _has_dQ_filter = true;
+                    _dQ_threshold = opt->get(key + ".charge_transfer").as<double> ();
+                } else {
+                    _has_dQ_filter = false;
+                }
+            } else {
+                cout << " Ground state QM/MM " << endl;
+                _do_gwbse = false;
+            }
+    
 
 }
 
@@ -248,7 +256,7 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     
 
     // GW-BSE starts here
-    bool _do_gwbse = true; // needs to be set by options!!!
+
     double energy___ex = 0.0;
     
     if ( _do_gwbse ){
@@ -419,6 +427,17 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     }
     
     
+    /* Test: go via GDMA instead of point charges
+     
+     
+     
+     */
+    
+    
+    
+    
+    
+    
 
     out = fopen((runFolder + "/parsed.pdb").c_str(),"w");
     orb_iter_input.WritePDB( out );
@@ -521,6 +540,9 @@ bool QMMachine<QMPackage>::hasConverged() {
         double dE_QM = iter_1->getQMEnergy() - iter_0->getQMEnergy();
         double dE_MM = iter_1->getMMEnergy() - iter_0->getMMEnergy();
         
+        cout << "QM " << iter_1->getQMEnergy() << " vs " << iter_0->getQMEnergy() << endl;
+        cout << "MM " << iter_1->getMMEnergy() << " vs " << iter_0->getMMEnergy() << endl;
+        
         if (dR <= _crit_dR) _convg_dR = true;
         if (dQ <= _crit_dQ) _convg_dQ = true;
         if (dE_QM*dE_QM <= _crit_dE_QM*_crit_dE_QM) _convg_dE_QM = true;
@@ -575,6 +597,7 @@ void QMMIter::UpdatePosChrgFromQMAtoms(vector< QMAtom* > &qmatoms,
             vec upd_r = vec(qmatm->x, qmatm->y, qmatm->z);
             upd_r *= AA_to_NM;
             double upd_Q00 = qmatm->charge;
+            //cout << "updating charge to " << qmatm->charge << endl;
             
             // Compare to previous r, Q00
             APolarSite *aps = (*pseg)[j];
@@ -593,11 +616,16 @@ void QMMIter::UpdatePosChrgFromQMAtoms(vector< QMAtom* > &qmatoms,
         }
     }
     
+    
+       // cout << " dR_RMS " << dR_RMS << "dQ RMS " << dQ_RMS << endl;
     dR_RMS /= qmatoms.size();
     dQ_RMS /= qmatoms.size();
     dR_RMS = sqrt(dR_RMS);
     dQ_RMS = sqrt(dQ_RMS);
 
+   // cout << " dR_RMS " << dR_RMS << "dQ RMS " << dQ_RMS << endl;
+    
+    
     this->setdRdQ(dR_RMS, dQ_RMS, dQ_SUM);
 }
 
@@ -641,7 +669,7 @@ void QMMIter::GenerateQMAtomsFromPolarSegs(PolarTop *ptop, Orbitals &orb,
                 // Calculate virtual charge positions
                 double a        = dpl_spacing; // this is in nm
                 double mag_d    = abs(tot_dpl); // this is in e * nm
-                vec    dir_d_0  = tot_dpl.normalize(); 
+                vec    dir_d_0  = tot_dpl.normalize();
                 vec    dir_d    = dir_d_0.normalize();
                 vec    A        = pos + 0.5 * a * dir_d /AA_to_NM; // converted to AA
                 vec    B        = pos - 0.5 * a * dir_d /AA_to_NM;

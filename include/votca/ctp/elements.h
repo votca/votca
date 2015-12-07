@@ -102,6 +102,7 @@ private:
         _VdWChelpG["S"]  = 2.0;
         _VdWChelpG["Cl"] = 2.0;
         _VdWChelpG["Ar"] = 2.0;
+        _VdWChelpG["Hg"] = 2.0;
     };
 
 

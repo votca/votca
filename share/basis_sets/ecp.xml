@@ -37,5 +37,18 @@
             <shell type="D"><constant power="2" decay="0.0316000" contraction="-0.001500"></constant></shell>
        </element>
 
+	
+        <element name="Hg" lmax="5" ncore="60">
+            <shell type="H"><constant power="2" decay="1.0" contraction="0.0"></constant></shell>
+            <shell type="S"><constant power="2" decay="12.981549" contraction="275.737212"></constant><constant power="2" decay="275.737212" contraction="275.737212"></constant></shell>
+            <shell type="P"><constant power="2" decay="10.538096" contraction="241.540074"></constant><constant power="2" decay="5.269048" contraction="27.396591"></constant></shell>
+            <shell type="D"><constant power="2" decay="8.101721" contraction="127.867008"></constant><constant power="2" decay="4.050860" contraction="16.608312"></constant></shell>
+            <shell type="F"><constant power="2" decay="3.885791" contraction="30.364996"></constant></shell>
+            <shell type="G"><constant power="2" decay="6.240955" contraction="-29.473118"></constant></shell>
+       </element>
+
+
+
+
 </pseudopotential>
 
