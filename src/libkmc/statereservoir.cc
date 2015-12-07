@@ -40,7 +40,7 @@ void StateReservoir::LoadStateReservoir(const char* filename, GraphKMC* graph,Ev
 
 void StateReservoir::InitInteractions(int pre_carrier_size,int post_carrier_size,Eventinfo* eventinfo){
 
-    for (unsigned int i=pre_carrier_size; i < post_carrier_size; i++) {
+    for (int i=pre_carrier_size; i < post_carrier_size; i++) {
         CarrierBulk* probecarrier = GetCarrier(i);
         probecarrier->Init_to_Coulomb(eventinfo->maxpairdegree);
         probecarrier->Set_from_Coulomb(0.0);        

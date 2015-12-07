@@ -33,6 +33,7 @@
 using namespace std;
 
 namespace votca { namespace kmc {
+
     
 class Bulk : public KMCCalculator 
 {
@@ -62,12 +63,7 @@ public:
 protected:
    void RunKMC(void); 
             
-private:
-    static const double kB   = 8.617332478E-5; // eV/K
-    static const double hbar = 6.5821192815E-16; // eV*s
-    static const double eps0 = 8.85418781762E-12/1.602176565E-19; // e**2/eV/m = 8.85418781762E-12 As/Vm
-    static const double epsr = 3.0; // relative material permittivity
-    static const double Pi   = 3.14159265358979323846;
+   
    
 };
 
@@ -192,10 +188,10 @@ void Bulk::RunKMC() {
     if(eventinfo->repeat_counting) numoutput->Repeat_count_init();
     
     // convergence criteria
-    bool direct_iv_convergence = false;
-    bool direct_reco_convergence = false;
-    int direct_iv_counter = 0; //if the convergence criterium is counted ten times in a row, result is converged
-    int direct_reco_counter = 0;
+    //bool direct_iv_convergence = false;
+    //bool direct_reco_convergence = false;
+    //int direct_iv_counter = 0; //if the convergence criterium is counted ten times in a row, result is converged
+    //int direct_reco_counter = 0;
 
     if(eventinfo->filament_visualisation)  numoutput->Init_visualisation(graph, eventinfo);
     if(eventinfo->carrier_trajectory) eventinfo->number_of_equilibration_steps = 0;    

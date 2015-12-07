@@ -158,7 +158,7 @@ event_t *VSSMGroup<event_t>::SelectEvent_BinarySearch()
 class node_t : public VSSMGroup<link_t> {
   public:
 	node_t(int id)
-	  : _id(id), _occ(0) {}
+	  : _occ(0),_id(id) {}
 	double _occ;
 	int _id;
 
@@ -172,7 +172,7 @@ node_t *current;
 vec r(0,0,0);
 
 struct link_t {
-	link_t(node_t *dest, double rate, vec r)
+	link_t(double rate, node_t *dest, vec r)
 	: _dest(dest), _rate(rate), _r(r) {}
 	double Rate() {
 		return _rate;
@@ -294,8 +294,8 @@ void KMCSingle::LoadGraph() {
         double rate12 = stmt->Column<double>(2);
         double rate21 = stmt->Column<double>(3);
         vec r = vec(stmt->Column<double>(4), stmt->Column<double>(5), stmt->Column<double>(6));
-        n1->AddEvent(new link_t(n2, rate12, r));
-        n2->AddEvent(new link_t(n1, rate21, -r));
+        n1->AddEvent(new link_t(rate12,n2, r));
+        n2->AddEvent(new link_t( rate21,n1, -r));
         links += 2;
         
         if ( votca::tools::globals::verbose ) {
@@ -325,7 +325,7 @@ void KMCSingle::RunKMC(void)
             throw std::runtime_error("Injected on an unconnected site, id = "+boost::lexical_cast<string>(id));            
         }
 	double next_output = _dt;
-    int i=0;
+    //int i=0;
     while(t<_runtime) {
     	t+=current->WaitingTime();
 		current->onExecute(); // this line causes a Segmentation fault
@@ -346,7 +346,7 @@ void KMCSingle::WriteOcc()
 	db.Open(_filename);
 	db.Exec("BEGIN;");
 	Statement *stmt = db.Prepare("UPDATE segments SET occPe = ? WHERE _id = ?;");  // electron occ. prob., check (think about) this
-	for(int i=0; i<_nodes.size(); ++i) {
+	for(unsigned i=0; i<_nodes.size(); ++i) {
 		stmt->Reset();
 		stmt->Bind(1, _nodes[i]->_occ/_runtime);
 		stmt->Bind(2, _nodes[i]->_id);

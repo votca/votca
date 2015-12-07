@@ -274,7 +274,7 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierBulk* c
                             }
                             if (action== (int) Add) {
                                 // Adjust Coulomb potential for neighbours of the added carrier
-                                for (int it = 0 ; it < node->links().size(); it++) {
+                                for (unsigned it = 0 ; it < node->links().size(); it++) {
                                     votca::tools::vec jumpdistancevector = node->links()[it]->r12();
                                     votca::tools::vec jump_from_carrier1_pos = carrier1_pos + jumpdistancevector;
                                     votca::tools::vec jumpdistance = np_carrier2_pos-jump_from_carrier1_pos;
@@ -294,7 +294,7 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierBulk* c
                             }
                             // Adjust Coulomb potential and event rates for neighbours of carrier2
                             typename std::vector<Link*>::iterator it;
-                            for (int it = 0; it < carrier2_node->links().size(); it++) {
+                            for (unsigned it = 0; it < carrier2_node->links().size(); it++) {
                                 votca::tools::vec jumpdistancevector = carrier2_node->links()[it]->r12();
                                 votca::tools::vec jump_from_carrier2_pos = np_carrier2_pos+jumpdistancevector;
                                 votca::tools::vec jumpdistance = jump_from_carrier2_pos - carrier1_pos;
@@ -328,7 +328,7 @@ void Events::Effect_potential_and_non_injection_rates(int action, CarrierBulk* c
         }  
 
           // update event rates for carrier 1 , done after all carriers within radius coulomb_cut_off_radius are checked
-        for (int it = 0; it < node->links().size(); it++) {
+        for (unsigned it = 0; it < node->links().size(); it++) {
             int event_ID = carrier1->id()*eventinfo->maxpairdegree+it;
 
             if(action == (int) Add) {
@@ -589,7 +589,7 @@ void Events::Initialize_injection_eventvector(int Event_id_count, Node* electrod
 
     int Event_map = Event_id_count;
     
-    for (int it = 0; it < electrode->links().size(); it++) {
+    for (unsigned it = 0; it < electrode->links().size(); it++) {
 
         Event *newEvent = new Event(Event_map, electrode->links()[it], carrier_type, state, longrange, eventinfo);
         _injection_events.push_back(newEvent);

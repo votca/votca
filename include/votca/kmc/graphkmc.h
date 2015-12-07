@@ -95,7 +95,7 @@ private:
     double Determine_Minimum_Distance();    
 
     ///calculate the maximum of all degrees in the graph
-    int Determine_Max_Pair_Degree();
+    unsigned Determine_Max_Pair_Degree();
 
     ///gives the total sum of r12.x() for all links (including injection and collection links)
     double Sum_of_link_distances_z();

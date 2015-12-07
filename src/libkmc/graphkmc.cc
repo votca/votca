@@ -186,9 +186,9 @@ double GraphKMC::Determine_Minimum_Distance()
     return min_distance;
 }
 
-int GraphKMC::Determine_Max_Pair_Degree()
+unsigned GraphKMC::Determine_Max_Pair_Degree()
 {
-    int max_pair_degree = 0;
+    unsigned max_pair_degree = 0;
 
     std::vector<NodeDevice*>::iterator it;    
     for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) 
@@ -749,7 +749,7 @@ void GraphKMC::Renumber_id()
     for (it = this->_nodes.begin(); it != this->_nodes.end(); it++) 
     {
         int renum_ID = 0;
-        for (int ilink = 0 ; ilink < (*it)->links().size(); ilink++) 
+        for (unsigned ilink = 0 ; ilink < (*it)->links().size(); ilink++) 
         {
             (*it)->links()[ilink]->SetID(renum_ID); renum_ID++;
         }        
@@ -817,7 +817,7 @@ double GraphKMC::Average_hole_left_electrode_energy()
     double av_ho_energy = 0.0;
     int linker = 0;
     
-    for(int ilink = 0; ilink < _left_electrode->links().size(); ilink++)    {
+    for(unsigned ilink = 0; ilink < _left_electrode->links().size(); ilink++)    {
         Node* probe_node = _left_electrode->links()[ilink]->node2();
         ho_energy +=  dynamic_cast<NodeDevice*>(probe_node)->eCation() +  dynamic_cast<NodeDevice*>(probe_node)->UcCnNh();
         linker++;
@@ -833,7 +833,7 @@ double GraphKMC::Average_hole_right_electrode_energy()
     double av_ho_energy = 0.0;
     int linker = 0;
     
-    for(int ilink = 0; ilink < _right_electrode->links().size(); ilink++)    {
+    for(unsigned ilink = 0; ilink < _right_electrode->links().size(); ilink++)    {
         Node* probe_node = _right_electrode->links()[ilink]->node2();
         ho_energy +=  dynamic_cast<NodeDevice*>(probe_node)->eCation() +  dynamic_cast<NodeDevice*>(probe_node)->UcCnNh();
         linker++;
@@ -868,7 +868,7 @@ double GraphKMC::stddev_hole_left_electrode_energy()
     double av_ho_energy = this->Average_hole_left_electrode_energy();
     int linker = 0;
     
-    for(int ilink = 0; ilink < _left_electrode->links().size(); ilink++)    {
+    for(unsigned ilink = 0; ilink < _left_electrode->links().size(); ilink++)    {
         Node* probe_node = _left_electrode->links()[ilink]->node2();
         temp_energy +=  (dynamic_cast<NodeDevice*>(probe_node)->eCation() +  dynamic_cast<NodeDevice*>(probe_node)->UcCnNh() - av_ho_energy)*(dynamic_cast<NodeDevice*>(probe_node)->eCation() +  dynamic_cast<NodeDevice*>(probe_node)->UcCnNh() - av_ho_energy);
         linker++;
@@ -885,7 +885,7 @@ double GraphKMC::stddev_hole_right_electrode_energy()
     double av_ho_energy = this->Average_hole_right_electrode_energy();
     int linker = 0;
     
-    for(int ilink = 0; ilink < _right_electrode->links().size(); ilink++)    {
+    for(unsigned ilink = 0; ilink < _right_electrode->links().size(); ilink++)    {
         Node* probe_node = _right_electrode->links()[ilink]->node2();
         temp_energy +=  (dynamic_cast<NodeDevice*>(probe_node)->eCation() +  dynamic_cast<NodeDevice*>(probe_node)->UcCnNh() - av_ho_energy)*(dynamic_cast<NodeDevice*>(probe_node)->eCation() +  dynamic_cast<NodeDevice*>(probe_node)->UcCnNh() - av_ho_energy);
         linker++;

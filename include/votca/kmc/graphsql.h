@@ -145,7 +145,7 @@ inline void GraphSQL<TNode,TLink>::Initialize_cubic(Eventinfo* eventinfo, votca:
                 
                 double randn_el = RandomVariable->rand_gaussian(eventinfo->el_disorder);
                 double UcCnNe = randn_el; //disorder
-                double randn_ho;
+                double randn_ho=0;
                 double UcCnNh;
                 if(eventinfo->el_ho_correlation == 0) { //no correlation
                     randn_ho = RandomVariable->rand_gaussian(eventinfo->ho_disorder);
@@ -203,8 +203,9 @@ inline void GraphSQL<TNode,TLink>::Initialize_cubic(Eventinfo* eventinfo, votca:
                                 double drX = 1.0*eventinfo->lat_const*dx;
                                 double drY = 1.0*eventinfo->lat_const*dy;
                                 double drZ = 1.0*eventinfo->lat_const*dz;
-                                votca::tools::vec r12(drX,drY,drZ);                               
-                                TLink* newTLink = this->AddLink(link_index,node1, node2, r12);
+                                votca::tools::vec r12(drX,drY,drZ);  
+                                this->AddLink(link_index,node1, node2, r12);
+                                //TLink* newTLink = this->AddLink(link_index,node1, node2, r12);
                                 link_index++;
                             }
                         }

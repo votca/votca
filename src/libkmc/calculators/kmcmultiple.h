@@ -46,15 +46,11 @@ using namespace std;
 
 namespace votca { namespace kmc {
 
-
-
-
-
-
-
-
-
-
+    const static double kB   = 8.617332478E-5; // eV/K
+    const static double hbar = 6.5821192815E-16; // eV*s
+    const static double eps0 = 8.85418781762E-12/1.602176565E-19; // e**2/eV/m = 8.85418781762E-12 As/Vm
+    const static double epsr = 3.0; // relative material permittivity
+    const static double Pi   = 3.14159265358979323846;
 
 //int OMPinfo() 
 //{
@@ -95,11 +91,7 @@ public:
 
 
 protected:
-        const static double kB   = 8.617332478E-5; // eV/K
-        const static double hbar = 6.5821192815E-16; // eV*s
-        const static double eps0 = 8.85418781762E-12/1.602176565E-19; // e**2/eV/m = 8.85418781762E-12 As/Vm
-        const static double epsr = 3.0; // relative material permittivity
-        const static double Pi   = 3.14159265358979323846;
+        
         
             class Chargecarrier
             {
@@ -374,7 +366,7 @@ vector<GNode*> KMCMultiple::LoadGraph()
     votca::tools::Database db;
     db.Open( _filename );
     if(votca::tools::globals::verbose) {cout << "LOADING GRAPH" << endl << "database file: " << _filename << endl; }
-    votca::tools::Statement *stmt;
+    votca::tools::Statement *stmt=NULL;
     if (_carriertype=="h" || _carriertype=="e"){
         stmt= db.Prepare("SELECT _id-1, name, posX, posY, posZ, UnCnN"+_carriertype+", UcNcC"+_carriertype+",eAnion,eNeutral,eCation,UcCnN"+_carriertype+" FROM segments;");
     }
@@ -396,7 +388,7 @@ vector<GNode*> KMCMultiple::LoadGraph()
         node[i]->reorg_intorig = stmt->Column<double>(5); // UnCnN or UnXnN
         node[i]->reorg_intdest = stmt->Column<double>(6); // UcNcC or UxNxX
         double eAnion = stmt->Column<double>(7);
-        double eNeutral = stmt->Column<double>(8);
+        //double eNeutral = stmt->Column<double>(8);
         double eCation = stmt->Column<double>(9);
         double internalenergy = stmt->Column<double>(10); // UcCnN or UxXnN
         double siteenergy = 0;
@@ -761,7 +753,7 @@ void KMCMultiple::RateUpdateCoulomb(vector<GNode*> &node,  vector< Chargecarrier
                     else // _explicitcoulomb==1 (partial charges)
                     {
                         CoulombIt coul_iterator;
-                        GNode *node_k = carrier[ncindex]->node;
+                        //GNode *node_k = carrier[ncindex]->node;
                         if(ncindex != cindex) // charge doesn't have Coulomb interaction with itself
                         {
                             // - E_ik
@@ -808,7 +800,7 @@ void KMCMultiple::RateUpdateCoulomb(vector<GNode*> &node,  vector< Chargecarrier
                 double dG_Field = _q * (dX*_fieldX +  dY*_fieldY + dZ*_fieldZ);
                 double reorg = node_i->reorg_intorig + node_j->reorg_intdest + node_i->event[destindex].reorg_out;
                 double dG_Site = node_j->siteenergy - node_i->siteenergy;
-                double dG = dG_Site - dG_Field;
+                //double dG = dG_Site - dG_Field;
                 double coulombfactor = exp(-(2*(dG_Site+reorg) * coulombsum + coulombsum*coulombsum) / (4*reorg*kB*_temperature) );
                 //if (coulombsum != 0) {
                 //cout << "coulombsum = " << coulombsum << endl;
@@ -1127,8 +1119,8 @@ vector<double> KMCMultiple::RunVSSM(vector<GNode*> node, double runtime, unsigne
                do_affectedcarrier = carrier[i];
             }
                 
-            double maxprob = 0.;
-            double newprob = 0.;
+            //double maxprob = 0.;
+            //double newprob = 0.;
             vec dr;
             if(votca::tools::globals::verbose) {cout << "Charge number " << do_affectedcarrier->id+1 << " which is sitting on segment " << do_oldnode->id+1 << " will escape!" << endl ;}
             if(Forbidden(do_oldnode->id, forbiddennodes) == 1) {continue;}
@@ -1401,7 +1393,7 @@ vector<double> KMCMultiple::RunVSSM(vector<GNode*> node, double runtime, unsigne
         {
             //vec velocity = carrier[i]->dr_travelled/simtime*1e-9;
             vec velocity = carrier[i]->dr_travelled/simtime;
-            double absolute_velocity = sqrt(velocity.x()*velocity.x() + velocity.y()*velocity.y() + velocity.z()*velocity.z());
+            //double absolute_velocity = sqrt(velocity.x()*velocity.x() + velocity.y()*velocity.y() + velocity.z()*velocity.z());
             //cout << std::scientific << "    charge " << i+1 << ": mu=" << absolute_velocity/absolute_field*1E4 << endl;
             cout << std::scientific << "    charge " << i+1 << ": mu=" << (velocity*_field)/absolute_field/absolute_field << endl;
             average_mobility += (velocity*_field) /absolute_field/absolute_field;
@@ -1449,9 +1441,9 @@ vector<double> KMCMultiple::RunVSSM(vector<GNode*> node, double runtime, unsigne
         double mu1 = avgvelocity.getX()/field;
         double mu2 = avgvelocity.getY()/field;
         double mu3 = avgvelocity.getZ()/field;
-        cout << "mu_x" << direction << " = " << avgvelocity.getX()/field << endl;
-        cout << "mu_y" << direction << " = " << avgvelocity.getY()/field << endl;
-        cout << "mu_z" << direction << " = " << avgvelocity.getZ()/field << endl;
+        cout << "mu_x" << direction << " = " << mu1 << endl;
+        cout << "mu_y" << direction << " = " << mu2<< endl;
+        cout << "mu_z" << direction << " = " << mu3 << endl;
         
         //cout << "\nideality factor for the Einstein relation in " << direction << " direction." << endl;
         //double D1;

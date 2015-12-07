@@ -3,6 +3,7 @@
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="calculators" displayName="Calculators" projectFiles="true">
       <itemPath>../../src/libkmc/calculators/bulk.h</itemPath>
+      <itemPath>../../src/libkmc/calculators/device.h</itemPath>
       <itemPath>../../src/libkmc/calculators/diffusion.h</itemPath>
       <itemPath>../../src/libkmc/calculators/diode.h</itemPath>
       <itemPath>../../src/libkmc/calculators/kmclifetime.h</itemPath>
@@ -16,6 +17,7 @@
                    projectFiles="true">
       <itemPath>../../include/votca/kmc/bsumtree.h</itemPath>
       <itemPath>../../include/votca/kmc/carrier.h</itemPath>
+      <itemPath>../../include/votca/kmc/carrierbulk.h</itemPath>
       <itemPath>../../include/votca/kmc/dnode.h</itemPath>
       <itemPath>../../include/votca/kmc/event.h</itemPath>
       <itemPath>../../include/votca/kmc/eventinfo.h</itemPath>
@@ -23,6 +25,7 @@
       <itemPath>../../include/votca/kmc/gnode.h</itemPath>
       <itemPath>../../include/votca/kmc/graph.h</itemPath>
       <itemPath>../../include/votca/kmc/graphcubic.h</itemPath>
+      <itemPath>../../include/votca/kmc/graphkmc.h</itemPath>
       <itemPath>../../include/votca/kmc/graphsql.h</itemPath>
       <itemPath>../../include/votca/kmc/kmcapplication.h</itemPath>
       <itemPath>../../include/votca/kmc/kmccalculator.h</itemPath>
@@ -33,6 +36,7 @@
       <itemPath>../../include/votca/kmc/node.h</itemPath>
       <itemPath>../../include/votca/kmc/nodedevice.h</itemPath>
       <itemPath>../../include/votca/kmc/nodesql.h</itemPath>
+      <itemPath>../../include/votca/kmc/numoutput.h</itemPath>
       <itemPath>../../include/votca/kmc/profile.h</itemPath>
       <itemPath>../../include/votca/kmc/state.h</itemPath>
       <itemPath>../../include/votca/kmc/statereservoir.h</itemPath>
@@ -160,6 +164,11 @@
       </item>
       <item path="../../include/votca/kmc/carrier.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/kmc/carrierbulk.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/kmc/dnode.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/kmc/event.h" ex="false" tool="3" flavor2="0">
@@ -179,6 +188,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/graphkmc.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/kmc/graphsql.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -211,6 +222,11 @@
       </item>
       <item path="../../include/votca/kmc/nodesql.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/kmc/numoutput.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/kmc/profile.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/kmc/state.h" ex="false" tool="3" flavor2="0">
@@ -242,6 +258,11 @@
       <item path="../../src/libkmc/bsumtree.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libkmc/calculators/bulk.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libkmc/calculators/device.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -346,6 +367,11 @@
       </item>
       <item path="../../include/votca/kmc/carrier.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/kmc/carrierbulk.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/kmc/dnode.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/kmc/event.h" ex="false" tool="3" flavor2="0">
@@ -365,6 +391,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/graphkmc.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/kmc/graphsql.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -397,6 +425,11 @@
       </item>
       <item path="../../include/votca/kmc/nodesql.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/kmc/numoutput.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/kmc/profile.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/kmc/state.h" ex="false" tool="3" flavor2="0">
@@ -428,6 +461,11 @@
       <item path="../../src/libkmc/bsumtree.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libkmc/calculators/bulk.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libkmc/calculators/device.h"
             ex="false"
             tool="3"
             flavor2="0">

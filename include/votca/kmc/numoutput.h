@@ -227,8 +227,8 @@ void Numoutput::Update(Event* event, double simtime, double timestep) {
     
     Node* node1 = event->link()->node1();
     Node* node2 = event->link()->node2();
-    votca::tools::vec nodepos1 = node1->position();
-    votca::tools::vec nodepos2 = node2->position();
+    //votca::tools::vec nodepos1 = node1->position();
+    //votca::tools::vec nodepos2 = node2->position();
     int node1_layer = dynamic_cast<NodeDevice*>(node1)->layer();
     int node2_layer = dynamic_cast<NodeDevice*>(node2)->layer();
     

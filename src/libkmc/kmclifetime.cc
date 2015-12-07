@@ -26,8 +26,6 @@ namespace votca {
 
         const static double kB = 8.617332478E-5; // eV/K
         const static double hbar = 6.5821192815E-16; // eV*s
-        const static double eps0 = 8.85418781762E-12 / 1.602176565E-19; // e**2/eV/m = 8.85418781762E-12 As/Vm
-        const static double epsr = 3.0; // relative material permittivity
         const static double Pi = 3.14159265358979323846;
 
         void KMCLifetime::Initialize(const char *filename, Property *options, const char *outputfile) {
@@ -155,7 +153,7 @@ namespace votca {
                 node[i]->reorg_intorig = stmt->Column<double>(5); // UnCnN or UnXnN
                 node[i]->reorg_intdest = stmt->Column<double>(6); // UcNcC or UxNxX
                 double eAnion = stmt->Column<double>(7);
-                double eNeutral = stmt->Column<double>(8);
+                //double eNeutral = stmt->Column<double>(8);
                 double eCation = stmt->Column<double>(9);
                 double internalenergy = stmt->Column<double>(10); // UcCnN or UxXnN
                 double siteenergy = 0;
@@ -282,7 +280,7 @@ namespace votca {
             }
             
             for (list<Property*> ::iterator  it = jobProps.begin(); it != jobProps.end(); ++it) {
-                unsigned site_id =(*it)->getAttribute<unsigned>("id");
+                int site_id =(*it)->getAttribute<int>("id");
                 double lifetime=boost::lexical_cast<double>((*it)->value());
                 bool check=false;
                 for (unsigned i=0;i<node.size();i++){
@@ -308,20 +306,18 @@ namespace votca {
             cout << "    Temperature T = " << _temperature << " K." << endl;
            
             cout << "    carriertype: " << _carriertype << endl;
-            int numberofsites = node.size();
+            unsigned numberofsites = node.size();
             cout << "    Rates for " << numberofsites << " sites are computed." << endl;
             double maxreldiff = 0;
             int totalnumberofrates = 0;
             for (unsigned int i = 0; i < numberofsites; i++) {
-                int numberofneighbours = node[i]->event.size();
+                unsigned numberofneighbours = node[i]->event.size();
                 for (unsigned int j = 0; j < numberofneighbours; j++) {
                     if(node[i]->event[j].decayevent){
                         //if event is a decay event there is no point in calculating its rate, because it already has that from the reading in.
                         continue;
                     }
-                    double dX = node[i]->event[j].dr.x();
-                    double dY = node[i]->event[j].dr.y();
-                    double dZ = node[i]->event[j].dr.z();
+                   
                     
 
                     double destindex = node[i]->event[j].destination;
@@ -482,8 +478,8 @@ namespace votca {
 
 
                     // determine which carrier will escape
-                    GNode* oldnode;
-                    GNode* newnode;
+                    GNode* oldnode=NULL;
+                    GNode* newnode=NULL;
                     Chargecarrier* affectedcarrier;
 
                     double u = 1 - RandomVariable->rand_uniform();
