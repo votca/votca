@@ -31,7 +31,10 @@ public:
         _occupation = -1; //empty
     }
     
-   
+    virtual ~Node(){
+        std::vector<Link*>::iterator it;
+        for (it = _links.begin(); it != _links.end(); it++ ) delete *it;        
+    }
 
     /// adds a link to a Node
     virtual void AddLink( Link* link ) { _links.push_back(link); }
@@ -77,10 +80,7 @@ public:
        
     
 protected:
-     ~Node(){
-        std::vector<Link*>::iterator it;
-        for (it = _links.begin(); it != _links.end(); it++ ) delete *it;        
-    }
+    
     int _id;
     int _type;
     votca::tools::vec _position;
