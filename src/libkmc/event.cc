@@ -26,6 +26,7 @@ namespace votca {
 int Event::Determine_final_event_type(Node* node1, Node* node2) {
     if (node2->type() == (int) NormalNode){                                                                  return (int) TransferTo;}
     else if (node2->type() == (int) LeftElectrodeNode || node2->type() == (int) RightElectrodeNode){         return (int) Collection;} // Collection at electrode
+    return 0;
 }
 
 int Event::Determine_final_event_type(int carrier_type1, int carrier_type2, Node* node1, Node* node2, Eventinfo* eventinfo) {
@@ -35,11 +36,13 @@ int Event::Determine_final_event_type(int carrier_type1, int carrier_type2, Node
     else if (((carrier_type1 == (int) Electron) && (carrier_type2 == (int) Hole))|| ((carrier_type1 == (int) Hole) && (carrier_type2 == (int) Electron))){ 
         return (int) Recombination; // Recombination
     }
+    return 0;
 }
 
 int Event::Determine_init_event_type(Node* node1) {
     if(node1->type() == (int) NormalNode){                                                                   return (int) TransferFrom;}
     else if((node1->type() == (int) LeftElectrodeNode) || (node1->type() == (int) RightElectrodeNode)){      return (int) Injection;   }
+    return 0;
 }
 
 int Event::Determine_action_flag_pair() {
@@ -50,15 +53,15 @@ int Event::Determine_action_flag_pair() {
 }
 
 int Event::Determine_action_flag_node1() {
-    int action_node1;
+    int action_node1=0;
     if(_init_type == Injection)           {action_node1 = (int) None;   } // injection
     else if(_init_type == TransferFrom)   {action_node1 = (int) Remove; } // transfer
     return action_node1;    
 }
 
 int Event::Determine_action_flag_node2() {
-    int action_node2;
-    Node* node2 = _link->node2();
+    int action_node2=0;
+    //Node* node2 = _link->node2();
     if(_final_type == TransferTo)            {action_node2 = (int) Add;    } // transfer
     else if(_final_type == Collection)       {action_node2 = (int) None;   } // collection
     else if(_final_type == Recombination)    {action_node2 = (int) Remove; } // recombination
@@ -75,8 +78,8 @@ double Event::Determine_from_sr_coulomb(Node* node, StateReservoir* state, Event
 
 double Event::Determine_to_sr_coulomb(Node* node, StateReservoir* state, Eventinfo* eventinfo) {
 
-    double coulomb_to;
-    if(_final_type == Collection) {coulomb_to = 0.0;                                                                                       }
+    double coulomb_to=0.0;
+    if(_final_type == Collection) {coulomb_to = 0.0;}
     else if(_init_type != Injection) {coulomb_to = eventinfo->coulomb_strength*state->GetCarrier(node->occ())->to_site_coulomb(_link->id());}
     else if(_init_type == Injection) { coulomb_to = eventinfo->coulomb_strength*_injection_potential; }
     return coulomb_to;
@@ -108,12 +111,12 @@ void Event::Determine_rate(StateReservoir* state, Longrange* longrange, Eventinf
 
     Node* node1 = _link->node1();
     votca::tools::vec node1vec = node1->position();
-    double leftnode1pos = node1vec.z();
-    double rightnode1pos = eventinfo->simboxsize.z() - leftnode1pos;
+    //double leftnode1pos = node1vec.z();
+    //double rightnode1pos = eventinfo->simboxsize.z() - leftnode1pos;
     Node* node2 = _link->node2();
     votca::tools::vec node2vec = node2->position();
-    double leftnode2pos = node2vec.z();
-    double rightnode2pos = eventinfo->simboxsize.z() - leftnode2pos;
+    //double leftnode2pos = node2vec.z();
+    //double rightnode2pos = eventinfo->simboxsize.z() - leftnode2pos;
     
     double prefactor = 1.0; // total prefactor
     double charge;

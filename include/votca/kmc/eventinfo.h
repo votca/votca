@@ -33,7 +33,7 @@ public:
     void Read_bulk(votca::tools::Property *options){ 
 
         random_seed                           = options->get("options.general.random_seed").as<int>();
-        const int growsize                    = 2;
+        //const int growsize                    = 2;
         
         electron_density                      = options->get("options.general.electron_density").as<double>();
         hole_density                          = options->get("options.general.hole_density").as<double>();

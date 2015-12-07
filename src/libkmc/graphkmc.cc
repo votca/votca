@@ -160,7 +160,7 @@ double GraphKMC::Determine_Hopping_Distance()
 {
     double hop_distance = 0.0;
     
-    typename std::vector<LinkDevice*>::iterator it;    
+    std::vector<LinkDevice*>::iterator it;    
     for(it = this->_links.begin(); it != this->_links.end(); it++) 
     {
         votca::tools::vec dR = (*it)->r12();
@@ -175,7 +175,7 @@ double GraphKMC::Determine_Minimum_Distance()
 {
     double min_distance = abs(_sim_box_size);
 
-    typename std::vector<LinkDevice*>::iterator it;    
+    std::vector<LinkDevice*>::iterator it;    
     for(it = this->_links.begin(); it != this->_links.end(); it++) 
     {
         votca::tools::vec dR = (*it)->r12();
@@ -190,7 +190,7 @@ int GraphKMC::Determine_Max_Pair_Degree()
 {
     int max_pair_degree = 0;
 
-    typename std::vector<NodeDevice*>::iterator it;    
+    std::vector<NodeDevice*>::iterator it;    
     for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) 
     {
         if((*it)->type() == NormalNode) 
@@ -226,7 +226,7 @@ votca::tools::vec GraphKMC::Determine_Sim_Box_Size()
     double maxX = initpos.x(); double maxY = initpos.y(); double maxZ = initpos.z();
     double minX = initpos.x(); double minY = initpos.y(); double minZ = initpos.z();
     
-    typename std::vector<LinkDevice*>::iterator it;    
+    std::vector<LinkDevice*>::iterator it;    
     for(it = this->_links.begin(); it != this->_links.end(); it++) 
     {
         votca::tools::vec pos1 = (*it)->node1()->position();
@@ -260,7 +260,7 @@ votca::tools::vec GraphKMC::Determine_Sim_Box_Size()
 
 void GraphKMC::Determine_cross_types()
 {
-    typename std::vector<LinkDevice*>::iterator it;
+    std::vector<LinkDevice*>::iterator it;
     for(it = this->_links.begin(); it != this->_links.end(); it++) 
     {
         votca::tools::vec pos1 = (*it)->node1()->position();
@@ -288,7 +288,7 @@ double GraphKMC::Sum_of_link_distances_z()
 {
     double totdistz = 0.0;
     
-    typename std::vector<LinkDevice*>::iterator it;
+    std::vector<LinkDevice*>::iterator it;
     for (it = this->_links.begin(); it != this->_links.end(); it++ )
     {
         votca::tools::vec distvec = (*it)->r12();
@@ -300,7 +300,7 @@ double GraphKMC::Sum_of_link_distances_z()
 
 void GraphKMC::Translate_graph(double translate_x, double translate_y, double translate_z) 
 {
-    typename std::vector<NodeDevice*>::iterator it;      
+    std::vector<NodeDevice*>::iterator it;      
     for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) 
     {
         votca::tools::vec oldpos = (*it)->position();
@@ -319,7 +319,7 @@ void GraphKMC::Put_at_zero_graph()
     double minY = pos.y();
     double minZ = pos.z();
 
-    typename std::vector<NodeDevice*>::iterator it;      
+    std::vector<NodeDevice*>::iterator it;      
     for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) 
     {
         pos = (*it)->position(); 
@@ -341,7 +341,7 @@ void GraphKMC::Push_in_box()
     //checks which nodes are falling outside the simboxsize
     //periodically determine where they are in the simulation box
 
-    typename std::vector<NodeDevice*>::iterator it;      
+    std::vector<NodeDevice*>::iterator it;      
     for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) 
     {
         votca::tools::vec pos = (*it)->position();
@@ -564,7 +564,7 @@ void GraphKMC::Resize(double dimX, bool breakX, double dimY, bool breakY, double
     std::vector<LinkDevice*> temp_links;
     
     temp_links.clear();
-    typename std::vector<LinkDevice*>::iterator it;    
+    std::vector<LinkDevice*>::iterator it;    
     for(it = this->_links.begin(); it != this->_links.end(); it++) {
         if(!((*it)->remove())) {
             temp_links.push_back((*it));
@@ -627,7 +627,7 @@ void GraphKMC::Break_periodicity(bool break_x, bool break_y, bool break_z)
 
 void GraphKMC::Initialize_node_types() 
 {
-    typename std::vector<NodeDevice*>::iterator it;    
+    std::vector<NodeDevice*>::iterator it;    
     for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) (*it)->SetType((int) NormalNode);    
 }
 
@@ -648,7 +648,7 @@ void GraphKMC::Add_electrodes()
     
     //determine the nodes which are injectable from the left electrode and the nodes which are injectable from the right electrode
 
-    typename std::vector<NodeDevice*>::iterator it;    
+    std::vector<NodeDevice*>::iterator it;    
     for(it  = this->_nodes.begin(); it != this->_nodes.end(); it++) 
     { 
         votca::tools::vec nodepos = (*it)->position();
@@ -661,7 +661,8 @@ void GraphKMC::Add_electrodes()
         {
             votca::tools::vec dr = votca::tools::vec(0.0,0.0,-1.0*left_distance);   
 
-            LinkSQL* newLinkCollect = this->AddLink(linkID,(*it), _left_electrode, dr); 
+            //LinkSQL* newLinkCollect = this->AddLink(linkID,(*it), _left_electrode, dr); 
+            this->AddLink(linkID,(*it), _left_electrode, dr); 
             linkID++;
             
             LinkSQL* newLinkInject = new LinkSQL(linkID, _left_electrode, (*it), -1.0*dr);
@@ -680,7 +681,8 @@ void GraphKMC::Add_electrodes()
         {
             votca::tools::vec dr = votca::tools::vec(0.0,0.0,right_distance);   
 
-            LinkSQL* newLinkCollect = this->AddLink(linkID,(*it), _right_electrode, dr); 
+            //LinkSQL* newLinkCollect = this->AddLink(linkID,(*it), _right_electrode, dr); 
+            this->AddLink(linkID,(*it), _right_electrode, dr); 
             linkID++;
             
             LinkSQL* newLinkInject = new LinkSQL(linkID, _right_electrode, (*it), -1.0*dr);
@@ -704,7 +706,7 @@ void GraphKMC::Add_electrodes()
 
 void GraphKMC::LinkSort()
 {
-    typename std::vector<LinkDevice*>::iterator it;
+    std::vector<LinkDevice*>::iterator it;
     for (it = this->_links.begin(); it != this->_links.end(); it++ ) 
     {
         NodeDevice* node1 = dynamic_cast<NodeDevice*>((*it)->node1());
@@ -715,7 +717,7 @@ void GraphKMC::LinkSort()
 
 void GraphKMC::Set_Self_Image_Coulomb_Potential(double device_length, Eventinfo* eventinfo)
 {
-    typename std::vector<NodeDevice*>::iterator it;    
+    std::vector<NodeDevice*>::iterator it;    
     for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) {
         votca::tools::vec node_pos = (*it)->position();
         (*it)->Compute_Self_Image_Coulomb_Potential(node_pos.z(),device_length,eventinfo);
@@ -727,7 +729,7 @@ void GraphKMC::Set_Self_Image_Coulomb_Potential(double device_length, Eventinfo*
 
 void GraphKMC::Set_Layer_indices(Eventinfo* eventinfo)
 {
-    typename std::vector<NodeDevice*>::iterator it;
+    std::vector<NodeDevice*>::iterator it;
     for (it = this->_nodes.begin(); it != this->_nodes.end(); it++) 
     {
         votca::tools::vec pos = (*it)->position();
@@ -743,7 +745,7 @@ void GraphKMC::Set_Layer_indices(Eventinfo* eventinfo)
 
 void GraphKMC::Renumber_id() 
 {
-    typename std::vector<NodeDevice*>::iterator it;
+    std::vector<NodeDevice*>::iterator it;
     for (it = this->_nodes.begin(); it != this->_nodes.end(); it++) 
     {
         int renum_ID = 0;
@@ -772,7 +774,7 @@ void GraphKMC::Renumber_id()
 
 void GraphKMC::Initialize_output_values() 
 {
-    typename std::vector<NodeDevice*>::iterator it;
+    std::vector<NodeDevice*>::iterator it;
     for (it = this->_nodes.begin(); it != this->_nodes.end(); it++) {
         (*it)->Initialize_output_values();    
     }
@@ -797,7 +799,7 @@ double GraphKMC::Average_hole_node_energy()
     double ho_energy = 0.0;
     double av_ho_energy = 0.0;
     
-    typename std::vector<NodeDevice*>:: iterator it;
+    std::vector<NodeDevice*>:: iterator it;
     for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) 
     {
         if((*it)->type() == (int) NormalNode){
@@ -847,7 +849,7 @@ double GraphKMC::stddev_hole_node_energy()
     double stddev_energy = 0.0;
     double av_ho_energy = this->Average_hole_node_energy();
     
-    typename std::vector<NodeDevice*>:: iterator it;
+    std::vector<NodeDevice*>:: iterator it;
     for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) 
     {
         if((*it)->type() == (int) NormalNode){
@@ -899,7 +901,7 @@ double GraphKMC::Average_electron_node_energy()
     double elect_energy = 0.0;
     double av_elect_energy = 0.0;
     
-    typename std::vector<NodeDevice*>:: iterator it;
+    std::vector<NodeDevice*>:: iterator it;
     for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) 
     {
         if((*it)->type() == (int) NormalNode){
@@ -917,7 +919,7 @@ double GraphKMC::stddev_electron_node_energy()
     double stddev_energy = 0.0;
     double av_el_energy = this->Average_electron_node_energy();
     
-    typename std::vector<NodeDevice*>:: iterator it;
+    std::vector<NodeDevice*>:: iterator it;
     for(it = this->_nodes.begin(); it != this->_nodes.end(); it++) 
     {
         if((*it)->type() == (int) NormalNode){
@@ -935,7 +937,7 @@ double GraphKMC::Electron_inject_reorg()
     double temp_reorg;
     int link_count = 0;
     
-    typename std::vector<LinkDevice*>:: iterator it;
+    std::vector<LinkDevice*>:: iterator it;
     for(it = this->_links.begin(); it != this->_links.end(); it++) 
     {
         Node* node1 = (*it)->node1();
@@ -956,7 +958,7 @@ double GraphKMC::Hole_inject_reorg()
     double temp_reorg;
     int link_count = 0;
     
-    typename std::vector<LinkDevice*>:: iterator it;
+    std::vector<LinkDevice*>:: iterator it;
     for(it = this->_links.begin(); it != this->_links.end(); it++) 
     {
         Node* node1 = (*it)->node1();

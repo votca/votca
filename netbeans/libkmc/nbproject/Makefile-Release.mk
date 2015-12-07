@@ -40,6 +40,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/1ce05ac7/events.o \
 	${OBJECTDIR}/_ext/1ce05ac7/gnode.o \
 	${OBJECTDIR}/_ext/1ce05ac7/graphcubic.o \
+	${OBJECTDIR}/_ext/1ce05ac7/graphkmc.o \
 	${OBJECTDIR}/_ext/1ce05ac7/kmcapplication.o \
 	${OBJECTDIR}/_ext/1ce05ac7/kmccalculatorfactory.o \
 	${OBJECTDIR}/_ext/1ce05ac7/kmclifetime.o \
@@ -102,6 +103,11 @@ ${OBJECTDIR}/_ext/1ce05ac7/graphcubic.o: nbproject/Makefile-${CND_CONF}.mk ../..
 	${MKDIR} -p ${OBJECTDIR}/_ext/1ce05ac7
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -I../../../include -I../../include -I../../include/votca/kmc -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce05ac7/graphcubic.o ../../src/libkmc/graphcubic.cc
+
+${OBJECTDIR}/_ext/1ce05ac7/graphkmc.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libkmc/graphkmc.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1ce05ac7
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -I../../../include -I../../include -I../../include/votca/kmc -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce05ac7/graphkmc.o ../../src/libkmc/graphkmc.cc
 
 ${OBJECTDIR}/_ext/1ce05ac7/kmcapplication.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libkmc/kmcapplication.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1ce05ac7

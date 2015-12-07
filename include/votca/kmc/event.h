@@ -124,8 +124,8 @@ private:
     int _action_node2;
     int _action_pair;
     
-    int _layer_node1;
-    int _layer_node2;
+    //int _layer_node1;
+    //int _layer_node2;
     
     double _injection_potential;
     

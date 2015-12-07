@@ -18,6 +18,7 @@
       <itemPath>../../include/votca/kmc/carrier.h</itemPath>
       <itemPath>../../include/votca/kmc/dnode.h</itemPath>
       <itemPath>../../include/votca/kmc/event.h</itemPath>
+      <itemPath>../../include/votca/kmc/eventinfo.h</itemPath>
       <itemPath>../../include/votca/kmc/events.h</itemPath>
       <itemPath>../../include/votca/kmc/gnode.h</itemPath>
       <itemPath>../../include/votca/kmc/graph.h</itemPath>
@@ -50,6 +51,7 @@
       <itemPath>../../src/libkmc/events.cc</itemPath>
       <itemPath>../../src/libkmc/gnode.cc</itemPath>
       <itemPath>../../src/libkmc/graphcubic.cc</itemPath>
+      <itemPath>../../src/libkmc/graphkmc.cc</itemPath>
       <itemPath>../../src/libkmc/kmcapplication.cc</itemPath>
       <itemPath>../../src/libkmc/kmccalculatorfactory.cc</itemPath>
       <itemPath>../../src/libkmc/kmclifetime.cc</itemPath>
@@ -69,20 +71,10 @@
       <itemPath>../../share/xml/kmcparallel.xml</itemPath>
       <itemPath>../../share/xml/kmcsingle.xml</itemPath>
     </logicalFolder>
-    <logicalFolder name="TestFiles"
-                   displayName="Test Files"
-                   projectFiles="false"
-                   kind="TEST_LOGICAL_FOLDER">
-    </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
                    projectFiles="false"
                    kind="IMPORTANT_FILES_FOLDER">
-    </logicalFolder>
-    <logicalFolder name="TestFiles"
-                   displayName="Test Files"
-                   projectFiles="false"
-                   kind="TEST_LOGICAL_FOLDER">
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -172,6 +164,11 @@
       </item>
       <item path="../../include/votca/kmc/event.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/kmc/eventinfo.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/kmc/events.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/kmc/gnode.h" ex="false" tool="3" flavor2="0">
@@ -291,6 +288,8 @@
       <item path="../../src/libkmc/gnode.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libkmc/graphcubic.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libkmc/graphkmc.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libkmc/kmcapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -351,6 +350,11 @@
       </item>
       <item path="../../include/votca/kmc/event.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/kmc/eventinfo.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/kmc/events.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/kmc/gnode.h" ex="false" tool="3" flavor2="0">
@@ -470,6 +474,8 @@
       <item path="../../src/libkmc/gnode.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libkmc/graphcubic.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libkmc/graphkmc.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libkmc/kmcapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
