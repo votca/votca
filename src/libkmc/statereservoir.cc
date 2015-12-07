@@ -86,7 +86,7 @@ void StateReservoir::PrintDevice(std::ostream& out) {
     this->Print(out);
     std::cout << "\n";
     std::cout << "reservoir indices: ";
-    typename std::vector<int>::iterator it;   
+    std::vector<int>::iterator it;   
     for(it = carrier_reservoir.begin(); it != carrier_reservoir.end(); it++) { 
 
         std::cout << (*it) << " ";

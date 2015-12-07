@@ -33,7 +33,7 @@ class Graph {
 public:
      Graph() {}
      
-    ~Graph() 
+    virtual ~Graph() 
     {
         typename std::vector<TNode*>::iterator it;
         for (it = _nodes.begin(); it != _nodes.end(); it++ ) delete *it;

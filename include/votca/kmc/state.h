@@ -34,7 +34,7 @@ class State {
     public:
 
     State(){}
-    ~State(){
+    virtual ~State(){
         typename std::vector<TCarrier*>::iterator it;
         for (it = _carriers.begin(); it != _carriers.end(); it++ ) delete *it;        
     }
