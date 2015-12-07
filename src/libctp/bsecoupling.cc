@@ -329,7 +329,7 @@ float BSECoupling::getTripletCouplingElement( int levelA, int levelB,  Orbitals*
         }
         
         // empty dimer levels
-        for ( int j = _bseAB_vtotal ; j < _psi_AxB_dimer_basis.size2() ; j++ ){
+        for ( unsigned j = _bseAB_vtotal ; j < _psi_AxB_dimer_basis.size2() ; j++ ){
             
             _proj_check(i,1) += _psi_AxB_dimer_basis(i,j)*_psi_AxB_dimer_basis(i,j);
             
@@ -383,11 +383,11 @@ float BSECoupling::getTripletCouplingElement( int levelA, int levelB,  Orbitals*
      ub::matrix<float> _proj_excA = ub::prod( ub::trans(_bseA), _temp);
      
      
-     for ( int i = 0 ; i < _proj_excA.size1() ; i++ ){
+     for ( unsigned i = 0 ; i < _proj_excA.size1() ; i++ ){
      
         float check = 0.0;
         
-        for ( int j = 0; j < _proj_excA.size2(); j++ ){
+        for ( unsigned j = 0; j < _proj_excA.size2(); j++ ){
             
             check += _proj_excA(i,j) * _proj_excA(i,j) ;
         }
@@ -451,10 +451,12 @@ float BSECoupling::getTripletCouplingElement( int levelA, int levelB,  Orbitals*
      for ( int _i =0; _i < _bseA_exc + _bseB_exc ; _i++){
          _diagS(_i,_i) = 1.0/sqrt(_S_eigenvalues[_i]);
      }
-     ub::matrix<float> _transform = ub::prod( _S_dimer, ub::prod( _diagS, ub::trans(_S_dimer) )  );
+     _temp=ub::prod( _diagS, ub::trans(_S_dimer) ) ;
+     ub::matrix<float> _transform = ub::prod( _S_dimer, _temp );
      LOG(logDEBUG,*_pLog)  << " transformation matrix (" << t.elapsed() - _st << "s) " << flush; _st = t.elapsed();  
      // final coupling elements
-     ub::matrix<float> _J_eff = ub::prod( _transform, ub::prod(_J_dimer, _transform));
+     _temp=ub::prod(_J_dimer, _transform);
+     ub::matrix<float> _J_eff = ub::prod( _transform, _temp);
      LOG(logDEBUG,*_pLog)  << " effective couplings (" << t.elapsed() - _st << "s) " << flush; _st = t.elapsed();
      
      
@@ -864,8 +866,8 @@ bool BSECoupling::ProjectExcitons(ub::matrix<float>& _kap, ub::matrix<float>& _k
     _J = ub::prod( _transform, _J_temp);
     
          //cout << endl;
-     for ( int i = 0 ; i < _J.size1(); i++){
-         for ( int j = 0 ; j < _J.size1(); j++){
+     for ( unsigned i = 0 ; i < _J.size1(); i++){
+         for ( unsigned j = 0 ; j < _J.size1(); j++){
            cout << " J [" << i << " : " << j << "] " << _J(i,j)*13.605 << " and " <<  _J_dimer(i,j)*13.605 << endl; 
          }
          }  
