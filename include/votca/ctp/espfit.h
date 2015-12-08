@@ -42,24 +42,27 @@ namespace votca { namespace ctp {
 class Espfit{
 public:
     
-    Espfit(){};
+    Espfit(Logger *log):_ECP(false),_do_Transition(false) {_log = log;}
    ~Espfit(){};
     
-   void setLog(Logger *log) { _log = log; }
+   void setUseECPs(bool ECP){_ECP=ECP;}
     
     void EvaluateAPECharges(Grid& _targetgrid, Grid& _chargepositions);
   
     void FitAPECharges(Grid& _targetgrid_fg, Grid& _targetgrid_bg, Grid& _chargepositions, double& netcharge);
     // on grid very fast
-    void Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis,BasisSet &bs,string gridsize, bool _do_transition, double _netcharge=0.0);
+    void Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis,BasisSet &bs,string gridsize);
     // not so fast
-    void Fit2Density_analytic(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis, bool _do_transition, double _netcharge=0.0);
+    void Fit2Density_analytic(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis);
 private:
     
      Logger *_log;
      Elements _elements; 
-     string _method;
+     bool _ECP;
+     bool _do_Transition;
      
+     
+    double getNetcharge( vector< QMAtom* >& _atoms, double N );
  
     ub::vector<double> EvalNuclearPotential( vector< QMAtom* >& _atoms, Grid _grid );
    

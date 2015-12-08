@@ -414,10 +414,11 @@ bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
         
 
         
-        Espfit esp;
-    
-        esp.setLog(_log);
-        esp.Fit2Density(Atomlist, DMAT_tot, dftbasis,dftbs,"medium",false);
+        Espfit esp=Espfit(_log);
+        if (_do_gwbse){
+        esp.setUseECPs(true);
+        }
+        esp.Fit2Density(Atomlist, DMAT_tot, dftbasis,dftbs,"medium");
     
     
     

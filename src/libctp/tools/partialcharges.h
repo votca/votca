@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef _VOTCA_CTP_ESPFIT_TOOL_H
-#define _VOTCA_CTP_ESPFIT_TOOL_H
+#ifndef _VOTCA_CTP_PARTIALCHARGES_H
+#define _VOTCA_CTP_PARTIALCHARGES_H
 
 #include <stdio.h>
 #include <votca/ctp/espfit.h>
@@ -30,14 +30,14 @@
 namespace votca { namespace ctp {
     using namespace std;
     
-class ESPFit_Tool : public QMTool
+class Partialcharges : public QMTool
 {
 public:
 
-    ESPFit_Tool () { };
-   ~ESPFit_Tool () { };
+    Partialcharges () { };
+   ~Partialcharges () { };
 
-    string Identify() { return "espfit"; }
+    string Identify() { return "partialcharges"; }
 
     void   Initialize(Property *options);
     bool   Evaluate();
@@ -60,15 +60,16 @@ private:
     bool        _use_CHELPG;
     bool        _use_GDMA;
     bool        _use_CHELPG_SVD;
+    bool        _use_ecp;
     
     Logger      _log;
     
-    void FitESP( Orbitals& _orbitals );
+    void Extractingcharges( Orbitals& _orbitals );
 
 };
 
-void ESPFit_Tool::Initialize(Property* options) {
-    
+void Partialcharges::Initialize(Property* options) {
+    _use_ecp=false;
     _use_mps=false;
     _use_pdb=false;
     
@@ -89,37 +90,40 @@ void ESPFit_Tool::Initialize(Property* options) {
        
            // orbitals file or pure DFT output
            
-           _orbfile      = options->get(key + ".input").as<string> ();
-           _state     = options->get(key + ".state").as<string> ();
-           _output_file  = options->get(key + ".output").as<string> ();
-           _state_no     = options->get(key + ".statenumber").as<int> ();
-           _spin     = options->get(key + ".spin").as<string> ();
-           if ( options->exists(key+".method")) {
-                _method = options->get(key + ".method").as<string> ();
-                if (_method=="Mulliken")_use_mulliken=true; 
-                else if(_method=="mulliken")_use_mulliken=true; 
-                else if(_method=="CHELPG")_use_CHELPG=true; 
-                else if(_method=="GDMA") throw std::runtime_error("GDMA not implemented yet");
-                else if(_method=="CHELPG_SVD") throw std::runtime_error("CHELPG_SVD not implemented yet"); 
-                else  throw std::runtime_error("Method not recognized. Only Mulliken and CHELPG implemented");
-                }
-           else _use_CHELPG=true;
-           if (!_use_mulliken){
-                _integrationmethod     = options->get(key + ".integrationmethod").as<string> ();
-           }
-           string data_format  = boost::filesystem::extension(_output_file);
-           
-           if (!(_integrationmethod=="numeric" || _integrationmethod=="analytic")){
-               std::runtime_error("Method not recognized. Only numeric and analytic available");
-           }
-           if ( options->exists(key+".gridsize")) {
-                _gridsize = options->get(key+".gridsize").as<string>();
-                }
-           else _gridsize="medium";
-           if ( options->exists(key+".openmp")) {
-                _openmp_threads = options->get(key+".openmp").as<int>();
-                }
-           else _openmp_threads=0;
+    _orbfile      = options->get(key + ".input").as<string> ();
+    _state     = options->get(key + ".state").as<string> ();
+    _output_file  = options->get(key + ".output").as<string> ();
+    _state_no     = options->get(key + ".statenumber").as<int> ();
+    _spin     = options->get(key + ".spin").as<string> ();
+    if ( options->exists(key+".ecp")) {
+       _use_ecp=options->get(key + ".ecp").as<bool> ();
+    }
+    if ( options->exists(key+".method")) {
+         _method = options->get(key + ".method").as<string> ();
+         if (_method=="Mulliken")_use_mulliken=true; 
+         else if(_method=="mulliken")_use_mulliken=true; 
+         else if(_method=="CHELPG")_use_CHELPG=true; 
+         else if(_method=="GDMA") throw std::runtime_error("GDMA not implemented yet");
+         else if(_method=="CHELPG_SVD") throw std::runtime_error("CHELPG_SVD not implemented yet"); 
+         else  throw std::runtime_error("Method not recognized. Only Mulliken and CHELPG implemented");
+         }
+    else _use_CHELPG=true;
+    if (!_use_mulliken){
+         _integrationmethod     = options->get(key + ".integrationmethod").as<string> ();
+    }
+    string data_format  = boost::filesystem::extension(_output_file);
+
+    if (!(_integrationmethod=="numeric" || _integrationmethod=="analytic")){
+        std::runtime_error("Method not recognized. Only numeric and analytic available");
+    }
+    if ( options->exists(key+".gridsize")) {
+         _gridsize = options->get(key+".gridsize").as<string>();
+         }
+    else _gridsize="medium";
+    if ( options->exists(key+".openmp")) {
+         _openmp_threads = options->get(key+".openmp").as<int>();
+         }
+    else _openmp_threads=0;
               
     
     
@@ -138,7 +142,7 @@ void ESPFit_Tool::Initialize(Property* options) {
    
 }
 
-bool ESPFit_Tool::Evaluate() {
+bool Partialcharges::Evaluate() {
     
 
     _log.setReportLevel( logDEBUG );
@@ -160,7 +164,7 @@ bool ESPFit_Tool::Evaluate() {
     ia >> _orbitals;
     ifs.close();
 
-    FitESP(_orbitals);
+    Extractingcharges(_orbitals);
     string tag="TOOL:"+Identify()+"_"+_state+"_"+_spin+boost::lexical_cast<string>(_state_no);
     if(_use_mps){
         QMMInterface Converter;
@@ -183,13 +187,13 @@ bool ESPFit_Tool::Evaluate() {
 
 
 
-void ESPFit_Tool::FitESP( Orbitals& _orbitals ){
+void Partialcharges::Extractingcharges( Orbitals& _orbitals ){
     int threads=1;
 #ifdef _OPENMP
             if ( _openmp_threads > 0 ) omp_set_num_threads(_openmp_threads); 
             threads=omp_get_max_threads();
 #endif
-   LOG(logDEBUG, _log) << "===== Running ESPFIT on "<< threads << " threads ===== " << flush;
+   LOG(logDEBUG, _log) << "===== Running Partialcharges on "<< threads << " threads ===== " << flush;
 
         vector< QMAtom* > Atomlist =_orbitals.QMAtoms();
         ub::matrix<double> DMAT_tot;
@@ -237,12 +241,12 @@ void ESPFit_Tool::FitESP( Orbitals& _orbitals ){
                 
         }
         else if (_use_CHELPG){         
-            Espfit esp;
-            esp.setLog(&_log);
+            Espfit esp=Espfit(&_log);
+            esp.setUseECPs(_use_ecp);
             if (_integrationmethod=="numeric")  {
-                esp.Fit2Density(Atomlist, DMAT_tot, basis,bs,_gridsize,_do_transition); 
+                esp.Fit2Density(Atomlist, DMAT_tot, basis,bs,_gridsize); 
             }
-            else if (_integrationmethod=="analytic")  esp.Fit2Density_analytic(Atomlist,DMAT_tot,basis,_do_transition);
+            else if (_integrationmethod=="analytic")  esp.Fit2Density_analytic(Atomlist,DMAT_tot,basis);
         }
 }       
 

@@ -278,10 +278,10 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 
     // COMPUTE WAVEFUNCTION & QM ENERGY
     // Generate charge shell from potentials
+    
     vector<PolarSeg*> &qm =_job->getPolarTop()->QM0();
     vector<PolarSeg*> mm_fitted;
-    Espfit fitcharges;
-    fitcharges.setLog(_log);
+    Espfit fitcharges=Espfit(_log);
     double netchargefit=0.0;
 
     fitcharges.FitAPECharges(_grid_bg,_grid_fg,_fitted_charges,netchargefit);
@@ -643,10 +643,11 @@ bool QMAPEMachine<QMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 	// fill DFT AO basis by going through all atoms
 	vector< QMAtom* >& Atomlist= orb.QMAtoms();
 
-	Espfit esp;
-
-	esp.setLog(_log);
-	esp.Fit2Density(Atomlist, DMAT_tot, dftbasis,dftbs,"medium",false);
+	Espfit esp=Espfit(_log);
+        if (_run_gwbse){
+        esp.setUseECPs(true);
+        }
+	esp.Fit2Density(Atomlist, DMAT_tot, dftbasis,dftbs,"medium");
 
 	return true;
 }

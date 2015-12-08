@@ -63,7 +63,6 @@
       <logicalFolder name="f3" displayName="Tools" projectFiles="true">
         <itemPath>../../src/libctp/tools/coupling.h</itemPath>
         <itemPath>../../src/libctp/tools/dft.h</itemPath>
-        <itemPath>../../src/libctp/tools/espfit_tool.h</itemPath>
         <itemPath>../../src/libctp/tools/exciton.h</itemPath>
         <itemPath>../../src/libctp/tools/excitoncoupling.h</itemPath>
         <itemPath>../../src/libctp/tools/gencube.h</itemPath>
@@ -71,6 +70,7 @@
         <itemPath>../../src/libctp/tools/molpol.cc</itemPath>
         <itemPath>../../src/libctp/tools/molpol.h</itemPath>
         <itemPath>../../src/libctp/tools/orb2isogwa.h</itemPath>
+        <itemPath>../../src/libctp/tools/partialcharges.h</itemPath>
         <itemPath>../../src/libctp/tools/pdb2map.h</itemPath>
         <itemPath>../../src/libctp/tools/pdb2top.h</itemPath>
         <itemPath>../../src/libctp/tools/qmanalyze.h</itemPath>
@@ -1013,11 +1013,6 @@
       </item>
       <item path="../../src/libctp/tools/dft.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../src/libctp/tools/espfit_tool.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/libctp/tools/exciton.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/excitoncoupling.h"
@@ -1034,6 +1029,11 @@
       <item path="../../src/libctp/tools/molpol.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/orb2isogwa.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/tools/partialcharges.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1795,11 +1795,6 @@
       </item>
       <item path="../../src/libctp/tools/dft.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../src/libctp/tools/espfit_tool.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/libctp/tools/exciton.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/excitoncoupling.h"
@@ -1816,6 +1811,11 @@
       <item path="../../src/libctp/tools/molpol.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libctp/tools/orb2isogwa.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libctp/tools/partialcharges.h"
             ex="false"
             tool="3"
             flavor2="0">

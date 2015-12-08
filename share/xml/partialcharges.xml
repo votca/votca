@@ -1,0 +1,18 @@
+<options>
+
+<!-- ctp_tools -e ESPFit options.xml -->
+<partialcharges help="Tool to derive partial charges from QM results stores in serialized file" section="sec:overlap">
+        <output help="Output file either .mps or .pdb" default="Moleculecharges.mps">test.mps</output>
+        <state help="ground-,excited or transitionstate (ground,excited,transition)">transition</state>
+        <spin help="singlet or triplet">singlet</spin>
+        <statenumber help="Number of the state to be used (not needed for groundstate)">1</statenumber> 
+        <input help="Serialized file" default="molecule.orb">system.orb</input>
+        <integrationmethod help="How to integrate potential, etiher numeric or analytic for CHELPG" >numeric</integrationmethod>
+	<method help="Method to use derive partial charges, CHELPG and Mulliken implented">CHELPG</method>
+	<ecp help="if ECPs were used in the DFT calculation">1</ecp>
+
+</partialcharges>
+
+</options>
+
+
