@@ -1735,7 +1735,7 @@ namespace votca {
             } // i: for each atom grid
 
              for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){
-                 cout << result << endl;
+                 //cout << result << endl;
                 result += Density_thread[i_thread]; 
                 }
             density_set=true;

@@ -4,6 +4,7 @@
 #include <votca/tools/linalg.h>
 #include <boost/progress.hpp>
 #include <votca/ctp/numerical_integrations.h>
+#include <math.h> 
 
 using namespace std;
 using namespace votca::tools;
@@ -196,6 +197,7 @@ double Espfit::getNetcharge( vector< QMAtom* >& _atoms, double N ){
     }
     _do_Transition=false;
     }
+    netcharge=round(netcharge);
     LOG(logDEBUG, *_log) <<"Netcharge constrained to " << netcharge<< flush; 
     
     return netcharge;
