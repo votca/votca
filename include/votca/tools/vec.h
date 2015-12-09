@@ -276,6 +276,14 @@ inline vec operator^(const vec &v1, const vec &v2)
         v1.getX()*v2.getY() - v1.getY()*v2.getX()
     );
 }
+/// elementwise product
+inline vec elementwiseproduct(const vec &v1, const vec &v2)
+{
+return vec(
+        v1.getX()*v2.getX() ,
+        v1.getY()*v2.getY() ,
+        v1.getZ()*v2.getZ() );
+}
 
 inline double abs(const vec &v)
 {
