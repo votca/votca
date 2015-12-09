@@ -98,14 +98,17 @@ private:
             bool CheckSurrounded(GNode* node,const vector<int> &forbiddendests);
             GLink* ChooseHoppingDest(GNode* node,votca::tools::Random2 * RandomVariable);
             void printtime(int seconds_t);
+            void WriteOcc(vector<double> occP, vector<GNode*> node);
             
             //vec _field;
             
             
-            
+            bool _do_carrierenergy;
+            string _energy_outputfile;
+            double _alpha;
             string _injection_name;
             string _injectionmethod;
-           
+            unsigned _outputsteps;
             unsigned int _insertions;
             string _lifetimefile;
             double _maxrealtime;

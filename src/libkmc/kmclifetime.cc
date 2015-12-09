@@ -71,6 +71,16 @@ namespace votca {
             if (_trajectoryfile == "") {
                 _trajectoryfile = "trajectory.csv";
             }
+            if (options->exists("options.kmclifetime.carrierenergy")) {
+                _do_carrierenergy=options->get("options.kmclifetime.carrierenergy.run").as<bool>();
+                _energy_outputfile = options->get("options.kmclifetime.carrierenergy.outputfile").as<string>();
+                _alpha = options->get("options.kmclifetime.carrierenergy.alpha").as<double>();
+                _outputsteps = options->get("options.kmclifetime.carrierenergy.outputsteps").as<unsigned>();
+                
+            } else {
+                _do_carrierenergy=false;
+            }
+            
           
             if (options->exists("options.kmclifetime.carriertype")) {
                 _carriertype = options->get("options.kmclifetime.carriertype").as<string>();
@@ -359,6 +369,7 @@ namespace votca {
             } else {
                 cout << "    WARNING: Rates differ from those in the state file up to " << maxreldiff * 100 << " %." << " If the rates in the state file are calculated for a different temperature/field or if they are not Marcus rates, this is fine. Otherwise something might be wrong here." << endl;
             }
+            return;
         }
         
         double KMCLifetime::Promotetime(double cumulated_rate,votca::tools::Random2 * RandomVariable){
@@ -392,22 +403,31 @@ namespace votca {
             cout << "number of charges: " << numberofcharges << endl;
             cout << "number of nodes: " << node.size() << endl;
             
+            
+            
 
             if (numberofcharges > node.size()) {
                 throw runtime_error("ERROR in kmclifetime: specified number of charges is greater than the number of nodes. This conflicts with single occupation.");
             }
 
-            
             vector<double> occP(node.size(), 0.);
 
             fstream traj;
-        
+            fstream energyfile;
 
             cout << "Writing trajectory to " <<  _trajectoryfile << "." << endl; 
             traj.open ( _trajectoryfile.c_str(), fstream::out);
             traj << "Simtime [s]\t Insertion\t Carrier ID\t Lifetime[s]\tSteps\t Last Segment\t x_travelled[nm]\t y_travelled[nm]\t z_travelled[nm]"<<endl;
             
+            if(_do_carrierenergy){
 
+                cout << "Tracking the energy of one charge carrier and exponential average with alpha=" << _alpha << " to "<<_energy_outputfile << endl;
+                energyfile.open(_energy_outputfile.c_str(),fstream::out);
+                energyfile << "Simtime [s]\tSteps\tCarrier ID\tEnergy_a="<<_alpha<<"[nm]"<<endl;
+            }
+            
+            
+            
             // Injection
             cout << endl << "injection method: " << _injectionmethod << endl;
             
@@ -441,16 +461,18 @@ namespace votca {
             cout << "Run started at " << asctime(localtm) << endl;
  
             double avlifetime=0.0;
-            double avdifflength=0.0;
+            double meanfreepath=0.0;
+            vec difflength=vec(0,0,0);
             unsigned steps=0;
+            double avgenergy=carrier[0]->node->siteenergy;
+            int     carrieridold=carrier[0]->id;
+            
             while (insertioncount < insertions) {
                 if ((time(NULL) - realtime_start) > _maxrealtime * 60. * 60.) {
                     cout << endl << "Real time limit of " << _maxrealtime << " hours (" << int(_maxrealtime * 60 * 60 + 0.5) << " seconds) has been reached. Stopping here." << endl << endl;
                     break;
                 }
-                
-              
-                
+
                 step += 1;
                 double cumulated_rate = 0;
 
@@ -462,6 +484,22 @@ namespace votca {
                 }
                 // go forward in time
                 double dt=Promotetime( cumulated_rate,RandomVariable);
+                
+                if(_do_carrierenergy){
+                    bool print=false;
+                    if (carrier[0]->id>carrieridold){
+                        avgenergy=carrier[0]->node->siteenergy;
+                        print=true;
+                        carrieridold=carrier[0]->id;
+                    }
+                    else if(step%_outputsteps==0){
+                        avgenergy=_alpha*carrier[0]->node->siteenergy+(1-_alpha)*avgenergy;
+                        print=true;
+                    }
+                    if(print){
+                        energyfile << simtime<<"\t"<<steps <<"\t"<<carrier[0]->id<<"\t"<<avgenergy<<endl;                  
+                    }
+                }
                 simtime += dt;
                 steps++;
                 for (unsigned int i = 0; i < carrier.size(); i++) {
@@ -470,12 +508,9 @@ namespace votca {
                     carrier[i]->node->occupationtime += dt;
                 }
                 
-                
                 ResetForbiddenlist(forbiddennodes);
                 bool secondlevel=true;
                 while (secondlevel){
-                    
-
 
                     // determine which carrier will escape
                     GNode* oldnode=NULL;
@@ -492,7 +527,6 @@ namespace votca {
                             break;}  
                        
                     }
-
                     vec *dr= NULL;
                    
                     if (CheckForbidden(oldnode->id, forbiddennodes)) {
@@ -511,10 +545,13 @@ namespace votca {
                         if (event->decayevent){
                             oldnode->occupied = 0;
                             avlifetime+=affectedcarrier->getLifetime();
-                            avdifflength+=abs(affectedcarrier->dr_travelled);
+                            meanfreepath+=abs(affectedcarrier->dr_travelled);
+                            difflength+=elementwiseproduct(affectedcarrier->dr_travelled,affectedcarrier->dr_travelled);
                             traj << simtime<<"\t"<<insertioncount<< "\t"<< affectedcarrier->id<<"\t"<< affectedcarrier->getLifetime()<<"\t"<<affectedcarrier->getSteps()<<"\t"<< (oldnode->id)+1<<"\t"<<affectedcarrier->dr_travelled.getX()<<"\t"<<affectedcarrier->dr_travelled.getY()<<"\t"<<affectedcarrier->dr_travelled.getZ()<<endl;
-                            std::cout << "\rInsertion " << insertioncount+1<<" of "<<insertions;
+                            if(insertions<1500 ||insertioncount% (insertions/1000)==0 || insertioncount<0.001*insertions){
+                            std::cout << "\rInsertion " << insertioncount<<" of "<<insertions;
                             std::cout << std::flush;
+                            }
                             do {
                                 affectedcarrier->node = node[RandomVariable->rand_uniform_int(node.size())];     
                             }
@@ -561,15 +598,40 @@ namespace votca {
                 }
             }
             
+            
             cout<<endl;
-            cout << "Total runtime was "<< simtime << " s"<< endl;
-            cout << "Total KMC steps were "<< steps << endl;
-            cout << "Average diffusion length "<<avdifflength/insertions<< " nm"<<endl;
-            cout << "Average lifetime "<<avlifetime/insertions<< " s"<<endl;
+            cout << "Total runtime:\t\t\t\t\t"<< simtime << " s"<< endl;
+            cout << "Total KMC steps:\t\t\t\t"<< steps << endl;
+            cout << "Average lifetime:\t\t\t\t"<<avlifetime/insertions<< " s"<<endl;
+            cout << "Mean freepath\t l=<|r_x-r_o|> :\t\t"<<(meanfreepath/insertions)<< " nm"<<endl;
+            cout << "Average diffusionlength\t d=sqrt(<(r_x-r_o)^2>)\t"<<sqrt(abs(difflength)/insertions)<< " nm"<<endl;
+            cout<<endl;
+            
+     for(unsigned int j=0; j<node.size(); j++)
+    {   
+        occP[j] = node[j]->occupationtime / simtime;
+    }
+            
             return occP;
         }
 
-
+void KMCLifetime::WriteOcc(vector<double> occP, vector<GNode*> node)
+{
+    votca::tools::Database db;
+    cout << "Opening for writing " << _filename << endl;
+	db.Open(_filename);
+	db.Exec("BEGIN;");
+	votca::tools::Statement *stmt = db.Prepare("UPDATE segments SET occP"+_carriertype+" = ? WHERE _id = ?;");
+	for(unsigned int i=0; i<node.size(); ++i)
+        {
+	    stmt->Reset();
+	    stmt->Bind(1, occP[i]);
+	    stmt->Bind(2, node[i]->id+1);
+	    stmt->Step();
+	}
+	db.Exec("END;");
+	delete stmt;
+}
 
         bool KMCLifetime::EvaluateFrame() {
             std::cout << "-----------------------------------" << std::endl;
@@ -591,10 +653,11 @@ namespace votca {
 
             vector<double> occP(node.size(), 0.);
 
-            RunVSSM(node, _insertions, _numberofcharges, RandomVariable);
-            
-            
-            std::cout << "      KMCLIFETIME finished" << std::endl;
+            occP=RunVSSM(node, _insertions, _numberofcharges, RandomVariable);
+            WriteOcc(occP, node);
+            time_t now = time(0);
+            tm* localtm = localtime(&now);
+            std::cout << "      KMCLIFETIME finished at:" <<asctime(localtm) <<  std::endl;
             
         
 
