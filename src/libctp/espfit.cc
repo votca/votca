@@ -224,12 +224,16 @@ void Espfit::Fit2Density_analytic(vector< QMAtom* >& _atomlist, ub::matrix<doubl
     ub::vector<double> DMATasarray=_dmat.data();
     ub::vector<double> AOOasarray=overlap._aomatrix.data();
     double N=0.0;
-    #pragma omp parallel for
+    #pragma omp parallel for reduction(+:N) 
     for ( unsigned _i =0; _i < DMATasarray.size(); _i++ ){
-            N += DMATasarray(_i)*AOOasarray(_i);
+            N =N+ DMATasarray(_i)*AOOasarray(_i);
         } 
     
-    
+    double netcharge=getNetcharge( _atomlist,N );
+    if(!_do_Transition){
+    ub::vector<double> _NucPatGrid = EvalNuclearPotential(  _atomlist,  _grid);
+    _ESPatGrid += _NucPatGrid;
+    }
     
     LOG(logDEBUG, *_log) << TimeStamp() << " Calculating ESP at CHELPG grid points"  << flush; 
     #pragma omp parallel for
@@ -245,11 +249,7 @@ void Espfit::Fit2Density_analytic(vector< QMAtom* >& _atomlist, ub::matrix<doubl
         }   
     }
    
-    double netcharge=getNetcharge( _atomlist,N );
-    if(!_do_Transition){
-    ub::vector<double> _NucPatGrid = EvalNuclearPotential(  _atomlist,  _grid);
-    _ESPatGrid += _NucPatGrid;
-    }
+    
 
     
 
