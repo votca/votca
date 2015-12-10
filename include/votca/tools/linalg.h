@@ -166,7 +166,7 @@ namespace votca { namespace tools {
      * This function wrapps eigen_gensymmv / dsygv
      * 
      */
-   // bool linalg_singular_value_decomposition(ub::matrix<double> &A, ub::matrix<double> &VT, ub::vector<double> &S )
+   bool linalg_singular_value_decomposition(ub::matrix<double> &A, ub::matrix<double> &VT, ub::vector<double> &S );
     
 }}
 

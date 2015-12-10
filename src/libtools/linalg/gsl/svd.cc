@@ -37,10 +37,10 @@ using namespace std;
  * 
  * @param A MxN matrix do decompose. Becomes an MxN orthogonal matrix U
  * @param V NxN orthogonal square matrix
- * @param E NxN diagonal matrix of singular values
+ * @param S N vector of non-negative numbers forming a non-increasing sequence
  * @return succeeded or not 
  */
-/*
+
 bool linalg_singular_value_decomposition(ub::matrix<double> &A, ub::matrix<double> &VT, ub::vector<double> &S )
 {
 	
@@ -51,21 +51,22 @@ bool linalg_singular_value_decomposition(ub::matrix<double> &A, ub::matrix<doubl
         
         
 	S.resize(N, false);
-	VT.resize(M, N, false);
+	VT.resize(N, N, false);
         
 	gsl_matrix_view A_view = gsl_matrix_view_array(&A(0,0), M, N);
 	gsl_vector_view S_view = gsl_vector_view_array(&S(0), N);
-	gsl_matrix_view V_view = gsl_matrix_view_array(&V(0,0), M, N);
+	gsl_matrix_view V_view = gsl_matrix_view_array(&V(0,0), N, N);
 	gsl_vector * work = gsl_vector_alloc(N);
 
-        int status = gsl_linalg_SV_decomp (gsl_matrix * A, gsl_matrix * V, gsl_vector * S, gsl_vector * work)
+        int status = gsl_linalg_SV_decomp (&A, &V, &S, work);
 	//gsl_eigen_symmv_sort(&E_view.vector, &V_view.matrix, GSL_EIGEN_SORT_ABS_ASC);
 	gsl_set_error_handler(handler);
         gsl_vector_free (work);
+        VT=ub::transpose(VT);
 	return (status != 0);
          
     
 };
-*/
+
 
 }}
