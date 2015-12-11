@@ -25,7 +25,6 @@
 #include <votca/ctp/mulliken.h>
 #include <votca/ctp/logger.h>
 #include <boost/filesystem.hpp>
-#include <votca/ctp/qmmachine.h>
 
 namespace votca { namespace ctp {
     using namespace std;
@@ -134,11 +133,31 @@ void Partialcharges::Initialize(Property* options) {
     // get the path to the shared folders with xml files
     char *votca_share = getenv("VOTCASHARE");    
     if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
-    // string xmlFile = string(getenv("VOTCASHARE")) + string("/ctp/qmpackages/") + _package + string("_idft_pair.xml");
-    // load_property_from_xml( _package_options, xmlFile );    
 
-    // register all QM packages (Gaussian, TURBOMOLE, etc)
-    // QMPackageFactory::RegisterAll();
+    
+    ub::matrix<double> M=ub::zero_matrix<double>(4,5);
+    M(0,0)=1;
+    M(0,4)=2;
+    M(1,2)=3;
+    M(3,1)=2;
+    cout <<"M"<< endl;
+    cout << M << endl;
+    ub::matrix<double>VT=ub::zero_matrix<double>(5,5);
+    ub::vector<double>S=ub::zero_vector<double>(4);
+    
+    linalg_singular_value_decomposition(M,VT,S);
+    
+    cout << "VT"<< endl;
+    cout << VT<< endl;
+    cout << "S"<< endl;
+    cout << S<< endl;
+    cout << "U"<< endl;
+    cout << M<< endl;
+    
+    
+    
+    exit(0);
+    
    
 }
 
