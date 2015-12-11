@@ -25,6 +25,17 @@ namespace votca { namespace tools {
 
 using namespace std;
 
+/**
+ * ublas binding to MKL  Singular Value Decomposition
+ * 
+ * A = U S V^T
+ * 
+ * @param A MxN matrix do decompose. Becomes an MxN orthogonal matrix U
+ * @param V NxN orthogonal square matrix
+ * @param S N vector of non-negative numbers forming a non-increasing sequence
+ * @return succeeded or not 
+ */
+
 
 bool linalg_singular_value_decomposition(ub::matrix<double> &A, ub::matrix<double> &VT, ub::vector<double> &S ){
         // matrix inversion using MKL
@@ -48,7 +59,6 @@ bool linalg_singular_value_decomposition(ub::matrix<double> &A, ub::matrix<doubl
     double * superb = const_cast<double*>(&work.data().begin()[0]);
     // solve
     int status= LAPACKE_dgesvd( LAPACK_ROW_MAJOR, 'O', 'A',  m,  n,  a, n,  s,  NULL,m,  vt, n, superb );
-    
     return (status != 0);
     
 }
