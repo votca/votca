@@ -99,6 +99,7 @@
       <itemPath>../../include/votca/ctp/exchange_correlation.h</itemPath>
       <itemPath>../../include/votca/ctp/extractorfactory.h</itemPath>
       <itemPath>../../include/votca/ctp/fragment.h</itemPath>
+      <itemPath>../../include/votca/ctp/gdma.h</itemPath>
       <itemPath>../../include/votca/ctp/grid.h</itemPath>
       <itemPath>/people/thnfs/homes/baumeier/isilon/votca_gsl/src/ctp/include/votca/ctp/grid_containers.h</itemPath>
       <itemPath>../../include/votca/ctp/gsl_boost_ublas_matrix_prod.h</itemPath>
@@ -220,6 +221,7 @@
       <itemPath>../../src/libctp/ewald3d.cc</itemPath>
       <itemPath>../../src/libctp/ewaldactor.cc</itemPath>
       <itemPath>../../src/libctp/ewaldnd.cc</itemPath>
+      <itemPath>../../src/libctp/gdma.cc</itemPath>
       <itemPath>../../src/libctp/grid.cc</itemPath>
       <itemPath>../../src/libctp/gsl_boost_ublas_matrix_prod.cc</itemPath>
       <itemPath>../../src/libctp/hgversion.h</itemPath>
@@ -347,6 +349,8 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/fragment.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/gdma.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/grid.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -773,6 +777,8 @@
       </item>
       <item path="../../src/libctp/fragment.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libctp/gdma.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libctp/grid.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/gsl_boost_ublas_matrix_prod.cc"
@@ -1128,6 +1134,8 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/ctp/fragment.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/ctp/gdma.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/ctp/grid.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1553,6 +1561,8 @@
             flavor2="0">
       </item>
       <item path="../../src/libctp/fragment.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/gdma.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/grid.cc" ex="false" tool="1" flavor2="0">
       </item>

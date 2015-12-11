@@ -54,6 +54,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/1ce03da5/ewaldactor.o \
 	${OBJECTDIR}/_ext/1ce03da5/extractorfactory.o \
 	${OBJECTDIR}/_ext/1ce03da5/fragment.o \
+	${OBJECTDIR}/_ext/1ce03da5/gdma.o \
 	${OBJECTDIR}/_ext/1ce03da5/grid.o \
 	${OBJECTDIR}/_ext/1ce03da5/gsl_boost_ublas_matrix_prod.o \
 	${OBJECTDIR}/_ext/3f797e5a/bse.o \
@@ -233,6 +234,11 @@ ${OBJECTDIR}/_ext/1ce03da5/fragment.o: ../../src/libctp/fragment.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/1ce03da5
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce03da5/fragment.o ../../src/libctp/fragment.cc
+
+${OBJECTDIR}/_ext/1ce03da5/gdma.o: ../../src/libctp/gdma.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1ce03da5
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../moo/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce03da5/gdma.o ../../src/libctp/gdma.cc
 
 ${OBJECTDIR}/_ext/1ce03da5/grid.o: ../../src/libctp/grid.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1ce03da5

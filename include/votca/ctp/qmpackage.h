@@ -31,6 +31,7 @@ public:
 
    virtual string getPackageName() = 0;
 
+
    virtual void Initialize( Property *options ) = 0;
    
    /// writes a coordinate file WITHOUT taking into account PBCs
@@ -74,6 +75,7 @@ public:
    void doGetCharges(bool do_get_charges) { _get_charges = do_get_charges; }
    
    string getBasisSetName(){return _basisset_name;}
+   string getExecutable() {return _executable;};
    
 protected:
 

@@ -1,3 +1,22 @@
+/* 
+ *            Copyright 2009-2015 The VOTCA Development Team
+ *                       (http://www.votca.org)
+ *
+ *      Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *              http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
 #ifndef __QMMACHINE__H
 #define	__QMMACHINE__H
 
@@ -11,7 +30,7 @@
 #include <votca/ctp/qmpackagefactory.h>
 #include <votca/ctp/orbitals.h>
 #include <votca/ctp/espfit.h>
-
+#include <votca/ctp/gdma.h>
 
 
 namespace votca { namespace ctp {
@@ -90,7 +109,8 @@ public:
 
    void ConvertPSitesToQMAtoms(vector< PolarSeg* > &, vector< QMAtom* > &);
    void ConvertQMAtomsToPSites(vector< QMAtom* > &, vector< PolarSeg* > &);
-   void UpdatePosChrgFromQMAtoms(vector< QMAtom* > &, vector< PolarSeg* > &);   
+   void UpdatePosChrgFromQMAtoms(vector< QMAtom* > &, vector< PolarSeg* > &);  
+   void UpdateMPSFromGDMA( vector<vector<double> > &multipoles,  vector< PolarSeg* > &psegs);
    void GenerateQMAtomsFromPolarSegs(PolarTop *ptop, Orbitals &orb, bool split_dpl, double dpl_spacing);   
 
    void setdRdQ(double dR_RMS, double dQ_RMS, double dQ_SUM);
@@ -180,8 +200,17 @@ private:
     bool _isConverged;
     int _maxIter;
 
+    // GDMA object
+    // GDMA _gdma;
+    Property _gdma_options;
+    bool _do_gdma;
+    
+    
+    
+    
+    
     // GWBSE object
-    GWBSE _gwbse;
+    // GWBSE _gwbse;
     Property _gwbse_options;
     int      _state;
     string   _type;
