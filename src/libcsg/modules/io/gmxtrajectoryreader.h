@@ -25,7 +25,11 @@
 #include <string>
 #include <votca/csg/trajectoryreader.h>
 
-#if GMX == 51
+#if GMX == 52
+        #include <gromacs/fileio/oenv.h>
+        #include <gromacs/trajectory/trajectoryframe.h>
+        #include <gromacs/fileio/trxio.h>
+#elif GMX == 51
         #include <gromacs/fileio/trx.h>
         #include <gromacs/fileio/trxio.h>
 #elif GMX == 50

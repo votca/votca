@@ -21,7 +21,12 @@
 #include <votca/csg/version.h>
 
 #ifdef GMX
+#if (GMX == 52)
+extern const char *gmx_version();
+#define GromacsVersion gmx_version
+#else
 #include <gromacs/legacyheaders/copyrite.h>
+#endif
 // this one is needed because of bool is defined in one of the headers included by gmx
 #undef bool
 #endif

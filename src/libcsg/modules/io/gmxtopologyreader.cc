@@ -22,7 +22,7 @@
 #include <iostream>
 #include "gmxtopologyreader.h"
 
-#if GMX == 51
+#if (GMX == 51)||(GMX == 52)
         #include <gromacs/fileio/tpxio.h>
         #include <gromacs/topology/atoms.h>
         #include <gromacs/topology/topology.h>
@@ -47,7 +47,11 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
     t_inputrec ir;
     ::matrix gbox;
 
+#if GMX == 52
+    (void)read_tpx((char *)file.c_str(),&ir,gbox,&natoms,NULL,NULL,&mtop);
+#else
     (void)read_tpx((char *)file.c_str(),&ir,gbox,&natoms,NULL,NULL,NULL,&mtop);
+#endif
 
     int count=0;
     for(int iblock=0; iblock<mtop.nmolblock; ++iblock)

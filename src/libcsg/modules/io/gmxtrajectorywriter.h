@@ -25,7 +25,10 @@
 #include <votca/csg/topology.h>
 #include <votca/csg/trajectorywriter.h>
 
-#if GMX == 51
+#if GMX == 52
+        #include <gromacs/trajectory/trajectoryframe.h>
+        #include <gromacs/fileio/trxio.h>
+#elif GMX == 51
         #include <gromacs/fileio/trxio.h>
         #include <gromacs/fileio/trx.h>
 #elif GMX == 50
