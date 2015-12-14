@@ -22,7 +22,7 @@
 #include <iostream>
 #include "gmxtopologyreader.h"
 
-#if GMX == 51
+#if (GMX == 51)||(GMX == 52)
         #include <gromacs/fileio/tpxio.h>
         #include <gromacs/topology/atoms.h>
         #include <gromacs/topology/topology.h>
@@ -63,7 +63,12 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
     // cleanup topology to store new data
     top.Cleanup();
 
-#if (GMX == 50) || (GMX == 51)
+#if GMX == 52
+    t_inputrec ir;
+    ::matrix gbox;
+
+    (void)read_tpx((char *)file.c_str(),&ir,gbox,&natoms,NULL,NULL,&mtop);
+#elif (GMX == 50) || (GMX == 51)
     t_inputrec ir;
     ::matrix gbox;
 
@@ -107,7 +112,7 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
         t_atoms *atoms=&(mol->atoms);
 
         for(int i=0; i < atoms->nres; i++) {
-#if (GMX == 50)|| (GMX == 51)
+#if (GMX == 50)|| (GMX == 51) || (GMX == 52)
                 top.CreateResidue(*(atoms->resinfo[i].name));
 #elif GMX == 45
                 top.CreateResidue(*(atoms->resinfo[i].name));
@@ -126,7 +131,7 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
                 t_atom *a = &(atoms->atom[iatom]);
 
                 BeadType *type = top.GetOrCreateBeadType(*(atoms->atomtype[iatom]));
-#if (GMX == 50)||(GMX == 51)
+#if (GMX == 50)||(GMX == 51)||(GMX == 52)
                 Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resind + res_offset, a->m, a->q);
 #elif GMX == 45
                 Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resind + res_offset, a->m, a->q);

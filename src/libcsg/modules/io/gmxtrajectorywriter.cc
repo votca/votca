@@ -93,7 +93,7 @@ if (frame.bV){
     }
 }
      
-#if (GMX == 50)||(GMX == 51)
+#if (GMX == 50)||(GMX == 51)||(GMX == 52)
     write_trxframe(_file, &frame, NULL);
 #elif GMX == 45
     write_trxframe(_file, &frame, NULL);

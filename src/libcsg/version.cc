@@ -20,7 +20,10 @@
 #include <iostream>
 #include <votca/csg/version.h>
 
-#if (GMX == 51)||(GMX == 50)
+#if (GMX == 52)
+extern const char *gmx_version();
+#define GromacsVersion gmx_version
+#elif (GMX == 51)||(GMX == 50)
 #include <gromacs/legacyheaders/copyrite.h>
 #elif GMX == 45
 #include <gromacs/copyrite.h>
