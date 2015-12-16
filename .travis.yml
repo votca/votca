@@ -84,7 +84,7 @@ script:
   - PATH="$HOME/bin:$HOME/hdf5:/usr/lib/ccache:$PATH" ./build.sh -Wu --dev --prefix "$HOME/votca" ${MAN:+--devdoc}
     ${TEST:+--runtest=$TEST} ${WERROR:+--warn-to-errors} -DWITH_H5MD=ON ${MINIMAL:+--minimal}
     ${J:+-j$J} ${BDIR:+--builddir=$BDIR} ${NINJA:+--ninja} ${WALL:+--Wall}
-    --directory "$HOME/votca/src" --no-clean --depth 1
+    --directory "$HOME/votca/src" --no-clean --depth 1 -DGMX_USE_RDTSCP=OFF
     tools gromacs csg csgapps ${MAN:+csg-manual} ${TEST:+csg-tutorials}
     ${CTP:+kmc moo ctp}
 
