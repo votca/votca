@@ -60,6 +60,8 @@ private:
     bool        _use_GDMA;
     bool        _use_CHELPG_SVD;
     bool        _use_ecp;
+    bool        _do_svd;
+    double      _conditionnumber;
     
     Logger      _log;
     
@@ -123,6 +125,10 @@ void Partialcharges::Initialize(Property* options) {
          _openmp_threads = options->get(key+".openmp").as<int>();
          }
     else _openmp_threads=0;
+    if ( options->exists(key+".svd")) {
+         _do_svd = options->get(key+".svd.do_svd").as<bool>();
+         _conditionnumber = options->get(key+".svd.conditionnumber").as<double>();
+         }
               
     
     
@@ -134,30 +140,7 @@ void Partialcharges::Initialize(Property* options) {
     char *votca_share = getenv("VOTCASHARE");    
     if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
 
-    
-    ub::matrix<double> M=ub::zero_matrix<double>(4,5);
-    M(0,0)=1;
-    M(0,4)=2;
-    M(1,2)=3;
-    M(3,1)=2;
-    cout <<"M"<< endl;
-    cout << M << endl;
-    ub::matrix<double>VT=ub::zero_matrix<double>(5,5);
-    ub::vector<double>S=ub::zero_vector<double>(4);
-    
-    linalg_singular_value_decomposition(M,VT,S);
-    
-    cout << "VT"<< endl;
-    cout << VT<< endl;
-    cout << "S"<< endl;
-    cout << S<< endl;
-    cout << "U"<< endl;
-    cout << M<< endl;
-    
-    
-    
-    exit(0);
-    
+  
    
 }
 
@@ -262,6 +245,9 @@ void Partialcharges::Extractingcharges( Orbitals& _orbitals ){
         else if (_use_CHELPG){         
             Espfit esp=Espfit(&_log);
             esp.setUseECPs(_use_ecp);
+            if(_do_svd){
+                esp.setUseSVD(_do_svd,_conditionnumber);
+            }
             if (_integrationmethod=="numeric")  {
                 esp.Fit2Density(Atomlist, DMAT_tot, basis,bs,_gridsize); 
             }

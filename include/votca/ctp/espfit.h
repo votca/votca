@@ -42,10 +42,12 @@ namespace votca { namespace ctp {
 class Espfit{
 public:
     
-    Espfit(Logger *log):_ECP(false),_do_Transition(false) {_log = log;}
+    Espfit(Logger *log):_ECP(false),_do_Transition(false),_do_svd(false) {_log = log;}
    ~Espfit(){};
     
    void setUseECPs(bool ECP){_ECP=ECP;}
+   
+   void setUseSVD(bool do_svd,double conditionnumber){_do_svd=do_svd;_conditionnumber=conditionnumber;}
     
     void EvaluateAPECharges(Grid& _targetgrid, Grid& _chargepositions);
   
@@ -60,6 +62,8 @@ private:
      Elements _elements; 
      bool _ECP;
      bool _do_Transition;
+     bool _do_svd;
+     double _conditionnumber;
      
      
     double getNetcharge( vector< QMAtom* >& _atoms, double N );

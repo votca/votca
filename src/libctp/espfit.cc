@@ -84,14 +84,34 @@ void Espfit::Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat
     
     ub::vector<double> _ESPatGrid = ub::zero_vector<double>(_grid.getsize());
     // ub::vector<double> _NucPatGrid = ub::zero_vector<double>(_gridpoints.size());
+    
+    AOOverlap overlap;
+    overlap.Initialize(_basis._AOBasisSize);
+    overlap.Fill(&_basis);
+    ub::vector<double> DMATasarray=_dmat.data();
+    ub::vector<double> AOOasarray=overlap._aomatrix.data();
+    double N_comp=0.0;
+    #pragma omp parallel for reduction(+:N_comp) 
+    for ( unsigned _i =0; _i < DMATasarray.size(); _i++ ){
+            N_comp =N_comp+ DMATasarray(_i)*AOOasarray(_i);
+        } 
+    
 
     NumericalIntegration numway;
 
     numway.GridSetup(gridsize,&bs,_atomlist);
-    LOG(logDEBUG, *_log) << TimeStamp() << " Calculate Densities at Numerical Grid"  << flush; 
+    LOG(logDEBUG, *_log) << TimeStamp() << " Calculate Densities at Numerical Grid with gridsize "<<gridsize  << flush; 
     double N=numway.IntegrateDensity_Atomblock(_dmat,&_basis);
     LOG(logDEBUG, *_log) << TimeStamp() << " Calculated Densities at Numerical Grid, Number of electrons is "<< N << flush; 
-       
+    
+    if(std::abs(N-N_comp)>0.001){
+        LOG(logDEBUG, *_log) <<"=======================" << flush; 
+        LOG(logDEBUG, *_log) <<"WARNING: Calculated Densities at Numerical Grid, Number of electrons "<< N <<" is far away from the the real value "<< N_comp<<", you should increase the accuracy of the integration grid."<< flush; 
+        N=N_comp;
+        LOG(logDEBUG, *_log) <<"WARNING: Electronnumber set to "<< N << flush; 
+        LOG(logDEBUG, *_log) <<"=======================" << flush; 
+    }
+           
     double netcharge=getNetcharge( _atomlist,N );   
         
     LOG(logDEBUG, *_log) << TimeStamp() << " Calculating ESP at CHELPG grid points"  << flush;     
@@ -274,9 +294,7 @@ void Espfit::Fit2Density_analytic(vector< QMAtom* >& _atomlist, ub::matrix<doubl
 std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >& _fitcenters, Grid& _grid, ub::vector<double>& _potential, double& _netcharge ){
     LOG(logDEBUG, *_log) << TimeStamp() << " Setting up Matrices for fitting of size "<< _fitcenters.size()+1 <<" x " << _fitcenters.size()+1<< flush;    
     
-   
-    
-   
+
     std::vector< ub::vector<double> >& _gridpoints=_grid.getGrid();   
     //cout << "x " << _gridpoints[0](0)<< " y " << _gridpoints[0](1)<< " z " << _gridpoints[0](1);
     //cout << "x " << _fitcenters[0](0)<< " y " << _fitcenters[0](1)<< " z " << _fitcenters[0](1);
@@ -340,35 +358,17 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >
     LOG(logDEBUG, *_log) << TimeStamp() << "  Inverting Matrices "<< flush;      
     // invert _Amat
     ub::matrix<double> _Amat_inverse = ub::zero_matrix<double>(_fitcenters.size()+1,_fitcenters.size()+1);
-    linalg_invert( _Amat , _Amat_inverse);
     
-    /*
-    string filename1="_Amat.txt";
-    FILE *out1;
-    out1 = fopen(filename1.c_str(), "w");
     
-    for( int _i=0;_i<_Amat.size1();_i++){
-         for( int _j=0;_j<_Amat.size2()-1;_j++){
-             fprintf(out1, "%E ", _Amat(_i,_j));
+    
+    if(_do_svd){
+        int notfittedatoms=linalg_invert_svd( _Amat , _Amat_inverse,_conditionnumber);
+        LOG(logDEBUG, *_log) << TimeStamp() << "SVD Done. "<<notfittedatoms<<" could not be fitted and are set to zero."<< flush;
     }
-            fprintf(out1, "%E\n", _Amat(_i,_Amat.size2()-1));
-    
+    else{
+        linalg_invert( _Amat , _Amat_inverse);
     }
-    fclose(out1);
-    
-      string filename2="_Bvec.txt";
-    FILE *out2;
-    out2 = fopen(filename2.c_str(), "w");
-    
-    for( int _i=0;_i<_Bvec.size1();_i++){
-         for( int _j=0;_j<_Bvec.size2()-1;_j++){
-             fprintf(out2, "%E ", _Bvec(_i,_j));
-    }
-            fprintf(out2, "%E\n", _Bvec(_i,_Bvec.size2()-1));
-    
-    }
-    fclose(out2);
-    */
+
     LOG(logDEBUG, *_log) << TimeStamp() << " Inverting Matrices done."<< flush;    
     //_Amat.resize(0,0);
 
