@@ -15,17 +15,18 @@
       <target>CG-CG.dist.tgt</target>
       <!-- target pressure -->
       <p_target>1.0</p_target>
+      <particle_dens>3.2965079</particle_dens>
       <!-- update cycles -->
       <do_potential>0 1 0</do_potential>
       <!-- additional post processing of dU before added to potential -->
       <post_update>pressure</post_update>
       <post_update_options>
         <pressure>
-          <type>simple</type>
+          <type>wjk</type>
           <do>1 0 1</do>
-          <simple>
-            <scale>0.0003</scale>
-          </simple>
+          <wjk>
+            <scale>1</scale>
+          </wjk>
         </pressure>
       </post_update_options>
       <!-- additional post processing of U after dU added to potential -->
