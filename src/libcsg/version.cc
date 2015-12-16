@@ -25,6 +25,11 @@
 #include <gromacs/utility/baseversion.h>
 #else
 #include <gromacs/legacyheaders/copyrite.h>
+#ifdef GMX_DOUBLE
+extern void gmx_is_double_precision();
+#else
+extern void gmx_is_single_precision();
+#endif
 #endif
 // this one is needed because of bool is defined in one of the headers included by gmx
 #undef bool
@@ -32,7 +37,13 @@
 
 extern "C" {
    void VotcaCsgFromC(){
-     //do nothing - this is just that we have a c function for autotools
+     //do nothing - this is just that we have a c function for autotools/cmake
+     //sanity check if GMX is the write precision
+#ifdef GMX_DOUBLE
+     gmx_is_double_precision();
+#else
+     gmx_is_single_precision();
+#endif
    }
 }
 
