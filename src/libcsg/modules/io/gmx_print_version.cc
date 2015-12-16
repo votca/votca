@@ -19,7 +19,7 @@
 #include <votca_config.h>
 
 #if (GMX == 52)
-extern const char *gmx_version();
+#include <gromacs/utility/baseversion.h>
 #define GromacsVersion gmx_version
 #elif (GMX == 50)||(GMX == 51)
 #include <gromacs/legacyheaders/copyrite.h>

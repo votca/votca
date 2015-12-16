@@ -21,8 +21,7 @@
 #include <votca/csg/version.h>
 
 #if (GMX == 52)
-extern const char *gmx_version();
-#define GromacsVersion gmx_version
+#include <gromacs/utility/baseversion.h>
 #elif (GMX == 51)||(GMX == 50)
 #include <gromacs/legacyheaders/copyrite.h>
 #elif GMX == 45
@@ -66,7 +65,11 @@ void HelpTextHeader(const std::string &tool_name)
 	 << tool_name << ", version " << votca::csg::CsgVersionStr() 
          << "\nvotca_tools, version " << votca::tools::ToolsVersionStr()
 #ifdef GMX
+#if GMX > 51
+         << "\ngromacs, " << gmx_version()
+#else
          << "\ngromacs, " << GromacsVersion()
+#endif
 #ifdef GMX_DOUBLE
 	 << " (double precision)"
 #else
