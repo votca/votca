@@ -168,6 +168,16 @@ namespace votca { namespace tools {
      */
    bool linalg_singular_value_decomposition(ub::matrix<double> &A, ub::matrix<double> &VT, ub::vector<double> &S );
     
+   /**
+     * \brief inverts A via svd
+     * @param A symmetric positive definite matrix
+     * @param V inverse matrix
+     * @param lower limit of condition number of the matrix, singular values below that will be set to zero
+     * This function wraps the inversion of a matrix via svd
+     */
+   int linalg_invert_svd(ub::matrix<double> &A, ub::matrix<double> &V,double limitCN);
+   
+   
 }}
 
 

@@ -45,6 +45,10 @@ bool linalg_singular_value_decomposition(ub::matrix<double> &A, ub::matrix<doubl
     // define LAPACK variables
     MKL_INT m = A.size1();
     MKL_INT n = A.size2();
+    
+    if (m>n){
+        throw runtime_error("Matrix for svd has the wrong shape first dimension must be equal or larger than second.");
+    }
     //MKL_INT info;
     //MKL_INT ipiv[n];
     ub::matrix<double>work=ub::zero_matrix<double>(m,n);

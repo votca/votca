@@ -49,20 +49,22 @@ bool linalg_singular_value_decomposition(ub::matrix<double> &A, ub::matrix<doubl
         const size_t N = A.size2();
         // gsl does not handle conversion of a symmetric_matrix 
         
-        
+         if (M>N){
+        throw runtime_error("Matrix for svd has the wrong shape first dimension must be equal or larger than second.");
+    }
 	S.resize(N, false);
 	VT.resize(N, N, false);
         
 	gsl_matrix_view A_view = gsl_matrix_view_array(&A(0,0), M, N);
 	gsl_vector_view S_view = gsl_vector_view_array(&S(0), N);
-	gsl_matrix_view V_view = gsl_matrix_view_array(&V(0,0), N, N);
+	gsl_matrix_view V_view = gsl_matrix_view_array(&VT(0,0), N, N);
 	gsl_vector * work = gsl_vector_alloc(N);
 
-        int status = gsl_linalg_SV_decomp (&A, &V, &S, work);
+        int status = gsl_linalg_SV_decomp (&A, &VT, &S, work);
 	//gsl_eigen_symmv_sort(&E_view.vector, &V_view.matrix, GSL_EIGEN_SORT_ABS_ASC);
 	gsl_set_error_handler(handler);
         gsl_vector_free (work);
-        VT=ub::transpose(VT);
+        VT=ub::trans(VT);
 	return (status != 0);
          
     
