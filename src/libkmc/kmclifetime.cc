@@ -60,7 +60,7 @@ namespace votca {
             if (options->exists("options.kmclifetime.lifetime")) {
                 _lifetimefile = options->get("options.kmclifetime.lifetime").as<string>();
             } else {
-                throw runtime_error("Error in kmclifetime: injection pattern is not provided");
+                throw runtime_error("Error in kmclifetime: Lifetime file not provided");
             }
 
             if (options->exists("options.kmclifetime.trajectoryfile")) {
