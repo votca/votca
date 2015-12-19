@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2015 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ void ExclusionList::CreateExclusions(Topology *top) {
 bool ExclusionList::IsExcluded(Bead *bead1, Bead *bead2) {
     exclusion_t *excl;
     if(bead1->getMolecule() != bead2->getMolecule()) return false;
-    if (bead2 < bead1) swap(bead1, bead2);
+    if (bead2->getId() < bead1->getId()) swap(bead1, bead2);
     if ((excl = GetExclusions(bead1))) {
         if(find(excl->_exclude.begin(), excl->_exclude.end(), bead2) 
                 != excl->_exclude.end()) return true;        
@@ -57,10 +57,15 @@ bool ExclusionList::IsExcluded(Bead *bead1, Bead *bead2) {
     return false;
 }
 
+bool compareAtomId(const ExclusionList::exclusion_t *a, const ExclusionList::exclusion_t *b){
+    return a->_atom->getId() < b->_atom->getId();
+}
+
 std::ostream &operator<<(std::ostream &out, ExclusionList& exl)
 {
-    list<ExclusionList::exclusion_t*>::iterator ex;
+    exl._exclusions.sort(compareAtomId);
     
+    list<ExclusionList::exclusion_t*>::iterator ex;
     for(ex=exl._exclusions.begin();ex!=exl._exclusions.end();++ex) {
         list<Bead *>::iterator i;
         out << (int)((*ex)->_atom->getId()) + 1;
