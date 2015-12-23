@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2015 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,6 +91,10 @@ namespace votca {
                         CheckRequired("cg", "no coarse graining definition specified");
                         _do_mapping = true;
                     }
+		    if (OptionsMap().count("no-map") && OptionsMap().count("cg")){
+		         ShowHelpText(cout);
+                         throw runtime_error("no-map and cg options are mutually exclusive!");
+		    }
                 }// default mapping is off, if user gives cg, then do mapping
                 else if (OptionsMap().count("cg")) {
                     _do_mapping = true;
