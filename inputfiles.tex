@@ -124,7 +124,7 @@ computes the distributions of all interactions specified in \texttt{settings.xml
 
 \section{Table formats}
 \label{sec:table_formats}
-Distribution functions, potentials and forces are returned as tables and saved in a file. Those tables generally have the format
+In the iterative framework distribution functions, potentials and forces are returned as tables and saved in a file. Those tables generally have the format
 \begin{verbatim}
   x y [error] flag
 \end{verbatim}
@@ -132,6 +132,8 @@ where \texttt{x} is input quantity (e.g. radius $r$, angles $\theta$ or $\phi$),
 In the first case, \texttt{i} (\texttt{in range}) describes a value that lies within the data range, \texttt{o} (\texttt{out of range}) symbolises a value out of the data range and \texttt{u} stands for an \texttt{undefined} value.
 
 The token \texttt{flag} will be important when extrapolating the table as described in sec. \ref{sec:post_processing}.
+
+For historical reasons, \prog{csg_boltzmann} uses a slightly different table format, it has no \texttt{flag} column and uses the third column as a force column when outputting a potential.
 
 %\section{Data files}
 %\label{sec:data_files}
