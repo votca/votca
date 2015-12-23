@@ -48,6 +48,7 @@ public:
     bool DoMapping() { return true; }
 
     void Initialize();
+    bool EvaluateOptions();
     void Run();
 
     void InteractiveMode();
@@ -63,9 +64,18 @@ void CsgBoltzmann::Initialize()
 {
     CsgApplication::Initialize();
     AddProgramOptions("Special options")
-        ("excl", boost::program_options::value<string>(), "write exclusion list to file");
+        ("excl", boost::program_options::value<string>(), "write atomistic exclusion list to file");
 
     AddObserver(&_bs);
+}
+
+bool CsgBoltzmann::EvaluateOptions()
+{
+        CsgApplication::EvaluateOptions();
+        if (OptionsMap().count("excl")) {
+            CheckRequired("cg", "excl options needs a mapping file");
+	}
+        return true;
 }
 
 bool CsgBoltzmann::EvaluateTopology(Topology *top, Topology *top_ref)
