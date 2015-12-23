@@ -7,6 +7,7 @@ For more detailed information about the changes see the history of the [reposito
 
 ## Version 1.3_rc1 _SuperUzma_ (released 23.09.15)
 
+* re-implemented csg_boltzmann --excl
 * added new iterative methods: relative entropy, simplex optimization
 * added support for using hoomd-blue, lammps, ESPResSo, ESPResSo++ and dl_poly for iterative methods
 * added pre-simulation feature for GROMACS (e.g. for minimization)

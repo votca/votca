@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2015 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,7 @@ public:
     bool DoMapping() { return true; }
 
     void Initialize();
+    bool EvaluateOptions();
     void Run();
 
     void InteractiveMode();
@@ -63,9 +64,18 @@ void CsgBoltzmann::Initialize()
 {
     CsgApplication::Initialize();
     AddProgramOptions("Special options")
-        ("excl", boost::program_options::value<string>(), "write exclusion list to file");
+        ("excl", boost::program_options::value<string>(), "write atomistic exclusion list to file");
 
     AddObserver(&_bs);
+}
+
+bool CsgBoltzmann::EvaluateOptions()
+{
+        CsgApplication::EvaluateOptions();
+        if (OptionsMap().count("excl")) {
+            CheckRequired("cg", "excl options needs a mapping file");
+	}
+        return true;
 }
 
 bool CsgBoltzmann::EvaluateTopology(Topology *top, Topology *top_ref)
@@ -97,41 +107,44 @@ bool CsgBoltzmann::EvaluateTopology(Topology *top, Topology *top_ref)
 
 ExclusionList *CsgBoltzmann::CreateExclusionList(Molecule &atomistic, Molecule &cg)
 {
-	throw std::runtime_error("CsgBoltzmann::CreateExclusionList not implemented");
+    ExclusionList *ex = new ExclusionList();
+    //exclude all with all
+    {
+        list<Bead *> excl_list;
+        for(int i=0; i<atomistic.BeadCount(); ++i) {
+            excl_list.push_back(atomistic.getBead(i));
+        }
+        ex->ExcludeList(excl_list);
+    }
+
+    //remove exclusions from inside a mapped bead
+    Topology *at_top = atomistic.getParent();
+    for(int i=0; i<cg.BeadCount(); ++i) {
+        vector<int> &w = cg.getBead(i)->ParentBeads();
+	list<Bead *> excl_list;
+        for(std::vector<int>::iterator it = w.begin(); it != w.end(); ++it){
+            excl_list.push_back(at_top->getBead(*it));
+	}
+	ex->Remove(excl_list);
+    }
+
+    //remove exclusion which come from atomistic topology and hence bonds and angles
+    Topology *cg_top = cg.getParent();
+    for(int i=0; i<cg.BeadCount()-1; ++i) {
+        for(int j=i+1; j<cg.BeadCount(); ++j) {
+	    if (cg_top->getExclusions().IsExcluded(cg.getBead(i),cg.getBead(j))){
+              vector<int> &w = cg.getBead(i)->ParentBeads();
+              vector<int> &v = cg.getBead(j)->ParentBeads();
+              for(std::vector<int>::iterator itw = w.begin(); itw != w.end(); ++itw){
+                  for(std::vector<int>::iterator itv = v.begin(); itv != v.end(); ++itv){
+                      ex->RemoveExclusion(at_top->getBead(*itw),at_top->getBead(*itv));
+		  }
+	      }
+            }
+        }
+    }
+    return ex;
 }
-//	Topology *top = atomistic.getParent();
-//	list<Bead *> exclude;
-//
-//    ExclusionList *ex = new ExclusionList();
-//
-//    for(int i=0; i<atomistic.BeadCount(); ++i)
-//    	exclude.push_back(top->getBead(atomistic.getBead(i)));
-//    ex->InsertExclusion(exclude);
-//
-//    // reintroduce bead internal nonbonded interaction
-//    for(int i=0; i<cg.BeadCount(); ++i) {
-//        exclude.clear();
-//
-//        vector<int> &v = cg.getBead(i)->ParentBeads();
-//        exclude.insert(exclude.begin(), v.begin(), v.end());
-//        ex->Remove(exclude);
-//    }
-//
-//    Topology *top_cg = cg.getParent();
-//    InteractionContainer::iterator iter;
-//    // reintroduce nonbonded interactions for bonded beads
-//    for(iter = top_cg->BondedInteractions().begin();
-//            iter!=top_cg->BondedInteractions().end(); ++iter) {
-//        Interaction *ic = *iter;
-//        exclude.clear();
-//        for(int i=0; i<ic->BeadCount(); i++) {
-//            vector<int> &v = top_cg->getBead(ic->getBeadId(i))->ParentBeads();
-//            exclude.insert(exclude.end(), v.begin(), v.end());
-//        }
-//        ex->Remove(exclude);
-//    }
-//    return ex;
-//}
 
 void CsgBoltzmann::Run()
 {

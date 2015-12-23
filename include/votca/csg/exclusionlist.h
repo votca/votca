@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2015 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 #include <iostream>
 #include <list>
 #include <map>
+#include "bead.h"
 
 namespace votca { namespace csg {
 using namespace votca::tools;
@@ -67,6 +68,7 @@ public:
 
     void InsertExclusion(Bead *bead1, Bead *bead2);
 
+    void RemoveExclusion(Bead *bead1, Bead *bead2);
 private:
     list< exclusion_t * > _exclusions;
     map<Bead *, exclusion_t *> _excl_by_bead;
@@ -84,25 +86,13 @@ inline ExclusionList::exclusion_t * ExclusionList::GetExclusions(Bead *bead)
 template<typename iteratable>
 inline void ExclusionList::Remove(iteratable &l)
 {
-    l.sort();
     typename iteratable::iterator i, j;
-    list<exclusion_t*>::iterator ex;
 
-    for(i=l.begin(); i!=l.end(); i++) {
-        for(ex=_exclusions.begin(); ex!=_exclusions.end(); ++ex)
-            if((*ex)->_atom == *i) break;
-        if(ex==_exclusions.end()) continue;
-        j = i;
-        for(++j; j!=l.end(); j++)
-            (*ex)->_exclude.remove(*j);
-
-        if((*ex)->_exclude.empty()) {
-        //    delete *ex;
-            (*ex)=NULL;
-            _exclusions.erase(ex);
-        }
+    for ( i = l.begin(); i != l.end(); ++i ) {
+    	for ( j = i; j != l.end(); ++j ) {
+    		RemoveExclusion(*i, *j);
+    	}
     }
-    _exclusions.remove(NULL);
 }
 
 template<typename iteratable>
@@ -122,7 +112,7 @@ inline void ExclusionList::InsertExclusion(Bead *bead1_, iteratable &l)
 	for(typename iteratable::iterator i=l.begin(); i!=l.end(); ++i) {
 		Bead *bead1 = bead1_;
 		;Bead *bead2 = *i;
-		if (bead2 < bead1) swap(bead1, bead2);
+		if (bead2->getId() < bead1->getId()) swap(bead1, bead2);
 		if(bead1==bead2) continue;
 		if(IsExcluded(bead1, bead2)) continue;
 		exclusion_t *e;
@@ -138,7 +128,7 @@ inline void ExclusionList::InsertExclusion(Bead *bead1_, iteratable &l)
 
 //template<>
 inline void ExclusionList::InsertExclusion(Bead *bead1, Bead *bead2) {
-    if (bead2 < bead1) swap(bead1, bead2);
+    if (bead2->getId() < bead1->getId()) swap(bead1, bead2);
 	if(bead1==bead2) return;
 	if(IsExcluded(bead1, bead2)) return;
 
@@ -150,6 +140,22 @@ inline void ExclusionList::InsertExclusion(Bead *bead1, Bead *bead2) {
 		_excl_by_bead[ bead1 ] = e;
 	}
 	e->_exclude.push_back(bead2);
+}
+
+inline void ExclusionList::RemoveExclusion(Bead *bead1, Bead *bead2) {
+    if (bead2->getId() < bead1->getId()) swap(bead1, bead2);
+    if(bead1==bead2) return;
+    if(!IsExcluded(bead1, bead2)) return;
+    list<exclusion_t*>::iterator ex;
+    for(ex=_exclusions.begin(); ex!=_exclusions.end(); ++ex)
+        if((*ex)->_atom == bead1) break;
+    if(ex==_exclusions.end()) return;
+    (*ex)->_exclude.remove(bead2);
+    if((*ex)->_exclude.empty()) {
+        (*ex)=NULL;
+        _exclusions.erase(ex);
+    }
+    _exclusions.remove(NULL);
 }
 
 std::ostream &operator<<(std::ostream &out,ExclusionList& ex);
