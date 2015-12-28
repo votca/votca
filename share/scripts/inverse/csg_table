@@ -70,6 +70,7 @@ post_update_single re post_update_re_single.sh
 #post update scripts
 postupd scale postupd_scale.sh
 postupd pressure postupd_pressure.sh
+postupd lj postupd_addlj.sh
 postupd splinesmooth postupd_splinesmooth.sh
 postupd smooth postupd_smooth.sh
 postupd shift postadd_shift.sh
@@ -145,6 +146,9 @@ calc target_rdf calc_target_rdf_generic.sh
 # pressure correction
 pressure_cor simple pressure_cor_simple.pl
 pressure_cor wjk pressure_cor_wjk.pl
+
+# lj addition
+compute_lj 12_6 lj_126.pl
 
 # kirkwood-buff correction
 kbibi ramp_correction kbibi_ramp_correction.pl

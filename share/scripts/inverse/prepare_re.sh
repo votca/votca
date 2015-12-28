@@ -37,3 +37,4 @@ sim_prog="$(csg_get_property cg.inverse.program)"
 # run csg_reupdate to generate intital potential tables
 msg --color green "Generating potential tables from the initial parameters"
 critical csg_reupdate --gentable true --param-in-ext param.new --options $CSGXMLFILE
+critical do_external post_update re
