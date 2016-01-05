@@ -44,7 +44,7 @@ void XInductor::Evaluate(XJob *job) {
 
     if (job->StartFromCPT()) {
         // Permanent fields already computed, do not zero these out ...
-        LOG(logDEBUG,*_log) << "Carry out partial depolarization." << flush;
+        LOG(logDEBUG,*_log) << "Carry out partial depolarization from CPT." << flush;
         vector< PolarSeg* >   ::iterator sit;
         vector< APolarSite* > ::iterator pit;
 
@@ -146,9 +146,16 @@ void XInductor::Configure(XJob *job) {
     _mm1 = job->getPolarTop()->MM1();
     _mm2 = job->getPolarTop()->MM2();    
 
+    
+    //_qm0[0]->WriteMPS("crap.mps");
+    
+    
     _qmm.reserve(_qm0.size()+_mm1.size());
     _qmm.insert(_qmm.end(),_qm0.begin(),_qm0.end());
     _qmm.insert(_qmm.end(),_mm1.begin(),_mm1.end());
+    
+    //_qmm[0]->WriteMPS("crap.mps");
+    
     
     // INDUCTION & ENERGY WORKERS
     // Delete previous ...
