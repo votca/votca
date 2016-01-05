@@ -19,7 +19,7 @@
 
 
 #include <votca/ctp/votca_ctp_config.h>
-
+#include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/math/constants/constants.hpp>
@@ -172,7 +172,7 @@ namespace votca {
 
                     int rank = boost::lexical_cast<int>(results[3]);
                     if (rank < 0 || rank > 2) {
-                        throw runtime_error(" Invalid GDMA rank! " + rank);
+                        throw runtime_error((boost::format(" Invalid GDMA rank %s!") %rank).str());
                     }
 
                     // atomic charge

@@ -319,7 +319,7 @@ namespace votca {
             ub::matrix<double> _vxc_ao;
             if (_orbitals->hasAOVxc()) {
                     if (_doVxc) {
-                        LOG(logDEBUG, *_pLog) << TimeStamp() << "There is already a Vxc matrix loaded from DFT, did you maybe run a DFT code with outputVxc?\n I will take " << flush;
+                        LOG(logDEBUG, *_pLog) << TimeStamp() << "There is already a Vxc matrix loaded from DFT, did you maybe run a DFT code with outputVxc?\n I will take the external implementation" << flush;
                     }
                     if (_dft_package == "gaussian") {
                         // we have to do some cartesian -> spherical transformation for Gaussian
