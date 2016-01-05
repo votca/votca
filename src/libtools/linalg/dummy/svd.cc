@@ -32,7 +32,7 @@ using namespace std;
  * @param E NxN diagonal matrix of singular values
  * @return succeeded or not 
  */
-bool linalg_singular_value_decomposition( ub::matrix<double> &A, ub::matrix<double> &V, ub::vector<double> &S )
+bool linalg_singular_value_decomposition( ub::matrix<double> &A, ub::matrix<double> &VT, ub::vector<double> &S )
 {
     throw std::runtime_error("linalg_singular_value_decomposition is not compiled-in due to disabling of MKL - recompile Votca Tools with MKL support");
 };
