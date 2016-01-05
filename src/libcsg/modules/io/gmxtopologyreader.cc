@@ -26,6 +26,7 @@
         #include <gromacs/fileio/tpxio.h>
         #include <gromacs/topology/atoms.h>
         #include <gromacs/topology/topology.h>
+        #include <gromacs/mdtypes/inputrec.h>
 #elif GMX == 50
         #include <gromacs/fileio/tpxio.h>
 #elif GMX == 45
