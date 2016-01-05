@@ -60,7 +60,7 @@ bool linalg_singular_value_decomposition(ub::matrix<double> &A, ub::matrix<doubl
 	gsl_matrix_view V_view = gsl_matrix_view_array(&VT(0,0), N, N);
 	gsl_vector * work = gsl_vector_alloc(N);
 
-        int status = gsl_linalg_SV_decomp (&A, &VT, &S, work);
+        int status = gsl_linalg_SV_decomp (A_view, V_view, S_view, work);
 	//gsl_eigen_symmv_sort(&E_view.vector, &V_view.matrix, GSL_EIGEN_SORT_ABS_ASC);
 	gsl_set_error_handler(handler);
         gsl_vector_free (work);
