@@ -668,8 +668,8 @@ namespace votca {
                     // Compare to previous r, Q00
                     APolarSite *aps = (*pseg)[j];
                     //vec old_r = aps->getPos();
-                    double old_Q00 = aps->getQ00();
-                    vec old_Q1 = aps->getQ1();
+                    //double old_Q00 = aps->getQ00();
+                    //vec old_Q1 = aps->getQ1();
 
                     // double dQ1 = sqrt(pow(upd_Q1.getX() - old_Q1.getX(), 2) + pow(upd_Q1.getY() - old_Q1.getY(), 2) + pow(upd_Q1.getZ() - old_Q1.getZ(), 2));
 
