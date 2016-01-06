@@ -23,7 +23,7 @@ VOTCAHEADER = '''\
 {progtitle}
 
 please submit bugs to bugs@votca.org 
-ctp_update, version {version}
+ctp_update_exciton, version {version}
 
 '''.format(version=VERSION, progtitle=PROGTITLE)
 
@@ -49,7 +49,7 @@ class CtpHelpFormatter(argparse.HelpFormatter):
 	def _format_usage(self, usage, action, group, prefix):
 		return VOTCAHEADER
 		
-progargs = argparse.ArgumentParser(prog='ctp_testsuite',
+progargs = argparse.ArgumentParser(prog='ctp_update_exciton',
     formatter_class=lambda prog: CtpHelpFormatter(prog,max_help_position=70),
 	description=PROGDESCR)
 	
