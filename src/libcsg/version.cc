@@ -40,7 +40,9 @@ extern "C" {
      //do nothing - this is just that we have a c function for autotools/cmake
      //sanity check if GMX is the write precision
 #ifdef GMX
-#ifdef GMX_DOUBLE
+#if (GMX > 51) && (GMX_DOUBLE == 1)
+     gmx_is_double_precision();
+#elif (GMX < 52) && defined(GMX_DOUBLE)
      gmx_is_double_precision();
 #else
      gmx_is_single_precision();
@@ -75,7 +77,9 @@ void HelpTextHeader(const std::string &tool_name)
 #else
          << "\ngromacs, " << GromacsVersion()
 #endif
-#ifdef GMX_DOUBLE
+#if (GMX > 51) && (GMX_DOUBLE == 1)
+	 << " (double precision)"
+#elif (GMX < 52) && defined(GMX_DOUBLE)
 	 << " (double precision)"
 #else
 	 << " (single precision)"
