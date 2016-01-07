@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2015 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,9 @@ namespace votca { namespace csg { namespace gmx {
         std::string GromacsVersionString =
 #ifdef GMX
          GromacsVersion()
-#ifdef GMX_DOUBLE
+#if (GMX > 51) && (GMX_DOUBLE == 1)
+         + std::string(" (double precision)");
+#elif (GMX < 52) && defined(GMX_DOUBLE)
          + std::string(" (double precision)");
 #else
          + std::string(" (single precision)");

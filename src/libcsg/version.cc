@@ -70,7 +70,9 @@ void HelpTextHeader(const std::string &tool_name)
 #else
          << "\ngromacs, " << GromacsVersion()
 #endif
-#ifdef GMX_DOUBLE
+#if (GMX > 51) && (GMX_DOUBLE == 1)
+	 << " (double precision)"
+#elif (GMX < 52) && defined(GMX_DOUBLE)
 	 << " (double precision)"
 #else
 	 << " (single precision)"

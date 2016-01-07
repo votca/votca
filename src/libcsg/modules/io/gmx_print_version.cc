@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2015 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,9 @@ int main(int argc, char** argv)
   cout << "static const std::string gmx_version = \""
 #ifdef GMX
     << GromacsVersion()
-#ifdef GMX_DOUBLE
+#if (GMX > 51) && (GMX_DOUBLE == 1)
+    << " (double precision)"
+#elif (GMX < 52) && defined(GMX_DOUBLE)
     << " (double precision)"
 #else
     << " (single precision)"
