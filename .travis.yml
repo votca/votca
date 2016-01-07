@@ -37,8 +37,8 @@ env:
   matrix: #NINJA=1 is currently not support by Travis' cmake, enable when >=2.8.9
     - CTP=yes WERROR=yes J=4
     - CTP=yes WALL=yes J=4
-    - CTP=yes WERROR=yes GMX_VERSION=5.1 J=4
-    - CTP=yes WALL=yes GMX_VERSION=5.1 J=4
+    - WALL=yes GMX_VERSION=5.1 J=4
+    - WALL=yes GMX_VERSION=9999 J=4
     - J=1
     - BDIR=build J=4
     - BDIR=build J=1
