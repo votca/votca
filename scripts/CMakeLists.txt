@@ -13,7 +13,7 @@ if(WITH_DIPRO)
   endforeach(SCRIPT)
 endif(WITH_DIPRO)
 
-foreach(SCRIPT ctp_testsuite ctp_update ctp_update_exciton)
+foreach(SCRIPT ctp_testsuite ctp_update ctp_update_exciton ctp_basisset)
   configure_file(${SCRIPT}.in ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.out @ONLY)
   add_custom_command(OUTPUT ${SCRIPT} DEPENDS ${SCRIPT})
   add_custom_target(${SCRIPT} ALL COMMAND ${CMAKE_COMMAND}
