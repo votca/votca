@@ -113,7 +113,7 @@ namespace votca { namespace ctp {
             const double _fakac2 = 1. / (_decay_row + _decay_col);
             const double _faka = 0.5 / _decay_row;
             const double _faka2 = 2.0 * _faka;
-            const double _faka3 = 3.0 * _faka;
+
             const double _fakaca = _decay_row / (_decay_row + _decay_col);
             const double _fakaac = _decay_row / (_decay_row + _decay_col);
             
@@ -121,11 +121,7 @@ namespace votca { namespace ctp {
             const double _fakac4 = 4.0 * _fakac;
             const double _fakc = 0.5 / _decay_col;
             const double _fakc2 = 2.0 * _fakc;
-            const double _fakc3 = 3.0 * _fakc;
-            const double _fakca = _fakac;
-            const double _fakca2 = _fakac2;
-            const double _fakca3 = _fakac3;
-            const double _fakca4 = _fakac4;
+
 
             _wmp.resize(3);
             _wmq.resize(3);

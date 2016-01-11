@@ -44,10 +44,7 @@ void AOCoulomb::FillgOrbitals(vector<double> &_wmp,vector<double> &_wmq,ma_type 
     const double _fakc = 0.5 / _decay_col;
     const double _fakc2 = 2.0 * _fakc;
     const double _fakc3 = 3.0 * _fakc;
-    const double _fakca = _fakac;
-    const double _fakca2 = _fakac2;
-    const double _fakca3 = _fakac3;
-    const double _fakca4 = _fakac4;
+
  
 
   if((_lmax_row)+(_lmax_col)>4) {
