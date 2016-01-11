@@ -17,7 +17,7 @@
 
 #include "calculators/kmclifetime.h"
 #include <votca/tools/property.h>
-#include <votca/tools/conversionfactors.h>
+#include <votca/tools/constants.h>
 #include <boost/format.hpp>
 
 using namespace std;
