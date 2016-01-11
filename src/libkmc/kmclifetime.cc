@@ -17,6 +17,7 @@
 
 #include "calculators/kmclifetime.h"
 #include <votca/tools/property.h>
+#include <votca/tools/conversionfactors.h>
 #include <boost/format.hpp>
 
 using namespace std;
@@ -24,10 +25,10 @@ using namespace std;
 namespace votca {
     namespace kmc {
 
-        const static double kB = 8.617332478E-5; // eV/K
-        const static double hbar = 6.5821192815E-16; // eV*s
-        const static double Pi = 3.14159265358979323846;
-
+        namespace conv=votca::tools::conv;
+        const double Pi = boost::math::constants::pi<double>();
+        
+        
         void KMCLifetime::Initialize(const char *filename, Property *options, const char *outputfile) {
             if (options->exists("options.kmclifetime.insertions")) {
                 _insertions = options->get("options.kmclifetime.insertions").as<unsigned int>();
@@ -337,7 +338,7 @@ namespace votca {
 
                     double J2 = node[i]->event[j].Jeff2;
 
-                    double rate = 2 * Pi / hbar * J2 / sqrt(4 * Pi * reorg * kB * _temperature) * exp(-(dG + reorg)*(dG + reorg) / (4 * reorg * kB * _temperature));
+                    double rate = 2 * Pi / conv::hbar * J2 / sqrt(4 * Pi * reorg * conv::kB * _temperature) * exp(-(dG + reorg)*(dG + reorg) / (4 * reorg * conv::kB * _temperature));
 
                     // calculate relative difference compared to values in the table
                     double reldiff = (node[i]->event[j].rate - rate) / node[i]->event[j].rate;
@@ -417,7 +418,7 @@ namespace votca {
 
             cout << "Writing trajectory to " <<  _trajectoryfile << "." << endl; 
             traj.open ( _trajectoryfile.c_str(), fstream::out);
-            traj << "Simtime [s]\t Insertion\t Carrier ID\t Lifetime[s]\tSteps\t Last Segment\t x_travelled[nm]\t y_travelled[nm]\t z_travelled[nm]"<<endl;
+            traj << "#Simtime [s]\t Insertion\t Carrier ID\t Lifetime[s]\tSteps\t Last Segment\t x_travelled[nm]\t y_travelled[nm]\t z_travelled[nm]"<<endl;
             
             if(_do_carrierenergy){
 
