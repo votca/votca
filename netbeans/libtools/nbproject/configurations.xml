@@ -8,6 +8,7 @@
       <itemPath>../../include/votca/tools/application.h</itemPath>
       <itemPath>../../include/votca/tools/average.h</itemPath>
       <itemPath>../../include/votca/tools/colors.h</itemPath>
+      <itemPath>../../include/votca/tools/conversionfactors.h</itemPath>
       <itemPath>../../include/votca/tools/correlate.h</itemPath>
       <itemPath>../../include/votca/tools/crosscorrelate.h</itemPath>
       <itemPath>../../include/votca/tools/cubicspline.h</itemPath>
@@ -160,6 +161,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/tools/colors.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/conversionfactors.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/tools/correlate.h"
             ex="false"
@@ -454,6 +460,11 @@
       </item>
       <item path="../../include/votca/tools/colors.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/tools/conversionfactors.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/tools/correlate.h"
             ex="false"
             tool="3"
@@ -746,6 +757,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/tools/colors.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/conversionfactors.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/tools/correlate.h"
             ex="false"
