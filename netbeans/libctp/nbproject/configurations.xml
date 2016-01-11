@@ -170,6 +170,7 @@
                    projectFiles="true">
       <logicalFolder name="f5" displayName="aomatrices" projectFiles="true">
         <itemPath>../../src/libctp/aomatrices/aocoulomb.cc</itemPath>
+        <itemPath>../../src/libctp/aomatrices/aocoulomb_g.cc</itemPath>
         <itemPath>../../src/libctp/aomatrices/aodipole.cc</itemPath>
         <itemPath>../../src/libctp/aomatrices/aoecp.cc</itemPath>
         <itemPath>../../src/libctp/aomatrices/aoesp.cc</itemPath>
@@ -535,6 +536,11 @@
       <item path="../../src/libctp/ERIs.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libctp/aobasis.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/aomatrices/aocoulomb_g.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libctp/aomatrices/aodipole.cc"
             ex="false"
@@ -1321,6 +1327,11 @@
       <item path="../../src/libctp/ERIs.cc" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../src/libctp/aobasis.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libctp/aomatrices/aocoulomb_g.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libctp/aomatrices/aodipole.cc"
             ex="false"

@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-VERSION='1.3-dev gitid: 966fa1a (dirty)'
+VERSION='1.3-dev gitid: f72f801 (dirty)'
 import sys
 import os
 import getpass
