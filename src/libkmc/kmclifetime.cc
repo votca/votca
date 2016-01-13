@@ -418,7 +418,7 @@ namespace votca {
 
             cout << "Writing trajectory to " <<  _trajectoryfile << "." << endl; 
             traj.open ( _trajectoryfile.c_str(), fstream::out);
-            traj << "#Simtime [s]\t Insertion\t Carrier ID\t Lifetime[s]\tSteps\t Last Segment\t x_travelled[nm]\t y_travelled[nm]\t z_travelled[nm]"<<endl;
+            traj << "#Simtime [s]\t Insertion\t Carrier ID\t Lifetime[s]\tSteps\t Last Segment\t x_travelled[m]\t y_travelled[m]\t z_travelled[m]"<<endl;
             
             if(_do_carrierenergy){
 
