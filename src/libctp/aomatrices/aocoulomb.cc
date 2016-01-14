@@ -118,7 +118,7 @@ namespace votca { namespace ctp {
             const double _fakaac = _decay_row / (_decay_row + _decay_col);
             
             const double _fakac3 = 3.0 * _fakac;
-            const double _fakac4 = 4.0 * _fakac;
+            //const double _fakac4 = 4.0 * _fakac;
             const double _fakc = 0.5 / _decay_col;
             const double _fakc2 = 2.0 * _fakc;
 
