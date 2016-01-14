@@ -25,7 +25,7 @@ check:
 %_subclean:
 	$(MAKE) $(MFLAGS) -C $* clean
 
-CSGID:=$(shell csg_call --help | sed -n 's/.*gitid: \(.*\)/\\newcommand{\\csgid}{\1}/p')
+CSGID:=$(shell csg_call --help | sed -n 's/.*version \(.*\)/\\newcommand{\\csgid}{\1}/p' | sed -e 's/_rc/\\&/')
 csgid.tex: check dummy
 	[ -f csgid.tex ] || touch csgid.tex
 	echo '$(CSGID)' | cmp -s csgid.tex - || echo '$(CSGID)' > csgid.tex
