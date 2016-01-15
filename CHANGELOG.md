@@ -1,9 +1,10 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/csg/commits/master).
 
-## Version 1.3-dev
+## Version 1.3 _SuperUzma_ (released 15.01.16)
 * re-implemented csg_boltzmann --excl
+* added support for upcoming gromacs 2016
 
-## Version 1.3_rc1 _SuperUzma_ (released 23.09.15)
+## Version 1.3_rc1 (released 23.09.15)
 
 * added new iterative methods: relative entropy, simplex optimization
 * added support for using hoomd-blue, lammps, ESPResSo, ESPResSo++ and dl_poly for iterative methods
