@@ -4,6 +4,7 @@ For more detailed information about the changes see the history of the [reposito
  * dropped support for gromacs-4 and clean up
  * dropped multi_g_rdf script
  * dropped thermforce iteration method
+ * moved h5md reader to hdf5 without c++ api
 
 ## Version 1.3 _SuperUzma_ (released 15.01.16)
 * re-implemented csg_boltzmann --excl
