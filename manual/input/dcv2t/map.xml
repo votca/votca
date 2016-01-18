@@ -16,7 +16,7 @@
             <!-- EMULTIPOLE INPUT -->		           
         <multipoles_n>MP_FILES/DCV2T.mps</multipoles_n><!-- Multipole file for neutral state -->
         <multipoles_h>MP_FILES/DCV2T_h.mps</multipoles_h><!-- Multipole file for hole state -->	           	    
-        <map2md>0</map2md><!-- specifies if planar QM coordinates (map2md=0) or MD coordinates (map2md=1) of atoms are used for distribution of partial charges. For MD coordinates the order and numbering in <mdatoms> and  <mpoles> must be identical-->     
+        <map2md>0</map2md><!-- specifies if planar QM coordinates (map2md=0) or MD coordinates (map2md=1) of atoms are used for distribution of partial charges. For MD coordinates the order and numbering in <mdatoms> and  <mpoles> must be identical it has no impact on the qm e.g. DFT or GWBSE calculations-->     
             
 	        <!-- EINTERNAL INPUT -->
         <U_cC_nN_h>0.0</U_cC_nN_h> <!-- Site energy      -->     		
