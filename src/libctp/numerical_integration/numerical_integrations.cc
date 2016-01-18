@@ -1371,12 +1371,12 @@ namespace votca {
 
                     for (vector< AOShell* >::iterator _row = basis->firstShell(); _row != basis->lastShell(); _row++) {
 
-                        ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange(tmat, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc(), 0, 0);
+                        ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange(tmat,0,1, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc());
                         (*_row)->EvalAOspace(_submatrix, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
                     }
                     
                     
-                    ub::matrix<double> _AOmatrix_at_grid = ub::prod(tmat, ub::trans(tmat));
+                    ub::matrix<double> _AOmatrix_at_grid = ub::prod( ub::trans(tmat),tmat);
                     
                     // density at grid point is sum of element-wise product of density matrix x _AOmatrix
                     ub::vector<double> _AO_array  =_AOmatrix_at_grid.data();
@@ -1756,11 +1756,11 @@ namespace votca {
 
                     for (vector< AOShell* >::iterator _row = basis->firstShell(); _row != basis->lastShell(); _row++) {
 
-                        ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange(tmat, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc(), 0, 0);
+                        ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange(tmat,0,1, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc());
                         (*_row)->EvalAOspace(_submatrix, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
                     }
 
-                    OLMAT += _grid[i][j].grid_weight * ub::prod(tmat, ub::trans(tmat));
+                    OLMAT += _grid[i][j].grid_weight * ub::prod( ub::trans(tmat),tmat);
                 }
             } // gridpoints end
 

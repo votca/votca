@@ -294,7 +294,6 @@ namespace votca {
                     }
                     
    
-                    
                     LOG(logDEBUG, _log) << " Calculating cube data ... \n" << flush;
                     _log.setPreface(logDEBUG,   (format(" ... ...") ).str());
                     float progress = 0.0;
@@ -309,18 +308,20 @@ namespace votca {
                             for (int _iz = 0; _iz <= _zsteps; _iz++) {
                                 double _z = zstart + double(_iz) * zincr;
                                 Nrecord++;
+
                                 // get value of orbitals at each gridpoint
-                                ub::matrix<double> tmat = ub::zero_matrix<double>(dftbasis.AOBasisSize(), 1);
+                                ub::matrix<double> tmat = ub::zero_matrix<double>( 1,dftbasis.AOBasisSize());
 
                                 for (vector< AOShell* >::iterator _row = dftbasis.firstShell(); _row != dftbasis.lastShell(); _row++) {
-
-                                    ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange(tmat, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc(), 0, 0);
+                                   
+                                    ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange(tmat,0,1, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc());
                                     (*_row)->EvalAOspace(_submatrix, _x, _y, _z);
+
                                 }
                                 
                                 
-             		    ub::matrix<double> _tempmat = ub::prod( DMAT_tot,tmat); // tempmat can be reused for density gradient
-		            double density_at_grid = ub::prod(ub::trans(tmat),_tempmat)(0,0);
+             		    ub::matrix<double> _tempmat = ub::prod( tmat,DMAT_tot); // tempmat can be reused for density gradient
+		            double density_at_grid = ub::prod(_tempmat,ub::trans(tmat))(0,0);
                             /* inefficient 
                                 ub::matrix<double> _AOmatrix_at_grid = ub::prod(tmat, ub::trans(tmat));
 
@@ -382,17 +383,17 @@ namespace votca {
                                 double _z = zstart + double(_iz) * zincr;
                                 Nrecord++;
                                 // get value of orbitals at each gridpoint
-                                ub::matrix<double> tmat = ub::zero_matrix<double>(dftbasis.AOBasisSize(), 1);
+                                ub::matrix<double> tmat = ub::zero_matrix<double>(1,dftbasis.AOBasisSize());
 
                                 for (vector< AOShell* >::iterator _row = dftbasis.firstShell(); _row != dftbasis.lastShell(); _row++) {
 
-                                    ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange(tmat, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc(), 0, 0);
+                                    ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange(tmat,0,1, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc());
                                     (*_row)->EvalAOspace(_submatrix, _x, _y, _z);
                                 }
 
                                 double QP_at_grid = 0.0;
                                 for (unsigned _i = 0; _i < Ftemp.size1(); _i++) {
-                                    QP_at_grid += Ftemp(_i,0) * tmat(_i,0);
+                                    QP_at_grid += Ftemp(_i,0) * tmat(0,_i);
                                 }
 
                                 if (Nrecord == 6 || _iz == _zsteps) {

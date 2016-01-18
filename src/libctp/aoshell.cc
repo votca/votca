@@ -449,7 +449,7 @@ void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, doubl
 
                 // split combined shells
                 int _i_func = -1;
-                
+
                 for (unsigned i = 0; i < shell_type.length(); ++i) {
                     string single_shell = string(shell_type, i, 1);
                     // single type shells
