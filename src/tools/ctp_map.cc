@@ -109,7 +109,7 @@ void CtpMap::Run() {
 
     if (topread == NULL) {
         throw runtime_error( string("Input format not supported: ")
-                           + _op_vm["top"].as<string> () );
+                           + _op_vm["topology"].as<string> () );
     }
 
     topread->ReadTopology(topfile, this->_mdtopol);
