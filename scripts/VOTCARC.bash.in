@@ -31,7 +31,7 @@ for rc in "@CMAKE_INSTALL_PREFIX@/@DATA@"/rc/*rc.bash; do
 done
 unset rc
 
-#bash cmopletion
+#bash completion
 if [ -n "$BASH_VERSION" ]; then 
   for comp in "@CMAKE_INSTALL_PREFIX@/@DATA@"/rc/*completion.bash; do
     [ -r "$comp" ] && source "$comp"
