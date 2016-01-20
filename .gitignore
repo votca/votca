@@ -8,42 +8,42 @@ libvotca*.so
 share/doc/html
 share/doc/Doxyfile
 
-src/libctp/votca_config.h
-src/libctp/hgversion.h
-include/votca/ctp/votca_ctp_config.h
+src/libxtp/votca_config.h
+src/libxtp/hgversion.h
+include/votca/xtp/votca_xtp_config.h
 
-src/tools/ctp_dump
-src/tools/ctp_parallel
-src/tools/ctp_map
-src/tools/ctp_run
-src/tools/ctp_tools
+src/tools/xtp_dump
+src/tools/xtp_parallel
+src/tools/xtp_map
+src/tools/xtp_run
+src/tools/xtp_tools
 src/dipro/*.mod
 src/dipro/*.x
 src/tools/*.man
 
-scripts/ctp_dipro.out
-scripts/ctp_dipro
-scripts/ctp_update
-scripts/ctp_update.out
-scripts/ctp_testsuite
-scripts/ctp_testsuite.out
-scripts/ctp_update_exciton
-scripts/ctp_update_exciton.out
-scripts/ctp_basisset
-scripts/ctp_basisset.out
+scripts/xtp_dipro.out
+scripts/xtp_dipro
+scripts/xtp_update
+scripts/xtp_update.out
+scripts/xtp_testsuite
+scripts/xtp_testsuite.out
+scripts/xtp_update_exciton
+scripts/xtp_update_exciton.out
+scripts/xtp_basisset
+scripts/xtp_basisset.out
 
 netbeans/*/build
 .dep.inc
 */nbproject/private
-netbeans/libctp/dist/Debug/*
-netbeans/libctp/nbproject/Package-Debug.bash
-netbeans/libctp/nbproject/Package-Release.bash
+netbeans/libxtp/dist/Debug/*
+netbeans/libxtp/nbproject/Package-Debug.bash
+netbeans/libxtp/nbproject/Package-Release.bash
 
-netbeans/ctp_map/nbproject/Package-Debug.bash
-netbeans/ctp_map/nbproject/Package-Release.bash
+netbeans/xtp_map/nbproject/Package-Debug.bash
+netbeans/xtp_map/nbproject/Package-Release.bash
 
-netbeans/ctp_run/nbproject/Package-Debug.bash
-netbeans/ctp_run/nbproject/Package-Release.bash
+netbeans/xtp_run/nbproject/Package-Debug.bash
+netbeans/xtp_run/nbproject/Package-Release.bash
 
 CMakeFiles
 cmake_install.cmake

@@ -7,7 +7,7 @@
  */
 Md2QmEngine::~Md2QmEngine() {
 
-    vector < CTP::Molecule* > :: iterator molecule;
+    vector < XTP::Molecule* > :: iterator molecule;
 
     // Clean up list of molecule types
     for (molecule = _molecule_types.begin();
@@ -48,7 +48,7 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
           it_molecule != molecules.end();
           ++it_molecule ) {
 
-       CTP::Molecule *molecule = AddMoleculeType(molecule_id++, *it_molecule);
+       XTP::Molecule *molecule = AddMoleculeType(molecule_id++, *it_molecule);
        string molMdName = (*it_molecule)->get("mdname").as<string>();
 
        // +++++++++++++ //
@@ -66,8 +66,8 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
              ++it_segment ) {
 
          // Create new segment + associated type (QM Unit)
-         CTP::Segment *segment = AddSegmentType(segment_id++, *it_segment );
-         CTP::SegmentType *qmUnit = AddQMUnit(qmunit_id, *it_segment );
+         XTP::Segment *segment = AddSegmentType(segment_id++, *it_segment );
+         XTP::SegmentType *qmUnit = AddQMUnit(qmunit_id, *it_segment );
          ++qmunit_id;
 
          segment->setType(qmUnit);
@@ -98,7 +98,7 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
                ++it_fragment ) {
 
             // Create new fragment
-            CTP::Fragment* fragment=AddFragmentType(fragment_id++,*it_fragment);
+            XTP::Fragment* fragment=AddFragmentType(fragment_id++,*it_fragment);
             segment->AddFragment( fragment );
             
             // Verify that this fragment name is not taken already
@@ -242,7 +242,7 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
                }
 
                // Create atom
-               CTP::Atom *atom = AddAtomType(molecule,
+               XTP::Atom *atom = AddAtomType(molecule,
                                              residue_name, residue_number,
                                              md_atom_name, md_atom_id++,
                                              hasQMPart,    qm_atom_id,
@@ -290,7 +290,7 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
  * @param mdtop
  * @param qmtop
  */
-void Md2QmEngine::Md2Qm(CSG::Topology *mdtop, CTP::Topology *qmtop) {
+void Md2QmEngine::Md2Qm(CSG::Topology *mdtop, XTP::Topology *qmtop) {
 
     qmtop->CleanUp();
 
@@ -303,7 +303,7 @@ void Md2QmEngine::Md2Qm(CSG::Topology *mdtop, CTP::Topology *qmtop) {
     qmtop->setCanRigidify(true);
 
     // Add types (=> Segment types / QM units)
-    vector< CTP::SegmentType* > ::iterator typeit;
+    vector< XTP::SegmentType* > ::iterator typeit;
     for (typeit = this->_qmUnits.begin();
          typeit != this->_qmUnits.end();
          typeit++) {
@@ -313,7 +313,7 @@ void Md2QmEngine::Md2Qm(CSG::Topology *mdtop, CTP::Topology *qmtop) {
         string orbitals = (*typeit)->getOrbitalsFile();
         string qmcoords = (*typeit)->getQMCoordsFile();
         bool canRigidify = (*typeit)->canRigidify();
-        CTP::SegmentType *segType = qmtop->AddSegmentType(name);
+        XTP::SegmentType *segType = qmtop->AddSegmentType(name);
         segType->setBasisName(basis);
         segType->setOrbitalsFile(orbitals);
         segType->setQMCoordsFile(qmcoords);
@@ -333,11 +333,11 @@ void Md2QmEngine::Md2Qm(CSG::Topology *mdtop, CTP::Topology *qmtop) {
          string nameMolMD = molMD->getName();
 
          // Find QM counterpart
-         CTP::Molecule *molQM = this->MoleculeFactory(molMD);
+         XTP::Molecule *molQM = this->MoleculeFactory(molMD);
          string nameMolQM = molQM->getName();
 
          // Generate and export
-         //CTP::Molecule *product = 
+         //XTP::Molecule *product = 
 	 (void)this->ExportMolecule(molQM, qmtop);
     }
 }
@@ -349,17 +349,17 @@ void Md2QmEngine::Md2Qm(CSG::Topology *mdtop, CTP::Topology *qmtop) {
  * @param molMDTemplate
  * @return molQMTemplate
  */
-CTP::Molecule *Md2QmEngine::MoleculeFactory(CSG::Molecule *molMDTemplate) {
+XTP::Molecule *Md2QmEngine::MoleculeFactory(CSG::Molecule *molMDTemplate) {
 
     string nameMolQM = this->getMoleculeName(molMDTemplate->getName());
-    CTP::Molecule *molQMTemplate = this->getMoleculeType(nameMolQM);
+    XTP::Molecule *molQMTemplate = this->getMoleculeType(nameMolQM);
 
     int resnrOffset = molMDTemplate->getBead(0)->getResnr();
 
     for (int i = 0; i < molMDTemplate->BeadCount(); i++) {
         CSG::Bead *atomMD = molMDTemplate->getBead(i);
         try {
-            CTP::Atom *counterpart =
+            XTP::Atom *counterpart =
                  this->getAtomType(molMDTemplate->getName(),
                                    atomMD->getResnr()-resnrOffset+1,
                                    atomMD->getName());
@@ -386,39 +386,39 @@ CTP::Molecule *Md2QmEngine::MoleculeFactory(CSG::Molecule *molMDTemplate) {
  * @param qmtop
  * @return
  */
-CTP::Molecule *Md2QmEngine::ExportMolecule(CTP::Molecule *refMol,
-                                           CTP::Topology *qmtop) {
+XTP::Molecule *Md2QmEngine::ExportMolecule(XTP::Molecule *refMol,
+                                           XTP::Topology *qmtop) {
 
-    CTP::Molecule *newMol = qmtop->AddMolecule(refMol->getName());
+    XTP::Molecule *newMol = qmtop->AddMolecule(refMol->getName());
 
     // Note: The topology is responsible for allocating IDs to
     //       molecules, segments, ...
     
-    vector<CTP::Segment *> ::iterator segIt;
+    vector<XTP::Segment *> ::iterator segIt;
     for (segIt = refMol->Segments().begin();
          segIt < refMol->Segments().end();
          segIt++) {
 
-        CTP::Segment *refSeg = *segIt;
-        CTP::Segment *newSeg = qmtop->AddSegment(refSeg->getName());
+        XTP::Segment *refSeg = *segIt;
+        XTP::Segment *newSeg = qmtop->AddSegment(refSeg->getName());
         newSeg->setType( qmtop->getSegmentType(refSeg->getType()->getId()) );
 
-        vector<CTP::Fragment *> ::iterator fragIt;
+        vector<XTP::Fragment *> ::iterator fragIt;
         for (fragIt = refSeg->Fragments().begin();
              fragIt < refSeg->Fragments().end();
              fragIt++) {
 
-            CTP::Fragment *refFrag = *fragIt;
-            CTP::Fragment *newFrag = qmtop->AddFragment(refFrag->getName());
+            XTP::Fragment *refFrag = *fragIt;
+            XTP::Fragment *newFrag = qmtop->AddFragment(refFrag->getName());
             newFrag->setTrihedron(refFrag->getTrihedron());
 
-            vector<CTP::Atom *> ::iterator atomIt;
+            vector<XTP::Atom *> ::iterator atomIt;
             for (atomIt = refFrag->Atoms().begin();
                  atomIt < refFrag->Atoms().end();
                  atomIt++) {
 
-                CTP::Atom *refAtom = *atomIt;
-                CTP::Atom *newAtom = qmtop->AddAtom(refAtom->getName());
+                XTP::Atom *refAtom = *atomIt;
+                XTP::Atom *newAtom = qmtop->AddAtom(refAtom->getName());
 
                 newAtom->setWeight(refAtom->getWeight());
                 newAtom->setResnr(refAtom->getResnr());
@@ -447,13 +447,13 @@ CTP::Molecule *Md2QmEngine::ExportMolecule(CTP::Molecule *refMol,
 
 
 
-CTP::Atom *Md2QmEngine::AddAtomType(CTP::Molecule *owner,
+XTP::Atom *Md2QmEngine::AddAtomType(XTP::Molecule *owner,
                                     string residue_name,  int residue_number,
                                     string md_atom_name,  int md_atom_id,
                                     bool hasQMPart,       int qm_atom_id,
                                     vec qmPos,            string element,
                                     double weight) {
-    CTP::Atom* atom = new CTP::Atom(owner,
+    XTP::Atom* atom = new XTP::Atom(owner,
                                     residue_name,         residue_number,
                                     md_atom_name,         md_atom_id,
                                     hasQMPart,            qm_atom_id,
@@ -463,28 +463,28 @@ CTP::Atom *Md2QmEngine::AddAtomType(CTP::Molecule *owner,
     return atom;
 }
 
-CTP::Fragment *Md2QmEngine::AddFragmentType(int fragment_id,
+XTP::Fragment *Md2QmEngine::AddFragmentType(int fragment_id,
                                             Property *property) {
     string fragment_name = property->get("name").as<string>();
-    CTP::Fragment* fragment = new CTP::Fragment(fragment_id, fragment_name);
+    XTP::Fragment* fragment = new XTP::Fragment(fragment_id, fragment_name);
     _fragment_types.push_back(fragment);
     return fragment;
 }
 
-CTP::Segment  *Md2QmEngine::AddSegmentType(int segment_id,
+XTP::Segment  *Md2QmEngine::AddSegmentType(int segment_id,
                                            Property *property) {
     string segment_name = property->get("name").as<string>();
-    CTP::Segment* segment = new CTP::Segment(segment_id, segment_name);
+    XTP::Segment* segment = new XTP::Segment(segment_id, segment_name);
     _segment_types.push_back(segment);
     return segment;
 }
 
-CTP::Molecule *Md2QmEngine::AddMoleculeType(int molecule_id,
+XTP::Molecule *Md2QmEngine::AddMoleculeType(int molecule_id,
                                             Property *property) {
     string molecule_name = property->get("name").as<string>();
     string molecule_mdname = property->get("mdname").as<string>();
 
-    CTP::Molecule *molecule = new CTP::Molecule(molecule_id, molecule_name);
+    XTP::Molecule *molecule = new XTP::Molecule(molecule_id, molecule_name);
     _molecule_types.push_back(molecule);
     // TODO check if the name is already there
     _map_MoleculeMDName_MoleculeName[molecule_mdname] = molecule_name;
@@ -492,7 +492,7 @@ CTP::Molecule *Md2QmEngine::AddMoleculeType(int molecule_id,
     return molecule;
 }
 
-CTP::SegmentType *Md2QmEngine::AddQMUnit(int qmunit_id, Property *property) {
+XTP::SegmentType *Md2QmEngine::AddQMUnit(int qmunit_id, Property *property) {
     string qmCoordsFile = "nofile";
     string orbitalsFile = "nofile";
     string basisSetName = "noname";
@@ -513,7 +513,7 @@ CTP::SegmentType *Md2QmEngine::AddQMUnit(int qmunit_id, Property *property) {
         basisSetName = property->get("basisset").as<string>();
     }
 
-    CTP::SegmentType* qmUnit = new CTP::SegmentType(qmunit_id,    qmunit_name,
+    XTP::SegmentType* qmUnit = new XTP::SegmentType(qmunit_id,    qmunit_name,
                                                     basisSetName, orbitalsFile,
                                                     qmCoordsFile, canRigidify);
     _qmUnits.push_back(qmUnit);
@@ -521,7 +521,7 @@ CTP::SegmentType *Md2QmEngine::AddQMUnit(int qmunit_id, Property *property) {
 }
 
 
-CTP::Molecule *Md2QmEngine::getMoleculeType(const string &name) {
+XTP::Molecule *Md2QmEngine::getMoleculeType(const string &name) {
     try {
         return _map_MoleculeName_MoleculeType.at(name);
     }
@@ -542,7 +542,7 @@ const string &Md2QmEngine::getMoleculeName(const string &mdname) {
     }
 }
 
-CTP::Atom *Md2QmEngine::getAtomType(const string &molMdName,
+XTP::Atom *Md2QmEngine::getAtomType(const string &molMdName,
                                     int resNr, const string &mdAtomName) {
     return this->_map_mol_resNr_atm_atmType.at(molMdName)
                                            .at(resNr)
@@ -591,10 +591,10 @@ void Md2QmEngine::getIntCoords(string &file,
 
 void Md2QmEngine::PrintInfo() {
 
-    vector<CTP::Molecule*>::iterator mit;
-    vector<CTP::Segment*>::iterator sit;
-    vector<CTP::Fragment*>::iterator fit;
-    vector<CTP::Atom*>::iterator ait;
+    vector<XTP::Molecule*>::iterator mit;
+    vector<XTP::Segment*>::iterator sit;
+    vector<XTP::Fragment*>::iterator fit;
+    vector<XTP::Atom*>::iterator ait;
 
     cout << "Summary ~~~~~"
             "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
@@ -621,20 +621,20 @@ void Md2QmEngine::PrintInfo() {
     for (mit = _molecule_types.begin();
          mit != _molecule_types.end();
          mit++) {
-         CTP::Molecule *mol = *mit;
+         XTP::Molecule *mol = *mit;
          cout << "[ " << mol->getName() << " ]" << endl;
 
          for (sit = mol->Segments().begin();
               sit != mol->Segments().end();
               sit++) {
-              CTP::Segment *seg = *sit;
+              XTP::Segment *seg = *sit;
               cout << " - Segment [ " << seg->getName() << " ]"
                    << " ID " << seg->getId() << endl;
 
               for (fit = seg->Fragments().begin();
                    fit != seg->Fragments().end();
                    fit++ ) {
-                   CTP::Fragment *frag = *fit;
+                   XTP::Fragment *frag = *fit;
                    cout << "   - Fragment [ " << frag->getName() << " ]"
                         << " ID " << frag->getId() << ": "
                         << frag->Atoms().size() << " atoms " << endl;
@@ -647,15 +647,15 @@ void Md2QmEngine::PrintInfo() {
     cout << endl << "Mapping table"
                     " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
                  << endl;
-    map < string, map < int, map < string, CTP::Atom* > > > ::iterator it0;
+    map < string, map < int, map < string, XTP::Atom* > > > ::iterator it0;
     for (it0 = this->_map_mol_resNr_atm_atmType.begin();
          it0 != this->_map_mol_resNr_atm_atmType.end();
          it0 ++) {
-         map < int, map < string, CTP::Atom* > > ::iterator it1;
+         map < int, map < string, XTP::Atom* > > ::iterator it1;
          for (it1 = it0->second.begin();
               it1 != it0->second.end();
               it1++) {
-              map < string, CTP::Atom* > ::iterator it2;
+              map < string, XTP::Atom* > ::iterator it2;
               for (it2 = it1->second.begin();
                    it2 != it1->second.end();
                    it2++) {
@@ -672,7 +672,7 @@ void Md2QmEngine::PrintInfo() {
     }
 }
 
-void Md2QmEngine::CheckProduct(CTP::Topology *outtop, const string &pdbfile) {
+void Md2QmEngine::CheckProduct(XTP::Topology *outtop, const string &pdbfile) {
 
     string md_pdb = "md_" + pdbfile;
     string qm1_pdb = "qm_rigid_" + pdbfile;
@@ -682,11 +682,11 @@ void Md2QmEngine::CheckProduct(CTP::Topology *outtop, const string &pdbfile) {
     // Atomistic PDB
     outPDB = fopen(md_pdb.c_str(), "w");
 
-    vector<CTP::Molecule*> ::iterator molIt;
+    vector<XTP::Molecule*> ::iterator molIt;
     for (molIt = outtop->Molecules().begin();
          molIt < outtop->Molecules().end();
          molIt++) {
-        CTP::Molecule *mol = *molIt;
+        XTP::Molecule *mol = *molIt;
         mol->WritePDB(outPDB);
     }
 
@@ -697,11 +697,11 @@ void Md2QmEngine::CheckProduct(CTP::Topology *outtop, const string &pdbfile) {
     // Fragment PDB
     outPDB = fopen(qm1_pdb.c_str(), "w");
 
-    vector<CTP::Segment*> ::iterator segIt;
+    vector<XTP::Segment*> ::iterator segIt;
     for (segIt = outtop->Segments().begin();
          segIt < outtop->Segments().end();
          segIt++) {
-        CTP::Segment *seg = *segIt;
+        XTP::Segment *seg = *segIt;
         seg->WritePDB(outPDB);
     }
 

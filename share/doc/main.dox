@@ -1,15 +1,15 @@
 /**
 
-\page ctp Charge and exciton transport
+\page xtp Charge and exciton transport
 
-\ref ctp "ctp"
+\ref xtp "xtp"
 
-Objects related to charge transport are encapsulated in the votca::ctp namespace. 
+Objects related to charge transport are encapsulated in the votca::xtp namespace. 
 
-The main container is votca::ctp::Topology. 
+The main container is votca::xtp::Topology. 
 
 
-This is the code documentation of the VOTCA-CTP package (http://www.votca.org). 
+This is the code documentation of the VOTCA-XTP package (http://www.votca.org). 
 
 
 

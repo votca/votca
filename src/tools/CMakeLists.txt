@@ -1,13 +1,13 @@
-foreach(PROG ctp_map ctp_run ctp_tools ctp_parallel ctp_dump)
+foreach(PROG xtp_map xtp_run xtp_tools xtp_parallel xtp_dump)
   file(GLOB ${PROG}_SOURCES ${PROG}*.cc)
 
-  if( ${PROG} STREQUAL "ctp_map" )
-     add_executable(ctp_map ctp_map.cc Md2QmEngine.cc)
+  if( ${PROG} STREQUAL "xtp_map" )
+     add_executable(xtp_map xtp_map.cc Md2QmEngine.cc)
   else()
      add_executable(${PROG} ${${PROG}_SOURCES})
   endif()
 
-  target_link_libraries(${PROG} votca_ctp ${BOOST_LIBRARIES})
+  target_link_libraries(${PROG} votca_xtp ${BOOST_LIBRARIES})
   install(TARGETS ${PROG} RUNTIME DESTINATION bin)
 
   if (BUILD_MANPAGES)

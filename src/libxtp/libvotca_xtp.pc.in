@@ -1,0 +1,13 @@
+prefix=@prefix@
+prefix=@CMAKE_INSTALL_PREFIX@
+libdir=${prefix}/@LIB@
+includedir=${prefix}/include
+
+Name: libvotca_xtp
+Description: charge transport functions of the votca package
+URL: http://www.votca.org
+Version: @VERSION@
+Requires: libvotca_tools libvotca_csg @VOTCA_KMCOLD_PKG@ libvotca_moo
+Libs: -L${libdir} -lvotca_xtp
+Libs.private: -lm
+Cflags: -I${includedir}

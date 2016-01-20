@@ -611,8 +611,8 @@ EXCLUDE_PATTERNS       = */.hg/*
 EXCLUDE_PATTERNS      += */scripts/*
 EXCLUDE_PATTERNS      += */src/dipro/*
 EXCLUDE_PATTERNS      += */CMakeFiles/*
-EXCLUDE_PATTERNS      += */include/votca/ctp/CMakeFiles/*
-EXCLUDE_PATTERNS      += */src/libctp/CMakeFiles/*
+EXCLUDE_PATTERNS      += */include/votca/xtp/CMakeFiles/*
+EXCLUDE_PATTERNS      += */src/libxtp/CMakeFiles/*
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names 
 # (namespaces, classes, functions, etc.) that should be excluded from the 

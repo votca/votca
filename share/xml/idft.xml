@@ -1,6 +1,6 @@
 <options>
 
-<!-- ctp_run -e idft -f state.db -o options.xml -->
+<!-- xtp_run -e idft -f state.db -o options.xml -->
 <idft help="Projection method for electronic couplings. Requires edft otput" section="sec:dft">
 
 	<job_file help="Job control file (full path)"></job_file>

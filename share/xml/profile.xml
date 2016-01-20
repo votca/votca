@@ -1,6 +1,6 @@
 <options>
 
-<!-- ctp_run -e profile -f state.db -o options.xml -->
+<!-- xtp_run -e profile -f state.db -o options.xml -->
 <profile help="Density and site energy profiles" label="calc:profile">
 
 	<axis help="Axis along which to calculate density and energy profiles">

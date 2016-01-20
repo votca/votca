@@ -1,6 +1,6 @@
 <options>
 
-<sandbox help="Sandbox to test ctp classes" label="sec:sanbox">
+<sandbox help="Sandbox to test xtp classes" label="sec:sanbox">
 	
 	<ID help="Not in use">ID</ID>
 

@@ -1,0 +1,31 @@
+#ifndef _VOTCA_XTP_CONFIG_H
+#define _VOTCA_XTP_CONFIG_H
+
+/* OpenMP */
+
+#if defined(_OPENMP)
+   #include <omp.h>
+#endif
+
+/* LIBXC */
+#cmakedefine LIBXC
+#if defined(LIBXC)
+   #define LIBXC
+#endif
+
+/* Linear algebra packages */
+#cmakedefine EIGEN
+#cmakedefine MKL
+#cmakedefine GSL
+
+#define NDEBUG
+
+
+
+#if defined(GSL)
+    #include <votca/xtp/gsl_boost_ublas_matrix_prod.h>
+#elif defined(MKL)
+    #include <votca/xtp/mkl_boost_ublas_matrix_prod.h>
+#endif
+
+#endif // _VOTCA_XTP_CONFIG_H

@@ -1,6 +1,6 @@
 <options>
 
-<!-- ctp_run -e qmmm -f state.db -o options.xml -t 1 -c 1 -->
+<!-- xtp_run -e qmmm -f state.db -o options.xml -t 1 -c 1 -->
 <qmmm help="QM/MM with the Thole MM model" section="sec:qmmm">
 
 	<multipoles help="XML file with multipole moments and polarizabilities" default="system.xml"></multipoles>

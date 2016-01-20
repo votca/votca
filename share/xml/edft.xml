@@ -1,6 +1,6 @@
 <options>
 
-<!-- ctp_run -e edft -f state.db -o options.xml -->
+<!-- xtp_run -e edft -f state.db -o options.xml -->
 <edft help="A wrapper for first principles based single site calculations" section="sec:edft">
 
 	<job help="Job options">

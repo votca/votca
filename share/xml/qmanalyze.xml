@@ -1,6 +1,6 @@
 <options>
 
-<!-- ctp_tools -e qmanalyze options.xml -->
+<!-- xtp_tools -e qmanalyze options.xml -->
 <qmanalyze help="Analysis tool for QM results stores in serialized file" section="sec:overlap">
 
 

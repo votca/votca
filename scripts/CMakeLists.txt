@@ -1,5 +1,5 @@
 if(WITH_DIPRO)
-  foreach(SCRIPT ctp_dipro)
+  foreach(SCRIPT xtp_dipro)
     configure_file(${SCRIPT}.in ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.out @ONLY)
     add_custom_command(OUTPUT ${SCRIPT} DEPENDS ${SCRIPT})
     add_custom_target(${SCRIPT} ALL COMMAND ${CMAKE_COMMAND}
@@ -13,7 +13,7 @@ if(WITH_DIPRO)
   endforeach(SCRIPT)
 endif(WITH_DIPRO)
 
-foreach(SCRIPT ctp_testsuite ctp_update ctp_update_exciton ctp_basisset)
+foreach(SCRIPT xtp_testsuite xtp_update xtp_update_exciton xtp_basisset)
   configure_file(${SCRIPT}.in ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.out @ONLY)
   add_custom_command(OUTPUT ${SCRIPT} DEPENDS ${SCRIPT})
   add_custom_target(${SCRIPT} ALL COMMAND ${CMAKE_COMMAND}

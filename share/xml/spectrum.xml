@@ -1,6 +1,6 @@
 <options>
 
-<!-- ctp_tools -e coupling options.xml -->
+<!-- xtp_tools -e coupling options.xml -->
 <spectrum>
 
     <input>system.orb</input>

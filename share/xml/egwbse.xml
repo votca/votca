@@ -1,6 +1,6 @@
 <options>
 
-<!-- ctp_run -e gwbse -f state.db -o options.xml -->
+<!-- xtp_run -e gwbse -f state.db -o options.xml -->
 <egwbse help="An implementation of GW-BSE." label="calc:gwbse">
 
 	<job help="Job options">

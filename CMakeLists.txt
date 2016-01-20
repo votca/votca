@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.6)
-project(votca-ctp)
+project(votca-xtp)
 
 set(PROJECT_VERSION "1.3-dev")
 set(PROJECT_CONTACT "bugs@votca.org")
@@ -50,7 +50,7 @@ if (NOT DEFINED DATA)
 endif(NOT DEFINED DATA)
 #option(WITH_DIPRO "Build mergeorbitals and DIPRO, which use fortran" ON)
 
-#for votca_ctp_config.h
+#for votca_xtp_config.h
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 ########################################################################
@@ -99,11 +99,11 @@ if (WITH_LINALG)
 
   if (EIGEN_FOUND) 
     message("-- EIGEN found (not used at the moment)")
-    set(EIGEN TRUE) #used in votca_ctp_config.h
+    set(EIGEN TRUE) #used in votca_xtp_config.h
     include_directories(${EIGEN_INCLUDE_DIRS})
   else()
     message("-- EIGEN not found")
-    set(EIGEN FALSE) #used in votca_ctp_config.h
+    set(EIGEN FALSE) #used in votca_xtp_config.h
   endif()
 
   set(MKL FALSE)
@@ -115,12 +115,12 @@ if (WITH_LINALG)
 
   if (MKL_FOUND AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
     message("-- MKL found, overloading uBLAS prod()")
-    set(MKL TRUE) #used in votca_ctp_config.h
+    set(MKL TRUE) #used in votca_xtp_config.h
   elseif(GSL_FOUND)
     message("-- GSL found, overloading uBLAS prod()")
     include_directories(${GSL_INCLUDE_DIRS})
     set(GSL_PKG "gsl")
-    set(GSL TRUE) #used in votca_ctp_config.h
+    set(GSL TRUE) #used in votca_xtp_config.h
   endif()
 
 endif(WITH_LINALG)
@@ -160,9 +160,9 @@ endforeach(FUNC)
 ######################################
 # Include the following subdirectory # 
 ######################################
-add_subdirectory(include/votca/ctp)
+add_subdirectory(include/votca/xtp)
 add_subdirectory(scripts)
-add_subdirectory(src/libctp)
+add_subdirectory(src/libxtp)
 add_subdirectory(src/tools)
 #add_subdirectory(src/dipro)
 #add_subdirectory(share/scripts/dipro) 

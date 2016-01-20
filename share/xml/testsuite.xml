@@ -1,10 +1,10 @@
 <suite>
 	<executables>
-		<executable> <key>ctp_map</key>   <value>ctp_map</value>        </executable>
-		<executable> <key>ctp_run</key>   <value>ctp_run</value>   		</executable>
-		<executable> <key>ctp_job</key>   <value>ctp_parallel</value>	</executable>
-		<executable> <key>ctp_app</key>   <value>ctp_tools</value>      </executable>
-		<executable> <key>ctp_state</key> <value>ctp_dump</value>       </executable>
+		<executable> <key>xtp_map</key>   <value>xtp_map</value>        </executable>
+		<executable> <key>xtp_run</key>   <value>xtp_run</value>   		</executable>
+		<executable> <key>xtp_job</key>   <value>xtp_parallel</value>	</executable>
+		<executable> <key>xtp_app</key>   <value>xtp_tools</value>      </executable>
+		<executable> <key>xtp_state</key> <value>xtp_dump</value>       </executable>
 		<executable> <key>kmc_run</key>   <value>kmc_run</value>        </executable>
 	</executables>
 	<inputfiles>		
@@ -17,9 +17,9 @@
 	<test>
 		<name>map</name>
 		<description>Maps an MD topology onto a combined MD/QM topology</description>
-		<execute>{ctp_map} -c {gro} -t {tpr} -s {xml} -f {sql}</execute> 
+		<execute>{xtp_map} -c {gro} -t {tpr} -s {xml} -f {sql}</execute> 
 		<requires></requires>
-		<verify>{ctp_state} -f {sql} -e trajectory2pdb</verify>
+		<verify>{xtp_state} -f {sql} -e trajectory2pdb</verify>
 		<output>
 			extract.trajectory_md.pdb
 			extract.trajectory_qm.pdb
@@ -28,7 +28,7 @@
 	<test>
 		<name>log2mps</name>
 		<description>Extracts charges from a QM log-file and exports them in mps format</description>
-		<execute>{ctp_app} -e {name} -o {name}.xml</execute>
+		<execute>{xtp_app} -e {name} -o {name}.xml</execute>
 		<requires></requires>
 		<verify></verify>
 		<output>input.mps</output>
@@ -36,7 +36,7 @@
 	<test>
 		<name>molpol</name>
 		<description>Calculates (and optimizes) the molecular polarizability tensor</description>
-		<execute>{ctp_app} -e {name} -o {name}.xml</execute>
+		<execute>{xtp_app} -e {name} -o {name}.xml</execute>
 		<requires></requires>
 		<verify></verify>
 		<output>output.mps output.xml</output>
@@ -44,7 +44,7 @@
 	<test>
 		<name>coupling</name>
 		<description>Calculates electronic couplings using projection</description>
-		<execute>{ctp_app} -e {name} -o {name}.xml</execute>
+		<execute>{xtp_app} -e {name} -o {name}.xml</execute>
 		<requires></requires>
 		<verify></verify>
 		<output>coupling.out.xml</output>
@@ -52,55 +52,55 @@
 	<test>
 		<name>einternal</name>
 		<description>Loads vacuum IPs/EAs and reorganization energies</description>
-		<execute>{ctp_run} -e {name} -o {name}.xml -f {sql}</execute> 
+		<execute>{xtp_run} -e {name} -o {name}.xml -f {sql}</execute> 
 		<requires>map</requires>
-		<verify>{ctp_state} -f {sql} -e energy2xml</verify>
+		<verify>{xtp_state} -f {sql} -e energy2xml</verify>
 		<output>extract.energy.xml</output>
 	</test>
 	<test>
 		<name>zmultipole</name>
 		<description>Computes electrostatic and induction contributions</description>
-		<execute>{ctp_run} -e {name} -o {name}.xml -f {sql} -t {nthreads}</execute> 
+		<execute>{xtp_run} -e {name} -o {name}.xml -f {sql} -t {nthreads}</execute> 
 		<requires>einternal</requires>
-		<verify>{ctp_state} -f {sql} -e energy2xml</verify>
+		<verify>{xtp_state} -f {sql} -e energy2xml</verify>
 		<output>extract.energy.xml</output>
 	</test>
 	<test>
 		<name>emultipole</name>
 		<description>Computes electrostatic and induction contributions</description>
-		<execute>{ctp_run} -e {name} -o {name}.xml -f {sql} -t {nthreads}</execute> 
+		<execute>{xtp_run} -e {name} -o {name}.xml -f {sql} -t {nthreads}</execute> 
 		<requires>einternal</requires>
-		<verify>{ctp_state} -f {sql} -e energy2xml</verify>
+		<verify>{xtp_state} -f {sql} -e energy2xml</verify>
 		<output>extract.energy.xml</output>
 	</test>
 	<test>
 		<name>neighborlist</name>
 		<description>Generates the neighbor-list for state hopping</description>
-		<execute>{ctp_run} -e {name} -o {name}.xml -f {sql}</execute> 
+		<execute>{xtp_run} -e {name} -o {name}.xml -f {sql}</execute> 
 		<requires>map</requires>
-		<verify>{ctp_state} -f {sql} -e pairs2xml</verify>
+		<verify>{xtp_state} -f {sql} -e pairs2xml</verify>
 		<output>extract.pairs.xml</output>
 	</test>
 	<test>
 		<name>eoutersphere</name>
 		<description>Calculates outer-sphere reorganization energies</description>
-		<execute>{ctp_run} -e {name} -o {name}.xml -f {sql} -t {nthreads}</execute> 
+		<execute>{xtp_run} -e {name} -o {name}.xml -f {sql} -t {nthreads}</execute> 
 		<requires>neighborlist</requires>
-		<verify>{ctp_state} -f {sql} -e pairs2xml</verify>
+		<verify>{xtp_state} -f {sql} -e pairs2xml</verify>
 		<output>extract.pairs.xml</output>
 	</test>
 	<test>
 		<name>izindo</name>
 		<description>Calculates semi-empirical transfer integrals for charge hopping</description>
-		<execute>{ctp_run} -e {name} -o {name}.xml -f {sql} -t {nthreads}</execute> 
+		<execute>{xtp_run} -e {name} -o {name}.xml -f {sql} -t {nthreads}</execute> 
 		<requires>neighborlist</requires>
-		<verify>{ctp_state} -f {sql} -e integrals2xml</verify>
+		<verify>{xtp_state} -f {sql} -e integrals2xml</verify>
 		<output>extract.integrals.xml</output>
 	</test>
 	<test>
 		<name>profile</name>
 		<description>Calculates density and energy profiles along a specified direction</description>
-		<execute>{ctp_run} -e {name} -o {name}.xml -f {sql}</execute> 
+		<execute>{xtp_run} -e {name} -o {name}.xml -f {sql}</execute> 
 		<requires>einternal emultipole</requires>
 		<verify></verify>
 		<output>
@@ -110,7 +110,7 @@
 	<test>
 		<name>eanalyze</name>
 		<description>Calculates site-energy histograms and spatial correlations</description>
-		<execute>{ctp_run} -e {name} -o {name}.xml -f {sql}</execute> 
+		<execute>{xtp_run} -e {name} -o {name}.xml -f {sql}</execute> 
 		<requires>emultipole neighborlist</requires>
 		<verify></verify>
 		<output>
@@ -122,7 +122,7 @@
 	<test>
 		<name>ianalyze</name>
 		<description>Calculates transfer-integral histograms</description>
-		<execute>{ctp_run} -e {name} -o {name}.xml -f {sql}</execute> 
+		<execute>{xtp_run} -e {name} -o {name}.xml -f {sql}</execute> 
 		<requires>izindo</requires>
 		<verify></verify>
 		<output>
@@ -132,9 +132,9 @@
 	<test>
 		<name>rates</name>
 		<description>Evaluates charge transfer rates for molecular pairs</description>
-		<execute>{ctp_run} -e {name} -o {name}.xml -f {sql}</execute> 
+		<execute>{xtp_run} -e {name} -o {name}.xml -f {sql}</execute> 
 		<requires>einternal emultipole izindo eoutersphere</requires>
-		<verify>{ctp_state} -f {sql} -e rates2xml</verify>
+		<verify>{xtp_state} -f {sql} -e rates2xml</verify>
 		<output>extract.rates.xml</output>
 	</test>
 	<test>
@@ -142,7 +142,7 @@
 		<description>Simulates the drift-diffusion of a single carrier</description>
 		<execute>{kmc_run} -e {name} -o {name}.xml -f {sql}</execute>
 		<requires>rates</requires>
-		<verify>{ctp_state} -f {sql} -e occupations2xml</verify>
+		<verify>{xtp_state} -f {sql} -e occupations2xml</verify>
 		<output>extract.occupations.xml</output>
 	</test>
 	<test>
@@ -156,7 +156,7 @@
 	<test>
 		<name>jobwriter</name>
 		<description>Generates input files required for job-based calculators</description>
-		<execute>{ctp_run} -e {name} -o {name}.xml -f {sql}</execute> 
+		<execute>{xtp_run} -e {name} -o {name}.xml -f {sql}</execute> 
 		<requires>neighborlist</requires>
 		<verify></verify>
 		<output>
@@ -166,7 +166,7 @@
 	<test>
 		<name>xqmultipole</name>
 		<description>Evaluates the configuration energy of an MM1-MM2-embedded core shell</description>
-		<execute>{ctp_job} -e {name} -o {name}.xml -f {sql}</execute> 
+		<execute>{xtp_job} -e {name} -o {name}.xml -f {sql}</execute> 
 		<requires>jobwriter</requires>
 		<verify></verify>
 		<output>
@@ -176,7 +176,7 @@
 	<test>
 		<name>edft</name>
 		<description>Runs first-principles packages and parces the output</description>
-		<execute>{ctp_job} -e {name} -o {name}.xml -f {sql}</execute> 
+		<execute>{xtp_job} -e {name} -o {name}.xml -f {sql}</execute> 
 		<requires>neighborlist</requires>
 		<verify></verify>
 		<output>
@@ -186,7 +186,7 @@
 	<test>
 		<name>idft</name>
 		<description>Evaluates electronic coupling elements</description>
-		<execute>{ctp_job} -e {name} -o {name}.xml -f {sql}</execute> 
+		<execute>{xtp_job} -e {name} -o {name}.xml -f {sql}</execute> 
 		<requires>edft</requires>
 		<verify></verify>
 		<output>
