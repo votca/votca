@@ -29,7 +29,7 @@
 
 namespace votca { namespace ctp {
     
-class QMTool : public Calculator
+class QMTool : public votca::tools::Calculator
 {
 public:
 
