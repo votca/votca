@@ -31,6 +31,7 @@ public:
 
    virtual string getPackageName() = 0;
 
+
    virtual void Initialize( Property *options ) = 0;
    
    /// writes a coordinate file WITHOUT taking into account PBCs
@@ -62,6 +63,8 @@ public:
    bool GuessRequested( ) { return _write_guess; }
    
    bool ECPRequested( ) { return _write_pseudopotentials; }
+   
+   bool VXCRequested() { return _output_Vxc; }
 
    void setCharge(const int charge) { _charge = charge; }
    
@@ -70,6 +73,9 @@ public:
    void setThreads(const int threads) { _threads = threads; }
    
    void doGetCharges(bool do_get_charges) { _get_charges = do_get_charges; }
+   
+   string getBasisSetName(){return _basisset_name;}
+   string getExecutable() {return _executable;};
    
 protected:
 
@@ -87,6 +93,7 @@ protected:
     
     string                              _run_dir;
         
+    string                              _basisset_name;
     list< string >                      _cleanup_list;
     
     bool                                _get_orbitals;
@@ -98,6 +105,8 @@ protected:
     bool                                _write_charges;
     bool                                _write_basis_set;
     bool                                _write_pseudopotentials;
+    
+    bool                                _output_Vxc;
     
     Logger*                             _pLog;
        

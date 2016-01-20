@@ -50,23 +50,31 @@ public:
     void             calcPos();
     void             TranslateBy(const vec &shift);
 
-    void             setHasState(bool yesno, int e_h);
-    bool             hasState(int e_h);
+    void             setHasState(bool yesno, int state);
+    bool             hasState(int state);
 
-    const double    &getOcc(int e_h);
-    void             setOcc(double occ, int e_h);
+    double           getOcc(int e_h_s_t);
+    void             setOcc(double occ, int e_h_s_t);
 
+    // state: -1 electron +1 hole +2 singlet +3 triplet
+    
     void             setU_cC_nN(double dU, int state);
     void             setU_nC_nN(double dU, int state);
     void             setU_cN_cC(double dU, int state);
+    void             setU_xX_nN(double dU, int state);
+    void             setU_nX_nN(double dU, int state);
+    void             setU_xN_xX(double dU, int state);
     const double    &getU_cC_nN(int state);
     const double    &getU_nC_nN(int state);
     const double    &getU_cN_cC(int state);
+    const double    &getU_xX_nN(int state);
+    const double    &getU_nX_nN(int state);
+    const double    &getU_xN_xX(int state);
     double           getSiteEnergy(int state);
 
-    double           getEMpoles(int e_h);
-    void             setEMpoles(int e_h, double energy);
-    bool             hasChrgState(int e_h) { return _hasChrgState[e_h+1]; }
+    double           getEMpoles(int state);
+    void             setEMpoles(int state, double energy);
+    bool             hasChrgState(int state) { return _hasChrgState[state+1]; }
     void             setChrgStates(vector<bool> yesno) { _hasChrgState = yesno;}
 
     inline void      setTopology(Topology *container) { _top = container; }
@@ -124,11 +132,35 @@ private:
 
     bool   _has_e;       // from ::EInternal     input     DEFAULT 0
     bool   _has_h;
+    
+    
+    bool   _occ_s;      //state 3 = triplet
+    bool   _occ_t;      // t:triplet s:singlet
+    bool   _has_s;      // state 2 =. singlet
+    
+    
+    bool   _has_t;      //Exciton Properties               DEFAULT 0
+   
+   
+    
+    double _U_xX_nN_s;
+    double _U_xX_nN_t;
+    
+    double _U_nX_nN_s;   
+    double _U_nX_nN_t;
+
+    double _U_xN_xX_s;   
+    double _U_xN_xX_t;
+    
+    //double _ePolar_s;
+    //double _ePolar_t;
 
 
     vector< double > _eMpoles;
     //   +1(=> h)   e.static + pol. energy E(+1) - E(0)
     //   -1(=> e)   e.static + pol. energy E(-1) - E(0)
+    //   +2(=> s)   e.static + pol. energy E(+2) - E(0)
+    //   +3(=> t)   e.static + pol. energy E(+3) - E(0)
     vector<bool> _hasChrgState;
 
     map<int, vec> _intCoords;

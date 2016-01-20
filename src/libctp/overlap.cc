@@ -152,12 +152,13 @@ bool Overlap::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
 
      LOG(logDEBUG,*_pLog) << "Constructing direct product AxB [" 
             << _psi_AxB.size1() << "x" 
-            << _psi_AxB.size2() << "]";    
+            << _psi_AxB.size2() << "]" ;    
     
     ub::project( _psi_AxB, ub::range (0, _levelsA ), ub::range ( _basisA, _basisA +_basisB ) ) = zeroB;
     ub::project( _psi_AxB, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( 0, _basisA ) ) = zeroA;    
     ub::project( _psi_AxB, ub::range (0, _levelsA ), ub::range ( 0, _basisA ) ) = *_orbitalsA->getOrbitals();
     ub::project( _psi_AxB, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( _basisA, _basisA + _basisB ) ) = *_orbitalsB->getOrbitals(); 
+
     LOG(logDEBUG,*_pLog)  << " (" << t.elapsed() - _st << "s) " << flush; _st = t.elapsed();
 
     

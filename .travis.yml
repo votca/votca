@@ -44,7 +44,7 @@ before_script:
   - ln -s /usr/bin/ccache "$HOME/bin/clang++"
   - ln -s /usr/bin/ccache "$HOME/bin/clang"
 # download newer cmake for gmx
-  - wget -qO- http://www.cmake.org/files/v${CMAKE_VERSION:0:3}/cmake-${CMAKE_VERSION}.tar.gz | tar -xvz
+  - wget --no-check-certificate -qO- http://www.cmake.org/files/v${CMAKE_VERSION:0:3}/cmake-${CMAKE_VERSION}.tar.gz | tar -xvz
   - ln -vs $PWD/cmake-${CMAKE_VERSION}/bin/cmake "$HOME/bin/cmake"
 
 script:

@@ -23,6 +23,7 @@
 #include <votca/ctp/qmcalculator.h>
 #include <sys/stat.h>
 #include <votca/ctp/logger.h>
+#include <votca/tools/random2.h>
 
 namespace votca { namespace ctp {
 
@@ -38,16 +39,21 @@ public:
     void        List2PairsTI(Topology *top, string &ti_file);
     void        FromIDFT(Topology *top, string &_idft_jobs_file);
     void        FromIDFTWithSuperExchange(Topology *top, string &_idft_jobs_file);
+    void        StochasticTI(Topology *top, string &_probabilityfile, int state);
+    double      StochasticMakeJ(double thisdistance, vector<double> distances, vector<double> means, vector<double> sigmas, votca::tools::Random2 *RandomVariable);
 
 private:
 
     bool        _importFromDirs;
     bool        _importFromList;
     bool        _importFromIDFT;
+    bool        _stochastic;
 
     string      _TI_tag;
     string      _TI_file;
     string      _idft_jobs_file;
+    string      _probabilityfile_h;
+    string      _probabilityfile_e;
 };
 
 
@@ -56,6 +62,7 @@ void IImport::Initialize(Property *options) {
     _importFromDirs = false;
     _importFromList = false;
     _importFromIDFT = false;
+    _stochastic     = false;
 
      // update options with the VOTCASHARE defaults   
     UpdateWithDefaults( options );
@@ -83,6 +90,24 @@ void IImport::Initialize(Property *options) {
         cout << endl << "... ... Using IDFT jobs file '" << _TI_file << "'" << flush;
     }
 
+    if (options->exists(key + ".probabilityfile_h")) {
+        _probabilityfile_h = options->get(key+".probabilityfile_h").as< string >();
+        _stochastic = true;
+    }
+    else{
+        _probabilityfile_h = "";
+    }
+    if (options->exists(key + ".probabilityfile_e")) {
+        _probabilityfile_e = options->get(key+".probabilityfile_e").as< string >();
+        _stochastic = true;
+    }
+    else{
+        _probabilityfile_e = "";
+    }
+     if (_stochastic == true) {
+        cout << endl << "... ... Creating stochastic transfer integrals based on probability file(s)." << flush;
+    }
+
     
 }
 
@@ -93,6 +118,12 @@ bool IImport::EvaluateFrame(Topology *top) {
   // Import from file
   if (_importFromList) {
       this->List2PairsTI(top, _TI_file);
+  }
+
+  // Create stochastic transfer integrals
+  else if (_stochastic) {
+      if(_probabilityfile_h != ""){this->StochasticTI(top, _probabilityfile_h, 1);}
+      if(_probabilityfile_e != ""){this->StochasticTI(top, _probabilityfile_e, -1);}
   }
 
   // Import from DiPro folders
@@ -192,6 +223,126 @@ void IImport::List2PairsTI(Topology *top, string &ti_file) {
     cout << endl
          << "... ... Set transfer integrals for " << pair_count << " pairs. "
          << flush;
+}
+
+double IImport::StochasticMakeJ(double thisdistance, vector<double> distances, vector<double> means, vector<double> sigmas, votca::tools::Random2 *RandomVariable){
+    double offset = 0.5*(distances[distances.size()-1] - distances[0])/distances.size();
+    thisdistance -= offset;
+    double MINR = distances[0];
+    double MAXR = distances[distances.size()-1];
+    double thismean=0.0;
+    double thissigma=0.0;
+    if(thisdistance <= 0){
+        return 0;
+    }
+    else if(thisdistance <= MINR){
+        thismean  = means[0];
+        thissigma = sigmas[0];
+    }
+    else if(thisdistance > MAXR){
+        return 0;
+    }
+    else{
+        for(unsigned i = 0; i<distances.size()-2; i++){
+            if(distances[i] < thisdistance && thisdistance <= distances[i+1]){
+                // linear interpolations
+                thismean  = (means[i+1]-means[i])/(distances[i+1]-distances[i])*(thisdistance-distances[i])+means[i];
+                thissigma = (sigmas[i+1]-sigmas[i])/(distances[i+1]-distances[i])*(thisdistance-distances[i])+sigmas[i];
+                break;
+            }
+        }
+    }
+    if(thismean && thissigma){
+        double log10J2 = thismean+RandomVariable->rand_gaussian(thissigma);
+        double J2;
+        J2 = pow(10,log10J2);
+        return J2;
+    }
+    else{
+        cout << "WARNING: skipping uparametrized distance " << thisdistance << " nm." << endl;
+        return 0;
+    }
+}
+
+
+void IImport::StochasticTI(Topology *top, string &filename, int state) {
+    if(state == 1){
+        cout << endl << "... ... calculating stochastic hole TI." << endl;
+    }
+    else if(state == -1){
+        cout << endl << "... ... calculating stochastic electron TI." << endl;
+    }
+    // read in probability function
+    cout << "... ... provided means and sigmas (for log10(J^2)):" << endl;
+    vector<double> distances;
+    vector<double> means;
+    vector<double> sigmas;
+    
+    std::string line;
+    std::ifstream intt;
+    intt.open(filename.c_str());
+    int linenumber = 0;
+    if (intt.is_open() ) {
+        while ( intt.good() ) {
+
+            std::getline(intt, line);
+            if (linenumber > 1){
+                vector<string> split;
+                Tokenizer toker(line, " \t");
+                toker.ToVector(split);
+
+                if ( !split.size()      ||
+                      split[0] == "!"   ||
+                      split[0].substr(0,1) == "!" ) { continue; }
+             
+                double distance          = boost::lexical_cast<double>(split[0]);
+                double mean              = boost::lexical_cast<double>(split[1]);
+                double sigma             = boost::lexical_cast<double>(split[2]);
+                cout << "        " << distance << " nm:   " << mean << " +/- " << sigma << endl;
+                distances.push_back(distance);
+                means.push_back(mean);
+                sigmas.push_back(sigma);
+            }
+            linenumber++;
+        }
+    }
+    else { cout << endl << "ERROR: No such file " << filename << endl;
+           throw std::runtime_error("Supply input probability file."); } 
+    
+    
+     // Initialise random number generator
+    if(votca::tools::globals::verbose) { cout << endl << "Initialising random number generator" << endl; }
+    srand(12345); 
+    votca::tools::Random2 *RandomVariable = new votca::tools::Random2();
+    RandomVariable->init(rand(), rand(), rand(), rand());
+
+    
+    // loop over neighbor list
+    QMNBList &nblist = top->NBList();
+    QMNBList::iterator nit;
+    
+    for (nit = nblist.begin(); nit != nblist.end(); ++nit) {
+        Segment *seg1 = (*nit)->Seg1();
+        Segment *seg2 = (*nit)->Seg2();
+        double thisdistance = abs((*nit)->getR());
+
+        double J2 = StochasticMakeJ(thisdistance, distances, means, sigmas, RandomVariable);
+
+        QMPair *qmpair = nblist.FindPair(seg1,seg2);
+        if (qmpair == NULL) {
+            cout << endl
+                 << "... ... ERROR: " << line
+                 << flush;
+            cout << endl
+                 << "... ... Line is not compatible with neighborlist. "
+                 << flush;
+            throw std::runtime_error("Forgot to run -e neighborlist?");
+        }   
+        
+        qmpair->setJeff2(J2, state);
+        qmpair->setIsPathCarrier(1, state);
+        
+    }
 }
 
 

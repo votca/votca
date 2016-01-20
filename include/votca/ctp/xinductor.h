@@ -63,7 +63,7 @@ public:
             
     XInductor(Topology *top, Property *opt, string sfx, int nst, bool mav);
             
-   ~XInductor() {};
+   ~XInductor();
    
    
     // +++++++++++++++++++++++++++ //
@@ -467,6 +467,8 @@ public:
     // +++++++++++++++++++++++++++ //
     
     void        Evaluate(XJob *job);
+    void        Configure(XJob *job);
+    void        SetupThreads(XJob *job);
     int         Induce(XJob *job);
     double      Energy(XJob *job);
     double      EnergyStatic(XJob *job);    

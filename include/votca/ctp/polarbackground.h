@@ -3,6 +3,7 @@
 
 
 #include <votca/ctp/ewaldactor.h>
+#include <votca/ctp/xinteractor.h>
 #include <votca/ctp/logger.h>
 #include <votca/ctp/threadforce.h>
 
@@ -14,12 +15,17 @@ class PolarBackground
 {
 public:
 
-    PolarBackground() : /*_top(NULL), _ptop(NULL),*/ _log(NULL), _n_threads(1) {};
+    PolarBackground() : _log(NULL),
+            _n_threads(1),
+            _top(NULL),
+            _ptop(NULL) {};
     PolarBackground(Topology *, PolarTop *, Property *, Logger *);
    ~PolarBackground();
    
     void Threaded(int n_threads) { _n_threads = n_threads; }
     void Polarize(int n_threads);
+    void Checkpoint(int iter, bool converged);
+    bool HasConverged() { return _converged; }
     
     void FX_RealSpace(string mode, bool do_setup_nbs);    
     void FX_ReciprocalSpace(string S_mode, string F_mode, bool gen_kvecs);    
@@ -39,6 +45,7 @@ public:
             _do_setup_nbs = do_setup_nbs;
             _not_converged_count = 0;
             _ewdactor = EwdInteractor(_master->_alpha, _master->_polar_aDamp);
+            _actor = XInteractor(NULL, _master->_polar_aDamp);
 
             RegisterStart("FP_MODE", &RThread::FP_FieldCalc);
             RegisterStart("FU_MODE", &RThread::FU_FieldCalc);            
@@ -68,7 +75,8 @@ public:
     private:
         
         PolarBackground *_master;
-        EwdInteractor _ewdactor;        
+        EwdInteractor _ewdactor;      // Long-range tensors (default)
+        XInteractor _actor;           // Cut-off tensors (option)
         // Shared thread data        
         vector<PolarSeg*> _full_bg_P;        
         // Atomized thread data
@@ -147,19 +155,31 @@ public:
     
 private:
 
-    EwdInteractor _ewdactor;
+    EwdInteractor _ewdactor;                  // Long-range scheme (default)
+    XInteractor _actor;                       // Cut-off scheme (option)
+    Logger *_log;
+    int _n_threads;
 
+    // CHECKPOINTING & RESTART OPTIONS
+    bool _do_checkpointing;
+    bool _do_restart;
+    int _restart_from_iter;
+    int _max_iter;
+    bool _converged;
+    
     // PERIODIC BOUNDARY
     Topology *_top;
     string _shape;
+    bool _do_use_cutoff;
 
     // POLAR SEGMENTS
     // Part I - Ewald
-    //PolarTop *_ptop;
-    vector< PolarSeg* > _bg_P;      // Period. density = _bg_N v _fg_N
-
-    Logger *_log;
-    int _n_threads;
+    PolarTop *_ptop;
+    vector< PolarSeg* > _bg_P;               // Period. density = _bg_N v _fg_N
+    bool _do_compensate_net_dipole;          
+    string _dipole_compensation_type;        // "system" or "segment"
+    string _dipole_compensation_direction;   // "xyz" or "z"
+    
     // CONVERGENCE
     // Part I - Ewald
     double _alpha;                  // _a = 1/(sqrt(2)*sigma)
@@ -168,7 +188,7 @@ private:
     double _K_co;                   // k-space c/o
     double _R_co;                   // r-space c/o
     double _crit_dE;                // Energy convergence criterion [eV]
-   // bool   _converged_R;            // Did R-space sum converge?
+    //bool   _converged_R;            // Did R-space sum converge?
     //bool   _converged_K;            // Did K-space sum converge?
     //bool   _field_converged_R;
     bool   _field_converged_K;

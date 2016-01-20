@@ -25,14 +25,14 @@ character*20 out(6)
 integer nseg
 
 real*8 a,b,c,d,e
-real*8, allocatable :: molb(:), merged_orbitals(:,:), merged_energies(:)
+real*8, allocatable :: molb(:), merged_orbitals(:,:), merged_energies(:), merged_orbitals_ranked(:,:)
 
 integer n_basis_a, n_lines_a, n_rest_a
 integer n_basis_b, n_lines_b, n_rest_b
 integer n_orbitals_a, n_orbitals_b, n_basis, n_orbitals
 integer, allocatable :: rank(:)
 integer i,j, cnt
-CHARACTER*100 LINEARG  ,fileA, pathname, fileB, fileC, buf
+CHARACTER*100 LINEARG  ,fileA, pathname, fileB, fileC, buf, fileD, fileE
 CHARACTER*2 CP
 
 ! prepare NULL
@@ -57,6 +57,8 @@ CP=trim(CP)
 fileA=trim(trim(pathname)//'/molA/fort.7')
 fileB=trim(trim(pathname)//'/molB/fort.7')
 fileC=trim(trim(pathname)//'/dim/dimer.com')
+fileD=trim(trim(pathname)//'/dim/dimer.fchkin')
+fileE=trim(trim(pathname)//'/dim/fort.22')
 
 n_orbitals = n_orbitals_a + n_orbitals_b
 if ( CP .eq. "CP") then
@@ -175,14 +177,31 @@ select case(CP)
 
 
       CALL  mrgrnk (merged_energies, rank)                  
-
+allocate(merged_orbitals_ranked(n_orbitals,n_basis))
       do i = 1, n_orbitals
          write(9,'(I5,A,D15.8)') i," Alpha MO OE=", merged_energies(rank(i))
          write(9,FMT) merged_orbitals(rank(i),:)
+		merged_orbitals_ranked(i,:) = merged_orbitals(rank(i),:)
       end do
       
       close(9)
 
+
+
+
+
+	  open(9,file=fileD,status='old',position='append')
+        write(9,'(5E16.8)') merged_orbitals_ranked
+	close(9)
+
+	open(9,file=fileE,status='replace')
+	do i = 1, n_orbitals
+	write(9,*) i,  merged_energies(rank(i))
+	do j = 1, n_basis
+		write(9,*) i,j,merged_orbitals_ranked(i,j)
+    end do
+end do
+	close(9)
    end select
 
 

@@ -51,6 +51,7 @@ class APolarSite
     friend class QMultipole;
     friend class XInteractor;
     friend class QMMIter;
+    friend class QMAPEIter;
     friend class Ewald3D3D;
     friend class PEwald3D3D;
     friend class EwdInteractor;
@@ -62,14 +63,14 @@ public:
             : _id(id),              _name(name),         _isVirtual(false), 
               _locX(vec(1,0,0)),    _locY(vec(0,1,0)),   _locZ(vec(0,0,1)), 
               _top(0),              _seg(0),             _frag(0),
-              _resolution(atomistic)
+              _resolution(atomistic),PhiP(0.0),          PhiU(0.0)
             { _Qs.resize(3); _Ps.resize(3); this->Depolarize();
               for (int s = -1; s < 2; ++s) _Ps[s+1].ZeroMatrix(); }
     APolarSite()
             : _id(-1),              _name(""),          _isVirtual(false),  
               _locX(vec(1,0,0)),    _locY(vec(0,1,0)),  _locZ(vec(0,0,1)),  
               _top(0),              _seg(0),            _frag(0),
-              _resolution(atomistic)
+              _resolution(atomistic),PhiP(0.0),          PhiU(0.0)
             { _Qs.resize(3); _Ps.resize(3); this->Depolarize();
               for (int s = -1; s < 2; ++s) _Ps[s+1].ZeroMatrix(); }
     APolarSite(APolarSite *templ, bool do_depolarize);
@@ -108,6 +109,7 @@ public:
     void            setQs(vector<double> Qs, int state) { while(Qs.size() < 9) Qs.push_back(0.0); _Qs[state+1] = Qs; }
     void            setQ00(double q, int s) { Q00 = q; if (_Qs[s+1].size() < 1) _Qs[s+1].resize(1); _Qs[s+1][0] = q; }
     double         &getQ00() { return Q00; }
+    void            setQ1(const vec &dpl) { Q1x=dpl.getX(); Q1y=dpl.getY(); Q1z=dpl.getZ(); }
     vec             getQ1() { return vec(Q1x, Q1y, Q1z); }  // Only IOP
     // POLARIZABILITIES
     bool            IsPolarizable();
@@ -122,6 +124,12 @@ public:
     vec             getFieldU() { return vec(FUx,FUy,FUz); } // Only IOP
     vec             getU1() { return vec(U1x,U1y,U1z); }     // Only IOP
     void            setU1(vec &u1) { U1x = u1.getX(); U1y = u1.getY(); U1z = u1.getZ(); }
+    // POTENTIALS
+    double          getPhiP() { return PhiP; }
+    double          getPhiU() { return PhiU; }
+    double          getPhi() { return PhiP+PhiU; }
+    void          setPhi(double _PhiU, double _PhiP) {PhiU=_PhiU;PhiP=_PhiP;}
+    void            ResetPhi(bool p, bool u) { if (p) PhiP = 0.0; if (u) PhiU = 0.0; }
     // CHARGE -1 0 +1 & DELTA
     void            Charge(int state);
     void            ChargeDelta(int state1, int state2);
@@ -180,6 +188,8 @@ public:
         arch & U1x; arch & U1y; arch & U1z;
         arch & FPx; arch & FPy; arch & FPz;
         arch & FUx; arch & FUy; arch & FUz;
+        
+        arch & PhiP; arch & PhiU;
 
         // NOT ARCHIVED
         // Topology *_top;
@@ -204,7 +214,7 @@ private:
     Topology *_top;
     Segment  *_seg;
     Fragment *_frag;
-    res_t   _resolution;
+    
 
     vector < vector<double> > _Qs;
     int     _rank;
@@ -233,6 +243,9 @@ private:
     double FPx, FPy, FPz;                   // Electric field (due to permanent)
     double FUx, FUy, FUz;                   // Electric field (due to induced)
     vector< vec > U1_Hist;                  // Ind. u history
+    res_t   _resolution;
+    double PhiP;                            // Electric potential (due to perm.)
+    double PhiU;                            // Electric potential (due to indu.)
     
     // Required for SOR+Anderson
     //vector<vec> U1_i; // in

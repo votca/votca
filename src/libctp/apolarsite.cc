@@ -8,13 +8,13 @@ namespace votca { namespace ctp {
 
 
 APolarSite::APolarSite(APolarSite *templ, bool do_depolarize) 
-    : _id(templ->_id), _name(templ->_name), _isVirtual(templ->_isVirtual),        
-      _pos(templ->_pos),
+    : _id(templ->_id), _name(templ->_name), _isVirtual(templ->_isVirtual),   
+       _pos(templ->_pos),
         
       _locX(templ->_locX), _locY(templ->_locY), _locZ(templ->_locZ),
         
       _top(templ->_top), _seg(templ->_seg), _frag(templ->_frag),
-      _resolution(templ->_resolution),  
+        
       _Qs(templ->_Qs), _rank(templ->_rank), _Ps(templ->_Ps),
       Pxx(templ->Pxx), Pxy(templ->Pxy), Pxz(templ->Pxz), Pyy(templ->Pyy),
       Pyz(templ->Pyz), Pzz(templ->Pzz), pax(templ->pax), pay(templ->pay),
@@ -28,7 +28,9 @@ APolarSite::APolarSite(APolarSite *templ, bool do_depolarize)
 
       U1x(templ->U1x), U1y(templ->U1y), U1z(templ->U1z),
       FPx(templ->FPx), FPy(templ->FPy), FPz(templ->FPz),
-      FUx(templ->FUx), FUy(templ->FUy), FUz(templ->FUz) {
+      FUx(templ->FUx), FUy(templ->FUy), FUz(templ->FUz),
+
+     _resolution(templ->_resolution),PhiP(templ->PhiP), PhiU(templ->PhiU) {
     
     if (do_depolarize) this->Depolarize();
 }
@@ -305,7 +307,8 @@ double APolarSite::getProjP(vec &dir) {
 
 void APolarSite::Induce(double wSOR) {
     // SUCCESSIVE OVERRELAXATION
-    U1_Hist.push_back( vec(U1x,U1y,U1z) );
+    U1_Hist.push_back( vec(U1x,U1y,U1z) ); // Remember all previous moments
+    //U1_Hist[0] = vec(U1x,U1y,U1z);           // Remember previous moment
     U1x = (1 - wSOR) * U1x + wSOR * ( - Pxx * (FPx + FUx) - Pxy * (FPy + FUy) - Pxz * (FPz + FUz) );
     U1y = (1 - wSOR) * U1y + wSOR * ( - Pxy * (FPx + FUx) - Pyy * (FPy + FUy) - Pyz * (FPz + FUz) );
     U1z = (1 - wSOR) * U1z + wSOR * ( - Pxz * (FPx + FUx) - Pyz * (FPy + FUy) - Pzz * (FPz + FUz) );
@@ -464,18 +467,19 @@ void APolarSite::WritePdbLine(FILE *out, const string &tag) {
 
 
 void APolarSite::WriteXyzLine(FILE *out, vec &shift, string format) {
+/*
+    double int2ext = 1.0;
 
-    //double int2ext = 1.0;
+    
 
-    vec pos = _pos + shift;
-
-    /*if (format == "gaussian") {
+    if (format == "gaussian") {
         int2ext = 10.;
     }
     else {
         int2ext = 10.;
-    }*/
-
+    }
+*/
+    vec pos = _pos + shift;
     fprintf(out, "%-2s %+4.9f %+4.9f %+4.9f \n",
             _name.c_str(),
             pos.getX()*10, pos.getY()*10, pos.getZ()*10);
@@ -497,7 +501,7 @@ void APolarSite::WriteChkLine(FILE *out, vec &shift, bool split_dpl,
     }
 
     // Take care of unit conversion
-    double int2ext;
+    double int2ext=0;
 
     if (unit == "nanometer") {
         int2ext = 1.;
@@ -507,8 +511,6 @@ void APolarSite::WriteChkLine(FILE *out, vec &shift, bool split_dpl,
     }
     else if (unit == "bohr") {
         assert(false);
-    } else {
-        throw std::runtime_error( "Unit has to be nanometer, angstrom or bohr");
     }
 
     if (format == "xyz") {
@@ -681,7 +683,7 @@ void APolarSite::WriteXmlLine(std::ostream &out) {
     for (int state = -1; state < 2; ++state) {
         out << "<state>" << endl;
         out << state << endl;
-        for (unsigned int i = 0; i < _Qs[state+1].size(); ++i) {
+        for (unsigned i = 0; i < _Qs[state+1].size(); ++i) {
             out << _Qs[state+1][i] << " ";
         }
         out << endl;
@@ -818,7 +820,7 @@ vector<APolarSite*> APS_FROM_MPS(string filename, int state, QMThread *thread) {
                     pyy = 1e-3 * boost::lexical_cast<double>(split[4]);
                     pyz = 1e-3 * boost::lexical_cast<double>(split[5]);
                     pzz = 1e-3 * boost::lexical_cast<double>(split[6]);
-                    P1 = matrix(vec(pxx,pxy,pyy),
+                    P1 = matrix(vec(pxx,pxy,pxz),
                                 vec(pxy,pyy,pyz),
                                 vec(pxz,pyz,pzz));
                 }
@@ -846,7 +848,7 @@ vector<APolarSite*> APS_FROM_MPS(string filename, int state, QMThread *thread) {
                 if (lineRank == 0) {
                     Q0_total += boost::lexical_cast<double>(split[0]);
                 }
-                for (unsigned int i = 0; i < split.size(); i++) {
+                for (unsigned i = 0; i < split.size(); i++) {
                     double qXYZ = boost::lexical_cast<double>(split[i]);
                     // Convert e*(a_0)^k to e*(nm)^k where k = rank
                     double BOHR2NM = 0.0529189379;

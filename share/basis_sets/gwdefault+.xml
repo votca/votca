@@ -1,0 +1,117 @@
+<basis name="GWDEFAULT">
+
+	<element name="C"  >
+		<shell type="SPD" scale="1.0">
+			<constant decay="0.25">
+                <contractions type="S" factor="1.0"></contractions>
+                <contractions type="P" factor="1.0"></contractions>
+                <contractions type="D" factor="1.0"></contractions>
+			</constant>
+		</shell>
+		<shell type="SPD" scale="1.0">
+			<constant decay="0.9" >
+                <contractions type="S" factor="1.0"></contractions>
+                <contractions type="P" factor="1.0"></contractions>
+                <contractions type="D" factor="1.0"></contractions>
+			</constant>
+		</shell>
+		<shell type="SPD" scale="1.0">
+			<constant decay="3.0">
+                <contractions type="S" factor="1.0"></contractions>
+                <contractions type="P" factor="1.0"></contractions>
+                <contractions type="D" factor="1.0"></contractions>
+			</constant>
+		</shell>
+	</element>
+
+	<element name="O"  >
+		<shell type="SPD" scale="1.0">
+			<constant decay="0.25" >
+                <contractions type="S" factor="1.0"></contractions>
+                <contractions type="P" factor="1.0"></contractions>
+                <contractions type="D" factor="1.0"></contractions>
+			</constant>
+		</shell>
+		<shell type="SPD" scale="1.0">
+			<constant decay="0.9" >
+                <contractions type="S" factor="1.0"></contractions>
+                <contractions type="P" factor="1.0"></contractions>
+                <contractions type="D" factor="1.0"></contractions>
+			</constant>
+		</shell>
+		<shell type="SPD" scale="1.0">
+			<constant decay="3.0" >
+                <contractions type="S" factor="1.0"></contractions>
+                <contractions type="P" factor="1.0"></contractions>
+                <contractions type="D" factor="1.0"></contractions>
+			</constant>
+		</shell>
+	</element>
+
+	<element name="N" >
+		<shell type="SPD" scale="1.0">
+			<constant decay="0.2" >
+                <contractions type="S" factor="1.0"></contractions>
+                <contractions type="P" factor="1.0"></contractions>
+                <contractions type="D" factor="1.0"></contractions>
+			</constant>
+		</shell>
+		<shell type="SPD" scale="1.0">
+			<constant decay="0.671" >
+                <contractions type="S" factor="1.0"></contractions>
+                <contractions type="P" factor="1.0"></contractions>
+                <contractions type="D" factor="1.0"></contractions>
+			</constant>
+		</shell>
+		<shell type="SPD" scale="1.0">
+			<constant decay="3.0" >
+                <contractions type="S" factor="1.0"></contractions>
+                <contractions type="P" factor="1.0"></contractions>
+                <contractions type="D" factor="1.0"></contractions>
+			</constant>
+		</shell>
+	</element>
+
+
+	<element name="S" >
+		<shell type="SPD" scale="1.0">
+			<constant decay="0.2" >
+                <contractions type="S" factor="1.0"></contractions>
+                <contractions type="P" factor="1.0"></contractions>
+                <contractions type="D" factor="1.0"></contractions>
+			</constant>
+		</shell>
+		<shell type="SPD" scale="1.0">
+			<constant decay="0.671" >
+                <contractions type="S" factor="1.0"></contractions>
+                <contractions type="P" factor="1.0"></contractions>
+                <contractions type="D" factor="1.0"></contractions>
+			</constant>
+		</shell>
+		<shell type="SPD" scale="1.0">
+			<constant decay="3.0" >
+                <contractions type="S" factor="1.0"></contractions>
+                <contractions type="P" factor="1.0"></contractions>
+                <contractions type="D" factor="1.0"></contractions>
+			</constant>
+		</shell>
+	</element>
+
+	<element name="H" >
+		<shell type="SPD" scale="1.0">
+			<constant decay="0.4" >
+                <contractions type="S" factor="1.0"></contractions>
+                <contractions type="P" factor="1.0"></contractions>
+                <contractions type="D" factor="1.0"></contractions>
+			</constant>
+		</shell>
+		<shell type="SPD" scale="1.0">
+			<constant decay="1.5" >
+                <contractions type="S" factor="1.0"></contractions>
+                <contractions type="P" factor="1.0"></contractions>
+                <contractions type="D" factor="1.0"></contractions>
+			</constant>
+		</shell>
+	</element>
+
+</basis>

@@ -47,9 +47,20 @@ private:
     map<string, double> _seg_U_cC_nN_h;
     map<string, double> _seg_U_nC_nN_h;
     map<string, double> _seg_U_cN_cC_h;
+    
+    map<string, double> _seg_U_xX_nN_s;
+    map<string, double> _seg_U_nX_nN_s;
+    map<string, double> _seg_U_xN_xX_s;
+    
+    map<string, double> _seg_U_xX_nN_t;
+    map<string, double> _seg_U_nX_nN_t;
+    map<string, double> _seg_U_xN_xX_t;
+    
 
     map<string, bool>   _seg_has_e;
     map<string, bool>   _seg_has_h;
+    map<string, bool>   _seg_has_s;
+    map<string, bool>   _seg_has_t;
 
     map<string, bool>   _has_seg;
 
@@ -132,6 +143,8 @@ void EInternal::ParseEnergiesXML(Property *opt) {
             bool has_seg = true;
             bool has_e = false;
             bool has_h = false;
+            bool has_s = false;
+            bool has_t = false;
 
             double U_cC_nN_e = 0.0;
             double U_cC_nN_h = 0.0;
@@ -139,6 +152,14 @@ void EInternal::ParseEnergiesXML(Property *opt) {
             double U_nC_nN_h = 0.0;
             double U_cN_cC_e = 0.0;
             double U_cN_cC_h = 0.0;
+            
+            double U_xX_nN_s = 0.0;
+            double U_xX_nN_t = 0.0;
+            double U_nX_nN_s = 0.0;
+            double U_nX_nN_t = 0.0;
+            double U_xN_xX_s = 0.0;
+            double U_xN_xX_t = 0.0;
+            
 
             if ( (*segit)->exists("U_cC_nN_e") &&
                  (*segit)->exists("U_nC_nN_e") &&
@@ -150,7 +171,7 @@ void EInternal::ParseEnergiesXML(Property *opt) {
 
                 has_e = true;
             }
-
+            
             if ( (*segit)->exists("U_cC_nN_h") &&
                  (*segit)->exists("U_nC_nN_h") &&
                  (*segit)->exists("U_cN_cC_h")    ) {
@@ -161,7 +182,28 @@ void EInternal::ParseEnergiesXML(Property *opt) {
 
                 has_h = true;
             }
+            
+            if ( (*segit)->exists("U_xX_nN_s") &&
+                 (*segit)->exists("U_nX_nN_s") &&
+                 (*segit)->exists("U_xN_xX_s")    ) {
 
+                U_xX_nN_s = (*segit)->get("U_xX_nN_s").as< double > ();
+                U_nX_nN_s = (*segit)->get("U_nX_nN_s").as< double > ();
+                U_xN_xX_s = (*segit)->get("U_xN_xX_s").as< double > ();
+
+                has_s = true;
+            }
+            if ( (*segit)->exists("U_xX_nN_t") &&
+                 (*segit)->exists("U_nX_nN_t") &&
+                 (*segit)->exists("U_xN_xX_t")    ) {
+
+                U_xX_nN_t = (*segit)->get("U_xX_nN_t").as< double > ();
+                U_xX_nN_t = (*segit)->get("U_xX_nN_t").as< double > ();
+                U_xN_xX_t = (*segit)->get("U_xN_xX_t").as< double > ();
+
+                has_t = true;
+            }
+            //cout <<  U_xX_nN_s << U_nX_nN_s << U_xN_xX_s << endl;
             _seg_U_cC_nN_e[segName] = U_cC_nN_e;
             _seg_U_nC_nN_e[segName] = U_nC_nN_e;
             _seg_U_cN_cC_e[segName] = U_cN_cC_e;
@@ -171,7 +213,19 @@ void EInternal::ParseEnergiesXML(Property *opt) {
             _seg_U_nC_nN_h[segName] = U_nC_nN_h;
             _seg_U_cN_cC_h[segName] = U_cN_cC_h;
             _seg_has_h[segName] = has_h;
+                        
+            _seg_U_xX_nN_s[segName] = U_xX_nN_s;
+            _seg_U_nX_nN_s[segName] = U_nX_nN_s;
+            _seg_U_xN_xX_s[segName] = U_xN_xX_s;
+            _seg_has_s[segName] = has_s;
+                        
+            _seg_U_xX_nN_t[segName] = U_xX_nN_t;
+            _seg_U_nX_nN_t[segName] = U_nX_nN_t;
+            _seg_U_xN_xX_t[segName] = U_xN_xX_t;
+            _seg_has_t[segName] = has_t;
+            
             _has_seg[segName] = has_seg;
+           
         }
     }
 }
@@ -183,7 +237,7 @@ bool EInternal::EvaluateFrame(Topology *top) {
     for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
 
         string segName = (*sit)->getName();
-
+        
         try {
             //bool has_seg = _has_seg.at(segName);
         }
@@ -219,6 +273,30 @@ bool EInternal::EvaluateFrame(Topology *top) {
             (*sit)->setU_nC_nN(l1, +1);
             (*sit)->setU_cN_cC(l2, +1);
             (*sit)->setHasState(has_h, +1);
+        }
+         if (_seg_has_s[segName]) {
+
+            double u  = _seg_U_xX_nN_s[segName];
+            double l1 = _seg_U_nX_nN_s[segName];
+            double l2 = _seg_U_xN_xX_s[segName];
+            bool has_s = true;
+            //cout << u << l1 << l2<<endl;
+            (*sit)->setU_xX_nN(u, +2);
+            (*sit)->setU_nX_nN(l1, +2);
+            (*sit)->setU_xN_xX(l2, +2);
+            (*sit)->setHasState(has_s, +2);
+        }
+        if (_seg_has_t[segName]) {
+
+            double u  = _seg_U_xX_nN_t[segName];
+            double l1 = _seg_U_nX_nN_t[segName];
+            double l2 = _seg_U_xN_xX_t[segName];
+            bool has_t = true;
+
+            (*sit)->setU_xX_nN(u, +3);
+            (*sit)->setU_nX_nN(l1, +3);
+            (*sit)->setU_xN_xX(l2, +3);
+            (*sit)->setHasState(has_t, +3);
         }
     }
 

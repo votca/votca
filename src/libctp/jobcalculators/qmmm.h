@@ -1,3 +1,21 @@
+/*
+ *            Copyright 2009-2012 The VOTCA Development Team
+ *                       (http://www.votca.org)
+ *
+ *      Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *              http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
 #ifndef __QMMMCALC__H
 #define	__QMMMCALC__H
 
@@ -6,6 +24,9 @@
 #include <votca/ctp/xjob.h>
 #include <votca/ctp/xinductor.h>
 #include <votca/ctp/xinteractor.h>
+// add gwbse header of excited state support
+#include <votca/ctp/gwbse.h>
+// --------
 #include <votca/ctp/qmmachine.h>
 #include <boost/format.hpp>
 
@@ -70,6 +91,11 @@ private:
     // QM Package options
     string                          _package;
     Property                        _qmpack_opt;
+    
+    // GWBSE options
+    string                          _gwbse;
+    Property                        _gwbse_opt;
+    int                             _state;
 
     // XJob logbook (file output)
     string                          _outFile;
@@ -178,7 +204,7 @@ void QMMM::Initialize(Property *opt) {
             _cutoff2 = _cutoff1;
         }
         if ( opt->exists(key+".subthreads") ) {
-            _subthreads = opt->get(key+".subthreads").as< double >();
+            _subthreads = opt->get(key+".subthreads").as< int >();
         }
         else {
             _subthreads = 1;
@@ -194,6 +220,33 @@ void QMMM::Initialize(Property *opt) {
         else {
             throw runtime_error("No QM package specified.");
         }
+    
+    
+    // GWBSE options, depending on whether it is there, decide for ground
+    // or excited state QM/MM
+    key = "options.qmmm.gwbse";
+    
+    if ( opt->exists(key)) { 
+        cout << " Excited state QM/MM " << endl;
+        
+         if ( opt->exists(key+".gwbse_options")) {
+            string gwbse_xml = opt->get(key+".gwbse_options").as< string >();
+            load_property_from_xml(_gwbse_opt, gwbse_xml.c_str());
+            // _gwbse = _gwbse_opt.get("package.name").as< string >();
+        }
+        else {
+            throw runtime_error("GWBSE options not specified.");
+        }
+        
+        _state = opt->get(key+".state").as< int >();
+        
+        
+    } else {
+        cout << " Ground state QM/MM " << endl;
+    }
+    
+
+    
     
     //cout << TXT << _options;
     

@@ -79,7 +79,7 @@ bool PtopReader::Evaluate() {
         for (PolarSeg::iterator pit = (*sit)->begin();
             pit != (*sit)->end(); ++pit) {            
             u1_tot += (*pit)->getU1();     
-        }
+        }        
         ofs << "\t<pseg>\n";
         ofs << (format("\t\t<id>%1$d</id>\n") % (*sit)->getId());
         ofs << (format("\t\t<size>%1$d</size>\n") % (*sit)->size());
@@ -111,6 +111,7 @@ bool PtopReader::Evaluate() {
     for (vector<PolarSeg*>::iterator sit = bgn.begin();
         sit != bgn.end(); ++sit) {
         vec pos = (*sit)->getPos();
+        vec d1_tot = (*sit)->CalcTotD();
         vec u1_tot = vec(0,0,0);        
         for (PolarSeg::iterator pit = (*sit)->begin();
             pit != (*sit)->end(); ++pit) {            
@@ -119,8 +120,10 @@ bool PtopReader::Evaluate() {
 
         ofs << (format("sxyz %1$1.4f %2$1.4f %3$1.4f ") 
             % pos.getX() % pos.getY() % pos.getZ());
-        ofs << (format("sdpl %1$1.7e %2$1.7e %3$1.7e\n") 
-            % u1_tot.getX() % u1_tot.getY() % u1_tot.getZ());        
+        ofs << (format("su1  %1$+1.7e %2$+1.7e %3$+1.7e ") 
+            % u1_tot.getX() % u1_tot.getY() % u1_tot.getZ());
+        ofs << (format(" sd1  %1$+1.7e %2$+1.7e %3$+1.7e\n") 
+            % d1_tot.getX() % d1_tot.getY() % d1_tot.getZ());
 
         for (PolarSeg::iterator pit = (*sit)->begin();
             pit != (*sit)->end(); ++pit) {

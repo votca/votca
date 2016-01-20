@@ -27,7 +27,10 @@
 #include "jobcalculators/xqmultipole.h"
 #include "jobcalculators/qmmm.h"
 #include "jobcalculators/ewald.h"
-#include "jobcalculators/gwbse.h"
+#include "jobcalculators/egwbse.h"
+#include "jobcalculators/igwbse.h"
+#include "jobcalculators/qmape.h"
+#include "jobcalculators/iexcitoncl.h"
 
 
 namespace votca { namespace ctp {
@@ -41,7 +44,10 @@ void JobCalculatorfactory::RegisterAll(void)
         JobCalculators().Register< Ewald<Ewald3D2D> >  ("ewald2d");
         JobCalculators().Register< Ewald<Ewald3D3D> >  ("ewald3d");
         JobCalculators().Register< Ewald<PEwald3D3D> > ("pewald3d");
-        JobCalculators().Register< GWBSE >             ("gwbse");
+        JobCalculators().Register<EGWBSE>              ("egwbse");
+        JobCalculators().Register<IGWBSE>              ("igwbse");
+        JobCalculators().Register<QMAPE>               ("qmape");
+        JobCalculators().Register<IEXCITON>            ("iexcitoncl");
 }
 
 }}

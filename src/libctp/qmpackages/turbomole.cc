@@ -61,6 +61,14 @@ void Turbomole::Initialize( Property *opt ) {
     _get_charges = false;
     _get_self_energy = false;
     _write_guess = false;
+    
+     if (opt->exists(key + ".outputVxc")) {
+                _output_Vxc = opt->get(key + "outputVxc").as<bool> ();   
+            }
+             else _output_Vxc=false;
+    if (_output_Vxc){
+        throw std::runtime_error( "Sorry "+_name+" does not support Vxc output");
+    }
 
     // check if the guess keyword is present, if yes, append the guess later
     std::string::size_type iop_pos1 = _options.find("iter\n1 "); // for 1 + space
@@ -141,8 +149,8 @@ bool Turbomole::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_g
     string _input_exe = "define";
     _command  = "cd " + _run_dir + "; " + _input_exe + " <  ./" + _input_file_name + " >& " + _input_file_name + ".log" ;
     //cerr << _command << flush;
-    //int i = 
-    (void)system ( _command.c_str() );
+    //int i = system ( _command.c_str() );
+    system ( _command.c_str() );
     
     // postprocess the output of define - scratch dir
     //cout <<  "TEMP DIR: " << _scratch_dir + temp_suffix << endl;
@@ -254,8 +262,8 @@ bool Turbomole::Run()
         string _command;
         _command  = "cd " + _run_dir + "; " + _executable + " >& " + _executable + ".log ";
         
-        //int i = 
-	(void)system ( _command.c_str() );
+        //int i = system ( _command.c_str() );
+        system ( _command.c_str() );
         LOG(logDEBUG,*_pLog) << "TURBOMOLE: Finished job" << flush;
         return true;
     }
@@ -404,8 +412,8 @@ bool Turbomole::ParseOrbitalsFile( Orbitals* _orbitals )
 
     // copying information to the orbitals object
     _orbitals->setBasisSetSize( _basis_size );
-    _orbitals->_has_mo_coefficients = true;
-    _orbitals->_has_mo_energies = true;
+    // _orbitals->_has_mo_coefficients = true;
+    // _orbitals->_has_mo_energies = true;
     
    // copying energies to a matrix  
    _orbitals->_mo_energies.resize( _levels );
@@ -513,8 +521,8 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
     // check if LOG file is complete
     if ( !CheckLogFile() ) return false;
     // save qmpackage name
-    _orbitals->_has_qm_package = true;
-    _orbitals->_qm_package = "turbomole";
+    //_orbitals->_has_qm_package = true;
+    _orbitals->setQMpackage("turbomole");
     
     // Start parsing the file line by line
     path arg_path;
@@ -574,7 +582,7 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
         if (overlap_pos != std::string::npos ) {
 
             // prepare the container
-            _orbitals->_has_overlap = true;
+            // _orbitals->_has_overlap = true;
             (_orbitals->_overlap).resize( _basis_set_size );
             
             _has_overlap_matrix = true;
@@ -633,7 +641,7 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
         if (charge_pos != std::string::npos && _get_charges ) {        
                 LOG(logDEBUG,*_pLog) << "Getting charges" << flush;
                 _has_charges = true;
-                _orbitals->_has_atoms = true;
+                //_orbitals->_has_atoms = true;
         }
         
 
@@ -645,10 +653,10 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
         if (coordinates_pos != std::string::npos) {
             LOG(logDEBUG,*_pLog) << "Getting the coordinates" << flush;
             //_has_coordinates = true;
-            LOG(logDEBUG, *_pLog) << "QM energy " << _orbitals->_qm_energy <<  flush;
+            LOG(logDEBUG, *_pLog) << "QM energy " << _orbitals->getQMEnergy() <<  flush;
                     
-            _orbitals->_has_atoms = true;
-            _orbitals->_has_qm_energy = true;
+            //_orbitals->_has_atoms = true;
+            // _orbitals->_has_qm_energy = true;
 
         }
 
@@ -660,9 +668,9 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
         if (self_energy_pos != std::string::npos) {
             LOG(logDEBUG,*_pLog) << "Getting the self energy\n";  
             _has_self_energy = true;
-            LOG(logDEBUG, *_pLog) << "Self energy " << _orbitals->_self_energy <<  flush;
+            LOG(logDEBUG, *_pLog) << "Self energy " << _orbitals->getSelfEnergy() <<  flush;
             
-            _orbitals->_has_self_energy = true;
+            // _orbitals->_has_self_energy = true;
         }
         
         // check if all information has been accumulated and quit 

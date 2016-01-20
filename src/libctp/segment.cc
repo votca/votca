@@ -26,7 +26,8 @@ namespace votca { namespace ctp {
 /// Default constructor
 Segment::Segment(int id, string name)
         : _id(id),        _name(name),
-          _has_e(false),  _has_h(false) { _eMpoles.resize(3); }
+          _has_e(false),  _has_h(false),_has_s(false),  _has_t(false)
+            { _eMpoles.resize(5); }
 
 // This constructor creates a copy of the stencil segment, without
 // adding it to any containers further up in the hierarchy; i.e. the topology
@@ -36,7 +37,8 @@ Segment::Segment(Segment *stencil)
         : _id(stencil->getId()),    _name(stencil->getName()+"_ghost"),
           _typ(stencil->getType()), _top(NULL), _mol(NULL),
           _CoM(stencil->getPos()),
-          _has_e(false), _has_h(false) { _eMpoles.resize(3);
+          _has_e(false), _has_h(false),_has_s(false),  _has_t(false)
+            { _eMpoles.resize(5);
 
     vector<Fragment*> ::iterator fit;
     for (fit = stencil->Fragments().begin();
@@ -93,37 +95,76 @@ void Segment::setHasState(bool yesno, int state) {
     else if (state == +1) {
         _has_h = yesno;
     }
+    else if (state == +2) {
+        _has_s = yesno;
+    }
+    else if (state == +3) {
+        _has_t = yesno;
+    }
     else {
         throw std::runtime_error(" ERROR CODE whe__00e11h__");
     }
 }
 
 bool Segment::hasState(int state) {
-
-    return (state == -1) ? _has_e : _has_h;
+    bool result;
+    if (state == -1) {
+        result = _has_e;
+    }
+    else if (state == +1) {
+        result = _has_h;
+    }
+     else if (state == +2) {
+        result = _has_s;
+    }
+     else if (state == +3) {
+        result = _has_t;
+    }
+    else {
+        throw std::runtime_error(" ERROR CODE whe__00s11o__");
+    }
+    return result;
 }
 
-
-void Segment::setOcc(double occ, int e_h) {
+void Segment::setOcc(double occ, int e_h_s_t) {
     
-    if (e_h == -1) {
+    if (e_h_s_t == -1) {
         _occ_e = occ;
     }
-    else if (e_h == +1) {
+    else if (e_h_s_t == +1) {
         _occ_h = occ;
+    }
+     else if (e_h_s_t == +2) {
+        _occ_s = occ;
+    }
+     else if (e_h_s_t == +3) {
+        _occ_t = occ;
     }
     else {
         throw std::runtime_error(" ERROR CODE whe__00s11o__");
     }
 }
 
-
-const double &Segment::getOcc(int e_h) {
-    
-    return (e_h == -1) ? _occ_e : _occ_h;
+    double Segment::getOcc(int e_h_s_t) {
+    double result;
+    if (e_h_s_t == -1) {
+        result=_occ_e;
+    }
+    else if (e_h_s_t == +1) {
+        result=_occ_h;
+    }
+     else if (e_h_s_t == +2) {
+        result=_occ_s;
+    }
+     else if (e_h_s_t == +3) {
+        result=_occ_t;
+    }
+    else {
+        throw std::runtime_error(" ERROR CODE whe__00s11o__"); // blabla what do I do here?
+    }
+    return result;
 }
-
-
+    
 void Segment::setU_cC_nN(double dU, int state) {
 
     if (state == -1) {
@@ -165,6 +206,61 @@ void Segment::setU_cN_cC(double dU, int state) {
     }
 }
 
+void Segment::setU_xX_nN(double dU, int state) {
+
+    if (state == +2) {
+        _U_xX_nN_s = dU;
+    }
+    else if (state == +3) {
+        _U_xX_nN_t = dU;
+    }
+    else {
+        throw std::runtime_error(" ERROR CODE whe__00u11d__"); //blabla?? What do I do here?
+    }
+}
+
+void Segment::setU_nX_nN(double dU, int state) {
+
+    if (state == +2) {
+        _U_nX_nN_s = dU;
+    }
+    else if (state == +3) {
+        _U_nX_nN_t = dU;
+    }
+    else {
+        throw std::runtime_error(" ERROR CODE whe__00u11d__"); //blabla?? What do I do here?
+    }
+}
+
+void Segment::setU_xN_xX(double dU, int state) {
+
+    if (state == +2) {
+        _U_xN_xX_s = dU;
+    }
+    else if (state == +3) {
+        _U_xN_xX_t = dU;
+    }
+    else {
+        throw std::runtime_error(" ERROR CODE whe__00u11d__"); //blabla?? What do I do here?
+    }
+}
+
+const double &Segment::getU_xX_nN(int state) {
+
+    return (state == +3) ? _U_xX_nN_t : _U_xX_nN_s;
+}
+
+const double &Segment::getU_nX_nN(int state) {
+
+    return (state == +3) ? _U_nX_nN_t : _U_nX_nN_s;
+}
+
+const double &Segment::getU_xN_xX(int state) {
+
+    return (state == +3) ? _U_xN_xX_t : _U_xN_xX_s;
+}
+
+
 
 const double &Segment::getU_cC_nN(int state) {
 
@@ -185,15 +281,31 @@ const double &Segment::getU_cN_cC(int state) {
 
 
 double Segment::getSiteEnergy(int state) {
-
-    return (state == -1) ? this->getEMpoles(state) + _U_cC_nN_e :
-                           this->getEMpoles(state) + _U_cC_nN_h;
+    
+  
+    double result;
+    if (state == -1) {
+        result=getEMpoles(state) + _U_cC_nN_e;
+    }
+    else if (state == +1) {
+        result=getEMpoles(state) + _U_cC_nN_h;
+    }
+     else if (state == +2) {
+        result=getEMpoles(state) + _U_xX_nN_s;
+    }
+     else if (state == +3) {
+        result=getEMpoles(state) + _U_xX_nN_t;
+    }
+    else {
+        throw std::runtime_error(" ERROR CODE whe__00s11o__"); // blabla what do I do here?
+    }
+    return result;
 }
 
 
 void Segment::setEMpoles(int state, double energy) {
 
-    _hasChrgState.resize(3);
+    _hasChrgState.resize(5);
     _hasChrgState[state+1] = true;
     _eMpoles[state+1] = energy;
 }

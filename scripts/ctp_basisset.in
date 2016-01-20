@@ -1,0 +1,124 @@
+#! /usr/bin/env python
+VERSION='@PROJECT_VERSION@ #CSG_HG_ID#'
+import sys
+import os
+import getpass
+import socket
+import commands as cmds
+import numpy as np
+import lxml.etree as lxml
+import time
+import argparse
+import re
+import math
+import sqlite3
+
+PROGTITLE = 'THE VOTCA::CTP converter basissetfiles'
+PROGDESCR = 'Creates votca xml basissetfiles from NWCHEM basissetfiles'
+VOTCAHEADER = '''\
+==================================================
+========   VOTCA (http://www.votca.org)   ========
+==================================================
+
+{progtitle}
+
+please submit bugs to bugs@votca.org 
+ctp_update, version {version}
+
+'''.format(version=VERSION, progtitle=PROGTITLE)
+
+def okquit(what=''):
+	if what != '': print what
+	sys.exit(0)
+def xxquit(what=''):
+	if what != '':
+		cprint.Error("ERROR: {what}".format(what=what))
+	sys.exit(1)
+def sysexe(cmd, silent=False, devfile='/dev/null'):
+	if VERBOSE: print "{0}@{1}$ {2}".format(USER, HOST, cmd)
+	if silent: cmd += ' >> {0} 2>> {0}'.format(devfile)
+	cdx = os.system(cmd)
+	#SYSCMDS.write('{cmd} = {cdx}\n'.format(cmd=cmd, cdx=cdx))
+	return cdx
+
+# =============================================================================
+# PROGRAM OPTIONS
+# =============================================================================
+
+class CtpHelpFormatter(argparse.HelpFormatter):
+	def _format_usage(self, usage, action, group, prefix):
+		return VOTCAHEADER
+		
+progargs = argparse.ArgumentParser(prog='ctp_basisset',
+    formatter_class=lambda prog: CtpHelpFormatter(prog,max_help_position=70),
+	description=PROGDESCR)
+	
+progargs.add_argument('-f', '--inputnw',
+    dest='nwchem',   
+    action='store',
+    required=False,
+    type=str,
+	default='',
+    help='NWchem file containing the basisset.')
+
+progargs.add_argument('-o', '--outputvotca',
+    dest='outputfile',   
+    action='store',
+    required=False,
+    type=str,
+	default='',
+    help='Path of votca outputfile')
+    
+OPTIONS = progargs.parse_args()
+if OPTIONS.nwchem == '':
+	progargs.print_help()
+	okquit("\nQuit here, because: Inputfile not set (option -f/--inputnw)")
+if OPTIONS.outputfile == '':
+	progargs.print_help()
+	okquit("\nQuit here, because: outputfile not set (option -o/--outputvotca)")
+
+# =============================================================================
+# PARSING NWCHEM FILE
+# =============================================================================
+
+def getelemententry(root,element):
+    for e in root:
+	print e.get("name")
+        if e.get("name")==element:
+            return e
+    return lxml.SubElement(root,"element",name=entries[0])
+types=["S","P","D","F","G"]
+elements=['H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'K', 'Ar', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Ni', 'Co', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Sb', 'I', 'Te', 'Xe', 'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu', 'Hf', 'Ta', 'W', 'Re', 'Os', 'Pt', 'Ir', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn', 'Fr', 'Ra', 'Ac', 'Pa', 'Th', 'Np', 'U', 'Am', 'Pu', 'Bk', 'Cm', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Rf', 'Lr', 'Db', 'Bh', 'Sg', 'Mt', 'Ds', 'Rg', 'Hs', 'Uut', 'Uub', 'Uup', 'Uuq', 'Uuh', 'Uuo']
+keywords=["BASIS","end","basis"]
+basissetname=os.path.splitext(os.path.basename(OPTIONS.outputfile))[0]
+basis = lxml.Element("basis",name=basissetname)
+basis.append(lxml.Comment("Basis set created by ctp_basisset from {} at {}".format(os.path.basename(OPTIONS.nwchem),time.strftime("%c"))))    
+with open(OPTIONS.nwchem,'r') as f:
+    for line in f.readlines():
+        if line[0]=="#":
+            continue
+        elif line in ["\n","\r\n"]:
+            element=None
+	    continue
+        entries=line.split()
+        if entries[0] in keywords:
+            element=None
+            continue
+        elif entries[0] in elements:
+            element=getelemententry(basis,entries[0])
+            shell=lxml.SubElement(element,"shell",type=entries[1],scale="1.0")
+        elif len(entries)>1 and shell!=None:
+            constant=lxml.SubElement(shell,"constant",decay="{:1.6e}".format(float(entries[0])))
+            for i in range(len(entries[1:])):
+                 lxml.SubElement(constant,"contraction",type=types[i],factor="{:1.6e}".format(float(entries[i+1])))
+        else:
+           okquit("\nCannot understand line in file:{}".format(line)) 
+            
+            
+print "Imported  new basisset {} from {} written to file {} with ctp_basisset".format(basissetname,OPTIONS.nwchem,OPTIONS.outputfile)
+        
+with open(OPTIONS.outputfile, 'w') as f:
+            f.write(lxml.tostring(basis, pretty_print=True))
+
+sys.exit(0)
+

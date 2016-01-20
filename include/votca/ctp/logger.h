@@ -46,8 +46,11 @@ class LogBuffer : public std::stringbuf {
 
 public:
 	LogBuffer() : std::stringbuf(),
-                _errorPreface(" ERROR   "), _warnPreface(" WARNING "),
-                _infoPreface("         "), _dbgPreface(" DEBUG   ") {}
+                _errorPreface(" ERROR   "),
+                _warnPreface(" WARNING "),
+                _infoPreface("         "),
+                _dbgPreface(" DEBUG   "),
+                _writePreface(true) {}
         
         // sets the log level (needed for output)
 	void setLogLevel(TLogLevel LogLevel) { _LogLevel = LogLevel; }
@@ -75,6 +78,9 @@ public:
             }
         }
         
+        void EnablePreface() { _writePreface = true; }
+        void DisablePreface() { _writePreface = false; }
+        
         // flushes all collected messages
         void FlushBuffer(){ std::cout << _stringStream.str(); _stringStream.str(""); }
         
@@ -93,8 +99,7 @@ private:
   // temporary buffer to store messages
   std::ostringstream _stringStream;
   
-  // Multithreading
-  bool _maverick;
+  
   
   std::string _timePreface;
   std::string _errorPreface;
@@ -102,26 +107,32 @@ private:
   std::string _infoPreface;
   std::string _dbgPreface;
   
+  // Multithreading
+  bool _maverick;
+  bool _writePreface;
+  
 
 protected:
 	virtual int sync() {
             
             std::ostringstream _message;
 
-            switch ( _LogLevel )
-            {
-                case logERROR: 
-                    _message << _errorPreface;
-                    break;
-                case logWARNING:
-                    _message << _warnPreface;
-                    break;      
-                case logINFO:
-                    _message << _infoPreface;
-                    break;      
-                case logDEBUG:
-                    _message << _dbgPreface;
-                    break;      
+            if (_writePreface) {
+                switch ( _LogLevel )
+                {
+                    case logERROR: 
+                        _message << _errorPreface;
+                        break;
+                    case logWARNING:
+                        _message << _warnPreface;
+                        break;      
+                    case logINFO:
+                        _message << _infoPreface;
+                        break;      
+                    case logDEBUG:
+                        _message << _dbgPreface;
+                        break;      
+                }
             }
             
             if ( !_maverick ) {
@@ -192,6 +203,14 @@ public:
         
         void setPreface(TLogLevel level, std::string preface) {            
             dynamic_cast<LogBuffer *>( rdbuf() )->setPreface(level, preface);
+        }
+        
+        void EnablePreface() {
+            dynamic_cast<LogBuffer *>( rdbuf() )->EnablePreface();
+        }
+        
+        void DisablePreface() {
+            dynamic_cast<LogBuffer *>( rdbuf() )->DisablePreface();
         }
         
 private:

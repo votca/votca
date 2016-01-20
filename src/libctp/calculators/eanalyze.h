@@ -3,6 +3,7 @@
 
 #include <votca/ctp/qmcalculator.h>
 #include <math.h>
+#include <votca/tools/tokenizer.h>
 
 
 namespace votca { namespace ctp {
@@ -27,6 +28,7 @@ private:
     double _resolution_pairs;
     double _resolution_sites;
     double _resolution_space;
+    string _distancemode;
 
     vector<int> _states;
 
@@ -39,21 +41,45 @@ private:
     bool _do_atomic_xyze;
     int  _atomic_first;
     int  _atomic_last;
+    
+    string _seg_pattern;
+    vector<Segment*> _seg_shortlist;
 
 };
 
 
 
 void EAnalyze::Initialize( Property *opt ) {
-
+    _skip_corr=false;
+    _skip_sites=false;
+    _skip_pairs=false;
     // update options with the VOTCASHARE defaults   
     UpdateWithDefaults( opt );
     string key = "options." + Identify();
-
+    if (opt->exists(key+".resolution_pairs")) {
     _resolution_pairs = opt->get(key+".resolution_pairs").as< double >();
+    }
+    else{
+    _skip_pairs=true;
+    }
+    if (opt->exists(key+".resolution_sites")) {
     _resolution_sites = opt->get(key+".resolution_sites").as< double >();
+    }
+    else {
+        _skip_sites=true;
+    }
+    if (opt->exists(key+".resolution_space")) {
     _resolution_space = opt->get(key+".resolution_space").as< double >();
+    }
+    else{
+        _skip_corr=true;
+    }
 
+    if (opt->exists(key+".pattern")) {
+        _seg_pattern = opt->get(key+".pattern").as<string>();
+    }
+    else _seg_pattern = "*";
+    
     if (opt->exists(key+".states")) {
         _states = opt->get(key+".states").as< vector<int> >();
     }
@@ -72,13 +98,42 @@ void EAnalyze::Initialize( Property *opt ) {
         _do_atomic_xyze = false;
     }
     
-    _skip_corr = opt->exists(key+".skip_correlation");
-    _skip_sites = opt->exists(key+".skip_sites");
-    _skip_pairs = opt->exists(key+".skip_pairs");
+    if (opt->exists(key+".distancemode")) {
+        // distancemode = segment / centreofmass
+        _distancemode = opt->get(key+".distancemode").as< string >();
+    }
+    else{
+         _distancemode = "segment";
+    }
+    if(_distancemode != "segment" && _distancemode != "centreofmass"){
+        cout << "WARNING: distancemode has to be set to either 'segment' or to 'centreofmass'. Setting it to 'segment' now." << endl;
+        _distancemode = "segment";
+    }
+    
+    //_skip_corr = opt->exists(key+".skip_correlation");
+    //_skip_sites = opt->exists(key+".skip_sites");
+    //_skip_pairs = opt->exists(key+".skip_pairs");
 
 }
 
 bool EAnalyze::EvaluateFrame(Topology *top) {
+    
+    // Short-list segments according to pattern
+    vector<Segment*>::iterator sit;
+    for (sit=top->Segments().begin(); sit!=top->Segments().end(); ++sit) {
+        string seg_name = (*sit)->getName();
+        if (votca::tools::wildcmp(_seg_pattern.c_str(), seg_name.c_str())) {
+            _seg_shortlist.push_back(*sit);
+        }
+    }
+    cout << endl << "... ... Short-listed " << _seg_shortlist.size() 
+         << " segments (pattern='" << _seg_pattern << "')" << flush;
+    cout << endl << "... ... ... NOTE Statistics of site energies and spatial"
+         << " correlations thereof are based on the short-listed segments only. "
+         << flush;
+    cout << endl << "... ... ...      "
+         << "Statistics of site-energy differences operate on the full list." 
+         << flush;
 
     // Calculate
     // ... Site-energy histogram, mean, width
@@ -87,13 +142,13 @@ bool EAnalyze::EvaluateFrame(Topology *top) {
 
     QMNBList &nblist = top->NBList();
 
-    for (unsigned int i = 0; i < _states.size(); ++i) {
+    for (unsigned i = 0; i < _states.size(); ++i) {
 
         int state = _states[i];
         cout << endl << "... ... Charge state " << state << flush;
 
-        if (!top->Segments().size()) {            
-            cout << endl << "... ... ... No segments in topology. Skip ... "
+        if (!_seg_shortlist.size()) {            
+            cout << endl << "... ... ... No segments short-listed. Skip ... "
                  << flush;
         }
         else {
@@ -135,25 +190,25 @@ bool EAnalyze::EvaluateFrame(Topology *top) {
 void EAnalyze::SiteHist(Topology *top, int state) {
 
     vector< double > Es;
-    Es.reserve(top->Segments().size());
+    Es.reserve(_seg_shortlist.size());
 
-    double MIN = top->Segments()[0]->getSiteEnergy(state);
-    double MAX = top->Segments()[0]->getSiteEnergy(state);
+    double MIN = _seg_shortlist[0]->getSiteEnergy(state);
+    double MAX = _seg_shortlist[0]->getSiteEnergy(state);
     double AVG = 0.0;
     double VAR = 0.0;
     double STD = 0.0;
 
     // Collect energies from segments, calc AVG
     vector< Segment* > ::iterator sit;
-    for (sit = top->Segments().begin(); 
-         sit < top->Segments().end();
+    for (sit = _seg_shortlist.begin(); 
+         sit < _seg_shortlist.end();
          ++sit) {
 
         double E = (*sit)->getSiteEnergy(state);
 
         MIN = (E < MIN) ? E : MIN;
         MAX = (E > MAX) ? E : MAX;
-        AVG += E / top->Segments().size();
+        AVG += E / _seg_shortlist.size();
         
         Es.push_back(E);
     }
@@ -171,7 +226,7 @@ void EAnalyze::SiteHist(Topology *top, int state) {
 
         int bin = int( (*eit-MIN)/_resolution_sites + 0.5 );
         histE[bin].push_back(*eit);
-        VAR += ((*eit) - AVG)*((*eit) - AVG) / top->Segments().size();
+        VAR += ((*eit) - AVG)*((*eit) - AVG) / _seg_shortlist.size();
     }
 
     vector< int > histN;
@@ -183,7 +238,22 @@ void EAnalyze::SiteHist(Topology *top, int state) {
     STD = sqrt(VAR);
 
     FILE *out;
-    string tag = boost::lexical_cast<string>("eanalyze.sitehist_") + ( (state == -1) ? "e" : "h" ) + ".out";
+    string statename;
+    if (state==-1){
+        statename="e";
+    }
+    else if (state==1){
+        statename="h";
+    }
+    else if (state==2){
+        statename="s";
+    }
+    else if (state==3){
+        statename="t";
+    }
+    
+    
+    string tag = boost::lexical_cast<string>("eanalyze.sitehist_") +statename+ ".out";
     out = fopen(tag.c_str(), "w");
 
     fprintf(out, "# EANALYZE: SITE-ENERGY HISTOGRAM \n");
@@ -201,8 +271,8 @@ void EAnalyze::SiteHist(Topology *top, int state) {
         tag = (state == -1) ? "eanalyze.landscape_e.out" : "eanalyze.landscape_h.out";
         out = fopen(tag.c_str(), "w");
 
-        for (sit = top->Segments().begin(); 
-             sit < top->Segments().end();
+        for (sit = _seg_shortlist.begin(); 
+             sit < _seg_shortlist.end();
              ++sit) {
 
             if ((*sit)->getId() < _atomic_first) { continue; }
@@ -292,7 +362,20 @@ void EAnalyze::PairHist(Topology *top, int state) {
     STD = sqrt(VAR);
 
     FILE *out;
-    string tag = boost::lexical_cast<string>("eanalyze.pairhist_") + ( (state == -1) ? "e" : "h" ) + ".out";
+    string statename;
+    if (state==-1){
+        statename="e";
+    }
+    else if (state==1){
+        statename="h";
+    }
+    else if (state==2){
+        statename="s";
+    }
+    else if (state==3){
+        statename="t";
+    }
+    string tag = boost::lexical_cast<string>("eanalyze.pairhist_") + statename + ".out";
     out = fopen(tag.c_str(), "w");
 
     fprintf(out, "# EANALYZE: PAIR-ENERGY HISTOGRAM \n");
@@ -310,8 +393,9 @@ void EAnalyze::PairHist(Topology *top, int state) {
 void EAnalyze::SiteCorr(Topology *top, int state) {
 
     double AVG = 0.0;
+    double AVGESTATIC = 0.0;
     double VAR = 0.0;
-    //double STD = 0.0;
+    double STD = 0.0;
 
     vector< Segment* > ::iterator sit1;
     vector< Segment* > ::iterator sit2;    
@@ -320,22 +404,26 @@ void EAnalyze::SiteCorr(Topology *top, int state) {
     vector< double > Es;
 
     vector< Segment* > ::iterator sit;
-    for (sit = top->Segments().begin();
-         sit < top->Segments().end();
+    for (sit = _seg_shortlist.begin();
+         sit < _seg_shortlist.end();
          ++sit) {
 
         double E = (*sit)->getSiteEnergy(state);
-        AVG += E / top->Segments().size();
+        AVG += E / _seg_shortlist.size();
+        
+        AVGESTATIC += (*sit)->getEMpoles(state) / top->Segments().size();
 
         Es.push_back(E);
     }
-
+    
     // Calculate variance
     vector< double > ::iterator eit;
     for (eit = Es.begin(); eit < Es.end(); ++eit) {
 
-        VAR += ((*eit) - AVG)*((*eit) - AVG) / top->Segments().size();
+        VAR += ((*eit) - AVG)*((*eit) - AVG) / _seg_shortlist.size();
     }
+    
+    STD = sqrt(VAR);
 
     // Collect inter-site distances, correlation product
     vector< double > Rs;
@@ -348,31 +436,49 @@ void EAnalyze::SiteCorr(Topology *top, int state) {
     vector< Fragment* > ::iterator fit2;
 
     cout << endl;
-
-    for (sit1 = top->Segments().begin(); sit1 < top->Segments().end(); ++sit1) {
+    
+    FILE *corr_out;
+    string statename;
+    if (state==-1){
+        statename="e";
+    }
+    else if (state==1){
+        statename="h";
+    }
+    else if (state==2){
+        statename="s";
+    }
+    else if (state==3){
+        statename="t";
+    }
+    string corrfile = boost::lexical_cast<string>("eanalyze.sitecorr.atomic_") + statename+ ".out";
+    corr_out = fopen(corrfile.c_str(), "w");
+    
+    for (sit1 = _seg_shortlist.begin(); sit1 < _seg_shortlist.end(); ++sit1) {
 
         cout << "\r... ... ..." << " Correlating segment ID = "
              << (*sit1)->getId() << flush;
 
-    for (sit2 = sit1 + 1;                sit2 < top->Segments().end(); ++sit2) {
+    for (sit2 = sit1 + 1;                sit2 < _seg_shortlist.end(); ++sit2) {
 
         double R = abs(top->PbShortestConnect((*sit1)->getPos(),
                                               (*sit2)->getPos()));
 
-        for (fit1 = (*sit1)->Fragments().begin();
-             fit1 < (*sit1)->Fragments().end();
-             ++fit1) {
-        for (fit2 = (*sit2)->Fragments().begin();
-             fit2 < (*sit2)->Fragments().end();
-             ++fit2) {
+        if(_distancemode == "segment"){
+            for (fit1 = (*sit1)->Fragments().begin();
+                 fit1 < (*sit1)->Fragments().end();
+                 ++fit1) {
+             for (fit2 = (*sit2)->Fragments().begin();
+                 fit2 < (*sit2)->Fragments().end();
+                 ++fit2) {
+ 
+                double R_FF = abs(top->PbShortestConnect((*fit1)->getPos(),
+                                                         (*fit2)->getPos()));
 
-            double R_FF = abs(top->PbShortestConnect((*fit1)->getPos(),
-                                                     (*fit2)->getPos()));
-
-            if (R_FF < R) { R = R_FF; }
-
-        }}
-
+                if (R_FF < R) { R = R_FF; }
+            }}
+        }
+    
 
         MIN = (R < MIN) ? R : MIN;
         MAX = (R > MAX) ? R : MAX;
@@ -382,15 +488,19 @@ void EAnalyze::SiteCorr(Topology *top, int state) {
 
         Rs.push_back(R);
         Cs.push_back(C);
+        
+        fprintf(corr_out, "%+1.7f %+1.7f\n", R, C);
 
     }}
+    
+    fclose(corr_out);
 
     // Prepare bins
     int BIN = int( (MAX-MIN)/_resolution_space + 0.5 ) + 1;
     vector< vector<double> > histCs;
     histCs.resize(BIN);
 
-    for (unsigned int i = 0; i < Rs.size(); ++i) {
+    for (unsigned i = 0; i < Rs.size(); ++i) {
 
         int bin = int((Rs[i] - MIN)/_resolution_space + 0.5);
         histCs[bin].push_back(Cs[i]);
@@ -405,19 +515,23 @@ void EAnalyze::SiteCorr(Topology *top, int state) {
 
         double corr = 0.0;
         double dcorr2 = 0.0;
-        for (unsigned int i = 0; i < histCs[bin].size(); ++i) {
+        for (unsigned i = 0; i < histCs[bin].size(); ++i) {
             corr += histCs[bin][i] / VAR;
             //corr2 += (histCs[bin][i] / VAR)*(histCs[bin][i] / VAR);
         }
+
         corr  = corr / histCs[bin].size();
         //corr2 = corr2 / histCs[bin].size();
 
-        for (unsigned int i = 0; i < histCs[bin].size(); ++i) {
-            dcorr2 += (histCs[bin][i]/VAR - corr)*(histCs[bin][i]/VAR - corr);
+        for (unsigned i = 0; i < histCs[bin].size(); ++i) {
+            dcorr2 += (histCs[bin][i]/VAR/histCs[bin].size() - corr)*(histCs[bin][i]/VAR/histCs[bin].size() - corr);
         }
-        dcorr2 = dcorr2 / histCs[bin].size();
-        
+
+
         histC[bin] = corr;
+        
+        // error on mean value
+        dcorr2 = dcorr2 / histCs[bin].size() / (histCs[bin].size()-1);
         histC_error[bin] = sqrt(dcorr2);
     }
 
@@ -426,8 +540,8 @@ void EAnalyze::SiteCorr(Topology *top, int state) {
     out = fopen(tag.c_str(), "w");
 
     fprintf(out, "# EANALYZE: SPATIAL SITE-ENERGY CORRELATION \n");
-    fprintf(out, "# AVG %4.7f VAR %4.7f MIN_R %4.7f MAX_R %4.7f \n",
-                    AVG,      VAR,      MIN,      MAX);
+    fprintf(out, "# AVG %4.7f STD %4.7f MIN_R %4.7f MAX_R %4.7f  AVGESTATIC %4.7f\n",
+                    AVG,      STD,      MIN,      MAX,      AVGESTATIC);
 
     for (int bin = 0; bin < BIN; ++bin) {
         double R = MIN + bin*_resolution_space;

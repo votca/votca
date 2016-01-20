@@ -27,11 +27,6 @@
 #include <complex>
 //#include <boost/math/special_functions/gamma.hpp>
 
-#ifndef NOGSL
-#include <gsl/gsl_sf_gamma.h>
-#include <gsl/gsl_complex.h>
-#endif
-
 namespace votca { namespace ctp {
 
 class Rates : public PairCalculator2
@@ -74,17 +69,102 @@ private:
 
 };
 
-complex <double> cgamma (complex <double> argument)
+/* complex <double> cgamma (complex <double> argument)
 {   // complex result of Gamma(z) with complex z
+
+    // calc log(Gamma(z)) then exp^()
+    complex<double> result;
     gsl_sf_result result_logradius;
     gsl_sf_result result_phi;
     gsl_sf_lngamma_complex_e(real(argument),imag(argument), &result_logradius, &result_phi);
     double radius = result_logradius.val;
     radius = exp(radius);
     double phi = result_phi.val;
-    complex<double> result  = polar(radius,phi);
+    result  = polar(radius,phi);
+    // cout << "Complex Gamma functions not supported by MKL " << endl;
+    // exit(1);
     return result;
+} */
+
+
+
+complex<double> ccgamma(complex<double> z,int OPT)
+{
+    complex<double> g,z0,z1;
+    double x0,q1,q2,x,y,th,th1,th2,g0,gr,gi,gr1,gi1;
+    double na,t,x1,y1,sr,si;
+    //int i,j,k;
+    int j,k;
+
+    static double a[] = {
+        8.333333333333333e-02,
+       -2.777777777777778e-03,
+        7.936507936507937e-04,
+       -5.952380952380952e-04,
+        8.417508417508418e-04,
+       -1.917526917526918e-03,
+        6.410256410256410e-03,
+       -2.955065359477124e-02,
+        1.796443723688307e-01,
+       -1.39243221690590};
+
+    x = real(z);
+    y = imag(z);
+    if (x > 171) return complex<double>(1e308,0);
+    if ((y == 0.0) && (x == (int)x) && (x <= 0.0))
+        return complex<double>(1e308,0);
+    else if (x < 0.0) {
+        x1 = x;
+        y1 = y;
+        x = -x;
+        y = -y;
+    }
+    x0 = x;
+    if (x <= 7.0) {
+        na = (int)(7.0-x);
+        x0 = x+na;
+    }
+    q1 = sqrt(x0*x0+y*y);
+    th = atan(y/x0);
+    gr = (x0-0.5)*log(q1)-th*y-x0+0.5*log(2.0*M_PI);
+    gi = th*(x0-0.5)+y*log(q1)-y;
+    for (k=0;k<10;k++){
+        t = pow(q1,-1.0-2.0*k);
+        gr += (a[k]*t*cos((2.0*k+1.0)*th));
+        gi -= (a[k]*t*sin((2.0*k+1.0)*th));
+    }
+    if (x <= 7.0) {
+        gr1 = 0.0;
+        gi1 = 0.0;
+        for (j=0;j<na;j++) {
+            gr1 += (0.5*log((x+j)*(x+j)+y*y));
+            gi1 += atan(y/(x+j));
+        }
+        gr -= gr1;
+        gi -= gi1;
+    }
+    if (x1 <= 0.0) {
+        q1 = sqrt(x*x+y*y);
+        th1 = atan(y/x);
+        sr = -sin(M_PI*x)*cosh(M_PI*y);
+        si = -cos(M_PI*x)*sinh(M_PI*y);
+        q2 = sqrt(sr*sr+si*si);
+        th2 = atan(si/sr);
+        if (sr < 0.0) th2 += M_PI;
+        gr = log(M_PI/(q1*q2))-gr;
+        gi = -th1-th2-gi;
+        x = x1;
+        y = y1;
+    }
+    if (OPT == 0) {
+        g0 = exp(gr);
+        gr = g0*cos(gi);
+        gi = g0*sin(gi);
+    }
+    g = complex<double>(gr,gi);
+    return g;
 }
+
 
 
 void Rates::Initialize(Property *options) {
@@ -281,12 +361,16 @@ void Rates::EvaluatePair(Topology *top, QMPair *qmpair) {
 
     bool pair_has_e = false;
     bool pair_has_h = false;
+    bool pair_has_s = false;
+    bool pair_has_t = false;
 
     string segName1 = qmpair->first->getName();
     string segName2 = qmpair->second->getName();
 
     pair_has_e = qmpair->isPathCarrier(-1);
     pair_has_h = qmpair->isPathCarrier(+1);
+    pair_has_s = qmpair->isPathCarrier(+2);
+    pair_has_t = qmpair->isPathCarrier(+3);
 
 //    try {
 //        pair_has_e = _seg_has_e.at(segName1) && _seg_has_e.at(segName2);
@@ -306,6 +390,12 @@ void Rates::EvaluatePair(Topology *top, QMPair *qmpair) {
     if (pair_has_h) {
         this->CalculateRate(top, qmpair, +1);
     }
+    if (pair_has_s) {
+        this->CalculateRate(top, qmpair, +2);
+    }
+    if (pair_has_t) {
+        this->CalculateRate(top, qmpair, +3);
+    }
 }
 
 
@@ -324,19 +414,41 @@ void Rates::CalculateRate(Topology *top, QMPair *qmpair, int state) {
     double rate_symm12 = 0;
     double rate_symm21 = 0;
     //double measure = 0;
+    double reorg12=0;
+    double reorg21=0;
+    double dG_Site=0;
+    double dG_Field=0;
+    
+    if (state<2){
+        reorg12  = seg1->getU_nC_nN(state)                 // 1->2
+                        + seg2->getU_cN_cC(state);
+        reorg21  = seg1->getU_cN_cC(state)                 // 2->1
+                        + seg2->getU_nC_nN(state);
+        dG_Site  = seg2->getU_cC_nN(state)                 // 1->2 == - 2->1
+                        + seg2->getEMpoles(state)
+                        - seg1->getU_cC_nN(state)
+                        - seg1->getEMpoles(state);
+        dG_Field = - state * _F * qmpair->R() * NM2M;
+    }
+    else if (state>=2){
+        reorg12  = seg1->getU_nX_nN(state)                 // 1->2
+                        + seg2->getU_xN_xX(state);
+        reorg21  = seg1->getU_xN_xX(state)                 // 2->1
+                        + seg2->getU_nX_nN(state);
+        dG_Site  = seg2->getU_xX_nN(state)                 // 1->2 == - 2->1
+                        + seg2->getEMpoles(state)
+                        - seg1->getU_xX_nN(state)
+                        - seg1->getEMpoles(state);       
+    }
     
     
-    double reorg12  = seg1->getU_nC_nN(state)                 // 1->2
-                    + seg2->getU_cN_cC(state);
-    double reorg21  = seg1->getU_cN_cC(state)                 // 2->1
-                    + seg2->getU_nC_nN(state);
+    
+    
+    
     double lOut     = qmpair->getLambdaO(state);              // 1->2 == + 2->1
 
-    double dG_Site  = seg2->getU_cC_nN(state)                 // 1->2 == - 2->1
-                    + seg2->getEMpoles(state)
-                    - seg1->getU_cC_nN(state)
-                    - seg1->getEMpoles(state);
-    double dG_Field = - state * _F * qmpair->R() * NM2M;      // 1->2 == - 2->1
+    
+          // 1->2 == - 2->1
 
     double J2 = qmpair->getJeff2(state);                      // 1->2 == + 2->1
 
@@ -439,7 +551,7 @@ void Rates::CalculateRate(Topology *top, QMPair *qmpair, int state) {
     // equation 6 
     // ++++++++++++ //
 
-    } else if (_rateType == "weissdorsey") {//not yet fully checked
+    } else if (_rateType == "weissdorsey") {
         
         _kondo = _kondo/2+1; // going from alpha to alpha'
 
@@ -449,21 +561,25 @@ void Rates::CalculateRate(Topology *top, QMPair *qmpair, int state) {
         double characfreq12 = reorg12 /2 /_kondo/hbar_eV;
         double characfreq21 = reorg21 /2 /_kondo/hbar_eV;
         
-        complex<double> M_I(0,1);
+        complex<double> M_I = complex<double>(0.0,1.0);
+       /* cout << endl;
+       cout << "  CGAMMA via GSL: " << gsl_sf_gamma(2*_kondo) << " native: " << ccgamma(2*_kondo,0).real() << endl;
+       cout << " LCGAMMA via GSL: " << cgamma(_kondo+M_I*(+dG/2/M_PI/_kT)) << " native: " << ccgamma(_kondo+M_I*(+dG/2/M_PI/_kT),0) << endl;
+      */
         
-
-        rate12 = J2/pow(hbar_eV,2)/characfreq12
+       rate12 = J2/pow(hbar_eV,2)/characfreq12
                 * pow((hbar_eV*characfreq12/2/M_PI/_kT), (1-2*_kondo))
-                * pow(std::abs(cgamma(_kondo+M_I*(+dG/2/M_PI/_kT))),2)
-                * pow(gsl_sf_gamma(2*_kondo), -1) * exp(+dG/2/_kT)
+                * pow(std::abs(ccgamma(_kondo+M_I*(+dG/2/M_PI/_kT),1)),2)
+                * pow(ccgamma(2*_kondo,0).real(), -1) * exp(+dG/2/_kT)
                 * exp(-std::abs(dG)/hbar_eV/characfreq12); 
 
         rate21 = J2/pow(hbar_eV,2)/characfreq21
                 * pow((hbar_eV*characfreq21/2/M_PI/_kT), (1-2*_kondo))
-                * pow(std::abs(cgamma(_kondo+M_I*(-dG/2/M_PI/_kT))),2)
-                * pow(gsl_sf_gamma(2*_kondo), -1) * exp(-dG/2/_kT)
+                * pow(std::abs(ccgamma(_kondo+M_I*(-dG/2/M_PI/_kT),1)),2)
+                * pow(ccgamma(2*_kondo,0).real(), -1) * exp(-dG/2/_kT)
                 * exp(-std::abs(dG)/hbar_eV/characfreq12);
 
+        
         
     // ++++++++++++ //
     // SYMMETRIC RATES //

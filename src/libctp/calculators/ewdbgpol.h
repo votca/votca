@@ -5,6 +5,8 @@
 #include <votca/ctp/qmcalculator.h>
 #include <votca/ctp/xmapper.h>
 #include <votca/ctp/polarbackground.h>
+#include <votca/tools/tokenizer.h>
+#include <boost/filesystem.hpp>
 
 namespace votca { 
 namespace ctp {
@@ -27,6 +29,10 @@ private:
     string                         _xml_file;
     XMpsMap                        _mps_mapper;
     bool                           _pdb_check;
+    
+    string                         _ptop_file;
+    bool                           _do_restart;
+    //int                            _restart_from_iter;
 
 };
 
@@ -48,7 +54,9 @@ void EwaldBgPolarizer::Initialize(Property *opt) {
             cout << endl;
             throw std::runtime_error("No multipole mapping file provided");
         }
+    
     key = "options.ewdbgpol.control";
+        // CONTROL
         if (opt->exists(key+".mps_table")) {
             _mps_table = opt->get(key+".mps_table").as<string>();
         }
@@ -59,6 +67,16 @@ void EwaldBgPolarizer::Initialize(Property *opt) {
             _pdb_check = opt->get(key+".pdb_check").as<bool>();
         }
         else { _pdb_check = false; }
+        // RESTART OPTIONS
+        if (opt->exists(key+".restart_from")) {
+            _ptop_file = opt->get(key+".restart_from").as<string>();            
+            if (boost::filesystem::exists(_ptop_file)) _do_restart = true;
+            else _do_restart = false;
+        }
+        else {
+            _ptop_file = "";
+            _do_restart = false;
+        }
 
     return;
 }
@@ -81,18 +99,26 @@ bool EwaldBgPolarizer::EvaluateFrame(Topology *top) {
     // GENERATE BACKGROUND (= periodic bg, with empty foreground)
     cout << endl << "... ... Initialize MPS-mapper: " << flush;
     PolarTop ptop(top);
-    _mps_mapper.GenerateMap(_xml_file, _mps_table, top);
-    _mps_mapper.Gen_BGN(top, &ptop, &master);
+    if (_do_restart) {
+        ptop.LoadFromDrive(_ptop_file);
+    }
+    else {
+        _mps_mapper.GenerateMap(_xml_file, _mps_table, top);
+        _mps_mapper.Gen_BGN(top, &ptop, &master);        
+    }
     if (_pdb_check) ptop.PrintPDB("ewdbgpol.ptop.pdb");
+    
     
     // POLARIZE SYSTEM
     EWD::PolarBackground pbg(top, &ptop, _options, &log);
     pbg.Polarize(_nThreads);
     
     // SAVE POLARIZATION STATE
-    LOG(logINFO,log) << "Save polarization state" << flush;
-    ptop.SaveToDrive("bgp_main.ptop");
-    ptop.PrintPDB("bgp_main.pdb");
+    if (pbg.HasConverged()) {
+		LOG(logINFO,log) << "Save polarization state" << flush;
+		ptop.SaveToDrive("bgp_main.ptop");
+		ptop.PrintPDB("bgp_main.pdb");
+    }
     
 //    // LOAD POLARIZATION STATE
 //    LOG(logINFO,log) << "Load polarization state" << flush;

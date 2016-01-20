@@ -58,9 +58,17 @@ LDLIBSOPTIONS=../libctp/dist/Debug/GNU-Linux-x86/liblibctp.a ../../../csg/netbea
 .build-conf: ${BUILD_SUBPROJECTS}
 	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ../../src/tools/ctp_run
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ctp_run: ${OBJECTFILES}
-	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ctp_run ${OBJECTFILES} ${LDLIBSOPTIONS} 
+../../src/tools/ctp_run: ../libctp/dist/Debug/GNU-Linux-x86/liblibctp.a
+
+../../src/tools/ctp_run: ../../../csg/netbeans/libcsg/../../src/libcsg/libcsg.a
+
+../../src/tools/ctp_run: ../../../moo/netbeans/libmoo/../../src/libmoo/libmoo.a
+
+../../src/tools/ctp_run: ../../../tools/netbeans/libtools/../../src/libtools/libtools.a
+
+../../src/tools/ctp_run: ${OBJECTFILES}
+	${MKDIR} -p ../../src/tools
+	${LINK.cc} -o ../../src/tools/ctp_run ${OBJECTFILES} ${LDLIBSOPTIONS}
 
 ${OBJECTDIR}/_ext/715944016/ctp_run.o: nbproject/Makefile-${CND_CONF}.mk ../../src/tools/ctp_run.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/715944016

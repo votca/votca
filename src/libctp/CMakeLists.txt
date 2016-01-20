@@ -1,4 +1,4 @@
-option(WITH_GSL "Use GSL, disabling leads to reduced functionality!" ON)
+option(WITH_GSL "Use GSL, disabling leads to reduced functionality!" OFF)
 if (WITH_GSL)
   find_package(GSL)
   if(NOT GSL_FOUND)
@@ -10,6 +10,14 @@ else(WITH_GSL)
   set(NOGSL TRUE)
   set(GSL_PKG)
 endif(WITH_GSL)
+
+option(WITH_MKL "Checking if MKL is installed in order to improve UBLAS performance" ON)
+if (WITH_MKL)
+  find_package(MKL)
+  if(NOT MKL_FOUND AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+    #TODO: try to append -mkl to cflags
+  endif(NOT MKL_FOUND AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+endif(WITH_MKL)
 
 configure_file(votca_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/votca_config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
@@ -27,7 +35,7 @@ list(REMOVE_ITEM VOTCA_SOURCES ${NOT_VOTCA_SOURCES})
 
 add_library(votca_ctp  ${VOTCA_SOURCES})
 add_dependencies(votca_ctp hgversion-ctp)
-target_link_libraries(votca_ctp ${VOTCA_CSG_LIBRARIES}  ${GSL_LIBRARIES} ${VOTCA_MOO_LIBRARIES} ${VOTCA_TOOLS_LIBRARIES} ${BOOST_LIBRARIES})
+target_link_libraries(votca_ctp ${VOTCA_CSG_LIBRARIES} ${MKL_LIBRARIES} ${GSL_LIBRARIES}  ${VOTCA_MOO_LIBRARIES} ${VOTCA_TOOLS_LIBRARIES} ${BOOST_LIBRARIES} ${LIBXC_LIBRARIES})
 install(TARGETS votca_ctp LIBRARY DESTINATION ${LIB} ARCHIVE DESTINATION ${LIB})
 
 configure_file(libvotca_ctp.pc.in ${CMAKE_CURRENT_BINARY_DIR}/libvotca_ctp.pc @ONLY)

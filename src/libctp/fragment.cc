@@ -117,7 +117,10 @@ void Fragment::calcPos(string tag) {
             pos += _atoms[i]->getPos() * _atoms[i]->getWeight();
         }
         else if (tag == "QM") {
-            pos += _atoms[i]->getQMPos() * _atoms[i]->getWeight();
+            if (_atoms[i]->HasQMPart())
+                pos += _atoms[i]->getQMPos() * _atoms[i]->getWeight();
+            else
+                assert(_atoms[i]->getWeight() < 1e-6);
         }
         totWeight += _atoms[i]->getWeight();
     }
@@ -182,6 +185,9 @@ void Fragment::Rigidify(bool Auto) {
     }
 
     _symmetry = trihedron.size();
+    if (!(trihedron.size() == _trihedron.size())) {
+        cout << endl << "ERROR Local frame ill-defined" << flush;
+    }
 
     // +++++++++++++++++++++++ //
     // Construct trihedra axes //
@@ -318,7 +324,7 @@ void Fragment::Rigidify(bool Auto) {
     // ++++++++++++++++++ //
     // Transform fragment //
     // ++++++++++++++++++ //
-
+    
     this->calcPos("QM");
     this->RotTransQM2MD();
     _translateQM2MD = _CoMD - _CoQM;

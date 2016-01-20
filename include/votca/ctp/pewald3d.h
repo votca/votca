@@ -33,22 +33,34 @@ namespace votca { namespace ctp {
         string IdentifyMethod() { return "Polar 3D x 3D"; }
         void GenerateKVectors(vector<PolarSeg*> &ps1, vector<PolarSeg*> &ps2);
         
-        EWD::triple<> ConvergeRealSpaceSum();
-        EWD::triple<> ConvergeReciprocalSpaceSum();
-        EWD::triple<> CalculateForegroundCorrection();
-        EWD::triple<> CalculateShapeCorrection();
-        EWD::triple<> CalculateHigherRankCorrection() { return EWD::triple<>(0,0,0); }        
-        EWD::triple<> CalculateK0Correction() { return EWD::triple<>(0,0,0); }
+        EWD::triple<> ConvergeRealSpaceSum(vector<PolarSeg*> &target);
+        EWD::triple<> ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target);
+        EWD::triple<> CalculateForegroundCorrection(vector<PolarSeg*> &target);
+        EWD::triple<> CalculateShapeCorrection(vector<PolarSeg*> &target);
+        EWD::triple<> CalculateHigherRankCorrection(vector<PolarSeg*> &target) { return EWD::triple<>(0,0,0); }        
+        EWD::triple<> CalculateK0Correction(vector<PolarSeg*> &target) { return EWD::triple<>(0,0,0); }
         
         void Field_ConvergeRealSpaceSum();
         void Field_ConvergeReciprocalSpaceSum();
         void Field_CalculateForegroundCorrection();
         void Field_CalculateShapeCorrection();
         
+        void Potential_ConvergeRealSpaceSum(vector<PolarSeg*> &target);
+        void Potential_ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target);
+        void Potential_CalculateForegroundCorrection(vector<PolarSeg*> &target);
+        void Potential_CalculateShapeCorrection(vector<PolarSeg*> &target);
+        
         void ScanCutoff();
         
     private:
         
+    };
+    
+    struct TinyNeighbour
+    {
+        TinyNeighbour(PolarSeg *seg, vec L) : _nb(seg), _L(L) { ; }
+        PolarSeg *_nb;
+        vec _L;
     };
 
 }}

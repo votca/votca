@@ -24,7 +24,8 @@
 #include <votca/tools/globals.h>
 #include <votca/ctp/qmcalculator.h>
 #include <votca/ctp/qmpair.h>
-
+#include <boost/progress.hpp>
+#include <votca/tools/random2.h>
 
 namespace votca { namespace ctp {
 
@@ -48,14 +49,20 @@ public:
     void Initialize(Property *options);
     bool EvaluateFrame(Topology *top);
     void GenerateFromFile(Topology *top, string filename);
+    void StochasticConnectivity(Topology *top, string filename);
+    bool StochasticConnectOrNot(double thisdistance, vector<double> distances, vector<double> probabilities, votca::tools::Random2 *RandomVariable);
 
 private:
 
     map< string, map<string,double> > _cutoffs;
     bool                              _useConstantCutoff;
     double                            _constantCutoff;
+    bool                              _useExcitonCutoff;
+    double                            _excitonqmCutoff;
     string                            _generate_from;
     bool                              _generate_from_file;
+    string                            _probabilityfile;
+    bool                              _stochastic_connectivity;
     bool                              _generate_unsafe;
     
     std::list<QMNBList::SuperExchangeType*>        _superexchange;
@@ -68,6 +75,16 @@ void Neighborlist::Initialize(Property *options) {
     // update options with the VOTCASHARE defaults   
     UpdateWithDefaults( options );
     std::string key = "options." + Identify();
+    
+    if (options->exists(key + ".probabilityfile")) {
+        _probabilityfile = options->get(key+".probabilityfile").as< string >();
+        _stochastic_connectivity = true;
+        cout << endl << "... ... generating stochastic connectivity based on file " << _probabilityfile << endl;
+    }
+    else{
+        _stochastic_connectivity = false;
+    }
+
     
     list< Property* > segs = options->Select(key+".segments");
     list< Property* > ::iterator segsIt;
@@ -100,6 +117,13 @@ void Neighborlist::Initialize(Property *options) {
     }
     else {
         _useConstantCutoff = false;
+    }
+    if (options->exists(key+".exciton_cutoff")) {
+        _useExcitonCutoff = true;
+        _excitonqmCutoff = options->get(key+".exciton_cutoff").as< double >();
+    }
+    else {
+        _useExcitonCutoff = false;
     }
     if (options->exists(key+".generate_from")) {
         _generate_from_file = true;
@@ -137,25 +161,30 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
     if (_generate_from_file) {        
         this->GenerateFromFile(top, _generate_from);        
     }
+
+    else if (_stochastic_connectivity) {        
+        this->StochasticConnectivity(top, _probabilityfile);        
+    }
+
     
     else {        
 
         vector< Segment* > ::iterator segit1;
-        vector< Segment* > ::iterator segit2;
-        vector< Fragment* > ::iterator fragit1;
-        vector< Fragment* > ::iterator fragit2;
-
-        double cutoff;
-        vec r1;
-        vec r2;
-        
+      
         if (TOOLS::globals::verbose) {
             cout << endl <<  "... ..." << flush;
-        }        
-        
+        }
+        boost::progress_display show_progress( top->Segments().size() );        
         for (segit1 = top->Segments().begin();
                 segit1 < top->Segments().end();
                 segit1++) {
+                ++show_progress;
+                vector< Segment* > ::iterator segit2;
+                vector< Fragment* > ::iterator fragit1;
+                vector< Fragment* > ::iterator fragit2;
+                double cutoff;
+                vec r1;
+                vec r2;
 
                 Segment *seg1 = *segit1;
                 if (TOOLS::globals::verbose) {
@@ -202,8 +231,8 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
                         if( abs( top->PbShortestConnect(r1, r2) ) > cutoff ) {
                             continue;
                         }
-                        else {
-                            top->NBList().Add(seg1, seg2);
+                        else {                              
+                            top->NBList().Add(seg1, seg2);                          
                             stopLoop = true;
                             break;
                         }                
@@ -218,11 +247,52 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
     }
 
     cout << endl << " ... ... Created " << top->NBList().size() << " direct pairs.";
+    
+    if(_useExcitonCutoff){
+        cout << endl << " ... ... Determining classical pairs "<<endl;
+        QMNBList::iterator pit;
+        QMNBList &nblist = top->NBList();
+        for (pit = nblist.begin(); pit != nblist.end(); ++pit) {
+            vec r1;
+            vec r2;
+            vector< Fragment* > ::iterator fragit1;
+            vector< Fragment* > ::iterator fragit2;
+            
+            
+            bool stopLoop = false;
+                for (fragit1 =  (*pit)->Seg1()->Fragments().begin();
+                        fragit1 <  (*pit)->Seg1()->Fragments().end();
+                        fragit1 ++) {
+
+                    if (stopLoop) { break; }
+
+                    for (fragit2 =  (*pit)->Seg2()->Fragments().begin();
+                            fragit2 <  (*pit)->Seg2()->Fragments().end();
+                            fragit2++) {
+
+
+                        r1 = (*fragit1)->getPos();
+                        r2 = (*fragit2)->getPos();
+                        if( abs( top->PbShortestConnect(r1, r2) ) > _excitonqmCutoff ) {
+                            (*pit)->setType(3);
+                            continue;
+                        }
+                        else {   
+                            (*pit)->setType(0);
+                            stopLoop = true;
+                            break;
+                        }                
+
+                    } /* exit loop frag2 */
+                } /* exit loop frag1 */          
+            } //Type 3 Exciton_classical approx
+        }        
+    
 
     // add superexchange pairs
     top->NBList().setSuperExchangeTypes(_superexchange);
     top->NBList().GenerateSuperExchange();
-  
+    
     // DEBUG output
     if (votca::tools::globals::verbose) {
 
@@ -265,6 +335,120 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
     }
 
     return true;        
+}
+
+bool Neighborlist::StochasticConnectOrNot(double thisdistance, vector<double> distances, vector<double> probabilities, votca::tools::Random2 *RandomVariable){
+    double MINR = distances[0];
+    double MAXR = distances[distances.size()-1];
+    if(thisdistance == 0){
+        // no connection with itself
+        return false;
+    }
+    else if(thisdistance < MINR) {
+        return true;
+    }
+    else if(thisdistance > MAXR){
+        return false;
+    }
+    else{
+        //int numberofpoints = distances.size();
+        double thisprobability=0.0;
+        for(unsigned i = 0; i<distances.size()-1; i++){
+            if(distances[i] < thisdistance && thisdistance < distances[i+1]){
+                // linear interpolations
+                thisprobability = (probabilities[i+1]-probabilities[i])/(distances[i+1]-distances[i])*(thisdistance-distances[i])+probabilities[i];
+                break;
+            }
+        }
+        double uniformnumber = RandomVariable->rand_uniform();
+        if(uniformnumber < thisprobability) {
+            // accept connection
+            return true;
+        }
+        else{
+            // don't accept connection
+            return false;
+        }
+    }
+}
+
+void Neighborlist::StochasticConnectivity(Topology *top, string filename) {
+    cout << endl << "... ... Creating connectivity based on the provided probability function that" << endl;
+    cout << "... ... describes the centre of mass-dependent probability of two sites being" << endl;
+    cout << "... ... conncected (coarse grained model). This file can be generated using the" << endl;
+    cout << "... ... panalyze calculator." << endl;
+    
+    // read in probability function
+    cout << endl << "... ... probability function:" << endl;
+    vector<double> distances;
+    vector<double> probabilities;
+    std::string line;
+    std::ifstream intt;
+    intt.open(filename.c_str());
+    int linenumber = 0;
+    if (intt.is_open() ) {
+        while ( intt.good() ) {
+
+            std::getline(intt, line);
+            if (linenumber > 0){
+                vector<string> split;
+                Tokenizer toker(line, " \t");
+                toker.ToVector(split);
+
+                if ( !split.size()      ||
+                      split[0] == "!"   ||
+                      split[0].substr(0,1) == "!" ) { continue; }
+             
+                double distance          = boost::lexical_cast<double>(split[0]);
+                double probability       = boost::lexical_cast<double>(split[1]);
+                cout << "        " << distance << "    " << probability << endl;
+                if(linenumber > 1){
+                    if (probability == 1 && probabilities[probabilities.size()-1] == 1){
+                        // first entry should be largest distance with probability 1
+                        probabilities.pop_back();
+                        distances.pop_back();
+                    }
+                }
+                distances.push_back(distance);
+                probabilities.push_back(probability);
+            }
+            linenumber++;
+        }
+    }
+    else { cout << endl << "ERROR: No such file " << filename << endl;
+           throw std::runtime_error("Supply input file."); }
+    
+    // Initialise random number generator
+    if(votca::tools::globals::verbose) { cout << endl << "Initialising random number generator" << endl; }
+    srand(12345); 
+    votca::tools::Random2 *RandomVariable = new votca::tools::Random2();
+    RandomVariable->init(rand(), rand(), rand(), rand());
+
+    
+    // get segments
+    vector <Segment*> segments = top->Segments();
+    vector <Segment*>::iterator seg1;
+    vector <Segment*>::iterator seg2;
+    
+    for (seg1 = segments.begin(); seg1!= segments.end(); seg1++){
+        cout << "\r... ... ..." << " evaluating segment ID = "
+             << (*seg1)->getId() << flush;
+
+        for (seg2 = seg1; seg2!= segments.end(); seg2++){ // for (seg2 = segments.begin(); seg2!= segments.end(); seg2++):q
+            vec r1 = (*seg1)->getPos();
+            vec r2 = (*seg2)->getPos();
+            double distance = abs( top->PbShortestConnect(r1, r2));
+            bool accept = StochasticConnectOrNot(distance, distances, probabilities, RandomVariable);
+            if(accept == true){
+                // add pair to neighbor list
+                top->NBList().Add((*seg1),(*seg2));
+                //QMPair* pair12 = top->NBList().Add((*seg1),(*seg2));
+                //cout << "add" << endl;
+            }
+        }
+    }
+
+   
 }
 
 

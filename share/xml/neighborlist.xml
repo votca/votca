@@ -1,14 +1,12 @@
 <options>
 
-<neighborlist help="Constructs a list of neighboring conjugated segments" label="calc:neighborlist" section="sec:neighborlist">
 
-	<constant default="0.5" help="If provided, this value is used for all segment types" unit="nm">0.5</constant>
-
-	<segments help="A pair of segment types">
-		<type help="Types of two segments. For types A and B this can be A A, A B or B B">c60 c60</type>
-		<cutoff help="Cutoff radius for centers of mass of rigid fragments" unit="nm">1.0</cutoff>
-	</segments>
-
+<neighborlist>
+        <segments>
+                <type>DCV5T_ME3 DCV5T_ME3</type>
+                <cutoff>3</cutoff>
+        </segments>
+        <constant>1.5</constant>
+        <exciton_cutoff>0.5</exciton_cutoff>
 </neighborlist>
-
 </options>

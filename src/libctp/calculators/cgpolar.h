@@ -127,15 +127,24 @@ bool CgPolar::EvaluateFrame(Topology *top) {
     }
     ofs.close();    
     
+    MolPolEngine engine = MolPolEngine(0.39, 0.30, 1024, 0.0001);
+    
+    for (vector<PolarSeg*>::iterator sit=bgn.begin();
+        sit<bgn.end(); ++sit) {
+        //matrix p0 = engine.CalculateMolPol(*(*sit), true);
+        engine.CalculateMolPol(*(*sit), true);
+    }
+    
     // COARSE-GRAIN    
     cout << endl;
     for (vector<PolarSeg*>::iterator sit=bgn.begin();
         sit<bgn.end(); ++sit) {
-        MolPolEngine engine = MolPolEngine();
+        //MolPolEngine engine = MolPolEngine();
         //matrix p0 = engine.CalculateMolPol(*(*sit), true);
+        engine.CalculateMolPol(*(*sit), true);
         //(*sit)->WriteMPS("cgpolar.fine.mps", "FINE");
         cout << "\rCoarse-grain ID = " << (*sit)->getId() << flush;
-        (*sit)->Coarsegrain(_cg_anisotropic);
+        (*sit)->Coarsegrain(_cg_anisotropic);        
         //(*sit)->WriteMPS("cgpolar.coarse.mps", "COARSE");
         //matrix p1 = engine.CalculateMolPol(*(*sit), true);
         //int a; cin >> a;
