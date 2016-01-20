@@ -1,4 +1,5 @@
-# 
+#!/usr/bin/env bash
+#
 # Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +32,7 @@ for rc in "@CMAKE_INSTALL_PREFIX@/@DATA@"/rc/*rc.bash; do
 done
 unset rc
 
-#bash cmopletion
+#bash completion
 if [ -n "$BASH_VERSION" ]; then 
   for comp in "@CMAKE_INSTALL_PREFIX@/@DATA@"/rc/*completion.bash; do
     [ -r "$comp" ] && source "$comp"
