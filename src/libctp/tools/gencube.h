@@ -152,13 +152,12 @@ namespace votca {
                 LOG(logDEBUG, _log) << "Reading serialized QM data from " << _orbfile << flush;
 
                 Orbitals _orbitals;
+                
                 // load the QM data from serialized orbitals object
 
-                std::ifstream ifs((_orbfile).c_str());
+                
                 LOG(logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
-                boost::archive::binary_iarchive ia(ifs);
-                ia >> _orbitals;
-                ifs.close();
+               _orbitals.Load(_orbfile);
 
                 // get atoms
                 std::vector<QMAtom*> _atoms = _orbitals.QMAtoms();
@@ -367,12 +366,18 @@ namespace votca {
                 
                 // diagonalized QP, if requested
                 if ( _do_qp && _state > 0 ){
+                
                     int GWAmin = _orbitals.getGWAmin();
                     int GWAmax = _orbitals.getGWAmax();
+                    
+                    //cout << _orbitals.hasQPdiag()<< endl;
                     ub::matrix<double> QPcoefs = ub::project(_orbitals.QPdiagCoefficients(),ub::range(GWAmin, GWAmax + 1), ub::range(_state, _state +1 ) ); // get QPdiag coefficients for the requested state
+              
+                    
                     ub::matrix<double> MOs = ub::project(_orbitals.MOCoefficients(),ub::range(GWAmin, GWAmax + 1), ub::range(0, dftbasis.AOBasisSize())) ; // get DFT MO coefficients
+            
                     ub::matrix<double> Ftemp = ub::prod( ub::trans(MOs),QPcoefs );
-
+              
                     for (int _ix = 0; _ix <= _xsteps; _ix++) {
                         double _x = xstart + double(_ix) * xincr;
                         for (int _iy = 0; _iy <= _ysteps; _iy++) {
