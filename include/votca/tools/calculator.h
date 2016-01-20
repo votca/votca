@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2012 The VOTCA Development Team
+ *            Copyright 2009-2016 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,14 +18,14 @@
  */
 
 
-#ifndef VOTCA_CTP_CALCULATOR_H
-#define VOTCA_CTP_CALCULATOR_H
+#ifndef VOTCA_TOOLS_CALCULATOR_H
+#define VOTCA_TOOLS_CALCULATOR_H
 
 #include <votca/tools/property.h>
 #include <votca/tools/propertyiomanipulator.h>
 #include <votca/tools/globals.h>
 
-namespace votca { namespace ctp {
+namespace votca { namespace tools {
 
 /**
  * \brief Base class for all calculators
@@ -115,7 +115,7 @@ inline void Calculator::UpdateWithDefaults(votca::tools::Property *options) {
     if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");       
     // load the xml description of the calculator (with defaults and test values)
     std::string xmlFile = std::string(getenv("VOTCASHARE")) 
-            + std::string("/ctp/xml/") + id + std::string(".xml");
+            + std::string("/tools/xml/") + id + std::string(".xml");
     
     votca::tools::Property defaults, _defaults;
     votca::tools::load_property_from_xml(_defaults, xmlFile);
@@ -158,4 +158,4 @@ inline void Calculator::AddDefaults( votca::tools::Property &p, votca::tools::Pr
 
 }}
 
-#endif /* VOTCA_CTP_CALCULATOR_H */
+#endif /* VOTCA_TOOLS_CALCULATOR_H */
