@@ -8,8 +8,8 @@ cmake_install.cmake
 include/votca/kmc/Makefile
 include/votca/kmc/cmake_install.cmake
 
-src/tools/kmc_run 
-src/tools/*.man
+src/kmc_run/kmc_run 
+src/kmc_run/*.man
 
 install_manifest.txt
 

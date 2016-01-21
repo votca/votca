@@ -97,5 +97,5 @@ endforeach(FUNC)
 ######################################
 add_subdirectory(include/votca/kmc)
 add_subdirectory(src/libkmc)
-add_subdirectory(src/tools)
+add_subdirectory(src/kmc_run)
 add_subdirectory(share)
