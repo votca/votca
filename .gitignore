@@ -53,10 +53,9 @@ install_manifest.txt
 include/votca/kmc/Makefile
 include/votca/kmc/cmake_install.cmake
 
-src/kmc_run/kmc_run 
+src/kmc_run/xtp_kmc_run 
 src/kmc_run/*.man
 
-src/libkmc/libvotca_kmc.so
 src/libkmc/hgversion.h
 src/libkmc/votca_config.h
 src/libkmc/*.pc

@@ -3,7 +3,8 @@ foreach(PROG kmc_run)
   file(GLOB ${PROG}_SOURCES ${PROG}*.cc)
 
   add_executable(${PROG} ${${PROG}_SOURCES})
-  target_link_libraries(${PROG} votca_kmc ${VOTCA_TOOLS_LIBRARIES}  ${BOOST_LIBRARIES})
+  set_target_properties(${PROG} PROPERTIES OUTPUT_NAME xtp_${PROG})
+  target_link_libraries(${PROG} votca_xtp_kmc ${VOTCA_TOOLS_LIBRARIES}  ${BOOST_LIBRARIES})
   install(TARGETS ${PROG} RUNTIME DESTINATION bin)
 
   if (BUILD_MANPAGES)
