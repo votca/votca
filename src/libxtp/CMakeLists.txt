@@ -35,7 +35,7 @@ list(REMOVE_ITEM VOTCA_SOURCES ${NOT_VOTCA_SOURCES})
 
 add_library(votca_xtp  ${VOTCA_SOURCES})
 add_dependencies(votca_xtp hgversion-xtp)
-target_link_libraries(votca_xtp ${VOTCA_CSG_LIBRARIES} ${MKL_LIBRARIES} ${GSL_LIBRARIES}  ${VOTCA_MOO_LIBRARIES} ${VOTCA_TOOLS_LIBRARIES} ${BOOST_LIBRARIES} ${LIBXC_LIBRARIES})
+target_link_libraries(votca_xtp ${VOTCA_CSG_LIBRARIES} ${MKL_LIBRARIES} ${GSL_LIBRARIES}  votca_moo ${VOTCA_TOOLS_LIBRARIES} ${BOOST_LIBRARIES} ${LIBXC_LIBRARIES})
 install(TARGETS votca_xtp LIBRARY DESTINATION ${LIB} ARCHIVE DESTINATION ${LIB})
 
 configure_file(libvotca_xtp.pc.in ${CMAKE_CURRENT_BINARY_DIR}/libvotca_xtp.pc @ONLY)

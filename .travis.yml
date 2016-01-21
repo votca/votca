@@ -44,7 +44,6 @@ before_script:
   - ln -s /usr/bin/ccache "$HOME/bin/clang++"
   - ln -s /usr/bin/ccache "$HOME/bin/clang"
 # download newer cmake for gmx
-
   - wget --no-check-certificate -qO- http://www.cmake.org/files/v${CMAKE_VERSION:0:3}/cmake-${CMAKE_VERSION}.tar.gz | tar -xz
   - ln -vs $PWD/cmake-${CMAKE_VERSION}/bin/cmake "$HOME/bin/cmake"
 
@@ -54,7 +53,7 @@ script:
     ${J:+-j$J} ${BDIR:+--builddir=$BDIR} ${NINJA:+--ninja} ${WALL:+--Wall}
     --directory "$HOME/votca/src" --no-clean --depth 1
     tools gromacs csg csgapps ${MAN:+csg-manual} ${TEST:+csg-tutorials}
-    ${XTP:+moo xtp}
+    ${XTP:+xtp}
 
 cache:
   directories:

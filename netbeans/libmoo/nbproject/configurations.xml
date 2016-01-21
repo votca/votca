@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="69">
+  <logicalFolder name="root" displayName="root" projectFiles="true">
+    <logicalFolder name="HeaderFiles"
+                   displayName="Header Files"
+                   projectFiles="true">
+      <itemPath>../../include/votca/moo/basis_set.h</itemPath>
+      <itemPath>../../include/votca/moo/charges.h</itemPath>
+      <itemPath>../../include/votca/moo/crgunit.h</itemPath>
+      <itemPath>../../include/votca/moo/crgunittype.h</itemPath>
+      <itemPath>../../include/votca/moo/fock.h</itemPath>
+      <itemPath>../../include/votca/moo/global.h</itemPath>
+      <itemPath>../../include/votca/moo/jcalc.h</itemPath>
+      <itemPath>../../include/votca/moo/jcalc2.h</itemPath>
+      <itemPath>../../include/votca/moo/mol_and_orb.h</itemPath>
+      <itemPath>../../include/votca/moo/orbitals.h</itemPath>
+      <itemPath>../../include/votca/moo/units.h</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ResourceFiles"
+                   displayName="Resource Files"
+                   projectFiles="true">
+    </logicalFolder>
+    <logicalFolder name="SourceFiles"
+                   displayName="Source Files"
+                   projectFiles="true">
+      <itemPath>../../src/libmoo/basis_set.cpp</itemPath>
+      <itemPath>../../src/libmoo/charges.cpp</itemPath>
+      <itemPath>../../src/libmoo/crgunit.cc</itemPath>
+      <itemPath>../../src/libmoo/crgunittype.cc</itemPath>
+      <itemPath>../../src/libmoo/fock.cc</itemPath>
+      <itemPath>../../src/libmoo/jcalc.cc</itemPath>
+      <itemPath>../../src/libmoo/jcalc2.cc</itemPath>
+      <itemPath>../../src/libmoo/mol_and_orb.cpp</itemPath>
+      <itemPath>../../src/libmoo/orbitals.cpp</itemPath>
+      <itemPath>../../src/libmoo/units.cc</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false">
+      <itemPath>Makefile_nb</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <sourceRootList>
+    <Elem>../../include</Elem>
+    <Elem>../../src/libmoo</Elem>
+  </sourceRootList>
+  <projectmakefile>Makefile_nb</projectmakefile>
+  <confs>
+    <conf name="Debug" type="3">
+      <toolsSet>
+        <developmentServer>localhost</developmentServer>
+        <compilerSet>GNU|GNU</compilerSet>
+        <platform>2</platform>
+      </toolsSet>
+      <compileType>
+        <ccTool>
+          <incDir>
+            <pElem>../../include</pElem>
+            <pElem>../../../tools/include</pElem>
+          </incDir>
+        </ccTool>
+        <archiverTool>
+          <output>../../src/libmoo/libmoo.a</output>
+        </archiverTool>
+      </compileType>
+    </conf>
+    <conf name="Release" type="3">
+      <toolsSet>
+        <developmentServer>localhost</developmentServer>
+        <compilerSet>GNU|GNU</compilerSet>
+        <platform>2</platform>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+        </cTool>
+        <ccTool>
+          <developmentMode>6</developmentMode>
+          <incDir>
+            <pElem>../../include</pElem>
+            <pElem>../../../include</pElem>
+          </incDir>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+        </fortranCompilerTool>
+        <archiverTool>
+          <output>../../src/libmoo/libmoo.a</output>
+        </archiverTool>
+      </compileType>
+    </conf>
+  </confs>
+</configurationDescriptor>
