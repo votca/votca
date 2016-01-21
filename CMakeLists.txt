@@ -127,7 +127,6 @@ endif(WITH_LINALG)
 
 #configure_file(config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
-
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
 ########################################################################
@@ -168,3 +167,6 @@ add_subdirectory(src/tools)
 #add_subdirectory(share/scripts/dipro) 
 add_subdirectory(share)  
 add_subdirectory(share/man)
+add_subdirectory(include/votca/kmc)
+add_subdirectory(src/libkmc)
+add_subdirectory(src/kmc_run)

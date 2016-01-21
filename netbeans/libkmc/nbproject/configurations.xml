@@ -1,0 +1,543 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="97">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <logicalFolder name="calculators" displayName="Calculators" projectFiles="true">
+      <itemPath>../../src/libkmc/calculators/bulk.h</itemPath>
+      <itemPath>../../src/libkmc/calculators/device.h</itemPath>
+      <itemPath>../../src/libkmc/calculators/diffusion.h</itemPath>
+      <itemPath>../../src/libkmc/calculators/diode.h</itemPath>
+      <itemPath>../../src/libkmc/calculators/kmclifetime.h</itemPath>
+      <itemPath>../../src/libkmc/calculators/kmclight.h</itemPath>
+      <itemPath>../../src/libkmc/calculators/kmcmultiple.h</itemPath>
+      <itemPath>../../src/libkmc/calculators/kmcparallel.h</itemPath>
+      <itemPath>../../src/libkmc/calculators/kmcsingle.h</itemPath>
+    </logicalFolder>
+    <logicalFolder name="HeaderFiles"
+                   displayName="Header Files"
+                   projectFiles="true">
+      <itemPath>../../include/votca/kmc/bsumtree.h</itemPath>
+      <itemPath>../../include/votca/kmc/carrier.h</itemPath>
+      <itemPath>../../include/votca/kmc/carrierbulk.h</itemPath>
+      <itemPath>../../include/votca/kmc/dnode.h</itemPath>
+      <itemPath>../../include/votca/kmc/event.h</itemPath>
+      <itemPath>../../include/votca/kmc/eventinfo.h</itemPath>
+      <itemPath>../../include/votca/kmc/events.h</itemPath>
+      <itemPath>../../include/votca/kmc/gnode.h</itemPath>
+      <itemPath>../../include/votca/kmc/graph.h</itemPath>
+      <itemPath>../../include/votca/kmc/graphcubic.h</itemPath>
+      <itemPath>../../include/votca/kmc/graphkmc.h</itemPath>
+      <itemPath>../../include/votca/kmc/graphsql.h</itemPath>
+      <itemPath>../../include/votca/kmc/kmcapplication.h</itemPath>
+      <itemPath>../../include/votca/kmc/kmccalculator.h</itemPath>
+      <itemPath>../../include/votca/kmc/kmccalculatorfactory.h</itemPath>
+      <itemPath>../../include/votca/kmc/link.h</itemPath>
+      <itemPath>../../include/votca/kmc/linksql.h</itemPath>
+      <itemPath>../../include/votca/kmc/longrange.h</itemPath>
+      <itemPath>../../include/votca/kmc/node.h</itemPath>
+      <itemPath>../../include/votca/kmc/nodedevice.h</itemPath>
+      <itemPath>../../include/votca/kmc/nodesql.h</itemPath>
+      <itemPath>../../include/votca/kmc/numoutput.h</itemPath>
+      <itemPath>../../include/votca/kmc/profile.h</itemPath>
+      <itemPath>../../include/votca/kmc/state.h</itemPath>
+      <itemPath>../../include/votca/kmc/statereservoir.h</itemPath>
+      <itemPath>../../include/votca/kmc/version.h</itemPath>
+      <itemPath>../../include/votca/kmc/vssmgroup.h</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ResourceFiles"
+                   displayName="Resource Files"
+                   projectFiles="true">
+    </logicalFolder>
+    <logicalFolder name="SourceFiles"
+                   displayName="Source Files"
+                   projectFiles="true">
+      <itemPath>../../src/libkmc/bsumtree.cc</itemPath>
+      <itemPath>../../src/libkmc/event.cc</itemPath>
+      <itemPath>../../src/libkmc/events.cc</itemPath>
+      <itemPath>../../src/libkmc/gnode.cc</itemPath>
+      <itemPath>../../src/libkmc/graphcubic.cc</itemPath>
+      <itemPath>../../src/libkmc/graphkmc.cc</itemPath>
+      <itemPath>../../src/libkmc/kmcapplication.cc</itemPath>
+      <itemPath>../../src/libkmc/kmccalculatorfactory.cc</itemPath>
+      <itemPath>../../src/libkmc/kmclifetime.cc</itemPath>
+      <itemPath>../../src/libkmc/longrange.cc</itemPath>
+      <itemPath>../../src/libkmc/nodedevice.cc</itemPath>
+      <itemPath>../../src/libkmc/profile.cc</itemPath>
+      <itemPath>../../src/libkmc/statereservoir.cc</itemPath>
+      <itemPath>../../src/libkmc/version.cc</itemPath>
+      <itemPath>../../src/libkmc/version_nb.cc</itemPath>
+      <itemPath>../../src/libkmc/vssmgroup.cc</itemPath>
+    </logicalFolder>
+    <logicalFolder name="f1" displayName="XML" projectFiles="true">
+      <itemPath>../../share/xml/diffusion.xml</itemPath>
+      <itemPath>../../share/xml/diode.xml</itemPath>
+      <itemPath>../../share/xml/kmclight.xml</itemPath>
+      <itemPath>../../share/xml/kmcmultiple.xml</itemPath>
+      <itemPath>../../share/xml/kmcparallel.xml</itemPath>
+      <itemPath>../../share/xml/kmcsingle.xml</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="TestFiles"
+                   displayName="Test Files"
+                   projectFiles="false"
+                   kind="TEST_LOGICAL_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="TestFiles"
+                   displayName="Test Files"
+                   projectFiles="false"
+                   kind="TEST_LOGICAL_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="TestFiles"
+                   displayName="Test Files"
+                   projectFiles="false"
+                   kind="TEST_LOGICAL_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="TestFiles"
+                   displayName="Test Files"
+                   projectFiles="false"
+                   kind="TEST_LOGICAL_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+    </logicalFolder>
+  </logicalFolder>
+  <sourceRootList>
+    <Elem>../../../include</Elem>
+    <Elem>../../src/libkmc</Elem>
+    <Elem>../../../include</Elem>
+    <Elem>../../src/libkmc</Elem>
+    <Elem>../../../include</Elem>
+    <Elem>../../src/libkmc</Elem>
+    <Elem>../../../include</Elem>
+    <Elem>../../src/libkmc</Elem>
+    <Elem>../../../include</Elem>
+    <Elem>../../src/libkmc</Elem>
+    <Elem>../../../include</Elem>
+    <Elem>../../src/libkmc</Elem>
+  </sourceRootList>
+  <projectmakefile>Makefile</projectmakefile>
+  <confs>
+    <conf name="Debug" type="3">
+      <toolsSet>
+        <compilerSet>GNU|GNU</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>true</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <ccTool>
+          <incDir>
+            <pElem>../../include</pElem>
+            <pElem>../../include/votca/kmc</pElem>
+            <pElem>../../../include/votca/tools</pElem>
+            <pElem>../../../include</pElem>
+          </incDir>
+        </ccTool>
+        <archiverTool>
+        </archiverTool>
+      </compileType>
+      <item path="../../include/votca/kmc/bsumtree.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/carrier.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/carrierbulk.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/dnode.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/event.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/eventinfo.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/events.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/gnode.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/graph.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/graphcubic.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/graphkmc.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/graphsql.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/kmcapplication.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/kmccalculator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/kmccalculatorfactory.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/linksql.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/longrange.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/nodedevice.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/nodesql.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/numoutput.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/profile.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/state.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/statereservoir.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/version.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/vssmgroup.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../share/xml/diffusion.xml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../share/xml/diode.xml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../share/xml/kmclight.xml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../share/xml/kmcmultiple.xml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../share/xml/kmcparallel.xml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../share/xml/kmcsingle.xml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libkmc/bsumtree.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libkmc/calculators/bulk.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libkmc/calculators/device.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libkmc/calculators/diffusion.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libkmc/calculators/diode.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libkmc/calculators/kmclifetime.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libkmc/calculators/kmclight.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libkmc/calculators/kmcmultiple.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libkmc/calculators/kmcparallel.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libkmc/calculators/kmcsingle.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libkmc/event.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libkmc/events.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libkmc/gnode.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libkmc/graphcubic.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libkmc/graphkmc.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libkmc/kmcapplication.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libkmc/kmccalculatorfactory.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libkmc/kmclifetime.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libkmc/longrange.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libkmc/nodedevice.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libkmc/profile.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libkmc/statereservoir.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libkmc/version.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libkmc/version_nb.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libkmc/vssmgroup.cc" ex="false" tool="1" flavor2="0">
+      </item>
+    </conf>
+    <conf name="Release" type="3">
+      <toolsSet>
+        <compilerSet>GNU|GNU</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>true</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+          <incDir>
+            <pElem>../../../include</pElem>
+            <pElem>../../include</pElem>
+            <pElem>../../include/votca/kmc</pElem>
+          </incDir>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+        </asmTool>
+        <archiverTool>
+        </archiverTool>
+      </compileType>
+      <item path="../../include/votca/kmc/bsumtree.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/carrier.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/carrierbulk.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/dnode.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/event.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/eventinfo.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/events.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/gnode.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/graph.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/graphcubic.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/graphkmc.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/graphsql.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/kmcapplication.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/kmccalculator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/kmccalculatorfactory.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/linksql.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/longrange.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/nodedevice.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/nodesql.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/numoutput.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/profile.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/state.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/statereservoir.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/version.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/kmc/vssmgroup.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../share/xml/diffusion.xml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../share/xml/diode.xml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../share/xml/kmclight.xml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../share/xml/kmcmultiple.xml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../share/xml/kmcparallel.xml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../share/xml/kmcsingle.xml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libkmc/bsumtree.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libkmc/calculators/bulk.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libkmc/calculators/device.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libkmc/calculators/diffusion.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libkmc/calculators/diode.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libkmc/calculators/kmclifetime.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libkmc/calculators/kmclight.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libkmc/calculators/kmcmultiple.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libkmc/calculators/kmcparallel.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libkmc/calculators/kmcsingle.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libkmc/event.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libkmc/events.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libkmc/gnode.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libkmc/graphcubic.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libkmc/graphkmc.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libkmc/kmcapplication.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libkmc/kmccalculatorfactory.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libkmc/kmclifetime.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libkmc/longrange.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libkmc/nodedevice.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libkmc/profile.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libkmc/statereservoir.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libkmc/version.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libkmc/version_nb.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libkmc/vssmgroup.cc" ex="false" tool="1" flavor2="0">
+      </item>
+    </conf>
+  </confs>
+</configurationDescriptor>
