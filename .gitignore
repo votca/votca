@@ -49,7 +49,7 @@ netbeans/libmoo/nbproject/Makefile-variables.mk
 netbeans/libmoo/nbproject/Package-Debug.bash
 netbeans/libmoo/nbproject/Package-Release.bas
 
-src/moo_overlap/moo_overlap
+src/moo_overlap/xtp_moo_overlap
 
 CMakeFiles
 cmake_install.cmake

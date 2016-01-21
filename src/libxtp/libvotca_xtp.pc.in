@@ -7,7 +7,7 @@ Name: libvotca_xtp
 Description: charge transport functions of the votca package
 URL: http://www.votca.org
 Version: @VERSION@
-Requires: libvotca_tools libvotca_csg @VOTCA_KMCOLD_PKG@ libvotca_moo
+Requires: libvotca_tools libvotca_csg @VOTCA_KMCOLD_PKG@
 Libs: -L${libdir} -lvotca_xtp
 Libs.private: -lm
 Cflags: -I${includedir}
