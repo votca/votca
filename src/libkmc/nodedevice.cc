@@ -15,7 +15,7 @@
  *
  */
 
-#include "votca/kmc/nodedevice.h"
+#include "votca/xtp/nodedevice.h"
 
 
 using namespace std;

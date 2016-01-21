@@ -15,7 +15,7 @@
  *
  */
 
-#include <votca/kmc/vssmgroup.h>
+#include <votca/xtp/vssmgroup.h>
 #include <vector>
 #include <map>
 #include <iostream>

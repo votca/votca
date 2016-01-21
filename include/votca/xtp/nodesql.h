@@ -18,7 +18,7 @@
 #ifndef _VOTCA_KMC_NODESQL_H
 #define	_VOTCA_KMC_NODESQL_H
 
-#include <votca/kmc/node.h>
+#include <votca/xtp/node.h>
 
 namespace votca { namespace xtp {
 

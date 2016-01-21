@@ -15,7 +15,7 @@
  *
  */
 
-#include "votca/kmc/graphcubic.h"
+#include "votca/xtp/graphcubic.h"
 
 
 using namespace std;

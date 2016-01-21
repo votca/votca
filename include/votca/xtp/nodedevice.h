@@ -18,8 +18,8 @@
 #ifndef _VOTCA_KMC_NODEDEVICE_H
 #define	_VOTCA_KMC_NODEDEVICE_H
 
-#include <votca/kmc/nodesql.h>
-#include <votca/kmc/eventinfo.h>
+#include <votca/xtp/nodesql.h>
+#include <votca/xtp/eventinfo.h>
 
 namespace votca { namespace xtp {
 

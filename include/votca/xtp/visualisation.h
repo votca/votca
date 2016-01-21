@@ -18,9 +18,9 @@
 #ifndef __VOTCA_KMC_VISUALISATION_H_
 #define __VOTCA_KMC_VISUALISATION_H_
 
-#include <votca/kmc/event.h>
-#include <votca/kmc/graph.h>
-#include <votca/kmc/eventinfo.h>
+#include <votca/xtp/event.h>
+#include <votca/xtp/graph.h>
+#include <votca/xtp/eventinfo.h>
 #include <iostream>
 #include <iomanip>
 

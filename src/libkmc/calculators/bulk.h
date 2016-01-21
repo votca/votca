@@ -20,15 +20,15 @@
 
 #include <iostream>
 
-#include <votca/kmc/vssmgroup.h>
-#include <votca/kmc/graphkmc.h>
-#include <votca/kmc/node.h>
-#include <votca/kmc/state.h>
-#include <votca/kmc/eventinfo.h>
-#include <votca/kmc/event.h>
-#include <votca/kmc/events.h>
-#include <votca/kmc/profile.h>
-#include <votca/kmc/numoutput.h>
+#include <votca/xtp/vssmgroup.h>
+#include <votca/xtp/graphkmc.h>
+#include <votca/xtp/node.h>
+#include <votca/xtp/state.h>
+#include <votca/xtp/eventinfo.h>
+#include <votca/xtp/event.h>
+#include <votca/xtp/events.h>
+#include <votca/xtp/profile.h>
+#include <votca/xtp/numoutput.h>
 
 using namespace std;
 

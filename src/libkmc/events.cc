@@ -15,7 +15,7 @@
  *
  */
 
-#include <votca/kmc/events.h>
+#include <votca/xtp/events.h>
 
 
 using namespace std;

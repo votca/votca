@@ -15,7 +15,7 @@
  *
  */
 
-#include "votca/kmc/profile.h"
+#include "votca/xtp/profile.h"
 
 
 using namespace std;

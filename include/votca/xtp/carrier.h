@@ -18,7 +18,7 @@
 #ifndef __VOTCA_KMC_CARRIER_H_
 #define __VOTCA_KMC_CARRIER_H_
 
-#include <votca/kmc/node.h>
+#include <votca/xtp/node.h>
 
 namespace votca { namespace xtp {
 

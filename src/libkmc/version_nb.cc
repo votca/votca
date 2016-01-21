@@ -17,7 +17,7 @@
 
 #include <votca/tools/version.h>
 #include <iostream>
-#include <votca/kmc/version.h>
+#include <votca/xtp/version.h>
 #include <votca/tools/version.h>
 
 namespace votca { namespace xtp {

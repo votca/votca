@@ -18,7 +18,7 @@
 #ifndef _VOTCA_KMC_LINK_H
 #define	_VOTCA_KMC_LINK_H
 
-//#include <votca/kmc/node.h>
+//#include <votca/xtp/node.h>
  using namespace std;
 namespace votca { namespace xtp {
    

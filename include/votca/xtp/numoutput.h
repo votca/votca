@@ -18,9 +18,9 @@
 #ifndef _VOTCA_KMC_NUMOUTPUT_H
 #define	_VOTCA_KMC_NUMOUTPUT_H
 
-#include <votca/kmc/event.h>
-#include <votca/kmc/graph.h>
-#include <votca/kmc/visualisation.h>
+#include <votca/xtp/event.h>
+#include <votca/xtp/graph.h>
+#include <votca/xtp/visualisation.h>
 
 namespace votca { namespace xtp {
 

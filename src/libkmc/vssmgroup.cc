@@ -15,7 +15,7 @@
  *
  */
 
-#include "votca/kmc/vssmgroup.h"
+#include "votca/xtp/vssmgroup.h"
 
 
 using namespace std;

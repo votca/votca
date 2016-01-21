@@ -19,7 +19,7 @@
 #define	_VOTCA_KMC_GNODE_H
 
 #include <votca/tools/vec.h>
-#include <votca/kmc/glink.h>
+#include <votca/xtp/glink.h>
 
 using namespace std;
 using namespace votca::xtp;

@@ -15,8 +15,8 @@
  *
  */
 
-#include <votca/kmc/kmcapplication.h>
-#include <votca/kmc/kmccalculatorfactory.h>
+#include <votca/xtp/kmcapplication.h>
+#include <votca/xtp/kmccalculatorfactory.h>
 
 namespace votca { namespace xtp {
 

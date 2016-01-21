@@ -21,8 +21,8 @@
 #include <vector>
 #include <fstream>
 #include <iostream>
-#include <votca/kmc/graph.h>
-#include <votca/kmc/eventinfo.h>
+#include <votca/xtp/graph.h>
+#include <votca/xtp/eventinfo.h>
 #include <votca/tools/database.h>
 #include <votca/tools/random2.h>
 

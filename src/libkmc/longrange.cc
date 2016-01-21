@@ -15,7 +15,7 @@
  *
  */
 
-#include "votca/kmc/longrange.h"
+#include "votca/xtp/longrange.h"
 
 
 using namespace std;

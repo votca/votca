@@ -20,16 +20,16 @@
 
 #include <vector>
 #include <list>
-#include <votca/kmc/graphkmc.h>
-#include <votca/kmc/nodedevice.h>
+#include <votca/xtp/graphkmc.h>
+#include <votca/xtp/nodedevice.h>
 #include <votca/tools/database.h>
 #include <votca/tools/statement.h>
 #include <votca/tools/vec.h>
-#include <votca/kmc/state.h>
-#include <votca/kmc/carrierbulk.h>
-#include <votca/kmc/bsumtree.h>
+#include <votca/xtp/state.h>
+#include <votca/xtp/carrierbulk.h>
+#include <votca/xtp/bsumtree.h>
 #include <votca/tools/random2.h>
-#include <votca/kmc/state.h>
+#include <votca/xtp/state.h>
 
 namespace votca { namespace xtp {
 

@@ -20,8 +20,8 @@
 
 #include <vector>
 #include <votca/tools/vec.h>
-#include <votca/kmc/carrier.h>
-#include <votca/kmc/node.h>
+#include <votca/xtp/carrier.h>
+#include <votca/xtp/node.h>
 
 typedef votca::tools::vec myvec;
 

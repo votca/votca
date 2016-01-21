@@ -19,8 +19,8 @@
 #define __VOTCA_KMC_PROFILE_H_
 
 #include <votca/tools/vec.h>
-#include <votca/kmc/graphkmc.h>
-#include <votca/kmc/eventinfo.h>
+#include <votca/xtp/graphkmc.h>
+#include <votca/xtp/eventinfo.h>
 
 namespace votca { namespace xtp {
   

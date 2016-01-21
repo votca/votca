@@ -19,7 +19,7 @@
 #define	_VOTCA_KMC_LINKDEVICE_H
 
 #include <votca/tools/vec.h>
-#include <votca/kmc/linksql.h>
+#include <votca/xtp/linksql.h>
 
 namespace votca { namespace xtp {
 

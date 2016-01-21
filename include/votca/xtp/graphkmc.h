@@ -19,10 +19,10 @@
 #define __VOTCA_KMC_GRAPHKMC_H_
 
 #include <vector>
-#include <votca/kmc/graphsql.h>
-#include <votca/kmc/nodedevice.h>
-#include <votca/kmc/linkdevice.h>
-#include <votca/kmc/eventinfo.h>
+#include <votca/xtp/graphsql.h>
+#include <votca/xtp/nodedevice.h>
+#include <votca/xtp/linkdevice.h>
+#include <votca/xtp/eventinfo.h>
 
 namespace votca { namespace xtp {
 

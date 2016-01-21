@@ -15,7 +15,7 @@
  *
  */
 
-#include <votca/kmc/graphkmc.h>
+#include <votca/xtp/graphkmc.h>
 
 
 using namespace std;

@@ -19,7 +19,7 @@
 #ifndef __VOTCA_KMC_LIFETIME_H
 #define	__VOTCA_KMC_LIFETIME_H
 
-// #include <votca/kmc/vssmgroup.h>
+// #include <votca/xtp/vssmgroup.h>
 #include <vector>
 #include <map>
 #include <iostream>
@@ -37,10 +37,10 @@
 #include <votca/tools/tokenizer.h>
 #include <votca/tools/globals.h>
 #include <votca/tools/random2.h>
-#include <votca/kmc/kmccalculator.h>
+#include <votca/xtp/kmccalculator.h>
 
 #include <tr1/unordered_map>
-#include <votca/kmc/gnode.h>
+#include <votca/xtp/gnode.h>
 #include <math.h> // needed for fmod()
 
 using namespace std;

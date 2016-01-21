@@ -19,7 +19,7 @@
 #ifndef __VOTCA_KMC_MULTIPLE_H
 #define	__VOTCA_KMC_MULTIPLE_H
 
-// #include <votca/kmc/vssmgroup.h>
+// #include <votca/xtp/vssmgroup.h>
 #include <vector>
 #include <map>
 #include <iostream>
@@ -39,7 +39,7 @@
 #include <votca/tools/random2.h>
 
 #include <tr1/unordered_map>
-#include <votca/kmc/gnode.h>
+#include <votca/xtp/gnode.h>
 #include <math.h> // needed for fmod()
 
 using namespace std;

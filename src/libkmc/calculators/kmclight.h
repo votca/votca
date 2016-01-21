@@ -18,7 +18,7 @@
 #ifndef __VOTCA_KMC_LIGHT_H
 #define	__VOTCA_KMC_LIGHT_H
 
-// #include <votca/kmc/vssmgroup.h>
+// #include <votca/xtp/vssmgroup.h>
 #include <vector>
 // #include <map>
 #include <iostream>

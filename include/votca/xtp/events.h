@@ -19,12 +19,12 @@
 #define __VOTCA_KMC_EVENTS_H_
 
 
-#include <votca/kmc/graphkmc.h>
-#include <votca/kmc/statereservoir.h>
-#include <votca/kmc/event.h>
-#include <votca/kmc/bsumtree.h>
-#include <votca/kmc/longrange.h>
-#include <votca/kmc/eventinfo.h>
+#include <votca/xtp/graphkmc.h>
+#include <votca/xtp/statereservoir.h>
+#include <votca/xtp/event.h>
+#include <votca/xtp/bsumtree.h>
+#include <votca/xtp/longrange.h>
+#include <votca/xtp/eventinfo.h>
 
 namespace votca { namespace xtp {
   

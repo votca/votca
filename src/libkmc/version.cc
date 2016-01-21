@@ -17,7 +17,7 @@
 
 #include "votca_config.h"
 #include <votca/tools/version.h>
-#include <votca/kmc/version.h>
+#include <votca/xtp/version.h>
 #include <iostream>
 
 extern "C" {

@@ -15,7 +15,7 @@
  *
  */
 
-#include "votca/kmc/statereservoir.h"
+#include "votca/xtp/statereservoir.h"
 
 
 using namespace std;

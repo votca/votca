@@ -19,8 +19,8 @@
 #define __VOTCA_KMC_VSSMGROUP_H_
 
 
-#include <votca/kmc/events.h>
-#include <votca/kmc/eventinfo.h>
+#include <votca/xtp/events.h>
+#include <votca/xtp/eventinfo.h>
 
 namespace votca { namespace xtp {
   

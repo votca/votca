@@ -19,9 +19,9 @@
 #define __VOTCA_KMC_GRAPH_H_
 
 #include <vector>
-#include <votca/kmc/nodesql.h>
-#include <votca/kmc/linksql.h>
-#include <votca/kmc/eventinfo.h>
+#include <votca/xtp/nodesql.h>
+#include <votca/xtp/linksql.h>
+#include <votca/xtp/eventinfo.h>
 #include <votca/tools/random2.h>
 
 

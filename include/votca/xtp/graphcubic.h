@@ -19,10 +19,10 @@
 #define __VOTCA_KMC_GRAPH_CUBIC_H_
 
 #include <vector>
-#include <votca/kmc/graph.h>
-#include <votca/kmc/node.h>
-#include <votca/kmc/link.h>
-#include <votca/kmc/dnode.h>
+#include <votca/xtp/graph.h>
+#include <votca/xtp/node.h>
+#include <votca/xtp/link.h>
+#include <votca/xtp/dnode.h>
 
 namespace votca { namespace xtp {
  /* 

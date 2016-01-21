@@ -22,9 +22,9 @@
 #include <list>
 #include <fstream>
 #include <iostream>
-#include <votca/kmc/carrier.h>
-#include <votca/kmc/node.h>
-#include <votca/kmc/graph.h>
+#include <votca/xtp/carrier.h>
+#include <votca/xtp/node.h>
+#include <votca/xtp/graph.h>
 
 namespace votca { namespace xtp {
 

@@ -16,7 +16,7 @@
  */
 
 #include <stdlib.h>
-#include <votca/kmc/kmcapplication.h>
+#include <votca/xtp/kmcapplication.h>
 #include <string>
 
 using namespace votca::xtp;

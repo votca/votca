@@ -18,7 +18,7 @@
 #ifndef __VOTCA_KMC_TRAJECTORIES_H_
 #define __VOTCA_KMC_TRAJECTORIES_H_
 
-#include <votca/kmc/event.h>
+#include <votca/xtp/event.h>
 #include <iostream>
 #include <iomanip>
 

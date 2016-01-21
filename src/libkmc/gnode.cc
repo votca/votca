@@ -15,7 +15,7 @@
  *
  */
 
-#include "votca/kmc/gnode.h"
+#include "votca/xtp/gnode.h"
 #include <votca/tools/property.h>
 #include <boost/format.hpp>
 

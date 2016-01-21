@@ -19,9 +19,9 @@
 #define	__VOTCA_KMC_APPLICATION_H
 
 #include <votca/tools/application.h>
-#include <votca/kmc/version.h>
+#include <votca/xtp/version.h>
 #include "kmccalculator.h"
-#include <votca/kmc/graphsql.h>
+#include <votca/xtp/graphsql.h>
 
 namespace votca { namespace xtp {
 

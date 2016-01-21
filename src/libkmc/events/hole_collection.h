@@ -18,7 +18,7 @@
 #ifndef __VOTCA_KMC_HoleCollection_H_
 #define __VOTCA_KMC_HoleCollection_H_
 
-#include <votca/kmc/event.h>
+#include <votca/xtp/event.h>
 
 namespace votca { namespace xtp {
     

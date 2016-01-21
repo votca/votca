@@ -15,7 +15,7 @@
  *
  */
 
-#include "votca/kmc/bsumtree.h"
+#include "votca/xtp/bsumtree.h"
 #include <cmath>
 #include <cstdlib>
 

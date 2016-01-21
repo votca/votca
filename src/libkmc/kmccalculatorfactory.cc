@@ -15,7 +15,7 @@
  *
  */
 
-#include <votca/kmc/kmccalculatorfactory.h>
+#include <votca/xtp/kmccalculatorfactory.h>
 
 //#include "votca_config.h"
 #include "calculators/kmcsingle.h"

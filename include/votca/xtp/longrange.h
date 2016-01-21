@@ -19,9 +19,9 @@
 #define __VOTCA_KMC_LONGRANGE_H_
 
 #include <votca/tools/vec.h>
-#include <votca/kmc/eventinfo.h>
-#include <votca/kmc/profile.h>
-#include <votca/kmc/statereservoir.h>
+#include <votca/xtp/eventinfo.h>
+#include <votca/xtp/profile.h>
+#include <votca/xtp/statereservoir.h>
 
 namespace votca { namespace xtp {
   
