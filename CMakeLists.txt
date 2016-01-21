@@ -84,5 +84,5 @@ endforeach(FUNC)
 ######################################
 add_subdirectory(include/votca/moo)
 add_subdirectory(src/libmoo)
-add_subdirectory(src/tools)
+add_subdirectory(src/moo_overlap)
 add_subdirectory(share/xml)

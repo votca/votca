@@ -3,7 +3,7 @@ libvotca*.pc
 libvotca*.a
 libvotca*.so
 Makefile
-src/tools/moo_overlap
+src/moo_overlap/moo_overlap
 
 netbeans/*/build
 */nbproject/private
