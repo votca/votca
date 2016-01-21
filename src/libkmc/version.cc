@@ -26,7 +26,7 @@ extern "C" {
    }
 }
 
-namespace votca { namespace kmc {
+namespace votca { namespace xtp {
 
 //defines hgversion
 #include "hgversion.h"
@@ -44,7 +44,7 @@ void HelpTextHeader(const std::string &tool_name)
          << "========   VOTCA (http://www.votca.org)   ========\n"
          << "==================================================\n\n"
 	 << "please submit bugs to " PACKAGE_BUGREPORT "\n\n" 
-	 << tool_name << ", version " << votca::kmc::KmcVersionStr() 
+	 << tool_name << ", version " << votca::xtp::KmcVersionStr() 
          << "\nvotca_tools, version " << votca::tools::ToolsVersionStr()
          << "\n\n";
 }

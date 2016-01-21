@@ -21,7 +21,7 @@
 #include <votca/kmc/nodesql.h>
 #include <votca/kmc/eventinfo.h>
 
-namespace votca { namespace kmc {
+namespace votca { namespace xtp {
 
 class NodeDevice : public NodeSQL
 {

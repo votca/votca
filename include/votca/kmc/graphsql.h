@@ -27,7 +27,7 @@
 #include <votca/tools/random2.h>
 
 
-namespace votca { namespace kmc {
+namespace votca { namespace xtp {
 
 template<class TNode, class TLink>    
 class GraphSQL : public Graph<TNode, TLink> {

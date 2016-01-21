@@ -21,7 +21,7 @@
 using namespace std;
 
 namespace votca {
-    namespace kmc {
+    namespace xtp {
 void StateReservoir::InitStateReservoir(){
     this->InitState();
     InitReservoir();

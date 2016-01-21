@@ -21,7 +21,7 @@
 using namespace std;
 
 namespace votca {
-    namespace kmc {
+    namespace xtp {
         
 int Event::Determine_final_event_type(Node* node1, Node* node2) {
     if (node2->type() == (int) NormalNode){                                                                  return (int) TransferTo;}

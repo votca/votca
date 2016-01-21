@@ -18,7 +18,7 @@
 #ifndef _VOTCA_KMC_GLINK_H
 #define	_VOTCA_KMC_GLINK_H
 
-namespace votca { namespace kmc {
+namespace votca { namespace xtp {
 
 struct GLink
 {

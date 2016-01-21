@@ -19,9 +19,9 @@
 #include <votca/kmc/kmcapplication.h>
 #include <string>
 
-using namespace votca::kmc;
+using namespace votca::xtp;
 
-//using namespace votca::kmc;
+//using namespace votca::xtp;
 
 class KMCRun : public KMCApplication {
     public:

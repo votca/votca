@@ -21,7 +21,7 @@
 using namespace std;
 
 namespace votca {
-    namespace kmc {
+    namespace xtp {
  /*       
 void GraphCubic::Create_cubic_graph_nodes(int NX, int NY, int NZ, double lattice_constant, myvec front, myvec back) {
     

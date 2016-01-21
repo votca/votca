@@ -26,7 +26,7 @@
 #include <votca/kmc/node.h>
 #include <votca/kmc/graph.h>
 
-namespace votca { namespace kmc {
+namespace votca { namespace xtp {
 
 template <class TGraph, class TCarrier>
 class State {    

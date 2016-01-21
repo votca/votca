@@ -21,7 +21,7 @@
 using namespace std;
 
 namespace votca {
-    namespace kmc {
+    namespace xtp {
 void NodeDevice::Compute_Self_Image_Coulomb_Potential(double startz, double device_length, Eventinfo* eventinfo) {
 
     double coulpot = 0.0;

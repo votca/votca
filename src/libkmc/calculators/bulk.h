@@ -32,7 +32,7 @@
 
 using namespace std;
 
-namespace votca { namespace kmc {
+namespace votca { namespace xtp {
 
     
 class Bulk : public KMCCalculator 

@@ -21,7 +21,7 @@
 using namespace std;
 
 namespace votca {
-    namespace kmc {
+    namespace xtp {
 
 
 void Longrange::Init_Load_State(StateReservoir* state, Eventinfo* eventinfo) {

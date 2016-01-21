@@ -20,7 +20,7 @@
 
 //#include <votca/kmc/node.h>
  using namespace std;
-namespace votca { namespace kmc {
+namespace votca { namespace xtp {
    
 class Node;
 

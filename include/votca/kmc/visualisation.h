@@ -25,7 +25,7 @@
 #include <iomanip>
 
 
-namespace votca { namespace kmc {
+namespace votca { namespace xtp {
   
 using namespace std;
 

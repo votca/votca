@@ -24,7 +24,7 @@
 #include <votca/kmc/linkdevice.h>
 #include <votca/kmc/eventinfo.h>
 
-namespace votca { namespace kmc {
+namespace votca { namespace xtp {
 
 enum NodeType{NormalNode, LeftElectrodeNode, RightElectrodeNode};
     

@@ -30,7 +30,7 @@
 #include "node.h"
 
 using namespace std;
-using namespace votca::kmc;
+using namespace votca::xtp;
 using namespace votca::tools;
 
 

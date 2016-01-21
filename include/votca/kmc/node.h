@@ -21,7 +21,7 @@
 #include <votca/tools/vec.h>
 #include <votca/kmc/link.h>
 
-namespace votca { namespace kmc {
+namespace votca { namespace xtp {
 class Node
 {
 public:

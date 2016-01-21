@@ -31,7 +31,7 @@
 #include <votca/tools/random2.h>
 #include <votca/kmc/state.h>
 
-namespace votca { namespace kmc {
+namespace votca { namespace xtp {
 
 class StateReservoir : public State<GraphKMC, CarrierBulk> {
     

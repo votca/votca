@@ -22,7 +22,7 @@
 #include <votca/kmc/graph.h>
 #include <votca/kmc/visualisation.h>
 
-namespace votca { namespace kmc {
+namespace votca { namespace xtp {
 
 class Numoutput
 {

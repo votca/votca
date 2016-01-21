@@ -25,7 +25,7 @@
 
 typedef votca::tools::vec myvec;
 
-namespace votca { namespace kmc {
+namespace votca { namespace xtp {
   
 using namespace std;
 

@@ -20,7 +20,7 @@
 
 #include <string>
 
-namespace votca { namespace kmc {
+namespace votca { namespace xtp {
     const std::string & KmcVersionStr();
     void HelpTextHeader(const std::string &tool_name);
 }}

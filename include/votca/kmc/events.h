@@ -26,7 +26,7 @@
 #include <votca/kmc/longrange.h>
 #include <votca/kmc/eventinfo.h>
 
-namespace votca { namespace kmc {
+namespace votca { namespace xtp {
   
 using namespace std;
 

@@ -21,7 +21,7 @@
 #include <votca/tools/objectfactory.h>
 #include "kmccalculator.h"
 
-namespace votca { namespace kmc {
+namespace votca { namespace xtp {
 
 using namespace std;
 using namespace tools;

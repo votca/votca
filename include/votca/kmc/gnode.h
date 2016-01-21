@@ -22,10 +22,10 @@
 #include <votca/kmc/glink.h>
 
 using namespace std;
-using namespace votca::kmc;
+using namespace votca::xtp;
 
 
-namespace votca { namespace kmc {
+namespace votca { namespace xtp {
 
 class GNode
 {

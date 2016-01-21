@@ -24,7 +24,7 @@
 #include <votca/kmc/link.h>
 #include <votca/kmc/dnode.h>
 
-namespace votca { namespace kmc {
+namespace votca { namespace xtp {
  /* 
 class GraphCubic : public Graph<Node,Link> {
 

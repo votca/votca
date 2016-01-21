@@ -23,7 +23,7 @@
 //nrelements is number of leaves
 //treesize is number of nodes
 
-namespace votca { namespace kmc {
+namespace votca { namespace xtp {
   
 
 

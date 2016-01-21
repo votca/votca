@@ -23,7 +23,7 @@
 #include <votca/kmc/profile.h>
 #include <votca/kmc/statereservoir.h>
 
-namespace votca { namespace kmc {
+namespace votca { namespace xtp {
   
 using namespace std;
 

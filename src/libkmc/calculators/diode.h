@@ -26,7 +26,7 @@
 
 using namespace std;
 
-namespace votca { namespace kmc {
+namespace votca { namespace xtp {
     
 //typedef votca::tools::vec myvec;
 

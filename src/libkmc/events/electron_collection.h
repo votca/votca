@@ -20,7 +20,7 @@
 
 #include <votca/kmc/event.h>
 
-namespace votca { namespace kmc {
+namespace votca { namespace xtp {
     
 class ElectronCollection : public Event {
 public:

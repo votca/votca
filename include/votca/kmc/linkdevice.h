@@ -21,7 +21,7 @@
 #include <votca/tools/vec.h>
 #include <votca/kmc/linksql.h>
 
-namespace votca { namespace kmc {
+namespace votca { namespace xtp {
 
 enum CrossxType{NoxCross, PosxCross, NegxCross };        
 enum CrossyType{NoyCross, PosyCross, NegyCross };        

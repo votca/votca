@@ -22,7 +22,7 @@
 using namespace std;
 
 namespace votca {
-    namespace kmc {
+    namespace xtp {
 void GNode::AddDecayEvent(double _decayrate)
 {
     GLink newEvent;

@@ -20,7 +20,7 @@
 
 #include <votca/kmc/node.h>
 
-namespace votca { namespace kmc {
+namespace votca { namespace xtp {
     
 class CarrierBulk : public Carrier {
 public:

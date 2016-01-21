@@ -20,7 +20,7 @@
 #include <votca/kmc/version.h>
 #include <votca/tools/version.h>
 
-namespace votca { namespace kmc {
+namespace votca { namespace xtp {
 
 static const std::string version_str = "VERSION NOT SET (compiled " __DATE__ ", " __TIME__ ")";
 
@@ -34,7 +34,7 @@ void HelpTextHeader(const std::string &tool_name)
 {
     std::cout 
          << "\t------ VOTCA ( http://www.votca.org ) ------\n"
-         << tool_name << ", version " << votca::kmc::KmcVersionStr()
+         << tool_name << ", version " << votca::xtp::KmcVersionStr()
          << "\nvotca_tools, version " << votca::tools::ToolsVersionStr() 
          << "\n\n";
 }

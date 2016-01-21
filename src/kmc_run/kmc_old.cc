@@ -25,7 +25,7 @@
 #include <votca/tools/application.h>
 #include <votca/tools/tokenizer.h>
 using namespace std;
-using namespace votca::kmc;
+using namespace votca::xtp;
 
 struct link_t;
 
