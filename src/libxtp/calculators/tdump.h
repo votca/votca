@@ -70,7 +70,7 @@ bool TDump::EvaluateFrame(Topology *top) {
 
     if (_framesWritten > _framesToWrite) { return 1; }
 
-    // Rigidify system (if possible)
+    // Rigidify std::system (if possible)
     bool isRigid = top->Rigidify();
     if (!isRigid) {
         return 0;

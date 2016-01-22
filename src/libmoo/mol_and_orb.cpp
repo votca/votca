@@ -17,7 +17,7 @@
 
 #include <votca/moo/mol_and_orb.h>
 
-namespace votca { namespace moo {
+namespace votca { namespace xtp {
 
 map <string, int> MakePeriodicTable(){
     map <string, int> m;

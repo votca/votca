@@ -31,7 +31,7 @@ void PairsExtractor::Initialize(Property *options) {
 
 bool PairsExtractor::EvaluateFrame(Topology *top) {
     
-    // Rigidify system (if possible)
+    // Rigidify std::system (if possible)
     if (!top->Rigidify()) return 0;
     
     string xmlfile = Identify() + ".xml";    

@@ -18,7 +18,7 @@
 #include <votca/moo/fock.h>
 #include <votca/tools/property.h>
 
-namespace votca { namespace moo {
+namespace votca { namespace xtp {
 
 //ZINDO/S parameters for first three rows
 //Slater exponenets are assumed to be the same for s/p.  This is only the case up to row 3.  Including transition metals would require copious

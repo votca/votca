@@ -4,7 +4,7 @@
 #include <fock.h>
 
 
-namespace votca { namespace moo {
+namespace votca { namespace xtp {
 
 class JCalc
 {

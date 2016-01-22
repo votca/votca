@@ -20,7 +20,7 @@
 
 #include <iostream>
 
-namespace votca { namespace moo {
+namespace votca { namespace xtp {
 
 using namespace std;
 

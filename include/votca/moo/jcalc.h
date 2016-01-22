@@ -28,7 +28,7 @@
 #include "fock.h"
 #include <votca/tools/property.h>
 
-namespace votca { namespace moo {
+namespace votca { namespace xtp {
 
 using namespace boost;
 

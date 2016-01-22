@@ -17,7 +17,7 @@
 
 #include <votca/moo/crgunittype.h>
 
-namespace votca { namespace moo {
+namespace votca { namespace xtp {
 
 inline void get_orient(const vec & a, const vec & b,
                        const vec & c, matrix & cg) {

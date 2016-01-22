@@ -17,7 +17,7 @@
 
 #include <votca/moo/charges.h>
 
-namespace votca { namespace moo {
+namespace votca { namespace xtp {
 
 int multipoles::read_crg_eps(const char * namefile ){
         ifstream in(namefile);

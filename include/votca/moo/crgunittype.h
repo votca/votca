@@ -25,7 +25,7 @@
 #include <string>
 #include <stdexcept>
 
-namespace votca { namespace moo {
+namespace votca { namespace xtp {
 
 class CrgUnit;
 

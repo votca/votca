@@ -26,7 +26,7 @@
 #include <boost/lexical_cast.hpp>
 #include <votca/tools/property.h>
 
-namespace votca { namespace moo {
+namespace votca { namespace xtp {
 
 using namespace std;
 using namespace boost;

@@ -376,7 +376,7 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
          
     // RUN HERE (OVERRIDE - COPY EXISTING LOG-FILE)
     //string cpstr = "cp e_1_n.log " + path_logFile;
-    //int sig = system(cpstr.c_str());
+    //int sig = std::system(cpstr.c_str());
     //_qmpack->setLogFileName(path_logFile);
     
     //Commented out for test Jens 

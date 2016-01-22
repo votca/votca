@@ -193,11 +193,11 @@ Job::JobResult DMA::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         
         LOG(logDEBUG,*pLog) << "DMA: running formcheck on [" << _chkFile << "]" << flush;
 
-        if (system(NULL)) {
+        if (std::system(NULL)) {
             string _command;
             _command  = "cd " + qmpackage_work_dir + "; formchk " + _chkFile;
 
-            int i = system ( _command.c_str() );
+            int i = std::system ( _command.c_str() );
  
             // prepare the GDMA input file
             //Title ""
@@ -238,7 +238,7 @@ Job::JobResult DMA::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 
                 LOG(logINFO,*pLog) << _command << flush;
 
-                int j = system ( _command.c_str() );
+                int j = std::system ( _command.c_str() );
 
                 _dma_status = (i == 0) && (j == 0);
             

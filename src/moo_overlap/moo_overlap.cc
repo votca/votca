@@ -30,7 +30,7 @@
 #include <votca/tools/globals.h>
 
 using namespace std;
-using namespace votca::moo;
+using namespace votca::xtp;
 
 class MOOApplication
 	: public Application

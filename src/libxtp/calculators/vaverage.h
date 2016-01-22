@@ -54,7 +54,7 @@ void VAverage::Initialize(Property *opt) {
 
 bool VAverage::EvaluateFrame(Topology *top) {
 
-    // Rigidify system (if possible)
+    // Rigidify std::system (if possible)
     bool isRigid = top->Rigidify();
     if (!isRigid) {
         return 0;

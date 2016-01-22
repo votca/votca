@@ -24,7 +24,7 @@
 #include "crgunittype.h"
 #include "units.h"
 
-namespace votca { namespace moo {
+namespace votca { namespace xtp {
 
 using namespace std;
 

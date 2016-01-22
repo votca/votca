@@ -611,7 +611,7 @@ namespace votca {
 
             LOG(logDEBUG, *_pLog) << "GAUSSIAN: running [" << _executable << " " << _input_file_name << "]" << flush;
 
-            if (system(NULL)) {
+            if (std::system(NULL)) {
                 // if scratch is provided, run the shell script; 
                 // otherwise run gaussian directly and rely on global variables 
                 string _command;
@@ -622,8 +622,8 @@ namespace votca {
                     _command = "cd " + _run_dir + "; mkdir -p $GAUSS_SCRDIR; " + _executable + " " + _input_file_name;
                 }
 
-                //int i = system(_command.c_str());
-                system(_command.c_str());
+                //int i = std::system(_command.c_str());
+                std::system(_command.c_str());
                 if (CheckLogFile()) {
                     LOG(logDEBUG, *_pLog) << "GAUSSIAN: finished job" << flush;
                     return true;

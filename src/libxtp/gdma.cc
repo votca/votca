@@ -127,7 +127,7 @@ namespace votca {
                     // use formchk
                     string _command;
                     _command = "cd " + _runFolder + "; formchk " + _chkFile + " system.fchk > /dev/null";
-                    system(_command.c_str());
+                    std::system(_command.c_str());
                     // check again for fchk
                     if (!boost::filesystem::exists(fullFChk)) {
                         LOG(logINFO, *_log) << "Formatted Checkpoint file has not been found and cannot be created!" << flush;
@@ -144,7 +144,7 @@ namespace votca {
             // now we seem ready to go
             string _command;
             _command = "cd " + _runFolder + "; " + _executable + " < gdma.in > " + _outFile;
-            system(_command.c_str());
+            std::system(_command.c_str());
 
         }
 

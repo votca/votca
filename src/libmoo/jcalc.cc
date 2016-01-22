@@ -19,7 +19,7 @@
 #include <votca/moo/jcalc.h>
 #include <votca/tools/globals.h>
 
-namespace votca { namespace moo {
+namespace votca { namespace xtp {
 
 JCalc::~JCalc()
 {

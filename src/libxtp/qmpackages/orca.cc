@@ -404,7 +404,7 @@ bool Orca::Run()
 
     LOG(logDEBUG,*_pLog) << "Running Orca job" << flush;
     
-    if (system(NULL)) {
+    if (std::system(NULL)) {
         
         // Orca overrides input information, if *.db and *.movecs files are present
         // better trash the old version
@@ -422,8 +422,8 @@ bool Orca::Run()
             _command = "cd " + _run_dir + "; sh " + _shell_file_name;
         }
         //LOG(logDEBUG,*_pLog) << _command << flush;
-        system ( _command.c_str() );
-       // int i = system ( _command.c_str() );
+        std::system ( _command.c_str() );
+       // int i = std::system ( _command.c_str() );
         //LOG(logDEBUG,*_pLog) << "Orca job finished with "<<i << flush;
         if ( CheckLogFile() ) {
             LOG(logDEBUG,*_pLog) << "Finished Orca job" << flush;

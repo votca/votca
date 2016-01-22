@@ -302,7 +302,7 @@ bool NWChem::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gues
             // now convert this ascii file to binary
             string _command;
             _command = "cd "  + _run_dir + "; asc2mov 5000 system.mos system.movecs > convert.log";
-            int i = system ( _command.c_str() );
+            int i = std::system ( _command.c_str() );
             if ( i == 0 ) {
                 LOG(logDEBUG, *_pLog) << "Converted MO file from ascii to binary"<< flush;
             } else  {
@@ -369,7 +369,7 @@ bool NWChem::Run()
 
     LOG(logDEBUG,*_pLog) << "Running NWChem job" << flush;
     
-    if (system(NULL)) {
+    if (std::system(NULL)) {
         
         // NWChem overrides input information, if *.db and *.movecs files are present
         // better trash the old version
@@ -390,8 +390,8 @@ bool NWChem::Run()
             _command = "cd " + _run_dir + "; sh " + _shell_file_name;
         }
         
-        //int i = system ( _command.c_str() );
-        system ( _command.c_str() );
+        //int i = std::system ( _command.c_str() );
+        std::system ( _command.c_str() );
         
         if ( CheckLogFile() ) {
             LOG(logDEBUG,*_pLog) << "Finished NWChem job" << flush;
@@ -474,7 +474,7 @@ bool NWChem::ParseOrbitalsFile( Orbitals* _orbitals )
     string _orb_file_name_bin = _run_dir + "/" + _orb_file_name;
     string _command;
     _command = "cd "  + _run_dir + "; mov2asc 10000 system.movecs system.mos > convert.log";
-    int i = system ( _command.c_str() );
+    int i = std::system ( _command.c_str() );
     if ( i == 0 ) {
         LOG(logDEBUG, *_pLog) << "Converted MO file from binary to ascii"<< flush;
     } else  {

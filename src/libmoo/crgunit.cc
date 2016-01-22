@@ -17,7 +17,7 @@
 
 #include <votca/moo/crgunit.h>
 
-namespace votca { namespace moo {
+namespace votca { namespace xtp {
 
 CrgUnit::~CrgUnit()
 {

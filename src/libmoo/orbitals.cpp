@@ -19,7 +19,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-namespace votca { namespace moo {
+namespace votca { namespace xtp {
 
 int (orb::*orb::read_orb)(const char *)=&orb::read_orb_gauss;
 

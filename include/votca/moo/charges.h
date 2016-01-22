@@ -24,7 +24,7 @@
 #include <vector>
 #include <stdlib.h>
 
-namespace votca { namespace moo {
+namespace votca { namespace xtp {
 
 using namespace std;
 

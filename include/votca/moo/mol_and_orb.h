@@ -34,7 +34,7 @@
 #include <votca/tools/globals.h>
 
 ////#define DEBUG
-namespace votca { namespace moo {
+namespace votca { namespace xtp {
 
 using namespace std;
 

@@ -59,7 +59,7 @@ void TrajExtractor::Initialize(Property *options) {
 
 bool TrajExtractor::EvaluateFrame(Topology *top) {
 
-    // Rigidify system (if possible)
+    // Rigidify std::system (if possible)
     if (!top->Rigidify()) return 0;
 
     // Print coordinates

@@ -27,7 +27,7 @@
 
 namespace votca { namespace xtp {
 
-namespace MOO = votca::moo;
+namespace MOO = votca::xtp;
 
 /**
 * \brief Semi-empirical electronic coupling elements for QM pairs

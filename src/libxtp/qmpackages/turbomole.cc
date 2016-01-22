@@ -149,8 +149,8 @@ bool Turbomole::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_g
     string _input_exe = "define";
     _command  = "cd " + _run_dir + "; " + _input_exe + " <  ./" + _input_file_name + " >& " + _input_file_name + ".log" ;
     //cerr << _command << flush;
-    //int i = system ( _command.c_str() );
-    system ( _command.c_str() );
+    //int i = std::system ( _command.c_str() );
+    std::system ( _command.c_str() );
     
     // postprocess the output of define - scratch dir
     //cout <<  "TEMP DIR: " << _scratch_dir + temp_suffix << endl;
@@ -256,14 +256,14 @@ bool Turbomole::Run()
 
     LOG(logDEBUG,*_pLog) << "TURBOMOLE: Running job [" << _executable << "]" << flush;
     
-    if (system(NULL)) {
+    if (std::system(NULL)) {
         // if scratch is provided, run the shell script; 
         // otherwise run gaussian directly and rely on global variables 
         string _command;
         _command  = "cd " + _run_dir + "; " + _executable + " >& " + _executable + ".log ";
         
-        //int i = system ( _command.c_str() );
-        system ( _command.c_str() );
+        //int i = std::system ( _command.c_str() );
+        std::system ( _command.c_str() );
         LOG(logDEBUG,*_pLog) << "TURBOMOLE: Finished job" << flush;
         return true;
     }
