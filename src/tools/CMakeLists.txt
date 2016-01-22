@@ -1,4 +1,4 @@
-foreach(PROG xtp_map xtp_run xtp_tools xtp_parallel xtp_dump xtp_overlap)
+foreach(PROG xtp_map xtp_run xtp_tools xtp_parallel xtp_dump xtp_overlap xtp_kmc_run)
   file(GLOB ${PROG}_SOURCES ${PROG}*.cc)
 
   if( ${PROG} STREQUAL "xtp_map" )

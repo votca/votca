@@ -18,6 +18,7 @@ src/tools/xtp_map
 src/tools/xtp_run
 src/tools/xtp_tools
 src/tools/xtp_overlap
+src/tools/xtp_kmc_run
 src/dipro/*.mod
 src/dipro/*.x
 src/tools/*.man
@@ -50,6 +51,3 @@ CMakeFiles
 cmake_install.cmake
 CMakeCache.txt
 install_manifest.txt
-
-src/kmc_run/xtp_kmc_run 
-src/kmc_run/*.man
