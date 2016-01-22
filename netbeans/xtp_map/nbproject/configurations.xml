@@ -39,7 +39,7 @@
             <pElem>../../../csg/include</pElem>
             <pElem>../../include</pElem>
             <pElem>../../../tools/include</pElem>
-            <pElem>../../../moo/include</pElem>
+            <pElem>../../../xtp/include</pElem>
           </incDir>
         </ccTool>
         <linkerTool>

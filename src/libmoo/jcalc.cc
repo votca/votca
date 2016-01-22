@@ -16,7 +16,7 @@
  */
 
 #include <iostream>
-#include <votca/moo/jcalc.h>
+#include <votca/xtp/jcalc.h>
 #include <votca/tools/globals.h>
 
 namespace votca { namespace xtp {

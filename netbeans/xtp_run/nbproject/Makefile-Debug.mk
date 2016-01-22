@@ -73,7 +73,7 @@ LDLIBSOPTIONS=../libxtp/dist/Debug/GNU-Linux-x86/liblibxtp.a ../../../csg/netbea
 ${OBJECTDIR}/_ext/715944016/xtp_run.o: nbproject/Makefile-${CND_CONF}.mk ../../src/tools/xtp_run.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
 	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../moo/include -I../../../csg/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/xtp_run.o ../../src/tools/xtp_run.cc
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../xtp/include -I../../../csg/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/xtp_run.o ../../src/tools/xtp_run.cc
 
 # Subprojects
 .build-subprojects:

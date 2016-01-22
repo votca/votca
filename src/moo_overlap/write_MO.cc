@@ -16,7 +16,7 @@
  */
 
 #include <string>
-#include <moo/orbitals.h>
+#include <xtp/moo_orbitals.h>
 #include <moo/mol_and_orb.h>
 
 using namespace std;

@@ -24,7 +24,7 @@
 #include <iostream>
 #include <vector>
 #include <stdlib.h>
-#include "orbitals.h"
+#include "moo_orbitals.h"
 #include "global.h"
 #include "mol_and_orb.h"
 

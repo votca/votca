@@ -25,7 +25,7 @@
 #include <vector>
 #include <stdlib.h>
 #include <cmath>
-#include "orbitals.h"
+#include "moo_orbitals.h"
 #include "basis_set.h"
 #include "charges.h"
 #include "global.h"

@@ -15,7 +15,7 @@
  *
  */
 
-#include <votca/moo/fock.h>
+#include <votca/xtp/fock.h>
 #include <votca/tools/property.h>
 
 namespace votca { namespace xtp {

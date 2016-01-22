@@ -23,7 +23,7 @@
 
 #include <votca/xtp/qmpair.h>
 #include <votca/xtp/paircalculator.h>
-#include <votca/moo/mol_and_orb.h>
+#include <votca/xtp/mol_and_orb.h>
 
 namespace votca { namespace xtp {
 

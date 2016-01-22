@@ -15,7 +15,7 @@
  *
  */
 
-#include <votca/moo/charges.h>
+#include <votca/xtp/charges.h>
 
 namespace votca { namespace xtp {
 

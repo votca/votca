@@ -15,7 +15,7 @@
  *
  */
 
-#include <votca/moo/orbitals.h>
+#include <votca/xtp/moo_orbitals.h>
 #include <stdio.h>
 #include <stdlib.h>
 

@@ -36,7 +36,7 @@
           <incDir>
             <pElem>../../include</pElem>
             <pElem>../../../tools/include</pElem>
-            <pElem>../../../moo/include</pElem>
+            <pElem>../../../xtp/include</pElem>
             <pElem>../../../csg/include</pElem>
           </incDir>
         </ccTool>

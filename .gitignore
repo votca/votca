@@ -56,9 +56,6 @@ cmake_install.cmake
 CMakeCache.txt
 install_manifest.txt
 
-include/votca/kmc/Makefile
-include/votca/kmc/cmake_install.cmake
-
 src/kmc_run/xtp_kmc_run 
 src/kmc_run/*.man
 

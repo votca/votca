@@ -94,7 +94,7 @@
             <pElem>../../include</pElem>
             <pElem>../../../tools/include</pElem>
             <pElem>../../../csg/include</pElem>
-            <pElem>../../../moo/include</pElem>
+            <pElem>../../../xtp/include</pElem>
             <pElem>/usr/include/libxml2</pElem>
           </incDir>
         </ccTool>

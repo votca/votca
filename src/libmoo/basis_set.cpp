@@ -16,7 +16,7 @@
  */
 
 #include <stdlib.h>
-#include <votca/moo/basis_set.h>
+#include <votca/xtp/basis_set.h>
 
 namespace votca { namespace xtp {
 

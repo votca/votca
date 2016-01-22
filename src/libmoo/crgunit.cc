@@ -15,7 +15,7 @@
  *
  */
 
-#include <votca/moo/crgunit.h>
+#include <votca/xtp/crgunit.h>
 
 namespace votca { namespace xtp {
 

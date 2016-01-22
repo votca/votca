@@ -298,7 +298,7 @@
             <pElem>../../include</pElem>
             <pElem>../../../tools/include</pElem>
             <pElem>../../../csg/include</pElem>
-            <pElem>../../../moo/include</pElem>
+            <pElem>../../../xtp/include</pElem>
             <pElem>/usr/include/libxml2</pElem>
             <pElem>/sw/linux/intel/XE13u2/mkl/include</pElem>
           </incDir>

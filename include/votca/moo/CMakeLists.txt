@@ -1,2 +1,0 @@
-file(GLOB_RECURSE VOTCA_HEADERS *.h)
-install(FILES ${VOTCA_HEADERS} DESTINATION include/votca/moo)

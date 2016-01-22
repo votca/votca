@@ -24,8 +24,8 @@
 
 #include <boost/program_options.hpp>
 #include <string>
-#include <votca/moo/jcalc.h>
-#include <votca/moo/crgunit.h>
+#include <votca/xtp/jcalc.h>
+#include <votca/xtp/crgunit.h>
 #include <votca/tools/application.h>
 #include <votca/tools/globals.h>
 

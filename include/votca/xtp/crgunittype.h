@@ -21,7 +21,7 @@
 //#define DEBUG
 
 #include "mol_and_orb.h"
-#include "orbitals.h"
+#include "moo_orbitals.h"
 #include <string>
 #include <stdexcept>
 
