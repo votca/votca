@@ -58,7 +58,3 @@ install_manifest.txt
 
 src/kmc_run/xtp_kmc_run 
 src/kmc_run/*.man
-
-src/libkmc/hgversion.h
-src/libkmc/votca_config.h
-src/libkmc/*.pc
