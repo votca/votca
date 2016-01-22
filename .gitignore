@@ -17,6 +17,7 @@ src/tools/xtp_parallel
 src/tools/xtp_map
 src/tools/xtp_run
 src/tools/xtp_tools
+src/tools/xtp_overlap
 src/dipro/*.mod
 src/dipro/*.x
 src/tools/*.man
@@ -44,12 +45,6 @@ netbeans/xtp_map/nbproject/Package-Release.bash
 
 netbeans/xtp_run/nbproject/Package-Debug.bash
 netbeans/xtp_run/nbproject/Package-Release.bash
-
-netbeans/libmoo/nbproject/Makefile-variables.mk
-netbeans/libmoo/nbproject/Package-Debug.bash
-netbeans/libmoo/nbproject/Package-Release.bas
-
-src/moo_overlap/xtp_moo_overlap
 
 CMakeFiles
 cmake_install.cmake

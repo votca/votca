@@ -1,7 +1,0 @@
-foreach(PROG moo_overlap)
-  file(GLOB ${PROG}_SOURCES ${PROG}*.cc)
-  add_executable(${PROG} ${${PROG}_SOURCES})
-  set_target_properties(${PROG} PROPERTIES OUTPUT_NAME xtp_${PROG})
-  target_link_libraries(${PROG} votca_xtp ${BOOST_LIBRARIES})
-  install(TARGETS ${PROG} RUNTIME DESTINATION bin)
-endforeach(PROG)
