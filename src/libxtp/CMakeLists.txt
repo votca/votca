@@ -29,13 +29,13 @@ add_custom_target(hgversion-xtp COMMAND ${CMAKE_COMMAND} -DTOP_SOURCE_DIR="${CMA
 set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES hgversion.h)
 
 
-file(GLOB_RECURSE VOTCA_SOURCES *.cc)
+file(GLOB_RECURSE VOTCA_SOURCES *.cc *.cpp)
 file(GLOB_RECURSE NOT_VOTCA_SOURCES version_nb.cc segmenttype.cc)
 list(REMOVE_ITEM VOTCA_SOURCES ${NOT_VOTCA_SOURCES})
 
 add_library(votca_xtp  ${VOTCA_SOURCES})
 add_dependencies(votca_xtp hgversion-xtp)
-target_link_libraries(votca_xtp ${VOTCA_CSG_LIBRARIES} ${MKL_LIBRARIES} ${GSL_LIBRARIES}  votca_xtp_moo ${VOTCA_TOOLS_LIBRARIES} ${BOOST_LIBRARIES} ${LIBXC_LIBRARIES})
+target_link_libraries(votca_xtp ${VOTCA_CSG_LIBRARIES} ${MKL_LIBRARIES} ${GSL_LIBRARIES} ${VOTCA_TOOLS_LIBRARIES} ${BOOST_LIBRARIES} ${LIBXC_LIBRARIES})
 install(TARGETS votca_xtp LIBRARY DESTINATION ${LIB} ARCHIVE DESTINATION ${LIB})
 
 configure_file(libvotca_xtp.pc.in ${CMAKE_CURRENT_BINARY_DIR}/libvotca_xtp.pc @ONLY)
