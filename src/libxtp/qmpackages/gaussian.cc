@@ -77,7 +77,7 @@ namespace votca {
             
             
              if (options->exists(key + ".outputVxc")) {
-                _output_Vxc = options->get(key + "outputVxc").as<bool> ();   
+                _output_Vxc = options->get(key + ".outputVxc").as<bool> ();   
             }
              else _output_Vxc=false;
 
