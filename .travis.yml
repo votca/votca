@@ -33,8 +33,8 @@ env:
     - GMX_MAX_THREADS=8
     - CCACHE_CPP2=yes
   matrix: #NINJA=1 is currently not support by Travis' cmake, enable when >=2.8.9
-    - CTP=yes WERROR=yes J=4
-    - CTP=yes WALL=yes J=4
+    - WERROR=yes J=4
+    - WALL=yes J=4
     - J=1
     - BDIR=build J=4
     - BDIR=build J=1
@@ -57,7 +57,6 @@ script:
     ${J:+-j$J} ${BDIR:+--builddir=$BDIR} ${NINJA:+--ninja} ${WALL:+--Wall}
     --directory "$HOME/votca/src" --no-clean --depth 1
     tools gromacs csg csgapps ${MAN:+csg-manual} ${TEST:+csg-tutorials}
-    ${CTP:+kmc moo ctp}
 
 cache:
   directories:
