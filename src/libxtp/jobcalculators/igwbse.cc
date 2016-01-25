@@ -63,7 +63,7 @@ void IGWBSE::Initialize(votca::tools::Property* options ) {
     _do_triplets=false;
 
     // update options with the VOTCASHARE defaults   
-    UpdateWithDefaults( options );
+    UpdateWithDefaults( options, "xtp" );
     ParseOptionsXML( options  );
     
     // register all QM packages (Gaussian, turbomole, etc))

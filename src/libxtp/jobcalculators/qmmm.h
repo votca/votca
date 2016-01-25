@@ -114,7 +114,7 @@ private:
 void QMMM::Initialize(Property *opt) {
 
     // update options with the VOTCASHARE defaults   
-    UpdateWithDefaults( opt );
+    UpdateWithDefaults( opt, "xtp" );
     _options = *opt;
     
     cout << endl

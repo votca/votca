@@ -138,7 +138,7 @@ private:
 void Exciton::Initialize(Property* options) {
 
             // update options with the VOTCASHARE defaults   
-            UpdateWithDefaults(options);
+            UpdateWithDefaults( options, "xtp" );
 
             _do_dft_input = false;
             _do_dft_run = false;

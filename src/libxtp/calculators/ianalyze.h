@@ -53,7 +53,7 @@ void IAnalyze::Initialize(Property *opt) {
     _do_pairtype=false;
     _do_IRdependence=false;
     // update options with the VOTCASHARE defaults   
-    UpdateWithDefaults( opt );
+    UpdateWithDefaults( opt, "xtp" );
     string key = "options." + Identify();
     _states = opt->get(key+".states").as< vector<int> >();
     _resolution_logJ2 = opt->get(key+".resolution_logJ2").as< double >();

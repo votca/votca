@@ -61,7 +61,7 @@ void QMAnalyze::Initialize(Property* options) {
     _print_BSE_singlets=false;
     _print_oscstrength=false;
             // update options with the VOTCASHARE defaults   
-    UpdateWithDefaults( options );
+    UpdateWithDefaults( options, "xtp" );
  
 
     string key = "options." + Identify();

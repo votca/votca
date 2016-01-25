@@ -170,7 +170,7 @@ complex<double> ccgamma(complex<double> z,int OPT)
 void Rates::Initialize(Property *options) {
 
     // update options with the VOTCASHARE defaults   
-    UpdateWithDefaults( options );
+    UpdateWithDefaults( options, "xtp" );
     std::string key = "options." + Identify();
 
     /* ---- OPTIONS.XML Structure -----

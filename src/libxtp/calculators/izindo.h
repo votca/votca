@@ -124,7 +124,7 @@ void IZindo::Initialize(Property *options) {
 void IZindo::ParseOrbitalsXML(Property *opt) {
 
     // update options with the VOTCASHARE defaults   
-    UpdateWithDefaults( opt );
+    UpdateWithDefaults( opt, "xtp" );
 
     string key = "options.izindo";
     string orbitalsXML = opt->get(key+".orbitalsXML").as<string> ();

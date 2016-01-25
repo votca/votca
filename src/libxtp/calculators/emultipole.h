@@ -428,7 +428,7 @@ private:
 void EMultipole::Initialize(Property *opt) {
 
     // update options with the VOTCASHARE defaults   
-    UpdateWithDefaults( opt );
+    UpdateWithDefaults( opt, "xtp" );
 
     cout << endl << "... ... Initialize with " << _nThreads << " threads.";
     _maverick = (_nThreads == 1) ? true : false;

@@ -35,7 +35,7 @@ private:
 void PAnalyze::Initialize( Property *opt ) {
 
     // update options with the VOTCASHARE defaults   
-    UpdateWithDefaults( opt );
+    UpdateWithDefaults( opt, "xtp" );
     string key = "options." + Identify();
 
     _resolution_space = opt->get(key+".resolution_space").as< double >();

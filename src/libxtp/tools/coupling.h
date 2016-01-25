@@ -64,7 +64,7 @@ void Coupling::Initialize(Property* options)
 {
 
    // update options with the VOTCASHARE defaults   
-    UpdateWithDefaults( options );
+    UpdateWithDefaults( options, "xtp" );
     std::string key = "options." + Identify();    
     
     _degeneracy = options->get(key + ".degeneracy").as<double> ();

@@ -86,7 +86,7 @@ namespace votca {
             _do_transition=false;
 
             // update options with the VOTCASHARE defaults   
-            UpdateWithDefaults(options);
+            UpdateWithDefaults( options, "xtp" );
 
 
             string key = "options." + Identify();

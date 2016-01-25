@@ -54,7 +54,7 @@ void EAnalyze::Initialize( Property *opt ) {
     _skip_sites=false;
     _skip_pairs=false;
     // update options with the VOTCASHARE defaults   
-    UpdateWithDefaults( opt );
+    UpdateWithDefaults( opt, "xtp" );
     string key = "options." + Identify();
     if (opt->exists(key+".resolution_pairs")) {
     _resolution_pairs = opt->get(key+".resolution_pairs").as< double >();

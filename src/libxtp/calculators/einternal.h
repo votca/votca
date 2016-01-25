@@ -84,7 +84,7 @@ void EInternal::Initialize(Property *options) {
 void EInternal::ParseEnergiesXML(Property *opt) {
 
     // update options with the VOTCASHARE defaults   
-    UpdateWithDefaults( opt );
+    UpdateWithDefaults( opt, "xtp" );
     string key = "options." + Identify();
 
     string energiesXML = opt->get(key+".energiesXML").as<string> ();

@@ -65,7 +65,7 @@ void IImport::Initialize(Property *options) {
     _stochastic     = false;
 
      // update options with the VOTCASHARE defaults   
-    UpdateWithDefaults( options );
+    UpdateWithDefaults( options, "xtp" );
     
     string key = "options." + Identify();
 

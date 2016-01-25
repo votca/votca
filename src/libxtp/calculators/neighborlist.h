@@ -73,7 +73,7 @@ private:
 void Neighborlist::Initialize(Property *options) {
 
     // update options with the VOTCASHARE defaults   
-    UpdateWithDefaults( options );
+    UpdateWithDefaults( options, "xtp" );
     std::string key = "options." + Identify();
     
     if (options->exists(key + ".probabilityfile")) {

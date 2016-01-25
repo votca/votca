@@ -31,7 +31,7 @@ namespace votca { namespace xtp {
 void EOutersphere::Initialize(Property *opt) {
 
     // update options with the VOTCASHARE defaults   
-    UpdateWithDefaults( opt );
+    UpdateWithDefaults( opt, "xtp" );
 
     string key = "options." + Identify();
 

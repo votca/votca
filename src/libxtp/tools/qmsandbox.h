@@ -62,7 +62,7 @@ private:
 void QMSandbox::Initialize(Property* options) {
 
     // update options with the VOTCASHARE defaults   
-    //UpdateWithDefaults( options );
+    //UpdateWithDefaults( options, "xtp" );
  
 
     string key = "options." + Identify();
