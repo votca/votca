@@ -134,8 +134,8 @@ namespace votca {
 		// update _qp_energies
 		_qp_energies( _gw_level  + _qpmin) = _edft( _gw_level + _qpmin ) + _sigma_x(_gw_level, _gw_level) + _sigma_c(_gw_level,_gw_level) - _vxc(_gw_level  ,_gw_level );
                     
-	      }// all bands
-              cout << " end of qp refinement step (diagonal) " << _i_iter << "\n" << endl;
+	     }// all bands
+           //   cout << " end of qp refinement step (diagonal) " << _i_iter << "\n" << endl;
             } // iterations
 
              double _QPgap = _qp_energies( _homo +1 ) - _qp_energies( _homo  );
@@ -157,7 +157,7 @@ namespace votca {
                 // in final step, also calc offdiagonal elements
                 // initialize sigma_c to zero at the beginning
                 //_sigma_c = ub::zero_matrix<double>(_qptotal,_qptotal);
-
+                
             #pragma omp parallel for
 	    for (unsigned _gw_level = 0; _gw_level < _qptotal ; _gw_level++ ){
               
@@ -185,20 +185,31 @@ namespace votca {
 		    
                     //double _crap = 0.0;
 		    // loop over row GW levels
-		    for ( unsigned _m = 0 ; _m < _qptotal ; _m++) {
+		   // for ( unsigned _m = 0 ; _m < _qptotal ; _m++) {
+                    for ( unsigned _m = 0 ; _m < _gw_level ; _m++) {
                     
                        // _crap += _factor *  _Mmn[_m + _qpmin](_i_gw, _i) ; 
-		    
+                        //if ( _m==_gw_level){
+                     //       continue;
+                       // }
 		    // sigma_c all elements
-		    _sigma_c( _m  , _gw_level ) += _factor * _Mmn[_m + _qpmin](_i_gw, _i) ;  //_submat(_i_gw,_i);
-	                      
+                        _sigma_c( _gw_level  , _m ) += _factor * _Mmn[_m + _qpmin](_i_gw, _i);  //_submat(_i_gw,_i);
+	                 
 		  }// screening levels 
 		}// GW functions 
 	      }// GW row 
 	      _qp_energies( _gw_level + _qpmin ) = _edft( _gw_level + _qpmin ) + _sigma_x(_gw_level,_gw_level) + _sigma_c(_gw_level,_gw_level) - _vxc(_gw_level ,_gw_level );
 	    } // GW col 
             } 
-         } // sigma_c_setup
+            
+            
+            for (unsigned _gw_level = 0; _gw_level < _qptotal ; _gw_level++ ){
+                for ( unsigned _m = 0 ; _m < _gw_level ; _m++) {
+                _sigma_c( _m  , _gw_level )=_sigma_c( _gw_level  , _m );
+                }
+            }
+         return;
+            } // sigma_c_setup
 
 
         void GWBSE::sigma_x_setup(const TCMatrix& _Mmn){
