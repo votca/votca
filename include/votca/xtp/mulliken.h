@@ -58,46 +58,7 @@ private:
     
 };
 
-void Mulliken::EvaluateMulliken(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AOBasis &basis,BasisSet &bs,  bool _do_transition){
-    AOOverlap _overlap;
-    // initialize overlap matrix
-    _overlap.Initialize(basis._AOBasisSize);
-    // Fill overlap
-    _overlap.Fill(&basis);
-    
-    ub::matrix<double> _prodmat = ub::prod( _dmat, _overlap._aomatrix );
-    
-    vector < QMAtom* > :: iterator atom;
 
-    int id =0;
-    for (atom = _atomlist.begin(); atom < _atomlist.end(); ++atom){
-                
-    
-         // get element type and determine its nuclear charge
-         if (!_do_transition){
-             (*atom)->charge=_elements.getNucCrgECP((*atom)->type);
-             //cout << (*atom)->type << " " << (*atom)->charge << endl;
-         }
-         else {
-             (*atom)->charge=0.0;
-         }
-         // a little messy, have to use basis set to find out which entries in dmat belong to each atom.
-         Element* element = bs.getElement((*atom)->type);
-         int nooffunc=0;
-         for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
-             Shell* shell = (*its);
-             nooffunc+=shell->getnumofFunc();
-         }
-         //cout << id << " "<< id+nooffunc << endl;
-         for ( int _i = id ; _i < id+nooffunc; _i++){
-                (*atom)->charge -= _prodmat(_i,_i);
-        }
-         id+=nooffunc;
-    }
-    //cout << id << " " << _dmat.size1() << endl;
-
-
-}
 
 
 }}

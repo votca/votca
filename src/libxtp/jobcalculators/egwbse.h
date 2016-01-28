@@ -71,6 +71,7 @@ public:
     string              _package;
     Property            _package_options; 
     Property            _gwbse_options; 
+    Property            _esp_options;
     
     void    CleanUp();
     void WriteJobFile(Topology *top);
@@ -81,6 +82,7 @@ public:
     bool                _do_dft_run;
     bool                _do_dft_parse;
     bool                _do_gwbse;
+    bool                _do_esp;
 
     
     // all GWBSE functionality is in GWBSE object

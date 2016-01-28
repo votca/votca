@@ -21,8 +21,7 @@
 #include <votca/xtp/votca_xtp_config.h>
 
 #include "egwbse.h"
-
-
+#include <votca/xtp/esp2multipole.h>
 
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
@@ -55,6 +54,7 @@ namespace votca {
             _do_dft_run = false;
             _do_dft_parse = false;
             _do_gwbse = false;
+            _do_esp=false;
 
             // update options with the VOTCASHARE defaults   
             UpdateWithDefaults( options, "xtp" );
@@ -79,6 +79,7 @@ namespace votca {
             if (_tasks_string.find("dft") != std::string::npos) _do_dft_run = true;
             if (_tasks_string.find("parse") != std::string::npos) _do_dft_parse = true;
             if (_tasks_string.find("gwbse") != std::string::npos) _do_gwbse = true;
+            if (_tasks_string.find("esp") != std::string::npos) _do_esp = true;
 
 
             key = "options." + Identify() + ".job";
@@ -97,6 +98,13 @@ namespace votca {
             load_property_from_xml(_package_options, _package_xml.c_str());
             key = "package";
             _package = _package_options.get(key + ".name").as<string> ();
+            
+            //options for esp/partialcharges
+            if (_do_esp){
+                string _esp_xml = options->get(key + ".esp").as<string> ();
+                load_property_from_xml(_esp_options, _esp_xml.c_str());
+            }
+            
 
 
         }
@@ -199,6 +207,7 @@ namespace votca {
             string egwbse_work_dir = "OR_FILES";
             string frame_dir =  "frame_" + boost::lexical_cast<string>(top->getDatabaseId());     
             string orb_file = (format("%1%_%2%%3%") % "molecule" % segId % ".orb").str();
+            
             string _mol_dir = ( format("%1%%2%%3%") % "molecule" % "_" % segId ).str();
             string _package_append = _package + "_gwbse";
             string _qmpackage_work_dir = (arg_path / egwbse_work_dir / _package_append / frame_dir / _mol_dir).c_str();
@@ -330,7 +339,19 @@ namespace votca {
             //  }
 
             //  _orbitalsAB.setStorage( _store_orbitals, _store_overlap, _store_integrals );
-
+            
+            if (_do_esp){
+                Esp2multipole esp2multipole;
+                esp2multipole.Initialize(&_esp_options);
+                esp2multipole.Extractingcharges(_orbitals);
+                
+                string mps_file = (format("%1%_%2%_%3%_%4%") % "molecule" % esp2multipole.GetIdentifier() % segId % ".mps").str();
+                esp2multipole.WritetoFile(_orbitals,(DIR + "/" + mps_file).c_str(),Identify());
+    
+    
+                LOG(logDEBUG, *pLog) << "Written charges to " << mps_file << flush;
+            }
+           
 
             oa << _orbitals;
             ofs.close();
