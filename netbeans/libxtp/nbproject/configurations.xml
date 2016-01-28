@@ -88,7 +88,6 @@
       <itemPath>../../include/votca/xtp/atom.h</itemPath>
       <itemPath>../../include/votca/xtp/basisset.h</itemPath>
       <itemPath>../../include/votca/xtp/calculatorfactory.h</itemPath>
-      <itemPath>../../include/votca/xtp/xtpapplication.h</itemPath>
       <itemPath>../../include/votca/xtp/dftengine.h</itemPath>
       <itemPath>../../include/votca/xtp/elements.h</itemPath>
       <itemPath>../../include/votca/xtp/espfit.h</itemPath>
@@ -126,6 +125,7 @@
       <itemPath>../../include/votca/xtp/polartop.h</itemPath>
       <itemPath>../../include/votca/xtp/progressobserver.h</itemPath>
       <itemPath>../../include/votca/xtp/qmapemachine.h</itemPath>
+      <itemPath>../../include/votca/xtp/qmatom.h</itemPath>
       <itemPath>../../include/votca/xtp/qmcalculator.h</itemPath>
       <itemPath>../../include/votca/xtp/qmdatabase.h</itemPath>
       <itemPath>../../include/votca/xtp/qmmachine.h</itemPath>
@@ -150,6 +150,7 @@
       <itemPath>../../include/votca/xtp/xinteractor.h</itemPath>
       <itemPath>../../include/votca/xtp/xjob.h</itemPath>
       <itemPath>../../include/votca/xtp/xmapper.h</itemPath>
+      <itemPath>../../include/votca/xtp/xtpapplication.h</itemPath>
     </logicalFolder>
     <logicalFolder name="f2" displayName="QMPackages" projectFiles="true">
       <itemPath>../../src/libxtp/qmpackages/gaussian.cc</itemPath>
@@ -180,9 +181,9 @@
         <itemPath>../../src/libxtp/aomatrices/aooverlap.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f2" displayName="Applications" projectFiles="true">
-        <itemPath>../../src/libxtp/xtpapplication.cc</itemPath>
         <itemPath>../../src/libxtp/jobapplication.cc</itemPath>
         <itemPath>../../src/libxtp/sqlapplication.cc</itemPath>
+        <itemPath>../../src/libxtp/xtpapplication.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f7" displayName="dftengine" projectFiles="true">
         <itemPath>../../src/libxtp/dftengine/dftengine.cc</itemPath>
@@ -275,8 +276,29 @@
                    projectFiles="false">
       <itemPath>Makefile</itemPath>
     </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
   </logicalFolder>
   <sourceRootList>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
     <Elem>../../include</Elem>
     <Elem>../../../../include</Elem>
     <Elem>../../include</Elem>
@@ -327,17 +349,17 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/xtpapplication.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/dftengine.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/elements.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/esp2multipole.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/espfit.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -532,6 +554,11 @@
       <item path="../../include/votca/xtp/xjob.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/xmapper.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/xtpapplication.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../src/libxtp/ERIs.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -738,12 +765,12 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/xtpapplication.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/dftengine/dftengine.cc"
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/libxtp/esp2multipole.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/espfit.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -885,6 +912,8 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/molecule.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/mulliken.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/numerical_integration/numerical_integrations.cc"
             ex="false"
@@ -1078,6 +1107,8 @@
       </item>
       <item path="../../src/libxtp/xmapper.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/xtpapplication.cc" ex="false" tool="1" flavor2="0">
+      </item>
     </conf>
     <conf name="Release" type="3">
       <toolsSet>
@@ -1118,17 +1149,17 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/xtpapplication.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/dftengine.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/elements.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/esp2multipole.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/espfit.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1323,6 +1354,11 @@
       <item path="../../include/votca/xtp/xjob.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/xmapper.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/xtpapplication.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../src/libxtp/ERIs.cc" ex="false" tool="0" flavor2="0">
       </item>
@@ -1529,12 +1565,12 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/xtpapplication.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/dftengine/dftengine.cc"
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/libxtp/esp2multipole.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/espfit.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1676,6 +1712,8 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/molecule.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/mulliken.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/numerical_integration/numerical_integrations.cc"
             ex="false"
@@ -1868,6 +1906,8 @@
       <item path="../../src/libxtp/xjob.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/xmapper.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/xtpapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
   </confs>

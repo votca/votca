@@ -10,9 +10,6 @@
         <file>file:/home/jens/votca_git/src/xtp/src/libxtp/tools/exciton.h</file>
         <file>file:/home/jens/votca_git/src/xtp/src/libxtp/gwbse/gwbse.cc</file>
         <file>file:/home/bbaumeie/votca/src/xtp/src/libxtp/qmpackages/nwchem.cc</file>
-        <group>
-            <file>file:/home/jwehner/Programs/votca_dev/src/xtp/src/libxtp/aomatrices/aocoulomb.cc</file>
-            <file>file:/home/jwehner/Programs/votca_dev/src/xtp/src/libxtp/threecenters.cc</file>
-        </group>
+        <group/>
     </open-files>
 </project-private>
