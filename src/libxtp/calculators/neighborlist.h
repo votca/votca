@@ -25,6 +25,7 @@
 #include <votca/xtp/qmcalculator.h>
 #include <votca/xtp/qmpair.h>
 #include <boost/progress.hpp>
+#include <boost/format.hpp>
 #include <votca/tools/random2.h>
 
 namespace votca { namespace xtp {
@@ -170,7 +171,10 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
     else {        
 
         vector< Segment* > ::iterator segit1;
-      
+        
+        
+        
+        
         if (TOOLS::globals::verbose) {
             cout << endl <<  "... ..." << flush;
         }
@@ -231,8 +235,14 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
                         if( abs( top->PbShortestConnect(r1, r2) ) > cutoff ) {
                             continue;
                         }
-                        else {                              
-                            top->NBList().Add(seg1, seg2);                          
+                        else {
+                            seg1->calcPos();
+                            seg2->calcPos();
+                            
+                            if (!top->PairWithinPb(seg1->getPos(),seg2->getPos())){
+                                cout << (boost::format("Warning distance between segments %4i and %4i is less than half the shortest box length, this cannot end well") % seg1->getId() % seg2->getId()).str()<<endl;
+                            }
+                            top->NBList().Add(seg1, seg2);
                             stopLoop = true;
                             break;
                         }                
