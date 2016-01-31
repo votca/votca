@@ -93,7 +93,7 @@ before_script:
   - ln -vs $PWD/cmake-${CMAKE_VERSION}/bin/cmake "$HOME/bin/cmake"
   - wget -qO- https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION}/src/hdf5-${HDF5_VERSION}.tar.gz | tar -xz &&
     cd hdf5-${HDF5_VERSION} && ./configure --prefix=$HOME/hdf5 && make -j4 &> /dev/null && make install && cd ..
-  - if [[ ${MAN} ]]; then git clone https://github.com/votca/doxygen.git "$HOME/votca/src/devdoc"; fi 
+  - if [[ ${MAN} ]]; then git clone --depth=1 https://github.com/votca/doxygen.git "$HOME/votca/src/devdoc"; fi 
 
 script:
   - PATH="$HOME/bin:$HOME/hdf5:/usr/lib/ccache:$PATH" ./build.sh -Wu --dev --prefix "$HOME/votca" ${MAN:+--devdoc}
@@ -105,7 +105,7 @@ script:
 
 after_success:
   - if [[ ${MAN} && ${CC} = gcc ]]; then
-      cd "$HOME/votca/src/devdoc"
+      cd "$HOME/votca/src/devdoc";
       if [[ ${TRAVIS_BRANCH} = master && ${encrypted_3780e1dc437f_key} && ${encrypted_3780e1dc437f_iv} && ${TRAVIS_PULL_REQUEST} == false ]]; then
         git config --global user.name "Automatic Deployment (Travis CI)";
         git config --global user.email "votca-commits@googlegroups.com";
