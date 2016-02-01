@@ -51,7 +51,7 @@ namespace votca {
         
       
         bool TCrawMatrix::FillThreeCenterRepBlock(ub::matrix<double>& _subvector,  AOShell* _shell_3, AOShell* _shell_1, AOShell* _shell_2) {
-            
+          /*  
             const double pi = boost::math::constants::pi<double>();
             
             bool _does_contribute=true;
@@ -5378,7 +5378,9 @@ R[Cart::zz][Cart::zz][Cart::zzz]=R[Cart::zzz][Cart::z][Cart::zzz]+amb2*R[Cart::z
  
                     cout << "ende" << endl;
     
-       return _does_contribute;     
+       return _does_contribute;   
+           */
+            return 0;
     }  
           
         

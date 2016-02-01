@@ -19,7 +19,7 @@
 
 #ifndef __XTP_THREECENTERS__H
 #define	__XTP_THREECENTERS__H
-
+//#define BOOST_DISABLE_ASSERTS //could be used to slighlty speed up calculation but the compile time simply goes boom
 #include <boost/multi_array.hpp>
 #include <votca/xtp/aomatrix.h>
 #include <votca/xtp/logger.h>
@@ -51,8 +51,9 @@ namespace votca { namespace xtp {
     class TCrawMatrix{    
         
     protected:
-        
+    typedef boost::multi_array<double, 3> ma_type;    
     bool FillThreeCenterOLBlock(  ub::matrix<double> & _subvector, AOShell* _shell, AOShell* _shell_row, AOShell* _shell_col);
+    void FillThreeCenterOLBlock_g(ma_type &S,vec &gma, vec &gmc,int &_lmax_alpha, int &_lmax_gamma,double &fak);
     bool FillThreeCenterRepBlock(  ub::matrix<double> & _subvector, AOShell* _shell, AOShell* _shell_row, AOShell* _shell_col);
     //bool FillThreeCenterOLBlock(  ub::matrix<float> & _subvector, AOShell* _shell, AOShell* _shell_row, AOShell* _shell_col);
     void getTrafo(ub::matrix<double>& _trafo, int _lmax, const double& _decay,std::vector<double> contractions);
