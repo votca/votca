@@ -1140,9 +1140,12 @@ double Exciton::GetTotalEnergy(Orbitals* _orbitals, string _spintype, int _opt_s
 
 
 void Exciton::ReadXYZ(Segment* _segment, string filename){
+    
+    
+    
  
     
-               
+                string line;
                 ifstream in;
                 double x, y, z;
                 //int natoms, id;
@@ -1155,25 +1158,49 @@ void Exciton::ReadXYZ(Segment* _segment, string filename){
                 if (!in) throw runtime_error(string("Error reading coordinates from: ")
                         + _xyzfile);
 
-                id = 1;
-                while (in.good()) { // keep reading until end-of-file
-                    in >> type;
-                    in >> x;
-                    in >> y;
-                    in >> z;
-                    if (in.eof()) break;
-                    // cout << type << ":" << x << ":" << y << ":" << z << endl;
 
-                    // creating atoms and adding them to the molecule
-                    Atom *pAtom = new Atom(id++, type);
-                    vec position(x / 10, y / 10, z / 10); // xyz has Angstrom, votca stores nm
-                    pAtom->setPos(position);
-                    pAtom->setQMPart(id, position);
-                    pAtom->setElement(type);
-                    _segment->AddAtom(pAtom);
+                
+                
+                int atomCount = 1;
 
-                }
-                in.close();
+   
+   
+
+                if (in.is_open() ) {
+                    while ( in.good() ) {
+                    std::getline(in, line);
+
+                    vector< string > split;
+                    Tokenizer toker(line, " \t");
+                    toker.ToVector(split);
+                    if ( !split.size()      ||
+                          split.size() != 4 ||
+                          split[0] == "#"   ||
+                          split[0].substr(0,1) == "#" ) { continue; }
+
+            // Interesting information written here: e.g. 'C 0.000 0.000 0.000'
+                        atomCount++;
+                        string element = split[0];
+                        double x = boost::lexical_cast<double>( split[1] ) / 10.; //°A to NM
+                        double y = boost::lexical_cast<double>( split[2] ) / 10.;
+                        double z = boost::lexical_cast<double>( split[3] ) / 10.;
+                        vec Pos = vec(x,y,z);
+                        Atom *pAtom = new Atom(atomCount, element);
+                        pAtom->setPos(Pos);
+                        pAtom->setQMPart(atomCount, Pos);
+                        pAtom->setElement(element);
+                        _segment->AddAtom(pAtom);
+    
+        }
+    }
+    else {
+        throw std::runtime_error("No such file: '"+filename+"'.");
+    }
+                
+                
+                
+                
+          
     
 }
 
