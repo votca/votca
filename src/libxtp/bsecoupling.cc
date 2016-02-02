@@ -784,7 +784,7 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
 bool BSECoupling::ProjectExcitons(ub::matrix<float>& _kap, ub::matrix<float>& _kbp, ub::matrix<float>& _bseA, ub::matrix<float>& _bseB, ub::matrix<float>& _H, ub::matrix<float>& _J){
     
     
-    cout << " Dimensions of _bseA " << _bseA.size1() << " : " << _bseA.size2() << endl;
+    //cout << " Dimensions of _bseA " << _bseA.size1() << " : " << _bseA.size2() << endl;
     
      // get projection of monomer excitons on dimer product functions
      ub::matrix<float> _proj_excA = ub::prod( ub::trans( _bseA ), _kap);
@@ -806,7 +806,7 @@ bool BSECoupling::ProjectExcitons(ub::matrix<float>& _kap, ub::matrix<float>& _k
      ub::project( _J_dimer,  ub::range (_bseA_exc, _bseA_exc + _bseB_exc ), ub::range ( _bseA_exc, _bseA_exc + _bseB_exc)  ) = ub::prod( ub::trans(_proj_excB), _temp ); // J_BB = proj_excB x H x trans(proj_excB)
 
 
-     cout << "J_dimer " << _J_dimer(0,50)*13.605 << " and " << _J_dimer(50,0)*13.605 << endl;
+     //cout << "J_dimer " << _J_dimer(0,50)*13.605 << " and " << _J_dimer(50,0)*13.605 << endl;
      
      
      // setup S
@@ -866,11 +866,11 @@ bool BSECoupling::ProjectExcitons(ub::matrix<float>& _kap, ub::matrix<float>& _k
     _J = ub::prod( _transform, _J_temp);
     
          //cout << endl;
-     for ( unsigned i = 0 ; i < _J.size1(); i++){
-         for ( unsigned j = 0 ; j < _J.size1(); j++){
-           cout << " J [" << i << " : " << j << "] " << _J(i,j)*13.605 << " and " <<  _J_dimer(i,j)*13.605 << endl; 
-         }
-         }  
+  //   for ( unsigned i = 0 ; i < _J.size1(); i++){
+  //       for ( unsigned j = 0 ; j < _J.size1(); j++){
+   //        cout << " J [" << i << " : " << j << "] " << _J(i,j)*13.605 << " and " <<  _J_dimer(i,j)*13.605 << endl; 
+   //      }
+   //      }  
     
     
     
