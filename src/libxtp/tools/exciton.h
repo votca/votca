@@ -1141,10 +1141,6 @@ double Exciton::GetTotalEnergy(Orbitals* _orbitals, string _spintype, int _opt_s
 
 void Exciton::ReadXYZ(Segment* _segment, string filename){
     
-    
-    
- 
-    
                 string line;
                 ifstream in;
                 
@@ -1157,13 +1153,8 @@ void Exciton::ReadXYZ(Segment* _segment, string filename){
                 if (!in) throw runtime_error(string("Error reading coordinates from: ")
                         + _xyzfile);
 
-
-                
                 
                 int atomCount = 1;
-
-   
-   
 
                 if (in.is_open() ) {
                     while ( in.good() ) {

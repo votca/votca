@@ -880,25 +880,27 @@ namespace votca {
             // save qmpackage name
             //_orbitals->_has_qm_package = true;
             _orbitals->setQMpackage("gaussian");
-
+            
+            _read_vxc=_output_Vxc;
 
             // Start parsing the file line by line
             ifstream _input_file(_log_file_name_full.c_str());
             while (_input_file) {
-
+                
                 getline(_input_file, _line);
                 boost::trim(_line);
 
                 /*
-                 * Check is pseudo keyword is present in LOG file -> read vxc
+                 * Check is pseudo keyword is present in LOG file -> read vxc Not used anymore, now there is a flag in the qm package options.
                  */
+                /*
                 std::string::size_type pseudo_pos = _line.find("pseudo=read");
                 if (pseudo_pos != std::string::npos) {
                     _read_vxc = true;
                     // Uncomment for next version
                     //_orbitals->setWithECP(true);
                 }
-
+                 */
                 /* Check for ScaHFX = factor of HF exchange included in functional */
                 std::string::size_type HFX_pos = _line.find("ScaHFX=");
                 if (HFX_pos != std::string::npos) {
@@ -1256,7 +1258,8 @@ namespace votca {
                     _log_file_name_full = _run_dir + "/fort.24";
                 }
 
-
+                ifstream _input_file(_log_file_name_full.c_str());
+                if (_input_file.good()){
                 // prepare the container
                 // _orbitals->_has_vxc = true;
                 ub::symmetric_matrix<double>& _vxc = _orbitals->AOVxc();
@@ -1269,7 +1272,7 @@ namespace votca {
 
 
                 // Start parsing the file line by line
-                ifstream _input_file(_log_file_name_full.c_str());
+                
                 while (_input_file) {
                     getline(_input_file, _line);
                     if (_input_file.eof()) break;
@@ -1286,6 +1289,9 @@ namespace votca {
 
                 LOG(logDEBUG, *_pLog) << "Done parsing" << flush;
                 _input_file.close();
+                }}
+            else{
+                throw std::runtime_error("Vxc file does not exist.");
             }
 
 
