@@ -19,6 +19,7 @@
 
 
 #include <votca/xtp/esp2multipole.h>
+#include <boost/format.hpp>
 
 namespace votca { namespace xtp {
 
