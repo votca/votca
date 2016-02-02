@@ -19,7 +19,7 @@ public:
 
     string  ProgramName() { return "xtp_tools"; }    
 
-    void    HelpText(ostream &out) { out <<"Runs charge transport tools"<< endl; }
+    void    HelpText(ostream &out) { out <<"Runs excitation/charge transport tools"<< endl; }
 
     void    AddTool(votca::xtp::QMTool *tool) { _tools.push_back(tool); }
     void    Initialize();

@@ -15,7 +15,7 @@ public:
 
     string  ProgramName() { return "xtp_run"; }    
 
-    void    HelpText(ostream &out) { out <<"Runs charge transport calculators"<< endl; }
+    void    HelpText(ostream &out) { out <<"Runs excitation/charge transport calculators"<< endl; }
     void    HelpText() { };
 
     void    Initialize();
