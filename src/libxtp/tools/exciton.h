@@ -1147,9 +1147,8 @@ void Exciton::ReadXYZ(Segment* _segment, string filename){
     
                 string line;
                 ifstream in;
-                double x, y, z;
-                //int natoms, id;
-                int id;
+                
+           
                 string label, type;
                 vec pos;
 

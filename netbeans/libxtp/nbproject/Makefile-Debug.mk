@@ -52,7 +52,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/50c6f79c/eoutersphere.o \
 	${OBJECTDIR}/_ext/50c6f79c/jobwriter.o \
 	${OBJECTDIR}/_ext/5e78919f/dftengine.o \
-	${OBJECTDIR}/_ext/1ce08c7a/esp2multipole.o \
 	${OBJECTDIR}/_ext/1ce08c7a/espfit.o \
 	${OBJECTDIR}/_ext/1ce08c7a/ewaldactor.o \
 	${OBJECTDIR}/_ext/1ce08c7a/extractorfactory.o \
@@ -72,7 +71,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/f632c409/iexcitoncl.o \
 	${OBJECTDIR}/_ext/f632c409/igwbse.o \
 	${OBJECTDIR}/_ext/1ce08c7a/molecule.o \
-	${OBJECTDIR}/_ext/1ce08c7a/mulliken.o \
 	${OBJECTDIR}/_ext/4d261038/numerical_integrations.o \
 	${OBJECTDIR}/_ext/4d261038/radial_euler_maclaurin_rule.o \
 	${OBJECTDIR}/_ext/4d261038/sphere_lebedev_rule.o \
@@ -106,6 +104,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/1ce08c7a/threecenter_rep.o \
 	${OBJECTDIR}/_ext/1ce08c7a/threecenters.o \
 	${OBJECTDIR}/_ext/1ce08c7a/threecenters_dft.o \
+	${OBJECTDIR}/_ext/1ce08c7a/threecenters_g.o \
 	${OBJECTDIR}/_ext/1ce08c7a/threecenters_tools.o \
 	${OBJECTDIR}/_ext/1ce08c7a/toolfactory.o \
 	${OBJECTDIR}/_ext/69ca5806/molpol.o \
@@ -230,11 +229,6 @@ ${OBJECTDIR}/_ext/5e78919f/dftengine.o: ../../src/libxtp/dftengine/dftengine.cc
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/5e78919f/dftengine.o ../../src/libxtp/dftengine/dftengine.cc
 
-${OBJECTDIR}/_ext/1ce08c7a/esp2multipole.o: ../../src/libxtp/esp2multipole.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce08c7a/esp2multipole.o ../../src/libxtp/esp2multipole.cc
-
 ${OBJECTDIR}/_ext/1ce08c7a/espfit.o: ../../src/libxtp/espfit.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
 	${RM} "$@.d"
@@ -329,11 +323,6 @@ ${OBJECTDIR}/_ext/1ce08c7a/molecule.o: ../../src/libxtp/molecule.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce08c7a/molecule.o ../../src/libxtp/molecule.cc
-
-${OBJECTDIR}/_ext/1ce08c7a/mulliken.o: ../../src/libxtp/mulliken.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce08c7a/mulliken.o ../../src/libxtp/mulliken.cc
 
 ${OBJECTDIR}/_ext/4d261038/numerical_integrations.o: ../../src/libxtp/numerical_integration/numerical_integrations.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/4d261038
@@ -499,6 +488,11 @@ ${OBJECTDIR}/_ext/1ce08c7a/threecenters_dft.o: ../../src/libxtp/threecenters_dft
 	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce08c7a/threecenters_dft.o ../../src/libxtp/threecenters_dft.cc
+
+${OBJECTDIR}/_ext/1ce08c7a/threecenters_g.o: ../../src/libxtp/threecenters_g.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce08c7a/threecenters_g.o ../../src/libxtp/threecenters_g.cc
 
 ${OBJECTDIR}/_ext/1ce08c7a/threecenters_tools.o: ../../src/libxtp/threecenters_tools.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
