@@ -80,6 +80,7 @@ namespace votca {
                 _output_Vxc = options->get(key + ".outputVxc").as<bool> ();   
             }
              else _output_Vxc=false;
+            cout << _output_Vxc << endl;
 
             // check if the guess keyword is present, if yes, append the guess later
             std::string::size_type iop_pos = _options.find("cards");
@@ -1289,12 +1290,12 @@ namespace votca {
 
                 LOG(logDEBUG, *_pLog) << "Done parsing" << flush;
                 _input_file.close();
-                }}
+                }
             else{
                 throw std::runtime_error("Vxc file does not exist.");
             }
 
-
+            }
 
 
             return true;
