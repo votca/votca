@@ -39,7 +39,12 @@ void Mulliken::EvaluateMulliken(vector< QMAtom* >& _atomlist, ub::matrix<double>
     
          // get element type and determine its nuclear charge
          if (!_do_transition){
+             if (_use_ecp){
              (*atom)->charge=_elements.getNucCrgECP((*atom)->type);
+             }
+             else{
+             (*atom)->charge=_elements.getNucCrg((*atom)->type); 
+             }
              //cout << (*atom)->type << " " << (*atom)->charge << endl;
          }
          else {

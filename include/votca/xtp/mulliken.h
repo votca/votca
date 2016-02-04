@@ -42,17 +42,17 @@ namespace votca { namespace xtp {
 class Mulliken{
 public:
     
-    Mulliken(){};
+    Mulliken(){_use_ecp=false;}
    ~Mulliken(){};
     
-    
+    void setUseECPs(bool use_ecp){_use_ecp=use_ecp;}
     void EvaluateMulliken(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AOBasis &basis,BasisSet &bs,  bool _do_transition);
   
    
 private:
     
      Elements _elements; 
-     
+     bool _use_ecp;
      
  
     

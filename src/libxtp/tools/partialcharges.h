@@ -99,7 +99,7 @@ bool Partialcharges::Evaluate() {
     LOG(logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
     _orbitals.Load(_orbfile.c_str());
 
-    Esp2multipole esp2multipole;
+    Esp2multipole esp2multipole=Esp2multipole(&_log);
     esp2multipole.Initialize(&_esp_options);
     esp2multipole.Extractingcharges(_orbitals);
     

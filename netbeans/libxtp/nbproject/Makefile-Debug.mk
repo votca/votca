@@ -72,6 +72,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/f632c409/iexcitoncl.o \
 	${OBJECTDIR}/_ext/f632c409/igwbse.o \
 	${OBJECTDIR}/_ext/1ce08c7a/molecule.o \
+	${OBJECTDIR}/_ext/1ce08c7a/mulliken.o \
 	${OBJECTDIR}/_ext/4d261038/numerical_integrations.o \
 	${OBJECTDIR}/_ext/4d261038/radial_euler_maclaurin_rule.o \
 	${OBJECTDIR}/_ext/4d261038/sphere_lebedev_rule.o \
@@ -329,6 +330,11 @@ ${OBJECTDIR}/_ext/1ce08c7a/molecule.o: ../../src/libxtp/molecule.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce08c7a/molecule.o ../../src/libxtp/molecule.cc
+
+${OBJECTDIR}/_ext/1ce08c7a/mulliken.o: ../../src/libxtp/mulliken.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce08c7a/mulliken.o ../../src/libxtp/mulliken.cc
 
 ${OBJECTDIR}/_ext/4d261038/numerical_integrations.o: ../../src/libxtp/numerical_integration/numerical_integrations.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/4d261038

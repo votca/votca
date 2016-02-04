@@ -34,7 +34,7 @@ class Esp2multipole
 {
 public:
 
-    Esp2multipole () { };
+    Esp2multipole (Logger* log) {_log=log; }
    ~Esp2multipole () { };
 
     string Identify() { return "esp2multipole"; }
@@ -65,7 +65,7 @@ private:
     bool        _do_svd;
     double      _conditionnumber;
     
-    Logger      _log;
+    Logger*      _log;
     
     
 

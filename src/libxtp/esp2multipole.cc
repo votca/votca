@@ -26,7 +26,7 @@ namespace votca { namespace xtp {
 void Esp2multipole::Initialize(Property* options) {
     string key = "options." + Identify();
     _use_ecp=false;
-    
+    _do_svd=false;
     
     _use_mulliken=false;
     _use_CHELPG=false;
@@ -69,6 +69,7 @@ void Esp2multipole::Initialize(Property* options) {
          _do_svd = options->get(key+".svd.do_svd").as<bool>();
          _conditionnumber = options->get(key+".svd.conditionnumber").as<double>();
          }
+    
               
     
   
@@ -110,7 +111,7 @@ void Esp2multipole::WritetoFile(Orbitals& _orbitals,string _output_file, string 
     _use_mps=false;
     _use_pdb=false;
     string data_format  = boost::filesystem::extension(_output_file);  
-    cout << data_format << endl;
+    //cout << data_format << endl;
     if (data_format==".mps")_use_mps=true; 
     else if(data_format==".pdb")_use_pdb=true;    
     else  throw std::runtime_error("Outputfile format not recognized. Export only to .pdb and .mps");
@@ -137,7 +138,7 @@ void Esp2multipole::Extractingcharges( Orbitals& _orbitals ){
             if ( _openmp_threads > 0 ) omp_set_num_threads(_openmp_threads); 
             threads=omp_get_max_threads();
 #endif
-   LOG(logDEBUG, _log) << "===== Running on "<< threads << " threads ===== " << flush;
+   LOG(logDEBUG, *_log) << "===== Running on "<< threads << " threads ===== " << flush;
 
         vector< QMAtom* > Atomlist =_orbitals.QMAtoms();
         ub::matrix<double> DMAT_tot;
@@ -181,11 +182,12 @@ void Esp2multipole::Extractingcharges( Orbitals& _orbitals ){
         
         if (_use_mulliken) {
             Mulliken mulliken;
+            mulliken.setUseECPs(_use_ecp);
             mulliken.EvaluateMulliken(Atomlist, DMAT_tot, basis, bs, _do_transition);
                 
         }
         else if (_use_CHELPG){         
-            Espfit esp=Espfit(&_log);
+            Espfit esp=Espfit(_log);
             esp.setUseECPs(_use_ecp);
             if(_do_svd){
                 esp.setUseSVD(_do_svd,_conditionnumber);

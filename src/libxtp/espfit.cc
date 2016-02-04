@@ -293,7 +293,7 @@ void Espfit::Fit2Density_analytic(vector< QMAtom* >& _atomlist, ub::matrix<doubl
 
 std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >& _fitcenters, Grid& _grid, ub::vector<double>& _potential, double& _netcharge ){
     LOG(logDEBUG, *_log) << TimeStamp() << " Setting up Matrices for fitting of size "<< _fitcenters.size()+1 <<" x " << _fitcenters.size()+1<< flush;    
-    
+    double Nm2Bohr=18.8972598860;
 
     std::vector< ub::vector<double> >& _gridpoints=_grid.getGrid();   
     //cout << "x " << _gridpoints[0](0)<< " y " << _gridpoints[0](1)<< " z " << _gridpoints[0](1);
@@ -322,8 +322,8 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >
                 double y_k = _gridpoints[_k](1);
                 double z_k = _gridpoints[_k](2);
                 
-                double dist_i = sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     );
-                double dist_j = sqrt( (x_j - x_k)*(x_j - x_k) +  (y_j - y_k)*(y_j - y_k) + (z_j - z_k)*(z_j - z_k)     );
+                double dist_i = sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     )*Nm2Bohr;
+                double dist_j = sqrt( (x_j - x_k)*(x_j - x_k) +  (y_j - y_k)*(y_j - y_k) + (z_j - z_k)*(z_j - z_k)     )*Nm2Bohr;
                 
                  _Amat(_i,_j) += 1.0/dist_i/dist_j;                 
             }
@@ -349,7 +349,7 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >
                 double y_k = _gridpoints[_k](1);
                 double z_k = _gridpoints[_k](2);
                 
-                double dist_i = sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     );                
+                double dist_i = sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     )*Nm2Bohr;                
                 _Bvec(_i,0) += _potential(_k)/dist_i;                
         }
        }
@@ -403,7 +403,7 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >
             double y_i = _fitcenters[_i](1);
             double z_i = _fitcenters[_i](2);
             
-            double dist =  sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     );
+            double dist =  sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     )*Nm2Bohr;
             temp += _result[_i]/dist;
         }
         _rmse += (_potential(_k) - temp)*(_potential(_k) - temp);

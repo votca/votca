@@ -341,7 +341,7 @@ namespace votca {
             //  _orbitalsAB.setStorage( _store_orbitals, _store_overlap, _store_integrals );
             
             if (_do_esp){
-                Esp2multipole esp2multipole;
+                Esp2multipole esp2multipole=Esp2multipole(pLog);;
                 esp2multipole.Initialize(&_esp_options);
                 esp2multipole.Extractingcharges(_orbitals);
                 
