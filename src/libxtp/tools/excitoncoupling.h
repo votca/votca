@@ -25,6 +25,7 @@
 #include <votca/xtp/logger.h>
 #include <votca/tools/constants.h>
 #include <votca/xtp/bsecoupling.h>
+#include <votca/xtp/xinteractor.h>
 #include <votca/xtp/qmpackagefactory.h>
 
 namespace votca { namespace xtp {
@@ -197,23 +198,27 @@ bool ExcitonCoupling::Evaluate() {
         PolarSeg* Seg2 = new PolarSeg(2,seg2);
         XInteractor actor;
         actor.ResetEnergy();
-        Seg1->CalcPos();
-        Seg2->CalcPos();
-        vec s = Seg1->getPos() - Seg2->getPos();
+        vec s = vec(0,0,0);
+        
         //LOG(logINFO, *pLog) << "Evaluate pair for debugging " << Seg1->getId() << ":" <<Seg2->getId() << " Distance "<< abs(s) << flush; 
         PolarSeg::iterator pit1;
         PolarSeg::iterator pit2;
         double E = 0.0;
         for (pit1 = Seg1->begin(); pit1 < Seg1->end(); ++pit1) {
             for (pit2 = Seg2->begin(); pit2 < Seg2->end(); ++pit2) {
+                
                 actor.BiasIndu(*(*pit1), *(*pit2), s);
                 (*pit1)->Depolarize();
                 (*pit2)->Depolarize();
+               
                 E += actor.E_f(*(*pit1), *(*pit2));
+
                                
                 }
             }
+        
     double J=E*conv::int2eV;  
+
     
     _job_output = &_summary.add("output","");
     Property *_pair_summary = &_job_output->add("pair","");
