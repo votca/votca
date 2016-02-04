@@ -52,6 +52,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/50c6f79c/eoutersphere.o \
 	${OBJECTDIR}/_ext/50c6f79c/jobwriter.o \
 	${OBJECTDIR}/_ext/5e78919f/dftengine.o \
+	${OBJECTDIR}/_ext/1ce08c7a/esp2multipole.o \
 	${OBJECTDIR}/_ext/1ce08c7a/espfit.o \
 	${OBJECTDIR}/_ext/1ce08c7a/ewaldactor.o \
 	${OBJECTDIR}/_ext/1ce08c7a/extractorfactory.o \
@@ -228,6 +229,11 @@ ${OBJECTDIR}/_ext/5e78919f/dftengine.o: nbproject/Makefile-${CND_CONF}.mk ../../
 	${MKDIR} -p ${OBJECTDIR}/_ext/5e78919f
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/5e78919f/dftengine.o ../../src/libxtp/dftengine/dftengine.cc
+
+${OBJECTDIR}/_ext/1ce08c7a/esp2multipole.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/esp2multipole.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce08c7a/esp2multipole.o ../../src/libxtp/esp2multipole.cc
 
 ${OBJECTDIR}/_ext/1ce08c7a/espfit.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/espfit.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a

@@ -23,6 +23,7 @@
 #include <stdio.h>
 
 #include <votca/xtp/logger.h>
+#include <votca/tools/constants.h>
 #include <votca/xtp/bsecoupling.h>
 #include <votca/xtp/qmpackagefactory.h>
 
@@ -55,6 +56,10 @@ private:
     Property    _package_options; 
     
     string      _output_file;
+    bool        _classical;
+    string      _mpsA;
+    string      _mpsB;
+    
     
     Logger      _log;
 
@@ -65,20 +70,30 @@ void ExcitonCoupling::Initialize(Property* options)
 
    // update options with the VOTCASHARE defaults   
     UpdateWithDefaults( options, "xtp" );
-    std::string key = "options." + Identify();    
+    std::string key = "options." + Identify();  
+    _classical=false;
+    if ( options->exists(key+".classical")) {
+        _classical = options->get(key+".classical").as<bool>();
+        }
     
-    _degeneracy = options->get(key + ".degeneracy").as<double> ();
-    _spintype   = options->get(key + ".type").as<string> ();
-
-        
+    if(!_classical){
     
-    _orbA  = options->get(key + ".moleculeA.orbitals").as<string> ();
-    _orbB  = options->get(key + ".moleculeB.orbitals").as<string> ();
-    _orbAB = options->get(key + ".dimerAB.orbitals").as<string> ();
+        _degeneracy = options->get(key + ".degeneracy").as<double> ();
+        _spintype   = options->get(key + ".type").as<string> ();
 
-    _levA  = options->get(key + ".moleculeA.states").as<int> ();
-    _levB  = options->get(key + ".moleculeB.states").as<int> ();
-   
+
+
+        _orbA  = options->get(key + ".moleculeA.orbitals").as<string> ();
+        _orbB  = options->get(key + ".moleculeB.orbitals").as<string> ();
+        _orbAB = options->get(key + ".dimerAB.orbitals").as<string> ();
+
+        _levA  = options->get(key + ".moleculeA.states").as<int> ();
+        _levB  = options->get(key + ".moleculeB.states").as<int> ();
+    }
+    else{
+        _mpsA= options->get(key + ".moleculeA.mps").as<string> ();
+        _mpsB= options->get(key + ".moleculeB.mps").as<string> ();
+    }
     _output_file = options->get(key + ".output").as<string> ();
 
     // get the path to the shared folders with xml files
@@ -88,7 +103,8 @@ void ExcitonCoupling::Initialize(Property* options)
 }
 
 bool ExcitonCoupling::Evaluate() {
-
+    Property *_job_output;
+    Property _summary; 
     _log.setReportLevel( logDEBUG );
     _log.setMultithreading( true );
     
@@ -98,7 +114,7 @@ bool ExcitonCoupling::Evaluate() {
     _log.setPreface(logDEBUG,   "\n... ..."); 
 
     // get the corresponding object from the QMPackageFactory
-
+    if(!_classical){
     Orbitals _orbitalsA, _orbitalsB, _orbitalsAB;
     // load the QM data from serialized orbitals objects
 
@@ -133,8 +149,8 @@ bool ExcitonCoupling::Evaluate() {
  
     if ( _calculate_integrals ){ 
      // output the results
-    Property _summary; 
-    Property *_job_output = &_summary.add("output","");
+    
+    _job_output = &_summary.add("output","");
     Property *_pair_summary = &_job_output->add("pair","");
     Property *_type_summary = &_pair_summary->add("type","");
     if ( _spintype == "singlets" || _spintype == "all" ){
@@ -169,12 +185,51 @@ bool ExcitonCoupling::Evaluate() {
     }    
     
    
+   
+    }
+    }
+    
+    else if (_classical){
+        std::vector<APolarSite*> seg1=APS_FROM_MPS(_mpsA, 0);
+        std::vector<APolarSite*> seg2=APS_FROM_MPS(_mpsB, 0);
+        
+        PolarSeg* Seg1 = new PolarSeg(1,seg1);
+        PolarSeg* Seg2 = new PolarSeg(2,seg2);
+        XInteractor actor;
+        actor.ResetEnergy();
+        Seg1->CalcPos();
+        Seg2->CalcPos();
+        vec s = Seg1->getPos() - Seg2->getPos();
+        //LOG(logINFO, *pLog) << "Evaluate pair for debugging " << Seg1->getId() << ":" <<Seg2->getId() << " Distance "<< abs(s) << flush; 
+        PolarSeg::iterator pit1;
+        PolarSeg::iterator pit2;
+        double E = 0.0;
+        for (pit1 = Seg1->begin(); pit1 < Seg1->end(); ++pit1) {
+            for (pit2 = Seg2->begin(); pit2 < Seg2->end(); ++pit2) {
+                actor.BiasIndu(*(*pit1), *(*pit2), s);
+                (*pit1)->Depolarize();
+                (*pit2)->Depolarize();
+                E += actor.E_f(*(*pit1), *(*pit2));
+                               
+                }
+            }
+    double J=E*conv::int2eV;  
+    
+    _job_output = &_summary.add("output","");
+    Property *_pair_summary = &_job_output->add("pair","");
+    _pair_summary->setAttribute("idA", 1);
+    _pair_summary->setAttribute("idB", 2);
+    _pair_summary->setAttribute("typeA", _mpsA);
+    _pair_summary->setAttribute("typeB", _mpsB);
+    Property *_coupling_summary = &_pair_summary->add("Coupling",""); 
+    _coupling_summary->setAttribute("jABstatic", J);
+    }
+    
     votca::tools::PropertyIOManipulator iomXML(votca::tools::PropertyIOManipulator::XML, 1, "");
      
     std::ofstream ofs (_output_file.c_str(), std::ofstream::out);
     ofs << *_job_output;    
     ofs.close();
-    }
     return true;
 }
 

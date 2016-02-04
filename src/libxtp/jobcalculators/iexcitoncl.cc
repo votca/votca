@@ -22,6 +22,7 @@
 
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
+#include <votca/tools/constants.h>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
 #include <votca/tools/propertyiomanipulator.h>
@@ -29,7 +30,6 @@
 #include <votca/xtp/xmapper.h>
 #include <votca/xtp/xinteractor.h>
 
-using boost::format;
 using namespace boost::filesystem;
 using namespace votca::tools;
 
@@ -53,7 +53,7 @@ void IEXCITON::Initialize(votca::tools::Property* opt ) {
 
 
     _induce= false;
-    _singlet=true;
+    _statenumber=1;
     string key = "options." + Identify();
     if ( opt->exists(key+".job_file")) {
         _jobfile = opt->get(key+".job_file").as<string>();
@@ -73,14 +73,13 @@ void IEXCITON::Initialize(votca::tools::Property* opt ) {
     else {
             throw std::runtime_error("Emp-file not set. Abort.");
         }
-    if ( opt->exists(key+".spin")) {
-            string type=opt->get(key+".spin").as<string>();
-            if (type=="singlet") _singlet=true;
-            else if (type=="triplet") _singlet=false;
-            else std::runtime_error("Spin state not known. Abort.");
+    if ( opt->exists(key+".statenumber")) {
+            _statenumber=opt->get(key+".statenumber").as<int>();
+           
         }
     else {
-            throw std::runtime_error("Spin not set. Abort.");
+        cout << endl << "Statenumber not specified, assume singlet s1 " << flush;
+          _statenumber=1;
         }
     if ( opt->exists(key+".induce")) {
             _induce   = opt->get(key+".induce").as<bool>();
@@ -94,7 +93,8 @@ void IEXCITON::Initialize(votca::tools::Property* opt ) {
 void IEXCITON::PreProcess(Topology *top) {
 
     // INITIALIZE MPS-MAPPER (=> POLAR TOP PREP)
-    cout << endl << "... ... Initialize MPS-mapper: " << flush;
+     cout << endl << "... ... Initialize MPS-mapper: "  << flush; 
+    
     _mps_mapper.GenerateMap(_xml_file, _emp_file, top);
 }
 
@@ -106,10 +106,10 @@ void IEXCITON::CustomizeLogger(QMThread *thread) {
     log->setReportLevel(logDEBUG);
     log->setMultithreading(_maverick);
 
-    log->setPreface(logINFO,    (format("\nT%1$02d INF ...") % thread->getId()).str());
-    log->setPreface(logERROR,   (format("\nT%1$02d ERR ...") % thread->getId()).str());
-    log->setPreface(logWARNING, (format("\nT%1$02d WAR ...") % thread->getId()).str());
-    log->setPreface(logDEBUG,   (format("\nT%1$02d DBG ...") % thread->getId()).str());        
+    log->setPreface(logINFO,    (boost::format("\nT%1$02d INF ...") % thread->getId()).str());
+    log->setPreface(logERROR,   (boost::format("\nT%1$02d ERR ...") % thread->getId()).str());
+    log->setPreface(logWARNING, (boost::format("\nT%1$02d WAR ...") % thread->getId()).str());
+    log->setPreface(logDEBUG,   (boost::format("\nT%1$02d DBG ...") % thread->getId()).str());        
 }
 
 
@@ -190,7 +190,7 @@ Job::JobResult IEXCITON::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 }
 
 double IEXCITON::EvaluatePair(Topology *top,PolarSeg* Seg1,PolarSeg* Seg2, Logger* pLog ){
-    double int2eV = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
+    
     XInteractor actor;
     actor.ResetEnergy();
     Seg1->CalcPos();
@@ -214,7 +214,7 @@ double IEXCITON::EvaluatePair(Topology *top,PolarSeg* Seg1,PolarSeg* Seg2, Logge
     }
 
     
-  return E*int2eV;  
+  return E*conv::int2eV;  
 }
 
 
@@ -246,16 +246,11 @@ void IEXCITON::WriteJobFile(Topology *top) {
             string name2 = (*pit)->Seg2()->getName();   
 
             int id = ++jobCount;
-            string mps_file1="MP_FILES/"+name1;
-            string mps_file2="MP_FILES/"+name2;
-            if (_singlet){
-                mps_file1=mps_file1+"_n2s.mps";
-                mps_file2=mps_file2+"_n2s.mps";
-            }
-            else{
-                mps_file1=mps_file1+"_n2t.mps";
-                mps_file2=mps_file2+"_n2t.mps";
-            }                
+
+            
+            string mps_file1=(boost::format("MP_FILES/%s_n2s%2d.mps") % name1  % _statenumber).str();
+            string mps_file2=(boost::format("MP_FILES/%s_n2s%2d.mps") % name1  % _statenumber).str();
+            
             Property Input;
             Property *pInput = &Input.add("input","");
             Property *pSegment =  &pInput->add("segment" , boost::lexical_cast<string>(id1) );
@@ -362,14 +357,11 @@ void IEXCITON::ReadJobFile(Topology *top) {
         Jeff2 = jAB*jAB;
         
     
-        if (_singlet){
-            pair->setJeff2(Jeff2, 2);
-            pair->setIsPathCarrier(true, 2);
-        }   
-        else{
-            pair->setJeff2(Jeff2, 3);
-            pair->setIsPathCarrier(true, 3);
-        }
+        
+        pair->setJeff2(Jeff2, 2);
+        pair->setIsPathCarrier(true, 2);
+        
+        
       
         }
     }

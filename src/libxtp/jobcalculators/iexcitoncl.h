@@ -67,7 +67,7 @@ private:
    
     XMpsMap                        _mps_mapper;
     bool                           _induce;
-    bool                           _singlet;
+    int                           _statenumber;
     string                         _emp_file;
     string                         _xml_file;
 
