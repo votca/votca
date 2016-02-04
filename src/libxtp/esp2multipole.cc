@@ -110,6 +110,7 @@ void Esp2multipole::WritetoFile(Orbitals& _orbitals,string _output_file, string 
     _use_mps=false;
     _use_pdb=false;
     string data_format  = boost::filesystem::extension(_output_file);  
+    cout << data_format << endl;
     if (data_format==".mps")_use_mps=true; 
     else if(data_format==".pdb")_use_pdb=true;    
     else  throw std::runtime_error("Outputfile format not recognized. Export only to .pdb and .mps");

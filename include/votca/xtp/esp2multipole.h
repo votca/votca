@@ -37,13 +37,13 @@ public:
     Esp2multipole () { };
    ~Esp2multipole () { };
 
-    string Identify() { return "Esp2multipole"; }
+    string Identify() { return "esp2multipole"; }
 
     void   Initialize(Property *options);
     
    
     void Extractingcharges( Orbitals& _orbitals );
-    void WritetoFile(Orbitals& _orbitals,string _output_file,  string identifier="Esp2multipole");
+    void WritetoFile(Orbitals& _orbitals,string _output_file,  string identifier="esp2multipole");
     string GetIdentifier();
 
 private:
