@@ -103,7 +103,7 @@ void ExcitonCoupling::Initialize(Property* options)
 }
 
 bool ExcitonCoupling::Evaluate() {
-    Property *_job_output;
+    Property *_job_output=NULL;
     Property _summary; 
     _log.setReportLevel( logDEBUG );
     _log.setMultithreading( true );
