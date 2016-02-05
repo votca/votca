@@ -1187,7 +1187,7 @@ void Exciton::ReadXYZ(Segment* _segment, string filename){
         throw std::runtime_error("No such file: '"+filename+"'.");
     }
           
-return    
+return;    
 }
 
 void Exciton::Orbitals2Segment(Segment* _segment, Orbitals* _orbitals){
