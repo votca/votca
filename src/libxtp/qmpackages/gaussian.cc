@@ -883,7 +883,7 @@ namespace votca {
             _orbitals->setQMpackage("gaussian");
             
             _read_vxc=_output_Vxc;
-
+            bool vxc_found=false;
             // Start parsing the file line by line
             ifstream _input_file(_log_file_name_full.c_str());
             while (_input_file) {
@@ -908,14 +908,10 @@ namespace votca {
                     boost::algorithm::split(results, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
                     double _ScaHFX = boost::lexical_cast<double>(results.back());
                     _orbitals->setScaHFX(_ScaHFX);
+                    vxc_found=true;
                     LOG(logDEBUG, *_pLog) << "DFT with " << _ScaHFX << " of HF exchange!" << flush;
                 }
-                else{
-                    LOG(logDEBUG, *_pLog) << "WARNING === WARNING \n, could not find ScaHFX= entry in log.\n probably you forgt #P in the beginning of the input file.\n If you are running a hybrid functional calculation redo it! Now! Please!\n ===WARNING=== \n" 
-                             << flush;
-                    _orbitals->setScaHFX(0.0);
-                }
-
+               
 
 
                 /*
@@ -1250,6 +1246,13 @@ namespace votca {
 
             LOG(logDEBUG, *_pLog) << "Done parsing" << flush;
             _input_file.close();
+            
+             if(!vxc_found){
+                    LOG(logDEBUG, *_pLog) << "WARNING === WARNING \n, could not find ScaHFX= entry in log.\n probably you forgt #P in the beginning of the input file.\n If you are running a hybrid functional calculation redo it! Now! Please!\n ===WARNING=== \n" 
+                             << flush;
+                    _orbitals->setScaHFX(0.0);
+                }
+
 
             /* Now, again the somewhat ugly construction:
              * if we request writing of pseudopotential data to the input file, this
