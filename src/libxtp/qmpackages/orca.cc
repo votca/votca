@@ -803,8 +803,8 @@ if (_basis_size==0 || _levels==0){
     delete[] buffer;
     
     infile.close();
-    cout<< "basissize " <<_basis_size << endl;
-    cout << "coeffvektor size "<< _coefficients.size() << endl;
+    //cout<< "basissize " <<_basis_size << endl;
+    //cout << "coeffvektor size "<< _coefficients.size() << endl;
     
     
     // i -> MO, j -> AO 
@@ -817,8 +817,8 @@ if (_basis_size==0 || _levels==0){
         }
     }
    
-      cout<<"MO1:1 :" <<setprecision(15)<<_orbitals->_mo_coefficients(0,0)<< endl;
-      cout<<"MO-1:-1"<<setprecision(15)<< _orbitals->_mo_coefficients(_levels-1,_levels-1)<< endl;
+      //cout<<"MO1:1 :" <<setprecision(15)<<_orbitals->_mo_coefficients(0,0)<< endl;
+      //cout<<"MO-1:-1"<<setprecision(15)<< _orbitals->_mo_coefficients(_levels-1,_levels-1)<< endl;
       
       
     LOG(logDEBUG,*_pLog) << "Done parsing" << flush;

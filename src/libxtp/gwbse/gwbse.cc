@@ -350,9 +350,10 @@ namespace votca {
                 
                 
                     LOG(logDEBUG, *_pLog) << TimeStamp() << " Converted DFT orbital coefficient order from " << _dft_package << " to VOTCA" << flush;
+                    LOG(logDEBUG, *_pLog) << TimeStamp() << " Integrating Vxc in VOTCA with gridsize: " << _grid << " and functional " << _functional << flush;
                     ub::matrix<double> &DMAT = _orbitals->DensityMatrixGroundState(_dft_orbitals);
                     _vxc_ao = _numint.IntegrateVXC_Atomblock(DMAT, &dftbasis, _functional);
-                    LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculated Vxc in VOTCA with gridsize: " << _grid << " and functional " << _functional << flush;
+                    LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculated Vxc in VOTCA" << flush;
 
                 } else {
                     throw std::runtime_error("So your DFT data contains no Vxc and I am not supposed to calculate Vxc? Where should I get it from? I propose a break to let you think!");

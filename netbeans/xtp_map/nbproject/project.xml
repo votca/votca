@@ -10,18 +10,27 @@
             <header-extensions>h</header-extensions>
             <sourceEncoding>UTF-8</sourceEncoding>
             <make-dep-projects>
-                <make-dep-project>../../../csg/netbeans/libcsg</make-dep-project>
+                <make-dep-project>../libxtp</make-dep-project>
                 <make-dep-project>../../../moo/netbeans/libmoo</make-dep-project>
                 <make-dep-project>../../../tools/netbeans/libtools</make-dep-project>
-                <make-dep-project>../libxtp</make-dep-project>
+                <make-dep-project>../../../csg/netbeans/libcsg</make-dep-project>
             </make-dep-projects>
             <sourceRootList>
                 <sourceRootElem>../../src/tools</sourceRootElem>
             </sourceRootList>
             <confList>
-                <confElem>Debug</confElem>
-                <confElem>Release</confElem>
+                <confElem>
+                    <name>Debug</name>
+                    <type>1</type>
+                </confElem>
+                <confElem>
+                    <name>Release</name>
+                    <type>1</type>
+                </confElem>
             </confList>
+            <formatting>
+                <project-formatting-style>false</project-formatting-style>
+            </formatting>
         </data>
     </configuration>
 </project>
