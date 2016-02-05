@@ -910,6 +910,11 @@ namespace votca {
                     _orbitals->setScaHFX(_ScaHFX);
                     LOG(logDEBUG, *_pLog) << "DFT with " << _ScaHFX << " of HF exchange!" << flush;
                 }
+                else{
+                    LOG(logDEBUG, *_pLog) << "WARNING === WARNING \n, could not find ScaHFX= entry in log.\n probably you forgt #P in the beginning of the input file.\n If you are running a hybrid functional calculation redo it! Now! Please!\n ===WARNING=== \n" 
+                             << flush;
+                    _orbitals->setScaHFX(0.0);
+                }
 
 
 
