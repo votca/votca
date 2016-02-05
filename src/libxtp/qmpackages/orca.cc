@@ -605,7 +605,7 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
             boost::trim( _energy );
             //cout << _energy << endl; 
             _orbitals->setQMEnergy ( _conv_Hrt_eV * boost::lexical_cast<double>(_energy) );
-            LOG(logDEBUG, *_pLog) << "QM energy " << _orbitals->getQMEnergy() <<  flush;
+            LOG(logDEBUG, *_pLog) << (boost::format("QM energy[eV]: %4.6f ") % _orbitals->getQMEnergy()).str() << flush;
             // _orbitals->_has_qm_energy = true;
             }
         

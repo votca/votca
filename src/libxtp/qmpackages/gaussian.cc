@@ -1189,7 +1189,7 @@ namespace votca {
                         boost::algorithm::split(property, *block_it, boost::is_any_of("="), boost::algorithm::token_compress_on);
                         properties[property[0]] = property[1];
                     }
-                    LOG(logDEBUG, *_pLog) << "QM energy " << _orbitals->getQMEnergy() << flush;
+                    LOG(logDEBUG, *_pLog) << "QM energy check before reading energy, should be 0 " << _orbitals->getQMEnergy() << flush;
                     //_has_qm_energy = true;
                     //_orbitals->_has_atoms = true;
                     //_orbitals->_has_qm_energy = true;
@@ -1197,7 +1197,7 @@ namespace votca {
                         double energy_hartree = boost::lexical_cast<double>(properties["HF"]);
                         //_orbitals->setQMEnergy(_has_qm_energy = true;
                         _orbitals-> setQMEnergy(_conv_Hrt_eV * energy_hartree);
-                        LOG(logDEBUG, *_pLog) << "QM energy " << _orbitals->_qm_energy << flush;
+                        LOG(logDEBUG, *_pLog) << (boost::format("QM energy[eV]: %4.6f ") % _orbitals->getQMEnergy()).str() << flush;
                     } else {
                         cout << endl;
                         throw std::runtime_error("ERROR No energy in archive");

@@ -653,7 +653,7 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
         if (coordinates_pos != std::string::npos) {
             LOG(logDEBUG,*_pLog) << "Getting the coordinates" << flush;
             //_has_coordinates = true;
-            LOG(logDEBUG, *_pLog) << "QM energy " << _orbitals->getQMEnergy() <<  flush;
+            LOG(logDEBUG, *_pLog) << (boost::format("QM energy[eV]: %4.6f ") % _orbitals->getQMEnergy()).str() << flush;
                     
             //_orbitals->_has_atoms = true;
             // _orbitals->_has_qm_energy = true;

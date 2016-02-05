@@ -13,6 +13,7 @@
 #include <votca/xtp/segment.h>
 #include <votca/xtp/qmpair.h>
 #include <votca/xtp/topology.h>
+#include <boost/format.hpp>
 
 namespace votca { namespace xtp {
 

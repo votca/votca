@@ -755,7 +755,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
             string _energy = results.back();
             boost::trim( _energy );
             _orbitals->setQMEnergy ( _conv_Hrt_eV * boost::lexical_cast<double>(_energy) );
-            LOG(logDEBUG, *_pLog) << "QM energy " << _orbitals->getQMEnergy() <<  flush;
+            LOG(logDEBUG, *_pLog) << (boost::format("QM energy[eV]: %4.6f ") % _orbitals->getQMEnergy()).str() << flush;
             _has_qm_energy = true;
             // _orbitals->_has_qm_energy = true;
             
