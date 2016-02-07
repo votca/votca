@@ -10,6 +10,7 @@ project(votca)
 ########################################################################
 option(BUILD_CSGAPPS "Build csgapps" OFF)
 option(BUILD_CTP "Build ctp" OFF)
+option(BUILD_XTP "Build xtp" OFF)
 
 ######################################
 # Include the following subdirectory # 
@@ -32,4 +33,7 @@ if(BUILD_CTP)
   set(VOTCA_MOO_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/moo/include
 	  CACHE PATH "moo include path")
   add_subdirectory(ctp)
+endif()
+if(BUILD_XTP)
+  add_subdirectory(xtp)
 endif()

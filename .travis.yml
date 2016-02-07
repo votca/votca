@@ -50,7 +50,7 @@ before_script:
 
 script:
   - mkdir build && cd build && 
-    PATH="$HOME/bin:/usr/lib/ccache:$PATH" cmake -DBUILD_CSGAPPS=ON -DBUILD_CTP=ON -DCMAKE_INSTALL_PREFIX=$HOME/votca .. &&
+    PATH="$HOME/bin:/usr/lib/ccache:$PATH" cmake -DBUILD_CSGAPPS=ON -DBUILD_CTP=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=$HOME/votca .. &&
     make -j4 && make install
 
 cache:
