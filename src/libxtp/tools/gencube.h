@@ -128,6 +128,9 @@ namespace votca {
             }
             else if (_type== "excited-gs") _do_bse=true;
             else if ( _type == "qp" ) _do_qp = true;
+            else {
+                throw std::runtime_error("Option for type not known");
+            }
             
             
             

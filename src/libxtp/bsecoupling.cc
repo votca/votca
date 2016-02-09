@@ -659,7 +659,31 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
         }
     }
     
+    // Same routines but also take <v|c'> <c|v'> projections into account 
+    /*
+    ub::matrix<float> _kap;
+    _kap.resize(_bseA_size,_bseAB_size);
+    for ( int _i_bseA = 0 ; _i_bseA < _bseA_size ; _i_bseA++){
+        for ( int _i_bseAB = 0 ; _i_bseAB < _bseAB_size ; _i_bseAB++){
+            _kap(_i_bseA,_i_bseAB) = _psi_AxB_dimer_basis( _combA(_i_bseA,0), _combAB( _i_bseAB,0) ) * _psi_AxB_dimer_basis( _combA(_i_bseA,1), _combAB( _i_bseAB,1) )+
+              _psi_AxB_dimer_basis( _combA(_i_bseA,1), _combAB( _i_bseAB,0) ) * _psi_AxB_dimer_basis( _combA(_i_bseA,0), _combAB( _i_bseAB,1) )     ;
+            
+        }
+    }
+
     
+
+    
+    
+    ub::matrix<float> _kbp;
+    _kbp.resize(_bseB_size,_bseAB_size);
+    for ( int _i_bseB = 0 ; _i_bseB < _bseB_size ; _i_bseB++){
+        for ( int _i_bseAB = 0 ; _i_bseAB < _bseAB_size ; _i_bseAB++){
+            _kbp(_i_bseB,_i_bseAB) = _psi_AxB_dimer_basis( _combB(_i_bseB,0), _combAB( _i_bseAB,0) ) * _psi_AxB_dimer_basis( _combB(_i_bseB,1), _combAB( _i_bseAB,1) )+
+                    _psi_AxB_dimer_basis( _combB(_i_bseB,1), _combAB( _i_bseAB,0) ) * _psi_AxB_dimer_basis( _combB(_i_bseB,0), _combAB( _i_bseAB,1) );
+        }
+    }
+    */ 
   
 
     LOG(logDEBUG,*_pLog)  << "   construct projection of product functions " << flush; 

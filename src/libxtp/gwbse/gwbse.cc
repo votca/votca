@@ -710,15 +710,13 @@ namespace votca {
                 
                 if ( _store_eh_interaction) {
                     ub::matrix<float>& _eh_d_store = _orbitals->eh_d();
-                    if ( _do_bse_diag  ){
-                       _eh_d_store = _eh_d;
-                    } else {
+                   
                         // setup free transition part of BSE Hamiltonian and add to _eh_d storage
                         BSE_qp_setup();
                          LOG(logDEBUG, *_pLog) << TimeStamp() << " Free transition part of electron-hole pairs " << flush;
                        _eh_d_store = -_eh_d + _eh_qp; 
                        _eh_qp.resize(0,0);
-                    }
+
                                
                 }
                       
