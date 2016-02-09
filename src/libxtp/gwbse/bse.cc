@@ -52,33 +52,7 @@ namespace votca {
             _eh_qp = ub::zero_matrix<float>( _bse_size , _bse_size );
             
             
-            #pragma omp parallel for
-            for ( size_t _v1 = 0 ; _v1 < _bse_vtotal ; _v1++){
-                for ( size_t _c1 = 0 ; _c1 < _bse_ctotal ; _c1++){
-                    size_t _index_vc = _bse_ctotal * _v1 + _c1;
-
-                    // diagonal
-                    _eh_qp( _index_vc , _index_vc ) += _vxc(_c1 + _bse_vtotal ,_c1 + _bse_vtotal ) - _vxc(_v1,_v1);
-
-                    // v->c
-                    for ( size_t _c2 = 0 ; _c2 < _bse_ctotal ; _c2++){
-                        size_t _index_vc2 = _bse_ctotal * _v1 + _c2;
-                        if ( _c1 != _c2 ){
-                            _eh_qp( _index_vc , _index_vc2 ) += _vxc(_c1+ _bse_vtotal ,_c2 + _bse_vtotal );
-                        }
-                    }
-                    
-                    // c-> v
-                    for ( size_t _v2 = 0 ; _v2 < _bse_vtotal ; _v2++){
-                        size_t _index_vc2 = _bse_ctotal * _v2 + _c1;
-                        if ( _v1 != _v2 ){
-                            _eh_qp( _index_vc , _index_vc2 ) -= _vxc(_v1,_v2);
-                        }
-                    }
-                    
-                    
-                }
-            }
+            BSE_Add_qp2H( _eh_qp );
             
             
         }
@@ -91,48 +65,7 @@ namespace votca {
             ub::matrix<float> _bse =  -_eh_d;
             
             // add full QP Hamiltonian contributions to free transitions
-            #pragma omp parallel for
-            for ( size_t _v1 = 0 ; _v1 < _bse_vtotal ; _v1++){
-                for ( size_t _c1 = 0 ; _c1 < _bse_ctotal ; _c1++){
-                    size_t _index_vc = _bse_ctotal * _v1 + _c1;
-
-                    // diagonal
-                    //_bse( _index_vc , _index_vc ) += _vxc(_c1 + _bse_cmin ,_c1 + _bse_cmin ) - _vxc(_v1,_v1);
-                    _bse( _index_vc , _index_vc ) += _vxc(_c1 + _bse_vtotal ,_c1 + _bse_vtotal ) - _vxc(_v1,_v1);
-
-                    // v->c
-                    for ( size_t _c2 = 0 ; _c2 < _bse_ctotal ; _c2++){
-                        size_t _index_vc2 = _bse_ctotal * _v1 + _c2;
-                        if ( _c1 != _c2 ){
-                            //_bse( _index_vc , _index_vc2 ) += _vxc(_c1+ _bse_cmin ,_c2 + _bse_cmin );
-                            _bse( _index_vc , _index_vc2 ) += _vxc(_c1+ _bse_vtotal ,_c2 + _bse_vtotal );
-                        }
-                    }
-                    
-                    // c-> v
-                    for ( size_t _v2 = 0 ; _v2 < _bse_vtotal ; _v2++){
-                        size_t _index_vc2 = _bse_ctotal * _v2 + _c1;
-                        if ( _v1 != _v2 ){
-                            _bse( _index_vc , _index_vc2 ) -= _vxc(_v1,_v2);
-                        }
-                    }
-                    
-                    
-                }
-            }
-            
-            
-            
-        /*      cout << endl;
-        for ( int i = 0; i<_eh_d.size1(); i++ ){
-            for ( int j = 0; j<_eh_d.size2(); j++ ){
-                
-                
-                cout << "eh D [" << i << " : " << j << "]: " << _bse(i,j) << endl; 
-                
-            }
-            
-        } */
+            BSE_Add_qp2H( _bse );
             
             
             linalg_eigenvalues( _bse, _bse_triplet_energies, _bse_triplet_coefficients, _bse_nmax);
@@ -149,36 +82,10 @@ namespace votca {
           // setup resonant (A) and RARC blocks (B)
 
             ub::matrix<float> _A = -_eh_d + 2.0 * _eh_x;
-
+            BSE_Add_qp2H( _A );
 
             // add full QP Hamiltonian contributions to free transitions
-            #pragma omp parallel for
-            for ( size_t _v1 = 0 ; _v1 < _bse_vtotal ; _v1++){
-                for ( size_t _c1 = 0 ; _c1 < _bse_ctotal ; _c1++){
-                    size_t _index_vc = _bse_ctotal * _v1 + _c1;
-
-                    // diagonal
-                    _A( _index_vc , _index_vc ) += _vxc(_c1 + _bse_vtotal ,_c1 + _bse_vtotal) - _vxc(_v1,_v1);
-
-                    // v->c
-                    for ( size_t _c2 = 0 ; _c2 < _bse_ctotal ; _c2++){
-                        size_t _index_vc2 = _bse_ctotal * _v1 + _c2;
-                        if ( _c1 != _c2 ){
-                            _A( _index_vc , _index_vc2 ) += _vxc(_c1 + _bse_vtotal ,_c2 + _bse_vtotal);
-                        }
-                    }
-                    
-                    // c-> v
-                    for ( size_t _v2 = 0 ; _v2 < _bse_vtotal ; _v2++){
-                        size_t _index_vc2 = _bse_ctotal * _v2 + _c1;
-                        if ( _v1 != _v2 ){
-                            _A( _index_vc , _index_vc2 ) -= _vxc(_v1,_v2);
-                        }
-                    }
-                    
-                    
-                }
-            }
+            
           
             ub::matrix<float> _B = -_eh_d2 + 2.0 * _eh_x;
 
@@ -293,7 +200,38 @@ namespace votca {
       }
         
         
+      void GWBSE::BSE_Add_qp2H( ub::matrix<float>& qp ){
+          
+          
+          #pragma omp parallel for
+            for ( size_t _v1 = 0 ; _v1 < _bse_vtotal ; _v1++){
+                for ( size_t _c1 = 0 ; _c1 < _bse_ctotal ; _c1++){
+                    size_t _index_vc = _bse_ctotal * _v1 + _c1;
 
+                    // diagonal
+                    qp( _index_vc , _index_vc ) += _vxc(_c1 + _bse_vtotal ,_c1 + _bse_vtotal ) - _vxc(_v1,_v1);
+
+                    // v->c
+                    for ( size_t _c2 = 0 ; _c2 < _bse_ctotal ; _c2++){
+                        size_t _index_vc2 = _bse_ctotal * _v1 + _c2;
+                        if ( _c1 != _c2 ){
+                            qp( _index_vc , _index_vc2 ) += _vxc(_c1+ _bse_vtotal ,_c2 + _bse_vtotal );
+                        }
+                    }
+                    
+                    // c-> v
+                    for ( size_t _v2 = 0 ; _v2 < _bse_vtotal ; _v2++){
+                        size_t _index_vc2 = _bse_ctotal * _v2 + _c1;
+                        if ( _v1 != _v2 ){
+                            qp( _index_vc , _index_vc2 ) -= _vxc(_v1,_v2);
+                        }
+                    }
+                    
+                    
+                }
+            }
+            return;
+      }
    
         
       void GWBSE::BSE_solve_singlets(){
@@ -302,33 +240,7 @@ namespace votca {
 
 
             // add full QP Hamiltonian contributions to free transitions
-            #pragma omp parallel for
-            for ( size_t _v1 = 0 ; _v1 < _bse_vtotal ; _v1++){
-                for ( size_t _c1 = 0 ; _c1 < _bse_ctotal ; _c1++){
-                    size_t _index_vc = _bse_ctotal * _v1 + _c1;
-
-                    // diagonal
-                    _bse( _index_vc , _index_vc ) += _vxc(_c1 + _bse_vtotal ,_c1 + _bse_vtotal) - _vxc(_v1,_v1);
-
-                    // v->c
-                    for ( size_t _c2 = 0 ; _c2 < _bse_ctotal ; _c2++){
-                        size_t _index_vc2 = _bse_ctotal * _v1 + _c2;
-                        if ( _c1 != _c2 ){
-                            _bse( _index_vc , _index_vc2 ) += _vxc(_c1 + _bse_vtotal ,_c2 + _bse_vtotal);
-                        }
-                    }
-                    
-                    // c-> v
-                    for ( size_t _v2 = 0 ; _v2 < _bse_vtotal ; _v2++){
-                        size_t _index_vc2 = _bse_ctotal * _v2 + _c1;
-                        if ( _v1 != _v2 ){
-                            _bse( _index_vc , _index_vc2 ) -= _vxc(_v1,_v2);
-                        }
-                    }
-                    
-                    
-                }
-            }
+            BSE_Add_qp2H( _bse );
             
             // _bse_singlet_energies.resize(_bse_singlet_coefficients.size1());
             linalg_eigenvalues(_bse, _bse_singlet_energies, _bse_singlet_coefficients, _bse_nmax);

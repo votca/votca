@@ -301,6 +301,7 @@ public:
     void BSE_d_setup( TCMatrix& _Mmn );
     void BSE_d2_setup( TCMatrix& _Mmn );
     void BSE_qp_setup( );
+    void BSE_Add_qp2H( ub::matrix<float>& qp );
     void BSE_solve_triplets();
     void BSE_solve_singlets();
     void BSE_solve_singlets_BTDA();
