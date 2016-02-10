@@ -594,6 +594,9 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
         }
     }
     
+    
+
+    
     // DFT levels can be reduced to those used in BSE
     _levelsA = _bseA_vtotal + _bseA_ctotal;
     _levelsB = _bseB_vtotal + _bseB_ctotal;
@@ -612,7 +615,6 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     ub::zero_matrix<double> zeroA( _levelsB, _basisA ) ;
     ub::matrix<double> _psi_AxB ( _levelsA + _levelsB, _basisA + _basisB  );
     
-
     // constructing merged orbitals
     ub::project( _psi_AxB, ub::range (0, _levelsA ), ub::range ( _basisA, _basisA +_basisB ) ) = zeroB;
     ub::project( _psi_AxB, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( 0, _basisA ) ) = zeroA;    
@@ -634,7 +636,73 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     // _psi_AxB_dimer_basis = T in notes, dimension ( LA + LB, LD)
     
     
-    //cout << "Size of _psi_AxB_dimer_basis " << _psi_AxB_dimer_basis.size1() << " : " <<  _psi_AxB_dimer_basis.size2() << flush; 
+    cout << "Size of _psi_AxB_dimer_basis " << _psi_AxB_dimer_basis.size1() << " : " <<  _psi_AxB_dimer_basis.size2() << flush; 
+    
+    
+    //notation AB is CT states with A+B-, BA is the counterpart
+    //Setting up CT-states:
+    
+    int LumosA=5;
+    int LumosB=5;
+    int HomosA=5;
+    int HomosB=5;
+    
+    //Number of A+B- states
+    int noAB=HomosA*LumosB;
+    //Number of A-B+ states
+    int noBA=LumosA*HomosB;
+    
+    
+    ub::matrix<int> comb_CTAB;
+    comb_CTAB.resize(noAB,2);
+    _cnt = 0;
+    
+
+    
+    
+    // iterate A over occupied, B over unoccupied
+    int v_start=_bseA_vtotal-HomosA;
+    for ( int _v = v_start; _v < _bseA_vtotal; _v++){
+        for ( int _c = 0; _c <LumosB; _c++){            
+            comb_CTAB(_cnt,0) =_v;
+            comb_CTAB(_cnt,1) = _bseA_vtotal+_bseA_ctotal+_bseB_vtotal + _c;
+            
+            _cnt++;
+        }
+    }
+    
+    ub::matrix<int> comb_CTBA;
+    comb_CTBA.resize(noBA,2);
+    _cnt = 0;
+    // iterate A over unoccupied, B over occupied
+    v_start=_bseB_vtotal-HomosB;
+    for ( int _v = v_start; _v < _bseB_vtotal; _v++){
+        for ( int _c = 0; _c <LumosA; _c++){            
+            comb_CTAB(_cnt,0) =_bseA_vtotal+_bseA_ctotal+_v;
+            comb_CTAB(_cnt,1) = _bseA_vtotal+ _c;
+            
+            _cnt++;
+        }
+    }
+    
+    
+    
+    // these 4 matrixes, matrix(i,j) contains the j-th dimer MO component of the i-th excitation
+    ub::matrix<float> ctAB;
+    ctAB.resize(noAB,_bseAB_size);
+    for ( int _i_CT = 0 ; _i_CT < noAB ; _i_CT++){
+    for ( int _i_bseAB = 0 ; _i_bseAB < _bseAB_size ; _i_bseAB++){
+        ctAB(_i_CT,_i_bseAB)=_psi_AxB_dimer_basis( comb_CTAB(_i_CT,0), _combAB( _i_bseAB,0) ) * _psi_AxB_dimer_basis( comb_CTAB(_i_CT,1), _combAB( _i_bseAB,1) );
+        }
+    }
+    
+    ub::matrix<float>ctBA;
+    ctBA.resize(noBA,_bseAB_size);
+    for ( int _i_CT = 0 ; _i_CT < noBA ; _i_CT++){
+    for ( int _i_bseAB = 0 ; _i_bseAB < _bseAB_size ; _i_bseAB++){
+        ctBA(_i_CT,_i_bseAB)=_psi_AxB_dimer_basis( comb_CTBA(_i_CT,0), _combAB( _i_bseAB,0) ) * _psi_AxB_dimer_basis( comb_CTBA(_i_CT,1), _combAB( _i_bseAB,1) );
+        }
+    }
     
       
     // some more convenient storage
@@ -647,9 +715,6 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
         }
     }
 
-    
-
-    
     
     ub::matrix<float> _kbp;
     _kbp.resize(_bseB_size,_bseAB_size);
@@ -706,7 +771,7 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
    //      cout << "Size of _bseB " << _bseB.size1() << " : " <<  _bseB.size2() << flush; 
 
      
-        bool _singlets = ProjectExcitons( _kap, _kbp, _bseA, _bseB, _Hamiltonian_AB, *_JAB_singlet);
+        bool _singlets = ProjectExcitons( _kap, _kbp,ctAB,ctBA, _bseA, _bseB, _Hamiltonian_AB, *_JAB_singlet);
         if ( _singlets ) {
             LOG(logDEBUG,*_pLog)  << "   calculated singlet couplings " << flush;
         }
@@ -792,7 +857,7 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
         }*/
         
         
-        bool _triplets = ProjectExcitons( _kap, _kbp, _bseA, _bseB, _Hamiltonian_AB, *_JAB_triplet);
+        bool _triplets = ProjectExcitons( _kap, _kbp,ctAB,ctBA, _bseA, _bseB, _Hamiltonian_AB, *_JAB_triplet);
         if ( _triplets ) {
             LOG(logDEBUG,*_pLog)  << "   calculated triplet couplings " << flush;
         }
@@ -805,7 +870,10 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
 };
 
 
-bool BSECoupling::ProjectExcitons(ub::matrix<float>& _kap, ub::matrix<float>& _kbp, ub::matrix<float>& _bseA, ub::matrix<float>& _bseB, ub::matrix<float>& _H, ub::matrix<float>& _J){
+bool BSECoupling::ProjectExcitons(ub::matrix<float>& _kap, ub::matrix<float>& _kbp,
+                                  ub::matrix<float>& ctAB, ub::matrix<float>& ctBA, 
+                                  ub::matrix<float>& _bseA, ub::matrix<float>& _bseB, 
+                                  ub::matrix<float>& _H, ub::matrix<float>& _J){
     
     
     //cout << " Dimensions of _bseA " << _bseA.size1() << " : " << _bseA.size2() << endl;
@@ -813,17 +881,30 @@ bool BSECoupling::ProjectExcitons(ub::matrix<float>& _kap, ub::matrix<float>& _k
      // get projection of monomer excitons on dimer product functions
      ub::matrix<float> _proj_excA = ub::prod( ub::trans( _bseA ), _kap);
      ub::matrix<float> _proj_excB = ub::prod( ub::trans( _kbp ), _bseB);
-
-      
+     cout << "_bseA"<<_bseA.size1()<<"x"<<_bseA.size2()<<endl;
+     cout << "_kap"<<_kap.size1()<<"x"<<_kap.size2()<<endl;  
+     cout << "_proj_excA"<<_proj_excA.size1()<<"x"<<_proj_excA.size2()<<endl;
+     cout << "_bseB"<<_bseB.size1()<<"x"<<_bseB.size2()<<endl;
+     cout << "_kbp"<<_kbp.size1()<<"x"<<_kbp.size2()<<endl;
+     cout << "_proj_excB"<<_proj_excB.size1()<<"x"<<_proj_excB.size2()<<endl;
+     
      int _bseA_exc = _bseA.size2();
      int _bseB_exc = _bseB.size2();
-     ub::matrix<float> _J_dimer = ub::zero_matrix<float>( _bseA_exc + _bseB_exc , _bseA_exc + _bseB_exc );
-     ub::matrix<float> _S_dimer = ub::zero_matrix<float>( _bseA_exc + _bseB_exc , _bseA_exc + _bseB_exc );
+     int _bse_exc=_bseA_exc+_bseA_exc;
+     int _ctAB=ctAB.size1();
+     int _ctBA=ctBA.size1();
+     //ub::matrix<float> _J_dimer = ub::zero_matrix<float>( _bse_exc +_ctAB+_ctBA, _bse_exc+_ctAB+_ctBA );
+     //ub::matrix<float> _S_dimer = ub::zero_matrix<float>( _bse_exc + _bseB_exc+_ctAB+_ctBA , _bse_exc +_ctAB+_ctBA);
+     ub::matrix<float> _J_dimer = ub::zero_matrix<float>( _bse_exc, _bse_exc );
+     ub::matrix<float> _S_dimer = ub::zero_matrix<float>(_bse_exc , _bse_exc);
      
      // setup J
      ub::matrix<float> _temp = ub::prod( _H , ub::trans(_proj_excA) );
      ub::project( _J_dimer,  ub::range (0, _bseA_exc ), ub::range ( 0, _bseA_exc )  ) = ub::prod( _proj_excA, _temp ); // J_AA = proj_excA x H x trans(proj_excA)
      ub::project( _J_dimer,  ub::range (_bseA_exc, _bseA_exc + _bseB_exc ), ub::range ( 0, _bseA_exc )  ) = ub::prod( ub::trans(_proj_excB), _temp ); // J_BA = proj_excB x H x trans(proj_excA)
+     //ub::project( _J_dimer,  ub::range (_bseA_exc, _bseA_exc + _bseB_exc ), ub::range ( 0, _bseA_exc )  ) = ub::prod( ub::trans(_proj_excB), _temp ); // J_CTAB
+     //ub::project( _J_dimer,  ub::range (_bseA_exc, _bseA_exc + _bseB_exc ), ub::range ( 0, _bseA_exc )  ) = ub::prod( ub::trans(_proj_excB), _temp ); // J_CTBA
+     
      
      _temp = ub::prod( _H , _proj_excB );
      ub::project( _J_dimer,  ub::range (0, _bseA_exc ), ub::range ( _bseA_exc, _bseA_exc + _bseB_exc )  ) = ub::prod( _proj_excA, _temp ); // J_AB = proj_excA x H x trans(proj_excB)

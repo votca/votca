@@ -55,6 +55,8 @@ public:
     
     bool ProjectExcitons(boost::numeric::ublas::matrix<float>& _kap,
                          boost::numeric::ublas::matrix<float>& _kbp, 
+                         boost::numeric::ublas::matrix<float>& ctAB,
+                         boost::numeric::ublas::matrix<float>& ctBA, 
                          boost::numeric::ublas::matrix<float>& _bseA, 
                          boost::numeric::ublas::matrix<float>& _bseB, 
                          boost::numeric::ublas::matrix<float>& _H, 
