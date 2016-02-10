@@ -880,7 +880,7 @@ bool BSECoupling::ProjectExcitons(ub::matrix<float>& _kap, ub::matrix<float>& _k
     
      // get projection of monomer excitons on dimer product functions
      ub::matrix<float> _proj_excA = ub::prod( ub::trans( _bseA ), _kap);
-     ub::matrix<float> _proj_excB = ub::prod( ub::trans( _kbp ), _bseB);
+     ub::matrix<float> _proj_excB = ub::prod( ub::trans( _bseB ), _kbp);
      cout << "_bseA"<<_bseA.size1()<<"x"<<_bseA.size2()<<endl;
      cout << "_kap"<<_kap.size1()<<"x"<<_kap.size2()<<endl;  
      cout << "_proj_excA"<<_proj_excA.size1()<<"x"<<_proj_excA.size2()<<endl;
@@ -898,17 +898,25 @@ bool BSECoupling::ProjectExcitons(ub::matrix<float>& _kap, ub::matrix<float>& _k
      ub::matrix<float> _J_dimer = ub::zero_matrix<float>( _bse_exc, _bse_exc );
      ub::matrix<float> _S_dimer = ub::zero_matrix<float>(_bse_exc , _bse_exc);
      
+     // matrix _J
+     
+    //  E_A         J_AB        J_A_ABCT        J_A_BACT
+    //  J_BA        E_B         J_B_ABCT        J_B_BACT
+    //  J_A_ABCT    J_B_ABCT    E_ABCT          J_ABCT_BACT
+    //  J_A_BACT    J_B_BACT    J_BACT_ABCT     E_BACT
+     
+     // I think this only works for hermitian/symmetric H so only in TDA
      // setup J
      ub::matrix<float> _temp = ub::prod( _H , ub::trans(_proj_excA) );
      ub::project( _J_dimer,  ub::range (0, _bseA_exc ), ub::range ( 0, _bseA_exc )  ) = ub::prod( _proj_excA, _temp ); // J_AA = proj_excA x H x trans(proj_excA)
-     ub::project( _J_dimer,  ub::range (_bseA_exc, _bseA_exc + _bseB_exc ), ub::range ( 0, _bseA_exc )  ) = ub::prod( ub::trans(_proj_excB), _temp ); // J_BA = proj_excB x H x trans(proj_excA)
+     ub::project( _J_dimer,  ub::range (_bseA_exc, _bseA_exc + _bseB_exc ), ub::range ( 0, _bseA_exc )  ) = ub::prod( _proj_excB, _temp ); // J_BA = proj_excB x H x trans(proj_excA)
      //ub::project( _J_dimer,  ub::range (_bseA_exc, _bseA_exc + _bseB_exc ), ub::range ( 0, _bseA_exc )  ) = ub::prod( ub::trans(_proj_excB), _temp ); // J_CTAB
      //ub::project( _J_dimer,  ub::range (_bseA_exc, _bseA_exc + _bseB_exc ), ub::range ( 0, _bseA_exc )  ) = ub::prod( ub::trans(_proj_excB), _temp ); // J_CTBA
      
      
-     _temp = ub::prod( _H , _proj_excB );
-     ub::project( _J_dimer,  ub::range (0, _bseA_exc ), ub::range ( _bseA_exc, _bseA_exc + _bseB_exc )  ) = ub::prod( _proj_excA, _temp ); // J_AB = proj_excA x H x trans(proj_excB)
-     ub::project( _J_dimer,  ub::range (_bseA_exc, _bseA_exc + _bseB_exc ), ub::range ( _bseA_exc, _bseA_exc + _bseB_exc)  ) = ub::prod( ub::trans(_proj_excB), _temp ); // J_BB = proj_excB x H x trans(proj_excB)
+     _temp = ub::prod( _H , ub::trans(_proj_excB) );
+     ub::project( _J_dimer,  ub::range (0, _bseA_exc ), ub::range ( _bseA_exc, _bseA_exc + _bseB_exc )  ) =ub::prod( _proj_excA, _temp ); // J_AB = proj_excA x H x trans(proj_excB)
+     ub::project( _J_dimer,  ub::range (_bseA_exc, _bseA_exc + _bseB_exc ), ub::range ( _bseA_exc, _bseA_exc + _bseB_exc)  ) = ub::prod(_proj_excB, _temp ); // J_BB = proj_excB x H x trans(proj_excB)
 
 
      //cout << "J_dimer " << _J_dimer(0,50)*13.605 << " and " << _J_dimer(50,0)*13.605 << endl;
@@ -916,9 +924,9 @@ bool BSECoupling::ProjectExcitons(ub::matrix<float>& _kap, ub::matrix<float>& _k
      
      // setup S
      ub::project( _S_dimer,  ub::range (0, _bseA_exc ), ub::range ( 0, _bseA_exc )  ) = ub::prod( _proj_excA, ub::trans(_proj_excA) ); // S_AA = proj_excA x trans(proj_excA)
-     ub::project( _S_dimer,  ub::range (_bseA_exc, _bseA_exc + _bseB_exc ), ub::range ( 0, _bseA_exc )  ) = ub::trans( ub::prod( _proj_excA, _proj_excB)); // S_BA = proj_excB x trans(proj_excA)
-     ub::project( _S_dimer,  ub::range (0, _bseA_exc ), ub::range ( _bseA_exc, _bseA_exc + _bseB_exc )  ) = ub::prod( _proj_excA, _proj_excB); // S_AB = proj_excA x H x trans(proj_excB)
-     ub::project( _S_dimer,  ub::range (_bseA_exc, _bseA_exc + _bseB_exc ), ub::range ( _bseA_exc, _bseA_exc + _bseB_exc)  ) = ub::prod( ub::trans(_proj_excB),_proj_excB ); // S_BB = proj_excB x H x trans(proj_excB)
+     ub::project( _S_dimer,  ub::range (_bseA_exc, _bseA_exc + _bseB_exc ), ub::range ( 0, _bseA_exc )  ) =  ub::prod( _proj_excB,ub::trans(_proj_excA)); // S_BA = proj_excB x trans(proj_excA)
+     ub::project( _S_dimer,  ub::range (0, _bseA_exc ), ub::range ( _bseA_exc, _bseA_exc + _bseB_exc )  ) = ub::prod( _proj_excA, ub::trans(_proj_excB)); // S_AB = proj_excA x H x trans(proj_excB)
+     ub::project( _S_dimer,  ub::range (_bseA_exc, _bseA_exc + _bseB_exc ), ub::range ( _bseA_exc, _bseA_exc + _bseB_exc)  ) = ub::prod(_proj_excB, ub::trans(_proj_excB) ); // S_BB = proj_excB x H x trans(proj_excB)
 
      ub::vector<float> _S_eigenvalues; 
 
