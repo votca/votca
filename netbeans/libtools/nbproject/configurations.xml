@@ -7,8 +7,8 @@
       <itemPath>../../include/votca/tools/akimaspline.h</itemPath>
       <itemPath>../../include/votca/tools/application.h</itemPath>
       <itemPath>../../include/votca/tools/average.h</itemPath>
+      <itemPath>../../include/votca/tools/calculator.h</itemPath>
       <itemPath>../../include/votca/tools/colors.h</itemPath>
-      <itemPath>../../include/votca/tools/conversionfactors.h</itemPath>
       <itemPath>../../include/votca/tools/correlate.h</itemPath>
       <itemPath>../../include/votca/tools/crosscorrelate.h</itemPath>
       <itemPath>../../include/votca/tools/cubicspline.h</itemPath>
@@ -103,6 +103,7 @@
                    projectFiles="false">
       <itemPath>Makefile_nb</itemPath>
     </logicalFolder>
+    <itemPath>../../include/votca/tools/constants.h</itemPath>
   </logicalFolder>
   <sourceRootList>
     <Elem>../../src/libtools</Elem>
@@ -160,9 +161,14 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/tools/calculator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/tools/colors.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/tools/conversionfactors.h"
+      <item path="../../include/votca/tools/constants.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -458,9 +464,14 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/tools/calculator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/tools/colors.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/tools/conversionfactors.h"
+      <item path="../../include/votca/tools/constants.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -756,9 +767,14 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/tools/calculator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/tools/colors.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/tools/conversionfactors.h"
+      <item path="../../include/votca/tools/constants.h"
             ex="false"
             tool="3"
             flavor2="0">
