@@ -24,7 +24,7 @@
 
 #include <votca/xtp/bsecoupling.h>
 #include <votca/tools/linalg.h>
-
+#include <votca/tools/constants.h>
 #include <boost/format.hpp>
 #include <boost/numeric/ublas/operation.hpp>
 #include <boost/numeric/ublas/banded.hpp>
@@ -34,12 +34,42 @@
 
 #include <boost/progress.hpp>
 
-using boost::format;
+
 
 namespace votca { namespace xtp {
 
 namespace ub = boost::numeric::ublas;
+using boost::format;
 
+void BSECoupling::Initialize(Property* options){
+    
+    std::string key = "options." + Identify(); 
+    
+    
+    _spintype   = options->get(key + ".type").as<string> ();
+        if(_spintype=="all"){
+            _doSinglets=true;
+            _doTriplets=true;
+        }
+        else if(_spintype=="triplets"){
+            _doTriplets=true;
+        }
+        else if(_spintype=="singlets"){
+            _doSinglets=true;
+        }
+        else{
+            throw std::runtime_error((boost::format("Choice % for type not known.") % _spintype).str());
+        }
+    _degeneracy = options->get(key + ".degeneracy").as<double> ();
+    
+        _levA  = options->get(key + ".statesA").as<int> ();
+        _levB  = options->get(key + ".statesB").as<int> ();
+        _occA  = options->get(key + ".occLevelsA").as<int> ();
+        _occB  = options->get(key + ".occLevelsB").as<int> ();
+        _unoccA  = options->get(key + ".unoccLevelsA").as<int> ();
+        _unoccB  = options->get(key + ".unoccLevelsB").as<int> ();
+        
+}
 
 /*
  * Calculates S^{-1/2}
@@ -75,14 +105,13 @@ void BSECoupling::SQRTOverlap(ub::symmetric_matrix<double> &S,
  }
 
 float BSECoupling::getSingletCouplingElement( int levelA, int levelB,  Orbitals* _orbitalsA,
-    Orbitals* _orbitalsB, ub::matrix<float>* _JAB, double  _energy_difference ) {
+    Orbitals* _orbitalsB, ub::matrix<float>* _JAB) {
 
-    const float _conv_Ryd_eV = 27.21138386/2.0;
     int _levelsA = _orbitalsA->BSESingletEnergies().size();
     if ( _levelsA == 0  ){
       _levelsA = _orbitalsA->BSETripletEnergies().size();
     }
-    return _JAB->at_element( levelA  , levelB + _levelsA ) * _conv_Ryd_eV;
+    return _JAB->at_element( levelA  , levelB + _levelsA ) * votca::tools::conv::ryd2ev_f;
 
 
     /*int _statesA = _orbitalsA->BSE;
@@ -112,11 +141,11 @@ float BSECoupling::getSingletCouplingElement( int levelA, int levelB,  Orbitals*
 }
 
 float BSECoupling::getTripletCouplingElement( int levelA, int levelB,  Orbitals* _orbitalsA,
-    Orbitals* _orbitalsB, ub::matrix<float>* _JAB, double  _energy_difference ) {
+    Orbitals* _orbitalsB, ub::matrix<float>* _JAB) {
 
-    const float _conv_Ryd_eV = 27.21138386/2.0;
+
     int _levelsA = _orbitalsA->BSETripletEnergies().size();
-    return _JAB->at_element( levelA  , levelB + _levelsA ) * _conv_Ryd_eV;
+    return _JAB->at_element( levelA  , levelB + _levelsA ) * votca::tools::conv::ryd2ev_f;
 
 
     /*int _statesA = _orbitalsA->BSE;
@@ -485,7 +514,7 @@ float BSECoupling::getTripletCouplingElement( int levelA, int levelB,  Orbitals*
  * @return false if failed
  */
 bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB, 
-    Orbitals* _orbitalsAB, ub::matrix<float>* _JAB_singlet, ub::matrix<float>* _JAB_triplet, string _type) {
+    Orbitals* _orbitalsAB, ub::matrix<float>* _JAB_singlet, ub::matrix<float>* _JAB_triplet) {
           
     LOG(logDEBUG,*_pLog) << "  Calculating exciton couplings" << flush;
         
@@ -545,8 +574,7 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     int _bseB_singlet_exc = _orbitalsB->BSESingletCoefficients().size2();
     int _bseB_triplet_exc = _orbitalsB->BSETripletCoefficients().size2();
     
-    //_bseB_triplet_exc=1;
-   // _bseA_triplet_exc=1;
+
     
     LOG(logDEBUG,*_pLog)  << "   molecule B has " << _bseB_singlet_exc << " singlet excitons with dimension " << _bseB_size << flush;
     LOG(logDEBUG,*_pLog)  << "   molecule B has " << _bseB_triplet_exc << " triplet excitons with dimension " << _bseB_size << flush;
@@ -562,6 +590,33 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
             _cnt++;
         }
     }
+    
+    if(_levA>_bseA_singlet_exc){
+        LOG(logDEBUG,*_pLog) << "Number of excitons you want is greater than stored for molecule B. Setting to max number available" << flush; 
+        _levA=_bseA_singlet_exc;
+    }
+    if(_levB>_bseB_singlet_exc){
+        LOG(logDEBUG,*_pLog) << "Number of excitons you want is greater than stored for molecule B. Setting to max number available" << flush; 
+        _levB=_bseB_singlet_exc;
+    }
+    
+    if(_unoccA>_bseA_ctotal){
+        LOG(logDEBUG,*_pLog) << "Number of occupied orbitals in molecule A for CT creation exceeds number of KS-orbitals in BSE" << flush; 
+        _unoccA=_bseA_ctotal;
+    }
+    if(_unoccB>_bseB_ctotal){
+        LOG(logDEBUG,*_pLog) << "Number of occupied orbitals in molecule B for CT creation exceeds number of KS-orbitals in BSE" << flush; 
+        _unoccB=_bseB_ctotal;
+    }
+    if(_occA>_bseA_vtotal){
+        LOG(logDEBUG,*_pLog) << "Number of unoccupied orbitals in molecule A for CT creation exceeds number of KS-orbitals in BSE" << flush; 
+        _occA=_bseA_vtotal;
+    }
+    if(_occB>_bseB_vtotal){
+        LOG(logDEBUG,*_pLog) << "Number of unoccupied orbitals in molecule B for CT creation exceeds number of KS-orbitals in BSE" << flush; 
+        _occB=_bseB_vtotal;
+    }
+    
     
     // get exciton information of pair AB
     int _bseAB_cmax = _orbitalsAB->getBSEcmax();
@@ -644,36 +699,11 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     
     //notation AB is CT states with A+B-, BA is the counterpart
     //Setting up CT-states:
-    int bla=5;
-    int LumosA=bla;
-    int LumosB=bla;
-    int HomosA=bla;
-    int HomosB=bla;
-    
-    if(LumosA>_bseA_ctotal){
-        LOG(logDEBUG,*_pLog) << "NUmber of occupied orbitals in molecule A for CT creation exceeds number of KS-orbitals in BSE" << flush; 
-        LumosA=_bseA_ctotal;
-    }
-    if(LumosB>_bseB_ctotal){
-        LOG(logDEBUG,*_pLog) << "NUmber of occupied orbitals in molecule B for CT creation exceeds number of KS-orbitals in BSE" << flush; 
-        LumosB=_bseB_ctotal;
-    }
-    if(HomosA>_bseA_vtotal){
-        LOG(logDEBUG,*_pLog) << "NUmber of unoccupied orbitals in molecule A for CT creation exceeds number of KS-orbitals in BSE" << flush; 
-        HomosA=_bseA_vtotal;
-    }
-    if(HomosB>_bseB_vtotal){
-        LOG(logDEBUG,*_pLog) << "NUmber of unoccupied orbitals in molecule B for CT creation exceeds number of KS-orbitals in BSE" << flush; 
-        HomosB=_bseB_vtotal;
-    }
-    
-    
-    
     
     //Number of A+B- states
-    int noAB=HomosA*LumosB;
+    int noAB=_occA*_unoccB;
     //Number of A-B+ states
-    int noBA=LumosA*HomosB;
+    int noBA=_unoccA*_occB;
     
     
     ub::matrix<int> comb_CTAB;
@@ -684,9 +714,9 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     
     
     // iterate A over occupied, B over unoccupied
-    int v_start=_bseA_vtotal-HomosA;
+    int v_start=_bseA_vtotal-_occA;
     for ( int _v = v_start; _v < _bseA_vtotal; _v++){
-        for ( int _c = 0; _c <LumosB; _c++){            
+        for ( int _c = 0; _c <_unoccB; _c++){            
             comb_CTAB(_cnt,0) =_v;
             comb_CTAB(_cnt,1) = _bseA_vtotal+_bseA_ctotal+_bseB_vtotal + _c;
             
@@ -701,9 +731,9 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     comb_CTBA.resize(noBA,2);
     _cnt = 0;
     // iterate A over unoccupied, B over occupied
-    v_start=_bseB_vtotal-HomosB;
+    v_start=_bseB_vtotal-_occB;
     for ( int _v = v_start; _v < _bseB_vtotal; _v++){
-        for ( int _c = 0; _c <LumosA; _c++){            
+        for ( int _c = 0; _c <_unoccA; _c++){            
             comb_CTBA(_cnt,0) =_bseA_vtotal+_bseA_ctotal+_v;
             comb_CTBA(_cnt,1) = _bseA_vtotal+ _c;
             
@@ -781,18 +811,21 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
 
     LOG(logDEBUG,*_pLog)  << "   construct projection of product functions " << flush; 
 
-    LOG(logDEBUG,*_pLog)  << "   Evaluating " << _type << flush; 
+   
     
         
     //     cout << "Size of _kap " << _kap.size1() << " : " <<  _kap.size2() << "\n" << flush; 
     //     cout << "Size of _kbp " << _kbp.size1() << " : " <<  _kbp.size2() << "\n" << flush; 
     
     // now the different spin types
-    if ( _type == "singlets" || _type == "all"){
+    if ( _doSinglets){
+         LOG(logDEBUG,*_pLog)  << "   Evaluating singlets"  << flush; 
       // get singlet BSE Hamiltonian from _orbitalsAB
       ub::matrix<float> _Hamiltonian_AB = _eh_d + 2.0 * _eh_x;
-        ub::matrix<float>& _bseA = _orbitalsA->BSESingletCoefficients();
-        ub::matrix<float>& _bseB = _orbitalsB->BSESingletCoefficients();
+        const ub::matrix<float>& _bseA = ub::project( _orbitalsA->BSESingletCoefficients(),
+                ub::range (0, _orbitalsA->BSESingletCoefficients().size1() ), ub::range ( 0, _levA )  );
+        const ub::matrix<float>& _bseB = ub::project( _orbitalsB->BSESingletCoefficients(),
+                ub::range (0, _orbitalsB->BSESingletCoefficients().size1() ), ub::range ( 0, _levB )  );
         
       //  cout << "Size of _Hamiltonian_AB " << _Hamiltonian_AB.size1() << " : " <<  _Hamiltonian_AB.size2() << flush;
 // cout << "Size of _bseA " << _bseA.size1() << " : " <<  _bseA.size2() << flush; 
@@ -851,8 +884,8 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     
                 
         
-    if ( _type == "triplets" || _type == "all"){
-        LOG(logDEBUG,*_pLog)  << "   Evaluating " << _type << flush; 
+    if ( _doTriplets){
+        LOG(logDEBUG,*_pLog)  << "   Evaluating triplets" << flush; 
         // get triplet BSE Hamiltonian from _orbitalsAB
         ub::matrix<float> _Hamiltonian_AB = _eh_d;
         
@@ -868,9 +901,14 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
         }*/
         
         
+        //ub::matrix<float>& _bseA= _orbitalsA->BSETripletCoefficients();
         
-        ub::matrix<float>& _bseA = _orbitalsA->BSETripletCoefficients();
-        ub::matrix<float>& _bseB = _orbitalsB->BSETripletCoefficients();
+        
+        const ub::matrix<float>& _bseA = ub::project( _orbitalsA->BSETripletCoefficients(),
+                ub::range (0, _orbitalsA->BSETripletCoefficients().size1() ), ub::range ( 0, _levA )  );
+        const ub::matrix<float>& _bseB = ub::project( _orbitalsB->BSETripletCoefficients(),
+                ub::range (0, _orbitalsB->BSETripletCoefficients().size1() ), ub::range ( 0, _levB )  );
+        //ub::matrix<float>& _bseB = _orbitalsB->BSETripletCoefficients();
         
       /*   cout << endl;
         for ( int i = 0; i<_bseA.size1(); i++ ){
@@ -898,10 +936,10 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
 };
 
 
-bool BSECoupling::ProjectExcitons(ub::matrix<float>& _kap, ub::matrix<float>& _kbp,
-                                  ub::matrix<float>& ctAB, ub::matrix<float>& ctBA, 
-                                  ub::matrix<float>& _bseA, ub::matrix<float>& _bseB, 
-                                  ub::matrix<float>& _H, ub::matrix<float>& _J){
+bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix<float>& _kbp,
+                                  const ub::matrix<float>& ctAB,const ub::matrix<float>& ctBA, 
+                                  const ub::matrix<float>& _bseA, const ub::matrix<float>& _bseB, 
+                                  const ub::matrix<float>& _H, ub::matrix<float>& _J){
     
     
     //cout << " Dimensions of _bseA " << _bseA.size1() << " : " << _bseA.size2() << endl;
@@ -920,6 +958,7 @@ bool BSECoupling::ProjectExcitons(ub::matrix<float>& _kap, ub::matrix<float>& _k
      int _bseB_exc = _bseB.size2();
      int _bse_exc=_bseA_exc+_bseA_exc;
      int _ctAB=ctAB.size1();
+     
      int _ctBA=ctBA.size1();
      int _ct=_ctAB+_ctBA;
      //cout << _ctAB <<_ctBA<<endl;
@@ -940,59 +979,89 @@ bool BSECoupling::ProjectExcitons(ub::matrix<float>& _kap, ub::matrix<float>& _k
      
      // I think this only works for hermitian/symmetric H so only in TDA
      // setup J
+     
+     // do not reorder ifs because of the temps, I would like to paralleize this part but i have no clue how to do it simply and elegantly
+     
      ub::matrix<float> _temp = ub::prod( _H , ub::trans(_proj_excA) );
      ub::project( _J_dimer,  ub::range (0, _bseA_exc ), ub::range ( 0, _bseA_exc )  ) = ub::prod( _proj_excA, _temp ); // E_A = proj_excA x H x trans(proj_excA)
      ub::project( _J_dimer,  ub::range (_bseA_exc, _bse_exc ), ub::range ( 0, _bseA_exc )  ) = ub::prod( _proj_excB, _temp ); // J_BA = proj_excB x H x trans(proj_excA)
+     if(_ctAB>0){
      ub::project( _J_dimer,  ub::range (_bse_exc, _bse_exc+_ctAB ), ub::range ( 0, _bseA_exc )  ) = ub::prod( ctAB, _temp );// J_ABCT_A
+     }
+     if(_ctBA>0){
      ub::project( _J_dimer,  ub::range ( _bse_exc+_ctAB, _bse_exc+_ct ), ub::range ( 0, _bseA_exc )  ) = ub::prod( ctBA, _temp );// J_BACT_A
+     }
+     
      
      _temp = ub::prod( _H , ub::trans(_proj_excB) );
      ub::project( _J_dimer,  ub::range (0, _bseA_exc ), ub::range ( _bseA_exc, _bse_exc)  ) =ub::prod( _proj_excA, _temp ); // J_AB = proj_excA x H x trans(proj_excB)
      ub::project( _J_dimer,  ub::range (_bseA_exc, _bse_exc ), ub::range ( _bseA_exc,_bse_exc)  ) = ub::prod(_proj_excB, _temp ); // E_B = proj_excB x H x trans(proj_excB)
+     if(_ctAB>0){
      ub::project( _J_dimer,  ub::range (_bse_exc, _bse_exc+_ctAB ), ub::range ( _bseA_exc,_bse_exc)  ) = ub::prod(ctAB, _temp ); // J_ABCT_B
-     //cout << ub::prod(ctAB, _temp ).size1() << " : "<<ub::prod(ctAB, _temp ).size2()<<endl;
+     }
+     if(_ctBA>0){
      ub::project( _J_dimer,  ub::range (_bse_exc+_ctAB, _bse_exc+_ct ), ub::range ( _bseA_exc,_bse_exc)  ) = ub::prod(ctBA, _temp );// J_BACT_B
+     }
      
+     
+     if(_ctAB>0){
       _temp = ub::prod( _H , ub::trans(ctAB) );
      ub::project( _J_dimer,  ub::range (0, _bseA_exc ), ub::range ( _bse_exc, _bse_exc+_ctAB )  ) = ub::prod( _proj_excA, _temp );
      ub::project( _J_dimer,  ub::range (_bseA_exc, _bse_exc ), ub::range ( _bse_exc, _bse_exc+_ctAB )  ) = ub::prod( _proj_excB, _temp );
      ub::project( _J_dimer,  ub::range (_bse_exc, _bse_exc+_ctAB ), ub::range ( _bse_exc, _bse_exc+_ctAB )  ) = ub::prod( ctAB, _temp );
      ub::project( _J_dimer,  ub::range (_bse_exc+_ctAB, _bse_exc+_ct ), ub::range ( _bse_exc, _bse_exc+_ctAB )  ) = ub::prod( ctBA, _temp );
-     //cout << ub::prod( ctAB, _temp )<<endl;
+     }
+     
+     
+     if(_ctBA>0){
       _temp = ub::prod( _H , ub::trans(ctBA) );
      ub::project( _J_dimer,  ub::range (0, _bseA_exc ), ub::range ( _bse_exc+_ctAB, _bse_exc+_ct )  ) = ub::prod( _proj_excA, _temp );
      ub::project( _J_dimer,  ub::range (_bseA_exc, _bse_exc ), ub::range ( _bse_exc+_ctAB, _bse_exc+_ct )  ) = ub::prod( _proj_excB, _temp );
      ub::project( _J_dimer,  ub::range (_bse_exc, _bse_exc+_ctAB ), ub::range ( _bse_exc+_ctAB, _bse_exc+_ct )   ) = ub::prod( ctAB, _temp );
      ub::project( _J_dimer,  ub::range (_bse_exc+_ctAB, _bse_exc+_ct ), ub::range ( _bse_exc+_ctAB, _bse_exc+_ct )   ) = ub::prod( ctBA, _temp ); 
-     //cout << ub::prod( ctBA, _temp )<<endl;
-     //cout << "J_dimer " << _J_dimer(0,50)*13.605 << " and " << _J_dimer(50,0)*13.605 << endl;
+     }
+
      
     cout<<_J_dimer<<endl;
+    
+    
      // setup S
+    
      _temp =ub::trans(_proj_excA);
      ub::project( _S_dimer,  ub::range (0, _bseA_exc ), ub::range ( 0, _bseA_exc )  ) = ub::prod( _proj_excA, _temp ); // E_A = proj_excA x H x trans(proj_excA)
      ub::project( _S_dimer,  ub::range (_bseA_exc, _bse_exc ), ub::range ( 0, _bseA_exc )  ) = ub::prod( _proj_excB, _temp ); // J_BA = proj_excB x H x trans(proj_excA)
+     if(_ctAB>0){
      ub::project( _S_dimer,  ub::range (_bse_exc, _bse_exc+_ctAB ), ub::range ( 0, _bseA_exc )  ) = ub::prod( ctAB, _temp );// J_ABCT_A
+     }
+     if(_ctBA>0){
      ub::project( _S_dimer,  ub::range ( _bse_exc+_ctAB, _bse_exc+_ct ), ub::range ( 0, _bseA_exc )  ) = ub::prod( ctBA, _temp );// J_BACT_A
+     }
+     
      
      _temp =  ub::trans(_proj_excB);
      ub::project( _S_dimer,  ub::range (0, _bseA_exc ), ub::range ( _bseA_exc, _bse_exc)  ) =ub::prod( _proj_excA, _temp ); // J_AB = proj_excA x H x trans(proj_excB)
      ub::project( _S_dimer,  ub::range (_bseA_exc, _bse_exc ), ub::range ( _bseA_exc,_bse_exc)  ) = ub::prod(_proj_excB, _temp ); // E_B = proj_excB x H x trans(proj_excB)
+     if(_ctAB>0){
      ub::project( _S_dimer,  ub::range (_bse_exc, _bse_exc+_ctAB ), ub::range ( _bseA_exc,_bse_exc)  ) = ub::prod(ctAB, _temp ); // J_ABCT_B
-     //cout << ub::prod(ctAB, _temp ).size1() << " : "<<ub::prod(ctAB, _temp ).size2()<<endl;
+     }
+     if(_ctBA>0){
      ub::project( _S_dimer,  ub::range (_bse_exc+_ctAB, _bse_exc+_ct ), ub::range ( _bseA_exc,_bse_exc)  ) = ub::prod(ctBA, _temp );// J_BACT_B
+     }
      
+     if(_ctAB>0){
       _temp =  ub::trans(ctAB);
      ub::project( _S_dimer,  ub::range (0, _bseA_exc ), ub::range ( _bse_exc, _bse_exc+_ctAB )  ) = ub::prod( _proj_excA, _temp );
      ub::project( _S_dimer,  ub::range (_bseA_exc, _bse_exc ), ub::range ( _bse_exc, _bse_exc+_ctAB )  ) = ub::prod( _proj_excB, _temp );
      ub::project( _S_dimer,  ub::range (_bse_exc, _bse_exc+_ctAB ), ub::range ( _bse_exc, _bse_exc+_ctAB )  ) = ub::prod( ctAB, _temp );
      ub::project( _S_dimer,  ub::range (_bse_exc+_ctAB, _bse_exc+_ct ), ub::range ( _bse_exc, _bse_exc+_ctAB )  ) = ub::prod( ctBA, _temp );
-     //cout << ub::prod( ctAB, _temp )<<endl;
+     }
+     if(_ctBA>0){
       _temp = ub::trans(ctBA);
      ub::project( _S_dimer,  ub::range (0, _bseA_exc ), ub::range ( _bse_exc+_ctAB, _bse_exc+_ct )  ) = ub::prod( _proj_excA, _temp );
      ub::project( _S_dimer,  ub::range (_bseA_exc, _bse_exc ), ub::range ( _bse_exc+_ctAB, _bse_exc+_ct )  ) = ub::prod( _proj_excB, _temp );
      ub::project( _S_dimer,  ub::range (_bse_exc, _bse_exc+_ctAB ), ub::range ( _bse_exc+_ctAB, _bse_exc+_ct )   ) = ub::prod( ctAB, _temp );
      ub::project( _S_dimer,  ub::range (_bse_exc+_ctAB, _bse_exc+_ct ), ub::range ( _bse_exc+_ctAB, _bse_exc+_ct )   ) = ub::prod( ctBA, _temp ); 
+     }
      //cout << ub::prod( ctBA,ub::trans(ctBA) )<<endl;
       cout<<_S_dimer<<endl;
      ub::vector<float> _S_eigenvalues; 
