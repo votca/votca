@@ -43,6 +43,8 @@ namespace votca { namespace tools {
     //ewald internal to eV conversion
     const double int2eV = 1/(4*Pi*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
     
+    // energy conversions
+    static const double rydtoev = 13.6058;
     }
 
 }}
