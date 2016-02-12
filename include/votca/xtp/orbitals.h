@@ -271,11 +271,13 @@ public:
     bool hasSingletCouplings() {return (_BSE_singlet_couplings.size1() > 0 ) ? true : false ;}
     const ub::matrix<float> &SingletCouplings() const { return _BSE_singlet_couplings; }
     ub::matrix<float> &SingletCouplings()   { return _BSE_singlet_couplings; }
+    void setSingletCouplings(ub::matrix<float> couplings){_BSE_singlet_couplings=couplings;}
 
     // access to triplet coupling elements
     bool hasTripletCouplings() {return (_BSE_triplet_couplings.size1() > 0 ) ? true : false ;}
     const ub::matrix<float> &TripletCouplings() const { return _BSE_triplet_couplings; }
     ub::matrix<float> &TripletCouplings()   { return _BSE_triplet_couplings; }
+    void setTripletCouplings(ub::matrix<float> couplings){_BSE_triplet_couplings=couplings;}
     
     // exciton coupling number of levels information
     bool           hasCoupledExcitonsA() { return ( _couplingsA > 0 ) ? true : false ; }

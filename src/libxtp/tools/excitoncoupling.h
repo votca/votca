@@ -139,11 +139,10 @@ bool ExcitonCoupling::Evaluate() {
      _bsecoupling.Initialize(&_coupling_options);
      bool _doSinglets=_bsecoupling.get_doSinglets();   
      bool _dotriplets=_bsecoupling.get_doTriplets();   
-     ub::matrix<float> _JAB_singlet;
-     ub::matrix<float> _JAB_triplet;
+     
 
      //bool _calculate_integrals = _bsecoupling.CalculateCouplings_OLD( &_orbitalsA, &_orbitalsB, &_orbitalsAB, &_JAB_singlet );   
-     bool _calculate_integrals = _bsecoupling.CalculateCouplings( &_orbitalsA, &_orbitalsB, &_orbitalsAB, &_JAB_singlet, &_JAB_triplet );   
+     bool _calculate_integrals = _bsecoupling.CalculateCouplings( &_orbitalsA, &_orbitalsB, &_orbitalsAB );   
      std::cout << _log;
  
     if ( _calculate_integrals ){ 
@@ -152,36 +151,7 @@ bool ExcitonCoupling::Evaluate() {
     _job_output = &_summary.add("output","");
     Property *_pair_summary = &_job_output->add("pair","");
     Property *_type_summary = &_pair_summary->add("type","");
-    if (_doSinglets){
-        Property *_singlet_summary = &_type_summary->add("singlets","");
-        for (int stateA = 0; stateA < _JAB_singlet.size1() ; ++stateA ) {
-           for (int stateB = 0; stateB <_JAB_singlet.size2() ; ++stateB ) {
-               float JAB = _bsecoupling.getSingletCouplingElement( stateA , stateB, &_orbitalsA, &_orbitalsB, &_JAB_singlet );
-               Property *_coupling_summary = &_singlet_summary->add("coupling", boost::lexical_cast<string>(JAB)); 
-               float energyA = _orbitalsA.BSESingletEnergies()[stateA]*conv::ryd2ev_f;
-               float energyB = _orbitalsB.BSESingletEnergies()[stateB]*conv::ryd2ev_f;
-               _coupling_summary->setAttribute("excitonA", stateA);
-               _coupling_summary->setAttribute("excitonB", stateB);
-               _coupling_summary->setAttribute("energyA", energyA);
-               _coupling_summary->setAttribute("energyB", energyB);
-           } 
-        }
-    }
-    if ( _doTriplets){
-        Property *_triplet_summary = &_type_summary->add("triplets","");
-        for (int stateA = 0; stateA < _JAB_triplet.size1() ; ++stateA ) {
-           for (int stateB = 0; stateB < _JAB_triplet.size2()  ; ++stateB ) {
-               float JAB = _bsecoupling.getTripletCouplingElement( stateA , stateB, &_orbitalsA, &_orbitalsB, &_JAB_triplet );
-               Property *_coupling_summary = &_triplet_summary->add("coupling", boost::lexical_cast<string>(JAB)); 
-               float energyA = _orbitalsA.BSETripletEnergies()[stateA]*conv::ryd2ev_f;
-               float energyB = _orbitalsB.BSETripletEnergies()[stateB]*conv::ryd2ev_f;
-               _coupling_summary->setAttribute("excitonA", stateA);
-               _coupling_summary->setAttribute("excitonB", stateB);
-               _coupling_summary->setAttribute("energyA", energyA);
-               _coupling_summary->setAttribute("energyB", energyB);
-           } 
-        }
-    }    
+    _bsecoupling.addoutput(_type_summary,&_orbitalsA, & _orbitalsB);
     
    
    

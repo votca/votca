@@ -45,11 +45,16 @@ public:
     string  Identify() { return "bsecoupling"; }
     bool get_doSinglets(){ return _doSinglets;}
     bool get_doTriplets(){ return _doTriplets;}
-
+    
+    ub::matrix<float> getJAB_singletstorage(){return JAB_singlet;}
+    ub::matrix<float> getJAB_tripletstorage(){return JAB_triplet;}
+    void addoutput(Property *_type_summary,Orbitals* _orbitalsA, 
+                               Orbitals* _orbitalsB);
+    
     bool CalculateCouplings(   Orbitals* _orbitalsA, 
                                Orbitals* _orbitalsB, 
-                               Orbitals* _orbitalsAB, 
-                               ub::matrix<float>* _JAB_singlet, ub::matrix<float>* _JAB_triplet);  
+                               Orbitals* _orbitalsAB 
+                             );  
     
     bool CalculateCouplings_OLD(   Orbitals* _orbitalsA, 
                                Orbitals* _orbitalsB, 
@@ -57,23 +62,11 @@ public:
                                ub::matrix<float>* _JAB_singlet);  
     
     
-    bool ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix<float>& _kbp, 
-                         const ub::matrix<float>& ctAB,const ub::matrix<float>& ctBA, 
-                         const ub::matrix<float>& _bseA,const ub::matrix<float>& _bseB, 
-                         const ub::matrix<float>& _H, ub::matrix<float>& _J );
 
      
-    float getSingletCouplingElement( int levelA, int levelB,  
-                               Orbitals* _orbitalsA,  
-                               Orbitals* _orbitalsB, 
-                               ub::matrix<float>* _JAB
-                                );
+    float getSingletCouplingElement( int levelA, int levelB);
     
-    float getTripletCouplingElement( int levelA, int levelB,  
-                               Orbitals* _orbitalsA,  
-                               Orbitals* _orbitalsB, 
-                               ub::matrix<float>* _JAB
-                                );
+    float getTripletCouplingElement( int levelA, int levelB);
     
     void setLogger( Logger* pLog ) { _pLog = pLog; }
     
@@ -83,6 +76,14 @@ private:
     
     void SQRTOverlap(ub::symmetric_matrix<double> &S, 
                      ub::matrix<double> &Sm2);
+    
+    bool ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix<float>& _kbp, 
+                         const ub::matrix<float>& ctAB,const ub::matrix<float>& ctBA, 
+                         const ub::matrix<float>& _bseA,const ub::matrix<float>& _bseB, 
+                         const ub::matrix<float>& _H, ub::matrix<float>& _J );
+    
+    ub::matrix<float> JAB_singlet;
+    ub::matrix<float> JAB_triplet;
     string _spintype;
     bool _doTriplets;
     bool _doSinglets;
@@ -93,6 +94,8 @@ private:
     int _occB;
     int _unoccB;
     double      _degeneracy;
+    
+    
 };
 
 }}
