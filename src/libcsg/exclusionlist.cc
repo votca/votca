@@ -57,16 +57,21 @@ bool ExclusionList::IsExcluded(Bead *bead1, Bead *bead2) {
     return false;
 }
 
-bool compareAtomId(const ExclusionList::exclusion_t *a, const ExclusionList::exclusion_t *b){
+bool compareAtomIdiExclusionList(const ExclusionList::exclusion_t *a, const ExclusionList::exclusion_t *b){
     return a->_atom->getId() < b->_atom->getId();
+}
+
+bool compareAtomIdBeadList(const Bead *a, const Bead *b){
+    return a->getId() < b->getId();
 }
 
 std::ostream &operator<<(std::ostream &out, ExclusionList& exl)
 {
-    exl._exclusions.sort(compareAtomId);
+    exl._exclusions.sort(compareAtomIdiExclusionList);
     
     list<ExclusionList::exclusion_t*>::iterator ex;
     for(ex=exl._exclusions.begin();ex!=exl._exclusions.end();++ex) {
+        (*ex)->_exclude.sort(compareAtomIdBeadList);
         list<Bead *>::iterator i;
         out << (int)((*ex)->_atom->getId()) + 1;
         for(i=(*ex)->_exclude.begin(); i!=(*ex)->_exclude.end(); ++i) {
