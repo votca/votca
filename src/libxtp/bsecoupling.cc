@@ -972,7 +972,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      
      int _bseA_exc = _bseA.size2();
      int _bseB_exc = _bseB.size2();
-     int _bse_exc=_bseA_exc+_bseA_exc;
+     int _bse_exc=_bseA_exc+_bseB_exc;
      int _ctAB=ctAB.size1();
      
      int _ctBA=ctBA.size1();

@@ -54,8 +54,8 @@ private:
     
     string      _output_file;
     bool        _classical;
-    bool        _doSinglets;
-    bool        _doTriplets;
+    //bool        _doSinglets;
+    //bool        _doTriplets;
     string      _mpsA;
     string      _mpsB;  
     Logger      _log;
@@ -64,8 +64,8 @@ private:
 
 void ExcitonCoupling::Initialize(Property* options) 
 {
-    _doSinglets=false;
-    _doTriplets=false;
+   // _doSinglets=false;
+   // _doTriplets=false;
    // update options with the VOTCASHARE defaults   
     UpdateWithDefaults( options, "xtp" );
     std::string key = "options." + Identify();  
@@ -137,8 +137,8 @@ bool ExcitonCoupling::Evaluate() {
      BSECoupling _bsecoupling; 
      _bsecoupling.setLogger(&_log);
      _bsecoupling.Initialize(&_coupling_options);
-     bool _doSinglets=_bsecoupling.get_doSinglets();   
-     bool _dotriplets=_bsecoupling.get_doTriplets();   
+     //bool _doSinglets=_bsecoupling.get_doSinglets();   
+     //bool _dotriplets=_bsecoupling.get_doTriplets();   
      
 
      //bool _calculate_integrals = _bsecoupling.CalculateCouplings_OLD( &_orbitalsA, &_orbitalsB, &_orbitalsAB, &_JAB_singlet );   
