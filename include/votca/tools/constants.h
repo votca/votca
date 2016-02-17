@@ -38,8 +38,9 @@ namespace votca { namespace tools {
     const double bohr2nm =0.052917721092;
     const double nm2bohr =18.897259886;
     const double ang2bohr = 1.8897259886; 
-    
-    
+    const double bohr2ang =1.0/1.8897259886; 
+    const double nm2ang=10.0;
+    const double ang2nm=0.1;
     
     
     const double ryd2ev= 13.60569253;
