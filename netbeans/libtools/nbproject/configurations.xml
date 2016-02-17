@@ -8,6 +8,7 @@
       <itemPath>../../include/votca/tools/application.h</itemPath>
       <itemPath>../../include/votca/tools/average.h</itemPath>
       <itemPath>../../include/votca/tools/colors.h</itemPath>
+      <itemPath>../../include/votca/tools/constants.h</itemPath>
       <itemPath>../../include/votca/tools/conversionfactors.h</itemPath>
       <itemPath>../../include/votca/tools/correlate.h</itemPath>
       <itemPath>../../include/votca/tools/crosscorrelate.h</itemPath>
@@ -78,6 +79,7 @@
       <itemPath>../../src/libtools/cubicspline.cc</itemPath>
       <itemPath>../../src/libtools/database.cc</itemPath>
       <itemPath>../../src/libtools/datacollection.cc</itemPath>
+      <itemPath>../../src/libtools/globals.cc</itemPath>
       <itemPath>../../src/libtools/histogram.cc</itemPath>
       <itemPath>../../src/libtools/histogramnew.cc</itemPath>
       <itemPath>../../src/libtools/linspline.cc</itemPath>
@@ -161,6 +163,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/tools/colors.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/constants.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/tools/conversionfactors.h"
             ex="false"
@@ -299,6 +306,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/libtools/globals.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/histogram.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -460,6 +469,11 @@
       </item>
       <item path="../../include/votca/tools/colors.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/tools/constants.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/tools/conversionfactors.h"
             ex="false"
             tool="3"
@@ -597,6 +611,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/libtools/globals.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/histogram.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -758,6 +774,11 @@
       </item>
       <item path="../../include/votca/tools/colors.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/tools/constants.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/tools/conversionfactors.h"
             ex="false"
             tool="3"
@@ -895,6 +916,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/libtools/globals.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/histogram.cc" ex="false" tool="1" flavor2="0">
       </item>

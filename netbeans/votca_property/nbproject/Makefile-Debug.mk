@@ -21,7 +21,7 @@ FC=gfortran
 AS=as
 
 # Macros
-CND_PLATFORM=GNU-Linux-x86
+CND_PLATFORM=GNU-Linux
 CND_DLIB_EXT=so
 CND_CONF=Debug
 CND_DISTDIR=dist
@@ -35,7 +35,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/715944016/votca_property.o
+	${OBJECTDIR}/_ext/2aac7050/votca_property.o
 
 
 # C Compiler Flags
@@ -64,10 +64,10 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/votca_property: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/votca_property ${OBJECTFILES} ${LDLIBSOPTIONS}
 
-${OBJECTDIR}/_ext/715944016/votca_property.o: nbproject/Makefile-${CND_CONF}.mk ../../src/tools/votca_property.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
-	${RM} $@.d
-	$(COMPILE.cc) -g -I../include -I../../include -I../../src/libboost -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/votca_property.o ../../src/tools/votca_property.cc
+${OBJECTDIR}/_ext/2aac7050/votca_property.o: nbproject/Makefile-${CND_CONF}.mk ../../src/tools/votca_property.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/2aac7050
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -I../include -I../../include -I../../src/libboost -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/2aac7050/votca_property.o ../../src/tools/votca_property.cc
 
 # Subprojects
 .build-subprojects:
