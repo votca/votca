@@ -7,6 +7,7 @@
       <itemPath>../../include/votca/tools/akimaspline.h</itemPath>
       <itemPath>../../include/votca/tools/application.h</itemPath>
       <itemPath>../../include/votca/tools/average.h</itemPath>
+      <itemPath>../../include/votca/tools/calculator.h</itemPath>
       <itemPath>../../include/votca/tools/colors.h</itemPath>
       <itemPath>../../include/votca/tools/constants.h</itemPath>
       <itemPath>../../include/votca/tools/conversionfactors.h</itemPath>
@@ -105,6 +106,7 @@
                    projectFiles="false">
       <itemPath>Makefile_nb</itemPath>
     </logicalFolder>
+    <itemPath>../../include/votca/tools/constants.h</itemPath>
   </logicalFolder>
   <sourceRootList>
     <Elem>../../src/libtools</Elem>
@@ -158,6 +160,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/tools/average.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/calculator.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -467,14 +474,22 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/tools/calculator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/tools/colors.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/tools/constants.h"
+<<<<<<< HEAD
             ex="false"
             tool="3"
             flavor2="0">
       </item>
       <item path="../../include/votca/tools/conversionfactors.h"
+=======
+>>>>>>> ee0af2984db03c7f9c164517c057428e2baef0d5
             ex="false"
             tool="3"
             flavor2="0">
@@ -768,6 +783,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/tools/average.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/calculator.h"
             ex="false"
             tool="3"
             flavor2="0">
