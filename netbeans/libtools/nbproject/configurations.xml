@@ -482,14 +482,7 @@
       <item path="../../include/votca/tools/colors.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/tools/constants.h"
-<<<<<<< HEAD
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/conversionfactors.h"
-=======
->>>>>>> ee0af2984db03c7f9c164517c057428e2baef0d5
+
             ex="false"
             tool="3"
             flavor2="0">
