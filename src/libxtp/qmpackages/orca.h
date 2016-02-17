@@ -26,7 +26,7 @@
 
 #include <string> 
 
-using namespace std;
+
 
 namespace votca { namespace xtp {
 /**
@@ -40,7 +40,7 @@ class Orca : public QMPackage
 {
 public:   
 
-   string getPackageName() { return "orca"; }
+   std::string getPackageName() { return "orca"; }
 
    void Initialize( Property *options );
 
@@ -63,20 +63,20 @@ public:
 
    bool ConvertToGW( Orbitals* _orbitals );
    
-   string getScratchDir( ) { return _scratch_dir; }
+   std::string getScratchDir( ) { return _scratch_dir; }
    
 private:  
 
-    string                              _shell_file_name;
-    string                              _scratch_dir;
+    std::string                              _shell_file_name;
+    std::string                              _scratch_dir;
     bool                                _is_optimization;
         
-    string                              _cleanup;
+    std::string                              _cleanup;
 
-    int NumberOfElectrons( string _line ); 
-    int BasisSetSize( string _line ); 
-    int EnergiesFromLog( string _line, ifstream inputfile ); 
-    string FortranFormat( const double &number );
+    int NumberOfElectrons( std::string _line ); 
+    int BasisSetSize( std::string _line ); 
+    int EnergiesFromLog( std::string _line, ifstream inputfile ); 
+    std::string FortranFormat( const double &number );
 
     
 };

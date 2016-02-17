@@ -22,7 +22,7 @@
 #include <votca/xtp/threecenters.h>
 
 
-using namespace std;
+
 using namespace votca::tools;
 
 namespace votca {
@@ -51,7 +51,7 @@ namespace votca {
            /*
             std::vector< int > _limits;
             int _temp=0;
-            for (vector< AOShell* >::iterator _is = _auxbasis.firstShell(); _is != _auxbasis.lastShell(); _is++) {
+            for (std::vector< AOShell* >::iterator _is = _auxbasis.firstShell(); _is != _auxbasis.lastShell(); _is++) {
                 _limits.push_back(_temp);
                  
                 _temp+=(*_is)->getNumFunc();
@@ -67,7 +67,7 @@ namespace votca {
             // loop over all shells in the GW basis and get _Mmn for that shell
             //#pragma omp parallel for //private(_block)
             for ( unsigned _is= 0; _is <  _auxbasis._aoshells.size() ; _is++ ){
-            // for (vector< AOShell* >::iterator _is = _gwbasis.firstShell(); _is != _gwbasis.lastShell(); _is++) {
+            // for (std::vector< AOShell* >::iterator _is = _gwbasis.firstShell(); _is != _gwbasis.lastShell(); _is++) {
                 //cout << " act threads: " << omp_get_thread_num( ) << " total threads " << omp_get_num_threads( ) << " max threads " << omp_get_max_threads( ) <<endl;
                 AOShell* _shell = _auxbasis.getShell(_is);
                
@@ -102,13 +102,13 @@ namespace votca {
            int _start=_shell->getStartIndex();
            //cout << " FB start " << _start << endl;
             // alpha-loop over the "left" DFT basis function
-            for (vector< AOShell* >::iterator _row = dftbasis.firstShell(); _row != dftbasis.lastShell(); _row++) {
+            for (std::vector< AOShell* >::iterator _row = dftbasis.firstShell(); _row != dftbasis.lastShell(); _row++) {
                 AOShell* _shell_row = dftbasis.getShell(_row);
                 int _row_start = _shell_row->getStartIndex();
                 //int _row_end = _row_start + _shell_row->getNumFunc();
 
                 // gamma-loop over the "right" DFT basis function
-                for (vector< AOShell* >::iterator _col = dftbasis.firstShell(); _col != dftbasis.lastShell(); _col++) {
+                for (std::vector< AOShell* >::iterator _col = dftbasis.firstShell(); _col != dftbasis.lastShell(); _col++) {
                     AOShell* _shell_col = dftbasis.getShell(_col);
                     int _col_start = _shell_col->getStartIndex();
                     //int _col_end = _col_start + _shell_col->getNumFunc();

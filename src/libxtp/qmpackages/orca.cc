@@ -31,7 +31,7 @@
 #include <sys/stat.h>
 #include <vector>
 
-using namespace std;
+
 
 namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
@@ -43,8 +43,8 @@ public:
     Angularmom() { FillMaps(); };
    ~Angularmom() { };
 
-    const int        &getLNum(string lname) const {return _LNum.at(lname); }
-    const string     &getLName(int lnum) const {return _LName.at(lnum); }
+    const int        &getLNum(std::string lname) const {return _LNum.at(lname); }
+    const std::string     &getLName(int lnum) const {return _LName.at(lnum); }
     private:
     std::map<std::string, int> _LNum;
     std::map<int, std::string> _LName;
@@ -79,7 +79,7 @@ void Orca::Initialize( Property *options ) {
     //good luck
 
      // Orca file names
-    string fileName = "system";
+    std::string fileName = "system";
 
     _xyz_file_name = fileName + ".xyz";
     _input_file_name = fileName + ".inp";
@@ -87,23 +87,23 @@ void Orca::Initialize( Property *options ) {
     _shell_file_name = fileName + ".sh"; 
     _orb_file_name=fileName+".gbw";
 
-    string key = "package";
-    string _name = options->get(key+".name").as<string> ();
+    std::string key = "package";
+    std::string _name = options->get(key+".name").as<std::string> ();
     
     if ( _name != "orca" ) {
         cerr << "Tried to use " << _name << " package. ";
         throw std::runtime_error( "Wrong options file");
     }
     
-    _executable =       options->get(key + ".executable").as<string> ();
+    _executable =       options->get(key + ".executable").as<std::string> ();
     _charge =           options->get(key + ".charge").as<int> ();
     _spin =             options->get(key + ".spin").as<int> ();
-    _options =          options->get(key + ".options").as<string> ();
-    _memory =           options->get(key + ".memory").as<string> ();
+    _options =          options->get(key + ".options").as<std::string> ();
+    _memory =           options->get(key + ".memory").as<std::string> ();
     _threads =          options->get(key + ".threads").as<int> ();
-    _scratch_dir =      options->get(key + ".scratch").as<string> ();
-    _basisset_name =    options->get(key + ".basisset").as<string> ();
-    _cleanup =          options->get(key + ".cleanup").as<string> ();
+    _scratch_dir =      options->get(key + ".scratch").as<std::string> ();
+    _basisset_name =    options->get(key + ".basisset").as<std::string> ();
+    _cleanup =          options->get(key + ".cleanup").as<std::string> ();
 
     
     
@@ -161,20 +161,20 @@ void Orca::Initialize( Property *options ) {
  * Prepares the *.inp file from a vector of segments
  * Appends a guess constructed from monomer orbitals if supplied
  */
-bool Orca::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_guess )
+bool Orca::WriteInputFile( std::vector<Segment* > segments, Orbitals* orbitals_guess )
 {
-    vector< Atom* > _atoms;
-    vector< Atom* > ::iterator ait;
-    vector< Segment* >::iterator sit;
-    vector<string> results;
+    std::vector< Atom* > _atoms;
+    std::vector< Atom* > ::iterator ait;
+    std::vector< Segment* >::iterator sit;
+    std::vector<std::string> results;
    // int qmatoms = 0;
-    string temp_suffix = "/id";
-    string scratch_dir_backup = _scratch_dir;
-    ofstream _com_file;
-    ofstream _crg_file;
+    std::string temp_suffix = "/id";
+    std::string scratch_dir_backup = _scratch_dir;
+    std::ofstream _com_file;
+    std::ofstream _crg_file;
 
-    string _com_file_name_full = _run_dir + "/" + _input_file_name;
-    string _crg_file_name_full = _run_dir + "/background.crg" ;
+    std::string _com_file_name_full = _run_dir + "/" + _input_file_name;
+    std::string _crg_file_name_full = _run_dir + "/background.crg" ;
     
     _com_file.open ( _com_file_name_full.c_str() );
     // header 
@@ -185,7 +185,7 @@ bool Orca::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_guess 
  if ( _write_basis_set) {
    Elements _elements;
    
-   list<string> elements;
+   list<std::string> elements;
   
                     BasisSet bs;
                     
@@ -195,7 +195,7 @@ bool Orca::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_guess 
 
                     ofstream _el_file;
                                 
-                               string _el_file_name = _run_dir + "/" +  "system.bas";
+                               std::string _el_file_name = _run_dir + "/" +  "system.bas";
                                 
                                 _el_file.open(_el_file_name.c_str());
                                 
@@ -205,15 +205,15 @@ bool Orca::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_guess 
                                                     
                     for (sit = segments.begin(); sit != segments.end(); ++sit) {
 
-                        vector< Atom* > atoms = (*sit)-> Atoms();
+                        std::vector< Atom* > atoms = (*sit)-> Atoms();
                         
-                        vector< Atom* >::iterator it;
+                        std::vector< Atom* >::iterator it;
 
                         for (it = atoms.begin(); it < atoms.end(); it++) {
 
-                            string element_name = (*it)->getElement();
+                            std::string element_name = (*it)->getElement();
 
-                            list<string>::iterator ite;
+                            list<std::string>::iterator ite;
                             
                             ite = find(elements.begin(), elements.end(), element_name);
 
@@ -256,10 +256,10 @@ bool Orca::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_guess 
      _com_file << "GTOName" << " " << "=" << "\"system.bas\";"  << endl;
     /******************************WRITING ECP INTO system.inp FILE for ORCA**************************************************/
      if(_write_pseudopotentials){
-     string pseudopotential_name("ecp");
+     std::string pseudopotential_name("ecp");
                     _com_file << endl;
                     Angularmom lmaxnum; //defining lmaxnum for lmaxNum2lmaxName
-                   list<string> elements;
+                   list<std::string> elements;
 
                     elements.push_back("H");
                     elements.push_back("He");
@@ -272,15 +272,15 @@ bool Orca::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_guess 
                                        
                     for (sit = segments.begin(); sit != segments.end(); ++sit) {
 
-                        vector< Atom* > atoms = (*sit)-> Atoms();
+                        std::vector< Atom* > atoms = (*sit)-> Atoms();
                         
-                        vector< Atom* >::iterator it;
+                        std::vector< Atom* >::iterator it;
 
                         for (it = atoms.begin(); it < atoms.end(); it++) {
 
-                            string element_name = (*it)->getElement();
+                            std::string element_name = (*it)->getElement();
 
-                            list<string>::iterator ite;
+                            list<std::string>::iterator ite;
                             
                             ite = find(elements.begin(), elements.end(), element_name);
 
@@ -345,7 +345,7 @@ bool Orca::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_guess 
         LOG(logDEBUG,*_pLog) << "Setting the scratch dir to " << _scratch_dir + temp_suffix << flush;
 
         // boost::filesystem::create_directories( _scratch_dir + temp_suffix );
-        string _temp( "scratch_dir " + _scratch_dir + temp_suffix + "\n" );
+        std::string _temp( "scratch_dir " + _scratch_dir + temp_suffix + "\n" );
         //_com_file << _temp ;
     }
 
@@ -368,7 +368,7 @@ bool Orca::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_guess 
     _scratch_dir = scratch_dir_backup + temp_suffix;
             
             //boost::filesystem::create_directories(_scratch_dir + temp_suffix);
-            //string _temp("scratch_dir " + _scratch_dir + temp_suffix + "\n");
+            //std::string _temp("scratch_dir " + _scratch_dir + temp_suffix + "\n");
             //_com_file << _temp;
     WriteShellScript();
     _scratch_dir = scratch_dir_backup;
@@ -379,7 +379,7 @@ bool Orca::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_guess 
 bool Orca::WriteShellScript() {
     ofstream _shell_file;
     
-    string _shell_file_name_full = _run_dir + "/" + _shell_file_name;
+    std::string _shell_file_name_full = _run_dir + "/" + _shell_file_name;
             
     _shell_file.open ( _shell_file_name_full.c_str() );
 
@@ -408,14 +408,14 @@ bool Orca::Run()
         
         // Orca overrides input information, if *.db and *.movecs files are present
         // better trash the old version
-        string file_name = _run_dir + "/system.db";
+        std::string file_name = _run_dir + "/system.db";
         remove ( file_name.c_str() );
         file_name = _run_dir + "/" + _log_file_name;
         remove ( file_name.c_str() );
         file_name = _run_dir + "/" + _orb_file_name;
         //remove ( file_name.c_str() );
                
-        string _command;
+        std::string _command;
         if ( _threads == 1 ) {
             _command = "cd " + _run_dir + "; sh " + _shell_file_name;
         } else {
@@ -448,38 +448,38 @@ void Orca::CleanUp() {
     // cleaning up the generated files
     if ( _cleanup.size() != 0 ) {
         Tokenizer tok_cleanup(_cleanup, ",");
-        vector <string> _cleanup_info;
+        std::vector <std::string> _cleanup_info;
         tok_cleanup.ToVector(_cleanup_info);
         
-        vector<string> ::iterator it;
+        std::vector<std::string> ::iterator it;
                
         for (it = _cleanup_info.begin(); it != _cleanup_info.end(); ++it) {
             if ( *it == "inp" ) {
-                string file_name = _run_dir + "/" + _input_file_name;
+                std::string file_name = _run_dir + "/" + _input_file_name;
                 remove ( file_name.c_str() );
             }
             
             if ( *it == "bas" ) {
-                string file_name = _run_dir +"/system.bas";
+                std::string file_name = _run_dir +"/system.bas";
                 remove ( file_name.c_str() );
             }
             
             if ( *it == "log" ) {
-                string file_name = _run_dir + "/" + _log_file_name;
+                std::string file_name = _run_dir + "/" + _log_file_name;
                 remove ( file_name.c_str() );
             }
 
            if ( *it == "gbw" ) {
-                string file_name = _run_dir + "/" + _orb_file_name;
+                std::string file_name = _run_dir + "/" + _orb_file_name;
                 remove ( file_name.c_str() );
             }
             
             if ( *it == "ges" ) {
-                string file_name = _run_dir + "/system.ges" ;
+                std::string file_name = _run_dir + "/system.ges" ;
                 remove ( file_name.c_str() );
             }    
             if ( *it == "prop" ) {
-                string file_name = _run_dir + "/system.prop" ;
+                std::string file_name = _run_dir + "/system.prop" ;
                 remove ( file_name.c_str() );
             }     
         }
@@ -500,11 +500,11 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
     
     LOG(logDEBUG,*_pLog) << "Parsing " << _log_file_name << flush;
       // return true;
-  string _log_file_name_full =  _run_dir + "/" + _log_file_name;
+  std::string _log_file_name_full =  _run_dir + "/" + _log_file_name;
    // check if LOG file is complete
    if ( !CheckLogFile() ) return false;
     
-    //std::map <int, std::vector<double> > _coefficients;
+    //std::map <int, std::std::vector<double> > _coefficients;
     std::map <int, double> _energies;
     std::map <int, double> _occ;
     
@@ -514,7 +514,7 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
     //unsigned _basis_size = 0;
     int _number_of_electrons = 0;
     //bool _has_basis_dim = false;
-    vector<string> results;    
+    std::vector<std::string> results;    
     
 
     
@@ -557,7 +557,7 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
             getline(_input_file, _line);
             // now starts the data in format
             // _id type Qnuc x y z 
-            vector<string> _row;
+            std::vector<std::string> _row;
             getline(_input_file, _line);
             boost::trim( _line );
 
@@ -568,7 +568,7 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
             while ( nfields == 4 ) {
                 //int atom_id = boost::lexical_cast< int >( _row.at(0) );
                 //int atom_number = boost::lexical_cast< int >( _row.at(0) );
-                string _atom_type = _row.at(0);
+                std::string _atom_type = _row.at(0);
                 double _x =  boost::lexical_cast<double>( _row.at(1) );
                 double _y =  boost::lexical_cast<double>( _row.at(2) );
                 double _z =  boost::lexical_cast<double>( _row.at(3) );
@@ -601,7 +601,7 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
        if (energy_pos != std::string::npos) {
             //cout << _line << endl;
             boost::algorithm::split(results, _line, boost::is_any_of(" "), boost::algorithm::token_compress_on);
-            string _energy = results[3];
+            std::string _energy = results[3];
             boost::trim( _energy );
             //cout << _energy << endl; 
             _orbitals->setQMEnergy ( _conv_Hrt_eV * boost::lexical_cast<double>(_energy) );
@@ -624,7 +624,7 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
                 
             boost::algorithm::split(results, _line, boost::is_any_of(" "), boost::algorithm::token_compress_on);
             //_has_basis_dim = true;
-            string _dim = results[4];  //The 4th element of results vector is the Basis Dim
+            std::string _dim = results[4];  //The 4th element of results vector is the Basis Dim
             boost::trim( _dim );
             _levels = boost::lexical_cast<int>(_dim);
             //cout <<  boost::lexical_cast<int>(_dim) << endl;
@@ -653,14 +653,14 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
             boost::algorithm::split(results, _line, boost::is_any_of(" "), boost::algorithm::token_compress_on);
            
                     
-            string _no =results[0];
+            std::string _no =results[0];
             
             boost::trim( _no );
             unsigned levelnumber= boost::lexical_cast<unsigned>(_no);
             if (levelnumber!=i){
                 LOG(logDEBUG,*_pLog) << "Have a look at the orbital energies something weird is going on" << flush;
             }
-            string _oc = results[1];
+            std::string _oc = results[1];
             boost::trim( _oc );
             double occ =boost::lexical_cast<double>(_oc);
             // We only count alpha electrons, each orbital must be empty or doubly occupied
@@ -675,7 +675,7 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
                 throw runtime_error("Only empty or doubly occupied orbitals are allowed not running the right kind of DFT calculation");
             }
             
-            string _e = results[2];
+            std::string _e = results[2];
             boost::trim( _e );
             _energies [i] = boost::lexical_cast<double>(_e) ;
         }
@@ -836,8 +836,8 @@ bool Orca::ConvertToGW( Orbitals* _orbitals ) {
 }
 
 
-string Orca::FortranFormat( const double &number ) {
-    stringstream _ssnumber;
+std::string Orca::FortranFormat( const double &number ) {
+    std::stringstream _ssnumber;
     if ( number >= 0) {
         _ssnumber << "    ";
     } else{

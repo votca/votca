@@ -38,7 +38,7 @@
 #include <iterator>
 #include <string>
 // #include <xc.h>
-using namespace std;
+
 
 
 namespace votca {
@@ -176,18 +176,18 @@ namespace votca {
              boost::timer::cpu_times tenter = cpu_t.elapsed();
              */
             // generate a list of shells for each atom
-            typedef vector< AOShell* >::iterator AOShellIterator;
-            vector< vector< AOShellIterator > > _atomshells;
-            vector< AOShellIterator > _singleatom;
+            typedef std::vector< AOShell* >::iterator AOShellIterator;
+            std::vector< std::vector< AOShellIterator > > _atomshells;
+            std::vector< AOShellIterator > _singleatom;
 
-            vector < int > _startIdx;
-            vector < int > _blocksize;
+            std::vector < int > _startIdx;
+            std::vector < int > _blocksize;
 
             int _atomindex = 0;
             int _Idx       = 0;
             int _size      = 0;
             
-            for (vector< AOShell* >::iterator _row = basis->firstShell(); _row != basis->lastShell(); _row++) {
+            for (std::vector< AOShell* >::iterator _row = basis->firstShell(); _row != basis->lastShell(); _row++) {
                 
                 
                 if ( (*_row)->getIndex() == _atomindex ){
@@ -224,7 +224,7 @@ namespace votca {
             }
 */
             /*
-            vector < ub::matrix_range< ub::matrix<double> > > _DMATblocks;
+            std::vector < ub::matrix_range< ub::matrix<double> > > _DMATblocks;
             // get stupid index magic vector of matrix_ranges per atom block
             for ( int rowatom = 0; rowatom < _atomshells.size(); rowatom++){
                 for ( int colatom = 0 ; colatom <= rowatom; colatom++ ){
@@ -238,10 +238,10 @@ namespace votca {
             // for every shell
             _atomindex = 0;
             double _decaymin = 1e7;
-            vector< double > _minimal_decay;
-            vector < vec > _positions;
+            std::vector< double > _minimal_decay;
+            std::vector < vec > _positions;
             vec _localpos = (*basis->firstShell())->getPos();
-            for ( vector< AOShell* >::iterator _row = basis->firstShell(); _row != basis->lastShell(); _row++   ) {
+            for ( std::vector< AOShell* >::iterator _row = basis->firstShell(); _row != basis->lastShell(); _row++   ) {
                 
                 
                  if ( (*_row)->getIndex() == _atomindex ){
@@ -294,17 +294,17 @@ namespace votca {
              // for each gridpoint, check the value of exp(-a*(r-R)^2) < 1e-10
              //                             = alpha*(r-R)^2 >~ 20.7
             
-            vector< vector< vector<int> > > _significant_atoms;
+            std::vector< std::vector< std::vector<int> > > _significant_atoms;
             
             // each atomic grid
             for (unsigned i = 0; i < _grid.size(); i++) {
             
-                vector< vector<int> > _significant_atoms_atomgrid;
+                std::vector< std::vector<int> > _significant_atoms_atomgrid;
                 
                 // each point of the atomic grid
                 for (unsigned j = 0; j < _grid[i].size(); j++) {
 
-                    vector<int> _significant_atoms_gridpoint;
+                    std::vector<int> _significant_atoms_gridpoint;
                     vec grid;
                     grid.setX( _grid[i][j].grid_x);
                     grid.setY( _grid[i][j].grid_y);

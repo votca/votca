@@ -23,16 +23,15 @@
 #include "votca/xtp/sphere_lebedev_rule.h"
 #include "votca/xtp/grid_containers.h"
 
-using namespace std;
 
 
 namespace votca { namespace xtp { 
 
     double pi=boost::math::constants::pi<double>();
     
-    void LebedevGrid::getSphericalGrid(vector<QMAtom*> _atoms, string type, GridContainers& _grids){
+    void LebedevGrid::getSphericalGrid(std::vector<QMAtom*> _atoms, string type, GridContainers& _grids){
 
-            vector< QMAtom* > ::iterator ait;
+            std::vector< QMAtom* > ::iterator ait;
             map<string,GridContainers::spherical_grid>::iterator it;
 
 

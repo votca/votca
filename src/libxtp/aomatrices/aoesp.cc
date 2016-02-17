@@ -35,7 +35,7 @@
 #include <votca/xtp/elements.h>
 //#include <boost/timer/timer.hpp>
 
-using namespace std;
+
 using namespace votca::tools;
 
 
@@ -85,12 +85,12 @@ namespace votca { namespace xtp {
         const vec& _pos_col = _shell_col->getPos();
         const vec  _diff    = _pos_row - _pos_col;
         // initialize some helper
-        vector<double> PmA (3,0.0);
-        vector<double> PmB (3,0.0);
-        vector<double> PmC (3,0.0);
+        std::vector<double> PmA (3,0.0);
+        std::vector<double> PmB (3,0.0);
+        std::vector<double> PmC (3,0.0);
         double _distsq = (_diff.getX()*_diff.getX()) + (_diff.getY()*_diff.getY()) + (_diff.getZ()*_diff.getZ()); 
         
-         typedef vector< AOGaussianPrimitive* >::iterator GaussianIterator;
+         typedef std::vector< AOGaussianPrimitive* >::iterator GaussianIterator;
         // iterate over Gaussians in this _shell_row
         for ( GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr){
             // iterate over Gaussians in this _shell_col
@@ -132,7 +132,7 @@ namespace votca { namespace xtp {
         
         const double _U = zeta*(PmC[0]*PmC[0]+PmC[1]*PmC[1]+PmC[2]*PmC[2]);
         
-        vector<double> _FmU(5, 0.0); // that size needs to be checked!
+        std::vector<double> _FmU(5, 0.0); // that size needs to be checked!
 
         XIntegrate(_FmU,_U );
         //cout << endl;

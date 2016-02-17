@@ -20,7 +20,7 @@ PEwald3D3D::PEwald3D3D(Topology *top, PolarTop *ptop, Property *opt, Logger *log
   : Ewald3DnD(top, ptop, opt, log) {}
 
 
-void PEwald3D3D::GenerateKVectors(vector<PolarSeg*> &ps1, vector<PolarSeg*> &ps2) {
+void PEwald3D3D::GenerateKVectors(std::vector<PolarSeg*> &ps1, std::vector<PolarSeg*> &ps2) {
     
     // Take care of norm for grading function
     // All three components non-zero
@@ -42,16 +42,16 @@ void PEwald3D3D::GenerateKVectors(vector<PolarSeg*> &ps1, vector<PolarSeg*> &ps2
     LOG(logINFO,*_log) << flush
         << "Generating K-vectors (Sx*Sy*Sz grading system in place)" << flush;
     
-    vector< EWD::KVector > kvecs_2_0; // 2 components zero
-    vector< EWD::KVector > kvecs_1_0; // 1 component zero
-    vector< EWD::KVector > kvecs_0_0; // 0 components zero
+    std::vector< EWD::KVector > kvecs_2_0; // 2 components zero
+    std::vector< EWD::KVector > kvecs_1_0; // 1 component zero
+    std::vector< EWD::KVector > kvecs_0_0; // 0 components zero
     
     // CONTAINERS FOR GRADING K-VECTORS
-    vector< double > kx_s1s2;
+    std::vector< double > kx_s1s2;
     kx_s1s2.push_back(1);
-    vector< double > ky_s1s2;
+    std::vector< double > ky_s1s2;
     ky_s1s2.push_back(1);
-    vector< double > kz_s1s2;
+    std::vector< double > kz_s1s2;
     kz_s1s2.push_back(1);
     double avg_kx_s1s2 = 0.0;
     double avg_ky_s1s2 = 0.0;
@@ -115,7 +115,7 @@ void PEwald3D3D::GenerateKVectors(vector<PolarSeg*> &ps1, vector<PolarSeg*> &ps2
     LOG(logINFO,*_log)
         << "  o K-planes through origin: Applying K resonances" << flush;
     
-    vector< EWD::KVector >::iterator kvit;
+    std::vector< EWD::KVector >::iterator kvit;
     int kx, ky, kz;
     kx = 0;
     for (ky = -_NB_max; ky < _NB_max+1; ++ky) {
@@ -216,12 +216,12 @@ void PEwald3D3D::ScanCutoff() {
     ofs.open(scan_file.c_str(), ofstream::out);
     
     
-    vector<PolarSeg*>::iterator sit1; 
-    vector<APolarSite*> ::iterator pit1;
-    vector<PolarSeg*>::iterator sit2; 
-    vector<APolarSite*> ::iterator pit2;
-    vector<PolarNb*>::iterator nit;
-    vector< vector<PolarSeg*> > ::iterator vsit;
+    std::vector<PolarSeg*>::iterator sit1; 
+    std::vector<APolarSite*> ::iterator pit1;
+    std::vector<PolarSeg*>::iterator sit2; 
+    std::vector<APolarSite*> ::iterator pit2;
+    std::vector<PolarNb*>::iterator nit;
+    std::vector< std::vector<PolarSeg*> > ::iterator vsit;
     
     double dR_shell = 0.5;
     double R_overhead = 1.1;
@@ -247,13 +247,13 @@ void PEwald3D3D::ScanCutoff() {
     ofs.open(scan_file.c_str(), ofstream::out);
     
     
-    vector<PolarSeg*>::iterator sit;
-    vector<PolarSeg*>::iterator sit1; 
-    vector<APolarSite*> ::iterator pit1;
-    vector<PolarSeg*>::iterator sit2; 
-    vector<APolarSite*> ::iterator pit2;
-    vector<PolarNb*>::iterator nit;
-    vector< vector<PolarSeg*> > ::iterator vsit;
+    std::vector<PolarSeg*>::iterator sit;
+    std::vector<PolarSeg*>::iterator sit1; 
+    std::vector<APolarSite*> ::iterator pit1;
+    std::vector<PolarSeg*>::iterator sit2; 
+    std::vector<APolarSite*> ::iterator pit2;
+    std::vector<PolarNb*>::iterator nit;
+    std::vector< std::vector<PolarSeg*> > ::iterator vsit;
     
     double R_factor = 1.;
     double dR_shell = 0.5;
@@ -265,8 +265,8 @@ void PEwald3D3D::ScanCutoff() {
 	R_max = 64;
 	R_max_shell = 70;
     
-    vector<TinyNeighbour*> nbs;
-    vector<TinyNeighbour*>::iterator tnit;
+    std::vector<TinyNeighbour*> nbs;
+    std::vector<TinyNeighbour*>::iterator tnit;
     nbs.reserve(1000000);
     
     int scan_na_max = ceil((R_max_shell)/maxnorm(_a)-0.5)+1;
@@ -311,7 +311,7 @@ void PEwald3D3D::ScanCutoff() {
     for (sit1 = _fg_C.begin(); sit1 != _fg_C.end(); ++sit1) {
 
         // Bin midground into shells
-        vector< vector<TinyNeighbour*> > shelled_nbs;
+        std::vector< std::vector<TinyNeighbour*> > shelled_nbs;
         int N_shells = int(R_max_shell/dR_shell)+1;
         shelled_nbs.resize(N_shells);
 
@@ -330,7 +330,7 @@ void PEwald3D3D::ScanCutoff() {
             double shell_rms = 0.0;
             int shell_count = 0;
             // Interact with shell
-            vector<TinyNeighbour*> &nb_shell = shelled_nbs[sidx];            
+            std::vector<TinyNeighbour*> &nb_shell = shelled_nbs[sidx];            
             double shell_R = (sidx+1)*dR_shell;            
             if (nb_shell.size() < 1) continue;            
             EWD::triple<double> ppuu(0,0,0);
@@ -412,7 +412,7 @@ void PEwald3D3D::ScanCutoff() {
     for (sit1 = _fg_C.begin(); sit1 != _fg_C.end(); ++sit1) {
 
         // Bin midground into shells
-        vector< vector<PolarSeg*> > shelled_mg_N;
+        std::vector< std::vector<PolarSeg*> > shelled_mg_N;
         int N_shells = int(R_max_shell/dR_shell)+1;
         shelled_mg_N.resize(N_shells);
 
@@ -434,7 +434,7 @@ void PEwald3D3D::ScanCutoff() {
             double shell_rms = 0.0;
             int shell_count = 0;
             // Interact with shell
-            vector<PolarSeg*> &shell_mg = shelled_mg_N[sidx];            
+            std::vector<PolarSeg*> &shell_mg = shelled_mg_N[sidx];            
             double shell_R = (sidx+1)*dR_shell;            
             if (shell_mg.size() < 1) continue;            
             EWD::triple<double> ppuu(0,0,0);
@@ -468,7 +468,7 @@ void PEwald3D3D::ScanCutoff() {
 }
 
 
-EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum(vector<PolarSeg*> &target) {
+EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum(std::vector<PolarSeg*> &target) {
     
     double sum = 0.0;
     double sum_pp = 0.0;
@@ -479,18 +479,18 @@ EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum(vector<PolarSeg*> &target) {
     LOG(logDEBUG,*_log) << flush 
         << "R-space energy via midground" << flush;
     
-    vector<PolarSeg*>::iterator sit1; 
-    vector<APolarSite*> ::iterator pit1;
-    vector<PolarSeg*>::iterator sit2; 
-    vector<APolarSite*> ::iterator pit2;
-    vector<PolarNb*>::iterator nit;
-    vector< vector<PolarSeg*> > ::iterator vsit;
+    std::vector<PolarSeg*>::iterator sit1; 
+    std::vector<APolarSite*> ::iterator pit1;
+    std::vector<PolarSeg*>::iterator sit2; 
+    std::vector<APolarSite*> ::iterator pit2;
+    std::vector<PolarNb*>::iterator nit;
+    std::vector< std::vector<PolarSeg*> > ::iterator vsit;
     
     // ENERGY - REUSE NEIGHBOURS ?
     if (_did_field_pin_R_shell) {
         EWD::triple<double> ppuu(0,0,0);
         for (sit1 = target.begin(); sit1 < target.end(); ++sit1) {
-            vector<PolarNb*> &nbs = (*sit1)->PolarNbs();
+            std::vector<PolarNb*> &nbs = (*sit1)->PolarNbs();
             for (nit = nbs.begin(); nit != nbs.end(); ++nit) {
                 PolarSeg *nb = (*nit)->getNb();
                 for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
@@ -530,7 +530,7 @@ EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum(vector<PolarSeg*> &target) {
             (*sit1)->ClearPolarNbs();
 
             // Bin midground into shells
-            vector< vector<PolarSeg*> > shelled_mg_N;
+            std::vector< std::vector<PolarSeg*> > shelled_mg_N;
             int N_shells = int(R_max_shell/dR_shell)+1;
             shelled_mg_N.resize(N_shells);
 
@@ -548,7 +548,7 @@ EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum(vector<PolarSeg*> &target) {
                 double shell_rms = 0.0;
                 int shell_count = 0;
                 // Interact with shell
-                vector<PolarSeg*> &shell_mg = shelled_mg_N[sidx];            
+                std::vector<PolarSeg*> &shell_mg = shelled_mg_N[sidx];            
                 double shell_R = (sidx+1)*dR_shell;            
                 if (shell_mg.size() < 1) continue;            
                 EWD::triple<double> ppuu(0,0,0);
@@ -620,7 +620,7 @@ EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum(vector<PolarSeg*> &target) {
 }
 
 
-EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) {
+EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum(std::vector<PolarSeg*> &target) {
     
     // ATTENTION K-vectors are generated based on an interaction-energy
     //           criterion between FGC and BGP. Hence, the <target> density
@@ -628,7 +628,7 @@ EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) 
     //           covered by FGC.
     if (!_did_generate_kvectors)
         this->GenerateKVectors(_fg_C, _bg_P);
-    vector< EWD::KVector >::iterator kvit;
+    std::vector< EWD::KVector >::iterator kvit;
     
     double sum_re = 0.0;
     double sum_re_pp = 0.0;
@@ -782,7 +782,7 @@ EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) 
 }
 
 
-EWD::triple<> PEwald3D3D::CalculateShapeCorrection(vector<PolarSeg*> &target) {
+EWD::triple<> PEwald3D3D::CalculateShapeCorrection(std::vector<PolarSeg*> &target) {
     
     LOG(logDEBUG,*_log) << flush
         << "Energy correction terms" << flush;
@@ -795,10 +795,10 @@ EWD::triple<> PEwald3D3D::CalculateShapeCorrection(vector<PolarSeg*> &target) {
     double sum_pu = ppuu._pu;
     double sum_uu = ppuu._uu;
     
-//    vector<PolarSeg*>::iterator sit1; 
-//    vector<APolarSite*> ::iterator pit1;
-//    vector<PolarSeg*>::iterator sit2; 
-//    vector<APolarSite*> ::iterator pit2;
+//    std::vector<PolarSeg*>::iterator sit1; 
+//    std::vector<APolarSite*> ::iterator pit1;
+//    std::vector<PolarSeg*>::iterator sit2; 
+//    std::vector<APolarSite*> ::iterator pit2;
 //    
 //    double EJ = 0.0;
     
@@ -851,15 +851,15 @@ EWD::triple<> PEwald3D3D::CalculateShapeCorrection(vector<PolarSeg*> &target) {
 }
 
 
-EWD::triple<> PEwald3D3D::CalculateForegroundCorrection(vector<PolarSeg*> &target) {
+EWD::triple<> PEwald3D3D::CalculateForegroundCorrection(std::vector<PolarSeg*> &target) {
     
     LOG(logDEBUG,*_log)
         << "  o Foreground-correction to energy via FGN" << flush;
     
-    vector<PolarSeg*>::iterator sit1; 
-    vector<APolarSite*> ::iterator pit1;
-    vector<PolarSeg*>::iterator sit2; 
-    vector<APolarSite*> ::iterator pit2;
+    std::vector<PolarSeg*>::iterator sit1; 
+    std::vector<APolarSite*> ::iterator pit1;
+    std::vector<PolarSeg*>::iterator sit2; 
+    std::vector<APolarSite*> ::iterator pit2;
     //double EC = 0.0;
     double sum_pp = 0.0;
     double sum_pu = 0.0;
@@ -893,10 +893,10 @@ void PEwald3D3D::Field_ConvergeRealSpaceSum() {
     LOG(logDEBUG,*_log) << flush 
         << "R-space fields via midground" << flush;
     
-    vector<PolarSeg*>::iterator sit1; 
-    vector<APolarSite*> ::iterator pit1;
-    vector<PolarSeg*>::iterator sit2; 
-    vector<APolarSite*> ::iterator pit2;
+    std::vector<PolarSeg*>::iterator sit1; 
+    std::vector<APolarSite*> ::iterator pit1;
+    std::vector<PolarSeg*>::iterator sit2; 
+    std::vector<APolarSite*> ::iterator pit2;
     
     // GENERATE MIDGROUND & ASSEMBLE IT INTO SHELLS
     double dR_shell = 0.5;
@@ -913,7 +913,7 @@ void PEwald3D3D::Field_ConvergeRealSpaceSum() {
         (*sit1)->ClearPolarNbs();
         
         // Bin midground into shells
-        vector< vector<PolarSeg*> > shelled_mg_N;
+        std::vector< std::vector<PolarSeg*> > shelled_mg_N;
         int N_shells = int(R_max_shell/dR_shell)+1;
         shelled_mg_N.resize(N_shells);
         
@@ -929,7 +929,7 @@ void PEwald3D3D::Field_ConvergeRealSpaceSum() {
             double shell_rms = 0.0;
             int shell_count = 0;
             // Interact with shell
-            vector<PolarSeg*> &shell_mg = shelled_mg_N[sidx];
+            std::vector<PolarSeg*> &shell_mg = shelled_mg_N[sidx];
             double shell_R = (sidx+1)*dR_shell;            
             if (shell_mg.size() < 1) continue;            
             for (sit2 = shell_mg.begin(); sit2 != shell_mg.end(); ++sit2) {
@@ -998,7 +998,7 @@ void PEwald3D3D::Field_ConvergeRealSpaceSum() {
 //    LOG(logDEBUG,*_log) << flush 
 //        << "R-space fields via midground" << flush;
 //    
-//    vector<PolarSeg*>::iterator sit1;
+//    std::vector<PolarSeg*>::iterator sit1;
 //    
 //    // FOR EACH FOREGROUND SEGMENT (FGC) ...
 //    int field_converged_count = 0;
@@ -1028,7 +1028,7 @@ void PEwald3D3D::Field_ConvergeReciprocalSpaceSum() {
     _field_converged_K = false;
     double rV = 1./_LxLyLz;
     
-    vector< EWD::KVector >::iterator kvit;
+    std::vector< EWD::KVector >::iterator kvit;
     
     // TWO COMPONENTS ZERO, ONE NON-ZERO
     LOG(logINFO,*_log) << flush 
@@ -1159,10 +1159,10 @@ void PEwald3D3D::Field_CalculateForegroundCorrection() {
     LOG(logDEBUG,*_log)
         << "  o Foreground-correction to fields via FGN" << flush;
     
-    vector<PolarSeg*>::iterator sit1; 
-    vector<APolarSite*> ::iterator pit1;
-    vector<PolarSeg*>::iterator sit2; 
-    vector<APolarSite*> ::iterator pit2;
+    std::vector<PolarSeg*>::iterator sit1; 
+    std::vector<APolarSite*> ::iterator pit1;
+    std::vector<PolarSeg*>::iterator sit2; 
+    std::vector<APolarSite*> ::iterator pit2;
     
     double rms = 0.0;
     int rms_count = 0;
@@ -1191,10 +1191,10 @@ void PEwald3D3D::Field_CalculateShapeCorrection() {
     
     _ewdactor.FPU12_ShapeField_At_By(_fg_C, _bg_P, _shape, _LxLyLz);
     
-//    vector<PolarSeg*>::iterator sit1; 
-//    vector<APolarSite*> ::iterator pit1;
-//    vector<PolarSeg*>::iterator sit2; 
-//    vector<APolarSite*> ::iterator pit2;
+//    std::vector<PolarSeg*>::iterator sit1; 
+//    std::vector<APolarSite*> ::iterator pit1;
+//    std::vector<PolarSeg*>::iterator sit2; 
+//    std::vector<APolarSite*> ::iterator pit2;
 //    
 //    double rms = 0.0;
 //    int rms_count = 0;    
@@ -1226,7 +1226,7 @@ void PEwald3D3D::Field_CalculateShapeCorrection() {
 }
 
 
-void PEwald3D3D::Potential_ConvergeRealSpaceSum(vector<PolarSeg*> &target) {
+void PEwald3D3D::Potential_ConvergeRealSpaceSum(std::vector<PolarSeg*> &target) {
     
     double sum = 0.0;
     double sum_phi = 0.0;
@@ -1235,12 +1235,12 @@ void PEwald3D3D::Potential_ConvergeRealSpaceSum(vector<PolarSeg*> &target) {
     LOG(logDEBUG,*_log) << flush 
         << "R-space potentials via midground" << flush;
     
-    vector<PolarSeg*>::iterator sit1; 
-    vector<APolarSite*> ::iterator pit1;
-    vector<PolarSeg*>::iterator sit2; 
-    vector<APolarSite*> ::iterator pit2;
-    vector<PolarNb*>::iterator nit;
-    vector< vector<PolarSeg*> > ::iterator vsit;
+    std::vector<PolarSeg*>::iterator sit1; 
+    std::vector<APolarSite*> ::iterator pit1;
+    std::vector<PolarSeg*>::iterator sit2; 
+    std::vector<APolarSite*> ::iterator pit2;
+    std::vector<PolarNb*>::iterator nit;
+    std::vector< std::vector<PolarSeg*> > ::iterator vsit;
     
     bool neighbours_stored = false;
     for (sit1 = target.begin(); sit1 < target.end(); ++sit1) {
@@ -1254,7 +1254,7 @@ void PEwald3D3D::Potential_ConvergeRealSpaceSum(vector<PolarSeg*> &target) {
     // ENERGY - REUSE NEIGHBOURS ?
     if (neighbours_stored) {
         for (sit1 = target.begin(); sit1 < target.end(); ++sit1) {
-            vector<PolarNb*> &nbs = (*sit1)->PolarNbs();
+            std::vector<PolarNb*> &nbs = (*sit1)->PolarNbs();
             for (nit = nbs.begin(); nit != nbs.end(); ++nit) {
                 PolarSeg *nb = (*nit)->getNb();
                 for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
@@ -1288,7 +1288,7 @@ void PEwald3D3D::Potential_ConvergeRealSpaceSum(vector<PolarSeg*> &target) {
             (*sit1)->ClearPolarNbs();
 
             // Bin midground into shells
-            vector< vector<PolarSeg*> > shelled_mg_N;
+            std::vector< std::vector<PolarSeg*> > shelled_mg_N;
             int N_shells = int(R_max_shell/dR_shell)+1;
             shelled_mg_N.resize(N_shells);
 
@@ -1306,7 +1306,7 @@ void PEwald3D3D::Potential_ConvergeRealSpaceSum(vector<PolarSeg*> &target) {
                 double shell_rms = 0.0;
                 int shell_count = 0;
                 // Interact with shell
-                vector<PolarSeg*> &shell_mg = shelled_mg_N[sidx];            
+                std::vector<PolarSeg*> &shell_mg = shelled_mg_N[sidx];            
                 double shell_R = (sidx+1)*dR_shell;            
                 if (shell_mg.size() < 1) continue;            
                 EWD::triple<double> ppuu(0,0,0);
@@ -1367,7 +1367,7 @@ void PEwald3D3D::Potential_ConvergeRealSpaceSum(vector<PolarSeg*> &target) {
 }
 
 
-void PEwald3D3D::Potential_ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) {
+void PEwald3D3D::Potential_ConvergeReciprocalSpaceSum(std::vector<PolarSeg*> &target) {
     
     // ATTENTION K-vectors are generated based on an interaction-energy
     //           criterion between FGC and BGP. Hence, the <target> density
@@ -1375,7 +1375,7 @@ void PEwald3D3D::Potential_ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target)
     //           covered by FGC.
     if (!_did_generate_kvectors)
         this->GenerateKVectors(_fg_C, _bg_P);
-    vector< EWD::KVector >::iterator kvit;
+    std::vector< EWD::KVector >::iterator kvit;
     
     double sum_re = 0.0;
     double sum_im = 0.0;
@@ -1499,14 +1499,14 @@ void PEwald3D3D::Potential_ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target)
 }
 
 
-void PEwald3D3D::Potential_CalculateForegroundCorrection(vector<PolarSeg*> &target) {
+void PEwald3D3D::Potential_CalculateForegroundCorrection(std::vector<PolarSeg*> &target) {
     LOG(logDEBUG,*_log)
         << "  o Foreground-correction to potentials via FGN" << flush;
     
-    vector<PolarSeg*>::iterator sit1;
-    vector<APolarSite*> ::iterator pit1;
-    vector<PolarSeg*>::iterator sit2;
-    vector<APolarSite*> ::iterator pit2;
+    std::vector<PolarSeg*>::iterator sit1;
+    std::vector<APolarSite*> ::iterator pit1;
+    std::vector<PolarSeg*>::iterator sit2;
+    std::vector<APolarSite*> ::iterator pit2;
     
     double rms = 0.0;
     int rms_count = 0;
@@ -1526,7 +1526,7 @@ void PEwald3D3D::Potential_CalculateForegroundCorrection(vector<PolarSeg*> &targ
 }
 
 
-void PEwald3D3D::Potential_CalculateShapeCorrection(vector<PolarSeg*> &target) {
+void PEwald3D3D::Potential_CalculateShapeCorrection(std::vector<PolarSeg*> &target) {
     LOG(logDEBUG,*_log) << flush
         << "Potential correction terms" << flush;
     LOG(logDEBUG,*_log)

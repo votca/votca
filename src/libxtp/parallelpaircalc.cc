@@ -32,7 +32,7 @@ bool ParallelPairCalculator::EvaluateFrame(Topology *top) {
     else { cout << endl << "... ... System is already rigidified."; }
     cout << endl;        
 
-    vector<PairOperator*> pairOps;
+    std::vector<PairOperator*> pairOps;
     this->InitSlotData(top);
 
     _nextPair = top->NBList().begin();

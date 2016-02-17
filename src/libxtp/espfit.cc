@@ -6,7 +6,7 @@
 #include <votca/xtp/numerical_integrations.h>
 #include <math.h> 
 
-using namespace std;
+
 using namespace votca::tools;
 
 
@@ -14,10 +14,10 @@ namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
     
 void Espfit::EvaluateAPECharges(Grid& _targetgrid, Grid& _chargepositions){
-    vector<APolarSite*> charges=_chargepositions.Sites();
-    vector<APolarSite*> positions=_targetgrid.Sites();
-    vector<APolarSite*>::iterator qit;
-    vector<APolarSite*>::iterator pit;
+    std::vector<APolarSite*> charges=_chargepositions.Sites();
+    std::vector<APolarSite*> positions=_targetgrid.Sites();
+    std::vector<APolarSite*>::iterator qit;
+    std::vector<APolarSite*>::iterator pit;
     for (pit=positions.begin();pit!=positions.end();++pit){
         double potential=0.0;
         vec pos=(*pit)->getPos();
@@ -69,7 +69,7 @@ void Espfit::FitAPECharges(Grid& _targetgrid_fg, Grid& _targetgrid_bg, Grid& _ch
        
 
 
-void Espfit::Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis,BasisSet &bs,string gridsize) { 
+void Espfit::Fit2Density(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis,BasisSet &bs,string gridsize) { 
    
     double Nm2Bohr=18.8972598860;
     double A2nm=0.1;
@@ -148,7 +148,7 @@ void Espfit::Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat
     }
 
 
-ub::vector<double> Espfit::EvalNuclearPotential(vector< QMAtom* >& _atoms, Grid _grid) {
+ub::vector<double> Espfit::EvalNuclearPotential(std::vector< QMAtom* >& _atoms, Grid _grid) {
     ub::vector<double> _NucPatGrid = ub::zero_vector<double>(_grid.getsize());
     double Nm2Bohr = 18.8972598860;
     double A2nm = 0.1;
@@ -178,7 +178,7 @@ ub::vector<double> Espfit::EvalNuclearPotential(vector< QMAtom* >& _atoms, Grid 
     return _NucPatGrid;
 }
 
-double Espfit::getNetcharge( vector< QMAtom* >& _atoms, double N ){
+double Espfit::getNetcharge( std::vector< QMAtom* >& _atoms, double N ){
     double netcharge=0.0;
     if( std::abs(N)<0.05){
         LOG(logDEBUG, *_log) << "Number of Electrons is "<<N<< " transitiondensity is used for fit"  << flush;
@@ -225,7 +225,7 @@ double Espfit::getNetcharge( vector< QMAtom* >& _atoms, double N ){
     
 
 
-void Espfit::Fit2Density_analytic(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AOBasis &_basis) { 
+void Espfit::Fit2Density_analytic(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AOBasis &_basis) { 
      double Nm2Bohr=18.8972598860;
      double A2nm=0.1;
     // setting up grid    

@@ -23,13 +23,13 @@
 
 
 
-using namespace std;
+
 using namespace votca::tools;
 
 namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
 
-void AOCoulomb::FillgOrbitals(vector<double> &_wmp,vector<double> &_wmq,ma_type &_cou,const double &_decay_row,const double &_decay_col, const int &_lmax_row, const int  &_lmax_col){
+void AOCoulomb::FillgOrbitals(std::vector<double> &_wmp,std::vector<double> &_wmq,ma_type &_cou,const double &_decay_row,const double &_decay_col, const int &_lmax_row, const int  &_lmax_col){
 
     const double _fakac = 0.5 / (_decay_row + _decay_col);
     const double _fakac2 = 1. / (_decay_row + _decay_col);

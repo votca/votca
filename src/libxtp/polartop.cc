@@ -24,7 +24,7 @@ PolarTop::PolarTop(Topology *top) : _top(top), _center(vec(0,0,0)) {
     
     
 PolarTop::~PolarTop() {
-    vector<PolarSeg*> ::iterator psit;
+    std::vector<PolarSeg*> ::iterator psit;
     if (_clean_qm0) {
         for (psit = _qm0.begin(); psit < _qm0.end(); ++psit) {          
           delete *psit;          
@@ -87,7 +87,7 @@ string PolarTop::ShellInfoStr() {
 
 
 void PolarTop::Translate(const vec &shift) {
-    vector<PolarSeg*> ::iterator sit;    
+    std::vector<PolarSeg*> ::iterator sit;    
     for (sit = _qm0.begin(); sit < _qm0.end(); ++sit) {        
         PolarSeg* pseg = *sit;        
         pseg->Translate(shift);        
@@ -118,7 +118,7 @@ void PolarTop::Translate(const vec &shift) {
 
 void PolarTop::CenterAround(const vec &center) {
     
-    vector<PolarSeg*> ::iterator sit;
+    std::vector<PolarSeg*> ::iterator sit;
     
     for (sit = _qm0.begin(); sit < _qm0.end(); ++sit) {        
         PolarSeg* pseg = *sit;        
@@ -166,8 +166,8 @@ void PolarTop::PrintPDB(string outfile) {
     
     FILE *out;
     out = fopen(outfile.c_str(),"w");
-    vector<PolarSeg*> ::iterator sit; 
-    vector<APolarSite*> ::iterator pit;
+    std::vector<PolarSeg*> ::iterator sit; 
+    std::vector<APolarSite*> ::iterator pit;
     for (sit = _qm0.begin(); sit < _qm0.end(); ++sit) {        
         PolarSeg* pseg = *sit;        
         for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
@@ -221,8 +221,8 @@ void PolarTop::PrintInduState(string outfile, string format,
 void PolarTop::PrintInduState(FILE *out, string format,
                               bool split_dpl, double dpl_space) {
 
-    vector< PolarSeg* > ::iterator sit;
-    vector< APolarSite* > ::iterator pit;    
+    std::vector< PolarSeg* > ::iterator sit;
+    std::vector< APolarSite* > ::iterator pit;    
 
     // Count polar sites for header line in xyz
     int pcount = 0;

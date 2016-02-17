@@ -33,7 +33,7 @@
 #include <votca/xtp/logger.h>
 #include <votca/tools/linalg.h>
 
-using namespace std;
+
 using namespace votca::tools;
 
 namespace votca { namespace xtp {
@@ -96,10 +96,10 @@ namespace votca { namespace xtp {
         const vec& _pos_row = _shell_row->getPos();
         const vec& _pos_col = _shell_col->getPos();
         const vec  _diff    = _pos_row - _pos_col;
-        vector<double> _pma (3,0.0);
-        vector<double> _pmb (3,0.0);
+        std::vector<double> _pma (3,0.0);
+        std::vector<double> _pmb (3,0.0);
         double _distsq = (_diff.getX()*_diff.getX()) + (_diff.getY()*_diff.getY()) + (_diff.getZ()*_diff.getZ()); 
-     typedef vector< AOGaussianPrimitive* >::iterator GaussianIterator;
+     typedef std::vector< AOGaussianPrimitive* >::iterator GaussianIterator;
        // iterate over Gaussians in this _shell_row   
         for ( GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr){
             // iterate over Gaussians in this _shell_col

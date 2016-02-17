@@ -42,7 +42,7 @@ SegmentType::~SegmentType() {
     
     cout << "calling the SegmentType destructor" << endl;
 
-    vector < vector <int> >::iterator it_list_atoms_monomer = _list_atoms_monomer.begin();
+    std::vector < std::vector <int> >::iterator it_list_atoms_monomer = _list_atoms_monomer.begin();
 
     cout << "start clearing the list of atom monomers" << endl;
     for (; it_list_atoms_monomer != _list_atoms_monomer.end(); ++it_list_atoms_monomer) {
@@ -63,14 +63,14 @@ SegmentType::~SegmentType() {
 // Constructor
 SegmentType::SegmentType(const char * namecoord, const char * nameorb,
         const char * nameneutr, const char * namecrg, string & basisset,
-        const vector < int>& transorbs, const unsigned int &id,
-        string name, vector < vector < int > > list_atoms_monomer,
-        vector < vector < double > > list_weights_monomer) {
+        const std::vector < int>& transorbs, const unsigned int &id,
+        string name, std::vector < std::vector < int > > list_atoms_monomer,
+        std::vector < std::vector < double > > list_weights_monomer) {
 
     _id = id;
     _name = name;
-    vector < vector < int > > ::iterator it_mon;
-    vector < vector < double > > ::iterator it_mon_weights;
+    std::vector < std::vector < int > > ::iterator it_mon;
+    std::vector < std::vector < double > > ::iterator it_mon_weights;
 
     if (list_atoms_monomer.size() != list_weights_monomer.size())
         throw invalid_argument("number of atoms and weights do not match for charge unit <" + name + ">");
@@ -79,11 +79,11 @@ SegmentType::SegmentType(const char * namecoord, const char * nameorb,
     for (it_mon = list_atoms_monomer.begin(), it_mon_weights = list_weights_monomer.begin();
             it_mon < list_atoms_monomer.end(); ++it_mon, ++it_mon_weights) {
         
-        vector <int> list_mon;
+        std::vector <int> list_mon;
         _list_atoms_monomer.push_back(list_mon);
         
-        vector <int> ::iterator it_at;
-        vector <double> ::iterator it_weight;
+        std::vector <int> ::iterator it_at;
+        std::vector <double> ::iterator it_weight;
         vec com(0., 0., 0.);
         matrix m(0.);
         matrix orient;
@@ -167,11 +167,11 @@ SegmentType::SegmentType(const char * namecoord, const char * nameorb,
 /// corresponding to two given vectors 
 /// we assume that the pointer is to a suitable molecule... 
 
-void SegmentType::rotate_fragments(vector < vec >::iterator it_pos, vector < vec >::iterator it_norm,
-        vector <vec >::iterator it_plan, mol_and_orb * rotated_molecule) {
-    vector < vector <int> >::iterator it_monomers;
-    vector < vec >::iterator it_coms = _list_coms_monomer.begin();
-    vector <matrix>::iterator it_ors = _list_ors_monomer.begin();
+void SegmentType::rotate_fragments(std::vector < vec >::iterator it_pos, std::vector < vec >::iterator it_norm,
+        std::vector <vec >::iterator it_plan, mol_and_orb * rotated_molecule) {
+    std::vector < std::vector <int> >::iterator it_monomers;
+    std::vector < vec >::iterator it_coms = _list_coms_monomer.begin();
+    std::vector <matrix>::iterator it_ors = _list_ors_monomer.begin();
 
     int count = 0;
     vec old_norm;

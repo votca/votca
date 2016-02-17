@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="97">
+<configurationDescriptor version="95">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <logicalFolder name="f2" displayName="Calculators" projectFiles="true">
@@ -227,7 +227,6 @@
       <itemPath>../../src/libxtp/ewaldnd.cc</itemPath>
       <itemPath>../../src/libxtp/gdma.cc</itemPath>
       <itemPath>../../src/libxtp/grid.cc</itemPath>
-      <itemPath>../../src/libxtp/gsl_boost_ublas_matrix_prod.cc</itemPath>
       <itemPath>../../src/libxtp/hgversion.h</itemPath>
       <itemPath>../../src/libxtp/job.cc</itemPath>
       <itemPath>../../src/libxtp/orbitals.cc</itemPath>
@@ -251,6 +250,7 @@
       <itemPath>../../src/libxtp/threecenter_rep.cc</itemPath>
       <itemPath>../../src/libxtp/threecenters.cc</itemPath>
       <itemPath>../../src/libxtp/threecenters_dft.cc</itemPath>
+      <itemPath>../../src/libxtp/threecenters_g.cc</itemPath>
       <itemPath>../../src/libxtp/threecenters_tools.cc</itemPath>
       <itemPath>../../src/libxtp/version.cc</itemPath>
       <itemPath>../../src/libxtp/version_nb.cc</itemPath>
@@ -291,7 +291,6 @@
                    projectFiles="false">
       <itemPath>Makefile</itemPath>
     </logicalFolder>
-    <itemPath>../../src/libxtp/threecenters_g.cc</itemPath>
   </logicalFolder>
   <sourceRootList>
     <Elem>../../include</Elem>
@@ -766,8 +765,6 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/esp2multipole.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/espfit.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/ewaldactor.cc" ex="false" tool="1" flavor2="0">
@@ -817,11 +814,6 @@
       <item path="../../src/libxtp/gdma.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/grid.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/gsl_boost_ublas_matrix_prod.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/bse.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -908,8 +900,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/molecule.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/mulliken.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/numerical_integration/numerical_integrations.cc"
             ex="false"
@@ -1563,8 +1553,6 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/esp2multipole.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/espfit.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/ewaldactor.cc" ex="false" tool="1" flavor2="0">
@@ -1614,11 +1602,6 @@
       <item path="../../src/libxtp/gdma.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/grid.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/gsl_boost_ublas_matrix_prod.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/bse.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1705,8 +1688,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/molecule.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/mulliken.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/numerical_integration/numerical_integrations.cc"
             ex="false"

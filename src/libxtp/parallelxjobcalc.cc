@@ -45,7 +45,7 @@ bool ParallelXJobCalc<JobContainer,pJob,rJob>::EvaluateFrame(Topology *top) {
     this->PreProcess(top);
     
     // CREATE + EXECUTE THREADS (XJOB HANDLERS)
-    vector<JobOperator*> jobOps;
+    std::vector<JobOperator*> jobOps;
 
     for (unsigned int id = 0; id < _nThreads; id++) {
         JobOperator *newOp = new JobOperator(id, top, this);
@@ -123,6 +123,6 @@ void ParallelXJobCalc<JobContainer,pJob,rJob>::CustomizeLogger(QMThread *thread)
 //template class ParallelXJobCalc< vector<XJob*>, XJob* >;
 //template class ParallelXJobCalc< vector<Segment*>, Segment* >;
 //template class ParallelXJobCalc< QMNBList, QMPair* >;
-template class ParallelXJobCalc< vector<Job*>, Job*, Job::JobResult >;
+template class ParallelXJobCalc< std::vector<Job*>, Job*, Job::JobResult >;
 
 }}

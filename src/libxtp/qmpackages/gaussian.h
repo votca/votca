@@ -26,7 +26,7 @@
 
 #include <string> 
 
-using namespace std;
+
 
 namespace votca { namespace xtp {
 /**
@@ -40,7 +40,7 @@ class Gaussian : public QMPackage
 {
 public:   
 
-   string getPackageName() { return "gaussian"; }
+   std::string getPackageName() { return "gaussian"; }
 
    void Initialize( Property *options );
 
@@ -48,7 +48,7 @@ public:
     * and a guess for the dimer (if requested) constructed from the
     * monomer orbitals
     */
-   bool WriteInputFile( vector< Segment* > segments, Orbitals* orbitals_guess = NULL);
+   bool WriteInputFile( std::vector< Segment* > segments, Orbitals* orbitals_guess = NULL);
 
    bool WriteShellScript();
 
@@ -64,24 +64,24 @@ public:
    
    bool ConvertToGW( Orbitals* _orbitals );
       
-   string getScratchDir( ) { return _scratch_dir; }
+   std::string getScratchDir( ) { return _scratch_dir; }
    
 private:  
 
-    string                              _shell_file_name;
-    string                              _chk_file_name;
-    string                              _scratch_dir;
-    string                              _input_vxc_file_name;    
-    string                              _cleanup;
-    string                              _vdWfooter;
+    std::string                              _shell_file_name;
+    std::string                              _chk_file_name;
+    std::string                              _scratch_dir;
+    std::string                              _input_vxc_file_name;    
+    std::string                              _cleanup;
+    std::string                              _vdWfooter;
 
-    int NumberOfElectrons( string _line ); 
-    int BasisSetSize( string _line ); 
-    int EnergiesFromLog( string _line, ifstream inputfile ); 
-    string FortranFormat( const double &number );
-    int NumbfQC( string _shell_type);
-    int NumbfGW( string _shell_type);
-    int NumbfQC_cart( string _shell_type);
+    int NumberOfElectrons( std::string _line ); 
+    int BasisSetSize( std::string _line ); 
+    int EnergiesFromLog( std::string _line, std::ifstream inputfile ); 
+    std::string FortranFormat( const double &number );
+    int NumbfQC( std::string _shell_type);
+    int NumbfGW( std::string _shell_type);
+    int NumbfQC_cart( std::string _shell_type);
 
     
     

@@ -27,7 +27,7 @@
 #include <votca/xtp/logger.h>
 #include <votca/xtp/gdma.h>
 
-using namespace std;
+
 using namespace votca::tools;
 
 namespace votca {
@@ -162,9 +162,9 @@ namespace votca {
                     // found an atom, read one more line
                     getline(_gdma_output, _line);
                     // determine rank
-                    vector<string> results;
+                    std::vector<string> results;
                     boost::trim(_line);
-                    vector<double> Qs; // temp vector for reading in
+                    std::vector<double> Qs; // temp vector for reading in
                     
                     boost::algorithm::split(results, _line, boost::is_any_of("\t "),
                             boost::algorithm::token_compress_on);
@@ -179,7 +179,7 @@ namespace votca {
                     if (rank >= 0) {
                         // getting charge
                         getline(_gdma_output, _line);
-                        vector<string> results;
+                        std::vector<string> results;
                         boost::trim(_line);
                         boost::algorithm::split(results, _line, boost::is_any_of("\t "),
                                 boost::algorithm::token_compress_on);
@@ -195,7 +195,7 @@ namespace votca {
 
                         // getting dipoles
                         getline(_gdma_output, _line);
-                        vector<string> results;
+                        std::vector<string> results;
                         boost::trim(_line);
                         boost::algorithm::split(results, _line, boost::is_any_of("\t "),
                                 boost::algorithm::token_compress_on);
@@ -217,7 +217,7 @@ namespace votca {
                     if (rank == 2) {
                         
                         getline(_gdma_output, _line);
-                        vector<string> results;
+                        std::vector<string> results;
                         boost::trim(_line);
                         boost::algorithm::split(results, _line, boost::is_any_of("\t "),
                                 boost::algorithm::token_compress_on);

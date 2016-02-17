@@ -22,7 +22,7 @@
 
 #include <votca/xtp/threecenters.h>
 
-using namespace std;
+
 using namespace votca::tools;
 
 namespace votca {

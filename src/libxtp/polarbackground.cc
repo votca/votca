@@ -108,8 +108,8 @@ PolarBackground::PolarBackground(Topology *top, PolarTop *ptop, Property *opt,
     }
 
     // CALCULATE COG POSITIONS, NET CHARGE
-    vector<PolarSeg*>::iterator sit; 
-    vector<APolarSite*> ::iterator pit;
+    std::vector<PolarSeg*>::iterator sit; 
+    std::vector<APolarSite*> ::iterator pit;
     double Q_bg_P = 0.0;
     int estat_count = 0;
     int polar_count = 0;
@@ -235,7 +235,7 @@ PolarBackground::PolarBackground(Topology *top, PolarTop *ptop, Property *opt,
 
 
 PolarBackground::~PolarBackground() {    
-    vector<EWD::KVector*>::iterator kit;
+    std::vector<EWD::KVector*>::iterator kit;
     for (kit = _kvecs_2_0.begin(); kit < _kvecs_2_0.end(); ++kit)
         delete *kit;
     for (kit = _kvecs_1_0.begin(); kit < _kvecs_1_0.end(); ++kit)
@@ -277,10 +277,10 @@ void PolarBackground::Polarize(int n_threads = 1) {
     Logger &log = *_log;
     _n_threads = n_threads;
     
-    vector<PolarSeg*>::iterator sit1; 
-    vector<APolarSite*> ::iterator pit1;
-    vector<PolarSeg*>::iterator sit2; 
-    vector<APolarSite*> ::iterator pit2;
+    std::vector<PolarSeg*>::iterator sit1; 
+    std::vector<APolarSite*> ::iterator pit1;
+    std::vector<PolarSeg*>::iterator sit2; 
+    std::vector<APolarSite*> ::iterator pit2;
     
     /*
     Verify neutrality & depolarize
@@ -509,7 +509,7 @@ void PolarBackground::Polarize(int n_threads = 1) {
     if (tools::globals::verbose) {
         std::ofstream ofs;
         ofs.open("ewdbgpol.indu_state.tab", ofstream::out);
-        for (vector<PolarSeg*>::iterator sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
+        for (std::vector<PolarSeg*>::iterator sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
             PolarSeg *pseg = *sit1;
             //Segment *seg = _top->getSegment(pseg->getId());
             for (PolarSeg::iterator pit1 = pseg->begin(); pit1 < pseg->end(); ++pit1) {
@@ -550,11 +550,11 @@ void PolarBackground::Polarize(int n_threads = 1) {
 
 void PolarBackground::RThread::FP_FieldCalc() {
     
-    vector<PolarSeg*>::iterator sit1; 
-    vector<APolarSite*> ::iterator pit1;
-    vector<PolarSeg*>::iterator sit2; 
-    vector<APolarSite*> ::iterator pit2;
-    vector<PolarNb*>::iterator nit;
+    std::vector<PolarSeg*>::iterator sit1; 
+    std::vector<APolarSite*> ::iterator pit1;
+    std::vector<PolarSeg*>::iterator sit2; 
+    std::vector<APolarSite*> ::iterator pit2;
+    std::vector<PolarNb*>::iterator nit;
     _not_converged_count = 0;
     
     // CLEAR POLAR NEIGHBOR-LIST BEFORE SET-UP
@@ -582,7 +582,7 @@ void PolarBackground::RThread::FP_FieldCalc() {
         double dR_shell = 0.5;
         double R_co_max = 2*_master->_R_co;
         int N_shells = int(R_co_max/dR_shell)+1;
-        vector< vector<PolarNb*> > shelled_nbs;
+        std::vector< std::vector<PolarNb*> > shelled_nbs;
         shelled_nbs.resize(N_shells);
         unsigned allocated_count = 0;
         unsigned deleted_count = 0;
@@ -624,7 +624,7 @@ void PolarBackground::RThread::FP_FieldCalc() {
                 // Figure out shell parameters
                 shell_idx = sidx;
                 shell_R = (sidx+1)*dR_shell;
-                vector<PolarNb*> &nb_shell = shelled_nbs[sidx];
+                std::vector<PolarNb*> &nb_shell = shelled_nbs[sidx];
                 if (nb_shell.size() < 1) continue;
                 double shell_rms = 0.0;
                 int shell_rms_count = 0;
@@ -670,7 +670,7 @@ void PolarBackground::RThread::FP_FieldCalc() {
                 // Figure out shell parameters
                 shell_idx = sidx;
                 shell_R = (sidx+1)*dR_shell;
-                vector<PolarNb*> &nb_shell = shelled_nbs[sidx];
+                std::vector<PolarNb*> &nb_shell = shelled_nbs[sidx];
                 if (nb_shell.size() < 1) continue;
                 for (nit = nb_shell.begin(); nit < nb_shell.end(); ++nit) {
                     PolarSeg *pseg2 = (*nit)->getNb();
@@ -691,7 +691,7 @@ void PolarBackground::RThread::FP_FieldCalc() {
         
         // DELETE ALL NEIGHBOURS THAT WERE NOT NEEDED TO CONVERGE SUM
         for (int sidx = shell_idx+1; sidx < N_shells; ++sidx) {
-            vector<PolarNb*> &nb_shell = shelled_nbs[sidx];
+            std::vector<PolarNb*> &nb_shell = shelled_nbs[sidx];
             for (nit = nb_shell.begin(); nit < nb_shell.end(); ++nit) {
                 delete *nit;
                 deleted_count += 1;
@@ -707,11 +707,11 @@ void PolarBackground::RThread::FP_FieldCalc() {
 
 
 void PolarBackground::RThread::FU_FieldCalc() {
-    vector<PolarSeg*>::iterator sit1; 
-    vector<APolarSite*> ::iterator pit1;
-    vector<PolarSeg*>::iterator sit2; 
-    vector<APolarSite*> ::iterator pit2;
-    vector<PolarNb*>::iterator nit;
+    std::vector<PolarSeg*>::iterator sit1; 
+    std::vector<APolarSite*> ::iterator pit1;
+    std::vector<PolarSeg*>::iterator sit2; 
+    std::vector<APolarSite*> ::iterator pit2;
+    std::vector<PolarNb*>::iterator nit;
     
     // SET-UP NB CONTAINER
     if (_do_setup_nbs) {
@@ -739,7 +739,7 @@ void PolarBackground::RThread::FU_FieldCalc() {
             double dR_shell = 0.5;
             double R_co_max = 2*_master->_R_co;
             int N_shells = int(R_co_max/dR_shell)+1;
-            vector< vector<PolarNb*> > shelled_nbs;
+            std::vector< std::vector<PolarNb*> > shelled_nbs;
             shelled_nbs.resize(N_shells);
             unsigned allocated_count = 0;
             unsigned deleted_count = 0;
@@ -781,7 +781,7 @@ void PolarBackground::RThread::FU_FieldCalc() {
                     // Figure out shell parameters
                     shell_idx = sidx;
                     shell_R = (sidx+1)*dR_shell;
-                    vector<PolarNb*> &nb_shell = shelled_nbs[sidx];
+                    std::vector<PolarNb*> &nb_shell = shelled_nbs[sidx];
                     if (nb_shell.size() < 1) continue;
                     double shell_rms = 0.0;
                     int shell_rms_count = 0;
@@ -827,7 +827,7 @@ void PolarBackground::RThread::FU_FieldCalc() {
                     // Figure out shell parameters
                     shell_idx = sidx;
                     shell_R = (sidx+1)*dR_shell;
-                    vector<PolarNb*> &nb_shell = shelled_nbs[sidx];
+                    std::vector<PolarNb*> &nb_shell = shelled_nbs[sidx];
                     if (nb_shell.size() < 1) continue;
                     for (nit = nb_shell.begin(); nit < nb_shell.end(); ++nit) {
                         PolarSeg *pseg2 = (*nit)->getNb();
@@ -848,7 +848,7 @@ void PolarBackground::RThread::FU_FieldCalc() {
 
             // DELETE ALL NEIGHBOURS THAT WERE NOT NEEDED TO CONVERGE SUM
             for (int sidx = shell_idx+1; sidx < N_shells; ++sidx) {
-                vector<PolarNb*> &nb_shell = shelled_nbs[sidx];
+                std::vector<PolarNb*> &nb_shell = shelled_nbs[sidx];
                 for (nit = nb_shell.begin(); nit < nb_shell.end(); ++nit) {
                     delete *nit;
                     deleted_count += 1;
@@ -916,7 +916,7 @@ void PolarBackground::FX_RealSpace(string mode, bool do_setup_nbs) {
     tforce.setPrototype(&prototype);
     tforce.Initialize(_n_threads);
     
-    tforce.AddSharedInput< vector<PolarSeg*> >(_bg_P);
+    tforce.AddSharedInput< std::vector<PolarSeg*> >(_bg_P);
     tforce.AddAtomicInput<PolarSeg*>(_bg_P);
     tforce.AssignMode<string>(mode);
     
@@ -948,7 +948,7 @@ void PolarBackground::FX_RealSpace(string mode, bool do_setup_nbs) {
     LOG(logDEBUG,*_log) << "    - Real-space nb-list set: <R(c/o)> = " 
         << avg_R_co << flush;
     int total_nbs_count = 0;
-    vector<PolarSeg*>::iterator sit1;
+    std::vector<PolarSeg*>::iterator sit1;
     for (sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1)
         total_nbs_count += (*sit1)->PolarNbs().size();
     LOG(logDEBUG,*_log) << "    - Real-space nb-list set: <nbs/seg> = " 
@@ -972,7 +972,7 @@ void PolarBackground::KThread::SP_SFactorCalc() {
     
     // Calculate structure factors for each k and store with KVector
     int kvec_count = 0;
-    for (vector<EWD::KVector*>::iterator kit = _part_kvecs.begin();
+    for (std::vector<EWD::KVector*>::iterator kit = _part_kvecs.begin();
         kit < _part_kvecs.end(); ++kit) {
         kvec_count += 1;
         EWD::cmplx sfactor
@@ -998,7 +998,7 @@ void PolarBackground::KThread::FP_KFieldCalc() {
     
     // Increment fields within _part_bg_P for each k-vector
     int kvec_count = 0;
-    for (vector<EWD::KVector*>::iterator kit = _full_kvecs.begin(); 
+    for (std::vector<EWD::KVector*>::iterator kit = _full_kvecs.begin(); 
         kit < _full_kvecs.end(); ++kit) {
         kvec_count += 1;
         vec k = (*kit)->getK();
@@ -1021,7 +1021,7 @@ void PolarBackground::KThread::SU_SFactorCalc() {
     
     // Calculate structure factors for each k and store with KVector
     int kvec_count = 0;
-    for (vector<EWD::KVector*>::iterator kit = _part_kvecs.begin();
+    for (std::vector<EWD::KVector*>::iterator kit = _part_kvecs.begin();
         kit < _part_kvecs.end(); ++kit) {
         kvec_count += 1;
         EWD::cmplx sfactor
@@ -1047,7 +1047,7 @@ void PolarBackground::KThread::FU_KFieldCalc() {
     
     // Increment fields within _part_bg_P for each k-vector
     int kvec_count = 0;
-    for (vector<EWD::KVector*>::iterator kit = _full_kvecs.begin(); 
+    for (std::vector<EWD::KVector*>::iterator kit = _full_kvecs.begin(); 
         kit < _full_kvecs.end(); ++kit) {
         kvec_count += 1;
         vec k = (*kit)->getK();
@@ -1093,7 +1093,7 @@ void PolarBackground::FX_ReciprocalSpace(string mode1, string mode2,
     ThreadForce<KThread, PrototypeCreator>::iterator tfit;
     threadforce.setPrototype(&prototype);
     threadforce.Initialize(_n_threads);
-    threadforce.AddSharedInput< vector<PolarSeg*> >(_bg_P);
+    threadforce.AddSharedInput< std::vector<PolarSeg*> >(_bg_P);
     threadforce.AddAtomicInput<PolarSeg*>(_bg_P);
     
     
@@ -1102,7 +1102,7 @@ void PolarBackground::FX_ReciprocalSpace(string mode1, string mode2,
     LOG(logDEBUG,*_log)
         << "  o Two components zero, one non-zero" << flush;    
     // Assign k-vectors
-    threadforce.AddSharedInput< vector<KVector*> >(_kvecs_2_0);
+    threadforce.AddSharedInput< std::vector<KVector*> >(_kvecs_2_0);
     threadforce.AddAtomicInput< EWD::KVector* >(_kvecs_2_0);
     // Compute structure factors
     LOG(logDEBUG,*_log) << flush;
@@ -1143,11 +1143,11 @@ void PolarBackground::FX_ReciprocalSpace(string mode1, string mode2,
         << "  o One component zero, two non-zero" << flush;    
     double crit_grade = 1. * _kxyz_s1s2_norm;
     bool converged10 = false;
-    vector<EWD::KVector*>::iterator kit;
+    std::vector<EWD::KVector*>::iterator kit;
     kit = _kvecs_1_0.begin();
     while (!converged10 && kit < _kvecs_1_0.end()) {        
         // Construct k-vector shell from critical grade
-        vector<KVector*> shell_kvecs;
+        std::vector<KVector*> shell_kvecs;
         while (kit < _kvecs_1_0.end()) {
             if ((*kit)->getGrade() < crit_grade) break;
             shell_kvecs.push_back(*kit);
@@ -1155,7 +1155,7 @@ void PolarBackground::FX_ReciprocalSpace(string mode1, string mode2,
         }
         if (shell_kvecs.size() > 0) {
             // Assign k-vectors
-            threadforce.AddSharedInput< vector<KVector*> >(shell_kvecs);
+            threadforce.AddSharedInput< std::vector<KVector*> >(shell_kvecs);
             threadforce.AddAtomicInput< EWD::KVector* >(shell_kvecs);
             // Compute structure factors
             LOG(logDEBUG,*_log) << flush;
@@ -1209,7 +1209,7 @@ void PolarBackground::FX_ReciprocalSpace(string mode1, string mode2,
     kit = _kvecs_0_0.begin();
     while (!converged00 && kit < _kvecs_0_0.end()) {
         // Construct k-vector shell from critical grade
-        vector<KVector*> shell_kvecs;
+        std::vector<KVector*> shell_kvecs;
         while (kit < _kvecs_0_0.end()) {
             if ((*kit)->getGrade() < crit_grade) break;
             shell_kvecs.push_back(*kit);
@@ -1217,7 +1217,7 @@ void PolarBackground::FX_ReciprocalSpace(string mode1, string mode2,
         }
         if (shell_kvecs.size() > 0) {
             // Assign k-vectors
-            threadforce.AddSharedInput< vector<KVector*> >(shell_kvecs);
+            threadforce.AddSharedInput< std::vector<KVector*> >(shell_kvecs);
             threadforce.AddAtomicInput< EWD::KVector* >(shell_kvecs);
             // Compute structure factors
             LOG(logDEBUG,*_log) << flush;
@@ -1273,8 +1273,8 @@ void PolarBackground::FX_ReciprocalSpace(string mode1, string mode2,
 }
 
 
-void PolarBackground::GenerateKVectors(vector<PolarSeg*> &ps1, 
-    vector<PolarSeg*> &ps2) {
+void PolarBackground::GenerateKVectors(std::vector<PolarSeg*> &ps1, 
+    std::vector<PolarSeg*> &ps2) {
     
     // Take care of norm for grading function
     // All three components non-zero
@@ -1291,16 +1291,16 @@ void PolarBackground::GenerateKVectors(vector<PolarSeg*> &ps1,
     //
     // S(ki=0) = <S(ki)>**(2/3) (<S(kj)><S(kk)>)**(1/6)
     
-    vector< EWD::KVector* > kvecs_2_0; // 2 components zero
-    vector< EWD::KVector* > kvecs_1_0; // 1 component zero
-    vector< EWD::KVector* > kvecs_0_0; // 0 components zero
+    std::vector< EWD::KVector* > kvecs_2_0; // 2 components zero
+    std::vector< EWD::KVector* > kvecs_1_0; // 1 component zero
+    std::vector< EWD::KVector* > kvecs_0_0; // 0 components zero
     
     // CONTAINERS FOR GRADING K-VECTORS
-    vector< double > kx_s1s2;
+    std::vector< double > kx_s1s2;
     kx_s1s2.push_back(1);
-    vector< double > ky_s1s2;
+    std::vector< double > ky_s1s2;
     ky_s1s2.push_back(1);
-    vector< double > kz_s1s2;
+    std::vector< double > kz_s1s2;
     kz_s1s2.push_back(1);
     double avg_kx_s1s2 = 0.0;
     double avg_ky_s1s2 = 0.0;
@@ -1413,7 +1413,7 @@ void PolarBackground::GenerateKVectors(vector<PolarSeg*> &ps1,
     std::sort(kvecs_0_0.begin(), kvecs_0_0.end(), _kvecsort);
     
     // STORE K-VECTORS
-    vector<EWD::KVector*>::iterator kvit;
+    std::vector<EWD::KVector*>::iterator kvit;
     for (kvit = _kvecs_2_0.begin(); kvit < _kvecs_2_0.end(); ++kvit)
         delete *kvit;
     for (kvit = _kvecs_1_0.begin(); kvit < _kvecs_1_0.end(); ++kvit)

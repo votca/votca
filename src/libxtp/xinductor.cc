@@ -9,7 +9,7 @@ namespace votca { namespace xtp {
 
     
 XInductor::~XInductor() {
-    vector<InduWorker*>::iterator wit;
+    std::vector<InduWorker*>::iterator wit;
     for (wit = _indus.begin(); wit != _indus.end(); ++wit) {
         delete *wit;
     }
@@ -45,8 +45,8 @@ void XInductor::Evaluate(XJob *job) {
     if (job->StartFromCPT()) {
         // Permanent fields already computed, do not zero these out ...
         LOG(logDEBUG,*_log) << "Carry out partial depolarization from CPT." << flush;
-        vector< PolarSeg* >   ::iterator sit;
-        vector< APolarSite* > ::iterator pit;
+        std::vector< PolarSeg* >   ::iterator sit;
+        std::vector< APolarSite* > ::iterator pit;
 
         // Partially depolarize inner sphere
         for (sit = _qmm.begin(); sit < _qmm.end(); ++sit) {
@@ -64,8 +64,8 @@ void XInductor::Evaluate(XJob *job) {
     }
     else {        
         LOG(logDEBUG,*_log) << "Carry out full depolarization." << flush;        
-        vector< PolarSeg* >   ::iterator sit;
-        vector< APolarSite* > ::iterator pit;
+        std::vector< PolarSeg* >   ::iterator sit;
+        std::vector< APolarSite* > ::iterator pit;
 
         // Depolarize inner sphere
         for (sit = _qmm.begin(); sit < _qmm.end(); ++sit) {
@@ -159,7 +159,7 @@ void XInductor::Configure(XJob *job) {
     
     // INDUCTION & ENERGY WORKERS
     // Delete previous ...
-    vector<InduWorker*>::iterator wit;
+    std::vector<InduWorker*>::iterator wit;
     for (wit = _indus.begin(); wit != _indus.end(); ++wit) {
         delete *wit;
     }
@@ -187,10 +187,10 @@ int XInductor::Induce(XJob *job) {
         _indus[id]->SetSwitch(1);
     }
 
-    vector< PolarSeg* >   ::iterator sit1;
-    vector< PolarSeg* >   ::iterator sit2;
-    vector< APolarSite* > ::iterator pit1;
-    vector< APolarSite* > ::iterator pit2;
+    std::vector< PolarSeg* >   ::iterator sit1;
+    std::vector< PolarSeg* >   ::iterator sit2;
+    std::vector< APolarSite* > ::iterator pit1;
+    std::vector< APolarSite* > ::iterator pit2;
     
     // CONVERGENCE PARAMETERS
     double wSOR = this->_wSOR_N;
@@ -216,7 +216,7 @@ int XInductor::Induce(XJob *job) {
     
     
     // Compute CoM positions, generate coarsegrained sites
-    vector<PolarFrag*>::iterator fit;
+    std::vector<PolarFrag*>::iterator fit;
     for (sit1 = _qmm.begin(); sit1 < _qmm.end(); ++sit1) {
         (*sit1)->CalcPos();
         (*sit1)->GeneratePermInduCgSite(false);
@@ -332,9 +332,9 @@ int XInductor::Induce(XJob *job) {
     
     
     // Transition ranges atm<>atm, atm<>frag, atm<>seg
-    vector<double> rcs_frag;
-    vector<double> rcs_seg;
-    vector<double> ets;
+    std::vector<double> rcs_frag;
+    std::vector<double> rcs_seg;
+    std::vector<double> ets;
     //rcs_frag.push_back(1.5);
     //rcs_frag.push_back(2.0);
     rcs_frag.push_back(r_switch_cg_frag);
@@ -643,10 +643,10 @@ double XInductor::Energy(XJob *job) {
     double e_m_out          = 0.0;
     // =========================================================================
 
-    vector< PolarSeg* >     ::iterator      sit1;
-    vector< PolarSeg* >     ::iterator      sit2;
-    vector< APolarSite* >   ::iterator      pit1;
-    vector< APolarSite* >   ::iterator      pit2;
+    std::vector< PolarSeg* >     ::iterator      sit1;
+    std::vector< PolarSeg* >     ::iterator      sit2;
+    std::vector< APolarSite* >   ::iterator      pit1;
+    std::vector< APolarSite* >   ::iterator      pit2;
 
     
     // =============================================================== //
@@ -972,10 +972,10 @@ double XInductor::EnergyStatic(XJob *job) {
     // =========================================================================
 
     
-    vector< PolarSeg* >    ::iterator      sit1;
-    vector< PolarSeg* >    ::iterator      sit2;
-    vector< APolarSite* >  ::iterator      pit1;
-    vector< APolarSite* >  ::iterator      pit2;
+    std::vector< PolarSeg* >    ::iterator      sit1;
+    std::vector< PolarSeg* >    ::iterator      sit2;
+    std::vector< APolarSite* >  ::iterator      pit1;
+    std::vector< APolarSite* >  ::iterator      pit2;
 
         
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //

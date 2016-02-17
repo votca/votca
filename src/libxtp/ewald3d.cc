@@ -16,23 +16,23 @@ Ewald3D3D::Ewald3D3D(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
   : Ewald3DnD(top, ptop, opt, log) {}
 
 
-EWD::triple<> Ewald3D3D::ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) {
+EWD::triple<> Ewald3D3D::ConvergeReciprocalSpaceSum(std::vector<PolarSeg*> &target) {
 
-    vector<PolarSeg*>::iterator sit;
-    vector<APolarSite*> ::iterator pit;    
+    std::vector<PolarSeg*>::iterator sit;
+    std::vector<APolarSite*> ::iterator pit;    
     
     // CELLS OF THE RECIPROCAL LATTICE: SUM OVER ELLIPSOIDAL SHELLS
     // ... Shell-size increment is magnitude of largest reciprocal cell vector
     // ... Tschebyschow/Euclidean norm is used to group k-vectors into k-shells 
     
-    vector< vector<vec> > shell_ks;
-    vector< vector<vec> >::iterator shellit;
+    std::vector< std::vector<vec> > shell_ks;
+    std::vector< std::vector<vec> >::iterator shellit;
     double shell_dk = (maxnorm(_A) > maxnorm(_B)) ?
         ((maxnorm(_A) > maxnorm(_C)) ? maxnorm(_A) : maxnorm(_C)) 
       : ((maxnorm(_B) > maxnorm(_C)) ? maxnorm(_B) : maxnorm(_C));
     // Determine all k-vectors within k-space cut-off
-    vector< vec >::iterator kit;
-    vector< vec > ks;
+    std::vector< vec >::iterator kit;
+    std::vector< vec > ks;
     for (int kx = -_NA_max; kx < _NA_max+1; ++kx) {
         for (int ky = -_NB_max; ky < _NB_max+1; ++ky) {
             for (int kz = -_NC_max; kz < _NC_max+1; ++kz) {
@@ -85,7 +85,7 @@ EWD::triple<> Ewald3D3D::ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) {
     unsigned int N_EKK_memory = (unsigned int)(0.5*(_NA_max+_NB_max)+0.5);
     int N_K_proc = 0;
     int N_shells_proc = 0;
-    vector< double > dEKKs;
+    std::vector< double > dEKKs;
     _converged_K = false;
     
     double re_E = 0.0;
@@ -176,12 +176,12 @@ EWD::triple<> Ewald3D3D::ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) {
 }
 
 
-EWD::triple<> Ewald3D3D::CalculateShapeCorrection(vector<PolarSeg*> &target) {
+EWD::triple<> Ewald3D3D::CalculateShapeCorrection(std::vector<PolarSeg*> &target) {
     
-    vector<PolarSeg*>::iterator sit1; 
-    vector<APolarSite*> ::iterator pit1;
-    vector<PolarSeg*>::iterator sit2; 
-    vector<APolarSite*> ::iterator pit2;
+    std::vector<PolarSeg*>::iterator sit1; 
+    std::vector<APolarSite*> ::iterator pit1;
+    std::vector<PolarSeg*>::iterator sit2; 
+    std::vector<APolarSite*> ::iterator pit2;
     
     double EJ = 0.0;
     
@@ -235,8 +235,8 @@ EWD::triple<> Ewald3D3D::CalculateShapeCorrection(vector<PolarSeg*> &target) {
 
 
 double Ewald3D3D::CalculateSq2(vec &k) {
-    vector<PolarSeg*>::iterator sit; 
-    vector<APolarSite*> ::iterator pit;    
+    std::vector<PolarSeg*>::iterator sit; 
+    std::vector<APolarSite*> ::iterator pit;    
     double cs = 0.0;
     double ss = 0.0;    
     for (sit = _bg_P.begin(); sit < _bg_P.end(); ++sit) {

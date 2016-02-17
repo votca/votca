@@ -21,7 +21,7 @@
 #include <votca/xtp/ERIs.h>
 
 
-using namespace std;
+
 using namespace votca::tools;
 
 namespace votca {
