@@ -89,17 +89,17 @@ public:
     // Make sure to set R1, R2, ... and rR1, rR2, ... before using {gB0, ...}
     inline void UpdateAllBls();
     inline double gB0() { return erfc(a1*R1)*rR1; }
-    inline double gB1() { return rR2*(   gB0()  +  2*a1*EWD::rSqrtPi * exp(-a2*R2)); }
-    inline double gB2() { return rR2*( 3*gB1()  +  4*a3*EWD::rSqrtPi * exp(-a2*R2)); }
-    inline double gB3() { return rR2*( 5*gB2()  +  8*a5*EWD::rSqrtPi * exp(-a2*R2)); }
-    inline double gB4() { return rR2*( 7*gB3()  + 16*a7*EWD::rSqrtPi * exp(-a2*R2)); }    
+    inline double gB1() { return rR2*(   gB0()  +  2*a1*conv::rSqrtPi * exp(-a2*R2)); }
+    inline double gB2() { return rR2*( 3*gB1()  +  4*a3*conv::rSqrtPi * exp(-a2*R2)); }
+    inline double gB3() { return rR2*( 5*gB2()  +  8*a5*conv::rSqrtPi * exp(-a2*R2)); }
+    inline double gB4() { return rR2*( 7*gB3()  + 16*a7*conv::rSqrtPi * exp(-a2*R2)); }    
     // Make sure to set R1, R2, ... and rR1, rR2, ... before using {gC0, ...}
     inline void UpdateAllCls();
     inline double gC0() { return erf(a1*R1)*rR1; }
-    inline double gC1() { return rR2*(   gC0()  -  2*a1*EWD::rSqrtPi * exp(-a2*R2)); }
-    inline double gC2() { return rR2*( 3*gC1()  -  4*a3*EWD::rSqrtPi * exp(-a2*R2)); }
-    inline double gC3() { return rR2*( 5*gC2()  -  8*a5*EWD::rSqrtPi * exp(-a2*R2)); }
-    inline double gC4() { return rR2*( 7*gC3()  - 16*a7*EWD::rSqrtPi * exp(-a2*R2)); }    
+    inline double gC1() { return rR2*(   gC0()  -  2*a1*conv::rSqrtPi * exp(-a2*R2)); }
+    inline double gC2() { return rR2*( 3*gC1()  -  4*a3*conv::rSqrtPi * exp(-a2*R2)); }
+    inline double gC3() { return rR2*( 5*gC2()  -  8*a5*conv::rSqrtPi * exp(-a2*R2)); }
+    inline double gC4() { return rR2*( 7*gC3()  - 16*a7*conv::rSqrtPi * exp(-a2*R2)); }    
     // Make sure to set R1, R2, ... and rxx, rxy, ... before using {gG0, ...}
     inline void UpdateAllGls(APolarSite &p1, APolarSite &p2);
     inline double gG0(APolarSite &p1, APolarSite &p2);
@@ -124,9 +124,9 @@ public:
     inline double FP12_ERF_At_By(APolarSite &p1, APolarSite &p2);
     inline double FU12_ERF_At_By(APolarSite &p1, APolarSite &p2);
     // Reciprocal-space K=0 shape correction term P1 <> P2
-    void FPU12_ShapeField_At_By(vector<PolarSeg*> &at, vector<PolarSeg*> &by, string shape, double volume);
-    void FP12_ShapeField_At_By(vector<PolarSeg*> &at, vector<PolarSeg*> &by, string shape, double volume);
-    void FU12_ShapeField_At_By(vector<PolarSeg*> &at, vector<PolarSeg*> &by, string shape, double volume);    
+    void FPU12_ShapeField_At_By(std::vector<PolarSeg*> &at, std::vector<PolarSeg*> &by, std::string shape, double volume);
+    void FP12_ShapeField_At_By(std::vector<PolarSeg*> &at, std::vector<PolarSeg*> &by, std::string shape, double volume);
+    void FU12_ShapeField_At_By(std::vector<PolarSeg*> &at, std::vector<PolarSeg*> &by, std::string shape, double volume);    
     
     // ========== //
     // POTENTIALS //
@@ -141,9 +141,9 @@ public:
     inline double PhiP12_ERF_At_By(APolarSite &p1, APolarSite &p2);
     inline double PhiU12_ERF_At_By(APolarSite &p1, APolarSite &p2);
     // Reciprocal-space K=0 shape correction term P1 <> P2
-    void PhiPU12_ShapeField_At_By(vector<PolarSeg*> &at, vector<PolarSeg*> &by, string shape, double volume);
-    void PhiP12_ShapeField_At_By(vector<PolarSeg*> &at, vector<PolarSeg*> &by, string shape, double volume);
-    void PhiU12_ShapeField_At_By(vector<PolarSeg*> &at, vector<PolarSeg*> &by, string shape, double volume);
+    void PhiPU12_ShapeField_At_By(std::vector<PolarSeg*> &at, std::vector<PolarSeg*> &by, std::string shape, double volume);
+    void PhiP12_ShapeField_At_By(std::vector<PolarSeg*> &at, std::vector<PolarSeg*> &by, std::string shape, double volume);
+    void PhiU12_ShapeField_At_By(std::vector<PolarSeg*> &at, std::vector<PolarSeg*> &by, std::string shape, double volume);
     
     // ======== //
     // ENERGIES //
@@ -154,7 +154,7 @@ public:
     // Reciprocal-space double-counting correction term P1 <> P2
     inline EWD::triple<double> U12_ERF(APolarSite &p1, APolarSite &p2);    
     // Reciprocal-space K=0 shape correction term P1 <> P2
-    EWD::triple<double> U12_ShapeTerm(vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, string shape, double volume, Logger *log=NULL);
+    EWD::triple<double> U12_ShapeTerm(std::vector<PolarSeg*> &s1, std::vector<PolarSeg*> &s2, std::string shape, double volume, Logger *log=NULL);
     
     // ========================== RECIPROCAL SPACE ========================== //    
     inline void   ApplyBiasK(const vec &k);
@@ -165,29 +165,29 @@ public:
     inline void UApplyBiasK(APolarSite &p);
     
     // Structure amplitudes //
-    EWD::cmplx PUStructureAmplitude(vector<PolarSeg*> &s);
-    EWD::cmplx PStructureAmplitude(vector<PolarSeg*> &s);
-    EWD::cmplx UStructureAmplitude(vector<PolarSeg*> &s);    
-    EWD::cmplx PUStructureAmplitude(vector<PolarSeg*> &s, const vec &k);
-    EWD::cmplx PStructureAmplitude(vector<PolarSeg*> &s, const vec &k);
-    EWD::cmplx UStructureAmplitude(vector<PolarSeg*> &s, const vec &k);
+    EWD::cmplx PUStructureAmplitude(std::vector<PolarSeg*> &s);
+    EWD::cmplx PStructureAmplitude(std::vector<PolarSeg*> &s);
+    EWD::cmplx UStructureAmplitude(std::vector<PolarSeg*> &s);    
+    EWD::cmplx PUStructureAmplitude(std::vector<PolarSeg*> &s, const vec &k);
+    EWD::cmplx PStructureAmplitude(std::vector<PolarSeg*> &s, const vec &k);
+    EWD::cmplx UStructureAmplitude(std::vector<PolarSeg*> &s, const vec &k);
     
     // Fields
-    EWD::cmplx FPU12_AS1S2_At_By(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV);
-    EWD::cmplx FP12_AS1S2_At_By(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV);
-    EWD::cmplx FU12_AS1S2_At_By(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV);    
+    EWD::cmplx FPU12_AS1S2_At_By(const vec &k, std::vector<PolarSeg*> &s1, std::vector<PolarSeg*> &s2, double &rV);
+    EWD::cmplx FP12_AS1S2_At_By(const vec &k, std::vector<PolarSeg*> &s1, std::vector<PolarSeg*> &s2, double &rV);
+    EWD::cmplx FU12_AS1S2_At_By(const vec &k, std::vector<PolarSeg*> &s1, std::vector<PolarSeg*> &s2, double &rV);    
 
-    EWD::cmplx FP12_At_ByS2(const vec &k, vector<PolarSeg*> &s1, const EWD::cmplx &S2, double &rV);
-    EWD::cmplx FU12_At_ByS2(const vec &k, vector<PolarSeg*> &s1, const EWD::cmplx &S2, double &rV);
+    EWD::cmplx FP12_At_ByS2(const vec &k, std::vector<PolarSeg*> &s1, const EWD::cmplx &S2, double &rV);
+    EWD::cmplx FU12_At_ByS2(const vec &k, std::vector<PolarSeg*> &s1, const EWD::cmplx &S2, double &rV);
     
     // Potentials
-    EWD::cmplx PhiPU12_AS1S2_At_By(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV);
-    EWD::cmplx PhiP12_AS1S2_At_By(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV);
-    EWD::cmplx PhiU12_AS1S2_At_By(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV);
+    EWD::cmplx PhiPU12_AS1S2_At_By(const vec &k, std::vector<PolarSeg*> &s1, std::vector<PolarSeg*> &s2, double &rV);
+    EWD::cmplx PhiP12_AS1S2_At_By(const vec &k, std::vector<PolarSeg*> &s1, std::vector<PolarSeg*> &s2, double &rV);
+    EWD::cmplx PhiU12_AS1S2_At_By(const vec &k, std::vector<PolarSeg*> &s1, std::vector<PolarSeg*> &s2, double &rV);
     
     // Energies
-    EWD::triple<EWD::cmplx> AS1S2(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2);
-    EWD::triple<EWD::cmplx> S1S2(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2);
+    EWD::triple<EWD::cmplx> AS1S2(const vec &k, std::vector<PolarSeg*> &s1, std::vector<PolarSeg*> &s2);
+    EWD::triple<EWD::cmplx> S1S2(const vec &k, std::vector<PolarSeg*> &s1, std::vector<PolarSeg*> &s2);
     
 private:
     
@@ -432,7 +432,7 @@ inline void EwdInteractor::ApplyBiasPolar(APolarSite& p1, APolarSite& p2, vec &s
 
 inline void EwdInteractor::UpdateAllBls() {
     
-    rSqrtPiExp = EWD::rSqrtPi * exp(-a2*R2);
+    rSqrtPiExp = conv::rSqrtPi * exp(-a2*R2);
     
     B0 = erfc(a1*R1)*rR1;    
     B1 = rR2*(   B0  +  2*a1*rSqrtPiExp);
@@ -452,7 +452,7 @@ inline void EwdInteractor::UpdateAllBls() {
 
 inline void EwdInteractor::UpdateAllCls() {
     
-    double rSqrtPiExp = EWD::rSqrtPi * exp(-a2*R2);
+    double rSqrtPiExp = conv::rSqrtPi * exp(-a2*R2);
     
     C0 = erf(a1*R1)*rR1;    
     C1 = rR2*(   C0  -  2*a1*rSqrtPiExp);
@@ -942,14 +942,14 @@ inline double EwdInteractor::FPU12_ERF_At_By(APolarSite &p1, APolarSite &p2) {
     
     if (R1 < 1e-2) {
         if (p2._rank > 0) {
-            fx += 4./3.*a3*EWD::rSqrtPi * p2.Q1x;
-            fy += 4./3.*a3*EWD::rSqrtPi * p2.Q1y;
-            fz += 4./3.*a3*EWD::rSqrtPi * p2.Q1z;
+            fx += 4./3.*a3*conv::rSqrtPi * p2.Q1x;
+            fy += 4./3.*a3*conv::rSqrtPi * p2.Q1y;
+            fz += 4./3.*a3*conv::rSqrtPi * p2.Q1z;
         }
         // Field generated by induced moments
-        fx += 4./3.*a3*EWD::rSqrtPi * p2.U1x;
-        fy += 4./3.*a3*EWD::rSqrtPi * p2.U1y;
-        fz += 4./3.*a3*EWD::rSqrtPi * p2.U1z;
+        fx += 4./3.*a3*conv::rSqrtPi * p2.U1x;
+        fy += 4./3.*a3*conv::rSqrtPi * p2.U1y;
+        fz += 4./3.*a3*conv::rSqrtPi * p2.U1z;
     }
     else {
         // Charge
@@ -1012,9 +1012,9 @@ inline double EwdInteractor::FP12_ERF_At_By(APolarSite &p1, APolarSite &p2) {
     
     if (R1 < 1e-2) {
         if (p2._rank > 0) {
-            fx += 4./3.*a3*EWD::rSqrtPi * p2.Q1x;
-            fy += 4./3.*a3*EWD::rSqrtPi * p2.Q1y;
-            fz += 4./3.*a3*EWD::rSqrtPi * p2.Q1z;
+            fx += 4./3.*a3*conv::rSqrtPi * p2.Q1x;
+            fy += 4./3.*a3*conv::rSqrtPi * p2.Q1y;
+            fz += 4./3.*a3*conv::rSqrtPi * p2.Q1z;
         }
     }
     else {
@@ -1068,9 +1068,9 @@ inline double EwdInteractor::FU12_ERF_At_By(APolarSite &p1, APolarSite &p2) {
     
     if (R1 < 1e-2) {
         // Field generated by induced moments
-        fx += 4./3.*a3*EWD::rSqrtPi * p2.U1x;
-        fy += 4./3.*a3*EWD::rSqrtPi * p2.U1y;
-        fz += 4./3.*a3*EWD::rSqrtPi * p2.U1z;
+        fx += 4./3.*a3*conv::rSqrtPi * p2.U1x;
+        fy += 4./3.*a3*conv::rSqrtPi * p2.U1y;
+        fz += 4./3.*a3*conv::rSqrtPi * p2.U1z;
     }
     else {
         // Field generated by induced moments
@@ -1213,7 +1213,7 @@ inline double EwdInteractor::PhiPU12_ERF_At_By(APolarSite &p1, APolarSite &p2) {
     double phi_u = 0.0;
     
     if (R1 < 1e-2) {
-        phi_p += 2.   *a1*EWD::rSqrtPi * (p2.Q00);
+        phi_p += 2.   *a1*conv::rSqrtPi * (p2.Q00);
         phi_u += 0.0;
     }
     else {
@@ -1253,7 +1253,7 @@ inline double EwdInteractor::PhiP12_ERF_At_By(APolarSite &p1, APolarSite &p2) {
     double phi_p = 0.0;
     
     if (R1 < 1e-2) {
-        phi_p += 2.   *a1*EWD::rSqrtPi * (p2.Q00);
+        phi_p += 2.   *a1*conv::rSqrtPi * (p2.Q00);
     }
     else {
         // Dot product µ * r
@@ -1344,26 +1344,26 @@ inline EWD::triple<double> EwdInteractor::U12_ERF(APolarSite &p1,
     
     if (R1 < 1e-2) {
         //cout << endl << "small small " << p1.getPos() << " == " << p2.getPos() << flush;
-        pp += 2.   *a1*EWD::rSqrtPi * (p1.Q00*p2.Q00);
-        uu += 4./3.*a3*EWD::rSqrtPi * (p1.U1x*p2.U1x + p1.U1y*p2.U1y + p1.U1z*p2.U1z);
+        pp += 2.   *a1*conv::rSqrtPi * (p1.Q00*p2.Q00);
+        uu += 4./3.*a3*conv::rSqrtPi * (p1.U1x*p2.U1x + p1.U1y*p2.U1y + p1.U1z*p2.U1z);
         if (p1._rank > 0 && p2._rank > 0) {
-            pp += 4./3.*a3*EWD::rSqrtPi * (p1.Q1x*p2.Q1x + p1.Q1y*p2.Q1y + p1.Q1z*p2.Q1z);
+            pp += 4./3.*a3*conv::rSqrtPi * (p1.Q1x*p2.Q1x + p1.Q1y*p2.Q1y + p1.Q1z*p2.Q1z);
             if (p1._rank > 1 && p2._rank > 1) {
-                pp += 16./5.*a5*EWD::rSqrtPi * (p1.Qxx*p2.Qxx + 2*p1.Qxy*p2.Qxy + 2*p1.Qxz*p2.Qxz
+                pp += 16./5.*a5*conv::rSqrtPi * (p1.Qxx*p2.Qxx + 2*p1.Qxy*p2.Qxy + 2*p1.Qxz*p2.Qxz
                                                          +   p1.Qyy*p2.Qyy + 2*p1.Qyz*p2.Qyz
                                                                            +   p1.Qzz*p2.Qzz);
             }
         }
         if (p1._rank > 0) {
-            pu += 4./3.*a3*EWD::rSqrtPi * (p1.Q1x*p2.U1x + p1.Q1y*p2.U1y + p1.Q1z*p2.U1z);
+            pu += 4./3.*a3*conv::rSqrtPi * (p1.Q1x*p2.U1x + p1.Q1y*p2.U1y + p1.Q1z*p2.U1z);
         }
         if (p2._rank > 0) {
-            pu += 4./3.*a3*EWD::rSqrtPi * (p1.U1x*p2.Q1x + p1.U1y*p2.Q1y + p1.U1z*p2.Q1z);
+            pu += 4./3.*a3*conv::rSqrtPi * (p1.U1x*p2.Q1x + p1.U1y*p2.Q1y + p1.U1z*p2.Q1z);
         }
         
-//        u12 =  2.   *a1*EWD::rSqrtPi * (p1.Q00*p2.Q00)
-//            +  4./3.*a3*EWD::rSqrtPi * (p1.Q1x*p2.Q1x + p1.Q1y*p2.Q1y + p1.Q1z*p2.Q1z)
-//            + 16./5.*a5*EWD::rSqrtPi * (p1.Qxx*p2.Qxx + 2*p1.Qxy*p2.Qxy + 2*p1.Qxz*p2.Qxz
+//        u12 =  2.   *a1*conv::rSqrtPi * (p1.Q00*p2.Q00)
+//            +  4./3.*a3*conv::rSqrtPi * (p1.Q1x*p2.Q1x + p1.Q1y*p2.Q1y + p1.Q1z*p2.Q1z)
+//            + 16./5.*a5*conv::rSqrtPi * (p1.Qxx*p2.Qxx + 2*p1.Qxy*p2.Qxy + 2*p1.Qxz*p2.Qxz
 //                                                 +   p1.Qyy*p2.Qyy + 2*p1.Qyz*p2.Qyz
 //                                                                   +   p1.Qzz*p2.Qzz);
     }

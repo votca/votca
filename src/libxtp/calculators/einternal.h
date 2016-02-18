@@ -33,36 +33,36 @@ public:
     EInternal() { };
    ~EInternal() { };
 
-    string Identify() { return "einternal"; }
+    std::string Identify() { return "einternal"; }
     void Initialize(Property *options);
     void ParseEnergiesXML(Property *options);
     bool EvaluateFrame(Topology *top);
 
 private:
 
-    map<string, double> _seg_U_cC_nN_e;
-    map<string, double> _seg_U_nC_nN_e;
-    map<string, double> _seg_U_cN_cC_e;
+    std::map<std::string, double> _seg_U_cC_nN_e;
+    std::map<std::string, double> _seg_U_nC_nN_e;
+    std::map<std::string, double> _seg_U_cN_cC_e;
 
-    map<string, double> _seg_U_cC_nN_h;
-    map<string, double> _seg_U_nC_nN_h;
-    map<string, double> _seg_U_cN_cC_h;
+    std::map<std::string, double> _seg_U_cC_nN_h;
+    std::map<std::string, double> _seg_U_nC_nN_h;
+    std::map<std::string, double> _seg_U_cN_cC_h;
     
-    map<string, double> _seg_U_xX_nN_s;
-    map<string, double> _seg_U_nX_nN_s;
-    map<string, double> _seg_U_xN_xX_s;
+    std::map<std::string, double> _seg_U_xX_nN_s;
+    std::map<std::string, double> _seg_U_nX_nN_s;
+    std::map<std::string, double> _seg_U_xN_xX_s;
     
-    map<string, double> _seg_U_xX_nN_t;
-    map<string, double> _seg_U_nX_nN_t;
-    map<string, double> _seg_U_xN_xX_t;
+    std::map<std::string, double> _seg_U_xX_nN_t;
+    std::map<std::string, double> _seg_U_nX_nN_t;
+    std::map<std::string, double> _seg_U_xN_xX_t;
     
 
-    map<string, bool>   _seg_has_e;
-    map<string, bool>   _seg_has_h;
-    map<string, bool>   _seg_has_s;
-    map<string, bool>   _seg_has_t;
+    std::map<std::string, bool>   _seg_has_e;
+    std::map<std::string, bool>   _seg_has_h;
+    std::map<std::string, bool>   _seg_has_s;
+    std::map<std::string, bool>   _seg_has_t;
 
-    map<string, bool>   _has_seg;
+    std::map<std::string, bool>   _has_seg;
 
 };
 
@@ -85,9 +85,9 @@ void EInternal::ParseEnergiesXML(Property *opt) {
 
     // update options with the VOTCASHARE defaults   
     UpdateWithDefaults( opt, "xtp" );
-    string key = "options." + Identify();
+    std::string key = "options." + Identify();
 
-    string energiesXML = opt->get(key+".energiesXML").as<string> ();
+    std::string energiesXML = opt->get(key+".energiesXML").as<std::string> ();
 
     cout << endl
          << "... ... Site, reorg. energies from " << energiesXML << ". "
@@ -138,7 +138,7 @@ void EInternal::ParseEnergiesXML(Property *opt) {
 
         for (segit = segs.begin(); segit != segs.end(); ++segit) {
 
-            string segName = (*segit)->get("name").as<string> ();
+            std::string segName = (*segit)->get("name").as<std::string> ();
 
             bool has_seg = true;
             bool has_e = false;
@@ -232,11 +232,11 @@ void EInternal::ParseEnergiesXML(Property *opt) {
 
 bool EInternal::EvaluateFrame(Topology *top) {
 
-    vector< Segment* > ::iterator sit;
+    std::vector< Segment* > ::iterator sit;
     int count = 0;
     for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
 
-        string segName = (*sit)->getName();
+        std::string segName = (*sit)->getName();
         
         try {
             //bool has_seg = _has_seg.at(segName);

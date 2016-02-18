@@ -41,7 +41,7 @@ public:
        Create an instance of the object identified by key.
     *  Overwritten to load calculator defaults
     */
-    QMCalculator *Create(const string &key);
+    QMCalculator *Create(const std::string &key);
 
     friend ExtractorFactory &Extractors();
     
@@ -53,7 +53,7 @@ inline ExtractorFactory &Extractors()
     return _instance;
 }
 
-inline QMCalculator* ExtractorFactory::Create(const string &key)
+inline QMCalculator* ExtractorFactory::Create(const std::string &key)
 {
     assoc_map::const_iterator it(getObjects().find(key));
     if (it != getObjects().end()) {

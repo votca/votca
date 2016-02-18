@@ -110,8 +110,8 @@ public:
      */ 
     // access to QM package name, new, tested
     bool hasQMpackage() { return (!_qm_package.empty()); }
-    string getQMpackage() { return _qm_package; }
-    void setQMpackage( string qmpackage ) { _qm_package = qmpackage;}
+    std::string getQMpackage() { return _qm_package; }
+    void setQMpackage( std::string qmpackage ) { _qm_package = qmpackage;}
 
     // access to DFT AO overlap matrix, new, tested
     bool           hasAOOverlap() { return ( _overlap.size1() > 0 ) ? true : false ;}
@@ -164,8 +164,8 @@ public:
     
     // access to DFT basis set name
     bool hasDFTbasis() { return ( !_dftbasis.empty() ) ? true : false; }
-    void setDFTbasis( const string basis ) { _dftbasis = basis ;}
-    const string getDFTbasis() const { return _dftbasis; }
+    void setDFTbasis( const std::string basis ) { _dftbasis = basis ;}
+    const std::string getDFTbasis() const { return _dftbasis; }
     
     
     /*
@@ -179,8 +179,8 @@ public:
 
     // access to GW auxiliary basis set name
     bool hasGWbasis()  { return ( !_gwbasis.empty() ) ? true : false; }
-    void setGWbasis( string basis ) { _gwbasis = basis ;}
-    const string getGWbasis() const { return _gwbasis; }
+    void setGWbasis( std::string basis ) { _gwbasis = basis ;}
+    const std::string getGWbasis() const { return _gwbasis; }
     
 
     // access to list of indices used in GWA
@@ -362,7 +362,7 @@ public:
         ;
     } 
         
-    void WritePDB( FILE *out, string tag="" );
+    void WritePDB( FILE *out, std::string tag="" );
     
     // reduces number of virtual orbitals to factor*number_of_occupied_orbitals
     void Trim( int factor );
@@ -371,7 +371,7 @@ public:
      * Returns true if successful and does not throw an exception.
      * If exception is required, please use the << overload.
      */
-    bool Load(string file_name);    
+    bool Load(std::string file_name);    
     
 private:
     
@@ -421,10 +421,10 @@ private:
     
     double                                  _ScaHFX;
     
-    string                                  _dftbasis;
-    string                                  _gwbasis;
+    std::string                                  _dftbasis;
+    std::string                                  _gwbasis;
     
-    string                                  _qm_package;
+    std::string                                  _qm_package;
 
     // perturbative quasiparticle energies
     ub::matrix<double>                      _QPpert_energies;

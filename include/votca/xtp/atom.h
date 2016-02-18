@@ -51,10 +51,10 @@ class Atom
 public:   
 
     Atom(Molecule *owner,
-         string residue_name,   int resnr,
-         string md_atom_name,   int md_atom_id,
+         std::string residue_name,   int resnr,
+         std::string md_atom_name,   int md_atom_id,
          bool hasQMPart,        int qm_atom_id,
-         vec qmPos,             string element,
+         vec qmPos,             std::string element,
          double weight)
        : _id(md_atom_id),
          _name(md_atom_name),    
@@ -68,7 +68,7 @@ public:
          _qmPos(qmPos),          
 	 _element(element)  { }
     
-    Atom(int atom_id,   string atom_name)
+    Atom(int atom_id,   std::string atom_name)
        : _id(atom_id),  _name(atom_name),
          _hasQM(false), _qmId(-1) { }
 
@@ -91,8 +91,8 @@ public:
    ~Atom() { _Q.clear(); }
 
     const int     &getId() const { return _id; }
-    const string  &getName() const { return _name; }
-    const string  &getType() const { return _type; }
+    const std::string  &getName() const { return _name; }
+    const std::string  &getType() const { return _type; }
     const int     &getResnr() const { return _resnr; }
 
     inline void setTopology(Topology *container) { _top = container; }
@@ -106,19 +106,19 @@ public:
     Fragment *getFragment() { return _frag; }
 
     inline void setResnr(const int &resnr) { _resnr = resnr; }
-    inline void setResname(const string &resname) { _resname = resname; }
+    inline void setResname(const std::string &resname) { _resname = resname; }
     inline void setWeight(const double &weight) { _weight = weight; }
     inline void setQMPart(const int &qmid, vec qmPos);
     inline void setQMPos(const vec &qmPos) { _qmPos = qmPos; }
-    inline void setElement(const string &element) { _element = element; }
+    inline void setElement(const std::string &element) { _element = element; }
     inline void TranslateBy(const vec &shift) { _pos = _pos + shift;  }
     
     inline const int    &getResnr() { return _resnr; }
-    inline const string &getResname() { return _resname; }
+    inline const std::string &getResname() { return _resname; }
     inline const double &getWeight() { return _weight; }
     inline const int    &getQMId() { return _qmId; }
     inline const vec    &getQMPos() { return _qmPos; }
-    inline const string &getElement() { return _element; }
+    inline const std::string &getElement() { return _element; }
 
     inline const double &getQ(int state) { return _Q.at(state); }
     inline const double &getQ() { return _q->second; }
@@ -163,16 +163,16 @@ public:
 
 protected:
     int         _id;
-    string      _name;
+    std::string      _name;
 
     Topology   *_top;
     Molecule   *_mol;
     Segment    *_seg;
     Fragment   *_frag;    
 
-    string      _type;
+    std::string      _type;
     int         _resnr;
-    string      _resname;
+    std::string      _resname;
     double      _weight;
     vec         _pos;
     bool        _bPos;
@@ -180,7 +180,7 @@ protected:
     bool        _hasQM;
     int         _qmId;
     vec         _qmPos;
-    string      _element;
+    std::string      _element;
 
     // charge state of segment => partial charge
     map<int, double> _Q;    

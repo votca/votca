@@ -26,7 +26,7 @@
 #include <votca/xtp/basisset.h>
 
 
-using namespace std;
+
 using namespace votca::tools;
 
 namespace votca { namespace xtp {
@@ -69,12 +69,12 @@ class AOShell
     friend class AOBasis;
 public:
 
-    string getType() { return _type; }
+    std::string getType() { return _type; }
     int    getNumFunc() { return _numFunc ;}
     int    getStartIndex() { return _startIndex ;}
     int    getOffset() { return _offset ;}
     int    getIndex() { return _atomindex;}
-    string getName() { return _atomname;}
+    std::string getName() { return _atomname;}
     
     int getLmax(  ) { return detlmax( _type );}
     /*
@@ -105,10 +105,10 @@ public:
     void EvalAOIntegral(ub::matrix_range<ub::matrix<double> >& AOvalues);
     //vector< vector<double> > evalAOGradspace( double x, double y, double z , string type = "");
     //void EvalAOGradspace( ub::matrix_range<ub::matrix<double> >& AODerXvalues,ub::matrix_range<ub::matrix<double> >& AODerYvalues,ub::matrix_range<ub::matrix<double> >& AODerZvalues, double x, double y, double z , string type = "");
-    void EvalAOGradspace( ub::matrix_range<ub::matrix<double> >& AODervalues, double x, double y, double z , string type = "");
+    void EvalAOGradspace( ub::matrix_range<ub::matrix<double> >& AODervalues, double x, double y, double z , std::string type = "");
     //void EvalAOGradspace( ub::matrix<double>& AODervalues, double x, double y, double z , string type = "");
     // iterator over pairs (decay constant; contraction coefficient)
-    typedef vector< AOGaussianPrimitive* >::iterator GaussianIterator;
+    typedef std::vector< AOGaussianPrimitive* >::iterator GaussianIterator;
     GaussianIterator firstGaussian() { return _gaussians.begin(); }
     GaussianIterator lastGaussian(){ return _gaussians.end(); }
    
@@ -129,7 +129,7 @@ private:
     // only class Element can destruct shells
    ~AOShell() 
    { 
-       for (vector< AOGaussianPrimitive* >::iterator it = _gaussians.begin(); it != _gaussians.end() ; it++ ) delete (*it); 
+       for (std::vector< AOGaussianPrimitive* >::iterator it = _gaussians.begin(); it != _gaussians.end() ; it++ ) delete (*it); 
        _gaussians.clear();
    }
     
@@ -148,7 +148,7 @@ private:
     //AOBasis* _aobasis;
     int detlmax( string shell );
     // vector of pairs of decay constants and contraction coefficients
-    vector< AOGaussianPrimitive* > _gaussians;
+    std::vector< AOGaussianPrimitive* > _gaussians;
     
     
 

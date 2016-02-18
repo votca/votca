@@ -32,7 +32,7 @@
 
 namespace votca { namespace xtp {
 
-using namespace std;
+
 
 class JobApplication : public XtpApplication
 {
@@ -44,7 +44,7 @@ public:
    bool EvaluateOptions();
    void Run(void);
 
-   virtual void BeginEvaluate(int nThreads, ProgObserver< vector<Job*>, Job*, Job::JobResult> *obs);
+   virtual void BeginEvaluate(int nThreads, ProgObserver< std::vector<Job*>, Job*, Job::JobResult> *obs);
    virtual bool EvaluateFrame();
    virtual void EndEvaluate();
    void AddCalculator(JobCalculator *calculator);
@@ -53,7 +53,7 @@ protected:
     
     bool _generate_input, _run, _import;
     XTP::Topology           _top;
-    list< JobCalculator* >   _calculators;
+    std::list< JobCalculator* >   _calculators;
 
 };
 

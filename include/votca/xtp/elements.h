@@ -28,7 +28,7 @@
 namespace votca { namespace xtp {
 
 
-using namespace std;
+
 
 
 /**
@@ -46,14 +46,14 @@ public:
     Elements() { FillMaps(); };
    ~Elements() { };
 
-    const double     &getVdWChelpG(string name ) const { return _VdWChelpG.at(name); }
-    const double     &getVdWMK(string name ) const { return _VdWMK.at(name); }
-    const double     &getNucCrgECP(string name) const {return _NucCrgECP.at(name); }
-    const double     &getNucCrg(string name) const {return _NucCrg.at(name); }
-    const int        &getEleNum(string name) const {return _EleNum.at(name); }
-    const string     &getEleName(int elenum) const {return _EleName.at(elenum); }
-    const string     &getEleShort(string elefull) const {return _EleShort.at(elefull); }
-    const string     &getEleFull(string eleshort) const {return _EleFull.at(eleshort); }
+    const double     &getVdWChelpG(std::string name ) const { return _VdWChelpG.at(name); }
+    const double     &getVdWMK(std::string name ) const { return _VdWMK.at(name); }
+    const double     &getNucCrgECP(std::string name) const {return _NucCrgECP.at(name); }
+    const double     &getNucCrg(std::string name) const {return _NucCrg.at(name); }
+    const int        &getEleNum(std::string name) const {return _EleNum.at(name); }
+    const std::string     &getEleName(int elenum) const {return _EleName.at(elenum); }
+    const std::string     &getEleShort(std::string elefull) const {return _EleShort.at(elefull); }
+    const std::string     &getEleFull(std::string eleshort) const {return _EleFull.at(eleshort); }
     
 private:
 

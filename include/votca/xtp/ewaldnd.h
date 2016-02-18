@@ -50,25 +50,25 @@ public:
 
     Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log);
     virtual ~Ewald3DnD();
-    virtual string IdentifyMethod() = 0;
+    virtual std::string IdentifyMethod() = 0;
     
     // POLAR SYSTEM SET-UP
     void ExpandForegroundReduceBackground(double polar_R_co);
     void CoarseGrainDensities(bool cg_bg, bool cg_fg, double cg_radius);
     void SetupMidground(double R_co);
-    void WriteDensitiesPDB(string pdbfile);
-    void WriteDensitiesPtop(string fg, string mg, string bg);
+    void WriteDensitiesPDB(std::string pdbfile);
+    void WriteDensitiesPtop(std::string fg, std::string mg, std::string bg);
     void WriteInductionStateTable();
     // K-VECTOR GENERATION
     virtual void GenerateKVectors(
-        vector<PolarSeg*> &ps1, vector<PolarSeg*> &ps2) { ; }
+        std::vector<PolarSeg*> &ps1, std::vector<PolarSeg*> &ps2) { ; }
     
     // THOLEWALD EVALUATION
     void Evaluate();
     void EvaluateFields(bool do_depolarize_fgc);
     void EvaluateInduction();    
-    void EvaluateEnergy(vector<PolarSeg*> &target);
-    void EvaluateRadialCorrection(vector<PolarSeg*> &target);
+    void EvaluateEnergy(std::vector<PolarSeg*> &target);
+    void EvaluateRadialCorrection(std::vector<PolarSeg*> &target);
     void EvaluatePoisson();
     // APERIODIC EMBEDDING QMMM
     bool EvaluateInductionQMMM(bool, bool, bool, bool, bool);
@@ -77,19 +77,19 @@ public:
     // OUTPUT & ERROR COMMUNICATION
     bool Converged() { return _converged_R && _converged_K && _polar_converged; }
     Property GenerateOutputString();
-    string GenerateErrorString();
+    std::string GenerateErrorString();
     void ShowAgenda(Logger *log);
-    void ShowFieldsTeaser(vector<PolarSeg*> &target, Logger *log);
+    void ShowFieldsTeaser(std::vector<PolarSeg*> &target, Logger *log);
     void ShowEnergySplitting(Logger *log);
     
     // ENERGY CALCULATOR METHODS
-    virtual EWD::triple<> ConvergeRealSpaceSum(vector<PolarSeg*> &target);
-    virtual EWD::triple<> ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) = 0;
-    virtual EWD::triple<> CalculateForegroundCorrection(vector<PolarSeg*> &target);
-    virtual EWD::triple<> CalculateHigherRankCorrection(vector<PolarSeg*> &target);
-    virtual EWD::triple<> CalculateShapeCorrection(vector<PolarSeg*> &target)
+    virtual EWD::triple<> ConvergeRealSpaceSum(std::vector<PolarSeg*> &target);
+    virtual EWD::triple<> ConvergeReciprocalSpaceSum(std::vector<PolarSeg*> &target) = 0;
+    virtual EWD::triple<> CalculateForegroundCorrection(std::vector<PolarSeg*> &target);
+    virtual EWD::triple<> CalculateHigherRankCorrection(std::vector<PolarSeg*> &target);
+    virtual EWD::triple<> CalculateShapeCorrection(std::vector<PolarSeg*> &target)
         { return EWD::triple<>(0.0,0.0,0.0); }
-    virtual EWD::triple<> CalculateK0Correction(vector<PolarSeg*> &target)
+    virtual EWD::triple<> CalculateK0Correction(std::vector<PolarSeg*> &target)
         { return EWD::triple<>(0.0,0.0,0.0); }
     
     // FIELD CALCULATOR METHODS
@@ -99,11 +99,11 @@ public:
     virtual void Field_CalculateShapeCorrection() { ; }
     
     // POTENTIAL CALCULATOR METHODS
-    void EvaluatePotential(vector<PolarSeg*> &target, bool add_bg, bool add_mm1, bool add_qm0);
-    virtual void Potential_ConvergeRealSpaceSum(vector<PolarSeg*> &target) { ; }
-    virtual void Potential_ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) { ; }
-    virtual void Potential_CalculateForegroundCorrection(vector<PolarSeg*> &target) { ; }
-    virtual void Potential_CalculateShapeCorrection(vector<PolarSeg*> &target) { ; }
+    void EvaluatePotential(std::vector<PolarSeg*> &target, bool add_bg, bool add_mm1, bool add_qm0);
+    virtual void Potential_ConvergeRealSpaceSum(std::vector<PolarSeg*> &target) { ; }
+    virtual void Potential_ConvergeReciprocalSpaceSum(std::vector<PolarSeg*> &target) { ; }
+    virtual void Potential_CalculateForegroundCorrection(std::vector<PolarSeg*> &target) { ; }
+    virtual void Potential_CalculateShapeCorrection(std::vector<PolarSeg*> &target) { ; }
     
     // METHOD ANALYSIS
     virtual void ScanCutoff() { ; }    
@@ -181,18 +181,18 @@ protected:
     // POLAR SEGMENTS
     // Part I - Ewald
     PolarTop *_ptop;
-    vector< PolarSeg* > _bg_P;         // Period. density = BGN + FGN
-    vector< PolarSeg* > _bg_N;         // Neutral background
-    vector< PolarSeg* > _mg_N;         // Neutral midground
-    vector< PolarSeg* > _fg_N;         // Neutral foreground
-    vector< PolarSeg* > _fg_C;         // Charged foreground
+    std::vector< PolarSeg* > _bg_P;         // Period. density = BGN + FGN
+    std::vector< PolarSeg* > _bg_N;         // Neutral background
+    std::vector< PolarSeg* > _mg_N;         // Neutral midground
+    std::vector< PolarSeg* > _fg_N;         // Neutral foreground
+    std::vector< PolarSeg* > _fg_C;         // Charged foreground
     ForegroundTable *_fg_table;
-    string _jobType;                   // Calculated from FGC charges
+    std::string _jobType;                   // Calculated from FGC charges
     bool _do_compensate_net_dipole;
     // Part II - Thole
-    vector< PolarSeg* > _polar_qm0;
-    vector< PolarSeg* > _polar_mm1;
-    vector< PolarSeg* > _polar_mm2;    // Should not be used
+    std::vector< PolarSeg* > _polar_qm0;
+    std::vector< PolarSeg* > _polar_mm1;
+    std::vector< PolarSeg* > _polar_mm2;    // Should not be used
     double _max_int_dist_qm0;
 
     // COARSE-GRAINING
@@ -242,15 +242,15 @@ protected:
     int _NA_max, _NB_max, _NC_max;     // Max. cell indices to sum over (K)
     double _LxLy;                      // |a^b|
     double _LxLyLz;                    // a*|b^c|
-    string _shape;                     // Summation shape (for 3D corr. term)
+    std::string _shape;                     // Summation shape (for 3D corr. term)
 
     EWD::VectorSort<EWD::MaxNorm,vec> _maxsort;
     EWD::VectorSort<EWD::EucNorm,vec> _eucsort;
     EWD::VectorSort<EWD::KNorm,EWD::KVector> _kvecsort;
 
-    vector<EWD::KVector> _kvecs_2_0;   // K-vectors with two components = 0
-    vector<EWD::KVector> _kvecs_1_0;   // K-vectors with one component  = 0
-    vector<EWD::KVector> _kvecs_0_0;   // K-vectors with no  components = 0
+    std::vector<EWD::KVector> _kvecs_2_0;   // K-std::vectors with two components = 0
+    std::vector<EWD::KVector> _kvecs_1_0;   // K-std::vectors with one component  = 0
+    std::vector<EWD::KVector> _kvecs_0_0;   // K-vectors with no  components = 0
     double _kxyz_s1s2_norm;
     bool _did_generate_kvectors;
 

@@ -1303,8 +1303,8 @@ EWD::triple<double> EwdInteractor::U12_ShapeTerm(std::vector<PolarSeg*> &s1,
                     + Q0_S1*U2_S2.get(2,2)
                     + Q0_S2*U2_S1.get(2,2);
         
-        dd *= -4*M_PI/V * EWD::int2eV;
-        qQ *= -4*M_PI/V * EWD::int2eV;
+        dd *= -4*M_PI/V * conv::int2eV;
+        qQ *= -4*M_PI/V * conv::int2eV;
         
         LOG(logDEBUG, *log) << (boost::format("  DD %1$+1.7e eV qQ %2$+1.7e eV")
                 % dd % qQ) << flush;
@@ -1324,11 +1324,11 @@ EWD::triple<double> EwdInteractor::U12_ShapeTerm(std::vector<PolarSeg*> &s1,
             double pu_qQ = Q0_S1*TrU2_S2 + Q0_S2*TrU2_S1;
             double pu_dd =  - Q1_S1*U1_S2 - Q1_S2*U1_S1;
             double uu_dd = - U1_S1*U1_S2;
-            pp_qQ *= -4*M_PI/(3*V)*EWD::int2eV;
-            pp_dd *= -4*M_PI/(3*V)*EWD::int2eV;
-            pu_qQ *= -4*M_PI/(3*V)*EWD::int2eV;
-            pu_dd *= -4*M_PI/(3*V)*EWD::int2eV;
-            uu_dd *= -4*M_PI/(3*V)*EWD::int2eV;
+            pp_qQ *= -4*M_PI/(3*V)*conv::int2eV;
+            pp_dd *= -4*M_PI/(3*V)*conv::int2eV;
+            pu_qQ *= -4*M_PI/(3*V)*conv::int2eV;
+            pu_dd *= -4*M_PI/(3*V)*conv::int2eV;
+            uu_dd *= -4*M_PI/(3*V)*conv::int2eV;
             LOG(logDEBUG, *log) << (boost::format("Energy-moment decomposition")) << flush;
             LOG(logDEBUG, *log) << (boost::format("  qQ (pp) = %1$+1.7e") % pp_qQ) << flush;
             LOG(logDEBUG, *log) << (boost::format("  dd (pp) = %1$+1.7e") % pp_dd) << flush;

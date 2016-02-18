@@ -38,12 +38,12 @@ class Segment
 {
 public:
 
-    Segment(int id, string name);
+    Segment(int id, std::string name);
     Segment(Segment *stencil);
    ~Segment();
 
     const int       &getId() { return _id; }
-    const string    &getName() { return _name; }
+    const std::string    &getName() { return _name; }
 
     const vec       &getPos() const { return _CoM; }
     void             setPos(vec pos) { _CoM = pos; }
@@ -75,7 +75,7 @@ public:
     double           getEMpoles(int state);
     void             setEMpoles(int state, double energy);
     bool             hasChrgState(int state) { return _hasChrgState[state+1]; }
-    void             setChrgStates(vector<bool> yesno) { _hasChrgState = yesno;}
+    void             setChrgStates(std::vector<bool> yesno) { _hasChrgState = yesno;}
 
     inline void      setTopology(Topology *container) { _top = container; }
     Topology        *getTopology() { return _top; }
@@ -88,29 +88,29 @@ public:
     void             AddAtom( Atom* atom );
     void             AddPolarSite(PolarSite *pole);
     void             AddAPolarSite(APolarSite *pole);
-    vector< Fragment* > &Fragments() { return _fragments; }
-    vector < Atom* >    &Atoms() { return _atoms; }
-    vector<PolarSite*>  &PolarSites() { return _polarSites; }
-    vector<APolarSite*> &APolarSites() { return _apolarSites; }
+    std::vector< Fragment* > &Fragments() { return _fragments; }
+    std::vector < Atom* >    &Atoms() { return _atoms; }
+    std::vector<PolarSite*>  &PolarSites() { return _polarSites; }
+    std::vector<APolarSite*> &APolarSites() { return _apolarSites; }
 
 
     void Rigidify();
 
-    void WritePDB(FILE *out, string tag1 = "Fragments", string tag2 = "MD");
-    void WriteXYZ(FILE *out, bool useQMPos = true);
+    void WritePDB(std::FILE *out, std::string tag1 = "Fragments", std::string tag2 = "MD");
+    void WriteXYZ(std::FILE *out, bool useQMPos = true);
 
 private:
 
     int         _id;
-    string      _name;
+    std::string      _name;
     SegmentType *_typ;
     Topology    *_top;
     Molecule    *_mol;
 
-    vector < Fragment* >    _fragments;
-    vector < Atom* >        _atoms;
-    vector < PolarSite* >   _polarSites;
-    vector < APolarSite* >  _apolarSites;
+    std::vector < Fragment* >    _fragments;
+    std::vector < Atom* >        _atoms;
+    std::vector < PolarSite* >   _polarSites;
+    std::vector < APolarSite* >  _apolarSites;
 
     vec         _CoM;
 
@@ -156,14 +156,14 @@ private:
     //double _ePolar_t;
 
 
-    vector< double > _eMpoles;
+    std::vector< double > _eMpoles;
     //   +1(=> h)   e.static + pol. energy E(+1) - E(0)
     //   -1(=> e)   e.static + pol. energy E(-1) - E(0)
     //   +2(=> s)   e.static + pol. energy E(+2) - E(0)
     //   +3(=> t)   e.static + pol. energy E(+3) - E(0)
-    vector<bool> _hasChrgState;
+    std::vector<bool> _hasChrgState;
 
-    map<int, vec> _intCoords;
+    std::map<int, vec> _intCoords;
     // qmid => position
     
 

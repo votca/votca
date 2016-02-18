@@ -25,7 +25,7 @@
 #include <vector>
 #include <votca/tools/property.h>
 
-using namespace std;
+
 using namespace votca::tools;
 
 namespace votca { namespace xtp {
@@ -65,7 +65,7 @@ class Shell
     friend class Element;   
 public:
 
-    string getType() { return _type; }
+    std::string getType() { return _type; }
 
     int getLmax(  ) {
         int _lmax;
@@ -120,7 +120,7 @@ public:
 private:   
 
     // only class Element can construct shells    
-    Shell( string type, double scale, Element* element = NULL ) : _type(type), _scale(scale) { ; }
+    Shell( std::string type, double scale, Element* element = NULL ) : _type(type), _scale(scale) { ; }
     
     // only class Element can destruct shells
    ~Shell() 
@@ -130,7 +130,7 @@ private:
    }
     
     // shell type (S, P, D))
-    string _type;
+    std::string _type;
     // scaling factor
     double _scale;
      
@@ -153,7 +153,7 @@ public:
     ShellIterator firstShell() { return _shells.begin(); }
     ShellIterator lastShell(){ return _shells.end(); }
 
-    string getType() { return _type; }
+    std::string getType() { return _type; }
     
     int getLmax() { return _lmax; }
     
@@ -161,7 +161,7 @@ public:
     
     Shell* getShell( ShellIterator it ) { return (*it); }
     
-    Shell* addShell( string shellType, double shellScale ) 
+    Shell* addShell( std::string shellType, double shellScale ) 
     { 
         Shell* shell = new Shell( shellType, shellScale, this );
         _shells.push_back(shell); 
@@ -173,10 +173,10 @@ public:
 private:  
     
     // only class BasisSet can create Elements
-    Element( string type ) : _type(type) { ; }
+    Element( std::string type ) : _type(type) { ; }
 
     // used for the pseudopotential
-    Element( string type, int lmax, int ncore ) : _type(type), _lmax(lmax), _ncore(ncore)  { ; }
+    Element( std::string type, int lmax, int ncore ) : _type(type), _lmax(lmax), _ncore(ncore)  { ; }
     
     // only class BasisSet can destruct Elements
    ~Element() 
@@ -185,7 +185,7 @@ private:
        _shells.clear();
    }    
    
-    string _type;    
+    std::string _type;    
     // lmax is used in the pseudopotentials only (applies to the highest angular momentum lmax)
     int _lmax;
     // ncore is used in the pseudopotentials only (replaces ncore electrons))
@@ -201,18 +201,18 @@ class BasisSet
 {
 public:
     
-    void LoadBasisSet ( string name );
+    void LoadBasisSet ( std::string name );
 
-    void LoadPseudopotentialSet ( string name );
+    void LoadPseudopotentialSet ( std::string name );
     
-    Element* addElement(string elementType );
+    Element* addElement(std::string elementType );
     
     // used for pseudopotentials only
-    Element* addElement(string elementType, int lmax, int ncore );
+    Element* addElement(std::string elementType, int lmax, int ncore );
  
-    Element* getElement( string element_type ) {
+    Element* getElement( std::string element_type ) {
         
-         map<string,Element*>::iterator itm = _elements.find( element_type );
+         map<std::string,Element*>::iterator itm = _elements.find( element_type );
          
          if ( itm == _elements.end() ) throw std::runtime_error( "Basis set does not have element of type " + element_type );
          
@@ -224,18 +224,18 @@ public:
     
 private:    
     
-    map<string,Element*> _elements;
+    map<std::string,Element*> _elements;
 };
 
 
-inline void BasisSet::LoadBasisSet ( string name ) 
+inline void BasisSet::LoadBasisSet ( std::string name ) 
 {    
     Property basis_property;
  
     // get the path to the shared folders with xml files
     char *votca_share = getenv("VOTCASHARE");
     if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
-    string xmlFile = string(getenv("VOTCASHARE")) + string("/xtp/basis_sets/") + name + string(".xml");
+    std::string xmlFile = std::string(getenv("VOTCASHARE")) + std::string("/xtp/basis_sets/") + name + std::string(".xml");
     
     bool success = load_property_from_xml(basis_property, xmlFile);
     
@@ -245,14 +245,14 @@ inline void BasisSet::LoadBasisSet ( string name )
         
     for (list<Property*> ::iterator  ite = elementProps.begin(); ite != elementProps.end(); ++ite) 
     {       
-        string elementName = (*ite)->getAttribute<string>("name");
+        std::string elementName = (*ite)->getAttribute<std::string>("name");
         Element *element = addElement( elementName );
         //cout << "\nElement " << elementName;
         
         list<Property*> shellProps = (*ite)->Select("shell");
         for (list<Property*> ::iterator  its = shellProps.begin(); its != shellProps.end(); ++its) 
         {            
-            string shellType = (*its)->getAttribute<string>("type");
+            std::string shellType = (*its)->getAttribute<std::string>("type");
             double shellScale = (*its)->getAttribute<double>("scale");
             
             Shell* shell = element->addShell( shellType, shellScale );
@@ -268,7 +268,7 @@ inline void BasisSet::LoadBasisSet ( string name )
                 list<Property*> contrProps = (*itc)->Select("contractions");
                 for (list<Property*> ::iterator itcont = contrProps.begin(); itcont != contrProps.end(); ++itcont)
                 {
-                    string contrType = (*itcont)->getAttribute<string>("type");
+                    std::string contrType = (*itcont)->getAttribute<std::string>("type");
                     double contrFactor = (*itcont)->getAttribute<double>("factor");
                     //cout << " factor " << contrFactor << endl;
                     if ( contrType == "S" ) contraction[0] = contrFactor;
@@ -287,14 +287,14 @@ inline void BasisSet::LoadBasisSet ( string name )
 }
 
 
-inline void BasisSet::LoadPseudopotentialSet ( string name ) 
+inline void BasisSet::LoadPseudopotentialSet ( std::string name ) 
 {    
     Property basis_property;
  
     // get the path to the shared folders with xml files
     char *votca_share = getenv("VOTCASHARE");
     if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
-    string xmlFile = string(getenv("VOTCASHARE")) + string("/xtp/basis_sets/") + name + string(".xml");
+    std::string xmlFile = std::string(getenv("VOTCASHARE")) + std::string("/xtp/basis_sets/") + name + std::string(".xml");
     
     bool success = load_property_from_xml(basis_property, xmlFile);
     
@@ -304,7 +304,7 @@ inline void BasisSet::LoadPseudopotentialSet ( string name )
         
     for (list<Property*> ::iterator  ite = elementProps.begin(); ite != elementProps.end(); ++ite) 
     {       
-        string elementName = (*ite)->getAttribute<string>("name");
+        std::string elementName = (*ite)->getAttribute<std::string>("name");
         int lmax = (*ite)->getAttribute<int>("lmax");
         int ncore = (*ite)->getAttribute<int>("ncore");
         
@@ -314,7 +314,7 @@ inline void BasisSet::LoadPseudopotentialSet ( string name )
         list<Property*> shellProps = (*ite)->Select("shell");
         for (list<Property*> ::iterator  its = shellProps.begin(); its != shellProps.end(); ++its) 
         {            
-            string shellType = (*its)->getAttribute<string>("type");
+            std::string shellType = (*its)->getAttribute<std::string>("type");
             double shellScale = 1.0;
             
             Shell* shell = element->addShell( shellType, shellScale );
@@ -342,14 +342,14 @@ inline void BasisSet::LoadPseudopotentialSet ( string name )
 
 
 // adding an Element to a Basis Set
-inline Element* BasisSet::addElement( string elementType ) {
+inline Element* BasisSet::addElement( std::string elementType ) {
     Element *element = new Element( elementType );
     _elements[elementType] = element;
     return element;
 };
 
 // adding an Element to a Pseudopotential Library
-inline Element* BasisSet::addElement( string elementType, int lmax, int ncore ) {
+inline Element* BasisSet::addElement( std::string elementType, int lmax, int ncore ) {
     Element *element = new Element( elementType, lmax, ncore );
     _elements[elementType] = element;
     return element;
@@ -358,7 +358,7 @@ inline Element* BasisSet::addElement( string elementType, int lmax, int ncore ) 
 // cleanup the basis set
 inline BasisSet::~BasisSet() {
     
-    for ( map< string,Element* >::iterator it = _elements.begin(); it !=  _elements.end(); it++ ) {
+    for ( map< std::string,Element* >::iterator it = _elements.begin(); it !=  _elements.end(); it++ ) {
          delete (*it).second;
      }
     

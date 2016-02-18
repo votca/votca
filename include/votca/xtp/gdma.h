@@ -56,31 +56,31 @@ public:
    
    // functions to override Initialize
    void SetLimit( double rank  ) { _limit = rank; } ;
-   void SetRunDir( string dir ) { _runFolder = dir; }
-   void SetChkFile (string file ) { _chkFile = file; };
-   void SetExecutable( string exec ){ _executable = exec;};
-   void SetDensity( string density ) { _density = density;};
+   void SetRunDir( std::string dir ) { _runFolder = dir; }
+   void SetChkFile (std::string file ) { _chkFile = file; };
+   void SetExecutable( std::string exec ){ _executable = exec;};
+   void SetDensity( std::string density ) { _density = density;};
    void SetRadius( double radius ) { _radius = radius;};
    void SetSwitch( double sw ) { _switch = sw; };
    
    void setLog( Logger* pLog ) { _log = pLog; };
-   vector< vector<double> > &GetMultipoles() { return _multipoles; };
+   std::vector< std::vector<double> > &GetMultipoles() { return _multipoles; };
    
    
 private:
 
     
-    vector< vector<double> > _multipoles;
+    std::vector< std::vector<double> > _multipoles;
     
-    string _runFolder;
-    string _chkFile; 
-    string _executable;
+    std::string _runFolder;
+    std::string _chkFile; 
+    std::string _executable;
 
-    string  _density; 
+    std::string  _density; 
     int     _limit; 
     double  _radius; 
     double  _switch; 
-    string  _outFile; 
+    std::string  _outFile; 
     Logger*                             _log;
     
  

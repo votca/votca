@@ -99,11 +99,11 @@ void PEwald3D3D::GenerateKVectors(std::vector<PolarSeg*> &ps1, std::vector<Polar
     double kxyz_s1s2_norm;
     bool neutral_mode = false;
     if (pow(avg_kx_s1s2*avg_ky_s1s2*avg_kz_s1s2,2./3.) > 1e-100)
-        kxyz_s1s2_norm = 1./pow(avg_kx_s1s2*avg_ky_s1s2*avg_kz_s1s2,2./3.) * EWD::int2eV / _LxLyLz;
+        kxyz_s1s2_norm = 1./pow(avg_kx_s1s2*avg_ky_s1s2*avg_kz_s1s2,2./3.) * conv::int2eV / _LxLyLz;
     else {
         LOG(logDEBUG,*_log)
             << "    - Symptoms of a neutral system: Use Ark2Expk2 grading." << flush;
-        kxyz_s1s2_norm = EWD::int2eV / _LxLyLz;
+        kxyz_s1s2_norm = conv::int2eV / _LxLyLz;
         neutral_mode = true;
     }
         
@@ -124,7 +124,7 @@ void PEwald3D3D::GenerateKVectors(std::vector<PolarSeg*> &ps1, std::vector<Polar
             if (kz == 0) continue;
             vec k = kx*_A + ky*_B + kz*_C;
             double grade = _ewdactor.Ark2Expk2(k) * kx_s1s2[std::abs(kx)] * ky_s1s2[std::abs(ky)] * kz_s1s2[std::abs(kz)] * kxyz_s1s2_norm;
-            if (neutral_mode) grade = _ewdactor.Ark2Expk2(k) * EWD::int2eV / _LxLyLz;
+            if (neutral_mode) grade = _ewdactor.Ark2Expk2(k) * conv::int2eV / _LxLyLz;
             EWD::KVector kvec = EWD::KVector(k,grade);
             kvecs_1_0.push_back(kvec);
         }
@@ -136,7 +136,7 @@ void PEwald3D3D::GenerateKVectors(std::vector<PolarSeg*> &ps1, std::vector<Polar
             if (kz == 0) continue;
             vec k = kx*_A + ky*_B + kz*_C;
             double grade = _ewdactor.Ark2Expk2(k) * kx_s1s2[std::abs(kx)] * ky_s1s2[std::abs(ky)] * kz_s1s2[std::abs(kz)] * kxyz_s1s2_norm;
-            if (neutral_mode) grade = _ewdactor.Ark2Expk2(k) * EWD::int2eV / _LxLyLz;
+            if (neutral_mode) grade = _ewdactor.Ark2Expk2(k) * conv::int2eV / _LxLyLz;
             EWD::KVector kvec = EWD::KVector(k,grade);
             kvecs_1_0.push_back(kvec);
         }
@@ -148,7 +148,7 @@ void PEwald3D3D::GenerateKVectors(std::vector<PolarSeg*> &ps1, std::vector<Polar
             if (ky == 0) continue;
             vec k = kx*_A + ky*_B + kz*_C;
             double grade = _ewdactor.Ark2Expk2(k) * kx_s1s2[std::abs(kx)] * ky_s1s2[std::abs(ky)] * kz_s1s2[std::abs(kz)] * kxyz_s1s2_norm;
-            if (neutral_mode) grade = _ewdactor.Ark2Expk2(k) * EWD::int2eV / _LxLyLz;
+            if (neutral_mode) grade = _ewdactor.Ark2Expk2(k) * conv::int2eV / _LxLyLz;
             EWD::KVector kvec = EWD::KVector(k,grade);
             kvecs_1_0.push_back(kvec);
         }
@@ -173,7 +173,7 @@ void PEwald3D3D::GenerateKVectors(std::vector<PolarSeg*> &ps1, std::vector<Polar
                 if (kz == 0) continue;
                 vec k = kx*_A + ky*_B + kz*_C;
                 double grade = _ewdactor.Ark2Expk2(k) * kx_s1s2[std::abs(kx)] * ky_s1s2[std::abs(ky)] * kz_s1s2[std::abs(kz)] * kxyz_s1s2_norm;
-                if (neutral_mode) grade = _ewdactor.Ark2Expk2(k) * EWD::int2eV / _LxLyLz;
+                if (neutral_mode) grade = _ewdactor.Ark2Expk2(k) * conv::int2eV / _LxLyLz;
                 EWD::KVector kvec = EWD::KVector(k,grade);
                 kvecs_0_0.push_back(kvec);
             }
@@ -357,14 +357,14 @@ void PEwald3D3D::ScanCutoff() {
                 }
                 nb->Translate(-L);
             }
-            shell_rms = sqrt(shell_rms/shell_count)*EWD::int2eV;
+            shell_rms = sqrt(shell_rms/shell_count)*conv::int2eV;
             sum += shell_sum;
             LOG(logDEBUG,*_log)
                 << (format("  o ID = %5$-4d Rc = %1$+02.7f   |MGN| = %3$5d   ER = %2$+1.7f eV   dER2(sum) = %4$+1.3e eV") 
-                % shell_R % (sum*EWD::int2eV) % nb_shell.size() % (shell_rms*shell_count) % (*sit1)->getId()).str() << flush;
+                % shell_R % (sum*conv::int2eV) % nb_shell.size() % (shell_rms*shell_count) % (*sit1)->getId()).str() << flush;
             ofs
                 << (format("MST DBG ...  o ID = %5$-4d Rc = %1$+02.7f   |MGN| = %3$5d   ER = %2$+1.7f eV   dER2(sum) = %4$+1.3e eV") 
-                % shell_R % (sum*EWD::int2eV) % nb_shell.size() % (shell_rms*shell_count) % (*sit1)->getId()).str() << endl;
+                % shell_R % (sum*conv::int2eV) % nb_shell.size() % (shell_rms*shell_count) % (*sit1)->getId()).str() << endl;
         }
     }
     
@@ -451,14 +451,14 @@ void PEwald3D3D::ScanCutoff() {
                     }
                 }
             }
-            shell_rms = sqrt(shell_rms/shell_count)*EWD::int2eV;
+            shell_rms = sqrt(shell_rms/shell_count)*conv::int2eV;
             sum += shell_sum;
             LOG(logDEBUG,*_log)
                 << (format("  o ID = %5$-4d Rc = %1$+02.7f   |MGN| = %3$5d   ER = %2$+1.7f eV   dER2(sum) = %4$+1.3e eV") 
-                % shell_R % (sum*EWD::int2eV) % shell_mg.size() % (shell_rms*shell_count) % (*sit1)->getId()).str() << flush;
+                % shell_R % (sum*conv::int2eV) % shell_mg.size() % (shell_rms*shell_count) % (*sit1)->getId()).str() << flush;
             ofs
                 << (format("MST DBG ...  o ID = %5$-4d Rc = %1$+02.7f   |MGN| = %3$5d   ER = %2$+1.7f eV   dER2(sum) = %4$+1.3e eV") 
-                % shell_R % (sum*EWD::int2eV) % shell_mg.size() % (shell_rms*shell_count) % (*sit1)->getId()).str() << endl;
+                % shell_R % (sum*conv::int2eV) % shell_mg.size() % (shell_rms*shell_count) % (*sit1)->getId()).str() << endl;
         }
     }
     
@@ -573,12 +573,12 @@ EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum(std::vector<PolarSeg*> &target) {
                         }
                     }
                 }
-                shell_rms = sqrt(shell_rms/shell_count)*EWD::int2eV;
+                shell_rms = sqrt(shell_rms/shell_count)*conv::int2eV;
                 sum += shell_sum;
                 if (tools::globals::verbose) {
                     LOG(logDEBUG,*_log)
                     << (format("  o ID = %5$-4d Rc = %1$+02.7f   |MGN| = %3$5d   ER = %2$+1.7f eV   dER2(sum) = %4$+1.3e eV") 
-                    % shell_R % (sum*EWD::int2eV) % shell_mg.size() % (shell_rms*shell_count) % (*sit1)->getId()).str() << flush;
+                    % shell_R % (sum*conv::int2eV) % shell_mg.size() % (shell_rms*shell_count) % (*sit1)->getId()).str() << flush;
                 }
 
                 if (shell_rms*shell_count <= _crit_dE && shell_R >= _R_co) {
@@ -653,8 +653,8 @@ EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum(std::vector<PolarSeg*> &tar
     
     LOG(logINFO,*_log)
         << (format("  :: RE %1$+1.7e IM %2$+1.7e")
-            % (sum_re/_LxLyLz*EWD::int2eV)
-            % (sum_im/_LxLyLz*EWD::int2eV)).str() << flush;
+            % (sum_re/_LxLyLz*conv::int2eV)
+            % (sum_im/_LxLyLz*conv::int2eV)).str() << flush;
     
     // ONE COMPONENT ZERO, TWO NON-ZERO
     LOG(logINFO,*_log)
@@ -699,14 +699,14 @@ EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum(std::vector<PolarSeg*> &tar
              << (format("  o M = %1$04d   G = %2$+1.3e   dE(rms) = %3$+1.3e eV")
              % shell_count
              % crit_grade
-             % (de_this_shell/_LxLyLz*EWD::int2eV)).str() << flush;
+             % (de_this_shell/_LxLyLz*conv::int2eV)).str() << flush;
         }
         
-        if (shell_count > 10 && de_this_shell/_LxLyLz*EWD::int2eV < _crit_dE) {
+        if (shell_count > 10 && de_this_shell/_LxLyLz*conv::int2eV < _crit_dE) {
             LOG(logINFO,*_log)
                 << (format("  :: RE %1$+1.7e IM %2$+1.7e") 
-                % (sum_re/_LxLyLz*EWD::int2eV)
-                % (sum_im/_LxLyLz*EWD::int2eV)).str() << flush;
+                % (sum_re/_LxLyLz*conv::int2eV)
+                % (sum_im/_LxLyLz*conv::int2eV)).str() << flush;
             converged12 = true;
         }
         
@@ -757,13 +757,13 @@ EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum(std::vector<PolarSeg*> &tar
              << (format("  o M = %1$04d   G = %2$+1.3e   dE(rms) = %3$+1.3e eV")
              % shell_count
              % crit_grade
-             % (de_this_shell/_LxLyLz*EWD::int2eV)).str() << flush;
+             % (de_this_shell/_LxLyLz*conv::int2eV)).str() << flush;
         }
-        if (shell_count > 10 && de_this_shell/_LxLyLz*EWD::int2eV < _crit_dE) {
+        if (shell_count > 10 && de_this_shell/_LxLyLz*conv::int2eV < _crit_dE) {
             LOG(logINFO,*_log)
                 << (format("  :: RE %1$+1.7e IM %2$+1.7e") 
-                % (sum_re/_LxLyLz*EWD::int2eV)
-                % (sum_im/_LxLyLz*EWD::int2eV)).str() << flush;
+                % (sum_re/_LxLyLz*conv::int2eV)
+                % (sum_im/_LxLyLz*conv::int2eV)).str() << flush;
             converged03 = true;
         }
         
@@ -950,7 +950,7 @@ void PEwald3D3D::Field_ConvergeRealSpaceSum() {
             }
             
             // Assert convergence: Energy of dipole of size 0.1*e*nm summed over shell
-            shell_rms = sqrt(shell_rms/shell_count)*EWD::int2V_m;
+            shell_rms = sqrt(shell_rms/shell_count)*conv::int2V_m;
             double e_measure = shell_rms*1e-10*shell_count; // 
         
             if (tools::globals::verbose){
@@ -1042,8 +1042,8 @@ void PEwald3D3D::Field_ConvergeReciprocalSpaceSum() {
     
     LOG(logINFO,*_log)
         << (format("  :: RE %1$+1.7e IM %2$+1.7e")
-            % (sum_re*EWD::int2V_m)
-            % (sum_im*EWD::int2V_m)).str() << flush;
+            % (sum_re*conv::int2V_m)
+            % (sum_im*conv::int2V_m)).str() << flush;
     
     // ONE COMPONENT ZERO, TWO NON-ZERO
     LOG(logINFO,*_log)
@@ -1070,7 +1070,7 @@ void PEwald3D3D::Field_ConvergeReciprocalSpaceSum() {
             ++kvit;
             ++rms_count;
         }
-        shell_rms = (rms_count > 0) ? sqrt(shell_rms/rms_count)*EWD::int2V_m : 0.0;
+        shell_rms = (rms_count > 0) ? sqrt(shell_rms/rms_count)*conv::int2V_m : 0.0;
         double e_measure = shell_rms*1e-10*rms_count;
         
         if (rms_count > 0) {
@@ -1085,8 +1085,8 @@ void PEwald3D3D::Field_ConvergeReciprocalSpaceSum() {
         if (rms_count > 10 && e_measure <= _crit_dE) {
             LOG(logINFO,*_log)
                 << (format("  :: RE %1$+1.7e IM %2$+1.7e") 
-                % (sqrt(sum_re)*EWD::int2V_m)
-                % (sum_im*EWD::int2V_m)).str() << flush;
+                % (sqrt(sum_re)*conv::int2V_m)
+                % (sum_im*conv::int2V_m)).str() << flush;
             converged12 = true;
         }
         
@@ -1118,7 +1118,7 @@ void PEwald3D3D::Field_ConvergeReciprocalSpaceSum() {
             ++kvit;
             ++rms_count;
         }
-        shell_rms = (rms_count > 0) ? sqrt(shell_rms/rms_count)*EWD::int2V_m : 0.0;
+        shell_rms = (rms_count > 0) ? sqrt(shell_rms/rms_count)*conv::int2V_m : 0.0;
         double e_measure = shell_rms*1e-10*rms_count;
         
         if (rms_count > 0) {
@@ -1133,8 +1133,8 @@ void PEwald3D3D::Field_ConvergeReciprocalSpaceSum() {
         if (rms_count > 10 && e_measure <= _crit_dE) {
             LOG(logINFO,*_log)
                 << (format("  :: RE %1$+1.7e IM %2$+1.7e") 
-                % (sqrt(sum_re)*EWD::int2V_m)
-                % (sum_im*EWD::int2V_m)).str() << flush;
+                % (sqrt(sum_re)*conv::int2V_m)
+                % (sum_im*conv::int2V_m)).str() << flush;
             converged03 = true;
         }
         
@@ -1176,7 +1176,7 @@ void PEwald3D3D::Field_CalculateForegroundCorrection() {
             }
         }
     }
-    rms = sqrt(rms/rms_count)*EWD::int2V_m;
+    rms = sqrt(rms/rms_count)*conv::int2V_m;
     
     return;
 }
@@ -1220,7 +1220,7 @@ void PEwald3D3D::Field_CalculateShapeCorrection() {
 //            << (format("Shape %1$s not implemented. Setting EJ = 0.0 ...") 
 //            % _shape) << flush;
 //    }
-//    rms = sqrt(rms/rms_count)*EWD::int2V_m;
+//    rms = sqrt(rms/rms_count)*conv::int2V_m;
     
     return;
 }
@@ -1322,12 +1322,12 @@ void PEwald3D3D::Potential_ConvergeRealSpaceSum(std::vector<PolarSeg*> &target) 
                         }
                     }
                 }
-                shell_rms = sqrt(shell_rms/shell_count)*EWD::int2eV;
+                shell_rms = sqrt(shell_rms/shell_count)*conv::int2eV;
                 sum += shell_sum;
                 if (tools::globals::verbose) {
                     LOG(logDEBUG,*_log)
                     << (format("  o ID = %5$-4d Rc = %1$+02.7f   |MGN| = %3$5d   ER = %2$+1.7f V   dER2(sum) = %4$+1.3e V") 
-                    % shell_R % (sum*EWD::int2eV) % shell_mg.size() % (shell_rms*shell_count) % (*sit1)->getId()).str() << flush;
+                    % shell_R % (sum*conv::int2eV) % shell_mg.size() % (shell_rms*shell_count) % (*sit1)->getId()).str() << flush;
                 }
 
                 if (shell_rms*shell_count <= _crit_dE && shell_R >= _R_co) {
@@ -1394,8 +1394,8 @@ void PEwald3D3D::Potential_ConvergeReciprocalSpaceSum(std::vector<PolarSeg*> &ta
     
     LOG(logINFO,*_log)
         << (format("  :: RE %1$+1.7e IM %2$+1.7e")
-            % (sum_re*EWD::int2eV)
-            % (sum_im*EWD::int2eV)).str() << flush;
+            % (sum_re*conv::int2eV)
+            % (sum_im*conv::int2eV)).str() << flush;
     
     // ONE COMPONENT ZERO, TWO NON-ZERO
     LOG(logINFO,*_log)
@@ -1419,7 +1419,7 @@ void PEwald3D3D::Potential_ConvergeReciprocalSpaceSum(std::vector<PolarSeg*> &ta
             ++kvit;
             ++rms_count;
         }
-        shell_rms = (rms_count > 0) ? sqrt(shell_rms/rms_count)*EWD::int2eV : 0.0;
+        shell_rms = (rms_count > 0) ? sqrt(shell_rms/rms_count)*conv::int2eV : 0.0;
         double e_measure = shell_rms*rms_count;
         
         if (rms_count > 0) {
@@ -1434,8 +1434,8 @@ void PEwald3D3D::Potential_ConvergeReciprocalSpaceSum(std::vector<PolarSeg*> &ta
         if (rms_count > 10 && e_measure <= _crit_dE) {
             LOG(logINFO,*_log)
                 << (format("  :: RE %1$+1.7e IM %2$+1.7e") 
-                % (sqrt(sum_re)*EWD::int2eV)
-                % (sum_im*EWD::int2eV)).str() << flush;
+                % (sqrt(sum_re)*conv::int2eV)
+                % (sum_im*conv::int2eV)).str() << flush;
             converged12 = true;
         }
         
@@ -1464,7 +1464,7 @@ void PEwald3D3D::Potential_ConvergeReciprocalSpaceSum(std::vector<PolarSeg*> &ta
             ++kvit;
             ++rms_count;
         }
-        shell_rms = (rms_count > 0) ? sqrt(shell_rms/rms_count)*EWD::int2eV : 0.0;
+        shell_rms = (rms_count > 0) ? sqrt(shell_rms/rms_count)*conv::int2eV : 0.0;
         double e_measure = shell_rms*1e-10*rms_count;
         
         if (rms_count > 0) {
@@ -1479,8 +1479,8 @@ void PEwald3D3D::Potential_ConvergeReciprocalSpaceSum(std::vector<PolarSeg*> &ta
         if (rms_count > 10 && e_measure <= _crit_dE) {
             LOG(logINFO,*_log)
                 << (format("  :: RE %1$+1.7e IM %2$+1.7e") 
-                % (sqrt(sum_re)*EWD::int2eV)
-                % (sum_im*EWD::int2eV)).str() << flush;
+                % (sqrt(sum_re)*conv::int2eV)
+                % (sum_im*conv::int2eV)).str() << flush;
             converged03 = true;
         }
         
@@ -1520,7 +1520,7 @@ void PEwald3D3D::Potential_CalculateForegroundCorrection(std::vector<PolarSeg*> 
             }
         }
     }
-    rms = sqrt(rms/rms_count)*EWD::int2eV;
+    rms = sqrt(rms/rms_count)*conv::int2eV;
     
     return;
 }

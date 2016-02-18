@@ -26,7 +26,7 @@
 // TODO Sharpness parameter should be initialised in constructor
 // ...  (currently hard-coded, 0.390)
 
-static const double int2eV = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
+
 
 namespace votca { namespace xtp {
 
@@ -69,7 +69,7 @@ public:
     inline void     FieldPerm_At_By(APolarSite &pol1, APolarSite &pol2, double &epsilon);
     inline void     FieldPermAsIndu_At_By(APolarSite &pol1, APolarSite &pol2);
     inline void     FieldPermAsPerm_At_By(APolarSite &pol1, APolarSite &pol2);
-    inline void     FieldPermAsIndu_At_By_AddTo(APolarSite &pol1, APolarSite &pol2, vector<APolarSite*> &add_to);
+    inline void     FieldPermAsIndu_At_By_AddTo(APolarSite &pol1, APolarSite &pol2, std::vector<APolarSite*> &add_to);
     inline vec      FieldPermESF(vec r, APolarSite &pol);
     inline void     FieldIndu(APolarSite &pol1, APolarSite &pol2);
     inline void     FieldIndu_At_By(APolarSite &pol1, APolarSite &pol2, double &epsilon);
@@ -102,9 +102,9 @@ public:
     double          &getEPU() { return EPU; }
     double          &getEUU() { return EUU; }
     
-//    inline void     FieldIndu12_21(vector<PolarSite*> &, vector<PolarSite*> &);
-//    inline void     FieldIndu12___(vector<PolarSite*> &, vector<PolarSite*> &);
-//    inline void     FieldIndu___21(vector<PolarSite*> &, vector<PolarSite*> &);
+//    inline void     FieldIndu12_21(std::vector<PolarSite*> &, std::vector<PolarSite*> &);
+//    inline void     FieldIndu12___(std::vector<PolarSite*> &, std::vector<PolarSite*> &);
+//    inline void     FieldIndu___21(std::vector<PolarSite*> &, std::vector<PolarSite*> &);
     
     inline void     BiasIndu(APolarSite &pol1, APolarSite &pol2);
     inline void     BiasStat(APolarSite &pol1, APolarSite &pol2);
@@ -1126,7 +1126,7 @@ inline void XInteractor::FieldPermAsIndu_At_By(APolarSite &pol1, APolarSite &pol
 
 
 inline void XInteractor::FieldPermAsIndu_At_By_AddTo(APolarSite &pol1, 
-    APolarSite &pol2, vector<APolarSite*> &add_to) {
+    APolarSite &pol2, std::vector<APolarSite*> &add_to) {
     
     double fx = 0.0;
     double fy = 0.0;
@@ -1173,7 +1173,7 @@ inline void XInteractor::FieldPermAsIndu_At_By_AddTo(APolarSite &pol1,
         fz += T1z_22s() * pol2.Q22s;
     }
         
-    vector<APolarSite*>::iterator pit;
+    std::vector<APolarSite*>::iterator pit;
     for (pit = add_to.begin(); pit < add_to.end(); ++pit) {
         (*pit)->FUx += fx;
         (*pit)->FUy += fy;

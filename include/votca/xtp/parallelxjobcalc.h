@@ -32,7 +32,7 @@ public:
     ParallelXJobCalc() : _jobfile("__NOFILE__") {};
    ~ParallelXJobCalc() { ; };
 
-    string       Identify() { return "Parallel XJob Calculator"; }
+    std::string       Identify() { return "Parallel XJob Calculator"; }
 
     bool         EvaluateFrame(Topology *top);
     virtual void LoadJobs() { ; }
@@ -82,7 +82,7 @@ protected:
     JobContainer             _XJobs;
     Mutex                    _coutMutex;
     Mutex                    _logMutex;
-    string                   _jobfile;
+    std::string                   _jobfile;
     int                      _subthreads;
     
     // ProgObserver< JobContainer, pJob > *_progObs;

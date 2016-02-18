@@ -59,7 +59,7 @@ class APolarSite
 
 public:
 
-    APolarSite(int id, string name)
+    APolarSite(int id, std::string name)
             : _id(id),              _name(name),         _isVirtual(false), 
               _locX(vec(1,0,0)),    _locY(vec(0,1,0)),   _locZ(vec(0,0,1)), 
               _top(0),              _seg(0),             _frag(0),
@@ -83,7 +83,7 @@ public:
     
     // GET & SET & IMPORT FUNCTIONS
     int            &getId() { return _id; }
-    string         &getName() { return _name; }
+    std::string         &getName() { return _name; }
     vec            &getPos() { return _pos; }
     int            &getRank() { return _rank; }
     Topology       *getTopology() { return _top; }
@@ -92,7 +92,7 @@ public:
     bool            getIsVirtual() { return _isVirtual; }
     bool            getIsActive(bool estatics_only);
 
-    void            ImportFrom(APolarSite *templ, string tag = "basic");
+    void            ImportFrom(APolarSite *templ, std::string tag = "basic");
     void            setIsVirtual(bool isVirtual) { _isVirtual = isVirtual; }
     void            setPos(vec &pos) { _pos = pos; }
     void            setRank(int rank) { _rank = rank; } // rank; } // OVERRIDE
@@ -148,10 +148,10 @@ public:
     // PRINT FUNCTS & OUTPUT TO FORMAT
     void            PrintInfo(std::ostream &out);
     void            PrintTensorPDB(FILE *out, int state);
-    void            WriteChkLine(FILE *, vec &, bool, string, double);
-    void            WriteXyzLine(FILE *, vec &, string);
-    void            WritePdbLine(FILE *out, const string &tag = "");
-    void            WriteMpsLine(std::ostream &out, string unit);
+    void            WriteChkLine(FILE *, vec &, bool, std::string, double);
+    void            WriteXyzLine(FILE *, vec &, std::string);
+    void            WritePdbLine(FILE *out, const std::string &tag = "");
+    void            WriteMpsLine(std::ostream &out, std::string unit);
     void            WriteXmlLine(std::ostream &out);
     
     template<class Archive>
@@ -204,7 +204,7 @@ public:
 private:
 
     int     _id;
-    string  _name;
+    std::string  _name;
     bool    _isVirtual;
     vec     _pos;
     vec     _locX;
@@ -259,8 +259,8 @@ private:
 
 
 
-vector<APolarSite*> APS_FROM_MPS(string filename, int state, QMThread *thread = NULL);
-std::map<string,double> POLAR_TABLE();
+vector<APolarSite*> APS_FROM_MPS(std::string filename, int state, QMThread *thread = NULL);
+std::map<std::string,double> POLAR_TABLE();
 
 
 class BasicInteractor

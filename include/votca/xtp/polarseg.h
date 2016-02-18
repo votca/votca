@@ -11,7 +11,7 @@ namespace votca { namespace xtp {
 
 class PolarNb;
     
-class PolarSeg : public vector<APolarSite*>
+class PolarSeg : public std::vector<APolarSite*>
 {
 
 public:
@@ -19,7 +19,7 @@ public:
     PolarSeg() 
         : _id(-1), _pos(vec(0,0,0)), _is_charged(true), _is_polarizable(true),
           _indu_cg_site(NULL), _perm_cg_site(NULL) {}
-    PolarSeg(int id, vector<APolarSite*> &psites);
+    PolarSeg(int id, std::vector<APolarSite*> &psites);
     PolarSeg(PolarSeg *templ, bool do_depolarize);
     explicit PolarSeg(int id)
         : _id(id), _pos(vec(0,0,0)), _is_charged(true), _is_polarizable(true),
@@ -31,10 +31,10 @@ public:
     void setId(int id) { _id = id; }    
     
     // Polar fragments
-    PolarFrag *AddFragment(string name);
-    vector<PolarFrag*> &PolarFrags() { return _pfrags; }
+    PolarFrag *AddFragment(std::string name);
+    std::vector<PolarFrag*> &PolarFrags() { return _pfrags; }
     // Local neighbor-list
-    vector<PolarNb*> &PolarNbs() { return _nbs; }
+    std::vector<PolarNb*> &PolarNbs() { return _nbs; }
     void ReservePolarNbs(int nbsize) { _nbs.reserve(nbsize); }
     PolarNb *AddNewPolarNb(PolarSeg *pseg);
     void AddPolarNb(PolarNb *nb) { _nbs.push_back(nb); }
@@ -56,12 +56,12 @@ public:
     bool IsPolarizable() { return _is_polarizable; }
     
     // File output methods
-    void PrintPolarNbPDB(string outfile);
-    void WriteMPS(string mpsfile, string tag="");    
+    void PrintPolarNbPDB(std::string outfile);
+    void WriteMPS(std::string mpsfile, std::string tag="");    
     // Serialization interface
     template<class Archive>
     void serialize(Archive &arch, const unsigned int version) {
-        arch & boost::serialization::base_object< vector<APolarSite*> >(*this);
+        arch & boost::serialization::base_object< std::vector<APolarSite*> >(*this);
         arch & _pfrags;
         arch & _id;
         arch & _pos;
@@ -76,8 +76,8 @@ private:
     vec _pos;
     bool _is_charged;
     bool _is_polarizable;
-    vector<PolarFrag*> _pfrags;
-    vector<PolarNb*> _nbs;
+    std::vector<PolarFrag*> _pfrags;
+    std::vector<PolarNb*> _nbs;
     APolarSite *_indu_cg_site;
     APolarSite *_perm_cg_site;
 
@@ -88,8 +88,8 @@ private:
 class PolarNb
 {
 public:
-    // s22x = dr(nb,shift;pbc) - dr(nb,shift) + imageboxvector
-    // Use s22x to obtain effective connection vector
+    // s22x = dr(nb,shift;pbc) - dr(nb,shift) + imageboxstd::vector
+    // Use s22x to obtain effective connection std::vector
     // dreff = top->ShortestConnect(ref,nb) + _pbcshift
     PolarNb(PolarSeg *nb, vec &dr12, vec &s22x) 
         : _nb(nb), _dr12(dr12), _s22x(s22x) {};

@@ -3,11 +3,13 @@
 #include <algorithm>
 
 
-using boost::format;
+
 
 
 namespace votca { namespace xtp {
-
+    
+using namespace votca::tools;
+using boost::format;
 
 Ewald3D2D::~Ewald3D2D() { ; }
     
@@ -100,8 +102,8 @@ EWD::triple<> Ewald3D2D::ConvergeReciprocalSpaceSum(std::vector<PolarSeg*> &targ
         
         LOG(logDEBUG,*_log)  
             << (format("   dE = %1$+1.7f   EKK = %2$+1.7f   RMS(%4$d) = %3$+1.7f") 
-            % (dEKK*2*M_PI/_LxLy*int2eV) % (EKK_fgC_bgP*2*M_PI/_LxLy*int2eV)
-            % (dEKK_rms*2*M_PI/_LxLy*int2eV) % N_EKK_memory) << flush;
+            % (dEKK*2*M_PI/_LxLy*conv::int2eV) % (EKK_fgC_bgP*2*M_PI/_LxLy*conv::int2eV)
+            % (dEKK_rms*2*M_PI/_LxLy*conv::int2eV) % N_EKK_memory) << std::flush;
         
 //        cout << endl;
 //        for (int i = 0; i < dEKKs.size(); ++i) {
@@ -109,12 +111,12 @@ EWD::triple<> Ewald3D2D::ConvergeReciprocalSpaceSum(std::vector<PolarSeg*> &targ
 //        }
 //        cout << flush;
         
-        if (dEKK_rms*2*M_PI/_LxLy*int2eV <= _crit_dE && N_K_proc > 10) {
+        if (dEKK_rms*2*M_PI/_LxLy*conv::int2eV <= _crit_dE && N_K_proc > 10) {
         //if (dEKK_rms*2*M_PI/LxLy*int2eV <= dEKK_rms_crit) {
             _converged_K = true;
             LOG(logDEBUG,*_log)  
                 << (format(":::: Converged to precision as of |K| = %1$+1.3f 1/nm") 
-                % K ) << flush;
+                % K ) << std::flush;
             break;
         }
         

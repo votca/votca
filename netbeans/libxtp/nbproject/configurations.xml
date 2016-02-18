@@ -101,7 +101,6 @@
       <itemPath>../../include/votca/xtp/fragment.h</itemPath>
       <itemPath>../../include/votca/xtp/gdma.h</itemPath>
       <itemPath>../../include/votca/xtp/grid.h</itemPath>
-      <itemPath>../../include/votca/xtp/gsl_boost_ublas_matrix_prod.h</itemPath>
       <itemPath>../../include/votca/xtp/gwbse.h</itemPath>
       <itemPath>../../include/votca/xtp/job.h</itemPath>
       <itemPath>../../include/votca/xtp/jobapplication.h</itemPath>
@@ -375,11 +374,6 @@
       <item path="../../include/votca/xtp/gdma.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/grid.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/gsl_boost_ublas_matrix_prod.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/gwbse.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1163,11 +1157,6 @@
       <item path="../../include/votca/xtp/gdma.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/grid.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/gsl_boost_ublas_matrix_prod.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/gwbse.h" ex="false" tool="3" flavor2="0">
       </item>

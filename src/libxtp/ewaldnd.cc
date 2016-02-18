@@ -965,7 +965,7 @@ void Ewald3DnD::WriteInductionStateTable() {
 
                 ofs << (format("dR2 %1$+1.7f fput456 %2$+1.7e %3$+1.7e %4$+1.7e "
                         "fprjput8910 %5$+1.7e %6$+1.7e %7$+1.7e\n")
-                    % dR % (votca::tools::abs(dfp)*EWD::int2V_m) % (votca::tools::abs(dfu)*EWD::int2V_m) % (votca::tools::abs(dft)*EWD::int2V_m)
+                    % dR % (votca::tools::abs(dfp)*conv::int2V_m) % (votca::tools::abs(dfu)*conv::int2V_m) % (votca::tools::abs(dft)*conv::int2V_m)
                     % frac_prj_dfp % frac_prj_dfu % frac_prj_dft);
             }
 
@@ -993,13 +993,13 @@ void Ewald3DnD::WriteInductionStateTable() {
                         % (pos.getY()) 
                         % (pos.getZ())).str();
                 ofs << (format("FP10 %1$+1.7e %2$+1.7e %3$+1.7e    ") 
-                        % (fp.getX()*EWD::int2V_m)
-                        % (fp.getY()*EWD::int2V_m) 
-                        % (fp.getZ()*EWD::int2V_m)).str();
+                        % (fp.getX()*conv::int2V_m)
+                        % (fp.getY()*conv::int2V_m) 
+                        % (fp.getZ()*conv::int2V_m)).str();
                 ofs << (format("FU14 %1$+1.7e %2$+1.7e %3$+1.7e    ") 
-                        % (fu.getX()*EWD::int2V_m)
-                        % (fu.getY()*EWD::int2V_m) 
-                        % (fu.getZ()*EWD::int2V_m)).str();
+                        % (fu.getX()*conv::int2V_m)
+                        % (fu.getY()*conv::int2V_m) 
+                        % (fu.getZ()*conv::int2V_m)).str();
                 ofs << (format("U118 %1$+1.7e %2$+1.7e %3$+1.7e   ") 
                         % (u1.getX())
                         % (u1.getY()) 
@@ -1020,13 +1020,13 @@ void Ewald3DnD::WriteInductionStateTable() {
                         % (pos.getY()) 
                         % (pos.getZ())).str();
                 ofs << (format("FP10 %1$+1.7e %2$+1.7e %3$+1.7e    ") 
-                        % (fp.getX()*EWD::int2V_m)
-                        % (fp.getY()*EWD::int2V_m) 
-                        % (fp.getZ()*EWD::int2V_m)).str();
+                        % (fp.getX()*conv::int2V_m)
+                        % (fp.getY()*conv::int2V_m) 
+                        % (fp.getZ()*conv::int2V_m)).str();
                 ofs << (format("FU14 %1$+1.7e %2$+1.7e %3$+1.7e    ") 
-                        % (fu.getX()*EWD::int2V_m)
-                        % (fu.getY()*EWD::int2V_m) 
-                        % (fu.getZ()*EWD::int2V_m)).str();
+                        % (fu.getX()*conv::int2V_m)
+                        % (fu.getY()*conv::int2V_m) 
+                        % (fu.getZ()*conv::int2V_m)).str();
                 ofs << (format("U118 %1$+1.7e %2$+1.7e %3$+1.7e   ") 
                         % (u1.getX())
                         % (u1.getY()) 
@@ -1159,9 +1159,9 @@ void Ewald3DnD::ShowFieldsTeaser(std::vector<PolarSeg*> &target, Logger *log) {
             vec u1 = (*pit1)->getU1();
             LOG(logDEBUG,*log)
                << (format("FPU = (%1$+1.7e %2$+1.7e %3$+1.7e) V/m    ") 
-                    % (fp.getX()*EWD::int2V_m+fu.getX()*EWD::int2V_m)
-                    % (fp.getY()*EWD::int2V_m+fu.getY()*EWD::int2V_m) 
-                    % (fp.getZ()*EWD::int2V_m+fu.getZ()*EWD::int2V_m)).str();
+                    % (fp.getX()*conv::int2V_m+fu.getX()*conv::int2V_m)
+                    % (fp.getY()*conv::int2V_m+fu.getY()*conv::int2V_m) 
+                    % (fp.getZ()*conv::int2V_m+fu.getZ()*conv::int2V_m)).str();
             LOG(logDEBUG,*log)
                << (format("U1* = (%1$+1.7e %2$+1.7e %3$+1.7e) e*nm") 
                     % (u1.getX())
@@ -1353,9 +1353,9 @@ void Ewald3DnD::EvaluateFields(bool do_depolarize_fgc) {
             vec fp = (*pit1)->getFieldP();
             LOG(logDEBUG,*_log)
                << (format("F = (%1$+1.7e %2$+1.7e %3$+1.7e) V/m") 
-                    % (fp.getX()*EWD::int2V_m) 
-                    % (fp.getY()*EWD::int2V_m) 
-                    % (fp.getZ()*EWD::int2V_m)).str() << flush;
+                    % (fp.getX()*conv::int2V_m) 
+                    % (fp.getY()*conv::int2V_m) 
+                    % (fp.getZ()*conv::int2V_m)).str() << flush;
             fieldCount += 1;
             if (fieldCount > 10) {
                 LOG(logDEBUG,*_log)
@@ -1745,12 +1745,12 @@ void Ewald3DnD::EvaluateEnergy(std::vector<PolarSeg*> &target) {
     // FOREGROUND CORRECTION (3D2D && 3D3D)
     EWD::triple<> EPP_fgC_fgN = CalculateForegroundCorrection(target);
     
-    _ER  = EPP_fgC_mgN * EWD::int2eV;
-    _EK  = EKK_fgC_bgP * EWD::int2eV;
-    _E0  = EK0_fgC_bgP * EWD::int2eV;
-    _EJ  = EJ_fgC_bgP  * EWD::int2eV;
-    _EDQ = EDQ_fgC_mgN * EWD::int2eV;
-    _EC  = EPP_fgC_fgN * EWD::int2eV;
+    _ER  = EPP_fgC_mgN * conv::int2eV;
+    _EK  = EKK_fgC_bgP * conv::int2eV;
+    _E0  = EK0_fgC_bgP * conv::int2eV;
+    _EJ  = EJ_fgC_bgP  * conv::int2eV;
+    _EDQ = EDQ_fgC_mgN * conv::int2eV;
+    _EC  = EPP_fgC_fgN * conv::int2eV;
     
     // NOTE THE (-) IN FRONT OF _EC (WHICH IS A COMPENSATION TERM)
     _ET  = _ER + _EK + _E0 + _EJ + _EDQ - _EC;
@@ -1769,8 +1769,8 @@ void Ewald3DnD::EvaluateEnergyQMMM() {
     
     if (tools::globals::verbose) {
         LOG(logINFO,*_log) << flush;
-        LOG(logINFO,*_log) << "R(MM1) " << EPP_mm1_mgN*EWD::int2eV << flush;
-        LOG(logINFO,*_log) << "R(MM1) " << EPP_qm0_mgN*EWD::int2eV << flush;
+        LOG(logINFO,*_log) << "R(MM1) " << EPP_mm1_mgN*conv::int2eV << flush;
+        LOG(logINFO,*_log) << "R(MM1) " << EPP_qm0_mgN*conv::int2eV << flush;
     }    
     
     // RECIPROCAL-SPACE CONTRIBUTION (3D2D && 3D3D)       
@@ -1779,8 +1779,8 @@ void Ewald3DnD::EvaluateEnergyQMMM() {
     
     if (tools::globals::verbose) {
         LOG(logINFO,*_log) << flush;
-        LOG(logINFO,*_log) << "K " << EKK_mm1_bgP*EWD::int2eV << flush;
-        LOG(logINFO,*_log) << "K " << EKK_qm0_bgP*EWD::int2eV << flush;
+        LOG(logINFO,*_log) << "K " << EKK_mm1_bgP*conv::int2eV << flush;
+        LOG(logINFO,*_log) << "K " << EKK_qm0_bgP*conv::int2eV << flush;
     }
     
     // K=0 TERM (FOR 3D2D)
@@ -1789,8 +1789,8 @@ void Ewald3DnD::EvaluateEnergyQMMM() {
     
     if (tools::globals::verbose) {
         LOG(logINFO,*_log) << flush;
-        LOG(logINFO,*_log) << "0 " << EK0_mm1_bgP*EWD::int2eV << flush;
-        LOG(logINFO,*_log) << "0 " << EK0_qm0_bgP*EWD::int2eV << flush;
+        LOG(logINFO,*_log) << "0 " << EK0_mm1_bgP*conv::int2eV << flush;
+        LOG(logINFO,*_log) << "0 " << EK0_qm0_bgP*conv::int2eV << flush;
     }
     
     
@@ -1800,8 +1800,8 @@ void Ewald3DnD::EvaluateEnergyQMMM() {
     
     if (tools::globals::verbose) {
         LOG(logINFO,*_log) << flush;
-        LOG(logINFO,*_log) << "J " << EJ_mm1_bgP*EWD::int2eV << flush;
-        LOG(logINFO,*_log) << "J " << EJ_qm0_bgP*EWD::int2eV << flush;
+        LOG(logINFO,*_log) << "J " << EJ_mm1_bgP*conv::int2eV << flush;
+        LOG(logINFO,*_log) << "J " << EJ_qm0_bgP*conv::int2eV << flush;
     }
     
     
@@ -1811,27 +1811,27 @@ void Ewald3DnD::EvaluateEnergyQMMM() {
     
     if (tools::globals::verbose) {
         LOG(logINFO,*_log) << flush;
-        LOG(logINFO,*_log) << "C " << EPP_mm1_fgN*EWD::int2eV << flush;
-        LOG(logINFO,*_log) << "C " << EPP_qm0_fgN*EWD::int2eV << flush;    
+        LOG(logINFO,*_log) << "C " << EPP_mm1_fgN*conv::int2eV << flush;
+        LOG(logINFO,*_log) << "C " << EPP_qm0_fgN*conv::int2eV << flush;    
     }
     
     _log->setReportLevel(logDEBUG);
     
     // STORE ENERGIES RESOLVED ACCORDING TO MM1 AND QM0
-    _ER_MM1  = EPP_mm1_mgN * EWD::int2eV;
-    _ER_QM0  = EPP_qm0_mgN * EWD::int2eV;
+    _ER_MM1  = EPP_mm1_mgN * conv::int2eV;
+    _ER_QM0  = EPP_qm0_mgN * conv::int2eV;
     
-    _EK_MM1  = EKK_mm1_bgP * EWD::int2eV;
-    _EK_QM0  = EKK_qm0_bgP * EWD::int2eV;
+    _EK_MM1  = EKK_mm1_bgP * conv::int2eV;
+    _EK_QM0  = EKK_qm0_bgP * conv::int2eV;
     
-    _E0_MM1  = EK0_mm1_bgP * EWD::int2eV;
-    _E0_QM0  = EK0_qm0_bgP * EWD::int2eV;
+    _E0_MM1  = EK0_mm1_bgP * conv::int2eV;
+    _E0_QM0  = EK0_qm0_bgP * conv::int2eV;
     
-    _EJ_MM1  = EJ_mm1_bgP  * EWD::int2eV;
-    _EJ_QM0  = EJ_qm0_bgP  * EWD::int2eV;
+    _EJ_MM1  = EJ_mm1_bgP  * conv::int2eV;
+    _EJ_QM0  = EJ_qm0_bgP  * conv::int2eV;
     
-    _EC_MM1  = EPP_mm1_fgN * EWD::int2eV;
-    _EC_QM0  = EPP_qm0_fgN * EWD::int2eV;
+    _EC_MM1  = EPP_mm1_fgN * conv::int2eV;
+    _EC_QM0  = EPP_qm0_fgN * conv::int2eV;
     
     // NOTE THE (-) IN FRONT OF _EC_... (WHICH IS A COMPENSATION TERM)
     _ET_MM1  = _ER_MM1 + _EK_MM1 + _E0_MM1 + _EJ_MM1 - _EC_MM1;
@@ -1928,7 +1928,7 @@ void Ewald3DnD::EvaluateRadialCorrection(std::vector<PolarSeg*> &target) {
             }
         }
     }
-    _polar_ERC *= EWD::int2eV;
+    _polar_ERC *= conv::int2eV;
     LOG(logINFO,*_log) << "=> ERC = " << _polar_ERC << "eV" << flush;
     return;
 }
@@ -2018,7 +2018,7 @@ void Ewald3DnD::EvaluatePotential(std::vector<PolarSeg*> &target, bool add_bg,
         }
     }
     
-    LOG(logINFO,*_log) << flush << "Potential q*phi " << q_phi*EWD::int2eV << flush;
+    LOG(logINFO,*_log) << flush << "Potential q*phi " << q_phi*conv::int2eV << flush;
     
     return;
 }
@@ -2053,10 +2053,10 @@ EWD::triple<> Ewald3DnD::ConvergeRealSpaceSum(std::vector<PolarSeg*> &target) {
                 }
             }
         }
-        double dER_rms = sqrt((this_ER-prev_ER)*(this_ER-prev_ER))*EWD::int2eV;
+        double dER_rms = sqrt((this_ER-prev_ER)*(this_ER-prev_ER))*conv::int2eV;
         LOG(logDEBUG,*_log)
             << (format("Rc = %1$+1.7f   |MGN| = %3$5d nm   ER = %2$+1.7f eV   dER(rms) = %4$+1.7f") 
-            % Rc % (this_ER*EWD::int2eV) % _mg_N.size() % dER_rms).str() << flush;
+            % Rc % (this_ER*conv::int2eV) % _mg_N.size() % dER_rms).str() << flush;
         if (i > 0 && dER_rms < _crit_dE) {
             _converged_R = true;
             LOG(logDEBUG,*_log)  

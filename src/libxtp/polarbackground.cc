@@ -330,7 +330,7 @@ void PolarBackground::Polarize(int n_threads = 1) {
                     }
                 }
             }
-            rms = sqrt(rms/rms_count)*EWD::int2V_m;
+            rms = sqrt(rms/rms_count)*conv::int2V_m;
         }
 
         // TEASER OUTPUT PERMANENT FIELDS
@@ -344,9 +344,9 @@ void PolarBackground::Polarize(int n_threads = 1) {
                 vec fp = (*pit1)->getFieldP();
                 LOG(logDEBUG,*_log)
                    << (format("FP = (%1$+1.7e %2$+1.7e %3$+1.7e) V/m") 
-                        % (fp.getX()*EWD::int2V_m)
-                        % (fp.getY()*EWD::int2V_m) 
-                        % (fp.getZ()*EWD::int2V_m)).str() << flush;
+                        % (fp.getX()*conv::int2V_m)
+                        % (fp.getY()*conv::int2V_m) 
+                        % (fp.getZ()*conv::int2V_m)).str() << flush;
                 fieldCount += 1;
                 if (fieldCount > 10) {
                     LOG(logDEBUG,*_log)
@@ -434,7 +434,7 @@ void PolarBackground::Polarize(int n_threads = 1) {
                     rms_count += 1;
                 }
             }
-            rms = sqrt(rms/rms_count)*EWD::int2V_m;
+            rms = sqrt(rms/rms_count)*conv::int2V_m;
         }
         
         
@@ -449,9 +449,9 @@ void PolarBackground::Polarize(int n_threads = 1) {
                 vec fu = (*pit1)->getFieldU();
                 LOG(logDEBUG,*_log)
                    << (format("FU = (%1$+1.7e %2$+1.7e %3$+1.7e) V/m") 
-                        % (fu.getX()*EWD::int2V_m)
-                        % (fu.getY()*EWD::int2V_m) 
-                        % (fu.getZ()*EWD::int2V_m)).str() << flush;
+                        % (fu.getX()*conv::int2V_m)
+                        % (fu.getY()*conv::int2V_m) 
+                        % (fu.getZ()*conv::int2V_m)).str() << flush;
                 fieldCount += 1;
                 if (fieldCount > 10) {
                     LOG(logDEBUG,*_log)
@@ -523,13 +523,13 @@ void PolarBackground::Polarize(int n_threads = 1) {
                         % (pos.getY()) 
                         % (pos.getZ())).str();
                 ofs << (format("FP10 %1$+1.7e %2$+1.7e %3$+1.7e    ") 
-                        % (fp.getX()*EWD::int2V_m)
-                        % (fp.getY()*EWD::int2V_m) 
-                        % (fp.getZ()*EWD::int2V_m)).str();
+                        % (fp.getX()*conv::int2V_m)
+                        % (fp.getY()*conv::int2V_m) 
+                        % (fp.getZ()*conv::int2V_m)).str();
                 ofs << (format("FU14 %1$+1.7e %2$+1.7e %3$+1.7e    ") 
-                        % (fu.getX()*EWD::int2V_m)
-                        % (fu.getY()*EWD::int2V_m) 
-                        % (fu.getZ()*EWD::int2V_m)).str();
+                        % (fu.getX()*conv::int2V_m)
+                        % (fu.getY()*conv::int2V_m) 
+                        % (fu.getZ()*conv::int2V_m)).str();
                 ofs << (format("U118 %1$+1.7e %2$+1.7e %3$+1.7e   ") 
                         % (u1.getX())
                         % (u1.getY()) 
@@ -646,7 +646,7 @@ void PolarBackground::RThread::FP_FieldCalc() {
                 }
                 // Determine convergence - measure is the energy of a dipole
                 // of size 0.1*e*nm summed over the shell in an rms manner
-                shell_rms = sqrt(shell_rms/shell_rms_count)*EWD::int2V_m;
+                shell_rms = sqrt(shell_rms/shell_rms_count)*conv::int2V_m;
                 double e_measure = shell_rms*1e-10*shell_rms_count; 
                 if (shell_rms_count > 0 && e_measure <= _master->_crit_dE && shell_R >= _master->_R_co) {
                     converged = true;
@@ -803,7 +803,7 @@ void PolarBackground::RThread::FU_FieldCalc() {
                     }
                     // Determine convergence - measure is the energy of a dipole
                     // of size 0.1*e*nm summed over the shell in an rms manner
-                    shell_rms = sqrt(shell_rms/shell_rms_count)*EWD::int2V_m;
+                    shell_rms = sqrt(shell_rms/shell_rms_count)*conv::int2V_m;
                     double e_measure = shell_rms*1e-10*shell_rms_count; 
                     if (shell_rms_count > 0 && e_measure <= _master->_crit_dE  && shell_R >= _master->_R_co) {
                         converged = true;
@@ -901,7 +901,7 @@ void PolarBackground::RThread::FU_FieldCalc() {
                 }
             }
         }
-        if (rms_count > 0) rms = sqrt(rms/rms_count)*EWD::int2V_m;
+        if (rms_count > 0) rms = sqrt(rms/rms_count)*conv::int2V_m;
         _avg_R_co = 0.0; // not available, since reusing NB container
     }
     return;
@@ -1122,7 +1122,7 @@ void PolarBackground::FX_ReciprocalSpace(string mode1, string mode2,
         rms_sum_re += (*tfit)->Workload(mode2)*(*tfit)->_rms_sum_re;
         sum_im += (*tfit)->_sum_im;
     }
-    double shell_rms = sqrt(rms_sum_re/_kvecs_2_0.size())*EWD::int2V_m;
+    double shell_rms = sqrt(rms_sum_re/_kvecs_2_0.size())*conv::int2V_m;
     double e_measure = shell_rms*1e-10*_kvecs_2_0.size();    
     if (_kvecs_2_0.size() > 0) {
         LOG(logDEBUG,*_log)
@@ -1175,7 +1175,7 @@ void PolarBackground::FX_ReciprocalSpace(string mode1, string mode2,
                 rms_sum_re += (*tfit)->Workload(mode2)*(*tfit)->_rms_sum_re;
                 sum_im += (*tfit)->_sum_im;
             }
-            shell_rms = sqrt(rms_sum_re/shell_kvecs.size())*EWD::int2V_m;
+            shell_rms = sqrt(rms_sum_re/shell_kvecs.size())*conv::int2V_m;
             e_measure = shell_rms*1e-10*shell_kvecs.size();
             // Log & assert convergence
             LOG(logDEBUG,*_log)
@@ -1187,8 +1187,8 @@ void PolarBackground::FX_ReciprocalSpace(string mode1, string mode2,
             if (shell_kvecs.size() > 10 && e_measure <= _crit_dE) {
                 LOG(logDEBUG,*_log)
                     << (format("    :: RE %1$+1.7e IM %2$+1.7e") 
-                    % (sqrt(sum_re)*EWD::int2V_m)
-                    % (sum_im*EWD::int2V_m)).str() << flush;
+                    % (sqrt(sum_re)*conv::int2V_m)
+                    % (sum_im*conv::int2V_m)).str() << flush;
                 converged10 = true;
             }
             // Clear k-vector containers
@@ -1237,7 +1237,7 @@ void PolarBackground::FX_ReciprocalSpace(string mode1, string mode2,
                 rms_sum_re += (*tfit)->Workload(mode2)*(*tfit)->_rms_sum_re;
                 sum_im += (*tfit)->_sum_im;
             }
-            shell_rms = sqrt(rms_sum_re/shell_kvecs.size())*EWD::int2V_m;
+            shell_rms = sqrt(rms_sum_re/shell_kvecs.size())*conv::int2V_m;
             e_measure = shell_rms*1e-10*shell_kvecs.size();
             // Log & assert convergence
             LOG(logDEBUG,*_log)
@@ -1249,8 +1249,8 @@ void PolarBackground::FX_ReciprocalSpace(string mode1, string mode2,
             if (shell_kvecs.size() > 10 && e_measure <= _crit_dE) {
                 LOG(logDEBUG,*_log)
                     << (format("    :: RE %1$+1.7e IM %2$+1.7e") 
-                    % (sqrt(sum_re)*EWD::int2V_m)
-                    % (sum_im*EWD::int2V_m)).str() << flush;
+                    % (sqrt(sum_re)*conv::int2V_m)
+                    % (sum_im*conv::int2V_m)).str() << flush;
                 converged00 = true;
             }
             // Clear k-vector containers
@@ -1345,7 +1345,7 @@ void PolarBackground::GenerateKVectors(std::vector<PolarSeg*> &ps1,
     }
     avg_kz_s1s2 /= _NC_max;
     
-    double kxyz_s1s2_norm = 1./pow(avg_kx_s1s2*avg_ky_s1s2*avg_kz_s1s2,2./3.) * EWD::int2eV / _LxLyLz;
+    double kxyz_s1s2_norm = 1./pow(avg_kx_s1s2*avg_ky_s1s2*avg_kz_s1s2,2./3.) * conv::int2eV / _LxLyLz;
     kx_s1s2[0] = pow(avg_ky_s1s2*avg_kz_s1s2,1./6.)*pow(avg_kx_s1s2,2./3.);
     ky_s1s2[0] = pow(avg_kz_s1s2*avg_kx_s1s2,1./6.)*pow(avg_ky_s1s2,2./3.);
     kz_s1s2[0] = pow(avg_kx_s1s2*avg_ky_s1s2,1./6.)*pow(avg_kz_s1s2,2./3.);

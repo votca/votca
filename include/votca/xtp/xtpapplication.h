@@ -26,7 +26,7 @@
 
 namespace votca { namespace xtp {
 
-using namespace std;
+
 
 class XtpApplication : public votca::tools::Application
 {

@@ -52,12 +52,12 @@ public:
         SuperExchangeType(string initString) { 
 
 	    Tokenizer tok(initString, " ");
-            vector< string > names;
+            std::vector< std::string > names;
             tok.ToVector(names);
 
             if (names.size() < 3) {
-                cout << "ERROR: Faulty superexchange definition: "
-                        << "Need at least three segment names (DONOR BRIDGES ACCEPTOR separated by a space" << endl;
+                std::cout << "ERROR: Faulty superexchange definition: "
+                        << "Need at least three segment names (DONOR BRIDGES ACCEPTOR separated by a space" << std::endl;
                 throw std::runtime_error("Error in options file.");
             }
 
@@ -66,7 +66,7 @@ public:
             donor = names.front();
             acceptor = names.back();
             
-            for ( vector<string>::iterator it = ++names.begin() ; it != --names.end(); it++  ) {
+            for ( std::vector<std::string>::iterator it = ++names.begin() ; it != --names.end(); it++  ) {
                 bridges.push_back(*it);
             }
 	}
@@ -82,19 +82,19 @@ public:
             return segment_type == donor || segment_type == acceptor ;
         }
 
-	string asString() {
-	    string ts;
+	std::string asString() {
+	    std::string ts;
             ts += donor;
-            for( list<string>::iterator si = bridges.begin(); si != bridges.end(); si++ ) ts = ts + " " + *si;
+            for( std::list<std::string>::iterator si = bridges.begin(); si != bridges.end(); si++ ) ts = ts + " " + *si;
             ts += " " + acceptor; 
             return ts;
 	}
 
       private:
 
-        string donor;
-        string acceptor;
-        list<string> bridges;         
+        std::string donor;
+        std::string acceptor;
+        std::list<std::string> bridges;         
     };
 
     QMNBList() : _top(NULL), _cutoff(0) { };
@@ -123,24 +123,24 @@ public:
     /**
      * @param type Adds a SuperExchangeType based on this string (Donor Bridge1 Bridge2 ... Acceptor)
      */
-    void AddSuperExchangeType(string type) { _superexchange.push_back(new SuperExchangeType(type)); }
+    void AddSuperExchangeType(std::string type) { _superexchange.push_back(new SuperExchangeType(type)); }
     
-    void setSuperExchangeTypes(list<SuperExchangeType*> types) { _superexchange = types; }
+    void setSuperExchangeTypes(std::list<SuperExchangeType*> types) { _superexchange = types; }
     
-    const list<SuperExchangeType*> &getSuperExchangeTypes() const { return _superexchange; }
+    const std::list<SuperExchangeType*> &getSuperExchangeTypes() const { return _superexchange; }
 
     void    setCutoff(double cutoff) { _cutoff = cutoff; }
     double  getCutoff() { return _cutoff; }
 
     QMPair *Add(Segment* seg1, Segment* seg2);
 
-    void PrintInfo(FILE *out);
+    void PrintInfo(std::FILE *out);
 
 protected:
     
     Topology   *_top;
     double      _cutoff;
-    list<SuperExchangeType*> _superexchange;
+    std::list<SuperExchangeType*> _superexchange;
 };
 
 
