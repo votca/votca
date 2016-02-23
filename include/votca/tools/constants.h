@@ -19,6 +19,7 @@
 #define	__VOTCA_TOOLS_CONSTANTS_H
 
 #include <boost/math/constants/constants.hpp>
+#include <cmath>
 
 namespace votca { namespace tools {
     
@@ -28,6 +29,8 @@ namespace votca { namespace tools {
         // mathematical constants 
         
     const double Pi = boost::math::constants::pi<double>();
+    
+    const double rSqrtPi = 1.0/sqrt(Pi);
         // natural constants
         
     const double kB = 8.617332478E-5; // eV/K
@@ -48,7 +51,8 @@ namespace votca { namespace tools {
     
     //ewald internal to eV conversion
     const double int2eV = 1/(4*Pi*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
-    
+    const double int2V_m = 1/(4*Pi*8.854187817e-12) * 1.602176487e-19 / 1.000e-18;
+    const double int2V = 1/(4*Pi*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
     // energy conversions
     static const double rydtoev = 13.6058;
     
