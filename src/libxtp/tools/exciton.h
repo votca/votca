@@ -30,7 +30,7 @@
 #include <votca/xtp/segment.h>
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/xtp/votca_xtp_config.h>
-
+#include <votca/tools/constants.h>
 namespace votca { namespace xtp {
     using namespace std;
     
@@ -153,7 +153,7 @@ void Exciton::Initialize(Property* options) {
             _reporting =  options->get(key + ".reporting").as<string> ();
             // options for GWBSE package
             string _gwbse_xml = options->get(key + ".gwbse").as<string> ();
-            //cout << endl << "... ... Parsing " << _package_xml << endl ;
+            //cout << endl << "... ... Parsing " << _gwbse_xml << endl ;
             load_property_from_xml(_gwbse_options, _gwbse_xml.c_str());
 
             
@@ -176,7 +176,7 @@ void Exciton::Initialize(Property* options) {
             load_property_from_xml(_package_options, _package_xml.c_str());
             key = "package";
             _package = _package_options.get(key + ".name").as<string> ();
-            
+            //cout << endl << "... ... Parsing " << _package_xml << endl ;
             
             key = "options." + Identify();
             // orbitals file or pure DFT output
@@ -208,7 +208,7 @@ void Exciton::Initialize(Property* options) {
             // get the path to the shared folders with xml files
             char *votca_share = getenv("VOTCASHARE");
             if (votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
-            string xmlFile = string(getenv("VOTCASHARE")) + string("/xtp/qmpackages/") + _package + string("_idft_pair.xml");
+            //string xmlFile = string(getenv("VOTCASHARE")) + string("/xtp/qmpackages/") + _package + string("_idft_pair.xml");
             //load_property_from_xml(_package_options, xmlFile);
 
             // register all QM packages (Gaussian, TURBOMOLE, etc)
@@ -235,9 +235,9 @@ bool Exciton::Evaluate() {
     TLogLevel _ReportLevel = _log.getReportLevel( ); // backup report level
     
     if ( _do_optimize ){
-        _trust_radius = _trust_radius * 1.889725989; // initial trust radius in a.u.
+        _trust_radius = _trust_radius * tools::conv::ang2bohr; // initial trust radius in a.u.
         _trust_radius_max = 0.1; 
-        _displacement = _displacement * 1.889725989; // initial trust radius in a.u.
+        _displacement = _displacement * tools::conv::ang2bohr; // initial trust radius in a.u.
         _log.setReportLevel( logINFO );
         LOG(logINFO,_log) << "Requested geometry optimization of excited state " << _spintype << " " << _opt_state << flush; 
         LOG(logINFO,_log) << "... forces calculation using " << _forces << " differences " << flush;
@@ -256,6 +256,7 @@ bool Exciton::Evaluate() {
        ReadXYZ( &_segment, _xyzfile );
        _segments.push_back(&_segment);
     }
+    
     // get the corresponding object from the QMPackageFactory
     QMPackage *_qmpackage =  QMPackages().Create( _package );
     _qmpackage->setLog( &_log );       
@@ -1142,14 +1143,14 @@ double Exciton::GetTotalEnergy(Orbitals* _orbitals, string _spintype, int _opt_s
 void Exciton::ReadXYZ(Segment* _segment, string filename){
     
                 string line;
-                ifstream in;
+                std::ifstream in;
                 
            
                 string label, type;
                 vec pos;
 
                 LOG(logDEBUG,_log) << " Reading molecular coordinates from " << _xyzfile << flush;
-                in.open(_xyzfile.c_str(), ios::in);
+                in.open(_xyzfile.c_str(), std::ios::in);
                 if (!in) throw runtime_error(string("Error reading coordinates from: ")
                         + _xyzfile);
 

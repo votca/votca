@@ -10,7 +10,8 @@
         <shift>0.3</shift> <!-- preshift of DFT energies in Rydberg -->
 	<tasks>all</tasks> <!-- default task is perturbative QP only, other options: qpdiag, singlets, triplets, all -->
 	<store></store>
+    <shift_type>fixed</shift_type>
         <exctotal>100</exctotal>
         <print>10</print>
-        <openmp>0<openmp>
+        <openmp>4</openmp>
 </gwbse>

@@ -61,7 +61,7 @@
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/version.hpp>
-
+#include <votca/tools/constants.h>
 namespace ub = boost::numeric::ublas;
     
 namespace votca { namespace xtp {
@@ -126,7 +126,7 @@ public:
     ub::vector<double>* getEnergies() { return &_mo_energies; } // OLD
 
     // access to DFT molecular orbital energy of a specific level (in eV)
-    double getEnergy( int level) { return ( hasMOEnergies() ) ? _conv_Hrt_eV*_mo_energies[level-1] : 0; }
+    double getEnergy( int level) { return ( hasMOEnergies() ) ? tools::conv::ha2ev*_mo_energies[level-1] : 0; }
 
     // access to DFT molecular orbital coefficients, new, tested
     bool          hasMOCoefficients() { return ( _mo_coefficients.size1() > 0 ) ? true : false ;}
@@ -375,8 +375,7 @@ public:
     
 private:
     
-    const double                      _conv_Hrt_eV; // want to change this but might break compability of FEserialization  of .orb files
-
+    
     int                                     _basis_set_size;   
     int                                     _occupied_levels;
     int                                     _unoccupied_levels;

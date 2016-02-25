@@ -32,6 +32,7 @@
 #include <boost/math/constants/constants.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <votca/tools/linalg.h>
+#include <votca/tools/constants.h>
 //#include "mathimf.h"
 
 using boost::format;
@@ -142,7 +143,7 @@ namespace votca {
              double _shift_new = _QPgap - _DFTgap;
             LOG(logDEBUG, *_pLog) << TimeStamp() << " New shift [Ryd] : " << _shift_new << flush;
             //cout << " shift new " << _shift_new << endl;
-            if (std::abs((_shift_new - _shift)*13.605698066) > 0.01) {
+            if (std::abs((_shift_new - _shift)*tools::conv::ryd2ev) > 0.01) {
                 _shift = _shift_new;
             } else {
                 _shift_converged = true;
