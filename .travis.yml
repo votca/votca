@@ -8,10 +8,14 @@ sudo: false
 
 addons:
   apt:
-    sources: boost-latest 
+    sources:
+      - boost-latest 
+      - george-edison55-precise-backports
     packages:
       - ccache
       - libfftw3-dev
+      - cmake
+      - cmake-data
       - libgsl0-dev
       - txt2tags
       - libboost1.55-all-dev
@@ -30,7 +34,6 @@ addons:
 
 env:
   global:
-    - CMAKE_VERSION=3.1.3-Linux-x86_64
     - HDF5_VERSION=1.8.14
     - GMX_MAX_THREADS=8
     - CCACHE_CPP2=yes
@@ -88,11 +91,10 @@ before_script:
   - wget -O "$HOME/votca/share/votca/scripts/inverse/cma.py" http://www.lri.fr/~hansen/cma.py
   - ln -s /usr/bin/ccache "$HOME/bin/clang++"
   - ln -s /usr/bin/ccache "$HOME/bin/clang"
-# download newer cmake for gmx
-  - wget --no-check-certificate -qO- http://www.cmake.org/files/v${CMAKE_VERSION:0:3}/cmake-${CMAKE_VERSION}.tar.gz | tar -xz
-  - ln -vs $PWD/cmake-${CMAKE_VERSION}/bin/cmake "$HOME/bin/cmake"
-  - wget -qO- https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION}/src/hdf5-${HDF5_VERSION}.tar.gz | tar -xz &&
-    cd hdf5-${HDF5_VERSION} && ./configure --prefix=$HOME/hdf5 && make -j4 &> /dev/null && make install && cd ..
+  - if [[ ${MINIMAL} != yes ]]; then 
+      wget -qO- https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION}/src/hdf5-${HDF5_VERSION}.tar.gz | tar -xz &&
+      cd hdf5-${HDF5_VERSION} && ./configure --prefix=$HOME/hdf5 && make -j4 &> /dev/null && make install && cd ..;
+    fi
   - if [[ ${MAN} ]]; then git clone --depth=1 https://github.com/votca/doxygen.git "$HOME/votca/src/devdoc"; fi 
 
 script:
@@ -105,6 +107,7 @@ script:
 
 after_success:
   - if [[ ${MAN} && ${CC} = gcc ]]; then
+      cp "$HOME"/votca/src/{csg-manual,devdoc}/manual.pdf;
       cd "$HOME/votca/src/devdoc";
       if [[ ${TRAVIS_BRANCH} = master && ${encrypted_3780e1dc437f_key} && ${encrypted_3780e1dc437f_iv} && ${TRAVIS_PULL_REQUEST} == false ]]; then
         git config --global user.name "Automatic Deployment (Travis CI)";
@@ -114,7 +117,7 @@ after_success:
         chmod 600 ~/.ssh/id_rsa;
         git push git@github.com:votca/doxygen.git gh-pages;
       else
-        git diff --no-color;
+        git diff --no-color | head -n 500;
       fi;
     fi
 
