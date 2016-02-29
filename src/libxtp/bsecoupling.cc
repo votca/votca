@@ -179,8 +179,8 @@ float BSECoupling::getTripletCouplingElement( int levelA, int levelB) {
 
     
    
-    cout << levelA<<endl;
-    cout << levelB + _levA<<endl;
+    //cout << levelA<<endl;
+    //cout << levelB + _levA<<endl;
     return JAB_triplet( levelA  , levelB + _levA ) * votca::tools::conv::ryd2ev_f;
 
 
@@ -1081,8 +1081,8 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      // cout<<_S_dimer<<endl;
      ub::vector<float> _S_eigenvalues; 
 
-     cout << "S"<<endl;
-     cout << _S_dimer<< endl;
+     //cout << "S"<<endl;
+     //cout << _S_dimer<< endl;
      linalg_eigenvalues( _S_eigenvalues, _S_dimer);
       
      LOG(logDEBUG,*_pLog) << "Smallest value of dimer overlapmatrix is "<< _S_eigenvalues[0]<< flush;
@@ -1101,8 +1101,9 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      }
      
      //ub::matrix<float> _transform = ub::prod( _S_dimer, ub::prod( _diagS, ub::trans(_S_dimer) )  );
-     cout << "J"<<endl;
-     cout <<_J_dimer<<endl;
+     //cout << endl;
+     //cout << "J_dimer"<<endl;
+     //cout <<_J_dimer<<endl;
      ub::matrix<float> _transtemp = ub::prod( _diagS, ub::trans(_S_dimer));
      ub::matrix<float> _transform = ub::prod( _S_dimer,_transtemp );
 
@@ -1111,18 +1112,63 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
              // final coupling elements
      // _J = ub::prod( _transform, ub::prod(_J_dimer, _transform));
     ub::matrix<float>_J_ortho = ub::prod( _transform, _J_temp);
-    cout<<endl;
-    cout << _J_ortho<<endl;
+    //cout<<endl;
+    //cout << "J_ortho"<<endl;
+    //cout << _J_ortho<<endl;
      //Setting up effective Coupling matrix
      LOG(logDEBUG,*_pLog) << "Setting up effective/perturbative Coupling matrix of size: "<< _bse_exc  <<"x"<<  _bse_exc << flush;
-     _J=ub::zero_matrix<float>(_bse_exc,_bse_exc);
+     
+     
+     
+     
+     ub::vector<float> _J_eigenvalues;
+     linalg_eigenvalues(_J_eigenvalues,_J_ortho);
+     
+     //finding the eigenstates which are closest to the the original states
+     
+     //cout << "_J_eigenvalues" << endl;
+     //cout << _J_eigenvalues << endl;
+     //cout << "_J_eigenvectors" << endl;
+     //cout << _J_ortho<<endl;
+     
+     
+     //setting up transformation matrix _T and diagonal matrix _E for the eigenvalues;
+     
+     ub::matrix<float> _E=ub::zero_matrix<float>(_bse_exc,_bse_exc);
+     ub::matrix<float> _T=ub::zero_matrix<float>(_bse_exc,_bse_exc);
+     
+     for (unsigned i = 0; i < _bse_exc; i++) {
+                float norm = 0.0;
+                for (unsigned j = 0; j < _bse_exc; j++) {
+                    if (i == j) {
+                        _E(i, i) = _J_eigenvalues(i);
+                    }
+                    norm += _J_ortho(j, i)*_J_ortho(j, i);
+                }
+                for (unsigned j = 0; j < _bse_exc; j++) {
+
+                    _T(j,i ) = _J_ortho(j, i) / std::sqrt(norm);
+                }
+            }
+     //cout << "_E" <<endl;
+     //cout << _E <<endl;
+          //cout << "_T" <<endl;
+
+     //cout << _T << endl;
+     _temp=ub::prod(_E,ub::trans(_T));
+     //cout << "_J" <<endl;
+     _J=ub::prod(_T,_temp);
+    // cout <<_J<<endl;
+     
+     /*
      for (unsigned i=0;i<_J.size1();i++){
          for (unsigned j=0;j<i;j++){
-             float epsilon=0.5*(_J_ortho(i,i)+_J_ortho(j,j));
+             float epsilonA=_J_ortho(i,i);
+             float epsilonB=_J_ortho(j,j);
            _J(i,j)=_J_ortho(i,j);
            for(int k=_bse_exc;k<_bse_exc+_ct;k++){
                float omegaAB=_J_ortho(k,k);
-             _J(i,j)-= _J_ortho(i,k)* _J_ortho(j,k)/(omegaAB-epsilon);
+             _J(i,j)+= _J_ortho(i,k)* _J_ortho(j,k)*(1/(epsilonA-omegaAB)+1/(epsilonB-omegaAB));
            }
           _J(j,i)=_J(i,j);
                  
@@ -1133,7 +1179,10 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
       for (unsigned i=0;i<_J.size1();i++){
           _J(i,i)=_J_ortho(i,i);
       }
-    cout << _J<< endl;
+     */ 
+     
+    
+   
      /*
      // This is not necessary right now, as we use perturbation theory on the non-orthogonal system to derive the couplings 
      // see [1]B. Lunkenheimer, “Simulationen zur Exzitonendiffusion in organischen Halbleitern,” Universitätsbibliothek Mainz, 2014.
