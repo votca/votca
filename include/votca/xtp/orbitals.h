@@ -267,6 +267,8 @@ public:
     const std::vector<std::vector<double> > &TransitionDipoles() const { return _transition_dipoles; }
     std::vector<std::vector<double> > &TransitionDipoles()  { return _transition_dipoles; }
 
+
+    
     // access to singlet coupling elements
     bool hasSingletCouplings() {return (_BSE_singlet_couplings.size1() > 0 ) ? true : false ;}
     const ub::matrix<float> &SingletCouplings() const { return _BSE_singlet_couplings; }

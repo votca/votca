@@ -28,6 +28,7 @@
 #include <votca/xtp/qmpackagefactory.h>
 #include <votca/xtp/atom.h>
 #include <votca/xtp/segment.h>
+#include <votca/tools/constants.h>
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/xtp/votca_xtp_config.h>
 
@@ -51,15 +52,17 @@ public:
 
 private:
     
-    string      _orbfile;
-    string      _logfile;
+    string      _orbfile; // file containining the MOs from qmpackage...
+    string      _logfile; // file containining the Energies etc... from qmpackage...
     string      _xyzfile;
 
     string      _package;
     Property    _package_options;
     Property    _gwbse_options;
+    Property    _summary;
     
-    string      _output_file;
+    string      _output_file; // .orb file to parse to
+    string      _xml_output;    // .xml output
 
     string      _reporting;    
     Logger      _log;
@@ -80,6 +83,10 @@ private:
     string _spintype;
     string _forces; 
     string _opt_type;    
+    
+    string _guess_orbA;
+    string _guess_orbB;
+    bool _do_guess;
     
     int _natoms;
     int _iteration;
@@ -146,7 +153,7 @@ void Exciton::Initialize(Property* options) {
             _do_gwbse = false;
             _do_optimize = false;
             _restart_opt = false;
-            
+            _do_guess=false; //Writing guess for dimer calculation
             
             string key = "options." + Identify();
             _output_file = options->get(key + ".archive").as<string>();
@@ -165,7 +172,7 @@ void Exciton::Initialize(Property* options) {
             if (_tasks_string.find("gwbse") != std::string::npos) _do_gwbse = true;
             if (_tasks_string.find("optimize") != std::string::npos) _do_optimize = true;
             
- 
+            _xml_output = options->get(key + ".output").as<string> ();
             
             // something unique
             // _package = options->get(key + ".package").as<string> ();
@@ -177,6 +184,12 @@ void Exciton::Initialize(Property* options) {
             key = "package";
             _package = _package_options.get(key + ".name").as<string> ();
             
+            
+            if ( options->exists(key+".guess")){
+                _do_guess=true;
+                _guess_orbA = options->get(key + ".guess.archiveA").as<string> ();
+                _guess_orbB = options->get(key + ".guess.archiveB").as<string> ();
+            }
             
             key = "options." + Identify();
             // orbitals file or pure DFT output
@@ -206,9 +219,9 @@ void Exciton::Initialize(Property* options) {
             }
 
             // get the path to the shared folders with xml files
-            char *votca_share = getenv("VOTCASHARE");
-            if (votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
-            string xmlFile = string(getenv("VOTCASHARE")) + string("/xtp/qmpackages/") + _package + string("_idft_pair.xml");
+            //char *votca_share = getenv("VOTCASHARE");
+            //if (votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
+            //string xmlFile = string(getenv("VOTCASHARE")) + string("/xtp/qmpackages/") + _package + string("_idft_pair.xml");
             //load_property_from_xml(_package_options, xmlFile);
 
             // register all QM packages (Gaussian, TURBOMOLE, etc)
@@ -534,14 +547,14 @@ bool Exciton::Evaluate() {
      
      
      
-    Property _summary; 
-    _summary.add("output","");
+     
+    
     //Property *_job_output = &_summary.add("output","");
     votca::tools::PropertyIOManipulator iomXML(votca::tools::PropertyIOManipulator::XML, 1, "");
-     
-    //ofs (_output_file.c_str(), std::ofstream::out);
-    //ofs << *_job_output;    
-    //ofs.close();
+    LOG(logDEBUG,_log) << "Writing output to " << _xml_output << flush;
+    std::ofstream ofout (_xml_output.c_str(), std::ofstream::out);
+    ofout << _summary;    
+    ofout.close();
     
     return true;
 }
@@ -1041,29 +1054,27 @@ void Exciton::ExcitationEnergies(QMPackage* _qmpackage, vector<Segment*> _segmen
 
   if ( _do_dft_input ){
                 Orbitals *_orbitalsAB = NULL;        
-        if ( _qmpackage->GuessRequested() ) { // do not want to do an SCF loop for a dimer
-            cout << "Guess requested, reading molecular orbitals" << endl;
-            
-            string orbFileA  = "monomer1.orb";
-            string orbFileB  = "monomer2.orb";
+        if ( _qmpackage->GuessRequested() && _do_guess) { // do not want to do an SCF loop for a dimer
+            LOG(logINFO,_log) << "Guess requested, reading molecular orbitals" << endl;
+           
             Orbitals _orbitalsA, _orbitalsB;   
             _orbitalsAB = new Orbitals();
             // load the corresponding monomer orbitals and prepare the dimer guess 
             
             // failed to load; wrap-up and finish current job
-            if ( !_orbitalsA.Load( orbFileA ) ) {
-               cout << "Do input: failed loading orbitals from " << orbFileA << endl;
+            if ( !_orbitalsA.Load( _guess_orbA ) ) {
+               throw runtime_error(string("Do input: failed loading orbitals from ")+_guess_orbA);
             }
             
-            if ( !_orbitalsB.Load( orbFileB ) ) {
-               cout << "Do input: failed loading orbitals from " << orbFileB << endl; 
+            if ( !_orbitalsB.Load( _guess_orbB ) ) {
+               throw runtime_error(string("Do input: failed loading orbitals from ")+_guess_orbB);
                
             }
             
 
             PrepareGuess(&_orbitalsA, &_orbitalsB, _orbitalsAB);
-            OrthonormalizeGuess( _segments.front(), _orbitalsAB );
-            cout << " after Prep? " << endl;
+            //OrthonormalizeGuess( _segments.front(), _orbitalsAB );
+           //cout << " after Prep? " << endl;
         }
           
                 
@@ -1105,6 +1116,8 @@ void Exciton::ExcitationEnergies(QMPackage* _qmpackage, vector<Segment*> _segmen
         _gwbse.setLogger(&_log);
         _gwbse.Initialize( &_gwbse_options );
         _gwbse.Evaluate( _orbitals );
+        _summary.add("output","");
+        _gwbse.addoutput(&_summary, _orbitals);
         //bool _evaluate = _gwbse.Evaluate( _orbitals );
         // std::cout << _log;
      }
@@ -1129,12 +1142,15 @@ double Exciton::GetTotalEnergy(Orbitals* _orbitals, string _spintype, int _opt_s
     } else if ( _spintype == "triplet" ){
         _omega      = _orbitals->BSETripletEnergies()[_opt_state - 1];
     }
+    else{
+        throw runtime_error("GetTotalEnergy only knows spintypes:singlet,triplet");
+    }
 
     
     // DFT total energy is stored in eV
     // singlet energies are stored in Ryd...
-    cout << "DFT " << setprecision(12) << _dft_energy/27.21138386 << " exc " << _omega*0.5 << endl; 
-    return _total_energy = _dft_energy/27.21138386 + _omega*0.5; // a.u.
+    //cout << "DFT " << setprecision(12) << _dft_energy/27.21138386 << " exc " << _omega*0.5 << endl; 
+    return _total_energy = _dft_energy*tools::conv::ev2ha + _omega*tools::conv::ryd2ha; //  e.g. hartree
     
 }
 
@@ -1290,8 +1306,7 @@ void Exciton::Orbitals2Segment(Segment* _segment, Orbitals* _orbitals){
   
   
   
-  void Exciton::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _orbitalsAB ) 
-{
+  void Exciton::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _orbitalsAB ) {
     
     cout << "Constructing the guess for dimer orbitals" << endl;   
    

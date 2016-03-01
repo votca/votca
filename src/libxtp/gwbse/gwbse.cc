@@ -21,7 +21,7 @@
 #include <votca/xtp/votca_xtp_config.h>
 
 #include <votca/xtp/gwbse.h>
-
+#include <votca/tools/constants.h>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/numeric/ublas/operation.hpp>
@@ -175,6 +175,57 @@ namespace votca {
             
         }
         
+        
+void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
+    const double ryd2ev = tools::conv::ryd2ev;
+    const double ha2ev = tools::conv::ha2ev;
+    Property *_gwbse_summary = &_summary->add("GWBSE", "");
+    _gwbse_summary->setAttribute("units", "eV");
+    _gwbse_summary->setAttribute("DeltaHLGap", _shift * ryd2ev);
+    _gwbse_summary->setAttribute("DFTEnergy", _orbitals->getQMEnergy());
+    int printlimit = _bse_nprint; //I use this to determine how much is printed, I do not want another option to pipe through
+
+    Property *_dft_summary = &_gwbse_summary->add("dft", "");
+    _dft_summary->setAttribute("HOMO", _homo);
+    _dft_summary->setAttribute("LUMO", _homo + 1);
+    for (int state = _homo - printlimit; state < _homo + printlimit + 1; state++) {
+        Property *_level_summary = &_dft_summary->add("level", "");
+        _level_summary->setAttribute("number", state);
+        _level_summary->setAttribute("dft_energy", (_orbitals->MOEnergies())(_qpmin + state) * ha2ev);
+        _level_summary->setAttribute("gw_energy", _qp_energies(_qpmin + state) * ryd2ev);
+        if (_do_qp_diag) {
+            _level_summary->setAttribute("qp_energy", _qp_diag_energies(_qpmin + state) * ryd2ev);
+        }
+
+    }
+
+    if (_do_bse_singlets) {
+        Property *_singlet_summary = &_gwbse_summary->add("singlets", "");
+        for (int state = 0; state < printlimit; ++state) {
+            Property *_level_summary = &_dft_summary->add("level", "");
+            _level_summary->setAttribute("number", state + 1);
+            _level_summary->setAttribute("omega", _bse_singlet_energies(state) * ryd2ev);
+            if (_orbitals->hasTransitionDipoles()) {
+                const std::vector<double> dipoles = (_orbitals->TransitionDipoles())[state];
+                double f = (dipoles[0] * dipoles[0] + dipoles[1] * dipoles[1] + dipoles[2] * dipoles[2]) / (3 * _bse_singlet_energies(state));
+                _level_summary->setAttribute("f", f);
+                Property *_dipol_summary = &_level_summary->add("Trdipole", "");
+                _dipol_summary->setAttribute("unit", "e*bohr");
+                _dipol_summary->setAttribute("dx", dipoles[0]);
+                _dipol_summary->setAttribute("dy", dipoles[1]);
+                _dipol_summary->setAttribute("dz", dipoles[2]);
+            }
+        }
+    }
+    if (_do_bse_triplets) {
+        Property *_triplet_summary = &_gwbse_summary->add("triplets", "");
+        for (int state = 0; state < printlimit; ++state) {
+            Property *_level_summary = &_dft_summary->add("level", "");
+            _level_summary->setAttribute("number", state + 1);
+            _level_summary->setAttribute("omega", _bse_triplet_energies(state) * ryd2ev);
+        }
+    }
+}   
         
         
         
@@ -818,7 +869,7 @@ namespace votca {
 
                     LOG(logINFO, *_pLog) << (format("  ====== triplet energies (eV) ====== ")).str() << flush;
                     for (int _i = 0; _i < _bse_nprint; _i++) {
-                        LOG(logINFO, *_pLog) << (format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_x> = %5$+1.4f <K_d> = %6$+1.4f") % (_i + 1) % (13.6058 * _bse_triplet_energies(_i)) % (1240.0/(13.6058 * _bse_triplet_energies(_i))) % (13.6058 * _contrib_qp[_i]) % (13.6058 * _contrib_x[_i]) % (13.6058 * _contrib_d[ _i ])).str() << flush;
+                        LOG(logINFO, *_pLog) << (format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_x> = %5$+1.4f <K_d> = %6$+1.4f") % (_i + 1) % (tools::conv::ryd2ev * _bse_triplet_energies(_i)) % (1240.0/(13.6058 * _bse_triplet_energies(_i))) % (tools::conv::ryd2ev * _contrib_qp[_i]) % (tools::conv::ryd2ev * _contrib_x[_i]) % (tools::conv::ryd2ev * _contrib_d[ _i ])).str() << flush;
                         
                         for (unsigned _i_bse = 0; _i_bse < _bse_size; _i_bse++) {
                             // if contribution is larger than 0.2, print
@@ -1028,7 +1079,7 @@ namespace votca {
                     LOG(logINFO, *_pLog) << (format("  ====== singlet energies (eV) ====== ")).str() << flush;
                     for (int _i = 0; _i < _bse_nprint; _i++) {
 
-                        LOG(logINFO, *_pLog) << (format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_x> = %5$+1.4f <K_d> = %6$+1.4f") % (_i + 1) % (13.6058 * _bse_singlet_energies(_i)) % (1240.0/(13.6058 * _bse_singlet_energies(_i))) % (13.6058 * _contrib_qp[_i]) % (13.6058 * _contrib_x[_i]) % (13.6058 * _contrib_d[ _i ])).str() << flush;
+                        LOG(logINFO, *_pLog) << (format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_x> = %5$+1.4f <K_d> = %6$+1.4f") % (_i + 1) % (tools::conv::ryd2ev * _bse_singlet_energies(_i)) % (1240.0/(tools::conv::ryd2ev * _bse_singlet_energies(_i))) % (tools::conv::ryd2ev * _contrib_qp[_i]) % (tools::conv::ryd2ev * _contrib_x[_i]) % (tools::conv::ryd2ev * _contrib_d[ _i ])).str() << flush;
                         LOG(logINFO, *_pLog) << (format("           TrDipole length gauge[e*bohr]  dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f") % (_transition_dipoles[_i][0]) % (_transition_dipoles[_i][1]) % (_transition_dipoles[_i][2]) % (_transition_dipole_strength[_i]) % (_oscillator_strength[_i])).str() << flush;
                         for (unsigned _i_bse = 0; _i_bse < _bse_size; _i_bse++) {
                             // if contribution is larger than 0.2, print

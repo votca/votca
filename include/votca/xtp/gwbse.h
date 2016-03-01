@@ -169,6 +169,8 @@ public:
     void set_fragA( int n ) { _fragA = n; }
     void set_fragB( int n ) { _fragB = n; }
     
+    void addoutput(Property *_summary,Orbitals* _orbitals);
+    
     private:
 
     Logger *_pLog;
