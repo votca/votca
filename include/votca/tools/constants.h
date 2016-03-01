@@ -40,11 +40,13 @@ namespace votca { namespace tools {
     const double ang2bohr = 1.8897259886; 
     
     
-    
+    const double ryd2ha=0.5;
+    const double ha2ryd=2;
     
     const double ryd2ev= 13.60569253;
+    const double ev2ryd=1.0/13.60569253;
     const double ha2ev=  27.21138602;
-    
+    const double ev2ha=1.0/27.21138602;
     //ewald internal to eV conversion
     const double int2eV = 1/(4*Pi*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
     
