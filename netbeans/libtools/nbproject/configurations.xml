@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="97">
+<configurationDescriptor version="95">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
@@ -9,6 +9,7 @@
       <itemPath>../../include/votca/tools/average.h</itemPath>
       <itemPath>../../include/votca/tools/calculator.h</itemPath>
       <itemPath>../../include/votca/tools/colors.h</itemPath>
+      <itemPath>../../include/votca/tools/constants.h</itemPath>
       <itemPath>../../include/votca/tools/correlate.h</itemPath>
       <itemPath>../../include/votca/tools/crosscorrelate.h</itemPath>
       <itemPath>../../include/votca/tools/cubicspline.h</itemPath>
@@ -16,19 +17,16 @@
       <itemPath>../../include/votca/tools/datacollection.h</itemPath>
       <itemPath>../../include/votca/tools/getline.h</itemPath>
       <itemPath>../../include/votca/tools/globals.h</itemPath>
-      <itemPath>../../../ctp/include/votca/ctp/gsl_boost_ublas_matrix_prod.h</itemPath>
       <itemPath>../../include/votca/tools/histogram.h</itemPath>
       <itemPath>../../include/votca/tools/histogramnew.h</itemPath>
       <itemPath>../../include/votca/tools/lexical_cast.h</itemPath>
       <itemPath>../../include/votca/tools/linalg.h</itemPath>
       <itemPath>../../include/votca/tools/linspline.h</itemPath>
       <itemPath>../../include/votca/tools/matrix.h</itemPath>
-      <itemPath>../../../ctp/include/votca/ctp/mkl_boost_ublas_matrix_prod.h</itemPath>
       <itemPath>../../include/votca/tools/mutex.h</itemPath>
       <itemPath>../../include/votca/tools/objectfactory.h</itemPath>
       <itemPath>../../include/votca/tools/parsexml.h</itemPath>
       <itemPath>../../include/votca/tools/property.h</itemPath>
-      <itemPath>../../include/votca/tools/propertyformat.h</itemPath>
       <itemPath>../../include/votca/tools/random.h</itemPath>
       <itemPath>../../include/votca/tools/rangeparser.h</itemPath>
       <itemPath>../../include/votca/tools/spline.h</itemPath>
@@ -78,6 +76,7 @@
       <itemPath>../../src/libtools/cubicspline.cc</itemPath>
       <itemPath>../../src/libtools/database.cc</itemPath>
       <itemPath>../../src/libtools/datacollection.cc</itemPath>
+      <itemPath>../../src/libtools/globals.cc</itemPath>
       <itemPath>../../src/libtools/histogram.cc</itemPath>
       <itemPath>../../src/libtools/histogramnew.cc</itemPath>
       <itemPath>../../src/libtools/linspline.cc</itemPath>
@@ -103,7 +102,6 @@
                    projectFiles="false">
       <itemPath>Makefile_nb</itemPath>
     </logicalFolder>
-    <itemPath>../../include/votca/tools/constants.h</itemPath>
   </logicalFolder>
   <sourceRootList>
     <Elem>../../src/libtools</Elem>
@@ -136,16 +134,6 @@
           <output>../../src/libtools/libtools.a</output>
         </archiverTool>
       </compileType>
-      <item path="../../../ctp/include/votca/ctp/gsl_boost_ublas_matrix_prod.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../../ctp/include/votca/ctp/mkl_boost_ublas_matrix_prod.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/tools/akimaspline.h"
             ex="false"
             tool="3"
@@ -249,11 +237,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/tools/propertyformat.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/tools/random.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/tools/rangeparser.h"
@@ -305,6 +288,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/libtools/globals.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/histogram.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -439,16 +424,6 @@
           <output>../../src/libtools/libtools.a</output>
         </archiverTool>
       </compileType>
-      <item path="../../../ctp/include/votca/ctp/gsl_boost_ublas_matrix_prod.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../../ctp/include/votca/ctp/mkl_boost_ublas_matrix_prod.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/tools/akimaspline.h"
             ex="false"
             tool="3"
@@ -552,11 +527,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/tools/propertyformat.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/tools/random.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/tools/rangeparser.h"
@@ -608,6 +578,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/libtools/globals.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/histogram.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -742,16 +714,6 @@
           <output>../../src/libtools/libtools.a</output>
         </archiverTool>
       </compileType>
-      <item path="../../../ctp/include/votca/ctp/gsl_boost_ublas_matrix_prod.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../../ctp/include/votca/ctp/mkl_boost_ublas_matrix_prod.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/tools/akimaspline.h"
             ex="false"
             tool="3"
@@ -855,11 +817,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/tools/propertyformat.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/tools/random.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/tools/rangeparser.h"
@@ -911,6 +868,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/libtools/globals.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/histogram.cc" ex="false" tool="1" flavor2="0">
       </item>
