@@ -1136,18 +1136,60 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      
      ub::matrix<float> _E=ub::zero_matrix<float>(_bse_exc,_bse_exc);
      ub::matrix<float> _T=ub::zero_matrix<float>(_bse_exc,_bse_exc);
+     //find the eigenvectors which are most similar to the initial states
      
-     for (int i = 0; i < _bse_exc; i++) {
-                float norm = 0.0;
-                for (int j = 0; j < _bse_exc; j++) {
-                    if (i == j) {
-                        _E(i, i) = _J_eigenvalues(i);
+     LOG(logDEBUG,*_pLog) << "Sorting states according to similiarity with the singlet states " << flush;
+     
+     std::vector<int> index;
+     //column
+      for (int i = 0; i < _bse_exc; i++) {
+                float close = 0.0;
+                int ind = 0;
+                //row
+                for (int j = 0; j < _bse_exc + _ct; j++) {
+                    bool check=true;
+                    // if index i is already in index
+                    // should not happen but if one vector was similar to tow others.
+                    for (unsigned l=0;l<index.size();l++){
+                        if (j==index[l]){
+                            check=false;
+                            break;
+                        }
                     }
-                    norm += _J_ortho(j, i)*_J_ortho(j, i);
+                    
+                    if (check && std::abs(_J_ortho(i, j)) > close) {
+                        ind = j;
+                        close=std::abs(_J_ortho(i, j));
+                    }
+                }
+                index.push_back(ind);
+            }
+     
+     LOG(logDEBUG,*_pLog) << "Order is: [Initial state n->nth eigenvalue]"<<flush;
+     for (int i=0;i<index.size();i++){
+         if(i<_bseA_exc){
+      LOG(logDEBUG,*_pLog) <<"    A"<<i+1<<":"<<i+1<<"->"<<index[i]+1<<" " ;   
+         }
+         else{
+     LOG(logDEBUG,*_pLog) <<"    B"<<i+1-_bseA_exc<<":"<<i+1<<"->"<<index[i]+1<<" " ;  
+         }
+                 
+     }
+     LOG(logDEBUG,*_pLog)<< flush;
+     //row
+     for (int i = 0; i < _bse_exc; i++) {
+         int k=index[i];
+                float norm = 0.0;
+                //column
+                for (int j = 0; j < _bse_exc; j++) {
+                    
+                    norm += _J_ortho(j, k)*_J_ortho(j, k);
                 }
                 for (int j = 0; j < _bse_exc; j++) {
-
-                    _T(j,i ) = _J_ortho(j, i) / std::sqrt(norm);
+                    if (k == j) {
+                        _E(k, k) = _J_eigenvalues(k);
+                    }
+                    _T(j,k ) = _J_ortho(j,k) / std::sqrt(norm);
                 }
             }
      //cout << "_E" <<endl;
