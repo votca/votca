@@ -199,13 +199,13 @@ void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
        
         Property *_level_summary = &_dft_summary->add("level", "");
         _level_summary->setAttribute("number", state);
-        _level_summary->add("dft_energy",(format("%1$+1.6f ") % (_orbitals->MOEnergies())(_qpmin + state) * ha2ev).str());
+        _level_summary->add("dft_energy",(format("%1$+1.6f ") % ((_orbitals->MOEnergies())(_qpmin + state) * ha2ev)).str());
         
-        _level_summary->add("gw_energy",(format("%1$+1.6f ") % _qp_energies(_qpmin + state) * ryd2ev).str());
+        _level_summary->add("gw_energy",(format("%1$+1.6f ") % (_qp_energies(_qpmin + state) * ryd2ev)).str());
        
         if (_do_qp_diag) {
             //cout << "_do_qp_diag" <<_do_qp_diag<<endl;
-            _level_summary->add("qp_energy",(format("%1$+1.6f ") % _qp_diag_energies(_qpmin + state) * ryd2ev).str());
+            _level_summary->add("qp_energy",(format("%1$+1.6f ") % (_qp_diag_energies(_qpmin + state) * ryd2ev)).str());
         }
         //cout <<"hellooo"<<state<<endl;
 
@@ -216,7 +216,7 @@ void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
         for (int state = 0; state < printlimit; ++state) {
             Property *_level_summary = &_singlet_summary->add("level", "");
             _level_summary->setAttribute("number", state + 1);
-            _level_summary->add("omega", (format("%1$+1.6f ") % _bse_singlet_energies(state) * ryd2ev).str());
+            _level_summary->add("omega", (format("%1$+1.6f ") % (_bse_singlet_energies(state) * ryd2ev)).str());
             if (_orbitals->hasTransitionDipoles()) {
                 
                 const std::vector<double> dipoles = (_orbitals->TransitionDipoles())[state];
@@ -237,7 +237,7 @@ void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
            
             Property *_level_summary = &_triplet_summary->add("level", "");
             _level_summary->setAttribute("number", state + 1);
-            _level_summary->add("omega", (format("%1$+1.6f ") %  _bse_triplet_energies(state) * ryd2ev).str());
+            _level_summary->add("omega", (format("%1$+1.6f ") %  (_bse_triplet_energies(state) * ryd2ev)).str());
             
         }
     }
