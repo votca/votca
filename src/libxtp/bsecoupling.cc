@@ -1137,15 +1137,15 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      ub::matrix<float> _E=ub::zero_matrix<float>(_bse_exc,_bse_exc);
      ub::matrix<float> _T=ub::zero_matrix<float>(_bse_exc,_bse_exc);
      
-     for (unsigned i = 0; i < _bse_exc; i++) {
+     for (int i = 0; i < _bse_exc; i++) {
                 float norm = 0.0;
-                for (unsigned j = 0; j < _bse_exc; j++) {
+                for (int j = 0; j < _bse_exc; j++) {
                     if (i == j) {
                         _E(i, i) = _J_eigenvalues(i);
                     }
                     norm += _J_ortho(j, i)*_J_ortho(j, i);
                 }
-                for (unsigned j = 0; j < _bse_exc; j++) {
+                for (int j = 0; j < _bse_exc; j++) {
 
                     _T(j,i ) = _J_ortho(j, i) / std::sqrt(norm);
                 }

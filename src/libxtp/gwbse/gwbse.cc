@@ -181,9 +181,9 @@ void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
     const double ha2ev = tools::conv::ha2ev;
     Property *_gwbse_summary = &_summary->add("GWBSE", "");
     _gwbse_summary->setAttribute("units", "eV");
-    _gwbse_summary->setAttribute("DeltaHLGap", _shift * ryd2ev);
+    _gwbse_summary->setAttribute("DeltaHLGap",(format("%1$+1.6f ") % (_shift * ryd2ev)).str());
     
-    _gwbse_summary->setAttribute("DFTEnergy", _orbitals->getQMEnergy());
+    _gwbse_summary->setAttribute("DFTEnergy", (format("%1$+1.6f ") % _orbitals->getQMEnergy()).str());
     int printlimit = _bse_nprint; //I use this to determine how much is printed, I do not want another option to pipe through
     
     Property *_dft_summary = &_gwbse_summary->add("dft", "");
@@ -221,7 +221,7 @@ void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
                 
                 const std::vector<double> dipoles = (_orbitals->TransitionDipoles())[state];
                 double f = (dipoles[0] * dipoles[0] + dipoles[1] * dipoles[1] + dipoles[2] * dipoles[2]) / (3 * _bse_singlet_energies(state));
-                _level_summary->setAttribute("f", f);
+               
                 Property *_f_summary = &_level_summary->add("f", (format("%1$+1.6f ") % f).str());
                 Property *_dipol_summary = &_level_summary->add("Trdipole",(format("%1$+1.4f %2$+1.4f %3$+1.4f") % dipoles[0] % dipoles[1] % dipoles[2]).str());
                 _dipol_summary->setAttribute("unit", "e*bohr");
