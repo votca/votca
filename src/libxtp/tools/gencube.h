@@ -169,6 +169,9 @@ namespace votca {
 
                 Orbitals _orbitals;
                 
+                  LOG(logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
+               _orbitals.Load(_orbfile);
+                
                 if (_do_qp && !_orbitals.hasQPdiag()){
                         throw std::runtime_error("Orbitals file does not contain QP coefficients");
                     }
@@ -185,8 +188,7 @@ namespace votca {
                 // load the QM data from serialized orbitals object
 
                 
-                LOG(logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
-               _orbitals.Load(_orbfile);
+              
 
                 // get atoms
                 std::vector<QMAtom*> _atoms = _orbitals.QMAtoms();
