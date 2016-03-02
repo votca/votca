@@ -287,6 +287,7 @@ bool Exciton::Evaluate() {
     
     // do GWBSE for start geometry
     if ( _reporting == "silent" ) _log.setReportLevel( logINFO );
+    
     ExcitationEnergies( _qmpackage, _segments, &_orbitals);
 
     }
@@ -533,7 +534,7 @@ bool Exciton::Evaluate() {
    }// if optimization
   
            
-            
+       
        LOG(logDEBUG,_log) << "Saving data to " << _output_file << flush;
        std::ofstream ofs( ( _output_file).c_str() );
        boost::archive::binary_oarchive oa( ofs );
@@ -547,7 +548,7 @@ bool Exciton::Evaluate() {
      
      
      
-     
+    
     
     //Property *_job_output = &_summary.add("output","");
     votca::tools::PropertyIOManipulator iomXML(votca::tools::PropertyIOManipulator::XML, 1, "");
@@ -1116,13 +1117,14 @@ void Exciton::ExcitationEnergies(QMPackage* _qmpackage, vector<Segment*> _segmen
         _gwbse.setLogger(&_log);
         _gwbse.Initialize( &_gwbse_options );
         _gwbse.Evaluate( _orbitals );
-        _summary.add("output","");
-        _gwbse.addoutput(&_summary, _orbitals);
+        Property *_output_summary = &(_summary.add("output", ""));
+        _gwbse.addoutput(_output_summary, _orbitals);
+       
         //bool _evaluate = _gwbse.Evaluate( _orbitals );
         // std::cout << _log;
      }
      
-
+      
     
     
 }

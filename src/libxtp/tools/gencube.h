@@ -65,6 +65,8 @@ namespace votca {
             bool _do_bse;
             bool _do_qp;
             bool _do_transition;
+            bool _do_singlet;
+            bool _do_triplet;
             
             double _padding;
             int _xsteps;
@@ -84,7 +86,8 @@ namespace votca {
             _do_bse=false;
             _do_qp=false;
             _do_transition=false;
-
+            _do_singlet=false;
+            _do_triplet=false;
             // update options with the VOTCASHARE defaults   
             UpdateWithDefaults( options, "xtp" );
 
@@ -109,6 +112,16 @@ namespace votca {
 
             _state = options->get(key + ".state").as<int> ();
             _spin = options->get(key + ".spin").as<string> ();
+            if (_spin=="singlet"){
+                _do_singlet=true;
+            }
+            else if (_spin=="triplet"){
+                _do_triplet=true;
+            }
+            else{
+               throw std::runtime_error("Spin not known, only singlet and triplet possible"); 
+            }
+            
             _type = options->get(key + ".type").as<string> ();
             
             _mode = options->get(key + ".mode").as<string> ();
@@ -155,6 +168,19 @@ namespace votca {
                 LOG(logDEBUG, _log) << "Reading serialized QM data from " << _orbfile << flush;
 
                 Orbitals _orbitals;
+                
+                if (_do_qp && !_orbitals.hasQPdiag()){
+                        throw std::runtime_error("Orbitals file does not contain QP coefficients");
+                    }
+                
+                if (_do_bse && _do_singlet && !_orbitals.hasBSESinglets()){
+                        throw std::runtime_error("Orbitals file does not contain Singlet BSE coefficients");
+                    }
+                if (_do_bse && _do_triplet && !_orbitals.hasBSETriplets()){
+                        throw std::runtime_error("Orbitals file does not contain Triplet BSE coefficients");
+                    }
+                
+                
                 
                 // load the QM data from serialized orbitals object
 
@@ -369,7 +395,7 @@ namespace votca {
                 
                 // diagonalized QP, if requested
                 if ( _do_qp && _state > 0 ){
-                
+                    
                     int GWAmin = _orbitals.getGWAmin();
                     int GWAmax = _orbitals.getGWAmax();
                     
