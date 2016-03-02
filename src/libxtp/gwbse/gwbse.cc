@@ -222,7 +222,7 @@ void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
                 const std::vector<double> dipoles = (_orbitals->TransitionDipoles())[state];
                 double f = (dipoles[0] * dipoles[0] + dipoles[1] * dipoles[1] + dipoles[2] * dipoles[2]) / (3 * _bse_singlet_energies(state));
                
-                Property *_f_summary = &_level_summary->add("f", (format("%1$+1.6f ") % f).str());
+                _level_summary->add("f", (format("%1$+1.6f ") % f).str());
                 Property *_dipol_summary = &_level_summary->add("Trdipole",(format("%1$+1.4f %2$+1.4f %3$+1.4f") % dipoles[0] % dipoles[1] % dipoles[2]).str());
                 _dipol_summary->setAttribute("unit", "e*bohr");
                 _dipol_summary->setAttribute("gauge","length");
