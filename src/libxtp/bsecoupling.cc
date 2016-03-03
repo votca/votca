@@ -1166,7 +1166,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
             }
      
      LOG(logDEBUG,*_pLog) << "Order is: [Initial state n->nth eigenvalue]"<<flush;
-     for (int i=0;i<index.size();i++){
+     for (unsigned i=0;i<index.size();i++){
          if(i<_bseA_exc){
       LOG(logDEBUG,*_pLog) <<"    A"<<i+1<<":"<<i+1<<"->"<<index[i]+1<<" " ;   
          }
