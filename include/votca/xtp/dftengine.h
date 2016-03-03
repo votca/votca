@@ -29,20 +29,11 @@
 
 #include <votca/xtp/logger.h>
 
-#include <unistd.h>
 
-#include <fstream>
-#include <sys/stat.h>
 
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/binary_oarchive.hpp>
 #include <boost/filesystem.hpp>
 #include <votca/xtp/ERIs.h>
-#include <boost/numeric/ublas/operation.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/io.hpp>
+
 
 #include <votca/xtp/numerical_integrations.h>
 
@@ -67,7 +58,7 @@ public:
    
    
     void    Initialize( Property *options);
-    string  Identify() { return "dftengine"; }
+    std::string  Identify() { return "dftengine"; }
    
     void    CleanUp();
 
@@ -103,20 +94,20 @@ public:
     int                                 _openmp_threads;
     
     
-    string _outParent;
-    string _outMonDir;
+    std::string _outParent;
+    std::string _outMonDir;
     
     // options
-    string _dft_options;
+    std::string _dft_options;
     Property _dftengine_options; 
     
     // atoms
     std::vector<QMAtom*>                _atoms;
 
     // basis sets
-    string                              _auxbasis_name;
-    string                              _dftbasis_name;
-    string                              _ecp_name;
+    std::string                              _auxbasis_name;
+    std::string                              _dftbasis_name;
+    std::string                              _ecp_name;
     BasisSet                            _dftbasisset;
     BasisSet                            _auxbasisset;
     BasisSet                            _ecpbasisset;
@@ -127,7 +118,7 @@ public:
     bool                                _with_ecp;
     
     // numerical integration 
-    string                              _grid_name;
+    std::string                              _grid_name;
     NumericalIntegration                _gridIntegration;
 
     // AO Matrices
@@ -154,8 +145,8 @@ public:
     
     
     // exchange and correlation
-    string                              _x_functional_name;
-    string                              _c_functional_name;
+    std::string                              _x_functional_name;
+    std::string                              _c_functional_name;
 
     
    typedef boost::multi_array<double, 4> fourdim;

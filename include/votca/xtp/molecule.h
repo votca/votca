@@ -33,23 +33,23 @@ namespace votca { namespace xtp {
 class Molecule {
 public:
 
-    Molecule(int id, string name) : _id(id), _name(name) {}
+    Molecule(int id, std::string name) : _id(id), _name(name) {}
     Molecule() { }
    ~Molecule();
 
     const int       &getId();
-    const string    &getName();
+    const std::string    &getName();
 
     void AddSegment( Segment* segment );
     void AddFragment( Fragment* fragment);
     void AddAtom( Atom* atom);
 
-    vector< Atom* >     &Atoms() { return _atoms; }
-    vector< Fragment* > &Fragments() { return _fragments; }
-    vector< Segment* >  &Segments() { return _segments; }
+    std::vector< Atom* >     &Atoms() { return _atoms; }
+    std::vector< Fragment* > &Fragments() { return _fragments; }
+    std::vector< Segment* >  &Segments() { return _segments; }
 
     Atom           *getAtom(const int &id);
-    const string   &getAtomType(const int &id);
+    const std::string   &getAtomType(const int &id);
     const vec       getAtomPosition(const int &id);
     int             NumberOfAtoms();
 
@@ -57,21 +57,21 @@ public:
     Topology   *getTopology() { return _top; }
 
     /// Load molecule coordinates from a file
-    void ReadXYZ ( string filename );
+    void ReadXYZ ( std::string filename );
     void WritePDB( FILE *out );
     
 private:
 
     Topology *_top;
 
-    vector < Segment* >   _segments;
-    vector < Fragment* >  _fragments;
-    vector < Atom* >      _atoms ;
+    std::vector < Segment* >   _segments;
+    std::vector < Fragment* >  _fragments;
+    std::vector < Atom* >      _atoms ;
 
     int     _id;
-    string  _name ;
+    std::string  _name ;
 
-    map<string, Atom* > _map_AtomName_Atom;
+    std::map<std::string, Atom* > _map_AtomName_Atom;
 
 };
 

@@ -44,7 +44,7 @@ class Segment;
 class Fragment {
 public:
 
-     Fragment(int id, string name) : _id(id), _name(name), _symmetry(-1) { }
+     Fragment(int id, std::string name) : _id(id), _name(name), _symmetry(-1) { }
      Fragment(Fragment *stencil);
     ~Fragment();
     
@@ -62,21 +62,21 @@ public:
     Topology            *getTopology() { return _top; }
     Molecule            *getMolecule() { return _mol; }
     Segment             *getSegment()  { return _seg; }
-    vector< Atom* >     &Atoms() { return _atoms; }
-    vector<PolarSite*>  &PolarSites() { return _polarSites; }
-    vector<APolarSite*> &APolarSites() { return _apolarSites; }
+    std::vector< Atom* >     &Atoms() { return _atoms; }
+    std::vector<PolarSite*>  &PolarSites() { return _polarSites; }
+    std::vector<APolarSite*> &APolarSites() { return _apolarSites; }
 
     const int    &getId() const { return _id; }
-    const string &getName() const { return _name; }
+    const std::string &getName() const { return _name; }
 
     void         Rigidify(bool Auto = 0);
     void         setSymmetry(int sym) { _symmetry = sym; }
     const int   &getSymmetry() { return _symmetry; }
-    void         setTrihedron(vector<int> trihedron) { _trihedron = trihedron; }
-    const vector< int > &getTrihedron() { return _trihedron; }
+    void         setTrihedron(std::vector<int> trihedron) { _trihedron = trihedron; }
+    const std::vector< int > &getTrihedron() { return _trihedron; }
 
 
-    void          calcPos(string tag = "MD");
+    void          calcPos(std::string tag = "MD");
     void          setPos(vec pos) { _CoMD = pos; }
     const vec    &getPos() const { return _CoMD; }
     const vec    &getCoMD() { return _CoMD; }
@@ -92,13 +92,13 @@ private:
 
     Segment     *_seg;
 
-    vector < Atom* > _atoms;
-    vector <PolarSite*> _polarSites;
-    vector <APolarSite*> _apolarSites;
-    vector< double > _weights;
+    std::vector < Atom* > _atoms;
+    std::vector <PolarSite*> _polarSites;
+    std::vector <APolarSite*> _apolarSites;
+    std::vector< double > _weights;
 
     int         _id;
-    string      _name;
+    std::string      _name;
     Topology    *_top;
     Molecule    *_mol;
     int              _symmetry;
@@ -106,7 +106,7 @@ private:
     matrix      _rotateQM2MD;       // Set via ::Rigidify()
     vec         _CoQM;              // Center of map (QM)
     vec         _CoMD;              // Center of map (MD)
-    vector< int >    _trihedron;
+    std::vector< int >    _trihedron;
     vec         _CoQM0;             // Center of map (QM) original (for IZindo)
     vec         _translateQM2MD;    // Set via ::Rigidify()
 

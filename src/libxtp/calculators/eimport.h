@@ -13,21 +13,21 @@ public:
     EImport() {};
    ~EImport() {};
 
-   string Identify() { return "eimport"; }
+   std::string Identify() { return "eimport"; }
 
    void   Initialize(Property *options);
    bool   EvaluateFrame(Topology *top);
-   void   StochasticEnergies(Topology *top, string &_probabilityfile, int state);
+   void   StochasticEnergies(Topology *top, std::string &_probabilityfile, int state);
    double SphereIntersection(double radius, double distance);
-   double Correlation(double distance, vector<double> distances, vector<double>bcoeff, double sigma);
+   double Correlation(double distance, std::vector<double> distances, std::vector<double>bcoeff, double sigma);
 
 
 private:
 
-    string _energiesFile;
+    std::string _energiesFile;
     bool   _reset;
-    string      _probabilityfile_h;
-    string      _probabilityfile_e;
+    std::string      _probabilityfile_h;
+    std::string      _probabilityfile_e;
     double      _sigma_h;
     double      _sigma_e;
     double      _avgestatic_h;
@@ -48,21 +48,21 @@ void EImport::Initialize(Property *options) {
     
     // update options with the VOTCASHARE defaults   
     UpdateWithDefaults( options, "xtp" );
-    string key = "options." + Identify();
+    std::string key = "options." + Identify();
 
     if (options->exists(key + ".energies")) {
-         _energiesFile = options->get(key + ".energies").as< string >();
+         _energiesFile = options->get(key + ".energies").as< std::string >();
     }
     
     if (options->exists(key + ".probabilityfile_h")) {
-        _probabilityfile_h = options->get(key+".probabilityfile_h").as< string >();
+        _probabilityfile_h = options->get(key+".probabilityfile_h").as< std::string >();
         _stochastic = true;
     }
     else{
         _probabilityfile_h = "";
     }
     if (options->exists(key + ".probabilityfile_e")) {
-        _probabilityfile_e = options->get(key+".probabilityfile_e").as< string >();
+        _probabilityfile_e = options->get(key+".probabilityfile_e").as< std::string >();
         _stochastic = true;
     }
     else{
@@ -122,9 +122,9 @@ void EImport::Initialize(Property *options) {
         int reset = options->get(key+".reset").as<int>();
         _reset = (reset == 1) ? true : false;
         if (_reset) {
-            cout << endl
+            std::cout << std::endl
                  << "... ... NOTE: Resetting site energies to zero."
-                 << flush;
+                 << std::flush;
         }
 
     }
@@ -148,7 +148,7 @@ double EImport::SphereIntersection(double radius, double distance){
     return overlapratio;
 }
 
-double EImport::Correlation(double distance, vector<double> distances, vector<double>bcoeff, double sigma){
+double EImport::Correlation(double distance, std::vector<double> distances, std::vector<double>bcoeff, double sigma){
         double correlation = 0;
         for(unsigned j=0; j<bcoeff.size(); j++){
             correlation += SphereIntersection(distances[j+1]/2.,distance) * bcoeff[j] ;
@@ -158,27 +158,27 @@ double EImport::Correlation(double distance, vector<double> distances, vector<do
         return correlation;
 }
 
-void EImport::StochasticEnergies(Topology *top, string &filename, int state) {
+void EImport::StochasticEnergies(Topology *top, std::string &filename, int state) {
     double sigma = 1;
     double avgestatic = 0;
     if(state == 1){
         cout << endl << "... ... calculating stochastic hole-type energies." << endl;
         sigma = _sigma_h;
         avgestatic = _avgestatic_h;
-        cout << endl << "... ... sigma = " << sigma << " eV" << endl;
+        std::cout << std::endl << "... ... sigma = " << sigma << " eV" << std::endl;
     }
     else if(state == -1){
-        cout << endl << "... ... calculating stochastic electron-type energies." << endl;
+        std::cout << endl << "... ... calculating stochastic electron-type energies." << std::endl;
         sigma = _sigma_e;
         avgestatic = _avgestatic_e;
-        cout << endl << "... ... sigma = " << sigma << " eV" << endl;
+        std::cout << endl << "... ... sigma = " << sigma << " eV" << std::endl;
     }
     // read in probability function
-    cout << "... ... reading in spatial correlation function from file "+filename ;
+    std::cout << "... ... reading in spatial correlation function from file "+filename ;
     if (_cutoff != 0) {cout << " up to cutoff " << _cutoff << " nm";}
-    cout << "." << endl;
-    vector<double> distances;
-    vector<double> kappas;
+    std::cout << "." << std::endl;
+    std::vector<double> distances;
+    std::vector<double> kappas;
 
     std::string line;
     std::ifstream intt;
@@ -191,7 +191,7 @@ void EImport::StochasticEnergies(Topology *top, string &filename, int state) {
             std::getline(intt, line);
             
             if (linenumber > 1){
-                vector<string> split;
+                std::vector<std::string> split;
                 Tokenizer toker(line, " \t");
                 toker.ToVector(split);
 
@@ -213,22 +213,22 @@ void EImport::StochasticEnergies(Topology *top, string &filename, int state) {
         }
         Nkappa -= 1;
     }
-    else { cout << endl << "ERROR: No such file " << filename << endl;
+    else { std::cout << std::endl << "ERROR: No such file " << filename << std::endl;
            throw std::runtime_error("Supply input probability file."); }  
     
     
      // Initialise random number generator
-    if(votca::tools::globals::verbose) { cout << endl << "Initialising random number generator with seed: " << _seed << endl; }
-    cout << endl << "Initialising random number generator with seed: " << _seed << endl;
+    if(votca::tools::globals::verbose) { std::cout << std::endl << "Initialising random number generator with seed: " << _seed << endl; }
+    std::cout << std::endl << "Initialising random number generator with seed: " << _seed << std::endl;
     srand(_seed); 
     votca::tools::Random2 *RandomVariable = new votca::tools::Random2();
     RandomVariable->init(rand(), rand(), rand(), rand());
     
      // calculate b_i coefficients    
-    cout << "... ... calculating b coefficients" << endl;
-    cout << "... ... If the program freezes please set 'optimizationfactor' to a smaller value in your options file." << endl;
+    std::cout << "... ... calculating b coefficients" << std::endl;
+    std::cout << "... ... If the program freezes please set 'optimizationfactor' to a smaller value in your options file." << std::endl;
 
-    vector<double> bcoeff;
+    std::vector<double> bcoeff;
     bcoeff.resize(Nkappa+1);
     distances.push_back(2*distances[Nkappa]-distances[Nkappa-1]);
     // cout << "distances[0]=" << distances[0] << ", distances[1]=" << distances[1] << endl;
@@ -277,21 +277,21 @@ void EImport::StochasticEnergies(Topology *top, string &filename, int state) {
         for(unsigned j = 0; j<distances.size(); j++){
             mse += pow(Correlation(distances[j], distances, bcoeff, sigma) - kappas[j], 2);
         }
-        cout << "\n        NOTE: The given correlation data could not exactly be reproduced with the intersecting sphere model." << endl;
-        cout << "              An approximative solution will be calculated. Check the expected correlation function" << endl;
-        cout << "              against the result. If the approximation is bad it might help to choose less interpolation" << endl;
-        cout << "              points, i.e., choose a larger spatial resolution in eanalyze." << endl;
-        cout << "              If the long range part is not reproduced well it might help to remove the first point," << endl;
-        cout << "              since this algorithm focuses on a good reproduction of the short range part." << endl << endl;
-        cout << "... ...       initial mean square error: " << mse  << endl;
-        cout << "... ...       optimizing result..." << endl;
+        std::cout << "\n        NOTE: The given correlation data could not exactly be reproduced with the intersecting sphere model.\n"
+                        <<      "An approximative solution will be calculated. Check the expected correlation function\n" 
+         << "              against the result. If the approximation is bad it might help to choose less interpolation\n"
+         << "              points, i.e., choose a larger spatial resolution in eanalyze.\n" 
+         << "              If the long range part is not reproduced well it might help to remove the first point,\n"
+         << "              since this algorithm focuses on a good reproduction of the short range part.\n" 
+        << "... ...       initial mean square error:" << mse  << endl;
+       std::cout << "... ...       optimizing result..." << endl;
         
         
         for(int iteration = 0; iteration < _optimizationsteps; iteration ++){
-            cout << "\r... ...       " << int(double(iteration+1)/double(_optimizationsteps)*100.) << " % done" << flush;
+            std::cout << "\r... ...       " << int(double(iteration+1)/double(_optimizationsteps)*100.) << " % done" << std::flush;
             // which coefficient to change
             int nit = rand() % Nkappa;
-            vector<double>btry = bcoeff;
+            std::vector<double>btry = bcoeff;
             
             for(double i = -100; i<=100; i++){
                 double diff = double(i)*std::abs(bcoeff[nit])/1000.;
@@ -307,7 +307,7 @@ void EImport::StochasticEnergies(Topology *top, string &filename, int state) {
             }
             
         }
-        cout << endl << "... ...       final mean square error: " << mse << endl << endl;
+        std::cout << endl << "... ...       final mean square error: " << mse << std::endl << std::endl;
     }
     
     
@@ -316,17 +316,17 @@ void EImport::StochasticEnergies(Topology *top, string &filename, int state) {
     double acoeff = sigma*sigma-sum;
     if(acoeff<0){
         acoeff = 0;
-        cout << "        WARNING: a was smaller than 0. It has now been set to 0, the energetic disorder will probably be wrong." << endl;
+        std::cout << "        WARNING: a was smaller than 0. It has now been set to 0, the energetic disorder will probably be wrong." << std::endl;
     }
-    cout << "        a = " << acoeff << endl << endl;
+    std::cout << "        a = " << acoeff << std::endl << std::endl;
     
     for(int nit = 0; nit <=Nkappa; nit++){
-         cout << "        b[" << nit+1 << "] = " << bcoeff[nit] << endl;
+         std::cout << "        b[" << nit+1 << "] = " << bcoeff[nit] << std::endl;
     }
 
    
-    FILE *out;
-    string tag = boost::lexical_cast<string>("eimport.sitecorr_") + ( (state == -1) ? "e" : "h" ) + "_compare.out";
+    std::FILE *out;
+    std::string tag = boost::lexical_cast<std::string>("eimport.sitecorr_") + ( (state == -1) ? "e" : "h" ) + "_compare.out";
     out = fopen(tag.c_str(), "w");
 
     fprintf(out, "# EIMPORT: COMPARISION OF IMPORTED AND REALISED CORRELATION.\n");
@@ -337,9 +337,9 @@ void EImport::StochasticEnergies(Topology *top, string &filename, int state) {
     }
     fclose(out);
 
-    tag = boost::lexical_cast<string>("eimport.sitecorr_") + ( (state == -1) ? "e" : "h" ) + "_interpolation.out";
+    tag = boost::lexical_cast<std::string>("eimport.sitecorr_") + ( (state == -1) ? "e" : "h" ) + "_interpolation.out";
     out = fopen(tag.c_str(), "w");
-    cout << "        An interpolated expected correlation function will be written out to " << tag.c_str() << endl;
+    std::cout << "        An interpolated expected correlation function will be written out to " << tag.c_str() << std::endl;
     // cout << "        Specify borders: " << endl;
     // cout << "        minimum (data: " << distances[0] << " nm): ";
     double min = 0.1;
@@ -360,35 +360,35 @@ void EImport::StochasticEnergies(Topology *top, string &filename, int state) {
 
     
     // generate site energies
-    vector <Segment*> segments = top->Segments();
-    vector <Segment*>::iterator seg1;
-    vector <Segment*>::iterator seg2;
+    std::vector <Segment*> segments = top->Segments();
+    std::vector <Segment*>::iterator seg1;
+    std::vector <Segment*>::iterator seg2;
     
     int Nmolecules = segments.size();
     // calculate random numbers
-    cout << endl << "... ... generating "  << (Nkappa+1+1)*Nmolecules << " random numbers ...";
-    vector< vector<double> > X;
+    std::cout << std::endl << "... ... generating "  << (Nkappa+1+1)*Nmolecules << " random numbers ...";
+    std::vector< vector<double> > X;
     for(int A = 0; A<Nmolecules; A++){
-        vector<double> dummy;
+        std::vector<double> dummy;
         X.push_back(dummy);
         for(unsigned i = 0; i<bcoeff.size()+1; i++){
             X[A].push_back( RandomVariable->rand_gaussian(1.0) );
         }
     }
-    cout << " done." << endl;
+    std::cout << " done." << std::endl;
 
     
     
     double AVG = 0.0;
     int countE = 0;
-    vector<double> energies;
+    std::vector<double> energies;
     for (seg1 = segments.begin(); seg1!= segments.end(); seg1++){
-        cout << "\r... ... ..." << " calculating energy for segment ID = "
+        std::cout << "\r... ... ..." << " calculating energy for segment ID = "
              << (*seg1)->getId() << flush;
         int molA = (*seg1)->getId()-1;
         
-        vector<double> molsinrange(bcoeff.size(), 0.0);
-        vector<double> randompart(bcoeff.size()+1,0.0);
+        std::vector<double> molsinrange(bcoeff.size(), 0.0);
+        std::vector<double> randompart(bcoeff.size()+1,0.0);
 
         for (seg2 = segments.begin(); seg2!= segments.end(); seg2++){
             int molB = (*seg2)->getId()-1;
@@ -411,11 +411,11 @@ void EImport::StochasticEnergies(Topology *top, string &filename, int state) {
                 energy += sqrt(bcoeff[i]/molsinrange[i]) * randompart[i];
             }
             else {
-                cout << "NOTHING IN RANGE FOR RADIUS " << distances[i] << " for molecule " << molA+1 << endl;
+                std::cout << "NOTHING IN RANGE FOR RADIUS " << distances[i] << " for molecule " << molA+1 << std::endl;
             }
         }
-        if(molA <= 5 || molA >= Nmolecules-5){ cout << "   energy[" << molA+1 << "] = " << energy << endl;}
-        if(molA == 5 ){ cout << "......" << endl;}
+        if(molA <= 5 || molA >= Nmolecules-5){ std::cout << "   energy[" << molA+1 << "] = " << energy << std::endl;}
+        if(molA == 5 ){ std::cout << "......" << std::endl;}
         AVG += energy;
         energies.push_back(energy);
         countE += 1;
@@ -427,18 +427,18 @@ void EImport::StochasticEnergies(Topology *top, string &filename, int state) {
     double VAR = 0.0;
     double STD = 0.0;
     // Calculate variance
-    vector< double > ::iterator eit;
+    std::vector< double > ::iterator eit;
     for (eit = energies.begin(); eit < energies.end(); ++eit) {
         VAR += ((*eit) - AVG)*((*eit) - AVG) / countE;
     }
    
     STD = sqrt(VAR);
     
-    cout << "\r... ... ..." << " uncorrected mean:  " << AVG << endl;
-    cout << "\r... ... ..." << " uncorrected sigma: " << STD << endl;
+    std::cout << "\r... ... ..." << " uncorrected mean:  " << AVG << std::endl;
+    std::cout << "\r... ... ..." << " uncorrected sigma: " << STD << std::endl;
     
     // Write corrected energies
-    cout << "\r... ... ..." << " Setting energies to adjusted standard deviation." << endl;
+    std::cout << "\r... ... ..." << " Setting energies to adjusted standard deviation." << std::endl;
     countE = 0;
     for (seg1 = segments.begin(); seg1!= segments.end(); seg1++){
         (*seg1)->setEMpoles(state, (energies[countE]*sqrt(sigma/STD)-AVG+avgestatic));
@@ -446,14 +446,14 @@ void EImport::StochasticEnergies(Topology *top, string &filename, int state) {
     }
 
 
-    cout << "done." << endl;
+    std::cout << "done." << std::endl;
 }
 
 bool EImport::EvaluateFrame(Topology *top) {
 
     if (_reset == true) {
 
-        vector<Segment*> ::iterator sit;
+        std::vector<Segment*> ::iterator sit;
         for (sit = top->Segments().begin();
              sit < top->Segments().end();
              ++sit) {
@@ -473,7 +473,7 @@ bool EImport::EvaluateFrame(Topology *top) {
 
     else {
 
-        string filename = _energiesFile;
+        std::string filename = _energiesFile;
         std::string line;
         std::ifstream intt;
         intt.open(filename.c_str());
@@ -483,7 +483,7 @@ bool EImport::EvaluateFrame(Topology *top) {
             while ( intt.good() ) {
 
                 std::getline(intt, line);
-                vector<string> split;
+                std::vector<std::string> split;
                 Tokenizer toker(line, " \t");
                 toker.ToVector(split);
 
@@ -496,16 +496,16 @@ bool EImport::EvaluateFrame(Topology *top) {
               // 10 Alq3 0 0.00000000  +1 -0.49966334  0 20  +1 10  SPH 2366 ...
 
                 int    id   = boost::lexical_cast<int>(split[0]);
-                string name = boost::lexical_cast<string>(split[1]);
+                std::string name = boost::lexical_cast<std::string>(split[1]);
 
                 Segment *seg = top->getSegment(id);
 
                 if (seg->getName() != name) {
-                    cout << endl
+                    std::cout << std::endl
                          << "... ... ERROR: Structure of input file does "
                             "not match state file. "
                          << "SEG ID " << id
-                         << flush;
+                         << std::flush;
                     continue;
                 }
 
@@ -545,13 +545,13 @@ bool EImport::EvaluateFrame(Topology *top) {
                 }
 
                 else {
-                    cout << endl << "... ... ERROR: Wrong input format. "
-                         << "SEG ID " << id << flush;
+                    std::cout << endl << "... ... ERROR: Wrong input format. "
+                         << "SEG ID " << id << std::flush;
                     continue;
                 }
             }
         }
-        else { cout << endl << "ERROR: No such file " << filename << endl; }
+        else { std::cout << endl << "ERROR: No such file " << filename << std::endl; }
     }
 
     return 1;

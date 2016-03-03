@@ -48,7 +48,7 @@ public:
     Ewald3D3D(Topology *top, PolarTop *ptop, Property *opt, Logger *log);
    ~Ewald3D3D();
 
-    string IdentifyMethod() { return "3D x 3D"; }
+    std::string IdentifyMethod() { return "3D x 3D"; }
     EWD::triple<> ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target);
     EWD::triple<> CalculateShapeCorrection(vector<PolarSeg*> &target);
     double CalculateSq2(vec &k);

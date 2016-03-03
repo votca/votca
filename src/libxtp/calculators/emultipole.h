@@ -36,7 +36,7 @@ public:
     EMultipole() {};
    ~EMultipole() {};
 
-    string   Identify() { return "emultipole"; }
+    std::string   Identify() { return "emultipole"; }
 
     // ++++++++++++++++++++++ //
     // Multipole Distribution //
@@ -46,23 +46,23 @@ public:
     void     EStatify(Topology *top, Property *options);
     void     DistributeMpoles(Topology *top);
 
-    vector<PolarSite*> ParseGdmaFile(string filename, int state);
-    vector< vec >      ParseCubeFileHeader(string filename);
+    std::vector<PolarSite*> ParseGdmaFile(std::string filename, int state);
+    std::vector< vec >      ParseCubeFileHeader(std::string filename);
     
 
     // ++++++++++++++++++++++++++++++++ //
     // Sub-Calculators ESP, ESF, MolPol //
     // ++++++++++++++++++++++++++++++++ //
 
-    void     CalculateESP(vector< PolarSite* > &, FILE *);
+    void     CalculateESP(std::vector< PolarSite* > &, FILE *);
     void     CalculateESPInput(Topology *top);
     void     CalculateESPRigid(Topology *top);
     void     CalculateESF(Topology *top);
 
     void     CalculateAlpha(Topology *top);
     void     CalculateAlphaInput(Topology *top);
-    void     CalculateAlphaRigid(vector< PolarSite* > &, FILE *, bool);
-    void     SiteAlphaInduce(Topology *, vector< PolarSite* > &);
+    void     CalculateAlphaRigid(std::vector< PolarSite* > &, FILE *, bool);
+    void     SiteAlphaInduce(Topology *, std::vector< PolarSite* > &);
 
     void     CalculateGSPInput(Topology *top);
     
@@ -338,11 +338,11 @@ public:
         Segment                      *_seg;
         EMultipole                  *_master;
 
-        vector< Segment* >           _segsPolSphere; // Segments    in c/o 0-1
-        vector< Segment* >           _segsOutSphere; // Segments    in c/0 1-2
-        vector< vector<PolarSite*> > _polsPolSphere; // Polar sites in c/o 0-1
-        vector< vector<PolarSite*> > _polsOutSphere; // Polar sites in c/o 1-2
-        vector< vector<PolarSite*> > _polarSites;    // Copy of top polar sites
+        std::vector< Segment* >           _segsPolSphere; // Segments    in c/o 0-1
+        std::vector< Segment* >           _segsOutSphere; // Segments    in c/0 1-2
+        std::vector< std::vector<PolarSite*> > _polsPolSphere; // Polar sites in c/o 0-1
+        std::vector< std::vector<PolarSite*> > _polsOutSphere; // Polar sites in c/o 1-2
+        std::vector< std::vector<PolarSite*> > _polarSites;    // Copy of top polar sites
         Interactor                   _actor;
     };
 
@@ -350,14 +350,14 @@ public:
 private:
 
     // Allocation of polar sites to fragments and segments
-    map<string, vector<PolarSite*> >     _map_seg_polarSites;
-    map<string, vector<bool> >           _map_seg_chrgStates;
-    map<string, vector<int> >            _alloc_frag_mpoleIdx;
-    map<string, vector<string> >         _alloc_frag_mpoleName;
-    map<string, bool>                    _map2md;
+    std::map<std::string, std::vector<PolarSite*> >     _map_seg_polarSites;
+    std::map<std::string, std::vector<bool> >           _map_seg_chrgStates;
+    std::map<std::string, std::vector<int> >            _alloc_frag_mpoleIdx;
+    std::map<std::string, std::vector<std::string> >         _alloc_frag_mpoleName;
+    std::map<std::string, bool>                    _map2md;
 
     // Thread management
-    vector<Segment*> ::iterator _nextSite;
+    std::vector<Segment*> ::iterator _nextSite;
     Mutex                       _nextSiteMutex;
     Mutex                       _coutMutex;
     Mutex                       _logMutex;
@@ -367,20 +367,20 @@ private:
     bool            _induce;
     int             _firstSeg;
     int             _lastSeg;
-    string          _checkPolesPDB;
+    std::string          _checkPolesPDB;
 
     // ESP
     bool            _calcESP;
     bool            _ESPdoSystem;
-    string          _espCubeFile;
-    string          _espOutFile;
-    vector<vec>     _cube;
+    std::string          _espCubeFile;
+    std::string          _espOutFile;
+    std::vector<vec>     _cube;
 
     // ESF
     bool            _calcESF;
-    string          _esfGridFile;
-    string          _esfOutFile;
-    vector<vec>     _esfGrid;
+    std::string          _esfGridFile;
+    std::string          _esfOutFile;
+    std::vector<vec>     _esfGrid;
 
     // GSP
     bool            _calcGSP;
@@ -392,14 +392,14 @@ private:
     // MolPol
     bool            _calcAlphaMol;
     bool            _doSystem;
-    string          _alphaOutFile;
+    std::string          _alphaOutFile;
 
     // Logging
-    string          _outFile;
+    std::string          _outFile;
     bool            _energies2File;
-    map<int,vector<int> > _log_seg_iter;
-    map<int,int>    _log_seg_sphereSize;
-    map<int,vec>    _log_seg_com;
+    std::map<int,std::vector<int> > _log_seg_iter;
+    std::map<int,int>    _log_seg_sphereSize;
+    std::map<int,vec>    _log_seg_com;
 
     // Interaction parameters
     bool            _useCutoff;
@@ -408,7 +408,7 @@ private:
     bool            _useExp;
     double          _aDamp;
     bool            _useScaling;
-    vector<double>  _scale1;
+    std::vector<double>  _scale1;
 
     // Convergence parameters
     float           _wSOR_N;
@@ -435,8 +435,8 @@ void EMultipole::Initialize(Property *opt) {
 
     cout << endl <<  "... ... Parameterizing Thole model";
 
-    string key;
-    string xmlfile;
+    std::string key;
+    std::string xmlfile;
 
     /* ---- OPTIONS.XML Structure ----
      * <emultipole>
@@ -489,7 +489,7 @@ void EMultipole::Initialize(Property *opt) {
     key = "options.emultipole.multipoles";
 
         if ( opt->exists(key) ) {
-            xmlfile = opt->get(key).as< string >();
+            xmlfile = opt->get(key).as< std::string >();
         }
 
     key = "options.emultipole.control";
@@ -511,13 +511,13 @@ void EMultipole::Initialize(Property *opt) {
         else { _lastSeg = -1; }
 
         if ( opt->exists(key+".output") ) {
-            _outFile = opt->get(key+".output").as< string >();
+            _outFile = opt->get(key+".output").as< std::string >();
             _energies2File = true;
         }
         else { _energies2File = false; }
 
         if ( opt->exists(key+".check") ) {
-            _checkPolesPDB = opt->get(key+".check").as< string >();
+            _checkPolesPDB = opt->get(key+".check").as< std::string >();
         }
         else { _checkPolesPDB = ""; }
 
@@ -531,8 +531,8 @@ void EMultipole::Initialize(Property *opt) {
             _calcESP = false;
         }
         if (_calcESP) {
-            _espCubeFile = opt->get(key+".cube").as< string >();
-            _espOutFile = opt->get(key+".output").as< string >();
+            _espCubeFile = opt->get(key+".cube").as< std::string >();
+            _espOutFile = opt->get(key+".output").as< std::string >();
             if (opt->exists(key+".doSystem")) {
                 int doSystem = opt->get(key+".doSystem").as< int >();
                 _ESPdoSystem = (doSystem == 0) ? false : true;
@@ -550,8 +550,8 @@ void EMultipole::Initialize(Property *opt) {
             _calcESF = false;
         }
         if (_calcESF) {
-            _esfGridFile = opt->get(key+".grid").as< string >();
-            _esfOutFile = opt->get(key+".output").as< string >();
+            _esfGridFile = opt->get(key+".grid").as< std::string >();
+            _esfOutFile = opt->get(key+".output").as< std::string >();
         }
 
     key = "options.emultipole.alphamol";
@@ -568,7 +568,7 @@ void EMultipole::Initialize(Property *opt) {
             _doSystem = false;
         }
         if ( opt->exists(key+".output") ) {
-            string alphaOutFile = opt->get(key+".output").as< string >();
+            std::string alphaOutFile = opt->get(key+".output").as< string >();
             _alphaOutFile = alphaOutFile;
         }
         else {
@@ -627,7 +627,7 @@ void EMultipole::Initialize(Property *opt) {
             if (_aDamp) { _useExp = true; }
         }
          if ( opt->exists(key+".scaling") ) {
-            _scale1 = opt->get(key+".scaling").as< vector<double> >();
+            _scale1 = opt->get(key+".scaling").as< std::vector<double> >();
             if (0 < _scale1.size() && _scale1.size() < 4) {
                 _useScaling = true; }
             else {
@@ -675,19 +675,19 @@ void EMultipole::EStatify(Topology *top, Property *options) {
 
     cout << endl << "... ... Estatify system: ";
 
-    string key = "options.emultipole";
-    string allocFile = options->get(key+".multipoles").as<string> ();
+    std::string key = "options.emultipole";
+    std::string allocFile = options->get(key+".multipoles").as<std::string> ();
 
     // ++++++++++++++++++++++++++++++++ //
     // Load polar-site indices from XML //
     // ++++++++++++++++++++++++++++++++ //
 
     // => Output to maps:
-    map<string, vector<int> > alloc_frag_mpoleIdx;
-    map<string, vector<string> > alloc_frag_mpoleName;
-    map<string, string > alloc_seg_mpoleFiles_n;
-    map<string, string > alloc_seg_mpoleFiles_e;
-    map<string, string > alloc_seg_mpoleFiles_h;
+    std::map<std::string, std::vector<int> > alloc_frag_mpoleIdx;
+    std::map<std::string, std::vector<std::string> > alloc_frag_mpoleName;
+    std::map<std::string, std::string > alloc_seg_mpoleFiles_n;
+    std::map<std::string, std::string > alloc_seg_mpoleFiles_e;
+    std::map<std::string, std::string > alloc_seg_mpoleFiles_h;
 
     Property allocation; // <- Which polar sites are part of which fragment?
     load_property_from_xml(allocation, allocFile.c_str());
@@ -724,29 +724,29 @@ void EMultipole::EStatify(Topology *top, Property *options) {
 
 
     key = "topology.molecules.molecule";
-    list<Property *> mols = allocation.Select(key);
-    list<Property *>::iterator molit;
+    std::list<Property *> mols = allocation.Select(key);
+    std::list<Property *>::iterator molit;
     for (molit = mols.begin(); molit != mols.end(); molit++) {
 
-        string molName = (*molit)->get("name").as<string> ();
+        std::string molName = (*molit)->get("name").as<std::string> ();
 
         key = "segments.segment";
-        list<Property *> segs = (*molit)->Select(key);
-        list<Property *>::iterator segit;
+        std::list<Property *> segs = (*molit)->Select(key);
+        std::list<Property *>::iterator segit;
 
         for (segit = segs.begin(); segit != segs.end(); segit++) {
 
-            string segName = (*segit)->get("name").as<string> ();
+            std::string segName = (*segit)->get("name").as<std::string> ();
 
             // GDMA filenames for cation (h), neutral (n), anion (e) state
-            string mpoleFile_n = (*segit)->get("multipoles_n").as<string> ();
+            std::string mpoleFile_n = (*segit)->get("multipoles_n").as<std::string> ();
             alloc_seg_mpoleFiles_n[segName] = mpoleFile_n;
             if ( (*segit)->exists("multipoles_e")) {
-                string mpoleFile_e = (*segit)->get("multipoles_e").as<string>();
+                std::string mpoleFile_e = (*segit)->get("multipoles_e").as<std::string>();
                 alloc_seg_mpoleFiles_e[segName] = mpoleFile_e;
             }
             if ( (*segit)->exists("multipoles_h")) {
-                string mpoleFile_h = (*segit)->get("multipoles_h").as<string>();
+                std::string mpoleFile_h = (*segit)->get("multipoles_h").as<std::string>();
                 alloc_seg_mpoleFiles_h[segName] = mpoleFile_h;
             }
 
@@ -760,15 +760,15 @@ void EMultipole::EStatify(Topology *top, Property *options) {
             }
 
             key = "fragments.fragment";
-            list<Property *> frags = (*segit)->Select(key);
-            list<Property *>::iterator fragit;
+            std::list<Property *> frags = (*segit)->Select(key);
+            std::list<Property *>::iterator fragit;
 
             for (fragit = frags.begin(); fragit != frags.end(); fragit++) {
 
-                string fragName = (*fragit)->get("name").as<string> ();
-                string mapKeyName = fragName + segName + molName;
+                std::string fragName = (*fragit)->get("name").as<std::string> ();
+                std::string mapKeyName = fragName + segName + molName;
 
-                string mpoles = (*fragit)->get("mpoles").as<string> ();
+                std::string mpoles = (*fragit)->get("mpoles").as<std::string> ();
                 
                 if (tools::globals::verbose) {
                     cout << endl << "Fragment " << fragName << flush;
@@ -776,21 +776,21 @@ void EMultipole::EStatify(Topology *top, Property *options) {
                 }
                 
                 Tokenizer tokPoles(mpoles, " \t\n");
-                vector<string> mpoleInfo;
+                std::vector<std::string> mpoleInfo;
                 tokPoles.ToVector(mpoleInfo);
 
-                vector<int> mpoleIdcs;
-                vector<string> mpoleNames;
+                std::vector<int> mpoleIdcs;
+                std::vector<std::string> mpoleNames;
 
-                vector<string> ::iterator strit;
+                std::vector<std::string> ::iterator strit;
                 for (strit=mpoleInfo.begin(); strit<mpoleInfo.end(); strit++) {
                     
                     Tokenizer tokPoleInfo( (*strit), " :");
-                    vector<string> poleInfo;
+                    std::vector<std::string> poleInfo;
                     tokPoleInfo.ToVector(poleInfo);
 
                     int mpoleIdx = boost::lexical_cast<int>(poleInfo[0]);
-                    string mpoleName = poleInfo[1];
+                    std::string mpoleName = poleInfo[1];
                     
                     if (tools::globals::verbose) {
                         cout << endl << "MP id=" << mpoleIdx << flush;
@@ -813,21 +813,21 @@ void EMultipole::EStatify(Topology *top, Property *options) {
     // ++++++++++++++++++++++ //
 
     // => Output to PolarSite Container (template container)
-    map<string, vector<PolarSite*> > map_seg_polarSites;
-    map<string, vector<bool> >       map_seg_chrgStates;
+    std::map<std::string, std::vector<PolarSite*> > map_seg_polarSites;
+    std::map<std::string, std::vector<bool> >       map_seg_chrgStates;
 
 
     // Multipoles for neutral state
     int state = 0; 
-    map<string, string > ::iterator strit;
+    std::map<std::string, std::string > ::iterator strit;
     for (strit = alloc_seg_mpoleFiles_n.begin();
          strit != alloc_seg_mpoleFiles_n.end();
          strit++) {
 
-        string segName = strit->first;
-        string filename = strit->second;
+        std::string segName = strit->first;
+        std::string filename = strit->second;
 
-        vector< PolarSite* > poles = ParseGdmaFile(filename, state);
+        std::vector< PolarSite* > poles = ParseGdmaFile(filename, state);
 
         map_seg_polarSites[segName] = poles;
         map_seg_chrgStates[segName].resize(3);
@@ -844,14 +844,14 @@ void EMultipole::EStatify(Topology *top, Property *options) {
         for (strit = alloc_seg_mpoleFiles_e.begin();
              strit != alloc_seg_mpoleFiles_e.end();
              strit++) {
-            string segName = strit->first;
-            string filename = strit->second;
+            std::string segName = strit->first;
+            std::string filename = strit->second;
 
-            vector< PolarSite* > polesAnion = ParseGdmaFile(filename, state);
+            std::vector< PolarSite* > polesAnion = ParseGdmaFile(filename, state);
             map_seg_chrgStates[segName][state+1] = true;
 
             // Merge with polar sites for neutral state
-            vector< PolarSite* > polesNeutral = map_seg_polarSites[segName];            
+            std::vector< PolarSite* > polesNeutral = map_seg_polarSites[segName];            
 
             assert(polesAnion.size() == polesNeutral.size());
             for (unsigned int i = 0; i < polesNeutral.size(); i++) {
@@ -870,14 +870,14 @@ void EMultipole::EStatify(Topology *top, Property *options) {
         for (strit = alloc_seg_mpoleFiles_h.begin();
              strit != alloc_seg_mpoleFiles_h.end();
              strit++) {
-            string segName = strit->first;
-            string filename = strit->second;
+            std::string segName = strit->first;
+            std::string filename = strit->second;
 
-            vector< PolarSite* > polesCation = ParseGdmaFile(filename, state);
+            std::vector< PolarSite* > polesCation = ParseGdmaFile(filename, state);
             map_seg_chrgStates[segName][state+1] = true;
 
             // Merge with polar sites for neutral state
-            vector< PolarSite* > polesNeutral = map_seg_polarSites[segName];            
+            std::vector< PolarSite* > polesNeutral = map_seg_polarSites[segName];            
 
             assert(polesCation.size() == polesNeutral.size());
             for (unsigned int i = 0; i < polesNeutral.size(); i++) {
@@ -895,9 +895,9 @@ void EMultipole::EStatify(Topology *top, Property *options) {
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
 
     // Containers to use for mapping
-    // map<string, vector<PolarSite*> >     map_seg_polarSites;
-    // map<string, vector<int> >            alloc_frag_mpoleIdx;
-    // map<string, vector<string> >         alloc_frag_mpoleName;
+    // map<std::string, std::vector<PolarSite*> >     map_seg_polarSites;
+    // map<std::string, std::vector<int> >            alloc_frag_mpoleIdx;
+    // map<std::string, std::vector<std::string> >         alloc_frag_mpoleName;
     
     // TO CONTINUE FROM HERE ...
     // Loop over segments, loop over fragments in segments.
@@ -924,18 +924,18 @@ void EMultipole::EStatify(Topology *top, Property *options) {
  * ... Determines polarizabilities from element type
  * @return Yields polar-site template container
  */
-vector<PolarSite*> EMultipole::ParseGdmaFile(string filename, int state) {
+std::vector<PolarSite*> EMultipole::ParseGdmaFile(std::string filename, int state) {
 
     int poleCount = 1;
     double Q0_total = 0.0;
-    string units = "";
+    std::string units = "";
     bool useDefaultPs = true;
     bool warn_anisotropy = false;
 
-    vector<PolarSite*> poles;
+    std::vector<PolarSite*> poles;
     PolarSite *thisPole = NULL;
 
-    vector<double> Qs; // <- multipole moments
+    std::vector<double> Qs; // <- multipole moments
     double         P1; // <- dipole polarizability
 
     std::string line;
@@ -946,7 +946,7 @@ vector<PolarSite*> EMultipole::ParseGdmaFile(string filename, int state) {
         while ( intt.good() ) {
 
             std::getline(intt, line);
-            vector<string> split;
+            std::vector<string> split;
             Tokenizer toker(line, " \t");
             toker.ToVector(split);
 
@@ -982,7 +982,7 @@ vector<PolarSite*> EMultipole::ParseGdmaFile(string filename, int state) {
                 P1 = -1.;
 
                 int id = poleCount++;  // <- starts from 1
-                string name = split[0];
+                std::string name = split[0];
 
                 double BOHR2NM = 0.0529189379;
                 double ANGSTROM2NM = 0.1;
@@ -1060,9 +1060,9 @@ vector<PolarSite*> EMultipole::ParseGdmaFile(string filename, int state) {
         cout << endl << "... ... ... NOTE Using default Thole polarizabilities "
              << "for charge state " << state << ". ";
 
-        vector< PolarSite* > ::iterator pol;
+        std::vector< PolarSite* > ::iterator pol;
         for (pol = poles.begin(); pol < poles.end(); ++pol) {
-            string elem = (*pol)->getName();
+            std::string elem = (*pol)->getName();
             double alpha = 0.0;
             // Original set of Thole polarizabilites
             if      (elem == "C") { alpha = 1.75e-3;  } // <- conversion from
@@ -1096,9 +1096,9 @@ vector<PolarSite*> EMultipole::ParseGdmaFile(string filename, int state) {
  * Parses GAUSSIAN cube file (for structure sample see below)
  * ... NOTE Only parses header to extract voxel vectors and repetition numbers
  */
-vector<vec> EMultipole::ParseCubeFileHeader(string filename) {
+std::vector<vec> EMultipole::ParseCubeFileHeader(std::string filename) {
 
-    vector< vec > cube;
+    std::vector< vec > cube;
     cube.resize(5);
 
     //               STRUCTURE CUBE CONTAINER
@@ -1125,7 +1125,7 @@ vector<vec> EMultipole::ParseCubeFileHeader(string filename) {
             ++lineCount;
 
             std::getline(intt, line);
-            vector<string> split;
+            std::vector<std::string> split;
             Tokenizer toker(line, " ");
             toker.ToVector(split);
 
@@ -1230,13 +1230,13 @@ void EMultipole::CalculateGSPInput(Topology *top) {
 
     cout << endl << "... ... Multipole analysis for input structures." << flush;
 
-    map< string, vector< PolarSite* > >::iterator sit;
+    map< std::string, std::vector< PolarSite* > >::iterator sit;
     for (sit = this->_map_seg_polarSites.begin();
          sit != this->_map_seg_polarSites.end();
          ++sit) {
 
-        vector< PolarSite* > poles = sit->second;
-        vector< PolarSite* > ::iterator pit;
+        std::vector< PolarSite* > poles = sit->second;
+        std::vector< PolarSite* > ::iterator pit;
 
         // Translate CoM to origin
         vec CoM = vec(0.,0.,0.);
@@ -1269,8 +1269,8 @@ void EMultipole::CalculateGSPInput(Topology *top) {
             double Q_INT_TO_EXT = ENM_TO_DEBYE*NM_TO_A;
 
             FILE *out;
-            string filename = "dma_" + sit->first 
-                            + "_" + boost::lexical_cast<string>(state)
+            std::string filename = "dma_" + sit->first 
+                            + "_" + boost::lexical_cast<std::string>(state)
                             + ".dat";
             
             out = fopen(filename.c_str(),"w");
@@ -1337,7 +1337,7 @@ void EMultipole::CalculateESPInput(Topology *top) {
     // Iterate over segment types (in GDMA config) //
     // +++++++++++++++++++++++++++++++++++++++++++ //
     
-    map< string, vector< PolarSite* > >::iterator sit;
+    map< std::string, std::vector< PolarSite* > >::iterator sit;
     for (sit = this->_map_seg_polarSites.begin();
          sit != this->_map_seg_polarSites.end();
          ++sit) {
@@ -1345,8 +1345,8 @@ void EMultipole::CalculateESPInput(Topology *top) {
         cout << endl << "... ... ... ESP for segment type " << sit->first
              << flush;
 
-        vector< PolarSite* > poles = sit->second;
-        vector< PolarSite* >::iterator pit;
+        std::vector< PolarSite* > poles = sit->second;
+        std::vector< PolarSite* >::iterator pit;
 
         // Translate CoM to origin
         vec CoM = vec(0.,0.,0.);
@@ -1374,9 +1374,9 @@ void EMultipole::CalculateESPInput(Topology *top) {
 
             if (state == 0) {
                 FILE *out;
-                string chkOutfile = sit->first
+                std::string chkOutfile = sit->first
                             + "_input"
-                            + "_" + boost::lexical_cast<string>(state)
+                            + "_" + boost::lexical_cast<std::string>(state)
                             + ".xyz";
                 out = fopen(chkOutfile.c_str(),"w");
                 fprintf(out, "%1lu\n\n", poles.size()*9);
@@ -1389,8 +1389,8 @@ void EMultipole::CalculateESPInput(Topology *top) {
 
             // Prepare cube file, for structure sample see cube-file parser
             FILE *out;
-            string espOutFile =  sit->first
-                            + "_" + boost::lexical_cast<string>(state)
+            std::string espOutFile =  sit->first
+                            + "_" + boost::lexical_cast<std::string>(state)
                             + "_" + _espOutFile;
             out = fopen(espOutFile.c_str(), "w");
 
@@ -1426,8 +1426,8 @@ void EMultipole::CalculateESPRigid(Topology *top) {
 
     cout << "... ... ... Selected segment type " << seg->getName() << flush;
 
-    vector< PolarSite* > poles = seg->PolarSites();
-    vector< PolarSite* > ::iterator pit;
+    std::vector< PolarSite* > poles = seg->PolarSites();
+    std::vector< PolarSite* > ::iterator pit;
 
     // Translate CoM to origin
     vec CoM = vec(0.,0.,0.);
@@ -1452,9 +1452,9 @@ void EMultipole::CalculateESPRigid(Topology *top) {
 
         if (state == 0) {
             FILE *out;
-            string chkOutfile = seg->getName()
-                        + "_rigid_id" + boost::lexical_cast<string>(seg->getId())
-                        + "_" + boost::lexical_cast<string>(state)
+            std::string chkOutfile = seg->getName()
+                        + "_rigid_id" + boost::lexical_cast<std::string>(seg->getId())
+                        + "_" + boost::lexical_cast<std::string>(state)
                         + ".xyz";
             out = fopen(chkOutfile.c_str(),"w");
             fprintf(out, "%1lu\n\n", poles.size()*9);
@@ -1466,9 +1466,9 @@ void EMultipole::CalculateESPRigid(Topology *top) {
         }
 
         FILE *out;
-        string espOutFile = seg->getName()
-                        + "_ID" + boost::lexical_cast<string>(seg->getId())
-                        + "_" + boost::lexical_cast<string>(state)
+        std::string espOutFile = seg->getName()
+                        + "_ID" + boost::lexical_cast<std::string>(seg->getId())
+                        + "_" + boost::lexical_cast<std::string>(state)
                         + "_" + _espOutFile;
         out = fopen(espOutFile.c_str(), "w");
 
@@ -1490,11 +1490,11 @@ void EMultipole::CalculateESPRigid(Topology *top) {
  * ... NOTE Writes output in cube-file format, two header lines should
  * ...      already have been written to FILE* out
  */
-void EMultipole::CalculateESP(vector< PolarSite* > &poles, FILE *out) {
+void EMultipole::CalculateESP(std::vector< PolarSite* > &poles, FILE *out) {
 
     // Calculate potential for each voxel, write to output on the fly
     Interactor actor = Interactor(NULL, this);
-    vector< PolarSite* >::iterator pit;
+    std::vector< PolarSite* >::iterator pit;
 
     vec Cxyz = _cube[0];
 
@@ -1532,7 +1532,7 @@ void EMultipole::CalculateESP(vector< PolarSite* > &poles, FILE *out) {
                   Cz.getZ()*NM2BOHR);
     for (pit = poles.begin(); pit < poles.end(); ++pit) {
 
-        string elem = (*pit)->_name;
+        std::string elem = (*pit)->_name;
         int Z = 0;
         if      (elem == "C") { Z = 6; }
         else if (elem == "H") { Z = 1; }
@@ -1578,7 +1578,7 @@ void EMultipole::CalculateESP(vector< PolarSite* > &poles, FILE *out) {
 
     // Calculate self-energy of configuration (just out of interest)
     double E = 0.0;
-    vector< PolarSite* > ::iterator pit2;
+    std::vector< PolarSite* > ::iterator pit2;
     for (pit = poles.begin(); pit < poles.end(); ++pit) {
         for (pit2 = pit + 1; pit2 < poles.end(); ++pit2) {
             E += actor.EnergyInterESP(*(*pit), *(*pit2));            
@@ -1607,7 +1607,7 @@ void EMultipole::CalculateESF(Topology *top) {
     // Load grid from file //
     // +++++++++++++++++++ //
 
-    vector<vec> gridPoints;
+    std::vector<vec> gridPoints;
     double CONVERT2NM = 1;
 
     std::string line;
@@ -1620,7 +1620,7 @@ void EMultipole::CalculateESF(Topology *top) {
 
 
             std::getline(intt, line);
-            vector<string> split;
+            std::vector<std::string> split;
             Tokenizer toker(line, " ");
             toker.ToVector(split);
 
@@ -1637,7 +1637,7 @@ void EMultipole::CalculateESF(Topology *top) {
 
             // Units used
             if ( split[0] == "Units") {
-                string units = split[1];
+                std::string units = split[1];
 
                 if      (units == "bohr") { CONVERT2NM = 0.0529189379; }
                 else if (units == "nm") { CONVERT2NM = 1.; }
@@ -1666,7 +1666,7 @@ void EMultipole::CalculateESF(Topology *top) {
     // Iterate over segment types (in GDMA config) //
     // +++++++++++++++++++++++++++++++++++++++++++ //
 
-    map< string, vector< PolarSite* > >::iterator sit;
+    std::map< std::string, std::vector< PolarSite* > >::iterator sit;
     for (sit = this->_map_seg_polarSites.begin();
          sit != this->_map_seg_polarSites.end();
          ++sit) {
@@ -1675,8 +1675,8 @@ void EMultipole::CalculateESF(Topology *top) {
 
 
 
-        vector< PolarSite* > poles = sit->second;
-        vector< PolarSite* >::iterator pit;
+        std::vector< PolarSite* > poles = sit->second;
+        std::vector< PolarSite* >::iterator pit;
 
         for (int state = -1; state < 2; ++state) {
 
@@ -1685,7 +1685,7 @@ void EMultipole::CalculateESF(Topology *top) {
             if (!hasState) { continue; }
 
             // Store the field
-            vector< vec > gridPointESF;
+            std::vector< vec > gridPointESF;
 
             // Charge container appropriately
             for (pit = poles.begin(); pit < poles.end(); ++pit) {
@@ -1695,7 +1695,7 @@ void EMultipole::CalculateESF(Topology *top) {
             // Calculate field for each grid point, store in gridPointESF
             Interactor actor = Interactor(top, this);
 
-            vector< vec >::iterator grit;
+            std::vector< vec >::iterator grit;
             for (grit = _esfGrid.begin(); grit < _esfGrid.end(); ++grit) {
 
                 vec F = vec(0.0, 0.0, 0.0);
@@ -1713,8 +1713,8 @@ void EMultipole::CalculateESF(Topology *top) {
 
             // Write to file
             FILE *out;
-            string esfOutFile =  sit->first
-                            + "_" + boost::lexical_cast<string>(state)
+            std::string esfOutFile =  sit->first
+                            + "_" + boost::lexical_cast<std::string>(state)
                             + "_" + _esfOutFile;
 
             out = fopen(esfOutFile.c_str(), "w");
@@ -1745,7 +1745,7 @@ void EMultipole::CalculateAlphaInput(Topology *top) {
 
     cout << endl << "... ... Calculating site polarizabilities";
 
-    map< string, vector< PolarSite* > >::iterator sit;
+    map< std::string, std::vector< PolarSite* > >::iterator sit;
     for (sit = _map_seg_polarSites.begin();
          sit != _map_seg_polarSites.end();
          ++sit) {
@@ -1754,10 +1754,10 @@ void EMultipole::CalculateAlphaInput(Topology *top) {
              << sit->first << flush;
 
         FILE *out;
-        string alphaOutFile = sit->first + "_" + _alphaOutFile;
+        std::string alphaOutFile = sit->first + "_" + _alphaOutFile;
         out = fopen(alphaOutFile.c_str(), "w");
 
-        vector< PolarSite* > ::iterator pit;
+        std::vector< PolarSite* > ::iterator pit;
 
         // Neutral state
         int state = 0;
@@ -1810,10 +1810,10 @@ void EMultipole::CalculateAlphaInput(Topology *top) {
 /**
  * Calculates polarizability for arbitrary assembly of polar sites
  */
-void EMultipole::CalculateAlphaRigid(vector< PolarSite* > &poles,
+void EMultipole::CalculateAlphaRigid(std::vector< PolarSite* > &poles,
                                       FILE *out, bool system) {
 
-    vector< PolarSite* > ::iterator pit;
+    std::vector< PolarSite* > ::iterator pit;
 
     double axx, axy, axz;             // |
     double ayx, ayy, ayz;             // |-> Polarizability tensor
@@ -1994,14 +1994,14 @@ void EMultipole::CalculateAlphaRigid(vector< PolarSite* > &poles,
  * Induces dipoles on polar sites in self-consistent manner until converged
  * ... NOTE Designed to be used in conjunction with ::CalculateAlphaMol()
  */
-void EMultipole::SiteAlphaInduce(Topology *top, vector<PolarSite*> &poles) {
+void EMultipole::SiteAlphaInduce(Topology *top, std::vector<PolarSite*> &poles) {
 
     int    maxIter = this->_maxIter;
     double wSOR = this->_wSOR_N;
     double eTOL = this->_epsTol;
 
-    vector< PolarSite* >::iterator pit1;
-    vector< PolarSite* >::iterator pit2;
+    std::vector< PolarSite* >::iterator pit1;
+    std::vector< PolarSite* >::iterator pit2;
 
     Interactor actor = Interactor(top, this);
 
@@ -2075,28 +2075,28 @@ void EMultipole::DistributeMpoles(Topology *top) {
     // Equip TOP with distributed multipoles //
     // +++++++++++++++++++++++++++++++++++++ //
 
-    vector<Segment*> ::iterator sit;
+    std::vector<Segment*> ::iterator sit;
     for (sit = top->Segments().begin();
          sit < top->Segments().end();
          ++sit) {
 
         Segment *seg = *sit;
-        vector<PolarSite*> poleSites = _map_seg_polarSites.at(seg->getName());
+        std::vector<PolarSite*> poleSites = _map_seg_polarSites.at(seg->getName());
         seg->setChrgStates(_map_seg_chrgStates[seg->getName()]);
 
         bool map2md = _map2md[seg->getName()];
 
-        vector<Fragment*> ::iterator fit;
+        std::vector<Fragment*> ::iterator fit;
         for (fit = seg->Fragments().begin();
              fit < seg->Fragments().end();
              ++fit) {
             
             Fragment *frag = *fit;
 
-            string idkey = frag->getName() + seg->getName()
+            std::string idkey = frag->getName() + seg->getName()
                          + seg->getMolecule()->getName();
-            vector<int> polesInFrag = _alloc_frag_mpoleIdx.at(idkey);
-            vector<string> namesInFrag = _alloc_frag_mpoleName.at(idkey);
+            std::vector<int> polesInFrag = _alloc_frag_mpoleIdx.at(idkey);
+            std::vector<std::string> namesInFrag = _alloc_frag_mpoleName.at(idkey);
 
             if (map2md) {
                 if (polesInFrag.size() != frag->Atoms().size()) {
@@ -2111,7 +2111,7 @@ void EMultipole::DistributeMpoles(Topology *top) {
 
             for (unsigned int i = 0; i < polesInFrag.size(); i++) {
 
-                string name = namesInFrag[i];
+                std::string name = namesInFrag[i];
                 int poleId = polesInFrag[i];
 
                 PolarSite *templ = poleSites[poleId-1];
@@ -2174,10 +2174,10 @@ bool EMultipole::EvaluateFrame(Topology *top) {
         cout << endl << "... ... Writing polar-site coordinates to "
              << _checkPolesPDB << ". " << flush;
         // To check rotation into global frame
-        string mpNAME = _checkPolesPDB;
+        std::string mpNAME = _checkPolesPDB;
         FILE *mpPDB = NULL;
         mpPDB = fopen(mpNAME.c_str(), "w");
-        vector<Segment*>::iterator sit;
+        std::vector<Segment*>::iterator sit;
         for (sit = top->Segments().begin();
              sit < top->Segments().end();
              ++sit) {
@@ -2220,18 +2220,18 @@ bool EMultipole::EvaluateFrame(Topology *top) {
         cout << endl << "... ... Calculating site polarizabilities" << endl;
 
         FILE *out;
-        string alphaOutFile =
-                "Frame" + boost::lexical_cast<string>(top->getDatabaseId())
+        std::string alphaOutFile =
+                "Frame" + boost::lexical_cast<std::string>(top->getDatabaseId())
                 + "_" + _alphaOutFile;
         out = fopen(alphaOutFile.c_str(), "w");
 
-        vector< Segment* > ::iterator sit;
-        vector< PolarSite* > ::iterator pit;
+        std::vector< Segment* > ::iterator sit;
+        std::vector< PolarSite* > ::iterator pit;
         for (sit = top->Segments().begin();
              sit < top->Segments().end();
              ++sit) {
 
-            vector< PolarSite* > poles = (*sit)->PolarSites();
+            std::vector< PolarSite* > poles = (*sit)->PolarSites();
 
 
             cout << "\r... ... ... Segment " << (*sit)->getId() << " " << flush;
@@ -2281,10 +2281,10 @@ bool EMultipole::EvaluateFrame(Topology *top) {
     // ++++++++++++++++++++++++++++++++++++++++ //
 
     if (this->_calcGSP) {
-        vector< Segment* > ::iterator sit;
-        vector< PolarSite* > ::iterator pit;
-        vector< Segment* > ::iterator sit2;
-        vector< PolarSite* > ::iterator pit2;
+        std::vector< Segment* > ::iterator sit;
+        std::vector< PolarSite* > ::iterator pit;
+        std::vector< Segment* > ::iterator sit2;
+        std::vector< PolarSite* > ::iterator pit2;
 
         vec gsp_n   = _gsp_normal;
         int id1     = _gsp_first;
@@ -2297,7 +2297,7 @@ bool EMultipole::EvaluateFrame(Topology *top) {
         double Q_INT_TO_EXT = ENM_TO_DEBYE*NM_TO_A;
 
         FILE *out;
-        string filename = "gsp.dat";
+        std::string filename = "gsp.dat";
         out = fopen(filename.c_str(),"w");
 
         fprintf(out, "# PRJR   "
@@ -2459,7 +2459,7 @@ bool EMultipole::EvaluateFrame(Topology *top) {
     // Create + start threads (Site Ops) //
     // +++++++++++++++++++++++++++++++++ //
 
-    vector<SiteOpMultipole*> siteOps;    
+    std::vector<SiteOpMultipole*> siteOps;    
 
     _nextSite = top->Segments().begin();
 
@@ -2498,12 +2498,12 @@ bool EMultipole::EvaluateFrame(Topology *top) {
     if (_energies2File) {
 
         FILE *out;
-        string topOutFile = "Frame"
-                          + boost::lexical_cast<string>(top->getDatabaseId())
+        std::string topOutFile = "Frame"
+                          + boost::lexical_cast<std::string>(top->getDatabaseId())
                           + "_" + _outFile;
         out = fopen(topOutFile.c_str(), "w");
 
-        vector< Segment* > ::iterator sit;
+        std::vector< Segment* > ::iterator sit;
         for (sit = top->Segments().begin();
              sit < top->Segments().end();
              ++sit) {
@@ -2615,10 +2615,10 @@ void EMultipole::SiteOpMultipole::Run(void) {
 void EMultipole::SiteOpMultipole::InitSlotData(Topology *top) {
     
 
-    vector< Segment* > ::iterator sitRef;
-    vector< vector<PolarSite*> > ::iterator sitNew;
-    vector< PolarSite* > ::iterator pitRef;
-    vector< PolarSite* > ::iterator pitNew;
+    std::vector< Segment* > ::iterator sitRef;
+    std::vector< std::vector<PolarSite*> > ::iterator sitNew;
+    std::vector< PolarSite* > ::iterator pitRef;
+    std::vector< PolarSite* > ::iterator pitNew;
     
     _polarSites.resize(top->Segments().size());
     assert(top->Segments().size() == _polarSites.size());
@@ -2647,8 +2647,8 @@ void EMultipole::SiteOpMultipole::InitSlotData(Topology *top) {
  */
 EMultipole::SiteOpMultipole::~SiteOpMultipole() {
 
-    vector< vector<PolarSite*> > ::iterator sit;
-    vector<PolarSite*> ::iterator pol;
+    std::vector< std::vector<PolarSite*> > ::iterator sit;
+    std::vector<PolarSite*> ::iterator pol;
 
     for (sit = _polarSites.begin(); sit < _polarSites.end(); ++sit) {
         for (pol = (*sit).begin(); pol < (*sit).end(); ++pol) {
@@ -2679,7 +2679,7 @@ void EMultipole::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
     this->_polsPolSphere.clear(); // <- Polar sites within cutoff
     this->_polsOutSphere.clear(); // <- Polar sites within cutoff1, cutoff2
 
-    vector<Segment*> ::iterator sit;
+    std::vector<Segment*> ::iterator sit;
     for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
 
         double r12 = abs(_top->PbShortestConnect((*sit)->getPos(),
@@ -2699,7 +2699,7 @@ void EMultipole::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
 
 
 //    FILE *out;
-//    string shellFile = "OuterShell.pdb";
+//    std::string shellFile = "OuterShell.pdb";
 //    out = fopen(shellFile.c_str(), "w");
 //    for (sit = _segsPolSphere.begin(); sit < _segsPolSphere.end(); ++sit) {
 //        (*sit)->WritePDB(out, "Multipoles", "");
@@ -2724,8 +2724,8 @@ void EMultipole::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
     this->Depolarize();
 
     // Make sure, outer shell also depolarized, according to strategy
-    vector< vector<PolarSite*> > ::iterator sit1;
-    vector<PolarSite*> ::iterator pit;
+    std::vector< std::vector<PolarSite*> > ::iterator sit1;
+    std::vector<PolarSite*> ::iterator pit;
     for (sit1 = _polsOutSphere.begin(); sit1 < _polsOutSphere.end(); ++sit1) {
         for (pit = (*sit1).begin(); pit < (*sit1).end(); ++pit) {
             (*pit)->Depolarize();
@@ -2733,7 +2733,7 @@ void EMultipole::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
     }
 
     // Keep track of number of iterations needed until converged
-    vector<int> iters;
+    std::vector<int> iters;
     iters.resize(3);
 
     int state = 0;
@@ -2756,11 +2756,11 @@ void EMultipole::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
 
         
 //        FILE *out;
-//        string toFile = boost::lexical_cast<string>(_seg->getId())
+//        std::string toFile = boost::lexical_cast<std::string>(_seg->getId())
 //                      + "_R_absU_N.dat";
 //        out = fopen(toFile.c_str(), "w");
-//        vector< PolarSite* > ::iterator pit;
-//        vector< vector< PolarSite* > > ::iterator sit;
+//        std::vector< PolarSite* > ::iterator pit;
+//        std::vector< std::vector< PolarSite* > > ::iterator sit;
 //        vec CoM = _seg->getPos();
 //        for (sit = _polsPolSphere.begin(); sit < _polsPolSphere.end(); ++sit) {
 //            for (pit = (*sit).begin(); pit < (*sit).end(); ++pit) {
@@ -2777,10 +2777,10 @@ void EMultipole::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
         
         
 //        // For visual check of convergence
-//        string mpNAME = "seg1_cation.dat";
+//        std::string mpNAME = "seg1_cation.dat";
 //        FILE *mpDat = NULL;
 //        mpDat = fopen(mpNAME.c_str(), "w");
-//        vector<PolarSite*>::iterator pit;
+//        std::vector<PolarSite*>::iterator pit;
 //        for (pit = _polsPolSphere[0].begin();
 //             pit < _polsPolSphere[0].end();
 //             ++pit) {
@@ -2794,8 +2794,8 @@ void EMultipole::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
 //        fclose(mpDat);
         
         // this->Depolarize(); // OVERRIDE
-        vector< vector<PolarSite*> > ::iterator sit1;
-        vector< PolarSite* > ::iterator pit1;
+        std::vector< std::vector<PolarSite*> > ::iterator sit1;
+        std::vector< PolarSite* > ::iterator pit1;
         for (sit1 = _polsPolSphere.begin(); sit1 < _polsPolSphere.end(); ++sit1) {
             for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
                 (*pit1)->ResetFieldU();
@@ -2824,10 +2824,10 @@ void EMultipole::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
 
         /*
         // For visual check of convergence
-        string mpNAME = "seg1_cation.dat";
+        std::string mpNAME = "seg1_cation.dat";
         FILE *mpDat = NULL;
         mpDat = fopen(mpNAME.c_str(), "w");
-        vector<PolarSite*>::iterator pit;
+        std::vector<PolarSite*>::iterator pit;
         for (pit = _polsPolSphere[0].begin();
              pit < _polsPolSphere[0].end();
              ++pit) {
@@ -2837,8 +2837,8 @@ void EMultipole::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
         */
 
         // this->Depolarize(); // OVERRIDE
-        vector< vector<PolarSite*> > ::iterator sit1;
-        vector< PolarSite* > ::iterator pit1;
+        std::vector< std::vector<PolarSite*> > ::iterator sit1;
+        std::vector< PolarSite* > ::iterator pit1;
         for (sit1 = _polsPolSphere.begin(); sit1 < _polsPolSphere.end(); ++sit1) {
             for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
                 (*pit1)->ResetFieldU();
@@ -2868,11 +2868,11 @@ void EMultipole::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
 
         
 //        FILE *out;
-//        string toFile = boost::lexical_cast<string>(_seg->getId())
+//        std::string toFile = boost::lexical_cast<std::string>(_seg->getId())
 //                      + "_R_absU_C.dat";
 //        out = fopen(toFile.c_str(), "w");
-//        vector< PolarSite* > ::iterator pit;
-//        vector< vector< PolarSite* > > ::iterator sit;
+//        std::vector< PolarSite* > ::iterator pit;
+//        std::vector< std::vector< PolarSite* > > ::iterator sit;
 //        vec CoM = _seg->getPos();
 //        for (sit = _polsPolSphere.begin(); sit < _polsPolSphere.end(); ++sit) {
 //            for (pit = (*sit).begin(); pit < (*sit).end(); ++pit) {
@@ -2889,10 +2889,10 @@ void EMultipole::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
         
         
 //        // For visual check of convergence
-//        string mpNAME = "seg1_neutral.dat";
+//        std::string mpNAME = "seg1_neutral.dat";
 //        FILE *mpDat = NULL;
 //        mpDat = fopen(mpNAME.c_str(), "w");
-//        vector<PolarSite*>::iterator pit;
+//        std::vector<PolarSite*>::iterator pit;
 //        for (pit = _polsPolSphere[0].begin();
 //             pit < _polsPolSphere[0].end();
 //             ++pit) {
@@ -2927,7 +2927,7 @@ void EMultipole::SiteOpMultipole::EvalSite(Topology *top, Segment *seg) {
  */
 void EMultipole::SiteOpMultipole::Charge(int state) {
 
-    vector< PolarSite* > ::iterator pit;
+    std::vector< PolarSite* > ::iterator pit;
     for (pit = _polarSites[_seg->getId()-1].begin();
          pit < _polarSites[_seg->getId()-1].end();
          ++pit) {
@@ -2946,10 +2946,10 @@ int EMultipole::SiteOpMultipole::Induce(int state) {
     double eTOL = this->_master->_epsTol;
     int    maxI = this->_master->_maxIter;
 
-    vector< vector<PolarSite*> > ::iterator sit1;
-    vector< vector<PolarSite*> > ::iterator sit2;
-    vector< PolarSite* > ::iterator pit1;
-    vector< PolarSite* > ::iterator pit2;
+    std::vector< std::vector<PolarSite*> > ::iterator sit1;
+    std::vector< std::vector<PolarSite*> > ::iterator sit2;
+    std::vector< PolarSite* > ::iterator pit1;
+    std::vector< PolarSite* > ::iterator pit2;
 
     // ++++++++++++++++++++++++++++++++++++++++++++++ //
     // Inter-site fields (arising from perm. m'poles) //
@@ -3105,14 +3105,14 @@ double EMultipole::SiteOpMultipole::EnergyStatic(int state) {
     _actor.ResetEnergy();
     double E_Tot = 0.0;
 
-    vector< Segment* > ::iterator seg1;
-    vector< Segment* > ::iterator seg2;
-    vector< vector<PolarSite*> > ::iterator sit1;
-    vector< vector<PolarSite*> > ::iterator sit2;
-    vector< PolarSite* > ::iterator pit1;
-    vector< PolarSite* > ::iterator pit2;
+    std::vector< Segment* > ::iterator seg1;
+    std::vector< Segment* > ::iterator seg2;
+    std::vector< std::vector<PolarSite*> > ::iterator sit1;
+    std::vector< std::vector<PolarSite*> > ::iterator sit2;
+    std::vector< PolarSite* > ::iterator pit1;
+    std::vector< PolarSite* > ::iterator pit2;
 
-    vector< PolarSite* > central = _polarSites[ _seg->getId() - 1 ];
+    std::vector< PolarSite* > central = _polarSites[ _seg->getId() - 1 ];
 
 
     for (seg1 = _segsPolSphere.begin(); seg1 < _segsPolSphere.end(); ++seg1) {
@@ -3157,12 +3157,12 @@ double EMultipole::SiteOpMultipole::Energy(int state) {
     _actor.ResetEnergy();
     double E_Tot = 0.0;
 
-    vector< Segment* > ::iterator seg1;
-    vector< Segment* > ::iterator seg2;
-    vector< vector<PolarSite*> > ::iterator sit1;
-    vector< vector<PolarSite*> > ::iterator sit2;
-    vector< PolarSite* > ::iterator pit1;
-    vector< PolarSite* > ::iterator pit2;
+    std::vector< Segment* > ::iterator seg1;
+    std::vector< Segment* > ::iterator seg2;
+    std::vector< std::vector<PolarSite*> > ::iterator sit1;
+    std::vector< std::vector<PolarSite*> > ::iterator sit2;
+    std::vector< PolarSite* > ::iterator pit1;
+    std::vector< PolarSite* > ::iterator pit2;
 
     // +++++++++++++++++ //
     // Inter-site energy //
@@ -3216,7 +3216,7 @@ double EMultipole::SiteOpMultipole::Energy(int state) {
 
     double E_Out = 0.0;
 
-    vector< PolarSite* > central = _polarSites[ _seg->getId() - 1 ];
+    std::vector< PolarSite* > central = _polarSites[ _seg->getId() - 1 ];
 
     for (sit1 = _polsOutSphere.begin(); sit1 < _polsOutSphere.end(); ++sit1) {
         for (pit1 = (*sit1).begin(); pit1 < (*sit1).end(); ++pit1) {
@@ -3247,8 +3247,8 @@ double EMultipole::SiteOpMultipole::Energy(int state) {
  */
 void EMultipole::SiteOpMultipole::Depolarize() {
 
-    vector< vector<PolarSite*> > ::iterator sit;
-    vector< PolarSite* > ::iterator pit;
+    std::vector< std::vector<PolarSite*> > ::iterator sit;
+    std::vector< PolarSite* > ::iterator pit;
 
     for (sit = _polsPolSphere.begin(); sit < _polsPolSphere.end(); ++sit) {
         for (pit = (*sit).begin(); pit < (*sit).end(); ++pit) {

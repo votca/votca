@@ -69,20 +69,20 @@ void PolarFrag::GeneratePermInduCgSite(bool do_cg_polarizabilities) {
     vec target_pos = _pos;
     int state = 0;
     int L = 2;
-    vector<double> QCG(L*L+2*L+1, 0.0);  // permanent
-    vector<double> uQCG(L*L+2*L+1, 0.0); // induced
+    std::vector<double> QCG(L*L+2*L+1, 0.0);  // permanent
+    std::vector<double> uQCG(L*L+2*L+1, 0.0); // induced
 
     for (PolarFrag::iterator pit = begin();
         pit < end(); ++pit) {
         // PERMANENT MOMENTS
         // Convert real to complex moments            
-        vector<double> Qlm = (*pit)->getQs(0);
+        std::vector<double> Qlm = (*pit)->getQs(0);
         DMA::ComplexSphericalMoments Xlm(Qlm);
         // Shift moments
         DMA::MomentShift mshift;
         vec shift = target_pos - (*pit)->getPos();
         DMA::RegularSphericalHarmonics Clm(-shift);
-        vector<DMA::cmplx> Xlm_shifted = mshift.Shift(Xlm, Clm);            
+        std::vector<DMA::cmplx> Xlm_shifted = mshift.Shift(Xlm, Clm);            
         // Convert complex to real moments & add to base
         DMA::RealSphericalMoments Qlm_shifted(Xlm_shifted);
         Qlm_shifted.AddToVector(QCG);
@@ -90,14 +90,14 @@ void PolarFrag::GeneratePermInduCgSite(bool do_cg_polarizabilities) {
         // INDUCED MOMENTS
         // Convert real to complex moments
         vec u1 = (*pit)->getU1();
-        vector<double> uQlm(L*L+2*L+1, 0.0);
+        std::vector<double> uQlm(L*L+2*L+1, 0.0);
         uQlm[1] = u1.getZ(); // NOTE order is z-x-y == 10-11c-11s
         uQlm[2] = u1.getX();
         uQlm[3] = u1.getY();
         DMA::ComplexSphericalMoments uXlm(uQlm);
         // Shift moments
         DMA::RegularSphericalHarmonics uClm(-shift);
-        vector<DMA::cmplx> uXlm_shifted = mshift.Shift(uXlm, uClm);
+        std::vector<DMA::cmplx> uXlm_shifted = mshift.Shift(uXlm, uClm);
         // Convert complex to real moments & add to base
         DMA::RealSphericalMoments uQlm_shifted(uXlm_shifted);
         uQlm_shifted.AddToVector(uQCG);

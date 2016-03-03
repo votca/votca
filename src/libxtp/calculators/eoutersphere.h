@@ -38,12 +38,12 @@ public:
     EOutersphere() { };
    ~EOutersphere() { };
 
-    string              Identify() { return "eoutersphere"; }
+    std::string              Identify() { return "eoutersphere"; }
 
     void                Initialize(Property *options);
     void                EStatify(Topology *, Property *);
     void                DistributeMpoles(Topology *);
-    vector<PolarSite*>  ParseGdmaFile(string filename, int state);
+    vector<PolarSite*>  ParseGdmaFile(std::string filename, int state);
 
     bool                EvaluateFrame(Topology *top);
     void                ConstLambda(Topology *top);
@@ -227,10 +227,10 @@ public:
         QMPair                        *_pair;
         EOutersphere                  *_master;
 
-        vector< Segment* >              _segsSphere;
-        vector< vector< PolarSite* > >  _polsSphere;
-        vector< vector< PolarSite* > >  _polsPair;
-        vector< vector< PolarSite* > >  _polarSites;
+        std::vector< Segment* >              _segsSphere;
+        std::vector< std::vector< PolarSite* > >  _polsSphere;
+        std::vector< std::vector< PolarSite* > >  _polsPair;
+        std::vector< std::vector< PolarSite* > >  _polarSites;
         InteractorMod                   _actor;
 
     };
@@ -238,22 +238,22 @@ public:
 private:
 
     // Allocation of polar sites to fragments and segments
-    map<string, vector<PolarSite*> >     _map_seg_polarSites;
-    map<string, vector<bool> >           _map_seg_chrgStates;
-    map<string, vector<int> >            _alloc_frag_mpoleIdx;
-    map<string, vector<string> >         _alloc_frag_mpoleName;
-    map<string, bool>                    _map2md;
+    std::map<std::string, std::vector<PolarSite*> >     _map_seg_polarSites;
+    std::map<std::string, std::vector<bool> >           _map_seg_chrgStates;
+    std::map<std::string, std::vector<int> >            _alloc_frag_mpoleIdx;
+    std::map<std::string, std::vector<std::string> >         _alloc_frag_mpoleName;
+    std::map<std::string, bool>                    _map2md;
 
     // Some thread managing
     QMNBList::iterator                  _nextPair;
     Mutex                                _nextPairMutex;
 
     // Parameters to be used in calculation of reorg. energies
-    string                               _method;
+    std::string                               _method;
     double                               _pekarFactor;
     double                               _lambdaConstant;
     double                               _lambdaCutoff;
-    map<string,double>                   _radius;
+    std::map<std::string,double>                   _radius;
 
 };
 

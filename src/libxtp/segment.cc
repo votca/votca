@@ -19,7 +19,7 @@
 
 #include <votca/xtp/segment.h>
 
-using namespace std;
+
 
 namespace votca { namespace xtp {
    
@@ -40,7 +40,7 @@ Segment::Segment(Segment *stencil)
           _has_e(false), _has_h(false),_has_s(false),  _has_t(false)
             { _eMpoles.resize(5);
 
-    vector<Fragment*> ::iterator fit;
+    std::vector<Fragment*> ::iterator fit;
     for (fit = stencil->Fragments().begin();
          fit < stencil->Fragments().end();
             fit++) {
@@ -48,7 +48,7 @@ Segment::Segment(Segment *stencil)
         Fragment *newFrag = new Fragment(*fit);
         this->AddFragment(newFrag);
 
-        vector<Atom*> ::iterator ait;
+        std::vector<Atom*> ::iterator ait;
         for (ait = newFrag->Atoms().begin();
              ait < newFrag->Atoms().end();
              ait++) {
@@ -60,7 +60,7 @@ Segment::Segment(Segment *stencil)
 
 Segment::~Segment() {
 
-    vector < Fragment* > ::iterator fragit;
+    std::vector < Fragment* > ::iterator fragit;
     for (fragit = this->Fragments().begin();
             fragit < this->Fragments().end();
             fragit++) {
@@ -77,7 +77,7 @@ void Segment::TranslateBy(const vec &shift) {
 
     _CoM = _CoM + shift;
 
-    vector < Fragment* > ::iterator fit;
+    std::vector < Fragment* > ::iterator fit;
     for (fit = _fragments.begin();
             fit < _fragments.end();
             fit++) {
@@ -357,7 +357,7 @@ void Segment::Rigidify() {
 
     if (this->getType()->canRigidify()) {
         // Establish which atoms to use to define local frame
-        vector<Fragment*> ::iterator fit;
+        std::vector<Fragment*> ::iterator fit;
 
         for (fit = this->Fragments().begin();
                 fit < this->Fragments().end();
@@ -372,7 +372,7 @@ void Segment::Rigidify() {
 void Segment::WritePDB(FILE *out, string tag1, string tag2) {
 
   if (tag1 == "Fragments") {
-    vector < Fragment* > :: iterator frag;
+    std::vector < Fragment* > :: iterator frag;
     for (frag = _fragments.begin(); frag < _fragments.end(); ++frag){
          int id = (*frag)->getId();
          string name =  (*frag)->getName();
@@ -403,7 +403,7 @@ void Segment::WritePDB(FILE *out, string tag1, string tag2) {
     }
   }
   else if ( tag1 == "Atoms") {
-    vector < Atom* > :: iterator atm;
+    std::vector < Atom* > :: iterator atm;
     for (atm = _atoms.begin(); atm < _atoms.end(); ++atm) {
          int id = (*atm)->getId() % 100000;
          string name =  (*atm)->getName();
@@ -437,7 +437,7 @@ void Segment::WritePDB(FILE *out, string tag1, string tag2) {
     }
   }
   else if ( tag1 == "Multipoles" && tag2 != "Charges") {
-    vector < PolarSite* > :: iterator pol;
+    std::vector < PolarSite* > :: iterator pol;
     for (pol = _polarSites.begin(); pol < _polarSites.end(); ++pol) {
          int id = (*pol)->getId() % 100000;
          string name =  (*pol)->getName();
@@ -468,7 +468,7 @@ void Segment::WritePDB(FILE *out, string tag1, string tag2) {
     }
   }
     else if ( tag1 == "Multipoles" && tag2 == "Charges") {
-    vector < APolarSite* > :: iterator pol;
+    std::vector < APolarSite* > :: iterator pol;
     for (pol = _apolarSites.begin(); pol < _apolarSites.end(); ++pol) {
          int id = (*pol)->getId() % 100000;
          string name =  (*pol)->getName();
@@ -504,7 +504,7 @@ void Segment::WritePDB(FILE *out, string tag1, string tag2) {
 
 void Segment::WriteXYZ(FILE *out, bool useQMPos) {
 
-    vector< Atom* > ::iterator ait;
+    std::vector< Atom* > ::iterator ait;
 
     int qmatoms = 0;
 

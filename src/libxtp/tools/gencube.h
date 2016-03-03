@@ -25,10 +25,11 @@
 #include <votca/xtp/logger.h>
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/xtp/votca_xtp_config.h>
+#include <votca/tools/constants.h>
 
 namespace votca {
     namespace xtp {
-        static const double ang2bohr = 1.8897259886;
+     
         using namespace std;
         namespace ub = boost::numeric::ublas;
 
@@ -204,9 +205,9 @@ namespace votca {
                 vector< QMAtom* > ::iterator ait;
                 for (ait = _atoms.begin(); ait != _atoms.end(); ++ait) {
                     // get center coordinates in Bohr
-                    double x = (*ait)->x * ang2bohr;
-                    double y = (*ait)->y * ang2bohr;
-                    double z = (*ait)->z * ang2bohr;
+                    double x = (*ait)->x * tools::conv::ang2bohr;
+                    double y = (*ait)->y * tools::conv::ang2bohr;
+                    double z = (*ait)->z * tools::conv::ang2bohr;
 
                     if (x > xmax) xmax = x;
                     if (x < xmin) xmin = x;
@@ -263,9 +264,9 @@ namespace votca {
                 Elements _elements;
                 for (ait = _atoms.begin(); ait != _atoms.end(); ++ait) {
                     // get center coordinates in Bohr
-                    double x = (*ait)->x * ang2bohr;
-                    double y = (*ait)->y * ang2bohr;
-                    double z = (*ait)->z * ang2bohr;
+                    double x = (*ait)->x * tools::conv::ang2bohr;
+                    double y = (*ait)->y * tools::conv::ang2bohr;
+                    double z = (*ait)->z * tools::conv::ang2bohr;
 
                     string element = (*ait)->type;
                     int atnum =_elements.getEleNum(element);

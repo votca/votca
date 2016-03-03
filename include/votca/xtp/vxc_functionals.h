@@ -28,7 +28,7 @@
 namespace votca { namespace xtp {
 
 
-using namespace std;
+
 
 
 /**
@@ -46,7 +46,7 @@ public:
     Vxc_Functionals() { FillMaps(); };
    ~Vxc_Functionals() { };
 
-    const int    &getID(string name ) const { 
+    const int    &getID(std::string name ) const { 
         if (_stringtoID.count(name)==0){
             throw std::runtime_error( "Functional "+name+" not supported");
         }

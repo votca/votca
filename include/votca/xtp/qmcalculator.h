@@ -37,7 +37,7 @@ public:
                     QMCalculator() {}
     virtual        ~QMCalculator() {}
 
-    virtual string  Identify() = 0;
+    virtual std::string  Identify() = 0;
 
     virtual void    Initialize(Property *options) = 0;
     virtual bool    EvaluateFrame(XTP::Topology *top) { return true; }

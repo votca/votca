@@ -62,7 +62,7 @@ namespace votca { namespace xtp {
     protected:
         
         int              _id;
-        stringstream     _ss;
+        std::stringstream     _ss;
         bool             _maverick;
         Logger           _logger;
 

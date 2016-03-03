@@ -22,11 +22,13 @@
 #include <cmath>
 #include <votca/tools/vec.h>
 #include <boost/format.hpp>
+#include <votca/tools/constants.h>
 
 namespace votca {
 namespace xtp {
 namespace EWD {
 
+    using namespace votca::tools::conv;
 // DEFINES THE FOLLOWING
 // o *cmplx* structure
 // o *triple* (templated on contained type)
@@ -38,11 +40,7 @@ namespace EWD {
 // o Conversion constants to blend well with EwdInteractor
     
     
-// "static" not really required here
-static const double int2eV = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
-static const double int2V_m = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-18;
-static const double int2V = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
-static const double rSqrtPi = 0.564189583547756279280349644977832;
+
 
 struct cmplx
 {

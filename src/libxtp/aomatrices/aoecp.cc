@@ -36,7 +36,7 @@
 #include <votca/xtp/elements.h>
 //#include <boost/timer/timer.hpp>
 
-using namespace std;
+
 using namespace votca::tools;
 
 
@@ -68,12 +68,12 @@ namespace votca { namespace xtp {
         const vec& _pos_col = _shell_col->getPos();
         const vec  _diff    = _pos_row - _pos_col;
         // initialize some helper
-        vector<double> PmA (3,0.0);
-        vector<double> PmB (3,0.0);
-        vector<double> PmC (3,0.0);
+        std::vector<double> PmA (3,0.0);
+        std::vector<double> PmB (3,0.0);
+        std::vector<double> PmC (3,0.0);
         double _distsq = (_diff.getX()*_diff.getX()) + (_diff.getY()*_diff.getY()) + (_diff.getZ()*_diff.getZ()); 
         
-         typedef vector< AOGaussianPrimitive* >::iterator GaussianIterator;
+         typedef std::vector< AOGaussianPrimitive* >::iterator GaussianIterator;
         // iterate over Gaussians in this _shell_row
         for ( GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr){
             // iterate over Gaussians in this _shell_col
@@ -133,10 +133,10 @@ namespace votca { namespace xtp {
                 ub::matrix<double> _decay_matrix = ub::zero_matrix<double>(1,3); // max 12 fit components, max non-local ECP l=0,1,2
                 ub::matrix<double> _coef_matrix  = ub::zero_matrix<double>(1,3); // max 12 fit components, max non-local ECP l=0,1,2
                 
-                 vector< AOShell* >::iterator final_iter = ecp->lastShell();
+                 std::vector< AOShell* >::iterator final_iter = ecp->lastShell();
                  --final_iter;
                 vec _ecp_eval_pos;
-                for (vector< AOShell* >::iterator _ecp = ecp->firstShell(); _ecp != ecp->lastShell() ; _ecp++ ) {
+                for (std::vector< AOShell* >::iterator _ecp = ecp->firstShell(); _ecp != ecp->lastShell() ; _ecp++ ) {
             
                    AOShell* _shell_ecp = ecp->getShell( _ecp );
                    const vec& _ecp_pos = _shell_ecp->getPos();

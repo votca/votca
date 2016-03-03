@@ -29,7 +29,7 @@
 #include <votca/xtp/basisset.h>
 
 
-using namespace std;
+
 using namespace votca::tools;
 
 namespace votca { namespace xtp {
@@ -48,38 +48,38 @@ public:
         AOBasis( ) { ; }
         ~AOBasis(); 
        // template< class T >
-       //static void ReorderMOs(ub::matrix<T> &v, vector<int> const &order )  {
-       //static void ReorderMOs(ub::matrix<T> &v, string start, string target )  { 
-       void ReorderMOs(ub::matrix<double> &v, string start, string target ); 
+       //static void ReorderMOs(ub::matrix<T> &v, std::vector<int> const &order )  {
+       //static void ReorderMOs(ub::matrix<T> &v, std::string start, std::string target )  { 
+       void ReorderMOs(ub::matrix<double> &v, std::string start, std::string target ); 
        
       //template< class T >   
-      void MultiplyMOs(ub::matrix<double> &v, vector<int> const &multiplier );
+      void MultiplyMOs(ub::matrix<double> &v, std::vector<int> const &multiplier );
 
-    // void AOBasisFill( BasisSet* bs , vector<Segment* > segments);
-    void AOBasisFill( BasisSet* bs , vector<QMAtom* > segments, int fragbreak = -1);
-    void ECPFill( BasisSet* bs , vector<QMAtom* > segments); 
+    // void AOBasisFill( BasisSet* bs , std::vector<Segment* > segments);
+    void AOBasisFill( BasisSet* bs , std::vector<QMAtom* > segments, int fragbreak = -1);
+    void ECPFill( BasisSet* bs , std::vector<QMAtom* > segments); 
     
-    int NumFuncShell( string shell );
-    int NumFuncShell_cartesian( string shell );
-    int OffsetFuncShell( string shell );
-    int OffsetFuncShell_cartesian( string shell );
+    int NumFuncShell( std::string shell );
+    int NumFuncShell_cartesian( std::string shell );
+    int OffsetFuncShell( std::string shell );
+    int OffsetFuncShell_cartesian( std::string shell );
     int AOBasisSize() {return _AOBasisSize; }
     
-    typedef vector< AOShell* >::iterator AOShellIterator;
+    typedef std::vector< AOShell* >::iterator AOShellIterator;
     AOShellIterator firstShell() { return _aoshells.begin(); }
     AOShellIterator lastShell(){ return _aoshells.end(); }
 
-    // string getType() { return _type; }
+    // std::string getType() { return _type; }
     // int    getNumFunc() { return _numFunc ;}
         
     AOShell* getShell( AOShellIterator it ) { return (*it); }
     
     AOShell* getShell( int idx ){ return _aoshells[idx] ;}
     
-    AOShell* addShell( string shellType, double shellScale, int shellFunc, int startIndex, int offset, vec pos, string name, int index ); 
+    AOShell* addShell( std::string shellType, double shellScale, int shellFunc, int startIndex, int offset, vec pos, std::string name, int index ); 
   
     
-    vector<AOShell*> getShells() { return _aoshells; }
+    std::vector<AOShell*> getShells() { return _aoshells; }
     
  
    
@@ -89,19 +89,19 @@ public:
    
    bool _is_stable;
    
-    vector<AOShell*> _aoshells;
+    std::vector<AOShell*> _aoshells;
 
-    // void getReorderVector( string& package, vector<int>& neworder );
-    void getReorderVector( string& start, string& target, vector<int>& neworder );
-    //void addReorderShell( string& package, string& shell, vector<int>& neworder );
-    void addReorderShell( string& start, string& target, string& shell, vector<int>& neworder );
-    //void getMultiplierVector( string& package, vector<int>& multiplier );
-    void getMultiplierVector( string& start, string& target, vector<int>& multiplier );
-    //void addMultiplierShell( string& package, string& shell, vector<int>& multiplier );  
-    void addMultiplierShell( string& start, string& target, string& shell, vector<int>& multiplier );  
+    // void getReorderVector( std::string& package, std::vector<int>& neworder );
+    void getReorderVector( std::string& start, std::string& target, std::vector<int>& neworder );
+    //void addReorderShell( std::string& package, std::string& shell, std::vector<int>& neworder );
+    void addReorderShell( std::string& start, std::string& target, std::string& shell, std::vector<int>& neworder );
+    //void getMultiplierVector( std::string& package, std::vector<int>& multiplier );
+    void getMultiplierVector( std::string& start, std::string& target, std::vector<int>& multiplier );
+    //void addMultiplierShell( std::string& package, std::string& shell, std::vector<int>& multiplier );  
+    void addMultiplierShell( std::string& start, std::string& target, std::string& shell, std::vector<int>& multiplier );  
     
     
-    void getTransformationCartToSpherical( string& package, ub::matrix<double>& _trafomatrix );
+    void getTransformationCartToSpherical( std::string& package, ub::matrix<double>& _trafomatrix );
     void addTrafoCartShell(  AOShell* shell , ub::matrix_range< ub::matrix<double> >& _submatrix );
     
     int getMaxFunctions ( );

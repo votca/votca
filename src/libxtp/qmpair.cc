@@ -144,7 +144,7 @@ bool QMPair::isPathCarrier(int carrier) {
 }
 
 
-void QMPair::setJs(const vector<double> Js, int state) {
+void QMPair::setJs(const std::vector<double> Js, int state) {
 
     if (state == -1) {
         this->_Js_e = Js;
@@ -172,7 +172,7 @@ void QMPair::setJs(const vector<double> Js, int state) {
 
 double QMPair::calcJeff2(int state) {
 
-    vector <double> ::iterator it;
+    std::vector <double> ::iterator it;
     double Jeff2 = 0.0;
 
     if (state == -1) {
@@ -243,7 +243,7 @@ void QMPair::setJeff2(double Jeff2, int state) {
      return result;
 }
  
- vector<double> &QMPair::Js(int state) {
+ std::vector<double> &QMPair::Js(int state) {
      if (state==-1) return _Js_e;
      else if (state==+1) return _Js_h;
      else if (state==+2) return _Js_s;
@@ -276,7 +276,7 @@ void QMPair::WriteXYZ(FILE *out, bool useQMPos) {
 
     int qmatoms = 0;
 
-    vector< Atom* > ::iterator ait;
+    std::vector< Atom* > ::iterator ait;
 
     for (ait = Seg1PbCopy()->Atoms().begin();
          ait < Seg1PbCopy()->Atoms().end();

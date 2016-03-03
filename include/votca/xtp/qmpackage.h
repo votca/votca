@@ -16,8 +16,7 @@
 #include <boost/format.hpp>
 
 namespace votca { namespace xtp {
-
-using namespace std;    
+ 
 // ========================================================================== //
 // QMPackage base class for wrappers of TURBOMOLE, GAUSSIAN, etc              //
 // ========================================================================== //
@@ -30,13 +29,13 @@ public:
    QMPackage(){};
    virtual ~QMPackage(){}; 
 
-   virtual string getPackageName() = 0;
+   virtual std::string getPackageName() = 0;
 
 
    virtual void Initialize( Property *options ) = 0;
    
    /// writes a coordinate file WITHOUT taking into account PBCs
-   virtual bool WriteInputFile( vector< Segment* > segments, Orbitals* orbitals = NULL) = 0;
+   virtual bool WriteInputFile( std::vector< Segment* > segments, Orbitals* orbitals = NULL) = 0;
 
    /// writes a coordinate file of a pair WITH PBCs and the orbital guess [if needed]
    bool WriteInputFilePBC( QMPair* pair, Orbitals* orbitals = NULL);
@@ -51,11 +50,11 @@ public:
    
    virtual bool ConvertToGW( Orbitals* _orbitals ) = 0;
 
-   void setRunDir( string run_dir ) { _run_dir = run_dir; }
+   void setRunDir( std::string run_dir ) { _run_dir = run_dir; }
    
-   void setInputFileName( string input_file_name ) { _input_file_name = input_file_name; }
+   void setInputFileName( std::string input_file_name ) { _input_file_name = input_file_name; }
 
-   void setLogFileName( string log_file_name ) { _log_file_name = log_file_name; }
+   void setLogFileName( std::string log_file_name ) { _log_file_name = log_file_name; }
 
    void setOrbitalsFileName( string orb_file ) { _orb_file_name = orb_file; }
    
@@ -75,27 +74,27 @@ public:
    
    void doGetCharges(bool do_get_charges) { _get_charges = do_get_charges; }
    
-   string getBasisSetName(){return _basisset_name;}
-   string getExecutable() {return _executable;};
+   std::string getBasisSetName(){return _basisset_name;}
+   std::string getExecutable() {return _executable;};
    
 protected:
 
     int                                 _charge;
     int                                 _spin; // 2S+1
     int                                 _threads;
-    string                              _memory;
-    string                              _options;
+    std::string                              _memory;
+    std::string                              _options;
     
-    string                              _executable;
-    string                              _input_file_name;
-    string                              _log_file_name;
-    string                              _xyz_file_name;
-    string                              _orb_file_name;
+    std::string                              _executable;
+    std::string                              _input_file_name;
+    std::string                              _log_file_name;
+    std::string                              _xyz_file_name;
+    std::string                              _orb_file_name;
     
-    string                              _run_dir;
+    std::string                              _run_dir;
         
-    string                              _basisset_name;
-    list< string >                      _cleanup_list;
+    std::string                              _basisset_name;
+    std::list< std::string >                      _cleanup_list;
     
     bool                                _get_orbitals;
     bool                                _get_overlap;
@@ -132,13 +131,13 @@ inline bool QMPackage::WriteInputFilePBC( QMPair* pair, Orbitals* orbitals) {
     if ( abs(r2 - r1 - _R) > 1e-8 ) {
         ghost = new Segment(seg2);
         //ghost->TranslateBy(r1 - r2 + _R); // DO NOT USE THIS METHOD !
-	vector<Atom*>::iterator ait;
+	std::vector<Atom*>::iterator ait;
 	for (ait = ghost->Atoms().begin(); ait != ghost->Atoms().end(); ++ait) {
 		(*ait)->setQMPos((*ait)->getQMPos()+r1-r2+_R);
 	}
     }
  
-    vector< Segment* > segments;
+    std::vector< Segment* > segments;
     segments.push_back(seg1);
     
     if ( ghost ) {

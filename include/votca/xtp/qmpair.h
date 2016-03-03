@@ -99,11 +99,11 @@ public:
    double   getRate21(int state);
    vec      getR();
 
-   void     setJs(const vector <double> Js, int state);
+   void     setJs(const std::vector <double> Js, int state);
    double   calcJeff2(int state);
    double   getJeff2(int state) ;
    void     setJeff2(double Jeff2, int state);
-   vector<double> &Js(int state);
+   std::vector<double> &Js(int state);
 
    double   getdE12(int state) { return second->getSiteEnergy(state)
                                        -first->getSiteEnergy(state); }
@@ -114,14 +114,14 @@ public:
    Segment* Seg2() { return second; }
 
    bool     HasGhost() { return _hasGhost; }
-   void     WritePDB(string fileName);
-   void     WriteXYZ(FILE *out, bool useQMPos = true);
+   void     WritePDB(std::string fileName);
+   void     WriteXYZ(std::FILE *out, bool useQMPos = true);
 
    // superexchange pairs have a list of bridging segments
    void     setType( PairType pair_type ) { _pair_type = pair_type; }
    void     setType( int pair_type ) { _pair_type = (PairType) pair_type; }
    void     AddBridgingSegment( Segment* _segment ){ _bridging_segments.push_back(_segment); }
-   const vector<Segment*> &getBridgingSegments() const { return _bridging_segments; }
+   const std::vector<Segment*> &getBridgingSegments() const { return _bridging_segments; }
    PairType &getType(){return _pair_type;}
 
 protected:
@@ -142,8 +142,8 @@ protected:
     double _lambdaO_e;   // from ::EOutersphere output    DEFAULT 0
     double _lambdaO_h;
     
-    vector <double> _Js_e;
-    vector <double> _Js_h;
+    std::vector <double> _Js_e;
+    std::vector <double> _Js_h;
     double          _Jeff2_e;
     double          _Jeff2_h;
     //excition part s:singlet t:triplet
@@ -160,13 +160,13 @@ protected:
     double _lambdaO_s;   
     double _lambdaO_t;
     
-    vector <double> _Js_s;
-    vector <double> _Js_t;
+    std::vector <double> _Js_s;
+    std::vector <double> _Js_t;
     double          _Jeff2_s;
     double          _Jeff2_t;
 
     PairType _pair_type;
-    vector<Segment*> _bridging_segments;
+    std::vector<Segment*> _bridging_segments;
 
 
 };

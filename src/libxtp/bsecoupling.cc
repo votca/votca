@@ -970,13 +970,13 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      //cout << "_kbp"<<_kbp.size1()<<"x"<<_kbp.size2()<<endl;
      //cout << "_proj_excB"<<_proj_excB.size1()<<"x"<<_proj_excB.size2()<<endl;
      
-     int _bseA_exc = _bseA.size2();
-     int _bseB_exc = _bseB.size2();
-     int _bse_exc=_bseA_exc+_bseB_exc;
-     int _ctAB=ctAB.size1();
+     unsigned _bseA_exc = _bseA.size2();
+     unsigned _bseB_exc = _bseB.size2();
+     unsigned _bse_exc=_bseA_exc+_bseB_exc;
+     unsigned _ctAB=ctAB.size1();
      
-     int _ctBA=ctBA.size1();
-     int _ct=_ctAB+_ctBA;
+     unsigned _ctBA=ctBA.size1();
+     unsigned _ct=_ctAB+_ctBA;
      //cout << _ctAB <<_ctBA<<endl;
      ub::matrix<float> _J_dimer = ub::zero_matrix<float>( _bse_exc +_ct, _bse_exc+_ct );
      ub::matrix<float> _S_dimer = ub::zero_matrix<float>( _bse_exc +_ct, _bse_exc +_ct);
@@ -1095,7 +1095,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      }
      
      ub::matrix<float> _diagS = ub::zero_matrix<float>( _bse_exc + _ct  , _bse_exc + _ct );
-     for ( int _i =0; _i < _bse_exc + _ct ; _i++){
+     for ( unsigned _i =0; _i < _bse_exc + _ct ; _i++){
 
          _diagS(_i,_i) = 1.0/sqrt(_S_eigenvalues[_i]);
      }
@@ -1140,13 +1140,13 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      
      LOG(logDEBUG,*_pLog) << "Sorting states according to similiarity with the FE states " << flush;
      
-     std::vector<int> index;
+     std::vector<unsigned> index;
      //column
-      for (int i = 0; i < _bse_exc; i++) {
+      for (unsigned i = 0; i < _bse_exc; i++) {
                 float close = 0.0;
-                int ind = 0;
+                unsigned ind = 0;
                 //row
-                for (int j = 0; j < _bse_exc + _ct; j++) {
+                for (unsigned j = 0; j < _bse_exc + _ct; j++) {
                     bool check=true;
                     // if index i is already in index
                     // should not happen but if one vector was similar to tow others.
@@ -1177,15 +1177,15 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      }
      LOG(logDEBUG,*_pLog)<< flush;
      //row
-     for (int i = 0; i < _bse_exc; i++) {
-         int k=index[i];
+     for (unsigned i = 0; i < _bse_exc; i++) {
+         unsigned k=index[i];
                 float norm = 0.0;
                 //column
-                for (int j = 0; j < _bse_exc; j++) {
+                for (unsigned j = 0; j < _bse_exc; j++) {
                     
                     norm += _J_ortho(j, k)*_J_ortho(j, k);
                 }
-                for (int j = 0; j < _bse_exc; j++) {
+                for (unsigned j = 0; j < _bse_exc; j++) {
                     if (i == j) {
                         _E(i, i) = _J_eigenvalues(k);
                     }

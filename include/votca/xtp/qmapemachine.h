@@ -32,7 +32,7 @@ public:
         double A_to_nm = 0.1;
         vec pos = A_to_nm*vec(atm->x, atm->y, atm->z);
         double q = atm->charge;
-        string elem = atm->type;
+        std::string elem = atm->type;
         double pol = 0.0;
         try {
             pol = _polar_table.at(elem);
@@ -52,9 +52,9 @@ public:
         return new_aps;
     }
     
-    PolarSeg *Convert(vector<QMAtom*> &atms) {        
+    PolarSeg *Convert(std::vector<QMAtom*> &atms) {        
         PolarSeg *new_pseg = new PolarSeg();
-        vector<QMAtom*>::iterator it;
+        std::vector<QMAtom*>::iterator it;
         for (it = atms.begin(); it < atms.end(); ++it) {
             APolarSite *new_site = this->Convert(*it);
             new_pseg->push_back(new_site);
@@ -64,12 +64,12 @@ public:
     
     // TODO CONVERSION MM -> QM
     QMAtom *Convert(APolarSite*);
-    vector<QMAtom*> Convert(PolarSeg*);
+    std::vector<QMAtom*> Convert(PolarSeg*);
     
 private:
     
     // Allocates polarizabilities in A**3 to element types
-    map<string,double> _polar_table;
+    std::map<std::string,double> _polar_table;
     
 };
 
@@ -87,9 +87,9 @@ public:
     QMAPEIter(int id) : _id(id), _hasdRdQ(false), _hasQM(false), _hasMM(false) { ; }
    ~QMAPEIter() { ; }
 
-   void ConvertPSitesToQMAtoms(vector< PolarSeg* > &, vector< QMAtom* > &);
-   void ConvertQMAtomsToPSites(vector< QMAtom* > &, vector< PolarSeg* > &);
-   void UpdatePosChrgFromQMAtoms(vector< QMAtom* > &, vector< PolarSeg* > &);   
+   void ConvertPSitesToQMAtoms(std::vector< PolarSeg* > &, std::vector< QMAtom* > &);
+   void ConvertQMAtomsToPSites(std::vector< QMAtom* > &, std::vector< PolarSeg* > &);
+   void UpdatePosChrgFromQMAtoms(std::vector< QMAtom* > &, std::vector< PolarSeg* > &);   
   
 
    void setdRdQ(double dR_RMS, double dQ_RMS, double dQ_SUM);
@@ -154,16 +154,16 @@ class QMAPEMachine
 public:
 
 	QMAPEMachine(XJob *job, Ewald3DnD *cape, QMPackage *qmpack,
-              Property *opt, string sfx, int nst);
+              Property *opt, std::string sfx, int nst);
    ~QMAPEMachine();
     
     void Evaluate(XJob *job);
-    //void WriteQMPackInputFile(string inputFile, QMPackage *qmpack, XJob *job);
-    bool Iterate(string jobFolder, int iterCnt);
-    bool EvaluateGWBSE(Orbitals &orb, string runFolder);
+    //void WriteQMPackInputFile(std::string inputFile, QMPackage *qmpack, XJob *job);
+    bool Iterate(std::string jobFolder, int iterCnt);
+    bool EvaluateGWBSE(Orbitals &orb, std::string runFolder);
     QMAPEIter *CreateNewIter();
     bool hasConverged();
-    void GenerateQMAtomsFromPolarSegs(vector<PolarSeg*> &qm, vector<PolarSeg*> &mm, Orbitals &orb);
+    void GenerateQMAtomsFromPolarSegs(std::vector<PolarSeg*> &qm, std::vector<PolarSeg*> &mm, Orbitals &orb);
     bool AssertConvergence() { return _isConverged; }
     
     void setLog(Logger *log) { _log = log; }
@@ -187,7 +187,7 @@ private:
     Grid _grid_bg;
     Grid _fitted_charges;
 
-    vector<QMAPEIter*> _iters;
+    std::vector<QMAPEIter*> _iters;
     int _maxIter;
     bool _isConverged;
 
@@ -195,7 +195,7 @@ private:
     GWBSE _gwbse;
     Property _gwbse_options;
     int      _state;
-    string   _type;
+    std::string   _type;
     bool     _has_osc_filter;
     double   _osc_threshold;
     bool     _has_dQ_filter;

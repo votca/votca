@@ -32,7 +32,6 @@
 * 
 * 
 */
-using namespace std;
 using namespace votca::tools;
 
 
@@ -53,9 +52,9 @@ public:
   
     void FitAPECharges(Grid& _targetgrid_fg, Grid& _targetgrid_bg, Grid& _chargepositions, double& netcharge);
     // on grid very fast
-    void Fit2Density(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis,BasisSet &bs,string gridsize);
+    void Fit2Density(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis,BasisSet &bs,std::string gridsize);
     // not so fast
-    void Fit2Density_analytic(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis);
+    void Fit2Density_analytic(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis);
 private:
     
      Logger *_log;
@@ -66,9 +65,9 @@ private:
      double _conditionnumber;
      
      
-    double getNetcharge( vector< QMAtom* >& _atoms, double N );
+    double getNetcharge( std::vector< QMAtom* >& _atoms, double N );
  
-    ub::vector<double> EvalNuclearPotential( vector< QMAtom* >& _atoms, Grid _grid );
+    ub::vector<double> EvalNuclearPotential( std::vector< QMAtom* >& _atoms, Grid _grid );
    
      // Fits partial charges to Potential on a grid, constrains net charge
     std::vector<double> FitPartialCharges( std::vector< ub::vector<double> >& _fitcenters, Grid& _grid, ub::vector<double>& _potential, double& _netcharge );

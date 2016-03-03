@@ -33,7 +33,7 @@ void EOutersphere::Initialize(Property *opt) {
     // update options with the VOTCASHARE defaults   
     UpdateWithDefaults( opt, "xtp" );
 
-    string key = "options." + Identify();
+    std::string key = "options." + Identify();
 
     /* ---- OPTIONS.XML Structure -----
      *
@@ -49,7 +49,7 @@ void EOutersphere::Initialize(Property *opt) {
      *
      */
 
-    _method = opt->get(key+".method").as<string> ();
+    _method = opt->get(key+".method").as<std::string> ();
 
     if (_method == "constant") {
         _lambdaConstant = opt->get(key+".lambdaconst").as<double> ();
@@ -59,7 +59,7 @@ void EOutersphere::Initialize(Property *opt) {
         list< Property* > typeinfo = opt->Select(key+".segment");
         list< Property* > ::iterator rit;
         for (rit = typeinfo.begin(); rit != typeinfo.end(); ++rit) {
-            string type = (*rit)->get("type").as<string>();
+            std::string type = (*rit)->get("type").as<std::string>();
             double radius = (*rit)->get("radius").as<double>();
             _radius[type] = radius;
         }
@@ -82,19 +82,19 @@ void EOutersphere::EStatify(Topology *top, Property *options) {
 
     cout << endl << "... ... Estatify system: ";
 
-    string key = "options.eoutersphere";
-    string allocFile = options->get(key+".multipoles").as<string> ();
+    std::string key = "options.eoutersphere";
+    std::string allocFile = options->get(key+".multipoles").as<std::string> ();
 
     // ++++++++++++++++++++++++++++++++ //
     // Load polar-site indices from XML //
     // ++++++++++++++++++++++++++++++++ //
 
     // => Output to maps:
-    map<string, vector<int> > alloc_frag_mpoleIdx;
-    map<string, vector<string> > alloc_frag_mpoleName;
-    map<string, string > alloc_seg_mpoleFiles_n;
-    map<string, string > alloc_seg_mpoleFiles_e;
-    map<string, string > alloc_seg_mpoleFiles_h;
+    map<std::string, std::vector<int> > alloc_frag_mpoleIdx;
+    map<std::string, std::vector<std::string> > alloc_frag_mpoleName;
+    map<std::string, std::string > alloc_seg_mpoleFiles_n;
+    map<std::string, std::string > alloc_seg_mpoleFiles_e;
+    map<std::string, std::string > alloc_seg_mpoleFiles_h;
 
     Property allocation; // <- Which polar sites are part of which fragment?
     load_property_from_xml(allocation, allocFile.c_str());
@@ -135,7 +135,7 @@ void EOutersphere::EStatify(Topology *top, Property *options) {
     list<Property *>::iterator molit;
     for (molit = mols.begin(); molit != mols.end(); molit++) {
 
-        string molName = (*molit)->get("name").as<string> ();
+        std::string molName = (*molit)->get("name").as<std::string> ();
 
         key = "segments.segment";
         list<Property *> segs = (*molit)->Select(key);
@@ -143,17 +143,17 @@ void EOutersphere::EStatify(Topology *top, Property *options) {
 
         for (segit = segs.begin(); segit != segs.end(); segit++) {
 
-            string segName = (*segit)->get("name").as<string> ();
+            std::string segName = (*segit)->get("name").as<std::string> ();
 
             // GDMA filenames for cation (h), neutral (n), anion (e) state
-            string mpoleFile_n = (*segit)->get("multipoles_n").as<string> ();
+            std::string mpoleFile_n = (*segit)->get("multipoles_n").as<std::string> ();
             alloc_seg_mpoleFiles_n[segName] = mpoleFile_n;
             if ( (*segit)->exists("multipoles_e")) {
-                string mpoleFile_e = (*segit)->get("multipoles_e").as<string>();
+                std::string mpoleFile_e = (*segit)->get("multipoles_e").as<std::string>();
                 alloc_seg_mpoleFiles_e[segName] = mpoleFile_e;
             }
             if ( (*segit)->exists("multipoles_h")) {
-                string mpoleFile_h = (*segit)->get("multipoles_h").as<string>();
+                std::string mpoleFile_h = (*segit)->get("multipoles_h").as<std::string>();
                 alloc_seg_mpoleFiles_h[segName] = mpoleFile_h;
             }
 
@@ -172,27 +172,27 @@ void EOutersphere::EStatify(Topology *top, Property *options) {
 
             for (fragit = frags.begin(); fragit != frags.end(); fragit++) {
 
-                string fragName = (*fragit)->get("name").as<string> ();
-                string mapKeyName = fragName + segName + molName;
+                std::string fragName = (*fragit)->get("name").as<std::string> ();
+                std::string mapKeyName = fragName + segName + molName;
 
-                string mpoles = (*fragit)->get("mpoles").as<string> ();
+                std::string mpoles = (*fragit)->get("mpoles").as<std::string> ();
 
                 Tokenizer tokPoles(mpoles, " \t\n");
-                vector<string> mpoleInfo;
+                std::vector<std::string> mpoleInfo;
                 tokPoles.ToVector(mpoleInfo);
 
-                vector<int> mpoleIdcs;
-                vector<string> mpoleNames;
+                std::vector<int> mpoleIdcs;
+                std::vector<std::string> mpoleNames;
 
-                vector<string> ::iterator strit;
+                std::vector<std::string> ::iterator strit;
                 for (strit=mpoleInfo.begin(); strit<mpoleInfo.end(); strit++) {
 
                     Tokenizer tokPoleInfo( (*strit), " :");
-                    vector<string> poleInfo;
+                    std::vector<std::string> poleInfo;
                     tokPoleInfo.ToVector(poleInfo);
 
                     int mpoleIdx = boost::lexical_cast<int>(poleInfo[0]);
-                    string mpoleName = poleInfo[1];
+                    std::string mpoleName = poleInfo[1];
 
                     mpoleIdcs.push_back(mpoleIdx);
                     mpoleNames.push_back(mpoleName);
@@ -210,21 +210,21 @@ void EOutersphere::EStatify(Topology *top, Property *options) {
     // ++++++++++++++++++++++ //
 
     // => Output to PolarSite Container (template container)
-    map<string, vector<PolarSite*> > map_seg_polarSites;
-    map<string, vector<bool> >       map_seg_chrgStates;
+    map<std::string, std::vector<PolarSite*> > map_seg_polarSites;
+    map<std::string, std::vector<bool> >       map_seg_chrgStates;
 
 
     // Multipoles for neutral state
     int state = 0;
-    map<string, string > ::iterator strit;
+    map<std::string, std::string > ::iterator strit;
     for (strit = alloc_seg_mpoleFiles_n.begin();
          strit != alloc_seg_mpoleFiles_n.end();
          strit++) {
 
-        string segName = strit->first;
-        string filename = strit->second;
+        std::string segName = strit->first;
+        std::string filename = strit->second;
 
-        vector< PolarSite* > poles = ParseGdmaFile(filename, state);
+        std::vector< PolarSite* > poles = ParseGdmaFile(filename, state);
 
         map_seg_polarSites[segName] = poles;
         map_seg_chrgStates[segName].resize(3);
@@ -241,14 +241,14 @@ void EOutersphere::EStatify(Topology *top, Property *options) {
         for (strit = alloc_seg_mpoleFiles_e.begin();
              strit != alloc_seg_mpoleFiles_e.end();
              strit++) {
-            string segName = strit->first;
-            string filename = strit->second;
+            std::string segName = strit->first;
+            std::string filename = strit->second;
 
-            vector< PolarSite* > polesAnion = ParseGdmaFile(filename, state);
+            std::vector< PolarSite* > polesAnion = ParseGdmaFile(filename, state);
             map_seg_chrgStates[segName][state+1] = true;
 
             // Merge with polar sites for neutral state
-            vector< PolarSite* > polesNeutral = map_seg_polarSites[segName];
+            std::vector< PolarSite* > polesNeutral = map_seg_polarSites[segName];
 
             assert(polesAnion.size() == polesNeutral.size());
             for (unsigned int i = 0; i < polesNeutral.size(); i++) {
@@ -267,14 +267,14 @@ void EOutersphere::EStatify(Topology *top, Property *options) {
         for (strit = alloc_seg_mpoleFiles_h.begin();
              strit != alloc_seg_mpoleFiles_h.end();
              strit++) {
-            string segName = strit->first;
-            string filename = strit->second;
+            std::string segName = strit->first;
+            std::string filename = strit->second;
 
-            vector< PolarSite* > polesCation = ParseGdmaFile(filename, state);
+            std::vector< PolarSite* > polesCation = ParseGdmaFile(filename, state);
             map_seg_chrgStates[segName][state+1] = true;
 
             // Merge with polar sites for neutral state
-            vector< PolarSite* > polesNeutral = map_seg_polarSites[segName];
+            std::vector< PolarSite* > polesNeutral = map_seg_polarSites[segName];
 
             assert(polesCation.size() == polesNeutral.size());
             for (unsigned int i = 0; i < polesNeutral.size(); i++) {
@@ -292,9 +292,9 @@ void EOutersphere::EStatify(Topology *top, Property *options) {
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
 
     // Containers to use for mapping
-    // map<string, vector<PolarSite*> >     map_seg_polarSites;
-    // map<string, vector<int> >            alloc_frag_mpoleIdx;
-    // map<string, vector<string> >         alloc_frag_mpoleName;
+    // map<std::string, std::vector<PolarSite*> >     map_seg_polarSites;
+    // map<std::string, std::vector<int> >            alloc_frag_mpoleIdx;
+    // map<std::string, std::vector<std::string> >         alloc_frag_mpoleName;
 
     // TO CONTINUE FROM HERE ...
     // Loop over segments, loop over fragments in segments.
@@ -313,18 +313,18 @@ void EOutersphere::EStatify(Topology *top, Property *options) {
 }
 
 
-vector<PolarSite*> EOutersphere::ParseGdmaFile(string filename, int state) {
+std::vector<PolarSite*> EOutersphere::ParseGdmaFile(std::string filename, int state) {
 
     int poleCount = 1;
     double Q0_total = 0.0;
-    string units = "";
+    std::string units = "";
     bool useDefaultPs = true;
     bool warn_anisotropy = false;
 
-    vector<PolarSite*> poles;
+    std::vector<PolarSite*> poles;
     PolarSite *thisPole = NULL;
 
-    vector<double> Qs; // <- multipole moments
+    std::vector<double> Qs; // <- multipole moments
     double         P1; // <- dipole polarizability
 
     std::string line;
@@ -335,7 +335,7 @@ vector<PolarSite*> EOutersphere::ParseGdmaFile(string filename, int state) {
         while ( intt.good() ) {
 
             std::getline(intt, line);
-            vector<string> split;
+            std::vector<std::string> split;
             Tokenizer toker(line, " \t");
             toker.ToVector(split);
 
@@ -371,7 +371,7 @@ vector<PolarSite*> EOutersphere::ParseGdmaFile(string filename, int state) {
                 P1 = -1.;
 
                 int id = poleCount++;  // <- starts from 1
-                string name = split[0];
+                std::string name = split[0];
 
                 double BOHR2NM = 0.0529189379;
                 double ANGSTROM2NM = 0.1;
@@ -449,9 +449,9 @@ vector<PolarSite*> EOutersphere::ParseGdmaFile(string filename, int state) {
         cout << endl << "... ... ... NOTE Using default Thole polarizabilities "
              << "for charge state " << state << ". ";
 
-        vector< PolarSite* > ::iterator pol;
+        std::vector< PolarSite* > ::iterator pol;
         for (pol = poles.begin(); pol < poles.end(); ++pol) {
-            string elem = (*pol)->getName();
+            std::string elem = (*pol)->getName();
             double alpha = 0.0;
             // Original set of Thole polarizabilites
             if      (elem == "C") { alpha = 1.75e-3;  } // <- conversion from
@@ -487,28 +487,28 @@ void EOutersphere::DistributeMpoles(Topology *top) {
     // Equip TOP with distributed multipoles //
     // +++++++++++++++++++++++++++++++++++++ //
 
-    vector<Segment*> ::iterator sit;
+    std::vector<Segment*> ::iterator sit;
     for (sit = top->Segments().begin();
          sit < top->Segments().end();
          ++sit) {
 
         Segment *seg = *sit;
-        vector<PolarSite*> poleSites = _map_seg_polarSites.at(seg->getName());
+        std::vector<PolarSite*> poleSites = _map_seg_polarSites.at(seg->getName());
         seg->setChrgStates(_map_seg_chrgStates[seg->getName()]);
 
         bool map2md = _map2md[seg->getName()];
 
-        vector<Fragment*> ::iterator fit;
+        std::vector<Fragment*> ::iterator fit;
         for (fit = seg->Fragments().begin();
              fit < seg->Fragments().end();
              ++fit) {
 
             Fragment *frag = *fit;
 
-            string idkey = frag->getName() + seg->getName()
+            std::string idkey = frag->getName() + seg->getName()
                          + seg->getMolecule()->getName();
-            vector<int> polesInFrag = _alloc_frag_mpoleIdx.at(idkey);
-            vector<string> namesInFrag = _alloc_frag_mpoleName.at(idkey);
+            std::vector<int> polesInFrag = _alloc_frag_mpoleIdx.at(idkey);
+            std::vector<std::string> namesInFrag = _alloc_frag_mpoleName.at(idkey);
 
             if (map2md) {
                 if (polesInFrag.size() != frag->Atoms().size()) {
@@ -523,7 +523,7 @@ void EOutersphere::DistributeMpoles(Topology *top) {
 
             for (unsigned int i = 0; i < polesInFrag.size(); i++) {
 
-                string name = namesInFrag[i];
+                std::string name = namesInFrag[i];
                 int poleId = polesInFrag[i];
 
                 PolarSite *templ = poleSites[poleId-1];
@@ -605,7 +605,7 @@ bool EOutersphere::EvaluateFrame(Topology *top) {
     // Create + start threads (Site Ops) //
     // +++++++++++++++++++++++++++++++++ //
 
-    vector<PairOpOutersphere*> pairOps;
+    std::vector<PairOpOutersphere*> pairOps;
     _nextPair = top->NBList().begin();
     cout << endl;
 
@@ -655,7 +655,7 @@ void EOutersphere::PairOpOutersphere::EvalSite(Topology *top, QMPair *qmpair) {
         this->_polsSphere.clear();
         this->_polsPair.clear();
 
-        vector<Segment*> ::iterator sit;
+        std::vector<Segment*> ::iterator sit;
         for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
 
             // TODO Introduce volume-correction when using cutoff
@@ -738,10 +738,10 @@ void EOutersphere::PairOpOutersphere::EvalSite(Topology *top, QMPair *qmpair) {
 
 double EOutersphere::PairOpOutersphere::CalcOuter(Topology *top, QMPair *qmpair, int state) {
 
-    vector< vector<PolarSite*> > ::iterator sit1;
-    vector< PolarSite* > ::iterator pit1;
-    vector< vector<PolarSite*> > ::iterator sit2;
-    vector< PolarSite* > ::iterator pit2;    
+    std::vector< std::vector<PolarSite*> > ::iterator sit1;
+    std::vector< PolarSite* > ::iterator pit1;
+    std::vector< std::vector<PolarSite*> > ::iterator sit2;
+    std::vector< PolarSite* > ::iterator pit2;    
 
 
     double dD2dV = 0.0;
@@ -776,8 +776,8 @@ double EOutersphere::PairOpOutersphere::CalcOuter(Topology *top, QMPair *qmpair,
 
 void EOutersphere::PairOpOutersphere::ChargeDeltaPair(int state) {
 
-    vector< vector<PolarSite*> > ::iterator sit;
-    vector< PolarSite* > ::iterator pit;
+    std::vector< std::vector<PolarSite*> > ::iterator sit;
+    std::vector< PolarSite* > ::iterator pit;
 
     sit = _polsPair.begin();
 
@@ -795,8 +795,8 @@ void EOutersphere::PairOpOutersphere::ChargeDeltaPair(int state) {
 
 void EOutersphere::PairOpOutersphere::ResetFields() {
 
-    vector< vector<PolarSite*> > ::iterator sit;
-    vector< PolarSite* > ::iterator pit;
+    std::vector< std::vector<PolarSite*> > ::iterator sit;
+    std::vector< PolarSite* > ::iterator pit;
 
     for (sit = _polsSphere.begin(); sit < _polsSphere.end(); ++sit) {
         for (pit = (*sit).begin(); pit < (*sit).end(); ++pit) {
@@ -820,10 +820,10 @@ void EOutersphere::PairOpOutersphere::Run(void) {
 
 void EOutersphere::PairOpOutersphere::InitSlotData(Topology *top) {
 
-    vector< Segment* > ::iterator sitRef;
-    vector< vector<PolarSite*> > ::iterator sitNew;
-    vector< PolarSite* > ::iterator pitRef;
-    vector< PolarSite* > ::iterator pitNew;
+    std::vector< Segment* > ::iterator sitRef;
+    std::vector< std::vector<PolarSite*> > ::iterator sitNew;
+    std::vector< PolarSite* > ::iterator pitRef;
+    std::vector< PolarSite* > ::iterator pitNew;
 
     _polarSites.resize(top->Segments().size());
     assert(top->Segments().size() == _polarSites.size());
@@ -849,8 +849,8 @@ void EOutersphere::PairOpOutersphere::InitSlotData(Topology *top) {
 
 EOutersphere::PairOpOutersphere::~PairOpOutersphere() {
 
-    vector< vector<PolarSite*> > ::iterator sit;
-    vector<PolarSite*> ::iterator pol;
+    std::vector< std::vector<PolarSite*> > ::iterator sit;
+    std::vector<PolarSite*> ::iterator pol;
 
     for (sit = _polarSites.begin(); sit < _polarSites.end(); ++sit) {
         for (pol = (*sit).begin(); pol < (*sit).end(); ++pol) {
@@ -915,7 +915,7 @@ void EOutersphere::DielectricLambda(Topology *top) {
         vec seg1pos = pair->Seg1()->getPos();
         vec seg2pos = pair->Seg2()->getPos();
 
-        vector< Segment* > ::iterator sit;
+        std::vector< Segment* > ::iterator sit;
         for (sit = top->Segments().begin();
              sit < top->Segments().end();
              sit++) {
@@ -933,8 +933,8 @@ void EOutersphere::DielectricLambda(Topology *top) {
              vec shift1 = dR1bc - dR1;
              vec shift2 = dR2bc - dR2;
 
-             vector< Atom* > ::iterator ait;
-             vector< Atom* > ::iterator bit;
+             std::vector< Atom* > ::iterator ait;
+             std::vector< Atom* > ::iterator bit;
              for (ait = seg->Atoms().begin(); ait < seg->Atoms().end(); ait++) {
 
                  Atom *Ext = *ait;

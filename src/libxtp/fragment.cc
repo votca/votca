@@ -20,7 +20,7 @@
 
 #include <votca/xtp/fragment.h>
 
-using namespace std;
+
 namespace votca { namespace xtp {
 
 Fragment::Fragment(Fragment *stencil)
@@ -29,7 +29,7 @@ Fragment::Fragment(Fragment *stencil)
            _CoQM(stencil->getCoQM()), _CoMD(stencil->getCoMD()),
            _trihedron(stencil->getTrihedron()) {
 
-    vector< Atom* > ::iterator ait;
+    std::vector< Atom* > ::iterator ait;
     for (ait = stencil->Atoms().begin();
          ait < stencil->Atoms().end();
          ait++) {
@@ -42,7 +42,7 @@ Fragment::Fragment(Fragment *stencil)
 
 
 Fragment::~Fragment() {
-    vector < Atom* > ::iterator atmit;
+    std::vector < Atom* > ::iterator atmit;
     for (atmit = this->Atoms().begin();
           atmit < this->Atoms().end();
           ++atmit) {
@@ -51,7 +51,7 @@ Fragment::~Fragment() {
     _weights.clear();
     _atoms.clear();
 
-    vector < PolarSite* > ::iterator pit;
+    std::vector < PolarSite* > ::iterator pit;
     for (pit = this->PolarSites().begin();
             pit < this->PolarSites().end();
             ++pit) {
@@ -79,7 +79,7 @@ void Fragment::AddAPolarSite(APolarSite *pole) {
 
 
 void Fragment::Rotate(matrix spin, vec refPos) {
-    vector <Atom*> ::iterator ait;
+    std::vector <Atom*> ::iterator ait;
     for (ait = _atoms.begin(); ait < _atoms.end(); ait++) {
         vec dir = (*ait)->getQMPos() - refPos;
         dir = spin * dir;
@@ -92,7 +92,7 @@ void Fragment::TranslateBy(const vec &shift) {
 
     _CoMD = _CoMD + shift;
 
-    vector <Atom*> ::iterator ait;
+    std::vector <Atom*> ::iterator ait;
     for (ait = _atoms.begin(); ait < _atoms.end(); ait++) {
         (*ait)->TranslateBy(shift);
     }
@@ -100,7 +100,7 @@ void Fragment::TranslateBy(const vec &shift) {
 
 
 void Fragment::RotTransQM2MD() {
-    vector <Atom*> ::iterator ait;
+    std::vector <Atom*> ::iterator ait;
     for (ait= _atoms.begin(); ait < _atoms.end(); ait++) {
         vec newQMPos = _rotateQM2MD*( (*ait)->getQMPos() - this->_CoQM )
                       + this->_CoMD;
@@ -143,13 +143,13 @@ void Fragment::Rigidify(bool Auto) {
     // Establish reference atoms for local frame //
     // +++++++++++++++++++++++++++++++++++++++++ //
     
-    vector<Atom*> trihedron;
+    std::vector<Atom*> trihedron;
     
     if (Auto) {
 
         // Automated search for suitable atoms
         bool enough = false;
-        vector< Atom* > ::iterator ait = this->Atoms().begin();
+        std::vector< Atom* > ::iterator ait = this->Atoms().begin();
 
         while (!enough) {
 
@@ -171,7 +171,7 @@ void Fragment::Rigidify(bool Auto) {
     else {
 
         // Take atoms specified in mapping file <= DEFAULT
-        vector<Atom*> ::iterator ait;
+        std::vector<Atom*> ::iterator ait;
         for (ait = _atoms.begin(); ait < _atoms.end(); ait++) {
             if ( ! (*ait)->HasQMPart() ) { continue; }
 

@@ -88,7 +88,7 @@ void QMNBList::GenerateSuperExchange() {
         map< int, Segment*> _ns;
 
         // loop over all segments in the topology
-        for (vector< Segment* >::iterator segit = _top->Segments().begin(); segit != _top->Segments().end(); segit++) {
+        for (std::vector< Segment* >::iterator segit = _top->Segments().begin(); segit != _top->Segments().end(); segit++) {
 
             // check if this is a bridge
             Segment* segment = *segit;

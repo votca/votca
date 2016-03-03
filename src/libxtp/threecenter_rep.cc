@@ -25,7 +25,7 @@
 
 
 
-using namespace std;
+
 using namespace votca::tools;
 
 namespace votca {
@@ -214,7 +214,7 @@ namespace votca {
                            }
             
                    
-            vector<double> _FmT(_mmax, 0.0); 
+            std::vector<double> _FmT(_mmax, 0.0); 
            
             XIntegrate(_FmT, _T);
             

@@ -33,7 +33,7 @@
 #include <votca/xtp/logger.h>
 #include <votca/tools/linalg.h>
 
-using namespace std;
+
 using namespace votca::tools;
 
 namespace votca { namespace xtp {
@@ -66,15 +66,15 @@ namespace votca { namespace xtp {
             
             const double pi = boost::math::constants::pi<double>();
              // some helpers
-            vector<double> _wmp;
-            vector<double> _wmq;
+            std::vector<double> _wmp;
+            std::vector<double> _wmq;
             
             
          
 
            
             
-            typedef vector< AOGaussianPrimitive* >::iterator GaussianIterator;
+            typedef std::vector< AOGaussianPrimitive* >::iterator GaussianIterator;
         // iterate over Gaussians in this _shell_row
             for ( GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr){
             // iterate over Gaussians in this _shell_col
@@ -158,7 +158,7 @@ namespace votca { namespace xtp {
             double _fak = 2.0 * pow(pi, 2.5) / (_decay_row * _decay_col * sqrt(_decay_row + _decay_col));
             _fak = _fak * pow(4.0 * _decay_row * _decay_col / (pi * pi), 0.75);
 
-            vector<double> _FmT(_nextra, 0.0); // that size needs to be checked!
+            std::vector<double> _FmT(_nextra, 0.0); // that size needs to be checked!
             // call xint01(FmT,8,T,u_lower)
             XIntegrate(_FmT, _T);
 

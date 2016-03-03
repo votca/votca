@@ -29,7 +29,7 @@
 
 #include <string> 
 
-using namespace std;
+
 
 namespace votca { namespace xtp {
 /**
@@ -51,7 +51,7 @@ public:
     * and guess for the dimer orbitals (if given) constructed from the
     * orbitals of monomers 
     */
-   bool WriteInputFile( vector< Segment* > segments, Orbitals* orbitals_guess = NULL);
+   bool WriteInputFile( std::vector< Segment* > segments, Orbitals* orbitals_guess = NULL);
 
    bool Run();
 

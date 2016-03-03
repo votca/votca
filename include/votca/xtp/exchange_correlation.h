@@ -637,7 +637,7 @@ namespace votca {
 
             if (rho <= 0.0) {
 
-                cerr << " Vanishing or negative density!" << endl;
+                std::cerr << " Vanishing or negative density!" << std::endl;
                 exit(1);
 
             } else {

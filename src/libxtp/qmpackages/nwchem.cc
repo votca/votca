@@ -125,20 +125,20 @@ void NWChem::Initialize( Property *options ) {
  * Prepares the *.nw file from a vector of segments
  * Appends a guess constructed from monomer orbitals if supplied
  */
-bool NWChem::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_guess )
+bool NWChem::WriteInputFile( std::vector<Segment* > segments, Orbitals* orbitals_guess )
 {
-    vector< Atom* > _atoms;
-    vector< Atom* > ::iterator ait;
-    vector< Segment* >::iterator sit;
-    vector<string> results;
+    std::vector< Atom* > _atoms;
+    std::vector< Atom* > ::iterator ait;
+    std::vector< Segment* >::iterator sit;
+    std::vector<std::string> results;
     //int qmatoms = 0;
-    string temp_suffix = "/id";
-    string scratch_dir_backup = _scratch_dir;
-    ofstream _com_file;
-    ofstream _crg_file;
+    std::string temp_suffix = "/id";
+    std::string scratch_dir_backup = _scratch_dir;
+    std::ofstream _com_file;
+    std::ofstream _crg_file;
 
-    string _com_file_name_full = _run_dir + "/" + _input_file_name;
-    string _crg_file_name_full = _run_dir + "/background.crg" ;
+    std::string _com_file_name_full = _run_dir + "/" + _input_file_name;
+    std::string _crg_file_name_full = _run_dir + "/background.crg" ;
     
     _com_file.open ( _com_file_name_full.c_str() );
     // header 
@@ -152,13 +152,13 @@ bool NWChem::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gues
     for (sit = segments.begin() ; sit != segments.end(); ++sit) {
         
         _atoms = (*sit)-> Atoms();
-        temp_suffix = temp_suffix + "_" + boost::lexical_cast<string>( (*sit)->getId() );
+        temp_suffix = temp_suffix + "_" + boost::lexical_cast<std::string>( (*sit)->getId() );
         for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
 
             if ((*ait)->HasQMPart() == false) { continue; }
 
             vec     pos = (*ait)->getQMPos();
-            string  name = (*ait)->getElement();
+            std::string  name = (*ait)->getElement();
 
             //fprintf(out, "%2s %4.7f %4.7f %4.7f \n"
             _com_file << setw(3) << name.c_str() 
@@ -175,8 +175,8 @@ bool NWChem::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gues
        
        // part of QM coordinates
        
-                vector< QMAtom* > *qmatoms = orbitals_guess->getAtoms();
-                vector< QMAtom* >::iterator it;
+                std::vector< QMAtom* > *qmatoms = orbitals_guess->getAtoms();
+                std::vector< QMAtom* >::iterator it;
 
                 // This is needed for the QM/MM scheme, since only orbitals have 
                 // updated positions of the QM region, hence vector<Segments*> is 
@@ -223,7 +223,7 @@ bool NWChem::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gues
         LOG(logDEBUG,*_pLog) << "Setting the scratch dir to " << _scratch_dir + temp_suffix << flush;
 
         // boost::filesystem::create_directories( _scratch_dir + temp_suffix );
-        string _temp( "scratch_dir " + _scratch_dir + temp_suffix + "\n" );
+        std::string _temp( "scratch_dir " + _scratch_dir + temp_suffix + "\n" );
         _com_file << _temp ;
     }
 
@@ -235,10 +235,10 @@ bool NWChem::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gues
             throw std::runtime_error( "A guess for dimer orbitals has not been prepared.");
         } else {
             ofstream _orb_file;
-            string _orb_file_name_full = _run_dir + "/" + _orb_file_name;
+            std::string _orb_file_name_full = _run_dir + "/" + _orb_file_name;
             // get name of temporary ascii file and open it
             boost::algorithm::split(results, _orb_file_name, boost::is_any_of("."), boost::algorithm::token_compress_on);
-            string _orb_file_name_ascii = _run_dir + "/" + results.front() + ".mos";
+            std::string _orb_file_name_ascii = _run_dir + "/" + results.front() + ".mos";
             _orb_file.open ( _orb_file_name_ascii.c_str() );
 
             // header 
@@ -250,7 +250,7 @@ bool NWChem::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gues
             _orb_file << _size_of_basis << endl;
 
             
-            vector<int> _sort_index;
+            std::vector<int> _sort_index;
             
             orbitals_guess->SortEnergies( &_sort_index );
             
@@ -275,7 +275,7 @@ bool NWChem::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gues
           
             // write all energies in same format
             column = 1;
-            for ( vector< int > ::iterator soi = _sort_index.begin(); soi != _sort_index.end(); ++ soi ) {
+            for ( std::vector< int > ::iterator soi = _sort_index.begin(); soi != _sort_index.end(); ++ soi ) {
                 double _energy = (orbitals_guess->_mo_energies)[*soi] ;
                 _orb_file <<  FortranFormat( _energy );
                 if (column == ncolumns) { _orb_file << endl; column = 0; }
@@ -284,7 +284,7 @@ bool NWChem::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gues
             if ( column != 1 ) _orb_file << endl;
             
             // write coefficients in same format
-            for ( vector< int > ::iterator soi = _sort_index.begin(); soi != _sort_index.end(); ++ soi ) {
+            for ( std::vector< int > ::iterator soi = _sort_index.begin(); soi != _sort_index.end(); ++ soi ) {
                 ub::matrix_row< ub::matrix<double> > mr (orbitals_guess->_mo_coefficients, *soi);
                 column = 1;
                 for (unsigned j = 0; j < mr.size (); ++j) {
@@ -300,7 +300,7 @@ bool NWChem::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gues
             _orb_file.close();
             
             // now convert this ascii file to binary
-            string _command;
+            std::string _command;
             _command = "cd "  + _run_dir + "; asc2mov 5000 system.mos system.movecs > convert.log";
             int i = std::system ( _command.c_str() );
             if ( i == 0 ) {
@@ -327,7 +327,7 @@ bool NWChem::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gues
       _scratch_dir = scratch_dir_backup + temp_suffix;
             
             //boost::filesystem::create_directories(_scratch_dir + temp_suffix);
-            //string _temp("scratch_dir " + _scratch_dir + temp_suffix + "\n");
+            //std::string _temp("scratch_dir " + _scratch_dir + temp_suffix + "\n");
             //_com_file << _temp;
             WriteShellScript();
             _scratch_dir = scratch_dir_backup;
@@ -344,7 +344,7 @@ bool NWChem::WriteInputFile( vector<Segment* > segments, Orbitals* orbitals_gues
 bool NWChem::WriteShellScript() {
     ofstream _shell_file;
     
-    string _shell_file_name_full = _run_dir + "/" + _shell_file_name;
+    std::string _shell_file_name_full = _run_dir + "/" + _shell_file_name;
             
     _shell_file.open ( _shell_file_name_full.c_str() );
 
@@ -354,7 +354,7 @@ bool NWChem::WriteShellScript() {
     if ( _threads == 1 ){ 
         _shell_file << _executable << " " << _input_file_name << " > " <<  _log_file_name  << " 2> run.error" << endl;    
     } else {
-        _shell_file << "mpirun -np " << boost::lexical_cast<string>(_threads) << " " << _executable << " " << _input_file_name << " > " <<  _log_file_name << " 2> run.error" << endl;    
+        _shell_file << "mpirun -np " << boost::lexical_cast<std::string>(_threads) << " " << _executable << " " << _input_file_name << " > " <<  _log_file_name << " 2> run.error" << endl;    
     }
     _shell_file.close();
     
@@ -373,7 +373,7 @@ bool NWChem::Run()
         
         // NWChem overrides input information, if *.db and *.movecs files are present
         // better trash the old version
-        string file_name = _run_dir + "/system.db";
+        std::string file_name = _run_dir + "/system.db";
         remove ( file_name.c_str() );
         file_name = _run_dir + "/" + _log_file_name;
         remove ( file_name.c_str() );
@@ -381,12 +381,12 @@ bool NWChem::Run()
         //remove ( file_name.c_str() );
                
         // if threads is provided and > 1, run mpi; 
-        string _command;
+        std::string _command;
         if ( _threads == 1 ) {
             //_command  = "cd " + _run_dir + "; mkdir -p " + _scratch_dir + "; " + _executable + " " + _input_file_name + "> " +  _log_file_name ;
                         _command = "cd " + _run_dir + "; sh " + _shell_file_name;
         } else {
-            //_command  = "cd " + _run_dir + "; mkdir -p " + _scratch_dir + ";  mpirun -np " +  boost::lexical_cast<string>(_threads) + " " + _executable + " " + _input_file_name + "> "+  _log_file_name ;
+            //_command  = "cd " + _run_dir + "; mkdir -p " + _scratch_dir + ";  mpirun -np " +  boost::lexical_cast<std::string>(_threads) + " " + _executable + " " + _input_file_name + "> "+  _log_file_name ;
             _command = "cd " + _run_dir + "; sh " + _shell_file_name;
         }
         
@@ -417,34 +417,34 @@ void NWChem::CleanUp() {
     // cleaning up the generated files
     if ( _cleanup.size() != 0 ) {
         Tokenizer tok_cleanup(_cleanup, ",");
-        vector <string> _cleanup_info;
+        std::vector <std::string> _cleanup_info;
         tok_cleanup.ToVector(_cleanup_info);
         
-        vector<string> ::iterator it;
+        std::vector<std::string> ::iterator it;
                
         for (it = _cleanup_info.begin(); it != _cleanup_info.end(); ++it) {
             if ( *it == "nw" ) {
-                string file_name = _run_dir + "/" + _input_file_name;
+                std::string file_name = _run_dir + "/" + _input_file_name;
                 remove ( file_name.c_str() );
             }
             
             if ( *it == "db" ) {
-                string file_name = _run_dir + "/system.db";
+                std::string file_name = _run_dir + "/system.db";
                 remove ( file_name.c_str() );
             }
             
             if ( *it == "log" ) {
-                string file_name = _run_dir + "/" + _log_file_name;
+                std::string file_name = _run_dir + "/" + _log_file_name;
                 remove ( file_name.c_str() );
             }
 
            if ( *it == "movecs" ) {
-                string file_name = _run_dir + "/" + _orb_file_name;
+                std::string file_name = _run_dir + "/" + _orb_file_name;
                 remove ( file_name.c_str() );
             }
             
             if ( *it == "gridpts" ) {
-                string file_name = _run_dir + "/system.gridpts.*" ;
+                std::string file_name = _run_dir + "/system.gridpts.*" ;
                 remove ( file_name.c_str() );
             }            
         }
@@ -471,8 +471,8 @@ bool NWChem::ParseOrbitalsFile( Orbitals* _orbitals )
     
     /* maybe we DO need to convert from fortran binary to ASCII first to avoid
      compiler-dependent issues */
-    string _orb_file_name_bin = _run_dir + "/" + _orb_file_name;
-    string _command;
+    std::string _orb_file_name_bin = _run_dir + "/" + _orb_file_name;
+    std::string _command;
     _command = "cd "  + _run_dir + "; mov2asc 10000 system.movecs system.mos > convert.log";
     int i = std::system ( _command.c_str() );
     if ( i == 0 ) {
@@ -483,7 +483,7 @@ bool NWChem::ParseOrbitalsFile( Orbitals* _orbitals )
     }
         
     // opening the ascii MO file   
-    string _orb_file_name_full = _run_dir + "/" + "system.mos" ;
+    std::string _orb_file_name_full = _run_dir + "/" + "system.mos" ;
     std::ifstream _input_file( _orb_file_name_full.c_str() );
     
     if (_input_file.fail()) {
@@ -613,7 +613,7 @@ bool NWChem::ParseOrbitalsFile( Orbitals* _orbitals )
    _occ.clear();
    
    // when all is done, we can trash the ascii file
-   string file_name = _run_dir + "/system.mos";
+   std::string file_name = _run_dir + "/system.mos";
    remove ( file_name.c_str() );
    
    
@@ -659,7 +659,7 @@ bool NWChem::CheckLogFile() {
           //cout << "\nNext Char: " << ch << " TELL G " <<  (int)_input_file.tellg() << endl;
        } while ( ch != '\n' || (int)_input_file.tellg() == -1 );
             
-       string _line;            
+       std::string _line;            
        getline(_input_file,_line);                      // Read the current line
        //cout << "\nResult: " << _line << '\n';     // Display it
        total_energy_pos = _line.find("Total DFT energy");
@@ -693,8 +693,8 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
 
     static const double _conv_Hrt_eV = 27.21138386;
 
-    string _line;
-    vector<string> results;
+    std::string _line;
+    std::vector<std::string> results;
 
     bool _has_overlap_matrix = false;
     bool _has_charges = false;
@@ -709,7 +709,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
      
     LOG(logDEBUG,*_pLog) << "Parsing " << _log_file_name << flush;
        // return true;
-    string _log_file_name_full =  _run_dir + "/" + _log_file_name;
+    std::string _log_file_name_full =  _run_dir + "/" + _log_file_name;
     // check if LOG file is complete
     if ( !CheckLogFile() ) return false;
     
@@ -738,7 +738,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
             //cout << _line << endl;
             boost::algorithm::split(results, _line, boost::is_any_of(":"), boost::algorithm::token_compress_on);
             _has_basis_set_size = true;
-            string _bf = results.back();
+            std::string _bf = results.back();
             boost::trim( _bf );
             _basis_set_size = boost::lexical_cast<int>(_bf);
             _orbitals->setBasisSetSize( _basis_set_size );
@@ -752,7 +752,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
        if (energy_pos != std::string::npos) {
             //cout << _line << endl;
             boost::algorithm::split(results, _line, boost::is_any_of("="), boost::algorithm::token_compress_on);
-            string _energy = results.back();
+            std::string _energy = results.back();
             boost::trim( _energy );
             _orbitals->setQMEnergy ( _conv_Hrt_eV * boost::lexical_cast<double>(_energy) );
             LOG(logDEBUG, *_pLog) << (boost::format("QM energy[eV]: %4.6f ") % _orbitals->getQMEnergy()).str() << flush;
@@ -778,7 +778,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
 
 
                 //_has_vxc_matrix = true;
-                          vector<int> _j_indeces;
+                          std::vector<int> _j_indeces;
             
            int _n_blocks = 1 + (( _basis_set_size - 1 ) / 6);
            //cout << _n_blocks;
@@ -801,7 +801,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
                     getline (_input_file, _line); 
                     
                     // split the line on the i index and the rest
-                    vector<string> _row;
+                    std::vector<std::string> _row;
                     boost::trim( _line );
                     boost::algorithm::split( _row , _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on); 
                    
@@ -811,8 +811,8 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
                     
                     std::vector<int>::iterator _j_iter = _j_indeces.begin();
                     
-                    for (std::vector<string>::iterator iter = _row.begin()++; iter != _row.end(); iter++) {
-                        string  _coefficient = *iter;
+                    for (std::vector<std::string>::iterator iter = _row.begin()++; iter != _row.end(); iter++) {
+                        std::string  _coefficient = *iter;
                        
                         int _j_index = *_j_iter;                                
                         // _orbitals->_overlap( _i_index-1 , _j_index-1 ) = boost::lexical_cast<double>( _coefficient );
@@ -855,7 +855,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
            (_orbitals->_overlap).resize( _basis_set_size );
             
            _has_overlap_matrix = true;
-           vector<int> _j_indeces;
+           std::vector<int> _j_indeces;
             
            int _n_blocks = 1 + (( _basis_set_size - 1 ) / 6);
            //cout << _n_blocks;
@@ -878,7 +878,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
                     getline (_input_file, _line); 
                     
                     // split the line on the i index and the rest
-                    vector<string> _row;
+                    std::vector<std::string> _row;
                     boost::trim( _line );
                     boost::algorithm::split( _row , _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on); 
                    
@@ -888,8 +888,8 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
                     
                     std::vector<int>::iterator _j_iter = _j_indeces.begin();
                     
-                    for (std::vector<string>::iterator iter = _row.begin()++; iter != _row.end(); iter++) {
-                        string  _coefficient = *iter;
+                    for (std::vector<std::string>::iterator iter = _row.begin()++; iter != _row.end(); iter++) {
+                        std::string  _coefficient = *iter;
                        
                         int _j_index = *_j_iter;                                
                         _orbitals->_overlap( _i_index-1 , _j_index-1 ) = boost::lexical_cast<double>( _coefficient );
@@ -922,7 +922,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
                 
                 // now starts the data in format
                 // _id type x y z q
-                vector<string> _row;
+                std::vector<std::string> _row;
                 getline(_input_file, _line);
                 boost::trim( _line );
                 //cout << _line << endl;
@@ -933,7 +933,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
                 while ( nfields == 6 ) {
                     int atom_id = boost::lexical_cast< int >( _row.at(0) );
                     //int atom_number = boost::lexical_cast< int >( _row.at(0) );
-                    string atom_type = _row.at(1);
+                    std::string atom_type = _row.at(1);
                     double atom_charge = boost::lexical_cast< double >( _row.at(5) );
                     //if ( tools::globals::verbose ) cout << "... ... " << atom_id << " " << atom_type << " " << atom_charge << endl;
                     getline(_input_file, _line);
@@ -981,7 +981,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
             getline(_input_file, _line);
             // now starts the data in format
             // _id type Qnuc x y z 
-            vector<string> _row;
+            std::vector<std::string> _row;
             getline(_input_file, _line);
             boost::trim( _line );
 
@@ -992,7 +992,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
             while ( nfields == 6 ) {
                 int atom_id = boost::lexical_cast< int >( _row.at(0) );
                 //int atom_number = boost::lexical_cast< int >( _row.at(0) );
-                string _atom_type = _row.at(1);
+                std::string _atom_type = _row.at(1);
                 double _x =  boost::lexical_cast<double>( _row.at(3) );
                 double _y =  boost::lexical_cast<double>( _row.at(4) );
                 double _z =  boost::lexical_cast<double>( _row.at(5) );
@@ -1026,8 +1026,8 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
         
         if (self_energy_pos != std::string::npos) {
             LOG(logDEBUG,*_pLog) << "Getting the self energy\n";  
-            vector<string> block;
-            vector<string> energy;
+            std::vector<std::string> block;
+            std::vector<std::string> energy;
             boost::algorithm::split(block, _line, boost::is_any_of("="), boost::algorithm::token_compress_on);
             boost::algorithm::split(energy, block[1], boost::is_any_of("\t "), boost::algorithm::token_compress_on);
             
@@ -1063,8 +1063,8 @@ bool NWChem::ConvertToGW( Orbitals* _orbitals ) {
 }
 
 
-string NWChem::FortranFormat( const double &number ) {
-    stringstream _ssnumber;
+std::string NWChem::FortranFormat( const double &number ) {
+    std::stringstream _ssnumber;
     if ( number >= 0) {
         _ssnumber << "    ";
     } else{

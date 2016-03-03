@@ -131,7 +131,7 @@ namespace votca {
         template<class QMPackage>
         QMMachine<QMPackage>::~QMMachine() {
 
-            vector<QMMIter*> ::iterator qit;
+            std::vector<QMMIter*> ::iterator qit;
             for (qit = _iters.begin(); qit < _iters.end(); ++qit) {
                 delete *qit;
             }
@@ -224,7 +224,7 @@ namespace votca {
             // WRITE AND SET QM INPUT FILE
             Orbitals orb_iter_input;
 
-            vector<Segment*> empty;
+            std::vector<Segment*> empty;
             thisIter->GenerateQMAtomsFromPolarSegs(_job->getPolarTop(), orb_iter_input, _split_dpl, _dpl_spacing);
 
             _qmpack->setRunDir(runFolder);
@@ -271,11 +271,11 @@ namespace votca {
             dftbasis.AOBasisFill(&dftbs, orb_iter_output.QMAtoms() );
             dftbasis.ReorderMOs(_dft_orbitals_GS, orb_iter_output.getQMpackage(), "votca" );
             ub::matrix<double> &DMATGS=orb_iter_output.DensityMatrixGroundState(_dft_orbitals_GS);
-            vector< QMAtom* >& Atomlist= orb_iter_output.QMAtoms();
+            std::vector< QMAtom* >& Atomlist= orb_iter_output.QMAtoms();
     
             Espfit esp;
             // Espfit esp
-            //Espfit esp(vector< QMAtom* >& Atomlist, ub::matrix<double> &DMATGS, AOBasis &dftbasis);
+            //Espfit esp(std::vector< QMAtom* >& Atomlist, ub::matrix<double> &DMATGS, AOBasis &dftbasis);
             esp.setLog(_log);
             esp.FittoDensity(Atomlist, DMATGS, dftbasis); */
 
@@ -444,7 +444,7 @@ namespace votca {
                 }
 
                 // fill DFT AO basis by going through all atoms 
-                vector< QMAtom* >& Atomlist = orb_iter_output.QMAtoms();
+                std::vector< QMAtom* >& Atomlist = orb_iter_output.QMAtoms();
 
 
 
@@ -506,7 +506,7 @@ namespace votca {
                     thisIter->getQMMMEnergy());
 
             // EXTRACT & SAVE QMATOM DATA
-            vector< QMAtom* > &atoms = *(orb_iter_output.getAtoms());
+            std::vector< QMAtom* > &atoms = *(orb_iter_output.getAtoms());
 
             thisIter->UpdatePosChrgFromQMAtoms(atoms, _job->getPolarTop()->QM0());
 
@@ -628,20 +628,20 @@ namespace votca {
             return _isConverged;
         }
 
-        void QMMIter::ConvertPSitesToQMAtoms(vector< PolarSeg* > &psegs,
-                vector< QMAtom * > &qmatoms) {
+        void QMMIter::ConvertPSitesToQMAtoms(std::vector< PolarSeg* > &psegs,
+                std::vector< QMAtom * > &qmatoms) {
 
             assert(qmatoms.size() == 0);
             return;
         }
 
-        void QMMIter::ConvertQMAtomsToPSites(vector< QMAtom* > &qmatoms,
-                vector< PolarSeg* > &psegs) {
+        void QMMIter::ConvertQMAtomsToPSites(std::vector< QMAtom* > &qmatoms,
+                std::vector< PolarSeg* > &psegs) {
             assert(qmatoms.size() == 0);
             return;
         }
 
-        void QMMIter::UpdateMPSFromGDMA(vector<vector<double> > &multipoles, vector< PolarSeg* > &psegs) {
+        void QMMIter::UpdateMPSFromGDMA(std::vector<std::vector<double> > &multipoles, std::vector< PolarSeg* > &psegs) {
 
 
             for (unsigned int i = 0, qac = 0; i < psegs.size(); ++i) {
@@ -649,7 +649,7 @@ namespace votca {
                 for (unsigned int j = 0; j < pseg->size(); ++j, ++qac) {
 
                     // Retrieve multipole info of this atom
-                    vector<double> update = multipoles[qac];
+                    std::vector<double> update = multipoles[qac];
                     while (update.size() < 9) update.push_back(0.0);
 
                     // Convert e*(a_0)^k to e*(nm)^k where k = rank
@@ -692,8 +692,8 @@ namespace votca {
 
         }
 
-        void QMMIter::UpdatePosChrgFromQMAtoms(vector< QMAtom* > &qmatoms,
-                vector< PolarSeg* > &psegs) {
+        void QMMIter::UpdatePosChrgFromQMAtoms(std::vector< QMAtom* > &qmatoms,
+                std::vector< PolarSeg* > &psegs) {
 
             double AA_to_NM = 0.1; // Angstrom to nanometer
 

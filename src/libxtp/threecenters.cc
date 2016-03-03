@@ -22,7 +22,7 @@
 
 #include <votca/xtp/threecenters.h>
 
-using namespace std;
+
 using namespace votca::tools;
 
 namespace votca {
@@ -68,7 +68,7 @@ namespace votca {
             
             bool _does_contribute = false;
             
-             typedef vector< AOGaussianPrimitive* >::iterator GaussianIterator;
+             typedef std::vector< AOGaussianPrimitive* >::iterator GaussianIterator;
                 // iterate over Gaussians in this _shell_row
             for ( GaussianIterator italpha = _shell_alpha->firstGaussian(); italpha != _shell_alpha->lastGaussian(); ++italpha){
             // iterate over Gaussians in this _shell_col

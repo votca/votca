@@ -34,7 +34,7 @@ Topology::Topology() : _db_id(-1), _hasPb(0),
 
 void Topology::CleanUp() {
 
-    vector < Molecule* > ::iterator mit;
+    std::vector < Molecule* > ::iterator mit;
     for (mit = _molecules.begin(); mit < _molecules.end(); mit++) delete *mit;
     _molecules.clear();
     _segments.clear();
@@ -42,7 +42,7 @@ void Topology::CleanUp() {
     _atoms.clear();
     _polarSites.clear();
 
-    vector < SegmentType* > ::iterator sit;
+    std::vector < SegmentType* > ::iterator sit;
     for (sit = _segmentTypes.begin(); sit < _segmentTypes.end(); sit++) {
         delete *sit;
     }
@@ -59,7 +59,7 @@ void Topology::CleanUp() {
 Topology::~Topology() {
 
     // clean up the list of molecules; this also deletes atoms
-    vector < Molecule* > :: iterator molecule;
+    std::vector < Molecule* > :: iterator molecule;
     for (molecule = _molecules.begin();
          molecule < _molecules.end();
          ++molecule) {
@@ -71,7 +71,7 @@ Topology::~Topology() {
     _atoms.clear();
     _polarSites.clear();
 
-    vector < SegmentType* > ::iterator typeit;
+    std::vector < SegmentType* > ::iterator typeit;
     for (typeit = _segmentTypes.begin();
          typeit < _segmentTypes.end();
          typeit++) {
@@ -243,7 +243,7 @@ bool Topology::Rigidify() {
     else {
 
         // Rigidify segments
-        vector<Segment*> ::iterator sit;
+        std::vector<Segment*> ::iterator sit;
         for (sit = _segments.begin();
              sit < _segments.end();
              sit++) {
@@ -366,7 +366,7 @@ void Topology::WritePDB(FILE *out, string tag) {
 
     if (tag == "segments") {
 
-    vector < Segment* > :: iterator seg;
+    std::vector < Segment* > :: iterator seg;
     for (seg = _segments.begin(); seg < _segments.end(); ++seg){
          int id = (*seg)->getId();
          string name =  (*seg)->getName();
