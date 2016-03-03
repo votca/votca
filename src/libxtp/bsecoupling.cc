@@ -1127,7 +1127,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      //finding the eigenstates which are closest to the the original states
      
      //cout << "_J_eigenvalues" << endl;
-     //cout << _J_eigenvalues << endl;
+    //cout << _J_eigenvalues << endl;
      //cout << "_J_eigenvectors" << endl;
      //cout << _J_ortho<<endl;
      
@@ -1138,7 +1138,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      ub::matrix<float> _T=ub::zero_matrix<float>(_bse_exc,_bse_exc);
      //find the eigenvectors which are most similar to the initial states
      
-     LOG(logDEBUG,*_pLog) << "Sorting states according to similiarity with the singlet states " << flush;
+     LOG(logDEBUG,*_pLog) << "Sorting states according to similiarity with the FE states " << flush;
      
      std::vector<int> index;
      //column
@@ -1186,21 +1186,21 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
                     norm += _J_ortho(j, k)*_J_ortho(j, k);
                 }
                 for (int j = 0; j < _bse_exc; j++) {
-                    if (k == j) {
-                        _E(k, k) = _J_eigenvalues(k);
+                    if (i == j) {
+                        _E(i, i) = _J_eigenvalues(k);
                     }
-                    _T(j,k ) = _J_ortho(j,k) / std::sqrt(norm);
+                    _T(j,i ) = _J_ortho(j,k) / std::sqrt(norm);
                 }
             }
-     //cout << "_E" <<endl;
-     //cout << _E <<endl;
-          //cout << "_T" <<endl;
+     cout << "_E" <<endl;
+     cout << _E <<endl;
+          cout << "_T" <<endl;
 
-     //cout << _T << endl;
+     cout << _T << endl;
      _temp=ub::prod(_E,ub::trans(_T));
-     //cout << "_J" <<endl;
+     cout << "_J" <<endl;
      _J=ub::prod(_T,_temp);
-    // cout <<_J<<endl;
+     cout <<_J<<endl;
      
      /*
      for (unsigned i=0;i<_J.size1();i++){
