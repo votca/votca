@@ -177,7 +177,7 @@ bool Orbitals::CheckDegeneracy( double _energy_difference ) {
             // in all containers counters start with 0; real life - with 1
             int _level2 = std::distance(_mo_energies.begin(), it2) + 1;
             
-            if ( std::abs(energy1 - energy2)*tools::conv::ha2ev < _energy_difference ) {
+            if ( std::abs(energy1 - energy2)*tools::conv::hrt2ev < _energy_difference ) {
                 _level_degeneracy[_level1].push_back( _level2 );
                 _level_degeneracy[_level2].push_back( _level1 );
                 _degenerate = true;

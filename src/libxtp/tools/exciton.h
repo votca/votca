@@ -1153,7 +1153,7 @@ double Exciton::GetTotalEnergy(Orbitals* _orbitals, string _spintype, int _opt_s
     // DFT total energy is stored in eV
     // singlet energies are stored in Ryd...
     //cout << "DFT " << setprecision(12) << _dft_energy/27.21138386 << " exc " << _omega*0.5 << endl; 
-    return _total_energy = _dft_energy*tools::conv::ev2ha + _omega*tools::conv::ryd2ha; //  e.g. hartree
+    return _total_energy = _dft_energy*tools::conv::ev2hrt + _omega*tools::conv::ryd2hrt; //  e.g. hartree
     
 }
 

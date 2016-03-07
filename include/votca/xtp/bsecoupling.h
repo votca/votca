@@ -67,7 +67,8 @@ public:
     float getSingletCouplingElement( int levelA, int levelB);
     
     float getTripletCouplingElement( int levelA, int levelB);
-    
+    float getSingletDimerEnergy( int level);
+    float getTripletDimerEnergy( int level);
     void setLogger( Logger* pLog ) { _pLog = pLog; }
     
 private:

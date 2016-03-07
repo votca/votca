@@ -178,7 +178,7 @@ namespace votca {
         
 void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
     const double ryd2ev = tools::conv::ryd2ev;
-    const double ha2ev = tools::conv::ha2ev;
+    const double ha2ev = tools::conv::hrt2ev;
     Property *_gwbse_summary = &_summary->add("GWBSE", "");
     _gwbse_summary->setAttribute("units", "eV");
     _gwbse_summary->setAttribute("DeltaHLGap",(format("%1$+1.6f ") % (_shift * ryd2ev)).str());

@@ -126,7 +126,7 @@ public:
     ub::vector<double>* getEnergies() { return &_mo_energies; } // OLD
 
     // access to DFT molecular orbital energy of a specific level (in eV)
-    double getEnergy( int level) { return ( hasMOEnergies() ) ? tools::conv::ha2ev*_mo_energies[level-1] : 0; }
+    double getEnergy( int level) { return ( hasMOEnergies() ) ? tools::conv::hrt2ev*_mo_energies[level-1] : 0; }
 
     // access to DFT molecular orbital coefficients, new, tested
     bool          hasMOCoefficients() { return ( _mo_coefficients.size1() > 0 ) ? true : false ;}

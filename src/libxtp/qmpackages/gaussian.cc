@@ -1197,7 +1197,7 @@ namespace votca {
                     if (properties.count("HF") > 0) {
                         double energy_hartree = boost::lexical_cast<double>(properties["HF"]);
                         //_orbitals->setQMEnergy(_has_qm_energy = true;
-                        _orbitals-> setQMEnergy(tools::conv::ha2ev * energy_hartree);
+                        _orbitals-> setQMEnergy(tools::conv::hrt2ev * energy_hartree);
                         LOG(logDEBUG, *_pLog) << (boost::format("QM energy[eV]: %4.6f ") % _orbitals->getQMEnergy()).str() << flush;
                     } else {
                         cout << endl;
@@ -1226,7 +1226,7 @@ namespace votca {
                     boost::algorithm::split(energy, block[1], boost::is_any_of("\t "), boost::algorithm::token_compress_on);
 
                     // _orbitals->_has_self_energy = true;
-                    _orbitals->setSelfEnergy(tools::conv::ha2ev * boost::lexical_cast<double> (energy[1]));
+                    _orbitals->setSelfEnergy(tools::conv::hrt2ev * boost::lexical_cast<double> (energy[1]));
 
                     LOG(logDEBUG, *_pLog) << "Self energy " << _orbitals->getSelfEnergy() << flush;
 
