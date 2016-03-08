@@ -101,6 +101,7 @@ namespace votca {
             
             //options for esp/partialcharges
             if (_do_esp){
+                key = "options." + Identify();
                 string _esp_xml = options->get(key + ".esp").as<string> ();
                 load_property_from_xml(_esp_options, _esp_xml.c_str());
             }

@@ -750,9 +750,9 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     ub::matrix<double> _psi_AxB_dimer_basis = ub::prod( _psi_AxB, _psi_AB );  
     _psi_AB.clear();
     cout<< "_psi_AxB_dimer"<<endl;
-    for (int i=0;i<_psi_AxB_dimer_basis.size1();i++){
+    for (unsigned i=0;i<_psi_AxB_dimer_basis.size1();i++){
         double mag=0.0;
-        for (int j=0;j<_psi_AxB_dimer_basis.size2();j++){
+        for (unsigned j=0;j<_psi_AxB_dimer_basis.size2();j++){
             mag+=_psi_AxB_dimer_basis(i,j)*_psi_AxB_dimer_basis(i,j);
             
     }
@@ -1159,7 +1159,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
     ub::matrix<float>_J_ortho = ub::prod( _transform, _J_temp);
     cout<<endl;
     cout<< "diagonals"<<endl;
-    for (int i=0;i<_J_ortho.size1();i++){
+    for (unsigned i=0;i<_J_ortho.size1();i++){
         cout << _J_ortho(i,i)*conv::ryd2ev_f<<" ";
     }
     cout <<endl;
