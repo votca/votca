@@ -84,7 +84,7 @@ public:
     Property &get(const string &key);
 
     /**
-     * \brief check weather property exists
+     * \brief check whether property exists
      * @param key identifier
      * @return true or false
      */
