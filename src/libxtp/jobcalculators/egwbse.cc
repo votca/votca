@@ -307,15 +307,15 @@ namespace votca {
                 }
                 
                 
-                cout << "hallo" <<endl;
+                //cout << "hallo" <<endl;
                    
                
                 GWBSE _gwbse; 
-                cout << "hallo1" <<endl;
+               // cout << "hallo1" <<endl;
                 _gwbse.setLogger(pLog);    
                 _gwbse.Initialize(&_gwbse_options);
                 // _gwbse.setLogger(pLog);
-                cout << "hallo2" <<endl;
+                //cout << "hallo2" <<endl;
                 
                 // define own logger for GW-BSE that is written into a runFolder logfile
                 Logger gwbse_logger(logDEBUG);

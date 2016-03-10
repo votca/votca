@@ -143,14 +143,19 @@ void IGWBSE::ParseOptionsXML( votca::tools::Property *opt ) {
 
 std::map<std::string, int> IGWBSE::FillParseMaps(string Mapstring){
     std::vector<string> strings_vec;
-    boost::algorithm::split( strings_vec, Mapstring, boost::is_any_of("\t \n"),boost::token_compress_on );
+    boost::algorithm::split( strings_vec, Mapstring, boost::is_any_of("\t, \n"),boost::token_compress_on );
     std::vector<string>::iterator sit;
     std::map<std::string, int> type2level;
     for(sit=strings_vec.begin();sit<strings_vec.end();++sit){
-        std::vector<string>temp;
-        boost::algorithm::split( temp, (*sit), boost::is_any_of(":"),boost::token_compress_on );
-        int number=boost::lexical_cast<int>(temp[1]);
-        string type=temp[0];
+        //std::vector<string>temp;
+        
+        string word=*sit;
+        if (word.size()!=2){
+            throw runtime_error("State identifier "+word+" unknown, right now only states up to number 9 are parsed. s1,s2,t1, etc..");
+        }
+        //boost::algorithm::split( temp, (*sit), boost::is_any_of(""),boost::token_compress_on );
+        int number=boost::lexical_cast<int>(word.at(1));
+        string type=boost::lexical_cast<string>(word.at(0));
         type2level[type]=number; // -1 because default return if key is not found is 0, so if key is not found first exited state should be used number game
     }
     return type2level;
