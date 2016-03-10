@@ -89,7 +89,7 @@ namespace votca {
             key = "options." + Identify();
             string _gwbse_xml = options->get(key + ".gwbse").as<string> ();
             load_property_from_xml(_gwbse_options, _gwbse_xml.c_str());
-
+           
 
 
             // options for dft package
@@ -182,8 +182,8 @@ namespace votca {
 }
 
         Job::JobResult EGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
+            
 
-            cout << "Starting GW-BSE";
             Orbitals _orbitals;
             Job::JobResult jres = Job::JobResult();
             Property _job_input = job->getInput();
@@ -198,6 +198,7 @@ namespace votca {
             segments.push_back(seg);
 
             Logger* pLog = opThread->getLogger();
+            
             LOG(logINFO, *pLog) << TimeStamp() << " Evaluating site " << seg->getId() << flush;
 
             
@@ -206,6 +207,7 @@ namespace votca {
             // directories and files
             path arg_path;
             string egwbse_work_dir = "OR_FILES";
+            
             string frame_dir =  "frame_" + boost::lexical_cast<string>(top->getDatabaseId());     
             string orb_file = (format("%1%_%2%%3%") % "molecule" % segId % ".orb").str();
             
@@ -305,13 +307,15 @@ namespace votca {
                 }
                 
                 
-                   
+                cout << "hallo" <<endl;
                    
                
                 GWBSE _gwbse; 
+                cout << "hallo1" <<endl;
+                _gwbse.setLogger(pLog);    
                 _gwbse.Initialize(&_gwbse_options);
                 // _gwbse.setLogger(pLog);
-                
+                cout << "hallo2" <<endl;
                 
                 // define own logger for GW-BSE that is written into a runFolder logfile
                 Logger gwbse_logger(logDEBUG);
@@ -360,17 +364,21 @@ namespace votca {
             //  _orbitalsAB.setStorage( _store_orbitals, _store_overlap, _store_integrals );
             string mps_file="";
             if (_do_esp){
+           
                 Esp2multipole esp2multipole=Esp2multipole(pLog);;
                 esp2multipole.Initialize(&_esp_options);
+                string ESPDIR="MP_FILES/"+frame_dir+"/"+esp2multipole.GetIdentifier();
                 esp2multipole.Extractingcharges(_orbitals);
                 
-                mps_file = (format("%1%_%2%_%3%_%4%") % "molecule" % esp2multipole.GetIdentifier() % segId % ".mps").str();
-                esp2multipole.WritetoFile(_orbitals,(DIR + "/" + mps_file).c_str(),Identify());
+
+                mps_file = (format("%1%_%2%_%3%.mps") % "molecule" % segId % esp2multipole.GetIdentifier() ).str();
+                boost::filesystem::create_directories( ESPDIR );
+                esp2multipole.WritetoFile(_orbitals,(ESPDIR + "/" + mps_file).c_str(),Identify());
     
     
-                LOG(logDEBUG, *pLog) << "Written charges to " << mps_file << flush;
+                LOG(logDEBUG, *pLog) << "Written charges to " << (ESPDIR + "/" + mps_file).c_str() << flush;
                 
-                _segment_summary->add("partialcharges", mps_file);
+                _segment_summary->add("partialcharges", (ESPDIR + "/" + mps_file).c_str());
             }
            
 

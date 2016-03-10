@@ -37,6 +37,15 @@
             <shell type="D"><constant power="2" decay="0.0316000" contraction="-0.001500"></constant></shell>
        </element>
 
+    <element name="Al" lmax="3" ncore="10">
+            <shell type="F"><constant power="2" decay="1.0" contraction="0.0"></constant></shell>
+            <shell type="S"><constant power="2" decay="2.19822500" contraction="20.40981300"></constant></shell>
+            <shell type="P"><constant power="2" decay="1.60139500" contraction="8.98049500"></constant></shell>
+            <shell type="D"><constant power="2" decay="1.49902600" contraction="-1.97041100"></constant></shell>
+       </element>
+
+
+
 	
         <element name="Hg" lmax="5" ncore="60">
             <shell type="H"><constant power="2" decay="1.0" contraction="0.0"></constant></shell>

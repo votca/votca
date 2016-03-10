@@ -220,6 +220,7 @@
       <itemPath>../../src/libxtp/aoshell.cc</itemPath>
       <itemPath>../../src/libxtp/apolarsite.cc</itemPath>
       <itemPath>../../src/libxtp/bsecoupling.cc</itemPath>
+      <itemPath>../../src/libxtp/esp2multipole.cc</itemPath>
       <itemPath>../../src/libxtp/espfit.cc</itemPath>
       <itemPath>../../src/libxtp/ewald2d.cc</itemPath>
       <itemPath>../../src/libxtp/ewald3d.cc</itemPath>
@@ -291,6 +292,7 @@
                    projectFiles="false">
       <itemPath>Makefile</itemPath>
     </logicalFolder>
+    <itemPath>../../src/libxtp/kmclifetime.cc</itemPath>
     <itemPath>../../src/libxtp/threecenters_g.cc</itemPath>
   </logicalFolder>
   <sourceRootList>
@@ -766,6 +768,8 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/esp2multipole.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/espfit.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/ewaldactor.cc" ex="false" tool="1" flavor2="0">
@@ -904,6 +908,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../src/libxtp/kmclifetime.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/molecule.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1559,6 +1565,8 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/esp2multipole.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/espfit.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/ewaldactor.cc" ex="false" tool="1" flavor2="0">
@@ -1697,6 +1705,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../src/libxtp/kmclifetime.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/molecule.cc" ex="false" tool="1" flavor2="0">
       </item>

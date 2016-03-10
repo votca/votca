@@ -52,6 +52,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/50c6f79c/eoutersphere.o \
 	${OBJECTDIR}/_ext/50c6f79c/jobwriter.o \
 	${OBJECTDIR}/_ext/5e78919f/dftengine.o \
+	${OBJECTDIR}/_ext/1ce08c7a/esp2multipole.o \
 	${OBJECTDIR}/_ext/1ce08c7a/espfit.o \
 	${OBJECTDIR}/_ext/1ce08c7a/ewaldactor.o \
 	${OBJECTDIR}/_ext/1ce08c7a/extractorfactory.o \
@@ -70,6 +71,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/f632c409/idft.o \
 	${OBJECTDIR}/_ext/f632c409/iexcitoncl.o \
 	${OBJECTDIR}/_ext/f632c409/igwbse.o \
+	${OBJECTDIR}/_ext/1ce08c7a/kmclifetime.o \
 	${OBJECTDIR}/_ext/1ce08c7a/molecule.o \
 	${OBJECTDIR}/_ext/4d261038/numerical_integrations.o \
 	${OBJECTDIR}/_ext/4d261038/radial_euler_maclaurin_rule.o \
@@ -229,6 +231,11 @@ ${OBJECTDIR}/_ext/5e78919f/dftengine.o: ../../src/libxtp/dftengine/dftengine.cc
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/5e78919f/dftengine.o ../../src/libxtp/dftengine/dftengine.cc
 
+${OBJECTDIR}/_ext/1ce08c7a/esp2multipole.o: ../../src/libxtp/esp2multipole.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce08c7a/esp2multipole.o ../../src/libxtp/esp2multipole.cc
+
 ${OBJECTDIR}/_ext/1ce08c7a/espfit.o: ../../src/libxtp/espfit.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
 	${RM} "$@.d"
@@ -318,6 +325,11 @@ ${OBJECTDIR}/_ext/f632c409/igwbse.o: ../../src/libxtp/jobcalculators/igwbse.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/f632c409
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/f632c409/igwbse.o ../../src/libxtp/jobcalculators/igwbse.cc
+
+${OBJECTDIR}/_ext/1ce08c7a/kmclifetime.o: ../../src/libxtp/kmclifetime.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce08c7a/kmclifetime.o ../../src/libxtp/kmclifetime.cc
 
 ${OBJECTDIR}/_ext/1ce08c7a/molecule.o: ../../src/libxtp/molecule.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
