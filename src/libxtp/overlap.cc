@@ -32,7 +32,7 @@
 #include <boost/numeric/ublas/vector_proxy.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <votca/tools/constants.h>
-
+#include <boost/format.hpp>
 #include <boost/progress.hpp>
 
 namespace votca { namespace xtp {
