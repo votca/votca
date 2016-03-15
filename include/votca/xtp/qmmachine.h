@@ -52,14 +52,14 @@ public:
         double A_to_nm = 0.1;
         vec pos = A_to_nm*vec(atm->x, atm->y, atm->z);
         double q = atm->charge;
-        string elem = atm->type;
+        std::string elem = atm->type;
         double pol = 0.0;
         try {
             pol = _polar_table.at(elem);
         }
         catch(out_of_range) {
-            cout << endl << "QMMInterface - no default polarizability given "
-                << "for element type '" << elem << "'. Defaulting to 1A**3" << flush;
+            std::cout << std::endl << "QMMInterface - no default polarizability given "
+                << "for element type '" << elem << "'. Defaulting to 1A**3" << std::flush;
             pol = 1e-3;
         }
 
@@ -72,9 +72,9 @@ public:
         return new_aps;
     }
     
-    PolarSeg *Convert(vector<QMAtom*> &atms) {        
+    PolarSeg *Convert(std::vector<QMAtom*> &atms) {        
         PolarSeg *new_pseg = new PolarSeg();
-        vector<QMAtom*>::iterator it;
+        std::vector<QMAtom*>::iterator it;
         for (it = atms.begin(); it < atms.end(); ++it) {
             APolarSite *new_site = this->Convert(*it);
             new_pseg->push_back(new_site);
@@ -84,12 +84,12 @@ public:
     
     // TODO CONVERSION MM -> QM
     QMAtom *Convert(APolarSite*);
-    vector<QMAtom*> Convert(PolarSeg*);
+    std::vector<QMAtom*> Convert(PolarSeg*);
     
 private:
     
     // Allocates polarizabilities in A**3 to element types
-    map<string,double> _polar_table;
+    std::map<std::string,double> _polar_table;
     
 };
 
@@ -107,10 +107,10 @@ public:
     QMMIter(int id) : _id(id), _hasdRdQ(false), _hasQM(false), _hasMM(false)  { ; }
    ~QMMIter() { ; }
 
-   void ConvertPSitesToQMAtoms(vector< PolarSeg* > &, vector< QMAtom* > &);
-   void ConvertQMAtomsToPSites(vector< QMAtom* > &, vector< PolarSeg* > &);
-   void UpdatePosChrgFromQMAtoms(vector< QMAtom* > &, vector< PolarSeg* > &);  
-   void UpdateMPSFromGDMA( vector<vector<double> > &multipoles,  vector< PolarSeg* > &psegs);
+   void ConvertPSitesToQMAtoms(std::vector< PolarSeg* > &, std::vector< QMAtom* > &);
+   void ConvertQMAtomsToPSites(std::vector< QMAtom* > &, std::vector< PolarSeg* > &);
+   void UpdatePosChrgFromQMAtoms(std::vector< QMAtom* > &, std::vector< PolarSeg* > &);  
+   void UpdateMPSFromGDMA( std::vector<std::vector<double> > &multipoles,  std::vector< PolarSeg* > &psegs);
    void GenerateQMAtomsFromPolarSegs(PolarTop *ptop, Orbitals &orb, bool split_dpl, double dpl_spacing);   
 
    void setdRdQ(double dR_RMS, double dQ_RMS, double dQ_SUM);
@@ -196,7 +196,7 @@ private:
     Logger *_log;
     int _subthreads;
     
-    vector<QMMIter*> _iters;
+    std::vector<QMMIter*> _iters;
     bool _isConverged;
     int _maxIter;
 

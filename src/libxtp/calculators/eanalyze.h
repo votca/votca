@@ -15,7 +15,7 @@ public:
     EAnalyze() { };
    ~EAnalyze() { };
 
-    string Identify() { return "eanalyze"; }
+    std::string Identify() { return "eanalyze"; }
 
     void Initialize(Property *opt);
     bool EvaluateFrame(Topology *top);
@@ -28,9 +28,9 @@ private:
     double _resolution_pairs;
     double _resolution_sites;
     double _resolution_space;
-    string _distancemode;
+    std::string _distancemode;
 
-    vector<int> _states;
+    std::vector<int> _states;
 
     double _site_avg;
     
@@ -42,8 +42,8 @@ private:
     int  _atomic_first;
     int  _atomic_last;
     
-    string _seg_pattern;
-    vector<Segment*> _seg_shortlist;
+    std::string _seg_pattern;
+    std::vector<Segment*> _seg_shortlist;
 
 };
 
@@ -55,7 +55,7 @@ void EAnalyze::Initialize( Property *opt ) {
     _skip_pairs=false;
     // update options with the VOTCASHARE defaults   
     UpdateWithDefaults( opt, "xtp" );
-    string key = "options." + Identify();
+    std::string key = "options." + Identify();
     if (opt->exists(key+".resolution_pairs")) {
     _resolution_pairs = opt->get(key+".resolution_pairs").as< double >();
     }
@@ -76,7 +76,7 @@ void EAnalyze::Initialize( Property *opt ) {
     }
 
     if (opt->exists(key+".pattern")) {
-        _seg_pattern = opt->get(key+".pattern").as<string>();
+        _seg_pattern = opt->get(key+".pattern").as<std::string>();
     }
     else _seg_pattern = "*";
     
@@ -100,13 +100,13 @@ void EAnalyze::Initialize( Property *opt ) {
     
     if (opt->exists(key+".distancemode")) {
         // distancemode = segment / centreofmass
-        _distancemode = opt->get(key+".distancemode").as< string >();
+        _distancemode = opt->get(key+".distancemode").as< std::string >();
     }
     else{
          _distancemode = "segment";
     }
     if(_distancemode != "segment" && _distancemode != "centreofmass"){
-        cout << "WARNING: distancemode has to be set to either 'segment' or to 'centreofmass'. Setting it to 'segment' now." << endl;
+        std::cout << "WARNING: distancemode has to be set to either 'segment' or to 'centreofmass'. Setting it to 'segment' now." << std::endl;
         _distancemode = "segment";
     }
     
@@ -119,21 +119,21 @@ void EAnalyze::Initialize( Property *opt ) {
 bool EAnalyze::EvaluateFrame(Topology *top) {
     
     // Short-list segments according to pattern
-    vector<Segment*>::iterator sit;
+    std::vector<Segment*>::iterator sit;
     for (sit=top->Segments().begin(); sit!=top->Segments().end(); ++sit) {
-        string seg_name = (*sit)->getName();
+        std::string seg_name = (*sit)->getName();
         if (votca::tools::wildcmp(_seg_pattern.c_str(), seg_name.c_str())) {
             _seg_shortlist.push_back(*sit);
         }
     }
-    cout << endl << "... ... Short-listed " << _seg_shortlist.size() 
-         << " segments (pattern='" << _seg_pattern << "')" << flush;
-    cout << endl << "... ... ... NOTE Statistics of site energies and spatial"
+    std::cout << std::endl << "... ... Short-listed " << _seg_shortlist.size() 
+         << " segments (pattern='" << _seg_pattern << "')" << std::flush;
+    std::cout << std::endl << "... ... ... NOTE Statistics of site energies and spatial"
          << " correlations thereof are based on the short-listed segments only. "
-         << flush;
-    cout << endl << "... ... ...      "
+         << std::flush;
+    std::cout << std::endl << "... ... ...      "
          << "Statistics of site-energy differences operate on the full list." 
-         << flush;
+         << std::flush;
 
     // Calculate
     // ... Site-energy histogram, mean, width
@@ -145,16 +145,16 @@ bool EAnalyze::EvaluateFrame(Topology *top) {
     for (unsigned i = 0; i < _states.size(); ++i) {
 
         int state = _states[i];
-        cout << endl << "... ... Charge state " << state << flush;
+        cout << std::endl << "... ... Charge state " << state << std::flush;
 
         if (!_seg_shortlist.size()) {            
-            cout << endl << "... ... ... No segments short-listed. Skip ... "
-                 << flush;
+            std::cout << std::endl << "... ... ... No segments short-listed. Skip ... "
+                 << std::flush;
         }
         else {
             // Site-energy histogram <> DOS
             if (_skip_sites) {
-                cout << endl << "... ... ... Skip site-energy hist." << flush;
+                std::cout << std::endl << "... ... ... Skip site-energy hist." << std::flush;
             }
             else {
                 SiteHist(top, state);
@@ -162,7 +162,7 @@ bool EAnalyze::EvaluateFrame(Topology *top) {
             
             // Site-energy correlation function
             if (_skip_corr) {
-                cout << endl << "... ... ... Skip correlation ..." << flush;
+                std::cout << std::endl << "... ... ... Skip correlation ..." << std::flush;
             }
             else {
                 SiteCorr(top, state);
@@ -170,13 +170,13 @@ bool EAnalyze::EvaluateFrame(Topology *top) {
         }
 
         if (!nblist.size()) {
-            cout << endl << "... ... ... No pairs in topology. Skip ... "
-                 << flush;
+            std::cout << std::endl << "... ... ... No pairs in topology. Skip ... "
+                 << std::flush;
         }
         else {
             // Site-energy-difference histogram <> Pair DOS
             if (_skip_pairs) {
-                cout << endl << "... ... ... Skip pair-energy hist." << flush;
+                std::cout << std::endl << "... ... ... Skip pair-energy hist." << std::flush;
             }
             else {
                 PairHist(top, state);
@@ -238,7 +238,7 @@ void EAnalyze::SiteHist(Topology *top, int state) {
     STD = sqrt(VAR);
 
     FILE *out;
-    string statename;
+    std::string statename;
     if (state==-1){
         statename="e";
     }
@@ -253,7 +253,7 @@ void EAnalyze::SiteHist(Topology *top, int state) {
     }
     
     
-    string tag = boost::lexical_cast<string>("eanalyze.sitehist_") +statename+ ".out";
+    std::string tag = boost::lexical_cast<std::string>("eanalyze.sitehist_") +statename+ ".out";
     out = fopen(tag.c_str(), "w");
 
     fprintf(out, "# EANALYZE: SITE-ENERGY HISTOGRAM \n");
@@ -313,7 +313,7 @@ void EAnalyze::PairHist(Topology *top, int state) {
     double STD = 0.0;
 
     FILE *out_dEs;
-    string tag_dEs = boost::lexical_cast<string>("eanalyze.pairlist_") + ( (state == -1) ? "e" : "h" ) + ".out";
+    std::string tag_dEs = boost::lexical_cast<std::string>("eanalyze.pairlist_") + ( (state == -1) ? "e" : "h" ) + ".out";
     out_dEs = fopen(tag_dEs.c_str(), "w");
 
     // Collect site-energy differences from neighbourlist
@@ -362,7 +362,7 @@ void EAnalyze::PairHist(Topology *top, int state) {
     STD = sqrt(VAR);
 
     FILE *out;
-    string statename;
+    std::string statename;
     if (state==-1){
         statename="e";
     }
@@ -375,7 +375,7 @@ void EAnalyze::PairHist(Topology *top, int state) {
     else if (state==3){
         statename="t";
     }
-    string tag = boost::lexical_cast<string>("eanalyze.pairhist_") + statename + ".out";
+    std::string tag = boost::lexical_cast<std::string>("eanalyze.pairhist_") + statename + ".out";
     out = fopen(tag.c_str(), "w");
 
     fprintf(out, "# EANALYZE: PAIR-ENERGY HISTOGRAM \n");
@@ -435,10 +435,10 @@ void EAnalyze::SiteCorr(Topology *top, int state) {
     vector< Fragment* > ::iterator fit1;
     vector< Fragment* > ::iterator fit2;
 
-    cout << endl;
+    std::cout << std::endl;
     
     FILE *corr_out;
-    string statename;
+    std::string statename;
     if (state==-1){
         statename="e";
     }
@@ -451,13 +451,13 @@ void EAnalyze::SiteCorr(Topology *top, int state) {
     else if (state==3){
         statename="t";
     }
-    string corrfile = boost::lexical_cast<string>("eanalyze.sitecorr.atomic_") + statename+ ".out";
+    std::string corrfile = boost::lexical_cast<std::string>("eanalyze.sitecorr.atomic_") + statename+ ".out";
     corr_out = fopen(corrfile.c_str(), "w");
     
     for (sit1 = _seg_shortlist.begin(); sit1 < _seg_shortlist.end(); ++sit1) {
 
-        cout << "\r... ... ..." << " Correlating segment ID = "
-             << (*sit1)->getId() << flush;
+        std::cout << "\r... ... ..." << " Correlating segment ID = "
+             << (*sit1)->getId() << std::flush;
 
     for (sit2 = sit1 + 1;                sit2 < _seg_shortlist.end(); ++sit2) {
 
@@ -536,7 +536,7 @@ void EAnalyze::SiteCorr(Topology *top, int state) {
     }
 
     FILE *out;
-    string tag = boost::lexical_cast<string>("eanalyze.sitecorr_") + ( (state == -1) ? "e" : "h" ) + ".out";
+    std::string tag = boost::lexical_cast<std::string>("eanalyze.sitecorr_") + ( (state == -1) ? "e" : "h" ) + ".out";
     out = fopen(tag.c_str(), "w");
 
     fprintf(out, "# EANALYZE: SPATIAL SITE-ENERGY CORRELATION \n");

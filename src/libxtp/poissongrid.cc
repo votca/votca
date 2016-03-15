@@ -5,14 +5,14 @@ namespace votca {
 namespace xtp {
 namespace POI {
 
-PoissonGrid::PoissonGrid(Topology *top, vector<PolarSeg*> &fg, vector<PolarSeg*> &bg, 
+PoissonGrid::PoissonGrid(Topology *top, std::vector<PolarSeg*> &fg, std::vector<PolarSeg*> &bg, 
     Logger *log) : _log(log) {
     
     
     
     
     _center = votca::tools::vec(0,0,0);
-    for (vector<PolarSeg*>::iterator sit = fg.begin(); sit < fg.end();
+    for (std::vector<PolarSeg*>::iterator sit = fg.begin(); sit < fg.end();
         ++sit) _center += (*sit)->getPos();
     if (fg.size()> 0) _center /= fg.size();
     // Shift center to front lower left corner of central cell
@@ -42,7 +42,7 @@ PoissonGrid::PoissonGrid(Topology *top, vector<PolarSeg*> &fg, vector<PolarSeg*>
     
     
     // x dimension
-    vector< double > array_dx;
+    std::vector< double > array_dx;
     double xi = x0;
     double dx = dx0;
     array_dx.push_back(dx);

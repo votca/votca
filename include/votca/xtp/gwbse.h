@@ -75,7 +75,7 @@ public:
    
    
     void    Initialize( Property *options);
-  string  Identify() { return "gwbse"; }
+  std::string  Identify() { return "gwbse"; }
    
   /*  void    ParseOrbitalsXML(Topology *top, Property *options);
     Job::JobResult EvalJob(Topology *top, Job *job, QMThread *thread);
@@ -118,8 +118,8 @@ public:
     bool get_store_bse_triplets(){ return _store_bse_triplets ;}
     void set_store_bse_triplets( bool inp ){ _store_bse_triplets = inp;}
     
-    string get_ranges(){ return _ranges ;}
-    void set_ranges( string inp ){ _ranges = inp;}
+    std::string get_ranges(){ return _ranges ;}
+    void set_ranges( std::string inp ){ _ranges = inp;}
     
     double get_rpamaxfactor() {return _rpamaxfactor ;}
     void set_rpamaxfactor( double inp ) { _rpamaxfactor = inp; }
@@ -157,17 +157,19 @@ public:
     int get_bse_nprint(){return _bse_nprint;}
     void set_bse_nprint( int inp){ _bse_nprint = inp;}
     
-    string get_gwbasis_name(){return _gwbasis_name;}
-    void set_gwbasis_name(string inp){ _gwbasis_name = inp;}
+    std::string get_gwbasis_name(){return _gwbasis_name;}
+    void set_gwbasis_name(std::string inp){ _gwbasis_name = inp;}
     
-    string get_dftbasis_name(){return _dftbasis_name;}
-    void set_dftbasis_name(string inp){ _dftbasis_name = inp;}
+    std::string get_dftbasis_name(){return _dftbasis_name;}
+    void set_dftbasis_name(std::string inp){ _dftbasis_name = inp;}
 
     double get_shift() {return _shift ;}
     void set_shift( double inp ) { _shift = inp; }
     
     void set_fragA( int n ) { _fragA = n; }
     void set_fragB( int n ) { _fragB = n; }
+    
+    void addoutput(Property *_summary,Orbitals* _orbitals);
     
     private:
 
@@ -196,8 +198,8 @@ public:
     
     // options for own Vxc calculation
     bool                                _doVxc;
-    string                              _functional;
-    string                              _grid;
+    std::string                              _functional;
+    std::string                              _grid;
     
     int                                 _openmp_threads;
     
@@ -209,20 +211,20 @@ public:
     bool                                _do_full_BSE;
 
     
-    string _outParent;
-    string _outMonDir;
+    std::string _outParent;
+    std::string _outMonDir;
     
-    string _package;
+    std::string _package;
     Property _package_options;   
     
-    string _gwpackage;
+    std::string _gwpackage;
     Property _gwpackage_options; 
     
     // basis sets
-    string                              _gwbasis_name;
-    string                              _dftbasis_name;
+    std::string                              _gwbasis_name;
+    std::string                              _dftbasis_name;
 
-    string                              _ranges;          // range types
+    std::string                              _ranges;          // range types
     unsigned int                        _homo;            // HOMO index
     unsigned int                        _rpamin;
     unsigned int                        _rpamax;

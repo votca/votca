@@ -34,7 +34,7 @@
 #include <votca/tools/linalg.h>
 // #include <omp.h>
 
-using namespace std;
+
 using namespace votca::tools;
 
 namespace votca { namespace xtp {

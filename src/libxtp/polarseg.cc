@@ -8,7 +8,7 @@ namespace votca { namespace xtp {
 
     
     
-PolarSeg::PolarSeg(int id, vector<APolarSite*> &psites) 
+PolarSeg::PolarSeg(int id, std::vector<APolarSite*> &psites) 
     : _id(id), _is_charged(true), _is_polarizable(true), 
       _indu_cg_site(NULL), _perm_cg_site(NULL) {
     PolarFrag *pfrag = this->AddFragment("NN");
@@ -54,18 +54,18 @@ PolarSeg::PolarSeg(PolarSeg *templ, bool do_depolarize) {
     
     
 PolarSeg::~PolarSeg() {
-   vector<APolarSite*> ::iterator pit;
+   std::vector<APolarSite*> ::iterator pit;
    for (pit = begin(); pit < end(); ++pit) {         
        delete *pit;
    }
    clear();
    
-   vector<PolarFrag*>::iterator fit;
+   std::vector<PolarFrag*>::iterator fit;
    for (fit = _pfrags.begin(); fit < _pfrags.end(); ++fit) 
        delete *fit;
    _pfrags.clear();
    
-   vector<PolarNb*>::iterator nit;
+   std::vector<PolarNb*>::iterator nit;
    for (nit = _nbs.begin(); nit < _nbs.end(); ++nit) 
        delete *nit;
    _nbs.clear();
@@ -145,7 +145,7 @@ void PolarSeg::CalcIsPolarizable() {
 
 
 void PolarSeg::ClearPolarNbs() {
-    vector<PolarNb*>::iterator nit;
+    std::vector<PolarNb*>::iterator nit;
     for (nit = _nbs.begin(); nit != _nbs.end(); ++nit) 
         delete *nit;
     _nbs.clear();
@@ -157,7 +157,7 @@ void PolarSeg::PrintPolarNbPDB(string outfile) {
     FILE *out;
     out = fopen(outfile.c_str(),"w");
     PolarSeg::iterator pit;
-    vector<PolarNb*>::iterator nit;
+    std::vector<PolarNb*>::iterator nit;
     for (pit = begin(); pit < end(); ++pit) {
         (*pit)->WritePdbLine(out, "CEN");
     }
@@ -203,20 +203,20 @@ void PolarSeg::GeneratePermInduCgSite(bool do_cg_polarizabilities) {
     vec target_pos = _pos;
     int state = 0;
     int L = 2;
-    vector<double> QCG(L*L+2*L+1, 0.0);  // permanent
-    vector<double> uQCG(L*L+2*L+1, 0.0); // induced
+    std::vector<double> QCG(L*L+2*L+1, 0.0);  // permanent
+    std::vector<double> uQCG(L*L+2*L+1, 0.0); // induced
 
     for (PolarSeg::iterator pit = begin();
         pit < end(); ++pit) {
         // PERMANENT MOMENTS
         // Convert real to complex moments            
-        vector<double> Qlm = (*pit)->getQs(0);
+        std::vector<double> Qlm = (*pit)->getQs(0);
         DMA::ComplexSphericalMoments Xlm(Qlm);
         // Shift moments
         DMA::MomentShift mshift;
         vec shift = target_pos - (*pit)->getPos();
         DMA::RegularSphericalHarmonics Clm(-shift);
-        vector<DMA::cmplx> Xlm_shifted = mshift.Shift(Xlm, Clm);            
+        std::vector<DMA::cmplx> Xlm_shifted = mshift.Shift(Xlm, Clm);            
         // Convert complex to real moments & add to base
         DMA::RealSphericalMoments Qlm_shifted(Xlm_shifted);
         Qlm_shifted.AddToVector(QCG);
@@ -224,14 +224,14 @@ void PolarSeg::GeneratePermInduCgSite(bool do_cg_polarizabilities) {
         // INDUCED MOMENTS
         // Convert real to complex moments
         vec u1 = (*pit)->getU1();
-        vector<double> uQlm(L*L+2*L+1, 0.0);
+        std::vector<double> uQlm(L*L+2*L+1, 0.0);
         uQlm[1] = u1.getZ(); // NOTE order is z-x-y == 10-11c-11s
         uQlm[2] = u1.getX();
         uQlm[3] = u1.getY();
         DMA::ComplexSphericalMoments uXlm(uQlm);
         // Shift moments
         DMA::RegularSphericalHarmonics uClm(-shift);
-        vector<DMA::cmplx> uXlm_shifted = mshift.Shift(uXlm, uClm);
+        std::vector<DMA::cmplx> uXlm_shifted = mshift.Shift(uXlm, uClm);
         // Convert complex to real moments & add to base
         DMA::RealSphericalMoments uQlm_shifted(uXlm_shifted);
         uQlm_shifted.AddToVector(uQCG);
@@ -279,36 +279,36 @@ void PolarSeg::GeneratePermInduCgSite(bool do_cg_polarizabilities) {
 
 void PolarSeg::Coarsegrain(bool cg_anisotropic) {
     // Reduce each polar fragment to a single polar site
-    vector<APolarSite*> cg_sites;
-    for (vector<PolarFrag*>::iterator fit = _pfrags.begin();
+    std::vector<APolarSite*> cg_sites;
+    for (std::vector<PolarFrag*>::iterator fit = _pfrags.begin();
         fit < _pfrags.end(); ++fit) {        
         // Collapse multipole moments : position, rank L
         vec target_pos = (*fit)->CalcPosPolarWeights();
         int state = 0;
         int L = 2;
-        vector<double> QCG(L*L+2*L+1, 0.0);  // permanent
-        vector<double> uQCG(L*L+2*L+1, 0.0); // induced
+        std::vector<double> QCG(L*L+2*L+1, 0.0);  // permanent
+        std::vector<double> uQCG(L*L+2*L+1, 0.0); // induced
         vec u1_cg_sum = vec(0,0,0);
         for (PolarFrag::iterator pit = (*fit)->begin();
             pit < (*fit)->end(); ++pit) {
             // PERMANENT MOMENTS
             // Convert real to complex moments            
-            vector<double> Qlm = (*pit)->getQs(0);
+            std::vector<double> Qlm = (*pit)->getQs(0);
             DMA::ComplexSphericalMoments Xlm(Qlm);
             // Shift moments
             DMA::MomentShift mshift;
             vec shift = target_pos - (*pit)->getPos();
             DMA::RegularSphericalHarmonics Clm(-shift);
-            vector<DMA::cmplx> Xlm_shifted = mshift.Shift(Xlm, Clm);            
+            std::vector<DMA::cmplx> Xlm_shifted = mshift.Shift(Xlm, Clm);            
             // Convert complex to real moments & add to base
             DMA::RealSphericalMoments Qlm_shifted(Xlm_shifted);
             Qlm_shifted.AddToVector(QCG);
             
 //            // Shift back (error check)
-//            vector<double> Qlm_shifted_vector = Qlm_shifted.ToVector();
+//            std::vector<double> Qlm_shifted_vector = Qlm_shifted.ToVector();
 //            DMA::ComplexSphericalMoments Xlm_back(Qlm_shifted_vector);
 //            DMA::RegularSphericalHarmonics Clm_back(shift);
-//            vector<DMA::cmplx> Xlm_shifted_back = mshift.Shift(Xlm_back, Clm_back);
+//            std::vector<DMA::cmplx> Xlm_shifted_back = mshift.Shift(Xlm_back, Clm_back);
 //            DMA::RealSphericalMoments Qlm_back(Xlm_shifted_back);
 //            cout << endl << "restored";
 //            Qlm_back.PrintReal();
@@ -317,14 +317,14 @@ void PolarSeg::Coarsegrain(bool cg_anisotropic) {
             u1_cg_sum += (*pit)->getU1();
             // Convert real to complex moments
             vec u1 = (*pit)->getU1();
-            vector<double> uQlm(L*L+2*L+1, 0.0);
+            std::vector<double> uQlm(L*L+2*L+1, 0.0);
             uQlm[1] = u1.getZ(); // NOTE order is z-x-y == 10-11c-11s
             uQlm[2] = u1.getX();
             uQlm[3] = u1.getY();
             DMA::ComplexSphericalMoments uXlm(uQlm);
             // Shift moments
             DMA::RegularSphericalHarmonics uClm(-shift);
-            vector<DMA::cmplx> uXlm_shifted = mshift.Shift(uXlm, uClm);
+            std::vector<DMA::cmplx> uXlm_shifted = mshift.Shift(uXlm, uClm);
             // Convert complex to real moments & add to base
             DMA::RealSphericalMoments uQlm_shifted(uXlm_shifted);
             uQlm_shifted.AddToVector(uQCG);
@@ -366,7 +366,7 @@ void PolarSeg::Coarsegrain(bool cg_anisotropic) {
     
     // Clean up & reload
     assert(cg_sites.size() == _pfrags.size());
-    vector<APolarSite*> ::iterator pit;
+    std::vector<APolarSite*> ::iterator pit;
     for (pit = begin(); pit < end(); ++pit) delete *pit;
     clear();
     for (pit = cg_sites.begin(); pit < cg_sites.end(); ++pit) push_back(*pit);

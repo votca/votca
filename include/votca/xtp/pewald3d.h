@@ -30,7 +30,7 @@ namespace votca { namespace xtp {
         PEwald3D3D(Topology *top, PolarTop *ptop, Property *opt, Logger *log);
        ~PEwald3D3D();
         
-        string IdentifyMethod() { return "Polar 3D x 3D"; }
+        std::string IdentifyMethod() { return "Polar 3D x 3D"; }
         void GenerateKVectors(vector<PolarSeg*> &ps1, vector<PolarSeg*> &ps2);
         
         EWD::triple<> ConvergeRealSpaceSum(vector<PolarSeg*> &target);

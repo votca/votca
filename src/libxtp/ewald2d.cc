@@ -3,11 +3,13 @@
 #include <algorithm>
 
 
-using boost::format;
+
 
 
 namespace votca { namespace xtp {
-
+    
+using namespace votca::tools;
+using boost::format;
 
 Ewald3D2D::~Ewald3D2D() { ; }
     
@@ -18,12 +20,12 @@ Ewald3D2D::Ewald3D2D(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
 }
 
 
-EWD::triple<> Ewald3D2D::ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) {
+EWD::triple<> Ewald3D2D::ConvergeReciprocalSpaceSum(std::vector<PolarSeg*> &target) {
     
-    vector<PolarSeg*>::iterator sit1; 
-    vector<APolarSite*> ::iterator pit1;
-    vector<PolarSeg*>::iterator sit2; 
-    vector<APolarSite*> ::iterator pit2;    
+    std::vector<PolarSeg*>::iterator sit1; 
+    std::vector<APolarSite*> ::iterator pit1;
+    std::vector<PolarSeg*>::iterator sit2; 
+    std::vector<APolarSite*> ::iterator pit2;    
     
     // CELLS OF THE RECIPROCAL LATTICE OVER WHICH TO SUM
     //    ---------------------------------
@@ -38,8 +40,8 @@ EWD::triple<> Ewald3D2D::ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) {
     //      | x | x | x |   |   |   |   |  
     //    ---------------------------------
     
-    vector< vec > Ks;
-    vector< vec >::iterator kit;
+    std::vector< vec > Ks;
+    std::vector< vec >::iterator kit;
     //int kz = 0; // This is 2D Ewald
     int kx = 0;
     int ky = 0;
@@ -62,7 +64,7 @@ EWD::triple<> Ewald3D2D::ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) {
     double EKK_fgC_bgP = 0.0;    
     unsigned N_EKK_memory = unsigned(0.5*(_NA_max+_NB_max)+0.5);
     int N_K_proc = 0;
-    vector< double > dEKKs;
+    std::vector< double > dEKKs;
     _converged_K = false;
     
     for (kit = Ks.begin(); kit < Ks.end(); ++kit, ++N_K_proc) {
@@ -100,8 +102,8 @@ EWD::triple<> Ewald3D2D::ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) {
         
         LOG(logDEBUG,*_log)  
             << (format("   dE = %1$+1.7f   EKK = %2$+1.7f   RMS(%4$d) = %3$+1.7f") 
-            % (dEKK*2*M_PI/_LxLy*int2eV) % (EKK_fgC_bgP*2*M_PI/_LxLy*int2eV)
-            % (dEKK_rms*2*M_PI/_LxLy*int2eV) % N_EKK_memory) << flush;
+            % (dEKK*2*M_PI/_LxLy*conv::int2eV) % (EKK_fgC_bgP*2*M_PI/_LxLy*conv::int2eV)
+            % (dEKK_rms*2*M_PI/_LxLy*conv::int2eV) % N_EKK_memory) << std::flush;
         
 //        cout << endl;
 //        for (int i = 0; i < dEKKs.size(); ++i) {
@@ -109,12 +111,12 @@ EWD::triple<> Ewald3D2D::ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) {
 //        }
 //        cout << flush;
         
-        if (dEKK_rms*2*M_PI/_LxLy*int2eV <= _crit_dE && N_K_proc > 10) {
+        if (dEKK_rms*2*M_PI/_LxLy*conv::int2eV <= _crit_dE && N_K_proc > 10) {
         //if (dEKK_rms*2*M_PI/LxLy*int2eV <= dEKK_rms_crit) {
             _converged_K = true;
             LOG(logDEBUG,*_log)  
                 << (format(":::: Converged to precision as of |K| = %1$+1.3f 1/nm") 
-                % K ) << flush;
+                % K ) << std::flush;
             break;
         }
         
@@ -125,11 +127,11 @@ EWD::triple<> Ewald3D2D::ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) {
 }
 
 
-EWD::triple<> Ewald3D2D::CalculateK0Correction(vector<PolarSeg*> &target) {
-    vector<PolarSeg*>::iterator sit1; 
-    vector<APolarSite*> ::iterator pit1;
-    vector<PolarSeg*>::iterator sit2; 
-    vector<APolarSite*> ::iterator pit2;
+EWD::triple<> Ewald3D2D::CalculateK0Correction(std::vector<PolarSeg*> &target) {
+    std::vector<PolarSeg*>::iterator sit1; 
+    std::vector<APolarSite*> ::iterator pit1;
+    std::vector<PolarSeg*>::iterator sit2; 
+    std::vector<APolarSite*> ::iterator pit2;
     double EK0_fgC_bgP = 0.0;
     for (sit1 = target.begin(); sit1 < target.end(); ++sit1) {
         for (sit2 = _bg_P.begin(); sit2 < _bg_P.end(); ++sit2) {

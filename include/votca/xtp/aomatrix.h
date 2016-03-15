@@ -31,7 +31,7 @@
 #include "basisset.h"
 //#include "linalg_tools.h"
 
-using namespace std;
+
 using namespace votca::tools;
 
 namespace Cart {
@@ -84,9 +84,9 @@ namespace votca { namespace xtp {
         void Fill( AOBasis* aobasis, ub::vector<double> r = ub::zero_vector<double>(3) , AOBasis* ecp = NULL );
         
         // matrix print 
-        void Print( string _ident);
+        void Print( std::string _ident);
         // integrate F
-        void XIntegrate( vector<double>& _FmT, const double& _T );
+        void XIntegrate( std::vector<double>& _FmT, const double& _T );
         // block fill prototype
         virtual void FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col,  AOBasis* ecp = NULL) {} ;
 
@@ -113,7 +113,7 @@ namespace votca { namespace xtp {
 
 
         // matrix print 
-        void Print( string _ident);
+        void Print( std::string _ident);
 
         
         void Fill( AOBasis* aobasis );
@@ -234,7 +234,7 @@ namespace votca { namespace xtp {
     private:
         typedef boost::multi_array<double, 3> ma_type;
         typedef ma_type::index index;
-        void FillgOrbitals(vector<double> &_wmp,vector<double> &_wmq,ma_type &_cou, const double &_decay_row,const  double &_decay_col,const int &_lmax_row, const int  &_lmax_col);
+        void FillgOrbitals(std::vector<double> &_wmp,vector<double> &_wmq,ma_type &_cou, const double &_decay_row,const  double &_decay_col,const int &_lmax_row, const int  &_lmax_col);
         
         
         

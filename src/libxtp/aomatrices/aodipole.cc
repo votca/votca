@@ -33,7 +33,6 @@
 #include <votca/xtp/logger.h>
 #include <votca/tools/linalg.h>
 
-using namespace std;
 using namespace votca::tools;
 
 namespace votca { namespace xtp {
@@ -82,13 +81,13 @@ namespace votca { namespace xtp {
         
         // some helpers
        
-        vector<double> _pma (3,0.0);
-        vector<double> _pmb (3,0.0);
+        std::vector<double> _pma (3,0.0);
+        std::vector<double> _pmb (3,0.0);
         // definition of a center around which the moment should be calculated
-        vector<double> _center(3,0.0); // here: origin, can be changed later
-        vector<double> _pmc(3,0.0);
+        std::vector<double> _center(3,0.0); // here: origin, can be changed later
+        std::vector<double> _pmc(3,0.0);
         
-        typedef vector< AOGaussianPrimitive* >::iterator GaussianIterator;
+        typedef std::vector< AOGaussianPrimitive* >::iterator GaussianIterator;
         // iterate over Gaussians in this _shell_row
         for ( GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr){
             // iterate over Gaussians in this _shell_col

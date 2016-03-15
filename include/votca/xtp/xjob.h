@@ -29,17 +29,17 @@ class XJob
 {
 public:
 
-    XJob(int id, string tag, vector<Segment*> &qmSegs, 
-         vector<string> &qmSegMps, Topology *top);
+    XJob(int id, std::string tag, std::vector<Segment*> &qmSegs, 
+         std::vector<std::string> &qmSegMps, Topology *top);
     
     XJob(PolarTop *ptop, bool start_from_cpt);
 
    ~XJob();
 
    int                  getId()                     { return _id; }
-   string               getTag()                    { return _tag; }
-   vector<Segment*>    &getSegments()               { return _qmSegs; }
-   vector<string>      &getSegMps()                 { return _qmSegMps; }
+   std::string               getTag()                    { return _tag; }
+   std::vector<Segment*>    &getSegments()               { return _qmSegs; }
+   std::vector<std::string>      &getSegMps()                 { return _qmSegMps; }
    Topology            *getTop()                    { return _top; }
    PolarTop            *getPolarTop()               { return _ptop; }
    int                  getIter()                   { return _iter; }
@@ -47,7 +47,7 @@ public:
    void                 setUserId(int userId) { _userId = userId; }
    void                 setPolarTop(PolarTop *ptop);
    void                 setInfoLine(bool printMM = true, bool printQM = true);
-   string               getInfoLine() { return _infoLine; }
+   std::string               getInfoLine() { return _infoLine; }
    
    void                 CalcCenterPos();
    vec                 &Center()                    { return _center; }
@@ -55,7 +55,7 @@ public:
    inline bool          isInCenter(int segId);
    inline bool          isWithinDist(const vec &pt, double dist, Topology *top);
    bool                 StartFromCPT()  { return _start_from_cpt; }
-   void                 WriteInfoLine(FILE *out);
+   void                 WriteInfoLine(std::FILE *out);
    Property             GenerateOutputProperty();
 
    
@@ -151,14 +151,14 @@ private:
   
    int                  _id;
    int                  _userId;
-   string               _tag;
+   std::string               _tag;
    Topology            *_top;   
    
    bool                 _start_from_cpt;
-   vector<Segment*>     _qmSegs;
-   vector<string>       _qmSegMps;
+   std::vector<Segment*>     _qmSegs;
+   std::vector<std::string>       _qmSegMps;
    vec                  _center;
-   map<int,bool>        _isSegInCenter;
+   std::map<int,bool>        _isSegInCenter;
    PolarTop            *_ptop;
    bool                 _clean_ptop;
 
@@ -199,7 +199,7 @@ private:
    double               _E_GWBSE;
    double               _E_QMMM;
    
-   string               _infoLine;
+   std::string               _infoLine;
 
 }; 
     
@@ -233,7 +233,7 @@ inline bool XJob::isWithinDist(const vec &pt, double dist, Topology *top) {
 
 
 template<typename JobContainer, typename pJob>
-JobContainer XJOBS_FROM_TABLE(const string &job_file, Topology *top);
+JobContainer XJOBS_FROM_TABLE(const std::string &job_file, Topology *top);
 
 
     

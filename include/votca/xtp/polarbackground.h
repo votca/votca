@@ -27,9 +27,9 @@ public:
     void Checkpoint(int iter, bool converged);
     bool HasConverged() { return _converged; }
     
-    void FX_RealSpace(string mode, bool do_setup_nbs);    
-    void FX_ReciprocalSpace(string S_mode, string F_mode, bool gen_kvecs);    
-    void GenerateKVectors(vector<PolarSeg*> &ps1, vector<PolarSeg*> &ps2);
+    void FX_RealSpace(std::string mode, bool do_setup_nbs);    
+    void FX_ReciprocalSpace(std::string S_mode, std::string F_mode, bool gen_kvecs);    
+    void GenerateKVectors(std::vector<PolarSeg*> &ps1, std::vector<PolarSeg*> &ps2);
     
     // TODO Would be nicer to have RThread / KThread as a local type in ...
     //      ... but you cannot use local types as template parameters
@@ -61,7 +61,7 @@ public:
         RThread *Clone() { return new RThread(_master, _do_setup_nbs); }
         
         // Input
-        void AddSharedInput(vector<PolarSeg*> &fullbg) { _full_bg_P = fullbg; }
+        void AddSharedInput(std::vector<PolarSeg*> &fullbg) { _full_bg_P = fullbg; }
         void AddAtomicInput(PolarSeg *pseg) { _part_bg_P.push_back(pseg); }        
         // Mode targets
         void FU_FieldCalc();
@@ -78,9 +78,9 @@ public:
         EwdInteractor _ewdactor;      // Long-range tensors (default)
         XInteractor _actor;           // Cut-off tensors (option)
         // Shared thread data        
-        vector<PolarSeg*> _full_bg_P;        
+        std::vector<PolarSeg*> _full_bg_P;        
         // Atomized thread data
-        vector<PolarSeg*> _part_bg_P;        
+        std::vector<PolarSeg*> _part_bg_P;        
         // Convergence & output-related
         int _not_converged_count;
         double _avg_R_co;
@@ -117,9 +117,9 @@ public:
         
         KThread *Clone() { return new KThread(_master); }
         
-        void AddSharedInput(vector<EWD::KVector*> &full_kvecs) 
+        void AddSharedInput(std::vector<EWD::KVector*> &full_kvecs) 
             { _full_kvecs.clear(); _full_kvecs = full_kvecs; }
-        void AddSharedInput(vector<PolarSeg*> &full_bg_P) 
+        void AddSharedInput(std::vector<PolarSeg*> &full_bg_P) 
             { _full_bg_P.clear(); _full_bg_P = full_bg_P; }
         
         // MODE 1 : Compute structure factor of _part_kvecs using _full_bg_P
@@ -140,11 +140,11 @@ public:
         PolarBackground *_master;
         EwdInteractor _ewdactor;
         // Shared thread data        
-        vector<PolarSeg*> _full_bg_P;
-        vector<EWD::KVector*> _full_kvecs;        
+        std::vector<PolarSeg*> _full_bg_P;
+        std::vector<EWD::KVector*> _full_kvecs;        
         // Atomized thread data        
-        vector<EWD::KVector*> _part_kvecs;
-        vector<PolarSeg*> _part_bg_P;
+        std::vector<EWD::KVector*> _part_kvecs;
+        std::vector<PolarSeg*> _part_bg_P;
     
     public:
         // Convergence info
@@ -169,16 +169,16 @@ private:
     
     // PERIODIC BOUNDARY
     Topology *_top;
-    string _shape;
+    std::string _shape;
     bool _do_use_cutoff;
 
     // POLAR SEGMENTS
     // Part I - Ewald
     PolarTop *_ptop;
-    vector< PolarSeg* > _bg_P;               // Period. density = _bg_N v _fg_N
+    std::vector< PolarSeg* > _bg_P;               // Period. density = _bg_N v _fg_N
     bool _do_compensate_net_dipole;          
-    string _dipole_compensation_type;        // "system" or "segment"
-    string _dipole_compensation_direction;   // "xyz" or "z"
+    std::string _dipole_compensation_type;        // "system" or "segment"
+    std::string _dipole_compensation_direction;   // "xyz" or "z"
     
     // CONVERGENCE
     // Part I - Ewald
@@ -206,9 +206,9 @@ private:
     double _LxLyLz;                 // a*|b^c|
 
     EWD::VectorSort<EWD::KNorm,EWD::KVector> _kvecsort;
-    vector<EWD::KVector*> _kvecs_2_0;   // K-vectors with two components = zero
-    vector<EWD::KVector*> _kvecs_1_0;   // K-vectors with one component  = zero
-    vector<EWD::KVector*> _kvecs_0_0;   // K-vectors with no  components = zero
+    std::vector<EWD::KVector*> _kvecs_2_0;   // K-vectors with two components = zero
+    std::vector<EWD::KVector*> _kvecs_1_0;   // K-vectors with one component  = zero
+    std::vector<EWD::KVector*> _kvecs_0_0;   // K-vectors with no  components = zero
     double _kxyz_s1s2_norm;
 
 };    

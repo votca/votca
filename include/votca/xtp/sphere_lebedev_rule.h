@@ -24,7 +24,7 @@
 #include <votca/tools/property.h>
 #include <votca/xtp/grid_containers.h>
 #include <boost/math/constants/constants.hpp>
-using namespace std;
+
 
 
 namespace votca {
@@ -39,11 +39,11 @@ namespace votca {
                 FillIndex2Order();
             };
 
-            void getSphericalGrid(vector<QMAtom* > _atoms, string type, GridContainers& _grids);
-            void getUnitSphereGrid(string element, string type, std::vector<double>& _theta, std::vector<double>& _phi, std::vector<double>& _weight);
+            void getSphericalGrid(std::vector<QMAtom* > _atoms, std::string type, GridContainers& _grids);
+            void getUnitSphereGrid(std::string element, std::string type, std::vector<double>& _theta, std::vector<double>& _phi, std::vector<double>& _weight);
             void getUnitSphereGrid(int order, std::vector<double>& _theta, std::vector<double>& _phi, std::vector<double>& _weight);
 
-            int Type2MaxOrder( string element, string type );
+            int Type2MaxOrder( std::string element, std::string type );
             int getIndexFromOrder( int order ) { return Order2Index.at(order); }
             int getOrderFromIndex( int index ) { return Index2Order.at(index); }
             
@@ -91,7 +91,7 @@ namespace votca {
             void timestamp();
             void xyz_to_tp(double x, double y, double z, double *t, double *p);
 
-            int getOrder(string element, string type);
+            int getOrder(std::string element, std::string type);
 
 
 

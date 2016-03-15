@@ -1,7 +1,7 @@
 #include <votca/xtp/grid.h>
 #include <math.h>       /* ceil */
+#include <votca/tools/constants.h>
 
-using namespace std;
 using namespace votca::tools;
 
 
@@ -64,28 +64,29 @@ Grid &Grid::operator=(const Grid & obj){
     
 void Grid::printGridtoxyzfile(const char* _filename){
         //unit is Angstrom in xyz file 
-        double NmtoA=10.0; 
-        ofstream points;
-        points.open(_filename, ofstream::out);
+  
+        std::ofstream points;
+        points.open(_filename, std::ofstream::out);
         points << _gridpoints.size() << endl;
         points << endl;
         for ( unsigned i = 0 ; i < _gridpoints.size(); i++){
-            points << "X " << _gridpoints[i](0)*NmtoA << " " << _gridpoints[i](1)*NmtoA << " " << _gridpoints[i](2)*NmtoA << endl;
+            points << "X " << _gridpoints[i](0)*conv::nm2ang << " " 
+                    << _gridpoints[i](1)*conv::nm2ang << " " 
+                    << _gridpoints[i](2)*conv::nm2ang << endl;
 
         }
         points.close();
     }    
 
 
-void Grid::readgridfromCubeFile(string filename, bool ignore_zeros){
+void Grid::readgridfromCubeFile(std::string filename, bool ignore_zeros){
         Elements _elements;
         _cubegrid=true;   
-        double Bohr2Nm=1.0/18.897259886; 
-        double Bohr2A=1.0/1.8897259886; 
+
         if(_gridpoints.size()>0) throw std::runtime_error("Grid object already has points.");
-        ifstream in1;
-        string s;
-        in1.open(filename.c_str(), ios::in);
+        std::ifstream in1;
+        std::string s;
+        in1.open(filename.c_str(), std::ios::in);
         getline(in1, s);
         getline(in1, s);
         int natoms;
@@ -93,7 +94,7 @@ void Grid::readgridfromCubeFile(string filename, bool ignore_zeros){
         double xincr,yincr,zincr;
 
         double tempdouble;
-        string name="H";
+        std::string name="H";
         in1 >> natoms;
         in1 >> xstart;
         in1 >> ystart;
@@ -111,12 +112,13 @@ void Grid::readgridfromCubeFile(string filename, bool ignore_zeros){
         in1 >> tempdouble;
         in1 >> zincr;          
         
-        if(xincr==yincr && yincr==zincr && zincr==xincr) _gridspacing=xincr*Bohr2A;
+        
+        if(xincr==yincr && yincr==zincr && zincr==xincr) _gridspacing=xincr*conv::bohr2ang;
         else throw std::runtime_error("Gridspacing in x,y,z is different, currently not implemented, loading aborted");
-        _lowerbound=vec(xstart*Bohr2A,ystart*Bohr2A,zstart*Bohr2A);
+        _lowerbound=vec(xstart*conv::bohr2ang,ystart*conv::bohr2ang,zstart*conv::bohr2ang);
         
         
-        _atomlist= new vector< QMAtom* >;
+        _atomlist= new std::vector< QMAtom* >;
         for (int iatom =0; iatom < std::abs(natoms); iatom++) {
                  // get center coordinates in Bohr
                  double x ;
@@ -132,20 +134,20 @@ void Grid::readgridfromCubeFile(string filename, bool ignore_zeros){
                  in1 >> y;
                  in1 >> z;
                  
-                 QMAtom *qmatom=new QMAtom(_elements.getEleName(atnum),x*Bohr2A,y*Bohr2A,z*Bohr2A,crg,false);
+                 QMAtom *qmatom=new QMAtom(_elements.getEleName(atnum),x*conv::bohr2ang,y*conv::bohr2ang,z*conv::bohr2ang,crg,false);
                  _atomlist->push_back(qmatom);
         }
         double potential=0.0;
         //cout << "File has " << xsteps << " : "<< ysteps << " : "<<zsteps << " gridpoints"<<endl;   
         for (int _ix = 0; _ix < _xsteps; _ix++) {
-            double posx=(xstart+_ix*xincr)*Bohr2Nm;
+            double posx=(xstart+_ix*xincr)*conv::bohr2nm;
 
            for (int _iy = 0; _iy < _ysteps; _iy++) {
-              double posy=(ystart+_iy*yincr)*Bohr2Nm;
+              double posy=(ystart+_iy*yincr)*conv::bohr2nm;
 
 
               for (int _iz = 0; _iz < _zsteps; _iz++) {
-                double posz=(zstart+_iz*zincr)*Bohr2Nm;
+                double posz=(zstart+_iz*zincr)*conv::bohr2nm;
                 in1 >> potential;
                 vec temp=vec(posx,posy,posz);
                 ub::vector<double> temppos=temp.converttoub();
@@ -169,8 +171,8 @@ void Grid::readgridfromCubeFile(string filename, bool ignore_zeros){
 
         }         
 
-void Grid::printgridtoCubefile(string filename){
-            double A2Bohr=1.8897259886;
+void Grid::printgridtoCubefile(std::string filename){
+
             //Creates Cube file of Grid in Angstrom and 
             if(!_cubegrid){
                 throw std::runtime_error("Grid cannot be written to cube file as grid is not regular");
@@ -188,17 +190,18 @@ void Grid::printgridtoCubefile(string filename){
             
             fprintf(out, "Electrostatic potential around molecule \n" );
             fprintf(out, "Created by VOTCA-XTP \n");
-            fprintf(out, "%lu %f %f %f \n", _atomlist->size(), _lowerbound.getX()*A2Bohr, _lowerbound.getY()*A2Bohr,_lowerbound.getZ()*A2Bohr);
-            fprintf(out, "%d %f 0.0 0.0 \n", _xsteps, _gridspacing*A2Bohr); 
-            fprintf(out, "%d 0.0 %f 0.0 \n",  _ysteps, _gridspacing*A2Bohr);
-            fprintf(out, "%d 0.0 0.0 %f \n", _zsteps, _gridspacing*A2Bohr);
+            fprintf(out, "%lu %f %f %f \n", _atomlist->size(), _lowerbound.getX()*conv::ang2bohr,
+                    _lowerbound.getY()*conv::ang2bohr,_lowerbound.getZ()*conv::ang2bohr);
+            fprintf(out, "%d %f 0.0 0.0 \n", _xsteps, _gridspacing*conv::ang2bohr); 
+            fprintf(out, "%d 0.0 %f 0.0 \n",  _ysteps, _gridspacing*conv::ang2bohr);
+            fprintf(out, "%d 0.0 0.0 %f \n", _zsteps, _gridspacing*conv::ang2bohr);
             
-            vector<QMAtom* >::const_iterator ait;
+            std::vector<QMAtom* >::const_iterator ait;
             for (ait=_atomlist->begin(); ait != _atomlist->end(); ++ait) {
                     
-                    double x = (*ait)->x*A2Bohr;
-                    double y = (*ait)->y*A2Bohr;
-                    double z = (*ait)->z*A2Bohr;
+                    double x = (*ait)->x*conv::ang2bohr;
+                    double y = (*ait)->y*conv::ang2bohr;
+                    double z = (*ait)->z*conv::ang2bohr;
 
                     string element = (*ait)->type;
                     int atnum = _elements.getEleNum (element);
@@ -206,7 +209,7 @@ void Grid::printgridtoCubefile(string filename){
 
                     fprintf(out, "%d %f %f %f %f\n", atnum, crg, x, y, z);
                 }
-            vector< APolarSite* >::iterator pit;
+            std::vector< APolarSite* >::iterator pit;
             int Nrecord=0.0;
             for(pit=_all_gridsites.begin();pit!=_all_gridsites.end();++pit){
                 Nrecord++;
@@ -275,11 +278,10 @@ void Grid::setupradialgrid(const int depth) {
     _cubegrid = false;
     std::vector<vec> spherepoints;
     initialize_sphere(spherepoints, depth);
-    double A2Nm = 0.1;
     double x = 0.0;
     double y = 0.0;
     double z = 0.0;
-    vector<QMAtom* >::const_iterator ait;
+    std::vector<QMAtom* >::const_iterator ait;
     for (ait = _atomlist->begin(); ait != _atomlist->end(); ++ait) {
         x += (*ait)->x;
         y += (*ait)->y;
@@ -314,9 +316,9 @@ void Grid::setupradialgrid(const int depth) {
         
     //till here everything was Angstroem
         
-    vector<vec>::const_iterator git;
+    std::vector<vec>::const_iterator git;
     for (git = spherepoints.begin(); git != spherepoints.end(); ++git) {
-        vec position=((*git)*_cutoff+centerofmolecule)*A2Nm;
+        vec position=((*git)*_cutoff+centerofmolecule)*conv::ang2nm;
         _gridpoints.push_back(position.converttoub());
         if(_createpolarsites){                   
             string name="H";
@@ -337,7 +339,6 @@ void Grid::setupradialgrid(const int depth) {
 void Grid::setupgrid(){
            
             
-    double A2Nm=0.1;
     Elements _elements;
     double xmin=std::numeric_limits<double>::max();
     double ymin=xmin;
@@ -350,13 +351,13 @@ void Grid::setupgrid(){
 
     if(_useVdWcutoff){
         _padding=0.0;
-        for (vector<QMAtom* >::const_iterator atom = _atomlist->begin(); atom != _atomlist->end(); ++atom ){
+        for (std::vector<QMAtom* >::const_iterator atom = _atomlist->begin(); atom != _atomlist->end(); ++atom ){
             if(_elements.getVdWChelpG((*atom)->type)+_shift_cutoff>_padding) _padding=_elements.getVdWChelpG((*atom)->type)+_shift_cutoff; 
         }
     } 
 
 
-    for (vector<QMAtom* >::const_iterator atom = _atomlist->begin(); atom != _atomlist->end(); ++atom ) {
+    for (std::vector<QMAtom* >::const_iterator atom = _atomlist->begin(); atom != _atomlist->end(); ++atom ) {
         xtemp=(*atom)->x;
         ytemp=(*atom)->y;
         ztemp=(*atom)->z;
@@ -388,7 +389,7 @@ void Grid::setupgrid(){
             for(int k=0;k<=_zsteps;k++){
                 double z=zmin-padding_z+k*_gridspacing; 
                 bool _is_valid = false;
-                    for (vector<QMAtom* >::const_iterator atom = _atomlist->begin(); atom != _atomlist->end(); ++atom ) {
+                    for (std::vector<QMAtom* >::const_iterator atom = _atomlist->begin(); atom != _atomlist->end(); ++atom ) {
                         //cout << "Punkt " << x <<":"<< y << ":"<<z << endl;
                         xtemp=(*atom)->x;
                         ytemp=(*atom)->y;
@@ -404,9 +405,9 @@ void Grid::setupgrid(){
                         else if ( distance2<pow(_cutoff,2))  _is_valid = true;
                     }
                     if (_is_valid || _cubegrid){
-                        temppos(0)=A2Nm*x;
-                        temppos(1)=A2Nm*y;        
-                        temppos(2)=A2Nm*z;   
+                        temppos(0)=conv::ang2nm*x;
+                        temppos(1)=conv::ang2nm*y;        
+                        temppos(2)=conv::ang2nm*z;   
                         if(_createpolarsites){
                             // APolarSite are in nm so convert
                             vec temp=vec(temppos);

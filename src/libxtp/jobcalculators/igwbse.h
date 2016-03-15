@@ -74,6 +74,7 @@ private:
     string              _package;
     Property            _package_options; 
     Property            _gwbse_options; 
+    Property            _coupling_options; 
     
     string              _spintype;
     bool                _do_singlets;

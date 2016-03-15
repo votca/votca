@@ -37,7 +37,7 @@ public:
     StateSaverSQLite() { };
    ~StateSaverSQLite() { _db.Close(); }
 
-    void Open(Topology &qmtop, const string &file, bool lock = true);
+    void Open(Topology &qmtop, const std::string &file, bool lock = true);
     void Close() { _db.Close(); }
     bool NextFrame();
 
@@ -77,7 +77,7 @@ private:
     vector<int>     _frames;
     vector<int>     _topIds;
 
-    string          _sqlfile;
+    std::string          _sqlfile;
     bool            _was_read;
     
     boost::interprocess::file_lock *_flock;

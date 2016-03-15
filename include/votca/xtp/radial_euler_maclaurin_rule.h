@@ -24,20 +24,21 @@
 #include <votca/tools/property.h>
 #include <votca/xtp/basisset.h>
 #include <votca/xtp/qmatom.h>
+#include <votca/tools/constants.h>
 #include <votca/xtp/grid_containers.h>
-using namespace std;
+
 
 
 namespace votca { namespace xtp {
 
-
+    
         class EulerMaclaurinGrid {
         public: 
             
             EulerMaclaurinGrid() { FillGrids(); };
             
-            void getRadialGrid( BasisSet* bs , vector<QMAtom* > _atoms , string type, GridContainers& _grids );
-            std::vector<double> getPruningIntervals( string element );
+            void getRadialGrid( BasisSet* bs , vector<QMAtom* > _atoms , std::string type, GridContainers& _grids );
+            std::vector<double> getPruningIntervals( std::string element );
             
 
 
@@ -54,19 +55,19 @@ namespace votca { namespace xtp {
                 std::vector<double> weight;
             };
        
-            map<string,min_exp> _element_ranges;
-            map<string,grid_element> _element_grids;
-            map<string,int> _period_row;
+            std::map<std::string,min_exp> _element_ranges;
+            std::map<std::string,grid_element> _element_grids;
+            std::map<std::string,int> _period_row;
             
-            map<string,double> _BraggSlaterRadii;
+            std::map<std::string,double> _BraggSlaterRadii;
             
-            int getGrid(string element, string type);
+            int getGrid(std::string element, std::string type);
             
             double DetermineCutoff( double alpha, int l, double eps );
             double getNeglected( double alpha, int l, double cutoff);
             double RadialIntegral(double alpha, int l, double cutoff);
             
-            void getRadialCutoffs( vector<QMAtom* > _atoms ,  BasisSet* bs ,string gridtype );
+            void getRadialCutoffs( std::vector<QMAtom* > _atoms ,  BasisSet* bs ,std::string gridtype );
             void setGrid(int numberofpoints, double cutoff, std::vector<double>& point, std::vector<double>& weight );
             
             std::map<std::string, int>    MediumGrid;
@@ -92,8 +93,8 @@ namespace votca { namespace xtp {
 
             
             inline void FillBraggSlaterRadii(){
+                const double ang2bohr=votca::tools::conv::ang2bohr;
                 
-                const double ang2bohr = 1.8897259886; 
                 // 
                 _BraggSlaterRadii["H"] = 0.35 * ang2bohr ;
                 _BraggSlaterRadii["He"] = 0.35 * ang2bohr ;

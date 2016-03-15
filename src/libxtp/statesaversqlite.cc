@@ -150,7 +150,7 @@ void StateSaverSQLite::WriteMolecules(bool update) {
 
     stmt->Bind(1, _qmtop->getDatabaseId());
 
-    vector < Molecule* > ::iterator mit;
+    std::vector < Molecule* > ::iterator mit;
     for (mit = _qmtop->Molecules().begin();
             mit < _qmtop->Molecules().end();
             mit++) {
@@ -189,7 +189,7 @@ void StateSaverSQLite::WriteSegTypes(bool update) {
         return; // nothing to do here
     }
 
-    vector < SegmentType* > ::iterator typeit;
+    std::vector < SegmentType* > ::iterator typeit;
     for (typeit = _qmtop->SegmentTypes().begin();
             typeit < _qmtop->SegmentTypes().end();
             typeit++) {
@@ -207,7 +207,7 @@ void StateSaverSQLite::WriteSegTypes(bool update) {
             // Process transporting-orbital numbers
             // NOTE Obsolete, now read in only for IZindo calculator
             // string torbNrs = "";
-            // vector <int> ::iterator iit;
+            // std::vector <int> ::iterator iit;
             // for (int i = 0; i < type->getTOrbNrs().size(); i++) {
             //     int    nrInt = (type->getTOrbNrs())[i];
             //     string nrStr = boost::lexical_cast<string>(nrInt);
@@ -257,7 +257,7 @@ void StateSaverSQLite::WriteSegments(bool update) {
                            "WHERE top = ? AND id = ?");
     }
 
-    vector < Segment* > ::iterator sit;
+    std::vector < Segment* > ::iterator sit;
     for (sit = _qmtop->Segments().begin();
             sit < _qmtop->Segments().end();
             sit++) {
@@ -348,7 +348,7 @@ void StateSaverSQLite::WriteFragments(bool update) {
 
     stmt->Bind(1, _qmtop->getDatabaseId());
 
-    vector < Fragment* > ::iterator fit;
+    std::vector < Fragment* > ::iterator fit;
     for (fit = _qmtop->Fragments().begin();
             fit < _qmtop->Fragments().end();
             fit++) {
@@ -406,7 +406,7 @@ void StateSaverSQLite::WriteAtoms(bool update) {
 
     stmt->Bind(1, _qmtop->getDatabaseId());
 
-    vector < Atom* > ::iterator ait;
+    std::vector < Atom* > ::iterator ait;
     for (ait = _qmtop->Atoms().begin();
             ait < _qmtop->Atoms().end();
             ait++) {
@@ -829,9 +829,9 @@ void StateSaverSQLite::ReadSegTypes(int topId) {
         // NOTE v Not used v
         // Transporting orbitals
         // Tokenizer toker(stmt->Column<string>(3), ":");
-        // vector<string> orbNrsStrings;
+        // std::vector<string> orbNrsStrings;
         // toker.ToVector(orbNrsStrings);
-        // vector<int> orbNrsInts;
+        // std::vector<int> orbNrsInts;
         // for (int i = 0; i < orbNrsStrings.size(); i++) {
         //     int nr = boost::lexical_cast<int>(orbNrsStrings[i]);
         //     orbNrsInts.push_back(nr);
@@ -980,7 +980,7 @@ void StateSaverSQLite::ReadFragments(int topId) {
         int     leg2    = stmt->Column<int>(8);
         int     leg3    = stmt->Column<int>(9);
 
-        vector<int> trihedron;
+        std::vector<int> trihedron;
         trihedron.push_back(leg1);
         if (leg2 >= 0) {trihedron.push_back(leg2);}
         if (leg3 >= 0) {trihedron.push_back(leg3);}

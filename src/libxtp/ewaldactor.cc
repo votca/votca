@@ -6,8 +6,8 @@ namespace votca {
 namespace xtp {
 
     
-void EwdInteractor::FPU12_ShapeField_At_By(vector<PolarSeg*> &at,
-    vector<PolarSeg*> &by, string shape, double V) {
+void EwdInteractor::FPU12_ShapeField_At_By(std::vector<PolarSeg*> &at,
+    std::vector<PolarSeg*> &by, string shape, double V) {
     // This function requires neutrality of &by but gets around
     // the double sum (see ::F12_XYSlab_At_By)
     // ATTENTION Only increments FP, not FU
@@ -16,8 +16,8 @@ void EwdInteractor::FPU12_ShapeField_At_By(vector<PolarSeg*> &at,
     double fy = 0.0;
     double fz = 0.0;
     
-    vector<PolarSeg*>::iterator sit;
-    vector<APolarSite*>::iterator pit;
+    std::vector<PolarSeg*>::iterator sit;
+    std::vector<APolarSite*>::iterator pit;
     
     // Compute net dipole moment of field-generating density (&by)
     vec Q1 = vec(0,0,0);
@@ -75,8 +75,8 @@ void EwdInteractor::FPU12_ShapeField_At_By(vector<PolarSeg*> &at,
 }
 
 
-void EwdInteractor::FP12_ShapeField_At_By(vector<PolarSeg*> &at,
-    vector<PolarSeg*> &by, string shape, double V) {
+void EwdInteractor::FP12_ShapeField_At_By(std::vector<PolarSeg*> &at,
+    std::vector<PolarSeg*> &by, string shape, double V) {
     // This function requires neutrality of &by but gets around
     // the double sum (see ::F12_XYSlab_At_By)
     // ATTENTION Only increments FP, not FU
@@ -85,8 +85,8 @@ void EwdInteractor::FP12_ShapeField_At_By(vector<PolarSeg*> &at,
     double fy = 0.0;
     double fz = 0.0;
     
-    vector<PolarSeg*>::iterator sit;
-    vector<APolarSite*>::iterator pit;
+    std::vector<PolarSeg*>::iterator sit;
+    std::vector<APolarSite*>::iterator pit;
     
     // Compute net dipole moment of field-generating density (&by)
     vec Q1 = vec(0,0,0);
@@ -141,8 +141,8 @@ void EwdInteractor::FP12_ShapeField_At_By(vector<PolarSeg*> &at,
 }
 
 
-void EwdInteractor::FU12_ShapeField_At_By(vector<PolarSeg*> &at,
-    vector<PolarSeg*> &by, string shape, double V) {
+void EwdInteractor::FU12_ShapeField_At_By(std::vector<PolarSeg*> &at,
+    std::vector<PolarSeg*> &by, string shape, double V) {
     // This function requires neutrality of &by but gets around
     // the double sum (see ::F12_XYSlab_At_By)
     // ATTENTION Only increments FP, not FU
@@ -151,8 +151,8 @@ void EwdInteractor::FU12_ShapeField_At_By(vector<PolarSeg*> &at,
     double fy = 0.0;
     double fz = 0.0;
     
-    vector<PolarSeg*>::iterator sit;
-    vector<APolarSite*>::iterator pit;
+    std::vector<PolarSeg*>::iterator sit;
+    std::vector<APolarSite*>::iterator pit;
     
     // Compute net dipole moment of field-generating density (&by)
     vec U1 = vec(0,0,0);
@@ -203,13 +203,13 @@ void EwdInteractor::FU12_ShapeField_At_By(vector<PolarSeg*> &at,
 }
     
 
-void EwdInteractor::PhiPU12_ShapeField_At_By(vector<PolarSeg*> &s1, 
-    vector<PolarSeg*> &s2, string shape, double V) {
+void EwdInteractor::PhiPU12_ShapeField_At_By(std::vector<PolarSeg*> &s1, 
+    std::vector<PolarSeg*> &s2, string shape, double V) {
     // NOTE : WITH PREFACTOR = -4*PI/V (xyslab) v -4*PI/3V (cube, sphere)    
     // NOTE : Similar operations in PhiPU12_..., PhiP12_..., PhiU12_...
     
-    vector<PolarSeg*>::iterator sit;
-    vector<APolarSite*>::iterator pit;
+    std::vector<PolarSeg*>::iterator sit;
+    std::vector<APolarSite*>::iterator pit;
     
     // Charge, dipole, quadrupole for <s2>:
     // Q... <> permanent, U... <> induced
@@ -286,13 +286,13 @@ void EwdInteractor::PhiPU12_ShapeField_At_By(vector<PolarSeg*> &s1,
 }
 
 
-void EwdInteractor::PhiP12_ShapeField_At_By(vector<PolarSeg*> &s1, 
-    vector<PolarSeg*> &s2, string shape, double V) {
+void EwdInteractor::PhiP12_ShapeField_At_By(std::vector<PolarSeg*> &s1, 
+    std::vector<PolarSeg*> &s2, string shape, double V) {
     // NOTE : WITH PREFACTOR = -4*PI/V (xyslab) v -4*PI/3V (cube, sphere)
     // NOTE : Similar operations in PhiPU12_..., PhiP12_..., PhiU12_...
     
-    vector<PolarSeg*>::iterator sit;
-    vector<APolarSite*>::iterator pit;
+    std::vector<PolarSeg*>::iterator sit;
+    std::vector<APolarSite*>::iterator pit;
     
     // Charge, dipole, quadrupole for <s2>:
     // Q... <> permanent, U... <> induced
@@ -359,13 +359,13 @@ void EwdInteractor::PhiP12_ShapeField_At_By(vector<PolarSeg*> &s1,
 }
 
 
-void EwdInteractor::PhiU12_ShapeField_At_By(vector<PolarSeg*> &s1, 
-    vector<PolarSeg*> &s2, string shape, double V) {
+void EwdInteractor::PhiU12_ShapeField_At_By(std::vector<PolarSeg*> &s1, 
+    std::vector<PolarSeg*> &s2, string shape, double V) {
     // NOTE : WITH PREFACTOR = -4*PI/V (xyslab) v -4*PI/3V (cube, sphere)
     // NOTE : Similar operations in PhiPU12_..., PhiP12_..., PhiU12_...
     
-    vector<PolarSeg*>::iterator sit;
-    vector<APolarSite*>::iterator pit;
+    std::vector<PolarSeg*>::iterator sit;
+    std::vector<APolarSite*>::iterator pit;
     
     // Charge, dipole, quadrupole for <s2>:
     // Q... <> permanent, U... <> induced
@@ -494,12 +494,12 @@ void EwdInteractor::PhiU12_ShapeField_At_By(vector<PolarSeg*> &s1,
 // ============================ RECIPROCAL SPACE ============================ //
 //                                 S-FACTORS                                  //
 
-EWD::cmplx EwdInteractor::PUStructureAmplitude(vector<PolarSeg*> &s) {
+EWD::cmplx EwdInteractor::PUStructureAmplitude(std::vector<PolarSeg*> &s) {
     // Requires ApplyBias(k) to be called previously
     double re_S = 0.0;
     double im_S = 0.0;
-    vector<PolarSeg*>::iterator sit;
-    vector<APolarSite*> ::iterator pit;
+    std::vector<PolarSeg*>::iterator sit;
+    std::vector<APolarSite*> ::iterator pit;
     for (sit = s.begin(); sit < s.end(); ++sit) {
         for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {            
             PUApplyBiasK(*(*pit));
@@ -513,12 +513,12 @@ EWD::cmplx EwdInteractor::PUStructureAmplitude(vector<PolarSeg*> &s) {
 }
 
 
-EWD::cmplx EwdInteractor::PStructureAmplitude(vector<PolarSeg*> &s) {
+EWD::cmplx EwdInteractor::PStructureAmplitude(std::vector<PolarSeg*> &s) {
     // Requires ApplyBias(k) to be called previously
     double re_S = 0.0;
     double im_S = 0.0;
-    vector<PolarSeg*>::iterator sit;
-    vector<APolarSite*> ::iterator pit;
+    std::vector<PolarSeg*>::iterator sit;
+    std::vector<APolarSite*> ::iterator pit;
     for (sit = s.begin(); sit < s.end(); ++sit) {
         for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {            
             PApplyBiasK(*(*pit));
@@ -530,12 +530,12 @@ EWD::cmplx EwdInteractor::PStructureAmplitude(vector<PolarSeg*> &s) {
 }
 
 
-EWD::cmplx EwdInteractor::UStructureAmplitude(vector<PolarSeg*> &s) {
+EWD::cmplx EwdInteractor::UStructureAmplitude(std::vector<PolarSeg*> &s) {
     // Requires ApplyBias(k) to be called previously
     double re_S = 0.0;
     double im_S = 0.0;
-    vector<PolarSeg*>::iterator sit;
-    vector<APolarSite*> ::iterator pit;
+    std::vector<PolarSeg*>::iterator sit;
+    std::vector<APolarSite*> ::iterator pit;
     for (sit = s.begin(); sit < s.end(); ++sit) {
         for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {            
             UApplyBiasK(*(*pit));
@@ -547,19 +547,19 @@ EWD::cmplx EwdInteractor::UStructureAmplitude(vector<PolarSeg*> &s) {
 }
 
 
-EWD::cmplx EwdInteractor::PUStructureAmplitude(vector<PolarSeg*> &s, const vec &k) {
+EWD::cmplx EwdInteractor::PUStructureAmplitude(std::vector<PolarSeg*> &s, const vec &k) {
     ApplyBiasK(k);
     return PUStructureAmplitude(s);
 }
 
 
-EWD::cmplx EwdInteractor::PStructureAmplitude(vector<PolarSeg*> &s, const vec &k) {
+EWD::cmplx EwdInteractor::PStructureAmplitude(std::vector<PolarSeg*> &s, const vec &k) {
     ApplyBiasK(k);
     return PStructureAmplitude(s);
 }
 
 
-EWD::cmplx EwdInteractor::UStructureAmplitude(vector<PolarSeg*> &s, const vec &k) {
+EWD::cmplx EwdInteractor::UStructureAmplitude(std::vector<PolarSeg*> &s, const vec &k) {
     ApplyBiasK(k);
     return UStructureAmplitude(s);
 }
@@ -569,7 +569,7 @@ EWD::cmplx EwdInteractor::UStructureAmplitude(vector<PolarSeg*> &s, const vec &k
 //                                   FIELD                                    //
 
 
-EWD::cmplx EwdInteractor::FP12_At_ByS2(const vec &k, vector<PolarSeg*> &s1, 
+EWD::cmplx EwdInteractor::FP12_At_ByS2(const vec &k, std::vector<PolarSeg*> &s1, 
     const EWD::cmplx &S2, double &rV) {
     // ATTENTION Increments PERMANENT fields of s1
     // ATTENTION Structure factor S2 from PERM & INDU moments of s2, k    
@@ -585,8 +585,8 @@ EWD::cmplx EwdInteractor::FP12_At_ByS2(const vec &k, vector<PolarSeg*> &s1,
     // Compute k-component of fields acting on s1 = A(c)
     ApplyBiasK(k);
     
-    vector<PolarSeg*>::iterator sit;
-    vector<APolarSite*> ::iterator pit;    
+    std::vector<PolarSeg*>::iterator sit;
+    std::vector<APolarSite*> ::iterator pit;    
     for (sit = s1.begin(); sit < s1.end(); ++sit) {
         for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {
             kr = kx * (*pit)->getPos().getX()
@@ -623,7 +623,7 @@ EWD::cmplx EwdInteractor::FP12_At_ByS2(const vec &k, vector<PolarSeg*> &s1,
 }
 
 
-EWD::cmplx EwdInteractor::FU12_At_ByS2(const vec &k, vector<PolarSeg*> &s1, 
+EWD::cmplx EwdInteractor::FU12_At_ByS2(const vec &k, std::vector<PolarSeg*> &s1, 
     const EWD::cmplx &S2, double &rV) {
     // ATTENTION Increments PERMANENT fields of s1
     // ATTENTION Structure factor S2 from PERM & INDU moments of s2, k    
@@ -639,8 +639,8 @@ EWD::cmplx EwdInteractor::FU12_At_ByS2(const vec &k, vector<PolarSeg*> &s1,
     // Compute k-component of fields acting on s1 = A(c)
     ApplyBiasK(k);
     
-    vector<PolarSeg*>::iterator sit;
-    vector<APolarSite*> ::iterator pit;    
+    std::vector<PolarSeg*>::iterator sit;
+    std::vector<APolarSite*> ::iterator pit;    
     for (sit = s1.begin(); sit < s1.end(); ++sit) {
         for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {
             kr = kx * (*pit)->getPos().getX()
@@ -678,14 +678,14 @@ EWD::cmplx EwdInteractor::FU12_At_ByS2(const vec &k, vector<PolarSeg*> &s1,
 
 
 EWD::cmplx EwdInteractor::FPU12_AS1S2_At_By(const vec &k,
-    vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV) {
+    std::vector<PolarSeg*> &s1, std::vector<PolarSeg*> &s2, double &rV) {
     // ATTENTION Increments PERMANENT fields of s1
     // ATTENTION Structure factors include PERMANENT & INDUCED moments of s2    
     
     ApplyBiasK(k);    
     
-    vector<PolarSeg*>::iterator sit;
-    vector<APolarSite*> ::iterator pit;
+    std::vector<PolarSeg*>::iterator sit;
+    std::vector<APolarSite*> ::iterator pit;
     
     // NOTE sum_re_f_rms => convergence check (to be performed by caller)
     // NOTE sum_im_f_xyz => sanity check      (to be performed by caller)
@@ -736,14 +736,14 @@ EWD::cmplx EwdInteractor::FPU12_AS1S2_At_By(const vec &k,
 
 
 EWD::cmplx EwdInteractor::FP12_AS1S2_At_By(const vec &k,
-    vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV) {
+    std::vector<PolarSeg*> &s1, std::vector<PolarSeg*> &s2, double &rV) {
     // ATTENTION Increments PERMANENT fields of s1
     // ATTENTION Structure factors include PERMANENT moments of s2    
     
     ApplyBiasK(k);    
     
-    vector<PolarSeg*>::iterator sit;
-    vector<APolarSite*> ::iterator pit;
+    std::vector<PolarSeg*>::iterator sit;
+    std::vector<APolarSite*> ::iterator pit;
     
     // NOTE sum_re_f_rms => convergence check (to be performed by caller)
     // NOTE sum_im_f_xyz => sanity check      (to be performed by caller)
@@ -794,14 +794,14 @@ EWD::cmplx EwdInteractor::FP12_AS1S2_At_By(const vec &k,
 
 
 EWD::cmplx EwdInteractor::FU12_AS1S2_At_By(const vec &k,
-    vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV) {
+    std::vector<PolarSeg*> &s1, std::vector<PolarSeg*> &s2, double &rV) {
     // ATTENTION Increments INDUCED fields of s1
     // ATTENTION Structure factors include INDUCED moments of s2    
     
     ApplyBiasK(k);    
     
-    vector<PolarSeg*>::iterator sit;
-    vector<APolarSite*> ::iterator pit;
+    std::vector<PolarSeg*>::iterator sit;
+    std::vector<APolarSite*> ::iterator pit;
     
     // NOTE sum_re_f_rms => convergence check (to be performed by caller)
     // NOTE sum_im_f_xyz => sanity check      (to be performed by caller)
@@ -854,16 +854,16 @@ EWD::cmplx EwdInteractor::FU12_AS1S2_At_By(const vec &k,
 // ============================ RECIPROCAL SPACE ============================ //
 //                                 POTENTIALS                                 //
 
-EWD::cmplx EwdInteractor::PhiPU12_AS1S2_At_By(const vec &k, vector<PolarSeg*> &s1, 
-    vector<PolarSeg*> &s2, double &rV) {
+EWD::cmplx EwdInteractor::PhiPU12_AS1S2_At_By(const vec &k, std::vector<PolarSeg*> &s1, 
+    std::vector<PolarSeg*> &s2, double &rV) {
     // ATTENTION Increments *permanent* potential PhiP of s1 only
     // ATTENTION Structure factors include PERMANENT & INDUCED moments of s2
     // NOTE Analogous operations in PhiPU12_..., PhiP12_..., PhiU12_...
     
     ApplyBiasK(k);
     
-    vector<PolarSeg*>::iterator sit;
-    vector<APolarSite*> ::iterator pit;
+    std::vector<PolarSeg*>::iterator sit;
+    std::vector<APolarSite*> ::iterator pit;
     
     // NOTE sum_re_phi_rms => convergence check (to be performed by caller)
     // NOTE sum_im_phi_xyz => sanity check      (to be performed by caller)
@@ -906,16 +906,16 @@ EWD::cmplx EwdInteractor::PhiPU12_AS1S2_At_By(const vec &k, vector<PolarSeg*> &s
 }
 
 
-EWD::cmplx EwdInteractor::PhiP12_AS1S2_At_By(const vec &k, vector<PolarSeg*> &s1, 
-    vector<PolarSeg*> &s2, double &rV) {
+EWD::cmplx EwdInteractor::PhiP12_AS1S2_At_By(const vec &k, std::vector<PolarSeg*> &s1, 
+    std::vector<PolarSeg*> &s2, double &rV) {
     // ATTENTION Increments *permanent* potential PhiP of s1 only
     // ATTENTION Structure factors include PERMANENT moments of s2 only
     // NOTE Analogous operations in PhiPU12_..., PhiP12_..., PhiU12_...
     
     ApplyBiasK(k);
     
-    vector<PolarSeg*>::iterator sit;
-    vector<APolarSite*> ::iterator pit;
+    std::vector<PolarSeg*>::iterator sit;
+    std::vector<APolarSite*> ::iterator pit;
     
     // NOTE sum_re_phi_rms => convergence check (to be performed by caller)
     // NOTE sum_im_phi_xyz => sanity check      (to be performed by caller)
@@ -958,16 +958,16 @@ EWD::cmplx EwdInteractor::PhiP12_AS1S2_At_By(const vec &k, vector<PolarSeg*> &s1
 }
 
 
-EWD::cmplx EwdInteractor::PhiU12_AS1S2_At_By(const vec &k, vector<PolarSeg*> &s1, 
-    vector<PolarSeg*> &s2, double &rV) {
+EWD::cmplx EwdInteractor::PhiU12_AS1S2_At_By(const vec &k, std::vector<PolarSeg*> &s1, 
+    std::vector<PolarSeg*> &s2, double &rV) {
     // ATTENTION Increments *permanent* potential PhiP of s1 only
     // ATTENTION Structure factors include PERMANENT moments of s2 only
     // NOTE Analogous operations in PhiPU12_..., PhiP12_..., PhiU12_...
     
     ApplyBiasK(k);
     
-    vector<PolarSeg*>::iterator sit;
-    vector<APolarSite*> ::iterator pit;
+    std::vector<PolarSeg*>::iterator sit;
+    std::vector<APolarSite*> ::iterator pit;
     
     // NOTE sum_re_phi_rms => convergence check (to be performed by caller)
     // NOTE sum_im_phi_xyz => sanity check      (to be performed by caller)
@@ -1014,12 +1014,12 @@ EWD::cmplx EwdInteractor::PhiU12_AS1S2_At_By(const vec &k, vector<PolarSeg*> &s1
 //                                  ENERGIES                                  //
 
 EWD::triple<EWD::cmplx> EwdInteractor::AS1S2(const vec &k,
-    vector<PolarSeg*> &s1, vector<PolarSeg*> &s2) {
+    std::vector<PolarSeg*> &s1, std::vector<PolarSeg*> &s2) {
     // NOTE : w/o 1/V
     ApplyBiasK(k);    
     
-    vector<PolarSeg*>::iterator sit;
-    vector<APolarSite*> ::iterator pit;
+    std::vector<PolarSeg*>::iterator sit;
+    std::vector<APolarSite*> ::iterator pit;
     
     // Structure amplitude S1
     double re_S1 = 0.0;
@@ -1068,12 +1068,12 @@ EWD::triple<EWD::cmplx> EwdInteractor::AS1S2(const vec &k,
 
 
 EWD::triple<EWD::cmplx> EwdInteractor::S1S2(const vec &k,
-    vector<PolarSeg*> &s1, vector<PolarSeg*> &s2) {
+    std::vector<PolarSeg*> &s1, std::vector<PolarSeg*> &s2) {
     // NOTE : w/o 1/V
     ApplyBiasK(k);    
     
-    vector<PolarSeg*>::iterator sit;
-    vector<APolarSite*> ::iterator pit;
+    std::vector<PolarSeg*>::iterator sit;
+    std::vector<APolarSite*> ::iterator pit;
     
     // Structure amplitude S1
     double re_S1 = 0.0;
@@ -1120,12 +1120,12 @@ EWD::triple<EWD::cmplx> EwdInteractor::S1S2(const vec &k,
 }
 
 
-EWD::triple<double> EwdInteractor::U12_ShapeTerm(vector<PolarSeg*> &s1,
-    vector<PolarSeg*> &s2, string shape, double V, Logger *log) {
+EWD::triple<double> EwdInteractor::U12_ShapeTerm(std::vector<PolarSeg*> &s1,
+    std::vector<PolarSeg*> &s2, string shape, double V, Logger *log) {
     
     // NOTE : WITH PREFACTOR = -4*PI/V (xylab) v -4*PI/3V (cube, sphere)
-    vector<PolarSeg*>::iterator sit;
-    vector<APolarSite*>::iterator pit;
+    std::vector<PolarSeg*>::iterator sit;
+    std::vector<APolarSite*>::iterator pit;
     
     // Charge, dipole, quadrupole for <s1>: Q... <> permanent, U... <> induced
     double Q0_S1 = 0.0;
@@ -1303,8 +1303,8 @@ EWD::triple<double> EwdInteractor::U12_ShapeTerm(vector<PolarSeg*> &s1,
                     + Q0_S1*U2_S2.get(2,2)
                     + Q0_S2*U2_S1.get(2,2);
         
-        dd *= -4*M_PI/V * EWD::int2eV;
-        qQ *= -4*M_PI/V * EWD::int2eV;
+        dd *= -4*M_PI/V * conv::int2eV;
+        qQ *= -4*M_PI/V * conv::int2eV;
         
         LOG(logDEBUG, *log) << (boost::format("  DD %1$+1.7e eV qQ %2$+1.7e eV")
                 % dd % qQ) << flush;
@@ -1324,11 +1324,11 @@ EWD::triple<double> EwdInteractor::U12_ShapeTerm(vector<PolarSeg*> &s1,
             double pu_qQ = Q0_S1*TrU2_S2 + Q0_S2*TrU2_S1;
             double pu_dd =  - Q1_S1*U1_S2 - Q1_S2*U1_S1;
             double uu_dd = - U1_S1*U1_S2;
-            pp_qQ *= -4*M_PI/(3*V)*EWD::int2eV;
-            pp_dd *= -4*M_PI/(3*V)*EWD::int2eV;
-            pu_qQ *= -4*M_PI/(3*V)*EWD::int2eV;
-            pu_dd *= -4*M_PI/(3*V)*EWD::int2eV;
-            uu_dd *= -4*M_PI/(3*V)*EWD::int2eV;
+            pp_qQ *= -4*M_PI/(3*V)*conv::int2eV;
+            pp_dd *= -4*M_PI/(3*V)*conv::int2eV;
+            pu_qQ *= -4*M_PI/(3*V)*conv::int2eV;
+            pu_dd *= -4*M_PI/(3*V)*conv::int2eV;
+            uu_dd *= -4*M_PI/(3*V)*conv::int2eV;
             LOG(logDEBUG, *log) << (boost::format("Energy-moment decomposition")) << flush;
             LOG(logDEBUG, *log) << (boost::format("  qQ (pp) = %1$+1.7e") % pp_qQ) << flush;
             LOG(logDEBUG, *log) << (boost::format("  dd (pp) = %1$+1.7e") % pp_dd) << flush;

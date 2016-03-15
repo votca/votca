@@ -88,8 +88,8 @@ void JobApplication::Run() {
     StateSaverSQLite statsav;
     statsav.Open(_top, statefile);    
 
-    ProgObserver< vector<Job*>, Job*, Job::JobResult > progObs
-        = ProgObserver< vector<Job*>, Job*, Job::JobResult >();
+    ProgObserver< std::vector<Job*>, Job*, Job::JobResult > progObs
+        = ProgObserver< std::vector<Job*>, Job*, Job::JobResult >();
     progObs.InitCmdLineOpts(OptionsMap());
     
     // INITIALIZE & RUN CALCULATORS
@@ -126,7 +126,7 @@ void JobApplication::AddCalculator(JobCalculator* calculator) {
 
 
 void JobApplication::BeginEvaluate(int nThreads = 1, 
-        ProgObserver< vector<Job*>, Job*, Job::JobResult > *obs = NULL) {
+        ProgObserver< std::vector<Job*>, Job*, Job::JobResult > *obs = NULL) {
     list< JobCalculator* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
         cout << "... " << (*it)->Identify() << " ";

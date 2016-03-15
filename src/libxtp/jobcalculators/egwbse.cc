@@ -101,6 +101,7 @@ namespace votca {
             
             //options for esp/partialcharges
             if (_do_esp){
+                key = "options." + Identify();
                 string _esp_xml = options->get(key + ".esp").as<string> ();
                 load_property_from_xml(_esp_options, _esp_xml.c_str());
             }
@@ -223,6 +224,15 @@ namespace votca {
             _qmpackage->Initialize(&_package_options);
             
             
+            Property _job_summary;
+            Property *_output_summary = &_job_summary.add("output", "");
+            Property *_segment_summary = &_output_summary->add("segment", "");
+            string segName = seg->getName();
+            segId = seg->getId();
+            _segment_summary->setAttribute("id", segId);
+            _segment_summary->setAttribute("type", segName);
+            
+            
             // different tasks
             
             // create input for DFT
@@ -272,13 +282,17 @@ namespace votca {
                     delete _qmpackage;
                     return jres;
                 }
+                
+                 
+                
             } // end of the parse orbitals/log
 
 
             
  
             if (_do_gwbse) {
-
+                
+              
                 if (!_do_dft_parse) {
 
                     // load the DFT data from serialized orbitals object
@@ -289,6 +303,11 @@ namespace votca {
                     ia >> _orbitals;
                     ifs.close();
                 }
+                
+                
+                   
+                   
+               
                 GWBSE _gwbse; 
                 _gwbse.Initialize(&_gwbse_options);
                 // _gwbse.setLogger(pLog);
@@ -306,7 +325,7 @@ namespace votca {
                 
                 //bool _evaluate = _gwbse.Evaluate(&_orbitals);
                 _gwbse.Evaluate(&_orbitals);
-                
+                _gwbse.addoutput(_segment_summary, &_orbitals);
                 // write logger to log file
                 ofstream ofs;
                 string gwbse_logfile = _qmpackage_work_dir + "/gwbse.log";
@@ -339,17 +358,19 @@ namespace votca {
             //  }
 
             //  _orbitalsAB.setStorage( _store_orbitals, _store_overlap, _store_integrals );
-            
+            string mps_file="";
             if (_do_esp){
                 Esp2multipole esp2multipole=Esp2multipole(pLog);;
                 esp2multipole.Initialize(&_esp_options);
                 esp2multipole.Extractingcharges(_orbitals);
                 
-                string mps_file = (format("%1%_%2%_%3%_%4%") % "molecule" % esp2multipole.GetIdentifier() % segId % ".mps").str();
+                mps_file = (format("%1%_%2%_%3%_%4%") % "molecule" % esp2multipole.GetIdentifier() % segId % ".mps").str();
                 esp2multipole.WritetoFile(_orbitals,(DIR + "/" + mps_file).c_str(),Identify());
     
     
                 LOG(logDEBUG, *pLog) << "Written charges to " << mps_file << flush;
+                
+                _segment_summary->add("partialcharges", mps_file);
             }
            
 
@@ -360,13 +381,12 @@ namespace votca {
 
 
 
-            Property _job_summary;
-            Property *_output_summary = &_job_summary.add("output", "");
-            Property *_segment_summary = &_output_summary->add("segment", "");
-            string segName = seg->getName();
-            segId = seg->getId();
-            _segment_summary->setAttribute("id", segId);
-            _segment_summary->setAttribute("type", segName);
+            
+            
+           
+               
+                
+           
             // output of the JOB 
             jres.setOutput(_job_summary);
             jres.setStatus(Job::COMPLETE);

@@ -25,7 +25,7 @@
 
 namespace votca { namespace xtp {
 
-
+namespace ub = boost::numeric::ublas;
 /**
 * \brief Evaluates electronic coupling elements
 *
@@ -40,51 +40,63 @@ public:
 
     BSECoupling() {};
    ~BSECoupling() {};
-
-
+   
+   void    Initialize( Property *options);
+    string  Identify() { return "bsecoupling"; }
+    bool get_doSinglets(){ return _doSinglets;}
+    bool get_doTriplets(){ return _doTriplets;}
+    
+    ub::matrix<float> getJAB_singletstorage(){return JAB_singlet;}
+    ub::matrix<float> getJAB_tripletstorage(){return JAB_triplet;}
+    void addoutput(Property *_type_summary,Orbitals* _orbitalsA, 
+                               Orbitals* _orbitalsB);
+    
     bool CalculateCouplings(   Orbitals* _orbitalsA, 
                                Orbitals* _orbitalsB, 
-                               Orbitals* _orbitalsAB, 
-                               boost::numeric::ublas::matrix<float>* _JAB_singlet, boost::numeric::ublas::matrix<float>* _JAB_triplet, string _type);  
+                               Orbitals* _orbitalsAB 
+                             );  
     
     bool CalculateCouplings_OLD(   Orbitals* _orbitalsA, 
                                Orbitals* _orbitalsB, 
                                Orbitals* _orbitalsAB, 
-                               boost::numeric::ublas::matrix<float>* _JAB_singlet);  
+                               ub::matrix<float>* _JAB_singlet);  
     
     
-    bool ProjectExcitons(boost::numeric::ublas::matrix<float>& _kap,
-                         boost::numeric::ublas::matrix<float>& _kbp, 
-                         boost::numeric::ublas::matrix<float>& _bseA, 
-                         boost::numeric::ublas::matrix<float>& _bseB, 
-                         boost::numeric::ublas::matrix<float>& _H, 
-                         boost::numeric::ublas::matrix<float>& _J );
 
      
-    float getSingletCouplingElement( int levelA, int levelB,  
-                               Orbitals* _orbitalsA,  
-                               Orbitals* _orbitalsB, 
-                               boost::numeric::ublas::matrix<float>* _JAB,
-                               double _energy_difference = 0
-                                );
+    float getSingletCouplingElement( int levelA, int levelB);
     
-    float getTripletCouplingElement( int levelA, int levelB,  
-                               Orbitals* _orbitalsA,  
-                               Orbitals* _orbitalsB, 
-                               boost::numeric::ublas::matrix<float>* _JAB,
-                               double _energy_difference = 0
-                                );
-    
+    float getTripletCouplingElement( int levelA, int levelB);
+    float getSingletDimerEnergy( int level);
+    float getTripletDimerEnergy( int level);
     void setLogger( Logger* pLog ) { _pLog = pLog; }
     
 private:
     
     Logger *_pLog;
     
-    void SQRTOverlap(boost::numeric::ublas::symmetric_matrix<double> &S, 
-                     boost::numeric::ublas::matrix<double> &Sm2);
-
-
+    void SQRTOverlap(ub::symmetric_matrix<double> &S, 
+                     ub::matrix<double> &Sm2);
+    
+    bool ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix<float>& _kbp, 
+                         const ub::matrix<float>& ctAB,const ub::matrix<float>& ctBA, 
+                         const ub::matrix<float>& _bseA,const ub::matrix<float>& _bseB, 
+                         const ub::matrix<float>& _H, ub::matrix<float>& _J );
+    
+    ub::matrix<float> JAB_singlet;
+    ub::matrix<float> JAB_triplet;
+    string _spintype;
+    bool _doTriplets;
+    bool _doSinglets;
+    int _levA;
+    int _levB;
+    int _occA;
+    int _unoccA;
+    int _occB;
+    int _unoccB;
+    double      _degeneracy;
+    
+    
 };
 
 }}

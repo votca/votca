@@ -32,7 +32,6 @@
 * 
 * 
 */
-using namespace std;
 using namespace votca::tools;
 
 
@@ -46,7 +45,7 @@ public:
    ~Mulliken(){};
     
     void setUseECPs(bool use_ecp){_use_ecp=use_ecp;}
-    void EvaluateMulliken(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AOBasis &basis,BasisSet &bs,  bool _do_transition);
+    void EvaluateMulliken(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AOBasis &basis,BasisSet &bs,  bool _do_transition);
   
    
 private:

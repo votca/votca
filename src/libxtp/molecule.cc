@@ -23,14 +23,14 @@
 #include <votca/xtp/molecule.h>
 #include <votca/xtp/atom.h>
 
-using namespace std;
+
 
 namespace votca { namespace xtp {
 
 /// Destructor
 Molecule::~Molecule() {
 
-    vector < Segment* > ::iterator segit;
+    std::vector < Segment* > ::iterator segit;
     for (segit = this->Segments().begin();
             segit < this->Segments().end();
             segit ++) {
@@ -124,7 +124,7 @@ void Molecule::ReadXYZ(string filename)
 void Molecule::WritePDB( FILE *out ) {
     // out.setf(ios::fixed);
     
-    vector < Atom* > :: iterator atom;
+    std::vector < Atom* > :: iterator atom;
     for (atom = _atoms.begin(); atom < _atoms.end(); ++atom){
          int id = (*atom)->getId();      
          string name =  (*atom)->getName();

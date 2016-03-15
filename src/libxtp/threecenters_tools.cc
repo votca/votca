@@ -25,7 +25,7 @@
 #include <votca/xtp/logger.h>
 #include <votca/tools/linalg.h>
 
-using namespace std;
+
 using namespace votca::tools;
 
 namespace votca {
@@ -91,7 +91,7 @@ namespace votca {
             // loop over all shells in the GW basis and get _Mmn for that shell
             #pragma omp parallel for //private(_block)
             for ( unsigned _is= 0; _is <  _gwbasis._aoshells.size() ; _is++ ){
-            // for (vector< AOShell* >::iterator _is = _gwbasis.firstShell(); _is != _gwbasis.lastShell(); _is++) {
+            // for (std::vector< AOShell* >::iterator _is = _gwbasis.firstShell(); _is != _gwbasis.lastShell(); _is++) {
                 //cout << " act threads: " << omp_get_thread_num( ) << " total threads " << omp_get_num_threads( ) << " max threads " << omp_get_max_threads( ) <<endl;
                 AOShell* _shell = _gwbasis.getShell(_is);
                 int _start = _shell->getStartIndex();
@@ -138,7 +138,7 @@ namespace votca {
             //ub::matrix<float> _imstore = ub::zero_matrix<float>(this->mtotal * _shell->getNumFunc(), dftbasis._AOBasisSize);
 
             // alpha-loop over the "left" DFT basis function
-            for (vector< AOShell* >::iterator _row = dftbasis.firstShell(); _row != dftbasis.lastShell(); _row++) {
+            for (std::vector< AOShell* >::iterator _row = dftbasis.firstShell(); _row != dftbasis.lastShell(); _row++) {
                 AOShell* _shell_row = dftbasis.getShell(_row);
                 int _row_start = _shell_row->getStartIndex();
                 int _row_end = _row_start + _shell_row->getNumFunc();
@@ -147,7 +147,7 @@ namespace votca {
                 ub::matrix_range< ub::matrix<double> > _m_orbitals = ub::subrange(_dft_orbitals, this->mmin, this->mmax + 1, _row_start, _row_end);
 
                 // gamma-loop over the "right" DFT basis function
-                for (vector< AOShell* >::iterator _col = dftbasis.firstShell(); _col != dftbasis.lastShell(); _col++) {
+                for (std::vector< AOShell* >::iterator _col = dftbasis.firstShell(); _col != dftbasis.lastShell(); _col++) {
                     AOShell* _shell_col = dftbasis.getShell(_col);
                     int _col_start = _shell_col->getStartIndex();
                     int _col_end = _col_start + _shell_col->getNumFunc();

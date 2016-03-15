@@ -222,7 +222,7 @@ void ProgObserver<JobContainer,pJob,rJob>
     if (restartPattern == "") _restartMode = false;
     else _restartMode = true;
     
-    vector<string> split;
+    std::vector<string> split;
     Tokenizer toker(restartPattern, "(,)");
     toker.ToVector(split);
     
@@ -324,9 +324,9 @@ JobContainer LOAD_JOBS(const string &job_file) {
 }
 
 template<>
-vector<Job*> LOAD_JOBS< vector<Job*>, Job*, Job::JobResult >(const string &job_file) {
+std::vector<Job*> LOAD_JOBS< std::vector<Job*>, Job*, Job::JobResult >(const string &job_file) {
     
-    vector<Job*> jobs;    
+    std::vector<Job*> jobs;    
     Property xml;
     load_property_from_xml(xml, job_file);
     
@@ -349,10 +349,10 @@ void WRITE_JOBS(JobContainer &jobs, const string &job_file, string fileformat) {
 }
 
 template<>
-void WRITE_JOBS< vector<Job*>, Job*, Job::JobResult >(vector<Job*> &jobs, 
+void WRITE_JOBS< std::vector<Job*>, Job*, Job::JobResult >(std::vector<Job*> &jobs, 
         const string &job_file, string fileformat) {
     
-    vector<Job*> ::iterator it;
+    std::vector<Job*> ::iterator it;
     
     ofstream ofs;    
     ofs.open(job_file.c_str(), ofstream::out);
@@ -378,11 +378,11 @@ void UPDATE_JOBS(JobContainer &from, JobContainer &to, string thisHost) {
 }
 
 template<>
-void UPDATE_JOBS< vector<Job*>, Job*, Job::JobResult >(vector<Job*> &from, 
-        vector<Job*> &to, string thisHost) {
+void UPDATE_JOBS< std::vector<Job*>, Job*, Job::JobResult >(std::vector<Job*> &from, 
+        std::vector<Job*> &to, string thisHost) {
     
-    vector<Job*> ::iterator it_int;
-    vector<Job*> ::iterator it_ext;
+    std::vector<Job*> ::iterator it_int;
+    std::vector<Job*> ::iterator it_ext;
     
     if (to.size() != from.size()) 
         throw runtime_error("Progress file out of sync (::size), abort.");
@@ -408,7 +408,7 @@ void UPDATE_JOBS< vector<Job*>, Job*, Job::JobResult >(vector<Job*> &from,
 
 
 // REGISTER
-template class ProgObserver< vector<Job*>, Job*, Job::JobResult >;
+template class ProgObserver< std::vector<Job*>, Job*, Job::JobResult >;
     
     
 }}

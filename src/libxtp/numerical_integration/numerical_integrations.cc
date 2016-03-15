@@ -25,7 +25,7 @@
 #include <votca/xtp/radial_euler_maclaurin_rule.h>
 #include <votca/xtp/sphere_lebedev_rule.h>
 #include <votca/xtp/aoshell.h>
-
+#include<votca/tools/constants.h>
 #ifdef LIBXC
 #include <xc.h>
 #endif
@@ -38,7 +38,7 @@
 #include <iterator>
 #include <string>
 // #include <xc.h>
-using namespace std;
+
 
 
 namespace votca {
@@ -176,18 +176,18 @@ namespace votca {
              boost::timer::cpu_times tenter = cpu_t.elapsed();
              */
             // generate a list of shells for each atom
-            typedef vector< AOShell* >::iterator AOShellIterator;
-            vector< vector< AOShellIterator > > _atomshells;
-            vector< AOShellIterator > _singleatom;
+            typedef std::vector< AOShell* >::iterator AOShellIterator;
+            std::vector< std::vector< AOShellIterator > > _atomshells;
+            std::vector< AOShellIterator > _singleatom;
 
-            vector < int > _startIdx;
-            vector < int > _blocksize;
+            std::vector < int > _startIdx;
+            std::vector < int > _blocksize;
 
             int _atomindex = 0;
             int _Idx       = 0;
             int _size      = 0;
             
-            for (vector< AOShell* >::iterator _row = basis->firstShell(); _row != basis->lastShell(); _row++) {
+            for (std::vector< AOShell* >::iterator _row = basis->firstShell(); _row != basis->lastShell(); _row++) {
                 
                 
                 if ( (*_row)->getIndex() == _atomindex ){
@@ -224,7 +224,7 @@ namespace votca {
             }
 */
             /*
-            vector < ub::matrix_range< ub::matrix<double> > > _DMATblocks;
+            std::vector < ub::matrix_range< ub::matrix<double> > > _DMATblocks;
             // get stupid index magic vector of matrix_ranges per atom block
             for ( int rowatom = 0; rowatom < _atomshells.size(); rowatom++){
                 for ( int colatom = 0 ; colatom <= rowatom; colatom++ ){
@@ -238,10 +238,10 @@ namespace votca {
             // for every shell
             _atomindex = 0;
             double _decaymin = 1e7;
-            vector< double > _minimal_decay;
-            vector < vec > _positions;
+            std::vector< double > _minimal_decay;
+            std::vector < vec > _positions;
             vec _localpos = (*basis->firstShell())->getPos();
-            for ( vector< AOShell* >::iterator _row = basis->firstShell(); _row != basis->lastShell(); _row++   ) {
+            for ( std::vector< AOShell* >::iterator _row = basis->firstShell(); _row != basis->lastShell(); _row++   ) {
                 
                 
                  if ( (*_row)->getIndex() == _atomindex ){
@@ -294,17 +294,17 @@ namespace votca {
              // for each gridpoint, check the value of exp(-a*(r-R)^2) < 1e-10
              //                             = alpha*(r-R)^2 >~ 20.7
             
-            vector< vector< vector<int> > > _significant_atoms;
+            std::vector< std::vector< std::vector<int> > > _significant_atoms;
             
             // each atomic grid
             for (unsigned i = 0; i < _grid.size(); i++) {
             
-                vector< vector<int> > _significant_atoms_atomgrid;
+                std::vector< std::vector<int> > _significant_atoms_atomgrid;
                 
                 // each point of the atomic grid
                 for (unsigned j = 0; j < _grid[i].size(); j++) {
 
-                    vector<int> _significant_atoms_gridpoint;
+                    std::vector<int> _significant_atoms_gridpoint;
                     vec grid;
                     grid.setX( _grid[i][j].grid_x);
                     grid.setY( _grid[i][j].grid_y);
@@ -1812,7 +1812,7 @@ namespace votca {
         }
                
         void NumericalIntegration::GridSetup(string type, BasisSet* bs, vector<QMAtom*> _atoms) {
-            const static double ang2bohr= 1.8897259886;
+            
             const double pi = boost::math::constants::pi<double>();
             // get GridContainer
             GridContainers _grids;
@@ -1846,16 +1846,16 @@ namespace votca {
             int i = 1;
             for (ait = _atoms.begin() + 1; ait != _atoms.end(); ++ait) {
                 // get center coordinates in Bohr
-                double x_a = (*ait)->x * ang2bohr;
-                double y_a = (*ait)->y * ang2bohr;
-                double z_a = (*ait)->z * ang2bohr;
+                double x_a = (*ait)->x * tools::conv::ang2bohr;
+                double y_a = (*ait)->y * tools::conv::ang2bohr;
+                double z_a = (*ait)->z * tools::conv::ang2bohr;
                 int j = 0;
                 for (bit = _atoms.begin(); bit != ait; ++bit) {
                     ij++;
                     // get center coordinates in Bohr
-                    double x_b = (*bit)->x * ang2bohr;
-                    double y_b = (*bit)->y * ang2bohr;
-                    double z_b = (*bit)->z * ang2bohr;
+                    double x_b = (*bit)->x * tools::conv::ang2bohr;
+                    double y_b = (*bit)->y * tools::conv::ang2bohr;
+                    double z_b = (*bit)->z * tools::conv::ang2bohr;
 
                     Rij.push_back(1.0 / sqrt((x_a - x_b)*(x_a - x_b) + (y_a - y_b)*(y_a - y_b) + (z_a - z_b)*(z_a - z_b)));
 
@@ -1879,9 +1879,9 @@ namespace votca {
             for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
                 // get center coordinates in Bohr
                 std::vector< GridContainers::integration_grid > _atomgrid;
-                double x_c = (*ait)->x * ang2bohr;
-                double y_c = (*ait)->y * ang2bohr;
-                double z_c = (*ait)->z * ang2bohr;
+                double x_c = (*ait)->x * tools::conv::ang2bohr;
+                double y_c = (*ait)->y * tools::conv::ang2bohr;
+                double z_c = (*ait)->z * tools::conv::ang2bohr;
                 string name = (*ait)->type;
 
                 // get radial grid information for this atom type
@@ -1996,9 +1996,9 @@ namespace votca {
                 // for each center
                 for (bit = _atoms.begin(); bit < _atoms.end(); ++bit) {
                     // get center coordinates
-                    double x_b = (*bit)->x * ang2bohr;
-                    double y_b = (*bit)->y * ang2bohr;
-                    double z_b = (*bit)->z * ang2bohr;
+                    double x_b = (*bit)->x * tools::conv::ang2bohr;
+                    double y_b = (*bit)->y * tools::conv::ang2bohr;
+                    double z_b = (*bit)->z * tools::conv::ang2bohr;
 
                     std::vector<double> temp;
                     // for each gridpoint
@@ -2028,9 +2028,9 @@ namespace votca {
 
                     if (bit != ait) {
                         // get center coordinates
-                        double x_b = (*bit)->x * ang2bohr;
-                        double y_b = (*bit)->y * ang2bohr;
-                        double z_b = (*bit)->z * ang2bohr;
+                        double x_b = (*bit)->x * tools::conv::ang2bohr;
+                        double y_b = (*bit)->y * tools::conv::ang2bohr;
+                        double z_b = (*bit)->z * tools::conv::ang2bohr;
 
                         double distSQ = (x_c - x_b)*(x_c - x_b) + (y_c - y_b)*(y_c - y_b) + (z_c - z_b)*(z_c - z_b);
 
@@ -2150,7 +2150,8 @@ namespace votca {
             points << endl;
             for ( unsigned i = 0 ; i < _grid.size(); i++){
                 for ( unsigned j = 0 ; j < _grid[i].size(); j++){
-                points << "X " << _grid[i][j].grid_x/ang2bohr << " " << _grid[i][j].grid_y/ang2bohr << " " << _grid[i][j].grid_z/ang2bohr << " "  << _grid[i][j].grid_weight << endl;
+                points << "X " << _grid[i][j].grid_x/tools::conv::ang2bohr << " " << _grid[i][j].grid_y/tools::conv::ang2bohr
+                        << " " << _grid[i][j].grid_z/tools::conv::ang2bohr << " "  << _grid[i][j].grid_weight << endl;
                 }
             }
             points.close();

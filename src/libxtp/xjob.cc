@@ -8,8 +8,8 @@ namespace votca { namespace xtp {
     
     
     
-XJob::XJob(int id, string tag, vector<Segment*> &qmSegs, 
-     vector<string> &qmSegMps, Topology *top) :
+XJob::XJob(int id, string tag, std::vector<Segment*> &qmSegs, 
+     std::vector<string> &qmSegMps, Topology *top) :
 
      _id(id), _tag(tag), _top(top), _start_from_cpt(false),
      _qmSegs(qmSegs), _qmSegMps(qmSegMps), _ptop(NULL), _clean_ptop(true) {
@@ -28,7 +28,7 @@ XJob::XJob(PolarTop *ptop, bool start_from_cpt)
     
     _center = _ptop->getCenter();
     _isSegInCenter.clear();    
-    vector<PolarSeg*>::iterator sit;
+    std::vector<PolarSeg*>::iterator sit;
     for (sit = _ptop->QM0().begin(); sit < _ptop->QM0().end(); ++sit) {
         _isSegInCenter[(*sit)->getId()] = true;
     }
@@ -214,7 +214,7 @@ JobContainer XJOBS_FROM_TABLE(const string &job_file, Topology *top) {
 
 
 template<>
-vector<Segment*> XJOBS_FROM_TABLE< vector<Segment*>, Segment* >(const string &job_file, Topology *top) {
+std::vector<Segment*> XJOBS_FROM_TABLE< std::vector<Segment*>, Segment* >(const string &job_file, Topology *top) {
     
     return top->Segments();
 }
@@ -228,9 +228,9 @@ QMNBList XJOBS_FROM_TABLE< QMNBList, QMPair* >(const string &job_file, Topology 
 
 
 template<>
-vector<XJob*> XJOBS_FROM_TABLE< vector<XJob*>, XJob* >(const string &job_file, Topology *top) {
+std::vector<XJob*> XJOBS_FROM_TABLE< std::vector<XJob*>, XJob* >(const string &job_file, Topology *top) {
     
-    vector<XJob*> xjobs;
+    std::vector<XJob*> xjobs;
     
     std::string line;
     std::ifstream intt;
@@ -239,11 +239,11 @@ vector<XJob*> XJOBS_FROM_TABLE< vector<XJob*>, XJob* >(const string &job_file, T
     if (intt.is_open() ) {
         while ( intt.good() ) {
 
-            vector<Segment*> qmSegs;
-            vector<string>   qmSegMps;
+            std::vector<Segment*> qmSegs;
+            std::vector<string>   qmSegMps;
             
             std::getline(intt, line);
-            vector<string> split;
+            std::vector<string> split;
             Tokenizer toker(line, " \t");
             toker.ToVector(split);
 
@@ -262,7 +262,7 @@ vector<XJob*> XJOBS_FROM_TABLE< vector<XJob*>, XJob* >(const string &job_file, T
             for (unsigned int i = 2; i < split.size(); ++i) {
                 
                 string id_seg_mps = split[i];
-                vector<string> split_id_seg_mps;
+                std::vector<string> split_id_seg_mps;
                 Tokenizer toker(id_seg_mps, ":");
                 toker.ToVector(split_id_seg_mps);
                 

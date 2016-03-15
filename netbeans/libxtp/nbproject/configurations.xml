@@ -766,8 +766,6 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/esp2multipole.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/espfit.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/ewaldactor.cc" ex="false" tool="1" flavor2="0">
@@ -908,8 +906,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/molecule.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/mulliken.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/numerical_integration/numerical_integrations.cc"
             ex="false"
@@ -1563,8 +1559,6 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/esp2multipole.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/espfit.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/ewaldactor.cc" ex="false" tool="1" flavor2="0">
@@ -1705,8 +1699,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/molecule.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/mulliken.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/numerical_integration/numerical_integrations.cc"
             ex="false"

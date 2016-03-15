@@ -31,6 +31,7 @@
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
+#include <votca/tools/constants.h>
 
 #include <boost/progress.hpp>
 
@@ -76,7 +77,7 @@ void Overlap::SQRTOverlap(ub::symmetric_matrix<double> &S,
 double Overlap::getCouplingElement( int levelA, int levelB,  Orbitals* _orbitalsA,
     Orbitals* _orbitalsB, ub::matrix<double>* _JAB, double  _energy_difference ) {
 
-    const double _conv_Hrt_eV = 27.21138386;   
+    
 
             int _levelsA = _orbitalsA->getNumberOfLevels();
     //int _levelsB = _orbitalsB->getNumberOfLevels();    
@@ -95,10 +96,10 @@ double Overlap::getCouplingElement( int levelA, int levelB,  Orbitals* _orbitals
                 }
         }
         
-        return sqrt(_JAB_sq / ( list_levelsA.size() * list_levelsB.size() ) ) * _conv_Hrt_eV ;
+        return sqrt(_JAB_sq / ( list_levelsA.size() * list_levelsB.size() ) ) * tools::conv::hrt2ev ;
         
     } else {
-        return _JAB->at_element( levelA - 1  , levelB -1 + _levelsA ) * _conv_Hrt_eV;
+        return _JAB->at_element( levelA - 1  , levelB -1 + _levelsA ) * tools::conv::hrt2ev;
     }
     // the  matrix should be symmetric, could also return this element
     // _JAB.at_element( _levelsA + levelB - 1  , levelA - 1 );
@@ -119,6 +120,36 @@ bool Overlap::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     Orbitals* _orbitalsAB, ub::matrix<double>* _JAB) {
 
     LOG(logDEBUG,*_pLog) << "Calculating electronic couplings" << flush;
+    
+    const std::vector<QMAtom*> atomsA=_orbitalsA->QMAtoms();
+    const std::vector<QMAtom*> atomsB=_orbitalsB->QMAtoms();
+    const std::vector<QMAtom*> atomsAB=_orbitalsAB->QMAtoms();
+        
+  for (unsigned i=0;i<atomsAB.size();i++){
+        QMAtom* dimer=atomsAB[i];
+        QMAtom* monomer=NULL;
+        if (i<atomsA.size()){
+            monomer=atomsA[i];
+        }
+        else if (i<atomsB.size()+atomsA.size() ){
+            monomer=atomsB[i-atomsA.size()];
+        }
+        else{
+            throw runtime_error((boost::format("Number of Atoms in dimer %3i and the two monomers A:%3i B:%3i does not agree") %atomsAB.size() %atomsA.size() %atomsB.size()).str());
+        }
+        
+        if(monomer->type != dimer->type){
+            throw runtime_error("\nERROR: Atom types do not agree in dimer and monomers\n");
+        }
+        if(std::abs(monomer->x-dimer->x)>0.001 || std::abs(monomer->y-dimer->y)>0.001 || std::abs(monomer->z-dimer->z)>0.001){
+            LOG(logERROR,*_pLog) << "======WARNING=======\n Coordinates of monomers and dimer atoms do not agree, do you know what you are doing?\n " << flush;
+            break;
+        }
+        
+    }
+    
+    
+    
         
     // constructing the direct product orbA x orbB
     int _basisA = _orbitalsA->getBasisSetSize();
@@ -183,6 +214,19 @@ bool Overlap::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     ub::matrix<double> _psi_AxB_dimer_basis = ub::prod( _psi_AxB, _psi_AB );  
     _psi_AB.clear();
     LOG(logDEBUG,*_pLog)  << " (" << t.elapsed() - _st << "s) " << flush; _st = t.elapsed();    
+    
+    //check to see if projection quality is sufficient
+    for (unsigned i=0;i<_psi_AxB_dimer_basis.size1();i++){
+        double mag=0.0;
+        for (unsigned j=0;j<_psi_AxB_dimer_basis.size2();j++){
+            mag+=_psi_AxB_dimer_basis(i,j)*_psi_AxB_dimer_basis(i,j);
+            
+    }
+        if (mag<0.95){
+            throw runtime_error("\nERROR: Projection of monomer orbitals on dimer is insufficient, maybe the orbital order is screwed up, otherwise increase dimer basis.\n");
+        }
+    }
+   // exit(0);
 
      
     // J = psi_AxB_dimer_basis * FAB * psi_AxB_dimer_basis^T

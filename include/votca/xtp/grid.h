@@ -23,7 +23,6 @@
 
 #include <votca/xtp/elements.h>
 #include <string>
-#include <map>
 #include <vector>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/lu.hpp>
@@ -80,7 +79,7 @@ namespace votca { namespace xtp {
         void setSpacing(double spacing){_gridspacing=spacing;}
         void setPadding(double padding){_padding=padding;}
         void setCubegrid(bool cubegrid){_cubegrid=cubegrid;_createpolarsites=true;}
-        void setAtomlist(vector< QMAtom* >* Atomlist){_atomlist=Atomlist;}
+        void setAtomlist(std::vector< QMAtom* >* Atomlist){_atomlist=Atomlist;}
         int  getsize(){return _gridpoints.size();}
         
         int getTotalSize(){
@@ -92,9 +91,9 @@ namespace votca { namespace xtp {
 
         void printGridtoxyzfile(const char* _filename);
         
-        void readgridfromCubeFile(string filename, bool ignore_zeros=true);
+        void readgridfromCubeFile(std::string filename, bool ignore_zeros=true);
        
-        void printgridtoCubefile(string filename);
+        void printgridtoCubefile(std::string filename);
         
         void setupradialgrid(int depth);
         
@@ -129,7 +128,7 @@ namespace votca { namespace xtp {
       double _padding;
       bool   _createpolarsites; 
       PolarSeg *_sites_seg;
-      vector< QMAtom* >* _atomlist;
+      std::vector< QMAtom* >* _atomlist;
       vec _lowerbound;
       int _xsteps, _ysteps, _zsteps;
       

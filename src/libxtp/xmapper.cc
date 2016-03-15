@@ -28,11 +28,11 @@ void XMpsMap::CollectMapFromXML(string xml_file) {
     // ++++++++++++++++++++++++++++++++ //
 
     // => Output to maps:
-    map<string, vector<int> > alloc_frag_mpoleIdx;
-    map<string, vector<string> > alloc_frag_mpoleName;
-    map<string, vector<int> > alloc_frag_trihedron;
-    map<string, vector<double> > alloc_frag_weights;
-    map<string, vector<int> > alloc_frag_isVirtualMp;
+    map<string, std::vector<int> > alloc_frag_mpoleIdx;
+    map<string, std::vector<string> > alloc_frag_mpoleName;
+    map<string, std::vector<int> > alloc_frag_trihedron;
+    map<string, std::vector<double> > alloc_frag_weights;
+    map<string, std::vector<int> > alloc_frag_isVirtualMp;
 
     Property allocation; // <- Which polar sites are part of which fragment?
     load_property_from_xml(allocation, allocFile.c_str());
@@ -100,44 +100,44 @@ void XMpsMap::CollectMapFromXML(string xml_file) {
                 string mpoles = (*fragit)->get("mpoles").as<string> ();
 
                 // Local frame for polar sites
-                vector<int> trihedron_mps;
+                std::vector<int> trihedron_mps;
                 if ((*fragit)->exists("localframe_mps")) {
                    cout << endl
                          << "... ... ... ... " << segName << ": "
                          << "Defining distinct local frame for polar sites."
                          << flush;
                    trihedron_mps = (*fragit)->get("localframe_mps")
-                                         .as< vector<int> >();
+                                         .as< std::vector<int> >();
                 }
                 else {
                    trihedron_mps = (*fragit)->get("localframe")
-                                         .as< vector<int> >();
+                                         .as< std::vector<int> >();
                 }
                 
                 // Mapping weights for polar sites
-                vector<double> weights_mps;
+                std::vector<double> weights_mps;
                 if ((*fragit)->exists("weights_mps")) {
                     cout << endl
                          << "... ... ... ... " << segName << ": "
                          << "Using distinct weights for polar sites."
                          << flush;
                    weights_mps = (*fragit)->get("weights_mps")
-                                       .as< vector<double> >();
+                                       .as< std::vector<double> >();
                 }
                 else {
                    weights_mps = (*fragit)->get("weights")
-                                       .as< vector<double> >();
+                                       .as< std::vector<double> >();
                 }
                 
                 // Virtual vs real (= atom-centered) polar sites
-                vector<int> isVirtualMp;
+                std::vector<int> isVirtualMp;
                 if ((*fragit)->exists("virtual_mps")) {
                     cout << endl
                          << "... ... ... ... " << segName << ": "
                          << "Checking for virtual expansion sites."
                          << flush;
-                    vector<int> isVirtual_ints = (*fragit)->get("virtual_mps")
-                                        .as< vector<int> >();
+                    std::vector<int> isVirtual_ints = (*fragit)->get("virtual_mps")
+                                        .as< std::vector<int> >();
                     for (unsigned int i = 0; i < isVirtual_ints.size(); ++i) {
                         bool isVirtual = (isVirtual_ints[i] == 0) ? false:true;
                         isVirtualMp.push_back(isVirtual);
@@ -150,17 +150,17 @@ void XMpsMap::CollectMapFromXML(string xml_file) {
                 }
 
                 Tokenizer tokPoles(mpoles, " \t\n");
-                vector<string> mpoleInfo;
+                std::vector<string> mpoleInfo;
                 tokPoles.ToVector(mpoleInfo);
 
-                vector<int> mpoleIdcs;
-                vector<string> mpoleNames;
+                std::vector<int> mpoleIdcs;
+                std::vector<string> mpoleNames;
 
-                vector<string> ::iterator strit;
+                std::vector<string> ::iterator strit;
                 for (strit=mpoleInfo.begin(); strit<mpoleInfo.end(); strit++) {
 
                     Tokenizer tokPoleInfo( (*strit), " :");
-                    vector<string> poleInfo;
+                    std::vector<string> poleInfo;
                     tokPoleInfo.ToVector(poleInfo);
 
                     int mpoleIdx = boost::lexical_cast<int>(poleInfo[0]);
@@ -212,7 +212,7 @@ void XMpsMap::CollectSegMpsAlloc(string alloc_table, Topology *top) {
         while ( intt.good() ) {
 
             std::getline(intt, line);
-            vector<string> split;
+            std::vector<string> split;
             Tokenizer toker(line, " \t");
             toker.ToVector(split);
 
@@ -277,12 +277,12 @@ void XMpsMap::CollectSitesFromMps() {
     }
     
     // Job Seg1 Seg2
-//    vector<XJob*> :: iterator jit;
+//    std::vector<XJob*> :: iterator jit;
 //    for (jit = xjobs.begin();
 //         jit < xjobs.end();
 //         ++jit) {
 //
-//        vector<string> mpsfiles = (*jit)->getSegMps();
+//        std::vector<string> mpsfiles = (*jit)->getSegMps();
 //        
 //        for (int i = 0; i < mpsfiles.size(); ++i) {
 //            string mpsfile = mpsfiles[i];
@@ -311,7 +311,7 @@ void XMpsMap::EquipWithPolSites(Topology *top) {
     // Equip TOP with distributed multipoles //
     // +++++++++++++++++++++++++++++++++++++ //
 
-    vector<Segment*> ::iterator sit;
+    std::vector<Segment*> ::iterator sit;
     for (sit = top->Segments().begin();
          sit < top->Segments().end();
          ++sit) {
@@ -325,9 +325,9 @@ void XMpsMap::EquipWithPolSites(Topology *top) {
         string mps_h                = _segId_mpsFile_h[segId];
         string mps_e                = _segId_mpsFile_e[segId];
 
-        vector<APolarSite*> pols_n   = _mpsFile_pSites[mps_n];
-        vector<APolarSite*> pols_h   = _mpsFile_pSites[mps_h];
-        vector<APolarSite*> pols_e   = _mpsFile_pSites[mps_e];
+        std::vector<APolarSite*> pols_n   = _mpsFile_pSites[mps_n];
+        std::vector<APolarSite*> pols_h   = _mpsFile_pSites[mps_h];
+        std::vector<APolarSite*> pols_e   = _mpsFile_pSites[mps_e];
 
         // Merge polar sites
         assert(pols_n.size() == pols_h.size());
@@ -342,7 +342,7 @@ void XMpsMap::EquipWithPolSites(Topology *top) {
             pols_n[i]->setPs(pols_e[i]->getPs(-1), -1 );
         }
 
-        vector<Fragment*> ::iterator fit;
+        std::vector<Fragment*> ::iterator fit;
         for (fit = seg->Fragments().begin();
              fit < seg->Fragments().end();
              ++fit) {
@@ -352,10 +352,10 @@ void XMpsMap::EquipWithPolSites(Topology *top) {
             // Retrieve polar-site data for this fragment
             string idkey                 = frag->getName() + seg->getName()
                                          + seg->getMolecule()->getName();
-            vector<int> polesInFrag      = _alloc_frag_mpoleIdx.at(idkey);
-            vector<string> namesInFrag   = _alloc_frag_mpoleName.at(idkey);
-            vector<double> weightsInFrag = _alloc_frag_weights.at(idkey);
-            vector<int> isVirtualMp      = _alloc_frag_isVirtualMp.at(idkey);
+            std::vector<int> polesInFrag      = _alloc_frag_mpoleIdx.at(idkey);
+            std::vector<string> namesInFrag   = _alloc_frag_mpoleName.at(idkey);
+            std::vector<double> weightsInFrag = _alloc_frag_weights.at(idkey);
+            std::vector<int> isVirtualMp      = _alloc_frag_isVirtualMp.at(idkey);
 
             if (map2md && polesInFrag.size() != frag->Atoms().size()) {
                 cout << endl
@@ -373,11 +373,11 @@ void XMpsMap::EquipWithPolSites(Topology *top) {
             // Determine transformation matrices to execute mapping
             if (!map2md) {
 
-                vector<APolarSite*> trihedron_pol;
-                vector<Atom*>      trihedron_atm;
+                std::vector<APolarSite*> trihedron_pol;
+                std::vector<Atom*>      trihedron_atm;
 
-                vector<int> trihedron_ints  = _alloc_frag_trihedron.at(idkey);
-                vector<int> ::iterator iit;
+                std::vector<int> trihedron_ints  = _alloc_frag_trihedron.at(idkey);
+                std::vector<int> ::iterator iit;
                 for (iit = trihedron_ints.begin();
                      iit < trihedron_ints.end();
                      ++iit) {
@@ -388,7 +388,7 @@ void XMpsMap::EquipWithPolSites(Topology *top) {
                 for (iit = trihedron_ints.begin();
                      iit < trihedron_ints.end();
                      ++iit) {
-                    vector< Atom* > ::iterator ait;
+                    std::vector< Atom* > ::iterator ait;
                     for (ait = frag->Atoms().begin();
                          ait < frag->Atoms().end();
                          ++ait) {
@@ -602,7 +602,7 @@ void XMpsMap::EquipWithPolSites(Topology *top) {
 }
 
 
-PolarSeg *XMpsMap::MapPolSitesToSeg(const vector<APolarSite*> &pols_n, 
+PolarSeg *XMpsMap::MapPolSitesToSeg(const std::vector<APolarSite*> &pols_n, 
     Segment *seg, bool only_active_sites) {
 
     bool print_huge_map2md_warning = false;
@@ -611,7 +611,7 @@ PolarSeg *XMpsMap::MapPolSitesToSeg(const vector<APolarSite*> &pols_n,
     PolarSeg *return_pols = new PolarSeg(seg->getId());
     return_pols->reserve(pols_n.size());
 
-    vector<Fragment*> ::iterator fit;
+    std::vector<Fragment*> ::iterator fit;
     for (fit = seg->Fragments().begin();
          fit < seg->Fragments().end();
          ++fit) {
@@ -620,10 +620,10 @@ PolarSeg *XMpsMap::MapPolSitesToSeg(const vector<APolarSite*> &pols_n,
 
         // Retrieve polar-site data for this fragment
         string idkey = frag->getName()+seg->getName()+seg->getMolecule()->getName();
-        vector<int> polesInFrag     = _alloc_frag_mpoleIdx.at(idkey);
-        vector<string> namesInFrag  = _alloc_frag_mpoleName.at(idkey);
-        vector<double> weightsInFrag= _alloc_frag_weights.at(idkey);
-        vector<int> isVirtualMp      = _alloc_frag_isVirtualMp.at(idkey);
+        std::vector<int> polesInFrag     = _alloc_frag_mpoleIdx.at(idkey);
+        std::vector<string> namesInFrag  = _alloc_frag_mpoleName.at(idkey);
+        std::vector<double> weightsInFrag= _alloc_frag_weights.at(idkey);
+        std::vector<int> isVirtualMp      = _alloc_frag_isVirtualMp.at(idkey);
 
         // Add polar fragment to polar segment
         PolarFrag *pfrag = return_pols->AddFragment(frag->getName().substr(0,2));
@@ -644,11 +644,11 @@ PolarSeg *XMpsMap::MapPolSitesToSeg(const vector<APolarSite*> &pols_n,
         // Determine transformation matrices to execute mapping
         if (!map2md) {
 
-            vector<APolarSite*> trihedron_pol;
-            vector<Atom*>      trihedron_atm;
+            std::vector<APolarSite*> trihedron_pol;
+            std::vector<Atom*>      trihedron_atm;
 
-            vector<int> trihedron_ints  = _alloc_frag_trihedron.at(idkey);
-            vector<int> ::iterator iit;
+            std::vector<int> trihedron_ints  = _alloc_frag_trihedron.at(idkey);
+            std::vector<int> ::iterator iit;
             for (iit = trihedron_ints.begin();
                  iit < trihedron_ints.end();
                  ++iit) {
@@ -659,7 +659,7 @@ PolarSeg *XMpsMap::MapPolSitesToSeg(const vector<APolarSite*> &pols_n,
             for (iit = trihedron_ints.begin();
                  iit < trihedron_ints.end();
                  ++iit) {
-                vector< Atom* > ::iterator ait;
+                std::vector< Atom* > ::iterator ait;
                 for (ait = frag->Atoms().begin();
                      ait < frag->Atoms().end();
                      ++ait) {
@@ -859,7 +859,7 @@ PolarSeg *XMpsMap::MapPolSitesToSeg(const vector<APolarSite*> &pols_n,
 }
 
 
-vector<APolarSite*> XMpsMap::GetOrCreateRawSites(const string &mpsfile, QMThread *thread) {
+std::vector<APolarSite*> XMpsMap::GetOrCreateRawSites(const string &mpsfile, QMThread *thread) {
     _lockThread.Lock();
     if (!_mpsFile_pSites_job.count(mpsfile)) {
         _mpsFile_pSites_job[mpsfile] = APS_FROM_MPS(mpsfile, 0, thread);
@@ -875,10 +875,10 @@ void XMpsMap::Gen_BGN(Topology *top, PolarTop *new_ptop, QMThread *thread) {
     // Modifies the polar topology (*PolarTop*) passed during function call
     
     // DECLARE TARGET CONTAINERS
-    vector<PolarSeg*> bgN;
-    vector<PolarSeg*>::iterator psit;
-    vector<Segment*> segs_bgN;
-    vector<Segment*>::iterator sit;
+    std::vector<PolarSeg*> bgN;
+    std::vector<PolarSeg*>::iterator psit;
+    std::vector<Segment*> segs_bgN;
+    std::vector<Segment*>::iterator sit;
     
     // PARTITION SEGMENTS ONTO BACKGROUND + FOREGROUND
     segs_bgN.reserve(top->Segments().size());
@@ -897,7 +897,7 @@ void XMpsMap::Gen_BGN(Topology *top, PolarTop *new_ptop, QMThread *thread) {
         Segment *seg = *sit;
         // Look up appropriate set of polar sites
         string mps = _segId_mpsFile_n[seg->getId()];
-        vector<APolarSite*> psites_raw  = _mpsFile_pSites[mps];
+        std::vector<APolarSite*> psites_raw  = _mpsFile_pSites[mps];
         PolarSeg *new_pseg = this->MapPolSitesToSeg(psites_raw, seg);
         bgN.push_back(new_pseg);        
     }
@@ -916,14 +916,14 @@ void XMpsMap::Gen_FGC_FGN_BGN(Topology *top, XJob *job, QMThread *thread) {
     
     // DECLARE TARGET CONTAINERS
     PolarTop *new_ptop = new PolarTop(top);    
-    vector<PolarSeg*> fgC;
-    vector<PolarSeg*> fgN;
-    vector<PolarSeg*> bgN;
-    vector<PolarSeg*>::iterator psit;    
-    vector<Segment*> segs_fgC;
-    vector<Segment*> segs_fgN;
-    vector<Segment*> segs_bgN;
-    vector<Segment*>::iterator sit;
+    std::vector<PolarSeg*> fgC;
+    std::vector<PolarSeg*> fgN;
+    std::vector<PolarSeg*> bgN;
+    std::vector<PolarSeg*>::iterator psit;    
+    std::vector<Segment*> segs_fgC;
+    std::vector<Segment*> segs_fgN;
+    std::vector<Segment*> segs_bgN;
+    std::vector<Segment*>::iterator sit;
     
     // PARTITION SEGMENTS ONTO BACKGROUND + FOREGROUND
     segs_fgC.reserve(job->getSegments().size());
@@ -953,14 +953,14 @@ void XMpsMap::Gen_FGC_FGN_BGN(Topology *top, XJob *job, QMThread *thread) {
         Segment *seg = job->getSegments()[i];
         // Charged => mps-file from job
         string mps_C = job->getSegMps()[i];
-        vector<APolarSite*> psites_raw_C 
+        std::vector<APolarSite*> psites_raw_C 
             = this->GetOrCreateRawSites(mps_C,thread);
         PolarSeg *psegC 
             = this->MapPolSitesToSeg(psites_raw_C, seg, only_active_sites);        
         fgC.push_back(psegC);
         // Neutral => look up mps file
         string mps_N = _segId_mpsFile_n[seg->getId()];
-        vector<APolarSite*> psites_raw_N  = _mpsFile_pSites[mps_N];
+        std::vector<APolarSite*> psites_raw_N  = _mpsFile_pSites[mps_N];
         PolarSeg *psegN
             = this->MapPolSitesToSeg(psites_raw_N, seg, only_active_sites);
         fgN.push_back(psegN);
@@ -972,7 +972,7 @@ void XMpsMap::Gen_FGC_FGN_BGN(Topology *top, XJob *job, QMThread *thread) {
         Segment *seg = *sit;
         // Look up appropriate set of polar sites
         string mps = _segId_mpsFile_n[seg->getId()];
-        vector<APolarSite*> psites_raw  = _mpsFile_pSites[mps];
+        std::vector<APolarSite*> psites_raw  = _mpsFile_pSites[mps];
         PolarSeg *psegN = this->MapPolSitesToSeg(psites_raw, seg);
         bgN.push_back(psegN);        
     }
@@ -1012,14 +1012,14 @@ void XMpsMap::Gen_FGC_Load_FGN_BGN(Topology *top, XJob *job, string archfile,
     
     // DECLARE TARGET CONTAINERS
     PolarTop *new_ptop = new PolarTop(top);    
-    vector<PolarSeg*> fgC;
-    vector<PolarSeg*> fgN;
-    vector<PolarSeg*> bgN;
-    vector<PolarSeg*>::iterator psit;    
-    vector<Segment*> segs_fgC;
-    vector<Segment*> segs_fgN;
-    vector<Segment*> segs_bgN;
-    vector<Segment*>::iterator sit;
+    std::vector<PolarSeg*> fgC;
+    std::vector<PolarSeg*> fgN;
+    std::vector<PolarSeg*> bgN;
+    std::vector<PolarSeg*>::iterator psit;    
+    std::vector<Segment*> segs_fgC;
+    std::vector<Segment*> segs_fgN;
+    std::vector<Segment*> segs_bgN;
+    std::vector<Segment*>::iterator sit;
     
     // PARTITION SEGMENTS ONTO BACKGROUND + FOREGROUND
     segs_fgC.reserve(job->getSegments().size());
@@ -1047,7 +1047,7 @@ void XMpsMap::Gen_FGC_Load_FGN_BGN(Topology *top, XJob *job, string archfile,
         Segment *seg = job->getSegments()[i];
         // Charged => mps-file from job
         string mps_C = job->getSegMps()[i];
-        vector<APolarSite*> psites_raw_C 
+        std::vector<APolarSite*> psites_raw_C 
             = this->GetOrCreateRawSites(mps_C,thread);
         PolarSeg *psegC
             = this->MapPolSitesToSeg(psites_raw_C, seg, only_active_sites);        
@@ -1103,15 +1103,15 @@ void XMpsMap::Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2, Q
     // TARGET CONTAINERS
     PolarTop *new_ptop = new PolarTop(top);
     
-    vector<PolarSeg*> qm0;
-    vector<PolarSeg*> mm1;
-    vector<PolarSeg*> mm2;
-    vector<PolarSeg*> ::iterator psit;
+    std::vector<PolarSeg*> qm0;
+    std::vector<PolarSeg*> mm1;
+    std::vector<PolarSeg*> mm2;
+    std::vector<PolarSeg*> ::iterator psit;
     
-    vector<Segment*> segs_qm0;
-    vector<Segment*> segs_mm1;
-    vector<Segment*> segs_mm2;    
-    vector<Segment*> ::iterator sit;
+    std::vector<Segment*> segs_qm0;
+    std::vector<Segment*> segs_mm1;
+    std::vector<Segment*> segs_mm2;    
+    std::vector<Segment*> ::iterator sit;
     
     // PARTITION SEGMENTS ONTO SHELLS    
     for (sit = top->Segments().begin();
@@ -1144,7 +1144,7 @@ void XMpsMap::Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2, Q
     qm0.reserve(segs_qm0.size());
     for (unsigned int i = 0; i < job->getSegments().size(); ++i) {        
         Segment *seg = job->getSegments()[i];
-        vector<APolarSite*> psites_raw 
+        std::vector<APolarSite*> psites_raw 
                 = this->GetOrCreateRawSites(job->getSegMps()[i],thread);
         PolarSeg *psites_mapped
                 = this->MapPolSitesToSeg(psites_raw, seg, only_active_sites);        
@@ -1157,7 +1157,7 @@ void XMpsMap::Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2, Q
         Segment *seg = *sit;
         // Look up appropriate set of polar sites
         string mps = _segId_mpsFile_n[seg->getId()];
-        vector<APolarSite*> psites_raw  = _mpsFile_pSites[mps];
+        std::vector<APolarSite*> psites_raw  = _mpsFile_pSites[mps];
         PolarSeg *psites_mapped
                 = this->MapPolSitesToSeg(psites_raw, seg, only_active_sites);
         mm1.push_back(psites_mapped);        
@@ -1169,7 +1169,7 @@ void XMpsMap::Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2, Q
         Segment *seg = *sit;
         // Look up appropriate set of polar sites
         string mps = _segId_mpsFile_n[seg->getId()];
-        vector<APolarSite*> psites_raw  = _mpsFile_pSites[mps];
+        std::vector<APolarSite*> psites_raw  = _mpsFile_pSites[mps];
         PolarSeg *psites_mapped
                 = this->MapPolSitesToSeg(psites_raw, seg, only_active_sites);
         mm2.push_back(psites_mapped);

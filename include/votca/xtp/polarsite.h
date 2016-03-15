@@ -52,7 +52,7 @@ class PolarSite
 
 public:
 
-    PolarSite(int id, string name)
+    PolarSite(int id, std::string name)
             : _id(id), _name(name), _locX(vec(1,0,0)),
               _locY(vec(0,1,0)),    _locZ(vec(0,0,1))
             { _Qs.resize(3); _Ps.resize(3); };
@@ -65,7 +65,7 @@ public:
    ~PolarSite() {};
 
     int             &getId() { return _id; }
-    string          &getName() { return _name; }
+    std::string          &getName() { return _name; }
     vec             &getPos() { return _pos; }
     int             &getRank() { return _rank; }
     Topology        *getTopology() { return _top; }
@@ -78,8 +78,8 @@ public:
     void            setSegment(Segment *seg) { _seg = seg; }
     void            setFragment(Fragment *frag) { _frag = frag; }
 
-    vector<double> &getQs(int state) { return _Qs[state+1]; }
-    void            setQs(vector<double> Qs, int state) { _Qs[state+1] = Qs; }
+    std::vector<double> &getQs(int state) { return _Qs[state+1]; }
+    void            setQs(std::vector<double> Qs, int state) { _Qs[state+1] = Qs; }
     void            setPs(double polar, int state) { _Ps[state+1] = polar; }
     double         &getPs(int state) { return _Ps[state+1]; }
     double         &getP1() { return P1; }
@@ -96,7 +96,7 @@ public:
     double          HistdU();
 
 
-    void            ImportFrom(PolarSite *templ, string tag = "basic");
+    void            ImportFrom(PolarSite *templ, std::string tag = "basic");
     void            Translate(const vec &shift);
     void            Rotate(const matrix &rot, const vec &refPos);
 
@@ -104,8 +104,8 @@ public:
     void            PrintInfoInduce(std::ostream &out);
     void            PrintInfoVisual(FILE *out);
     void            PrintPDB(FILE *out, vec shift);
-    void            WriteChkLine(FILE *, vec &, bool, string, double);
-    void            WriteXyzLine(FILE *, vec &, string);
+    void            WriteChkLine(FILE *, vec &, bool, std::string, double);
+    void            WriteXyzLine(FILE *, vec &, std::string);
 
 
 
@@ -113,7 +113,7 @@ public:
 private:
 
     int     _id;
-    string  _name;
+    std::string  _name;
     vec     _pos;
     vec     _locX;
     vec     _locY;
@@ -123,10 +123,10 @@ private:
     Segment  *_seg;
     Fragment *_frag;
     
-    vector < vector<double> > _Qs;
+    std::vector < std::vector<double> > _Qs;
     int     _rank;
                            
-    vector < double > _Ps;
+    std::vector < double > _Ps;
     double P1;                              // Dipole polarizability
 
     double Q00;
@@ -136,7 +136,7 @@ private:
     double U1x, U1y, U1z;                   // Induced dipole
     double FPx, FPy, FPz;                   // Electric field (due to permanent)
     double FUx, FUy, FUz;                   // Electric field (due to induced)
-    vector< vec > U1_Hist;                  // Ind. u history
+    std::vector< vec > U1_Hist;                  // Ind. u history
 
 
 

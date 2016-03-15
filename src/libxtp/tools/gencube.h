@@ -25,10 +25,11 @@
 #include <votca/xtp/logger.h>
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/xtp/votca_xtp_config.h>
+#include <votca/tools/constants.h>
 
 namespace votca {
     namespace xtp {
-        static const double ang2bohr = 1.8897259886;
+     
         using namespace std;
         namespace ub = boost::numeric::ublas;
 
@@ -65,6 +66,8 @@ namespace votca {
             bool _do_bse;
             bool _do_qp;
             bool _do_transition;
+            bool _do_singlet;
+            bool _do_triplet;
             
             double _padding;
             int _xsteps;
@@ -84,7 +87,8 @@ namespace votca {
             _do_bse=false;
             _do_qp=false;
             _do_transition=false;
-
+            _do_singlet=false;
+            _do_triplet=false;
             // update options with the VOTCASHARE defaults   
             UpdateWithDefaults( options, "xtp" );
 
@@ -109,6 +113,16 @@ namespace votca {
 
             _state = options->get(key + ".state").as<int> ();
             _spin = options->get(key + ".spin").as<string> ();
+            if (_spin=="singlet"){
+                _do_singlet=true;
+            }
+            else if (_spin=="triplet"){
+                _do_triplet=true;
+            }
+            else{
+               throw std::runtime_error("Spin not known, only singlet and triplet possible"); 
+            }
+            
             _type = options->get(key + ".type").as<string> ();
             
             _mode = options->get(key + ".mode").as<string> ();
@@ -156,11 +170,26 @@ namespace votca {
 
                 Orbitals _orbitals;
                 
+                  LOG(logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
+               _orbitals.Load(_orbfile);
+                
+                if (_do_qp && !_orbitals.hasQPdiag()){
+                        throw std::runtime_error("Orbitals file does not contain QP coefficients");
+                    }
+                
+                if (_do_bse && _do_singlet && !_orbitals.hasBSESinglets()){
+                        throw std::runtime_error("Orbitals file does not contain Singlet BSE coefficients");
+                    }
+                if (_do_bse && _do_triplet && !_orbitals.hasBSETriplets()){
+                        throw std::runtime_error("Orbitals file does not contain Triplet BSE coefficients");
+                    }
+                
+                
+                
                 // load the QM data from serialized orbitals object
 
                 
-                LOG(logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
-               _orbitals.Load(_orbfile);
+              
 
                 // get atoms
                 std::vector<QMAtom*> _atoms = _orbitals.QMAtoms();
@@ -176,9 +205,9 @@ namespace votca {
                 vector< QMAtom* > ::iterator ait;
                 for (ait = _atoms.begin(); ait != _atoms.end(); ++ait) {
                     // get center coordinates in Bohr
-                    double x = (*ait)->x * ang2bohr;
-                    double y = (*ait)->y * ang2bohr;
-                    double z = (*ait)->z * ang2bohr;
+                    double x = (*ait)->x * tools::conv::ang2bohr;
+                    double y = (*ait)->y * tools::conv::ang2bohr;
+                    double z = (*ait)->z * tools::conv::ang2bohr;
 
                     if (x > xmax) xmax = x;
                     if (x < xmin) xmin = x;
@@ -235,9 +264,9 @@ namespace votca {
                 Elements _elements;
                 for (ait = _atoms.begin(); ait != _atoms.end(); ++ait) {
                     // get center coordinates in Bohr
-                    double x = (*ait)->x * ang2bohr;
-                    double y = (*ait)->y * ang2bohr;
-                    double z = (*ait)->z * ang2bohr;
+                    double x = (*ait)->x * tools::conv::ang2bohr;
+                    double y = (*ait)->y * tools::conv::ang2bohr;
+                    double z = (*ait)->z * tools::conv::ang2bohr;
 
                     string element = (*ait)->type;
                     int atnum =_elements.getEleNum(element);
@@ -369,7 +398,7 @@ namespace votca {
                 
                 // diagonalized QP, if requested
                 if ( _do_qp && _state > 0 ){
-                
+                    
                     int GWAmin = _orbitals.getGWAmin();
                     int GWAmax = _orbitals.getGWAmax();
                     

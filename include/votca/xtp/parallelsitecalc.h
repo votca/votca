@@ -39,7 +39,7 @@ public:
     ParallelSiteCalculator() : _nextSite(NULL) {};
    ~ParallelSiteCalculator() {};
 
-    string       Identify() { return "Parallel Site Calculator"; }
+    std::string       Identify() { return "Parallel Site Calculator"; }
 
     bool         EvaluateFrame(Topology *top);
     virtual void InitSlotData(Topology *top) { ; }
@@ -79,7 +79,7 @@ public:
 
 protected:
 
-    vector<Segment*> ::iterator _nextSite;
+    std::vector<Segment*> ::iterator _nextSite;
     Mutex                       _nextSiteMutex;
     Mutex                       _coutMutex;
     
@@ -96,7 +96,7 @@ bool ParallelSiteCalculator::EvaluateFrame(Topology *top) {
     else { cout << endl << "... ... System is already rigidified."; }
     cout << endl;    
 
-    vector<SiteOperator*> siteOps;
+    std::vector<SiteOperator*> siteOps;
     this->InitSlotData(top);
 
     _nextSite = top->Segments().begin();

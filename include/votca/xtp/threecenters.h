@@ -31,7 +31,7 @@
 #endif
 
 
-using namespace std;
+
 using namespace votca::tools;
 /**
 * \brief Calculates three electron overlap integrals for GW and DFT.
@@ -149,7 +149,7 @@ namespace votca { namespace xtp {
         
         void Prune ( int _basissize, int min, int max);
         
-        void Print( string _ident);       
+        void Print( std::string _ident);       
         
        
         void Fill( AOBasis& gwbasis, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals );

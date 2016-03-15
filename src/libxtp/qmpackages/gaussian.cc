@@ -26,13 +26,13 @@
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
-
+#include <votca/tools/constants.h>
 #include <stdio.h>
 #include <iomanip>
 #include <sys/stat.h>
 #include <vector>
 
-using namespace std;
+
 
 namespace votca {
     namespace xtp {
@@ -41,7 +41,7 @@ namespace votca {
         void Gaussian::Initialize(Property *options) {
 
             // GAUSSIAN file names
-            string fileName = "system";
+            std::string fileName = "system";
 
             _xyz_file_name = fileName + ".xyz";
             _input_file_name = fileName + ".com";
@@ -51,27 +51,27 @@ namespace votca {
             _input_vxc_file_name = fileName + "-2.com";
 
 
-            string key = "package";
-            string _name = options->get(key + ".name").as<string> ();
+            std::string key = "package";
+            std::string _name = options->get(key + ".name").as<std::string> ();
 
             if (_name != "gaussian") {
                 cerr << "Tried to use " << _name << " package. ";
                 throw std::runtime_error("Wrong options file");
             }
 
-            _executable = options->get(key + ".executable").as<string> ();
+            _executable = options->get(key + ".executable").as<std::string> ();
             _charge = options->get(key + ".charge").as<int> ();
             _spin = options->get(key + ".spin").as<int> ();
-            _options = options->get(key + ".options").as<string> ();
-            _memory = options->get(key + ".memory").as<string> ();
+            _options = options->get(key + ".options").as<std::string> ();
+            _memory = options->get(key + ".memory").as<std::string> ();
             _threads = options->get(key + ".threads").as<int> ();
-            _chk_file_name = options->get(key + ".checkpoint").as<string> ();
-            _scratch_dir = options->get(key + ".scratch").as<string> ();
-            _cleanup = options->get(key + ".cleanup").as<string> ();
+            _chk_file_name = options->get(key + ".checkpoint").as<std::string> ();
+            _scratch_dir = options->get(key + ".scratch").as<std::string> ();
+            _cleanup = options->get(key + ".cleanup").as<std::string> ();
             
             
             if (options->exists(key + ".vdWRadii")) {
-                _vdWfooter = options->get(key + ".vdWRadii").as<string> ();   
+                _vdWfooter = options->get(key + ".vdWRadii").as<std::string> ();   
             }
             else _vdWfooter="";
             
@@ -112,7 +112,7 @@ namespace votca {
             iop_pos = _options.find("gen");
             if (iop_pos != std::string::npos) {
                 _write_basis_set = true;
-                _basisset_name = options->get(key + ".basisset").as<string> ();
+                _basisset_name = options->get(key + ".basisset").as<std::string> ();
             } else {
                 _write_basis_set = false;
             }
@@ -131,17 +131,17 @@ namespace votca {
          * Prepares the com file from a vector of segments
          * Appends a guess constructed from monomer orbitals if supplied
          */
-        bool Gaussian::WriteInputFile(vector<Segment* > segments, Orbitals* orbitals_guess) {
-            vector< Atom* > _atoms;
-            vector< Atom* > ::iterator ait;
-            vector< Segment* >::iterator sit;
-            string temp_suffix = "/id";
-            string scratch_dir_backup = _scratch_dir;
+        bool Gaussian::WriteInputFile(std::vector<Segment* > segments, Orbitals* orbitals_guess) {
+            std::vector< Atom* > _atoms;
+            std::vector< Atom* > ::iterator ait;
+            std::vector< Segment* >::iterator sit;
+            std::string temp_suffix = "/id";
+            std::string scratch_dir_backup = _scratch_dir;
             //int qmatoms = 0;
 
             ofstream _com_file;
 
-            string _com_file_name_full = _run_dir + "/" + _input_file_name;
+            std::string _com_file_name_full = _run_dir + "/" + _input_file_name;
 
             _com_file.open(_com_file_name_full.c_str());
             // header 
@@ -163,7 +163,7 @@ namespace votca {
             if (!_write_charges) {
 
                 for (sit = segments.begin(); sit != segments.end(); ++sit) {
-                    temp_suffix = temp_suffix + "_" + boost::lexical_cast<string>((*sit)->getId());
+                    temp_suffix = temp_suffix + "_" + boost::lexical_cast<std::string>((*sit)->getId());
                     _atoms = (*sit)-> Atoms();
 
                     for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
@@ -173,7 +173,7 @@ namespace votca {
                         }
 
                         vec pos = (*ait)->getQMPos();
-                        string name = (*ait)->getElement();
+                        std::string name = (*ait)->getElement();
 
                         //fprintf(out, "%2s %4.7f %4.7f %4.7f \n"
                         _com_file << setw(3) << name.c_str()
@@ -188,23 +188,23 @@ namespace votca {
                 if (_write_basis_set) {
 
                     _com_file << endl;
-                    list<string> elements;
+                    list<std::string> elements;
                     BasisSet bs;
-                    // string basis_name(_basis);
+                    // std::string basis_name(_basis);
 
                     bs.LoadBasisSet(_basisset_name);
                     LOG(logDEBUG, *_pLog) << "Loaded Basis Set " << _basisset_name << flush;
 
                     for (sit = segments.begin(); sit != segments.end(); ++sit) {
 
-                        vector< Atom* > atoms = (*sit)-> Atoms();
-                        vector< Atom* >::iterator it;
+                        std::vector< Atom* > atoms = (*sit)-> Atoms();
+                        std::vector< Atom* >::iterator it;
 
                         for (it = atoms.begin(); it < atoms.end(); it++) {
 
-                            string element_name = (*it)->getElement();
+                            std::string element_name = (*it)->getElement();
 
-                            list<string>::iterator ite;
+                            list<std::string>::iterator ite;
                             ite = find(elements.begin(), elements.end(), element_name);
 
                             if (ite == elements.end()) {
@@ -216,7 +216,7 @@ namespace votca {
                                  * Advantage: *gbs files can be reused by isogwa later
                                  */
                                 ofstream _el_file;
-                                string _el_file_name = _run_dir + "/" + element_name + ".gbs";
+                                std::string _el_file_name = _run_dir + "/" + element_name + ".gbs";
                                 _el_file.open(_el_file_name.c_str());
                                 // element name, [possibly indeces of centers], zero to indicate the end
                                 //_com_file << element_name << " 0" << endl;
@@ -253,10 +253,10 @@ namespace votca {
 
                 // ECP
                 if (_write_pseudopotentials) {
-                    string pseudopotential_name("ecp");
+                    std::string pseudopotential_name("ecp");
 
                     _com_file << endl;
-                    list<string> elements;
+                    list<std::string> elements;
 
                     elements.push_back("H");
                     elements.push_back("He");
@@ -268,14 +268,14 @@ namespace votca {
 
                     for (sit = segments.begin(); sit != segments.end(); ++sit) {
 
-                        vector< Atom* > atoms = (*sit)-> Atoms();
-                        vector< Atom* >::iterator it;
+                        std::vector< Atom* > atoms = (*sit)-> Atoms();
+                        std::vector< Atom* >::iterator it;
 
                         for (it = atoms.begin(); it < atoms.end(); it++) {
 
-                            string element_name = (*it)->getElement();
+                            std::string element_name = (*it)->getElement();
 
-                            list<string>::iterator ite;
+                            list<std::string>::iterator ite;
                             ite = find(elements.begin(), elements.end(), element_name);
 
                             if (ite == elements.end()) {
@@ -331,8 +331,8 @@ namespace votca {
 
             } else {
 
-                vector< QMAtom* > *qmatoms = orbitals_guess->getAtoms();
-                vector< QMAtom* >::iterator it;
+                std::vector< QMAtom* > *qmatoms = orbitals_guess->getAtoms();
+                std::vector< QMAtom* >::iterator it;
 
                 // This is needed for the QM/MM scheme, since only orbitals have 
                 // updated positions of the QM region, hence vector<Segments*> is 
@@ -355,20 +355,20 @@ namespace votca {
                 // if we need to write basis sets, do it now
                 if (_write_basis_set) {
 
-                    list<string> elements;
+                    list<std::string> elements;
                     BasisSet bs;
-                    // string basis_name(_basis);
+                    // std::string basis_name(_basis);
 
                     bs.LoadBasisSet(_basisset_name);
                     LOG(logDEBUG, *_pLog) << "Loaded Basis Set " << _basisset_name << flush;
 
                     for (it = qmatoms->begin(); it < qmatoms->end(); it++) {
                         if (!(*it)->from_environment) {
-                            string element_name = (*it)->type;
+                            std::string element_name = (*it)->type;
 
                             //cout << "looking up basis set for element " << element_name << endl;
 
-                            list<string>::iterator ite;
+                            list<std::string>::iterator ite;
                             ite = find(elements.begin(), elements.end(), element_name);
 
                             if (ite == elements.end()) {
@@ -379,8 +379,8 @@ namespace votca {
                                  * and include the gbs file in the com-file via Gaussian's @ function
                                  * Advantage: *gbs files can be reused by isogwa later
                                  */
-                                ofstream _el_file;
-                                string _el_file_name = _run_dir + "/" + element_name + ".gbs";
+                                std::ofstream _el_file;
+                                std::string _el_file_name = _run_dir + "/" + element_name + ".gbs";
                                 _el_file.open(_el_file_name.c_str());
                                 // element name, [possibly indeces of centers], zero to indicate the end
                                 //_com_file << element_name << " 0" << endl;
@@ -416,10 +416,10 @@ namespace votca {
                 }
 
                 if (_write_pseudopotentials) {
-                    string pseudopotential_name("ecp");
+                    std::string pseudopotential_name("ecp");
 
                     _com_file << endl;
-                    list<string> elements;
+                    list<std::string> elements;
 
                     elements.push_back("H");
                     elements.push_back("He");
@@ -431,14 +431,14 @@ namespace votca {
 
                     //for (sit = segments.begin(); sit != segments.end(); ++sit) {
 
-                    //  vector< Atom* > atoms = (*sit)-> Atoms();
-                    // vector< Atom* >::iterator it;
+                    //  std::vector< Atom* > atoms = (*sit)-> Atoms();
+                    // std::vector< Atom* >::iterator it;
 
                     for (it = qmatoms->begin(); it < qmatoms->end(); it++) {
                         if (!(*it)->from_environment) {
-                            string element_name = (*it)->type;
+                            std::string element_name = (*it)->type;
 
-                            list<string>::iterator ite;
+                            list<std::string>::iterator ite;
                             ite = find(elements.begin(), elements.end(), element_name);
 
                             if (ite == elements.end()) {
@@ -488,7 +488,7 @@ namespace votca {
                 if (orbitals_guess == NULL) {
                     throw std::runtime_error("A guess for dimer orbitals has not been prepared.");
                 } else {
-                    vector<int> _sort_index;
+                    std::vector<int> _sort_index;
 
                     orbitals_guess->SortEnergies(&_sort_index);
 
@@ -497,7 +497,7 @@ namespace votca {
                     int level = 1;
                     int ncolumns = 5;
 
-                    for (vector< int > ::iterator soi = _sort_index.begin(); soi != _sort_index.end(); ++soi) {
+                    for (std::vector< int > ::iterator soi = _sort_index.begin(); soi != _sort_index.end(); ++soi) {
 
                         double _energy = (orbitals_guess->_mo_energies)[*soi];
 
@@ -530,7 +530,7 @@ namespace votca {
 
                 ofstream _com_file2;
 
-                string _com_file_name_full2 = _run_dir + "/" + _input_vxc_file_name;
+                std::string _com_file_name_full2 = _run_dir + "/" + _input_vxc_file_name;
 
                 _com_file2.open(_com_file_name_full2.c_str());
                 // header 
@@ -539,7 +539,7 @@ namespace votca {
                 _com_file2 << "%nprocshared=1" << endl;
 
                 // adjusting the options line to Vxc output only
-                string _options_vxc = _options;
+                std::string _options_vxc = _options;
                 boost::algorithm::replace_all(_options_vxc, "pseudo=read", "Geom=AllCheck");
                 boost::algorithm::replace_all(_options_vxc, "/gen", " chkbasis");
                 boost::algorithm::replace_all(_options_vxc, "punch=mo", "guess=read");
@@ -573,7 +573,7 @@ namespace votca {
             _scratch_dir = scratch_dir_backup + temp_suffix;
             
             //boost::filesystem::create_directories(_scratch_dir + temp_suffix);
-            //string _temp("scratch_dir " + _scratch_dir + temp_suffix + "\n");
+            //std::string _temp("scratch_dir " + _scratch_dir + temp_suffix + "\n");
             //_com_file << _temp;
             WriteShellScript();
             _scratch_dir = scratch_dir_backup;
@@ -585,7 +585,7 @@ namespace votca {
         bool Gaussian::WriteShellScript() {
             ofstream _shell_file;
 
-            string _shell_file_name_full = _run_dir + "/" + _shell_file_name;
+            std::string _shell_file_name_full = _run_dir + "/" + _shell_file_name;
 
             _shell_file.open(_shell_file_name_full.c_str());
 
@@ -615,7 +615,7 @@ namespace votca {
             if (std::system(NULL)) {
                 // if scratch is provided, run the shell script; 
                 // otherwise run gaussian directly and rely on global variables 
-                string _command;
+                std::string _command;
                 if (_scratch_dir.size() != 0 || _output_Vxc) {
                     _command = "cd " + _run_dir + "; tcsh " + _shell_file_name;
                     //            _command  = "cd " + _run_dir + "; mkdir -p " + _scratch_dir +"; " + _executable + " " + _input_file_name;
@@ -650,35 +650,35 @@ namespace votca {
 
                 LOG(logDEBUG, *_pLog) << "Removing " << _cleanup << " files" << flush;
                 Tokenizer tok_cleanup(_cleanup, ",");
-                vector <string> _cleanup_info;
+                std::vector <std::string> _cleanup_info;
                 tok_cleanup.ToVector(_cleanup_info);
 
-                vector<string> ::iterator it;
+                std::vector<std::string> ::iterator it;
 
                 for (it = _cleanup_info.begin(); it != _cleanup_info.end(); ++it) {
 
                     if (*it == "com") {
-                        string file_name = _run_dir + "/" + _input_file_name;
+                        std::string file_name = _run_dir + "/" + _input_file_name;
                         remove(file_name.c_str());
                     }
 
                     if (*it == "sh") {
-                        string file_name = _run_dir + "/" + _shell_file_name;
+                        std::string file_name = _run_dir + "/" + _shell_file_name;
                         remove(file_name.c_str());
                     }
 
                     if (*it == "log") {
-                        string file_name = _run_dir + "/" + _log_file_name;
+                        std::string file_name = _run_dir + "/" + _log_file_name;
                         remove(file_name.c_str());
                     }
 
                     if (*it == "chk") {
-                        string file_name = _run_dir + "/" + _chk_file_name;
+                        std::string file_name = _run_dir + "/" + _chk_file_name;
                         remove(file_name.c_str());
                     }
 
                     if (*it == "fort.7") {
-                        string file_name = _run_dir + "/" + *it;
+                        std::string file_name = _run_dir + "/" + *it;
                         remove(file_name.c_str());
                     }
                 }
@@ -698,7 +698,7 @@ namespace votca {
             unsigned _level;
             unsigned _basis_size = 0;
 
-            string _orb_file_name_full = _orb_file_name;
+            std::string _orb_file_name_full = _orb_file_name;
             if (_run_dir != "") _orb_file_name_full = _run_dir + "/" + _orb_file_name;
             std::ifstream _input_file(_orb_file_name_full.c_str());
 
@@ -711,11 +711,11 @@ namespace votca {
 
             // number of coefficients per line is  in the first line of the file (5D15.8)
             getline(_input_file, _line);
-            std::vector<string> strs;
+            std::vector<std::string> strs;
             boost::algorithm::split(strs, _line, boost::is_any_of("(D)"));
             //clog << strs.at(1) << endl;
             //int nrecords_in_line = boost::lexical_cast<int>(strs.at(1));
-            string format = strs.at(2);
+            std::string format = strs.at(2);
 
             //clog << endl << "Orbital file " << filename << " has " 
             //        << nrecords_in_line << " records per line, in D"
@@ -729,7 +729,7 @@ namespace votca {
 
                 if (energy_pos != std::string::npos) {
 
-                    vector<string> results;
+                    std::vector<std::string> results;
                     boost::trim(_line);
 
                     boost::algorithm::split(results, _line, boost::is_any_of("\t ="),
@@ -744,7 +744,7 @@ namespace votca {
                 } else {
 
                     while (_line.size() > 1) {
-                        string _coefficient;
+                        std::string _coefficient;
                         _coefficient.assign(_line, 0, 15);
                         boost::trim(_coefficient);
                         boost::replace_first(_coefficient, "D", "e");
@@ -758,7 +758,7 @@ namespace votca {
             // some sanity checks
             LOG(logDEBUG, *_pLog) << "Energy levels: " << _levels << flush;
 
-            std::map< int, vector<double> >::iterator iter = _coefficients.begin();
+            std::map< int, std::vector<double> >::iterator iter = _coefficients.begin();
             _basis_size = iter->second.size();
 
             for (iter = _coefficients.begin()++; iter != _coefficients.end(); iter++) {
@@ -803,7 +803,7 @@ namespace votca {
             boost::filesystem::path arg_path;
             char ch;
 
-            string _full_name = (arg_path / _run_dir / _log_file_name).c_str();
+            std::string _full_name = (arg_path / _run_dir / _log_file_name).c_str();
             ifstream _input_file(_full_name.c_str());
 
             if (_input_file.fail()) {
@@ -827,7 +827,7 @@ namespace votca {
                 //cout << "\nNext Char: " << ch << " TELL G " <<  (int)_input_file.tellg() << endl;
             } while (ch != '\n' && (int) _input_file.tellg() != -1);
 
-            string _line;
+            std::string _line;
             getline(_input_file, _line); // Read the current line
             //cout << "\nResult: " << _line << '\n';     // Display it
             _input_file.close();
@@ -847,10 +847,10 @@ namespace votca {
          */
         bool Gaussian::ParseLogFile(Orbitals * _orbitals) {
 
-            static const double _conv_Hrt_eV = 27.21138386;
+           
 
-            string _line;
-            vector<string> results;
+            std::string _line;
+            std::vector<std::string> results;
             bool _has_occupied_levels = false;
             bool _has_unoccupied_levels = false;
             bool _has_number_of_electrons = false;
@@ -872,7 +872,7 @@ namespace votca {
 
             LOG(logDEBUG, *_pLog) << "GAUSSIAN: parsing " << _log_file_name << flush;
 
-            string _log_file_name_full = _log_file_name;
+            std::string _log_file_name_full = _log_file_name;
             if (_run_dir != "") _log_file_name_full = _run_dir + "/" + _log_file_name;
 
             // check if LOG file is complete
@@ -962,7 +962,7 @@ namespace votca {
 
                         boost::iter_split(stringList, _line, boost::first_finder("--"));
 
-                        vector<string> energies;
+                        std::vector<std::string> energies;
                         boost::trim(stringList.back());
 
                         boost::algorithm::split(energies, stringList.back(), boost::is_any_of("\t "), boost::algorithm::token_compress_on);
@@ -1013,7 +1013,7 @@ namespace votca {
 
                     _has_overlap_matrix = true;
                     //cout << "Found the overlap matrix!" << endl;   
-                    vector<int> _j_indeces;
+                    std::vector<int> _j_indeces;
 
                     int _n_blocks = 1 + ((_basis_set_size - 1) / 5);
                     //cout << _n_blocks;
@@ -1038,7 +1038,7 @@ namespace votca {
 
                             // split the line on the i index and the rest
 
-                            vector<string> _row;
+                            std::vector<std::string> _row;
                             boost::trim(_line);
                             boost::algorithm::split(_row, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
 
@@ -1050,8 +1050,8 @@ namespace votca {
 
                             std::vector<int>::iterator _j_iter = _j_indeces.begin();
 
-                            for (std::vector<string>::iterator iter = _row.begin()++; iter != _row.end(); iter++) {
-                                string _coefficient = *iter;
+                            for (std::vector<std::string>::iterator iter = _row.begin()++; iter != _row.end(); iter++) {
+                                std::string _coefficient = *iter;
 
                                 boost::replace_first(_coefficient, "D", "e");
                                 //cout << boost::lexical_cast<double>( _coefficient ) << endl;
@@ -1086,7 +1086,7 @@ namespace votca {
 
                     bool _has_atoms = _orbitals->hasQMAtoms();
 
-                    vector<string> _row;
+                    std::vector<std::string> _row;
                     getline(_input_file, _line);
                     boost::trim(_line);
                     //cout << _line << endl;
@@ -1097,7 +1097,7 @@ namespace votca {
                     while (nfields == 3) {
                         int atom_id = boost::lexical_cast< int >(_row.at(0));
                         //int atom_number = boost::lexical_cast< int >(_row.at(0));
-                        string atom_type = _row.at(1);
+                        std::string atom_type = _row.at(1);
                         double atom_charge = boost::lexical_cast< double >(_row.at(2));
                         //if ( tools::globals::verbose ) cout << "... ... " << atom_id << " " << atom_type << " " << atom_charge << endl;
                         getline(_input_file, _line);
@@ -1130,7 +1130,7 @@ namespace votca {
                     LOG(logDEBUG, *_pLog) << "Getting the coordinates" << flush;
                     //_has_coordinates = true;
                     boost::trim(_line);
-                    string archive = _line;
+                    std::string archive = _line;
                     while (_line.size() != 0) {
                         getline(_input_file, _line);
                         boost::trim(_line);
@@ -1139,25 +1139,25 @@ namespace votca {
 
                     bool _has_atoms = _orbitals->hasQMAtoms();
                     std::list<std::string> stringList;
-                    vector<string> results;
+                    std::vector<std::string> results;
                     boost::iter_split(stringList, archive, boost::first_finder("\\\\"));
 
-                    list<string>::iterator coord_block = stringList.begin();
+                    list<std::string>::iterator coord_block = stringList.begin();
                     advance(coord_block, 3);
 
-                    vector<string> atom_block;
+                    std::vector<std::string> atom_block;
                     boost::algorithm::split(atom_block, *coord_block, boost::is_any_of("\\"), boost::algorithm::token_compress_on);
 
-                    vector<string>::iterator atom_block_it;
+                    std::vector<std::string>::iterator atom_block_it;
                     int aindex = 0;
 
                     for (atom_block_it = ++atom_block.begin(); atom_block_it != atom_block.end(); ++atom_block_it) {
-                        vector<string> atom;
+                        std::vector<std::string> atom;
 
                         boost::algorithm::split(atom, *atom_block_it, boost::is_any_of(","), boost::algorithm::token_compress_on);
-                        string _atom_type = atom.front();
+                        std::string _atom_type = atom.front();
 
-                        vector<string>::iterator it_atom;
+                        std::vector<std::string>::iterator it_atom;
                         it_atom = atom.end();
                         double _z = boost::lexical_cast<double>(*(--it_atom));
                         double _y = boost::lexical_cast<double>(*(--it_atom));
@@ -1178,15 +1178,15 @@ namespace votca {
 
                     // get the QM energy out
                     advance(coord_block, 1);
-                    vector<string> block;
-                    vector<string> energy;
+                    std::vector<std::string> block;
+                    std::vector<std::string> energy;
                     boost::algorithm::split(block, *coord_block, boost::is_any_of("\\"), boost::algorithm::token_compress_on);
                     //boost::algorithm::split(energy, block[1], boost::is_any_of("="), boost::algorithm::token_compress_on);
-                    //_orbitals->setQMEnergy( _conv_Hrt_eV * boost::lexical_cast<double> ( energy[1] ) );
-                    map<string, string> properties;
-                    vector<string>::iterator block_it;
+                    //_orbitals->setQMEnergy( tools::conv::ha2ev * boost::lexical_cast<double> ( energy[1] ) );
+                    map<std::string, std::string> properties;
+                    std::vector<std::string>::iterator block_it;
                     for (block_it = block.begin(); block_it != block.end(); ++block_it) {
-                        vector<string> property;
+                        std::vector<std::string> property;
                         boost::algorithm::split(property, *block_it, boost::is_any_of("="), boost::algorithm::token_compress_on);
                         properties[property[0]] = property[1];
                     }
@@ -1197,7 +1197,7 @@ namespace votca {
                     if (properties.count("HF") > 0) {
                         double energy_hartree = boost::lexical_cast<double>(properties["HF"]);
                         //_orbitals->setQMEnergy(_has_qm_energy = true;
-                        _orbitals-> setQMEnergy(_conv_Hrt_eV * energy_hartree);
+                        _orbitals-> setQMEnergy(tools::conv::hrt2ev * energy_hartree);
                         LOG(logDEBUG, *_pLog) << (boost::format("QM energy[eV]: %4.6f ") % _orbitals->getQMEnergy()).str() << flush;
                     } else {
                         cout << endl;
@@ -1206,7 +1206,7 @@ namespace votca {
 
                     //            boost::algorithm::split(energy, block[1], boost::is_any_of("="), boost::algorithm::token_compress_on);
                     //            cout << endl << energy[1] << endl;
-                    //            _orbitals->_qm_energy = _conv_Hrt_eV * boost::lexical_cast<double> ( energy[1] );
+                    //            _orbitals->_qm_energy = tools::conv::ha2ev * boost::lexical_cast<double> ( energy[1] );
                     //            
                     //            LOG(logDEBUG, *_pLog) << "QM energy " << _orbitals->_qm_energy <<  flush;
                     //            _has_qm_energy = true;
@@ -1220,13 +1220,13 @@ namespace votca {
 
                 if (self_energy_pos != std::string::npos) {
                     LOG(logDEBUG, *_pLog) << "Getting the self energy\n";
-                    vector<string> block;
-                    vector<string> energy;
+                    std::vector<std::string> block;
+                    std::vector<std::string> energy;
                     boost::algorithm::split(block, _line, boost::is_any_of("="), boost::algorithm::token_compress_on);
                     boost::algorithm::split(energy, block[1], boost::is_any_of("\t "), boost::algorithm::token_compress_on);
 
                     // _orbitals->_has_self_energy = true;
-                    _orbitals->setSelfEnergy(_conv_Hrt_eV * boost::lexical_cast<double> (energy[1]));
+                    _orbitals->setSelfEnergy(tools::conv::hrt2ev * boost::lexical_cast<double> (energy[1]));
 
                     LOG(logDEBUG, *_pLog) << "Self energy " << _orbitals->getSelfEnergy() << flush;
 
@@ -1260,7 +1260,7 @@ namespace votca {
              * - parse atomic orbitals Vxc matrix */
             if (_read_vxc) {
                 LOG(logDEBUG, *_pLog) << "Parsing fort.24 for Vxc" << flush;
-                string _log_file_name_full;
+                std::string _log_file_name_full;
                 if (_run_dir == "") {
                     _log_file_name_full = "fort.24";
                 } else {
@@ -1277,7 +1277,7 @@ namespace votca {
 
                // _has_vxc_matrix = true;
                 //cout << "Found the overlap matrix!" << endl;   
-                vector<int> _j_indeces;
+                std::vector<int> _j_indeces;
 
 
                 // Start parsing the file line by line
@@ -1286,7 +1286,7 @@ namespace votca {
                     getline(_input_file, _line);
                     if (_input_file.eof()) break;
 
-                    vector<string> _row;
+                    std::vector<std::string> _row;
                     boost::trim(_line);
                     boost::algorithm::split(_row, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
 
@@ -1320,13 +1320,13 @@ namespace votca {
 
             LOG(logDEBUG, *_pLog) << "Converting Gaussian to GW " << flush;
             // prepare file names
-            string _orb_file_name_full = _run_dir + "/orbitals.votca";
-            string _vxc_file_name_full = _run_dir + "/vxc.votca";
+            std::string _orb_file_name_full = _run_dir + "/orbitals.votca";
+            std::string _vxc_file_name_full = _run_dir + "/vxc.votca";
 
             // reload the basis set
-            list<string> elements;
+            list<std::string> elements;
             BasisSet bs;
-            // string _basisset_name("ubecppol");
+            // std::string _basisset_name("ubecppol");
 
             bs.LoadBasisSet(_basisset_name);
             LOG(logDEBUG, *_pLog) << "Loaded Basis Set " << _basisset_name << flush;
@@ -1363,7 +1363,7 @@ namespace votca {
 
             // get atoms from orbitals and define iterator
             std::vector< QMAtom* > atoms = (*_orbitals->getAtoms());
-            vector< QMAtom* >::iterator ita;
+            std::vector< QMAtom* >::iterator ita;
             LOG(logDEBUG, *_pLog) << "Rewriting molecular orbitals " << flush;
             // Loop over all molecular orbitals
             for (unsigned _i_orbital = 0; _i_orbital < _basis_size; _i_orbital++) {
@@ -1374,12 +1374,12 @@ namespace votca {
                 // Loop over all atoms
                 for (ita = atoms.begin(); ita < atoms.end(); ita++) {
 
-                    string element_name = (*ita)->type;
+                    std::string element_name = (*ita)->type;
                     Element* element = bs.getElement(element_name);
                     //cout << "Atom " << element_name << endl;
                     // go through all shell types of this element
                     for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
-                        string shell_type = (*its)->getType();
+                        std::string shell_type = (*its)->getType();
 
                         // write out coefficients as needed
                         if (shell_type == "S") {
@@ -1429,7 +1429,7 @@ namespace votca {
 
             ub::matrix<double> vxc = ub::zero_matrix<double> (_basis_size, _basis_size);
             const ub::matrix<double> vxc_cart = _orbitals->AOVxc();
-            vector< QMAtom* >::iterator jta;
+            std::vector< QMAtom* >::iterator jta;
 
             int _isp = 0;
             int _jsp = 0;
@@ -1439,21 +1439,21 @@ namespace votca {
             // loop over all i_atoms
             for (ita = atoms.begin(); ita < atoms.end(); ita++) {
 
-                string i_element_name = (*ita)->type;
+                std::string i_element_name = (*ita)->type;
                 Element* i_element = bs.getElement(i_element_name);
                 // go through all shell types of this element
                 for (Element::ShellIterator its = i_element->firstShell(); its != i_element->lastShell(); its++) {
-                    string i_shell_type = (*its)->getType();
+                    std::string i_shell_type = (*its)->getType();
                     _jsp = 0;
                     _jca = 0;
                     // loop over all j_atoms
                     for (jta = atoms.begin(); jta < atoms.end(); jta++) {
 
-                        string j_element_name = (*jta)->type;
+                        std::string j_element_name = (*jta)->type;
                         Element* j_element = bs.getElement(j_element_name);
                         // go through all shell types of this element
                         for (Element::ShellIterator jts = j_element->firstShell(); jts != j_element->lastShell(); jts++) {
-                            string j_shell_type = (*jts)->getType();
+                            std::string j_shell_type = (*jts)->getType();
 
                             //cout << i_shell_type << "   "  << j_shell_type << endl;
                             if ((i_shell_type == "S" || i_shell_type == "P") && (j_shell_type == "S" || j_shell_type == "P")) {
@@ -1673,8 +1673,8 @@ namespace votca {
             return true;
         }
 
-        string Gaussian::FortranFormat(const double &number) {
-            stringstream _ssnumber;
+        std::string Gaussian::FortranFormat(const double &number) {
+            std::stringstream _ssnumber;
             if (number >= 0) _ssnumber << " ";
             _ssnumber << setiosflags(ios::fixed) << setprecision(8) << std::scientific << number;
             std::string _snumber = _ssnumber.str();
@@ -1682,7 +1682,7 @@ namespace votca {
             return _snumber;
         }
 
-        int Gaussian::NumbfGW(string shell_type) {
+        int Gaussian::NumbfGW(std::string shell_type) {
             int _nbf=0;
             if (shell_type == "S") {
                 _nbf = 1;
@@ -1698,7 +1698,7 @@ namespace votca {
             return _nbf;
         }
 
-        int Gaussian::NumbfQC(string shell_type) {
+        int Gaussian::NumbfQC(std::string shell_type) {
             int _nbf=0;
             if (shell_type == "S") {
                 _nbf = 1;
@@ -1714,7 +1714,7 @@ namespace votca {
             return _nbf;
         }
 
-        int Gaussian::NumbfQC_cart(string shell_type) {
+        int Gaussian::NumbfQC_cart(std::string shell_type) {
             int _nbf=0;
             if (shell_type == "S") {
                 _nbf = 1;

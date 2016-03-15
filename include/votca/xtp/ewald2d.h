@@ -45,7 +45,7 @@ namespace votca { namespace xtp {
         Ewald3D2D(Topology *top, PolarTop *ptop, Property *opt, Logger *log);
        ~Ewald3D2D();
        
-        string IdentifyMethod() { return "3D x 2D"; }
+        std::string IdentifyMethod() { return "3D x 2D"; }
         EWD::triple<> ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target);
         EWD::triple<> CalculateK0Correction(vector<PolarSeg*> &target);
                 
