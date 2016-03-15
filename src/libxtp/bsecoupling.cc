@@ -750,6 +750,7 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     ub::matrix<double> _psi_AxB_dimer_basis = ub::prod( _psi_AxB, _psi_AB );  
     _psi_AB.clear();
     cout<< "_psi_AxB_dimer"<<endl;
+    unsigned int LevelsA = _levelsA;
     for (unsigned i=0;i<_psi_AxB_dimer_basis.size1();i++){
         double mag=0.0;
         for (unsigned j=0;j<_psi_AxB_dimer_basis.size2();j++){
@@ -759,7 +760,7 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
          if (mag<0.95){
             int monomer = 0;
             int level = 0;
-            if ( i < _levelsA ) {
+            if ( i < LevelsA ) {
                 monomer = 1;
                 level   = _bseA_vmin + i;
             } else {
