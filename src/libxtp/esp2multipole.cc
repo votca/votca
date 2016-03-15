@@ -146,31 +146,40 @@ void Esp2multipole::Extractingcharges( Orbitals& _orbitals ){
         bs.LoadBasisSet(_orbitals.getDFTbasis());
         AOBasis basis;
         basis.AOBasisFill(&bs, Atomlist );
-        basis.ReorderMOs(_orbitals.MOCoefficients(), _orbitals.getQMpackage(), "votca" );  
+        
+        
+        ub::matrix<double> _MO_Coefficients = *(_orbitals.getOrbitals()); // this is a copy?
+        
+        //basis.ReorderMOs(_orbitals.MOCoefficients(), _orbitals.getQMpackage(), "votca" );  
+        basis.ReorderMOs(_MO_Coefficients, _orbitals.getQMpackage(), "votca" );  
         bool _do_transition=false;
         if(_state=="transition"){
             _do_transition=true;
             if (_spin=="singlet"){
-                DMAT_tot=_orbitals.TransitionDensityMatrix(_orbitals.MOCoefficients() , _orbitals.BSESingletCoefficients(), _state_no-1);
+                //DMAT_tot=_orbitals.TransitionDensityMatrix(_orbitals.MOCoefficients() , _orbitals.BSESingletCoefficients(), _state_no-1);
+                DMAT_tot=_orbitals.TransitionDensityMatrix(_MO_Coefficients, _orbitals.BSESingletCoefficients(), _state_no-1);
             }
             else if (_spin=="triplet"){
-                DMAT_tot=_orbitals.TransitionDensityMatrix(_orbitals.MOCoefficients() , _orbitals.BSETripletCoefficients(), _state_no-1); 
+                //DMAT_tot=_orbitals.TransitionDensityMatrix(_orbitals.MOCoefficients() , _orbitals.BSETripletCoefficients(), _state_no-1); 
+                DMAT_tot=_orbitals.TransitionDensityMatrix(_MO_Coefficients, _orbitals.BSETripletCoefficients(), _state_no-1); 
             }
             else throw std::runtime_error("Spin entry not recognized");
         }
         else if (_state=="ground" || _state=="excited"){
             
         
-            ub::matrix<double> &DMATGS=_orbitals.DensityMatrixGroundState(_orbitals.MOCoefficients());
+            //ub::matrix<double> &DMATGS=_orbitals.DensityMatrixGroundState(_orbitals.MOCoefficients());
+            ub::matrix<double> &DMATGS=_orbitals.DensityMatrixGroundState(_MO_Coefficients);
             DMAT_tot=DMATGS;
             if ( _state_no > 0 && _state=="excited"){
                 std::vector<ub::matrix<double> > DMAT;
                 if (_spin=="singlet"){
-                    DMAT = _orbitals.DensityMatrixExcitedState( _orbitals.MOCoefficients() , _orbitals.BSESingletCoefficients(), _state_no-1);
-
+                    //DMAT = _orbitals.DensityMatrixExcitedState( _orbitals.MOCoefficients() , _orbitals.BSESingletCoefficients(), _state_no-1);
+                    DMAT = _orbitals.DensityMatrixExcitedState( _MO_Coefficients , _orbitals.BSESingletCoefficients(), _state_no-1);
                 }
                 else if (_spin=="triplet"){
-                    DMAT = _orbitals.DensityMatrixExcitedState( _orbitals.MOCoefficients() , _orbitals.BSETripletCoefficients(), _state_no-1);
+                    //DMAT = _orbitals.DensityMatrixExcitedState( _orbitals.MOCoefficients() , _orbitals.BSETripletCoefficients(), _state_no-1);
+                    DMAT = _orbitals.DensityMatrixExcitedState( _MO_Coefficients , _orbitals.BSETripletCoefficients(), _state_no-1);
                 }
                 else throw std::runtime_error("Spin entry not recognized");
                 DMAT_tot=DMAT_tot-DMAT[0]+DMAT[1];

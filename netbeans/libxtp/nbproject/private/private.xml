@@ -11,8 +11,8 @@
         <file>file:/home/jens/votca_git/src/xtp/src/libxtp/gwbse/gwbse.cc</file>
         <file>file:/home/bbaumeie/votca/src/xtp/src/libxtp/qmpackages/nwchem.cc</file>
         <group>
-            <file>file:/home/jwehner/Programs/votca_dev/src/xtp/src/libxtp/qmpackages/gaussian.cc</file>
-            <file>file:/home/jwehner/Programs/votca_dev/src/xtp/src/libxtp/numerical_integration/numerical_integrations.cc</file>
+            <file>file:/home/bbaumeie/votca/src/xtp/src/libxtp/bsecoupling.cc</file>
+            <file>file:/home/bbaumeie/votca/src/xtp/src/libxtp/gwbse/gwbse.cc</file>
         </group>
     </open-files>
 </project-private>

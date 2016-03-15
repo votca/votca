@@ -757,7 +757,17 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
             
     }
          if (mag<0.95){
-            LOG(logERROR,*_pLog) << "\nERROR: Projection of monomer orbitals on dimer is insufficient,mag="<<mag<<" maybe the orbital order is screwed up, otherwise increase dimer basis.\n"<<flush;
+            int monomer = 0;
+            int level = 0;
+            if ( i < _levelsA ) {
+                monomer = 1;
+                level   = _bseA_vmin + i;
+            } else {
+                monomer = 2;
+                level   = _bseB_vmin + i -_levelsA;
+                
+            }
+            LOG(logERROR,*_pLog) << "\nERROR: " << i << " Projection of orbital " << level << " of monomer " << monomer << " on dimer is insufficient,mag="<<mag<<" maybe the orbital order is screwed up, otherwise increase dimer basis.\n"<<flush;
         }
     }
     //exit(0);
