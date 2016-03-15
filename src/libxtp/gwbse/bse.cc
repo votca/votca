@@ -467,7 +467,7 @@ namespace votca {
             }
               //          cout << " ==== check 5 ====== " << endl;
             
-             for ( size_t _v1 = 0 ; _v1 < _bse_vtotal ; _v1++){
+             /* for ( size_t _v1 = 0 ; _v1 < _bse_vtotal ; _v1++){
                 for ( size_t _v2 = 0 ; _v2 < _bse_vtotal ; _v2++){
                     
                     
@@ -490,7 +490,7 @@ namespace votca {
                              }
                     }
                 }
-            }
+            } */
             
             
             
