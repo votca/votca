@@ -253,6 +253,9 @@ public:
     ub::matrix<double> _screening_freq;
     void symmetrize_threecenters(TCMatrix& _Mmn, ub::matrix<double>& _coulomb);
     void RPA_calculate_epsilon( TCMatrix& _Mmn_RPA , ub::matrix<double> _screening_freq , double _shift , ub::vector<double>& _dft_energies  );
+    void RPA_real(ub::matrix<double>& result,TCMatrix& _Mmn_RPA, double _shift, ub::vector<double>& _dft_energies,const ub::matrix<double>& screening_freq);
+    void RPA_imaginary(ub::matrix<double>& result,TCMatrix& _Mmn_RPA, double _shift, ub::vector<double>& _dft_energies,const ub::matrix<double>& screening_freq);
+               
     void RPA_prepare_threecenters( TCMatrix& _Mmn_RPA, TCMatrix& _Mmn_full, AOBasis& gwbasis, AOMatrix& gwoverlap, AOMatrix& gwoverlap_inverse     );
 
     
