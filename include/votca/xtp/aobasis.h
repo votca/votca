@@ -69,6 +69,8 @@ public:
     AOShellIterator firstShell() { return _aoshells.begin(); }
     AOShellIterator lastShell(){ return _aoshells.end(); }
 
+    
+    
     // std::string getType() { return _type; }
     // int    getNumFunc() { return _numFunc ;}
         

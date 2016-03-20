@@ -114,6 +114,14 @@ namespace votca { namespace xtp {
         int get_nmax() { return this->nmax ;}
         int get_mtot() { return this->mtotal ;}
         int get_ntot() { return this->ntotal ;}
+        
+        
+         int get_mmin() const{ return mmin ;}
+         int get_mmax() const{ return mmax ;}
+         int get_nmin() const{ return nmin ;}
+         int get_nmax() const{ return nmax ;}
+         int get_mtot() const{ return mtotal ;}
+         int get_ntot() const{ return ntotal ;}
 
         void set_mmin( int i ) { this->mmin = i ;}
         void set_mmax( int i ) { this->mmax = i ;}

@@ -76,7 +76,8 @@ namespace votca { namespace xtp {
 	int Dimension(){ return  _aomatrix.size1();};
 	ub::matrix<double> &Matrix(){ return _aomatrix ;};
 
-
+        const ub::matrix<double> &Matrix() const{ return _aomatrix ;};
+        
         void Initialize( int size ) {
             this->_aomatrix = ub::zero_matrix<double>(size,size);
         }
