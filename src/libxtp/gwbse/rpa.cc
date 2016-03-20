@@ -121,7 +121,7 @@ namespace votca {
         
         ub::matrix<double> GWBSE::RPA_imaginary(const TCMatrix& _Mmn_RPA, const double& _shift,const ub::vector<double>& _dft_energies, const double& screening_freq){
              int _size = _Mmn_RPA[0].size1(); // size of gwbasis
-             ub::matrix<double> epsilon_temp=ub::zero_matrix<double>(_rpamax-_rpamin);
+             ub::matrix<double> epsilon_temp=ub::zero_matrix<double>(_epsilon[0].size1(),_epsilon[0].size2());
              #pragma omp parallel for 
                 for ( int _m_level = 0; _m_level < _Mmn_RPA.get_mtot() ; _m_level++ ){
                     //cout << " act threads: " << omp_get_thread_num( ) << " total threads " << omp_get_num_threads( ) << " max threads " << omp_get_max_threads( ) <<endl;
@@ -163,7 +163,7 @@ namespace votca {
         //real
         ub::matrix<double> GWBSE::RPA_real(const TCMatrix& _Mmn_RPA,const double& _shift,const ub::vector<double>& _dft_energies,const double& screening_freq){
              int _size = _Mmn_RPA[0].size1(); // size of gwbasis
-             ub::matrix<double> epsilon_temp=ub::zero_matrix<double>(_rpamax-_rpamin);
+             ub::matrix<double> epsilon_temp=ub::zero_matrix<double>(_epsilon[0].size1(),_epsilon[0].size2());
              #pragma omp parallel for 
                 for ( int _m_level = 0; _m_level < _Mmn_RPA.get_mtot() ; _m_level++ ){
                     //cout << " act threads: " << omp_get_thread_num( ) << " total threads " << omp_get_num_threads( ) << " max threads " << omp_get_max_threads( ) <<endl;
@@ -299,7 +299,7 @@ namespace votca {
                         double _test = _temp( _i_gw + _start, _n_level   );
                         if ( _test > 0.0  ){
                             sc_plus += chi[ _i_gw ]* _test;
-                        } else {
+                        } else if ( _test < 0.0 ){
                             sc_minus -= chi[ _i_gw ]* _test;
                         }
                     } // end loop over functions in shell
