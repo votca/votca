@@ -68,7 +68,8 @@ namespace votca { namespace xtp {
              // some helpers
             std::vector<double> _wmp;
             std::vector<double> _wmq;
-            
+            _wmp.resize(3);
+            _wmq.resize(3);
             
          
 
@@ -123,8 +124,7 @@ namespace votca { namespace xtp {
             const double _fakc2 = 2.0 * _fakc;
 
 
-            _wmp.resize(3);
-            _wmq.resize(3);
+            
             //bool ident;
             
             //if ( )

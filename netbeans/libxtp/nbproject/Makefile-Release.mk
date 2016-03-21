@@ -52,6 +52,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/1355216796/eoutersphere.o \
 	${OBJECTDIR}/_ext/1355216796/jobwriter.o \
 	${OBJECTDIR}/_ext/1584959903/dftengine.o \
+	${OBJECTDIR}/_ext/484478074/esp2multipole.o \
 	${OBJECTDIR}/_ext/484478074/espfit.o \
 	${OBJECTDIR}/_ext/484478074/ewaldactor.o \
 	${OBJECTDIR}/_ext/484478074/extractorfactory.o \
@@ -70,6 +71,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/164445175/idft.o \
 	${OBJECTDIR}/_ext/164445175/iexcitoncl.o \
 	${OBJECTDIR}/_ext/164445175/igwbse.o \
+	${OBJECTDIR}/_ext/484478074/kmclifetime.o \
 	${OBJECTDIR}/_ext/484478074/molecule.o \
 	${OBJECTDIR}/_ext/1294340152/numerical_integrations.o \
 	${OBJECTDIR}/_ext/1294340152/radial_euler_maclaurin_rule.o \
@@ -229,6 +231,11 @@ ${OBJECTDIR}/_ext/1584959903/dftengine.o: nbproject/Makefile-${CND_CONF}.mk ../.
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1584959903/dftengine.o ../../src/libxtp/dftengine/dftengine.cc
 
+${OBJECTDIR}/_ext/484478074/esp2multipole.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/esp2multipole.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/esp2multipole.o ../../src/libxtp/esp2multipole.cc
+
 ${OBJECTDIR}/_ext/484478074/espfit.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/espfit.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
 	${RM} "$@.d"
@@ -318,6 +325,11 @@ ${OBJECTDIR}/_ext/164445175/igwbse.o: nbproject/Makefile-${CND_CONF}.mk ../../sr
 	${MKDIR} -p ${OBJECTDIR}/_ext/164445175
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/164445175/igwbse.o ../../src/libxtp/jobcalculators/igwbse.cc
+
+${OBJECTDIR}/_ext/484478074/kmclifetime.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/kmclifetime.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/kmclifetime.o ../../src/libxtp/kmclifetime.cc
 
 ${OBJECTDIR}/_ext/484478074/molecule.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/molecule.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074

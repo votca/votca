@@ -119,9 +119,9 @@ namespace votca {
         
         //imaginary
         
-        ub::matrix<double> GWBSE::RPA_imaginary(const TCMatrix& _Mmn_RPA, const double& _shift,const ub::vector<double>& _dft_energies, const double& screening_freq){
+        void GWBSE::RPA_imaginary(ub::matrix<double>& result,const TCMatrix& _Mmn_RPA, const double& _shift,const ub::vector<double>& _dft_energies, const double& screening_freq){
              int _size = _Mmn_RPA[0].size1(); // size of gwbasis
-             ub::matrix<double> epsilon_temp=ub::zero_matrix<double>(_epsilon[0].size1(),_epsilon[0].size2());
+             
              #pragma omp parallel for 
                 for ( int _m_level = 0; _m_level < _Mmn_RPA.get_mtot() ; _m_level++ ){
                     //cout << " act threads: " << omp_get_thread_num( ) << " total threads " << omp_get_num_threads( ) << " max threads " << omp_get_max_threads( ) <<endl;
@@ -155,15 +155,15 @@ namespace votca {
                     ub::matrix<double> _add = ub::prod( Mmn_RPA , _temp  );
                    #pragma omp critical
                     {
-                   epsilon_temp += _add;// ub::prod( Mmn_RPA , _temp  );
+                   result += _add;// ub::prod( Mmn_RPA , _temp  );
                     }
                 } // occupied levels
-             return epsilon_temp;
+             return;
         }
         //real
-        ub::matrix<double> GWBSE::RPA_real(const TCMatrix& _Mmn_RPA,const double& _shift,const ub::vector<double>& _dft_energies,const double& screening_freq){
+        void GWBSE::RPA_real(ub::matrix<double>& result,const TCMatrix& _Mmn_RPA,const double& _shift,const ub::vector<double>& _dft_energies,const double& screening_freq){
              int _size = _Mmn_RPA[0].size1(); // size of gwbasis
-             ub::matrix<double> epsilon_temp=ub::zero_matrix<double>(_epsilon[0].size1(),_epsilon[0].size2());
+             
              #pragma omp parallel for 
                 for ( int _m_level = 0; _m_level < _Mmn_RPA.get_mtot() ; _m_level++ ){
                     //cout << " act threads: " << omp_get_thread_num( ) << " total threads " << omp_get_num_threads( ) << " max threads " << omp_get_max_threads( ) <<endl;
@@ -197,10 +197,10 @@ namespace votca {
                     ub::matrix<double> _add = ub::prod( Mmn_RPA , _temp  );
                    #pragma omp critical
                     {
-                   epsilon_temp += _add;// ub::prod( Mmn_RPA , _temp  );
+                   result += _add;// ub::prod( Mmn_RPA , _temp  );
                     }
                 } // occupied levels
-             return epsilon_temp;
+             return;
         }
         
 
@@ -213,12 +213,12 @@ namespace votca {
             for ( unsigned _i_freq = 0 ; _i_freq < screening_freq.size1() ; _i_freq++ ){
                 
                  if ( screening_freq( _i_freq, 0) == 0.0 ) {
-                     _epsilon[ _i_freq ]+=RPA_imaginary(_Mmn_RPA, _shift, _dft_energies,screening_freq( _i_freq, 1));
+                     RPA_imaginary(_epsilon[ _i_freq ],_Mmn_RPA, _shift, _dft_energies,screening_freq( _i_freq, 1));
                  }
                  
                  else if ( screening_freq( _i_freq, 1) == 0.0  ) {
                             // purely real
-                            _epsilon[ _i_freq ]+=RPA_real(_Mmn_RPA, _shift, _dft_energies,screening_freq( _i_freq, 0));
+                      RPA_real(_epsilon[ _i_freq ],_Mmn_RPA, _shift, _dft_energies,screening_freq( _i_freq, 0));
                         } 
                  else {
                             // mixed -> FAIL

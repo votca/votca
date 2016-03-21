@@ -255,10 +255,10 @@ public:
     void RPA_calculate_epsilon(const TCMatrix& _Mmn_RPA, const ub::matrix<double>& screening_freq,
                 const double& _shift, const ub::vector<double>& _dft_energies);
     
-    ub::matrix<double> RPA_real(const TCMatrix& _Mmn_RPA,const double& _shift,
+    void RPA_real(ub::matrix<double>& result,const TCMatrix& _Mmn_RPA,const double& _shift,
         const ub::vector<double>& _dft_energies,const double& screening_freq);
     
-    ub::matrix<double> RPA_imaginary(const TCMatrix& _Mmn_RPA, const double& _shift,
+    void RPA_imaginary(ub::matrix<double>& result,const TCMatrix& _Mmn_RPA, const double& _shift,
         const ub::vector<double>& _dft_energies,const double& screening_freq);
                
     void RPA_prepare_threecenters(TCMatrix& _Mmn_RPA,const TCMatrix& _Mmn_full,AOBasis& gwbasis,
