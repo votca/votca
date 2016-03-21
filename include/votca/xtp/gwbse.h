@@ -206,6 +206,10 @@ public:
     // fragment definitions
     int                                 _fragA;
     int                                 _fragB;
+
+    // BSE variant
+    bool                                _do_full_BSE;
+
     
     std::string _outParent;
     std::string _outMonDir;

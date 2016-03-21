@@ -71,6 +71,8 @@ namespace votca {
             _functional="";
             _grid="";
             
+            _do_full_BSE = false;
+            
             string key =  Identify();
     
             // getting level ranges 
@@ -105,6 +107,18 @@ namespace votca {
             } else {
                 _fragA = -1;
             }
+            
+            if ( options->exists( key + ".BSEtype") ) {
+                string BSEtype = options->get(key + ".BSEtype" ).as< string >();
+                if ( BSEtype == "full" ) {
+                  _do_full_BSE = true;
+                  LOG(logDEBUG, *_pLog) <<  " BSE type: full" << flush;   
+                  LOG(logDEBUG, *_pLog) <<  "           ATTENTION: only full BSE energies supported. UNDER DEVELOPMENT!" << flush;   
+                }
+            } else {
+                LOG(logDEBUG, *_pLog) <<  " BSE type: TDA" << flush;
+            }
+            
             
             // get OpenMP thread number
             _openmp_threads = options->get(key + ".openmp").as<int> ();
@@ -772,8 +786,10 @@ void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
                 BSE_d_setup(_Mmn);
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Direct part of e-h interaction " << flush;
                 
-                //BSE_d2_setup(_Mmn);
-                //LOG(logDEBUG, *_pLog) << TimeStamp() << " Direct part of e-h interaction RARC " << flush;
+                if ( _do_full_BSE ){
+                    BSE_d2_setup(_Mmn);
+                    LOG(logDEBUG, *_pLog) << TimeStamp() << " Direct part of e-h interaction RARC " << flush;
+                }
                 
                 if ( _store_eh_interaction) {
                     ub::matrix<float>& _eh_d_store = _orbitals->eh_d();
@@ -942,9 +958,13 @@ void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
 
 
                 if (_do_bse_singlets && _do_bse_diag ) {
-                    BSE_solve_singlets();
-                    //BSE_solve_singlets_BTDA();
                     
+                    
+                    if ( _do_full_BSE ){
+                       BSE_solve_singlets_BTDA();
+                    } else {
+                       BSE_solve_singlets();
+                    }
                     
                     LOG(logDEBUG, *_pLog) << TimeStamp() << " Solved BSE for singlets " << flush;
 

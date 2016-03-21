@@ -170,6 +170,7 @@ namespace votca {
           }
           
           
+          exit(0);
           
           
           // check orthogonality
@@ -381,7 +382,7 @@ namespace votca {
                 }
             }
             
-            cout << " ======= check 1 ======= " << endl;
+            //cout << " ======= check 1 ======= " << endl;
                     
             
             
@@ -399,7 +400,7 @@ namespace votca {
             }
             
             
-            cout << " ======= check 2 ========= " << endl;
+           // cout << " ======= check 2 ========= " << endl;
             
             
             if ( ! _do_bse_singlets )  _Mmn.Cleanup();
@@ -408,7 +409,7 @@ namespace votca {
             // cout << "BSE_d_setup 1 [" << _storage_v.size1() << "x" << _storage_v.size2() << "]\n" << std::flush;
             ub::matrix<float> _storage_prod = ub::prod( _storage_cv , _storage_vc );
             
-            cout << " ======= check 3 ========== PASSED" << endl;
+           // cout << " ======= check 3 ========== PASSED" << endl;
             
             // now patch up _storage for screened interaction
             #pragma omp parallel for
@@ -431,7 +432,7 @@ namespace votca {
             _storage_vc.resize(0,0);
             
             
-            cout << " ==== check 4 ====== " << endl;
+           // cout << " ==== check 4 ====== " << endl;
             
             
             // finally resort into _eh_d and multiply by to for Rydbergs
@@ -464,9 +465,9 @@ namespace votca {
                     }
                 }
             }
-                        cout << " ==== check 5 ====== " << endl;
+              //          cout << " ==== check 5 ====== " << endl;
             
-             for ( size_t _v1 = 0 ; _v1 < _bse_vtotal ; _v1++){
+             /* for ( size_t _v1 = 0 ; _v1 < _bse_vtotal ; _v1++){
                 for ( size_t _v2 = 0 ; _v2 < _bse_vtotal ; _v2++){
                     
                     
@@ -483,13 +484,13 @@ namespace votca {
             
             
             
-             cout << " eh_d2 : " << _index_v1c1 << " : " << _index_v2c2 << " = " <<  _eh_d2( _index_v1c1 , _index_v2c2 ) << endl;
+            // cout << " eh_d2 : " << _index_v1c1 << " : " << _index_v2c2 << " = " <<  _eh_d2( _index_v1c1 , _index_v2c2 ) << endl;
             
             
                              }
                     }
                 }
-            }
+            } */
             
             
             
