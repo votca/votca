@@ -663,14 +663,14 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
         LOG(logDEBUG,*_pLog) << "Number of occupied orbitals in molecule A for CT creation exceeds number of KS-orbitals in BSE" << flush; 
         _unoccA=_bseA_ctotal;
     }
-    else if (_unoccA=-1){
+    else if (_unoccA<0){
         _unoccA=_bseA_ctotal;
     }
     if(_unoccB>_bseB_ctotal){
         LOG(logDEBUG,*_pLog) << "Number of occupied orbitals in molecule B for CT creation exceeds number of KS-orbitals in BSE" << flush; 
         _unoccB=_bseB_ctotal;
     }
-    else if (_unoccB=-1){
+    else if (_unoccB<0){
         _unoccB=_bseB_ctotal;
     }
     
@@ -678,13 +678,13 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
         LOG(logDEBUG,*_pLog) << "Number of unoccupied orbitals in molecule A for CT creation exceeds number of KS-orbitals in BSE" << flush; 
         _occA=_bseA_vtotal;
     }
-    else if (_occA=-1){
+    else if (_occA<0){
         _occA=_bseA_vtotal;
     }
     if(_occB>_bseB_vtotal){
         LOG(logDEBUG,*_pLog) << "Number of unoccupied orbitals in molecule B for CT creation exceeds number of KS-orbitals in BSE" << flush; 
         _occB=_bseB_vtotal;
-    }else if (_occB=-1){
+    }else if (_occB<0){
         _occB=_bseB_vtotal;
     }
     
