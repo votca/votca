@@ -91,10 +91,11 @@ private:
     bool                _do_trim;
     
     // what to write in the storage
-    bool                _store_orbitals;
-    bool                _store_overlap;
-    bool                _store_integrals;
+    bool                _store_dft;
+    bool                _store_singlets;
+    bool                _store_triplets;
     bool                _store_ehint;
+    bool                _write_orbfile;
     
     double              _energy_difference;    
         

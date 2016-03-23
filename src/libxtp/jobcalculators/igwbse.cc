@@ -54,17 +54,17 @@ void IGWBSE::Initialize(votca::tools::Property* options ) {
     _do_coupling  = false;
     _do_trim      = false;
     
-    _store_orbitals = false;
-    _store_overlap = false;
-    _store_integrals = false;
+    _store_dft = false;
+    _store_singlets = false;
+    _store_triplets = false;
     _store_ehint = false;
-    
+    _write_orbfile=false;
     
     _do_singlets=false;
     _do_triplets=false;
 
     // update options with the VOTCASHARE defaults   
-    UpdateWithDefaults( options, "xtp" );
+    //UpdateWithDefaults( options, "xtp" );
     ParseOptionsXML( options  );
     
     // register all QM packages (Gaussian, turbomole, etc))
@@ -101,11 +101,13 @@ void IGWBSE::ParseOptionsXML( votca::tools::Property *opt ) {
 
     // storage options
     string _store_string = opt->get(key+".store").as<string> ();
-    if (_store_string.find("orbitals") != std::string::npos) _store_orbitals = true;
-    if (_store_string.find("overlap") != std::string::npos) _store_overlap = true;
-    if (_store_string.find("integrals") != std::string::npos) _store_integrals = true;
+    if (_store_string.find("dft") != std::string::npos) _store_dft = true;
+    if (_store_string.find("singlets") != std::string::npos) _store_singlets = true;
+    if (_store_string.find("triplets") != std::string::npos) _store_triplets = true;
     if (_store_string.find("ehint") != std::string::npos) _store_ehint = true;
-
+    if (_store_dft || _store_singlets || _store_triplets || _store_ehint){
+        _write_orbfile=true;
+    }
     // options for gwbse
     string _gwbse_xml = opt->get(key+".gwbse").as<string> ();
     //cout << endl << "... ... Parsing " << _package_xml << endl ;
@@ -347,8 +349,14 @@ Job::JobResult IGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
                     delete _qmpackage;
                     return jres;
             } 
-    } // end of the parse orbitals/log
+            
+  
 
+  
+    } // end of the parse orbitals/log
+    else{
+        LoadOrbitals( orbFileAB, &_orbitalsAB, pLog );
+    }
     BSECoupling         _bsecoupling; 
     // do excited states calculation
     if ( _do_gwbse ){
@@ -408,32 +416,18 @@ Job::JobResult IGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
        
     }
     
-    
-    
-    
-   LOG(logINFO,*pLog) << TimeStamp() << " Finished evaluating pair " << ID_A << ":" << ID_B << flush; 
-
-   
-   // save orbitals 
-   boost::filesystem::create_directories(_orb_dir);  
-
-   LOG(logDEBUG,*pLog) << "Saving orbitals to " << orbFileAB << flush;
-   std::ofstream ofs( orbFileAB.c_str() );
-   boost::archive::binary_oarchive oa( ofs );
-   if ( _calculate_integrals ) {
+    if ( _calculate_integrals ) {
       // adding coupling elements
+       
       _orbitalsAB.setSingletCouplings( _bsecoupling.getJAB_singletstorage());
       _orbitalsAB.setTripletCouplings(_bsecoupling.getJAB_tripletstorage());
       _orbitalsAB.setCoupledExcitonsA( _number_excitons );
       _orbitalsAB.setCoupledExcitonsB( _number_excitons );
-   }
-   // serialization of electron-hole interaction only if explicitly requested
-   if ( !_store_ehint ){
-       _orbitalsAB.eh_d().resize(0,0);
-       _orbitalsAB.eh_x().resize(0,0);       
-   }
-   oa << _orbitalsAB;
-   ofs.close();
+    
+    }
+   LOG(logINFO,*pLog) << TimeStamp() << " Finished evaluating pair " << ID_A << ":" << ID_B << flush; 
+
+   
       Property *_job_output = &_job_summary.add("output","");
    if ( _calculate_integrals ){
 
@@ -447,7 +441,45 @@ Job::JobResult IGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         votca::tools::PropertyIOManipulator iomXML(votca::tools::PropertyIOManipulator::XML, 1, "");
         sout <<  iomXML << _job_summary;
 
+if ( _write_orbfile){
+   // save orbitals 
+   boost::filesystem::create_directories(_orb_dir);  
 
+   LOG(logDEBUG,*pLog) << "Saving orbitals to " << orbFileAB << flush;
+   std::ofstream ofs( orbFileAB.c_str() );
+   boost::archive::binary_oarchive oa( ofs );
+   
+   
+        
+   if(!_store_dft){
+       _orbitalsAB.AOVxc().resize(0);
+       
+       _orbitalsAB.MOCoefficients().resize(0,0);
+   }    
+        
+   if(!_store_singlets){
+       _orbitalsAB.BSESingletCoefficients().resize(0,0);
+       _orbitalsAB.BSESingletEnergies().resize(0,0);
+   }    
+        
+    if(!_store_triplets){
+       _orbitalsAB.BSETripletCoefficients().resize(0,0);
+       _orbitalsAB.BSETripletEnergies().resize(0,0);
+   }  
+        
+   // serialization of electron-hole interaction only if explicitly requested
+   if ( !_store_ehint ){
+       _orbitalsAB.eh_d().resize(0,0);
+       _orbitalsAB.eh_x().resize(0,0);       
+   }
+   
+   
+   oa << _orbitalsAB;
+   ofs.close();
+   }
+   else{
+      LOG(logDEBUG,*pLog) << "Orb file is not saved according to options "<< flush; 
+   }
 
    // cleanup whatever is not needed
    _qmpackage->CleanUp();
