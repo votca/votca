@@ -120,7 +120,15 @@ namespace votca {
  
     ofs << "<jobs>" << endl;   
 
-    QMNBList::iterator pit;
+    
+    //QMNBList &nblist = top->NBList();    
+    
+      
+    int jobCount = 0;
+    
+/*
+
+   QMNBList::iterator pit;
     QMNBList &nblist = top->NBList();    
     
             
@@ -144,10 +152,10 @@ namespace votca {
 	segments[id1] = (*pit)->Seg1();
         segments[id2] = (*pit)->Seg2();
         
-        /* loop over bridging segments if any and add them to the map
-           this in principle is not needed since all pairs between 
-           donors, acceptors, and bridges are already in the list 
-         */
+       // loop over bridging segments if any and add them to the map
+       //    this in principle is not needed since all pairs between 
+       //    donors, acceptors, and bridges are already in the list 
+        
         vector<Segment*> bridges = (*pit)->getBridgingSegments();
         for ( vector<Segment*>::const_iterator bsit = bridges.begin(); bsit != bridges.end(); bsit++ ) {
             //cout << "Bridging segment " << (*bsit)->getId() << " : " <<  (*bsit)->getName() << endl;
@@ -171,7 +179,22 @@ namespace votca {
         Job job(id, tag, Input, Job::AVAILABLE );
         job.ToStream(ofs,"xml");
     }
-     
+*/
+    std::vector<Segment*> segments=top->Segments();    
+    std::vector<Segment*>::iterator sit;
+    for (sit = segments.begin(); sit != segments.end(); ++sit) {
+    
+        int id = ++jobCount;
+        string tag = "";
+
+        Property Input;
+        Property *pInput = &Input.add("input","");
+        Property *pSegment =  &pInput->add("segment" , (format("%1$s") % (*sit)->getId()).str() );
+        pSegment->setAttribute<string>("type", (*sit)->getName() );
+        pSegment->setAttribute<int>("id", (*sit)->getId() );
+        Job job(id, tag, Input, Job::AVAILABLE );
+        job.ToStream(ofs,"xml");
+    }
 
     // CLOSE STREAM
     ofs << "</jobs>" << endl;    
