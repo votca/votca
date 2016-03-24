@@ -11,10 +11,14 @@
         <file>file:/home/jens/votca_git/src/xtp/src/libxtp/gwbse/gwbse.cc</file>
         <file>file:/home/bbaumeie/votca/src/xtp/src/libxtp/qmpackages/nwchem.cc</file>
         <group>
+            <file>file:/home/jens/votca_git/src/xtp/src/libxtp/threecenters_tools.cc</file>
+            <file>file:/home/jens/votca_git/src/xtp/include/votca/xtp/threecenters.h</file>
+            <file>file:/home/jens/votca_git/src/xtp/include/votca/xtp/aoshell.h</file>
             <file>file:/home/jens/votca_git/src/xtp/src/libxtp/gwbse/rpa.cc</file>
+            <file>file:/home/jens/votca_git/src/xtp/src/libxtp/threecenters.cc</file>
             <file>file:/home/jens/votca_git/src/xtp/src/libxtp/gwbse/gwbse.cc</file>
             <file>file:/home/jens/votca_git/src/xtp/src/libxtp/gwbse/gwa.cc</file>
-            <file>file:/home/jens/votca_git/src/xtp/src/libxtp/gwbse/bse.cc</file>
+            <file>file:/home/jens/votca_git/src/xtp/src/libxtp/jobcalculators/igwbse.cc</file>
             <file>file:/home/jens/votca_git/src/xtp/include/votca/xtp/gwbse.h</file>
         </group>
     </open-files>
