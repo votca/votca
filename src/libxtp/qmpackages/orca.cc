@@ -514,7 +514,7 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
     //unsigned _basis_size = 0;
     int _number_of_electrons = 0;
     //bool _has_basis_dim = false;
-                bool _has_charges = false;
+               
     std::vector<std::string> results;    
     
 
@@ -688,7 +688,7 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
 
                 if (charge_pos != std::string::npos && _get_charges) {
                     LOG(logDEBUG, *_pLog) << "Getting charges" << flush;
-                    _has_charges = true;
+                    //_has_charges = true;
                     getline(_input_file, _line);
                     //getline(_input_file, _line);
 
