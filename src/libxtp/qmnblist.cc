@@ -24,12 +24,13 @@
 
 namespace votca { namespace xtp {
 
-QMPair *QMNBList::Add(Segment* seg1, Segment* seg2) {
-
+QMPair *QMNBList::Add(Segment* seg1, Segment* seg2,bool safe) {
+    
+    if (safe){
     if (this->FindPair(seg1, seg2) != NULL) {
         throw std::runtime_error("Critical bug: pair already exists");
     }
-
+    }
     // POTENTIAL BUGS : +1 added to start from 1;
     int id = this->size()+1;
 
@@ -41,7 +42,29 @@ QMPair *QMNBList::Add(Segment* seg1, Segment* seg2) {
     
 }
 
-
+void QMNBList::AddQMNBlist(QMNBList &temp){
+    int id=0;
+    if (this->size()>0){
+    id=this->back()->getId();
+    }
+    while(!temp.empty()){
+        
+        QMPair* pair=temp.front();
+        
+        pair->setId(id+1);
+        
+        this->AddPair(pair);
+        
+        id++;
+        temp._pairs.pop_front();
+        
+    }
+    
+    while(!temp._superexchange.empty()){                                  
+        this->_superexchange.push_back(temp._superexchange.front());
+        temp._superexchange.pop_front();
+       }
+}
 
 
 void QMNBList::PrintInfo(FILE *out) {

@@ -1072,10 +1072,16 @@ void StateSaverSQLite::ReadPairs(int topId) {
                                   "WHERE top = ?;");
 
     stmt->Bind(1, topId);
+    QMNBList nblist=_qmtop->NBList();
     
+    
+    QMNBList nblisttemp;
+    unsigned i=0;
     while (stmt->Step() != SQLITE_DONE) {
+        
         int     s1  = stmt->Column<int>(0);
         int     s2  = stmt->Column<int>(1);
+        
         int     he  = stmt->Column<int>(2);
         int     hh  = stmt->Column<int>(3);
         int     hs  = stmt->Column<int>(4);
@@ -1097,10 +1103,14 @@ void StateSaverSQLite::ReadPairs(int topId) {
         double  js  = stmt->Column<double>(20);
         double  jt  = stmt->Column<double>(21);
         int     tp  = stmt->Column<int>(22);
+        Segment* seg1=_qmtop->getSegment(s1);
+        Segment* seg2=_qmtop->getSegment(s2);
+        QMPair *newPair=new QMPair();
+        nblisttemp.AddPair(newPair);
+        //QMPair *newPair = nblist.Add(seg1,seg2,false);
+        //QMPair *newPair = _qmtop->NBList().Add(_qmtop->getSegment(s1),
+         //                                       _qmtop->getSegment(s2),false);
         
-        QMPair *newPair = _qmtop->NBList().Add(_qmtop->getSegment(s1),
-                                                _qmtop->getSegment(s2));
-
         bool has_e = (he == 0) ? false : true;
         bool has_h = (hh == 0) ? false : true;
         bool has_s = (hs == 0) ? false : true;
@@ -1129,10 +1139,22 @@ void StateSaverSQLite::ReadPairs(int topId) {
         newPair->setJeff2(js, +2);
         newPair->setJeff2(jt, +3);
         newPair->setType(tp);
-
+        i++; 
+        if(i==10000){
+            
+            nblist.AddQMNBlist(nblisttemp);
+            
+            nblisttemp.Cleanup();
+            i=0;            
+        }
     }
+    nblist.AddQMNBlist(nblisttemp);
+            
+           
+    cout<<nblist.size()<<endl;
     delete stmt;
     stmt = NULL;
+
 }
 
 

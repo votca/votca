@@ -27,6 +27,9 @@
 #include <boost/progress.hpp>
 #include <boost/format.hpp>
 #include <votca/tools/random2.h>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 namespace votca { namespace xtp {
 
@@ -65,7 +68,8 @@ private:
     string                            _probabilityfile;
     bool                              _stochastic_connectivity;
     bool                              _generate_unsafe;
-    
+    int                               _openmp_threads;
+    bool                              _do_bridging;
     std::list<QMNBList::SuperExchangeType*>        _superexchange;
 
 };
@@ -85,8 +89,14 @@ void Neighborlist::Initialize(Property *options) {
     else{
         _stochastic_connectivity = false;
     }
-
     
+    
+            if (options->exists(key + ".openmp")) {
+                _openmp_threads = options->get(key + ".openmp").as<int> ();
+            }
+            else{
+                _openmp_threads=0;
+            }
     list< Property* > segs = options->Select(key+".segments");
     list< Property* > ::iterator segsIt;
 
@@ -134,8 +144,10 @@ void Neighborlist::Initialize(Property *options) {
         _generate_from_file = false;
         _generate_from = "nofile";
     }
+    
+        
     if (options->exists(key+".generate_unsafe")) {
-        _generate_unsafe = true;
+        _generate_unsafe = options->get(key+".generate_unsafe").as< bool >();
     }
     else {
         _generate_unsafe = false;
@@ -143,6 +155,10 @@ void Neighborlist::Initialize(Property *options) {
     
     // if superexchange is given
     if (options->exists(key + ".superexchange")) {
+        _do_bridging = true;
+    
+    
+    
         list< Property* > _se = options->Select(key + ".superexchange");
         list< Property* > ::iterator seIt;
 
@@ -152,10 +168,17 @@ void Neighborlist::Initialize(Property *options) {
             _superexchange.push_back(_su); 
         }
     }
+    else{
+       _do_bridging=false; 
+    }
             
 }
 
 bool Neighborlist::EvaluateFrame(Topology *top) {
+    
+    #ifdef _OPENMP
+            if ( _openmp_threads > 0 ) omp_set_num_threads(_openmp_threads);           
+    #endif
 
     top->NBList().Cleanup();
 
@@ -170,19 +193,20 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
     
     else {        
 
-        vector< Segment* > ::iterator segit1;
+       
         
-        
-        
+     
         
         if (TOOLS::globals::verbose) {
             cout << endl <<  "... ..." << flush;
         }
-        boost::progress_display show_progress( top->Segments().size() );        
-        for (segit1 = top->Segments().begin();
+        boost::progress_display show_progress( top->Segments().size() ); 
+        #pragma omp parallel for
+        for (vector< Segment* > ::iterator segit1 = top->Segments().begin();              
                 segit1 < top->Segments().end();
                 segit1++) {
                 ++show_progress;
+                QMNBList templist=QMNBList();
                 vector< Segment* > ::iterator segit2;
                 vector< Fragment* > ::iterator fragit1;
                 vector< Fragment* > ::iterator fragit2;
@@ -242,7 +266,10 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
                             if (!top->PairWithinPb(seg1->getPos(),seg2->getPos())){
                                 cout << (boost::format("Warning distance between segments %4i and %4i is less than half the shortest box length, this cannot end well") % seg1->getId() % seg2->getId()).str()<<endl;
                             }
-                            top->NBList().Add(seg1, seg2);
+                            
+                            {
+                            templist.Add(seg1, seg2,!_generate_unsafe);
+                            }
                             stopLoop = true;
                             break;
                         }                
@@ -252,28 +279,31 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
             } /* exit loop seg2 */
                 
                // break;
+#pragma omp critical
+                {
+                    
+                    top->NBList().AddQMNBlist(templist);
+                    
+                }
+            
         } /* exit loop seg1 */       
 
     }
 
     cout << endl << " ... ... Created " << top->NBList().size() << " direct pairs.";
-    
     if(_useExcitonCutoff){
         cout << endl << " ... ... Determining classical pairs "<<endl;
-        QMNBList::iterator pit;
         QMNBList &nblist = top->NBList();
-        for (pit = nblist.begin(); pit != nblist.end(); ++pit) {
+        for (QMNBList::iterator pit = nblist.begin(); pit != nblist.end(); ++pit) {
             vec r1;
             vec r2;
             vector< Fragment* > ::iterator fragit1;
             vector< Fragment* > ::iterator fragit2;
             
-            
             bool stopLoop = false;
                 for (fragit1 =  (*pit)->Seg1()->Fragments().begin();
                         fragit1 <  (*pit)->Seg1()->Fragments().end();
                         fragit1 ++) {
-
                     if (stopLoop) { break; }
 
                     for (fragit2 =  (*pit)->Seg2()->Fragments().begin();
@@ -297,8 +327,7 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
                 } /* exit loop frag1 */          
             } //Type 3 Exciton_classical approx
         }        
-    
-
+    if (_do_bridging){
     // add superexchange pairs
     top->NBList().setSuperExchangeTypes(_superexchange);
     top->NBList().GenerateSuperExchange();
@@ -343,7 +372,7 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
         }
         //cout << bridges_summary;
     }
-
+    }
     return true;        
 }
 

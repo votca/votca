@@ -75,6 +75,7 @@ public:
 
 
    int       getId() { return _id; }
+   void       setId(int id) { _id=id; }
    Topology *getTopology() { return _top; }
    void      setTopology(Topology *top) { _top = top; }
    vec      &R() { return _R; }
