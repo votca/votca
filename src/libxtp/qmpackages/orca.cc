@@ -130,7 +130,7 @@ void Orca::Initialize( Property *options ) {
     }
 
     // check if the esp keyword is present, if yes, get the charges and save them
-    iop_pos = _options.find(" esp");  /*electrostatic potential related to partial atomic charges I guess is chelpg in orca but check */
+    iop_pos = _options.find(" chelpg");  /*electrostatic potential related to partial atomic charges I guess is chelpg in orca but check */
     if (iop_pos != std::string::npos) {
         _get_charges = true;
     } else
@@ -514,6 +514,7 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
     //unsigned _basis_size = 0;
     int _number_of_electrons = 0;
     //bool _has_basis_dim = false;
+                bool _has_charges = false;
     std::vector<std::string> results;    
     
 
@@ -680,7 +681,50 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
             _energies [i] = boost::lexical_cast<double>(_e) ;
         }
         }
-            
+            /*
+                 *  Partial charges from the input file
+                 */
+                std::string::size_type charge_pos = _line.find("CHELPG Charges");
+
+                if (charge_pos != std::string::npos && _get_charges) {
+                    LOG(logDEBUG, *_pLog) << "Getting charges" << flush;
+                    _has_charges = true;
+                    getline(_input_file, _line);
+                    //getline(_input_file, _line);
+
+                    bool _has_atoms = _orbitals->hasQMAtoms();
+
+                    std::vector<std::string> _row;
+                    getline(_input_file, _line);
+                    boost::trim(_line);
+                    //cout << _line << endl;
+                    boost::algorithm::split(_row, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
+                    int nfields = _row.size();
+                    //cout << _row.size() << endl;
+
+                    while (nfields == 4) {
+                        int atom_id = boost::lexical_cast< int >(_row.at(0));
+                        atom_id++;
+                        //int atom_number = boost::lexical_cast< int >(_row.at(0));
+                        std::string atom_type = _row.at(1);
+                        double atom_charge = boost::lexical_cast< double >(_row.at(3));
+                        if ( tools::globals::verbose ) cout << "... ... " << atom_id << " " << atom_type << " " << atom_charge << endl;
+                        getline(_input_file, _line);
+                        boost::trim(_line);
+                        boost::algorithm::split(_row, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
+                        nfields = _row.size();
+
+                        if (_has_atoms == false) {
+                            _orbitals->AddAtom(atom_type, 0, 0, 0, atom_charge);
+                        } else {
+                            QMAtom* pAtom = _orbitals->_atoms.at(atom_id - 1);
+                            pAtom->type = atom_type;
+                            pAtom->charge = atom_charge;
+                        }
+
+                    }
+                    //_orbitals->_has_atoms = true;
+                }
         }
 
     
@@ -721,6 +765,12 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
   // _coefficients.clear();
    _energies.clear();
    _occ.clear();
+   
+   
+   
+   
+
+   
    
    
    LOG(logDEBUG, *_pLog) << "Done reading Log file" << flush;
