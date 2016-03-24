@@ -1103,13 +1103,9 @@ void StateSaverSQLite::ReadPairs(int topId) {
         double  js  = stmt->Column<double>(20);
         double  jt  = stmt->Column<double>(21);
         int     tp  = stmt->Column<int>(22);
-        //Segment* seg1=_qmtop->getSegment(s1);
-        //Segment* seg2=_qmtop->getSegment(s2);
-        QMPair *newPair=new QMPair();
-        nblisttemp.AddPair(newPair);
-        //QMPair *newPair = nblist.Add(seg1,seg2,false);
-        //QMPair *newPair = _qmtop->NBList().Add(_qmtop->getSegment(s1),
-         //                                       _qmtop->getSegment(s2),false);
+        
+        QMPair *newPair = nblisttemp.Add(_qmtop->getSegment(s1),
+                                                _qmtop->getSegment(s2),false);
         
         bool has_e = (he == 0) ? false : true;
         bool has_h = (hh == 0) ? false : true;
