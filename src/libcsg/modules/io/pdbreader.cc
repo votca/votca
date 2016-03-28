@@ -90,9 +90,9 @@ bool PDBReader::NextFrame(Topology &top)
 	    if ((!wildcmp("90*",alpha.c_str()))||(!wildcmp("90*",alpha.c_str()))||(!wildcmp("90*",alpha.c_str()))){
 	         throw std::runtime_error("Non cubical box in pdb file not implemented, yet!");
             }
-	    top.setBox(matrix(vec(boost::lexical_cast<double>(a), 0, 0),
-	                      vec(0, boost::lexical_cast<double>(b), 0), 
-			      vec(0, 0, boost::lexical_cast<double>(c))));
+	    top.setBox(matrix(vec(boost::lexical_cast<double>(a)/10.0, 0, 0),
+	                      vec(0, boost::lexical_cast<double>(b)/10.0, 0),
+			      vec(0, 0, boost::lexical_cast<double>(c)/10.0)));
 
 	}
         if( wildcmp("ATOM*",line.c_str()) || wildcmp("HETATM*",line.c_str())){
