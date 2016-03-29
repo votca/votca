@@ -229,6 +229,9 @@ int main(int argc, char** argv)
     out.y() = out.y();
     out.flags() = ub::scalar_vector<double>(out.flags().size(), 'o');
 
+    der.GenerateGridSpacing(min, max, step);
+    der.flags() = ub::scalar_vector<double>(der.flags().size(), 'o');
+
     unsigned int i=0;
     for(i=0; out.x(i) < in.x(0) && i<out.size(); ++i);
 
@@ -239,14 +242,12 @@ int main(int argc, char** argv)
                 break;        
         if(in.size() == j) break;
         out.flags(i) = in.flags(j);
+        der.flags(i) = in.flags(j);
     }
     
     out.Save(out_file);
     
     if (vm.count("derivative")) {
-        der.GenerateGridSpacing(min, max, step);
-        der.flags() = ub::scalar_vector<double>(der.flags().size(), 'o');
-
         spline->CalculateDerivative(der.x(), der.y());
 
         der.Save(vm["derivative"].as<string>());
