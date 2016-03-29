@@ -19,7 +19,9 @@ After partitioning, an additional step is often required to remove bond length f
 
 To partition the system on hopping sites and substitute rigid fragments with the corresponding ground-state geometries \ctpmap program is used:
 \votcacommand{Mapping the \gromacs trajectory}{\cmdmap}
-It reads in the \gromacs topology (\topology) and trajectory (\trajectory) files, definitions of conjugated segments and rigid fragments (\xmlcsg) and outputs coordinates of conjugated segments (hopping sites) and rigid fragments (as provided in the MD trajectory and after rigidification) to the  state file (\sqlstate). In order to do this, a mapping file \xmlcsg has to be provided, which specifies the corresponding atoms in the different representations. After this step, all information (frame number, dimensions of the simulation box, etc) are stored in the \slink{statefile}{state file} and only this file is used for further calculations.  
+It reads in the \gromacs topology (\topology) and trajectory (\trajectory) files, definitions of conjugated segments and rigid fragments (\xmlcsg) and outputs coordinates of conjugated segments (hopping sites) and rigid fragments (as provided in the MD trajectory and after rigidification) to the  state file (\sqlstate). In order to do this, a mapping file \xmlcsg has to be provided, which specifies the corresponding atoms in the different representations. After this step, all information (frame number, dimensions of the simulation box, etc) are stored in the \slink{statefile}{state file} and only this file is used for further calculations.
+
+\attention{\votcactp requires a wrapped trajectory for mapping the segments and fragments, so all molecules should be whole in the frame.}   
 
 In order to visually check the mapping one can use either the \calc{tdump} \calculator or the programm \ctpdump with the calculator \calc{trajectory2pdb}.
 
