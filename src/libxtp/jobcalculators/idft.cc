@@ -88,6 +88,8 @@ void IDFT::ParseOptionsXML( votca::tools::Property *opt ) {
     _max_unoccupied_levels = _max_occupied_levels;
 
     _trim_factor = opt->get(key+".trim").as<int> ();
+    if ( _trim_factor == -1 ) _do_trim = true;
+    
     
     string _package_xml = opt->get(key+".package").as<string> ();
     //cout << endl << "... ... Parsing " << _package_xml << endl ;
@@ -292,7 +294,10 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 
    // Orbitals _orbitalsA, _orbitalsB;
 
-   
+    int _degAH = 1;
+    int _degAL = 1;
+    int _degBH = 1;
+    int _degBL = 1;
    if ( _do_project ) {
        
        // orbitals must be loaded from a file
@@ -320,7 +325,35 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
                return jres;
         }
  
+       
+
+        if (_trim_factor == -1 ) { 
+                           
+                // find degeneracy of HOMOs and LUMOs
+                std::vector<int> list_levelsAH  = (*_orbitalsA.getDegeneracy( _orbitalsA.getNumberOfElectrons()-1, _energy_difference ));
+                _degAH = list_levelsAH.size();
+                std::vector<int> list_levelsAL  = (*_orbitalsA.getDegeneracy( _orbitalsA.getNumberOfElectrons(), _energy_difference ));
+                _degAL = list_levelsAL.size();  
+        
+                std::vector<int> list_levelsBH  = (*_orbitalsB.getDegeneracy( _orbitalsB.getNumberOfElectrons()-1, _energy_difference ));
+                _degBH = list_levelsBH.size();
+                std::vector<int> list_levelsBL  = (*_orbitalsB.getDegeneracy( _orbitalsB.getNumberOfElectrons(), _energy_difference ));
+                _degBL = list_levelsBL.size();  
+        }
+        
         if ( _do_trim ) {
+          
+    
+            if (_trim_factor == -1 ) { 
+                LOG(logDEBUG,*pLog) << "Trimming orbitals to minimal set " << flush;
+                LOG(logDEBUG,*pLog) <<   "HOMO(A)-" << _degAH << " to " << "LUMO(A)+" << _degAL << flush;
+                _orbitalsA.Trim(_degAH,_degAL);
+                LOG(logDEBUG,*pLog) <<   "HOMO(B)-" << _degBH << " to " << "LUMO(B)+" << _degBL << flush;
+                _orbitalsB.Trim(_degBH,_degBL);
+                
+            } else {
+            
+            
              LOG(logDEBUG,*pLog) << "Trimming virtual orbitals A:" 
                     << _orbitalsA.getNumberOfLevels() - _orbitalsA.getNumberOfElectrons() << "->" 
                     << _orbitalsA.getNumberOfElectrons()*(_trim_factor-1);             
@@ -330,7 +363,9 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
                     << _orbitalsB.getNumberOfLevels() - _orbitalsB.getNumberOfElectrons() << "->" 
                     << _orbitalsB.getNumberOfElectrons()*(_trim_factor-1) << flush;              
             _orbitalsB.Trim(_trim_factor);
+
         }
+        } // _do_trim
      
         _overlap.setLogger(pLog);
          
@@ -350,13 +385,19 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     
         HOMO_A = _orbitalsA.getNumberOfElectrons() ;
         HOMO_B = _orbitalsB.getNumberOfElectrons() ;
-    
         LUMO_A = HOMO_A + 1;
         LUMO_B = HOMO_B + 1;
-    
-        double J_h = _overlap.getCouplingElement( HOMO_A , HOMO_B, &_orbitalsA, &_orbitalsB, &_JAB, _energy_difference );
-        double J_e = _overlap.getCouplingElement( LUMO_A , LUMO_B, &_orbitalsA, &_orbitalsB, &_JAB, _energy_difference );
-    
+        
+        double J_h;
+        double J_e;
+        
+        if ( _trim_factor == -1 ){
+            J_h = _overlap.getCouplingElement( _degAH , _degBH, &_orbitalsA, &_orbitalsB, &_JAB, _energy_difference );
+            J_e = _overlap.getCouplingElement( _degAH +1 ,_degBH +1, &_orbitalsA, &_orbitalsB, &_JAB, _energy_difference );
+        } else{
+            J_h = _overlap.getCouplingElement( HOMO_A , HOMO_B, &_orbitalsA, &_orbitalsB, &_JAB, _energy_difference );
+            J_e = _overlap.getCouplingElement( LUMO_A , LUMO_B, &_orbitalsA, &_orbitalsB, &_JAB, _energy_difference );          
+        }
         LOG(logINFO,*pLog) << "Couplings h/e " << ID_A << ":" << ID_B << " " << J_h  << ":" << J_e  << flush; 
        
         // Output the thread run summary and clean the Logger
@@ -406,8 +447,26 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
        LoadOrbitals( orbFileAB, &_orbitalsAB, pLog );
        LoadOrbitals( orbFileA, &_orbitalsA, pLog );
        LoadOrbitals( orbFileB, &_orbitalsB, pLog );
-       _orbitalsA.Trim(_trim_factor);
-       _orbitalsB.Trim(_trim_factor);
+       if (_trim_factor == -1 ) { 
+                           
+            // find degeneracy of HOMOs and LUMOs
+            std::vector<int> list_levelsAH  = (*_orbitalsA.getDegeneracy( _orbitalsA.getNumberOfElectrons()-1, _energy_difference ));
+            _degAH = list_levelsAH.size();
+            std::vector<int> list_levelsAL  = (*_orbitalsA.getDegeneracy( _orbitalsA.getNumberOfElectrons(), _energy_difference ));
+            _degAL = list_levelsAL.size();  
+        
+            std::vector<int> list_levelsBH  = (*_orbitalsB.getDegeneracy( _orbitalsB.getNumberOfElectrons()-1, _energy_difference ));
+            _degBH = list_levelsBH.size();
+            std::vector<int> list_levelsBL  = (*_orbitalsB.getDegeneracy( _orbitalsB.getNumberOfElectrons(), _energy_difference ));
+            _degBL = list_levelsBL.size();  
+    
+            _orbitalsA.Trim(_degAH,_degAL);
+            _orbitalsB.Trim(_degBH,_degBL);
+       
+       } else {
+           _orbitalsA.Trim(_trim_factor);
+           _orbitalsB.Trim(_trim_factor);
+       }
        _JAB = _orbitalsAB.MOCouplings();
        HOMO_A = _orbitalsA.getNumberOfElectrons() ;
        HOMO_B = _orbitalsB.getNumberOfElectrons() ;
@@ -428,6 +487,34 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         _pair_summary->setAttribute("homoB", HOMO_B);
         _pair_summary->setAttribute("typeA", nameA);
         _pair_summary->setAttribute("typeB", nameB);
+        
+         if ( _trim_factor == -1 ) {
+
+                // HOMO-HOMO coupling
+                double JAB = _overlap.getCouplingElement(_degAH, _degBH , &_orbitalsA, &_orbitalsB, &_JAB, _energy_difference);
+                Property *_overlap_summary = &_pair_summary->add("overlap", boost::lexical_cast<string>(JAB));
+                double energyA = _orbitalsA.getEnergy(_degAH);
+                double energyB = _orbitalsB.getEnergy(_degBH);
+                _overlap_summary->setAttribute("orbA", HOMO_A);
+                _overlap_summary->setAttribute("orbB", HOMO_B);
+                //_overlap_summary->setAttribute("jAB", JAB);
+                _overlap_summary->setAttribute("eA", energyA);
+                _overlap_summary->setAttribute("eB", energyB);
+                
+                // LUMO-LUMO coupling
+                JAB = _overlap.getCouplingElement(_degAH+1, _degBH+1 , &_orbitalsA, &_orbitalsB, &_JAB, _energy_difference);
+                _overlap_summary = &_pair_summary->add("overlap", boost::lexical_cast<string>(JAB));
+                energyA = _orbitalsA.getEnergy(_degAH +1);
+                energyB = _orbitalsB.getEnergy(_degBH +1);
+                _overlap_summary->setAttribute("orbA", LUMO_A);
+                _overlap_summary->setAttribute("orbB", LUMO_B);
+                //_overlap_summary->setAttribute("jAB", JAB);
+                _overlap_summary->setAttribute("eA", energyA);
+                _overlap_summary->setAttribute("eB", energyB);                
+
+    } else {
+        
+        
         for (int levelA = HOMO_A - _max_occupied_levels +1; levelA <= LUMO_A + _max_unoccupied_levels - 1; ++levelA ) {
                 for (int levelB = HOMO_B - _max_occupied_levels + 1; levelB <= LUMO_B + _max_unoccupied_levels -1 ; ++levelB ) {        
                         Property *_overlap_summary = &_pair_summary->add("overlap",""); 
@@ -441,6 +528,7 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
                         _overlap_summary->setAttribute("eB", energyB);
                 }
         }
+    }
         
         votca::tools::PropertyIOManipulator iomXML(votca::tools::PropertyIOManipulator::XML, 1, "");
         sout <<  iomXML << _job_summary;

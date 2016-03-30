@@ -202,15 +202,14 @@ bool Coupling::Evaluate() {
     Property *_job_output = &_summary.add("output","");
     Property *_pair_summary = &_job_output->add("pair","");
     
+    int HOMO_A = _orbitalsA.getNumberOfElectrons();
+    int HOMO_B = _orbitalsB.getNumberOfElectrons();
+    int LUMO_A = HOMO_A + 1;
+    int LUMO_B = HOMO_B + 1;
+    _pair_summary->setAttribute("homoA", HOMO_A);
+    _pair_summary->setAttribute("homoB", HOMO_B);
+                
     if ( (_trimA = -1) || (_trimB = -1) ) {
-                int HOMO_A = _orbitalsA.getNumberOfElectrons();
-                int HOMO_B = _orbitalsB.getNumberOfElectrons();
-                int LUMO_A = HOMO_A + 1;
-                int LUMO_B = HOMO_B + 1;
-                _pair_summary->setAttribute("homoA", HOMO_A);
-                _pair_summary->setAttribute("homoB", HOMO_B);
-                // overwrite _levA if required
-
 
                 // HOMO-HOMO coupling
                 double JAB = _overlap.getCouplingElement(_degAH, _degBH , &_orbitalsA, &_orbitalsB, &_JAB, _degeneracy);
@@ -236,12 +235,6 @@ bool Coupling::Evaluate() {
 
     } else {
 
-                int HOMO_A = _orbitalsA.getNumberOfElectrons();
-                int HOMO_B = _orbitalsB.getNumberOfElectrons();
-                int LUMO_A = HOMO_A + 1;
-                int LUMO_B = HOMO_B + 1;
-                _pair_summary->setAttribute("homoA", HOMO_A);
-                _pair_summary->setAttribute("homoB", HOMO_B);
                 for (int levelA = HOMO_A - _levA + 1; levelA <= LUMO_A + _levA - 1; ++levelA) {
                     for (int levelB = HOMO_B - _levB + 1; levelB <= LUMO_B + _levB - 1; ++levelB) {
                         double JAB = _overlap.getCouplingElement(levelA, levelB, &_orbitalsA, &_orbitalsB, &_JAB, _degeneracy);
