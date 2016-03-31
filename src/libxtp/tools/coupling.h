@@ -145,7 +145,7 @@ bool Coupling::Evaluate() {
     int _degBH = 1;
     int _degBL = 1;
             
-    if ((_trimA = -1) || (_trimB = -1) ) { // any -1 overrides the specification of the other 
+    if ((_trimA == -1) || (_trimB == -1) ) { // any -1 overrides the specification of the other 
     
         
         // find degeneracy of HOMOs and LUMOs
@@ -209,7 +209,7 @@ bool Coupling::Evaluate() {
     _pair_summary->setAttribute("homoA", HOMO_A);
     _pair_summary->setAttribute("homoB", HOMO_B);
                 
-    if ( (_trimA = -1) || (_trimB = -1) ) {
+    if ( (_trimA == -1) || (_trimB == -1) ) {
 
                 // HOMO-HOMO coupling
                 double JAB = _overlap.getCouplingElement(_degAH, _degBH , &_orbitalsA, &_orbitalsB, &_JAB, _degeneracy);
