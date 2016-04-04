@@ -522,6 +522,9 @@
       </imc>
       <lammps>
 	      <DESC>lammps specific options for this interations</DESC>
+        <scale>1
+          <DESC>scaling factor for the potential output, can be used to convert VOTCA units, nm, to other units, e.g. angstroms</DESC>
+        </scale>
         <table>
 	        <DESC>Name of file for tabulated potential of this interaction. This fill will be created from the internal tabulated potential format in every step. Note, though, that the lammps script needs to contain the name of that table as the tabulated interaction and the interaction is stored in the VOTCA section of the file..</DESC>
 	      </table>
