@@ -878,7 +878,7 @@ check_for_obsolete_xml_options() { #check xml file for obsolete options
     cg.inverse.espresso.blockfile cg.inverse.espresso.blockfile_out cg.inverse.espresso.n_steps \
     cg.inverse.espresso.exclusions cg.inverse.espresso.debug cg.inverse.espresso.n_snapshots \
     cg.non-bonded.inverse.espresso.index1 cg.non-bonded.inverse.espresso.index2 cg.inverse.espresso.success \
-    cg.inverse.espresso.scriptdir \
+    cg.inverse.espresso.scriptdir cg.non-bonded.inverse.post_update_options.kbibi.type \
     ; do
     [[ -z "$(csg_get_property --allow-empty $i)" ]] && continue #filter me away
     new=""

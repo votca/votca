@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 #
-# Copyright 2009-2012 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -35,10 +35,10 @@ while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
      print <<END;
 $progname, version %version%
 
-This script calculates Kirkwood-Buff correction as described in
+This script calculates Kirkwood-Buff correction as described in:
 P. Ganguly, D. Mukherji, C. Junghans, N. F. A. van der Vegt,
 Kirkwood-Buff coarse-grained force fields for aqueous solutions,
-J. Chem. Theo. Comp., in press (2012), doi:10.1021/ct3000958
+J. Chem. Theo. Comp., 8, 1802 (2012), doi:10.1021/ct3000958
 
 $usage
 
