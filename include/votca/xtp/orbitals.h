@@ -370,6 +370,9 @@ public:
     
     // reduces number of virtual orbitals to factor*number_of_occupied_orbitals
     void Trim( int factor );
+    
+        // reduces number of virtual orbitals to [HOMO-degG:LUMO+degL]
+    void Trim( int degH, int degL );
 
     /** Loads orbitals from a file
      * Returns true if successful and does not throw an exception.

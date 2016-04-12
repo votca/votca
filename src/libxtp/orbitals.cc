@@ -306,6 +306,56 @@ void Orbitals::Trim( int factor ) {
     }
 }
 
+
+// reduces the number of orbitals to [HOMO-degH:LUMO+degL]
+void Orbitals::Trim( int degH, int degL ) {
+    
+    
+    
+    if ( hasMOCoefficients() ) {
+        
+        //cout << " COEF Before " << _mo_coefficients.size1() << endl;   
+        
+        _mo_coefficients = ub::project( _mo_coefficients , ub::range(_occupied_levels -degH , _occupied_levels + degL), ub::range ( 0, _basis_set_size ) ) ;
+        
+        //cout << " and After: " << _mo_coefficients.size1() << endl;   
+        
+    }
+
+    if ( hasMOEnergies() ) {
+        
+        //cout << " EN Before " << _mo_energies.size() << endl;   
+        
+        ub::vector<double> _temp(degH+degL); 
+        
+        for ( int i = 0; i< degH+degL ; i++ ) {
+            
+            _temp(i) = _mo_energies(_occupied_levels-degH + i);
+            
+        }
+        
+        
+        _mo_energies = _temp;
+        //cout << " and After: " << _mo_energies.size() << endl;   
+    }
+
+    _occupied_levels = degH;
+    _unoccupied_levels = degL;        
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
 bool Orbitals::Load(string file_name) {
     try {
         std::ifstream ifs( file_name.c_str() );

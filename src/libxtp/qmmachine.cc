@@ -88,6 +88,8 @@ namespace votca {
                 string _gdma_xml = opt->get(key).as<string> ();
                 //cout << endl << "... ... Parsing " << _package_xml << endl ;
                 load_property_from_xml(_gdma_options, _gdma_xml.c_str());
+            } else {
+                _do_gdma = false;
             }
 
 
@@ -294,9 +296,19 @@ namespace votca {
 
                 // for GW-BSE, we also need to parse the orbitals file
                 _qmpack->ParseOrbitalsFile(&orb_iter_output);
-                //int _parse_orbitals_status = _qmpack->ParseOrbitalsFile( &orb_iter_output );
+                
                 std::vector<int> _state_index;
-                _gwbse.Initialize(&_gwbse_options);
+                // define own logger for GW-BSE that is written into a runFolder logfile
+                Logger gwbse_logger(logDEBUG);
+                gwbse_logger.setMultithreading(false);
+                _gwbse.setLogger(&gwbse_logger);
+                gwbse_logger.setPreface(logINFO, (format("\nGWBSE INF ...")).str());
+                gwbse_logger.setPreface(logERROR, (format("\nGWBSE ERR ...")).str());
+                gwbse_logger.setPreface(logWARNING, (format("\nGWBSE WAR ...")).str());
+                gwbse_logger.setPreface(logDEBUG, (format("\nGWBSE DBG ...")).str());
+             
+                _gwbse.Initialize(&_gwbse_options);                   
+                
                 if (_state > 0) {
                     LOG(logDEBUG, *_log) << "Excited state via GWBSE: " << flush;
                     LOG(logDEBUG, *_log) << "  --- type:              " << _type << flush;
@@ -312,14 +324,7 @@ namespace votca {
                         LOG(logDEBUG, *_log) << "  --- WARNING: filtering for optically active CT transition - might not make sense... " << flush;
                     }
 
-                    // define own logger for GW-BSE that is written into a runFolder logfile
-                    Logger gwbse_logger(logDEBUG);
-                    gwbse_logger.setMultithreading(false);
-                    _gwbse.setLogger(&gwbse_logger);
-                    gwbse_logger.setPreface(logINFO, (format("\nGWBSE INF ...")).str());
-                    gwbse_logger.setPreface(logERROR, (format("\nGWBSE ERR ...")).str());
-                    gwbse_logger.setPreface(logWARNING, (format("\nGWBSE WAR ...")).str());
-                    gwbse_logger.setPreface(logDEBUG, (format("\nGWBSE DBG ...")).str());
+
 
                     // actual GW-BSE run
                     _gwbse.Evaluate(&orb_iter_output);
@@ -418,11 +423,12 @@ namespace votca {
                 BasisSet dftbs;
                 if (orb_iter_output.getDFTbasis() != "") {
                     dftbs.LoadBasisSet(orb_iter_output.getDFTbasis());
+                    LOG(logDEBUG, *_log) << TimeStamp() << " Loaded DFT Basis Set " << orb_iter_output.getDFTbasis() << flush;
                 } else {
                     dftbs.LoadBasisSet(_gwbse.get_dftbasis_name());
-
+                    LOG(logDEBUG, *_log) << TimeStamp() << " Loaded DFT Basis Set " << _gwbse.get_dftbasis_name() << flush;
                 }
-                LOG(logDEBUG, *_log) << TimeStamp() << " Loaded DFT Basis Set " << orb_iter_output.getDFTbasis() << flush;
+                
 
 
 
@@ -459,7 +465,7 @@ namespace votca {
 
 
 
-            }
+            } //_do_gwbse
 
             // Test: go via GDMA instead of point charges, only for DFT with Gaussian!
             GDMA _gdma;

@@ -138,22 +138,55 @@ bool Coupling::Evaluate() {
     //int _parse_logAB_status = _qmpackage->ParseLogFile( &_orbitalsAB );
     _qmpackage->ParseLogFile( &_orbitalsAB );
 
-    if ( _orbitalsA.getNumberOfElectrons()*(_trimA-1) <   _orbitalsA.getNumberOfLevels() - _orbitalsA.getNumberOfElectrons() ){
 
+    // trim monomer A to minimal?
+    int _degAH = 1;
+    int _degAL = 1;
+    int _degBH = 1;
+    int _degBL = 1;
+            
+    if ((_trimA == -1) || (_trimB == -1) ) { // any -1 overrides the specification of the other 
     
-    LOG(logDEBUG,_log) << "Trimming virtual orbitals A:" 
-                    << _orbitalsA.getNumberOfLevels() - _orbitalsA.getNumberOfElectrons() << "->" 
-                    << _orbitalsA.getNumberOfElectrons()*(_trimA-1) << std::flush;  
-    _orbitalsA.Trim(_trimA);
-    }
-     LOG(logDEBUG,_log) << "DONE!" << std::flush;
-    if ( _orbitalsA.getNumberOfElectrons()*(_trimB-1) <   _orbitalsB.getNumberOfLevels() - _orbitalsB.getNumberOfElectrons() ){
+        
+        // find degeneracy of HOMOs and LUMOs
+        std::vector<int> list_levelsAH  = (*_orbitalsA.getDegeneracy( _orbitalsA.getNumberOfElectrons()-1, _degeneracy ));
+        _degAH = list_levelsAH.size();
+        std::vector<int> list_levelsAL  = (*_orbitalsA.getDegeneracy( _orbitalsA.getNumberOfElectrons(), _degeneracy ));
+        _degAL = list_levelsAL.size();  
+        
+        std::vector<int> list_levelsBH  = (*_orbitalsB.getDegeneracy( _orbitalsB.getNumberOfElectrons()-1, _degeneracy ));
+        _degBH = list_levelsBH.size();
+        std::vector<int> list_levelsBL  = (*_orbitalsB.getDegeneracy( _orbitalsB.getNumberOfElectrons(), _degeneracy ));
+        _degBL = list_levelsBL.size();  
+        
+        _orbitalsA.Trim(_degAH,_degAL);
+        _orbitalsB.Trim(_degBH,_degBL);
+    
+        
+        
+    } else {
+                // standard trim
 
-    LOG(logDEBUG,_log) << "Trimming virtual orbitals B:" 
-                    << _orbitalsB.getNumberOfLevels() - _orbitalsB.getNumberOfElectrons() << "->" 
-                    << _orbitalsB.getNumberOfElectrons()*(_trimB-1) << std::flush;      
-    _orbitalsB.Trim(_trimB);
-    }    
+                if (_orbitalsA.getNumberOfElectrons()*(_trimA - 1) < _orbitalsA.getNumberOfLevels() - _orbitalsA.getNumberOfElectrons()) {
+
+
+                    LOG(logDEBUG, _log) << "Trimming virtual orbitals A:"
+                            << _orbitalsA.getNumberOfLevels() - _orbitalsA.getNumberOfElectrons() << "->"
+                            << _orbitalsA.getNumberOfElectrons()*(_trimA - 1) << std::flush;
+                    _orbitalsA.Trim(_trimA);
+                }
+                LOG(logDEBUG, _log) << "DONE!" << std::flush;
+                if (_orbitalsB.getNumberOfElectrons()*(_trimB - 1) < _orbitalsB.getNumberOfLevels() - _orbitalsB.getNumberOfElectrons()) {
+
+                    LOG(logDEBUG, _log) << "Trimming virtual orbitals B:"
+                            << _orbitalsB.getNumberOfLevels() - _orbitalsB.getNumberOfElectrons() << "->"
+                            << _orbitalsB.getNumberOfElectrons()*(_trimB - 1) << std::flush;
+                    _orbitalsB.Trim(_trimB);
+                }    
+     
+     
+     
+    }
      Overlap _overlap; 
     _overlap.setLogger(&_log);
           
@@ -163,28 +196,59 @@ bool Coupling::Evaluate() {
      std::cout << _log;
  
      
+      
      // output the results
     Property _summary; 
     Property *_job_output = &_summary.add("output","");
     Property *_pair_summary = &_job_output->add("pair","");
+    
     int HOMO_A = _orbitalsA.getNumberOfElectrons();
     int HOMO_B = _orbitalsB.getNumberOfElectrons();
     int LUMO_A = HOMO_A + 1;
     int LUMO_B = HOMO_B + 1;
     _pair_summary->setAttribute("homoA", HOMO_A);
     _pair_summary->setAttribute("homoB", HOMO_B);
-    for (int levelA = HOMO_A - _levA +1; levelA <= LUMO_A + _levA - 1; ++levelA ) {
-        for (int levelB = HOMO_B - _levB + 1; levelB <= LUMO_B + _levB -1 ; ++levelB ) {        
-                double JAB = _overlap.getCouplingElement( levelA , levelB, &_orbitalsA, &_orbitalsB, &_JAB, _degeneracy );
-                Property *_overlap_summary = &_pair_summary->add("overlap", boost::lexical_cast<string>(JAB)); 
-                double energyA = _orbitalsA.getEnergy( levelA );
-                double energyB = _orbitalsB.getEnergy( levelB );
-                _overlap_summary->setAttribute("orbA", levelA);
-                _overlap_summary->setAttribute("orbB", levelB);
+                
+    if ( (_trimA == -1) || (_trimB == -1) ) {
+
+                // HOMO-HOMO coupling
+                double JAB = _overlap.getCouplingElement(_degAH, _degBH , &_orbitalsA, &_orbitalsB, &_JAB, _degeneracy);
+                Property *_overlap_summary = &_pair_summary->add("overlap", boost::lexical_cast<string>(JAB));
+                double energyA = _orbitalsA.getEnergy(_degAH);
+                double energyB = _orbitalsB.getEnergy(_degBH);
+                _overlap_summary->setAttribute("orbA", HOMO_A);
+                _overlap_summary->setAttribute("orbB", HOMO_B);
                 //_overlap_summary->setAttribute("jAB", JAB);
                 _overlap_summary->setAttribute("eA", energyA);
                 _overlap_summary->setAttribute("eB", energyB);
-        }
+                
+                // LUMO-LUMO coupling
+                JAB = _overlap.getCouplingElement(_degAH+1, _degBH+1 , &_orbitalsA, &_orbitalsB, &_JAB, _degeneracy);
+                _overlap_summary = &_pair_summary->add("overlap", boost::lexical_cast<string>(JAB));
+                energyA = _orbitalsA.getEnergy(_degAH +1);
+                energyB = _orbitalsB.getEnergy(_degBH +1);
+                _overlap_summary->setAttribute("orbA", LUMO_A);
+                _overlap_summary->setAttribute("orbB", LUMO_B);
+                //_overlap_summary->setAttribute("jAB", JAB);
+                _overlap_summary->setAttribute("eA", energyA);
+                _overlap_summary->setAttribute("eB", energyB);                
+
+    } else {
+
+                for (int levelA = HOMO_A - _levA + 1; levelA <= LUMO_A + _levA - 1; ++levelA) {
+                    for (int levelB = HOMO_B - _levB + 1; levelB <= LUMO_B + _levB - 1; ++levelB) {
+                        double JAB = _overlap.getCouplingElement(levelA, levelB, &_orbitalsA, &_orbitalsB, &_JAB, _degeneracy);
+                        Property *_overlap_summary = &_pair_summary->add("overlap", boost::lexical_cast<string>(JAB));
+                        double energyA = _orbitalsA.getEnergy(levelA);
+                        double energyB = _orbitalsB.getEnergy(levelB);
+                        _overlap_summary->setAttribute("orbA", levelA);
+                        _overlap_summary->setAttribute("orbB", levelB);
+                        //_overlap_summary->setAttribute("jAB", JAB);
+                        _overlap_summary->setAttribute("eA", energyA);
+                        _overlap_summary->setAttribute("eB", energyB);
+                    }
+                }
+    
     }
 
     votca::tools::PropertyIOManipulator iomXML(votca::tools::PropertyIOManipulator::XML, 1, "");

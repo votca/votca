@@ -78,6 +78,8 @@ namespace votca {
             // getting level ranges 
             _ranges = options->get(key + ".ranges").as<string> ();
             // now check validity, and get rpa, qp, and bse level ranges accordingly
+
+            
             if (_ranges == "factor") {
                 // get factors
                 _rpamaxfactor = options->get(key + ".rpamax").as<double> ();
@@ -119,7 +121,7 @@ namespace votca {
                 LOG(logDEBUG, *_pLog) <<  " BSE type: TDA" << flush;
             }
             
-            
+      
             // get OpenMP thread number
             _openmp_threads = options->get(key + ".openmp").as<int> ();
             if (options->exists(key + ".vxc")) {
