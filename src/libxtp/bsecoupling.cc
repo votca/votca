@@ -1143,6 +1143,26 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      ub::project( _S_dimer,  ub::range (_bse_exc, _bse_exc+_ctAB ), ub::range ( _bse_exc+_ctAB, _bse_exc+_ct )   ) = ub::prod( ctAB, _temp );
      ub::project( _S_dimer,  ub::range (_bse_exc+_ctAB, _bse_exc+_ct ), ub::range ( _bse_exc+_ctAB, _bse_exc+_ct )   ) = ub::prod( ctBA, _temp ); 
      }
+     // we do the lowdin transformation for every localised exciton separately
+     
+    ub::matrix<float> _J_small = ub::zero_matrix<float>( 2 +_ct, 2+_ct );
+    ub::matrix<float> _S_small = ub::zero_matrix<float>( 2 +_ct, 2+_ct);
+    ub::project( _S_small,  ub::range (2, _ct ), ub::range ( 2, _ct )  ) = ub::project( _S_dimer,  ub::range (_bse_exc, _ct ), ub::range ( _bse_exc, _ct )  );
+    ub::project( _J_small,  ub::range (2, _ct ), ub::range ( 2, _ct )  ) = ub::project( _J_dimer,  ub::range (_bse_exc, _ct ), ub::range ( _bse_exc, _ct )  );
+     for (unsigned exA=0;exA<_bseA_exc;exA++){
+         for (unsigned exB=_bseA_exc;exB<_bse_exc;exB++){
+             // exciton on A and exciton on B give two states + ct states
+             for (unsigned i=0;i<_bse_exc+_ct;i++){
+                 _J_small(0,i)=_J_dimer(exA,i);
+                 _J_small(i,0)=_J_dimer(i,exA);
+                 _J_small(1,i)=_J_dimer(exB,i);
+                 _J_small(i,1)=_J_dimer(i,exB);
+                 _S_small(0,i)=_S_dimer(exA,i);
+                 _S_small(i,0)=_S_dimer(i,exA);
+                 _S_small(1,i)=_S_dimer(exB,i);
+                 _S_small(i,1)=_S_dimer(i,exB);
+             }
+    
     
      // cout<<_S_dimer<<endl;
      ub::vector<float> _S_eigenvalues; 
@@ -1151,7 +1171,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      //cout << _J_dimer*conv::ryd2ev_f<<endl;
      //cout << "S"<<endl;
      //cout << _S_dimer<< endl;
-     linalg_eigenvalues( _S_eigenvalues, _S_dimer);
+     linalg_eigenvalues( _S_eigenvalues, _S_small);
       
      LOG(logDEBUG,*_pLog) << "Smallest value of dimer overlapmatrix is "<< _S_eigenvalues[0]<< flush;
 
@@ -1162,8 +1182,8 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
          
      }
      
-     ub::matrix<float> _diagS = ub::zero_matrix<float>( _bse_exc + _ct  , _bse_exc + _ct );
-     for ( unsigned _i =0; _i < _bse_exc + _ct ; _i++){
+     ub::matrix<float> _diagS = ub::zero_matrix<float>( 2 + _ct  , 2 + _ct );
+     for ( unsigned _i =0; _i < 2 + _ct ; _i++){
 
          _diagS(_i,_i) = 1.0/sqrt(_S_eigenvalues[_i]);
      }
@@ -1172,14 +1192,14 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      //cout << endl;
      //cout << "J_dimer"<<endl;
      //cout <<_J_dimer<<endl;
-     ub::matrix<float> _transtemp = ub::prod( _diagS, ub::trans(_S_dimer));
-     ub::matrix<float> _transform = ub::prod( _S_dimer,_transtemp );
+     ub::matrix<float> _transtemp = ub::prod( _diagS, ub::trans(_S_small));
+     ub::matrix<float> _transform = ub::prod( _S_small,_transtemp );
 
-     ub::matrix<float> _J_temp = ub::prod(_J_dimer, _transform);
+     ub::matrix<float> _J_temp = ub::prod(_J_small, _transform);
      
              // final coupling elements
      // _J = ub::prod( _transform, ub::prod(_J_dimer, _transform));
-    ub::matrix<float>_J_ortho = ub::prod( _transform, _J_temp);
+    ub::matrix<float>_J_ortho = ub::prod( _transform, _J_small);
     //cout<<endl;
     //cout<< "diagonals"<<endl;
     //for (unsigned i=0;i<_J_ortho.size1();i++){
@@ -1189,7 +1209,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
     //cout << "J_ortho"<<endl;
     //cout << _J_ortho*conv::ryd2ev_f<<endl;
      //Setting up effective Coupling matrix
-     LOG(logDEBUG,*_pLog) << "Setting up effective/perturbative Coupling matrix of size: "<< _bse_exc  <<"x"<<  _bse_exc << flush;
+     //LOG(logDEBUG,*_pLog) << "Setting up effective/perturbative Coupling matrix of size: "<< _bse_exc  <<"x"<<  _bse_exc << flush;
      
      
      
@@ -1207,19 +1227,19 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      
      //setting up transformation matrix _T and diagonal matrix _E for the eigenvalues;
      
-     ub::matrix<float> _E=ub::zero_matrix<float>(_bse_exc,_bse_exc);
-     ub::matrix<float> _T=ub::zero_matrix<float>(_bse_exc,_bse_exc);
+     ub::matrix<float> _E=ub::zero_matrix<float>(2,2);
+     ub::matrix<float> _T=ub::zero_matrix<float>(2,2);
      //find the eigenvectors which are most similar to the initial states
      
      LOG(logDEBUG,*_pLog) << "Sorting states according to similiarity with the FE states " << flush;
      
      std::vector<unsigned> index;
      //column
-      for (unsigned i = 0; i < _bse_exc; i++) {
+      for (unsigned i = 0; i < 2; i++) {
                 float close = 0.0;
                 unsigned ind = 0;
                 //row
-                for (unsigned j = 0; j < _bse_exc + _ct; j++) {
+                for (unsigned j = 0; j < 2 + _ct; j++) {
                     bool check=true;
                     // if index i is already in index
                     // should not happen but if one vector was similar to tow others.
@@ -1250,15 +1270,15 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      }
      LOG(logDEBUG,*_pLog)<< flush;
      //row
-     for (unsigned i = 0; i < _bse_exc; i++) {
+     for (unsigned i = 0; i < 2; i++) {
          unsigned k=index[i];
                 float norm = 0.0;
                 //column
-                for (unsigned j = 0; j < _bse_exc; j++) {
+                for (unsigned j = 0; j < 2; j++) {
                     
                     norm += _J_ortho(j, k)*_J_ortho(j, k);
                 }
-                for (unsigned j = 0; j < _bse_exc; j++) {
+                for (unsigned j = 0; j < 2; j++) {
                     if (i == j) {
                         _E(i, i) = _J_eigenvalues(k);
                     }
@@ -1272,9 +1292,12 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      //cout << _T << endl;
      _temp=ub::prod(_E,ub::trans(_T));
      //cout << "_J" <<endl;
-     _J=ub::prod(_T,_temp);
+     ub::matrix<float> _temp2=ub::prod(_T,_temp);
+     _J(exA,exB)=_temp2(0,1);
+     _J(exB,exA)=_temp2(1,0);
      //cout <<_J*conv::ryd2ev_f<<endl;
-     
+         }
+     }
      /*
      for (unsigned i=0;i<_J.size1();i++){
          for (unsigned j=0;j<i;j++){
