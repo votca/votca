@@ -29,18 +29,10 @@ fi
 
 [[ -z $1 || -z $2 || -z $3 ]] && die "${0##*/}: Missing arguments"
 
-# initialize & run the octave file
-cat_external solve numpy | sed -e "s/\$name_out/$2/"  -e "s/\$name/$1/" -e "s/\$reg/$3/" > solve_$1.sh || die "${0##*/}: sed failed"
-
-#this check is not sufficient for numpy! check for numpy package!
-py="$(csg_get_property cg.inverse.imc.numpy.bin)"
-[ -n "$(type -p $py)" ] || die "${0##*/}: python binary '$py' not found"
-
-critical $py solve_$1.sh
+do_external solve numpy --reg "$3" "$1" "$2"
 
 [[ -f $2 ]] || die "Python failed"
 # temporary compatibility issue
-echo "TODO: check these lines!"
+#TODO: check these lines!
 critical sed -ie 's/NaN/0.0/' "$2"
 critical sed -ie 's/Inf/0.0/' "$2"
-

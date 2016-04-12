@@ -257,11 +257,6 @@
 	      <DESC> Name (or absolute path) of the matlab binary </DESC>
 	      </bin>
       </matlab>
-      <numpy>
-	      <bin>python
-	      <DESC> Name (or absolute path) of the python binary used by the numpy solver</DESC>
-	      </bin>
-      </numpy>
       <octave>
 	      <bin>octave
 	      <DESC> Name (or absolute path) of the octave binary </DESC>

@@ -15,15 +15,25 @@
 # limitations under the License.
 #
 
+from optparse import OptionParser
 import numpy as np
 import numpy.linalg as la
-A = np.loadtxt('$name.gmc');
-b = np.loadtxt('$name.imc');
 
+usage = "Usage: %prog [options] group output"
+parser = OptionParser(usage=usage)
+parser.add_option("--reg", dest="reg", metavar="REG",
+                  help="regularization factor", default=0)
+(options, args) = parser.parse_args()                  
+
+if len(args) != 2:
+  exit("two statefile required as parameters")
+
+A = np.loadtxt(args[0]+'.gmc');
+b = np.loadtxt(args[0]+'.imc');
 x = np.empty([len(b),2])
 n, m = A.shape
 I = np.identity(m)
 x[:,0] = b[:,0]
-x[:,1] = -np.dot(np.dot(la.inv(np.dot(A.T, A) + $reg*I), A.T), b[:,1]);
+x[:,1] = -np.dot(np.dot(la.inv(np.dot(A.T, A) + float(options.reg)*I), A.T), b[:,1]);
 
-np.savetxt('$name_out', x)
+np.savetxt(args[1], x)
