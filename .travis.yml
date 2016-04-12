@@ -8,10 +8,14 @@ sudo: false
 
 addons:
   apt:
-    sources: boost-latest 
+    sources:
+      - boost-latest 
+      - george-edison55-precise-backports
     packages:
       - ccache
       - libfftw3-dev
+      - cmake
+      - cmake-data
       - libgsl0-dev
       - txt2tags
       - libboost1.55-all-dev
@@ -30,7 +34,6 @@ addons:
 
 env:
   global:
-    - CMAKE_VERSION=3.1.3-Linux-x86_64
     - HDF5_VERSION=1.8.14
     - GMX_MAX_THREADS=8
     - CCACHE_CPP2=yes
@@ -59,6 +62,7 @@ env:
     - CSG_MDRUN_STEPS=500 TEST=spce/simplex/simple J=4
     - CSG_MDRUN_STEPS=500 TEST=urea-water/ibi J=4
     - CSG_MDRUN_STEPS=500 TEST=urea-water/kb-ibi J=4
+    - CSG_MDRUN_STEPS=500 TEST=He-Ar/imc J=4
 
 before_script:
   - rm -vrf * .git
@@ -67,19 +71,18 @@ before_script:
   - wget -O "$HOME/votca/share/votca/scripts/inverse/cma.py" http://www.lri.fr/~hansen/cma.py
   - ln -s /usr/bin/ccache "$HOME/bin/clang++"
   - ln -s /usr/bin/ccache "$HOME/bin/clang"
-# download newer cmake for gmx
-  - wget --no-check-certificate -qO- http://www.cmake.org/files/v${CMAKE_VERSION:0:3}/cmake-${CMAKE_VERSION}.tar.gz | tar -xz
-  - ln -vs $PWD/cmake-${CMAKE_VERSION}/bin/cmake "$HOME/bin/cmake"
-  - wget -qO- https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION}/src/hdf5-${HDF5_VERSION}.tar.gz | tar -xz &&
-    cd hdf5-${HDF5_VERSION} && ./configure --prefix=$HOME/hdf5 && make -j4 &> /dev/null && make install && cd ..
+  - if [[ ${MINIMAL} != yes ]]; then 
+      wget -qO- https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION}/src/hdf5-${HDF5_VERSION}.tar.gz | tar -xz &&
+      cd hdf5-${HDF5_VERSION} && ./configure --prefix=$HOME/hdf5 && make -j4 &> /dev/null && make install && cd ..;
+    fi
 
 script:
   - PATH="$HOME/bin:$HOME/hdf5:/usr/lib/ccache:$PATH" ./build.sh -Wu --dev --prefix "$HOME/votca" ${MAN:+--devdoc}
     ${TEST:+--runtest=$TEST} ${WERROR:+--warn-to-errors} -DWITH_H5MD=ON ${MINIMAL:+--minimal}
-    ${J:+-j$J} ${BDIR:+--builddir=$BDIR} ${NINJA:+--ninja} ${WALL:+--Wall}
-    --directory "$HOME/votca/src" --no-clean --depth 1 -DGMX_USE_RDTSCP=OFF
-    tools gromacs csg csgapps ${MAN:+csg-manual} ${TEST:+csg-tutorials}
-    ${CTP:+kmc moo ctp}
+    ${J:+-j$J} ${BDIR:+--builddir=$BDIR} ${NINJA:+--ninja} ${WALL:+--Wall} ${GMX_VERSION:+--gmx-release ${GMX_VERSION}}
+    --directory "$HOME/votca/src" --no-clean --depth 1 -DGMX_USE_RDTSCP=OFF ${GMX_DOUBLE:+-DGMX_DOUBLE=yes}
+    tools $([[ ${MINIMAL} ]] || echo gromacs) csg csgapps ${MAN:+csg-manual} ${TEST:+csg-tutorials}
+    ${CTP:+kmc moo ctp} ${XTP:+xtp}
 
 cache:
   directories:
