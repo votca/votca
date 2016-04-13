@@ -1039,6 +1039,8 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      unsigned _bseA_exc = _bseA.size2();
      unsigned _bseB_exc = _bseB.size2();
      unsigned _bse_exc=_bseA_exc+_bseB_exc;
+     
+     _J=ub::zero_matrix<float>(_bse_exc,_bse_exc);
      unsigned _ctAB=ctAB.size1();
      
      unsigned _ctBA=ctBA.size1();
@@ -1144,30 +1146,56 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      ub::project( _S_dimer,  ub::range (_bse_exc+_ctAB, _bse_exc+_ct ), ub::range ( _bse_exc+_ctAB, _bse_exc+_ct )   ) = ub::prod( ctBA, _temp ); 
      }
      // we do the lowdin transformation for every localised exciton separately
+    cout << "_S_dimer"<<endl;
+            cout << _S_dimer<<endl;
+            cout <<" _J_dimer"<<endl;
+            cout << _J_dimer<<endl;
      
-    ub::matrix<float> _J_small = ub::zero_matrix<float>( 2 +_ct, 2+_ct );
-    ub::matrix<float> _S_small = ub::zero_matrix<float>( 2 +_ct, 2+_ct);
-    ub::project( _S_small,  ub::range (2, _ct ), ub::range ( 2, _ct )  ) = ub::project( _S_dimer,  ub::range (_bse_exc, _ct ), ub::range ( _bse_exc, _ct )  );
-    ub::project( _J_small,  ub::range (2, _ct ), ub::range ( 2, _ct )  ) = ub::project( _J_dimer,  ub::range (_bse_exc, _ct ), ub::range ( _bse_exc, _ct )  );
+    
      for (unsigned exA=0;exA<_bseA_exc;exA++){
          for (unsigned exB=_bseA_exc;exB<_bse_exc;exB++){
+             LOG(logDEBUG,*_pLog) << "Calculating coupling between exciton A"<< exA+1<<" and exciton B"<<exB+1-_bseA_exc << flush;
+            ub::matrix<float> _J_small = ub::zero_matrix<float>( 2 +_ct, 2+_ct );
+            ub::matrix<float> _S_small = ub::zero_matrix<float>( 2 +_ct, 2+_ct);
+            ub::project( _S_small,  ub::range (2, _ct+2 ), ub::range ( 2, _ct+2 )  ) = ub::project( _S_dimer,  ub::range (_bse_exc, _bse_exc+_ct ), ub::range ( _bse_exc, _bse_exc+_ct )  );
+            ub::project( _J_small,  ub::range (2, _ct+2 ), ub::range ( 2, _ct+2 )  ) = ub::project( _J_dimer,  ub::range (_bse_exc, _bse_exc+_ct ), ub::range ( _bse_exc, _bse_exc+_ct )  );
              // exciton on A and exciton on B give two states + ct states
-             for (unsigned i=0;i<_bse_exc+_ct;i++){
-                 _J_small(0,i)=_J_dimer(exA,i);
-                 _J_small(i,0)=_J_dimer(i,exA);
-                 _J_small(1,i)=_J_dimer(exB,i);
-                 _J_small(i,1)=_J_dimer(i,exB);
-                 _S_small(0,i)=_S_dimer(exA,i);
-                 _S_small(i,0)=_S_dimer(i,exA);
-                 _S_small(1,i)=_S_dimer(exB,i);
-                 _S_small(i,1)=_S_dimer(i,exB);
+            cout << "_S_small"<<endl;
+            cout << _S_small<<endl;
+            cout <<" _J_small"<<endl;
+            cout << _J_small<<endl;
+             _J_small(0,0)=_J_dimer(exA,exA);
+             _J_small(1,1)=_J_dimer(exB,exB);
+             _J_small(0,1)=_J_dimer(exA,exB);
+             _J_small(1,0)=_J_dimer(exB,exA);
+             _S_small(0,0)=_S_dimer(exA,exA);
+             _S_small(1,1)=_S_dimer(exB,exB);
+             _S_small(0,1)=_S_dimer(exA,exB);
+             _S_small(1,0)=_S_dimer(exB,exA);
+            
+             for (unsigned i=0;i<_ct;i++){
+                
+                unsigned j=i+2;
+                unsigned k=i+_bse_exc;
+                 _J_small(0,j)=_J_dimer(exA,k);
+                 _J_small(j,0)=_J_dimer(k,exA);
+                 _J_small(1,j)=_J_dimer(exB,k);
+                 _J_small(j,1)=_J_dimer(k,exB);
+                 _S_small(0,j)=_S_dimer(exA,k);
+                 _S_small(j,0)=_S_dimer(k,exA);
+                 _S_small(1,j)=_S_dimer(exB,k);
+                 _S_small(j,1)=_S_dimer(k,exB);
              }
-    
-    
+             
+             cout << "_S_small2"<<endl;
+            cout << _S_small<<endl;
+            cout <<" _J_small2"<<endl;
+            cout << _J_small<<endl;
+             
      // cout<<_S_dimer<<endl;
      ub::vector<float> _S_eigenvalues; 
      //cout <<endl;
-     // cout<<"_J_dimer"<<endl;
+     // 
      //cout << _J_dimer*conv::ryd2ev_f<<endl;
      //cout << "S"<<endl;
      //cout << _S_dimer<< endl;
@@ -1260,11 +1288,11 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      
      LOG(logDEBUG,*_pLog) << "Order is: [Initial state n->nth eigenvalue]"<<flush;
      for (unsigned i=0;i<index.size();i++){
-         if(i<_bseA_exc){
+         if(i<2){
       LOG(logDEBUG,*_pLog) <<"    A"<<i+1<<":"<<i+1<<"->"<<index[i]+1<<" " ;   
          }
          else{
-     LOG(logDEBUG,*_pLog) <<"    B"<<i+1-_bseA_exc<<":"<<i+1<<"->"<<index[i]+1<<" " ;  
+     LOG(logDEBUG,*_pLog) <<"    B"<<i+1-2<<":"<<i+1<<"->"<<index[i]+1<<" " ;  
          }
                  
      }
@@ -1291,10 +1319,14 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
 
      //cout << _T << endl;
      _temp=ub::prod(_E,ub::trans(_T));
-     //cout << "_J" <<endl;
+     
      ub::matrix<float> _temp2=ub::prod(_T,_temp);
      _J(exA,exB)=_temp2(0,1);
+     _J(exA,exA)=_temp2(0,0);
+     _J(exB,exB)=_temp2(1,1);
      _J(exB,exA)=_temp2(1,0);
+     cout << _temp2<<endl;
+     cout << _J<<endl;
      //cout <<_J*conv::ryd2ev_f<<endl;
          }
      }
