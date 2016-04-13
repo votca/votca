@@ -1222,7 +1222,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      //cout <<_J_dimer<<endl;
      ub::matrix<double> _transtemp = ub::prod( _diagS, ub::trans(_S_small));
      ub::matrix<double> _transform = ub::prod( _S_small,_transtemp );
-
+     cout << _transform<<endl;
      ub::matrix<double> _J_temp = ub::prod(_J_small, _transform);
      
              // final coupling elements
@@ -1234,8 +1234,8 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
    //     cout << _J_ortho(i,i)*conv::ryd2ev_f<<" ";
     //}
     //cout <<endl;
-    //cout << "J_ortho"<<endl;
-    //cout << _J_ortho*conv::ryd2ev_f<<endl;
+    cout << "J_ortho"<<endl;
+    cout << _J_ortho<<endl;
      //Setting up effective Coupling matrix
      //LOG(logDEBUG,*_pLog) << "Setting up effective/perturbative Coupling matrix of size: "<< _bse_exc  <<"x"<<  _bse_exc << flush;
      
@@ -1247,8 +1247,8 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      
      //finding the eigenstates which are closest to the the original states
      
-     //cout << "_J_eigenvalues" << endl;
-    //cout << _J_eigenvalues*conv::ryd2ev_f << endl;
+     cout << "_J_eigenvalues" << endl;
+    cout << _J_eigenvalues<< endl;
      //cout << "_J_eigenvectors" << endl;
      //cout << _J_ortho<<endl;
      
@@ -1313,8 +1313,8 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
                     _T(j,i ) = _J_ortho(j,k) / std::sqrt(norm);
                 }
             }
-     //cout << "_E" <<endl;
-     //cout << _E*conv::ryd2ev_f <<endl;
+     cout << "_E" <<endl;
+     cout << _E<<endl;
           //cout << "_T" <<endl;
 
      //cout << _T << endl;
