@@ -1146,10 +1146,10 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      ub::project( _S_dimer,  ub::range (_bse_exc+_ctAB, _bse_exc+_ct ), ub::range ( _bse_exc+_ctAB, _bse_exc+_ct )   ) = ub::prod( ctBA, _temp ); 
      }
      // we do the lowdin transformation for every localised exciton separately
-    cout << "_S_dimer"<<endl;
-            cout << _S_dimer<<endl;
-            cout <<" _J_dimer"<<endl;
-            cout << _J_dimer<<endl;
+    //cout << "_S_dimer"<<endl;
+            //cout << _S_dimer<<endl;
+            //cout <<" _J_dimer"<<endl;
+            //cout << _J_dimer<<endl;
      
     
      for (unsigned exA=0;exA<_bseA_exc;exA++){
@@ -1160,10 +1160,10 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
             ub::project( _S_small,  ub::range (2, _ct+2 ), ub::range ( 2, _ct+2 )  ) = ub::project( _S_dimer,  ub::range (_bse_exc, _bse_exc+_ct ), ub::range ( _bse_exc, _bse_exc+_ct )  );
             ub::project( _J_small,  ub::range (2, _ct+2 ), ub::range ( 2, _ct+2 )  ) = ub::project( _J_dimer,  ub::range (_bse_exc, _bse_exc+_ct ), ub::range ( _bse_exc, _bse_exc+_ct )  );
              // exciton on A and exciton on B give two states + ct states
-            cout << "_S_small"<<endl;
-            cout << _S_small<<endl;
-            cout <<" _J_small"<<endl;
-            cout << _J_small<<endl;
+            //cout << "_S_small"<<endl;
+            //cout << _S_small<<endl;
+            //cout <<" _J_small"<<endl;
+            //cout << _J_small<<endl;
              _J_small(0,0)=_J_dimer(exA,exA);
              _J_small(1,1)=_J_dimer(exB,exB);
              _J_small(0,1)=_J_dimer(exA,exB);
@@ -1187,10 +1187,10 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
                  _S_small(j,1)=_S_dimer(k,exB);
              }
              
-             cout << "_S_small2"<<endl;
-            cout << _S_small<<endl;
-            cout <<" _J_small2"<<endl;
-            cout << _J_small<<endl;
+             //cout << "_S_small2"<<endl;
+            //cout << _S_small<<endl;
+            //cout <<" _J_small2"<<endl;
+            //cout << _J_small<<endl;
              
      // cout<<_S_dimer<<endl;
      ub::vector<double> _S_eigenvalues; 
@@ -1222,7 +1222,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      //cout <<_J_dimer<<endl;
      ub::matrix<double> _transtemp = ub::prod( _diagS, ub::trans(_S_small));
      ub::matrix<double> _transform = ub::prod( _S_small,_transtemp );
-     cout << _transform<<endl;
+     //cout << _transform<<endl;
      ub::matrix<double> _J_temp = ub::prod(_J_small, _transform);
      
              // final coupling elements
@@ -1234,8 +1234,8 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
    //     cout << _J_ortho(i,i)*conv::ryd2ev_f<<" ";
     //}
     //cout <<endl;
-    cout << "J_ortho"<<endl;
-    cout << _J_ortho<<endl;
+    //cout << "J_ortho"<<endl;
+    //cout << _J_ortho<<endl;
      //Setting up effective Coupling matrix
      //LOG(logDEBUG,*_pLog) << "Setting up effective/perturbative Coupling matrix of size: "<< _bse_exc  <<"x"<<  _bse_exc << flush;
      
@@ -1247,8 +1247,8 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      
      //finding the eigenstates which are closest to the the original states
      
-     cout << "_J_eigenvalues" << endl;
-    cout << _J_eigenvalues<< endl;
+     //cout << "_J_eigenvalues" << endl;
+    //cout << _J_eigenvalues<< endl;
      //cout << "_J_eigenvectors" << endl;
      //cout << _J_ortho<<endl;
      
@@ -1313,8 +1313,8 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
                     _T(j,i ) = _J_ortho(j,k) / std::sqrt(norm);
                 }
             }
-     cout << "_E" <<endl;
-     cout << _E<<endl;
+     //cout << "_E" <<endl;
+     //cout << _E<<endl;
           //cout << "_T" <<endl;
 
      //cout << _T << endl;
@@ -1325,8 +1325,8 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      _J(exA,exA)=_temp2(0,0);
      _J(exB,exB)=_temp2(1,1);
      _J(exB,exA)=_temp2(1,0);
-     cout << _temp2<<endl;
-     cout << _J<<endl;
+     //cout << _temp2<<endl;
+     //cout << _J<<endl;
      //cout <<_J*conv::ryd2ev_f<<endl;
          }
      }
