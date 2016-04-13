@@ -1227,7 +1227,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      
              // final coupling elements
      // _J = ub::prod( _transform, ub::prod(_J_dimer, _transform));
-    ub::matrix<double>_J_ortho = ub::prod( _transform, _J_small);
+    ub::matrix<double>_J_ortho = ub::prod( _transform, _J_temp);
     //cout<<endl;
     //cout<< "diagonals"<<endl;
     //for (unsigned i=0;i<_J_ortho.size1();i++){
