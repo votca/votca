@@ -76,11 +76,7 @@ private:
     Property            _gwbse_options; 
     Property            _coupling_options; 
     
-    string              _spintype;
-    bool                _do_singlets;
-    bool                _do_triplets;
-    //GWBSE               _gwbse;
-    //BSECoupling         _bsecoupling; 
+ 
 
     // what to do
     bool                _do_dft_input;
