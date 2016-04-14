@@ -128,8 +128,14 @@ void EDFT::Initialize(Property *options) {
     if (_store_string.find("singlets") != std::string::npos) _store_singlets = true;
     if (_store_string.find("triplets") != std::string::npos) _store_triplets = true;
     
-    key = "options." + Identify() +".job";
-    _jobfile = options->get(key + ".file").as<string>();
+    key = "options."+Identify()+".control";
+
+        if ( options->exists(key+".job_file")) {
+            _jobfile = options->get(key+".job_file").as<string>();
+        }
+        else {
+            throw std::runtime_error("Job-file not set. Abort.");
+        }
 
     
     load_property_from_xml( _package_options, _package_xml.c_str() );    

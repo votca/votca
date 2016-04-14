@@ -41,7 +41,7 @@ namespace votca { namespace xtp {
 // IEXCITON MEMBER FUNCTIONS         //
 // +++++++++++++++++++++++++++++ //
 
-void IEXCITON::Initialize(votca::tools::Property* opt ) {
+void IEXCITON::Initialize(votca::tools::Property* options ) {
     
 
     
@@ -54,35 +54,38 @@ void IEXCITON::Initialize(votca::tools::Property* opt ) {
 
     _induce= false;
     _statenumber=1;
-    string key = "options." + Identify();
-    if ( opt->exists(key+".job_file")) {
-        _jobfile = opt->get(key+".job_file").as<string>();
+     
+    string key = "options."+Identify()+".control";
+
+        if ( options->exists(key+".job_file")) {
+            _jobfile = options->get(key+".job_file").as<string>();
         }
-    else {
+        else {
             throw std::runtime_error("Job-file not set. Abort.");
-    }
-    if ( opt->exists(key+".mapping")) {
-        _xml_file = opt->get(key+".mapping").as<string>();
+        }
+    key = "options." + Identify();
+    if ( options->exists(key+".mapping")) {
+        _xml_file = options->get(key+".mapping").as<string>();
         }
     else {
             throw std::runtime_error("Mapping-file not set. Abort.");
         }
-    if ( opt->exists(key+".emp_file")) {
-            _emp_file   = opt->get(key+".emp_file").as<string>();
+    if ( options->exists(key+".emp_file")) {
+            _emp_file   = options->get(key+".emp_file").as<string>();
         }
     else {
             throw std::runtime_error("Emp-file not set. Abort.");
         }
-    if ( opt->exists(key+".statenumber")) {
-            _statenumber=opt->get(key+".statenumber").as<int>();
+    if ( options->exists(key+".statenumber")) {
+            _statenumber=options->get(key+".statenumber").as<int>();
            
         }
     else {
         cout << endl << "Statenumber not specified, assume singlet s1 " << flush;
           _statenumber=1;
         }
-    if ( opt->exists(key+".induce")) {
-            _induce   = opt->get(key+".induce").as<bool>();
+    if ( options->exists(key+".induce")) {
+            _induce   = options->get(key+".induce").as<bool>();
         }     
     
     cout << "done"<< endl;

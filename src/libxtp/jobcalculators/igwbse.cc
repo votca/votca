@@ -123,8 +123,14 @@ void IGWBSE::ParseOptionsXML( votca::tools::Property *opt ) {
     _package = _package_options.get(key+".name").as<string> ();
     
     // job file specification
-    key = "options." + Identify() +".job";
-    _jobfile = opt->get(key + ".file").as<string>();    
+     key = "options."+Identify()+".control";
+
+        if ( opt->exists(key+".job_file")) {
+            _jobfile = opt->get(key+".job_file").as<string>();
+        }
+        else {
+            throw std::runtime_error("Job-file not set. Abort.");
+        }
     
     //options for parsing data into sql file   
     key ="options." + Identify();

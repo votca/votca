@@ -82,8 +82,14 @@ namespace votca {
             if (_tasks_string.find("esp") != std::string::npos) _do_esp = true;
 
 
-            key = "options." + Identify() + ".job";
-            _jobfile = options->get(key + ".file").as<string>();
+            key = "options."+Identify()+".control";
+
+        if ( options->exists(key+".job_file")) {
+            _jobfile = options->get(key+".job_file").as<string>();
+        }
+        else {
+            throw std::runtime_error("Job-file not set. Abort.");
+        }
 
             // options for gwbse
             key = "options." + Identify();

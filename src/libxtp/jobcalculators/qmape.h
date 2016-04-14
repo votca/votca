@@ -80,9 +80,9 @@ private:
 // ========================================================================== //
 
 
-void QMAPE::Initialize(Property *opt) {
+void QMAPE::Initialize(Property *options) {
     
-	_options = opt;
+	_options = options;
 
     cout << endl
          << "... ... Initialized with " << _nThreads << " threads. "
@@ -90,47 +90,47 @@ void QMAPE::Initialize(Property *opt) {
 
     _maverick = (_nThreads == 1) ? true : false;
 
-    string key = "options.qmape.jobcontrol";
-		if ( opt->exists(key+".job_file")) {
-			_jobfile = opt->get(key+".job_file").as<string>();
-		}
-		else {
-			cout << endl;
-			throw std::runtime_error("Job-file not set. Abort.");
-		}
+    string key = "options."+Identify()+".control";
 
-	key = "options.ewald.multipoles";
-		if (opt->exists(key+".mapping")) {
-			_xml_file = opt->get(key+".mapping").as< string >();
+        if ( options->exists(key+".job_file")) {
+            _jobfile = options->get(key+".job_file").as<string>();
+        }
+        else {
+            throw std::runtime_error("Job-file not set. Abort.");
+        }
+
+	key = "options"+Identify()+".ewaldoptions";
+		if (options->exists(key+".mapping")) {
+			_xml_file = options->get(key+".mapping").as< string >();
 		}
 		else {
 			cout << endl;
 			throw std::runtime_error("Multipole mapping file not set. Abort.");
 		}
-		if ( opt->exists(key+".mps_table")) {
-			_mps_table = opt->get(key+".mps_table").as<string>();
+		if ( options->exists(key+".mps_table")) {
+			_mps_table = options->get(key+".mps_table").as<string>();
 		}
 		else {
 			cout << endl;
 			throw std::runtime_error("Background mps table not set. Abort.");
 		}
-		if (opt->exists(key+".polar_bg")) {
-			_polar_bg_arch = opt->get(key+".polar_bg").as<string>();
+		if (options->exists(key+".polar_bg")) {
+			_polar_bg_arch = options->get(key+".polar_bg").as<string>();
 		}
 		else { _polar_bg_arch = ""; }
-		if (opt->exists(key+".pdb_check")) {
-			_pdb_check = opt->get(key+".pdb_check").as<bool>();
+		if (options->exists(key+".pdb_check")) {
+			_pdb_check = options->get(key+".pdb_check").as<bool>();
 		}
 		else { _pdb_check = false; }
-		if (opt->exists(key+".ptop_check")) {
-			_ptop_check = opt->get(key+".ptop_check").as<bool>();
+		if (options->exists(key+".ptop_check")) {
+			_ptop_check = options->get(key+".ptop_check").as<bool>();
 		}
 		else { _ptop_check = false; }
 
     
-    key = "options.qmape.qmpackage";
-        if ( opt->exists(key+".package")) {
-            string package_xml = opt->get(key+".package").as< string >();
+    key = "options."+Identify()+".qmpackage";
+        if ( options->exists(key+".package")) {
+            string package_xml = options->get(key+".package").as< string >();
             load_property_from_xml(_qmpack_opt, package_xml.c_str());
             _package = _qmpack_opt.get("package.name").as< string >();
         }
@@ -139,18 +139,18 @@ void QMAPE::Initialize(Property *opt) {
         }
     
 
-    key = "options.qmape.gwbse";
-    if ( opt->exists(key)) { 
+    key = "options."+Identify()+".gwbse";
+    if ( options->exists(key)) { 
     	cout << endl << "... ... Configure for excited states (DFT+GWBSE)" << flush;
-        if ( opt->exists(key+".gwbse_options")) {
-            string gwbse_xml = opt->get(key+".gwbse_options").as< string >();
+        if ( options->exists(key+".gwbse_options")) {
+            string gwbse_xml = options->get(key+".gwbse_options").as< string >();
             load_property_from_xml(_gwbse_opt, gwbse_xml.c_str());
             // _gwbse = _gwbse_opt.get("package.name").as< string >();
         }
         else {
             throw runtime_error("GWBSE options not specified.");
         }
-        _state = opt->get(key+".state").as< int >();
+        _state = options->get(key+".state").as< int >();
     }
     else {
         cout << endl << "... ... Configure for ground states (DFT)" << flush;

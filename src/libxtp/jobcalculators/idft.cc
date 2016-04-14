@@ -64,14 +64,14 @@ void IDFT::Initialize(votca::tools::Property* options ) {
 
 }
 
-void IDFT::ParseOptionsXML( votca::tools::Property *opt ) {
+void IDFT::ParseOptionsXML( votca::tools::Property *options ) {
    
     // Orbitals are in fort.7 file; number of electrons in .log file
     
     string key = "options." + Identify();
-    _energy_difference = opt->get( key + ".degeneracy" ).as< double > ();
+    _energy_difference = options->get( key + ".degeneracy" ).as< double > ();
     
-    string _tasks_string = opt->get(key+".tasks").as<string> ();
+    string _tasks_string = options->get(key+".tasks").as<string> ();
     if (_tasks_string.find("input") != std::string::npos) _do_input = true;
     if (_tasks_string.find("run") != std::string::npos) _do_run = true;
     if (_tasks_string.find("parse") != std::string::npos) _do_parse = true;
@@ -79,19 +79,19 @@ void IDFT::ParseOptionsXML( votca::tools::Property *opt ) {
     if (_tasks_string.find("trim") != std::string::npos) _do_trim = true;
     if (_tasks_string.find("extract") != std::string::npos) _do_extract = true;
 
-    string _store_string = opt->get(key+".store").as<string> ();
+    string _store_string = options->get(key+".store").as<string> ();
     if (_store_string.find("orbitals") != std::string::npos) _store_orbitals = true;
     if (_store_string.find("overlap") != std::string::npos) _store_overlap = true;
     if (_store_string.find("integrals") != std::string::npos) _store_integrals = true;
     
-    _max_occupied_levels = opt->get(key+".levels").as<int> ();
+    _max_occupied_levels = options->get(key+".levels").as<int> ();
     _max_unoccupied_levels = _max_occupied_levels;
 
-    _trim_factor = opt->get(key+".trim").as<int> ();
+    _trim_factor = options->get(key+".trim").as<int> ();
     if ( _trim_factor == -1 ) _do_trim = true;
     
     
-    string _package_xml = opt->get(key+".package").as<string> ();
+    string _package_xml = options->get(key+".package").as<string> ();
     //cout << endl << "... ... Parsing " << _package_xml << endl ;
 
     load_property_from_xml( _package_options, _package_xml.c_str() );    
@@ -99,8 +99,15 @@ void IDFT::ParseOptionsXML( votca::tools::Property *opt ) {
      key = "package";
     _package = _package_options.get(key+".name").as<string> ();
     
-    key = "options." + Identify() +".job";
-    _jobfile = opt->get(key + ".file").as<string>();    
+    key = "options."+Identify()+".control";
+
+        if ( options->exists(key+".job_file")) {
+            _jobfile = options->get(key+".job_file").as<string>();
+        }
+        else {
+            throw std::runtime_error("Job-file not set. Abort.");
+        }
+    
 
 }
 
