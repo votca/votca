@@ -70,7 +70,7 @@ void Partialcharges::Initialize(Property* options) {
            
     _orbfile      = options->get(key + ".input").as<string> ();
     _output_file  = options->get(key + ".output").as<string> ();
-    string _esp2multipole_xml = options->get(key + ".esp2multipole").as<string> ();
+    string _esp2multipole_xml = options->get(key + ".esp_options").as<string> ();
     load_property_from_xml(_esp_options,_esp2multipole_xml.c_str());
     // get the path to the shared folders with xml files
     char *votca_share = getenv("VOTCASHARE");    

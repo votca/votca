@@ -78,7 +78,7 @@ void ExcitonCoupling::Initialize(Property* options)
     if(!_classical){
     
         
-        string _coupling_xml=options->get(key + ".bsecoupling").as<string>();
+        string _coupling_xml=options->get(key + ".bsecoupling_options").as<string>();
         load_property_from_xml(_coupling_options, _coupling_xml.c_str());
         
         _orbA  = options->get(key + ".orbitalsA").as<string> ();

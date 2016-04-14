@@ -120,7 +120,7 @@ namespace votca {
                 _do_triplet=true;
             }
             else{
-               throw std::runtime_error("Spin not known, only singlet and triplet possible"); 
+               throw std::runtime_error("Spin not known, only singlet or triplet possible"); 
             }
             
             _type = options->get(key + ".type").as<string> ();

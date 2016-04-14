@@ -159,7 +159,7 @@ void Exciton::Initialize(Property* options) {
             _output_file = options->get(key + ".archive").as<string>();
             _reporting =  options->get(key + ".reporting").as<string> ();
             // options for GWBSE package
-            string _gwbse_xml = options->get(key + ".gwbse").as<string> ();
+            string _gwbse_xml = options->get(key + ".gwbse_options").as<string> ();
             //cout << endl << "... ... Parsing " << _gwbse_xml << endl ;
             load_property_from_xml(_gwbse_options, _gwbse_xml.c_str());
 
@@ -178,7 +178,7 @@ void Exciton::Initialize(Property* options) {
             // _package = options->get(key + ".package").as<string> ();
 
             // options for dft package
-            string _package_xml = options->get(key + ".package").as<string> ();
+            string _package_xml = options->get(key + ".dftpackage").as<string> ();
             //cout << endl << "... ... Parsing " << _package_xml << endl ;
             load_property_from_xml(_package_options, _package_xml.c_str());
             key = "package";

@@ -2,11 +2,11 @@
 
 <exciton>
 
-        <package>gaussian_egwbse_molecule.xml</package>
+        <dftpackage>gaussian_egwbse_molecule.xml</dftpackage>
 
         <tasks>input,dft,parse,gwbse,optimize</tasks>
-        <reporting>default</reporting>
-        <output>coupling.out.xml</output>
+        <reporting>noisy</reporting>
+        <output>exciton.out.xml</output>
 
         <molecule help="">
                 <log>system.log</log>
@@ -15,7 +15,7 @@
                 <levels>3</levels>
         </molecule>
 
-        <gwbse>mbgft.xml</gwbse>
+        <gwbse_options>mbgft.xml</gwbse_options>
 
         <optimize>
             <state>1</state>
