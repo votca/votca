@@ -124,13 +124,13 @@ void QMMM::Initialize(Property *options) {
     _maverick = (_nThreads == 1) ? true : false;
     
 
-    string key = "options."+Identify()+".multipoles";
+    string key = "options."+Identify()+".mapping";
 
         if ( options->exists(key) ) {
             _xml_file = options->get(key).as< string >();
         }
 
-    key = "options."+Identify()+".control";
+    key = "options."+Identify();
 
         if ( options->exists(key+".job_file")) {
             _jobfile = options->get(key+".job_file").as<string>();
@@ -210,10 +210,10 @@ void QMMM::Initialize(Property *options) {
             _subthreads = 1;
         }
     
-    key = "options."+Identify()+".qmpackage";
+    key = "options."+Identify();
     
-        if ( options->exists(key+".package")) {
-            string package_xml = options->get(key+".package").as< string >();
+        if ( options->exists(key+".dftpackage")) {
+            string package_xml = options->get(key+".dftpackage").as< string >();
             load_property_from_xml(_qmpack_opt, package_xml.c_str());
             _package = _qmpack_opt.get("package.name").as< string >();
         }

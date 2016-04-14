@@ -24,7 +24,7 @@
 namespace votca { namespace xtp {
 
 void Esp2multipole::Initialize(Property* options) {
-    string key = "options." + Identify();
+    string key = Identify();
     _use_ecp=false;
     _do_svd=false;
     

@@ -67,7 +67,7 @@ public:
 
 private:
 
-    int                 _number_excitons;
+ 
     //int                 _max_unoccupied_levels;     
     //int                 _trim_factor;
     

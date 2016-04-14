@@ -82,7 +82,7 @@ namespace votca {
             if (_tasks_string.find("esp") != std::string::npos) _do_esp = true;
 
 
-            key = "options."+Identify()+".control";
+            key = "options."+Identify();
 
         if ( options->exists(key+".job_file")) {
             _jobfile = options->get(key+".job_file").as<string>();
@@ -93,13 +93,13 @@ namespace votca {
 
             // options for gwbse
             key = "options." + Identify();
-            string _gwbse_xml = options->get(key + ".gwbse").as<string> ();
+            string _gwbse_xml = options->get(key + ".gwbse_options").as<string> ();
             load_property_from_xml(_gwbse_options, _gwbse_xml.c_str());
            
 
 
             // options for dft package
-            string _package_xml = options->get(key + ".package").as<string> ();
+            string _package_xml = options->get(key + ".dftpackage").as<string> ();
             //cout << endl << "... ... Parsing " << _package_xml << endl ;
             load_property_from_xml(_package_options, _package_xml.c_str());
             key = "package";
@@ -108,7 +108,7 @@ namespace votca {
             //options for esp/partialcharges
             if (_do_esp){
                 key = "options." + Identify();
-                string _esp_xml = options->get(key + ".esp").as<string> ();
+                string _esp_xml = options->get(key + ".esp_options").as<string> ();
                 load_property_from_xml(_esp_options, _esp_xml.c_str());
             }
             

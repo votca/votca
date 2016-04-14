@@ -55,7 +55,7 @@ void IEXCITON::Initialize(votca::tools::Property* options ) {
     _induce= false;
     _statenumber=1;
      
-    string key = "options."+Identify()+".control";
+    string key = "options."+Identify();
 
         if ( options->exists(key+".job_file")) {
             _jobfile = options->get(key+".job_file").as<string>();

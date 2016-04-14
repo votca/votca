@@ -91,7 +91,7 @@ void IDFT::ParseOptionsXML( votca::tools::Property *options ) {
     if ( _trim_factor == -1 ) _do_trim = true;
     
     
-    string _package_xml = options->get(key+".package").as<string> ();
+    string _package_xml = options->get(key+".dftpackage").as<string> ();
     //cout << endl << "... ... Parsing " << _package_xml << endl ;
 
     load_property_from_xml( _package_options, _package_xml.c_str() );    
@@ -99,7 +99,7 @@ void IDFT::ParseOptionsXML( votca::tools::Property *options ) {
      key = "package";
     _package = _package_options.get(key+".name").as<string> ();
     
-    key = "options."+Identify()+".control";
+    key = "options."+Identify();
 
         if ( options->exists(key+".job_file")) {
             _jobfile = options->get(key+".job_file").as<string>();

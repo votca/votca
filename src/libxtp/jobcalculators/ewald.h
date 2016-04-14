@@ -64,7 +64,7 @@ void Ewald<EwaldMethod>::Initialize(Property *options) {
          << "... ... Initialized with " << _nThreads << " threads. "
          << flush;
 
-    string key = "options."+Identify()+".control";
+    string key = "options."+Identify();
 
         if ( options->exists(key+".job_file")) {
             _jobfile = options->get(key+".job_file").as<string>();

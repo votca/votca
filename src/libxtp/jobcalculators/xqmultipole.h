@@ -92,13 +92,13 @@ void XQMP::Initialize(Property *options) {
     _maverick = (_nThreads == 1) ? true : false;
     
 
-    string key = "options."+Identify()+".multipoles";
+    string key = "options."+Identify()+".mapping";
 
         if ( options->exists(key) ) {
             _xml_file = options->get(key).as< string >();
         }
 
-    key = "options."+Identify()+".control";
+    key = "options."+Identify();
 
         if ( options->exists(key+".job_file")) {
             _jobfile = options->get(key+".job_file").as<string>();

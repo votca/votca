@@ -43,20 +43,20 @@ using boost::format;
 
 void BSECoupling::Initialize(Property* options){
     
-    std::string key = "options." + Identify(); 
+    std::string key = Identify(); 
     _doSinglets=false;
     _doTriplets=false;
     
     
-    _spintype   = options->get(key + ".type").as<string> ();
+    _spintype   = options->get(key + ".spin").as<string> ();
         if(_spintype=="all"){
             _doSinglets=true;
             _doTriplets=true;
         }
-        else if(_spintype=="triplets"){
+        else if(_spintype=="triplet"){
             _doTriplets=true;
         }
-        else if(_spintype=="singlets"){
+        else if(_spintype=="singlet"){
             _doSinglets=true;
         }
         else{
@@ -549,7 +549,8 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
           
     LOG(logDEBUG,*_pLog) << "  Calculating exciton couplings" << flush;
     
-
+    _orbitalsAB->setCoupledExcitonsA(_levA);
+    _orbitalsAB->setCoupledExcitonsB(_levB);
     //check to see if ordering of atoms agrees
     const std::vector<QMAtom*> atomsA=_orbitalsA->QMAtoms();
     const std::vector<QMAtom*> atomsB=_orbitalsB->QMAtoms();

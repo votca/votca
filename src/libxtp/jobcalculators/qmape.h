@@ -90,7 +90,7 @@ void QMAPE::Initialize(Property *options) {
 
     _maverick = (_nThreads == 1) ? true : false;
 
-    string key = "options."+Identify()+".control";
+    string key = "options."+Identify();
 
         if ( options->exists(key+".job_file")) {
             _jobfile = options->get(key+".job_file").as<string>();
@@ -99,7 +99,7 @@ void QMAPE::Initialize(Property *options) {
             throw std::runtime_error("Job-file not set. Abort.");
         }
 
-	key = "options"+Identify()+".ewaldoptions";
+	key = "options"+Identify()+".ewald";
 		if (options->exists(key+".mapping")) {
 			_xml_file = options->get(key+".mapping").as< string >();
 		}
@@ -128,14 +128,14 @@ void QMAPE::Initialize(Property *options) {
 		else { _ptop_check = false; }
 
     
-    key = "options."+Identify()+".qmpackage";
-        if ( options->exists(key+".package")) {
-            string package_xml = options->get(key+".package").as< string >();
+    key = "options."+Identify();
+        if ( options->exists(key+".dftpackage")) {
+            string package_xml = options->get(key+".dftpackage").as< string >();
             load_property_from_xml(_qmpack_opt, package_xml.c_str());
             _package = _qmpack_opt.get("package.name").as< string >();
         }
         else {
-            throw runtime_error("No QM package specified.");
+            throw runtime_error("No DFT package specified.");
         }
     
 

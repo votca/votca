@@ -43,7 +43,7 @@ namespace votca { namespace xtp {
 
 void IGWBSE::Initialize(votca::tools::Property* options ) {
 
-    _energy_difference = 0.0;
+ 
     
     
     // tasks to be done by IBSE: dft_input, dft_run, dft_parse, mgbft, bse_coupling
@@ -59,9 +59,7 @@ void IGWBSE::Initialize(votca::tools::Property* options ) {
     _store_triplets = false;
     _store_ehint = false;
     _write_orbfile=false;
-    
-    _do_singlets=false;
-    _do_triplets=false;
+
 
     // update options with the VOTCASHARE defaults   
     //UpdateWithDefaults( options, "xtp" );
@@ -78,19 +76,8 @@ void IGWBSE::ParseOptionsXML( votca::tools::Property *opt ) {
     // parsing general ibse options
     string key = "options." + Identify();
     _energy_difference = opt->get( key + ".degeneracy" ).as< double > ();
-    // number of excited states per molecule to be considered in the coupling
-    _number_excitons = opt->get(key+".states").as<int> ();
-    // spin types for which to determine coupling
-    _spintype   = opt->get(key + ".type").as<string> ();
-    if (_spintype=="all"){
-        _do_singlets=true;
-        _do_triplets=true;
-    }
-    else if(_spintype=="singlets") _do_singlets=true;
-    else if(_spintype=="triplets") _do_triplets=true;
-    else{
-        throw std::runtime_error("Spin type not known. Input: singlets, triplets or all.");
-    }
+    
+ 
     // job tasks
     string _tasks_string = opt->get(key+".tasks").as<string> ();
     if (_tasks_string.find("input")    != std::string::npos) _do_dft_input = true;
@@ -109,21 +96,21 @@ void IGWBSE::ParseOptionsXML( votca::tools::Property *opt ) {
         _write_orbfile=true;
     }
     // options for gwbse
-    string _gwbse_xml = opt->get(key+".gwbse").as<string> ();
+    string _gwbse_xml = opt->get(key+".gwbse_options").as<string> ();
     //cout << endl << "... ... Parsing " << _package_xml << endl ;
     load_property_from_xml( _gwbse_options, _gwbse_xml.c_str() );
-    string _coupling_xml=opt->get(key + ".bsecoupling").as<string>();
+    string _coupling_xml=opt->get(key + ".bsecoupling_options").as<string>();
     load_property_from_xml(_coupling_options, _coupling_xml.c_str());
     
     // options for dft package
-    string _package_xml = opt->get(key+".package").as<string> ();
+    string _package_xml = opt->get(key+".dftpackage").as<string> ();
     //cout << endl << "... ... Parsing " << _package_xml << endl ;
     load_property_from_xml( _package_options, _package_xml.c_str() );    
     key = "package";
     _package = _package_options.get(key+".name").as<string> ();
     
     // job file specification
-     key = "options."+Identify()+".control";
+     key = "options."+Identify();
 
         if ( opt->exists(key+".job_file")) {
             _jobfile = opt->get(key+".job_file").as<string>();
@@ -133,7 +120,7 @@ void IGWBSE::ParseOptionsXML( votca::tools::Property *opt ) {
         }
     
     //options for parsing data into sql file   
-    key ="options." + Identify();
+    key ="options." + Identify()+".readjobfile";
     if ( opt->exists(key+".singlets")) {
             string _parse_string_s = opt->get(key+".singlets").as<string> ();
             _singlet_levels=FillParseMaps(_parse_string_s);       
@@ -151,20 +138,24 @@ void IGWBSE::ParseOptionsXML( votca::tools::Property *opt ) {
 
 std::map<std::string, int> IGWBSE::FillParseMaps(string Mapstring){
     std::vector<string> strings_vec;
-    boost::algorithm::split( strings_vec, Mapstring, boost::is_any_of("\t, \n"),boost::token_compress_on );
+    boost::algorithm::split( strings_vec, Mapstring, boost::is_any_of("\t,\n"),boost::token_compress_on );
     std::vector<string>::iterator sit;
     std::map<std::string, int> type2level;
     for(sit=strings_vec.begin();sit<strings_vec.end();++sit){
         //std::vector<string>temp;
-        
-        string word=*sit;
-        if (word.size()!=2){
-            throw runtime_error("State identifier "+word+" unknown, right now only states up to number 9 are parsed. s1,s2,t1, etc..");
+        std::vector<string> segmentpnumber;
+        boost::algorithm::split(segmentpnumber , *sit, boost::is_any_of(": "),boost::token_compress_on );
+        if (segmentpnumber.size()!=2){
+            throw runtime_error("Segment and exciton are not distinguishable");
         }
+        if (segmentpnumber[1].size()!=2){
+            throw runtime_error("State identifier "+segmentpnumber[1]+" unknown, right now only states up to number 9 are parsed. s1,s2,t1, etc..");
+        }
+         
         //boost::algorithm::split( temp, (*sit), boost::is_any_of(""),boost::token_compress_on );
-        int number=boost::lexical_cast<int>(word.at(1));
-        string type=boost::lexical_cast<string>(word.at(0));
-        type2level[type]=number; // -1 because default return if key is not found is 0, so if key is not found first exited state should be used number game
+        int number=boost::lexical_cast<int>(segmentpnumber[1].at(1));
+        string type=boost::lexical_cast<string>(segmentpnumber[0]);
+        type2level[type]=number; 
     }
     return type2level;
 }
@@ -427,8 +418,7 @@ Job::JobResult IGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
        
       _orbitalsAB.setSingletCouplings( _bsecoupling.getJAB_singletstorage());
       _orbitalsAB.setTripletCouplings(_bsecoupling.getJAB_tripletstorage());
-      _orbitalsAB.setCoupledExcitonsA( _number_excitons );
-      _orbitalsAB.setCoupledExcitonsB( _number_excitons );
+    
     
     }
    LOG(logINFO,*pLog) << TimeStamp() << " Finished evaluating pair " << ID_A << ":" << ID_B << flush; 

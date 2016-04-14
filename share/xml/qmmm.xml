@@ -3,9 +3,9 @@
 <!-- xtp_run -e qmmm -f state.db -o options.xml -t 1 -c 1 -->
 <qmmm help="QM/MM with the Thole MM model" section="sec:qmmm">
 
-	<multipoles help="XML file with multipole moments and polarizabilities" default="system.xml"></multipoles>
+	<mapping help="XML file with multipole moments and polarizabilities" default="system.xml"></mapping>
 
-	<control>
+
 		<job_file help="Job control file" default="job.xml"></job_file>
 		<emp_file help="Allocation of .mps file to segments, run 'stateserver' with key = 'emp' to create a template" default="mps.tab"></emp_file>
 		<pdb_check help="PDB file of polar sites">mps.pdb</pdb_check>
@@ -13,11 +13,10 @@
 		<format_chk help="format, gaussian or xyz" default="xyz">xyz</format_chk>
 		<split_dpl help="'0' do not split dipoles onto point charges, '1' do split" default="1">1</split_dpl>
 		<dpl_spacing help="Spacing to be used when splitting dipole onto point charges: d = q * a" unit="nm" default="1e-3">1e-3</dpl_spacing>
-	</control>
 
-	<qmpackage>
-		<package help="QM package to use for the QM region">gaussian.xml</package>
-	</qmpackage>
+
+		<dftpackage help="DFT package to use for the QM region">gaussian.xml</dftpackage>
+
 
     <gwbse help="Specify if GW/BSE excited state calculation ist needed">
           <gwbse_options help="GW/BSE options file">mbgft.xml</gwbse_options>
