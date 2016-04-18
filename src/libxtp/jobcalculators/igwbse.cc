@@ -146,6 +146,7 @@ std::map<std::string, int> IGWBSE::FillParseMaps(string Mapstring){
         std::vector<string> segmentpnumber;
         boost::algorithm::split(segmentpnumber , *sit, boost::is_any_of(": "),boost::token_compress_on );
         if (segmentpnumber.size()!=2){
+            cout << segmentpnumber.size()<<endl;
             for (unsigned i=0;i<segmentpnumber.size();i++){
                 cout << segmentpnumber[i]<<endl;
             }
