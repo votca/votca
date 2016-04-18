@@ -1091,7 +1091,7 @@ void StateSaverSQLite::ReadPairs(int topId) {
                                   "WHERE top = ?;");
 
     stmt->Bind(1, topId);
-    QMNBList nblist=_qmtop->NBList();
+    QMNBList &nblist=_qmtop->NBList();
     
     
     QMNBList nblisttemp;
@@ -1166,7 +1166,9 @@ void StateSaverSQLite::ReadPairs(int topId) {
     nblist.AddQMNBlist(nblisttemp);
             
            
-    //cout<<nblist.size()<<endl;
+    cout<<nblist.size()<<endl;
+    
+    cout <<_qmtop->NBList().size()<<endl;
     delete stmt;
     stmt = NULL;
 
