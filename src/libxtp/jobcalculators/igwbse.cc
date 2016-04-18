@@ -75,7 +75,7 @@ void IGWBSE::ParseOptionsXML( votca::tools::Property *opt ) {
     
     // parsing general ibse options
     string key = "options." + Identify();
-    _energy_difference = opt->get( key + ".degeneracy" ).as< double > ();
+   // _energy_difference = opt->get( key + ".degeneracy" ).as< double > ();
     
  
     // job tasks
