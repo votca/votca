@@ -148,10 +148,7 @@ std::map<std::string, int> IGWBSE::FillParseMaps(string Mapstring){
         boost::trim(temp);
         boost::algorithm::split(segmentpnumber , temp, boost::is_any_of(": "),boost::token_compress_on );
         if (segmentpnumber.size()!=2){
-            cout << segmentpnumber.size()<<endl;
-            for (unsigned i=0;i<segmentpnumber.size();i++){
-                cout << i<<":"<< segmentpnumber[i]<<endl;
-            }
+            
             throw runtime_error("Parser igwbse: Segment and exciton labels are not separated properly");
         }
         if (segmentpnumber[1].size()!=2){

@@ -312,28 +312,29 @@ namespace votca {
                     jres.setStatus(Job::FAILED);
                     delete _qmpackage;
                     return jres;
-                }
-                
-                 
-                
+                }  
             } // end of the parse orbitals/log
+            else {
 
-
+                    // load the DFT data from serialized orbitals object
+                    string DIR = egwbse_work_dir + "/molecules_gwbse/" + frame_dir;
+                    std::ifstream ifs((DIR + "/" + orb_file).c_str());
+                    if (_do_gwbse){
+                    LOG(logDEBUG, *pLog) << TimeStamp() << " Loading DFT data from " << DIR << "/" << orb_file << flush;
+                    }
+                    else {
+                    LOG(logDEBUG, *pLog) << TimeStamp() << " Loading data from " << DIR << "/" << orb_file << flush;    
+                    }
+                    boost::archive::binary_iarchive ia(ifs);
+                    ia >> _orbitals;
+                    ifs.close();
+                }
             
  
             if (_do_gwbse) {
                 
               
-                if (!_do_dft_parse) {
-
-                    // load the DFT data from serialized orbitals object
-                    string DIR = egwbse_work_dir + "/molecules_gwbse/" + frame_dir;
-                    std::ifstream ifs((DIR + "/" + orb_file).c_str());
-                    LOG(logDEBUG, *pLog) << TimeStamp() << " Loading DFT data from " << DIR << "/" << orb_file << flush;
-                    boost::archive::binary_iarchive ia(ifs);
-                    ia >> _orbitals;
-                    ifs.close();
-                }
+                
                 
                 
                 //cout << "hallo" <<endl;
@@ -368,32 +369,15 @@ namespace votca {
                 }    
                 ofs << gwbse_logger << endl;
                 ofs.close();
+                
+                
 
             }
 
-            LOG(logINFO, *pLog) << TimeStamp() << " Finished evaluating site " << seg->getId() << flush;
-
-
+          
             
-            
-            LOG(logDEBUG, *pLog) << "Saving data to " << orb_file << flush;
-            string DIR = egwbse_work_dir + "/molecules_gwbse/" + frame_dir;
-            boost::filesystem::create_directories(DIR);  
-            std::ofstream ofs((DIR + "/" + orb_file).c_str());
-            boost::archive::binary_oarchive oa(ofs);
-
-            //  if ( !( _store_orbitals && _do_parse && _parse_orbitals_status) )   _store_orbitals = false;
-            //  if ( !( _store_overlap && _do_parse && _parse_log_status) )    _store_overlap = false;
-            //  if ( !( _store_integrals && _do_project && _calculate_integrals) )  {
-            //      _store_integrals = false; 
-            //  } else {
-            //      _orbitalsAB.setIntegrals( &_JAB );
-            //  }
-
-            //  _orbitalsAB.setStorage( _store_orbitals, _store_overlap, _store_integrals );
-            string mps_file="";
             if (_do_esp){
-           
+                string mps_file="";
                 Esp2multipole esp2multipole=Esp2multipole(pLog);;
                 esp2multipole.Initialize(&_esp_options);
                 string ESPDIR="MP_FILES/"+frame_dir+"/"+esp2multipole.GetIdentifier();
@@ -409,21 +393,20 @@ namespace votca {
                 
                 _segment_summary->add("partialcharges", (ESPDIR + "/" + mps_file).c_str());
             }
+            LOG(logINFO, *pLog) << TimeStamp() << " Finished evaluating site " << seg->getId() << flush;
+
+
+            LOG(logDEBUG, *pLog) << "Saving data to " << orb_file << flush;
+            string DIR = egwbse_work_dir + "/molecules_gwbse/" + frame_dir;
+            boost::filesystem::create_directories(DIR);  
+            std::ofstream ofs((DIR + "/" + orb_file).c_str());
+            boost::archive::binary_oarchive oa(ofs);
            
 
             oa << _orbitals;
             ofs.close();
 
 
-
-
-
-            
-            
-           
-               
-                
-           
             // output of the JOB 
             jres.setOutput(_job_summary);
             jres.setStatus(Job::COMPLETE);

@@ -93,7 +93,7 @@ private:
     bool                _store_ehint;
     bool                _write_orbfile;
     
-    double              _energy_difference;    
+    //double              _energy_difference;    
         
     string              _outParent;
     
