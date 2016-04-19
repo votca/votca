@@ -95,6 +95,7 @@ private:
     int _occB;
     int _unoccB;
     double      _degeneracy;
+    int         _openmp_threads;
     
     
 };
