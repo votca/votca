@@ -1091,7 +1091,7 @@ void StateSaverSQLite::ReadPairs(int topId) {
                                   "WHERE top = ?;");
 
     stmt->Bind(1, topId);
-    QMNBList nblist=_qmtop->NBList();
+    QMNBList & nblist=_qmtop->NBList();
     
     
     QMNBList nblisttemp;
