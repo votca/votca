@@ -33,6 +33,7 @@
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <votca/tools/linalg.h>
 #include <votca/tools/constants.h>
+
 //#include "mathimf.h"
 
 using boost::format;
@@ -120,7 +121,7 @@ namespace votca {
                     
 		    double _stab = 1.0;
 		    if ( std::abs(_denom) < 0.5 ) {
-		      _stab = 0.5 * ( 1.0 - cos(2.0 * pi * std::abs(_denom) ) );
+		      _stab = 0.5 * ( 1.0 - std::cos(2.0 * pi * std::abs(_denom) ) );
 		    }
                             
 		    double _factor = _ppm_weight( _i_gw ) * _ppm_freq( _i_gw) * _stab/_denom; // contains conversion factor 2!
@@ -161,14 +162,17 @@ namespace votca {
                 
             #pragma omp parallel for
 	    for (unsigned _gw_level = 0; _gw_level < _qptotal ; _gw_level++ ){
+                  
+                const ub::matrix<float>& Mmn =  _Mmn[ _gw_level + _qpmin ];
                 for ( unsigned _m = 0 ; _m < _gw_level ; _m++) {
                 _sigma_c( _gw_level  , _m )=0;
-                }
-                const ub::matrix<float>& Mmn =  _Mmn[ _gw_level + _qpmin ];
+                const ub::matrix<float>& Mmn2 =  _Mmn[_m + _qpmin];
+                
+                
 
 		// loop over all functions in GW basis
 		 for ( unsigned _i_gw = 0; _i_gw < _gwsize ; _i_gw++ ){
-                    
+                     
 
 		  // loop over all screening levels
 		  for ( unsigned _i = 0; _i < _levelsum ; _i++ ){
@@ -181,7 +185,7 @@ namespace votca {
                     
 		    double _stab = 1.0;
 		     if ( std::abs(_denom) < 0.5 ) {
-		       _stab = 0.5 * ( 1.0 - cos(2.0 * pi * std::abs(_denom) ) );
+		       _stab = 0.5 * ( 1.0 - std::cos(2.0 * pi * std::abs(_denom) ) );
 		     }
                     
 		    double _factor = _ppm_weight( _i_gw ) * _ppm_freq( _i_gw) *   Mmn(_i_gw, _i) *_stab/_denom; // contains conversion factor 2!
@@ -189,14 +193,17 @@ namespace votca {
                     //double _crap = 0.0;
 		    // loop over row GW levels
 		   // for ( unsigned _m = 0 ; _m < _qptotal ; _m++) {
-                    for ( unsigned _m = 0 ; _m < _gw_level ; _m++) {
+                    //for ( unsigned _m = 0 ; _m < _gw_level ; _m++) {
                     
                        // _crap += _factor *  _Mmn[_m + _qpmin](_i_gw, _i) ; 
                         //if ( _m==_gw_level){
                      //       continue;
                        // }
 		    // sigma_c all elements
-                        _sigma_c( _gw_level  , _m ) += _factor;// * _Mmn[_m + _qpmin](_i_gw, _i);  //_submat(_i_gw,_i);
+                    // for ( unsigned _m = 0 ; _m < _gw_level ; _m++) {
+                        
+                        _sigma_c( _gw_level  , _m ) += _factor*Mmn2(_i_gw, _i);  //_submat(_i_gw,_i);
+                     
 	                 
 		  }// screening levels 
 		}// GW functions 
