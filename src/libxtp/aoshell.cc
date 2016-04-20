@@ -299,10 +299,10 @@ void AOShell::EvalAOIntegral(ub::matrix_range<ub::matrix<double> >& AOvalues){
        
        
        
-void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, ub::matrix_range<ub::matrix<double> >& gradAOvalues, const double x, const double y, const double z){
+void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, ub::matrix_range<ub::matrix<double> >& gradAOvalues, double x, double y, double z){
 
             // need type of shell
-            string & shell_type = this->_type;
+            string shell_type = this->_type;
             // need position of shell
             double center_x = x - this->_pos.getX();
             double center_y = y - this->_pos.getY();
@@ -424,10 +424,10 @@ void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, ub::m
            
            
            
-void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, const double x,const double y, const double z ){
+void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, double x,double y, double z ){
 
             // need type of shell
-            string & shell_type = this->_type;
+            string  shell_type = this->_type;
             // need position of shell
             double center_x = x - this->_pos.getX();
             double center_y = y - this->_pos.getY();
