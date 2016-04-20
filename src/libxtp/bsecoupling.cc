@@ -658,23 +658,23 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     }
     
     if(_levA>_bseA_singlet_exc){
-        LOG(logDEBUG, *_pLog) << TimeStamp()  << "Number of excitons you want is greater than stored for molecule B. Setting to max number available" << flush; 
+        LOG(logDEBUG, *_pLog) << TimeStamp()  << "  Number of excitons you want is greater than stored for molecule B. Setting to max number available" << flush; 
         _levA=_bseA_singlet_exc;
     }
     if(_levB>_bseB_singlet_exc){
-        LOG(logDEBUG, *_pLog) << TimeStamp()  << "Number of excitons you want is greater than stored for molecule B. Setting to max number available" << flush; 
+        LOG(logDEBUG, *_pLog) << TimeStamp()  << "  Number of excitons you want is greater than stored for molecule B. Setting to max number available" << flush; 
         _levB=_bseB_singlet_exc;
     }
     
     if(_unoccA>_bseA_ctotal){
-        LOG(logDEBUG, *_pLog) << TimeStamp()  << "Number of occupied orbitals in molecule A for CT creation exceeds number of KS-orbitals in BSE" << flush; 
+        LOG(logDEBUG, *_pLog) << TimeStamp()  << "  Number of occupied orbitals in molecule A for CT creation exceeds number of KS-orbitals in BSE" << flush; 
         _unoccA=_bseA_ctotal;
     }
     else if (_unoccA<0){
         _unoccA=_bseA_ctotal;
     }
     if(_unoccB>_bseB_ctotal){
-        LOG(logDEBUG, *_pLog) << TimeStamp()  << "Number of occupied orbitals in molecule B for CT creation exceeds number of KS-orbitals in BSE" << flush; 
+        LOG(logDEBUG, *_pLog) << TimeStamp()  << "  Number of occupied orbitals in molecule B for CT creation exceeds number of KS-orbitals in BSE" << flush; 
         _unoccB=_bseB_ctotal;
     }
     else if (_unoccB<0){
@@ -682,14 +682,14 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     }
     
     if(_occA>_bseA_vtotal){
-        LOG(logDEBUG, *_pLog) << TimeStamp()  << "Number of unoccupied orbitals in molecule A for CT creation exceeds number of KS-orbitals in BSE" << flush; 
+        LOG(logDEBUG, *_pLog) << TimeStamp()  << "  Number of unoccupied orbitals in molecule A for CT creation exceeds number of KS-orbitals in BSE" << flush; 
         _occA=_bseA_vtotal;
     }
     else if (_occA<0){
         _occA=_bseA_vtotal;
     }
     if(_occB>_bseB_vtotal){
-        LOG(logDEBUG, *_pLog) << TimeStamp()  << "Number of unoccupied orbitals in molecule B for CT creation exceeds number of KS-orbitals in BSE" << flush; 
+        LOG(logDEBUG, *_pLog) << TimeStamp()  << "  Number of unoccupied orbitals in molecule B for CT creation exceeds number of KS-orbitals in BSE" << flush; 
         _occB=_bseB_vtotal;
     }else if (_occB<0){
         _occB=_bseB_vtotal;
@@ -799,7 +799,7 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     
     //notation AB is CT states with A+B-, BA is the counterpart
     //Setting up CT-states:
-    LOG(logDEBUG, *_pLog) << TimeStamp()  << "Setting up CT-states" << flush; 
+    LOG(logDEBUG, *_pLog) << TimeStamp()  << "   Setting up CT-states" << flush; 
     //Number of A+B- states
     int noAB=_occA*_unoccB;
     //Number of A-B+ states
@@ -823,7 +823,7 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
             _cnt++;
         }
     }
-    LOG(logDEBUG, *_pLog) << TimeStamp()  <<noAB <<" CT states A+B- created" << flush;
+    LOG(logDEBUG, *_pLog) << TimeStamp()  <<noAB <<"    CT states A+B- created" << flush;
     //cout << "comb_CTAB" << endl;
     //cout << comb_CTAB << endl;
     
@@ -840,7 +840,7 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
             _cnt++;
         }
     }
-    LOG(logDEBUG, *_pLog) << TimeStamp()  <<noBA <<" CT states B+A- created" << flush;
+    LOG(logDEBUG, *_pLog) << TimeStamp()  <<noBA <<"    CT states B+A- created" << flush;
     //cout << "comb_CTBA" << endl;
     //cout << comb_CTBA << endl;
     
@@ -1063,7 +1063,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      //cout << _J_dimer.size1()<< " : "<<_J_dimer.size2()<<endl;
      //cout << _S_dimer.size1()<< " : "<<_S_dimer.size2()<<endl;
 
-      LOG(logDEBUG, *_pLog) << TimeStamp()  << "Setting up coupling matrix size "<< _bse_exc +_ct<<"x"<<_bse_exc +_ct << flush;
+      LOG(logDEBUG, *_pLog) << TimeStamp()  << "   Setting up coupling matrix size "<< _bse_exc +_ct<<"x"<<_bse_exc +_ct << flush;
      // matrix _J
      
     //  E_A         J_AB        J_A_ABCT        J_A_BACT
@@ -1118,7 +1118,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      
 
     
-    LOG(logDEBUG, *_pLog) << TimeStamp()  << "Setting up overlap matrix size "<< _bse_exc +_ct<<"x"<<_bse_exc +_ct << flush;
+    LOG(logDEBUG, *_pLog) << TimeStamp()  << "   Setting up overlap matrix size "<< _bse_exc +_ct<<"x"<<_bse_exc +_ct << flush;
      // setup S
     
      _temp =ub::trans(_proj_excA);
@@ -1165,7 +1165,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
     
      for (unsigned exA=0;exA<_bseA_exc;exA++){
          for (unsigned exB=_bseA_exc;exB<_bse_exc;exB++){
-             LOG(logDEBUG, *_pLog) << TimeStamp()  << "Calculating coupling between exciton A"<< exA+1<<" and exciton B"<<exB+1-_bseA_exc << flush;
+             LOG(logDEBUG, *_pLog) << TimeStamp()  << "   Calculating coupling between exciton A"<< exA+1<<" and exciton B"<<exB+1-_bseA_exc << flush;
             ub::matrix<double> _J_small = ub::zero_matrix<double>( 2 +_ct, 2+_ct );
             ub::matrix<double> _S_small = ub::zero_matrix<double>( 2 +_ct, 2+_ct);
             ub::project( _S_small,  ub::range (2, _ct+2 ), ub::range ( 2, _ct+2 )  ) = ub::project( _S_dimer,  ub::range (_bse_exc, _bse_exc+_ct ), ub::range ( _bse_exc, _bse_exc+_ct )  );
@@ -1212,7 +1212,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      //cout << _S_dimer<< endl;
      linalg_eigenvalues( _S_eigenvalues, _S_small);
       
-     LOG(logDEBUG, *_pLog) << TimeStamp()  << "Smallest value of dimer overlapmatrix is "<< _S_eigenvalues[0]<< flush;
+     LOG(logDEBUG, *_pLog) << TimeStamp()  << "   Smallest value of dimer overlapmatrix is "<< _S_eigenvalues[0]<< flush;
 
      if ( _S_eigenvalues[0] < 0.0 ) {
          
@@ -1270,7 +1270,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      ub::matrix<double> _T=ub::zero_matrix<double>(2,2);
      //find the eigenvectors which are most similar to the initial states
      
-     LOG(logDEBUG, *_pLog) << TimeStamp()  << "Sorting states according to similiarity with the FE states " << flush;
+     LOG(logDEBUG, *_pLog) << TimeStamp()  << "   Sorting states according to similiarity with the FE states " << flush;
      
      std::vector<unsigned> index;
      //column
@@ -1297,7 +1297,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
                 index.push_back(ind);
             }
      
-     LOG(logDEBUG, *_pLog) << TimeStamp()  << "Order is: [Initial state n->nth eigenvalue]"<<flush;
+     LOG(logDEBUG, *_pLog) << TimeStamp()  << "   Order is: [Initial state n->nth eigenvalue]"<<flush;
      for (unsigned i=0;i<index.size();i++){
          if(i<2){
       LOG(logDEBUG, *_pLog) << TimeStamp()  <<"    A"<<i+1<<":"<<i+1<<"->"<<index[i]+1<<" " ;   
