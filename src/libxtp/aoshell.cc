@@ -299,10 +299,10 @@ void AOShell::EvalAOIntegral(ub::matrix_range<ub::matrix<double> >& AOvalues){
        
        
        
-void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, ub::matrix_range<ub::matrix<double> >& gradAOvalues, double x, double y, double z ){
+void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, ub::matrix_range<ub::matrix<double> >& gradAOvalues, const double x, const double y, const double z){
 
             // need type of shell
-            string shell_type = this->_type;
+            string & shell_type = this->_type;
             // need position of shell
             double center_x = x - this->_pos.getX();
             double center_y = y - this->_pos.getY();
@@ -319,8 +319,8 @@ void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, ub::m
             // iterate over Gaussians in this shell
             for (GaussianIterator itr = firstGaussian(); itr != lastGaussian(); ++itr) {
 
-                const double& alpha = (*itr)->decay;
-                std::vector<double> _contractions = (*itr)->contraction;
+                const double alpha = (*itr)->decay;
+                std::vector<double>& _contractions = (*itr)->contraction;
 
                 double _expofactor = pow(2.0 * alpha / pi, 0.75) * exp(-alpha * distsq);
 
@@ -328,9 +328,9 @@ void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, ub::m
                 int _i_func = -1;
                 int i_act;
                 for (unsigned i = 0; i < shell_type.length(); ++i) {
-                    string single_shell = string(shell_type, i, 1);
+                    char  single_shell = shell_type[i];
                     // single type shells
-                    if (single_shell == "S") {
+                    if (single_shell == 'S') {
                         AOvalues(0, _i_func + 1) += _contractions[0] * _expofactor; // s-function
 
                             i_act = _i_func+1;
@@ -340,7 +340,7 @@ void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, ub::m
                         
                         _i_func++;
                     }
-                    if (single_shell == "P") {
+                    else if (single_shell == 'P') {
                         AOvalues(0, _i_func + 1) += _contractions[1] * 2.0 * sqrt(alpha) * center_x*_expofactor; // px-function
                         AOvalues(0, _i_func + 2) += _contractions[1] * 2.0 * sqrt(alpha) * center_y*_expofactor; // py-function
                         AOvalues(0, _i_func + 3) += _contractions[1] * 2.0 * sqrt(alpha) * center_z*_expofactor; // pz-function
@@ -365,7 +365,7 @@ void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, ub::m
 
                         _i_func += 3;
                     }
-                    if (single_shell == "D") {
+                    else if (single_shell == 'D') {
                         // dxz, dyz, dxy, d3z2-r2, dx2-y2
                         AOvalues(0, _i_func + 1) += _contractions[2] * 4.0 * alpha * center_x * center_z*_expofactor; // dxz-function
                         AOvalues(0, _i_func + 2) += _contractions[2] * 4.0 * alpha * center_y * center_z*_expofactor; // dyz-function
@@ -402,20 +402,19 @@ void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, ub::m
                             gradAOvalues(0, i_act) += _contractions[2] * 4.0 * alpha * center_x * (1.0 - alpha * (center_x * center_x - center_y * center_y)) * _expofactor;
                             gradAOvalues(1, i_act) += _contractions[2] * -4.0 * alpha * center_y * (1.0 + alpha * (center_x * center_x - center_y * center_y)) * _expofactor;
                             gradAOvalues(2, i_act) += _contractions[2] * -4.0 * alpha * alpha * center_z * (center_x * center_x - center_y * center_y) * _expofactor;
-
-
-
-                        
-                        
-                        
+   
                         _i_func += 5;
                     }
-                    if (single_shell == "F") {
+                    else if (single_shell == 'F') {
                         cerr << " F functions not implemented in AOeval at the moment!" << endl;
                         exit(1);
                     }
-                    if (single_shell == "G") {
+                    else if (single_shell == 'G') {
                         cerr << " G functions not implemented in AOeval at the moment!" << endl;
+                        exit(1);
+                    }
+                    else{
+                        cerr << "Single shell type"<<single_shell<<" not known " << endl;
                         exit(1);
                     }
                 }
@@ -425,10 +424,10 @@ void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, ub::m
            
            
            
-void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, double x, double y, double z ){
+void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, const double x,const double y, const double z ){
 
             // need type of shell
-            string shell_type = this->_type;
+            string & shell_type = this->_type;
             // need position of shell
             double center_x = x - this->_pos.getX();
             double center_y = y - this->_pos.getY();
@@ -442,8 +441,8 @@ void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, doubl
             // iterate over Gaussians in this shell
             for (GaussianIterator itr = firstGaussian(); itr != lastGaussian(); ++itr) {
 
-                const double& alpha = (*itr)->decay;
-                std::vector<double> _contractions = (*itr)->contraction;
+                const double alpha = (*itr)->decay;
+                const std::vector<double>& _contractions = (*itr)->contraction;
 
                 double _expofactor = pow(2.0 * alpha / pi, 0.75) * exp(-alpha * distsq);
 
@@ -451,20 +450,20 @@ void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, doubl
                 int _i_func = -1;
 
                 for (unsigned i = 0; i < shell_type.length(); ++i) {
-                    string single_shell = string(shell_type, i, 1);
+                    char single_shell = shell_type[i];
                     // single type shells
-                    if (single_shell == "S") {
+                    if (single_shell == 'S') {
                         AOvalues(0, _i_func + 1) += _contractions[0] * _expofactor; // s-function        
                         _i_func++;
                     }
-                    if (single_shell == "P") {
+                    else if (single_shell == 'P') {
                         AOvalues(0, _i_func + 1) += _contractions[1] * 2.0 * sqrt(alpha) * center_x*_expofactor; // px-function
                         AOvalues(0, _i_func + 2) += _contractions[1] * 2.0 * sqrt(alpha) * center_y*_expofactor; // py-function
                         AOvalues(0, _i_func + 3) += _contractions[1] * 2.0 * sqrt(alpha) * center_z*_expofactor; // pz-function
 
                         _i_func += 3;
                     }
-                    if (single_shell == "D") {
+                    else if (single_shell == 'D') {
                         // dxz, dyz, dxy, d3z2-r2, dx2-y2
                         AOvalues(0, _i_func + 1) += _contractions[2] * 4.0 * alpha * center_x * center_z*_expofactor; // dxz-function
                         AOvalues(0, _i_func + 2) += _contractions[2] * 4.0 * alpha * center_y * center_z*_expofactor; // dyz-function
@@ -473,12 +472,16 @@ void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, doubl
                         AOvalues(0, _i_func + 5) += _contractions[2] * 2.0 * alpha * (center_x * center_x - center_y * center_y) * _expofactor; // dx2-y2-function                             
                         _i_func += 5;
                     }
-                    if (single_shell == "F") {
+                    else if (single_shell == 'F') {
                         cerr << " F functions not implemented in AOeval at the moment!" << endl;
                         exit(1);
                     }
-                    if (single_shell == "G") {
+                    else if (single_shell == 'G') {
                         cerr << " G functions not implemented in AOeval at the moment!" << endl;
+                        exit(1);
+                    }
+                    else{
+                        cerr << "Single shell type"<<single_shell<<" not known " << endl;
                         exit(1);
                     }
                 }
