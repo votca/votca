@@ -823,7 +823,7 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
             _cnt++;
         }
     }
-    LOG(logDEBUG, *_pLog) << TimeStamp()  <<noAB <<"    CT states A+B- created" << flush;
+    LOG(logDEBUG, *_pLog) << TimeStamp()  <<"  "<<noAB <<" CT states A+B- created" << flush;
     //cout << "comb_CTAB" << endl;
     //cout << comb_CTAB << endl;
     
@@ -840,7 +840,7 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
             _cnt++;
         }
     }
-    LOG(logDEBUG, *_pLog) << TimeStamp()  <<noBA <<"    CT states B+A- created" << flush;
+    LOG(logDEBUG, *_pLog) << TimeStamp()  <<"  "<<noBA <<"    CT states B+A- created" << flush;
     //cout << "comb_CTBA" << endl;
     //cout << comb_CTBA << endl;
     
