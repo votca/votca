@@ -60,8 +60,8 @@ namespace votca {
 
             
             // sigma matrices can be freed
-            _sigma_x.resize(0,0);
-            _sigma_c.resize(0,0);
+            _sigma_x.resize(0);
+            _sigma_c.resize(0);
             
             
             if ( _do_qp_diag ){
@@ -98,13 +98,13 @@ namespace votca {
             for ( int _i_iter = 0 ; _i_iter < _max_iter-1 ; _i_iter++ ){
                 
 	      // initialize sigma_c to zero at the beginning of each iteration
-	      _sigma_c = ub::zero_matrix<double>(_qptotal,_qptotal);
-
+	      //_sigma_c = ub::zero_matrix<double>(_qptotal,_qptotal);
+              _sigma_c.resize(_qptotal);
 	      // loop over all GW levels
               #pragma omp parallel for
 	      for (unsigned _gw_level = 0; _gw_level < _qptotal ; _gw_level++ ){
-                  
-                const ub::matrix<double>& Mmn = _Mmn[ _gw_level + _qpmin ];
+                _sigma_c( _gw_level , _gw_level )=0;  
+                const ub::matrix<float>& Mmn = _Mmn[ _gw_level + _qpmin ];
               
 		// loop over all functions in GW basis
 		for ( unsigned _i_gw = 0; _i_gw < _gwsize ; _i_gw++ ){
@@ -161,8 +161,10 @@ namespace votca {
                 
             #pragma omp parallel for
 	    for (unsigned _gw_level = 0; _gw_level < _qptotal ; _gw_level++ ){
-              
-                const ub::matrix<double>& Mmn =  _Mmn[ _gw_level + _qpmin ];
+                for ( unsigned _m = 0 ; _m < _gw_level ; _m++) {
+                _sigma_c( _gw_level  , _m )=0;
+                }
+                const ub::matrix<float>& Mmn =  _Mmn[ _gw_level + _qpmin ];
 
 		// loop over all functions in GW basis
 		 for ( unsigned _i_gw = 0; _i_gw < _gwsize ; _i_gw++ ){
@@ -194,7 +196,7 @@ namespace votca {
                      //       continue;
                        // }
 		    // sigma_c all elements
-                        _sigma_c( _gw_level  , _m ) += _factor * _Mmn[_m + _qpmin](_i_gw, _i);  //_submat(_i_gw,_i);
+                        _sigma_c( _gw_level  , _m ) += _factor;// * _Mmn[_m + _qpmin](_i_gw, _i);  //_submat(_i_gw,_i);
 	                 
 		  }// screening levels 
 		}// GW functions 
@@ -204,11 +206,11 @@ namespace votca {
             } 
             
             
-            for (unsigned _gw_level = 0; _gw_level < _qptotal ; _gw_level++ ){
-                for ( unsigned _m = 0 ; _m < _gw_level ; _m++) {
-                _sigma_c( _m  , _gw_level )=_sigma_c( _gw_level  , _m );
-                }
-            }
+          // for (unsigned _gw_level = 0; _gw_level < _qptotal ; _gw_level++ ){
+           //     for ( unsigned _m = 0 ; _m < _gw_level ; _m++) {
+          //      _sigma_c( _m  , _gw_level )=_sigma_c( _gw_level  , _m );
+          //      }
+           // }
          return;
             } // sigma_c_setup
 
@@ -216,20 +218,20 @@ namespace votca {
         void GWBSE::sigma_x_setup(const TCMatrix& _Mmn){
         
             // initialize sigma_x
-            _sigma_x = ub::zero_matrix<double>(_qptotal,_qptotal);
+            _sigma_x.resize(_qptotal);
             int _size  = _Mmn[0].size1();
 
             // band 1 loop over all GW levels
             #pragma omp parallel for
             for ( unsigned _m1 = 0 ; _m1 < _qptotal ; _m1++ ){
                 
-                const ub::matrix<double>& M1mn =  _Mmn[ _m1 + _qpmin ];
+                const ub::matrix<float>& M1mn =  _Mmn[ _m1 + _qpmin ];
                 
                 // band 2 loop over all GW levels
                 //for ( int _m2 = _qpmin ; _m2 <= _qpmax ; _m2++ ){
-                for ( unsigned _m2 = 0 ; _m2 < _qptotal ; _m2++ ){
-                    
-                    const ub::matrix<double>& M2mn =  _Mmn[ _m2 + _qpmin ];
+                for ( unsigned _m2 = 0 ; _m2 <= _m1 ; _m2++ ){
+                    _sigma_x( _m1, _m2 )=0;
+                    const ub::matrix<float>& M2mn =  _Mmn[ _m2 + _qpmin ];
                     
                     // loop over all basis functions
                     for ( int _i_gw = 0 ; _i_gw < _size ; _i_gw++ ){
@@ -238,8 +240,11 @@ namespace votca {
                             _sigma_x( _m1, _m2 ) -= 2.0 * M1mn( _i_gw , _i_occ ) * M2mn( _i_gw , _i_occ );
                         } // occupied bands
                     } // gwbasis functions
+                       // _sigma_x(_m2,_m1)=_sigma_x( _m1, _m2 );
                 } // level 2
             } // level 1
+
+            
         
 	    // factor for hybrid DFT
 	    _sigma_x = ( 1.0 - _ScaHFX ) * _sigma_x;
