@@ -1419,8 +1419,8 @@ namespace votca {
          
             double result=0.0;
             // timers for testing
-            boost::timer::cpu_timer cpu_t;
-            cpu_t.start();
+            //boost::timer::cpu_timer cpu_t;
+            //cpu_t.start();
             double _t_AOvals = 0.0;
             double _t_rho = 0.0;
             //double _t_grad_rho = 0.0;
@@ -1643,7 +1643,7 @@ namespace votca {
                 #pragma omp parallel for
                 for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){
                 for (int j = _thread_start[i_thread]; j < _thread_stop[i_thread]; j++) {
-                   boost::timer::cpu_times t0 = cpu_t.elapsed();
+                   //boost::timer::cpu_times t0 = cpu_t.elapsed();
 
                     // get value of orbitals at each gridpoint (vector as 1D boost matrix object -> prod )
                     //ub::matrix<double> AOgrid = ub::zero_matrix<double>(basis->_AOBasisSize, 1);
@@ -1664,7 +1664,7 @@ namespace votca {
                      
                         // for each shell in this atom
                         for ( unsigned ishell = 0 ; ishell < _atomshells[rowatom].size() ; ishell++ ){
-                            boost::timer::cpu_times tstartshells = cpu_t.elapsed();
+                            //boost::timer::cpu_times tstartshells = cpu_t.elapsed();
                             AOShellIterator _row = _atomshells[rowatom][ishell];
                             // for density, fill sub-part of AOatgrid
                             //ub::matrix_range< ub::matrix<double> > _AOgridsub = ub::subrange(AOgrid, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc(), 0, 1);
@@ -1674,8 +1674,8 @@ namespace votca {
                             //ub::matrix_range< ub::matrix<double> > _gradAO = ub::subrange(gradAOgrid, 0, 3, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc());
                             //(*_row)->EvalAOGradspace(_gradAO, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
                             (*_row)->EvalAOspace(_AOgridsub, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
-                            boost::timer::cpu_times tendshells = cpu_t.elapsed();
-                             _t_AOvals +=  (tendshells.wall-tstartshells.wall)/1e9;
+                            //boost::timer::cpu_times tendshells = cpu_t.elapsed();
+                             //_t_AOvals +=  (tendshells.wall-tstartshells.wall)/1e9;
 
                         }  // shell in atom
                     }
@@ -1727,8 +1727,8 @@ namespace votca {
 
                     _grid[i][j].grid_density  =rho_mat(0,0);
                     Density_thread[i_thread] += _grid[i][j].grid_weight * _grid[i][j].grid_density;
-                    boost::timer::cpu_times t3 = cpu_t.elapsed();
-                    _t_rho +=  (t3.wall-t0.wall)/1e9;
+                    //boost::timer::cpu_times t3 = cpu_t.elapsed();
+                    //_t_rho +=  (t3.wall-t0.wall)/1e9;
 
                 } // j: for each point in atom grid
                 }// each thread
