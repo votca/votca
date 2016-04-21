@@ -43,6 +43,10 @@ public:
             : type( "" ), x(0), y(0), z(0), charge(0), from_environment( false )
             {};     
             
+   QMAtom (QMAtom & atom)
+           : type( atom.type ), x(atom.x), y(atom.y), z(atom.z), charge(atom.charge), from_environment( atom.from_environment )
+            {};
+            
    std::string type;
    double x;
    double y;

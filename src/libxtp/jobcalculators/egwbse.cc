@@ -386,7 +386,7 @@ namespace votca {
 
                 mps_file = (format("%1%_%2%_%3%.mps") % "molecule" % segId % esp2multipole.GetIdentifier() ).str();
                 boost::filesystem::create_directories( ESPDIR );
-                esp2multipole.WritetoFile(_orbitals,(ESPDIR + "/" + mps_file).c_str(),Identify());
+                esp2multipole.WritetoFile((ESPDIR + "/" + mps_file).c_str(),Identify());
     
     
                 LOG(logDEBUG, *pLog) << "Written charges to " << (ESPDIR + "/" + mps_file).c_str() << flush;
@@ -395,7 +395,7 @@ namespace votca {
             }
             LOG(logINFO, *pLog) << TimeStamp() << " Finished evaluating site " << seg->getId() << flush;
 
-
+            if(_do_dft_parse ||_do_gwbse ){
             LOG(logDEBUG, *pLog) << "Saving data to " << orb_file << flush;
             string DIR = egwbse_work_dir + "/molecules_gwbse/" + frame_dir;
             boost::filesystem::create_directories(DIR);  
@@ -405,7 +405,7 @@ namespace votca {
 
             oa << _orbitals;
             ofs.close();
-
+            }
 
             // output of the JOB 
             jres.setOutput(_job_summary);

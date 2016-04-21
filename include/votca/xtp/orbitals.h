@@ -358,6 +358,12 @@ public:
         _atoms.push_back( pAtom );
         return pAtom;
     }
+    QMAtom* AddAtom (QMAtom atom)
+    {
+        QMAtom* pAtom = new QMAtom(atom);
+        _atoms.push_back( pAtom );
+        return pAtom;
+    }
     
     void setStorage( bool _store_orbitals, bool _store_overlap,  bool _store_integrals ) {
         // _has_mo_coefficients = _store_orbitals;

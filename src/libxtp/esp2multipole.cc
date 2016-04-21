@@ -107,7 +107,7 @@ string  Esp2multipole::GetIdentifier(){
     return identifier;
 }
 
-void Esp2multipole::WritetoFile(Orbitals& _orbitals,string _output_file, string identifier){
+void Esp2multipole::WritetoFile(string _output_file, string identifier){
     _use_mps=false;
     _use_pdb=false;
     string data_format  = boost::filesystem::extension(_output_file);  
@@ -118,12 +118,18 @@ void Esp2multipole::WritetoFile(Orbitals& _orbitals,string _output_file, string 
      string tag="TOOL:"+Identify()+"_"+_state+"_"+_spin+boost::lexical_cast<string>(_state_no);
     if(_use_mps){
         QMMInterface Converter;
-        PolarSeg* result=Converter.Convert(_orbitals.QMAtoms());
+        PolarSeg* result=Converter.Convert(_Atomlist);
         
         result->WriteMPS(_output_file,tag);
         }
     else if(_use_pdb){
         FILE *out;
+        Orbitals _orbitals;
+        std::vector< QMAtom* >::iterator at;
+         for (at=_Atomlist.begin();at<_Atomlist.end();++at){
+            
+            _orbitals.AddAtom(*(*at));
+        }
         out = fopen(_output_file.c_str(), "w");
        _orbitals.WritePDB(out, tag); 
     }
@@ -141,11 +147,16 @@ void Esp2multipole::Extractingcharges( Orbitals& _orbitals ){
    LOG(logDEBUG, *_log) << "===== Running on "<< threads << " threads ===== " << flush;
 
         vector< QMAtom* > Atomlist =_orbitals.QMAtoms();
+        std::vector< QMAtom* >::iterator at;
+        for (at=Atomlist.begin();at<Atomlist.end();++at){
+            QMAtom * atom=new QMAtom(*(*at));
+            _Atomlist.push_back(atom);
+        }
         ub::matrix<double> DMAT_tot;
         BasisSet bs;
         bs.LoadBasisSet(_orbitals.getDFTbasis());
         AOBasis basis;
-        basis.AOBasisFill(&bs, Atomlist );
+        basis.AOBasisFill(&bs, _Atomlist );
         
         
         ub::matrix<double> _MO_Coefficients = *(_orbitals.getOrbitals()); // this is a copy?
@@ -192,7 +203,7 @@ void Esp2multipole::Extractingcharges( Orbitals& _orbitals ){
         if (_use_mulliken) {
             Mulliken mulliken;
             mulliken.setUseECPs(_use_ecp);
-            mulliken.EvaluateMulliken(Atomlist, DMAT_tot, basis, bs, _do_transition);
+            mulliken.EvaluateMulliken(_Atomlist, DMAT_tot, basis, bs, _do_transition);
                 
         }
         else if (_use_CHELPG){         
@@ -202,9 +213,9 @@ void Esp2multipole::Extractingcharges( Orbitals& _orbitals ){
                 esp.setUseSVD(_do_svd,_conditionnumber);
             }
             if (_integrationmethod=="numeric")  {
-                esp.Fit2Density(Atomlist, DMAT_tot, basis,bs,_gridsize); 
+                esp.Fit2Density(_Atomlist, DMAT_tot, basis,bs,_gridsize); 
             }
-            else if (_integrationmethod=="analytic")  esp.Fit2Density_analytic(Atomlist,DMAT_tot,basis);
+            else if (_integrationmethod=="analytic")  esp.Fit2Density_analytic(_Atomlist,DMAT_tot,basis);
         }
 }       
 

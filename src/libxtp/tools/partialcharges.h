@@ -103,7 +103,7 @@ bool Partialcharges::Evaluate() {
     esp2multipole.Initialize(&_esp_options);
     esp2multipole.Extractingcharges(_orbitals);
     
-    esp2multipole.WritetoFile(_orbitals,_output_file);
+    esp2multipole.WritetoFile(_output_file);
     
     
     LOG(logDEBUG, _log) << "Written charges to " << _output_file << flush;
