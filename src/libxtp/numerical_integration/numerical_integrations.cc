@@ -1421,8 +1421,8 @@ namespace votca {
             // timers for testing
             //boost::timer::cpu_timer cpu_t;
             //cpu_t.start();
-            double _t_AOvals = 0.0;
-            double _t_rho = 0.0;
+            //double _t_AOvals = 0.0;
+            //double _t_rho = 0.0;
             //double _t_grad_rho = 0.0;
             //double _t_vxc =0.0;
             //double _t_AOxc_rho=0.0;

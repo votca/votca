@@ -158,7 +158,9 @@ namespace votca {
             if (_shift_converged) {
                 // in final step, also calc offdiagonal elements
                 // initialize sigma_c to zero at the beginning
-                //_sigma_c = ub::zero_matrix<double>(_qptotal,_qptotal);
+                
+                
+             //this is not the fastest algorithm but faster ones throw igwbse off, so this is good enough.    
                 
             #pragma omp parallel for
 	    for (unsigned _gw_level = 0; _gw_level < _qptotal ; _gw_level++ ){
@@ -190,17 +192,7 @@ namespace votca {
                     
 		    double _factor = _ppm_weight( _i_gw ) * _ppm_freq( _i_gw) *   Mmn(_i_gw, _i) *_stab/_denom; // contains conversion factor 2!
 		    
-                    //double _crap = 0.0;
-		    // loop over row GW levels
-		   // for ( unsigned _m = 0 ; _m < _qptotal ; _m++) {
-                    //for ( unsigned _m = 0 ; _m < _gw_level ; _m++) {
-                    
-                       // _crap += _factor *  _Mmn[_m + _qpmin](_i_gw, _i) ; 
-                        //if ( _m==_gw_level){
-                     //       continue;
-                       // }
-		    // sigma_c all elements
-                    // for ( unsigned _m = 0 ; _m < _gw_level ; _m++) {
+                  
                         
                         _sigma_c( _gw_level  , _m ) += _factor*Mmn2(_i_gw, _i);  //_submat(_i_gw,_i);
                      
