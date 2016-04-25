@@ -134,6 +134,17 @@ Molecule * CGMoleculeDef::CreateMolecule(Topology & top)
 
             atoms.push_back(i);
         }
+           
+	int NrBeads=1;
+        if((*ibnd)->name() == "bond")
+	    NrBeads=2;
+        else if((*ibnd)->name() == "angle")
+	    NrBeads=3;
+        else if((*ibnd)->name() == "dihedral")
+	    NrBeads=4;
+	
+	if( (atoms.size() % NrBeads) != 0 )
+            throw runtime_error("Number of atoms in interaction '" + (*ibnd)->get("name").as<string>() + "' is not a multiple of " + lexical_cast<string>(NrBeads) + "! Missing beads?");
 
         int index=0;
         while(!atoms.empty()) {
