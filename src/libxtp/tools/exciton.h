@@ -184,7 +184,7 @@ void Exciton::Initialize(Property* options) {
             key = "package";
             _package = _package_options.get(key + ".name").as<string> ();
             //cout << endl << "... ... Parsing " << _package_xml << endl ;
-            
+             key = "options." + Identify();
             if ( options->exists(key+".guess")){
                 _do_guess=true;
                 _guess_orbA = options->get(key + ".guess.archiveA").as<string> ();

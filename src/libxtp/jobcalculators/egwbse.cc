@@ -384,7 +384,7 @@ namespace votca {
                 esp2multipole.Extractingcharges(_orbitals);
                 
 
-                mps_file = (format("%1%_%2%_%3%.mps") % "molecule" % segId % esp2multipole.GetIdentifier() ).str();
+                mps_file = (format("%1%_%2%_%3%.mps") % segType % segId % esp2multipole.GetIdentifier() ).str();
                 boost::filesystem::create_directories( ESPDIR );
                 esp2multipole.WritetoFile((ESPDIR + "/" + mps_file).c_str(),Identify());
     
