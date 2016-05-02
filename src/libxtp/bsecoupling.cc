@@ -1077,6 +1077,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      // do not reorder ifs because of the temps, I would like to paralleize this part but i have no clue how to do it simply and elegantly
      
      ub::matrix<double> _temp = ub::prod( _H , ub::trans(_proj_excA) );
+     LOG(logDEBUG, *_pLog) << TimeStamp()  << " FE-FE-excitations "<< _bse_exc +_ct<<"x"<<_bse_exc +_ct << flush;
      ub::project( _J_dimer,  ub::range (0, _bseA_exc ), ub::range ( 0, _bseA_exc )  ) = ub::prod( _proj_excA, _temp ); // E_A = proj_excA x H x trans(proj_excA)
      ub::project( _J_dimer,  ub::range (_bseA_exc, _bse_exc ), ub::range ( 0, _bseA_exc )  ) = ub::prod( _proj_excB, _temp ); // J_BA = proj_excB x H x trans(proj_excA)
      if(_ctAB>0){

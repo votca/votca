@@ -21,7 +21,7 @@
 #define _VOTCA_XTP_QMANALYZE_H
 
 #include <stdio.h>
-
+#include <votca/tools/constants.h>
 #include <votca/xtp/logger.h>
 // #include <votca/xtp/mbgft.h>
 // #include <votca/xtp/qmpackagefactory.h>
@@ -47,7 +47,8 @@ private:
     string      _orbfile;
     string      _output_file;
     bool _print_BSE_singlets;
-    bool _print_oscstrength;
+    bool _print_BSE_triplets;
+    
     
     Logger      _log;
     
@@ -59,7 +60,7 @@ void QMAnalyze::Initialize(Property* options) {
             
     
     _print_BSE_singlets=false;
-    _print_oscstrength=false;
+    _print_BSE_triplets=false;
             // update options with the VOTCASHARE defaults   
     UpdateWithDefaults( options, "xtp" );
  
@@ -77,8 +78,8 @@ void QMAnalyze::Initialize(Property* options) {
    if ( options->exists(key+".BSE")) {
         
         string _store_string = options->get(key+".BSE").as<string> ();
-        if (_store_string.find("energies") != std::string::npos) _print_BSE_singlets=true;
-        if (_store_string.find("oscillatorstrength") != std::string::npos) _print_oscstrength=true;
+        if (_store_string.find("singlets") != std::string::npos) _print_BSE_singlets=true;
+        if (_store_string.find("triplets") != std::string::npos) _print_BSE_triplets=true;
         
     }
    
@@ -303,30 +304,34 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
         LOG(logDEBUG, _log) << "      BSE singlet excitons:   " << _orbitals.getBSESingletEnergies()->size() << flush;
         
         if (_print_BSE_singlets){
-            LOG(logDEBUG, _log) << "      BSE singlet excitons energies:   " << flush;
-            const double Ryd2eV =13.605692;
-            const vector<float> energies= _orbitals.BSESingletEnergies();
-            for (unsigned i=0;i<energies.size();i++){
-                LOG(logDEBUG, _log) << "Singlet" <<i+1<<"[eV]: "<<energies[i]*Ryd2eV << flush;
+            LOG(logINFO, _log) << (format("  ====== singlet energies (eV) ====== ")).str() << flush;
+            const vector<float> &  _bse_singlet_energies = _orbitals.BSESingletEnergies();
+            const std::vector<std::vector<double> > & _transition_dipoles=_orbitals.TransitionDipoles();
+            
+            for (unsigned _i=0;_i<_bse_singlet_energies.size();_i++){
+                
+                LOG(logINFO, _log) << (format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
+                    % (_i + 1) % (tools::conv::ryd2ev * _bse_singlet_energies[_i]) % (1240.0/(tools::conv::ryd2ev * _bse_singlet_energies[_i]))).str() << flush;
+                if ( _orbitals.hasTransitionDipoles()){
+                    double trstrength =_transition_dipoles[_i][0]*_transition_dipoles[_i][0]+_transition_dipoles[_i][1]*_transition_dipoles[_i][1]
+                                        +_transition_dipoles[_i][2]*_transition_dipoles[_i][2];
+
+                    double oscstrength =trstrength/3.0*_bse_singlet_energies[_i];
+                    LOG(logINFO, _log) << (format("           TrDipole length gauge[e*bohr]  dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f") 
+                                    % (_transition_dipoles[_i][0]) % (_transition_dipoles[_i][1]) % (_transition_dipoles[_i][2]) % (trstrength) 
+                                    % oscstrength).str() << flush;
+                }
+                
+                
+                
             }
         }    
-        if (_print_oscstrength){
-            LOG(logDEBUG, _log) << "      BSE singlet oscillatorstrengths   " << flush;
-            const std::vector<std::vector<double> > trdipoles=_orbitals.TransitionDipoles();
-            const vector<float> energies= _orbitals.BSESingletEnergies();
-            for (unsigned i=0;i<trdipoles.size();i++){
-                double oscstrength=(trdipoles[i][0]*trdipoles[i][0]+trdipoles[i][1]*trdipoles[i][1]+trdipoles[i][2]*trdipoles[i][2])/3.0*energies[i];
-                LOG(logDEBUG, _log) << "Singlet" <<i+1<<": "<<oscstrength << flush;
-            }
-            LOG(logDEBUG, _log) << "      BSE singlet transitiondipoles (length gauge)   " << flush;
-            for (unsigned i=0;i<trdipoles.size();i++){
-
-                LOG(logDEBUG, _log) << "Singlet" <<i+1<<" x y z : "<< trdipoles[i][0] <<" "<< trdipoles[i][1] <<" "<< trdipoles[i][2] << flush;
-            }
+        
+            
         
         
         
-        }
+        
     } else {
         LOG(logDEBUG, _log) << "      BSE singlet excitons:   not stored" << flush;
     }  
@@ -334,9 +339,7 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
     
     
     // Transition dipole moments
-    if ( _orbitals.hasTransitionDipoles()){
-        LOG(logDEBUG, _log) << "      BSE transition dipoles: " << _orbitals.TransitionDipoles().size() << flush;
-    } else {
+    if ( !_orbitals.hasTransitionDipoles()){
         LOG(logDEBUG, _log) << "      BSE transition dipoles: not stored" << flush;
     }  
     
@@ -345,6 +348,18 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
     // BSE triplet excitons
     if ( _orbitals.hasBSETriplets()){
         LOG(logDEBUG, _log) << "      BSE triplet excitons:   " << _orbitals.getBSETripletEnergies()->size() << flush;
+        
+        
+        if(_print_BSE_triplets){
+             LOG(logINFO, _log) << (format("  ====== triplet energies (eV) ====== ")).str() << flush;
+             const vector<float> &  _bse_triplet_energies = _orbitals.BSETripletEnergies();
+             
+             for (unsigned _i=0;_i<_bse_triplet_energies.size();_i++){
+             LOG(logINFO, _log) << (format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
+                                % (_i + 1) % (tools::conv::ryd2ev * _bse_triplet_energies[_i]) % (1240.0/(13.6058 * _bse_triplet_energies[_i]))).str() << flush;
+             
+            }
+        }
     } else {
         LOG(logDEBUG, _log) << "      BSE triplet excitons:   not stored" << flush;
     }  

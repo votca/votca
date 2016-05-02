@@ -903,7 +903,9 @@ void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
 
                     LOG(logINFO, *_pLog) << (format("  ====== triplet energies (eV) ====== ")).str() << flush;
                     for (int _i = 0; _i < _bse_nprint; _i++) {
-                        LOG(logINFO, *_pLog) << (format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_x> = %5$+1.4f <K_d> = %6$+1.4f") % (_i + 1) % (tools::conv::ryd2ev * _bse_triplet_energies(_i)) % (1240.0/(13.6058 * _bse_triplet_energies(_i))) % (tools::conv::ryd2ev * _contrib_qp[_i]) % (tools::conv::ryd2ev * _contrib_x[_i]) % (tools::conv::ryd2ev * _contrib_d[ _i ])).str() << flush;
+                        LOG(logINFO, *_pLog) << (format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_x> = %5$+1.4f <K_d> = %6$+1.4f")
+                                % (_i + 1) % (tools::conv::ryd2ev * _bse_triplet_energies(_i)) % (1240.0/(13.6058 * _bse_triplet_energies(_i))) 
+                                % (tools::conv::ryd2ev * _contrib_qp[_i]) % (tools::conv::ryd2ev * _contrib_x[_i]) % (tools::conv::ryd2ev * _contrib_d[ _i ])).str() << flush;
                         
                         for (unsigned _i_bse = 0; _i_bse < _bse_size; _i_bse++) {
                             // if contribution is larger than 0.2, print
@@ -1117,19 +1119,26 @@ void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
                     LOG(logINFO, *_pLog) << (format("  ====== singlet energies (eV) ====== ")).str() << flush;
                     for (int _i = 0; _i < _bse_nprint; _i++) {
 
-                        LOG(logINFO, *_pLog) << (format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_x> = %5$+1.4f <K_d> = %6$+1.4f") % (_i + 1) % (tools::conv::ryd2ev * _bse_singlet_energies(_i)) % (1240.0/(tools::conv::ryd2ev * _bse_singlet_energies(_i))) % (tools::conv::ryd2ev * _contrib_qp[_i]) % (tools::conv::ryd2ev * _contrib_x[_i]) % (tools::conv::ryd2ev * _contrib_d[ _i ])).str() << flush;
-                        LOG(logINFO, *_pLog) << (format("           TrDipole length gauge[e*bohr]  dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f") % (_transition_dipoles[_i][0]) % (_transition_dipoles[_i][1]) % (_transition_dipoles[_i][2]) % (_transition_dipole_strength[_i]) % (_oscillator_strength[_i])).str() << flush;
+                        LOG(logINFO, *_pLog) << (format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_x> = %5$+1.4f <K_d> = %6$+1.4f")
+                                % (_i + 1) % (tools::conv::ryd2ev * _bse_singlet_energies(_i)) % (1240.0/(tools::conv::ryd2ev * _bse_singlet_energies(_i))) 
+                                % (tools::conv::ryd2ev * _contrib_qp[_i]) % (tools::conv::ryd2ev * _contrib_x[_i]) % (tools::conv::ryd2ev * _contrib_d[ _i ])).str() << flush;
+                        LOG(logINFO, *_pLog) << (format("           TrDipole length gauge[e*bohr]  dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f") 
+                                % (_transition_dipoles[_i][0]) % (_transition_dipoles[_i][1]) % (_transition_dipoles[_i][2]) % (_transition_dipole_strength[_i]) 
+                                % (_oscillator_strength[_i])).str() << flush;
                         for (unsigned _i_bse = 0; _i_bse < _bse_size; _i_bse++) {
                             // if contribution is larger than 0.2, print
                             double _weight = pow(_bse_singlet_coefficients(_i_bse, _i), 2);
                             if (_weight > 0.2) {
-                                LOG(logINFO, *_pLog) << (format("           HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%") % (_homo - _index2v[_i_bse]) % (_index2c[_i_bse] - _homo - 1) % (100.0 * _weight)).str() << flush;
+                                LOG(logINFO, *_pLog) << (format("           HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%")
+                                        % (_homo - _index2v[_i_bse]) % (_index2c[_i_bse] - _homo - 1) % (100.0 * _weight)).str() << flush;
                             }
                         }
                         // results of fragment population analysis 
                         if ( _fragA > 0 ){
-                            LOG(logINFO, *_pLog) << (format("           Fragment A -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f") % (100.0 * _popHA[_i]) % (100.0 * _popEA[_i]) % (_CrgsA[_i]) % ( _CrgsA[_i] + _popA ) ).str() << flush;
-                            LOG(logINFO, *_pLog) << (format("           Fragment B -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f") % (100.0 * _popHB[_i]) % (100.0 * _popEB[_i]) % (_CrgsB[_i]) % ( _CrgsB[_i] + _popB ) ).str() << flush;
+                            LOG(logINFO, *_pLog) << (format("           Fragment A -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f")
+                                    % (100.0 * _popHA[_i]) % (100.0 * _popEA[_i]) % (_CrgsA[_i]) % ( _CrgsA[_i] + _popA ) ).str() << flush;
+                            LOG(logINFO, *_pLog) << (format("           Fragment B -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f")
+                                    % (100.0 * _popHB[_i]) % (100.0 * _popEB[_i]) % (_CrgsB[_i]) % ( _CrgsB[_i] + _popB ) ).str() << flush;
                         }
                         LOG(logINFO, *_pLog) << (format("   ")).str() << flush;
                     }
