@@ -547,13 +547,14 @@ float BSECoupling::getTripletCouplingElement( int levelA, int levelB) {
  * @return false if failed
  */
 bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _orbitalsAB) {
-       
+       LOG(logDEBUG, *_pLog) << TimeStamp()  << "  Calculating exciton couplings" << flush;
      // set the parallelization 
     #ifdef _OPENMP
-    if ( _openmp_threads > 0 ) omp_set_num_threads(_openmp_threads);           
+    if ( _openmp_threads > 0 ) omp_set_num_threads(_openmp_threads);      
+    LOG(logDEBUG, *_pLog) << TimeStamp()  << " Using "<< omp_get_num_threads()<<" threads" << flush;
     #endif
     
-    LOG(logDEBUG, *_pLog) << TimeStamp()  << "  Calculating exciton couplings" << flush;
+    
     
     _orbitalsAB->setCoupledExcitonsA(_levA);
     _orbitalsAB->setCoupledExcitonsB(_levB);
@@ -1062,6 +1063,8 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      
      //cout << _J_dimer.size1()<< " : "<<_J_dimer.size2()<<endl;
      //cout << _S_dimer.size1()<< " : "<<_S_dimer.size2()<<endl;
+     
+     
 
       LOG(logDEBUG, *_pLog) << TimeStamp()  << "   Setting up coupling matrix size "<< _bse_exc +_ct<<"x"<<_bse_exc +_ct << flush;
      // matrix _J
@@ -1077,7 +1080,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      // do not reorder ifs because of the temps, I would like to paralleize this part but i have no clue how to do it simply and elegantly
      
      ub::matrix<double> _temp = ub::prod( _H , ub::trans(_proj_excA) );
-     LOG(logDEBUG, *_pLog) << TimeStamp()  << " FE-FE-excitations "<< _bse_exc +_ct<<"x"<<_bse_exc +_ct << flush;
+     //LOG(logDEBUG, *_pLog) << TimeStamp()  << " FE-FE-excitations "<< _bse_exc +_ct<<"x"<<_bse_exc +_ct << flush;
      ub::project( _J_dimer,  ub::range (0, _bseA_exc ), ub::range ( 0, _bseA_exc )  ) = ub::prod( _proj_excA, _temp ); // E_A = proj_excA x H x trans(proj_excA)
      ub::project( _J_dimer,  ub::range (_bseA_exc, _bse_exc ), ub::range ( 0, _bseA_exc )  ) = ub::prod( _proj_excB, _temp ); // J_BA = proj_excB x H x trans(proj_excA)
      if(_ctAB>0){
@@ -1159,9 +1162,9 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      }
      // we do the lowdin transformation for every localised exciton separately
     //cout << "_S_dimer"<<endl;
-            //cout << _S_dimer<<endl;
-            //cout <<" _J_dimer"<<endl;
-            //cout << _J_dimer<<endl;
+    //cout << _S_dimer<<endl;
+    //cout <<" _J_dimer"<<endl;
+    //cout << _J_dimer*conv::ryd2ev<<endl;
      
     
      for (unsigned exA=0;exA<_bseA_exc;exA++){
@@ -1247,7 +1250,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
     //}
     //cout <<endl;
     //cout << "J_ortho"<<endl;
-    //cout << _J_ortho<<endl;
+    //cout << _J_ortho*conv::ryd2ev<<endl;
      //Setting up effective Coupling matrix
      //LOG(logDEBUG, *_pLog) << TimeStamp()  << "Setting up effective/perturbative Coupling matrix of size: "<< _bse_exc  <<"x"<<  _bse_exc << flush;
      
@@ -1259,10 +1262,10 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      
      //finding the eigenstates which are closest to the the original states
      
-     //cout << "_J_eigenvalues" << endl;
-    //cout << _J_eigenvalues<< endl;
-     //cout << "_J_eigenvectors" << endl;
-     //cout << _J_ortho<<endl;
+    //cout << "_J_eigenvalues" << endl;
+    //cout << _J_eigenvalues*conv::ryd2ev<< endl;
+    //cout << "_J_eigenvectors" << endl;
+    //cout << _J_ortho<<endl;
      
      
      //setting up transformation matrix _T and diagonal matrix _E for the eigenvalues;
@@ -1282,7 +1285,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
                 for (unsigned j = 0; j < 2 + _ct; j++) {
                     bool check=true;
                     // if index i is already in index
-                    // should not happen but if one vector was similar to tow others.
+                    // should not happen but if one vector was similar to two others.
                     for (unsigned l=0;l<index.size();l++){
                         if (j==index[l]){
                             check=false;
@@ -1301,14 +1304,14 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      LOG(logDEBUG, *_pLog) << TimeStamp()  << "   Order is: [Initial state n->nth eigenvalue]"<<flush;
      for (unsigned i=0;i<index.size();i++){
          if(i<2){
-      LOG(logDEBUG, *_pLog) << TimeStamp()  <<"    A"<<i+1<<":"<<i+1<<"->"<<index[i]+1<<" " ;   
+      LOG(logDEBUG, *_pLog) <<"    A"<<i+1<<":"<<i+1<<"->"<<index[i]+1<<" " ;   
          }
          else{
-     LOG(logDEBUG, *_pLog) << TimeStamp()  <<"    B"<<i+1-2<<":"<<i+1<<"->"<<index[i]+1<<" " ;  
+     LOG(logDEBUG, *_pLog) << "    B"<<i+1-2<<":"<<i+1<<"->"<<index[i]+1<<" " ;  
          }
                  
      }
-     LOG(logDEBUG, *_pLog) << TimeStamp() << flush;
+     LOG(logDEBUG, *_pLog) << flush;
      //row
      for (unsigned i = 0; i < 2; i++) {
          unsigned k=index[i];

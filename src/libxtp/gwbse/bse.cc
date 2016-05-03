@@ -311,7 +311,7 @@ namespace votca {
             _storage_v.resize(0,0);
             
             
-            // finally resort into _eh_d and multiply by to for Rydbergs
+            // finally resort into _eh_d and multiply by two for Rydbergs
             // can be limited to upper diagonal !
             _eh_d = ub::zero_matrix<float>( _bse_size , _bse_size );
             #pragma omp parallel for
@@ -435,7 +435,7 @@ namespace votca {
            // cout << " ==== check 4 ====== " << endl;
             
             
-            // finally resort into _eh_d and multiply by to for Rydbergs
+            // finally resort into _eh_d and multiply by two for Rydbergs
             // can be limited to upper diagonal !
             _eh_d2 = ub::zero_matrix<float>( _bse_size , _bse_size );
             #pragma omp parallel for
