@@ -550,8 +550,9 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
        LOG(logDEBUG, *_pLog) << TimeStamp()  << "  Calculating exciton couplings" << flush;
      // set the parallelization 
     #ifdef _OPENMP
+    
     if ( _openmp_threads > 0 ) omp_set_num_threads(_openmp_threads);      
-    LOG(logDEBUG, *_pLog) << TimeStamp()  << " Using "<< omp_get_num_threads()<<" threads" << flush;
+    LOG(logDEBUG, *_pLog) << TimeStamp()  << " Using "<< omp_get_max_threads()<<" threads" << flush;
     #endif
     
     
@@ -1037,19 +1038,25 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
     
     
     //cout << " Dimensions of _bseA " << _bseA.size1() << " : " << _bseA.size2() << endl;
-    
+
+     
+     
      // get projection of monomer excitons on dimer product functions
      ub::matrix<float> _proj_excA = ub::prod( ub::trans( _bseA ), _kap);
      ub::matrix<float> _proj_excB = ub::prod( ub::trans( _bseB ), _kbp);
-     //cout << "_bseA"<<_bseA.size1()<<"x"<<_bseA.size2()<<endl;
-     //cout << "_kap"<<_kap.size1()<<"x"<<_kap.size2()<<endl;  
-     //cout << "_proj_excA"<<_proj_excA.size1()<<"x"<<_proj_excA.size2()<<endl;
-     //cout << "_bseB"<<_bseB.size1()<<"x"<<_bseB.size2()<<endl;
-     //cout << "_kbp"<<_kbp.size1()<<"x"<<_kbp.size2()<<endl;
-     //cout << "_proj_excB"<<_proj_excB.size1()<<"x"<<_proj_excB.size2()<<endl;
+    
+ 
+     cout << "_proj_excA"<<_proj_excA.size1()<<"x"<<_proj_excA.size2()<<endl;
+ 
+     cout << "_proj_excB"<<_proj_excB.size1()<<"x"<<_proj_excB.size2()<<endl;
      
-     unsigned _bseA_exc = _bseA.size2();
-     unsigned _bseB_exc = _bseB.size2();
+     
+     cout << "_ctAB"<<ctAB.size1()<<"x"<<ctAB.size2()<<endl;
+     
+     cout << "_ctBA"<<ctBA.size1()<<"x"<<ctBA.size2()<<endl;
+     
+     unsigned _bseA_exc = _proj_excA.size1();
+     unsigned _bseB_exc = _proj_excB.size1();
      unsigned _bse_exc=_bseA_exc+_bseB_exc;
      
      _J=ub::zero_matrix<float>(_bse_exc,_bse_exc);
@@ -1057,15 +1064,28 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      
      unsigned _ctBA=ctBA.size1();
      unsigned _ct=_ctAB+_ctBA;
+     unsigned nobasisfunc=_H.size1();
+     
+     
      //cout << _ctAB <<_ctBA<<endl;
-     ub::matrix<double> _J_dimer = ub::zero_matrix<double>( _bse_exc +_ct, _bse_exc+_ct );
-     ub::matrix<double> _S_dimer = ub::zero_matrix<double>( _bse_exc +_ct, _bse_exc +_ct);
+     //ub::matrix<double> _J_dimer = ub::zero_matrix<double>( _bse_exc +_ct, _bse_exc+_ct );
+     //ub::matrix<double> _S_dimer = ub::zero_matrix<double>( _bse_exc +_ct, _bse_exc +_ct);
      
      //cout << _J_dimer.size1()<< " : "<<_J_dimer.size2()<<endl;
      //cout << _S_dimer.size1()<< " : "<<_S_dimer.size2()<<endl;
+     LOG(logDEBUG, *_pLog) << TimeStamp()  << " casting Hamiltonian to double  " << flush;
+     ub::matrix<double> projection =ub::zero_matrix<double>(_bse_exc+_ct,nobasisfunc);
+     ub::matrix<double> Htemp=_H;
      
-     
-
+     LOG(logDEBUG, *_pLog) << TimeStamp()  << " merging projections into one vector  " << flush;
+     ub::project(projection, ub::range ( 0, _bseA_exc ),ub::range (0, nobasisfunc )  )=_proj_excA;
+     ub::project(projection, ub::range ( _bseA_exc, _bse_exc ),ub::range (0, nobasisfunc )  )=_proj_excB;
+     if(_ctAB>0){
+     ub::project(projection, ub::range ( _bse_exc , _bse_exc+_ctAB ) ,ub::range (0,nobasisfunc ) )=ctAB;
+     }
+     if(_ctBA>0){
+     ub::project(projection, ub::range ( _bse_exc+_ctAB, _bse_exc+_ct ),ub::range (0, nobasisfunc )  )=ctBA;
+     }
       LOG(logDEBUG, *_pLog) << TimeStamp()  << "   Setting up coupling matrix size "<< _bse_exc +_ct<<"x"<<_bse_exc +_ct << flush;
      // matrix _J
      
@@ -1079,87 +1099,18 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      
      // do not reorder ifs because of the temps, I would like to paralleize this part but i have no clue how to do it simply and elegantly
      
-     ub::matrix<double> _temp = ub::prod( _H , ub::trans(_proj_excA) );
-     //LOG(logDEBUG, *_pLog) << TimeStamp()  << " FE-FE-excitations "<< _bse_exc +_ct<<"x"<<_bse_exc +_ct << flush;
-     ub::project( _J_dimer,  ub::range (0, _bseA_exc ), ub::range ( 0, _bseA_exc )  ) = ub::prod( _proj_excA, _temp ); // E_A = proj_excA x H x trans(proj_excA)
-     ub::project( _J_dimer,  ub::range (_bseA_exc, _bse_exc ), ub::range ( 0, _bseA_exc )  ) = ub::prod( _proj_excB, _temp ); // J_BA = proj_excB x H x trans(proj_excA)
-     if(_ctAB>0){
-     ub::project( _J_dimer,  ub::range (_bse_exc, _bse_exc+_ctAB ), ub::range ( 0, _bseA_exc )  ) = ub::prod( ctAB, _temp );// J_ABCT_A
-     }
-     if(_ctBA>0){
-     ub::project( _J_dimer,  ub::range ( _bse_exc+_ctAB, _bse_exc+_ct ), ub::range ( 0, _bseA_exc )  ) = ub::prod( ctBA, _temp );// J_BACT_A
-     }
+     ub::matrix<double> _temp=ub::prod(Htemp,ub::trans(projection));
+     ub::matrix<double> _J_dimer=ub::prod(projection,_temp);
      
-     
-     _temp = ub::prod( _H , ub::trans(_proj_excB) );
-     ub::project( _J_dimer,  ub::range (0, _bseA_exc ), ub::range ( _bseA_exc, _bse_exc)  ) =ub::prod( _proj_excA, _temp ); // J_AB = proj_excA x H x trans(proj_excB)
-     ub::project( _J_dimer,  ub::range (_bseA_exc, _bse_exc ), ub::range ( _bseA_exc,_bse_exc)  ) = ub::prod(_proj_excB, _temp ); // E_B = proj_excB x H x trans(proj_excB)
-     if(_ctAB>0){
-     ub::project( _J_dimer,  ub::range (_bse_exc, _bse_exc+_ctAB ), ub::range ( _bseA_exc,_bse_exc)  ) = ub::prod(ctAB, _temp ); // J_ABCT_B
-     }
-     if(_ctBA>0){
-     ub::project( _J_dimer,  ub::range (_bse_exc+_ctAB, _bse_exc+_ct ), ub::range ( _bseA_exc,_bse_exc)  ) = ub::prod(ctBA, _temp );// J_BACT_B
-     }
-     
-     
-     if(_ctAB>0){
-      _temp = ub::prod( _H , ub::trans(ctAB) );
-     ub::project( _J_dimer,  ub::range (0, _bseA_exc ), ub::range ( _bse_exc, _bse_exc+_ctAB )  ) = ub::prod( _proj_excA, _temp );
-     ub::project( _J_dimer,  ub::range (_bseA_exc, _bse_exc ), ub::range ( _bse_exc, _bse_exc+_ctAB )  ) = ub::prod( _proj_excB, _temp );
-     ub::project( _J_dimer,  ub::range (_bse_exc, _bse_exc+_ctAB ), ub::range ( _bse_exc, _bse_exc+_ctAB )  ) = ub::prod( ctAB, _temp );
-     ub::project( _J_dimer,  ub::range (_bse_exc+_ctAB, _bse_exc+_ct ), ub::range ( _bse_exc, _bse_exc+_ctAB )  ) = ub::prod( ctBA, _temp );
-     }
-     
-     
-     if(_ctBA>0){
-      _temp = ub::prod( _H , ub::trans(ctBA) );
-     ub::project( _J_dimer,  ub::range (0, _bseA_exc ), ub::range ( _bse_exc+_ctAB, _bse_exc+_ct )  ) = ub::prod( _proj_excA, _temp );
-     ub::project( _J_dimer,  ub::range (_bseA_exc, _bse_exc ), ub::range ( _bse_exc+_ctAB, _bse_exc+_ct )  ) = ub::prod( _proj_excB, _temp );
-     ub::project( _J_dimer,  ub::range (_bse_exc, _bse_exc+_ctAB ), ub::range ( _bse_exc+_ctAB, _bse_exc+_ct )   ) = ub::prod( ctAB, _temp );
-     ub::project( _J_dimer,  ub::range (_bse_exc+_ctAB, _bse_exc+_ct ), ub::range ( _bse_exc+_ctAB, _bse_exc+_ct )   ) = ub::prod( ctBA, _temp ); 
-     }
-
+     Htemp.resize(0,0);
+     _temp.resize(0,0);
      
 
     
     LOG(logDEBUG, *_pLog) << TimeStamp()  << "   Setting up overlap matrix size "<< _bse_exc +_ct<<"x"<<_bse_exc +_ct << flush;
      // setup S
     
-     _temp =ub::trans(_proj_excA);
-     ub::project( _S_dimer,  ub::range (0, _bseA_exc ), ub::range ( 0, _bseA_exc )  ) = ub::prod( _proj_excA, _temp ); // E_A = proj_excA x H x trans(proj_excA)
-     ub::project( _S_dimer,  ub::range (_bseA_exc, _bse_exc ), ub::range ( 0, _bseA_exc )  ) = ub::prod( _proj_excB, _temp ); // J_BA = proj_excB x H x trans(proj_excA)
-     if(_ctAB>0){
-     ub::project( _S_dimer,  ub::range (_bse_exc, _bse_exc+_ctAB ), ub::range ( 0, _bseA_exc )  ) = ub::prod( ctAB, _temp );// J_ABCT_A
-     }
-     if(_ctBA>0){
-     ub::project( _S_dimer,  ub::range ( _bse_exc+_ctAB, _bse_exc+_ct ), ub::range ( 0, _bseA_exc )  ) = ub::prod( ctBA, _temp );// J_BACT_A
-     }
-     
-     
-     _temp =  ub::trans(_proj_excB);
-     ub::project( _S_dimer,  ub::range (0, _bseA_exc ), ub::range ( _bseA_exc, _bse_exc)  ) =ub::prod( _proj_excA, _temp ); // J_AB = proj_excA x H x trans(proj_excB)
-     ub::project( _S_dimer,  ub::range (_bseA_exc, _bse_exc ), ub::range ( _bseA_exc,_bse_exc)  ) = ub::prod(_proj_excB, _temp ); // E_B = proj_excB x H x trans(proj_excB)
-     if(_ctAB>0){
-     ub::project( _S_dimer,  ub::range (_bse_exc, _bse_exc+_ctAB ), ub::range ( _bseA_exc,_bse_exc)  ) = ub::prod(ctAB, _temp ); // J_ABCT_B
-     }
-     if(_ctBA>0){
-     ub::project( _S_dimer,  ub::range (_bse_exc+_ctAB, _bse_exc+_ct ), ub::range ( _bseA_exc,_bse_exc)  ) = ub::prod(ctBA, _temp );// J_BACT_B
-     }
-     
-     if(_ctAB>0){
-      _temp =  ub::trans(ctAB);
-     ub::project( _S_dimer,  ub::range (0, _bseA_exc ), ub::range ( _bse_exc, _bse_exc+_ctAB )  ) = ub::prod( _proj_excA, _temp );
-     ub::project( _S_dimer,  ub::range (_bseA_exc, _bse_exc ), ub::range ( _bse_exc, _bse_exc+_ctAB )  ) = ub::prod( _proj_excB, _temp );
-     ub::project( _S_dimer,  ub::range (_bse_exc, _bse_exc+_ctAB ), ub::range ( _bse_exc, _bse_exc+_ctAB )  ) = ub::prod( ctAB, _temp );
-     ub::project( _S_dimer,  ub::range (_bse_exc+_ctAB, _bse_exc+_ct ), ub::range ( _bse_exc, _bse_exc+_ctAB )  ) = ub::prod( ctBA, _temp );
-     }
-     if(_ctBA>0){
-      _temp = ub::trans(ctBA);
-     ub::project( _S_dimer,  ub::range (0, _bseA_exc ), ub::range ( _bse_exc+_ctAB, _bse_exc+_ct )  ) = ub::prod( _proj_excA, _temp );
-     ub::project( _S_dimer,  ub::range (_bseA_exc, _bse_exc ), ub::range ( _bse_exc+_ctAB, _bse_exc+_ct )  ) = ub::prod( _proj_excB, _temp );
-     ub::project( _S_dimer,  ub::range (_bse_exc, _bse_exc+_ctAB ), ub::range ( _bse_exc+_ctAB, _bse_exc+_ct )   ) = ub::prod( ctAB, _temp );
-     ub::project( _S_dimer,  ub::range (_bse_exc+_ctAB, _bse_exc+_ct ), ub::range ( _bse_exc+_ctAB, _bse_exc+_ct )   ) = ub::prod( ctBA, _temp ); 
-     }
+    ub::matrix<double> _S_dimer=ub::prod(projection,ub::trans(projection));
      // we do the lowdin transformation for every localised exciton separately
     //cout << "_S_dimer"<<endl;
     //cout << _S_dimer<<endl;
