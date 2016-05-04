@@ -1046,14 +1046,14 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      ub::matrix<float> _proj_excB = ub::prod( ub::trans( _bseB ), _kbp);
     
  
-     cout << "_proj_excA"<<_proj_excA.size1()<<"x"<<_proj_excA.size2()<<endl;
+     //cout << "_proj_excA"<<_proj_excA.size1()<<"x"<<_proj_excA.size2()<<endl;
  
-     cout << "_proj_excB"<<_proj_excB.size1()<<"x"<<_proj_excB.size2()<<endl;
+     //cout << "_proj_excB"<<_proj_excB.size1()<<"x"<<_proj_excB.size2()<<endl;
      
      
-     cout << "_ctAB"<<ctAB.size1()<<"x"<<ctAB.size2()<<endl;
+     //cout << "_ctAB"<<ctAB.size1()<<"x"<<ctAB.size2()<<endl;
      
-     cout << "_ctBA"<<ctBA.size1()<<"x"<<ctBA.size2()<<endl;
+     //cout << "_ctBA"<<ctBA.size1()<<"x"<<ctBA.size2()<<endl;
      
      unsigned _bseA_exc = _proj_excA.size1();
      unsigned _bseB_exc = _proj_excB.size1();
