@@ -41,7 +41,9 @@ QMPair *QMNBList::Add(Segment* seg1, Segment* seg2,bool safe) {
     return pair;
     
 }
+// No longer necessary as QMNBlist is much faster now
 
+/*
 void QMNBList::AddQMNBlist(QMNBList &temp){
     int id=0;
     if (this->size()>0){
@@ -56,16 +58,17 @@ void QMNBList::AddQMNBlist(QMNBList &temp){
         this->AddPair(pair);
         
         id++;
-        temp._pairs.pop_front();
+        //temp._pairs.pop_front();
         
     }
-    
+    temp._pairs.clear();
+    temp._pair_map.clear();
     while(!temp._superexchange.empty()){                                  
         this->_superexchange.push_back(temp._superexchange.front());
         temp._superexchange.pop_front();
        }
 }
-
+*/
 
 void QMNBList::PrintInfo(FILE *out) {
 

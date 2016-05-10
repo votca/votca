@@ -1094,7 +1094,7 @@ void StateSaverSQLite::ReadPairs(int topId) {
     QMNBList & nblist=_qmtop->NBList();
     
     
-    QMNBList nblisttemp;
+    //QMNBList nblisttemp;
     unsigned i=0;
     while (stmt->Step() != SQLITE_DONE) {
         
@@ -1123,7 +1123,7 @@ void StateSaverSQLite::ReadPairs(int topId) {
         double  jt  = stmt->Column<double>(21);
         int     tp  = stmt->Column<int>(22);
         
-        QMPair *newPair = nblisttemp.Add(_qmtop->getSegment(s1),
+        QMPair *newPair = nblist.Add(_qmtop->getSegment(s1),
                                                 _qmtop->getSegment(s2),false);
         
         bool has_e = (he == 0) ? false : true;
@@ -1155,16 +1155,9 @@ void StateSaverSQLite::ReadPairs(int topId) {
         newPair->setJeff2(jt, +3);
         newPair->setType(tp);
         i++; 
-        if(i==10000){
-            
-            nblist.AddQMNBlist(nblisttemp);
-            
-            nblisttemp.Cleanup();
-            i=0;            
-        }
+       
+       
     }
-    nblist.AddQMNBlist(nblisttemp);
-            
            
     //cout<<nblist.size()<<endl;
     

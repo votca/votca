@@ -201,7 +201,7 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
             cout << endl <<  "... ..." << flush;
         }
         boost::progress_display show_progress( top->Segments().size() ); 
-        #pragma omp parallel for
+       
         for (vector< Segment* > ::iterator segit1 = top->Segments().begin();              
                 segit1 < top->Segments().end();
                 segit1++) {
@@ -268,7 +268,7 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
                             }
                             
                             {
-                            templist.Add(seg1, seg2,!_generate_unsafe);
+                            top->NBList().Add(seg1, seg2,!_generate_unsafe);
                             }
                             stopLoop = true;
                             break;
@@ -279,12 +279,7 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
             } /* exit loop seg2 */
                 
                // break;
-#pragma omp critical
-                {
-                    
-                    top->NBList().AddQMNBlist(templist);
-                    
-                }
+#
             
         } /* exit loop seg1 */       
 
