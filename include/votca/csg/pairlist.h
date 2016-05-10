@@ -18,7 +18,6 @@
 #ifndef _PAIRLIST_H
 #define	_PAIRLIST_H
 
-//#include <list>
 #include <map>
 #include <vector>
 
