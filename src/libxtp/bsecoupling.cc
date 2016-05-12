@@ -80,12 +80,12 @@ void BSECoupling::addoutput(Property *_type_summary,Orbitals* _orbitalsA,
         Property *_singlet_summary = &_type_summary->add("singlets","");
         for (int stateA = 0; stateA < _levA ; ++stateA ) {
            for (int stateB = 0; stateB <_levB ; ++stateB ) {
-               float JAB = getSingletCouplingElement( stateA , stateB );
-               float energyAD = getSingletDimerEnergy( stateA  );
-               float energyBD = getSingletDimerEnergy( stateB  );
+               real JAB = getSingletCouplingElement( stateA , stateB );
+               real energyAD = getSingletDimerEnergy( stateA  );
+               real energyBD = getSingletDimerEnergy( stateB  );
                Property *_coupling_summary = &_singlet_summary->add("coupling", boost::lexical_cast<string>(JAB)); 
-               float energyA = _orbitalsA->BSESingletEnergies()[stateA]*conv::ryd2ev_f;
-               float energyB = _orbitalsB->BSESingletEnergies()[stateB]*conv::ryd2ev_f;
+               real energyA = _orbitalsA->BSESingletEnergies()[stateA]*conv::ryd2ev_f;
+               real energyB = _orbitalsB->BSESingletEnergies()[stateB]*conv::ryd2ev_f;
                _coupling_summary->setAttribute("excitonA", stateA);
                _coupling_summary->setAttribute("excitonB", stateB);
                _coupling_summary->setAttribute("energyA", energyA);
@@ -99,12 +99,12 @@ void BSECoupling::addoutput(Property *_type_summary,Orbitals* _orbitalsA,
         Property *_triplet_summary = &_type_summary->add("triplets","");
         for (int stateA = 0; stateA < _levA ; ++stateA ) {
            for (int stateB = 0; stateB < _levA ; ++stateB ) {
-               float JAB = getTripletCouplingElement( stateA , stateB );
-               float energyAD = getTripletDimerEnergy( stateA  );
-               float energyBD = getTripletDimerEnergy( stateB  );
+               real JAB = getTripletCouplingElement( stateA , stateB );
+               real energyAD = getTripletDimerEnergy( stateA  );
+               real energyBD = getTripletDimerEnergy( stateB  );
                Property *_coupling_summary = &_triplet_summary->add("coupling", boost::lexical_cast<string>(JAB)); 
-               float energyA = _orbitalsA->BSETripletEnergies()[stateA]*conv::ryd2ev_f;
-               float energyB = _orbitalsB->BSETripletEnergies()[stateB]*conv::ryd2ev_f;
+               real energyA = _orbitalsA->BSETripletEnergies()[stateA]*conv::ryd2ev_f;
+               real energyB = _orbitalsB->BSETripletEnergies()[stateB]*conv::ryd2ev_f;
                _coupling_summary->setAttribute("excitonA", stateA);
                _coupling_summary->setAttribute("excitonB", stateB);
                _coupling_summary->setAttribute("energyA", energyA);
@@ -151,19 +151,19 @@ void BSECoupling::SQRTOverlap(ub::symmetric_matrix<double> &S,
     
  }
 
-float BSECoupling::getSingletCouplingElement( int levelA, int levelB) {
+real BSECoupling::getSingletCouplingElement( int levelA, int levelB) {
 
     
 
     return JAB_singlet( levelA  , levelB +  _levA ) * votca::tools::conv::ryd2ev_f;
 }
-float BSECoupling::getSingletDimerEnergy( int level) {
+real BSECoupling::getSingletDimerEnergy( int level) {
 
     
 
     return JAB_singlet( level  , level ) * votca::tools::conv::ryd2ev_f;
 }
-float BSECoupling::getTripletDimerEnergy( int level) {
+real BSECoupling::getTripletDimerEnergy( int level) {
 
     
 
@@ -172,7 +172,7 @@ float BSECoupling::getTripletDimerEnergy( int level) {
 
 
 
-float BSECoupling::getTripletCouplingElement( int levelA, int levelB) {
+real BSECoupling::getTripletCouplingElement( int levelA, int levelB) {
 
     
    
@@ -219,7 +219,7 @@ float BSECoupling::getTripletCouplingElement( int levelA, int levelB) {
  * @return false if failed
  */
  bool BSECoupling::CalculateCouplings_OLD(Orbitals* _orbitalsA, Orbitals* _orbitalsB, 
-    Orbitals* _orbitalsAB, ub::matrix<float>* _JAB) {
+    Orbitals* _orbitalsAB, ub::matrix<real>* _JAB) {
 
     LOG(logDEBUG, *_pLog) << TimeStamp()  << "Calculating exciton couplings" << flush;
     
@@ -246,7 +246,7 @@ float BSECoupling::getTripletCouplingElement( int levelA, int levelB) {
     
         
     // get exciton information of molecule A
-    ub::matrix<float>& _bseA = _orbitalsA->BSESingletCoefficients();
+    ub::matrix<real>& _bseA = _orbitalsA->BSESingletCoefficients();
     int _bseA_cmax = _orbitalsA->getBSEcmax();
     int _bseA_cmin = _orbitalsA->getBSEcmin();
     int _bseA_vmax = _orbitalsA->getBSEvmax();
@@ -271,7 +271,7 @@ float BSECoupling::getTripletCouplingElement( int levelA, int levelB) {
     
     
     // get exciton information of molecule B
-    ub::matrix<float>& _bseB = _orbitalsB->BSESingletCoefficients();
+    ub::matrix<real>& _bseB = _orbitalsB->BSESingletCoefficients();
     int _bseB_cmax = _orbitalsB->getBSEcmax();
     int _bseB_cmin = _orbitalsB->getBSEcmin();
     int _bseB_vmax = _orbitalsB->getBSEvmax();
@@ -295,7 +295,7 @@ float BSECoupling::getTripletCouplingElement( int levelA, int levelB) {
     }
     
     // get exciton information of pair AB
-    ub::matrix<float>& _bseAB = _orbitalsAB->BSESingletCoefficients();
+    ub::matrix<real>& _bseAB = _orbitalsAB->BSESingletCoefficients();
     int _bseAB_cmax = _orbitalsAB->getBSEcmax();
     int _bseAB_cmin = _orbitalsAB->getBSEcmin();
     int _bseAB_vmax = _orbitalsAB->getBSEvmax();
@@ -416,7 +416,7 @@ float BSECoupling::getTripletCouplingElement( int levelA, int levelB) {
     
     // some more convenient storage
     
-    ub::matrix<float> _kap;
+    ub::matrix<real> _kap;
     _kap.resize(_bseA_size,_bseAB_size);
     for ( int _i_bseA = 0 ; _i_bseA < _bseA_size ; _i_bseA++){
         for ( int _i_bseAB = 0 ; _i_bseAB < _bseAB_size ; _i_bseAB++){
@@ -426,7 +426,7 @@ float BSECoupling::getTripletCouplingElement( int levelA, int levelB) {
     }
 
     
-    ub::matrix<float> _kbp;
+    ub::matrix<real> _kbp;
     _kbp.resize(_bseB_size,_bseAB_size);
     for ( int _i_bseB = 0 ; _i_bseB < _bseB_size ; _i_bseB++){
         for ( int _i_bseAB = 0 ; _i_bseAB < _bseAB_size ; _i_bseAB++){
@@ -439,15 +439,15 @@ float BSECoupling::getTripletCouplingElement( int levelA, int levelB) {
     
      
      // now project the exciton functions (ugly!)
-     // ub::matrix<float> _proj_excA;
+     // ub::matrix<real> _proj_excA;
      // _proj_excA.resize(_bseA_exc,_bseAB_exc);
-     ub::matrix<float> _temp = ub::prod( _kap, _bseAB );
-     ub::matrix<float> _proj_excA = ub::prod( ub::trans(_bseA), _temp);
+     ub::matrix<real> _temp = ub::prod( _kap, _bseAB );
+     ub::matrix<real> _proj_excA = ub::prod( ub::trans(_bseA), _temp);
      
      /*
      for ( unsigned i = 0 ; i < _proj_excA.size1() ; i++ ){
      
-        float check = 0.0;
+        real check = 0.0;
         
         for ( unsigned j = 0; j < _proj_excA.size2(); j++ ){
             
@@ -461,7 +461,7 @@ float BSECoupling::getTripletCouplingElement( int levelA, int levelB) {
      */
      
      _temp = ub::prod( _kbp, _bseAB );
-     ub::matrix<float> _proj_excB = ub::prod( ub::trans(_bseB ), _temp);
+     ub::matrix<real> _proj_excB = ub::prod( ub::trans(_bseB ), _temp);
      
      
     // cout << "exciton projectors: " << _proj_excA.size1() << " : " << _proj_excA.size2();
@@ -474,8 +474,8 @@ float BSECoupling::getTripletCouplingElement( int levelA, int levelB) {
      LOG(logDEBUG, *_pLog) << TimeStamp()   << " projection of exciton wave functions (" << t.elapsed() - _st << "s) " << flush; _st = t.elapsed();  
      
      
-     ub::matrix<float> _Hamiltonian_AB = ub::zero_matrix<float>(_bseAB_size,_bseAB_size );
-     std::vector<float>& _bseAB_energies = _orbitalsAB->BSESingletEnergies();
+     ub::matrix<real> _Hamiltonian_AB = ub::zero_matrix<real>(_bseAB_size,_bseAB_size );
+     std::vector<real>& _bseAB_energies = _orbitalsAB->BSESingletEnergies();
 
      for ( int _i=0; _i<_bseAB_size; _i++){
          _Hamiltonian_AB(_i,_i) = _bseAB_energies[_i];
@@ -483,8 +483,8 @@ float BSECoupling::getTripletCouplingElement( int levelA, int levelB) {
      
  
      
-     ub::matrix<float> _J_dimer = ub::zero_matrix<float>( _bseA_exc + _bseB_exc , _bseA_exc + _bseB_exc );
-     ub::matrix<float> _S_dimer = ub::zero_matrix<float>( _bseA_exc + _bseB_exc , _bseA_exc + _bseB_exc );
+     ub::matrix<real> _J_dimer = ub::zero_matrix<real>( _bseA_exc + _bseB_exc , _bseA_exc + _bseB_exc );
+     ub::matrix<real> _S_dimer = ub::zero_matrix<real>( _bseA_exc + _bseB_exc , _bseA_exc + _bseB_exc );
      
      // setup J
      _temp = ub::prod( _Hamiltonian_AB , ub::trans(_proj_excA) );
@@ -506,19 +506,19 @@ float BSECoupling::getTripletCouplingElement( int levelA, int levelB) {
      
      LOG(logDEBUG, *_pLog) << TimeStamp()   << " setup S (" << t.elapsed() - _st << "s) " << flush; _st = t.elapsed();  
      
-     ub::vector<float> _S_eigenvalues; 
+     ub::vector<real> _S_eigenvalues; 
      linalg_eigenvalues( _S_eigenvalues, _S_dimer);
 
-     ub::matrix<float> _diagS = ub::zero_matrix<float>( _bseA_exc + _bseB_exc  , _bseA_exc + _bseB_exc );
+     ub::matrix<real> _diagS = ub::zero_matrix<real>( _bseA_exc + _bseB_exc  , _bseA_exc + _bseB_exc );
      for ( int _i =0; _i < _bseA_exc + _bseB_exc ; _i++){
          _diagS(_i,_i) = 1.0/sqrt(_S_eigenvalues[_i]);
      }
      _temp=ub::prod( _diagS, ub::trans(_S_dimer) ) ;
-     ub::matrix<float> _transform = ub::prod( _S_dimer, _temp );
+     ub::matrix<real> _transform = ub::prod( _S_dimer, _temp );
      LOG(logDEBUG, *_pLog) << TimeStamp()   << " transformation matrix (" << t.elapsed() - _st << "s) " << flush; _st = t.elapsed();  
      // final coupling elements
      _temp=ub::prod(_J_dimer, _transform);
-     ub::matrix<float> _J_eff = ub::prod( _transform, _temp);
+     ub::matrix<real> _J_eff = ub::prod( _transform, _temp);
      LOG(logDEBUG, *_pLog) << TimeStamp()   << " effective couplings (" << t.elapsed() - _st << "s) " << flush; _st = t.elapsed();
      
      
@@ -711,8 +711,8 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
         LOG(logERROR,*_pLog) << "BSE EH int not stored in dimer " << flush;
         return false;
     }
-    ub::matrix<float>&    _eh_d = _orbitalsAB->eh_d(); 
-    ub::matrix<float>&    _eh_x = _orbitalsAB->eh_x(); 
+    ub::matrix<real>&    _eh_d = _orbitalsAB->eh_d(); 
+    ub::matrix<real>&    _eh_x = _orbitalsAB->eh_x(); 
     
     LOG(logDEBUG, *_pLog) << TimeStamp()   << "   dimer AB has BSE EH interaction (direct)   with dimension " << _eh_d.size1() << " x " <<  _eh_d.size2() << flush;
     LOG(logDEBUG, *_pLog) << TimeStamp()   << "   dimer AB has BSE EH interaction (exchange) with dimension " << _eh_x.size1() << " x " <<  _eh_x.size2() << flush;
@@ -849,7 +849,7 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     
     
     // these 4 matrixes, matrix(i,j) contains the j-th dimer MO component of the i-th excitation
-    ub::matrix<float> ctAB;
+    ub::matrix<real> ctAB;
     ctAB.resize(noAB,_bseAB_size);
     #pragma omp parallel for
     for ( int _i_CT = 0 ; _i_CT < noAB ; _i_CT++){
@@ -858,7 +858,7 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
         }
     }
     
-    ub::matrix<float>ctBA;
+    ub::matrix<real>ctBA;
     ctBA.resize(noBA,_bseAB_size);
     #pragma omp parallel for
     for ( int _i_CT = 0 ; _i_CT < noBA ; _i_CT++){
@@ -870,7 +870,7 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
       
     // some more convenient storage
     
-    ub::matrix<float> _kap;
+    ub::matrix<real> _kap;
     _kap.resize(_bseA_size,_bseAB_size);
     #pragma omp parallel for
     for ( int _i_bseA = 0 ; _i_bseA < _bseA_size ; _i_bseA++){
@@ -880,7 +880,7 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
         }
     }
 
-    //ub::matrix<float> check;
+    //ub::matrix<real> check;
     //check.resize(_bseA_size,_bseA_size);
     //check= ub::prod(_kap,ub::trans(_kap));
     //cout << "check"<<endl;
@@ -888,7 +888,7 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     //cout <<ub::project(check, ub::range (0, 10 ), ub::range ( 0, 10 ) ) <<endl;
     
     
-    ub::matrix<float> _kbp;
+    ub::matrix<real> _kbp;
     _kbp.resize(_bseB_size,_bseAB_size);
     #pragma omp parallel for
     for ( int _i_bseB = 0 ; _i_bseB < _bseB_size ; _i_bseB++){
@@ -899,7 +899,7 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     
     // Same routines but also take <v|c'> <c|v'> projections into account 
     /*
-    ub::matrix<float> _kap;
+    ub::matrix<real> _kap;
     _kap.resize(_bseA_size,_bseAB_size);
     for ( int _i_bseA = 0 ; _i_bseA < _bseA_size ; _i_bseA++){
         for ( int _i_bseAB = 0 ; _i_bseAB < _bseAB_size ; _i_bseAB++){
@@ -913,7 +913,7 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
 
     
     
-    ub::matrix<float> _kbp;
+    ub::matrix<real> _kbp;
     _kbp.resize(_bseB_size,_bseAB_size);
     for ( int _i_bseB = 0 ; _i_bseB < _bseB_size ; _i_bseB++){
         for ( int _i_bseAB = 0 ; _i_bseAB < _bseAB_size ; _i_bseAB++){
@@ -936,10 +936,10 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     if ( _doSinglets){
          LOG(logDEBUG, *_pLog) << TimeStamp()   << "   Evaluating singlets"  << flush; 
       // get singlet BSE Hamiltonian from _orbitalsAB
-      ub::matrix<float> _Hamiltonian_AB = _eh_d + 2.0 * _eh_x;
-        const ub::matrix<float>& _bseA = ub::project( _orbitalsA->BSESingletCoefficients(),
+      ub::matrix<real> _Hamiltonian_AB = _eh_d + 2.0 * _eh_x;
+        const ub::matrix<real>& _bseA = ub::project( _orbitalsA->BSESingletCoefficients(),
                 ub::range (0, _orbitalsA->BSESingletCoefficients().size1() ), ub::range ( 0, _levA )  );
-        const ub::matrix<float>& _bseB = ub::project( _orbitalsB->BSESingletCoefficients(),
+        const ub::matrix<real>& _bseB = ub::project( _orbitalsB->BSESingletCoefficients(),
                 ub::range (0, _orbitalsB->BSESingletCoefficients().size1() ), ub::range ( 0, _levB )  );
         
       //  cout << "Size of _Hamiltonian_AB " << _Hamiltonian_AB.size1() << " : " <<  _Hamiltonian_AB.size2() << flush;
@@ -953,8 +953,8 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
         }
         /*
         // diagonalize the effective Hamiltonian?
-        ub::vector<float> _coupled_energies;
-        ub::matrix<float> _coupled_coefficients;
+        ub::vector<real> _coupled_energies;
+        ub::matrix<real> _coupled_coefficients;
 	std::vector< std::vector<double> >& _free_dipolesA = _orbitalsA->TransitionDipoles();
 	std::vector< std::vector<double> >& _free_dipolesB = _orbitalsB->TransitionDipoles();
         linalg_eigenvalues(*_JAB_singlet, _coupled_energies, _coupled_coefficients,_JAB_singlet->size1() );
@@ -1002,19 +1002,19 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     if ( _doTriplets){
         LOG(logDEBUG, *_pLog) << TimeStamp()   << "   Evaluating triplets" << flush; 
         // get triplet BSE Hamiltonian from _orbitalsAB
-        ub::matrix<float> _Hamiltonian_AB = _eh_d;
+        ub::matrix<real> _Hamiltonian_AB = _eh_d;
         
      
         
         
-        //ub::matrix<float>& _bseA= _orbitalsA->BSETripletCoefficients();
+        //ub::matrix<real>& _bseA= _orbitalsA->BSETripletCoefficients();
         
         
-        const ub::matrix<float>& _bseA = ub::project( _orbitalsA->BSETripletCoefficients(),
+        const ub::matrix<real>& _bseA = ub::project( _orbitalsA->BSETripletCoefficients(),
                 ub::range (0, _orbitalsA->BSETripletCoefficients().size1() ), ub::range ( 0, _levA )  );
-        const ub::matrix<float>& _bseB = ub::project( _orbitalsB->BSETripletCoefficients(),
+        const ub::matrix<real>& _bseB = ub::project( _orbitalsB->BSETripletCoefficients(),
                 ub::range (0, _orbitalsB->BSETripletCoefficients().size1() ), ub::range ( 0, _levB )  );
-        //ub::matrix<float>& _bseB = _orbitalsB->BSETripletCoefficients();
+        //ub::matrix<real>& _bseB = _orbitalsB->BSETripletCoefficients();
         
   
         
@@ -1031,10 +1031,10 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
 };
 
 
-bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix<float>& _kbp,
-                                  const ub::matrix<float>& ctAB,const ub::matrix<float>& ctBA, 
-                                  const ub::matrix<float>& _bseA, const ub::matrix<float>& _bseB, 
-                                  const ub::matrix<float>& _H, ub::matrix<float>& _J){
+bool BSECoupling::ProjectExcitons(const ub::matrix<real>& _kap,const ub::matrix<real>& _kbp,
+                                  const ub::matrix<real>& ctAB,const ub::matrix<real>& ctBA, 
+                                  const ub::matrix<real>& _bseA, const ub::matrix<real>& _bseB, 
+                                  const ub::matrix<real>& _H, ub::matrix<real>& _J){
     
     
     //cout << " Dimensions of _bseA " << _bseA.size1() << " : " << _bseA.size2() << endl;
@@ -1042,8 +1042,8 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      
      
      // get projection of monomer excitons on dimer product functions
-     ub::matrix<float> _proj_excA = ub::prod( ub::trans( _bseA ), _kap);
-     ub::matrix<float> _proj_excB = ub::prod( ub::trans( _bseB ), _kbp);
+     ub::matrix<real> _proj_excA = ub::prod( ub::trans( _bseA ), _kap);
+     ub::matrix<real> _proj_excB = ub::prod( ub::trans( _bseB ), _kbp);
     
  
      //cout << "_proj_excA"<<_proj_excA.size1()<<"x"<<_proj_excA.size2()<<endl;
@@ -1059,7 +1059,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix
      unsigned _bseB_exc = _proj_excB.size1();
      unsigned _bse_exc=_bseA_exc+_bseB_exc;
      
-     _J=ub::zero_matrix<float>(_bse_exc,_bse_exc);
+     _J=ub::zero_matrix<real>(_bse_exc,_bse_exc);
      unsigned _ctAB=ctAB.size1();
      
      unsigned _ctBA=ctBA.size1();

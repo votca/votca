@@ -25,7 +25,7 @@
 #include <votca/xtp/logger.h>
 #include <votca/tools/linalg.h>
 #include <votca/xtp/votca_xtp_config.h>
-
+#include <votca/xtp/orbitals.h>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -55,7 +55,7 @@ namespace votca { namespace xtp {
     bool FillThreeCenterOLBlock(  ub::matrix<double> & _subvector, AOShell* _shell, AOShell* _shell_row, AOShell* _shell_col);
     void FillThreeCenterOLBlock_g(ma_type &S,vec &gma, vec &gmc,int &_lmax_alpha, int &_lmax_gamma,double &fak);
     bool FillThreeCenterRepBlock(  ub::matrix<double> & _subvector, AOShell* _shell, AOShell* _shell_row, AOShell* _shell_col);
-    //bool FillThreeCenterOLBlock(  ub::matrix<float> & _subvector, AOShell* _shell, AOShell* _shell_row, AOShell* _shell_col);
+    //bool FillThreeCenterOLBlock(  ub::matrix<real> & _subvector, AOShell* _shell, AOShell* _shell_row, AOShell* _shell_col);
     void getTrafo(ub::matrix<double>& _trafo, int _lmax, const double& _decay,std::vector<double>& contractions);
     
     int getBlockSize( int size );
@@ -97,11 +97,11 @@ namespace votca { namespace xtp {
     
         /// returns one level as a constant reference
         // const ub::matrix<double>& operator[](const int i) const { return _matrix[i]; }
-        const ub::matrix<float>& operator[](const int i) const { return _matrix[i]; }
+        const ub::matrix<real>& operator[](const int i) const { return _matrix[i]; }
         //const ub::matrix<double>& M_bn( const int m) const { return _matrix[m]; }
         /// returns one level as a reference
         //ub::matrix<double>& operator[](const int i) { return _matrix[i]; }
-        ub::matrix<float>& operator[](const int i) { return _matrix[i]; }
+        ub::matrix<real>& operator[](const int i) { return _matrix[i]; }
         //ub::matrix<double>& M_bn( const int m) { return _matrix[m]; }
         
         int size() {  return _matrix.size(); }
@@ -148,7 +148,7 @@ namespace votca { namespace xtp {
             // each element is a gwabasis-by-n matrix, initialize to zero
             for ( int i = 0; i < this->get_mtot() ; i++){
                 //_matrix[i] = ub::zero_matrix<double>(_basissize,ntotal);
-                _matrix[i] = ub::zero_matrix<float>(_basissize,ntotal);
+                _matrix[i] = ub::zero_matrix<real>(_basissize,ntotal);
             }
         
         }
@@ -178,7 +178,7 @@ namespace votca { namespace xtp {
         
         // store vector of matrices
         //std::vector< ub::matrix<double> > _matrix;
-        std::vector< ub::matrix<float> > _matrix;
+        std::vector< ub::matrix<real> > _matrix;
         
         // band summation indices
         int mmin;
@@ -196,7 +196,7 @@ namespace votca { namespace xtp {
         // void FillBlock(ub::vector_range< ub::vector< ub::matrix<double> > >& _matrix,  AOShell* _shell, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals ) ;
         
         void FillBlock(std::vector< ub::matrix<double> >& _matrix,  AOShell* _shell, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals ) ;
-        //void FillBlock(std::vector< ub::matrix<float> >& _matrix,  AOShell* _shell, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals ) ;
+        //void FillBlock(std::vector< ub::matrix<real> >& _matrix,  AOShell* _shell, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals ) ;
         
      
         

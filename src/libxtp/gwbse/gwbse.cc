@@ -794,7 +794,7 @@ void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
                 }
                 
                 if ( _store_eh_interaction) {
-                    ub::matrix<float>& _eh_d_store = _orbitals->eh_d();
+                    ub::matrix<real>& _eh_d_store = _orbitals->eh_d();
                    
                         // setup free transition part of BSE Hamiltonian and add to _eh_d storage
                         BSE_qp_setup();
@@ -812,16 +812,16 @@ void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
                     LOG(logDEBUG, *_pLog) << TimeStamp() << " Solved BSE for triplets " << flush;
 
                     // expectation values, contributions from e-h coupling for _n_print lowest excitations
-                    std::vector<float> _contrib_x(_bse_nprint, 0.0);
-                    std::vector<float> _contrib_d(_bse_nprint, 0.0);
-                    std::vector<float> _contrib_qp(_bse_nprint, 0.0);
+                    std::vector<real> _contrib_x(_bse_nprint, 0.0);
+                    std::vector<real> _contrib_d(_bse_nprint, 0.0);
+                    std::vector<real> _contrib_qp(_bse_nprint, 0.0);
                     for (int _i_exc = 0; _i_exc < _bse_nprint; _i_exc++) {
                         // get slice of _bse_triplet_coefficients
-                        ub::matrix<float> _slice = ub::project(_bse_triplet_coefficients, ub::range(0, _bse_size), ub::range(_i_exc, _i_exc + 1));
+                        ub::matrix<real> _slice = ub::project(_bse_triplet_coefficients, ub::range(0, _bse_size), ub::range(_i_exc, _i_exc + 1));
 
                         // calculate expectation value of direct e-h interaction
-                        ub::matrix<float> _temp = ub::prod(_eh_d, _slice);
-                        ub::matrix<float> _res = ub::prod(ub::trans(_slice), _temp);
+                        ub::matrix<real> _temp = ub::prod(_eh_d, _slice);
+                        ub::matrix<real> _res = ub::prod(ub::trans(_slice), _temp);
                         _contrib_d[_i_exc] = -_res(0, 0);
 
                         // contribution from free interlevel transition
@@ -909,7 +909,7 @@ void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
                         
                         for (unsigned _i_bse = 0; _i_bse < _bse_size; _i_bse++) {
                             // if contribution is larger than 0.2, print
-                            float _weight = pow(_bse_triplet_coefficients(_i_bse, _i), 2);
+                            real _weight = pow(_bse_triplet_coefficients(_i_bse, _i), 2);
                             if (_weight > 0.2) {
                                 LOG(logINFO, *_pLog) << (format("           HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%") % (_homo - _index2v[_i_bse]) % (_index2c[_i_bse] - _homo - 1) % (100.0 * _weight)).str() << flush;
                             }
@@ -924,8 +924,8 @@ void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
                     
                     // storage to orbitals object
                     if ( _store_bse_triplets ) {
-                        std::vector<float>& _bse_triplet_energies_store = _orbitals->BSETripletEnergies();
-                        ub::matrix<float>& _bse_triplet_coefficients_store = _orbitals->BSETripletCoefficients();
+                        std::vector<real>& _bse_triplet_energies_store = _orbitals->BSETripletEnergies();
+                        ub::matrix<real>& _bse_triplet_coefficients_store = _orbitals->BSETripletCoefficients();
                         _bse_triplet_energies_store.resize( _bse_nmax );
                         _bse_triplet_coefficients_store.resize( _bse_size, _bse_nmax);
                         for  (int _i_exc = 0; _i_exc < _bse_nmax; _i_exc++) {
@@ -951,7 +951,7 @@ void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
                     // calculate exchange part of eh interaction, only needed for singlets
                     BSE_x_setup(_Mmn);
                     if ( _store_eh_interaction ) {
-                    ub::matrix<float>& _eh_x_store = _orbitals->eh_x();
+                    ub::matrix<real>& _eh_x_store = _orbitals->eh_x();
                     _eh_x_store = _eh_x;
                     // _orbitals->setEHinteraction(true);
                     }
@@ -974,15 +974,15 @@ void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
 
 
                     // expectation values, contributions from e-h coupling
-                    std::vector<float> _contrib_x(_bse_nprint, 0.0);
-                    std::vector<float> _contrib_d(_bse_nprint, 0.0);
-                    std::vector<float> _contrib_qp(_bse_nprint, 0.0);
+                    std::vector<real> _contrib_x(_bse_nprint, 0.0);
+                    std::vector<real> _contrib_d(_bse_nprint, 0.0);
+                    std::vector<real> _contrib_qp(_bse_nprint, 0.0);
                     for (int _i_exc = 0; _i_exc < _bse_nprint; _i_exc++) {
 
-                        ub::matrix<float> _slice = ub::project(_bse_singlet_coefficients, ub::range(0, _bse_size), ub::range(_i_exc, _i_exc + 1));
+                        ub::matrix<real> _slice = ub::project(_bse_singlet_coefficients, ub::range(0, _bse_size), ub::range(_i_exc, _i_exc + 1));
 
-                        ub::matrix<float> _temp = ub::prod(_eh_x, _slice);
-                        ub::matrix<float> _res = ub::prod(ub::trans(_slice), _temp);
+                        ub::matrix<real> _temp = ub::prod(_eh_x, _slice);
+                        ub::matrix<real> _res = ub::prod(ub::trans(_slice), _temp);
                         _contrib_x[_i_exc] = 2.0 * _res(0, 0);
 
                         _temp = ub::prod(_eh_d, _slice);
@@ -1145,8 +1145,8 @@ void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
 
                      // storage to orbitals object
                     if ( _store_bse_singlets ) {
-                        std::vector<float>& _bse_singlet_energies_store = _orbitals->BSESingletEnergies();
-                        ub::matrix<float>& _bse_singlet_coefficients_store = _orbitals->BSESingletCoefficients();
+                        std::vector<real>& _bse_singlet_energies_store = _orbitals->BSESingletEnergies();
+                        ub::matrix<real>& _bse_singlet_coefficients_store = _orbitals->BSESingletCoefficients();
                         std::vector< std::vector<double> >& _transition_dipoles_store = _orbitals->TransitionDipoles();
                         _bse_singlet_energies_store.resize( _bse_nmax );
                         _bse_singlet_coefficients_store.resize( _bse_size, _bse_nmax);

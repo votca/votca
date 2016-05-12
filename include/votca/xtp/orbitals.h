@@ -19,6 +19,7 @@
 
 #ifndef __VOTCA_XTP_ORBITALS_H
 #define	__VOTCA_XTP_ORBITALS_H
+
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/xtp/votca_xtp_config.h>
 
@@ -62,6 +63,13 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/version.hpp>
 #include <votca/tools/constants.h>
+
+#if (GWBSE_DOUBLE)
+#define real double
+#else
+#define real float
+#endif
+
 namespace ub = boost::numeric::ublas;
     
 namespace votca { namespace xtp {
@@ -243,24 +251,24 @@ public:
 
     // access to eh interaction
     bool hasEHinteraction() { return ( _eh_d.size1() > 0) ? true : false; }
-    const ub::matrix<float> &eh_x() const { return _eh_x; }
-    ub::matrix<float> &eh_x()  { return _eh_x; }
-    const ub::matrix<float> &eh_d() const { return _eh_d; }
-    ub::matrix<float> &eh_d()  { return _eh_d; }
+    const ub::matrix<real> &eh_x() const { return _eh_x; }
+    ub::matrix<real> &eh_x()  { return _eh_x; }
+    const ub::matrix<real> &eh_d() const { return _eh_d; }
+    ub::matrix<real> &eh_d()  { return _eh_d; }
 
     // access to triplet energies and wave function coefficients
     bool hasBSETriplets() {return ( _BSE_triplet_energies.size() > 0 ) ? true : false ;}
-    const std::vector<float> &BSETripletEnergies() const { return _BSE_triplet_energies; }
-    std::vector<float> &BSETripletEnergies()  { return _BSE_triplet_energies; }
-    const ub::matrix<float> &BSETripletCoefficients() const { return _BSE_triplet_coefficients;}
-    ub::matrix<float> &BSETripletCoefficients()  { return _BSE_triplet_coefficients;}
+    const std::vector<real> &BSETripletEnergies() const { return _BSE_triplet_energies; }
+    std::vector<real> &BSETripletEnergies()  { return _BSE_triplet_energies; }
+    const ub::matrix<real> &BSETripletCoefficients() const { return _BSE_triplet_coefficients;}
+    ub::matrix<real> &BSETripletCoefficients()  { return _BSE_triplet_coefficients;}
     
     // access to singlet energies and wave function coefficients
     bool hasBSESinglets() {return (_BSE_singlet_energies.size() > 0 ) ? true : false ;}
-    const std::vector<float> &BSESingletEnergies() const { return _BSE_singlet_energies; }
-    std::vector<float> &BSESingletEnergies()  { return _BSE_singlet_energies; }
-    const ub::matrix<float> &BSESingletCoefficients() const { return _BSE_singlet_coefficients;}
-    ub::matrix<float> &BSESingletCoefficients() { return _BSE_singlet_coefficients;}
+    const std::vector<real> &BSESingletEnergies() const { return _BSE_singlet_energies; }
+    std::vector<real> &BSESingletEnergies()  { return _BSE_singlet_energies; }
+    const ub::matrix<real> &BSESingletCoefficients() const { return _BSE_singlet_coefficients;}
+    ub::matrix<real> &BSESingletCoefficients() { return _BSE_singlet_coefficients;}
 
     // access to transition dipole moments
     bool hasTransitionDipoles() {return (_transition_dipoles.size() > 0 ) ? true : false ;}
@@ -271,15 +279,15 @@ public:
     
     // access to singlet coupling elements
     bool hasSingletCouplings() {return (_BSE_singlet_couplings.size1() > 0 ) ? true : false ;}
-    const ub::matrix<float> &SingletCouplings() const { return _BSE_singlet_couplings; }
-    ub::matrix<float> &SingletCouplings()   { return _BSE_singlet_couplings; }
-    void setSingletCouplings(ub::matrix<float> couplings){_BSE_singlet_couplings=couplings;}
+    const ub::matrix<real> &SingletCouplings() const { return _BSE_singlet_couplings; }
+    ub::matrix<real> &SingletCouplings()   { return _BSE_singlet_couplings; }
+    void setSingletCouplings(ub::matrix<real> couplings){_BSE_singlet_couplings=couplings;}
 
     // access to triplet coupling elements
     bool hasTripletCouplings() {return (_BSE_triplet_couplings.size1() > 0 ) ? true : false ;}
-    const ub::matrix<float> &TripletCouplings() const { return _BSE_triplet_couplings; }
-    ub::matrix<float> &TripletCouplings()   { return _BSE_triplet_couplings; }
-    void setTripletCouplings(ub::matrix<float> couplings){_BSE_triplet_couplings=couplings;}
+    const ub::matrix<real> &TripletCouplings() const { return _BSE_triplet_couplings; }
+    ub::matrix<real> &TripletCouplings()   { return _BSE_triplet_couplings; }
+    void setTripletCouplings(ub::matrix<real> couplings){_BSE_triplet_couplings=couplings;}
     
     // exciton coupling number of levels information
     bool           hasCoupledExcitonsA() { return ( _couplingsA > 0 ) ? true : false ; }
@@ -292,8 +300,8 @@ public:
     
     // functions for calculating density matrices
     ub::matrix<double> &DensityMatrixGroundState( ub::matrix<double>& _MOs ) ;
-    std::vector<ub::matrix<double> > &DensityMatrixExcitedState( ub::matrix<double>& _MOs , ub::matrix<float>& _BSECoefs, int state = 0 ) ;
-    ub::matrix<double > &TransitionDensityMatrix( ub::matrix<double>& _MOs , ub::matrix<float>& _BSECoefs, int state = 0);
+    std::vector<ub::matrix<double> > &DensityMatrixExcitedState( ub::matrix<double>& _MOs , ub::matrix<real>& _BSECoefs, int state = 0 ) ;
+    ub::matrix<double > &TransitionDensityMatrix( ub::matrix<double>& _MOs , ub::matrix<real>& _BSECoefs, int state = 0);
     
     
     // functions for analyzing fragment charges via Mulliken populations
@@ -337,11 +345,11 @@ public:
     ub::matrix<double>* getQPdiagCoefficients() {return  &_QPdiag_coefficients ;}
 
 
-    std::vector<float>* getBSESingletEnergies() {return &_BSE_singlet_energies;}
-    ub::matrix<float>* getBSESingletCoefficients() {return &_BSE_singlet_coefficients;}
+    std::vector<real>* getBSESingletEnergies() {return &_BSE_singlet_energies;}
+    ub::matrix<real>* getBSESingletCoefficients() {return &_BSE_singlet_coefficients;}
 
-    std::vector<float>* getBSETripletEnergies() {return &_BSE_triplet_energies;}
-    ub::matrix<float>* getBSETripletCoefficients() {return &_BSE_triplet_coefficients; }   
+    std::vector<real>* getBSETripletEnergies() {return &_BSE_triplet_energies;}
+    ub::matrix<real>* getBSETripletCoefficients() {return &_BSE_triplet_coefficients; }   
     
    
 
@@ -449,16 +457,16 @@ private:
     std::vector<int>                        _index2c;
 
     
-    ub::matrix<float>                      _eh_d;
-    ub::matrix<float>                      _eh_x;
-    std::vector<float>                     _BSE_singlet_energies;
-    ub::matrix<float>                      _BSE_singlet_coefficients;
+    ub::matrix<real>                      _eh_d;
+    ub::matrix<real>                      _eh_x;
+    std::vector<real>                     _BSE_singlet_energies;
+    ub::matrix<real>                      _BSE_singlet_coefficients;
     std::vector<std::vector<double> >      _transition_dipoles;
-    std::vector<float>                     _BSE_triplet_energies;
-    ub::matrix<float>                      _BSE_triplet_coefficients;   
+    std::vector<real>                     _BSE_triplet_energies;
+    ub::matrix<real>                      _BSE_triplet_coefficients;   
     
-    ub::matrix<float>                      _BSE_singlet_couplings;
-    ub::matrix<float>                      _BSE_triplet_couplings;
+    ub::matrix<real>                      _BSE_singlet_couplings;
+    ub::matrix<real>                      _BSE_triplet_couplings;
     int                                    _couplingsA;
     int                                    _couplingsB;
     

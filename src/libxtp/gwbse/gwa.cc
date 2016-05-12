@@ -105,7 +105,7 @@ namespace votca {
               #pragma omp parallel for
 	      for (unsigned _gw_level = 0; _gw_level < _qptotal ; _gw_level++ ){
                 _sigma_c( _gw_level , _gw_level )=0;  
-                const ub::matrix<float>& Mmn = _Mmn[ _gw_level + _qpmin ];
+                const ub::matrix<real>& Mmn = _Mmn[ _gw_level + _qpmin ];
               
 		// loop over all functions in GW basis
 		for ( unsigned _i_gw = 0; _i_gw < _gwsize ; _i_gw++ ){
@@ -165,10 +165,10 @@ namespace votca {
             #pragma omp parallel for
 	    for (unsigned _gw_level = 0; _gw_level < _qptotal ; _gw_level++ ){
                   
-                const ub::matrix<float>& Mmn =  _Mmn[ _gw_level + _qpmin ];
+                const ub::matrix<real>& Mmn =  _Mmn[ _gw_level + _qpmin ];
                 for ( unsigned _m = 0 ; _m < _gw_level ; _m++) {
                 _sigma_c( _gw_level  , _m )=0;
-                const ub::matrix<float>& Mmn2 =  _Mmn[_m + _qpmin];
+                const ub::matrix<real>& Mmn2 =  _Mmn[_m + _qpmin];
                 
                 
 
@@ -224,13 +224,13 @@ namespace votca {
             #pragma omp parallel for
             for ( unsigned _m1 = 0 ; _m1 < _qptotal ; _m1++ ){
                 
-                const ub::matrix<float>& M1mn =  _Mmn[ _m1 + _qpmin ];
+                const ub::matrix<real>& M1mn =  _Mmn[ _m1 + _qpmin ];
                 
                 // band 2 loop over all GW levels
                 //for ( int _m2 = _qpmin ; _m2 <= _qpmax ; _m2++ ){
                 for ( unsigned _m2 = 0 ; _m2 <= _m1 ; _m2++ ){
                     _sigma_x( _m1, _m2 )=0;
-                    const ub::matrix<float>& M2mn =  _Mmn[ _m2 + _qpmin ];
+                    const ub::matrix<real>& M2mn =  _Mmn[ _m2 + _qpmin ];
                     
                     // loop over all basis functions
                     for ( int _i_gw = 0 ; _i_gw < _size ; _i_gw++ ){
@@ -264,8 +264,8 @@ namespace votca {
 	      // casting _Mmn to double for efficint prod() overload
 	      ub::matrix<double> _Mmn_double = _Mmn[_m_level];
 
-                //ub::matrix<float> _temp = ub::prod(  _ppm_phi , _Mmn[ _m_level ] );
-              ub::matrix<float> _temp = ub::prod(  _ppm_phi , _Mmn_double );
+                //ub::matrix<real> _temp = ub::prod(  _ppm_phi , _Mmn[ _m_level ] );
+              ub::matrix<real> _temp = ub::prod(  _ppm_phi , _Mmn_double );
                 _Mmn[ _m_level ] = _temp;
             }
         }        

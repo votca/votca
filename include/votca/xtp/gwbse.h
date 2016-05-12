@@ -296,19 +296,19 @@ public:
     //ub::matrix<double> _eh_d;
     //ub::matrix<double> _eh_qp;
     
-    ub::matrix<float> _eh_x;
-    ub::matrix<float> _eh_d;
-    ub::matrix<float> _eh_d2;
-    ub::matrix<float> _eh_qp;
+    ub::matrix<real> _eh_x;
+    ub::matrix<real> _eh_d;
+    ub::matrix<real> _eh_d2;
+    ub::matrix<real> _eh_qp;
     
     // ub::vector<double> _bse_singlet_energies;
     // ub::matrix<double> _bse_singlet_coefficients;
     //ub::vector<double> _bse_triplet_energies;
     //ub::matrix<double> _bse_triplet_coefficients;
-    ub::vector<float> _bse_singlet_energies;
-    ub::matrix<float> _bse_singlet_coefficients;
-    ub::vector<float> _bse_triplet_energies;
-    ub::matrix<float> _bse_triplet_coefficients;
+    ub::vector<real> _bse_singlet_energies;
+    ub::matrix<real> _bse_singlet_coefficients;
+    ub::vector<real> _bse_triplet_energies;
+    ub::matrix<real> _bse_triplet_coefficients;
     
     std::vector< ub::matrix<double> > _interlevel_dipoles;
     std::vector< ub::matrix<double> > _interlevel_dipoles_electrical;
@@ -316,7 +316,7 @@ public:
     void BSE_d_setup( TCMatrix& _Mmn );
     void BSE_d2_setup( TCMatrix& _Mmn );
     void BSE_qp_setup( );
-    void BSE_Add_qp2H( ub::matrix<float>& qp );
+    void BSE_Add_qp2H( ub::matrix<real>& qp );
     void BSE_solve_triplets();
     void BSE_solve_singlets();
     void BSE_solve_singlets_BTDA();
