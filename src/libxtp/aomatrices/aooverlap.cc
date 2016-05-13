@@ -618,7 +618,7 @@ namespace votca { namespace xtp {
         }
         // s-g
         
-     if((_lmax_row)>0 && (_lmax_col)>4) {
+     if( (_lmax_col)>3) {
      _ol(0,20) = _pmb[0]*_ol(0,10) + _fak3* _ol(0,7);
      _ol(0,23) = _pmb[1]*_ol(0,10);
      _ol(0,25) = _pmb[2]*_ol(0,10);
@@ -637,7 +637,7 @@ namespace votca { namespace xtp {
     }
         // g-s
         
-         if((_lmax_row)>4 && (_lmax_col)>0) {
+         if((_lmax_row)>3 ) {
      _ol(20,0) = _pma[0]*_ol(10,0) + _fak3* _ol(7,0);
      _ol(23,0) = _pma[1]*_ol(10,0);
      _ol(25,0) = _pma[2]*_ol(10,0);
@@ -656,7 +656,7 @@ namespace votca { namespace xtp {
   }
         // p-g
         
-    if((_lmax_row)>1 && (_lmax_col)>4) {
+    if((_lmax_row)>0 && (_lmax_col)>3) {
      _ol(1,20) = _pma[0]*_ol(0,20) + _fak4* _ol(0,10);
      _ol(2,20) = _pma[1]*_ol(0,20);
      _ol(3,20) = _pma[2]*_ol(0,20);
@@ -708,7 +708,7 @@ namespace votca { namespace xtp {
         
         
          
-  if((_lmax_row)>4 && (_lmax_col)>1) {
+  if((_lmax_row)>3 && (_lmax_col)>0) {
      _ol(20,1) = _pma[0]*_ol(10,1) + _fak * (3.e0*_ol(7,1) + _ol(10,0) );
      _ol(23,1) = _pma[1]*_ol(10,1);
      _ol(25,1) = _pma[2]*_ol(10,1);
@@ -757,7 +757,7 @@ namespace votca { namespace xtp {
   }
         // d-g
         
-        if((_lmax_row)>2 && (_lmax_col)>4) {
+        if((_lmax_row)>1 && (_lmax_col)>3) {
      _ol(7,20) = _pma[0]*_ol(1,20) + _fak * (_ol(0,20) + 4.e0*_ol(1,10) );
      _ol(4,20) = _pma[1]*_ol(1,20);
      _ol(5,20) = _pma[2]*_ol(1,20);
@@ -851,7 +851,7 @@ namespace votca { namespace xtp {
   }
         // g-d
         
-         if((_lmax_row)>4 && (_lmax_col)>2) {
+         if((_lmax_row)>3 && (_lmax_col)>1) {
      _ol(20,4) = _pma[0]*_ol(10,4) + _fak * (3.e0*_ol(7,4) + _ol(10,2) );
      _ol(23,4) = _pma[1]*_ol(10,4) + _fak * _ol(10,1);
      _ol(25,4) = _pma[2]*_ol(10,4);
@@ -945,7 +945,7 @@ namespace votca { namespace xtp {
   }
         // f-g
         
-        if((_lmax_row)>3 && (_lmax_col)>4) {
+        if((_lmax_row)>2 && (_lmax_col)>3) {
      _ol(13,20) = _pma[0]*_ol(4,20) + _fak * (_ol(2,20) + 4.e0*_ol(4,10) );
      _ol(14,20) = _pma[1]*_ol(4,20) + _fak * _ol(1,20);
      _ol(19,20) = _pma[2]*_ol(4,20);
@@ -1098,7 +1098,7 @@ namespace votca { namespace xtp {
      _ol(12,34) = _pma[2]*_ol(9,34) + _fak * (2.e0*_ol(3,34) + 2.e0*_ol(9,19));
   }
         // g-f
-         if((_lmax_row)>4 && (_lmax_col)>3) {
+         if((_lmax_row)>3 && (_lmax_col)>2) {
      _ol(20,10) = _pma[0]*_ol(10,10) + _fak * (3.e0*_ol(7,10) + 3.e0*_ol(10,7));
      _ol(23,10) = _pma[1]*_ol(10,10);
      _ol(25,10) = _pma[2]*_ol(10,10);
@@ -1251,7 +1251,7 @@ namespace votca { namespace xtp {
      _ol(30,19) = _pma[2]*_ol(17,19) + _fak * (_ol(8,19) + _ol(17,4) );
   }
         // g-g
-          if((_lmax_row)>4 && (_lmax_col)>4) {
+          if((_lmax_row)>3 && (_lmax_col)>3) {
      _ol(20,20) = _pma[0]*_ol(10,20) + _fak * (3.e0*_ol(7,20) + 4.e0*_ol(10,10));
      _ol(23,20) = _pma[1]*_ol(10,20);
      _ol(25,20) = _pma[2]*_ol(10,20);
