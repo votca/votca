@@ -47,7 +47,23 @@
             <shell type="G"><constant power="2" decay="6.240955" contraction="-29.473118"></constant></shell>
        </element>
 
-
+<element name="Ag" lmax="3" ncore="28">
+    <shell type="F"><constant power="1" decay="9.0169600" contraction="-8.4466900"></constant></shell>
+    <shell type="S">
+        <constant power="0" decay="1.5174000" contraction="6.2063400"></constant>
+        <constant power="2" decay="3.2308800" contraction="-56.8262400"></constant>
+        <constant power="2" decay="4.8274700" contraction="92.4017300"></constant>
+    </shell>
+    <shell type="P">
+        <constant power="0" decay="1.2169900" contraction="3.7563700"></constant>
+        <constant power="2" decay="3.1861500" contraction="-80.9533500"></constant>
+        <constant power="2" decay="4.0534900" contraction="118.8680100"></constant>
+    </shell>
+    <shell type="D">
+        <constant power="0" decay="22.9402000" contraction="3.4089500"></constant>
+        <constant power="2" decay="6.2662700" contraction="57.1051300"></constant>
+    </shell>
+</element>    
 
 
 </pseudopotential>
