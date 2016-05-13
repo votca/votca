@@ -56,7 +56,8 @@ namespace votca {
         
         
         void GWBSE::Initialize(Property* options){
-
+            _qp_limit=0.0001;  //convergence criteria for qp iteration [Ryd]]
+            _shift_limit=0.0001;
            // setting some defaults
             _do_qp_diag = false;
             _do_bse_singlets = false;
@@ -121,6 +122,14 @@ namespace votca {
                 LOG(logDEBUG, *_pLog) <<  " BSE type: TDA" << flush;
             }
             
+            if ( options->exists( key + ".qp_limit") ) {
+                _qp_limit = options->get(key + ".qp_limit" ).as< double >();
+            }
+            
+            if ( options->exists( key + ".shift_limit") ) {
+                _shift_limit = options->get(key + ".shift_limit" ).as< double >();
+            }
+            
       
             // get OpenMP thread number
             _openmp_threads = options->get(key + ".openmp").as<int> ();
@@ -140,10 +149,11 @@ namespace votca {
             _shift = options->get(key + ".shift").as<double> ();
             string _shift_type = options->get(key + ".shift_type").as<string> ();
             if ( _shift_type != "fixed" ) _iterate_shift = true;
-                                
-           
-            
-            
+            LOG(logDEBUG, *_pLog) <<  " Shift: "<< _shift_type << flush;
+            LOG(logDEBUG, *_pLog) <<  " qp_limit [Ryd]: "<< _qp_limit << flush;
+            if (_iterate_shift){
+                LOG(logDEBUG, *_pLog) <<  " shift_limit [Ryd]: "<< _shift_limit << flush;
+            }
             // possible tasks
             // diagQP, singlets, triplets, all, ibse
             string _tasks_string = options->get(key + ".tasks").as<string> ();
@@ -712,7 +722,7 @@ void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
             // _pLog->setPreface(logINFO, "\n");
             
             LOG(logINFO,*_pLog) << (format("  ====== Perturbative quasiparticle energies (Rydberg) ====== ")).str() << flush;
-            LOG(logINFO,*_pLog) << (format("   DeltaHLGap = %1$+1.4f Ryd") % _shift ).str()  <<  flush;
+            LOG(logINFO,*_pLog) << (format("   DeltaHLGap = %1$+1.6f Ryd") % _shift ).str()  <<  flush;
             for ( unsigned _i = 0 ; _i < _qptotal ; _i++ ){
                 if ( (_i + _qpmin) == _homo ){
                     LOG(logINFO,*_pLog) << (format("  HOMO  = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = %4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") % (_i+_qpmin+1) % _dft_energies( _i + _qpmin ) % _vxc(_i,_i) % _sigma_x(_i,_i) % _sigma_c(_i,_i) % _qp_energies(_i + _qpmin ) ).str() << flush;

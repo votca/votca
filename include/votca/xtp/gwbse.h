@@ -237,6 +237,9 @@ public:
     double                              _bseminfactor;
     double                              _bsemaxfactor;
     double                              _ScaHFX; 
+    
+    double                              _qp_limit;  //convergence criteria for qp iteration [Ryd]]
+    double                              _shift_limit; //convergence criteria for shift iteration [Ryd]]
     unsigned int                        _bse_vmin;
     unsigned int                        _bse_vmax;
     unsigned int                        _bse_cmin;

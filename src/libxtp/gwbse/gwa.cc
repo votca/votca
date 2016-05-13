@@ -85,15 +85,17 @@ namespace votca {
         void GWBSE::sigma_c_setup(const TCMatrix& _Mmn, const ub::vector<double>& _edft) {
 
             // iterative refinement of qp energies
-            int _max_iter = 5;
+            int _max_iter = 15;
             unsigned _levelsum = _Mmn[0].size2(); // total number of bands
             unsigned _gwsize = _Mmn[0].size1(); // size of the GW basis
             const double pi = boost::math::constants::pi<double>();
 
-
+            
             // initial _qp_energies are dft energies
             _qp_energies = _edft; // RANGES!
+            ub::vector<double>_qp_old=_qp_energies;
             double _DFTgap = _qp_energies(_homo + 1) - _qp_energies(_homo);
+            bool energies_converged=false;
 
 	    // only diagonal elements except for in final iteration
             for ( int _i_iter = 0 ; _i_iter < _max_iter-1 ; _i_iter++ ){
@@ -135,16 +137,33 @@ namespace votca {
 		
 		// update _qp_energies
 		_qp_energies( _gw_level  + _qpmin) = _edft( _gw_level + _qpmin ) + _sigma_x(_gw_level, _gw_level) + _sigma_c(_gw_level,_gw_level) - _vxc(_gw_level  ,_gw_level );
-                    
+                
+                
 	     }// all bands
-           //   cout << " end of qp refinement step (diagonal) " << _i_iter << "\n" << endl;
+            //cout << " end of qp refinement step (diagonal) " << _i_iter << "\n" << endl;
+              _qp_old=_qp_old-_qp_energies;
+              energies_converged=true;
+              for( int l=0;l<_qp_old.size();l++){
+                  if(std::abs(_qp_old(l))>_qp_limit){ 
+                      energies_converged=false;
+                      break;
+                  }
+              }
+            if (energies_converged){               
+                break;
+            }
+            else{
+                _qp_old=_qp_energies;
+            }
+              
             } // iterations
 
              double _QPgap = _qp_energies( _homo +1 ) - _qp_energies( _homo  );
              double _shift_new = _QPgap - _DFTgap;
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " New shift [Ryd] : " << _shift_new << flush;
+             
+            LOG(logDEBUG, *_pLog) << TimeStamp() << (format(" New shift [Ryd] : %1$+1.6f ") % _shift_new ).str() << flush;
             //cout << " shift new " << _shift_new << endl;
-            if (std::abs((_shift_new - _shift)*tools::conv::ryd2ev) > 0.01) {
+            if (std::abs((_shift_new - _shift)) > _shift_limit) {
                 _shift = _shift_new;
             } else {
                 _shift_converged = true;
