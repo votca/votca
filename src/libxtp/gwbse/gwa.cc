@@ -143,7 +143,7 @@ namespace votca {
             //cout << " end of qp refinement step (diagonal) " << _i_iter << "\n" << endl;
               _qp_old=_qp_old-_qp_energies;
               energies_converged=true;
-              for( int l=0;l<_qp_old.size();l++){
+              for( unsigned l=0;l<_qp_old.size();l++){
                   if(std::abs(_qp_old(l))>_qp_limit){ 
                       energies_converged=false;
                       break;
