@@ -103,6 +103,7 @@ private:
         _VdWChelpG["Cl"] = 2.0;
         _VdWChelpG["Ar"] = 2.0;
         _VdWChelpG["Hg"] = 2.0;
+        _VdWChelpG["Ag"] = 1.7;
     };
 
 
@@ -127,6 +128,7 @@ private:
         _NucCrgECP["S"]  = 6.00;
         _NucCrgECP["Cl"] = 7.00;
         _NucCrgECP["Ar"] = 8.00;
+        _NucCrgECP["Ag"] = 19.00;
     };
     
       inline void FillNucCrg(){
@@ -150,6 +152,7 @@ private:
         _NucCrg["S"]  = 16.00;
         _NucCrg["Cl"] = 17.00;
         _NucCrg["Ar"] = 18.00;
+        _NucCrg["Ag"] = 47.00;
     };
     
     
@@ -174,6 +177,7 @@ private:
         _EleNum["S"]  = 16;
         _EleNum["Cl"] = 17;
         _EleNum["Ar"] = 18;
+        _EleNum["Ag"] = 47;
     };
     
     
@@ -198,6 +202,7 @@ private:
         _EleName[16]  = "S";
         _EleName[17] = "Cl";
         _EleName[18] = "Ar";
+        _EleName[47] = "Ag";
     };
     
     inline void FillEleShort(){
@@ -221,6 +226,7 @@ private:
         _EleShort["SULFUR"]  = "S";
         _EleShort["CLORINE"] = "Cl";
         _EleShort["ARGON"] = "Ar";
+        _EleShort["SILVER"] = "Ag";        
     };
     
  inline void FillEleFull(){
@@ -244,6 +250,7 @@ private:
         _EleFull["S"]  = "SULFUR";
         _EleFull["Cl"] = "CHLORINE";
         _EleFull["Ar"] = "ARGON";
+        _EleFull["Ag"] = "SILVER";        
     };
    
 
@@ -270,6 +277,7 @@ private:
         _VdWChelpG["S"]  = 1.75;
         _VdWChelpG["Cl"] = 1.7;
         // _VdWChelpG["Ar"] = 2.0;
+        _VdWChelpG["Ag"] = 2.0;
     };
 };
 }}

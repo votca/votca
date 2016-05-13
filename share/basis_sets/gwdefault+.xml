@@ -114,4 +114,70 @@
 		</shell>
 	</element>
 
+
+		<element name="Ag" >
+		<shell type="SPD" scale="1.0">
+			<constant decay="346.224" >
+                <contractions type="S" factor="1.0"></contractions>
+                <contractions type="P" factor="1.0"></contractions>
+                <contractions type="D" factor="1.0"></contractions>
+			</constant>
+		</shell>
+
+		<shell type="SPD" scale="1.0">
+			<constant decay="76.938" >
+                <contractions type="S" factor="1.0"></contractions>
+                <contractions type="P" factor="1.0"></contractions>
+                <contractions type="D" factor="1.0"></contractions>
+			</constant>
+		</shell>
+		<shell type="SPDF" scale="1.0">
+			<constant decay="25.646" >
+                <contractions type="S" factor="1.0"></contractions>
+                <contractions type="P" factor="1.0"></contractions>
+                <contractions type="D" factor="1.0"></contractions>
+                                <contractions type="F" factor="1.0"></contractions>
+			</constant>
+		</shell>
+
+		<shell type="SPDF" scale="1.0">
+			<constant decay="8.548" >
+                <contractions type="S" factor="1.0"></contractions>
+                <contractions type="P" factor="1.0"></contractions>
+                <contractions type="D" factor="1.0"></contractions>
+                                <contractions type="F" factor="1.0"></contractions>
+			</constant>
+		</shell>
+
+		<shell type="SPDF" scale="1.0">
+			<constant decay="2.84958" >
+                <contractions type="S" factor="1.0"></contractions>
+                <contractions type="P" factor="1.0"></contractions>
+                <contractions type="D" factor="1.0"></contractions>
+                <contractions type="F" factor="1.0"></contractions>
+			</constant>
+		</shell>
+
+		<shell type="SPDF" scale="1.0">
+			<constant decay="0.94986" >
+                <contractions type="S" factor="1.0"></contractions>
+                <contractions type="P" factor="1.0"></contractions>
+                <contractions type="D" factor="1.0"></contractions>
+                <contractions type="F" factor="1.0"></contractions>
+			</constant>
+		</shell>
+
+				<shell type="SPDF" scale="1.0">
+			<constant decay="0.31662" >
+                <contractions type="S" factor="1.0"></contractions>
+                <contractions type="P" factor="1.0"></contractions>
+                <contractions type="D" factor="1.0"></contractions>  
+                <contractions type="F" factor="1.0"></contractions>                             
+			</constant>
+		</shell>
+
+
+
+	</element>
+
 </basis>

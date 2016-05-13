@@ -57,7 +57,7 @@ namespace votca { namespace xtp {
        
             std::map<std::string,min_exp> _element_ranges;
             std::map<std::string,grid_element> _element_grids;
-            std::map<std::string,int> _period_row;
+            std::map<std::string,int> _pruning_set;
             
             std::map<std::string,double> _BraggSlaterRadii;
             
@@ -80,7 +80,7 @@ namespace votca { namespace xtp {
             inline void FillGrids(){
         
                 FillBraggSlaterRadii();
-                FillPeriodRow();
+                FillPruningSet();
                 FillAccuracy();
                 FillMediumGrid();
                 FillCoarseGrid();
@@ -140,6 +140,8 @@ namespace votca { namespace xtp {
                 _BraggSlaterRadii["Br"] = 1.15* ang2bohr ;
                 _BraggSlaterRadii["Kr"] = 1.15* ang2bohr ;              
                 
+                // 4th row (selection)
+                _BraggSlaterRadii["Ag"] = 1.60* ang2bohr ;
                 
                 /* Copied from grid_atom_type_info.F of NWChem
                  
@@ -176,52 +178,55 @@ c                  Md   No   Lr  Unq  Unp
             
             
             
-            inline void FillPeriodRow() {
+            inline void FillPruningSet() {
 
                 // row of period system for H, He (not given in NWChem, assuming same as 1st row)
-                _period_row["H"] = 1;
-                _period_row["He"] = 1;
+                _pruning_set["H"] = 1;
+                _pruning_set["He"] = 1;
 
                 // row of period system  for 1st row elements taken from NWChem
-                _period_row["Li"] = 2;
-                _period_row["Be"] = 2;
-                _period_row["B"] = 2;
-                _period_row["C"] = 2;
-                _period_row["N"] = 2;
-                _period_row["O"] = 2;
-                _period_row["F"] = 2;
-                _period_row["Ne"] = 2;
+                _pruning_set["Li"] = 2;
+                _pruning_set["Be"] = 2;
+                _pruning_set["B"] = 2;
+                _pruning_set["C"] = 2;
+                _pruning_set["N"] = 2;
+                _pruning_set["O"] = 2;
+                _pruning_set["F"] = 2;
+                _pruning_set["Ne"] = 2;
 
                 // row of period system  for 2nd row elements taken from NWChem
-                _period_row["Na"] = 3;
-                _period_row["Mg"] = 3;
-                _period_row["Al"] = 3;
-                _period_row["Si"] = 3;
-                _period_row["P"] = 3;
-                _period_row["S"] = 3;
-                _period_row["Cl"] = 3;
-                _period_row["Ar"] = 3;
+                _pruning_set["Na"] = 3;
+                _pruning_set["Mg"] = 3;
+                _pruning_set["Al"] = 3;
+                _pruning_set["Si"] = 3;
+                _pruning_set["P"] = 3;
+                _pruning_set["S"] = 3;
+                _pruning_set["Cl"] = 3;
+                _pruning_set["Ar"] = 3;
 
 
                 // row of period system  for 3rd row elements taken from NWChem
-                _period_row["K"] = 3;
-                _period_row["Ca"] = 3;
-                _period_row["Sc"] = 3;
-                _period_row["Ti"] = 3;
-                _period_row["V"] = 3;
-                _period_row["Cr"] = 3;
-                _period_row["Mn"] = 3;
-                _period_row["Fe"] = 3;
-                _period_row["Co"] = 3;
-                _period_row["Ni"] = 3;
-                _period_row["Cu"] = 3;
-                _period_row["Zn"] = 3;
-                _period_row["Ga"] = 3;
-                _period_row["Ge"] = 3;
-                _period_row["As"] = 3;
-                _period_row["Se"] = 3;
-                _period_row["Br"] = 3;
-                _period_row["Kr"] = 3;
+                _pruning_set["K"] = 3;
+                _pruning_set["Ca"] = 3;
+                _pruning_set["Sc"] = 3;
+                _pruning_set["Ti"] = 3;
+                _pruning_set["V"] = 3;
+                _pruning_set["Cr"] = 3;
+                _pruning_set["Mn"] = 3;
+                _pruning_set["Fe"] = 3;
+                _pruning_set["Co"] = 3;
+                _pruning_set["Ni"] = 3;
+                _pruning_set["Cu"] = 3;
+                _pruning_set["Zn"] = 3;
+                _pruning_set["Ga"] = 3;
+                _pruning_set["Ge"] = 3;
+                _pruning_set["As"] = 3;
+                _pruning_set["Se"] = 3;
+                _pruning_set["Br"] = 3;
+                _pruning_set["Kr"] = 3;
+                
+                // row of period system for 4th row elements taken from NWChem
+                _pruning_set["Ag"] = 3;
 
 
             }
@@ -282,6 +287,9 @@ c                  Md   No   Lr  Unq  Unp
             MediumGrid["Br"] = 112;
             MediumGrid["Kr"] = 112;
             
+            // orders for 4th row elements (selected)
+            MediumGrid["Ag"] = 123;
+            
             
     }            
     
@@ -332,7 +340,8 @@ c                  Md   No   Lr  Unq  Unp
             FineGrid["Br"] = 130;
             FineGrid["Kr"] = 130;
             
-            
+            // 4th row (selected)
+            FineGrid["Ag"] = 141;
     }            
     
     inline void FillXfineGrid(){
@@ -382,6 +391,9 @@ c                  Md   No   Lr  Unq  Unp
             XfineGrid["Br"] = 160;
             XfineGrid["Kr"] = 160;
             
+            
+            // 4th row (selection)
+            XfineGrid["Ag"] = 205 ;
             
     }            
     
@@ -433,6 +445,9 @@ c                  Md   No   Lr  Unq  Unp
             CoarseGrid["Kr"] = 95;
             
             
+            // 4th row (selection)
+            CoarseGrid["Ag"] = 104 ;
+            
     }          
     
     inline void FillXcoarseGrid(){
@@ -482,6 +497,9 @@ c                  Md   No   Lr  Unq  Unp
             XcoarseGrid["Br"] = 75;
             XcoarseGrid["Kr"] = 75;
             
+            
+            // 4th row (selection)
+            XcoarseGrid["Ag"] = 84 ;
             
     }            
             

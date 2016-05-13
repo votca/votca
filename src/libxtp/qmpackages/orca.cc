@@ -235,9 +235,11 @@ bool Orca::WriteInputFile( std::vector<Segment* > segments, Orbitals* orbitals_g
                                 for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
                                     Shell* shell = (*its);
                                     _el_file  << shell->getType() << " " << shell->getSize() << endl; //<< " " << FortranFormat(shell->getScale()) << endl;
+                                    int _sh_idx =0;
                                     for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                                         GaussianPrimitive* gaussian = *itg;
-                                        _el_file << " " << shell->getSize() << " " << FortranFormat(gaussian->decay);
+                                        _sh_idx++;
+                                        _el_file << " " << _sh_idx << " " << FortranFormat(gaussian->decay);
                                         for (unsigned _icontr = 0; _icontr < gaussian->contraction.size(); _icontr++) {
                                             if (gaussian->contraction[_icontr] != 0.0) {
                                                 _el_file << " " << FortranFormat(gaussian->contraction[_icontr]);
@@ -291,9 +293,11 @@ bool Orca::WriteInputFile( std::vector<Segment* > segments, Orbitals* orbitals_g
                                         if (shell->getLmax() == i) {
                                         // shell type, number primitives, scale factor
                                         _com_file << shell->getType() << " " <<  shell->getSize() << endl;
+                                        int _sh_idx=0;
                                         for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                                             GaussianPrimitive* gaussian = *itg;
-                                            _com_file << shell->getSize() << " " << gaussian->decay << " " << gaussian->contraction[0] << " " << gaussian->power << endl;
+                                            _sh_idx++;
+                                            _com_file << _sh_idx << " " << gaussian->decay << " " << gaussian->contraction[0] << " " << gaussian->power << endl;
                                         }
                                     }
                                 }
@@ -305,9 +309,11 @@ bool Orca::WriteInputFile( std::vector<Segment* > segments, Orbitals* orbitals_g
                                 if (shell->getLmax() == element->getLmax()) {
                                     _com_file << shell->getType() << " " <<  shell->getSize() << endl;
                                     // _com_file << shell->getSize() << endl;
+                                    int _sh_idx=0;
                                     for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                                         GaussianPrimitive* gaussian = *itg;
-                                        _com_file << shell->getSize() << " " << gaussian->decay << " " << gaussian->contraction[0] << " " << gaussian->power << endl;
+                                             _sh_idx++;
+                                        _com_file << _sh_idx << " " << gaussian->decay << " " << gaussian->contraction[0] << " " << gaussian->power << endl;
                                         }
                                     }
                                 }
@@ -369,9 +375,11 @@ bool Orca::WriteInputFile( std::vector<Segment* > segments, Orbitals* orbitals_g
                                 for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
                                     Shell* shell = (*its);
                                     _el_file  << shell->getType() << " " << shell->getSize() << endl; //<< " " << FortranFormat(shell->getScale()) << endl;
+                                    int _sh_idx =0;
                                     for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                                         GaussianPrimitive* gaussian = *itg;
-                                        _el_file << " " << shell->getSize() << " " << FortranFormat(gaussian->decay);
+                                        _sh_idx++;
+                                        _el_file << " " << _sh_idx << " " << FortranFormat(gaussian->decay);
                                         for (unsigned _icontr = 0; _icontr < gaussian->contraction.size(); _icontr++) {
                                             if (gaussian->contraction[_icontr] != 0.0) {
                                                 _el_file << " " << FortranFormat(gaussian->contraction[_icontr]);
@@ -429,9 +437,11 @@ bool Orca::WriteInputFile( std::vector<Segment* > segments, Orbitals* orbitals_g
                                         if (shell->getLmax() == i) {
                                         // shell type, number primitives, scale factor
                                         _com_file << shell->getType() << " " <<  shell->getSize() << endl;
+                                        int _sh_idx = 0;
                                         for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                                             GaussianPrimitive* gaussian = *itg;
-                                            _com_file << shell->getSize() << " " << gaussian->decay << " " << gaussian->contraction[0] << " " << gaussian->power << endl;
+                                            _sh_idx++;
+                                            _com_file << _sh_idx << " " << gaussian->decay << " " << gaussian->contraction[0] << " " << gaussian->power << endl;
                                         }
                                     }
                                 }
@@ -443,9 +453,11 @@ bool Orca::WriteInputFile( std::vector<Segment* > segments, Orbitals* orbitals_g
                                 if (shell->getLmax() == element->getLmax()) {
                                     _com_file << shell->getType() << " " <<  shell->getSize() << endl;
                                     // _com_file << shell->getSize() << endl;
+                                    int _sh_idx = 0;
                                     for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                                         GaussianPrimitive* gaussian = *itg;
-                                        _com_file << shell->getSize() << " " << gaussian->decay << " " << gaussian->contraction[0] << " " << gaussian->power << endl;
+                                        _sh_idx++;
+                                        _com_file << _sh_idx << " " << gaussian->decay << " " << gaussian->contraction[0] << " " << gaussian->power << endl;
                                         }
                                     }
                                 }

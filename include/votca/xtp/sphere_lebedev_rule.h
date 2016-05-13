@@ -235,6 +235,9 @@ namespace votca {
                 MediumOrder["Se"] = 590;
                 MediumOrder["Br"] = 590;
                 MediumOrder["Kr"] = 590;
+                
+                // 4th row (selection) 
+                MediumOrder["Ag"] = 590;
 
 
             }
@@ -286,6 +289,8 @@ namespace votca {
                 FineOrder["Br"] = 974;
                 FineOrder["Kr"] = 974;
 
+                // 4th row
+                FineOrder["Ag"] = 974;
 
             }
             inline void FillXfineOrder() {
@@ -334,7 +339,9 @@ namespace votca {
                 XfineOrder["Se"] = 1454;
                 XfineOrder["Br"] = 1454;
                 XfineOrder["Kr"] = 1454;
-
+                
+                // 4th row
+                XfineOrder["Ag"] = 1454;
 
             }
             
@@ -384,6 +391,9 @@ namespace votca {
                 CoarseOrder["Se"] = 302;
                 CoarseOrder["Br"] = 302;
                 CoarseOrder["Kr"] = 302;
+                
+                // 4th row
+                CoarseOrder["Ag"] = 302;
 
 
             }
@@ -434,6 +444,8 @@ namespace votca {
                 XcoarseOrder["Br"] = 194;
                 XcoarseOrder["Kr"] = 194;
 
+                // 4th row
+                XcoarseOrder["Ag"] = 194;
 
             }
 

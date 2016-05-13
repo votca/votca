@@ -38,7 +38,7 @@ namespace votca { namespace xtp {
         double BSradius = _BraggSlaterRadii.at(element);
         
         // row type of element
-        int RowType = _period_row.at(element);
+        int RowType = _pruning_set.at(element);
         
         if ( RowType == 1 ){
             
