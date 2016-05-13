@@ -56,6 +56,14 @@ namespace votca {
         
         
         void GWBSE::Initialize(Property* options){
+            
+            #if (GWBSE_DOUBLE)
+                LOG(logDEBUG, *_pLog) <<  " Compiled with full double support" << flush;   
+            #else
+                LOG(logDEBUG, *_pLog) <<  " Compiled with float/double mixture (standard)" << flush;   
+            #endif
+            
+            
             _qp_limit=0.0001;  //convergence criteria for qp iteration [Ryd]]
             _shift_limit=0.0001;
            // setting some defaults

@@ -43,6 +43,12 @@ using boost::format;
 
 void BSECoupling::Initialize(Property* options){
     
+    #if (GWBSE_DOUBLE)
+        LOG(logDEBUG, *_pLog) <<  " Compiled with full double support" << flush;   
+    #else
+        LOG(logDEBUG, *_pLog) <<  " Compiled with float/double mixture (standard)" << flush;   
+    #endif
+    
     std::string key = Identify(); 
     _doSinglets=false;
     _doTriplets=false;
