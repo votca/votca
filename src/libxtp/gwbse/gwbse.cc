@@ -582,6 +582,7 @@ void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
             // Fill Coulomb matrix
             _gwcoulomb.Fill(&gwbasis);
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled GW Coulomb matrix of dimension: " << _gwcoulomb._aomatrix.size1() << flush;
+            //cout << _gwcoulomb._aomatrix << endl;
             //_gwcoulomb.Print("Cou");
             //exit(0);
             
@@ -603,6 +604,8 @@ void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
             
             // --- prepare a vector (gwdacay) of matrices (orbitals, orbitals) as container => M_mn
             // prepare 3-center integral object
+            
+          
             TCMatrix _Mmn;
             _Mmn.Initialize(gwbasis._AOBasisSize, _rpamin, _qpmax, _rpamin, _rpamax);
             _Mmn.Fill(gwbasis, dftbasis, _dft_orbitals);

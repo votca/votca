@@ -149,7 +149,8 @@ namespace votca {
                       break;
                   }
               }
-            if (energies_converged){               
+            if (energies_converged){
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Converged after "<< _i_iter<< " qp_energy iterations." << flush;
                 break;
             }
             else{

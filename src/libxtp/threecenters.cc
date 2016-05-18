@@ -158,6 +158,8 @@ namespace votca {
             ma_type S;
             S.resize(extents[ range(1, _nalpha + 1) ][ range(1, _ngw + 1) ][ range(1, _ngamma + 1)]);
 
+            //cout << S.shape()[0]<< " : "<< S.shape()[1]<< " : "<< S.shape()[2]<<endl;
+            
             // now fill s-s-s element
             S[1][1][1] = value;
 

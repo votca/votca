@@ -74,6 +74,9 @@ void ExcitonCoupling::Initialize(Property* options)
         _classical = options->get(key+".classical").as<bool>();
         
         }
+    else{
+        _classical=false;
+    }
     
     if(!_classical){
     
