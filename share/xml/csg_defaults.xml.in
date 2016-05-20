@@ -683,6 +683,9 @@
           <step>
             <DESC>Step size of interval in which density calculation is performed.</DESC>
           </step>
+               <scale>1.0
+               <DESC>Scaling factor for density</DESC>
+               </scale>
 	        <molname>*
 	        <DESC>The molname of this interaction</DESC>
 	        </molname>
