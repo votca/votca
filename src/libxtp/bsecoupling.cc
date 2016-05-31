@@ -364,7 +364,7 @@ real BSECoupling::getTripletCouplingElement( int levelA, int levelB) {
 
     
     // psi_AxB * S_AB * psi_AB
-    LOG(logDEBUG, *_pLog) << TimeStamp()  << "Projecting dimer onto monomer orbitals"; 
+    LOG(logDEBUG, *_pLog) << TimeStamp()  << "Projecting  monomer orbitals onto dimer "; 
     ub::matrix<double> _orbitalsAB_Transposed = ub::trans( *_orbitalsAB->getOrbitals() );  
     if ( (*_orbitalsAB->getOverlap()).size1() == 0 ) {
             LOG(logERROR,*_pLog) << "Overlap matrix is not stored"; 
