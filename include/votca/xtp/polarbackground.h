@@ -97,7 +97,7 @@ public:
         KThread(PolarBackground *master) {
             _master = master;
             _ewdactor = EwdInteractor(_master->_alpha, _master->_polar_aDamp);
-            
+            _verbose=tools::globals::verbose;
             RegisterStart("SP_MODE", &KThread::SP_SFactorCalc);
             RegisterStart("FP_MODE", &KThread::FP_KFieldCalc);
             RegisterStart("SU_MODE", &KThread::SU_SFactorCalc);
