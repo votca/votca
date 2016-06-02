@@ -177,6 +177,15 @@ namespace votca { namespace tools {
      */
    int linalg_invert_svd(ub::matrix<double> &A, ub::matrix<double> &V,double limitCN);
    
+   /**
+     * \brief calculates loewdin transformation of matrices
+     * @param J matrix to transform, returns transformed matrix
+     * @param S, overlap matrix, returns eigenvectors of S
+     * @param returns smallest eigenvalue of S
+     * This function calculates the loewdin transformation of a matrix
+     */
+   double linalg_loewdin(ub::matrix<double> &J, ub::matrix<double> &S);
+   
    
 }}
 

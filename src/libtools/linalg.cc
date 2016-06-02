@@ -75,5 +75,30 @@ int linalg_invert_svd(ub::matrix<double> &A, ub::matrix<double> &V,double limitC
     return S.size()-dimensions;
 }
 
+double linalg_loewdin(ub::matrix<double> &J, ub::matrix<double> &S){
+    if (J.size1()!=J.size2() ||S.size1()!=S.size2() || J.size1()!=S.size1() ){
+        cerr << " \n Loewdin transformation only works for quadratic matrices " << endl;
+        return -1;
+    }
+    
+    ub::vector<double> S_eigenvalues;
+    linalg_eigenvalues( S_eigenvalues, S);
+    if ( S_eigenvalues[0] < 0.0 ) {
+        cerr << " \n Negative eigenvalues in Loewdin transformation " << endl;
+        return -1;
+    }
+    ub::matrix<double> _diagS = ub::zero_matrix<double>(J.size1(),J.size2() );
+     for ( unsigned _i =0; _i < J.size1() ; _i++){
+
+         _diagS(_i,_i) = 1.0/sqrt(S_eigenvalues[_i]);
+     }
+    ub::matrix<double> _transtemp = ub::prod( _diagS, ub::trans(S));
+    ub::matrix<double> _transform = ub::prod( S,_transtemp );
+    ub::matrix<double> _J_temp = ub::prod(J, _transform);
+    J = ub::prod( _transform, _J_temp);
+    return S_eigenvalues[0];
+}
+
+
 }}
 
