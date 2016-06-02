@@ -55,6 +55,8 @@ void EwaldBgPolarizer::Initialize(Property *opt) {
             throw std::runtime_error("No multipole mapping file provided");
         }
     
+  
+    
     key = "options.ewdbgpol.control";
         // CONTROL
         if (opt->exists(key+".mps_table")) {
@@ -71,12 +73,19 @@ void EwaldBgPolarizer::Initialize(Property *opt) {
         if (opt->exists(key+".restart_from")) {
             _ptop_file = opt->get(key+".restart_from").as<string>();            
             if (boost::filesystem::exists(_ptop_file)) _do_restart = true;
-            else _do_restart = false;
+            else {
+                _do_restart = false;
+                cout << endl
+                << "... ... File " <<  _ptop_file << " not found. Ignoring Restart_from option"
+                << flush;       
+            }
         }
         else {
             _ptop_file = "";
             _do_restart = false;
         }
+    
+        
 
     return;
 }
