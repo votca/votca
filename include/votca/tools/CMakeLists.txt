@@ -4,4 +4,18 @@ if (NOT WITH_SQLITE3)
   file(GLOB_RECURSE NOT_VOTCA_HEADERS database.h statement.h)
   list(REMOVE_ITEM VOTCA_HEADERS ${NOT_VOTCA_HEADERS})
 endif(NOT WITH_SQLITE3)
+if (NOT WITH_LINALG)
+    if (NOT GSL_FOUND)
+        file(GLOB_RECURSE NOT_VOTCA_HEADERS votca_gsl_boost_ublas_matrix_prod.h)
+        list(REMOVE_ITEM VOTCA_HEADERS ${NOT_VOTCA_HEADERS})
+    endif (NOT GSL_FOUND)
+    if (NOT MKL_FOUND)
+        file(GLOB_RECURSE NOT_VOTCA_HEADERS votca_mkl_boost_ublas_matrix_prod.h votca_mkl_boost_ublas_gemm.hpp )
+        list(REMOVE_ITEM VOTCA_HEADERS ${NOT_VOTCA_HEADERS})
+    endif (NOT MKL_FOUND)
+       
+
+endif(NOT WITH_LINALG)
+
+
 install(FILES ${VOTCA_HEADERS} DESTINATION include/votca/tools)
