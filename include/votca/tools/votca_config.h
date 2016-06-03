@@ -21,12 +21,12 @@
 
 
 #if defined(GSL)
-    #include "gsl_boost_ublas_matrix_prod.h"
+    #include "votca_gsl_boost_ublas_matrix_prod.h"
     #ifndef NDEBUG
     #define NDEBUG
     #endif
 #elif defined(MKL)
-    #include "mkl_boost_ublas_matrix_prod.h"
+    #include "votca_mkl_boost_ublas_matrix_prod.h"
     #ifndef NDEBUG
     #define NDEBUG
     #endif

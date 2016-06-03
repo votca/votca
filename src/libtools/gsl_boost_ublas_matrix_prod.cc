@@ -1,5 +1,5 @@
 
-#include <votca/tools/votca_boost_ublas_matrix_prod.h>
+#include <votca/tools/votca_gsl_boost_ublas_matrix_prod.h>
 
 /* #ifdef NDEBUG
 

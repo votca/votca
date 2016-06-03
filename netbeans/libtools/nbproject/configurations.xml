@@ -17,15 +17,12 @@
       <itemPath>../../include/votca/tools/datacollection.h</itemPath>
       <itemPath>../../include/votca/tools/getline.h</itemPath>
       <itemPath>../../include/votca/tools/globals.h</itemPath>
-      <itemPath>../../src/libtools/gsl_boost_ublas_matrix_prod.h</itemPath>
       <itemPath>../../include/votca/tools/histogram.h</itemPath>
       <itemPath>../../include/votca/tools/histogramnew.h</itemPath>
       <itemPath>../../include/votca/tools/lexical_cast.h</itemPath>
       <itemPath>../../include/votca/tools/linalg.h</itemPath>
       <itemPath>../../include/votca/tools/linspline.h</itemPath>
       <itemPath>../../include/votca/tools/matrix.h</itemPath>
-      <itemPath>../../src/libtools/mkl_boost_ublas_gemm.hpp</itemPath>
-      <itemPath>../../src/libtools/mkl_boost_ublas_matrix_prod.h</itemPath>
       <itemPath>../../include/votca/tools/mutex.h</itemPath>
       <itemPath>../../include/votca/tools/objectfactory.h</itemPath>
       <itemPath>../../include/votca/tools/parsexml.h</itemPath>
@@ -41,6 +38,9 @@
       <itemPath>../../include/votca/tools/vec.h</itemPath>
       <itemPath>../../include/votca/tools/version.h</itemPath>
       <itemPath>../../include/votca/tools/votca_config.h.in</itemPath>
+      <itemPath>../../include/votca/tools/votca_gsl_boost_ublas_matrix_prod.h</itemPath>
+      <itemPath>../../include/votca/tools/votca_mkl_boost_ublas_gemm.hpp</itemPath>
+      <itemPath>../../include/votca/tools/votca_mkl_boost_ublas_matrix_prod.h</itemPath>
     </logicalFolder>
     <logicalFolder name="f1" displayName="Linalg" projectFiles="true">
       <logicalFolder name="f3" displayName="Dummy" projectFiles="true">
@@ -280,6 +280,21 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/tools/votca_gsl_boost_ublas_matrix_prod.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/votca_mkl_boost_ublas_gemm.hpp"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/votca_mkl_boost_ublas_matrix_prod.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libtools/akimaspline.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/application.cc" ex="false" tool="1" flavor2="0">
@@ -305,11 +320,6 @@
       <item path="../../src/libtools/gsl_boost_ublas_matrix_prod.cc"
             ex="false"
             tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/gsl_boost_ublas_matrix_prod.h"
-            ex="false"
-            tool="3"
             flavor2="0">
       </item>
       <item path="../../src/libtools/histogram.cc" ex="false" tool="1" flavor2="0">
@@ -396,16 +406,6 @@
       <item path="../../src/libtools/linspline.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/matrix.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libtools/mkl_boost_ublas_gemm.hpp"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/mkl_boost_ublas_matrix_prod.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../src/libtools/mutex.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -597,6 +597,21 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/tools/votca_gsl_boost_ublas_matrix_prod.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/votca_mkl_boost_ublas_gemm.hpp"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/votca_mkl_boost_ublas_matrix_prod.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libtools/akimaspline.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/application.cc" ex="false" tool="1" flavor2="0">
@@ -622,11 +637,6 @@
       <item path="../../src/libtools/gsl_boost_ublas_matrix_prod.cc"
             ex="false"
             tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/gsl_boost_ublas_matrix_prod.h"
-            ex="false"
-            tool="3"
             flavor2="0">
       </item>
       <item path="../../src/libtools/histogram.cc" ex="false" tool="1" flavor2="0">
@@ -713,16 +723,6 @@
       <item path="../../src/libtools/linspline.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/matrix.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libtools/mkl_boost_ublas_gemm.hpp"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/mkl_boost_ublas_matrix_prod.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../src/libtools/mutex.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -914,6 +914,21 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/tools/votca_gsl_boost_ublas_matrix_prod.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/votca_mkl_boost_ublas_gemm.hpp"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/votca_mkl_boost_ublas_matrix_prod.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libtools/akimaspline.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/application.cc" ex="false" tool="1" flavor2="0">
@@ -939,11 +954,6 @@
       <item path="../../src/libtools/gsl_boost_ublas_matrix_prod.cc"
             ex="false"
             tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/gsl_boost_ublas_matrix_prod.h"
-            ex="false"
-            tool="3"
             flavor2="0">
       </item>
       <item path="../../src/libtools/histogram.cc" ex="false" tool="1" flavor2="0">
@@ -1030,16 +1040,6 @@
       <item path="../../src/libtools/linspline.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/matrix.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libtools/mkl_boost_ublas_gemm.hpp"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/mkl_boost_ublas_matrix_prod.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../src/libtools/mutex.cc" ex="false" tool="1" flavor2="0">
       </item>
