@@ -17,7 +17,7 @@
 
 #ifndef __VOTCA_TOOLS_LINALG_H
 #define	__VOTCA_TOOLS_LINALG_H
-
+#include "votca_tools_config.h"
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>

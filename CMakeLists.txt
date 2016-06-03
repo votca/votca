@@ -67,6 +67,45 @@ option(BUILD_MANPAGES "Build manpages (might lead to problem on system without r
 add_custom_target(manpages ALL)
 
 ########################################################################
+# Checks what linear algebra packages are installed                    #
+########################################################################
+option(WITH_LINALG "Checking which BLAS libraries are installed" ON)
+if (WITH_LINALG)
+
+  find_package(Eigen)
+
+
+  if (EIGEN_FOUND) 
+    message("-- EIGEN found (not used at the moment)")
+    set(EIGEN TRUE) #used in votca_tools_config.h
+    include_directories(${EIGEN_INCLUDE_DIRS})
+  else()
+    message("-- EIGEN not found")
+    set(EIGEN FALSE) #used in votca_tools_config.h
+  endif()
+
+  set(MKL FALSE)
+  set(GSL FALSE)
+
+  #find_package(GSL)
+  find_package(MKL)
+
+
+  if (MKL_FOUND AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+    message("-- MKL found, overloading uBLAS prod()")
+    set(MKL TRUE) #used in votca_tools_config.h
+  elseif(GSL_FOUND)
+    message("-- GSL found, overloading uBLAS prod()")
+    include_directories(${GSL_INCLUDE_DIRS})
+    set(GSL_PKG "gsl")
+    set(GSL TRUE) #used in votca_xtp_config.h
+  endif()
+
+endif(WITH_LINALG)
+
+#configure_file(config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
+
+########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
 ########################################################################
 include(CheckIncludeFile)
