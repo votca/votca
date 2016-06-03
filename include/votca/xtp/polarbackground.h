@@ -47,7 +47,7 @@ public:
             _not_converged_count = 0;
             _ewdactor = EwdInteractor(_master->_alpha, _master->_polar_aDamp);
             _actor = XInteractor(NULL, _master->_polar_aDamp);
-            _verbose=tools::globals::verbose;
+            
             RegisterStart("FP_MODE", &RThread::FP_FieldCalc);
             RegisterStart("FU_MODE", &RThread::FU_FieldCalc);            
             RegisterReset("FP_MODE", &RThread::FX_FieldReset);
@@ -97,7 +97,7 @@ public:
         KThread(PolarBackground *master) {
             _master = master;
             _ewdactor = EwdInteractor(_master->_alpha, _master->_polar_aDamp);
-            _verbose=tools::globals::verbose;
+           
             RegisterStart("SP_MODE", &KThread::SP_SFactorCalc);
             RegisterStart("FP_MODE", &KThread::FP_KFieldCalc);
             RegisterStart("SU_MODE", &KThread::SU_SFactorCalc);
