@@ -231,6 +231,7 @@
       <itemPath>../../src/libxtp/gsl_boost_ublas_matrix_prod.cc</itemPath>
       <itemPath>../../src/libxtp/hgversion.h</itemPath>
       <itemPath>../../src/libxtp/job.cc</itemPath>
+      <itemPath>../../src/libxtp/kmclifetime.cc</itemPath>
       <itemPath>../../src/libxtp/orbitals.cc</itemPath>
       <itemPath>../../src/libxtp/overlap.cc</itemPath>
       <itemPath>../../src/libxtp/parallelpaircalc.cc</itemPath>
@@ -252,6 +253,7 @@
       <itemPath>../../src/libxtp/threecenter_rep.cc</itemPath>
       <itemPath>../../src/libxtp/threecenters.cc</itemPath>
       <itemPath>../../src/libxtp/threecenters_dft.cc</itemPath>
+      <itemPath>../../src/libxtp/threecenters_g.cc</itemPath>
       <itemPath>../../src/libxtp/threecenters_tools.cc</itemPath>
       <itemPath>../../src/libxtp/version.cc</itemPath>
       <itemPath>../../src/libxtp/version_nb.cc</itemPath>
@@ -292,8 +294,6 @@
                    projectFiles="false">
       <itemPath>Makefile</itemPath>
     </logicalFolder>
-    <itemPath>../../src/libxtp/kmclifetime.cc</itemPath>
-    <itemPath>../../src/libxtp/threecenters_g.cc</itemPath>
   </logicalFolder>
   <sourceRootList>
     <Elem>../../include</Elem>

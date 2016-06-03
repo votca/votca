@@ -1155,7 +1155,14 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real>& _kap,const ub::matrix<
      //cout << "_S_dimer"<<endl;
      
      //cout << _S_dimer<<endl;
+    
+    //LOG(logDEBUG, *_pLog) << TimeStamp()  << "  Diagonlaize overlap "<< flush;
+    //ub::vector<double> _S_eigenvalues;
+     //cout << "_J_ortho"<<endl;
      
+     //cout << _J_dimer<<endl;
+     //linalg_eigenvalues(_S_eigenvalues,_S_dimer);
+     //LOG(logDEBUG, *_pLog) << TimeStamp()  << "  done "<< flush;
     double small=linalg_loewdin(_J_dimer,_S_dimer);
     
      LOG(logDEBUG, *_pLog) << TimeStamp()  << "   Smallest value of dimer overlapmatrix is "<< small<< flush;
@@ -1171,13 +1178,13 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real>& _kap,const ub::matrix<
      //cout << "_J_eigenvalues"<< endl;
      //cout << _J_eigenvalues<< endl;
      //Calculate projection on subspace for every pair of excitons separately
-     for (unsigned stateA=0;stateA<_levA; stateA++){
-          for (unsigned stateB=0;stateB<_levB; stateB++){
-              unsigned stateBd=stateB+_bseA_exc;
+     for (int stateA=0;stateA<_levA; stateA++){
+          for (int stateB=0;stateB<_levB; stateB++){
+              int stateBd=stateB+_bseA_exc;
               LOG(logDEBUG, *_pLog) << TimeStamp()  << "   Calculating coupling between exciton A"<< stateA+1<<" and exciton B"<<stateB+1 << flush;
               std::vector<unsigned> index;
               for (unsigned i = 0; i < _bse_exc+_ct; i++) {
-                        if (i == stateA || i == stateBd) {
+                        if (i == unsigned(stateA) || i == unsigned(stateBd)) {
 
                             double close = 0.0;
                             unsigned ind = 0;
@@ -1227,7 +1234,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real>& _kap,const ub::matrix<
        }
    //Transformation TET-1
      linalg_invert(_T,_Tinv);
-     cout << ub::prod(_T,_Tinv)<<endl;
+     //cout << ub::prod(_T,_Tinv)<<endl;
      _temp=ub::prod(_T,_E);    
      ub::matrix<double> _J_small=ub::prod(_temp,_Tinv);
     

@@ -105,11 +105,11 @@ if (WITH_LINALG)
 
   if (EIGEN_FOUND) 
     message("-- EIGEN found (not used at the moment)")
-    set(EIGEN TRUE) #used in votca_xtp_config.h
+    set(EIGEN TRUE) #used in votca_tools_config.h
     include_directories(${EIGEN_INCLUDE_DIRS})
   else()
     message("-- EIGEN not found")
-    set(EIGEN FALSE) #used in votca_xtp_config.h
+    set(EIGEN FALSE) #used in votca_tools_config.h
   endif()
 
   set(MKL FALSE)
@@ -121,7 +121,7 @@ if (WITH_LINALG)
 
   if (MKL_FOUND AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
     message("-- MKL found, overloading uBLAS prod()")
-    set(MKL TRUE) #used in votca_xtp_config.h
+    set(MKL TRUE) #used in votca_tools_config.h
   elseif(GSL_FOUND)
     message("-- GSL found, overloading uBLAS prod()")
     include_directories(${GSL_INCLUDE_DIRS})
