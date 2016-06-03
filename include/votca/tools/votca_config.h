@@ -2,7 +2,7 @@
 #define __VOTCA_TOOLS_VOTCA_CONFIG_H
 
 /* Compile without fftw and disable CrossCorrelate class */
-#cmakedefine NOFFTW
+/* #undef NOFFTW */
 
 /* OpenMP */
 
@@ -13,9 +13,9 @@
 
 
 /* Linear algebra packages */
-#cmakedefine EIGEN
-#cmakedefine MKL
-#cmakedefine GSL
+/* #undef EIGEN */
+#define MKL
+/* #undef GSL */
 
 
 
@@ -33,6 +33,6 @@
 #endif
 
 /* Version number of package */
-#define TOOLS_VERSION "@PROJECT_VERSION@"
+#define TOOLS_VERSION "1.4-dev"
 
 #endif // __VOTCA_TOOLS_VOTCA_CONFIG_H

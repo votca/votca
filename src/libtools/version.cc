@@ -28,7 +28,7 @@ namespace votca { namespace tools {
 
 //defines gitversion
 #include "gitversion.h"
-static const std::string version_str = std::string(VERSION) + " " + gitversion + " (compiled " __DATE__ ", " __TIME__ ")";
+static const std::string version_str = std::string(TOOLS_VERSION) + " " + gitversion + " (compiled " __DATE__ ", " __TIME__ ")";
 
 const std::string &ToolsVersionStr()
 {

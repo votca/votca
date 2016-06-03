@@ -40,8 +40,7 @@
       <itemPath>../../include/votca/tools/types.h</itemPath>
       <itemPath>../../include/votca/tools/vec.h</itemPath>
       <itemPath>../../include/votca/tools/version.h</itemPath>
-      <itemPath>../../src/libtools/votca_config.h.in</itemPath>
-      <itemPath>../../src/libtools/votca_tools_config.h.in</itemPath>
+      <itemPath>../../include/votca/tools/votca_config.h.in</itemPath>
     </logicalFolder>
     <logicalFolder name="f1" displayName="Linalg" projectFiles="true">
       <logicalFolder name="f3" displayName="Dummy" projectFiles="true">
@@ -97,6 +96,7 @@
       <itemPath>../../src/libtools/statement.cc</itemPath>
       <itemPath>../../src/libtools/table.cc</itemPath>
       <itemPath>../../src/libtools/thread.cc</itemPath>
+      <itemPath>../../src/libtools/version.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -275,6 +275,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/tools/votca_config.h.in"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libtools/akimaspline.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/application.cc" ex="false" tool="1" flavor2="0">
@@ -422,15 +427,7 @@
       </item>
       <item path="../../src/libtools/thread.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libtools/votca_config.h.in"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/votca_tools_config.h.in"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="../../src/libtools/version.cc" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
     <conf name="Release" type="3">
@@ -595,6 +592,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/tools/votca_config.h.in"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libtools/akimaspline.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/application.cc" ex="false" tool="1" flavor2="0">
@@ -742,15 +744,7 @@
       </item>
       <item path="../../src/libtools/thread.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libtools/votca_config.h.in"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/votca_tools_config.h.in"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="../../src/libtools/version.cc" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
     <conf name="profile_release" type="3">
@@ -915,6 +909,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/tools/votca_config.h.in"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libtools/akimaspline.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/application.cc" ex="false" tool="1" flavor2="0">
@@ -1062,15 +1061,7 @@
       </item>
       <item path="../../src/libtools/thread.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libtools/votca_config.h.in"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/votca_tools_config.h.in"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="../../src/libtools/version.cc" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
   </confs>
