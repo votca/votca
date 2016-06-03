@@ -86,8 +86,7 @@ else(WITH_SQLITE3)
   set(VOTCA_SQL_SOURCES)
 endif(WITH_SQLITE3)
 
-configure_file(votca_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/votca_config.h)
-configure_file(votca_tools_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/votca_tools_config.h)
+
 #for gitversion.h and votca_config.h
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 

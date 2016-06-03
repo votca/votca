@@ -5,7 +5,6 @@ build.ninja
 .ninja_*
 build
 src/libtools/votca_config.h
-src/libtools/votca_tools_config.h
 src/libtools/gitversion.h
 .project
 .cproject
