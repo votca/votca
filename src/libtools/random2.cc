@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -105,16 +105,19 @@ void Random2::save( char *fileName ) {
     c[0] = MARSi; c[1] = MARSj;
     t=fwrite(c, sizeof(int), 2, ranFP);
     if (t==0){
-      throw runtime_error("cannot read ranFP file ");
+      fclose(ranFP);
+      throw runtime_error("cannot write ranFP file ");
     }
     w[0] = MARSc; w[1] = MARScd; w[2] = MARScm;
     t=fwrite(w, sizeof(double), 3, ranFP);
     if (t==0){
-      throw runtime_error("cannot read ranFP file ");
+      fclose(ranFP);
+      throw runtime_error("cannot write ranFP file ");
     }
     t=fwrite(MARSarray, sizeof(double), MARS_FIELD_SIZE, ranFP);
     if (t==0){
-      throw runtime_error("cannot read ranFP file ");
+      fclose(ranFP);
+      throw runtime_error("cannot write ranFP file ");
     }
     fclose(ranFP);
 }
@@ -135,16 +138,19 @@ void Random2::restore( char *fileName ) {
 
     t=fread(c, sizeof(int), 2, ranFP);
     if (t==0){
+      fclose(ranFP);
       throw runtime_error("cannot read ranFP file ");
     }
     MARSi = c[0]; MARSj = c[1];
     t=fread(w, sizeof(double), 3, ranFP);
     if (t==0){
+      fclose(ranFP);
       throw runtime_error("cannot read ranFP file ");
     }
     MARSc = w[0]; MARScd = w[1]; MARScm = w[2];
     t=fread(MARSarray, sizeof(double), MARS_FIELD_SIZE, ranFP);
     if (t==0){
+      fclose(ranFP);
       throw runtime_error("cannot read ranFP file ");
     }
     fclose(ranFP);

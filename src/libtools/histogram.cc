@@ -73,7 +73,7 @@ void Histogram::ProcessData(DataCollection<double>::selection *data)
     double v = 1.;
     for(array = data->begin(); array!=data->end(); ++array) {
         for(iter=(*array)->begin(); iter!=(*array)->end(); ++iter) {
-            ii = (int)( (*iter - _min) / _interval + 0.5); // the interval should be centered around the sampling point              
+            ii = (int)floor( (*iter - _min) / _interval + 0.5); // the interval should be centered around the sampling point              
             if(ii< 0 || ii >= _options._n) {
                 if(_options._periodic) {
                     while(ii<0) ii+=_options._n;
