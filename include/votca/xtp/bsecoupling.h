@@ -94,6 +94,8 @@ private:
     int _unoccA;
     int _occB;
     int _unoccB;
+    int _FeA;
+    int _FeB;
     double      _degeneracy;
     int         _openmp_threads;
     

@@ -78,17 +78,35 @@ void BSECoupling::Initialize(Property* options){
         _unoccA  = options->get(key + ".moleculeA.unoccLevels").as<int> ();
         _unoccB  = options->get(key + ".moleculeB.unoccLevels").as<int> ();
         
+        if ( options->exists(key+".moleculeA.Frenkel")) {
+         _FeA = options->get(key + ".moleculeA.Frenkel").as<int> ();
+        
+        }
+        else{
+            _FeA=_levA;
+        }
+        if ( options->exists(key+".moleculeB.Frenkel")) {
+         _FeB = options->get(key + ".moleculeB.Frenkel").as<int> ();
+        
+        }
+        else{
+            _FeB=_levB;
+        }
+        
+        
 }
 
 void BSECoupling::addoutput(Property *_type_summary,Orbitals* _orbitalsA, 
                                Orbitals* _orbitalsB){
+    //cout << JAB_singlet<<endl;
+    //cout << JAB_singlet*conv::ryd2ev_f<<endl;
     if (_doSinglets){
         Property *_singlet_summary = &_type_summary->add("singlets","");
         for (int stateA = 0; stateA < _levA ; ++stateA ) {
            for (int stateB = 0; stateB <_levB ; ++stateB ) {
                real JAB = getSingletCouplingElement( stateA , stateB );
-               real energyAD = getSingletDimerEnergy( stateA  );
-               real energyBD = getSingletDimerEnergy( stateB  );
+               //real energyAD = getSingletDimerEnergy( stateA  );
+               //real energyBD = getSingletDimerEnergy( stateB  );
                Property *_coupling_summary = &_singlet_summary->add("coupling", boost::lexical_cast<string>(JAB)); 
                real energyA = _orbitalsA->BSESingletEnergies()[stateA]*conv::ryd2ev_f;
                real energyB = _orbitalsB->BSESingletEnergies()[stateB]*conv::ryd2ev_f;
@@ -96,18 +114,21 @@ void BSECoupling::addoutput(Property *_type_summary,Orbitals* _orbitalsA,
                _coupling_summary->setAttribute("excitonB", stateB);
                _coupling_summary->setAttribute("energyA", energyA);
                _coupling_summary->setAttribute("energyB", energyB);
-               _coupling_summary->setAttribute("energyA_dimer", energyAD);
-               _coupling_summary->setAttribute("energyB_dimer", energyBD);
+               //_coupling_summary->setAttribute("energyA_dimer", energyAD);
+               //_coupling_summary->setAttribute("energyB_dimer", energyBD);
            } 
         }
     }
+    
+    //cout << JAB_triplet<<endl;
+    //cout << JAB_triplet*conv::ryd2ev_f<<endl;
     if ( _doTriplets){
         Property *_triplet_summary = &_type_summary->add("triplets","");
         for (int stateA = 0; stateA < _levA ; ++stateA ) {
            for (int stateB = 0; stateB < _levA ; ++stateB ) {
                real JAB = getTripletCouplingElement( stateA , stateB );
-               real energyAD = getTripletDimerEnergy( stateA  );
-               real energyBD = getTripletDimerEnergy( stateB  );
+               //real energyAD = getTripletDimerEnergy( stateA  );
+               //real energyBD = getTripletDimerEnergy( stateB  );
                Property *_coupling_summary = &_triplet_summary->add("coupling", boost::lexical_cast<string>(JAB)); 
                real energyA = _orbitalsA->BSETripletEnergies()[stateA]*conv::ryd2ev_f;
                real energyB = _orbitalsB->BSETripletEnergies()[stateB]*conv::ryd2ev_f;
@@ -115,8 +136,8 @@ void BSECoupling::addoutput(Property *_type_summary,Orbitals* _orbitalsA,
                _coupling_summary->setAttribute("excitonB", stateB);
                _coupling_summary->setAttribute("energyA", energyA);
                _coupling_summary->setAttribute("energyB", energyB);
-               _coupling_summary->setAttribute("energyA_dimer", energyAD);
-               _coupling_summary->setAttribute("energyB_dimer", energyBD);
+               //_coupling_summary->setAttribute("energyA_dimer", energyAD);
+               //_coupling_summary->setAttribute("energyB_dimer", energyBD);
            } 
         }
     }       
@@ -674,6 +695,16 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
         _levB=_bseB_singlet_exc;
     }
     
+    
+    if(_FeA>_bseA_singlet_exc){
+        LOG(logDEBUG, *_pLog) << TimeStamp()  << "  Number of Frenkel states you want is greater than stored for molecule B. Setting to max number available" << flush; 
+        _FeA=_bseA_singlet_exc;
+    }
+    if(_FeB>_bseB_singlet_exc){
+        LOG(logDEBUG, *_pLog) << TimeStamp()  << "  Number of Frenkel states you want is greater than stored for molecule B. Setting to max number available" << flush; 
+        _FeB=_bseB_singlet_exc;
+    }
+    
     if(_unoccA>_bseA_ctotal){
         LOG(logDEBUG, *_pLog) << TimeStamp()  << "  Number of occupied orbitals in molecule A for CT creation exceeds number of KS-orbitals in BSE" << flush; 
         _unoccA=_bseA_ctotal;
@@ -848,7 +879,7 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
             _cnt++;
         }
     }
-    LOG(logDEBUG, *_pLog) << TimeStamp()  <<"  "<<noBA <<"    CT states B+A- created" << flush;
+    LOG(logDEBUG, *_pLog) << TimeStamp()  <<"  "<<noBA <<" CT states B+A- created" << flush;
     //cout << "comb_CTBA" << endl;
     //cout << comb_CTBA << endl;
     
@@ -944,9 +975,9 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
       // get singlet BSE Hamiltonian from _orbitalsAB
       ub::matrix<real> _Hamiltonian_AB = _eh_d + 2.0 * _eh_x;
         const ub::matrix<real>& _bseA = ub::project( _orbitalsA->BSESingletCoefficients(),
-                ub::range (0, _orbitalsA->BSESingletCoefficients().size1() ), ub::range ( 0, _levA )  );
+                ub::range (0, _orbitalsA->BSESingletCoefficients().size1() ), ub::range ( 0, _FeA )  );
         const ub::matrix<real>& _bseB = ub::project( _orbitalsB->BSESingletCoefficients(),
-                ub::range (0, _orbitalsB->BSESingletCoefficients().size1() ), ub::range ( 0, _levB )  );
+                ub::range (0, _orbitalsB->BSESingletCoefficients().size1() ), ub::range ( 0, _FeB )  );
         
       //  cout << "Size of _Hamiltonian_AB " << _Hamiltonian_AB.size1() << " : " <<  _Hamiltonian_AB.size2() << flush;
 // cout << "Size of _bseA " << _bseA.size1() << " : " <<  _bseA.size2() << flush; 
@@ -1017,9 +1048,9 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
         
         
         const ub::matrix<real>& _bseA = ub::project( _orbitalsA->BSETripletCoefficients(),
-                ub::range (0, _orbitalsA->BSETripletCoefficients().size1() ), ub::range ( 0, _levA )  );
+                ub::range (0, _orbitalsA->BSETripletCoefficients().size1() ), ub::range ( 0, _FeA )  );
         const ub::matrix<real>& _bseB = ub::project( _orbitalsB->BSETripletCoefficients(),
-                ub::range (0, _orbitalsB->BSETripletCoefficients().size1() ), ub::range ( 0, _levB )  );
+                ub::range (0, _orbitalsB->BSETripletCoefficients().size1() ), ub::range ( 0, _FeB )  );
         //ub::matrix<real>& _bseB = _orbitalsB->BSETripletCoefficients();
         
   
@@ -1103,7 +1134,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real>& _kap,const ub::matrix<
      // I think this only works for hermitian/symmetric H so only in TDA
      // setup J
      
-     // do not reorder ifs because of the temps, I would like to paralleize this part but i have no clue how to do it simply and elegantly
+    
      
      ub::matrix<double> _temp=ub::prod(Htemp,ub::trans(projection));
      ub::matrix<double> _J_dimer=ub::prod(projection,_temp);
@@ -1117,235 +1148,103 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real>& _kap,const ub::matrix<
      // setup S
     
     ub::matrix<double> _S_dimer=ub::prod(projection,ub::trans(projection));
-     // we do the lowdin transformation for every localised exciton separately
-    //cout << "_S_dimer"<<endl;
-    //cout << _S_dimer<<endl;
-    //cout <<" _J_dimer"<<endl;
-    //cout << _J_dimer*conv::ryd2ev<<endl;
-     
     
-     for (unsigned exA=0;exA<_bseA_exc;exA++){
-         for (unsigned exB=_bseA_exc;exB<_bse_exc;exB++){
-             LOG(logDEBUG, *_pLog) << TimeStamp()  << "   Calculating coupling between exciton A"<< exA+1<<" and exciton B"<<exB+1-_bseA_exc << flush;
-            ub::matrix<double> _J_small = ub::zero_matrix<double>( 2 +_ct, 2+_ct );
-            ub::matrix<double> _S_small = ub::zero_matrix<double>( 2 +_ct, 2+_ct);
-            ub::project( _S_small,  ub::range (2, _ct+2 ), ub::range ( 2, _ct+2 )  ) = ub::project( _S_dimer,  ub::range (_bse_exc, _bse_exc+_ct ), ub::range ( _bse_exc, _bse_exc+_ct )  );
-            ub::project( _J_small,  ub::range (2, _ct+2 ), ub::range ( 2, _ct+2 )  ) = ub::project( _J_dimer,  ub::range (_bse_exc, _bse_exc+_ct ), ub::range ( _bse_exc, _bse_exc+_ct )  );
-             // exciton on A and exciton on B give two states + ct states
-            //cout << "_S_small"<<endl;
-            //cout << _S_small<<endl;
-            //cout <<" _J_small"<<endl;
-            //cout << _J_small<<endl;
-             _J_small(0,0)=_J_dimer(exA,exA);
-             _J_small(1,1)=_J_dimer(exB,exB);
-             _J_small(0,1)=_J_dimer(exA,exB);
-             _J_small(1,0)=_J_dimer(exB,exA);
-             _S_small(0,0)=_S_dimer(exA,exA);
-             _S_small(1,1)=_S_dimer(exB,exB);
-             _S_small(0,1)=_S_dimer(exA,exB);
-             _S_small(1,0)=_S_dimer(exB,exA);
-            
-             for (unsigned i=0;i<_ct;i++){
-                
-                unsigned j=i+2;
-                unsigned k=i+_bse_exc;
-                 _J_small(0,j)=_J_dimer(exA,k);
-                 _J_small(j,0)=_J_dimer(k,exA);
-                 _J_small(1,j)=_J_dimer(exB,k);
-                 _J_small(j,1)=_J_dimer(k,exB);
-                 _S_small(0,j)=_S_dimer(exA,k);
-                 _S_small(j,0)=_S_dimer(k,exA);
-                 _S_small(1,j)=_S_dimer(exB,k);
-                 _S_small(j,1)=_S_dimer(k,exB);
-             }
-             
-             //cout << "_S_small2"<<endl;
-            //cout << _S_small<<endl;
-            //cout <<" _J_small2"<<endl;
-            //cout << _J_small<<endl;
-             
-     // cout<<_S_dimer<<endl;
-     ub::vector<double> _S_eigenvalues; 
-     //cout <<endl;
-     // 
-     //cout << _J_dimer*conv::ryd2ev_f<<endl;
-     //cout << "S"<<endl;
-     //cout << _S_dimer<< endl;
-     linalg_eigenvalues( _S_eigenvalues, _S_small);
-      
-     LOG(logDEBUG, *_pLog) << TimeStamp()  << "   Smallest value of dimer overlapmatrix is "<< _S_eigenvalues[0]<< flush;
-
-     if ( _S_eigenvalues[0] < 0.0 ) {
-         
-         cerr << " \n Negative eigenvalues in projected overlap. Projection quality not sufficient. Try increasing dimer basis. " << endl;
-         return false;
-         
-     }
+    //cout << "_J_dimer"<<endl;
      
-     ub::matrix<double> _diagS = ub::zero_matrix<double>( 2 + _ct  , 2 + _ct );
-     for ( unsigned _i =0; _i < 2 + _ct ; _i++){
-
-         _diagS(_i,_i) = 1.0/sqrt(_S_eigenvalues[_i]);
-     }
+     //cout << _J_dimer<<endl;
+     //cout << "_S_dimer"<<endl;
      
-     //ub::matrix<double> _transform = ub::prod( _S_dimer, ub::prod( _diagS, ub::trans(_S_dimer) )  );
-     //cout << endl;
-     //cout << "J_dimer"<<endl;
-     //cout <<_J_dimer<<endl;
-     ub::matrix<double> _transtemp = ub::prod( _diagS, ub::trans(_S_small));
-     ub::matrix<double> _transform = ub::prod( _S_small,_transtemp );
-     //cout << _transform<<endl;
-     ub::matrix<double> _J_temp = ub::prod(_J_small, _transform);
+     //cout << _S_dimer<<endl;
      
-             // final coupling elements
-     // _J = ub::prod( _transform, ub::prod(_J_dimer, _transform));
-    ub::matrix<double>_J_ortho = ub::prod( _transform, _J_temp);
-    //cout<<endl;
-    //cout<< "diagonals"<<endl;
-    //for (unsigned i=0;i<_J_ortho.size1();i++){
-   //     cout << _J_ortho(i,i)*conv::ryd2ev_f<<" ";
-    //}
-    //cout <<endl;
-    //cout << "J_ortho"<<endl;
-    //cout << _J_ortho*conv::ryd2ev<<endl;
-     //Setting up effective Coupling matrix
-     //LOG(logDEBUG, *_pLog) << TimeStamp()  << "Setting up effective/perturbative Coupling matrix of size: "<< _bse_exc  <<"x"<<  _bse_exc << flush;
-     
-     
-     
+    double small=linalg_loewdin(_J_dimer,_S_dimer);
+    
+     LOG(logDEBUG, *_pLog) << TimeStamp()  << "   Smallest value of dimer overlapmatrix is "<< small<< flush;
      
      ub::vector<double> _J_eigenvalues;
-     linalg_eigenvalues(_J_eigenvalues,_J_ortho);
+     //cout << "_J_ortho"<<endl;
      
-     //finding the eigenstates which are closest to the the original states
+     //cout << _J_dimer<<endl;
+     linalg_eigenvalues(_J_eigenvalues,_J_dimer);
+     //cout << "_Eigenvectors"<<endl;
      
-    //cout << "_J_eigenvalues" << endl;
-    //cout << _J_eigenvalues*conv::ryd2ev<< endl;
-    //cout << "_J_eigenvectors" << endl;
-    //cout << _J_ortho<<endl;
-     
+     //cout << _J_dimer<<endl;
+     //cout << "_J_eigenvalues"<< endl;
+     //cout << _J_eigenvalues<< endl;
+     //Calculate projection on subspace for every pair of excitons separately
+     for (unsigned stateA=0;stateA<_levA; stateA++){
+          for (unsigned stateB=0;stateB<_levB; stateB++){
+              unsigned stateBd=stateB+_bseA_exc;
+              LOG(logDEBUG, *_pLog) << TimeStamp()  << "   Calculating coupling between exciton A"<< stateA+1<<" and exciton B"<<stateB+1 << flush;
+              std::vector<unsigned> index;
+              for (unsigned i = 0; i < _bse_exc+_ct; i++) {
+                        if (i == stateA || i == stateBd) {
+
+                            double close = 0.0;
+                            unsigned ind = 0;
+                            //row
+                            for (unsigned j = 0; j < _bse_exc+_ct; j++) {
+                                bool check = true;
+                                // if index i is already in index
+                                // should not happen but if one vector was similar to two others.
+                                for (unsigned l = 0; l < index.size(); l++) {
+                                    if (j == index[l]) {
+                                        check = false;
+                                        break;
+                                    }
+                                }
+
+                                if (check && std::abs(_J_dimer(i, j)) > close) {
+                                    ind = j;
+                                    close = std::abs(_J_dimer(i, j));
+                                }
+                            }
+                            index.push_back(ind);
+                        }
+                    }
+              
+              
+    LOG(logDEBUG, *_pLog) << TimeStamp()  << "   Order is: [Initial state n->nth eigenvalue]"<<flush;
+    LOG(logDEBUG, *_pLog) << "    A" << stateA+1<<":"<<stateA+1<<"->"<<index[0]+1<<" " ;   
+    LOG(logDEBUG, *_pLog) << "    B" << stateB+1<<":"<<stateBd+1<<"->"<<index[1]+1<<" "<<flush ;  
+       
+   
      
      //setting up transformation matrix _T and diagonal matrix _E for the eigenvalues;
      
      ub::matrix<double> _E=ub::zero_matrix<double>(2,2);
      ub::matrix<double> _T=ub::zero_matrix<double>(2,2);
+     ub::matrix<double> _Tinv;
      //find the eigenvectors which are most similar to the initial states
      
-     LOG(logDEBUG, *_pLog) << TimeStamp()  << "   Sorting states according to similiarity with the FE states " << flush;
-     
-     std::vector<unsigned> index;
-     //column
-      for (unsigned i = 0; i < 2; i++) {
-                double close = 0.0;
-                unsigned ind = 0;
-                //row
-                for (unsigned j = 0; j < 2 + _ct; j++) {
-                    bool check=true;
-                    // if index i is already in index
-                    // should not happen but if one vector was similar to two others.
-                    for (unsigned l=0;l<index.size();l++){
-                        if (j==index[l]){
-                            check=false;
-                            break;
-                        }
-                    }
-                    
-                    if (check && std::abs(_J_ortho(i, j)) > close) {
-                        ind = j;
-                        close=std::abs(_J_ortho(i, j));
-                    }
-                }
-                index.push_back(ind);
-            }
-     
-     LOG(logDEBUG, *_pLog) << TimeStamp()  << "   Order is: [Initial state n->nth eigenvalue]"<<flush;
-     for (unsigned i=0;i<index.size();i++){
-         if(i<2){
-      LOG(logDEBUG, *_pLog) <<"    A"<<i+1<<":"<<i+1<<"->"<<index[i]+1<<" " ;   
-         }
-         else{
-     LOG(logDEBUG, *_pLog) << "    B"<<i+1-2<<":"<<i+1<<"->"<<index[i]+1<<" " ;  
-         }
-                 
-     }
-     LOG(logDEBUG, *_pLog) << flush;
-     //row
-     for (unsigned i = 0; i < 2; i++) {
-         unsigned k=index[i];
-                double norm = 0.0;
-                //column
-                for (unsigned j = 0; j < 2; j++) {
-                    
-                    norm += _J_ortho(j, k)*_J_ortho(j, k);
-                }
-                for (unsigned j = 0; j < 2; j++) {
-                    if (i == j) {
-                        _E(i, i) = _J_eigenvalues(k);
-                    }
-                    _T(j,i ) = _J_ortho(j,k) / std::sqrt(norm);
-                }
-            }
-     //cout << "_E" <<endl;
-     //cout << _E<<endl;
-          //cout << "_T" <<endl;
+    //row 
+    for (unsigned i = 0; i < 2; i++) {
+    unsigned k=index[i];
+           double normr =1/std::sqrt(_J_dimer(stateA, k)*_J_dimer(stateA, k)+_J_dimer(stateBd, k)*_J_dimer(stateBd, k)) ;
 
-     //cout << _T << endl;
-     _temp=ub::prod(_E,ub::trans(_T));
+           _T(i,0 ) = _J_dimer(stateA,k)* normr;
+           _T(i,1 ) = _J_dimer(stateBd,k)*normr;
+           _E(i,i)=_J_eigenvalues(k);
+       }
+   //Transformation TET-1
+     linalg_invert(_T,_Tinv);
+     cout << ub::prod(_T,_Tinv)<<endl;
+     _temp=ub::prod(_T,_E);    
+     ub::matrix<double> _J_small=ub::prod(_temp,_Tinv);
+    
      
-     ub::matrix<double> _temp2=ub::prod(_T,_temp);
-     _J(exA,exB)=_temp2(0,1);
-     _J(exA,exA)=_temp2(0,0);
-     _J(exB,exB)=_temp2(1,1);
-     _J(exB,exA)=_temp2(1,0);
+     
+     _J(stateA,stateBd)=_J_small(0,1);
+     //_J(stateA,stateBd)=_J_small(0,0);
+    // _J(stateBd,stateBd)=_J_small(1,1);
+     _J(stateBd,stateA)=_J_small(1,0);
      //cout << _temp2<<endl;
      //cout << _J<<endl;
-     //cout <<_J*conv::ryd2ev_f<<endl;
+     //cout <<_J_small*conv::ryd2ev_f<<endl;
+     
+     
          }
      }
-     /*
-     for (unsigned i=0;i<_J.size1();i++){
-         for (unsigned j=0;j<i;j++){
-             double epsilonA=_J_ortho(i,i);
-             double epsilonB=_J_ortho(j,j);
-           _J(i,j)=_J_ortho(i,j);
-           for(int k=_bse_exc;k<_bse_exc+_ct;k++){
-               double omegaAB=_J_ortho(k,k);
-             _J(i,j)+= _J_ortho(i,k)* _J_ortho(j,k)*(1/(epsilonA-omegaAB)+1/(epsilonB-omegaAB));
-           }
-          _J(j,i)=_J(i,j);
-                 
-                 
-           
-        }
-     }
-      for (unsigned i=0;i<_J.size1();i++){
-          _J(i,i)=_J_ortho(i,i);
-      }
-     */ 
      
-    
-   
-     /*
-     // This is not necessary right now, as we use perturbation theory on the non-orthogonal system to derive the couplings 
-     // see [1]B. Lunkenheimer, “Simulationen zur Exzitonendiffusion in organischen Halbleitern,” Universitätsbibliothek Mainz, 2014.
-
-     ub::matrix<double> _diagS = ub::zero_matrix<double>( _bse_exc + _ct  , _bse_exc + _ct );
-     for ( int _i =0; _i < _bse_exc + _ct ; _i++){
-
-         _diagS(_i,_i) = 1.0/sqrt(_S_eigenvalues[_i]);
-     }
-     
-     //ub::matrix<double> _transform = ub::prod( _S_dimer, ub::prod( _diagS, ub::trans(_S_dimer) )  );
-
-     ub::matrix<double> _transtemp = ub::prod( _diagS, ub::trans(_S_dimer));
-     ub::matrix<double> _transform = ub::prod( _S_dimer,_transtemp );
-
-     ub::matrix<double> _J_temp = ub::prod(_J_dimer, _transform);
-     
-             // final coupling elements
-     // _J = ub::prod( _transform, ub::prod(_J_dimer, _transform));
-    _J = ub::prod( _transform, _J_temp);
-     */
       
      return true;
     
