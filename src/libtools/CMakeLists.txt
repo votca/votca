@@ -6,19 +6,7 @@ include_directories(${EXPAT_INCLUDE_DIR})
 set (EXPAT_CFLAGS_PKG "-I${EXPAT_INCLUDE_DIRS}")
 string(REGEX REPLACE "^(.*)/lib([^/]*)\\.[^.]*$" "-L\\1 -l\\2" EXPAT_LIBS_PKG ${EXPAT_LIBRARY})
 
-option(WITH_FFTW "Use FFTW3, disabling leads to reduced functionality!" ON)
-if (WITH_FFTW)
-  find_package(FFTW3)
-  if(NOT FFTW3_FOUND)
-    message(FATAL_ERROR "FFTW3 not found,  make sure you have also installed the fftw3 and it's dev package (it can be disable with -DWITH_FFTW=OFF)")
-  endif(NOT FFTW3_FOUND)
-  include_directories(${FFTW3_INCLUDE_DIRS})
-  set(FFTW3_PKG "fftw3")
-else(WITH_FFTW)
-  #used in votca_config.h
-  set(NOFFTW TRUE)
-  set(FFTW3_PKG)
-endif(WITH_FFTW)
+
 
 option(WITH_GSL "Use GSL, disabling leads to reduced functionality!" ON)
 if (WITH_GSL)
@@ -89,7 +77,7 @@ endif(WITH_SQLITE3)
 
 #for gitversion.h and votca_config.h
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
+include_directories(${CMAKE_BINARY_DIR}/include)
 add_custom_target(gitversion COMMAND ${CMAKE_COMMAND}
   -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
   -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"

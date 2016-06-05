@@ -103,6 +103,21 @@ if (WITH_LINALG)
 
 endif(WITH_LINALG)
 
+
+option(WITH_FFTW "Use FFTW3, disabling leads to reduced functionality!" ON)
+if (WITH_FFTW)
+  find_package(FFTW3)
+  if(NOT FFTW3_FOUND)
+    message(FATAL_ERROR "FFTW3 not found,  make sure you have also installed the fftw3 and it's dev package (it can be disable with -DWITH_FFTW=OFF)")
+  endif(NOT FFTW3_FOUND)
+  include_directories(${FFTW3_INCLUDE_DIRS})
+  set(FFTW3_PKG "fftw3")
+else(WITH_FFTW)
+  #used in votca_config.h
+  set(NOFFTW TRUE)
+  set(FFTW3_PKG)
+endif(WITH_FFTW)
+
 #configure_file(config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
 ########################################################################
