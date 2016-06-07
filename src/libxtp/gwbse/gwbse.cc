@@ -179,6 +179,7 @@ namespace votca {
                _do_qp_diag = false; // no qp diagonalization
                _do_bse_diag = false; // no diagonalization of BSE Hamiltonian
                _store_eh_interaction = true;
+              
             }
             
             
@@ -203,6 +204,11 @@ namespace votca {
             if (_do_qp_diag){ LOG(logDEBUG, *_pLog) <<  " qpdiag " <<  flush;}
             if (_do_bse_singlets){ LOG(logDEBUG, *_pLog) <<  " singlets " <<  flush;}
             if (_do_bse_triplets){ LOG(logDEBUG, *_pLog) <<  " triplets " <<  flush;}
+            LOG(logDEBUG, *_pLog) <<  " Store: " << flush;
+            if (_store_qp_diag){ LOG(logDEBUG, *_pLog) <<  " qpdiag " <<  flush;}
+            if (_store_bse_singlets){ LOG(logDEBUG, *_pLog) <<  " singlets " <<  flush;}
+            if (_store_bse_triplets){ LOG(logDEBUG, *_pLog) <<  " triplets " <<  flush;}
+            if (_store_eh_interaction){ LOG(logDEBUG, *_pLog) <<  " ehint " <<  flush;}
 
 
             
