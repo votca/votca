@@ -511,8 +511,9 @@ namespace votca {
             size_t _gwsize = _Mmn[_homo].size1();
             
             // get a different storage for 3-center integrals we need
+            cout<< "Starting to set up "<< endl;
             ub::matrix<real> _storage = ub::zero_matrix<real>( _gwsize , _bse_size);
-
+            cout<< "Storage set up"<< endl;
 
             
             // occupied levels
@@ -535,7 +536,7 @@ namespace votca {
 
             
             // with this storage, _eh_x is obtained by matrix multiplication
-            
+            cout<< "nearly there"<< endl;
 	    _eh_x = ub::prod( ub::trans( _storage ), _storage ); 
             _eh_x = 2.0 * _eh_x; // Rydberg
   
