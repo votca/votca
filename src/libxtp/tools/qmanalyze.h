@@ -28,7 +28,7 @@
 
 namespace votca { namespace xtp {
     using namespace std;
-    
+    namespace ub = boost::numeric::ublas;
 class QMAnalyze : public QMTool
 {
 public:
@@ -305,20 +305,19 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
         
         if (_print_BSE_singlets){
             LOG(logINFO, _log) << (format("  ====== singlet energies (eV) ====== ")).str() << flush;
-            const vector<real> &  _bse_singlet_energies = _orbitals.BSESingletEnergies();
-            const std::vector<std::vector<double> > & _transition_dipoles=_orbitals.TransitionDipoles();
+            const ub::vector<real> &  _bse_singlet_energies = _orbitals.BSESingletEnergies();
+            const std::vector<ub::vector<double> > & _transition_dipoles=_orbitals.TransitionDipoles();
             
             for (unsigned _i=0;_i<_bse_singlet_energies.size();_i++){
                 
                 LOG(logINFO, _log) << (format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
-                    % (_i + 1) % (tools::conv::ryd2ev * _bse_singlet_energies[_i]) % (1240.0/(tools::conv::ryd2ev * _bse_singlet_energies[_i]))).str() << flush;
+                    % (_i + 1) % (tools::conv::ryd2ev * _bse_singlet_energies(_i)) % (1240.0/(tools::conv::ryd2ev * _bse_singlet_energies[_i]))).str() << flush;
                 if ( _orbitals.hasTransitionDipoles()){
-                    double trstrength =_transition_dipoles[_i][0]*_transition_dipoles[_i][0]+_transition_dipoles[_i][1]*_transition_dipoles[_i][1]
-                                        +_transition_dipoles[_i][2]*_transition_dipoles[_i][2];
+                    double trstrength =ub::inner_prod(_transition_dipoles[_i],_transition_dipoles[_i]);
 
                     double oscstrength =trstrength/3.0*_bse_singlet_energies[_i];
                     LOG(logINFO, _log) << (format("           TrDipole length gauge[e*bohr]  dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f") 
-                                    % (_transition_dipoles[_i][0]) % (_transition_dipoles[_i][1]) % (_transition_dipoles[_i][2]) % (trstrength) 
+                                    % (_transition_dipoles[_i](0)) % (_transition_dipoles[_i](1)) % (_transition_dipoles[_i](2)) % (trstrength) 
                                     % oscstrength).str() << flush;
                 }
                 
@@ -352,11 +351,11 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
         
         if(_print_BSE_triplets){
              LOG(logINFO, _log) << (format("  ====== triplet energies (eV) ====== ")).str() << flush;
-             const vector<real> &  _bse_triplet_energies = _orbitals.BSETripletEnergies();
+             const ub::vector<real> &  _bse_triplet_energies = _orbitals.BSETripletEnergies();
              
              for (unsigned _i=0;_i<_bse_triplet_energies.size();_i++){
              LOG(logINFO, _log) << (format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
-                                % (_i + 1) % (tools::conv::ryd2ev * _bse_triplet_energies[_i]) % (1240.0/(13.6058 * _bse_triplet_energies[_i]))).str() << flush;
+                                % (_i + 1) % (tools::conv::ryd2ev * _bse_triplet_energies(_i)) % (1240.0/(13.6058 * _bse_triplet_energies(_i)))).str() << flush;
              
             }
         }

@@ -340,7 +340,7 @@ namespace votca {
                 //cout << "hallo" <<endl;
                    
                
-                GWBSE _gwbse; 
+                GWBSE _gwbse=GWBSE(&_orbitals); 
                // cout << "hallo1" <<endl;
                 _gwbse.setLogger(pLog);    
                 _gwbse.Initialize(&_gwbse_options);
@@ -358,8 +358,8 @@ namespace votca {
                 
                 
                 //bool _evaluate = _gwbse.Evaluate(&_orbitals);
-                _gwbse.Evaluate(&_orbitals);
-                _gwbse.addoutput(_segment_summary, &_orbitals);
+                _gwbse.Evaluate();
+                _gwbse.addoutput(_segment_summary);
                 // write logger to log file
                 ofstream ofs;
                 string gwbse_logfile = _qmpackage_work_dir + "/gwbse.log";

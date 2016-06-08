@@ -62,13 +62,13 @@ namespace votca {
 
         void GWBSE::BSE_solve_triplets(){
             
-            ub::matrix<real> _bse =  -_eh_d;
+          
             
             // add full QP Hamiltonian contributions to free transitions
-            BSE_Add_qp2H( _bse );
+           
+            ub::matrix<real> _bse=_eh_d;
             
-            
-            linalg_eigenvalues( _bse, _bse_triplet_energies, _bse_triplet_coefficients, _bse_nmax);
+            linalg_eigenvalues(  _bse, _bse_triplet_energies, _bse_triplet_coefficients, _bse_nmax);
         }
         
         
@@ -81,13 +81,13 @@ namespace votca {
         
           // setup resonant (A) and RARC blocks (B)
 
-            ub::matrix<real> _A = -_eh_d + 2.0 * _eh_x;
+            ub::matrix<real> _A = _eh_d + 2.0 * _eh_x;
             BSE_Add_qp2H( _A );
 
             // add full QP Hamiltonian contributions to free transitions
             
           
-            ub::matrix<real> _B = -_eh_d2 + 2.0 * _eh_x;
+            ub::matrix<real> _B = _eh_d2 + 2.0 * _eh_x;
 
             ub::matrix<real> _ApB = _A + _B;
             ub::matrix<real> _AmB = _A - _B;
@@ -237,11 +237,11 @@ namespace votca {
         
       void GWBSE::BSE_solve_singlets(){
             
-            ub::matrix<real> _bse = -_eh_d + 2.0 * _eh_x;
+            ub::matrix<real> _bse = _eh_d + 2.0 * _eh_x;
 
 
             // add full QP Hamiltonian contributions to free transitions
-            BSE_Add_qp2H( _bse );
+           
             
             // _bse_singlet_energies.resize(_bse_singlet_coefficients.size1());
             linalg_eigenvalues(_bse, _bse_singlet_energies, _bse_singlet_coefficients, _bse_nmax);
@@ -327,7 +327,7 @@ namespace votca {
                             size_t _index_vc2 = _bse_ctotal * _v2 + _c2 ;
                             size_t _index_cc  = _bse_ctotal * _c1 + _c2;
 
-                            _eh_d( _index_vc1 , _index_vc2 ) = 2.0 * _storage_prod( _index_vv , _index_cc ); 
+                            _eh_d( _index_vc1 , _index_vc2 ) = -2.0 * _storage_prod( _index_vv , _index_cc ); 
 
                             
                         }
@@ -456,7 +456,7 @@ namespace votca {
                             
                             
                             
-                            _eh_d2( _index_v1c1 , _index_v2c2 ) = 2.0 * _storage_prod( _index_c1v2 , _index_v1c2 ); 
+                            _eh_d2( _index_v1c1 , _index_v2c2 ) = -2.0 * _storage_prod( _index_c1v2 , _index_v1c2 ); 
 
                             
                            

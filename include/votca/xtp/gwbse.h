@@ -69,7 +69,16 @@ class GWBSE
 {
 public:
 
-    GWBSE() { };
+    GWBSE(Orbitals* orbitals): _qp_diag_energies(orbitals->QPdiagEnergies()), 
+             _qp_diag_coefficients(orbitals->QPdiagCoefficients()),
+              _eh_x(orbitals->eh_x()),
+              _eh_d(orbitals->eh_d()),
+              _bse_singlet_energies(orbitals->BSESingletEnergies()),
+    _bse_singlet_coefficients(orbitals->BSESingletCoefficients()),
+       _bse_triplet_energies(orbitals->BSETripletEnergies()),
+    _bse_triplet_coefficients(orbitals->BSETripletCoefficients()),
+    _orbitals(orbitals)
+    {};
    ~GWBSE() { };
 
    
@@ -87,7 +96,7 @@ public:
     
     void setLogger( Logger* pLog ) { _pLog = pLog; }
     
-    bool Evaluate(   Orbitals* _orbitals );
+    bool Evaluate();
 
     // interfaces for options getting/setting
     bool get_do_qp_diag(){ return _do_qp_diag ;}
@@ -169,7 +178,7 @@ public:
     void set_fragA( int n ) { _fragA = n; }
     void set_fragB( int n ) { _fragB = n; }
     
-    void addoutput(Property *_summary,Orbitals* _orbitals);
+    void addoutput(Property *_summary);
     
     private:
 
@@ -252,7 +261,7 @@ public:
          
     double                              _shift;  // pre-shift of DFT energies
 
-    
+    Orbitals* _orbitals;
     // RPA related variables and functions
     // container for the epsilon matrix
     std::vector< ub::matrix<double> > _epsilon;
@@ -290,8 +299,8 @@ public:
     // QP variables and functions
     ub::vector<double> _qp_energies;
     ub::matrix<double> _vxc;
-    ub::vector<double> _qp_diag_energies;     // those should be directly stored in 
-    ub::matrix<double> _qp_diag_coefficients; // orbitals object, once the interface is set
+    ub::vector<double>& _qp_diag_energies;     // stored in orbitals object 
+    ub::matrix<double>& _qp_diag_coefficients; // dito
     void FullQPHamiltonian();
     
     // BSE variables and functions
@@ -299,19 +308,19 @@ public:
     //ub::matrix<double> _eh_d;
     //ub::matrix<double> _eh_qp;
     
-    ub::matrix<real> _eh_x;
-    ub::matrix<real> _eh_d;
-    ub::matrix<real> _eh_d2;
-    ub::matrix<real> _eh_qp;
+    ub::matrix<real>& _eh_x;//stored in orbitals object
+    ub::matrix<real>& _eh_d;//stored in orbitals object
+    ub::matrix<real> _eh_d2;//because it is not stored in orbitals object
+    ub::matrix<real> _eh_qp;//not used right now
     
     // ub::vector<double> _bse_singlet_energies;
     // ub::matrix<double> _bse_singlet_coefficients;
     //ub::vector<double> _bse_triplet_energies;
     //ub::matrix<double> _bse_triplet_coefficients;
-    ub::vector<real> _bse_singlet_energies;
-    ub::matrix<real> _bse_singlet_coefficients;
-    ub::vector<real> _bse_triplet_energies;
-    ub::matrix<real> _bse_triplet_coefficients;
+    ub::vector<real>& _bse_singlet_energies;//stored in orbitals object
+    ub::matrix<real>& _bse_singlet_coefficients;//stored in orbitals object
+    ub::vector<real>& _bse_triplet_energies;//stored in orbitals object
+    ub::matrix<real>& _bse_triplet_coefficients;//stored in orbitals object
     
     std::vector< ub::matrix<double> > _interlevel_dipoles;
     std::vector< ub::matrix<double> > _interlevel_dipoles_electrical;

@@ -468,9 +468,11 @@ template<class QMPackage>
 bool QMAPEMachine<QMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 
 	// for GW-BSE, we also need to parse the orbitals file
+        
         _qmpack->ParseOrbitalsFile(&orb);
 	//int _parse_orbitals_status = _qmpack->ParseOrbitalsFile(&orb);
 	std::vector<int> _state_index;
+        GWBSE _gwbse(&orb);
 	_gwbse.Initialize( &_gwbse_options );
 	if ( _state > 0 ){
 	LOG(logDEBUG,*_log) << "Excited state via GWBSE: " <<  flush;
@@ -495,7 +497,7 @@ bool QMAPEMachine<QMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 	// actual GW-BSE run
 
 	//bool _evaluate = _gwbse.Evaluate(&orb);
-        _gwbse.Evaluate(&orb);
+        _gwbse.Evaluate();
 
 	// write logger to log file
 	ofstream ofs;
@@ -515,10 +517,10 @@ bool QMAPEMachine<QMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 	if ( _has_osc_filter ){
 
 		// go through list of singlets
-		const std::vector<std::vector<double> >& TDipoles = orb.TransitionDipoles();
+		const std::vector<ub::vector<double> >& TDipoles = orb.TransitionDipoles();
 		for (unsigned _i=0; _i < TDipoles.size(); _i++ ) {
 
-			double osc = (TDipoles[_i][0] * TDipoles[_i][0] + TDipoles[_i][1] * TDipoles[_i][1] + TDipoles[_i][2] * TDipoles[_i][2]) * 1.0 / 3.0 * (orb.BSESingletEnergies()[_i]) ;
+			double osc = (ub::inner_prod(TDipoles[_i],TDipoles[_i])) * 1.0 / 3.0 * (orb.BSESingletEnergies()(_i)) ;
 			if ( osc > _osc_threshold ) _state_index.push_back(_i);
 		}
 
@@ -537,30 +539,7 @@ bool QMAPEMachine<QMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 		}
 	}
 
- if ( _has_osc_filter ){
-            
-            // go through list of singlets
-            const std::vector<std::vector<double> >& TDipoles = orb.TransitionDipoles();
-            for (unsigned _i=0; _i < TDipoles.size(); _i++ ) {
-                
-                double osc = (TDipoles[_i][0] * TDipoles[_i][0] + TDipoles[_i][1] * TDipoles[_i][1] + TDipoles[_i][2] * TDipoles[_i][2]) * 1.0 / 3.0 * (orb.BSESingletEnergies()[_i]) ;
-                if ( osc > _osc_threshold ) _state_index.push_back(_i);
-            } 
-            
-      
-            
-        } else {
-            
-            if ( _type == "singlet" ){
-               for (unsigned _i=0; _i < orb.TransitionDipoles().size(); _i++ ) {
-                   _state_index.push_back(_i);
-               }
-            } else {
-               for (unsigned _i=0; _i < orb.BSETripletEnergies().size(); _i++ ) {
-                   _state_index.push_back(_i);
-               }
-            }
-        }
+
 
 
         // filter according to charge transfer, go through list of excitations in _state_index

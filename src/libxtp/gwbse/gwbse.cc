@@ -216,7 +216,7 @@ namespace votca {
         }
         
         
-void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
+void GWBSE::addoutput(Property *_summary) {
     const double ryd2ev = tools::conv::ryd2ev;
     const double ha2ev = tools::conv::hrt2ev;
     Property *_gwbse_summary = &_summary->add("GWBSE", "");
@@ -259,8 +259,8 @@ void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
             _level_summary->add("omega", (format("%1$+1.6f ") % (_bse_singlet_energies(state) * ryd2ev)).str());
             if (_orbitals->hasTransitionDipoles()) {
                 
-                const std::vector<double> dipoles = (_orbitals->TransitionDipoles())[state];
-                double f = (dipoles[0] * dipoles[0] + dipoles[1] * dipoles[1] + dipoles[2] * dipoles[2])* _bse_singlet_energies(state) / 3.0 ;
+                const ub::vector<double> dipoles = (_orbitals->TransitionDipoles())[state];
+                double f = (ub::inner_prod(dipoles,dipoles))* _bse_singlet_energies(state) / 3.0 ;
                
                 _level_summary->add("f", (format("%1$+1.6f ") % f).str());
                 Property *_dipol_summary = &_level_summary->add("Trdipole",(format("%1$+1.4f %2$+1.4f %3$+1.4f") % dipoles[0] % dipoles[1] % dipoles[2]).str());
@@ -298,9 +298,13 @@ void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
          
          */
         
-        bool GWBSE::Evaluate( Orbitals* _orbitals) {
+        bool GWBSE::Evaluate() {
 
-            
+
+
+
+    
+    
             // set the parallelization 
             #ifdef _OPENMP
             if ( _openmp_threads > 0 ) omp_set_num_threads(_openmp_threads);           
@@ -785,24 +789,15 @@ void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
                         }
                     }
                     
-                    // storage to orbitals object
-                    if ( _store_qp_diag ) {
-                        std::vector<double>& _qp_diag_energies_store = _orbitals->QPdiagEnergies();
-                        ub::matrix<double>& _qp_diag_coefficients_store = _orbitals->QPdiagCoefficients();
-                        _qp_diag_energies_store.resize( _qptotal );
-                        _qp_diag_coefficients_store.resize( _qptotal, _qptotal);
-                        for  (unsigned _i = 0; _i < _qptotal; _i++) {
-                           _qp_diag_energies_store[_i] = _qp_diag_energies( _i );
-                           for  (unsigned _j = 0; _j < _qptotal; _j++) {
-                               _qp_diag_coefficients_store( _i, _j ) = _qp_diag_coefficients(_i,_j);
-                           }
-                        }
-                        // _orbitals->setQPdiag(true);
-                    } // _store_qp_diag
+                    
+                    
                     
                     // free memory
-                    //_qp_diag_energies.resize(0);
+                   
+                    if (!_store_qp_diag){
                     _qp_diag_coefficients.resize(0,0);
+                    _qp_diag_energies.resize(0);
+                    }
                                 //exit(0);
                 } // _do_qp_diag
             } // constructing full quasiparticle Hamiltonian
@@ -813,6 +808,13 @@ void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
 
                 // calculate direct part of eh interaction, needed for singlets and triplets
                 BSE_d_setup(_Mmn);
+                // add qp part to Eh_d
+                BSE_Add_qp2H( _eh_d );
+                // Only if verbose do we use this really
+                if(tools::globals::verbose){
+                    BSE_qp_setup();
+                }
+                
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Direct part of e-h interaction " << flush;
                 
                 if ( _do_full_BSE ){
@@ -820,45 +822,30 @@ void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
                     LOG(logDEBUG, *_pLog) << TimeStamp() << " Direct part of e-h interaction RARC " << flush;
                 }
                 
-                if ( _store_eh_interaction) {
-                    ub::matrix<real>& _eh_d_store = _orbitals->eh_d();
-                   
-                        // setup free transition part of BSE Hamiltonian and add to _eh_d storage
-                        BSE_qp_setup();
-                         LOG(logDEBUG, *_pLog) << TimeStamp() << " Free transition part of electron-hole pairs " << flush;
-                       _eh_d_store = -_eh_d + _eh_qp; 
-                       _eh_qp.resize(0,0);
-
-                               
-                }
-                      
-                
                
                 if (_do_bse_triplets  && _do_bse_diag ) {
                     BSE_solve_triplets();
                     LOG(logDEBUG, *_pLog) << TimeStamp() << " Solved BSE for triplets " << flush;
-
+                    
                     // expectation values, contributions from e-h coupling for _n_print lowest excitations
-                    std::vector<real> _contrib_x(_bse_nprint, 0.0);
                     std::vector<real> _contrib_d(_bse_nprint, 0.0);
                     std::vector<real> _contrib_qp(_bse_nprint, 0.0);
-                    for (int _i_exc = 0; _i_exc < _bse_nprint; _i_exc++) {
-                        // get slice of _bse_triplet_coefficients
-                        ub::matrix<real> _slice = ub::project(_bse_triplet_coefficients, ub::range(0, _bse_size), ub::range(_i_exc, _i_exc + 1));
+                    
+                    if(tools::globals::verbose){
+                        for (int _i_exc = 0; _i_exc < _bse_nprint; _i_exc++) {
+                            // get slice of _bse_triplet_coefficients
+                            ub::matrix<real> _slice = ub::project(_bse_triplet_coefficients, ub::range(0, _bse_size), ub::range(_i_exc, _i_exc + 1));
+                            
+                            // calculate expectation value of direct e-h interaction
+                            ub::matrix<real> _temp = ub::prod(_eh_d-_eh_qp, _slice);
+                            ub::matrix<real> _res = ub::prod(ub::trans(_slice), _temp);
+                            _contrib_d[_i_exc] = _res(0, 0);
 
-                        // calculate expectation value of direct e-h interaction
-                        ub::matrix<real> _temp = ub::prod(_eh_d, _slice);
-                        ub::matrix<real> _res = ub::prod(ub::trans(_slice), _temp);
-                        _contrib_d[_i_exc] = -_res(0, 0);
+                            // contribution from free interlevel transition
+                            _contrib_qp[_i_exc] = _bse_triplet_energies( _i_exc ) - _contrib_d[ _i_exc ];
 
-                        // contribution from free interlevel transition
-                        _contrib_qp[_i_exc] = _bse_triplet_energies( _i_exc ) - _contrib_d[ _i_exc ];
-
+                        }
                     }
- 
-                    
-                    
-                    
                     
                     std::vector<double> _popHA;
                     std::vector<double> _popHB;
@@ -930,9 +917,16 @@ void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
 
                     LOG(logINFO, *_pLog) << (format("  ====== triplet energies (eV) ====== ")).str() << flush;
                     for (int _i = 0; _i < _bse_nprint; _i++) {
-                        LOG(logINFO, *_pLog) << (format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_x> = %5$+1.4f <K_d> = %6$+1.4f")
-                                % (_i + 1) % (tools::conv::ryd2ev * _bse_triplet_energies(_i)) % (1240.0/(13.6058 * _bse_triplet_energies(_i))) 
-                                % (tools::conv::ryd2ev * _contrib_qp[_i]) % (tools::conv::ryd2ev * _contrib_x[_i]) % (tools::conv::ryd2ev * _contrib_d[ _i ])).str() << flush;
+                        
+                        if(tools::globals::verbose){
+                            LOG(logINFO, *_pLog) << (format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_d> = %6$+1.4f")
+                                    % (_i + 1) % (tools::conv::ryd2ev * _bse_triplet_energies(_i)) % (1240.0/(13.6058 * _bse_triplet_energies(_i))) 
+                                    % (tools::conv::ryd2ev * _contrib_qp[_i])  % (tools::conv::ryd2ev * _contrib_d[ _i ])).str() << flush;
+                            }
+                        else{
+                            LOG(logINFO, *_pLog) << (format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
+                                % (_i + 1) % (tools::conv::ryd2ev * _bse_triplet_energies(_i)) % (1240.0/(13.6058 * _bse_triplet_energies(_i))) ).str() << flush;
+                        }
                         
                         for (unsigned _i_bse = 0; _i_bse < _bse_size; _i_bse++) {
                             // if contribution is larger than 0.2, print
@@ -949,25 +943,18 @@ void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
                         LOG(logINFO, *_pLog) << (format("   ")).str() << flush;
                     }
                     
-                    // storage to orbitals object
-                    if ( _store_bse_triplets ) {
-                        std::vector<real>& _bse_triplet_energies_store = _orbitals->BSETripletEnergies();
-                        ub::matrix<real>& _bse_triplet_coefficients_store = _orbitals->BSETripletCoefficients();
-                        _bse_triplet_energies_store.resize( _bse_nmax );
-                        _bse_triplet_coefficients_store.resize( _bse_size, _bse_nmax);
-                        for  (int _i_exc = 0; _i_exc < _bse_nmax; _i_exc++) {
-                           _bse_triplet_energies_store[_i_exc] = _bse_triplet_energies( _i_exc );
-                           for  (unsigned _i_bse = 0; _i_bse < _bse_size; _i_bse++) {
-                               _bse_triplet_coefficients_store( _i_bse, _i_exc ) = _bse_triplet_coefficients(_i_bse,_i_exc);
-                           }
-                        }
-                        // _orbitals->setBSETriplets(true);
-                    } // _store_bse_triplets
+                  
                     
                     // free memory
-                    //_bse_triplet_energies.resize(0);
+                    //
+                    if (! _store_bse_triplets ) {
                     _bse_triplet_coefficients.resize(0,0);
-                    
+                    _bse_triplet_energies.resize(0);
+                    }
+                    else{
+                    _bse_triplet_energies.resize( _bse_nmax );
+                    _bse_triplet_coefficients.resize( _bse_size, _bse_nmax);
+                    }
                     
                 } // do_triplets
                     
@@ -977,12 +964,6 @@ void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
                 if (_do_bse_singlets) {
                     // calculate exchange part of eh interaction, only needed for singlets
                     BSE_x_setup(_Mmn);
-                    if ( _store_eh_interaction ) {
-                    ub::matrix<real>& _eh_x_store = _orbitals->eh_x();
-                    _eh_x_store = _eh_x;
-                    // _orbitals->setEHinteraction(true);
-                    }
-                    
                     LOG(logDEBUG, *_pLog) << TimeStamp() << " Exchange part of e-h interaction " << flush;
                 }
 
@@ -1004,22 +985,23 @@ void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
                     std::vector<real> _contrib_x(_bse_nprint, 0.0);
                     std::vector<real> _contrib_d(_bse_nprint, 0.0);
                     std::vector<real> _contrib_qp(_bse_nprint, 0.0);
-                    for (int _i_exc = 0; _i_exc < _bse_nprint; _i_exc++) {
+                    if(tools::globals::verbose){
+                        for (int _i_exc = 0; _i_exc < _bse_nprint; _i_exc++) {
 
-                        ub::matrix<real> _slice = ub::project(_bse_singlet_coefficients, ub::range(0, _bse_size), ub::range(_i_exc, _i_exc + 1));
+                            ub::matrix<real> _slice = ub::project(_bse_singlet_coefficients, ub::range(0, _bse_size), ub::range(_i_exc, _i_exc + 1));
 
-                        ub::matrix<real> _temp = ub::prod(_eh_x, _slice);
-                        ub::matrix<real> _res = ub::prod(ub::trans(_slice), _temp);
-                        _contrib_x[_i_exc] = 2.0 * _res(0, 0);
+                            ub::matrix<real> _temp = ub::prod(_eh_x, _slice);
+                            ub::matrix<real> _res = ub::prod(ub::trans(_slice), _temp);
+                            _contrib_x[_i_exc] = 2.0 * _res(0, 0);
 
-                        _temp = ub::prod(_eh_d, _slice);
-                        _res = ub::prod(ub::trans(_slice), _temp);
-                        _contrib_d[_i_exc] = -_res(0, 0);
+                            _temp = ub::prod(_eh_d-_eh_qp, _slice);
+                            _res = ub::prod(ub::trans(_slice), _temp);
+                            _contrib_d[_i_exc] = _res(0, 0);
 
-                        _contrib_qp[_i_exc] = _bse_singlet_energies(_i_exc) - _contrib_d[_i_exc] - _contrib_x[_i_exc];
+                            _contrib_qp[_i_exc] = _bse_singlet_energies(_i_exc) - _contrib_d[_i_exc] - _contrib_x[_i_exc];
 
+                        }
                     }
-
                     
                           
             
@@ -1117,11 +1099,11 @@ void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
 
                     double sqrt2=sqrt(2.0);
 
-                    std::vector<std::vector<double> > _transition_dipoles;
+                    std::vector<ub::vector<double> >& _transition_dipoles=_orbitals->TransitionDipoles();
                     std::vector<double> _oscillator_strength;
                     std::vector<double> _transition_dipole_strength;
                     for (int _i_exc = 0; _i_exc < _bse_nprint; _i_exc++) {
-                        std::vector<double> _tdipole(3, 0.0);
+                        ub::vector<double> _tdipole=ub::zero_vector<double>(3);
 
                         for (unsigned _v = 0; _v < _bse_vtotal; _v++) {
                             for (unsigned _c = 0; _c < _bse_ctotal; _c++) {
@@ -1130,7 +1112,7 @@ void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
 
                                 for (int _i_comp = 0; _i_comp < 3; _i_comp++) {
                                     // The Transition dipole is sqrt2 bigger because of the spin, the excited state is a linear combination of 2 slater determinants, where either alpha or beta spin electron is excited
-                                    _tdipole[ _i_comp ] += sqrt2*_bse_singlet_coefficients(index_vc, _i_exc) * _interlevel_dipoles[_i_comp](_v, _c);
+                                    _tdipole( _i_comp ) += sqrt2*_bse_singlet_coefficients(index_vc, _i_exc) * _interlevel_dipoles[_i_comp](_v, _c);
                                 }
 
                             }
@@ -1138,19 +1120,25 @@ void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
                         }
                         //                cout << _i_exc << " : " << _tdipole[0] << " : "  << _tdipole[1] << " : " << _tdipole[2] << endl;
                         _transition_dipoles.push_back(_tdipole);
-                        _transition_dipole_strength.push_back((_tdipole[0] * _tdipole[0] + _tdipole[1] * _tdipole[1] + _tdipole[2] * _tdipole[2]));
-                        _oscillator_strength.push_back(_transition_dipole_strength[_i_exc] * 1.0 / 3.0 * (_bse_singlet_energies(_i_exc)));
+                        _transition_dipole_strength.push_back((ub::inner_prod(_tdipole,_tdipole)));
+                        cout<< ub::inner_prod(_tdipole,_tdipole)<< " "<< _tdipole<< endl;
+                        _oscillator_strength.push_back(_transition_dipole_strength[_i_exc] / 3.0 * (_bse_singlet_energies(_i_exc)));
                     }
 
 
                     LOG(logINFO, *_pLog) << (format("  ====== singlet energies (eV) ====== ")).str() << flush;
                     for (int _i = 0; _i < _bse_nprint; _i++) {
-
+                        if(tools::globals::verbose){
                         LOG(logINFO, *_pLog) << (format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_x> = %5$+1.4f <K_d> = %6$+1.4f")
                                 % (_i + 1) % (tools::conv::ryd2ev * _bse_singlet_energies(_i)) % (1240.0/(tools::conv::ryd2ev * _bse_singlet_energies(_i))) 
                                 % (tools::conv::ryd2ev * _contrib_qp[_i]) % (tools::conv::ryd2ev * _contrib_x[_i]) % (tools::conv::ryd2ev * _contrib_d[ _i ])).str() << flush;
+                        }
+                        else{
+                        LOG(logINFO, *_pLog) << (format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
+                            % (_i + 1) % (tools::conv::ryd2ev * _bse_singlet_energies(_i)) % (1240.0/(tools::conv::ryd2ev * _bse_singlet_energies(_i))) ).str() << flush;
+                        }
                         LOG(logINFO, *_pLog) << (format("           TrDipole length gauge[e*bohr]  dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f") 
-                                % (_transition_dipoles[_i][0]) % (_transition_dipoles[_i][1]) % (_transition_dipoles[_i][2]) % (_transition_dipole_strength[_i]) 
+                                % (_transition_dipoles[_i](0)) % (_transition_dipoles[_i](1)) % (_transition_dipoles[_i](2)) % (_transition_dipole_strength[_i]) 
                                 % (_oscillator_strength[_i])).str() << flush;
                         for (unsigned _i_bse = 0; _i_bse < _bse_size; _i_bse++) {
                             // if contribution is larger than 0.2, print
@@ -1172,33 +1160,31 @@ void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
 
                      // storage to orbitals object
                     if ( _store_bse_singlets ) {
-                        std::vector<real>& _bse_singlet_energies_store = _orbitals->BSESingletEnergies();
-                        ub::matrix<real>& _bse_singlet_coefficients_store = _orbitals->BSESingletCoefficients();
-                        std::vector< std::vector<double> >& _transition_dipoles_store = _orbitals->TransitionDipoles();
-                        _bse_singlet_energies_store.resize( _bse_nmax );
-                        _bse_singlet_coefficients_store.resize( _bse_size, _bse_nmax);
-                        _transition_dipoles_store.resize( _bse_nprint );
-                        for  (int _i_exc = 0; _i_exc < _bse_nmax; _i_exc++) {
-                           _bse_singlet_energies_store[_i_exc] = _bse_singlet_energies( _i_exc );
-                           for  (unsigned _i_bse = 0; _i_bse < _bse_size; _i_bse++) {
-                               _bse_singlet_coefficients_store( _i_bse, _i_exc ) = _bse_singlet_coefficients(_i_bse,_i_exc);
-                           }
-
-                           if ( _i_exc < _bse_nprint ){
-                               _transition_dipoles_store[_i_exc] = _transition_dipoles[_i_exc];
-                           }
-                           
+                        
+                        _bse_singlet_energies.resize( _bse_nmax );
+                        _bse_singlet_coefficients.resize( _bse_size, _bse_nmax);
+                        _transition_dipoles.resize( _bse_nprint );
                         }
+                    else{
+                        _bse_singlet_energies.resize( 0 );
+                        _bse_singlet_coefficients.resize( 0, 0);
+                        _transition_dipoles.resize( 0 );
+                    }
+                    
                         
                     } // _store_bse_triplets
                                        
-                    
+                if(!_store_eh_interaction){
+                _eh_d.resize(0,0);
+                _eh_x.resize(0,0);
+                }
+                
                     
                     
                     
                     
                 }
-            }
+            
             
 
             

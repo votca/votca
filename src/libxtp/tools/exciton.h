@@ -47,7 +47,7 @@ public:
     void   Initialize(Property *options);
     bool   Evaluate();
 
-    GWBSE _gwbse;
+    
  
 
 private:
@@ -1115,11 +1115,12 @@ void Exciton::ExcitationEnergies(QMPackage* _qmpackage, vector<Segment*> _segmen
      }
 
      if ( _do_gwbse ){
+         GWBSE _gwbse=GWBSE( _orbitals);
         _gwbse.setLogger(&_log);
         _gwbse.Initialize( &_gwbse_options );
-        _gwbse.Evaluate( _orbitals );
+        _gwbse.Evaluate();
         Property *_output_summary = &(_summary.add("output", ""));
-        _gwbse.addoutput(_output_summary, _orbitals);
+        _gwbse.addoutput(_output_summary);
        
         //bool _evaluate = _gwbse.Evaluate( _orbitals );
         // std::cout << _log;

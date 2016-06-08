@@ -244,8 +244,8 @@ public:
     
     // access to diagonalized QP energies and wavefunctions
     bool hasQPdiag() { return ( _QPdiag_energies.size() > 0 ) ? true : false; }
-    const std::vector<double> &QPdiagEnergies() const { return _QPdiag_energies; }
-    std::vector<double> &QPdiagEnergies() { return _QPdiag_energies; }
+    const ub::vector<double> &QPdiagEnergies() const { return _QPdiag_energies; }
+    ub::vector<double> &QPdiagEnergies() { return _QPdiag_energies; }
     const ub::matrix<double> &QPdiagCoefficients() const { return _QPdiag_coefficients; }
     ub::matrix<double> &QPdiagCoefficients()  { return _QPdiag_coefficients; }
 
@@ -258,22 +258,22 @@ public:
 
     // access to triplet energies and wave function coefficients
     bool hasBSETriplets() {return ( _BSE_triplet_energies.size() > 0 ) ? true : false ;}
-    const std::vector<real> &BSETripletEnergies() const { return _BSE_triplet_energies; }
-    std::vector<real> &BSETripletEnergies()  { return _BSE_triplet_energies; }
+    const ub::vector<real> &BSETripletEnergies() const { return _BSE_triplet_energies; }
+    ub::vector<real> &BSETripletEnergies()  { return _BSE_triplet_energies; }
     const ub::matrix<real> &BSETripletCoefficients() const { return _BSE_triplet_coefficients;}
     ub::matrix<real> &BSETripletCoefficients()  { return _BSE_triplet_coefficients;}
     
     // access to singlet energies and wave function coefficients
     bool hasBSESinglets() {return (_BSE_singlet_energies.size() > 0 ) ? true : false ;}
-    const std::vector<real> &BSESingletEnergies() const { return _BSE_singlet_energies; }
-    std::vector<real> &BSESingletEnergies()  { return _BSE_singlet_energies; }
+    const ub::vector<real> &BSESingletEnergies() const { return _BSE_singlet_energies; }
+    ub::vector<real> &BSESingletEnergies()  { return _BSE_singlet_energies; }
     const ub::matrix<real> &BSESingletCoefficients() const { return _BSE_singlet_coefficients;}
     ub::matrix<real> &BSESingletCoefficients() { return _BSE_singlet_coefficients;}
 
     // access to transition dipole moments
     bool hasTransitionDipoles() {return (_transition_dipoles.size() > 0 ) ? true : false ;}
-    const std::vector<std::vector<double> > &TransitionDipoles() const { return _transition_dipoles; }
-    std::vector<std::vector<double> > &TransitionDipoles()  { return _transition_dipoles; }
+    const std::vector<ub::vector<double> > &TransitionDipoles() const { return _transition_dipoles; }
+    std::vector<ub::vector<double> > &TransitionDipoles()  { return _transition_dipoles; }
 
 
     
@@ -341,14 +341,14 @@ public:
     /* ===
      *    OLD ACCESS FUNCTIONS
      */    
-    std::vector<double>* getQPdiagEnergies() {return  &_QPdiag_energies ;} 
+    ub::vector<double>* getQPdiagEnergies() {return  &_QPdiag_energies ;} 
     ub::matrix<double>* getQPdiagCoefficients() {return  &_QPdiag_coefficients ;}
 
 
-    std::vector<real>* getBSESingletEnergies() {return &_BSE_singlet_energies;}
+    ub::vector<real>* getBSESingletEnergies() {return &_BSE_singlet_energies;}
     ub::matrix<real>* getBSESingletCoefficients() {return &_BSE_singlet_coefficients;}
 
-    std::vector<real>* getBSETripletEnergies() {return &_BSE_triplet_energies;}
+    ub::vector<real>* getBSETripletEnergies() {return &_BSE_triplet_energies;}
     ub::matrix<real>* getBSETripletCoefficients() {return &_BSE_triplet_coefficients; }   
     
    
@@ -450,7 +450,7 @@ private:
     ub::matrix<double>                      _QPpert_energies;
 
     // quasiparticle energies and coefficients after diagonalization
-    std::vector<double>                     _QPdiag_energies;
+    ub::vector<double>                     _QPdiag_energies;
     ub::matrix<double>                      _QPdiag_coefficients;
     // excitons
     std::vector<int>                        _index2v;
@@ -459,10 +459,10 @@ private:
     
     ub::matrix<real>                      _eh_d;
     ub::matrix<real>                      _eh_x;
-    std::vector<real>                     _BSE_singlet_energies;
+    ub::vector<real>                     _BSE_singlet_energies;
     ub::matrix<real>                      _BSE_singlet_coefficients;
-    std::vector<std::vector<double> >      _transition_dipoles;
-    std::vector<real>                     _BSE_triplet_energies;
+    std::vector<ub::vector<double> >      _transition_dipoles;
+    ub::vector<real>                     _BSE_triplet_energies;
     ub::matrix<real>                      _BSE_triplet_coefficients;   
     
     ub::matrix<real>                      _BSE_singlet_couplings;
@@ -493,7 +493,7 @@ private:
     // Allow serialization to access non-public data members
     friend class boost::serialization::access;
     
-    //Allow Gaussian object to access non-public data members
+    //Allow  object to access non-public data members
     friend class Gaussian;
     friend class Turbomole;
     friend class NWChem;
@@ -559,6 +559,8 @@ private:
         ar & _QPpert_energies;
         ar & _QPdiag_energies; 
         ar & _QPdiag_coefficients;
+        
+        
         ar & _eh_d; 
         ar & _eh_x;
          

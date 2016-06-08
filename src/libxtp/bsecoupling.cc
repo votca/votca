@@ -112,8 +112,8 @@ void BSECoupling::addoutput(Property *_type_summary,Orbitals* _orbitalsA,
                //real energyAD = getSingletDimerEnergy( stateA  );
                //real energyBD = getSingletDimerEnergy( stateB  );
                Property *_coupling_summary = &_singlet_summary->add("coupling", boost::lexical_cast<string>(JAB)); 
-               real energyA = _orbitalsA->BSESingletEnergies()[stateA]*conv::ryd2ev_f;
-               real energyB = _orbitalsB->BSESingletEnergies()[stateB]*conv::ryd2ev_f;
+               real energyA = _orbitalsA->BSESingletEnergies()(stateA)*conv::ryd2ev_f;
+               real energyB = _orbitalsB->BSESingletEnergies()(stateB)*conv::ryd2ev_f;
                _coupling_summary->setAttribute("excitonA", stateA);
                _coupling_summary->setAttribute("excitonB", stateB);
                _coupling_summary->setAttribute("energyA", energyA);
@@ -134,8 +134,8 @@ void BSECoupling::addoutput(Property *_type_summary,Orbitals* _orbitalsA,
                //real energyAD = getTripletDimerEnergy( stateA  );
                //real energyBD = getTripletDimerEnergy( stateB  );
                Property *_coupling_summary = &_triplet_summary->add("coupling", boost::lexical_cast<string>(JAB)); 
-               real energyA = _orbitalsA->BSETripletEnergies()[stateA]*conv::ryd2ev_f;
-               real energyB = _orbitalsB->BSETripletEnergies()[stateB]*conv::ryd2ev_f;
+               real energyA = _orbitalsA->BSETripletEnergies()(stateA)*conv::ryd2ev_f;
+               real energyB = _orbitalsB->BSETripletEnergies()(stateB)*conv::ryd2ev_f;
                _coupling_summary->setAttribute("excitonA", stateA);
                _coupling_summary->setAttribute("excitonB", stateB);
                _coupling_summary->setAttribute("energyA", energyA);
@@ -506,10 +506,10 @@ real BSECoupling::getTripletCouplingElement( int levelA, int levelB) {
      
      
      ub::matrix<real> _Hamiltonian_AB = ub::zero_matrix<real>(_bseAB_size,_bseAB_size );
-     std::vector<real>& _bseAB_energies = _orbitalsAB->BSESingletEnergies();
+     ub::vector<real>& _bseAB_energies = _orbitalsAB->BSESingletEnergies();
 
      for ( int _i=0; _i<_bseAB_size; _i++){
-         _Hamiltonian_AB(_i,_i) = _bseAB_energies[_i];
+         _Hamiltonian_AB(_i,_i) = _bseAB_energies(_i);
      }
      
  
