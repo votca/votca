@@ -80,9 +80,18 @@ void Coupling::Initialize(Property* options)
 
     _levA  = options->get(key + ".moleculeA.levels").as<int> ();
     _levB  = options->get(key + ".moleculeB.levels").as<int> ();
- 
-    _trimA  = options->get(key + ".moleculeA.trim").as<int> ();
-    _trimB  = options->get(key + ".moleculeB.trim").as<int> ();
+     if ( options->exists(key+".moleculeA.trim")){
+        _trimA  = options->get(key + ".moleculeA.trim").as<int> ();
+     }
+     else{
+         _trimA=-1;
+     }
+    if ( options->exists(key+".moleculeB.trim")){
+        _trimB  = options->get(key + ".moleculeB.trim").as<int> ();
+     }
+     else{
+         _trimB=-1;
+     }
    
     _output_file = options->get(key + ".output").as<string> ();
 
@@ -159,7 +168,10 @@ bool Coupling::Evaluate() {
         std::vector<int> list_levelsBL  = (*_orbitalsB.getDegeneracy( _orbitalsB.getNumberOfElectrons(), _degeneracy ));
         _degBL = list_levelsBL.size();  
         
+        LOG(logDEBUG,_log) << "Trimming orbitals to minimal set " << flush;
+        LOG(logDEBUG,_log) <<   "HOMO(A)-" << _degAH << " to " << "LUMO(A)+" << _degAL << flush;
         _orbitalsA.Trim(_degAH,_degAL);
+        LOG(logDEBUG,_log) <<   "HOMO(B)-" << _degBH << " to " << "LUMO(B)+" << _degBL << flush;
         _orbitalsB.Trim(_degBH,_degBL);
     
         

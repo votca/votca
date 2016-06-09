@@ -71,6 +71,7 @@ void IDFT::ParseOptionsXML( votca::tools::Property *options ) {
     string key = "options." + Identify();
     _energy_difference = options->get( key + ".degeneracy" ).as< double > ();
     
+    
     string _tasks_string = options->get(key+".tasks").as<string> ();
     if (_tasks_string.find("input") != std::string::npos) _do_input = true;
     if (_tasks_string.find("run") != std::string::npos) _do_run = true;
@@ -86,9 +87,16 @@ void IDFT::ParseOptionsXML( votca::tools::Property *options ) {
     
     _max_occupied_levels = options->get(key+".levels").as<int> ();
     _max_unoccupied_levels = _max_occupied_levels;
-
-    _trim_factor = options->get(key+".trim").as<int> ();
-    if ( _trim_factor == -1 ) _do_trim = true;
+    
+    if ( options->exists(key+".trim")){
+        _trim_factor  = options->get(key + ".trim").as< int > ();
+     }
+    else{
+        _trim_factor=-1;
+        if(!_do_trim){
+         cout << "WARNING: Are you sure you do not want to trim your orbitals, enable trimming by adding ""trim"" to tasks, default for trimming is -1 e.g. trimming to HOMO/LUMO respectively "  << endl;; 
+        }
+    }
     
     
     string _package_xml = options->get(key+".dftpackage").as<string> ();

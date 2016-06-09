@@ -1187,7 +1187,7 @@ void GWBSE::addoutput(Property *_summary) {
             
             
 
-            
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " GWBSE calculation finished " << flush;
             return true;
         }
 
