@@ -84,11 +84,18 @@ void IDFT::ParseOptionsXML( votca::tools::Property *opt ) {
     if (_store_string.find("overlap") != std::string::npos) _store_overlap = true;
     if (_store_string.find("integrals") != std::string::npos) _store_integrals = true;
     
-    _max_occupied_levels = opt->get(key+".levels").as<int> ();
+    _max_occupied_levels = opt->get(key+".levels").as< int > ();
     _max_unoccupied_levels = _max_occupied_levels;
-
-    _trim_factor = opt->get(key+".trim").as<int> ();
-    if ( _trim_factor == -1 ) _do_trim = true;
+    
+    if ( opt->exists(key+".trim")){
+        _trim_factor  = opt->get(key + ".trim").as< int > ();
+     }
+    else{
+        _trim_factor=-1;
+        if(!_do_trim){
+         cout << "WARNING: Are you sure you do not want to trim your orbitals, enable trimming by adding ""trim"" to tasks, default for trimming is -1 e.g. trimming to HOMO/LUMO respectively "  << endl;; 
+        }
+    }
     
     
     string _package_xml = opt->get(key+".package").as<string> ();

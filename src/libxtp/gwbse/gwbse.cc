@@ -1165,7 +1165,7 @@ void GWBSE::addoutput(Property *_summary, Orbitals* _orbitals) {
             }
             
 
-            
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " GWBSE calculation finished " << flush;
             return true;
         }
 
