@@ -602,7 +602,7 @@ private:
 
 }}
 
-BOOST_CLASS_VERSION(votca::xtp::Orbitals, 1)
+BOOST_CLASS_VERSION(votca::xtp::Orbitals, 2)
         
 #endif	/* __VOTCA_XTP_ORBITALS_H */
 
