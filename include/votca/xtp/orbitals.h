@@ -36,7 +36,7 @@
 #include <votca/tools/vec.h>
 
 #include <votca/xtp/logger.h>
-
+#include <boost/format.hpp>
 // Text archive that defines boost::archive::text_oarchive
 // and boost::archive::text_iarchive
 #include <boost/archive/text_iarchive.hpp>
@@ -503,7 +503,25 @@ private:
     // serialization itself (template implementation stays in the header)
     template<typename Archive> 
     void serialize(Archive& ar, const unsigned int version) {
-
+        //check with which votca version orbitals object was created
+      if( version>1){
+          string test="float";
+           #if (GWBSE_DOUBLE)
+                test="double";
+           #endif
+          
+          if (Archive::is_loading::value){
+          string floatordouble="float";
+          ar & floatordouble;
+          
+          if (test!=floatordouble){ 
+              throw std::runtime_error((boost::format("This votca is compiled with %. The orbitals file you want to read in is compield with %") %test %floatordouble).str());
+          }
+      }
+          else{
+              ar & test;
+          }
+      }
        ar & _basis_set_size;
        ar & _occupied_levels; 
        ar & _unoccupied_levels;
@@ -575,27 +593,22 @@ private:
         
         
         if(Archive::is_loading::value && version==1){    
-            std::vector<double> temp;
-            
+            std::vector<real> temp;
             ar &temp;
-            cout <<"Hello"<< temp.size()<<endl;
             _BSE_singlet_energies.resize(temp.size());
             for (unsigned i=0;i<temp.size();i++){
               _BSE_singlet_energies(i)=temp[i]; 
               }
-            cout <<"Hello1.2"<<endl;
         }else{
             ar & _BSE_singlet_energies; 
         }
         
-        cout <<"Hello1.3"<< _BSE_singlet_energies.size()<<endl;
+
         ar & _BSE_singlet_coefficients; 
-        cout <<"Hello1.4"<<endl;
+  
         if(Archive::is_loading::value && version==1){  
-            cout <<"Hello1.5"<<endl;
             std::vector< std::vector<double> > temp;
             ar &temp;
-            cout <<"Hello2"<< temp.size()<<endl;
             for (unsigned _i=0;_i<temp.size();_i++){
                 ub::vector< double > vector_temp(3);
                 vector_temp(0)=temp[_i][0];
@@ -610,7 +623,7 @@ private:
         
         
         if(Archive::is_loading::value && version==1){    
-            std::vector<double> temp;
+            std::vector<real> temp;
             ar &temp;
             _BSE_triplet_energies.resize(temp.size());
             for (unsigned i=0;i<temp.size();i++){
