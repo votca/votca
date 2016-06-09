@@ -540,7 +540,7 @@ namespace votca {
 	    _eh_x = ub::prod( ub::trans( _storage ), _storage ); 
             _eh_x = 2.0 * _eh_x; // Rydberg
   
-            
+            cout<<"_eh_x set up"<<endl;
             
             
             
