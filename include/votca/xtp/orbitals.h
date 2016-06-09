@@ -554,22 +554,72 @@ private:
         ar & _index2v;
         ar & _ScaHFX;    
         
-        
-            
         ar & _QPpert_energies;
-        ar & _QPdiag_energies; 
+        if(Archive::is_loading::value && version==1){    
+            std::vector<double> temp;
+            ar &temp;
+            _QPdiag_energies.resize(temp.size());
+            for (unsigned i=0;i<temp.size();i++){
+              _QPdiag_energies(i)=temp[i] ;    
+            }
+        }
+        else{
+            ar & _QPdiag_energies; 
+        }
+        
         ar & _QPdiag_coefficients;
         
         
         ar & _eh_d; 
         ar & _eh_x;
-         
-        ar & _BSE_singlet_energies; 
+        
+        
+        if(Archive::is_loading::value && version==1){    
+            std::vector<double> temp;
+            
+            ar &temp;
+            cout <<"Hello"<< temp.size()<<endl;
+            _BSE_singlet_energies.resize(temp.size());
+            for (unsigned i=0;i<temp.size();i++){
+              _BSE_singlet_energies(i)=temp[i]; 
+              }
+            cout <<"Hello1.2"<<endl;
+        }else{
+            ar & _BSE_singlet_energies; 
+        }
+        
+        cout <<"Hello1.3"<< _BSE_singlet_energies.size()<<endl;
         ar & _BSE_singlet_coefficients; 
+        cout <<"Hello1.4"<<endl;
+        if(Archive::is_loading::value && version==1){  
+            cout <<"Hello1.5"<<endl;
+            std::vector< std::vector<double> > temp;
+            ar &temp;
+            cout <<"Hello2"<< temp.size()<<endl;
+            for (unsigned _i=0;_i<temp.size();_i++){
+                ub::vector< double > vector_temp(3);
+                vector_temp(0)=temp[_i][0];
+                vector_temp(1)=temp[_i][1];
+                vector_temp(2)=temp[_i][2];
+               _transition_dipoles.push_back(vector_temp);    
+            }
+        }else{
+            ar & _transition_dipoles; 
+        }
         
-        ar & _transition_dipoles;
         
-        ar & _BSE_triplet_energies; 
+        
+        if(Archive::is_loading::value && version==1){    
+            std::vector<double> temp;
+            ar &temp;
+            _BSE_triplet_energies.resize(temp.size());
+            for (unsigned i=0;i<temp.size();i++){
+              _BSE_triplet_energies(i)=temp[i] ; 
+            }
+        }else{
+             ar & _BSE_triplet_energies; 
+        }
+       
         ar & _BSE_triplet_coefficients;
         
         ar & _BSE_singlet_couplings;
