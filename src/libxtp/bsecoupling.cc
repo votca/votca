@@ -54,11 +54,7 @@ void BSECoupling::Initialize(Property* options){
     _doTriplets=false;
     
     _openmp_threads = 0;
-    
-    if ( options->exists( key + ".openmp") ) {
-                 _openmp_threads = options->get(key + ".openmp").as<int> ();
-            }
-    
+     _openmp_threads = options->get(key + ".openmp").as<int> ();
     _spintype   = options->get(key + ".spin").as<string> ();
         if(_spintype=="all"){
             _doSinglets=true;
@@ -1152,16 +1148,14 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real>& _kap,const ub::matrix<
      // setup S
     
     ub::matrix<double> _S_dimer=ub::prod(projection,ub::trans(projection));
-    if(tools::globals::verbose){
-         LOG(logDEBUG, *_pLog) << "---------------------------------------"<<flush;
-     LOG(logDEBUG, *_pLog) << "_J_dimer[Ryd]"<<flush;
+    
+    //cout << "_J_dimer"<<endl;
      
-     LOG(logDEBUG, *_pLog) << _J_dimer<<flush;
-     LOG(logDEBUG, *_pLog) << "_S_dimer"<<flush;
+     //cout << _J_dimer<<endl;
+     //cout << "_S_dimer"<<endl;
      
-     LOG(logDEBUG, *_pLog) << _S_dimer<<flush;
-      LOG(logDEBUG, *_pLog) << "---------------------------------------"<<flush;
-    }
+     //cout << _S_dimer<<endl;
+    
     //LOG(logDEBUG, *_pLog) << TimeStamp()  << "  Diagonlaize overlap "<< flush;
     //ub::vector<double> _S_eigenvalues;
      //cout << "_J_ortho"<<endl;
@@ -1171,28 +1165,18 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real>& _kap,const ub::matrix<
      //LOG(logDEBUG, *_pLog) << TimeStamp()  << "  done "<< flush;
     double small=linalg_loewdin(_J_dimer,_S_dimer);
     
-    if(tools::globals::verbose){
-         LOG(logDEBUG, *_pLog) << "---------------------------------------"<<flush;
-    LOG(logDEBUG, *_pLog) << "_J_ortho[Ryd]"<<flush;
-    LOG(logDEBUG, *_pLog) << _J_dimer<<flush;
-     LOG(logDEBUG, *_pLog) << "---------------------------------------"<<flush;
-    }
      LOG(logDEBUG, *_pLog) << TimeStamp()  << "   Smallest value of dimer overlapmatrix is "<< small<< flush;
-    
+     
      ub::vector<double> _J_eigenvalues;
      //cout << "_J_ortho"<<endl;
      
      //cout << _J_dimer<<endl;
      linalg_eigenvalues(_J_eigenvalues,_J_dimer);
-     if(tools::globals::verbose){
-          LOG(logDEBUG, *_pLog) << "---------------------------------------"<<flush;
-     LOG(logDEBUG, *_pLog) << "Eigenvectors of J"<<flush;
+     //cout << "_Eigenvectors"<<endl;
      
-     LOG(logDEBUG, *_pLog) << _J_dimer<<flush;
-     LOG(logDEBUG, *_pLog) << "J_eigenvalues[Ryd]"<< flush;
-     LOG(logDEBUG, *_pLog) << _J_eigenvalues<< flush;
-      LOG(logDEBUG, *_pLog) << "---------------------------------------"<<flush;
-     }
+     //cout << _J_dimer<<endl;
+     //cout << "_J_eigenvalues"<< endl;
+     //cout << _J_eigenvalues<< endl;
      //Calculate projection on subspace for every pair of excitons separately
      for (int stateA=0;stateA<_levA; stateA++){
           for (int stateB=0;stateB<_levB; stateB++){
@@ -1261,12 +1245,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real>& _kap,const ub::matrix<
     // _J(stateBd,stateBd)=_J_small(1,1);
      _J(stateBd,stateA)=_J_small(1,0);
      //cout << _temp2<<endl;
-     if(tools::globals::verbose){
-     LOG(logDEBUG, *_pLog) << "---------------------------------------"<<flush;
-     LOG(logDEBUG, *_pLog) << "Jeff[Ryd]"<<flush;
-     LOG(logDEBUG, *_pLog) << _J<<flush;
-     LOG(logDEBUG, *_pLog) << "---------------------------------------"<<flush;
-     }
+     //cout << _J<<endl;
      //cout <<_J_small*conv::ryd2ev_f<<endl;
      
      
