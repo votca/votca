@@ -69,15 +69,16 @@ class GWBSE
 {
 public:
 
-    GWBSE(Orbitals* orbitals): _qp_diag_energies(orbitals->QPdiagEnergies()), 
+    GWBSE(Orbitals* orbitals):  _orbitals(orbitals),
+            _qp_diag_energies(orbitals->QPdiagEnergies()), 
              _qp_diag_coefficients(orbitals->QPdiagCoefficients()),
               _eh_x(orbitals->eh_x()),
               _eh_d(orbitals->eh_d()),
               _bse_singlet_energies(orbitals->BSESingletEnergies()),
     _bse_singlet_coefficients(orbitals->BSESingletCoefficients()),
        _bse_triplet_energies(orbitals->BSETripletEnergies()),
-    _bse_triplet_coefficients(orbitals->BSETripletCoefficients()),
-    _orbitals(orbitals)
+    _bse_triplet_coefficients(orbitals->BSETripletCoefficients())
+   
     {};
    ~GWBSE() { };
 
