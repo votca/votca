@@ -215,21 +215,7 @@ vec Topology::PbShortestConnect(const vec &r1, const vec &r2) const {
     return _bc->BCShortestConnection(r1, r2);
 }
 
-bool Topology::PairWithinPb(const vec &r1, const vec &r2){
-    bool check=true;
-    matrix box=this->getBox();
-    vec distance=this->PbShortestConnect(r1,r2);
-    if (std::abs(distance.getX())>0.5*box.get(0,0)){
-        check=false;
-    }
-    else if (std::abs(distance.getY())>0.5*box.get(1,1)){
-        check=false;
-    }
-    else if (std::abs(distance.getZ())>0.5*box.get(2,2)){
-        check=false;
-    }
-    return check;
-}
+
 
 
 bool Topology::Rigidify() {

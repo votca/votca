@@ -91,12 +91,7 @@ void Neighborlist::Initialize(Property *options) {
     }
     
     
-            if (options->exists(key + ".openmp")) {
-                _openmp_threads = options->get(key + ".openmp").as<int> ();
-            }
-            else{
-                _openmp_threads=0;
-            }
+      
     list< Property* > segs = options->Select(key+".segments");
     list< Property* > ::iterator segsIt;
 
@@ -145,13 +140,7 @@ void Neighborlist::Initialize(Property *options) {
         _generate_from = "nofile";
     }
     
-        
-    if (options->exists(key+".generate_unsafe")) {
-        _generate_unsafe = options->get(key+".generate_unsafe").as< bool >();
-    }
-    else {
-        _generate_unsafe = false;
-    }
+  
     
     // if superexchange is given
     if (options->exists(key + ".superexchange")) {
@@ -175,10 +164,7 @@ void Neighborlist::Initialize(Property *options) {
 }
 
 bool Neighborlist::EvaluateFrame(Topology *top) {
-    
-    #ifdef _OPENMP
-            if ( _openmp_threads > 0 ) omp_set_num_threads(_openmp_threads);           
-    #endif
+  
 
     top->NBList().Cleanup();
 
@@ -205,7 +191,7 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
         for (vector< Segment* > ::iterator segit1 = top->Segments().begin();              
                 segit1 < top->Segments().end();
                 segit1++) {
-                ++show_progress;
+                
                 QMNBList templist=QMNBList();
                 vector< Segment* > ::iterator segit2;
                 vector< Fragment* > ::iterator fragit1;
@@ -217,6 +203,7 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
                 Segment *seg1 = *segit1;
                 if (TOOLS::globals::verbose) {
                     cout << "\r ... ... NB List Seg " << seg1->getId() << flush;
+                    ++show_progress;
                 }
 
             for (segit2 = segit1 + 1;
@@ -241,7 +228,9 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
 
                 else { cutoff = _constantCutoff; }
 
-
+                if (cutoff>(0.5*top->getBox().get(0,0))|| cutoff>(0.5*top->getBox().get(1,1)) ||cutoff>(0.5*top->getBox().get(1,1))){
+                    throw std::runtime_error("Specified cutoff is larger than half the boxlength.");
+                }
                 bool stopLoop = false;
                 for (fragit1 = seg1->Fragments().begin();
                         fragit1 < seg1->Fragments().end();
@@ -263,19 +252,17 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
                             seg1->calcPos();
                             seg2->calcPos();
                             
-                            if (!top->PairWithinPb(seg1->getPos(),seg2->getPos())){
-                                cout << (boost::format("Warning distance between segments %4i and %4i is less than half the shortest box length, this cannot end well") % seg1->getId() % seg2->getId()).str()<<endl;
-                            }
+                          
                             
                             {
-                            top->NBList().Add(seg1, seg2,!_generate_unsafe);
+                            top->NBList().Add(seg1, seg2);
                             }
                             stopLoop = true;
                             break;
                         }                
 
                     } /* exit loop frag2 */
-                } /* exit loop frag1 */
+               } /* exit loop frag1 */
             } /* exit loop seg2 */
                 
                // break;
