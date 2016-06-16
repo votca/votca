@@ -251,8 +251,8 @@ void IEXCITON::WriteJobFile(Topology *top) {
             int id = ++jobCount;
 
             
-            string mps_file1=(boost::format("MP_FILES/%s_n2s%2d.mps") % name1  % _statenumber).str();
-            string mps_file2=(boost::format("MP_FILES/%s_n2s%2d.mps") % name1  % _statenumber).str();
+            string mps_file1=(boost::format("MP_FILES/%s_n2s%d.mps") % name1  % _statenumber).str();
+            string mps_file2=(boost::format("MP_FILES/%s_n2s%d.mps") % name1  % _statenumber).str();
             
             Property Input;
             Property *pInput = &Input.add("input","");
