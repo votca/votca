@@ -1,5 +1,5 @@
 configure_file(votca_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/votca_config.h)
-file(GLOB_RECURSE VOTCA_HEADERS *.h ${CMAKE_CURRENT_BINARY_DIR}/votca_config.h )
+file(GLOB_RECURSE VOTCA_HEADERS *.h *.hpp ${CMAKE_CURRENT_BINARY_DIR}/votca_config.h )
 if (NOT WITH_SQLITE3)
   file(GLOB_RECURSE NOT_VOTCA_HEADERS database.h statement.h)
   list(REMOVE_ITEM VOTCA_HEADERS ${NOT_VOTCA_HEADERS})
