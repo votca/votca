@@ -1114,9 +1114,17 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real>& _kap,const ub::matrix<
      
      //cout << _J_dimer.size1()<< " : "<<_J_dimer.size2()<<endl;
      //cout << _S_dimer.size1()<< " : "<<_S_dimer.size2()<<endl;
+     
+     #if (GWBSE_DOUBLE)
+        ub::matrix<double>& Htemp=_H;
+#else
+      ub::matrix<double> Htemp=_H;
      LOG(logDEBUG, *_pLog) << TimeStamp()  << " casting Hamiltonian to double  " << flush;
+
+#endif
+    
      ub::matrix<double> projection =ub::zero_matrix<double>(_bse_exc+_ct,nobasisfunc);
-     ub::matrix<double> Htemp=_H;
+     
      
      LOG(logDEBUG, *_pLog) << TimeStamp()  << " merging projections into one vector  " << flush;
      ub::project(projection, ub::range ( 0, _bseA_exc ),ub::range (0, nobasisfunc )  )=_proj_excA;
@@ -1152,7 +1160,9 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real>& _kap,const ub::matrix<
      // setup S
     
     ub::matrix<double> _S_dimer=ub::prod(projection,ub::trans(projection));
-    if(tools::globals::verbose){
+    
+    projection.resize(0,0);
+    if(tools::globals::verbose &&  _bse_exc+_ct<100){
          LOG(logDEBUG, *_pLog) << "---------------------------------------"<<flush;
      LOG(logDEBUG, *_pLog) << "_J_dimer[Ryd]"<<flush;
      
@@ -1171,20 +1181,95 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real>& _kap,const ub::matrix<
      //LOG(logDEBUG, *_pLog) << TimeStamp()  << "  done "<< flush;
     double small=linalg_loewdin(_J_dimer,_S_dimer);
     
-    if(tools::globals::verbose){
+    if(tools::globals::verbose && _bse_exc+_ct<100){
          LOG(logDEBUG, *_pLog) << "---------------------------------------"<<flush;
     LOG(logDEBUG, *_pLog) << "_J_ortho[Ryd]"<<flush;
     LOG(logDEBUG, *_pLog) << _J_dimer<<flush;
      LOG(logDEBUG, *_pLog) << "---------------------------------------"<<flush;
     }
      LOG(logDEBUG, *_pLog) << TimeStamp()  << "   Smallest value of dimer overlapmatrix is "<< small<< flush;
+     
+     //Diagonalize ct states
+     
+     if (_ct>0){
+     ub::matrix<double> transformation=ub::identity_matrix<double>(_bse_exc+_ct,_bse_exc+_ct);
+     ub::vector<double> eigenvalues_ct;
+     
+     
     
+      ub::matrix<double> Ct=ub::project(_J_dimer, ub::range ( _bse_exc, _bse_exc+_ct ),ub::range (_bse_exc,  _bse_exc+_ct  )  );
+      linalg_eigenvalues(eigenvalues_ct,Ct);
+      ub::project(transformation, ub::range ( _bse_exc, _bse_exc+_ct ),ub::range (_bse_exc,  _bse_exc+_ct  )  )=Ct;
+      Ct.resize(0,0);
+    
+     
+   
+     
+     
+      if(tools::globals::verbose){
+          
+        LOG(logDEBUG, *_pLog) << "FE state hamiltonian"<<flush;
+        LOG(logDEBUG, *_pLog) << ub::project(_J_dimer, ub::range ( 0, _bse_exc ),ub::range (  0, _bse_exc  )  )<<flush;
+    if (_ct>0){
+     LOG(logDEBUG, *_pLog) << "eigenvalues of CT states"<<flush;
+     LOG(logDEBUG, *_pLog) << eigenvalues_ct<<flush;
+    }
+   
+     }
+     
+     
+     
+     
+
+     _temp=ub::prod(_J_dimer,transformation);
+     _J_dimer=ub::prod(ub::trans(transformation),_temp);
+     if(tools::globals::verbose && _bse_exc+_ct<100){
+    LOG(logDEBUG, *_pLog) << "---------------------------------------"<<flush;
+    LOG(logDEBUG, *_pLog) << "_J_ortho[Ryd] CT-state diag"<<flush;
+    LOG(logDEBUG, *_pLog) << _J_dimer<<flush;
+    LOG(logDEBUG, *_pLog) << "---------------------------------------"<<flush;
+    }
+     }
+     
+     
+    
+     
+     
+     
+     
+    for (int stateA=0;stateA<_levA; stateA++){
+          for (int stateB=0;stateB<_levB; stateB++){
+              LOG(logDEBUG, *_pLog) << TimeStamp()  << "   Calculating coupling between exciton A"<< stateA+1<<" and exciton B"<<stateB+1 << flush;
+              int stateBd=stateB+_bseA_exc;
+              double J=_J_dimer(stateA,stateBd);
+              double Ea=_J_dimer(stateA,stateA);
+              double Eb=_J_dimer(stateBd,stateBd);
+              for(unsigned i=_bse_exc;i<(_bse_exc+_ct);i++){
+                  double Eab=_J_dimer(i,i);
+                  J+=_J_dimer(i,stateBd)*_J_dimer(i,stateA)*(1/(Eab-Ea)+1/(Eab-Eb));
+              }          
+             
+       _J(stateA,stateBd)=J;
+       _J(stateBd,stateA)=J;     
+          }
+    
+    }
+     
+     if(tools::globals::verbose){
+     LOG(logDEBUG, *_pLog) << "---------------------------------------"<<flush;
+     LOG(logDEBUG, *_pLog) << "Jeff[Ryd]"<<flush;
+     LOG(logDEBUG, *_pLog) << _J<<flush;
+     LOG(logDEBUG, *_pLog) << "---------------------------------------"<<flush;
+     }
+     
+     
+    /*
      ub::vector<double> _J_eigenvalues;
      //cout << "_J_ortho"<<endl;
      
      //cout << _J_dimer<<endl;
      linalg_eigenvalues(_J_eigenvalues,_J_dimer);
-     if(tools::globals::verbose){
+     if(tools::globals::verbose && _bse_exc+_ct<100){
           LOG(logDEBUG, *_pLog) << "---------------------------------------"<<flush;
      LOG(logDEBUG, *_pLog) << "Eigenvectors of J"<<flush;
      
@@ -1236,24 +1321,70 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real>& _kap,const ub::matrix<
      
      ub::matrix<double> _E=ub::zero_matrix<double>(2,2);
      ub::matrix<double> _T=ub::zero_matrix<double>(2,2);
-     ub::matrix<double> _Tinv;
      //find the eigenvectors which are most similar to the initial states
      
     //row 
     for (unsigned i = 0; i < 2; i++) {
     unsigned k=index[i];
-           double normr =1/std::sqrt(_J_dimer(stateA, k)*_J_dimer(stateA, k)+_J_dimer(stateBd, k)*_J_dimer(stateBd, k)) ;
-
-           _T(i,0 ) = _J_dimer(stateA,k)* normr;
-           _T(i,1 ) = _J_dimer(stateBd,k)*normr;
+           
+           
+           _T(0,i ) = _J_dimer(stateA,k);//* normr;
+           _T(1,i ) = _J_dimer(stateBd,k);//*normr;
            _E(i,i)=_J_eigenvalues(k);
        }
-   //Transformation TET-1
-     linalg_invert(_T,_Tinv);
-     //cout << ub::prod(_T,_Tinv)<<endl;
-     _temp=ub::prod(_T,_E);    
-     ub::matrix<double> _J_small=ub::prod(_temp,_Tinv);
+     
+   
+     if (linalg_det(_T)<0){
+         LOG(logDEBUG, *_pLog) << " Reduced state matrix is not in a right handed basis, multiplying second eigenvector by -1 "<<flush ;
+         _T(0,1)=-_T(0,1);
+         _T(1,1)=-_T(1,1);
+     }
+     
+      if(tools::globals::verbose){
+     LOG(logDEBUG, *_pLog) << "---------------------------------------"<<flush;
+     LOG(logDEBUG, *_pLog) << "_T"<<flush;
+     LOG(logDEBUG, *_pLog) << _T<<flush;
+     
+     }
+     
+     ub::matrix<double> S_small=ub::prod(_T,ub::trans(_T));
+      if(tools::globals::verbose){
+     
+     LOG(logDEBUG, *_pLog) << "S_small"<<flush;
+     LOG(logDEBUG, *_pLog) << S_small<<flush;
     
+     }
+     //orthogonalize that matrix
+     small=linalg_loewdin(_E,S_small);
+     LOG(logDEBUG, *_pLog) << TimeStamp()  << "   Smallest value of dimer overlapmatrix is "<< small<< flush;
+       if(tools::globals::verbose){
+    
+     LOG(logDEBUG, *_pLog) << "S-1/2"<<flush;
+     LOG(logDEBUG, *_pLog) << S_small<<flush;
+      LOG(logDEBUG, *_pLog) << "E_ortho"<<flush;
+     LOG(logDEBUG, *_pLog) << _E<<flush;
+     }
+     _T=ub::prod(_T,S_small);
+   if(tools::globals::verbose){
+    
+     LOG(logDEBUG, *_pLog) << "T_ortho"<<flush;
+     LOG(logDEBUG, *_pLog) << _T<<flush;
+    LOG(logDEBUG, *_pLog) << "---------------------------------------"<<flush;
+     }
+     
+     ub::matrix<double> temp=ub::prod(_T,_E);
+     
+      
+    
+    
+     ub::matrix<double> _J_small=ub::prod(temp,ub::trans(_T));
+     if(tools::globals::verbose){
+    
+     LOG(logDEBUG, *_pLog) << "T_ortho*E_ortho"<<flush;
+     LOG(logDEBUG, *_pLog) << temp<<flush;
+      LOG(logDEBUG, *_pLog) << "T_ortho*E_ortho*T_ortho^T"<<flush;
+     LOG(logDEBUG, *_pLog) << _J_small<<flush;
+     }
      
      
      _J(stateA,stateBd)=_J_small(0,1);
@@ -1269,10 +1400,10 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real>& _kap,const ub::matrix<
      }
      //cout <<_J_small*conv::ryd2ev_f<<endl;
      
-     
+    
          }
      }
-     
+      */
       
      return true;
     
