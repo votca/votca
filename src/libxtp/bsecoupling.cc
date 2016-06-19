@@ -1191,69 +1191,77 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real>& _kap,const ub::matrix<
      
      //Diagonalize ct states
      
-     if (_ct>0){
-     ub::matrix<double> transformation=ub::identity_matrix<double>(_bse_exc+_ct,_bse_exc+_ct);
-     ub::vector<double> eigenvalues_ct;
-     
      
     
-      ub::matrix<double> Ct=ub::project(_J_dimer, ub::range ( _bse_exc, _bse_exc+_ct ),ub::range (_bse_exc,  _bse_exc+_ct  )  );
-      linalg_eigenvalues(eigenvalues_ct,Ct);
-      ub::project(transformation, ub::range ( _bse_exc, _bse_exc+_ct ),ub::range (_bse_exc,  _bse_exc+_ct  )  )=Ct;
-      Ct.resize(0,0);
-    
-     
-   
-     
-     
-      if(tools::globals::verbose){
-          
-        LOG(logDEBUG, *_pLog) << "FE state hamiltonian"<<flush;
-        LOG(logDEBUG, *_pLog) << ub::project(_J_dimer, ub::range ( 0, _bse_exc ),ub::range (  0, _bse_exc  )  )<<flush;
-    if (_ct>0){
-     LOG(logDEBUG, *_pLog) << "eigenvalues of CT states"<<flush;
-     LOG(logDEBUG, *_pLog) << eigenvalues_ct<<flush;
-    }
-   
-     }
-     
-     
-     
-     
+     if (_ct > 0) {
 
-     _temp=ub::prod(_J_dimer,transformation);
-     _J_dimer=ub::prod(ub::trans(transformation),_temp);
-     if(tools::globals::verbose && _bse_exc+_ct<100){
-    LOG(logDEBUG, *_pLog) << "---------------------------------------"<<flush;
-    LOG(logDEBUG, *_pLog) << "_J_ortho[Ryd] CT-state diag"<<flush;
-    LOG(logDEBUG, *_pLog) << _J_dimer<<flush;
-    LOG(logDEBUG, *_pLog) << "---------------------------------------"<<flush;
-    }
-     }
-     
-     
-    
-     
-     
-     
-     
-    for (int stateA=0;stateA<_levA; stateA++){
-          for (int stateB=0;stateB<_levB; stateB++){
-              LOG(logDEBUG, *_pLog) << TimeStamp()  << "   Calculating coupling between exciton A"<< stateA+1<<" and exciton B"<<stateB+1 << flush;
-              int stateBd=stateB+_bseA_exc;
-              double J=_J_dimer(stateA,stateBd);
-              double Ea=_J_dimer(stateA,stateA);
-              double Eb=_J_dimer(stateBd,stateBd);
-              for(unsigned i=_bse_exc;i<(_bse_exc+_ct);i++){
-                  double Eab=_J_dimer(i,i);
-                  J+=_J_dimer(i,stateBd)*_J_dimer(i,stateA)*(1/(Eab-Ea)+1/(Eab-Eb));
-              }          
-             
-       _J(stateA,stateBd)=J;
-       _J(stateBd,stateA)=J;     
-          }
-    
-    }
+                ub::matrix<double> fe_subspace = ub::project(_J_dimer, ub::range(0, _bse_exc), ub::range(0, _bse_exc));
+                ub::vector<double> eigenvalues_fe;
+                linalg_eigenvalues(eigenvalues_fe, fe_subspace);
+                ub::matrix<double> transformation = ub::identity_matrix<double>(_bse_exc + _ct, _bse_exc + _ct);
+                ub::vector<double> eigenvalues_ct;
+
+
+
+                ub::matrix<double> Ct = ub::project(_J_dimer, ub::range(_bse_exc, _bse_exc + _ct), ub::range(_bse_exc, _bse_exc + _ct));
+                linalg_eigenvalues(eigenvalues_ct, Ct);
+                ub::project(transformation, ub::range(_bse_exc, _bse_exc + _ct), ub::range(_bse_exc, _bse_exc + _ct)) = Ct;
+                ub::project(transformation, ub::range(0, _bse_exc), ub::range(0, _bse_exc)) = fe_subspace;
+                Ct.resize(0, 0);
+
+                if (tools::globals::verbose) {
+
+                    LOG(logDEBUG, *_pLog) << "FE state hamiltonian" << flush;
+                    LOG(logDEBUG, *_pLog) << ub::project(_J_dimer, ub::range(0, _bse_exc), ub::range(0, _bse_exc)) << flush;
+                    if (_ct > 0) {
+                        LOG(logDEBUG, *_pLog) << "eigenvalues of CT states" << flush;
+                        LOG(logDEBUG, *_pLog) << eigenvalues_ct << flush;
+                    }
+
+                }
+
+                _temp = ub::prod(_J_dimer, transformation);
+                _J_dimer = ub::prod(ub::trans(transformation), _temp);
+                if (tools::globals::verbose && _bse_exc + _ct < 100) {
+                    LOG(logDEBUG, *_pLog) << "---------------------------------------" << flush;
+                    LOG(logDEBUG, *_pLog) << "_J_ortho[Ryd] CT-state diag" << flush;
+                    LOG(logDEBUG, *_pLog) << _J_dimer << flush;
+                    LOG(logDEBUG, *_pLog) << "---------------------------------------" << flush;
+                }
+
+
+                ub::matrix<double> J_subspace =ub::project(_J_dimer, ub::range(0, _bse_exc), ub::range(0, _bse_exc));
+                for (unsigned i=0;i<_bse_exc;i++) {
+                    for (unsigned j=0;j<i;j++) {
+                       
+                        double J =  J_subspace(i,j);
+                        double Ea =  J_subspace(i,i);
+                        double Eb =  J_subspace(j,j);
+                        for (unsigned k = _bse_exc; k < (_bse_exc + _ct); k++) {
+                            double Eab = _J_dimer(k, k);
+                            J_subspace(i,j)+= _J_dimer(k, j) * _J_dimer(k, i)*(1 / (Eab - Ea) + 1 / (Eab - Eb));
+                        }
+                        J_subspace(j,i)=J_subspace(i,j);    
+                    }
+                }
+               _temp=ub::prod(J_subspace,ub::trans(fe_subspace)) ;
+               J_subspace=ub::prod(fe_subspace,_temp);
+                for (int stateA = 0; stateA < _levA; stateA++) {
+                    for (int stateB = 0; stateB < _levB; stateB++) {
+                        int stateBd = stateB + _bseA_exc;
+                        _J(stateA, stateBd) = J_subspace(stateA, stateBd);
+                        _J(stateBd, stateA) = J_subspace(stateA, stateBd);
+                    }
+                }
+            } else {
+                for (int stateA = 0; stateA < _levA; stateA++) {
+                    for (int stateB = 0; stateB < _levB; stateB++) {
+                        int stateBd = stateB + _bseA_exc;
+                        _J(stateA, stateBd) = _J_dimer(stateA, stateBd);
+                        _J(stateBd, stateA) = _J_dimer(stateA, stateBd);
+                    }
+                }
+            }
      
      if(tools::globals::verbose){
      LOG(logDEBUG, *_pLog) << "---------------------------------------"<<flush;
