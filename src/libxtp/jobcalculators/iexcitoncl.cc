@@ -309,7 +309,7 @@ void IEXCITON::ReadJobFile(Topology *top) {
         if ( (*it)->exists("output") && (*it)->exists("output.pair") ) {
             _current_pairs++;
             // get the output records
-            Property poutput = (*it)->get("output.pair");
+            Property& poutput = (*it)->get("output.pair");
             // id's of two segments of a pair
             int idA = poutput.getAttribute<int>("idA");
             int idB = poutput.getAttribute<int>("idB");
@@ -331,9 +331,9 @@ void IEXCITON::ReadJobFile(Topology *top) {
         }
     } // finished loading from the file
 
-    cout << "Readingdone"<<endl;
+
     // loop over all pairs in the neighbor list
-    std::cout << "Neighborlist size " << top->NBList().size() << std::endl;
+    LOG_SAVE(logINFO, _log) << "Neighborlist size " << top->NBList().size() << flush; 
     for (QMNBList::iterator ipair = top->NBList().begin(); ipair != top->NBList().end(); ++ipair) {
         
         QMPair *pair = *ipair;
@@ -348,8 +348,8 @@ void IEXCITON::ReadJobFile(Topology *top) {
         
         //cout << "\nProcessing pair " << segmentA->getId() << ":" << segmentB->getId() << flush;
         
-        QMPair::PairType _ptype = pair->getType();
-        if ( _ptype == QMPair::Excitoncl){
+        
+        if ( pair->getType() == QMPair::Excitoncl){
         Property* pair_property = records[ pair->getId() ];
  
         list<Property*> pCoupling = pair_property->Select("Coupling");

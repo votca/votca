@@ -143,26 +143,23 @@ bool QMPair::isPathCarrier(int carrier) {
     return result;
 }
 
-
+//only izindo uses this 
 void QMPair::setJs(const std::vector<double> Js, int state) {
-
+    std::vector <double> ::const_iterator it;
+    double Jeff2 = 0.0;
     if (state == -1) {
-        this->_Js_e = Js;
-        //double Jeff2 =
-	(void)this->calcJeff2(state);
+        for (it = Js.begin(); it < Js.end(); ++it) {
+            Jeff2 += (*it)*(*it);
+        }
+        Jeff2 /= double(Js.size());
+        _Jeff2_e = Jeff2; 
     }
     else if (state == +1) {
-        this->_Js_h = Js;
-        //double Jeff2 =
-	(void)this->calcJeff2(state);
-    }
-    else if (state == +2) {
-        this->_Js_s = Js;
-        (void)this->calcJeff2(state);
-    }
-    else if (state == +3) {
-        this->_Js_t = Js;
-        (void)this->calcJeff2(state);
+         for (it = Js.begin(); it < Js.end(); ++it) {
+            Jeff2 += (*it)*(*it);
+        }
+        Jeff2 /= double(Js.size());
+        _Jeff2_h = Jeff2;
     }
     else {
         throw std::runtime_error(" ERROR CODE whx__01x1u__");
@@ -170,49 +167,6 @@ void QMPair::setJs(const std::vector<double> Js, int state) {
 }
 
 
-double QMPair::calcJeff2(int state) {
-
-    std::vector <double> ::iterator it;
-    double Jeff2 = 0.0;
-
-    if (state == -1) {
-        for (it = _Js_e.begin(); it < _Js_e.end(); it++) {
-            Jeff2 += (*it)*(*it);
-        }
-        Jeff2 /= double(_Js_e.size());
-        _Jeff2_e = Jeff2;
-    }
-
-    else if (state == +1) {
-        for (it = _Js_h.begin(); it < _Js_h.end(); it++) {
-            Jeff2 += (*it)*(*it);
-        }
-        Jeff2 /= double(_Js_h.size());
-        _Jeff2_h = Jeff2;
-    }
-    
-    else if (state == +2) {
-        for (it = _Js_s.begin(); it < _Js_s.end(); it++) {
-            Jeff2 += (*it)*(*it);
-        }
-        Jeff2 /= double(_Js_s.size());
-        _Jeff2_s = Jeff2;
-    }
-    
-    else if (state == +3) {
-        for (it = _Js_t.begin(); it < _Js_t.end(); it++) {
-            Jeff2 += (*it)*(*it);
-        }
-        Jeff2 /= double(_Js_t.size());
-        _Jeff2_t = Jeff2;
-    }
-
-    else {
-        throw std::runtime_error(" ERROR CODE whx__01y1v__");
-    }
-    
-    return Jeff2;
-}
 
 void QMPair::setJeff2(double Jeff2, int state) {
 
@@ -243,13 +197,7 @@ void QMPair::setJeff2(double Jeff2, int state) {
      return result;
 }
  
- std::vector<double> &QMPair::Js(int state) {
-     if (state==-1) return _Js_e;
-     else if (state==+1) return _Js_h;
-     else if (state==+2) return _Js_s;
-     else if (state==+3) return _Js_t;
-     else throw std::runtime_error(" ERROR CODE whx__01s1j__");
-     }
+ 
 
 Segment *QMPair::Seg2PbCopy() {
     if (_hasGhost) {

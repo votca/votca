@@ -1077,7 +1077,7 @@ void StateSaverSQLite::ReadAtoms(int topId) {
 
 void StateSaverSQLite::ReadPairs(int topId) {
 
-    cout << ", pairs" << flush;
+    
 
     Statement *stmt = _db.Prepare("SELECT "
                                   "seg1, seg2,"
@@ -1092,10 +1092,10 @@ void StateSaverSQLite::ReadPairs(int topId) {
 
     stmt->Bind(1, topId);
     QMNBList & nblist=_qmtop->NBList();
-    
+
     
     //QMNBList nblisttemp;
-    unsigned i=0;
+    
     while (stmt->Step() != SQLITE_DONE) {
         
         int     s1  = stmt->Column<int>(0);
@@ -1154,11 +1154,12 @@ void StateSaverSQLite::ReadPairs(int topId) {
         newPair->setJeff2(js, +2);
         newPair->setJeff2(jt, +3);
         newPair->setType(tp);
-        i++; 
+        
        
+        
        
     }
-           
+    cout << ", pairs" << flush;       
     //cout<<nblist.size()<<endl;
     
     //cout <<"Read in _qmtop->NBList().size()<<endl;
