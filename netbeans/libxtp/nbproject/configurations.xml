@@ -232,6 +232,7 @@
       <itemPath>../../src/libxtp/hgversion.h</itemPath>
       <itemPath>../../src/libxtp/job.cc</itemPath>
       <itemPath>../../src/libxtp/kmclifetime.cc</itemPath>
+      <itemPath>../../src/libxtp/mulliken.cc</itemPath>
       <itemPath>../../src/libxtp/orbitals.cc</itemPath>
       <itemPath>../../src/libxtp/overlap.cc</itemPath>
       <itemPath>../../src/libxtp/parallelpaircalc.cc</itemPath>
@@ -912,6 +913,8 @@
       <item path="../../src/libxtp/kmclifetime.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/molecule.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/mulliken.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/numerical_integration/numerical_integrations.cc"
             ex="false"
@@ -1709,6 +1712,8 @@
       <item path="../../src/libxtp/kmclifetime.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/molecule.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/mulliken.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/numerical_integration/numerical_integrations.cc"
             ex="false"

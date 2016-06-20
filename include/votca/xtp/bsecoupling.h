@@ -85,9 +85,11 @@ private:
     
     ub::matrix<real> JAB_singlet;
     ub::matrix<real> JAB_triplet;
-    string _spintype;
+
     bool _doTriplets;
     bool _doSinglets;
+    bool _do_perturbation;
+    bool _do_full_diag;
     int _levA;
     int _levB;
     int _occA;
