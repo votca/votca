@@ -407,6 +407,8 @@
       </item>
       <item path="../../include/votca/xtp/mulliken.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/nbo.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/numerical_integrations.h"
             ex="false"
             tool="3"
@@ -907,6 +909,8 @@
       </item>
       <item path="../../src/libxtp/molecule.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/nbo.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/numerical_integration/numerical_integrations.cc"
             ex="false"
             tool="1"
@@ -1199,6 +1203,8 @@
       <item path="../../include/votca/xtp/molecule.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/mulliken.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/nbo.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/numerical_integrations.h"
             ex="false"
@@ -1699,6 +1705,8 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/molecule.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/nbo.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/numerical_integration/numerical_integrations.cc"
             ex="false"
