@@ -178,40 +178,6 @@ void BSECoupling::addoutput(Property *_type_summary,Orbitals* _orbitalsA,
 }
 
 
-
-/*
- * Calculates S^{-1/2}
- */
-void BSECoupling::SQRTOverlap(ub::symmetric_matrix<double> &S, 
-                          ub::matrix<double> &S2 ) {
-       
-    //double (*_inv_sqrt)(double);
-    //_inv_sqrt = &inv_sqrt;
-
-    ub::vector<double>                  _eigenvalues;
-    ub::matrix<double>                  _eigenvectors;
-
-    int _size = S.size1(); 
-
-    _eigenvalues.resize( _size );
-    _eigenvectors.resize( _size, _size ); 
-    
-    votca::tools::linalg_eigenvalues_symmetric(S, _eigenvalues, _eigenvectors);
-    
-    // compute inverse sqrt of all eigenvalues
-    // std::transform(_eigenvalues.begin(), _eigenvalues.end(), _eigenvalues.begin(),  _inv_sqrt );
-
-    // form a diagonal matrix S^{-1/2}
-    ub::diagonal_matrix<double> _diagS2( _eigenvalues.size(), _eigenvalues.data() ); 
-
-    // multiply from the left on the U
-    ub::matrix<double> _temp = ub::prod( _eigenvectors, _diagS2 );
-    
-    // multiply from the right on the transpose U
-    S2 = ub::prod( _temp, ub::trans( _eigenvectors ) );
-    
- }
-
 real BSECoupling::getSingletCouplingElement( int levelA, int levelB) {
 
     
@@ -1360,9 +1326,9 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real>& _kap,const ub::matrix<
     for (unsigned i = 0; i < 2; i++) {
     unsigned k=index[i];
     double sign=signvec[i];       
-           
-           _T(0,i ) = sign*_J_dimer(stateA,k);//* normr;
-           _T(1,i ) = sign*_J_dimer(stateBd,k);//*normr;
+    double normr=1/std::sqrt(_J_dimer(stateA,k)*_J_dimer(stateA,k)+_J_dimer(stateBd,k)*_J_dimer(stateBd,k));
+           _T(0,i ) = sign*_J_dimer(stateA,k)* normr;
+           _T(1,i ) = sign*_J_dimer(stateBd,k)*normr;
            _E(i,i)=_J_eigenvalues(k);
        }
      
@@ -1398,6 +1364,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real>& _kap,const ub::matrix<
      LOG(logDEBUG, *_pLog) << _E<<flush;
      }
      _T=ub::prod(_T,S_small);
+     //cout <<  ub::prod(_T,ub::trans(_T))<<endl;
    if(tools::globals::verbose){
     
      LOG(logDEBUG, *_pLog) << "T_ortho"<<flush;

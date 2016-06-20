@@ -74,9 +74,7 @@ public:
 private:
     
     Logger *_pLog;
-    
-    void SQRTOverlap(ub::symmetric_matrix<double> &S, 
-                     ub::matrix<double> &Sm2);
+  
     
     bool ProjectExcitons(const ub::matrix<real>& _kap,const ub::matrix<real>& _kbp, 
                          const ub::matrix<real>& ctAB,const ub::matrix<real>& ctBA, 

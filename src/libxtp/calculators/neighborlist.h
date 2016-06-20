@@ -68,7 +68,6 @@ private:
     string                            _probabilityfile;
     bool                              _stochastic_connectivity;
     bool                              _generate_unsafe;
-    int                               _openmp_threads;
     bool                              _do_bridging;
     std::list<QMNBList::SuperExchangeType*>        _superexchange;
 
