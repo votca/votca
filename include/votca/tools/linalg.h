@@ -185,38 +185,7 @@ namespace votca { namespace tools {
      * This function calculates the loewdin transformation of a matrix
      */
    double linalg_loewdin(ub::matrix<double> &J, ub::matrix<double> &S);
-   
-   template<class matrix_T>
-    double linalg_det(ub::matrix_expression<matrix_T> const& mat_r)
-    {
-      double det = 1.0;
 
-      matrix_T mLu(mat_r() );
-      ub::permutation_matrix<std::size_t> pivots(mat_r().size1() );
-
-      int is_singular = ub::lu_factorize(mLu, pivots);
-
-      if (!is_singular)
-      {
-        for (std::size_t i=0; i < pivots.size(); ++i)
-        {
-          if (pivots(i) != i)
-            det *= -1.0;
-
-          det *= mLu(i,i);
-        }
-      }
-      else
-        det = 0.0;
-
-      return det;
-    } 
-   
-   /**
-     * \brief calculates determinant of S
-     * @param S matrix, to calculate S of   
-     * This function returns determinant of S
-     */
 
 }}
 
