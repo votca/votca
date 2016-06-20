@@ -71,7 +71,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/f632c409/iexcitoncl.o \
 	${OBJECTDIR}/_ext/f632c409/igwbse.o \
 	${OBJECTDIR}/_ext/1ce08c7a/molecule.o \
-	${OBJECTDIR}/_ext/1ce08c7a/nbo.o \
 	${OBJECTDIR}/_ext/4d261038/numerical_integrations.o \
 	${OBJECTDIR}/_ext/4d261038/radial_euler_maclaurin_rule.o \
 	${OBJECTDIR}/_ext/4d261038/sphere_lebedev_rule.o \
@@ -324,11 +323,6 @@ ${OBJECTDIR}/_ext/1ce08c7a/molecule.o: nbproject/Makefile-${CND_CONF}.mk ../../s
 	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce08c7a/molecule.o ../../src/libxtp/molecule.cc
-
-${OBJECTDIR}/_ext/1ce08c7a/nbo.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/nbo.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
-	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce08c7a/nbo.o ../../src/libxtp/nbo.cc
 
 ${OBJECTDIR}/_ext/4d261038/numerical_integrations.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/numerical_integration/numerical_integrations.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/4d261038

@@ -909,8 +909,6 @@
       </item>
       <item path="../../src/libxtp/molecule.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/nbo.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/numerical_integration/numerical_integrations.cc"
             ex="false"
             tool="1"
@@ -1705,8 +1703,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/molecule.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/nbo.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/numerical_integration/numerical_integrations.cc"
             ex="false"
