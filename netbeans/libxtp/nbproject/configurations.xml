@@ -153,6 +153,8 @@
       <itemPath>../../include/votca/xtp/xtpapplication.h</itemPath>
     </logicalFolder>
     <logicalFolder name="f2" displayName="QMPackages" projectFiles="true">
+      <itemPath>../../src/libxtp/qmpackages/cpmd.cc</itemPath>
+      <itemPath>../../src/libxtp/qmpackages/cpmd.h</itemPath>
       <itemPath>../../src/libxtp/qmpackages/gaussian.cc</itemPath>
       <itemPath>../../src/libxtp/qmpackages/gaussian.h</itemPath>
       <itemPath>../../src/libxtp/qmpackages/nwchem.cc</itemPath>
@@ -220,6 +222,7 @@
       <itemPath>../../src/libxtp/aoshell.cc</itemPath>
       <itemPath>../../src/libxtp/apolarsite.cc</itemPath>
       <itemPath>../../src/libxtp/bsecoupling.cc</itemPath>
+      <itemPath>../../src/libxtp/esp2multipole.cc</itemPath>
       <itemPath>../../src/libxtp/espfit.cc</itemPath>
       <itemPath>../../src/libxtp/ewald2d.cc</itemPath>
       <itemPath>../../src/libxtp/ewald3d.cc</itemPath>
@@ -230,6 +233,7 @@
       <itemPath>../../src/libxtp/gsl_boost_ublas_matrix_prod.cc</itemPath>
       <itemPath>../../src/libxtp/hgversion.h</itemPath>
       <itemPath>../../src/libxtp/job.cc</itemPath>
+      <itemPath>../../src/libxtp/nbo.cc</itemPath>
       <itemPath>../../src/libxtp/orbitals.cc</itemPath>
       <itemPath>../../src/libxtp/overlap.cc</itemPath>
       <itemPath>../../src/libxtp/parallelpaircalc.cc</itemPath>
@@ -766,6 +770,8 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/esp2multipole.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/espfit.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/ewaldactor.cc" ex="false" tool="1" flavor2="0">
@@ -907,6 +913,8 @@
       </item>
       <item path="../../src/libxtp/molecule.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/nbo.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/numerical_integration/numerical_integrations.cc"
             ex="false"
             tool="1"
@@ -970,6 +978,13 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/libxtp/qmpackages/cpmd.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/qmpackages/cpmd.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmpackages/gaussian.cc"
             ex="false"
@@ -1559,6 +1574,8 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/esp2multipole.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/espfit.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/ewaldactor.cc" ex="false" tool="1" flavor2="0">
@@ -1700,6 +1717,8 @@
       </item>
       <item path="../../src/libxtp/molecule.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/nbo.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/numerical_integration/numerical_integrations.cc"
             ex="false"
             tool="1"
@@ -1763,6 +1782,13 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/libxtp/qmpackages/cpmd.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/qmpackages/cpmd.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmpackages/gaussian.cc"
             ex="false"

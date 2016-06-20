@@ -32,6 +32,7 @@ void Esp2multipole::Initialize(Property* options) {
     _use_CHELPG=false;
     _use_GDMA=false;
     _use_CHELPG_SVD=false;
+    _use_NBO=false;
          
     _state     = options->get(key + ".state").as<string> (); 
     _state_no     = options->get(key + ".statenumber").as<int> ();
@@ -46,6 +47,7 @@ void Esp2multipole::Initialize(Property* options) {
          else if(_method=="CHELPG")_use_CHELPG=true; 
          else if(_method=="GDMA") throw std::runtime_error("GDMA not implemented yet");
          else if(_method=="CHELPG_SVD") throw std::runtime_error("CHELPG_SVD not implemented yet"); 
+         else if(_method=="NBO") throw std::runtime_error("NBO not implemented yet."); //_use_NBO=true;
          else  throw std::runtime_error("Method not recognized. Only Mulliken and CHELPG implemented");
          }
     else _use_CHELPG=true;
@@ -196,6 +198,15 @@ void Esp2multipole::Extractingcharges( Orbitals& _orbitals ){
                 esp.Fit2Density(Atomlist, DMAT_tot, basis,bs,_gridsize); 
             }
             else if (_integrationmethod=="analytic")  esp.Fit2Density_analytic(Atomlist,DMAT_tot,basis);
+        }
+        else if(_use_NBO){
+            std::cout<<"WARNING: NBO analysis isn't fully implemented yet."<<std::endl;
+            std::cout<<"WARNING: NBO analysis is only compatible with systems obtained from CPMD at the moment."<<std::endl;
+            //LOG(logDEBUG, _log) << "Initializing NBO" << flush;
+            Nbo nbo=Nbo(_log);
+            nbo.setUseECPs(_use_ecp);
+            nbo.LoadMatrices("", "");
+            nbo.Evaluate(Atomlist, DMAT_tot, basis,bs);
         }
 }       
 
