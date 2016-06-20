@@ -30,7 +30,7 @@ void NBO::EvaluateNBO(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AO
     _overlap.Fill(&basis);
     
     ub::matrix<double> _prodmat = ub::prod( _dmat, _overlap._aomatrix );
-    
+    ub::matrix<double> P=ub::prod(_overlap._aomatrix,_dmat);
     vector < QMAtom* > :: iterator atom;
 
     int id =0;
@@ -38,7 +38,7 @@ void NBO::EvaluateNBO(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AO
                 
     
          // get element type and determine its nuclear charge
-         if (!_do_transition){
+        
              if (_use_ecp){
              (*atom)->charge=_elements.getNucCrgECP((*atom)->type);
              }
