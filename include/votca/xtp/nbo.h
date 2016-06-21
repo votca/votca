@@ -23,10 +23,11 @@
 
 #include <votca/xtp/elements.h>
 #include <votca/xtp/aobasis.h>
+#include <votca/xtp/logger.h>
 
 
 /**
-* \brief Takes a list of atoms, and the corresponding density matrix and puts out a table of partial charges
+* \brief Takes a list of atoms, and the corresponding density and overlap matrices and puts out a table of partial charges
 *
 * 
 * 

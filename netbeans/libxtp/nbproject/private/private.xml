@@ -11,10 +11,18 @@
         <file>file:/home/jens/votca_git/src/xtp/src/libxtp/gwbse/gwbse.cc</file>
         <file>file:/home/bbaumeie/votca/src/xtp/src/libxtp/qmpackages/nwchem.cc</file>
         <group>
-            <file>file:/home/bbaumeie/votca/src/xtp/include/votca/xtp/gwbse.h</file>
-            <file>file:/home/bbaumeie/votca/src/xtp/src/libxtp/tools/spectrum.h</file>
-            <file>file:/home/bbaumeie/votca/src/xtp/src/libxtp/gwbse/bse.cc</file>
-            <file>file:/home/bbaumeie/votca/src/xtp/src/libxtp/gwbse/gwbse.cc</file>
+            <file>file:/home/yuriy/soft/votca/src/xtp/src/libxtp/tools/partialcharges.h</file>
+            <file>file:/home/yuriy/soft/votca/src/xtp/src/libxtp/qmpackages/cpmd.h</file>
+            <file>file:/home/yuriy/soft/votca/src/xtp/include/votca/xtp/basisset.h</file>
+            <file>file:/home/yuriy/soft/votca/src/xtp/src/libxtp/qmpackages/gaussian.h</file>
+            <file>file:/home/yuriy/soft/votca/src/xtp/include/votca/xtp/aobasis.h</file>
+            <file>file:/home/yuriy/soft/votca/src/xtp/src/libxtp/aomatrices/aocoulomb.cc</file>
+            <file>file:/home/yuriy/soft/votca/src/xtp/include/votca/xtp/nbo.h</file>
+            <file>file:/home/yuriy/soft/votca/src/xtp/src/libxtp/nbo.cc</file>
+            <file>file:/home/yuriy/soft/votca/src/xtp/include/votca/xtp/qmpackage.h</file>
+            <file>file:/home/yuriy/soft/votca/src/xtp/src/libxtp/aobasis.cc</file>
+            <file>file:/home/yuriy/soft/votca/src/xtp/include/votca/xtp/esp2multipole.h</file>
+            <file>file:/home/yuriy/soft/votca/src/xtp/src/libxtp/esp2multipole.cc</file>
         </group>
     </open-files>
 </project-private>

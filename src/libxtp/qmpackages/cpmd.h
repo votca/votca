@@ -40,12 +40,17 @@ class Cpmd : public QMPackage
 {
 public:   
 
-   std::string getPackageName() { return "cpmd"; }
+   std::string getPackageName() { return "gaussian"; }
 
    void Initialize( Property *options );
 
-   /* Writes CPMD input file */
+   /* Writes Gaussian input file with coordinates of segments
+    * and a guess for the dimer (if requested) constructed from the
+    * monomer orbitals
+    */
    bool WriteInputFile( std::vector< Segment* > segments, Orbitals* orbitals_guess = NULL);
+   
+   bool WriteShellScript();
 
    bool Run();
 
@@ -54,6 +59,14 @@ public:
    bool CheckLogFile();
 
    bool ParseLogFile( Orbitals* _orbitals );
+
+   bool ParseOrbitalsFile( Orbitals* _orbitals );
+   
+   bool ConvertToGW( Orbitals* _orbitals );
+      
+   std::string getScratchDir( ) { return _scratch_dir; }
+   
+   bool loadMatrices(void);
    
 private:  
 
@@ -63,6 +76,27 @@ private:
     std::string                              _input_vxc_file_name;    
     std::string                              _cleanup;
     std::string                              _vdWfooter;
+    
+    
+    bool _rsrt;             //have data from previous run of CPMD we want to reuse
+    bool _optWF;            //optimize wavefunction
+    bool _elpot;            //calculate and output electrostatic potential (needs conversion with cpmd2cube.x)
+    bool _projectWF;        //project wavefunction onto localized atomic orbitals
+    bool _popAnalysis;      //do population analysis, required to extract WF coefficients in atomic basis
+    bool _getMat;           //get density and overlap matrices, requires _popAnalysis and _projectWF
+    double _pwCutoff;       //plane wave cutoff (in Ry)
+    double _convCutoff;     //cutoff for MO convergence
+    int _symmetry;          //symmetry number (0=isolated, 1=simple cubic, 2=FCC, 3=BCC, ... check CPMD manual under "SYMETRY")
+    std::string _cell;      //cell dimensions, check CPMD manual under "CELL"
+    std::string _functional;//BLYP, B3LYP, HCTH, LDE, etc.
+    std::string _rsrt_kwds; //what parts to reuse from previous run
+    
+    /*
+    std::vector<std::string> _bsFileNames;          //basis set file names
+    std::vector<std::string> _ppFileNames;          //pseudopotential file names
+    std::vector<int> _element_Lmax;                 //max L of each element
+    */
+    
 
     int NumberOfElectrons( std::string _line ); 
     int BasisSetSize( std::string _line ); 
@@ -71,6 +105,7 @@ private:
     int NumbfQC( std::string _shell_type);
     int NumbfGW( std::string _shell_type);
     int NumbfQC_cart( std::string _shell_type);
+    void WriteBasisSet(std::vector<Segment* > segments, ofstream &_com_file);
 
     
     

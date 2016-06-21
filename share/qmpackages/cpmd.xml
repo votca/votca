@@ -1,0 +1,19 @@
+<package>
+  <name>cpmd</name>
+  <executable>cpmd.x</executable>
+  <scratch></scratch>
+  <memory>1Gb</memory>
+  <cleanup></cleanup>
+  
+  <restart>WAVEFUNCTION COORDINATES LATEST</restart>
+  <optimizewf>1.0e-7</optimizewf>
+  <pwcutoff>90.0</pwcutoff>
+  <elpot>1</elpot>
+  <projectwf>1</projectwf>
+  <popanalysis>1</popanalysis>
+  <getmatrices>1</getmatrices>
+  <functional>HCTH</functional>
+  <symmetry>0</symmetry>
+  <cell>20.0   1.0   1.0  0.0  0.0  0.0</cell>
+  
+</package>
