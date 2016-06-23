@@ -32,7 +32,7 @@ void Esp2multipole::Initialize(Property* options) {
     _use_CHELPG=false;
     _use_GDMA=false;
     _use_CHELPG_SVD=false;
-         
+    _use_lowdin=false;     
     _state     = options->get(key + ".state").as<string> (); 
     _state_no     = options->get(key + ".statenumber").as<int> ();
     _spin     = options->get(key + ".spin").as<string> ();
@@ -41,12 +41,12 @@ void Esp2multipole::Initialize(Property* options) {
     }
     if ( options->exists(key+".method")) {
          _method = options->get(key + ".method").as<string> ();
-         if (_method=="Mulliken")_use_mulliken=true; 
-         else if(_method=="mulliken")_use_mulliken=true; 
+         if (_method=="Mulliken" || _method=="mulliken")_use_mulliken=true; 
+         else if(_method=="loewdin" || _method=="Loewdin") _use_lowdin=true;
          else if(_method=="CHELPG")_use_CHELPG=true; 
          else if(_method=="GDMA") throw std::runtime_error("GDMA not implemented yet");
          else if(_method=="CHELPG_SVD") throw std::runtime_error("CHELPG_SVD not implemented yet"); 
-         else  throw std::runtime_error("Method not recognized. Only Mulliken and CHELPG implemented");
+         else  throw std::runtime_error("Method not recognized. Only Mulliken,Loewdin and CHELPG implemented");
          }
     else _use_CHELPG=true;
     if (!_use_mulliken){
@@ -185,6 +185,11 @@ void Esp2multipole::Extractingcharges( Orbitals& _orbitals ){
             mulliken.setUseECPs(_use_ecp);
             mulliken.EvaluateMulliken(Atomlist, DMAT_tot, basis, bs, _do_transition);
                 
+        }   
+        if (_use_lowdin) {
+            Lowdin lowdin;
+            lowdin.setUseECPs(_use_ecp);
+            lowdin.EvaluateLowdin(Atomlist, DMAT_tot, basis, bs, _do_transition);              
         }
         else if (_use_CHELPG){         
             Espfit esp=Espfit(_log);

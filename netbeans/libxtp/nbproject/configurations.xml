@@ -357,6 +357,11 @@
       </item>
       <item path="../../include/votca/xtp/elements.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/esp2multipole.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/espfit.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/ewdspace.h" ex="false" tool="3" flavor2="0">
@@ -398,6 +403,8 @@
       </item>
       <item path="../../include/votca/xtp/logger.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/lowdin.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/mkl_boost_ublas_matrix_prod.h"
             ex="false"
             tool="3"
@@ -406,8 +413,6 @@
       <item path="../../include/votca/xtp/molecule.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/mulliken.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/nbo.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/numerical_integrations.h"
             ex="false"
@@ -907,7 +912,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/lowdin.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/molecule.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/nbo.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/numerical_integration/numerical_integrations.cc"
             ex="false"
@@ -1152,6 +1161,11 @@
       </item>
       <item path="../../include/votca/xtp/elements.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/esp2multipole.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/espfit.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/ewdspace.h" ex="false" tool="3" flavor2="0">
@@ -1193,6 +1207,8 @@
       </item>
       <item path="../../include/votca/xtp/logger.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/lowdin.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/mkl_boost_ublas_matrix_prod.h"
             ex="false"
             tool="3"
@@ -1201,8 +1217,6 @@
       <item path="../../include/votca/xtp/molecule.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/mulliken.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/nbo.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/numerical_integrations.h"
             ex="false"
@@ -1702,7 +1716,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/lowdin.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/molecule.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/nbo.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/numerical_integration/numerical_integrations.cc"
             ex="false"

@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <votca/xtp/espfit.h>
 #include <votca/xtp/mulliken.h>
+#include <votca/xtp/lowdin.h>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/qmmachine.h>
 #include <boost/filesystem.hpp>
@@ -58,6 +59,7 @@ private:
     bool        _use_mps;
     bool        _use_pdb;
     bool        _use_mulliken;
+    bool        _use_lowdin;
     bool        _use_CHELPG;
     bool        _use_GDMA;
     bool        _use_CHELPG_SVD;
