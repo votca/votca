@@ -34,8 +34,7 @@ void NBO::EvaluateNBO(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AO
     
     
     ub::matrix<double> P=ub::prod(_overlap._aomatrix,_prodmat);
-    std::vector< ub::matrix<double> > P_block;
-    std::vector< ub::matrix<double> > S_block;
+   
     
     
     

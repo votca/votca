@@ -649,7 +649,7 @@ namespace votca {
             if (_cleanup.size() != 0) {
 
                 LOG(logDEBUG, *_pLog) << "Removing " << _cleanup << " files" << flush;
-                Tokenizer tok_cleanup(_cleanup, ",");
+                Tokenizer tok_cleanup(_cleanup, ", ");
                 std::vector <std::string> _cleanup_info;
                 tok_cleanup.ToVector(_cleanup_info);
 

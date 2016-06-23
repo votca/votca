@@ -32,7 +32,7 @@
 #include <boost/numeric/ublas/vector_proxy.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <votca/tools/constants.h>
-
+#include <boost/format.hpp>
 #include <boost/progress.hpp>
 
 namespace votca { namespace xtp {
@@ -40,6 +40,7 @@ namespace votca { namespace xtp {
 namespace ub = boost::numeric::ublas;
 
 double inv_sqrt(double x) { return 1./sqrt(x); }
+using boost::format;
 
 /*
  * Calculates S^{-1/2}
@@ -135,7 +136,7 @@ bool Overlap::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
             monomer=atomsB[i-atomsA.size()];
         }
         else{
-            throw runtime_error((boost::format("Number of Atoms in dimer %3i and the two monomers A:%3i B:%3i does not agree") %atomsAB.size() %atomsA.size() %atomsB.size()).str());
+            throw runtime_error((format("Number of Atoms in dimer %3i and the two monomers A:%3i B:%3i does not agree") %atomsAB.size() %atomsA.size() %atomsB.size()).str());
         }
         
         if(monomer->type != dimer->type){

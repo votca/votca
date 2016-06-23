@@ -559,7 +559,7 @@ void PolarBackground::RThread::FP_FieldCalc() {
     
     // CLEAR POLAR NEIGHBOR-LIST BEFORE SET-UP
     if (_do_setup_nbs) {
-        if (_verbose) {
+        if (votca::tools::globals::verbose) {
             LOG(logDEBUG,*(_master->_log)) 
                 << "   - Clearing polar nb-list" << endl;
         }
@@ -573,7 +573,7 @@ void PolarBackground::RThread::FP_FieldCalc() {
     
     for (sit1 = _part_bg_P.begin(); sit1 < _part_bg_P.end(); ++sit1) {
         PolarSeg *pseg1 = *sit1;
-        if (_verbose) {
+        if (votca::tools::globals::verbose) {
             LOG(logDEBUG,*(_master->_log))
                 << "\rMST DBG     - Progress " << pseg1->getId() 
                 << "/" << _full_bg_P.size() << flush;
@@ -717,7 +717,7 @@ void PolarBackground::RThread::FU_FieldCalc() {
     if (_do_setup_nbs) {
         
         // CLEAR POLAR NEIGHBOR-LIST BEFORE SET-UP
-        if (_verbose) {
+        if (votca::tools::globals::verbose) {
             LOG(logDEBUG,*(_master->_log)) 
                 << "   - Clearing polar nb-list" << endl;
         }
@@ -730,7 +730,7 @@ void PolarBackground::RThread::FU_FieldCalc() {
 
         for (sit1 = _part_bg_P.begin(); sit1 < _part_bg_P.end(); ++sit1) {
             PolarSeg *pseg1 = *sit1;
-            if (_verbose) {
+            if (votca::tools::globals::verbose) {
                 LOG(logDEBUG,*(_master->_log))
                     << "\rMST DBG     - Progress " << pseg1->getId() 
                     << "/" << _full_bg_P.size() << flush;
@@ -866,7 +866,7 @@ void PolarBackground::RThread::FU_FieldCalc() {
         int rms_count = 0;
         for (sit1 = _part_bg_P.begin(); sit1 < _part_bg_P.end(); ++sit1) {
             PolarSeg *pseg1 = *sit1;
-            if (_verbose) {
+            if (votca::tools::globals::verbose) {
                 LOG(logDEBUG,*(_master->_log))
                     << "\rMST DBG     - Progress " << pseg1->getId() 
                     << "/" << _full_bg_P.size() << flush;
@@ -953,7 +953,7 @@ void PolarBackground::FX_RealSpace(string mode, bool do_setup_nbs) {
         total_nbs_count += (*sit1)->PolarNbs().size();
     LOG(logDEBUG,*_log) << "    - Real-space nb-list set: <nbs/seg> = " 
         << (double)total_nbs_count/_bg_P.size() << flush;
-    if (_bg_P.size() > 288+1)
+    if (_bg_P.size() > 288+1)//why
         _bg_P[288]->PrintPolarNbPDB("seg289.pdb");
     else {
         _bg_P[0]->PrintPolarNbPDB("seg1.pdb");
@@ -978,7 +978,7 @@ void PolarBackground::KThread::SP_SFactorCalc() {
         EWD::cmplx sfactor
             = _ewdactor.PStructureAmplitude(_full_bg_P, (*kit)->getK());
         (*kit)->setStructureFactor(sfactor);
-        if (_verbose) {
+        if (votca::tools::globals::verbose) {
             LOG(logDEBUG,*(_master->_log))
                 << "\rMST DBG     - " << _current_mode << "(SP) Progress " << kvec_count
                 << "/" << _part_kvecs.size() << flush;
@@ -1006,7 +1006,7 @@ void PolarBackground::KThread::FP_KFieldCalc() {
         EWD::cmplx f_rms = _ewdactor.FP12_At_ByS2(k, _part_bg_P, S, rV);
         _rms_sum_re += f_rms._re;
         _sum_im += f_rms._im;
-        if (_verbose) {
+        if (votca::tools::globals::verbose) {
             LOG(logDEBUG,*(_master->_log))
                 << "\rMST DBG     - " << _current_mode << "(FP) Progress " << kvec_count
                 << "/" << _full_kvecs.size() << flush;
@@ -1027,7 +1027,7 @@ void PolarBackground::KThread::SU_SFactorCalc() {
         EWD::cmplx sfactor
             = _ewdactor.UStructureAmplitude(_full_bg_P, (*kit)->getK());
         (*kit)->setStructureFactor(sfactor);
-        if (_verbose) {
+        if (votca::tools::globals::verbose) {
             LOG(logDEBUG,*(_master->_log))
                 << "\rMST DBG     - " << _current_mode << "(SU) Progress " << kvec_count
                 << "/" << _part_kvecs.size() << flush;
@@ -1055,7 +1055,7 @@ void PolarBackground::KThread::FU_KFieldCalc() {
         EWD::cmplx f_rms = _ewdactor.FU12_At_ByS2(k, _part_bg_P, S, rV);
         _rms_sum_re += f_rms._re;
         _sum_im += f_rms._im;
-        if (_verbose) {
+        if (votca::tools::globals::verbose) {
             LOG(logDEBUG,*(_master->_log))
                 << "\rMST DBG     - " << _current_mode << "(FU) Progress " << kvec_count
                 << "/" << _full_kvecs.size() << flush;

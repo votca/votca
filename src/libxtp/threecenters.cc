@@ -47,7 +47,7 @@ namespace votca {
          */
         bool TCrawMatrix::FillThreeCenterOLBlock(ub::matrix<double>& _subvector, AOShell* _shell_gw, AOShell* _shell_alpha, AOShell* _shell_gamma) {
 	  //bool TCrawMatrix::FillThreeCenterOLBlock(ub::matrix<float>& _subvector, AOShell* _shell_gw, AOShell* _shell_alpha, AOShell* _shell_gamma) {
-            
+            const double pi = boost::math::constants::pi<double>();
               // get shell positions
             const vec& _pos_gw = _shell_gw->getPos();
             const vec& _pos_alpha = _shell_alpha->getPos();
@@ -76,6 +76,9 @@ namespace votca {
             
                 for ( GaussianIterator itgamma = _shell_gamma->firstGaussian(); itgamma != _shell_gamma->lastGaussian(); ++itgamma){
                     const double& _decay_gamma = (*itgamma)->decay;
+                    // check third threshold
+                    vec _diff = _pos_alpha - _pos_gamma;
+                    double test = _decay_alpha * _decay_gamma * _diff*_diff;
                     
                     for ( GaussianIterator itgw = _shell_gw->firstGaussian(); itgw != _shell_gw->lastGaussian(); ++itgw){
             // get decay constants (this all is still valid only for uncontracted functions)
@@ -83,11 +86,12 @@ namespace votca {
             
  
             double threshold = -(_decay_alpha + _decay_gamma + _decay_gw) * log(gwaccuracy);
-
+            // check third threshold
+            if (test > threshold) { continue; }
             // check first threshold
-            vec _diff = _pos_alpha - _pos_gw;
+            _diff = _pos_alpha - _pos_gw;
             
-            double test = _decay_alpha * _decay_gw * _diff*_diff;
+            test += _decay_alpha * _decay_gw * _diff*_diff;
             if (test > threshold) { continue; }
 
             // check second threshold
@@ -95,18 +99,29 @@ namespace votca {
             test += _decay_gamma * _decay_gw * _diff*_diff;
             if (test > threshold) { continue; }
 
-            // check third threshold
-            _diff = _pos_alpha - _pos_gamma;
-            test += _decay_alpha * _decay_gamma * _diff*_diff;
-            if (test > threshold) { continue; }
+            
+            
+            
 
             // if all threshold test are passed, start evaluating
 
             // some helpers
             double fak = 0.5 / (_decay_alpha + _decay_gw + _decay_gamma);
             double fak2 = 2.0 * fak;
-            double fak3 = 3.0 * fak;
+            
             //double fak4=  4.0 * fak;
+            
+            double expo = _decay_alpha * _decay_gamma * (_pos_alpha - _pos_gamma)*(_pos_alpha - _pos_gamma)
+                    + _decay_gamma * _decay_gw * (_pos_gamma - _pos_gw) * (_pos_gamma - _pos_gw)
+                    + _decay_alpha * _decay_gw * (_pos_alpha - _pos_gw) * (_pos_alpha - _pos_gw);
+
+            
+            double prefak = pow(8.0 * _decay_alpha * _decay_gamma * _decay_gw / pi, 0.75) * pow(fak2, 1.5);
+
+            double value = prefak * exp(-fak2 * expo);
+            double fak3 = 3.0 * fak;
+            // check if it contributes
+            if (value < gwaccuracy) { continue; }
 
             //double _dist1=(_pos_alpha - _pos_gamma)*(_pos_alpha - _pos_gamma);
             //double _dist2=(_pos_gamma - _pos_gw) * (_pos_gamma - _pos_gw);
@@ -118,46 +133,21 @@ namespace votca {
             vec gmb = gvv - _pos_gamma;
             vec gmc = gvv - _pos_gw; 
             
-            double gma0 = 0.0;
-            double gmb0 = 0.0;
-            double gmc0 = 0.0;
+            double gma0 = gma.getX();
+            double gmb0 = gmb.getX();
+            double gmc0 = gmc.getX();
 
-            double gma1 = 0.0;
-            double gmb1 = 0.0;
-            double gmc1 = 0.0;
+            double gma1 = gma.getY();
+            double gmb1 = gmb.getY();
+            double gmc1 = gmc.getY();
 
-            double gma2 = 0.0;
-            double gmb2 = 0.0;
-            double gmc2 = 0.0;
-             
-            //if ((_dist1 + _dist2 + _dist3)>0.01){
-          
-           
-            gma0 = gma.getX();
-            gmb0 = gmb.getX();
-            gmc0 = gmc.getX();
+            double gma2 = gma.getZ();
+            double gmb2 = gmb.getZ();
+            double gmc2 = gmc.getZ();
 
-            gma1 = gma.getY();
-            gmb1 = gmb.getY();
-            gmc1 = gmc.getY();
-
-            gma2 = gma.getZ();
-            gmb2 = gmb.getZ();
-            gmc2 = gmc.getZ();
-
-            //}
+            
             // get s-s-s element
-            double expo = _decay_alpha * _decay_gamma * (_pos_alpha - _pos_gamma)*(_pos_alpha - _pos_gamma)
-                    + _decay_gamma * _decay_gw * (_pos_gamma - _pos_gw) * (_pos_gamma - _pos_gw)
-                    + _decay_alpha * _decay_gw * (_pos_alpha - _pos_gw) * (_pos_alpha - _pos_gw);
-
-            const double pi = boost::math::constants::pi<double>();
-            double prefak = pow(8.0 * _decay_alpha * _decay_gamma * _decay_gw / pi, 0.75) * pow(fak2, 1.5);
-
-            double value = prefak * exp(-fak2 * expo);
-
-            // check if it contributes
-            if (value < gwaccuracy) { continue; }
+            
 
             _does_contribute = true;
             // if it does, go on and create multiarray
@@ -168,18 +158,20 @@ namespace votca {
             ma_type S;
             S.resize(extents[ range(1, _nalpha + 1) ][ range(1, _ngw + 1) ][ range(1, _ngamma + 1)]);
 
+            //cout << S.shape()[0]<< " : "<< S.shape()[1]<< " : "<< S.shape()[2]<<endl;
+            
             // now fill s-s-s element
             S[1][1][1] = value;
 
             // s-p-s elements
-            if (_lmax_alpha >= 0 && _lmax_gw >= 1 && _lmax_gamma >= 0) {
+            if (_lmax_gw >= 1 ) {
                 S[1][2][1] = gmc0 * S[1][1][1];
                 S[1][3][1] = gmc1 * S[1][1][1];
                 S[1][4][1] = gmc2 * S[1][1][1];
             }
 
             // s-d-s elements
-            if (_lmax_alpha >= 0 && _lmax_gw >= 2 && _lmax_gamma >= 0) {
+            if (_lmax_gw >= 2 ) {
                 S[1][8][1] = gmc0 * S[1][2][1] + fak * S[1][1][1];
                 S[1][5][1] = gmc1 * S[1][2][1];
                 S[1][6][1] = gmc2 * S[1][2][1];
@@ -189,14 +181,14 @@ namespace votca {
             }
 
             // p-s-s elements
-            if (_lmax_alpha >= 1 && _lmax_gw >= 0 && _lmax_gamma >= 0) {
+            if (_lmax_alpha >= 1) {
                 S[2][1][1] = gma0 * S[1][1][1];
                 S[3][1][1] = gma1 * S[1][1][1];
                 S[4][1][1] = gma2 * S[1][1][1];
             }
 
             // p-p-s elements
-            if (_lmax_alpha >= 1 && _lmax_gw >= 1 && _lmax_gamma >= 0) {
+            if (_lmax_alpha >= 1 && _lmax_gw >= 1) {
                 S[2][2][1] = gma0 * S[1][2][1] + fak * S[1][1][1];
                 S[3][2][1] = gma1 * S[1][2][1];
                 S[4][2][1] = gma2 * S[1][2][1];
@@ -209,7 +201,7 @@ namespace votca {
             }
 
             // p-d-s elements
-            if (_lmax_alpha >= 1 && _lmax_gw >= 2 && _lmax_gamma >= 0) {
+            if (_lmax_alpha >= 1 && _lmax_gw >= 2) {
                 S[2][5][1] = gma0 * S[1][5][1] + fak * S[1][3][1];
                 S[3][5][1] = gma1 * S[1][5][1] + fak * S[1][2][1];
                 S[4][5][1] = gma2 * S[1][5][1];
@@ -231,14 +223,14 @@ namespace votca {
             }
 
             // s-s-p elements
-            if (_lmax_alpha >= 0 && _lmax_gw >= 0 && _lmax_gamma >= 1) {
+            if ( _lmax_gamma >= 1) {
                 S[1][1][2] = gmb0 * S[1][1][1];
                 S[1][1][3] = gmb1 * S[1][1][1];
                 S[1][1][4] = gmb2 * S[1][1][1];
             }
 
             // s-p-p elements
-            if (_lmax_alpha >= 0 && _lmax_gw >= 1 && _lmax_gamma >= 1) {
+            if (_lmax_gw >= 1 && _lmax_gamma >= 1) {
                 S[1][2][2] = gmc0 * S[1][1][2] + fak * S[1][1][1];
                 S[1][3][2] = gmc1 * S[1][1][2];
                 S[1][4][2] = gmc2 * S[1][1][2];
@@ -251,7 +243,7 @@ namespace votca {
             }
 
             // s-d-p elements
-            if (_lmax_alpha >= 0 && _lmax_gw >= 2 && _lmax_gamma >= 1) {
+            if (_lmax_gw >= 2 && _lmax_gamma >= 1) {
                 S[1][8][2] = gmc0 * S[1][2][2] + fak * (S[1][1][2] + S[1][2][1]);
                 S[1][5][2] = gmc1 * S[1][2][2];
                 S[1][6][2] = gmc2 * S[1][2][2];
@@ -273,7 +265,7 @@ namespace votca {
             }
 
             // p-s-p elements
-            if (_lmax_alpha >= 1 && _lmax_gw >= 0 && _lmax_gamma >= 1) {
+            if (_lmax_alpha >= 1 && _lmax_gamma >= 1) {
                 S[2][1][2] = gma0 * S[1][1][2] + fak * S[1][1][1];
                 S[3][1][2] = gma1 * S[1][1][2];
                 S[4][1][2] = gma2 * S[1][1][2];
@@ -375,7 +367,7 @@ namespace votca {
             }
 
             // s-s-d elements
-            if (_lmax_alpha >= 0 && _lmax_gw >= 0 && _lmax_gamma >= 2) {
+            if (_lmax_gamma >= 2) {
                 S[1][1][8] = gmb0 * S[1][1][2] + fak * S[1][1][1];
                 S[1][1][5] = gmb1 * S[1][1][2];
                 S[1][1][6] = gmb2 * S[1][1][2];
@@ -385,7 +377,7 @@ namespace votca {
             }
 
             // s-p-d elements
-            if (_lmax_alpha >= 0 && _lmax_gw >= 1 && _lmax_gamma >= 2) {
+            if (_lmax_gw >= 1 && _lmax_gamma >= 2) {
                 S[1][2][5] = gmc0 * S[1][1][5] + fak * S[1][1][3];
                 S[1][3][5] = gmc1 * S[1][1][5] + fak * S[1][1][2];
                 S[1][4][5] = gmc2 * S[1][1][5];
@@ -407,7 +399,7 @@ namespace votca {
             }
 
             // s-d-d elements
-            if (_lmax_alpha >= 0 && _lmax_gw >= 2 && _lmax_gamma >= 2) {
+            if (_lmax_gw >= 2 && _lmax_gamma >= 2) {
                 S[1][8][5] = gmc0 * S[1][2][5] + fak * (S[1][1][5] + S[1][2][3]);
                 S[1][5][5] = gmc1 * S[1][2][5] + fak * S[1][2][2];
                 S[1][6][5] = gmc2 * S[1][2][5];
@@ -447,7 +439,7 @@ namespace votca {
             }
 
             // d-s-s elements
-            if (_lmax_alpha >= 2 && _lmax_gw >= 0 && _lmax_gamma >= 0) {
+            if (_lmax_alpha >= 2) {
                 S[8][1][1] = gma0 * S[2][1][1] + fak * S[1][1][1];
                 S[5][1][1] = gma1 * S[2][1][1];
                 S[6][1][1] = gma2 * S[2][1][1];
@@ -457,7 +449,7 @@ namespace votca {
             }
 
             // d-p-s elements
-            if (_lmax_alpha >= 2 && _lmax_gw >= 1 && _lmax_gamma >= 0) {
+            if (_lmax_alpha >= 2 && _lmax_gw >= 1) {
                 S[8][2][1] = gma0 * S[2][2][1] + fak * (S[1][2][1] + S[2][1][1]);
                 S[5][2][1] = gma1 * S[2][2][1];
                 S[6][2][1] = gma2 * S[2][2][1];
@@ -479,7 +471,7 @@ namespace votca {
             }
 
             // d-d-s elements
-            if (_lmax_alpha >= 2 && _lmax_gw >= 2 && _lmax_gamma >= 0) {
+            if (_lmax_alpha >= 2 && _lmax_gw >= 2) {
                 S[8][5][1] = gma0 * S[2][5][1] + fak * (S[1][5][1] + S[2][3][1]);
                 S[5][5][1] = gma1 * S[2][5][1] + fak * S[2][2][1];
                 S[6][5][1] = gma2 * S[2][5][1];
@@ -519,7 +511,7 @@ namespace votca {
             }
 
             // p-s-d elements
-            if (_lmax_alpha >= 1 && _lmax_gw >= 0 && _lmax_gamma >= 2) {
+            if (_lmax_alpha >= 1  && _lmax_gamma >= 2) {
                 S[2][1][5] = gma0 * S[1][1][5] + fak * S[1][1][3];
                 S[3][1][5] = gma1 * S[1][1][5] + fak * S[1][1][2];
                 S[4][1][5] = gma2 * S[1][1][5];
@@ -711,7 +703,7 @@ namespace votca {
             }
 
             // d-s-p elements
-            if (_lmax_alpha >= 2 && _lmax_gw >= 0 && _lmax_gamma >= 1) {
+            if (_lmax_alpha >= 2  && _lmax_gamma >= 1) {
                 S[8][1][2] = gma0 * S[2][1][2] + fak * (S[1][1][2] + S[2][1][1]);
                 S[5][1][2] = gma1 * S[2][1][2];
                 S[6][1][2] = gma2 * S[2][1][2];
@@ -903,7 +895,7 @@ namespace votca {
             }
 
             // d-s-d elements
-            if (_lmax_alpha >= 2 && _lmax_gw >= 0 && _lmax_gamma >= 2) {
+            if (_lmax_alpha >= 2  && _lmax_gamma >= 2) {
                 S[8][1][5] = gma0 * S[2][1][5] + fak * (S[1][1][5] + S[2][1][3]);
                 S[5][1][5] = gma1 * S[2][1][5] + fak * S[2][1][2];
                 S[6][1][5] = gma2 * S[2][1][5];
@@ -1275,7 +1267,7 @@ namespace votca {
             }
             
             // s-f-s elements
-             if ( _lmax_alpha >= 0 && _lmax_gw >= 3 && _lmax_gamma >= 0) {
+             if (  _lmax_gw >= 3) {
                 S[1][14][1] = gmc0*S[1][5][1] + fak * S[1][3][1];
                 S[1][15][1] = gmc1*S[1][5][1] + fak * S[1][2][1];
                 S[1][20][1] = gmc2*S[1][5][1];
@@ -1289,7 +1281,7 @@ namespace votca {
              }
 
             // s-f-p elements 
-             if ( _lmax_alpha >= 0 && _lmax_gw >= 3 && _lmax_gamma >= 1) {
+             if (_lmax_gw >= 3 && _lmax_gamma >= 1) {
                 S[1][14][2] = gmc0*S[1][5][2] + fak * (S[1][3][2] +S[1][5][1] );
                 S[1][15][2] = gmc1*S[1][5][2] + fak * S[1][2][2];
                 S[1][20][2] = gmc2*S[1][5][2];
@@ -1323,7 +1315,7 @@ namespace votca {
              }
 
             // p-f-s elements
-             if ( _lmax_alpha >= 1 && _lmax_gw >= 3 && _lmax_gamma >= 0) {
+             if ( _lmax_alpha >= 1 && _lmax_gw >= 3) {
                 S[2][11][1] = gma0*S[1][11][1] + fak3* S[1][8][1];
                 S[3][11][1] = gma1*S[1][11][1];
                 S[4][11][1] = gma2*S[1][11][1];
@@ -1357,7 +1349,7 @@ namespace votca {
              }
 
             // s-f-d elements
-             if ( _lmax_alpha >= 0 && _lmax_gw >= 3 && _lmax_gamma >= 2) {
+             if ( _lmax_gw >= 3 && _lmax_gamma >= 2) {
                 S[1][14][5] = gmc0*S[1][5][5] + fak * (S[1][3][5] +S[1][5][3] );
                 S[1][15][5] = gmc1*S[1][5][5] + fak * (S[1][2][5] +S[1][5][2] );
                 S[1][20][5] = gmc2*S[1][5][5];
@@ -1515,7 +1507,7 @@ namespace votca {
              }
 
             // d-f-s
-             if ( _lmax_alpha >= 2 && _lmax_gw >= 3 && _lmax_gamma >= 0) {
+             if ( _lmax_alpha >= 2 && _lmax_gw >= 3) {
                 S[8][11][1] = gma0*S[2][11][1] + fak * (S[1][11][1] +3.0*S[2][8][1] );
                 S[5][11][1] = gma1*S[2][11][1];
                 S[6][11][1] = gma2*S[2][11][1];
@@ -2341,54 +2333,53 @@ namespace votca {
             ub::matrix<double> _trafo_gamma = ub::zero_matrix<double>(_ntrafo_gamma, _ngamma);
 
             
-            std::vector<double> _contractions_alpha = (*italpha)->contraction;
-            std::vector<double> _contractions_gamma = (*itgamma)->contraction;
-            std::vector<double> _contractions_gw    = (*itgw)->contraction;
+            //std::vector<double> _contractions_alpha = (*italpha)->contraction;
+            //std::vector<double> _contractions_gamma = (*itgamma)->contraction;
+            //std::vector<double> _contractions_gw    = (*itgw)->contraction;
             
             // get transformation matrices
-            this->getTrafo(_trafo_gw, _lmax_gw, _decay_gw, _contractions_gw);
-            this->getTrafo(_trafo_alpha, _lmax_alpha, _decay_alpha, _contractions_alpha);
-            this->getTrafo(_trafo_gamma, _lmax_gamma, _decay_gamma, _contractions_gamma);
+            this->getTrafo(_trafo_gw, _lmax_gw, _decay_gw, (*itgw)->contraction);
+            this->getTrafo(_trafo_alpha, _lmax_alpha, _decay_alpha, (*italpha)->contraction);
+            this->getTrafo(_trafo_gamma, _lmax_gamma, _decay_gamma, (*itgamma)->contraction);
 
             // transform from unnormalized cartesians to normalized sphericals
             // container with indices starting at zero
-            ma_type S_sph;
-            S_sph.resize(extents[ _ntrafo_alpha ][ _ntrafo_gw ][ _ntrafo_gamma ]);
+            //ma_type S_sph;
+            //S_sph.resize(extents[range(_offset_alpha, _ntrafo_alpha) ][range(_offset_gw, _ntrafo_gw) ][range(_offset_gamma,_ntrafo_gamma )]);
+            double S_sph;
+            
+            for (int _i_alpha = _offset_alpha; _i_alpha < _ntrafo_alpha; _i_alpha++) {
+                int alpha=_i_alpha-_offset_alpha;
+                for (int _i_gw =  _offset_gw; _i_gw < _ntrafo_gw; _i_gw++) {
+                    int g_w=_i_gw-_offset_gw;
+                    for (int _i_gamma = _offset_gamma; _i_gamma < _ntrafo_gamma; _i_gamma++) {
 
-            for (int _i_gw = 0; _i_gw < _ntrafo_gw; _i_gw++) {
-                for (int _i_alpha = 0; _i_alpha < _ntrafo_alpha; _i_alpha++) {
-                    for (int _i_gamma = 0; _i_gamma < _ntrafo_gamma; _i_gamma++) {
-
-                        S_sph[ _i_alpha ][ _i_gw ][ _i_gamma ] = 0.0;
-
-                        for (int _i_gw_t = istart[ _i_gw ]; _i_gw_t <= istop[ _i_gw ]; _i_gw_t++) {
-                            for (int _i_alpha_t = istart[ _i_alpha ]; _i_alpha_t <= istop[ _i_alpha ]; _i_alpha_t++) {
+                        //S_sph[ _i_alpha ][  _i_gw ][ _i_gamma ] = 0.0;
+                        S_sph=0.0;
+                        
+                        for (int _i_alpha_t = istart[ _i_alpha ]; _i_alpha_t <= istop[ _i_alpha ]; _i_alpha_t++) {
+                            for (int _i_gw_t = istart[ _i_gw ]; _i_gw_t <= istop[ _i_gw ]; _i_gw_t++) {
                                 for (int _i_gamma_t = istart[ _i_gamma ]; _i_gamma_t <= istop[ _i_gamma ]; _i_gamma_t++) {
 
-                                    S_sph[ _i_alpha ][ _i_gw ][ _i_gamma ] += S[ _i_alpha_t + 1 ][ _i_gw_t + 1 ][ _i_gamma_t + 1]
+                                    //S_sph[_i_alpha ][ _i_gw ][  _i_gamma ] += S[ _i_alpha_t + 1 ][ _i_gw_t + 1 ][ _i_gamma_t + 1]
+                                    //        * _trafo_alpha(_i_alpha, _i_alpha_t) * _trafo_gw(_i_gw, _i_gw_t) * _trafo_gamma(_i_gamma, _i_gamma_t);
+                                    S_sph+= S[ _i_alpha_t + 1 ][ _i_gw_t + 1 ][ _i_gamma_t + 1]
                                             * _trafo_alpha(_i_alpha, _i_alpha_t) * _trafo_gw(_i_gw, _i_gw_t) * _trafo_gamma(_i_gamma, _i_gamma_t);
+
 
 
                                 }
                             }
                         }
+                        int _i_index = _shell_gamma->getNumFunc() * g_w + _i_gamma-_offset_gamma;
+
+                        _subvector(alpha, _i_index) += S_sph;//[ _i_alpha ][ _i_gw ][ _i_gamma ];
+                        
                     }
                 }
             }
 
-            // only store the parts, we need
-            for (int _i_gw = 0; _i_gw < _shell_gw->getNumFunc(); _i_gw++) {
-                for (int _i_alpha = 0; _i_alpha < _shell_alpha->getNumFunc(); _i_alpha++) {
-                    for (int _i_gamma = 0; _i_gamma < _shell_gamma->getNumFunc(); _i_gamma++) {
-
-
-                        int _i_index = _shell_gamma->getNumFunc() * _i_gw + _i_gamma;
-
-                        _subvector(_i_alpha, _i_index) += S_sph[ _offset_alpha + _i_alpha ][ _offset_gw + _i_gw ][ _offset_gamma + _i_gamma ];
-
-                    }
-                }
-            }
+          
 
                     }
                 }
@@ -2401,16 +2392,17 @@ namespace votca {
 
      
 
-        void TCrawMatrix::getTrafo(ub::matrix<double>& _trafo, int _lmax, const double& _decay,std::vector<double> contractions) {
+        void TCrawMatrix::getTrafo(ub::matrix<double>& _trafo, int _lmax, const double& _decay,std::vector<double>& contractions) {
         // s-functions
-        _trafo(0,0) = 1.0*contractions[0]; // s
+        _trafo(0,0) = contractions[0]; // s
        
         // p-functions
         if ( _lmax > 0 ){
             //cout << _trafo_row.size1() << ":" << _trafo_row.size2() << endl;
-            _trafo(1,1) = 2.0*sqrt(_decay)*contractions[1];
-            _trafo(2,2) = 2.0*sqrt(_decay)*contractions[1];
-            _trafo(3,3) = 2.0*sqrt(_decay)*contractions[1];
+            double decaysqrt=sqrt(_decay);
+            _trafo(1,1) = 2.0*decaysqrt*contractions[1];
+            _trafo(2,2) = 2.0*decaysqrt*contractions[1];
+            _trafo(3,3) = 2.0*decaysqrt*contractions[1];
         }
 
         // d-functions
@@ -2431,7 +2423,7 @@ namespace votca {
             _trafo(9,15) = -1.5 * _trafo(9,12);        // f1 (f??)
             _trafo(9,17) = _trafo(9,15);               // f1 (f??)
             
-            _trafo(10,16) = 4.0 * 2.0 * sqrt(2.0)/sqrt(5.0) * pow(_decay,1.5)*contractions[3]; // f2 (f??)
+            _trafo(10,16) = 4.0 * 2.0 * sqrt(2.0/5.0) * pow(_decay,1.5)*contractions[3]; // f2 (f??)
             _trafo(10,10) = -0.25 * _trafo(10,16);                             // f2 f(??)
             _trafo(10,14) = _trafo(10,10);                                     // f2 f(??)
             
@@ -2439,7 +2431,7 @@ namespace votca {
             _trafo(11,13) = -0.25 * _trafo(11,18);                             // f3 f(??)
             _trafo(11,11) = _trafo(11,13);                                     // f3 f(??)            
                    
-            _trafo(12,13) = 3.0 * 2.0 * sqrt(2.0)/sqrt(3.0) * pow(_decay,1.5)*contractions[3]; // f4 (f??)
+            _trafo(12,13) = 3.0 * 2.0 * sqrt(2.0/3.0) * pow(_decay,1.5)*contractions[3]; // f4 (f??)
             _trafo(12,11) = -_trafo(12,13)/3.0;                                // f4 (f??)
             
             _trafo(13,10) = -_trafo(12,11);                                    // f5 (f??)
@@ -2543,20 +2535,20 @@ namespace votca {
         }
 
         int TCrawMatrix::getBlockSize(int _lmax) {
-            int _block_size;
+            int _block_size=-1;
             if (_lmax == 0) {
                 _block_size = 1;
             } // s
-            if (_lmax == 1) {
+            else if (_lmax == 1) {
                 _block_size = 4;
             } // p
-            if (_lmax == 2) {
+            else if (_lmax == 2) {
                 _block_size = 10;
             } // d
-            if (_lmax == 3) {
+            else if (_lmax == 3) {
                 _block_size = 20;
             } // f
-            if (_lmax == 4) {
+            else if (_lmax == 4) {
                 _block_size = 35;
             } // g
 

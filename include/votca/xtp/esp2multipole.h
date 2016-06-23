@@ -36,7 +36,10 @@ class Esp2multipole
 public:
 
     Esp2multipole (Logger* log) {_log=log; }
-   ~Esp2multipole () { };
+   ~Esp2multipole () { 
+   
+   std::vector< QMAtom* >::iterator it;
+    for ( it = _Atomlist.begin(); it != _Atomlist.end(); ++it ) delete *it;};
 
     string Identify() { return "esp2multipole"; }
 
@@ -44,7 +47,7 @@ public:
     
    
     void Extractingcharges( Orbitals& _orbitals );
-    void WritetoFile(Orbitals& _orbitals,string _output_file,  string identifier="esp2multipole");
+    void WritetoFile(string _output_file,  string identifier="esp2multipole");
     string GetIdentifier();
 
 private:
@@ -66,6 +69,7 @@ private:
     bool        _use_ecp;
     bool        _do_svd;
     double      _conditionnumber;
+    vector< QMAtom* > _Atomlist;
     
     Logger*      _log;
     

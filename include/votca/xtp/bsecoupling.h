@@ -46,8 +46,8 @@ public:
     bool get_doSinglets(){ return _doSinglets;}
     bool get_doTriplets(){ return _doTriplets;}
     
-    ub::matrix<float> getJAB_singletstorage(){return JAB_singlet;}
-    ub::matrix<float> getJAB_tripletstorage(){return JAB_triplet;}
+    ub::matrix<real> getJAB_singletstorage(){return JAB_singlet;}
+    ub::matrix<real> getJAB_tripletstorage(){return JAB_triplet;}
     void addoutput(Property *_type_summary,Orbitals* _orbitalsA, 
                                Orbitals* _orbitalsB);
     
@@ -59,42 +59,45 @@ public:
     bool CalculateCouplings_OLD(   Orbitals* _orbitalsA, 
                                Orbitals* _orbitalsB, 
                                Orbitals* _orbitalsAB, 
-                               ub::matrix<float>* _JAB_singlet);  
+                               ub::matrix<real>* _JAB_singlet);  
     
     
 
      
-    float getSingletCouplingElement( int levelA, int levelB);
+    real getSingletCouplingElement( int levelA, int levelB);
     
-    float getTripletCouplingElement( int levelA, int levelB);
-    float getSingletDimerEnergy( int level);
-    float getTripletDimerEnergy( int level);
+    real getTripletCouplingElement( int levelA, int levelB);
+    real getSingletDimerEnergy( int level);
+    real getTripletDimerEnergy( int level);
     void setLogger( Logger* pLog ) { _pLog = pLog; }
     
 private:
     
     Logger *_pLog;
+  
     
-    void SQRTOverlap(ub::symmetric_matrix<double> &S, 
-                     ub::matrix<double> &Sm2);
+    bool ProjectExcitons(const ub::matrix<real>& _kap,const ub::matrix<real>& _kbp, 
+                         const ub::matrix<real>& ctAB,const ub::matrix<real>& ctBA, 
+                         const ub::matrix<real>& _bseA,const ub::matrix<real>& _bseB, 
+                         const ub::matrix<real>& _H, ub::matrix<real>& _J );
     
-    bool ProjectExcitons(const ub::matrix<float>& _kap,const ub::matrix<float>& _kbp, 
-                         const ub::matrix<float>& ctAB,const ub::matrix<float>& ctBA, 
-                         const ub::matrix<float>& _bseA,const ub::matrix<float>& _bseB, 
-                         const ub::matrix<float>& _H, ub::matrix<float>& _J );
-    
-    ub::matrix<float> JAB_singlet;
-    ub::matrix<float> JAB_triplet;
-    string _spintype;
+    ub::matrix<real> JAB_singlet;
+    ub::matrix<real> JAB_triplet;
+
     bool _doTriplets;
     bool _doSinglets;
+    bool _do_perturbation;
+    bool _do_full_diag;
     int _levA;
     int _levB;
     int _occA;
     int _unoccA;
     int _occB;
     int _unoccB;
+    int _FeA;
+    int _FeB;
     double      _degeneracy;
+    int         _openmp_threads;
     
     
 };

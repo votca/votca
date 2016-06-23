@@ -2,10 +2,10 @@
 #include <votca/xtp/espfit.h>
 #include <votca/xtp/aomatrix.h>
 #include <votca/tools/linalg.h>
-#include <boost/progress.hpp>
+//#include <boost/progress.hpp>
 #include <votca/xtp/numerical_integrations.h>
 #include <math.h> 
-
+#include <votca/tools/constants.h>
 
 using namespace votca::tools;
 
@@ -31,7 +31,8 @@ void Espfit::EvaluateAPECharges(Grid& _targetgrid, Grid& _chargepositions){
 
 void Espfit::FitAPECharges(Grid& _targetgrid_fg, Grid& _targetgrid_bg, Grid& _chargepositions, double& netcharge){
     //double A2Bohr=1.8897259886;
-     double Nm2Bohr=18.8972598860;
+   
+     double Nm2Bohr=tools::conv::nm2bohr;
      //double Nm2A=10.0;
      //double A2nm=0.1;
     double Int2Hartree=Nm2Bohr;
@@ -71,8 +72,8 @@ void Espfit::FitAPECharges(Grid& _targetgrid_fg, Grid& _targetgrid_bg, Grid& _ch
 
 void Espfit::Fit2Density(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis,BasisSet &bs,string gridsize) { 
    
-    double Nm2Bohr=18.8972598860;
-    double A2nm=0.1;
+
+    
     // setting up grid    
     Grid _grid;
     _grid.setAtomlist(&_atomlist);
@@ -115,11 +116,11 @@ void Espfit::Fit2Density(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &
     double netcharge=getNetcharge( _atomlist,N );   
         
     LOG(logDEBUG, *_log) << TimeStamp() << " Calculating ESP at CHELPG grid points"  << flush;     
-    boost::progress_display show_progress( _grid.getsize() );
+    //boost::progress_display show_progress( _grid.getsize() );
     #pragma omp parallel for
     for ( int i = 0 ; i < _grid.getsize(); i++){
-        _ESPatGrid(i)=numway.IntegratePotential(_grid.getGrid()[i]*Nm2Bohr);
-        ++show_progress;
+        _ESPatGrid(i)=numway.IntegratePotential(_grid.getGrid()[i]*tools::conv::nm2bohr);
+        //++show_progress;
     }
     
     LOG(logDEBUG, *_log) << TimeStamp() << " Electron contribution calculated"  << flush; 
@@ -132,9 +133,9 @@ void Espfit::Fit2Density(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &
     
     for ( unsigned j = 0; j < _atomlist.size(); j++){
        ub::vector<double> _pos(3);
-      _pos(0) = A2nm*_atomlist[j]->x;
-      _pos(1) = A2nm*_atomlist[j]->y;
-      _pos(2) = A2nm*_atomlist[j]->z;
+      _pos(0) = tools::conv::ang2nm*_atomlist[j]->x;
+      _pos(1) = tools::conv::ang2nm*_atomlist[j]->y;
+      _pos(2) = tools::conv::ang2nm*_atomlist[j]->z;
       _fitcenters.push_back(_pos);            
     }
   
@@ -150,8 +151,7 @@ void Espfit::Fit2Density(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &
 
 ub::vector<double> Espfit::EvalNuclearPotential(std::vector< QMAtom* >& _atoms, Grid _grid) {
     ub::vector<double> _NucPatGrid = ub::zero_vector<double>(_grid.getsize());
-    double Nm2Bohr = 18.8972598860;
-    double A2nm = 0.1;
+
     double Znuc=0.0;
     std::vector< ub::vector<double> >& _gridpoints = _grid.getGrid();
     LOG(logDEBUG, *_log) << TimeStamp() << " Calculating ESP of nuclei at CHELPG grid points" << flush;
@@ -162,15 +162,15 @@ ub::vector<double> Espfit::EvalNuclearPotential(std::vector< QMAtom* >& _atoms, 
         double z_k = _gridpoints[i](2);
         for (unsigned j = 0; j < _atoms.size(); j++) {
 
-            double x_j = A2nm * _atoms[j]->x;
-            double y_j = A2nm * _atoms[j]->y;
-            double z_j = A2nm * _atoms[j]->z;
+            double x_j = tools::conv::ang2nm * _atoms[j]->x;
+            double y_j = tools::conv::ang2nm * _atoms[j]->y;
+            double z_j = tools::conv::ang2nm * _atoms[j]->z;
             if (_ECP) {
                 Znuc = _elements.getNucCrgECP(_atoms[j]->type);
             } else {
                 Znuc = _elements.getNucCrg(_atoms[j]->type);
             }
-            double dist_j = sqrt((x_j - x_k)*(x_j - x_k) + (y_j - y_k)*(y_j - y_k) + (z_j - z_k)*(z_j - z_k)) * Nm2Bohr;
+            double dist_j = sqrt((x_j - x_k)*(x_j - x_k) + (y_j - y_k)*(y_j - y_k) + (z_j - z_k)*(z_j - z_k)) * tools::conv::nm2bohr;
             _NucPatGrid(i) += Znuc / dist_j;
         }
     
@@ -181,7 +181,7 @@ ub::vector<double> Espfit::EvalNuclearPotential(std::vector< QMAtom* >& _atoms, 
 double Espfit::getNetcharge( std::vector< QMAtom* >& _atoms, double N ){
     double netcharge=0.0;
     if( std::abs(N)<0.05){
-        LOG(logDEBUG, *_log) << "Number of Electrons is "<<N<< " transitiondensity is used for fit"  << flush;
+        //LOG(logDEBUG, *_log) << "Number of Electrons is "<<N<< " transitiondensity is used for fit"  << flush;
         _do_Transition=true;
     }
     else{
@@ -293,7 +293,6 @@ void Espfit::Fit2Density_analytic(std::vector< QMAtom* >& _atomlist, ub::matrix<
 
 std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >& _fitcenters, Grid& _grid, ub::vector<double>& _potential, double& _netcharge ){
     LOG(logDEBUG, *_log) << TimeStamp() << " Setting up Matrices for fitting of size "<< _fitcenters.size()+1 <<" x " << _fitcenters.size()+1<< flush;    
-    double Nm2Bohr=18.8972598860;
 
     std::vector< ub::vector<double> >& _gridpoints=_grid.getGrid();   
     //cout << "x " << _gridpoints[0](0)<< " y " << _gridpoints[0](1)<< " z " << _gridpoints[0](1);
@@ -304,14 +303,14 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >
     
     ub::matrix<double> _Amat = ub::zero_matrix<double>(_fitcenters.size()+1,_fitcenters.size()+1);
     ub::matrix<double> _Bvec = ub::zero_matrix<double>(_fitcenters.size()+1,1);
-    boost::progress_display show_progress( _fitcenters.size() );
+    //boost::progress_display show_progress( _fitcenters.size() );
     // setting up _Amat
     #pragma omp parallel for
     for ( unsigned _i =0 ; _i < _Amat.size1()-1; _i++){
         double x_i = _fitcenters[_i](0);
         double y_i = _fitcenters[_i](1);
         double z_i = _fitcenters[_i](2);
-        ++show_progress;
+        //++show_progress;
         for ( unsigned _j=_i; _j<_Amat.size2()-1; _j++){
             double x_j = _fitcenters[_j](0);
             double y_j = _fitcenters[_j](1);
@@ -322,8 +321,8 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >
                 double y_k = _gridpoints[_k](1);
                 double z_k = _gridpoints[_k](2);
                 
-                double dist_i = sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     )*Nm2Bohr;
-                double dist_j = sqrt( (x_j - x_k)*(x_j - x_k) +  (y_j - y_k)*(y_j - y_k) + (z_j - z_k)*(z_j - z_k)     )*Nm2Bohr;
+                double dist_i = sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     )*tools::conv::nm2bohr;
+                double dist_j = sqrt( (x_j - x_k)*(x_j - x_k) +  (y_j - y_k)*(y_j - y_k) + (z_j - z_k)*(z_j - z_k)     )*tools::conv::nm2bohr;
                 
                  _Amat(_i,_j) += 1.0/dist_i/dist_j;                 
             }
@@ -349,7 +348,7 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >
                 double y_k = _gridpoints[_k](1);
                 double z_k = _gridpoints[_k](2);
                 
-                double dist_i = sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     )*Nm2Bohr;                
+                double dist_i = sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     )*tools::conv::nm2bohr;                
                 _Bvec(_i,0) += _potential(_k)/dist_i;                
         }
        }
@@ -384,7 +383,7 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >
     double _sumcrg = 0.0;
     for ( unsigned _i =0 ; _i < _fitcenters.size(); _i++){
         
-        LOG(logDEBUG, *_log) << " Center " << _i << " FitCharge: " << _result[_i] << flush;
+        //LOG(logDEBUG, *_log) << " Center " << _i << " FitCharge: " << _result[_i] << flush;
         _sumcrg += _result[_i];       
     }
     
@@ -403,7 +402,7 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >
             double y_i = _fitcenters[_i](1);
             double z_i = _fitcenters[_i](2);
             
-            double dist =  sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     )*Nm2Bohr;
+            double dist =  sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     )*tools::conv::nm2bohr;
             temp += _result[_i]/dist;
         }
         _rmse += (_potential(_k) - temp)*(_potential(_k) - temp);

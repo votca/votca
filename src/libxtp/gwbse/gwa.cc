@@ -33,6 +33,7 @@
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <votca/tools/linalg.h>
 #include <votca/tools/constants.h>
+
 //#include "mathimf.h"
 
 using boost::format;
@@ -60,8 +61,8 @@ namespace votca {
 
             
             // sigma matrices can be freed
-            _sigma_x.resize(0,0);
-            _sigma_c.resize(0,0);
+            _sigma_x.resize(0);
+            _sigma_c.resize(0);
             
             
             if ( _do_qp_diag ){
@@ -84,27 +85,29 @@ namespace votca {
         void GWBSE::sigma_c_setup(const TCMatrix& _Mmn, const ub::vector<double>& _edft) {
 
             // iterative refinement of qp energies
-            int _max_iter = 5;
+            int _max_iter = 15;
             unsigned _levelsum = _Mmn[0].size2(); // total number of bands
             unsigned _gwsize = _Mmn[0].size1(); // size of the GW basis
             const double pi = boost::math::constants::pi<double>();
 
-
+            
             // initial _qp_energies are dft energies
             _qp_energies = _edft; // RANGES!
+            ub::vector<double>_qp_old=_qp_energies;
             double _DFTgap = _qp_energies(_homo + 1) - _qp_energies(_homo);
+            bool energies_converged=false;
 
 	    // only diagonal elements except for in final iteration
             for ( int _i_iter = 0 ; _i_iter < _max_iter-1 ; _i_iter++ ){
                 
 	      // initialize sigma_c to zero at the beginning of each iteration
-	      _sigma_c = ub::zero_matrix<double>(_qptotal,_qptotal);
-
+	      //_sigma_c = ub::zero_matrix<double>(_qptotal,_qptotal);
+              _sigma_c.resize(_qptotal);
 	      // loop over all GW levels
               #pragma omp parallel for
 	      for (unsigned _gw_level = 0; _gw_level < _qptotal ; _gw_level++ ){
-                  
-                const ub::matrix<double>& Mmn = _Mmn[ _gw_level + _qpmin ];
+                _sigma_c( _gw_level , _gw_level )=0;  
+                const ub::matrix<real>& Mmn = _Mmn[ _gw_level + _qpmin ];
               
 		// loop over all functions in GW basis
 		for ( unsigned _i_gw = 0; _i_gw < _gwsize ; _i_gw++ ){
@@ -120,7 +123,7 @@ namespace votca {
                     
 		    double _stab = 1.0;
 		    if ( std::abs(_denom) < 0.5 ) {
-		      _stab = 0.5 * ( 1.0 - cos(2.0 * pi * std::abs(_denom) ) );
+		      _stab = 0.5 * ( 1.0 - std::cos(2.0 * pi * std::abs(_denom) ) );
 		    }
                             
 		    double _factor = _ppm_weight( _i_gw ) * _ppm_freq( _i_gw) * _stab/_denom; // contains conversion factor 2!
@@ -134,16 +137,34 @@ namespace votca {
 		
 		// update _qp_energies
 		_qp_energies( _gw_level  + _qpmin) = _edft( _gw_level + _qpmin ) + _sigma_x(_gw_level, _gw_level) + _sigma_c(_gw_level,_gw_level) - _vxc(_gw_level  ,_gw_level );
-                    
+                
+                
 	     }// all bands
-           //   cout << " end of qp refinement step (diagonal) " << _i_iter << "\n" << endl;
+            //cout << " end of qp refinement step (diagonal) " << _i_iter << "\n" << endl;
+              _qp_old=_qp_old-_qp_energies;
+              energies_converged=true;
+              for( unsigned l=0;l<_qp_old.size();l++){
+                  if(std::abs(_qp_old(l))>_qp_limit){ 
+                      energies_converged=false;
+                      break;
+                  }
+              }
+            if (energies_converged){
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Converged after "<< _i_iter<< " qp_energy iterations." << flush;
+                break;
+            }
+            else{
+                _qp_old=_qp_energies;
+            }
+              
             } // iterations
 
              double _QPgap = _qp_energies( _homo +1 ) - _qp_energies( _homo  );
              double _shift_new = _QPgap - _DFTgap;
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " New shift [Ryd] : " << _shift_new << flush;
+             
+            LOG(logDEBUG, *_pLog) << TimeStamp() << (format(" New shift [Ryd] : %1$+1.6f ") % _shift_new ).str() << flush;
             //cout << " shift new " << _shift_new << endl;
-            if (std::abs((_shift_new - _shift)*tools::conv::ryd2ev) > 0.01) {
+            if (std::abs((_shift_new - _shift)) > _shift_limit) {
                 _shift = _shift_new;
             } else {
                 _shift_converged = true;
@@ -157,16 +178,23 @@ namespace votca {
             if (_shift_converged) {
                 // in final step, also calc offdiagonal elements
                 // initialize sigma_c to zero at the beginning
-                //_sigma_c = ub::zero_matrix<double>(_qptotal,_qptotal);
+                
+                
+             //this is not the fastest algorithm but faster ones throw igwbse off, so this is good enough.    
                 
             #pragma omp parallel for
 	    for (unsigned _gw_level = 0; _gw_level < _qptotal ; _gw_level++ ){
-              
-                const ub::matrix<double>& Mmn =  _Mmn[ _gw_level + _qpmin ];
+                  
+                const ub::matrix<real>& Mmn =  _Mmn[ _gw_level + _qpmin ];
+                for ( unsigned _m = 0 ; _m < _gw_level ; _m++) {
+                _sigma_c( _gw_level  , _m )=0;
+                const ub::matrix<real>& Mmn2 =  _Mmn[_m + _qpmin];
+                
+                
 
 		// loop over all functions in GW basis
 		 for ( unsigned _i_gw = 0; _i_gw < _gwsize ; _i_gw++ ){
-                    
+                     
 
 		  // loop over all screening levels
 		  for ( unsigned _i = 0; _i < _levelsum ; _i++ ){
@@ -179,22 +207,15 @@ namespace votca {
                     
 		    double _stab = 1.0;
 		     if ( std::abs(_denom) < 0.5 ) {
-		       _stab = 0.5 * ( 1.0 - cos(2.0 * pi * std::abs(_denom) ) );
+		       _stab = 0.5 * ( 1.0 - std::cos(2.0 * pi * std::abs(_denom) ) );
 		     }
                     
 		    double _factor = _ppm_weight( _i_gw ) * _ppm_freq( _i_gw) *   Mmn(_i_gw, _i) *_stab/_denom; // contains conversion factor 2!
 		    
-                    //double _crap = 0.0;
-		    // loop over row GW levels
-		   // for ( unsigned _m = 0 ; _m < _qptotal ; _m++) {
-                    for ( unsigned _m = 0 ; _m < _gw_level ; _m++) {
-                    
-                       // _crap += _factor *  _Mmn[_m + _qpmin](_i_gw, _i) ; 
-                        //if ( _m==_gw_level){
-                     //       continue;
-                       // }
-		    // sigma_c all elements
-                        _sigma_c( _gw_level  , _m ) += _factor * _Mmn[_m + _qpmin](_i_gw, _i);  //_submat(_i_gw,_i);
+                  
+                        
+                        _sigma_c( _gw_level  , _m ) += _factor*Mmn2(_i_gw, _i);  //_submat(_i_gw,_i);
+                     
 	                 
 		  }// screening levels 
 		}// GW functions 
@@ -204,11 +225,11 @@ namespace votca {
             } 
             
             
-            for (unsigned _gw_level = 0; _gw_level < _qptotal ; _gw_level++ ){
-                for ( unsigned _m = 0 ; _m < _gw_level ; _m++) {
-                _sigma_c( _m  , _gw_level )=_sigma_c( _gw_level  , _m );
-                }
-            }
+          // for (unsigned _gw_level = 0; _gw_level < _qptotal ; _gw_level++ ){
+           //     for ( unsigned _m = 0 ; _m < _gw_level ; _m++) {
+          //      _sigma_c( _m  , _gw_level )=_sigma_c( _gw_level  , _m );
+          //      }
+           // }
          return;
             } // sigma_c_setup
 
@@ -216,20 +237,20 @@ namespace votca {
         void GWBSE::sigma_x_setup(const TCMatrix& _Mmn){
         
             // initialize sigma_x
-            _sigma_x = ub::zero_matrix<double>(_qptotal,_qptotal);
+            _sigma_x.resize(_qptotal);
             int _size  = _Mmn[0].size1();
 
             // band 1 loop over all GW levels
             #pragma omp parallel for
             for ( unsigned _m1 = 0 ; _m1 < _qptotal ; _m1++ ){
                 
-                const ub::matrix<double>& M1mn =  _Mmn[ _m1 + _qpmin ];
+                const ub::matrix<real>& M1mn =  _Mmn[ _m1 + _qpmin ];
                 
                 // band 2 loop over all GW levels
                 //for ( int _m2 = _qpmin ; _m2 <= _qpmax ; _m2++ ){
-                for ( unsigned _m2 = 0 ; _m2 < _qptotal ; _m2++ ){
-                    
-                    const ub::matrix<double>& M2mn =  _Mmn[ _m2 + _qpmin ];
+                for ( unsigned _m2 = 0 ; _m2 <= _m1 ; _m2++ ){
+                    _sigma_x( _m1, _m2 )=0;
+                    const ub::matrix<real>& M2mn =  _Mmn[ _m2 + _qpmin ];
                     
                     // loop over all basis functions
                     for ( int _i_gw = 0 ; _i_gw < _size ; _i_gw++ ){
@@ -238,8 +259,11 @@ namespace votca {
                             _sigma_x( _m1, _m2 ) -= 2.0 * M1mn( _i_gw , _i_occ ) * M2mn( _i_gw , _i_occ );
                         } // occupied bands
                     } // gwbasis functions
+                       // _sigma_x(_m2,_m1)=_sigma_x( _m1, _m2 );
                 } // level 2
             } // level 1
+
+            
         
 	    // factor for hybrid DFT
 	    _sigma_x = ( 1.0 - _ScaHFX ) * _sigma_x;
@@ -260,8 +284,8 @@ namespace votca {
 	      // casting _Mmn to double for efficint prod() overload
 	      ub::matrix<double> _Mmn_double = _Mmn[_m_level];
 
-                //ub::matrix<float> _temp = ub::prod(  _ppm_phi , _Mmn[ _m_level ] );
-              ub::matrix<float> _temp = ub::prod(  _ppm_phi , _Mmn_double );
+                //ub::matrix<real> _temp = ub::prod(  _ppm_phi , _Mmn[ _m_level ] );
+              ub::matrix<real> _temp = ub::prod(  _ppm_phi , _Mmn_double );
                 _Mmn[ _m_level ] = _temp;
             }
         }        

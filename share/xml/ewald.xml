@@ -1,8 +1,6 @@
 <options>
 	<ewald> 
-		<jobcontrol>
 			<job_file>job.xml</job_file> 
-		</jobcontrol>
 		<multipoles>
 			<mapping>system.xml</mapping>
 			<mps_table>mps.tab</mps_table>

@@ -192,7 +192,7 @@ private:
     bool _isConverged;
 
     // GWBSE object
-    GWBSE _gwbse;
+    
     Property _gwbse_options;
     int      _state;
     std::string   _type;

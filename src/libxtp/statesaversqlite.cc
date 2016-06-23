@@ -233,29 +233,54 @@ void StateSaverSQLite::WriteSegTypes(bool update) {
 void StateSaverSQLite::WriteSegments(bool update) {
     cout << ", segments" << flush;
     Statement *stmt;
+    
+     // Find out whether pairs for this topology have already been created
+    stmt = _db.Prepare("SELECT id FROM segments WHERE top = ?;");
+    stmt->Bind(1, _qmtop->getDatabaseId());
+    if (stmt->Step() == SQLITE_DONE) {        
+        cout << " (create)" << flush;
+    }
+    else { 
+        cout << " (recreate)" << flush;        
+        stmt = _db.Prepare("DELETE FROM segments;");
+        stmt->Step();
+        delete stmt;
+        stmt = NULL;
+        stmt = _db.Prepare("UPDATE sqlite_sequence set seq = 0 where name='segments' ;");
+        stmt->Step();
+        
+    }
 
-    if (!update) {
-        stmt = _db.Prepare("INSERT INTO segments ("
-                            "frame, top, id,"
-                            "name, type, mol,"
-                            "posX, posY, posZ) "
-                            "VALUES ("
-                            "?,     ?,  ?,"
-                            "?,     ?,  ?,"
-                            "?,     ?,  ?)");
-    }
-    else {
-        stmt = _db.Prepare("UPDATE segments "
-                           "SET "
-                           "UnCnNe = ?, UnCnNh = ?, UcNcCe = ?,"
-                           "UcNcCh = ?, UcCnNe = ?, UcCnNh = ?,"
-                           "UnXnNs = ?, UnXnNt = ?, UxNxXs = ?,"
-                           "UxNxXt = ?, UxXnNs = ?, UxXnNt = ?,"
-                           "eAnion = ?, eNeutral = ?, eCation = ?, eSinglet = ?,eTriplet = ?,"
-                           "occPe = ?, occPh = ?,occPs = ?, occPt = ?,"
-                           "has_e = ?, has_h = ?, has_s = ?,has_t = ?"
-                           "WHERE top = ? AND id = ?");
-    }
+    delete stmt;
+    stmt = NULL;
+    
+    
+
+    
+    stmt = _db.Prepare("INSERT INTO segments ("
+                        "frame, top, id,"
+                        "name, type, mol,"
+                        "posX, posY, posZ, "
+                       "UnCnNe, UnCnNh, UcNcCe,"
+                       "UcNcCh, UcCnNe, UcCnNh,"
+                       "UnXnNs, UnXnNt, UxNxXs,"
+                       "UxNxXt, UxXnNs, UxXnNt,"
+                       "eAnion, eNeutral, eCation, eSinglet,eTriplet,"
+                       "occPe, occPh,occPs, occPt,"
+                       "has_e, has_h, has_s,has_t"
+                       ") VALUES ("
+                           "?, ?, ?, "
+                           "?, ?, ?, "
+                           "?, ?, ?, "
+                           "?, ?, ?, "
+                           "?, ?, ?, "
+                           "?, ?, ?, "
+                           "?, ?, ?, "
+                           "?, ?, ?, ?, ?, "
+                           "?, ?, ?, ?, "
+                           "?, ?, ?, ? "
+                           ")");
+
 
     std::vector < Segment* > ::iterator sit;
     for (sit = _qmtop->Segments().begin();
@@ -263,7 +288,7 @@ void StateSaverSQLite::WriteSegments(bool update) {
             sit++) {
         Segment *seg = *sit;
 
-        if (!update) {
+        
 
             stmt->Bind(1, _qmtop->getDatabaseId());
             stmt->Bind(2, seg->getTopology()->getDatabaseId());
@@ -274,45 +299,39 @@ void StateSaverSQLite::WriteSegments(bool update) {
             stmt->Bind(7, seg->getPos().getX());
             stmt->Bind(8, seg->getPos().getY());
             stmt->Bind(9, seg->getPos().getZ());
-        }
-
-        else {
-
+       
             int has_e = (seg->hasState(-1)) ? 1 : 0;
             int has_h = (seg->hasState(+1)) ? 1 : 0;
             int has_s = (seg->hasState(+2)) ? 1 : 0;
             int has_t = (seg->hasState(+3)) ? 1 : 0;
             
-            stmt->Bind(1, seg->getU_nC_nN(-1));
-            stmt->Bind(2, seg->getU_nC_nN(+1));
-            stmt->Bind(3, seg->getU_cN_cC(-1));
-            stmt->Bind(4, seg->getU_cN_cC(+1));
-            stmt->Bind(5, seg->getU_cC_nN(-1));
-            stmt->Bind(6, seg->getU_cC_nN(+1));            
-            stmt->Bind(7, seg->getU_nX_nN(+2));
-            stmt->Bind(8, seg->getU_nX_nN(+3));
-            stmt->Bind(9, seg->getU_xN_xX(+2));
-            stmt->Bind(10, seg->getU_xN_xX(+3));          
-            stmt->Bind(11, seg->getU_xX_nN(+2));
-            stmt->Bind(12, seg->getU_xX_nN(+3));
-            stmt->Bind(13, seg->getEMpoles(-1));
-            stmt->Bind(14, seg->getEMpoles(0));
-            stmt->Bind(15, seg->getEMpoles(1));
-            stmt->Bind(16, seg->getEMpoles(2));
-            stmt->Bind(17, seg->getEMpoles(3));
-            stmt->Bind(18,seg->getOcc(-1));
-            stmt->Bind(19,seg->getOcc(+1));
-            stmt->Bind(20,seg->getOcc(+2));
-            stmt->Bind(21,seg->getOcc(+3));
-            stmt->Bind(22,has_e);
-            stmt->Bind(23,has_h);
-            stmt->Bind(24,has_s);
-            stmt->Bind(25,has_t);
+            stmt->Bind(10, seg->getU_nC_nN(-1));
+            stmt->Bind(11, seg->getU_nC_nN(+1));
+            stmt->Bind(12, seg->getU_cN_cC(-1));
+            stmt->Bind(13, seg->getU_cN_cC(+1));
+            stmt->Bind(14, seg->getU_cC_nN(-1));
+            stmt->Bind(15, seg->getU_cC_nN(+1));            
+            stmt->Bind(16, seg->getU_nX_nN(+2));
+            stmt->Bind(17, seg->getU_nX_nN(+3));
+            stmt->Bind(18, seg->getU_xN_xX(+2));
+            stmt->Bind(19, seg->getU_xN_xX(+3));          
+            stmt->Bind(20, seg->getU_xX_nN(+2));
+            stmt->Bind(21, seg->getU_xX_nN(+3));
+            stmt->Bind(22, seg->getEMpoles(-1));
+            stmt->Bind(23, seg->getEMpoles(0));
+            stmt->Bind(24, seg->getEMpoles(1));
+            stmt->Bind(25, seg->getEMpoles(2));
+            stmt->Bind(26, seg->getEMpoles(3));
+            stmt->Bind(27,seg->getOcc(-1));
+            stmt->Bind(28,seg->getOcc(+1));
+            stmt->Bind(29,seg->getOcc(+2));
+            stmt->Bind(30,seg->getOcc(+3));
+            stmt->Bind(31,has_e);
+            stmt->Bind(32,has_h);
+            stmt->Bind(33,has_s);
+            stmt->Bind(34,has_t);
             //cout << seg->getU_nX_nN(+2) << seg->getU_xN_xX(+2) << endl;
-            stmt->Bind(26, _qmtop->getDatabaseId());
-            stmt->Bind(27, seg->getId());
-        }
-
+            
         stmt->InsertStep();
         stmt->Reset();
 
@@ -1058,7 +1077,7 @@ void StateSaverSQLite::ReadAtoms(int topId) {
 
 void StateSaverSQLite::ReadPairs(int topId) {
 
-    cout << ", pairs" << flush;
+    
 
     Statement *stmt = _db.Prepare("SELECT "
                                   "seg1, seg2,"
@@ -1072,10 +1091,16 @@ void StateSaverSQLite::ReadPairs(int topId) {
                                   "WHERE top = ?;");
 
     stmt->Bind(1, topId);
+    QMNBList & nblist=_qmtop->NBList();
+
+    
+    //QMNBList nblisttemp;
     
     while (stmt->Step() != SQLITE_DONE) {
+        
         int     s1  = stmt->Column<int>(0);
         int     s2  = stmt->Column<int>(1);
+        
         int     he  = stmt->Column<int>(2);
         int     hh  = stmt->Column<int>(3);
         int     hs  = stmt->Column<int>(4);
@@ -1098,9 +1123,9 @@ void StateSaverSQLite::ReadPairs(int topId) {
         double  jt  = stmt->Column<double>(21);
         int     tp  = stmt->Column<int>(22);
         
-        QMPair *newPair = _qmtop->NBList().Add(_qmtop->getSegment(s1),
-                                                _qmtop->getSegment(s2));
-
+        QMPair *newPair = nblist.Add(_qmtop->getSegment(s1),
+                                                _qmtop->getSegment(s2),false);
+        
         bool has_e = (he == 0) ? false : true;
         bool has_h = (hh == 0) ? false : true;
         bool has_s = (hs == 0) ? false : true;
@@ -1129,10 +1154,18 @@ void StateSaverSQLite::ReadPairs(int topId) {
         newPair->setJeff2(js, +2);
         newPair->setJeff2(jt, +3);
         newPair->setType(tp);
-
+        
+       
+        
+       
     }
+    cout << ", pairs" << flush;       
+    //cout<<nblist.size()<<endl;
+    
+    //cout <<"Read in _qmtop->NBList().size()<<endl;
     delete stmt;
     stmt = NULL;
+
 }
 
 

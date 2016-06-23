@@ -1,7 +1,7 @@
 <options>
 	<xqmultipole help="Electrostatic interaction and induction energy of charged molecular clusters" label="calc:xqmultipole">
-		<multipoles help="Polar-site mapping definition">system.xml</multipoles>
-		<control>
+		<mapping help="Polar-site mapping definition">system.xml</mapping>
+	
 			<job_file help="Job file">jobwriter.mps.single.xml</job_file>   
 			<emp_file help="Polar-background definition, allocation of mps-files to segments">jobwriter.mps.background.tab</emp_file>	
 			<pdb_check help="Whether or not to output a pdb-file of the mapped polar sites">1</pdb_check>      
@@ -9,7 +9,7 @@
 			<format_chk help="Format for check-file: 'xyz' or 'gaussian'">xyz</format_chk>   	<!-- 'gaussian' or 'xyz' -->
 			<split_dpl help="Split dipoles onto point charges in check-file">1</split_dpl>        <!-- '0' do not split dipoles onto point charges, '1' do split -->
 			<dpl_spacing help="Spacing between point charges for check-file output" unit="nm">1e-4</dpl_spacing>	<!-- Spacing a [nm] to be used when splitting dipole onto point charges: d = q * a -->
-		</control>
+
 		<coulombmethod>
 			<method help="Currently only cut-off supported">cut-off</method>
 			<cutoff1 help="Full-interaction radius cut-off" unit="nm">1.0</cutoff1>

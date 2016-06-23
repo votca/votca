@@ -49,7 +49,7 @@ namespace votca {
 
         
         void GWBSE::BSE_qp_setup(){
-            _eh_qp = ub::zero_matrix<float>( _bse_size , _bse_size );
+            _eh_qp = ub::zero_matrix<real>( _bse_size , _bse_size );
             
             
             BSE_Add_qp2H( _eh_qp );
@@ -62,13 +62,13 @@ namespace votca {
 
         void GWBSE::BSE_solve_triplets(){
             
-            ub::matrix<float> _bse =  -_eh_d;
+          
             
             // add full QP Hamiltonian contributions to free transitions
-            BSE_Add_qp2H( _bse );
+           
+            ub::matrix<real> _bse=_eh_d;
             
-            
-            linalg_eigenvalues( _bse, _bse_triplet_energies, _bse_triplet_coefficients, _bse_nmax);
+            linalg_eigenvalues(  _bse, _bse_triplet_energies, _bse_triplet_coefficients, _bse_nmax);
         }
         
         
@@ -81,22 +81,22 @@ namespace votca {
         
           // setup resonant (A) and RARC blocks (B)
 
-            ub::matrix<float> _A = -_eh_d + 2.0 * _eh_x;
+            ub::matrix<real> _A = _eh_d + 2.0 * _eh_x;
             BSE_Add_qp2H( _A );
 
             // add full QP Hamiltonian contributions to free transitions
             
           
-            ub::matrix<float> _B = -_eh_d2 + 2.0 * _eh_x;
+            ub::matrix<real> _B = _eh_d2 + 2.0 * _eh_x;
 
-            ub::matrix<float> _ApB = _A + _B;
-            ub::matrix<float> _AmB = _A - _B;
+            ub::matrix<real> _ApB = _A + _B;
+            ub::matrix<real> _AmB = _A - _B;
    
           // check for positive definiteness of A-B
-            ub::vector<float> _eigenvalues;
-            ub::matrix<float> _eigenvectors;
+            ub::vector<real> _eigenvalues;
+            ub::matrix<real> _eigenvectors;
             int dim = _AmB.size1();
-            ub::matrix<float> _test = _AmB;
+            ub::matrix<real> _test = _AmB;
             linalg_eigenvalues(_test, _eigenvalues, _eigenvectors, dim);
             
             for ( unsigned _i = 0; _i < _eigenvalues.size(); _i++ ) {
@@ -122,8 +122,8 @@ namespace votca {
             
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Removed L^T" << flush;
           // determine H = L^T(A-B)L
-          ub::matrix<float> _temp = ub::prod( _ApB , _AmB );
-          ub::matrix<float> _H = ub::prod( ub::trans(_AmB), _temp );
+          ub::matrix<real> _temp = ub::prod( _ApB , _AmB );
+          ub::matrix<real> _H = ub::prod( ub::trans(_AmB), _temp );
           _temp.resize(0,0);
           LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculated H = L^T(A-B)L " << flush;
           
@@ -141,28 +141,28 @@ namespace votca {
           //                               Y_l = 1/2 [sqrt(eps_l) (L^T)^-1 - 1/sqrt(eps_l)L ] R_l
 
           // determine inverse of L^T
-          ub::matrix<float> _cholesky_transposed_invert;
-          ub::matrix<float> _cholesky_transposed =ub::trans(_AmB);
+          ub::matrix<real> _cholesky_transposed_invert;
+          ub::matrix<real> _cholesky_transposed =ub::trans(_AmB);
           linalg_invert( _cholesky_transposed , _cholesky_transposed_invert );
           
-          ub::matrix<float> _X_evec(dim,dim);
-          ub::matrix<float> _Y_evec(dim,dim);
+          ub::matrix<real> _X_evec(dim,dim);
+          ub::matrix<real> _Y_evec(dim,dim);
           
           for ( int _i = 0; _i < dim; _i++) {
               
-              float sqrt_eval = sqrt(_eigenvalues(_i));
+              real sqrt_eval = sqrt(_eigenvalues(_i));
               // get l-th reduced EV
-              ub::matrix<float> _reduced_evec = ub::project(_eigenvectors,  ub::range(0, dim), ub::range(_i, _i + 1)); // potentially col<->row
+              ub::matrix<real> _reduced_evec = ub::project(_eigenvectors,  ub::range(0, dim), ub::range(_i, _i + 1)); // potentially col<->row
 
-              ub::matrix<float> _transform = 0.5*( sqrt_eval * _cholesky_transposed_invert + 1.0/sqrt_eval * _AmB  );
+              ub::matrix<real> _transform = 0.5*( sqrt_eval * _cholesky_transposed_invert + 1.0/sqrt_eval * _AmB  );
               ub::project( _X_evec, ub::range (0, dim ), ub::range ( _i, _i+1 ) ) = ub::prod(_transform,_reduced_evec);
               _transform = 0.5*( sqrt_eval * _cholesky_transposed_invert - 1.0/sqrt_eval * _AmB  );
               ub::project( _Y_evec, ub::range (0, dim ), ub::range ( _i, _i+1 ) ) = ub::prod(_transform,_reduced_evec);
               
              /* // check normalization:
-              ub::matrix<float> X = ub::project( _X_evec, ub::range (0, dim ), ub::range ( _i, _i+1 ) );
-              ub::matrix<float> Y = ub::project( _Y_evec, ub::range (0, dim ), ub::range ( _i, _i+1 ) );
-              ub::matrix<float> norm = ub::prod(ub::trans(X),X) - ub::prod(ub::trans(Y),Y);
+              ub::matrix<real> X = ub::project( _X_evec, ub::range (0, dim ), ub::range ( _i, _i+1 ) );
+              ub::matrix<real> Y = ub::project( _Y_evec, ub::range (0, dim ), ub::range ( _i, _i+1 ) );
+              ub::matrix<real> norm = ub::prod(ub::trans(X),X) - ub::prod(ub::trans(Y),Y);
               
               LOG(logDEBUG, *_pLog) << TimeStamp() << " Norm of Eigenvector: " << norm(0,0) << "[" << norm.size1() << ":" << norm.size2() <<  flush;  */
               
@@ -178,11 +178,11 @@ namespace votca {
               
               for ( int _j = 0; _j < dim; _j++) {
                    // check normalization:
-              ub::matrix<float> X1 = ub::project( _X_evec, ub::range (0, dim ), ub::range ( _i, _i+1 ) );
-              ub::matrix<float> X2 = ub::project( _X_evec, ub::range (0, dim ), ub::range ( _j, _j+1 ) );
-              ub::matrix<float> Y1 = ub::project( _Y_evec, ub::range (0, dim ), ub::range ( _i, _i+1 ) );
-              ub::matrix<float> Y2 = ub::project( _Y_evec, ub::range (0, dim ), ub::range ( _j, _j+1 ) );
-              ub::matrix<float> norm = ub::prod(ub::trans(X1),X2) - ub::prod(ub::trans(Y1),Y2);
+              ub::matrix<real> X1 = ub::project( _X_evec, ub::range (0, dim ), ub::range ( _i, _i+1 ) );
+              ub::matrix<real> X2 = ub::project( _X_evec, ub::range (0, dim ), ub::range ( _j, _j+1 ) );
+              ub::matrix<real> Y1 = ub::project( _Y_evec, ub::range (0, dim ), ub::range ( _i, _i+1 ) );
+              ub::matrix<real> Y2 = ub::project( _Y_evec, ub::range (0, dim ), ub::range ( _j, _j+1 ) );
+              ub::matrix<real> norm = ub::prod(ub::trans(X1),X2) - ub::prod(ub::trans(Y1),Y2);
               
               LOG(logDEBUG, *_pLog) << TimeStamp() << " Orthogonality: (" << _i << " : " << _j << ") = " <<  norm(0,0) <<  flush;  
                   
@@ -201,7 +201,7 @@ namespace votca {
       }
         
         
-      void GWBSE::BSE_Add_qp2H( ub::matrix<float>& qp ){
+      void GWBSE::BSE_Add_qp2H( ub::matrix<real>& qp ){
           
           
           #pragma omp parallel for
@@ -237,11 +237,11 @@ namespace votca {
         
       void GWBSE::BSE_solve_singlets(){
             
-            ub::matrix<float> _bse = -_eh_d + 2.0 * _eh_x;
+            ub::matrix<real> _bse = _eh_d + 2.0 * _eh_x;
 
 
             // add full QP Hamiltonian contributions to free transitions
-            BSE_Add_qp2H( _bse );
+           
             
             // _bse_singlet_energies.resize(_bse_singlet_coefficients.size1());
             linalg_eigenvalues(_bse, _bse_singlet_energies, _bse_singlet_coefficients, _bse_nmax);
@@ -257,10 +257,10 @@ namespace votca {
 
             // messy procedure, first get two matrices for occ and empty subbparts
             // store occs directly transposed
-            ub::matrix<float> _storage_v = ub::zero_matrix<float>(  _bse_vtotal * _bse_vtotal , _gwsize );
+            ub::matrix<real> _storage_v = ub::zero_matrix<real>(  _bse_vtotal * _bse_vtotal , _gwsize );
             #pragma omp parallel for
             for ( size_t _v1 = 0; _v1 < _bse_vtotal; _v1++){
-                const ub::matrix<float>& Mmn = _Mmn[_v1 + _bse_vmin ];
+                const ub::matrix<real>& Mmn = _Mmn[_v1 + _bse_vmin ];
                 for ( size_t _v2 = 0; _v2 < _bse_vtotal; _v2++){
                     size_t _index_vv = _bse_vtotal * _v1 + _v2;
                     for ( size_t _i_gw = 0 ; _i_gw < _gwsize ; _i_gw++) {
@@ -270,10 +270,10 @@ namespace votca {
             }
             
             
-            ub::matrix<float> _storage_c = ub::zero_matrix<float>( _gwsize, _bse_ctotal * _bse_ctotal );
+            ub::matrix<real> _storage_c = ub::zero_matrix<real>( _gwsize, _bse_ctotal * _bse_ctotal );
             #pragma omp parallel for
             for ( size_t _c1 = 0; _c1 < _bse_ctotal; _c1++){
-                const ub::matrix<float>& Mmn = _Mmn[_c1 + _bse_cmin];
+                const ub::matrix<real>& Mmn = _Mmn[_c1 + _bse_cmin];
                 for ( size_t _c2 = 0; _c2 < _bse_ctotal; _c2++){
                     size_t _index_cc = _bse_ctotal * _c1 + _c2;
                     for ( size_t _i_gw = 0 ; _i_gw < _gwsize ; _i_gw++) {
@@ -286,7 +286,7 @@ namespace votca {
             
             // store elements in a vtotal^2 x ctotal^2 matrix
             // cout << "BSE_d_setup 1 [" << _storage_v.size1() << "x" << _storage_v.size2() << "]\n" << std::flush;
-            ub::matrix<float> _storage_prod = ub::prod( _storage_v , _storage_c );
+            ub::matrix<real> _storage_prod = ub::prod( _storage_v , _storage_c );
             
             
             
@@ -311,9 +311,9 @@ namespace votca {
             _storage_v.resize(0,0);
             
             
-            // finally resort into _eh_d and multiply by to for Rydbergs
+            // finally resort into _eh_d and multiply by two for Rydbergs
             // can be limited to upper diagonal !
-            _eh_d = ub::zero_matrix<float>( _bse_size , _bse_size );
+            _eh_d = ub::zero_matrix<real>( _bse_size , _bse_size );
             #pragma omp parallel for
             for ( size_t _v1 = 0 ; _v1 < _bse_vtotal ; _v1++){
                 for ( size_t _v2 = 0 ; _v2 < _bse_vtotal ; _v2++){
@@ -327,7 +327,7 @@ namespace votca {
                             size_t _index_vc2 = _bse_ctotal * _v2 + _c2 ;
                             size_t _index_cc  = _bse_ctotal * _c1 + _c2;
 
-                            _eh_d( _index_vc1 , _index_vc2 ) = 2.0 * _storage_prod( _index_vv , _index_cc ); 
+                            _eh_d( _index_vc1 , _index_vc2 ) = -2.0 * _storage_prod( _index_vv , _index_cc ); 
 
                             
                         }
@@ -370,10 +370,10 @@ namespace votca {
 
             // messy procedure, first get two matrices for occ and empty subbparts
             // store occs directly transposed
-            ub::matrix<float> _storage_cv = ub::zero_matrix<float>(  _bse_vtotal * _bse_ctotal , _gwsize );
+            ub::matrix<real> _storage_cv = ub::zero_matrix<real>(  _bse_vtotal * _bse_ctotal , _gwsize );
             #pragma omp parallel for
             for ( size_t _c1 = 0; _c1 < _bse_ctotal; _c1++){
-                const ub::matrix<float>& Mmn = _Mmn[_c1 + _bse_cmin ];
+                const ub::matrix<real>& Mmn = _Mmn[_c1 + _bse_cmin ];
                 for ( size_t _v2 = 0; _v2 < _bse_vtotal; _v2++){
                     size_t _index_cv = _bse_vtotal * _c1 + _v2;
                     for ( size_t _i_gw = 0 ; _i_gw < _gwsize ; _i_gw++) {
@@ -387,10 +387,10 @@ namespace votca {
             
             
             
-            ub::matrix<float> _storage_vc = ub::zero_matrix<float>( _gwsize, _bse_vtotal * _bse_ctotal );
+            ub::matrix<real> _storage_vc = ub::zero_matrix<real>( _gwsize, _bse_vtotal * _bse_ctotal );
             #pragma omp parallel for
             for ( size_t _v1 = 0; _v1 < _bse_vtotal; _v1++){
-                const ub::matrix<float>& Mmn = _Mmn[_v1 + _bse_vmin];
+                const ub::matrix<real>& Mmn = _Mmn[_v1 + _bse_vmin];
                 for ( size_t _c2 = 0; _c2 < _bse_ctotal; _c2++){
                     size_t _index_vc = _bse_ctotal * _v1 + _c2;
                     for ( size_t _i_gw = 0 ; _i_gw < _gwsize ; _i_gw++) {
@@ -407,7 +407,7 @@ namespace votca {
             
             // store elements in a vtotal^2 x ctotal^2 matrix
             // cout << "BSE_d_setup 1 [" << _storage_v.size1() << "x" << _storage_v.size2() << "]\n" << std::flush;
-            ub::matrix<float> _storage_prod = ub::prod( _storage_cv , _storage_vc );
+            ub::matrix<real> _storage_prod = ub::prod( _storage_cv , _storage_vc );
             
            // cout << " ======= check 3 ========== PASSED" << endl;
             
@@ -435,9 +435,9 @@ namespace votca {
            // cout << " ==== check 4 ====== " << endl;
             
             
-            // finally resort into _eh_d and multiply by to for Rydbergs
+            // finally resort into _eh_d and multiply by two for Rydbergs
             // can be limited to upper diagonal !
-            _eh_d2 = ub::zero_matrix<float>( _bse_size , _bse_size );
+            _eh_d2 = ub::zero_matrix<real>( _bse_size , _bse_size );
             #pragma omp parallel for
             for ( size_t _v1 = 0 ; _v1 < _bse_vtotal ; _v1++){
                 for ( size_t _v2 = 0 ; _v2 < _bse_vtotal ; _v2++){
@@ -456,7 +456,7 @@ namespace votca {
                             
                             
                             
-                            _eh_d2( _index_v1c1 , _index_v2c2 ) = 2.0 * _storage_prod( _index_c1v2 , _index_v1c2 ); 
+                            _eh_d2( _index_v1c1 , _index_v2c2 ) = -2.0 * _storage_prod( _index_c1v2 , _index_v1c2 ); 
 
                             
                            
@@ -511,15 +511,16 @@ namespace votca {
             size_t _gwsize = _Mmn[_homo].size1();
             
             // get a different storage for 3-center integrals we need
-            ub::matrix<float> _storage = ub::zero_matrix<float>( _gwsize , _bse_size);
-
+            cout<< "Starting to set up "<< endl;
+            ub::matrix<real> _storage = ub::zero_matrix<real>( _gwsize , _bse_size);
+            cout<< "Storage set up"<< endl;
 
             
             // occupied levels
             #pragma omp parallel for
             for ( size_t _v = 0; _v < _bse_vtotal ; _v++ ){
                 // cout << " act threads: " << omp_get_thread_num( ) << " total threads " << omp_get_num_threads( ) << " max threads " << omp_get_max_threads( ) <<endl;
-                ub::matrix<float>& Mmn = _Mmn[_v + _bse_vmin];
+                ub::matrix<real>& Mmn = _Mmn[_v + _bse_vmin];
                 // empty levels
                 for (size_t _c =0 ; _c < _bse_ctotal ; _c++ ){
                     size_t _index_vc = _bse_ctotal * _v + _c ;
@@ -535,11 +536,11 @@ namespace votca {
 
             
             // with this storage, _eh_x is obtained by matrix multiplication
-            
+            cout<< "nearly there"<< endl;
 	    _eh_x = ub::prod( ub::trans( _storage ), _storage ); 
             _eh_x = 2.0 * _eh_x; // Rydberg
   
-            
+            cout<<"_eh_x set up"<<endl;
             
             
             

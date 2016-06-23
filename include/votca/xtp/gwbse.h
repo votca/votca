@@ -69,7 +69,17 @@ class GWBSE
 {
 public:
 
-    GWBSE() { };
+    GWBSE(Orbitals* orbitals):  _orbitals(orbitals),
+            _qp_diag_energies(orbitals->QPdiagEnergies()), 
+             _qp_diag_coefficients(orbitals->QPdiagCoefficients()),
+              _eh_x(orbitals->eh_x()),
+              _eh_d(orbitals->eh_d()),
+              _bse_singlet_energies(orbitals->BSESingletEnergies()),
+    _bse_singlet_coefficients(orbitals->BSESingletCoefficients()),
+       _bse_triplet_energies(orbitals->BSETripletEnergies()),
+    _bse_triplet_coefficients(orbitals->BSETripletCoefficients())
+   
+    {};
    ~GWBSE() { };
 
    
@@ -87,7 +97,7 @@ public:
     
     void setLogger( Logger* pLog ) { _pLog = pLog; }
     
-    bool Evaluate(   Orbitals* _orbitals );
+    bool Evaluate();
 
     // interfaces for options getting/setting
     bool get_do_qp_diag(){ return _do_qp_diag ;}
@@ -169,7 +179,7 @@ public:
     void set_fragA( int n ) { _fragA = n; }
     void set_fragB( int n ) { _fragB = n; }
     
-    void addoutput(Property *_summary,Orbitals* _orbitals);
+    void addoutput(Property *_summary);
     
     private:
 
@@ -237,6 +247,9 @@ public:
     double                              _bseminfactor;
     double                              _bsemaxfactor;
     double                              _ScaHFX; 
+    
+    double                              _qp_limit;  //convergence criteria for qp iteration [Ryd]]
+    double                              _shift_limit; //convergence criteria for shift iteration [Ryd]]
     unsigned int                        _bse_vmin;
     unsigned int                        _bse_vmax;
     unsigned int                        _bse_cmin;
@@ -249,15 +262,24 @@ public:
          
     double                              _shift;  // pre-shift of DFT energies
 
-    
+    Orbitals* _orbitals;
     // RPA related variables and functions
     // container for the epsilon matrix
     std::vector< ub::matrix<double> > _epsilon;
     // container for frequencies in screening (index 0: real part, index 1: imaginary part)
     ub::matrix<double> _screening_freq;
     void symmetrize_threecenters(TCMatrix& _Mmn, ub::matrix<double>& _coulomb);
-    void RPA_calculate_epsilon( TCMatrix& _Mmn_RPA , ub::matrix<double> _screening_freq , double _shift , ub::vector<double>& _dft_energies  );
-    void RPA_prepare_threecenters( TCMatrix& _Mmn_RPA, TCMatrix& _Mmn_full, AOBasis& gwbasis, AOMatrix& gwoverlap, AOMatrix& gwoverlap_inverse     );
+    void RPA_calculate_epsilon(const TCMatrix& _Mmn_RPA, const ub::matrix<double>& screening_freq,
+                const double& _shift, const ub::vector<double>& _dft_energies);
+    
+    void RPA_real(ub::matrix<double>& result,const TCMatrix& _Mmn_RPA,const double& _shift,
+        const ub::vector<double>& _dft_energies,const double& screening_freq);
+    
+    void RPA_imaginary(ub::matrix<double>& result,const TCMatrix& _Mmn_RPA, const double& _shift,
+        const ub::vector<double>& _dft_energies,const double& screening_freq);
+               
+    void RPA_prepare_threecenters(TCMatrix& _Mmn_RPA,const TCMatrix& _Mmn_full,AOBasis& gwbasis,
+            const AOMatrix& gwoverlap,const AOMatrix& gwoverlap_inverse );
 
     
     // PPM related variables and functions
@@ -268,8 +290,8 @@ public:
     void PPM_construct_parameters( ub::matrix<double>& _overlap_cholesky_inverse   );
     
     // Sigma related variables and functions
-    ub::matrix<double> _sigma_x; // exchange term
-    ub::matrix<double> _sigma_c; // correlation term
+    ub::symmetric_matrix<double> _sigma_x; // exchange term
+    ub::symmetric_matrix<double> _sigma_c; // correlation term
     
     void sigma_prepare_threecenters( TCMatrix& _Mmn );
     void sigma_x_setup(const TCMatrix& _Mmn );
@@ -278,8 +300,8 @@ public:
     // QP variables and functions
     ub::vector<double> _qp_energies;
     ub::matrix<double> _vxc;
-    ub::vector<double> _qp_diag_energies;     // those should be directly stored in 
-    ub::matrix<double> _qp_diag_coefficients; // orbitals object, once the interface is set
+    ub::vector<double>& _qp_diag_energies;     // stored in orbitals object 
+    ub::matrix<double>& _qp_diag_coefficients; // dito
     void FullQPHamiltonian();
     
     // BSE variables and functions
@@ -287,19 +309,19 @@ public:
     //ub::matrix<double> _eh_d;
     //ub::matrix<double> _eh_qp;
     
-    ub::matrix<float> _eh_x;
-    ub::matrix<float> _eh_d;
-    ub::matrix<float> _eh_d2;
-    ub::matrix<float> _eh_qp;
+    ub::matrix<real>& _eh_x;//stored in orbitals object
+    ub::matrix<real>& _eh_d;//stored in orbitals object
+    ub::matrix<real> _eh_d2;//because it is not stored in orbitals object
+    ub::matrix<real> _eh_qp;//not used right now
     
     // ub::vector<double> _bse_singlet_energies;
     // ub::matrix<double> _bse_singlet_coefficients;
     //ub::vector<double> _bse_triplet_energies;
     //ub::matrix<double> _bse_triplet_coefficients;
-    ub::vector<float> _bse_singlet_energies;
-    ub::matrix<float> _bse_singlet_coefficients;
-    ub::vector<float> _bse_triplet_energies;
-    ub::matrix<float> _bse_triplet_coefficients;
+    ub::vector<real>& _bse_singlet_energies;//stored in orbitals object
+    ub::matrix<real>& _bse_singlet_coefficients;//stored in orbitals object
+    ub::vector<real>& _bse_triplet_energies;//stored in orbitals object
+    ub::matrix<real>& _bse_triplet_coefficients;//stored in orbitals object
     
     std::vector< ub::matrix<double> > _interlevel_dipoles;
     std::vector< ub::matrix<double> > _interlevel_dipoles_electrical;
@@ -307,7 +329,7 @@ public:
     void BSE_d_setup( TCMatrix& _Mmn );
     void BSE_d2_setup( TCMatrix& _Mmn );
     void BSE_qp_setup( );
-    void BSE_Add_qp2H( ub::matrix<float>& qp );
+    void BSE_Add_qp2H( ub::matrix<real>& qp );
     void BSE_solve_triplets();
     void BSE_solve_singlets();
     void BSE_solve_singlets_BTDA();
