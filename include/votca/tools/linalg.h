@@ -185,8 +185,13 @@ namespace votca { namespace tools {
      * This function calculates the loewdin transformation of a matrix
      */
    double linalg_loewdin(ub::matrix<double> &J, ub::matrix<double> &S);
-
-
+/**
+     * \brief calculates matrix sqrt of a matrix
+     * @param matrix to calculate sqrt of S, return S1/2
+   
+     * This function calculates the sqrt of a matrix
+     */
+   int linalg_matrixsqrt(ub::matrix<double> &S);
 }}
 
 

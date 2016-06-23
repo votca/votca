@@ -106,5 +106,33 @@ double linalg_loewdin(ub::matrix<double> &J, ub::matrix<double> &S){
 }
 
 
+
+int linalg_matrixsqrt(ub::matrix<double> &S){
+    if (S.size1()!=S.size2()) {
+        cerr << " \nMatrix sqrt only works for quadratic matrices " << endl;
+        return -1;
+    }
+  
+    ub::vector<double> S_eigenvalues;
+    linalg_eigenvalues( S_eigenvalues, S);
+    if ( S_eigenvalues[0] < 0.0 ) {
+        cerr << " \n Negative eigenvalues in matrix_sqrt transformation " << endl;
+        return -1;
+    }
+
+    ub::matrix<double> _diagS = ub::zero_matrix<double>(J.size1(),J.size2() );
+     for ( unsigned _i =0; _i < J.size1() ; _i++){
+
+         _diagS(_i,_i) = sqrt(S_eigenvalues[_i]);
+     }
+    ub::matrix<double> _temp = ub::prod( _diagS, ub::trans(S));
+    S = ub::prod( S,_temp );
+    
+  
+    return 1;
+    
+}
+
+
 }}
 
