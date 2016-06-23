@@ -120,8 +120,8 @@ int linalg_matrixsqrt(ub::matrix<double> &S){
         return -1;
     }
 
-    ub::matrix<double> _diagS = ub::zero_matrix<double>(J.size1(),J.size2() );
-     for ( unsigned _i =0; _i < J.size1() ; _i++){
+    ub::matrix<double> _diagS = ub::zero_matrix<double>(S.size1(),S.size2() );
+     for ( unsigned _i =0; _i < S.size1() ; _i++){
 
          _diagS(_i,_i) = sqrt(S_eigenvalues[_i]);
      }
