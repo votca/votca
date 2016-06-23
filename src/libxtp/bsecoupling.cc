@@ -1181,6 +1181,8 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real>& _kap,const ub::matrix<
          LOG(logDEBUG, *_pLog) << "---------------------------------------"<<flush;
     LOG(logDEBUG, *_pLog) << "_J_ortho[Ryd]"<<flush;
     LOG(logDEBUG, *_pLog) << _J_dimer<<flush;
+    LOG(logDEBUG, *_pLog) << "_S-1/2"<<flush;
+    LOG(logDEBUG, *_pLog) << _S_dimer<<flush;
      LOG(logDEBUG, *_pLog) << "---------------------------------------"<<flush;
     }
      LOG(logDEBUG, *_pLog) << TimeStamp()  << "   Smallest value of dimer overlapmatrix is "<< small<< flush;
@@ -1188,10 +1190,10 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real>& _kap,const ub::matrix<
      //Diagonalize ct states
      
      if(_do_perturbation){
-    
-     if (_ct > 0) {
-
-                
+         bool _diag_ct=true;
+     if (_ct > 0 && _diag_ct) {
+        
+         
                 ub::matrix<double> transformation = ub::identity_matrix<double>(_bse_exc + _ct, _bse_exc + _ct);
                 ub::vector<double> eigenvalues_ct;
 
@@ -1240,7 +1242,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real>& _kap,const ub::matrix<
                                     LOG(logDEBUG, *_pLog) << TimeStamp() << "Energydifference between state B"<< stateB+1<< "and CT state "<< k+1<< " is "<< Eab-Ea<< "[Ryd]"<< flush;
 
                                 }
-                                J += _J_dimer(k, stateA) * _J_dimer(k, stateBd)*(1 / (Eab - Ea) + 1 / (Eab - Eb));
+                                J += 0.5*_J_dimer(k, stateA) * _J_dimer(k, stateBd)*(1 / (Ea - Eab) + 1 / (Eb - Eab));// Have no clue why 0.5
                             }
                             _J(stateA, stateBd) = J;
                             _J(stateBd, stateA) = J;
@@ -1254,7 +1256,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real>& _kap,const ub::matrix<
      
      else if(_do_full_diag){
      
-    
+         if(false){
      ub::vector<double> _J_eigenvalues;
    
   
@@ -1386,7 +1388,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real>& _kap,const ub::matrix<
      LOG(logDEBUG, *_pLog) << _J_small<<flush;
      }
      
-     
+          
      _J(stateA,stateBd)=_J_small(0,1);
      //_J(stateA,stateBd)=_J_small(0,0);
     // _J(stateBd,stateBd)=_J_small(1,1);
@@ -1397,6 +1399,17 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real>& _kap,const ub::matrix<
     
          }
      }
+         }
+         
+         for (int stateA=0;stateA<_levA; stateA++){
+          for (int stateB=0;stateB<_levB; stateB++){  
+                            int stateBd=stateB+_bseA_exc;
+
+         _J(stateA,stateBd)=_J_dimer(stateA,stateBd);
+     //_J(stateA,stateBd)=_J_small(0,0);
+    // _J(stateBd,stateBd)=_J_small(1,1);
+     _J(stateBd,stateA)=_J_dimer(stateBd,stateA);
+          }}
      }
        if(tools::globals::verbose){
      LOG(logDEBUG, *_pLog) << "---------------------------------------"<<flush;
