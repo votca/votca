@@ -90,12 +90,16 @@ private:
     std::string _cell;      //cell dimensions, check CPMD manual under "CELL"
     std::string _functional;//BLYP, B3LYP, HCTH, LDE, etc.
     std::string _rsrt_kwds; //what parts to reuse from previous run
+    std::string _pplib_path;//full path to the pseudopotential library of CPMD
     
-    /*
-    std::vector<std::string> _bsFileNames;          //basis set file names
-    std::vector<std::string> _ppFileNames;          //pseudopotential file names
-    std::vector<int> _element_Lmax;                 //max L of each element
-    */
+    BasisSet _bs;
+    //std::vector<std::string> _ppElementNames;       //element names
+    //std::vector<std::string> _ppFileNames;          //pseudopotential file names
+    std::map<std::string,std::string> _ppFileNames;   //pseudopotential file names indexed by element name
+    std::map<std::string,int> _nAtomsOfElement;       //number of atoms of element indexed by element name
+    //std::vector<int> _element_Lmax;               //max L of each element
+    
+    
     
 
     int NumberOfElectrons( std::string _line ); 

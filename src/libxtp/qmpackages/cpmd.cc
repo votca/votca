@@ -85,11 +85,22 @@ namespace votca {
             else _optWF=false;
 
 
-            //functional
+            //functional and pseudopotentials
             if (options->exists(key + ".functional")) {
-                _functional = options->get(key + ".functional").as<std::string> ();
+                if (!(options->exists(key + ".functional"))) throw std::runtime_error("Functional name missing");
+                _functional = options->get(key + ".functional.name").as<std::string> ();
+                
+                list<Property*>::iterator pit;
+                std::list<Property *> props = options->Select(key + ".functional.*");
+                for (pit = props.begin(); pit != props.end(); ++pit)
+                {
+                    Property* p= *pit;
+                    if(p->name().compare("name")!=0){ //not functional name, so must be element name
+                        _ppFileNames[p->name()]=p->as<std::string> ();
+                    }
+                }
             }
-            else throw std::runtime_error("No functional specified");
+            else throw std::runtime_error("No functional and pseudopotentials specified");
             
             //symmetry
             _symmetry=0;
@@ -223,7 +234,58 @@ namespace votca {
             
             //atoms
             _com_file << "\n&ATOMS\n";
-            #warning "TODO: put atomic coordinates into the input file"
+                //find how many atoms of each element there are
+            list<std::string> elements;
+            for (sit = segments.begin(); sit != segments.end(); ++sit) {
+
+                _atoms = (*sit)-> Atoms();
+
+                for (ait = _atoms.begin(); ait < _atoms.end(); ait++) {
+
+                    std::string element_name = (*ait)->getElement();
+                    list<std::string>::iterator ite;
+                    ite = find(elements.begin(), elements.end(), element_name);
+                    if (ite == elements.end()) {            //this is the first atom of this element encountered
+                        elements.push_back(element_name);
+                        _nAtomsOfElement[element_name]=1;
+                    }
+                    else
+                    {
+                        _nAtomsOfElement[element_name]++;
+                    }
+                }
+            }
+                //now loop over elements and store all atoms of that element
+            list<std::string>::iterator ite;
+            for (ite = elements.begin(); ite != elements.end(); ite++) {
+                if(_ppFileNames.find(*ite)==_ppFileNames.end()) {
+                    cerr << "Error: Element "<<(*ite)<<" has not pseudopotential specified in CPMD options file.\n" << flush;
+                    throw std::runtime_error("Encountered element with no pseudopotential");
+                }
+                else{
+                    _com_file << "*" << _ppFileNames[(*ite)] << endl; //store name of the pseudopotential file and it's read options
+                    int Lmax = _bs.getElement(*ite)->getLmax();
+                    _com_file << "   "<<Lmax<<" "<<Lmax<<" "<<Lmax<< endl; //LMAX LOC SKIP
+                    _com_file << "   "<< _nAtomsOfElement[(*ite)] <<endl;  //# atoms of element
+                    
+                    //store atomic positions
+                    for (sit = segments.begin(); sit != segments.end(); ++sit) {
+                        _atoms = (*sit)-> Atoms();
+                        for (ait = _atoms.begin(); ait < _atoms.end(); ait++) {
+                            if((*ait)->getElement().compare(*ite)==0){     //this element
+                                vec pos = (*ait)->getQMPos();
+                                _com_file << "   ";
+                                _com_file << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getX() << "   ";
+                                _com_file << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getY() << "   ";
+                                _com_file << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getZ() << "   ";
+                                _com_file << endl;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            #warning "TODO: copy pseudopotentials to the _run_dir"
             _com_file << "&END" << endl;
             
             
@@ -244,9 +306,9 @@ namespace votca {
             std::vector< Atom* > ::iterator ait;
             std::vector< Segment* >::iterator sit;
             list<std::string> elements;
-            BasisSet bs;
+            //BasisSet bs;
 
-            bs.LoadBasisSet(_basisset_name);
+            _bs.LoadBasisSet(_basisset_name);
             LOG(logDEBUG, *_pLog) << "Loaded Basis Set " << _basisset_name << flush;
 
             for (sit = segments.begin(); sit != segments.end(); ++sit) {
@@ -264,7 +326,7 @@ namespace votca {
                     if (ite == elements.end()) {
                         elements.push_back(element_name);
 
-                        Element* element = bs.getElement(element_name);
+                        Element* element = _bs.getElement(element_name);
                         
                         std::string _short_el_file_name = element_name + "_" + _basisset_name + ".basis";
                         std::string _el_file_name = _run_dir + "/" + _short_el_file_name;

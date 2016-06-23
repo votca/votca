@@ -12,8 +12,13 @@
   <projectwf>1</projectwf>
   <popanalysis>1</popanalysis>
   <getmatrices>1</getmatrices>
-  <functional>HCTH</functional>
   <symmetry>0</symmetry>
   <cell>20.0   1.0   1.0  0.0  0.0  0.0</cell>
+  
+  <functional>
+    <name>HCTH</name>
+    <O>O_MT_HCTH.psp KLEINMAN-BYLANDER</O>
+    <H>H_CVB_HCTH.psp</H>
+  </functional>
   
 </package>
